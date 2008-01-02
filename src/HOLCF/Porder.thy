@@ -56,11 +56,31 @@ lemmas HOLCF_trans_rules [trans] =
   sq_ord_less_eq_trans
   sq_ord_eq_less_trans
 
-subsection {* Least upper bounds *}
+subsection {* Upper bounds *}
 
 definition
   is_ub :: "['a set, 'a::po] \<Rightarrow> bool"  (infixl "<|" 55)  where
   "(S <| x) = (\<forall>y. y \<in> S \<longrightarrow> y \<sqsubseteq> x)"
+
+lemma is_ubI: "(\<And>x. x \<in> S \<Longrightarrow> x \<sqsubseteq> u) \<Longrightarrow> S <| u"
+by (simp add: is_ub_def)
+
+lemma is_ubD: "\<lbrakk>S <| u; x \<in> S\<rbrakk> \<Longrightarrow> x \<sqsubseteq> u"
+by (simp add: is_ub_def)
+
+lemma ub_imageI: "(\<And>x. x \<in> S \<Longrightarrow> f x \<sqsubseteq> u) \<Longrightarrow> (\<lambda>x. f x) ` S <| u"
+unfolding is_ub_def by fast
+
+lemma ub_imageD: "\<lbrakk>f ` S <| u; x \<in> S\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> u"
+unfolding is_ub_def by fast
+
+lemma ub_rangeI: "(\<And>i. S i \<sqsubseteq> x) \<Longrightarrow> range S <| x"
+unfolding is_ub_def by fast
+
+lemma ub_rangeD: "range S <| x \<Longrightarrow> S i \<sqsubseteq> x"
+unfolding is_ub_def by fast
+
+subsection {* Least upper bounds *}
 
 definition
   is_lub :: "['a set, 'a::po] \<Rightarrow> bool"  (infixl "<<|" 55)  where
@@ -70,13 +90,21 @@ definition
   lub :: "'a set \<Rightarrow> 'a::po" where
   "lub S = (THE x. S <<| x)"
 
+syntax
+  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" ("(3LUB _:_./ _)" [0,0, 10] 10)
+
+syntax (xsymbols)
+  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" ("(3\<Squnion>_\<in>_./ _)" [0,0, 10] 10)
+
+translations
+  "LUB x:A. t" == "CONST lub ((%x. t) ` A)"
+
 abbreviation
   Lub  (binder "LUB " 10) where
   "LUB n. t n == lub (range t)"
 
 notation (xsymbols)
   Lub  (binder "\<Squnion> " 10)
-
 
 text {* lubs are unique *}
 
@@ -145,12 +173,6 @@ apply (erule chainE)
 done
 
 text {* technical lemmas about (least) upper bounds of chains *}
-
-lemma ub_rangeD: "range S <| x \<Longrightarrow> S i \<sqsubseteq> x"
-by (unfold is_ub_def, simp)
-
-lemma ub_rangeI: "(\<And>i. S i \<sqsubseteq> x) \<Longrightarrow> range S <| x"
-by (unfold is_ub_def, fast)
 
 lemma is_ub_lub: "range S <<| x \<Longrightarrow> S i \<sqsubseteq> x"
 by (rule is_lubD1 [THEN ub_rangeD])
