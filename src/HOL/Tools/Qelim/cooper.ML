@@ -71,7 +71,7 @@ fun whatis x ct =
   Const("op &",_)$_$_ => And (Thm.dest_binop ct)
 | Const ("op |",_)$_$_ => Or (Thm.dest_binop ct)
 | Const ("op =",ty)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
-| Const("Not",_) $ (Const ("op =",_)$y$_) => 
+| Const (@{const_name Not},_) $ (Const ("op =",_)$y$_) => 
   if term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
 | Const (@{const_name HOL.less}, _) $ y$ z =>
    if term_of x aconv y then Lt (Thm.dest_arg ct) 
@@ -81,7 +81,7 @@ fun whatis x ct =
    else if term_of x aconv z then Ge (Thm.dest_arg1 ct) else Nox
 | Const (@{const_name Divides.dvd},_)$_$(Const(@{const_name "HOL.plus"},_)$y$_) =>
    if term_of x aconv y then Dvd (Thm.dest_binop ct ||> Thm.dest_arg) else Nox 
-| Const("Not",_) $ (Const (@{const_name Divides.dvd},_)$_$(Const(@{const_name "HOL.plus"},_)$y$_)) =>
+| Const (@{const_name Not},_) $ (Const (@{const_name Divides.dvd},_)$_$(Const(@{const_name "HOL.plus"},_)$y$_)) =>
    if term_of x aconv y then 
    NDvd (Thm.dest_binop (Thm.dest_arg ct) ||> Thm.dest_arg) else Nox 
 | _ => Nox)
@@ -173,59 +173,55 @@ fun decomp_minf x dvd inS [bseteq,bsetneq,bsetlt, bsetle, bsetgt,
     (* Canonical linear form for terms, formulae etc.. *)
 fun provelin ctxt t = Goal.prove ctxt [] [] t 
   (fn _ => EVERY [simp_tac lin_ss 1, TRY (simple_arith_tac ctxt 1)]);
-fun linear_cmul 0 tm =  zero 
-  | linear_cmul n tm = 
-    case tm of  
-      Const("HOL.plus_class.plus",_)$a$b => addC$(linear_cmul n a)$(linear_cmul n b)
-    | Const ("HOL.times_class.times",_)$c$x => mulC$(numeral1 (fn m => n * m) c)$x
-    | Const("HOL.minus_class.minus",_)$a$b => subC$(linear_cmul n a)$(linear_cmul n b)
-    | (m as Const("HOL.minus_class.uminus",_))$a => m$(linear_cmul n a)
-    | _ =>  numeral1 (fn m => n * m) tm;
+fun linear_cmul 0 tm = zero 
+  | linear_cmul n tm = case tm of  
+      Const (@{const_name HOL.plus}, _) $ a $ b => addC $ linear_cmul n a $ linear_cmul n b
+    | Const (@{const_name HOL.times}, _) $ c $ x => mulC $ numeral1 (fn m => n * m) c $ x
+    | Const (@{const_name HOL.minus}, _) $ a $ b => subC $ linear_cmul n a $ linear_cmul n b
+    | (m as Const (@{const_name HOL.uminus}, _)) $ a => m $ linear_cmul n a
+    | _ => numeral1 (fn m => n * m) tm;
 fun earlier [] x y = false 
 	| earlier (h::t) x y = 
     if h aconv y then false else if h aconv x then true else earlier t x y; 
 
-fun linear_add vars tm1 tm2 = 
- case (tm1,tm2) of 
-	 (Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c1$x1)$r1,
-    Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c2$x2)$r2) => 
+fun linear_add vars tm1 tm2 = case (tm1, tm2) of 
+    (Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c1 $ x1) $ r1,
+    Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c2 $ x2) $ r2) =>
    if x1 = x2 then 
      let val c = numeral2 (curry op +) c1 c2
-	   in if c = zero then linear_add vars r1  r2  
-	      else addC$(mulC$c$x1)$(linear_add vars  r1 r2)
+      in if c = zero then linear_add vars r1 r2
+         else addC$(mulC$c$x1)$(linear_add vars r1 r2)
      end 
-	 else if earlier vars x1 x2 then addC$(mulC$ c1 $ x1)$(linear_add vars r1 tm2)
-   else addC$(mulC$c2$x2)$(linear_add vars tm1 r2)
- | (Const("HOL.plus_class.plus",_) $ (Const("HOL.times_class.times",_)$c1$x1)$r1 ,_) => 
-    	  addC$(mulC$c1$x1)$(linear_add vars r1 tm2)
- | (_, Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c2$x2)$r2) => 
-      	  addC$(mulC$c2$x2)$(linear_add vars tm1 r2) 
- | (_,_) => numeral2 (curry op +) tm1 tm2;
+     else if earlier vars x1 x2 then addC $ (mulC $ c1 $ x1) $ linear_add vars r1 tm2
+   else addC $ (mulC $ c2 $ x2) $ linear_add vars tm1 r2
+ | (Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c1 $ x1) $ r1, _) =>
+      addC $ (mulC $ c1 $ x1) $ linear_add vars r1 tm2
+ | (_, Const (@{const_name HOL.plus}, _) $ (Const (@{const_name HOL.times}, _) $ c2 $ x2) $ r2) => 
+      addC $ (mulC $ c2 $ x2) $ linear_add vars tm1 r2
+ | (_, _) => numeral2 (curry op +) tm1 tm2;
  
 fun linear_neg tm = linear_cmul ~1 tm; 
 fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2); 
 
 
-fun lint vars tm = 
-if is_numeral tm then tm 
-else case tm of 
- Const("HOL.minus_class.uminus",_)$t => linear_neg (lint vars t)
-| Const("HOL.plus_class.plus",_) $ s $ t => linear_add vars (lint vars s) (lint vars t) 
-| Const("HOL.minus_class.minus",_) $ s $ t => linear_sub vars (lint vars s) (lint vars t)
-| Const ("HOL.times_class.times",_) $ s $ t => 
+fun lint vars tm =  if is_numeral tm then tm  else case tm of 
+  Const (@{const_name HOL.uminus}, _) $ t => linear_neg (lint vars t)
+| Const (@{const_name HOL.plus}, _) $ s $ t => linear_add vars (lint vars s) (lint vars t)
+| Const (@{const_name HOL.minus}, _) $ s $ t => linear_sub vars (lint vars s) (lint vars t)
+| Const (@{const_name HOL.times}, _) $ s $ t =>
   let val s' = lint vars s  
       val t' = lint vars t  
   in if is_numeral s' then (linear_cmul (dest_numeral s') t') 
      else if is_numeral t' then (linear_cmul (dest_numeral t') s') 
      else raise COOPER ("Cooper Failed", TERM ("lint: not linear",[tm]))
   end 
- | _ => addC$(mulC$one$tm)$zero;
+ | _ => addC $ (mulC $ one $ tm) $ zero;
 
-fun lin (vs as x::_) (Const("Not", _) $ (Const (@{const_name HOL.less}, T) $ s $ t)) = 
-    lin vs (Const(@{const_name HOL.less_eq}, T) $ t $ s)
-  | lin (vs as x::_) (Const("Not",_) $ (Const(@{const_name HOL.less_eq}, T) $ s $ t)) = 
-    lin vs (Const(@{const_name HOL.less}, T) $ t $ s)
-  | lin vs (Const ("Not",T)$t) = Const ("Not",T)$ (lin vs t)
+fun lin (vs as x::_) (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.less}, T) $ s $ t)) = 
+    lin vs (Const (@{const_name HOL.less_eq}, T) $ t $ s)
+  | lin (vs as x::_) (Const (@{const_name Not},_) $ (Const(@{const_name HOL.less_eq}, T) $ s $ t)) = 
+    lin vs (Const (@{const_name HOL.less}, T) $ t $ s)
+  | lin vs (Const (@{const_name Not},T)$t) = Const (@{const_name Not},T)$ (lin vs t)
   | lin (vs as x::_) (Const(@{const_name Divides.dvd},_)$d$t) = 
     HOLogic.mk_binrel @{const_name Divides.dvd} (numeral1 abs d, lint vs t)
   | lin (vs as x::_) ((b as Const("op =",_))$s$t) = 
@@ -254,8 +250,7 @@ fun is_intrel (b$_$_) = domain_type (fastype_of b) = HOLogic.intT
   | is_intrel (@{term "Not"}$(b$_$_)) = domain_type (fastype_of b) = HOLogic.intT
   | is_intrel _ = false;
  
-fun linearize_conv ctxt vs ct =  
- case (term_of ct) of 
+fun linearize_conv ctxt vs ct = case term_of ct of
   Const(@{const_name Divides.dvd},_)$d$t => 
   let 
     val th = binop_conv (lint_conv ctxt vs) ct
@@ -273,7 +268,7 @@ fun linearize_conv ctxt vs ct =
       val d'' = Thm.rhs_of dth |> Thm.dest_arg1
      in
       case tt' of 
-        Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c$_)$_ => 
+        Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$_)$_ => 
         let val x = dest_numeral c
         in if x < 0 then Conv.fconv_rule (arg_conv (arg_conv (lint_conv ctxt vs)))
                                        (Thm.transitive dth (inst' [d'',t'] dvd_uminus'))
@@ -281,7 +276,7 @@ fun linearize_conv ctxt vs ct =
       | _ => dth
      end
   end
-| Const("Not",_)$(Const(@{const_name Divides.dvd},_)$_$_) => arg_conv (linearize_conv ctxt vs) ct
+| Const (@{const_name Not},_)$(Const(@{const_name Divides.dvd},_)$_$_) => arg_conv (linearize_conv ctxt vs) ct
 | t => if is_intrel t 
       then (provelin ctxt ((HOLogic.eq_const bT)$t$(lin vs t) |> HOLogic.mk_Trueprop))
        RS eq_reflection
@@ -296,19 +291,19 @@ fun unify ctxt q =
   val ins = insert (op = : int * int -> bool)
   fun h (acc,dacc) t = 
    case (term_of t) of
-    Const(s,_)$(Const("HOL.times_class.times",_)$c$y)$ _ => 
+    Const(s,_)$(Const(@{const_name HOL.times},_)$c$y)$ _ => 
     if x aconv y andalso member (op =)
       ["op =", @{const_name HOL.less}, @{const_name HOL.less_eq}] s
     then (ins (dest_numeral c) acc,dacc) else (acc,dacc)
-  | Const(s,_)$_$(Const("HOL.times_class.times",_)$c$y) => 
+  | Const(s,_)$_$(Const(@{const_name HOL.times},_)$c$y) => 
     if x aconv y andalso member (op =)
        [@{const_name HOL.less}, @{const_name HOL.less_eq}] s 
     then (ins (dest_numeral c) acc, dacc) else (acc,dacc)
-  | Const(@{const_name Divides.dvd},_)$_$(Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c$y)$_) => 
+  | Const(@{const_name Divides.dvd},_)$_$(Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$y)$_) => 
     if x aconv y then (acc,ins (dest_numeral c) dacc) else (acc,dacc)
   | Const("op &",_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
   | Const("op |",_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
-  | Const("Not",_)$_ => h (acc,dacc) (Thm.dest_arg t)
+  | Const (@{const_name Not},_)$_ => h (acc,dacc) (Thm.dest_arg t)
   | _ => (acc, dacc)
   val (cs,ds) = h ([],[]) p
   val l = Integer.lcms (cs union ds)
@@ -335,16 +330,16 @@ fun unify ctxt q =
    case (term_of t) of
    Const("op &",_)$_$_ => binop_conv unit_conv t
   | Const("op |",_)$_$_ => binop_conv unit_conv t
-  | Const("Not",_)$_ => arg_conv unit_conv t
-  | Const(s,_)$(Const("HOL.times_class.times",_)$c$y)$ _ => 
+  | Const (@{const_name Not},_)$_ => arg_conv unit_conv t
+  | Const(s,_)$(Const(@{const_name HOL.times},_)$c$y)$ _ => 
     if x=y andalso member (op =)
       ["op =", @{const_name HOL.less}, @{const_name HOL.less_eq}] s
     then cv (l div dest_numeral c) t else Thm.reflexive t
-  | Const(s,_)$_$(Const("HOL.times_class.times",_)$c$y) => 
+  | Const(s,_)$_$(Const(@{const_name HOL.times},_)$c$y) => 
     if x=y andalso member (op =)
       [@{const_name HOL.less}, @{const_name HOL.less_eq}] s
     then cv (l div dest_numeral c) t else Thm.reflexive t
-  | Const(@{const_name Divides.dvd},_)$d$(r as (Const("HOL.plus_class.plus",_)$(Const("HOL.times_class.times",_)$c$y)$_)) => 
+  | Const(@{const_name Divides.dvd},_)$d$(r as (Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$y)$_)) => 
     if x=y then 
       let 
        val k = l div dest_numeral c
@@ -567,7 +562,7 @@ fun qf_of_term ps vs t =  case t
   | Const("op &",_)$t1$t2 => And(qf_of_term ps vs t1,qf_of_term ps vs t2)
   | Const("op |",_)$t1$t2 => Or(qf_of_term ps vs t1,qf_of_term ps vs t2)
   | Const("op -->",_)$t1$t2 => Impa(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const("Not",_)$t' => Nota(qf_of_term ps vs t')
+  | Const (@{const_name Not},_)$t' => Nota(qf_of_term ps vs t')
   | Const("Ex",_)$Abs(xn,xT,p) => 
      let val (xn',p') = variant_abs (xn,xT,p)
          val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)

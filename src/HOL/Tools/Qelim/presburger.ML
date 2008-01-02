@@ -58,7 +58,7 @@ local
  | @{term "Suc"}$s => isnum s
  | @{term "nat"}$s => isnum s
  | @{term "int"}$s => isnum s
- | Const(@{const_name "uminus"},_)$s => isnum s
+ | Const(@{const_name "HOL.uminus"},_)$s => isnum s
  | Const(@{const_name "HOL.plus"},_)$l$r => isnum l andalso isnum r
  | Const(@{const_name "HOL.times"},_)$l$r => isnum l andalso isnum r
  | Const(@{const_name "HOL.minus"},_)$l$r => isnum l andalso isnum r
