@@ -850,15 +850,30 @@ lemma equiv_eq_game[simp]: "equiv UNIV eq_game_rel"
   by (auto simp add: equiv_def refl_def sym_def trans_def eq_game_rel_def
     eq_game_sym intro: eq_game_refl eq_game_trans)
 
-instance Pg :: "{ord,zero,plus,minus}" ..
+instantiation Pg :: "{ord, zero, plus, minus, uminus}"
+begin
 
-defs (overloaded)
-  Pg_zero_def: "0 \<equiv> Abs_Pg (eq_game_rel `` {zero_game})"
-  Pg_le_def: "G \<le> H \<equiv> \<exists> g h. g \<in> Rep_Pg G \<and> h \<in> Rep_Pg H \<and> ge_game (h, g)"
-  Pg_less_def: "G < H \<equiv> G \<le> H \<and> G \<noteq> (H::Pg)"
-  Pg_minus_def: "- G \<equiv> contents (\<Union> g \<in> Rep_Pg G. {Abs_Pg (eq_game_rel `` {neg_game g})})"
-  Pg_plus_def: "G + H \<equiv> contents (\<Union> g \<in> Rep_Pg G. \<Union> h \<in> Rep_Pg H. {Abs_Pg (eq_game_rel `` {plus_game (g,h)})})"
-  Pg_diff_def: "G - H \<equiv> G + (- (H::Pg))"
+definition
+  Pg_zero_def: "0 = Abs_Pg (eq_game_rel `` {zero_game})"
+
+definition
+  Pg_le_def: "G \<le> H \<longleftrightarrow> (\<exists> g h. g \<in> Rep_Pg G \<and> h \<in> Rep_Pg H \<and> ge_game (h, g))"
+
+definition
+  Pg_less_def: "G < H \<longleftrightarrow> G \<le> H \<and> G \<noteq> (H::Pg)"
+
+definition
+  Pg_minus_def: "- G = contents (\<Union> g \<in> Rep_Pg G. {Abs_Pg (eq_game_rel `` {neg_game g})})"
+
+definition
+  Pg_plus_def: "G + H = contents (\<Union> g \<in> Rep_Pg G. \<Union> h \<in> Rep_Pg H. {Abs_Pg (eq_game_rel `` {plus_game (g,h)})})"
+
+definition
+  Pg_diff_def: "G - H = G + (- (H::Pg))"
+
+instance ..
+
+end
 
 lemma Rep_Abs_eq_Pg[simp]: "Rep_Pg (Abs_Pg (eq_game_rel `` {g})) = eq_game_rel `` {g}"
   apply (subst Abs_Pg_inverse)

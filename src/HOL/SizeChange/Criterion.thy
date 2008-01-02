@@ -15,20 +15,24 @@ datatype sedge =
     LESS ("\<down>")
   | LEQ ("\<Down>")
 
-instance sedge :: one
-  one_sedge_def: "1 \<equiv> \<Down>" ..
+instantiation sedge :: comm_monoid_mult
+begin
 
-instance sedge :: times
-  mult_sedge_def:" a * b \<equiv> if a = \<down> then \<down> else b" ..
+definition
+  one_sedge_def: "1 = \<Down>"
 
-instance sedge :: comm_monoid_mult
-proof
+definition
+  mult_sedge_def:" a * b = (if a = \<down> then \<down> else b)"
+
+instance  proof
   fix a b c :: sedge
   show "a * b * c = a * (b * c)" by (simp add:mult_sedge_def)
   show "1 * a = a" by (simp add:mult_sedge_def one_sedge_def)
   show "a * b = b * a" unfolding mult_sedge_def
     by (cases a, simp) (cases b, auto)
 qed
+
+end
 
 lemma sedge_UNIV:
   "UNIV = { LESS, LEQ }"

@@ -9,9 +9,18 @@ theory List_lexord
 imports List
 begin
 
-instance list :: (ord) ord
+instantiation list :: (ord) ord
+begin
+
+definition
   list_less_def [code func del]: "(xs::('a::ord) list) < ys \<longleftrightarrow> (xs, ys) \<in> lexord {(u,v). u < v}"
-  list_le_def [code func del]: "(xs::('a::ord) list) \<le> ys \<longleftrightarrow> (xs < ys \<or> xs = ys)" ..
+
+definition
+  list_le_def [code func del]: "(xs::('a::ord) list) \<le> ys \<longleftrightarrow> (xs < ys \<or> xs = ys)"
+
+instance ..
+
+end
 
 instance list :: (order) order
   apply (intro_classes, unfold list_less_def list_le_def)
@@ -32,11 +41,20 @@ instance list :: (linorder) linorder
   apply simp
   done
 
-instance list :: (linorder) distrib_lattice
+instantiation list :: (linorder) distrib_lattice
+begin
+
+definition
   [code func del]: "(inf \<Colon> 'a list \<Rightarrow> _) = min"
+
+definition
   [code func del]: "(sup \<Colon> 'a list \<Rightarrow> _) = max"
+
+instance
   by intro_classes
     (auto simp add: inf_list_def sup_list_def min_max.sup_inf_distrib1)
+
+end
 
 lemma not_less_Nil [simp]: "\<not> (x < [])"
   by (unfold list_less_def) simp

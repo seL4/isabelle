@@ -14,7 +14,7 @@ subsection {* Basic types, Size Change Graphs *}
 datatype ('a, 'b) graph = 
   Graph "('a \<times> 'b \<times> 'a) set"
 
-fun dest_graph :: "('a, 'b) graph \<Rightarrow> ('a \<times> 'b \<times> 'a) set"
+primrec dest_graph :: "('a, 'b) graph \<Rightarrow> ('a \<times> 'b \<times> 'a) set"
   where "dest_graph (Graph G) = G"
 
 lemma graph_dest_graph[simp]:
@@ -60,29 +60,47 @@ lemma graph_ext:
   by (cases G, cases H) (auto simp:split_paired_all has_edge_def)
 
 
-instance graph :: (type, type) "{comm_monoid_add}"
-  graph_zero_def: "0 == Graph {}" 
-  graph_plus_def: "G + H == Graph (dest_graph G \<union> dest_graph H)"
-proof
-  fix x y z :: "('a,'b) graph"
+instantiation graph :: (type, type) comm_monoid_add
+begin
 
+definition
+  graph_zero_def: "0 = Graph {}" 
+
+definition
+  graph_plus_def [code func del]: "G + H = Graph (dest_graph G \<union> dest_graph H)"
+
+instance proof
+  fix x y z :: "('a,'b) graph"
   show "x + y + z = x + (y + z)" 
    and "x + y = y + x" 
    and "0 + x = x"
-  unfolding graph_plus_def graph_zero_def 
-  by auto
+  unfolding graph_plus_def graph_zero_def by auto
 qed
 
-lemmas [code func del] = graph_plus_def
+end
 
-instance graph :: (type, type) "{distrib_lattice, complete_lattice}"
-  graph_leq_def: "G \<le> H \<equiv> dest_graph G \<subseteq> dest_graph H"
-  graph_less_def: "G < H \<equiv> dest_graph G \<subset> dest_graph H"
-  "inf G H \<equiv> Graph (dest_graph G \<inter> dest_graph H)"
-  "sup (G \<Colon> ('a, 'b) graph)  H \<equiv> G + H"
-  Inf_graph_def: "Inf \<equiv> \<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs))"
-  Sup_graph_def: "Sup \<equiv> \<lambda>Gs. Graph (\<Union>(dest_graph ` Gs))"
-proof
+instantiation graph :: (type, type) "{distrib_lattice, complete_lattice}"
+begin
+
+definition
+  graph_leq_def [code func del]: "G \<le> H \<longleftrightarrow> dest_graph G \<subseteq> dest_graph H"
+
+definition
+  graph_less_def [code func del]: "G < H \<longleftrightarrow> dest_graph G \<subset> dest_graph H"
+
+definition
+  [code func del]: "inf G H = Graph (dest_graph G \<inter> dest_graph H)"
+
+definition
+  [code func del]: "sup (G \<Colon> ('a, 'b) graph) H = G + H"
+
+definition
+  Inf_graph_def [code func del]: "Inf = (\<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs)))"
+
+definition
+  Sup_graph_def [code func del]: "Sup = (\<lambda>Gs. Graph (\<Union>(dest_graph ` Gs)))"
+
+instance proof
   fix x y z :: "('a,'b) graph"
   fix A :: "('a, 'b) graph set"
 
@@ -130,8 +148,7 @@ proof
     unfolding Sup_graph_def graph_leq_def by auto }
 qed
 
-lemmas [code func del] = graph_leq_def graph_less_def
-  inf_graph_def sup_graph_def Inf_graph_def Sup_graph_def
+end
 
 lemma in_grplus:
   "has_edge (G + H) p b q = (has_edge G p b q \<or> has_edge H p b q)"
@@ -144,9 +161,13 @@ lemma in_grzero:
 
 subsubsection {* Multiplicative Structure *}
 
-instance graph :: (type, times) mult_zero
-  graph_mult_def: "G * H == grcomp G H" 
-proof
+instantiation graph :: (type, times) mult_zero
+begin
+
+definition
+  graph_mult_def [code func del]: "G * H = grcomp G H" 
+
+instance proof
   fix a :: "('a, 'b) graph"
 
   show "0 * a = 0" 
@@ -157,10 +178,17 @@ proof
     by (cases a) (simp add:grcomp.simps)
 qed
 
-lemmas [code func del] = graph_mult_def
+end
 
-instance graph :: (type, one) one 
-  graph_one_def: "1 == Graph { (x, 1, x) |x. True}" ..
+instantiation graph :: (type, one) one 
+begin
+
+definition
+  graph_one_def: "1 = Graph { (x, 1, x) |x. True}"
+
+instance ..
+
+end
 
 lemma in_grcomp:
   "has_edge (G * H) p b q
@@ -190,16 +218,18 @@ proof
   qed
 qed
 
-fun grpow :: "nat \<Rightarrow> ('a::type, 'b::monoid_mult) graph \<Rightarrow> ('a, 'b) graph"
-where
-  "grpow 0 A = 1"
-| "grpow (Suc n) A = A * (grpow n A)"
+instantiation graph :: (type, monoid_mult) "{semiring_1, idem_add, recpower, star}"
+begin
 
-instance graph :: (type, monoid_mult)
-  "{semiring_1,idem_add,recpower,star}"
-  graph_pow_def: "A ^ n == grpow n A"
-  graph_star_def: "star (G \<Colon> ('a, 'b) graph) == (SUP n. G ^ n)" 
-proof
+primrec power_graph :: "('a\<Colon>type, 'b\<Colon>monoid_mult) graph \<Rightarrow> nat => ('a, 'b) graph"
+where
+  "(A \<Colon> ('a, 'b) graph) ^ 0 = 1"
+| "(A \<Colon> ('a, 'b) graph) ^ Suc n = A * (A ^ n)"
+
+definition
+  graph_star_def: "star (G \<Colon> ('a, 'b) graph) = (SUP n. G ^ n)" 
+
+instance proof
   fix a b c :: "('a, 'b) graph"
   
   show "1 * a = a" 
@@ -219,8 +249,10 @@ proof
   show "a + a = a" unfolding graph_plus_def by simp
   
   show "a ^ 0 = 1" "\<And>n. a ^ (Suc n) = a * a ^ n"
-    unfolding graph_pow_def by simp_all
+    by simp_all
 qed
+
+end
 
 lemma graph_leqI:
   assumes "\<And>n e n'. has_edge G n e n' \<Longrightarrow> has_edge H n e n'"
@@ -309,7 +341,7 @@ lemma tcl_is_SUP:
 
 lemma in_tcl: 
   "has_edge (tcl G) a x b = (\<exists>n>0. has_edge (G ^ n) a x b)"
-  apply (auto simp: tcl_is_SUP in_SUP)
+  apply (auto simp: tcl_is_SUP in_SUP simp del: power_graph.simps)
   apply (rule_tac x = "n - 1" in exI, auto)
   done
 

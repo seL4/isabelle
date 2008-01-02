@@ -7,23 +7,69 @@ theory Matrix
 imports MatrixGeneral
 begin
 
-instance matrix :: ("{zero, lattice}") lattice
-  "inf \<equiv> combine_matrix inf"
-  "sup \<equiv> combine_matrix sup"
+instantiation matrix :: ("{zero, lattice}") lattice
+begin
+
+definition
+  "inf = combine_matrix inf"
+
+definition
+  "sup = combine_matrix sup"
+
+instance
   by default (auto simp add: inf_le1 inf_le2 le_infI le_matrix_def inf_matrix_def sup_matrix_def)
 
-instance matrix :: ("{plus, zero}") plus
-  plus_matrix_def: "A + B \<equiv> combine_matrix (op +) A B" ..
+end
 
-instance matrix :: ("{minus, zero}") minus
-  minus_matrix_def: "- A \<equiv> apply_matrix uminus A"
-  diff_matrix_def: "A - B \<equiv> combine_matrix (op -) A B" ..
+instantiation matrix :: ("{plus, zero}") plus
+begin
 
-instance matrix :: ("{plus, times, zero}") times
-  times_matrix_def: "A * B \<equiv> mult_matrix (op *) (op +) A B" ..
+definition
+  plus_matrix_def: "A + B = combine_matrix (op +) A B"
 
-instance matrix :: (lordered_ab_group_add) abs
-  abs_matrix_def: "abs (A \<Colon> 'a matrix) \<equiv> sup A (- A)" ..
+instance ..
+
+end
+
+instantiation matrix :: ("{uminus, zero}") uminus
+begin
+
+definition
+  minus_matrix_def: "- A = apply_matrix uminus A"
+
+instance ..
+
+end
+
+instantiation matrix :: ("{minus, zero}") minus
+begin
+
+definition
+  diff_matrix_def: "A - B = combine_matrix (op -) A B"
+
+instance ..
+
+end
+
+instantiation matrix :: ("{plus, times, zero}") times
+begin
+
+definition
+  times_matrix_def: "A * B = mult_matrix (op *) (op +) A B"
+
+instance ..
+
+end
+
+instantiation matrix :: (lordered_ab_group_add) abs
+begin
+
+definition
+  abs_matrix_def: "abs (A \<Colon> 'a matrix) = sup A (- A)"
+
+instance ..
+
+end
 
 instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_meet
 proof 

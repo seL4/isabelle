@@ -61,14 +61,22 @@ instantiation "fun" :: (type, minus) minus
 begin
 
 definition
-  func_minus: "- f == (%x. - f x)"
-
-definition
   func_diff: "f - g == %x. f x - g x"
 
 instance ..
 
 end
+
+instantiation "fun" :: (type, uminus) uminus
+begin
+
+definition
+  func_minus: "- f == (%x. - f x)"
+
+instance ..
+
+end
+
 
 instantiation set :: (zero) zero
 begin

@@ -11,14 +11,19 @@ begin
 
 subsection {* Prefix order on lists *}
 
-instance list :: (type) ord ..
+instantiation list :: (type) order
+begin
 
-defs (overloaded)
-  prefix_def: "xs \<le> ys == \<exists>zs. ys = xs @ zs"
-  strict_prefix_def: "xs < ys == xs \<le> ys \<and> xs \<noteq> (ys::'a list)"
+definition
+  prefix_def [code func del]: "xs \<le> ys = (\<exists>zs. ys = xs @ zs)"
 
-instance list :: (type) order
+definition
+  strict_prefix_def [code func del]: "xs < ys = (xs \<le> ys \<and> xs \<noteq> (ys::'a list))"
+
+instance
   by intro_classes (auto simp add: prefix_def strict_prefix_def)
+
+end
 
 lemma prefixI [intro?]: "ys = xs @ zs ==> xs \<le> ys"
   unfolding prefix_def by blast
