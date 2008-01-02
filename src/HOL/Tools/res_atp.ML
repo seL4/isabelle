@@ -829,6 +829,8 @@ fun sledgehammer state =
                       their original "name hints" may be bad anyway.*)
     val thy = ProofContext.theory_of ctxt
   in
+    if exists_type ResAxioms.type_has_empty_sort (prop_of goal)  
+    then error "Proof state contains the empty sort" else ();
     Output.debug (fn () => "subgoals in isar_atp:\n" ^
                   Syntax.string_of_term ctxt (Logic.mk_conjunction_list (Thm.prems_of goal)));
     Output.debug (fn () => "current theory: " ^ Context.theory_name thy);

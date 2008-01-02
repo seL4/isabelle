@@ -11,6 +11,7 @@ sig
   val pairname: thm -> string * thm
   val multi_base_blacklist: string list 
   val bad_for_atp: thm -> bool
+  val type_has_empty_sort: typ -> bool
   val cnf_rules_pairs: (string * thm) list -> (thm * (string * int)) list
   val cnf_rules_of_ths: thm list -> thm list
   val neg_clausify: thm list -> thm list
@@ -32,7 +33,11 @@ struct
 (* FIXME legacy *)
 fun freeze_thm th = #1 (Drule.freeze_thaw th);
 
-
+fun type_has_empty_sort (TFree (_, [])) = true
+  | type_has_empty_sort (TVar (_, [])) = true
+  | type_has_empty_sort (Type (_, Ts)) = exists type_has_empty_sort Ts
+  | type_has_empty_sort _ = false;
+  
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
 val cfalse = cterm_of HOL.thy HOLogic.false_const;
@@ -343,7 +348,10 @@ fun is_strange_thm th =
     | _ => false;
 
 fun bad_for_atp th = 
-  PureThy.is_internal th orelse too_complex (prop_of th) orelse is_strange_thm th;
+  PureThy.is_internal th     
+  orelse too_complex (prop_of th)   
+  orelse exists_type type_has_empty_sort (prop_of th)  
+  orelse is_strange_thm th;
 
 val multi_base_blacklist =
   ["defs","select_defs","update_defs","induct","inducts","split","splits","split_asm",

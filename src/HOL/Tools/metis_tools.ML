@@ -612,6 +612,8 @@ fun infer_types ctxt =
     let val _ = Output.debug (fn () =>
           "Metis called with theorems " ^ cat_lines (map string_of_thm ths))
     in
+       if exists_type ResAxioms.type_has_empty_sort (prop_of st0)  
+       then error "Proof state contains the empty sort" else ();
        (Meson.MESON ResAxioms.neg_clausify (fn cls => rtac (FOL_SOLVE mode ctxt cls ths) 1) i
         THEN ResAxioms.expand_defs_tac st0) st0
     end;
