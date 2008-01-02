@@ -72,6 +72,12 @@ print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
 
 *** System ***
 
+* Multithreading.max_threads := 0 refers to the number of actual CPU
+cores of the underlying machine, which is a good starting point for
+optimal performance tuning.  The corresponding usedir option -M allows
+"max" as an alias for "0".  WARNING: this does not work on certain
+versions of Mac OS (with Poly/ML 5.1).
+
 * isatool tty runs Isabelle process with plain tty interaction;
 optional line editor may be specified via ISABELLE_LINE_EDITOR
 setting, the default settings attempt to locate "ledit" and "rlwrap".
