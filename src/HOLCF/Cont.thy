@@ -89,6 +89,29 @@ apply (erule monofunE)
 apply (erule ub_rangeD)
 done
 
+text {* monotone functions map directed sets to directed sets *}
+
+lemma dir2dir_monofun:
+  assumes f: "monofun f"
+  assumes S: "directed S"
+  shows "directed (f ` S)"
+proof (rule directedI)
+  from directedD1 [OF S]
+  obtain x where "x \<in> S" ..
+  hence "f x \<in> f ` S" by simp
+  thus "\<exists>x. x \<in> f ` S" ..
+next
+  fix x assume "x \<in> f ` S"
+  then obtain a where x: "x = f a" and a: "a \<in> S" ..
+  fix y assume "y \<in> f ` S"
+  then obtain b where y: "y = f b" and b: "b \<in> S" ..
+  from directedD2 [OF S a b]
+  obtain c where "c \<in> S" and "a \<sqsubseteq> c \<and> b \<sqsubseteq> c" ..
+  hence "f c \<in> f ` S" and "x \<sqsubseteq> f c \<and> y \<sqsubseteq> f c"
+    using monofunE [OF f] x y by simp_all
+  thus "\<exists>z\<in>f ` S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z" ..
+qed
+
 text {* left to right: @{prop "monofun f \<and> contlub f \<Longrightarrow> cont f"} *}
 
 lemma monocontlub2cont: "\<lbrakk>monofun f; contlub f\<rbrakk> \<Longrightarrow> cont f"
