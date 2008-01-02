@@ -469,14 +469,14 @@ while running the session, notably the location of prepared documents.
 
 \medskip The \texttt{-M} option specifies the maximum number of
 parallel threads used for processing independent theory files
-(multithreading only works on suitable ML platforms).  When tuning the
-performance of large Isabelle sessions, the number of actual CPU cores
-of the underlying hardware is a good starting point for option
-\texttt{-M}.  The \texttt{-T} option determines the level of detail in
-tracing output concerning the internal locking and scheduling in
-multithreaded operation.  This may be helpful in isolating performance
-bottle-necks, e.g.\ due to excessive wait states when locking critical
-code sections.
+(multithreading only works on suitable ML platforms).  The special
+value of ``\texttt{0}'' or ``\texttt{max}'' refers to the number of
+actual CPU cores of the underlying machine, which is a good starting
+point for optimal performance tuning.  The \texttt{-T} option
+determines the level of detail in tracing output concerning the
+internal locking and scheduling in multithreaded operation.  This may
+be helpful in isolating performance bottle-necks, e.g.\ due to
+excessive wait states when locking critical code sections.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend on

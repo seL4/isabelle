@@ -96,8 +96,12 @@ function getoptions()
         DUMP="$OPTARG"
         ;;
       M)
-        check_number "$OPTARG"
-        MAXTHREADS="$OPTARG"
+        if [ "$OPTARG" = max ]; then
+	  MAXTHREADS=0
+	else
+          check_number "$OPTARG"
+          MAXTHREADS="$OPTARG"
+	fi
         ;;
       P)
         RPATH="$OPTARG"
