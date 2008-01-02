@@ -38,7 +38,12 @@ fun tracing level msg =
   else ();
 
 val available = true;
+
 val max_threads = ref 1;
+
+fun max_threads_value () =
+  let val m = ! max_threads
+  in if m <= 0 then Thread.numProcessors () else m end;
 
 
 (* misc utils *)

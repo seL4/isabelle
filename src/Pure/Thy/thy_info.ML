@@ -377,7 +377,7 @@ fun schedule_seq tasks =
 in
 
 fun schedule_tasks tasks n =
-  let val m = ! Multithreading.max_threads in
+  let val m = Multithreading.max_threads_value () in
     if m <= 1 orelse n <= 1 then schedule_seq tasks
     else if Multithreading.self_critical () then
      (warning (loader_msg "no multithreading within critical section" []);
