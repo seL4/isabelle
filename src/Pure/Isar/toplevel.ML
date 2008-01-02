@@ -46,8 +46,10 @@ sig
   val undo_limit: bool -> int option
   val empty: transition
   val name_of: transition -> string
+  val properties_of: transition -> Markup.property list
   val source_of: transition -> OuterLex.token list option
   val name: string -> transition -> transition
+  val properties: Markup.property list -> transition -> transition
   val position: Position.T -> transition -> transition
   val source: OuterLex.token list -> transition -> transition
   val interactive: bool -> transition -> transition
@@ -448,6 +450,7 @@ end;
 
 datatype transition = Transition of
  {name: string,                        (*command name*)
+  props: Markup.property list,         (*properties*)
   pos: Position.T,                     (*source position*)
   source: OuterLex.token list option,  (*source text*)
   int_only: bool,                      (*interactive-only*)
@@ -455,16 +458,17 @@ datatype transition = Transition of
   no_timing: bool,                     (*suppress timing*)
   trans: trans list};                  (*primitive transitions (union)*)
 
-fun make_transition (name, pos, source, int_only, print, no_timing, trans) =
-  Transition {name = name, pos = pos, source = source,
+fun make_transition (name, props, pos, source, int_only, print, no_timing, trans) =
+  Transition {name = name, props = props, pos = pos, source = source,
     int_only = int_only, print = print, no_timing = no_timing, trans = trans};
 
-fun map_transition f (Transition {name, pos, source, int_only, print, no_timing, trans}) =
-  make_transition (f (name, pos, source, int_only, print, no_timing, trans));
+fun map_transition f (Transition {name, props, pos, source, int_only, print, no_timing, trans}) =
+  make_transition (f (name, props, pos, source, int_only, print, no_timing, trans));
 
-val empty = make_transition ("<unknown>", Position.none, NONE, false, [], false, []);
+val empty = make_transition ("<unknown>", [], Position.none, NONE, false, [], false, []);
 
 fun name_of (Transition {name, ...}) = name;
+fun properties_of (Transition {props, ...}) = props;
 fun source_of (Transition {source, ...}) = source;
 
 
@@ -481,26 +485,37 @@ fun type_error tr state =
 
 (* modify transitions *)
 
-fun name nm = map_transition (fn (_, pos, source, int_only, print, no_timing, trans) =>
-  (nm, pos, source, int_only, print, no_timing, trans));
+fun name nm =
+  map_transition (fn (_, props, pos, source, int_only, print, no_timing, trans) =>
+    (nm, props, pos, source, int_only, print, no_timing, trans));
 
-fun position pos = map_transition (fn (name, _, source, int_only, print, no_timing, trans) =>
-  (name, pos, source, int_only, print, no_timing, trans));
+fun properties props =
+  map_transition (fn (name, _, pos, source, int_only, print, no_timing, trans) =>
+    (name, props, pos, source, int_only, print, no_timing, trans));
 
-fun source src = map_transition (fn (name, pos, _, int_only, print, no_timing, trans) =>
-  (name, pos, SOME src, int_only, print, no_timing, trans));
+fun position pos =
+  map_transition (fn (name, props, _, source, int_only, print, no_timing, trans) =>
+    (name, props, pos, source, int_only, print, no_timing, trans));
 
-fun interactive int_only = map_transition (fn (name, pos, source, _, print, no_timing, trans) =>
-  (name, pos, source, int_only, print, no_timing, trans));
+fun source src =
+  map_transition (fn (name, props, pos, _, int_only, print, no_timing, trans) =>
+    (name, props, pos, SOME src, int_only, print, no_timing, trans));
 
-val no_timing = map_transition (fn (name, pos, source, int_only, print, _, trans) =>
-  (name, pos, source, int_only, print, true, trans));
+fun interactive int_only =
+  map_transition (fn (name, props, pos, source, _, print, no_timing, trans) =>
+    (name, props, pos, source, int_only, print, no_timing, trans));
 
-fun add_trans tr = map_transition (fn (name, pos, source, int_only, print, no_timing, trans) =>
-  (name, pos, source, int_only, print, no_timing, trans @ [tr]));
+val no_timing =
+  map_transition (fn (name, props, pos, source, int_only, print, _, trans) =>
+    (name, props, pos, source, int_only, print, true, trans));
 
-fun print' mode = map_transition (fn (name, pos, source, int_only, print, no_timing, trans) =>
-  (name, pos, source, int_only, insert (op =) mode print, no_timing, trans));
+fun add_trans tr =
+  map_transition (fn (name, props, pos, source, int_only, print, no_timing, trans) =>
+    (name, props, pos, source, int_only, print, no_timing, trans @ [tr]));
+
+fun print' mode =
+  map_transition (fn (name, props, pos, source, int_only, print, no_timing, trans) =>
+    (name, props, pos, source, int_only, insert (op =) mode print, no_timing, trans));
 
 val print = print' "";
 
