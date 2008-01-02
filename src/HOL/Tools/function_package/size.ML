@@ -27,14 +27,6 @@ structure SizeData = TheoryDataFun
 
 val lookup_size = SizeData.get #> Symtab.lookup;
 
-fun instance_size_class tyco thy =
-  thy
-  |> TheoryTarget.instantiation
-       ([tyco], replicate (Sign.arity_number thy tyco) HOLogic.typeS, [HOLogic.class_size])
-  |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-  |> LocalTheory.exit
-  |> ProofContext.theory_of;
-
 fun plus (t1, t2) = Const ("HOL.plus_class.plus",
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
 
@@ -136,6 +128,14 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
     val (rec_combs1, rec_combs2) = chop l (map (fn (T, rec_name) =>
       Const (rec_name, fTs @ [T] ---> HOLogic.natT))
         (recTs ~~ rec_names));
+
+    fun instance_size_class tyco thy =
+      thy
+      |> TheoryTarget.instantiation
+           ([tyco], replicate (Sign.arity_number thy tyco) HOLogic.typeS, [HOLogic.class_size])
+      |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+      |> LocalTheory.exit
+      |> ProofContext.theory_of;
 
     val ((size_def_thms, size_def_thms'), thy') =
       thy
