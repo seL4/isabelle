@@ -13,8 +13,12 @@ General format of process output:
   startup on a separate line, e.g. "\nPID=4711\n"
 
   (c) properly marked-up messages, e.g. for writeln channel
-  "\002A" ^ text ^ "\002.\n" where the body text may consist of several
-  lines (output should be processed in one piece).
+
+  "\002A" ^ props ^ "\002,\n" ^ text ^ "\002.\n"
+
+  where the props consist of name=value lines terminated by "\002,"
+  each, and the remaining text is any number of lines (output is
+  supposed to be processed in one piece).
 *)
 
 signature ISABELLE_PROCESS =
@@ -46,10 +50,20 @@ val isabelle_processN = "isabelle_process";
 local
 
 fun special c = chr 2 ^ c;
+val special_sep = special ",";
 val special_end = special ".";
 
-fun output c m s =
-  Output.writeln_default (special c ^ Markup.enclose m s ^ special_end);
+fun message_props () =
+  let
+    val thread_props = Toplevel.thread_properties ();
+    val props =
+      (case AList.lookup (op =) thread_props Markup.idN of
+        SOME id => [(Markup.idN, id)]
+      | NONE => Position.properties_of (#1 (Position.of_properties thread_props)));
+  in implode (map (fn (x, y) => x ^ "=" ^ y ^ special_sep ^ "\n") props) end;
+
+fun output ch markup txt =
+  Output.writeln_default (special ch ^ message_props () ^ Markup.enclose markup txt ^ special_end);
 
 in
 
