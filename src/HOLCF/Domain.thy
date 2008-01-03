@@ -194,27 +194,4 @@ lemma exh_casedist3: "(P \<and> Q \<Longrightarrow> R) \<equiv> (P \<Longrightar
 
 lemmas exh_casedists = exh_casedist1 exh_casedist2 exh_casedist3
 
-
-subsection {* Setting up the package *}
-
-ML {*
-val iso_intro       = thm "iso.intro";
-val iso_abs_iso     = thm "iso.abs_iso";
-val iso_rep_iso     = thm "iso.rep_iso";
-val iso_abs_strict  = thm "iso.abs_strict";
-val iso_rep_strict  = thm "iso.rep_strict";
-val iso_abs_defin'  = thm "iso.abs_defin'";
-val iso_rep_defin'  = thm "iso.rep_defin'";
-val iso_abs_defined = thm "iso.abs_defined";
-val iso_rep_defined = thm "iso.rep_defined";
-val iso_compact_abs = thm "iso.compact_abs";
-val iso_compact_rep = thm "iso.compact_rep";
-val iso_iso_swap    = thm "iso.iso_swap";
-
-val exh_start = thm "exh_start";
-val ex_defined_iffs = thms "ex_defined_iffs";
-val exh_casedist0 = thm "exh_casedist0";
-val exh_casedists = thms "exh_casedists";
-*}
-
 end
