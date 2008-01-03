@@ -189,7 +189,7 @@ lemma cont_finch2finch:
   "\<lbrakk>cont f; finite_chain Y\<rbrakk> \<Longrightarrow> finite_chain (\<lambda>n. f (Y n))"
 by (rule cont2mono [THEN monofun_finch2finch])
 
-lemma chfindom_monofun2cont: "monofun f \<Longrightarrow> cont (f::'a::chfin \<Rightarrow> 'b::pcpo)"
+lemma chfindom_monofun2cont: "monofun f \<Longrightarrow> cont (f::'a::chfin \<Rightarrow> 'b::cpo)"
 apply (rule monocontlub2cont)
 apply assumption
 apply (rule contlubI)
