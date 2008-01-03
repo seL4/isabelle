@@ -17,6 +17,7 @@ sig
   val perm_of_pair: term * term -> term
   val mk_not_sym: thm list -> thm list
   val perm_simproc: simproc
+  val fresh_const: typ -> typ -> term
 end
 
 structure NominalPackage : NOMINAL_PACKAGE =
@@ -205,6 +206,8 @@ fun perm_of_pair (x, y) =
 fun mk_not_sym ths = maps (fn th => case prop_of th of
     _ $ (Const ("Not", _) $ _) => [th, th RS not_sym]
   | _ => [th]) ths;
+
+fun fresh_const T U = Const ("Nominal.fresh", T --> U --> HOLogic.boolT);
 
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
   let
@@ -1000,9 +1003,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           val c = list_comb (Const (cname, Ts ---> T), args1);
           fun supp t =
             Const ("Nominal.supp", fastype_of t --> HOLogic.mk_setT atomT) $ t;
-          fun fresh t =
-            Const ("Nominal.fresh", atomT --> fastype_of t --> HOLogic.boolT) $
-              Free ("a", atomT) $ t;
+          fun fresh t = fresh_const atomT (fastype_of t) $ Free ("a", atomT) $ t;
           val supp_thm = Goal.prove_global thy8 [] []
               (HOLogic.mk_Trueprop (HOLogic.mk_eq
                 (supp c,
@@ -1149,8 +1150,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     fun mk_fresh2 xss [] = []
       | mk_fresh2 xss ((p as (ys, _)) :: yss) = List.concat (map (fn y as (_, T) =>
             map (fn (_, x as (_, U)) => HOLogic.mk_Trueprop
-              (Const ("Nominal.fresh", T --> U --> HOLogic.boolT) $ Free y $ Free x))
-                (rev xss @ yss)) ys) @
+              (fresh_const T U $ Free y $ Free x)) (rev xss @ yss)) ys) @
           mk_fresh2 (p :: xss) yss;
 
     fun make_ind_prem fsT f k T ((cname, cargs), idxs) =
@@ -1185,7 +1185,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val ind_prems = List.concat (map (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
       map (make_ind_prem fsT (fn T => fn t => fn u =>
-        Const ("Nominal.fresh", T --> fsT --> HOLogic.boolT) $ t $ u) i T)
+        fresh_const T fsT $ t $ u) i T)
           (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs));
     val tnames = DatatypeProp.make_tnames recTs;
     val zs = Name.variant_list tnames (replicate (length descr'') "z");
@@ -1438,8 +1438,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       | mk_fresh3 rs ((p as (ys, z)) :: yss) = List.concat (map (fn y as (_, T) =>
             List.mapPartial (fn ((_, (_, x)), r as (_, U)) => if z = x then NONE
               else SOME (HOLogic.mk_Trueprop
-                (Const ("Nominal.fresh", T --> U --> HOLogic.boolT) $ Free y $ Free r)))
-                  rs) ys) @
+                (fresh_const T U $ Free y $ Free r))) rs) ys) @
           mk_fresh3 rs yss;
 
     (* FIXME: avoid collisions with other variable names? *)
@@ -1462,8 +1461,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (List.nth (rec_sets', i) $ Free x $ Free y)) (recs ~~ frees'');
         val prems2 =
           map (fn f => map (fn p as (_, T) => HOLogic.mk_Trueprop
-            (Const ("Nominal.fresh", T --> fastype_of f --> HOLogic.boolT) $
-              Free p $ f)) binders) rec_fns;
+            (fresh_const T (fastype_of f) $ Free p $ f)) binders) rec_fns;
         val prems3 = mk_fresh1 [] binders @ mk_fresh2 [] frees';
         val prems4 = map (fn ((i, _), y) =>
           HOLogic.mk_Trueprop (List.nth (rec_preds, i) $ Free y)) (recs ~~ frees'');
@@ -1473,12 +1471,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
              (Const ("Nominal.supp", T --> HOLogic.mk_setT aT) $ Free y)))
                frees'') atomTs;
         val prems7 = map (fn x as (_, T) => HOLogic.mk_Trueprop
-          (Const ("Nominal.fresh", T --> fsT' --> HOLogic.boolT) $
-             Free x $ rec_ctxt)) binders;
+          (fresh_const T fsT' $ Free x $ rec_ctxt)) binders;
         val result = list_comb (List.nth (rec_fns, l), map Free (frees @ frees''));
         val result_freshs = map (fn p as (_, T) =>
-          Const ("Nominal.fresh", T --> fastype_of result --> HOLogic.boolT) $
-            Free p $ result) binders;
+          fresh_const T (fastype_of result) $ Free p $ result) binders;
         val P = HOLogic.mk_Trueprop (p $ result)
       in
         (rec_intr_ts @ [Logic.list_implies (List.concat prems2 @ prems3 @ prems1,
@@ -1588,8 +1584,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val fs_name = PureThy.get_thm thy11 (Name ("fs_" ^ name ^ "1"));
         val a = Free ("a", aT);
         val freshs = map (fn (f, fT) => HOLogic.mk_Trueprop
-            (Const ("Nominal.fresh", aT --> fT --> HOLogic.boolT) $ a $ f))
-          (rec_fns ~~ rec_fn_Ts)
+          (fresh_const aT fT $ a $ f)) (rec_fns ~~ rec_fn_Ts)
       in
         map (fn (((T, U), R), eqvt_th) =>
           let
@@ -1601,11 +1596,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                 [HOLogic.mk_Trueprop (R $ x $ y),
                  HOLogic.mk_Trueprop (HOLogic.mk_all ("y'", U,
                    HOLogic.mk_imp (R $ x $ y', HOLogic.mk_eq (y', y)))),
-                 HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                   aT --> T --> HOLogic.boolT) $ a $ x)] @
+                 HOLogic.mk_Trueprop (fresh_const aT T $ a $ x)] @
               freshs)
-              (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                 aT --> U --> HOLogic.boolT) $ a $ y))
+              (HOLogic.mk_Trueprop (fresh_const aT U $ a $ y))
               (fn {prems, context} =>
                  let
                    val (finite_prems, rec_prem :: unique_prem ::
@@ -1679,8 +1672,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val p = foldr1 HOLogic.mk_prod (vs @ freshs1);
         val ex = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop
             (HOLogic.exists_const T $ Abs ("x", T,
-              Const ("Nominal.fresh", T --> fastype_of p --> HOLogic.boolT) $
-                Bound 0 $ p)))
+              fresh_const T (fastype_of p) $ Bound 0 $ p)))
           (fn _ => EVERY
             [cut_facts_tac ths 1,
              REPEAT_DETERM (dresolve_tac (the (AList.lookup op = rec_fin_supp T)) 1),
@@ -1784,8 +1776,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                        fs_atoms @ abs_fresh @ abs_supp @ fresh_atm);
                     (* FIXME: avoid asm_full_simp_tac ? *)
                     fun prove_fresh ths y x = Goal.prove context'' [] []
-                      (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                         fastype_of x --> fastype_of y --> HOLogic.boolT) $ x $ y))
+                      (HOLogic.mk_Trueprop (fresh_const
+                         (fastype_of x) (fastype_of y) $ x $ y))
                       (fn _ => cut_facts_tac ths 1 THEN asm_full_simp_tac prove_fresh_ss 1);
                     val constr_fresh_thms =
                       map (prove_fresh fresh_prems lhs) boundsl @
@@ -1894,8 +1886,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                             let val l = find_index (equal aT) dt_atomTs;
                             in
                               Goal.prove context'' [] []
-                                (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                                  aT --> T --> HOLogic.boolT) $ a $ y))
+                                (HOLogic.mk_Trueprop (fresh_const aT T $ a $ y))
                                 (fn _ => EVERY
                                    (rtac (List.nth (List.nth (rec_fresh_thms, l), k)) 1 ::
                                     map (fn th => rtac th 1)
@@ -1909,8 +1900,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val _ = warning "step 9: as # fK as ts rs , bs # fK bs us vs";
                     fun prove_fresh_result (a as Free (_, aT)) =
                       Goal.prove context'' [] []
-                        (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                          aT --> rT --> HOLogic.boolT) $ a $ rhs'))
+                        (HOLogic.mk_Trueprop (fresh_const aT rT $ a $ rhs'))
                         (fn _ => EVERY
                            [resolve_tac fcbs 1,
                             REPEAT_DETERM (resolve_tac
@@ -1924,16 +1914,14 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
                     fun prove_fresh_result'' ((a as Free (_, aT), b), th) =
                       let val th' = Goal.prove context'' [] []
-                        (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                          aT --> rT --> HOLogic.boolT) $
+                        (HOLogic.mk_Trueprop (fresh_const aT rT $
                             fold_rev (mk_perm []) (rpi2 @ pi1) a $
                             fold_rev (mk_perm []) (rpi2 @ pi1) rhs'))
                         (fn _ => simp_tac (HOL_ss addsimps fresh_bij) 1 THEN
                            rtac th 1)
                       in
                         Goal.prove context'' [] []
-                          (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                            aT --> rT --> HOLogic.boolT) $ b $ lhs'))
+                          (HOLogic.mk_Trueprop (fresh_const aT rT $ b $ lhs'))
                           (fn _ => EVERY
                              [cut_facts_tac [th'] 1,
                               NominalPermeq.perm_simp_tac (HOL_ss addsimps
@@ -1949,8 +1937,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val _ = warning "step 10: cs # fK as ts rs , cs # fK bs us vs";
                     fun prove_fresh_result' recs t (a as Free (_, aT)) =
                       Goal.prove context'' [] []
-                        (HOLogic.mk_Trueprop (Const ("Nominal.fresh",
-                          aT --> rT --> HOLogic.boolT) $ a $ t))
+                        (HOLogic.mk_Trueprop (fresh_const aT rT $ a $ t))
                         (fn _ => EVERY
                           [cut_facts_tac recs 1,
                            REPEAT_DETERM (dresolve_tac
