@@ -9,7 +9,7 @@ theory PresburgerEx
 imports Presburger
 begin
 
-lemma "\<And>m n ja ia. \<lbrakk>\<not> m \<le> j; \<not> n \<le> i; e \<noteq> 0; Suc j \<le> ja\<rbrakk> \<Longrightarrow> \<exists>m. \<forall>ja ia. m \<le> ja \<longrightarrow> (if j = ja \<and> i = ia then e else 0) = 0" by presburger
+lemma "\<And>m n ja ia. \<lbrakk>\<not> m \<le> j; \<not> (n::nat) \<le> i; (e::nat) \<noteq> 0; Suc j \<le> ja\<rbrakk> \<Longrightarrow> \<exists>m. \<forall>ja ia. m \<le> ja \<longrightarrow> (if j = ja \<and> i = ia then e else 0) = 0" by presburger
 lemma "(0::nat) < emBits mod 8 \<Longrightarrow> 8 + emBits div 8 * 8 - emBits = 8 - emBits mod 8" 
 by presburger
 lemma "(0::nat) < emBits mod 8 \<Longrightarrow> 8 + emBits div 8 * 8 - emBits = 8 - emBits mod 8" 
