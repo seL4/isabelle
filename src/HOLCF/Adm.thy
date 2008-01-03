@@ -188,6 +188,13 @@ by (rule compactI, simp add: adm_not_free)
 lemma adm_not_UU: "cont t \<Longrightarrow> adm (\<lambda>x. t x \<noteq> \<bottom>)"
 by (simp add: adm_neq_compact)
 
+text {* Any upward-closed predicate is admissible. *}
+
+lemma adm_upward:
+  assumes P: "\<And>x y. \<lbrakk>P x; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> P y"
+  shows "adm P"
+by (rule admI, drule spec, erule P, erule is_ub_thelub)
+
 lemmas adm_lemmas [simp] =
   adm_not_free adm_conj adm_all2 adm_ball2 adm_disj adm_imp adm_iff
   adm_less adm_eq adm_not_less
