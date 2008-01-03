@@ -76,10 +76,12 @@ public class IsabelleProcess {
             SYSTEM                                                      // internal system notification
         };
         public Kind kind;
+        public Properties props;
         public String result;
 
-        public Result(Kind kind, String result) {
+        public Result(Kind kind, Properties props, String result) {
             this.kind = kind;
+            this.props = props;
             this.result = result;
         }
 
@@ -99,7 +101,11 @@ public class IsabelleProcess {
         }
 
         public String toString() {
-            return this.kind.toString() + " [[" + this.result + "]]";
+            if (this.props == null) {
+                return this.kind.toString() + " [[" + this.result + "]]";
+            } else {
+                return this.kind.toString() + " " + props.toString() + " [[" + this.result + "]]";
+            }
         }
     }
 
@@ -109,10 +115,13 @@ public class IsabelleProcess {
      */
     public LinkedBlockingQueue<Result> results;
 
-    private synchronized void putResult(Result.Kind kind, String result) {
+    private synchronized void putResult(Result.Kind kind, Properties props, String result) {
         try {
-            results.put(new Result(kind, result));
+            results.put(new Result(kind, props, result));
         } catch (InterruptedException exn) {  }
+    }
+    private synchronized void putResult(Result.Kind kind, String result) {
+        putResult(kind, null, result);
     }
 
 
@@ -312,7 +321,7 @@ public class IsabelleProcess {
         command(props, "ML " + encodeString(text));
     }
 
-    
+
     /* input from the process (stdout/stderr) */
 
     private volatile BufferedReader inputReader;
@@ -321,6 +330,7 @@ public class IsabelleProcess {
         public void run()
         {
             Result.Kind kind = Result.Kind.STDOUT;
+            Properties props = null;
             StringBuffer buf = new StringBuffer(100);
 
             try {
@@ -336,7 +346,12 @@ public class IsabelleProcess {
                             putResult(kind, buf.toString());
                             buf = new StringBuffer(100);
                         }
-                        if (c == 2) {
+                        if (c == -1) {
+                            inputReader.close();
+                            inputReader = null;
+                            tryClose();
+                        }
+                        else if (c == 2) {
                             c = inputReader.read();
                             switch (c) {
                                 case 'A': kind = Result.Kind.WRITELN; break;
@@ -348,11 +363,7 @@ public class IsabelleProcess {
                                 case 'G': kind = Result.Kind.PROMPT; break;
                                 default: kind = Result.Kind.STDOUT; break;
                             }
-                        }
-                        if (c == -1) {
-                            inputReader.close();
-                            inputReader = null;
-                            tryClose();
+                            props = null;
                         }
                     } else {
                         // line mode
@@ -367,12 +378,28 @@ public class IsabelleProcess {
                                 buf = new StringBuffer(100);
                             } else {
                                 int len = line.length();
-                                if (len >= 2 && line.charAt(len - 2) == 2 && line.charAt(len - 1) == '.') {
+                                // property
+                                if (line.endsWith("\u0002,")) {
+                                    int i = line.indexOf("=");
+                                    if (i > 0) {
+                                        String name = line.substring(0, i);
+                                        String value = line.substring(i + 1, len - 2);
+                                        if (props == null)
+                                            props = new Properties();
+                                        if (!props.containsKey(name)) {
+                                            props.setProperty(name, value);
+                                        }
+                                    }
+                                }
+                                // last text line
+                                else if (line.endsWith("\u0002.")) {
                                     buf.append(line.substring(0, len - 2));
-                                    putResult(kind, buf.toString());
+                                    putResult(kind, props, buf.toString());
                                     buf = new StringBuffer(100);
                                     kind = Result.Kind.STDOUT;
-                                } else {
+                                }
+                                // text line
+                                else {
                                     buf.append(line);
                                     buf.append("\n");
                                 }
