@@ -106,6 +106,17 @@ abbreviation
 notation (xsymbols)
   Lub  (binder "\<Squnion> " 10)
 
+text {* access to some definition as inference rule *}
+
+lemma is_lubD1: "S <<| x \<Longrightarrow> S <| x"
+unfolding is_lub_def by fast
+
+lemma is_lub_lub: "\<lbrakk>S <<| x; S <| u\<rbrakk> \<Longrightarrow> x \<sqsubseteq> u"
+unfolding is_lub_def by fast
+
+lemma is_lubI: "\<lbrakk>S <| x; \<And>u. S <| u \<Longrightarrow> x \<sqsubseteq> u\<rbrakk> \<Longrightarrow> S <<| x"
+unfolding is_lub_def by fast
+
 text {* lubs are unique *}
 
 lemma unique_lub: "\<lbrakk>S <<| x; S <<| y\<rbrakk> \<Longrightarrow> x = y"
@@ -137,16 +148,11 @@ by (simp add: is_lub_def is_ub_def)
 lemma lub_bin: "x \<sqsubseteq> y \<Longrightarrow> lub {x, y} = y"
 by (rule is_lub_bin [THEN thelubI])
 
-text {* access to some definition as inference rule *}
+lemma is_lub_maximal: "\<lbrakk>S <| x; x \<in> S\<rbrakk> \<Longrightarrow> S <<| x"
+by (erule is_lubI, erule (1) is_ubD)
 
-lemma is_lubD1: "S <<| x \<Longrightarrow> S <| x"
-by (unfold is_lub_def, simp)
-
-lemma is_lub_lub: "\<lbrakk>S <<| x; S <| u\<rbrakk> \<Longrightarrow> x \<sqsubseteq> u"
-by (unfold is_lub_def, simp)
-
-lemma is_lubI: "\<lbrakk>S <| x; \<And>u. S <| u \<Longrightarrow> x \<sqsubseteq> u\<rbrakk> \<Longrightarrow> S <<| x"
-by (unfold is_lub_def, fast)
+lemma lub_maximal: "\<lbrakk>S <| x; x \<in> S\<rbrakk> \<Longrightarrow> lub S = x"
+by (rule is_lub_maximal [THEN thelubI])
 
 subsection {* Countable chains *}
 
@@ -368,7 +374,7 @@ lemma directed_finiteD:
   assumes S: "directed S"
   assumes U: "finite U"
   assumes "U \<subseteq> S"
-  shows "\<exists>z\<in>S. \<forall>x\<in>U. x \<sqsubseteq> z"
+  shows "\<exists>z\<in>S. U <| z"
 proof -
   from U have "U \<subseteq> S \<Longrightarrow> \<exists>z\<in>S. \<forall>x\<in>U. x \<sqsubseteq> z"
   proof (induct set: finite)
@@ -387,10 +393,10 @@ proof -
     with xz have "\<forall>a\<in>insert x F. a \<sqsubseteq> z" by simp
     with zS show "\<exists>z\<in>S. \<forall>a\<in>insert x F. a \<sqsubseteq> z" ..
   qed
-  thus ?thesis using prems by fast
+  thus ?thesis using prems unfolding is_ub_def by fast
 qed
 
-lemma not_directed_empty: "\<not> directed {}"
+lemma not_directed_empty [simp]: "\<not> directed {}"
 by (rule notI, drule directedD1, simp)
 
 lemma directed_singleton: "directed {x}"
