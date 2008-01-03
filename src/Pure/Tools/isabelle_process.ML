@@ -53,17 +53,12 @@ fun special c = chr 2 ^ c;
 val special_sep = special ",";
 val special_end = special ".";
 
-fun message_props () =
-  let
-    val thread_props = Toplevel.thread_properties ();
-    val props =
-      (case AList.lookup (op =) thread_props Markup.idN of
-        SOME id => [(Markup.idN, id)]
-      | NONE => Position.properties_of (#1 (Position.of_properties thread_props)));
+fun position_props () =
+  let val props = Position.properties_of (Position.thread_data ())
   in implode (map (fn (x, y) => x ^ "=" ^ y ^ special_sep ^ "\n") props) end;
 
 fun output ch markup txt =
-  Output.writeln_default (special ch ^ message_props () ^ Markup.enclose markup txt ^ special_end);
+  Output.writeln_default (special ch ^ position_props () ^ Markup.enclose markup txt ^ special_end);
 
 in
 
