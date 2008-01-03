@@ -92,7 +92,6 @@ sig
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
-  val thread_properties: unit -> Markup.property list
   val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
   val excursion: transition list -> unit
   val set_state: state -> unit
@@ -670,17 +669,8 @@ fun skip_proof_to_theory p = map_current (fn _ =>
 
 (* thread transition properties *)
 
-local
-  val tag = Universal.tag () : Markup.property list Universal.tag;
-in
-
-fun thread_properties () = these (Multithreading.get_data tag);
-
-fun setmp_thread_properties (Transition {name, props, pos, ...}) f x =
-  setmp_thread_data tag (thread_properties ())
-    (fold (AList.update (op =)) ((Markup.nameN, name) :: Position.properties_of pos) props) f x;
-
-end;
+fun setmp_thread_position (Transition {props, pos, ...}) f x =
+  Position.setmp_thread_data pos f x;
 
 
 (* apply transitions *)
@@ -688,7 +678,7 @@ end;
 local
 
 fun app int (tr as Transition {trans, pos, int_only, print, no_timing, ...}) =
-  setmp_thread_properties tr (fn state =>
+  setmp_thread_position tr (fn state =>
     let
       val _ =
         if not int andalso int_only then warning (command_msg "Interactive-only " tr)
@@ -770,7 +760,7 @@ fun >> tr =
       (global_state := (state', exn_info);
         (case exn_info of
           NONE => ()
-        | SOME err => setmp_thread_properties tr print_exn err);
+        | SOME err => setmp_thread_position tr print_exn err);
         true));
 
 fun >>> [] = ()
