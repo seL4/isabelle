@@ -14,6 +14,9 @@ defaultsort type
 pcpodef 'a lift = "UNIV :: 'a discr u set"
 by simp
 
+instance lift :: (finite) finite_po
+by (rule typedef_finite_po [OF type_definition_lift])
+
 lemmas inst_lift_pcpo = Abs_lift_strict [symmetric]
 
 definition

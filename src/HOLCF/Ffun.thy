@@ -62,7 +62,6 @@ by (simp add: chain_def less_fun_def)
 lemma ch2ch_lambda: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> chain S"
 by (simp add: chain_def less_fun_def)
 
-
 text {* upper bounds of function chains yield upper bound in the po range *}
 
 lemma ub2ub_fun:
@@ -124,6 +123,46 @@ by (rule exI, erule lub_fun')
 
 instance "fun" :: (type, dcpo) dcpo
 by intro_classes (rule dcpo_fun)
+
+instance "fun" :: (finite, finite_po) finite_po ..
+
+text {* chain-finite function spaces *}
+
+lemma maxinch2maxinch_lambda:
+  "(\<And>x. max_in_chain n (\<lambda>i. S i x)) \<Longrightarrow> max_in_chain n S"
+unfolding max_in_chain_def expand_fun_eq by simp
+
+lemma maxinch_mono:
+  "\<lbrakk>max_in_chain i Y; i \<le> j\<rbrakk> \<Longrightarrow> max_in_chain j Y"
+unfolding max_in_chain_def
+proof (intro allI impI)
+  fix k
+  assume Y: "\<forall>n\<ge>i. Y i = Y n"
+  assume ij: "i \<le> j"
+  assume jk: "j \<le> k"
+  from ij jk have ik: "i \<le> k" by simp
+  from Y ij have Yij: "Y i = Y j" by simp
+  from Y ik have Yik: "Y i = Y k" by simp
+  from Yij Yik show "Y j = Y k" by auto
+qed
+
+instance "fun" :: (finite, chfin) chfin
+proof (intro_classes, clarify)
+  fix Y :: "nat \<Rightarrow> 'a \<Rightarrow> 'b"
+  let ?n = "\<lambda>x. LEAST n. max_in_chain n (\<lambda>i. Y i x)"
+  assume "chain Y"
+  hence "\<And>x. chain (\<lambda>i. Y i x)"
+    by (rule ch2ch_fun)
+  hence "\<And>x. \<exists>n. max_in_chain n (\<lambda>i. Y i x)"
+    by (rule chfin [rule_format])
+  hence "\<And>x. max_in_chain (?n x) (\<lambda>i. Y i x)"
+    by (rule LeastI_ex)
+  hence "\<And>x. max_in_chain (Max (range ?n)) (\<lambda>i. Y i x)"
+    by (rule maxinch_mono [OF _ Max_ge], simp_all)
+  hence "max_in_chain (Max (range ?n)) Y"
+    by (rule maxinch2maxinch_lambda)
+  thus "\<exists>n. max_in_chain n Y" ..
+qed
 
 subsection {* Full function space is pointed *}
 

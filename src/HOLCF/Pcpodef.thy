@@ -30,6 +30,41 @@ theorem typedef_po:
 done
 
 
+subsection {* Proving a subtype is finite *}
+
+context type_definition
+begin
+
+lemma Abs_image:
+  shows "Abs ` A = UNIV"
+proof
+  show "Abs ` A <= UNIV" by simp
+  show "UNIV <= Abs ` A"
+  proof
+    fix x
+    have "x = Abs (Rep x)" by (rule Rep_inverse [symmetric])
+    thus "x : Abs ` A" using Rep by (rule image_eqI)
+  qed
+qed
+
+lemma finite_UNIV: "finite A \<Longrightarrow> finite (UNIV :: 'b set)"
+proof -
+  assume "finite A"
+  hence "finite (Abs ` A)" by (rule finite_imageI)
+  thus "finite (UNIV :: 'b set)" by (simp only: Abs_image)
+qed
+
+end
+
+theorem typedef_finite_po:
+  fixes Abs :: "'a::finite_po \<Rightarrow> 'b::po"
+  assumes type: "type_definition Rep Abs A"
+  shows "OFCLASS('b, finite_po_class)"
+ apply (intro_classes)
+ apply (rule type_definition.finite_UNIV [OF type])
+ apply (rule finite)
+done
+
 subsection {* Proving a subtype is chain-finite *}
 
 lemma monofun_Rep:

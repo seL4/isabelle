@@ -161,6 +161,31 @@ proof
   thus "\<exists>x. S <<| x" ..
 qed
 
+instance "*" :: (finite_po, finite_po) finite_po ..
+
+instance "*" :: (chfin, chfin) chfin
+proof (intro_classes, clarify)
+  fix Y :: "nat \<Rightarrow> 'a \<times> 'b"
+  assume Y: "chain Y"
+  from Y have "chain (\<lambda>i. fst (Y i))"
+    by (rule ch2ch_monofun [OF monofun_fst])
+  hence "\<exists>m. max_in_chain m (\<lambda>i. fst (Y i))"
+    by (rule chfin [rule_format])
+  then obtain m where m: "max_in_chain m (\<lambda>i. fst (Y i))" ..
+  from Y have "chain (\<lambda>i. snd (Y i))"
+    by (rule ch2ch_monofun [OF monofun_snd])
+  hence "\<exists>n. max_in_chain n (\<lambda>i. snd (Y i))"
+    by (rule chfin [rule_format])
+  then obtain n where n: "max_in_chain n (\<lambda>i. snd (Y i))" ..
+  from m have m': "max_in_chain (max m n) (\<lambda>i. fst (Y i))"
+    by (rule maxinch_mono [OF _ le_maxI1])
+  from n have n': "max_in_chain (max m n) (\<lambda>i. snd (Y i))"
+    by (rule maxinch_mono [OF _ le_maxI2])
+  from m' n' have "max_in_chain (max m n) Y"
+    unfolding max_in_chain_def Pair_fst_snd_eq by fast
+  thus "\<exists>n. max_in_chain n Y" ..
+qed
+
 subsection {* Product type is pointed *}
 
 lemma minimal_cprod: "(\<bottom>, \<bottom>) \<sqsubseteq> p"

@@ -103,6 +103,12 @@ subsection {* Continuous function space is pointed *}
 lemma UU_CFun: "\<bottom> \<in> CFun"
 by (simp add: CFun_def inst_fun_pcpo cont_const)
 
+instance "->" :: (finite_po, finite_po) finite_po
+by (rule typedef_finite_po [OF type_definition_CFun])
+
+instance "->" :: (finite_po, chfin) chfin
+by (rule typedef_chfin [OF type_definition_CFun less_CFun_def])
+
 instance "->" :: (cpo, pcpo) pcpo
 by (rule typedef_pcpo [OF type_definition_CFun less_CFun_def UU_CFun])
 

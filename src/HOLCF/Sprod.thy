@@ -19,6 +19,12 @@ pcpodef (Sprod)  ('a, 'b) "**" (infixr "**" 20) =
         "{p::'a \<times> 'b. p = \<bottom> \<or> (cfst\<cdot>p \<noteq> \<bottom> \<and> csnd\<cdot>p \<noteq> \<bottom>)}"
 by simp
 
+instance "**" :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
+by (rule typedef_finite_po [OF type_definition_Sprod])
+
+instance "**" :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
+by (rule typedef_chfin [OF type_definition_Sprod less_Sprod_def])
+
 syntax (xsymbols)
   "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
 syntax (HTML output)
@@ -174,7 +180,6 @@ apply (cases "b = \<bottom>", simp)
 apply (simp add: less_sprod)
 done
 
-
 subsection {* Properties of @{term ssplit} *}
 
 lemma ssplit1 [simp]: "ssplit\<cdot>f\<cdot>\<bottom> = \<bottom>"
@@ -185,5 +190,14 @@ by (simp add: ssplit_def)
 
 lemma ssplit3 [simp]: "ssplit\<cdot>spair\<cdot>z = z"
 by (cases z, simp_all)
+
+subsection {* Strict product preserves flatness *}
+
+instance "**" :: (flat, flat) flat
+apply (intro_classes, clarify)
+apply (rule_tac p=x in sprodE, simp)
+apply (rule_tac p=y in sprodE, simp)
+apply (simp add: flat_less_iff spair_less)
+done
 
 end

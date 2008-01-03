@@ -21,6 +21,12 @@ pcpodef (Ssum)  ('a, 'b) "++" (infixr "++" 10) =
     (cfst\<cdot>p \<sqsubseteq> FF \<longleftrightarrow> cfst\<cdot>(csnd\<cdot>p) = \<bottom>)}"
 by simp
 
+instance "++" :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
+by (rule typedef_finite_po [OF type_definition_Ssum])
+
+instance "++" :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
+by (rule typedef_chfin [OF type_definition_Ssum less_Ssum_def])
+
 syntax (xsymbols)
   "++"		:: "[type, type] => type"	("(_ \<oplus>/ _)" [21, 20] 20)
 syntax (HTML output)
@@ -185,5 +191,19 @@ unfolding beta_sscase by (simp add: Rep_Ssum_sinr)
 
 lemma sscase4 [simp]: "sscase\<cdot>sinl\<cdot>sinr\<cdot>z = z"
 by (cases z, simp_all)
+
+subsection {* Strict sum preserves flatness *}
+
+lemma flat_less_iff:
+  fixes x y :: "'a::flat"
+  shows "(x \<sqsubseteq> y) = (x = \<bottom> \<or> x = y)"
+by (safe dest!: ax_flat [rule_format])
+
+instance "++" :: (flat, flat) flat
+apply (intro_classes, clarify)
+apply (rule_tac p=x in ssumE, simp)
+apply (rule_tac p=y in ssumE, simp_all add: flat_less_iff)
+apply (rule_tac p=y in ssumE, simp_all add: flat_less_iff)
+done
 
 end

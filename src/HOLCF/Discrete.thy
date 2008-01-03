@@ -72,6 +72,22 @@ proof
   thus "\<exists>x. S <<| x" by (fast intro: is_lub_singleton)
 qed
 
+instance discr :: (finite) finite_po
+proof
+  have "finite (Discr ` (UNIV :: 'a set))"
+    by (rule finite_imageI [OF finite])
+  also have "(Discr ` (UNIV :: 'a set)) = UNIV"
+    by (auto, case_tac x, auto)
+  finally show "finite (UNIV :: 'a discr set)" .
+qed
+
+instance discr :: (type) chfin
+apply (intro_classes, clarify)
+apply (rule_tac x=0 in exI)
+apply (unfold max_in_chain_def)
+apply (clarify, erule discr_chain0 [symmetric])
+done
+
 subsection {* @{term undiscr} *}
 
 definition
@@ -85,9 +101,9 @@ lemma discr_chain_f_range0:
  "!!S::nat=>('a::type)discr. chain(S) ==> range(%i. f(S i)) = {f(S 0)}"
 by (fast dest: discr_chain0 elim: arg_cong)
 
-lemma cont_discr [iff]: "cont(%x::('a::type)discr. f x)"
-apply (unfold cont_def is_lub_def is_ub_def)
-apply (simp add: discr_chain_f_range0)
+lemma cont_discr [iff]: "cont (%x::('a::type)discr. f x)"
+apply (rule chfindom_monofun2cont)
+apply (rule monofunI, simp)
 done
 
 end

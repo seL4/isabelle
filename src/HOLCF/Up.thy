@@ -68,6 +68,13 @@ next
     by (auto split: u.split_asm intro: trans_less)
 qed
 
+lemma u_UNIV: "UNIV = insert Ibottom (range Iup)"
+by (auto, case_tac x, auto)
+
+instance u :: (finite_po) finite_po
+by (intro_classes, simp add: u_UNIV)
+
+
 subsection {* Lifted cpo is a cpo *}
 
 lemma is_lub_Iup:
@@ -310,11 +317,26 @@ done
 lemma up_induct [induct type: u]: "\<lbrakk>P \<bottom>; \<And>x. P (up\<cdot>x)\<rbrakk> \<Longrightarrow> P x"
 by (cases x, simp_all)
 
+text {* lifting preserves chain-finiteness *}
+
 lemma up_chain_cases:
   "chain Y \<Longrightarrow>
   (\<exists>A. chain A \<and> (\<Squnion>i. Y i) = up\<cdot>(\<Squnion>i. A i) \<and>
   (\<exists>j. \<forall>i. Y (i + j) = up\<cdot>(A i))) \<or> Y = (\<lambda>i. \<bottom>)"
 by (simp add: inst_up_pcpo up_def cont_Iup up_chain_lemma)
+
+instance u :: (chfin) chfin
+apply (intro_classes, clarify)
+apply (drule up_chain_cases, safe)
+apply (drule chfin [rule_format])
+apply (erule exE, rename_tac n)
+apply (rule_tac x="n + j" in exI)
+apply (simp only: max_in_chain_def)
+apply (clarify, rename_tac k)
+apply (subgoal_tac "\<exists>m. k = m + j", clarsimp)
+apply (rule_tac x="k - j" in exI, simp)
+apply (simp add: max_in_chain_def)
+done
 
 lemma compact_up [simp]: "compact x \<Longrightarrow> compact (up\<cdot>x)"
 apply (unfold compact_def)
