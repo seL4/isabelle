@@ -295,9 +295,7 @@ fun exn_msg _ TERMINATE = "Exit."
 in
 
 fun exn_message exn = exn_msg (! debug) exn;
-
-fun print_exn NONE = ()
-  | print_exn (SOME (exn, s)) = Output.error_msg (cat_lines [exn_message exn, s]);
+fun print_exn (exn, s) = Output.error_msg (cat_lines [exn_message exn, s]);
 
 end;
 
@@ -770,7 +768,9 @@ fun >> tr =
     NONE => false
   | SOME (state', exn_info) =>
       (global_state := (state', exn_info);
-        print_exn exn_info;
+        (case exn_info of
+          NONE => ()
+        | SOME err => setmp_thread_properties tr print_exn err);
         true));
 
 fun >>> [] = ()
