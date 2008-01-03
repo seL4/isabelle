@@ -458,6 +458,16 @@ apply fast
 apply simp
 done
 
+lemma Finite_upward: "\<lbrakk>Finite x; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> Finite y"
+apply (induct arbitrary: y set: Finite)
+apply (rule_tac x=y in seq.casedist, simp, simp, simp)
+apply (rule_tac x=y in seq.casedist, simp, simp)
+apply (simp add: seq.inverts)
+done
+
+lemma adm_Finite [simp]: "adm Finite"
+by (rule adm_upward, rule Finite_upward)
+
 
 subsection "induction"
 

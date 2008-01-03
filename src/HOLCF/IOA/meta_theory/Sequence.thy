@@ -455,43 +455,6 @@ done
 
 (* ----------------------------------------------------------------------------------- *)
 
-
-subsection "admissibility"
-
-(* Finite x is proven to be adm: Finite_flat shows that there are only chains of length one.
-   Then the assumption that an _infinite_ chain exists (from admI2) is set to a contradiction
-   to Finite_flat *)
-
-lemma Finite_flat [rule_format]:
-"!! (x:: 'a Seq). Finite x ==> !y. Finite (y:: 'a Seq) & x<<y --> x=y"
-apply (erule Seq_Finite_ind)
-apply (intro strip)
-apply (erule conjE)
-apply (erule nil_less_is_nil)
-(* main case *)
-apply auto
-apply (rule_tac x="y" in Seq_cases)
-apply auto
-done
-
-
-lemma adm_Finite [simp]: "adm(%(x:: 'a Seq).Finite x)"
-apply (rule admI2)
-apply (erule_tac x="0" in allE)
-back
-apply (erule exE)
-apply (erule conjE)+
-apply (rule_tac x="0" in allE)
-apply assumption
-apply (erule_tac x="j" in allE)
-apply (cut_tac x="Y 0" and y="Y j" in Finite_flat)
-(* Generates a contradiction in subgoal 3 *)
-apply auto
-done
-
-
-(* ------------------------------------------------------------------------------------ *)
-
 subsection "Conc"
 
 lemma Conc_cong: "!! x::'a Seq. Finite x ==> ((x @@ y) = (x @@ z)) = (y = z)"
