@@ -113,7 +113,7 @@ fun inst_adm_subst_thm state i params s T subt t paths =
   let val {thy = sign, maxidx, ...} = rep_thm state;
       val j = maxidx+1;
       val parTs = map snd (rev params);
-      val rule = Thm.lift_rule (Thm.cprem_of state i) adm_subst;
+      val rule = Thm.lift_rule (Thm.cprem_of state i) @{thm adm_subst};
       val types = valOf o (fst (types_sorts rule));
       val tT = types ("t", j);
       val PT = types ("P", j);
@@ -167,7 +167,7 @@ fun adm_tac tac i state =
                 compose_tac (false, rule, 2) i THEN
                 rtac cont_thm i THEN
                 REPEAT (assume_tac i) THEN
-                rtac adm_chfin i
+                rtac @{thm adm_chfin} i
               end 
           | [] => no_tac)
         end)
