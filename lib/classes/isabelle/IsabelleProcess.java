@@ -169,6 +169,15 @@ public class IsabelleProcess {
         }
     }
 
+    
+    /**
+     * Models basic Isabelle properties
+     */
+    public static class Property {
+        public static String ID = "id";
+        public static String LINE = "line";
+        public static String FILE = "file";
+    }
 
     /**
      * Auxiliary operation to encode text as Isabelle string token.
