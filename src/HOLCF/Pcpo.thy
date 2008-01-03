@@ -272,11 +272,29 @@ subsection {* Chain-finite and flat cpos *}
 
 text {* further useful classes for HOLCF domains *}
 
+axclass finite_po < finite, po
+
 axclass chfin < po
   chfin: "\<forall>Y. chain Y \<longrightarrow> (\<exists>n. max_in_chain n Y)"
 
 axclass flat < pcpo
   ax_flat: "\<forall>x y. x \<sqsubseteq> y \<longrightarrow> (x = \<bottom>) \<or> (x = y)"
+
+text {* finite partial orders are chain-finite and directed-complete *}
+
+instance finite_po < chfin
+apply (intro_classes, clarify)
+apply (drule finite_range_imp_finch)
+apply (rule finite)
+apply (simp add: finite_chain_def)
+done
+
+instance finite_po < dcpo
+apply intro_classes
+apply (drule directed_finiteD [OF _ finite subset_refl])
+apply (erule bexE, rule exI)
+apply (erule (1) is_lub_maximal)
+done
 
 text {* some properties for chfin and flat *}
 
