@@ -15,8 +15,10 @@ sig
   val line: int -> T
   val file: string -> T
   val path: Path.T -> T
-  val of_properties: Markup.property list -> T * Markup.property list
+  val of_properties: Markup.property list -> T
   val properties_of: T -> Markup.property list
+  val thread_data: unit -> T
+  val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
   val str_of: T -> string
 end;
 
@@ -25,48 +27,55 @@ struct
 
 (* datatype position *)
 
-datatype T =
-  Pos of int option * string option;
+datatype T = Pos of int option * Markup.property list;
 
 fun line_of (Pos (opt_n, _)) = opt_n;
-fun file_of (Pos (_, opt_s)) = opt_s;
+fun file_of (Pos (_, props)) = AList.lookup (op =) props Markup.fileN ;
 
 fun inc (pos as Pos (NONE, _)) = pos
-  | inc (Pos (SOME n, opt_s)) = Pos (SOME (n + 1), opt_s);
+  | inc (Pos (SOME n, props)) = Pos (SOME (n + 1), props);
 
-val none = Pos (NONE, NONE);
-fun line n = Pos (SOME n, NONE);
-fun file s = Pos (SOME 1, SOME s);
+val none = Pos (NONE, []);
+fun line n = Pos (SOME n, []);
+fun file s = Pos (SOME 1, [(Markup.fileN, s)]);
 
 val path = file o Path.implode o Path.expand;
 
 
 (* markup properties *)
 
-fun of_properties ps =
+fun of_properties props =
   let
-    val lookup = AList.lookup (op =) ps;
     val opt_n =
-      (case lookup Markup.lineN of
+      (case AList.lookup (op =) props Markup.lineN of
         SOME s => Int.fromString s
       | NONE => NONE);
-    val opt_s = lookup Markup.fileN;
-    val ps' = filter_out (fn (x, _) => x = Markup.lineN orelse x = Markup.fileN) ps;
-  in (Pos (opt_n, opt_s), ps') end;
+    fun get name = the_list (find_first (fn (x: string, _) => x = name) props);
+  in (Pos (opt_n, get Markup.fileN @ get Markup.idN)) end;
 
-fun properties_of (Pos (opt_n, opt_s)) =
-  (case opt_n of SOME n => [(Markup.lineN, string_of_int n)] | NONE => []) @
-  (case opt_s of SOME s => [(Markup.fileN, s)] | NONE => []);
+fun properties_of (Pos (opt_n, props)) =
+  (case opt_n of SOME n => [(Markup.lineN, string_of_int n)] | NONE => []) @ props;
+
+
+(* thread data *)
+
+local val tag = Universal.tag () : T Universal.tag in
+
+fun thread_data () = the_default none (Multithreading.get_data tag);
+fun setmp_thread_data pos = Library.setmp_thread_data tag (thread_data ()) pos;
+
+end;
 
 
 (* str_of *)
 
-fun print (Pos (SOME n, NONE)) = "(line " ^ string_of_int n ^ ")"
-  | print (Pos (NONE, SOME s)) = "(" ^ s ^ ")"
-  | print (Pos (SOME n, SOME s)) = "(line " ^ string_of_int n ^ " of " ^ quote s ^ ")";
+fun print (SOME n, NONE) = "(line " ^ string_of_int n ^ ")"
+  | print (NONE, SOME s) = "(" ^ s ^ ")"
+  | print (SOME n, SOME s) = "(line " ^ string_of_int n ^ " of " ^ quote s ^ ")";
 
-fun str_of (Pos (NONE, NONE)) = ""
-  | str_of pos =
-      " " ^ Markup.markup (Markup.properties (properties_of pos) Markup.position) (print pos);
+fun str_of pos =
+  (case (line_of pos, file_of pos) of
+    (NONE, NONE) => ""
+  | res => " " ^ Markup.markup (Markup.properties (properties_of pos) Markup.position) (print res));
 
 end;
