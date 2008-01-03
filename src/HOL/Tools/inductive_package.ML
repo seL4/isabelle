@@ -54,6 +54,7 @@ sig
   val arities_of: thm -> (string * int) list
   val params_of: thm -> term list
   val partition_rules: thm -> thm list -> (string * thm list) list
+  val partition_rules': thm -> (thm * 'a) list -> (string * (thm * 'a) list) list
   val unpartition_rules: thm list -> (string * 'a list) list -> 'a list
   val infer_intro_vars: thm -> int -> thm list -> term list list
   val setup: theory -> theory
@@ -875,9 +876,12 @@ val pname_of_intr =
   concl_of #> HOLogic.dest_Trueprop #> head_of #> dest_Const #> fst;
 
 (* partition introduction rules according to predicate name *)
-fun partition_rules induct intros =
-  fold_rev (fn r => AList.map_entry op = (pname_of_intr r) (cons r)) intros
+fun gen_partition_rules f induct intros =
+  fold_rev (fn r => AList.map_entry op = (pname_of_intr (f r)) (cons r)) intros
     (map (rpair [] o fst) (arities_of induct));
+
+val partition_rules = gen_partition_rules I;
+fun partition_rules' induct = gen_partition_rules fst induct;
 
 fun unpartition_rules intros xs =
   fold_map (fn r => AList.map_entry_yield op = (pname_of_intr r)
