@@ -14,6 +14,7 @@ sig
   val none: T
   val properties: (string * string) list -> T -> T
   val nameN: string
+  val idN: string
   val kindN: string
   val internalK: string
   val property_internal: property
@@ -95,6 +96,7 @@ fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
 fun markup_int elem prop = (elem, fn i => (elem, [(prop, Int.toString i)]): T);
 
 val nameN = "name";
+val idN = "id";
 
 
 (* kind *)
