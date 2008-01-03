@@ -329,6 +329,11 @@ by intro_classes (rule flat_imp_chfin)
 
 text {* flat subclass of chfin; @{text adm_flat} not needed *}
 
+lemma flat_less_iff:
+  fixes x y :: "'a::flat"
+  shows "(x \<sqsubseteq> y) = (x = \<bottom> \<or> x = y)"
+by (safe dest!: ax_flat [rule_format])
+
 lemma flat_eq: "(a::'a::flat) \<noteq> \<bottom> \<Longrightarrow> a \<sqsubseteq> b = (a = b)"
 by (safe dest!: ax_flat [rule_format])
 
