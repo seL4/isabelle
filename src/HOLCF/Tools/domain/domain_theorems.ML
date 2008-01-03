@@ -12,32 +12,53 @@ structure Domain_Theorems = struct
 
 local
 
-val adm_impl_admw = thm "adm_impl_admw";
-val antisym_less_inverse = thm "antisym_less_inverse";
-val beta_cfun = thm "beta_cfun";
-val cfun_arg_cong = thm "cfun_arg_cong";
-val ch2ch_Rep_CFunL = thm "ch2ch_Rep_CFunL";
-val ch2ch_Rep_CFunR = thm "ch2ch_Rep_CFunR";
-val chain_iterate = thm "chain_iterate";
-val compact_ONE = thm "compact_ONE";
-val compact_sinl = thm "compact_sinl";
-val compact_sinr = thm "compact_sinr";
-val compact_spair = thm "compact_spair";
-val compact_up = thm "compact_up";
-val contlub_cfun_arg = thm "contlub_cfun_arg";
-val contlub_cfun_fun = thm "contlub_cfun_fun";
-val fix_def2 = thm "fix_def2";
-val injection_eq = thm "injection_eq";
-val injection_less = thm "injection_less";
-val lub_equal = thm "lub_equal";
-val monofun_cfun_arg = thm "monofun_cfun_arg";
-val retraction_strict = thm "retraction_strict";
-val spair_eq = thm "spair_eq";
-val spair_less = thm "spair_less";
-val sscase1 = thm "sscase1";
-val ssplit1 = thm "ssplit1";
-val strictify1 = thm "strictify1";
-val wfix_ind = thm "wfix_ind";
+val adm_impl_admw = @{thm adm_impl_admw};
+val adm_all2 = @{thm adm_all2};
+val adm_conj = @{thm adm_conj};
+val adm_subst = @{thm adm_subst};
+val antisym_less_inverse = @{thm antisym_less_inverse};
+val beta_cfun = @{thm beta_cfun};
+val cfun_arg_cong = @{thm cfun_arg_cong};
+val ch2ch_Rep_CFunL = @{thm ch2ch_Rep_CFunL};
+val ch2ch_Rep_CFunR = @{thm ch2ch_Rep_CFunR};
+val chain_iterate = @{thm chain_iterate};
+val compact_ONE = @{thm compact_ONE};
+val compact_sinl = @{thm compact_sinl};
+val compact_sinr = @{thm compact_sinr};
+val compact_spair = @{thm compact_spair};
+val compact_up = @{thm compact_up};
+val contlub_cfun_arg = @{thm contlub_cfun_arg};
+val contlub_cfun_fun = @{thm contlub_cfun_fun};
+val fix_def2 = @{thm fix_def2};
+val injection_eq = @{thm injection_eq};
+val injection_less = @{thm injection_less};
+val lub_equal = @{thm lub_equal};
+val monofun_cfun_arg = @{thm monofun_cfun_arg};
+val retraction_strict = @{thm retraction_strict};
+val spair_eq = @{thm spair_eq};
+val spair_less = @{thm spair_less};
+val sscase1 = @{thm sscase1};
+val ssplit1 = @{thm ssplit1};
+val strictify1 = @{thm strictify1};
+val wfix_ind = @{thm wfix_ind};
+
+val iso_intro       = @{thm iso.intro};
+val iso_abs_iso     = @{thm iso.abs_iso};
+val iso_rep_iso     = @{thm iso.rep_iso};
+val iso_abs_strict  = @{thm iso.abs_strict};
+val iso_rep_strict  = @{thm iso.rep_strict};
+val iso_abs_defin'  = @{thm iso.abs_defin'};
+val iso_rep_defin'  = @{thm iso.rep_defin'};
+val iso_abs_defined = @{thm iso.abs_defined};
+val iso_rep_defined = @{thm iso.rep_defined};
+val iso_compact_abs = @{thm iso.compact_abs};
+val iso_compact_rep = @{thm iso.compact_rep};
+val iso_iso_swap    = @{thm iso.iso_swap};
+
+val exh_start = @{thm exh_start};
+val ex_defined_iffs = @{thms ex_defined_iffs};
+val exh_casedist0 = @{thm exh_casedist0};
+val exh_casedists = @{thms exh_casedists};
 
 open Domain_Library;
 infixr 0 ===>;
@@ -203,7 +224,7 @@ local
   val exh = foldr1 mk_disj ((%:x_name === UU) :: map one_con cons);
   val thm1 = instantiate' [SOME (cons2ctyp cons)] [] exh_start;
   val thm2 = rewrite_rule (map mk_meta_eq ex_defined_iffs) thm1;
-  val thm3 = rewrite_rule [mk_meta_eq conj_assoc] thm2;
+  val thm3 = rewrite_rule [mk_meta_eq @{thm conj_assoc}] thm2;
 
   (* first 3 rules replace "x = UU \/ P" with "rep$x = UU \/ P" *)
   val tacs = [
@@ -353,7 +374,7 @@ local
       val concl = mk_trp (defined (con_app con args));
       val goal = lift_defined %: (nonlazy args, concl);
       val tacs = [
-        rtac rev_contrapos 1,
+        rtac @{thm rev_contrapos} 1,
         eres_inst_tac [("f",dis_name con)] cfun_arg_cong 1,
         asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
     in pg [] goal tacs end;
@@ -454,7 +475,7 @@ val distincts_le =
         val goal = lift_defined %: (nonlazy args1,
                         mk_trp (con_app con1 args1 ~<< con_app con2 args2));
         val tacs = [
-          rtac rev_contrapos 1,
+          rtac @{thm rev_contrapos} 1,
           eres_inst_tac [("f", dis_name con1)] monofun_cfun_arg 1]
           @ map (case_UU_tac (con_stricts @ dis_rews) 1) (nonlazy args2)
           @ [asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
