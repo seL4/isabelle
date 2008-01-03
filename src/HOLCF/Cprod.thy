@@ -27,8 +27,7 @@ end
 instance unit :: po
 by intro_classes simp_all
 
-instance unit :: dcpo
-by intro_classes (simp add: is_lub_def is_ub_def)
+instance unit :: finite_po ..
 
 instance unit :: pcpo
 by intro_classes simp
