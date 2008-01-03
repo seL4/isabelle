@@ -80,6 +80,15 @@ unfolding is_ub_def by fast
 lemma ub_rangeD: "range S <| x \<Longrightarrow> S i \<sqsubseteq> x"
 unfolding is_ub_def by fast
 
+lemma is_ub_empty [simp]: "{} <| u"
+unfolding is_ub_def by fast
+
+lemma is_ub_insert [simp]: "(insert x A) <| y = (x \<sqsubseteq> y \<and> A <| y)"
+unfolding is_ub_def by fast
+
+lemma is_ub_upward: "\<lbrakk>S <| x; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> S <| y"
+unfolding is_ub_def by (fast intro: trans_less)
+
 subsection {* Least upper bounds *}
 
 definition
@@ -356,44 +365,38 @@ lemma directedE2:
 by (insert directedD2 [OF S x y], fast)
 
 lemma directed_finiteI:
-  assumes U: "\<And>U. \<lbrakk>finite U; U \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. \<forall>x\<in>U. x \<sqsubseteq> z"
+  assumes U: "\<And>U. \<lbrakk>finite U; U \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. U <| z"
   shows "directed S"
 proof (rule directedI)
   have "finite {}" and "{} \<subseteq> S" by simp_all
-  hence "\<exists>z\<in>S. \<forall>x\<in>{}. x \<sqsubseteq> z" by (rule U)
+  hence "\<exists>z\<in>S. {} <| z" by (rule U)
   thus "\<exists>z. z \<in> S" by simp
 next
   fix x y
   assume "x \<in> S" and "y \<in> S"
   hence "finite {x, y}" and "{x, y} \<subseteq> S" by simp_all
-  hence "\<exists>z\<in>S. \<forall>x\<in>{x, y}. x \<sqsubseteq> z" by (rule U)
+  hence "\<exists>z\<in>S. {x, y} <| z" by (rule U)
   thus "\<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z" by simp
 qed
 
 lemma directed_finiteD:
   assumes S: "directed S"
-  assumes U: "finite U"
-  assumes "U \<subseteq> S"
-  shows "\<exists>z\<in>S. U <| z"
-proof -
-  from U have "U \<subseteq> S \<Longrightarrow> \<exists>z\<in>S. \<forall>x\<in>U. x \<sqsubseteq> z"
-  proof (induct set: finite)
-    case empty
-    from S have "\<exists>z. z \<in> S" by (rule directedD1)
-    thus "\<exists>z\<in>S. \<forall>x\<in>{}. x \<sqsubseteq> z" by simp
-  next
-    case (insert x F)
-    from `insert x F \<subseteq> S`
-    have xS: "x \<in> S" and FS: "F \<subseteq> S" by simp_all
-    from FS have "\<exists>y\<in>S. \<forall>a\<in>F. a \<sqsubseteq> y" by fact
-    then obtain y where yS: "y \<in> S" and Fy: "\<forall>a\<in>F. a \<sqsubseteq> y" ..
-    from directedD2 [OF S xS yS]
-    obtain z where zS: "z \<in> S" and xz: "x \<sqsubseteq> z" and yz: "y \<sqsubseteq> z" by fast
-    from Fy yz have "\<forall>a\<in>F. a \<sqsubseteq> z" by (fast elim: trans_less)
-    with xz have "\<forall>a\<in>insert x F. a \<sqsubseteq> z" by simp
-    with zS show "\<exists>z\<in>S. \<forall>a\<in>insert x F. a \<sqsubseteq> z" ..
-  qed
-  thus ?thesis using prems unfolding is_ub_def by fast
+  shows "\<lbrakk>finite U; U \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. U <| z"
+proof (induct U set: finite)
+  case empty
+  from S have "\<exists>z. z \<in> S" by (rule directedD1)
+  thus "\<exists>z\<in>S. {} <| z" by simp
+next
+  case (insert x F)
+  from `insert x F \<subseteq> S`
+  have xS: "x \<in> S" and FS: "F \<subseteq> S" by simp_all
+  from FS have "\<exists>y\<in>S. F <| y" by fact
+  then obtain y where yS: "y \<in> S" and Fy: "F <| y" ..
+  obtain z where zS: "z \<in> S" and xz: "x \<sqsubseteq> z" and yz: "y \<sqsubseteq> z"
+    using S xS yS by (rule directedE2)
+  from Fy yz have "F <| z" by (rule is_ub_upward)
+  with xz have "insert x F <| z" by simp
+  with zS show "\<exists>z\<in>S. insert x F <| z" ..
 qed
 
 lemma not_directed_empty [simp]: "\<not> directed {}"
