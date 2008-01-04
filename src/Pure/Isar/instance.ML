@@ -47,7 +47,7 @@ fun gen_instance prep_arity prep_attr parse_term do_proof do_proof' raw_arities 
         val def' = (apsnd o apsnd) (Syntax.check_prop ctxt) def;
       in Specification.definition def' ctxt end;
     val _ = if not (null defs) then Output.legacy_feature
-      "Instance command with attached attached definitions; use instantiation instead." else ();
+      "Instance command with attached definitions; use instantiation instead." else ();
   in if not (null defs) orelse forall (Class.is_class thy) sort
   then
     thy

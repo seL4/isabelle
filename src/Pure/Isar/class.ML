@@ -824,7 +824,7 @@ fun conclude_instantiation lthy =
     val _ = case map (fst o snd) params
      of [] => ()
       | cs => Output.legacy_feature
-          ("Missing definitions for overloaded parameters " ^ commas_quote cs)
+          ("Missing specifications for overloaded parameters " ^ commas_quote cs)
   in lthy end;
 
 fun pretty_instantiation lthy =
