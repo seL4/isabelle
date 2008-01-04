@@ -335,9 +335,10 @@ apply (simp add: stream.finite_def)
 by (rule_tac x="n" in exI,simp)
 
 lemma adm_not_stream_finite: "adm (%x. ~ stream_finite x)"
-apply (rule admI2, auto)
-apply (drule stream_finite_less,drule is_ub_thelub)
-by auto
+apply (rule adm_upward)
+apply (erule contrapos_nn)
+apply (erule (1) stream_finite_less [rule_format])
+done
 
 
 
@@ -799,12 +800,20 @@ by (simp add: sconc_def)
 
 (* ----------------------------------------------------------------------- *)
 
+lemma cont_sconc_lemma1: "stream_finite x \<Longrightarrow> cont (\<lambda>y. x ooo y)"
+by (erule stream_finite_ind, simp_all)
+
+lemma cont_sconc_lemma2: "\<not> stream_finite x \<Longrightarrow> cont (\<lambda>y. x ooo y)"
+by (simp add: sconc_def slen_def)
+
+lemma cont_sconc: "cont (\<lambda>y. x ooo y)"
+apply (cases "stream_finite x")
+apply (erule cont_sconc_lemma1)
+apply (erule cont_sconc_lemma2)
+done
+
 lemma sconc_mono: "y << y' ==> x ooo y << x ooo y'"
-apply (case_tac "#x")
- apply (rule stream_finite_ind [of "x"])
-   apply (auto simp add: stream.finite_def)
-  apply (drule slen_take_lemma1,blast)
- by (simp add: stream_prefix',auto simp add: sconc_def)
+by (rule cont_sconc [THEN cont2mono, THEN monofunE])
 
 lemma sconc_mono1 [simp]: "x << x ooo y"
 by (rule sconc_mono [of UU, simplified])
@@ -949,8 +958,7 @@ lemma contlub_scons: "contlub (%x. a && x)"
 by (simp add: contlub_Rep_CFun2)
 
 lemma contlub_scons_lemma: "chain S ==> (LUB i. a && S i) = a && (LUB i. S i)"
-apply (insert contlub_scons [of a])
-by (simp only: contlub_def)
+by (rule contlubE [OF contlub_Rep_CFun2, symmetric])
 
 lemma finite_lub_sconc: "chain Y ==> (stream_finite x) ==>
                         (LUB i. x ooo Y i) = (x ooo (LUB i. Y i))"
@@ -967,15 +975,10 @@ apply (drule finite_lub_sconc,auto simp add: slen_infinite)
 done
 
 lemma contlub_sconc: "contlub (%y. x ooo y)"
-by (rule contlubI, insert contlub_sconc_lemma [of _ x], simp)
+by (rule cont_sconc [THEN cont2contlub])
 
 lemma monofun_sconc: "monofun (%y. x ooo y)"
 by (simp add: monofun_def sconc_mono)
-
-lemma cont_sconc: "cont (%y. x ooo y)"
-apply (rule  monocontlub2cont)
- apply (rule monofunI, simp add: sconc_mono)
-by (rule contlub_sconc)
 
 
 (* ----------------------------------------------------------------------- *)
