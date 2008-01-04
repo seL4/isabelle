@@ -146,13 +146,13 @@ lemma thelubI: "M <<| l \<Longrightarrow> lub M = l"
 by (rule unique_lub [OF lubI])
 
 lemma is_lub_singleton: "{x} <<| x"
-by (simp add: is_lub_def is_ub_def)
+by (simp add: is_lub_def)
 
 lemma lub_singleton [simp]: "lub {x} = x"
 by (rule thelubI [OF is_lub_singleton])
 
 lemma is_lub_bin: "x \<sqsubseteq> y \<Longrightarrow> {x, y} <<| y"
-by (simp add: is_lub_def is_ub_def)
+by (simp add: is_lub_def)
 
 lemma lub_bin: "x \<sqsubseteq> y \<Longrightarrow> lub {x, y} = y"
 by (rule is_lub_bin [THEN thelubI])
