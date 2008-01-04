@@ -71,33 +71,25 @@ equivariance Beta
 nominal_inductive Beta
   by (simp_all add: abs_fresh fresh_fact')
 
-lemma supp_beta: 
+lemma beta_preserves_fresh: 
+  fixes a::"name"
   assumes a: "t\<longrightarrow>\<^isub>\<beta> s"
-  shows "(supp s)\<subseteq>((supp t)::name set)"
+  shows "a\<sharp>t \<Longrightarrow> a\<sharp>s"
 using a
-by (induct)
-   (auto intro!: simp add: abs_supp lam.supp subst_supp)
+apply(nominal_induct t s avoiding: a rule: Beta.strong_induct)
+apply(auto simp add: abs_fresh fresh_fact fresh_atm)
+done
 
 lemma beta_abs: 
-  assumes a: "Lam [a].t\<longrightarrow>\<^isub>\<beta> t'"
+  assumes a: "Lam [a].t\<longrightarrow>\<^isub>\<beta> t'" 
   shows "\<exists>t''. t'=Lam [a].t'' \<and> t\<longrightarrow>\<^isub>\<beta> t''"
-using a
-apply -
-apply(ind_cases "Lam [a].t  \<longrightarrow>\<^isub>\<beta> t'")
-apply(auto simp add: lam.distinct lam.inject)
-apply(auto simp add: alpha)
-apply(rule_tac x="[(a,aa)]\<bullet>s2" in exI)
-apply(rule conjI)
-apply(rule sym)
-apply(rule pt_bij2[OF pt_name_inst, OF at_name_inst])
-apply(simp)
-apply(rule pt_name3)
-apply(simp add: at_ds5[OF at_name_inst])
-apply(rule conjI)
-apply(simp add: pt_fresh_left[OF pt_name_inst, OF at_name_inst] calc_atm)
-apply(force dest!: supp_beta simp add: fresh_def)
-apply(force intro!: eqvts)
-done
+proof -
+  have "a\<sharp>Lam [a].t" by (simp add: abs_fresh)
+  with a have "a\<sharp>t'" by (simp add: beta_preserves_fresh)
+  with a show ?thesis
+    by (cases rule: Beta.strong_cases[where a="a" and aa="a"])
+       (auto simp add: lam.inject abs_fresh alpha)
+qed
 
 lemma beta_subst: 
   assumes a: "M \<longrightarrow>\<^isub>\<beta> M'"

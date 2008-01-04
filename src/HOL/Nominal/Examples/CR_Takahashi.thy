@@ -63,6 +63,7 @@ lemma substitution_lemma:
 using a by (nominal_induct t avoiding: x y s u rule: lam.induct)
            (auto simp add: fresh_fact forget)
 
+
 lemma subst_rename: 
   assumes a: "y\<sharp>t"
   shows "t[x::=s] = ([(y,x)]\<bullet>t)[y::=s]"
@@ -124,48 +125,31 @@ proof -
   finally show "App (Lam [x].t1) s1 \<longrightarrow>\<^isub>1 t2[x::=s2]" by simp
 qed
 
-lemma One_preserves_fresh:
-  fixes x :: "name"
-  assumes a: "t \<longrightarrow>\<^isub>1 s" 
-  shows "x\<sharp>t \<Longrightarrow> x\<sharp>s"
-using a by (nominal_induct t s avoiding: x rule: One.strong_induct)
-           (auto simp add: abs_fresh fresh_atm fresh_fact)
-
 lemma One_Var:
   assumes a: "Var x \<longrightarrow>\<^isub>1 M"
   shows "M = Var x"
 using a by (erule_tac One.cases) (simp_all) 
 
 lemma One_Lam: 
-  assumes a: "Lam [x].t \<longrightarrow>\<^isub>1 s"
+  assumes a: "Lam [x].t \<longrightarrow>\<^isub>1 s" "x\<sharp>s"
   shows "\<exists>t'. s = Lam [x].t' \<and> t \<longrightarrow>\<^isub>1 t'"
 using a
-  apply(erule_tac One.cases)
-  apply(auto simp add: lam.inject alpha)
-  apply(rule_tac x="[(x,xa)]\<bullet>t2" in exI)
-  apply(perm_simp add: fresh_left calc_atm One.eqvt One_preserves_fresh)
-done  
+by (cases rule: One.strong_cases[where x="x" and xa="x"])
+   (auto simp add: lam.inject abs_fresh alpha)
 
 lemma One_App: 
   assumes a: "App t s \<longrightarrow>\<^isub>1 r"
   shows "(\<exists>t' s'. r = App t' s' \<and> t \<longrightarrow>\<^isub>1 t' \<and> s \<longrightarrow>\<^isub>1 s') \<or> 
          (\<exists>x p p' s'. r = p'[x::=s'] \<and> t = Lam [x].p \<and> p \<longrightarrow>\<^isub>1 p' \<and> s \<longrightarrow>\<^isub>1 s' \<and> x\<sharp>(s,s'))" 
-using a by (erule_tac One.cases) 
-           (auto simp add: lam.inject)
+using a by (erule_tac One.cases) (auto simp add: lam.inject)
 
 lemma One_Redex: 
-  assumes a: "App (Lam [x].t) s \<longrightarrow>\<^isub>1 r"
+  assumes a: "App (Lam [x].t) s \<longrightarrow>\<^isub>1 r" "x\<sharp>(s,r)"
   shows "(\<exists>t' s'. r = App (Lam [x].t') s' \<and> t \<longrightarrow>\<^isub>1 t' \<and> s \<longrightarrow>\<^isub>1 s') \<or> 
          (\<exists>t' s'. r = t'[x::=s'] \<and> t \<longrightarrow>\<^isub>1 t' \<and> s \<longrightarrow>\<^isub>1 s')" 
 using a
-apply(erule_tac One.cases, simp_all)
-apply(auto dest: One_Lam simp add: lam.inject)[1] 
-apply(rule disjI2)
-apply(auto simp add: lam.inject alpha)
-apply(rule_tac x="[(x,xa)]\<bullet>t2" in exI)
-apply(rule_tac x="s2" in exI)
-apply(simp add: subst_rename One_preserves_fresh One.eqvt)
-done
+by (cases rule: One.strong_cases [where x="x" and xa="x"])
+   (auto dest: One_Lam simp add: lam.inject abs_fresh alpha fresh_prod)
 
 section {* Transitive Closure of One *}
 
@@ -186,11 +170,9 @@ where
 | d3[intro]: "\<lbrakk>\<not>(\<exists>y t'. t1 = Lam [y].t'); t1 \<longrightarrow>\<^isub>d t2; s1 \<longrightarrow>\<^isub>d s2\<rbrakk> \<Longrightarrow> App t1 s1 \<longrightarrow>\<^isub>d App t2 s2"
 | d4[intro]: "\<lbrakk>x\<sharp>(s1,s2); t1 \<longrightarrow>\<^isub>d t2; s1 \<longrightarrow>\<^isub>d s2\<rbrakk> \<Longrightarrow> App (Lam [x].t1) s1 \<longrightarrow>\<^isub>d t2[x::=s2]"
 
-(* FIXME: needs to be in nominal_inductive *)
-declare perm_pi_simp[eqvt_force]
-
 equivariance Dev
-nominal_inductive Dev by (simp_all add: abs_fresh fresh_fact')
+nominal_inductive Dev 
+  by (simp_all add: abs_fresh fresh_fact')
 
 lemma better_d4_intro:
   assumes a: "t1 \<longrightarrow>\<^isub>d t2" "s1 \<longrightarrow>\<^isub>d s2"
@@ -208,17 +190,19 @@ lemma Dev_preserves_fresh:
   fixes x::"name"
   assumes a: "M\<longrightarrow>\<^isub>d N"  
   shows "x\<sharp>M \<Longrightarrow> x\<sharp>N"
-using a by (induct) (auto simp add: abs_fresh fresh_fact fresh_fact')
+using a 
+by (induct) (auto simp add: abs_fresh fresh_fact fresh_fact')
 
 lemma Dev_Lam:
-  assumes a: "Lam [x].M \<longrightarrow>\<^isub>d N"
+  assumes a: "Lam [x].M \<longrightarrow>\<^isub>d N" 
   shows "\<exists>N'. N = Lam [x].N' \<and> M \<longrightarrow>\<^isub>d N'"
-using a
-apply(erule_tac Dev.cases)
-apply(auto simp add: lam.inject alpha)
-apply(rule_tac x="[(x,xa)]\<bullet>s" in exI)
-apply(perm_simp add: fresh_left Dev.eqvt Dev_preserves_fresh)
-done
+proof -
+  from a have "x\<sharp>Lam [x].M" by (simp add: abs_fresh)
+  with a have "x\<sharp>N" by (simp add: Dev_preserves_fresh)
+  with a show ?thesis
+    by (cases rule: Dev.strong_cases [where x="x" and xa="x"])
+       (auto simp add: lam.inject abs_fresh alpha)
+qed
 
 lemma Development_existence:
   shows "\<exists>M'. M \<longrightarrow>\<^isub>d M'"
@@ -228,9 +212,13 @@ by (nominal_induct M rule: lam.induct)
 lemma Triangle:
   assumes a: "t \<longrightarrow>\<^isub>d t1" "t \<longrightarrow>\<^isub>1 t2"
   shows "t2 \<longrightarrow>\<^isub>1 t1"
-using a by (nominal_induct avoiding: t2 rule: Dev.strong_induct)
-                   (auto dest!: One_Var One_App One_Redex One_Lam intro: One_subst)
-(* Remark: we could here get away with a normal induction and appealing to One_preserves_fresh *)
+using a 
+apply(nominal_induct avoiding: t2 rule: Dev.strong_induct)
+apply(auto dest!: One_Var)[1]
+apply(auto dest!: One_Lam)[1]
+apply(auto dest!: One_App)[1]
+apply(auto dest!: One_Redex intro: One_subst)[1]
+done
 
 lemma Diamond_for_One:
   assumes a: "t \<longrightarrow>\<^isub>1 t1" "t \<longrightarrow>\<^isub>1 t2"
