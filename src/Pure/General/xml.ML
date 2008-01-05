@@ -10,8 +10,6 @@ sig
   (*string functions*)
   val header: string
   val text: string -> string
-  val text_charref: string -> string
-  val cdata: string -> string
   type attributes = (string * string) list
   val attribute: string * string -> string
   val element: string -> attributes -> string list -> string
@@ -22,14 +20,15 @@ sig
     | Output of output
   type content = tree list
   type element = string * attributes * content
-  val string_of_tree: tree -> string
   val buffer_of_tree: tree -> Buffer.T
+  val string_of_tree: tree -> string
+  val plain_content: tree -> string
   val parse_string : string -> string option
   val parse_content: string list -> tree list * string list
   val parse_elem: string list -> tree * string list
   val parse_document: string list -> (string option * tree) * string list
   val tree_of_string: string -> tree
-  val scan_comment_whspc : string list -> unit * string list
+  val scan_comment_whspc: string list -> unit * string list
 end;
 
 structure XML: XML =
@@ -56,13 +55,7 @@ fun encode "<" = "&lt;"
   | encode "\"" = "&quot;"
   | encode c = c;
 
-fun encode_charref c = "&#" ^ Int.toString (ord c) ^ ";"
-
-val text = Library.translate_string encode;
-
-val text_charref = translate_string encode_charref;
-
-val cdata = enclose "<![CDATA[" "]]>\n";
+val text = translate_string encode;
 
 
 (* elements *)
@@ -87,7 +80,6 @@ datatype tree =
   | Output of output;
 
 type content = tree list;
-
 type element = string * attributes * content;
 
 fun buffer_of_tree tree =
@@ -109,6 +101,13 @@ fun buffer_of_tree tree =
   in string_of tree Buffer.empty end;
 
 val string_of_tree = Buffer.content o buffer_of_tree;
+
+fun plain_content tree =
+  let
+    fun content (Elem (_, _, ts)) = fold content ts
+      | content (Text s) = Buffer.add s
+      | content (Output _) = I;    (* FIXME !? *)
+  in Buffer.empty |> content tree |> Buffer.content end;
 
 
 
