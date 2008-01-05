@@ -29,6 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * <ul>
  * <li> stdout stream, interspersed with marked Isabelle messages
  * <li> stderr stream
+ * <li> process init (pid and session property)
  * <li> process exit (return code)
  * </ul>
  * </ol>
@@ -52,7 +53,9 @@ public class IsabelleProcess {
     private volatile boolean closing = false;
     private LinkedBlockingQueue<String> output = null;
 
+    public volatile String session = null;
 
+    
     /**
      * Models failures in process management.
      */
@@ -71,9 +74,9 @@ public class IsabelleProcess {
      */
     public static class Result {
         public enum Kind {
-            STDIN, STDOUT, STDERR, SIGNAL, EXIT,                        // Posix channels/events
-            WRITELN, PRIORITY, TRACING, WARNING, ERROR, DEBUG, PROMPT,  // Isabelle messages
-            SYSTEM                                                      // internal system notification
+            STDIN, STDOUT, STDERR, SIGNAL, EXIT,                  // Posix channels/events
+            WRITELN, PRIORITY, TRACING, WARNING, ERROR, DEBUG, PROMPT, INIT,  // Isabelle messages
+            SYSTEM                                              // internal system notification
         };
         public Kind kind;
         public Properties props;
@@ -100,6 +103,7 @@ public class IsabelleProcess {
               this.kind == Kind.SYSTEM;
         }
 
+        @Override
         public String toString() {
             if (this.props == null) {
                 return this.kind.toString() + " [[" + this.result + "]]";
@@ -344,7 +348,7 @@ public class IsabelleProcess {
 
             try {
                 while (inputReader != null) {
-                    if (kind == Result.Kind.STDOUT && pid != null) {
+                    if (kind == Result.Kind.STDOUT) {
                         // char mode
                         int c = -1;
                         while ((buf.length() == 0 || inputReader.ready()) &&
@@ -370,6 +374,7 @@ public class IsabelleProcess {
                                 case 'E': kind = Result.Kind.ERROR; break;
                                 case 'F': kind = Result.Kind.DEBUG; break;
                                 case 'G': kind = Result.Kind.PROMPT; break;
+                                case 'H': kind = Result.Kind.INIT; break;
                                 default: kind = Result.Kind.STDOUT; break;
                             }
                             props = null;
@@ -378,40 +383,35 @@ public class IsabelleProcess {
                         // line mode
                         String line = null;
                         if ((line = inputReader.readLine()) != null) {
-                            if (pid == null && kind == Result.Kind.STDOUT && line.startsWith("PID=")) {
-                                pid = line.substring("PID=".length());
-                            } else if (kind == Result.Kind.STDOUT) {
-                                buf.append(line);
-                                buf.append("\n");
-                                putResult(kind, buf.toString());
-                                buf = new StringBuffer(100);
-                            } else {
-                                int len = line.length();
-                                // property
-                                if (line.endsWith("\u0002,")) {
-                                    int i = line.indexOf("=");
-                                    if (i > 0) {
-                                        String name = line.substring(0, i);
-                                        String value = line.substring(i + 1, len - 2);
-                                        if (props == null)
-                                            props = new Properties();
-                                        if (!props.containsKey(name)) {
-                                            props.setProperty(name, value);
-                                        }
+                            int len = line.length();
+                            // property
+                            if (line.endsWith("\u0002,")) {
+                                int i = line.indexOf("=");
+                                if (i > 0) {
+                                    String name = line.substring(0, i);
+                                    String value = line.substring(i + 1, len - 2);
+                                    if (props == null)
+                                        props = new Properties();
+                                    if (!props.containsKey(name)) {
+                                        props.setProperty(name, value);
                                     }
                                 }
-                                // last text line
-                                else if (line.endsWith("\u0002.")) {
-                                    buf.append(line.substring(0, len - 2));
-                                    putResult(kind, props, buf.toString());
-                                    buf = new StringBuffer(100);
-                                    kind = Result.Kind.STDOUT;
+                            }
+                            // last text line
+                            else if (line.endsWith("\u0002.")) {
+                                if (kind == Result.Kind.INIT && props != null) {
+                                    pid = props.getProperty("pid");
+                                    session = props.getProperty("session");
                                 }
-                                // text line
-                                else {
-                                    buf.append(line);
-                                    buf.append("\n");
-                                }
+                                buf.append(line.substring(0, len - 2));
+                                putResult(kind, props, buf.toString());
+                                buf = new StringBuffer(100);
+                                kind = Result.Kind.STDOUT;
+                            }
+                            // text line
+                            else {
+                                buf.append(line);
+                                buf.append("\n");
                             }
                         } else {
                             inputReader.close();
