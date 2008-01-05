@@ -7,7 +7,7 @@ Isabelle process wrapper -- interaction via external program.
 General format of process output:
 
   (a) unmarked stdout/stderr, no line structure (output should be
-  processed immediately as it arrives)
+  processed immediately as it arrives);
 
   (b) properly marked-up messages, e.g. for writeln channel
 
@@ -15,9 +15,9 @@ General format of process output:
 
   where the props consist of name=value lines terminated by "\002,\n"
   each, and the remaining text is any number of lines (output is
-  supposed to be processed in one piece).
+  supposed to be processed in one piece);
 
-  (c) Special init message holds "pid" and "session" property.
+  (c) special init message holds "pid" and "session" property.
 *)
 
 signature ISABELLE_PROCESS =
