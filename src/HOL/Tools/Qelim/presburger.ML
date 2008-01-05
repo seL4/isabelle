@@ -68,7 +68,7 @@ local
  | _ => can HOLogic.dest_number t orelse can HOLogic.dest_nat t
 
  fun ty cts t = 
- if not (typ_of (ctyp_of_term t) mem [HOLogic.intT, HOLogic.natT]) then false 
+ if not (typ_of (ctyp_of_term t) mem [HOLogic.intT, HOLogic.natT, HOLogic.boolT]) then false 
     else case term_of t of 
       c$l$r => if c mem [@{term"op *::int => _"}, @{term"op *::nat => _"}] 
                then not (isnum l orelse isnum r)
@@ -170,6 +170,7 @@ in
   THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
   THEN_ALL_NEW simp_tac ss
   THEN_ALL_NEW (TRY o generalize_tac (int_nat_terms ctxt))
+  THEN_ALL_NEW ObjectLogic.full_atomize_tac
   THEN_ALL_NEW (TRY o thin_prems_tac (is_relevant ctxt))
   THEN_ALL_NEW ObjectLogic.full_atomize_tac
   THEN_ALL_NEW div_mod_tac ctxt
