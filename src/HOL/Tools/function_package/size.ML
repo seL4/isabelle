@@ -61,15 +61,22 @@ val app = curry (list_comb o swap);
 fun prove_size_thms (info : datatype_info) new_type_names thy =
   let
     val {descr, alt_names, sorts, rec_names, rec_rewrites, induction, ...} = info;
+
+    (*normalize type variable names to accomodate policy imposed by instantiation target*)
+    val tvars = (map dest_TFree o snd o dest_Type o hd) (get_rec_types descr sorts)
+      ~~ Name.invents Name.context Name.aT (length sorts);
+    val norm_tvars = map_atyps
+      (fn TFree (v, sort) => TFree (the (AList.lookup (op =) tvars v), sort));
+
     val l = length new_type_names;
     val alt_names' = (case alt_names of
       NONE => replicate l NONE | SOME names => map SOME names);
     val descr' = List.take (descr, l);
     val (rec_names1, rec_names2) = chop l rec_names;
-    val recTs = get_rec_types descr sorts;
+    val recTs = map norm_tvars (get_rec_types descr sorts);
     val (recTs1, recTs2) = chop l recTs;
     val (_, (_, paramdts, _)) :: _ = descr;
-    val paramTs = map (typ_of_dtyp descr sorts) paramdts;
+    val paramTs = map (norm_tvars o typ_of_dtyp descr sorts) paramdts;
     val ((param_size_fs, param_size_fTs), f_names) = paramTs |>
       map (fn T as TFree (s, _) =>
         let
@@ -101,7 +108,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
     (* instantiation for primrec combinator *)
     fun size_of_constr b size_ofp ((_, cargs), (_, cargs')) =
       let
-        val Ts = map (typ_of_dtyp descr sorts) cargs;
+        val Ts = map (norm_tvars o typ_of_dtyp descr sorts) cargs;
         val k = length (filter is_rec_type cargs);
         val (ts, _, _) = fold_rev (fn ((dt, dt'), T) => fn (us, i, j) =>
           if is_rec_type dt then (Bound i :: us, i + 1, j + 1)
@@ -129,26 +136,36 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       Const (rec_name, fTs @ [T] ---> HOLogic.natT))
         (recTs ~~ rec_names));
 
-    fun instance_size_class tyco thy =
-      thy
-      |> TheoryTarget.instantiation
-           ([tyco], replicate (Sign.arity_number thy tyco) HOLogic.typeS, [HOLogic.class_size])
-      |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-      |> LocalTheory.exit
-      |> ProofContext.theory_of;
+    fun define_overloaded (def_name, eq) lthy =
+      let
+        val (Free (c, _), rhs) = (Logic.dest_equals o Syntax.check_term lthy) eq;
+        val (thm, lthy') = lthy
+          |> LocalTheory.define Thm.definitionK ((c, NoSyn), ((def_name, []), rhs));
+        val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy');
+        val thm' = thm
+          |> Assumption.export false lthy' ctxt_thy o snd o snd
+          |> singleton (Variable.export lthy' ctxt_thy)
+      in (thm', lthy') end;
+
+    val size_sorts = tvars
+      |> map (fn (v, _) => Sorts.inter_sort (Sign.classes_of thy) (HOLogic.typeS,
+           the (AList.lookup (op =) sorts v)));
 
     val ((size_def_thms, size_def_thms'), thy') =
       thy
       |> Sign.add_consts_i (map (fn (s, T) =>
            (Sign.base_name s, param_size_fTs @ [T] ---> HOLogic.natT, NoSyn))
            (size_names ~~ recTs1))
-      |> fold (fn (_, (name, _, _)) => instance_size_class name) descr'
       |> PureThy.add_defs_i false
         (map (Thm.no_attributes o apsnd (Logic.mk_equals o apsnd (app fs)))
            (def_names ~~ (size_fns ~~ rec_combs1)))
-      ||>> PureThy.add_defs_i true
-        (map (Thm.no_attributes o apsnd (Logic.mk_equals o apsnd (app fs')))
-           (def_names' ~~ (overloaded_size_fns ~~ rec_combs1)));
+      ||> TheoryTarget.instantiation
+           (map (#1 o snd) descr', size_sorts, [HOLogic.class_size])
+      ||>> fold_map define_overloaded
+        (def_names' ~~ map Logic.mk_equals (overloaded_size_fns ~~ map (app fs') rec_combs1))
+      ||> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+      ||> LocalTheory.exit
+      ||> ProofContext.theory_of;
 
     val ctxt = ProofContext.init thy';
 
@@ -175,7 +192,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
     (* characteristic equations for size functions *)
     fun gen_mk_size_eq p size_of size_ofp size_const T (cname, cargs) =
       let
-        val Ts = map (typ_of_dtyp descr sorts) cargs;
+        val Ts = map (norm_tvars o typ_of_dtyp descr sorts) cargs;
         val tnames = Name.variant_list f_names (DatatypeProp.make_tnames Ts);
         val ts = List.mapPartial (fn (sT as (s, T), dt) =>
           Option.map (fn sz => sz $ Free sT)
