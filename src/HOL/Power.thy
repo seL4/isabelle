@@ -323,18 +323,20 @@ by (cases n, simp_all, rule power_inject_base)
 
 subsection{*Exponentiation for the Natural Numbers*}
 
-instance nat :: power ..
+instantiation nat :: recpower
+begin
 
-primrec (power)
-  "p ^ 0 = 1"
-  "p ^ (Suc n) = (p::nat) * (p ^ n)"
+primrec power_nat where
+  "p ^ 0 = (1\<Colon>nat)"
+  | "p ^ (Suc n) = (p\<Colon>nat) * (p ^ n)"
 
-instance nat :: recpower
-proof
+instance proof
   fix z n :: nat
   show "z^0 = 1" by simp
   show "z^(Suc n) = z * (z^n)" by simp
 qed
+
+end
 
 lemma of_nat_power:
   "of_nat (m ^ n) = (of_nat m::'a::{semiring_1,recpower}) ^ n"
