@@ -7,6 +7,7 @@ Session management -- maintain state of logic images.
 
 signature SESSION =
 sig
+  val id: unit -> string list
   val name: unit -> string
   val welcome: unit -> string
   val use_dir: string -> bool -> string list -> bool -> bool -> string -> bool -> string list ->
@@ -28,6 +29,7 @@ val remote_path = ref (NONE: Url.T option);
 
 (* access path *)
 
+fun id () = ! session;
 fun path () = ! session_path;
 
 fun str_of [] = Context.PureN
