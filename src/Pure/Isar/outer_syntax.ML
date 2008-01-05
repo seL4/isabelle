@@ -355,7 +355,7 @@ struct
   fun loop () = gen_loop (Secure.is_secure ()) false;
   fun sync_main () = gen_main (Secure.is_secure ()) true;
   fun sync_loop () = gen_loop (Secure.is_secure ()) true;
-  fun secure_main () = gen_main true true;
+  fun secure_main () = (Toplevel.init_state (); gen_loop true true);
   val toplevel = Toplevel.program;
 end;
 
