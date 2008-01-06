@@ -305,8 +305,7 @@ fun proof_general_markup (markup as (name, _)) =
    else if name = Markup.typN      then typ_markup markup
    else if name = Markup.termN     then term_markup markup
    else if name = Markup.keywordN  then keyword_markup markup
-   else if name = Markup.commandN  then command_markup markup 
-   else if name = Markup.promptN   then prompt_markup markup *)
+   else if name = Markup.commandN  then command_markup markup*)
    else if name = Markup.stateN    then state_markup
 (* else if name = Markup.subgoalN  then subgoal_markup () *)
    else ("", "");
