@@ -1,8 +1,6 @@
 #!/bin/bash
 # $Id$
 
-set -x
-
 JEDIT_HOME="$HOME/lib/jedit/current"
 PLUGINS="$HOME/.jedit/jars"
 
@@ -15,9 +13,11 @@ scalac -d build \
   isabelle/IsabellePlugin.scala \
   isabelle/IsabelleDock.scala \
   isabelle/IsabelleParser.scala \
-&& {
+&& (
   cp *.xml *.props build/
   cd build
   jar cf ../../isabelle.jar isabelle/*.class *.xml *.props
-}
+)
+
+rm -rf build/
 
