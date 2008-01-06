@@ -4,7 +4,10 @@
 rm -rf build/ && mkdir -p build
 
 javac -d build isabelle/IsabelleProcess.java \
-&& {
+&& (
   cd build
-  jar cf ../isabelle.jar *
-}
+  jar cf ../isabelle.jar isabelle/*.class
+)
+
+rm -rf build/
+
