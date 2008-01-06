@@ -33,12 +33,20 @@ public class IsabelleDemo extends IsabelleProcess {
             public void run()
             {
                 IsabelleProcess.Result result = null;
-                while (result == null || result.kind != IsabelleProcess.Result.Kind.EXIT) {
-                    try {
-                        result = results.take();
-                        System.err.println(result.toString());
-                    } catch (InterruptedException ex) { }
-                }
+                do {
+                  try {
+                    result = results.take();
+                  } catch (NullPointerException ex) {
+                    result = null;
+                  } catch (InterruptedException ex) {
+                    result = null;
+                  }
+                  if (result != null)
+                    System.err.println(result.toString());
+                  if (result.kind == IsabelleProcess.Result.Kind.EXIT) {
+                    result = null;
+                  }
+                } while (result != null);
                 System.err.println("Console thread terminated");
             }
         }).start();
