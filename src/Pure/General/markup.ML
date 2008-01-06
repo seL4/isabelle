@@ -56,17 +56,10 @@ sig
   val whitespaceN: string val whitespace: T
   val junkN: string val junk: T
   val commandspanN: string val commandspan: string -> T
-  val promptN: string val prompt: T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
   val sendbackN: string val sendback: T
   val hiliteN: string val hilite: T
-  val writelnN: string val writeln: T
-  val priorityN: string val priority: T
-  val tracingN: string val tracing: T
-  val warningN: string val warning: T
-  val errorN: string val error: T
-  val debugN: string val debug: T
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
   val output: T -> output * output
@@ -177,21 +170,10 @@ val (commandspanN, commandspan) = markup_string "commandspan" nameN;
 
 (* toplevel *)
 
-val (promptN, prompt) = markup_elem "prompt";
 val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
 val (sendbackN, sendback) = markup_elem "sendback";
 val (hiliteN, hilite) = markup_elem "hilite";
-
-
-(* channels *)
-
-val (writelnN, writeln) = markup_elem "writeln";
-val (priorityN, priority) = markup_elem "priority";
-val (tracingN, tracing) = markup_elem "tracing";
-val (warningN, warning) = markup_elem "warning";
-val (errorN, error) = markup_elem "error";
-val (debugN, debug) = markup_elem "debug";
 
 
 (* print mode operations *)
