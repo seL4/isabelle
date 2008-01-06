@@ -41,10 +41,12 @@ sig
   val warning_fn: (output -> unit) ref
   val error_fn: (output -> unit) ref
   val debug_fn: (output -> unit) ref
+  val prompt_fn: (output -> unit) ref
+  val error_msg: string -> unit
+  val prompt: string -> unit
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
-  val error_msg: string -> unit
   val ml_output: (string -> unit) * (string -> 'a)
   val accumulated_time: unit -> unit
 end;
@@ -98,11 +100,14 @@ val tracing_fn = ref (fn s => ! writeln_fn s);
 val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
 val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
 val debug_fn = ref (std_output o suffix "\n" o prefix_lines "::: ");
+val prompt_fn = ref std_output;
 
 fun writeln s = ! writeln_fn (output s);
 fun priority s = ! priority_fn (output s);
 fun tracing s = ! tracing_fn (output s);
 fun warning s = ! warning_fn (output s);
+fun error_msg s = ! error_fn (output s);
+fun prompt s = ! prompt_fn (output s);
 
 val tolerate_legacy_features = ref true;
 fun legacy_feature s =
@@ -112,8 +117,6 @@ fun no_warnings f = setmp warning_fn (K ()) f;
 
 val debugging = ref false;
 fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
-
-fun error_msg s = ! error_fn (output s);
 
 val ml_output = (writeln, error);
 
