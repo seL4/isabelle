@@ -480,7 +480,7 @@ public class IsabelleProcess {
     /**
      * Creates Isabelle process with specified logic image.
      */
-    public IsabelleProcess(String logic) throws IsabelleProcessException
+    public IsabelleProcess(String [] options, String logic) throws IsabelleProcessException
     {
         ArrayList<String> cmdline = new ArrayList<String> ();
         String shell = null;
@@ -500,6 +500,9 @@ public class IsabelleProcess {
             cmdline.add("isabelle-process");
         }
         cmdline.add("-W");
+        if (options != null) {
+            for (String opt: options) cmdline.add(opt);
+        }
         if (logic != null) cmdline.add(logic);
 
         try {
@@ -531,6 +534,13 @@ public class IsabelleProcess {
         inputThread.start();
         errorThread.start();
         exitThread.start();
+    }
+
+    /**
+     * Creates Isabelle process without options.
+     */
+    public IsabelleProcess(String logic) throws IsabelleProcessException {
+        this(null, logic);
     }
 
     /**
