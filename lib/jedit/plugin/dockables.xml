@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!DOCTYPE DOCKABLES SYSTEM "dockables.dtd">
+<!-- $Id$ -->
+
+<DOCKABLES>
+	<DOCKABLE NAME="isabelle" MOVABLE="TRUE">
+		new isabelle.IsabelleDock(view, position);
+	</DOCKABLE>
+</DOCKABLES>
+

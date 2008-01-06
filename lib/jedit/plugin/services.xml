@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!DOCTYPE SERVICES SYSTEM "services.dtd">
+<!-- $Id$ -->
+
+<SERVICES>
+  <SERVICE CLASS="sidekick.SideKickParser" NAME="isabelle">
+    new isabelle.IsabelleParser();
+  </SERVICE>
+</SERVICES>
+

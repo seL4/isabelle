@@ -1,0 +1,23 @@
+#!/bin/bash
+# $Id$
+
+set -x
+
+JEDIT_HOME="$HOME/lib/jedit/current"
+PLUGINS="$HOME/.jedit/jars"
+
+
+rm -rf build/ && mkdir -p build
+( cd build; jar xf ../../../classes/isabelle.jar )
+
+scalac -d build \
+  -cp $JEDIT_HOME/jedit.jar:$PLUGINS/SideKick.jar:$PLUGINS/ErrorList.jar:$PLUGINS/Console.jar \
+  isabelle/IsabellePlugin.scala \
+  isabelle/IsabelleDock.scala \
+  isabelle/IsabelleParser.scala \
+&& {
+  cp *.xml *.props build/
+  cd build
+  jar cf ../../isabelle.jar isabelle/*.class *.xml *.props
+}
+
