@@ -85,7 +85,10 @@ fun get_pos (elem as XML.Elem (name, atts, ts)) =
 
 in
 
-fun message ch markup raw_txt =
+val _ = Markup.add_mode isabelle_processN (fn (name, props) =>
+  if name = Markup.positionN then test_markup (name, props) else ("", ""));
+
+fun message ch raw_txt =
   let
     val (txt, pos) =
       (case try XML.tree_of_string (XML.element "message" [] [raw_txt]) of
@@ -96,16 +99,14 @@ fun message ch markup raw_txt =
       (case Position.properties_of (Position.thread_data ()) of
         [] => Position.properties_of pos
       | props => props);
-    val s = special ch ^ print_props props ^ Markup.enclose markup txt ^ special_end;
-  in Output.writeln_default s end;
+  in Output.writeln_default (special ch ^ print_props props ^ txt ^ special_end) end;
 
 fun init_message () =
   let
-    val pid = string_of_pid (Posix.ProcEnv.getpid ());
-    val session = List.last (Session.id ()) handle List.Empty => "unknown";
+    val pid = ("pid", string_of_pid (Posix.ProcEnv.getpid ()));
+    val session = ("session", List.last (Session.id ()) handle List.Empty => "unknown");
     val welcome = Session.welcome ();
-    val s = special "H" ^ print_props [("pid", pid), ("session", session)] ^ welcome ^ special_end;
-  in Output.writeln_default s end;
+  in Output.writeln_default (special "H" ^ print_props [pid, session] ^ welcome ^ special_end) end;
 
 end;
 
@@ -113,17 +114,14 @@ end;
 (* channels *)
 
 fun setup_channels () =
- (Output.writeln_fn  := message "A" Markup.writeln;
-  Output.priority_fn := message "B" Markup.priority;
-  Output.tracing_fn  := message "C" Markup.tracing;
-  Output.warning_fn  := message "D" Markup.warning;
-  Output.error_fn    := message "E" Markup.error;
-  Output.debug_fn    := message "F" Markup.debug);
+ (Output.writeln_fn  := message "A";
+  Output.priority_fn := message "B";
+  Output.tracing_fn  := message "C";
+  Output.warning_fn  := message "D";
+  Output.error_fn    := message "E";
+  Output.debug_fn    := message "F";
+  Output.prompt_fn   := message "G");
 
-val _ = Markup.add_mode isabelle_processN (fn (name, props) =>
-  if name = Markup.promptN then (special "G", special_end ^ "\n")
-  else if name = Markup.positionN then test_markup (name, props)
-  else ("", ""));
 
 
 (* init *)
