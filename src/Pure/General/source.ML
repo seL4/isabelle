@@ -20,7 +20,6 @@ sig
   val of_list_limited: int -> 'a list -> ('a, 'a list) source
   val of_string: string -> (string, string list) source
   val exhausted: ('a, 'b) source -> ('a, 'a list) source
-  val of_stream: TextIO.instream -> TextIO.outstream -> (string, unit) source
   val tty: (string, unit) source
   val source': 'a -> 'b * ('b -> bool) -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
     (bool * (string -> 'a * 'b list -> 'c list * ('a * 'b list))) option ->
@@ -121,23 +120,14 @@ fun slurp_input instream =
       | SOME _ => TextIO.input instream :: slurp ());
   in maps explode (slurp ()) end;
 
-fun drain_stream instream outstream prompt () =
-  let
-    val input = slurp_input instream;
-    fun output_prompt () = NAMED_CRITICAL "IO" (fn () =>
-      (TextIO.output (outstream, Output.output prompt); TextIO.flushOut outstream));
-  in
+val tty = make_source [] () default_prompt (fn prompt => fn () =>
+  let val input = slurp_input TextIO.stdIn in
     if exists (fn c => c = "\n") input then (input, ())
     else
-      (case (output_prompt (); TextIO.inputLine instream) of
+      (case (Output.prompt prompt; TextIO.inputLine TextIO.stdIn) of
         SOME line => (input @ explode line, ())
       | NONE => (input, ()))
-  end;
-
-fun of_stream instream outstream =
-  make_source [] () default_prompt (drain_stream instream outstream);
-
-val tty = of_stream TextIO.stdIn TextIO.stdOut;
+  end);
 
 
 
