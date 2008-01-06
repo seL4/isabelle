@@ -102,13 +102,12 @@ end;
 fun proof_general_markup (name, props) =
   let
     val (bg1, en1) =
-      if name = Markup.promptN then ("", special "372")
-      else if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
+      if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
       else if name = Markup.sendbackN then (special "376", special "377")
       else if name = Markup.hiliteN then (special "327", special "330")
       else ("", "");
     val (bg2, en2) =
-      if name <> Markup.promptN andalso print_mode_active IsabelleProcess.test_markupN
+      if print_mode_active IsabelleProcess.test_markupN
       then IsabelleProcess.test_markup (name, props)
       else ("", "");
   in (bg1 ^ bg2, en2 ^ en1) end;
@@ -127,7 +126,8 @@ fun setup_messages () =
   Output.tracing_fn := (fn s => decorate (special "360" ^ special "375") (special "361") "" s);
   Output.debug_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
   Output.warning_fn := (fn s => decorate (special "362") (special "363") "### " s);
-  Output.error_fn := (fn s => decorate (special "364") (special "365") "*** " s));
+  Output.error_fn := (fn s => decorate (special "364") (special "365") "*** " s);
+  Output.prompt_fn := (fn s => Output.std_output (s ^ special "372")));
 
 fun panic s =
   (decorate (special "364") (special "365") "!!! " ("## SYSTEM EXIT ##\n" ^ s); exit 1);
