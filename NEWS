@@ -93,6 +93,9 @@ XEmacs).
 provides general wrapper for managing an Isabelle process in a robust
 fashion, with ``cooked'' output from stdin/stderr.
 
+* Rudimentary Isabelle plugin for jEdit (see Isabelle/lib/jedit),
+based on Isabelle/JVM process wrapper (see Isabelle/lib/classes).
+
 
 
 New in Isabelle2007 (November 2007)
