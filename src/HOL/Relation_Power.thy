@@ -14,20 +14,33 @@ instance
   set :: (type) power ..
       --{* only type @{typ "('a * 'a) set"} should be in class @{text power}!*}
 
-(*R^n = R O ... O R, the n-fold composition of R*)
-primrec (unchecked relpow)
-  "R^0 = Id"
-  "R^(Suc n) = R O (R^n)"
+overloading
+  relpow \<equiv> "power \<Colon> ('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a \<times> 'a) set"  (unchecked)
+begin
 
+text {* @{text "R ^ n = R O ... O R"}, the n-fold composition of @{text R} *}
+
+primrec relpow where
+  "(R \<Colon> ('a \<times> 'a) set)  ^ 0 = Id"
+  | "(R \<Colon> ('a \<times> 'a) set) ^ Suc n = R O (R ^ n)"
+
+end
 
 instance
   "fun" :: (type, type) power ..
       --{* only type @{typ "'a => 'a"} should be in class @{text power}!*}
 
-(*f^n = f o ... o f, the n-fold composition of f*)
-primrec (unchecked funpow)
-  "f^0 = id"
-  "f^(Suc n) = f o (f^n)"
+overloading
+  funpow \<equiv> "power \<Colon>  ('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" (unchecked)
+begin
+
+text {* @{text "f ^ n = f o ... o f"}, the n-fold composition of @{text f} *}
+
+primrec funpow where
+  "(f \<Colon> 'a \<Rightarrow> 'a) ^ 0 = id"
+  | "(f \<Colon> 'a \<Rightarrow> 'a) ^ Suc n = f o (f ^ n)"
+
+end
 
 text{*WARNING: due to the limits of Isabelle's type classes, exponentiation on
 functions and relations has too general a domain, namely @{typ "('a * 'b)set"}
@@ -39,17 +52,14 @@ text {*
   Circumvent this problem for code generation:
 *}
 
-definition
-  funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+primrec
+  fun_pow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
 where
-  funpow_def: "funpow n f = f ^ n"
+  "fun_pow 0 f = id"
+  | "fun_pow (Suc n) f = f o fun_pow n f"
 
-lemmas [code inline] = funpow_def [symmetric]
-
-lemma [code func]:
-  "funpow 0 f = id"
-  "funpow (Suc n) f = f o funpow n f"
-  unfolding funpow_def by simp_all
+lemma funpow_fun_pow [code inline]: "f ^ n = fun_pow n f"
+  unfolding funpow_def fun_pow_def ..
 
 lemma funpow_add: "f ^ (m+n) = f^m o f^n"
   by (induct m) simp_all

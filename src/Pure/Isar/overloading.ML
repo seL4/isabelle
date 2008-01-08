@@ -7,7 +7,7 @@ Overloaded definitions without any discipline.
 
 signature OVERLOADING =
 sig
-  val init: ((string * typ) * (string * bool)) list -> theory -> local_theory
+  val init: (string * (string * typ) * bool) list -> theory -> local_theory
   val conclude: local_theory -> local_theory
   val declare: string * typ -> theory -> term * theory
   val confirm: string -> local_theory -> local_theory
@@ -75,12 +75,11 @@ fun term_uncheck ts lthy =
 fun init overloading thy =
   let
     val _ = if null overloading then error "At least one parameter must be given" else ();
-    fun declare ((_, ty), (v, _ )) = Variable.declare_term (Free (v, ty));
   in
     thy
     |> ProofContext.init
-    |> OverloadingData.put overloading
-    |> fold declare overloading
+    |> OverloadingData.put (map (fn (v, c_ty, checked) => (c_ty, (v, checked))) overloading)
+    |> fold (fn (v, (_, ty), _) => Variable.declare_term (Free (v, ty))) overloading
     |> Context.proof_map (
         Syntax.add_term_check 0 "overloading" term_check
         #> Syntax.add_term_uncheck 0 "overloading" term_uncheck)
@@ -101,8 +100,8 @@ fun pretty lthy =
     val thy = ProofContext.theory_of lthy;
     val overloading = get_overloading lthy;
     fun pr_operation ((c, ty), (v, _)) =
-      (Pretty.block o Pretty.breaks) [Pretty.str (Sign.extern_const thy c), Pretty.str "::",
-        Sign.pretty_typ thy ty, Pretty.str "as", Pretty.str v];
+      (Pretty.block o Pretty.breaks) [Pretty.str v, Pretty.str "==",
+        Pretty.str (Sign.extern_const thy c), Pretty.str "::", Sign.pretty_typ thy ty];
   in
     (Pretty.block o Pretty.fbreaks)
       (Pretty.str "overloading" :: map pr_operation overloading)
