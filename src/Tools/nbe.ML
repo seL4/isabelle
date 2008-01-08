@@ -152,7 +152,7 @@ val compile =
       Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
       (!trace) ("Nbe.univs_ref", univs_ref);
 
-(* code generation with greetings to Tarski *)
+(* code generation *)
 
 fun assemble_idict (DictConst (inst, dss)) =
       nbe_apps (nbe_fun inst) ((maps o map) assemble_idict dss)
