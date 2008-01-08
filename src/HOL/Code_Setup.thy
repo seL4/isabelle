@@ -84,7 +84,7 @@ code_const "op ="
 
 text {* type bool *}
 
-lemmas [code] = imp_conv_disj
+lemmas [code unfold] = imp_conv_disj
 
 code_type bool
   (SML "bool")
