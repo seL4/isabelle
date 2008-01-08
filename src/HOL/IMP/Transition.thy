@@ -189,9 +189,10 @@ lemma evalc_None_retrancl [simp, dest!]: "\<langle>s\<rangle> \<longrightarrow>\
 
 (*<*)
 (* FIXME: relpow.simps don't work *)
-lemma rel_pow_0 [simp]: "!!R::('a*'a) set. R^0 = Id" by simp
-lemma rel_pow_Suc_0 [simp]: "!!R::('a*'a) set. R^(Suc 0) = R" by simp
 lemmas [simp del] = relpow.simps
+lemma rel_pow_0 [simp]: "!!R::('a*'a) set. R^0 = Id" by (simp add: relpow.simps)
+lemma rel_pow_Suc_0 [simp]: "!!R::('a*'a) set. R^(Suc 0) = R" by (simp add: relpow.simps)
+
 (*>*)
 lemma evalc1_None_0 [simp]: "\<langle>s\<rangle> -n\<rightarrow>\<^sub>1 y = (n = 0 \<and> y = \<langle>s\<rangle>)"
   by (cases n) auto
