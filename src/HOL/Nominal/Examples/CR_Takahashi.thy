@@ -10,7 +10,7 @@
 (*  Church-Rosser Theorem (1995).                                 *)
 
 theory CR_Takahashi
-imports "../Nominal"
+  imports "../Nominal"
 begin
 
 atom_decl name
@@ -63,12 +63,11 @@ lemma substitution_lemma:
 using a by (nominal_induct t avoiding: x y s u rule: lam.induct)
            (auto simp add: fresh_fact forget)
 
-
 lemma subst_rename: 
   assumes a: "y\<sharp>t"
   shows "t[x::=s] = ([(y,x)]\<bullet>t)[y::=s]"
 using a by (nominal_induct t avoiding: x y s rule: lam.induct)
-                   (auto simp add: calc_atm fresh_atm abs_fresh)
+           (auto simp add: calc_atm fresh_atm abs_fresh)
 
 section {* Beta-Reduction *}
 

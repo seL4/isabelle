@@ -10,7 +10,7 @@ text {*
   reduction relations (based on congruence rules) is
   equivalent to the Felleisen-Hieb-style representation 
   (based on contexts), and show cbv-evaluation via a 
-  list-machine described by Roshan James.
+  CK-machine described by Roshan James.
   
   The interesting point is that contexts do not contain 
   any binders. On the other hand the operation of filling 
@@ -20,15 +20,17 @@ text {*
 
 atom_decl name
 
-text {* Terms *}
+text {* 
+  Lambda-Terms - the Lam-term constructor binds a name
+*}
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
 text {* 
-  Contexts - the lambda case in contexts does not bind a name 
-  even if we introduce the nomtation [_]._ for CLam.
+  Contexts - the lambda case in contexts does not bind a name, 
+  even if we introduce the notation [_]._ for CLam.
 *}
 nominal_datatype ctx = 
     Hole ("\<box>" 1000)  
@@ -36,7 +38,7 @@ nominal_datatype ctx =
   | CAppR "lam" "ctx" 
   | CLam "name" "ctx"  ("CLam [_]._" [100,100] 100) 
 
-text {* Capture-avoiding substitution and two lemmas *}
+text {* Capture-avoiding substitution *}
 
 consts subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
 
@@ -50,7 +52,10 @@ apply(simp add: abs_fresh)
 apply(fresh_guess)+
 done
 
-text {* Filling is the operation that fills a term into a hole. *}
+text {*
+  Filling is the operation that fills a term into a hole. 
+  This operation is possibly capturing.
+*}
 
 consts 
   filling :: "ctx \<Rightarrow> lam \<Rightarrow> lam" ("_<_>" [100,100] 100)
@@ -71,10 +76,10 @@ lemma alpha_test:
   and   "(CLam [x].\<box>)<Var x> = (CLam [y].\<box>)<Var y>"
 by (auto simp add: alpha ctx.inject lam.inject calc_atm fresh_atm) 
 
-text {* The composition of two contexts *}
+text {* The composition of two contexts. *}
 
 consts 
- ctx_replace :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _" [100,100] 100)
+ ctx_compose :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _" [100,100] 100)
 
 nominal_primrec
   "\<box> \<circ> E' = E'"
@@ -134,15 +139,15 @@ proof (induct)
   then show  "App (Lam [x].t) t' \<longrightarrow>x t[x::=t']" by simp
 qed (metis ctx_red_in_ctx filling.simps)+ (* found by SledgeHammer *)
 
-section {* We now use context in a cbv list machine *}
+section {* We now use context in a CBV list machine *}
 
 text {* First the function that composes a list of contexts *}
-consts
-  ctx_composes :: "ctx list \<Rightarrow> ctx" ("_\<down>" [80] 80)
 
 primrec
-  "[]\<down> = \<box>"
-  "(E#Es)\<down> = (Es\<down>) \<circ> E"    
+  ctx_composes :: "ctx list \<Rightarrow> ctx" ("_\<down>" [80] 80)
+where
+    "[]\<down> = \<box>"
+  | "(E#Es)\<down> = (Es\<down>) \<circ> E"    
 
 text {* Values *}
 inductive
@@ -151,8 +156,7 @@ where
    v_Lam[intro]: "val (Lam [x].e)"
  | v_Var[intro]: "val (Var x)"
 
-
-text {* CBV reduction using contexts *}
+text {* CBV-reduction using contexts *}
 inductive
   cbv :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>cbv _" [80,80] 80) 
 where
@@ -166,20 +170,13 @@ where
 | cbvs2[intro]: "e \<longrightarrow>cbv e' \<Longrightarrow> e \<longrightarrow>cbv* e'"
 | cbvs3[intro,trans]: "\<lbrakk>e1\<longrightarrow>cbv* e2; e2 \<longrightarrow>cbv* e3\<rbrakk> \<Longrightarrow> e1 \<longrightarrow>cbv* e3"
 
-text {* A list machine which builds up a list of contexts *}
+text {* A little CK-machine, which builds up a list of evaluation contexts. *}
 inductive
   machine :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" ("<_,_> \<mapsto> <_,_>" [60,60,60,60] 60)
 where
   m1[intro]: "<App e1 e2, Es> \<mapsto> <e1,(CAppL \<box> e2)#Es>"
 | m2[intro]: "val v \<Longrightarrow> <v,(CAppL \<box> e2)#Es> \<mapsto> <e2,(CAppR v \<box>)#Es>"
 | m3[intro]: "val v \<Longrightarrow> <v,(CAppR (Lam [x].e) \<box>)#Es> \<mapsto> <e[x::=v],Es>"
-
-inductive 
-  "machine_star" :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" ("<_,_> \<mapsto>* <_,_>" [60,60,60,60] 60)
-where
-  ms1[intro]: "<e,Es> \<mapsto>* <e,Es>"
-| ms2[intro]: "<e,Es> \<mapsto> <e',Es'> \<Longrightarrow> <e,Es> \<mapsto>* <e',Es'>"
-| ms3[intro,trans]: "\<lbrakk><e1,Es1> \<mapsto>* <e2,Es2>; <e2,Es2> \<mapsto>* <e3,Es3>\<rbrakk> \<Longrightarrow> <e1,Es1> \<mapsto>* <e3,Es3>"
 
 lemma machine_red_implies_cbv_reds_aux:
   assumes a: "<e,Es> \<mapsto> <e',Es'>"
@@ -192,5 +189,11 @@ lemma machine_execution_implies_cbv_reds:
   shows "e \<longrightarrow>cbv* e'"
 using a
 by (auto dest: machine_red_implies_cbv_reds_aux)
+
+text {*
+  One would now like to show something about the opposite
+  direction, by according to Amr Sabry this amounts to
+  showing a standardisation lemma, which is hard.
+  *}
 
 end

@@ -86,8 +86,8 @@ text {*
 *}
 lemma supp_infinite_coinfinite:
   fixes S::"atom set"
-  assumes a: "infinite S"
-  and     b: "infinite (UNIV-S)"
+  assumes asm1: "infinite S"
+  and     asm2: "infinite (UNIV-S)"
   shows "(supp S) = (UNIV::atom set)"
 proof -
   have "\<forall>(x::atom). x\<in>(supp S)"
@@ -98,14 +98,14 @@ proof -
       case True
       have "x\<in>S" by fact
       hence "\<forall>b\<in>(UNIV-S). [(x,b)]\<bullet>S\<noteq>S" by (auto simp add: perm_set_def calc_atm)
-      with b have "infinite {b\<in>(UNIV-S). [(x,b)]\<bullet>S\<noteq>S}" by (rule infinite_Collection)
+      with asm2 have "infinite {b\<in>(UNIV-S). [(x,b)]\<bullet>S\<noteq>S}" by (rule infinite_Collection)
       hence "infinite {b. [(x,b)]\<bullet>S\<noteq>S}" by (rule_tac infinite_super, auto)
       then show "x\<in>(supp S)" by (simp add: supp_def)
     next
       case False
       have "x\<notin>S" by fact
       hence "\<forall>b\<in>S. [(x,b)]\<bullet>S\<noteq>S" by (auto simp add: perm_set_def calc_atm)
-      with a have "infinite {b\<in>S. [(x,b)]\<bullet>S\<noteq>S}" by (rule infinite_Collection)
+      with asm1 have "infinite {b\<in>S. [(x,b)]\<bullet>S\<noteq>S}" by (rule infinite_Collection)
       hence "infinite {b. [(x,b)]\<bullet>S\<noteq>S}" by (rule_tac infinite_super, auto)
       then show "x\<in>(supp S)" by (simp add: supp_def)
     qed

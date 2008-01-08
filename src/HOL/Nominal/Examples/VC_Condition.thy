@@ -90,7 +90,7 @@ using a by (induct) (auto)
 
 text {*
   The next lemma shows by induction on xs that if x is a free 
-  variable in t and x does not occur in xs, then x is a free 
+  variable in t, and x does not occur in xs, then x is a free 
   variable in bind xs t. In the nominal tradition we formulate    
   'is a free variable in' as 'is not fresh for'. *}
 lemma free_variable:

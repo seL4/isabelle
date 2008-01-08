@@ -1,19 +1,20 @@
 (* $Id$ *)
 
 (* Formalisation of weakening using locally nameless    *)
-(* terms; the nominal infrastructure can derive         *)
+(* terms; the nominal infrastructure can also derive    *)
 (* strong induction principles for such representations *)
 (*                                                      *)
 (* Authors: Christian Urban and Randy Pollack           *)
 theory LocalWeakening
-imports "../Nominal"
+  imports "../Nominal"
 begin
 
 atom_decl name
 
-text {* Curry-style lambda terms in locally nameless 
-        representation without any binders           *}
-
+text {* 
+  Curry-style lambda terms in locally nameless 
+  representation without any binders           
+*}
 nominal_datatype llam = 
     lPar "name"
   | lVar "nat"
@@ -78,13 +79,6 @@ nominal_datatype ty =
     TVar "nat"
   | TArr "ty" "ty" (infix "\<rightarrow>" 200)
 
-lemma ty_perm[simp]:
-  fixes pi ::"name prm"
-  and   T  ::"ty"
-  shows "pi\<bullet>T = T"
-by (induct T rule: ty.weak_induct)
-   (simp_all add: perm_nat_def)  
-
 lemma ty_fresh[simp]:
   fixes x::"name"
   and   T::"ty"
@@ -107,27 +101,28 @@ equivariance valid
 lemma v2_elim:
   assumes a: "valid ((a,T)#\<Gamma>)"
   shows   "a\<sharp>\<Gamma> \<and> valid \<Gamma>"
-using valid.cases[OF a]
-by (auto)
+using a by (cases) (auto)
 
 text {* "weak" typing relation *}
 
 inductive
   typing :: "cxt\<Rightarrow>llam\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60)
 where
-    t_lPar[intro]: "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lPar x : T"
-  | t_lApp[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : T1\<rightarrow>T2; \<Gamma> \<turnstile> t2 : T1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lApp t1 t2 : T2"
-  | t_lLam[intro]: "\<lbrakk>x\<sharp>t; (x,T1)#\<Gamma> \<turnstile> freshen t x : T2\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lLam t : T1\<rightarrow>T2"
+  t_lPar[intro]: "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lPar x : T"
+| t_lApp[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : T1\<rightarrow>T2; \<Gamma> \<turnstile> t2 : T1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lApp t1 t2 : T2"
+| t_lLam[intro]: "\<lbrakk>x\<sharp>t; (x,T1)#\<Gamma> \<turnstile> freshen t x : T2\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lLam t : T1\<rightarrow>T2"
 
 equivariance typing
 
 lemma typing_implies_valid:
   assumes a: "\<Gamma> \<turnstile> t : T"
   shows "valid \<Gamma>"
-using a
-by (induct) (auto dest: v2_elim)
+using a by (induct) (auto dest: v2_elim)
 
-text {* we explicitly have to say to strengthen over the variable x *}
+text {* 
+  we have to explicitly state that nominal_inductive should strengthen 
+  over the variable x (since x is not a binder)
+*}
 nominal_inductive typing
   avoids t_lLam: x
   by (auto simp add: fresh_prod dest: v2_elim typing_implies_valid)
@@ -182,7 +177,8 @@ next
   ultimately have "(x,T1)#\<Gamma>2 \<turnstile> freshen t x : T2" using ih by simp
   with vc show "\<Gamma>2 \<turnstile> lLam t : T1\<rightarrow>T2" by auto
 next 
-  case t_lApp thus ?case by auto
+  case (t_lApp \<Gamma>1 t1 T1 T2 t2 \<Gamma>2)
+  then show "\<Gamma>2 \<turnstile> lApp t1 t2 : T2" by auto
 qed
 
 end

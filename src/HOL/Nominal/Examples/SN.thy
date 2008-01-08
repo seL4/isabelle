@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory SN
-imports Lam_Funs
+  imports Lam_Funs
 begin
 
 text {* Strong Normalisation proof from the Proofs and Types book *}
@@ -104,27 +104,12 @@ nominal_datatype ty =
     TVar "nat"
   | TArr "ty" "ty" (infix "\<rightarrow>" 200)
 
-lemma perm_ty:
-  fixes pi ::"name prm"
-  and   \<tau>  ::"ty"
-  shows "pi\<bullet>\<tau> = \<tau>"
-by (nominal_induct \<tau> rule: ty.induct) 
-   (simp_all add: perm_nat_def)
-
 lemma fresh_ty:
   fixes a ::"name"
   and   \<tau>  ::"ty"
   shows "a\<sharp>\<tau>"
-  by (simp add: fresh_def perm_ty supp_def)
-
-(* domain of a typing context *)
-
-fun
-  "dom_ty" :: "(name\<times>ty) list \<Rightarrow> (name list)"
-where
-  "dom_ty []    = []"
-| "dom_ty ((x,\<tau>)#\<Gamma>) = (x)#(dom_ty \<Gamma>)" 
-
+by (nominal_induct \<tau> rule: ty.induct)
+   (auto simp add: fresh_nat)
 
 (* valid contexts *)
 
@@ -135,8 +120,6 @@ where
 | v2[intro]: "\<lbrakk>valid \<Gamma>;a\<sharp>\<Gamma>\<rbrakk>\<Longrightarrow> valid ((a,\<sigma>)#\<Gamma>)"
 
 equivariance valid 
-
-inductive_cases valid_elim[elim]: "valid ((a,\<tau>)#\<Gamma>)"
 
 (* typing judgements *)
 
@@ -161,12 +144,7 @@ equivariance typing
 nominal_inductive typing
   by (simp_all add: abs_fresh fresh_ty)
 
-abbreviation
-  "sub" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ \<subseteq> _" [60,60] 60) 
-where
-  "\<Gamma>1 \<subseteq> \<Gamma>2 \<equiv> \<forall>a \<sigma>. (a,\<sigma>)\<in>set \<Gamma>1 \<longrightarrow>  (a,\<sigma>)\<in>set \<Gamma>2"
-
-subsection {* some facts about beta *}
+subsection {* a fact about beta *}
 
 constdefs
   "NORMAL" :: "lam \<Rightarrow> bool"
@@ -177,11 +155,12 @@ lemma NORMAL_Var:
 proof -
   { assume "\<exists>t'. (Var a) \<longrightarrow>\<^isub>\<beta> t'"
     then obtain t' where "(Var a) \<longrightarrow>\<^isub>\<beta> t'" by blast
-    hence False by (cases, auto) 
+    hence False by (cases) (auto) 
   }
-  thus "NORMAL (Var a)" by (force simp add: NORMAL_def)
+  thus "NORMAL (Var a)" by (auto simp add: NORMAL_def)
 qed
 
+text {* Inductive version of Strong Normalisation *}
 inductive 
   SN :: "lam \<Rightarrow> bool"
 where
@@ -249,7 +228,7 @@ nominal_primrec
   "RED (\<tau>\<rightarrow>\<sigma>) =   {t. \<forall>u. (u\<in>RED \<tau> \<longrightarrow> (App t u)\<in>RED \<sigma>)}"
 by (rule TrueI)+
 
-(* neutral terms *)
+text {* neutral terms *}
 constdefs
   NEUT :: "lam \<Rightarrow> bool"
   "NEUT t \<equiv> (\<exists>a. t = Var a) \<or> (\<exists>t1 t2. t = App t1 t2)" 
@@ -358,7 +337,7 @@ proof (induct)
   ultimately show "App t u \<in> RED \<sigma>" using c3 by (simp add: CR3_def)
 qed 
 
-(* properties of the candiadates *)
+text {* properties of the candiadates *}
 lemma RED_props: 
   shows "CR1 \<tau>" and "CR2 \<tau>" and "CR3 \<tau>"
 proof (nominal_induct \<tau> rule: ty.induct)
@@ -374,10 +353,11 @@ next
   { case 1
     have ih_CR3_\<tau>1: "CR3 \<tau>1" by fact
     have ih_CR1_\<tau>2: "CR1 \<tau>2" by fact
-    show "CR1 (\<tau>1 \<rightarrow> \<tau>2)" unfolding CR1_def
-    proof (simp, intro strip)
+    have "\<And>t. t \<in> RED (\<tau>1 \<rightarrow> \<tau>2) \<Longrightarrow> SN t" 
+    proof - 
       fix t
-      assume a: "\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t u \<in> RED \<tau>2"
+      assume "t \<in> RED (\<tau>1 \<rightarrow> \<tau>2)"
+      then have a: "\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t u \<in> RED \<tau>2" by simp
       from ih_CR3_\<tau>1 have "CR4 \<tau>1" by (simp add: CR3_implies_CR4) 
       moreover
       have "NEUT (Var a)" by (force simp add: NEUT_def)
@@ -386,20 +366,13 @@ next
       ultimately have "(Var a)\<in> RED \<tau>1" by (simp add: CR4_def)
       with a have "App t (Var a) \<in> RED \<tau>2" by simp
       hence "SN (App t (Var a))" using ih_CR1_\<tau>2 by (simp add: CR1_def)
-      thus "SN(t)" by (auto dest: SN_of_FST_of_App)
+      thus "SN t" by (auto dest: SN_of_FST_of_App)
     qed
+    then show "CR1 (\<tau>1 \<rightarrow> \<tau>2)" unfolding CR1_def by simp
   next
     case 2
-    have ih_CR1_\<tau>1: "CR1 \<tau>1" by fact
     have ih_CR2_\<tau>2: "CR2 \<tau>2" by fact
-    show "CR2 (\<tau>1 \<rightarrow> \<tau>2)" unfolding CR2_def
-    proof (simp, intro strip)
-      fix t1 t2 u
-      assume "(\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t1 u \<in> RED \<tau>2) \<and>  t1 \<longrightarrow>\<^isub>\<beta> t2" 
-	and  "u \<in> RED \<tau>1"
-      hence "t1 \<longrightarrow>\<^isub>\<beta> t2" and "App t1 u \<in> RED \<tau>2" by simp_all
-      thus "App t2 u \<in> RED \<tau>2" using ih_CR2_\<tau>2 by (auto simp add: CR2_def)
-    qed
+    then show "CR2 (\<tau>1 \<rightarrow> \<tau>2)" unfolding CR2_def by auto 
   next
     case 3
     have ih_CR1_\<tau>1: "CR1 \<tau>1" by fact
@@ -416,7 +389,10 @@ next
   }
 qed
    
-(* not as simple as on paper, because of the stronger double_SN induction *) 
+text {* 
+  the next lemma not as simple as on paper, probably because of 
+  the stronger double_SN induction 
+*} 
 lemma abs_RED: 
   assumes asm: "\<forall>s\<in>RED \<tau>. t[x::=s]\<in>RED \<sigma>"
   shows "Lam [x].t\<in>RED (\<tau>\<rightarrow>\<sigma>)"
@@ -462,14 +438,17 @@ proof -
 	    apply(drule_tac x="t'" in meta_spec)
 	    apply(simp)
 	    apply(drule meta_mp)
-	    apply(auto)
+	    prefer 2
+	    apply(auto)[1]
+	    apply(rule ballI)
 	    apply(drule_tac x="s" in bspec)
 	    apply(simp)
-	    apply(subgoal_tac "CR2 \<sigma>")
+	    apply(subgoal_tac "CR2 \<sigma>")(*A*)
 	    apply(unfold CR2_def)[1]
 	    apply(drule_tac x="t[x::=s]" in spec)
 	    apply(drule_tac x="t'[x::=s]" in spec)
 	    apply(simp add: beta_subst)
+	    (*A*)
 	    apply(simp add: RED_props)
 	    done
 	  then have "r\<in>RED \<sigma>" using a2 by simp
@@ -497,9 +476,12 @@ proof -
 	  then have "r\<in>RED \<sigma>" using as1 as2 by auto
 	}
 	ultimately show "r \<in> RED \<sigma>" 
+	  (* one wants to use the strong elimination principle; for this one 
+	     has to know that x\<sharp>u *)
 	apply(cases) 
 	apply(auto simp add: lam.inject)
 	apply(drule beta_abs)
+	apply(auto)[1]
 	apply(auto simp add: alpha subst_rename)
 	done
     qed
@@ -513,7 +495,7 @@ qed
 abbreviation 
  mapsto :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> bool" ("_ maps _ to _" [55,55,55] 55) 
 where
- "\<theta> maps x to e\<equiv> (lookup \<theta> x) = e"
+ "\<theta> maps x to e \<equiv> (lookup \<theta> x) = e"
 
 abbreviation 
   closes :: "(name\<times>lam) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ closes _" [55,55] 55) 

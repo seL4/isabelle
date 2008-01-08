@@ -1,15 +1,15 @@
 (* "$Id$" *)
-(*                                                     *)
-(* Formalisation of some typical SOS-proofs.           *)
-(*                                                     *) 
-(* This work arose from a challenge suggested by Adam  *)
-(* Chlipala on the POPLmark mailing list.              *)
-(*                                                     *) 
-(* We thank Nick Benton for helping us with the        *) 
-(* termination-proof for evaluation.                   *)
-(*                                                     *)
-(* The formalisation was done by Julien Narboux and    *)
-(* Christian Urban.                                    *)
+(*                                                        *)
+(* Formalisation of some typical SOS-proofs.              *)
+(*                                                        *) 
+(* This work was inspired by challenge suggested by Adam  *)
+(* Chlipala on the POPLmark mailing list.                 *)
+(*                                                        *) 
+(* We thank Nick Benton for helping us with the           *) 
+(* termination-proof for evaluation.                      *)
+(*                                                        *)
+(* The formalisation was done by Julien Narboux and       *)
+(* Christian Urban.                                       *)
 
 theory SOS
   imports "../Nominal"
@@ -97,7 +97,7 @@ lemma psubst_empty[simp]:
   by (nominal_induct t rule: trm.induct) 
      (auto simp add: fresh_list_nil)
 
-(* Single substitution *)
+text {* Single substitution *}
 abbreviation 
   subst :: "trm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> trm" ("_[_::=_]" [100,100,100] 100)
 where 
@@ -113,9 +113,9 @@ lemma fresh_subst:
   fixes z::"name"
   and   t\<^isub>1::"trm"
   and   t2::"trm"
-  assumes "z\<sharp>t\<^isub>1" and "z\<sharp>t\<^isub>2"
+  assumes a: "z\<sharp>t\<^isub>1" "z\<sharp>t\<^isub>2"
   shows "z\<sharp>t\<^isub>1[y::=t\<^isub>2]"
-using assms 
+using a
 by (nominal_induct t\<^isub>1 avoiding: z y t\<^isub>2 rule: trm.induct)
    (auto simp add: abs_fresh fresh_atm)
 
@@ -127,21 +127,18 @@ by (nominal_induct e avoiding: x e' rule: trm.induct)
    (auto simp add: fresh_atm abs_fresh fresh_nat) 
 
 lemma forget: 
-  fixes x::"name"
-  and   L::"trm"
-  assumes "x\<sharp>e" 
+  assumes a: "x\<sharp>e" 
   shows "e[x::=e'] = e"
-  using assms
-  by (nominal_induct e avoiding: x e' rule: trm.induct)
-     (auto simp add: fresh_atm abs_fresh)
+using a
+by (nominal_induct e avoiding: x e' rule: trm.induct)
+   (auto simp add: fresh_atm abs_fresh)
 
 lemma psubst_subst_psubst:
-  assumes h:"x\<sharp>\<theta>"
+  assumes h: "x\<sharp>\<theta>"
   shows "\<theta><e>[x::=e'] = ((x,e')#\<theta>)<e>"
   using h
-apply(nominal_induct e avoiding: \<theta> x e' rule: trm.induct)
-apply(auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh')
-done
+by (nominal_induct e avoiding: \<theta> x e' rule: trm.induct)
+   (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh')
 
 text {* Typing Judgements *}
 
@@ -186,6 +183,8 @@ proof -
   ultimately show ?thesis by auto
 qed
 
+text {* Typing Relation *}
+
 inductive
   typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60) 
 where
@@ -205,10 +204,9 @@ lemma typing_implies_valid:
   by (induct) (auto)
 
 lemma t_Lam_elim: 
-  assumes a1:"\<Gamma> \<turnstile> Lam [x].t : T" 
-  and     a2: "x\<sharp>\<Gamma>"
+  assumes a: "\<Gamma> \<turnstile> Lam [x].t : T" "x\<sharp>\<Gamma>"
   obtains T\<^isub>1 and T\<^isub>2 where "(x,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2" and "T=T\<^isub>1\<rightarrow>T\<^isub>2"
-using a1 a2
+using a
 by (cases rule: typing.strong_cases [where x="x"])
    (auto simp add: abs_fresh fresh_ty alpha trm.inject)
 
@@ -309,7 +307,7 @@ next
   have a3: "\<Gamma> \<turnstile> e' : T'" by fact
   have ih1: "\<lbrakk>(x,T')#\<Gamma> \<turnstile> e1 : Tn\<rightarrow>T; \<Gamma> \<turnstile> e' : T'\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> e1[x::=e'] : Tn\<rightarrow>T" by fact
   have ih2: "\<lbrakk>(x,T')#\<Gamma> \<turnstile> e2 : Tn; \<Gamma> \<turnstile> e' : T'\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> e2[x::=e'] : Tn" by fact
-  then show ?case using a1 a2 a3 ih1 ih2 by auto 
+  then show "\<Gamma> \<turnstile> (App e1 e2)[x::=e'] : T" using a1 a2 a3 ih1 ih2 by auto 
 qed
 
 text {* Values *}
@@ -408,17 +406,6 @@ lemma reduces_evaluates_to_values:
   shows "val t'"
   using h by (induct) (auto)
 
-lemma type_arrow_evaluates_to_lams:
-  assumes "\<Gamma> \<turnstile> t : \<sigma> \<rightarrow> \<tau>" and "t \<Down> t'"
-  obtains  x t'' where "t' = Lam [x]. t''"
-proof -
-  have "\<Gamma> \<turnstile> t' : \<sigma> \<rightarrow> \<tau>" using assms subject_reduction by simp
-  moreover
-  have "val t'" using reduces_evaluates_to_values assms by simp
-  ultimately obtain x t'' where "t' = Lam [x]. t''" by (cases, auto simp add:ty.inject)
-  thus ?thesis using prems by auto
-qed
-
 (* Valuation *)
 consts
   V :: "ty \<Rightarrow> trm set" 
@@ -451,7 +438,7 @@ apply(perm_simp add: eqvts)
 done
 
 lemma V_arrow_elim_weak:
-  assumes h:"u \<in> (V (T\<^isub>1 \<rightarrow> T\<^isub>2))"
+  assumes h:"u \<in> V (T\<^isub>1 \<rightarrow> T\<^isub>2)"
   obtains a t where "u = Lam[a].t" and "\<forall> v \<in> (V T\<^isub>1). \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
 using h by (auto)
 
