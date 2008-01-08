@@ -145,8 +145,9 @@ subsection {* Normalization by evaluation *}
 
 method_setup normalization = {*
   Method.no_args (Method.SIMPLE_METHOD'
-    (CONVERSION (ObjectLogic.judgment_conv Nbe.norm_conv)
-      THEN' resolve_tac [TrueI, refl]))
+    (fn k => CONVERSION (ObjectLogic.judgment_conv Nbe.norm_conv) k
+    THEN TRYALL (resolve_tac [TrueI])
+  ))
 *} "solve goal by normalization"
 
 end
