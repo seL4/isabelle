@@ -201,7 +201,7 @@ val param_of_inst = fst oo get_inst_param;
 fun inst_thms thy = (Symtab.fold (Symtab.fold (cons o snd o snd) o snd) o fst)
   (get_inst_params thy) [];
 
-val inst_tyco_of = Option.map fst o try (dest_Type o the_single) oo Sign.const_typargs;
+fun inst_tyco_of thy = try (fst o dest_Type o the_single o Sign.const_typargs thy);
 
 fun unoverload thy = MetaSimplifier.simplify true (inst_thms thy);
 fun overload thy = MetaSimplifier.simplify true (map Thm.symmetric (inst_thms thy));
