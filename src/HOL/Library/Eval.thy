@@ -99,10 +99,11 @@ let
   fun interpretator tyco thy =
     let
       val sorts = replicate (Sign.arity_number thy tyco) @{sort typ_of};
-      val ty = Type (tyco, map TFree (Name.names Name.context "'a" sorts));
+      val vs = Name.names Name.context "'a" sorts;
+      val ty = Type (tyco, map TFree vs);
     in
       thy
-      |> TheoryTarget.instantiation ([tyco], sorts, @{sort typ_of})
+      |> TheoryTarget.instantiation ([tyco], vs, @{sort typ_of})
       |> define_typ_of ty
       |> snd
       |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
@@ -265,7 +266,7 @@ let
       val defs = map (mk_terms_of_defs vs) css;
     in if forall (fn tyco => can (Sign.arity_sorts thy tyco) @{sort term_of}) dep_tycos
         andalso not (tycos = [@{type_name typ}])
-      then SOME (sorts, defs)
+      then SOME (vs, defs)
       else NONE
     end;
   fun prep' ctxt proto_eqs =
@@ -279,9 +280,9 @@ let
       val (fixes, eqnss) = split_list (map (prep' ctxt) primrecs);
     in PrimrecPackage.add_primrec fixes (flat eqnss) ctxt end;
   fun interpretator tycos thy = case prep thy tycos
-   of SOME (sorts, defs) =>
+   of SOME (vs, defs) =>
       thy
-      |> TheoryTarget.instantiation (tycos, sorts, @{sort term_of})
+      |> TheoryTarget.instantiation (tycos, vs, @{sort term_of})
       |> primrec defs
       |> snd
       |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))

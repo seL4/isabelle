@@ -15,32 +15,31 @@ end;
 structure Instance : INSTANCE =
 struct
 
+fun read_single_arity thy (raw_tyco, raw_sorts, raw_sort) =
+  let
+    val (tyco, sorts, sort) = Sign.read_arity thy (raw_tyco, raw_sorts, raw_sort);
+    val vs = Name.names Name.context Name.aT sorts;
+  in (tyco, vs, sort) end;
+
 fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
   let
     val all_arities = map (fn raw_tyco => Sign.read_arity thy
       (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
     val tycos = map #1 all_arities;
     val (_, sorts, sort) = hd all_arities;
-  in (tycos, sorts, sort) end;
+    val vs = Name.names Name.context Name.aT sorts;
+  in (tycos, vs, sort) end;
 
 fun instantiation_cmd raw_arities thy =
   TheoryTarget.instantiation (read_multi_arity thy raw_arities) thy;
 
-fun gen_instance prep_arity prep_attr parse_term do_proof do_proof' raw_arities defs thy =
+fun instance_cmd raw_arities defs thy =
   let
-    val (tyco, sorts, sort) = prep_arity thy raw_arities;
-    fun export_defs ctxt = 
-      let
-        val ctxt_thy = ProofContext.init (ProofContext.theory_of ctxt);
-      in
-        map (snd o snd)
-        #> map (Assumption.export false ctxt ctxt_thy)
-        #> Variable.export ctxt ctxt_thy
-      end;
+    val (tyco, vs, sort) = read_single_arity thy raw_arities;
     fun mk_def ctxt ((name, raw_attr), raw_t) =
       let
-        val attr = map (prep_attr thy) raw_attr;
-        val t = parse_term ctxt raw_t;
+        val attr = map (Attrib.intern_src thy) raw_attr;
+        val t = Syntax.parse_prop ctxt raw_t;
       in (NONE, ((name, attr), t)) end;
     fun define def ctxt =
       let
@@ -51,18 +50,15 @@ fun gen_instance prep_arity prep_attr parse_term do_proof do_proof' raw_arities 
   in if not (null defs) orelse forall (Class.is_class thy) sort
   then
     thy
-    |> TheoryTarget.instantiation ([tyco], sorts, sort)
+    |> TheoryTarget.instantiation ([tyco], vs, sort)
     |> `(fn ctxt => map (mk_def ctxt) defs)
     |-> (fn defs => fold_map Specification.definition defs)
-    |-> (fn defs => `(fn ctxt => export_defs ctxt defs))
-    ||> LocalTheory.reinit
-    |-> (fn defs => do_proof defs)
+    |> snd
+    |> LocalTheory.reinit
+    |> Class.instantiation_instance Class.conclude_instantiation
   else
     thy
-    |> do_proof' (tyco, sorts, sort)
+    |> Class.instance_arity I (tyco, map snd vs, sort)
   end;
-
-val instance_cmd = gen_instance Sign.read_arity Attrib.intern_src Syntax.parse_prop
-  (fn _ => Class.instantiation_instance Class.conclude_instantiation) (Class.instance_arity I);
 
 end;

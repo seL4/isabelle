@@ -30,7 +30,7 @@ sig
   val print_classes: theory -> unit
 
   (*instances*)
-  val init_instantiation: string list * sort list * sort -> theory -> local_theory
+  val init_instantiation: string list * (string * sort) list * sort -> theory -> local_theory
   val instantiation_instance: (local_theory -> local_theory) -> local_theory -> Proof.state
   val prove_instantiation_instance: (Proof.context -> tactic) -> local_theory -> local_theory
   val conclude_instantiation: local_theory -> local_theory
@@ -681,7 +681,7 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
 (* bookkeeping *)
 
 datatype instantiation = Instantiation of {
-  arities: string list * sort list * sort,
+  arities: string list * (string * sort) list * sort,
   params: ((string * string) * (string * typ)) list
     (*(instantiation parameter, type constructor), (local instantiation parameter, typ)*)
 }
@@ -768,25 +768,24 @@ val sanatize_name = (*FIXME*)
     explode #> scan_valids #> implode
   end;
 
-fun init_instantiation (tycos, sorts, sort) thy =
+fun init_instantiation (tycos, vs, sort) thy =
   let
     val _ = if null tycos then error "At least one arity must be given" else ();
     val _ = map (the_class_data thy) sort;
-    val vs = map TFree (Name.names Name.context Name.aT sorts);
     fun type_name "*" = "prod"
       | type_name "+" = "sum"
       | type_name s = sanatize_name (NameSpace.base s); (*FIXME*)
     fun get_param tyco (param, (c, ty)) = if can (AxClass.param_of_inst thy) (c, tyco)
       then NONE else SOME ((c, tyco),
-        (param ^ "_" ^ type_name tyco, map_atyps (K (Type (tyco, vs))) ty));
+        (param ^ "_" ^ type_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
     val params = map_product get_param tycos (these_params thy sort) |> map_filter I;
   in
     thy
     |> ProofContext.init
-    |> Instantiation.put (mk_instantiation ((tycos, sorts, sort), params))
-    |> fold (Variable.declare_term o Logic.mk_type) vs
+    |> Instantiation.put (mk_instantiation ((tycos, vs, sort), params))
+    |> fold (Variable.declare_term o Logic.mk_type o TFree) vs
     |> fold (Variable.declare_names o Free o snd) params
-    |> fold (fn tyco => ProofContext.add_arity (tyco, sorts, sort)) tycos
+    |> fold (fn tyco => ProofContext.add_arity (tyco, map snd vs, sort)) tycos
     |> Context.proof_map (
         Syntax.add_term_check 0 "instance" inst_term_check
         #> Syntax.add_term_uncheck 0 "instance" inst_term_uncheck)
@@ -794,8 +793,8 @@ fun init_instantiation (tycos, sorts, sort) thy =
 
 fun gen_instantiation_instance do_proof after_qed lthy =
   let
-    val (tycos, sorts, sort) = (#arities o the_instantiation) lthy;
-    val arities_proof = maps (fn tyco => Logic.mk_arities (tyco, sorts, sort)) tycos;
+    val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
+    val arities_proof = maps (fn tyco => Logic.mk_arities (tyco, map snd vs, sort)) tycos;
     fun after_qed' results =
       LocalTheory.theory (fold (AxClass.add_arity o Thm.varifyT) results)
       #> after_qed;
@@ -814,10 +813,10 @@ fun prove_instantiation_instance tac = gen_instantiation_instance (fn after_qed 
 fun conclude_instantiation lthy =
   let
     val { arities, params } = the_instantiation lthy;
-    val (tycos, sorts, sort) = arities;
+    val (tycos, vs, sort) = arities;
     val thy = ProofContext.theory_of lthy;
     val _ = map (fn tyco => if Sign.of_sort thy
-        (Type (tyco, map TFree (Name.names Name.context Name.aT sorts)), sort)
+        (Type (tyco, map TFree vs), sort)
       then () else error ("Missing instance proof for type " ^ quote (Sign.extern_type thy tyco)))
         tycos;
     (*this checkpoint should move to AxClass as soon as "attach" has disappeared*)
@@ -830,12 +829,12 @@ fun conclude_instantiation lthy =
 fun pretty_instantiation lthy =
   let
     val { arities, params } = the_instantiation lthy;
-    val (tycos, sorts, sort) = arities;
+    val (tycos, vs, sort) = arities;
     val thy = ProofContext.theory_of lthy;
-    fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, sorts, sort);
+    fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
     fun pr_param ((c, _), (v, ty)) =
-      (Pretty.block o Pretty.breaks) [(Pretty.str o Sign.extern_const thy) c, Pretty.str "::",
-        Sign.pretty_typ thy ty, Pretty.str "as", Pretty.str v];
+      (Pretty.block o Pretty.breaks) [Pretty.str v, Pretty.str "==",
+        (Pretty.str o Sign.extern_const thy) c, Pretty.str "::", Sign.pretty_typ thy ty];
   in
     (Pretty.block o Pretty.fbreaks)
       (Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params)

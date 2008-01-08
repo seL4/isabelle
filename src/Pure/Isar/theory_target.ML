@@ -8,14 +8,14 @@ Common theory/locale/class/instantiation/overloading targets.
 signature THEORY_TARGET =
 sig
   val peek: local_theory -> {target: string, is_locale: bool,
-    is_class: bool, instantiation: string list * sort list * sort,
-    overloading: ((string * typ) * (string * bool)) list}
+    is_class: bool, instantiation: string list * (string * sort) list * sort,
+    overloading: (string * (string * typ) * bool) list}
   val init: string option -> theory -> local_theory
   val begin: string -> Proof.context -> local_theory
   val context: xstring -> theory -> local_theory
-  val instantiation: string list * sort list * sort -> theory -> local_theory
-  val overloading: ((string * typ) * (string * bool)) list -> theory -> local_theory
-  val overloading_cmd: (((xstring * xstring) * string) * bool) list -> theory -> local_theory
+  val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
+  val overloading: (string * (string * typ) * bool) list -> theory -> local_theory
+  val overloading_cmd: ((xstring * xstring) * bool) list -> theory -> local_theory
 end;
 
 structure TheoryTarget: THEORY_TARGET =
@@ -24,8 +24,8 @@ struct
 (* context data *)
 
 datatype target = Target of {target: string, is_locale: bool,
-  is_class: bool, instantiation: string list * sort list * sort,
-  overloading: ((string * typ) * (string * bool)) list};
+  is_class: bool, instantiation: string list * (string * sort) list * sort,
+  overloading: (string * (string * typ) * bool) list};
 
 fun make_target target is_locale is_class instantiation overloading =
   Target {target = target, is_locale = is_locale,
@@ -366,7 +366,8 @@ and init_lthy_ctxt ta = init_lthy ta o init_ctxt ta;
 in
 
 fun init target thy = init_lthy_ctxt (init_target thy target) thy;
-fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt) (SOME target)) ctxt;
+fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt)
+  (SOME target)) ctxt;
 
 fun context "-" thy = init NONE thy
   | context target thy = init (SOME (Locale.intern thy target)) thy;
@@ -375,18 +376,18 @@ val instantiation = init_lthy_ctxt o init_instantiation;
 
 fun gen_overloading prep_operation raw_operations thy =
   let
-    val check_const = dest_Const o Syntax.check_term (ProofContext.init thy) o Const;
+    val check_const = dest_Const o Syntax.check_term (ProofContext.init thy);
     val operations = raw_operations
       |> map (prep_operation thy)
-      |> (map o apfst) check_const;
+      |> map (fn (v, cTt, checked) => (v, check_const cTt, checked));
   in
     thy
     |> init_lthy_ctxt (init_overloading operations)
   end;
 
-val overloading = gen_overloading (K I);
-val overloading_cmd = gen_overloading (fn thy => fn (((raw_c, rawT), v), checked) =>
-  ((Sign.intern_const thy raw_c, Sign.read_typ thy rawT), (v, checked)));
+val overloading = gen_overloading (fn _ => fn (v, cT, checked) => (v, Const cT, checked));
+val overloading_cmd = gen_overloading (fn thy => fn ((v, raw_cT), checked) =>
+  (v, Sign.read_term thy raw_cT, checked));
 
 end;
 

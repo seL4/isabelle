@@ -431,11 +431,11 @@ fun add_datatypes_equality vs dtcos thy =
       in
         Code.add_funcl (const, Susp.delay get_thms) thy
       end;
-    val sorts_eq =
-      map (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq] o snd) vs;
+    val vs' = (map o apsnd)
+      (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq]) vs;
   in
     thy
-    |> TheoryTarget.instantiation (dtcos, sorts_eq, [HOLogic.class_eq])
+    |> TheoryTarget.instantiation (dtcos, vs', [HOLogic.class_eq])
     |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
     |> LocalTheory.exit
     |> ProofContext.theory_of

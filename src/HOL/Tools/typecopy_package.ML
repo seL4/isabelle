@@ -124,14 +124,13 @@ end;
 fun add_typecopy_spec tyco thy =
   let
     val SOME { constr, proj_def, inject, vs, ... } = get_info thy tyco;
-    val sorts_eq =
-      map (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq] o snd) vs;
+    val vs' = (map o apsnd) (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq]) vs;
     val ty = Logic.unvarifyT (Sign.the_const_type thy constr);
   in
     thy
     |> Code.add_datatype [(constr, ty)]
     |> Code.add_func proj_def
-    |> TheoryTarget.instantiation ([tyco], sorts_eq, [HOLogic.class_eq])
+    |> TheoryTarget.instantiation ([tyco], vs', [HOLogic.class_eq])
     |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
     |> LocalTheory.exit
     |> ProofContext.theory_of
