@@ -2,8 +2,11 @@
     Author:     Klaus Aehlig, Tobias Nipkow
     Work in progress
 *)
+header {* Normalization by Evaluation *}
 
 theory NBE imports Main Executable_Set begin
+
+ML"Syntax.ambiguity_level := 1000000"
 
 declare Let_def[simp]
 
@@ -50,16 +53,7 @@ consts
   R :: "(const_name * tm list * tm)set" (* reduction rules *)
   compR :: "(const_name * ml list * ml)set" (* compiled reduction rules *)
 
-fun
-  lift_tm :: "nat \<Rightarrow> tm \<Rightarrow> tm" ("lift") and
-  lift_ml :: "nat \<Rightarrow> ml \<Rightarrow> ml" ("lift")
-where
-"lift i (Ct nm) = Ct nm" |
-"lift i (Vt x) = Vt(if x < i then x else x+1)" |
-"lift i (Lam t) = Lam (lift (i+1) t)" |
-"lift i (At s t) = At (lift i s) (lift i t)" |
-"lift i (term_of v) = term_of (lift i v)" |
-
+fun lift_ml :: "nat \<Rightarrow> ml \<Rightarrow> ml" ("lift") where
 "lift i (C nm vs) = C nm (map (lift i) vs)" |
 "lift i (V x vs) = V (if x < i then x else x+1) (map (lift i) vs)" |
 "lift i (Fun v vs n) = Fun (lift i v) (map (lift i) vs) n" |
@@ -68,22 +62,17 @@ where
 "lift i (A_ML v vs) = A_ML (lift i v) (map (lift i) vs)" |
 "lift i (Lam_ML v) = Lam_ML (lift i v)" |
 "lift i (CC nm) = CC nm"
-(*
-termination
-apply (relation "measure (sum_case (%(i,t). size t) (%(i,v). size v))")
-apply auto
-*)
 
-fun
-  lift_tm_ML :: "nat \<Rightarrow> tm \<Rightarrow> tm" ("lift\<^bsub>ML\<^esub>") and
-  lift_ml_ML :: "nat \<Rightarrow> ml \<Rightarrow> ml" ("lift\<^bsub>ML\<^esub>")
-where
-"lift\<^bsub>ML\<^esub> i (Ct nm) = Ct nm" |
-"lift\<^bsub>ML\<^esub> i (Vt x) = Vt x" |
-"lift\<^bsub>ML\<^esub> i (Lam t) = Lam (lift\<^bsub>ML\<^esub> i t)" |
-"lift\<^bsub>ML\<^esub> i (At s t) = At (lift\<^bsub>ML\<^esub> i s) (lift\<^bsub>ML\<^esub> i t)" |
-"lift\<^bsub>ML\<^esub> i (term_of v) = term_of (lift\<^bsub>ML\<^esub> i v)" |
+lemmas ml_induct = lift_ml.induct[of "%i v. P v", standard]
 
+fun lift_tm :: "nat \<Rightarrow> tm \<Rightarrow> tm" ("lift") where
+"lift i (Ct nm) = Ct nm" |
+"lift i (Vt x) = Vt(if x < i then x else x+1)" |
+"lift i (Lam t) = Lam (lift (i+1) t)" |
+"lift i (At s t) = At (lift i s) (lift i t)" |
+"lift i (term_of v) = term_of (lift i v)"
+
+fun lift_ml_ML :: "nat \<Rightarrow> ml \<Rightarrow> ml" ("lift\<^bsub>ML\<^esub>") where
 "lift\<^bsub>ML\<^esub> i (C nm vs) = C nm (map (lift\<^bsub>ML\<^esub> i) vs)" |
 "lift\<^bsub>ML\<^esub> i (V x vs) = V x (map (lift\<^bsub>ML\<^esub> i) vs)" |
 "lift\<^bsub>ML\<^esub> i (Fun v vs n) = Fun (lift\<^bsub>ML\<^esub> i v) (map (lift\<^bsub>ML\<^esub> i) vs) n" |
@@ -92,49 +81,45 @@ where
 "lift\<^bsub>ML\<^esub> i (A_ML v vs) = A_ML (lift\<^bsub>ML\<^esub> i v) (map (lift\<^bsub>ML\<^esub> i) vs)" |
 "lift\<^bsub>ML\<^esub> i (Lam_ML v) = Lam_ML (lift\<^bsub>ML\<^esub> (i+1) v)" |
 "lift\<^bsub>ML\<^esub> i (CC nm) = CC nm"
-(*
-termination
-  by (relation "measure (sum_case (%(i,t). size t) (%(i,v). size v))") auto
-*)
+
+fun lift_tm_ML :: "nat \<Rightarrow> tm \<Rightarrow> tm" ("lift\<^bsub>ML\<^esub>") where
+"lift\<^bsub>ML\<^esub> i (Ct nm) = Ct nm" |
+"lift\<^bsub>ML\<^esub> i (Vt x) = Vt x" |
+"lift\<^bsub>ML\<^esub> i (Lam t) = Lam (lift\<^bsub>ML\<^esub> i t)" |
+"lift\<^bsub>ML\<^esub> i (At s t) = At (lift\<^bsub>ML\<^esub> i s) (lift\<^bsub>ML\<^esub> i t)" |
+"lift\<^bsub>ML\<^esub> i (term_of v) = term_of (lift\<^bsub>ML\<^esub> i v)"
+
 constdefs
  cons :: "tm \<Rightarrow> (nat \<Rightarrow> tm) \<Rightarrow> (nat \<Rightarrow> tm)" (infix "##" 65)
 "t##f \<equiv> \<lambda>i. case i of 0 \<Rightarrow> t | Suc j \<Rightarrow> lift 0 (f j)"
  cons_ML :: "ml \<Rightarrow> (nat \<Rightarrow> ml) \<Rightarrow> (nat \<Rightarrow> ml)" (infix "##" 65)
 "v##f \<equiv> \<lambda>i. case i of 0 \<Rightarrow> v::ml | Suc j \<Rightarrow> lift\<^bsub>ML\<^esub> 0 (f j)"
 
-(* Only for pure terms! *)
-consts subst :: "(nat \<Rightarrow> tm) \<Rightarrow> tm \<Rightarrow> tm"
-primrec
-"subst f (Ct nm) = Ct nm"
-"subst f (Vt x) = f x"
-"subst f (Lam t) = Lam (subst (Vt 0 ## f) t)"
+text{* Only for pure terms! *}
+primrec subst :: "(nat \<Rightarrow> tm) \<Rightarrow> tm \<Rightarrow> tm" where
+"subst f (Ct nm) = Ct nm" |
+"subst f (Vt x) = f x" |
+"subst f (Lam t) = Lam (subst (Vt 0 ## f) t)" |
 "subst f (At s t) = At (subst f s) (subst f t)"
 
 lemma list_size_map [simp]: "list_size f (map g xs) = list_size (f o g) xs"
-  by (induct xs) simp_all
+by (induct xs) simp_all
 
 lemma list_size_cong [cong]:
   "\<lbrakk>xs = ys; \<And>x. x \<in> set ys \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> list_size f xs = list_size g ys"
-  by (induct xs arbitrary: ys) auto
+by (induct xs arbitrary: ys) auto
 
-lemma size_lift[simp]: shows
- "size(lift i t) = size(t::tm)" and "size(lift i (v::ml)) = size v"
-  by (induct i t and i v rule: lift_tm_lift_ml.induct) simp_all
+lemma size_lift_ml[simp]: "size(lift i (v::ml)) = size v"
+by (induct i v rule: lift_ml.induct) simp_all
+lemma size_lift_tm[simp]: "size(lift i t) = size(t::tm)"
+by (induct i t rule: lift_tm.induct) simp_all
 
-lemma size_lift_ML[simp]: shows
- "size(lift\<^bsub>ML\<^esub> i t) = size(t::tm)" and "size(lift\<^bsub>ML\<^esub> i (v::ml)) = size v"
-  by (induct i t and i v rule: lift_tm_ML_lift_ml_ML.induct) simp_all
+lemma size_lift_ml_ML[simp]: "size(lift\<^bsub>ML\<^esub> i (v::ml)) = size v"
+by (induct i v rule: lift_ml_ML.induct) simp_all
+lemma size_lift_tm_ML[simp]: "size(lift\<^bsub>ML\<^esub> i t) = size(t::tm)"
+by (induct i t rule: lift_tm_ML.induct) simp_all
 
-fun
-  subst_ml_ML :: "(nat \<Rightarrow> ml) \<Rightarrow> ml \<Rightarrow> ml" ("subst\<^bsub>ML\<^esub>") and
-  subst_tm_ML :: "(nat \<Rightarrow> ml) \<Rightarrow> tm \<Rightarrow> tm" ("subst\<^bsub>ML\<^esub>")
-where
-"subst\<^bsub>ML\<^esub> f (Ct nm) = Ct nm" |
-"subst\<^bsub>ML\<^esub> f (Vt x) = Vt x" |
-"subst\<^bsub>ML\<^esub> f (Lam t) = Lam (subst\<^bsub>ML\<^esub> (lift 0 o f) t)" |
-"subst\<^bsub>ML\<^esub> f (At s t) = At (subst\<^bsub>ML\<^esub> f s) (subst\<^bsub>ML\<^esub> f t)" |
-"subst\<^bsub>ML\<^esub> f (term_of v) = term_of (subst\<^bsub>ML\<^esub> f v)" |
-
+fun subst_ml_ML :: "(nat \<Rightarrow> ml) \<Rightarrow> ml \<Rightarrow> ml" ("subst\<^bsub>ML\<^esub>") where
 "subst\<^bsub>ML\<^esub> f (C nm vs) = C nm (map (subst\<^bsub>ML\<^esub> f) vs)" |
 "subst\<^bsub>ML\<^esub> f (V x vs) = V x (map (subst\<^bsub>ML\<^esub> f) vs)" |
 "subst\<^bsub>ML\<^esub> f (Fun v vs n) = Fun (subst\<^bsub>ML\<^esub> f v) (map (subst\<^bsub>ML\<^esub> f) vs) n" |
@@ -143,6 +128,13 @@ where
 "subst\<^bsub>ML\<^esub> f (A_ML v vs) = A_ML (subst\<^bsub>ML\<^esub> f v) (map (subst\<^bsub>ML\<^esub> f) vs)" |
 "subst\<^bsub>ML\<^esub> f (Lam_ML v) = Lam_ML (subst\<^bsub>ML\<^esub> (V_ML 0 ## f) v)" |
 "subst\<^bsub>ML\<^esub> f (CC nm) = CC nm"
+
+fun subst_tm_ML :: "(nat \<Rightarrow> ml) \<Rightarrow> tm \<Rightarrow> tm" ("subst\<^bsub>ML\<^esub>") where
+"subst\<^bsub>ML\<^esub> f (Ct nm) = Ct nm" |
+"subst\<^bsub>ML\<^esub> f (Vt x) = Vt x" |
+"subst\<^bsub>ML\<^esub> f (Lam t) = Lam (subst\<^bsub>ML\<^esub> (lift 0 o f) t)" |
+"subst\<^bsub>ML\<^esub> f (At s t) = At (subst\<^bsub>ML\<^esub> f s) (subst\<^bsub>ML\<^esub> f t)" |
+"subst\<^bsub>ML\<^esub> f (term_of v) = term_of (subst\<^bsub>ML\<^esub> f v)"
 
 (* FIXME currrently needed for code generator *)
 lemmas [code] = lift_tm_ML.simps lift_ml_ML.simps
@@ -163,52 +155,60 @@ abbreviation
  "u[v/k] == subst\<^bsub>ML\<^esub> (subst_decr_ML k v) u"
 
 
-lemma size_subst_ML[simp]: shows 
-  "(!x. size(f x) = 0) \<longrightarrow> size(subst\<^bsub>ML\<^esub> f (v::ml)) = size v" and
+lemma size_subst_ml_ML[simp]:
+  "(!x. size(f x) = 0) \<longrightarrow> size(subst\<^bsub>ML\<^esub> f (v::ml)) = size v"
+by (induct f v rule: subst_ml_ML.induct)
+    (simp_all add: cons_ML_def split: nat.split)
+lemma size_subst_tm_ML[simp]:
   "(!x. size(f x) = 0) \<longrightarrow> size(subst\<^bsub>ML\<^esub> f t) = size(t::tm)"
-  by (induct f v and f t rule: subst_ml_ML_subst_tm_ML.induct)
-    (simp_all add: o_def cons_ML_def split: nat.split)
+by (induct f t rule: subst_tm_ML.induct) (simp_all add: o_def)
 
-lemma lift_lift: includes Vars shows
+lemma lift_lift_ml: includes Vars shows
+  "i < k+1 \<Longrightarrow> lift (Suc k) (lift i v) = lift i (lift k v)"
+by(induct i v rule:lift_ml.induct)
+  (simp_all add:map_compose[symmetric])
+lemma lift_lift_tm: includes Vars shows
     "i < k+1 \<Longrightarrow> lift (Suc k) (lift i t) = lift i (lift k t)"
-and "i < k+1 \<Longrightarrow> lift (Suc k) (lift i v) = lift i (lift k v)"
-apply(induct t and v arbitrary: i and i rule:lift_tm_lift_ml.induct)
-apply(simp_all add:map_compose[symmetric])
-done
+by(induct t arbitrary: i rule:lift_tm.induct)(simp_all add:lift_lift_ml)
 
 corollary lift_o_lift: shows
  "i < k+1 \<Longrightarrow> lift_tm (Suc k) o (lift_tm i) = lift_tm i o lift_tm k" and
  "i < k+1 \<Longrightarrow> lift_ml (Suc k) o (lift_ml i) = lift_ml i o lift_ml k"
-by(rule ext, simp add:lift_lift)+
+by(rule ext, simp add:lift_lift_ml lift_lift_tm)+
 
-lemma lift_lift_ML: includes Vars shows
-    "i < k+1 \<Longrightarrow> lift\<^bsub>ML\<^esub> (Suc k) (lift\<^bsub>ML\<^esub> i t) = lift\<^bsub>ML\<^esub> i (lift\<^bsub>ML\<^esub> k t)"
-and "i < k+1 \<Longrightarrow> lift\<^bsub>ML\<^esub> (Suc k) (lift\<^bsub>ML\<^esub> i v) = lift\<^bsub>ML\<^esub> i (lift\<^bsub>ML\<^esub> k v)"
-apply(induct t and v arbitrary: i and i rule:lift_tm_ML_lift_ml_ML.induct)
-apply(simp_all add:map_compose[symmetric])
-done
+lemma lift_lift_ml_ML: includes Vars shows
+  "i < k+1 \<Longrightarrow> lift\<^bsub>ML\<^esub> (Suc k) (lift\<^bsub>ML\<^esub> i v) = lift\<^bsub>ML\<^esub> i (lift\<^bsub>ML\<^esub> k v)"
+by(induct v arbitrary: i rule:lift_ml_ML.induct)
+  (simp_all add:map_compose[symmetric])
+lemma lift_lift_tm_ML: includes Vars shows
+  "i < k+1 \<Longrightarrow> lift\<^bsub>ML\<^esub> (Suc k) (lift\<^bsub>ML\<^esub> i t) = lift\<^bsub>ML\<^esub> i (lift\<^bsub>ML\<^esub> k t)"
+by(induct t arbitrary: i rule:lift_tm_ML.induct)(simp_all add:lift_lift_ml_ML)
 
 
-lemma lift_lift_ML_comm: includes Vars shows
- "lift j (lift\<^bsub>ML\<^esub> i t) = lift\<^bsub>ML\<^esub> i (lift j t)" and
- "lift j (lift\<^bsub>ML\<^esub> i v) = lift\<^bsub>ML\<^esub> i (lift j v)"
-apply(induct t and v arbitrary: i j and i j rule:lift_tm_ML_lift_ml_ML.induct)
-apply(simp_all add:map_compose[symmetric])
-done
+lemma lift_lift_ml_ML_comm: includes Vars shows
+  "lift j (lift\<^bsub>ML\<^esub> i v) = lift\<^bsub>ML\<^esub> i (lift j v)"
+by(induct v arbitrary: i j rule:lift_ml_ML.induct)
+  (simp_all add:map_compose[symmetric])
+lemma lift_lift_tm_ML_comm: includes Vars shows
+ "lift j (lift\<^bsub>ML\<^esub> i t) = lift\<^bsub>ML\<^esub> i (lift j t)"
+by(induct t arbitrary: i j rule:lift_tm_ML.induct)
+  (simp_all add:lift_lift_ml_ML_comm)
 
 lemma [simp]:
- "V_ML 0 ## subst_decr_ML k v = subst_decr_ML (Suc k) (lift\<^bsub>ML\<^esub> 0 v)"
+  "V_ML 0 ## subst_decr_ML k v = subst_decr_ML (Suc k) (lift\<^bsub>ML\<^esub> 0 v)"
 by(rule ext)(simp add:cons_ML_def split:nat.split)
 
 lemma [simp]: "lift 0 o subst_decr_ML k v = subst_decr_ML k (lift 0 v)"
 by(rule ext)(simp add:cons_ML_def split:nat.split)
 
-lemma subst_lift_id[simp]: includes Vars shows
- "subst\<^bsub>ML\<^esub> (subst_decr_ML k v) (lift\<^bsub>ML\<^esub> k t) = t" and "(lift\<^bsub>ML\<^esub> k u)[v/k] = u"
-apply(induct k t and k u arbitrary: v and v rule: lift_tm_ML_lift_ml_ML.induct)
+lemma subst_lift_ml_id[simp]: includes Vars shows "(lift\<^bsub>ML\<^esub> k u)[v/k] = u"
+apply(induct k u arbitrary: v rule: lift_ml_ML.induct)
 apply (simp_all add:map_idI map_compose[symmetric])
 apply (simp cong:if_cong)
 done
+lemma subst_lift_tm_id[simp]: includes Vars shows
+  "subst\<^bsub>ML\<^esub> (subst_decr_ML k v) (lift\<^bsub>ML\<^esub> k t) = t"
+by (induct k t arbitrary: v rule: lift_tm_ML.induct) simp_all
 
 inductive_set
   tRed :: "(tm * tm)set" (* beta red + eta exp + R reduction on pure terms *)
@@ -361,13 +361,13 @@ apply(simp)
 done
 
 (* FIXME needed? *)
-lemma
-size_subst_ML[simp]: includes Vars assumes A: "!i. size(f i) = 0"
-  shows "size(subst\<^bsub>ML\<^esub> f v) = size(v)"
-  and "size(subst\<^bsub>ML\<^esub> f t) = size(t)"
-  using A
-  by (induct f v and f t rule: subst_ml_ML_subst_tm_ML.induct)
-    (simp_all add: o_def cons_ML_def split: nat.split)
+lemma size_subst_ml_ML[simp]: includes Vars shows
+ "!i. size(f i) = 0 \<Longrightarrow> size(subst\<^bsub>ML\<^esub> f v) = size(v)"
+by (induct f v rule: subst_ml_ML.induct)
+    (simp_all add: cons_ML_def split: nat.split)
+lemma size_subst_tm_ML[simp]: includes Vars shows
+  "!i. size(f i) = 0 \<Longrightarrow> size(subst\<^bsub>ML\<^esub> f t) = size(t)"
+by (induct f t rule: subst_tm_ML.induct)(simp_all add: o_def)
 
 (* FIXME name and use explicitly *)
 lemma [simp]:
@@ -480,7 +480,7 @@ apply(erule impE)
  apply(case_tac i)apply simp
  apply simp
 apply (simp add: map_compose[symmetric])
-apply (simp add: o_def lift_lift_ML_comm)
+apply (simp add: o_def lift_lift_ml_ML_comm)
 done
 
 lemma lift_ML_eval[rule_format]:
@@ -495,7 +495,7 @@ apply(erule impE)
  apply(case_tac i)apply simp
  apply simp
 apply (simp add: map_compose[symmetric])
-apply (simp add:o_def lift_lift_ML)
+apply (simp add:o_def lift_lift_ml_ML)
 done
 
 lemma [simp]: includes Vars shows "(v ## f) 0 = v"
@@ -506,58 +506,71 @@ by(simp add:cons_ML_def)
 
 lemma lift_o_shift: "lift k o (V_ML 0 ## f) = (V_ML 0 ## (lift k \<circ> f))"
 apply(rule ext)
-apply (simp add:cons_ML_def lift_lift_ML_comm split:nat.split)
+apply (simp add:cons_ML_def lift_lift_ml_ML_comm split:nat.split)
 done
 
-lemma lift_subst_ML: shows
- "lift_tm k (subst\<^bsub>ML\<^esub> f t) = subst\<^bsub>ML\<^esub> (lift_ml k o f) (lift_tm k t)" and
+lemma lift_subst_ML_ml:
  "lift_ml k (subst\<^bsub>ML\<^esub> f v) = subst\<^bsub>ML\<^esub> (lift_ml k o f) (lift_ml k v)"
-apply (induct t and v arbitrary: f k and f k rule: lift_tm_lift_ml.induct)
-apply (simp_all add:map_compose[symmetric] o_assoc lift_o_lift lift_o_shift)
-done
+by (induct k v arbitrary: f rule: lift_ml.induct)
+   (simp_all add:map_compose[symmetric] o_assoc lift_o_lift lift_o_shift)
+lemma lift_subst_ML_tm: shows
+ "lift_tm k (subst\<^bsub>ML\<^esub> f t) = subst\<^bsub>ML\<^esub> (lift_ml k o f) (lift_tm k t)"
+by(induct k t arbitrary: f rule: lift_tm.induct)
+  (simp_all add: o_assoc lift_o_lift lift_subst_ML_ml)
 
-corollary lift_subst_ML1: "\<forall>v k. lift_ml 0 (u[v/k]) = (lift_ml 0 u)[lift 0 v/k]"
-apply(rule measure_induct[where f = "size" and a = u])
-apply(case_tac x)
-apply(simp_all add:lift_lift map_compose[symmetric] lift_subst_ML)
-apply(subst lift_lift_ML_comm)apply simp
+corollary lift_subst_ML1:
+  "\<forall>v k. lift_ml 0 (u[v/k]) = (lift_ml 0 u)[lift 0 v/k]"
+apply(induct u rule:ml_induct)
+apply(simp_all add:lift_lift_ml map_compose[symmetric] lift_subst_ML_ml)
+apply(subst lift_lift_ml_ML_comm)apply simp
 done
-
-lemma lift_ML_lift_ML: includes Vars shows
+(*
+lemma lift_ML_lift_ML_ml: includes Vars shows
+  "i < k+1 \<Longrightarrow> lift\<^bsub>ML\<^esub> (Suc k) (lift\<^bsub>ML\<^esub> i v) = lift\<^bsub>ML\<^esub> i (lift\<^bsub>ML\<^esub> k v)"
+by (induct k v arbitrary: i rule: lift_ml_ML.induct)
+   (simp_all add:map_compose[symmetric])
+lemma lift_ML_lift_ML_tm: includes Vars shows
     "i < k+1 \<Longrightarrow> lift\<^bsub>ML\<^esub> (Suc k) (lift\<^bsub>ML\<^esub> i t) = lift\<^bsub>ML\<^esub> i (lift\<^bsub>ML\<^esub> k t)"
-and "i < k+1 \<Longrightarrow> lift\<^bsub>ML\<^esub> (Suc k) (lift\<^bsub>ML\<^esub> i v) = lift\<^bsub>ML\<^esub> i (lift\<^bsub>ML\<^esub> k v)"
-apply (induct k t and k v arbitrary: i k and i k
-       rule: lift_tm_ML_lift_ml_ML.induct)
-apply(simp_all add:map_compose[symmetric])
-done
-
+by(induct k t arbitrary: i rule: lift_tm_ML.induct)
+  (simp_all add:lift_ML_lift_ML_ml)
+*)
+(*FIXME move up *)
 corollary lift_ML_o_lift_ML: shows
  "i < k+1 \<Longrightarrow> lift_tm_ML (Suc k) o (lift_tm_ML i) = lift_tm_ML i o lift_tm_ML k" and
  "i < k+1 \<Longrightarrow> lift_ml_ML (Suc k) o (lift_ml_ML i) = lift_ml_ML i o lift_ml_ML k"
-by(rule ext, simp add:lift_ML_lift_ML)+
+apply(rule ext, simp add: lift_lift_tm_ML)
+apply(rule ext, simp add: lift_lift_ml_ML)
+done
 
 abbreviation insrt where
-"insrt k f == (%i. if i<k then lift_ml_ML k (f i) else if i=k then V_ML k else lift_ml_ML k (f(i - 1)))"
+"insrt k f ==
+ (%i. if i<k then lift_ml_ML k (f i) else if i=k then V_ML k else lift_ml_ML k (f(i - 1)))"
 
-lemma subst_insrt_lift: includes Vars shows
- "subst\<^bsub>ML\<^esub> (insrt k f) (lift\<^bsub>ML\<^esub> k t) = lift\<^bsub>ML\<^esub> k (subst\<^bsub>ML\<^esub> f t)" and
+lemma subst_insrt_lift_ml: includes Vars shows
  "subst\<^bsub>ML\<^esub> (insrt k f) (lift\<^bsub>ML\<^esub> k v) = lift\<^bsub>ML\<^esub> k (subst\<^bsub>ML\<^esub> f v)"
-apply (induct k t and k v arbitrary: f k and f k rule: lift_tm_ML_lift_ml_ML.induct)
+apply (induct k v arbitrary: f k rule: lift_ml_ML.induct)
 apply (simp_all add:map_compose[symmetric] o_assoc lift_o_lift lift_o_shift)
+apply(subgoal_tac "V_ML 0 ## insrt k f = insrt (Suc k) (V_ML 0 ## f)")
+ apply simp
+apply (simp add:expand_fun_eq lift_lift_ml_ML cons_ML_def split:nat.split)
+done
+lemma subst_insrt_lift_tm: includes Vars shows
+ "subst\<^bsub>ML\<^esub> (insrt k f) (lift\<^bsub>ML\<^esub> k t) = lift\<^bsub>ML\<^esub> k (subst\<^bsub>ML\<^esub> f t)"
+apply (induct k t arbitrary: f k rule: lift_tm_ML.induct)
+apply (simp_all)
   apply(subgoal_tac "lift 0 \<circ> insrt k f = insrt k (lift 0 \<circ> f)")
   apply simp
  apply(rule ext)
- apply (simp add:lift_lift_ML_comm)
+ apply (simp add:lift_lift_ml_ML_comm)
 apply(subgoal_tac "V_ML 0 ## insrt k f = insrt (Suc k) (V_ML 0 ## f)")
- apply simp
- apply(rule ext)
- apply (simp add:lift_ML_lift_ML cons_ML_def split:nat.split)
+ apply (simp add:subst_insrt_lift_ml)
+ apply (simp add:expand_fun_eq lift_lift_ml_ML cons_ML_def split:nat.split)
 done
 
 corollary subst_cons_lift: includes Vars shows
  "subst\<^bsub>ML\<^esub> (V_ML 0 ## f) o (lift_ml_ML 0) = lift_ml_ML 0 o (subst_ml_ML f)"
 apply(rule ext)
-apply(simp add: cons_ML_def subst_insrt_lift[symmetric])
+apply(simp add: cons_ML_def subst_insrt_lift_ml[symmetric])
 apply(subgoal_tac "nat_case (V_ML 0) (\<lambda>j. lift\<^bsub>ML\<^esub> 0 (f j)) = (\<lambda>i. if i = 0 then V_ML 0 else lift\<^bsub>ML\<^esub> 0 (f (i - 1)))")
  apply simp
 apply(rule ext, simp split:nat.split)
@@ -605,22 +618,17 @@ apply(clarsimp)
 apply simp
 done
 
-lemma map_eq_iff_nth:
- "(map f xs = map g xs) = (!i<size xs. f(xs!i) = g(xs!i))"
-by(simp add:list_eq_iff_nth_eq)
-
-lemma ML_closed_lift_ML[simp]:
+lemma ML_closed_lift_ML_ml[simp]:
+  includes Vars shows "ML_closed k v \<Longrightarrow> lift\<^bsub>ML\<^esub> k v = v"
+by(induct k v rule: lift_ml_ML.induct)(simp_all add:list_eq_iff_nth_eq)
+lemma ML_closed_lift_ML_tm[simp]:
   includes Vars shows "ML_closed_t k t \<Longrightarrow> lift\<^bsub>ML\<^esub> k t = t"
-  and  "ML_closed k v \<Longrightarrow> lift\<^bsub>ML\<^esub> k v = v"
-apply (induct k t and k v rule: lift_tm_ML_lift_ml_ML.induct)
-apply (simp_all add:list_eq_iff_nth_eq)
-done
+by(induct k t rule: lift_tm_ML.induct)(simp_all)
 
-lemma ML_closed_subst_ML[simp]:
-  includes Vars shows "ML_closed k v \<Longrightarrow> !i<k. f i = V_ML i \<Longrightarrow> subst\<^bsub>ML\<^esub> f v = v"
-  and  "ML_closed_t k t \<Longrightarrow> !i<k. f i = V_ML i \<Longrightarrow> subst\<^bsub>ML\<^esub> f t = t"
-apply (induct f v and f t arbitrary: k and k rule: subst_ml_ML_subst_tm_ML.induct)
-apply    (auto simp add: list_eq_iff_nth_eq)
+lemma ML_closed_subst_ML_ml[simp]: includes Vars shows
+  "ML_closed k v \<Longrightarrow> !i<k. f i = V_ML i \<Longrightarrow> subst\<^bsub>ML\<^esub> f v = v"
+apply (induct f v arbitrary: k rule: subst_ml_ML.induct)
+apply (auto simp add: list_eq_iff_nth_eq)
 apply(simp add:Ball_def)
 apply(erule_tac x="vs!i" in meta_allE)
 apply(erule_tac x="k" in meta_allE)
@@ -639,13 +647,17 @@ apply simp
 apply(erule_tac x="Suc k" in meta_allE)
 apply (simp add:cons_ML_def split:nat.split)
 done
+lemma ML_closed_subst_ML_tm[simp]: includes Vars shows
+  "ML_closed_t k t \<Longrightarrow> !i<k. f i = V_ML i \<Longrightarrow> subst\<^bsub>ML\<^esub> f t = t"
+by (induct f t arbitrary: k rule: subst_tm_ML.induct) (auto)
 
-lemma ML_closed_lift[simp]:
+lemma ML_closed_lift_ml[simp]:
+  includes Vars shows "ML_closed k v \<Longrightarrow> ML_closed k (lift m v)"
+by(induct k v arbitrary: m rule: lift_ml_ML.induct)
+  (simp_all add:list_eq_iff_nth_eq)
+lemma ML_closed_lift_tm[simp]:
   includes Vars shows "ML_closed_t k t \<Longrightarrow> ML_closed_t k (lift m t)"
-  and "ML_closed k v \<Longrightarrow> ML_closed k (lift m v)"
-apply(induct k t and k v arbitrary: m and m rule: lift_tm_ML_lift_ml_ML.induct)
-apply (simp_all add:list_eq_iff_nth_eq)
-done
+by(induct k t arbitrary: m rule: lift_tm_ML.induct)(simp_all)
 
 lemma red_Lam[simp]: includes Vars shows "t \<rightarrow>* t' ==> Lam t \<rightarrow>* Lam t'"
 apply(induct rule:rtrancl_induct)
@@ -781,7 +793,7 @@ done
 lemma liftn_lift_ML_comm: "liftn n (lift\<^bsub>ML\<^esub> 0 v) = lift\<^bsub>ML\<^esub> 0 (liftn n v)"
 apply(unfold liftn_def)
 apply(induct n)
-apply (simp_all add:lift_lift_ML_comm)
+apply (simp_all add:lift_lift_ml_ML_comm)
 done
 
 lemma liftn_cons: "liftn n ((V_ML 0 ## f) x) = (V_ML 0 ## (liftn n o f)) x"
@@ -798,25 +810,26 @@ by(induct ts arbitrary: t) simp_all
 
 declare Pure_tms.intros[simp]
 
-lemma "ML_closed_t n t \<Longrightarrow> ML_closed_t (Suc n) (lift\<^bsub>ML\<^esub> k t)" and
-  ML_closed_Suc: "ML_closed n v \<Longrightarrow> ML_closed (Suc n) (lift\<^bsub>ML\<^esub> k v)"
-by (induct k t and k v arbitrary: n and n rule: lift_tm_ML_lift_ml_ML.induct)
-   simp_all
+lemma ML_closed_Suc: "ML_closed n v \<Longrightarrow> ML_closed (Suc n) (lift\<^bsub>ML\<^esub> k v)"
+by (induct k v arbitrary: n rule: lift_ml_ML.induct) simp_all
 
-lemma subst_ML_coincidence:
-  "ML_closed k v \<Longrightarrow> !i<k. f i = g i \<Longrightarrow> subst\<^bsub>ML\<^esub> f v = subst\<^bsub>ML\<^esub> g v" and
+lemma subst_ml_ML_coincidence:
+  "ML_closed k v \<Longrightarrow> !i<k. f i = g i \<Longrightarrow> subst\<^bsub>ML\<^esub> f v = subst\<^bsub>ML\<^esub> g v"
+by (induct f v arbitrary: k g rule: subst_ml_ML.induct)
+   (auto simp:cons_ML_def split:nat.split)
+lemma subst_tm_ML_coincidence:
   "ML_closed_t k t \<Longrightarrow> !i<k. f i = g i \<Longrightarrow> subst\<^bsub>ML\<^esub> f t = subst\<^bsub>ML\<^esub> g t"
-apply (induct f v and f t arbitrary: k g and k g rule: subst_ml_ML_subst_tm_ML.induct)
-apply (auto simp:cons_ML_def split:nat.split)
-done
+by (induct f t arbitrary: k g rule: subst_tm_ML.induct)
+   (auto simp:subst_ml_ML_coincidence)
 
-
-lemma ML_closed_subst_ML1:
-  "!i. ML_closed k (f i) \<Longrightarrow> ML_closed k (subst\<^bsub>ML\<^esub> f v)" and
+lemma ML_closed_subst_ML1_ml:
+  "!i. ML_closed k (f i) \<Longrightarrow> ML_closed k (subst\<^bsub>ML\<^esub> f v)"
+by(induct f v arbitrary: k rule: subst_ml_ML.induct)
+  (auto simp:cons_ML_def ML_closed_Suc split:nat.split)
+lemma ML_closed_subst_ML1_tm:
   "!i. ML_closed k (f i) \<Longrightarrow> ML_closed_t k (subst\<^bsub>ML\<^esub> f t)"
-apply (induct f v and f t arbitrary: k and k rule: subst_ml_ML_subst_tm_ML.induct)
-apply (auto simp:cons_ML_def ML_closed_Suc split:nat.split)
-done
+by(induct f t arbitrary: k rule: subst_tm_ML.induct)
+  (simp_all add:ML_closed_subst_ML1_ml)
 
 lemma ML_closed_t_foldl_At:
   "ML_closed_t k (foldl At t ts) \<longleftrightarrow>
@@ -839,24 +852,25 @@ apply(rule Pure_tms.intros)
 apply(erule meta_mp)
 apply(subgoal_tac "ML_closed (Suc 0) (lift 0 v)")
 apply(subgoal_tac "ML_closed 0 (subst\<^bsub>ML\<^esub> (\<lambda>n. V 0 []) (lift 0 v))")
-apply(drule subst_ML_coincidence[of _ _ "\<lambda>n. V 0 []" "\<lambda>n. if n = 0 then V 0 [] else V_ML (n - 1)"])back
+apply(drule subst_ml_ML_coincidence[of _ _ "\<lambda>n. V 0 []" "\<lambda>n. if n = 0 then V 0 [] else V_ML (n - 1)"])back
 apply simp
 apply metis
 apply simp
-apply(rule ML_closed_subst_ML1)
+apply(rule ML_closed_subst_ML1_ml)
 apply simp+
 done
 
 corollary subst_Vt_kernel: "ML_closed 0 v \<Longrightarrow> subst Vt (v!) = v!"
 by (metis ML_closed_Pure_tms subst_Vt)
 
-lemma ML_closed_subst_ML3:
-    "ML_closed k v \<Longrightarrow> !i<k. ML_closed l (f i) \<Longrightarrow> ML_closed l (subst\<^bsub>ML\<^esub> f v)"
-and "ML_closed_t k t \<Longrightarrow> !i<k. ML_closed l (f i) \<Longrightarrow> ML_closed_t l (subst\<^bsub>ML\<^esub> f t)"
-apply (induct f v and f t arbitrary: k l and k l rule: subst_ml_ML_subst_tm_ML.induct)
-apply (auto simp:cons_ML_def ML_closed_Suc split:nat.split)
-done
-
+lemma ML_closed_subst_ML3_ml:
+  "ML_closed k v \<Longrightarrow> !i<k. ML_closed l (f i) \<Longrightarrow> ML_closed l (subst\<^bsub>ML\<^esub> f v)"
+by(induct f v arbitrary: k l rule: subst_ml_ML.induct)
+  (auto simp:cons_ML_def ML_closed_Suc split:nat.split)
+lemma ML_closed_subst_ML3_tm:
+  "ML_closed_t k t \<Longrightarrow> !i<k. ML_closed l (f i) \<Longrightarrow> ML_closed_t l (subst\<^bsub>ML\<^esub> f t)"
+by(induct f t arbitrary: k l rule: subst_tm_ML.induct)
+  (auto simp:ML_closed_subst_ML3_ml)
 
 lemma kernel_lift_tm: "ML_closed 0 v \<Longrightarrow> (lift i v)! = lift i (v!)"
 apply(induct v arbitrary: i rule: kernel.induct)
@@ -864,60 +878,49 @@ apply (simp_all add:list_eq_iff_nth_eq)
 apply(erule_tac x="Suc i" in meta_allE)
 apply(erule meta_impE)
 defer
-apply (simp add:lift_subst_ML)
+apply (simp add:lift_subst_ML_ml)
 apply(subgoal_tac "lift (Suc i) \<circ> (\<lambda>n. if n = 0 then V 0 [] else V_ML (n - 1)) = (\<lambda>n. if n = 0 then V 0 [] else V_ML (n - 1))")
-apply (simp add:lift_lift(2))
+apply (simp add:lift_lift_ml)
 apply(rule ext)
 apply(simp)
-apply(subst ML_closed_subst_ML3[of "1"])
+apply(subst ML_closed_subst_ML3_ml[of "1"])
 apply(simp)
 apply(simp)
 apply(simp)
 done
 
-(*
-lemma kernel_subst1_lem:
-assumes cl: "ML_closed 0 v"
-shows "ML_closed (Suc k) u \<Longrightarrow> f k = v \<Longrightarrow> (!i<k. f i = (C nm [])) \<Longrightarrow> 
-       g k = V k [] \<Longrightarrow> (! i<k. g i = (C nm [])) \<Longrightarrow>
-       kernel(subst\<^bsub>ML\<^esub> f u) = (kernel(subst\<^bsub>ML\<^esub> g (lift k u)))[kernel v/k]"
-apply(induct v arbitrary: i rule: kernel.induct)
-*)
-
-lemma subst_ML_comp: includes Vars shows
+lemma subst_ML_ml_comp: includes Vars shows
   "!i. h i = subst\<^bsub>ML\<^esub> f (g i) \<Longrightarrow> subst\<^bsub>ML\<^esub> f (subst\<^bsub>ML\<^esub> g v) = subst\<^bsub>ML\<^esub> h v"
-and  "!i. h i = subst\<^bsub>ML\<^esub> f (g i) \<Longrightarrow> subst\<^bsub>ML\<^esub> f (subst\<^bsub>ML\<^esub> g t) = subst\<^bsub>ML\<^esub> h t"
-apply (induct h v and h t arbitrary: f g and f g rule: subst_ml_ML_subst_tm_ML.induct)
-apply (simp)
-apply (simp)
-defer
-apply (simp)
-apply (simp)
+apply (induct h v arbitrary: f g rule: subst_ml_ML.induct)
+apply (simp add: list_eq_iff_nth_eq)
 apply (simp add: list_eq_iff_nth_eq)
 apply (simp add: list_eq_iff_nth_eq)
 apply (simp add: list_eq_iff_nth_eq)
 apply (simp)
-apply (simp)
 apply (simp add: list_eq_iff_nth_eq)
-defer
 apply (simp)
-apply(simp)
-apply(erule meta_allE)+
-apply(erule meta_mp)
-apply(simp)
-apply (metis lift_subst_ML(2) subst_ml_ML.simps(5))
-apply(simp)
 apply(erule meta_allE)+
 apply(erule meta_mp)
 apply(auto simp:cons_ML_def split:nat.split)
 apply (metis cons_ML_def o_apply subst_cons_lift)
+done
+lemma subst_ML_tm_comp: includes Vars shows
+  "!i. h i = subst\<^bsub>ML\<^esub> f (g i) \<Longrightarrow> subst\<^bsub>ML\<^esub> f (subst\<^bsub>ML\<^esub> g t) = subst\<^bsub>ML\<^esub> h t"
+apply (induct h t arbitrary: f g rule: subst_tm_ML.induct)
+apply (simp)
+apply (simp)
+apply (simp)
+apply (metis lift_subst_ML_ml o_apply subst_ML_ml_comp subst_ml_ML.simps(5))
+apply (simp)
+apply simp
+apply (metis subst_ML_ml_comp subst_ml_ML.simps(5))
 done
 
 lemma if_cong0: "If x y z = If x y z"
 by simp
 
 corollary [simp]: "ML_closed 0 v \<Longrightarrow> subst\<^bsub>ML\<^esub> f v = v"
-using ML_closed_subst_ML(1)[where k=0] by simp
+using ML_closed_subst_ML_ml[where k=0] by simp
 
 fun subst_ml :: "(nat \<Rightarrow> nat) \<Rightarrow> ml \<Rightarrow> ml" where
 "subst_ml f (C nm vs) = C nm (map (subst_ml f) vs)" |
@@ -935,12 +938,9 @@ apply (induct f v arbitrary: k rule:subst_ml.induct)
 apply (simp_all add:list_eq_iff_nth_eq)
 done
 
-
-(* FIXME Only ml version needed!!! *)
 lemma subst_ml_subst_ML: includes Vars shows
   "subst_ml f (subst\<^bsub>ML\<^esub> g v) = subst\<^bsub>ML\<^esub> (subst_ml f o g) (subst_ml f v)"
-and "True"
-apply (induct g v and g "t::tm" arbitrary: f  rule: subst_ml_ML_subst_tm_ML.induct)
+apply (induct g v arbitrary: f rule: subst_ml_ML.induct)
 apply(simp_all add:list_eq_iff_nth_eq)
 apply(subgoal_tac "(subst_ml fa \<circ> V_ML 0 ## f) = V_ML 0 ## (subst_ml fa \<circ> f)")
 apply simp
@@ -963,12 +963,12 @@ defer
 apply(erule meta_impE)
 defer
 apply(erule meta_mp)
-apply (simp_all add: cons_def lift_lift split:nat.split)
+apply (simp_all add: cons_def lift_lift_ml lift_lift_tm split:nat.split)
 done
 
 corollary lift_subst:
   "t : Pure_tms \<Longrightarrow> lift 0 (subst f t) = subst (Vt 0 ## f) (lift 0 t)"
-by (simp add: lift_subst_aux cons_def lift_lift split:nat.split)
+by (simp add: lift_subst_aux cons_def lift_lift_ml split:nat.split)
 
 lemma subst_comp: includes Vars shows
   "t : Pure_tms \<Longrightarrow> !i. g i : Pure_tms \<Longrightarrow>
@@ -993,16 +993,11 @@ apply(simp add:lift_subst)
 done
 
 lemma lift_is_subst_ml:"lift k v = subst_ml (%n. if n<k then n else n+1) v"
-apply(induct v arbitrary: k rule:subst_ml.induct[of "%f v. Q v", standard])
-apply (simp_all add:list_eq_iff_nth_eq)
-done
+by(induct k v rule:lift_ml.induct)(simp_all add:list_eq_iff_nth_eq)
 
 lemma subst_ml_comp:
  "subst_ml f (subst_ml g v) = subst_ml (f o g) v"
-apply(induct v rule:subst_ml.induct[of "%f v. Q v", standard])
-apply (simp_all add:list_eq_iff_nth_eq)
-done
-
+by(induct g v rule:subst_ml.induct)(simp_all add:list_eq_iff_nth_eq)
 
 lemma subst_kernel:
   "ML_closed 0 v \<Longrightarrow>  subst (%n. Vt (f n)) (v!) = (subst_ml f v)!"
@@ -1010,28 +1005,24 @@ apply (induct v arbitrary: f rule:kernel.induct)
 apply (simp_all add:list_eq_iff_nth_eq)
 apply(erule_tac x="%n. case n of 0 \<Rightarrow> 0 | Suc k \<Rightarrow> Suc(f k)" in meta_allE)
 apply(erule_tac meta_impE)
-defer
+apply(rule ML_closed_subst_ML3_ml[where k="Suc 0"])
+apply (metis ML_closed_lift_ml)
+apply simp
 apply(subgoal_tac "(\<lambda>n. Vt (case n of 0 \<Rightarrow> 0 | Suc k \<Rightarrow> Suc (f k))) = (Vt 0 ## (\<lambda>n. Vt (f n)))")
 apply (simp add:subst_ml_subst_ML)
 defer
-apply(rule ext)
-apply(simp add:cons_def split:nat.split)
+apply(simp add:expand_fun_eq cons_def split:nat.split)
 apply(simp add:cons_def)
 defer
 apply(simp add:lift_is_subst_ml subst_ml_comp)
 apply(rule arg_cong[where f = kernel])
 apply(subgoal_tac "(nat_case 0 (\<lambda>k. Suc (f k)) \<circ> Suc) = Suc o f")
-prefer 2
-apply(rule ext)apply(simp split:nat.split)
-apply simp
+prefer 2 apply(simp add:expand_fun_eq split:nat.split)
 apply(subgoal_tac "(subst_ml (nat_case 0 (\<lambda>k. Suc (f k))) \<circ>
                (\<lambda>n. if n = 0 then V 0 [] else V_ML (n - 1)))
              = (\<lambda>n. if n = 0 then V 0 [] else V_ML (n - 1))")
 apply simp
-apply(rule ext)apply(simp split:nat.split)
-apply(rule ML_closed_subst_ML3[where k="Suc 0"])
-apply (metis ML_closed_lift(2))
-apply simp
+apply(simp add: expand_fun_eq split:nat.split)
 done
 
 lemma kernel_subst1:
@@ -1044,41 +1035,41 @@ proof(induct u arbitrary:v rule:kernel.induct)
     have "?L = Lam (lift 0 (w[lift\<^bsub>ML\<^esub> 0 v/Suc 0])[V 0 []/0]!)"
       by (simp cong:if_cong0)
     also have "\<dots> = Lam ((lift 0 w)[lift\<^bsub>ML\<^esub> 0 (lift 0 v)/Suc 0][V 0 []/0]!)"
-      by (metis kernel.simps(2) lift_lift_ML_comm(2) lift_subst_ML1)
+      by (metis kernel.simps(2) lift_lift_ml_ML_comm lift_subst_ML1)
     also have "\<dots> = Lam (subst\<^bsub>ML\<^esub> (%n. if n=0 then V 0 [] else
             if n=Suc 0 then lift 0 v else V_ML (n - 2)) (lift 0 w) !)"
       apply simp
       apply(rule arg_cong[where f = kernel])
-      apply(rule subst_ML_comp)
+      apply(rule subst_ML_ml_comp)
       using 2
       apply auto
       done
     also have "\<dots> = Lam ((lift 0 w)[V 0 []/0][lift 0 v/0]!)"
       apply simp
       apply(rule arg_cong[where f = kernel])
-      apply(rule subst_ML_comp[symmetric])
+      apply(rule subst_ML_ml_comp[symmetric])
       using 2
       apply auto
       done
     also have "\<dots> = Lam ((lift_ml 0 ((lift_ml 0 w)[V 0 []/0]))[V 0 []/0]![(lift 0 v)!/0])"
       apply(rule arg_cong[where f = Lam])
       apply(rule 2(1))
-      apply (metis ML_closed_lift(2) 2)
+      apply (metis ML_closed_lift_ml 2)
       apply(subgoal_tac "ML_closed (Suc(Suc 0)) w")
       defer
       using 2
       apply force
       apply(subgoal_tac  "ML_closed (Suc (Suc 0)) (lift 0 w)")
       defer
-      apply(erule ML_closed_lift)
-      apply(erule ML_closed_subst_ML3)
+      apply(erule ML_closed_lift_ml)
+      apply(erule ML_closed_subst_ML3_ml)
       apply simp
       done
     also have "\<dots> = Lam ((lift_ml 0 (lift_ml 0 w)[V 1 []/0])[V 0 []/0]![(lift 0 v)!/0])" (is "_ = ?M")
       apply(subgoal_tac "lift_ml 0 (lift_ml 0 w[V 0 []/0])[V 0 []/0] =
                          lift_ml 0 (lift_ml 0 w)[V 1 []/0][V 0 []/0]")
       apply simp
-      apply(subst lift_subst_ML(2))
+      apply(subst lift_subst_ML_ml)
       apply(simp add:comp_def if_distrib[where f="lift_ml 0"] cong:if_cong)
       done
     finally have "?L = ?M" .
@@ -1092,7 +1083,7 @@ proof(induct u arbitrary:v rule:kernel.induct)
           ((lift 0 (lift_ml 0 w))[V 1 []/Suc 0][V 0 []/0]!))"
       apply(subgoal_tac "lift 0 (lift 0 w[V 0 []/Suc 0]) = lift 0 (lift 0 w)[V 1 []/Suc 0]")
       apply simp
-      apply(subst lift_subst_ML(2))
+      apply(subst lift_subst_ML_ml)
       apply(simp add:comp_def if_distrib[where f="lift_ml 0"] cong:if_cong)
       done
     also have "(lift_ml 0 (lift_ml 0 w))[V 1 []/Suc 0][V 0 []/0] =
@@ -1101,8 +1092,8 @@ proof(induct u arbitrary:v rule:kernel.induct)
       have "?l = subst\<^bsub>ML\<^esub> (%n. if n= 0 then V 0 [] else if n = 1 then V 1 [] else
                       V_ML (n - 2))
                (lift_ml 0 (lift_ml 0 w))"
-      by(auto intro!:subst_ML_comp)
-    also have "\<dots> = ?r" by(auto intro!:subst_ML_comp[symmetric])
+      by(auto intro!:subst_ML_ml_comp)
+    also have "\<dots> = ?r" by(auto intro!:subst_ML_ml_comp[symmetric])
     finally show ?thesis .
   qed
   also have "Lam (subst (Vt 0 ## subst_decr 0 (v!)) (?r !)) = ?M"
@@ -1120,8 +1111,8 @@ proof(induct u arbitrary:v rule:kernel.induct)
 	using 2(3)
 	apply simp
 	apply(rule ML_closed_Pure_tms)
-	apply(rule ML_closed_subst_ML3[where k="Suc 0"])
-	apply(rule ML_closed_subst_ML3[where k="Suc(Suc 0)"])
+	apply(rule ML_closed_subst_ML3_ml[where k="Suc 0"])
+	apply(rule ML_closed_subst_ML3_ml[where k="Suc(Suc 0)"])
 	apply simp
 	apply simp
 	apply simp
@@ -1131,8 +1122,8 @@ proof(induct u arbitrary:v rule:kernel.induct)
  (subst_ml pi (lift_ml 0 (lift_ml 0 w)[V 0 []/0][V 1 []/0]))![lift_tm 0 (v!)/0]"
 	apply(subst subst_kernel)
 	using 2 apply auto
-	apply(rule ML_closed_subst_ML3[where k="Suc 0"])
-	apply(rule ML_closed_subst_ML3[where k="Suc(Suc 0)"])
+	apply(rule ML_closed_subst_ML3_ml[where k="Suc 0"])
+	apply(rule ML_closed_subst_ML3_ml[where k="Suc(Suc 0)"])
 	apply simp
 	apply simp
 	apply simp
@@ -1155,10 +1146,10 @@ proof(induct u arbitrary:v rule:kernel.induct)
 	  apply(subst subst_ml_subst_ML)
 	  apply(subst subst_ml_subst_ML)
 	  apply(subst 1)
-	  apply(subst subst_ML_comp)
+	  apply(subst subst_ML_ml_comp)
 	  apply(rule)
 	  apply(rule)
-	  apply(rule subst_ML_comp[symmetric])
+	  apply(rule subst_ML_ml_comp[symmetric])
 	  apply(auto simp:pi_def)
 	  done
 	thus ?thesis by simp
@@ -1195,9 +1186,9 @@ proof(induct rule:Red_Redt_Redl.inducts)
     let ?g = "\<lambda>n. v"
     have clu: "ML_closed (Suc 0) u" and clv: "ML_closed 0 v" using cl by simp+
     have "ML_closed 0 (subst\<^bsub>ML\<^esub> ?g u)"
-      by (metis COMBK_def ML_closed_subst_ML1 clv)
+      by (metis COMBK_def ML_closed_subst_ML1_ml clv)
     hence "ML_closed 0 (subst\<^bsub>ML\<^esub> ?f u)"
-      using subst_ML_coincidence[OF clu, of ?f ?g] by auto
+      using subst_ml_ML_coincidence[OF clu, of ?f ?g] by auto
     thus ?thesis by simp
   qed
   ultimately show "?A & ?C" ..
@@ -1208,14 +1199,14 @@ next
   fix f :: "nat \<Rightarrow> ml" and nm vs v
   assume f: "\<forall>i. ML_closed 0 (f i)"  and compR: "(nm, vs, v) \<in> compR"
   have "map (subst Vt) (map (subst\<^bsub>ML\<^esub> f) vs!) = map (subst\<^bsub>ML\<^esub> f) vs!"
-    by(simp add:list_eq_iff_nth_eq subst_Vt_kernel ML_closed_subst_ML1[OF f])
+    by(simp add:list_eq_iff_nth_eq subst_Vt_kernel ML_closed_subst_ML1_ml[OF f])
   with tRed.intros(3)[OF compiler_correct[OF compR f], of Vt,simplified map_compose]
   have red: "foldl At (Ct nm) ((map (subst\<^bsub>ML\<^esub> f) vs) !) \<rightarrow>
         (subst\<^bsub>ML\<^esub> f v)!" (is "_ \<rightarrow> ?R")
-    by(simp add:subst_Vt_kernel ML_closed_subst_ML1[OF f])
+    by(simp add:subst_Vt_kernel ML_closed_subst_ML1_ml[OF f])
   hence "A_ML (CC nm) (map (subst\<^bsub>ML\<^esub> f) vs)! \<rightarrow>* subst\<^bsub>ML\<^esub> f v!" (is ?A) by simp
   moreover
-  have "ML_closed 0 (subst\<^bsub>ML\<^esub> f v)" (is ?C) by(metis ML_closed_subst_ML1 f)
+  have "ML_closed 0 (subst\<^bsub>ML\<^esub> f v)" (is ?C) by(metis ML_closed_subst_ML1_ml f)
   ultimately show "?A & ?C" ..
 next
   case term_of_V thus ?case
