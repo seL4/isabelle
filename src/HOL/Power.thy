@@ -45,20 +45,20 @@ lemma power_mult: "(a::'a::recpower) ^ (m*n) = (a^m) ^ n"
 lemma power_mult_distrib: "((a::'a::{recpower,comm_monoid_mult}) * b) ^ n = (a^n) * (b^n)"
   by (induct n) (simp_all add: power_Suc mult_ac)
 
-lemma zero_less_power:
+lemma zero_less_power[simp]:
      "0 < (a::'a::{ordered_semidom,recpower}) ==> 0 < a^n"
 apply (induct "n")
 apply (simp_all add: power_Suc zero_less_one mult_pos_pos)
 done
 
-lemma zero_le_power:
+lemma zero_le_power[simp]:
      "0 \<le> (a::'a::{ordered_semidom,recpower}) ==> 0 \<le> a^n"
 apply (simp add: order_le_less)
 apply (erule disjE)
-apply (simp_all add: zero_less_power zero_less_one power_0_left)
+apply (simp_all add: zero_less_one power_0_left)
 done
 
-lemma one_le_power:
+lemma one_le_power[simp]:
      "1 \<le> (a::'a::{ordered_semidom,recpower}) ==> 1 \<le> a^n"
 apply (induct "n")
 apply (simp_all add: power_Suc)
@@ -80,7 +80,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma one_less_power:
+lemma one_less_power[simp]:
   "\<lbrakk>1 < (a::'a::{ordered_semidom,recpower}); 0 < n\<rbrakk> \<Longrightarrow> 1 < a ^ n"
 by (cases n, simp_all add: power_gt1_lemma power_Suc)
 
@@ -128,14 +128,14 @@ lemma power_mono:
      "[|a \<le> b; (0::'a::{recpower,ordered_semidom}) \<le> a|] ==> a^n \<le> b^n"
 apply (induct "n")
 apply (simp_all add: power_Suc)
-apply (auto intro: mult_mono zero_le_power order_trans [of 0 a b])
+apply (auto intro: mult_mono order_trans [of 0 a b])
 done
 
 lemma power_strict_mono [rule_format]:
      "[|a < b; (0::'a::{recpower,ordered_semidom}) \<le> a|]
       ==> 0 < n --> a^n < b^n"
 apply (induct "n")
-apply (auto simp add: mult_strict_mono zero_le_power power_Suc
+apply (auto simp add: mult_strict_mono power_Suc
                       order_le_less_trans [of 0 a b])
 done
 
@@ -225,7 +225,7 @@ apply (auto simp add: power_Suc power_Suc_less less_Suc_eq)
 apply (rename_tac m)
 apply (subgoal_tac "a * a^m < 1 * a^n", simp)
 apply (rule mult_strict_mono)
-apply (auto simp add: zero_le_power zero_less_one order_less_imp_le)
+apply (auto simp add: zero_less_one order_less_imp_le)
 done
 
 text{*Proof resembles that of @{text power_strict_decreasing}*}
@@ -238,7 +238,7 @@ apply (auto simp add: power_Suc  le_Suc_eq)
 apply (rename_tac m)
 apply (subgoal_tac "a * a^m \<le> 1 * a^n", simp)
 apply (rule mult_mono)
-apply (auto simp add: zero_le_power zero_le_one)
+apply (auto simp add: zero_le_one)
 done
 
 lemma power_Suc_less_one:
@@ -255,7 +255,7 @@ apply (auto simp add: power_Suc le_Suc_eq)
 apply (rename_tac m)
 apply (subgoal_tac "1 * a^n \<le> a * a^m", simp)
 apply (rule mult_mono)
-apply (auto simp add: order_trans [OF zero_le_one] zero_le_power)
+apply (auto simp add: order_trans [OF zero_le_one])
 done
 
 text{*Lemma for @{text power_strict_increasing}*}
@@ -273,8 +273,7 @@ apply (auto simp add: power_less_power_Suc power_Suc less_Suc_eq)
 apply (rename_tac m)
 apply (subgoal_tac "1 * a^n < a * a^m", simp)
 apply (rule mult_strict_mono)
-apply (auto simp add: order_less_trans [OF zero_less_one] zero_le_power
-                 order_less_imp_le)
+apply (auto simp add: order_less_trans [OF zero_less_one] order_less_imp_le)
 done
 
 lemma power_increasing_iff [simp]:
