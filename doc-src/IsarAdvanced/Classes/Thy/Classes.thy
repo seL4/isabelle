@@ -191,16 +191,26 @@ text {*
     instantiation nat :: semigroup
     begin
 
-    definition
-      mult_nat_def: "m \<otimes> n = m + (n\<Colon>nat)"
+    primrec mult_nat where
+      "(0\<Colon>nat) \<otimes> n = n"
+      | "Suc m \<otimes> n = Suc (m \<otimes> n)"
 
     instance proof
       fix m n q :: nat 
       show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)"
-	unfolding mult_nat_def by simp
+        by (induct m) auto
     qed
 
     end
+
+text {*
+  \noindent Note the occurence of the name @{text mult_nat}
+  in the primrec declaration;  by default, the local name of
+  a class operation @{text f} to instantiate on type constructor
+  @{text \<kappa>} are mangled as @{text f_\<kappa>}.  In case of uncertainty,
+  these names may be inspected using the @{text "\<PRINTCONTEXT>"} command
+  or the corresponding ProofGeneral button.
+*}
 
 subsection {* Lifting and parametric types *}
 
@@ -306,7 +316,7 @@ text {*
     instance proof
       fix n :: nat
       show "n \<otimes> \<one> = n"
-	unfolding neutral_nat_def mult_nat_def by simp
+	unfolding neutral_nat_def by (induct n) simp_all
     next
       fix k :: int
       show "k \<otimes> \<one> = k"
@@ -435,7 +445,7 @@ text {*
   in locales:
 *}
 
-    fun (in monoid)
+    primrec (in monoid)
       pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
       "pow_nat 0 x = \<one>"
       | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"

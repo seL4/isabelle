@@ -231,9 +231,10 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \ nat\ {\isacharcolon}{\isacharcolon}\ semigroup\isanewline
 \ \ \ \ \isakeyword{begin}\isanewline
 \isanewline
-\ \ \ \ \isacommand{definition}\isamarkupfalse%
-\isanewline
-\ \ \ \ \ \ mult{\isacharunderscore}nat{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}m\ {\isasymotimes}\ n\ {\isacharequal}\ m\ {\isacharplus}\ {\isacharparenleft}n{\isasymColon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{primrec}\isamarkupfalse%
+\ mult{\isacharunderscore}nat\ \isakeyword{where}\isanewline
+\ \ \ \ \ \ {\isachardoublequoteopen}{\isacharparenleft}{\isadigit{0}}{\isasymColon}nat{\isacharparenright}\ {\isasymotimes}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ {\isacharbar}\ {\isachardoublequoteopen}Suc\ m\ {\isasymotimes}\ n\ {\isacharequal}\ Suc\ {\isacharparenleft}m\ {\isasymotimes}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
 \ \ \ \ \isacommand{instance}\isamarkupfalse%
 %
@@ -248,9 +249,8 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \ m\ n\ q\ {\isacharcolon}{\isacharcolon}\ nat\ \isanewline
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}m\ {\isasymotimes}\ n\ {\isasymotimes}\ q\ {\isacharequal}\ m\ {\isasymotimes}\ {\isacharparenleft}n\ {\isasymotimes}\ q{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
-\ mult{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
+\ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ m{\isacharparenright}\ auto\isanewline
 \ \ \ \ \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -262,6 +262,16 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \isanewline
 \isanewline
 \ \ \ \ \isacommand{end}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Note the occurence of the name \isa{mult{\isacharunderscore}nat}
+  in the primrec declaration;  by default, the local name of
+  a class operation \isa{f} to instantiate on type constructor
+  \isa{{\isasymkappa}} are mangled as \isa{f{\isacharunderscore}{\isasymkappa}}.  In case of uncertainty,
+  these names may be inspected using the \isa{{\isasymPRINTCONTEXT}} command
+  or the corresponding ProofGeneral button.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isamarkupsubsection{Lifting and parametric types%
 }
@@ -457,8 +467,8 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}n\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
 \ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
-\ neutral{\isacharunderscore}nat{\isacharunderscore}def\ mult{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
+\ neutral{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ n{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
 \ \ \ \ \isacommand{next}\isamarkupfalse%
 \isanewline
 \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
@@ -730,7 +740,7 @@ Isabelle locales support a concept of local definitions
   in locales:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{fun}\isamarkupfalse%
+\ \ \ \ \isacommand{primrec}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ monoid{\isacharparenright}\isanewline
 \ \ \ \ \ \ pow{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
