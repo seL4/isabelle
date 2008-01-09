@@ -138,7 +138,7 @@ When writing executable specifications using \isa{HOL},
   We define \isa{find} and \isa{update} functions:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{fun}\isamarkupfalse%
+\isacommand{primrec}\isamarkupfalse%
 \isanewline
 \ \ find\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isasymColon}linorder{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ searchtree\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}find\ {\isacharparenleft}Leaf\ key\ val{\isacharparenright}\ it\ {\isacharequal}\ {\isacharparenleft}if\ it\ {\isacharequal}\ key\ then\ Some\ val\ else\ None{\isacharparenright}{\isachardoublequoteclose}\isanewline
@@ -248,7 +248,7 @@ Thanks to a reasonable setup of the \isa{HOL} theories, in
   most cases code generation proceeds without further ado:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{fun}\isamarkupfalse%
+\isacommand{primrec}\isamarkupfalse%
 \isanewline
 \ \ fac\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ \ \ {\isachardoublequoteopen}fac\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
@@ -310,6 +310,7 @@ Thanks to a reasonable setup of the \isa{HOL} theories, in
 \isadelimML
 %
 \endisadelimML
+\isanewline
 \isacommand{export{\isacharunderscore}code}\isamarkupfalse%
 \ pick{\isacharunderscore}some\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}fail{\isacharunderscore}const{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
@@ -335,20 +336,17 @@ The list of all defining equations in a theory may be inspected
 
   The typical \isa{HOL} tools are already set up in a way that
   function definitions introduced by \isa{{\isasymDEFINITION}},
-  \isa{{\isasymFUN}},
-  \isa{{\isasymFUNCTION}}, \isa{{\isasymPRIMREC}},
+  \isa{{\isasymPRIMREC}}, \isa{{\isasymFUN}},
+  \isa{{\isasymFUNCTION}}, \isa{{\isasymCONSTDEFS}},
   \isa{{\isasymRECDEF}} are implicitly propagated
   to this defining equation table. Specific theorems may be
   selected using an attribute: \emph{code func}. As example,
   a weight selector function:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\isanewline
-\ \ pick\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}nat\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ list\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\isanewline
-\isanewline
 \isacommand{primrec}\isamarkupfalse%
 \isanewline
+\ \ pick\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}nat\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ list\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}pick\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ n\ {\isacharequal}\ {\isacharparenleft}let\ {\isacharparenleft}k{\isacharcomma}\ v{\isacharparenright}\ {\isacharequal}\ x\ in\isanewline
 \ \ \ \ if\ n\ {\isacharless}\ k\ then\ v\ else\ pick\ xs\ {\isacharparenleft}n\ {\isacharminus}\ k{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
@@ -454,10 +452,9 @@ Type classes enter the game via the Isar class package.
 \ null\ {\isacharequal}\ type\ {\isacharplus}\isanewline
 \ \ \isakeyword{fixes}\ null\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\isanewline
 \isanewline
-\isacommand{fun}\isamarkupfalse%
+\isacommand{primrec}\isamarkupfalse%
 \isanewline
-\ \ head\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}null\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
+\ \ head\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a{\isasymColon}null\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}head\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ null{\isachardoublequoteclose}\isanewline
 \ \ {\isacharbar}\ {\isachardoublequoteopen}head\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
@@ -740,7 +737,7 @@ Surely you have already noticed how equality is treated
   by the code generator:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{fun}\isamarkupfalse%
+\isacommand{primrec}\isamarkupfalse%
 \isanewline
 \ \ collect{\isacharunderscore}duplicates\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ \ \ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
@@ -810,14 +807,22 @@ This merely introduces a class \isa{eq} with corresponding
 \isadelimML
 %
 \endisadelimML
-\isacommand{instance}\isamarkupfalse%
+\isacommand{instantiation}\isamarkupfalse%
 \ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}ord{\isacharcomma}\ ord{\isacharparenright}\ ord\isanewline
-\ \ less{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymequiv}\ let\ {\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}ord{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
-\ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ less{\isacharunderscore}eq{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\isanewline
-\ \ \ \ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isasymle}\ p{\isadigit{2}}\ {\isasymequiv}\ let\ {\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}ord{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}ord{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
-\ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isasymle}\ y{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}%
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ {\isacharbrackleft}code\ func\ del{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isacharless}\ p{\isadigit{2}}\ {\isasymlongleftrightarrow}\ {\isacharparenleft}let\ {\isacharparenleft}x{\isadigit{1}}{\isacharcomma}\ y{\isadigit{1}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
+\ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ {\isacharbrackleft}code\ func\ del{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}p{\isadigit{1}}\ {\isasymle}\ p{\isadigit{2}}\ {\isasymlongleftrightarrow}\ {\isacharparenleft}let\ {\isacharparenleft}x{\isadigit{1}}{\isacharcomma}\ y{\isadigit{1}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{1}}{\isacharsemicolon}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ p{\isadigit{2}}\ in\isanewline
+\ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ {\isacharparenleft}x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isasymle}\ y{\isadigit{2}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{instance}\isamarkupfalse%
+%
 \isadelimproof
 \ %
 \endisadelimproof
@@ -833,8 +838,8 @@ This merely introduces a class \isa{eq} with corresponding
 \endisadelimproof
 \isanewline
 \isanewline
-\isacommand{lemmas}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}\ {\isacharequal}\ less{\isacharunderscore}prod{\isacharunderscore}def\ less{\isacharunderscore}eq{\isacharunderscore}prod{\isacharunderscore}def\isanewline
+\isacommand{end}\isamarkupfalse%
+\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
 \ ord{\isacharunderscore}prod\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
@@ -1151,7 +1156,7 @@ Consider the following function and its corresponding
   SML code:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{fun}\isamarkupfalse%
+\isacommand{primrec}\isamarkupfalse%
 \isanewline
 \ \ in{\isacharunderscore}interval\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isasymlongleftrightarrow}\ k\ {\isasymle}\ n\ {\isasymand}\ n\ {\isasymle}\ l{\isachardoublequoteclose}%

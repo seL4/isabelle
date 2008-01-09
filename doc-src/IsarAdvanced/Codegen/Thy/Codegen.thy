@@ -111,7 +111,7 @@ text {*
   We define @{text find} and @{text update} functions:
 *}
 
-fun
+primrec
   find :: "('a\<Colon>linorder, 'b) searchtree \<Rightarrow> 'a \<Rightarrow> 'b option" where
   "find (Leaf key val) it = (if it = key then Some val else None)"
   | "find (Branch t1 key t2) it = (if it \<le> key then find t1 it else find t2 it)"
@@ -215,7 +215,7 @@ text {*
   most cases code generation proceeds without further ado:
 *}
 
-fun
+primrec
   fac :: "nat \<Rightarrow> nat" where
     "fac 0 = 1"
   | "fac (Suc n) = Suc n * fac n"
@@ -262,6 +262,7 @@ definition
   pick_some :: "'a list \<Rightarrow> 'a" where
   "pick_some = hd"
 (*>*)
+
 export_code pick_some in SML file "examples/fail_const.ML"
 
 text {* \noindent will fail. *}
@@ -282,18 +283,16 @@ text {*
 
   The typical @{text HOL} tools are already set up in a way that
   function definitions introduced by @{text "\<DEFINITION>"},
-  @{text "\<FUN>"},
-  @{text "\<FUNCTION>"}, @{text "\<PRIMREC>"},
+  @{text "\<PRIMREC>"}, @{text "\<FUN>"},
+  @{text "\<FUNCTION>"}, @{text "\<CONSTDEFS>"},
   @{text "\<RECDEF>"} are implicitly propagated
   to this defining equation table. Specific theorems may be
   selected using an attribute: \emph{code func}. As example,
   a weight selector function:
 *}
 
-consts
-  pick :: "(nat \<times> 'a) list \<Rightarrow> nat \<Rightarrow> 'a"
-
 primrec
+  pick :: "(nat \<times> 'a) list \<Rightarrow> nat \<Rightarrow> 'a" where
   "pick (x#xs) n = (let (k, v) = x in
     if n < k then v else pick xs (n - k))"
 
@@ -365,9 +364,8 @@ text {*
 class null = type +
   fixes null :: 'a
 
-fun
-  head :: "'a\<Colon>null list \<Rightarrow> 'a"
-where
+primrec
+  head :: "'a\<Colon>null list \<Rightarrow> 'a" where
   "head [] = null"
   | "head (x#xs) = x"
 
@@ -586,7 +584,7 @@ text {*
   by the code generator:
 *}
 
-fun
+primrec
   collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
     "collect_duplicates xs ys [] = xs"
   | "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
@@ -636,15 +634,20 @@ hide (open) "class" eq
 hide (open) const "op ="
 setup {* Sign.parent_path *}
 (*>*)
-instance * :: (ord, ord) ord
-  less_prod_def:
-    "p1 < p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
-    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  less_eq_prod_def:
-    "p1 \<le> p2 \<equiv> let (x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) = p1; (x2, y2) = p2 in
-    x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)" ..
+instantiation * :: (ord, ord) ord
+begin
 
-lemmas [code func del] = less_prod_def less_eq_prod_def
+definition
+  [code func del]: "p1 < p2 \<longleftrightarrow> (let (x1, y1) = p1; (x2, y2) = p2 in
+    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2))"
+
+definition
+  [code func del]: "p1 \<le> p2 \<longleftrightarrow> (let (x1, y1) = p1; (x2, y2) = p2 in
+    x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2))"
+
+instance ..
+
+end
 
 lemma ord_prod [code func(*<*), code func del(*>*)]:
   "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
@@ -809,7 +812,7 @@ text {*
   SML code:
 *}
 
-fun
+primrec
   in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "in_interval (k, l) n \<longleftrightarrow> k \<le> n \<and> n \<le> l"
 (*<*)
