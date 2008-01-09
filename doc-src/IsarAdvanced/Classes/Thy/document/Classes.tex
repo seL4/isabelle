@@ -929,6 +929,48 @@ Any \isa{group} is also a \isa{monoid};  this
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{A note on syntax%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+As a commodity, class context syntax allows to refer
+  to local class operations and their global conuterparts
+  uniformly;  type inference resolves ambiguities.  For example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{context}\isamarkupfalse%
+\ semigroup\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{term}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymotimes}\ y{\isachardoublequoteclose}\ %
+\isamarkupcmt{example 1%
+}
+\isanewline
+\isacommand{term}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}x{\isasymColon}nat{\isacharparenright}\ {\isasymotimes}\ y{\isachardoublequoteclose}\ %
+\isamarkupcmt{example 2%
+}
+\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+\isanewline
+\isanewline
+\isacommand{term}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymotimes}\ y{\isachardoublequoteclose}\ %
+\isamarkupcmt{example 3%
+}
+%
+\begin{isamarkuptext}%
+\noindent Here in example 1, the term refers to the local class operation
+  \isa{mult\ {\isacharbrackleft}{\isasymalpha}{\isacharbrackright}}, whereas in example 2 the type constraint
+  enforces the global class operation \isa{mult\ {\isacharbrackleft}nat{\isacharbrackright}}.
+  In the global context in example 3, the reference is
+  to the polymorphic global class operation \isa{mult\ {\isacharbrackleft}{\isacharquery}{\isasymalpha}\ {\isasymColon}\ semigroup{\isacharbrackright}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Type classes and code generation%
 }
 \isamarkuptrue%

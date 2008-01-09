@@ -571,6 +571,31 @@ text {*
   with the corresponding theorem @{thm pow_int_def [no_vars]}.
 *}
 
+subsection {* A note on syntax *}
+
+text {*
+  As a commodity, class context syntax allows to refer
+  to local class operations and their global conuterparts
+  uniformly;  type inference resolves ambiguities.  For example:
+*}
+
+context semigroup
+begin
+
+term "x \<otimes> y" -- {* example 1 *}
+term "(x\<Colon>nat) \<otimes> y" -- {* example 2 *}
+
+end
+
+term "x \<otimes> y" -- {* example 3 *}
+
+text {*
+  \noindent Here in example 1, the term refers to the local class operation
+  @{text "mult [\<alpha>]"}, whereas in example 2 the type constraint
+  enforces the global class operation @{text "mult [nat]"}.
+  In the global context in example 3, the reference is
+  to the polymorphic global class operation @{text "mult [?\<alpha> \<Colon> semigroup]"}.
+*}
 
 section {* Type classes and code generation *}
 
