@@ -555,7 +555,7 @@ the full generality of locales combined with the commodity of type classes
   $\FIXESNAME$ in $body$ are lifted to the global theory level
   (\emph{class operations} $\vec f$ of class $c$),
   mapping the local type parameter $\alpha$ to a schematic
-  type variable $?\alpha::c$
+  type variable $?\alpha::c$.
   $\ASSUMESNAME$ in $body$ are also lifted, mapping each local parameter
   $f::\tau [\alpha]$ to its corresponding global constant
   $f::\tau [?\alpha::c]$.
@@ -606,6 +606,9 @@ the following occurs:
     by theory-level constants $g [?\alpha::c]$ referring to theory-level
     class operations $\vec f [?\alpha::c]$
   \item Local theorem bindings are lifted as are assumptions.
+  \item Local syntax refers to local operations $g [\alpha]$ and
+    global operations $g [?\alpha::c]$ uniformly.  Type inference
+    resolves ambiguities;  in rare cases, manual type annotations are needed.
 \end{itemize}
 
 
