@@ -655,6 +655,42 @@ to type classes.  For practical applications, you should consider using classes
 \end{descr}
 
 
+\subsection{Arbitrary overloading}
+
+Isabelle/Pure's definitional schemes support certain forms of overloading
+(see \S\ref{sec:consts}).  At most occassions overloading will be used
+in a Haskell-like fashion together with type classes by means of
+$\isarcmd{instantiation}$ (see \S\ref{sec:class}).  However in some cases
+low-level overloaded definitions are desirable, together with some specification
+tool.  A convenient user-view is provided by the $\isarcmd{overloading}$ target.
+
+\indexisarcmd{overloading}
+\begin{matharray}{rcl}
+  \isarcmd{overloading} & : & \isartrans{theory}{local{\dsh}theory} \\
+\end{matharray}
+
+\begin{rail}
+  'overloading' \\
+  ( string ( '==' | equiv ) term ( '(' 'unchecked' ')' )? + ) 'begin'
+\end{rail}
+
+\begin{descr}
+
+\item [$\OVERLOADING~\vec{v \equiv f :: \tau}~\isarkeyword{begin}$]
+  opens a theory target (cf.\S\ref{sec:target}) which allows to specify
+  constants with overloaded definitions.  These are identified
+  by an explicitly given mapping from variable names $v$ to
+  constants $f$ at a particular type instance $\tau$.  The definitions
+  themselves are established using common specification tools,
+  using the names $v$ as reference to the corresponding constants.
+  A $(unchecked)$ option disables global dependency checks for the corresponding
+  definition, which is occasionally useful for exotic overloading.  It
+  is at the discretion of the user to avoid malformed theory
+  specifications!  The target is concluded by an $\isarkeyword{end}$ keyword.
+
+\end{descr}
+
+
 \subsection{Configuration options}
 
 Isabelle/Pure maintains a record of named configuration options within the
