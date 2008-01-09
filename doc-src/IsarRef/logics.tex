@@ -435,21 +435,21 @@ structure of subgoals (including internally bound parameters).
 
 \subsection{Recursive functions}\label{sec:recursion}
 
-\indexisarcmdof{HOL}{primrec}
+\indexisarcmdof{HOL}{primrec}\indexisarcmdof{HOL}{fun}\indexisarcmdof{HOL}{function}\indexisarcmdof{HOL}{termination}
 
 \begin{matharray}{rcl}
-  \isarcmd{primrec} & : & \isartrans{theory}{theory} \\
-  \isarcmd{fun} & : & \isartrans{theory}{theory} \\
-  \isarcmd{function} & : & \isartrans{theory}{proof(prove)} \\
-  \isarcmd{termination} & : & \isartrans{theory}{proof(prove)} \\
+  \isarcmd{primrec} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{fun} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{function} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+  \isarcmd{termination} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
 \end{matharray}
 
 \railalias{funopts}{function\_opts}
 
 \begin{rail}
-  'primrec' parname? (equation +)
+  'primrec' target? fixes 'where' equations
   ;
-  equation: thmdecl? prop
+  equations: (thmdecl? prop + '|')
   ;
   ('fun' | 'function') (funopts)? fixes 'where' clauses
   ;
@@ -462,10 +462,10 @@ structure of subgoals (including internally bound parameters).
 \end{rail}
 
 \begin{descr}
-  
+
 \item [$\isarkeyword{primrec}$] defines primitive recursive functions over
   datatypes, see also \cite{isabelle-HOL}.
-  
+
 \item [$\isarkeyword{function}$] defines functions by general
   wellfounded recursion. A detailed description with examples can be
   found in \cite{isabelle-function}. The function is specified by a
@@ -718,10 +718,10 @@ the package does not have to use inference rules for type-checking.
 
 \indexisarcmdof{HOL}{inductive}\indexisarcmdof{HOL}{inductive-set}\indexisarcmdof{HOL}{coinductive}\indexisarcmdof{HOL}{coinductive-set}\indexisarattof{HOL}{mono}
 \begin{matharray}{rcl}
-  \isarcmd{inductive} & : & \isartrans{theory}{theory} \\
-  \isarcmd{inductive_set} & : & \isartrans{theory}{theory} \\
-  \isarcmd{coinductive} & : & \isartrans{theory}{theory} \\
-  \isarcmd{coinductive_set} & : & \isartrans{theory}{theory} \\
+  \isarcmd{inductive} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{inductive_set} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{coinductive} & : & \isarkeep{local{\dsh}theory} \\
+  \isarcmd{coinductive_set} & : & \isarkeep{local{\dsh}theory} \\
   mono & : & \isaratt \\
 \end{matharray}
 
