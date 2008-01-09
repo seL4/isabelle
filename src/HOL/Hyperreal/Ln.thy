@@ -190,7 +190,7 @@ proof -
   have "(1 - x) * (1 + x + x^2) = (1 - x^3)"
     by (simp add: ring_simps power2_eq_square power3_eq_cube)
   also have "... <= 1"
-    by (auto intro: zero_le_power simp add: a)
+    by (auto simp add: a)
   finally have "(1 - x) * (1 + x + x ^ 2) <= 1" .
   moreover have "0 < 1 + x + x^2"
     apply (rule add_pos_nonneg)

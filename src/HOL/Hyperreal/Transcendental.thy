@@ -740,7 +740,7 @@ apply (drule order_le_imp_less_or_eq, auto)
 apply (simp add: exp_def)
 apply (rule real_le_trans)
 apply (rule_tac [2] n = 2 and f = "(%n. inverse (real (fact n)) * x ^ n)" in series_pos_le)
-apply (auto intro: summable_exp simp add: numeral_2_eq_2 zero_le_power zero_le_mult_iff)
+apply (auto intro: summable_exp simp add: numeral_2_eq_2 zero_le_mult_iff)
 done
 
 lemma exp_gt_one [simp]: "0 < (x::real) ==> 1 < exp x"
@@ -1319,8 +1319,6 @@ proof -
     by (rule cos_converges [THEN sums_summable, THEN sums_group], simp) 
   thus ?thesis by (simp add: mult_ac)
 qed
-
-declare zero_less_power [simp]
 
 lemma fact_lemma: "real (n::nat) * 4 = real (4 * n)"
 by simp

@@ -477,7 +477,7 @@ lemma mod_power_lem:
    apply (drule le_iff_add [THEN iffD1])
    apply (force simp: zpower_zadd_distrib)
   apply (rule mod_pos_pos_trivial)
-   apply (simp add: zero_le_power)
+   apply (simp)
   apply (rule power_strict_increasing)
    apply auto
   done

@@ -29,7 +29,7 @@ qed
 
 
 lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
-by (rule power_increasing[of 0 n "2::real", simplified])
+by simp
 
 lemma two_realpow_gt [simp]: "real (n::nat) < 2 ^ n"
 apply (induct "n")

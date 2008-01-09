@@ -245,8 +245,6 @@ lemma zero_le_power_eq[presburger]: "(0 <= (x::'a::{recpower,ordered_idom}) ^ n)
   apply (subst zero_le_odd_power [symmetric])
   apply assumption+
   apply (erule zero_le_even_power)
-  apply (subst zero_le_odd_power)
-  apply assumption+
   done
 
 lemma zero_less_power_eq[presburger]: "(0 < (x::'a::{recpower,ordered_idom}) ^ n) =
@@ -270,12 +268,6 @@ lemma zero_less_power_eq[presburger]: "(0 < (x::'a::{recpower,ordered_idom}) ^ n
   apply (frule order_le_imp_less_or_eq)
   apply simp
   apply (erule zero_le_even_power)
-  apply (subgoal_tac "0 <= x^n")
-  apply (frule order_le_imp_less_or_eq)
-  apply auto
-  apply (subst zero_le_odd_power)
-  apply assumption
-  apply (erule order_less_imp_le)
   done
 
 lemma power_less_zero_eq[presburger]: "((x::'a::{recpower,ordered_idom}) ^ n < 0) =

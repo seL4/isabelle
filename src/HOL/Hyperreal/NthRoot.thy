@@ -328,7 +328,7 @@ lemma isCont_root_zero:
 unfolding isCont_def
 apply (rule LIM_I)
 apply (rule_tac x="r ^ n" in exI, safe)
-apply (simp add: zero_less_power)
+apply (simp)
 apply (simp add: real_root_abs [symmetric])
 apply (rule_tac n="n" in power_less_imp_less_base, simp_all)
 done
