@@ -941,10 +941,14 @@ code_const fst and snd
 types_code
   "*"     ("(_ */ _)")
 attach (term_of) {*
-fun term_of_id_42 f T g U (x, y) = HOLogic.pair_const T U $ f x $ g y;
+fun term_of_id_42 aF aT bF bT (x, y) = HOLogic.pair_const aT bT $ aF x $ bF y;
 *}
 attach (test) {*
-fun gen_id_42 aG bG i = (aG i, bG i);
+fun gen_id_42 aG aT bG bT i =
+  let
+    val (x, t) = aG i;
+    val (y, u) = bG i
+  in ((x, y), fn () => HOLogic.pair_const aT bT $ t () $ u ()) end;
 *}
 
 consts_code

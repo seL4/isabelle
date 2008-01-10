@@ -183,7 +183,9 @@ attach (term_of) {*
 val term_of_nat = HOLogic.mk_number HOLogic.natT;
 *}
 attach (test) {*
-fun gen_nat i = random_range 0 i;
+fun gen_nat i =
+  let val n = random_range 0 i
+  in (n, fn () => term_of_nat n) end;
 *}
 
 consts_code

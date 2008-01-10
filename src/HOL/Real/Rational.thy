@@ -713,7 +713,7 @@ fun term_of_rat (p, q) =
     val rT = Type ("Rational.rat", [])
   in
     if q = 1 orelse p = 0 then HOLogic.mk_number rT p
-    else Const ("HOL.inverse_class.divide", rT --> rT --> rT) $
+    else @{term "op / \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat"} $
       HOLogic.mk_number rT p $ HOLogic.mk_number rT q
   end;
 *}
@@ -725,9 +725,10 @@ fun gen_rat i =
     val g = Integer.gcd p q;
     val p' = p div g;
     val q' = q div g;
+    val r = (if one_of [true, false] then p' else ~ p',
+      if p' = 0 then 0 else q')
   in
-    (if one_of [true, false] then p' else ~ p',
-     if p' = 0 then 0 else q')
+    (r, fn () => term_of_rat r)
   end;
 *}
 

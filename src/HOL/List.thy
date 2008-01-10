@@ -3100,16 +3100,23 @@ attach (term_of) {*
 fun term_of_list f T = HOLogic.mk_list T o map f;
 *}
 attach (test) {*
-fun gen_list' aG i j = frequency
-  [(i, fn () => aG j :: gen_list' aG (i-1) j), (1, fn () => [])] ()
-and gen_list aG i = gen_list' aG i i;
+fun gen_list' aG aT i j = frequency
+  [(i, fn () =>
+      let
+        val (x, t) = aG j;
+        val (xs, ts) = gen_list' aG aT (i-1) j
+      in (x :: xs, fn () => HOLogic.cons_const aT $ t () $ ts ()) end),
+   (1, fn () => ([], fn () => HOLogic.nil_const aT))] ()
+and gen_list aG aT i = gen_list' aG aT i i;
 *}
   "char" ("string")
 attach (term_of) {*
 val term_of_char = HOLogic.mk_char o ord;
 *}
 attach (test) {*
-fun gen_char i = chr (random_range (ord "a") (Int.min (ord "a" + i, ord "z")));
+fun gen_char i =
+  let val j = random_range (ord "a") (Int.min (ord "a" + i, ord "z"))
+  in (chr j, fn () => HOLogic.mk_char j) end;
 *}
 
 consts_code "Cons" ("(_ ::/ _)")

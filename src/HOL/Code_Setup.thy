@@ -20,7 +20,9 @@ attach (term_of) {*
 fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
 *}
 attach (test) {*
-fun gen_bool i = one_of [false, true];
+fun gen_bool i =
+  let val b = one_of [false, true]
+  in (b, fn () => term_of_bool b) end;
 *}
   "prop"  ("bool")
 attach (term_of) {*

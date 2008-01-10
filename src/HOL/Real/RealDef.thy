@@ -1051,9 +1051,10 @@ fun gen_real i =
     val g = Integer.gcd p q;
     val p' = p div g;
     val q' = q div g;
+    val r = (if one_of [true, false] then p' else ~ p',
+      if p' = 0 then 0 else q')
   in
-    (if one_of [true, false] then p' else ~ p',
-     if p' = 0 then 0 else q')
+    (r, fn () => term_of_real r)
   end;
 *}
 

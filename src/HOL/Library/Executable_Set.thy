@@ -250,9 +250,17 @@ fun term_of_set f T [] = Const ("{}", Type ("set", [T]))
       T --> Type ("set", [T]) --> Type ("set", [T])) $ f x $ term_of_set f T xs;
 *}
 attach (test) {*
-fun gen_set' aG i j = frequency
-  [(i, fn () => aG j :: gen_set' aG (i-1) j), (1, fn () => [])] ()
-and gen_set aG i = gen_set' aG i i;
+fun gen_set' aG aT i j = frequency
+  [(i, fn () =>
+      let
+        val (x, t) = aG j;
+        val (xs, ts) = gen_set' aG aT (i-1) j
+      in
+        (x :: xs, fn () => Const ("insert",
+           aT --> Type ("set", [aT]) --> Type ("set", [aT])) $ t () $ ts ())
+      end),
+   (1, fn () => ([], fn () => Const ("{}", Type ("set", [aT]))))] ()
+and gen_set aG aT i = gen_set' aG aT i i;
 *}
 
 

@@ -644,7 +644,9 @@ attach (term_of) {*
 val term_of_int = HOLogic.mk_number HOLogic.intT;
 *}
 attach (test) {*
-fun gen_int i = one_of [~1, 1] * random_range 0 i;
+fun gen_int i =
+  let val j = one_of [~1, 1] * random_range 0 i
+  in (j, fn () => term_of_int j) end;
 *}
 
 setup {*
