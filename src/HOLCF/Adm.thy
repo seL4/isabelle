@@ -17,10 +17,6 @@ definition
   adm :: "('a::cpo \<Rightarrow> bool) \<Rightarrow> bool" where
   "adm P = (\<forall>Y. chain Y \<longrightarrow> (\<forall>i. P (Y i)) \<longrightarrow> P (\<Squnion>i. Y i))"
 
-definition
-  compact :: "'a::cpo \<Rightarrow> bool" where
-  "compact k = adm (\<lambda>x. \<not> k \<sqsubseteq> x)"
-
 lemma admI:
    "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)) \<Longrightarrow> adm P"
 by (unfold adm_def, fast)
@@ -30,12 +26,6 @@ by (rule admI, erule spec)
 
 lemma admD: "\<lbrakk>adm P; chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)"
 by (unfold adm_def, fast)
-
-lemma compactI: "adm (\<lambda>x. \<not> k \<sqsubseteq> x) \<Longrightarrow> compact k"
-by (unfold compact_def)
-
-lemma compactD: "compact k \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubseteq> x)"
-by (unfold compact_def)
 
 text {* improved admissibility introduction *}
 
@@ -57,9 +47,6 @@ lemma adm_max_in_chain:
 by (auto simp add: adm_def maxinch_is_thelub)
 
 lemmas adm_chfin = chfin [THEN adm_max_in_chain, standard]
-
-lemma compact_chfin: "compact (x::'a::chfin)"
-by (rule compactI, rule adm_chfin)
 
 subsection {* Admissibility of special formulae and propagation *}
 
@@ -171,10 +158,43 @@ apply (erule cont2mono [THEN monofunE])
 apply (erule is_ub_thelub)
 done
 
+subsection {* Compactness *}
+
+definition
+  compact :: "'a::cpo \<Rightarrow> bool" where
+  "compact k = adm (\<lambda>x. \<not> k \<sqsubseteq> x)"
+
+lemma compactI: "adm (\<lambda>x. \<not> k \<sqsubseteq> x) \<Longrightarrow> compact k"
+unfolding compact_def .
+
+lemma compactD: "compact k \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubseteq> x)"
+unfolding compact_def .
+
+lemma compactI2:
+  "(\<And>Y. \<lbrakk>chain Y; x \<sqsubseteq> lub (range Y)\<rbrakk> \<Longrightarrow> \<exists>i. x \<sqsubseteq> Y i) \<Longrightarrow> compact x"
+unfolding compact_def adm_def by fast
+
+lemma compactD2:
+  "\<lbrakk>compact x; chain Y; x \<sqsubseteq> lub (range Y)\<rbrakk> \<Longrightarrow> \<exists>i. x \<sqsubseteq> Y i"
+unfolding compact_def adm_def by fast
+
+lemma compact_chfin [simp]: "compact (x::'a::chfin)"
+by (rule compactI [OF adm_chfin])
+
+lemma compact_imp_max_in_chain:
+  "\<lbrakk>chain Y; compact (\<Squnion>i. Y i)\<rbrakk> \<Longrightarrow> \<exists>i. max_in_chain i Y"
+apply (drule (1) compactD2, simp)
+apply (erule exE, rule_tac x=i in exI)
+apply (rule max_in_chainI)
+apply (rule antisym_less)
+apply (erule (1) chain_mono3)
+apply (erule (1) trans_less [OF is_ub_thelub])
+done
+
 text {* admissibility and compactness *}
 
 lemma adm_compact_not_less: "\<lbrakk>compact k; cont t\<rbrakk> \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubseteq> t x)"
-by (unfold compact_def, erule adm_subst)
+unfolding compact_def by (rule adm_subst)
 
 lemma adm_neq_compact: "\<lbrakk>compact k; cont t\<rbrakk> \<Longrightarrow> adm (\<lambda>x. t x \<noteq> k)"
 by (simp add: po_eq_conv adm_imp adm_not_less adm_compact_not_less)
