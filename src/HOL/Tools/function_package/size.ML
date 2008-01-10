@@ -60,14 +60,7 @@ val app = curry (list_comb o swap);
 
 fun prove_size_thms (info : datatype_info) new_type_names thy =
   let
-    val {descr, alt_names, sorts = raw_sorts, rec_names, rec_rewrites, induction, ...} = info;
-
-    (*normalize type variable names to accomodate policy imposed by instantiation target*)
-    val tvars = (map dest_TFree o snd o dest_Type o hd) (get_rec_types descr raw_sorts)
-      ~~ Name.invents Name.context Name.aT (length raw_sorts);
-    val sorts = tvars
-      |> map (fn (v, _) => (v, the (AList.lookup (op =) raw_sorts v)));
-
+    val {descr, alt_names, sorts, rec_names, rec_rewrites, induction, ...} = info;
     val l = length new_type_names;
     val alt_names' = (case alt_names of
       NONE => replicate l NONE | SOME names => map SOME names);
@@ -154,7 +147,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
         (map (Thm.no_attributes o apsnd (Logic.mk_equals o apsnd (app fs)))
            (def_names ~~ (size_fns ~~ rec_combs1)))
       ||> TheoryTarget.instantiation
-           (map (#1 o snd) descr', sorts, [HOLogic.class_size])
+           (map (#1 o snd) descr', map dest_TFree paramTs, [HOLogic.class_size])
       ||>> fold_map define_overloaded
         (def_names' ~~ map Logic.mk_equals (overloaded_size_fns ~~ map (app fs') rec_combs1))
       ||> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
@@ -173,15 +166,15 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
 
     fun prove_unfolded_size_eqs size_ofp fs =
       if null recTs2 then []
-      else map standard (split_conj_thm (SkipProof.prove ctxt [] []
+      else split_conj_thm (SkipProof.prove ctxt xs []
         (HOLogic.mk_Trueprop (mk_conj (replicate l HOLogic.true_const @
            map (mk_unfolded_size_eq (AList.lookup op =
                (new_type_names ~~ map (app fs) rec_combs1)) size_ofp fs)
              (xs ~~ recTs2 ~~ rec_combs2))))
-        (fn _ => (indtac induction xs THEN_ALL_NEW asm_simp_tac simpset1) 1)));
+        (fn _ => (indtac induction xs THEN_ALL_NEW asm_simp_tac simpset1) 1));
 
-    val unfolded_size_eqs = prove_unfolded_size_eqs param_size fs @
-      prove_unfolded_size_eqs (K NONE) fs';
+    val unfolded_size_eqs1 = prove_unfolded_size_eqs param_size fs;
+    val unfolded_size_eqs2 = prove_unfolded_size_eqs (K NONE) fs';
 
     (* characteristic equations for size functions *)
     fun gen_mk_size_eq p size_of size_ofp size_const T (cname, cargs) =
@@ -201,18 +194,20 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       end;
 
     val simpset2 = HOL_basic_ss addsimps
-      size_def_thms @ size_def_thms' @ rec_rewrites @ unfolded_size_eqs;
+      rec_rewrites @ size_def_thms @ unfolded_size_eqs1;
+    val simpset3 = HOL_basic_ss addsimps
+      rec_rewrites @ size_def_thms' @ unfolded_size_eqs2;
 
-    fun prove_size_eqs p size_fns size_ofp =
+    fun prove_size_eqs p size_fns size_ofp simpset =
       maps (fn (((_, (_, _, constrs)), size_const), T) =>
         map (fn constr => standard (SkipProof.prove ctxt [] []
           (gen_mk_size_eq p (AList.lookup op = (new_type_names ~~ size_fns))
              size_ofp size_const T constr)
-          (fn _ => simp_tac simpset2 1))) constrs)
+          (fn _ => simp_tac simpset 1))) constrs)
         (descr' ~~ size_fns ~~ recTs1);
 
-    val size_eqns = prove_size_eqs (is_poly thy') size_fns param_size @
-      prove_size_eqs is_rec_type overloaded_size_fns (K NONE);
+    val size_eqns = prove_size_eqs (is_poly thy') size_fns param_size simpset2 @
+      prove_size_eqs is_rec_type overloaded_size_fns (K NONE) simpset3;
 
     val ([size_thms], thy'') =  PureThy.add_thmss
       [(("size", size_eqns),
