@@ -67,6 +67,8 @@ sig
   val is_instance: typ -> typ -> bool
   val parens: Pretty.T -> Pretty.T
   val mk_app: bool -> Pretty.T -> Pretty.T list -> Pretty.T
+  val mk_tuple: Pretty.T list -> Pretty.T
+  val mk_let: (Pretty.T * Pretty.T) list -> Pretty.T -> Pretty.T
   val eta_expand: term -> term list -> int -> term
   val strip_tname: string -> string
   val mk_type: bool -> typ -> Pretty.T
@@ -789,6 +791,19 @@ val _ = Context.add_setup
   add_tycodegen "default" default_tycodegen);
 
 
+fun mk_tuple [p] = p
+  | mk_tuple ps = Pretty.block (Pretty.str "(" ::
+      List.concat (separate [Pretty.str ",", Pretty.brk 1] (map single ps)) @
+        [Pretty.str ")"]);
+
+fun mk_let bindings body =
+  Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
+    Pretty.blk (0, separate Pretty.fbrk (map (fn (pat, rhs) =>
+      Pretty.block [Pretty.str "val ", pat, Pretty.str " =", Pretty.brk 1,
+      rhs, Pretty.str ";"]) bindings)),
+    Pretty.brk 1, Pretty.str "in", Pretty.brk 1, body,
+    Pretty.brk 1, Pretty.str "end"]);
+
 fun mk_struct name s = "structure " ^ name ^ " =\nstruct\n\n" ^ s ^ "end;\n";
 
 fun add_to_module name s = AList.map_entry (op =) name (suffix s);
@@ -902,11 +917,16 @@ fun mk_term_of gr module p (TVar ((s, i), _)) = Pretty.str
 fun mk_gen gr module p xs a (TVar ((s, i), _)) = Pretty.str
       (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "G")
   | mk_gen gr module p xs a (TFree (s, _)) = Pretty.str (strip_tname s ^ "G")
-  | mk_gen gr module p xs a (Type (s, Ts)) = (if p then parens else I)
+  | mk_gen gr module p xs a (Type (tyc as (s, Ts))) = (if p then parens else I)
       (Pretty.block (separate (Pretty.brk 1)
         (Pretty.str (mk_qual_id module (get_type_id' (fn s' => "gen_" ^ s') s gr) ^
           (if member (op =) xs s then "'" else "")) ::
-         map (mk_gen gr module true xs a) Ts @
+         (case tyc of
+            ("fun", [T, U]) =>
+              [mk_term_of gr module true T, mk_type true T,
+               mk_gen gr module true xs a U, mk_type true U]
+          | _ => maps (fn T =>
+              [mk_gen gr module true xs a T, mk_type true T]) Ts) @
          (if member (op =) xs s then [Pretty.str a] else []))));
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
@@ -927,13 +947,11 @@ fun test_term thy quiet sz i t =
       "\nopen Generated;\n\n" ^ Pretty.string_of
         (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
           Pretty.brk 1, Pretty.str ("(fn i =>"), Pretty.brk 1,
-          Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
-            Pretty.blk (0, separate Pretty.fbrk (map (fn ((s, T), s') =>
-              Pretty.block [Pretty.str ("val " ^ s' ^ " ="), Pretty.brk 1,
-              mk_gen gr "Generated" false [] "" T, Pretty.brk 1,
-              Pretty.str "i;"]) frees')),
-            Pretty.brk 1, Pretty.str "in", Pretty.brk 1,
-            Pretty.block [Pretty.str "if ",
+          mk_let (map (fn ((s, T), s') =>
+              (mk_tuple [Pretty.str s', Pretty.str (s' ^ "_t")],
+               Pretty.block [mk_gen gr "Generated" false [] "" T, Pretty.brk 1,
+                 Pretty.str "i"])) frees')
+            (Pretty.block [Pretty.str "if ",
               mk_app false (Pretty.str "testf") (map (Pretty.str o snd) frees'),
               Pretty.brk 1, Pretty.str "then NONE",
               Pretty.brk 1, Pretty.str "else ",
@@ -941,10 +959,9 @@ fun test_term thy quiet sz i t =
                 flat (separate [Pretty.str ",", Pretty.brk 1]
                   (map (fn ((s, T), s') => [Pretty.block
                     [Pretty.str ("(" ^ quote (Symbol.escape s) ^ ","), Pretty.brk 1,
-                     mk_app false (mk_term_of gr "Generated" false T)
-                       [Pretty.str s'], Pretty.str ")"]]) frees')) @
-                  [Pretty.str "]"])]],
-            Pretty.brk 1, Pretty.str "end"]), Pretty.str ");"]) ^
+                     Pretty.str (s' ^ "_t ())")]]) frees')) @
+                  [Pretty.str "]"])]]),
+          Pretty.str ");"]) ^
       "\n\nend;\n") ();
     val _ = ML_Context.use_mltext s false (SOME (Context.Theory thy));
     fun iter f k = if k > i then NONE
@@ -1086,21 +1103,6 @@ fun parse_mixfix rd s =
        (Symbol.explode s) of
      (p, []) => p
    | _ => error ("Malformed annotation: " ^ quote s));
-
-val _ = Context.add_setup
-  (fold assoc_type [("fun", (parse_mixfix (K dummyT) "(_ ->/ _)",
-     [("term_of",
-       "fun term_of_fun_type _ T _ U _ = Free (\"<function>\", T --> U);\n"),
-      ("test",
-       "fun gen_fun_type _ G i =\n\
-       \  let\n\
-       \    val f = ref (fn x => raise Match);\n\
-       \    val _ = (f := (fn x =>\n\
-       \      let\n\
-       \        val y = G i;\n\
-       \        val f' = !f\n\
-       \      in (f := (fn x' => if x = x' then y else f' x'); y) end))\n\
-       \  in (fn x => !f x) end;\n")]))]);
 
 
 structure P = OuterParse and K = OuterKeyword;
