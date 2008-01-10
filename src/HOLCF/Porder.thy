@@ -273,12 +273,17 @@ definition
 
 text {* results about finite chains *}
 
+lemma max_in_chainI: "(\<And>j. i \<le> j \<Longrightarrow> Y i = Y j) \<Longrightarrow> max_in_chain i Y"
+unfolding max_in_chain_def by fast
+
+lemma max_in_chainD: "\<lbrakk>max_in_chain i Y; i \<le> j\<rbrakk> \<Longrightarrow> Y i = Y j"
+unfolding max_in_chain_def by fast
+
 lemma lub_finch1: "\<lbrakk>chain C; max_in_chain i C\<rbrakk> \<Longrightarrow> range C <<| C i"
-apply (unfold max_in_chain_def)
 apply (rule is_lubI)
 apply (rule ub_rangeI, rename_tac j)
 apply (rule_tac x=i and y=j in linorder_le_cases)
-apply simp
+apply (drule (1) max_in_chainD, simp)
 apply (erule (1) chain_mono3)
 apply (erule ub_rangeD)
 done
