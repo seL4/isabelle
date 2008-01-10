@@ -32,7 +32,6 @@ syntax (xsymbols)
 syntax (HTML output)
   "++"		:: "[type, type] => type"	("(_ \<oplus>/ _)" [21, 20] 20)
 
-
 subsection {* Definitions of constructors *}
 
 definition
@@ -62,14 +61,6 @@ lemma Rep_Ssum_sinr: "Rep_Ssum (sinr\<cdot>b) = <strictify\<cdot>(\<Lambda> _. F
 by (simp add: sinr_Abs_Ssum Abs_Ssum_inverse sinr_Ssum)
 
 subsection {* Properties of @{term sinl} and @{term sinr} *}
-
-text {* Compactness *}
-
-lemma compact_sinl [simp]: "compact x \<Longrightarrow> compact (sinl\<cdot>x)"
-by (rule compact_Ssum, simp add: Rep_Ssum_sinl strictify_conv_if)
-
-lemma compact_sinr [simp]: "compact x \<Longrightarrow> compact (sinr\<cdot>x)"
-by (rule compact_Ssum, simp add: Rep_Ssum_sinr strictify_conv_if)
 
 text {* Ordering *}
 
@@ -124,6 +115,28 @@ by simp
 
 lemma sinr_defined [intro!]: "x \<noteq> \<bottom> \<Longrightarrow> sinr\<cdot>x \<noteq> \<bottom>"
 by simp
+
+text {* Compactness *}
+
+lemma compact_sinl: "compact x \<Longrightarrow> compact (sinl\<cdot>x)"
+by (rule compact_Ssum, simp add: Rep_Ssum_sinl strictify_conv_if)
+
+lemma compact_sinr: "compact x \<Longrightarrow> compact (sinr\<cdot>x)"
+by (rule compact_Ssum, simp add: Rep_Ssum_sinr strictify_conv_if)
+
+lemma compact_sinlD: "compact (sinl\<cdot>x) \<Longrightarrow> compact x"
+unfolding compact_def
+by (drule adm_subst [OF cont_Rep_CFun2 [where f=sinl]], simp)
+
+lemma compact_sinrD: "compact (sinr\<cdot>x) \<Longrightarrow> compact x"
+unfolding compact_def
+by (drule adm_subst [OF cont_Rep_CFun2 [where f=sinr]], simp)
+
+lemma compact_sinl_iff [simp]: "compact (sinl\<cdot>x) = compact x"
+by (safe elim!: compact_sinl compact_sinlD)
+
+lemma compact_sinr_iff [simp]: "compact (sinr\<cdot>x) = compact x"
+by (safe elim!: compact_sinr compact_sinrD)
 
 subsection {* Case analysis *}
 
@@ -193,11 +206,6 @@ lemma sscase4 [simp]: "sscase\<cdot>sinl\<cdot>sinr\<cdot>z = z"
 by (cases z, simp_all)
 
 subsection {* Strict sum preserves flatness *}
-
-lemma flat_less_iff:
-  fixes x y :: "'a::flat"
-  shows "(x \<sqsubseteq> y) = (x = \<bottom> \<or> x = y)"
-by (safe dest!: ax_flat [rule_format])
 
 instance "++" :: (flat, flat) flat
 apply (intro_classes, clarify)
