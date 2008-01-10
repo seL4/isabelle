@@ -62,7 +62,6 @@ translations
 translations
   "\<Lambda>(CONST spair\<cdot>x\<cdot>y). t" == "CONST ssplit\<cdot>(\<Lambda> x y. t)"
 
-
 subsection {* Case analysis *}
 
 lemma spair_Abs_Sprod:
@@ -133,9 +132,6 @@ apply (unfold spair_def)
 apply (simp add: cont_Abs_Sprod Abs_Sprod_inverse spair_lemma)
 done
 
-lemma compact_spair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact (:x, y:)"
-by (rule compact_Sprod, simp add: Rep_Sprod_spair strictify_conv_if)
-
 subsection {* Properties of @{term sfst} and @{term ssnd} *}
 
 lemma sfst_strict [simp]: "sfst\<cdot>\<bottom> = \<bottom>"
@@ -178,6 +174,36 @@ lemma spair_less:
 apply (cases "a = \<bottom>", simp)
 apply (cases "b = \<bottom>", simp)
 apply (simp add: less_sprod)
+done
+
+lemma sfst_less_iff: "sfst\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> (:y, ssnd\<cdot>x:)"
+apply (cases "x = \<bottom>", simp, cases "y = \<bottom>", simp)
+apply (simp add: less_sprod)
+done
+
+lemma ssnd_less_iff: "ssnd\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> (:sfst\<cdot>x, y:)"
+apply (cases "x = \<bottom>", simp, cases "y = \<bottom>", simp)
+apply (simp add: less_sprod)
+done
+
+subsection {* Compactness *}
+
+lemma compact_sfst: "compact x \<Longrightarrow> compact (sfst\<cdot>x)"
+by (rule compactI, simp add: sfst_less_iff)
+
+lemma compact_ssnd: "compact x \<Longrightarrow> compact (ssnd\<cdot>x)"
+by (rule compactI, simp add: ssnd_less_iff)
+
+lemma compact_spair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact (:x, y:)"
+by (rule compact_Sprod, simp add: Rep_Sprod_spair strictify_conv_if)
+
+lemma compact_spair_iff:
+  "compact (:x, y:) = (x = \<bottom> \<or> y = \<bottom> \<or> (compact x \<and> compact y))"
+apply (safe elim!: compact_spair)
+apply (drule compact_sfst, simp)
+apply (drule compact_ssnd, simp)
+apply simp
+apply simp
 done
 
 subsection {* Properties of @{term ssplit} *}
