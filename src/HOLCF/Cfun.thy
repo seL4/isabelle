@@ -225,14 +225,10 @@ by (rule monofun_Rep_CFun1 [THEN ch2ch_monofun])
 
 lemma ch2ch_Rep_CFun [simp]:
   "\<lbrakk>chain F; chain Y\<rbrakk> \<Longrightarrow> chain (\<lambda>i. (F i)\<cdot>(Y i))"
-apply (rule chainI)
-apply (rule monofun_cfun)
-apply (erule chainE)
-apply (erule chainE)
-done
+by (simp add: chain_def monofun_cfun)
 
-lemma ch2ch_LAM: "\<lbrakk>\<And>x. chain (\<lambda>i. S i x); \<And>i. cont (\<lambda>x. S i x)\<rbrakk>
-    \<Longrightarrow> chain (\<lambda>i. \<Lambda> x. S i x)"
+lemma ch2ch_LAM [simp]:
+  "\<lbrakk>\<And>x. chain (\<lambda>i. S i x); \<And>i. cont (\<lambda>x. S i x)\<rbrakk> \<Longrightarrow> chain (\<lambda>i. \<Lambda> x. S i x)"
 by (simp add: chain_def expand_cfun_less)
 
 text {* contlub, cont properties of @{term Rep_CFun} in both arguments *}
@@ -251,7 +247,7 @@ done
 lemma contlub_LAM:
   "\<lbrakk>\<And>x. chain (\<lambda>i. F i x); \<And>i. cont (\<lambda>x. F i x)\<rbrakk>
     \<Longrightarrow> (\<Lambda> x. \<Squnion>i. F i x) = (\<Squnion>i. \<Lambda> x. F i x)"
-apply (simp add: thelub_CFun ch2ch_LAM)
+apply (simp add: thelub_CFun)
 apply (simp add: Abs_CFun_inverse2)
 apply (simp add: thelub_fun ch2ch_lambda)
 done
