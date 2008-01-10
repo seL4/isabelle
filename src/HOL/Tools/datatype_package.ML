@@ -725,7 +725,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       Sign.string_of_term thy1 t);
 
     fun get_typ (t as _ $ Var (_, Type (tname, Ts))) =
-          ((tname, map dest_TFree Ts) handle TERM _ => err t)
+          ((tname, map (fst o dest_TFree) Ts) handle TERM _ => err t)
       | get_typ t = err t;
 
     val dtnames = map get_typ (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induction')));

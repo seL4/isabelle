@@ -53,7 +53,6 @@ sig
   val strip_dtyp : dtyp -> dtyp list * dtyp
   val body_index : dtyp -> int
   val mk_fun_dtyp : dtyp list -> dtyp -> dtyp
-  val dest_TFree : typ -> string
   val get_nonrec_types : descr -> (string * sort) list -> typ list
   val get_branching_types : descr -> (string * sort) list -> typ list
   val get_arities : descr -> int list
@@ -227,8 +226,6 @@ val body_index = dest_DtRec o snd o strip_dtyp;
 fun mk_fun_dtyp [] U = U
   | mk_fun_dtyp (T :: Ts) U = DtType ("fun", [T, mk_fun_dtyp Ts U]);
 
-fun dest_TFree (TFree (n, _)) = n;
-
 fun name_of_typ (Type (s, Ts)) =
       let val s' = Sign.base_name s
       in space_implode "_" (List.filter (not o equal "") (map name_of_typ Ts) @
@@ -241,7 +238,7 @@ fun dtyp_of_typ _ (TFree (n, _)) = DtTFree n
   | dtyp_of_typ new_dts (Type (tname, Ts)) =
       (case AList.lookup (op =) new_dts tname of
          NONE => DtType (tname, map (dtyp_of_typ new_dts) Ts)
-       | SOME vs => if map (try dest_TFree) Ts = map SOME vs then
+       | SOME vs => if map (try (fst o dest_TFree)) Ts = map SOME vs then
              DtRec (find_index (curry op = tname o fst) new_dts)
            else error ("Illegal occurrence of recursive type " ^ tname));
 
