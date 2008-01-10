@@ -41,6 +41,22 @@ theorem "rev xs = xs"
   quickcheck
   oops
 
+text {* An example involving functions inside other data structures *}
+
+consts app :: "('a \<Rightarrow> 'a) list \<Rightarrow> 'a \<Rightarrow> 'a"
+
+primrec
+  "app [] x = x"
+  "app (f # fs) x = app fs (f x)"
+
+lemma "app (fs @ gs) x = app gs (app fs x)"
+  quickcheck
+  by (induct fs arbitrary: x) simp_all
+
+lemma "app (fs @ gs) x = app fs (app gs x)"
+  quickcheck
+  oops
+
 consts
   occurs :: "'a \<Rightarrow> 'a list \<Rightarrow> nat"
 primrec
@@ -53,7 +69,7 @@ primrec
   "del1 a [] = []"
   "del1 a (x#xs) = (if (x=a) then xs else (x#del1 a xs))"
 
-(* A lemma, you'd think to be true from our experience with delAll*)
+text {* A lemma, you'd think to be true from our experience with delAll *}
 lemma "Suc (occurs a (del1 a xs)) = occurs a xs"
   -- {* Wrong. Precondition needed.*}
   quickcheck
