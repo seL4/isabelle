@@ -342,8 +342,26 @@ by (simp add: less_cprod_def cfst_def csnd_def cont_fst cont_snd)
 lemma eq_cprod: "(x = y) = (cfst\<cdot>x = cfst\<cdot>y \<and> csnd\<cdot>x = csnd\<cdot>y)"
 by (auto simp add: po_eq_conv less_cprod)
 
-lemma compact_cpair [simp]: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact <x, y>"
+lemma cfst_less_iff: "cfst\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> <y, csnd\<cdot>x>"
+by (simp add: less_cprod)
+
+lemma csnd_less_iff: "csnd\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> <cfst\<cdot>x, y>"
+by (simp add: less_cprod)
+
+lemma compact_cfst: "compact x \<Longrightarrow> compact (cfst\<cdot>x)"
+by (rule compactI, simp add: cfst_less_iff)
+
+lemma compact_csnd: "compact x \<Longrightarrow> compact (csnd\<cdot>x)"
+by (rule compactI, simp add: csnd_less_iff)
+
+lemma compact_cpair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact <x, y>"
 by (rule compactI, simp add: less_cprod)
+
+lemma compact_cpair_iff [simp]: "compact <x, y> = (compact x \<and> compact y)"
+apply (safe intro!: compact_cpair)
+apply (drule compact_cfst, simp)
+apply (drule compact_csnd, simp)
+done
 
 lemma lub_cprod2: 
   "chain S \<Longrightarrow> range S <<| <\<Squnion>i. cfst\<cdot>(S i), \<Squnion>i. csnd\<cdot>(S i)>"

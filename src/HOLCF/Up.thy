@@ -325,29 +325,27 @@ lemma up_chain_cases:
   (\<exists>j. \<forall>i. Y (i + j) = up\<cdot>(A i))) \<or> Y = (\<lambda>i. \<bottom>)"
 by (simp add: inst_up_pcpo up_def cont_Iup up_chain_lemma)
 
-instance u :: (chfin) chfin
-apply (intro_classes, clarify)
+lemma compact_up: "compact x \<Longrightarrow> compact (up\<cdot>x)"
+apply (rule compactI2)
 apply (drule up_chain_cases, safe)
-apply (drule chfin [rule_format])
-apply (erule exE, rename_tac n)
-apply (rule_tac x="n + j" in exI)
-apply (simp only: max_in_chain_def)
-apply (clarify, rename_tac k)
-apply (subgoal_tac "\<exists>m. k = m + j", clarsimp)
-apply (rule_tac x="k - j" in exI, simp)
-apply (simp add: max_in_chain_def)
+apply (drule (1) compactD2, simp)
+apply (erule exE, rule_tac x="i + j" in exI)
+apply simp
+apply simp
 done
 
-lemma compact_up [simp]: "compact x \<Longrightarrow> compact (up\<cdot>x)"
-apply (unfold compact_def)
-apply (rule admI)
-apply (drule up_chain_cases)
-apply (elim disjE exE conjE)
-apply simp
-apply (erule (1) admD)
-apply (rule allI, drule_tac x="i + j" in spec)
-apply simp
-apply simp
+lemma compact_upD: "compact (up\<cdot>x) \<Longrightarrow> compact x"
+unfolding compact_def
+by (drule adm_subst [OF cont_Rep_CFun2 [where f=up]], simp)
+
+lemma compact_up_iff [simp]: "compact (up\<cdot>x) = compact x"
+by (safe elim!: compact_up compact_upD)
+
+instance u :: (chfin) chfin
+apply (intro_classes, clarify)
+apply (erule compact_imp_max_in_chain)
+apply (rule_tac p="\<Squnion>i. Y i" in upE)
+apply (simp, simp add: compact_chfin)
 done
 
 text {* properties of fup *}
