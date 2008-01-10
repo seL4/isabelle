@@ -110,6 +110,8 @@ sig
   val mk_char: int -> term
   val dest_char: term -> int
   val listT: typ -> typ
+  val nil_const: typ -> term
+  val cons_const: typ -> term
   val mk_list: typ -> term list -> term
   val dest_list: term -> term list
   val stringT: typ
@@ -543,6 +545,12 @@ fun dest_char (Const ("List.char.Char", _) $ t $ u) =
 (* list *)
 
 fun listT T = Type ("List.list", [T]);
+
+fun nil_const T = Const ("List.list.Nil", listT T);
+
+fun cons_const T =
+  let val lT = listT T
+  in Const ("List.list.Cons", T --> lT --> lT) end;
 
 fun mk_list T ts =
   let
