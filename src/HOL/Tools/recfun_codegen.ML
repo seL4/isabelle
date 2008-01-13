@@ -95,12 +95,15 @@ fun add_rec_funs thy defs gr dep eqs module =
     val (dname, _) :: _ = eqs';
     val (s, T) = const_of (hd eqs);
 
-    fun mk_fundef module fname prfx gr [] = (gr, [])
-      | mk_fundef module fname prfx gr ((fname' : string, (lhs, rhs)) :: xs) =
+    fun mk_fundef module fname first gr [] = (gr, [])
+      | mk_fundef module fname first gr ((fname' : string, (lhs, rhs)) :: xs) =
       let
+        val prfx = if first then
+            (case strip_comb lhs of (_, []) => "val " | _ => "fun ")
+          else "and ";
         val (gr1, pl) = invoke_codegen thy defs dname module false (gr, lhs);
         val (gr2, pr) = invoke_codegen thy defs dname module false (gr1, rhs);
-        val (gr3, rest) = mk_fundef module fname' "and " gr2 xs
+        val (gr3, rest) = mk_fundef module fname' false gr2 xs
       in
         (gr3, Pretty.blk (4, [Pretty.str (if fname = fname' then "  | " else prfx),
            pl, Pretty.str " =", Pretty.brk 1, pr]) :: rest)
@@ -116,7 +119,7 @@ fun add_rec_funs thy defs gr dep eqs module =
          let
            val gr1 = add_edge (dname, dep)
              (new_node (dname, (SOME (EQN (s, T, "")), module, "")) gr);
-           val (gr2, fundef) = mk_fundef module "" "fun " gr1 eqs';
+           val (gr2, fundef) = mk_fundef module "" true gr1 eqs';
            val xs = cycle gr2 ([], dname);
            val cs = map (fn x => case get_node gr2 x of
                (SOME (EQN (s, T, _)), _, _) => (s, T)
@@ -130,7 +133,7 @@ fun add_rec_funs thy defs gr dep eqs module =
                  val thmss as (_, thyname) :: _ = map (get_equations thy defs) cs;
                  val module' = if_library thyname module;
                  val eqs'' = map (dest_eq o prop_of) (List.concat (map fst thmss));
-                 val (gr3, fundef') = mk_fundef module' "" "fun "
+                 val (gr3, fundef') = mk_fundef module' "" true
                    (add_edge (dname, dep)
                      (foldr (uncurry new_node) (del_nodes xs gr2)
                        (map (fn k =>
