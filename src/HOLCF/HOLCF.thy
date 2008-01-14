@@ -6,7 +6,7 @@ HOLCF -- a semantic extension of HOL by the LCF logic.
 *)
 
 theory HOLCF
-imports Sprod Ssum Up Lift Discrete One Tr Domain Main
+imports Sprod Ssum Up Lift Discrete One Tr Domain ConvexPD Main
 uses
   "holcf_logic.ML"
   "Tools/cont_consts.ML"
@@ -18,6 +18,8 @@ uses
   "Tools/adm_tac.ML"
 
 begin
+
+defaultsort pcpo
 
 ML_setup {*
   change_simpset (fn simpset => simpset addSolver
