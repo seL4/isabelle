@@ -105,7 +105,7 @@ $SSH atbroy100 "$MAKEALL -l HOL proofterms $HOME/settings/at-sml-dev-p"
 sleep 5
 $SSH atbroy99 "$MAKEALL $HOME/settings/at64-poly-5.1-para"
 sleep 5
-$SSH atbroy98 "$MAKEALL $HOME/settings/at-sml-dev"
+$SSH atbroy98 "$MAKEALL $HOME/settings/at-sml-dev-e"
 sleep 5
 $SSH atbroy101 "$MAKEALL $HOME/settings/at64-poly"
 sleep 5

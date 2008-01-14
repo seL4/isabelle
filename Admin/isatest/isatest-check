@@ -48,7 +48,7 @@ function fail()
 
 # check if tests are still running, wait for them a couple of hours
 i=0
-while [ -n "$(ls $RUNNING)" -a $i -lt 8 ]; do 
+while [ -n "$(ls $RUNNING)" -a $i -lt 10 ]; do 
     sleep 3600
     let "i = i+1"
 done

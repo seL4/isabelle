@@ -6,7 +6,7 @@ ML_HOME="/usr/proj/smlnj/110.67/bin"
 ML_OPTIONS="@SMLdebug=/dev/null"
 ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 
-ISABELLE_HOME_USER="$HOME/isabelle-at-sml-dev" # /tmp/isatest/isabelle-at-sml-dev
+ISABELLE_HOME_USER="$HOME/isabelle-at-sml-dev-e"
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
