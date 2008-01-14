@@ -11,15 +11,17 @@ begin
 
 subsection {* Bifinite domains *}
 
-axclass approx < pcpo
+axclass approx < cpo
 
 consts approx :: "nat \<Rightarrow> 'a::approx \<rightarrow> 'a"
 
-axclass bifinite < approx
+axclass bifinite_cpo < approx
   chain_approx_app: "chain (\<lambda>i. approx i\<cdot>x)"
   lub_approx_app [simp]: "(\<Squnion>i. approx i\<cdot>x) = x"
   approx_idem: "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
   finite_fixes_approx: "finite {x. approx i\<cdot>x = x}"
+
+axclass bifinite < bifinite_cpo, pcpo
 
 lemma finite_range_imp_finite_fixes:
   "finite {x. \<exists>y. x = f y} \<Longrightarrow> finite {x. f x = x}"
@@ -29,17 +31,17 @@ apply (clarify, erule subst, rule exI, rule refl)
 done
 
 lemma chain_approx [simp]:
-  "chain (approx :: nat \<Rightarrow> 'a::bifinite \<rightarrow> 'a)"
+  "chain (approx :: nat \<Rightarrow> 'a::bifinite_cpo \<rightarrow> 'a)"
 apply (rule chainI)
 apply (rule less_cfun_ext)
 apply (rule chainE)
 apply (rule chain_approx_app)
 done
 
-lemma lub_approx [simp]: "(\<Squnion>i. approx i) = (\<Lambda>(x::'a::bifinite). x)"
+lemma lub_approx [simp]: "(\<Squnion>i. approx i) = (\<Lambda>(x::'a::bifinite_cpo). x)"
 by (rule ext_cfun, simp add: contlub_cfun_fun)
 
-lemma approx_less: "approx i\<cdot>x \<sqsubseteq> (x::'a::bifinite)"
+lemma approx_less: "approx i\<cdot>x \<sqsubseteq> (x::'a::bifinite_cpo)"
 apply (subgoal_tac "approx i\<cdot>x \<sqsubseteq> (\<Squnion>i. approx i\<cdot>x)", simp)
 apply (rule is_ub_thelub, simp)
 done
@@ -48,7 +50,7 @@ lemma approx_strict [simp]: "approx i\<cdot>(\<bottom>::'a::bifinite) = \<bottom
 by (rule UU_I, rule approx_less)
 
 lemma approx_approx1:
-  "i \<le> j \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx i\<cdot>(x::'a::bifinite)"
+  "i \<le> j \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx i\<cdot>(x::'a::bifinite_cpo)"
 apply (rule antisym_less)
 apply (rule monofun_cfun_arg [OF approx_less])
 apply (rule sq_ord_eq_less_trans [OF approx_idem [symmetric]])
@@ -58,7 +60,7 @@ apply (erule chain_mono3 [OF chain_approx])
 done
 
 lemma approx_approx2:
-  "j \<le> i \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx j\<cdot>(x::'a::bifinite)"
+  "j \<le> i \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx j\<cdot>(x::'a::bifinite_cpo)"
 apply (rule antisym_less)
 apply (rule approx_less)
 apply (rule sq_ord_eq_less_trans [OF approx_idem [symmetric]])
@@ -67,7 +69,7 @@ apply (erule chain_mono3 [OF chain_approx])
 done
 
 lemma approx_approx [simp]:
-  "approx i\<cdot>(approx j\<cdot>x) = approx (min i j)\<cdot>(x::'a::bifinite)"
+  "approx i\<cdot>(approx j\<cdot>x) = approx (min i j)\<cdot>(x::'a::bifinite_cpo)"
 apply (rule_tac x=i and y=j in linorder_le_cases)
 apply (simp add: approx_approx1 min_def)
 apply (simp add: approx_approx2 min_def)
@@ -77,15 +79,15 @@ lemma idem_fixes_eq_range:
   "\<forall>x. f (f x) = f x \<Longrightarrow> {x. f x = x} = {y. \<exists>x. y = f x}"
 by (auto simp add: eq_sym_conv)
 
-lemma finite_approx: "finite {y::'a::bifinite. \<exists>x. y = approx n\<cdot>x}"
+lemma finite_approx: "finite {y::'a::bifinite_cpo. \<exists>x. y = approx n\<cdot>x}"
 using finite_fixes_approx by (simp add: idem_fixes_eq_range)
 
 lemma finite_range_approx:
-  "finite (range (\<lambda>x::'a::bifinite. approx n\<cdot>x))"
+  "finite (range (\<lambda>x::'a::bifinite_cpo. approx n\<cdot>x))"
 by (simp add: image_def finite_approx)
 
 lemma compact_approx [simp]:
-  fixes x :: "'a::bifinite"
+  fixes x :: "'a::bifinite_cpo"
   shows "compact (approx n\<cdot>x)"
 proof (rule compactI2)
   fix Y::"nat \<Rightarrow> 'a"
@@ -116,7 +118,7 @@ proof (rule compactI2)
 qed
 
 lemma bifinite_compact_eq_approx:
-  fixes x :: "'a::bifinite"
+  fixes x :: "'a::bifinite_cpo"
   assumes x: "compact x"
   shows "\<exists>i. approx i\<cdot>x = x"
 proof -
@@ -130,7 +132,7 @@ proof -
 qed
 
 lemma bifinite_compact_iff:
-  "compact (x::'a::bifinite) = (\<exists>n. approx n\<cdot>x = x)"
+  "compact (x::'a::bifinite_cpo) = (\<exists>n. approx n\<cdot>x = x)"
  apply (rule iffI)
   apply (erule bifinite_compact_eq_approx)
  apply (erule exE)
@@ -148,7 +150,7 @@ proof -
 qed
 
 lemma bifinite_less_ext:
-  fixes x y :: "'a::bifinite"
+  fixes x y :: "'a::bifinite_cpo"
   shows "(\<And>i. approx i\<cdot>x \<sqsubseteq> approx i\<cdot>y) \<Longrightarrow> x \<sqsubseteq> y"
 apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> (\<Squnion>i. approx i\<cdot>y)", simp)
 apply (rule lub_mono [rule_format], simp, simp, simp)
@@ -176,13 +178,13 @@ lemma finite_range_lemma:
  apply clarsimp
 done
 
-instance "->" :: (bifinite, bifinite) approx ..
+instance "->" :: (bifinite_cpo, bifinite_cpo) approx ..
 
 defs (overloaded)
   approx_cfun_def:
     "approx \<equiv> \<lambda>n. \<Lambda> f x. approx n\<cdot>(f\<cdot>(approx n\<cdot>x))"
 
-instance "->" :: (bifinite, bifinite) bifinite
+instance "->" :: (bifinite_cpo, bifinite_cpo) bifinite_cpo
  apply (intro_classes, unfold approx_cfun_def)
     apply simp
    apply (simp add: lub_distribs eta_cfun)
@@ -191,6 +193,8 @@ instance "->" :: (bifinite, bifinite) bifinite
  apply (rule finite_range_imp_finite_fixes)
  apply (intro finite_range_lemma finite_approx)
 done
+
+instance "->" :: (bifinite_cpo, bifinite) bifinite ..
 
 lemma approx_cfun: "approx n\<cdot>f\<cdot>x = approx n\<cdot>(f\<cdot>(approx n\<cdot>x))"
 by (simp add: approx_cfun_def)
