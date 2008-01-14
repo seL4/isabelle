@@ -8,7 +8,7 @@ Partial ordering for cartesian product of HOL products.
 header {* The cpo of cartesian products *}
 
 theory Cprod
-imports Cfun
+imports Bifinite
 begin
 
 defaultsort cpo
@@ -230,6 +230,9 @@ subsection {* Convert all lemmas to the continuous versions *}
 lemma cpair_eq_pair: "<x, y> = (x, y)"
 by (simp add: cpair_def cont_pair1 cont_pair2)
 
+lemma pair_eq_cpair: "(x, y) = <x, y>"
+by (simp add: cpair_def cont_pair1 cont_pair2)
+
 lemma inject_cpair: "<a,b> = <aa,ba> \<Longrightarrow> a = aa \<and> b = ba"
 by (simp add: cpair_eq_pair)
 
@@ -270,10 +273,10 @@ by (simp add: inst_cprod_pcpo2)
 lemma csnd_strict [simp]: "csnd\<cdot>\<bottom> = \<bottom>"
 by (simp add: inst_cprod_pcpo2)
 
-lemma surjective_pairing_Cprod2: "<cfst\<cdot>p, csnd\<cdot>p> = p"
-apply (unfold cfst_def csnd_def)
-apply (simp add: cont_fst cont_snd cpair_eq_pair)
-done
+lemma cpair_cfst_csnd: "\<langle>cfst\<cdot>p, csnd\<cdot>p\<rangle> = p"
+by (cases p rule: cprodE, simp)
+
+lemmas surjective_pairing_Cprod2 = cpair_cfst_csnd
 
 lemma less_cprod: "x \<sqsubseteq> y = (cfst\<cdot>x \<sqsubseteq> cfst\<cdot>y \<and> csnd\<cdot>x \<sqsubseteq> csnd\<cdot>y)"
 by (simp add: less_cprod_def cfst_def csnd_def cont_fst cont_snd)
@@ -325,8 +328,47 @@ lemma csplit2 [simp]: "csplit\<cdot>f\<cdot><x,y> = f\<cdot>x\<cdot>y"
 by (simp add: csplit_def)
 
 lemma csplit3 [simp]: "csplit\<cdot>cpair\<cdot>z = z"
-by (simp add: csplit_def surjective_pairing_Cprod2)
+by (simp add: csplit_def cpair_cfst_csnd)
 
 lemmas Cprod_rews = cfst_cpair csnd_cpair csplit2
+
+subsection {* Product type is a bifinite domain *}
+
+instance "*" :: (bifinite_cpo, bifinite_cpo) approx ..
+
+defs (overloaded)
+  approx_cprod_def:
+    "approx \<equiv> \<lambda>n. \<Lambda>\<langle>x, y\<rangle>. \<langle>approx n\<cdot>x, approx n\<cdot>y\<rangle>"
+
+instance "*" :: (bifinite_cpo, bifinite_cpo) bifinite_cpo
+proof
+  fix i :: nat and x :: "'a \<times> 'b"
+  show "chain (\<lambda>i. approx i\<cdot>x)"
+    unfolding approx_cprod_def by simp
+  show "(\<Squnion>i. approx i\<cdot>x) = x"
+    unfolding approx_cprod_def
+    by (simp add: lub_distribs eta_cfun)
+  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+    unfolding approx_cprod_def csplit_def by simp
+  have "{x::'a \<times> 'b. approx i\<cdot>x = x} \<subseteq>
+        {x::'a. approx i\<cdot>x = x} \<times> {x::'b. approx i\<cdot>x = x}"
+    unfolding approx_cprod_def
+    by (clarsimp simp add: pair_eq_cpair)
+  thus "finite {x::'a \<times> 'b. approx i\<cdot>x = x}"
+    by (rule finite_subset,
+        intro finite_cartesian_product finite_fixes_approx)
+qed
+
+instance "*" :: (bifinite, bifinite) bifinite ..
+
+lemma approx_cpair [simp]:
+  "approx i\<cdot>\<langle>x, y\<rangle> = \<langle>approx i\<cdot>x, approx i\<cdot>y\<rangle>"
+unfolding approx_cprod_def by simp
+
+lemma cfst_approx: "cfst\<cdot>(approx i\<cdot>p) = approx i\<cdot>(cfst\<cdot>p)"
+by (cases p rule: cprodE, simp)
+
+lemma csnd_approx: "csnd\<cdot>(approx i\<cdot>p) = approx i\<cdot>(csnd\<cdot>p)"
+by (cases p rule: cprodE, simp)
 
 end
