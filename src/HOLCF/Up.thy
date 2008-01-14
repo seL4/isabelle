@@ -8,7 +8,7 @@ Lifting.
 header {* The type of lifted values *}
 
 theory Up
-imports Cfun
+imports Bifinite
 begin
 
 defaultsort cpo
@@ -308,5 +308,35 @@ by (simp add: up_def fup_def cont_Iup cont_Ifup1 cont_Ifup2)
 
 lemma fup3 [simp]: "fup\<cdot>up\<cdot>x = x"
 by (cases x, simp_all)
+
+subsection {* Lifted cpo is a bifinite domain *}
+
+instance u :: (bifinite_cpo) approx ..
+
+defs (overloaded)
+  approx_up_def:
+    "approx \<equiv> \<lambda>n. fup\<cdot>(\<Lambda> x. up\<cdot>(approx n\<cdot>x))"
+
+instance u :: (bifinite_cpo) bifinite
+proof
+  fix i :: nat and x :: "'a u"
+  show "chain (\<lambda>i. approx i\<cdot>x)"
+    unfolding approx_up_def by simp
+  show "(\<Squnion>i. approx i\<cdot>x) = x"
+    unfolding approx_up_def
+    by (simp add: lub_distribs eta_cfun)
+  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+    unfolding approx_up_def
+    by (induct x, simp, simp)
+  have "{x::'a u. approx i\<cdot>x = x} \<subseteq>
+        insert \<bottom> ((\<lambda>x. up\<cdot>x) ` {x::'a. approx i\<cdot>x = x})"
+    unfolding approx_up_def
+    by (rule subsetI, rule_tac p=x in upE, simp_all)
+  thus "finite {x::'a u. approx i\<cdot>x = x}"
+    by (rule finite_subset, simp add: finite_fixes_approx)
+qed
+
+lemma approx_up [simp]: "approx i\<cdot>(up\<cdot>x) = up\<cdot>(approx i\<cdot>x)"
+unfolding approx_up_def by simp
 
 end
