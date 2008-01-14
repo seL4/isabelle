@@ -84,31 +84,10 @@ apply (erule ch2ch_fun)
 apply (erule ub2ub_fun)
 done
 
-lemma lub_fun':
-  fixes S :: "('a::type \<Rightarrow> 'b::dcpo) set"
-  assumes S: "directed S"
-  shows "S <<| (\<lambda>x. \<Squnion>f\<in>S. f x)"
-apply (rule is_lubI)
-apply (rule is_ubI)
-apply (rule less_fun_ext)
-apply (rule is_ub_thelub')
-apply (rule dir2dir_monofun [OF monofun_app S])
-apply (erule imageI)
-apply (rule less_fun_ext)
-apply (rule is_lub_thelub')
-apply (rule dir2dir_monofun [OF monofun_app S])
-apply (erule ub2ub_monofun' [OF monofun_app])
-done
-
 lemma thelub_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo)
     \<Longrightarrow> lub (range S) = (\<lambda>x. \<Squnion>i. S i x)"
 by (rule lub_fun [THEN thelubI])
-
-lemma thelub_fun':
-  "directed (S::('a::type \<Rightarrow> 'b::dcpo) set)
-    \<Longrightarrow> lub S = (\<lambda>x. \<Squnion>f\<in>S. f x)"
-by (rule lub_fun' [THEN thelubI])
 
 lemma cpo_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo) \<Longrightarrow> \<exists>x. range S <<| x"
@@ -116,13 +95,6 @@ by (rule exI, erule lub_fun)
 
 instance "fun"  :: (type, cpo) cpo
 by intro_classes (rule cpo_fun)
-
-lemma dcpo_fun:
-  "directed (S::('a::type \<Rightarrow> 'b::dcpo) set) \<Longrightarrow> \<exists>x. S <<| x"
-by (rule exI, erule lub_fun')
-
-instance "fun" :: (type, dcpo) dcpo
-by intro_classes (rule dcpo_fun)
 
 instance "fun" :: (finite, finite_po) finite_po ..
 

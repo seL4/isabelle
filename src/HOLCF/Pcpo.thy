@@ -17,39 +17,19 @@ axclass cpo < po
         -- {* class axiom: *}
   cpo:   "chain S \<Longrightarrow> \<exists>x. range S <<| x" 
 
-axclass dcpo < po
-  dcpo: "directed S \<Longrightarrow> \<exists>x. S <<| x"
-
-instance dcpo < cpo
-by (intro_classes, rule dcpo [OF directed_chain])
-
 text {* in cpo's everthing equal to THE lub has lub properties for every chain *}
 
 lemma thelubE: "\<lbrakk>chain S; (\<Squnion>i. S i) = (l::'a::cpo)\<rbrakk> \<Longrightarrow> range S <<| l"
 by (blast dest: cpo intro: lubI)
-
-lemma thelubE': "\<lbrakk>directed S; lub S = (l::'a::dcpo)\<rbrakk> \<Longrightarrow> S <<| l"
-by (blast dest: dcpo intro: lubI)
 
 text {* Properties of the lub *}
 
 lemma is_ub_thelub: "chain (S::nat \<Rightarrow> 'a::cpo) \<Longrightarrow> S x \<sqsubseteq> (\<Squnion>i. S i)"
 by (blast dest: cpo intro: lubI [THEN is_ub_lub])
 
-lemma is_ub_thelub': "\<lbrakk>directed S; (x::'a::dcpo) \<in> S\<rbrakk> \<Longrightarrow> x \<sqsubseteq> lub S"
-apply (drule thelubE' [OF _ refl])
-apply (drule is_lubD1)
-apply (erule (1) is_ubD)
-done
-
 lemma is_lub_thelub:
   "\<lbrakk>chain (S::nat \<Rightarrow> 'a::cpo); range S <| x\<rbrakk> \<Longrightarrow> (\<Squnion>i. S i) \<sqsubseteq> x"
 by (blast dest: cpo intro: lubI [THEN is_lub_lub])
-
-lemma is_lub_thelub': "\<lbrakk>directed S; S <| x\<rbrakk> \<Longrightarrow> lub S \<sqsubseteq> (x::'a::dcpo)"
-apply (drule dcpo, clarify, drule lubI)
-apply (erule is_lub_lub, assumption)
-done
 
 lemma lub_range_mono:
   "\<lbrakk>range X \<subseteq> range Y; chain Y; chain (X::nat \<Rightarrow> 'a::cpo)\<rbrakk>
@@ -289,8 +269,9 @@ apply (rule finite)
 apply (simp add: finite_chain_def)
 done
 
-instance finite_po < dcpo
+instance finite_po < cpo
 apply intro_classes
+apply (drule directed_chain)
 apply (drule directed_finiteD [OF _ finite subset_refl])
 apply (erule bexE, rule exI)
 apply (erule (1) is_lub_maximal)

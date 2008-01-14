@@ -51,31 +51,6 @@ lemma discr_chain_range0 [simp]:
  "!!S::nat=>('a::type)discr. chain(S) ==> range(S) = {S 0}"
 by (fast elim: discr_chain0)
 
-lemma discr_directed_lemma:
-  fixes S :: "'a::type discr set"
-  assumes S: "directed S"
-  shows "\<exists>x. S = {x}"
-proof -
-  obtain x where x: "x \<in> S"
-    using S by (rule directedE1)
-  hence "S = {x}"
-  proof (safe)
-    fix y assume y: "y \<in> S"
-    obtain z where "x \<sqsubseteq> z" "y \<sqsubseteq> z"
-      using S x y by (rule directedE2)
-    thus "y = x" by simp
-  qed
-  thus "\<exists>x. S = {x}" ..
-qed
-
-instance discr :: (type) dcpo
-proof
-  fix S :: "'a discr set"
-  assume "directed S"
-  hence "\<exists>x. S = {x}" by (rule discr_directed_lemma)
-  thus "\<exists>x. S <<| x" by (fast intro: is_lub_singleton)
-qed
-
 instance discr :: (finite) finite_po
 proof
   have "finite (Discr ` (UNIV :: 'a set))"

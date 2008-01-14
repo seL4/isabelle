@@ -25,7 +25,7 @@ instance set :: (finite) finite_po ..
 lemma Union_is_lub: "A <<| Union A"
 unfolding is_lub_def is_ub_def less_set_def by fast
 
-instance set :: (type) dcpo
+instance set :: (type) cpo
 by (intro_classes, rule exI, rule Union_is_lub)
 
 lemma lub_eq_Union: "lub = Union"
