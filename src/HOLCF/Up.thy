@@ -344,8 +344,7 @@ by (safe elim!: compact_up compact_upD)
 instance u :: (chfin) chfin
 apply (intro_classes, clarify)
 apply (erule compact_imp_max_in_chain)
-apply (rule_tac p="\<Squnion>i. Y i" in upE)
-apply (simp, simp add: compact_chfin)
+apply (rule_tac p="\<Squnion>i. Y i" in upE, simp_all)
 done
 
 text {* properties of fup *}
