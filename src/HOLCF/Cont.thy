@@ -150,6 +150,24 @@ done
 
 lemmas cont2contlubE = cont2contlub [THEN contlubE]
 
+lemma contI2:
+  assumes mono: "monofun f"
+  assumes less: "\<And>Y. \<lbrakk>chain Y; chain (\<lambda>i. f (Y i))\<rbrakk>
+     \<Longrightarrow> f (lub (range Y)) \<sqsubseteq> (\<Squnion>i. f (Y i))"
+  shows "cont f"
+apply (rule monocontlub2cont)
+apply (rule mono)
+apply (rule contlubI)
+apply (rule antisym_less)
+apply (rule less, assumption)
+apply (erule ch2ch_monofun [OF mono])
+apply (rule is_lub_thelub)
+apply (erule ch2ch_monofun [OF mono])
+apply (rule ub2ub_monofun [OF mono])
+apply (rule is_lubD1)
+apply (erule thelubE, rule refl)
+done
+
 subsection {* Continuity of basic functions *}
 
 text {* The identity function is continuous *}
