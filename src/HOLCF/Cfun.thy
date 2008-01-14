@@ -252,6 +252,10 @@ apply (simp add: Abs_CFun_inverse2)
 apply (simp add: thelub_fun ch2ch_lambda)
 done
 
+lemmas lub_distribs = 
+  contlub_cfun [symmetric]
+  contlub_LAM [symmetric]
+
 text {* strictness *}
 
 lemma strictI: "f\<cdot>x = \<bottom> \<Longrightarrow> f\<cdot>\<bottom> = \<bottom>"
