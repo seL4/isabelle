@@ -20,10 +20,10 @@ notation
 notation (xsymbols)
   sq_le (infixl "\<sqsubseteq>" 55)
 
-axclass po < sq_ord
-  refl_less [iff]: "x \<sqsubseteq> x"
-  antisym_less:    "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> x\<rbrakk> \<Longrightarrow> x = y"
-  trans_less:      "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
+class po = sq_ord +
+  assumes refl_less [iff]: "x \<sqsubseteq> x"
+  assumes antisym_less: "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> x\<rbrakk> \<Longrightarrow> x = y"
+  assumes trans_less: "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
 
 text {* minimal fixes least element *}
 

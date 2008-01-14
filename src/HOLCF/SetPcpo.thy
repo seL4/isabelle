@@ -9,17 +9,16 @@ theory SetPcpo
 imports Adm
 begin
 
-instantiation set :: (type) sq_ord
+instantiation set :: (type) po
 begin
 
 definition
   less_set_def: "(op \<sqsubseteq>) = (op \<subseteq>)"
 
-instance ..
-end
-
-instance set :: (type) po
+instance
 by (intro_classes, auto simp add: less_set_def)
+
+end
 
 instance set :: (finite) finite_po ..
 
