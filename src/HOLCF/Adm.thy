@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/Adm.thy
     ID:         $Id$
-    Author:     Franz Regensburger
+    Author:     Franz Regensburger and Brian Huffman
 *)
 
 header {* Admissibility and compactness *}
@@ -19,13 +19,13 @@ definition
 
 lemma admI:
    "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)) \<Longrightarrow> adm P"
-by (unfold adm_def, fast)
+unfolding adm_def by fast
+
+lemma admD: "\<lbrakk>adm P; chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)"
+unfolding adm_def by fast
 
 lemma triv_admI: "\<forall>x. P x \<Longrightarrow> adm P"
 by (rule admI, erule spec)
-
-lemma admD: "\<lbrakk>adm P; chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)"
-by (unfold adm_def, fast)
 
 text {* improved admissibility introduction *}
 
@@ -41,7 +41,7 @@ subsection {* Admissibility on chain-finite types *}
 
 text {* for chain-finite (easy) types every formula is admissible *}
 
-lemma adm_max_in_chain: 
+lemma adm_max_in_chain:
   "\<forall>Y. chain (Y::nat \<Rightarrow> 'a) \<longrightarrow> (\<exists>n. max_in_chain n Y)
     \<Longrightarrow> adm (P::'a \<Rightarrow> bool)"
 by (auto simp add: adm_def maxinch_is_thelub)
@@ -56,14 +56,11 @@ by (rule admI, simp)
 lemma adm_conj: "\<lbrakk>adm P; adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<and> Q x)"
 by (fast elim: admD intro: admI)
 
-lemma adm_all: "\<forall>y. adm (P y) \<Longrightarrow> adm (\<lambda>x. \<forall>y. P y x)"
+lemma adm_all: "(\<And>y. adm (P y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y. P y x)"
 by (fast intro: admI elim: admD)
 
-lemma adm_ball: "\<forall>y\<in>A. adm (P y) \<Longrightarrow> adm (\<lambda>x. \<forall>y\<in>A. P y x)"
+lemma adm_ball: "(\<And>y. y \<in> A \<Longrightarrow> adm (P y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y\<in>A. P y x)"
 by (fast intro: admI elim: admD)
-
-lemmas adm_all2 = adm_all [rule_format]
-lemmas adm_ball2 = adm_ball [rule_format]
 
 text {* Admissibility for disjunction is hard to prove. It takes 5 Lemmas *}
 
@@ -103,7 +100,7 @@ lemma adm_disj_lemma5:
 apply (erule contrapos_pp)
 apply (clarsimp, rename_tac a b)
 apply (rule_tac x="max a b" in exI)
-apply (simp add: le_maxI1 le_maxI2)
+apply simp
 done
 
 lemma adm_disj: "\<lbrakk>adm P; adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<or> Q x)"
@@ -216,7 +213,7 @@ lemma adm_upward:
 by (rule admI, drule spec, erule P, erule is_ub_thelub)
 
 lemmas adm_lemmas [simp] =
-  adm_not_free adm_conj adm_all2 adm_ball2 adm_disj adm_imp adm_iff
+  adm_not_free adm_conj adm_all adm_ball adm_disj adm_imp adm_iff
   adm_less adm_eq adm_not_less
   adm_compact_not_less adm_compact_neq adm_neq_compact adm_not_UU
 

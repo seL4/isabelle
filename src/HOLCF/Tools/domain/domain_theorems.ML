@@ -13,7 +13,7 @@ structure Domain_Theorems = struct
 local
 
 val adm_impl_admw = @{thm adm_impl_admw};
-val adm_all2 = @{thm adm_all2};
+val adm_all = @{thm adm_all};
 val adm_conj = @{thm adm_conj};
 val adm_subst = @{thm adm_subst};
 val antisym_less_inverse = @{thm antisym_less_inverse};
@@ -897,7 +897,7 @@ in (* local *)
           map (fn ax_reach => rtac (ax_reach RS subst) 1) axs_reach @ [
           quant_tac 1,
           rtac (adm_impl_admw RS wfix_ind) 1,
-          REPEAT_DETERM (rtac adm_all2 1),
+          REPEAT_DETERM (rtac adm_all 1),
           REPEAT_DETERM (
             TRY (rtac adm_conj 1) THEN 
             rtac adm_subst 1 THEN 

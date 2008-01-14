@@ -234,7 +234,6 @@ done
 lemma fernpass_lemma: "(ALL k. b1$(iterate k$g$x)=TT) ==> ALL k. p$(iterate k$g$x) = UU"
 apply (rule p_def [THEN eq_reflection, THEN def_fix_ind])
 apply (rule adm_all)
-apply (rule allI)
 apply (rule adm_eq)
 apply (tactic "cont_tacR 1")
 apply (rule allI)
@@ -259,7 +258,6 @@ done
 lemma hoare_lemma17: "(ALL k. b1$(iterate k$g$x)=TT) ==> ALL k. q$(iterate k$g$x) = UU"
 apply (rule q_def [THEN eq_reflection, THEN def_fix_ind])
 apply (rule adm_all)
-apply (rule allI)
 apply (rule adm_eq)
 apply (tactic "cont_tacR 1")
 apply (rule allI)
@@ -289,7 +287,6 @@ done
 lemma hoare_lemma20: "(ALL y. b1$(y::'a)=TT) ==> ALL k. q$(iterate k$g$(x::'a)) = UU"
 apply (rule q_def [THEN eq_reflection, THEN def_fix_ind])
 apply (rule adm_all)
-apply (rule allI)
 apply (rule adm_eq)
 apply (tactic "cont_tacR 1")
 apply (rule allI)
