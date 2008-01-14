@@ -15,21 +15,25 @@ datatype 'a discr = Discr "'a :: type"
 
 subsection {* Type @{typ "'a discr"} is a partial order *}
 
-instance discr :: (type) sq_ord ..
+instantiation discr :: (type) po
+begin
 
-defs (overloaded)
-less_discr_def: "((op <<)::('a::type)discr=>'a discr=>bool)  ==  op ="
+definition
+  less_discr_def [simp]:
+    "(op \<sqsubseteq> :: 'a discr \<Rightarrow> 'a discr \<Rightarrow> bool) = (op =)"
 
-lemma discr_less_eq [iff]: "((x::('a::type)discr) << y) = (x = y)"
-by (unfold less_discr_def) (rule refl)
-
-instance discr :: (type) po
+instance
 proof
   fix x y z :: "'a discr"
   show "x << x" by simp
   { assume "x << y" and "y << x" thus "x = y" by simp }
   { assume "x << y" and "y << z" thus "x << z" by simp }
 qed
+
+end
+
+lemma discr_less_eq [iff]: "((x::('a::type)discr) << y) = (x = y)"
+by simp
 
 subsection {* Type @{typ "'a discr"} is a cpo *}
 
