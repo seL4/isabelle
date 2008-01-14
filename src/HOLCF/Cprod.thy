@@ -15,17 +15,16 @@ defaultsort cpo
 
 subsection {* Type @{typ unit} is a pcpo *}
 
-instantiation unit :: sq_ord
+instantiation unit :: po
 begin
 
 definition
   less_unit_def [simp]: "x \<sqsubseteq> (y::unit) \<equiv> True"
 
-instance ..
-end
-
-instance unit :: po
+instance
 by intro_classes simp_all
+
+end
 
 instance unit :: finite_po ..
 
