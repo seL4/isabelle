@@ -44,16 +44,13 @@ by (simp add: unit_when_def)
 
 subsection {* Product type is a partial order *}
 
-instantiation "*" :: (sq_ord, sq_ord) sq_ord
+instantiation "*" :: (po, po) po
 begin
 
 definition
   less_cprod_def: "(op \<sqsubseteq>) \<equiv> \<lambda>p1 p2. (fst p1 \<sqsubseteq> fst p2 \<and> snd p1 \<sqsubseteq> snd p2)"
 
-instance ..
-end
-
-instance "*" :: (po, po) po
+instance
 proof
   fix x :: "'a \<times> 'b"
   show "x \<sqsubseteq> x"
@@ -70,6 +67,7 @@ next
     by (fast intro: trans_less)
 qed
 
+end
 
 subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
@@ -138,16 +136,10 @@ subsection {* Product type is pointed *}
 lemma minimal_cprod: "(\<bottom>, \<bottom>) \<sqsubseteq> p"
 by (simp add: less_cprod_def)
 
-lemma least_cprod: "EX x::'a::pcpo * 'b::pcpo. ALL y. x \<sqsubseteq> y"
-apply (rule_tac x = "(\<bottom>, \<bottom>)" in exI)
-apply (rule minimal_cprod [THEN allI])
-done
-
 instance "*" :: (pcpo, pcpo) pcpo
-by intro_classes (rule least_cprod)
+by intro_classes (fast intro: minimal_cprod)
 
-text {* for compatibility with old HOLCF-Version *}
-lemma inst_cprod_pcpo: "UU = (UU,UU)"
+lemma inst_cprod_pcpo: "\<bottom> = (\<bottom>, \<bottom>)"
 by (rule minimal_cprod [THEN UU_I, symmetric])
 
 
