@@ -20,6 +20,7 @@ imports
   FuncSet
   GCD
   Infinite_Set
+  ListSpace
   Multiset
   NatPair
   Nat_Infinity
