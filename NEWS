@@ -37,6 +37,8 @@ primrec specifications have authentic syntax.
 
 * Library/Multiset: {#a, b, c#} abbreviates {#a#} + {#b#} + {#c#}.
 
+* Library/ListSpace: new theory of arithmetic vector operations.
+
 * Constants "card", "internal_split", "option_map" now with authentic
 syntax.
 
