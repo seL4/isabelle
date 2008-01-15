@@ -568,44 +568,71 @@ lemma mult_neg_neg:
   "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> 0 < a * b"
   by (drule mult_strict_right_mono_neg, auto)
 
-end
 
-instance ordered_ring_strict \<subseteq> ring_no_zero_divisors
-apply intro_classes
-apply (auto simp add: linorder_not_less order_le_less linorder_neq_iff)
-apply (force dest: mult_strict_right_mono_neg mult_strict_right_mono)+
-done
+subclass ring_no_zero_divisors
+proof unfold_locales
+  fix a b
+  assume "a \<noteq> 0" then have A: "a < 0 \<or> 0 < a" by (simp add: neq_iff)
+  assume "b \<noteq> 0" then have B: "b < 0 \<or> 0 < b" by (simp add: neq_iff)
+  have "a * b < 0 \<or> 0 < a * b"
+  proof (cases "a < 0")
+    case True note A' = this
+    show ?thesis proof (cases "b < 0")
+      case True with A'
+      show ?thesis by (auto dest: mult_neg_neg)
+    next
+      case False with B have "0 < b" by auto
+      with A' show ?thesis by (auto dest: mult_strict_right_mono)
+    qed
+  next
+    case False with A have A': "0 < a" by auto
+    show ?thesis proof (cases "b < 0")
+      case True with A'
+      show ?thesis by (auto dest: mult_strict_right_mono_neg)
+    next
+      case False with B have "0 < b" by auto
+      with A' show ?thesis by (auto dest: mult_pos_pos)
+    qed
+  qed
+  then show "a * b \<noteq> 0" by (simp add: neq_iff)
+qed
 
 lemma zero_less_mult_iff:
-  fixes a :: "'a::ordered_ring_strict"
-  shows "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
-  apply (auto simp add: le_less not_less mult_pos_pos mult_neg_neg)
-  apply (blast dest: zero_less_mult_pos) 
+  "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
+  apply (auto simp add: mult_pos_pos mult_neg_neg)
+  apply (simp_all add: not_less le_less)
+  apply (erule disjE) apply assumption defer
+  apply (erule disjE) defer apply (drule sym) apply simp
+  apply (erule disjE) defer apply (drule sym) apply simp
+  apply (erule disjE) apply assumption apply (drule sym) apply simp
+  apply (drule sym) apply simp
+  apply (blast dest: zero_less_mult_pos)
   apply (blast dest: zero_less_mult_pos2)
   done
 
 lemma zero_le_mult_iff:
-     "((0::'a::ordered_ring_strict) \<le> a*b) = (0 \<le> a & 0 \<le> b | a \<le> 0 & b \<le> 0)"
-by (auto simp add: eq_commute [of 0] order_le_less linorder_not_less
-                   zero_less_mult_iff)
+  "0 \<le> a * b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
+  by (auto simp add: eq_commute [of 0] le_less not_less zero_less_mult_iff)
 
 lemma mult_less_0_iff:
-     "(a*b < (0::'a::ordered_ring_strict)) = (0 < a & b < 0 | a < 0 & 0 < b)"
-apply (insert zero_less_mult_iff [of "-a" b]) 
-apply (force simp add: minus_mult_left[symmetric]) 
-done
+  "a * b < 0 \<longleftrightarrow> 0 < a \<and> b < 0 \<or> a < 0 \<and> 0 < b"
+  apply (insert zero_less_mult_iff [of "-a" b]) 
+  apply (force simp add: minus_mult_left[symmetric]) 
+  done
 
 lemma mult_le_0_iff:
-     "(a*b \<le> (0::'a::ordered_ring_strict)) = (0 \<le> a & b \<le> 0 | a \<le> 0 & 0 \<le> b)"
-apply (insert zero_le_mult_iff [of "-a" b]) 
-apply (force simp add: minus_mult_left[symmetric]) 
-done
+  "a * b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
+  apply (insert zero_le_mult_iff [of "-a" b]) 
+  apply (force simp add: minus_mult_left[symmetric]) 
+  done
 
-lemma zero_le_square[simp]: "(0::'a::ordered_ring_strict) \<le> a*a"
-by (simp add: zero_le_mult_iff linorder_linear)
+lemma zero_le_square [simp]: "0 \<le> a * a"
+  by (simp add: zero_le_mult_iff linear)
 
-lemma not_square_less_zero[simp]: "\<not> (a * a < (0::'a::ordered_ring_strict))"
-by (simp add: not_less)
+lemma not_square_less_zero [simp]: "\<not> (a * a < 0)"
+  by (simp add: not_less)
+
+end
 
 text{*This list of rewrites simplifies ring terms by multiplying
 everything out and bringing sums and products into a canonical form
@@ -639,10 +666,19 @@ class ordered_idom =
   ordered_ab_group_add +
   abs_if + sgn_if
   (*previously ordered_ring*)
+begin
 
-instance ordered_idom \<subseteq> ordered_ring_strict ..
+subclass ordered_ring_strict by intro_locales
+subclass pordered_comm_ring by intro_locales
+subclass idom by intro_locales
 
-instance ordered_idom \<subseteq> pordered_comm_ring ..
+subclass ordered_semidom
+proof unfold_locales
+  have "(0::'a) \<le> 1*1" by (rule zero_le_square)
+  thus "(0::'a) < 1" by (simp add: le_less)
+qed 
+
+end
 
 class ordered_field = field + ordered_idom
 
@@ -651,17 +687,6 @@ lemma linorder_neqE_ordered_idom:
   assumes "x \<noteq> y" obtains "x < y" | "y < x"
   using assms by (rule linorder_neqE)
 
-
-text{*Proving axiom @{text zero_less_one} makes all @{text ordered_semidom}
-      theorems available to members of @{term ordered_idom} *}
-
-instance ordered_idom \<subseteq> ordered_semidom
-proof
-  have "(0::'a) \<le> 1*1" by (rule zero_le_square)
-  thus "(0::'a) < 1" by (simp add: order_le_less) 
-qed
-
-instance ordered_idom \<subseteq> idom ..
 
 text{*All three types of comparision involving 0 and 1 are covered.*}
 
