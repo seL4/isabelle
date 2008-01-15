@@ -99,10 +99,10 @@ by (rule sinr_eq [THEN iffD1])
 text {* Strictness *}
 
 lemma sinl_strict [simp]: "sinl\<cdot>\<bottom> = \<bottom>"
-by (simp add: sinl_Abs_Ssum Abs_Ssum_strict cpair_strict)
+by (simp add: sinl_Abs_Ssum Abs_Ssum_strict)
 
 lemma sinr_strict [simp]: "sinr\<cdot>\<bottom> = \<bottom>"
-by (simp add: sinr_Abs_Ssum Abs_Ssum_strict cpair_strict)
+by (simp add: sinr_Abs_Ssum Abs_Ssum_strict)
 
 lemma sinl_defined_iff [simp]: "(sinl\<cdot>x = \<bottom>) = (x = \<bottom>)"
 by (cut_tac sinl_eq [of "x" "\<bottom>"], simp)
@@ -213,5 +213,38 @@ apply (rule_tac p=x in ssumE, simp)
 apply (rule_tac p=y in ssumE, simp_all add: flat_less_iff)
 apply (rule_tac p=y in ssumE, simp_all add: flat_less_iff)
 done
+
+subsection {* Strict sum is a bifinite domain *}
+
+instance "++" :: (bifinite, bifinite) approx ..
+
+defs (overloaded)
+  approx_ssum_def:
+    "approx \<equiv> \<lambda>n. sscase\<cdot>(\<Lambda> x. sinl\<cdot>(approx n\<cdot>x))\<cdot>(\<Lambda> y. sinr\<cdot>(approx n\<cdot>y))"
+
+lemma approx_sinl [simp]: "approx i\<cdot>(sinl\<cdot>x) = sinl\<cdot>(approx i\<cdot>x)"
+unfolding approx_ssum_def by (cases "x = \<bottom>") simp_all
+
+lemma approx_sinr [simp]: "approx i\<cdot>(sinr\<cdot>x) = sinr\<cdot>(approx i\<cdot>x)"
+unfolding approx_ssum_def by (cases "x = \<bottom>") simp_all
+
+instance "++" :: (bifinite, bifinite) bifinite
+proof
+  fix i :: nat and x :: "'a \<oplus> 'b"
+  show "chain (\<lambda>i. approx i\<cdot>x)"
+    unfolding approx_ssum_def by simp
+  show "(\<Squnion>i. approx i\<cdot>x) = x"
+    unfolding approx_ssum_def
+    by (simp add: lub_distribs eta_cfun)
+  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+    by (cases x, simp add: approx_ssum_def, simp, simp)
+  have "{x::'a \<oplus> 'b. approx i\<cdot>x = x} \<subseteq>
+        (\<lambda>x. sinl\<cdot>x) ` {x. approx i\<cdot>x = x} \<union>
+        (\<lambda>x. sinr\<cdot>x) ` {x. approx i\<cdot>x = x}"
+    by (rule subsetI, rule_tac p=x in ssumE2, simp, simp)
+  thus "finite {x::'a \<oplus> 'b. approx i\<cdot>x = x}"
+    by (rule finite_subset,
+        intro finite_UnI finite_imageI finite_fixes_approx)
+qed
 
 end
