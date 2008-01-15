@@ -32,7 +32,7 @@ syntax (HTML output)
 
 lemma spair_lemma:
   "<strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a> \<in> Sprod"
-by (simp add: Sprod_def strictify_conv_if cpair_strict)
+by (simp add: Sprod_def strictify_conv_if)
 
 subsection {* Definitions of constants *}
 
@@ -64,23 +64,23 @@ translations
 
 subsection {* Case analysis *}
 
-lemma spair_Abs_Sprod:
-  "(:a, b:) = Abs_Sprod <strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a>"
-apply (unfold spair_def)
-apply (simp add: cont_Abs_Sprod spair_lemma)
-done
+lemma Rep_Sprod_spair:
+  "Rep_Sprod (:a, b:) = <strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a>"
+unfolding spair_def
+by (simp add: cont_Abs_Sprod Abs_Sprod_inverse spair_lemma)
+
+lemmas Rep_Sprod_simps =
+  Rep_Sprod_inject [symmetric] less_Sprod_def
+  Rep_Sprod_strict Rep_Sprod_spair
 
 lemma Exh_Sprod2:
   "z = \<bottom> \<or> (\<exists>a b. z = (:a, b:) \<and> a \<noteq> \<bottom> \<and> b \<noteq> \<bottom>)"
-apply (cases z rule: Abs_Sprod_cases)
+apply (insert Rep_Sprod [of z])
+apply (simp add: Rep_Sprod_simps eq_cprod)
 apply (simp add: Sprod_def)
-apply (erule disjE)
-apply (simp add: Abs_Sprod_strict)
-apply (rule disjI2)
-apply (rule_tac x="cfst\<cdot>y" in exI)
-apply (rule_tac x="csnd\<cdot>y" in exI)
-apply (simp add: spair_Abs_Sprod Abs_Sprod_inject spair_lemma)
-apply (simp add: surjective_pairing_Cprod2)
+apply (erule disjE, simp)
+apply (simp add: strictify_conv_if)
+apply fast
 done
 
 lemma sprodE [cases type: **]:
@@ -94,30 +94,38 @@ by (cases x, simp_all)
 subsection {* Properties of @{term spair} *}
 
 lemma spair_strict1 [simp]: "(:\<bottom>, y:) = \<bottom>"
-by (simp add: spair_Abs_Sprod strictify_conv_if cpair_strict Abs_Sprod_strict)
+by (simp add: Rep_Sprod_simps strictify_conv_if)
 
 lemma spair_strict2 [simp]: "(:x, \<bottom>:) = \<bottom>"
-by (simp add: spair_Abs_Sprod strictify_conv_if cpair_strict Abs_Sprod_strict)
+by (simp add: Rep_Sprod_simps strictify_conv_if)
+
+lemma spair_strict_iff [simp]: "((:x, y:) = \<bottom>) = (x = \<bottom> \<or> y = \<bottom>)"
+by (simp add: Rep_Sprod_simps strictify_conv_if)
+
+lemma spair_less_iff:
+  "((:a, b:) \<sqsubseteq> (:c, d:)) = (a = \<bottom> \<or> b = \<bottom> \<or> (a \<sqsubseteq> c \<and> b \<sqsubseteq> d))"
+by (simp add: Rep_Sprod_simps strictify_conv_if)
+
+lemma spair_eq_iff:
+  "((:a, b:) = (:c, d:)) =
+    (a = c \<and> b = d \<or> (a = \<bottom> \<or> b = \<bottom>) \<and> (c = \<bottom> \<or> d = \<bottom>))"
+by (simp add: Rep_Sprod_simps strictify_conv_if)
 
 lemma spair_strict: "x = \<bottom> \<or> y = \<bottom> \<Longrightarrow> (:x, y:) = \<bottom>"
-by auto
+by simp
 
 lemma spair_strict_rev: "(:x, y:) \<noteq> \<bottom> \<Longrightarrow> x \<noteq> \<bottom> \<and> y \<noteq> \<bottom>"
-by (erule contrapos_np, auto)
+by simp
 
-lemma spair_defined [simp]:
-  "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<noteq> \<bottom>"
-by (simp add: spair_Abs_Sprod Abs_Sprod_defined Sprod_def)
+lemma spair_defined: "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<noteq> \<bottom>"
+by simp
 
 lemma spair_defined_rev: "(:x, y:) = \<bottom> \<Longrightarrow> x = \<bottom> \<or> y = \<bottom>"
-by (erule contrapos_pp, simp)
+by simp
 
 lemma spair_eq:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> ((:x, y:) = (:a, b:)) = (x = a \<and> y = b)"
-apply (simp add: spair_Abs_Sprod)
-apply (simp add: Abs_Sprod_inject [OF _ spair_lemma] Sprod_def)
-apply (simp add: strictify_conv_if)
-done
+by (simp add: spair_eq_iff)
 
 lemma spair_inject:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>; (:x, y:) = (:a, b:)\<rbrakk> \<Longrightarrow> x = a \<and> y = b"
@@ -125,12 +133,6 @@ by (rule spair_eq [THEN iffD1])
 
 lemma inst_sprod_pcpo2: "UU = (:UU,UU:)"
 by simp
-
-lemma Rep_Sprod_spair:
-  "Rep_Sprod (:a, b:) = <strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a>"
-apply (unfold spair_def)
-apply (simp add: cont_Abs_Sprod Abs_Sprod_inverse spair_lemma)
-done
 
 subsection {* Properties of @{term sfst} and @{term ssnd} *}
 
@@ -225,5 +227,41 @@ apply (rule_tac p=x in sprodE, simp)
 apply (rule_tac p=y in sprodE, simp)
 apply (simp add: flat_less_iff spair_less)
 done
+
+subsection {* Strict product is a bifinite domain *}
+
+instance "**" :: (bifinite, bifinite) approx ..
+
+defs (overloaded)
+  approx_sprod_def:
+    "approx \<equiv> \<lambda>n. \<Lambda>(:x, y:). (:approx n\<cdot>x, approx n\<cdot>y:)"
+
+instance "**" :: (bifinite, bifinite) bifinite
+proof
+  fix i :: nat and x :: "'a \<otimes> 'b"
+  show "chain (\<lambda>i. approx i\<cdot>x)"
+    unfolding approx_sprod_def by simp
+  show "(\<Squnion>i. approx i\<cdot>x) = x"
+    unfolding approx_sprod_def
+    by (simp add: lub_distribs eta_cfun)
+  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+    unfolding approx_sprod_def
+    by (simp add: ssplit_def strictify_conv_if)
+  have "Rep_Sprod ` {x::'a \<otimes> 'b. approx i\<cdot>x = x} \<subseteq> {x. approx i\<cdot>x = x}"
+    unfolding approx_sprod_def
+    apply (clarify, rule_tac p=x in sprodE)
+     apply (simp add: Rep_Sprod_strict)
+    apply (simp add: Rep_Sprod_spair spair_eq_iff)
+    done
+  hence "finite (Rep_Sprod ` {x::'a \<otimes> 'b. approx i\<cdot>x = x})"
+    using finite_fixes_approx by (rule finite_subset)
+  thus "finite {x::'a \<otimes> 'b. approx i\<cdot>x = x}"
+    by (rule finite_imageD, simp add: inj_on_def Rep_Sprod_inject)
+qed
+
+lemma approx_spair [simp]:
+  "approx i\<cdot>(:x, y:) = (:approx i\<cdot>x, approx i\<cdot>y:)"
+unfolding approx_sprod_def
+by (simp add: ssplit_def strictify_conv_if)
 
 end
