@@ -133,6 +133,20 @@ instance by default (auto simp add: left_distrib index)
 
 end
 
+lemma index_of_nat_code [code func]:
+  "index_of_nat = of_nat"
+proof
+  fix n :: nat
+  have "of_nat n = index_of_nat n"
+    by (induct n) simp_all
+  then show "index_of_nat n = of_nat n"
+    by (rule sym)
+qed
+
+lemma nat_of_index_code [code func]:
+  "nat_of_index n = (if n = 0 then 0 else Suc (nat_of_index (n - 1)))"
+  by (induct n) simp
+
 
 subsection {* ML interface *}
 
@@ -148,18 +162,6 @@ end;
 
 subsection {* Code serialization *}
 
-text {* Pecularity for operations with potentially negative result *}
-
-definition
-  minus_index' :: "index \<Rightarrow> index \<Rightarrow> index"
-where
-  [code func del]: "minus_index' = op -"
-
-lemma minus_index_code [code func]:
-  "n - m = (let q = minus_index' n m
-    in if q < 0 then 0 else q)"
-  by (simp add: minus_index'_def Let_def)
-
 text {* Implementation of indices by bounded integers *}
 
 code_type index
@@ -171,26 +173,26 @@ code_instance index :: eq
   (Haskell -)
 
 setup {*
-  fold (fn target => CodeTarget.add_pretty_numeral target true
+  fold (fn target => CodeTarget.add_pretty_numeral target false
     @{const_name number_index_inst.number_of_index}
-    @{const_name Numeral.B0} @{const_name Numeral.B1}
-    @{const_name Numeral.Pls} @{const_name Numeral.Min}
-    @{const_name Numeral.Bit}
+    @{const_name Int.B0} @{const_name Int.B1}
+    @{const_name Int.Pls} @{const_name Int.Min}
+    @{const_name Int.Bit}
   ) ["SML", "OCaml", "Haskell"]
 *}
 
-code_reserved SML int
-code_reserved OCaml int
+code_reserved SML Int int
+code_reserved OCaml Pervasives int
 
 code_const "op + \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (SML "Int.+ ((_), (_))")
   (OCaml "Pervasives.+")
   (Haskell infixl 6 "+")
 
-code_const "minus_index' \<Colon> index \<Rightarrow> index \<Rightarrow> index"
-  (SML "Int.- ((_), (_))")
-  (OCaml "Pervasives.-")
-  (Haskell infixl 6 "-")
+code_const "op - \<Colon> index \<Rightarrow> index \<Rightarrow> index"
+  (SML "Int.max/ (_/ -/ _,/ 0 : int)")
+  (OCaml "Pervasives.max/ (_/ -/ _)/ (0 : int) ")
+  (Haskell "max/ (_/ -/ _)/ (0 :: Int)")
 
 code_const "op * \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (SML "Int.* ((_), (_))")
@@ -221,8 +223,5 @@ code_const "op mod \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (SML "IntInf.mod ((_), (_))")
   (OCaml "Big'_int.mod'_big'_int")
   (Haskell "mod")
-
-code_reserved SML Int
-code_reserved OCaml Pervasives
 
 end
