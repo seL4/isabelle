@@ -30,8 +30,8 @@ text {*Now just instantiating @{text n} to @{text "number_of v"} does
   the right simplification, but with some redundant inequality
   tests.*}
 lemma neg_number_of_pred_iff_0:
-  "neg (number_of (Numeral.pred v)::int) = (number_of v = (0::nat))"
-apply (subgoal_tac "neg (number_of (Numeral.pred v)) = (number_of v < Suc 0) ")
+  "neg (number_of (Int.pred v)::int) = (number_of v = (0::nat))"
+apply (subgoal_tac "neg (number_of (Int.pred v)) = (number_of v < Suc 0) ")
 apply (simp only: less_Suc_eq_le le_0_eq)
 apply (subst less_number_of_Suc, simp)
 done
@@ -40,7 +40,7 @@ text{*No longer required as a simprule because of the @{text inverse_fold}
    simproc*}
 lemma Suc_diff_number_of:
      "neg (number_of (uminus v)::int) ==>
-      Suc m - (number_of v) = m - (number_of (Numeral.pred v))"
+      Suc m - (number_of v) = m - (number_of (Int.pred v))"
 apply (subst Suc_diff_eq_diff_pred)
 apply simp
 apply (simp del: nat_numeral_1_eq_1)
@@ -56,13 +56,13 @@ subsubsection{*For @{term nat_case} and @{term nat_rec}*}
 
 lemma nat_case_number_of [simp]:
      "nat_case a f (number_of v) =
-        (let pv = number_of (Numeral.pred v) in
+        (let pv = number_of (Int.pred v) in
          if neg pv then a else f (nat pv))"
 by (simp split add: nat.split add: Let_def neg_number_of_pred_iff_0)
 
 lemma nat_case_add_eq_if [simp]:
      "nat_case a f ((number_of v) + n) =
-       (let pv = number_of (Numeral.pred v) in
+       (let pv = number_of (Int.pred v) in
          if neg pv then nat_case a f n else f (nat pv + n))"
 apply (subst add_eq_if)
 apply (simp split add: nat.split
@@ -73,7 +73,7 @@ done
 
 lemma nat_rec_number_of [simp]:
      "nat_rec a f (number_of v) =
-        (let pv = number_of (Numeral.pred v) in
+        (let pv = number_of (Int.pred v) in
          if neg pv then a else f (nat pv) (nat_rec a f (nat pv)))"
 apply (case_tac " (number_of v) ::nat")
 apply (simp_all (no_asm_simp) add: Let_def neg_number_of_pred_iff_0)
@@ -82,7 +82,7 @@ done
 
 lemma nat_rec_add_eq_if [simp]:
      "nat_rec a f (number_of v + n) =
-        (let pv = number_of (Numeral.pred v) in
+        (let pv = number_of (Int.pred v) in
          if neg pv then nat_rec a f n
                    else f (nat pv + n) (nat_rec a f (nat pv + n)))"
 apply (subst add_eq_if)

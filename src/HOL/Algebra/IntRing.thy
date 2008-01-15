@@ -5,7 +5,7 @@
 *)
 
 theory IntRing
-imports QuotRing IntDef
+imports QuotRing Int
 begin
 
 

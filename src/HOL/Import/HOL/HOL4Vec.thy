@@ -1284,7 +1284,7 @@ lemma BV_VB: "(All::(nat => bool) => bool)
       ((op <::nat => nat => bool) x
         ((number_of \<Colon> int => nat)
           ((op BIT \<Colon> int => bit => int)
-            ((op BIT \<Colon> int => bit => int) (Numeral.Pls \<Colon> int) (bit.B1::bit))
+            ((op BIT \<Colon> int => bit => int) (Int.Pls \<Colon> int) (bit.B1::bit))
             (bit.B0::bit))))
       ((op =::nat => nat => bool) ((BV::bool => nat) ((VB::nat => bool) x))
         x))"
@@ -1502,7 +1502,7 @@ lemma ACARRY_EQ_ADD_DIV: "(All::(nat => bool) => bool)
                            ((number_of \<Colon> int => nat)
                              ((op BIT \<Colon> int => bit => int)
                                ((op BIT \<Colon> int => bit => int)
-                                 (Numeral.Pls \<Colon> int) (bit.B1::bit))
+                                 (Int.Pls \<Colon> int) (bit.B1::bit))
                                (bit.B0::bit)))
                            k)))))))"
   by (import bword_arith ACARRY_EQ_ADD_DIV)

@@ -105,7 +105,7 @@ fun dest_Suc_sum (Const ("Suc", _) $ t, (k,ts)) = dest_Suc_sum (t, (k+1,ts))
       handle TERM _ => (k, t::ts);
 
 (*Code for testing whether numerals are already used in the goal*)
-fun is_numeral (Const(@{const_name Numeral.number_of}, _) $ w) = true
+fun is_numeral (Const(@{const_name Int.number_of}, _) $ w) = true
   | is_numeral _ = false;
 
 fun prod_has_numeral t = exists is_numeral (dest_prod t);

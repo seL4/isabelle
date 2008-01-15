@@ -18,7 +18,7 @@ structure Int_Numeral_Base_Simprocs =
   fun prep_simproc (name, pats, proc) =
     Simplifier.simproc (the_context()) name pats proc;
 
-  fun is_numeral (Const(@{const_name Numeral.number_of}, _) $ w) = true
+  fun is_numeral (Const(@{const_name Int.number_of}, _) $ w) = true
     | is_numeral _ = false
 
   fun simplify_meta_eq f_number_of_eq f_eq =
@@ -30,16 +30,16 @@ structure Int_Numeral_Base_Simprocs =
   val meta_number_of_reorient = @{thm number_of_reorient} RS eq_reflection
 
   (*reorientation simplification procedure: reorients (polymorphic) 
-    0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)
+    0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a Int.*)
   fun reorient_proc sg _ (_ $ t $ u) =
     case u of
         Const(@{const_name HOL.zero}, _) => NONE
       | Const(@{const_name HOL.one}, _) => NONE
-      | Const(@{const_name Numeral.number_of}, _) $ _ => NONE
+      | Const(@{const_name Int.number_of}, _) $ _ => NONE
       | _ => SOME (case t of
           Const(@{const_name HOL.zero}, _) => meta_zero_reorient
         | Const(@{const_name HOL.one}, _) => meta_one_reorient
-        | Const(@{const_name Numeral.number_of}, _) $ _ => meta_number_of_reorient)
+        | Const(@{const_name Int.number_of}, _) $ _ => meta_number_of_reorient)
 
   val reorient_simproc = 
       prep_simproc ("reorient_simproc", ["0=x", "1=x", "number_of w = x"], reorient_proc)
@@ -73,10 +73,10 @@ in
 fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
       (case numterm_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
   | numterm_ord
-     (Const(@{const_name Numeral.number_of}, _) $ v, Const(@{const_name Numeral.number_of}, _) $ w) =
+     (Const(@{const_name Int.number_of}, _) $ v, Const(@{const_name Int.number_of}, _) $ w) =
      num_ord (HOLogic.dest_numeral v, HOLogic.dest_numeral w)
-  | numterm_ord (Const(@{const_name Numeral.number_of}, _) $ _, _) = LESS
-  | numterm_ord (_, Const(@{const_name Numeral.number_of}, _) $ _) = GREATER
+  | numterm_ord (Const(@{const_name Int.number_of}, _) $ _, _) = LESS
+  | numterm_ord (_, Const(@{const_name Int.number_of}, _) $ _) = GREATER
   | numterm_ord (t, u) =
       (case int_ord (size_of_term t, size_of_term u) of
         EQUAL =>
@@ -575,7 +575,7 @@ val int_arith_setup =
                       addsimprocs Int_Numeral_Base_Simprocs
                       addcongs [if_weak_cong]}) #>
   arith_inj_const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT) #>
-  arith_discrete "IntDef.int"
+  arith_discrete @{type_name Int.int}
 
 end;
 

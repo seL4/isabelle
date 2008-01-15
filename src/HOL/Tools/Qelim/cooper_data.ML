@@ -24,7 +24,7 @@ val allowed_consts =
    @{term "op * :: int => _"}, @{term "op * :: nat => _"},
    @{term "op div :: int => _"}, @{term "op div :: nat => _"},
    @{term "op mod :: int => _"}, @{term "op mod :: nat => _"},
-   @{term "Numeral.Bit"},
+   @{term "Int.Bit"},
    @{term "op &"}, @{term "op |"}, @{term "op -->"}, 
    @{term "op = :: int => _"}, @{term "op = :: nat => _"}, @{term "op = :: bool => _"},
    @{term "op < :: int => _"}, @{term "op < :: nat => _"},
@@ -38,9 +38,9 @@ val allowed_consts =
    @{term "Ex :: (int => _) => _"}, @{term "Ex :: (nat => _) => _"},
    @{term "All :: (int => _) => _"}, @{term "All :: (nat => _) => _"},
    @{term "nat"}, @{term "int"},
-   @{term "Numeral.bit.B0"},@{term "Numeral.bit.B1"}, 
-   @{term "Numeral.Bit"}, @{term "Numeral.Pls"}, @{term "Numeral.Min"},
-   @{term "Numeral.number_of :: int => int"}, @{term "Numeral.number_of :: int => nat"},
+   @{term "Int.bit.B0"},@{term "Int.bit.B1"}, 
+   @{term "Int.Bit"}, @{term "Int.Pls"}, @{term "Int.Min"},
+   @{term "Int.number_of :: int => int"}, @{term "Int.number_of :: int => nat"},
    @{term "0::int"}, @{term "1::int"}, @{term "0::nat"}, @{term "1::nat"},
    @{term "True"}, @{term "False"}];
 

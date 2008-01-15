@@ -717,9 +717,9 @@ fun create_nom_typedecls ak_names thy =
          |> discrete_pt_inst "bool" @{thm "perm_bool"}
          |> discrete_fs_inst "bool" @{thm "perm_bool"}
          |> discrete_cp_inst "bool" @{thm "perm_bool"}
-         |> discrete_pt_inst "IntDef.int" @{thm "perm_int_def"}
-         |> discrete_fs_inst "IntDef.int" @{thm "perm_int_def"}
-         |> discrete_cp_inst "IntDef.int" @{thm "perm_int_def"}
+         |> discrete_pt_inst @{type_name "Int.int"} @{thm "perm_int_def"}
+         |> discrete_fs_inst @{type_name "Int.int"} @{thm "perm_int_def"}
+         |> discrete_cp_inst @{type_name "Int.int"} @{thm "perm_int_def"}
          |> discrete_pt_inst "List.char" @{thm "perm_char_def"}
          |> discrete_fs_inst "List.char" @{thm "perm_char_def"}
          |> discrete_cp_inst "List.char" @{thm "perm_char_def"}

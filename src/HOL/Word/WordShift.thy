@@ -483,7 +483,7 @@ lemmas nth_mask [simp] = refl [THEN nth_mask']
 lemma mask_bl: "mask n = of_bl (replicate n True)"
   by (auto simp add : test_bit_of_bl word_size intro: word_eqI)
 
-lemma mask_bin: "mask n = number_of (bintrunc n Numeral.Min)"
+lemma mask_bin: "mask n = number_of (bintrunc n Int.Min)"
   by (auto simp add: nth_bintr word_size intro: word_eqI)
 
 lemma and_mask_bintr: "w AND mask n = number_of (bintrunc n (uint w))"

@@ -8,7 +8,7 @@
 header{*The Division Operators div and mod; the Divides Relation dvd*}
 
 theory IntDiv
-imports IntArith Divides FunDef
+imports Int Divides FunDef
 begin
 
 constdefs

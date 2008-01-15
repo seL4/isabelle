@@ -6,7 +6,7 @@
 header {* Implementation of natural numbers by integers *}
 
 theory Efficient_Nat
-imports Main Code_Integer
+imports Main Code_Integer Code_Index
 begin
 
 text {*
@@ -55,7 +55,7 @@ lemma nat_of_int_of_number_of:
 
 lemma nat_of_int_of_number_of_aux:
   fixes k
-  assumes "Numeral.Pls \<le> k \<equiv> True"
+  assumes "Int.Pls \<le> k \<equiv> True"
   shows "k \<ge> 0"
   using assms unfolding Pls_def by simp
 
@@ -259,7 +259,7 @@ fun nat_of_int_of_number_of thy cts =
       (HOL_basic_ss addsimps (@{thms less_numeral_code} @ @{thms less_eq_numeral_code}));
     fun mk_rew (t, ty) =
       if ty = HOLogic.natT andalso 0 <= HOLogic.dest_numeral t then
-        Thm.capply @{cterm "(op \<le>) Numeral.Pls"} (Thm.cterm_of thy t)
+        Thm.capply @{cterm "(op \<le>) Int.Pls"} (Thm.cterm_of thy t)
         |> simplify_less
         |> (fn thm => @{thm nat_of_int_of_number_of_aux} OF [thm])
         |> (fn thm => @{thm nat_of_int_of_number_of} OF [thm])
@@ -415,16 +415,19 @@ setup {*
 subsection {* Module names *}
 
 code_modulename SML
+  Int Integer
   Nat Integer
   Divides Integer
   Efficient_Nat Integer
 
 code_modulename OCaml
+  Int Integer
   Nat Integer
   Divides Integer
   Efficient_Nat Integer
 
 code_modulename Haskell
+  Int Integer
   Nat Integer
   Divides Integer
   Efficient_Nat Integer

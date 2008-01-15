@@ -33,8 +33,8 @@ fun num_of_term vs t = case t
       | Const (@{const_name "HOL.times"},_)$t1$t2 => (case (num_of_term vs t1) of C i => 
           Mul (i,num_of_term vs t2)
         | _ => error "num_of_term: unsupported Multiplication")
-      | Const("RealDef.real",_) $ Const (@{const_name "Numeral.number_of"},_)$t' => C (HOLogic.dest_numeral t')
-      | Const (@{const_name "Numeral.number_of"},_)$t' => C (HOLogic.dest_numeral t')
+      | Const("RealDef.real",_) $ Const (@{const_name "Int.number_of"},_)$t' => C (HOLogic.dest_numeral t')
+      | Const (@{const_name "Int.number_of"},_)$t' => C (HOLogic.dest_numeral t')
       | _ => error ("num_of_term: unknown term " ^ (Display.raw_string_of_term t));
 
 (* pseudo reification : term -> fm *)

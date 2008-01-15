@@ -448,27 +448,27 @@ fun size_const T = Const ("Nat.size_class.size", T --> natT);
 
 (* bit *)
 
-val bitT = Type ("Numeral.bit", []);
+val bitT = Type ("Int.bit", []);
 
-val B0_const = Const ("Numeral.bit.B0", bitT);
-val B1_const =  Const ("Numeral.bit.B1", bitT);
+val B0_const = Const ("Int.bit.B0", bitT);
+val B1_const =  Const ("Int.bit.B1", bitT);
 
 fun mk_bit 0 = B0_const
   | mk_bit 1 = B1_const
   | mk_bit _ = raise TERM ("mk_bit", []);
 
-fun dest_bit (Const ("Numeral.bit.B0", _)) = 0
-  | dest_bit (Const ("Numeral.bit.B1", _)) = 1
+fun dest_bit (Const ("Int.bit.B0", _)) = 0
+  | dest_bit (Const ("Int.bit.B1", _)) = 1
   | dest_bit t = raise TERM ("dest_bit", [t]);
 
 
 (* binary numerals and int -- non-unique representation due to leading zeros/ones! *)
 
-val intT = Type ("IntDef.int", []);
+val intT = Type ("Int.int", []);
 
-val pls_const = Const ("Numeral.Pls", intT)
-and min_const = Const ("Numeral.Min", intT)
-and bit_const = Const ("Numeral.Bit", intT --> bitT --> intT);
+val pls_const = Const ("Int.Pls", intT)
+and min_const = Const ("Int.Min", intT)
+and bit_const = Const ("Int.Bit", intT --> bitT --> intT);
 
 fun mk_numeral 0 = pls_const
   | mk_numeral ~1 = min_const
@@ -476,14 +476,14 @@ fun mk_numeral 0 = pls_const
       let val (q, r) = Integer.div_mod i 2;
       in bit_const $ mk_numeral q $ mk_bit r end;
 
-fun dest_numeral (Const ("Numeral.Pls", _)) = 0
-  | dest_numeral (Const ("Numeral.Min", _)) = ~1
-  | dest_numeral (Const ("Numeral.Bit", _) $ bs $ b) = 2 * dest_numeral bs + dest_bit b
+fun dest_numeral (Const ("Int.Pls", _)) = 0
+  | dest_numeral (Const ("Int.Min", _)) = ~1
+  | dest_numeral (Const ("Int.Bit", _) $ bs $ b) = 2 * dest_numeral bs + dest_bit b
   | dest_numeral t = raise TERM ("dest_numeral", [t]);
 
-fun number_of_const T = Const ("Numeral.number_class.number_of", intT --> T);
+fun number_of_const T = Const ("Int.number_class.number_of", intT --> T);
 
-fun add_numerals (Const ("Numeral.number_class.number_of", Type (_, [_, T])) $ t) = cons (t, T)
+fun add_numerals (Const ("Int.number_class.number_of", Type (_, [_, T])) $ t) = cons (t, T)
   | add_numerals (t $ u) = add_numerals t #> add_numerals u
   | add_numerals (Abs (_, _, t)) = add_numerals t
   | add_numerals _ = I;
@@ -494,7 +494,7 @@ fun mk_number T 0 = Const ("HOL.zero_class.zero", T)
 
 fun dest_number (Const ("HOL.zero_class.zero", T)) = (T, 0)
   | dest_number (Const ("HOL.one_class.one", T)) = (T, 1)
-  | dest_number (Const ("Numeral.number_class.number_of", Type ("fun", [_, T])) $ t) =
+  | dest_number (Const ("Int.number_class.number_of", Type ("fun", [_, T])) $ t) =
       (T, dest_numeral t)
   | dest_number t = raise TERM ("dest_number", [t]);
 

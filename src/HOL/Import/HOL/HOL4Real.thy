@@ -527,7 +527,7 @@ lemma REAL_LE1_POW2: "(All::(real => bool) => bool)
         ((op ^::real => nat => real) x
           ((number_of \<Colon> int => nat)
             ((op BIT \<Colon> int => bit => int)
-              ((op BIT \<Colon> int => bit => int) (Numeral.Pls \<Colon> int) (bit.B1::bit))
+              ((op BIT \<Colon> int => bit => int) (Int.Pls \<Colon> int) (bit.B1::bit))
               (bit.B0::bit))))))"
   by (import real REAL_LE1_POW2)
 
@@ -539,7 +539,7 @@ lemma REAL_LT1_POW2: "(All::(real => bool) => bool)
         ((op ^::real => nat => real) x
           ((number_of \<Colon> int => nat)
             ((op BIT \<Colon> int => bit => int)
-              ((op BIT \<Colon> int => bit => int) (Numeral.Pls \<Colon> int) (bit.B1::bit))
+              ((op BIT \<Colon> int => bit => int) (Int.Pls \<Colon> int) (bit.B1::bit))
               (bit.B0::bit))))))"
   by (import real REAL_LT1_POW2)
 

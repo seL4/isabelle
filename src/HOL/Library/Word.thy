@@ -2257,7 +2257,7 @@ lemma length_int_mono_lt0: "[| x \<le> y ; y \<le> 0 |] ==> length_int y \<le> l
 
 lemmas [simp] = length_nat_non0
 
-lemma "nat_to_bv (number_of Numeral.Pls) = []"
+lemma "nat_to_bv (number_of Int.Pls) = []"
   by simp
 
 consts
@@ -2276,13 +2276,13 @@ lemma fast_bv_to_nat_Cons1: "fast_bv_to_nat_helper (\<one>#bs) bin =
   by simp
 
 lemma fast_bv_to_nat_def:
-  "bv_to_nat bs == number_of (fast_bv_to_nat_helper bs Numeral.Pls)"
+  "bv_to_nat bs == number_of (fast_bv_to_nat_helper bs Int.Pls)"
 proof (simp add: bv_to_nat_def)
   have "\<forall> bin. \<not> (neg (number_of bin :: int)) \<longrightarrow> (foldl (%bn b. 2 * bn + bitval b) (number_of bin) bs) = number_of (fast_bv_to_nat_helper bs bin)"
     apply (induct bs,simp)
     apply (case_tac a,simp_all)
     done
-  thus "foldl (\<lambda>bn b. 2 * bn + bitval b) 0 bs \<equiv> number_of (fast_bv_to_nat_helper bs Numeral.Pls)"
+  thus "foldl (\<lambda>bn b. 2 * bn + bitval b) 0 bs \<equiv> number_of (fast_bv_to_nat_helper bs Int.Pls)"
     by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric])
 qed
 
@@ -2299,9 +2299,9 @@ let
   fun is_const_bit (Const("Word.bit.Zero",_)) = true
     | is_const_bit (Const("Word.bit.One",_)) = true
     | is_const_bit _ = false
-  fun num_is_usable (Const("Numeral.Pls",_)) = true
-    | num_is_usable (Const("Numeral.Min",_)) = false
-    | num_is_usable (Const("Numeral.Bit",_) $ w $ b) =
+  fun num_is_usable (Const(@{const_name Int.Pls},_)) = true
+    | num_is_usable (Const(@{const_name Int.Min},_)) = false
+    | num_is_usable (Const(@{const_name Int.Bit},_) $ w $ b) =
         num_is_usable w andalso is_const_bool b
     | num_is_usable _ = false
   fun vec_is_usable (Const("List.list.Nil",_)) = true
@@ -2310,9 +2310,9 @@ let
     | vec_is_usable _ = false
   (*lcp** val fast1_th = PureThy.get_thm thy "Word.fast_nat_to_bv_def"*)
   val fast2_th = @{thm "Word.fast_bv_to_nat_def"};
-  (*lcp** fun f sg thms (Const("Word.nat_to_bv",_) $ (Const(@{const_name Numeral.number_of},_) $ t)) =
+  (*lcp** fun f sg thms (Const("Word.nat_to_bv",_) $ (Const(@{const_name Int.number_of},_) $ t)) =
     if num_is_usable t
-      then SOME (Drule.cterm_instantiate [(cterm_of sg (Var(("w",0),Type("IntDef.int",[]))),cterm_of sg t)] fast1_th)
+      then SOME (Drule.cterm_instantiate [(cterm_of sg (Var (("w", 0), @{typ int})), cterm_of sg t)] fast1_th)
       else NONE
     | f _ _ _ = NONE *)
   fun g sg thms (Const("Word.bv_to_nat",_) $ (t as (Const("List.list.Cons",_) $ _ $ _))) =

@@ -203,7 +203,7 @@ let
       in which case dest_numeral raises TERM; hence all the handles below.
       Same for Suc-terms that turn out not to be numerals -
       although the simplifier should eliminate those anyway ...*)
-    | demult (t as Const ("Numeral.number_class.number_of", _) $ n, m) =
+    | demult (t as Const ("Int.number_class.number_of", _) $ n, m) =
       ((NONE, Rat.mult m (Rat.rat_of_int (HOLogic.dest_numeral n)))
         handle TERM _ => (SOME t, m))
     | demult (t as Const (@{const_name Suc}, _) $ _, m) =
@@ -242,7 +242,7 @@ let
         (case demult inj_consts (all, m) of
            (NONE,   m') => (p, Rat.add i m')
          | (SOME u, m') => add_atom u m' pi)
-    | poly (all as Const ("Numeral.number_class.number_of", Type(_,[_,T])) $ t, m, pi as (p, i)) =
+    | poly (all as Const ("Int.number_class.number_of", Type(_,[_,T])) $ t, m, pi as (p, i)) =
         (let val k = HOLogic.dest_numeral t
             val k2 = if k < 0 andalso T = HOLogic.natT then 0 else k
         in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k2))) end
@@ -324,7 +324,7 @@ fun is_split_thm (thm : thm) : bool =
                                     @{const_name Orderings.min},
                                     @{const_name HOL.abs},
                                     @{const_name HOL.minus},
-                                    "IntDef.nat",
+                                    "Int.nat",
                                     "Divides.div_class.mod",
                                     "Divides.div_class.div"] a
     | _            => (warning ("Lin. Arith.: wrong format for split rule " ^
@@ -462,7 +462,7 @@ in
         SOME [(Ts, subgoal1), (split_type :: Ts, subgoal2)]
       end
     (* ?P (nat ?i) = ((ALL n. ?i = int n --> ?P n) & (?i < 0 --> ?P 0)) *)
-    | (Const ("IntDef.nat", _), [t1]) =>
+    | (Const ("Int.nat", _), [t1]) =>
       let
         val rev_terms   = rev terms
         val zero_int    = Const (@{const_name HOL.zero}, HOLogic.intT)
@@ -553,7 +553,7 @@ in
           (neg (number_of ?k) -->
             (ALL i j. number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j --> ?P j))) *)
     | (Const ("Divides.div_class.mod",
-        Type ("fun", [Type ("IntDef.int", []), _])), [t1, t2 as (number_of $ k)]) =>
+        Type ("fun", [Type ("Int.int", []), _])), [t1, t2 as (number_of $ k)]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name HOL.zero}, split_type)
@@ -564,8 +564,8 @@ in
                                         (map (incr_boundvars 2) rev_terms)
         val t1'                     = incr_boundvars 2 t1
         val (t2' as (_ $ k'))       = incr_boundvars 2 t2
-        val iszero_t2               = Const ("IntDef.iszero", split_type --> HOLogic.boolT) $ t2
-        val neg_minus_k             = Const ("IntDef.neg", split_type --> HOLogic.boolT) $
+        val iszero_t2               = Const ("Int.iszero", split_type --> HOLogic.boolT) $ t2
+        val neg_minus_k             = Const ("Int.neg", split_type --> HOLogic.boolT) $
                                         (number_of $
                                           (Const (@{const_name HOL.uminus},
                                             HOLogic.intT --> HOLogic.intT) $ k'))
@@ -577,7 +577,7 @@ in
                                        (Const (@{const_name HOL.plus}, split_type --> split_type --> split_type) $
                                          (Const (@{const_name HOL.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
-        val neg_t2                  = Const ("IntDef.neg", split_type --> HOLogic.boolT) $ t2'
+        val neg_t2                  = Const ("Int.neg", split_type --> HOLogic.boolT) $ t2'
         val t2_lt_j                 = Const (@{const_name HOL.less},
                                         split_type --> split_type--> HOLogic.boolT) $ t2' $ j
         val j_leq_zero              = Const (@{const_name HOL.less_eq},
@@ -605,7 +605,7 @@ in
           (neg (number_of ?k) -->
             (ALL i. (EX j. number_of ?k < j & j <= 0 & ?n = number_of ?k * i + j) --> ?P i))) *)
     | (Const ("Divides.div_class.div",
-        Type ("fun", [Type ("IntDef.int", []), _])), [t1, t2 as (number_of $ k)]) =>
+        Type ("fun", [Type ("Int.int", []), _])), [t1, t2 as (number_of $ k)]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name HOL.zero}, split_type)
@@ -616,8 +616,8 @@ in
                                         (map (incr_boundvars 2) rev_terms)
         val t1'                     = incr_boundvars 2 t1
         val (t2' as (_ $ k'))       = incr_boundvars 2 t2
-        val iszero_t2               = Const ("IntDef.iszero", split_type --> HOLogic.boolT) $ t2
-        val neg_minus_k             = Const ("IntDef.neg", split_type --> HOLogic.boolT) $
+        val iszero_t2               = Const ("Int.iszero", split_type --> HOLogic.boolT) $ t2
+        val neg_minus_k             = Const ("Int.neg", split_type --> HOLogic.boolT) $
                                         (number_of $
                                           (Const (@{const_name HOL.uminus},
                                             HOLogic.intT --> HOLogic.intT) $ k'))
@@ -630,7 +630,7 @@ in
                                        (Const (@{const_name HOL.plus}, split_type --> split_type --> split_type) $
                                          (Const (@{const_name HOL.times},
                                            split_type --> split_type --> split_type) $ t2' $ i) $ j)
-        val neg_t2                  = Const ("IntDef.neg", split_type --> HOLogic.boolT) $ t2'
+        val neg_t2                  = Const ("Int.neg", split_type --> HOLogic.boolT) $ t2'
         val t2_lt_j                 = Const (@{const_name HOL.less},
                                         split_type --> split_type--> HOLogic.boolT) $ t2' $ j
         val j_leq_zero              = Const (@{const_name HOL.less_eq},

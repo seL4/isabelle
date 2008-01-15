@@ -20,16 +20,16 @@ local
 fun mk_bin num =
   let
     val {leading_zeros = z, value, ...} = Syntax.read_xnum num;
-    fun bit b bs = Syntax.const @{const_name Numeral.Bit} $ bs $ HOLogic.mk_bit b;
-    fun mk 0 = (* FIXME funpow z (bit 0) *) (Syntax.const @{const_name Numeral.Pls})
-      | mk ~1 = (* FIXME funpow z (bit 1) *) (Syntax.const @{const_name Numeral.Min})
+    fun bit b bs = Syntax.const @{const_name Int.Bit} $ bs $ HOLogic.mk_bit b;
+    fun mk 0 = (* FIXME funpow z (bit 0) *) (Syntax.const @{const_name Int.Pls})
+      | mk ~1 = (* FIXME funpow z (bit 1) *) (Syntax.const @{const_name Int.Min})
       | mk i = let val (q, r) = Integer.div_mod i 2 in bit r (mk q) end;
   in mk value end;
 
 in
 
 fun numeral_tr (*"_Numeral"*) [t as Const (num, _)] =
-      Syntax.const @{const_name Numeral.number_of} $ mk_bin num
+      Syntax.const @{const_name Int.number_of} $ mk_bin num
   | numeral_tr (*"_Numeral"*) ts = raise TERM ("numeral_tr", ts);
 
 end;
@@ -39,15 +39,15 @@ end;
 
 local
 
-fun dest_bit (Const (@{const_syntax Numeral.bit.B0}, _)) = 0
-  | dest_bit (Const (@{const_syntax Numeral.bit.B1}, _)) = 1
+fun dest_bit (Const (@{const_syntax Int.bit.B0}, _)) = 0
+  | dest_bit (Const (@{const_syntax Int.bit.B1}, _)) = 1
   | dest_bit (Const ("bit.B0", _)) = 0
   | dest_bit (Const ("bit.B1", _)) = 1
   | dest_bit _ = raise Match;
 
-fun dest_bin (Const (@{const_syntax "Numeral.Pls"}, _)) = []
-  | dest_bin (Const (@{const_syntax "Numeral.Min"}, _)) = [~1]
-  | dest_bin (Const (@{const_syntax "Numeral.Bit"}, _) $ bs $ b) = dest_bit b :: dest_bin bs
+fun dest_bin (Const (@{const_syntax "Int.Pls"}, _)) = []
+  | dest_bin (Const (@{const_syntax "Int.Min"}, _)) = [~1]
+  | dest_bin (Const (@{const_syntax "Int.Bit"}, _) $ bs $ b) = dest_bit b :: dest_bin bs
   | dest_bin _ = raise Match;
 
 fun leading _ [] = 0
@@ -89,6 +89,6 @@ end;
 
 val setup =
   Sign.add_trfuns ([], [("_Numeral", numeral_tr)], [], []) #>
-  Sign.add_trfunsT [(@{const_syntax Numeral.number_of}, numeral_tr')];
+  Sign.add_trfunsT [(@{const_syntax Int.number_of}, numeral_tr')];
 
 end;

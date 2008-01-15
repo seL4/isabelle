@@ -61,17 +61,17 @@ lemmas word_sle_no [simp] =
 lemmas word_0_wi_Pls = word_0_wi [folded Pls_def]
 lemmas word_0_no = word_0_wi_Pls [folded word_no_wi]
 
-lemma int_one_bin: "(1 :: int) == (Numeral.Pls BIT bit.B1)"
+lemma int_one_bin: "(1 :: int) == (Int.Pls BIT bit.B1)"
   unfolding Pls_def Bit_def by auto
 
 lemma word_1_no: 
-  "(1 :: 'a :: len0 word) == number_of (Numeral.Pls BIT bit.B1)"
+  "(1 :: 'a :: len0 word) == number_of (Int.Pls BIT bit.B1)"
   unfolding word_1_wi word_number_of_def int_one_bin by auto
 
 lemma word_m1_wi: "-1 == word_of_int -1" 
   by (rule word_number_of_alt)
 
-lemma word_m1_wi_Min: "-1 = word_of_int Numeral.Min"
+lemma word_m1_wi_Min: "-1 = word_of_int Int.Min"
   by (simp add: word_m1_wi number_of_eq)
 
 lemma word_0_bl: "of_bl [] = 0" 
@@ -169,8 +169,8 @@ lemma wi_homs:
   wi_hom_add: "word_of_int a + word_of_int b = word_of_int (a + b)" and
   wi_hom_mult: "word_of_int a * word_of_int b = word_of_int (a * b)" and
   wi_hom_neg: "- word_of_int a = word_of_int (- a)" and
-  wi_hom_succ: "word_succ (word_of_int a) = word_of_int (Numeral.succ a)" and
-  wi_hom_pred: "word_pred (word_of_int a) = word_of_int (Numeral.pred a)"
+  wi_hom_succ: "word_succ (word_of_int a) = word_of_int (Int.succ a)" and
+  wi_hom_pred: "word_pred (word_of_int a) = word_of_int (Int.pred a)"
   by (auto simp: word_arith_wis arths)
 
 lemmas wi_hom_syms = wi_homs [symmetric]
@@ -255,15 +255,15 @@ lemma word_pred_0_n1: "word_pred 0 = word_of_int -1"
   unfolding word_pred_def number_of_eq
   by (simp add : pred_def word_no_wi)
 
-lemma word_pred_0_Min: "word_pred 0 = word_of_int Numeral.Min"
+lemma word_pred_0_Min: "word_pred 0 = word_of_int Int.Min"
   by (simp add: word_pred_0_n1 number_of_eq)
 
-lemma word_m1_Min: "- 1 = word_of_int Numeral.Min"
+lemma word_m1_Min: "- 1 = word_of_int Int.Min"
   unfolding Min_def by (simp only: word_of_int_hom_syms)
 
 lemma succ_pred_no [simp]:
-  "word_succ (number_of bin) = number_of (Numeral.succ bin) & 
-    word_pred (number_of bin) = number_of (Numeral.pred bin)"
+  "word_succ (number_of bin) = number_of (Int.succ bin) & 
+    word_pred (number_of bin) = number_of (Int.pred bin)"
   unfolding word_number_of_def by (simp add : new_word_of_int_homs)
 
 lemma word_sp_01 [simp] : 
@@ -797,7 +797,7 @@ instance word :: (len) recpower
    which requires word length >= 1, ie 'a :: len word *) 
 lemma zero_bintrunc:
   "iszero (number_of x :: 'a :: len word) = 
-    (bintrunc (len_of TYPE('a)) x = Numeral.Pls)"
+    (bintrunc (len_of TYPE('a)) x = Int.Pls)"
   apply (unfold iszero_def word_0_wi word_no_wi)
   apply (rule word_ubin.norm_eq_iff [symmetric, THEN trans])
   apply (simp add : Pls_def [symmetric])

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/numeral.ML
+(*  Title:      HOL/Tools/Int.ML
     ID:         $Id$
     Author:     Makarius
 
@@ -16,15 +16,15 @@ struct
 
 (* numeral *)
 
-fun mk_cbit 0 = @{cterm "Numeral.bit.B0"}
-  | mk_cbit 1 = @{cterm "Numeral.bit.B1"}
+fun mk_cbit 0 = @{cterm "Int.bit.B0"}
+  | mk_cbit 1 = @{cterm "Int.bit.B1"}
   | mk_cbit _ = raise CTERM ("mk_cbit", []);
 
-fun mk_cnumeral 0 = @{cterm "Numeral.Pls"}
-  | mk_cnumeral ~1 = @{cterm "Numeral.Min"}
+fun mk_cnumeral 0 = @{cterm "Int.Pls"}
+  | mk_cnumeral ~1 = @{cterm "Int.Min"}
   | mk_cnumeral i =
       let val (q, r) = Integer.div_mod i 2 in
-        Thm.capply (Thm.capply @{cterm "Numeral.Bit"} (mk_cnumeral q)) (mk_cbit r)
+        Thm.capply (Thm.capply @{cterm "Int.Bit"} (mk_cnumeral q)) (mk_cbit r)
       end;
 
 

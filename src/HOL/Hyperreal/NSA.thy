@@ -678,11 +678,11 @@ fun reorient_proc sg _ (_ $ t $ u) =
   case u of
       Const(@{const_name HOL.zero}, _) => NONE
     | Const(@{const_name HOL.one}, _) => NONE
-    | Const(@{const_name Numeral.number_of}, _) $ _ => NONE
+    | Const(@{const_name Int.number_of}, _) $ _ => NONE
     | _ => SOME (case t of
                 Const(@{const_name HOL.zero}, _) => meta_zero_approx_reorient
               | Const(@{const_name HOL.one}, _) => meta_one_approx_reorient
-              | Const(@{const_name Numeral.number_of}, _) $ _ =>
+              | Const(@{const_name Int.number_of}, _) $ _ =>
                                  meta_number_of_approx_reorient);
 
 in

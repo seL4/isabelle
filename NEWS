@@ -25,8 +25,14 @@ Superseedes some immature attempts.
 
 *** HOL ***
 
+* Merged theories IntDef, Numeral and IntArith into unified theory Int.
+INCOMPATIBILITY.
+
+* Theory Library/Code_Index: type "index" now represents natural numbers rather
+than integers.  INCOMPATIBILITY.
+
 * New class "uminus" with operation "uminus" (split of from class "minus"
-which now only has operation "minus", binary).
+which now only has operation "minus", binary).  INCOMPATIBILITY.
 
 * New primrec package.  Specification syntax conforms in style to
 definition/function/....  No separate induction rule is provided.
@@ -40,14 +46,14 @@ primrec specifications have authentic syntax.
 * Library/ListSpace: new theory of arithmetic vector operations.
 
 * Constants "card", "internal_split", "option_map" now with authentic
-syntax.
+syntax.  INCOMPATIBILITY.
 
 * Definitions subset_def, psubset_def, set_diff_def, Compl_def,
 le_bool_def, less_bool_def, le_fun_def, less_fun_def, inf_bool_def,
 sup_bool_def, Inf_bool_def, Sup_bool_def, inf_fun_def, sup_fun_def,
 Inf_fun_def, Sup_fun_def, inf_set_def, sup_set_def, Inf_set_def,
 Sup_set_def, le_def, less_def, option_map_def now with object
-equality.
+equality.  INCOMPATIBILITY.
 
 * New method "induction_scheme" derives user-specified induction rules
 from wellfounded induction and completeness of patterns. This factors

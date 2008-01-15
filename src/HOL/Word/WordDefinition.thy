@@ -160,12 +160,12 @@ where
 definition
   word_succ :: "'a :: len0 word => 'a word"
 where
-  "word_succ a = word_of_int (Numeral.succ (uint a))"
+  "word_succ a = word_of_int (Int.succ (uint a))"
 
 definition
   word_pred :: "'a :: len0 word => 'a word"
 where
-  "word_pred a = word_of_int (Numeral.pred (uint a))"
+  "word_pred a = word_of_int (Int.pred (uint a))"
 
 constdefs
   udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50)
@@ -195,7 +195,7 @@ defs (overloaded)
   "lsb (a::'a::len0 word) == bin_last (uint a) = bit.B1"
 
   word_msb_def: 
-  "msb (a::'a::len word) == bin_sign (sint a) = Numeral.Min"
+  "msb (a::'a::len word) == bin_sign (sint a) = Int.Min"
 
 
 constdefs
@@ -475,7 +475,7 @@ lemmas sint_ge = sint_lem [THEN conjunct1, standard]
 lemmas sint_lt = sint_lem [THEN conjunct2, standard]
 
 lemma sign_uint_Pls [simp]: 
-  "bin_sign (uint x) = Numeral.Pls"
+  "bin_sign (uint x) = Int.Pls"
   by (simp add: sign_Pls_ge_0 number_of_eq)
 
 lemmas uint_m2p_neg = iffD2 [OF diff_less_0_iff_less uint_lt2p, standard]
@@ -498,7 +498,7 @@ lemma uint_number_of:
   by (simp only: int_word_uint)
 
 lemma unat_number_of: 
-  "bin_sign b = Numeral.Pls ==> 
+  "bin_sign b = Int.Pls ==> 
   unat (number_of b::'a::len0 word) = number_of b mod 2 ^ len_of TYPE ('a)"
   apply (unfold unat_def)
   apply (clarsimp simp only: uint_number_of)
@@ -643,7 +643,7 @@ lemmas bl_not_Nil [iff] =
   length_bl_gt_0 [THEN length_greater_0_conv [THEN iffD1], standard]
 lemmas length_bl_neq_0 [iff] = length_bl_gt_0 [THEN gr_implies_not0]
 
-lemma hd_bl_sign_sint: "hd (to_bl w) = (bin_sign (sint w) = Numeral.Min)"
+lemma hd_bl_sign_sint: "hd (to_bl w) = (bin_sign (sint w) = Int.Min)"
   apply (unfold to_bl_def sint_uint)
   apply (rule trans [OF _ bl_sbin_sign])
   apply simp

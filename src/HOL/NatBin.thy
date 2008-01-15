@@ -120,14 +120,14 @@ done
 
 lemma Suc_nat_number_of_add:
      "Suc (number_of v + n) =  
-        (if neg (number_of v :: int) then 1+n else number_of (Numeral.succ v) + n)" 
+        (if neg (number_of v :: int) then 1+n else number_of (Int.succ v) + n)" 
 by (simp del: nat_number_of 
          add: nat_number_of_def neg_nat
               Suc_nat_eq_nat_zadd1 number_of_succ) 
 
 lemma Suc_nat_number_of [simp]:
      "Suc (number_of v) =  
-        (if neg (number_of v :: int) then 1 else number_of (Numeral.succ v))"
+        (if neg (number_of v :: int) then 1 else number_of (Int.succ v))"
 apply (cut_tac n = 0 in Suc_nat_number_of_add)
 apply (simp cong del: if_weak_cong)
 done
@@ -470,7 +470,7 @@ subsection{*Comparisons involving  @{term Suc} *}
 
 lemma eq_number_of_Suc [simp]:
      "(number_of v = Suc n) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then False else nat pv = n)"
 apply (simp only: simp_thms Let_def neg_eq_less_0 linorder_not_less 
                   number_of_pred nat_number_of_def 
@@ -481,13 +481,13 @@ done
 
 lemma Suc_eq_number_of [simp]:
      "(Suc n = number_of v) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then False else nat pv = n)"
 by (rule trans [OF eq_sym_conv eq_number_of_Suc])
 
 lemma less_number_of_Suc [simp]:
      "(number_of v < Suc n) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then True else nat pv < n)"
 apply (simp only: simp_thms Let_def neg_eq_less_0 linorder_not_less 
                   number_of_pred nat_number_of_def  
@@ -498,7 +498,7 @@ done
 
 lemma less_Suc_number_of [simp]:
      "(Suc n < number_of v) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then False else n < nat pv)"
 apply (simp only: simp_thms Let_def neg_eq_less_0 linorder_not_less 
                   number_of_pred nat_number_of_def
@@ -509,13 +509,13 @@ done
 
 lemma le_number_of_Suc [simp]:
      "(number_of v <= Suc n) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then True else nat pv <= n)"
 by (simp add: Let_def less_Suc_number_of linorder_not_less [symmetric])
 
 lemma le_Suc_number_of [simp]:
      "(Suc n <= number_of v) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then False else n <= nat pv)"
 by (simp add: Let_def less_number_of_Suc linorder_not_less [symmetric])
 
@@ -550,15 +550,15 @@ apply (simp add: zmod_zadd1_eq)
 done
 
 lemma eq_number_of_BIT_Min:
-     "((number_of (v BIT x) ::int) = number_of Numeral.Min) =  
-      (x=bit.B1 & (((number_of v) ::int) = number_of Numeral.Min))"
+     "((number_of (v BIT x) ::int) = number_of Int.Min) =  
+      (x=bit.B1 & (((number_of v) ::int) = number_of Int.Min))"
 apply (simp only: simp_thms  add: number_of_BIT number_of_Min eq_commute
             split add: bit.split cong: imp_cong)
 apply (rule_tac x = "number_of v" in spec, auto)
 apply (drule_tac f = "%x. x mod 2" in arg_cong, auto)
 done
 
-lemma eq_number_of_Pls_Min: "(Numeral0 ::int) ~= number_of Numeral.Min"
+lemma eq_number_of_Pls_Min: "(Numeral0 ::int) ~= number_of Int.Min"
 by auto
 
 
@@ -567,7 +567,7 @@ subsection{*Max and Min Combined with @{term Suc} *}
 
 lemma max_number_of_Suc [simp]:
      "max (Suc n) (number_of v) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then Suc n else Suc(max n (nat pv)))"
 apply (simp only: Let_def neg_eq_less_0 number_of_pred nat_number_of_def 
             split add: split_if nat.split)
@@ -577,7 +577,7 @@ done
  
 lemma max_Suc_number_of [simp]:
      "max (number_of v) (Suc n) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then Suc n else Suc(max (nat pv) n))"
 apply (simp only: Let_def neg_eq_less_0 number_of_pred nat_number_of_def 
             split add: split_if nat.split)
@@ -587,7 +587,7 @@ done
  
 lemma min_number_of_Suc [simp]:
      "min (Suc n) (number_of v) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then 0 else Suc(min n (nat pv)))"
 apply (simp only: Let_def neg_eq_less_0 number_of_pred nat_number_of_def 
             split add: split_if nat.split)
@@ -597,7 +597,7 @@ done
  
 lemma min_Suc_number_of [simp]:
      "min (number_of v) (Suc n) =  
-        (let pv = number_of (Numeral.pred v) in  
+        (let pv = number_of (Int.pred v) in  
          if neg pv then 0 else Suc(min (nat pv) n))"
 apply (simp only: Let_def neg_eq_less_0 number_of_pred nat_number_of_def 
             split add: split_if nat.split)
@@ -681,7 +681,7 @@ declare split_mod[of _ _ "number_of k", standard, arith_split]
 lemma nat_number_of_Pls: "Numeral0 = (0::nat)"
   by (simp add: number_of_Pls nat_number_of_def)
 
-lemma nat_number_of_Min: "number_of Numeral.Min = (0::nat)"
+lemma nat_number_of_Min: "number_of Int.Min = (0::nat)"
   apply (simp only: number_of_Min nat_number_of_def nat_zminus_int)
   done
 

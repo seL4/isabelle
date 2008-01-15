@@ -21,15 +21,15 @@ instantiation int :: bit
 begin
 
 definition
-  int_not_def: "bitNOT = bin_rec Numeral.Min Numeral.Pls 
+  int_not_def: "bitNOT = bin_rec Int.Min Int.Pls 
     (\<lambda>w b s. s BIT (NOT b))"
 
 definition
-  int_and_def: "bitAND = bin_rec (\<lambda>x. Numeral.Pls) (\<lambda>y. y) 
+  int_and_def: "bitAND = bin_rec (\<lambda>x. Int.Pls) (\<lambda>y. y) 
     (\<lambda>w b s y. s (bin_rest y) BIT (b AND bin_last y))"
 
 definition
-  int_or_def: "bitOR = bin_rec (\<lambda>x. x) (\<lambda>y. Numeral.Min) 
+  int_or_def: "bitOR = bin_rec (\<lambda>x. x) (\<lambda>y. Int.Min) 
     (\<lambda>w b s y. s (bin_rest y) BIT (b OR bin_last y))"
 
 definition
@@ -41,17 +41,17 @@ instance ..
 end
 
 lemma int_not_simps [simp]:
-  "NOT Numeral.Pls = Numeral.Min"
-  "NOT Numeral.Min = Numeral.Pls"
+  "NOT Int.Pls = Int.Min"
+  "NOT Int.Min = Int.Pls"
   "NOT (w BIT b) = (NOT w) BIT (NOT b)"
   by (unfold int_not_def) (auto intro: bin_rec_simps)
 
 lemma int_xor_Pls [simp]: 
-  "Numeral.Pls XOR x = x"
+  "Int.Pls XOR x = x"
   unfolding int_xor_def by (simp add: bin_rec_PM)
 
 lemma int_xor_Min [simp]: 
-  "Numeral.Min XOR x = NOT x"
+  "Int.Min XOR x = NOT x"
   unfolding int_xor_def by (simp add: bin_rec_PM)
 
 lemma int_xor_Bits [simp]: 
@@ -66,8 +66,8 @@ lemma int_xor_Bits [simp]:
   done
 
 lemma int_xor_x_simps':
-  "w XOR (Numeral.Pls BIT bit.B0) = w"
-  "w XOR (Numeral.Min BIT bit.B1) = NOT w"
+  "w XOR (Int.Pls BIT bit.B0) = w"
+  "w XOR (Int.Min BIT bit.B1) = NOT w"
   apply (induct w rule: bin_induct)
        apply simp_all[4]
    apply (unfold int_xor_Bits)
@@ -77,11 +77,11 @@ lemma int_xor_x_simps':
 lemmas int_xor_extra_simps [simp] = int_xor_x_simps' [simplified arith_simps]
 
 lemma int_or_Pls [simp]: 
-  "Numeral.Pls OR x = x"
+  "Int.Pls OR x = x"
   by (unfold int_or_def) (simp add: bin_rec_PM)
   
 lemma int_or_Min [simp]:
-  "Numeral.Min OR x = Numeral.Min"
+  "Int.Min OR x = Int.Min"
   by (unfold int_or_def) (simp add: bin_rec_PM)
 
 lemma int_or_Bits [simp]: 
@@ -89,8 +89,8 @@ lemma int_or_Bits [simp]:
   unfolding int_or_def by (simp add: bin_rec_simps)
 
 lemma int_or_x_simps': 
-  "w OR (Numeral.Pls BIT bit.B0) = w"
-  "w OR (Numeral.Min BIT bit.B1) = Numeral.Min"
+  "w OR (Int.Pls BIT bit.B0) = w"
+  "w OR (Int.Min BIT bit.B1) = Int.Min"
   apply (induct w rule: bin_induct)
        apply simp_all[4]
    apply (unfold int_or_Bits)
@@ -101,11 +101,11 @@ lemmas int_or_extra_simps [simp] = int_or_x_simps' [simplified arith_simps]
 
 
 lemma int_and_Pls [simp]:
-  "Numeral.Pls AND x = Numeral.Pls"
+  "Int.Pls AND x = Int.Pls"
   unfolding int_and_def by (simp add: bin_rec_PM)
 
 lemma int_and_Min [simp]:
-  "Numeral.Min AND x = x"
+  "Int.Min AND x = x"
   unfolding int_and_def by (simp add: bin_rec_PM)
 
 lemma int_and_Bits [simp]: 
@@ -113,8 +113,8 @@ lemma int_and_Bits [simp]:
   unfolding int_and_def by (simp add: bin_rec_simps)
 
 lemma int_and_x_simps': 
-  "w AND (Numeral.Pls BIT bit.B0) = Numeral.Pls"
-  "w AND (Numeral.Min BIT bit.B1) = w"
+  "w AND (Int.Pls BIT bit.B0) = Int.Pls"
+  "w AND (Int.Min BIT bit.B1) = w"
   apply (induct w rule: bin_induct)
        apply simp_all[4]
    apply (unfold int_and_Bits)
@@ -137,7 +137,7 @@ lemma bin_ops_comm:
 lemma bin_ops_same [simp]:
   "(x::int) AND x = x" 
   "(x::int) OR x = x" 
-  "(x::int) XOR x = Numeral.Pls"
+  "(x::int) XOR x = Int.Pls"
   by (induct x rule: bin_induct) auto
 
 lemma int_not_not [simp]: "NOT (NOT (x::int)) = x"
@@ -268,7 +268,7 @@ lemma plus_and_or [rule_format]:
   done
 
 lemma le_int_or:
-  "!!x.  bin_sign y = Numeral.Pls ==> x <= x OR y"
+  "!!x.  bin_sign y = Int.Pls ==> x <= x OR y"
   apply (induct y rule: bin_induct)
     apply clarsimp
    apply clarsimp
@@ -297,7 +297,7 @@ lemma bin_nth_ops:
 
 (* interaction between bit-wise and arithmetic *)
 (* good example of bin_induction *)
-lemma bin_add_not: "x + NOT x = Numeral.Min"
+lemma bin_add_not: "x + NOT x = Int.Min"
   apply (induct x rule: bin_induct)
     apply clarsimp
    apply clarsimp
@@ -428,10 +428,10 @@ lemma bintr_bin_set_ge:
    apply (simp_all split: bit.split)
   done
 
-lemma bin_sc_FP [simp]: "bin_sc n bit.B0 Numeral.Pls = Numeral.Pls"
+lemma bin_sc_FP [simp]: "bin_sc n bit.B0 Int.Pls = Int.Pls"
   by (induct n) auto
 
-lemma bin_sc_TM [simp]: "bin_sc n bit.B1 Numeral.Min = Numeral.Min"
+lemma bin_sc_TM [simp]: "bin_sc n bit.B1 Int.Min = Int.Min"
   by (induct n) auto
   
 lemmas bin_sc_simps = bin_sc.Z bin_sc.Suc bin_sc_TM bin_sc_FP
@@ -468,7 +468,7 @@ primrec
 
 defs
   bin_to_bl_def : "bin_to_bl n w == bin_to_bl_aux n w []"
-  bl_to_bin_def : "bl_to_bin bs == bl_to_bin_aux Numeral.Pls bs"
+  bl_to_bin_def : "bl_to_bin bs == bl_to_bin_aux Int.Pls bs"
 
 primrec
   Suc : "bl_of_nth (Suc n) f = f n # bl_of_nth n f"
@@ -512,7 +512,7 @@ recdef bin_rsplitl_aux "measure (fst o snd o snd)"
       in bin_rsplitl_aux (n, b # bs, (m - n, a)))"
 
 defs
-  bin_rcat_def : "bin_rcat n bs == foldl (%u v. bin_cat u n v) Numeral.Pls bs"
+  bin_rcat_def : "bin_rcat n bs == foldl (%u v. bin_cat u n v) Int.Pls bs"
   bin_rsplit_def : "bin_rsplit n w == bin_rsplit_aux (n, [], w)"
   bin_rsplitl_def : "bin_rsplitl n w == bin_rsplitl_aux (n, [], w)"
      
@@ -559,7 +559,7 @@ lemma bin_cat_assoc_sym: "!!z m.
   done
 
 lemma bin_cat_Pls [simp]: 
-  "!!w. bin_cat Numeral.Pls n w = bintrunc n w"
+  "!!w. bin_cat Int.Pls n w = bintrunc n w"
   by (induct n) auto
 
 lemma bintr_cat1: 
@@ -591,11 +591,11 @@ lemma bin_split_cat:
   by (induct n) auto
 
 lemma bin_split_Pls [simp]:
-  "bin_split n Numeral.Pls = (Numeral.Pls, Numeral.Pls)"
+  "bin_split n Int.Pls = (Int.Pls, Int.Pls)"
   by (induct n) (auto simp: Let_def split: ls_splits)
 
 lemma bin_split_Min [simp]:
-  "bin_split n Numeral.Min = (Numeral.Min, bintrunc n Numeral.Min)"
+  "bin_split n Int.Min = (Int.Min, bintrunc n Int.Min)"
   by (induct n) (auto simp: Let_def split: ls_splits)
 
 lemma bin_split_trunc:

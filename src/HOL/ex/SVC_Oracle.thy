@@ -64,7 +64,7 @@ fun svc_abstract t =
     (*abstraction of a numeric literal*)
     fun lit (t as Const(@{const_name HOL.zero}, _)) = t
       | lit (t as Const(@{const_name HOL.one}, _)) = t
-      | lit (t as Const(@{const_name Numeral.number_of}, _) $ w) = t
+      | lit (t as Const(@{const_name Int.number_of}, _) $ w) = t
       | lit t = replace t
     (*abstraction of a real/rational expression*)
     fun rat ((c as Const(@{const_name HOL.plus}, _)) $ x $ y) = c $ (rat x) $ (rat y)

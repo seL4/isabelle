@@ -295,21 +295,21 @@ let
 abbreviation (in pure_term_syntax) (input)
   intT :: "typ"
 where
-  "intT \<equiv> Type (STR ''IntDef.int'') []"
+  "intT \<equiv> Type (STR ''Int.int'') []"
 
 abbreviation (in pure_term_syntax) (input)
   bitT :: "typ"
 where
-  "bitT \<equiv> Type (STR ''Numeral.bit'') []"
+  "bitT \<equiv> Type (STR ''Int.bit'') []"
 
 function (in pure_term_syntax)
   mk_int :: "int \<Rightarrow> term"
 where
-  "mk_int k = (if k = 0 then STR ''Numeral.Pls'' \<Colon>\<subseteq> intT
-    else if k = -1 then STR ''Numeral.Min'' \<Colon>\<subseteq> intT
+  "mk_int k = (if k = 0 then STR ''Int.Pls'' \<Colon>\<subseteq> intT
+    else if k = -1 then STR ''Int.Min'' \<Colon>\<subseteq> intT
     else let (l, m) = divAlg (k, 2)
-  in STR ''Numeral.Bit'' \<Colon>\<subseteq> intT \<rightarrow> bitT \<rightarrow> intT \<bullet> mk_int l \<bullet>
-    (if m = 0 then STR ''Numeral.bit.B0'' \<Colon>\<subseteq> bitT else STR ''Numeral.bit.B1'' \<Colon>\<subseteq> bitT))"
+  in STR ''Int.Bit'' \<Colon>\<subseteq> intT \<rightarrow> bitT \<rightarrow> intT \<bullet> mk_int l \<bullet>
+    (if m = 0 then STR ''Int.bit.B0'' \<Colon>\<subseteq> bitT else STR ''Int.bit.B1'' \<Colon>\<subseteq> bitT))"
 by pat_completeness auto
 termination (in pure_term_syntax)
 by (relation "measure (nat o abs)") (auto simp add: divAlg_mod_div)
@@ -317,7 +317,7 @@ by (relation "measure (nat o abs)") (auto simp add: divAlg_mod_div)
 declare pure_term_syntax.mk_int.simps [code func]
 
 definition (in pure_term_syntax)
-  "term_of_int_aux k = STR ''Numeral.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<bullet> mk_int k"
+  "term_of_int_aux k = STR ''Int.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<bullet> mk_int k"
 
 declare pure_term_syntax.term_of_int_aux_def [code func]
 

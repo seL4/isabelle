@@ -32,8 +32,8 @@ fun num_of_term vs t =
                                    | _ => error "num_of_term: unsupported Multiplication")
       | Const("RealDef.real",_)$ (Const (@{const_name "RComplete.floor"},_)$ t') => Floor (num_of_term vs t')
       | Const("RealDef.real",_)$ (Const (@{const_name "RComplete.ceiling"},_)$ t') => Neg(Floor (Neg (num_of_term vs t')))
-      | Const("RealDef.real",_) $ Const (@{const_name "Numeral.number_of"},_)$t' => C (HOLogic.dest_numeral t')
-      | Const (@{const_name "Numeral.number_of"},_)$t' => C (HOLogic.dest_numeral t')
+      | Const("RealDef.real",_) $ Const (@{const_name "Int.number_of"},_)$t' => C (HOLogic.dest_numeral t')
+      | Const (@{const_name "Int.number_of"},_)$t' => C (HOLogic.dest_numeral t')
       | _ => error ("num_of_term: unknown term " ^ (Display.raw_string_of_term t));
         
 
@@ -44,7 +44,7 @@ fun fm_of_term vs t =
       | Const("False",_) => F
       | Const(@{const_name HOL.less},_)$t1$t2 => Lt (Sub (num_of_term vs t1,num_of_term vs t2))
       | Const(@{const_name HOL.less_eq},_)$t1$t2 => Le (Sub (num_of_term vs t1,num_of_term vs t2))
-      | Const (@{const_name "MIR.rdvd"},_ )$ (Const("RealDef.real",_) $ (Const(@{const_name "Numeral.number_of"},_)$t1))$t2 => 
+      | Const (@{const_name "MIR.rdvd"},_ )$ (Const("RealDef.real",_) $ (Const(@{const_name "Int.number_of"},_)$t1))$t2 => 
         Dvd (HOLogic.dest_numeral t1, num_of_term vs t2)
       | Const("op =",eqT)$t1$t2 => 
         if (domain_type eqT = @{typ real})

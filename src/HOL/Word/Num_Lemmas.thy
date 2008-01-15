@@ -50,7 +50,7 @@ lemmas xtr7 = xtrans(7)
 lemmas xtr8 = xtrans(8)
 
 lemma Min_ne_Pls [iff]:  
-  "Numeral.Min ~= Numeral.Pls"
+  "Int.Min ~= Int.Pls"
   unfolding Min_def Pls_def by auto
 
 lemmas Pls_ne_Min [iff] = Min_ne_Pls [symmetric]
@@ -72,7 +72,7 @@ lemma sum_imp_diff: "j = k + i ==> j - i = (k :: nat)"
 
 lemma nobm1:
   "0 < (number_of w :: nat) ==> 
-   number_of w - (1 :: nat) = number_of (Numeral.pred w)"
+   number_of w - (1 :: nat) = number_of (Int.pred w)"
   apply (unfold nat_number_of_def One_nat_def nat_1 [symmetric] pred_def)
   apply (simp add: number_of_eq nat_diff_distrib [symmetric])
   done
@@ -201,7 +201,7 @@ lemmas bin_rl_simps [THEN bin_rl_char [THEN iffD2], standard, simp] =
   Pls_0_eq Min_1_eq refl 
 
 lemma bin_abs_lem:
-  "bin = (w BIT b) ==> ~ bin = Numeral.Min --> ~ bin = Numeral.Pls -->
+  "bin = (w BIT b) ==> ~ bin = Int.Min --> ~ bin = Int.Pls -->
     nat (abs w) < nat (abs bin)"
   apply (clarsimp simp add: bin_rl_char)
   apply (unfold Pls_def Min_def Bit_def)
@@ -211,8 +211,8 @@ lemma bin_abs_lem:
   done
 
 lemma bin_induct:
-  assumes PPls: "P Numeral.Pls"
-    and PMin: "P Numeral.Min"
+  assumes PPls: "P Int.Pls"
+    and PMin: "P Int.Min"
     and PBit: "!!bin bit. P bin ==> P (bin BIT bit)"
   shows "P bin"
   apply (rule_tac P=P and a=bin and f1="nat o abs" 

@@ -95,9 +95,9 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   Accessible_Part.thy Arith_Tools.thy Code_Setup.thy Datatype.thy 			\
   Dense_Linear_Order.thy Divides.thy Equiv_Relations.thy Extraction.thy	\
   Finite_Set.thy Fun.thy FunDef.thy HOL.thy		\
-  Hilbert_Choice.thy Inductive.thy IntArith.thy IntDef.thy IntDiv.thy	\
+  Hilbert_Choice.thy Inductive.thy Int.thy IntDiv.thy	\
   Lattices.thy List.thy Main.thy Map.thy Nat.thy NatBin.thy	\
-  Numeral.thy OrderedGroup.thy Orderings.thy Power.thy PreList.thy	\
+  OrderedGroup.thy Orderings.thy Power.thy PreList.thy	\
   Predicate.thy Product_Type.thy ROOT.ML Recdef.thy			\
   Record.thy Refute.thy Relation.thy Relation_Power.thy			\
   Ring_and_Field.thy SAT.thy Set.thy SetInterval.thy Sum_Type.thy	\

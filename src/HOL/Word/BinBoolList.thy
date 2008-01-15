@@ -76,13 +76,13 @@ lemma butlast_power:
   by (induct n) (auto simp: butlast_take)
 
 lemma bin_to_bl_aux_Pls_minus_simp:
-  "0 < n ==> bin_to_bl_aux n Numeral.Pls bl = 
-    bin_to_bl_aux (n - 1) Numeral.Pls (False # bl)"
+  "0 < n ==> bin_to_bl_aux n Int.Pls bl = 
+    bin_to_bl_aux (n - 1) Int.Pls (False # bl)"
   by (cases n) auto
 
 lemma bin_to_bl_aux_Min_minus_simp:
-  "0 < n ==> bin_to_bl_aux n Numeral.Min bl = 
-    bin_to_bl_aux (n - 1) Numeral.Min (True # bl)"
+  "0 < n ==> bin_to_bl_aux n Int.Min bl = 
+    bin_to_bl_aux (n - 1) Int.Min (True # bl)"
   by (cases n) auto
 
 lemma bin_to_bl_aux_Bit_minus_simp:
@@ -166,21 +166,21 @@ lemma bl_to_bin_inj:
 lemma bl_to_bin_False: "bl_to_bin (False # bl) = bl_to_bin bl"
   unfolding bl_to_bin_def by auto
   
-lemma bl_to_bin_Nil: "bl_to_bin [] = Numeral.Pls"
+lemma bl_to_bin_Nil: "bl_to_bin [] = Int.Pls"
   unfolding bl_to_bin_def by auto
 
 lemma bin_to_bl_Pls_aux [rule_format] : 
-  "ALL bl. bin_to_bl_aux n Numeral.Pls bl = replicate n False @ bl"
+  "ALL bl. bin_to_bl_aux n Int.Pls bl = replicate n False @ bl"
   by (induct n) (auto simp: replicate_app_Cons_same)
 
-lemma bin_to_bl_Pls: "bin_to_bl n Numeral.Pls = replicate n False"
+lemma bin_to_bl_Pls: "bin_to_bl n Int.Pls = replicate n False"
   unfolding bin_to_bl_def by (simp add : bin_to_bl_Pls_aux)
 
 lemma bin_to_bl_Min_aux [rule_format] : 
-  "ALL bl. bin_to_bl_aux n Numeral.Min bl = replicate n True @ bl"
+  "ALL bl. bin_to_bl_aux n Int.Min bl = replicate n True @ bl"
   by (induct n) (auto simp: replicate_app_Cons_same)
 
-lemma bin_to_bl_Min: "bin_to_bl n Numeral.Min = replicate n True"
+lemma bin_to_bl_Min: "bin_to_bl n Int.Min = replicate n True"
   unfolding bin_to_bl_def by (simp add : bin_to_bl_Min_aux)
 
 lemma bl_to_bin_rep_F: 
@@ -214,7 +214,7 @@ lemma bin_to_bl_aux_bintr [rule_format] :
 lemmas bin_to_bl_bintr = 
   bin_to_bl_aux_bintr [where bl = "[]", folded bin_to_bl_def]
 
-lemma bl_to_bin_rep_False: "bl_to_bin (replicate n False) = Numeral.Pls"
+lemma bl_to_bin_rep_False: "bl_to_bin (replicate n False) = Int.Pls"
   by (induct n) auto
 
 lemma len_bin_to_bl_aux [rule_format] : 
@@ -228,12 +228,12 @@ lemma sign_bl_bin' [rule_format] :
   "ALL w. bin_sign (bl_to_bin_aux w bs) = bin_sign w"
   by (induct bs) auto
   
-lemma sign_bl_bin: "bin_sign (bl_to_bin bs) = Numeral.Pls"
+lemma sign_bl_bin: "bin_sign (bl_to_bin bs) = Int.Pls"
   unfolding bl_to_bin_def by (simp add : sign_bl_bin')
   
 lemma bl_sbin_sign_aux [rule_format] : 
   "ALL w bs. hd (bin_to_bl_aux (Suc n) w bs) = 
-    (bin_sign (sbintrunc n w) = Numeral.Min)"
+    (bin_sign (sbintrunc n w) = Int.Min)"
   apply (induct "n")
    apply clarsimp
    apply (case_tac w rule: bin_exhaust)
@@ -242,7 +242,7 @@ lemma bl_sbin_sign_aux [rule_format] :
   done
     
 lemma bl_sbin_sign: 
-  "hd (bin_to_bl (Suc n) w) = (bin_sign (sbintrunc n w) = Numeral.Min)"
+  "hd (bin_to_bl (Suc n) w) = (bin_sign (sbintrunc n w) = Int.Min)"
   unfolding bin_to_bl_def by (rule bl_sbin_sign_aux)
 
 lemma bin_nth_of_bl_aux [rule_format] : 
@@ -658,7 +658,7 @@ lemma bin_to_bl_aux_cat:
   by (induct nw) auto 
 
 lemmas bl_to_bin_aux_alt = 
-  bl_to_bin_aux_cat [where nv = "0" and v = "Numeral.Pls", 
+  bl_to_bin_aux_cat [where nv = "0" and v = "Int.Pls", 
     simplified bl_to_bin_def [symmetric], simplified]
 
 lemmas bin_to_bl_cat =
@@ -671,7 +671,7 @@ lemmas bin_to_bl_aux_cat_app =
   trans [OF bin_to_bl_aux_cat bin_to_bl_aux_alt]
 
 lemmas bl_to_bin_app_cat = bl_to_bin_aux_app_cat
-  [where w = "Numeral.Pls", folded bl_to_bin_def]
+  [where w = "Int.Pls", folded bl_to_bin_def]
 
 lemmas bin_to_bl_cat_app = bin_to_bl_aux_cat_app
   [where bs = "[]", folded bin_to_bl_def]
@@ -682,7 +682,7 @@ lemma bl_to_bin_app_cat_alt:
   by (simp add : bl_to_bin_app_cat)
 
 lemma mask_lem: "(bl_to_bin (True # replicate n False)) = 
-    Numeral.succ (bl_to_bin (replicate n True))"
+    Int.succ (bl_to_bin (replicate n True))"
   apply (unfold bl_to_bin_def)
   apply (induct n)
    apply simp
@@ -745,7 +745,7 @@ lemmas rbl_Nils =
   rbl_pred.Nil rbl_succ.Nil rbl_add.Nil rbl_mult.Nil
 
 lemma rbl_pred: 
-  "!!bin. rbl_pred (rev (bin_to_bl n bin)) = rev (bin_to_bl n (Numeral.pred bin))"
+  "!!bin. rbl_pred (rev (bin_to_bl n bin)) = rev (bin_to_bl n (Int.pred bin))"
   apply (induct n, simp)
   apply (unfold bin_to_bl_def)
   apply clarsimp
@@ -755,7 +755,7 @@ lemma rbl_pred:
   done
 
 lemma rbl_succ: 
-  "!!bin. rbl_succ (rev (bin_to_bl n bin)) = rev (bin_to_bl n (Numeral.succ bin))"
+  "!!bin. rbl_succ (rev (bin_to_bl n bin)) = rev (bin_to_bl n (Int.succ bin))"
   apply (induct n, simp)
   apply (unfold bin_to_bl_def)
   apply clarsimp
@@ -1011,7 +1011,7 @@ lemmas bin_split_minus_simp =
 lemma bin_split_pred_simp [simp]: 
   "(0::nat) < number_of bin \<Longrightarrow>
   bin_split (number_of bin) w =
-  (let (w1, w2) = bin_split (number_of (Numeral.pred bin)) (bin_rest w)
+  (let (w1, w2) = bin_split (number_of (Int.pred bin)) (bin_rest w)
    in (w1, w2 BIT bin_last w))" 
   by (simp only: nobm1 bin_split_minus_simp)
 
