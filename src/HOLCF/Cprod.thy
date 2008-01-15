@@ -245,7 +245,7 @@ by (simp add: cpair_eq_pair less_cprod_def)
 lemma cpair_defined_iff [iff]: "(<x, y> = \<bottom>) = (x = \<bottom> \<and> y = \<bottom>)"
 by (simp add: inst_cprod_pcpo cpair_eq_pair)
 
-lemma cpair_strict: "<\<bottom>, \<bottom>> = \<bottom>"
+lemma cpair_strict [simp]: "\<langle>\<bottom>, \<bottom>\<rangle> = \<bottom>"
 by simp
 
 lemma inst_cprod_pcpo2: "\<bottom> = <\<bottom>, \<bottom>>"
@@ -268,10 +268,10 @@ lemma csnd_cpair [simp]: "csnd\<cdot><x, y> = y"
 by (simp add: cpair_eq_pair csnd_def cont_snd)
 
 lemma cfst_strict [simp]: "cfst\<cdot>\<bottom> = \<bottom>"
-by (simp add: inst_cprod_pcpo2)
+unfolding inst_cprod_pcpo2 by (rule cfst_cpair)
 
 lemma csnd_strict [simp]: "csnd\<cdot>\<bottom> = \<bottom>"
-by (simp add: inst_cprod_pcpo2)
+unfolding inst_cprod_pcpo2 by (rule csnd_cpair)
 
 lemma cpair_cfst_csnd: "\<langle>cfst\<cdot>p, csnd\<cdot>p\<rangle> = p"
 by (cases p rule: cprodE, simp)
