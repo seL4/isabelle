@@ -222,7 +222,7 @@ text {* some properties of flat *}
 
 lemma flatdom_strict2mono: "f \<bottom> = \<bottom> \<Longrightarrow> monofun (f::'a::flat \<Rightarrow> 'b::pcpo)"
 apply (rule monofunI)
-apply (drule ax_flat [rule_format])
+apply (drule ax_flat)
 apply auto
 done
 

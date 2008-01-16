@@ -102,7 +102,7 @@ lemma stream_flat_prefix:
   "[| x && xs << y && ys; (x::'a::flat) ~= UU|] ==> x = y & xs << ys"
 apply (case_tac "y=UU",auto)
 apply (auto simp add: stream.inverts)
-by (drule ax_flat [rule_format],simp)
+by (drule ax_flat,simp)
 
 
 
@@ -490,7 +490,7 @@ apply (case_tac "y=UU", clarsimp)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)+
 apply (erule_tac x="ya" in allE, simp)
 apply (auto simp add: stream.inverts)
-by (drule ax_flat [rule_format], simp)
+by (drule ax_flat, simp)
 
 lemma slen_strict_mono_lemma:
   "stream_finite t ==> !s. #(s::'a::flat stream) = #t &  s << t --> s = t"
@@ -498,7 +498,7 @@ apply (erule stream_finite_ind, auto)
 apply (case_tac "sa=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
 apply (simp add: stream.inverts, clarsimp)
-by (drule ax_flat [rule_format], simp)
+by (drule ax_flat, simp)
 
 lemma slen_strict_mono: "[|stream_finite t; s ~= t; s << (t::'a::flat stream) |] ==> #s < #t"
 apply (intro ilessI1, auto)

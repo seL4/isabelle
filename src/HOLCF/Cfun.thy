@@ -414,7 +414,7 @@ lemma flat2flat:
     \<Longrightarrow> \<forall>x y::'b. x \<sqsubseteq> y \<longrightarrow> x = \<bottom> \<or> x = y"
 apply clarify
 apply (drule_tac f=g in monofun_cfun_arg)
-apply (drule ax_flat [rule_format])
+apply (drule ax_flat)
 apply (erule disjE)
 apply (simp add: injection_defined_rev)
 apply (simp add: injection_eq)
@@ -423,7 +423,7 @@ done
 text {* a result about functions with flat codomain *}
 
 lemma flat_eqI: "\<lbrakk>(x::'a::flat) \<sqsubseteq> y; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> x = y"
-by (drule ax_flat [rule_format], simp)
+by (drule ax_flat, simp)
 
 lemma flat_codom:
   "f\<cdot>x = (c::'b::flat) \<Longrightarrow> f\<cdot>\<bottom> = \<bottom> \<or> (\<forall>z. f\<cdot>z = c)"

@@ -180,7 +180,7 @@ apply (auto, case_tac "x=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (simp add: fsingleton_def2, auto)
 apply (auto simp add: stream.inverts)
-apply (drule ax_flat [rule_format], simp)
+apply (drule ax_flat, simp)
 by (erule sconc_mono)
 
 lemma ft_fstreams[simp]: "ft$(<a> ooo s) = Def a"
@@ -280,7 +280,7 @@ apply (rule_tac x="i" in exI, auto)
 apply (simp add: max_in_chain_def, auto)
 apply (subgoal_tac "Y i << Y j",auto)
 apply (simp add: less_cprod_def, clarsimp)
-apply (drule ax_flat [rule_format], auto)
+apply (drule ax_flat, auto)
 apply (case_tac "snd (Y j) = UU",auto)
 apply (case_tac "Y j", auto)
 apply (rule_tac x="j" in exI)
@@ -292,7 +292,7 @@ lemma fstreams_lub_lemma2:
 apply (frule lub_Pair_not_UU_lemma, auto)
 apply (drule_tac x="j" in is_ub_thelub, auto)
 apply (simp add: less_cprod_def, clarsimp)
-apply (drule ax_flat [rule_format], clarsimp)
+apply (drule ax_flat, clarsimp)
 by (drule fstreams_prefix' [THEN iffD1], auto)
 
 lemma fstreams_lub2:
@@ -326,7 +326,7 @@ apply (drule fstreams_mono, simp)
 apply (rule is_ub_thelub chainI)
 apply (simp add: chain_def less_cprod_def)
 apply (subgoal_tac "fst (Y j) ~= fst (Y ja) | snd (Y j) ~= snd (Y ja)", simp)
-apply (drule ax_flat[rule_format], simp)+
+apply (drule ax_flat, simp)+
 apply (drule prod_eqI, auto)
 apply (simp add: chain_mono3)
 by (rule stream_reach2)

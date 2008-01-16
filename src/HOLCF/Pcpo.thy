@@ -258,7 +258,7 @@ axclass chfin < po
   chfin: "\<forall>Y. chain Y \<longrightarrow> (\<exists>n. max_in_chain n Y)"
 
 axclass flat < pcpo
-  ax_flat: "\<forall>x y. x \<sqsubseteq> y \<longrightarrow> (x = \<bottom>) \<or> (x = y)"
+  ax_flat: "x \<sqsubseteq> y \<Longrightarrow> (x = \<bottom>) \<or> (x = y)"
 
 text {* finite partial orders are chain-finite and directed-complete *}
 
@@ -292,8 +292,8 @@ by intro_classes (rule chfin_imp_cpo)
 
 text {* flat types are chfin *}
 
-lemma flat_imp_chfin: 
-     "\<forall>Y::nat \<Rightarrow> 'a::flat. chain Y \<longrightarrow> (\<exists>n. max_in_chain n Y)"
+instance flat < chfin
+apply intro_classes
 apply (unfold max_in_chain_def)
 apply clarify
 apply (case_tac "\<forall>i. Y i = \<bottom>")
@@ -302,21 +302,18 @@ apply simp
 apply (erule exE)
 apply (rule_tac x="i" in exI)
 apply clarify
-apply (blast dest: chain_mono3 ax_flat [rule_format])
+apply (blast dest: chain_mono3 ax_flat)
 done
-
-instance flat < chfin
-by intro_classes (rule flat_imp_chfin)
 
 text {* flat subclass of chfin; @{text adm_flat} not needed *}
 
 lemma flat_less_iff:
   fixes x y :: "'a::flat"
   shows "(x \<sqsubseteq> y) = (x = \<bottom> \<or> x = y)"
-by (safe dest!: ax_flat [rule_format])
+by (safe dest!: ax_flat)
 
 lemma flat_eq: "(a::'a::flat) \<noteq> \<bottom> \<Longrightarrow> a \<sqsubseteq> b = (a = b)"
-by (safe dest!: ax_flat [rule_format])
+by (safe dest!: ax_flat)
 
 lemma chfin2finch: "chain (Y::nat \<Rightarrow> 'a::chfin) \<Longrightarrow> finite_chain Y"
 by (simp add: chfin finite_chain_def)

@@ -98,7 +98,7 @@ lemma less_lift: "(x::'a lift) \<sqsubseteq> y = (x = y \<or> x = \<bottom>)"
 by (induct x, simp_all)
 
 instance lift :: (type) flat
-by (intro_classes, simp add: less_lift)
+by (intro_classes, auto simp add: less_lift)
 
 text {*
   \medskip Two specific lemmas for the combination of LCF and HOL
