@@ -41,12 +41,8 @@ subsection {* Admissibility on chain-finite types *}
 
 text {* for chain-finite (easy) types every formula is admissible *}
 
-lemma adm_max_in_chain:
-  "\<forall>Y. chain (Y::nat \<Rightarrow> 'a) \<longrightarrow> (\<exists>n. max_in_chain n Y)
-    \<Longrightarrow> adm (P::'a \<Rightarrow> bool)"
-by (auto simp add: adm_def maxinch_is_thelub)
-
-lemmas adm_chfin = chfin [THEN adm_max_in_chain, standard]
+lemma adm_chfin: "adm (P::'a::chfin \<Rightarrow> bool)"
+by (rule admI, frule chfin, auto simp add: maxinch_is_thelub)
 
 subsection {* Admissibility of special formulae and propagation *}
 

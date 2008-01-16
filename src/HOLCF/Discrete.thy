@@ -61,7 +61,7 @@ proof
 qed
 
 instance discr :: (type) chfin
-apply (intro_classes, clarify)
+apply intro_classes
 apply (rule_tac x=0 in exI)
 apply (unfold max_in_chain_def)
 apply (clarify, erule discr_chain0 [symmetric])

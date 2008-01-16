@@ -119,14 +119,14 @@ proof (intro allI impI)
 qed
 
 instance "fun" :: (finite, chfin) chfin
-proof (intro_classes, clarify)
+proof
   fix Y :: "nat \<Rightarrow> 'a \<Rightarrow> 'b"
   let ?n = "\<lambda>x. LEAST n. max_in_chain n (\<lambda>i. Y i x)"
   assume "chain Y"
   hence "\<And>x. chain (\<lambda>i. Y i x)"
     by (rule ch2ch_fun)
   hence "\<And>x. \<exists>n. max_in_chain n (\<lambda>i. Y i x)"
-    by (rule chfin [rule_format])
+    by (rule chfin)
   hence "\<And>x. max_in_chain (?n x) (\<lambda>i. Y i x)"
     by (rule LeastI_ex)
   hence "\<And>x. max_in_chain (Max (range ?n)) (\<lambda>i. Y i x)"

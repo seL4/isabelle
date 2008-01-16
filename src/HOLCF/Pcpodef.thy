@@ -80,13 +80,12 @@ theorem typedef_chfin:
   assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
   shows "OFCLASS('b, chfin_class)"
- apply (intro_classes, clarify)
+ apply intro_classes
  apply (drule ch2ch_Rep [OF less])
- apply (drule chfin [rule_format])
+ apply (drule chfin)
  apply (unfold max_in_chain_def)
  apply (simp add: type_definition.Rep_inject [OF type])
 done
-
 
 subsection {* Proving a subtype is complete *}
 

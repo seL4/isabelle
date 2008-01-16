@@ -306,7 +306,7 @@ apply (drule compact_csnd, simp)
 done
 
 instance "*" :: (chfin, chfin) chfin
-apply (intro_classes, clarify)
+apply intro_classes
 apply (erule compact_imp_max_in_chain)
 apply (rule_tac p="\<Squnion>i. Y i" in cprodE, simp)
 done

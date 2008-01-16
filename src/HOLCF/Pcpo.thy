@@ -255,7 +255,7 @@ text {* further useful classes for HOLCF domains *}
 axclass finite_po < finite, po
 
 axclass chfin < po
-  chfin: "\<forall>Y. chain Y \<longrightarrow> (\<exists>n. max_in_chain n Y)"
+  chfin: "chain Y \<Longrightarrow> \<exists>n. max_in_chain n Y"
 
 axclass flat < pcpo
   ax_flat: "x \<sqsubseteq> y \<Longrightarrow> (x = \<bottom>) \<or> (x = y)"
@@ -263,7 +263,7 @@ axclass flat < pcpo
 text {* finite partial orders are chain-finite and directed-complete *}
 
 instance finite_po < chfin
-apply (intro_classes, clarify)
+apply intro_classes
 apply (drule finite_range_imp_finch)
 apply (rule finite)
 apply (simp add: finite_chain_def)
@@ -281,21 +281,17 @@ text {* some properties for chfin and flat *}
 
 text {* chfin types are cpo *}
 
-lemma chfin_imp_cpo:
-  "chain (S::nat \<Rightarrow> 'a::chfin) \<Longrightarrow> \<exists>x. range S <<| x"
-apply (frule chfin [rule_format])
+instance chfin < cpo
+apply intro_classes
+apply (frule chfin)
 apply (blast intro: lub_finch1)
 done
-
-instance chfin < cpo
-by intro_classes (rule chfin_imp_cpo)
 
 text {* flat types are chfin *}
 
 instance flat < chfin
 apply intro_classes
 apply (unfold max_in_chain_def)
-apply clarify
 apply (case_tac "\<forall>i. Y i = \<bottom>")
 apply simp
 apply simp

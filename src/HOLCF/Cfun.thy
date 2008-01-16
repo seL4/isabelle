@@ -404,7 +404,7 @@ lemma chfin2chfin:
     \<Longrightarrow> \<forall>Y::nat \<Rightarrow> 'b. chain Y \<longrightarrow> (\<exists>n. max_in_chain n Y)"
 apply clarify
 apply (drule_tac f=g in chain_monofun)
-apply (drule chfin [rule_format])
+apply (drule chfin)
 apply (unfold max_in_chain_def)
 apply (simp add: injection_eq)
 done
