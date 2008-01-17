@@ -916,7 +916,6 @@ apply (rule chain_iterate)
 apply (rule lub_mono)
 apply (rule chain_iterate [THEN ch2ch_Rep_CFunL])
 apply (rule chain_iterate [THEN ch2ch_Rep_CFunL])
-apply (rule allI)
 apply (rule prems [unfolded seq.take_def])
 done
 

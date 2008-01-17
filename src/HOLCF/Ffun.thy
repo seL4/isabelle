@@ -179,7 +179,7 @@ lemma monofun_lub_fun:
     \<Longrightarrow> monofun (\<Squnion>i. F i)"
 apply (rule monofunI)
 apply (simp add: thelub_fun)
-apply (rule lub_mono [rule_format])
+apply (rule lub_mono)
 apply (erule ch2ch_fun)
 apply (erule ch2ch_fun)
 apply (simp add: monofunE)

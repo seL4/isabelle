@@ -153,7 +153,7 @@ lemma bifinite_less_ext:
   fixes x y :: "'a::bifinite_cpo"
   shows "(\<And>i. approx i\<cdot>x \<sqsubseteq> approx i\<cdot>y) \<Longrightarrow> x \<sqsubseteq> y"
 apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> (\<Squnion>i. approx i\<cdot>y)", simp)
-apply (rule lub_mono [rule_format], simp, simp, simp)
+apply (rule lub_mono, simp, simp, simp)
 done
 
 subsection {* Instance for continuous function space *}

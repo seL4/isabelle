@@ -77,7 +77,7 @@ lemma adm_disj_lemma3:
     (\<Squnion>i. Y i) = (\<Squnion>i. Y (LEAST j. i \<le> j \<and> P (Y j)))"
  apply (frule (1) adm_disj_lemma1)
  apply (rule antisym_less)
-  apply (rule lub_mono [rule_format], assumption+)
+  apply (rule lub_mono, assumption+)
   apply (erule chain_mono)
   apply (simp add: adm_disj_lemma2)
  apply (rule lub_range_mono, fast, assumption+)
@@ -128,7 +128,7 @@ apply (simp add: cont2contlubE)
 apply (rule lub_mono)
 apply (erule (1) ch2ch_cont)
 apply (erule (1) ch2ch_cont)
-apply assumption
+apply (erule spec)
 done
 
 lemma adm_eq: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x = v x)"

@@ -73,12 +73,12 @@ done
 text {* the @{text "\<sqsubseteq>"} relation between two chains is preserved by their lubs *}
 
 lemma lub_mono:
-  "\<lbrakk>chain (X::nat \<Rightarrow> 'a::cpo); chain Y; \<forall>k. X k \<sqsubseteq> Y k\<rbrakk> 
+  "\<lbrakk>chain (X::nat \<Rightarrow> 'a::cpo); chain Y; \<And>i. X i \<sqsubseteq> Y i\<rbrakk> 
     \<Longrightarrow> (\<Squnion>i. X i) \<sqsubseteq> (\<Squnion>i. Y i)"
 apply (erule is_lub_thelub)
 apply (rule ub_rangeI)
 apply (rule trans_less)
-apply (erule spec)
+apply (erule meta_spec)
 apply (erule is_ub_thelub)
 done
 
@@ -123,7 +123,7 @@ lemma ch2ch_lub:
   assumes 2: "\<And>i. chain (\<lambda>j. Y i j)"
   shows "chain (\<lambda>i. \<Squnion>j. Y i j)"
 apply (rule chainI)
-apply (rule lub_mono [rule_format, OF 2 2])
+apply (rule lub_mono [OF 2 2])
 apply (rule chainE [OF 1])
 done
 
@@ -151,7 +151,7 @@ proof (rule antisym_less)
     apply (rule chain_mono [OF 2 le_maxI2])
     done
   show "(\<Squnion>i. Y i i) \<sqsubseteq> (\<Squnion>i. \<Squnion>j. Y i j)"
-    apply (rule lub_mono [rule_format, OF 3 4])
+    apply (rule lub_mono [OF 3 4])
     apply (rule is_ub_thelub [OF 2])
     done
 qed
