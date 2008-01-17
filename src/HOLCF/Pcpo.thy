@@ -53,7 +53,7 @@ apply (rule is_lub_thelub)
 apply assumption
 apply (rule ub_rangeI)
 apply (rule_tac y="Y (i + j)" in trans_less)
-apply (erule chain_mono3)
+apply (erule chain_mono)
 apply (rule le_add1)
 apply (rule is_ub_thelub)
 apply (erule chain_shift)
@@ -65,7 +65,7 @@ apply (rule iffI)
 apply (fast intro!: thelubI lub_finch1)
 apply (unfold max_in_chain_def)
 apply (safe intro!: antisym_less)
-apply (fast elim!: chain_mono3)
+apply (fast elim!: chain_mono)
 apply (drule sym)
 apply (force elim!: is_ub_thelub)
 done
@@ -147,8 +147,8 @@ proof (rule antisym_less)
     apply (rule lub_mono3 [rule_format, OF 2 3])
     apply (rule exI)
     apply (rule trans_less)
-    apply (rule chain_mono3 [OF 1 le_maxI1])
-    apply (rule chain_mono3 [OF 2 le_maxI2])
+    apply (rule chain_mono [OF 1 le_maxI1])
+    apply (rule chain_mono [OF 2 le_maxI2])
     done
   show "(\<Squnion>i. Y i i) \<sqsubseteq> (\<Squnion>i. \<Squnion>j. Y i j)"
     apply (rule lub_mono [rule_format, OF 3 4])
@@ -246,7 +246,7 @@ lemma notUU_I: "\<lbrakk>x \<sqsubseteq> y; x \<noteq> \<bottom>\<rbrakk> \<Long
 by (blast intro: UU_I)
 
 lemma chain_mono2: "\<lbrakk>\<exists>j. Y j \<noteq> \<bottom>; chain Y\<rbrakk> \<Longrightarrow> \<exists>j. \<forall>i>j. Y i \<noteq> \<bottom>"
-by (blast dest: notUU_I chain_mono)
+by (blast dest: notUU_I chain_mono_less)
 
 subsection {* Chain-finite and flat cpos *}
 
@@ -298,7 +298,7 @@ apply simp
 apply (erule exE)
 apply (rule_tac x="i" in exI)
 apply clarify
-apply (blast dest: chain_mono3 ax_flat)
+apply (blast dest: chain_mono ax_flat)
 done
 
 text {* flat subclass of chfin; @{text adm_flat} not needed *}
@@ -338,7 +338,7 @@ apply assumption
 apply (erule thin_rl)
 apply (unfold finite_chain_def)
 apply (unfold max_in_chain_def)
-apply (fast dest: le_imp_less_or_eq elim: chain_mono)
+apply (fast dest: le_imp_less_or_eq elim: chain_mono_less)
 done
 
 end

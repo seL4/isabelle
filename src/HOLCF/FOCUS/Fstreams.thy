@@ -264,7 +264,7 @@ apply (rule fstreams_chain_lemma, auto)
 apply (subgoal_tac "Y ja << (LUB i. (Y i))", clarsimp)
 apply (drule fstreams_mono, simp)
 apply (rule is_ub_thelub, simp)
-apply (blast intro: chain_mono3)
+apply (blast intro: chain_mono)
 by (rule stream_reach2)
 
 
@@ -285,7 +285,7 @@ apply (case_tac "snd (Y j) = UU",auto)
 apply (case_tac "Y j", auto)
 apply (rule_tac x="j" in exI)
 apply (case_tac "Y j",auto)
-by (drule chain_mono3, auto)
+by (drule chain_mono, auto)
 
 lemma fstreams_lub_lemma2: 
   "[| chain Y; lub (range Y) = (a, <m> ooo ms); (a::'a::flat) ~= UU |] ==> EX j t. Y j = (a, <m> ooo t)"
@@ -328,7 +328,7 @@ apply (simp add: chain_def less_cprod_def)
 apply (subgoal_tac "fst (Y j) ~= fst (Y ja) | snd (Y j) ~= snd (Y ja)", simp)
 apply (drule ax_flat, simp)+
 apply (drule prod_eqI, auto)
-apply (simp add: chain_mono3)
+apply (simp add: chain_mono)
 by (rule stream_reach2)
 
 

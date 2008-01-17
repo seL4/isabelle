@@ -220,7 +220,7 @@ by (drule mono_stream_take_pred,simp)
 
 lemma stream_take_le_mono : "k<=n ==> stream_take k$s1 << stream_take n$s1"
 apply (insert chain_stream_take [of s1])
-by (drule chain_mono3,auto)
+by (drule chain_mono,auto)
 
 lemma mono_stream_take: "s1 << s2 ==> stream_take n$s1 << stream_take n$s2"
 by (simp add: monofun_cfun_arg)

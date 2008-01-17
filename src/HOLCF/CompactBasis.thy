@@ -429,7 +429,7 @@ unfolding compacts_def
   apply (rule_tac x="Abs_compact_basis (approx (max i j)\<cdot>w)" in exI)
   apply (simp add: approx_less compact_le_def)
   apply (erule subst, erule subst)
-  apply (simp add: monofun_cfun chain_mono3 [OF chain_approx])
+  apply (simp add: monofun_cfun chain_mono [OF chain_approx])
  apply (simp add: compact_le_def)
  apply (erule (1) trans_less)
 done
@@ -493,7 +493,7 @@ lemma compact_approx_mono1:
   "i \<le> j \<Longrightarrow> compact_le (compact_approx i a) (compact_approx j a)"
 unfolding compact_le_def
 apply (simp add: Rep_compact_approx)
-apply (rule chain_mono3, simp, assumption)
+apply (rule chain_mono, simp, assumption)
 done
 
 lemma compact_approx_mono:

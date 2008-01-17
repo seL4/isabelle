@@ -56,7 +56,7 @@ apply (rule monofun_cfun_arg [OF approx_less])
 apply (rule sq_ord_eq_less_trans [OF approx_idem [symmetric]])
 apply (rule monofun_cfun_arg)
 apply (rule monofun_cfun_fun)
-apply (erule chain_mono3 [OF chain_approx])
+apply (erule chain_mono [OF chain_approx])
 done
 
 lemma approx_approx2:
@@ -65,7 +65,7 @@ apply (rule antisym_less)
 apply (rule approx_less)
 apply (rule sq_ord_eq_less_trans [OF approx_idem [symmetric]])
 apply (rule monofun_cfun_fun)
-apply (erule chain_mono3 [OF chain_approx])
+apply (erule chain_mono [OF chain_approx])
 done
 
 lemma approx_approx [simp]:

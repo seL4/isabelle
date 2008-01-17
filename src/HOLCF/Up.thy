@@ -117,7 +117,7 @@ by (case_tac z, simp_all)
 lemma up_lemma2:
   "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk> \<Longrightarrow> Y (i + j) \<noteq> Ibottom"
 apply (erule contrapos_nn)
-apply (drule_tac x="j" and y="i + j" in chain_mono3)
+apply (drule_tac i="j" and j="i + j" in chain_mono)
 apply (rule le_add2)
 apply (case_tac "Y j")
 apply assumption

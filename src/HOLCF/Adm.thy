@@ -64,7 +64,7 @@ lemma adm_disj_lemma1:
   "\<lbrakk>chain (Y::nat \<Rightarrow> 'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk>
     \<Longrightarrow> chain (\<lambda>i. Y (LEAST j. i \<le> j \<and> P (Y j)))"
 apply (rule chainI)
-apply (erule chain_mono3)
+apply (erule chain_mono)
 apply (rule Least_le)
 apply (rule LeastI2_ex)
 apply simp_all
@@ -78,7 +78,7 @@ lemma adm_disj_lemma3:
  apply (frule (1) adm_disj_lemma1)
  apply (rule antisym_less)
   apply (rule lub_mono [rule_format], assumption+)
-  apply (erule chain_mono3)
+  apply (erule chain_mono)
   apply (simp add: adm_disj_lemma2)
  apply (rule lub_range_mono, fast, assumption+)
 done
@@ -180,7 +180,7 @@ apply (drule (1) compactD2, simp)
 apply (erule exE, rule_tac x=i in exI)
 apply (rule max_in_chainI)
 apply (rule antisym_less)
-apply (erule (1) chain_mono3)
+apply (erule (1) chain_mono)
 apply (erule (1) trans_less [OF is_ub_thelub])
 done
 

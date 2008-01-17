@@ -168,27 +168,29 @@ subsection {* Countable chains *}
 definition
   -- {* Here we use countable chains and I prefer to code them as functions! *}
   chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool" where
-  "chain F = (\<forall>i. F i \<sqsubseteq> F (Suc i))"
+  "chain Y = (\<forall>i. Y i \<sqsubseteq> Y (Suc i))"
+
+lemma chainI: "(\<And>i. Y i \<sqsubseteq> Y (Suc i)) \<Longrightarrow> chain Y"
+unfolding chain_def by fast
+
+lemma chainE: "chain Y \<Longrightarrow> Y i \<sqsubseteq> Y (Suc i)"
+unfolding chain_def by fast
 
 text {* chains are monotone functions *}
 
-lemma chain_mono [rule_format]: "chain F \<Longrightarrow> x < y \<longrightarrow> F x \<sqsubseteq> F y"
-apply (unfold chain_def)
-apply (induct_tac y)
+lemma chain_mono:
+  assumes Y: "chain Y"
+  shows "i \<le> j \<Longrightarrow> Y i \<sqsubseteq> Y j"
+apply (induct j)
 apply simp
-apply (blast elim: less_SucE intro: trans_less)
+apply (erule le_SucE)
+apply (rule trans_less [OF _ chainE [OF Y]])
+apply simp
+apply simp
 done
 
-lemma chain_mono3: "\<lbrakk>chain F; x \<le> y\<rbrakk> \<Longrightarrow> F x \<sqsubseteq> F y"
-apply (drule le_imp_less_or_eq)
-apply (blast intro: chain_mono)
-done
-
-lemma chainE: "chain F \<Longrightarrow> F i \<sqsubseteq> F (Suc i)"
-by (unfold chain_def, simp)
-
-lemma chainI: "(\<And>i. F i \<sqsubseteq> F (Suc i)) \<Longrightarrow> chain F"
-by (unfold chain_def, simp)
+lemma chain_mono_less: "\<lbrakk>chain Y; i < j\<rbrakk> \<Longrightarrow> Y i \<sqsubseteq> Y j"
+by (erule chain_mono, simp)
 
 lemma chain_shift: "chain Y \<Longrightarrow> chain (\<lambda>i. Y (i + j))"
 apply (rule chainI)
@@ -206,7 +208,7 @@ lemma is_ub_range_shift:
 apply (rule iffI)
 apply (rule ub_rangeI)
 apply (rule_tac y="S (i + j)" in trans_less)
-apply (erule chain_mono3)
+apply (erule chain_mono)
 apply (rule le_add1)
 apply (erule ub_rangeD)
 apply (rule ub_rangeI)
@@ -237,24 +239,23 @@ definition
 
 text {* The range of a chain is a totally ordered *}
 
-lemma chain_tord: "chain F \<Longrightarrow> tord (range F)"
-apply (unfold tord_def, clarify)
-apply (rule nat_less_cases)
+lemma chain_tord: "chain Y \<Longrightarrow> tord (range Y)"
+unfolding tord_def
+apply (clarify, rename_tac i j)
+apply (rule_tac x=i and y=j in linorder_le_cases)
 apply (fast intro: chain_mono)+
 done
 
-lemma finite_tord_has_max [rule_format]:
-  "finite S \<Longrightarrow> S \<noteq> {} \<longrightarrow> tord S \<longrightarrow> (\<exists>y\<in>S. \<forall>x\<in>S. x \<sqsubseteq> y)"
- apply (erule finite_induct, simp)
- apply (rename_tac a S, clarify)
- apply (case_tac "S = {}", simp)
- apply (drule (1) mp)
- apply (drule mp, simp add: tord_def)
+lemma finite_tord_has_max:
+  "\<lbrakk>finite S; S \<noteq> {}; tord S\<rbrakk> \<Longrightarrow> \<exists>y\<in>S. \<forall>x\<in>S. x \<sqsubseteq> y"
+ apply (induct S rule: finite_ne_induct)
+  apply simp
+ apply (drule meta_mp, simp add: tord_def)
  apply (erule bexE, rename_tac z)
- apply (subgoal_tac "a \<sqsubseteq> z \<or> z \<sqsubseteq> a")
+ apply (subgoal_tac "x \<sqsubseteq> z \<or> z \<sqsubseteq> x")
   apply (erule disjE)
    apply (rule_tac x="z" in bexI, simp, simp)
-  apply (rule_tac x="a" in bexI)
+  apply (rule_tac x="x" in bexI)
    apply (clarsimp elim!: rev_trans_less)
   apply simp
  apply (simp add: tord_def)
@@ -284,7 +285,7 @@ apply (rule is_lubI)
 apply (rule ub_rangeI, rename_tac j)
 apply (rule_tac x=i and y=j in linorder_le_cases)
 apply (drule (1) max_in_chainD, simp)
-apply (erule (1) chain_mono3)
+apply (erule (1) chain_mono)
 apply (erule ub_rangeD)
 done
 
@@ -315,7 +316,7 @@ lemma finite_range_imp_finch:
   apply (clarsimp, rename_tac i)
   apply (subgoal_tac "max_in_chain i Y")
    apply (simp add: finite_chain_def exI)
-  apply (simp add: max_in_chain_def po_eq_conv chain_mono3)
+  apply (simp add: max_in_chain_def po_eq_conv chain_mono)
  apply (erule finite_tord_has_max, simp)
  apply (erule chain_tord)
 done
@@ -418,7 +419,7 @@ apply (rule directedI)
 apply (rule_tac x="S 0" in exI, simp)
 apply (clarify, rename_tac m n)
 apply (rule_tac x="S (max m n)" in bexI)
-apply (simp add: chain_mono3)
+apply (simp add: chain_mono)
 apply simp
 done
 
