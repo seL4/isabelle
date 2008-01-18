@@ -340,7 +340,7 @@ lemma principal_induct:
   shows "P x"
  apply (subgoal_tac "P (\<Squnion>i. basis_fun (\<lambda>a. principal (take i a))\<cdot>x)")
  apply (simp add: lub_basis_fun_take)
- apply (rule admD [rule_format, OF adm])
+ apply (rule admD [OF adm])
   apply (simp add: chain_basis_fun_take)
  apply (cut_tac x=x and i=i in basis_fun_take_eq_principal)
  apply (clarify, simp add: P)
@@ -452,7 +452,7 @@ done
 
 lemma compacts_lessD: "compacts x \<subseteq> compacts y \<Longrightarrow> x \<sqsubseteq> y"
 apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> y", simp)
-apply (rule admD [rule_format], simp, simp)
+apply (rule admD, simp, simp)
 apply (drule_tac c="Abs_compact_basis (approx i\<cdot>x)" in subsetD)
 apply (simp add: compacts_def Abs_compact_basis_inverse approx_less)
 apply (simp add: compacts_def Abs_compact_basis_inverse)

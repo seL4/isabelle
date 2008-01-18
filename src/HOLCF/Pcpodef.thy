@@ -104,7 +104,7 @@ lemma Abs_inverse_lub_Rep:
     and adm:  "adm (\<lambda>x. x \<in> A)"
   shows "chain S \<Longrightarrow> Rep (Abs (\<Squnion>i. Rep (S i))) = (\<Squnion>i. Rep (S i))"
  apply (rule type_definition.Abs_inverse [OF type])
- apply (erule admD [OF adm ch2ch_Rep [OF less], rule_format])
+ apply (erule admD [OF adm ch2ch_Rep [OF less]])
  apply (rule type_definition.Rep [OF type])
 done
 

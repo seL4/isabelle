@@ -153,7 +153,7 @@ subsection {* Fixed point induction *}
 
 lemma fix_ind: "\<lbrakk>adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
 apply (subst fix_def2)
-apply (erule admD [rule_format])
+apply (erule admD)
 apply (rule chain_iterate)
 apply (induct_tac "i", simp_all)
 done
@@ -233,7 +233,7 @@ apply (unfold admw_def)
 apply (intro strip)
 apply (erule admD)
 apply (rule chain_iterate)
-apply assumption
+apply (erule spec)
 done
 
 text {* computational induction for weak admissible formulae *}

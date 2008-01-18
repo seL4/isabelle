@@ -346,7 +346,7 @@ lemma upper_plus_less_unit_iff:
  apply (rule iffI)
   apply (subgoal_tac
     "adm (\<lambda>f. f\<cdot>xs \<sqsubseteq> f\<cdot>(upper_unit\<cdot>z) \<or> f\<cdot>ys \<sqsubseteq> f\<cdot>(upper_unit\<cdot>z))")
-   apply (drule admD [rule_format], rule chain_approx)
+   apply (drule admD, rule chain_approx)
     apply (drule_tac f="approx i" in monofun_cfun_arg)
     apply (cut_tac xs="approx i\<cdot>xs" in compact_imp_upper_principal, simp)
     apply (cut_tac xs="approx i\<cdot>ys" in compact_imp_upper_principal, simp)

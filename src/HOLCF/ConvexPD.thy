@@ -372,7 +372,7 @@ lemma convex_unit_less_plus_iff [simp]:
  apply (rule iffI)
   apply (subgoal_tac
     "adm (\<lambda>f. f\<cdot>(convex_unit\<cdot>x) \<sqsubseteq> f\<cdot>ys \<and> f\<cdot>(convex_unit\<cdot>x) \<sqsubseteq> f\<cdot>zs)")
-   apply (drule admD [rule_format], rule chain_approx)
+   apply (drule admD, rule chain_approx)
     apply (drule_tac f="approx i" in monofun_cfun_arg)
     apply (cut_tac x="approx i\<cdot>x" in compact_imp_Rep_compact_basis, simp)
     apply (cut_tac xs="approx i\<cdot>ys" in compact_imp_convex_principal, simp)
@@ -391,7 +391,7 @@ lemma convex_plus_less_unit_iff [simp]:
  apply (rule iffI)
   apply (subgoal_tac
     "adm (\<lambda>f. f\<cdot>xs \<sqsubseteq> f\<cdot>(convex_unit\<cdot>z) \<and> f\<cdot>ys \<sqsubseteq> f\<cdot>(convex_unit\<cdot>z))")
-   apply (drule admD [rule_format], rule chain_approx)
+   apply (drule admD, rule chain_approx)
     apply (drule_tac f="approx i" in monofun_cfun_arg)
     apply (cut_tac xs="approx i\<cdot>xs" in compact_imp_convex_principal, simp)
     apply (cut_tac xs="approx i\<cdot>ys" in compact_imp_convex_principal, simp)

@@ -21,7 +21,7 @@ lemma admI:
    "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)) \<Longrightarrow> adm P"
 unfolding adm_def by fast
 
-lemma admD: "\<lbrakk>adm P; chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)"
+lemma admD: "\<lbrakk>adm P; chain Y; \<And>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)"
 unfolding adm_def by fast
 
 lemma triv_admI: "\<forall>x. P x \<Longrightarrow> adm P"
@@ -50,7 +50,7 @@ lemma adm_not_free: "adm (\<lambda>x. t)"
 by (rule admI, simp)
 
 lemma adm_conj: "\<lbrakk>adm P; adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<and> Q x)"
-by (fast elim: admD intro: admI)
+by (fast intro: admI elim: admD)
 
 lemma adm_all: "(\<And>y. adm (P y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y. P y x)"
 by (fast intro: admI elim: admD)
@@ -139,7 +139,7 @@ apply (rule admI)
 apply (simp add: cont2contlubE)
 apply (erule admD)
 apply (erule (1) ch2ch_cont)
-apply assumption
+apply (erule spec)
 done
 
 lemma adm_not_less: "cont t \<Longrightarrow> adm (\<lambda>x. \<not> t x \<sqsubseteq> u)"
