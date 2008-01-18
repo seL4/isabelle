@@ -29,7 +29,6 @@ theorem typedef_po:
  apply (erule (1) trans_less)
 done
 
-
 subsection {* Proving a subtype is finite *}
 
 context type_definition
@@ -138,7 +137,6 @@ proof
     by (rule typedef_lub [OF type less adm])
   thus "\<exists>x. range S <<| x" ..
 qed
-
 
 subsubsection {* Continuity of @{term Rep} and @{term Abs} *}
 
@@ -265,23 +263,37 @@ theorem typedef_Rep_strict:
  apply (rule type_definition.Abs_inverse [OF type UU_in_A])
 done
 
+theorem typedef_Abs_strict_iff:
+  assumes type: "type_definition Rep Abs A"
+    and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
+    and UU_in_A: "\<bottom> \<in> A"
+  shows "x \<in> A \<Longrightarrow> (Abs x = \<bottom>) = (x = \<bottom>)"
+ apply (rule typedef_Abs_strict [OF type less UU_in_A, THEN subst])
+ apply (simp add: type_definition.Abs_inject [OF type] UU_in_A)
+done
+
+theorem typedef_Rep_strict_iff:
+  assumes type: "type_definition Rep Abs A"
+    and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
+    and UU_in_A: "\<bottom> \<in> A"
+  shows "(Rep x = \<bottom>) = (x = \<bottom>)"
+ apply (rule typedef_Rep_strict [OF type less UU_in_A, THEN subst])
+ apply (simp add: type_definition.Rep_inject [OF type])
+done
+
 theorem typedef_Abs_defined:
   assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and UU_in_A: "\<bottom> \<in> A"
   shows "\<lbrakk>x \<noteq> \<bottom>; x \<in> A\<rbrakk> \<Longrightarrow> Abs x \<noteq> \<bottom>"
- apply (rule typedef_Abs_strict [OF type less UU_in_A, THEN subst])
- apply (simp add: type_definition.Abs_inject [OF type] UU_in_A)
-done
+by (simp add: typedef_Abs_strict_iff [OF type less UU_in_A])
 
 theorem typedef_Rep_defined:
   assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
     and UU_in_A: "\<bottom> \<in> A"
   shows "x \<noteq> \<bottom> \<Longrightarrow> Rep x \<noteq> \<bottom>"
- apply (rule typedef_Rep_strict [OF type less UU_in_A, THEN subst])
- apply (simp add: type_definition.Rep_inject [OF type])
-done
+by (simp add: typedef_Rep_strict_iff [OF type less UU_in_A])
 
 subsection {* Proving a subtype is flat *}
 

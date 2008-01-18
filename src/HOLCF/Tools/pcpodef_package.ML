@@ -34,6 +34,8 @@ val cont_Rep = thm "typedef_cont_Rep";
 val cont_Abs = thm "typedef_cont_Abs";
 val Rep_strict = thm "typedef_Rep_strict";
 val Abs_strict = thm "typedef_Abs_strict";
+val Rep_strict_iff = thm "typedef_Rep_strict_iff";
+val Abs_strict_iff = thm "typedef_Abs_strict_iff";
 val Rep_defined = thm "typedef_Rep_defined";
 val Abs_defined = thm "typedef_Abs_defined";
 
@@ -133,6 +135,8 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         |> PureThy.add_thms
             ([((Rep_name ^ "_strict", Rep_strict OF pcpo_thms), []),
               ((Abs_name ^ "_strict", Abs_strict OF pcpo_thms), []),
+              ((Rep_name ^ "_strict_iff", Rep_strict_iff OF pcpo_thms), []),
+              ((Abs_name ^ "_strict_iff", Abs_strict_iff OF pcpo_thms), []),
               ((Rep_name ^ "_defined", Rep_defined OF pcpo_thms), []),
               ((Abs_name ^ "_defined", Abs_defined OF pcpo_thms), [])
               ])
