@@ -59,7 +59,7 @@ syntax
   "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3FIX _./ _)" [1000, 10] 10)
 
 syntax (xsymbols)
-  "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3\<mu>_./ _)" [1000, 10] 10)
+  "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3\<mu> _./ _)" [1000, 10] 10)
 
 translations
   "\<mu> x. t" == "CONST fix\<cdot>(\<Lambda> x. t)"

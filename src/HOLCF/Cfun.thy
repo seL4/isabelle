@@ -68,7 +68,7 @@ syntax
   "_Lambda" :: "[cargs, 'a] \<Rightarrow> logic"  ("(3LAM _./ _)" [1000, 10] 10)
 
 syntax (xsymbols)
-  "_Lambda" :: "[cargs, 'a] \<Rightarrow> logic" ("(3\<Lambda>_./ _)" [1000, 10] 10)
+  "_Lambda" :: "[cargs, 'a] \<Rightarrow> logic" ("(3\<Lambda> _./ _)" [1000, 10] 10)
 
 parse_ast_translation {*
 (* rewrites (LAM x y z. t) => (_cabs x (_cabs y (_cabs z t))) *)
