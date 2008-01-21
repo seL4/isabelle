@@ -1,280 +1,91 @@
 (*  Title:      HOL/Library/Efficient_Nat.thy
     ID:         $Id$
-    Author:     Stefan Berghofer, TU Muenchen
+    Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 *)
 
-header {* Implementation of natural numbers by integers *}
+header {* Implementation of natural numbers by target-language integers *}
 
 theory Efficient_Nat
 imports Main Code_Integer Code_Index
 begin
 
 text {*
-When generating code for functions on natural numbers, the canonical
-representation using @{term "0::nat"} and @{term "Suc"} is unsuitable for
-computations involving large numbers. The efficiency of the generated
-code can be improved drastically by implementing natural numbers by
-integers. To do this, just include this theory.
+  When generating code for functions on natural numbers, the
+  canonical representation using @{term "0::nat"} and
+  @{term "Suc"} is unsuitable for computations involving large
+  numbers.  The efficiency of the generated code can be improved
+  drastically by implementing natural numbers by target-language
+  integers.  To do this, just include this theory.
 *}
 
-subsection {* Logical rewrites *}
-
-text {*
-  An int-to-nat conversion
-  restricted to non-negative ints (in contrast to @{const nat}).
-  Note that this restriction has no logical relevance and
-  is just a kind of proof hint -- nothing prevents you from 
-  writing nonsense like @{term "nat_of_int (-4)"}
-*}
-
-definition
-  nat_of_int :: "int \<Rightarrow> nat" where
-  "k \<ge> 0 \<Longrightarrow> nat_of_int k = nat k"
-
-definition
-  int_of_nat :: "nat \<Rightarrow> int" where
-  [code func del]: "int_of_nat n = of_nat n"
-
-lemma int_of_nat_Suc [simp]:
-  "int_of_nat (Suc n) = 1 + int_of_nat n"
-  unfolding int_of_nat_def by simp
-
-lemma int_of_nat_add:
-  "int_of_nat (m + n) = int_of_nat m + int_of_nat n"
-  unfolding int_of_nat_def by (rule of_nat_add)
-
-lemma int_of_nat_mult:
-  "int_of_nat (m * n) = int_of_nat m * int_of_nat n"
-  unfolding int_of_nat_def by (rule of_nat_mult)
-
-lemma nat_of_int_of_number_of:
-  fixes k
-  assumes "k \<ge> 0"
-  shows "number_of k = nat_of_int (number_of k)"
-  unfolding nat_of_int_def [OF assms] nat_number_of_def number_of_is_id ..
-
-lemma nat_of_int_of_number_of_aux:
-  fixes k
-  assumes "Int.Pls \<le> k \<equiv> True"
-  shows "k \<ge> 0"
-  using assms unfolding Pls_def by simp
-
-lemma nat_of_int_int:
-  "nat_of_int (int_of_nat n) = n"
-  using nat_of_int_def int_of_nat_def by simp
-
-lemma eq_nat_of_int: "int_of_nat n = x \<Longrightarrow> n = nat_of_int x"
-by (erule subst, simp only: nat_of_int_int)
-
-code_datatype nat_of_int
-
-text {*
-  Case analysis on natural numbers is rephrased using a conditional
-  expression:
-*}
-
-lemma [code unfold, code inline del]:
-  "nat_case = (\<lambda>f g n. if n = 0 then f else g (n - 1))"
-proof -
-  have rewrite: "\<And>f g n. nat_case f g n = (if n = 0 then f else g (n - 1))"
-  proof -
-    fix f g n
-    show "nat_case f g n = (if n = 0 then f else g (n - 1))"
-      by (cases n) simp_all
-  qed
-  show "nat_case = (\<lambda>f g n. if n = 0 then f else g (n - 1))"
-    by (rule eq_reflection ext rewrite)+ 
-qed
-
-lemma [code inline]:
-  "nat_case = (\<lambda>f g n. if n = 0 then f else g (nat_of_int (int_of_nat n - 1)))"
-proof (rule ext)+
-  fix f g n
-  show "nat_case f g n = (if n = 0 then f else g (nat_of_int (int_of_nat n - 1)))"
-  by (cases n) (simp_all add: nat_of_int_int)
-qed
+subsection {* Basic arithmetic *}
 
 text {*
   Most standard arithmetic functions on natural numbers are implemented
   using their counterparts on the integers:
 *}
 
-lemma [code func]: "0 = nat_of_int 0"
-  by (simp add: nat_of_int_def)
+code_datatype number_nat_inst.number_of_nat
 
-lemma [code func, code inline]:  "1 = nat_of_int 1"
-  by (simp add: nat_of_int_def)
+lemma zero_nat_code [code, code unfold]:
+  "0 = (Numeral0 :: nat)"
+  by simp
+lemmas [code post] = zero_nat_code [symmetric]
 
-lemma [code func]: "Suc n = nat_of_int (int_of_nat n + 1)"
-  by (simp add: eq_nat_of_int)
+lemma one_nat_code [code, code unfold]:
+  "1 = (Numeral1 :: nat)"
+  by simp
+lemmas [code post] = one_nat_code [symmetric]
 
-lemma [code]: "m + n = nat (int_of_nat m + int_of_nat n)"
-  by (simp add: int_of_nat_def nat_eq_iff2)
+lemma Suc_code [code]:
+  "Suc n = n + 1"
+  by simp
 
-lemma [code func, code inline]: "m + n = nat_of_int (int_of_nat m + int_of_nat n)"
-  by (simp add: eq_nat_of_int int_of_nat_add)
+lemma plus_nat_code [code]:
+  "n + m = nat (of_nat n + of_nat m)"
+  by simp
 
-lemma [code, code inline]: "m - n = nat (int_of_nat m - int_of_nat n)"
-  by (simp add: int_of_nat_def nat_eq_iff2 of_nat_diff)
+lemma minus_nat_code [code]:
+  "n - m = nat (of_nat n - of_nat m)"
+  by simp
 
-lemma [code]: "m * n = nat (int_of_nat m * int_of_nat n)"
-  unfolding int_of_nat_def
-  by (simp add: of_nat_mult [symmetric] del: of_nat_mult)
+lemma times_nat_code [code]:
+  "n * m = nat (of_nat n * of_nat m)"
+  unfolding of_nat_mult [symmetric] by simp
 
-lemma [code func, code inline]: "m * n = nat_of_int (int_of_nat m * int_of_nat n)"
-  by (simp add: eq_nat_of_int int_of_nat_mult)
+lemma div_nat_code [code]:
+  "n div m = nat (of_nat n div of_nat m)"
+  unfolding zdiv_int [symmetric] by simp
 
-lemma [code]: "m div n = nat (int_of_nat m div int_of_nat n)"
-  unfolding int_of_nat_def zdiv_int [symmetric] by simp
+lemma mod_nat_code [code]:
+  "n mod m = nat (of_nat n mod of_nat m)"
+  unfolding zmod_int [symmetric] by simp
 
-lemma div_nat_code [code func]:
-  "m div k = nat_of_int (fst (divAlg (int_of_nat m, int_of_nat k)))"
-  unfolding div_def [symmetric] int_of_nat_def zdiv_int [symmetric]
-  unfolding int_of_nat_def [symmetric] nat_of_int_int ..
+lemma eq_nat_code [code]:
+  "n = m \<longleftrightarrow> (of_nat n \<Colon> int) = of_nat m"
+  by simp
 
-lemma [code]: "m mod n = nat (int_of_nat m mod int_of_nat n)"
-  unfolding int_of_nat_def zmod_int [symmetric] by simp
+lemma less_eq_nat_code [code]:
+  "n \<le> m \<longleftrightarrow> (of_nat n \<Colon> int) \<le> of_nat m"
+  by simp
 
-lemma mod_nat_code [code func]:
-  "m mod k = nat_of_int (snd (divAlg (int_of_nat m, int_of_nat k)))"
-  unfolding mod_def [symmetric] int_of_nat_def zmod_int [symmetric]
-  unfolding int_of_nat_def [symmetric] nat_of_int_int ..
+lemma less_nat_code [code]:
+  "n < m \<longleftrightarrow> (of_nat n \<Colon> int) < of_nat m"
+  by simp
 
-lemma [code, code inline]: "m < n \<longleftrightarrow> int_of_nat m < int_of_nat n"
-  unfolding int_of_nat_def by simp
-
-lemma [code func, code inline]: "m \<le> n \<longleftrightarrow> int_of_nat m \<le> int_of_nat n"
-  unfolding int_of_nat_def by simp
-
-lemma [code func, code inline]: "m = n \<longleftrightarrow> int_of_nat m = int_of_nat n"
-  unfolding int_of_nat_def by simp
-
-lemma [code func]: "nat k = (if k < 0 then 0 else nat_of_int k)"
-  by (cases "k < 0") (simp, simp add: nat_of_int_def)
-
-lemma [code func]:
-  "int_aux n i = (if int_of_nat n = 0 then i else int_aux (nat_of_int (int_of_nat n - 1)) (i + 1))"
-proof -
-  have "0 < n \<Longrightarrow> int_of_nat n = 1 + int_of_nat (nat_of_int (int_of_nat n - 1))"
-  proof -
-    assume prem: "n > 0"
-    then have "int_of_nat n - 1 \<ge> 0" unfolding int_of_nat_def by auto
-    then have "nat_of_int (int_of_nat n - 1) = nat (int_of_nat n - 1)" by (simp add: nat_of_int_def)
-    with prem show "int_of_nat n = 1 + int_of_nat (nat_of_int (int_of_nat n - 1))" unfolding int_of_nat_def by simp
-  qed
-  then show ?thesis unfolding int_aux_def int_of_nat_def by auto
-qed
-
-
-subsection {* Code generator setup for basic functions *}
+subsection {* Case analysis *}
 
 text {*
-  @{typ nat} is no longer a datatype but embedded into the integers.
+  Case analysis on natural numbers is rephrased using a conditional
+  expression:
 *}
 
-code_type nat
-  (SML "int")
-  (OCaml "Big'_int.big'_int")
-  (Haskell "Integer")
-
-types_code
-  nat ("int")
-attach (term_of) {*
-val term_of_nat = HOLogic.mk_number HOLogic.natT;
-*}
-attach (test) {*
-fun gen_nat i =
-  let val n = random_range 0 i
-  in (n, fn () => term_of_nat n) end;
-*}
-
-consts_code
-  "0 \<Colon> nat" ("0")
-  Suc ("(_ + 1)")
-
-text {*
-  Since natural numbers are implemented
-  using integers, the coercion function @{const "int"} of type
-  @{typ "nat \<Rightarrow> int"} is simply implemented by the identity function,
-  likewise @{const nat_of_int} of type @{typ "int \<Rightarrow> nat"}.
-  For the @{const "nat"} function for converting an integer to a natural
-  number, we give a specific implementation using an ML function that
-  returns its input value, provided that it is non-negative, and otherwise
-  returns @{text "0"}.
-*}
-
-consts_code
-  int_of_nat ("(_)")
-  nat ("\<module>nat")
-attach {*
-fun nat i = if i < 0 then 0 else i;
-*}
-
-code_const int_of_nat
-  (SML "_")
-  (OCaml "_")
-  (Haskell "_")
-
-code_const index_of_nat
-  (SML "_")
-  (OCaml "_")
-  (Haskell "_")
-
-code_const nat_of_int
-  (SML "_")
-  (OCaml "_")
-  (Haskell "_")
-
-code_const nat_of_index
-  (SML "_")
-  (OCaml "_")
-  (Haskell "_")
-
-
-text {* Using target language div and mod *}
-
-code_const "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
-  (SML "IntInf.div ((_), (_))")
-  (OCaml "Big'_int.div'_big'_int")
-  (Haskell "div")
-
-code_const "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
-  (SML "IntInf.mod ((_), (_))")
-  (OCaml "Big'_int.mod'_big'_int")
-  (Haskell "mod")
+lemma [code func, code unfold]:
+  "nat_case = (\<lambda>f g n. if n = 0 then f else g (n - 1))"
+  by (auto simp add: expand_fun_eq dest!: gr0_implies_Suc)
 
 
 subsection {* Preprocessors *}
-
-text {*
-  Natural numerals should be expressed using @{const nat_of_int}.
-*}
-
-lemmas [code inline del] = nat_number_of_def
-
-ML {*
-fun nat_of_int_of_number_of thy cts =
-  let
-    val simplify_less = Simplifier.rewrite 
-      (HOL_basic_ss addsimps (@{thms less_numeral_code} @ @{thms less_eq_numeral_code}));
-    fun mk_rew (t, ty) =
-      if ty = HOLogic.natT andalso 0 <= HOLogic.dest_numeral t then
-        Thm.capply @{cterm "(op \<le>) Int.Pls"} (Thm.cterm_of thy t)
-        |> simplify_less
-        |> (fn thm => @{thm nat_of_int_of_number_of_aux} OF [thm])
-        |> (fn thm => @{thm nat_of_int_of_number_of} OF [thm])
-        |> (fn thm => @{thm eq_reflection} OF [thm])
-        |> SOME
-      else NONE
-  in
-    fold (HOLogic.add_numerals o Thm.term_of) cts []
-    |> map_filter mk_rew
-  end;
-*}
-
-setup {*
-  Code.add_inline_proc ("nat_of_int_of_number_of", nat_of_int_of_number_of)
-*}
 
 text {*
   In contrast to @{term "Suc n"}, the term @{term "n + (1::nat)"} is no longer
@@ -285,11 +96,11 @@ text {*
   This can be accomplished by applying the following transformation rules:
 *}
 
-theorem Suc_if_eq: "(\<And>n. f (Suc n) = h n) \<Longrightarrow> f 0 = g \<Longrightarrow>
+lemma Suc_if_eq: "(\<And>n. f (Suc n) = h n) \<Longrightarrow> f 0 = g \<Longrightarrow>
   f n = (if n = 0 then g else h (n - 1))"
   by (case_tac n) simp_all
 
-theorem Suc_clause: "(\<And>n. P n (Suc n)) \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> P (n - 1) n"
+lemma Suc_clause: "(\<And>n. P n (Suc n)) \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> P (n - 1) n"
   by (case_tac n) simp_all
 
 text {*
@@ -412,26 +223,165 @@ setup {*
 (*>*)
 
 
-subsection {* Module names *}
+subsection {* Target language setup *}
+
+text {*
+  We map @{typ nat} to target language integers, where we
+  assert that values are always non-negative.
+*}
+
+code_type nat
+  (SML "int")
+  (OCaml "Big'_int.big'_int")
+  (Haskell "Integer")
+
+types_code
+  nat ("int")
+attach (term_of) {*
+val term_of_nat = HOLogic.mk_number HOLogic.natT;
+*}
+attach (test) {*
+fun gen_nat i =
+  let val n = random_range 0 i
+  in (n, fn () => term_of_nat n) end;
+*}
+
+text {*
+  Natural numerals.
+*}
+
+lemma [code inline]:
+  "nat (number_of i) = number_nat_inst.number_of_nat i"
+  -- {* this interacts as desired with @{thm nat_number_of_def} *}
+  by (simp add: number_nat_inst.number_of_nat)
+
+setup {*
+  fold (Numeral.add_code @{const_name number_nat_inst.number_of_nat}
+    false false) ["SML", "OCaml", "Haskell"]
+*}
+
+text {*
+  Since natural numbers are implemented
+  using integers, the coercion function @{const "of_nat"} of type
+  @{typ "nat \<Rightarrow> int"} is simply implemented by the identity function.
+  For the @{const "nat"} function for converting an integer to a natural
+  number, we give a specific implementation using an ML function that
+  returns its input value, provided that it is non-negative, and otherwise
+  returns @{text "0"}.
+*}
+
+definition
+  int :: "nat \<Rightarrow> int"
+where
+  [code func del]: "int = of_nat"
+
+lemma int_code' [code func]:
+  "int (number_of l) = (if neg (number_of l \<Colon> int) then 0 else number_of l)"
+  unfolding int_nat_number_of [folded int_def] ..
+
+lemma nat_code' [code func]:
+  "nat (number_of l) = (if neg (number_of l \<Colon> int) then 0 else number_of l)"
+  by auto
+
+lemma of_nat_int [code unfold]:
+  "of_nat = int" by (simp add: int_def)
+
+code_const int
+  (SML "_")
+  (OCaml "_")
+  (Haskell "_")
+
+code_const nat
+  (SML "IntInf.max/ (/0,/ _)")
+  (OCaml "Big'_int.max'_big'_int/ Big'_int.zero'_big'_int")
+  (Haskell "max 0")
+
+consts_code
+  int ("(_)")
+  nat ("\<module>nat")
+attach {*
+fun nat i = if i < 0 then 0 else i;
+*}
+
+
+text {* Conversion from and to indices. *}
+
+code_const nat_of_index
+  (SML "IntInf.fromInt")
+  (OCaml "Big'_int.big'_int'_of'_int")
+  (Haskell "toInteger")
+
+code_const index_of_nat
+  (SML "IntInf.toInt")
+  (OCaml "Big'_int.int'_of'_big'_int")
+  (Haskell "fromInteger")
+
+
+text {* Using target language arithmetic operations whenever appropriate *}
+
+code_const "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
+  (SML "IntInf.+ ((_), (_))")
+  (OCaml "Big'_int.add'_big'_int")
+  (Haskell infixl 6 "+")
+
+code_const "op * \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
+  (SML "IntInf.* ((_), (_))")
+  (OCaml "Big'_int.mult'_big'_int")
+  (Haskell infixl 7 "*")
+
+code_const "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
+  (SML "IntInf.div/ ((_),/ (_))")
+  (OCaml "Big'_int.div'_big'_int")
+  (Haskell "div")
+
+code_const "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
+  (SML "IntInf.mod/ ((_),/ (_))")
+  (OCaml "Big'_int.mod'_big'_int")
+  (Haskell "mod")
+
+code_const "op = \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
+  (SML "!((_ : IntInf.int) = _)")
+  (OCaml "Big'_int.eq'_big'_int")
+  (Haskell infixl 4 "==")
+
+code_const "op \<le> \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
+  (SML "IntInf.<= ((_), (_))")
+  (OCaml "Big'_int.le'_big'_int")
+  (Haskell infix 4 "<=")
+
+code_const "op < \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
+  (SML "IntInf.< ((_), (_))")
+  (OCaml "Big'_int.lt'_big'_int")
+  (Haskell infix 4 "<")
+
+consts_code
+  0                            ("0")
+  Suc                          ("(_ +/ 1)")
+  "op + \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat"   ("(_ +/ _)")
+  "op * \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat"   ("(_ */ _)")
+  "op div \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat" ("(_ div/ _)")
+  "op mod \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat" ("(_ mod/ _)")
+  "op \<le> \<Colon>  nat \<Rightarrow> nat \<Rightarrow> bool"  ("(_ <=/ _)")
+  "op < \<Colon>  nat \<Rightarrow> nat \<Rightarrow> bool"  ("(_ </ _)")
+
+
+text {* Module names *}
 
 code_modulename SML
-  Int Integer
   Nat Integer
   Divides Integer
   Efficient_Nat Integer
 
 code_modulename OCaml
-  Int Integer
   Nat Integer
   Divides Integer
   Efficient_Nat Integer
 
 code_modulename Haskell
-  Int Integer
   Nat Integer
   Divides Integer
   Efficient_Nat Integer
 
-hide const nat_of_int int_of_nat
+hide const int
 
 end
