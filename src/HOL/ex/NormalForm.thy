@@ -64,29 +64,29 @@ lemma "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z)) = Z" by normaliza
 lemma "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False" by normalization
 
 lemma "[] @ [] = []" by normalization
-normal_form "map f [x,y,z::'x] = [f x, f y, f z]"
-normal_form "[a, b, c] @ xs = a # b # c # xs"
+lemma "map f [x,y,z::'x] = [f x, f y, f z]" by normalization rule+
+lemma "[a, b, c] @ xs = a # b # c # xs" by normalization rule+
 lemma "[] @ xs = xs" by normalization rule
-normal_form "map f [x,y,z::'x] = [f x, f y, f z]"
-normal_form "map (%f. f True) [id, g, Not] = [True, g True, False]"
-normal_form "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"
-normal_form "rev [a, b, c] = [c, b, a]"
+lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization rule+
+lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs" by normalization rule+
+lemma "rev [a, b, c] = [c, b, a]" by normalization rule+
 normal_form "rev (a#b#cs) = rev cs @ [b, a]"
 normal_form "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
 normal_form "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
 normal_form "map (%F. F [Z,S Z,S(S Z)]) (map map [S,add (S Z),mul (S(S Z)),id])"
-normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()]"
+lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]" 
+  by normalization
 normal_form "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
-normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs"
-normal_form "let x = y::'x in [x,x]"
-normal_form "Let y (%x. [x,x])"
+normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs = P"
+lemma "let x = y in [x, x] = [y, y]" by normalization rule+
+lemma "Let y (%x. [x,x]) = [y, y]" by normalization rule+
 normal_form "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
-normal_form "(%(x,y). add x y) (S z,S z)"
+lemma "(%(x,y). add x y) (S z,S z) = S (add z (S z))" by normalization rule+
 normal_form "filter (%x. x) ([True,False,x]@xs)"
 normal_form "filter Not ([True,False,x]@xs)"
 
-normal_form "[x,y,z] @ [a,b,c] = [x, y, z, a, b ,c]"
-normal_form "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]"
+lemma "[x,y,z] @ [a,b,c] = [x, y, z, a, b ,c]" by normalization rule+
+lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]" by normalization rule+
 lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]" by normalization
 
 lemma "last [a, b, c] = c" by normalization rule
@@ -111,11 +111,11 @@ lemma "max (Suc 0) 0 = Suc 0" by normalization
 lemma "(42::rat) / 1704 = 1 / 284 + 3 / 142" by normalization
 normal_form "Suc 0 \<in> set ms"
 
-normal_form "f"
-normal_form "f x"
-normal_form "(f o g) x"
-normal_form "(f o id) x"
-normal_form "\<lambda>x. x"
+lemma "f = f" by normalization rule+
+lemma "f x = f x" by normalization rule+
+lemma "(f o g) x = f (g x)" by normalization rule+
+lemma "(f o id) x = f x" by normalization rule+
+normal_form "(\<lambda>x. x)"
 
 (* Church numerals: *)
 
@@ -124,4 +124,3 @@ normal_form "(%m n f x. m (n f) x) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 normal_form "(%m n. n m) (%f x. f(f(f(x)))) (%f x. f(f(f(x))))"
 
 end
-
