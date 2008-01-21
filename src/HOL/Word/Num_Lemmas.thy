@@ -61,8 +61,8 @@ lemmas PlsMin_defs [intro!] =
 lemmas PlsMin_simps [simp] = PlsMin_defs [THEN Eq_TrueI]
 
 lemma number_of_False_cong: 
-  "False ==> number_of x = number_of y" 
-  by auto
+  "False \<Longrightarrow> number_of x = number_of y"
+  by (rule FalseE)
 
 lemmas nat_simps = diff_add_inverse2 diff_add_inverse
 lemmas nat_iffs = le_add1 le_add2
