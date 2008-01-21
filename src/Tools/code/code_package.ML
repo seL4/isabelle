@@ -129,7 +129,7 @@ val satisfies_ref : (unit -> bool) option ref = ref NONE;
 
 fun satisfies thy t witnesses =
   let
-    fun evl code ((vs, ty), t) deps ct =
+    fun evl code ((vs, ty), t) deps _ =
       CodeTarget.eval_invoke thy ("CodePackage.satisfies_ref", satisfies_ref)
         code (t, ty) witnesses;
   in eval_term thy evl t end;

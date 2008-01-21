@@ -123,11 +123,10 @@ local
   val name_apps =       prefix ^ "apps";
 in
 
-fun nbe_fun' c = "c_" ^ translate_string (fn "." => "_" | c => c) c;
-val nbe_fun = nbe_fun'; (*FIXME!*)
+fun nbe_fun "" = "nbe_value"
+  | nbe_fun c = "c_" ^ translate_string (fn "." => "_" | c => c) c;
 fun nbe_dict v n = "d_" ^ v ^ "_" ^ string_of_int n;
 fun nbe_bound v = "v_" ^ v;
-val nbe_value = "";
 
 (*note: these three are the "turning spots" where proper argument order is established!*)
 fun nbe_apps t [] = t
@@ -135,7 +134,6 @@ fun nbe_apps t [] = t
 fun nbe_apps_local c ts = nbe_fun c `$` ml_list (rev ts);
 fun nbe_apps_constr c ts =
   name_const `$` ("(" ^ ML_Syntax.print_string c ^ ", " ^ ml_list (rev ts) ^ ")");
-
 
 fun nbe_abss 0 f = f `$` ml_list []
   | nbe_abss n f = name_abs `$$` [string_of_int n, f];
@@ -199,7 +197,7 @@ fun assemble_eqns kind (c, (vs, eqns)) =
       ([ml_list (rev (dict_args @ map assemble_arg args))], assemble_rhs rhs);
     val default_args = dict_args @ map nbe_bound (Name.invent_list [] "a" ((length o fst o hd) eqns));
     val default_eqn = ([ml_list (rev default_args)], nbe_apps_constr c default_args);
-  in (nbe_fun' c, map assemble_eqn eqns @ [default_eqn]) end;
+  in (nbe_fun c, map assemble_eqn eqns @ [default_eqn]) end;
 
 fun assemble_eqnss gr deps [] = ([], ("", []))
   | assemble_eqnss gr deps eqnss =
@@ -212,7 +210,7 @@ fun assemble_eqnss gr deps [] = ([], ("", []))
           | NONE => if (is_some o Option.join o try (Graph.get_node gr)) c
               then Global else Constr;
         val deps' = filter (is_some o Option.join o try (Graph.get_node gr)) deps;
-        val bind_deps = ml_list (map nbe_fun' deps');
+        val bind_deps = ml_list (map nbe_fun deps');
         val bind_locals = ml_fundefs (map (assemble_eqns kind) eqnss);
         val result = ml_list (map (fn (c, n) => nbe_abss n (nbe_fun c)) num_args);
         val arg_deps = map (the o Graph.get_node gr) deps';
@@ -279,7 +277,7 @@ fun eval_term gr deps ((vs, ty), t) =
     val frees' = map (fn v => Free (v, [])) frees;
     val dict_frees = maps (fn (v, sort) => map_index (curry DFree v o fst) sort) vs;
   in
-    (nbe_value, (vs, [(map IVar frees, t)]))
+    ("", (vs, [(map IVar frees, t)]))
     |> singleton (compile_eqnss gr deps)
     |> snd
     |> (fn t => apps t (rev (dict_frees @ frees')))
