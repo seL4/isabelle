@@ -1544,7 +1544,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
      (*Modify assumptions, deleting n-th if n>0 for e-resolution*)
      fun newAs(As0, n, dpairs, tpairs) =
        let val (As1, rder') =
-         if !Logic.auto_rename orelse not lifted then (As0, rder)
+         if not lifted then (As0, rder)
          else (map (rename_bvars(dpairs,tpairs,B)) As0,
            Pt.infer_derivs' (Pt.map_proof_terms
              (rename_bvars (dpairs, tpairs, Bound 0)) I) rder);

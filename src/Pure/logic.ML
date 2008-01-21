@@ -61,8 +61,6 @@ sig
   val strip_params: term -> (string * typ) list
   val has_meta_prems: term -> bool
   val flatten_params: int -> term -> term
-  val auto_rename: bool ref
-  val set_rename_prefix: string -> unit
   val list_rename_params: string list * term -> term
   val assum_pairs: int * term -> (term*term)list
   val varifyT: typ -> typ
@@ -398,32 +396,12 @@ fun remove_params j n A =
       | _ => if n>0 then raise TERM("remove_params", [A])
              else A;
 
-(** Auto-renaming of parameters in subgoals **)
-
-val auto_rename = ref false
-and rename_prefix = ref "ka";
-
-(*rename_prefix is not exported; it is set by this function.*)
-fun set_rename_prefix a =
-    if a<>"" andalso forall Symbol.is_letter (Symbol.explode a)
-    then  (rename_prefix := a;  auto_rename := true)
-    else  error"rename prefix must be nonempty and consist of letters";
-
-(*Makes parameters in a goal have distinctive names (not guaranteed unique!)
-  A name clash could cause the printer to rename bound vars;
-    then res_inst_tac would not work properly.*)
-fun rename_vars (a, []) = []
-  | rename_vars (a, (_,T)::vars) =
-        (a,T) :: rename_vars (Symbol.bump_string a, vars);
-
 (*Move all parameters to the front of the subgoal, renaming them apart;
   if n>0 then deletes assumption n. *)
 fun flatten_params n A =
     let val params = strip_params A;
-        val vars = if !auto_rename
-                   then rename_vars (!rename_prefix, params)
-                   else ListPair.zip (Name.variant_list [] (map #1 params),
-                                      map #2 params)
+        val vars = ListPair.zip (Name.variant_list [] (map #1 params),
+                                 map #2 params)
     in  list_all (vars, remove_params (length vars) n A)
     end;
 

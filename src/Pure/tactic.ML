@@ -506,11 +506,7 @@ fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 fun rename_params_tac xs i =
   case Library.find_first (not o Syntax.is_identifier) xs of
       SOME x => error ("Not an identifier: " ^ x)
-    | NONE =>
-       (if !Logic.auto_rename
-         then (warning "Resetting Logic.auto_rename";
-             Logic.auto_rename := false)
-        else (); PRIMITIVE (rename_params_rule (xs, i)));
+    | NONE => PRIMITIVE (rename_params_rule (xs, i));
 
 (*scan a list of characters into "words" composed of "letters" (recognized by
   is_let) and separated by any number of non-"letters"*)

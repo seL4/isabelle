@@ -22,9 +22,6 @@ text {*
 
 subsection {* Interactive examples *}
 
-(*Generate nice names for Skolem functions*)
-ML {* Logic.auto_rename := true; Logic.set_rename_prefix "a" *}
-
 ML {*
 writeln"Problem 25";
 Goal "(\<exists>x. P x) & (\<forall>x. L x --> ~ (M x & R x)) & (\<forall>x. P x --> (M x & L x)) & ((\<forall>x. P x --> Q x) | (\<exists>x. P x & R x)) --> (\<exists>x. Q x & P x)";
@@ -85,8 +82,6 @@ Goal "False";
 by (rtac go43 1);
 by (Meson.best_prolog_tac Meson.size_of_subgoals horns43);   (*1.6 secs*)
 *}
-
-ML {* Logic.auto_rename := false; *}
 
 (*
 #1  (q x xa ==> ~ q x xa) ==> q xa x
