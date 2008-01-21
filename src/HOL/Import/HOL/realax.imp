@@ -91,7 +91,7 @@ thm_maps
   "TREAL_ADD_ASSOC" > "HOL4Real.realax.TREAL_ADD_ASSOC"
   "TREAL_10" > "HOL4Real.realax.TREAL_10"
   "REAL_SUP_ALLPOS" > "HOL4Compat.REAL_SUP_ALLPOS"
-  "REAL_MUL_SYM" > "IntDef.zmult_ac_2"
+  "REAL_MUL_SYM" > "Int.zmult_ac_2"
   "REAL_MUL_LINV" > "HOL4Compat.REAL_MUL_LINV"
   "REAL_MUL_LID" > "Finite_Set.AC_mult.f_e.left_ident"
   "REAL_MUL_ASSOC" > "HOL4Compat.REAL_MUL_ASSOC"
