@@ -26,7 +26,7 @@ fun num_of_term vs t = case t
       | Const("RealDef.real",_)$ @{term "1::int"} => C 1
       | @{term "0::real"} => C 0
       | @{term "0::real"} => C 1
-      | Term.Bound i => Bound (nat i)
+      | Term.Bound i => Bound i
       | Const (@{const_name "HOL.uminus"},_)$t' => Neg (num_of_term vs t')
       | Const (@{const_name "HOL.plus"},_)$t1$t2 => Add (num_of_term vs t1,num_of_term vs t2)
       | Const (@{const_name "HOL.minus"},_)$t1$t2 => Sub (num_of_term vs t1,num_of_term vs t2)
@@ -60,9 +60,9 @@ fun fm_of_term vs t =
 
 
 fun start_vs t =
-    let val fs = term_frees t
-    in fs ~~ map nat (0 upto  (length fs - 1))
-    end ;
+  let
+    val fs = term_frees t
+  in fs ~~ (0 upto (length fs - 1)) end;
 
 (* transform num and fm back to terms *)
 
@@ -111,9 +111,8 @@ fun term_of_fm vs t =
 (* The oracle *)
 
 fun linrqe_oracle thy t = 
-    let 
-	val vs = start_vs t
-    in HOLogic.mk_Trueprop (HOLogic.mk_eq(t, term_of_fm vs (linrqe (fm_of_term vs t))))
-    end;
+  let 
+    val vs = start_vs t
+  in HOLogic.mk_Trueprop (HOLogic.mk_eq (t, term_of_fm vs (linrqe (fm_of_term vs t)))) end;
 
 end;
