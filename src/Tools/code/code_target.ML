@@ -23,7 +23,7 @@ sig
   val add_pretty_list_string: string -> string -> string
     -> string -> string list -> theory -> theory;
   val add_pretty_char: string -> string -> string list -> theory -> theory
-  val add_pretty_numeral: string -> bool -> string -> string -> string -> string
+  val add_pretty_numeral: string -> bool -> bool -> string -> string -> string -> string
     -> string -> string -> theory -> theory;
   val add_pretty_message: string -> string -> string list -> string
     -> string -> string -> theory -> theory;
@@ -234,22 +234,22 @@ fun implode_string c_char c_nibbles mk_char mk_string ts =
     else NONE
   end;
 
-fun implode_numeral c_bit0 c_bit1 c_pls c_min c_bit =
+fun implode_numeral negative c_bit0 c_bit1 c_pls c_min c_bit =
   let
-    fun dest_bit (IConst (c, _)) = if c = c_bit0 then SOME 0
-          else if c = c_bit1 then SOME 1
-          else NONE
-      | dest_bit _ = NONE;
+    fun dest_bit (IConst (c, _)) = if c = c_bit0 then 0
+          else if c = c_bit1 then 1
+          else error "Illegal numeral expression: illegal bit"
+      | dest_bit _ = error "Illegal numeral expression: illegal bit";
     fun dest_numeral (IConst (c, _)) = if c = c_pls then SOME 0
-          else if c = c_min then SOME ~1
-          else NONE
+          else if c = c_min then
+            if negative then SOME ~1 else NONE
+          else error "Illegal numeral expression"
       | dest_numeral (IConst (c, _) `$ t1 `$ t2) =
-          if c = c_bit then case (dest_numeral t1, dest_bit t2)
-           of (SOME n, SOME b) => SOME (2 * n + b)
-            | _ => NONE
-          else NONE
-      | dest_numeral _ = NONE;
-  in dest_numeral end;
+          if c = c_bit then let val (n, b) = (dest_numeral t1, dest_bit t2)
+            in case n of SOME n => SOME (2 * n + b) | NONE => NONE end
+          else error "Illegal numeral expression"
+      | dest_numeral _ = error "Illegal numeral expression";
+  in dest_numeral #> the_default 0 end;
 
 fun implode_monad c_bind t =
   let
@@ -1825,13 +1825,11 @@ fun pretty_char c_char c_nibbles target =
         | NONE => error "Illegal character expression";
   in (2, pretty) end;
 
-fun pretty_numeral unbounded c_bit0 c_bit1 c_pls c_min c_bit target =
+fun pretty_numeral unbounded negative c_bit0 c_bit1 c_pls c_min c_bit target =
   let
     val mk_numeral = #pretty_numeral (pr_pretty target);
     fun pretty _ _ _ [(t, _)] =
-      case implode_numeral c_bit0 c_bit1 c_pls c_min c_bit t
-       of SOME k => (str o mk_numeral unbounded) k
-        | NONE => error "Illegal numeral expression";
+      (str o mk_numeral unbounded o implode_numeral negative c_bit0 c_bit1 c_pls c_min c_bit) t;
   in (1, pretty) end;
 
 fun pretty_message c_char c_nibbles c_nil c_cons target =
@@ -2102,14 +2100,14 @@ fun add_pretty_char target charr nibbles thy =
     |> add_syntax_const target charr (SOME pr)
   end;
 
-fun add_pretty_numeral target unbounded number_of b0 b1 pls min bit thy =
+fun add_pretty_numeral target unbounded negative number_of b0 b1 pls min bit thy =
   let
     val b0' = CodeName.const thy b0;
     val b1' = CodeName.const thy b1;
     val pls' = CodeName.const thy pls;
     val min' = CodeName.const thy min;
     val bit' = CodeName.const thy bit;
-    val pr = pretty_numeral unbounded b0' b1' pls' min' bit' target;
+    val pr = pretty_numeral unbounded negative b0' b1' pls' min' bit' target;
   in
     thy
     |> add_syntax_const target number_of (SOME pr)
