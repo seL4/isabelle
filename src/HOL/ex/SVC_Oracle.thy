@@ -62,10 +62,7 @@ fun svc_abstract t =
                       SOME v => v
                     | NONE   => insert t)
     (*abstraction of a numeric literal*)
-    fun lit (t as Const(@{const_name HOL.zero}, _)) = t
-      | lit (t as Const(@{const_name HOL.one}, _)) = t
-      | lit (t as Const(@{const_name Int.number_of}, _) $ w) = t
-      | lit t = replace t
+    fun lit t = if can HOLogic.dest_number t then t else replace t;
     (*abstraction of a real/rational expression*)
     fun rat ((c as Const(@{const_name HOL.plus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
       | rat ((c as Const(@{const_name HOL.minus}, _)) $ x $ y) = c $ (rat x) $ (rat y)
