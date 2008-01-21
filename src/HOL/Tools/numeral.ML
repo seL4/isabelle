@@ -9,6 +9,7 @@ signature NUMERAL =
 sig
   val mk_cnumeral: int -> cterm
   val mk_cnumber: ctyp -> int -> cterm
+  val add_code: string -> bool -> bool -> string -> theory -> theory
 end;
 
 structure Numeral: NUMERAL =
@@ -50,5 +51,14 @@ fun mk_cnumber T 0 = instT T zeroT zero
   | mk_cnumber T i = Thm.capply (instT T numberT number_of) (mk_cnumeral i);
 
 end;
+
+
+(* code generator *)
+
+fun add_code number_of negative unbounded target =
+  CodeTarget.add_pretty_numeral target unbounded negative number_of
+  @{const_name Int.B0} @{const_name Int.B1}
+  @{const_name Int.Pls} @{const_name Int.Min}
+  @{const_name Int.Bit};
 
 end;
