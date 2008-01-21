@@ -1610,8 +1610,8 @@ proof -
   with ge show ?thesis by fast
 qed
 
-                     (* `set:int': dummy construction *)
-theorem int_gr_induct[case_names base step,induct set:int]:
+(* `set:int': dummy construction *)
+theorem int_gr_induct [case_names base step, induct set: int]:
   assumes gr: "k < (i::int)" and
         base: "P(k+1)" and
         step: "\<And>i. \<lbrakk>k < i; P i\<rbrakk> \<Longrightarrow> P(i+1)"
@@ -1737,16 +1737,13 @@ code_datatype Pls Min Bit "number_of \<Colon> int \<Rightarrow> int"
 
 definition
   int_aux :: "nat \<Rightarrow> int \<Rightarrow> int" where
-  "int_aux n i = int n + i"
+  [code func del]: "int_aux = of_nat_aux"
 
-lemma [code]:
-  "int_aux 0 i  = i"
-  "int_aux (Suc n) i = int_aux n (i + 1)" -- {* tail recursive *}
-  by (simp add: int_aux_def)+
+lemmas int_aux_code = of_nat_aux_code [where ?'a = int, simplified int_aux_def [symmetric], code]
 
 lemma [code, code unfold, code inline del]:
-  "int n = int_aux n 0"
-  by (simp add: int_aux_def)
+  "of_nat n = int_aux n 0"
+  by (simp add: int_aux_def of_nat_aux_def)
 
 definition
   nat_aux :: "int \<Rightarrow> nat \<Rightarrow> nat" where
@@ -1760,6 +1757,8 @@ lemma [code]:
 lemma [code]: "nat i = nat_aux i 0"
   by (simp add: nat_aux_def)
 
+hide (open) const int_aux nat_aux
+
 lemma zero_is_num_zero [code func, code inline, symmetric, code post]:
   "(0\<Colon>int) = Numeral0" 
   by simp
@@ -1769,22 +1768,13 @@ lemma one_is_num_one [code func, code inline, symmetric, code post]:
   by simp 
 
 code_modulename SML
-  IntDef Integer
+  Int Integer
 
 code_modulename OCaml
-  IntDef Integer
+  Int Integer
 
 code_modulename Haskell
-  IntDef Integer
-
-code_modulename SML
-  Numeral Integer
-
-code_modulename OCaml
-  Numeral Integer
-
-code_modulename Haskell
-  Numeral Integer
+  Int Integer
 
 types_code
   "int" ("int")

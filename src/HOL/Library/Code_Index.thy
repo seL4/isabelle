@@ -133,7 +133,7 @@ instance by default (auto simp add: left_distrib index)
 
 end
 
-lemma index_of_nat_code [code func]:
+lemma index_of_nat_code [code]:
   "index_of_nat = of_nat"
 proof
   fix n :: nat
@@ -143,9 +143,21 @@ proof
     by (rule sym)
 qed
 
-lemma nat_of_index_code [code func]:
-  "nat_of_index n = (if n = 0 then 0 else Suc (nat_of_index (n - 1)))"
-  by (induct n) simp
+lemma index_not_eq_zero: "i \<noteq> index_of_nat 0 \<longleftrightarrow> i \<ge> 1"
+  by (cases i) auto
+
+definition
+  nat_of_index_aux :: "index \<Rightarrow> nat \<Rightarrow> nat"
+where
+  "nat_of_index_aux i n = nat_of_index i + n"
+
+lemma nat_of_index_aux_code [code]:
+  "nat_of_index_aux i n = (if i = 0 then n else nat_of_index_aux (i - 1) (Suc n))"
+  by (auto simp add: nat_of_index_aux_def index_not_eq_zero)
+
+lemma nat_of_index_code [code]:
+  "nat_of_index i = nat_of_index_aux i 0"
+  by (simp add: nat_of_index_aux_def)
 
 
 subsection {* ML interface *}
@@ -154,7 +166,7 @@ ML {*
 structure Index =
 struct
 
-fun mk k = @{term index_of_nat} $ HOLogic.mk_number @{typ index} k;
+fun mk k = HOLogic.mk_number @{typ index} k;
 
 end;
 *}
@@ -173,19 +185,15 @@ code_instance index :: eq
   (Haskell -)
 
 setup {*
-  fold (fn target => CodeTarget.add_pretty_numeral target false
-    @{const_name number_index_inst.number_of_index}
-    @{const_name Int.B0} @{const_name Int.B1}
-    @{const_name Int.Pls} @{const_name Int.Min}
-    @{const_name Int.Bit}
-  ) ["SML", "OCaml", "Haskell"]
+  fold (Numeral.add_code @{const_name number_index_inst.number_of_index}
+    false false) ["SML", "OCaml", "Haskell"]
 *}
 
 code_reserved SML Int int
 code_reserved OCaml Pervasives int
 
 code_const "op + \<Colon> index \<Rightarrow> index \<Rightarrow> index"
-  (SML "Int.+ ((_), (_))")
+  (SML "Int.+/ ((_),/ (_))")
   (OCaml "Pervasives.+")
   (Haskell infixl 6 "+")
 
@@ -195,9 +203,19 @@ code_const "op - \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (Haskell "max/ (_/ -/ _)/ (0 :: Int)")
 
 code_const "op * \<Colon> index \<Rightarrow> index \<Rightarrow> index"
-  (SML "Int.* ((_), (_))")
+  (SML "Int.*/ ((_),/ (_))")
   (OCaml "Pervasives.*")
   (Haskell infixl 7 "*")
+
+code_const "op div \<Colon> index \<Rightarrow> index \<Rightarrow> index"
+  (SML "Int.div/ ((_),/ (_))")
+  (OCaml "Pervasives.div")
+  (Haskell "div")
+
+code_const "op mod \<Colon> index \<Rightarrow> index \<Rightarrow> index"
+  (SML "Int.mod/ ((_),/ (_))")
+  (OCaml "Pervasives.mod")
+  (Haskell "mod")
 
 code_const "op = \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
@@ -205,23 +223,13 @@ code_const "op = \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_const "op \<le> \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
-  (SML "Int.<= ((_), (_))")
+  (SML "Int.<=/ ((_),/ (_))")
   (OCaml "!((_ : Pervasives.int) <= _)")
   (Haskell infix 4 "<=")
 
 code_const "op < \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
-  (SML "Int.< ((_), (_))")
+  (SML "Int.</ ((_),/ (_))")
   (OCaml "!((_ : Pervasives.int) < _)")
   (Haskell infix 4 "<")
-
-code_const "op div \<Colon> index \<Rightarrow> index \<Rightarrow> index"
-  (SML "IntInf.div ((_), (_))")
-  (OCaml "Big'_int.div'_big'_int")
-  (Haskell "div")
-
-code_const "op mod \<Colon> index \<Rightarrow> index \<Rightarrow> index"
-  (SML "IntInf.mod ((_), (_))")
-  (OCaml "Big'_int.mod'_big'_int")
-  (Haskell "mod")
 
 end

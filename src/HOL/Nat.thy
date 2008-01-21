@@ -1176,6 +1176,20 @@ lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
 lemma of_nat_mult: "of_nat (m * n) = of_nat m * of_nat n"
   by (induct m) (simp_all add: add_ac left_distrib)
 
+definition
+  of_nat_aux :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
+where
+  [code func del]: "of_nat_aux n i = of_nat n + i"
+
+lemma of_nat_aux_code [code]:
+  "of_nat_aux 0 i = i"
+  "of_nat_aux (Suc n) i = of_nat_aux n (i + 1)" -- {* tail recursive *}
+  by (simp_all add: of_nat_aux_def add_ac)
+
+lemma of_nat_code [code]:
+  "of_nat n = of_nat_aux n 0"
+  by (simp add: of_nat_aux_def)
+
 end
 
 context ordered_semidom

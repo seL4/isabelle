@@ -24,12 +24,8 @@ code_instance int :: eq
   (Haskell -)
 
 setup {*
-  fold (fn target => CodeTarget.add_pretty_numeral target true
-    @{const_name number_int_inst.number_of_int}
-    @{const_name Int.B0} @{const_name Int.B1}
-    @{const_name Int.Pls} @{const_name Int.Min}
-    @{const_name Int.Bit}
-  ) ["SML", "OCaml", "Haskell"]
+  fold (Numeral.add_code @{const_name number_int_inst.number_of_int}
+    true true) ["SML", "OCaml", "Haskell"]
 *}
 
 code_const "Int.Pls" and "Int.Min" and "Int.Bit"
