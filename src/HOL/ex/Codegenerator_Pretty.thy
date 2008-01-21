@@ -9,52 +9,71 @@ theory Codegenerator_Pretty
 imports "~~/src/HOL/Real/RealDef" Efficient_Nat
 begin
 
-definition
-  foo :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat" where
-  "foo r s t = (t + s) / t"
+fun
+  to_n :: "nat \<Rightarrow> nat list"
+where
+  "to_n 0 = []"
+  | "to_n (Suc 0) = []"
+  | "to_n (Suc (Suc 0)) = []"
+  | "to_n (Suc n) = n # to_n n"
 
 definition
-  bar :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> bool" where
-  "bar r s t \<longleftrightarrow> (r - s) \<le> t \<or> (s - t) \<le> r"
+  naive_prime :: "nat \<Rightarrow> bool"
+where
+  "naive_prime n \<longleftrightarrow> n \<ge> 2 \<and> filter (\<lambda>m. n mod m = 0) (to_n n) = []"
 
-definition
-  "R1 = Fract 3 7"
+primrec
+  fac :: "nat \<Rightarrow> nat"
+where
+  "fac 0 = 1"
+  | "fac (Suc n) = Suc n * fac n"
 
-definition
-  "R2 = Fract (-7) 5"
+primrec
+  rat_of_nat :: "nat \<Rightarrow> rat"
+where
+  "rat_of_nat 0 = 0"
+  | "rat_of_nat (Suc n) = rat_of_nat n + 1"
 
-definition
-  "R3 = Fract 11 (-9)"
+primrec
+  harmonic :: "nat \<Rightarrow> rat"
+where
+  "harmonic 0 = 0"
+  | "harmonic (Suc n) = 1 / rat_of_nat (Suc n) + harmonic n"
 
-definition
-  "foobar = (foo R1 1 R3, bar R2 0 R3, foo R1 R3 R2)"
+lemma "harmonic 200 \<ge> 5"
+  by eval
 
-definition
-  foo' :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> real" where
-  "foo' r s t = (t + s) / t"
+lemma "harmonic 200 \<ge> 5"
+  by evaluation
 
-definition
-  bar' :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> bool" where
-  "bar' r s t \<longleftrightarrow> (r - s) \<le> t \<or> (s - t) \<le> r"
+lemma "harmonic 20 \<ge> 3"
+  by normalization
 
-definition
-  "R1' = real_of_rat (Fract 3 7)"
+lemma "naive_prime 89"
+  by eval
 
-definition
-  "R2' = real_of_rat (Fract (-7) 5)"
+lemma "naive_prime 89"
+  by evaluation
 
-definition
-  "R3' = real_of_rat (Fract 11 (-9))"
+lemma "naive_prime 89"
+  by normalization
 
-definition
-  "foobar' = (foo' R1' 1 R3', bar' R2' 0 R3', foo' R1' R3' R2')"
+lemma "\<not> naive_prime 87"
+  by eval
 
-definition
-  "(doodle :: nat) = 1705 div 42 * 42 + 1705 mod 42"
+lemma "\<not> naive_prime 87"
+  by evaluation
 
-export_code foobar foobar' doodle in SML module_name Foo
-  in OCaml file -
-  in Haskell file -
-ML {* (Foo.foobar, Foo.foobar', Foo.doodle) *}
+lemma "\<not> naive_prime 87"
+  by normalization
+
+lemma "fac 10 > 3000000"
+  by eval
+
+lemma "fac 10 > 3000000"
+  by evaluation
+
+lemma "fac 10 > 3000000"
+  by normalization
 
 end
