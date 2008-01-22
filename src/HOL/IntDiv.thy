@@ -712,6 +712,7 @@ apply (erule subst)
 apply (erule subst, simp_all)
 done
 
+
 subsection{*More Algebraic Laws for div and mod*}
 
 text{*proving (a*b) div c = a * (b div c) + a * (b mod c) *}
@@ -745,6 +746,9 @@ done
 
 lemma zdiv_zmult_self1 [simp]: "b \<noteq> (0::int) ==> (a*b) div b = a"
 by (simp add: zdiv_zmult1_eq)
+
+instance int :: semiring_div
+  by intro_classes auto
 
 lemma zdiv_zmult_self2 [simp]: "b \<noteq> (0::int) ==> (b*a) div b = a"
 by (subst mult_commute, erule zdiv_zmult_self1)
@@ -1053,7 +1057,6 @@ apply (simp only: zdiv_zminus_zminus diff_minus minus_add_distrib [symmetric],
        simp) 
 done
 
-
 (*Not clear why this must be proved separately; probably number_of causes
   simplification problems*)
 lemma not_0_le_lemma: "~ 0 \<le> x ==> x \<le> (0::int)"
@@ -1151,9 +1154,6 @@ subsection {* The Divides Relation *}
 
 lemma zdvd_iff_zmod_eq_0: "(m dvd n) = (n mod m = (0::int))"
   by (simp add: dvd_def zmod_eq_0_iff)
-
-instance int :: dvd_mod
-  by default (simp add: zdvd_iff_zmod_eq_0)
 
 lemmas zdvd_iff_zmod_eq_0_number_of [simp] =
   zdvd_iff_zmod_eq_0 [of "number_of x" "number_of y", standard]
