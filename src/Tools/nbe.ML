@@ -17,12 +17,10 @@ sig
     | BVar of int * Univ list
     | Abs of (int * (Univ list -> Univ)) * Univ list;
   val apps: Univ -> Univ list -> Univ        (*explicit applications*)
-  val abs: int -> (Univ list -> Univ) -> Univ
+  val abss: int -> (Univ list -> Univ) -> Univ
                                             (*abstractions as closures*)
 
   val univs_ref: (unit -> Univ list -> Univ list) option ref
-  val norm_invoke: theory -> CodeThingol.code -> term
-    -> CodeThingol.typscheme * CodeThingol.iterm -> string list -> thm
   val trace: bool ref
 
   val setup: theory -> theory
@@ -67,7 +65,7 @@ datatype Univ =
 
 (* constructor functions *)
 
-fun abs n f = Abs ((n, f), []);
+fun abss n f = Abs ((n, f), []);
 fun apps (Abs ((n, f), xs)) ys = let val k = n - length ys in
       if k = 0 then f (ys @ xs)
       else if k < 0 then
@@ -81,7 +79,6 @@ fun apps (Abs ((n, f), xs)) ys = let val k = n - length ys in
 (* universe graph *)
 
 type univ_gr = Univ option Graph.T;
-val compiled : univ_gr -> string -> bool = can o Graph.get_node;
 
 
 (** assembling and compiling ML code from terms **)
@@ -96,7 +93,7 @@ fun ml_abs v e = "(fn " ^ v ^ " => " ^ e ^ ")";
 
 fun ml_cases t cs =
   "(case " ^ t ^ " of " ^ space_implode " | " (map (fn (p, t) => p ^ " => " ^ t) cs) ^ ")";
-fun ml_Let ds e = "let\n" ^ space_implode "\n" ds ^ " in " ^ e ^ " end";
+fun ml_Let d e = "let\n" ^ d ^ " in " ^ e ^ " end";
 
 fun ml_list es = "[" ^ commas es ^ "]";
 
@@ -114,14 +111,19 @@ fun ml_fundefs ([(name, [([], e)])]) =
         |> suffix "\n"
       end;
 
-(* nbe specific syntax *)
+(* nbe specific syntax and sandbox communication *)
+
+val univs_ref = ref (NONE : (unit -> Univ list -> Univ list) option);
 
 local
   val prefix =          "Nbe.";
+  val name_ref =        prefix ^ "univs_ref";
   val name_const =      prefix ^ "Const";
-  val name_abs =        prefix ^ "abs";
+  val name_abss =       prefix ^ "abss";
   val name_apps =       prefix ^ "apps";
 in
+
+val univs_cookie = (name_ref, univs_ref);
 
 fun nbe_fun "" = "nbe_value"
   | nbe_fun c = "c_" ^ translate_string (fn "." => "_" | c => c) c;
@@ -136,89 +138,95 @@ fun nbe_apps_constr c ts =
   name_const `$` ("(" ^ ML_Syntax.print_string c ^ ", " ^ ml_list (rev ts) ^ ")");
 
 fun nbe_abss 0 f = f `$` ml_list []
-  | nbe_abss n f = name_abs `$$` [string_of_int n, f];
+  | nbe_abss n f = name_abss `$$` [string_of_int n, f];
 
 end;
 
 open BasicCodeThingol;
 
-(* sandbox communication *)
-
-val univs_ref = ref (NONE : (unit -> Univ list -> Univ list) option);
-
-val compile =
-  tracing (fn s => "\n--- code to be evaluated:\n" ^ s)
-  #> ML_Context.evaluate
-      (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
-      Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
-      (!trace) ("Nbe.univs_ref", univs_ref);
-
 (* code generation *)
 
-datatype const_kind = Local of int | Global | Constr;
-
-fun assemble_constapp kind c dss ts = 
+fun assemble_eqnss deps eqnss =
+  let
+    fun prep_eqns (c, (vs, eqns)) =
       let
-        val ts' = (maps o map) (assemble_idict kind) dss @ ts;
-      in case kind c
-       of Local n => if n <= length ts'
+        val dicts = maps (fn (v, sort) => map_index (nbe_dict v o fst) sort) vs;
+        val num_args = length dicts + (length o fst o hd) eqns;
+      in (c, (num_args, (dicts, eqns))) end;
+    val eqnss' = map prep_eqns eqnss;
+
+    fun assemble_constapp c dss ts = 
+      let
+        val ts' = (maps o map) assemble_idict dss @ ts;
+      in case AList.lookup (op =) eqnss' c
+       of SOME (n, _) => if n <= length ts'
             then let val (ts1, ts2) = chop n ts'
             in nbe_apps (nbe_apps_local c ts1) ts2
             end else nbe_apps (nbe_abss n (nbe_fun c)) ts'
-        | Global => nbe_apps (nbe_fun c) ts'
-        | Constr => nbe_apps_constr c ts'
+        | NONE => if member (op =) deps c
+            then nbe_apps (nbe_fun c) ts'
+            else nbe_apps_constr c ts'
       end
-and assemble_idict kind (DictConst (inst, dss)) =
-      assemble_constapp kind inst dss []
-  | assemble_idict kind (DictVar (supers, (v, (n, _)))) =
-      fold_rev (fn super => assemble_constapp kind super [] o single) supers (nbe_dict v n);
+    and assemble_idict (DictConst (inst, dss)) =
+          assemble_constapp inst dss []
+      | assemble_idict (DictVar (supers, (v, (n, _)))) =
+          fold_rev (fn super => assemble_constapp super [] o single) supers (nbe_dict v n);
 
-fun assemble_iterm kind =
-  let
-    fun of_iterm t =
+    fun assemble_iterm constapp =
       let
-        val (t', ts) = CodeThingol.unfold_app t
-      in of_iapp t' (fold_rev (cons o of_iterm) ts []) end
-    and of_iapp (IConst (c, (dss, _))) ts = assemble_constapp kind c dss ts
-      | of_iapp (IVar v) ts = nbe_apps (nbe_bound v) ts
-      | of_iapp ((v, _) `|-> t) ts =
-          nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound v]) (of_iterm t))) ts
-      | of_iapp (ICase (((t, _), cs), t0)) ts =
-          nbe_apps (ml_cases (of_iterm t) (map (pairself of_iterm) cs
-            @ [("_", of_iterm t0)])) ts
-  in of_iterm end;
+        fun of_iterm t =
+          let
+            val (t', ts) = CodeThingol.unfold_app t
+          in of_iapp t' (fold_rev (cons o of_iterm) ts []) end
+        and of_iapp (IConst (c, (dss, _))) ts = constapp c dss ts
+          | of_iapp (IVar v) ts = nbe_apps (nbe_bound v) ts
+          | of_iapp ((v, _) `|-> t) ts =
+              nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound v]) (of_iterm t))) ts
+          | of_iapp (ICase (((t, _), cs), t0)) ts =
+              nbe_apps (ml_cases (of_iterm t) (map (pairself of_iterm) cs
+                @ [("_", of_iterm t0)])) ts
+      in of_iterm end;
 
-fun assemble_eqns kind (c, (vs, eqns)) =
-  let
-    val dict_args = maps (fn (v, sort) => map_index (nbe_dict v o fst) sort) vs;
-    val assemble_arg = assemble_iterm (K Constr);
-    val assemble_rhs = assemble_iterm kind;
-    fun assemble_eqn (args, rhs) =
-      ([ml_list (rev (dict_args @ map assemble_arg args))], assemble_rhs rhs);
-    val default_args = dict_args @ map nbe_bound (Name.invent_list [] "a" ((length o fst o hd) eqns));
-    val default_eqn = ([ml_list (rev default_args)], nbe_apps_constr c default_args);
-  in (nbe_fun c, map assemble_eqn eqns @ [default_eqn]) end;
+    fun assemble_eqns (c, (num_args, (dicts, eqns))) =
+      let
+        val assemble_arg = assemble_iterm (fn c => fn _ => fn ts => nbe_apps_constr c ts);
+        val assemble_rhs = assemble_iterm assemble_constapp;
+        fun assemble_eqn (args, rhs) =
+          ([ml_list (rev (dicts @ map assemble_arg args))], assemble_rhs rhs);
+        val default_args = map nbe_bound (Name.invent_list [] "a" num_args);
+        val default_eqn = ([ml_list (rev default_args)], nbe_apps_constr c default_args);
+      in
+        ((nbe_fun c, map assemble_eqn eqns @ [default_eqn]),
+          nbe_abss num_args (nbe_fun c))
+      end;
 
-fun assemble_eqnss gr deps [] = ([], ("", []))
-  | assemble_eqnss gr deps eqnss =
+    val (fun_vars, fun_vals) = map_split assemble_eqns eqnss';
+    val deps_vars = ml_list (map nbe_fun deps);
+  in ml_abs deps_vars (ml_Let (ml_fundefs fun_vars) (ml_list fun_vals)) end;
+
+(* code compilation *)
+
+fun compile_eqnss gr raw_deps [] = []
+  | compile_eqnss gr raw_deps eqnss = 
       let
         val cs = map fst eqnss;
-        val num_args = cs ~~ map (fn (_, (vs, (args, rhs) :: _)) =>
-          length (maps snd vs) + length args) eqnss;
-        fun kind c = case AList.lookup (op =) num_args c
-         of SOME n => Local n
-          | NONE => if (is_some o Option.join o try (Graph.get_node gr)) c
-              then Global else Constr;
-        val deps' = filter (is_some o Option.join o try (Graph.get_node gr)) deps;
-        val bind_deps = ml_list (map nbe_fun deps');
-        val bind_locals = ml_fundefs (map (assemble_eqns kind) eqnss);
-        val result = ml_list (map (fn (c, n) => nbe_abss n (nbe_fun c)) num_args);
-        val arg_deps = map (the o Graph.get_node gr) deps';
-      in (cs, (ml_abs bind_deps (ml_Let [bind_locals] result), arg_deps)) end;
+        val (deps, deps_vals) = raw_deps
+          |> map_filter (fn dep => case Graph.get_node gr dep of NONE => NONE
+              | SOME univ => SOME (dep, univ))
+          |> split_list;
+        val s = assemble_eqnss deps eqnss;
+      in
+        s
+        |> tracing (fn s => "\n--- code to be evaluated:\n" ^ s)
+        |> ML_Context.evaluate
+            (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
+            Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
+            (!trace) univs_cookie
+        |> (fn f => f deps_vals)
+        |> (fn univs => cs ~~ univs)
+      end;
 
-fun compile_eqnss gr deps eqnss = case assemble_eqnss gr deps eqnss
- of ([], _) => []
-  | (cs, (s, deps)) => cs ~~ compile s deps;
+(* preparing function equations *)
 
 fun eqns_of_stmt (_, CodeThingol.Fun (_, [])) =
       []
@@ -250,15 +258,16 @@ fun compile_stmts stmts_deps =
     val names = map (fst o fst) stmts_deps;
     val names_deps = map (fn ((name, _), deps) => (name, deps)) stmts_deps;
     val eqnss = maps (eqns_of_stmt o fst) stmts_deps;
-    val compiled_deps = names_deps
+    val deps = names_deps
       |> maps snd
       |> distinct (op =)
       |> subtract (op =) names;
     fun compile gr = eqnss
-      |> compile_eqnss gr compiled_deps
+      |> compile_eqnss gr deps
       |> rpair gr;
   in
-    fold (fn name => Graph.new_node (name, NONE)) names
+    fold (fn name => Graph.default_node (name, NONE)) names
+    #> fold (fn name => Graph.default_node (name, NONE)) deps
     #> fold (fn (name, deps) => fold (curry Graph.add_edge name) deps) names_deps
     #> compile
     #-> fold (fn (name, univ) => Graph.map_node name (K (SOME univ)))
@@ -266,10 +275,15 @@ fun compile_stmts stmts_deps =
 
 fun ensure_stmts code =
   let
-    fun add_stmts names gr = if exists (compiled gr) names then gr else gr
+    fun add_stmts names gr = if exists ((can o Graph.get_node) gr) names then gr else gr
       |> compile_stmts (map (fn name => ((name, Graph.get_node code name),
           Graph.imm_succs code name)) names);
   in fold_rev add_stmts (Graph.strong_conn code) end;
+
+
+(** evaluation **)
+
+(* term evaluation *)
 
 fun eval_term gr deps ((vs, ty), t) =
   let 
@@ -282,9 +296,6 @@ fun eval_term gr deps ((vs, ty), t) =
     |> snd
     |> (fn t => apps t (rev (dict_frees @ frees')))
   end;
-
-
-(** evaluation **)
 
 (* reification *)
 
