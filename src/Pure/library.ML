@@ -107,6 +107,7 @@ sig
   val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val zip_options: 'a list -> 'b option list -> ('a * 'b) list
   val ~~ : 'a list * 'b list -> ('a * 'b) list
+  val map_split: ('a -> 'b * 'c) -> 'a list -> 'b list * 'c list
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val separate: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
@@ -572,6 +573,13 @@ fun map2 _ [] [] = []
 fun fold2 f [] [] z = z
   | fold2 f (x :: xs) (y :: ys) z = fold2 f xs ys (f x y z)
   | fold2 f _ _ _ = raise UnequalLengths;
+
+fun map_split f [] = ([], [])
+  | map_split f (x :: xs) =
+      let
+        val (y, w) = f x;
+        val (ys, ws) = map_split f xs;
+      in (y :: ys, w :: ws) end;
 
 fun zip_options (x :: xs) (SOME y :: ys) = (x, y) :: zip_options xs ys
   | zip_options (_ :: xs) (NONE :: ys) = zip_options xs ys
