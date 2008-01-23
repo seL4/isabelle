@@ -35,6 +35,7 @@ subsection {* Oracle as low-level rule *}
 
 ML {* iff_oracle @{theory} 2 *}
 ML {* iff_oracle @{theory} 10 *}
+ML {* #der (Thm.rep_thm (iff_oracle @{theory} 10)) *}
 
 text {* These oracle calls had better fail. *}
 
