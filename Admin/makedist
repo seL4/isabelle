@@ -178,19 +178,23 @@ mv $SRCS src
 mv Distribution/* .
 rmdir Distribution
 
+
+#paranoia setting for sunbroy
+PATH=/usr/local/dist/DIR/j2sdk1.5.0/bin:$PATH
+
 ( cd lib/browser; make; ) || fail "Failed to build graph browser!"
 
-# FIXME temporarily disabled, until isatest gets up-to-date java
-#( cd lib/classes; ./mk; )
-#[ -f lib/classes/isabelle.jar ] || fail "Failed to build Isabelle process wrapper!"
-#
-#if type -p scalac >/dev/null
-#then
-#  ( cd lib/jedit/plugin; ./mk; )
-#  [ -f lib/jedit/isabelle.jar ] || fail "Failed to build jEdit plugin!"
-#else
-#  echo "Warning: Scala unavailable -- skipping jEdit plugin"
-#fi
+( cd lib/classes; ./mk; )
+[ -f lib/classes/isabelle.jar ] || fail "Failed to build Isabelle process wrapper!"
+
+if type -p scalac >/dev/null
+then
+  ( cd lib/jedit/plugin; ./mk; )
+  [ -f lib/jedit/isabelle.jar ] || fail "Failed to build jEdit plugin!"
+else
+  echo "Warning: Scala unavailable -- skipping jEdit plugin"
+fi
+
 
 cp doc/isabelle*.eps lib/logo
 
