@@ -160,14 +160,14 @@ instance proof
   fix n m :: nat
   show "(m div n) * n + m mod n = m"
     apply (cases "n = 0", simp)
-    apply (induct m rule: nat_less_induct [rule_format])
+    apply (induct m rule: less_induct)
     apply (subst mod_if)
     apply (simp add: add_assoc add_diff_inverse le_div_geq)
     done
 next
   fix n :: nat
   show "n div 0 = 0"
-    by (rule div_eq [THEN wf_less_trans], simp)
+    by (rule div_eq [THEN wf_less_trans]) simp
 next
   fix n m :: nat
   assume "n \<noteq> 0"
