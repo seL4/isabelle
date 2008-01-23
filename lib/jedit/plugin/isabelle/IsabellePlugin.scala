@@ -110,8 +110,8 @@ class IsabellePlugin extends EditPlugin {
           try {
             result = IsabellePlugin.isabelle.results.take.asInstanceOf[IsabelleProcess.Result]
           } catch {
-            case _: NullPointerException => null
-            case _: InterruptedException => null
+            case _: NullPointerException => result = null
+            case _: InterruptedException => result = null
           }
           if (result != null) {
             System.err.println(result)   // FIXME
