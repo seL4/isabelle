@@ -214,7 +214,7 @@ code_const "op div \<Colon> index \<Rightarrow> index \<Rightarrow> index"
 
 code_const "op mod \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (SML "Int.mod/ ((_),/ (_))")
-  (OCaml "Pervasives.(mod)")
+  (OCaml "Pervasives.( mod )")
   (Haskell "mod")
 
 code_const "op = \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
