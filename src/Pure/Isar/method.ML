@@ -17,7 +17,7 @@ end;
 signature METHOD =
 sig
   include BASIC_METHOD
-  val apply: method -> thm list -> cases_tactic
+  val apply: Position.T -> (Proof.context -> method) -> Proof.context -> thm list -> cases_tactic
   val RAW_METHOD_CASES: (thm list -> cases_tactic) -> method
   val RAW_METHOD: (thm list -> tactic) -> method
   val METHOD_CASES: (thm list -> cases_tactic) -> method
@@ -133,7 +133,8 @@ fun HEADGOAL tac = tac 1;
 
 datatype method = Meth of thm list -> cases_tactic;
 
-fun apply (Meth m) = m;
+fun apply pos meth_fun ctxt facts goal = Position.setmp_thread_data_seq pos
+  (fn () => let val Meth meth = meth_fun ctxt in meth facts goal end) ();
 
 val RAW_METHOD_CASES = Meth;
 
@@ -219,14 +220,15 @@ fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
   if cond (Logic.strip_assums_concl prop)
   then Tactic.rtac rule i else no_tac);
 
-fun legacy_tac ctxt st =
-  (legacy_feature ("implicit use of prems in assumption proof" ^ ContextPosition.str_of ctxt);
+fun legacy_tac st =
+  (legacy_feature
+      ("implicit use of prems in assumption proof" ^ Position.str_of (Position.thread_data ()));
     all_tac st);
 
 fun assm_tac ctxt =
   assume_tac APPEND'
   Goal.assume_rule_tac ctxt APPEND'
-  (CHANGED o solve_tac (Assumption.prems_of ctxt) THEN' K (legacy_tac ctxt)) APPEND'
+  (CHANGED o solve_tac (Assumption.prems_of ctxt) THEN' K legacy_tac) APPEND'
   cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
   cond_rtac (can Logic.dest_term) Drule.termI;
 
