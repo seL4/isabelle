@@ -137,10 +137,11 @@ and node =
     goal: goal option}
 and goal =
   Goal of
-   {statement: string * term list list,     (*goal kind and statement, starting with vars*)
-    messages: (unit -> Pretty.T) list,      (*persistent messages (hints etc.)*)
-    using: thm list,                        (*goal facts*)
-    goal: thm,                              (*subgoals ==> statement*)
+   {statement: (string * Position.T) * term list list,
+                                          (*goal kind and statement (starting with vars)*)
+    messages: (unit -> Pretty.T) list,    (*persistent messages (hints etc.)*)
+    using: thm list,                      (*goal facts*)
+    goal: thm,                            (*subgoals ==> statement*)
     before_qed: Method.text option,
     after_qed:
       (thm list list -> state -> state Seq.seq) *
@@ -340,14 +341,14 @@ fun pretty_state nr state =
       | strs' => enclose " (" ")" (commas strs'));
 
     fun prt_goal (SOME (ctxt, (i,
-            {statement = _, messages, using, goal, before_qed, after_qed}))) =
+            {statement = ((_, pos), _), messages, using, goal, before_qed, after_qed}))) =
           pretty_facts "using " ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Pretty.str ("goal" ^
             description [levels_up (i div 2), subgoals (Thm.nprems_of goal)] ^ ":")] @
           pretty_goals_local ctxt Markup.subgoal
             (true, ! show_main_goal) (! Display.goals_limit) goal @
-          (map (fn msg => msg ()) (rev messages))
+          (map (fn msg => Position.setmp_thread_data pos msg ()) (rev messages))
       | prt_goal NONE = [];
 
     val prt_ctxt =
@@ -385,15 +386,13 @@ fun no_goal_cases st = map (rpair NONE) (goals st);
 fun goal_cases st =
   RuleCases.make_common true (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair []) (goals st));
 
-fun apply_method current_context pos meth_fun state =
+fun apply_method current_context pos meth state =
   let
     val (goal_ctxt, (_, {statement, messages = _, using, goal, before_qed, after_qed})) =
       find_goal state;
-    val ctxt = ContextPosition.put_ctxt pos
-      (if current_context then context_of state else goal_ctxt);
-    val meth = meth_fun ctxt;
+    val ctxt = if current_context then context_of state else goal_ctxt;
   in
-    Method.apply meth using goal |> Seq.map (fn (meth_cases, goal') =>
+    Method.apply pos meth ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
           (ProofContext.add_cases false (no_goal_cases goal @ goal_cases goal') #>
@@ -743,7 +742,7 @@ fun end_proof bot txt state =
   |> assert_current_goal true
   |> using_facts []
   |> `before_qed |-> (refine o the_default Method.succeed_text)
-  |> Seq.maps (refine (Method.finish_text txt (ContextPosition.get (context_of state))));
+  |> Seq.maps (refine (Method.finish_text txt (Position.thread_data ())));
 
 
 (* unstructured refinement *)
@@ -785,6 +784,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     val thy = theory_of state;
     val cert = Thm.cterm_of thy;
     val chaining = can assert_chain state;
+    val pos = Position.thread_data ();
 
     val ((propss, after_ctxt), goal_state) =
       state
@@ -807,7 +807,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
   in
     goal_state
     |> map_context (init_context #> Variable.set_body true)
-    |> put_goal (SOME (make_goal ((kind, propss'), [], [], goal, before_qed, after_qed')))
+    |> put_goal (SOME (make_goal (((kind, pos), propss'), [], [], goal, before_qed, after_qed')))
     |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
     |> map_context (ProofContext.auto_bind_goal props)
     |> chaining ? (`the_facts #-> using_facts)
@@ -821,20 +821,25 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
 
 fun generic_qed state =
   let
-    val (goal_ctxt, {statement = (_, stmt), goal, after_qed, ...}) = current_goal state;
+    val (goal_ctxt, {statement, goal, after_qed, ...}) = current_goal state;
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
 
+    val ((_, pos), stmt) = statement;
     val props =
       flat (tl stmt)
       |> Variable.exportT_terms goal_ctxt outer_ctxt;
     val results =
       tl (conclude_goal state goal stmt)
       |> burrow (ProofContext.export goal_ctxt outer_ctxt);
+
+    val (after_local, after_global) = after_qed;
+    fun after_local' x y = Position.setmp_thread_data_seq pos (fn () => after_local x y) ();
+    fun after_global' x y = Position.setmp_thread_data pos (fn () => after_global x y) ();
   in
     outer_state
     |> map_context (ProofContext.auto_bind_facts props)
-    |> pair (after_qed, results)
+    |> pair ((after_local', after_global'), results)
   end;
 
 end;
