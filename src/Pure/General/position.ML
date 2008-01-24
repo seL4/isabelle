@@ -19,6 +19,7 @@ sig
   val properties_of: T -> Markup.property list
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
+  val setmp_thread_data_seq: T -> ('a -> 'b Seq.seq) -> 'a -> 'b Seq.seq
   val str_of: T -> string
 end;
 
@@ -63,6 +64,9 @@ local val tag = Universal.tag () : T Universal.tag in
 
 fun thread_data () = the_default none (Multithreading.get_data tag);
 fun setmp_thread_data pos = Library.setmp_thread_data tag (thread_data ()) pos;
+
+fun setmp_thread_data_seq pos f seq =
+  setmp_thread_data pos f seq |> Seq.wrap (fn pull => setmp_thread_data pos pull ());
 
 end;
 
