@@ -119,7 +119,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val result = th''
       |> PureThy.name_thm true true ""
       |> Goal.close_result
-      |> fold PureThy.tag_rule (ContextPosition.properties_of ctxt)
+      |> fold PureThy.tag_rule (Position.properties_of (Position.thread_data ()))
       |> PureThy.name_thm true true name;
 
     (*import fixes*)
@@ -206,7 +206,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) pos ((c,
 
 fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c, T), mx) lthy =
   let
-    val pos = ContextPosition.properties_of lthy;
+  val pos = Position.properties_of (Position.thread_data ());
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
@@ -234,7 +234,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c,
 
 fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t) lthy =
   let
-    val pos = ContextPosition.properties_of lthy;
+    val pos = Position.properties_of (Position.thread_data ());
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val target_ctxt = LocalTheory.target_of lthy;
 
