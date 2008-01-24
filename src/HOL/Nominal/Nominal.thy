@@ -1947,6 +1947,13 @@ next
   then show "X\<subseteq>(supp X)" by blast
 qed
 
+lemma at_fin_set_fresh:
+  fixes X::"'x set" 
+  assumes at: "at TYPE('x)"
+  and     fs: "finite X"
+  shows "(x \<sharp> X) = (x \<notin> X)"
+  by (simp add: at_fin_set_supp fresh_def at fs)
+
 section {* Permutations acting on Functions *}
 (*==========================================*)
 
