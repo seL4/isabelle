@@ -122,21 +122,6 @@ fun read_typ sign ((Ts, sorts), str) =
       (map (apfst (rpair ~1)) sorts)) str) handle TYPE (msg, _, _) => error msg
   in (Ts @ [T], add_typ_tfrees (T, sorts)) end;
 
-fun mk_subgoal i f st =
-  let
-    val cg = List.nth (cprems_of st, i - 1);
-    val g = term_of cg;
-    val revcut_rl' = Thm.lift_rule cg revcut_rl;
-    val v = head_of (Logic.strip_assums_concl (hd (prems_of revcut_rl')));
-    val ps = Logic.strip_params g;
-    val cert = cterm_of (Thm.theory_of_thm st);
-  in
-    compose_tac (false,
-      Thm.instantiate ([], [(cert v, cert (list_abs (ps,
-        f (rev ps) (Logic.strip_assums_hyp g) (Logic.strip_assums_concl g))))])
-      revcut_rl', 2) i st
-  end;
-
 (** simplification procedure for sorting permutations **)
 
 val dj_cp = thm "dj_cp";
@@ -186,6 +171,9 @@ val fresh_def = thm "fresh_def";
 val supp_def = thm "supp_def";
 val rev_simps = thms "rev.simps";
 val app_simps = thms "append.simps";
+val at_fin_set_supp = thm "at_fin_set_supp";
+val at_fin_set_fresh = thm "at_fin_set_fresh";
+val abs_fun_eq1 = thm "abs_fun_eq1";
 
 val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
 
@@ -204,7 +192,7 @@ fun perm_of_pair (x, y) =
   end;
 
 fun mk_not_sym ths = maps (fn th => case prop_of th of
-    _ $ (Const ("Not", _) $ _) => [th, th RS not_sym]
+    _ $ (Const ("Not", _) $ (Const ("op =", _) $ _ $ _)) => [th, th RS not_sym]
   | _ => [th]) ths;
 
 fun fresh_const T U = Const ("Nominal.fresh", T --> U --> HOLogic.boolT);
@@ -585,6 +573,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val _ = warning "proving closure under permutation...";
 
+    val abs_perm = PureThy.get_thms thy4 (Name "abs_perm");
+
     val perm_indnames' = List.mapPartial
       (fn (x, (_, ("Nominal.noption", _, _))) => NONE | (x, _) => SOME x)
       (perm_indnames ~~ descr);
@@ -605,7 +595,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         (fn _ => EVERY (* CU: added perm_fun_def in the final tactic in order to deal with funs *)
            [indtac rep_induct [] 1,
             ALLGOALS (simp_tac (simpset_of thy4 addsimps
-              (symmetric perm_fun_def :: PureThy.get_thms thy4 (Name ("abs_perm"))))),
+              (symmetric perm_fun_def :: abs_perm))),
             ALLGOALS (resolve_tac rep_intrs
                THEN_ALL_NEW (asm_full_simp_tac (simpset_of thy4 addsimps [perm_fun_def])))])),
         length new_type_names));
@@ -884,8 +874,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       (constr_rep_thmss ~~ dist_lemmas ~~ distinct_props);
 
     (** prove equations for permutation functions **)
-
-    val abs_perm = PureThy.get_thms thy8 (Name "abs_perm"); (* FIXME *)
 
     val perm_simps' = map (fn (((i, (_, _, constrs)), tname), constr_rep_thms) =>
       let val T = nth_dtyp' i
@@ -1220,153 +1208,156 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (Free (tname, T))))
         (descr'' ~~ recTs ~~ tnames)));
 
-    fun mk_ind_perm i k p l vs j =
-      let
-        val n = length vs;
-        val Ts = map snd vs;
-        val T = List.nth (Ts, i - j);
-        val pT = NominalAtoms.mk_permT T
-      in
-        Const ("List.list.Cons", HOLogic.mk_prodT (T, T) --> pT --> pT) $
-          (HOLogic.pair_const T T $ Bound (l - j) $ fold_rev (mk_perm Ts)
-            (map (mk_ind_perm i k p l vs) (j - 1 downto 0) @
-             map Bound (n - k - 1 downto n - k - p))
-            (Bound (i - j))) $
-          Const ("List.list.Nil", pT)
-      end;
-
-    fun mk_fresh i i' j k p l is vs _ _ =
-      let
-        val n = length vs;
-        val Ts = map snd vs;
-        val T = List.nth (Ts, n - i - 1 - j);
-        val f = the (AList.lookup op = fresh_fs T);
-        val U = List.nth (Ts, n - i' - 1);
-        val S = HOLogic.mk_setT T;
-        val prms' = map Bound (n - k downto n - k - p + 1);
-        val prms = map (mk_ind_perm (n - i) k p (n - l) (("a", T) :: vs))
-            (j - 1 downto 0) @ prms';
-        val bs = rev (List.mapPartial
-          (fn ((_, T'), i) => if T = T' then SOME (Bound i) else NONE)
-          (List.take (vs, n - k - p - 1) ~~ (1 upto n - k - p - 1)));
-        val ts = map (fn i =>
-          Const ("Nominal.supp", List.nth (Ts, n - i - 1) --> S) $
-            fold_rev (mk_perm (T :: Ts)) prms' (Bound (n - i))) is
-      in
-        HOLogic.mk_Trueprop (Const ("Ex", (T --> HOLogic.boolT) --> HOLogic.boolT) $
-          Abs ("a", T, HOLogic.Not $
-            (Const ("op :", T --> S --> HOLogic.boolT) $ Bound 0 $
-              (foldr (fn (t, u) => Const ("insert", T --> S --> S) $ t $ u)
-                (foldl (fn (t, u) => Const ("op Un", S --> S --> S) $ u $ t)
-                  (f $ Bound (n - k - p))
-                  (Const ("Nominal.supp", U --> S) $
-                     fold_rev (mk_perm (T :: Ts)) prms (Bound (n - i')) :: ts))
-                (fold_rev (mk_perm (T :: Ts)) prms (Bound (n - i - j)) :: bs)))))
-      end;
-
-    fun mk_fresh_constr is p vs _ concl =
-      let
-        val n = length vs;
-        val Ts = map snd vs;
-        val _ $ (_ $ _ $ t) = concl;
-        val c = head_of t;
-        val T = body_type (fastype_of c);
-        val k = foldr op + 0 (map (fn (_, i) => i + 1) is);
-        val ps = map Bound (n - k - 1 downto n - k - p);
-        val (_, _, ts, us) = foldl (fn ((_, i), (m, n, ts, us)) =>
-          (m - i - 1, n - i,
-           ts @ map Bound (n downto n - i + 1) @ [fold_rev (mk_perm Ts)
-             (map (mk_ind_perm m k p n vs) (i - 1 downto 0) @ ps)
-             (Bound (m - i))],
-           us @ map (fn j => fold_rev (mk_perm Ts) ps (Bound j)) (m downto m - i)))
-          (n - 1, n - k - p - 2, [], []) is
-      in
-        HOLogic.mk_Trueprop (HOLogic.eq_const T $ list_comb (c, ts) $ list_comb (c, us))
-      end;
-
-    val abs_fun_finite_supp = PureThy.get_thm thy9 (Name "abs_fun_finite_supp");
-
-    val at_finite_select = PureThy.get_thm thy9 (Name "at_finite_select");
-
-    val induct_aux_lemmas = List.concat (map (fn Type (s, _) =>
-      [PureThy.get_thm thy9 (Name ("pt_" ^ Sign.base_name s ^ "_inst")),
-       PureThy.get_thm thy9 (Name ("fs_" ^ Sign.base_name s ^ "1")),
-       PureThy.get_thm thy9 (Name ("at_" ^ Sign.base_name s ^ "_inst"))]) dt_atomTs);
-
-    val induct_aux_lemmas' = map (fn Type (s, _) =>
+    val fin_set_supp = map (fn Type (s, _) =>
+      PureThy.get_thm thy9 (Name ("at_" ^ Sign.base_name s ^ "_inst")) RS
+        at_fin_set_supp) dt_atomTs;
+    val fin_set_fresh = map (fn Type (s, _) =>
+      PureThy.get_thm thy9 (Name ("at_" ^ Sign.base_name s ^ "_inst")) RS
+        at_fin_set_fresh) dt_atomTs;
+    val pt1_atoms = map (fn Type (s, _) =>
+      PureThy.get_thm thy9 (Name ("pt_" ^ Sign.base_name s ^ "1"))) dt_atomTs;
+    val pt2_atoms = map (fn Type (s, _) =>
       PureThy.get_thm thy9 (Name ("pt_" ^ Sign.base_name s ^ "2")) RS sym) dt_atomTs;
+    val exists_fresh' = PureThy.get_thms thy9 (Name "exists_fresh'");
+    val fs_atoms = PureThy.get_thms thy9 (Name "fin_supp");
+    val abs_supp = PureThy.get_thms thy9 (Name "abs_supp");
+    val perm_fresh_fresh = PureThy.get_thms thy9 (Name "perm_fresh_fresh");
+    val calc_atm = PureThy.get_thms thy9 (Name "calc_atm");
+    val fresh_atm = PureThy.get_thms thy9 (Name "fresh_atm");
+    val fresh_left = PureThy.get_thms thy9 (Name "fresh_left");
+    val perm_swap = PureThy.get_thms thy9 (Name "perm_swap");
 
-    val fresh_aux = PureThy.get_thms thy9 (Name "fresh_aux");
+    fun obtain_fresh_name' ths ts T (freshs1, freshs2, ctxt) =
+      let
+        val p = foldr1 HOLogic.mk_prod (ts @ freshs1);
+        val ex = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop
+            (HOLogic.exists_const T $ Abs ("x", T,
+              fresh_const T (fastype_of p) $
+                Bound 0 $ p)))
+          (fn _ => EVERY
+            [resolve_tac exists_fresh' 1,
+             simp_tac (HOL_ss addsimps (supp_prod :: finite_Un :: fs_atoms @
+               fin_set_supp @ ths)) 1]);
+        val (([cx], ths), ctxt') = Obtain.result
+          (fn _ => EVERY
+            [etac exE 1,
+             full_simp_tac (HOL_ss addsimps (fresh_prod :: fresh_atm)) 1,
+             REPEAT (etac conjE 1)])
+          [ex] ctxt
+      in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
+
+    fun fresh_fresh_inst thy a b =
+      let
+        val T = fastype_of a;
+        val SOME th = find_first (fn th => case prop_of th of
+            _ $ (_ $ (Const (_, Type (_, [U, _])) $ _ $ _)) $ _ => U = T
+          | _ => false) perm_fresh_fresh
+      in
+        Drule.instantiate' []
+          [SOME (cterm_of thy a), NONE, SOME (cterm_of thy b)] th
+      end;
 
     (**********************************************************************
       The subgoals occurring in the proof of induct_aux have the
       following parameters:
 
-        x_1 ... x_k p_1 ... p_m z b_1 ... b_n
+        x_1 ... x_k p_1 ... p_m z
 
       where
 
         x_i : constructor arguments (introduced by weak induction rule)
         p_i : permutations (one for each atom type in the data type)
         z   : freshness context
-        b_i : newly introduced names for binders (sufficiently fresh)
     ***********************************************************************)
 
     val _ = warning "proving strong induction theorem ...";
 
-    val induct_aux = Goal.prove_global thy9 [] ind_prems' ind_concl'
-      (fn prems => EVERY
-        ([mk_subgoal 1 (K (K (K aux_ind_concl))),
-          indtac dt_induct tnames 1] @
-         List.concat (map (fn ((_, (_, _, constrs)), (_, constrs')) =>
-           List.concat (map (fn ((cname, cargs), is) =>
-             [simp_tac (HOL_basic_ss addsimps List.concat perm_simps') 1,
-              REPEAT (rtac allI 1)] @
-             List.concat (map
-               (fn ((_, 0), _) => []
-                 | ((i, j), k) => List.concat (map (fn j' =>
+    val induct_aux = Goal.prove_global thy9 [] ind_prems' ind_concl' (fn prems =>
+      let
+        val (prems1, prems2) = chop (length dt_atomTs) prems;
+        val ind_ss2 = HOL_ss addsimps
+          finite_Diff :: abs_fresh @ abs_supp @ fs_atoms;
+        val ind_ss1 = ind_ss2 addsimps fresh_left @ calc_atm @
+          fresh_atm @ rev_simps @ app_simps;
+        val ind_ss3 = HOL_ss addsimps abs_fun_eq1 ::
+          abs_perm @ calc_atm @ perm_swap;
+        val ind_ss4 = HOL_basic_ss addsimps fresh_left @ prems1 @
+          fin_set_fresh @ calc_atm;
+        val ind_ss5 = HOL_basic_ss addsimps pt1_atoms;
+        val ind_ss6 = HOL_basic_ss addsimps flat perm_simps';
+        val th = Goal.prove (ProofContext.init thy9) [] [] aux_ind_concl
+          (fn {context = context1, ...} =>
+             EVERY (indtac dt_induct tnames 1 ::
+               maps (fn ((_, (_, _, constrs)), (_, constrs')) =>
+                 map (fn ((cname, cargs), is) =>
+                   REPEAT (rtac allI 1) THEN
+                   SUBPROOF (fn {prems = iprems, params, concl,
+                       context = context2, ...} =>
                      let
-                       val DtType (tname, _) = List.nth (cargs, i + j');
-                       val atom = Sign.base_name tname
+                       val concl' = term_of concl;
+                       val _ $ (_ $ _ $ u) = concl';
+                       val U = fastype_of u;
+                       val (xs, params') =
+                         chop (length cargs) (map term_of params);
+                       val Ts = map fastype_of xs;
+                       val cnstr = Const (cname, Ts ---> U);
+                       val (pis, z) = split_last params';
+                       val mk_pi = fold_rev (mk_perm []) pis;
+                       val xs' = partition_cargs is xs;
+                       val xs'' = map (fn (ts, u) => (map mk_pi ts, mk_pi u)) xs';
+                       val ts = maps (fn (ts, u) => ts @ [u]) xs'';
+                       val (freshs1, freshs2, context3) = fold (fn t =>
+                         let val T = fastype_of t
+                         in obtain_fresh_name' prems1
+                           (the (AList.lookup op = fresh_fs T) $ z :: ts) T
+                         end) (maps fst xs') ([], [], context2);
+                       val freshs1' = unflat (map fst xs') freshs1;
+                       val freshs2' = map (Simplifier.simplify ind_ss4)
+                         (mk_not_sym freshs2);
+                       val ind_ss1' = ind_ss1 addsimps freshs2';
+                       val ind_ss3' = ind_ss3 addsimps freshs2';
+                       val rename_eq =
+                         if forall (null o fst) xs' then []
+                         else [Goal.prove context3 [] []
+                           (HOLogic.mk_Trueprop (HOLogic.mk_eq
+                             (list_comb (cnstr, ts),
+                              list_comb (cnstr, maps (fn ((bs, t), cs) =>
+                                cs @ [fold_rev (mk_perm []) (map perm_of_pair
+                                  (bs ~~ cs)) t]) (xs'' ~~ freshs1')))))
+                           (fn _ => EVERY
+                              (simp_tac (HOL_ss addsimps flat inject_thms) 1 ::
+                               REPEAT (FIRSTGOAL (rtac conjI)) ::
+                               maps (fn ((bs, t), cs) =>
+                                 if null bs then []
+                                 else rtac sym 1 :: maps (fn (b, c) =>
+                                   [rtac trans 1, rtac sym 1,
+                                    rtac (fresh_fresh_inst thy9 b c) 1,
+                                    simp_tac ind_ss1' 1,
+                                    simp_tac ind_ss2 1,
+                                    simp_tac ind_ss3' 1]) (bs ~~ cs))
+                                 (xs'' ~~ freshs1')))];
+                       val th = Goal.prove context3 [] [] concl' (fn _ => EVERY
+                         [simp_tac (ind_ss6 addsimps rename_eq) 1,
+                          cut_facts_tac iprems 1,
+                          (resolve_tac prems THEN_ALL_NEW
+                            SUBGOAL (fn (t, i) => case Logic.strip_assums_concl t of
+                                _ $ (Const ("Nominal.fresh", _) $ _ $ _) =>
+                                  simp_tac ind_ss1' i
+                              | _ $ (Const ("Not", _) $ _) =>
+                                  resolve_tac freshs2' i
+                              | _ => asm_simp_tac (HOL_basic_ss addsimps
+                                  pt2_atoms addsimprocs [perm_simproc]) i)) 1])
+                       val final = ProofContext.export context3 context2 [th]
                      in
-                       [mk_subgoal 1 (mk_fresh i (i + j) j'
-                          (length cargs) (length dt_atomTs)
-                          (length cargs + length dt_atomTs + 1 + i - k)
-                          (List.mapPartial (fn (i', j) =>
-                             if i = i' then NONE else SOME (i' + j)) is)),
-                        rtac at_finite_select 1,
-                        rtac (PureThy.get_thm thy9 (Name ("at_" ^ atom ^ "_inst"))) 1,
-                        asm_full_simp_tac (simpset_of thy9 addsimps
-                          [PureThy.get_thm thy9 (Name ("fs_" ^ atom ^ "1"))]) 1,
-                        resolve_tac prems 1,
-                        etac exE 1,
-                        asm_full_simp_tac (simpset_of thy9 addsimps
-                          [symmetric fresh_def]) 1]
-                     end) (0 upto j - 1))) (is ~~ (0 upto length is - 1))) @
-             (if exists (not o equal 0 o snd) is then
-                [mk_subgoal 1 (mk_fresh_constr is (length dt_atomTs)),
-                 asm_full_simp_tac (simpset_of thy9 addsimps
-                   (List.concat inject_thms @
-                    alpha @ abs_perm @ abs_fresh @ [abs_fun_finite_supp] @
-                    induct_aux_lemmas)) 1,
-                 dtac sym 1,
-                 asm_full_simp_tac (simpset_of thy9) 1,
-                 REPEAT (etac conjE 1)]
-              else
-                []) @
-             [(resolve_tac prems THEN_ALL_NEW
-                (atac ORELSE'
-                  SUBGOAL (fn (t, i) => case Logic.strip_assums_concl t of
-                      _ $ (Const ("Nominal.fresh", _) $ _ $ _) =>
-                        asm_simp_tac (simpset_of thy9 addsimps fresh_aux) i
-                    | _ =>
-                        asm_simp_tac (simpset_of thy9
-                        addsimps induct_aux_lemmas'
-                        addsimprocs [perm_simproc]) i))) 1])
-               (constrs ~~ constrs'))) (descr'' ~~ ndescr)) @
-         [REPEAT (eresolve_tac [conjE, allE_Nil] 1),
-          REPEAT (etac allE 1),
-          REPEAT (TRY (rtac conjI 1) THEN asm_full_simp_tac (simpset_of thy9) 1)]));
+                       resolve_tac final 1
+                     end) context1 1) (constrs ~~ constrs')) (descr'' ~~ ndescr)))
+      in
+        EVERY
+          [cut_facts_tac [th] 1,
+           REPEAT (eresolve_tac [conjE, allE_Nil] 1),
+           REPEAT (etac allE 1),
+           REPEAT (TRY (rtac conjI 1) THEN asm_full_simp_tac ind_ss5 1)]
+      end);
 
     val induct_aux' = Thm.instantiate ([],
       map (fn (s, T) =>
@@ -1382,7 +1373,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val induct = Goal.prove_global thy9 [] ind_prems ind_concl
       (fn prems => EVERY
          [rtac induct_aux' 1,
-          REPEAT (resolve_tac induct_aux_lemmas 1),
+          REPEAT (resolve_tac fs_atoms 1),
           REPEAT ((resolve_tac prems THEN_ALL_NEW
             (etac meta_spec ORELSE' full_simp_tac (HOL_basic_ss addsimps [fresh_def]))) 1)])
 
@@ -1569,9 +1560,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (** freshness **)
 
-    val perm_fresh_fresh = PureThy.get_thms thy11 (Name "perm_fresh_fresh");
-    val perm_swap = PureThy.get_thms thy11 (Name "perm_swap");
-
     val finite_premss = map (fn aT =>
       map (fn (f, T) => HOLogic.mk_Trueprop
         (Const ("Finite_Set.finite", HOLogic.mk_setT aT --> HOLogic.boolT) $
@@ -1635,13 +1623,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       end) (dt_atomTs ~~ rec_equiv_thms' ~~ finite_premss);
 
     (** uniqueness **)
-
-    val exists_fresh' = PureThy.get_thms thy11 (Name "exists_fresh'");
-    val fs_atoms = map (fn Type (s, _) => PureThy.get_thm thy11
-      (Name ("fs_" ^ Sign.base_name s ^ "1"))) dt_atomTs;
-    val fresh_atm = PureThy.get_thms thy11 (Name "fresh_atm");
-    val calc_atm = PureThy.get_thms thy11 (Name "calc_atm");
-    val fresh_left = PureThy.get_thms thy11 (Name "fresh_left");
 
     val fun_tuple = foldr1 HOLogic.mk_prod (rec_ctxt :: rec_fns);
     val fun_tupleT = fastype_of fun_tuple;
