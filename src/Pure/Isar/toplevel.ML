@@ -46,10 +46,8 @@ sig
   val undo_limit: bool -> int option
   val empty: transition
   val name_of: transition -> string
-  val properties_of: transition -> Markup.property list
   val source_of: transition -> OuterLex.token list option
   val name: string -> transition -> transition
-  val properties: Markup.property list -> transition -> transition
   val position: Position.T -> transition -> transition
   val source: OuterLex.token list -> transition -> transition
   val interactive: bool -> transition -> transition
@@ -343,12 +341,6 @@ fun map_theory f = History.map_current
   (fn Theory (gthy, _) => Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, NONE)
     | node => node);
 
-fun context_position pos = History.map_current
-  (fn Theory (gthy, ctxt) => Theory (ContextPosition.put pos gthy, ctxt)
-    | Proof (prf, x) =>
-        Proof (ProofHistory.map_current (Proof.map_context (ContextPosition.put_ctxt pos)) prf, x)
-    | node => node);
-
 fun return (result, NONE) = result
   | return (result, SOME exn) = raise FAILURE (result, exn);
 
@@ -364,12 +356,9 @@ fun transaction hist pos f (node, term) =
 
     val (result, err) =
       cont_node
-      |> context_position pos
-      |> map_theory Theory.checkpoint
       |> (f
           |> (if hist then History.apply' (History.current back_node) else History.map_current)
           |> controlled_execution)
-      |> context_position Position.none
       |> normal_state
       handle exn => error_state cont_node exn;
   in
@@ -448,7 +437,6 @@ end;
 
 datatype transition = Transition of
  {name: string,                        (*command name*)
-  props: Markup.property list,         (*properties*)
   pos: Position.T,                     (*source position*)
   source: OuterLex.token list option,  (*source text*)
   int_only: bool,                      (*interactive-only*)
@@ -456,17 +444,16 @@ datatype transition = Transition of
   no_timing: bool,                     (*suppress timing*)
   trans: trans list};                  (*primitive transitions (union)*)
 
-fun make_transition (name, props, pos, source, int_only, print, no_timing, trans) =
-  Transition {name = name, props = props, pos = pos, source = source,
+fun make_transition (name, pos, source, int_only, print, no_timing, trans) =
+  Transition {name = name, pos = pos, source = source,
     int_only = int_only, print = print, no_timing = no_timing, trans = trans};
 
-fun map_transition f (Transition {name, props, pos, source, int_only, print, no_timing, trans}) =
-  make_transition (f (name, props, pos, source, int_only, print, no_timing, trans));
+fun map_transition f (Transition {name, pos, source, int_only, print, no_timing, trans}) =
+  make_transition (f (name, pos, source, int_only, print, no_timing, trans));
 
-val empty = make_transition ("<unknown>", [], Position.none, NONE, false, [], false, []);
+val empty = make_transition ("<unknown>", Position.none, NONE, false, [], false, []);
 
 fun name_of (Transition {name, ...}) = name;
-fun properties_of (Transition {props, ...}) = props;
 fun source_of (Transition {source, ...}) = source;
 
 
@@ -483,37 +470,26 @@ fun type_error tr state =
 
 (* modify transitions *)
 
-fun name nm =
-  map_transition (fn (_, props, pos, source, int_only, print, no_timing, trans) =>
-    (nm, props, pos, source, int_only, print, no_timing, trans));
+fun name nm = map_transition (fn (_, pos, source, int_only, print, no_timing, trans) =>
+  (nm, pos, source, int_only, print, no_timing, trans));
 
-fun properties props =
-  map_transition (fn (name, _, pos, source, int_only, print, no_timing, trans) =>
-    (name, props, pos, source, int_only, print, no_timing, trans));
+fun position pos = map_transition (fn (name, _, source, int_only, print, no_timing, trans) =>
+  (name, pos, source, int_only, print, no_timing, trans));
 
-fun position pos =
-  map_transition (fn (name, props, _, source, int_only, print, no_timing, trans) =>
-    (name, props, pos, source, int_only, print, no_timing, trans));
+fun source src = map_transition (fn (name, pos, _, int_only, print, no_timing, trans) =>
+  (name, pos, SOME src, int_only, print, no_timing, trans));
 
-fun source src =
-  map_transition (fn (name, props, pos, _, int_only, print, no_timing, trans) =>
-    (name, props, pos, SOME src, int_only, print, no_timing, trans));
+fun interactive int_only = map_transition (fn (name, pos, source, _, print, no_timing, trans) =>
+  (name, pos, source, int_only, print, no_timing, trans));
 
-fun interactive int_only =
-  map_transition (fn (name, props, pos, source, _, print, no_timing, trans) =>
-    (name, props, pos, source, int_only, print, no_timing, trans));
+val no_timing = map_transition (fn (name, pos, source, int_only, print, _, trans) =>
+  (name, pos, source, int_only, print, true, trans));
 
-val no_timing =
-  map_transition (fn (name, props, pos, source, int_only, print, _, trans) =>
-    (name, props, pos, source, int_only, print, true, trans));
+fun add_trans tr = map_transition (fn (name, pos, source, int_only, print, no_timing, trans) =>
+  (name, pos, source, int_only, print, no_timing, trans @ [tr]));
 
-fun add_trans tr =
-  map_transition (fn (name, props, pos, source, int_only, print, no_timing, trans) =>
-    (name, props, pos, source, int_only, print, no_timing, trans @ [tr]));
-
-fun print' mode =
-  map_transition (fn (name, props, pos, source, int_only, print, no_timing, trans) =>
-    (name, props, pos, source, int_only, insert (op =) mode print, no_timing, trans));
+fun print' mode = map_transition (fn (name, pos, source, int_only, print, no_timing, trans) =>
+  (name, pos, source, int_only, insert (op =) mode print, no_timing, trans));
 
 val print = print' "";
 
@@ -566,9 +542,8 @@ local
 fun local_theory_presentation loc f g = app_current (fn int =>
   (fn Theory (gthy, _) =>
         let
-          val pos = ContextPosition.get (Context.proof_of gthy);
           val finish = loc_finish loc gthy;
-          val lthy' = f (ContextPosition.put_ctxt pos (loc_begin loc gthy));
+          val lthy' = f (loc_begin loc gthy);
         in Theory (finish lthy', SOME lthy') end
     | _ => raise UNDEF) #> tap (g int));
 
@@ -617,9 +592,7 @@ fun begin_proof init finish = app_current (fn int =>
 in
 
 fun local_theory_to_proof' loc f = begin_proof
-  (fn int => fn gthy =>
-    f int (ContextPosition.put_ctxt (ContextPosition.get (Context.proof_of gthy))
-      (loc_begin loc gthy)))
+  (fn int => fn gthy => f int (loc_begin loc gthy))
   (loc_finish loc);
 
 fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
@@ -667,9 +640,9 @@ fun skip_proof_to_theory p = map_current (fn _ =>
 
 (** toplevel transactions **)
 
-(* thread transition properties *)
+(* thread position *)
 
-fun setmp_thread_position (Transition {props, pos, ...}) f x =
+fun setmp_thread_position (Transition {pos, ...}) f x =
   Position.setmp_thread_data pos f x;
 
 
