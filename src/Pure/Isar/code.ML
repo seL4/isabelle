@@ -450,6 +450,7 @@ fun print_codesetup thy =
                           :: Pretty.str "of" :: map (Pretty.quote o Sign.pretty_typ thy) tys)) cos)
           );
     val inlines = (#inlines o the_thmproc) exec;
+    val posts = (#posts o the_thmproc) exec;
     val inline_procs = (map fst o #inline_procs o the_thmproc) exec;
     val preprocs = (map fst o #preprocs o the_thmproc) exec;
     val funs = the_funcs exec
@@ -482,6 +483,11 @@ fun print_codesetup thy =
         Pretty.str "preprocessors:"
         :: Pretty.fbrk
         :: (Pretty.fbreaks o map Pretty.str) preprocs
+      ),
+      Pretty.block (
+        Pretty.str "postprocessor theorems:"
+        :: Pretty.fbrk
+        :: (Pretty.fbreaks o map (ProofContext.pretty_thm ctxt)) posts
       ),
       Pretty.block (
         Pretty.str "datatypes:"
