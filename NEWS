@@ -16,11 +16,12 @@ specified via 3 decimal digits (as in SML).  E.g. "foo\095bar" for
 
 *** Pure ***
 
-* Instantiation target allows for simultaneous specification of class instance
-operations together with an instantiation proof.  Type check phase allows to
-refer to class operations uniformly.  See HOL/Complex/Complex.thy for an Isar
-example and HOL/Library/Eval.thy for an ML example.
-Superseedes some immature attempts.
+* Instantiation target allows for simultaneous specification of class
+instance operations together with an instantiation proof.
+Type-checking phase allows to refer to class operations uniformly.
+See HOL/Complex/Complex.thy for an Isar example and
+HOL/Library/Eval.thy for an ML example.  Supersedes previous
+experimental versions.
 
 
 *** HOL ***
@@ -84,6 +85,9 @@ print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
 
 
 *** System ***
+
+* Default settings: PROOFGENERAL_OPTIONS no longer impose xemacs here
+--- in accordance with Proof General 3.7, which prefers GNU emacs.
 
 * Multithreading.max_threads := 0 refers to the number of actual CPU
 cores of the underlying machine, which is a good starting point for
