@@ -128,10 +128,10 @@ qed
 lemma dvd_prod [iff]: "n dvd prod (n # ns)"
   by simp
 
-consts fact :: "nat \<Rightarrow> nat"    ("(_!)" [1000] 999)
-primrec
-  "0! = 1"
-  "(Suc n)! = n! * Suc n"
+primrec fact :: "nat \<Rightarrow> nat"    ("(_!)" [1000] 999)
+where
+    "0! = 1"
+  | "(Suc n)! = n! * Suc n"
 
 lemma fact_greater_0 [iff]: "0 < n!"
   by (induct n) simp_all

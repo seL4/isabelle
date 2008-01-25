@@ -16,22 +16,24 @@ text {*
 
 datatype b = T | F
 
-consts
-  is_path' :: "('a \<Rightarrow> 'a \<Rightarrow> b) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
-
 primrec
-  "is_path' r x [] z = (r x z = T)"
-  "is_path' r x (y # ys) z = (r x y = T \<and> is_path' r y ys z)"
+  is_path' :: "('a \<Rightarrow> 'a \<Rightarrow> b) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
+where
+    "is_path' r x [] z = (r x z = T)"
+  | "is_path' r x (y # ys) z = (r x y = T \<and> is_path' r y ys z)"
 
-constdefs
+definition
   is_path :: "(nat \<Rightarrow> nat \<Rightarrow> b) \<Rightarrow> (nat * nat list * nat) \<Rightarrow>
     nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool"
-  "is_path r p i j k == fst p = j \<and> snd (snd p) = k \<and>
+where
+  "is_path r p i j k \<longleftrightarrow> fst p = j \<and> snd (snd p) = k \<and>
      list_all (\<lambda>x. x < i) (fst (snd p)) \<and>
      is_path' r (fst p) (fst (snd p)) (snd (snd p))"
 
+definition
   conc :: "('a * 'a list * 'a) \<Rightarrow> ('a * 'a list * 'a) \<Rightarrow> ('a * 'a list * 'a)"
-  "conc p q == (fst p, fst (snd p) @ fst q # fst (snd q), snd (snd q))"
+where
+  "conc p q = (fst p, fst (snd p) @ fst q # fst (snd q), snd (snd q))"
 
 theorem is_path'_snoc [simp]:
   "\<And>x. is_path' r x (ys @ [y]) z = (is_path' r x ys y \<and> r y z = T)"

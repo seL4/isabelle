@@ -234,12 +234,11 @@ proof (rule bar2)
   qed
 qed
 
-consts
-  is_prefix :: "'a list \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> bool"
-
 primrec
-  "is_prefix [] f = True"
-  "is_prefix (x # xs) f = (x = f (length xs) \<and> is_prefix xs f)"
+  is_prefix :: "'a list \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> bool"
+where
+    "is_prefix [] f = True"
+  | "is_prefix (x # xs) f = (x = f (length xs) \<and> is_prefix xs f)"
 
 theorem L_idx:
   assumes L: "L w ws"
