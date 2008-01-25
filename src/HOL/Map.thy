@@ -83,6 +83,13 @@ primrec
   "map_of [] = empty"
   "map_of (p#ps) = (map_of ps)(fst p |-> snd p)"
 
+declare map_of.simps [code del]
+
+lemma map_of_Cons_code [code]: 
+  "map_of [] k = None"
+  "map_of ((l, v) # ps) k = (if l = k then Some v else map_of ps k)"
+  by simp_all
+
 defs
   map_upds_def [code func]: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
 

@@ -18,11 +18,15 @@ instantiation nat :: number
 begin
 
 definition
-  nat_number_of_def [code inline]: "number_of v = nat (number_of (v\<Colon>int))"
+  nat_number_of_def [code inline]: "number_of v = nat (number_of v)"
 
 instance ..
 
 end
+
+lemma [code post]:
+  "nat (number_of v) = number_of v"
+  unfolding nat_number_of_def ..
 
 abbreviation (xsymbols)
   square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999) where

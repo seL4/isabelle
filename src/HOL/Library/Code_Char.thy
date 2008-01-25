@@ -9,6 +9,16 @@ theory Code_Char
 imports List
 begin
 
+declare char.recs [code func del] char.cases [code func del]
+
+lemma [code func]:
+  "size (c\<Colon>char) = 0"
+  by (cases c) simp
+
+lemma [code func]:
+  "char_size (c\<Colon>char) = 0"
+  by (cases c) simp
+
 code_type char
   (SML "char")
   (OCaml "char")

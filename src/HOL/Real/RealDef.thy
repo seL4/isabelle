@@ -852,14 +852,14 @@ instantiation real :: number_ring
 begin
 
 definition
-  real_number_of_def: "number_of w = real_of_int w"
+  real_number_of_def [code func del]: "number_of w = real_of_int w"
 
 instance
   by intro_classes (simp add: real_number_of_def)
 
 end
 
-lemma [code, code unfold]:
+lemma [code unfold, symmetric, code post]:
   "number_of k = real_of_int (number_of k)"
   unfolding number_of_is_id real_number_of_def ..
 
@@ -972,9 +972,11 @@ lemma Ratreal_lit [simp]: "Ratreal i\<^sub>N = real_of_int i"
 
 lemma zero_real_code [code, code unfold]:
   "0 = Ratreal 0\<^sub>N" by simp
+declare zero_real_code [symmetric, code post]
 
 lemma one_real_code [code, code unfold]:
   "1 = Ratreal 1\<^sub>N" by simp
+declare one_real_code [symmetric, code post]
 
 instance real :: eq ..
 
@@ -1014,13 +1016,6 @@ lemma real_inv_code [code]: "inverse (Ratreal x) = Ratreal (Ninv x)"
 
 lemma real_div_code [code]: "Ratreal x / Ratreal y = Ratreal (x \<div>\<^sub>N y)"
   unfolding Ratreal_def by simp
-
-instance int :: lordered_ring
-proof  
-  fix a::int
-  show "abs a = sup a (- a)"
-    by (auto simp add: zabs_def sup_int_def)
-qed
 
 instance real :: lordered_ring
 proof

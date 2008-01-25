@@ -2141,7 +2141,7 @@ subsubsection {* Primitive predicates *}
 definition
   is_empty :: "'a set \<Rightarrow> bool"
 where
-  [code func del]: "is_empty A \<longleftrightarrow> A = {}"
+  [code func del, code post]: "is_empty A \<longleftrightarrow> A = {}"
 lemmas [code inline] = is_empty_def [symmetric]
 
 lemma is_empty_insert [code func]:

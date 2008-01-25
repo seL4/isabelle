@@ -499,7 +499,7 @@ instantiation rat :: number_ring
 begin
 
 definition
-  rat_number_of_def: "number_of w = (of_int w \<Colon> rat)"
+  rat_number_of_def [code func del]: "number_of w = (of_int w \<Colon> rat)"
 
 instance
   by default (simp add: rat_number_of_def)
@@ -640,11 +640,13 @@ lemma Rational_lit [simp]: "Rational i\<^sub>N = rat_of_int i"
 
 lemma zero_rat_code [code, code unfold]:
   "0 = Rational 0\<^sub>N" by simp
+declare zero_rat_code [symmetric, code post]
 
-lemma zero_rat_code [code, code unfold]:
+lemma one_rat_code [code, code unfold]:
   "1 = Rational 1\<^sub>N" by simp
+declare one_rat_code [symmetric, code post]
 
-lemma [code, code unfold]:
+lemma [code unfold, symmetric, code post]:
   "number_of k = rat_of_int (number_of k)"
   by (simp add: number_of_is_id rat_number_of_def)
 
