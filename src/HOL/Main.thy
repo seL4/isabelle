@@ -15,4 +15,6 @@ text {*
 
 ML {* val HOL_proofs = ! Proofterm.proofs *}
 
+ML {* path_add "~~/src/HOL/Library" *}
+
 end
