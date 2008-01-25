@@ -97,14 +97,6 @@ where
 lemmas [simp del] = compose_hint
 
 
-subsection {* Lookup *}
-
-lemma lookup_simps [code func]: 
-  "map_of [] k = None"
-  "map_of (p#ps) k = (if fst p = k then Some (snd p) else map_of ps k)"
-  by simp_all
-
-
 subsection {* @{const delete} *}
 
 lemma delete_def:

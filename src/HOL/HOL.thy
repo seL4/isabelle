@@ -1210,7 +1210,7 @@ text {*
 
 constdefs
   simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1)
-  "simp_implies \<equiv> op ==>"
+  [code func del]: "simp_implies \<equiv> op ==>"
 
 lemma simp_impliesI:
   assumes PQ: "(PROP P \<Longrightarrow> PROP Q)"

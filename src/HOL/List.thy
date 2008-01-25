@@ -199,7 +199,7 @@ definition
 
 definition
   list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool" where
-  "list_all2 P xs ys =
+  [code func del]: "list_all2 P xs ys =
     (length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y))"
 
 definition
