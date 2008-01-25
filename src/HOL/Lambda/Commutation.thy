@@ -35,7 +35,7 @@ abbreviation
 
 subsection {* Basic lemmas *}
 
-subsubsection {* square *}
+subsubsection {* @{text "square"} *}
 
 lemma square_sym: "square R S T U ==> square S R U T"
   apply (unfold square_def)
@@ -70,7 +70,7 @@ lemma square_rtrancl_reflcl_commute:
   done
 
 
-subsubsection {* commute *}
+subsubsection {* @{text "commute"} *}
 
 lemma commute_sym: "commute R S ==> commute S R"
   apply (unfold commute_def)
@@ -89,7 +89,7 @@ lemma commute_Un:
   done
 
 
-subsubsection {* diamond, confluence, and union *}
+subsubsection {* @{text "diamond"}, @{text "confluence"}, and @{text "union"} *}
 
 lemma diamond_Un:
     "[| diamond R; diamond S; commute R S |] ==> diamond (sup R S)"

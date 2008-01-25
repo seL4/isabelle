@@ -55,7 +55,7 @@ lemma par_beta_subset_beta: "par_beta <= beta^**"
   done
 
 
-subsection {* Misc properties of par-beta *}
+subsection {* Misc properties of @{text "par_beta"} *}
 
 lemma par_beta_lift [simp]:
     "t => t' \<Longrightarrow> lift t n => lift t' n"
