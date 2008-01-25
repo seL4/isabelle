@@ -6,74 +6,32 @@
 header {* Simple examples for pretty numerals and such *}
 
 theory Codegenerator_Pretty
-imports "~~/src/HOL/Real/RealDef" Efficient_Nat
+imports ExecutableContent Code_Char Efficient_Nat
 begin
 
-fun
-  to_n :: "nat \<Rightarrow> nat list"
-where
-  "to_n 0 = []"
-  | "to_n (Suc 0) = []"
-  | "to_n (Suc (Suc 0)) = []"
-  | "to_n (Suc n) = n # to_n n"
+declare term_of_index.simps [code func del]
 
-definition
-  naive_prime :: "nat \<Rightarrow> bool"
-where
-  "naive_prime n \<longleftrightarrow> n \<ge> 2 \<and> filter (\<lambda>m. n mod m = 0) (to_n n) = []"
+declare char.recs [code func del]
+  char.cases [code func del]
+  char.size [code func del]
+  term_of_char.simps [code func del]
 
-primrec
-  fac :: "nat \<Rightarrow> nat"
-where
-  "fac 0 = 1"
-  | "fac (Suc n) = Suc n * fac n"
+declare isnorm.simps [code func del]
 
-primrec
-  rat_of_nat :: "nat \<Rightarrow> rat"
-where
-  "rat_of_nat 0 = 0"
-  | "rat_of_nat (Suc n) = rat_of_nat n + 1"
+ML {* (*FIXME get rid of this*)
+nonfix union;
+nonfix inter;
+nonfix upto;
+*}
 
-primrec
-  harmonic :: "nat \<Rightarrow> rat"
-where
-  "harmonic 0 = 0"
-  | "harmonic (Suc n) = 1 / rat_of_nat (Suc n) + harmonic n"
+export_code * in SML module_name CodegenTest
+  in OCaml module_name CodegenTest file -
+  in Haskell file -
 
-lemma "harmonic 200 \<ge> 5"
-  by eval
-
-lemma "harmonic 200 \<ge> 5"
-  by evaluation
-
-lemma "harmonic 20 \<ge> 3"
-  by normalization
-
-lemma "naive_prime 89"
-  by eval
-
-lemma "naive_prime 89"
-  by evaluation
-
-lemma "naive_prime 89"
-  by normalization
-
-lemma "\<not> naive_prime 87"
-  by eval
-
-lemma "\<not> naive_prime 87"
-  by evaluation
-
-lemma "\<not> naive_prime 87"
-  by normalization
-
-lemma "fac 10 > 3000000"
-  by eval
-
-lemma "fac 10 > 3000000"
-  by evaluation
-
-lemma "fac 10 > 3000000"
-  by normalization
+ML {*
+infix union;
+infix inter;
+infix 4 upto;
+*}
 
 end

@@ -9,12 +9,17 @@ no_document use_thys [
   "GCD",
   "Eval",
   "State_Monad",
-  "Code_Integer",
-  "Efficient_Nat",
-  "Codegenerator",
-  "Codegenerator_Pretty",
+  "Efficient_Nat_examples",
+  "ExecutableContent",
   "FuncSet",
-  "Word"
+  "Word",
+  "Eval_Examples",
+  "Random"
+];
+
+no_document use_thys [
+  "Codegenerator",
+  "Codegenerator_Pretty"
 ];
 
 use_thys [
@@ -49,8 +54,6 @@ use_thys [
   "Unification",
   "Commutative_RingEx",
   "Commutative_Ring_Complete",
-  "Eval_Examples",
-  "Random",
   "Primrec",
   "Tarski",
   "Adder",
