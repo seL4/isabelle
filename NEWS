@@ -86,8 +86,8 @@ print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
 
 *** System ***
 
-* Default settings: PROOFGENERAL_OPTIONS no longer impose xemacs here
---- in accordance with Proof General 3.7, which prefers GNU emacs.
+* Default settings: PROOFGENERAL_OPTIONS no longer impose xemacs ---
+in accordance with Proof General 3.7, which prefers GNU emacs.
 
 * Multithreading.max_threads := 0 refers to the number of actual CPU
 cores of the underlying machine, which is a good starting point for
