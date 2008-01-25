@@ -17,10 +17,8 @@ no_document use_thys [
   "Random"
 ];
 
-no_document use_thys [
-  "Codegenerator",
-  "Codegenerator_Pretty"
-];
+no_document use_thy "Codegenerator";
+no_document use_thy "Codegenerator_Pretty";
 
 use_thys [
   "Higher_Order_Logic",
@@ -89,5 +87,5 @@ time_use_thy "Refute_Examples";
 time_use_thy "Quickcheck_Examples";
 no_document time_use_thy "NormalForm";
 
-HTML.with_charset "utf-8" (no_document time_use_thy) "Hebrew";
-HTML.with_charset "utf-8" (no_document time_use_thy) "Chinese";
+HTML.with_charset "utf-8" (no_document use_thys) ["Hebrew", "Chinese"];
+
