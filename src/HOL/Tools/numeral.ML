@@ -56,7 +56,7 @@ end;
 (* code generator *)
 
 fun add_code number_of negative unbounded target =
-  CodeTarget.add_pretty_numeral target unbounded negative number_of
+  CodeTarget.add_pretty_numeral target negative unbounded number_of
   @{const_name Int.B0} @{const_name Int.B1}
   @{const_name Int.Pls} @{const_name Int.Min}
   @{const_name Int.Bit};

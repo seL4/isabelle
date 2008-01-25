@@ -17,6 +17,10 @@ subsection {* Datatype of indices *}
 
 datatype index = index_of_nat nat
 
+lemma [code func]:
+  "index_size k = 0"
+  by (cases k) simp
+
 lemmas [code func del] = index.recs index.cases
 
 primrec
@@ -76,6 +80,8 @@ definition [simp, code func del]:
 lemma zero_index_code [code inline, code func]:
   "(0\<Colon>index) = Numeral0"
   by (simp add: number_of_index_def Pls_def)
+lemma [code post]: "Numeral0 = (0\<Colon>index)"
+  using zero_index_code ..
 
 definition [simp, code func del]:
   "(1\<Colon>index) = index_of_nat 1"
@@ -83,6 +89,8 @@ definition [simp, code func del]:
 lemma one_index_code [code inline, code func]:
   "(1\<Colon>index) = Numeral1"
   by (simp add: number_of_index_def Pls_def Bit_def)
+lemma [code post]: "Numeral1 = (1\<Colon>index)"
+  using one_index_code ..
 
 definition [simp, code func del]:
   "n + m = index_of_nat (nat_of_index n + nat_of_index m)"
@@ -179,7 +187,7 @@ text {* Implementation of indices by bounded integers *}
 code_type index
   (SML "int")
   (OCaml "int")
-  (Haskell "Integer")
+  (Haskell "Int")
 
 code_instance index :: eq
   (Haskell -)
@@ -194,7 +202,7 @@ code_reserved OCaml Pervasives int
 
 code_const "op + \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (SML "Int.+/ ((_),/ (_))")
-  (OCaml "Pervasives.(+)")
+  (OCaml "Pervasives.( + )")
   (Haskell infixl 6 "+")
 
 code_const "op - \<Colon> index \<Rightarrow> index \<Rightarrow> index"
@@ -204,12 +212,12 @@ code_const "op - \<Colon> index \<Rightarrow> index \<Rightarrow> index"
 
 code_const "op * \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (SML "Int.*/ ((_),/ (_))")
-  (OCaml "Pervasives.(*)")
+  (OCaml "Pervasives.( * )")
   (Haskell infixl 7 "*")
 
 code_const "op div \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (SML "Int.div/ ((_),/ (_))")
-  (OCaml "Pervasives.(/)")
+  (OCaml "Pervasives.( / )")
   (Haskell "div")
 
 code_const "op mod \<Colon> index \<Rightarrow> index \<Rightarrow> index"
@@ -219,17 +227,17 @@ code_const "op mod \<Colon> index \<Rightarrow> index \<Rightarrow> index"
 
 code_const "op = \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
-  (OCaml "!((_ : Pervasives.int) = _)")
+  (OCaml "!((_ : int) = _)")
   (Haskell infixl 4 "==")
 
 code_const "op \<le> \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
   (SML "Int.<=/ ((_),/ (_))")
-  (OCaml "!((_ : Pervasives.int) <= _)")
+  (OCaml "!((_ : int) <= _)")
   (Haskell infix 4 "<=")
 
 code_const "op < \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
   (SML "Int.</ ((_),/ (_))")
-  (OCaml "!((_ : Pervasives.int) < _)")
+  (OCaml "!((_ : int) < _)")
   (Haskell infix 4 "<")
 
 end

@@ -207,11 +207,14 @@ fun clause_suc_preproc thy ths =
     then remove_suc_clause thy ths else ths
   end;
 
-fun lift_obj_eq f thy =
-  map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
-  #> f thy
-  #> map (fn thm => thm RS @{thm eq_reflection})
-  #> map (Conv.fconv_rule Drule.beta_eta_conversion)
+fun lift_obj_eq f thy thms =
+  thms
+  |> try (
+    map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
+    #> f thy
+    #> map (fn thm => thm RS @{thm eq_reflection})
+    #> map (Conv.fconv_rule Drule.beta_eta_conversion))
+  |> the_default thms
 *}
 
 setup {*
@@ -222,18 +225,16 @@ setup {*
 *}
 (*>*)
 
-
 subsection {* Target language setup *}
 
 text {*
-  We map @{typ nat} to target language integers, where we
+  For ML, we map @{typ nat} to target language integers, where we
   assert that values are always non-negative.
 *}
 
 code_type nat
   (SML "int")
   (OCaml "Big'_int.big'_int")
-  (Haskell "Integer")
 
 types_code
   nat ("int")
@@ -247,22 +248,70 @@ fun gen_nat i =
 *}
 
 text {*
+  For Haskell we define our own @{typ nat} type.  The reason
+  is that we have to distinguish type class instances
+  for @{typ nat} and @{typ int}.
+*}
+
+code_include Haskell "Nat" {*
+newtype Nat = Nat Integer deriving (Show, Eq);
+
+instance Num Nat where {
+  fromInteger k = Nat (if k >= 0 then k else 0);
+  Nat n + Nat m = Nat (n + m);
+  Nat n - Nat m = fromInteger (n - m);
+  Nat n * Nat m = Nat (n * m);
+  abs n = n;
+  signum _ = 1;
+  negate n = error "negate Nat";
+};
+
+instance Ord Nat where {
+  Nat n <= Nat m = n <= m;
+  Nat n < Nat m = n < m;
+};
+
+instance Real Nat where {
+  toRational (Nat n) = toRational n;
+};
+
+instance Enum Nat where {
+  toEnum k = fromInteger (toEnum k);
+  fromEnum (Nat n) = fromEnum n;
+};
+
+instance Integral Nat where {
+  toInteger (Nat n) = n;
+  divMod n m = quotRem n m;
+  quotRem (Nat n) (Nat m) = (Nat k, Nat l) where (k, l) = quotRem n m;
+};
+*}
+
+code_reserved Haskell Nat
+
+code_type nat
+  (Haskell "Nat")
+
+code_instance nat :: eq
+  (Haskell -)
+
+text {*
   Natural numerals.
 *}
 
-lemma [code inline]:
+lemma [code inline, symmetric, code post]:
   "nat (number_of i) = number_nat_inst.number_of_nat i"
   -- {* this interacts as desired with @{thm nat_number_of_def} *}
   by (simp add: number_nat_inst.number_of_nat)
 
 setup {*
   fold (Numeral.add_code @{const_name number_nat_inst.number_of_nat}
-    false false) ["SML", "OCaml", "Haskell"]
+    true false) ["SML", "OCaml", "Haskell"]
 *}
 
 text {*
   Since natural numbers are implemented
-  using integers, the coercion function @{const "of_nat"} of type
+  using integers in ML, the coercion function @{const "of_nat"} of type
   @{typ "nat \<Rightarrow> int"} is simply implemented by the identity function.
   For the @{const "nat"} function for converting an integer to a natural
   number, we give a specific implementation using an ML function that
@@ -285,16 +334,11 @@ lemma nat_code' [code func]:
 
 lemma of_nat_int [code unfold]:
   "of_nat = int" by (simp add: int_def)
+declare of_nat_int [symmetric, code post]
 
 code_const int
   (SML "_")
   (OCaml "_")
-  (Haskell "_")
-
-code_const nat
-  (SML "IntInf.max/ (/0,/ _)")
-  (OCaml "Big'_int.max'_big'_int/ Big'_int.zero'_big'_int")
-  (Haskell "max 0")
 
 consts_code
   int ("(_)")
@@ -303,19 +347,26 @@ attach {*
 fun nat i = if i < 0 then 0 else i;
 *}
 
+code_const nat
+  (SML "IntInf.max/ (/0,/ _)")
+  (OCaml "Big'_int.max'_big'_int/ Big'_int.zero'_big'_int")
+
+text {* For Haskell, things are slightly different again. *}
+
+code_const int and nat
+  (Haskell "toInteger" and "fromInteger")
 
 text {* Conversion from and to indices. *}
-
-code_const nat_of_index
-  (SML "IntInf.fromInt")
-  (OCaml "Big'_int.big'_int'_of'_int")
-  (Haskell "toInteger")
 
 code_const index_of_nat
   (SML "IntInf.toInt")
   (OCaml "Big'_int.int'_of'_big'_int")
-  (Haskell "fromInteger")
+  (Haskell "toEnum")
 
+code_const nat_of_index
+  (SML "IntInf.fromInt")
+  (OCaml "Big'_int.big'_int'_of'_int")
+  (Haskell "fromEnum")
 
 text {* Using target language arithmetic operations whenever appropriate *}
 
