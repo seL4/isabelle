@@ -84,17 +84,9 @@ fun perhaps_const thy algbr funcgr c trns =
    of SOME (c, trns) => (SOME c, trns)
     | NONE => (NONE, trns);
 
-fun generate thy funcgr gen it =
-  let
-    val naming = NameSpace.qualified_names NameSpace.default_naming;
-    val consttab = Consts.empty
-      |> fold (fn c => Consts.declare true naming [] (c, CodeFuncgr.typ funcgr c))
-           (CodeFuncgr.all funcgr);
-    val algbr = (Code.operational_algebra thy, consttab);
-  in   
-    Program.change_yield thy
-      (CodeThingol.transact (gen thy algbr funcgr it))
-  end;
+fun generate thy funcgr f x =
+  Program.change_yield thy (CodeThingol.transact thy funcgr
+    (fn thy => fn funcgr => fn algbr => f thy funcgr algbr x));
 
 fun code thy permissive cs seris =
   let

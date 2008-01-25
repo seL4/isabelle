@@ -243,12 +243,12 @@ fun implode_numeral negative c_bit0 c_bit1 c_pls c_min c_bit =
     fun dest_numeral (IConst (c, _)) = if c = c_pls then SOME 0
           else if c = c_min then
             if negative then SOME ~1 else NONE
-          else error "Illegal numeral expression"
+          else error "Illegal numeral expression: illegal leading digit"
       | dest_numeral (IConst (c, _) `$ t1 `$ t2) =
           if c = c_bit then let val (n, b) = (dest_numeral t1, dest_bit t2)
             in case n of SOME n => SOME (2 * n + b) | NONE => NONE end
-          else error "Illegal numeral expression"
-      | dest_numeral _ = error "Illegal numeral expression";
+          else error "Illegal numeral expression: illegal bit shift operator"
+      | dest_numeral _ = error "Illegal numeral expression: illegal constant";
   in dest_numeral #> the_default 0 end;
 
 fun implode_monad c_bind t =

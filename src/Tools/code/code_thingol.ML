@@ -87,7 +87,9 @@ sig
   val ensure_value: theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
     -> CodeFuncgr.T -> term -> transact -> string * transact;
   val add_value_stmt: iterm * itype -> code -> code;
-  val transact: (transact -> 'a * transact) -> code -> 'a * code;
+  val transact: theory -> CodeFuncgr.T
+    -> (theory -> ((sort -> sort) * Sorts.algebra) * Consts.T -> CodeFuncgr.T
+      -> transact -> 'a * transact) -> code -> 'a * code;
 end;
 
 structure CodeThingol: CODE_THINGOL =
@@ -357,10 +359,18 @@ fun ensure_stmt stmtgen name (dep, code) =
     |> pair name
   end;
 
-fun transact f code =
-  (NONE, code)
-  |> f
-  |-> (fn x => fn (_, code) => (x, code));
+fun transact thy funcgr f code =
+  let
+    val naming = NameSpace.qualified_names NameSpace.default_naming;
+    val consttab = Consts.empty
+      |> fold (fn c => Consts.declare true naming [] (c, CodeFuncgr.typ funcgr c))
+           (CodeFuncgr.all funcgr);
+    val algbr = (Code.operational_algebra thy, consttab);
+  in
+    (NONE, code)
+    |> f thy algbr funcgr
+    |-> (fn x => fn (_, code) => (x, code))
+  end;
 
 
 (* translation kernel *)
@@ -614,6 +624,14 @@ and exprgen_app thy algbr funcgr ((c, ty), ts) = case Code.get_case_data thy c
       end
   | NONE => exprgen_app_default thy algbr funcgr ((c, ty), ts);
 
+
+(** evaluation **)
+
+fun add_value_stmt (t, ty) code =
+  code
+  |> Graph.new_node (CodeName.value_name, Fun (([], ty), [(([], t), Drule.dummy_thm)]))
+  |> fold (curry Graph.add_edge CodeName.value_name) (Graph.keys code);
+
 fun ensure_value thy algbr funcgr t = 
   let
     val ty = fastype_of t;
@@ -628,10 +646,37 @@ fun ensure_value thy algbr funcgr t =
     ensure_stmt stmt_value CodeName.value_name
   end;
 
-fun add_value_stmt (t, ty) code =
-  code
-  |> Graph.new_node (CodeName.value_name, Fun (([], ty), [(([], t), Drule.dummy_thm)]))
-  |> fold (curry Graph.add_edge CodeName.value_name) (Graph.keys code);
+fun eval evaluate term_of thy g code0 =
+  let
+    fun result (_, code) =
+      let
+        val Fun ((vs, ty), [(([], t), _)]) =
+          Graph.get_node code CodeName.value_name;
+        val deps = Graph.imm_succs code CodeName.value_name;
+        val code' = Graph.del_nodes [CodeName.value_name] code;
+        val code'' = project_code false [] (SOME deps) code';
+      in ((code'', ((vs, ty), t), deps), code') end;
+    fun h funcgr ct =
+      let
+        val ((code, vs_ty_t, deps), _) =
+          code0
+          |> transact thy funcgr (fn thy => fn algbr => fn funcgr =>
+               ensure_value thy algbr funcgr (term_of ct))
+          |> result
+          ||> `(fn code' => code');
+      in g code vs_ty_t deps ct end;
+  in evaluate thy h end;
+
+val _ : (theory -> (CodeFuncgr.T -> 'Z -> 'Y) -> 'X)
+                  -> ('Z -> term)
+                     -> theory
+                        -> (stmt Graph.T
+                            -> ((vname * sort) list * itype) * iterm
+                               -> Graph.key list -> 'Z -> 'Y)
+                           -> stmt Graph.T -> 'X = eval;
+
+fun eval_conv thy = eval CodeFuncgr.eval_conv Thm.term_of thy;
+fun eval_term thy = eval CodeFuncgr.eval_term I thy;
 
 end; (*struct*)
 
