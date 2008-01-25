@@ -16,39 +16,39 @@ datatype dB =
   | App dB dB (infixl "\<degree>" 200)
   | Abs dB
 
-consts
-  subst :: "[dB, dB, nat] => dB"  ("_[_'/_]" [300, 0, 0] 300)
+primrec
   lift :: "[dB, nat] => dB"
+where
+    "lift (Var i) k = (if i < k then Var i else Var (i + 1))"
+  | "lift (s \<degree> t) k = lift s k \<degree> lift t k"
+  | "lift (Abs s) k = Abs (lift s (k + 1))"
 
 primrec
-  "lift (Var i) k = (if i < k then Var i else Var (i + 1))"
-  "lift (s \<degree> t) k = lift s k \<degree> lift t k"
-  "lift (Abs s) k = Abs (lift s (k + 1))"
-
-primrec  (* FIXME base names *)
-  subst_Var: "(Var i)[s/k] =
-    (if k < i then Var (i - 1) else if i = k then s else Var i)"
-  subst_App: "(t \<degree> u)[s/k] = t[s/k] \<degree> u[s/k]"
-  subst_Abs: "(Abs t)[s/k] = Abs (t[lift s 0 / k+1])"
+  subst :: "[dB, dB, nat] => dB"  ("_[_'/_]" [300, 0, 0] 300)
+where (* FIXME base names *)
+    subst_Var: "(Var i)[s/k] =
+      (if k < i then Var (i - 1) else if i = k then s else Var i)"
+  | subst_App: "(t \<degree> u)[s/k] = t[s/k] \<degree> u[s/k]"
+  | subst_Abs: "(Abs t)[s/k] = Abs (t[lift s 0 / k+1])"
 
 declare subst_Var [simp del]
 
 text {* Optimized versions of @{term subst} and @{term lift}. *}
 
-consts
-  substn :: "[dB, dB, nat] => dB"
+primrec
   liftn :: "[nat, dB, nat] => dB"
+where
+    "liftn n (Var i) k = (if i < k then Var i else Var (i + n))"
+  | "liftn n (s \<degree> t) k = liftn n s k \<degree> liftn n t k"
+  | "liftn n (Abs s) k = Abs (liftn n s (k + 1))"
 
 primrec
-  "liftn n (Var i) k = (if i < k then Var i else Var (i + n))"
-  "liftn n (s \<degree> t) k = liftn n s k \<degree> liftn n t k"
-  "liftn n (Abs s) k = Abs (liftn n s (k + 1))"
-
-primrec
-  "substn (Var i) s k =
-    (if k < i then Var (i - 1) else if i = k then liftn k s 0 else Var i)"
-  "substn (t \<degree> u) s k = substn t s k \<degree> substn u s k"
-  "substn (Abs t) s k = Abs (substn t s (k + 1))"
+  substn :: "[dB, dB, nat] => dB"
+where
+    "substn (Var i) s k =
+      (if k < i then Var (i - 1) else if i = k then liftn k s 0 else Var i)"
+  | "substn (t \<degree> u) s k = substn t s k \<degree> substn u s k"
+  | "substn (Abs t) s k = Abs (substn t s (k + 1))"
 
 
 subsection {* Beta-reduction *}

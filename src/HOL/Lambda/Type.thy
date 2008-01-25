@@ -56,12 +56,14 @@ inductive_cases typing_elims [elim!]:
   "e \<turnstile> t \<degree> u : T"
   "e \<turnstile> Abs t : T"
 
-consts
+primrec
   typings :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
-
-abbreviation
-  funs :: "type list \<Rightarrow> type \<Rightarrow> type"  (infixr "=>>" 200) where
-  "Ts =>> T == foldr Fun Ts T"
+where
+    "typings e [] Ts = (Ts = [])"
+  | "typings e (t # ts) Ts =
+      (case Ts of
+        [] \<Rightarrow> False
+      | T # Ts \<Rightarrow> e \<turnstile> t : T \<and> typings e ts Ts)"
 
 abbreviation
   typings_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
@@ -69,15 +71,14 @@ abbreviation
   "env ||- ts : Ts == typings env ts Ts"
 
 notation (latex)
-  funs  (infixr "\<Rrightarrow>" 200) and
   typings_rel  ("_ \<tturnstile> _ : _" [50, 50, 50] 50)
 
-primrec
-  "(e \<tturnstile> [] : Ts) = (Ts = [])"
-  "(e \<tturnstile> (t # ts) : Ts) =
-    (case Ts of
-      [] \<Rightarrow> False
-    | T # Ts \<Rightarrow> e \<turnstile> t : T \<and> e \<tturnstile> ts : Ts)"
+abbreviation
+  funs :: "type list \<Rightarrow> type \<Rightarrow> type"  (infixr "=>>" 200) where
+  "Ts =>> T == foldr Fun Ts T"
+
+notation (latex)
+  funs  (infixr "\<Rrightarrow>" 200)
 
 
 subsection {* Some examples *}
@@ -123,11 +124,11 @@ lemma types_snoc_eq: "e \<tturnstile> ts @ [t] : Ts @ [T] =
   apply simp+
   done
 
-lemma rev_exhaust2 [case_names Nil snoc, extraction_expand]:
-  "(xs = [] \<Longrightarrow> P) \<Longrightarrow> (\<And>ys y. xs = ys @ [y] \<Longrightarrow> P) \<Longrightarrow> P"
+lemma rev_exhaust2 [extraction_expand]:
+  obtains (Nil) "xs = []"  |  (snoc) ys y where "xs = ys @ [y]"
   -- {* Cannot use @{text rev_exhaust} from the @{text List}
     theory, since it is not constructive *}
-  apply (subgoal_tac "\<forall>ys. xs = rev ys \<longrightarrow> P")
+  apply (subgoal_tac "\<forall>ys. xs = rev ys \<longrightarrow> thesis")
   apply (erule_tac x="rev xs" in allE)
   apply simp
   apply (rule allI)

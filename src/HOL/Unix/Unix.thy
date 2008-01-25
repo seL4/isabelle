@@ -303,29 +303,29 @@ text {*
   to all kinds of system-calls.
 *}
 
-consts
+primrec
   uid_of :: "operation \<Rightarrow> uid"
-primrec
-  "uid_of (Read uid text path) = uid"
-  "uid_of (Write uid text path) = uid"
-  "uid_of (Chmod uid perms path) = uid"
-  "uid_of (Creat uid perms path) = uid"
-  "uid_of (Unlink uid path) = uid"
-  "uid_of (Mkdir uid path perms) = uid"
-  "uid_of (Rmdir uid path) = uid"
-  "uid_of (Readdir uid names path) = uid"
+where
+    "uid_of (Read uid text path) = uid"
+  | "uid_of (Write uid text path) = uid"
+  | "uid_of (Chmod uid perms path) = uid"
+  | "uid_of (Creat uid perms path) = uid"
+  | "uid_of (Unlink uid path) = uid"
+  | "uid_of (Mkdir uid path perms) = uid"
+  | "uid_of (Rmdir uid path) = uid"
+  | "uid_of (Readdir uid names path) = uid"
 
-consts
-  path_of :: "operation \<Rightarrow> path"
 primrec
-  "path_of (Read uid text path) = path"
-  "path_of (Write uid text path) = path"
-  "path_of (Chmod uid perms path) = path"
-  "path_of (Creat uid perms path) = path"
-  "path_of (Unlink uid path) = path"
-  "path_of (Mkdir uid perms path) = path"
-  "path_of (Rmdir uid path) = path"
-  "path_of (Readdir uid names path) = path"
+  path_of :: "operation \<Rightarrow> path"
+where
+    "path_of (Read uid text path) = path"
+  | "path_of (Write uid text path) = path"
+  | "path_of (Chmod uid perms path) = path"
+  | "path_of (Creat uid perms path) = path"
+  | "path_of (Unlink uid path) = path"
+  | "path_of (Mkdir uid perms path) = path"
+  | "path_of (Rmdir uid path) = path"
+  | "path_of (Readdir uid names path) = path"
 
 text {*
   \medskip Note that we have omitted explicit @{text Open} and @{text
