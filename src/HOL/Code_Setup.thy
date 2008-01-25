@@ -86,7 +86,7 @@ code_const "op ="
 
 text {* type bool *}
 
-lemmas [code func, code unfold] = imp_conv_disj
+lemmas [code func, code unfold, code post] = imp_conv_disj
 
 code_type bool
   (SML "bool")
@@ -147,8 +147,8 @@ subsection {* Normalization by evaluation *}
 
 method_setup normalization = {*
   Method.no_args (Method.SIMPLE_METHOD'
-    (fn k => CONVERSION (ObjectLogic.judgment_conv Nbe.norm_conv) k
-    THEN TRYALL (resolve_tac [TrueI])
+    (CONVERSION (ObjectLogic.judgment_conv Nbe.norm_conv)
+    THEN' (fn k => TRY (rtac TrueI k))
   ))
 *} "solve goal by normalization"
 
