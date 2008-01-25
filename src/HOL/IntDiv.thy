@@ -1418,57 +1418,12 @@ lemma zdvd_imp_le: "[| z dvd n; 0 < n |] ==> z \<le> (n::int)"
   apply (auto simp add: dvd_imp_le)
   done
 
-
-subsection{*Integer Powers*} 
-
-instance int :: power ..
-
-primrec
-  "p ^ 0 = 1"
-  "p ^ (Suc n) = (p::int) * (p ^ n)"
-
-
-instance int :: recpower
-proof
-  fix z :: int
-  fix n :: nat
-  show "z^0 = 1" by simp
-  show "z^(Suc n) = z * (z^n)" by simp
-qed
-
-lemma of_int_power:
-  "of_int (z ^ n) = (of_int z ^ n :: 'a::{recpower, ring_1})"
-  by (induct n) (simp_all add: power_Suc)
-
 lemma zpower_zmod: "((x::int) mod m)^y mod m = x^y mod m"
 apply (induct "y", auto)
 apply (rule zmod_zmult1_eq [THEN trans])
 apply (simp (no_asm_simp))
 apply (rule zmod_zmult_distrib [symmetric])
 done
-
-lemma zpower_zadd_distrib: "x^(y+z) = ((x^y)*(x^z)::int)"
-  by (rule Power.power_add)
-
-lemma zpower_zpower: "(x^y)^z = (x^(y*z)::int)"
-  by (rule Power.power_mult [symmetric])
-
-lemma zero_less_zpower_abs_iff [simp]:
-     "(0 < (abs x)^n) = (x \<noteq> (0::int) | n=0)"
-apply (induct "n")
-apply (auto simp add: zero_less_mult_iff)
-done
-
-lemma zero_le_zpower_abs [simp]: "(0::int) <= (abs x)^n"
-apply (induct "n")
-apply (auto simp add: zero_le_mult_iff)
-done
-
-lemma int_power: "int (m^n) = (int m) ^ n"
-  by (rule of_nat_power)
-
-text{*Compatibility binding*}
-lemmas zpower_int = int_power [symmetric]
 
 lemma zdiv_int: "int (a div b) = (int a) div (int b)"
 apply (subst split_div, auto)

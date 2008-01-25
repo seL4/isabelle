@@ -25,6 +25,8 @@ Superseedes some immature attempts.
 
 *** HOL ***
 
+* Theorems "power.simps" renamed to "power_int.simps".
+
 * New class semiring_div provides basic abstract properties of semirings
 with division and modulo operations.  Subsumes former class dvd_mod.
 

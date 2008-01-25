@@ -40,11 +40,11 @@ datatype bit =
     Zero ("\<zero>")
   | One ("\<one>")
 
-consts
-  bitval :: "bit => nat"
 primrec
+  bitval :: "bit => nat"
+where
   "bitval \<zero> = 0"
-  "bitval \<one> = 1"
+  | "bitval \<one> = 1"
 
 consts
   bitnot :: "bit => bit"
@@ -1531,7 +1531,7 @@ proof -
     show ?thesis
       apply simp
       apply (subst power_Suc [symmetric])
-      apply (simp del: power.simps)
+      apply (simp del: power_int.simps)
       done
   qed
   finally show ?thesis .

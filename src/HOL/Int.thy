@@ -221,6 +221,7 @@ proof
     by (cases i, cases j, cases k) (simp add: le add)
 qed
 
+
 text{*Strict Monotonicity of Multiplication*}
 
 text{*strict, in 1st argument; proof is by induction on k>0*}
@@ -259,6 +260,13 @@ proof
     by (simp only: zabs_def)
   show "sgn (i\<Colon>int) = (if i=0 then 0 else if 0<i then 1 else - 1)"
     by (simp only: zsgn_def)
+qed
+
+instance int :: lordered_ring
+proof  
+  fix k :: int
+  show "abs k = sup k (- k)"
+    by (auto simp add: sup_int_def zabs_def max_def less_minus_self_iff [symmetric])
 qed
 
 lemma zless_imp_add1_zle: "w < z \<Longrightarrow> w + (1\<Colon>int) \<le> z"
@@ -1729,6 +1737,46 @@ proof
 qed
 
 
+subsection{*Integer Powers*} 
+
+instantiation int :: recpower
+begin
+
+primrec power_int where
+  "p ^ 0 = (1\<Colon>int)"
+  | "p ^ (Suc n) = (p\<Colon>int) * (p ^ n)"
+
+instance proof
+  fix z :: int
+  fix n :: nat
+  show "z ^ 0 = 1" by simp
+  show "z ^ Suc n = z * (z ^ n)" by simp
+qed
+
+end
+
+lemma zpower_zadd_distrib: "x ^ (y + z) = ((x ^ y) * (x ^ z)::int)"
+  by (rule Power.power_add)
+
+lemma zpower_zpower: "(x ^ y) ^ z = (x ^ (y * z)::int)"
+  by (rule Power.power_mult [symmetric])
+
+lemma zero_less_zpower_abs_iff [simp]:
+  "(0 < abs x ^ n) \<longleftrightarrow> (x \<noteq> (0::int) | n = 0)"
+  by (induct n) (auto simp add: zero_less_mult_iff)
+
+lemma zero_le_zpower_abs [simp]: "(0::int) \<le> abs x ^ n"
+  by (induct n) (auto simp add: zero_le_mult_iff)
+
+lemma of_int_power:
+  "of_int (z ^ n) = (of_int z ^ n :: 'a::{recpower, ring_1})"
+  by (induct n) (simp_all add: power_Suc)
+
+lemma int_power: "int (m^n) = (int m) ^ n"
+  by (rule of_nat_power)
+
+lemmas zpower_int = int_power [symmetric]
+
 subsection {* Configuration of the code generator *}
 
 instance int :: eq ..
@@ -1765,7 +1813,7 @@ lemma zero_is_num_zero [code func, code inline, symmetric, code post]:
 
 lemma one_is_num_one [code func, code inline, symmetric, code post]:
   "(1\<Colon>int) = Numeral1" 
-  by simp 
+  by simp
 
 code_modulename SML
   Int Integer
