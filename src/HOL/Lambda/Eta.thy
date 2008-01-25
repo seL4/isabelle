@@ -11,15 +11,16 @@ theory Eta imports ParRed begin
 
 subsection {* Definition of eta-reduction and relatives *}
 
-consts
-  free :: "dB => nat => bool"
 primrec
-  "free (Var j) i = (j = i)"
-  "free (s \<degree> t) i = (free s i \<or> free t i)"
-  "free (Abs s) i = free s (i + 1)"
+  free :: "dB => nat => bool"
+where
+    "free (Var j) i = (j = i)"
+  | "free (s \<degree> t) i = (free s i \<or> free t i)"
+  | "free (Abs s) i = free s (i + 1)"
 
-inductive eta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<eta>" 50)
-  where
+inductive
+  eta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<eta>" 50)
+where
     eta [simp, intro]: "\<not> free s 0 ==> Abs (s \<degree> Var 0) \<rightarrow>\<^sub>\<eta> s[dummy/0]"
   | appL [simp, intro]: "s \<rightarrow>\<^sub>\<eta> t ==> s \<degree> u \<rightarrow>\<^sub>\<eta> t \<degree> u"
   | appR [simp, intro]: "s \<rightarrow>\<^sub>\<eta> t ==> u \<degree> s \<rightarrow>\<^sub>\<eta> u \<degree> t"
@@ -43,7 +44,7 @@ inductive_cases eta_cases [elim!]:
   "Var i \<rightarrow>\<^sub>\<eta> t"
 
 
-subsection "Properties of eta, subst and free"
+subsection {* Properties of @{text "eta"}, @{text "subst"} and @{text "free"} *}
 
 lemma subst_not_free [simp]: "\<not> free s i \<Longrightarrow> s[t/i] = s[u/i]"
   by (induct s arbitrary: i t u) (simp_all add: subst_Var)
@@ -81,7 +82,7 @@ theorem lift_subst_dummy: "\<not> free s i \<Longrightarrow> lift (s[dummy/i]) i
   by (induct s arbitrary: i dummy) simp_all
 
 
-subsection "Confluence of eta"
+subsection {* Confluence of @{text "eta"} *}
 
 lemma square_eta: "square eta eta (eta^==) (eta^==)"
   apply (unfold square_def id_def)
@@ -100,7 +101,7 @@ theorem eta_confluent: "confluent eta"
   done
 
 
-subsection "Congruence rules for eta*"
+subsection {* Congruence rules for @{text "eta\<^sup>*"} *}
 
 lemma rtrancl_eta_Abs: "s \<rightarrow>\<^sub>\<eta>\<^sup>* s' ==> Abs s \<rightarrow>\<^sub>\<eta>\<^sup>* Abs s'"
   by (induct set: rtranclp)
@@ -118,7 +119,7 @@ lemma rtrancl_eta_App:
   by (blast intro!: rtrancl_eta_AppL rtrancl_eta_AppR intro: rtranclp_trans)
 
 
-subsection "Commutation of beta and eta"
+subsection {* Commutation of @{text "beta"} and @{text "eta"} *}
 
 lemma free_beta:
     "s \<rightarrow>\<^sub>\<beta> t ==> free t i \<Longrightarrow> free s i"
@@ -172,7 +173,7 @@ lemma confluent_beta_eta: "confluent (sup beta eta)"
   done
 
 
-subsection "Implicit definition of eta"
+subsection {* Implicit definition of @{text "eta"} *}
 
 text {* @{term "Abs (lift s 0 \<degree> Var 0) \<rightarrow>\<^sub>\<eta> s"} *}
 
@@ -327,9 +328,9 @@ next
       finally have s: "s = Abs (Abs (lift u 1) \<degree> Var 0) \<degree> t" using appL and eta by simp
       from beta have "lift u 1 => lift u' 1" by simp
       hence "Abs (lift u 1) \<degree> Var 0 => lift u' 1[Var 0/0]"
-	using par_beta.var ..
+        using par_beta.var ..
       hence "Abs (Abs (lift u 1) \<degree> Var 0) \<degree> t => lift u' 1[Var 0/0][t'/0]"
-	using `t => t'` ..
+        using `t => t'` ..
       with s have "s => u'[t'/0]" by simp
       thus ?thesis by iprover
     next
@@ -338,7 +339,7 @@ next
       then obtain r'' where r: "r => r''" and r'': "r'' \<rightarrow>\<^sub>\<eta>\<^sup>* u'" by (iprover dest: beta)
       from r and beta have "Abs r \<degree> t => r''[t'/0]" by simp
       moreover from r'' have "r''[t'/0] \<rightarrow>\<^sub>\<eta>\<^sup>* u'[t'/0]"
-	by (rule rtrancl_eta_subst')
+        by (rule rtrancl_eta_subst')
       ultimately show ?thesis using abs and appL by simp iprover
     qed simp_all
   next
