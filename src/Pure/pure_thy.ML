@@ -34,6 +34,9 @@ sig
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
+  val get_group: thm -> string option
+  val put_group: string -> thm -> thm
+  val group: string -> attribute
   val has_kind: thm -> bool
   val get_kind: thm -> string
   val kind_rule: string -> thm -> thm
@@ -76,6 +79,8 @@ sig
   val note_thmss: string -> ((bstring * attribute list) *
     (thmref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_i: string -> ((bstring * attribute list) *
+    (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
+  val note_thmss_grouped: string -> string -> ((bstring * attribute list) *
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_qualified: string -> string -> ((bstring * attribute list) *
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
@@ -122,12 +127,22 @@ val get_name_hint = the_default "??.unknown" o try the_name_hint;
 fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name);
 
 
+(* theorem groups *)
+
+fun get_group thm = AList.lookup (op =) (Thm.get_tags thm) Markup.groupN;
+
+fun put_group name =
+  if name = "" then I else Thm.map_tags (AList.update (op =) (Markup.groupN, name));
+
+fun group name = Thm.rule_attribute (K (put_group name));
+
+
 (* theorem kinds *)
 
 fun the_kind thm = the (AList.lookup (op =) (Thm.get_tags thm) Markup.kindN);
 
 val has_kind = can the_kind;
-val get_kind = the_default "??.unknown" o try the_kind;
+val get_kind = the_default "" o try the_kind;
 
 fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
 fun kind k x = if k = "" then x else Thm.rule_attribute (K (kind_rule k)) x;
@@ -384,18 +399,19 @@ val add_thms = gen_add_thms (name_thms true true);
 
 local
 
-fun gen_note_thmss get k = fold_map (fn ((bname, more_atts), ths_atts) => fn thy =>
+fun gen_note_thmss get tag = fold_map (fn ((bname, more_atts), ths_atts) => fn thy =>
   let
     fun app (x, (ths, atts)) = foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
       (name_thmss true) (name_thms false true) (apsnd flat o foldl_map app)
-      (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind k])) ths_atts);
+      (bname, map (fn (ths, atts) => (get thy ths, surround tag (atts @ more_atts))) ths_atts);
   in ((bname, thms), thy') end);
 
 in
 
-val note_thmss = gen_note_thmss get_thms;
-val note_thmss_i = gen_note_thmss (K I);
+fun note_thmss k = gen_note_thmss get_thms (kind k);
+fun note_thmss_i k = gen_note_thmss (K I) (kind k);
+fun note_thmss_grouped k g = gen_note_thmss (K I) (kind k #> group g);
 
 end;
 
