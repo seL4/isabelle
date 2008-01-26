@@ -110,6 +110,7 @@ sig
   val map_split: ('a -> 'b * 'c) -> 'a list -> 'b list * 'c list
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val separate: 'a -> 'a list -> 'a list
+  val surround: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
   val is_prefix: ('a * 'a -> bool) -> 'a list -> 'a list -> bool
   val take_prefix: ('a -> bool) -> 'a list -> 'a list * 'a list
@@ -534,6 +535,9 @@ fun fold_burrow f xss s =
 (*separate s [x1, x2, ..., xn]  ===>  [x1, s, x2, s, ..., s, xn]*)
 fun separate s (x :: (xs as _ :: _)) = x :: s :: separate s xs
   | separate _ xs = xs;
+
+fun surround s (x :: xs) = s :: x :: surround s xs
+  | surround s [] = [s];
 
 (*make the list [x, x, ..., x] of length n*)
 fun replicate (n: int) x =
