@@ -204,9 +204,9 @@ val _ = Context.add_setup
 
 (* concrete syntax *)
 
-fun add_args a b c x = Attrib.syntax
+fun add_args a b c = Attrib.syntax
   (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) -- Scan.option Args.nat)
-    >> (fn (f, n) => f n)) x;
+    >> (fn (f, n) => f n));
 
 val rule_atts =
  [("intro", add_args intro_bang intro intro_query, "declaration of introduction rule"),

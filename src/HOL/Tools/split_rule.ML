@@ -141,11 +141,11 @@ fun split_rule_goal xss rl =
 
 (* FIXME dynamically scoped due to Args.name/pair_tac *)
 
-fun split_format x = Attrib.syntax
+val split_format = Attrib.syntax
   (Scan.lift (Args.parens (Args.$$$ "complete"))
     >> K (Thm.rule_attribute (K complete_split_rule)) ||
   Args.and_list1 (Scan.lift (Scan.repeat Args.name))
-    >> (fn xss => Thm.rule_attribute (K (split_rule_goal xss)))) x;
+    >> (fn xss => Thm.rule_attribute (K (split_rule_goal xss))));
 
 val setup =
   Attrib.add_attributes

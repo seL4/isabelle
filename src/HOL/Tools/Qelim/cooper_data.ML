@@ -77,7 +77,7 @@ val terms = thms >> map (term_of o Drule.dest_term);
 fun optional scan = Scan.optional scan [];
 
 in
-fun att_syntax src = src |> Attrib.syntax
+val att_syntax = Attrib.syntax
  ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
   optional (keyword constsN |-- terms) >> add)
 end;

@@ -122,7 +122,7 @@ val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
 val terms = thms >> map Drule.dest_term;
 in
 
-fun att_syntax src = src |> Attrib.syntax
+val att_syntax = Attrib.syntax
     ((keyword minfN |-- thms)
      -- (keyword pinfN |-- thms)
      -- (keyword nmiN |-- thms)

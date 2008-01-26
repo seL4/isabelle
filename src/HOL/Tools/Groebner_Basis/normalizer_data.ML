@@ -191,7 +191,7 @@ fun optional scan = Scan.optional scan [];
 
 in
 
-fun att_syntax src = src |> Attrib.syntax
+val att_syntax = Attrib.syntax
   (Scan.lift (Args.$$$ delN >> K del) ||
     ((keyword2 semiringN opsN |-- terms) --
      (keyword2 semiringN rulesN |-- thms)) --
