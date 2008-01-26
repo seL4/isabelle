@@ -2132,7 +2132,7 @@ val _ =
   OuterSyntax.command "code_class" "define code syntax for class" K.thy_decl (
     parse_multi_syntax P.xname
       (Scan.option (P.string -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
-        (P.term --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.string)) []))
+        (P.term --| (P.$$$ "\<equiv>" || P.$$$ "==") -- P.string)) []))
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_class, syn) => add_syntax_class_cmd target raw_class syn) syns)
   );

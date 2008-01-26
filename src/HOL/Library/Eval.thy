@@ -39,9 +39,9 @@ let
   fun Fun_tr [ty1, ty2] = Lexicon.const @{const_syntax Fun} $ ty1 $ ty2
     | Fun_tr ts = raise TERM("Fun_tr", ts);
 in [
-  ("\\<^fixed>pure_term_Type", Type_tr),
-  ("\\<^fixed>pure_term_TFree", TFree_tr),
-  ("\\<^fixed>pure_term_Fun", Fun_tr)
+  ("\<^fixed>pure_term_Type", Type_tr),
+  ("\<^fixed>pure_term_TFree", TFree_tr),
+  ("\<^fixed>pure_term_Fun", Fun_tr)
 ] end
 *}
 

@@ -584,7 +584,7 @@ fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =
 
 val ind_decl =
   (P.$$$ "domains" |-- P.!!! (P.enum1 "+" P.term --
-      ((P.$$$ "\\<subseteq>" || P.$$$ "<=") |-- P.term))) --
+      ((P.$$$ "\<subseteq>" || P.$$$ "<=") |-- P.term))) --
   (P.$$$ "intros" |--
     P.!!! (Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop))) --
   Scan.optional (P.$$$ "monos" |-- P.!!! SpecParse.xthms1) [] --

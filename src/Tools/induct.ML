@@ -714,7 +714,7 @@ val coinduct_rule = rule lookup_coinductT lookup_coinductP >> single_rule;
 val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.term >> SOME;
 
 val def_inst =
-  ((Scan.lift (Args.name --| (Args.$$$ "\\<equiv>" || Args.$$$ "==")) >> SOME)
+  ((Scan.lift (Args.name --| (Args.$$$ "\<equiv>" || Args.$$$ "==")) >> SOME)
       -- Args.term) >> SOME ||
     inst >> Option.map (pair NONE);
 

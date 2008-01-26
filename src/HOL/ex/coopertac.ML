@@ -36,7 +36,7 @@ val ZDIVISION_BY_ZERO_MOD = @{thm "DIVISION_BY_ZERO"} RS conjunct2;
 val ZDIVISION_BY_ZERO_DIV = @{thm "DIVISION_BY_ZERO"} RS conjunct1;
 
 (*
-val fn_rews = List.concat (map thms ["allpairs.simps","iupt.simps","decr.simps", "decrnum.simps","disjuncts.simps","simpnum.simps", "simpfm.simps","numadd.simps","nummul.simps","numneg_def","numsub","simp_num_pair_def","not.simps","prep.simps","qelim.simps","minusinf.simps","plusinf.simps","rsplit0.simps","rlfm.simps","\\<Upsilon>.simps","\\<upsilon>.simps","linrqe_def", "ferrack_def", "Let_def", "numsub_def", "numneg_def","DJ_def", "imp_def", "evaldjf_def", "djf_def", "split_def", "eq_def", "disj_def", "simp_num_pair_def", "conj_def", "lt_def", "neq_def","gt_def"]);
+val fn_rews = List.concat (map thms ["allpairs.simps","iupt.simps","decr.simps", "decrnum.simps","disjuncts.simps","simpnum.simps", "simpfm.simps","numadd.simps","nummul.simps","numneg_def","numsub","simp_num_pair_def","not.simps","prep.simps","qelim.simps","minusinf.simps","plusinf.simps","rsplit0.simps","rlfm.simps","\<Upsilon>.simps","\<upsilon>.simps","linrqe_def", "ferrack_def", "Let_def", "numsub_def", "numneg_def","DJ_def", "imp_def", "evaldjf_def", "djf_def", "split_def", "eq_def", "disj_def", "simp_num_pair_def", "conj_def", "lt_def", "neq_def","gt_def"]);
 *)
 fun prepare_for_linz q fm = 
   let

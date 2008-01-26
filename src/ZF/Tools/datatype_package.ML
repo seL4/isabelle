@@ -413,7 +413,7 @@ val con_decl =
   >> P.triple1;
 
 val datatype_decl =
-  (Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<=") |-- P.!!! P.term) "") --
+  (Scan.optional ((P.$$$ "\<subseteq>" || P.$$$ "<=") |-- P.!!! P.term) "") --
   P.and_list1 (P.term -- (P.$$$ "=" |-- P.enum1 "|" con_decl)) --
   Scan.optional (P.$$$ "monos" |-- P.!!! SpecParse.xthms1) [] --
   Scan.optional (P.$$$ "type_intros" |-- P.!!! SpecParse.xthms1) [] --
