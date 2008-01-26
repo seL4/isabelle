@@ -53,6 +53,9 @@ datatype gram =
                          lambda productions are stored as normal productions
                          and also as an entry in "lambdas"*)
 
+fun reverted_tags (tags: nt_tag Symtab.table) =
+  the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
+
 val UnknownStart = EndToken;       (*productions for which no starting token is
                                      known yet are associated with this token*)
 
@@ -392,13 +395,11 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
   let
     fun pretty_name name = [Pretty.str (name ^ " =")];
 
-    val taglist = Symtab.dest tags;
+    val nt_name = reverted_tags tags;
 
     fun pretty_symb (Terminal (Token s)) = Pretty.quote (Pretty.str s)
       | pretty_symb (Terminal tok) = Pretty.str (str_of_token tok)
-      | pretty_symb (Nonterminal (tag, p)) =
-        let val name = fst (the (find_first (fn (n, t) => t = tag) taglist));
-        in Pretty.str (name ^ "[" ^ string_of_int p ^ "]") end;
+      | pretty_symb (Nonterminal (tag, p)) = Pretty.str (nt_name tag ^ "[" ^ string_of_int p ^ "]");
 
     fun pretty_const "" = []
       | pretty_const c = [Pretty.str ("=> " ^ Library.quote c)];
@@ -418,7 +419,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
           map prod_of_chain ((these o AList.lookup (op =) chains) tag);
       in map (pretty_prod name) nt_prods end;
 
-  in maps pretty_nt taglist end;
+  in maps pretty_nt (sort_wrt fst (Symtab.dest tags)) end;
 
 
 (** Operations on gramars **)
@@ -784,72 +785,30 @@ fun processS used [] (Si, Sii) = (Si, Sii)
 in processS [] states ([], []) end;
 
 
-fun syntax_error toks allowed =
-  let
-    val msg =
-      if null toks then Pretty.str "Inner syntax error: unexpected end of input"
-      else
-        Pretty.block (Pretty.str "Inner syntax error at: \"" ::
-          Pretty.breaks (map (Pretty.str o str_of_token)
-                 (rev (tl (rev toks)))) @
-          [Pretty.str "\""]);
-    val expected =
-      Pretty.strs ("Expected tokens: " :: map (quote o str_of_token) allowed);
-  in
-    error (Pretty.string_of (Pretty.blk (0, [msg, Pretty.fbrk, expected])))
-  end;
-
-fun produce warned prods chains stateset i indata prev_token =
-                                      (*prev_token is used for error messages*)
+fun produce warned prods tags chains stateset i indata prev_token =
   (case Array.sub (stateset, i) of
-    [] => let fun some_prods_for tk nt = prods_for prods chains false tk [nt];
+    [] =>
+      let
+        val toks =
+          if prev_token = EndToken then indata
+          else prev_token :: indata;
 
-              (*test if tk is a lookahead for a given minimum precedence*)
-              fun reduction _ minPrec _ (Terminal _ :: _, _, prec:int) =
-                    if prec >= minPrec then true
-                    else false
-                | reduction tk minPrec checked
-                            (Nonterminal (nt, nt_prec) :: _, _, prec) =
-                  if prec >= minPrec andalso not (member (op =) checked nt) then
-                    let val chained = connected_with chains [nt] [nt];
-                    in exists
-                         (reduction tk nt_prec (chained @ checked))
-                         (some_prods_for tk nt)
-                    end
-                  else false;
+        val nt_name = reverted_tags tags;
+        val nts =
+          fold (fn (_, _, _, Nonterminal nt :: _, _, _) => insert (op =) nt | _ => I)
+            (Array.sub (stateset, i - 1)) []
+          |> map (fn (a, prec) => nt_name a ^ "(" ^ signed_string_of_int prec ^ ")");
 
-              (*compute a list of allowed starting tokens
-                for a list of nonterminals considering precedence*)
-              fun get_starts [] result = result
-                | get_starts ((nt, minPrec:int) :: nts) result =
-                  let fun get [] result = result
-                        | get ((SOME tk, prods) :: ps) result =
-                            if not (null prods) andalso
-                               exists (reduction tk minPrec [nt]) prods
-                            then get ps (tk :: result)
-                            else get ps result
-                        | get ((NONE, _) :: ps) result = get ps result;
-
-                      val (_, nt_prods) = Array.sub (prods, nt);
-
-                      val chained = map (fn nt => (nt, minPrec))
-                                        ((these o AList.lookup (op =) chains) nt);
-                  in get_starts (chained @ nts)
-                                (gen_union (op =) (get nt_prods [], result))
-                  end;
-
-              val nts =
-                map_filter (fn (_, _, _, Nonterminal (a, prec) :: _, _, _) =>
-                           SOME (a, prec) | _ => NONE)
-                          (Array.sub (stateset, i-1));
-              val allowed =
-                distinct (op =) (get_starts nts [] @
-                  (map_filter (fn (_, _, _, Terminal a :: _, _, _) => SOME a
-                               | _ => NONE)
-                             (Array.sub (stateset, i-1))));
-          in syntax_error (if prev_token = EndToken then indata
-                           else prev_token :: indata) allowed
-          end
+        val msg =
+          (if null toks then Pretty.str "Inner syntax error: unexpected end of input"
+           else
+             Pretty.block (Pretty.str "Inner syntax error at: \"" ::
+               Pretty.breaks (map (Pretty.str o str_of_token) (#1 (split_last toks))) @
+               [Pretty.str "\""])) ::
+          (if null nts then []
+           else [Pretty.block
+            (Pretty.str "Expected syntax categories: " :: Pretty.commas (map Pretty.str nts))]);
+      in error (Pretty.string_of (Pretty.chunks msg)) end
   | s =>
     (case indata of
        [] => Array.sub (stateset, i)
@@ -857,7 +816,7 @@ fun produce warned prods chains stateset i indata prev_token =
        let val (si, sii) = PROCESSS warned prods chains stateset i c s;
        in Array.update (stateset, i, si);
           Array.update (stateset, i + 1, sii);
-          produce warned prods chains stateset (i + 1) cs c
+          produce warned prods tags chains stateset (i + 1) cs c
        end));
 
 
@@ -876,7 +835,7 @@ fun earley prods tags chains startsymbol indata =
     val Estate = Array.array (s, []);
   in
     Array.update (Estate, 0, S0);
-    get_trees (produce (ref false) prods chains Estate 0 indata EndToken)
+    get_trees (produce (ref false) prods tags chains Estate 0 indata EndToken)
   end;
 
 
