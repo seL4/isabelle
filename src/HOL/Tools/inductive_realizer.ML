@@ -351,6 +351,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     val (ind_info, thy3') = thy2 |>
       InductivePackage.add_inductive_global {verbose = false, kind = Thm.theoremK,
+          group = serial_string (),  (* FIXME pass proper group (!?) *)
           alt_name = "", coind = false, no_elim = false, no_ind = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
           ((Sign.base_name (name_of_thm intr), []),
