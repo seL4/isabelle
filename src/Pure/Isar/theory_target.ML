@@ -150,7 +150,7 @@ fun note_local kind facts ctxt =
   |> ProofContext.note_thmss_i kind facts
   ||> ProofContext.restore_naming ctxt;
 
-fun notes (Target {target, is_locale, ...}) kind facts lthy =
+fun notes (Target {target, is_locale, ...}) kind group facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val full = LocalTheory.full_name lthy;
@@ -167,7 +167,7 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
   in
     lthy |> LocalTheory.theory
       (Sign.qualified_names
-        #> PureThy.note_thmss_i kind global_facts #> snd
+        #> PureThy.note_thmss_grouped kind group global_facts #> snd
         #> Sign.restore_naming thy)
 
     |> not is_locale ? LocalTheory.target (note_local kind global_facts #> snd)
@@ -265,7 +265,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t)
 (* define *)
 
 fun define (ta as Target {target, is_locale, is_class, ...})
-    kind ((c, mx), ((name, atts), rhs)) lthy =
+    kind group ((c, mx), ((name, atts), rhs)) lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init thy;
@@ -296,13 +296,13 @@ fun define (ta as Target {target, is_locale, is_class, ...})
 
     (*note*)
     val ([(res_name, [res])], lthy4) = lthy3
-      |> notes ta kind [((name', atts), [([def], [])])];
+      |> notes ta kind group [((name', atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy4) end;
 
 
 (* axioms *)
 
-fun axioms ta kind (vars, specs) lthy =
+fun axioms ta kind group (vars, specs) lthy =
   let
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val expanded_props = map (Assumption.export_term lthy thy_ctxt) (maps snd specs);
@@ -322,7 +322,7 @@ fun axioms ta kind (vars, specs) lthy =
     |> fold Variable.declare_term expanded_props
     |> LocalTheory.theory (fold (fn c => Theory.add_deps "" c []) global_consts)
     |> LocalTheory.theory_result (fold_map axiom specs)
-    |-> notes ta kind
+    |-> notes ta kind group
     |>> pair (map #1 consts)
   end;
 
