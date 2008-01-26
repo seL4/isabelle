@@ -797,7 +797,7 @@ fun produce warned prods tags chains stateset i indata prev_token =
         val nts =
           fold (fn (_, _, _, Nonterminal nt :: _, _, _) => insert (op =) nt | _ => I)
             (Array.sub (stateset, i - 1)) []
-          |> map (fn (a, prec) => nt_name a ^ "(" ^ signed_string_of_int prec ^ ")");
+          |> map (fn (a, prec) => nt_name a ^ "[" ^ signed_string_of_int prec ^ "]");
 
         val msg =
           (if null toks then Pretty.str "Inner syntax error: unexpected end of input"
