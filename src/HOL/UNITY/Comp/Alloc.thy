@@ -697,7 +697,7 @@ ML
 {*
 fun rename_client_map_tac ss =
   EVERY [
-    simp_tac (ss addsimps [thm "rename_guarantees_eq_rename_inv"]) 1,
+    simp_tac (ss addsimps [@{thm rename_guarantees_eq_rename_inv}]) 1,
     rtac @{thm guarantees_PLam_I} 1,
     assume_tac 2,
          (*preserves: routine reasoning*)
