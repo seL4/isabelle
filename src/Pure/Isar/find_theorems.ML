@@ -5,10 +5,9 @@
 Retrieve theorems from proof context.
 *)
 
-val thms_containing_limit = ref 40;
-
 signature FIND_THEOREMS =
 sig
+  val limit: int ref
   datatype 'term criterion =
     Name of string | Intro | Elim | Dest | Simp of 'term | Pattern of 'term
   val print_theorems: Proof.context -> term option -> int option -> bool ->
@@ -287,6 +286,8 @@ fun find_thms ctxt spec =
     |> distinct (fn ((r1, th1), (r2, th2)) =>
         r1 = r2 andalso Thm.eq_thm_prop (th1, th2)));
 
+val limit = ref 40;
+
 fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
@@ -299,8 +300,8 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
       else raw_matches;
 
     val len = length matches;
-    val limit = the_default (! thms_containing_limit) opt_limit;
-    val thms = Library.drop (len - limit, matches);
+    val lim = the_default (! limit) opt_limit;
+    val thms = Library.drop (len - lim, matches);
 
     fun prt_fact (thmref, thm) =
       ProofContext.pretty_fact ctxt (PureThy.string_of_thmref thmref, [thm]);
@@ -309,7 +310,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
      (if null thms then [Pretty.str "nothing found"]
       else
         [Pretty.str ("found " ^ string_of_int len ^ " theorems" ^
-          (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":"),
+          (if len <= lim then "" else " (" ^ string_of_int lim ^ " displayed)") ^ ":"),
          Pretty.str ""] @
         map prt_fact thms)
     |> Pretty.chunks |> Pretty.writeln
