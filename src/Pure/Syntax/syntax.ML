@@ -76,8 +76,9 @@ sig
     Proof.context -> syntax -> bool -> term -> Pretty.T
   val standard_unparse_typ: Proof.context -> syntax -> typ -> Pretty.T
   val standard_unparse_sort: Proof.context -> syntax -> sort -> Pretty.T
-  val ambiguity_level: int ref
   val ambiguity_is_error: bool ref
+  val ambiguity_level: int ref
+  val ambiguity_limit: int ref
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
@@ -432,8 +433,9 @@ end;
 
 (* read_ast *)
 
-val ambiguity_level = ref 1;
 val ambiguity_is_error = ref false;
+val ambiguity_level = ref 1;
+val ambiguity_limit = ref 10;
 
 fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root str =
   let
@@ -441,16 +443,20 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root str =
     val root' = if root <> "prop" andalso is_logtype root then SynExt.logic else root;
     val chars = Symbol.explode str;
     val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
+    val len = length pts;
 
+    val limit = ! ambiguity_limit;
     fun show_pt pt =
       Pretty.string_of (Ast.pretty_ast (hd (SynTrans.pts_to_asts ctxt (K NONE) [pt])));
   in
-    if length pts > ! ambiguity_level then
-      if ! ambiguity_is_error then error ("Ambiguous input " ^ quote str)
-      else (warning ("Ambiguous input " ^ quote str ^ "\n" ^
-          "produces " ^ string_of_int (length pts) ^ " parse trees.");
-         List.app (warning o show_pt) pts)
-    else ();
+    if len <= ! ambiguity_level then ()
+    else if ! ambiguity_is_error then error ("Ambiguous input " ^ quote str)
+    else
+      (warning (cat_lines
+        (("Ambiguous input " ^ quote str ^ "\n" ^
+          "produces " ^ string_of_int len ^ " parse trees" ^
+          (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
+          map show_pt (Library.take (limit, pts)))));
     SynTrans.pts_to_asts ctxt (lookup_tr parse_ast_trtab) pts
   end;
 
@@ -473,24 +479,30 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty str =
 fun disambig _ _ [t] = t
   | disambig pp check ts =
       let
-        val errs = map check ts;
-        val results = map_filter (fn (t, NONE) => SOME t | _ => NONE) (ts ~~ errs);
+        val level = ! ambiguity_level;
+        val limit = ! ambiguity_limit;
 
         val ambiguity = length ts;
         fun ambig_msg () =
-          if ambiguity > 1 andalso ambiguity <= ! ambiguity_level then
+          if ambiguity > 1 andalso ambiguity <= level then
             "Got more than one parse tree.\n\
-            \Retry with smaller ambiguity_level for more information."
+            \Retry with smaller Syntax.ambiguity_level for more information."
           else "";
+
+        val errs = map check ts;
+        val results = map_filter (fn (t, NONE) => SOME t | _ => NONE) (ts ~~ errs);
+        val len = length results;
       in
         if null results then cat_error (ambig_msg ()) (cat_lines (map_filter I errs))
-        else if length results = 1 then
-          (if ambiguity > ! ambiguity_level then
+        else if len = 1 then
+          (if ambiguity > level then
             warning "Fortunately, only one parse tree is type correct.\n\
               \You may still want to disambiguate your grammar or your input."
           else (); hd results)
-        else cat_error (ambig_msg ()) ("More than one term is type correct:\n" ^
-          cat_lines (map (Pretty.string_of_term pp) ts))
+        else cat_error (ambig_msg ()) (cat_lines
+          (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
+            (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
+            map (Pretty.string_of_term pp) (Library.take (limit, results))))
       end;
 
 fun standard_parse_term pp check get_sort map_const map_free map_type map_sort
