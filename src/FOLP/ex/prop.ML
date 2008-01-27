@@ -7,6 +7,9 @@ First-Order Logic: propositional examples (intuitionistic and classical)
 Needs declarations of the theory "thy" and the tactic "tac"
 *)
 
+ML_Context.set_context (SOME (Context.Theory thy));
+
+
 writeln"commutative laws of & and | ";
 Goal "?p : P & Q  -->  Q & P";
 by tac;

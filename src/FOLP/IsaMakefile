@@ -35,8 +35,8 @@ $(OUT)/FOLP: $(OUT)/Pure FOLP_lemmas.ML FOLP.thy IFOLP.ML IFOLP.thy ROOT.ML \
 
 FOLP-ex: FOLP $(LOG)/FOLP-ex.gz
 
-$(LOG)/FOLP-ex.gz: $(OUT)/FOLP ex/ROOT.ML ex/cla.ML ex/foundn.ML \
-  ex/If.ML ex/If.thy ex/int.ML ex/intro.ML ex/Nat.ML ex/Nat.thy \
+$(LOG)/FOLP-ex.gz: $(OUT)/FOLP ex/ROOT.ML ex/cla.ML ex/Foundation.thy \
+  ex/If.thy ex/int.ML ex/Intro.thy ex/Nat.thy \
   ex/Prolog.ML ex/Prolog.thy ex/prop.ML ex/quant.ML
 	@$(ISATOOL) usedir $(OUT)/FOLP ex
 

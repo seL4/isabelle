@@ -6,9 +6,12 @@
 Examples for First-Order Logic. 
 *)
 
-time_use     "intro.ML";
-time_use_thy "Nat";
-time_use     "foundn.ML";
+use_thys [
+  "Intro",
+  "Nat",
+  "Foundation",
+  "If"
+];
 
 writeln"\n** Intuitionistic examples **\n";
 time_use     "int.ML";
@@ -19,7 +22,6 @@ time_use     "quant.ML";
 
 writeln"\n** Classical examples **\n";
 time_use     "cla.ML";
-time_use_thy "If";
 
 val thy = theory "FOLP"  and  tac = Cla.fast_tac FOLP_cs 1;
 time_use     "prop.ML";
