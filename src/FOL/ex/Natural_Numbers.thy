@@ -33,13 +33,13 @@ proof (induct k)
   show "Suc(0) \<noteq> 0"
   proof
     assume "Suc(0) = 0"
-    thus False by (rule Suc_neq_0)
+    then show False by (rule Suc_neq_0)
   qed
   fix n assume hyp: "Suc(n) \<noteq> n"
   show "Suc(Suc(n)) \<noteq> Suc(n)"
   proof
     assume "Suc(Suc(n)) = Suc(n)"
-    hence "Suc(n) = n" by (rule Suc_inject)
+    then have "Suc(n) = n" by (rule Suc_inject)
     with hyp show False by contradiction
   qed
 qed
@@ -67,7 +67,7 @@ lemma add_Suc_right: "m + Suc(n) = Suc(m + n)"
 lemma "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i + j) = i + f(j)"
 proof -
   assume "!!n. f(Suc(n)) = Suc(f(n))"
-  thus ?thesis by (induct i) simp_all
+  then show ?thesis by (induct i) simp_all
 qed
 
 end

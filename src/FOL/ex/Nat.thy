@@ -16,7 +16,7 @@ arities nat :: "term"
 consts
   0 :: nat    ("0")
   Suc :: "nat => nat"
-  rec :: "[nat, 'a, [nat,'a]=>'a] => 'a"
+  rec :: "[nat, 'a, [nat, 'a] => 'a] => 'a"
   add :: "[nat, nat] => nat"    (infixl "+" 60)
 
 axioms
