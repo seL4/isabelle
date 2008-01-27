@@ -36,7 +36,7 @@ Nat: FOL $(LOG)/FOL-Nat.gz
 FOL:
 	@cd $(SRC)/FOL; $(ISATOOL) make FOL
 
-$(LOG)/FOL-Nat.gz: $(OUT)/FOL Nat/ROOT.ML Nat/NatClass.ML Nat/NatClass.thy
+$(LOG)/FOL-Nat.gz: $(OUT)/FOL Nat/ROOT.ML Nat/NatClass.thy
 	@$(USEDIR) $(OUT)/FOL Nat
 	@rm -f Nat/document/*.sty Nat/document/session.tex
 

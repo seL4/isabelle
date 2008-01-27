@@ -58,4 +58,60 @@ text {*
  constraints).
 *}
 
+(*<*)
+lemma Suc_n_not_n: "Suc(k) ~= (k::'a::nat)"
+apply (rule_tac n = k in induct)
+apply (rule notI)
+apply (erule Suc_neq_0)
+apply (rule notI)
+apply (erule notE)
+apply (erule Suc_inject)
+done
+
+lemma "(k+m)+n = k+(m+n)"
+apply (rule induct)
+back
+back
+back
+back
+back
+back
+oops
+
+lemma add_0 [simp]: "\<zero>+n = n"
+apply (unfold add_def)
+apply (rule rec_0)
+done
+
+lemma add_Suc [simp]: "Suc(m)+n = Suc(m+n)"
+apply (unfold add_def)
+apply (rule rec_Suc)
+done
+
+lemma add_assoc: "(k+m)+n = k+(m+n)"
+apply (rule_tac n = k in induct)
+apply simp
+apply simp
+done
+
+lemma add_0_right: "m+\<zero> = m"
+apply (rule_tac n = m in induct)
+apply simp
+apply simp
+done
+
+lemma add_Suc_right: "m+Suc(n) = Suc(m+n)"
+apply (rule_tac n = m in induct)
+apply simp_all
+done
+
+lemma
+  assumes prem: "!!n. f(Suc(n)) = Suc(f(n))"
+  shows "f(i+j) = i+f(j)"
+apply (rule_tac n = i in induct)
+apply simp
+apply (simp add: prem)
+done
+(*>*)
+
 end
