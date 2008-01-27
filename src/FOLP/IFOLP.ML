@@ -32,13 +32,13 @@ qed "all_dupE";
 
 (*** Negation rules, which translate between ~P and P-->False ***)
 
-val notI = prove_goalw (the_context ()) [not_def]  "(!!x. x:P ==> q(x):False) ==> ?p:~P"
- (fn prems=> [ (REPEAT (ares_tac (prems@[impI]) 1)) ]);
+bind_thm ("notI", prove_goalw (the_context ()) [not_def]  "(!!x. x:P ==> q(x):False) ==> ?p:~P"
+ (fn prems=> [ (REPEAT (ares_tac (prems@[impI]) 1)) ]));
 
-val notE = prove_goalw (the_context ()) [not_def] "[| p:~P;  q:P |] ==> ?p:R"
+bind_thm ("notE", prove_goalw (the_context ()) [not_def] "[| p:~P;  q:P |] ==> ?p:R"
  (fn prems=>
   [ (resolve_tac [mp RS FalseE] 1),
-    (REPEAT (resolve_tac prems 1)) ]);
+    (REPEAT (resolve_tac prems 1)) ]));
 
 (*This is useful with the special implication rules for each kind of P. *)
 val prems= Goal
@@ -96,23 +96,23 @@ fun int_uniq_mp_tac i = eresolve_tac [notE,impE] i  THEN  uniq_assume_tac i;
 
 (*** If-and-only-if ***)
 
-val iffI = prove_goalw (the_context ()) [iff_def]
+bind_thm ("iffI", prove_goalw (the_context ()) [iff_def]
    "[| !!x. x:P ==> q(x):Q;  !!x. x:Q ==> r(x):P |] ==> ?p:P<->Q"
- (fn prems=> [ (REPEAT (ares_tac (prems@[conjI, impI]) 1)) ]);
+ (fn prems=> [ (REPEAT (ares_tac (prems@[conjI, impI]) 1)) ]));
 
 
 (*Observe use of rewrite_rule to unfold "<->" in meta-assumptions (prems) *)
-val iffE = prove_goalw (the_context ()) [iff_def]
+bind_thm ("iffE", prove_goalw (the_context ()) [iff_def]
     "[| p:P <-> Q;  !!x y.[| x:P-->Q; y:Q-->P |] ==> q(x,y):R |] ==> ?p:R"
- (fn prems => [ (rtac conjE 1), (REPEAT (ares_tac prems 1)) ]);
+ (fn prems => [ (rtac conjE 1), (REPEAT (ares_tac prems 1)) ]));
 
 (* Destruct rules for <-> similar to Modus Ponens *)
 
-val iffD1 = prove_goalw (the_context ()) [iff_def] "[| p:P <-> Q;  q:P |] ==> ?p:Q"
- (fn prems => [ (rtac (conjunct1 RS mp) 1), (REPEAT (ares_tac prems 1)) ]);
+bind_thm ("iffD1", prove_goalw (the_context ()) [iff_def] "[| p:P <-> Q;  q:P |] ==> ?p:Q"
+ (fn prems => [ (rtac (conjunct1 RS mp) 1), (REPEAT (ares_tac prems 1)) ]));
 
-val iffD2 = prove_goalw (the_context ()) [iff_def] "[| p:P <-> Q;  q:Q |] ==> ?p:P"
- (fn prems => [ (rtac (conjunct2 RS mp) 1), (REPEAT (ares_tac prems 1)) ]);
+bind_thm ("iffD2", prove_goalw (the_context ()) [iff_def] "[| p:P <-> Q;  q:Q |] ==> ?p:P"
+ (fn prems => [ (rtac (conjunct2 RS mp) 1), (REPEAT (ares_tac prems 1)) ]));
 
 Goal "?p:P <-> P";
 by (REPEAT (ares_tac [iffI] 1)) ;
@@ -157,76 +157,76 @@ fun iff_tac prems i =
     resolve_tac (prems RL [iffE]) i THEN
     REPEAT1 (eresolve_tac [asm_rl,mp] i);
 
-val conj_cong = prove_goal (the_context ())
+bind_thm ("conj_cong", prove_goal (the_context ())
     "[| p:P <-> P';  !!x. x:P' ==> q(x):Q <-> Q' |] ==> ?p:(P&Q) <-> (P'&Q')"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT  (ares_tac [iffI,conjI] 1
       ORELSE  eresolve_tac [iffE,conjE,mp] 1
-      ORELSE  iff_tac prems 1)) ]);
+      ORELSE  iff_tac prems 1)) ]));
 
-val disj_cong = prove_goal (the_context ())
+bind_thm ("disj_cong", prove_goal (the_context ())
     "[| p:P <-> P';  q:Q <-> Q' |] ==> ?p:(P|Q) <-> (P'|Q')"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT  (eresolve_tac [iffE,disjE,disjI1,disjI2] 1
       ORELSE  ares_tac [iffI] 1
-      ORELSE  mp_tac 1)) ]);
+      ORELSE  mp_tac 1)) ]));
 
-val imp_cong = prove_goal (the_context ())
+bind_thm ("imp_cong", prove_goal (the_context ())
     "[| p:P <-> P';  !!x. x:P' ==> q(x):Q <-> Q' |] ==> ?p:(P-->Q) <-> (P'-->Q')"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT   (ares_tac [iffI,impI] 1
       ORELSE  etac iffE 1
-      ORELSE  mp_tac 1 ORELSE iff_tac prems 1)) ]);
+      ORELSE  mp_tac 1 ORELSE iff_tac prems 1)) ]));
 
-val iff_cong = prove_goal (the_context ())
+bind_thm ("iff_cong", prove_goal (the_context ())
     "[| p:P <-> P';  q:Q <-> Q' |] ==> ?p:(P<->Q) <-> (P'<->Q')"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT   (etac iffE 1
       ORELSE  ares_tac [iffI] 1
-      ORELSE  mp_tac 1)) ]);
+      ORELSE  mp_tac 1)) ]));
 
-val not_cong = prove_goal (the_context ())
+bind_thm ("not_cong", prove_goal (the_context ())
     "p:P <-> P' ==> ?p:~P <-> ~P'"
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT   (ares_tac [iffI,notI] 1
       ORELSE  mp_tac 1
-      ORELSE  eresolve_tac [iffE,notE] 1)) ]);
+      ORELSE  eresolve_tac [iffE,notE] 1)) ]));
 
-val all_cong = prove_goal (the_context ())
+bind_thm ("all_cong", prove_goal (the_context ())
     "(!!x. f(x):P(x) <-> Q(x)) ==> ?p:(ALL x. P(x)) <-> (ALL x. Q(x))"
  (fn prems =>
   [ (REPEAT   (ares_tac [iffI,allI] 1
       ORELSE   mp_tac 1
-      ORELSE   etac allE 1 ORELSE iff_tac prems 1)) ]);
+      ORELSE   etac allE 1 ORELSE iff_tac prems 1)) ]));
 
-val ex_cong = prove_goal (the_context ())
+bind_thm ("ex_cong", prove_goal (the_context ())
     "(!!x. f(x):P(x) <-> Q(x)) ==> ?p:(EX x. P(x)) <-> (EX x. Q(x))"
  (fn prems =>
   [ (REPEAT   (etac exE 1 ORELSE ares_tac [iffI,exI] 1
       ORELSE   mp_tac 1
-      ORELSE   iff_tac prems 1)) ]);
+      ORELSE   iff_tac prems 1)) ]));
 
 (*NOT PROVED
-val ex1_cong = prove_goal (the_context ())
+bind_thm ("ex1_cong", prove_goal (the_context ())
     "(!!x.f(x):P(x) <-> Q(x)) ==> ?p:(EX! x.P(x)) <-> (EX! x.Q(x))"
  (fn prems =>
   [ (REPEAT   (eresolve_tac [ex1E, spec RS mp] 1 ORELSE ares_tac [iffI,ex1I] 1
       ORELSE   mp_tac 1
-      ORELSE   iff_tac prems 1)) ]);
+      ORELSE   iff_tac prems 1)) ]));
 *)
 
 (*** Equality rules ***)
 
-val refl = ieqI;
+bind_thm ("refl", ieqI);
 
-val subst = prove_goal (the_context ()) "[| p:a=b;  q:P(a) |] ==> ?p : P(b)"
+bind_thm ("subst", prove_goal (the_context ()) "[| p:a=b;  q:P(a) |] ==> ?p : P(b)"
  (fn [prem1,prem2] => [ rtac (prem2 RS rev_mp) 1, (rtac (prem1 RS ieqE) 1),
-                        rtac impI 1, atac 1 ]);
+                        rtac impI 1, atac 1 ]));
 
 Goal "q:a=b ==> ?c:b=a";
 by (etac subst 1);
@@ -244,7 +244,7 @@ by (etac sym 1) ;
 qed "not_sym";
 
 (*calling "standard" reduces maxidx to 0*)
-val ssubst = standard (sym RS subst);
+bind_thm ("ssubst", standard (sym RS subst));
 
 (*A special case of ex1E that would otherwise need quantifier expansion*)
 Goal "[| p:EX! x. P(x);  q:P(a);  r:P(b) |] ==> ?d:a=b";
@@ -308,14 +308,14 @@ qed "pred3_cong";
 
 (*special cases for free variables P, Q, R, S -- up to 3 arguments*)
 
-val pred_congs =
+bind_thms ("pred_congs",
     List.concat (map (fn c =>
                map (fn th => read_instantiate [("P",c)] th)
                    [pred1_cong,pred2_cong,pred3_cong])
-               (explode"PQRS"));
+               (explode"PQRS")));
 
 (*special case for the equality predicate!*)
-val eq_cong = read_instantiate [("P","op =")] pred2_cong;
+bind_thm ("eq_cong", read_instantiate [("P","op =")] pred2_cong);
 
 
 (*** Simplifications of assumed implications.
