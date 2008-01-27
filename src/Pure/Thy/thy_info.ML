@@ -485,8 +485,7 @@ fun gen_use_thy' req dir arg =
 fun gen_use_thy req str =
   let val name = base_name str in
     check_unfinished warning name;
-    gen_use_thy' req Path.current str;
-    CRITICAL (fn () => ML_Context.set_context (SOME (Context.Theory (get_theory name))))
+    gen_use_thy' req Path.current str
   end;
 
 in
@@ -532,9 +531,6 @@ fun begin_theory name parents uses int =
     val dir = master_dir'' (lookup_deps name);
     val _ = check_unfinished error name;
     val _ = if int then use_thys_dir dir parents else ();
-    (* FIXME tmp *)
-    val _ = CRITICAL (fn () =>
-      ML_Context.set_context (SOME (Context.Theory (get_theory (List.last parent_names)))));
 
     val theory = Theory.begin_theory name (map get_theory parent_names);
 

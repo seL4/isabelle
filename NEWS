@@ -13,6 +13,11 @@ INCOMPATIBILITY in identifier syntax etc.
 specified via 3 decimal digits (as in SML).  E.g. "foo\095bar" for
 "foo_bar".
 
+* Theory loader: use_thy (and similar operations) no longer set the
+implicit ML context, which was occasionally hard to predict and in
+conflict with concurrency.  INCOMPATIBILITY, use ML within Isar which
+provides a proper context already.
+
 
 *** Pure ***
 
