@@ -9,18 +9,19 @@ signature POSITION =
 sig
   type T
   val line_of: T -> int option
+  val column_of: T -> int option
   val file_of: T -> string option
-  val inc: T -> T
   val none: T
   val line: int -> T
   val file: string -> T
   val path: Path.T -> T
+  val advance: Symbol.symbol -> T -> T
   val of_properties: Markup.property list -> T
   val properties_of: T -> Markup.property list
+  val str_of: T -> string
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
   val setmp_thread_data_seq: T -> ('a -> 'b Seq.seq) -> 'a -> 'b Seq.seq
-  val str_of: T -> string
 end;
 
 structure Position: POSITION =
@@ -28,34 +29,63 @@ struct
 
 (* datatype position *)
 
-datatype T = Pos of int option * Markup.property list;
+datatype T = Pos of (int * int) option * Markup.property list;
 
-fun line_of (Pos (opt_n, _)) = opt_n;
-fun file_of (Pos (_, props)) = AList.lookup (op =) props Markup.fileN ;
+fun line_of (Pos (SOME (m, _), _)) = SOME m
+  | line_of _ = NONE;
 
-fun inc (pos as Pos (NONE, _)) = pos
-  | inc (Pos (SOME n, props)) = Pos (SOME (n + 1), props);
+fun column_of (Pos (SOME (_, n), _)) = SOME n
+  | column_of _ = NONE;
+
+fun file_of (Pos (_, props)) = AList.lookup (op =) props Markup.fileN;
 
 val none = Pos (NONE, []);
-fun line n = Pos (SOME n, []);
-fun file s = Pos (SOME 1, [(Markup.fileN, s)]);
-
+fun line m = Pos (SOME (m, 1), []);
+fun file name = Pos (SOME (1, 1), [(Markup.fileN, name)]);
 val path = file o Path.implode o Path.expand;
+
+fun advance "\n" (Pos (SOME (m, _), props)) = Pos (SOME (m + 1, 1), props)
+  | advance sym (pos as Pos (SOME (m, n), props)) =
+      if Symbol.is_regular sym then Pos (SOME (m, n + 1), props) else pos
+  | advance _ pos = pos;
 
 
 (* markup properties *)
 
+fun get_int props (name: string) =
+  (case AList.lookup (op =) props name of
+    NONE => NONE
+  | SOME s => Int.fromString s);
+
 fun of_properties props =
   let
-    val opt_n =
-      (case AList.lookup (op =) props Markup.lineN of
-        SOME s => Int.fromString s
-      | NONE => NONE);
-    fun get name = the_list (find_first (fn (x: string, _) => x = name) props);
-  in (Pos (opt_n, get Markup.fileN @ get Markup.idN)) end;
+    val count =
+      (case get_int props Markup.lineN of
+        NONE => NONE
+      | SOME m => SOME (m, the_default 1 (get_int props Markup.columnN)));
+    fun property name = the_list (find_first (fn (x: string, _) => x = name) props);
+  in (Pos (count, property Markup.fileN @ property Markup.idN)) end;
 
-fun properties_of (Pos (opt_n, props)) =
-  (case opt_n of SOME n => [(Markup.lineN, string_of_int n)] | NONE => []) @ props;
+fun properties_of (Pos (count, props)) =
+  (case count of
+    NONE => []
+  | SOME (m, n) => [(Markup.lineN, string_of_int m), (Markup.columnN, string_of_int n)]) @ props;
+
+
+(* str_of *)
+
+fun str_of pos =
+  let
+    val props = properties_of pos;
+    val s =
+      (case (line_of pos, file_of pos) of
+        (SOME m, NONE) => "(line " ^ string_of_int m ^ ")"
+      | (SOME m, SOME name) => "(line " ^ string_of_int m ^ " of " ^ quote name ^ ")"
+      | _ => "");
+  in
+    if null props then ""
+    else (if s = "" then "" else " ") ^ Markup.markup (Markup.properties props Markup.position) s
+  end;
 
 
 (* thread data *)
@@ -69,17 +99,5 @@ fun setmp_thread_data_seq pos f seq =
   setmp_thread_data pos f seq |> Seq.wrap (fn pull => setmp_thread_data pos pull ());
 
 end;
-
-
-(* str_of *)
-
-fun print (SOME n, NONE) = "(line " ^ string_of_int n ^ ")"
-  | print (NONE, SOME s) = "(" ^ s ^ ")"
-  | print (SOME n, SOME s) = "(line " ^ string_of_int n ^ " of " ^ quote s ^ ")";
-
-fun str_of pos =
-  (case (line_of pos, file_of pos) of
-    (NONE, NONE) => ""
-  | res => " " ^ Markup.markup (Markup.properties (properties_of pos) Markup.position) (print res));
 
 end;
