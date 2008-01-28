@@ -19,13 +19,10 @@ struct
 (* the form [name1=value1, name2=value2, ...]                                *)
 (* ------------------------------------------------------------------------- *)
 
-	fun repeatd delim scan = scan -- Scan.repeat (OuterParse.$$$ delim |-- scan)
-		>> op :: || Scan.succeed [];
-
 	val scan_parm = OuterParse.name -- (OuterParse.$$$ "=" |-- OuterParse.name);
 
 	val scan_parms = Scan.option
-		(OuterParse.$$$ "[" |-- (repeatd "," scan_parm) --| OuterParse.$$$ "]");
+		(OuterParse.$$$ "[" |-- (OuterParse.list scan_parm) --| OuterParse.$$$ "]");
 
 (* ------------------------------------------------------------------------- *)
 (* set up the 'refute' command                                               *)
