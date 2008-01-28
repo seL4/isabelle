@@ -867,7 +867,7 @@ lemma rbl_mult: "!!bina binb.
 lemma rbl_add_split: 
   "P (rbl_add (y # ys) (x # xs)) = 
     (ALL ws. length ws = length ys --> ws = rbl_add ys xs --> 
-    (y --> ((x --> P (False # rbl_succ ws)) & (~ x -->  P (True # ws)))) & \ 
+    (y --> ((x --> P (False # rbl_succ ws)) & (~ x -->  P (True # ws)))) &
     (~ y --> P (x # ws)))"
   apply (auto simp add: Let_def)
    apply (case_tac [!] "y")

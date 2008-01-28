@@ -549,8 +549,8 @@ done
 subsection "Forall"
 
 
-lemma ForallPForallQ1: "Forall P ys & (! x. P x --> Q x) \
-\         --> Forall Q ys"
+lemma ForallPForallQ1: "Forall P ys & (! x. P x --> Q x)
+         --> Forall Q ys"
 apply (rule_tac x="ys" in Seq_induct)
 apply (simp add: Forall_def sforall_def)
 apply simp_all
@@ -646,8 +646,8 @@ lemmas ForallnPFilterPnil = ForallnPFilterPnil1 [THEN mp]
 
 
 (* holds also in other direction *)
-lemma ForallnPFilterPUU1: "~Finite ys & Forall (%x. ~P x) ys \
-\                  --> Filter P$ys = UU "
+lemma ForallnPFilterPUU1: "~Finite ys & Forall (%x. ~P x) ys
+                  --> Filter P$ys = UU "
 apply (rule_tac x="ys" in Seq_induct)
 apply (simp add: Forall_def sforall_def)
 apply simp_all
@@ -730,8 +730,8 @@ done
 
 
 lemma FilterPTakewhileQnil [simp]:
-  "!! Q P.[| Finite (Takewhile Q$ys); !!x. Q x ==> ~P x |] \
-\   ==> Filter P$(Takewhile Q$ys) = nil"
+  "!! Q P.[| Finite (Takewhile Q$ys); !!x. Q x ==> ~P x |]
+   ==> Filter P$(Takewhile Q$ys) = nil"
 apply (erule ForallnPFilterPnil)
 apply (rule ForallPForallQ)
 apply (rule ForallPTakewhileP)
@@ -739,8 +739,8 @@ apply auto
 done
 
 lemma FilterPTakewhileQid [simp]:
- "!! Q P. [| !!x. Q x ==> P x |] ==> \
-\            Filter P$(Takewhile Q$ys) = (Takewhile Q$ys)"
+ "!! Q P. [| !!x. Q x ==> P x |] ==>
+            Filter P$(Takewhile Q$ys) = (Takewhile Q$ys)"
 apply (rule ForallPFilterPid)
 apply (rule ForallPForallQ)
 apply (rule ForallPTakewhileP)

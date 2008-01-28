@@ -1005,7 +1005,7 @@ lemma test_bit_split_eq: "word_split c = (a, b) <->
   apply (fastsimp intro ! : word_eqI simp add : word_size)
   done
 
--- {* this odd result is analogous to ucast\_id, 
+-- {* this odd result is analogous to @{text "ucast_id"}, 
       result to the length given by the result type *}
 
 lemma word_cat_id: "word_cat a b = b"
@@ -1056,7 +1056,7 @@ lemmas slice_cat1 = refl [THEN slice_cat1']
 lemmas slice_cat2 = trans [OF slice_id word_cat_id]
 
 lemma cat_slices:
-  "a = slice n c ==> b = slice 0 c ==> n = size b ==> \  
+  "a = slice n c ==> b = slice 0 c ==> n = size b ==>
     size a + size b >= size c ==> word_cat a b = c"
   apply safe
   apply (rule word_eqI)
