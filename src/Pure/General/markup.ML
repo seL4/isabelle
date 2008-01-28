@@ -20,6 +20,7 @@ sig
   val internalK: string
   val property_internal: property
   val lineN: string
+  val columnN: string
   val fileN: string
   val positionN: string val position: T
   val indentN: string
@@ -104,6 +105,7 @@ val property_internal = (kindN, internalK);
 (* position *)
 
 val lineN = "line";
+val columnN = "column";
 val fileN = "file";
 val idN = "id";
 
