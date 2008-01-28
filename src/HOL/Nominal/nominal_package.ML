@@ -1907,8 +1907,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                           (HOLogic.mk_Trueprop (fresh_const aT rT $ b $ lhs'))
                           (fn _ => EVERY
                              [cut_facts_tac [th'] 1,
-                              NominalPermeq.perm_simp_tac (HOL_ss addsimps
-                                (rec_eqns @ pi1_pi2_eqs @ perm_swap)) 1,
+                              full_simp_tac (Simplifier.theory_context thy11 HOL_ss
+                                addsimps rec_eqns @ pi1_pi2_eqs @ perm_swap
+                                addsimprocs [NominalPermeq.perm_simproc_app]) 1,
                               full_simp_tac (HOL_ss addsimps (calc_atm @
                                 fresh_prems' @ freshs2' @ perm_fresh_fresh)) 1])
                       end;
