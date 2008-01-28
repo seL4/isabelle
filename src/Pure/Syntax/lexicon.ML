@@ -12,15 +12,15 @@ sig
   val is_tid: string -> bool
   val implode_xstr: string list -> string
   val explode_xstr: string -> string list
-  val scan_id: string list -> string * string list
-  val scan_longid: string list -> string * string list
-  val scan_var: string list -> string * string list
-  val scan_tid: string list -> string * string list
-  val scan_tvar: string list -> string * string list
-  val scan_nat: string list -> string * string list
-  val scan_int: string list -> string * string list
-  val scan_hex: string list -> string * string list
-  val scan_bin: string list -> string * string list
+  val scan_id: Symbol.symbol list -> Symbol.symbol list * Symbol.symbol list
+  val scan_longid: Symbol.symbol list -> Symbol.symbol list * Symbol.symbol list
+  val scan_tid: Symbol.symbol list -> Symbol.symbol list * Symbol.symbol list
+  val scan_nat: Symbol.symbol list -> Symbol.symbol list * Symbol.symbol list
+  val scan_int: Symbol.symbol list -> Symbol.symbol list * Symbol.symbol list
+  val scan_hex: Symbol.symbol list -> Symbol.symbol list * Symbol.symbol list
+  val scan_bin: Symbol.symbol list -> Symbol.symbol list * Symbol.symbol list
+  val scan_var: Symbol.symbol list -> Symbol.symbol list * Symbol.symbol list
+  val scan_tvar: Symbol.symbol list -> Symbol.symbol list * Symbol.symbol list
   val read_indexname: string -> indexname
   val read_var: string -> term
   val read_variable: string -> indexname option
@@ -68,7 +68,6 @@ end;
 structure Lexicon: LEXICON =
 struct
 
-
 (** is_identifier etc. **)
 
 val is_identifier = Symbol.is_ident o Symbol.explode;
@@ -91,24 +90,18 @@ fun is_tid s =
 
 (** basic scanners **)
 
-val scan_letter_letdigs = Scan.one Symbol.is_letter -- Scan.many Symbol.is_letdig >> op ::;
-val scan_digits1 = Scan.many1 Symbol.is_digit;
-val scan_hex1 = Scan.many1 Symbol.is_ascii_hex;
-val scan_bin1 = Scan.many1 (fn s => s = "0" orelse s = "1");
+val scan_id = Scan.one Symbol.is_letter ::: Scan.many Symbol.is_letdig;
+val scan_longid = scan_id @@@ (Scan.repeat1 ($$ "." ::: scan_id) >> flat);
+val scan_tid = $$ "'" ::: scan_id;
 
-val scan_id = scan_letter_letdigs >> implode;
-val scan_longid = scan_id ^^ (Scan.repeat1 ($$ "." ^^ scan_id) >> implode);
-val scan_tid = $$ "'" ^^ scan_id;
+val scan_nat = Scan.many1 Symbol.is_digit;
+val scan_int = $$ "-" ::: scan_nat || scan_nat;
+val scan_hex = $$ "0" ::: $$ "x" ::: Scan.many1 Symbol.is_ascii_hex;
+val scan_bin = $$ "0" ::: $$ "b" ::: Scan.many1 (fn s => s = "0" orelse s = "1");
 
-val scan_nat = scan_digits1 >> implode;
-val scan_int = $$ "-" ^^ scan_nat || scan_nat;
-
-val scan_hex = $$ "0" ^^ $$ "x" ^^ (scan_hex1 >> implode);
-val scan_bin = $$ "0" ^^ $$ "b" ^^ (scan_bin1 >> implode);
-
-val scan_id_nat = scan_id ^^ Scan.optional ($$ "." ^^ scan_nat) "";
-val scan_var = $$ "?" ^^ scan_id_nat;
-val scan_tvar = $$ "?" ^^ $$ "'" ^^ scan_id_nat;
+val scan_id_nat = scan_id @@@ Scan.optional ($$ "." ::: scan_nat) [];
+val scan_var = $$ "?" ::: scan_id_nat;
+val scan_tvar = $$ "?" ::: $$ "'" ::: scan_id_nat;
 
 
 
@@ -251,22 +244,24 @@ val scan_comment =
 
 fun tokenize lex xids chs =
   let
+    fun token kind cs = (kind, implode cs);
+
     val scan_xid =
-      if xids then $$ "_" ^^ scan_id || scan_id
+      if xids then $$ "_" ::: scan_id || scan_id
       else scan_id;
 
     val scan_num = scan_hex || scan_bin || scan_int;
 
     val scan_val =
-      scan_tvar >> pair TVarSy ||
-      scan_var >> pair VarSy ||
-      scan_tid >> pair TFreeSy ||
-      scan_num >> pair NumSy ||
-      $$ "#" ^^ scan_num >> pair XNumSy ||
-      scan_longid >> pair LongIdentSy ||
-      scan_xid >> pair IdentSy;
+      scan_tvar >> token TVarSy ||
+      scan_var >> token VarSy ||
+      scan_tid >> token TFreeSy ||
+      scan_num >> token NumSy ||
+      $$ "#" ::: scan_num >> token XNumSy ||
+      scan_longid >> token LongIdentSy ||
+      scan_xid >> token IdentSy;
 
-    val scan_lit = Scan.literal lex >> (pair Token o implode);
+    val scan_lit = Scan.literal lex >> token Token;
 
     val scan_token =
       scan_comment >> K NONE ||
@@ -300,8 +295,7 @@ fun scan_vname chrs =
           if Symbol.is_digit c then chop_idx cs (c :: ds)
           else idxname (c :: cs) ds;
 
-    val scan =
-      scan_letter_letdigs -- Scan.optional ($$ "." |-- scan_digits1 >> nat 0) ~1;
+    val scan = scan_id -- Scan.optional ($$ "." |-- scan_nat >> nat 0) ~1;
   in
     (case scan chrs of
       ((cs, ~1), cs') => (chop_idx (rev cs) [], cs')
@@ -358,7 +352,7 @@ local
 
 fun nat cs =
   Option.map (#1 o Library.read_int)
-    (Scan.read Symbol.stopper scan_digits1 cs);
+    (Scan.read Symbol.stopper scan_nat cs);
 
 in
 
@@ -414,7 +408,7 @@ fun read_idents str =
   let
     val blanks = Scan.many Symbol.is_blank;
     val junk = Scan.many Symbol.is_regular;
-    val idents = Scan.repeat1 (blanks |-- scan_id --| blanks) -- junk;
+    val idents = Scan.repeat1 (blanks |-- (scan_id >> implode) --| blanks) -- junk;
   in
     (case Scan.read Symbol.stopper idents (Symbol.explode str) of
       SOME (ids, []) => ids
