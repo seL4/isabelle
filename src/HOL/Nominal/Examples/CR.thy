@@ -104,16 +104,16 @@ proof (nominal_induct M avoiding: x y N L rule: lam.induct)
     moreover 
     { (*Case 1.2*)
       assume "z=y" and "z\<noteq>x" 
-      have "(1)": "?LHS = L"               using `z\<noteq>x` `z=y` by force
-      have "(2)": "?RHS = L[x::=N[y::=L]]" using `z=y` by force
+      have "(1)": "?LHS = L"               using `z\<noteq>x` `z=y` by simp
+      have "(2)": "?RHS = L[x::=N[y::=L]]" using `z=y` by simp
       have "(3)": "L[x::=N[y::=L]] = L"    using `x\<sharp>L` by (simp add: forget)
       from "(1)" "(2)" "(3)" have "?LHS = ?RHS" by simp
     }
     moreover 
     { (*Case 1.3*)
       assume "z\<noteq>x" and "z\<noteq>y"
-      have "(1)": "?LHS = Var z" using `z\<noteq>x` `z\<noteq>y` by force
-      have "(2)": "?RHS = Var z" using `z\<noteq>x` `z\<noteq>y` by force
+      have "(1)": "?LHS = Var z" using `z\<noteq>x` `z\<noteq>y` by simp
+      have "(2)": "?RHS = Var z" using `z\<noteq>x` `z\<noteq>y` by simp
       from "(1)" "(2)" have "?LHS = ?RHS" by simp
     }
     ultimately show "?LHS = ?RHS" by blast
