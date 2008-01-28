@@ -27,6 +27,9 @@ FIXMES:
 
 signature NOMINAL_PERMEQ =
 sig
+  val perm_simproc_fun : simproc
+  val perm_simproc_app : simproc
+
   val perm_simp_tac : simpset -> int -> tactic
   val perm_full_simp_tac : simpset -> int -> tactic
   val supports_tac : simpset -> int -> tactic
@@ -91,7 +94,7 @@ fun NO_DEBUG_tac (_,tac) = CHANGED tac;
 (* of applications; just adding this rule to the simplifier   *)
 (* would loop; it also needs careful tuning with the simproc  *)
 (* for functions to avoid further possibilities for looping   *)
-fun perm_simproc_app st sg ss redex =
+fun perm_simproc_app' sg ss redex =
   let 
     (* the "application" case is only applicable when the head of f is not a *)
     (* constant or when (f x) is a permuation with two or more arguments     *)
@@ -108,15 +111,18 @@ fun perm_simproc_app st sg ss redex =
             (if (applicable_app f) then
               let
                 val name = Sign.base_name n
-                val at_inst     = dynamic_thm st ("at_"^name^"_inst")
-                val pt_inst     = dynamic_thm st ("pt_"^name^"_inst")  
+                val at_inst = PureThy.get_thm sg (Name ("at_" ^ name ^ "_inst"))
+                val pt_inst = PureThy.get_thm sg (Name ("pt_" ^ name ^ "_inst"))
               in SOME ((at_inst RS (pt_inst RS perm_eq_app)) RS eq_reflection) end
             else NONE)
       | _ => NONE
   end
 
+val perm_simproc_app = Simplifier.simproc @{theory} "perm_simproc_app"
+  ["Nominal.perm pi x"] perm_simproc_app';
+
 (* a simproc that deals with permutation instances in front of functions  *)
-fun perm_simproc_fun st sg ss redex = 
+fun perm_simproc_fun' sg ss redex = 
    let 
      fun applicable_fun t =
        (case (strip_comb t) of
@@ -132,21 +138,18 @@ fun perm_simproc_fun st sg ss redex =
       | _ => NONE
    end
 
+val perm_simproc_fun = Simplifier.simproc @{theory} "perm_simproc_fun"
+  ["Nominal.perm pi x"] perm_simproc_fun';
+
 (* function for simplyfying permutations *)
 fun perm_simp_gen dyn_thms eqvt_thms ss i = 
     ("general simplification of permutations", fn st =>
     let
-
-       val perm_sp_fun = Simplifier.simproc (theory_of_thm st) "perm_simproc_fun" 
-	                 ["Nominal.perm pi x"] (perm_simproc_fun st);
-
-       val perm_sp_app = Simplifier.simproc (theory_of_thm st) "perm_simproc_app" 
-	                 ["Nominal.perm pi x"] (perm_simproc_app st);
-
-       val ss' = ss addsimps ((List.concat (map (dynamic_thms st) dyn_thms))@eqvt_thms)
-                    delcongs weak_congs
-                    addcongs strong_congs
-                    addsimprocs [perm_sp_fun, perm_sp_app]
+       val ss' = Simplifier.theory_context (theory_of_thm st) ss
+         addsimps ((List.concat (map (dynamic_thms st) dyn_thms))@eqvt_thms)
+         delcongs weak_congs
+         addcongs strong_congs
+         addsimprocs [perm_simproc_fun, perm_simproc_app]
     in
       asm_full_simp_tac ss' i st
     end);
@@ -179,47 +182,44 @@ fun eqvt_simp_tac tactical ss i = DETERM (tactical (eqvt_simp ss i));
 (* this rule would loop in the simplifier, so some trick is used with  *)
 (* generating perm_aux'es for the outermost permutation and then un-   *)
 (* folding the definition                                              *)
-fun perm_compose_tac ss i = 
+
+fun perm_compose_simproc' sg ss redex =
+  (case redex of
+     (Const ("Nominal.perm", Type ("fun", [Type ("List.list", 
+       [Type ("*", [T as Type (tname,_),_])]),_])) $ pi1 $ (Const ("Nominal.perm", 
+         Type ("fun", [Type ("List.list", [Type ("*", [U as Type (uname,_),_])]),_])) $ 
+          pi2 $ t)) =>
     let
-	fun perm_compose_simproc sg ss redex =
-	(case redex of
-           (Const ("Nominal.perm", Type ("fun", [Type ("List.list", 
-             [Type ("*", [T as Type (tname,_),_])]),_])) $ pi1 $ (Const ("Nominal.perm", 
-               Type ("fun", [Type ("List.list", [Type ("*", [U as Type (uname,_),_])]),_])) $ 
-                pi2 $ t)) =>
-        let
-	    val tname' = Sign.base_name tname
-            val uname' = Sign.base_name uname
-        in
-            if pi1 <> pi2 then  (* only apply the composition rule in this case *)
-               if T = U then    
-                SOME (Drule.instantiate'
-	              [SOME (ctyp_of sg (fastype_of t))]
-		      [SOME (cterm_of sg pi1), SOME (cterm_of sg pi2), SOME (cterm_of sg t)]
-		      (mk_meta_eq ([PureThy.get_thm sg (Name ("pt_"^tname'^"_inst")),
-	               PureThy.get_thm sg (Name ("at_"^tname'^"_inst"))] MRS pt_perm_compose_aux)))
-               else
-                SOME (Drule.instantiate'
-	              [SOME (ctyp_of sg (fastype_of t))]
-		      [SOME (cterm_of sg pi1), SOME (cterm_of sg pi2), SOME (cterm_of sg t)]
-		      (mk_meta_eq (PureThy.get_thm sg (Name ("cp_"^tname'^"_"^uname'^"_inst")) RS 
-                       cp1_aux)))
-            else NONE
-        end
-       | _ => NONE);
-	  
-      val perm_compose  =
-	Simplifier.simproc (the_context()) "perm_compose" 
-	["Nominal.perm pi1 (Nominal.perm pi2 t)"] perm_compose_simproc;
-
-      val ss' = Simplifier.theory_context (the_context ()) empty_ss (* FIXME: get rid of the_context *)	  
-
+      val tname' = Sign.base_name tname
+      val uname' = Sign.base_name uname
     in
-	("analysing permutation compositions on the lhs",
-         EVERY [rtac trans i,
-                asm_full_simp_tac (ss' addsimprocs [perm_compose]) i,
-                asm_full_simp_tac (HOL_basic_ss addsimps [perm_aux_fold]) i])
+      if pi1 <> pi2 then  (* only apply the composition rule in this case *)
+        if T = U then    
+          SOME (Drule.instantiate'
+            [SOME (ctyp_of sg (fastype_of t))]
+            [SOME (cterm_of sg pi1), SOME (cterm_of sg pi2), SOME (cterm_of sg t)]
+            (mk_meta_eq ([PureThy.get_thm sg (Name ("pt_"^tname'^"_inst")),
+             PureThy.get_thm sg (Name ("at_"^tname'^"_inst"))] MRS pt_perm_compose_aux)))
+        else
+          SOME (Drule.instantiate'
+            [SOME (ctyp_of sg (fastype_of t))]
+            [SOME (cterm_of sg pi1), SOME (cterm_of sg pi2), SOME (cterm_of sg t)]
+            (mk_meta_eq (PureThy.get_thm sg (Name ("cp_"^tname'^"_"^uname'^"_inst")) RS 
+             cp1_aux)))
+      else NONE
     end
+  | _ => NONE);
+
+val perm_compose_simproc = Simplifier.simproc @{theory} "perm_compose"
+  ["Nominal.perm pi1 (Nominal.perm pi2 t)"] perm_compose_simproc';
+
+fun perm_compose_tac ss i = 
+  ("analysing permutation compositions on the lhs",
+   fn st => EVERY
+     [rtac trans i,
+      asm_full_simp_tac (Simplifier.theory_context (theory_of_thm st) empty_ss
+        addsimprocs [perm_compose_simproc]) i,
+      asm_full_simp_tac (HOL_basic_ss addsimps [perm_aux_fold]) i] st);
 
 
 (* applying Stefan's smart congruence tac *)
