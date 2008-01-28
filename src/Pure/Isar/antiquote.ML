@@ -34,9 +34,8 @@ structure T = OuterLex;
 local
 
 val scan_txt =
-  T.scan_blank ||
-  T.keep_line ($$ "@" --| Scan.ahead (~$$ "{")) ||
-  T.keep_line (Scan.one (fn s => s <> "@" andalso Symbol.is_regular s));
+  T.count ($$ "@" --| Scan.ahead (~$$ "{")) ||
+  T.count (Scan.one (fn s => s <> "@" andalso Symbol.is_regular s));
 
 fun escape "\\" = "\\\\"
   | escape "\"" = "\\\""
@@ -45,14 +44,13 @@ fun escape "\\" = "\\\\"
 val quote_escape = Library.quote o implode o map escape o Symbol.explode;
 
 val scan_ant =
-  T.scan_blank ||
   T.scan_string >> quote_escape ||
-  T.keep_line (Scan.one (fn s => s <> "}" andalso Symbol.is_regular s));
+  T.count (Scan.one (fn s => s <> "}" andalso Symbol.is_regular s));
 
 val scan_antiq =
-  T.keep_line ($$ "@" -- $$ "{") |--
+  T.count ($$ "@") |-- T.count ($$ "{") |--
     T.!!! "missing closing brace of antiquotation"
-      (Scan.repeat scan_ant >> implode) --| T.keep_line ($$ "}");
+      (Scan.repeat scan_ant >> implode) --| T.count ($$ "}");
 
 in
 
