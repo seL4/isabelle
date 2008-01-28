@@ -6,6 +6,7 @@ Generic scanners (for potentially infinite input).
 *)
 
 infix 5 -- :-- :|-- |-- --| ^^;
+infixr 5 ::: @@@;
 infix 3 >>;
 infixr 0 ||;
 
@@ -27,6 +28,8 @@ sig
   val --| : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> 'b * 'e
   (*concatenation*)
   val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
+  val ::: : ('a -> 'b * 'c) * ('c -> 'b list * 'd) -> 'a -> 'b list * 'd
+  val @@@ : ('a -> 'b list * 'c) * ('c -> 'b list * 'd) -> 'a -> 'b list * 'd
   (*one element literal*)
   val $$ : string -> string list -> string * string list
   val ~$$ : string -> string list -> string * string list
@@ -120,6 +123,8 @@ fun (scan1 :|-- scan2) = scan1 :-- scan2 >> #2;
 fun (scan1 |-- scan2) = scan1 -- scan2 >> #2;
 fun (scan1 --| scan2) = scan1 -- scan2 >> #1;
 fun (scan1 ^^ scan2) = scan1 -- scan2 >> op ^;
+fun (scan1 ::: scan2) = scan1 -- scan2 >> op ::;
+fun (scan1 @@@ scan2) = scan1 -- scan2 >> op @;
 
 
 (* generic scanners *)
@@ -154,7 +159,7 @@ fun many _ [] = raise MORE NONE
       if pred x then apfst (cons x) (many pred xs)
       else ([], lst);
 
-fun many1 pred = one pred -- many pred >> op ::;
+fun many1 pred = one pred ::: many pred;
 
 fun optional scan def = scan || succeed def;
 fun option scan = (scan >> SOME) || succeed NONE;
@@ -167,7 +172,7 @@ fun repeat scan =
       | SOME (y, xs') => rep (y :: ys) xs');
   in rep [] end;
 
-fun repeat1 scan = scan -- repeat scan >> op ::;
+fun repeat1 scan = scan ::: repeat scan;
 
 fun single scan = scan >> (fn x => [x]);
 fun bulk scan = scan -- repeat (permissive scan) >> (op ::);

@@ -44,8 +44,8 @@ end;
 (* basic scanners *)
 
 fun $$ s = Scan.some (fn Lexicon.Token s' => if s = s' then SOME s else NONE | _ => NONE);
-fun enum1 s scan = scan -- Scan.repeat ($$ s |-- scan) >> op ::;
-fun enum2 s scan = scan -- Scan.repeat1 ($$ s |-- scan) >> op ::;
+fun enum1 s scan = scan ::: Scan.repeat ($$ s |-- scan);
+fun enum2 s scan = scan ::: Scan.repeat1 ($$ s |-- scan);
 
 val tfree = Scan.some (fn Lexicon.TFreeSy s => SOME s | _ => NONE);
 val ident = Scan.some (fn Lexicon.IdentSy s => SOME s | _ => NONE);

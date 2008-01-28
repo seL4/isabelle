@@ -49,7 +49,7 @@ fun purify_name upper lower =
       ((junk |--
         (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
         --| junk))
-      -- Scan.repeat ((Scan.many1 is_valid >> implode) --| junk) >> op ::);
+      ::: Scan.repeat ((Scan.many1 is_valid >> implode) --| junk));
     fun upper_lower cs = if upper then nth_map 0 Symbol.to_ascii_upper cs
       else if lower then (if forall Symbol.is_ascii_upper cs
         then map else nth_map 0) Symbol.to_ascii_lower cs

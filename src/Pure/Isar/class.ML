@@ -763,7 +763,7 @@ val sanatize_name = (*FIXME*)
       ((junk |--
         (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
         --| junk))
-      -- Scan.repeat ((Scan.many1 is_valid >> implode) --| junk) >> op ::);
+      ::: Scan.repeat ((Scan.many1 is_valid >> implode) --| junk));
   in
     explode #> scan_valids #> implode
   end;

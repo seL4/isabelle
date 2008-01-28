@@ -108,7 +108,7 @@ val loc_element =
     >> (curry Element.Notes "");
 
 fun plus1_unless test scan =
-  scan -- Scan.repeat (P.$$$ "+" |-- Scan.unless test (P.!!! scan)) >> op ::;
+  scan ::: Scan.repeat (P.$$$ "+" |-- Scan.unless test (P.!!! scan));
 
 val rename = P.name -- Scan.option P.mixfix;
 

@@ -185,7 +185,7 @@ val opt_begin = Scan.optional (begin >> K true) false;
 
 (* enumerations *)
 
-fun enum1 sep scan = scan -- Scan.repeat ($$$ sep |-- !!! scan) >> op ::;
+fun enum1 sep scan = scan ::: Scan.repeat ($$$ sep |-- !!! scan);
 fun enum sep scan = enum1 sep scan || Scan.succeed [];
 
 fun list1 scan = enum1 "," scan;

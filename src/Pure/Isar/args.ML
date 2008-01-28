@@ -288,10 +288,10 @@ val var = some_ident Lexicon.read_variable;
 
 (* enumerations *)
 
-fun list1 scan = scan -- Scan.repeat ($$$ "," |-- scan) >> op ::;
+fun list1 scan = scan ::: Scan.repeat ($$$ "," |-- scan);
 fun list scan = list1 scan || Scan.succeed [];
 
-fun enum1 sep scan = scan -- Scan.repeat (Scan.lift ($$$ sep) |-- scan) >> op ::;
+fun enum1 sep scan = scan ::: Scan.repeat (Scan.lift ($$$ sep) |-- scan);
 fun enum sep scan = enum1 sep scan || Scan.succeed [];
 
 fun and_list1 scan = enum1 "and" scan;

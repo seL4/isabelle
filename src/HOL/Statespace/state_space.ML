@@ -701,7 +701,7 @@ val type_insts =
 
 val comp = P.name -- (P.$$$ "::" |-- P.!!! P.typ);
 fun plus1_unless test scan =
-  scan -- Scan.repeat (P.$$$ "+" |-- Scan.unless test (P.!!! scan)) >> op ::;
+  scan ::: Scan.repeat (P.$$$ "+" |-- Scan.unless test (P.!!! scan));
 
 val mapsto = P.$$$ "=";
 val rename = P.name -- (mapsto |-- P.name);

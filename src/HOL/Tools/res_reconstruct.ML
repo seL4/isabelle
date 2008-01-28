@@ -70,7 +70,7 @@ fun is_digit s = Char.isDigit (String.sub(s,0));
 val integer = Scan.many1 is_digit >> (valOf o Int.fromString o implode);
 
 (*Generalized FO terms, which include filenames, numbers, etc.*)
-fun termlist x = (term -- Scan.repeat ($$"," |-- term) >> op::) x
+fun termlist x = (term ::: Scan.repeat ($$"," |-- term)) x
 and term x = (quoted >> atom || integer>>Int || truefalse ||
               Symbol.scan_id -- Scan.optional ($$"(" |-- termlist --| $$")") [] >> Br ||
               $$"(" |-- term --| $$")" ||
@@ -88,7 +88,7 @@ fun syn_equal (t, NONE) = t
 fun literal x = ($$"~" |-- literal >> negate ||
                  (term -- Scan.option (Scan.option ($$"!") --| $$"=" -- term) >> syn_equal)) x;
 
-val literals = literal -- Scan.repeat ($$"|" |-- literal) >> op:: ;
+val literals = literal ::: Scan.repeat ($$"|" |-- literal);
 
 (*Clause: a list of literals separated by the disjunction sign*)
 val clause = $$"(" |-- literals --| $$")" || Scan.single literal;
