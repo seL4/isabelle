@@ -75,6 +75,7 @@ end
 
 fun location_of_position pos =
     let val line = Position.line_of pos
+        val column = Position.column_of pos
         val (url,descr) =
             (case Position.file_of pos of
                NONE => (NONE, NONE)
@@ -85,7 +86,7 @@ fun location_of_position pos =
                  | NONE => (NONE, SOME fname)
                end);
     in
-        { descr=descr, url=url, line=line, column=NONE, char=NONE, length=NONE }
+        { descr=descr, url=url, line=line, column=column, char=NONE, length=NONE }
     end
 
 
