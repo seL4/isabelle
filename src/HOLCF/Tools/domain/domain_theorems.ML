@@ -276,7 +276,7 @@ local
   fun dis_app c (con, args) =
     let
       val lhs = %%:(dis_name c) ` con_app con args;
-      val rhs = %%:(if con = c then TT_N else FF_N);
+      val rhs = if con = c then TT else FF;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs_dis_def goal tacs end;
@@ -313,8 +313,8 @@ local
       val lhs = %%:(mat_name c) ` con_app con args;
       val rhs =
         if con = c
-        then %%:returnN ` mk_ctuple (map %# args)
-        else %%:failN;
+        then mk_return (mk_ctuple (map %# args))
+        else mk_fail;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs_mat_def goal tacs end;
@@ -328,11 +328,11 @@ end;
 local
   fun ps args = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
 
-  fun pat_lhs (con,args) = %%:branchN $ list_comb (%%:(pat_name con), ps args);
+  fun pat_lhs (con,args) = mk_branch (list_comb (%%:(pat_name con), ps args));
 
-  fun pat_rhs (con,[]) = %%:returnN ` ((%:"rhs") ` HOLogic.unit)
+  fun pat_rhs (con,[]) = mk_return ((%:"rhs") ` HOLogic.unit)
     | pat_rhs (con,args) =
-        (%%:branchN $ foldr1 cpair_pat (ps args))
+        (mk_branch (mk_ctuple_pat (ps args)))
           `(%:"rhs")`(mk_ctuple (map %# args));
 
   fun pat_strict c =
@@ -346,7 +346,7 @@ local
     let
       val axs = @{thm branch_def} :: axs_pat_def;
       val lhs = (pat_lhs c)`(%:"rhs")`(con_app con args);
-      val rhs = if con = fst c then pat_rhs c else %%:failN;
+      val rhs = if con = fst c then pat_rhs c else mk_fail;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs goal tacs end;
@@ -389,8 +389,8 @@ local
     [compact_sinl, compact_sinr, compact_spair, compact_up, compact_ONE];
   fun con_compact (con, args) =
     let
-      val concl = mk_trp (%%:compactN $ con_app con args);
-      val goal = lift (fn x => %%:compactN $ %#x) (args, concl);
+      val concl = mk_trp (mk_compact (con_app con args));
+      val goal = lift (fn x => mk_compact (%#x)) (args, concl);
       val tacs = [
         rtac (iso_locale RS iso_compact_abs) 1,
         REPEAT (resolve_tac rules 1 ORELSE atac 1)];
@@ -890,7 +890,7 @@ in (* local *)
 
         val goal =
           let
-            fun one_adm n _ = mk_trp (%%:admN $ %:(P_name n));
+            fun one_adm n _ = mk_trp (mk_adm (%:(P_name n)));
             fun concf n dn = %:(P_name n) $ %:(x_name n);
           in Logic.list_implies (mapn one_adm 1 dnames, ind_term concf) end;
         fun tacf prems =

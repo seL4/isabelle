@@ -44,11 +44,11 @@ let
 (* -- definitions concerning the constructors, discriminators and selectors - *)
 
   fun con_def m n (_,args) = let
-    fun idxs z x arg = (if is_lazy arg then fn t => %%:upN`t else I) (Bound(z-x));
+    fun idxs z x arg = (if is_lazy arg then mk_up else I) (Bound(z-x));
     fun parms vs = mk_stuple (mapn (idxs(length vs)) 1 vs);
     fun inj y 1 _ = y
-    |   inj y _ 0 = %%:sinlN`y
-    |   inj y i j = %%:sinrN`(inj y (i-1) (j-1));
+    |   inj y _ 0 = mk_sinl y
+    |   inj y i j = mk_sinr (inj y (i-1) (j-1));
   in foldr /\# (dc_abs`(inj (parms args) m n)) args end;
   
   val con_defs = mapn (fn n => fn (con,args) =>
@@ -58,7 +58,7 @@ let
 	fun ddef (con,_) = (dis_name con ^"_def",%%:(dis_name con) == 
 		 list_ccomb(%%:(dname^"_when"),map 
 			(fn (con',args) => (foldr /\#
-			   (if con'=con then %%:TT_N else %%:FF_N) args)) cons))
+			   (if con'=con then TT else FF) args)) cons))
 	in map ddef cons end;
 
   val mat_defs = let
@@ -66,8 +66,8 @@ let
 		 list_ccomb(%%:(dname^"_when"),map 
 			(fn (con',args) => (foldr /\#
 			   (if con'=con
-                               then %%:returnN`(mk_ctuple (map (bound_arg args) args))
-                               else %%:failN) args)) cons))
+                               then mk_return (mk_ctuple (map (bound_arg args) args))
+                               else mk_fail) args)) cons))
 	in map mdef cons end;
 
   val pat_defs =
@@ -77,9 +77,9 @@ let
           val ps = mapn (fn n => fn _ => %:("pat" ^ string_of_int n)) 1 args;
           val xs = map (bound_arg args) args;
           val r = Bound (length args);
-          val rhs = case args of [] => %%:returnN ` HOLogic.unit
-                                | _ => foldr1 cpair_pat ps ` mk_ctuple xs;
-          fun one_con (con',args') = foldr /\# (if con'=con then rhs else %%:failN) args';
+          val rhs = case args of [] => mk_return HOLogic.unit
+                                | _ => mk_ctuple_pat ps ` mk_ctuple xs;
+          fun one_con (con',args') = foldr /\# (if con'=con then rhs else mk_fail) args';
         in (pat_name con ^"_def", list_comb (%%:(pat_name con), ps) == 
                list_ccomb(%%:(dname^"_when"), map one_con cons))
         end
@@ -95,10 +95,10 @@ let
 
 (* ----- axiom and definitions concerning induction ------------------------- *)
 
-  val reach_ax = ("reach", mk_trp(cproj (%%:fixN`%%(comp_dname^"_copy")) eqs n
+  val reach_ax = ("reach", mk_trp(cproj (mk_fix (%%:(comp_dname^"_copy"))) eqs n
 					`%x_name === %:x_name));
   val take_def = ("take_def",%%:(dname^"_take") == mk_lam("n",cproj
-	     (%%:iterateN $ Bound 0 ` %%:(comp_dname^"_copy") ` UU) eqs n));
+	     (mk_iterate (Bound 0, %%:(comp_dname^"_copy"), UU)) eqs n));
   val finite_def = ("finite_def",%%:(dname^"_finite") == mk_lam(x_name,
 	mk_ex("n",(%%:(dname^"_take") $ Bound 0)`Bound 1 === Bound 1)));
 
@@ -125,7 +125,7 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
   val x_name = idx_name dnames "x"; 
   fun copy_app dname = %%:(dname^"_copy")`Bound 0;
   val copy_def = ("copy_def" , %%:(comp_dname^"_copy") ==
-				    /\"f"(foldr1 cpair (map copy_app dnames)));
+				    /\"f"(mk_ctuple (map copy_app dnames)));
   val bisim_def = ("bisim_def",%%:(comp_dname^"_bisim")==mk_lam("R",
     let
       fun one_con (con,args) = let
