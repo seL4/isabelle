@@ -85,11 +85,12 @@ sig
   val ensure_const: theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
     -> CodeFuncgr.T -> string -> transact -> string * transact;
   val ensure_value: theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
-    -> CodeFuncgr.T -> term -> transact -> string * transact;
-  val add_value_stmt: iterm * itype -> code -> code;
+    -> CodeFuncgr.T -> term
+      -> transact -> (code * ((typscheme * iterm) * string list)) * transact;
   val transact: theory -> CodeFuncgr.T
     -> (theory -> ((sort -> sort) * Sorts.algebra) * Consts.T -> CodeFuncgr.T
       -> transact -> 'a * transact) -> code -> 'a * code;
+  val add_value_stmt: iterm * itype -> code -> code;
 end;
 
 structure CodeThingol: CODE_THINGOL =
@@ -642,41 +643,19 @@ fun ensure_value thy algbr funcgr t =
       ##>> exprgen_typ thy algbr funcgr ty
       ##>> exprgen_term thy algbr funcgr t
       #>> (fn ((vs, ty), t) => Fun ((vs, ty), [(([], t), Drule.dummy_thm)]));
-  in
-    ensure_stmt stmt_value CodeName.value_name
-  end;
-
-fun eval evaluate term_of thy g code0 =
-  let
-    fun result (_, code) =
+    fun term_value (dep, code1) =
       let
         val Fun ((vs, ty), [(([], t), _)]) =
-          Graph.get_node code CodeName.value_name;
-        val deps = Graph.imm_succs code CodeName.value_name;
-        val code' = Graph.del_nodes [CodeName.value_name] code;
-        val code'' = project_code false [] (SOME deps) code';
-      in ((code'', ((vs, ty), t), deps), code') end;
-    fun h funcgr ct =
-      let
-        val ((code, vs_ty_t, deps), _) =
-          code0
-          |> transact thy funcgr (fn thy => fn algbr => fn funcgr =>
-               ensure_value thy algbr funcgr (term_of ct))
-          |> result
-          ||> `(fn code' => code');
-      in g code vs_ty_t deps ct end;
-  in evaluate thy h end;
-
-val _ : (theory -> (CodeFuncgr.T -> 'Z -> 'Y) -> 'X)
-                  -> ('Z -> term)
-                     -> theory
-                        -> (stmt Graph.T
-                            -> ((vname * sort) list * itype) * iterm
-                               -> Graph.key list -> 'Z -> 'Y)
-                           -> stmt Graph.T -> 'X = eval;
-
-fun eval_conv thy = eval CodeFuncgr.eval_conv Thm.term_of thy;
-fun eval_term thy = eval CodeFuncgr.eval_term I thy;
+          Graph.get_node code1 CodeName.value_name;
+        val deps = Graph.imm_succs code1 CodeName.value_name;
+        val code2 = Graph.del_nodes [CodeName.value_name] code1;
+        val code3 = project_code false [] (SOME deps) code2;
+      in ((code3, (((vs, ty), t), deps)), (dep, code2)) end;
+  in
+    ensure_stmt stmt_value CodeName.value_name
+    #> snd
+    #> term_value
+  end;
 
 end; (*struct*)
 

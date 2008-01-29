@@ -7,16 +7,20 @@ Code generator interfaces and Isar setup.
 
 signature CODE_PACKAGE =
 sig
-  val eval_conv: theory
+  val evaluate_conv: theory
     -> (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
        -> string list -> cterm -> thm)
     -> cterm -> thm;
-  val eval_term: theory
+  val evaluate_term: theory
     -> (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
        -> string list -> term -> 'a)
     -> term -> 'a;
-  val satisfies_ref: (unit -> bool) option ref;
+  val eval_conv: string * (unit -> thm) option ref
+    -> theory -> cterm -> string list -> thm;
+  val eval_term: string * (unit -> 'a) option ref
+    -> theory -> term -> string list -> 'a;
   val satisfies: theory -> term -> string list -> bool;
+  val satisfies_ref: (unit -> bool) option ref;
   val codegen_shell_command: string (*theory name*) -> string (*cg expr*) -> unit;
 end;
 
@@ -95,36 +99,31 @@ fun code thy permissive cs seris =
       CodeTarget.get_serializer thy target permissive module file args cs) seris;
   in (map (fn f => f code) seris' : unit list; ()) end;
 
-fun raw_eval evaluate term_of thy g =
+fun evaluate eval_kind term_of thy eval = eval_kind thy (fn funcgr => fn ct =>
   let
-    fun result (_, code) =
-      let
-        val CodeThingol.Fun ((vs, ty), [(([], t), _)]) =
-          Graph.get_node code CodeName.value_name;
-        val deps = Graph.imm_succs code CodeName.value_name;
-        val code' = Graph.del_nodes [CodeName.value_name] code;
-        val code'' = CodeThingol.project_code false [] (SOME deps) code';
-      in ((code'', ((vs, ty), t), deps), code') end;
-    fun h funcgr ct =
-      let
-        val ((code, vs_ty_t, deps), _) = term_of ct
-          |> generate thy funcgr CodeThingol.ensure_value
-          |> result
-          ||> `(fn code' => Program.change thy (K code'));
-      in g code vs_ty_t deps ct end;
-  in evaluate thy h end;
+    val ((code, (vs_ty_t, deps)), _) = generate thy funcgr
+      CodeThingol.ensure_value (term_of ct)
+  in eval code vs_ty_t deps ct end);
 
-fun eval_conv thy = raw_eval CodeFuncgr.eval_conv Thm.term_of thy;
-fun eval_term thy = raw_eval CodeFuncgr.eval_term I thy;
+fun evaluate_conv thy = evaluate CodeFuncgr.eval_conv Thm.term_of thy;
+fun evaluate_term thy = evaluate CodeFuncgr.eval_term I thy;
+
+fun eval_ml reff args thy code ((vs, ty), t) deps _ =
+  CodeTarget.eval thy reff code (t, ty) args;
+
+fun eval evaluate term_of reff thy ct args =
+  let
+    val _ = if null (term_frees (term_of ct)) then () else error ("Term "
+      ^ quote (Sign.string_of_term thy (term_of ct))
+      ^ " to be evaluated containts free variables");
+  in evaluate thy (eval_ml reff args thy) ct end;
+
+fun eval_conv reff = eval evaluate_conv Thm.term_of reff;
+fun eval_term reff = eval evaluate_term I reff;
 
 val satisfies_ref : (unit -> bool) option ref = ref NONE;
 
-fun satisfies thy t witnesses =
-  let
-    fun evl code ((vs, ty), t) deps _ =
-      CodeTarget.eval_invoke thy ("CodePackage.satisfies_ref", satisfies_ref)
-        code (t, ty) witnesses;
-  in eval_term thy evl t end;
+val satisfies = eval_term ("CodePackage.satisfies_ref", satisfies_ref);
 
 fun filter_generatable thy consts =
   let

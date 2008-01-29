@@ -362,12 +362,9 @@ struct
 
 val eval_ref = ref (NONE : (unit -> term) option);
 
-fun eval_invoke thy code ((_, ty), t) deps _ =
-  CodeTarget.eval_invoke thy ("Eval.eval_ref", eval_ref) code (t, ty) [];
-
 fun eval_term thy =
   Eval_Aux.mk_term_of
-  #> CodePackage.eval_term thy (eval_invoke thy)
+  #> (fn t => CodePackage.eval_term ("Eval.eval_ref", eval_ref) thy t [])
   #> Code.postprocess_term thy;
 
 val evaluators = [

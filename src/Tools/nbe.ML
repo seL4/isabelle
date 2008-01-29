@@ -405,13 +405,13 @@ fun norm_conv ct =
       let
         val t = Thm.term_of ct;
       in norm_invoke thy code t vs_ty_t deps end;
-  in CodePackage.eval_conv thy conv ct end;
+  in CodePackage.evaluate_conv thy conv ct end;
 
 fun norm_term thy =
   let
     fun invoke code vs_ty_t deps t =
       eval thy code t vs_ty_t deps;
-  in CodePackage.eval_term thy invoke #> Code.postprocess_term thy end;
+  in CodePackage.evaluate_term thy invoke #> Code.postprocess_term thy end;
 
 (* evaluation command *)
 
