@@ -38,7 +38,7 @@ sig
   val assert_serializer: theory -> string -> string;
 
   val eval_verbose: bool ref;
-  val eval_invoke: theory -> (string * (unit -> 'a) option ref)
+  val eval: theory -> (string * (unit -> 'a) option ref)
     -> CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val code_width: int ref;
 
@@ -75,31 +75,31 @@ datatype fixity =
 
 val APP = INFX (~1, L);
 
-fun eval_lrx L L = false
-  | eval_lrx R R = false
-  | eval_lrx _ _ = true;
+fun fixity_lrx L L = false
+  | fixity_lrx R R = false
+  | fixity_lrx _ _ = true;
 
-fun eval_fxy NOBR NOBR = false
-  | eval_fxy BR NOBR = false
-  | eval_fxy NOBR BR = false
-  | eval_fxy (INFX (pr, lr)) (INFX (pr_ctxt, lr_ctxt)) =
+fun fixity NOBR NOBR = false
+  | fixity BR NOBR = false
+  | fixity NOBR BR = false
+  | fixity (INFX (pr, lr)) (INFX (pr_ctxt, lr_ctxt)) =
       pr < pr_ctxt
       orelse pr = pr_ctxt
-        andalso eval_lrx lr lr_ctxt
+        andalso fixity_lrx lr lr_ctxt
       orelse pr_ctxt = ~1
-  | eval_fxy _ (INFX _) = false
-  | eval_fxy (INFX _) NOBR = false
-  | eval_fxy _ _ = true;
+  | fixity _ (INFX _) = false
+  | fixity (INFX _) NOBR = false
+  | fixity _ _ = true;
 
 fun gen_brackify _ [p] = p
   | gen_brackify true (ps as _::_) = Pretty.enclose "(" ")" ps
   | gen_brackify false (ps as _::_) = Pretty.block ps;
 
 fun brackify fxy_ctxt ps =
-  gen_brackify (eval_fxy BR fxy_ctxt) (Pretty.breaks ps);
+  gen_brackify (fixity BR fxy_ctxt) (Pretty.breaks ps);
 
 fun brackify_infix infx fxy_ctxt ps =
-  gen_brackify (eval_fxy (INFX infx) fxy_ctxt) (Pretty.breaks ps);
+  gen_brackify (fixity (INFX infx) fxy_ctxt) (Pretty.breaks ps);
 
 type class_syntax = string * (string -> string option);
 type typ_syntax = int * ((fixity -> itype -> Pretty.T)
@@ -131,7 +131,7 @@ fun mk_mixfix prep_arg (fixity_this, mfx) =
           error ("Inconsistent mixfix: too less arguments");
   in
     (i, fn pr => fn fixity_ctxt => fn args =>
-      gen_brackify (eval_fxy fixity_this fixity_ctxt) (fillin pr mfx args))
+      gen_brackify (fixity fixity_this fixity_ctxt) (fillin pr mfx args))
   end;
 
 fun parse_infix prep_arg (x, i) s =
@@ -1390,7 +1390,7 @@ fun pretty_haskell_monad c_bind =
               |>> (fn p => semicolon [str "let", p, str "=", pr vars NOBR t]);
         val (binds, t) = implode_monad c_bind t;
         val (ps, vars') = fold_map pr_monad binds vars;
-        fun brack p = if eval_fxy BR fxy then Pretty.block [str "(", p, str ")"] else p;
+        fun brack p = if fixity BR fxy then Pretty.block [str "(", p, str ")"] else p;
       in (brack o Pretty.block_enclose (str "do {", str "}")) (ps @| pr vars' NOBR t) end;
   in (1, pretty) end;
 
@@ -1715,14 +1715,14 @@ fun get_serializer thy target permissive module file args
         (Symtab.lookup alias) (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
   end;
 
-fun eval_invoke thy (ref_name, reff) code (t, ty) args =
+fun eval thy (ref_name, reff) code (t, ty) args =
   let
     val _ = if CodeThingol.contains_dictvar t then
       error "Term to be evaluated constains free dictionaries" else ();
     val val_args = space_implode " "
       (NameSpace.qualifier CodeName.value_name :: map (enclose "(" ")") args);
-    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [];
     val code' = CodeThingol.add_value_stmt (t, ty) code;
+    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [];
     val label = "evaluation in SML";
     fun eval () = (seri (SOME [CodeName.value_name]) code';
       ML_Context.evaluate Output.ml_output (!eval_verbose) (ref_name, reff) val_args);
@@ -2198,13 +2198,13 @@ val setup =
   #> add_serializer (target_Haskell, isar_seri_haskell)
   #> add_serializer (target_diag, fn _ => fn _=> fn _ => seri_diagnosis)
   #> add_syntax_tyco "SML" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
-      (gen_brackify (case fxy of NOBR => false | _ => eval_fxy (INFX (1, R)) fxy) o Pretty.breaks) [
+      (gen_brackify (case fxy of NOBR => false | _ => fixity (INFX (1, R)) fxy) o Pretty.breaks) [
         pr_typ (INFX (1, X)) ty1,
         str "->",
         pr_typ (INFX (1, R)) ty2
       ]))
   #> add_syntax_tyco "OCaml" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
-      (gen_brackify (case fxy of NOBR => false | _ => eval_fxy (INFX (1, R)) fxy) o Pretty.breaks) [
+      (gen_brackify (case fxy of NOBR => false | _ => fixity (INFX (1, R)) fxy) o Pretty.breaks) [
         pr_typ (INFX (1, X)) ty1,
         str "->",
         pr_typ (INFX (1, R)) ty2
