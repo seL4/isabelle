@@ -180,6 +180,36 @@ end;
 *}
 
 
+subsection {* Specialized @{term "op - \<Colon> index \<Rightarrow> index \<Rightarrow> index"},
+  @{term "op div \<Colon> index \<Rightarrow> index \<Rightarrow> index"} and @{term "op mod \<Colon> index \<Rightarrow> index \<Rightarrow> index"}
+  operations *}
+
+definition
+  minus_index_aux :: "index \<Rightarrow> index \<Rightarrow> index"
+where
+  [code func del]: "minus_index_aux = op -"
+
+lemma [code func]: "op - = minus_index_aux"
+  using minus_index_aux_def ..
+
+definition
+  div_mod_index ::  "index \<Rightarrow> index \<Rightarrow> index \<times> index"
+where
+  [code func del]: "div_mod_index n m = (n div m, n mod m)"
+
+lemma [code func]:
+  "div_mod_index n m = (if m = 0 then (0, n) else (n div m, n mod m))"
+  unfolding div_mod_index_def by auto
+
+lemma [code func]:
+  "n div m = fst (div_mod_index n m)"
+  unfolding div_mod_index_def by simp
+
+lemma [code func]:
+  "n mod m = snd (div_mod_index n m)"
+  unfolding div_mod_index_def by simp
+
+
 subsection {* Code serialization *}
 
 text {* Implementation of indices by bounded integers *}
@@ -205,7 +235,7 @@ code_const "op + \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (OCaml "Pervasives.( + )")
   (Haskell infixl 6 "+")
 
-code_const "op - \<Colon> index \<Rightarrow> index \<Rightarrow> index"
+code_const "minus_index_aux \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (SML "Int.max/ (_/ -/ _,/ 0 : int)")
   (OCaml "Pervasives.max/ (_/ -/ _)/ (0 : int) ")
   (Haskell "max/ (_/ -/ _)/ (0 :: Int)")
@@ -215,15 +245,10 @@ code_const "op * \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (OCaml "Pervasives.( * )")
   (Haskell infixl 7 "*")
 
-code_const "op div \<Colon> index \<Rightarrow> index \<Rightarrow> index"
-  (SML "Int.div/ ((_),/ (_))")
-  (OCaml "Pervasives.( / )")
-  (Haskell "div")
-
-code_const "op mod \<Colon> index \<Rightarrow> index \<Rightarrow> index"
-  (SML "Int.mod/ ((_),/ (_))")
-  (OCaml "Pervasives.( mod )")
-  (Haskell "mod")
+code_const div_mod_index
+  (SML "(fn n => fn m =>/ (n div m, n mod m))")
+  (OCaml "(fun n -> fun m ->/ (n '/ m, n mod m))")
+  (Haskell "divMod")
 
 code_const "op = \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")

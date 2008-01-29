@@ -53,13 +53,21 @@ lemma times_nat_code [code]:
   "n * m = nat (of_nat n * of_nat m)"
   unfolding of_nat_mult [symmetric] by simp
 
-lemma div_nat_code [code]:
-  "n div m = nat (of_nat n div of_nat m)"
-  unfolding zdiv_int [symmetric] by simp
+text {* Specialized @{term "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"} 
+  and @{term "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"} operations. *}
 
-lemma mod_nat_code [code]:
-  "n mod m = nat (of_nat n mod of_nat m)"
-  unfolding zmod_int [symmetric] by simp
+definition
+  div_mod_nat_aux ::  "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
+where
+  [code func del]: "div_mod_nat_aux = Divides.divmod"
+
+lemma [code func]:
+  "Divides.divmod n m = (if m = 0 then (0, n) else div_mod_nat_aux n m)"
+  unfolding div_mod_nat_aux_def divmod_def by simp
+
+lemma div_mod_aux_code [code]:
+  "div_mod_nat_aux n m = (nat (of_nat n div of_nat m), nat (of_nat n mod of_nat m))"
+  unfolding div_mod_nat_aux_def divmod_def zdiv_int [symmetric] zmod_int [symmetric] by simp
 
 lemma eq_nat_code [code]:
   "n = m \<longleftrightarrow> (of_nat n \<Colon> int) = of_nat m"
@@ -380,15 +388,10 @@ code_const "op * \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
   (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
 
-code_const "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
-  (SML "IntInf.div/ ((_),/ (_))")
-  (OCaml "Big'_int.div'_big'_int")
-  (Haskell "div")
-
-code_const "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
-  (SML "IntInf.mod/ ((_),/ (_))")
-  (OCaml "Big'_int.mod'_big'_int")
-  (Haskell "mod")
+code_const div_mod_nat_aux
+  (SML "IntInf.divMod/ ((_),/ (_))")
+  (OCaml "Big'_int.quomod'_big'_int")
+  (Haskell "divMod")
 
 code_const "op = \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
@@ -410,8 +413,6 @@ consts_code
   Suc                          ("(_ +/ 1)")
   "op + \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat"   ("(_ +/ _)")
   "op * \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat"   ("(_ */ _)")
-  "op div \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat" ("(_ div/ _)")
-  "op mod \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat" ("(_ mod/ _)")
   "op \<le> \<Colon>  nat \<Rightarrow> nat \<Rightarrow> bool"  ("(_ <=/ _)")
   "op < \<Colon>  nat \<Rightarrow> nat \<Rightarrow> bool"  ("(_ </ _)")
 
