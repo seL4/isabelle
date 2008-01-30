@@ -24,12 +24,15 @@ begin
 
 subsection {* Least and greatest fixed points *}
 
+context complete_lattice
+begin
+
 definition
-  lfp :: "('a\<Colon>complete_lattice \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  lfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "lfp f = Inf {u. f u \<le> u}"    --{*least fixed point*}
 
 definition
-  gfp :: "('a\<Colon>complete_lattice \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  gfp :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "gfp f = Sup {u. u \<le> f u}"    --{*greatest fixed point*}
 
 
@@ -43,6 +46,8 @@ lemma lfp_lowerbound: "f A \<le> A ==> lfp f \<le> A"
 
 lemma lfp_greatest: "(!!u. f u \<le> u ==> A \<le> u) ==> A \<le> lfp f"
   by (auto simp add: lfp_def intro: Inf_greatest)
+
+end
 
 lemma lfp_lemma2: "mono f ==> f (lfp f) \<le> lfp f"
   by (iprover intro: lfp_greatest order_trans monoD lfp_lowerbound)
@@ -81,25 +86,34 @@ lemma lfp_induct_set:
   by (rule lfp_induct [THEN subsetD, THEN CollectD, OF mono _ lfp])
     (auto simp: inf_set_eq intro: indhyp)
 
-lemma lfp_ordinal_induct: 
+lemma lfp_ordinal_induct:
+  fixes f :: "'a\<Colon>complete_lattice \<Rightarrow> 'a"
+  assumes mono: "mono f"
+  and P_f: "\<And>S. P S \<Longrightarrow> P (f S)"
+  and P_Union: "\<And>M. \<forall>S\<in>M. P S \<Longrightarrow> P (Sup M)"
+  shows "P (lfp f)"
+proof -
+  let ?M = "{S. S \<le> lfp f \<and> P S}"
+  have "P (Sup ?M)" using P_Union by simp
+  also have "Sup ?M = lfp f"
+  proof (rule antisym)
+    show "Sup ?M \<le> lfp f" by (blast intro: Sup_least)
+    hence "f (Sup ?M) \<le> f (lfp f)" by (rule mono [THEN monoD])
+    hence "f (Sup ?M) \<le> lfp f" using mono [THEN lfp_unfold] by simp
+    hence "f (Sup ?M) \<in> ?M" using P_f P_Union by simp
+    hence "f (Sup ?M) \<le> Sup ?M" by (rule Sup_upper)
+    thus "lfp f \<le> Sup ?M" by (rule lfp_lowerbound)
+  qed
+  finally show ?thesis .
+qed 
+
+lemma lfp_ordinal_induct_set: 
   assumes mono: "mono f"
   and P_f: "!!S. P S ==> P(f S)"
   and P_Union: "!!M. !S:M. P S ==> P(Union M)"
   shows "P(lfp f)"
-proof -
-  let ?M = "{S. S \<subseteq> lfp f & P S}"
-  have "P (Union ?M)" using P_Union by simp
-  also have "Union ?M = lfp f"
-  proof
-    show "Union ?M \<subseteq> lfp f" by blast
-    hence "f (Union ?M) \<subseteq> f (lfp f)" by (rule mono [THEN monoD])
-    hence "f (Union ?M) \<subseteq> lfp f" using mono [THEN lfp_unfold] by simp
-    hence "f (Union ?M) \<in> ?M" using P_f P_Union by simp
-    hence "f (Union ?M) \<subseteq> Union ?M" by (rule Union_upper)
-    thus "lfp f \<subseteq> Union ?M" by (rule lfp_lowerbound)
-  qed
-  finally show ?thesis .
-qed
+  using assms unfolding Sup_set_def [symmetric]
+  by (rule lfp_ordinal_induct) 
 
 
 text{*Definition forms of @{text lfp_unfold} and @{text lfp_induct}, 

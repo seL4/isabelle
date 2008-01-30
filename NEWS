@@ -35,6 +35,9 @@ experimental versions.
 
 *** HOL ***
 
+* Theorem Inductive.lfp_ordinal_induct generalized to complete lattices.  The
+form set-specific version is available as Inductive.lfp_ordinal_induct_set.
+
 * Theorems "power.simps" renamed to "power_int.simps".
 
 * New class semiring_div provides basic abstract properties of semirings
