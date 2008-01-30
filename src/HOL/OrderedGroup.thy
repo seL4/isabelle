@@ -58,6 +58,19 @@ end
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
+class ab_semigroup_idem_mult = ab_semigroup_mult +
+  assumes mult_idem: "x * x = x"
+begin
+
+lemma mult_left_idem: "x * (x * y) = x * y"
+  unfolding mult_assoc [symmetric, of x] mult_idem ..
+
+lemmas mult_ac_idem = mult_ac mult_idem mult_left_idem
+
+end
+
+lemmas mult_ac_idem = mult_ac mult_idem mult_left_idem
+
 class monoid_add = zero + semigroup_add +
   assumes add_0_left [simp]: "0 + a = a"
     and add_0_right [simp]: "a + 0 = a"
