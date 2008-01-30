@@ -26,6 +26,16 @@ class upper_semilattice = order +
   assumes sup_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y"
   and sup_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
   and sup_least: "y \<sqsubseteq> x \<Longrightarrow> z \<sqsubseteq> x \<Longrightarrow> y \<squnion> z \<sqsubseteq> x"
+begin
+
+text {* Dual lattice *}
+
+lemma dual_lattice:
+  "lower_semilattice (op \<ge>) (op >) sup"
+by unfold_locales
+  (auto simp add: sup_least)
+
+end
 
 class lattice = lower_semilattice + upper_semilattice
 
@@ -87,7 +97,7 @@ lemma le_supI2[intro]: "x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<
 lemmas (in -) [rule del] = le_supI2
 
 lemma le_supI[intro!]: "a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> a \<squnion> b \<sqsubseteq> x"
-by(blast intro: sup_least)
+  by (blast intro: sup_least)
 lemmas (in -) [rule del] = le_supI
 
 lemma le_supE[elim!]: "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> P) \<Longrightarrow> P"

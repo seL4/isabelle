@@ -106,9 +106,9 @@ lemma less_asym': "a < b \<Longrightarrow> b < a \<Longrightarrow> P"
 by (rule less_asym)
 
 
-text {* Reverse order *}
+text {* Dual order *}
 
-lemma order_reverse:
+lemma dual_order:
   "order (op \<ge>) (op >)"
 by unfold_locales
    (simp add: less_le, auto intro: antisym order_trans)
@@ -179,9 +179,9 @@ lemma not_leE: "\<not> y \<le> x \<Longrightarrow> x < y"
 unfolding not_le .
 
 
-text {* Reverse order *}
+text {* Dual order *}
 
-lemma linorder_reverse:
+lemma dual_linorder:
   "linorder (op \<ge>) (op >)"
 by unfold_locales
   (simp add: less_le, auto intro: antisym order_trans simp add: linear)
