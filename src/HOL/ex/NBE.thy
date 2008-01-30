@@ -4,18 +4,21 @@
 *)
 header {* Normalization by Evaluation *}
 
-theory NBE imports Main Executable_Set begin
+theory NBE imports Main (*Executable_Set*) begin
 
 ML"Syntax.ambiguity_level := 1000000"
 
 declare Let_def[simp]
 
-consts_code undefined ("(raise Match)")
-
-(*typedecl const_name*)
 types lam_var_name = nat
       ml_var_name = nat
-      const_name = nat
+
+typedecl const_name
+(*
+types const_name = nat
+
+consts_code undefined ("(raise Match)")
+*)
 
 datatype ml = (* rep of universal datatype *)
           C const_name "ml list" | V lam_var_name "ml list"
