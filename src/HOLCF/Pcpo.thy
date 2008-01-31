@@ -19,6 +19,9 @@ axclass cpo < po
 
 text {* in cpo's everthing equal to THE lub has lub properties for every chain *}
 
+lemma cpo_lubI: "chain (S::nat \<Rightarrow> 'a::cpo) \<Longrightarrow> range S <<| lub (range S)"
+by (fast dest: cpo elim: lubI)
+
 lemma thelubE: "\<lbrakk>chain S; (\<Squnion>i. S i) = (l::'a::cpo)\<rbrakk> \<Longrightarrow> range S <<| l"
 by (blast dest: cpo intro: lubI)
 
