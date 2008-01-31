@@ -314,6 +314,36 @@ by (safe dest!: ax_flat)
 lemma chfin2finch: "chain (Y::nat \<Rightarrow> 'a::chfin) \<Longrightarrow> finite_chain Y"
 by (simp add: chfin finite_chain_def)
 
+text {* Discrete cpos *}
+
+axclass discrete_cpo < sq_ord
+  discrete_cpo [simp]: "x \<sqsubseteq> y \<longleftrightarrow> x = y"
+
+instance discrete_cpo < po
+by (intro_classes, simp_all)
+
+text {* In a discrete cpo, every chain is constant *}
+
+lemma discrete_chain_const:
+  assumes S: "chain (S::nat \<Rightarrow> 'a::discrete_cpo)"
+  shows "\<exists>x. S = (\<lambda>i. x)"
+proof (intro exI ext)
+  fix i :: nat
+  have "S 0 \<sqsubseteq> S i" using S le0 by (rule chain_mono)
+  hence "S 0 = S i" by simp
+  thus "S i = S 0" by (rule sym)
+qed
+
+instance discrete_cpo < cpo
+proof
+  fix S :: "nat \<Rightarrow> 'a"
+  assume S: "chain S"
+  hence "\<exists>x. S = (\<lambda>i. x)"
+    by (rule discrete_chain_const)
+  thus "\<exists>x. range S <<| x"
+    by (fast intro: lub_const)
+qed
+
 text {* lemmata for improved admissibility introdution rule *}
 
 lemma infinite_chain_adm_lemma:
