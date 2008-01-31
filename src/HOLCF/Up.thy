@@ -148,7 +148,7 @@ apply (rule_tac j1 = j in is_lub_range_shift [THEN iffD1])
 apply assumption
 apply (subst up_lemma5, assumption+)
 apply (rule is_lub_Iup)
-apply (rule thelubE [OF _ refl])
+apply (rule cpo_lubI)
 apply (erule (1) up_lemma4)
 done
 
@@ -170,7 +170,7 @@ lemma cpo_up: "chain (Y::nat \<Rightarrow> 'a u) \<Longrightarrow> \<exists>x. r
 apply (frule up_chain_lemma, safe)
 apply (rule_tac x="Iup (lub (range A))" in exI)
 apply (erule_tac j="j" in is_lub_range_shift [THEN iffD1, standard])
-apply (simp add: is_lub_Iup thelubE)
+apply (simp add: is_lub_Iup cpo_lubI)
 apply (rule exI, rule lub_const)
 done
 
@@ -198,7 +198,7 @@ text {* continuity for @{term Iup} *}
 lemma cont_Iup: "cont Iup"
 apply (rule contI)
 apply (rule is_lub_Iup)
-apply (erule thelubE [OF _ refl])
+apply (erule cpo_lubI)
 done
 
 text {* continuity for @{term Ifup} *}

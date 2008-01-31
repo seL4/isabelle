@@ -111,11 +111,11 @@ proof -
   have "chain (\<lambda>i. fst (S i))"
     using monofun_fst S by (rule ch2ch_monofun)
   hence 1: "range (\<lambda>i. fst (S i)) <<| (\<Squnion>i. fst (S i))"
-    by (rule thelubE [OF _ refl])
+    by (rule cpo_lubI)
   have "chain (\<lambda>i. snd (S i))"
     using monofun_snd S by (rule ch2ch_monofun)
   hence 2: "range (\<lambda>i. snd (S i)) <<| (\<Squnion>i. snd (S i))"
-    by (rule thelubE [OF _ refl])
+    by (rule cpo_lubI)
   show "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
     using is_lub_Pair [OF 1 2] by simp
 qed
@@ -161,7 +161,7 @@ subsection {* Continuity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 lemma cont_pair1: "cont (\<lambda>x. (x, y))"
 apply (rule contI)
 apply (rule is_lub_Pair)
-apply (erule thelubE [OF _ refl])
+apply (erule cpo_lubI)
 apply (rule lub_const)
 done
 
@@ -169,7 +169,7 @@ lemma cont_pair2: "cont (\<lambda>y. (x, y))"
 apply (rule contI)
 apply (rule is_lub_Pair)
 apply (rule lub_const)
-apply (erule thelubE [OF _ refl])
+apply (erule cpo_lubI)
 done
 
 lemma contlub_fst: "contlub fst"

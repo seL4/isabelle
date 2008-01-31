@@ -165,7 +165,7 @@ apply (rule is_lub_thelub)
 apply (erule ch2ch_monofun [OF mono])
 apply (rule ub2ub_monofun [OF mono])
 apply (rule is_lubD1)
-apply (erule thelubE, rule refl)
+apply (erule cpo_lubI)
 done
 
 subsection {* Continuity of basic functions *}
@@ -174,8 +174,7 @@ text {* The identity function is continuous *}
 
 lemma cont_id: "cont (\<lambda>x. x)"
 apply (rule contI)
-apply (erule thelubE)
-apply (rule refl)
+apply (erule cpo_lubI)
 done
 
 text {* constant functions are continuous *}

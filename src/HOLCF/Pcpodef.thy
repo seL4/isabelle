@@ -151,7 +151,7 @@ theorem typedef_cont_Rep:
  apply (rule contI)
  apply (simp only: typedef_thelub [OF type less adm])
  apply (simp only: Abs_inverse_lub_Rep [OF type less adm])
- apply (rule thelubE [OF _ refl])
+ apply (rule cpo_lubI)
  apply (erule ch2ch_Rep [OF less])
 done
 
