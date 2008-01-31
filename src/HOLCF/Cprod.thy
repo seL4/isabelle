@@ -15,16 +15,17 @@ defaultsort cpo
 
 subsection {* Type @{typ unit} is a pcpo *}
 
-instantiation unit :: po
+instantiation unit :: sq_ord
 begin
 
 definition
   less_unit_def [simp]: "x \<sqsubseteq> (y::unit) \<equiv> True"
 
-instance
-by intro_classes simp_all
-
+instance ..
 end
+
+instance unit :: discrete_cpo
+by intro_classes simp
 
 instance unit :: finite_po ..
 
@@ -134,6 +135,14 @@ proof
 qed
 
 instance "*" :: (finite_po, finite_po) finite_po ..
+
+instance "*" :: (discrete_cpo, discrete_cpo) discrete_cpo
+proof
+  fix x y :: "'a \<times> 'b"
+  show "x \<sqsubseteq> y \<longleftrightarrow> x = y"
+    unfolding less_cprod_def Pair_fst_snd_eq
+    by simp
+qed
 
 subsection {* Product type is pointed *}
 

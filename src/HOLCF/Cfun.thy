@@ -109,6 +109,9 @@ by (rule typedef_finite_po [OF type_definition_CFun])
 instance "->" :: (finite_po, chfin) chfin
 by (rule typedef_chfin [OF type_definition_CFun less_CFun_def])
 
+instance "->" :: (cpo, discrete_cpo) discrete_cpo
+by intro_classes (simp add: less_CFun_def Rep_CFun_inject)
+
 instance "->" :: (cpo, pcpo) pcpo
 by (rule typedef_pcpo [OF type_definition_CFun less_CFun_def UU_CFun])
 

@@ -13,24 +13,20 @@ begin
 
 datatype 'a discr = Discr "'a :: type"
 
-subsection {* Type @{typ "'a discr"} is a partial order *}
+subsection {* Type @{typ "'a discr"} is a discrete cpo *}
 
-instantiation discr :: (type) po
+instantiation discr :: (type) sq_ord
 begin
 
 definition
-  less_discr_def [simp]:
+  less_discr_def:
     "(op \<sqsubseteq> :: 'a discr \<Rightarrow> 'a discr \<Rightarrow> bool) = (op =)"
 
-instance
-proof
-  fix x y z :: "'a discr"
-  show "x << x" by simp
-  { assume "x << y" and "y << x" thus "x = y" by simp }
-  { assume "x << y" and "y << z" thus "x << z" by simp }
-qed
-
+instance ..
 end
+
+instance discr :: (type) discrete_cpo
+by intro_classes (simp add: less_discr_def)
 
 lemma discr_less_eq [iff]: "((x::('a::type)discr) << y) = (x = y)"
 by simp
@@ -73,16 +69,17 @@ definition
   undiscr :: "('a::type)discr => 'a" where
   "undiscr x = (case x of Discr y => y)"
 
-lemma undiscr_Discr [simp]: "undiscr(Discr x) = x"
+lemma undiscr_Discr [simp]: "undiscr (Discr x) = x"
 by (simp add: undiscr_def)
+
+lemma Discr_undiscr [simp]: "Discr (undiscr y) = y"
+by (induct y) simp
 
 lemma discr_chain_f_range0:
  "!!S::nat=>('a::type)discr. chain(S) ==> range(%i. f(S i)) = {f(S 0)}"
 by (fast dest: discr_chain0 elim: arg_cong)
 
 lemma cont_discr [iff]: "cont (%x::('a::type)discr. f x)"
-apply (rule chfindom_monofun2cont)
-apply (rule monofunI, simp)
-done
+by (rule cont_discrete_cpo)
 
 end

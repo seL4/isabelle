@@ -98,6 +98,14 @@ by intro_classes (rule cpo_fun)
 
 instance "fun" :: (finite, finite_po) finite_po ..
 
+instance "fun" :: (type, discrete_cpo) discrete_cpo
+proof
+  fix f g :: "'a \<Rightarrow> 'b"
+  show "f \<sqsubseteq> g \<longleftrightarrow> f = g" 
+    unfolding expand_fun_less expand_fun_eq
+    by simp
+qed
+
 text {* chain-finite function spaces *}
 
 lemma maxinch2maxinch_lambda:
