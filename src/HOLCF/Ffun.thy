@@ -65,23 +65,29 @@ by (simp add: chain_def less_fun_def)
 text {* upper bounds of function chains yield upper bound in the po range *}
 
 lemma ub2ub_fun:
-  "range (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::po) <| u \<Longrightarrow> range (\<lambda>i. S i x) <| u x"
+  "range S <| u \<Longrightarrow> range (\<lambda>i. S i x) <| u x"
 by (auto simp add: is_ub_def less_fun_def)
 
 text {* Type @{typ "'a::type => 'b::cpo"} is chain complete *}
 
-lemma lub_fun:
-  "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo)
-    \<Longrightarrow> range S <<| (\<lambda>x. \<Squnion>i. S i x)"
+lemma is_lub_lambda:
+  assumes f: "\<And>x. range (\<lambda>i. Y i x) <<| f x"
+  shows "range Y <<| f"
 apply (rule is_lubI)
 apply (rule ub_rangeI)
 apply (rule less_fun_ext)
-apply (rule is_ub_thelub)
-apply (erule ch2ch_fun)
+apply (rule is_ub_lub [OF f])
 apply (rule less_fun_ext)
-apply (rule is_lub_thelub)
-apply (erule ch2ch_fun)
+apply (rule is_lub_lub [OF f])
 apply (erule ub2ub_fun)
+done
+
+lemma lub_fun:
+  "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo)
+    \<Longrightarrow> range S <<| (\<lambda>x. \<Squnion>i. S i x)"
+apply (rule is_lub_lambda)
+apply (rule cpo_lubI)
+apply (erule ch2ch_fun)
 done
 
 lemma thelub_fun:
