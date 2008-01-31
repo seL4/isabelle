@@ -93,27 +93,31 @@ by (simp add: monofun_def less_cprod_def)
 
 subsection {* Product type is a cpo *}
 
+lemma is_lub_Pair:
+  "\<lbrakk>range X <<| x; range Y <<| y\<rbrakk> \<Longrightarrow> range (\<lambda>i. (X i, Y i)) <<| (x, y)"
+apply (rule is_lubI [OF ub_rangeI])
+apply (simp add: less_cprod_def is_ub_lub)
+apply (frule ub2ub_monofun [OF monofun_fst])
+apply (drule ub2ub_monofun [OF monofun_snd])
+apply (simp add: less_cprod_def is_lub_lub)
+done
+
 lemma lub_cprod:
   fixes S :: "nat \<Rightarrow> ('a::cpo \<times> 'b::cpo)"
   assumes S: "chain S"
   shows "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
-apply (rule is_lubI)
-apply (rule ub_rangeI)
-apply (rule_tac t = "S i" in surjective_pairing [THEN ssubst])
-apply (rule monofun_pair)
-apply (rule is_ub_thelub)
-apply (rule ch2ch_monofun [OF monofun_fst S])
-apply (rule is_ub_thelub)
-apply (rule ch2ch_monofun [OF monofun_snd S])
-apply (rule_tac t = "u" in surjective_pairing [THEN ssubst])
-apply (rule monofun_pair)
-apply (rule is_lub_thelub)
-apply (rule ch2ch_monofun [OF monofun_fst S])
-apply (erule monofun_fst [THEN ub2ub_monofun])
-apply (rule is_lub_thelub)
-apply (rule ch2ch_monofun [OF monofun_snd S])
-apply (erule monofun_snd [THEN ub2ub_monofun])
-done
+proof -
+  have "chain (\<lambda>i. fst (S i))"
+    using monofun_fst S by (rule ch2ch_monofun)
+  hence 1: "range (\<lambda>i. fst (S i)) <<| (\<Squnion>i. fst (S i))"
+    by (rule thelubE [OF _ refl])
+  have "chain (\<lambda>i. snd (S i))"
+    using monofun_snd S by (rule ch2ch_monofun)
+  hence 2: "range (\<lambda>i. snd (S i)) <<| (\<Squnion>i. snd (S i))"
+    by (rule thelubE [OF _ refl])
+  show "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
+    using is_lub_Pair [OF 1 2] by simp
+qed
 
 lemma thelub_cprod:
   "chain (S::nat \<Rightarrow> 'a::cpo \<times> 'b::cpo)
@@ -145,30 +149,18 @@ by (rule minimal_cprod [THEN UU_I, symmetric])
 
 subsection {* Continuity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
-lemma contlub_pair1: "contlub (\<lambda>x. (x, y))"
-apply (rule contlubI)
-apply (subst thelub_cprod)
-apply (erule monofun_pair1 [THEN ch2ch_monofun])
-apply simp
-done
-
-lemma contlub_pair2: "contlub (\<lambda>y. (x, y))"
-apply (rule contlubI)
-apply (subst thelub_cprod)
-apply (erule monofun_pair2 [THEN ch2ch_monofun])
-apply simp
-done
-
 lemma cont_pair1: "cont (\<lambda>x. (x, y))"
-apply (rule monocontlub2cont)
-apply (rule monofun_pair1)
-apply (rule contlub_pair1)
+apply (rule contI)
+apply (rule is_lub_Pair)
+apply (erule thelubE [OF _ refl])
+apply (rule lub_const)
 done
 
 lemma cont_pair2: "cont (\<lambda>y. (x, y))"
-apply (rule monocontlub2cont)
-apply (rule monofun_pair2)
-apply (rule contlub_pair2)
+apply (rule contI)
+apply (rule is_lub_Pair)
+apply (rule lub_const)
+apply (erule thelubE [OF _ refl])
 done
 
 lemma contlub_fst: "contlub fst"
