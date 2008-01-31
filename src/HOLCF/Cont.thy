@@ -229,4 +229,12 @@ done
 lemma flatdom_strict2cont: "f \<bottom> = \<bottom> \<Longrightarrow> cont (f::'a::flat \<Rightarrow> 'b::pcpo)"
 by (rule flatdom_strict2mono [THEN chfindom_monofun2cont])
 
+text {* functions with discrete domain *}
+
+lemma cont_discrete_cpo [simp]: "cont (f::'a::discrete_cpo \<Rightarrow> 'b::cpo)"
+apply (rule contI)
+apply (drule discrete_chain_const, clarify)
+apply (simp add: lub_const)
+done
+
 end
