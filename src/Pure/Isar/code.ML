@@ -13,6 +13,7 @@ sig
   val add_default_func: thm -> theory -> theory
   val add_default_func_attr: Attrib.src
   val del_func: thm -> theory -> theory
+  val del_funcs: string -> theory -> theory
   val add_funcl: string * thm list Susp.T -> theory -> theory
   val add_inline: thm -> theory -> theory
   val del_inline: thm -> theory -> theory
@@ -161,6 +162,11 @@ fun add_lthms lthms (sels, []) =
 
 fun del_thm thm (sels, dels) =
   (Susp.value (remove Thm.eq_thm_prop thm (Susp.force sels)), thm :: dels);
+
+fun del_thms (sels, dels) =
+  let
+    val all_sels = Susp.force sels;
+  in (Susp.value [], rev all_sels @ dels) end;
 
 fun pretty_sdthms ctxt (sels, _) = pretty_lthms ctxt sels;
 
@@ -769,6 +775,9 @@ fun del_func thm thy =
           (Symtab.map_entry c (apsnd (del_thm func)))) thy
         end
     | NONE => thy;
+
+fun del_funcs const = map_exec_purge (SOME [const])
+  (map_funcs (Symtab.map_entry const (apsnd del_thms)));
 
 fun add_funcl (const, lthms) thy =
   let
