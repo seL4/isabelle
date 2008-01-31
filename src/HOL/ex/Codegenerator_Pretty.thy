@@ -9,12 +9,20 @@ theory Codegenerator_Pretty
 imports ExecutableContent Code_Char Efficient_Nat
 begin
 
-declare term_of_index.simps [code func del]
+setup {*
+  Code.del_funcs
+    (AxClass.param_of_inst @{theory} (@{const_name "Eval.term_of"}, @{type_name "index"}))
+  #> Code.del_funcs
+    (AxClass.param_of_inst @{theory} (@{const_name "Eval.term_of"}, @{type_name "char"}))
+  #> Code.del_funcs
+    (AxClass.param_of_inst @{theory} (@{const_name "Eval.term_of"}, @{type_name "int"}))
+  #> Code.del_funcs
+    (AxClass.param_of_inst @{theory} (@{const_name "Eval.term_of"}, @{type_name "nat"}))
+*}
 
 declare char.recs [code func del]
   char.cases [code func del]
   char.size [code func del]
-  term_of_char.simps [code func del]
 
 declare isnorm.simps [code func del]
 
