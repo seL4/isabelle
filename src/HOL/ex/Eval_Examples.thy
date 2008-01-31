@@ -60,7 +60,7 @@ value (SML) "max (2::int) 4"
 value ("normal_form") "max (2::int) 4"
 
 value "of_int 2 / of_int 4 * (1::rat)"
-(*value (code) "of_int 2 / of_int 4 * (1::rat)"*)
+value (code) "of_int 2 / of_int 4 * (1::rat)"
 value (SML) "of_int 2 / of_int 4 * (1::rat)"
 value ("normal_form") "of_int 2 / of_int 4 * (1::rat)"
 

@@ -21,39 +21,8 @@ datatype "typ" =
     Type message_string "typ list"
   | TFree vname sort  
 
-abbreviation
-  Fun :: "typ \<Rightarrow> typ \<Rightarrow> typ" where
-  "Fun ty1 ty2 \<equiv> Type (STR ''fun'') [ty1, ty2]"
-
-locale (open) pure_term_syntax = -- {* FIXME drop this *}
-  fixes pure_term_Type :: "message_string \<Rightarrow> typ list \<Rightarrow> typ" (infixl "{\<struct>}" 120)
-    and pure_term_TFree :: "vname \<Rightarrow> sort \<Rightarrow> typ" ("\<lbrace>_\<Colon>_\<rbrace>" [118, 118] 117)
-    and pure_term_Fun :: "typ \<Rightarrow> typ \<Rightarrow> typ" (infixr "\<rightarrow>" 114)
-
-parse_translation {*
-let
-  fun Type_tr [tyco, tys] = Lexicon.const @{const_syntax Type} $ tyco $ tys
-    | Type_tr ts = raise TERM ("Type_tr", ts);
-  fun TFree_tr [v, sort] = Lexicon.const @{const_syntax TFree} $ v $ sort
-    | TFree_tr ts = raise TERM ("TFree_tr", ts);
-  fun Fun_tr [ty1, ty2] = Lexicon.const @{const_syntax Fun} $ ty1 $ ty2
-    | Fun_tr ts = raise TERM("Fun_tr", ts);
-in [
-  ("\<^fixed>pure_term_Type", Type_tr),
-  ("\<^fixed>pure_term_TFree", TFree_tr),
-  ("\<^fixed>pure_term_Fun", Fun_tr)
-] end
-*}
-
-notation (output)
-  Type (infixl "{\<struct>}" 120)
-and
-  TFree ("\<lbrace>_\<Colon>_\<rbrace>" [118, 118] 117)
-and
-  Fun (infixr "\<rightarrow>" 114)
-
 ML {*
-structure Eval_Aux =
+structure Eval =
 struct
 
 val mk_sort = HOLogic.mk_list @{typ class} o map Message_String.mk;
@@ -74,81 +43,54 @@ class typ_of =
   fixes typ_of :: "'a\<Colon>{} itself \<Rightarrow> typ"
 
 ML {*
-structure Eval_Aux =
+structure Eval =
 struct
 
-open Eval_Aux;
+open Eval;
 
 fun mk_typ_of ty =
   Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
     $ Logic.mk_type ty;
 
+fun add_typ_of_def tyco thy =
+  let
+    val sorts = replicate (Sign.arity_number thy tyco) @{sort typ_of};
+    val vs = Name.names Name.context "'a" sorts;
+    val ty = Type (tyco, map TFree vs);
+    val lhs = Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
+      $ Free ("T", Term.itselfT ty);
+    val rhs = mk_typ (fn v => mk_typ_of (TFree v)) ty;
+    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
+  in
+    thy
+    |> TheoryTarget.instantiation ([tyco], vs, @{sort typ_of})
+    |> `(fn lthy => Syntax.check_term lthy eq)
+    |-> (fn eq => Specification.definition (NONE, (("", []), eq)))
+    |> snd
+    |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+    |> LocalTheory.exit
+    |> ProofContext.theory_of
+  end;
+
 end
 *}
 
-setup {*
+(*setup {*
 let
-  open Eval_Aux;
-  fun define_typ_of ty lthy =
-    let
-      val lhs = Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
-        $ Free ("T", Term.itselfT ty);
-      val rhs = mk_typ (fn v => mk_typ_of (TFree v)) ty;
-      val eq = Syntax.check_term lthy (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
-    in lthy |> Specification.definition (NONE, (("", []), eq)) end;
-  fun interpretator tyco thy =
-    let
-      val sorts = replicate (Sign.arity_number thy tyco) @{sort typ_of};
-      val vs = Name.names Name.context "'a" sorts;
-      val ty = Type (tyco, map TFree vs);
-    in
-      thy
-      |> TheoryTarget.instantiation ([tyco], vs, @{sort typ_of})
-      |> define_typ_of ty
-      |> snd
-      |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-      |> LocalTheory.exit
-      |> ProofContext.theory_of
-    end;
-in TypedefPackage.interpretation interpretator end
-*}
-
-instantiation "prop" :: typ_of
-begin
-
-definition 
-  "typ_of (T\<Colon>prop itself) = Type (STR ''prop'') []"
-
-instance ..
-
+  open Eval;
+in
+  Eval.add_typ_of_def @{type_name prop}
+  #> Eval.add_typ_of_def @{type_name itself}
+  #> Eval.add_typ_of_def @{type_name bool}
+  #> Eval.add_typ_of_def @{type_name set}
+  #> TypedefPackage.interpretation Eval.add_typ_of_def
 end
-
-instantiation itself :: (typ_of) typ_of
-begin
-
-definition
-  "typ_of (T\<Colon>'a itself itself) = Type (STR ''itself'') [typ_of TYPE('a\<Colon>typ_of)]"
-
-instance ..
-
-end
-
-instantiation set :: (typ_of) typ_of
-begin
- 
-definition
-  "typ_of (T\<Colon>'a set itself) = Type (STR ''set'') [typ_of TYPE('a\<Colon>typ_of)]"
-
-instance ..
-
-end
-
+*}*)
 
 subsubsection {* Code generator setup *}
 
 lemma [code func]:
-  includes pure_term_syntax
-  shows "tyco1 {\<struct>} tys1 = tyco2 {\<struct>} tys2 \<longleftrightarrow> tyco1 = tyco2
+  "Type tyco1 tys1 = Type tyco2 tys2 \<longleftrightarrow> tyco1 = tyco2
      \<and> list_all2 (op =) tys1 tys2"
   by (auto simp add: list_all2_eq [symmetric])
 
@@ -161,32 +103,38 @@ code_const Type and TFree
 code_reserved SML Term
 
 
-
 subsection {* Term representation *}
 
-subsubsection {* Definition *}
+subsubsection {* Definitions *}
 
-datatype "term" =
-    Const message_string "typ" (infix "\<Colon>\<subseteq>" 112)
-  | Fix   vname "typ" (infix ":\<epsilon>" 112)
-  | App   "term" "term" (infixl "\<bullet>" 110)
-  | Abs   "vname \<times> typ" "term" (infixr "\<mapsto>" 111)
-  | Bnd   nat
+datatype "term" = dummy_term
 
-code_datatype Const App Fix
+definition
+  Const :: "message_string \<Rightarrow> typ \<Rightarrow> term"
+where
+  "Const _ _ = dummy_term"
 
-abbreviation
-  Apps :: "term \<Rightarrow> term list \<Rightarrow> term" (infixl "{\<bullet>}" 110) where
-  "t {\<bullet>} ts \<equiv> foldl (op \<bullet>) t ts"
-abbreviation
-  Abss :: "(vname \<times> typ) list \<Rightarrow> term \<Rightarrow> term" (infixr "{\<mapsto>}" 111) where
-  "vs {\<mapsto>} t \<equiv> foldr (op \<mapsto>) vs t"
+definition
+  App :: "term \<Rightarrow> term \<Rightarrow> term"
+where
+  "App _ _ = dummy_term"
+
+code_datatype Const App
+
+subsubsection {* Class @{term term_of} *}
+
+class term_of = typ_of +
+  constrains typ_of :: "'a\<Colon>{} itself \<Rightarrow> typ"
+  fixes term_of :: "'a \<Rightarrow> term"
+
+lemma term_of_anything: "term_of x \<equiv> t"
+  by (rule eq_reflection) (cases "term_of x", cases t, simp)
 
 ML {*
-structure Eval_Aux =
+structure Eval =
 struct
 
-open Eval_Aux;
+open Eval;
 
 fun mk_term f g (Const (c, ty)) =
       @{term Const} $ Message_String.mk c $ g ty
@@ -194,156 +142,102 @@ fun mk_term f g (Const (c, ty)) =
       @{term App} $ mk_term f g t1 $ mk_term f g t2
   | mk_term f g (Free v) = f v;
 
-end;
-*}
-
-
-subsubsection {* Class @{text term_of} *}
-
-class term_of = typ_of +
-  constrains typ_of :: "'a\<Colon>{} itself \<Rightarrow> typ"
-  fixes term_of :: "'a \<Rightarrow> term"
-
-ML {*
-structure Eval_Aux =
-struct
-
-open Eval_Aux;
-
-local
-  fun term_term_of ty =
-    Const (@{const_name term_of}, ty --> @{typ term});
-in
-  val class_term_of = Sign.intern_class @{theory} "term_of";
-  fun mk_terms_of_defs vs (tyco, cs) =
-    let
-      val dty = Type (tyco, map TFree vs);
-      fun mk_eq c =
-        let
-          val lhs : term = term_term_of dty $ c;
-          val rhs : term = mk_term
-            (fn (v, ty) => term_term_of ty $ Free (v, ty))
-            (mk_typ (fn (v, sort) => mk_typ_of (TFree (v, sort)))) c
-        in
-          HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
-        end;
-    in map mk_eq cs end;
-  fun mk_term_of t =
-    term_term_of (Term.fastype_of t) $ t;
-end;
+fun mk_term_of ty t = Const (@{const_name term_of}, ty --> @{typ term}) $ t;
 
 end;
 *}
 
 setup {*
 let
-  open Eval_Aux;
-  fun thy_note ((name, atts), thms) =
-    PureThy.add_thmss [((name, thms), atts)] #-> (fn [thms] => pair (name, thms));
-  fun thy_def ((name, atts), t) =
-    PureThy.add_defs_i false [((name, t), atts)] #-> (fn [thm] => pair (name, thm));
-  fun prep_dtyp thy vs tyco =
+  fun has_no_inst tyco sort thy =
+    not (can (Sorts.mg_domain (Sign.classes_of thy) tyco)
+      sort);
+  fun add_term_of_def ty vs tyco thy =
     let
-      val (_, cs) = DatatypePackage.the_datatype_spec thy tyco;
-      val prep_typ = map_atyps (fn TFree (v, sort) =>
-        TFree (v, (the o AList.lookup (op =) vs) v));
-      fun prep_c (c, tys) = list_comb (Const (c, tys ---> Type (tyco, map TFree vs)),
-        map Free (Name.names Name.context "a" tys));
-    in (tyco, map (prep_c o (apsnd o map) prep_typ) cs) end;
-  fun prep thy tycos =
-    let
-      val inter_sort = curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
-      val tyco = hd tycos;
-      val (vs_proto, _) = DatatypePackage.the_datatype_spec thy tyco;
-      val all_typs = maps (maps snd o snd o DatatypePackage.the_datatype_spec thy) tycos;
-      fun add_tycos (Type (tyco, tys)) = insert (op =) tyco #>
-            fold add_tycos tys
-        | add_tycos _ = I;
-      val dep_tycos = [] |> fold add_tycos all_typs |> subtract (op =) tycos;
-      val sorts = map (inter_sort o snd) vs_proto;
-      val vs = map fst vs_proto ~~ sorts;
-      val css = map (prep_dtyp thy vs) tycos;
-      val defs = map (mk_terms_of_defs vs) css;
-    in if forall (fn tyco => can (Sign.arity_sorts thy tyco) @{sort term_of}) dep_tycos
-        andalso not (tycos = [@{type_name typ}])
-      then SOME (vs, defs)
-      else NONE
-    end;
-  fun prep' ctxt proto_eqs =
-    let
-      val eqs as eq :: _ = map (Syntax.check_term ctxt) proto_eqs;
-      val (Free (v, ty), _) =
-        (strip_comb o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
-    in ((v, SOME ty, NoSyn), map (pair ("", [])) eqs) end;
-  fun primrec primrecs ctxt =
-    let
-      val (fixes, eqnss) = split_list (map (prep' ctxt) primrecs);
-    in PrimrecPackage.add_primrec fixes (flat eqnss) ctxt end;
-  fun interpretator tycos thy = case prep thy tycos
-   of SOME (vs, defs) =>
+      val lhs = Const (@{const_name term_of}, ty --> @{typ term})
+        $ Free ("x", ty);
+      val rhs = @{term "undefined \<Colon> term"};
+      val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
+    in
       thy
-      |> TheoryTarget.instantiation (tycos, vs, @{sort term_of})
-      |> primrec defs
+      |> TheoryTarget.instantiation ([tyco], vs, @{sort term_of})
+      |> `(fn lthy => Syntax.check_term lthy eq)
+      |-> (fn eq => Specification.definition (NONE, (("", []), eq)))
       |> snd
       |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
       |> LocalTheory.exit
       |> ProofContext.theory_of
-    | NONE => thy;
-  in DatatypePackage.interpretation interpretator end
+    end;
+  fun interpretator (tyco, (raw_vs, _)) thy =
+    let
+      val constrain_sort =
+        curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
+      val vs = (map o apsnd) constrain_sort raw_vs;
+      val ty = Type (tyco, map TFree vs);
+    in
+      thy
+      |> `(has_no_inst tyco @{sort typ_of})
+      |-> (fn no_typ_of => no_typ_of ? Eval.add_typ_of_def tyco)
+      |> `(has_no_inst tyco @{sort term_of})
+      |-> (fn no_term_of => no_term_of ? add_term_of_def ty vs tyco)
+    end;
+in
+  Code.type_interpretation interpretator
+end
 *}
 
-abbreviation (in pure_term_syntax) (input)
-  intT :: "typ"
-where
-  "intT \<equiv> Type (STR ''Int.int'') []"
-
-abbreviation (in pure_term_syntax) (input)
-  bitT :: "typ"
-where
-  "bitT \<equiv> Type (STR ''Int.bit'') []"
-
-function (in pure_term_syntax)
-  mk_int :: "int \<Rightarrow> term"
-where
-  "mk_int k = (if k = 0 then STR ''Int.Pls'' \<Colon>\<subseteq> intT
-    else if k = -1 then STR ''Int.Min'' \<Colon>\<subseteq> intT
-    else let (l, m) = divAlg (k, 2)
-  in STR ''Int.Bit'' \<Colon>\<subseteq> intT \<rightarrow> bitT \<rightarrow> intT \<bullet> mk_int l \<bullet>
-    (if m = 0 then STR ''Int.bit.B0'' \<Colon>\<subseteq> bitT else STR ''Int.bit.B1'' \<Colon>\<subseteq> bitT))"
-by pat_completeness auto
-termination (in pure_term_syntax)
-by (relation "measure (nat o abs)") (auto simp add: divAlg_mod_div)
-
-declare pure_term_syntax.mk_int.simps [code func]
-
-definition (in pure_term_syntax)
-  "term_of_int_aux k = STR ''Int.number_class.number_of'' \<Colon>\<subseteq> intT \<rightarrow> intT \<bullet> mk_int k"
-
-declare pure_term_syntax.term_of_int_aux_def [code func]
-
-instantiation int :: term_of
-begin
-
-definition
-  "term_of = pure_term_syntax.term_of_int_aux"
-
-instance ..
-
+setup {*
+let
+  fun mk_term_of_eq ty vs tyco (c, tys) =
+    let
+      val t = list_comb (Const (c, tys ---> ty),
+        map Free (Name.names Name.context "a" tys));
+    in (map_aterms (fn Free (v, ty) => Var ((v, 0), ty) | t => t) t, Eval.mk_term
+      (fn (v, ty) => Eval.mk_term_of ty (Var ((v, 0), ty)))
+      (Eval.mk_typ (fn (v, sort) => Eval.mk_typ_of (TFree (v, sort)))) t)
+    end;
+  fun prove_term_of_eq ty eq thy =
+    let
+      val cty = Thm.ctyp_of thy ty;
+      val (arg, rhs) = pairself (Thm.cterm_of thy) eq;
+      val thm = @{thm term_of_anything}
+        |> Drule.instantiate' [SOME cty] [SOME arg, SOME rhs]
+        |> Thm.varifyT;
+    in
+      thy
+      |> Code.add_func thm
+    end;
+  fun interpretator (tyco, (raw_vs, raw_cs)) thy =
+    let
+      val constrain_sort =
+        curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
+      val vs = (map o apsnd) constrain_sort raw_vs;
+      val cs = (map o apsnd o map o map_atyps)
+        (fn TFree (v, sort) => TFree (v, constrain_sort sort)) raw_cs;
+      val ty = Type (tyco, map TFree vs);
+      val eqs = map (mk_term_of_eq ty vs tyco) cs;
+      val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
+    in
+      thy
+      |> Code.del_funcs const
+      |> fold (prove_term_of_eq ty) eqs
+    end;
+in
+  Code.type_interpretation interpretator
 end
-
+*}
 
 subsubsection {* Code generator setup *}
 
 lemmas [code func del] = term.recs term.cases term.size
-lemmas [code func del] = term_of_message_string.simps
 lemma [code func, code func del]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
+lemma [code func, code func del]: "(term_of \<Colon> message_string \<Rightarrow> term) = term_of" ..
 
 code_type "term"
   (SML "Term.term")
 
-code_const Const and App and Fix
-  (SML "Term.Const/ (_, _)" and "Term.$/ (_, _)" and "Term.Free/ (_, _)")
-
+code_const Const and App
+  (SML "Term.Const/ (_, _)" and "Term.$/ (_, _)")
 
 subsection {* Evaluation setup *}
 
@@ -354,18 +248,21 @@ sig
   val eval_term: theory -> term -> term
   val evaluate: Proof.context -> term -> unit
   val evaluate': string -> Proof.context -> term -> unit
-  val evaluate_cmd: string option -> Toplevel.state -> unit
+  val evaluate_cmd: string option -> string -> Toplevel.state -> unit
 end;
 
-structure Eval =
+structure Eval : EVAL =
 struct
+
+open Eval;
 
 val eval_ref = ref (NONE : (unit -> term) option);
 
-fun eval_term thy =
-  Eval_Aux.mk_term_of
-  #> (fn t => CodePackage.eval_term ("Eval.eval_ref", eval_ref) thy t [])
-  #> Code.postprocess_term thy;
+fun eval_term thy t =
+  t 
+  |> Eval.mk_term_of (fastype_of t)
+  |> (fn t => CodePackage.eval_term ("Eval.eval_ref", eval_ref) thy t [])
+  |> Code.postprocess_term thy;
 
 val evaluators = [
   ("code", eval_term),
@@ -410,5 +307,7 @@ ML {*
       >> (fn (some_name, t) => Toplevel.no_timing o Toplevel.keep
            (Eval.evaluate_cmd some_name t)));
 *}
+
+hide (open) const Type TFree Const App dummy_term typ_of term_of
 
 end
