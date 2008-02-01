@@ -46,9 +46,9 @@ abbreviation
 notation (xsymbols) Melem (infix "\<in>#" 50)
 
 syntax
-  "_MCollect" :: "pttrn => 'a multiset => bool => 'a multiset"    ("(1{# _ : _./ _#})")
+  "_MCollect" :: "pttrn => 'a multiset => bool => 'a multiset"    ("(1{# _ :# _./ _#})")
 translations
-  "{#x:M. P#}" == "CONST MCollect M (\<lambda>x. P)"
+  "{#x :# M. P#}" == "CONST MCollect M (\<lambda>x. P)"
 
 definition
   set_of :: "'a multiset => 'a set" where
@@ -178,7 +178,7 @@ lemma count_diff [simp]: "count (M - N) a = count M a - count N a"
 by (simp add: count_def diff_def in_multiset)
 
 lemma count_MCollect [simp]:
-  "count {# x:M. P x #} a = (if P a then count M a else 0)"
+  "count {# x:#M. P x #} a = (if P a then count M a else 0)"
 by (simp add: count_def MCollect_def in_multiset)
 
 
@@ -199,7 +199,7 @@ by(auto simp: set_of_def Mempty_def in_multiset count_def expand_fun_eq)
 lemma mem_set_of_iff [simp]: "(x \<in> set_of M) = (x :# M)"
 by (auto simp add: set_of_def)
 
-lemma set_of_MCollect [simp]: "set_of {# x:M. P x #} = set_of M \<inter> {x. P x}"
+lemma set_of_MCollect [simp]: "set_of {# x:#M. P x #} = set_of M \<inter> {x. P x}"
 by (auto simp add: set_of_def)
 
 
@@ -473,7 +473,7 @@ lemma multi_member_split: "x \<in># M \<Longrightarrow> \<exists>A. M = A + {#x#
   apply (rule_tac x="M - {#x#}" in exI, simp)
   done
 
-lemma multiset_partition: "M = {# x:M. P x #} + {# x:M. \<not> P x #}"
+lemma multiset_partition: "M = {# x:#M. P x #} + {# x:#M. \<not> P x #}"
   by (subst multiset_eq_conv_count_eq, auto)
 
 declare multiset_typedef [simp del]
@@ -678,8 +678,8 @@ lemma one_step_implies_mult_aux:
   apply (erule ssubst)
   apply (simp add: Ball_def, auto)
   apply (subgoal_tac
-    "((I + {# x : K. (x, a) \<in> r #}) + {# x : K. (x, a) \<notin> r #},
-      (I + {# x : K. (x, a) \<in> r #}) + J') \<in> mult r")
+    "((I + {# x :# K. (x, a) \<in> r #}) + {# x :# K. (x, a) \<notin> r #},
+      (I + {# x :# K. (x, a) \<in> r #}) + J') \<in> mult r")
    prefer 2
    apply force
   apply (simp (no_asm_use) add: union_assoc [symmetric] mult_def)
@@ -1334,9 +1334,9 @@ translations "{#e. x:#M#}" == "CONST image_mset (%x. e) M"
 syntax comprehension2_mset :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
        ("({#_/ | _ :# _./ _#})")
 translations
-  "{#e | x:#M. P#}" => "{#e. x :# {# x:M. P#}#}"
+  "{#e | x:#M. P#}" => "{#e. x :# {# x:#M. P#}#}"
 
-text{* This allows to write not just filters like @{term"{#x:M. x<c#}"}
+text{* This allows to write not just filters like @{term"{#x:#M. x<c#}"}
 but also images like @{term"{#x+x. x:#M #}"}
 and @{term[source]"{#x+x|x:#M. x<c#}"}, where the latter is currently
 displayed as @{term"{#x+x|x:#M. x<c#}"}. *}
