@@ -291,7 +291,6 @@ lemma fstreams_lub_lemma2:
   "[| chain Y; lub (range Y) = (a, <m> ooo ms); (a::'a::flat) ~= UU |] ==> EX j t. Y j = (a, <m> ooo t)"
 apply (frule lub_Pair_not_UU_lemma, auto)
 apply (drule_tac x="j" in is_ub_thelub, auto)
-apply (simp add: less_cprod_def, clarsimp)
 apply (drule ax_flat, clarsimp)
 by (drule fstreams_prefix' [THEN iffD1], auto)
 
@@ -304,12 +303,11 @@ apply (simp add: chain_stream_take)
 apply (induct_tac i, auto)
 apply (drule fstreams_lub_lemma2, auto)
 apply (rule_tac x="j" in exI, auto)
-apply (simp add: less_cprod_def)
 apply (case_tac "max_in_chain j Y")
 apply (frule lub_finch1 [THEN thelubI], auto)
 apply (rule_tac x="j" in exI)
 apply (erule subst) back back
-apply (simp add: less_cprod_def sconc_mono)
+apply (simp add: sconc_mono)
 apply (simp add: max_in_chain_def, auto)
 apply (rule_tac x="ja" in exI)
 apply (subgoal_tac "Y j << Y ja")

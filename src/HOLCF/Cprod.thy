@@ -72,17 +72,23 @@ end
 
 subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
+lemma prod_lessI: "\<lbrakk>fst p \<sqsubseteq> fst q; snd p \<sqsubseteq> snd q\<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
+unfolding less_cprod_def by simp
+
+lemma Pair_less_iff [simp]: "(a, b) \<sqsubseteq> (c, d) = (a \<sqsubseteq> c \<and> b \<sqsubseteq> d)"
+unfolding less_cprod_def by simp
+
 text {* Pair @{text "(_,_)"}  is monotone in both arguments *}
 
 lemma monofun_pair1: "monofun (\<lambda>x. (x, y))"
-by (simp add: monofun_def less_cprod_def)
+by (simp add: monofun_def)
 
 lemma monofun_pair2: "monofun (\<lambda>y. (x, y))"
-by (simp add: monofun_def less_cprod_def)
+by (simp add: monofun_def)
 
 lemma monofun_pair:
   "\<lbrakk>x1 \<sqsubseteq> x2; y1 \<sqsubseteq> y2\<rbrakk> \<Longrightarrow> (x1, y1) \<sqsubseteq> (x2, y2)"
-by (simp add: less_cprod_def)
+by simp
 
 text {* @{term fst} and @{term snd} are monotone *}
 
