@@ -308,6 +308,19 @@ ML {*
            (Eval.evaluate_cmd some_name t)));
 *}
 
-hide (open) const Type TFree Const App dummy_term typ_of term_of
+print_translation {*
+let
+  val term = Const ("<TERM>", dummyT);
+  fun tr1' [_, _] = term;
+  fun tr2' [] = term;
+in
+  [(@{const_syntax Const}, tr1'),
+    (@{const_syntax App}, tr1'),
+    (@{const_syntax dummy_term}, tr2')]
+end
+*}
+
+hide (open) const Type TFree typ_of term_of
+hide const Const App dummy_term
 
 end
