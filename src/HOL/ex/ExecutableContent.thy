@@ -9,7 +9,7 @@ imports
   Main
   Eval
   Code_Index
-  (*"~~/src/HOL/ex/Records"*)
+  "~~/src/HOL/ex/Records"
   AssocList
   Binomial
   Commutative_Ring
