@@ -45,13 +45,16 @@ by (simp add: unit_when_def)
 
 subsection {* Product type is a partial order *}
 
-instantiation "*" :: (po, po) po
+instantiation "*" :: (sq_ord, sq_ord) sq_ord
 begin
 
 definition
   less_cprod_def: "(op \<sqsubseteq>) \<equiv> \<lambda>p1 p2. (fst p1 \<sqsubseteq> fst p2 \<and> snd p1 \<sqsubseteq> snd p2)"
 
-instance
+instance ..
+end
+
+instance "*" :: (po, po) po
 proof
   fix x :: "'a \<times> 'b"
   show "x \<sqsubseteq> x"
@@ -67,8 +70,6 @@ next
     unfolding less_cprod_def
     by (fast intro: trans_less)
 qed
-
-end
 
 subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
