@@ -93,12 +93,22 @@ apply (rule imageI)
 apply (simp add: refl)
 done
 
-lemma finite_directed_has_lub: "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> \<exists>u. S <<| u"
+lemma finite_directed_contains_lub:
+  "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> \<exists>u\<in>S. S <<| u"
 apply (drule (1) directed_finiteD, rule subset_refl)
 apply (erule bexE)
-apply (rule_tac x=z in exI)
+apply (rule rev_bexI, assumption)
 apply (erule (1) is_lub_maximal)
 done
+
+lemma lub_finite_directed_in_self:
+  "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> lub S \<in> S"
+apply (drule (1) finite_directed_contains_lub, clarify)
+apply (drule thelubI, simp)
+done
+
+lemma finite_directed_has_lub: "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> \<exists>u. S <<| u"
+by (drule (1) finite_directed_contains_lub, fast)
 
 lemma is_ub_thelub0: "\<lbrakk>\<exists>u. S <<| u; x \<in> S\<rbrakk> \<Longrightarrow> x \<sqsubseteq> lub S"
 apply (erule exE, drule lubI)
@@ -299,23 +309,6 @@ lemma lub_basis_fun_take:
  apply (subst image_image [where f=principal, symmetric])
  apply (rule unique_lub [OF _ lub_principal_approxes])
  apply (rule basis_fun_lemma2, erule principal_mono)
-done
-
-lemma finite_directed_contains_lub:
-  "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> \<exists>u\<in>S. S <<| u"
-apply (drule (1) directed_finiteD, rule subset_refl)
-apply (erule bexE)
-apply (rule rev_bexI, assumption)
-apply (erule (1) is_lub_maximal)
-done
-
-lemma lub_finite_directed_in_self:
-  "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> lub S \<in> S"
-apply (drule (1) directed_finiteD, rule subset_refl)
-apply (erule bexE)
-apply (drule (1) is_lub_maximal)
-apply (drule thelubI)
-apply simp
 done
 
 lemma basis_fun_take_eq_principal:
