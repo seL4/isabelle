@@ -6,7 +6,9 @@
 header {* A simple term evaluation mechanism *}
 
 theory Eval
-imports ATP_Linkup Code_Message
+imports
+  ATP_Linkup Code_Message
+  Code_Index (* this theory is just imported for a term_of setup *)
 begin
 
 subsection {* Type reflection *}
@@ -80,6 +82,7 @@ let
   open Eval;
 in
   Eval.add_typ_of_def @{type_name prop}
+  #> Eval.add_typ_of_def @{type_name fun}
   #> Eval.add_typ_of_def @{type_name itself}
   #> Eval.add_typ_of_def @{type_name bool}
   #> Eval.add_typ_of_def @{type_name set}
@@ -182,7 +185,8 @@ let
       |-> (fn no_term_of => no_term_of ? add_term_of_def ty vs tyco)
     end;
 in
-  Code.type_interpretation interpretator
+  Eval.add_typ_of_def @{type_name fun}
+  #> Code.type_interpretation interpretator
 end
 *}
 
@@ -231,6 +235,10 @@ subsubsection {* Code generator setup *}
 
 lemmas [code func del] = term.recs term.cases term.size
 lemma [code func, code func del]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
+
+lemma [code func, code func del]: "(term_of \<Colon> typ \<Rightarrow> term) = term_of" ..
+lemma [code func, code func del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
+lemma [code func, code func del]: "(term_of \<Colon> index \<Rightarrow> term) = term_of" ..
 lemma [code func, code func del]: "(term_of \<Colon> message_string \<Rightarrow> term) = term_of" ..
 
 code_type "term"
@@ -238,6 +246,13 @@ code_type "term"
 
 code_const Const and App
   (SML "Term.Const/ (_, _)" and "Term.$/ (_, _)")
+
+code_const "term_of \<Colon> index \<Rightarrow> term"
+  (SML "HOLogic.mk'_number/ HOLogic.indexT")
+
+code_const "term_of \<Colon> message_string \<Rightarrow> term"
+  (SML "Message'_String.mk")
+
 
 subsection {* Evaluation setup *}
 
