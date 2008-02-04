@@ -39,16 +39,16 @@ fun sort_of_term (map_sort: sort -> sort) tm =
   let
     fun classes (Const (c, _)) = [c]
       | classes (Free (c, _)) = [c]
-      | classes (Const ("_class",_) $ Free (c, _)) = [c]
+      | classes (Const ("_class", _) $ Free (c, _)) = [c]
       | classes (Const ("_classes", _) $ Const (c, _) $ cs) = c :: classes cs
       | classes (Const ("_classes", _) $ Free (c, _) $ cs) = c :: classes cs
-      | classes (Const ("_classes", _) $ (Const ("_class",_) $ Free (c, _)) $ cs) = c :: classes cs
+      | classes (Const ("_classes", _) $ (Const ("_class", _) $ Free (c, _)) $ cs) = c :: classes cs
       | classes tm = raise TERM ("sort_of_term: bad encoding of classes", [tm]);
 
     fun sort (Const ("_topsort", _)) = []
       | sort (Const (c, _)) = [c]
       | sort (Free (c, _)) = [c]
-      | sort (Const ("_class",_) $ Free (c, _)) = [c]
+      | sort (Const ("_class", _) $ Free (c, _)) = [c]
       | sort (Const ("_sort", _) $ cs) = classes cs
       | sort tm = raise TERM ("sort_of_term: bad encoding of sort", [tm]);
   in map_sort (sort tm) end;
