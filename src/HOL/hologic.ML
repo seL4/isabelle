@@ -87,6 +87,7 @@ sig
   val dest_nat: term -> int
   val class_size: string
   val size_const: typ -> term
+  val indexT: typ
   val bitT: typ
   val B0_const: term
   val B1_const: term
@@ -444,6 +445,11 @@ fun dest_nat (Const ("HOL.zero_class.zero", _)) = 0
 val class_size = "Nat.size";
 
 fun size_const T = Const ("Nat.size_class.size", T --> natT);
+
+
+(* index *)
+
+val indexT = Type ("Code_Index.index", []);
 
 
 (* bit *)
