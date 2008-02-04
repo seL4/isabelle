@@ -303,23 +303,32 @@ section {* Contructive dense linear orders yield QE for linear arithmetic over o
 
 text {* Linear order without upper bounds *}
 
-class linorder_no_ub = linorder +
-  assumes gt_ex: "\<exists>y. x < y"
+locale linorder_stupid_syntax = linorder
 begin
+notation
+  less_eq  ("op \<sqsubseteq>") and
+  less_eq  ("(_/ \<sqsubseteq> _)" [51, 51] 50) and
+  less  ("op \<sqsubset>") and
+  less  ("(_/ \<sqsubset> _)"  [51, 51] 50)
 
-lemma ge_ex: "\<exists>y. x \<le> y" using gt_ex by auto
+end
 
-text {* Theorems for @{text "\<exists>z. \<forall>x. z < x \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>+\<infinity>\<^esub>)"} *}
+locale linorder_no_ub = linorder_stupid_syntax +
+  assumes gt_ex: "\<exists>y. less x y"
+begin
+lemma ge_ex: "\<exists>y. x \<sqsubseteq> y" using gt_ex by auto
+
+text {* Theorems for @{text "\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>+\<infinity>\<^esub>)"} *}
 lemma pinf_conj:
-  assumes ex1: "\<exists>z1. \<forall>x. z1 < x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
-  and ex2: "\<exists>z2. \<forall>x. z2 < x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
-  shows "\<exists>z. \<forall>x. z <  x \<longrightarrow> ((P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2'))"
+  assumes ex1: "\<exists>z1. \<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+  and ex2: "\<exists>z2. \<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
+  shows "\<exists>z. \<forall>x. z \<sqsubset>  x \<longrightarrow> ((P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2'))"
 proof-
-  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. z1 < x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
-     and z2: "\<forall>x. z2 < x \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
-  from gt_ex obtain z where z:"max z1 z2 < z" by blast
-  from z have zz1: "z1 < z" and zz2: "z2 < z" by simp_all
-  {fix x assume H: "z < x"
+  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+     and z2: "\<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
+  from gt_ex obtain z where z:"ord.max less_eq z1 z2 \<sqsubset> z" by blast
+  from z have zz1: "z1 \<sqsubset> z" and zz2: "z2 \<sqsubset> z" by simp_all
+  {fix x assume H: "z \<sqsubset> x"
     from less_trans[OF zz1 H] less_trans[OF zz2 H]
     have "(P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2')"  using z1 zz1 z2 zz2 by auto
   }
@@ -327,25 +336,25 @@ proof-
 qed
 
 lemma pinf_disj:
-  assumes ex1: "\<exists>z1. \<forall>x. z1 < x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
-  and ex2: "\<exists>z2. \<forall>x. z2 < x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
-  shows "\<exists>z. \<forall>x. z <  x \<longrightarrow> ((P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2'))"
+  assumes ex1: "\<exists>z1. \<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+  and ex2: "\<exists>z2. \<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
+  shows "\<exists>z. \<forall>x. z \<sqsubset>  x \<longrightarrow> ((P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2'))"
 proof-
-  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. z1 < x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
-     and z2: "\<forall>x. z2 < x \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
-  from gt_ex obtain z where z:"max z1 z2 < z" by blast
-  from z have zz1: "z1 < z" and zz2: "z2 < z" by simp_all
-  {fix x assume H: "z < x"
+  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+     and z2: "\<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
+  from gt_ex obtain z where z:"ord.max less_eq z1 z2 \<sqsubset> z" by blast
+  from z have zz1: "z1 \<sqsubset> z" and zz2: "z2 \<sqsubset> z" by simp_all
+  {fix x assume H: "z \<sqsubset> x"
     from less_trans[OF zz1 H] less_trans[OF zz2 H]
     have "(P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2')"  using z1 zz1 z2 zz2 by auto
   }
   thus ?thesis by blast
 qed
 
-lemma pinf_ex: assumes ex:"\<exists>z. \<forall>x. z < x \<longrightarrow> (P x \<longleftrightarrow> P1)" and p1: P1 shows "\<exists> x. P x"
+lemma pinf_ex: assumes ex:"\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P1)" and p1: P1 shows "\<exists> x. P x"
 proof-
-  from ex obtain z where z: "\<forall>x. z < x \<longrightarrow> (P x \<longleftrightarrow> P1)" by blast
-  from gt_ex obtain x where x: "z < x" by blast
+  from ex obtain z where z: "\<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P1)" by blast
+  from gt_ex obtain x where x: "z \<sqsubset> x" by blast
   from z x p1 show ?thesis by blast
 qed
 
@@ -353,23 +362,22 @@ end
 
 text {* Linear order without upper bounds *}
 
-class linorder_no_lb = linorder +
-  assumes lt_ex: "\<exists>y. y < x"
+locale linorder_no_lb = linorder_stupid_syntax +
+  assumes lt_ex: "\<exists>y. less y x"
 begin
+lemma le_ex: "\<exists>y. y \<sqsubseteq> x" using lt_ex by auto
 
-lemma le_ex: "\<exists>y. y \<le> x" using lt_ex by auto
 
-
-text {* Theorems for @{text "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>-\<infinity>\<^esub>)"} *}
+text {* Theorems for @{text "\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>-\<infinity>\<^esub>)"} *}
 lemma minf_conj:
-  assumes ex1: "\<exists>z1. \<forall>x. x < z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
-  and ex2: "\<exists>z2. \<forall>x. x < z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
-  shows "\<exists>z. \<forall>x. x <  z \<longrightarrow> ((P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2'))"
+  assumes ex1: "\<exists>z1. \<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+  and ex2: "\<exists>z2. \<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
+  shows "\<exists>z. \<forall>x. x \<sqsubset>  z \<longrightarrow> ((P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2'))"
 proof-
-  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. x < z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"and z2: "\<forall>x. x < z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
-  from lt_ex obtain z where z:"z < min z1 z2" by blast
-  from z have zz1: "z < z1" and zz2: "z < z2" by simp_all
-  {fix x assume H: "x < z"
+  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"and z2: "\<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
+  from lt_ex obtain z where z:"z \<sqsubset> ord.min less_eq z1 z2" by blast
+  from z have zz1: "z \<sqsubset> z1" and zz2: "z \<sqsubset> z2" by simp_all
+  {fix x assume H: "x \<sqsubset> z"
     from less_trans[OF H zz1] less_trans[OF H zz2]
     have "(P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2')"  using z1 zz1 z2 zz2 by auto
   }
@@ -377,78 +385,81 @@ proof-
 qed
 
 lemma minf_disj:
-  assumes ex1: "\<exists>z1. \<forall>x. x < z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
-  and ex2: "\<exists>z2. \<forall>x. x < z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
-  shows "\<exists>z. \<forall>x. x <  z \<longrightarrow> ((P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2'))"
+  assumes ex1: "\<exists>z1. \<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
+  and ex2: "\<exists>z2. \<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
+  shows "\<exists>z. \<forall>x. x \<sqsubset>  z \<longrightarrow> ((P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2'))"
 proof-
-  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. x < z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"and z2: "\<forall>x. x < z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
-  from lt_ex obtain z where z:"z < min z1 z2" by blast
-  from z have zz1: "z < z1" and zz2: "z < z2" by simp_all
-  {fix x assume H: "x < z"
+  from ex1 ex2 obtain z1 and z2 where z1: "\<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"and z2: "\<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')" by blast
+  from lt_ex obtain z where z:"z \<sqsubset> ord.min less_eq z1 z2" by blast
+  from z have zz1: "z \<sqsubset> z1" and zz2: "z \<sqsubset> z2" by simp_all
+  {fix x assume H: "x \<sqsubset> z"
     from less_trans[OF H zz1] less_trans[OF H zz2]
     have "(P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2')"  using z1 zz1 z2 zz2 by auto
   }
   thus ?thesis by blast
 qed
 
-lemma minf_ex: assumes ex:"\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P1)" and p1: P1 shows "\<exists> x. P x"
+lemma minf_ex: assumes ex:"\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P1)" and p1: P1 shows "\<exists> x. P x"
 proof-
-  from ex obtain z where z: "\<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P1)" by blast
-  from lt_ex obtain x where x: "x < z" by blast
+  from ex obtain z where z: "\<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P1)" by blast
+  from lt_ex obtain x where x: "x \<sqsubset> z" by blast
   from z x p1 show ?thesis by blast
 qed
 
 end
 
 
-class constr_dense_linear_order = linorder_no_lb + linorder_no_ub +
+locale constr_dense_linear_order = linorder_no_lb + linorder_no_ub +
   fixes between
-  assumes between_less: "x < y \<Longrightarrow> x < between x y \<and> between x y < y"
+  assumes between_less: "less x y \<Longrightarrow> less x (between x y) \<and> less (between x y) y"
      and  between_same: "between x x = x"
-begin
 
-subclass dense_linear_order
+interpretation  constr_dense_linear_order < dense_linear_order 
   apply unfold_locales
   using gt_ex lt_ex between_less
     by (auto, rule_tac x="between x y" in exI, simp)
 
+context  constr_dense_linear_order
+begin
+
 lemma rinf_U:
   assumes fU: "finite U"
-  and lin_dense: "\<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> P x
-  \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> P y )"
-  and nmpiU: "\<forall>x. \<not> MP \<and> \<not>PP \<and> P x \<longrightarrow> (\<exists> u\<in> U. \<exists> u' \<in> U. u \<le> x \<and> x \<le> u')"
+  and lin_dense: "\<forall>x l u. (\<forall> t. l \<sqsubset> t \<and> t\<sqsubset> u \<longrightarrow> t \<notin> U) \<and> l\<sqsubset> x \<and> x \<sqsubset> u \<and> P x
+  \<longrightarrow> (\<forall> y. l \<sqsubset> y \<and> y \<sqsubset> u \<longrightarrow> P y )"
+  and nmpiU: "\<forall>x. \<not> MP \<and> \<not>PP \<and> P x \<longrightarrow> (\<exists> u\<in> U. \<exists> u' \<in> U. u \<sqsubseteq> x \<and> x \<sqsubseteq> u')"
   and nmi: "\<not> MP"  and npi: "\<not> PP"  and ex: "\<exists> x.  P x"
   shows "\<exists> u\<in> U. \<exists> u' \<in> U. P (between u u')"
 proof-
   from ex obtain x where px: "P x" by blast
-  from px nmi npi nmpiU have "\<exists> u\<in> U. \<exists> u' \<in> U. u \<le> x \<and> x \<le> u'" by auto
-  then obtain u and u' where uU:"u\<in> U" and uU': "u' \<in> U" and ux:"u \<le> x" and xu':"x \<le> u'" by auto
+  from px nmi npi nmpiU have "\<exists> u\<in> U. \<exists> u' \<in> U. u \<sqsubseteq> x \<and> x \<sqsubseteq> u'" by auto
+  then obtain u and u' where uU:"u\<in> U" and uU': "u' \<in> U" and ux:"u \<sqsubseteq> x" and xu':"x \<sqsubseteq> u'" by auto
   from uU have Une: "U \<noteq> {}" by auto
-  let ?l = "Min U"
-  let ?u = "Max U"
+  term "linorder.Min less_eq"
+  let ?l = "linorder.Min less_eq U"
+  let ?u = "linorder.Max less_eq U"
   have linM: "?l \<in> U" using fU Une by simp
   have uinM: "?u \<in> U" using fU Une by simp
-  have lM: "\<forall> t\<in> U. ?l \<le> t" using Une fU by auto
-  have Mu: "\<forall> t\<in> U. t \<le> ?u" using Une fU by auto
-  have th:"?l \<le> u" using uU Une lM by auto
-  from order_trans[OF th ux] have lx: "?l \<le> x" .
-  have th: "u' \<le> ?u" using uU' Une Mu by simp
-  from order_trans[OF xu' th] have xu: "x \<le> ?u" .
+  have lM: "\<forall> t\<in> U. ?l \<sqsubseteq> t" using Une fU by auto
+  have Mu: "\<forall> t\<in> U. t \<sqsubseteq> ?u" using Une fU by auto
+  have th:"?l \<sqsubseteq> u" using uU Une lM by auto
+  from order_trans[OF th ux] have lx: "?l \<sqsubseteq> x" .
+  have th: "u' \<sqsubseteq> ?u" using uU' Une Mu by simp
+  from order_trans[OF xu' th] have xu: "x \<sqsubseteq> ?u" .
   from finite_set_intervals2[where P="P",OF px lx xu linM uinM fU lM Mu]
   have "(\<exists> s\<in> U. P s) \<or>
-      (\<exists> t1\<in> U. \<exists> t2 \<in> U. (\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> U) \<and> t1 < x \<and> x < t2 \<and> P x)" .
+      (\<exists> t1\<in> U. \<exists> t2 \<in> U. (\<forall> y. t1 \<sqsubset> y \<and> y \<sqsubset> t2 \<longrightarrow> y \<notin> U) \<and> t1 \<sqsubset> x \<and> x \<sqsubset> t2 \<and> P x)" .
   moreover { fix u assume um: "u\<in>U" and pu: "P u"
     have "between u u = u" by (simp add: between_same)
     with um pu have "P (between u u)" by simp
     with um have ?thesis by blast}
   moreover{
-    assume "\<exists> t1\<in> U. \<exists> t2 \<in> U. (\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> U) \<and> t1 < x \<and> x < t2 \<and> P x"
+    assume "\<exists> t1\<in> U. \<exists> t2 \<in> U. (\<forall> y. t1 \<sqsubset> y \<and> y \<sqsubset> t2 \<longrightarrow> y \<notin> U) \<and> t1 \<sqsubset> x \<and> x \<sqsubset> t2 \<and> P x"
       then obtain t1 and t2 where t1M: "t1 \<in> U" and t2M: "t2\<in> U"
-        and noM: "\<forall> y. t1 < y \<and> y < t2 \<longrightarrow> y \<notin> U" and t1x: "t1 < x" and xt2: "x < t2" and px: "P x"
+        and noM: "\<forall> y. t1 \<sqsubset> y \<and> y \<sqsubset> t2 \<longrightarrow> y \<notin> U" and t1x: "t1 \<sqsubset> x" and xt2: "x \<sqsubset> t2" and px: "P x"
         by blast
-      from less_trans[OF t1x xt2] have t1t2: "t1 < t2" .
+      from less_trans[OF t1x xt2] have t1t2: "t1 \<sqsubset> t2" .
       let ?u = "between t1 t2"
-      from between_less t1t2 have t1lu: "t1 < ?u" and ut2: "?u < t2" by auto
+      from between_less t1t2 have t1lu: "t1 \<sqsubset> ?u" and ut2: "?u \<sqsubset> t2" by auto
       from lin_dense noM t1x xt2 px t1lu ut2 have "P ?u" by blast
       with t1M t2M have ?thesis by blast}
     ultimately show ?thesis by blast
@@ -456,11 +467,11 @@ proof-
 
 theorem fr_eq:
   assumes fU: "finite U"
-  and lin_dense: "\<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> P x
-   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> P y )"
-  and nmibnd: "\<forall>x. \<not> MP \<and> P x \<longrightarrow> (\<exists> u\<in> U. u \<le> x)"
-  and npibnd: "\<forall>x. \<not>PP \<and> P x \<longrightarrow> (\<exists> u\<in> U. x \<le> u)"
-  and mi: "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x = MP)"  and pi: "\<exists>z. \<forall>x. z < x \<longrightarrow> (P x = PP)"
+  and lin_dense: "\<forall>x l u. (\<forall> t. l \<sqsubset> t \<and> t\<sqsubset> u \<longrightarrow> t \<notin> U) \<and> l\<sqsubset> x \<and> x \<sqsubset> u \<and> P x
+   \<longrightarrow> (\<forall> y. l \<sqsubset> y \<and> y \<sqsubset> u \<longrightarrow> P y )"
+  and nmibnd: "\<forall>x. \<not> MP \<and> P x \<longrightarrow> (\<exists> u\<in> U. u \<sqsubseteq> x)"
+  and npibnd: "\<forall>x. \<not>PP \<and> P x \<longrightarrow> (\<exists> u\<in> U. x \<sqsubseteq> u)"
+  and mi: "\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x = MP)"  and pi: "\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x = PP)"
   shows "(\<exists> x. P x) \<equiv> (MP \<or> PP \<or> (\<exists> u \<in> U. \<exists> u'\<in> U. P (between u u')))"
   (is "_ \<equiv> (_ \<or> _ \<or> ?F)" is "?E \<equiv> ?D")
 proof-
@@ -470,7 +481,7 @@ proof-
    moreover {assume "MP \<or> PP" hence "?D" by blast}
    moreover {assume nmi: "\<not> MP" and npi: "\<not> PP"
      from npmibnd[OF nmibnd npibnd]
-     have nmpiU: "\<forall>x. \<not> MP \<and> \<not>PP \<and> P x \<longrightarrow> (\<exists> u\<in> U. \<exists> u' \<in> U. u \<le> x \<and> x \<le> u')" .
+     have nmpiU: "\<forall>x. \<not> MP \<and> \<not>PP \<and> P x \<longrightarrow> (\<exists> u\<in> U. \<exists> u' \<in> U. u \<sqsubseteq> x \<and> x \<sqsubseteq> u')" .
      from rinf_U[OF fU lin_dense nmpiU nmi npi px] have "?D" by blast}
    ultimately have "?D" by blast}
  moreover
@@ -505,7 +516,7 @@ let
 fun simps phi = map (Morphism.thm phi) [@{thm "not_less"}, @{thm "not_le"}]
 fun generic_whatis phi =
  let
-  val [lt, le] = map (Morphism.term phi) [@{term "op <"}, @{term "op \<le>"}]
+  val [lt, le] = map (Morphism.term phi) [@{term "op \<sqsubset>"}, @{term "op \<sqsubseteq>"}]
   fun h x t =
    case term_of t of
      Const("op =", _)$y$z => if term_of x aconv y then Ferrante_Rackoff_Data.Eq
