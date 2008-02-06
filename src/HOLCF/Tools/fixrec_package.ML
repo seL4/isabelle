@@ -26,8 +26,8 @@ fun legacy_infer_term thy t =
 fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain propT t);
 
 
-val fix_eq2 = thm "fix_eq2";
-val def_fix_ind = thm "def_fix_ind";
+val fix_eq2 = @{thm fix_eq2};
+val def_fix_ind = @{thm def_fix_ind};
 
 
 fun fixrec_err s = error ("fixrec definition error:\n" ^ s);
@@ -37,7 +37,7 @@ fun fixrec_eq_err thy s eq =
 (* ->> is taken from holcf_logic.ML *)
 (* TODO: fix dependencies so we can import HOLCFLogic here *)
 infixr 6 ->>;
-fun S ->> T = Type ("Cfun.->",[S,T]);
+fun S ->> T = Type (@{type_name "->"},[S,T]);
 
 (* extern_name is taken from domain/library.ML *)
 fun extern_name con = case Symbol.explode con of 
@@ -50,7 +50,7 @@ val mk_trp = HOLogic.mk_Trueprop;
 fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
 
 (* similar to Thm.head_of, but for continuous application *)
-fun chead_of (Const("Cfun.Rep_CFun",_)$f$t) = chead_of f
+fun chead_of (Const(@{const_name Rep_CFun},_)$f$t) = chead_of f
   | chead_of u = u;
 
 (* these are helpful functions copied from HOLCF/domain/library.ML *)
@@ -58,10 +58,10 @@ fun %: s = Free(s,dummyT);
 fun %%: s = Const(s,dummyT);
 infix 0 ==;  fun S ==  T = %%:"==" $ S $ T;
 infix 1 ===; fun S === T = %%:"op =" $ S $ T;
-infix 9 `  ; fun f ` x = %%:"Cfun.Rep_CFun" $ f $ x;
+infix 9 `  ; fun f ` x = %%:@{const_name Rep_CFun} $ f $ x;
 
 (* builds the expression (LAM v. rhs) *)
-fun big_lambda v rhs = %%:"Cfun.Abs_CFun"$(Term.lambda v rhs);
+fun big_lambda v rhs = %%:@{const_name Abs_CFun}$(Term.lambda v rhs);
 
 (* builds the expression (LAM v1 v2 .. vn. rhs) *)
 fun big_lambdas [] rhs = rhs
@@ -71,12 +71,12 @@ fun big_lambdas [] rhs = rhs
 fun lambda_ctuple [] rhs = big_lambda (%:"unit") rhs
   | lambda_ctuple (v::[]) rhs = big_lambda v rhs
   | lambda_ctuple (v::vs) rhs =
-      %%:"Cprod.csplit"`(big_lambda v (lambda_ctuple vs rhs));
+      %%:@{const_name csplit}`(big_lambda v (lambda_ctuple vs rhs));
 
 (* builds the expression <v1,v2,..,vn> *)
 fun mk_ctuple [] = %%:"UU"
 |   mk_ctuple (t::[]) = t
-|   mk_ctuple (t::ts) = %%:"Cprod.cpair"`t`(mk_ctuple ts);
+|   mk_ctuple (t::ts) = %%:@{const_name cpair}`t`(mk_ctuple ts);
 
 (*************************************************************************)
 (************* fixed-point definitions and unfolding theorems ************)
@@ -85,14 +85,14 @@ fun mk_ctuple [] = %%:"UU"
 fun add_fixdefs eqs thy =
   let
     val (lhss,rhss) = ListPair.unzip (map dest_eqs eqs);
-    val fixpoint = %%:"Fix.fix"`lambda_ctuple lhss (mk_ctuple rhss);
+    val fixpoint = %%:@{const_name fix}`lambda_ctuple lhss (mk_ctuple rhss);
     
     fun one_def (l as Const(n,T)) r =
           let val b = Sign.base_name n in (b, (b^"_def", l == r)) end
       | one_def _ _ = fixrec_err "fixdefs: lhs not of correct form";
     fun defs [] _ = []
       | defs (l::[]) r = [one_def l r]
-      | defs (l::ls) r = one_def l (%%:"Cprod.cfst"`r) :: defs ls (%%:"Cprod.csnd"`r);
+      | defs (l::ls) r = one_def l (%%:@{const_name cfst}`r) :: defs ls (%%:@{const_name csnd}`r);
     val (names, pre_fixdefs) = ListPair.unzip (defs lhss fixpoint);
     
     val fixdefs = map (apsnd (legacy_infer_prop thy)) pre_fixdefs;
@@ -135,21 +135,21 @@ fun add_terms ts xs = foldr add_names xs ts;
 (* builds a monadic term for matching a constructor pattern *)
 fun pre_build pat rhs vs taken =
   case pat of
-    Const("Cfun.Rep_CFun",_)$f$(v as Free(n,T)) =>
+    Const(@{const_name Rep_CFun},_)$f$(v as Free(n,T)) =>
       pre_build f rhs (v::vs) taken
-  | Const("Cfun.Rep_CFun",_)$f$x =>
+  | Const(@{const_name Rep_CFun},_)$f$x =>
       let val (rhs', v, taken') = pre_build x rhs [] taken;
       in pre_build f rhs' (v::vs) taken' end
   | Const(c,T) =>
       let
         val n = Name.variant taken "v";
-        fun result_type (Type("Cfun.->",[_,T])) (x::xs) = result_type T xs
+        fun result_type (Type(@{type_name "->"},[_,T])) (x::xs) = result_type T xs
           | result_type T _ = T;
         val v = Free(n, result_type T vs);
         val m = "match_"^(extern_name(Sign.base_name c));
         val k = lambda_ctuple vs rhs;
       in
-        (%%:"Fixrec.bind"`(%%:m`v)`k, v, n::taken)
+        (%%:@{const_name Fixrec.bind}`(%%:m`v)`k, v, n::taken)
       end
   | Free(n,_) => fixrec_err ("expected constructor, found free variable " ^ quote n)
   | _ => fixrec_err "pre_build: invalid pattern";
@@ -158,9 +158,9 @@ fun pre_build pat rhs vs taken =
 (* returns (name, arity, matcher) *)
 fun building pat rhs vs taken =
   case pat of
-    Const("Cfun.Rep_CFun", _)$f$(v as Free(n,T)) =>
+    Const(@{const_name Rep_CFun}, _)$f$(v as Free(n,T)) =>
       building f rhs (v::vs) taken
-  | Const("Cfun.Rep_CFun", _)$f$x =>
+  | Const(@{const_name Rep_CFun}, _)$f$x =>
       let val (rhs', v, taken') = pre_build x rhs [] taken;
       in building f rhs' (v::vs) taken' end
   | Const(name,_) => (name, length vs, big_lambdas vs rhs)
@@ -168,7 +168,7 @@ fun building pat rhs vs taken =
 
 fun match_eq eq = 
   let val (lhs,rhs) = dest_eqs eq;
-  in building lhs (%%:"Fixrec.return"`rhs) [] (add_terms [eq] []) end;
+  in building lhs (%%:@{const_name Fixrec.return}`rhs) [] (add_terms [eq] []) end;
 
 (* returns the sum (using +++) of the terms in ms *)
 (* also applies "run" to the result! *)
@@ -178,11 +178,11 @@ fun fatbar arity ms =
       | unLAM n (_$Abs(_,_,t)) = unLAM (n-1) t
       | unLAM _ _ = fixrec_err "fatbar: internal error, not enough LAMs";
     fun reLAM 0 t = t
-      | reLAM n t = reLAM (n-1) (%%:"Cfun.Abs_CFun" $ Abs("",dummyT,t));
-    fun mplus (x,y) = %%:"Fixrec.mplus"`x`y;
+      | reLAM n t = reLAM (n-1) (%%:@{const_name Abs_CFun} $ Abs("",dummyT,t));
+    fun mplus (x,y) = %%:@{const_name Fixrec.mplus}`x`y;
     val msum = foldr1 mplus (map (unLAM arity) ms);
   in
-    reLAM arity (%%:"Fixrec.run"`msum)
+    reLAM arity (%%:@{const_name Fixrec.run}`msum)
   end;
 
 fun unzip3 [] = ([],[],[])
@@ -310,6 +310,6 @@ val _ =
   OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.thy_decl
     (fixpat_decl >> (Toplevel.theory o add_fixpat));
 
-end;
+end; (* local structure *)
 
 end;
