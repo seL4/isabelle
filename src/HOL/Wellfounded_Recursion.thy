@@ -198,6 +198,37 @@ done
 
 subsubsection{*Well-Foundedness Results for Unions*}
 
+lemma wf_union_compatible:
+  assumes "wf R" "wf S"
+  assumes comp: "S O R \<subseteq> R"
+  shows "wf (R \<union> S)"
+proof (rule wfI_min)
+  fix x :: 'a and Q 
+  let ?Q' = "{ x\<in>Q. \<forall>y. (y,x)\<in>R \<longrightarrow> y \<notin> Q }"
+  assume "x \<in> Q"
+  obtain a where "a \<in> ?Q'" 
+    by (rule wfE_min[OF `wf R` `x \<in> Q`]) blast
+  with `wf S`
+  obtain z where "z \<in> ?Q'" and zmin: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> ?Q'" by (erule wfE_min)
+  { 
+    fix y assume ySz: "(y, z) \<in> S"
+    then have "y \<notin> ?Q'" by (rule zmin)
+
+    have "y \<notin> Q"
+    proof 
+      assume "y \<in> Q"
+      with `y \<notin> ?Q'` 
+      obtain w where wRy: "(w, y) \<in> R" and "w \<in> Q" by auto
+      from wRy ySz have "(w, z) \<in> S O R" by (rule rel_compI)
+      with comp have "(w, z) \<in> R" ..
+      with `z \<in> ?Q'` have "w \<notin> Q" by blast 
+      from this `w \<in> Q` show False ..
+    qed
+  }
+  with `z \<in> ?Q'`
+  show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<union> S \<longrightarrow> y \<notin> Q" by blast
+qed
+
 text{*Well-foundedness of indexed union with disjoint domains and ranges*}
 
 lemma wf_UN: "[| ALL i:I. wf(r i);  
@@ -238,16 +269,8 @@ done
 *)
 lemma wf_Un:
      "[| wf r; wf s; Domain r Int Range s = {} |] ==> wf(r Un s)"
-apply (simp only: wf_eq_minimal, clarify) 
-apply (rename_tac A a)
-apply (case_tac "EX a:A. EX b:A. (b,a) : r") 
- prefer 2
- apply simp
- apply (drule_tac x=A in spec)+
- apply blast 
-apply (erule_tac x="{a. a:A & (EX b:A. (b,a) : r) }" in allE)+
-apply (blast elim!: allE)  
-done
+using wf_union_compatible[of s r] 
+by (auto simp: Un_ac)
 
 lemma wf_union_merge: 
   "wf (R \<union> S) = wf (R O R \<union> R O S \<union> S)" (is "wf ?A = wf ?B")
