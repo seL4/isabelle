@@ -195,8 +195,8 @@ end;
 
 subsection {* The @{text random} class *}
 
-class random = type +
-  fixes random :: "index \<Rightarrow> seed \<Rightarrow> 'a \<times> seed"
+class random =
+  fixes random :: "index \<Rightarrow> seed \<Rightarrow> 'a\<Colon>{} \<times> seed"
 
 -- {* FIXME dummy implementations *}
 
@@ -230,7 +230,7 @@ instance ..
 
 end
 
-instantiation "+" :: (random, random) random
+instantiation "+" :: ("{type, random}", "{type, random}") random
 begin
 
 definition
@@ -250,7 +250,7 @@ instance ..
 
 end
 
-instantiation "*" :: (random, random) random
+instantiation "*" :: ("{type, random}", "{type, random}") random
 begin
 
 definition
@@ -277,7 +277,7 @@ instance ..
 
 end
 
-instantiation list :: (random) random
+instantiation list :: ("{type, random}") random
 begin
 
 primrec
@@ -429,7 +429,7 @@ end
 code_const "Eval.term_of :: ('a\<Colon>term_of \<Rightarrow> 'b\<Colon>term_of) \<Rightarrow> _"
   (SML "(fn '_ => Const (\"arbitrary\", dummyT))")
 
-instantiation "fun" :: (eq, random) random
+instantiation "fun" :: (eq, "{type, random}") random
 begin
 
 definition
