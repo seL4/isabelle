@@ -11,7 +11,7 @@ text {*
   below and constants declared in HOL!
 *}
 
-hide const subset member quotient between
+hide const subset member quotient 
 
 
 text {*
