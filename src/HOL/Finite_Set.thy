@@ -420,6 +420,157 @@ lemma finite_trancl: "finite (r^+) = finite r"
   done
 
 
+subsection {* Class @{text finite} and code generation *}
+
+lemma finite_code [code func]:
+  "finite {} \<longleftrightarrow> True"
+  "finite (insert a A) \<longleftrightarrow> finite A"
+  by auto
+
+setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
+class finite (attach UNIV) = type +
+  fixes itself :: "'a itself"
+  assumes finite_UNIV: "finite (UNIV \<Colon> 'a set)"
+setup {* Sign.parent_path *}
+hide const finite
+
+lemma finite [simp]: "finite (A \<Colon> 'a\<Colon>finite set)"
+  by (rule finite_subset [OF subset_UNIV finite_UNIV])
+
+lemma univ_unit [noatp]:
+  "UNIV = {()}" by auto
+
+instantiation unit :: finite
+begin
+
+definition
+  "itself = TYPE(unit)"
+
+instance proof
+  have "finite {()}" by simp
+  also note univ_unit [symmetric]
+  finally show "finite (UNIV :: unit set)" .
+qed
+
+end
+
+lemmas [code func] = univ_unit
+
+lemma univ_bool [noatp]:
+  "UNIV = {False, True}" by auto
+
+instantiation bool :: finite
+begin
+
+definition
+  "itself = TYPE(bool)"
+
+instance proof
+  have "finite {False, True}" by simp
+  also note univ_bool [symmetric]
+  finally show "finite (UNIV :: bool set)" .
+qed
+
+end
+
+lemmas [code func] = univ_bool
+
+instantiation * :: (finite, finite) finite
+begin
+
+definition
+  "itself = TYPE('a \<times> 'b)"
+
+instance proof
+  show "finite (UNIV :: ('a \<times> 'b) set)"
+  proof (rule finite_Prod_UNIV)
+    show "finite (UNIV :: 'a set)" by (rule finite)
+    show "finite (UNIV :: 'b set)" by (rule finite)
+  qed
+qed
+
+end
+
+lemma univ_prod [noatp, code func]:
+  "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) \<times> (UNIV \<Colon> 'b\<Colon>finite set)"
+  unfolding UNIV_Times_UNIV ..
+
+instantiation "+" :: (finite, finite) finite
+begin
+
+definition
+  "itself = TYPE('a + 'b)"
+
+instance proof
+  have a: "finite (UNIV :: 'a set)" by (rule finite)
+  have b: "finite (UNIV :: 'b set)" by (rule finite)
+  from a b have "finite ((UNIV :: 'a set) <+> (UNIV :: 'b set))"
+    by (rule finite_Plus)
+  thus "finite (UNIV :: ('a + 'b) set)" by simp
+qed
+
+end
+
+lemma univ_sum [noatp, code func]:
+  "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) <+> (UNIV \<Colon> 'b\<Colon>finite set)"
+  unfolding UNIV_Plus_UNIV ..
+
+instantiation set :: (finite) finite
+begin
+
+definition
+  "itself = TYPE('a set)"
+
+instance proof
+  have "finite (UNIV :: 'a set)" by (rule finite)
+  hence "finite (Pow (UNIV :: 'a set))"
+    by (rule finite_Pow_iff [THEN iffD2])
+  thus "finite (UNIV :: 'a set set)" by simp
+qed
+
+end
+
+lemma univ_set [noatp, code func]:
+  "UNIV = Pow (UNIV \<Colon> 'a\<Colon>finite set)" unfolding Pow_UNIV ..
+
+lemma inj_graph: "inj (%f. {(x, y). y = f x})"
+  by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
+
+instantiation "fun" :: (finite, finite) finite
+begin
+
+definition
+  "itself \<equiv> TYPE('a \<Rightarrow> 'b)"
+
+instance proof
+  show "finite (UNIV :: ('a => 'b) set)"
+  proof (rule finite_imageD)
+    let ?graph = "%f::'a => 'b. {(x, y). y = f x}"
+    show "finite (range ?graph)" by (rule finite)
+    show "inj ?graph" by (rule inj_graph)
+  qed
+qed
+
+end
+
+hide (open) const itself
+
+subsection {* Equality and order on functions *}
+
+instance "fun" :: (finite, eq) eq ..
+
+lemma eq_fun [code func]:
+  fixes f g :: "'a\<Colon>finite \<Rightarrow> 'b\<Colon>eq"
+  shows "f = g \<longleftrightarrow> (\<forall>x\<in>UNIV. f x = g x)"
+  unfolding expand_fun_eq by auto
+
+lemma order_fun [code func]:
+  fixes f g :: "'a\<Colon>finite \<Rightarrow> 'b\<Colon>order"
+  shows "f \<le> g \<longleftrightarrow> (\<forall>x\<in>UNIV. f x \<le> g x)"
+    and "f < g \<longleftrightarrow> f \<le> g \<and> (\<exists>x\<in>UNIV. f x \<noteq> g x)"
+  by (auto simp add: expand_fun_eq le_fun_def less_fun_def order_less_le)
+
+
 subsection {* A fold functional for finite sets *}
 
 text {* The intended behaviour is
@@ -461,56 +612,6 @@ lemma foldSet_imp_finite: "foldSet f g z A x==> finite A"
 
 lemma finite_imp_foldSet: "finite A ==> EX x. foldSet f g z A x"
   by (induct set: finite) auto
-
-
-subsubsection {* Commutative monoids *}
-
-(*FIXME integrate with Orderings.thy/OrderedGroup.thy*)
-locale ACf =
-  fixes f :: "'a => 'a => 'a"    (infixl "\<cdot>" 70)
-  assumes commute: "x \<cdot> y = y \<cdot> x"
-    and assoc: "(x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)"
-begin
-
-lemma left_commute: "x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
-proof -
-  have "x \<cdot> (y \<cdot> z) = (y \<cdot> z) \<cdot> x" by (simp only: commute)
-  also have "... = y \<cdot> (z \<cdot> x)" by (simp only: assoc)
-  also have "z \<cdot> x = x \<cdot> z" by (simp only: commute)
-  finally show ?thesis .
-qed
-
-lemmas AC = assoc commute left_commute
-
-end
-
-locale ACe = ACf +
-  fixes e :: 'a
-  assumes ident [simp]: "x \<cdot> e = x"
-begin
-
-lemma left_ident [simp]: "e \<cdot> x = x"
-proof -
-  have "x \<cdot> e = x" by (rule ident)
-  thus ?thesis by (subst commute)
-qed
-
-end
-
-locale ACIf = ACf +
-  assumes idem: "x \<cdot> x = x"
-begin
-
-lemma idem2: "x \<cdot> (x \<cdot> y) = x \<cdot> y"
-proof -
-  have "x \<cdot> (x \<cdot> y) = (x \<cdot> x) \<cdot> y" by(simp add:assoc)
-  also have "\<dots> = x \<cdot> y" by(simp add:idem)
-  finally show ?thesis .
-qed
-
-lemmas ACI = AC idem idem2
-
-end
 
 
 subsubsection{*From @{term foldSet} to @{term fold}*}
@@ -557,16 +658,19 @@ next
   qed
 qed
 
-lemma (in ACf) foldSet_determ_aux:
+context ab_semigroup_mult
+begin
+
+lemma foldSet_determ_aux:
   "!!A x x' h. \<lbrakk> A = h`{i::nat. i<n}; inj_on h {i. i<n}; 
-                foldSet f g z A x; foldSet f g z A x' \<rbrakk>
+                foldSet times g z A x; foldSet times g z A x' \<rbrakk>
    \<Longrightarrow> x' = x"
 proof (induct n rule: less_induct)
   case (less n)
     have IH: "!!m h A x x'. 
                \<lbrakk>m<n; A = h ` {i. i<m}; inj_on h {i. i<m}; 
-                foldSet f g z A x; foldSet f g z A x'\<rbrakk> \<Longrightarrow> x' = x" by fact
-    have Afoldx: "foldSet f g z A x" and Afoldx': "foldSet f g z A x'"
+                foldSet times g z A x; foldSet times g z A x'\<rbrakk> \<Longrightarrow> x' = x" by fact
+    have Afoldx: "foldSet times g z A x" and Afoldx': "foldSet times g z A x'"
      and A: "A = h`{i. i<n}" and injh: "inj_on h {i. i<n}" by fact+
     show ?case
     proof (rule foldSet.cases [OF Afoldx])
@@ -574,16 +678,16 @@ proof (induct n rule: less_induct)
       with Afoldx' show "x' = x" by blast
     next
       fix B b u
-      assume AbB: "A = insert b B" and x: "x = g b \<cdot> u"
-         and notinB: "b \<notin> B" and Bu: "foldSet f g z B u"
+      assume AbB: "A = insert b B" and x: "x = g b * u"
+         and notinB: "b \<notin> B" and Bu: "foldSet times g z B u"
       show "x'=x" 
       proof (rule foldSet.cases [OF Afoldx'])
         assume "A = {}" and "x' = z"
         with AbB show "x' = x" by blast
       next
 	fix C c v
-	assume AcC: "A = insert c C" and x': "x' = g c \<cdot> v"
-           and notinC: "c \<notin> C" and Cv: "foldSet f g z C v"
+	assume AcC: "A = insert c C" and x': "x' = g c * v"
+           and notinC: "c \<notin> C" and Cv: "foldSet times g z C v"
 	from A AbB have Beq: "insert b B = h`{i. i<n}" by simp
         from insert_inj_onE [OF Beq notinB injh]
         obtain hB mB where inj_onB: "inj_on hB {i. i < mB}" 
@@ -607,51 +711,52 @@ proof (induct n rule: less_induct)
 	    using AbB AcC notinB notinC diff by(blast elim!:equalityE)+
 	  have "finite A" by(rule foldSet_imp_finite[OF Afoldx])
 	  with AbB have "finite ?D" by simp
-	  then obtain d where Dfoldd: "foldSet f g z ?D d"
+	  then obtain d where Dfoldd: "foldSet times g z ?D d"
 	    using finite_imp_foldSet by iprover
 	  moreover have cinB: "c \<in> B" using B by auto
-	  ultimately have "foldSet f g z B (g c \<cdot> d)"
+	  ultimately have "foldSet times g z B (g c * d)"
 	    by(rule Diff1_foldSet)
-	  hence "g c \<cdot> d = u" by (rule IH [OF lessB Beq inj_onB Bu]) 
-          moreover have "g b \<cdot> d = v"
-	  proof (rule IH[OF lessC Ceq inj_onC Cv])
-	    show "foldSet f g z C (g b \<cdot> d)" using C notinB Dfoldd
+	  then have "g c * d = u" by (rule IH [OF lessB Beq inj_onB Bu]) 
+          then have "u = g c * d" ..
+          moreover have "v = g b * d"
+	  proof (rule sym, rule IH [OF lessC Ceq inj_onC Cv])
+	    show "foldSet times g z C (g b * d)" using C notinB Dfoldd
 	      by fastsimp
 	  qed
-	  ultimately show ?thesis using x x' by (auto simp: AC)
+	  ultimately show ?thesis using x x'
+	    by (simp add: mult_left_commute)
 	qed
       qed
     qed
   qed
 
-
-lemma (in ACf) foldSet_determ:
-  "foldSet f g z A x ==> foldSet f g z A y ==> y = x"
+lemma foldSet_determ:
+  "foldSet times g z A x ==> foldSet times g z A y ==> y = x"
 apply (frule foldSet_imp_finite [THEN finite_imp_nat_seg_image_inj_on]) 
 apply (blast intro: foldSet_determ_aux [rule_format])
 done
 
-lemma (in ACf) fold_equality: "foldSet f g z A y ==> fold f g z A = y"
+lemma fold_equality: "foldSet times g z A y ==> fold times g z A = y"
   by (unfold fold_def) (blast intro: foldSet_determ)
 
 text{* The base case for @{text fold}: *}
 
-lemma fold_empty [simp]: "fold f g z {} = z"
+lemma (in -) fold_empty [simp]: "fold f g z {} = z"
   by (unfold fold_def) blast
 
-lemma (in ACf) fold_insert_aux: "x \<notin> A ==>
-    (foldSet f g z (insert x A) v) =
-    (EX y. foldSet f g z A y & v = f (g x) y)"
+lemma fold_insert_aux: "x \<notin> A ==>
+    (foldSet times g z (insert x A) v) =
+    (EX y. foldSet times g z A y & v = g x * y)"
   apply auto
-  apply (rule_tac A1 = A and f1 = f in finite_imp_foldSet [THEN exE])
+  apply (rule_tac A1 = A and f1 = times in finite_imp_foldSet [THEN exE])
    apply (fastsimp dest: foldSet_imp_finite)
   apply (blast intro: foldSet_determ)
   done
 
 text{* The recursion equation for @{text fold}: *}
 
-lemma (in ACf) fold_insert[simp]:
-    "finite A ==> x \<notin> A ==> fold f g z (insert x A) = f (g x) (fold f g z A)"
+lemma fold_insert [simp]:
+    "finite A ==> x \<notin> A ==> fold times g z (insert x A) = g x * fold times g z A"
   apply (unfold fold_def)
   apply (simp add: fold_insert_aux)
   apply (rule the_equality)
@@ -659,23 +764,27 @@ lemma (in ACf) fold_insert[simp]:
     cong add: conj_cong simp add: fold_def [symmetric] fold_equality)
   done
 
-lemma (in ACf) fold_rec:
+lemma fold_rec:
 assumes fin: "finite A" and a: "a:A"
-shows "fold f g z A = f (g a) (fold f g z (A - {a}))"
+shows "fold times g z A = g a * fold times g z (A - {a})"
 proof-
   have A: "A = insert a (A - {a})" using a by blast
-  hence "fold f g z A = fold f g z (insert a (A - {a}))" by simp
-  also have "\<dots> = f (g a) (fold f g z (A - {a}))"
+  hence "fold times g z A = fold times g z (insert a (A - {a}))" by simp
+  also have "\<dots> = g a * fold times g z (A - {a})"
     by(rule fold_insert) (simp add:fin)+
   finally show ?thesis .
 qed
 
+end
 
 text{* A simplified version for idempotent functions: *}
 
-lemma (in ACIf) fold_insert_idem:
+context ab_semigroup_idem_mult
+begin
+
+lemma fold_insert_idem:
 assumes finA: "finite A"
-shows "fold f g z (insert a A) = g a \<cdot> fold f g z A"
+shows "fold times g z (insert a A) = g a * fold times g z A"
 proof cases
   assume "a \<in> A"
   then obtain B where A: "A = insert a B" and disj: "a \<notin> B"
@@ -683,11 +792,12 @@ proof cases
   show ?thesis
   proof -
     from finA A have finB: "finite B" by(blast intro: finite_subset)
-    have "fold f g z (insert a A) = fold f g z (insert a B)" using A by simp
-    also have "\<dots> = (g a) \<cdot> (fold f g z B)"
+    have "fold times g z (insert a A) = fold times g z (insert a B)" using A by simp
+    also have "\<dots> = g a * fold times g z B"
       using finB disj by simp
-    also have "\<dots> = g a \<cdot> fold f g z A"
-      using A finB disj by(simp add:idem assoc[symmetric])
+    also have "\<dots> = g a * fold times g z A"
+      using A finB disj
+	by (simp add: mult_idem mult_assoc [symmetric])
     finally show ?thesis .
   qed
 next
@@ -695,81 +805,61 @@ next
   with finA show ?thesis by simp
 qed
 
-lemma (in ACIf) foldI_conv_id:
-  "finite A \<Longrightarrow> fold f g z A = fold f id z (g ` A)"
+lemma foldI_conv_id:
+  "finite A \<Longrightarrow> fold times g z A = fold times id z (g ` A)"
 by(erule finite_induct)(simp_all add: fold_insert_idem del: fold_insert)
+
+end
 
 subsubsection{*Lemmas about @{text fold}*}
 
-lemma (in ACf) fold_commute:
-  "finite A ==> (!!z. f x (fold f g z A) = fold f g (f x z) A)"
+context ab_semigroup_mult
+begin
+
+lemma fold_commute:
+  "finite A ==> (!!z. x * (fold times g z A) = fold times g (x * z) A)"
   apply (induct set: finite)
    apply simp
-  apply (simp add: left_commute [of x])
+  apply (simp add: mult_left_commute [of x])
   done
 
-lemma (in ACf) fold_nest_Un_Int:
+lemma fold_nest_Un_Int:
   "finite A ==> finite B
-    ==> fold f g (fold f g z B) A = fold f g (fold f g z (A Int B)) (A Un B)"
+    ==> fold times g (fold times g z B) A = fold times g (fold times g z (A Int B)) (A Un B)"
   apply (induct set: finite)
    apply simp
   apply (simp add: fold_commute Int_insert_left insert_absorb)
   done
 
-lemma (in ACf) fold_nest_Un_disjoint:
+lemma fold_nest_Un_disjoint:
   "finite A ==> finite B ==> A Int B = {}
-    ==> fold f g z (A Un B) = fold f g (fold f g z B) A"
+    ==> fold times g z (A Un B) = fold times g (fold times g z B) A"
   by (simp add: fold_nest_Un_Int)
 
-lemma (in ACf) fold_reindex:
+lemma fold_reindex:
 assumes fin: "finite A"
-shows "inj_on h A \<Longrightarrow> fold f g z (h ` A) = fold f (g \<circ> h) z A"
+shows "inj_on h A \<Longrightarrow> fold times g z (h ` A) = fold times (g \<circ> h) z A"
 using fin apply induct
  apply simp
 apply simp
 done
 
-lemma (in ACe) fold_Un_Int:
-  "finite A ==> finite B ==>
-    fold f g e A \<cdot> fold f g e B =
-    fold f g e (A Un B) \<cdot> fold f g e (A Int B)"
-  apply (induct set: finite, simp)
-  apply (simp add: AC insert_absorb Int_insert_left)
-  done
+text{*
+  Fusion theorem, as described in Graham Hutton's paper,
+  A Tutorial on the Universality and Expressiveness of Fold,
+  JFP 9:4 (355-372), 1999.
+*}
 
-corollary (in ACe) fold_Un_disjoint:
-  "finite A ==> finite B ==> A Int B = {} ==>
-    fold f g e (A Un B) = fold f g e A \<cdot> fold f g e B"
-  by (simp add: fold_Un_Int)
+lemma fold_fusion:
+  includes ab_semigroup_mult g
+  assumes fin: "finite A"
+    and hyp: "\<And>x y. h (g x y) = times x (h y)"
+  shows "h (fold g j w A) = fold times j (h w) A"
+  using fin hyp by (induct set: finite) simp_all
 
-lemma (in ACe) fold_UN_disjoint:
-  "\<lbrakk> finite I; ALL i:I. finite (A i);
-     ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {} \<rbrakk>
-   \<Longrightarrow> fold f g e (UNION I A) =
-       fold f (%i. fold f g e (A i)) e I"
-  apply (induct set: finite, simp, atomize)
-  apply (subgoal_tac "ALL i:F. x \<noteq> i")
-   prefer 2 apply blast
-  apply (subgoal_tac "A x Int UNION F A = {}")
-   prefer 2 apply blast
-  apply (simp add: fold_Un_disjoint)
-  done
-
-text{*Fusion theorem, as described in
-Graham Hutton's paper,
-A Tutorial on the Universality and Expressiveness of Fold,
-JFP 9:4 (355-372), 1999.*}
-lemma (in ACf) fold_fusion:
-      includes ACf g
-      shows
-	"finite A ==> 
-	 (!!x y. h (g x y) = f x (h y)) ==>
-         h (fold g j w A) = fold f j (h w) A"
-  by (induct set: finite) simp_all
-
-lemma (in ACf) fold_cong:
-  "finite A \<Longrightarrow> (!!x. x:A ==> g x = h x) ==> fold f g z A = fold f h z A"
-  apply (subgoal_tac "ALL C. C <= A --> (ALL x:C. g x = h x) --> fold f g z C = fold f h z C")
+lemma fold_cong:
+  "finite A \<Longrightarrow> (!!x. x:A ==> g x = h x) ==> fold times g z A = fold times h z A"
+  apply (subgoal_tac "ALL C. C <= A --> (ALL x:C. g x = h x) --> fold times g z C = fold times h z C")
    apply simp
   apply (erule finite_induct, simp)
   apply (simp add: subset_insert_iff, clarify)
@@ -783,9 +873,39 @@ lemma (in ACf) fold_cong:
   apply (simp add: Ball_def del: insert_Diff_single)
   done
 
-lemma (in ACe) fold_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
-  fold f (%x. fold f (g x) e (B x)) e A =
-  fold f (split g) e (SIGMA x:A. B x)"
+end
+
+context comm_monoid_mult
+begin
+
+lemma fold_Un_Int:
+  "finite A ==> finite B ==>
+    fold times g 1 A * fold times g 1 B =
+    fold times g 1 (A Un B) * fold times g 1 (A Int B)"
+  by (induct set: finite) 
+    (auto simp add: mult_ac insert_absorb Int_insert_left)
+
+corollary fold_Un_disjoint:
+  "finite A ==> finite B ==> A Int B = {} ==>
+    fold times g 1 (A Un B) = fold times g 1 A * fold times g 1 B"
+  by (simp add: fold_Un_Int)
+
+lemma fold_UN_disjoint:
+  "\<lbrakk> finite I; ALL i:I. finite (A i);
+     ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {} \<rbrakk>
+   \<Longrightarrow> fold times g 1 (UNION I A) =
+       fold times (%i. fold times g 1 (A i)) 1 I"
+  apply (induct set: finite, simp, atomize)
+  apply (subgoal_tac "ALL i:F. x \<noteq> i")
+   prefer 2 apply blast
+  apply (subgoal_tac "A x Int UNION F A = {}")
+   prefer 2 apply blast
+  apply (simp add: fold_Un_disjoint)
+  done
+
+lemma fold_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
+  fold times (%x. fold times (g x) 1 (B x)) 1 A =
+  fold times (split g) 1 (SIGMA x:A. B x)"
 apply (subst Sigma_def)
 apply (subst fold_UN_disjoint, assumption, simp)
  apply blast
@@ -795,23 +915,17 @@ apply (subst fold_UN_disjoint, simp, simp)
 apply simp
 done
 
-lemma (in ACe) fold_distrib: "finite A \<Longrightarrow>
-   fold f (%x. f (g x) (h x)) e A = f (fold f g e A) (fold f h e A)"
-apply (erule finite_induct, simp)
-apply (simp add:AC)
-done
+lemma fold_distrib: "finite A \<Longrightarrow>
+   fold times (%x. g x * h x) 1 A = fold times g 1 A *  fold times h 1 A"
+  by (erule finite_induct) (simp_all add: mult_ac)
 
-
-text{* Interpretation of locales -- see OrderedGroup.thy *}
-
-interpretation AC_add: ACe ["op +" "0::'a::comm_monoid_add"]
-  by unfold_locales (auto intro: add_assoc add_commute)
-
-interpretation AC_mult: ACe ["op *" "1::'a::comm_monoid_mult"]
-  by unfold_locales (auto intro: mult_assoc mult_commute)
+end
 
 
 subsection {* Generalized summation over a set *}
+
+interpretation comm_monoid_add: comm_monoid_mult ["0::'a::comm_monoid_add" "op +"]
+  by unfold_locales (auto intro: add_assoc add_commute)
 
 constdefs
   setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
@@ -873,7 +987,7 @@ lemma setsum_infinite [simp]: "~ finite A ==> setsum f A = 0"
 
 lemma setsum_reindex:
      "inj_on f B ==> setsum h (f ` B) = setsum (h \<circ> f) B"
-by(auto simp add: setsum_def AC_add.fold_reindex dest!:finite_imageD)
+by(auto simp add: setsum_def comm_monoid_add.fold_reindex dest!:finite_imageD)
 
 lemma setsum_reindex_id:
      "inj_on f B ==> setsum f B = setsum id (f ` B)"
@@ -881,12 +995,12 @@ by (auto simp add: setsum_reindex)
 
 lemma setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
-by(fastsimp simp: setsum_def intro: AC_add.fold_cong)
+by(fastsimp simp: setsum_def intro: comm_monoid_add.fold_cong)
 
 lemma strong_setsum_cong[cong]:
   "A = B ==> (!!x. x:B =simp=> f x = g x)
    ==> setsum (%x. f x) A = setsum (%x. g x) B"
-by(fastsimp simp: simp_implies_def setsum_def intro: AC_add.fold_cong)
+by(fastsimp simp: simp_implies_def setsum_def intro: comm_monoid_add.fold_cong)
 
 lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A";
   by (rule setsum_cong[OF refl], auto);
@@ -907,7 +1021,7 @@ by(simp add:setsum_cong)
 lemma setsum_Un_Int: "finite A ==> finite B ==>
   setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
   -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
-by(simp add: setsum_def AC_add.fold_Un_Int [symmetric])
+by(simp add: setsum_def comm_monoid_add.fold_Un_Int [symmetric])
 
 lemma setsum_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setsum g (A Un B) = setsum g A + setsum g B"
@@ -919,7 +1033,7 @@ lemma setsum_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       setsum f (UNION I A) = (\<Sum>i\<in>I. setsum f (A i))"
-by(simp add: setsum_def AC_add.fold_UN_disjoint cong: setsum_cong)
+by(simp add: setsum_def comm_monoid_add.fold_UN_disjoint cong: setsum_cong)
 
 text{*No need to assume that @{term C} is finite.  If infinite, the rhs is
 directly 0, and @{term "Union C"} is also infinite, hence the lhs is also 0.*}
@@ -937,7 +1051,7 @@ done
   the rhs need not be, since SIGMA A B could still be finite.*)
 lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) = (\<Sum>(x,y)\<in>(SIGMA x:A. B x). f x y)"
-by(simp add:setsum_def AC_add.fold_Sigma split_def cong:setsum_cong)
+by(simp add:setsum_def comm_monoid_add.fold_Sigma split_def cong:setsum_cong)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setsum_cartesian_product: 
@@ -952,7 +1066,7 @@ apply (auto simp add: setsum_def
 done
 
 lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
-by(simp add:setsum_def AC_add.fold_distrib)
+by(simp add:setsum_def comm_monoid_add.fold_distrib)
 
 
 subsubsection {* Properties in more restricted classes of structures *}
@@ -1331,18 +1445,18 @@ lemma setprod_infinite [simp]: "~ finite A ==> setprod f A = 1"
 
 lemma setprod_reindex:
      "inj_on f B ==> setprod h (f ` B) = setprod (h \<circ> f) B"
-by(auto simp: setprod_def AC_mult.fold_reindex dest!:finite_imageD)
+by(auto simp: setprod_def fold_reindex dest!:finite_imageD)
 
 lemma setprod_reindex_id: "inj_on f B ==> setprod f B = setprod id (f ` B)"
 by (auto simp add: setprod_reindex)
 
 lemma setprod_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setprod f A = setprod g B"
-by(fastsimp simp: setprod_def intro: AC_mult.fold_cong)
+by(fastsimp simp: setprod_def intro: fold_cong)
 
 lemma strong_setprod_cong:
   "A = B ==> (!!x. x:B =simp=> f x = g x) ==> setprod f A = setprod g B"
-by(fastsimp simp: simp_implies_def setprod_def intro: AC_mult.fold_cong)
+by(fastsimp simp: simp_implies_def setprod_def intro: fold_cong)
 
 lemma setprod_reindex_cong: "inj_on f A ==>
     B = f ` A ==> g = h \<circ> f ==> setprod h B = setprod g A"
@@ -1362,7 +1476,7 @@ lemma setprod_1': "ALL a:F. f a = 1 ==> setprod f F = 1"
 
 lemma setprod_Un_Int: "finite A ==> finite B
     ==> setprod g (A Un B) * setprod g (A Int B) = setprod g A * setprod g B"
-by(simp add: setprod_def AC_mult.fold_Un_Int[symmetric])
+by(simp add: setprod_def fold_Un_Int[symmetric])
 
 lemma setprod_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setprod g (A Un B) = setprod g A * setprod g B"
@@ -1372,7 +1486,7 @@ lemma setprod_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       setprod f (UNION I A) = setprod (%i. setprod f (A i)) I"
-by(simp add: setprod_def AC_mult.fold_UN_disjoint cong: setprod_cong)
+by(simp add: setprod_def fold_UN_disjoint cong: setprod_cong)
 
 lemma setprod_Union_disjoint:
   "[| (ALL A:C. finite A);
@@ -1387,7 +1501,7 @@ done
 lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Prod>x\<in>A. (\<Prod>y\<in> B x. f x y)) =
     (\<Prod>(x,y)\<in>(SIGMA x:A. B x). f x y)"
-by(simp add:setprod_def AC_mult.fold_Sigma split_def cong:setprod_cong)
+by(simp add:setprod_def fold_Sigma split_def cong:setprod_cong)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setprod_cartesian_product: 
@@ -1403,7 +1517,7 @@ done
 
 lemma setprod_timesf:
      "setprod (%x. f x * g x) A = (setprod f A * setprod g A)"
-by(simp add:setprod_def AC_mult.fold_distrib)
+by(simp add:setprod_def fold_distrib)
 
 
 subsubsection {* Properties in more restricted classes of structures *}
@@ -1555,6 +1669,12 @@ qed
 lemma card_insert: "finite A ==> card (insert x A) = Suc (card (A - {x}))"
 by (simp add: card_insert_if card_Suc_Diff1 del:card_Diff_insert)
 
+lemma card_code [code func]:
+  "card {} = 0"
+  "card (insert a A) =
+    (if finite A then Suc (card (A - {a})) else card (insert a A))"
+  by (auto simp add: card_insert)
+
 lemma card_insert_le: "finite A ==> card A <= card (insert x A)"
 by (simp add: card_insert_if)
 
@@ -1701,10 +1821,14 @@ subsubsection {* Cardinality of image *}
 
 text{*The image of a finite set can be expressed using @{term fold}.*}
 lemma image_eq_fold: "finite A ==> f ` A = fold (op Un) (%x. {f x}) {} A"
-  apply (erule finite_induct, simp)
-  apply (subst ACf.fold_insert) 
-  apply (auto simp add: ACf_def) 
-  done
+proof (induct rule: finite_induct)
+  case empty then show ?case by simp
+next
+  invoke ab_semigroup_mult ["op Un"]
+    by unfold_locales auto
+  case insert 
+  then show ?case by simp
+qed
 
 lemma card_image_le: "finite A ==> card (f ` A) <= card A"
   apply (induct set: finite)
@@ -1861,22 +1985,25 @@ done
 
 text{*First, some lemmas about @{term foldSet}.*}
 
-lemma (in ACf) foldSet_insert_swap:
-assumes fold: "foldSet f id b A y"
-shows "b \<notin> A \<Longrightarrow> foldSet f id z (insert b A) (z \<cdot> y)"
+context ab_semigroup_mult
+begin
+
+lemma foldSet_insert_swap:
+assumes fold: "foldSet times id b A y"
+shows "b \<notin> A \<Longrightarrow> foldSet times id z (insert b A) (z * y)"
 using fold
 proof (induct rule: foldSet.induct)
-  case emptyI thus ?case by (force simp add: fold_insert_aux commute)
+  case emptyI thus ?case by (force simp add: fold_insert_aux mult_commute)
 next
   case (insertI x A y)
-    have "foldSet f (\<lambda>u. u) z (insert x (insert b A)) (x \<cdot> (z \<cdot> y))"
+    have "foldSet times (\<lambda>u. u) z (insert x (insert b A)) (x * (z * y))"
       using insertI by force  --{*how does @{term id} get unfolded?*}
-    thus ?case by (simp add: insert_commute AC)
+    thus ?case by (simp add: insert_commute mult_ac)
 qed
 
-lemma (in ACf) foldSet_permute_diff:
-assumes fold: "foldSet f id b A x"
-shows "!!a. \<lbrakk>a \<in> A; b \<notin> A\<rbrakk> \<Longrightarrow> foldSet f id a (insert b (A-{a})) x"
+lemma foldSet_permute_diff:
+assumes fold: "foldSet times id b A x"
+shows "!!a. \<lbrakk>a \<in> A; b \<notin> A\<rbrakk> \<Longrightarrow> foldSet times id a (insert b (A-{a})) x"
 using fold
 proof (induct rule: foldSet.induct)
   case emptyI thus ?case by simp
@@ -1890,7 +2017,7 @@ next
       by (simp add: id_def [symmetric], blast intro: foldSet_insert_swap) 
   next
     assume ainA: "a \<in> A"
-    hence "foldSet f id a (insert x (insert b (A - {a}))) (x \<cdot> y)"
+    hence "foldSet times id a (insert x (insert b (A - {a}))) (x * y)"
       using insertI by (force simp: id_def)
     moreover
     have "insert x (insert b (A - {a})) = insert b (insert x A - {a})"
@@ -1899,15 +2026,15 @@ next
   qed
 qed
 
-lemma (in ACf) fold1_eq_fold:
-     "[|finite A; a \<notin> A|] ==> fold1 f (insert a A) = fold f id a A"
+lemma fold1_eq_fold:
+     "[|finite A; a \<notin> A|] ==> fold1 times (insert a A) = fold times id a A"
 apply (simp add: fold1_def fold_def) 
 apply (rule the_equality)
-apply (best intro: foldSet_determ theI dest: finite_imp_foldSet [of _ f id]) 
+apply (best intro: foldSet_determ theI dest: finite_imp_foldSet [of _ times id]) 
 apply (rule sym, clarify)
 apply (case_tac "Aa=A")
  apply (best intro: the_equality foldSet_determ)  
-apply (subgoal_tac "foldSet f id a A x")
+apply (subgoal_tac "foldSet times id a A x")
  apply (best intro: the_equality foldSet_determ)  
 apply (subgoal_tac "insert aa (Aa - {a}) = A") 
  prefer 2 apply (blast elim: equalityE) 
@@ -1921,9 +2048,9 @@ apply (drule_tac x=x in spec)
 apply (drule_tac x="A-{x}" in spec, auto) 
 done
 
-lemma (in ACf) fold1_insert:
+lemma fold1_insert:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" "x \<notin> A"
-  shows "fold1 f (insert x A) = f x (fold1 f A)"
+  shows "fold1 times (insert x A) = x * fold1 times A"
 proof -
   from nonempty obtain a A' where "A = insert a A' & a ~: A'" 
     by (auto simp add: nonempty_iff)
@@ -1931,9 +2058,14 @@ proof -
     by (simp add: insert_commute [of x] fold1_eq_fold eq_commute) 
 qed
 
-lemma (in ACIf) fold1_insert_idem [simp]:
+end
+
+context ab_semigroup_idem_mult
+begin
+
+lemma fold1_insert_idem [simp]:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" 
-  shows "fold1 f (insert x A) = f x (fold1 f A)"
+  shows "fold1 times (insert x A) = x * fold1 times A"
 proof -
   from nonempty obtain a A' where A': "A = insert a A' & a ~: A'" 
     by (auto simp add: nonempty_iff)
@@ -1943,11 +2075,11 @@ proof -
     thus ?thesis 
     proof cases
       assume "A' = {}"
-      with prems show ?thesis by (simp add: idem) 
+      with prems show ?thesis by (simp add: mult_idem) 
     next
       assume "A' \<noteq> {}"
       with prems show ?thesis
-	by (simp add: fold1_insert assoc [symmetric] idem) 
+	by (simp add: fold1_insert mult_assoc [symmetric] mult_idem) 
     qed
   next
     assume "a \<noteq> x"
@@ -1956,21 +2088,23 @@ proof -
   qed
 qed
 
-lemma (in ACIf) hom_fold1_commute:
-assumes hom: "!!x y. h(f x y) = f (h x) (h y)"
-and N: "finite N" "N \<noteq> {}" shows "h(fold1 f N) = fold1 f (h ` N)"
+lemma hom_fold1_commute:
+assumes hom: "!!x y. h (x * y) = h x * h y"
+and N: "finite N" "N \<noteq> {}" shows "h (fold1 times N) = fold1 times (h ` N)"
 using N proof (induct rule: finite_ne_induct)
   case singleton thus ?case by simp
 next
   case (insert n N)
-  then have "h(fold1 f (insert n N)) = h(f n (fold1 f N))" by simp
-  also have "\<dots> = f (h n) (h(fold1 f N))" by(rule hom)
-  also have "h(fold1 f N) = fold1 f (h ` N)" by(rule insert)
-  also have "f (h n) \<dots> = fold1 f (insert (h n) (h ` N))"
+  then have "h (fold1 times (insert n N)) = h (n * fold1 times N)" by simp
+  also have "\<dots> = h n * h (fold1 times N)" by(rule hom)
+  also have "h (fold1 times N) = fold1 times (h ` N)" by(rule insert)
+  also have "times (h n) \<dots> = fold1 times (insert (h n) (h ` N))"
     using insert by(simp)
   also have "insert (h n) (h ` N) = h ` insert n N" by simp
   finally show ?case .
 qed
+
+end
 
 
 text{* Now the recursion rules for definitions: *}
@@ -1978,31 +2112,34 @@ text{* Now the recursion rules for definitions: *}
 lemma fold1_singleton_def: "g = fold1 f \<Longrightarrow> g {a} = a"
 by(simp add:fold1_singleton)
 
-lemma (in ACf) fold1_insert_def:
-  "\<lbrakk> g = fold1 f; finite A; x \<notin> A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g (insert x A) = x \<cdot> (g A)"
-by(simp add:fold1_insert)
+lemma (in ab_semigroup_mult) fold1_insert_def:
+  "\<lbrakk> g = fold1 times; finite A; x \<notin> A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g (insert x A) = x * g A"
+by (simp add:fold1_insert)
 
-lemma (in ACIf) fold1_insert_idem_def:
-  "\<lbrakk> g = fold1 f; finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g (insert x A) = x \<cdot> (g A)"
-by(simp add:fold1_insert_idem)
+lemma (in ab_semigroup_idem_mult) fold1_insert_idem_def:
+  "\<lbrakk> g = fold1 times; finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g (insert x A) = x * g A"
+by simp
 
 subsubsection{* Determinacy for @{term fold1Set} *}
 
 text{*Not actually used!!*}
 
-lemma (in ACf) foldSet_permute:
-  "[|foldSet f id b (insert a A) x; a \<notin> A; b \<notin> A|]
-   ==> foldSet f id a (insert b A) x"
-apply (case_tac "a=b") 
+context ab_semigroup_mult
+begin
+
+lemma foldSet_permute:
+  "[|foldSet times id b (insert a A) x; a \<notin> A; b \<notin> A|]
+   ==> foldSet times id a (insert b A) x"
+apply (cases "a=b") 
 apply (auto dest: foldSet_permute_diff) 
 done
 
-lemma (in ACf) fold1Set_determ:
-  "fold1Set f A x ==> fold1Set f A y ==> y = x"
+lemma fold1Set_determ:
+  "fold1Set times A x ==> fold1Set times A y ==> y = x"
 proof (clarify elim!: fold1Set.cases)
   fix A x B y a b
-  assume Ax: "foldSet f id a A x"
-  assume By: "foldSet f id b B y"
+  assume Ax: "foldSet times id a A x"
+  assume By: "foldSet times id b B y"
   assume anotA:  "a \<notin> A"
   assume bnotB:  "b \<notin> B"
   assume eq: "insert a A = insert b B"
@@ -2018,171 +2155,40 @@ proof (clarify elim!: fold1Set.cases)
      and aB: "a \<in> B" and bA: "b \<in> A"
       using eq anotA bnotB diff by (blast elim!:equalityE)+
     with aB bnotB By
-    have "foldSet f id a (insert b ?D) y" 
+    have "foldSet times id a (insert b ?D) y" 
       by (auto intro: foldSet_permute simp add: insert_absorb)
     moreover
-    have "foldSet f id a (insert b ?D) x"
+    have "foldSet times id a (insert b ?D) x"
       by (simp add: A [symmetric] Ax) 
     ultimately show ?thesis by (blast intro: foldSet_determ) 
   qed
 qed
 
-lemma (in ACf) fold1Set_equality: "fold1Set f A y ==> fold1 f A = y"
+lemma fold1Set_equality: "fold1Set times A y ==> fold1 times A = y"
   by (unfold fold1_def) (blast intro: fold1Set_determ)
+
+end
 
 declare
   empty_foldSetE [rule del]   foldSet.intros [rule del]
   empty_fold1SetE [rule del]  insert_fold1SetE [rule del]
   -- {* No more proofs involve these relations. *}
 
+subsubsection {* Lemmas about @{text fold1} *}
 
-subsubsection{* Semi-Lattices *}
-
-locale ACIfSL = ord + ACIf +
-  assumes below_def: "less_eq x y \<longleftrightarrow> x \<cdot> y = x"
-  and strict_below_def: "less x y \<longleftrightarrow> less_eq x y \<and> x \<noteq> y"
+context ab_semigroup_mult
 begin
 
-notation
-  less     ("(_/ \<prec> _)"  [51, 51] 50)
-
-notation (xsymbols)
-  less_eq  ("(_/ \<preceq> _)"  [51, 51] 50)
-
-notation (HTML output)
-  less_eq  ("(_/ \<preceq> _)"  [51, 51] 50)
-
-lemma below_refl [simp]: "x \<preceq> x"
-  by (simp add: below_def idem)
-
-lemma below_antisym:
-  assumes xy: "x \<preceq> y" and yx: "y \<preceq> x"
-  shows "x = y"
-  using xy [unfolded below_def, symmetric]
-    yx [unfolded below_def commute]
-  by (rule trans)
-
-lemma below_trans:
-  assumes xy: "x \<preceq> y" and yz: "y \<preceq> z"
-  shows "x \<preceq> z"
-proof -
-  from xy have x_xy: "x \<cdot> y = x" by (simp add: below_def)
-  from yz have y_yz: "y \<cdot> z = y" by (simp add: below_def)
-  from y_yz have "x \<cdot> y \<cdot> z = x \<cdot> y" by (simp add: assoc)
-  with x_xy have "x \<cdot> y \<cdot> z = x"  by simp
-  moreover from x_xy have "x \<cdot> z = x \<cdot> y \<cdot> z" by simp
-  ultimately have "x \<cdot> z = x" by simp
-  then show ?thesis by (simp add: below_def)
-qed
-
-lemma below_f_conv [simp,noatp]: "x \<preceq> y \<cdot> z = (x \<preceq> y \<and> x \<preceq> z)"
-proof
-  assume "x \<preceq> y \<cdot> z"
-  hence xyzx: "x \<cdot> (y \<cdot> z) = x"  by(simp add: below_def)
-  have "x \<cdot> y = x"
-  proof -
-    have "x \<cdot> y = (x \<cdot> (y \<cdot> z)) \<cdot> y" by(rule subst[OF xyzx], rule refl)
-    also have "\<dots> = x \<cdot> (y \<cdot> z)" by(simp add:ACI)
-    also have "\<dots> = x" by(rule xyzx)
-    finally show ?thesis .
-  qed
-  moreover have "x \<cdot> z = x"
-  proof -
-    have "x \<cdot> z = (x \<cdot> (y \<cdot> z)) \<cdot> z" by(rule subst[OF xyzx], rule refl)
-    also have "\<dots> = x \<cdot> (y \<cdot> z)" by(simp add:ACI)
-    also have "\<dots> = x" by(rule xyzx)
-    finally show ?thesis .
-  qed
-  ultimately show "x \<preceq> y \<and> x \<preceq> z" by(simp add: below_def)
-next
-  assume a: "x \<preceq> y \<and> x \<preceq> z"
-  hence y: "x \<cdot> y = x" and z: "x \<cdot> z = x" by(simp_all add: below_def)
-  have "x \<cdot> (y \<cdot> z) = (x \<cdot> y) \<cdot> z" by(simp add:assoc)
-  also have "x \<cdot> y = x" using a by(simp_all add: below_def)
-  also have "x \<cdot> z = x" using a by(simp_all add: below_def)
-  finally show "x \<preceq> y \<cdot> z" by(simp_all add: below_def)
-qed
-
-end
-
-interpretation ACIfSL < order
-by unfold_locales
-  (simp add: strict_below_def, auto intro: below_refl below_trans below_antisym)
-
-locale ACIfSLlin = ACIfSL +
-  assumes lin: "x\<cdot>y \<in> {x,y}"
-begin
-
-lemma above_f_conv:
- "x \<cdot> y \<preceq> z = (x \<preceq> z \<or> y \<preceq> z)"
-proof
-  assume a: "x \<cdot> y \<preceq> z"
-  have "x \<cdot> y = x \<or> x \<cdot> y = y" using lin[of x y] by simp
-  thus "x \<preceq> z \<or> y \<preceq> z"
-  proof
-    assume "x \<cdot> y = x" hence "x \<preceq> z" by(rule subst)(rule a) thus ?thesis ..
-  next
-    assume "x \<cdot> y = y" hence "y \<preceq> z" by(rule subst)(rule a) thus ?thesis ..
-  qed
-next
-  assume "x \<preceq> z \<or> y \<preceq> z"
-  thus "x \<cdot> y \<preceq> z"
-  proof
-    assume a: "x \<preceq> z"
-    have "(x \<cdot> y) \<cdot> z = (x \<cdot> z) \<cdot> y" by(simp add:ACI)
-    also have "x \<cdot> z = x" using a by(simp add:below_def)
-    finally show "x \<cdot> y \<preceq> z" by(simp add:below_def)
-  next
-    assume a: "y \<preceq> z"
-    have "(x \<cdot> y) \<cdot> z = x \<cdot> (y \<cdot> z)" by(simp add:ACI)
-    also have "y \<cdot> z = y" using a by(simp add:below_def)
-    finally show "x \<cdot> y \<preceq> z" by(simp add:below_def)
-  qed
-qed
-
-lemma strict_below_f_conv[simp,noatp]: "x \<prec> y \<cdot> z = (x \<prec> y \<and> x \<prec> z)"
-apply(simp add: strict_below_def)
-using lin[of y z] by (auto simp:below_def ACI)
-
-lemma strict_above_f_conv:
-  "x \<cdot> y \<prec> z = (x \<prec> z \<or> y \<prec> z)"
-apply(simp add: strict_below_def above_f_conv)
-using lin[of y z] lin[of x z] by (auto simp:below_def ACI)
-
-end
-
-interpretation ACIfSLlin < linorder
-  by unfold_locales
-    (insert lin [simplified insert_iff], simp add: below_def commute)
-
-
-subsubsection{* Lemmas about @{text fold1} *}
-
-lemma (in ACf) fold1_Un:
+lemma fold1_Un:
 assumes A: "finite A" "A \<noteq> {}"
 shows "finite B \<Longrightarrow> B \<noteq> {} \<Longrightarrow> A Int B = {} \<Longrightarrow>
-       fold1 f (A Un B) = f (fold1 f A) (fold1 f B)"
-using A
-proof(induct rule:finite_ne_induct)
-  case singleton thus ?case by(simp add:fold1_insert)
-next
-  case insert thus ?case by (simp add:fold1_insert assoc)
-qed
+       fold1 times (A Un B) = fold1 times A * fold1 times B"
+using A by (induct rule: finite_ne_induct)
+  (simp_all add: fold1_insert mult_assoc)
 
-lemma (in ACIf) fold1_Un2:
-assumes A: "finite A" "A \<noteq> {}"
-shows "finite B \<Longrightarrow> B \<noteq> {} \<Longrightarrow>
-       fold1 f (A Un B) = f (fold1 f A) (fold1 f B)"
-using A
-proof(induct rule:finite_ne_induct)
-  case singleton thus ?case by(simp add:fold1_insert_idem)
-next
-  case insert thus ?case by (simp add:fold1_insert_idem assoc)
-qed
-
-lemma (in ACf) fold1_in:
-  assumes A: "finite (A)" "A \<noteq> {}" and elem: "\<And>x y. x\<cdot>y \<in> {x,y}"
-  shows "fold1 f A \<in> A"
+lemma fold1_in:
+  assumes A: "finite (A)" "A \<noteq> {}" and elem: "\<And>x y. x * y \<in> {x,y}"
+  shows "fold1 times A \<in> A"
 using A
 proof (induct rule:finite_ne_induct)
   case singleton thus ?case by simp
@@ -2190,73 +2196,17 @@ next
   case insert thus ?case using elem by (force simp add:fold1_insert)
 qed
 
-lemma (in ACIfSL) below_fold1_iff:
+end
+
+lemma (in ab_semigroup_idem_mult) fold1_Un2:
 assumes A: "finite A" "A \<noteq> {}"
-shows "x \<preceq> fold1 f A = (\<forall>a\<in>A. x \<preceq> a)"
+shows "finite B \<Longrightarrow> B \<noteq> {} \<Longrightarrow>
+       fold1 times (A Un B) = fold1 times A * fold1 times B"
 using A
-by(induct rule:finite_ne_induct) simp_all
-
-lemma (in ACIfSLlin) strict_below_fold1_iff:
-  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> x \<prec> fold1 f A = (\<forall>a\<in>A. x \<prec> a)"
-by(induct rule:finite_ne_induct) simp_all
-
-
-lemma (in ACIfSL) fold1_belowI:
-assumes A: "finite A" "A \<noteq> {}"
-shows "a \<in> A \<Longrightarrow> fold1 f A \<preceq> a"
-using A
-proof (induct rule:finite_ne_induct)
+proof(induct rule:finite_ne_induct)
   case singleton thus ?case by simp
 next
-  case (insert x F)
-  from insert(5) have "a = x \<or> a \<in> F" by simp
-  thus ?case
-  proof
-    assume "a = x" thus ?thesis using insert by(simp add:below_def ACI)
-  next
-    assume "a \<in> F"
-    hence bel: "fold1 f F \<preceq> a" by(rule insert)
-    have "fold1 f (insert x F) \<cdot> a = x \<cdot> (fold1 f F \<cdot> a)"
-      using insert by(simp add:below_def ACI)
-    also have "fold1 f F \<cdot> a = fold1 f F"
-      using bel  by(simp add:below_def ACI)
-    also have "x \<cdot> \<dots> = fold1 f (insert x F)"
-      using insert by(simp add:below_def ACI)
-    finally show ?thesis  by(simp add:below_def)
-  qed
-qed
-
-lemma (in ACIfSLlin) fold1_below_iff:
-assumes A: "finite A" "A \<noteq> {}"
-shows "fold1 f A \<preceq> x = (\<exists>a\<in>A. a \<preceq> x)"
-using A
-by(induct rule:finite_ne_induct)(simp_all add:above_f_conv)
-
-lemma (in ACIfSLlin) fold1_strict_below_iff:
-assumes A: "finite A" "A \<noteq> {}"
-shows "fold1 f A \<prec> x = (\<exists>a\<in>A. a \<prec> x)"
-using A
-by(induct rule:finite_ne_induct)(simp_all add:strict_above_f_conv)
-
-lemma (in ACIfSLlin) fold1_antimono:
-assumes "A \<noteq> {}" and "A \<subseteq> B" and "finite B"
-shows "fold1 f B \<preceq> fold1 f A"
-proof(cases)
-  assume "A = B" thus ?thesis by simp
-next
-  assume "A \<noteq> B"
-  have B: "B = A \<union> (B-A)" using `A \<subseteq> B` by blast
-  have "fold1 f B = fold1 f (A \<union> (B-A))" by(subst B)(rule refl)
-  also have "\<dots> = f (fold1 f A) (fold1 f (B-A))"
-  proof -
-    have "finite A" by(rule finite_subset[OF `A \<subseteq> B` `finite B`])
-    moreover have "finite(B-A)" by(rule finite_Diff[OF `finite B`]) (* by(blast intro:finite_Diff prems) fails *)
-    moreover have "(B-A) \<noteq> {}" using prems by blast
-    moreover have "A Int (B-A) = {}" using prems by blast
-    ultimately show ?thesis using `A \<noteq> {}` by(rule_tac fold1_Un)
-  qed
-  also have "\<dots> \<preceq> fold1 f A" by(simp add: above_f_conv)
-  finally show ?thesis .
+  case insert thus ?case by (simp add: mult_assoc)
 qed
 
 
@@ -2268,51 +2218,62 @@ text{*
   over (non-empty) sets by means of @{text fold1}.
 *}
 
-lemma (in lower_semilattice) ACf_inf: "ACf inf"
-  by (blast intro: ACf.intro inf_commute inf_assoc)
+context lower_semilattice
+begin
 
-lemma (in upper_semilattice) ACf_sup: "ACf sup"
-  by (blast intro: ACf.intro sup_commute sup_assoc)
+lemma ab_semigroup_idem_mult_inf:
+  "ab_semigroup_idem_mult inf"
+  apply unfold_locales
+  apply (rule inf_assoc)
+  apply (rule inf_commute)
+  apply (rule inf_idem)
+  done
 
-lemma (in lower_semilattice) ACIf_inf: "ACIf inf"
-apply(rule ACIf.intro)
-apply(rule ACf_inf)
-apply(rule ACIf_axioms.intro)
-apply(rule inf_idem)
-done
+lemma below_fold1_iff:
+  assumes "finite A" "A \<noteq> {}"
+  shows "x \<le> fold1 inf A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
+proof -
+  invoke ab_semigroup_idem_mult [inf]
+    by (rule ab_semigroup_idem_mult_inf)
+  show ?thesis using assms by (induct rule: finite_ne_induct) simp_all
+qed
 
-lemma (in upper_semilattice) ACIf_sup: "ACIf sup"
-apply(rule ACIf.intro)
-apply(rule ACf_sup)
-apply(rule ACIf_axioms.intro)
-apply(rule sup_idem)
-done
+lemma fold1_belowI:
+  assumes "finite A" "A \<noteq> {}"
+    and "a \<in> A"
+  shows "fold1 inf A \<le> a"
+using assms proof (induct rule: finite_ne_induct)
+  case singleton thus ?case by simp
+next
+  invoke ab_semigroup_idem_mult [inf]
+    by (rule ab_semigroup_idem_mult_inf)
+  case (insert x F)
+  from insert(5) have "a = x \<or> a \<in> F" by simp
+  thus ?case
+  proof
+    assume "a = x" thus ?thesis using insert
+      by (simp add: mult_ac_idem)
+  next
+    assume "a \<in> F"
+    hence bel: "fold1 inf F \<le> a" by (rule insert)
+    have "inf (fold1 inf (insert x F)) a = inf x (inf (fold1 inf F) a)"
+      using insert by (simp add: mult_ac_idem)
+    also have "inf (fold1 inf F) a = fold1 inf F"
+      using bel by (auto intro: antisym)
+    also have "inf x \<dots> = fold1 inf (insert x F)"
+      using insert by (simp add: mult_ac_idem)
+    finally have aux: "inf (fold1 inf (insert x F)) a = fold1 inf (insert x F)" .
+    moreover have "inf (fold1 inf (insert x F)) a \<le> a" by simp
+    ultimately show ?thesis by simp
+  qed
+qed
 
-lemma (in lower_semilattice) ACIfSL_inf: "ACIfSL (op \<le>) (op <) inf"
-apply(rule ACIfSL.intro)
-apply(rule ACIf.intro)
-apply(rule ACf_inf)
-apply(rule ACIf.axioms[OF ACIf_inf])
-apply(rule ACIfSL_axioms.intro)
-apply(rule iffI)
- apply(blast intro: antisym inf_le1 inf_le2 inf_greatest refl)
-apply(erule subst)
-apply(rule inf_le2)
-apply(rule less_le)
-done
+end
 
-lemma (in upper_semilattice) ACIfSL_sup: "ACIfSL (%x y. y \<le> x) (%x y. y < x) sup"
-apply(rule ACIfSL.intro)
-apply(rule ACIf.intro)
-apply(rule ACf_sup)
-apply(rule ACIf.axioms[OF ACIf_sup])
-apply(rule ACIfSL_axioms.intro)
-apply(rule iffI)
- apply(blast intro: antisym sup_ge1 sup_ge2 sup_least refl)
-apply(erule subst)
-apply(rule sup_ge2)
-apply(simp add: neq_commute less_le)
-done
+lemma (in upper_semilattice) ab_semigroup_idem_mult_sup:
+  "ab_semigroup_idem_mult sup"
+  by (rule lower_semilattice.ab_semigroup_idem_mult_inf)
+    (rule dual_lattice)
 
 context lattice
 begin
@@ -2333,19 +2294,20 @@ apply(subgoal_tac "EX a. a:A")
 prefer 2 apply blast
 apply(erule exE)
 apply(rule order_trans)
-apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_inf])
-apply(erule (2) ACIfSL.fold1_belowI[OF ACIfSL_sup])
+apply(erule (2) fold1_belowI)
+apply(erule (2) lower_semilattice.fold1_belowI [OF dual_lattice])
 done
 
 lemma sup_Inf_absorb [simp]:
   "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (sup a (\<Sqinter>\<^bsub>fin\<^esub>A)) = a"
 apply(subst sup_commute)
-apply(simp add: Inf_fin_def sup_absorb2 ACIfSL.fold1_belowI [OF ACIfSL_inf])
+apply(simp add: Inf_fin_def sup_absorb2 fold1_belowI)
 done
 
 lemma inf_Sup_absorb [simp]:
   "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (inf a (\<Squnion>\<^bsub>fin\<^esub>A)) = a"
-by(simp add: Sup_fin_def inf_absorb1 ACIfSL.fold1_belowI [OF ACIfSL_sup])
+by (simp add: Sup_fin_def inf_absorb1
+  lower_semilattice.fold1_belowI [OF dual_lattice])
 
 end
 
@@ -2353,11 +2315,17 @@ context distrib_lattice
 begin
 
 lemma sup_Inf1_distrib:
-  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> sup x (\<Sqinter>\<^bsub>fin\<^esub>A) = \<Sqinter>\<^bsub>fin\<^esub>{sup x a|a. a \<in> A}"
-apply(simp add: Inf_fin_def image_def
-  ACIf.hom_fold1_commute[OF ACIf_inf, where h="sup x", OF sup_inf_distrib1])
-apply(rule arg_cong, blast)
-done
+  assumes "finite A"
+    and "A \<noteq> {}"
+  shows "sup x (\<Sqinter>\<^bsub>fin\<^esub>A) = \<Sqinter>\<^bsub>fin\<^esub>{sup x a|a. a \<in> A}"
+proof -
+  invoke ab_semigroup_idem_mult [inf]
+    by (rule ab_semigroup_idem_mult_inf)
+  from assms show ?thesis
+    by (simp add: Inf_fin_def image_def
+      hom_fold1_commute [where h="sup x", OF sup_inf_distrib1])
+        (rule arg_cong, blast)
+qed
 
 lemma sup_Inf2_distrib:
   assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
@@ -2366,6 +2334,8 @@ using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
     by (simp add: sup_Inf1_distrib [OF B] fold1_singleton_def [OF Inf_fin_def])
 next
+  invoke ab_semigroup_idem_mult [inf]
+    by (rule ab_semigroup_idem_mult_inf)
   case (insert x A)
   have finB: "finite {sup x b |b. b \<in> B}"
     by(rule finite_surj[where f = "sup x", OF B(1)], auto)
@@ -2377,26 +2347,29 @@ next
   qed
   have ne: "{sup a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
   have "sup (\<Sqinter>\<^bsub>fin\<^esub>(insert x A)) (\<Sqinter>\<^bsub>fin\<^esub>B) = sup (inf x (\<Sqinter>\<^bsub>fin\<^esub>A)) (\<Sqinter>\<^bsub>fin\<^esub>B)"
-    using insert
- by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_inf Inf_fin_def])
+    using insert by (simp add: fold1_insert_idem_def [OF Inf_fin_def])
   also have "\<dots> = inf (sup x (\<Sqinter>\<^bsub>fin\<^esub>B)) (sup (\<Sqinter>\<^bsub>fin\<^esub>A) (\<Sqinter>\<^bsub>fin\<^esub>B))" by(rule sup_inf_distrib2)
   also have "\<dots> = inf (\<Sqinter>\<^bsub>fin\<^esub>{sup x b|b. b \<in> B}) (\<Sqinter>\<^bsub>fin\<^esub>{sup a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:sup_Inf1_distrib[OF B])
   also have "\<dots> = \<Sqinter>\<^bsub>fin\<^esub>({sup x b |b. b \<in> B} \<union> {sup a b |a b. a \<in> A \<and> b \<in> B})"
     (is "_ = \<Sqinter>\<^bsub>fin\<^esub>?M")
     using B insert
-    by (simp add: Inf_fin_def ACIf.fold1_Un2[OF ACIf_inf finB _ finAB ne])
+    by (simp add: Inf_fin_def fold1_Un2 [OF finB _ finAB ne])
   also have "?M = {sup a b |a b. a \<in> insert x A \<and> b \<in> B}"
     by blast
   finally show ?case .
 qed
 
 lemma inf_Sup1_distrib:
-  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> inf x (\<Squnion>\<^bsub>fin\<^esub>A) = \<Squnion>\<^bsub>fin\<^esub>{inf x a|a. a \<in> A}"
-apply (simp add: Sup_fin_def image_def
-  ACIf.hom_fold1_commute[OF ACIf_sup, where h="inf x", OF inf_sup_distrib1])
-apply (rule arg_cong, blast)
-done
+  assumes "finite A" and "A \<noteq> {}"
+  shows "inf x (\<Squnion>\<^bsub>fin\<^esub>A) = \<Squnion>\<^bsub>fin\<^esub>{inf x a|a. a \<in> A}"
+proof -
+  invoke ab_semigroup_idem_mult [sup]
+    by (rule ab_semigroup_idem_mult_sup)
+  from assms show ?thesis
+    by (simp add: Sup_fin_def image_def hom_fold1_commute [where h="inf x", OF inf_sup_distrib1])
+      (rule arg_cong, blast)
+qed
 
 lemma inf_Sup2_distrib:
   assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
@@ -2415,15 +2388,17 @@ next
     thus ?thesis by(simp add: insert(1) B(1))
   qed
   have ne: "{inf a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
+  invoke ab_semigroup_idem_mult [sup]
+    by (rule ab_semigroup_idem_mult_sup)
   have "inf (\<Squnion>\<^bsub>fin\<^esub>(insert x A)) (\<Squnion>\<^bsub>fin\<^esub>B) = inf (sup x (\<Squnion>\<^bsub>fin\<^esub>A)) (\<Squnion>\<^bsub>fin\<^esub>B)"
-    using insert by (simp add: ACIf.fold1_insert_idem_def [OF ACIf_sup Sup_fin_def])
+    using insert by (simp add: fold1_insert_idem_def [OF Sup_fin_def])
   also have "\<dots> = sup (inf x (\<Squnion>\<^bsub>fin\<^esub>B)) (inf (\<Squnion>\<^bsub>fin\<^esub>A) (\<Squnion>\<^bsub>fin\<^esub>B))" by(rule inf_sup_distrib2)
   also have "\<dots> = sup (\<Squnion>\<^bsub>fin\<^esub>{inf x b|b. b \<in> B}) (\<Squnion>\<^bsub>fin\<^esub>{inf a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:inf_Sup1_distrib[OF B])
   also have "\<dots> = \<Squnion>\<^bsub>fin\<^esub>({inf x b |b. b \<in> B} \<union> {inf a b |a b. a \<in> A \<and> b \<in> B})"
     (is "_ = \<Squnion>\<^bsub>fin\<^esub>?M")
     using B insert
-    by (simp add: Sup_fin_def ACIf.fold1_Un2[OF ACIf_sup finB _ finAB ne])
+    by (simp add: Sup_fin_def fold1_Un2 [OF finB _ finAB ne])
   also have "?M = {inf a b |a b. a \<in> insert x A \<and> b \<in> B}"
     by blast
   finally show ?case .
@@ -2439,14 +2414,26 @@ text {*
 *}
 
 lemma Inf_fin_Inf:
-  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Sqinter>\<^bsub>fin\<^esub>A = Inf A"
-unfolding Inf_fin_def by (induct A set: finite)
-   (simp_all add: Inf_insert_simp ACIf.fold1_insert_idem [OF ACIf_inf])
+  assumes "finite A" and "A \<noteq> {}"
+  shows "\<Sqinter>\<^bsub>fin\<^esub>A = Inf A"
+proof -
+  invoke ab_semigroup_idem_mult [inf]
+    by (rule ab_semigroup_idem_mult_inf)
+  from assms show ?thesis
+  unfolding Inf_fin_def by (induct A set: finite)
+    (simp_all add: Inf_insert_simp)
+qed
 
 lemma Sup_fin_Sup:
-  "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> \<Squnion>\<^bsub>fin\<^esub>A = Sup A"
-unfolding Sup_fin_def by (induct A set: finite)
-   (simp_all add: Sup_insert_simp ACIf.fold1_insert_idem [OF ACIf_sup])
+  assumes "finite A" and "A \<noteq> {}"
+  shows "\<Squnion>\<^bsub>fin\<^esub>A = Sup A"
+proof -
+  invoke ab_semigroup_idem_mult [sup]
+    by (rule ab_semigroup_idem_mult_sup)
+  from assms show ?thesis
+  unfolding Sup_fin_def by (induct A set: finite)
+    (simp_all add: Sup_insert_simp)
+qed
 
 end
 
@@ -2462,6 +2449,86 @@ text{*
 context linorder
 begin
 
+lemma ab_semigroup_idem_mult_min:
+  "ab_semigroup_idem_mult min"
+  by unfold_locales (auto simp add: min_def)
+
+lemma ab_semigroup_idem_mult_max:
+  "ab_semigroup_idem_mult max"
+  by unfold_locales (auto simp add: max_def)
+
+lemma min_lattice:
+  "lower_semilattice (op \<le>) (op <) min"
+  by unfold_locales (auto simp add: min_def)
+
+lemma max_lattice:
+  "lower_semilattice (op \<ge>) (op >) max"
+  by unfold_locales (auto simp add: max_def)
+
+lemma dual_max:
+  "ord.max (op \<ge>) = min"
+  by (auto simp add: ord.max_def_raw min_def_raw expand_fun_eq)
+
+lemma dual_min:
+  "ord.min (op \<ge>) = max"
+  by (auto simp add: ord.min_def_raw max_def_raw expand_fun_eq)
+
+lemma strict_below_fold1_iff:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "x < fold1 min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
+proof -
+  invoke ab_semigroup_idem_mult [min]
+    by (rule ab_semigroup_idem_mult_min)
+  from assms show ?thesis
+  by (induct rule: finite_ne_induct)
+    (simp_all add: fold1_insert)
+qed
+
+lemma fold1_below_iff:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "fold1 min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
+proof -
+  invoke ab_semigroup_idem_mult [min]
+    by (rule ab_semigroup_idem_mult_min)
+  from assms show ?thesis
+  by (induct rule: finite_ne_induct)
+    (simp_all add: fold1_insert min_le_iff_disj)
+qed
+
+lemma fold1_strict_below_iff:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "fold1 min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
+proof -
+  invoke ab_semigroup_idem_mult [min]
+    by (rule ab_semigroup_idem_mult_min)
+  from assms show ?thesis
+  by (induct rule: finite_ne_induct)
+    (simp_all add: fold1_insert min_less_iff_disj)
+qed
+
+lemma fold1_antimono:
+  assumes "A \<noteq> {}" and "A \<subseteq> B" and "finite B"
+  shows "fold1 min B \<le> fold1 min A"
+proof cases
+  assume "A = B" thus ?thesis by simp
+next
+  invoke ab_semigroup_idem_mult [min]
+    by (rule ab_semigroup_idem_mult_min)
+  assume "A \<noteq> B"
+  have B: "B = A \<union> (B-A)" using `A \<subseteq> B` by blast
+  have "fold1 min B = fold1 min (A \<union> (B-A))" by(subst B)(rule refl)
+  also have "\<dots> = min (fold1 min A) (fold1 min (B-A))"
+  proof -
+    have "finite A" by(rule finite_subset[OF `A \<subseteq> B` `finite B`])
+    moreover have "finite(B-A)" by(rule finite_Diff[OF `finite B`]) (* by(blast intro:finite_Diff prems) fails *)
+    moreover have "(B-A) \<noteq> {}" using prems by blast
+    moreover have "A Int (B-A) = {}" using prems by blast
+    ultimately show ?thesis using `A \<noteq> {}` by (rule_tac fold1_Un)
+  qed
+  also have "\<dots> \<le> fold1 min A" by (simp add: min_le_iff_disj)
+  finally show ?thesis .
+qed
+
 definition
   Min :: "'a set \<Rightarrow> 'a"
 where
@@ -2472,138 +2539,204 @@ definition
 where
   "Max = fold1 max"
 
-end context linorder begin
-
-text {* recall: @{term min} and @{term max} behave like @{const inf} and @{const sup} *}
-
-lemma ACIf_min: "ACIf min"
-  by (rule lower_semilattice.ACIf_inf,
-    rule lattice.axioms,
-    rule distrib_lattice.axioms,
-    rule distrib_lattice_min_max)
-
-lemma ACf_min: "ACf min"
-  by (rule lower_semilattice.ACf_inf,
-    rule lattice.axioms,
-    rule distrib_lattice.axioms,
-    rule distrib_lattice_min_max)
-
-lemma ACIfSL_min: "ACIfSL (op \<le>) (op <) min"
-  by (rule lower_semilattice.ACIfSL_inf,
-    rule lattice.axioms,
-    rule distrib_lattice.axioms,
-    rule distrib_lattice_min_max)
-
-lemma ACIfSLlin_min: "ACIfSLlin (op \<le>) (op <) min"
-  by (rule ACIfSLlin.intro,
-    rule lower_semilattice.ACIfSL_inf,
-    rule lattice.axioms,
-    rule distrib_lattice.axioms,
-    rule distrib_lattice_min_max)
-    (unfold_locales, simp add: min_def)
-
-lemma ACIf_max: "ACIf max"
-  by (rule upper_semilattice.ACIf_sup,
-    rule lattice.axioms,
-    rule distrib_lattice.axioms,
-    rule distrib_lattice_min_max)
-
-lemma ACf_max: "ACf max"
-  by (rule upper_semilattice.ACf_sup,
-    rule lattice.axioms,
-    rule distrib_lattice.axioms,
-    rule distrib_lattice_min_max)
-
-lemma ACIfSL_max: "ACIfSL (\<lambda>x y. y \<le> x) (\<lambda>x y. y < x) max"
-  by (rule upper_semilattice.ACIfSL_sup,
-    rule lattice.axioms,
-    rule distrib_lattice.axioms,
-    rule distrib_lattice_min_max)
-
-lemma ACIfSLlin_max: "ACIfSLlin (\<lambda>x y. y \<le> x) (\<lambda>x y. y < x) max"
-  by (rule ACIfSLlin.intro,
-    rule upper_semilattice.ACIfSL_sup,
-    rule lattice.axioms,
-    rule distrib_lattice.axioms,
-    rule distrib_lattice_min_max)
-    (unfold_locales, simp add: max_def)
-
 lemmas Min_singleton [simp] = fold1_singleton_def [OF Min_def]
 lemmas Max_singleton [simp] = fold1_singleton_def [OF Max_def]
-lemmas Min_insert [simp] = ACIf.fold1_insert_idem_def [OF ACIf_min Min_def]
-lemmas Max_insert [simp] = ACIf.fold1_insert_idem_def [OF ACIf_max Max_def]
+
+lemma Min_insert [simp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Min (insert x A) = min x (Min A)"
+proof -
+  invoke ab_semigroup_idem_mult [min]
+    by (rule ab_semigroup_idem_mult_min)
+  from assms show ?thesis by (rule fold1_insert_idem_def [OF Min_def])
+qed
+
+lemma Max_insert [simp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Max (insert x A) = max x (Max A)"
+proof -
+  invoke ab_semigroup_idem_mult [max]
+    by (rule ab_semigroup_idem_mult_max)
+  from assms show ?thesis by (rule fold1_insert_idem_def [OF Max_def])
+qed
 
 lemma Min_in [simp]:
-  shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Min A \<in> A"
-  using ACf.fold1_in [OF ACf_min]
-  by (fastsimp simp: Min_def min_def)
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Min A \<in> A"
+proof -
+  invoke ab_semigroup_idem_mult [min]
+    by (rule ab_semigroup_idem_mult_min)
+  from assms fold1_in show ?thesis by (fastsimp simp: Min_def min_def)
+qed
 
 lemma Max_in [simp]:
-  shows "finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> Max A \<in> A"
-  using ACf.fold1_in [OF ACf_max]
-  by (fastsimp simp: Max_def max_def)
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Max A \<in> A"
+proof -
+  invoke ab_semigroup_idem_mult [max]
+    by (rule ab_semigroup_idem_mult_max)
+  from assms fold1_in [of A] show ?thesis by (fastsimp simp: Max_def max_def)
+qed
 
-lemma Min_antimono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Min N \<le> Min M"
-  by (simp add: Min_def ACIfSLlin.fold1_antimono [OF ACIfSLlin_min])
+lemma Min_Un:
+  assumes "finite A" and "A \<noteq> {}" and "finite B" and "B \<noteq> {}"
+  shows "Min (A \<union> B) = min (Min A) (Min B)"
+proof -
+  invoke ab_semigroup_idem_mult [min]
+    by (rule ab_semigroup_idem_mult_min)
+  from assms show ?thesis
+    by (simp add: Min_def fold1_Un2)
+qed
 
-lemma Max_mono: "\<lbrakk> M \<subseteq> N; M \<noteq> {}; finite N \<rbrakk> \<Longrightarrow> Max M \<le> Max N"
-  by (simp add: Max_def ACIfSLlin.fold1_antimono [OF ACIfSLlin_max])
-
-lemma Min_le [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> Min A \<le> x"
-  by (simp add: Min_def ACIfSL.fold1_belowI [OF ACIfSL_min])
-
-lemma Max_ge [simp]: "\<lbrakk> finite A; A \<noteq> {}; x \<in> A \<rbrakk> \<Longrightarrow> x \<le> Max A"
-  by (simp add: Max_def ACIfSL.fold1_belowI [OF ACIfSL_max])
-
-lemma Min_ge_iff [simp,noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
-  by (simp add: Min_def ACIfSL.below_fold1_iff [OF ACIfSL_min])
-
-lemma Max_le_iff [simp,noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
-  by (simp add: Max_def ACIfSL.below_fold1_iff [OF ACIfSL_max])
-
-lemma Min_gr_iff [simp,noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x < Min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
-  by (simp add: Min_def ACIfSLlin.strict_below_fold1_iff [OF ACIfSLlin_min])
-
-lemma Max_less_iff [simp,noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
-  by (simp add: Max_def ACIfSLlin.strict_below_fold1_iff [OF ACIfSLlin_max])
-
-lemma Min_le_iff [noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
-  by (simp add: Min_def ACIfSLlin.fold1_below_iff [OF ACIfSLlin_min])
-
-lemma Max_ge_iff [noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
-  by (simp add: Max_def ACIfSLlin.fold1_below_iff [OF ACIfSLlin_max])
-
-lemma Min_less_iff [noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> Min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
-  by (simp add: Min_def ACIfSLlin.fold1_strict_below_iff [OF ACIfSLlin_min])
-
-lemma Max_gr_iff [noatp]:
-  "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
-  by (simp add: Max_def ACIfSLlin.fold1_strict_below_iff [OF ACIfSLlin_max])
-
-lemma Min_Un: "\<lbrakk>finite A; A \<noteq> {}; finite B; B \<noteq> {}\<rbrakk>
-  \<Longrightarrow> Min (A \<union> B) = min (Min A) (Min B)"
-  by (simp add: Min_def ACIf.fold1_Un2 [OF ACIf_min])
-
-lemma Max_Un: "\<lbrakk>finite A; A \<noteq> {}; finite B; B \<noteq> {}\<rbrakk>
-  \<Longrightarrow> Max (A \<union> B) = max (Max A) (Max B)"
-  by (simp add: Max_def ACIf.fold1_Un2 [OF ACIf_max])
+lemma Max_Un:
+  assumes "finite A" and "A \<noteq> {}" and "finite B" and "B \<noteq> {}"
+  shows "Max (A \<union> B) = max (Max A) (Max B)"
+proof -
+  invoke ab_semigroup_idem_mult [max]
+    by (rule ab_semigroup_idem_mult_max)
+  from assms show ?thesis
+    by (simp add: Max_def fold1_Un2)
+qed
 
 lemma hom_Min_commute:
- "(\<And>x y. h (min x y) = min (h x) (h y))
-  \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h (Min N) = Min (h ` N)"
-  by (simp add: Min_def ACIf.hom_fold1_commute [OF ACIf_min])
+  assumes "\<And>x y. h (min x y) = min (h x) (h y)"
+    and "finite N" and "N \<noteq> {}"
+  shows "h (Min N) = Min (h ` N)"
+proof -
+  invoke ab_semigroup_idem_mult [min]
+    by (rule ab_semigroup_idem_mult_min)
+  from assms show ?thesis
+    by (simp add: Min_def hom_fold1_commute)
+qed
 
 lemma hom_Max_commute:
- "(\<And>x y. h (max x y) = max (h x) (h y))
-  \<Longrightarrow> finite N \<Longrightarrow> N \<noteq> {} \<Longrightarrow> h (Max N) = Max (h ` N)"
-  by (simp add: Max_def ACIf.hom_fold1_commute [OF ACIf_max])
+  assumes "\<And>x y. h (max x y) = max (h x) (h y)"
+    and "finite N" and "N \<noteq> {}"
+  shows "h (Max N) = Max (h ` N)"
+proof -
+  invoke ab_semigroup_idem_mult [max]
+    by (rule ab_semigroup_idem_mult_max)
+  from assms show ?thesis
+    by (simp add: Max_def hom_fold1_commute [of h])
+qed
+
+lemma Min_le [simp]:
+  assumes "finite A" and "A \<noteq> {}" and "x \<in> A"
+  shows "Min A \<le> x"
+proof -
+  invoke lower_semilattice [_ _ min]
+    by (rule min_lattice)
+  from assms show ?thesis by (simp add: Min_def fold1_belowI)
+qed
+
+lemma Max_ge [simp]:
+  assumes "finite A" and "A \<noteq> {}" and "x \<in> A"
+  shows "x \<le> Max A"
+proof -
+  invoke lower_semilattice [_ _ max]
+    by (rule max_lattice)
+  from assms show ?thesis by (simp add: Max_def fold1_belowI)
+qed
+
+lemma Min_ge_iff [simp, noatp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
+proof -
+  invoke lower_semilattice [_ _ min]
+    by (rule min_lattice)
+  from assms show ?thesis by (simp add: Min_def below_fold1_iff)
+qed
+
+lemma Max_le_iff [simp, noatp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
+proof -
+  invoke lower_semilattice [_ _ max]
+    by (rule max_lattice)
+  from assms show ?thesis by (simp add: Max_def below_fold1_iff)
+qed
+
+lemma Min_gr_iff [simp, noatp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "x < Min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
+proof -
+  invoke lower_semilattice [_ _ min]
+    by (rule min_lattice)
+  from assms show ?thesis by (simp add: Min_def strict_below_fold1_iff)
+qed
+
+lemma Max_less_iff [simp, noatp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
+proof -
+  note Max = Max_def
+  invoke linorder ["op \<ge>" "op >"]
+    by (rule dual_linorder)
+  from assms show ?thesis
+    by (simp add: Max strict_below_fold1_iff [folded dual_max])
+qed
+
+lemma Min_le_iff [noatp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
+proof -
+  invoke lower_semilattice [_ _ min]
+    by (rule min_lattice)
+  from assms show ?thesis
+    by (simp add: Min_def fold1_below_iff)
+qed
+
+lemma Max_ge_iff [noatp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
+proof -
+  note Max = Max_def
+  invoke linorder ["op \<ge>" "op >"]
+    by (rule dual_linorder)
+  from assms show ?thesis
+    by (simp add: Max fold1_below_iff [folded dual_max])
+qed
+
+lemma Min_less_iff [noatp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
+proof -
+  invoke lower_semilattice [_ _ min]
+    by (rule min_lattice)
+  from assms show ?thesis
+    by (simp add: Min_def fold1_strict_below_iff)
+qed
+
+lemma Max_gr_iff [noatp]:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
+proof -
+  note Max = Max_def
+  invoke linorder ["op \<ge>" "op >"]
+    by (rule dual_linorder)
+  from assms show ?thesis
+    by (simp add: Max fold1_strict_below_iff [folded dual_max])
+qed
+
+lemma Min_antimono:
+  assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
+  shows "Min N \<le> Min M"
+proof -
+  invoke distrib_lattice ["op \<le>" "op <" min max]
+    by (rule distrib_lattice_min_max)
+  from assms show ?thesis by (simp add: Min_def fold1_antimono)
+qed
+
+lemma Max_mono:
+  assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
+  shows "Max M \<le> Max N"
+proof -
+  note Max = Max_def
+  invoke linorder ["op \<ge>" "op >"]
+    by (rule dual_linorder)
+  from assms show ?thesis
+    by (simp add: Max fold1_antimono [folded dual_max])
+qed
 
 end
 
@@ -2637,162 +2770,5 @@ proof -
 qed
 
 end
-
-
-subsection {* Class @{text finite} and code generation *}
-
-lemma finite_code [code func]:
-  "finite {} \<longleftrightarrow> True"
-  "finite (insert a A) \<longleftrightarrow> finite A"
-  by auto
-
-lemma card_code [code func]:
-  "card {} = 0"
-  "card (insert a A) =
-    (if finite A then Suc (card (A - {a})) else card (insert a A))"
-  by (auto simp add: card_insert)
-
-setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
-class finite (attach UNIV) = type +
-  fixes itself :: "'a itself"
-  assumes finite_UNIV: "finite (UNIV \<Colon> 'a set)"
-setup {* Sign.parent_path *}
-hide const finite
-
-lemma finite [simp]: "finite (A \<Colon> 'a\<Colon>finite set)"
-  by (rule finite_subset [OF subset_UNIV finite_UNIV])
-
-lemma univ_unit [noatp]:
-  "UNIV = {()}" by auto
-
-instantiation unit :: finite
-begin
-
-definition
-  "itself = TYPE(unit)"
-
-instance proof
-  have "finite {()}" by simp
-  also note univ_unit [symmetric]
-  finally show "finite (UNIV :: unit set)" .
-qed
-
-end
-
-lemmas [code func] = univ_unit
-
-lemma univ_bool [noatp]:
-  "UNIV = {False, True}" by auto
-
-instantiation bool :: finite
-begin
-
-definition
-  "itself = TYPE(bool)"
-
-instance proof
-  have "finite {False, True}" by simp
-  also note univ_bool [symmetric]
-  finally show "finite (UNIV :: bool set)" .
-qed
-
-end
-
-lemmas [code func] = univ_bool
-
-instantiation * :: (finite, finite) finite
-begin
-
-definition
-  "itself = TYPE('a \<times> 'b)"
-
-instance proof
-  show "finite (UNIV :: ('a \<times> 'b) set)"
-  proof (rule finite_Prod_UNIV)
-    show "finite (UNIV :: 'a set)" by (rule finite)
-    show "finite (UNIV :: 'b set)" by (rule finite)
-  qed
-qed
-
-end
-
-lemma univ_prod [noatp, code func]:
-  "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) \<times> (UNIV \<Colon> 'b\<Colon>finite set)"
-  unfolding UNIV_Times_UNIV ..
-
-instantiation "+" :: (finite, finite) finite
-begin
-
-definition
-  "itself = TYPE('a + 'b)"
-
-instance proof
-  have a: "finite (UNIV :: 'a set)" by (rule finite)
-  have b: "finite (UNIV :: 'b set)" by (rule finite)
-  from a b have "finite ((UNIV :: 'a set) <+> (UNIV :: 'b set))"
-    by (rule finite_Plus)
-  thus "finite (UNIV :: ('a + 'b) set)" by simp
-qed
-
-end
-
-lemma univ_sum [noatp, code func]:
-  "UNIV = (UNIV \<Colon> 'a\<Colon>finite set) <+> (UNIV \<Colon> 'b\<Colon>finite set)"
-  unfolding UNIV_Plus_UNIV ..
-
-instantiation set :: (finite) finite
-begin
-
-definition
-  "itself = TYPE('a set)"
-
-instance proof
-  have "finite (UNIV :: 'a set)" by (rule finite)
-  hence "finite (Pow (UNIV :: 'a set))"
-    by (rule finite_Pow_iff [THEN iffD2])
-  thus "finite (UNIV :: 'a set set)" by simp
-qed
-
-end
-
-lemma univ_set [noatp, code func]:
-  "UNIV = Pow (UNIV \<Colon> 'a\<Colon>finite set)" unfolding Pow_UNIV ..
-
-lemma inj_graph: "inj (%f. {(x, y). y = f x})"
-  by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
-
-instantiation "fun" :: (finite, finite) finite
-begin
-
-definition
-  "itself \<equiv> TYPE('a \<Rightarrow> 'b)"
-
-instance proof
-  show "finite (UNIV :: ('a => 'b) set)"
-  proof (rule finite_imageD)
-    let ?graph = "%f::'a => 'b. {(x, y). y = f x}"
-    show "finite (range ?graph)" by (rule finite)
-    show "inj ?graph" by (rule inj_graph)
-  qed
-qed
-
-end
-
-hide (open) const itself
-
-subsection {* Equality and order on functions *}
-
-instance "fun" :: (finite, eq) eq ..
-
-lemma eq_fun [code func]:
-  fixes f g :: "'a\<Colon>finite \<Rightarrow> 'b\<Colon>eq"
-  shows "f = g \<longleftrightarrow> (\<forall>x\<in>UNIV. f x = g x)"
-  unfolding expand_fun_eq by auto
-
-lemma order_fun [code func]:
-  fixes f g :: "'a\<Colon>finite \<Rightarrow> 'b\<Colon>order"
-  shows "f \<le> g \<longleftrightarrow> (\<forall>x\<in>UNIV. f x \<le> g x)"
-    and "f < g \<longleftrightarrow> f \<le> g \<and> (\<exists>x\<in>UNIV. f x \<noteq> g x)"
-  by (auto simp add: expand_fun_eq le_fun_def less_fun_def order_less_le)
 
 end

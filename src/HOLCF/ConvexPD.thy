@@ -443,10 +443,10 @@ definition
     (\<lambda>a. \<Lambda> f. f\<cdot>(Rep_compact_basis a))
     (\<lambda>x y. \<Lambda> f. convex_plus\<cdot>(x\<cdot>f)\<cdot>(y\<cdot>f))"
 
-lemma ACI_convex_bind: "ACIf (\<lambda>x y. \<Lambda> f. convex_plus\<cdot>(x\<cdot>f)\<cdot>(y\<cdot>f))"
+lemma ACI_convex_bind: "ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. convex_plus\<cdot>(x\<cdot>f)\<cdot>(y\<cdot>f))"
 apply unfold_locales
-apply (simp add: convex_plus_commute)
 apply (simp add: convex_plus_assoc)
+apply (simp add: convex_plus_commute)
 apply (simp add: convex_plus_absorb eta_cfun)
 done
 
@@ -457,8 +457,8 @@ lemma convex_bind_basis_simps [simp]:
     (\<Lambda> f. convex_plus\<cdot>(convex_bind_basis t\<cdot>f)\<cdot>(convex_bind_basis u\<cdot>f))"
 unfolding convex_bind_basis_def
 apply -
-apply (rule ACIf.fold_pd_PDUnit [OF ACI_convex_bind])
-apply (rule ACIf.fold_pd_PDPlus [OF ACI_convex_bind])
+apply (rule ab_semigroup_idem_mult.fold_pd_PDUnit [OF ACI_convex_bind])
+apply (rule ab_semigroup_idem_mult.fold_pd_PDPlus [OF ACI_convex_bind])
 done
 
 lemma monofun_LAM:

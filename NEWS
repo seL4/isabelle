@@ -35,6 +35,11 @@ experimental versions.
 
 *** HOL ***
 
+* Theory Finite_Set: locales ACf, ACIf, ACIfSL and ACIfSLlin (whose purpose 
+mainly if for various fold_set functionals) have been abandoned in favour of
+the existing algebraic classes ab_semigroup_mult, ab_semigroup_idem_mult,
+lower_semilattice (resp. uper_semilattice) and linorder.  INCOMPATIBILITY.
+
 * Theorem Inductive.lfp_ordinal_induct generalized to complete lattices.  The
 form set-specific version is available as Inductive.lfp_ordinal_induct_set.
 

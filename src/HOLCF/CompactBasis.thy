@@ -610,12 +610,12 @@ definition
     "('a compact_basis \<Rightarrow> 'b::type) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a pd_basis \<Rightarrow> 'b"
   where "fold_pd g f t = fold1 f (g ` Rep_pd_basis t)"
 
-lemma (in ACIf) fold_pd_PDUnit:
-  "fold_pd g f (PDUnit x) = g x"
+lemma (in ab_semigroup_idem_mult) fold_pd_PDUnit:
+  "fold_pd g (op *) (PDUnit x) = g x"
 unfolding fold_pd_def Rep_PDUnit by simp
 
-lemma (in ACIf) fold_pd_PDPlus:
-  "fold_pd g f (PDPlus t u) = f (fold_pd g f t) (fold_pd g f u)"
+lemma (in ab_semigroup_idem_mult) fold_pd_PDPlus:
+  "fold_pd g (op *) (PDPlus t u) = fold_pd g (op *) t * fold_pd g (op *) u"
 unfolding fold_pd_def Rep_PDPlus by (simp add: image_Un fold1_Un2)
 
 text {* approx-pd *}

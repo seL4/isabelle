@@ -389,11 +389,11 @@ have 3: "\<And>X3. \<not> f (x \<bar>X3\<bar>) \<le> \<bar>X3 * g (x \<bar>X3\<b
 have 4: "\<And>X1 X3\<Colon>'b\<Colon>ordered_idom. X3 \<le> X1 \<or> X1 \<le> \<bar>X3\<bar>"
   by (metis linorder_linear abs_le_D1)
 have 5: "\<And>X3::'b. \<bar>X3\<bar> * \<bar>X3\<bar> = X3 * X3"
-  by (metis abs_mult_self AC_mult.f.commute)
+  by (metis abs_mult_self)
 have 6: "\<And>X3. \<not> X3 * X3 < (0\<Colon>'b\<Colon>ordered_idom)"
-  by (metis not_square_less_zero AC_mult.f.commute)
+  by (metis not_square_less_zero)
 have 7: "\<And>X1 X3::'b. \<bar>X1\<bar> * \<bar>X3\<bar> = \<bar>X3 * X1\<bar>"
-  by (metis abs_mult AC_mult.f.commute)
+  by (metis abs_mult mult_commute)
 have 8: "\<And>X3::'b. X3 * X3 = \<bar>X3 * X3\<bar>"
   by (metis abs_mult 5)
 have 9: "\<And>X3. X3 * g (x \<bar>X3\<bar>) \<le> f (x \<bar>X3\<bar>)"
@@ -403,7 +403,7 @@ have 10: "c * g (x \<bar>c\<bar>) = f (x \<bar>c\<bar>)"
 have 11: "\<And>X3::'b. \<bar>X3\<bar> * \<bar>\<bar>X3\<bar>\<bar> = \<bar>X3\<bar> * \<bar>X3\<bar>"
   by (metis abs_idempotent abs_mult 8)
 have 12: "\<And>X3::'b. \<bar>X3 * \<bar>X3\<bar>\<bar> = \<bar>X3\<bar> * \<bar>X3\<bar>"
-  by (metis AC_mult.f.commute 7 11)
+  by (metis mult_commute 7 11)
 have 13: "\<And>X3::'b. \<bar>X3 * \<bar>X3\<bar>\<bar> = X3 * X3"
   by (metis 8 7 12)
 have 14: "\<And>X3. X3 \<le> \<bar>X3\<bar> \<or> X3 < (0\<Colon>'b)"
@@ -597,8 +597,10 @@ lemma bigo_mult [intro]: "O(f)*O(g) <= O(f * g)"
       (c * abs(f x)) * (ca * abs(g x))")
 ML{*ResAtp.problem_name := "BigO__bigo_mult_simpler"*}
 prefer 2 
-apply (metis  Finite_Set.AC_mult.f.assoc  Finite_Set.AC_mult.f.left_commute  OrderedGroup.abs_of_pos  OrderedGroup.mult_left_commute  Ring_and_Field.abs_mult  Ring_and_Field.mult_pos_pos)
-  apply(erule ssubst) 
+apply (metis mult_assoc mult_left_commute
+  OrderedGroup.abs_of_pos OrderedGroup.mult_left_commute
+  Ring_and_Field.abs_mult Ring_and_Field.mult_pos_pos)
+  apply (erule ssubst) 
   apply (subst abs_mult)
 (*not qute BigO__bigo_mult_simpler_1 (a hard problem!) as abs_mult has
   just been done*)
@@ -627,7 +629,7 @@ have 8: "\<bar>1\<Colon>'b\<Colon>ordered_idom\<bar> = (1\<Colon>'b\<Colon>order
 have 9: "\<And>X1\<Colon>'b\<Colon>ordered_idom. (0\<Colon>'b\<Colon>ordered_idom) \<le> (c\<Colon>'b\<Colon>ordered_idom) * \<bar>X1\<bar>"
   by (metis OrderedGroup.abs_ge_zero 5)
 have 10: "\<And>X1\<Colon>'b\<Colon>ordered_idom. X1 * (1\<Colon>'b\<Colon>ordered_idom) = X1"
-  by (metis Ring_and_Field.mult_cancel_right2 Finite_Set.AC_mult.f.commute)
+  by (metis Ring_and_Field.mult_cancel_right2 mult_commute)
 have 11: "\<And>X1\<Colon>'b\<Colon>ordered_idom. \<bar>\<bar>X1\<bar>\<bar> = \<bar>X1\<bar> * \<bar>1\<Colon>'b\<Colon>ordered_idom\<bar>"
   by (metis Ring_and_Field.abs_mult OrderedGroup.abs_idempotent 10)
 have 12: "\<And>X1\<Colon>'b\<Colon>ordered_idom. \<bar>\<bar>X1\<bar>\<bar> = \<bar>X1\<bar>"
@@ -901,10 +903,10 @@ lemma bigo_const_mult5 [simp]: "(c::'a::ordered_field) ~= 0 ==>
   apply safe
   apply (rule_tac [2] ext) 
    prefer 2 
-   apply (metis AC_mult.f_e.left_ident mult_assoc right_inverse)
+   apply simp
   apply (simp add: mult_assoc [symmetric] abs_mult)
   (*couldn't get this proof without the step above; SLOW*)
-  apply (metis AC_mult.f.assoc abs_ge_zero mult_left_mono)
+  apply (metis mult_assoc abs_ge_zero mult_left_mono)
 done
 
 
