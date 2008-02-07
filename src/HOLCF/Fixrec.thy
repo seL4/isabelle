@@ -201,11 +201,12 @@ text {* Parsing Case expressions *}
 syntax
   "_pat" :: "'a"
   "_var" :: "'a"
+  "_noargs" :: "'a"
 
 translations
-  "_Case1 p r" => "XCONST branch (_pat p)\<cdot>(_var p r)"
-  "_var (_args x y) r" => "XCONST csplit\<cdot>(_var x (_var y r))"
-  "_var () r" => "XCONST unit_when\<cdot>r"
+  "_Case1 p r" => "CONST branch (_pat p)\<cdot>(_var p r)"
+  "_var (_args x y) r" => "CONST csplit\<cdot>(_var x (_var y r))"
+  "_var _noargs r" => "CONST unit_when\<cdot>r"
 
 parse_translation {*
 (* rewrites (_pat x) => (return) *)
@@ -222,7 +223,7 @@ syntax
 print_translation {*
   let
     fun dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax unit_when},_) $ t) =
-          (Syntax.const @{const_syntax Unity}, t)
+          (Syntax.const "_noargs", t)
     |   dest_LAM (Const (@{const_syntax Rep_CFun},_) $ Const (@{const_syntax csplit},_) $ t) =
           let
             val (v1, t1) = dest_LAM t;
@@ -287,14 +288,19 @@ definition
 
 text {* Parse translations (patterns) *}
 translations
-  "_pat (XCONST cpair\<cdot>x\<cdot>y)" => "XCONST cpair_pat (_pat x) (_pat y)"
-  "_pat (XCONST spair\<cdot>x\<cdot>y)" => "XCONST spair_pat (_pat x) (_pat y)"
-  "_pat (XCONST sinl\<cdot>x)" => "XCONST sinl_pat (_pat x)"
-  "_pat (XCONST sinr\<cdot>x)" => "XCONST sinr_pat (_pat x)"
-  "_pat (XCONST up\<cdot>x)" => "XCONST up_pat (_pat x)"
-  "_pat (XCONST TT)" => "XCONST TT_pat"
-  "_pat (XCONST FF)" => "XCONST FF_pat"
-  "_pat (XCONST ONE)" => "XCONST ONE_pat"
+  "_pat (XCONST cpair\<cdot>x\<cdot>y)" => "CONST cpair_pat (_pat x) (_pat y)"
+  "_pat (XCONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
+  "_pat (XCONST sinl\<cdot>x)" => "CONST sinl_pat (_pat x)"
+  "_pat (XCONST sinr\<cdot>x)" => "CONST sinr_pat (_pat x)"
+  "_pat (XCONST up\<cdot>x)" => "CONST up_pat (_pat x)"
+  "_pat (XCONST TT)" => "CONST TT_pat"
+  "_pat (XCONST FF)" => "CONST FF_pat"
+  "_pat (XCONST ONE)" => "CONST ONE_pat"
+
+text {* CONST version is also needed for constructors with special syntax *}
+translations
+  "_pat (CONST cpair\<cdot>x\<cdot>y)" => "CONST cpair_pat (_pat x) (_pat y)"
+  "_pat (CONST spair\<cdot>x\<cdot>y)" => "CONST spair_pat (_pat x) (_pat y)"
 
 text {* Parse translations (variables) *}
 translations
@@ -303,9 +309,13 @@ translations
   "_var (XCONST sinl\<cdot>x) r" => "_var x r"
   "_var (XCONST sinr\<cdot>x) r" => "_var x r"
   "_var (XCONST up\<cdot>x) r" => "_var x r"
-  "_var (XCONST TT) r" => "_var () r"
-  "_var (XCONST FF) r" => "_var () r"
-  "_var (XCONST ONE) r" => "_var () r"
+  "_var (XCONST TT) r" => "_var _noargs r"
+  "_var (XCONST FF) r" => "_var _noargs r"
+  "_var (XCONST ONE) r" => "_var _noargs r"
+
+translations
+  "_var (CONST cpair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
+  "_var (CONST spair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
 
 text {* Print translations *}
 translations
@@ -316,9 +326,9 @@ translations
   "CONST sinl\<cdot>(_match p1 v1)" <= "_match (CONST sinl_pat p1) v1"
   "CONST sinr\<cdot>(_match p1 v1)" <= "_match (CONST sinr_pat p1) v1"
   "CONST up\<cdot>(_match p1 v1)" <= "_match (CONST up_pat p1) v1"
-  "CONST TT" <= "_match (CONST TT_pat) ()"
-  "CONST FF" <= "_match (CONST FF_pat) ()"
-  "CONST ONE" <= "_match (CONST ONE_pat) ()"
+  "CONST TT" <= "_match (CONST TT_pat) _noargs"
+  "CONST FF" <= "_match (CONST FF_pat) _noargs"
+  "CONST ONE" <= "_match (CONST ONE_pat) _noargs"
 
 lemma cpair_pat1:
   "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>\<langle>x, y\<rangle> = \<bottom>"
@@ -405,19 +415,19 @@ definition
 
 text {* Parse translations (patterns) *}
 translations
-  "_pat _" => "XCONST wild_pat"
-  "_pat (_as_pat x y)" => "XCONST as_pat (_pat y)"
-  "_pat (_lazy_pat x)" => "XCONST lazy_pat (_pat x)"
+  "_pat _" => "CONST wild_pat"
+  "_pat (_as_pat x y)" => "CONST as_pat (_pat y)"
+  "_pat (_lazy_pat x)" => "CONST lazy_pat (_pat x)"
 
 text {* Parse translations (variables) *}
 translations
-  "_var _ r" => "_var () r"
+  "_var _ r" => "_var _noargs r"
   "_var (_as_pat x y) r" => "_var (_args x y) r"
   "_var (_lazy_pat x) r" => "_var x r"
 
 text {* Print translations *}
 translations
-  "_" <= "_match (CONST wild_pat) ()"
+  "_" <= "_match (CONST wild_pat) _noargs"
   "_as_pat x (_match p v)" <= "_match (CONST as_pat p) (_args (_var x) v)"
   "_lazy_pat (_match p v)" <= "_match (CONST lazy_pat p) v"
 

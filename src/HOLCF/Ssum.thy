@@ -183,11 +183,11 @@ definition
   "sscase = (\<Lambda> f g s. (\<Lambda><t, x, y>. If t then f\<cdot>x else g\<cdot>y fi)\<cdot>(Rep_Ssum s))"
 
 translations
-  "case s of CONST sinl\<cdot>x \<Rightarrow> t1 | CONST sinr\<cdot>y \<Rightarrow> t2" == "CONST sscase\<cdot>(\<Lambda> x. t1)\<cdot>(\<Lambda> y. t2)\<cdot>s"
+  "case s of XCONST sinl\<cdot>x \<Rightarrow> t1 | XCONST sinr\<cdot>y \<Rightarrow> t2" == "CONST sscase\<cdot>(\<Lambda> x. t1)\<cdot>(\<Lambda> y. t2)\<cdot>s"
 
 translations
-  "\<Lambda>(CONST sinl\<cdot>x). t" == "CONST sscase\<cdot>(\<Lambda> x. t)\<cdot>\<bottom>"
-  "\<Lambda>(CONST sinr\<cdot>y). t" == "CONST sscase\<cdot>\<bottom>\<cdot>(\<Lambda> y. t)"
+  "\<Lambda>(XCONST sinl\<cdot>x). t" == "CONST sscase\<cdot>(\<Lambda> x. t)\<cdot>\<bottom>"
+  "\<Lambda>(XCONST sinr\<cdot>y). t" == "CONST sscase\<cdot>\<bottom>\<cdot>(\<Lambda> y. t)"
 
 lemma beta_sscase:
   "sscase\<cdot>f\<cdot>g\<cdot>s = (\<Lambda><t, x, y>. If t then f\<cdot>x else g\<cdot>y fi)\<cdot>(Rep_Ssum s)"

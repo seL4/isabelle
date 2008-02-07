@@ -91,7 +91,7 @@ local open Syntax in
 
     fun app_var x = mk_appl (Constant "_var") [x, Variable "rhs"];
     fun app_pat x = mk_appl (Constant "_pat") [x];
-    fun args_list [] = Constant "Unity"
+    fun args_list [] = Constant "_noargs"
     |   args_list xs = foldr1 (app "_args") xs;
   in
     val case_trans = ParsePrintRule

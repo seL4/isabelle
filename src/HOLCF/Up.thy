@@ -233,8 +233,8 @@ definition
   "fup = (\<Lambda> f p. Ifup f p)"
 
 translations
-  "case l of CONST up\<cdot>x \<Rightarrow> t" == "CONST fup\<cdot>(\<Lambda> x. t)\<cdot>l"
-  "\<Lambda>(CONST up\<cdot>x). t" == "CONST fup\<cdot>(\<Lambda> x. t)"
+  "case l of XCONST up\<cdot>x \<Rightarrow> t" == "CONST fup\<cdot>(\<Lambda> x. t)\<cdot>l"
+  "\<Lambda>(XCONST up\<cdot>x). t" == "CONST fup\<cdot>(\<Lambda> x. t)"
 
 text {* continuous versions of lemmas for @{typ "('a)u"} *}
 
