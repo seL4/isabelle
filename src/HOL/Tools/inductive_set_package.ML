@@ -259,7 +259,7 @@ fun mk_to_pred_eq p fs optfs' T thm =
 
 (**** declare rules for converting predicates to sets ****)
 
-fun add ctxt thm {to_set_simps, to_pred_simps, set_arities, pred_arities} =
+fun add ctxt thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities}) =
   case prop_of thm of
     Const ("Trueprop", _) $ (Const ("op =", Type (_, [T, _])) $ lhs $ rhs) =>
       (case body_type T of
@@ -284,21 +284,20 @@ fun add ctxt thm {to_set_simps, to_pred_simps, set_arities, pred_arities} =
            in
              case (name_type_of h, name_type_of h') of
                (SOME (s, T), SOME (s', T')) =>
-                 (case Symtab.lookup set_arities s' of
-                    NONE => ()
-                  | SOME xs => if exists (fn (U, _) =>
-                        Sign.typ_instance thy (T', U) andalso
-                        Sign.typ_instance thy (U, T')) xs
-                      then
-                        error ("Clash of conversion rules for operator " ^ s')
-                      else ();
-                  {to_set_simps = thm :: to_set_simps,
-                   to_pred_simps =
-                     mk_to_pred_eq h fs fs' T' thm :: to_pred_simps,
-                   set_arities = Symtab.insert_list op = (s',
-                     (T', (map (AList.lookup op = fs) ts', fs'))) set_arities,
-                   pred_arities = Symtab.insert_list op = (s,
-                     (T, (pfs, fs'))) pred_arities})
+                 if exists (fn (U, _) =>
+                   Sign.typ_instance thy (T', U) andalso
+                   Sign.typ_instance thy (U, T'))
+                     (Symtab.lookup_list set_arities s')
+                 then
+                   (warning ("Ignoring conversion rule for operator " ^ s'); tab)
+                 else
+                   {to_set_simps = thm :: to_set_simps,
+                    to_pred_simps =
+                      mk_to_pred_eq h fs fs' T' thm :: to_pred_simps,
+                    set_arities = Symtab.insert_list op = (s',
+                      (T', (map (AList.lookup op = fs) ts', fs'))) set_arities,
+                    pred_arities = Symtab.insert_list op = (s,
+                      (T, (pfs, fs'))) pred_arities}
              | _ => error "set / predicate constant expected"
            end
        | _ => error "equation between predicates expected")
