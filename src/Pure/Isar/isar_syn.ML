@@ -464,8 +464,8 @@ val _ =
 val _ =
   OuterSyntax.command "overloading" "overloaded definitions" K.thy_decl
    (Scan.repeat1 (P.name --| (P.$$$ "\\<equiv>" || P.$$$ "==") -- P.term --
-      Scan.optional (P.$$$ "(" |-- (P.$$$ "unchecked" >> K false) --| P.$$$ ")") true)
-        --| P.begin
+      Scan.optional (P.$$$ "(" |-- (P.$$$ "unchecked" >> K false) --| P.$$$ ")") true
+      >> P.triple1) --| P.begin
    >> (fn operations => Toplevel.print o
          Toplevel.begin_local_theory true (TheoryTarget.overloading_cmd operations)));
 
