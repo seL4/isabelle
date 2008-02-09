@@ -15,7 +15,7 @@ sig
   val context: xstring -> theory -> local_theory
   val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
   val overloading: (string * (string * typ) * bool) list -> theory -> local_theory
-  val overloading_cmd: ((xstring * xstring) * bool) list -> theory -> local_theory
+  val overloading_cmd: (string * string * bool) list -> theory -> local_theory
 end;
 
 structure TheoryTarget: THEORY_TARGET =
@@ -53,7 +53,8 @@ fun pretty_thy ctxt target is_locale is_class =
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
-  in if target = "" then []
+  in
+    if target = "" then []
     else if null elems then [Pretty.str target_name]
     else [Pretty.big_list (target_name ^ " =")
       (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)]
@@ -63,8 +64,8 @@ fun pretty (Target {target, is_locale, is_class, instantiation, overloading}) ct
   Pretty.block [Pretty.str "theory", Pretty.brk 1,
       Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] ::
     (if not (null overloading) then [Overloading.pretty ctxt]
-    else if not (null (#1 instantiation)) then [Class.pretty_instantiation ctxt]
-    else pretty_thy ctxt target is_locale is_class);
+     else if not (null (#1 instantiation)) then [Class.pretty_instantiation ctxt]
+     else pretty_thy ctxt target is_locale is_class);
 
 
 (* target declarations *)
@@ -211,15 +212,19 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c,
     val U = map #2 xs ---> T;
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
     fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
-    val declare_const = case Class.instantiation_param lthy c
-       of SOME c' => if mx3 <> NoSyn then syntax_error c'
+    val declare_const =
+      (case Class.instantiation_param lthy c of
+        SOME c' =>
+          if mx3 <> NoSyn then syntax_error c'
           else LocalTheory.theory_result (AxClass.declare_overloaded (c', U))
             ##> Class.confirm_declaration c
-        | NONE => (case Overloading.operation lthy c
-           of SOME (c', _) => if mx3 <> NoSyn then syntax_error c'
-              else LocalTheory.theory_result (Overloading.declare (c', U))
-                ##> Overloading.confirm c
-            | NONE => LocalTheory.theory_result (Sign.declare_const pos (c, U, mx3)));
+        | NONE =>
+            (case Overloading.operation lthy c of
+              SOME (c', _) =>
+                if mx3 <> NoSyn then syntax_error c'
+                else LocalTheory.theory_result (Overloading.declare (c', U))
+                  ##> Overloading.confirm c
+            | NONE => LocalTheory.theory_result (Sign.declare_const pos (c, U, mx3))));
     val (const, lthy') = lthy |> declare_const;
     val t = Term.list_comb (const, map Free xs);
   in
@@ -281,12 +286,14 @@ fun define (ta as Target {target, is_locale, is_class, ...})
     val (_, lhs') = Logic.dest_equals (Thm.prop_of local_def);
 
     (*def*)
-    val define_const = case Overloading.operation lthy c
-     of SOME (_, checked) =>
+    val define_const =
+      (case Overloading.operation lthy c of
+        SOME (_, checked) =>
           (fn name => fn (Const (c, _), rhs) => Overloading.define checked name (c, rhs))
-      | NONE => if is_none (Class.instantiation_param lthy c)
+      | NONE =>
+          if is_none (Class.instantiation_param lthy c)
           then (fn name => fn eq => Thm.add_def false false (name, Logic.mk_equals eq))
-          else (fn name => fn (Const (c, _), rhs) => AxClass.define_overloaded name (c, rhs));
+          else (fn name => fn (Const (c, _), rhs) => AxClass.define_overloaded name (c, rhs)));
     val (global_def, lthy3) = lthy2
       |> LocalTheory.theory_result (define_const name' (lhs', rhs'));
     val def = LocalDefs.trans_terms lthy3
@@ -332,15 +339,11 @@ fun axioms ta kind group (vars, specs) lthy =
 local
 
 fun init_target _ NONE = global_target
-  | init_target thy (SOME target) = make_target target true (Class.is_class thy target)
-      ([], [], []) [];
-
-fun init_instantiation arities = make_target "" false false arities [];
-
-fun init_overloading operations = make_target "" false false ([], [], []) operations;
+  | init_target thy (SOME target) =
+      make_target target true (Class.is_class thy target) ([], [], []) [];
 
 fun init_ctxt (Target {target, is_locale, is_class, instantiation, overloading}) =
-  if (not o null o #1) instantiation then Class.init_instantiation instantiation
+  if not (null (#1 instantiation)) then Class.init_instantiation instantiation
   else if not (null overloading) then Overloading.init overloading
   else if not is_locale then ProofContext.init
   else if not is_class then Locale.init target
@@ -358,36 +361,31 @@ fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
     term_syntax = term_syntax ta,
     declaration = declaration ta,
     reinit = fn lthy => init_lthy_ctxt ta (ProofContext.theory_of lthy),
-    exit = (if (not o null o #1) instantiation then Class.conclude_instantiation
-      else if not (null overloading) then Overloading.conclude
-      else I) #> LocalTheory.target_of}
+    exit = LocalTheory.target_of o
+      (if not (null (#1 instantiation)) then Class.conclude_instantiation
+       else if not (null overloading) then Overloading.conclude
+       else I)}
 and init_lthy_ctxt ta = init_lthy ta o init_ctxt ta;
+
+fun gen_overloading prep_const raw_ops thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val ops = raw_ops |> map (fn (name, const, checked) =>
+      (name, Term.dest_Const (prep_const ctxt const), checked));
+  in thy |> init_lthy_ctxt (make_target "" false false ([], [], []) ops) end;
 
 in
 
 fun init target thy = init_lthy_ctxt (init_target thy target) thy;
-fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt)
-  (SOME target)) ctxt;
+fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt) (SOME target)) ctxt;
 
 fun context "-" thy = init NONE thy
   | context target thy = init (SOME (Locale.intern thy target)) thy;
 
-val instantiation = init_lthy_ctxt o init_instantiation;
+fun instantiation arities = init_lthy_ctxt (make_target "" false false arities []);
 
-fun gen_overloading prep_operation raw_operations thy =
-  let
-    val check_const = dest_Const o Syntax.check_term (ProofContext.init thy);
-    val operations = raw_operations
-      |> map (prep_operation thy)
-      |> map (fn (v, cTt, checked) => (v, check_const cTt, checked));
-  in
-    thy
-    |> init_lthy_ctxt (init_overloading operations)
-  end;
-
-val overloading = gen_overloading (fn _ => fn (v, cT, checked) => (v, Const cT, checked));
-val overloading_cmd = gen_overloading (fn thy => fn ((v, raw_cT), checked) =>
-  (v, Sign.read_term thy raw_cT, checked));
+val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);
+val overloading_cmd = gen_overloading Syntax.read_term;
 
 end;
 
