@@ -18,6 +18,7 @@ sig
   val advance: Symbol.symbol -> T -> T
   val of_properties: Markup.property list -> T
   val properties_of: T -> Markup.property list
+  val default_properties: T -> Markup.property list -> Markup.property list
   val str_of: T -> string
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
@@ -70,6 +71,10 @@ fun properties_of (Pos (count, props)) =
   (case count of
     NONE => []
   | SOME (m, n) => [(Markup.lineN, string_of_int m), (Markup.columnN, string_of_int n)]) @ props;
+
+fun default_properties default props =
+  if exists (member (op =) Markup.position_properties o #1) props then props
+  else properties_of default @ props;
 
 
 (* str_of *)
