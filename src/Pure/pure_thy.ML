@@ -345,7 +345,8 @@ fun name_multi name [x] = [(name, x)]
 
 fun name_thm pre official name thm = thm
   |> (if Thm.get_name thm <> "" andalso pre orelse not official then I else Thm.put_name name)
-  |> (if has_name_hint thm andalso pre orelse name = "" then I else put_name_hint name);
+  |> (if has_name_hint thm andalso pre orelse name = "" then I else put_name_hint name)
+  |> Thm.map_tags (Position.default_properties (Position.thread_data ()));
 
 fun name_thms pre official name xs =
   map (uncurry (name_thm pre official)) (name_multi name xs);
