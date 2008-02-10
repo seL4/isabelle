@@ -22,6 +22,7 @@ sig
   val lineN: string
   val columnN: string
   val fileN: string
+  val position_properties: string list
   val positionN: string val position: T
   val indentN: string
   val blockN: string val block: int -> T
@@ -109,6 +110,7 @@ val columnN = "column";
 val fileN = "file";
 val idN = "id";
 
+val position_properties = [lineN, columnN, fileN, idN];
 val (positionN, position) = markup_elem "position";
 
 
