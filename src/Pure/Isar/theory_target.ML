@@ -207,7 +207,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) pos ((c,
 
 fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c, T), mx) lthy =
   let
-  val pos = Position.properties_of (Position.thread_data ());
+    val pos = Position.properties_of (Position.thread_data ());
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
