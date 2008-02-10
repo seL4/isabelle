@@ -392,7 +392,7 @@ val use_commit = Toplevel.imperative Secure.commit;
 (* nested commands *)
 
 fun nested_command props (str, pos) =
-  let val pos' = Position.of_properties (props @ Position.properties_of pos) in
+  let val pos' = Position.of_properties (props |> Position.default_properties pos) in
     (case OuterSyntax.parse pos' str of
       [transition] => transition
     | _ => error "exactly one command expected")

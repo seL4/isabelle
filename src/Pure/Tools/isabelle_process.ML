@@ -96,9 +96,8 @@ fun message ch raw_txt =
       | SOME xml => (XML.plain_content xml, the_default Position.none (get_pos xml)))
       |>> translate_string (fn c => if c = STX then DEL else c);
     val props =
-      (case Position.properties_of (Position.thread_data ()) of
-        [] => Position.properties_of pos
-      | props => props);
+      Position.properties_of (Position.thread_data ())
+      |> Position.default_properties pos;
   in Output.writeln_default (special ch ^ print_props props ^ txt ^ special_end) end;
 
 fun init_message () =
