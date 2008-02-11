@@ -8,6 +8,5 @@ This theory is the work of Martin Coen, Philippe Noel and Lawrence
 Paulson.
 *)
 
-use_thy "Main";
-use_thy "Main_ZFC";
+use_thys ["Main", "Main_ZFC"];
 
