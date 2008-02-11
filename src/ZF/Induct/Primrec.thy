@@ -31,7 +31,7 @@ definition
 
 definition
   COMP :: "[i,i]=>i"  where
-  "COMP(g,fs) == \<lambda>l \<in> list(nat). g ` List_ZF.map(\<lambda>f. f`l, fs)"
+  "COMP(g,fs) == \<lambda>l \<in> list(nat). g ` map(\<lambda>f. f`l, fs)"
 
 definition
   PREC :: "[i,i]=>i"  where
@@ -93,7 +93,7 @@ inductive
   monos list_mono
   con_defs SC_def CONSTANT_def PROJ_def COMP_def PREC_def
   type_intros nat_typechecks list.intros
-    lam_type list_case_type drop_type List_ZF.map_type
+    lam_type list_case_type drop_type map_type
     apply_type rec_type
 
 

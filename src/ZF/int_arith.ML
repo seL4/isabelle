@@ -111,11 +111,11 @@ fun find_first_numeral past (t::terms) =
   | find_first_numeral past [] = raise TERM("find_first_numeral", []);
 
 val zero = mk_numeral 0;
-val mk_plus = FOLogic.mk_binop @{const_name "Int_ZF.zadd"};
+val mk_plus = FOLogic.mk_binop @{const_name "zadd"};
 
 val iT = Ind_Syntax.iT;
 
-val zminus_const = Const (@{const_name "Int_ZF.zminus"}, iT --> iT);
+val zminus_const = Const (@{const_name "zminus"}, iT --> iT);
 
 (*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -126,30 +126,30 @@ fun mk_sum []        = zero
 fun long_mk_sum []        = zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
-val dest_plus = FOLogic.dest_bin @{const_name "Int_ZF.zadd"} iT;
+val dest_plus = FOLogic.dest_bin @{const_name "zadd"} iT;
 
 (*decompose additions AND subtractions as a sum*)
-fun dest_summing (pos, Const (@{const_name "Int_ZF.zadd"}, _) $ t $ u, ts) =
+fun dest_summing (pos, Const (@{const_name "zadd"}, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (pos, u, ts))
-  | dest_summing (pos, Const (@{const_name "Int_ZF.zdiff"}, _) $ t $ u, ts) =
+  | dest_summing (pos, Const (@{const_name "zdiff"}, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (not pos, u, ts))
   | dest_summing (pos, t, ts) =
         if pos then t::ts else zminus_const$t :: ts;
 
 fun dest_sum t = dest_summing (true, t, []);
 
-val mk_diff = FOLogic.mk_binop @{const_name "Int_ZF.zdiff"};
-val dest_diff = FOLogic.dest_bin @{const_name "Int_ZF.zdiff"} iT;
+val mk_diff = FOLogic.mk_binop @{const_name "zdiff"};
+val dest_diff = FOLogic.dest_bin @{const_name "zdiff"} iT;
 
 val one = mk_numeral 1;
-val mk_times = FOLogic.mk_binop @{const_name "Int_ZF.zmult"};
+val mk_times = FOLogic.mk_binop @{const_name "zmult"};
 
 fun mk_prod [] = one
   | mk_prod [t] = t
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = FOLogic.dest_bin @{const_name "Int_ZF.zmult"} iT;
+val dest_times = FOLogic.dest_bin @{const_name "zmult"} iT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -160,7 +160,7 @@ fun dest_prod t =
 fun mk_coeff (k, t) = mk_times (mk_numeral k, t);
 
 (*Express t as a product of (possibly) a numeral with other sorted terms*)
-fun dest_coeff sign (Const (@{const_name "Int_ZF.zminus"}, _) $ t) = dest_coeff (~sign) t
+fun dest_coeff sign (Const (@{const_name "zminus"}, _) $ t) = dest_coeff (~sign) t
   | dest_coeff sign t =
     let val ts = sort Term.term_ord (dest_prod t)
         val (n, ts') = find_first_numeral [] ts
@@ -254,8 +254,8 @@ structure EqCancelNumerals = CancelNumeralsFun
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intless_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel @{const_name "Int_ZF.zless"}
-  val dest_bal = FOLogic.dest_bin @{const_name "Int_ZF.zless"} iT
+  val mk_bal   = FOLogic.mk_binrel @{const_name "zless"}
+  val dest_bal = FOLogic.dest_bin @{const_name "zless"} iT
   val bal_add1 = less_add_iff1 RS iff_trans
   val bal_add2 = less_add_iff2 RS iff_trans
 );
@@ -263,8 +263,8 @@ structure LessCancelNumerals = CancelNumeralsFun
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intle_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel @{const_name "Int_ZF.zle"}
-  val dest_bal = FOLogic.dest_bin @{const_name "Int_ZF.zle"} iT
+  val mk_bal   = FOLogic.mk_binrel @{const_name "zle"}
+  val dest_bal = FOLogic.dest_bin @{const_name "zle"} iT
   val bal_add1 = le_add_iff1 RS iff_trans
   val bal_add2 = le_add_iff2 RS iff_trans
 );
