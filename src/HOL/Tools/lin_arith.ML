@@ -882,7 +882,7 @@ val setup =
   Context.mapping
    (setup_options #>
     Method.add_methods
-      [("arith", arith_method, "decide linear arithmethic")] #>
+      [("arith", arith_method, "decide linear arithmetic")] #>
     Attrib.add_attributes [("arith_split", Attrib.no_args arith_split_add,
       "declaration of split rules for arithmetic procedure")]) I;
 
