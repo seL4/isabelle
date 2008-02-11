@@ -9,10 +9,11 @@ text {*
 
   x\<sharp>(A \<union> B) does not imply  x\<sharp>A and  x\<sharp>B
 
-  For this we set A to the set of even atoms and B to the 
-  set of odd atoms. Then A \<union> B, that is the set of all atoms,
-  has empty support. The sets A, respectively B, however
-  have the set of all atoms as their support. 
+  with A and B being sets. For this we set A to the set of 
+  even atoms and B to the set of odd atoms. Then A \<union> B, that 
+  is the set of all atoms, has empty support. The sets A, 
+  respectively B, however have the set of all atoms as 
+  their support. 
 *}
 
 atom_decl atom
@@ -35,7 +36,9 @@ lemma even_or_odd:
   shows "\<exists>i. (n = 2*i) \<or> (n=2*i+1)"
   by (induct n) (presburger)+
 
-text {* The union of even and odd atoms is the set of all atoms. *}
+text {* 
+  The union of even and odd atoms is the set of all atoms. 
+  Unfortunately I do not know a simpler proof of this fact. *}
 lemma EVEN_union_ODD:
   shows "EVEN \<union> ODD = UNIV"
   using even_or_odd
@@ -57,8 +60,8 @@ lemma EVEN_intersect_ODD:
 
 text {* 
   The preceeding two lemmas help us to prove 
-  the following two useful equalities: 
-*}
+  the following two useful equalities: *}
+
 lemma UNIV_subtract:
   shows "UNIV - EVEN = ODD"
   and   "UNIV - ODD  = EVEN"
@@ -81,9 +84,10 @@ next
 qed
 
 text {* 
-  A general fact: a set S that is both infinite and coinfinite 
-  has all atoms as its support. 
-*}
+  A general fact about a set S of names that is both infinite and 
+  coinfinite. Then S has all atoms as its support. Steve Zdancewick 
+  helped with proving this fact. *}
+
 lemma supp_infinite_coinfinite:
   fixes S::"atom set"
   assumes asm1: "infinite S"
@@ -122,8 +126,8 @@ lemma EVEN_ODD_supp:
 
 text {* 
   The set of all atoms has empty support, since any swappings leaves 
-  this set unchanged. 
-*}
+  this set unchanged. *}
+
 lemma UNIV_supp:
   shows "supp (UNIV::atom set) = ({}::atom set)"
 proof -
@@ -139,5 +143,7 @@ theorem EVEN_ODD_freshness:
   and   "\<not>x\<sharp>EVEN"
   and   "\<not>x\<sharp>ODD"
   by (auto simp only: fresh_def EVEN_union_ODD EVEN_ODD_supp UNIV_supp)
+
+text {* Moral: support is a sublte notion. *}
 
 end

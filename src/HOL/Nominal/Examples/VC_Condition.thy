@@ -27,6 +27,7 @@ text {*
   equivalence. However as a relation 'unbind' is ok and     
   a similar relation has been used in our formalisation 
   of the algorithm W. *}
+
 inductive
   unbind :: "lam \<Rightarrow> name list \<Rightarrow> lam \<Rightarrow> bool" ("_ \<mapsto> _,_" [60,60,60] 60)
 where
@@ -38,6 +39,7 @@ text {*
   We can show that Lam [x].Lam [x].Var x unbinds to [x,x],Var x 
   and also to [z,y],Var y (though the proof for the second is a 
   bit clumsy). *} 
+
 lemma unbind_lambda_lambda1: 
   shows "Lam [x].Lam [x].(Var x)\<mapsto>[x,x],(Var x)"
 by (auto intro: unbind.intros)
@@ -74,6 +76,7 @@ text {*
   To obtain a faulty lemma, we introduce the function 'bind'
   which takes a list of names and abstracts them away in 
   a given lambda-term. *}
+
 fun 
   bind :: "name list \<Rightarrow> lam \<Rightarrow> lam"
 where
@@ -83,6 +86,7 @@ where
 text {*
   Although not necessary for our main argument below, we can 
   easily prove that bind undoes the unbinding. *}
+
 lemma bind_unbind:
   assumes a: "t \<mapsto> xs,t'"
   shows "t = bind xs t'"
@@ -93,6 +97,7 @@ text {*
   variable in t, and x does not occur in xs, then x is a free 
   variable in bind xs t. In the nominal tradition we formulate    
   'is a free variable in' as 'is not fresh for'. *}
+
 lemma free_variable:
   fixes x::"name"
   assumes a: "\<not>(x\<sharp>t)" and b: "x\<sharp>xs"
@@ -119,8 +124,8 @@ by (nominal_induct t xs'\<equiv>"x#xs" t' avoiding: xs rule: unbind.strong_induc
 text {*
   Obviously this lemma is bogus. For example, in 
   case Lam [x].Lam [x].(Var x) \<mapsto> [x,x],(Var x). 
-  As a result, we can prove False. 
-*}
+  As a result, we can prove False. *}
+
 lemma false1:
   shows "False"
 proof -
@@ -147,8 +152,8 @@ where
 
 text {* 
   The relation is equivariant but we have to use again 
-  sorry to derive a strong induction principle. 
-*}
+  sorry to derive a strong induction principle. *}
+
 equivariance strip
 
 nominal_inductive strip
@@ -156,8 +161,8 @@ nominal_inductive strip
 
 text {*
   The second faulty lemma shows that a variable being fresh
-  for a term is also fresh for this term after striping. 
-*}
+  for a term is also fresh for this term after striping. *}
+
 lemma faulty2:
   fixes x::"name"
   assumes a: "t \<rightarrow> t'"
@@ -167,6 +172,7 @@ by (nominal_induct t t'\<equiv>t' avoiding: t' rule: strip.strong_induct)
    (auto simp add: abs_fresh)
 
 text {* Obviously Lam [x].Var x is a counter example to this lemma. *}
+
 lemma false2:
   shows "False"
 proof -
@@ -176,5 +182,11 @@ proof -
   ultimately have "x\<sharp>(Var x)" by (simp only: faulty2)
   then show "False" by (simp add: fresh_atm)
 qed 
+
+text {*
+  Moral: Who would have thought that the variable convention 
+  is in general an unsound reasoning principle.
+  *}
+
  
 end
