@@ -12,7 +12,7 @@ Based on Lex/Prefix
 header{*Charpentier's Generalized Prefix Relation*}
 
 theory GenPrefix
-imports Main
+imports Main_ZF
 begin
 
 definition (*really belongs in ZF/Trancl*)

@@ -235,7 +235,7 @@ text {*
   \medskip Theorems about @{text term_map}.
 *}
 
-declare List.map_compose [simp]
+declare List_ZF.map_compose [simp]
 
 lemma term_map_ident: "t \<in> term(A) ==> term_map(\<lambda>u. u, t) = t"
   by (induct rule: term_induct_eqn) simp

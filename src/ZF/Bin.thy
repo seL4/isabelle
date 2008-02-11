@@ -17,7 +17,7 @@ For instance, ~5 div 2 = ~3 and ~5 mod 2 = 1; thus ~5 = (~3)*2 + 1
 header{*Arithmetic on Binary Integers*}
 
 theory Bin
-imports Int Datatype
+imports Int_ZF Datatype_ZF
 uses "Tools/numeral_syntax.ML"
 begin
 

@@ -7,7 +7,7 @@
 
 header{*The Natural numbers As a Least Fixed Point*}
 
-theory Nat imports OrdQuant Bool begin
+theory Nat_ZF imports OrdQuant Bool begin
 
 definition
   nat :: i  where

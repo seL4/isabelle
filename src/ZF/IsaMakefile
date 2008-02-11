@@ -30,9 +30,9 @@ FOL:
 
 $(OUT)/ZF$(ML_SUFFIX): $(OUT)/FOL$(ML_SUFFIX) AC.thy Arith.thy		\
   ArithSimp.thy Bin.thy Bool.thy Cardinal.thy CardinalArith.thy		\
-  Cardinal_AC.thy Datatype.thy Epsilon.thy EquivClass.thy Finite.thy	\
-  Fixedpt.thy Inductive.thy InfDatatype.thy Int.thy IntArith.thy	\
-  IntDiv.thy List.thy Main.thy Main_ZFC.thy Nat.thy OrdQuant.thy	\
+  Cardinal_AC.thy Datatype_ZF.thy Epsilon.thy EquivClass.thy Finite.thy	\
+  Fixedpt.thy Inductive_ZF.thy InfDatatype.thy Int_ZF.thy IntArith.thy	\
+  IntDiv_ZF.thy List_ZF.thy Main.thy Main_ZF.thy Main_ZFC.thy Nat_ZF.thy OrdQuant.thy	\
   Order.thy OrderArith.thy OrderType.thy Ordinal.thy Perm.thy QPair.thy	\
   QUniv.thy ROOT.ML Sum.thy Tools/cartprod.ML Tools/datatype_package.ML	\
   Tools/ind_cases.ML Tools/induct_tacs.ML Tools/inductive_package.ML	\

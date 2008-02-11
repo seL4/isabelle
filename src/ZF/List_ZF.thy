@@ -7,7 +7,7 @@
 
 header{*Lists in Zermelo-Fraenkel Set Theory*}
 
-theory List imports Datatype ArithSimp begin
+theory List_ZF imports Datatype_ZF ArithSimp begin
 
 consts
   list       :: "i=>i"

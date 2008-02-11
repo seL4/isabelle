@@ -7,7 +7,7 @@
 
 header{*The Axiom of Choice*}
 
-theory AC imports Main begin
+theory AC imports Main_ZF begin
 
 text{*This definition comes from Halmos (1960), page 59.*}
 axiomatization where

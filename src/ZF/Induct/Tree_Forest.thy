@@ -247,7 +247,7 @@ text {*
 *}
 
 lemma preorder_map:
-    "z \<in> tree_forest(A) ==> preorder(map(h,z)) = List.map(h, preorder(z))"
+    "z \<in> tree_forest(A) ==> preorder(map(h,z)) = List_ZF.map(h, preorder(z))"
   by (induct set: tree_forest) (simp_all add: map_app_distrib)
 
 end

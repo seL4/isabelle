@@ -7,7 +7,7 @@
 
 header{*Order Types and Ordinal Arithmetic*}
 
-theory OrderType imports OrderArith OrdQuant Nat begin
+theory OrderType imports OrderArith OrdQuant Nat_ZF begin
 
 text{*The order type of a well-ordering is the least ordinal isomorphic to it.
 Ordinal arithmetic is traditionally defined in terms of order types, as it is

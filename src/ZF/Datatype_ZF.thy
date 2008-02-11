@@ -7,8 +7,8 @@
 
 header{*Datatype and CoDatatype Definitions*}
 
-theory Datatype
-imports Inductive Univ QUniv
+theory Datatype_ZF
+imports Inductive_ZF Univ QUniv
 uses "Tools/datatype_package.ML"
 begin
 

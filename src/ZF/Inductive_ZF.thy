@@ -12,7 +12,7 @@ Products are used only to derive "streamlined" induction rules for relations
 
 header{*Inductive and Coinductive Definitions*}
 
-theory Inductive imports Fixedpt QPair
+theory Inductive_ZF imports Fixedpt QPair Nat_ZF
   uses
     "ind_syntax.ML"
     "Tools/cartprod.ML"

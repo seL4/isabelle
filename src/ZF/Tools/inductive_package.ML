@@ -64,7 +64,7 @@ fun mk_frees a [] = []
 fun add_inductive_i verbose (rec_tms, dom_sum)
   intr_specs (monos, con_defs, type_intrs, type_elims) thy =
 let
-  val _ = Theory.requires thy "Inductive" "(co)inductive definitions";
+  val _ = Theory.requires thy "Inductive_ZF" "(co)inductive definitions";
 
   val (intr_names, intr_tms) = split_list (map fst intr_specs);
   val case_names = RuleCases.case_names intr_names;

@@ -7,7 +7,7 @@
 
 header{*Epsilon Induction and Recursion*}
 
-theory Epsilon imports Nat begin
+theory Epsilon imports Nat_ZF begin
 
 definition
   eclose    :: "i=>i"  where

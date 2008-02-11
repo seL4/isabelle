@@ -127,7 +127,7 @@ fun data_domain co (rec_tms, con_ty_lists) =
           (fn t => "Datatype set not previously declared as constant: " ^
                    Sign.string_of_term @{theory IFOL} t);
         val rec_names = (*nat doesn't have to be added*)
-	    "Nat.nat" :: map (#1 o dest_Const) rec_hds
+	    @{const_name "Nat_ZF.nat"} :: map (#1 o dest_Const) rec_hds
 	val u = if co then quniv else univ
 	val cs = (fold o fold) (fn (_, _, _, prems) => prems |> (fold o fold_aterms)
           (fn t as Const (a, _) => if a mem_string rec_names then I else insert (op =) t

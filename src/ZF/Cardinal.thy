@@ -7,7 +7,7 @@
 
 header{*Cardinal Numbers Without the Axiom of Choice*}
 
-theory Cardinal imports OrderType Finite Nat Sum begin
+theory Cardinal imports OrderType Finite Nat_ZF Sum begin
 
 definition
   (*least ordinal operator*)

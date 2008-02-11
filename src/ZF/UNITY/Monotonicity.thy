@@ -69,7 +69,7 @@ done
 lemma take_mono_left:
      "[| i le j; xs \<in> list(A); j \<in> nat |]
       ==> <take(i, xs), take(j, xs)> \<in> prefix(A)"
-by (blast intro: Nat.le_in_nat take_mono_left_lemma) 
+by (blast intro: Nat_ZF.le_in_nat take_mono_left_lemma) 
 
 lemma take_mono_right:
      "[| <xs,ys> \<in> prefix(A); i \<in> nat |] 
