@@ -646,9 +646,13 @@ val notEfalse' = rotate_prems 1 notEfalse;
 fun negated_asm_of_head th =
     th RS notEfalse handle THM _ => th RS notEfalse';
 
-(*Converting one clause*)
-val make_meta_clause =
-  zero_var_indexes o negated_asm_of_head o make_horn resolution_clause_rules;
+(*Converting one theorem from a disjunction to a meta-level clause*)
+fun make_meta_clause th =
+  let val (fth,thaw) = Drule.freeze_thaw_robust th
+  in  
+      (zero_var_indexes o Thm.varifyT o thaw 0 o 
+       negated_asm_of_head o make_horn resolution_clause_rules) fth
+  end;
 
 fun make_meta_clauses ths =
     name_thms "MClause#"
