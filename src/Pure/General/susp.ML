@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Sebastian Skalberg and Florian Haftmann, TU Muenchen
 
-Delayed evaluation. Supposed to be value-oriented.
+Delayed evaluation.  Supposed to be value-oriented.
 *)
 
 signature SUSP =
