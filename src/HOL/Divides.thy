@@ -34,7 +34,7 @@ class semiring_div = comm_semiring_1_cancel + div +
 begin
 
 lemma div_by_1: "a div 1 = a"
-  using mult_div [of one a] zero_neq_one by simp
+  using mult_div [of 1 a] zero_neq_one by simp
 
 lemma mod_by_1: "a mod 1 = 0"
 proof -
@@ -73,6 +73,22 @@ qed
 lemma mod_0: "0 mod a = 0"
   using mod_div_equality [of zero a] div_0 by simp 
 
+lemma mod_div_equality2: "b * (a div b) + a mod b = a"
+  unfolding mult_commute [of b]
+  by (rule mod_div_equality)
+
+lemma div_mod_equality: "((a div b) * b + a mod b) + c = a + c"
+  by (simp add: mod_div_equality)
+
+lemma div_mod_equality2: "(b * (a div b) + a mod b) + c = a + c"
+  by (simp add: mod_div_equality2)
+
+lemma dvdI [intro?]: "a = b * c \<Longrightarrow> b dvd a"
+  unfolding dvd_def ..
+
+lemma dvdE [elim?]: "b dvd a \<Longrightarrow> (\<And>c. a = b * c \<Longrightarrow> P) \<Longrightarrow> P"
+  unfolding dvd_def by blast 
+
 lemma dvd_def_mod [code func]: "a dvd b \<longleftrightarrow> b mod a = 0"
 proof
   assume "b mod a = 0"
@@ -102,13 +118,42 @@ proof -
   then show ?thesis unfolding dvd_def ..
 qed
 
-lemma one_dvd: "1 dvd a"
+lemma zero_dvd_iff [noatp]: "0 dvd a \<longleftrightarrow> a = 0"
   unfolding dvd_def by simp
 
 lemma dvd_0: "a dvd 0"
 unfolding dvd_def proof
   show "0 = a * 0" by simp
 qed
+
+lemma one_dvd: "1 dvd a"
+  unfolding dvd_def by simp
+
+lemma dvd_mult: "a dvd c \<Longrightarrow> a dvd (b * c)"
+  unfolding dvd_def by (blast intro: mult_left_commute)
+
+lemma dvd_mult2: "a dvd b \<Longrightarrow> a dvd (b * c)"
+  apply (subst mult_commute)
+  apply (erule dvd_mult)
+  done
+
+lemma dvd_triv_right: "a dvd b * a"
+  by (rule dvd_mult) (rule dvd_refl)
+
+lemma dvd_triv_left: "a dvd a * b"
+  by (rule dvd_mult2) (rule dvd_refl)
+
+lemma mult_dvd_mono: "a dvd c \<Longrightarrow> b dvd d \<Longrightarrow> a * b dvd c * d"
+  apply (unfold dvd_def, clarify)
+  apply (rule_tac x = "k * ka" in exI)
+  apply (simp add: mult_ac)
+  done
+
+lemma dvd_mult_left: "a * b dvd c \<Longrightarrow> a dvd c"
+  by (simp add: dvd_def mult_assoc, blast)
+
+lemma dvd_mult_right: "a * b dvd c \<Longrightarrow> b dvd c"
+  unfolding mult_ac [of a] by (rule dvd_mult_left)
 
 end
 
@@ -181,16 +226,9 @@ end
 subsubsection{*Simproc for Cancelling Div and Mod*}
 
 lemmas mod_div_equality = semiring_div_class.times_div_mod_plus_zero_one.mod_div_equality [of "m\<Colon>nat" n, standard]
-
-lemma mod_div_equality2: "n * (m div n) + m mod n = (m::nat)"
-  unfolding mult_commute [of n]
-  by (rule mod_div_equality)
-
-lemma div_mod_equality: "((m div n)*n + m mod n) + k = (m::nat) + k"
-  by (simp add: mod_div_equality)
-
-lemma div_mod_equality2: "(n*(m div n) + m mod n) + k = (m::nat) + k"
-  by (simp add: mod_div_equality2)
+lemmas mod_div_equality2 = mod_div_equality2 [of "n\<Colon>nat" m, standard]
+lemmas div_mod_equality = div_mod_equality [of "m\<Colon>nat" n k, standard]
+lemmas div_mod_equality2 = div_mod_equality2 [of "m\<Colon>nat" n k, standard]
 
 ML {*
 structure CancelDivModData =
@@ -369,7 +407,6 @@ by (auto simp add: split_ifs mult_ac quorem_def add_mult_distrib2)
 
 lemma div_mult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::nat)"
 apply (cases "c = 0", simp)
-thm DIVISION_BY_ZERO_DIV
 apply (blast intro: quorem_div_mod [THEN quorem_mult1_eq, THEN quorem_div])
 done
 
