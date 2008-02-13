@@ -731,7 +731,7 @@ fun record_tr' sep mark record record_scheme unit ctxt t =
 
 fun gen_record_tr' name =
   let val name_sfx = suffix extN name;
-      val unit = (fn Const ("Unity",_) => true | _ => false);
+      val unit = (fn Const (@{const_syntax "Product_Type.Unity"},_) => true | _ => false);
       fun tr' ctxt ts = record_tr' "_fields" "_field" "_record" "_record_scheme" unit ctxt
                        (list_comb (Syntax.const name_sfx,ts))
   in (name_sfx,tr')
