@@ -795,7 +795,8 @@ fun produce warned prods tags chains stateset i indata prev_token =
 
         val nt_name = reverted_tags tags;
         val nts =
-          fold (fn (_, _, _, Nonterminal nt :: _, _, _) => insert (op =) nt | _ => I)
+          fold (fn (_, _, _, Nonterminal (tag, p) :: _, _, _) =>
+            AList.map_default (op =) (tag, p) (fn p' => Int.min (p, p')) | _ => I)
             (Array.sub (stateset, i - 1)) []
           |> map (fn (a, prec) => nt_name a ^ "[" ^ signed_string_of_int prec ^ "]");
 
