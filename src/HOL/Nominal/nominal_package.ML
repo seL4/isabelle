@@ -1644,7 +1644,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             Const ("Nominal.supp", fun_tupleT --> HOLogic.mk_setT aT) $ fun_tuple)))
               fresh_fs @
           map (fn (((P, T), (x, U)), Q) =>
-           (Var ((P, 0), HOLogic.unitT --> Logic.varifyT T --> HOLogic.boolT),
+           (Var ((P, 0), Logic.varifyT (fsT' --> T --> HOLogic.boolT)),
             Abs ("z", HOLogic.unitT, absfree (x, U, Q))))
               (pnames ~~ recTs ~~ rec_unique_frees ~~ rec_unique_concls) @
           map (fn (s, T) => (Var ((s, 0), Logic.varifyT T), Free (s, T)))
