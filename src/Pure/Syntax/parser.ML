@@ -53,9 +53,6 @@ datatype gram =
                          lambda productions are stored as normal productions
                          and also as an entry in "lambdas"*)
 
-fun reverted_tags (tags: nt_tag Symtab.table) =
-  the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
-
 val UnknownStart = EndToken;       (*productions for which no starting token is
                                      known yet are associated with this token*)
 
@@ -395,7 +392,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
   let
     fun pretty_name name = [Pretty.str (name ^ " =")];
 
-    val nt_name = reverted_tags tags;
+    val nt_name = the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
 
     fun pretty_symb (Terminal (Token s)) = Pretty.quote (Pretty.str s)
       | pretty_symb (Terminal tok) = Pretty.str (str_of_token tok)
@@ -793,23 +790,13 @@ fun produce warned prods tags chains stateset i indata prev_token =
           if prev_token = EndToken then indata
           else prev_token :: indata;
 
-        val nt_name = reverted_tags tags;
-        val nts =
-          fold (fn (_, _, _, Nonterminal (tag, p) :: _, _, _) =>
-            AList.map_default (op =) (tag, p) (fn p' => Int.min (p, p')) | _ => I)
-            (Array.sub (stateset, i - 1)) []
-          |> map (fn (a, prec) => nt_name a ^ "[" ^ signed_string_of_int prec ^ "]");
-
         val msg =
-          (if null toks then Pretty.str "Inner syntax error: unexpected end of input"
-           else
-             Pretty.block (Pretty.str "Inner syntax error at: \"" ::
-               Pretty.breaks (map (Pretty.str o str_of_token) (#1 (split_last toks))) @
-               [Pretty.str "\""])) ::
-          (if null nts then []
-           else [Pretty.block
-            (Pretty.str "Expected syntax categories: " :: Pretty.commas (map Pretty.str nts))]);
-      in error (Pretty.string_of (Pretty.chunks msg)) end
+          if null toks then Pretty.str "Inner syntax error: unexpected end of input"
+          else
+            Pretty.block (Pretty.str "Inner syntax error at: \"" ::
+              Pretty.breaks (map (Pretty.str o str_of_token) (#1 (split_last toks))) @
+              [Pretty.str "\""]);
+      in error (Pretty.string_of msg) end
   | s =>
     (case indata of
        [] => Array.sub (stateset, i)
