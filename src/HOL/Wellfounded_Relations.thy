@@ -18,9 +18,6 @@ measure. The simple relational product, in which @{term "(x',y')"} precedes
 lexicographic product, and therefore does not need to be defined separately.*}
 
 constdefs
- less_than :: "(nat*nat)set"
-    "less_than == pred_nat^+"
-
  measure   :: "('a => nat) => ('a * 'a)set"
     "measure == inv_image less_than"
 
@@ -39,20 +36,9 @@ constdefs
        See @{text "Library/While_Combinator.thy"} for an application.*}
 
 
-
-
 subsection{*Measure Functions make Wellfounded Relations*}
 
 subsubsection{*`Less than' on the natural numbers*}
-
-lemma wf_less_than [iff]: "wf less_than"
-by (simp add: less_than_def wf_pred_nat [THEN wf_trancl])
-
-lemma trans_less_than [iff]: "trans less_than"
-by (simp add: less_than_def trans_trancl)
-
-lemma less_than_iff [iff]: "((x,y): less_than) = (x<y)"
-by (simp add: less_than_def less_def)
 
 lemma full_nat_induct:
   assumes ih: "(!!n. (ALL m. Suc m <= n --> P m) ==> P n)"
@@ -187,7 +173,7 @@ subsubsection{*Wellfoundedness of proper subset on finite sets.*}
 lemma wf_finite_psubset: "wf(finite_psubset)"
 apply (unfold finite_psubset_def)
 apply (rule wf_measure [THEN wf_subset])
-apply (simp add: measure_def inv_image_def less_than_def less_def [symmetric])
+apply (simp add: measure_def inv_image_def less_than_def less_eq)
 apply (fast elim!: psubset_card_mono)
 done
 

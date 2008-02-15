@@ -122,8 +122,7 @@ by (simp add: greaterThan_def)
 
 lemma Compl_greaterThan [simp]:
     "!!k:: 'a::linorder. -greaterThan k = atMost k"
-apply (simp add: greaterThan_def atMost_def le_def, auto)
-done
+  by (auto simp add: greaterThan_def atMost_def)
 
 lemma Compl_atMost [simp]: "!!k:: 'a::linorder. -atMost k = greaterThan k"
 apply (subst Compl_greaterThan [symmetric])
@@ -135,8 +134,7 @@ by (simp add: atLeast_def)
 
 lemma Compl_atLeast [simp]:
     "!!k:: 'a::linorder. -atLeast k = lessThan k"
-apply (simp add: lessThan_def atLeast_def le_def, auto)
-done
+  by (auto simp add: lessThan_def atLeast_def)
 
 lemma (in ord) atMost_iff [iff]: "(i: atMost k) = (i<=k)"
 by (simp add: atMost_def)

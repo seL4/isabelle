@@ -535,7 +535,7 @@ lemma td_gal:
   apply (erule th2)
   done
   
-lemmas td_gal_lt = td_gal [simplified le_def, simplified]
+lemmas td_gal_lt = td_gal [simplified not_less [symmetric], simplified]
 
 lemma div_mult_le: "(a :: nat) div b * b <= a"
   apply (cases b)

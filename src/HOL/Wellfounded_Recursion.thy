@@ -6,7 +6,8 @@
 header {*Well-founded Recursion*}
 
 theory Wellfounded_Recursion
-imports Transitive_Closure
+imports Transitive_Closure Nat
+uses ("Tools/function_package/size.ML")
 begin
 
 inductive
@@ -478,6 +479,169 @@ apply (simp (no_asm_use) add: linorder_not_le [symmetric])
 apply (erule contrapos_nn)
 apply (erule Least_le)
 done
+
+subsection {* @{typ nat} is well-founded *}
+
+lemma less_nat_rel: "op < = (\<lambda>m n. n = Suc m)^++"
+proof (rule ext, rule ext, rule iffI)
+  fix n m :: nat
+  assume "m < n"
+  then show "(\<lambda>m n. n = Suc m)^++ m n"
+  proof (induct n)
+    case 0 then show ?case by auto
+  next
+    case (Suc n) then show ?case
+    by (auto simp add: less_Suc_eq_le le_less intro: tranclp.trancl_into_trancl)
+  qed
+next
+  fix n m :: nat
+  assume "(\<lambda>m n. n = Suc m)^++ m n"
+  then show "m < n"
+    by (induct n)
+      (simp_all add: less_Suc_eq_le reflexive le_less)
+qed
+
+definition
+  pred_nat :: "(nat * nat) set" where
+  "pred_nat = {(m, n). n = Suc m}"
+
+definition
+  less_than :: "(nat * nat)set" where
+  "less_than = pred_nat^+"
+
+lemma less_eq: "(m, n) \<in> pred_nat^+ \<longleftrightarrow> m < n"
+  unfolding less_nat_rel pred_nat_def trancl_def by simp
+
+lemma pred_nat_trancl_eq_le:
+  "(m, n) \<in> pred_nat^* \<longleftrightarrow> m \<le> n"
+  unfolding less_eq rtrancl_eq_or_trancl by auto
+
+lemma wf_pred_nat: "wf pred_nat"
+  apply (unfold wf_def pred_nat_def, clarify)
+  apply (induct_tac x, blast+)
+  done
+
+lemma wf_less_than [iff]: "wf less_than"
+  by (simp add: less_than_def wf_pred_nat [THEN wf_trancl])
+
+lemma trans_less_than [iff]: "trans less_than"
+  by (simp add: less_than_def trans_trancl)
+
+lemma less_than_iff [iff]: "((x,y): less_than) = (x<y)"
+  by (simp add: less_than_def less_eq)
+
+lemma wf_less: "wf {(x, y::nat). x < y}"
+  using wf_less_than by (simp add: less_than_def less_eq [symmetric])
+
+text {* Complete induction, aka course-of-values induction *}
+lemma nat_less_induct:
+  assumes prem: "!!n. \<forall>m::nat. m < n --> P m ==> P n" shows "P n"
+  apply (induct n rule: wf_induct [OF wf_pred_nat [THEN wf_trancl]])
+  apply (rule prem)
+  apply (unfold less_eq [symmetric], assumption)
+  done
+
+lemmas less_induct = nat_less_induct [rule_format, case_names less]
+
+text {* Type @{typ nat} is a wellfounded order *}
+
+instance nat :: wellorder
+  by intro_classes
+    (assumption |
+      rule le_refl le_trans le_anti_sym nat_less_le nat_le_linear wf_less)+
+
+lemma nat_induct2: "[|P 0; P (Suc 0); !!k. P k ==> P (Suc (Suc k))|] ==> P n"
+  apply (rule nat_less_induct)
+  apply (case_tac n)
+  apply (case_tac [2] nat)
+  apply (blast intro: less_trans)+
+  done
+
+text {* The method of infinite descent, frequently used in number theory.
+Provided by Roelof Oosterhuis.
+$P(n)$ is true for all $n\in\mathbb{N}$ if
+\begin{itemize}
+  \item case ``0'': given $n=0$ prove $P(n)$,
+  \item case ``smaller'': given $n>0$ and $\neg P(n)$ prove there exists
+        a smaller integer $m$ such that $\neg P(m)$.
+\end{itemize} *}
+
+lemma infinite_descent0[case_names 0 smaller]: 
+  "\<lbrakk> P 0; !!n. n>0 \<Longrightarrow> \<not> P n \<Longrightarrow> (\<exists>m::nat. m < n \<and> \<not>P m) \<rbrakk> \<Longrightarrow> P n"
+by (induct n rule: less_induct, case_tac "n>0", auto)
+
+text{* A compact version without explicit base case: *}
+lemma infinite_descent:
+  "\<lbrakk> !!n::nat. \<not> P n \<Longrightarrow>  \<exists>m<n. \<not>  P m \<rbrakk> \<Longrightarrow>  P n"
+by (induct n rule: less_induct, auto)
+
+text {* Infinite descent using a mapping to $\mathbb{N}$:
+$P(x)$ is true for all $x\in D$ if there exists a $V: D \to \mathbb{N}$ and
+\begin{itemize}
+\item case ``0'': given $V(x)=0$ prove $P(x)$,
+\item case ``smaller'': given $V(x)>0$ and $\neg P(x)$ prove there exists a $y \in D$ such that $V(y)<V(x)$ and $~\neg P(y)$.
+\end{itemize}
+NB: the proof also shows how to use the previous lemma. *}
+corollary infinite_descent0_measure [case_names 0 smaller]:
+  assumes A0: "!!x. V x = (0::nat) \<Longrightarrow> P x"
+    and   A1: "!!x. V x > 0 \<Longrightarrow> \<not>P x \<Longrightarrow> (\<exists>y. V y < V x \<and> \<not>P y)"
+  shows "P x"
+proof -
+  obtain n where "n = V x" by auto
+  moreover have "\<And>x. V x = n \<Longrightarrow> P x"
+  proof (induct n rule: infinite_descent0)
+    case 0 -- "i.e. $V(x) = 0$"
+    with A0 show "P x" by auto
+  next -- "now $n>0$ and $P(x)$ does not hold for some $x$ with $V(x)=n$"
+    case (smaller n)
+    then obtain x where vxn: "V x = n " and "V x > 0 \<and> \<not> P x" by auto
+    with A1 obtain y where "V y < V x \<and> \<not> P y" by auto
+    with vxn obtain m where "m = V y \<and> m<n \<and> \<not> P y" by auto
+    thus ?case by auto
+  qed
+  ultimately show "P x" by auto
+qed
+
+text{* Again, without explicit base case: *}
+lemma infinite_descent_measure:
+assumes "!!x. \<not> P x \<Longrightarrow> \<exists>y. (V::'a\<Rightarrow>nat) y < V x \<and> \<not> P y" shows "P x"
+proof -
+  from assms obtain n where "n = V x" by auto
+  moreover have "!!x. V x = n \<Longrightarrow> P x"
+  proof (induct n rule: infinite_descent, auto)
+    fix x assume "\<not> P x"
+    with assms show "\<exists>m < V x. \<exists>y. V y = m \<and> \<not> P y" by auto
+  qed
+  ultimately show "P x" by auto
+qed
+
+text {* @{text LEAST} theorems for type @{typ nat}*}
+
+lemma Least_Suc:
+     "[| P n; ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
+  apply (case_tac "n", auto)
+  apply (frule LeastI)
+  apply (drule_tac P = "%x. P (Suc x) " in LeastI)
+  apply (subgoal_tac " (LEAST x. P x) \<le> Suc (LEAST x. P (Suc x))")
+  apply (erule_tac [2] Least_le)
+  apply (case_tac "LEAST x. P x", auto)
+  apply (drule_tac P = "%x. P (Suc x) " in Least_le)
+  apply (blast intro: order_antisym)
+  done
+
+lemma Least_Suc2:
+   "[|P n; Q m; ~P 0; !k. P (Suc k) = Q k|] ==> Least P = Suc (Least Q)"
+by (erule (1) Least_Suc [THEN ssubst], simp)
+
+
+subsection {* size of a datatype value *}
+
+use "Tools/function_package/size.ML"
+
+setup Size.setup
+
+lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
+  by (induct n) simp_all
 
 ML
 {*

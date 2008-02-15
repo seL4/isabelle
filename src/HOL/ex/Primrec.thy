@@ -138,10 +138,13 @@ lemma ack_le_mono2: "j \<le> k ==> ack (i, j) \<le> ack (i, k)"
 text {* PROPERTY A 6 *}
 
 lemma ack2_le_ack1 [iff]: "ack (i, Suc j) \<le> ack (Suc i, j)"
-  apply (induct j)
-   apply simp_all
-  apply (metis Suc_leI Suc_lessI ack_le_mono2 le_def less_ack2)
-  done
+proof (induct j)
+  case 0 show ?case by simp
+next
+  case (Suc j) show ?case 
+    by (auto intro!: ack_le_mono2)
+      (metis Suc Suc_leI Suc_lessI less_ack2 linorder_not_less)
+qed
 
 
 text {* PROPERTY A 7-, the single-step lemma *}

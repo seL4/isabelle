@@ -7,7 +7,7 @@
 header {* The division operators div, mod and the divides relation "dvd" *}
 
 theory Divides
-imports Power
+imports Power Wellfounded_Recursion
 uses "~~/src/Provers/Arith/cancel_div_mod.ML"
 begin
 

@@ -560,7 +560,7 @@ apply (auto dest: partition_gt)
 apply (drule_tac n = m in partition_lt_gen, auto)
 apply (frule partition_eq_bound)
 apply (drule_tac [2] partition_gt, auto)
-apply (metis dense_linear_order_class.dlo_simps(8) le_def partition_rhs partition_rhs2)
+apply (metis dense_linear_order_class.dlo_simps(8) not_less partition_rhs partition_rhs2)
 apply (metis Nat.le_less_trans dense_linear_order_class.dlo_simps(8) nat_le_linear partition_eq_bound partition_rhs2)
 done
 

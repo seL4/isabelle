@@ -12,6 +12,11 @@ theory Datatype
 imports Finite_Set
 begin
 
+lemma size_bool [code func]:
+  "size (b\<Colon>bool) = 0" by (cases b) auto
+
+declare "prod.size" [noatp]
+
 typedef (Node)
   ('a,'b) node = "{p. EX f x k. p = (f::nat=>'b+nat, x::'a+nat) & f k = Inr 0}"
     --{*it is a subtype of @{text "(nat=>'b+nat) * ('a+nat)"}*}

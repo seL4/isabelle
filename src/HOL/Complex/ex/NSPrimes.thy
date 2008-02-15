@@ -113,7 +113,7 @@ lemma finite_nat_set_bounded_iff: "finite N = (\<exists>n. (\<forall>i \<in> N. 
 by (blast intro: finite_nat_set_bounded bounded_nat_set_is_finite)
 
 lemma not_finite_nat_set_iff: "(~ finite N) = (\<forall>n. \<exists>i \<in> N. n <= (i::nat))"
-by (auto simp add: finite_nat_set_bounded_iff le_def)
+by (auto simp add: finite_nat_set_bounded_iff not_less)
 
 lemma bounded_nat_set_is_finite2: "(\<forall>i \<in> N. i<=(n::nat)) ==> finite N"
 apply (rule finite_subset)
@@ -129,7 +129,7 @@ lemma finite_nat_set_bounded_iff2: "finite N = (\<exists>n. (\<forall>i \<in> N.
 by (blast intro: finite_nat_set_bounded2 bounded_nat_set_is_finite2)
 
 lemma not_finite_nat_set_iff2: "(~ finite N) = (\<forall>n. \<exists>i \<in> N. n < (i::nat))"
-by (auto simp add: finite_nat_set_bounded_iff2 le_def)
+by (auto simp add: finite_nat_set_bounded_iff2 not_le)
 
 
 subsection{*An injective function cannot define an embedded natural number*}

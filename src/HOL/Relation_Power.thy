@@ -7,7 +7,7 @@
 header{*Powers of Relations and Functions*}
 
 theory Relation_Power
-imports Power
+imports Power Transitive_Closure
 begin
 
 instance

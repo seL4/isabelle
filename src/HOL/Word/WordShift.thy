@@ -1202,7 +1202,7 @@ lemma word_rcat_rsplit: "word_rcat (word_rsplit w) = w"
   apply (clarsimp simp add : test_bit_rcat word_size)
   apply (subst refl [THEN test_bit_rsplit])
     apply (simp_all add: word_size 
-      refl [THEN length_word_rsplit_size [simplified le_def, simplified]])
+      refl [THEN length_word_rsplit_size [simplified not_less [symmetric], simplified]])
    apply safe
    apply (erule xtr7, rule len_gt_0 [THEN dtle])+
   done
