@@ -827,58 +827,125 @@ apply (induct j, simp_all)
 apply (erule ssubst, auto)
 done
 
-lemma in_set_conv_decomp: "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs)"
-proof (induct xs)
-  case Nil show ?case by simp
-next
-  case (Cons a xs)
-  show ?case
-  proof 
-    assume "x \<in> set (a # xs)"
-    with Cons show "\<exists>ys zs. a # xs = ys @ x # zs"
-      by (auto intro: Cons_eq_appendI)
-  next
-    assume "\<exists>ys zs. a # xs = ys @ x # zs"
-    then obtain ys zs where eq: "a # xs = ys @ x # zs" by blast
-    show "x \<in> set (a # xs)" 
-      by (cases ys) (auto simp add: eq)
-  qed
-qed
 
 lemma split_list: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs"
-  by (rule in_set_conv_decomp [THEN iffD1])
-
-lemma in_set_conv_decomp_first:
-  "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys)"
 proof (induct xs)
-  case Nil show ?case by simp
+  case Nil thus ?case by simp
+next
+  case Cons thus ?case by (auto intro: Cons_eq_appendI)
+qed
+
+lemma in_set_conv_decomp: "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs)"
+by (metis Un_upper2 insert_subset set.simps(2) set_append split_list)
+
+lemma split_list_first: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys"
+proof (induct xs)
+  case Nil thus ?case by simp
 next
   case (Cons a xs)
   show ?case
   proof cases
     assume "x = a" thus ?case using Cons by fastsimp
   next
-    assume "x \<noteq> a"
-    show ?case
-    proof
-      assume "x \<in> set (a # xs)"
-      with Cons and `x \<noteq> a` show "\<exists>ys zs. a # xs = ys @ x # zs \<and> x \<notin> set ys"
-	by (fastsimp intro!: Cons_eq_appendI)
-    next
-      assume "\<exists>ys zs. a # xs = ys @ x # zs \<and> x \<notin> set ys"
-      then obtain ys zs where eq: "a # xs = ys @ x # zs" by blast
-      show "x \<in> set (a # xs)" by (cases ys) (auto simp add: eq)
-    qed
+    assume "x \<noteq> a" thus ?case using Cons by(fastsimp intro!: Cons_eq_appendI)
   qed
 qed
 
-lemma split_list_first: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys"
-  by (rule in_set_conv_decomp_first [THEN iffD1])
+lemma in_set_conv_decomp_first:
+  "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys)"
+by (metis in_set_conv_decomp split_list_first)
+
+lemma split_list_last: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set zs"
+proof (induct xs rule:rev_induct)
+  case Nil thus ?case by simp
+next
+  case (snoc a xs)
+  show ?case
+  proof cases
+    assume "x = a" thus ?case using snoc by simp (metis ex_in_conv set_empty2)
+  next
+    assume "x \<noteq> a" thus ?case using snoc by fastsimp
+  qed
+qed
+
+lemma in_set_conv_decomp_last:
+  "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set zs)"
+by (metis in_set_conv_decomp split_list_last)
+
+lemma split_list_prop: "\<exists>x \<in> set xs. P x \<Longrightarrow> \<exists>ys x zs. xs = ys @ x # zs & P x"
+proof (induct xs)
+  case Nil thus ?case by simp
+next
+  case Cons thus ?case
+    by(simp add:Bex_def)(metis append_Cons append.simps(1))
+qed
+
+lemma split_list_propE:
+assumes "\<exists>x \<in> set xs. P x"
+obtains ys x zs where "xs = ys @ x # zs" and "P x"
+by(metis split_list_prop[OF assms])
 
 
-lemma finite_list: "finite A ==> EX l. set l = A"
+lemma split_list_first_prop:
+  "\<exists>x \<in> set xs. P x \<Longrightarrow>
+   \<exists>ys x zs. xs = ys@x#zs \<and> P x \<and> (\<forall>y \<in> set ys. \<not> P y)"
+proof(induct xs)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof cases
+    assume "P x"
+    thus ?thesis by simp (metis Un_upper1 contra_subsetD in_set_conv_decomp_first self_append_conv2 set_append)
+  next
+    assume "\<not> P x"
+    hence "\<exists>x\<in>set xs. P x" using Cons(2) by simp
+    thus ?thesis using `\<not> P x` Cons(1) by (metis append_Cons set_ConsD)
+  qed
+qed
+
+lemma split_list_first_propE:
+assumes "\<exists>x \<in> set xs. P x"
+obtains ys x zs where "xs = ys @ x # zs" and "P x" and "\<forall>y \<in> set ys. \<not> P y"
+by(metis split_list_first_prop[OF assms])
+
+lemma split_list_first_prop_iff:
+  "(\<exists>x \<in> set xs. P x) \<longleftrightarrow>
+   (\<exists>ys x zs. xs = ys@x#zs \<and> P x \<and> (\<forall>y \<in> set ys. \<not> P y))"
+by(metis split_list_first_prop[where P=P] in_set_conv_decomp)
+
+
+lemma split_list_last_prop:
+  "\<exists>x \<in> set xs. P x \<Longrightarrow>
+   \<exists>ys x zs. xs = ys@x#zs \<and> P x \<and> (\<forall>z \<in> set zs. \<not> P z)"
+proof(induct xs rule:rev_induct)
+  case Nil thus ?case by simp
+next
+  case (snoc x xs)
+  show ?case
+  proof cases
+    assume "P x" thus ?thesis by (metis emptyE set_empty)
+  next
+    assume "\<not> P x"
+    hence "\<exists>x\<in>set xs. P x" using snoc(2) by simp
+    thus ?thesis using `\<not> P x` snoc(1) by fastsimp
+  qed
+qed
+
+lemma split_list_last_propE:
+assumes "\<exists>x \<in> set xs. P x"
+obtains ys x zs where "xs = ys @ x # zs" and "P x" and "\<forall>z \<in> set zs. \<not> P z"
+by(metis split_list_last_prop[OF assms])
+
+lemma split_list_last_prop_iff:
+  "(\<exists>x \<in> set xs. P x) \<longleftrightarrow>
+   (\<exists>ys x zs. xs = ys@x#zs \<and> P x \<and> (\<forall>z \<in> set zs. \<not> P z))"
+by(metis split_list_last_prop[where P=P] in_set_conv_decomp)
+
+
+lemma finite_list: "finite A ==> EX xs. set xs = A"
 apply (erule finite_induct, auto)
-apply (rule_tac x="x#l" in exI, auto)
+apply (metis set.simps(2))
 done
 
 lemma card_length: "card (set xs) \<le> length xs"
