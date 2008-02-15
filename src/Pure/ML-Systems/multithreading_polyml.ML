@@ -114,6 +114,46 @@ fun timeLimit time f x =
 end;
 
 
+(* managed external processes -- with propagation of interrupts *)
+
+fun managed_process cmdline = uninterruptible (fn atts => fn () =>
+  let
+    val proc = Unix.execute (cmdline, []);
+    val (proc_stdout, proc_stdin) = Unix.streamsOf proc;
+    val _ = TextIO.closeOut proc_stdin;
+
+    (*finished state*)
+    val finished = ref false;
+    val finished_mutex = Mutex.mutex ();
+    val finished_cond = ConditionVar.conditionVar ();
+    fun signal_finished () =
+      (Mutex.lock finished_mutex; finished := true; Mutex.unlock finished_mutex;
+        ConditionVar.signal finished_cond);
+
+    val _ = Mutex.lock finished_mutex;
+
+    (*reader thread*)
+    val buffer = ref [];
+    fun reader () =
+      (case Exn.capture TextIO.input proc_stdout of
+        Exn.Exn Interrupt => ()
+      | Exn.Exn _ => signal_finished ()
+      | Exn.Result "" => signal_finished ()
+      | Exn.Result txt => (change buffer (cons txt); reader ()));
+    val reader_thread = Thread.fork (reader, []);
+
+    (*main thread*)
+    val () =
+      while not (! finished) do with_attributes atts (fn _ => fn () =>
+        ((ConditionVar.waitUntil (finished_cond, finished_mutex, Time.now () + Time.fromSeconds 1); ())
+          handle Interrupt => Unix.kill (proc, Posix.Signal.int))) ();  (* FIXME lock!?! *)
+    val _ = Thread.interrupt reader_thread handle Thread _ => ();
+
+    val status = OS.Process.isSuccess (Unix.reap proc);
+    val output = implode (rev (! buffer));
+  in (output, status) end) ();
+
+
 (* critical section -- may be nested within the same thread *)
 
 local
