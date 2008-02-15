@@ -383,8 +383,8 @@ fun use path = Toplevel.keep (fn state =>
 val use_mltext_theory = Toplevel.theory' o (Context.theory_map oo ML_Context.use_mltext_update);
 
 (*ignore result theory context*)
-fun use_mltext v txt = Toplevel.keep' (fn verb => fn state =>
-  (ML_Context.use_mltext txt (v andalso verb) (try Toplevel.generic_theory_of state)));
+fun use_mltext verbose txt = Toplevel.keep' (fn int => fn state =>
+  (ML_Context.use_mltext txt (verbose andalso int) (try Toplevel.generic_theory_of state)));
 
 val use_commit = Toplevel.imperative Secure.commit;
 
