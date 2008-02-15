@@ -75,6 +75,9 @@ class monoid_add = zero + semigroup_add +
   assumes add_0_left [simp]: "0 + a = a"
     and add_0_right [simp]: "a + 0 = a"
 
+lemma zero_reorient: "0 = x \<longleftrightarrow> x = 0"
+  by (rule eq_commute)
+
 class comm_monoid_add = zero + ab_semigroup_add +
   assumes add_0: "0 + a = a"
 begin
@@ -87,6 +90,9 @@ end
 class monoid_mult = one + semigroup_mult +
   assumes mult_1_left [simp]: "1 * a  = a"
   assumes mult_1_right [simp]: "a * 1 = a"
+
+lemma one_reorient: "1 = x \<longleftrightarrow> x = 1"
+  by (rule eq_commute)
 
 class comm_monoid_mult = one + ab_semigroup_mult +
   assumes mult_1: "1 * a = a"
