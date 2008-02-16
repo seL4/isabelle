@@ -225,9 +225,8 @@ val non_add_simps =
   subtract Thm.eq_thm [@{thm add_number_of_left}, @{thm number_of_add} RS sym] simps;
 
 (*To evaluate binary negations of coefficients*)
-val minus_simps = [@{thm numeral_m1_eq_minus_1} RS sym, @{thm number_of_minus} RS sym,
-                   @{thm minus_1}, @{thm minus_0}, @{thm minus_Pls}, @{thm minus_Min},
-                   @{thm pred_1}, @{thm pred_0}, @{thm pred_Pls}, @{thm pred_Min}];
+val minus_simps = [@{thm numeral_m1_eq_minus_1} RS sym, @{thm number_of_minus} RS sym] @
+                   @{thms minus_bin_simps} @ @{thms pred_bin_simps};
 
 (*To let us treat subtraction as addition*)
 val diff_simps = [@{thm diff_minus}, @{thm minus_add_distrib}, @{thm minus_minus}];

@@ -3,7 +3,7 @@ imports ComputeHOL Float
 begin
 
 (* normalization of bit strings *)
-lemmas bitnorm = Pls_0_eq Min_1_eq
+lemmas bitnorm = normalize_bin_simps
 
 (* neg for bit strings *)
 lemma neg1: "neg Int.Pls = False" by (simp add: Int.Pls_def)
@@ -88,13 +88,13 @@ lemmas bitle = bitle1 bitle2 bitle3 bitle4 bitle5 bitle6 bitle7 bitle8
                  bitle9 bitle10 bitle11 bitle12 bitle13 bitle14 bitle15 bitle16
 
 (* succ for bit strings *)
-lemmas bitsucc = succ_Pls succ_Min succ_1 succ_0
+lemmas bitsucc = succ_bin_simps
 
 (* pred for bit strings *)
-lemmas bitpred = pred_Pls pred_Min pred_1 pred_0
+lemmas bitpred = pred_bin_simps
 
 (* unary minus for bit strings *)
-lemmas bituminus = minus_Pls minus_Min minus_1 minus_0 
+lemmas bituminus = minus_bin_simps
 
 (* addition for bit strings *)
 lemmas bitadd = add_Pls add_Pls_right add_Min add_Min_right add_BIT_11 add_BIT_10 add_BIT_0[where b="Int.B0"] add_BIT_0[where b="Int.B1"]

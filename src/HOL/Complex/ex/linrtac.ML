@@ -4,46 +4,41 @@ struct
 val trace = ref false;
 fun trace_msg s = if !trace then tracing s else ();
 
-val ferrack_ss = let val ths = map thm ["real_of_int_inject", "real_of_int_less_iff", 
-				"real_of_int_le_iff"]
+val ferrack_ss = let val ths = [@{thm real_of_int_inject}, @{thm real_of_int_less_iff}, 
+				@{thm real_of_int_le_iff}]
 	     in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
 	     end;
 
 val nT = HOLogic.natT;
-val binarith = map thm
-  ["Pls_0_eq", "Min_1_eq",
- "pred_Pls","pred_Min","pred_1","pred_0",
-  "succ_Pls", "succ_Min", "succ_1", "succ_0",
-  "add_Pls", "add_Min", "add_BIT_0", "add_BIT_10",
-  "add_BIT_11", "minus_Pls", "minus_Min", "minus_1", 
-  "minus_0", "mult_Pls", "mult_Min", "mult_num1", "mult_num0", 
-  "add_Pls_right", "add_Min_right"];
+val binarith =
+  @{thms normalize_bin_simps} @ @{thms pred_bin_simps} @ @{thms succ_bin_simps} @
+  @{thms add_bin_simps} @ @{thms minus_bin_simps} @  @{thms mult_bin_simps};
 val comp_arith = binarith @ simp_thms
 
 
-val zdvd_int = thm "zdvd_int";
-val zdiff_int_split = thm "zdiff_int_split";
-val all_nat = thm "all_nat";
-val ex_nat = thm "ex_nat";
-val number_of1 = thm "number_of1";
-val number_of2 = thm "number_of2";
-val split_zdiv = thm "split_zdiv";
-val split_zmod = thm "split_zmod";
-val mod_div_equality' = thm "mod_div_equality'";
-val split_div' = thm "split_div'";
-val Suc_plus1 = thm "Suc_plus1";
-val imp_le_cong = thm "imp_le_cong";
-val conj_le_cong = thm "conj_le_cong";
+val zdvd_int = @{thm zdvd_int};
+val zdiff_int_split = @{thm zdiff_int_split};
+val all_nat = @{thm all_nat};
+val ex_nat = @{thm ex_nat};
+val number_of1 = @{thm number_of1};
+val number_of2 = @{thm number_of2};
+val split_zdiv = @{thm split_zdiv};
+val split_zmod = @{thm split_zmod};
+val mod_div_equality' = @{thm mod_div_equality'};
+val split_div' = @{thm split_div'};
+val Suc_plus1 = @{thm Suc_plus1};
+val imp_le_cong = @{thm imp_le_cong};
+val conj_le_cong = @{thm conj_le_cong};
 val nat_mod_add_eq = @{thm mod_add1_eq} RS sym;
 val nat_mod_add_left_eq = @{thm mod_add_left_eq} RS sym;
 val nat_mod_add_right_eq = @{thm mod_add_right_eq} RS sym;
-val int_mod_add_eq = @{thm "zmod_zadd1_eq"} RS sym;
-val int_mod_add_left_eq = @{thm "zmod_zadd_left_eq"} RS sym;
-val int_mod_add_right_eq = @{thm "zmod_zadd_right_eq"} RS sym;
-val nat_div_add_eq = @{thm "div_add1_eq"} RS sym;
-val int_div_add_eq = @{thm "zdiv_zadd1_eq"} RS sym;
-val ZDIVISION_BY_ZERO_MOD = @{thm "DIVISION_BY_ZERO"} RS conjunct2;
-val ZDIVISION_BY_ZERO_DIV = @{thm "DIVISION_BY_ZERO"} RS conjunct1;
+val int_mod_add_eq = @{thm zmod_zadd1_eq} RS sym;
+val int_mod_add_left_eq = @{thm zmod_zadd_left_eq} RS sym;
+val int_mod_add_right_eq = @{thm zmod_zadd_right_eq} RS sym;
+val nat_div_add_eq = @{thm div_add1_eq} RS sym;
+val int_div_add_eq = @{thm zdiv_zadd1_eq} RS sym;
+val ZDIVISION_BY_ZERO_MOD = @{thm DIVISION_BY_ZERO} RS conjunct2;
+val ZDIVISION_BY_ZERO_DIV = @{thm DIVISION_BY_ZERO} RS conjunct1;
 
 fun prepare_for_linr sg q fm = 
   let
@@ -74,7 +69,7 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 fun linr_tac ctxt q i = 
     (ObjectLogic.atomize_prems_tac i) 
-	THEN (REPEAT_DETERM (split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}] i))
+	THEN (REPEAT_DETERM (split_tac [@{thm split_min}, @{thm split_max}, @{thm abs_split}] i))
 	THEN (fn st =>
   let
     val g = List.nth (prems_of st, i - 1)

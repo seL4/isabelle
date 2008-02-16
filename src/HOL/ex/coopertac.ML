@@ -7,8 +7,7 @@ fun trace_msg s = if !trace then tracing s else ();
 val cooper_ss = @{simpset};
 
 val nT = HOLogic.natT;
-val binarith = map thm
-  ["Pls_0_eq", "Min_1_eq"];
+val binarith = @{thms normalize_bin_simps};
 val comp_arith = binarith @ simp_thms
 
 val zdvd_int = thm "zdvd_int";

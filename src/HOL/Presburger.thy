@@ -671,20 +671,19 @@ lemma less_number_of:
   unfolding number_of_is_id ..
 
 lemmas pred_succ_numeral_code [code func] =
-  arith_simps(5-12)
+  pred_bin_simps succ_bin_simps
 
 lemmas plus_numeral_code [code func] =
-  arith_simps(13-17)
-  arith_simps(26-27)
+  add_bin_simps
   arith_extra_simps(1) [where 'a = int]
 
 lemmas minus_numeral_code [code func] =
-  arith_simps(18-21)
+  minus_bin_simps
   arith_extra_simps(2) [where 'a = int]
   arith_extra_simps(5) [where 'a = int]
 
 lemmas times_numeral_code [code func] =
-  arith_simps(22-25)
+  mult_bin_simps
   arith_extra_simps(4) [where 'a = int]
 
 lemmas eq_numeral_code [code func] =

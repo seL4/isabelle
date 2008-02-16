@@ -652,6 +652,9 @@ lemma Min_1_eq [simp, code post]:
   "Min BIT B1 = Min"
   unfolding numeral_simps by simp
 
+lemmas normalize_bin_simps =
+  Pls_0_eq Min_1_eq
+
 
 subsection {* The Functions @{term succ}, @{term pred} and @{term uminus} *}
 
@@ -671,6 +674,9 @@ lemma succ_0 [simp]:
   "succ (k BIT B0) = k BIT B1"
   unfolding numeral_simps by simp
 
+lemmas succ_bin_simps =
+  succ_Pls succ_Min succ_1 succ_0
+
 lemma pred_Pls [simp]:
   "pred Pls = Min"
   unfolding numeral_simps by simp
@@ -687,6 +693,9 @@ lemma pred_0 [simp]:
   "pred (k BIT B0) = pred k BIT B1"
   unfolding numeral_simps by simp 
 
+lemmas pred_bin_simps =
+  pred_Pls pred_Min pred_1 pred_0
+
 lemma minus_Pls [simp]:
   "- Pls = Pls"
   unfolding numeral_simps by simp 
@@ -702,6 +711,9 @@ lemma minus_1 [simp]:
 lemma minus_0 [simp]:
   "- (k BIT B0) = (- k) BIT B0"
   unfolding numeral_simps by simp 
+
+lemmas minus_bin_simps =
+  minus_Pls minus_Min minus_1 minus_0
 
 
 subsection {*
@@ -737,6 +749,10 @@ lemma add_Min_right [simp]:
   "k + Min = pred k"
   unfolding numeral_simps by simp 
 
+lemmas add_bin_simps =
+  add_Pls add_Min add_BIT_0 add_BIT_10 add_BIT_11
+  add_Pls_right add_Min_right
+
 lemma mult_Pls [simp]:
   "Pls * w = Pls"
   unfolding numeral_simps by simp 
@@ -752,6 +768,9 @@ lemma mult_num1 [simp]:
 lemma mult_num0 [simp]:
   "(k BIT B0) * l = (k * l) BIT B0"
   unfolding numeral_simps int_distrib by simp 
+
+lemmas mult_bin_simps =
+  mult_Pls mult_Min mult_num1 mult_num0 
 
 
 subsection {* Converting Numerals to Rings: @{term number_of} *}
@@ -1094,13 +1113,8 @@ text {*
 
 lemmas arith_simps = 
   bit.distinct
-  Pls_0_eq Min_1_eq
-  pred_Pls pred_Min pred_1 pred_0
-  succ_Pls succ_Min succ_1 succ_0
-  add_Pls add_Min add_BIT_0 add_BIT_10 add_BIT_11
-  minus_Pls minus_Min minus_1 minus_0
-  mult_Pls mult_Min mult_num1 mult_num0 
-  add_Pls_right add_Min_right
+  normalize_bin_simps pred_bin_simps succ_bin_simps
+  add_bin_simps minus_bin_simps mult_bin_simps
   abs_zero abs_one arith_extra_simps
 
 text {* Simplification of relational operations *}
