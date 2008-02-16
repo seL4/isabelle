@@ -9,6 +9,7 @@ signature SECURE =
 sig
   val set_secure: unit -> unit
   val is_secure: unit -> bool
+  val deny_secure: string -> unit
   val use_text: string -> (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use_file: (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use: string -> unit
