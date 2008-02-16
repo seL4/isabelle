@@ -19,7 +19,6 @@ sig
   val available: bool
   val max_threads: int ref
   val max_threads_value: unit -> int
-  val managed_process: string -> string * bool
   val self_critical: unit -> bool
   datatype 'a task =
     Task of {body: unit -> unit, cont: 'a -> 'a, fail: 'a -> 'a} | Wait | Terminate;
@@ -40,12 +39,6 @@ fun tracing _ _ = ();
 val available = false;
 val max_threads = ref (1: int);
 fun max_threads_value () = Int.max (! max_threads, 1);
-
-
-(* managed external processes *)
-
-fun managed_process _ =
-  raise Fail "No multithreading support -- cannot manage external processes";
 
 
 (* critical section *)
