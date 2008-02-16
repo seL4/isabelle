@@ -504,13 +504,9 @@ lemma not_false_eq_true: "(~ False) = True" by simp
 lemma not_true_eq_false: "(~ True) = False" by simp
 
 lemmas binarith =
-  Pls_0_eq Min_1_eq
-  pred_Pls pred_Min pred_1 pred_0
-  succ_Pls succ_Min succ_1 succ_0
-  add_Pls add_Min add_BIT_0 add_BIT_10
-  add_BIT_11 minus_Pls minus_Min minus_1
-  minus_0 mult_Pls mult_Min mult_num1 mult_num0
-  add_Pls_right add_Min_right
+  normalize_bin_simps
+  pred_bin_simps succ_bin_simps
+  add_bin_simps minus_bin_simps mult_bin_simps
 
 lemma int_eq_number_of_eq:
   "(((number_of v)::int)=(number_of w)) = iszero ((number_of (v + uminus w))::int)"
