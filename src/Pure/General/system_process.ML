@@ -31,7 +31,6 @@ fun system_out cmdline = uninterruptible (fn restore_attributes => fn () =>
     val status = Unix.reap proc;
     val rc = Unix.fromStatus status;
   in
-    tracing (PolyML.makestring (Unix.fromStatus status));
     if rc = Unix.W_SIGNALED Posix.Signal.int orelse rc = Unix.W_EXITSTATUS 0wx82
     then raise Interrupt
     else (Buffer.content output, if OS.Process.isSuccess status then 0 else 1)
