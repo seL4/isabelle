@@ -275,8 +275,8 @@ end;
 
 (** interrupts **)      (*Note: may get into race conditions*)
 
-fun ignore_interrupt f x = f x;
-fun raise_interrupt f x = f x;
+fun interruptible f x = f x;
+fun uninterruptible f x = f (fn (g: 'c -> 'd) => g) x;
 
 
 

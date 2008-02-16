@@ -126,8 +126,8 @@ fun use_file tune output verbose name = use name;
 
 exception Interrupt;
 
-fun ignore_interrupt f x = f x;
-fun raise_interrupt f x = f x;
+fun interruptible f x = f x;
+fun uninterruptible f x = f (fn (g: 'c -> 'd) => g) x;
 
 
 (* basis library fixes *)

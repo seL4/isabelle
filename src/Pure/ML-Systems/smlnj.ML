@@ -139,25 +139,34 @@ fun use_file tune output verbose name =
 
 exception Interrupt;
 
-fun ignore_interrupt f x =
+local
+
+fun change_signal new_handler f x =
   let
-    val old_handler = Signals.setHandler (Signals.sigINT, Signals.IGNORE);
-    val result = Exn.capture f x;
+    val old_handler = Signals.setHandler (Signals.sigINT, new_handler);
+    val result = Exn.capture (f old_handler) x;
     val _ = Signals.setHandler (Signals.sigINT, old_handler);
   in Exn.release result end;
 
-fun raise_interrupt f x =
+in
+
+fun interruptible (f: 'a -> 'b) x =
   let
-    val interrupted = ref false;
-    val result = ref (Exn.Result ());
+    val result = ref (Exn.Exn Interrupt: 'b Exn.result);
     val old_handler = Signals.inqHandler Signals.sigINT;
   in
     SMLofNJ.Cont.callcc (fn cont =>
-      (Signals.setHandler (Signals.sigINT, Signals.HANDLER (fn _ => (interrupted := true; cont)));
-      result := Exn.capture f x));
+      (Signals.setHandler (Signals.sigINT, Signals.HANDLER (fn _ => cont));
+        result := Exn.capture f x));
     Signals.setHandler (Signals.sigINT, old_handler);
-    if ! interrupted then raise Interrupt else Exn.release (! result)
+    Exn.release (! result)
   end;
+
+fun uninterruptible f =
+  change_signal Signals.IGNORE
+    (fn old_handler => f (fn g => change_signal old_handler (fn _ => g)));
+
+end;
 
 
 (* basis library fixes *)

@@ -141,23 +141,25 @@ exception Interrupt = SML90.Interrupt;
 local
 
 val sig_int = 2;
-
-fun change_signal new_handler f x =
-  let
-    (*RACE wrt. other signals*)
-    val old_handler = Signal.signal (sig_int, new_handler);
-    val result = Exn.capture f x;
-    val _ = Signal.signal (sig_int, old_handler);
-  in Exn.release result end;
-
 val default_handler = Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ());
-
-in
 
 val _ = Signal.signal (sig_int, default_handler);
 
-fun ignore_interrupt f = change_signal Signal.SIG_IGN f;
-fun raise_interrupt f = change_signal default_handler f;
+fun change_signal new_handler f x =
+  let
+    (*RACE wrt. other signals!*)
+    val old_handler = Signal.signal (sig_int, new_handler);
+    val result = Exn.capture (f old_handler) x;
+    val _ = Signal.signal (sig_int, old_handler);
+  in Exn.release result end;
+
+in
+
+fun interruptible f = change_signal default_handler (fn _ => f);
+
+fun uninterruptible f =
+  change_signal Signal.SIG_IGN
+    (fn old_handler => f (fn g => change_signal old_handler (fn _ => g)));
 
 end;
 
