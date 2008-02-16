@@ -332,21 +332,24 @@ fun change r f = r := f (! r);
 
 (*temporarily set flag during execution*)
 fun setmp_noncritical flag value f x =
-  let
-    val orig_value = ! flag;
-    val _ = flag := value;
-    val result = Exn.capture f x;
-    val _ = flag := orig_value;
-  in Exn.release result end;
+  uninterruptible (fn restore_attributes => fn () =>
+    let
+      val orig_value = ! flag;
+      val _ = flag := value;
+      val result = Exn.capture (restore_attributes f) x;
+      val _ = flag := orig_value;
+    in Exn.release result end) ();
 
-fun setmp flag value f x = NAMED_CRITICAL "setmp" (fn () => setmp_noncritical flag value f x);
+fun setmp flag value f x =
+  NAMED_CRITICAL "setmp" (fn () => setmp_noncritical flag value f x);
 
 fun setmp_thread_data tag orig_data data f x =
-  let
-    val _ = Multithreading.put_data (tag, data);
-    val result = Exn.capture f x;
-    val _ = Multithreading.put_data (tag, orig_data);
-  in Exn.release result end;
+  uninterruptible (fn restore_attributes => fn () =>
+    let
+      val _ = Multithreading.put_data (tag, data);
+      val result = Exn.capture (restore_attributes f) x;
+      val _ = Multithreading.put_data (tag, orig_data);
+    in Exn.release result end) ();
 
 
 
