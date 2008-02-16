@@ -262,6 +262,7 @@ fun raised name [] = "exception " ^ name ^ " raised"
 fun exn_msg _ TERMINATE = "Exit."
   | exn_msg _ RESTART = "Restart."
   | exn_msg _ Interrupt = "Interrupt."
+  | exn_msg _ TimeLimit.TimeOut = "Timeout."
   | exn_msg _ TOPLEVEL_ERROR = "Error."
   | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg
   | exn_msg _ (ERROR msg) = msg
@@ -304,10 +305,6 @@ local
 fun debugging f x =
   if ! debug then exception_trace (fn () => f x)
   else f x;
-
-fun interruptible f x =
-  let val y = ref NONE
-  in raise_interrupt (fn () => y := SOME (f x)) (); the (! y) end;
 
 fun toplevel_error f x = f x
   handle exn => (Output.error_msg (exn_message exn); raise TOPLEVEL_ERROR);
@@ -771,7 +768,7 @@ fun raw_loop secure src =
 
 in
 
-fun loop secure src = ignore_interrupt (raw_loop secure) src;
+fun loop secure src = uninterruptible (fn _ => raw_loop secure) src;
 
 end;
 
