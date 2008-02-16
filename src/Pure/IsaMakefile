@@ -31,8 +31,8 @@ $(OUT)/Pure$(ML_SUFFIX): \
   General/output.ML General/path.ML General/position.ML				\
   General/pretty.ML General/print_mode.ML General/scan.ML			\
   General/secure.ML General/seq.ML General/source.ML General/stack.ML		\
-  General/susp.ML General/symbol.ML General/table.ML General/url.ML		\
-  General/xml.ML Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML			\
+  General/system_process.ML General/susp.ML General/symbol.ML General/table.ML	\
+  General/url.ML General/xml.ML Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML	\
   Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML Isar/class.ML		\
   Isar/code.ML Isar/code_unit.ML Isar/constdefs.ML Isar/context_rules.ML	\
   Isar/element.ML Isar/find_theorems.ML Isar/instance.ML			\
