@@ -37,9 +37,10 @@ sig
 
   val last_extT: typ -> (string * typ list) option
   val dest_recTs : typ -> (string * typ list) list
-  val get_extT_fields:  theory -> typ -> ((string * typ) list * (string * typ))
-  val get_recT_fields:  theory -> typ -> ((string * typ) list * (string * typ))
-  val get_extension: theory -> Symtab.key -> (string * typ list) option
+  val get_extT_fields:  theory -> typ -> (string * typ) list * (string * typ)
+  val get_recT_fields:  theory -> typ -> (string * typ) list * (string * typ)
+  val get_parent: theory -> string -> (typ list * string) option
+  val get_extension: theory -> string -> (string * typ list) option
   val get_extinjects: theory -> thm list
   val get_simpset: theory -> simpset
   val print_records: theory -> unit
@@ -406,6 +407,7 @@ fun add_extsplit name thm thy =
 
 val get_extsplit = Symtab.lookup o #extsplit o RecordsData.get;
 
+
 (* access 'splits' *)
 
 fun add_record_splits name thmP thy =
@@ -420,10 +422,10 @@ fun add_record_splits name thmP thy =
 val get_splits = Symtab.lookup o #splits o RecordsData.get;
 
 
+(* parent/extension of named record *)
 
-(* extension of a record name *)
-val get_extension =
-  Option.map #extension oo (Symtab.lookup o #records o RecordsData.get);
+val get_parent = (Option.join o Option.map #parent) oo (Symtab.lookup o #records o RecordsData.get);
+val get_extension = Option.map #extension oo (Symtab.lookup o #records o RecordsData.get);
 
 
 (* access 'extfields' *)
