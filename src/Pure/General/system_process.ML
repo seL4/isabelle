@@ -14,11 +14,18 @@ end;
 structure SystemProcess: SYSTEM_PROCESS =
 struct
 
-fun system_out cmdline = uninterruptible (fn restore_attributes => fn () =>
+fun system_out script = uninterruptible (fn restore_attributes => fn () =>
   let
     val _ = Secure.deny_secure "Cannot execute shell commands in secure mode";
 
-    val proc = Unix.execute (cmdline, []);
+    val script_file = OS.FileSys.tmpName ();
+    val _ = File.write (Path.explode script_file) script;
+
+    val perl_file = OS.FileSys.tmpName ();
+    val _ = File.write (Path.explode perl_file)  (*robust signal handling via perl*)
+      ("$SIG{'INT'} = 'DEFAULT'; exec '/bin/bash --norc " ^ script_file ^ "' || die $!;");
+
+    val proc = Unix.execute ("/usr/bin/env", ["perl", "-w", perl_file]);
     val (proc_stdout, proc_stdin) = Unix.streamsOf proc;
 
     fun read buf =
@@ -27,17 +34,21 @@ fun system_out cmdline = uninterruptible (fn restore_attributes => fn () =>
       | Exn.Exn _ => buf
       | Exn.Result "" => buf
       | Exn.Result txt => read (Buffer.add txt buf));
+
     val output = read Buffer.empty;
     val status = Unix.reap proc;
     val rc = Unix.fromStatus status;
+
+    val _ = OS.FileSys.remove script_file;
+    val _ = OS.FileSys.remove perl_file;
   in
     if rc = Unix.W_SIGNALED Posix.Signal.int orelse rc = Unix.W_EXITSTATUS 0wx82
     then raise Interrupt
     else (Buffer.content output, if OS.Process.isSuccess status then 0 else 1)
   end) ();
 
-fun system cmdline =
-  let val (output, status) = system_out cmdline in writeln output; status end;
+fun system script =
+  let val (output, status) = system_out script in writeln output; status end;
 
 end;
 
