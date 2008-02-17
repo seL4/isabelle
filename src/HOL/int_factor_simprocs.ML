@@ -43,7 +43,7 @@ structure CancelNumeralFactorCommon =
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
   val simplify_meta_eq = Int_Numeral_Simprocs.simplify_meta_eq
     [@{thm add_0}, @{thm add_0_right}, @{thm mult_zero_left},
-      @{thm mult_zero_right}, @{thm mult_num1}, @{thm mult_1_right}];
+      @{thm mult_zero_right}, @{thm mult_Bit1}, @{thm mult_1_right}];
   end
 
 (*Version for integer division*)

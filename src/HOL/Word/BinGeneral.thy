@@ -49,21 +49,37 @@ lemma bin_rec_PM:
    apply (auto intro: bin_rec'.simps [THEN trans])
   done
 
-lemmas bin_rec_Pls = refl [THEN bin_rec_PM, THEN conjunct1, standard]
-lemmas bin_rec_Min = refl [THEN bin_rec_PM, THEN conjunct2, standard]
+lemma bin_rec_Pls: "bin_rec f1 f2 f3 Int.Pls = f1"
+  unfolding bin_rec_def by simp
+
+lemma bin_rec_Min: "bin_rec f1 f2 f3 Int.Min = f2"
+  unfolding bin_rec_def by simp
+
+lemma bin_rec_Bit0:
+  "f3 Int.Pls bit.B0 f1 = f1 \<Longrightarrow>
+    bin_rec f1 f2 f3 (Int.Bit0 w) = f3 w bit.B0 (bin_rec f1 f2 f3 w)"
+  apply (unfold bin_rec_def)
+  apply (rule bin_rec'.simps [THEN trans])
+  apply (fold bin_rec_def)
+  apply (simp add: eq_Bit0_Pls eq_Bit0_Min bin_rec_Pls)
+  done
+
+lemma bin_rec_Bit1:
+  "f3 Int.Min bit.B1 f2 = f2 \<Longrightarrow>
+    bin_rec f1 f2 f3 (Int.Bit1 w) = f3 w bit.B1 (bin_rec f1 f2 f3 w)"
+  apply (unfold bin_rec_def)
+  apply (rule bin_rec'.simps [THEN trans])
+  apply (fold bin_rec_def)
+  apply (simp add: eq_Bit1_Pls eq_Bit1_Min bin_rec_Min)
+  done
 
 lemma bin_rec_Bit:
   "f = bin_rec f1 f2 f3  ==> f3 Int.Pls bit.B0 f1 = f1 ==> 
     f3 Int.Min bit.B1 f2 = f2 ==> f (w BIT b) = f3 w b (f w)"
-  apply clarify
-  apply (unfold bin_rec_def)
-  apply (rule bin_rec'.simps [THEN trans])
-  apply auto
-       apply (unfold Pls_def Min_def Bit_def)
-       apply (cases b, auto)+
-  done
+  by (cases b, simp add: bin_rec_Bit0, simp add: bin_rec_Bit1)
 
 lemmas bin_rec_simps = refl [THEN bin_rec_Bit] bin_rec_Pls bin_rec_Min
+  bin_rec_Bit0 bin_rec_Bit1
 
 subsection {* Destructors for binary integers *}
 
@@ -92,18 +108,24 @@ lemma bin_rest_simps [simp]:
   "bin_rest Int.Pls = Int.Pls"
   "bin_rest Int.Min = Int.Min"
   "bin_rest (w BIT b) = w"
+  "bin_rest (Int.Bit0 w) = w"
+  "bin_rest (Int.Bit1 w) = w"
   unfolding bin_rest_def by auto
 
 lemma bin_last_simps [simp]: 
   "bin_last Int.Pls = bit.B0"
   "bin_last Int.Min = bit.B1"
   "bin_last (w BIT b) = b"
+  "bin_last (Int.Bit0 w) = bit.B0"
+  "bin_last (Int.Bit1 w) = bit.B1"
   unfolding bin_last_def by auto
-    
+
 lemma bin_sign_simps [simp]:
   "bin_sign Int.Pls = Int.Pls"
   "bin_sign Int.Min = Int.Min"
   "bin_sign (w BIT b) = bin_sign w"
+  "bin_sign (Int.Bit0 w) = bin_sign w"
+  "bin_sign (Int.Bit1 w) = bin_sign w"
   unfolding bin_sign_def by (auto simp: bin_rec_simps)
 
 lemma bin_r_l_extras [simp]:
@@ -141,6 +163,12 @@ lemma bin_rest_div:
 
 lemma Bit_div2 [simp]: "(w BIT b) div 2 = w"
   unfolding bin_rest_div [symmetric] by auto
+
+lemma Bit0_div2 [simp]: "(Int.Bit0 w) div 2 = w"
+  using Bit_div2 [where b=bit.B0] by simp
+
+lemma Bit1_div2 [simp]: "(Int.Bit1 w) div 2 = w"
+  using Bit_div2 [where b=bit.B1] by simp
 
 lemma bin_nth_lem [rule_format]:
   "ALL y. bin_nth x = bin_nth y --> x = y"
@@ -191,11 +219,20 @@ lemma bin_nth_Suc_BIT: "bin_nth (w BIT b) (Suc n) = bin_nth w n"
 lemma bin_nth_minus [simp]: "0 < n ==> bin_nth (w BIT b) n = bin_nth w (n - 1)"
   by (cases n) auto
 
+lemma bin_nth_minus_Bit0 [simp]:
+  "0 < n ==> bin_nth (Int.Bit0 w) n = bin_nth w (n - 1)"
+  using bin_nth_minus [where b=bit.B0] by simp
+
+lemma bin_nth_minus_Bit1 [simp]:
+  "0 < n ==> bin_nth (Int.Bit1 w) n = bin_nth w (n - 1)"
+  using bin_nth_minus [where b=bit.B1] by simp
+
 lemmas bin_nth_0 = bin_nth.simps(1)
 lemmas bin_nth_Suc = bin_nth.simps(2)
 
 lemmas bin_nth_simps = 
   bin_nth_0 bin_nth_Suc bin_nth_Pls bin_nth_Min bin_nth_minus
+  bin_nth_minus_Bit0 bin_nth_minus_Bit1
 
 lemma bin_sign_rest [simp]: 
   "bin_sign (bin_rest w) = (bin_sign w)"
@@ -277,6 +314,14 @@ lemma bin_nth_Bit:
   "bin_nth (w BIT b) n = (n = 0 & b = bit.B1 | (EX m. n = Suc m & bin_nth w m))"
   by (cases n) auto
 
+lemma bin_nth_Bit0:
+  "bin_nth (Int.Bit0 w) n = (EX m. n = Suc m & bin_nth w m)"
+  using bin_nth_Bit [where b=bit.B0] by simp
+
+lemma bin_nth_Bit1:
+  "bin_nth (Int.Bit1 w) n = (n = 0 | (EX m. n = Suc m & bin_nth w m))"
+  using bin_nth_Bit [where b=bit.B1] by simp
+
 lemma bintrunc_bintrunc_l:
   "n <= m ==> (bintrunc m (bintrunc n w) = bintrunc n w)"
   by (rule bin_eqI) (auto simp add : nth_bintr)
@@ -312,7 +357,16 @@ lemmas bintrunc_Min [simp] =
 lemmas bintrunc_BIT  [simp] = 
   bintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps, standard]
 
+lemma bintrunc_Bit0 [simp]:
+  "bintrunc (Suc n) (Int.Bit0 w) = Int.Bit0 (bintrunc n w)"
+  using bintrunc_BIT [where b=bit.B0] by simp
+
+lemma bintrunc_Bit1 [simp]:
+  "bintrunc (Suc n) (Int.Bit1 w) = Int.Bit1 (bintrunc n w)"
+  using bintrunc_BIT [where b=bit.B1] by simp
+
 lemmas bintrunc_Sucs = bintrunc_Pls bintrunc_Min bintrunc_BIT
+  bintrunc_Bit0 bintrunc_Bit1
 
 lemmas sbintrunc_Suc_Pls = 
   sbintrunc.Suc [where bin="Int.Pls", simplified bin_last_simps bin_rest_simps, standard]
@@ -323,7 +377,16 @@ lemmas sbintrunc_Suc_Min =
 lemmas sbintrunc_Suc_BIT [simp] = 
   sbintrunc.Suc [where bin="w BIT b", simplified bin_last_simps bin_rest_simps, standard]
 
+lemma sbintrunc_Suc_Bit0 [simp]:
+  "sbintrunc (Suc n) (Int.Bit0 w) = Int.Bit0 (sbintrunc n w)"
+  using sbintrunc_Suc_BIT [where b=bit.B0] by simp
+
+lemma sbintrunc_Suc_Bit1 [simp]:
+  "sbintrunc (Suc n) (Int.Bit1 w) = Int.Bit1 (sbintrunc n w)"
+  using sbintrunc_Suc_BIT [where b=bit.B1] by simp
+
 lemmas sbintrunc_Sucs = sbintrunc_Suc_Pls sbintrunc_Suc_Min sbintrunc_Suc_BIT
+  sbintrunc_Suc_Bit0 sbintrunc_Suc_Bit1
 
 lemmas sbintrunc_Pls = 
   sbintrunc.Z [where bin="Int.Pls", 
@@ -341,8 +404,15 @@ lemmas sbintrunc_0_BIT_B1 [simp] =
   sbintrunc.Z [where bin="w BIT bit.B1", 
                simplified bin_last_simps bin_rest_simps bit.simps, standard]
 
+lemma sbintrunc_0_Bit0 [simp]: "sbintrunc 0 (Int.Bit0 w) = Int.Pls"
+  using sbintrunc_0_BIT_B0 by simp
+
+lemma sbintrunc_0_Bit1 [simp]: "sbintrunc 0 (Int.Bit1 w) = Int.Min"
+  using sbintrunc_0_BIT_B1 by simp
+
 lemmas sbintrunc_0_simps =
   sbintrunc_Pls sbintrunc_Min sbintrunc_0_BIT_B0 sbintrunc_0_BIT_B1
+  sbintrunc_0_Bit0 sbintrunc_0_Bit1
 
 lemmas bintrunc_simps = bintrunc.Z bintrunc_Sucs
 lemmas sbintrunc_simps = sbintrunc_0_simps sbintrunc_Sucs
@@ -374,7 +444,7 @@ lemmas thobini1 = arg_cong [where f = "%w. w BIT b", standard]
 lemmas bintrunc_BIT_I = trans [OF bintrunc_BIT thobini1]
 lemmas bintrunc_Min_I = trans [OF bintrunc_Min thobini1]
 
-lemmas bmsts = bintrunc_minus_simps [THEN thobini1 [THEN [2] trans], standard]
+lemmas bmsts = bintrunc_minus_simps(1-3) [THEN thobini1 [THEN [2] trans], standard]
 lemmas bintrunc_Pls_minus_I = bmsts(1)
 lemmas bintrunc_Min_minus_I = bmsts(2)
 lemmas bintrunc_BIT_minus_I = bmsts(3)
@@ -394,10 +464,10 @@ lemmas bintrunc_Suc_Ialts =
 lemmas sbintrunc_BIT_I = trans [OF sbintrunc_Suc_BIT thobini1]
 
 lemmas sbintrunc_Suc_Is = 
-  sbintrunc_Sucs [THEN thobini1 [THEN [2] trans], standard]
+  sbintrunc_Sucs(1-3) [THEN thobini1 [THEN [2] trans], standard]
 
 lemmas sbintrunc_Suc_minus_Is = 
-  sbintrunc_minus_simps [THEN thobini1 [THEN [2] trans], standard]
+  sbintrunc_minus_simps(1-3) [THEN thobini1 [THEN [2] trans], standard]
 
 lemma sbintrunc_Suc_lem:
   "sbintrunc (Suc n) x = y ==> m = Suc n ==> sbintrunc m x = y"
@@ -573,11 +643,11 @@ lemma bintrunc_Suc:
 
 lemma sign_Pls_ge_0: 
   "(bin_sign bin = Int.Pls) = (number_of bin >= (0 :: int))"
-  by (induct bin rule: bin_induct) auto
+  by (induct bin rule: numeral_induct) auto
 
 lemma sign_Min_lt_0: 
   "(bin_sign bin = Int.Min) = (number_of bin < (0 :: int))"
-  by (induct bin rule: bin_induct) auto
+  by (induct bin rule: numeral_induct) auto
 
 lemmas sign_Min_neg = trans [OF sign_Min_lt_0 neg_def [symmetric]] 
 
@@ -724,6 +794,5 @@ lemma B1_ass_B0:
 lemmas n2s_ths [THEN eq_reflection] = add_2_eq_Suc add_2_eq_Suc'
 
 lemmas s2n_ths = n2s_ths [symmetric]
-
 
 end

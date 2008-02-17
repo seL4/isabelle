@@ -518,10 +518,10 @@ lemma int_iszero_number_of_Pls: "iszero (Numeral0::int)"
 lemma int_nonzero_number_of_Min: "~(iszero ((-1)::int))"
   by simp
 
-lemma int_iszero_number_of_0: "iszero ((number_of (w BIT bit.B0))::int) = iszero ((number_of w)::int)"
+lemma int_iszero_number_of_Bit0: "iszero ((number_of (Int.Bit0 w))::int) = iszero ((number_of w)::int)"
   by simp
 
-lemma int_iszero_number_of_1: "\<not> iszero ((number_of (w BIT bit.B1))::int)"
+lemma int_iszero_number_of_Bit1: "\<not> iszero ((number_of (Int.Bit1 w))::int)"
   by simp
 
 lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (x + (uminus y)))::int)"
@@ -533,7 +533,10 @@ lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))"
 lemma int_neg_number_of_Min: "neg (-1::int)"
   by simp
 
-lemma int_neg_number_of_BIT: "neg ((number_of (w BIT x))::int) = neg ((number_of w)::int)"
+lemma int_neg_number_of_Bit0: "neg ((number_of (Int.Bit0 w))::int) = neg ((number_of w)::int)"
+  by simp
+
+lemma int_neg_number_of_Bit1: "neg ((number_of (Int.Bit1 w))::int) = neg ((number_of w)::int)"
   by simp
 
 lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (y + (uminus x)))::int))"
@@ -541,9 +544,9 @@ lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> n
 
 lemmas intarithrel =
   int_eq_number_of_eq
-  lift_bool[OF int_iszero_number_of_Pls] nlift_bool[OF int_nonzero_number_of_Min] int_iszero_number_of_0
-  lift_bool[OF int_iszero_number_of_1] int_less_number_of_eq_neg nlift_bool[OF int_not_neg_number_of_Pls] lift_bool[OF int_neg_number_of_Min]
-  int_neg_number_of_BIT int_le_number_of_eq
+  lift_bool[OF int_iszero_number_of_Pls] nlift_bool[OF int_nonzero_number_of_Min] int_iszero_number_of_Bit0
+  lift_bool[OF int_iszero_number_of_Bit1] int_less_number_of_eq_neg nlift_bool[OF int_not_neg_number_of_Pls] lift_bool[OF int_neg_number_of_Min]
+  int_neg_number_of_Bit0 int_neg_number_of_Bit1 int_le_number_of_eq
 
 lemma int_number_of_add_sym: "((number_of v)::int) + number_of w = number_of (v + w)"
   by simp

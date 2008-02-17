@@ -394,7 +394,8 @@ lemma zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"
   by (case_tac "y \<le> x", simp_all add: zdiff_int)
 
-lemma number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (n BIT b)" by simp
+lemma number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (Int.Bit0 n) \<and> (0::int) <= number_of (Int.Bit1 n)"
+by simp
 lemma number_of2: "(0::int) <= Numeral0" by simp
 lemma Suc_plus1: "Suc n = n + 1" by simp
 
@@ -503,12 +504,12 @@ lemma eq_Pls_Min:
   unfolding Pls_def Int.Min_def by presburger
 
 lemma eq_Pls_Bit0:
-  "Int.Pls = Int.Bit k bit.B0 \<longleftrightarrow> Int.Pls = k"
-  unfolding Pls_def Bit_def bit.cases by presburger
+  "Int.Pls = Int.Bit0 k \<longleftrightarrow> Int.Pls = k"
+  unfolding Pls_def Bit0_def by presburger
 
 lemma eq_Pls_Bit1:
-  "Int.Pls = Int.Bit k bit.B1 \<longleftrightarrow> False"
-  unfolding Pls_def Bit_def bit.cases by presburger
+  "Int.Pls = Int.Bit1 k \<longleftrightarrow> False"
+  unfolding Pls_def Bit1_def by presburger
 
 lemma eq_Min_Pls:
   "Int.Min = Int.Pls \<longleftrightarrow> False"
@@ -518,43 +519,44 @@ lemma eq_Min_Min:
   "Int.Min = Int.Min \<longleftrightarrow> True" by presburger
 
 lemma eq_Min_Bit0:
-  "Int.Min = Int.Bit k bit.B0 \<longleftrightarrow> False"
-  unfolding Int.Min_def Bit_def bit.cases by presburger
+  "Int.Min = Int.Bit0 k \<longleftrightarrow> False"
+  unfolding Int.Min_def Bit0_def by presburger
 
 lemma eq_Min_Bit1:
-  "Int.Min = Int.Bit k bit.B1 \<longleftrightarrow> Int.Min = k"
-  unfolding Int.Min_def Bit_def bit.cases by presburger
+  "Int.Min = Int.Bit1 k \<longleftrightarrow> Int.Min = k"
+  unfolding Int.Min_def Bit1_def by presburger
 
 lemma eq_Bit0_Pls:
-  "Int.Bit k bit.B0 = Int.Pls \<longleftrightarrow> Int.Pls = k"
-  unfolding Pls_def Bit_def bit.cases by presburger
+  "Int.Bit0 k = Int.Pls \<longleftrightarrow> Int.Pls = k"
+  unfolding Pls_def Bit0_def by presburger
 
 lemma eq_Bit1_Pls:
-  "Int.Bit k bit.B1 = Int.Pls \<longleftrightarrow> False"
-  unfolding Pls_def Bit_def bit.cases  by presburger
+  "Int.Bit1 k = Int.Pls \<longleftrightarrow> False"
+  unfolding Pls_def Bit1_def by presburger
 
 lemma eq_Bit0_Min:
-  "Int.Bit k bit.B0 = Int.Min \<longleftrightarrow> False"
-  unfolding Int.Min_def Bit_def bit.cases  by presburger
+  "Int.Bit0 k = Int.Min \<longleftrightarrow> False"
+  unfolding Int.Min_def Bit0_def by presburger
 
 lemma eq_Bit1_Min:
-  "(Int.Bit k bit.B1) = Int.Min \<longleftrightarrow> Int.Min = k"
-  unfolding Int.Min_def Bit_def bit.cases  by presburger
+  "Int.Bit1 k = Int.Min \<longleftrightarrow> Int.Min = k"
+  unfolding Int.Min_def Bit1_def by presburger
 
-lemma eq_Bit_Bit:
-  "Int.Bit k1 v1 = Int.Bit k2 v2 \<longleftrightarrow>
-    v1 = v2 \<and> k1 = k2" 
-  unfolding Bit_def
-  apply (cases v1)
-  apply (cases v2)
-  apply auto
-  apply presburger
-  apply (cases v2)
-  apply auto
-  apply presburger
-  apply (cases v2)
-  apply auto
-  done
+lemma eq_Bit0_Bit0:
+  "Int.Bit0 k1 = Int.Bit0 k2 \<longleftrightarrow> k1 = k2"
+  unfolding Bit0_def by presburger
+
+lemma eq_Bit0_Bit1:
+  "Int.Bit0 k1 = Int.Bit1 k2 \<longleftrightarrow> False"
+  unfolding Bit0_def Bit1_def by presburger
+
+lemma eq_Bit1_Bit0:
+  "Int.Bit1 k1 = Int.Bit0 k2 \<longleftrightarrow> False"
+  unfolding Bit0_def Bit1_def by presburger
+
+lemma eq_Bit1_Bit1:
+  "Int.Bit1 k1 = Int.Bit1 k2 \<longleftrightarrow> k1 = k2"
+  unfolding Bit1_def by presburger
 
 lemma eq_number_of:
   "(number_of k \<Colon> int) = number_of l \<longleftrightarrow> k = l" 
@@ -568,9 +570,13 @@ lemma less_eq_Pls_Min:
   "Int.Pls \<le> Int.Min \<longleftrightarrow> False"
   unfolding Pls_def Int.Min_def by presburger
 
-lemma less_eq_Pls_Bit:
-  "Int.Pls \<le> Int.Bit k v \<longleftrightarrow> Int.Pls \<le> k"
-  unfolding Pls_def Bit_def by (cases v) auto
+lemma less_eq_Pls_Bit0:
+  "Int.Pls \<le> Int.Bit0 k \<longleftrightarrow> Int.Pls \<le> k"
+  unfolding Pls_def Bit0_def by auto
+
+lemma less_eq_Pls_Bit1:
+  "Int.Pls \<le> Int.Bit1 k \<longleftrightarrow> Int.Pls \<le> k"
+  unfolding Pls_def Bit1_def by auto
 
 lemma less_eq_Min_Pls:
   "Int.Min \<le> Int.Pls \<longleftrightarrow> True"
@@ -580,36 +586,44 @@ lemma less_eq_Min_Min:
   "Int.Min \<le> Int.Min \<longleftrightarrow> True" by rule+
 
 lemma less_eq_Min_Bit0:
-  "Int.Min \<le> Int.Bit k bit.B0 \<longleftrightarrow> Int.Min < k"
-  unfolding Int.Min_def Bit_def by auto
+  "Int.Min \<le> Int.Bit0 k \<longleftrightarrow> Int.Min < k"
+  unfolding Int.Min_def Bit0_def by auto
 
 lemma less_eq_Min_Bit1:
-  "Int.Min \<le> Int.Bit k bit.B1 \<longleftrightarrow> Int.Min \<le> k"
-  unfolding Int.Min_def Bit_def by auto
+  "Int.Min \<le> Int.Bit1 k \<longleftrightarrow> Int.Min \<le> k"
+  unfolding Int.Min_def Bit1_def by auto
 
 lemma less_eq_Bit0_Pls:
-  "Int.Bit k bit.B0 \<le> Int.Pls \<longleftrightarrow> k \<le> Int.Pls"
-  unfolding Pls_def Bit_def by simp
+  "Int.Bit0 k \<le> Int.Pls \<longleftrightarrow> k \<le> Int.Pls"
+  unfolding Pls_def Bit0_def by simp
 
 lemma less_eq_Bit1_Pls:
-  "Int.Bit k bit.B1 \<le> Int.Pls \<longleftrightarrow> k < Int.Pls"
-  unfolding Pls_def Bit_def by auto
+  "Int.Bit1 k \<le> Int.Pls \<longleftrightarrow> k < Int.Pls"
+  unfolding Pls_def Bit1_def by auto
 
-lemma less_eq_Bit_Min:
-  "Int.Bit k v \<le> Int.Min \<longleftrightarrow> k \<le> Int.Min"
-  unfolding Int.Min_def Bit_def by (cases v) auto
+lemma less_eq_Bit0_Min:
+  "Int.Bit0 k \<le> Int.Min \<longleftrightarrow> k \<le> Int.Min"
+  unfolding Int.Min_def Bit0_def by auto
 
-lemma less_eq_Bit0_Bit:
-  "Int.Bit k1 bit.B0 \<le> Int.Bit k2 v \<longleftrightarrow> k1 \<le> k2"
-  unfolding Bit_def bit.cases by (cases v) auto
+lemma less_eq_Bit1_Min:
+  "Int.Bit1 k \<le> Int.Min \<longleftrightarrow> k \<le> Int.Min"
+  unfolding Int.Min_def Bit1_def by auto
 
-lemma less_eq_Bit_Bit1:
-  "Int.Bit k1 v \<le> Int.Bit k2 bit.B1 \<longleftrightarrow> k1 \<le> k2"
-  unfolding Bit_def bit.cases by (cases v) auto
+lemma less_eq_Bit0_Bit0:
+  "Int.Bit0 k1 \<le> Int.Bit0 k2 \<longleftrightarrow> k1 \<le> k2"
+  unfolding Bit0_def by auto
+
+lemma less_eq_Bit0_Bit1:
+  "Int.Bit0 k1 \<le> Int.Bit1 k2 \<longleftrightarrow> k1 \<le> k2"
+  unfolding Bit0_def Bit1_def by auto
 
 lemma less_eq_Bit1_Bit0:
-  "Int.Bit k1 bit.B1 \<le> Int.Bit k2 bit.B0 \<longleftrightarrow> k1 < k2"
-  unfolding Bit_def by (auto split: bit.split)
+  "Int.Bit1 k1 \<le> Int.Bit0 k2 \<longleftrightarrow> k1 < k2"
+  unfolding Bit0_def Bit1_def by auto
+
+lemma less_eq_Bit1_Bit1:
+  "Int.Bit1 k1 \<le> Int.Bit1 k2 \<longleftrightarrow> k1 \<le> k2"
+  unfolding Bit1_def by auto
 
 lemma less_eq_number_of:
   "(number_of k \<Colon> int) \<le> number_of l \<longleftrightarrow> k \<le> l"
@@ -624,12 +638,12 @@ lemma less_Pls_Min:
   unfolding Pls_def Int.Min_def  by presburger 
 
 lemma less_Pls_Bit0:
-  "Int.Pls < Int.Bit k bit.B0 \<longleftrightarrow> Int.Pls < k"
-  unfolding Pls_def Bit_def by auto
+  "Int.Pls < Int.Bit0 k \<longleftrightarrow> Int.Pls < k"
+  unfolding Pls_def Bit0_def by auto
 
 lemma less_Pls_Bit1:
-  "Int.Pls < Int.Bit k bit.B1 \<longleftrightarrow> Int.Pls \<le> k"
-  unfolding Pls_def Bit_def by auto
+  "Int.Pls < Int.Bit1 k \<longleftrightarrow> Int.Pls \<le> k"
+  unfolding Pls_def Bit1_def by auto
 
 lemma less_Min_Pls:
   "Int.Min < Int.Pls \<longleftrightarrow> True"
@@ -638,33 +652,45 @@ lemma less_Min_Pls:
 lemma less_Min_Min:
   "Int.Min < Int.Min \<longleftrightarrow> False"  by simp
 
-lemma less_Min_Bit:
-  "Int.Min < Int.Bit k v \<longleftrightarrow> Int.Min < k"
-  unfolding Int.Min_def Bit_def by (auto split: bit.split)
+lemma less_Min_Bit0:
+  "Int.Min < Int.Bit0 k \<longleftrightarrow> Int.Min < k"
+  unfolding Int.Min_def Bit0_def by auto
 
-lemma less_Bit_Pls:
-  "Int.Bit k v < Int.Pls \<longleftrightarrow> k < Int.Pls"
-  unfolding Pls_def Bit_def by (auto split: bit.split)
+lemma less_Min_Bit1:
+  "Int.Min < Int.Bit1 k \<longleftrightarrow> Int.Min < k"
+  unfolding Int.Min_def Bit1_def by auto
+
+lemma less_Bit0_Pls:
+  "Int.Bit0 k < Int.Pls \<longleftrightarrow> k < Int.Pls"
+  unfolding Pls_def Bit0_def by auto
+
+lemma less_Bit1_Pls:
+  "Int.Bit1 k < Int.Pls \<longleftrightarrow> k < Int.Pls"
+  unfolding Pls_def Bit1_def by auto
 
 lemma less_Bit0_Min:
-  "Int.Bit k bit.B0 < Int.Min \<longleftrightarrow> k \<le> Int.Min"
-  unfolding Int.Min_def Bit_def by auto
+  "Int.Bit0 k < Int.Min \<longleftrightarrow> k \<le> Int.Min"
+  unfolding Int.Min_def Bit0_def by auto
 
 lemma less_Bit1_Min:
-  "Int.Bit k bit.B1 < Int.Min \<longleftrightarrow> k < Int.Min"
-  unfolding Int.Min_def Bit_def by auto
+  "Int.Bit1 k < Int.Min \<longleftrightarrow> k < Int.Min"
+  unfolding Int.Min_def Bit1_def by auto
 
-lemma less_Bit_Bit0:
-  "Int.Bit k1 v < Int.Bit k2 bit.B0 \<longleftrightarrow> k1 < k2"
-  unfolding Bit_def by (auto split: bit.split)
-
-lemma less_Bit1_Bit:
-  "Int.Bit k1 bit.B1 < Int.Bit k2 v \<longleftrightarrow> k1 < k2"
-  unfolding Bit_def by (auto split: bit.split)
+lemma less_Bit0_Bit0:
+  "Int.Bit0 k1 < Int.Bit0 k2 \<longleftrightarrow> k1 < k2"
+  unfolding Bit0_def by auto
 
 lemma less_Bit0_Bit1:
-  "Int.Bit k1 bit.B0 < Int.Bit k2 bit.B1 \<longleftrightarrow> k1 \<le> k2"
-  unfolding Bit_def bit.cases  by arith
+  "Int.Bit0 k1 < Int.Bit1 k2 \<longleftrightarrow> k1 \<le> k2"
+  unfolding Bit0_def Bit1_def by auto
+
+lemma less_Bit1_Bit0:
+  "Int.Bit1 k1 < Int.Bit0 k2 \<longleftrightarrow> k1 < k2"
+  unfolding Bit0_def Bit1_def by auto
+
+lemma less_Bit1_Bit1:
+  "Int.Bit1 k1 < Int.Bit1 k2 \<longleftrightarrow> k1 < k2"
+  unfolding Bit1_def by auto
 
 lemma less_number_of:
   "(number_of k \<Colon> int) < number_of l \<longleftrightarrow> k < l"
@@ -689,17 +715,22 @@ lemmas times_numeral_code [code func] =
 lemmas eq_numeral_code [code func] =
   eq_Pls_Pls eq_Pls_Min eq_Pls_Bit0 eq_Pls_Bit1
   eq_Min_Pls eq_Min_Min eq_Min_Bit0 eq_Min_Bit1
-  eq_Bit0_Pls eq_Bit1_Pls eq_Bit0_Min eq_Bit1_Min eq_Bit_Bit
+  eq_Bit0_Pls eq_Bit1_Pls eq_Bit0_Min eq_Bit1_Min
+  eq_Bit0_Bit0 eq_Bit0_Bit1 eq_Bit1_Bit0 eq_Bit1_Bit1
   eq_number_of
 
-lemmas less_eq_numeral_code [code func] = less_eq_Pls_Pls less_eq_Pls_Min less_eq_Pls_Bit
+lemmas less_eq_numeral_code [code func] =
+  less_eq_Pls_Pls less_eq_Pls_Min less_eq_Pls_Bit0 less_eq_Pls_Bit1
   less_eq_Min_Pls less_eq_Min_Min less_eq_Min_Bit0 less_eq_Min_Bit1
-  less_eq_Bit0_Pls less_eq_Bit1_Pls less_eq_Bit_Min less_eq_Bit0_Bit less_eq_Bit_Bit1 less_eq_Bit1_Bit0
+  less_eq_Bit0_Pls less_eq_Bit1_Pls less_eq_Bit0_Min less_eq_Bit1_Min
+  less_eq_Bit0_Bit0 less_eq_Bit0_Bit1 less_eq_Bit1_Bit0 less_eq_Bit1_Bit1
   less_eq_number_of
 
-lemmas less_numeral_code [code func] = less_Pls_Pls less_Pls_Min less_Pls_Bit0
-  less_Pls_Bit1 less_Min_Pls less_Min_Min less_Min_Bit less_Bit_Pls
-  less_Bit0_Min less_Bit1_Min less_Bit_Bit0 less_Bit1_Bit less_Bit0_Bit1
+lemmas less_numeral_code [code func] =
+  less_Pls_Pls less_Pls_Min less_Pls_Bit0 less_Pls_Bit1
+  less_Min_Pls less_Min_Min less_Min_Bit0 less_Min_Bit1
+  less_Bit0_Pls less_Bit1_Pls less_Bit0_Min less_Bit1_Min
+  less_Bit0_Bit0 less_Bit0_Bit1 less_Bit1_Bit0 less_Bit1_Bit1
   less_number_of
 
 context ring_1

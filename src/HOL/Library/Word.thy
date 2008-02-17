@@ -2265,14 +2265,14 @@ consts
 primrec
   fast_bv_to_nat_Nil: "fast_bv_to_nat_helper [] k = k"
   fast_bv_to_nat_Cons: "fast_bv_to_nat_helper (b#bs) k =
-    fast_bv_to_nat_helper bs (k BIT (bit_case bit.B0 bit.B1 b))"
+    fast_bv_to_nat_helper bs ((bit_case Int.Bit0 Int.Bit1 b) k)"
 
 lemma fast_bv_to_nat_Cons0: "fast_bv_to_nat_helper (\<zero>#bs) bin =
-    fast_bv_to_nat_helper bs (bin BIT bit.B0)"
+    fast_bv_to_nat_helper bs (Int.Bit0 bin)"
   by simp
 
 lemma fast_bv_to_nat_Cons1: "fast_bv_to_nat_helper (\<one>#bs) bin =
-    fast_bv_to_nat_helper bs (bin BIT bit.B1)"
+    fast_bv_to_nat_helper bs (Int.Bit1 bin)"
   by simp
 
 lemma fast_bv_to_nat_def:
@@ -2301,8 +2301,10 @@ let
     | is_const_bit _ = false
   fun num_is_usable (Const(@{const_name Int.Pls},_)) = true
     | num_is_usable (Const(@{const_name Int.Min},_)) = false
-    | num_is_usable (Const(@{const_name Int.Bit},_) $ w $ b) =
-        num_is_usable w andalso is_const_bool b
+    | num_is_usable (Const(@{const_name Int.Bit0},_) $ w) =
+        num_is_usable w
+    | num_is_usable (Const(@{const_name Int.Bit1},_) $ w) =
+        num_is_usable w
     | num_is_usable _ = false
   fun vec_is_usable (Const("List.list.Nil",_)) = true
     | vec_is_usable (Const("List.list.Cons",_) $ b $ bs) =

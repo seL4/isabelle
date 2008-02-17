@@ -75,24 +75,30 @@ lemma butlast_power:
   "(butlast ^ n) bl = take (length bl - n) bl"
   by (induct n) (auto simp: butlast_take)
 
-lemma bin_to_bl_aux_Pls_minus_simp:
+lemma bin_to_bl_aux_Pls_minus_simp [simp]:
   "0 < n ==> bin_to_bl_aux n Int.Pls bl = 
     bin_to_bl_aux (n - 1) Int.Pls (False # bl)"
   by (cases n) auto
 
-lemma bin_to_bl_aux_Min_minus_simp:
+lemma bin_to_bl_aux_Min_minus_simp [simp]:
   "0 < n ==> bin_to_bl_aux n Int.Min bl = 
     bin_to_bl_aux (n - 1) Int.Min (True # bl)"
   by (cases n) auto
 
-lemma bin_to_bl_aux_Bit_minus_simp:
+lemma bin_to_bl_aux_Bit_minus_simp [simp]:
   "0 < n ==> bin_to_bl_aux n (w BIT b) bl = 
     bin_to_bl_aux (n - 1) w ((b = bit.B1) # bl)"
   by (cases n) auto
 
-declare bin_to_bl_aux_Pls_minus_simp [simp]
-  bin_to_bl_aux_Min_minus_simp [simp]
-  bin_to_bl_aux_Bit_minus_simp [simp]
+lemma bin_to_bl_aux_Bit0_minus_simp [simp]:
+  "0 < n ==> bin_to_bl_aux n (Int.Bit0 w) bl = 
+    bin_to_bl_aux (n - 1) w (False # bl)"
+  by (cases n) auto
+
+lemma bin_to_bl_aux_Bit1_minus_simp [simp]:
+  "0 < n ==> bin_to_bl_aux n (Int.Bit1 w) bl = 
+    bin_to_bl_aux (n - 1) w (True # bl)"
+  by (cases n) auto
 
 (** link between bin and bool list **)
 
@@ -308,7 +314,7 @@ lemma bl_to_bin_lt2p_aux [rule_format] :
   apply clarsimp
   apply safe
    apply (erule allE, erule xtr8 [rotated],
-          simp add: Bit_def ring_simps cong add : number_of_False_cong)+
+          simp add: numeral_simps ring_simps cong add : number_of_False_cong)+
   done
 
 lemma bl_to_bin_lt2p: "bl_to_bin bs < (2 ^ length bs)"
@@ -326,7 +332,7 @@ lemma bl_to_bin_ge2p_aux [rule_format] :
   apply clarsimp
   apply safe
    apply (erule allE, erule less_eq_less.order_trans [rotated],
-          simp add: Bit_def ring_simps cong add : number_of_False_cong)+
+          simp add: numeral_simps ring_simps cong add : number_of_False_cong)+
   done
 
 lemma bl_to_bin_ge0: "bl_to_bin bs >= 0"
@@ -370,13 +376,13 @@ lemma trunc_bl2bin_aux [rule_format] :
    apply (case_tac "m - size list")
     apply (simp add : diff_is_0_eq [THEN iffD1, THEN Suc_diff_le])
    apply simp
-   apply (rule_tac f = "%nat. bl_to_bin_aux (bintrunc nat w BIT bit.B1) list" 
+   apply (rule_tac f = "%nat. bl_to_bin_aux (Int.Bit1 (bintrunc nat w)) list" 
                    in arg_cong) 
    apply simp
   apply (case_tac "m - size list")
    apply (simp add: diff_is_0_eq [THEN iffD1, THEN Suc_diff_le])
   apply simp
-  apply (rule_tac f = "%nat. bl_to_bin_aux (bintrunc nat w BIT bit.B0) list" 
+  apply (rule_tac f = "%nat. bl_to_bin_aux (Int.Bit0 (bintrunc nat w)) list" 
                   in arg_cong) 
   apply simp
   done

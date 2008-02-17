@@ -524,44 +524,6 @@ lemma le_Suc_number_of [simp]:
 by (simp add: Let_def less_number_of_Suc linorder_not_less [symmetric])
 
 
-lemma lemma1: "(m+m = n+n) = (m = (n::int))"
-by auto
-
-lemma lemma2: "m+m ~= (1::int) + (n + n)"
-apply auto
-apply (drule_tac f = "%x. x mod 2" in arg_cong)
-apply (simp add: zmod_zadd1_eq)
-done
-
-lemma eq_number_of_BIT_BIT:
-     "((number_of (v BIT x) ::int) = number_of (w BIT y)) =  
-      (x=y & (((number_of v) ::int) = number_of w))"
-apply (simp only: number_of_BIT lemma1 lemma2 eq_commute
-               OrderedGroup.add_left_cancel add_assoc OrderedGroup.add_0_left
-            split add: bit.split)
-apply simp
-done
-
-lemma eq_number_of_BIT_Pls:
-     "((number_of (v BIT x) ::int) = Numeral0) =  
-      (x=bit.B0 & (((number_of v) ::int) = Numeral0))"
-apply (simp only: simp_thms  add: number_of_BIT number_of_Pls eq_commute
-            split add: bit.split cong: imp_cong)
-apply (rule_tac x = "number_of v" in spec, safe)
-apply (simp_all (no_asm_use))
-apply (drule_tac f = "%x. x mod 2" in arg_cong)
-apply (simp add: zmod_zadd1_eq)
-done
-
-lemma eq_number_of_BIT_Min:
-     "((number_of (v BIT x) ::int) = number_of Int.Min) =  
-      (x=bit.B1 & (((number_of v) ::int) = number_of Int.Min))"
-apply (simp only: simp_thms  add: number_of_BIT number_of_Min eq_commute
-            split add: bit.split cong: imp_cong)
-apply (rule_tac x = "number_of v" in spec, auto)
-apply (drule_tac f = "%x. x mod 2" in arg_cong, auto)
-done
-
 lemma eq_number_of_Pls_Min: "(Numeral0 ::int) ~= number_of Int.Min"
 by auto
 
@@ -632,8 +594,8 @@ text{*For arbitrary rings*}
 
 lemma power_number_of_even:
   fixes z :: "'a::{number_ring,recpower}"
-  shows "z ^ number_of (w BIT bit.B0) = (let w = z ^ (number_of w) in w * w)"
-unfolding Let_def nat_number_of_def number_of_BIT bit.cases
+  shows "z ^ number_of (Int.Bit0 w) = (let w = z ^ (number_of w) in w * w)"
+unfolding Let_def nat_number_of_def number_of_Bit0
 apply (rule_tac x = "number_of w" in spec, clarify)
 apply (case_tac " (0::int) <= x")
 apply (auto simp add: nat_mult_distrib power_even_eq power2_eq_square)
@@ -641,9 +603,9 @@ done
 
 lemma power_number_of_odd:
   fixes z :: "'a::{number_ring,recpower}"
-  shows "z ^ number_of (w BIT bit.B1) = (if (0::int) <= number_of w
+  shows "z ^ number_of (Int.Bit1 w) = (if (0::int) <= number_of w
      then (let w = z ^ (number_of w) in z * w * w) else 1)"
-unfolding Let_def nat_number_of_def number_of_BIT bit.cases
+unfolding Let_def nat_number_of_def number_of_Bit1
 apply (rule_tac x = "number_of w" in spec, auto)
 apply (simp only: nat_add_distrib nat_mult_distrib)
 apply simp
@@ -673,7 +635,7 @@ val nat_bin_arith_setup =
       lessD = lessD, neqE = neqE,
       simpset = simpset addsimps [Suc_nat_number_of, int_nat_number_of,
         @{thm not_neg_number_of_Pls}, @{thm neg_number_of_Min},
-        @{thm neg_number_of_BIT}]})
+        @{thm neg_number_of_Bit0}, @{thm neg_number_of_Bit1}]})
 *}
 
 declaration {* K nat_bin_arith_setup *}
@@ -689,33 +651,32 @@ lemma nat_number_of_Min: "number_of Int.Min = (0::nat)"
   apply (simp only: number_of_Min nat_number_of_def nat_zminus_int)
   done
 
-lemma nat_number_of_BIT_1:
-  "number_of (w BIT bit.B1) =
+lemma nat_number_of_Bit0:
+    "number_of (Int.Bit0 w) = (let n::nat = number_of w in n + n)"
+  apply (simp only: nat_number_of_def Let_def)
+  apply (cases "neg (number_of w :: int)")
+   apply (simp add: neg_nat neg_number_of_Bit0)
+  apply (rule int_int_eq [THEN iffD1])
+  apply (simp only: not_neg_nat neg_number_of_Bit0 int_Suc zadd_int [symmetric] simp_thms)
+  apply (simp only: number_of_Bit0 zadd_assoc)
+  apply simp
+  done
+
+lemma nat_number_of_Bit1:
+  "number_of (Int.Bit1 w) =
     (if neg (number_of w :: int) then 0
      else let n = number_of w in Suc (n + n))"
   apply (simp only: nat_number_of_def Let_def split: split_if)
   apply (intro conjI impI)
-   apply (simp add: neg_nat neg_number_of_BIT)
+   apply (simp add: neg_nat neg_number_of_Bit1)
   apply (rule int_int_eq [THEN iffD1])
-  apply (simp only: not_neg_nat neg_number_of_BIT int_Suc zadd_int [symmetric] simp_thms)
-  apply (simp only: number_of_BIT zadd_assoc split: bit.split)
-  apply simp
-  done
-
-lemma nat_number_of_BIT_0:
-    "number_of (w BIT bit.B0) = (let n::nat = number_of w in n + n)"
-  apply (simp only: nat_number_of_def Let_def)
-  apply (cases "neg (number_of w :: int)")
-   apply (simp add: neg_nat neg_number_of_BIT)
-  apply (rule int_int_eq [THEN iffD1])
-  apply (simp only: not_neg_nat neg_number_of_BIT int_Suc zadd_int [symmetric] simp_thms)
-  apply (simp only: number_of_BIT zadd_assoc)
-  apply simp
+  apply (simp only: not_neg_nat neg_number_of_Bit1 int_Suc zadd_int [symmetric] simp_thms)
+  apply (simp only: number_of_Bit1 zadd_assoc)
   done
 
 lemmas nat_number =
   nat_number_of_Pls nat_number_of_Min
-  nat_number_of_BIT_1 nat_number_of_BIT_0
+  nat_number_of_Bit0 nat_number_of_Bit1
 
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (simp add: Let_def)

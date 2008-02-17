@@ -92,7 +92,7 @@ lemma "\<not> (0b0010 :: 4 word) !! 0" by simp
 lemma "\<not> (0b1000 :: 3 word) !! 4" by simp
 
 lemma "(0b11000 :: 10 word) !! n = (n = 4 \<or> n = 3)" 
-  by (auto simp add: bin_nth_Bit)
+  by (auto simp add: bin_nth_Bit0 bin_nth_Bit1)
 
 lemma "set_bit 55 7 True = (183::'a::len0 word)" by simp
 lemma "set_bit 0b0010 7 True = (0b10000010::'a::len0 word)" by simp

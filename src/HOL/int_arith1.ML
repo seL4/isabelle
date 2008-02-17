@@ -548,7 +548,7 @@ val add_rules =
     simp_thms @ @{thms arith_simps} @ @{thms rel_simps} @ @{thms arith_special} @
     [@{thm neg_le_iff_le}, @{thm numeral_0_eq_0}, @{thm numeral_1_eq_1},
      @{thm minus_zero}, @{thm diff_minus}, @{thm left_minus}, @{thm right_minus},
-     @{thm mult_zero_left}, @{thm mult_zero_right}, @{thm mult_num1}, @{thm mult_1_right},
+     @{thm mult_zero_left}, @{thm mult_zero_right}, @{thm mult_Bit1}, @{thm mult_1_right},
      @{thm minus_mult_left} RS sym, @{thm minus_mult_right} RS sym,
      @{thm minus_add_distrib}, @{thm minus_minus}, @{thm mult_assoc},
      @{thm of_nat_0}, @{thm of_nat_1}, @{thm of_nat_Suc}, @{thm of_nat_add},

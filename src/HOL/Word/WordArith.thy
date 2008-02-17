@@ -395,7 +395,7 @@ lemmas unat_mono = word_less_nat_alt [THEN iffD1, standard]
 
 lemma word_zero_neq_one: "0 < len_of TYPE ('a :: len0) ==> (0 :: 'a word) ~= 1";
   unfolding word_arith_wis
-  by (auto simp add: word_ubin.norm_eq_iff [symmetric] gr0_conv_Suc)
+  by (auto simp add: word_ubin.norm_eq_iff [symmetric] gr0_conv_Suc eq_Bit0_Bit1)
 
 lemmas lenw1_zero_neq_one = len_gt_0 [THEN word_zero_neq_one]
 

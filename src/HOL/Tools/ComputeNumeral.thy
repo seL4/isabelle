@@ -8,15 +8,15 @@ lemmas bitnorm = normalize_bin_simps
 (* neg for bit strings *)
 lemma neg1: "neg Int.Pls = False" by (simp add: Int.Pls_def)
 lemma neg2: "neg Int.Min = True" apply (subst Int.Min_def) by auto
-lemma neg3: "neg (x BIT Int.B0) = neg x" apply (simp add: neg_def) apply (subst Bit_def) by auto
-lemma neg4: "neg (x BIT Int.B1) = neg x" apply (simp add: neg_def) apply (subst Bit_def) by auto  
+lemma neg3: "neg (Int.Bit0 x) = neg x" apply (simp add: neg_def) apply (subst Bit0_def) by auto
+lemma neg4: "neg (Int.Bit1 x) = neg x" apply (simp add: neg_def) apply (subst Bit1_def) by auto  
 lemmas bitneg = neg1 neg2 neg3 neg4
 
 (* iszero for bit strings *)
 lemma iszero1: "iszero Int.Pls = True" by (simp add: Int.Pls_def iszero_def)
 lemma iszero2: "iszero Int.Min = False" apply (subst Int.Min_def) apply (subst iszero_def) by simp
-lemma iszero3: "iszero (x BIT Int.B0) = iszero x" apply (subst Int.Bit_def) apply (subst iszero_def)+ by auto
-lemma iszero4: "iszero (x BIT Int.B1) = False" apply (subst Int.Bit_def) apply (subst iszero_def)+  apply simp by arith
+lemma iszero3: "iszero (Int.Bit0 x) = iszero x" apply (subst Int.Bit0_def) apply (subst iszero_def)+ by auto
+lemma iszero4: "iszero (Int.Bit1 x) = False" apply (subst Int.Bit1_def) apply (subst iszero_def)+  apply simp by arith
 lemmas bitiszero = iszero1 iszero2 iszero3 iszero4
 
 (* lezero for bit strings *)
@@ -24,66 +24,66 @@ constdefs
   "lezero x == (x \<le> 0)"
 lemma lezero1: "lezero Int.Pls = True" unfolding Int.Pls_def lezero_def by auto
 lemma lezero2: "lezero Int.Min = True" unfolding Int.Min_def lezero_def by auto
-lemma lezero3: "lezero (x BIT Int.B0) = lezero x" unfolding Int.Bit_def lezero_def by auto
-lemma lezero4: "lezero (x BIT Int.B1) = neg x" unfolding Int.Bit_def lezero_def neg_def by auto
+lemma lezero3: "lezero (Int.Bit0 x) = lezero x" unfolding Int.Bit0_def lezero_def by auto
+lemma lezero4: "lezero (Int.Bit1 x) = neg x" unfolding Int.Bit1_def lezero_def neg_def by auto
 lemmas bitlezero = lezero1 lezero2 lezero3 lezero4
 
 (* equality for bit strings *)
-lemma biteq1: "(Int.Pls = Int.Pls) = True" by auto
-lemma biteq2: "(Int.Min = Int.Min) = True" by auto
-lemma biteq3: "(Int.Pls = Int.Min) = False" unfolding Pls_def Min_def by auto
-lemma biteq4: "(Int.Min = Int.Pls) = False" unfolding Pls_def Min_def by auto
-lemma biteq5: "(x BIT Int.B0 = y BIT Int.B0) = (x = y)" unfolding Bit_def by auto
-lemma biteq6: "(x BIT Int.B1 = y BIT Int.B1) = (x = y)" unfolding Bit_def by auto
-lemma biteq7: "(x BIT Int.B0 = y BIT Int.B1) = False" unfolding Bit_def by (simp, arith) 
-lemma biteq8: "(x BIT Int.B1 = y BIT Int.B0) = False" unfolding Bit_def by (simp, arith)
-lemma biteq9: "(Int.Pls = x BIT Int.B0) = (Int.Pls = x)" unfolding Bit_def Pls_def by auto
-lemma biteq10: "(Int.Pls = x BIT Int.B1) = False" unfolding Bit_def Pls_def by (simp, arith) 
-lemma biteq11: "(Int.Min = x BIT Int.B0) = False" unfolding Bit_def Min_def by (simp, arith)
-lemma biteq12: "(Int.Min = x BIT Int.B1) = (Int.Min = x)" unfolding Bit_def Min_def by auto
-lemma biteq13: "(x BIT Int.B0 = Int.Pls) = (x = Int.Pls)" unfolding Bit_def Pls_def by auto
-lemma biteq14: "(x BIT Int.B1 = Int.Pls) = False" unfolding Bit_def Pls_def by (simp, arith)
-lemma biteq15: "(x BIT Int.B0 = Int.Min) = False" unfolding Bit_def Pls_def Min_def by (simp, arith)
-lemma biteq16: "(x BIT Int.B1 = Int.Min) = (x = Int.Min)" unfolding Bit_def Min_def by (simp, arith)
+lemma biteq1: "(Int.Pls = Int.Pls) = True" by (rule eq_Pls_Pls)
+lemma biteq2: "(Int.Min = Int.Min) = True" by (rule eq_Min_Min)
+lemma biteq3: "(Int.Pls = Int.Min) = False" by (rule eq_Pls_Min)
+lemma biteq4: "(Int.Min = Int.Pls) = False" by (rule eq_Min_Pls)
+lemma biteq5: "(Int.Bit0 x = Int.Bit0 y) = (x = y)" by (rule eq_Bit0_Bit0)
+lemma biteq6: "(Int.Bit1 x = Int.Bit1 y) = (x = y)" by (rule eq_Bit1_Bit1)
+lemma biteq7: "(Int.Bit0 x = Int.Bit1 y) = False" by (rule eq_Bit0_Bit1)
+lemma biteq8: "(Int.Bit1 x = Int.Bit0 y) = False" by (rule eq_Bit1_Bit0)
+lemma biteq9: "(Int.Pls = Int.Bit0 x) = (Int.Pls = x)" by (rule eq_Pls_Bit0)
+lemma biteq10: "(Int.Pls = Int.Bit1 x) = False" by (rule eq_Pls_Bit1)
+lemma biteq11: "(Int.Min = Int.Bit0 x) = False" by (rule eq_Min_Bit0)
+lemma biteq12: "(Int.Min = Int.Bit1 x) = (Int.Min = x)" by (rule eq_Min_Bit1)
+lemma biteq13: "(Int.Bit0 x = Int.Pls) = (x = Int.Pls)" by (subst eq_Bit0_Pls) auto
+lemma biteq14: "(Int.Bit1 x = Int.Pls) = False" by (rule eq_Bit1_Pls)
+lemma biteq15: "(Int.Bit0 x = Int.Min) = False" by (rule eq_Bit0_Min)
+lemma biteq16: "(Int.Bit1 x = Int.Min) = (x = Int.Min)" by (subst eq_Bit1_Min) auto
 lemmas biteq = biteq1 biteq2 biteq3 biteq4 biteq5 biteq6 biteq7 biteq8 biteq9 biteq10 biteq11 biteq12 biteq13 biteq14 biteq15 biteq16
 
 (* x < y for bit strings *)
-lemma bitless1: "(Int.Pls < Int.Min) = False" unfolding Pls_def Min_def by auto
-lemma bitless2: "(Int.Pls < Int.Pls) = False" by auto
-lemma bitless3: "(Int.Min < Int.Pls) = True" unfolding Pls_def Min_def by auto
-lemma bitless4: "(Int.Min < Int.Min) = False" unfolding Pls_def Min_def by auto
-lemma bitless5: "(x BIT Int.B0 < y BIT Int.B0) = (x < y)" unfolding Bit_def by auto
-lemma bitless6: "(x BIT Int.B1 < y BIT Int.B1) = (x < y)" unfolding Bit_def by auto
-lemma bitless7: "(x BIT Int.B0 < y BIT Int.B1) = (x \<le> y)" unfolding Bit_def by auto
-lemma bitless8: "(x BIT Int.B1 < y BIT Int.B0) = (x < y)" unfolding Bit_def by auto
-lemma bitless9: "(Int.Pls < x BIT Int.B0) = (Int.Pls < x)" unfolding Bit_def Pls_def by auto
-lemma bitless10: "(Int.Pls < x BIT Int.B1) = (Int.Pls \<le> x)" unfolding Bit_def Pls_def by auto
-lemma bitless11: "(Int.Min < x BIT Int.B0) = (Int.Pls \<le> x)" unfolding Bit_def Pls_def Min_def by auto
-lemma bitless12: "(Int.Min < x BIT Int.B1) = (Int.Min < x)" unfolding Bit_def Min_def by auto
-lemma bitless13: "(x BIT Int.B0 < Int.Pls) = (x < Int.Pls)" unfolding Bit_def Pls_def by auto
-lemma bitless14: "(x BIT Int.B1 < Int.Pls) = (x < Int.Pls)" unfolding Bit_def Pls_def by auto
-lemma bitless15: "(x BIT Int.B0 < Int.Min) = (x < Int.Pls)" unfolding Bit_def Pls_def Min_def by auto
-lemma bitless16: "(x BIT Int.B1 < Int.Min) = (x < Int.Min)" unfolding Bit_def Min_def by auto
+lemma bitless1: "(Int.Pls < Int.Min) = False" by (rule less_Pls_Min)
+lemma bitless2: "(Int.Pls < Int.Pls) = False" by (rule less_Pls_Pls)
+lemma bitless3: "(Int.Min < Int.Pls) = True" by (rule less_Min_Pls)
+lemma bitless4: "(Int.Min < Int.Min) = False" by (rule less_Min_Min)
+lemma bitless5: "(Int.Bit0 x < Int.Bit0 y) = (x < y)" by (rule less_Bit0_Bit0)
+lemma bitless6: "(Int.Bit1 x < Int.Bit1 y) = (x < y)" by (rule less_Bit1_Bit1)
+lemma bitless7: "(Int.Bit0 x < Int.Bit1 y) = (x \<le> y)" by (rule less_Bit0_Bit1)
+lemma bitless8: "(Int.Bit1 x < Int.Bit0 y) = (x < y)" by (rule less_Bit1_Bit0)
+lemma bitless9: "(Int.Pls < Int.Bit0 x) = (Int.Pls < x)" by (rule less_Pls_Bit0)
+lemma bitless10: "(Int.Pls < Int.Bit1 x) = (Int.Pls \<le> x)" by (rule less_Pls_Bit1)
+lemma bitless11: "(Int.Min < Int.Bit0 x) = (Int.Pls \<le> x)" unfolding Bit0_def Pls_def Min_def by auto
+lemma bitless12: "(Int.Min < Int.Bit1 x) = (Int.Min < x)" by (rule less_Min_Bit1)
+lemma bitless13: "(Int.Bit0 x < Int.Pls) = (x < Int.Pls)" by (rule less_Bit0_Pls)
+lemma bitless14: "(Int.Bit1 x < Int.Pls) = (x < Int.Pls)" by (rule less_Bit1_Pls)
+lemma bitless15: "(Int.Bit0 x < Int.Min) = (x < Int.Pls)" unfolding Bit0_def Pls_def Min_def by auto
+lemma bitless16: "(Int.Bit1 x < Int.Min) = (x < Int.Min)" by (rule less_Bit1_Min)
 lemmas bitless = bitless1 bitless2 bitless3 bitless4 bitless5 bitless6 bitless7 bitless8 
                  bitless9 bitless10 bitless11 bitless12 bitless13 bitless14 bitless15 bitless16
 
 (* x \<le> y for bit strings *)
-lemma bitle1: "(Int.Pls \<le> Int.Min) = False" unfolding Pls_def Min_def by auto
-lemma bitle2: "(Int.Pls \<le> Int.Pls) = True" by auto
-lemma bitle3: "(Int.Min \<le> Int.Pls) = True" unfolding Pls_def Min_def by auto
-lemma bitle4: "(Int.Min \<le> Int.Min) = True" unfolding Pls_def Min_def by auto
-lemma bitle5: "(x BIT Int.B0 \<le> y BIT Int.B0) = (x \<le> y)" unfolding Bit_def by auto
-lemma bitle6: "(x BIT Int.B1 \<le> y BIT Int.B1) = (x \<le> y)" unfolding Bit_def by auto
-lemma bitle7: "(x BIT Int.B0 \<le> y BIT Int.B1) = (x \<le> y)" unfolding Bit_def by auto
-lemma bitle8: "(x BIT Int.B1 \<le> y BIT Int.B0) = (x < y)" unfolding Bit_def by auto
-lemma bitle9: "(Int.Pls \<le> x BIT Int.B0) = (Int.Pls \<le> x)" unfolding Bit_def Pls_def by auto
-lemma bitle10: "(Int.Pls \<le> x BIT Int.B1) = (Int.Pls \<le> x)" unfolding Bit_def Pls_def by auto
-lemma bitle11: "(Int.Min \<le> x BIT Int.B0) = (Int.Pls \<le> x)" unfolding Bit_def Pls_def Min_def by auto
-lemma bitle12: "(Int.Min \<le> x BIT Int.B1) = (Int.Min \<le> x)" unfolding Bit_def Min_def by auto
-lemma bitle13: "(x BIT Int.B0 \<le> Int.Pls) = (x \<le> Int.Pls)" unfolding Bit_def Pls_def by auto
-lemma bitle14: "(x BIT Int.B1 \<le> Int.Pls) = (x < Int.Pls)" unfolding Bit_def Pls_def by auto
-lemma bitle15: "(x BIT Int.B0 \<le> Int.Min) = (x < Int.Pls)" unfolding Bit_def Pls_def Min_def by auto
-lemma bitle16: "(x BIT Int.B1 \<le> Int.Min) = (x \<le> Int.Min)" unfolding Bit_def Min_def by auto
+lemma bitle1: "(Int.Pls \<le> Int.Min) = False" by (rule less_eq_Pls_Min)
+lemma bitle2: "(Int.Pls \<le> Int.Pls) = True" by (rule less_eq_Pls_Pls)
+lemma bitle3: "(Int.Min \<le> Int.Pls) = True" by (rule less_eq_Min_Pls)
+lemma bitle4: "(Int.Min \<le> Int.Min) = True" by (rule less_eq_Min_Min)
+lemma bitle5: "(Int.Bit0 x \<le> Int.Bit0 y) = (x \<le> y)" by (rule less_eq_Bit0_Bit0)
+lemma bitle6: "(Int.Bit1 x \<le> Int.Bit1 y) = (x \<le> y)" by (rule less_eq_Bit1_Bit1)
+lemma bitle7: "(Int.Bit0 x \<le> Int.Bit1 y) = (x \<le> y)" by (rule less_eq_Bit0_Bit1)
+lemma bitle8: "(Int.Bit1 x \<le> Int.Bit0 y) = (x < y)" by (rule less_eq_Bit1_Bit0)
+lemma bitle9: "(Int.Pls \<le> Int.Bit0 x) = (Int.Pls \<le> x)" by (rule less_eq_Pls_Bit0)
+lemma bitle10: "(Int.Pls \<le> Int.Bit1 x) = (Int.Pls \<le> x)" by (rule less_eq_Pls_Bit1)
+lemma bitle11: "(Int.Min \<le> Int.Bit0 x) = (Int.Pls \<le> x)" unfolding Bit0_def Pls_def Min_def by auto
+lemma bitle12: "(Int.Min \<le> Int.Bit1 x) = (Int.Min \<le> x)" by (rule less_eq_Min_Bit1)
+lemma bitle13: "(Int.Bit0 x \<le> Int.Pls) = (x \<le> Int.Pls)" by (rule less_eq_Bit0_Pls)
+lemma bitle14: "(Int.Bit1 x \<le> Int.Pls) = (x < Int.Pls)" by (rule less_eq_Bit1_Pls)
+lemma bitle15: "(Int.Bit0 x \<le> Int.Min) = (x < Int.Pls)" unfolding Bit0_def Pls_def Min_def by auto
+lemma bitle16: "(Int.Bit1 x \<le> Int.Min) = (x \<le> Int.Min)" by (rule less_eq_Bit1_Min)
 lemmas bitle = bitle1 bitle2 bitle3 bitle4 bitle5 bitle6 bitle7 bitle8 
                  bitle9 bitle10 bitle11 bitle12 bitle13 bitle14 bitle15 bitle16
 
@@ -97,15 +97,15 @@ lemmas bitpred = pred_bin_simps
 lemmas bituminus = minus_bin_simps
 
 (* addition for bit strings *)
-lemmas bitadd = add_Pls add_Pls_right add_Min add_Min_right add_BIT_11 add_BIT_10 add_BIT_0[where b="Int.B0"] add_BIT_0[where b="Int.B1"]
+lemmas bitadd = add_bin_simps
 
 (* multiplication for bit strings *) 
 lemma mult_Pls_right: "x * Int.Pls = Int.Pls" by (simp add: Pls_def)
 lemma mult_Min_right: "x * Int.Min = - x" by (subst mult_commute, simp add: mult_Min)
-lemma multb0x: "(x BIT Int.B0) * y = (x * y) BIT Int.B0" unfolding Bit_def by simp
-lemma multxb0: "x * (y BIT Int.B0) = (x * y) BIT Int.B0" unfolding Bit_def by simp
-lemma multb1: "(x BIT Int.B1) * (y BIT Int.B1) = (((x * y) BIT Int.B0) + x + y) BIT Int.B1"
-  unfolding Bit_def by (simp add: ring_simps)
+lemma multb0x: "(Int.Bit0 x) * y = Int.Bit0 (x * y)" by (rule mult_Bit0)
+lemma multxb0: "x * (Int.Bit0 y) = Int.Bit0 (x * y)" unfolding Bit0_def by simp
+lemma multb1: "(Int.Bit1 x) * (Int.Bit1 y) = Int.Bit1 (Int.Bit0 (x * y) + x + y)"
+  unfolding Bit0_def Bit1_def by (simp add: ring_simps)
 lemmas bitmul = mult_Pls mult_Min mult_Pls_right mult_Min_right multb0x multxb0 multb1
 
 lemmas bitarith = bitnorm bitiszero bitneg bitlezero biteq bitless bitle bitsucc bitpred bituminus bitadd bitmul 
@@ -121,7 +121,7 @@ lemma nat_norm_number_of: "nat_norm_number_of (number_of w) = (if lezero w then 
 
 (* Normalization of nat literals *)
 lemma natnorm0: "(0::nat) = number_of (Int.Pls)" by auto
-lemma natnorm1: "(1 :: nat) = number_of (Int.Pls BIT Int.B1)"  by auto 
+lemma natnorm1: "(1 :: nat) = number_of (Int.Bit1 Int.Pls)"  by auto 
 lemmas natnorm = natnorm0 natnorm1 nat_norm_number_of
 
 (* Suc *)
@@ -228,12 +228,12 @@ lemma even_Min: "even (Int.Min) = False"
   apply (unfold Min_def even_def)
   by simp
 
-lemma even_B0: "even (x BIT Int.B0) = True"
-  apply (unfold Bit_def)
+lemma even_B0: "even (Int.Bit0 x) = True"
+  apply (unfold Bit0_def)
   by simp
 
-lemma even_B1: "even (x BIT Int.B1) = False"
-  apply (unfold Bit_def)
+lemma even_B1: "even (Int.Bit1 x) = False"
+  apply (unfold Bit1_def)
   by simp
 
 lemma even_number_of: "even ((number_of w)::int) = even w"

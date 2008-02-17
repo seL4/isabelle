@@ -17,15 +17,15 @@ struct
 
 (* numeral *)
 
-fun mk_cbit 0 = @{cterm "Int.bit.B0"}
-  | mk_cbit 1 = @{cterm "Int.bit.B1"}
+fun mk_cbit 0 = @{cterm "Int.Bit0"}
+  | mk_cbit 1 = @{cterm "Int.Bit1"}
   | mk_cbit _ = raise CTERM ("mk_cbit", []);
 
 fun mk_cnumeral 0 = @{cterm "Int.Pls"}
   | mk_cnumeral ~1 = @{cterm "Int.Min"}
   | mk_cnumeral i =
       let val (q, r) = Integer.div_mod i 2 in
-        Thm.capply (Thm.capply @{cterm "Int.Bit"} (mk_cnumeral q)) (mk_cbit r)
+        Thm.capply (mk_cbit r) (mk_cnumeral q)
       end;
 
 
@@ -57,8 +57,7 @@ end;
 
 fun add_code number_of negative unbounded target =
   CodeTarget.add_pretty_numeral target negative unbounded number_of
-  @{const_name Int.B0} @{const_name Int.B1}
   @{const_name Int.Pls} @{const_name Int.Min}
-  @{const_name Int.Bit};
+  @{const_name Int.Bit0} @{const_name Int.Bit1};
 
 end;

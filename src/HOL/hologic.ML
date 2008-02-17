@@ -88,15 +88,13 @@ sig
   val class_size: string
   val size_const: typ -> term
   val indexT: typ
-  val bitT: typ
-  val B0_const: term
-  val B1_const: term
-  val mk_bit: int -> term
-  val dest_bit: term -> int
   val intT: typ
   val pls_const: term
   val min_const: term
-  val bit_const: term
+  val bit0_const: term
+  val bit1_const: term
+  val mk_bit: int -> term
+  val dest_bit: term -> int
   val mk_numeral: int -> term
   val dest_numeral: term -> int
   val number_of_const: typ -> term
@@ -452,39 +450,33 @@ fun size_const T = Const ("Nat.size_class.size", T --> natT);
 val indexT = Type ("Code_Index.index", []);
 
 
-(* bit *)
-
-val bitT = Type ("Int.bit", []);
-
-val B0_const = Const ("Int.bit.B0", bitT);
-val B1_const =  Const ("Int.bit.B1", bitT);
-
-fun mk_bit 0 = B0_const
-  | mk_bit 1 = B1_const
-  | mk_bit _ = raise TERM ("mk_bit", []);
-
-fun dest_bit (Const ("Int.bit.B0", _)) = 0
-  | dest_bit (Const ("Int.bit.B1", _)) = 1
-  | dest_bit t = raise TERM ("dest_bit", [t]);
-
-
 (* binary numerals and int -- non-unique representation due to leading zeros/ones! *)
 
 val intT = Type ("Int.int", []);
 
 val pls_const = Const ("Int.Pls", intT)
 and min_const = Const ("Int.Min", intT)
-and bit_const = Const ("Int.Bit", intT --> bitT --> intT);
+and bit0_const = Const ("Int.Bit0", intT --> intT)
+and bit1_const = Const ("Int.Bit1", intT --> intT);
+
+fun mk_bit 0 = bit0_const
+  | mk_bit 1 = bit1_const
+  | mk_bit _ = raise TERM ("mk_bit", []);
+
+fun dest_bit (Const ("Int.Bit0", _)) = 0
+  | dest_bit (Const ("Int.Bit1", _)) = 1
+  | dest_bit t = raise TERM ("dest_bit", [t]);
 
 fun mk_numeral 0 = pls_const
   | mk_numeral ~1 = min_const
   | mk_numeral i =
       let val (q, r) = Integer.div_mod i 2;
-      in bit_const $ mk_numeral q $ mk_bit r end;
+      in mk_bit r $ mk_numeral q end;
 
 fun dest_numeral (Const ("Int.Pls", _)) = 0
   | dest_numeral (Const ("Int.Min", _)) = ~1
-  | dest_numeral (Const ("Int.Bit", _) $ bs $ b) = 2 * dest_numeral bs + dest_bit b
+  | dest_numeral (Const ("Int.Bit0", _) $ bs) = 2 * dest_numeral bs
+  | dest_numeral (Const ("Int.Bit1", _) $ bs) = 2 * dest_numeral bs + 1
   | dest_numeral t = raise TERM ("dest_numeral", [t]);
 
 fun number_of_const T = Const ("Int.number_class.number_of", intT --> T);

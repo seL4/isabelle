@@ -88,7 +88,7 @@ definition [simp, code func del]:
 
 lemma one_index_code [code inline, code func]:
   "(1\<Colon>index) = Numeral1"
-  by (simp add: number_of_index_def Pls_def Bit_def)
+  by (simp add: number_of_index_def Pls_def Bit1_def)
 lemma [code post]: "Numeral1 = (1\<Colon>index)"
   using one_index_code ..
 

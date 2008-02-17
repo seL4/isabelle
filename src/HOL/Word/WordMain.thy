@@ -10,7 +10,7 @@ header {* Main Word Library *}
 theory WordMain imports WordGenLib
 begin
 
-lemmas word_no_1 [simp] = word_1_no [symmetric]
+lemmas word_no_1 [simp] = word_1_no [symmetric, unfolded BIT_simps]
 lemmas word_no_0 [simp] = word_0_no [symmetric]
 
 declare word_0_bl [simp]

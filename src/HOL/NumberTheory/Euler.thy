@@ -77,7 +77,7 @@ proof
         by (auto simp add: zcong_zmult_prop2)
     qed
   then have "[j^2 = a] (mod p)"
-    by (metis  number_of_is_id power2_eq_square succ_1 succ_Pls)
+    by (metis  number_of_is_id power2_eq_square succ_bin_simps)
   with prems show False
     by (simp add: QuadRes_def)
 qed
@@ -288,7 +288,7 @@ lemma Euler_part3: "[| 2 < p; zprime p; ~([x = 0](mod p)); QuadRes p x |] ==>
   apply (auto simp add: zpower_zpower) 
   apply (rule zcong_trans)
   apply (auto simp add: zcong_sym [of "x ^ nat ((p - 1) div 2)"])
-  apply (metis Little_Fermat even_div_2_prop2 mult_num0 number_of_is_id odd_minus_one_even one_is_num_one zmult_1 aux__2)
+  apply (metis Little_Fermat even_div_2_prop2 mult_Bit0 number_of_is_id odd_minus_one_even one_is_num_one zmult_1 aux__2)
   done
 
 

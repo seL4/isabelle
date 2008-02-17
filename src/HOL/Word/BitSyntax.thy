@@ -9,7 +9,7 @@
 header {* Syntactic class for bitwise operations *}
 
 theory BitSyntax
-imports Main
+imports Main Num_Lemmas
 begin
 
 class bit = type +
@@ -43,7 +43,7 @@ consts
   shiftr   :: "'a::bit \<Rightarrow> nat \<Rightarrow> 'a" (infixl ">>" 55)
 
 
-subsection {* Bitwise operations on type @{typ bit} *}
+subsection {* Bitwise operations on @{typ bit} *}
 
 instantiation bit :: bit
 begin

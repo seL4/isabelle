@@ -35,6 +35,12 @@ experimental versions.
 
 *** HOL ***
 
+* Theory Int: The representation of numerals has changed.  The infix operator
+BIT and the bit datatype with constructors B0 and B1 have disappeared.
+INCOMPATIBILITY, use "Int.Bit0 x" and "Int.Bit1 y" in place of "x BIT bit.B0"
+and "y BIT bit.B1", respectively.  Theorems involving BIT, B0, or B1 have been
+renamed with "Bit0" or "Bit1" accordingly.
+
 * Theory Nat: definition of <= and < on natural numbers no longer depend
 on well-founded relations.  INCOMPATIBILITY.  Definitions le_def and less_def
 have disappeared.  Consider lemmas not_less [symmetric, where ?'a = nat]

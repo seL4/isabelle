@@ -9,7 +9,7 @@
 header {* The Integers as Equivalence Classes over Pairs of Natural Numbers *} 
 
 theory Int
-imports Equiv_Relations Datatype Nat Wellfounded_Relations
+imports Equiv_Relations Nat Wellfounded_Relations
 uses
   ("Tools/numeral.ML")
   ("Tools/numeral_syntax.ML")
@@ -583,13 +583,6 @@ text {*
   Springer LNCS 488 (240-251), 1991.
 *}
 
-datatype bit = B0 | B1
-
-text{*
-  Type @{typ bit} avoids the use of type @{typ bool}, which would make
-  all of the rewrite rules higher-order.
-*}
-
 definition
   Pls :: int where
   [code func del]: "Pls = 0"
@@ -599,8 +592,12 @@ definition
   [code func del]: "Min = - 1"
 
 definition
-  Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
-  [code func del]: "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
+  Bit0 :: "int \<Rightarrow> int" where
+  [code func del]: "Bit0 k = k + k"
+
+definition
+  Bit1 :: "int \<Rightarrow> int" where
+  [code func del]: "Bit1 k = 1 + k + k"
 
 class number = type + -- {* for numeric types: nat, int, real, \dots *}
   fixes number_of :: "int \<Rightarrow> 'a"
@@ -617,7 +614,7 @@ abbreviation
   "Numeral0 \<equiv> number_of Pls"
 
 abbreviation
-  "Numeral1 \<equiv> number_of (Pls BIT B1)"
+  "Numeral1 \<equiv> number_of (Bit1 Pls)"
 
 lemma Let_number_of [simp]: "Let (number_of v) f = f (number_of v)"
   -- {* Unfold all @{text let}s involving constants *}
@@ -640,80 +637,80 @@ and
   -- {* unfolding @{text minx} and @{text max} on numerals *}
 
 lemmas numeral_simps = 
-  succ_def pred_def Pls_def Min_def Bit_def
+  succ_def pred_def Pls_def Min_def Bit0_def Bit1_def
 
 text {* Removal of leading zeroes *}
 
-lemma Pls_0_eq [simp, code post]:
-  "Pls BIT B0 = Pls"
+lemma Bit0_Pls [simp, code post]:
+  "Bit0 Pls = Pls"
   unfolding numeral_simps by simp
 
-lemma Min_1_eq [simp, code post]:
-  "Min BIT B1 = Min"
+lemma Bit1_Min [simp, code post]:
+  "Bit1 Min = Min"
   unfolding numeral_simps by simp
 
 lemmas normalize_bin_simps =
-  Pls_0_eq Min_1_eq
+  Bit0_Pls Bit1_Min
 
 
 subsection {* The Functions @{term succ}, @{term pred} and @{term uminus} *}
 
 lemma succ_Pls [simp]:
-  "succ Pls = Pls BIT B1"
+  "succ Pls = Bit1 Pls"
   unfolding numeral_simps by simp
 
 lemma succ_Min [simp]:
   "succ Min = Pls"
   unfolding numeral_simps by simp
 
-lemma succ_1 [simp]:
-  "succ (k BIT B1) = succ k BIT B0"
+lemma succ_Bit0 [simp]:
+  "succ (Bit0 k) = Bit1 k"
   unfolding numeral_simps by simp
 
-lemma succ_0 [simp]:
-  "succ (k BIT B0) = k BIT B1"
+lemma succ_Bit1 [simp]:
+  "succ (Bit1 k) = Bit0 (succ k)"
   unfolding numeral_simps by simp
 
 lemmas succ_bin_simps =
-  succ_Pls succ_Min succ_1 succ_0
+  succ_Pls succ_Min succ_Bit0 succ_Bit1
 
 lemma pred_Pls [simp]:
   "pred Pls = Min"
   unfolding numeral_simps by simp
 
 lemma pred_Min [simp]:
-  "pred Min = Min BIT B0"
+  "pred Min = Bit0 Min"
   unfolding numeral_simps by simp
 
-lemma pred_1 [simp]:
-  "pred (k BIT B1) = k BIT B0"
-  unfolding numeral_simps by simp
-
-lemma pred_0 [simp]:
-  "pred (k BIT B0) = pred k BIT B1"
+lemma pred_Bit0 [simp]:
+  "pred (Bit0 k) = Bit1 (pred k)"
   unfolding numeral_simps by simp 
 
+lemma pred_Bit1 [simp]:
+  "pred (Bit1 k) = Bit0 k"
+  unfolding numeral_simps by simp
+
 lemmas pred_bin_simps =
-  pred_Pls pred_Min pred_1 pred_0
+  pred_Pls pred_Min pred_Bit0 pred_Bit1
 
 lemma minus_Pls [simp]:
   "- Pls = Pls"
   unfolding numeral_simps by simp 
 
 lemma minus_Min [simp]:
-  "- Min = Pls BIT B1"
+  "- Min = Bit1 Pls"
   unfolding numeral_simps by simp 
 
-lemma minus_1 [simp]:
-  "- (k BIT B1) = pred (- k) BIT B1"
+lemma minus_Bit0 [simp]:
+  "- (Bit0 k) = Bit0 (- k)"
   unfolding numeral_simps by simp 
 
-lemma minus_0 [simp]:
-  "- (k BIT B0) = (- k) BIT B0"
-  unfolding numeral_simps by simp 
+lemma minus_Bit1 [simp]:
+  "- (Bit1 k) = Bit1 (pred (- k))"
+  unfolding numeral_simps by simp
 
 lemmas minus_bin_simps =
-  minus_Pls minus_Min minus_1 minus_0
+  minus_Pls minus_Min minus_Bit0 minus_Bit1
 
 
 subsection {*
@@ -729,17 +726,21 @@ lemma add_Min [simp]:
   "Min + k = pred k"
   unfolding numeral_simps by simp
 
-lemma add_BIT_11 [simp]:
-  "(k BIT B1) + (l BIT B1) = (k + succ l) BIT B0"
+lemma add_Bit0_Bit0 [simp]:
+  "(Bit0 k) + (Bit0 l) = Bit0 (k + l)"
+  unfolding numeral_simps by simp_all 
+
+lemma add_Bit0_Bit1 [simp]:
+  "(Bit0 k) + (Bit1 l) = Bit1 (k + l)"
+  unfolding numeral_simps by simp_all 
+
+lemma add_Bit1_Bit0 [simp]:
+  "(Bit1 k) + (Bit0 l) = Bit1 (k + l)"
   unfolding numeral_simps by simp
 
-lemma add_BIT_10 [simp]:
-  "(k BIT B1) + (l BIT B0) = (k + l) BIT B1"
+lemma add_Bit1_Bit1 [simp]:
+  "(Bit1 k) + (Bit1 l) = Bit0 (k + succ l)"
   unfolding numeral_simps by simp
-
-lemma add_BIT_0 [simp]:
-  "(k BIT B0) + (l BIT b) = (k + l) BIT b"
-  unfolding numeral_simps by simp 
 
 lemma add_Pls_right [simp]:
   "k + Pls = k"
@@ -747,11 +748,11 @@ lemma add_Pls_right [simp]:
 
 lemma add_Min_right [simp]:
   "k + Min = pred k"
-  unfolding numeral_simps by simp 
+  unfolding numeral_simps by simp
 
 lemmas add_bin_simps =
-  add_Pls add_Min add_BIT_0 add_BIT_10 add_BIT_11
-  add_Pls_right add_Min_right
+  add_Pls add_Min add_Pls_right add_Min_right
+  add_Bit0_Bit0 add_Bit0_Bit1 add_Bit1_Bit0 add_Bit1_Bit1
 
 lemma mult_Pls [simp]:
   "Pls * w = Pls"
@@ -761,16 +762,16 @@ lemma mult_Min [simp]:
   "Min * k = - k"
   unfolding numeral_simps by simp
 
-lemma mult_num1 [simp]:
-  "(k BIT B1) * l = ((k * l) BIT B0) + l"
-  unfolding numeral_simps int_distrib by simp 
+lemma mult_Bit0 [simp]:
+  "(Bit0 k) * l = Bit0 (k * l)"
+  unfolding numeral_simps int_distrib by simp
 
-lemma mult_num0 [simp]:
-  "(k BIT B0) * l = (k * l) BIT B0"
+lemma mult_Bit1 [simp]:
+  "(Bit1 k) * l = (Bit0 (k * l)) + l"
   unfolding numeral_simps int_distrib by simp 
 
 lemmas mult_bin_simps =
-  mult_Pls mult_Min mult_num1 mult_num0 
+  mult_Pls mult_Min mult_Bit0 mult_Bit1
 
 
 subsection {* Converting Numerals to Rings: @{term number_of} *}
@@ -820,8 +821,8 @@ text {*
   But it doesn't seem to give a measurable speed-up.
 *}
 
-lemma double_number_of_BIT:
-  "(1 + 1) * number_of w = (number_of (w BIT B0) ::'a::number_ring)"
+lemma double_number_of_Bit0:
+  "(1 + 1) * number_of w = (number_of (Bit0 w) ::'a::number_ring)"
   unfolding number_of_eq numeral_simps left_distrib by simp
 
 text {*
@@ -877,10 +878,13 @@ lemma number_of_Min:
   "number_of Min = (- 1::'a::number_ring)"
   unfolding number_of_eq numeral_simps by simp
 
-lemma number_of_BIT:
-  "number_of(w BIT x) = (case x of B0 => 0 | B1 => (1::'a::number_ring))
-    + (number_of w) + (number_of w)"
-  unfolding number_of_eq numeral_simps by (simp split: bit.split)
+lemma number_of_Bit0:
+  "number_of (Bit0 w) = (0::'a::number_ring) + (number_of w) + (number_of w)"
+  unfolding number_of_eq numeral_simps by simp
+
+lemma number_of_Bit1:
+  "number_of (Bit1 w) = (1::'a::number_ring) + (number_of w) + (number_of w)"
+  unfolding number_of_eq numeral_simps by simp
 
 
 subsection {* Equality of Binary Numbers *}
@@ -979,9 +983,9 @@ next
   qed
 qed
 
-lemma iszero_number_of_BIT:
-  "iszero (number_of (w BIT x)::'a) = 
-   (x = B0 \<and> iszero (number_of w::'a::{ring_char_0,number_ring}))"
+lemma iszero_number_of_Bit0:
+  "iszero (number_of (Bit0 w)::'a) = 
+   iszero (number_of w::'a::{ring_char_0,number_ring})"
 proof -
   have "(of_int w + of_int w = (0::'a)) \<Longrightarrow> (w = 0)"
   proof -
@@ -990,26 +994,23 @@ proof -
     then have "w + w = 0" by (simp only: of_int_eq_iff)
     then show "w = 0" by (simp only: double_eq_0_iff)
   qed
-  moreover have "1 + of_int w + of_int w \<noteq> (0::'a)"
+  thus ?thesis
+    by (auto simp add: iszero_def number_of_eq numeral_simps)
+qed
+
+lemma iszero_number_of_Bit1:
+  "~ iszero (number_of (Bit1 w)::'a::{ring_char_0,number_ring})"
+proof -
+  have "1 + of_int w + of_int w \<noteq> (0::'a)"
   proof
     assume eq: "1 + of_int w + of_int w = (0::'a)"
     hence "of_int (1 + w + w) = (of_int 0 :: 'a)" by simp 
     hence "1 + w + w = 0" by (simp only: of_int_eq_iff)
     with odd_nonzero show False by blast
   qed
-  ultimately show ?thesis
-    by (auto simp add: iszero_def number_of_eq numeral_simps 
-     split: bit.split)
+  thus ?thesis
+    by (auto simp add: iszero_def number_of_eq numeral_simps)
 qed
-
-lemma iszero_number_of_0:
-  "iszero (number_of (w BIT B0) :: 'a::{ring_char_0,number_ring}) = 
-  iszero (number_of w :: 'a)"
-  by (simp only: iszero_number_of_BIT simp_thms)
-
-lemma iszero_number_of_1:
-  "~ iszero (number_of (w BIT B1)::'a::{ring_char_0,number_ring})"
-  by (simp add: iszero_number_of_BIT) 
 
 
 subsection {* The Less-Than Relation *}
@@ -1056,16 +1057,20 @@ next
     add: compare_rls of_nat_1 [symmetric] of_nat_add [symmetric])
 qed
 
-lemma neg_number_of_BIT:
-  "neg (number_of (w BIT x)::'a) = 
+lemma neg_number_of_Bit0:
+  "neg (number_of (Bit0 w)::'a) = 
+  neg (number_of w :: 'a::{ordered_idom,number_ring})"
+by (simp add: neg_def number_of_eq numeral_simps double_less_0_iff)
+
+lemma neg_number_of_Bit1:
+  "neg (number_of (Bit1 w)::'a) = 
   neg (number_of w :: 'a::{ordered_idom,number_ring})"
 proof -
   have "((1::'a) + of_int w + of_int w < 0) = (of_int (1 + w + w) < (of_int 0 :: 'a))"
     by simp
   also have "... = (w < 0)" by (simp only: of_int_less_iff odd_less_0)
   finally show ?thesis
-  by ( simp add: neg_def number_of_eq numeral_simps double_less_0_iff
-    split: bit.split)
+  by (simp add: neg_def number_of_eq numeral_simps)
 qed
 
 
@@ -1112,7 +1117,6 @@ text {*
 *}
 
 lemmas arith_simps = 
-  bit.distinct
   normalize_bin_simps pred_bin_simps succ_bin_simps
   add_bin_simps minus_bin_simps mult_bin_simps
   abs_zero abs_one arith_extra_simps
@@ -1121,10 +1125,10 @@ text {* Simplification of relational operations *}
 
 lemmas rel_simps [simp] = 
   eq_number_of_eq iszero_0 nonzero_number_of_Min
-  iszero_number_of_0 iszero_number_of_1
+  iszero_number_of_Bit0 iszero_number_of_Bit1
   less_number_of_eq_neg
   not_neg_number_of_Pls not_neg_0 not_neg_1 not_iszero_1
-  neg_number_of_Min neg_number_of_BIT
+  neg_number_of_Min neg_number_of_Bit0 neg_number_of_Bit1
   le_number_of_eq
 (* iszero_number_of_Pls would never be used
    because its lhs simplifies to "iszero 0" *)
@@ -1795,7 +1799,7 @@ subsection {* Configuration of the code generator *}
 
 instance int :: eq ..
 
-code_datatype Pls Min Bit "number_of \<Colon> int \<Rightarrow> int"
+code_datatype Pls Min Bit0 Bit1 "number_of \<Colon> int \<Rightarrow> int"
 
 definition
   int_aux :: "nat \<Rightarrow> int \<Rightarrow> int" where
@@ -1883,7 +1887,7 @@ quickcheck_params [default_type = int]
 
 (*setup continues in theory Presburger*)
 
-hide (open) const Pls Min B0 B1 succ pred
+hide (open) const Pls Min Bit0 Bit1 succ pred
 
 
 subsection {* Legacy theorems *}

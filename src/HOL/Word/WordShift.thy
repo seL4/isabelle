@@ -14,7 +14,8 @@ subsection "Bit shifting"
 lemma shiftl1_number [simp] :
   "shiftl1 (number_of w) = number_of (w BIT bit.B0)"
   apply (unfold shiftl1_def word_number_of_def)
-  apply (simp add: word_ubin.norm_eq_iff [symmetric] word_ubin.eq_norm)
+  apply (simp add: word_ubin.norm_eq_iff [symmetric] word_ubin.eq_norm
+              del: BIT_simps)
   apply (subst refl [THEN bintrunc_BIT_I, symmetric])
   apply (subst bintrunc_bintrunc_min)
   apply simp
@@ -331,13 +332,13 @@ lemma shiftl_zero_size:
 
 lemma shiftl1_2t: "shiftl1 (w :: 'a :: len word) = 2 * w"
   apply (simp add: shiftl1_def_u)
-  apply (simp only:  double_number_of_BIT [symmetric])
+  apply (simp only:  double_number_of_Bit0 [symmetric])
   apply simp
   done
 
 lemma shiftl1_p: "shiftl1 (w :: 'a :: len word) = w + w"
   apply (simp add: shiftl1_def_u)
-  apply (simp only: double_number_of_BIT [symmetric])
+  apply (simp only: double_number_of_Bit0 [symmetric])
   apply simp
   done
 

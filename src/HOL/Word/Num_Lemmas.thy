@@ -9,6 +9,22 @@ theory Num_Lemmas
 imports Main Parity
 begin
 
+datatype bit = B0 | B1
+
+definition
+  Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
+  [code func del]: "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
+
+lemma BIT_B0_eq_Bit0 [simp]: "w BIT B0 = Int.Bit0 w"
+  unfolding Bit_def Bit0_def by simp
+
+lemma BIT_B1_eq_Bit1 [simp]: "w BIT B1 = Int.Bit1 w"
+  unfolding Bit_def Bit1_def by simp
+
+lemmas BIT_simps = BIT_B0_eq_Bit0 BIT_B1_eq_Bit1
+
+hide (open) const B0 B1
+
 lemma contentsI: "y = {x} ==> contents y = x" 
   unfolding contents_def by auto
 
@@ -197,8 +213,13 @@ lemma bin_rl_char: "(bin_rl w = (r, l)) = (r BIT l = w)"
    apply auto
   done
 
-lemmas bin_rl_simps [THEN bin_rl_char [THEN iffD2], standard, simp] =
-  Pls_0_eq Min_1_eq refl 
+lemma bin_rl_simps [simp]:
+  "bin_rl Int.Pls = (Int.Pls, bit.B0)"
+  "bin_rl Int.Min = (Int.Min, bit.B1)"
+  "bin_rl (r BIT b) = (r, b)"
+  "bin_rl (Int.Bit0 r) = (r, bit.B0)"
+  "bin_rl (Int.Bit1 r) = (r, bit.B1)"
+  unfolding bin_rl_char by simp_all
 
 lemma bin_abs_lem:
   "bin = (w BIT b) ==> ~ bin = Int.Min --> ~ bin = Int.Pls -->
@@ -223,6 +244,24 @@ lemma bin_induct:
   apply (auto simp add : PPls PMin PBit)
   done
 
+lemma numeral_induct:
+  assumes Pls: "P Int.Pls"
+  assumes Min: "P Int.Min"
+  assumes Bit0: "\<And>w. \<lbrakk>P w; w \<noteq> Int.Pls\<rbrakk> \<Longrightarrow> P (Int.Bit0 w)"
+  assumes Bit1: "\<And>w. \<lbrakk>P w; w \<noteq> Int.Min\<rbrakk> \<Longrightarrow> P (Int.Bit1 w)"
+  shows "P x"
+  apply (induct x rule: bin_induct)
+    apply (rule Pls)
+   apply (rule Min)
+  apply (case_tac bit)
+   apply (case_tac "bin = Int.Pls")
+    apply simp
+   apply (simp add: Bit0)
+  apply (case_tac "bin = Int.Min")
+   apply simp
+  apply (simp add: Bit1)
+  done
+
 lemma no_no [simp]: "number_of (number_of i) = i"
   unfolding number_of_eq by simp
 
@@ -245,9 +284,12 @@ lemma B_mod_2':
   apply (simp (no_asm) only: Bit_B0 Bit_B1)
   apply (simp add: z1pmod2)
   done
-    
-lemmas B1_mod_2 [simp] = B_mod_2' [OF refl, THEN conjunct1, standard]
-lemmas B0_mod_2 [simp] = B_mod_2' [OF refl, THEN conjunct2, standard]
+
+lemma B1_mod_2 [simp]: "(Int.Bit1 w) mod 2 = 1"
+  unfolding numeral_simps number_of_is_id by (simp add: z1pmod2)
+
+lemma B0_mod_2 [simp]: "(Int.Bit0 w) mod 2 = 0"
+  unfolding numeral_simps number_of_is_id by simp
 
 lemma axxbyy:
   "a + m + m = b + n + n ==> (a = 0 | a = 1) ==> (b = 0 | b = 1) ==>  

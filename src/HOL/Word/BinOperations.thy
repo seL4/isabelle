@@ -44,7 +44,9 @@ lemma int_not_simps [simp]:
   "NOT Int.Pls = Int.Min"
   "NOT Int.Min = Int.Pls"
   "NOT (w BIT b) = (NOT w) BIT (NOT b)"
-  by (unfold int_not_def) (auto intro: bin_rec_simps)
+  "NOT (Int.Bit0 w) = Int.Bit1 (NOT w)"
+  "NOT (Int.Bit1 w) = Int.Bit0 (NOT w)"
+  unfolding int_not_def by (simp_all add: bin_rec_simps)
 
 lemma int_xor_Pls [simp]: 
   "Int.Pls XOR x = x"
@@ -65,6 +67,13 @@ lemma int_xor_Bits [simp]:
   apply (simp add: int_not_simps [symmetric])
   done
 
+lemma int_xor_Bits2 [simp]: 
+  "(Int.Bit0 x) XOR (Int.Bit0 y) = Int.Bit0 (x XOR y)"
+  "(Int.Bit0 x) XOR (Int.Bit1 y) = Int.Bit1 (x XOR y)"
+  "(Int.Bit1 x) XOR (Int.Bit0 y) = Int.Bit1 (x XOR y)"
+  "(Int.Bit1 x) XOR (Int.Bit1 y) = Int.Bit0 (x XOR y)"
+  unfolding BIT_simps [symmetric] int_xor_Bits by simp_all
+
 lemma int_xor_x_simps':
   "w XOR (Int.Pls BIT bit.B0) = w"
   "w XOR (Int.Min BIT bit.B1) = NOT w"
@@ -74,7 +83,10 @@ lemma int_xor_x_simps':
    apply clarsimp+
   done
 
-lemmas int_xor_extra_simps [simp] = int_xor_x_simps' [simplified arith_simps]
+lemma int_xor_extra_simps [simp]:
+  "w XOR Int.Pls = w"
+  "w XOR Int.Min = NOT w"
+  using int_xor_x_simps' by simp_all
 
 lemma int_or_Pls [simp]: 
   "Int.Pls OR x = x"
@@ -88,6 +100,13 @@ lemma int_or_Bits [simp]:
   "(x BIT b) OR (y BIT c) = (x OR y) BIT (b OR c)"
   unfolding int_or_def by (simp add: bin_rec_simps)
 
+lemma int_or_Bits2 [simp]: 
+  "(Int.Bit0 x) OR (Int.Bit0 y) = Int.Bit0 (x OR y)"
+  "(Int.Bit0 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
+  "(Int.Bit1 x) OR (Int.Bit0 y) = Int.Bit1 (x OR y)"
+  "(Int.Bit1 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
+  unfolding BIT_simps [symmetric] int_or_Bits by simp_all
+
 lemma int_or_x_simps': 
   "w OR (Int.Pls BIT bit.B0) = w"
   "w OR (Int.Min BIT bit.B1) = Int.Min"
@@ -97,8 +116,10 @@ lemma int_or_x_simps':
    apply clarsimp+
   done
 
-lemmas int_or_extra_simps [simp] = int_or_x_simps' [simplified arith_simps]
-
+lemma int_or_extra_simps [simp]:
+  "w OR Int.Pls = w"
+  "w OR Int.Min = Int.Min"
+  using int_or_x_simps' by simp_all
 
 lemma int_and_Pls [simp]:
   "Int.Pls AND x = Int.Pls"
@@ -112,6 +133,13 @@ lemma int_and_Bits [simp]:
   "(x BIT b) AND (y BIT c) = (x AND y) BIT (b AND c)" 
   unfolding int_and_def by (simp add: bin_rec_simps)
 
+lemma int_and_Bits2 [simp]: 
+  "(Int.Bit0 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
+  "(Int.Bit0 x) AND (Int.Bit1 y) = Int.Bit0 (x AND y)"
+  "(Int.Bit1 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
+  "(Int.Bit1 x) AND (Int.Bit1 y) = Int.Bit1 (x AND y)"
+  unfolding BIT_simps [symmetric] int_and_Bits by simp_all
+
 lemma int_and_x_simps': 
   "w AND (Int.Pls BIT bit.B0) = Int.Pls"
   "w AND (Int.Min BIT bit.B1) = w"
@@ -121,7 +149,10 @@ lemma int_and_x_simps':
    apply clarsimp+
   done
 
-lemmas int_and_extra_simps [simp] = int_and_x_simps' [simplified arith_simps]
+lemma int_and_extra_simps [simp]:
+  "w AND Int.Pls = Int.Pls"
+  "w AND Int.Min = w"
+  using int_and_x_simps' by simp_all
 
 (* commutativity of the above *)
 lemma bin_ops_comm:
@@ -194,7 +225,7 @@ lemma bbw_assocs':
     apply (case_tac [!] z rule: bin_exhaust)
     apply (case_tac [!] bit)
        apply (case_tac [!] b)
-             apply auto
+             apply (auto simp del: BIT_simps)
   done
 
 lemma int_and_assoc:
@@ -225,7 +256,7 @@ lemma bbw_not_dist:
   apply (induct x rule: bin_induct)
        apply auto
    apply (case_tac [!] y rule: bin_exhaust)
-   apply (case_tac [!] bit, auto)
+   apply (case_tac [!] bit, auto simp del: BIT_simps)
   done
 
 lemma bbw_oa_dist: 
@@ -235,7 +266,7 @@ lemma bbw_oa_dist:
     apply auto
   apply (case_tac y rule: bin_exhaust)
   apply (case_tac z rule: bin_exhaust)
-  apply (case_tac ba, auto)
+  apply (case_tac ba, auto simp del: BIT_simps)
   done
 
 lemma bbw_ao_dist: 
@@ -245,7 +276,7 @@ lemma bbw_ao_dist:
     apply auto
   apply (case_tac y rule: bin_exhaust)
   apply (case_tac z rule: bin_exhaust)
-  apply (case_tac ba, auto)
+  apply (case_tac ba, auto simp del: BIT_simps)
   done
 
 (*
@@ -289,9 +320,9 @@ lemma bin_nth_ops:
   apply (induct n)
          apply safe
                          apply (case_tac [!] x rule: bin_exhaust)
-                         apply simp_all
+                         apply (simp_all del: BIT_simps)
                       apply (case_tac [!] y rule: bin_exhaust)
-                      apply simp_all
+                      apply (simp_all del: BIT_simps)
         apply (auto dest: not_B1_is_B0 intro: B1_ass_B0)
   done
 
@@ -392,7 +423,7 @@ lemma bin_clr_le:
   "!!w. bin_sc n bit.B0 w <= w"
   apply (induct n) 
    apply (case_tac [!] w rule: bin_exhaust)
-   apply auto
+   apply (auto simp del: BIT_simps)
    apply (unfold Bit_def)
    apply (simp_all split: bit.split)
   done
@@ -401,7 +432,7 @@ lemma bin_set_ge:
   "!!w. bin_sc n bit.B1 w >= w"
   apply (induct n) 
    apply (case_tac [!] w rule: bin_exhaust)
-   apply auto
+   apply (auto simp del: BIT_simps)
    apply (unfold Bit_def)
    apply (simp_all split: bit.split)
   done
@@ -412,7 +443,7 @@ lemma bintr_bin_clr_le:
    apply simp
   apply (case_tac w rule: bin_exhaust)
   apply (case_tac m)
-   apply auto
+   apply (auto simp del: BIT_simps)
    apply (unfold Bit_def)
    apply (simp_all split: bit.split)
   done
@@ -423,7 +454,7 @@ lemma bintr_bin_set_ge:
    apply simp
   apply (case_tac w rule: bin_exhaust)
   apply (case_tac m)
-   apply auto
+   apply (auto simp del: BIT_simps)
    apply (unfold Bit_def)
    apply (simp_all split: bit.split)
   done

@@ -28,16 +28,19 @@ setup {*
     true true) ["SML", "OCaml", "Haskell"]
 *}
 
-code_const "Int.Pls" and "Int.Min" and "Int.Bit"
+code_const "Int.Pls" and "Int.Min" and "Int.Bit0" and "Int.Bit1"
   (SML "raise/ Fail/ \"Pls\""
      and "raise/ Fail/ \"Min\""
-     and "!((_);/ (_);/ raise/ Fail/ \"Bit\")")
+     and "!((_);/ raise/ Fail/ \"Bit0\")"
+     and "!((_);/ raise/ Fail/ \"Bit1\")")
   (OCaml "failwith/ \"Pls\""
      and "failwith/ \"Min\""
-     and "!((_);/ (_);/ failwith/ \"Bit\")")
+     and "!((_);/ failwith/ \"Bit0\")"
+     and "!((_);/ failwith/ \"Bit1\")")
   (Haskell "error/ \"Pls\""
      and "error/ \"Min\""
-     and "error/ \"Bit\"")
+     and "error/ \"Bit0\""
+     and "error/ \"Bit1\"")
 
 code_const Int.pred
   (SML "IntInf.- ((_), 1)")

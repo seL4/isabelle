@@ -1062,14 +1062,18 @@ done
 lemma not_0_le_lemma: "~ 0 \<le> x ==> x \<le> (0::int)"
 by auto
 
-lemma zdiv_number_of_BIT[simp]:
-     "number_of (v BIT b) div number_of (w BIT bit.B0) =  
-          (if b=bit.B0 | (0::int) \<le> number_of w                    
+lemma zdiv_number_of_Bit0 [simp]:
+     "number_of (Int.Bit0 v) div number_of (Int.Bit0 w) =  
+          number_of v div (number_of w :: int)"
+by (simp only: number_of_eq numeral_simps) simp
+
+lemma zdiv_number_of_Bit1 [simp]:
+     "number_of (Int.Bit1 v) div number_of (Int.Bit0 w) =  
+          (if (0::int) \<le> number_of w                    
            then number_of v div (number_of w)     
            else (number_of v + (1::int)) div (number_of w))"
 apply (simp only: number_of_eq numeral_simps UNIV_I split: split_if) 
-apply (simp add: zdiv_zmult_zmult1 pos_zdiv_mult_2 neg_zdiv_mult_2 add_ac 
-            split: bit.split)
+apply (simp add: zdiv_zmult_zmult1 pos_zdiv_mult_2 neg_zdiv_mult_2 add_ac)
 done
 
 
@@ -1087,7 +1091,7 @@ apply (auto simp add: add_commute [of 1] mult_commute add1_zle_eq
 apply (subst zmod_zadd1_eq)
 apply (simp add: zmod_zmult_zmult2 mod_pos_pos_trivial)
 apply (rule mod_pos_pos_trivial)
-apply (auto simp add: mod_pos_pos_trivial left_distrib)
+apply (auto simp add: mod_pos_pos_trivial ring_distribs)
 apply (subgoal_tac "0 \<le> b mod a", arith, simp)
 done
 
@@ -1102,14 +1106,20 @@ apply (subgoal_tac " (-1 - (2 * b)) = - (1 + (2 * b))")
 apply (simp only: zmod_zminus_zminus diff_minus minus_add_distrib [symmetric])
 done
 
-lemma zmod_number_of_BIT [simp]:
-     "number_of (v BIT b) mod number_of (w BIT bit.B0) =  
-      (case b of
-          bit.B0 => 2 * (number_of v mod number_of w)
-        | bit.B1 => if (0::int) \<le> number_of w  
+lemma zmod_number_of_Bit0 [simp]:
+     "number_of (Int.Bit0 v) mod number_of (Int.Bit0 w) =  
+      (2::int) * (number_of v mod number_of w)"
+apply (simp only: number_of_eq numeral_simps) 
+apply (simp add: zmod_zmult_zmult1 pos_zmod_mult_2 
+                 not_0_le_lemma neg_zmod_mult_2 add_ac)
+done
+
+lemma zmod_number_of_Bit1 [simp]:
+     "number_of (Int.Bit1 v) mod number_of (Int.Bit0 w) =  
+      (if (0::int) \<le> number_of w  
                 then 2 * (number_of v mod number_of w) + 1     
                 else 2 * ((number_of v + (1::int)) mod number_of w) - 1)"
-apply (simp only: number_of_eq numeral_simps UNIV_I split: bit.split) 
+apply (simp only: number_of_eq numeral_simps) 
 apply (simp add: zmod_zmult_zmult1 pos_zmod_mult_2 
                  not_0_le_lemma neg_zmod_mult_2 add_ac)
 done
