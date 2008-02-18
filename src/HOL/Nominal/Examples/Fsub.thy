@@ -147,12 +147,9 @@ lemma closed_in_eqvt[eqvt]:
   assumes a: "S closed_in \<Gamma>" 
   shows "(pi\<bullet>S) closed_in (pi\<bullet>\<Gamma>)"
   using a
-proof (unfold "closed_in_def")
-  assume "supp S \<subseteq> (domain \<Gamma>)" 
-  hence "pi\<bullet>(supp S) \<subseteq> pi\<bullet>(domain \<Gamma>)"
-    by (simp add: pt_subseteq_eqvt[OF pt_tyvrs_inst, OF at_tyvrs_inst])
-  thus "(supp (pi\<bullet>S)) \<subseteq> (domain (pi\<bullet>\<Gamma>))"
-    by (simp add: domain_eqvt pt_perm_supp[OF pt_tyvrs_inst, OF at_tyvrs_inst])
+proof -
+  from a have "pi\<bullet>(S closed_in \<Gamma>)" by (simp add: perm_bool)
+  then show "(pi\<bullet>S) closed_in (pi\<bullet>\<Gamma>)" by (simp add: closed_in_def eqvts)
 qed
 
 lemma ty_vrs_prm_simp:
