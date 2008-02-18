@@ -139,15 +139,13 @@ fun get_datatype_descr thy dtco =
 
 fun the_datatype_spec thy dtco =
   let
-    fun mk_cons typ_of_dtyp (co, tys) = (co, map typ_of_dtyp tys);
-    fun mk_dtyp ({ sorts = raw_sorts, descr, ... } : DatatypeAux.datatype_info, (dtys, cos)) =
-      let
-        val sorts = map ((fn v => (v, (the o AList.lookup (op =) raw_sorts) v))
-          o DatatypeAux.dest_DtTFree) dtys;
-        val typ_of_dtyp = DatatypeAux.typ_of_dtyp descr sorts;
-        val tys = map typ_of_dtyp dtys;
-      in (sorts, map (mk_cons typ_of_dtyp) cos) end;
-  in mk_dtyp (the (get_datatype_descr thy dtco)) end;
+    val info as { descr, index, sorts = raw_sorts, ... } = the_datatype thy dtco;
+    val SOME (_, dtys, raw_cos) = AList.lookup (op =) descr index;
+    val sorts = map ((fn v => (v, (the o AList.lookup (op =) raw_sorts) v))
+      o DatatypeAux.dest_DtTFree) dtys;
+    val cos = map
+      (fn (co, tys) => (co, map (DatatypeAux.typ_of_dtyp descr sorts) tys)) raw_cos;
+  in (sorts, cos) end;
 
 fun get_datatype_constrs thy dtco =
   case try (the_datatype_spec thy) dtco
