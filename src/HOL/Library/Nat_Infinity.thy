@@ -41,7 +41,9 @@ definition
     | \<infinity>  => False"
 
 definition
-  ile_def: "(m::inat) \<le> n == \<not> (n < m)"
+  ile_def: "m \<le> n ==
+    case n of Fin n1 => (case m of Fin m1 => m1 \<le> n1 | \<infinity> => False)
+    | \<infinity>  => True"
 
 instance ..
 
@@ -83,20 +85,43 @@ by (simp add: inat_defs split:inat_splits)
 
 subsection "Ordering relations"
 
+instance inat :: linorder
+proof
+  fix x :: inat
+  show "x \<le> x"
+    by (simp add: inat_defs split: inat_splits)
+next
+  fix x y :: inat
+  assume "x \<le> y" and "y \<le> x" thus "x = y"
+    by (simp add: inat_defs split: inat_splits)
+next
+  fix x y z :: inat
+  assume "x \<le> y" and "y \<le> z" thus "x \<le> z"
+    by (simp add: inat_defs split: inat_splits)
+next
+  fix x y :: inat
+  show "(x < y) = (x \<le> y \<and> x \<noteq> y)"
+    by (simp add: inat_defs order_less_le split: inat_splits)
+next
+  fix x y :: inat
+  show "x \<le> y \<or> y \<le> x"
+    by (simp add: inat_defs linorder_linear split: inat_splits)
+qed
+
 lemma Infty_ilessE [elim!]: "\<infinity> < Fin m ==> R"
 by (simp add: inat_defs split:inat_splits)
 
 lemma iless_linear: "m < n \<or> m = n \<or> n < (m::inat)"
-by (simp add: inat_defs split:inat_splits, arith)
+by (rule linorder_less_linear)
 
-lemma iless_not_refl [simp]: "\<not> n < (n::inat)"
-by (simp add: inat_defs split:inat_splits)
+lemma iless_not_refl: "\<not> n < (n::inat)"
+by (rule order_less_irrefl)
 
 lemma iless_trans: "i < j ==> j < k ==> i < (k::inat)"
-by (simp add: inat_defs split:inat_splits)
+by (rule order_less_trans)
 
 lemma iless_not_sym: "n < m ==> \<not> m < (n::inat)"
-by (simp add: inat_defs split:inat_splits)
+by (rule order_less_not_sym)
 
 lemma Fin_iless_mono [simp]: "(Fin n < Fin m) = (n < m)"
 by (simp add: inat_defs split:inat_splits)
@@ -125,19 +150,19 @@ by (simp add: inat_defs split:inat_splits)
 
 
 lemma ile_def2: "(m \<le> n) = (m < n \<or> m = (n::inat))"
-by (simp add: inat_defs split:inat_splits, arith)
+by (rule order_le_less)
 
 lemma ile_refl [simp]: "n \<le> (n::inat)"
-by (simp add: inat_defs split:inat_splits)
+by (rule order_refl)
 
 lemma ile_trans: "i \<le> j ==> j \<le> k ==> i \<le> (k::inat)"
-by (simp add: inat_defs split:inat_splits)
+by (rule order_trans)
 
 lemma ile_iless_trans: "i \<le> j ==> j < k ==> i < (k::inat)"
-by (simp add: inat_defs split:inat_splits)
+by (rule order_le_less_trans)
 
 lemma iless_ile_trans: "i < j ==> j \<le> k ==> i < (k::inat)"
-by (simp add: inat_defs split:inat_splits)
+by (rule order_less_le_trans)
 
 lemma Infty_ub [simp]: "n \<le> \<infinity>"
 by (simp add: inat_defs split:inat_splits)
@@ -149,10 +174,10 @@ lemma Infty_ileE [elim!]: "\<infinity> \<le> Fin m ==> R"
 by (simp add: inat_defs split:inat_splits)
 
 lemma Fin_ile_mono [simp]: "(Fin n \<le> Fin m) = (n \<le> m)"
-by (simp add: inat_defs split:inat_splits, arith)
+by (simp add: inat_defs split:inat_splits)
 
 lemma ilessI1: "n \<le> m ==> n \<noteq> m ==> n < (m::inat)"
-by (simp add: inat_defs split:inat_splits)
+by (rule order_le_neq_trans)
 
 lemma ileI1: "m < n ==> iSuc m \<le> n"
 by (simp add: inat_defs split:inat_splits)
@@ -178,7 +203,7 @@ by (simp add: inat_defs split:inat_splits)
 lemma chain_incr: "\<forall>i. \<exists>j. Y i < Y j ==> \<exists>j. Fin k < Y j"
 apply (induct_tac k)
  apply (simp (no_asm) only: Fin_0)
- apply (fast intro: ile_iless_trans i0_lb)
+ apply (fast intro: ile_iless_trans [OF i0_lb])
 apply (erule exE)
 apply (drule spec)
 apply (erule exE)
@@ -187,5 +212,48 @@ apply (rule iSuc_Fin [THEN subst])
 apply (rule exI)
 apply (erule (1) ile_iless_trans)
 done
+
+
+subsection "Well-ordering"
+
+lemma less_FinE:
+  "[| n < Fin m; !!k. n = Fin k ==> k < m ==> P |] ==> P"
+by (induct n) auto
+
+lemma less_InftyE:
+  "[| n < Infty; !!k. n = Fin k ==> P |] ==> P"
+by (induct n) auto
+
+lemma inat_less_induct:
+  assumes prem: "!!n. \<forall>m::inat. m < n --> P m ==> P n" shows "P n"
+proof -
+  have P_Fin: "!!k. P (Fin k)"
+    apply (rule nat_less_induct)
+    apply (rule prem, clarify)
+    apply (erule less_FinE, simp)
+    done
+  show ?thesis
+  proof (induct n)
+    fix nat
+    show "P (Fin nat)" by (rule P_Fin)
+  next
+    show "P Infty"
+      apply (rule prem, clarify)
+      apply (erule less_InftyE)
+      apply (simp add: P_Fin)
+      done
+  qed
+qed
+
+instance inat :: wellorder
+proof
+  show "wf {(x::inat, y::inat). x < y}"
+  proof (rule wfUNIVI)
+    fix P and x :: inat
+    assume "\<forall>x::inat. (\<forall>y. (y, x) \<in> {(x, y). x < y} \<longrightarrow> P y) \<longrightarrow> P x"
+    hence 1: "!!x::inat. ALL y. y < x --> P y ==> P x" by fast
+    thus "P x" by (rule inat_less_induct)
+  qed
+qed
 
 end
