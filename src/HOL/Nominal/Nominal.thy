@@ -38,7 +38,7 @@ lemma empty_eqvt:
   by (simp add: perm_set_def)
 
 lemma union_eqvt:
-  shows "pi \<bullet> (X \<union> Y) = (pi \<bullet> X) \<union> (pi \<bullet> Y)"
+  shows "(pi\<bullet>(X\<union>Y)) = (pi\<bullet>X) \<union> (pi\<bullet>Y)"
   by (auto simp add: perm_set_def)
 
 lemma insert_eqvt:
@@ -47,7 +47,7 @@ lemma insert_eqvt:
 
 (* permutation on units and products *)
 primrec (unchecked perm_unit)
-  "pi\<bullet>()    = ()"
+  "pi\<bullet>() = ()"
   
 primrec (unchecked perm_prod)
   "pi\<bullet>(x,y) = (pi\<bullet>x,pi\<bullet>y)"
@@ -82,7 +82,7 @@ lemma set_eqvt:
   fixes pi :: "'x prm"
   and   xs :: "'a list"
   shows "pi\<bullet>(set xs) = set (pi\<bullet>xs)"
-by (induct xs, auto simp add: empty_eqvt insert_eqvt)
+by (induct xs) (auto simp add: empty_eqvt insert_eqvt)
 
 (* permutation on functions *)
 defs (unchecked overloaded)
@@ -1308,20 +1308,8 @@ lemma pt_subseteq_eqvt:
   and   X  :: "'a set"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
-  shows "((pi\<bullet>X)\<subseteq>(pi\<bullet>Y)) = (X\<subseteq>Y)"
-proof (auto)
-  fix x::"'a"
-  assume a: "(pi\<bullet>X)\<subseteq>(pi\<bullet>Y)"
-  and    "x\<in>X"
-  hence  "(pi\<bullet>x)\<in>(pi\<bullet>X)" by (simp add: pt_set_bij[OF pt, OF at])
-  with a have "(pi\<bullet>x)\<in>(pi\<bullet>Y)" by force
-  thus "x\<in>Y" by (simp add: pt_set_bij[OF pt, OF at])
-next
-  fix x::"'a"
-  assume a: "X\<subseteq>Y"
-  and    "x\<in>(pi\<bullet>X)"
-  thus "x\<in>(pi\<bullet>Y)" by (force simp add: pt_set_bij1a[OF pt, OF at])
-qed
+  shows "(pi\<bullet>(X\<subseteq>Y)) = ((pi\<bullet>X)\<subseteq>(pi\<bullet>Y))"
+by (auto simp add: perm_set_def perm_bool pt_bij[OF pt, OF at])
 
 lemma pt_set_diff_eqvt:
   fixes X::"'a set"
@@ -3270,7 +3258,7 @@ lemmas [eqvt] =
   plus_int_eqvt minus_int_eqvt mult_int_eqvt div_int_eqvt
   
   (* sets *)
-  union_eqvt empty_eqvt insert_eqvt set_eqvt
+  union_eqvt empty_eqvt insert_eqvt set_eqvt 
   
  
 (* the lemmas numeral_nat_eqvt numeral_int_eqvt do not conform with the *)
