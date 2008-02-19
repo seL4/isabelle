@@ -12,7 +12,10 @@
 
 # process id
 
-if ($group eq "group") { setpgrp; }
+if ($group eq "group") {
+  use POSIX "setsid";
+  POSIX::setsid, "\n" || die $!;
+}
 
 open (PID_FILE, ">", $pid_name) || die $!;
 print PID_FILE "$$\n";
