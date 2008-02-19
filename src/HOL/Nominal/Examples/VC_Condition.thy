@@ -183,27 +183,30 @@ proof -
   then show "False" by (simp add: fresh_atm)
 qed 
 
-text {* A similar effect can be achieved using the strong case analysis rule. *}
-
-lemma false3: "False"
-proof -
-  have "Lam [x].(Var x) \<rightarrow> (Var x)" by (iprover intro: strip.intros)
-  moreover obtain y::name where y: "y \<sharp> x"
-    by (rule exists_fresh) (rule fin_supp)
-  then have "(Lam [x].(Var x)) = (Lam [y].(Var y))"
-    by (simp add: lam.inject alpha calc_atm fresh_atm)
-  ultimately have "Lam [y].(Var y) \<rightarrow> (Var x)" by simp
-  then have "Var y \<rightarrow> Var x" using y
-    by (cases rule: strip.strong_cases [where x=y])
-      (simp_all add: lam.inject alpha abs_fresh)
-  then show "False" using y
-    by cases (simp_all add: lam.inject fresh_atm)
-qed
-
 text {*
   Moral: Who would have thought that the variable convention 
   is in general an unsound reasoning principle.
   *}
 
- 
+
+text 
+  {* BTW: A similar effect can be achieved by using naive (that
+     is strong) inversion rules. *}
+
+lemma false3: 
+  shows "False"
+proof -
+  have "Lam [x].(Var x) \<rightarrow> (Var x)" by (auto intro: strip.intros)
+  moreover obtain y::name where y: "y\<sharp>x"
+    by (rule exists_fresh) (rule fin_supp)
+  then have "Lam [x].(Var x) = Lam [y].(Var y)"
+    by (simp add: lam.inject alpha calc_atm fresh_atm)
+  ultimately have "Lam [y].(Var y) \<rightarrow> (Var x)" by simp
+  then have "Var y \<rightarrow> Var x" using y
+    by (cases rule: strip.strong_cases [where x=y])
+       (simp_all add: lam.inject alpha abs_fresh)
+  then show "False" using y
+    by (cases) (simp_all add: lam.inject fresh_atm)
+qed
+
 end
