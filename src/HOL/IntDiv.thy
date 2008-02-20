@@ -274,13 +274,13 @@ struct
   val prove_eq_sums =
     let
       val simps = @{thm diff_int_def} :: Int_Numeral_Simprocs.add_0s @ @{thms zadd_ac}
-    in NatArithUtils.prove_conv all_tac (NatArithUtils.simp_all_tac simps) end;
+    in ArithData.prove_conv all_tac (ArithData.simp_all_tac simps) end;
 end)
 
 in
 
-val cancel_zdiv_zmod_proc = NatArithUtils.prep_simproc
-  ("cancel_zdiv_zmod", ["(m::int) + n"], K CancelDivMod.proc)
+val cancel_zdiv_zmod_proc = Simplifier.simproc @{theory}
+  "cancel_zdiv_zmod" ["(m::int) + n"] (K CancelDivMod.proc)
 
 end;
 

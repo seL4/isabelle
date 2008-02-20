@@ -1199,7 +1199,7 @@ lemma subst_equals:
   using 2 1 by (rule trans)
 
 use "arith_data.ML"
-declaration {* K arith_data_setup *}
+declaration {* K ArithData.setup *}
 
 use "Tools/lin_arith.ML"
 declaration {* K LinArith.setup *}

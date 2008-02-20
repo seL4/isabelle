@@ -5,16 +5,48 @@
 Basic arithmetic proof tools.
 *)
 
-(*** cancellation of common terms ***)
+signature ARITH_DATA =
+sig
+  val prove_conv: tactic -> (MetaSimplifier.simpset -> tactic)
+    -> MetaSimplifier.simpset -> term * term -> thm
+  val simp_all_tac: thm list -> MetaSimplifier.simpset -> tactic
 
-structure NatArithUtils =
+  val mk_sum: term list -> term
+  val mk_norm_sum: term list -> term
+  val dest_sum: term -> term list
+
+  val nat_cancel_sums_add: simproc list
+  val nat_cancel_sums: simproc list
+  val setup: Context.generic -> Context.generic
+end;
+
+structure ArithData: ARITH_DATA =
 struct
+
+(** generic proof tools **)
+
+(* prove conversions *)
+
+fun prove_conv expand_tac norm_tac ss tu =  (* FIXME avoid standard *)
+  mk_meta_eq (standard (Goal.prove (Simplifier.the_context ss) [] []
+      (HOLogic.mk_Trueprop (HOLogic.mk_eq tu))
+    (K (EVERY [expand_tac, norm_tac ss]))));
+
+(* rewriting *)
+
+fun simp_all_tac rules =
+  let val ss0 = HOL_ss addsimps rules
+  in fn ss => ALLGOALS (simp_tac (Simplifier.inherit_context ss ss0)) end;
+
 
 (** abstract syntax of structure nat: 0, Suc, + **)
 
-(* mk_sum, mk_norm_sum *)
+local
 
 val mk_plus = HOLogic.mk_binop @{const_name HOL.plus};
+val dest_plus = HOLogic.dest_bin @{const_name HOL.plus} HOLogic.natT;
+
+in
 
 fun mk_sum [] = HOLogic.zero
   | mk_sum [t] = t
@@ -27,10 +59,6 @@ fun mk_norm_sum ts =
   end;
 
 
-(* dest_sum *)
-
-val dest_plus = HOLogic.dest_bin @{const_name HOL.plus} HOLogic.natT;
-
 fun dest_sum tm =
   if HOLogic.is_zero tm then []
   else
@@ -41,44 +69,7 @@ fun dest_sum tm =
           SOME (t, u) => dest_sum t @ dest_sum u
         | NONE => [tm]));
 
-
-
-(** generic proof tools **)
-
-(* prove conversions *)
-
-fun prove_conv expand_tac norm_tac ss tu =  (* FIXME avoid standard *)
-  mk_meta_eq (standard (Goal.prove (Simplifier.the_context ss) [] []
-      (HOLogic.mk_Trueprop (HOLogic.mk_eq tu))
-    (K (EVERY [expand_tac, norm_tac ss]))));
-
-
-(* rewriting *)
-
-fun simp_all_tac rules =
-  let val ss0 = HOL_ss addsimps rules
-  in fn ss => ALLGOALS (simp_tac (Simplifier.inherit_context ss ss0)) end;
-
-fun prep_simproc (name, pats, proc) =
-  Simplifier.simproc (the_context ()) name pats proc;
-
 end;
-
-
-
-(** ArithData **)
-
-signature ARITH_DATA =
-sig
-  val nat_cancel_sums_add: simproc list
-  val nat_cancel_sums: simproc list
-  val arith_data_setup: Context.generic -> Context.generic
-end;
-
-structure ArithData: ARITH_DATA =
-struct
-
-open NatArithUtils;
 
 
 (** cancel common summands **)
@@ -144,25 +135,23 @@ end);
 
 (* prepare nat_cancel simprocs *)
 
-val nat_cancel_sums_add = map prep_simproc
-  [("nateq_cancel_sums",
-     ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"],
-     K EqCancelSums.proc),
-   ("natless_cancel_sums",
-     ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"],
-     K LessCancelSums.proc),
-   ("natle_cancel_sums",
-     ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"],
-     K LeCancelSums.proc)];
+val nat_cancel_sums_add =
+  [Simplifier.simproc @{theory} "nateq_cancel_sums"
+     ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"]
+     (K EqCancelSums.proc),
+   Simplifier.simproc @{theory} "natless_cancel_sums"
+     ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"]
+     (K LessCancelSums.proc),
+   Simplifier.simproc @{theory} "natle_cancel_sums"
+     ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"]
+     (K LeCancelSums.proc)];
 
 val nat_cancel_sums = nat_cancel_sums_add @
-  [prep_simproc ("natdiff_cancel_sums",
-    ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"],
-    K DiffCancelSums.proc)];
+  [Simplifier.simproc @{theory} "natdiff_cancel_sums"
+    ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"]
+    (K DiffCancelSums.proc)];
 
-val arith_data_setup =
+val setup =
   Simplifier.map_ss (fn ss => ss addsimprocs nat_cancel_sums);
 
 end;
-
-open ArithData;
