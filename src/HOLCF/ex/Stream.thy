@@ -433,7 +433,7 @@ apply (erule_tac x="y" in allE, simp)
 by (simp add: inat_defs split:inat_splits)
 
 lemma slen_take_eq_rev: "(#x <= Fin n) = (stream_take n\<cdot>x = x)"
-by (simp add: ile_def slen_take_eq)
+by (simp add: linorder_not_less [symmetric] slen_take_eq)
 
 lemma slen_take_lemma1: "#x = Fin n ==> stream_take n\<cdot>x = x"
 by (rule slen_take_eq_rev [THEN iffD1], auto)
