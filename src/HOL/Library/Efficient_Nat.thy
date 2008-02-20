@@ -57,17 +57,17 @@ text {* Specialized @{term "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> 
   and @{term "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"} operations. *}
 
 definition
-  div_mod_nat_aux ::  "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
+  divmod_aux ::  "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
 where
-  [code func del]: "div_mod_nat_aux = Divides.divmod"
+  [code func del]: "divmod_aux = divmod"
 
 lemma [code func]:
-  "Divides.divmod n m = (if m = 0 then (0, n) else div_mod_nat_aux n m)"
-  unfolding div_mod_nat_aux_def divmod_def by simp
+  "divmod n m = (if m = 0 then (0, n) else divmod_aux n m)"
+  unfolding divmod_aux_def divmod_div_mod by simp
 
-lemma div_mod_aux_code [code]:
-  "div_mod_nat_aux n m = (nat (of_nat n div of_nat m), nat (of_nat n mod of_nat m))"
-  unfolding div_mod_nat_aux_def divmod_def zdiv_int [symmetric] zmod_int [symmetric] by simp
+lemma divmod_aux_code [code]:
+  "divmod_aux n m = (nat (of_nat n div of_nat m), nat (of_nat n mod of_nat m))"
+  unfolding divmod_aux_def divmod_div_mod zdiv_int [symmetric] zmod_int [symmetric] by simp
 
 lemma eq_nat_code [code]:
   "n = m \<longleftrightarrow> (of_nat n \<Colon> int) = of_nat m"
@@ -388,7 +388,7 @@ code_const "op * \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
   (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
 
-code_const div_mod_nat_aux
+code_const divmod_aux
   (SML "IntInf.divMod/ ((_),/ (_))")
   (OCaml "Big'_int.quomod'_big'_int")
   (Haskell "divMod")
