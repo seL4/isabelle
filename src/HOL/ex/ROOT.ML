@@ -68,8 +68,6 @@ time_use_thy "Reflected_Presburger";
 
 time_use_thy "Reflection";
 
-time_use_thy "NBE";
-
 time_use_thy "SVC_Oracle";
 if_svc_enabled time_use_thy "svc_test";
 
