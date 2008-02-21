@@ -120,7 +120,7 @@ if [ -n "$CVS2CL" ]; then
   cd $DISTNAME
   $CVS2CL
   gzip ChangeLog
-  mv ChangeLog.gz ..
+  cp ChangeLog.gz ..
   cd ..
 fi
 
@@ -208,7 +208,11 @@ if [ -n "$UNOFFICIAL" ]; then
     echo "This is an unofficial release of Isabelle, created by $LOGNAME $DATE."
     echo
   } >ANNOUNCE
+  perl -pi -e "s/val is_unofficial = false/val is_unofficial = true/" src/Pure/ROOT.ML
 fi
+
+[ -f ChangeLog.gz ] && \
+  perl -pi -e "s/val has_changelog = false/val has_changelog = true/" src/Pure/ROOT.ML
 
 perl -pi -e "s/ISABELLE_IDENTIFIER=\"\"/ISABELLE_IDENTIFIER=\"$DISTNAME\"/g;" lib/scripts/getsettings
 perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/library_index_header.template
