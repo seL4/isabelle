@@ -314,7 +314,7 @@ fun begin_document title =
   \<html>\n\
   \<head>\n\
   \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=" ^ ! charset ^ "\">\n\
-  \<title>" ^ plain (title ^ " (" ^ version ^ ")") ^ "</title>\n\
+  \<title>" ^ plain (title ^ " (" ^ Distribution.version ^ ")") ^ "</title>\n\
   \<link rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\">\n\
   \</head>\n\
   \\n\

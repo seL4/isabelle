@@ -4,7 +4,12 @@
 Pure Isabelle.
 *)
 
-val version = "Isabelle repository version";    (*filled in automatically!*)
+structure Distribution =     (*filled-in by makedist*)
+struct
+  val version = "Isabelle repository version";
+  val is_unofficial = false;
+  val has_changelog = false;
+end;
 
 (*if true then some tools will OMIT some proofs*)
 val quick_and_dirty = ref false;

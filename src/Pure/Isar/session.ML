@@ -36,7 +36,11 @@ fun str_of [] = Context.PureN
   | str_of elems = space_implode "/" elems;
 
 fun name () = "Isabelle/" ^ str_of (path ());
-fun welcome () = "Welcome to " ^ name () ^ " (" ^ version ^ ")";
+
+fun welcome () =
+  (if Distribution.is_unofficial then "Unofficial version of " else "Welcome to ") ^
+    name () ^ " (" ^ Distribution.version ^ ")" ^
+  (if Distribution.has_changelog then "\nSee ChangeLog.gz for details" else "");
 
 
 (* add_path *)

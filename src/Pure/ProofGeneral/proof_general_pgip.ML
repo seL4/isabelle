@@ -451,7 +451,7 @@ fun send_pgip_config () =
 
         val proverinfo =
             Proverinfo { name = "Isabelle",
-                         version = version,
+                         version = Distribution.version,
                          instance = Session.name(),
                          descr = "The Isabelle/Isar theorem prover",
                          url = wwwpage,
