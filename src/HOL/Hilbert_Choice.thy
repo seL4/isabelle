@@ -268,6 +268,11 @@ lemma Inv_comp:
   apply (simp add: Inv_mem)
   done
 
+lemma bij_betw_Inv: "bij_betw f A B \<Longrightarrow> bij_betw (Inv A f) B A"
+  apply (auto simp add: bij_betw_def inj_on_Inv Inv_mem)
+  apply (simp add: image_compose [symmetric] o_def)
+  apply (simp add: image_def Inv_f_f)
+  done
 
 subsection {*Other Consequences of Hilbert's Epsilon*}
 

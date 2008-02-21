@@ -59,8 +59,13 @@ text{*compatibility*}
 lemmas o_def = comp_def
 
 constdefs
-  inj_on :: "['a => 'b, 'a set] => bool"         (*injective*)
+  inj_on :: "['a => 'b, 'a set] => bool"  -- "injective"
   "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
+
+definition
+  bij_betw :: "('a => 'b) => 'a set => 'b set => bool" where -- "bijective"
+  "bij_betw f A B \<longleftrightarrow> inj_on f A & f ` A = B"
+
 
 text{*A common special case: functions injective over the entire domain type.*}
 
@@ -237,8 +242,7 @@ apply (drule_tac x = x in spec, blast)
 done
 
 
-
-subsection{*The Predicate @{term bij}: Bijectivity*}
+subsection{*The Predicate @{const bij}: Bijectivity*}
 
 lemma bijI: "[| inj f; surj f |] ==> bij f"
 by (simp add: bij_def)
@@ -248,6 +252,43 @@ by (simp add: bij_def)
 
 lemma bij_is_surj: "bij f ==> surj f"
 by (simp add: bij_def)
+
+
+subsection{*The Predicate @{const bij_betw}: Bijectivity*}
+
+lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"
+by (simp add: bij_betw_def)
+
+lemma bij_betw_inv: assumes "bij_betw f A B" shows "EX g. bij_betw g B A"
+proof -
+  have i: "inj_on f A" and s: "f ` A = B"
+    using assms by(auto simp:bij_betw_def)
+  let ?P = "%b a. a:A \<and> f a = b" let ?g = "%b. The (?P b)"
+  { fix a b assume P: "?P b a"
+    hence ex1: "\<exists>a. ?P b a" using s unfolding image_def by blast
+    hence uex1: "\<exists>!a. ?P b a" by(blast dest:inj_onD[OF i])
+    hence " ?g b = a" using the1_equality[OF uex1, OF P] P by simp
+  } note g = this
+  have "inj_on ?g B"
+  proof(rule inj_onI)
+    fix x y assume "x:B" "y:B" "?g x = ?g y"
+    from s `x:B` obtain a1 where a1: "?P x a1" unfolding image_def by blast
+    from s `y:B` obtain a2 where a2: "?P y a2" unfolding image_def by blast
+    from g[OF a1] a1 g[OF a2] a2 `?g x = ?g y` show "x=y" by simp
+  qed
+  moreover have "?g ` B = A"
+  proof(auto simp:image_def)
+    fix b assume "b:B"
+    with s obtain a where P: "?P b a" unfolding image_def by blast
+    thus "?g b \<in> A" using g[OF P] by auto
+  next
+    fix a assume "a:A"
+    then obtain b where P: "?P b a" using s unfolding image_def by blast
+    then have "b:B" using s unfolding image_def by blast
+    with g[OF P] show "\<exists>b\<in>B. a = ?g b" by blast
+  qed
+  ultimately show ?thesis by(auto simp:bij_betw_def)
+qed
 
 
 subsection{*Facts About the Identity Function*}

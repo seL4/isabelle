@@ -633,6 +633,22 @@ lemma Least_Suc2:
    "[|P n; Q m; ~P 0; !k. P (Suc k) = Q k|] ==> Least P = Suc (Least Q)"
 by (erule (1) Least_Suc [THEN ssubst], simp)
 
+lemma ex_least_nat_le: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow> \<exists>k\<le>n. (\<forall>i<k. \<not>P i) & P(k)"
+apply(cases n) apply blast
+apply(rule_tac x="LEAST k. P(k)" in exI)
+apply (blast intro: Least_le dest: not_less_Least intro: LeastI_ex)
+done
+
+lemma ex_least_nat_less: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow> \<exists>k<n. (\<forall>i\<le>k. \<not>P i) & P(k+1)"
+apply(cases n) apply blast
+apply(frule (1) ex_least_nat_le)
+apply(erule exE)
+apply(case_tac k) apply simp
+apply(rename_tac k1)
+apply(rule_tac x=k1 in exI)
+apply fastsimp
+done
+
 
 subsection {* size of a datatype value *}
 

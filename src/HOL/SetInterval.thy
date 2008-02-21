@@ -469,6 +469,18 @@ lemma card_greaterThanAtMost [simp]: "card {l<..u} = u - l"
 lemma card_greaterThanLessThan [simp]: "card {l<..<u} = u - Suc l"
   by (subst atLeastSucLessThan_greaterThanLessThan [THEN sym], simp)
 
+
+lemma ex_bij_betw_nat_finite:
+  "finite M \<Longrightarrow> \<exists>h. bij_betw h {0..<card M} M"
+apply(drule finite_imp_nat_seg_image_inj_on)
+apply(auto simp:atLeast0LessThan[symmetric] lessThan_def[symmetric] card_image bij_betw_def)
+done
+
+lemma ex_bij_betw_finite_nat:
+  "finite M \<Longrightarrow> \<exists>h. bij_betw h M {0..<card M}"
+by (blast dest: ex_bij_betw_nat_finite bij_betw_inv)
+
+
 subsection {* Intervals of integers *}
 
 lemma atLeastLessThanPlusOne_atLeastAtMost_int: "{l..<u+1} = {l..(u::int)}"
