@@ -141,24 +141,11 @@ lemma image_restrict_eq [simp]: "(restrict f A) ` A = f ` A"
 
 subsection{*Bijections Between Sets*}
 
-text{*The basic definition could be moved to @{text "Fun.thy"}, but most of
+text{*The definition of @{const bij_betw} is in @{text "Fun.thy"}, but most of
 the theorems belong here, or need at least @{term Hilbert_Choice}.*}
-
-definition
-  bij_betw :: "['a => 'b, 'a set, 'b set] => bool" where -- {* bijective *}
-  "bij_betw f A B = (inj_on f A & f ` A = B)"
-
-lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"
-  by (simp add: bij_betw_def)
 
 lemma bij_betw_imp_funcset: "bij_betw f A B \<Longrightarrow> f \<in> A \<rightarrow> B"
   by (auto simp add: bij_betw_def inj_on_Inv Pi_def)
-
-lemma bij_betw_Inv: "bij_betw f A B \<Longrightarrow> bij_betw (Inv A f) B A"
-  apply (auto simp add: bij_betw_def inj_on_Inv Inv_mem)
-  apply (simp add: image_compose [symmetric] o_def)
-  apply (simp add: image_def Inv_f_f)
-  done
 
 lemma inj_on_compose:
     "[| bij_betw f A B; inj_on g B |] ==> inj_on (compose A g f) A"
