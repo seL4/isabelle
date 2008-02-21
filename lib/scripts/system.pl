@@ -14,7 +14,7 @@
 
 if ($group eq "group") {
   use POSIX "setsid";
-  POSIX::setsid, "\n" || die $!;
+  POSIX::setsid || die $!;
 }
 
 open (PID_FILE, ">", $pid_name) || die $!;
