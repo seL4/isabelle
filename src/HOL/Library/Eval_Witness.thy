@@ -86,9 +86,9 @@ text {*
   naturals, since ML integers are different.
 *}
 
-lemma "\<exists>n::nat. n = 1"
-apply (eval_witness "Isabelle_Eval.Suc Isabelle_Eval.Zero_nat")
-done
+(*lemma "\<exists>n::nat. n = 1"
+apply (eval_witness "Suc Zero_nat")
+done*)
 
 text {* 
   Since polymorphism is not allowed, we must specify the
