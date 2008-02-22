@@ -886,6 +886,52 @@ val add_datatype_i = gen_add_datatype cert_typ;
 val add_datatype = gen_add_datatype read_typ true;
 
 
+(** a datatype antiquotation **)
+
+local
+
+val sym_datatype = Pretty.str "\\isacommand{datatype}";
+val sym_binder = Pretty.str "{\\isacharequal}";
+val sym_of = Pretty.str "of";
+val sym_sep = Pretty.str "{\\isacharbar}";
+
+in
+
+fun args_datatype (ctxt, args) =
+  let
+    val (tyco, (ctxt', args')) = Args.tyname (ctxt, args);
+    val thy = Context.theory_of ctxt';
+    val spec = the_datatype_spec thy tyco;
+  in ((tyco, spec), (ctxt', args')) end;
+
+fun pretty_datatype ctxt (dtco, (vs, cos)) =
+  let
+    val ty = Type (dtco, map TFree vs);
+    fun pretty_typ_br ty =
+      let
+        val p = Syntax.pretty_typ ctxt ty;
+        val s = explode (Pretty.str_of p);
+      in if member (op =) s " " then Pretty.enclose "(" ")" [p]
+        else p
+      end;
+    fun pretty_constr (co, []) =
+          Syntax.pretty_term ctxt (Const (co, ty))
+      | pretty_constr (co, [ty']) =
+          (Pretty.block o Pretty.breaks)
+            [Syntax.pretty_term ctxt (Const (co, ty' --> ty)),
+              sym_of, Syntax.pretty_typ ctxt ty']
+      | pretty_constr (co, tys) =
+          (Pretty.block o Pretty.breaks)
+            (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::
+              sym_of :: map pretty_typ_br tys);
+  in (Pretty.block o Pretty.breaks) (
+    sym_datatype
+    :: Syntax.pretty_typ ctxt ty
+    :: sym_binder
+    :: separate sym_sep (map pretty_constr cos)
+  ) end
+
+end;
 
 (** package setup **)
 
@@ -932,6 +978,10 @@ fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #2 o rep_datatype opt_ts dss i
 val _ =
   OuterSyntax.command "rep_datatype" "represent existing types inductively" K.thy_decl
     (rep_datatype_decl >> (Toplevel.theory o mk_rep_datatype));
+
+val _ =
+  ThyOutput.add_commands [("datatype",
+    ThyOutput.args args_datatype (ThyOutput.output pretty_datatype))];
 
 end;
 
