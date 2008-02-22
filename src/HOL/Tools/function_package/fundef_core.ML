@@ -717,11 +717,11 @@ fun mk_nest_term_case thy globals R' ihyp clause =
                     
       fun step (fixes, assumes) (_ $ arg) u (sub,(hyps,thms)) = 
           let
-            val used = map (fn ((f,a),thm) => FundefCtxTree.export_thm thy (f, map prop_of a) thm) (u @ sub)
+            val used = map (fn (ctx,thm) => FundefCtxTree.export_thm thy ctx thm) (u @ sub)
                        
             val hyp = HOLogic.mk_Trueprop (R' $ arg $ lhs)
                       |> fold_rev (curry Logic.mk_implies o prop_of) used
-                      |> FundefCtxTree.export_term (fixes, map prop_of assumes) 
+                      |> FundefCtxTree.export_term (fixes, assumes) 
                       |> fold_rev (curry Logic.mk_implies o prop_of) ags
                       |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
                       |> cterm_of thy
@@ -747,7 +747,7 @@ fun mk_nest_term_case thy globals R' ihyp clause =
                            
             val ethm = (z_acc OF [z_eq_arg, x_eq_lhs])
                          |> FundefCtxTree.export_thm thy (fixes, 
-                                                          prop_of z_eq_arg :: prop_of x_eq_lhs :: map prop_of (ags @ assumes))
+                                                          z_eq_arg :: x_eq_lhs :: ags @ assumes)
                          |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
 
             val sub' = sub @ [(([],[]), acc)]

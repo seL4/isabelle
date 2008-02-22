@@ -9,7 +9,7 @@ Builds and traverses trees of nested contexts along a term.
 
 signature FUNDEF_CTXTREE =
 sig
-    type depgraph
+    type ctxt = (string * typ) list * thm list (* poor man's contexts: fixes + assumes *)
     type ctx_tree
 
     (* FIXME: This interface is a mess and needs to be cleaned up! *)
@@ -24,18 +24,15 @@ sig
 
     val inst_tree: theory -> term -> term -> ctx_tree -> ctx_tree
 
-    val add_context_varnames : ctx_tree -> string list -> string list
-
-    val export_term : (string * typ) list * term list -> term -> term
-    val export_thm : theory -> (string * typ) list * term list -> thm -> thm
-    val import_thm : theory -> (string * typ) list * thm list -> thm -> thm
-
+    val export_term : ctxt -> term -> term
+    val export_thm : theory -> ctxt -> thm -> thm
+    val import_thm : theory -> ctxt -> thm -> thm
 
     val traverse_tree : 
-   ((string * typ) list * thm list -> term ->
-   (((string * typ) list * thm list) * thm) list ->
-   (((string * typ) list * thm list) * thm) list * 'b ->
-   (((string * typ) list * thm list) * thm) list * 'b)
+   (ctxt -> term ->
+   (ctxt * thm) list ->
+   (ctxt * thm) list * 'b ->
+   (ctxt * thm) list * 'b)
    -> ctx_tree -> 'b -> 'b
 
     val rewrite_by_tree : theory -> term -> thm -> (thm * thm) list -> ctx_tree -> thm * (thm * thm) list
@@ -43,6 +40,8 @@ end
 
 structure FundefCtxTree : FUNDEF_CTXTREE =
 struct
+
+type ctxt = (string * typ) list * thm list
 
 open FundefCommon
 open FundefLib
@@ -69,15 +68,12 @@ type depgraph = int IntGraph.T
 
 datatype ctx_tree 
   = Leaf of term
-  | Cong of (term * thm * depgraph * ((string * typ) list * thm list * ctx_tree) list)
+  | Cong of (thm * depgraph * (ctxt * ctx_tree) list)
   | RCall of (term * ctx_tree)
 
 
 (* Maps "Trueprop A = B" to "A" *)
 val rhs_of = snd o HOLogic.dest_eq o HOLogic.dest_Trueprop
-(* Maps "A == B" to "B" *)
-val meta_rhs_of = snd o Logic.dest_equals
-
 
 
 (*** Dependency analysis for congruence rules ***)
@@ -92,8 +88,7 @@ fun branch_vars t =
 
 fun cong_deps crule =
     let
-      val branches = map branch_vars (prems_of crule)
-      val num_branches = (1 upto (length branches)) ~~ branches
+      val num_branches = map_index (apsnd branch_vars) (prems_of crule)
     in
       IntGraph.empty
         |> fold (fn (i,_)=> IntGraph.new_node (i,i)) num_branches
@@ -101,7 +96,7 @@ fun cong_deps crule =
              num_branches num_branches
     end
     
-val add_congs = map (fn c => c RS eq_reflection) [cong, ext] 
+val default_congs = map (fn c => c RS eq_reflection) [@{thm "cong"}, @{thm "ext"}] 
 
 
 
@@ -130,24 +125,24 @@ fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
   | find_cong_rule _ _ _ [] _ = sys_error "function_package/context_tree.ML: No cong rule found!"
 
 
-fun matchcall fvar (a $ b) = if a = Free fvar then SOME b else NONE
-  | matchcall fvar _ = NONE
-
 fun mk_tree fvar h ctxt t =
     let 
       val congs = get_fundef_congs (Context.Proof ctxt)
-      val congs_deps = map (fn c => (c, cong_deps c)) (congs @ add_congs) (* FIXME: Save in theory *)
+      val congs_deps = map (fn c => (c, cong_deps c)) (congs @ default_congs) (* FIXME: Save in theory *)
+
+      fun matchcall (a $ b) = if a = Free fvar then SOME b else NONE
+        | matchcall _ = NONE
 
       fun mk_tree' ctx t =
-          case matchcall fvar t of
+          case matchcall t of
             SOME arg => RCall (t, mk_tree' ctx arg)
           | NONE => 
             if not (exists_subterm (fn Free v => v = fvar | _ => false) t) then Leaf t
             else 
               let val (r, dep, branches) = find_cong_rule ctx fvar h congs_deps t in
-                Cong (t, r, dep, 
+                Cong (r, dep, 
                       map (fn (ctx', fixes, assumes, st) => 
-                              (fixes, map (assume o cterm_of (ProofContext.theory_of ctx)) assumes, 
+                              ((fixes, map (assume o cterm_of (ProofContext.theory_of ctx)) assumes), 
                                mk_tree' ctx' st)) branches)
               end
     in
@@ -166,95 +161,77 @@ fun inst_tree thy fvar f tr =
       val inst_thm = forall_elim cf o forall_intr cfvar 
 
       fun inst_tree_aux (Leaf t) = Leaf t
-        | inst_tree_aux (Cong (t, crule, deps, branches)) =
-          Cong (inst_term t, inst_thm crule, deps, map inst_branch branches)
+        | inst_tree_aux (Cong (crule, deps, branches)) =
+          Cong (inst_thm crule, deps, map inst_branch branches)
         | inst_tree_aux (RCall (t, str)) =
           RCall (inst_term t, inst_tree_aux str)
-      and inst_branch (fxs, assms, str) = 
-          (fxs, map (assume o cterm_of thy o inst_term o prop_of) assms, inst_tree_aux str)
+      and inst_branch ((fxs, assms), str) = 
+          ((fxs, map (assume o cterm_of thy o inst_term o prop_of) assms), inst_tree_aux str)
     in
       inst_tree_aux tr
     end
 
 
-
-(* FIXME: remove *)   
-fun add_context_varnames (Leaf _) = I
-  | add_context_varnames (Cong (_, _, _, sub)) = fold (fn (fs, _, st) => fold (insert (op =) o fst) fs o add_context_varnames st) sub
-  | add_context_varnames (RCall (_,st)) = add_context_varnames st
-    
-
 (* Poor man's contexts: Only fixes and assumes *)
 fun compose (fs1, as1) (fs2, as2) = (fs1 @ fs2, as1 @ as2)
 
 fun export_term (fixes, assumes) =
-    fold_rev (curry Logic.mk_implies) assumes #> fold_rev (mk_forall o Free) fixes
+    fold_rev (curry Logic.mk_implies o prop_of) assumes 
+ #> fold_rev (mk_forall o Free) fixes
 
 fun export_thm thy (fixes, assumes) =
-    fold_rev (implies_intr o cterm_of thy) assumes
+    fold_rev (implies_intr o cprop_of) assumes
  #> fold_rev (forall_intr o cterm_of thy o Free) fixes
 
 fun import_thm thy (fixes, athms) =
     fold (forall_elim o cterm_of thy o Free) fixes
  #> fold Thm.elim_implies athms
 
-fun assume_in_ctxt thy (fixes, athms) prop =
-    let
-  val global_assum = export_term (fixes, map prop_of athms) prop
-    in
-  (global_assum,
-   assume (cterm_of thy global_assum) |> import_thm thy (fixes, athms))
-    end
-
 
 (* folds in the order of the dependencies of a graph. *)
 fun fold_deps G f x =
     let
-  fun fill_table i (T, x) =
-      case Inttab.lookup T i of
-    SOME _ => (T, x)
-        | NONE => 
-    let
-        val (T', x') = fold fill_table (IntGraph.imm_succs G i) (T, x)
-        val (v, x'') = f (the o Inttab.lookup T') i x
+      fun fill_table i (T, x) =
+          case Inttab.lookup T i of
+            SOME _ => (T, x)
+          | NONE => 
+            let
+              val (T', x') = fold fill_table (IntGraph.imm_succs G i) (T, x)
+              val (v, x'') = f (the o Inttab.lookup T') i x'
+            in
+              (Inttab.update (i, v) T', x'')
+            end
+            
+      val (T, x) = fold fill_table (IntGraph.keys G) (Inttab.empty, x)
     in
-        (Inttab.update (i, v) T', x'')
+      (Inttab.fold (cons o snd) T [], x)
     end
-
-  val (T, x) = fold fill_table (IntGraph.keys G) (Inttab.empty, x)
-    in
-  (Inttab.fold (cons o snd) T [], x)
-    end
-
-
-fun flatten xss = fold_rev append xss []
-
-fun traverse_tree rcOp tr x =
+    
+fun traverse_tree rcOp tr =
     let 
-  fun traverse_help ctx (Leaf _) u x = ([], x)
+  fun traverse_help ctx (Leaf _) _ x = ([], x)
     | traverse_help ctx (RCall (t, st)) u x =
       rcOp ctx t u (traverse_help ctx st u x)
-    | traverse_help ctx (Cong (t, crule, deps, branches)) u x =
+    | traverse_help ctx (Cong (_, deps, branches)) u x =
       let
     fun sub_step lu i x =
         let
-      val (fixes, assumes, subtree) = nth branches (i - 1)
-      val used = fold_rev (append o lu) (IntGraph.imm_succs deps i) u
-      val (subs, x') = traverse_help (compose ctx (fixes, assumes)) subtree used x
-      val exported_subs = map (apfst (compose (fixes, assumes))) subs
+          val (ctx', subtree) = nth branches i
+          val used = fold_rev (append o lu) (IntGraph.imm_succs deps i) u
+          val (subs, x') = traverse_help (compose ctx ctx') subtree used x
+          val exported_subs = map (apfst (compose ctx')) subs (* FIXME: Right order of composition? *)
         in
-      (exported_subs, x')
+          (exported_subs, x')
         end
       in
-    fold_deps deps sub_step x
-        |> apfst flatten
+        fold_deps deps sub_step x
+          |> apfst flat
       end
     in
-  snd (traverse_help ([], []) tr [] x)
+      snd o traverse_help ([], []) tr []
     end
 
-
-fun is_refl thm = let val (l,r) = Logic.dest_equals (prop_of thm) in l = r end
+val is_refl = op aconv o Logic.dest_equals o prop_of
 
 fun rewrite_by_tree thy h ih x tr =
     let
@@ -278,17 +255,17 @@ fun rewrite_by_tree thy h ih x tr =
           in
             (result, x')
           end
-        | rewrite_help fix f_as h_as x (Cong (t, crule, deps, branches)) =
+        | rewrite_help fix f_as h_as x (Cong (crule, deps, branches)) =
           let
             fun sub_step lu i x =
                 let
-                  val (fixes, assumes, st) = nth branches (i - 1)
+                  val ((fixes, assumes), st) = nth branches i
                   val used = fold_rev (cons o lu) (IntGraph.imm_succs deps i) []
                   val used_rev = map (fn u_eq => (u_eq RS sym) RS eq_reflection) used
                   val assumes' = map (simplify (HOL_basic_ss addsimps (filter_out is_refl used_rev))) assumes
                                  
                   val (subeq, x') = rewrite_help (fix @ fixes) (f_as @ assumes) (h_as @ assumes') x st
-                  val subeq_exp = export_thm thy (fixes, map prop_of assumes) (subeq RS meta_eq_to_obj_eq)
+                  val subeq_exp = export_thm thy (fixes, assumes) (subeq RS meta_eq_to_obj_eq)
                 in
                   (subeq_exp, x')
                 end
