@@ -92,12 +92,16 @@ fun generate thy funcgr f x =
   Program.change_yield thy (CodeThingol.transact thy funcgr
     (fn thy => fn funcgr => fn algbr => f thy funcgr algbr x));
 
+(* export_code functionality *)
+
 fun code thy permissive cs seris =
   let
     val code = Program.get thy;
     val seris' = map (fn (((target, module), file), args) =>
       CodeTarget.get_serializer thy target permissive module file args cs) seris;
   in (map (fn f => f code) seris' : unit list; ()) end;
+
+(* evaluation machinery *)
 
 fun evaluate eval_kind term_of thy eval = eval_kind thy (fn funcgr => fn ct =>
   let
@@ -124,6 +128,21 @@ fun eval_term reff = eval evaluate_term I reff;
 val satisfies_ref : (unit -> bool) option ref = ref NONE;
 
 val satisfies = eval_term ("CodePackage.satisfies_ref", satisfies_ref);
+
+(* code antiquotation *)
+
+fun code_antiq (ctxt, args) = 
+  let
+    val thy = Context.theory_of ctxt;
+    val (ts, (ctxt', args')) = Scan.repeat1 Args.term (ctxt, args);
+    val cs = map (CodeUnit.check_const thy) ts;
+    val (cs', code') = generate thy (CodeFuncgr.make thy cs)
+      (fold_map ooo ensure_const) cs;
+    val code'' = CodeTarget.sml_of thy cs' code' ^ " ()";
+  in (("codevals", code''), (ctxt', args')) end;
+
+
+(* const expressions *)
 
 fun filter_generatable thy consts =
   let
@@ -277,6 +296,8 @@ val _ =
 val _ =
   OuterSyntax.command code_propsK "generate characteristic properties for executable constants"
     K.thy_decl (P.!!! (code_exprP code_props_cmd) >> Toplevel.theory);
+
+val _ = ML_Context.value_antiq "code" code_antiq;
 
 end; (*local*)
 

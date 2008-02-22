@@ -36,10 +36,9 @@ sig
     -> string option -> Args.T list
     -> string list option -> CodeThingol.code -> unit;
   val assert_serializer: theory -> string -> string;
-
-  val eval_verbose: bool ref;
   val eval: theory -> (string * (unit -> 'a) option ref)
     -> CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
+  val sml_of: theory -> string list -> CodeThingol.code -> string;
   val code_width: int ref;
 
   val setup: theory -> theory;
@@ -915,7 +914,7 @@ val code_width = ref 80;
 fun code_output p = Pretty.setmp_margin (!code_width) Pretty.output p ^ "\n";
 
 fun seri_ml pr_def pr_modl module output labelled_name reserved_syms includes raw_module_alias
-  (_ : string -> class_syntax option) tyco_syntax const_syntax code =
+  (_ : string -> class_syntax option) tyco_syntax const_syntax cs code =
   let
     val module_alias = if is_some module then K module else raw_module_alias;
     val is_cons = CodeThingol.is_cons code;
@@ -1087,21 +1086,24 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms includes ra
                 ((map_filter (pr_node (prefix @ [dmodlname]) o Graph.get_node nodes)
                 o rev o flat o Graph.strong_conn) nodes)));
     val p = Pretty.chunks (separate (str "") (map snd includes @ (map_filter
-      (pr_node [] o Graph.get_node nodes) o rev o flat o Graph.strong_conn) nodes))
-  in output p end;
-
-val eval_verbose = ref false;
+      (pr_node [] o Graph.get_node nodes) o rev o flat o Graph.strong_conn) nodes));
+    val deresolv = try (deresolver (if is_some module then the_list module else []));
+  in output (map_filter deresolv cs, p) end;
 
 fun isar_seri_sml module file =
   let
     val output = case file
-     of NONE => use_text "generated code" Output.ml_output (!eval_verbose) o code_output
+     of NONE => use_text "generated code" Output.ml_output false o code_output
       | SOME "-" => PrintMode.setmp [] writeln o code_output
       | SOME file => File.write (Path.explode file) o code_output;
   in
     parse_args (Scan.succeed ())
-    #> (fn () => seri_ml pr_sml pr_sml_modl module output)
+    #> (fn () => seri_ml pr_sml pr_sml_modl module (output o snd))
   end;
+
+fun eval_seri module file args =
+  seri_ml pr_sml (K Pretty.chunks) (SOME "Isabelle_Eval")
+    (fn (cs, p) => "let\n" ^ code_output p ^ "\nin fn () => " ^ enclose "(" ")" (commas cs) ^ " end");
 
 fun isar_seri_ocaml module file =
   let
@@ -1113,7 +1115,7 @@ fun isar_seri_ocaml module file =
     val output_diag = PrintMode.setmp [] writeln o code_output;
   in
     parse_args (Scan.succeed ())
-    #> (fn () => seri_ml pr_ocaml pr_ocaml_modl module output)
+    #> (fn () => seri_ml pr_ocaml pr_ocaml_modl module (output o snd))
   end;
 
 
@@ -1397,7 +1399,7 @@ end; (*local*)
 
 fun seri_haskell module_prefix module destination string_classes labelled_name
     reserved_syms includes raw_module_alias
-    class_syntax tyco_syntax const_syntax code =
+    class_syntax tyco_syntax const_syntax cs code =
   let
     val _ = Option.map File.check destination;
     val is_cons = CodeThingol.is_cons code;
@@ -1545,7 +1547,7 @@ fun isar_seri_haskell module file =
 
 (** diagnosis serializer **)
 
-fun seri_diagnosis labelled_name _ _ _ _ _ _ code =
+fun seri_diagnosis labelled_name _ _ _ _ _ _ _ code =
   let
     val init_names = CodeName.make_vars [];
     fun pr_fun "fun" = SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
@@ -1590,7 +1592,7 @@ fun merge_syntax_expr (SyntaxExpr { class = class1, inst = inst1, tyco = tyco1, 
        Symtab.join (K snd) (const1, const2))
   );
 
-type serializer =
+type 'a gen_serializer =
   string option
   -> string option
   -> Args.T list
@@ -1601,7 +1603,9 @@ type serializer =
   -> (string -> class_syntax option)
   -> (string -> typ_syntax option)
   -> (string -> term_syntax option)
-  -> CodeThingol.code -> unit;
+  -> string list -> CodeThingol.code -> 'a;
+
+type serializer = unit gen_serializer;
 
 datatype target = Target of {
   serial: serial,
@@ -1687,45 +1691,45 @@ fun map_syntax_exprs target =
 fun map_module_alias target =
   map_seri_data target o apsnd o apsnd o apsnd;
 
-fun get_serializer thy target permissive module file args
-    = fn cs =>
+fun gen_get_serializer get_seri thy target permissive =
   let
     val (seris, exc) = CodeTargetData.get thy;
     val data = case Symtab.lookup seris target
      of SOME data => data
       | NONE => error ("Unknown code target language: " ^ quote target);
-    val seri = the_serializer data;
+    val seri = get_seri data;
     val reserved = the_reserved data;
     val includes = Symtab.dest (the_includes data);
     val alias = the_module_alias data;
     val { class, inst, tyco, const } = the_syntax_expr data;
-    val project = if target = target_diag then I
+    val project = if target = target_diag then K I
       else CodeThingol.project_code permissive
-        (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const) cs;
-    fun check_empty_funs code = case (filter_out (member (op =) exc)
-        (CodeThingol.empty_funs code))
+        (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const);
+    fun check_empty_funs code = case filter_out (member (op =) exc)
+        (CodeThingol.empty_funs code)
      of [] => code
       | names => error ("No defining equations for "
           ^ commas (map (CodeName.labelled_name thy) names));
-  in
-    project
-    #> check_empty_funs
-    #> seri module file args (CodeName.labelled_name thy) reserved includes
-        (Symtab.lookup alias) (Symtab.lookup class) (Symtab.lookup tyco) (Symtab.lookup const)
+  in fn module => fn file => fn args => fn cs => fn code =>
+    code
+    |> project cs
+    |> check_empty_funs
+    |> seri module file args (CodeName.labelled_name thy) reserved includes
+        (Symtab.lookup alias) (Symtab.lookup class)
+        (Symtab.lookup tyco) (Symtab.lookup const) (these cs)
   end;
+
+val get_serializer = gen_get_serializer the_serializer;
+fun sml_of thy cs = gen_get_serializer (K eval_seri) thy target_SML false NONE NONE [] (SOME cs);
 
 fun eval thy (ref_name, reff) code (t, ty) args =
   let
     val _ = if CodeThingol.contains_dictvar t then
       error "Term to be evaluated constains free dictionaries" else ();
-    val val_args = space_implode " "
-      (NameSpace.qualifier CodeName.value_name :: map (enclose "(" ")") args);
     val code' = CodeThingol.add_value_stmt (t, ty) code;
-    val seri = get_serializer thy "SML" false (SOME "Isabelle_Eval") NONE [];
-    val label = "evaluation in SML";
-    fun eval () = (seri (SOME [CodeName.value_name]) code';
-      ML_Context.evaluate Output.ml_output (!eval_verbose) (ref_name, reff) val_args);
-  in NAMED_CRITICAL label eval end;
+    val value_code = sml_of thy [CodeName.value_name] code';
+    val sml_code = space_implode " " (value_code :: "()" :: map (enclose "(" ")") args);
+  in ML_Context.evaluate Output.ml_output false (ref_name, reff) sml_code end;
 
 
 
