@@ -23,6 +23,7 @@ sig
   val string_of_typ: theory -> typ -> string
   val string_of_const: theory -> string -> string
   val no_args: theory -> string -> int
+  val check_const: theory -> term -> string
   val read_bare_const: theory -> string -> string * typ
   val read_const: theory -> string -> string
   val read_const_exprs: theory -> (string list -> string list)
@@ -68,13 +69,13 @@ fun no_args thy = length o fst o strip_type o Sign.the_const_type thy;
 
 (* reading constants as terms and wildcards pattern *)
 
-fun read_bare_const thy raw_t =
-  let
-    val t = Syntax.read_term_global thy raw_t;
-  in case try dest_Const t
-   of SOME c_ty => c_ty
-    | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t)
-  end;
+fun check_bare_const thy t = case try dest_Const t
+ of SOME c_ty => c_ty
+  | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t);
+
+fun check_const thy = AxClass.unoverload_const thy o check_bare_const thy;
+
+fun read_bare_const thy = check_bare_const thy o Syntax.read_term_global thy;
 
 fun read_const thy = AxClass.unoverload_const thy o read_bare_const thy;
 
