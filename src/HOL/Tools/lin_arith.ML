@@ -826,6 +826,49 @@ fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
 solver all the time rather than add the additional check. *)
 
 
+(* generic refutation procedure *)
+
+(* parameters:
+
+   test: term -> bool
+   tests if a term is at all relevant to the refutation proof;
+   if not, then it can be discarded. Can improve performance,
+   esp. if disjunctions can be discarded (no case distinction needed!).
+
+   prep_tac: int -> tactic
+   A preparation tactic to be applied to the goal once all relevant premises
+   have been moved to the conclusion.
+
+   ref_tac: int -> tactic
+   the actual refutation tactic. Should be able to deal with goals
+   [| A1; ...; An |] ==> False
+   where the Ai are atomic, i.e. no top-level &, | or EX
+*)
+
+local
+  val nnf_simpset =
+    empty_ss setmkeqTrue mk_eq_True
+    setmksimps (mksimps mksimps_pairs)
+    addsimps [@{thm imp_conv_disj}, @{thm iff_conv_conj_imp}, @{thm de_Morgan_disj},
+      @{thm de_Morgan_conj}, @{thm not_all}, @{thm not_ex}, @{thm not_not}];
+  fun prem_nnf_tac i st =
+    full_simp_tac (Simplifier.theory_context (Thm.theory_of_thm st) nnf_simpset) i st;
+in
+fun refute_tac test prep_tac ref_tac =
+  let val refute_prems_tac =
+        REPEAT_DETERM
+              (eresolve_tac [@{thm conjE}, @{thm exE}] 1 ORELSE
+               filter_prems_tac test 1 ORELSE
+               etac @{thm disjE} 1) THEN
+        (DETERM (etac @{thm notE} 1 THEN eq_assume_tac 1) ORELSE
+         ref_tac 1);
+  in EVERY'[TRY o filter_prems_tac test,
+            REPEAT_DETERM o etac @{thm rev_mp}, prep_tac, rtac @{thm ccontr}, prem_nnf_tac,
+            SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
+  end;
+end;
+
+
 (* arith proof method *)
 
 local
