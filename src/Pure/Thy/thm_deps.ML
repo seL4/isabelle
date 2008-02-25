@@ -68,8 +68,8 @@ fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
 
 fun thm_deps thms =
   Present.display_graph
-    (map snd (Symtab.dest (fst
-      (fold make_deps_graph (map Thm.proof_of thms) (Symtab.empty, [])))));
+    (map snd (sort_wrt fst (Symtab.dest (fst
+      (fold make_deps_graph (map Thm.proof_of thms) (Symtab.empty, []))))));
 
 end;
 
