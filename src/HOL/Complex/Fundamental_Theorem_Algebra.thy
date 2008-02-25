@@ -134,7 +134,7 @@ qed
 
 
 text{* Offsetting the variable in a polynomial gives another of same degree *}
-  (* FIXME : Lemma holds also in locale --- fix it laster *)
+  (* FIXME : Lemma holds also in locale --- fix it later *)
 lemma  poly_offset_lemma:
   shows "\<exists>b q. (length q = length p) \<and> (\<forall>x. poly (b#q) (x::complex) = (a + x) * poly p x)"
 proof(induct p)
@@ -379,7 +379,7 @@ proof-
   thus ?thesis unfolding linorder_not_le[symmetric] by blast
 qed
 
-text{* Hence we can always reduce modulus of 1 + b z^n if nonzero *}
+text{* Hence we can always reduce modulus of @{text "1 + b z^n"} if nonzero *}
 lemma reduce_poly_simple:
  assumes b: "b \<noteq> 0" and n: "n\<noteq>0"
   shows "\<exists>z. cmod (1 + b * z^n) < 1"
