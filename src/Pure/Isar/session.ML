@@ -37,7 +37,7 @@ fun str_of [] = Context.PureN
 
 fun name () = "Isabelle/" ^ str_of (path ());
 
-val log = Path.explode "$ISABELLE_HOME/src/ChangeLog.gz";
+val log = Path.explode "$ISABELLE_HOME/ChangeLog.gz";
 
 fun welcome () =
   if Distribution.is_official then
