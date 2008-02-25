@@ -338,6 +338,11 @@ by (rule ord_le_eq_trans [OF norm_triangle_ineq2], simp)
 
 lemmas real_sum_squared_expand = power2_sum [where 'a=real]
 
+lemma abs_Re_le_cmod: "\<bar>Re x\<bar> \<le> cmod x"
+by (cases x) simp
+
+lemma abs_Im_le_cmod: "\<bar>Im x\<bar> \<le> cmod x"
+by (cases x) simp
 
 subsection {* Completeness of the Complexes *}
 
