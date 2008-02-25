@@ -151,7 +151,7 @@ fun note_local kind facts ctxt =
   |> ProofContext.note_thmss_i kind facts
   ||> ProofContext.restore_naming ctxt;
 
-fun notes (Target {target, is_locale, ...}) kind group facts lthy =
+fun notes (Target {target, is_locale, ...}) kind facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val full = LocalTheory.full_name lthy;
@@ -168,7 +168,7 @@ fun notes (Target {target, is_locale, ...}) kind group facts lthy =
   in
     lthy |> LocalTheory.theory
       (Sign.qualified_names
-        #> PureThy.note_thmss_grouped kind group global_facts #> snd
+        #> PureThy.note_thmss_grouped kind (LocalTheory.group_of lthy) global_facts #> snd
         #> Sign.restore_naming thy)
 
     |> not is_locale ? LocalTheory.target (note_local kind global_facts #> snd)
@@ -185,7 +185,7 @@ fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
   else if not is_class then (NoSyn, mx, NoSyn)
   else (mx, NoSyn, NoSyn);
 
-fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) pos ((c, mx), rhs) phi =
+fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((c, mx), rhs) phi =
   let
     val c' = Morphism.name phi c;
     val rhs' = Morphism.term phi rhs;
@@ -197,8 +197,8 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) pos ((c,
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
-        (Sign.add_abbrev PrintMode.internal pos legacy_arg)
-        (ProofContext.add_abbrev PrintMode.internal pos arg)
+        (Sign.add_abbrev PrintMode.internal tags legacy_arg)
+        (ProofContext.add_abbrev PrintMode.internal tags arg)
       #-> (fn (lhs' as Const (d, _), _) =>
           similar_body ?
             (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
@@ -207,7 +207,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) pos ((c,
 
 fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c, T), mx) lthy =
   let
-    val pos = Position.properties_of (Position.thread_data ());
+    val tags = LocalTheory.group_position_of lthy;
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
@@ -224,13 +224,13 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c,
                 if mx3 <> NoSyn then syntax_error c'
                 else LocalTheory.theory_result (Overloading.declare (c', U))
                   ##> Overloading.confirm c
-            | NONE => LocalTheory.theory_result (Sign.declare_const pos (c, U, mx3))));
+            | NONE => LocalTheory.theory_result (Sign.declare_const tags (c, U, mx3))));
     val (const, lthy') = lthy |> declare_const;
     val t = Term.list_comb (const, map Free xs);
   in
     lthy'
-    |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default pos ((c, mx2), t))
-    |> is_class ? class_target ta (Class.declare target pos ((c, mx1), t))
+    |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default tags ((c, mx2), t))
+    |> is_class ? class_target ta (Class.declare target tags ((c, mx1), t))
     |> LocalDefs.add_def ((c, NoSyn), t)
   end;
 
@@ -239,7 +239,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c,
 
 fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t) lthy =
   let
-    val pos = Position.properties_of (Position.thread_data ());
+    val tags = LocalTheory.group_position_of lthy;
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val target_ctxt = LocalTheory.target_of lthy;
 
@@ -252,17 +252,17 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t)
   in
     lthy |>
      (if is_locale then
-        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal pos (c, global_rhs))
+        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal tags (c, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
-            term_syntax ta (locale_const ta prmode pos ((c, mx2), lhs')) #>
-            is_class ? class_target ta (Class.abbrev target prmode pos ((c, mx1), t'))
+            term_syntax ta (locale_const ta prmode tags ((c, mx2), lhs')) #>
+            is_class ? class_target ta (Class.abbrev target prmode tags ((c, mx1), t'))
           end)
       else
         LocalTheory.theory
-          (Sign.add_abbrev (#1 prmode) pos (c, global_rhs) #-> (fn (lhs, _) =>
+          (Sign.add_abbrev (#1 prmode) tags (c, global_rhs) #-> (fn (lhs, _) =>
            Sign.notation true prmode [(lhs, mx3)])))
-    |> ProofContext.add_abbrev PrintMode.internal pos (c, t) |> snd
+    |> ProofContext.add_abbrev PrintMode.internal tags (c, t) |> snd
     |> LocalDefs.fixed_abbrev ((c, NoSyn), t)
   end;
 
@@ -270,7 +270,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t)
 (* define *)
 
 fun define (ta as Target {target, is_locale, is_class, ...})
-    kind group ((c, mx), ((name, atts), rhs)) lthy =
+    kind ((c, mx), ((name, atts), rhs)) lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init thy;
@@ -303,13 +303,13 @@ fun define (ta as Target {target, is_locale, is_class, ...})
 
     (*note*)
     val ([(res_name, [res])], lthy4) = lthy3
-      |> notes ta kind group [((name', atts), [([def], [])])];
+      |> notes ta kind [((name', atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy4) end;
 
 
 (* axioms *)
 
-fun axioms ta kind group (vars, specs) lthy =
+fun axioms ta kind (vars, specs) lthy =
   let
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val expanded_props = map (Assumption.export_term lthy thy_ctxt) (maps snd specs);
@@ -329,7 +329,7 @@ fun axioms ta kind group (vars, specs) lthy =
     |> fold Variable.declare_term expanded_props
     |> LocalTheory.theory (fold (fn c => Theory.add_deps "" c []) global_consts)
     |> LocalTheory.theory_result (fold_map axiom specs)
-    |-> notes ta kind group
+    |-> notes ta kind
     |>> pair (map #1 consts)
   end;
 
