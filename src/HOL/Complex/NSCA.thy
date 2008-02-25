@@ -245,11 +245,6 @@ by (blast intro: SComplex_approx_iff [THEN iffD1] approx_trans2)
 
 subsection {* Properties of @{term hRe}, @{term hIm} and @{term HComplex} *}
 
-lemma abs_Re_le_cmod: "\<bar>Re x\<bar> \<le> cmod x"
-by (induct x) simp
-
-lemma abs_Im_le_cmod: "\<bar>Im x\<bar> \<le> cmod x"
-by (induct x) simp
 
 lemma abs_hRe_le_hcmod: "\<And>x. \<bar>hRe x\<bar> \<le> hcmod x"
 by transfer (rule abs_Re_le_cmod)
