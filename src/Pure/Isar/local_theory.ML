@@ -10,6 +10,10 @@ type local_theory = Proof.context;
 signature LOCAL_THEORY =
 sig
   type operations
+  val group_of: local_theory -> string
+  val group_properties_of: local_theory -> Markup.property list
+  val group_position_of: local_theory -> Markup.property list
+  val set_group: string -> local_theory -> local_theory
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
@@ -24,25 +28,13 @@ sig
   val axioms: string ->
     ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
     -> (term list * (bstring * thm list) list) * local_theory
-  val axioms_grouped: string -> string ->
-    ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
-    -> (term list * (bstring * thm list) list) * local_theory
   val abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory ->
     (term * term) * local_theory
   val define: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) -> local_theory ->
     (term * (bstring * thm)) * local_theory
-  val define_grouped: string -> string ->
-    (bstring * mixfix) * ((bstring * Attrib.src list) * term) -> local_theory ->
-    (term * (bstring * thm)) * local_theory
   val note: string -> (bstring * Attrib.src list) * thm list ->
     local_theory -> (bstring * thm list) * local_theory
   val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    local_theory -> (bstring * thm list) list * local_theory
-  val note_grouped: string -> string ->
-    (bstring * Attrib.src list) * thm list ->
-    local_theory -> (bstring * thm list) * local_theory
-  val notes_grouped: string -> string ->
-    ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory
   val type_syntax: declaration -> local_theory -> local_theory
   val term_syntax: declaration -> local_theory -> local_theory
@@ -64,14 +56,14 @@ struct
 
 type operations =
  {pretty: local_theory -> Pretty.T list,
-  axioms: string -> string ->
+  axioms: string ->
     ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
     -> (term list * (bstring * thm list) list) * local_theory,
   abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> (term * term) * local_theory,
-  define: string -> string ->
+  define: string ->
     (bstring * mixfix) * ((bstring * Attrib.src list) * term) -> local_theory ->
     (term * (bstring * thm)) * local_theory,
-  notes: string -> string ->
+  notes: string ->
     ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     local_theory -> (bstring * thm list) list * local_theory,
   type_syntax: declaration -> local_theory -> local_theory,
@@ -81,12 +73,13 @@ type operations =
   exit: local_theory -> Proof.context};
 
 datatype lthy = LThy of
- {theory_prefix: string,
+ {group: string,
+  theory_prefix: string,
   operations: operations,
   target: Proof.context};
 
-fun make_lthy (theory_prefix, operations, target) =
-  LThy {theory_prefix = theory_prefix, operations = operations, target = target};
+fun make_lthy (group, theory_prefix, operations, target) =
+  LThy {group = group, theory_prefix = theory_prefix, operations = operations, target = target};
 
 
 (* context data *)
@@ -103,14 +96,33 @@ fun get_lthy lthy =
   | SOME (LThy data) => data);
 
 fun map_lthy f lthy =
-  let val {theory_prefix, operations, target} = get_lthy lthy
-  in Data.put (SOME (make_lthy (f (theory_prefix, operations, target)))) lthy end;
+  let val {group, theory_prefix, operations, target} = get_lthy lthy
+  in Data.put (SOME (make_lthy (f (group, theory_prefix, operations, target)))) lthy end;
+
+
+(* group *)
+
+val group_of = #group o get_lthy;
+
+fun group_properties_of lthy =
+  (case group_of lthy of
+    "" => []
+  | group => [(Markup.groupN, group)]);
+
+fun group_position_of lthy =
+  group_properties_of lthy @ Position.properties_of (Position.thread_data ());
+
+fun set_group group = map_lthy (fn (_, theory_prefix, operations, target) =>
+  (group, theory_prefix, operations, target));
+
+
+(* target *)
 
 val target_of = #target o get_lthy;
 val affirm = tap target_of;
 
-fun map_target f = map_lthy (fn (theory_prefix, operations, target) =>
-  (theory_prefix, operations, f target));
+fun map_target f = map_lthy (fn (group, theory_prefix, operations, target) =>
+  (group, theory_prefix, operations, f target));
 
 
 (* substructure mappings *)
@@ -142,7 +154,7 @@ fun theory f = #2 o theory_result (f #> pair ());
 
 fun target_result f lthy =
   let
-    val (res, ctxt') = f (#target (get_lthy lthy));
+    val (res, ctxt') = f (target_of lthy);
     val thy' = ProofContext.theory_of ctxt';
     val lthy' = lthy
       |> map_target (K ctxt')
@@ -156,25 +168,18 @@ fun target f = #2 o target_result (f #> pair ());
 
 fun operation f lthy = f (#operations (get_lthy lthy)) lthy;
 fun operation1 f x = operation (fn ops => f ops x);
-fun operation2 f x y = operation (fn ops => f ops x y);
-fun operation3 f x y z = operation (fn ops => f ops x y z);
+fun operation2 f x y lthy = operation (fn ops => f ops x y) lthy;
 
 val pretty = operation #pretty;
-val axioms_grouped = operation3 #axioms;
+val axioms = operation2 #axioms;
 val abbrev = operation2 #abbrev;
-val define_grouped = operation3 #define;
-val notes_grouped = operation3 #notes;
+val define = operation2 #define;
+val notes = operation2 #notes;
 val type_syntax = operation1 #type_syntax;
 val term_syntax = operation1 #term_syntax;
 val declaration = operation1 #declaration;
 
-fun note_grouped kind group (a, ths) lthy = lthy
-  |> notes_grouped kind group [(a, [(ths, [])])] |>> the_single;
-
-fun axioms kind = axioms_grouped kind "";
-fun define kind = define_grouped kind "";
-fun notes kind = notes_grouped kind "";
-fun note kind = note_grouped kind "";
+fun note kind (a, ths) = notes kind [(a, [(ths, [])])] #>> the_single;
 
 fun target_morphism lthy =
   ProofContext.export_morphism lthy (target_of lthy) $>
@@ -188,11 +193,11 @@ fun notation add mode raw_args lthy =
 (* init -- exit *)
 
 fun init theory_prefix operations target = target |> Data.map
-  (fn NONE => SOME (make_lthy (theory_prefix, operations, target))
+  (fn NONE => SOME (make_lthy ("", theory_prefix, operations, target))
     | SOME _ => error "Local theory already initialized");
 
 fun restore lthy =
-  let val {theory_prefix, operations, target} = get_lthy lthy
+  let val {group = _, theory_prefix, operations, target} = get_lthy lthy
   in init theory_prefix operations target end;
 
 val reinit = operation #reinit;
