@@ -76,7 +76,7 @@ fun abs_conv cv ctxt ct =
       let
         val ([u], ctxt') = Variable.variant_fixes ["u"] ctxt;
         val (v, ct') = Thm.dest_abs (SOME u) ct;
-        val eq = (cv ctxt') ct';
+        val eq = cv ctxt' ct';
       in if Thm.is_reflexive eq then all_conv ct else Thm.abstract_rule x v eq end
   | _ => raise CTERM ("abs_conv", [ct]));
 
