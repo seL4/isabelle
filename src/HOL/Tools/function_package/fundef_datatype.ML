@@ -305,6 +305,7 @@ local structure P = OuterParse and K = OuterKeyword in
 
 fun fun_cmd config fixes statements flags lthy =
     lthy
+      |> LocalTheory.set_group (serial_string ())
       |> FundefPackage.add_fundef fixes statements config flags
       |> by_pat_completeness_simp
       |> LocalTheory.reinit

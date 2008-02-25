@@ -90,7 +90,7 @@ fun fundef_afterqed config fixes post defname cont sort_cont cnames [[proof]] lt
     end
 
 
-fun gen_add_fundef prep fixspec eqnss config flags lthy =
+fun gen_add_fundef set_group prep fixspec eqnss config flags lthy =
     let
       val ((fixes, spec), ctxt') = prep fixspec (map (fn (n_a, eq) => [(n_a, [eq])]) eqnss) lthy
       val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
@@ -103,6 +103,7 @@ fun gen_add_fundef prep fixspec eqnss config flags lthy =
       val afterqed = fundef_afterqed config fixes post defname cont sort_cont cnames
     in
       lthy
+        |> set_group ? LocalTheory.set_group (serial_string ())
         |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
         |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
     end
@@ -150,8 +151,8 @@ fun setup_termination_proof term_opt lthy =
     end
 
 
-val add_fundef = gen_add_fundef Specification.read_specification
-val add_fundef_i = gen_add_fundef Specification.check_specification
+val add_fundef = gen_add_fundef true Specification.read_specification
+val add_fundef_i = gen_add_fundef false Specification.check_specification
 
 
 (* Datatype hook to declare datatype congs as "fundef_congs" *)

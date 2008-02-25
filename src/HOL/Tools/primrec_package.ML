@@ -221,7 +221,7 @@ fun prove_spec ctxt names rec_rewrites defs =
     val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names);
   in map (fn (name_attr, t) => (name_attr, [Goal.prove ctxt [] [] t tac])) end;
 
-fun gen_primrec prep_spec raw_fixes raw_spec lthy =
+fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = prepare_spec prep_spec lthy raw_fixes raw_spec;
     val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
@@ -248,6 +248,7 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
       [Simplifier.simp_add, RecfunCodegen.add NONE];
   in
     lthy
+    |> set_group ? LocalTheory.set_group (serial_string ())
     |> fold_map (LocalTheory.define Thm.definitionK o make_def lthy fixes fs) defs
     |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec))
     |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
@@ -261,8 +262,8 @@ fun gen_primrec prep_spec raw_fixes raw_spec lthy =
 
 in
 
-val add_primrec = gen_primrec Specification.check_specification;
-val add_primrec_cmd = gen_primrec Specification.read_specification;
+val add_primrec = gen_primrec false Specification.check_specification;
+val add_primrec_cmd = gen_primrec true Specification.read_specification;
 
 end;
 

@@ -43,7 +43,6 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
           InductivePackage.add_inductive_i
             {verbose = ! Toplevel.debug,
               kind = Thm.internalK,
-              group = serial_string (),   (* FIXME pass proper group (!?) *)
               alt_name = "",
               coind = false,
               no_elim = false,
