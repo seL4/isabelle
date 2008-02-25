@@ -350,9 +350,9 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     (** realizability predicate **)
 
     val (ind_info, thy3') = thy2 |>
-      InductivePackage.add_inductive_global {verbose = false, kind = Thm.theoremK,
-          group = serial_string (),  (* FIXME pass proper group (!?) *)
-          alt_name = "", coind = false, no_elim = false, no_ind = false}
+      InductivePackage.add_inductive_global (serial_string ())
+        {verbose = false, kind = Thm.theoremK, alt_name = "",
+          coind = false, no_elim = false, no_ind = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
           ((Sign.base_name (name_of_thm intr), []),
            subst_atomic rlzpreds' (Logic.unvarify rintr)))

@@ -12,8 +12,7 @@ sig
   val to_pred_att: thm list -> attribute
   val pred_set_conv_att: attribute
   val add_inductive_i:
-    {verbose: bool, kind: string, group: string, alt_name: bstring,
-      coind: bool, no_elim: bool, no_ind: bool} ->
+    {verbose: bool, kind: string, alt_name: bstring, coind: bool, no_elim: bool, no_ind: bool} ->
     ((string * typ) * mixfix) list ->
     (string * typ) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
       local_theory -> InductivePackage.inductive_result * local_theory
@@ -402,7 +401,7 @@ fun code_ind_att optmod = to_pred_att [] #> InductiveCodegen.add optmod NONE;
 
 (**** definition of inductive sets ****)
 
-fun add_ind_set_def {verbose, kind, group, alt_name, coind, no_elim, no_ind}
+fun add_ind_set_def {verbose, kind, alt_name, coind, no_elim, no_ind}
     cs intros monos params cnames_syn ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
@@ -465,8 +464,7 @@ fun add_ind_set_def {verbose, kind, group, alt_name, coind, no_elim, no_ind}
     val cnames_syn' = map (fn (s, _) => (s ^ "p", NoSyn)) cnames_syn;
     val monos' = map (to_pred [] (Context.Proof ctxt)) monos;
     val ({preds, intrs, elims, raw_induct, ...}, ctxt1) =
-      InductivePackage.add_ind_def {verbose = verbose, kind = kind, group = group,
-          alt_name = "",  (* FIXME pass alt_name (!?) *)
+      InductivePackage.add_ind_def {verbose = verbose, kind = kind, alt_name = "",
           coind = coind, no_elim = no_elim, no_ind = no_ind}
         cs' intros' monos' params1 cnames_syn' ctxt;
 
@@ -502,7 +500,7 @@ fun add_ind_set_def {verbose, kind, group, alt_name, coind, no_elim, no_ind}
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof ctxt3) raw_induct;
     val (intrs', elims', induct, ctxt4) =
-      InductivePackage.declare_rules kind group rec_name coind no_ind cnames
+      InductivePackage.declare_rules kind rec_name coind no_ind cnames
       (map (to_set [] (Context.Proof ctxt3)) intrs) intr_names intr_atts
       (map (fn th => (to_set [] (Context.Proof ctxt3) th,
          map fst (fst (RuleCases.get th)))) elims)
