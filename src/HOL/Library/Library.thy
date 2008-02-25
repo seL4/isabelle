@@ -36,6 +36,7 @@ imports
   Quotient
   Ramsey
   State_Monad
+  Univ_Poly
   While_Combinator
   Word
   Zorn
