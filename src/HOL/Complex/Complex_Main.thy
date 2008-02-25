@@ -7,7 +7,7 @@
 header{*Comprehensive Complex Theory*}
 
 theory Complex_Main
-imports CLim "../Hyperreal/Hyperreal"
+imports Fundamental_Theorem_Algebra CLim "../Hyperreal/Hyperreal"
 begin
 
 end
