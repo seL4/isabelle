@@ -15,27 +15,17 @@ text {*
 
 subsection {* Datatype of indices *}
 
-datatype index = index_of_nat nat
+typedef index = "UNIV \<Colon> nat set"
+  morphisms nat_of_index index_of_nat by rule
 
-lemma [code func]:
-  "index_size k = 0"
-  by (cases k) simp
+lemma index_of_nat_nat_of_index [simp]:
+  "index_of_nat (nat_of_index k) = k"
+  by (rule nat_of_index_inverse)
 
-lemmas [code func del] = index.recs index.cases
-
-primrec
-  nat_of_index :: "index \<Rightarrow> nat"
-where
-  "nat_of_index (index_of_nat k) = k"
-lemmas [code func del] = nat_of_index.simps
-
-lemma index_id [simp]:
-  "index_of_nat (nat_of_index n) = n"
-  by (cases n) simp_all
-
-lemma nat_of_index_inject [simp]:
-  "nat_of_index n = nat_of_index m \<longleftrightarrow> n = m"
-  by (cases n) auto
+lemma nat_of_index_index_of_nat [simp]:
+  "nat_of_index (index_of_nat n) = n"
+  by (rule index_of_nat_inverse) 
+    (unfold index_def, rule UNIV_I)
 
 lemma index:
   "(\<And>n\<Colon>index. PROP P n) \<equiv> (\<And>n\<Colon>nat. PROP P (index_of_nat n))"
@@ -50,8 +40,91 @@ next
   then show "PROP P n" by simp
 qed
 
-lemma [code func]: "size (n\<Colon>index) = 0"
-  by (cases n) simp_all
+lemma index_case:
+  assumes "\<And>n. k = index_of_nat n \<Longrightarrow> P"
+  shows P
+  by (rule assms [of "nat_of_index k"]) simp
+
+lemma index_induct:
+  assumes "\<And>n. P (index_of_nat n)"
+  shows "P k"
+proof -
+  from assms have "P (index_of_nat (nat_of_index k))" .
+  then show ?thesis by simp
+qed
+
+lemma nat_of_index_inject [simp]:
+  "nat_of_index k = nat_of_index l \<longleftrightarrow> k = l"
+  by (rule nat_of_index_inject)
+
+lemma index_of_nat_inject [simp]:
+  "index_of_nat n = index_of_nat m \<longleftrightarrow> n = m"
+  by (auto intro!: index_of_nat_inject simp add: index_def)
+
+instantiation index :: zero
+begin
+
+definition [simp, code func del]:
+  "0 = index_of_nat 0"
+
+instance ..
+
+end
+
+definition [simp]:
+  "Suc_index k = index_of_nat (Suc (nat_of_index k))"
+
+lemma index_induct: "P 0 \<Longrightarrow> (\<And>k. P k \<Longrightarrow> P (Suc_index k)) \<Longrightarrow> P k"
+proof -
+  assume "P 0" then have init: "P (index_of_nat 0)" by simp
+  assume "\<And>k. P k \<Longrightarrow> P (Suc_index k)"
+    then have "\<And>n. P (index_of_nat n) \<Longrightarrow> P (Suc_index (index_of_nat (n)))" .
+    then have step: "\<And>n. P (index_of_nat n) \<Longrightarrow> P (index_of_nat (Suc n))" by simp
+  from init step have "P (index_of_nat (nat_of_index k))"
+    by (induct "nat_of_index k") simp_all
+  then show "P k" by simp
+qed
+
+lemma Suc_not_Zero_index: "Suc_index k \<noteq> 0"
+  by simp
+
+lemma Zero_not_Suc_index: "0 \<noteq> Suc_index k"
+  by simp
+
+lemma Suc_Suc_index_eq: "Suc_index k = Suc_index l \<longleftrightarrow> k = l"
+  by simp
+
+rep_datatype index
+  distinct  Suc_not_Zero_index Zero_not_Suc_index
+  inject    Suc_Suc_index_eq
+  induction index_induct
+
+lemmas [code func del] = index.recs index.cases
+
+declare index_case [case_names nat, cases type: index]
+declare index_induct [case_names nat, induct type: index]
+
+lemma [code func]:
+  "index_size = nat_of_index"
+proof (rule ext)
+  fix k
+  have "index_size k = nat_size (nat_of_index k)"
+    by (induct k rule: index.induct) (simp_all del: zero_index_def Suc_index_def, simp_all)
+  also have "nat_size (nat_of_index k) = nat_of_index k" by (induct "nat_of_index k") simp_all
+  finally show "index_size k = nat_of_index k" .
+qed
+
+lemma [code func]:
+  "size = nat_of_index"
+proof (rule ext)
+  fix k
+  show "size k = nat_of_index k"
+  by (induct k) (simp_all del: zero_index_def Suc_index_def, simp_all)
+qed
+
+lemma [code func]:
+  "k = l \<longleftrightarrow> nat_of_index k = nat_of_index l"
+  by (cases k, cases l) simp
 
 
 subsection {* Indices as datatype of ints *}
@@ -73,9 +146,6 @@ subsection {* Basic arithmetic *}
 
 instantiation index :: "{minus, ordered_semidom, Divides.div, linorder}"
 begin
-
-definition [simp, code func del]:
-  "(0\<Colon>index) = index_of_nat 0"
 
 lemma zero_index_code [code inline, code func]:
   "(0\<Colon>index) = Numeral0"
@@ -140,6 +210,8 @@ lemma less_index_code [code func]:
 instance by default (auto simp add: left_distrib index)
 
 end
+
+lemma Suc_index_minus_one: "Suc_index n - 1 = n" by simp
 
 lemma index_of_nat_code [code]:
   "index_of_nat = of_nat"
