@@ -645,6 +645,9 @@ lemma ball_UNIV [simp]: "Ball UNIV P = All P"
 lemma bex_UNIV [simp]: "Bex UNIV P = Ex P"
   by (simp add: Bex_def)
 
+lemma UNIV_eq_I: "(\<And>x. x \<in> A) \<Longrightarrow> UNIV = A"
+  by auto
+
 
 subsubsection {* The empty set *}
 
@@ -951,6 +954,9 @@ lemma imageE [elim!]:
   by (unfold image_def) blast
 
 lemma image_Un: "f`(A Un B) = f`A Un f`B"
+  by blast
+
+lemma image_eq_UN: "f`A = (UN x:A. {f x})"
   by blast
 
 lemma image_iff: "(z : f`A) = (EX x:A. z = f x)"
@@ -2109,6 +2115,24 @@ lemma vimage_eq_UN: "f-`B = (UN y: B. f-`{y})"
 lemma vimage_mono: "A \<subseteq> B ==> f -` A \<subseteq> f -` B"
   -- {* monotonicity *}
   by blast
+
+lemma vimage_image_eq [noatp]: "f -` (f ` A) = {y. EX x:A. f x = f y}"
+by (blast intro: sym)
+
+lemma image_vimage_subset: "f ` (f -` A) <= A"
+by blast
+
+lemma image_vimage_eq [simp]: "f ` (f -` A) = A Int range f"
+by blast
+
+lemma image_Int_subset: "f`(A Int B) <= f`A Int f`B"
+by blast
+
+lemma image_diff_subset: "f`A - f`B <= f`(A - B)"
+by blast
+
+lemma image_UN: "(f ` (UNION A B)) = (UN x:A.(f ` (B x)))"
+by blast
 
 
 subsection {* Getting the Contents of a Singleton Set *}
