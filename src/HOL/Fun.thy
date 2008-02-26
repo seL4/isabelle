@@ -10,39 +10,44 @@ theory Fun
 imports Set
 begin
 
-constdefs
-  fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)"
-  "fun_upd f a b == % x. if x=a then b else f x"
+text{*As a simplification rule, it replaces all function equalities by
+  first-order equalities.*}
+lemma expand_fun_eq: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"
+apply (rule iffI)
+apply (simp (no_asm_simp))
+apply (rule ext)
+apply (simp (no_asm_simp))
+done
 
-nonterminals
-  updbinds updbind
-syntax
-  "_updbind" :: "['a, 'a] => updbind"             ("(2_ :=/ _)")
-  ""         :: "updbind => updbinds"             ("_")
-  "_updbinds":: "[updbind, updbinds] => updbinds" ("_,/ _")
-  "_Update"  :: "['a, updbinds] => 'a"            ("_/'((_)')" [1000,0] 900)
+lemma apply_inverse:
+  "f x =u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
+  by auto
 
-translations
-  "_Update f (_updbinds b bs)"  == "_Update (_Update f b) bs"
-  "f(x:=y)"                     == "fun_upd f x y"
 
-(* Hint: to define the sum of two functions (or maps), use sum_case.
-         A nice infix syntax could be defined (in Datatype.thy or below) by
-consts
-  fun_sum :: "('a => 'c) => ('b => 'c) => (('a+'b) => 'c)" (infixr "'(+')"80)
-translations
- "fun_sum" == sum_case
-*)
-
-definition
-  override_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b"
-where
-  "override_on f g A = (\<lambda>a. if a \<in> A then g a else f a)"
+subsection {* The Identity Function @{text id} *}
 
 definition
   id :: "'a \<Rightarrow> 'a"
 where
   "id = (\<lambda>x. x)"
+
+lemma id_apply [simp]: "id x = x"
+  by (simp add: id_def)
+
+lemma image_ident [simp]: "(%x. x) ` Y = Y"
+by blast
+
+lemma image_id [simp]: "id ` Y = Y"
+by (simp add: id_def)
+
+lemma vimage_ident [simp]: "(%x. x) -` Y = Y"
+by blast
+
+lemma vimage_id [simp]: "id -` A = A"
+by (simp add: id_def)
+
+
+subsection {* The Composition Operator @{text "f \<circ> g"} *}
 
 definition
   comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o" 55)
@@ -57,63 +62,6 @@ notation (HTML output)
 
 text{*compatibility*}
 lemmas o_def = comp_def
-
-constdefs
-  inj_on :: "['a => 'b, 'a set] => bool"  -- "injective"
-  "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
-
-definition
-  bij_betw :: "('a => 'b) => 'a set => 'b set => bool" where -- "bijective"
-  "bij_betw f A B \<longleftrightarrow> inj_on f A & f ` A = B"
-
-
-text{*A common special case: functions injective over the entire domain type.*}
-
-abbreviation
-  "inj f == inj_on f UNIV"
-
-constdefs
-  surj :: "('a => 'b) => bool"                   (*surjective*)
-  "surj f == ! y. ? x. y=f(x)"
-
-  bij :: "('a => 'b) => bool"                    (*bijective*)
-  "bij f == inj f & surj f"
-
-
-
-text{*As a simplification rule, it replaces all function equalities by
-  first-order equalities.*}
-lemma expand_fun_eq: "f = g \<longleftrightarrow> (\<forall>x. f x = g x)"
-apply (rule iffI)
-apply (simp (no_asm_simp))
-apply (rule ext)
-apply (simp (no_asm_simp))
-done
-
-lemma apply_inverse:
-    "[| f(x)=u;  !!x. P(x) ==> g(f(x)) = x;  P(x) |] ==> x=g(u)"
-by auto
-
-
-text{*The Identity Function: @{term id}*}
-lemma id_apply [simp]: "id x = x"
-by (simp add: id_def)
-
-lemma inj_on_id[simp]: "inj_on id A"
-by (simp add: inj_on_def) 
-
-lemma inj_on_id2[simp]: "inj_on (%x. x) A"
-by (simp add: inj_on_def) 
-
-lemma surj_id[simp]: "surj id"
-by (simp add: surj_def) 
-
-lemma bij_id[simp]: "bij id"
-by (simp add: bij_def inj_on_id surj_id) 
-
-
-
-subsection{*The Composition Operator: @{term "f \<circ> g"}*}
 
 lemma o_apply [simp]: "(f o g) x = f (g x)"
 by (simp add: comp_def)
@@ -130,17 +78,36 @@ by (simp add: comp_def)
 lemma image_compose: "(f o g) ` r = f`(g`r)"
 by (simp add: comp_def, blast)
 
-lemma image_eq_UN: "f`A = (UN x:A. {f x})"
-by blast
-
 lemma UN_o: "UNION A (g o f) = UNION (f`A) g"
 by (unfold comp_def, blast)
 
 
-subsection{*The Injectivity Predicate, @{term inj}*}
+subsection {* Injectivity and Surjectivity *}
 
-text{*NB: @{term inj} now just translates to @{term inj_on}*}
+constdefs
+  inj_on :: "['a => 'b, 'a set] => bool"  -- "injective"
+  "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
 
+text{*A common special case: functions injective over the entire domain type.*}
+
+abbreviation
+  "inj f == inj_on f UNIV"
+
+definition
+  bij_betw :: "('a => 'b) => 'a set => 'b set => bool" where -- "bijective"
+  "bij_betw f A B \<longleftrightarrow> inj_on f A & f ` A = B"
+
+constdefs
+  surj :: "('a => 'b) => bool"                   (*surjective*)
+  "surj f == ! y. ? x. y=f(x)"
+
+  bij :: "('a => 'b) => bool"                    (*bijective*)
+  "bij f == inj f & surj f"
+
+lemma injI:
+  assumes "\<And>x y. f x = f y \<Longrightarrow> x = y"
+  shows "inj f"
+  using assms unfolding inj_on_def by auto
 
 text{*For Proofs in @{text "Tools/datatype_rep_proofs"}*}
 lemma datatype_injI:
@@ -157,8 +124,17 @@ by (simp add: inj_on_def)
 lemma inj_eq: "inj(f) ==> (f(x) = f(y)) = (x=y)"
 by (force simp add: inj_on_def)
 
+lemma inj_on_id[simp]: "inj_on id A"
+  by (simp add: inj_on_def) 
 
-subsection{*The Predicate @{term inj_on}: Injectivity On A Restricted Domain*}
+lemma inj_on_id2[simp]: "inj_on (%x. x) A"
+by (simp add: inj_on_def) 
+
+lemma surj_id[simp]: "surj id"
+by (simp add: surj_def) 
+
+lemma bij_id[simp]: "bij id"
+by (simp add: bij_def inj_on_id surj_id) 
 
 lemma inj_onI:
     "(!! x y. [|  x:A;  y:A;  f(x) = f(y) |] ==> x=y) ==> inj_on f A"
@@ -218,9 +194,6 @@ apply(unfold inj_on_def)
 apply (blast)
 done
 
-
-subsection{*The Predicate @{term surj}: Surjectivity*}
-
 lemma surjI: "(!! x. g(f x) = x) ==> surj g"
 apply (simp add: surj_def)
 apply (blast intro: sym)
@@ -241,9 +214,6 @@ apply (drule_tac x = y in spec, clarify)
 apply (drule_tac x = x in spec, blast)
 done
 
-
-subsection{*The Predicate @{const bij}: Bijectivity*}
-
 lemma bijI: "[| inj f; surj f |] ==> bij f"
 by (simp add: bij_def)
 
@@ -252,9 +222,6 @@ by (simp add: bij_def)
 
 lemma bij_is_surj: "bij f ==> surj f"
 by (simp add: bij_def)
-
-
-subsection{*The Predicate @{const bij_betw}: Bijectivity*}
 
 lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"
 by (simp add: bij_betw_def)
@@ -290,34 +257,6 @@ proof -
   ultimately show ?thesis by(auto simp:bij_betw_def)
 qed
 
-
-subsection{*Facts About the Identity Function*}
-
-text{*We seem to need both the @{term id} forms and the @{term "\<lambda>x. x"}
-forms. The latter can arise by rewriting, while @{term id} may be used
-explicitly.*}
-
-lemma image_ident [simp]: "(%x. x) ` Y = Y"
-by blast
-
-lemma image_id [simp]: "id ` Y = Y"
-by (simp add: id_def)
-
-lemma vimage_ident [simp]: "(%x. x) -` Y = Y"
-by blast
-
-lemma vimage_id [simp]: "id -` A = A"
-by (simp add: id_def)
-
-lemma vimage_image_eq [noatp]: "f -` (f ` A) = {y. EX x:A. f x = f y}"
-by (blast intro: sym)
-
-lemma image_vimage_subset: "f ` (f -` A) <= A"
-by blast
-
-lemma image_vimage_eq [simp]: "f ` (f -` A) = A Int range f"
-by blast
-
 lemma surj_image_vimage_eq: "surj f ==> f ` (f -` A) = A"
 by (simp add: surj_range)
 
@@ -336,12 +275,6 @@ lemma vimage_subset_eq: "bij f ==> (f -` B <= A) = (B <= f ` A)"
 apply (unfold bij_def)
 apply (blast del: subsetI intro: vimage_subsetI vimage_subsetD)
 done
-
-lemma image_Int_subset: "f`(A Int B) <= f`A Int f`B"
-by blast
-
-lemma image_diff_subset: "f`A - f`B <= f`(A - B)"
-by blast
 
 lemma inj_on_image_Int:
    "[| inj_on f C;  A<=C;  B<=C |] ==> f`(A Int B) = f`A Int f`B"
@@ -367,9 +300,6 @@ by (simp add: inj_on_def, blast)
 
 lemma inj_image_eq_iff: "inj f ==> (f`A = f`B) = (A = B)"
 by (blast dest: injD)
-
-lemma image_UN: "(f ` (UNION A B)) = (UN x:A.(f ` (B x)))"
-by blast
 
 (*injectivity's required.  Left-to-right inclusion holds even if A is empty*)
 lemma image_INT:
@@ -399,6 +329,30 @@ done
 
 
 subsection{*Function Updating*}
+
+constdefs
+  fun_upd :: "('a => 'b) => 'a => 'b => ('a => 'b)"
+  "fun_upd f a b == % x. if x=a then b else f x"
+
+nonterminals
+  updbinds updbind
+syntax
+  "_updbind" :: "['a, 'a] => updbind"             ("(2_ :=/ _)")
+  ""         :: "updbind => updbinds"             ("_")
+  "_updbinds":: "[updbind, updbinds] => updbinds" ("_,/ _")
+  "_Update"  :: "['a, updbinds] => 'a"            ("_/'((_)')" [1000,0] 900)
+
+translations
+  "_Update f (_updbinds b bs)"  == "_Update (_Update f b) bs"
+  "f(x:=y)"                     == "fun_upd f x y"
+
+(* Hint: to define the sum of two functions (or maps), use sum_case.
+         A nice infix syntax could be defined (in Datatype.thy or below) by
+consts
+  fun_sum :: "('a => 'c) => ('b => 'c) => (('a+'b) => 'c)" (infixr "'(+')"80)
+translations
+ "fun_sum" == sum_case
+*)
 
 lemma fun_upd_idem_iff: "(f(x:=y) = f) = (f x = y)"
 apply (simp add: fun_upd_def, safe)
@@ -437,7 +391,13 @@ lemma fun_upd_image:
      "f(x:=y) ` A = (if x \<in> A then insert y (f ` (A-{x})) else f ` A)"
 by auto
 
-subsection{* @{text override_on} *}
+
+subsection {* @{text override_on} *}
+
+definition
+  override_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b"
+where
+  "override_on f g A = (\<lambda>a. if a \<in> A then g a else f a)"
 
 lemma override_on_emptyset[simp]: "override_on f g {} = f"
 by(simp add:override_on_def)
@@ -448,7 +408,8 @@ by(simp add:override_on_def)
 lemma override_on_apply_in[simp]: "a : A ==> (override_on f g A) a = g a"
 by(simp add:override_on_def)
 
-subsection{* swap *}
+
+subsection {* @{text swap} *}
 
 definition
   swap :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
