@@ -12,11 +12,11 @@ begin
 
 definition
   coprime :: "nat => nat => bool" where
-  "coprime m n = (gcd (m, n) = 1)"
+  "coprime m n \<longleftrightarrow> (gcd (m, n) = 1)"
 
 definition
   prime :: "nat \<Rightarrow> bool" where
-  "prime p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
+  "prime p \<longleftrightarrow> (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
 
 
 lemma two_is_prime: "prime 2"
@@ -93,7 +93,7 @@ proof-
   ultimately show ?thesis by blast  
 qed
 
-(* Elementary theory of divisibility                                         *)
+text {* Elementary theory of divisibility *}
 lemma divides_ge: "(a::nat) dvd b \<Longrightarrow> b = 0 \<or> a \<le> b" unfolding dvd_def by auto
 lemma divides_antisym: "(x::nat) dvd y \<and> y dvd x \<longleftrightarrow> x = y"
   using dvd_anti_sym[of x y] by auto
@@ -178,7 +178,7 @@ declare dvd_triv_right[presburger]
 lemma divides_rexp: 
   "x dvd y \<Longrightarrow> (x::nat) dvd (y^(Suc n))" by (simp add: dvd_mult2[of x y])
 
-(* The Bezout theorem is a bit ugly for N; it'd be easier for Z              *)
+text {* The Bezout theorem is a bit ugly for N; it'd be easier for Z *}
 lemma ind_euclid: 
   assumes c: " \<forall>a b. P (a::nat) b \<longleftrightarrow> P b a" and z: "\<forall>a. P a 0" 
   and add: "\<forall>a b. P a b \<longrightarrow> P a (a + b)" 
@@ -255,7 +255,7 @@ apply (rule_tac x="y" in exI)
 apply auto
 done
 
-(* We can get a stronger version with a nonzeroness assumption.              *)
+text {* We can get a stronger version with a nonzeroness assumption. *}
 
 lemma bezout_add_strong: assumes nz: "a \<noteq> (0::nat)"
   shows "\<exists>d x y. d dvd a \<and> d dvd b \<and> a * x = b * y + d"
@@ -308,7 +308,7 @@ proof-
  ultimately show ?thesis by blast
 qed
 
-(* Greatest common divisor.                                                  *)
+text {* Greatest common divisor. *}
 lemma gcd_unique: "d dvd a\<and>d dvd b \<and> (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd(a,b)"
 proof(auto)
   assume H: "d dvd a" "d dvd b" "\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d"
@@ -407,7 +407,7 @@ next
     by (simp add: gcd_commute)}
 qed
 
-(* Coprimality                                                               *)
+text {* Coprimality *}
 
 lemma coprime: "coprime a b \<longleftrightarrow> (\<forall>d. d dvd a \<and> d dvd b \<longleftrightarrow> d = 1)"
 using gcd_unique[of 1 a b, simplified] by (auto simp add: coprime_def)
@@ -607,7 +607,8 @@ proof-
   from n' k show ?thesis unfolding dvd_def by auto
 qed
 
-(* A binary form of the Chinese Remainder Theorem.                           *)
+
+text {* A binary form of the Chinese Remainder Theorem. *}
 
 lemma chinese_remainder: assumes ab: "coprime a b" and a:"a \<noteq> 0" and b:"b \<noteq> 0"
   shows "\<exists>x q1 q2. x = u + q1 * a \<and> x = v + q2 * b"
@@ -625,8 +626,9 @@ proof-
   thus ?thesis by blast
 qed
 
-(* Primality                                                                 *)
-(* A few useful theorems about primes                                        *)
+text {* Primality *}
+
+text {* A few useful theorems about primes *}
 
 lemma prime_0[simp]: "~prime 0" by (simp add: prime_def)
 lemma prime_1[simp]: "~ prime 1"  by (simp add: prime_def)
@@ -824,7 +826,8 @@ qed
 lemma even_dvd[simp]: "even (n::nat) \<longleftrightarrow> 2 dvd n" by presburger
 lemma prime_odd: "prime p \<Longrightarrow> p = 2 \<or> odd p" unfolding prime_def by auto
 
-(* One property of coprimality is easier to prove via prime factors.         *)
+
+text {* One property of coprimality is easier to prove via prime factors. *}
 
 lemma prime_divprod_pow: 
   assumes p: "prime p" and ab: "coprime a b" and pab: "p^n dvd a * b"
@@ -946,7 +949,7 @@ proof(induct c arbitrary: a b rule: nat_less_induct)
 ultimately show ?ths by blast
 qed
 
-(* More useful lemmas.                                                       *)
+text {* More useful lemmas. *}
 lemma prime_product: 
   "prime (p*q) \<Longrightarrow> p = 1 \<or> q  = 1" unfolding prime_def by auto
 
