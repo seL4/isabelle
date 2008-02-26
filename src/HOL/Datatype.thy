@@ -615,25 +615,8 @@ lemma option_caseE:
 lemma insert_None_conv_UNIV: "insert None (range Some) = UNIV"
   by (rule set_ext, case_tac x) auto
 
-instantiation option :: (finite) finite
-begin
-
-definition
-  "Finite_Set.itself = TYPE('a option)"
-
-instance proof
-  have "finite (UNIV :: 'a set)" by (rule finite)
-  hence "finite (insert None (Some ` (UNIV :: 'a set)))" by simp
-  also have "insert None (Some ` (UNIV :: 'a set)) = UNIV"
-    by (rule insert_None_conv_UNIV)
-  finally show "finite (UNIV :: 'a option set)" .
-qed
-
-end
-
-lemma univ_option [noatp, code func]:
-  "UNIV = insert (None \<Colon> 'a\<Colon>finite option) (image Some UNIV)"
-  unfolding insert_None_conv_UNIV ..
+instance option :: (finite) finite
+  by default (simp add: insert_None_conv_UNIV [symmetric])
 
 
 subsubsection {* Operations *}
