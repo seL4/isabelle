@@ -11,7 +11,7 @@ begin
 
 text {* Conversions between nibbles and natural numbers in [0..15]. *}
 
-fun
+primrec
   nat_of_nibble :: "nibble \<Rightarrow> nat" where
     "nat_of_nibble Nibble0 = 0"
   | "nat_of_nibble Nibble1 = 1"
@@ -119,7 +119,7 @@ lemma nibble_of_pair [code func]:
   "nibble_pair_of_nat n = (nibble_of_nat (n div 16), nibble_of_nat n)"
   unfolding nibble_of_nat_norm [of n, symmetric] nibble_pair_of_nat_def ..
 
-fun
+primrec
   nat_of_char :: "char \<Rightarrow> nat" where
   "nat_of_char (Char n m) = nat_of_nibble n * 16 + nat_of_nibble m"
 

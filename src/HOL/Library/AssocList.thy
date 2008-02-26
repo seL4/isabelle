@@ -16,29 +16,27 @@ text {*
   to establish the invariant, e.g. for inductive proofs.
 *}
 
-fun
+primrec
   delete :: "'key \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
     "delete k [] = []"
   | "delete k (p#ps) = (if fst p = k then delete k ps else p # delete k ps)"
 
-fun
+primrec
   update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
     "update k v [] = [(k, v)]"
   | "update k v (p#ps) = (if fst p = k then (k, v) # ps else p # update k v ps)"
 
-function
+primrec
   updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
     "updates [] vs ps = ps"
   | "updates (k#ks) vs ps = (case vs
       of [] \<Rightarrow> ps
        | (v#vs') \<Rightarrow> updates ks vs' (update k v ps))"
-by pat_completeness auto
-termination by lexicographic_order
 
-fun
+primrec
   merge :: "('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
     "merge qs [] = qs"
@@ -66,23 +64,21 @@ proof -
   finally show ?thesis .
 qed
 
-function
+fun
   compose :: "('key \<times> 'a) list \<Rightarrow> ('a \<times> 'b) list \<Rightarrow> ('key \<times> 'b) list"
 where
     "compose [] ys = []"
   | "compose (x#xs) ys = (case map_of ys (snd x)
        of None \<Rightarrow> compose (delete (fst x) xs) ys
         | Some v \<Rightarrow> (fst x, v) # compose xs ys)"
-by pat_completeness auto
-termination by lexicographic_order
 
-fun
+primrec
   restrict :: "'key set \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
     "restrict A [] = []"
   | "restrict A (p#ps) = (if fst p \<in> A then p#restrict A ps else restrict A ps)"
 
-fun
+primrec
   map_ran :: "('key \<Rightarrow> 'val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
 where
     "map_ran f [] = []"
