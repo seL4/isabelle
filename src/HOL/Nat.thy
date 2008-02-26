@@ -1149,7 +1149,7 @@ lemma of_nat_eq_id [simp]: "of_nat = id"
   by (auto simp add: expand_fun_eq)
 
 
-subsection {*The Set of Natural Numbers*}
+subsection {* The Set of Natural Numbers *}
 
 context semiring_1
 begin
