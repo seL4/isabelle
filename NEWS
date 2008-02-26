@@ -46,10 +46,11 @@ on well-founded relations.  INCOMPATIBILITY.  Definitions le_def and less_def
 have disappeared.  Consider lemmas not_less [symmetric, where ?'a = nat]
 and less_eq [symmetric] instead.
 
-* Theory Finite_Set: locales ACf, ACIf, ACIfSL and ACIfSLlin (whose purpose 
-mainly if for various fold_set functionals) have been abandoned in favour of
-the existing algebraic classes ab_semigroup_mult, ab_semigroup_idem_mult,
-lower_semilattice (resp. upper_semilattice) and linorder.  INCOMPATIBILITY.
+* Theory Finite_Set: locales ACf, ACe, ACIf, ACIfSL and ACIfSLlin (whose purpose 
+mainly is for various fold_set functionals) have been abandoned in favour of
+the existing algebraic classes ab_semigroup_mult, comm_monoid_mult,
+ab_semigroup_idem_mult, lower_semilattice (resp. upper_semilattice) and linorder.
+INCOMPATIBILITY.
 
 * Theorem Inductive.lfp_ordinal_induct generalized to complete lattices.  The
 form set-specific version is available as Inductive.lfp_ordinal_induct_set.
