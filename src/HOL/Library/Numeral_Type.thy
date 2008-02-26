@@ -63,26 +63,26 @@ end
 *}
 
 lemma card_unit: "CARD(unit) = 1"
-  unfolding univ_unit by simp
+  unfolding UNIV_unit by simp
 
 lemma card_bool: "CARD(bool) = 2"
-  unfolding univ_bool by simp
+  unfolding UNIV_bool by simp
 
 lemma card_prod: "CARD('a::finite \<times> 'b::finite) = CARD('a) * CARD('b)"
-  unfolding univ_prod by (simp only: card_cartesian_product)
+  unfolding UNIV_Times_UNIV [symmetric] by (simp only: card_cartesian_product)
 
 lemma card_sum: "CARD('a::finite + 'b::finite) = CARD('a) + CARD('b)"
-  unfolding univ_sum by (simp only: finite card_Plus)
+  unfolding UNIV_Plus_UNIV [symmetric] by (simp only: finite card_Plus)
 
 lemma card_option: "CARD('a::finite option) = Suc CARD('a)"
-  unfolding univ_option
+  unfolding insert_None_conv_UNIV [symmetric]
   apply (subgoal_tac "(None::'a option) \<notin> range Some")
   apply (simp add: finite card_image)
   apply fast
   done
 
 lemma card_set: "CARD('a::finite set) = 2 ^ CARD('a)"
-  unfolding univ_set
+  unfolding Pow_UNIV [symmetric]
   by (simp only: card_Pow finite numeral_2_eq_2)
 
 
