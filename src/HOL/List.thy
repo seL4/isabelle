@@ -2655,6 +2655,19 @@ done
 theorem sorted_sort[simp]: "sorted (sort xs)"
 by (induct xs) (auto simp:sorted_insort)
 
+lemma insort_is_Cons: "\<forall>x\<in>set xs. a \<le> x \<Longrightarrow> insort a xs = a # xs"
+by (cases xs) auto
+
+lemma sorted_remove1: "sorted xs \<Longrightarrow> sorted (remove1 a xs)"
+by (induct xs, auto simp add: sorted_Cons)
+
+lemma insort_remove1: "\<lbrakk> a \<in> set xs; sorted xs \<rbrakk> \<Longrightarrow> insort a (remove1 a xs) = xs"
+by (induct xs, auto simp add: sorted_Cons insort_is_Cons)
+
+lemma sorted_remdups[simp]:
+  "sorted l \<Longrightarrow> sorted (remdups l)"
+by (induct l) (auto simp: sorted_Cons)
+
 lemma sorted_distinct_set_unique:
 assumes "sorted xs" "distinct xs" "sorted ys" "distinct ys" "set xs = set ys"
 shows "xs = ys"

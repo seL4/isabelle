@@ -821,6 +821,10 @@ lemma prod_case_split:
   "prod_case = split"
   by (auto simp add: expand_fun_eq)
 
+lemma prod_case_beta:
+  "prod_case f p = f (fst p) (snd p)"
+  unfolding prod_case_split split_beta ..
+
 
 subsection {* Further cases/induct rules for tuples *}
 

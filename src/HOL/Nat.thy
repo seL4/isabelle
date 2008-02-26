@@ -1260,6 +1260,19 @@ by (simp split add: nat_diff_split)
 lemma diffs0_imp_equal: "!!m::nat. [| m-n = 0; n-m = 0 |] ==>  m=n"
 by (simp split add: nat_diff_split)
 
+lemma min_diff: "min (m - (i::nat)) (n - i) = min m n - i"
+unfolding min_def by auto
+
+lemma inj_on_diff_nat: 
+  assumes k_le_n: "\<forall>n \<in> N. k \<le> (n::nat)"
+  shows "inj_on (\<lambda>n. n - k) N"
+proof (rule inj_onI)
+  fix x y
+  assume a: "x \<in> N" "y \<in> N" "x - k = y - k"
+  with k_le_n have "x - k + k = y - k + k" by auto
+  with a k_le_n show "x = y" by auto
+qed
+
 text{*Rewriting to pull differences out*}
 
 lemma diff_diff_right [simp]: "k\<le>j --> i - (j - k) = i + (k::nat) - j"

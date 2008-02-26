@@ -162,6 +162,9 @@ by (simp add: Mempty_def diff_def in_multiset)
 lemma diff_union_inverse2 [simp]: "M + {#a#} - {#a#} = M"
 by (simp add: union_def diff_def in_multiset)
 
+lemma diff_cancel: "A - A = {#}"
+by (simp add: diff_def Mempty_def)
+
 
 subsubsection {* Count of elements *}
 
@@ -358,6 +361,9 @@ lemmas multiset_inter_ac =
   multiset_inter_commute
   multiset_inter_assoc
   multiset_inter_left_commute
+
+lemma multiset_inter_single: "a \<noteq> b \<Longrightarrow> {#a#} #\<inter> {#b#} = {#}"
+by (simp add: multiset_eq_conv_count_eq multiset_inter_count)
 
 lemma multiset_union_diff_commute: "B #\<inter> C = {#} \<Longrightarrow> A + B - C = A - C + B"
   apply (simp add: multiset_eq_conv_count_eq multiset_inter_count min_def
@@ -896,6 +902,64 @@ lemma count_filter:
     "count (multiset_of xs) x = length [y \<leftarrow> xs. y = x]"
   by (induct xs) auto
 
+lemma nth_mem_multiset_of: "i < length ls \<Longrightarrow> (ls ! i) :# multiset_of ls"
+by (induct ls arbitrary: i, simp, case_tac i, auto)
+
+lemma multiset_of_remove1: "multiset_of (remove1 a xs) = multiset_of xs - {#a#}"
+by (induct xs, auto simp add: multiset_eq_conv_count_eq)
+
+lemma multiset_of_eq_length:
+  assumes "multiset_of xs = multiset_of ys"
+  shows "List.length xs = List.length ys"
+  using assms
+proof (induct arbitrary: ys rule: length_induct)
+  case (1 xs ys)
+  show ?case
+  proof (cases xs)
+    case Nil with 1(2) show ?thesis by simp
+  next
+    case (Cons x xs')
+    note xCons = Cons
+    show ?thesis
+    proof (cases ys)
+      case Nil
+      with 1(2) Cons show ?thesis by simp
+    next
+      case (Cons y ys')
+      have x_in_ys: "x = y \<or> x \<in> set ys'"
+      proof (cases "x = y")
+	case True thus ?thesis ..
+      next
+	case False
+	from 1(2)[symmetric] xCons Cons have "x :# multiset_of ys' + {#y#}" by simp
+	with False show ?thesis by (simp add: mem_set_multiset_eq)
+      qed
+      from 1(1) have IH: "List.length xs' < List.length xs \<longrightarrow>
+	(\<forall>x. multiset_of xs' = multiset_of x \<longrightarrow> List.length xs' = List.length x)" by blast
+      from 1(2) x_in_ys Cons xCons have "multiset_of xs' = multiset_of (remove1 x (y#ys'))"
+	apply -
+	apply (simp add: multiset_of_remove1, simp only: add_eq_conv_diff)
+	apply fastsimp
+	done
+      with IH xCons have IH': "List.length xs' = List.length (remove1 x (y#ys'))" by fastsimp
+      from x_in_ys have "x \<noteq> y \<Longrightarrow> List.length ys' > 0" by auto
+      with Cons xCons x_in_ys IH' show ?thesis by (auto simp add: length_remove1)
+    qed
+  qed
+qed
+
+text {* This lemma shows which properties suffice to show that
+  a function f with f xs = ys behaves like sort. *}
+lemma properties_for_sort: "\<lbrakk> multiset_of ys = multiset_of xs; sorted ys\<rbrakk> \<Longrightarrow> sort xs = ys"
+proof (induct xs arbitrary: ys)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs)
+  hence "x \<in> set ys" by (auto simp add:  mem_set_multiset_eq intro!: ccontr)
+  with Cons.prems Cons.hyps [of "remove1 x ys"] show ?case
+    by (simp add: sorted_remove1 multiset_of_remove1 insort_remove1)
+qed
+
 
 subsection {* Pointwise ordering induced by count *}
 
@@ -946,11 +1010,70 @@ lemma mset_le_add_left[simp]: "A \<le># A + B"
 lemma mset_le_add_right[simp]: "B \<le># A + B"
   unfolding mset_le_def by auto
 
+lemma mset_le_single: "a :# B \<Longrightarrow> {#a#} \<le># B"
+by (simp add: mset_le_def)
+
+lemma multiset_diff_union_assoc: "C \<le># B \<Longrightarrow> A + B - C = A + (B - C)"
+by (simp add: multiset_eq_conv_count_eq mset_le_def)
+
+lemma mset_le_multiset_union_diff_commute:
+  assumes "B \<le># A"
+  shows "A - B + C = A + C - B"
+proof -
+ from mset_le_exists_conv [of "B" "A"] assms have "\<exists>D. A = B + D" ..
+ from this obtain D where "A = B + D" ..
+ thus ?thesis
+   apply -
+   apply simp
+   apply (subst union_commute)
+   apply (subst multiset_diff_union_assoc)
+   apply simp
+   apply (simp add: diff_cancel)
+   apply (subst union_assoc)
+   apply (subst union_commute[of "B" _])
+   apply (subst multiset_diff_union_assoc)
+   apply simp
+   apply (simp add: diff_cancel)
+   done
+qed
+
 lemma multiset_of_remdups_le: "multiset_of (remdups xs) \<le># multiset_of xs"
 apply (induct xs)
  apply auto
 apply (rule mset_le_trans)
  apply auto
+done
+
+lemma multiset_of_update: "i < length ls \<Longrightarrow> multiset_of (ls[i := v]) = multiset_of ls - {#ls ! i#} + {#v#}"
+proof (induct ls arbitrary: i)
+  case Nil thus ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+    proof (cases i)
+      case 0 thus ?thesis by simp
+    next
+      case (Suc i')
+      with Cons show ?thesis
+	apply -
+	apply simp
+	apply (subst union_assoc)
+	apply (subst union_commute[where M="{#v#}" and N="{#x#}"])
+	apply (subst union_assoc[symmetric])
+	apply simp
+	apply (rule mset_le_multiset_union_diff_commute)
+	apply (simp add: mset_le_single nth_mem_multiset_of)
+	done
+  qed
+qed
+
+lemma multiset_of_swap: "\<lbrakk> i < length ls; j < length ls \<rbrakk> \<Longrightarrow> multiset_of (ls[j := ls ! i, i := ls ! j]) = multiset_of ls"
+apply (case_tac "i=j")
+apply simp
+apply (simp add: multiset_of_update)
+apply (subst elem_imp_eq_diff_union[symmetric])
+apply (simp add: nth_mem_multiset_of)
+apply simp
 done
 
 interpretation mset_order:
