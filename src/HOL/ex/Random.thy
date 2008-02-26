@@ -42,7 +42,7 @@ where
 text {* Base selectors *}
 
 primrec
-  pick :: "(nat \<times> 'a) list \<Rightarrow> nat \<Rightarrow> 'a"
+  pick :: "(index \<times> 'a) list \<Rightarrow> index \<Rightarrow> 'a"
 where
   "pick (x#xs) n = (if n < fst x then snd x else pick xs (n - fst x))"
 
@@ -83,11 +83,11 @@ where
   in (nth xs (nat_of_index k), s'))"
 
 definition
-  select_weight :: "(nat \<times> 'a) list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed"
+  select_weight :: "(index \<times> 'a) list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed"
 where
   [simp]: "select_weight xs s = (let
-    (k, s') = range (foldr (op + \<circ> index_of_nat \<circ> fst) xs 0) s
-  in (pick xs (nat_of_index k), s'))"
+    (k, s') = range (foldr (op + \<circ> fst) xs 0) s
+  in (pick xs k, s'))"
 
 (*lemma
   "select (x#xs) s = select_weight (map (Pair 1) (x#xs)) s"
@@ -204,7 +204,7 @@ instantiation nat :: random
 begin
 
 definition
-  "random k = apfst nat_of_index \<circ> range k"
+  "random k = (if k = 0 then return 0 else apfst nat_of_index \<circ> range k)"
 
 instance ..
 
@@ -224,7 +224,7 @@ instantiation unit :: random
 begin
 
 definition
-  "random _ = Pair ()"
+  "random _ = return ()"
 
 instance ..
 
@@ -280,35 +280,27 @@ end
 instantiation list :: ("{type, random}") random
 begin
 
-primrec
-  random_list_aux
+primrec random_list' :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> 'a\<Colon>{type, random} list \<times> seed"
 where
-  "random_list_aux 0 = Pair []"
-  | "random_list_aux (Suc n) = (do
-       x \<leftarrow> random (index_of_nat (Suc n));
-       xs \<leftarrow> random_list_aux n;
-       return (x#xs)
-     done)"
+  "random_list' 0 j = undefined"
+  | "random_list' (Suc_index i) j = collapse (select_weight [
+      (i, collapse (select [do x \<leftarrow> random i; xs \<leftarrow> random_list' i j; return (x#xs) done])),
+      (1, collapse (select [do return [] done]))
+    ])"
 
-definition
-  [code func del]: "random n = random_list_aux (nat_of_index n)"
+declare random_list'.simps [code func del]
 
-lemma [code func]:
-  "random n = (if n = 0 then return ([]::'a list)
-    else do
-       x \<leftarrow> random n;
-       xs \<leftarrow> random (n - 1);
-       return (x#xs)
-     done)"
-unfolding random_list_def
-by (cases "nat_of_index n", auto)
-  (cases n, auto)+
+lemma random_list'_code [code func]:
+  "random_list' i j = (if i = 0 then undefined else collapse (select_weight [
+      (i - 1, collapse (select [do x \<leftarrow> random (i - 1); xs \<leftarrow> random_list' (i - 1) j; return (x#xs) done])),
+      (1, collapse (select [do return [] done]))
+    ]))"
+apply (cases i rule: index.exhaust)
+apply (simp only:, subst random_list'.simps(1), simp only: Suc_not_Zero refl if_False if_True)
+apply (simp only:, subst random_list'.simps(2), simp only: Suc_not_Zero refl if_False if_True Suc_index_minus_one Suc_not_Zero_index)
+done
 
-(*fun
-  random_list
-where
-  "random_list n = (if n = 0 then (\<lambda>_. ([]::'a list)) 
-    else random n \<guillemotright>=\<^isub>R (\<lambda>x::'a. random_list (n - 1) \<guillemotright>=\<^isub>R (\<lambda>(xs::'a list) _. x#xs)))"*)
+definition "random i = random_list' i i"
 
 instance ..
 
@@ -382,6 +374,30 @@ ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 
+ML {* val f = Quickcheck.compile_generator_expr @{theory}
+  @{term "\<lambda>(xs\<Colon>int list) ys. rev (xs @ ys) = rev xs @ rev ys"}
+  [@{typ "int list"}, @{typ "int list"}] *}
+
+ML {* f 15 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 25 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+
+ML {*   *}
 
 subsection {* Incremental function generator *}
 
