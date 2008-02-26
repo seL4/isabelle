@@ -268,12 +268,17 @@ primrec
   list_yield :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<times> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'c list \<times> 'b" where
   "list_yield f [] = return []"
 | "list_yield f (x#xs) = (do y \<leftarrow> f x; ys \<leftarrow> list_yield f xs; return (y#ys) done)"
-  
+
+definition
+  collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a"
+  where
+  "collapse f = (do g \<leftarrow> f; g done)"
+
 text {* combinator properties *}
 
 lemma list_append [simp]:
   "list f (xs @ ys) = list f xs \<guillemotright> list f ys"
-  by (induct xs) (simp_all del: id_apply) (*FIXME*)
+  by (induct xs) (simp_all del: id_apply)
 
 lemma list_cong [fundef_cong, recdef_cong]:
   "\<lbrakk> \<And>x. x \<in> set xs \<Longrightarrow> f x = g x; xs = ys \<rbrakk>
@@ -302,10 +307,6 @@ next
   with Cons have "list_yield f (x # xs) = list_yield g (x # xs)" by auto
   with Cons show "list_yield f (x # xs) = list_yield g ys" by auto
 qed
-
-text {*
-  still waiting for extensions@{text "\<dots>"}
-*}
 
 text {*
   For an example, see HOL/ex/Random.thy.
