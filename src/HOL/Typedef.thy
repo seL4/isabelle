@@ -114,4 +114,61 @@ setup {*
   #> TypedefCodegen.setup
 *}
 
+text {* This class is just a workaround for classes without parameters;
+  it shall disappear as soon as possible. *}
+
+class itself = type + 
+  fixes itself :: "'a itself"
+
+setup {*
+let fun add_itself tyco thy =
+  let
+    val vs = Name.names Name.context "'a"
+      (replicate (Sign.arity_number thy tyco) @{sort type});
+    val ty = Type (tyco, map TFree vs);
+    val lhs = Const (@{const_name itself}, Term.itselfT ty);
+    val rhs = Logic.mk_type ty;
+    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
+  in
+    thy
+    |> TheoryTarget.instantiation ([tyco], vs, @{sort itself})
+    |> `(fn lthy => Syntax.check_term lthy eq)
+    |-> (fn eq => Specification.definition (NONE, (("", []), eq)))
+    |> snd
+    |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+    |> LocalTheory.exit
+    |> ProofContext.theory_of
+  end
+in TypedefPackage.interpretation add_itself end
+*}
+
+instantiation bool :: itself
+begin
+
+definition "itself = TYPE(bool)"
+
+instance ..
+
+end
+
+instantiation "fun" :: ("type", "type") itself
+begin
+
+definition "itself = TYPE('a \<Rightarrow> 'b)"
+
+instance ..
+
+end
+
+instantiation "set" :: ("type") itself
+begin
+
+definition "itself = TYPE('a set)"
+
+instance ..
+
+end
+
+hide (open) const itself
+
 end
