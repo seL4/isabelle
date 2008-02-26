@@ -3158,8 +3158,29 @@ datatype nibble =
     Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 | Nibble6 | Nibble7
   | Nibble8 | Nibble9 | NibbleA | NibbleB | NibbleC | NibbleD | NibbleE | NibbleF
 
+lemma UNIV_nibble:
+  "UNIV = {Nibble0, Nibble1, Nibble2, Nibble3, Nibble4, Nibble5, Nibble6, Nibble7,
+    Nibble8, Nibble9, NibbleA, NibbleB, NibbleC, NibbleD, NibbleE, NibbleF}" (is "_ = ?A")
+proof (rule UNIV_eq_I)
+  fix x show "x \<in> ?A" by (cases x) simp_all
+qed
+
+instance nibble :: finite
+  by default (simp add: UNIV_nibble)
+
+declare UNIV_nibble [code func]
+ 
 datatype char = Char nibble nibble
   -- "Note: canonical order of character encoding coincides with standard term ordering"
+
+lemma UNIV_char:
+  "UNIV = image (split Char) (UNIV \<times> UNIV)"
+proof (rule UNIV_eq_I)
+  fix x show "x \<in> image (split Char) (UNIV \<times> UNIV)" by (cases x) auto
+qed
+
+instance char :: finite
+  by default (simp add: UNIV_char)
 
 types string = "char list"
 
