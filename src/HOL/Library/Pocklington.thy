@@ -825,7 +825,8 @@ proof-
 	by (simp add: ring_simps power_mult)
       also have "\<dots> = (a^m mod n)^((n - 1) div m) mod n" 
 	using power_mod[of "a^m" n "(n - 1) div m"] by simp
-      also have "\<dots> = 1" using m(3)[unfolded modeq_def onen] onen by simp
+      also have "\<dots> = 1" using m(3)[unfolded modeq_def onen] onen 
+	by (simp add: power_Suc0)
       finally have th3: "?y mod n = 1"  . 
       have th2: "[?y * a ^ ((n - 1) mod m) = ?y* 1] (mod n)" 
 	using an1[unfolded modeq_def onen] onen
@@ -847,7 +848,7 @@ proof-
     also have "\<dots> = (a^(m*(r div p))) mod n" using div_mult1_eq[of m r p] p(2)[unfolded dvd_eq_mod_eq_0] by simp
     also have "\<dots> = ((a^m)^(r div p)) mod n" by (simp add: power_mult)
     also have "\<dots> = ((a^m mod n)^(r div p)) mod n" using power_mod[of "a^m" "n" "r div p" ] ..
-    also have "\<dots> = 1" using m(3) onen by (simp add: modeq_def)
+    also have "\<dots> = 1" using m(3) onen by (simp add: modeq_def power_Suc0)
     finally have "[(a ^ ((n - 1) div p))= 1] (mod n)" 
       using onen by (simp add: modeq_def)
     with pn[rule_format, OF th] have False by blast}
@@ -899,7 +900,8 @@ proof
   hence "[a ^ d = (a ^ (ord n a) mod n)^k] (mod n)"
     by (simp add : modeq_def power_mult power_mod)
   also have "[(a ^ (ord n a) mod n)^k = 1] (mod n)" 
-    using ord[of a n, unfolded modeq_def] by (simp add: modeq_def power_mod)
+    using ord[of a n, unfolded modeq_def] 
+    by (simp add: modeq_def power_mod power_Suc0)
   finally  show ?lhs .
 next 
   assume lh: ?lhs
@@ -923,7 +925,7 @@ next
     let ?q = "d div ord n a"
     let ?r = "d mod ord n a"
     from cong_exp[OF ord[of a n], of ?q] 
-    have eqo: "[(a^?o)^?q = 1] (mod n)"  by (simp add: modeq_def)
+    have eqo: "[(a^?o)^?q = 1] (mod n)"  by (simp add: modeq_def power_Suc0)
     from H have onz: "?o \<noteq> 0" by (simp add: ord_eq_0)
     hence op: "?o > 0" by simp
     from mod_div_equality[of d "ord n a"] lh
@@ -1105,7 +1107,8 @@ proof-
       by (simp only: power_mult)
     have "[((a ^ r) ^ ord p (a^r)) ^ t= 1^t] (mod p)" 
       by (rule cong_exp, rule ord)
-    then have th: "[((a ^ r) ^ ord p (a^r)) ^ t= 1] (mod p)" by simp
+    then have th: "[((a ^ r) ^ ord p (a^r)) ^ t= 1] (mod p)" 
+      by (simp add: power_Suc0)
     from cong_1_divides[OF th] exps have pd0: "p dvd a^(ord p (a^r) * t*r) - 1" by simp
     from nqr s s' have "(n - 1) div P = ord p (a^r) * t*r" using P0 by simp
     with caP have "coprime (a^(ord p (a^r) * t*r) - 1) n" by simp
