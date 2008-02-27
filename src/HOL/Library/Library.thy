@@ -25,7 +25,7 @@ imports
   GCD
   Imperative_HOL
   Infinite_Set
-  ListSpace
+  ListVector
   Multiset
   NatPair
   Nat_Infinity
