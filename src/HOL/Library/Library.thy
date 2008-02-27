@@ -13,6 +13,7 @@ imports
   Coinductive_List
   Commutative_Ring
   Continuity
+  Dense_Linear_Order
   Efficient_Nat
   (*Eval*)
   Eval_Witness
