@@ -4,7 +4,7 @@
 
 header "Lists as vectors"
 
-theory ListSpace
+theory ListVector
 imports Main
 begin
 
