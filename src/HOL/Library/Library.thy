@@ -8,18 +8,22 @@ imports
   Binomial
   Boolean_Algebra
   Char_ord
+  Code_Char_chr
   Code_Index
+  Code_Integer
   Code_Message
   Coinductive_List
   Commutative_Ring
   Continuity
+  Countable
   Dense_Linear_Order
   Efficient_Nat
-  (*Eval*)
+  Eval
   Eval_Witness
   Executable_Set
   FuncSet
   GCD
+  Imperative_HOL
   Infinite_Set
   ListSpace
   Multiset
@@ -30,8 +34,6 @@ imports
   OptionalSugar
   Parity
   Permutation
-  Code_Integer
-  Code_Char_chr
   Primes
   Quicksort
   Quotient
