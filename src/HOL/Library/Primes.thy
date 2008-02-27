@@ -1043,4 +1043,6 @@ qed
 lemma coprime_divisors: "d dvd a \<Longrightarrow> e dvd b \<Longrightarrow> coprime a b \<Longrightarrow> coprime d e"
   by (auto simp add: dvd_def coprime)
 
+declare power_Suc0[simp del]
+declare even_dvd[simp del]
 end
