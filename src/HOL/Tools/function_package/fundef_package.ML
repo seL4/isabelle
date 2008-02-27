@@ -150,6 +150,10 @@ fun setup_termination_proof term_opt lthy =
         |> Proof.theorem_i NONE (total_termination_afterqed data) [[(goal, [])]]
     end
 
+fun termination_cmd term_opt lthy =
+  lthy
+  |> LocalTheory.set_group (serial_string ())
+  |> setup_termination_proof term_opt;
 
 val add_fundef = gen_add_fundef true Specification.read_specification
 val add_fundef_i = gen_add_fundef false Specification.check_specification
@@ -272,7 +276,7 @@ val _ =
   (P.opt_target -- Scan.option P.term
     >> (fn (target, name) =>
            Toplevel.print o
-           Toplevel.local_theory_to_proof target (setup_termination_proof name)));
+           Toplevel.local_theory_to_proof target (termination_cmd name)));
 
 end;
 

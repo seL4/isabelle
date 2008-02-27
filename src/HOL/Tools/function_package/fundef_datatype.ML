@@ -297,19 +297,22 @@ val setup =
     #> Context.theory_map (FundefCommon.set_preproc sequential_preproc)
 
 
-val fun_config = FundefConfig { sequential=true, default="%x. arbitrary", 
+val fun_config = FundefConfig { sequential=true, default="%x. arbitrary" (* FIXME dynamic scoping *), 
                                 target=NONE, domintros=false, tailrec=false }
 
 
 local structure P = OuterParse and K = OuterKeyword in
 
 fun fun_cmd config fixes statements flags lthy =
+  let val group = serial_string () in
     lthy
-      |> LocalTheory.set_group (serial_string ())
+      |> LocalTheory.set_group group
       |> FundefPackage.add_fundef fixes statements config flags
       |> by_pat_completeness_simp
       |> LocalTheory.reinit
+      |> LocalTheory.set_group group
       |> termination_by_lexicographic_order
+  end;
 
 val _ =
   OuterSyntax.command "fun" "define general recursive functions (short version)" K.thy_decl
