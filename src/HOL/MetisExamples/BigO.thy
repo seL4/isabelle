@@ -8,7 +8,7 @@ Testing the metis method
 header {* Big O notation *}
 
 theory BigO
-imports Main SetsAndFunctions 
+imports Dense_Linear_Order Main SetsAndFunctions 
 begin
 
 subsection {* Definitions *}
