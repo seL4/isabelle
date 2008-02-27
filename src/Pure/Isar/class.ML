@@ -521,7 +521,8 @@ fun gen_class_spec prep_class prep_expr process_expr thy raw_supclasses raw_incl
     val supsort = Sign.minimize_sort thy supclasses;
     val sups = filter (is_class thy) supsort;
     val base_sort = if null sups then supsort else
-      (#base_sort o the_class_data thy o hd) sups;
+      foldr1 (Sorts.inter_sort (Sign.classes_of thy))
+        (map (#base_sort o the_class_data thy) sups);
     val suplocales = map Locale.Locale sups;
     val (raw_elems, includes) = fold_rev (fn Locale.Elem e => apfst (cons e)
       | Locale.Expr i => apsnd (cons (prep_expr thy i))) raw_includes_elems ([], []);
@@ -529,7 +530,7 @@ fun gen_class_spec prep_class prep_expr process_expr thy raw_supclasses raw_incl
     val supparams = (map fst o Locale.parameters_of_expr thy) supexpr;
     val mergeexpr = Locale.Merge (suplocales @ includes);
     val constrain = Element.Constrains ((map o apsnd o map_atyps)
-      (fn TFree (_, sort) => TFree (Name.aT, sort)) supparams);
+      (K (TFree (Name.aT, base_sort))) supparams);
     fun fork_syn (Element.Fixes xs) =
           fold_map (fn (c, ty, syn) => cons (c, syn) #> pair (c, ty, NoSyn)) xs
           #>> Element.Fixes
