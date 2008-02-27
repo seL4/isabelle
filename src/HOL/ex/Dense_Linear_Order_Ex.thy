@@ -6,7 +6,7 @@
 header {* Examples for Ferrante and Rackoff's quantifier elimination procedure *}
 
 theory Dense_Linear_Order_Ex
-imports Main
+imports Dense_Linear_Order Main
 begin
 
 lemma
