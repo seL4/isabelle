@@ -7,104 +7,9 @@ header {* A simple term evaluation mechanism *}
 
 theory Eval
 imports
-  ATP_Linkup Code_Message
+  RType
   Code_Index (* this theory is just imported for a term_of setup *)
 begin
-
-subsection {* Type reflection *}
-
-subsubsection {* Definition *}
-
-types vname = message_string;
-types "class" = message_string;
-types sort = "class list"
-
-datatype "typ" =
-    Type message_string "typ list"
-  | TFree vname sort  
-
-ML {*
-structure Eval =
-struct
-
-val mk_sort = HOLogic.mk_list @{typ class} o map Message_String.mk;
-
-fun mk_typ f (Type (tyco, tys)) =
-      @{term Type} $ Message_String.mk tyco
-        $ HOLogic.mk_list @{typ typ} (map (mk_typ f) tys)
-  | mk_typ f (TFree v) =
-      f v;
-
-end;
-*}
-
-
-subsubsection {* Class @{text typ_of} *}
-
-class typ_of =
-  fixes typ_of :: "'a\<Colon>{} itself \<Rightarrow> typ"
-
-ML {*
-structure Eval =
-struct
-
-open Eval;
-
-fun mk_typ_of ty =
-  Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
-    $ Logic.mk_type ty;
-
-fun add_typ_of_def tyco thy =
-  let
-    val sorts = replicate (Sign.arity_number thy tyco) @{sort typ_of};
-    val vs = Name.names Name.context "'a" sorts;
-    val ty = Type (tyco, map TFree vs);
-    val lhs = Const (@{const_name typ_of}, Term.itselfT ty --> @{typ typ})
-      $ Free ("T", Term.itselfT ty);
-    val rhs = mk_typ (fn v => mk_typ_of (TFree v)) ty;
-    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
-  in
-    thy
-    |> TheoryTarget.instantiation ([tyco], vs, @{sort typ_of})
-    |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition (NONE, (("", []), eq)))
-    |> snd
-    |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-    |> LocalTheory.exit
-    |> ProofContext.theory_of
-  end;
-
-end
-*}
-
-(*setup {*
-let
-  open Eval;
-in
-  Eval.add_typ_of_def @{type_name prop}
-  #> Eval.add_typ_of_def @{type_name fun}
-  #> Eval.add_typ_of_def @{type_name itself}
-  #> Eval.add_typ_of_def @{type_name bool}
-  #> Eval.add_typ_of_def @{type_name set}
-  #> TypedefPackage.interpretation Eval.add_typ_of_def
-end
-*}*)
-
-subsubsection {* Code generator setup *}
-
-lemma [code func]:
-  "Type tyco1 tys1 = Type tyco2 tys2 \<longleftrightarrow> tyco1 = tyco2
-     \<and> list_all2 (op =) tys1 tys2"
-  by (auto simp add: list_all2_eq [symmetric])
-
-code_type "typ"
-  (SML "Term.typ")
-
-code_const Type and TFree
-  (SML "Term.Type/ (_, _)" and "Term.TFree/ (_, _)")
-
-code_reserved SML Term
-
 
 subsection {* Term representation *}
 
@@ -113,7 +18,7 @@ subsubsection {* Definitions *}
 datatype "term" = dummy_term
 
 definition
-  Const :: "message_string \<Rightarrow> typ \<Rightarrow> term"
+  Const :: "message_string \<Rightarrow> rtype \<Rightarrow> term"
 where
   "Const _ _ = dummy_term"
 
@@ -124,10 +29,11 @@ where
 
 code_datatype Const App
 
+
 subsubsection {* Class @{term term_of} *}
 
-class term_of = typ_of +
-  constrains typ_of :: "'a\<Colon>{} itself \<Rightarrow> typ"
+class term_of = rtype +
+  constrains typ_of :: "'a\<Colon>{} itself \<Rightarrow> rtype"
   fixes term_of :: "'a \<Rightarrow> term"
 
 lemma term_of_anything: "term_of x \<equiv> t"
@@ -136,8 +42,6 @@ lemma term_of_anything: "term_of x \<equiv> t"
 ML {*
 structure Eval =
 struct
-
-open Eval;
 
 fun mk_term f g (Const (c, ty)) =
       @{term Const} $ Message_String.mk c $ g ty
@@ -152,9 +56,6 @@ end;
 
 setup {*
 let
-  fun has_no_inst tyco sort thy =
-    not (can (Sorts.mg_domain (Sign.classes_of thy) tyco)
-      sort);
   fun add_term_of_def ty vs tyco thy =
     let
       val lhs = Const (@{const_name term_of}, ty --> @{typ term})
@@ -173,20 +74,18 @@ let
     end;
   fun interpretator (tyco, (raw_vs, _)) thy =
     let
+      val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
       val constrain_sort =
         curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
       val vs = (map o apsnd) constrain_sort raw_vs;
       val ty = Type (tyco, map TFree vs);
     in
       thy
-      |> `(has_no_inst tyco @{sort typ_of})
-      |-> (fn no_typ_of => no_typ_of ? Eval.add_typ_of_def tyco)
-      |> `(has_no_inst tyco @{sort term_of})
-      |-> (fn no_term_of => no_term_of ? add_term_of_def ty vs tyco)
+      |> RType.perhaps_add_def tyco
+      |> not has_inst ? add_term_of_def ty vs tyco
     end;
 in
-  Eval.add_typ_of_def @{type_name fun}
-  #> Code.type_interpretation interpretator
+  Code.type_interpretation interpretator
 end
 *}
 
@@ -198,7 +97,7 @@ let
         map Free (Name.names Name.context "a" tys));
     in (map_aterms (fn Free (v, ty) => Var ((v, 0), ty) | t => t) t, Eval.mk_term
       (fn (v, ty) => Eval.mk_term_of ty (Var ((v, 0), ty)))
-      (Eval.mk_typ (fn (v, sort) => Eval.mk_typ_of (TFree (v, sort)))) t)
+      (RType.mk (fn (v, sort) => RType.rtype (TFree (v, sort)))) t)
     end;
   fun prove_term_of_eq ty eq thy =
     let
@@ -236,7 +135,7 @@ subsubsection {* Code generator setup *}
 lemmas [code func del] = term.recs term.cases term.size
 lemma [code func, code func del]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
 
-lemma [code func, code func del]: "(term_of \<Colon> typ \<Rightarrow> term) = term_of" ..
+lemma [code func, code func del]: "(term_of \<Colon> rtype \<Rightarrow> term) = term_of" ..
 lemma [code func, code func del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
 lemma [code func, code func del]: "(term_of \<Colon> index \<Rightarrow> term) = term_of" ..
 lemma [code func, code func del]: "(term_of \<Colon> message_string \<Rightarrow> term) = term_of" ..
@@ -335,7 +234,7 @@ in
 end
 *}
 
-hide (open) const Type TFree typ_of term_of
+hide (open) const term_of
 hide const Const App dummy_term
 
 end
