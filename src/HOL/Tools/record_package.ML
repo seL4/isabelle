@@ -994,9 +994,7 @@ fun normalize_rhs thm =
   let
      val ss = HOL_basic_ss addsimps K_comp_convs; 
      val rhs = thm |> Thm.cprop_of |> Thm.dest_comb |> snd;
-     val _ = tracing ("rhs:"^(Pretty.string_of (Display.pretty_cterm rhs)));
      val rhs' = (Simplifier.rewrite ss rhs);
-     val _ = tracing ("rhs':"^(Pretty.string_of (Display.pretty_thm rhs')));
   in Thm.transitive thm rhs' end;
 in
 (* record_simproc *)
