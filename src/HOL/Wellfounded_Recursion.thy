@@ -50,7 +50,7 @@ lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
 
 lemma wfUNIVI: 
    "(!!P x. (ALL x. (ALL y. (y,x) : r --> P(y)) --> P(x)) ==> P(x)) ==> wf(r)"
-by (unfold wf_def, blast)
+  unfolding wf_def by blast
 
 lemmas wfPUNIVI = wfUNIVI [to_pred]
 
@@ -60,13 +60,13 @@ lemma wfI:
  "[| r \<subseteq> A <*> B; 
      !!x P. [|\<forall>x. (\<forall>y. (y,x) : r --> P y) --> P x;  x : A; x : B |] ==> P x |]
   ==>  wf r"
-by (unfold wf_def, blast)
+  unfolding wf_def by blast
 
 lemma wf_induct: 
     "[| wf(r);           
         !!x.[| ALL y. (y,x): r --> P(y) |] ==> P(x)  
      |]  ==>  P(a)"
-by (unfold wf_def, blast)
+  unfolding wf_def by blast
 
 lemmas wfP_induct = wf_induct [to_pred]
 
@@ -74,47 +74,69 @@ lemmas wf_induct_rule = wf_induct [rule_format, consumes 1, case_names less, ind
 
 lemmas wfP_induct_rule = wf_induct_rule [to_pred, induct set: wfP]
 
-lemma wf_not_sym [rule_format]: "wf(r) ==> ALL x. (a,x):r --> (x,a)~:r"
-by (erule_tac a=a in wf_induct, blast)
+lemma wf_not_sym: "wf r ==> (a, x) : r ==> (x, a) ~: r"
+  by (induct a arbitrary: x set: wf) blast
 
 (* [| wf r;  ~Z ==> (a,x) : r;  (x,a) ~: r ==> Z |] ==> Z *)
 lemmas wf_asym = wf_not_sym [elim_format]
 
-lemma wf_not_refl [simp]: "wf(r) ==> (a,a) ~: r"
-by (blast elim: wf_asym)
+lemma wf_not_refl [simp]: "wf r ==> (a, a) ~: r"
+  by (blast elim: wf_asym)
 
 (* [| wf r;  (a,a) ~: r ==> PROP W |] ==> PROP W *)
 lemmas wf_irrefl = wf_not_refl [elim_format]
 
 text{*transitive closure of a well-founded relation is well-founded! *}
-lemma wf_trancl: "wf(r) ==> wf(r^+)"
-apply (subst wf_def, clarify)
-apply (rule allE, assumption)
-  --{*Retains the universal formula for later use!*}
-apply (erule mp)
-apply (erule_tac a = x in wf_induct)
-apply (blast elim: tranclE)
-done
+lemma wf_trancl:
+  assumes "wf r"
+  shows "wf (r^+)"
+proof -
+  {
+    fix P and x
+    assume induct_step: "!!x. (!!y. (y, x) : r^+ ==> P y) ==> P x"
+    have "P x"
+    proof (rule induct_step)
+      fix y assume "(y, x) : r^+"
+      with `wf r` show "P y"
+      proof (induct x arbitrary: y)
+	case (less x)
+	note hyp = `\<And>x' y'. (x', x) : r ==> (y', x') : r^+ ==> P y'`
+	from `(y, x) : r^+` show "P y"
+	proof cases
+	  case base
+	  show "P y"
+	  proof (rule induct_step)
+	    fix y' assume "(y', y) : r^+"
+	    with `(y, x) : r` show "P y'" by (rule hyp [of y y'])
+	  qed
+	next
+	  case step
+	  then obtain x' where "(x', x) : r" and "(y, x') : r^+" by simp
+	  then show "P y" by (rule hyp [of x' y])
+	qed
+      qed
+    qed
+  } then show ?thesis unfolding wf_def by blast
+qed
 
 lemmas wfP_trancl = wf_trancl [to_pred]
 
 lemma wf_converse_trancl: "wf (r^-1) ==> wf ((r^+)^-1)"
-apply (subst trancl_converse [symmetric])
-apply (erule wf_trancl)
-done
+  apply (subst trancl_converse [symmetric])
+  apply (erule wf_trancl)
+  done
 
 
-subsubsection{*Other simple well-foundedness results*}
-
+subsubsection {* Other simple well-foundedness results *}
 
 text{*Minimal-element characterization of well-foundedness*}
 lemma wf_eq_minimal: "wf r = (\<forall>Q x. x\<in>Q --> (\<exists>z\<in>Q. \<forall>y. (y,z)\<in>r --> y\<notin>Q))"
 proof (intro iffI strip)
-  fix Q::"'a set" and x
+  fix Q :: "'a set" and x
   assume "wf r" and "x \<in> Q"
-  thus "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
-    by (unfold wf_def, 
-        blast dest: spec [of _ "%x. x\<in>Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y,z) \<in> r \<longrightarrow> y\<notin>Q)"]) 
+  then show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q"
+    unfolding wf_def
+    by (blast dest: spec [of _ "%x. x\<in>Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y,z) \<in> r \<longrightarrow> y\<notin>Q)"]) 
 next
   assume 1: "\<forall>Q x. x \<in> Q \<longrightarrow> (\<exists>z\<in>Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> Q)"
   show "wf r"
@@ -122,49 +144,50 @@ next
     fix P :: "'a \<Rightarrow> bool" and x
     assume 2: "\<forall>x. (\<forall>y. (y, x) \<in> r \<longrightarrow> P y) \<longrightarrow> P x"
     let ?Q = "{x. \<not> P x}"
-    have "x \<in> ?Q \<longrightarrow> (\<exists>z\<in>?Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> ?Q)"
+    have "x \<in> ?Q \<longrightarrow> (\<exists>z \<in> ?Q. \<forall>y. (y, z) \<in> r \<longrightarrow> y \<notin> ?Q)"
       by (rule 1 [THEN spec, THEN spec])
-    hence "\<not> P x \<longrightarrow> (\<exists>z. \<not> P z \<and> (\<forall>y. (y, z) \<in> r \<longrightarrow> P y))" by simp
+    then have "\<not> P x \<longrightarrow> (\<exists>z. \<not> P z \<and> (\<forall>y. (y, z) \<in> r \<longrightarrow> P y))" by simp
     with 2 have "\<not> P x \<longrightarrow> (\<exists>z. \<not> P z \<and> P z)" by fast
-    thus "P x" by simp
+    then show "P x" by simp
   qed
 qed
 
 lemma wfE_min: 
-  assumes p:"wf R" "x \<in> Q"
+  assumes "wf R" "x \<in> Q"
   obtains z where "z \<in> Q" "\<And>y. (y, z) \<in> R \<Longrightarrow> y \<notin> Q"
-  using p
-  unfolding wf_eq_minimal
-  by blast
+  using assms unfolding wf_eq_minimal by blast
 
 lemma wfI_min:
   "(\<And>x Q. x \<in> Q \<Longrightarrow> \<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<longrightarrow> y \<notin> Q)
   \<Longrightarrow> wf R"
-  unfolding wf_eq_minimal
-  by blast
+  unfolding wf_eq_minimal by blast
 
 lemmas wfP_eq_minimal = wf_eq_minimal [to_pred]
 
-text{*Well-foundedness of subsets*}
+text {* Well-foundedness of subsets *}
 lemma wf_subset: "[| wf(r);  p<=r |] ==> wf(p)"
-apply (simp (no_asm_use) add: wf_eq_minimal)
-apply fast
-done
+  apply (simp (no_asm_use) add: wf_eq_minimal)
+  apply fast
+  done
 
 lemmas wfP_subset = wf_subset [to_pred]
 
-text{*Well-foundedness of the empty relation*}
+text {* Well-foundedness of the empty relation *}
 lemma wf_empty [iff]: "wf({})"
-by (simp add: wf_def)
+  by (simp add: wf_def)
 
 lemmas wfP_empty [iff] =
   wf_empty [to_pred bot_empty_eq2, simplified bot_fun_eq bot_bool_eq]
 
 lemma wf_Int1: "wf r ==> wf (r Int r')"
-by (erule wf_subset, rule Int_lower1)
+  apply (erule wf_subset)
+  apply (rule Int_lower1)
+  done
 
 lemma wf_Int2: "wf r ==> wf (r' Int r)"
-by (erule wf_subset, rule Int_lower2)
+  apply (erule wf_subset)
+  apply (rule Int_lower2)
+  done  
 
 text{*Well-foundedness of insert*}
 lemma wf_insert [iff]: "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)"
@@ -197,40 +220,40 @@ apply (fast dest: inj_onD, blast)
 done
 
 
-subsubsection{*Well-Foundedness Results for Unions*}
+subsubsection {* Well-Foundedness Results for Unions *}
 
 lemma wf_union_compatible:
   assumes "wf R" "wf S"
-  assumes comp: "S O R \<subseteq> R"
+  assumes "S O R \<subseteq> R"
   shows "wf (R \<union> S)"
 proof (rule wfI_min)
   fix x :: 'a and Q 
-  let ?Q' = "{ x\<in>Q. \<forall>y. (y,x)\<in>R \<longrightarrow> y \<notin> Q }"
+  let ?Q' = "{x \<in> Q. \<forall>y. (y, x) \<in> R \<longrightarrow> y \<notin> Q}"
   assume "x \<in> Q"
-  obtain a where "a \<in> ?Q'" 
-    by (rule wfE_min[OF `wf R` `x \<in> Q`]) blast
+  obtain a where "a \<in> ?Q'"
+    by (rule wfE_min [OF `wf R` `x \<in> Q`]) blast
   with `wf S`
   obtain z where "z \<in> ?Q'" and zmin: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> ?Q'" by (erule wfE_min)
   { 
-    fix y assume ySz: "(y, z) \<in> S"
+    fix y assume "(y, z) \<in> S"
     then have "y \<notin> ?Q'" by (rule zmin)
 
     have "y \<notin> Q"
     proof 
       assume "y \<in> Q"
       with `y \<notin> ?Q'` 
-      obtain w where wRy: "(w, y) \<in> R" and "w \<in> Q" by auto
-      from wRy ySz have "(w, z) \<in> S O R" by (rule rel_compI)
-      with comp have "(w, z) \<in> R" ..
+      obtain w where "(w, y) \<in> R" and "w \<in> Q" by auto
+      from `(w, y) \<in> R` `(y, z) \<in> S` have "(w, z) \<in> S O R" by (rule rel_compI)
+      with `S O R \<subseteq> R` have "(w, z) \<in> R" ..
       with `z \<in> ?Q'` have "w \<notin> Q" by blast 
-      from this `w \<in> Q` show False ..
+      with `w \<in> Q` show False by contradiction
     qed
   }
-  with `z \<in> ?Q'`
-  show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<union> S \<longrightarrow> y \<notin> Q" by blast
+  with `z \<in> ?Q'` show "\<exists>z\<in>Q. \<forall>y. (y, z) \<in> R \<union> S \<longrightarrow> y \<notin> Q" by blast
 qed
 
-text{*Well-foundedness of indexed union with disjoint domains and ranges*}
+
+text {* Well-foundedness of indexed union with disjoint domains and ranges *}
 
 lemma wf_UN: "[| ALL i:I. wf(r i);  
          ALL i:I. ALL j:I. r i ~= r j --> Domain(r i) Int Range(r j) = {}  
@@ -270,8 +293,8 @@ done
 *)
 lemma wf_Un:
      "[| wf r; wf s; Domain r Int Range s = {} |] ==> wf(r Un s)"
-using wf_union_compatible[of s r] 
-by (auto simp: Un_ac)
+  using wf_union_compatible[of s r] 
+  by (auto simp: Un_ac)
 
 lemma wf_union_merge: 
   "wf (R \<union> S) = wf (R O R \<union> R O S \<union> S)" (is "wf ?A = wf ?B")
@@ -279,7 +302,7 @@ proof
   assume "wf ?A"
   with wf_trancl have wfT: "wf (?A^+)" .
   moreover have "?B \<subseteq> ?A^+"
-    by  (subst trancl_unfold, subst trancl_unfold) blast
+    by (subst trancl_unfold, subst trancl_unfold) blast
   ultimately show "wf ?B" by (rule wf_subset)
 next
   assume "wf ?B"
@@ -292,7 +315,7 @@ next
     with `wf ?B`
     obtain z where "z \<in> Q" and "\<And>y. (y, z) \<in> ?B \<Longrightarrow> y \<notin> Q" 
       by (erule wfE_min)
-    hence A1: "\<And>y. (y, z) \<in> R O R \<Longrightarrow> y \<notin> Q"
+    then have A1: "\<And>y. (y, z) \<in> R O R \<Longrightarrow> y \<notin> Q"
       and A2: "\<And>y. (y, z) \<in> R O S \<Longrightarrow> y \<notin> Q"
       and A3: "\<And>y. (y, z) \<in> S \<Longrightarrow> y \<notin> Q"
       by auto
@@ -308,14 +331,14 @@ next
       have "\<forall>y. (y, z') \<in> ?A \<longrightarrow> y \<notin> Q"
       proof (intro allI impI)
         fix y assume "(y, z') \<in> ?A"
-        thus "y \<notin> Q"
+        then show "y \<notin> Q"
         proof
           assume "(y, z') \<in> R" 
-          hence "(y, z) \<in> R O R" using `(z', z) \<in> R` ..
+          then have "(y, z) \<in> R O R" using `(z', z) \<in> R` ..
           with A1 show "y \<notin> Q" .
         next
           assume "(y, z') \<in> S" 
-          hence "(y, z) \<in> R O S" using  `(z', z) \<in> R` ..
+          then have "(y, z) \<in> R O S" using  `(z', z) \<in> R` ..
           with A2 show "y \<notin> Q" .
         qed
       qed
@@ -324,13 +347,14 @@ next
   qed
 qed
 
-lemma wf_comp_self: "wf R = wf (R O R)" (* special case *)
-  by (fact wf_union_merge[where S = "{}", simplified])
+lemma wf_comp_self: "wf R = wf (R O R)"  -- {* special case *}
+  by (rule wf_union_merge [where S = "{}", simplified])
 
-subsubsection {*acyclic*}
+
+subsubsection {* acyclic *}
 
 lemma acyclicI: "ALL x. (x, x) ~: r^+ ==> acyclic r"
-by (simp add: acyclic_def)
+  by (simp add: acyclic_def)
 
 lemma wf_acyclic: "wf r ==> acyclic r"
 apply (simp add: acyclic_def)
@@ -491,7 +515,7 @@ proof (rule ext, rule ext, rule iffI)
     case 0 then show ?case by auto
   next
     case (Suc n) then show ?case
-    by (auto simp add: less_Suc_eq_le le_less intro: tranclp.trancl_into_trancl)
+      by (auto simp add: less_Suc_eq_le le_less intro: tranclp.trancl_into_trancl)
   qed
 next
   fix n m :: nat
@@ -535,9 +559,9 @@ lemma wf_less: "wf {(x, y::nat). x < y}"
 
 text {* Complete induction, aka course-of-values induction *}
 lemma nat_less_induct:
-  assumes prem: "!!n. \<forall>m::nat. m < n --> P m ==> P n" shows "P n"
+  assumes "!!n. \<forall>m::nat. m < n --> P m ==> P n" shows "P n"
   apply (induct n rule: wf_induct [OF wf_pred_nat [THEN wf_trancl]])
-  apply (rule prem)
+  apply (rule assms)
   apply (unfold less_eq [symmetric], assumption)
   done
 
@@ -575,13 +599,15 @@ lemma infinite_descent:
   "\<lbrakk> !!n::nat. \<not> P n \<Longrightarrow>  \<exists>m<n. \<not>  P m \<rbrakk> \<Longrightarrow>  P n"
 by (induct n rule: less_induct, auto)
 
-text {* Infinite descent using a mapping to $\mathbb{N}$:
+text {*
+Infinite descent using a mapping to $\mathbb{N}$:
 $P(x)$ is true for all $x\in D$ if there exists a $V: D \to \mathbb{N}$ and
 \begin{itemize}
 \item case ``0'': given $V(x)=0$ prove $P(x)$,
 \item case ``smaller'': given $V(x)>0$ and $\neg P(x)$ prove there exists a $y \in D$ such that $V(y)<V(x)$ and $~\neg P(y)$.
 \end{itemize}
 NB: the proof also shows how to use the previous lemma. *}
+
 corollary infinite_descent0_measure [case_names 0 smaller]:
   assumes A0: "!!x. V x = (0::nat) \<Longrightarrow> P x"
     and   A1: "!!x. V x > 0 \<Longrightarrow> \<not>P x \<Longrightarrow> (\<exists>y. V y < V x \<and> \<not>P y)"
@@ -597,7 +623,7 @@ proof -
     then obtain x where vxn: "V x = n " and "V x > 0 \<and> \<not> P x" by auto
     with A1 obtain y where "V y < V x \<and> \<not> P y" by auto
     with vxn obtain m where "m = V y \<and> m<n \<and> \<not> P y" by auto
-    thus ?case by auto
+    then show ?case by auto
   qed
   ultimately show "P x" by auto
 qed
@@ -631,23 +657,28 @@ lemma Least_Suc:
 
 lemma Least_Suc2:
    "[|P n; Q m; ~P 0; !k. P (Suc k) = Q k|] ==> Least P = Suc (Least Q)"
-by (erule (1) Least_Suc [THEN ssubst], simp)
+  apply (erule (1) Least_Suc [THEN ssubst])
+  apply simp
+  done
 
 lemma ex_least_nat_le: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow> \<exists>k\<le>n. (\<forall>i<k. \<not>P i) & P(k)"
-apply(cases n) apply blast
-apply(rule_tac x="LEAST k. P(k)" in exI)
-apply (blast intro: Least_le dest: not_less_Least intro: LeastI_ex)
-done
+  apply (cases n)
+   apply blast
+  apply (rule_tac x="LEAST k. P(k)" in exI)
+  apply (blast intro: Least_le dest: not_less_Least intro: LeastI_ex)
+  done
 
 lemma ex_least_nat_less: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow> \<exists>k<n. (\<forall>i\<le>k. \<not>P i) & P(k+1)"
-apply(cases n) apply blast
-apply(frule (1) ex_least_nat_le)
-apply(erule exE)
-apply(case_tac k) apply simp
-apply(rename_tac k1)
-apply(rule_tac x=k1 in exI)
-apply fastsimp
-done
+  apply (cases n)
+   apply blast
+  apply (frule (1) ex_least_nat_le)
+  apply (erule exE)
+  apply (case_tac k)
+   apply simp
+  apply (rename_tac k1)
+  apply (rule_tac x=k1 in exI)
+  apply fastsimp
+  done
 
 
 subsection {* size of a datatype value *}
@@ -658,44 +689,5 @@ setup Size.setup
 
 lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
-
-ML
-{*
-val wf_def = thm "wf_def";
-val wfUNIVI = thm "wfUNIVI";
-val wfI = thm "wfI";
-val wf_induct = thm "wf_induct";
-val wf_not_sym = thm "wf_not_sym";
-val wf_asym = thm "wf_asym";
-val wf_not_refl = thm "wf_not_refl";
-val wf_irrefl = thm "wf_irrefl";
-val wf_trancl = thm "wf_trancl";
-val wf_converse_trancl = thm "wf_converse_trancl";
-val wf_eq_minimal = thm "wf_eq_minimal";
-val wf_subset = thm "wf_subset";
-val wf_empty = thm "wf_empty";
-val wf_insert = thm "wf_insert";
-val wf_UN = thm "wf_UN";
-val wf_Union = thm "wf_Union";
-val wf_Un = thm "wf_Un";
-val wf_prod_fun_image = thm "wf_prod_fun_image";
-val acyclicI = thm "acyclicI";
-val wf_acyclic = thm "wf_acyclic";
-val acyclic_insert = thm "acyclic_insert";
-val acyclic_converse = thm "acyclic_converse";
-val acyclic_impl_antisym_rtrancl = thm "acyclic_impl_antisym_rtrancl";
-val acyclic_subset = thm "acyclic_subset";
-val cuts_eq = thm "cuts_eq";
-val cut_apply = thm "cut_apply";
-val wfrec_unique = thm "wfrec_unique";
-val wfrec = thm "wfrec";
-val def_wfrec = thm "def_wfrec";
-val tfl_wf_induct = thm "tfl_wf_induct";
-val tfl_cut_apply = thm "tfl_cut_apply";
-val tfl_wfrec = thm "tfl_wfrec";
-val LeastI = thm "LeastI";
-val Least_le = thm "Least_le";
-val not_less_Least = thm "not_less_Least";
-*}
 
 end
