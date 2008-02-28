@@ -87,14 +87,14 @@ lemma rtranclp_mono: "r \<le> s ==> r^** \<le> s^**"
 
 lemmas rtrancl_mono = rtranclp_mono [to_set]
 
-theorem rtranclp_induct [consumes 1, induct set: rtranclp]:
+theorem rtranclp_induct [consumes 1, case_names base step, induct set: rtranclp]:
   assumes a: "r^** a b"
     and cases: "P a" "!!y z. [| r^** a y; r y z; P y |] ==> P z"
   shows "P b"
 proof -
   from a have "a = a --> P b"
     by (induct "%x y. x = a --> P y" a b) (iprover intro: cases)+
-  thus ?thesis by iprover
+  then show ?thesis by iprover
 qed
 
 lemmas rtrancl_induct [induct set: rtrancl] = rtranclp_induct [to_set]
@@ -110,13 +110,21 @@ lemmas rtrancl_induct2 =
 lemma reflexive_rtrancl: "reflexive (r^*)"
   by (unfold refl_def) fast
 
-lemma trans_rtrancl: "trans(r^*)"
-  -- {* transitivity of transitive closure!! -- by induction *}
+text {* Transitivity of transitive closure. *}
+lemma trans_rtrancl: "trans (r^*)"
 proof (rule transI)
   fix x y z
   assume "(x, y) \<in> r\<^sup>*"
   assume "(y, z) \<in> r\<^sup>*"
-  thus "(x, z) \<in> r\<^sup>*" by induct (iprover!)+
+  then show "(x, z) \<in> r\<^sup>*"
+  proof induct
+    case base
+    show "(x, y) \<in> r\<^sup>*" by fact
+  next
+    case (step u v)
+    from `(x, u) \<in> r\<^sup>*` and `(u, v) \<in> r`
+    show "(x, v) \<in> r\<^sup>*" ..
+  qed
 qed
 
 lemmas rtrancl_trans = trans_rtrancl [THEN transD, standard]
@@ -172,11 +180,14 @@ lemma rtrancl_idemp_self_comp [simp]: "R^* O R^* = R^*"
   done
 
 lemma rtrancl_subset_rtrancl: "r \<subseteq> s^* ==> r^* \<subseteq> s^*"
-by (drule rtrancl_mono, simp)
+  apply (drule rtrancl_mono)
+  apply simp
+  done
 
 lemma rtranclp_subset: "R \<le> S ==> S \<le> R^** ==> S^** = R^**"
   apply (drule rtranclp_mono)
-  apply (drule rtranclp_mono, simp)
+  apply (drule rtranclp_mono)
+  apply simp
   done
 
 lemmas rtrancl_subset = rtranclp_subset [to_set]
@@ -195,14 +206,15 @@ lemma rtrancl_r_diff_Id: "(r - Id)^* = r^*"
   apply (rule sym)
   apply (rule rtrancl_subset, blast, clarify)
   apply (rename_tac a b)
-  apply (case_tac "a = b", blast)
+  apply (case_tac "a = b")
+   apply blast
   apply (blast intro!: r_into_rtrancl)
   done
 
 lemma rtranclp_r_diff_Id: "(inf r op ~=)^** = r^**"
   apply (rule sym)
   apply (rule rtranclp_subset)
-  apply blast+
+   apply blast+
   done
 
 theorem rtranclp_converseD:
@@ -216,12 +228,10 @@ qed
 lemmas rtrancl_converseD = rtranclp_converseD [to_set]
 
 theorem rtranclp_converseI:
-  assumes r: "r^** y x"
+  assumes "r^** y x"
   shows "(r^--1)^** x y"
-proof -
-  from r show ?thesis
-    by induct (iprover intro: rtranclp_trans conversepI)+
-qed
+  using assms
+  by induct (iprover intro: rtranclp_trans conversepI)+
 
 lemmas rtrancl_converseI = rtranclp_converseI [to_set]
 
@@ -235,20 +245,17 @@ theorem converse_rtranclp_induct[consumes 1]:
   assumes major: "r^** a b"
     and cases: "P b" "!!y z. [| r y z; r^** z b; P z |] ==> P y"
   shows "P a"
-proof -
-  from rtranclp_converseI [OF major]
-  show ?thesis
-    by induct (iprover intro: cases dest!: conversepD rtranclp_converseD)+
-qed
+  using rtranclp_converseI [OF major]
+  by induct (iprover intro: cases dest!: conversepD rtranclp_converseD)+
 
 lemmas converse_rtrancl_induct = converse_rtranclp_induct [to_set]
 
 lemmas converse_rtranclp_induct2 =
-  converse_rtranclp_induct[of _ "(ax,ay)" "(bx,by)", split_rule,
+  converse_rtranclp_induct [of _ "(ax,ay)" "(bx,by)", split_rule,
                  consumes 1, case_names refl step]
 
 lemmas converse_rtrancl_induct2 =
-  converse_rtrancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
+  converse_rtrancl_induct [of "(ax,ay)" "(bx,by)", split_format (complete),
                  consumes 1, case_names refl step]
 
 lemma converse_rtranclpE:
@@ -282,7 +289,7 @@ subsection {* Transitive closure *}
 lemma trancl_mono: "!!p. p \<in> r^+ ==> r \<subseteq> s ==> p \<in> s^+"
   apply (simp add: split_tupled_all)
   apply (erule trancl.induct)
-  apply (iprover dest: subsetD)+
+   apply (iprover dest: subsetD)+
   done
 
 lemma r_into_trancl': "!!p. p : r ==> p : r^+"
@@ -305,34 +312,35 @@ lemmas rtrancl_into_trancl1 = rtranclp_into_tranclp1 [to_set]
 
 lemma rtranclp_into_tranclp2: "[| r a b; r^** b c |] ==> r^++ a c"
   -- {* intro rule from @{text r} and @{text rtrancl} *}
-  apply (erule rtranclp.cases, iprover)
+  apply (erule rtranclp.cases)
+   apply iprover
   apply (rule rtranclp_trans [THEN rtranclp_into_tranclp1])
-   apply (simp | rule r_into_rtranclp)+
+    apply (simp | rule r_into_rtranclp)+
   done
 
 lemmas rtrancl_into_trancl2 = rtranclp_into_tranclp2 [to_set]
 
-lemma tranclp_induct [consumes 1, induct set: tranclp]:
-  assumes a: "r^++ a b"
+text {* Nice induction rule for @{text trancl} *}
+lemma tranclp_induct [consumes 1, case_names base step, induct pred: tranclp]:
+  assumes "r^++ a b"
   and cases: "!!y. r a y ==> P y"
     "!!y z. r^++ a y ==> r y z ==> P y ==> P z"
   shows "P b"
-  -- {* Nice induction rule for @{text trancl} *}
 proof -
-  from a have "a = a --> P b"
+  from `r^++ a b` have "a = a --> P b"
     by (induct "%x y. x = a --> P y" a b) (iprover intro: cases)+
-  thus ?thesis by iprover
+  then show ?thesis by iprover
 qed
 
 lemmas trancl_induct [induct set: trancl] = tranclp_induct [to_set]
 
 lemmas tranclp_induct2 =
-  tranclp_induct[of _ "(ax,ay)" "(bx,by)", split_rule,
-                 consumes 1, case_names base step]
+  tranclp_induct [of _ "(ax,ay)" "(bx,by)", split_rule,
+    consumes 1, case_names base step]
 
 lemmas trancl_induct2 =
-  trancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
-                 consumes 1, case_names base step]
+  trancl_induct [of "(ax,ay)" "(bx,by)", split_format (complete),
+    consumes 1, case_names base step]
 
 lemma tranclp_trans_induct:
   assumes major: "r^++ x y"
@@ -353,20 +361,31 @@ lemma tranclE [cases set: trancl]:
 
 lemma trancl_Int_subset: "[| r \<subseteq> s; r O (r^+ \<inter> s) \<subseteq> s|] ==> r^+ \<subseteq> s"
   apply (rule subsetI)
-  apply (rule_tac p="x" in PairE, clarify)
-  apply (erule trancl_induct, auto) 
+  apply (rule_tac p = x in PairE)
+  apply clarify
+  apply (erule trancl_induct)
+   apply auto
   done
 
 lemma trancl_unfold: "r^+ = r Un r O r^+"
   by (auto intro: trancl_into_trancl elim: tranclE)
 
-lemma trans_trancl[simp]: "trans(r^+)"
-  -- {* Transitivity of @{term "r^+"} *}
+text {* Transitivity of @{term "r^+"} *}
+lemma trans_trancl [simp]: "trans (r^+)"
 proof (rule transI)
   fix x y z
-  assume xy: "(x, y) \<in> r^+"
+  assume "(x, y) \<in> r^+"
   assume "(y, z) \<in> r^+"
-  thus "(x, z) \<in> r^+" by induct (insert xy, iprover)+
+  then show "(x, z) \<in> r^+"
+  proof induct
+    case (base u)
+    from `(x, y) \<in> r^+` and `(y, u) \<in> r`
+    show "(x, u) \<in> r^+" ..
+  next
+    case (step u v)
+    from `(x, u) \<in> r^+` and `(u, v) \<in> r`
+    show "(x, v) \<in> r^+" ..
+  qed
 qed
 
 lemmas trancl_trans = trans_trancl [THEN transD, standard]
@@ -377,16 +396,17 @@ lemma tranclp_trans:
   shows "r^++ x z" using yz xy
   by induct iprover+
 
-lemma trancl_id[simp]: "trans r \<Longrightarrow> r^+ = r"
-apply(auto)
-apply(erule trancl_induct)
-apply assumption
-apply(unfold trans_def)
-apply(blast)
-done
+lemma trancl_id [simp]: "trans r \<Longrightarrow> r^+ = r"
+  apply auto
+  apply (erule trancl_induct)
+   apply assumption
+  apply (unfold trans_def)
+  apply blast
+  done
 
-lemma rtranclp_tranclp_tranclp: assumes r: "r^** x y"
-  shows "!!z. r^++ y z ==> r^++ x z" using r
+lemma rtranclp_tranclp_tranclp:
+  assumes "r^** x y"
+  shows "!!z. r^++ y z ==> r^++ x z" using assms
   by induct (iprover intro: tranclp_trans)+
 
 lemmas rtrancl_trancl_trancl = rtranclp_tranclp_tranclp [to_set]
@@ -448,7 +468,8 @@ lemma converse_tranclp_induct:
 lemmas converse_trancl_induct = converse_tranclp_induct [to_set]
 
 lemma tranclpD: "R^++ x y ==> EX z. R x z \<and> R^** z y"
-  apply (erule converse_tranclp_induct, auto)
+  apply (erule converse_tranclp_induct)
+   apply auto
   apply (blast intro: rtranclp_trans)
   done
 
@@ -472,7 +493,7 @@ lemma trancl_subset_Sigma: "r \<subseteq> A \<times> A ==> r^+ \<subseteq> A \<t
   apply (rule subsetI)
   apply (simp only: split_tupled_all)
   apply (erule tranclE)
-  apply (blast dest!: trancl_into_rtrancl trancl_subset_Sigma_aux)+
+   apply (blast dest!: trancl_into_rtrancl trancl_subset_Sigma_aux)+
   done
 
 lemma reflcl_tranclp [simp]: "(r^++)^== = r^**"
@@ -530,8 +551,10 @@ lemma trancl_range [simp]: "Range (r^+) = Range r"
 lemma Not_Domain_rtrancl:
     "x ~: Domain R ==> ((x, y) : R^*) = (x = y)"
   apply auto
-  by (erule rev_mp, erule rtrancl_induct, auto)
-
+  apply (erule rev_mp)
+  apply (erule rtrancl_induct)
+   apply auto
+  done
 
 text {* More about converse @{text rtrancl} and @{text trancl}, should
   be merged with main body. *}
@@ -539,12 +562,12 @@ text {* More about converse @{text rtrancl} and @{text trancl}, should
 lemma single_valued_confluent:
   "\<lbrakk> single_valued r; (x,y) \<in> r^*; (x,z) \<in> r^* \<rbrakk>
   \<Longrightarrow> (y,z) \<in> r^* \<or> (z,y) \<in> r^*"
-apply(erule rtrancl_induct)
- apply simp
-apply(erule disjE)
- apply(blast elim:converse_rtranclE dest:single_valuedD)
-apply(blast intro:rtrancl_trans)
-done
+  apply (erule rtrancl_induct)
+  apply simp
+  apply (erule disjE)
+   apply (blast elim:converse_rtranclE dest:single_valuedD)
+  apply(blast intro:rtrancl_trans)
+  done
 
 lemma r_r_into_trancl: "(a, b) \<in> R ==> (b, c) \<in> R ==> (a, c) \<in> R^+"
   by (fast intro: trancl_trans)
@@ -559,7 +582,7 @@ lemma trancl_into_trancl [rule_format]:
 lemma tranclp_rtranclp_tranclp:
     "r\<^sup>+\<^sup>+ a b ==> r\<^sup>*\<^sup>* b c ==> r\<^sup>+\<^sup>+ a c"
   apply (drule tranclpD)
-  apply (erule exE, erule conjE)
+  apply (elim exE conjE)
   apply (drule rtranclp_trans, assumption)
   apply (drule rtranclp_into_tranclp2, assumption, assumption)
   done
