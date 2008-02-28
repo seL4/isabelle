@@ -451,7 +451,7 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
          (map (#weak_case_cong o snd) o Symtab.dest o DatatypePackage.get_datatypes) theory addsimps case_rewrites)
      val corollaries' = map (Simplifier.simplify case_ss) corollaries
      val extract = R.CONTEXT_REWRITE_RULE
-                     (f, [R], cut_apply, meta_tflCongs@context_congs)
+                     (f, [R], @{thm cut_apply}, meta_tflCongs@context_congs)
      val (rules, TCs) = ListPair.unzip (map extract corollaries')
      val rules0 = map (rewrite_rule [Thms.CUT_DEF]) rules
      val mk_cond_rule = R.FILTER_DISCH_ALL(not o curry (op aconv) WFR)
@@ -508,7 +508,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val corollaries = map (fn pat => R.SPEC (tych pat) corollary') given_pats
      val corollaries' = map (rewrite_rule case_rewrites) corollaries
      fun extract X = R.CONTEXT_REWRITE_RULE
-                       (f, R1::SV, cut_apply, tflCongs@context_congs) X
+                       (f, R1::SV, @{thm cut_apply}, tflCongs@context_congs) X
  in {proto_def = proto_def,
      SV=SV,
      WFR=WFR,
