@@ -535,24 +535,19 @@ fun find_theorems ((opt_lim, rem_dups), spec) =
 
 (* find unused theorems *)
 
-local
-
-fun pretty_name_thm (a, th) =
-  Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, Display.pretty_thm th];
-
-in
-
-fun unused_thms opt_range =
-  Toplevel.keep (fn state => ThmDeps.unused_thms
-    (case opt_range of
-       NONE => (NONE, [Toplevel.theory_of state])
-     | SOME (xs, NONE) =>
-         (SOME (map ThyInfo.get_theory xs), [Toplevel.theory_of state])
-     | SOME (xs, SOME ys) =>
-        (SOME (map ThyInfo.get_theory xs), map ThyInfo.get_theory ys)) |>
-           map pretty_name_thm |> Pretty.chunks |> Pretty.writeln);
-
-end;        
+fun unused_thms opt_range = Toplevel.keep (fn state =>
+  let
+    val thy = Toplevel.theory_of state;
+    val ctxt = Toplevel.context_of state;
+    fun pretty_thm (a, th) = ProofContext.pretty_fact ctxt (a, [th]);
+  in
+    ThmDeps.unused_thms
+      (case opt_range of
+         NONE => (NONE, [thy])
+       | SOME (xs, NONE) => (SOME (map ThyInfo.get_theory xs), [thy])
+       | SOME (xs, SOME ys) => (SOME (map ThyInfo.get_theory xs), map ThyInfo.get_theory ys))
+    |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
+  end);
 
 
 (* print proof context contents *)
