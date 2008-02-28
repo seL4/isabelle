@@ -357,28 +357,28 @@ theorem eta_postponement':
   assumes eta: "s \<rightarrow>\<^sub>\<eta>\<^sup>* t" and beta: "t => u"
   shows "\<exists>t'. s => t' \<and> t' \<rightarrow>\<^sub>\<eta>\<^sup>* u" using eta beta
 proof (induct arbitrary: u)
-  case 1
+  case base
   thus ?case by blast
 next
-  case (2 s' s'' s''')
-  from 2 obtain t' where s': "s' => t'" and t': "t' \<rightarrow>\<^sub>\<eta>\<^sup>* s'''"
+  case (step s' s'' s''')
+  then obtain t' where s': "s' => t'" and t': "t' \<rightarrow>\<^sub>\<eta>\<^sup>* s'''"
     by (auto dest: eta_par_beta)
-  from s' obtain t'' where s: "s => t''" and t'': "t'' \<rightarrow>\<^sub>\<eta>\<^sup>* t'" using 2
+  from s' obtain t'' where s: "s => t''" and t'': "t'' \<rightarrow>\<^sub>\<eta>\<^sup>* t'" using step
     by blast
   from t'' and t' have "t'' \<rightarrow>\<^sub>\<eta>\<^sup>* s'''" by (rule rtranclp_trans)
   with s show ?case by iprover
 qed
 
 theorem eta_postponement:
-  assumes st: "(sup beta eta)\<^sup>*\<^sup>* s t"
-  shows "(eta\<^sup>*\<^sup>* OO beta\<^sup>*\<^sup>*) s t" using st
+  assumes "(sup beta eta)\<^sup>*\<^sup>* s t"
+  shows "(eta\<^sup>*\<^sup>* OO beta\<^sup>*\<^sup>*) s t" using assms
 proof induct
-  case 1
+  case base
   show ?case by blast
 next
-  case (2 s' s'')
-  from 2(3) obtain t' where s: "s \<rightarrow>\<^sub>\<beta>\<^sup>* t'" and t': "t' \<rightarrow>\<^sub>\<eta>\<^sup>* s'" by blast
-  from 2(2) show ?case
+  case (step s' s'')
+  from step(3) obtain t' where s: "s \<rightarrow>\<^sub>\<beta>\<^sup>* t'" and t': "t' \<rightarrow>\<^sub>\<eta>\<^sup>* s'" by blast
+  from step(2) show ?case
   proof
     assume "s' \<rightarrow>\<^sub>\<beta> s''"
     with beta_subset_par_beta have "s' => s''" ..
