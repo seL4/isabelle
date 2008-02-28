@@ -81,7 +81,7 @@ definition
 
 text {* Multiset Enumeration *}
 syntax
-  "@multiset" :: "args => 'a multiset"    ("{#(_)#}")
+  "_multiset" :: "args => 'a multiset"    ("{#(_)#}")
 translations
   "{#x, xs#}" == "{#x#} + {#xs#}"
   "{#x#}" == "CONST single x"
