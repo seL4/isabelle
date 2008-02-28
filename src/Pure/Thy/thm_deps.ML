@@ -15,6 +15,7 @@ sig
   include BASIC_THM_DEPS
   val enable : unit -> unit
   val disable : unit -> unit
+  val unused_thms : theory list option * theory list -> (string * thm) list
 end;
 
 structure ThmDeps : THM_DEPS =
@@ -70,6 +71,39 @@ fun thm_deps thms =
   Present.display_graph
     (map snd (sort_wrt fst (Symtab.dest (fst
       (fold make_deps_graph (map Thm.proof_of thms) (Symtab.empty, []))))));
+
+fun unused_thms (opt_thys1, thys2) =
+  let
+    val thys = case opt_thys1 of
+        NONE => thys2
+      | SOME thys1 =>
+          thys2 |>
+          fold (curry (gen_union Theory.eq_thy)) (map Context.ancestors_of thys2) |>
+          fold (subtract Theory.eq_thy) (thys1 :: map Context.ancestors_of thys1);
+    val thms = maps PureThy.thms_of thys;
+    val tab = fold Proofterm.thms_of_proof
+      (map (Proofterm.strip_thm o proof_of o snd) thms) Symtab.empty;
+    fun is_unused (s, thm) = case Symtab.lookup tab s of
+        NONE => true
+      | SOME ps => not (prop_of thm mem map fst ps);
+    (* groups containing at least one used theorem *)
+    val grps = fold (fn p as (_, thm) => if is_unused p then I else
+      case PureThy.get_group thm of
+        NONE => I | SOME grp => Symtab.update (grp, ())) thms Symtab.empty;
+    val (thms', _) = fold (fn p as (s, thm) => fn q as (thms, grps') =>
+      if PureThy.get_kind thm mem [Thm.theoremK, Thm.lemmaK, Thm.corollaryK, Thm.axiomK]
+        andalso is_unused p
+      then
+        (case PureThy.get_group thm of
+           NONE => (p :: thms, grps')
+         | SOME grp =>
+             (* do not output theorem if another theorem in group has been used *)
+             if is_some (Symtab.lookup grps grp) then q
+             (* output at most one unused theorem per group *)
+             else if is_some (Symtab.lookup grps' grp) then q
+             else (p :: thms, Symtab.update (grp, ()) grps'))
+      else q) thms ([], Symtab.empty)
+  in rev thms' end;
 
 end;
 
