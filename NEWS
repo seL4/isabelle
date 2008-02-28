@@ -29,56 +29,62 @@ provides a proper context already.
 instance operations together with an instantiation proof.
 Type-checking phase allows to refer to class operations uniformly.
 See HOL/Complex/Complex.thy for an Isar example and
-HOL/Library/Eval.thy for an ML example.  Supersedes previous
-experimental versions.
+HOL/Library/Eval.thy for an ML example.
 
 
 *** HOL ***
 
-* Theory Int: The representation of numerals has changed.  The infix operator
-BIT and the bit datatype with constructors B0 and B1 have disappeared.
-INCOMPATIBILITY, use "Int.Bit0 x" and "Int.Bit1 y" in place of "x BIT bit.B0"
-and "y BIT bit.B1", respectively.  Theorems involving BIT, B0, or B1 have been
-renamed with "Bit0" or "Bit1" accordingly.
+* Theory Int: The representation of numerals has changed.  The infix
+operator BIT and the bit datatype with constructors B0 and B1 have
+disappeared.  INCOMPATIBILITY, use "Int.Bit0 x" and "Int.Bit1 y" in
+place of "x BIT bit.B0" and "y BIT bit.B1", respectively.  Theorems
+involving BIT, B0, or B1 have been renamed with "Bit0" or "Bit1"
+accordingly.
 
-* Theory Nat: definition of <= and < on natural numbers no longer depend
-on well-founded relations.  INCOMPATIBILITY.  Definitions le_def and less_def
-have disappeared.  Consider lemmas not_less [symmetric, where ?'a = nat]
-and less_eq [symmetric] instead.
+* Theory Nat: definition of <= and < on natural numbers no longer
+depend on well-founded relations.  INCOMPATIBILITY.  Definitions
+le_def and less_def have disappeared.  Consider lemmas not_less
+[symmetric, where ?'a = nat] and less_eq [symmetric] instead.
 
-* Theory Finite_Set: locales ACf, ACe, ACIf, ACIfSL and ACIfSLlin (whose purpose 
-mainly is for various fold_set functionals) have been abandoned in favour of
-the existing algebraic classes ab_semigroup_mult, comm_monoid_mult,
-ab_semigroup_idem_mult, lower_semilattice (resp. upper_semilattice) and linorder.
+* Theory Finite_Set: locales ACf, ACe, ACIf, ACIfSL and ACIfSLlin
+(whose purpose mainly is for various fold_set functionals) have been
+abandoned in favour of the existing algebraic classes
+ab_semigroup_mult, comm_monoid_mult, ab_semigroup_idem_mult,
+lower_semilattice (resp. upper_semilattice) and linorder.
 INCOMPATIBILITY.
 
-* Theorem Inductive.lfp_ordinal_induct generalized to complete lattices.  The
-form set-specific version is available as Inductive.lfp_ordinal_induct_set.
+* Theory Transitive_Closure: induct and cases rules now declare proper
+case_names ("base" and "step").  INCOMPATIBILITY.
+
+* Theorem Inductive.lfp_ordinal_induct generalized to complete
+lattices.  The form set-specific version is available as
+Inductive.lfp_ordinal_induct_set.
 
 * Theorems "power.simps" renamed to "power_int.simps".
 
-* New class semiring_div provides basic abstract properties of semirings
+* Class semiring_div provides basic abstract properties of semirings
 with division and modulo operations.  Subsumes former class dvd_mod.
 
-* Merged theories IntDef, Numeral and IntArith into unified theory Int.
+* Merged theories IntDef, Numeral and IntArith into unified theory
+Int.  INCOMPATIBILITY.
+
+* Theory Library/Code_Index: type "index" now represents natural
+numbers rather than integers.  INCOMPATIBILITY.
+
+* New class "uminus" with operation "uminus" (split of from class
+"minus" which now only has operation "minus", binary).
 INCOMPATIBILITY.
 
-* Theory Library/Code_Index: type "index" now represents natural numbers rather
-than integers.  INCOMPATIBILITY.
-
-* New class "uminus" with operation "uminus" (split of from class "minus"
-which now only has operation "minus", binary).  INCOMPATIBILITY.
-
 * New primrec package.  Specification syntax conforms in style to
-definition/function/....  No separate induction rule is provided.
-The "primrec" command distinguishes old-style and new-style specifications
+definition/function/....  No separate induction rule is provided.  The
+"primrec" command distinguishes old-style and new-style specifications
 by syntax.  The former primrec package is now named OldPrimrecPackage.
 When adjusting theories, beware: constants stemming for new-style
 primrec specifications have authentic syntax.
 
 * Library/Multiset: {#a, b, c#} abbreviates {#a#} + {#b#} + {#c#}.
 
-* Library/ListSpace: new theory of arithmetic vector operations.
+* Library/ListVector: new theory of arithmetic vector operations.
 
 * Constants "card", "internal_split", "option_map" now with authentic
 syntax.  INCOMPATIBILITY.
@@ -90,7 +96,7 @@ Inf_fun_def, Sup_fun_def, inf_set_def, sup_set_def, Inf_set_def,
 Sup_set_def, le_def, less_def, option_map_def now with object
 equality.  INCOMPATIBILITY.
 
-* New method "induction_scheme" derives user-specified induction rules
+* Method "induction_scheme" derives user-specified induction rules
 from wellfounded induction and completeness of patterns. This factors
 out some operations that are done internally by the function package
 and makes them available separately. See "HOL/ex/Induction_Scheme.thy"
