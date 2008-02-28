@@ -127,17 +127,17 @@ lemma rtranclp_trans:
   shows "r^** x z" using yz xy
   by induct iprover+
 
-lemma rtranclE:
-  assumes major: "(a::'a,b) : r^*"
-    and cases: "(a = b) ==> P"
-      "!!y. [| (a,y) : r^*; (y,b) : r |] ==> P"
-  shows P
+lemma rtranclE [cases set: rtrancl]:
+  assumes major: "(a::'a, b) : r^*"
+  obtains
+    (base) "a = b"
+  | (step) y where "(a, y) : r^*" and "(y, b) : r"
   -- {* elimination of @{text rtrancl} -- by induction on a special formula *}
   apply (subgoal_tac "(a::'a) = b | (EX y. (a,y) : r^* & (y,b) : r)")
    apply (rule_tac [2] major [THEN rtrancl_induct])
     prefer 2 apply blast
    prefer 2 apply blast
-  apply (erule asm_rl exE disjE conjE cases)+
+  apply (erule asm_rl exE disjE conjE base step)+
   done
 
 lemma rtrancl_Int_subset: "[| Id \<subseteq> s; r O (r^* \<inter> s) \<subseteq> s|] ==> r^* \<subseteq> s"
@@ -344,7 +344,12 @@ lemma tranclp_trans_induct:
 
 lemmas trancl_trans_induct = tranclp_trans_induct [to_set]
 
-inductive_cases tranclE: "(a, b) : r^+"
+lemma tranclE [cases set: trancl]:
+  assumes "(a, b) : r^+"
+  obtains
+    (base) "(a, b) : r"
+  | (step) c where "(a, c) : r^+" and "(c, b) : r"
+  using assms by cases simp_all
 
 lemma trancl_Int_subset: "[| r \<subseteq> s; r O (r^+ \<inter> s) \<subseteq> s|] ==> r^+ \<subseteq> s"
   apply (rule subsetI)
@@ -574,12 +579,6 @@ lemmas transitive_closurep_trans' [trans] =
   rtranclp_tranclp_tranclp tranclp_rtranclp_tranclp
 
 declare trancl_into_rtrancl [elim]
-
-declare rtranclE [cases set: rtrancl]
-declare tranclE [cases set: trancl]
-
-
-
 
 
 subsection {* Setup of transitivity reasoner *}
