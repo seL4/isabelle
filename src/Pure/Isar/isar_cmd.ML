@@ -94,6 +94,8 @@ sig
   val thm_deps: (thmref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val find_theorems: (int option * bool) * (bool * string FindTheorems.criterion) list
     -> Toplevel.transition -> Toplevel.transition
+  val unused_thms: (string list * string list option) option ->
+    Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
   val print_stmts: string list * (thmref * Attrib.src list) list
@@ -529,6 +531,28 @@ fun find_theorems ((opt_lim, rem_dups), spec) =
     val ctxt = Proof.context_of proof_state;
     val opt_goal = try Proof.get_goal proof_state |> Option.map (Thm.prop_of o #2 o #2);
   in FindTheorems.print_theorems ctxt opt_goal opt_lim rem_dups spec end);
+
+
+(* find unused theorems *)
+
+local
+
+fun pretty_name_thm (a, th) =
+  Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, Display.pretty_thm th];
+
+in
+
+fun unused_thms opt_range =
+  Toplevel.keep (fn state => ThmDeps.unused_thms
+    (case opt_range of
+       NONE => (NONE, [Toplevel.theory_of state])
+     | SOME (xs, NONE) =>
+         (SOME (map ThyInfo.get_theory xs), [Toplevel.theory_of state])
+     | SOME (xs, SOME ys) =>
+        (SOME (map ThyInfo.get_theory xs), map ThyInfo.get_theory ys)) |>
+           map pretty_name_thm |> Pretty.chunks |> Pretty.writeln);
+
+end;        
 
 
 (* print proof context contents *)

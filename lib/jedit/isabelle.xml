@@ -323,6 +323,7 @@
       <INVALID>undo</INVALID>
       <INVALID>undos_proof</INVALID>
       <OPERATOR>unfolding</OPERATOR>
+      <LABEL>unused_thms</LABEL>
       <LABEL>use</LABEL>
       <LABEL>use_thy</LABEL>
       <KEYWORD4>uses</KEYWORD4>

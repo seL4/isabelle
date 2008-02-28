@@ -924,6 +924,12 @@ val _ =
       (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep
         (Code.print_codesetup o Toplevel.theory_of)));
 
+val _ =
+  OuterSyntax.improper_command "unused_thms" "find unused theorems" K.diag
+    (Scan.option ((Scan.repeat1 (Scan.unless P.minus P.name) --| P.minus) --
+       Scan.option (Scan.repeat1 (Scan.unless P.minus P.name))) >>
+         (Toplevel.no_timing oo IsarCmd.unused_thms));
+
 
 (** system commands (for interactive mode only) **)
 
