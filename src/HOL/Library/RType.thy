@@ -6,7 +6,7 @@
 header {* Reflecting Pure types into HOL *}
 
 theory RType
-imports Main Code_Message
+imports Main Code_Message Code_Index (* import all 'special code' types *)
 begin
 
 datatype "rtype" = RType message_string "rtype list"
