@@ -6,7 +6,7 @@
 header {* Monadic arrays *}
 
 theory Array
-imports Heap_Monad
+imports Heap_Monad Code_Index
 begin
 
 subsection {* Primitives *}
@@ -99,21 +99,6 @@ where
 hide (open) const new map -- {* avoid clashed with some popular names *}
 
 
-subsection {* Converting arrays to lists *}
-
-primrec list_of_aux :: "nat \<Rightarrow> ('a\<Colon>heap) array \<Rightarrow> 'a list \<Rightarrow> 'a list Heap" where
-  "list_of_aux 0 a xs = return xs"
-  | "list_of_aux (Suc n) a xs = (do
-        x \<leftarrow> Array.nth a n;
-        list_of_aux n a (x#xs)
-     done)"
-
-definition list_of :: "('a\<Colon>heap) array \<Rightarrow> 'a list Heap" where
-  "list_of a = (do n \<leftarrow> Array.length a;
-                   list_of_aux n a []
-                done)"
-
-
 subsection {* Properties *}
 
 lemma array_make [code func]:
@@ -126,5 +111,94 @@ lemma array_make [code func]:
 lemma array_of_list_make [code func]:
   "of_list xs = make (List.length xs) (\<lambda>n. xs ! n)"
   unfolding make_def map_nth ..
+
+
+subsection {* Code generator setup *}
+
+subsubsection {* Logical intermediate layer *}
+
+definition new' where
+  [code del]: "new' = Array.new o nat_of_index"
+hide (open) const new'
+lemma [code func]:
+  "Array.new = Array.new' o index_of_nat"
+  by (simp add: new'_def o_def)
+
+definition of_list' where
+  [code del]: "of_list' i xs = Array.of_list (take (nat_of_index i) xs)"
+hide (open) const of_list'
+lemma [code func]:
+  "Array.of_list xs = Array.of_list' (index_of_nat (List.length xs)) xs"
+  by (simp add: of_list'_def)
+
+definition make' where
+  [code del]: "make' i f = Array.make (nat_of_index i) (f o index_of_nat)"
+hide (open) const make'
+lemma [code func]:
+  "Array.make n f = Array.make' (index_of_nat n) (f o nat_of_index)"
+  by (simp add: make'_def o_def)
+
+definition length' where
+  [code del]: "length' = Array.length \<guillemotright>== liftM index_of_nat"
+hide (open) const length'
+lemma [code func]:
+  "Array.length = Array.length' \<guillemotright>== liftM nat_of_index"
+  by (simp add: length'_def monad_simp',
+    simp add: liftM_def comp_def monad_simp,
+    simp add: monad_simp')
+
+definition nth' where
+  [code del]: "nth' a = Array.nth a o nat_of_index"
+hide (open) const nth'
+lemma [code func]:
+  "Array.nth a n = Array.nth' a (index_of_nat n)"
+  by (simp add: nth'_def)
+
+definition upd' where
+  [code del]: "upd' a i x = Array.upd (nat_of_index i) x a \<guillemotright> return ()"
+hide (open) const upd'
+lemma [code func]:
+  "Array.upd i x a = Array.upd' a (index_of_nat i) x \<guillemotright> return a"
+  by (simp add: upd'_def monad_simp upd_return)
+
+
+subsubsection {* SML *}
+
+code_type array (SML "_/ array")
+code_const Array (SML "raise/ (Fail/ \"bare Array\")")
+code_const Array.new' (SML "Array.array ((_), (_))")
+code_const Array.of_list (SML "Array.fromList")
+code_const Array.make' (SML "Array.tabulate ((_), (_))")
+code_const Array.length' (SML "Array.length")
+code_const Array.nth' (SML "Array.sub ((_), (_))")
+code_const Array.upd' (SML "Array.update ((_), (_), (_))")
+
+code_reserved SML Array
+
+
+subsubsection {* OCaml *}
+
+code_type array (OCaml "_/ array")
+code_const Array (OCaml "failwith/ \"bare Array\"")
+code_const Array.new' (OCaml "Array.make")
+code_const Array.of_list (OCaml "Array.of_list")
+code_const Array.make' (OCaml "Array.init")
+code_const Array.length' (OCaml "Array.length")
+code_const Array.nth' (OCaml "Array.get")
+code_const Array.upd' (OCaml "Array.set")
+
+code_reserved OCaml Array
+
+
+subsubsection {* Haskell *}
+
+code_type array (Haskell "STArray '_s _")
+code_const Array (Haskell "error/ \"bare Array\"")
+code_const Array.new' (Haskell "newArray/ (0,/ _)")
+code_const Array.of_list' (Haskell "newListArray/ (0,/ _)")
+code_const Array.length' (Haskell "length")
+code_const Array.nth' (Haskell "readArray")
+code_const Array.upd' (Haskell "writeArray")
+
 
 end

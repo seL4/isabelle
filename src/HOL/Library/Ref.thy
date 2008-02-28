@@ -29,6 +29,7 @@ definition
   update :: "'a ref \<Rightarrow> ('a\<Colon>heap) \<Rightarrow> unit Heap" ("_ := _" 62) where
   [code del]: "update r e = Heap_Monad.heap (\<lambda>h. ((), set_ref r e h))"
 
+
 subsection {* Derivates *}
 
 definition
@@ -42,6 +43,7 @@ where
 
 hide (open) const new lookup update change
 
+
 subsection {* Properties *}
 
 lemma lookup_chain:
@@ -52,5 +54,38 @@ lemma lookup_chain:
 lemma update_change [code func]:
   "r := e = Ref.change (\<lambda>_. e) r \<guillemotright> return ()"
   by (auto simp add: monad_simp change_def lookup_chain)
+
+
+subsection {* Code generator setup *}
+
+subsubsection {* SML *}
+
+code_type ref (SML "_/ ref")
+code_const Ref (SML "raise/ (Fail/ \"bare Ref\")")
+code_const Ref.new (SML "ref")
+code_const Ref.lookup (SML "'!")
+code_const Ref.update (SML infixl 3 ":=")
+
+code_reserved SML ref
+
+
+subsubsection {* OCaml *}
+
+code_type ref (OCaml "_/ ref")
+code_const Ref (OCaml "failwith/ \"bare Ref\"")
+code_const Ref.new (OCaml "ref")
+code_const Ref.lookup (OCaml "'!")
+code_const Ref.update (OCaml infixr 1 ":=")
+
+code_reserved OCaml ref
+
+
+subsubsection {* Haskell *}
+
+code_type ref (Haskell "STRef '_s _")
+code_const Ref (Haskell "error/ \"bare Ref\"")
+code_const Ref.new (Haskell "newSTRef")
+code_const Ref.lookup (Haskell "readSTRef")
+code_const Ref.update (Haskell "writeSTRef")
 
 end

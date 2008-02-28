@@ -274,4 +274,101 @@ where
 
 hide (open) const heap execute
 
+
+subsection {* Code generator setup *}
+
+subsubsection {* Logical intermediate layer *}
+
+definition
+  Fail :: "message_string \<Rightarrow> exception"
+where
+  [code func del]: "Fail s = Exn"
+
+definition
+  raise_exc :: "exception \<Rightarrow> 'a Heap"
+where
+  [code func del]: "raise_exc e = raise []"
+
+lemma raise_raise_exc [code func, code inline]:
+  "raise s = raise_exc (Fail (STR s))"
+  unfolding Fail_def raise_exc_def raise_def ..
+
+hide (open) const Fail raise_exc
+
+
+subsubsection {* SML *}
+
+code_type Heap (SML "_")
+code_const Heap (SML "raise/ (Fail/ \"bare Heap\")")
+code_monad run "op \<guillemotright>=" SML
+code_const run (SML "_")
+code_const return (SML "_")
+code_const "Heap_Monad.Fail" (SML "Fail")
+code_const "Heap_Monad.raise_exc" (SML "raise")
+
+
+subsubsection {* OCaml *}
+
+code_type Heap (OCaml "_")
+code_const Heap (OCaml "failwith/ \"bare Heap\"")
+code_monad run "op \<guillemotright>=" OCaml
+code_const run (OCaml "_")
+code_const return (OCaml "_")
+code_const "Heap_Monad.Fail" (OCaml "Failure")
+code_const "Heap_Monad.raise_exc" (OCaml "raise")
+
+code_reserved OCaml Failure raise
+
+
+subsubsection {* Haskell *}
+
+text {* Adaption layer *}
+
+code_include Haskell "STMonad"
+{*import qualified Control.Monad;
+import qualified Control.Monad.ST;
+import qualified Data.STRef;
+import qualified Data.Array.ST;
+
+type ST s a = Control.Monad.ST.ST s a;
+type STRef s a = Data.STRef.STRef s a;
+type STArray s a = Data.Array.ST.STArray s Integer a;
+
+runST :: (forall s. ST s a) -> a;
+runST s = Control.Monad.ST.runST s;
+
+newSTRef = Data.STRef.newSTRef;
+readSTRef = Data.STRef.readSTRef;
+writeSTRef = Data.STRef.writeSTRef;
+
+newArray :: (Integer, Integer) -> a -> ST s (STArray s a);
+newArray = Data.Array.ST.newArray;
+
+newListArray :: (Integer, Integer) -> [a] -> ST s (STArray s a);
+newListArray = Data.Array.ST.newListArray;
+
+length :: STArray s a -> ST s Integer;
+length a = Control.Monad.liftM snd (Data.Array.ST.getBounds a);
+
+readArray :: STArray s a -> Integer -> ST s a;
+readArray = Data.Array.ST.readArray;
+
+writeArray :: STArray s a -> Integer -> a -> ST s ();
+writeArray = Data.Array.ST.writeArray;*}
+
+code_reserved Haskell ST STRef Array
+  runST
+  newSTRef reasSTRef writeSTRef
+  newArray newListArray bounds readArray writeArray
+
+text {* Monad *}
+
+code_type Heap (Haskell "ST '_s _")
+code_const Heap (Haskell "error \"bare Heap\")")
+code_const evaluate (Haskell "runST")
+code_monad run bindM Haskell
+code_const return (Haskell "return")
+code_const "Heap_Monad.Fail" (Haskell "_")
+code_const "Heap_Monad.raise_exc" (Haskell "error")
+
 end
