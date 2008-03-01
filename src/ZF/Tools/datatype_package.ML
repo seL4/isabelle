@@ -92,7 +92,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (** Define the constructors **)
 
   (*The empty tuple is 0*)
-  fun mk_tuple [] = Const("0",iT)
+  fun mk_tuple [] = @{const "0"}
     | mk_tuple args = foldr1 (fn (t1, t2) => Pr.pair $ t1 $ t2) args;
 
   fun mk_inject n k u = BalancedTree.access
@@ -119,10 +119,10 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*Combine split terms using case; yields the case operator for one part*)
   fun call_case case_list =
-    let fun call_f (free,[]) = Abs("null", iT, free)
+    let fun call_f (free,[]) = Abs("null", @{typ i}, free)
           | call_f (free,args) =
                 CP.ap_split (foldr1 CP.mk_prod (map (#2 o dest_Free) args))
-                            Ind_Syntax.iT
+                            @{typ i}
                             free
     in  BalancedTree.make (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_f case_list)  end;
 
@@ -147,7 +147,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val (_, case_lists) = foldr add_case_list (1,[]) con_ty_lists;
 
   (*extract the types of all the variables*)
-  val case_typ = List.concat (map (map (#2 o #1)) con_ty_lists) ---> (iT-->iT);
+  val case_typ = List.concat (map (map (#2 o #1)) con_ty_lists) ---> @{typ "i => i"};
 
   val case_base_name = big_rec_base_name ^ "_case";
   val case_name = full_name case_base_name;
@@ -166,7 +166,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       Non-identifiers (e.g. infixes) get a name of the form f_op_nnn. **)
 
   (*a recursive call for x is the application rec`x  *)
-  val rec_call = @{const apply} $ Free ("rec", iT);
+  val rec_call = @{const apply} $ Free ("rec", @{typ i});
 
   (*look back down the "case args" (which have been reversed) to
     determine the de Bruijn index*)
@@ -203,7 +203,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Add an argument position for each occurrence of a recursive set.
     Strictly speaking, the recursive arguments are the LAST of the function
     variable, but they all have type "i" anyway*)
-  fun add_rec_args args' T = (map (fn _ => iT) args') ---> T
+  fun add_rec_args args' T = (map (fn _ => @{typ i}) args') ---> T
 
   (*Plug in the function variable type needed for the recursor
     as well as the new arguments (recursive calls)*)
@@ -219,8 +219,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val (_, recursor_lists) = foldr add_case_list (1,[]) rec_ty_lists;
 
   (*extract the types of all the variables*)
-  val recursor_typ = List.concat (map (map (#2 o #1)) rec_ty_lists)
-                         ---> (iT-->iT);
+  val recursor_typ = List.concat (map (map (#2 o #1)) rec_ty_lists) ---> @{typ "i => i"};
 
   val recursor_base_name = big_rec_base_name ^ "_rec";
   val recursor_name = full_name recursor_base_name;
@@ -238,7 +237,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       PrimitiveDefs.mk_defpair
         (recursor_tm,
          @{const Univ.Vrecursor} $
-           absfree ("rec", iT, list_comb (case_const, recursor_cases)));
+           absfree ("rec", @{typ i}, list_comb (case_const, recursor_cases)));
 
   (* Build the new theory *)
 
@@ -406,7 +405,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_type_elims) thy =
   let
     val ctxt = ProofContext.init thy;
-    val read_i = Sign.simple_read_term thy Ind_Syntax.iT;
+    val read_i = Sign.simple_read_term thy @{typ i};
     val rec_tms = map read_i srec_tms;
     val con_ty_lists = Ind_Syntax.read_constructs thy scon_ty_lists;
     val dom_sum =

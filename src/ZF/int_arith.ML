@@ -95,7 +95,7 @@ struct
 
 (*Utilities*)
 
-val integ_of_const = Const (@{const_name "Bin.integ_of"}, iT --> iT);
+val integ_of_const = Const (@{const_name "Bin.integ_of"}, @{typ "i => i"});
 
 fun mk_numeral n = integ_of_const $ NumeralSyntax.mk_bin n;
 
@@ -113,9 +113,7 @@ fun find_first_numeral past (t::terms) =
 val zero = mk_numeral 0;
 val mk_plus = FOLogic.mk_binop @{const_name "zadd"};
 
-val iT = Ind_Syntax.iT;
-
-val zminus_const = Const (@{const_name "zminus"}, iT --> iT);
+val zminus_const = Const (@{const_name "zminus"}, @{typ "i => i"});
 
 (*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -126,7 +124,7 @@ fun mk_sum []        = zero
 fun long_mk_sum []        = zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
-val dest_plus = FOLogic.dest_bin @{const_name "zadd"} iT;
+val dest_plus = FOLogic.dest_bin @{const_name "zadd"} @{typ i};
 
 (*decompose additions AND subtractions as a sum*)
 fun dest_summing (pos, Const (@{const_name "zadd"}, _) $ t $ u, ts) =
@@ -139,7 +137,7 @@ fun dest_summing (pos, Const (@{const_name "zadd"}, _) $ t $ u, ts) =
 fun dest_sum t = dest_summing (true, t, []);
 
 val mk_diff = FOLogic.mk_binop @{const_name "zdiff"};
-val dest_diff = FOLogic.dest_bin @{const_name "zdiff"} iT;
+val dest_diff = FOLogic.dest_bin @{const_name "zdiff"} @{typ i};
 
 val one = mk_numeral 1;
 val mk_times = FOLogic.mk_binop @{const_name "zmult"};
@@ -149,7 +147,7 @@ fun mk_prod [] = one
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = FOLogic.dest_bin @{const_name "zmult"} iT;
+val dest_times = FOLogic.dest_bin @{const_name "zmult"} @{typ i};
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -255,7 +253,7 @@ structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intless_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel @{const_name "zless"}
-  val dest_bal = FOLogic.dest_bin @{const_name "zless"} iT
+  val dest_bal = FOLogic.dest_bin @{const_name "zless"} @{typ i}
   val bal_add1 = less_add_iff1 RS iff_trans
   val bal_add2 = less_add_iff2 RS iff_trans
 );
@@ -264,7 +262,7 @@ structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = ArithData.prove_conv "intle_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel @{const_name "zle"}
-  val dest_bal = FOLogic.dest_bin @{const_name "zle"} iT
+  val dest_bal = FOLogic.dest_bin @{const_name "zle"} @{typ i}
   val bal_add1 = le_add_iff1 RS iff_trans
   val bal_add2 = le_add_iff2 RS iff_trans
 );

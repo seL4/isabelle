@@ -42,9 +42,6 @@ setup IndCases.setup
 setup DatatypeTactics.setup
 
 ML_setup {*
-val iT = Ind_Syntax.iT
-and oT = FOLogic.oT;
-
 structure Lfp =
   struct
   val oper      = @{const lfp}

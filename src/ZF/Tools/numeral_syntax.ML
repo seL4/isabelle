@@ -20,15 +20,12 @@ struct
 
 (* Bits *)
 
-val zero = Const("0", iT);
-val succ = Const("succ", iT --> iT);
-
-fun mk_bit 0 = zero
-  | mk_bit 1 = succ$zero
+fun mk_bit 0 = @{term "0"}
+  | mk_bit 1 = @{term "succ(0)"}
   | mk_bit _ = sys_error "mk_bit";
 
-fun dest_bit (Const ("0", _)) = 0
-  | dest_bit (Const ("succ", _) $ Const ("0", _)) = 1
+fun dest_bit (Const (@{const_name "0"}, _)) = 0
+  | dest_bit (Const (@{const_name succ}, _) $ Const (@{const_name "0"}, _)) = 1
   | dest_bit _ = raise Match;
 
 
@@ -38,18 +35,14 @@ fun prefix_len _ [] = 0
   | prefix_len pred (x :: xs) =
       if pred x then 1 + prefix_len pred xs else 0;
 
-val pls_const = Const ("Bin.bin.Pls", iT)
-and min_const = Const ("Bin.bin.Min", iT)
-and bit_const = Const ("Bin.bin.Bit", [iT, iT] ---> iT);
-
 fun mk_bin i =
   let fun bin_of_int 0  = []
   	    | bin_of_int ~1 = [~1]
     	| bin_of_int n  = (n mod 2) :: bin_of_int (n div 2);
 
-      fun term_of []   = pls_const
-	    | term_of [~1] = min_const
-	    | term_of (b :: bs) = bit_const $ term_of bs $ mk_bit b;
+      fun term_of [] = @{const Pls}
+	    | term_of [~1] = @{const Min}
+	    | term_of (b :: bs) = @{const Bit} $ term_of bs $ mk_bit b;
   in
     term_of (bin_of_int i)
   end;

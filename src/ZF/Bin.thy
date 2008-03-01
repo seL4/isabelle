@@ -18,7 +18,7 @@ header{*Arithmetic on Binary Integers*}
 
 theory Bin
 imports Int_ZF Datatype_ZF
-uses "Tools/numeral_syntax.ML"
+uses ("Tools/numeral_syntax.ML")
 begin
 
 consts  bin :: i
@@ -26,6 +26,8 @@ datatype
   "bin" = Pls
         | Min
         | Bit ("w: bin", "b: bool")	(infixl "BIT" 90)
+
+use "Tools/numeral_syntax.ML"
 
 syntax
   "_Int"    :: "xnum => i"        ("_")
