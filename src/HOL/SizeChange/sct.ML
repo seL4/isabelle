@@ -63,9 +63,6 @@ fun mk_nth xs =
     in Const (nth_const, lT --> HOLogic.natT --> T) $ xs end
 
 
-val less_nat_const = Const (@{const_name HOL.less}, HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
-val lesseq_nat_const = Const (@{const_name HOL.less_eq}, HOLogic.natT --> HOLogic.natT --> HOLogic.boolT)
-
 val has_edge_simps = [thm "Graphs.has_edge_def", thm "Graphs.dest_graph.simps"]
 
 val all_less_zero = thm "Interpretation.all_less_zero"
@@ -232,11 +229,11 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
                                       |> CLASIMPSET auto_tac |> Seq.hd
 
                       val decr = forall_intr (cterm_of thy relvar)
-                                   #> forall_elim (cterm_of thy less_nat_const)
+                                   #> forall_elim (cterm_of thy @{const HOL.less(nat)})
                                    #> CLASIMPSET auto_tac #> Seq.hd
 
                       val decreq = forall_intr (cterm_of thy relvar)
-                                     #> forall_elim (cterm_of thy lesseq_nat_const)
+                                     #> forall_elim (cterm_of thy @{const HOL.less_eq(nat)})
                                      #> CLASIMPSET auto_tac #> Seq.hd
 
                       val thm1 = decr with_m2

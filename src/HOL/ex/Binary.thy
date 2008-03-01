@@ -23,13 +23,13 @@ lemma bit_simps:
 ML {*
 structure Binary =
 struct
-  fun dest_bit (Const ("False", _)) = 0
-    | dest_bit (Const ("True", _)) = 1
+  fun dest_bit (Const (@{const_name False}, _)) = 0
+    | dest_bit (Const (@{const_name True}, _)) = 1
     | dest_bit t = raise TERM ("dest_bit", [t]);
 
-  fun dest_binary (Const (@{const_name HOL.zero}, Type ("nat", _))) = 0
-    | dest_binary (Const (@{const_name HOL.one}, Type ("nat", _))) = 1
-    | dest_binary (Const ("Binary.bit", _) $ bs $ b) = 2 * dest_binary bs + dest_bit b
+  fun dest_binary (Const (@{const_name HOL.zero}, Type (@{type_name nat}, _))) = 0
+    | dest_binary (Const (@{const_name HOL.one}, Type (@{type_name nat}, _))) = 1
+    | dest_binary (Const (@{const_name bit}, _) $ bs $ b) = 2 * dest_binary bs + dest_bit b
     | dest_binary t = raise TERM ("dest_binary", [t]);
 
   fun mk_bit 0 = @{term False}
