@@ -69,13 +69,14 @@ fun mk_prod (T1,T2) = Type("*", [T1,T2]);
 (*Bogus product type underlying a (possibly nested) Sigma.  
   Lets us share HOL code*)
 fun pseudo_type (t $ A $ Abs(_,_,B)) = 
-        if t = Pr.sigma  then  mk_prod(pseudo_type A, pseudo_type B)
-                         else  Ind_Syntax.iT
-  | pseudo_type _           =  Ind_Syntax.iT;
+      if t = Pr.sigma
+      then mk_prod(pseudo_type A, pseudo_type B)
+      else @{typ i}
+  | pseudo_type _ = @{typ i};
 
 (*Maps the type T1*...*Tn to [T1,...,Tn], however nested*)
-fun factors (Type("*", [T1,T2])) = factors T1 @ factors T2
-  | factors T                    = [T];
+fun factors (Type("*", [T1, T2])) = factors T1 @ factors T2
+  | factors T                     = [T];
 
 (*Make a well-typed instance of "split"*)
 fun split_const T = Const(Pr.split_name, 

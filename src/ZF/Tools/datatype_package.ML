@@ -46,6 +46,23 @@ struct
 
 (*con_ty_lists specifies the constructors in the form (name, prems, mixfix) *)
 
+(*univ or quniv constitutes the sum domain for mutual recursion;
+  it is applied to the datatype parameters and to Consts occurring in the
+  definition other than Nat.nat and the datatype sets themselves.
+  FIXME: could insert all constant set expressions, e.g. nat->nat.*)
+fun data_domain co (rec_tms, con_ty_lists) =
+    let val rec_hds = map head_of rec_tms
+        val dummy = assert_all is_Const rec_hds
+          (fn t => "Datatype set not previously declared as constant: " ^
+                   Sign.string_of_term @{theory IFOL} t);
+        val rec_names = (*nat doesn't have to be added*)
+	    @{const_name nat} :: map (#1 o dest_Const) rec_hds
+	val u = if co then @{const QUniv.quniv} else @{const Univ.univ}
+	val cs = (fold o fold) (fn (_, _, _, prems) => prems |> (fold o fold_aterms)
+          (fn t as Const (a, _) => if a mem_string rec_names then I else insert (op =) t
+            | _ => I)) con_ty_lists [];
+    in  u $ Ind_Syntax.union_params (hd rec_tms, cs)  end;
+
 fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims) thy =
  let
   val dummy = (*has essential ancestors?*)
@@ -149,7 +166,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       Non-identifiers (e.g. infixes) get a name of the form f_op_nnn. **)
 
   (*a recursive call for x is the application rec`x  *)
-  val rec_call = Ind_Syntax.apply_const $ Free ("rec", iT);
+  val rec_call = @{const apply} $ Free ("rec", iT);
 
   (*look back down the "case args" (which have been reversed) to
     determine the de Bruijn index*)
@@ -220,7 +237,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val recursor_def =
       PrimitiveDefs.mk_defpair
         (recursor_tm,
-         Ind_Syntax.Vrecursor_const $
+         @{const Univ.Vrecursor} $
            absfree ("rec", iT, list_comb (case_const, recursor_cases)));
 
   (* Build the new theory *)
@@ -267,8 +284,8 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                      args)),
         list_comb (case_free, args)));
 
-  val case_trans = hd con_defs RS Ind_Syntax.def_trans
-  and split_trans = Pr.split_eq RS meta_eq_to_obj_eq RS trans;
+  val case_trans = hd con_defs RS @{thm def_trans}
+  and split_trans = Pr.split_eq RS meta_eq_to_obj_eq RS @{thm trans};
 
   fun prove_case_eqn (arg, con_def) =
     Goal.prove_global thy1 [] []
@@ -279,7 +296,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
          rtac case_trans 1,
          REPEAT (resolve_tac [refl, split_trans, Su.case_inl RS trans, Su.case_inr RS trans] 1)]);
 
-  val free_iffs = map standard (con_defs RL [Ind_Syntax.def_swap_iff]);
+  val free_iffs = map standard (con_defs RL [@{thm def_swap_iff}]);
 
   val case_eqns =
       map prove_case_eqn
@@ -393,7 +410,7 @@ fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_
     val rec_tms = map read_i srec_tms;
     val con_ty_lists = Ind_Syntax.read_constructs thy scon_ty_lists;
     val dom_sum =
-      if sdom = "" then Ind_Syntax.data_domain coind (rec_tms, con_ty_lists)
+      if sdom = "" then data_domain coind (rec_tms, con_ty_lists)
       else read_i sdom;
     val monos = Attrib.eval_thms ctxt raw_monos;
     val type_intrs = Attrib.eval_thms ctxt raw_type_intrs;

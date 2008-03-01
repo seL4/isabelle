@@ -1,4 +1,4 @@
-(*  Title:      ZF/Inductive.thy
+(*  Title:      ZF/Inductive_ZF.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -12,14 +12,31 @@ Products are used only to derive "streamlined" induction rules for relations
 
 header{*Inductive and Coinductive Definitions*}
 
-theory Inductive_ZF imports Fixedpt QPair Nat_ZF
-  uses
-    "ind_syntax.ML"
-    "Tools/cartprod.ML"
-    "Tools/ind_cases.ML"
-    "Tools/inductive_package.ML"
-    "Tools/induct_tacs.ML"
-    "Tools/primrec_package.ML" begin
+theory Inductive_ZF
+imports Fixedpt QPair Nat_ZF
+uses
+  ("ind_syntax.ML")
+  ("Tools/cartprod.ML")
+  ("Tools/ind_cases.ML")
+  ("Tools/inductive_package.ML")
+  ("Tools/induct_tacs.ML")
+  ("Tools/primrec_package.ML")
+begin
+
+lemma def_swap_iff: "a == b ==> a = c <-> c = b"
+  by blast
+
+lemma def_trans: "f == g ==> g(a) = b ==> f(a) = b"
+  by simp
+
+lemma refl_thin: "!!P. a = a ==> P ==> P" .
+
+use "ind_syntax.ML"
+use "Tools/cartprod.ML"
+use "Tools/ind_cases.ML"
+use "Tools/inductive_package.ML"
+use "Tools/induct_tacs.ML"
+use "Tools/primrec_package.ML"
 
 setup IndCases.setup
 setup DatatypeTactics.setup
@@ -30,8 +47,8 @@ and oT = FOLogic.oT;
 
 structure Lfp =
   struct
-  val oper      = Const("Fixedpt.lfp", [iT,iT-->iT]--->iT)
-  val bnd_mono  = Const("Fixedpt.bnd_mono", [iT,iT-->iT]--->oT)
+  val oper      = @{const lfp}
+  val bnd_mono  = @{const bnd_mono}
   val bnd_monoI = @{thm bnd_monoI}
   val subs      = @{thm def_lfp_subset}
   val Tarski    = @{thm def_lfp_unfold}
@@ -40,9 +57,9 @@ structure Lfp =
 
 structure Standard_Prod =
   struct
-  val sigma     = Const("Sigma", [iT, iT-->iT]--->iT)
-  val pair      = Const("Pair", [iT,iT]--->iT)
-  val split_name = "split"
+  val sigma     = @{const Sigma}
+  val pair      = @{const Pair}
+  val split_name = @{const_name split}
   val pair_iff  = @{thm Pair_iff}
   val split_eq  = @{thm split}
   val fsplitI   = @{thm splitI}
@@ -54,10 +71,10 @@ structure Standard_CP = CartProd_Fun (Standard_Prod);
 
 structure Standard_Sum =
   struct
-  val sum       = Const(@{const_name sum}, [iT,iT]--->iT)
-  val inl       = Const("Inl", iT-->iT)
-  val inr       = Const("Inr", iT-->iT)
-  val elim      = Const("case", [iT-->iT, iT-->iT, iT]--->iT)
+  val sum       = @{const sum}
+  val inl       = @{const Inl}
+  val inr       = @{const Inr}
+  val elim      = @{const case}
   val case_inl  = @{thm case_Inl}
   val case_inr  = @{thm case_Inr}
   val inl_iff   = @{thm Inl_iff}
@@ -77,8 +94,8 @@ structure Ind_Package =
 
 structure Gfp =
   struct
-  val oper      = Const("Fixedpt.gfp", [iT,iT-->iT]--->iT)
-  val bnd_mono  = Const("Fixedpt.bnd_mono", [iT,iT-->iT]--->oT)
+  val oper      = @{const gfp}
+  val bnd_mono  = @{const bnd_mono}
   val bnd_monoI = @{thm bnd_monoI}
   val subs      = @{thm def_gfp_subset}
   val Tarski    = @{thm def_gfp_unfold}
@@ -87,9 +104,9 @@ structure Gfp =
 
 structure Quine_Prod =
   struct
-  val sigma     = Const("QPair.QSigma", [iT, iT-->iT]--->iT)
-  val pair      = Const("QPair.QPair", [iT,iT]--->iT)
-  val split_name = "QPair.qsplit"
+  val sigma     = @{const QSigma}
+  val pair      = @{const QPair}
+  val split_name = @{const_name qsplit}
   val pair_iff  = @{thm QPair_iff}
   val split_eq  = @{thm qsplit}
   val fsplitI   = @{thm qsplitI}
@@ -101,10 +118,10 @@ structure Quine_CP = CartProd_Fun (Quine_Prod);
 
 structure Quine_Sum =
   struct
-  val sum       = Const("QPair.op <+>", [iT,iT]--->iT)
-  val inl       = Const("QPair.QInl", iT-->iT)
-  val inr       = Const("QPair.QInr", iT-->iT)
-  val elim      = Const("QPair.qcase", [iT-->iT, iT-->iT, iT]--->iT)
+  val sum       = @{const qsum}
+  val inl       = @{const QInl}
+  val inr       = @{const QInr}
+  val elim      = @{const qcase}
   val case_inl  = @{thm qcase_QInl}
   val case_inr  = @{thm qcase_QInr}
   val inl_iff   = @{thm QInl_iff}
