@@ -251,6 +251,15 @@ fun const syn = (Scan.state >> Context.proof_of) -- Scan.lift Args.name >> (fn (
 val _ = inline_antiq "const_name" (const false);
 val _ = inline_antiq "const_syntax" (const true);
 
+val _ = inline_antiq "const"
+  ((Scan.state >> Context.proof_of) -- Scan.lift Args.name --
+    Scan.optional (Scan.lift (Args.$$$ "(") |-- Args.enum1 "," Args.typ --| Scan.lift (Args.$$$ ")")) []
+    >> (fn ((ctxt, c), Ts) =>
+      let
+        val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c);
+        val T = Consts.instance (ProofContext.consts_of ctxt) (c, Ts);
+      in ML_Syntax.atomic (ML_Syntax.print_term (Const (c, T))) end));
+
 in val _ = () end;
 
 

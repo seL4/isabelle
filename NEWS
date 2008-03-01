@@ -112,6 +112,9 @@ with multithreading.
 
 *** ML ***
 
+* ML within Isar: antiquotation @{const name} or @{const
+name(typargs)} produces statically-checked Const term.
+
 * The ``print mode'' is now a thread-local value derived from a global
 template (the former print_mode reference), thus access becomes
 non-critical.  The global print_mode reference is for session
