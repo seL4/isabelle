@@ -11,7 +11,7 @@ begin
 
 text{* Application of polynomial as a function. *}
 
-fun (in semiring_0) poly :: "'a list => 'a  => 'a" where
+primrec (in semiring_0) poly :: "'a list => 'a  => 'a" where
   poly_Nil:  "poly [] x = 0"
 | poly_Cons: "poly (h#t) x = h + x * poly t x"
 
@@ -20,43 +20,43 @@ subsection{*Arithmetic Operations on Polynomials*}
 
 text{*addition*}
 
-fun (in semiring_0) padd :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "+++" 65) 
+primrec (in semiring_0) padd :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "+++" 65) 
 where
   padd_Nil:  "[] +++ l2 = l2"
 | padd_Cons: "(h#t) +++ l2 = (if l2 = [] then h#t
                             else (h + hd l2)#(t +++ tl l2))"
 
 text{*Multiplication by a constant*}
-fun (in semiring_0) cmult :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "%*" 70) where
+primrec (in semiring_0) cmult :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "%*" 70) where
    cmult_Nil:  "c %* [] = []"
 |  cmult_Cons: "c %* (h#t) = (c * h)#(c %* t)"
 
 text{*Multiplication by a polynomial*}
-fun (in semiring_0) pmult :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "***" 70)
+primrec (in semiring_0) pmult :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixl "***" 70)
 where
    pmult_Nil:  "[] *** l2 = []"
 |  pmult_Cons: "(h#t) *** l2 = (if t = [] then h %* l2
                               else (h %* l2) +++ ((0) # (t *** l2)))"
 
 text{*Repeated multiplication by a polynomial*}
-fun (in semiring_0) mulexp :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a  list \<Rightarrow> 'a list" where
+primrec (in semiring_0) mulexp :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a  list \<Rightarrow> 'a list" where
    mulexp_zero:  "mulexp 0 p q = q"
 |  mulexp_Suc:   "mulexp (Suc n) p q = p *** mulexp n p q"
 
 text{*Exponential*}
-fun (in semiring_1) pexp :: "'a list \<Rightarrow> nat \<Rightarrow> 'a list"  (infixl "%^" 80) where
+primrec (in semiring_1) pexp :: "'a list \<Rightarrow> nat \<Rightarrow> 'a list"  (infixl "%^" 80) where
    pexp_0:   "p %^ 0 = [1]"
 |  pexp_Suc: "p %^ (Suc n) = p *** (p %^ n)"
 
 text{*Quotient related value of dividing a polynomial by x + a*}
 (* Useful for divisor properties in inductive proofs *)
-fun (in field) "pquot" :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a list" where
+primrec (in field) "pquot" :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a list" where
    pquot_Nil:  "pquot [] a= []"
 |  pquot_Cons: "pquot (h#t) a = (if t = [] then [h]
                    else (inverse(a) * (h - hd( pquot t a)))#(pquot t a))"
 
 text{*normalization of polynomials (remove extra 0 coeff)*}
-fun (in semiring_0) pnormalize :: "'a list \<Rightarrow> 'a list" where
+primrec (in semiring_0) pnormalize :: "'a list \<Rightarrow> 'a list" where
   pnormalize_Nil:  "pnormalize [] = []"
 | pnormalize_Cons: "pnormalize (h#p) = (if ( (pnormalize p) = [])
                                      then (if (h = 0) then [] else [h])
@@ -173,7 +173,6 @@ class recpower_semiring_1 = semiring_1 + recpower
 class recpower_semiring_0 = semiring_0 + recpower
 class recpower_ring = ring + recpower
 class recpower_ring_1 = ring_1 + recpower
-subclass (in recpower_ring_1) recpower_ring by unfold_locales
 subclass (in recpower_ring_1) recpower_ring by unfold_locales
 class recpower_comm_semiring_1 = recpower + comm_semiring_1
 class recpower_comm_ring_1 = recpower + comm_ring_1
@@ -439,9 +438,7 @@ lemma (in recpower_idom) poly_exp_eq_zero[simp]:
 apply (simp only: fun_eq add: all_simps [symmetric]) 
 apply (rule arg_cong [where f = All]) 
 apply (rule ext)
-apply (induct_tac "n")
-apply (simp add: poly_exp)
-using zero_neq_one apply blast
+apply (induct n)
 apply (auto simp add: poly_exp poly_mult)
 done
 
