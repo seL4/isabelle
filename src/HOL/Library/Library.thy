@@ -38,6 +38,7 @@ imports
   Quicksort
   Quotient
   Ramsey
+  RBT
   State_Monad
   Univ_Poly
   While_Combinator
