@@ -93,6 +93,12 @@ end
 
 class zero_neq_one = zero + one +
   assumes zero_neq_one [simp]: "0 \<noteq> 1"
+begin
+
+lemma one_neq_zero [simp]: "1 \<noteq> 0"
+  by (rule not_sym) (rule zero_neq_one)
+
+end
 
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
 
@@ -210,6 +216,25 @@ proof (cases "a = 0 \<or> b = 0")
     then show ?thesis using no_zero_divisors by simp
 next
   case True then show ?thesis by auto
+qed
+
+text{*Cancellation of equalities with a common factor*}
+lemma mult_cancel_right [simp, noatp]:
+  "a * c = b * c \<longleftrightarrow> c = 0 \<or> a = b"
+proof -
+  have "(a * c = b * c) = ((a - b) * c = 0)"
+    by (simp add: ring_distribs right_minus_eq)
+  thus ?thesis
+    by (simp add: disj_commute right_minus_eq)
+qed
+
+lemma mult_cancel_left [simp, noatp]:
+  "c * a = c * b \<longleftrightarrow> c = 0 \<or> a = b"
+proof -
+  have "(c * a = c * b) = (c * (a - b) = 0)"
+    by (simp add: ring_distribs right_minus_eq)
+  thus ?thesis
+    by (simp add: right_minus_eq)
 qed
 
 end
@@ -420,6 +445,67 @@ apply (drule_tac mult_pos_neg2 [of a b])
  apply (auto dest: less_not_sym)
 done
 
+text{*Strict monotonicity in both arguments*}
+lemma mult_strict_mono:
+  assumes "a < b" and "c < d" and "0 < b" and "0 \<le> c"
+  shows "a * c < b * d"
+  using assms apply (cases "c=0")
+  apply (simp add: mult_pos_pos) 
+  apply (erule mult_strict_right_mono [THEN less_trans])
+  apply (force simp add: le_less) 
+  apply (erule mult_strict_left_mono, assumption)
+  done
+
+text{*This weaker variant has more natural premises*}
+lemma mult_strict_mono':
+  assumes "a < b" and "c < d" and "0 \<le> a" and "0 \<le> c"
+  shows "a * c < b * d"
+  by (rule mult_strict_mono) (insert assms, auto)
+
+lemma mult_less_le_imp_less:
+  assumes "a < b" and "c \<le> d" and "0 \<le> a" and "0 < c"
+  shows "a * c < b * d"
+  using assms apply (subgoal_tac "a * c < b * c")
+  apply (erule less_le_trans)
+  apply (erule mult_left_mono)
+  apply simp
+  apply (erule mult_strict_right_mono)
+  apply assumption
+  done
+
+lemma mult_le_less_imp_less:
+  assumes "a \<le> b" and "c < d" and "0 < a" and "0 \<le> c"
+  shows "a * c < b * d"
+  using assms apply (subgoal_tac "a * c \<le> b * c")
+  apply (erule le_less_trans)
+  apply (erule mult_strict_left_mono)
+  apply simp
+  apply (erule mult_right_mono)
+  apply simp
+  done
+
+lemma mult_less_imp_less_left:
+  assumes less: "c * a < c * b" and nonneg: "0 \<le> c"
+  shows "a < b"
+proof (rule ccontr)
+  assume "\<not>  a < b"
+  hence "b \<le> a" by (simp add: linorder_not_less)
+  hence "c * b \<le> c * a" using nonneg by (rule mult_left_mono)
+  with this and less show False 
+    by (simp add: not_less [symmetric])
+qed
+
+lemma mult_less_imp_less_right:
+  assumes less: "a * c < b * c" and nonneg: "0 \<le> c"
+  shows "a < b"
+proof (rule ccontr)
+  assume "\<not> a < b"
+  hence "b \<le> a" by (simp add: linorder_not_less)
+  hence "b * c \<le> a * c" using nonneg by (rule mult_right_mono)
+  with this and less show False 
+    by (simp add: not_less [symmetric])
+qed  
+
 end
 
 class mult_mono1 = times + zero + ord +
@@ -449,14 +535,14 @@ subclass pordered_cancel_semiring by intro_locales
 end
 
 class ordered_comm_semiring_strict = comm_semiring_0 + ordered_cancel_ab_semigroup_add +
-  assumes mult_strict_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
+  assumes mult_strict_left_mono_comm: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
 begin
 
 subclass ordered_semiring_strict
 proof unfold_locales
   fix a b c :: 'a
   assume "a < b" "0 < c"
-  thus "c * a < c * b" by (rule mult_strict_mono)
+  thus "c * a < c * b" by (rule mult_strict_left_mono_comm)
   thus "a * c < b * c" by (simp only: mult_commute)
 qed
 
@@ -466,7 +552,7 @@ proof unfold_locales
   assume "a \<le> b" "0 \<le> c"
   thus "c * a \<le> c * b"
     unfolding le_less
-    using mult_strict_mono by (cases "c = 0") auto
+    using mult_strict_left_mono by (cases "c = 0") auto
 qed
 
 end
@@ -568,7 +654,6 @@ lemma mult_neg_neg:
   "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> 0 < a * b"
   by (drule mult_strict_right_mono_neg, auto)
 
-
 subclass ring_no_zero_divisors
 proof unfold_locales
   fix a b
@@ -632,6 +717,57 @@ lemma zero_le_square [simp]: "0 \<le> a * a"
 lemma not_square_less_zero [simp]: "\<not> (a * a < 0)"
   by (simp add: not_less)
 
+text{*Cancellation laws for @{term "c*a < c*b"} and @{term "a*c < b*c"},
+   also with the relations @{text "\<le>"} and equality.*}
+
+text{*These ``disjunction'' versions produce two cases when the comparison is
+ an assumption, but effectively four when the comparison is a goal.*}
+
+lemma mult_less_cancel_right_disj:
+  "a * c < b * c \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and>  b < a"
+  apply (cases "c = 0")
+  apply (auto simp add: neq_iff mult_strict_right_mono 
+                      mult_strict_right_mono_neg)
+  apply (auto simp add: not_less 
+                      not_le [symmetric, of "a*c"]
+                      not_le [symmetric, of a])
+  apply (erule_tac [!] notE)
+  apply (auto simp add: less_imp_le mult_right_mono 
+                      mult_right_mono_neg)
+  done
+
+lemma mult_less_cancel_left_disj:
+  "c * a < c * b \<longleftrightarrow> 0 < c \<and> a < b \<or> c < 0 \<and>  b < a"
+  apply (cases "c = 0")
+  apply (auto simp add: neq_iff mult_strict_left_mono 
+                      mult_strict_left_mono_neg)
+  apply (auto simp add: not_less 
+                      not_le [symmetric, of "c*a"]
+                      not_le [symmetric, of a])
+  apply (erule_tac [!] notE)
+  apply (auto simp add: less_imp_le mult_left_mono 
+                      mult_left_mono_neg)
+  done
+
+text{*The ``conjunction of implication'' lemmas produce two cases when the
+comparison is a goal, but give four when the comparison is an assumption.*}
+
+lemma mult_less_cancel_right:
+  "a * c < b * c \<longleftrightarrow> (0 \<le> c \<longrightarrow> a < b) \<and> (c \<le> 0 \<longrightarrow> b < a)"
+  using mult_less_cancel_right_disj [of a c b] by auto
+
+lemma mult_less_cancel_left:
+  "c * a < c * b \<longleftrightarrow> (0 \<le> c \<longrightarrow> a < b) \<and> (c \<le> 0 \<longrightarrow> b < a)"
+  using mult_less_cancel_left_disj [of c a b] by auto
+
+lemma mult_le_cancel_right:
+   "a * c \<le> b * c \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> a)"
+  by (simp add: not_less [symmetric] mult_less_cancel_right_disj)
+
+lemma mult_le_cancel_left:
+  "c * a \<le> c * b \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> a)"
+  by (simp add: not_less [symmetric] mult_less_cancel_left_disj)
+
 end
 
 text{*This list of rewrites simplifies ring terms by multiplying
@@ -658,12 +794,25 @@ lemma pos_add_strict:
   shows "0 < a \<Longrightarrow> b < c \<Longrightarrow> b < a + c"
   using add_strict_mono [of zero a b c] by simp
 
+lemma zero_le_one [simp]: "0 \<le> 1"
+  by (rule zero_less_one [THEN less_imp_le]) 
+
+lemma not_one_le_zero [simp]: "\<not> 1 \<le> 0"
+  by (simp add: not_le) 
+
+lemma not_one_less_zero [simp]: "\<not> 1 < 0"
+  by (simp add: not_less) 
+
+lemma less_1_mult:
+  assumes "1 < m" and "1 < n"
+  shows "1 < m * n"
+  using assms mult_strict_mono [of 1 m 1 n]
+    by (simp add:  less_trans [OF zero_less_one]) 
+
 end
 
-class ordered_idom =
-  comm_ring_1 +
-  ordered_comm_semiring_strict +
-  ordered_ab_group_add +
+class ordered_idom = comm_ring_1 +
+  ordered_comm_semiring_strict + ordered_ab_group_add +
   abs_if + sgn_if
   (*previously ordered_ring*)
 begin
@@ -674,179 +823,21 @@ subclass idom by intro_locales
 
 subclass ordered_semidom
 proof unfold_locales
-  have "(0::'a) \<le> 1*1" by (rule zero_le_square)
-  thus "(0::'a) < 1" by (simp add: le_less)
+  have "0 \<le> 1 * 1" by (rule zero_le_square)
+  thus "0 < 1" by (simp add: le_less)
 qed 
+
+lemma linorder_neqE_ordered_idom:
+  assumes "x \<noteq> y" obtains "x < y" | "y < x"
+  using assms by (rule neqE)
 
 end
 
 class ordered_field = field + ordered_idom
 
-lemma linorder_neqE_ordered_idom:
-  fixes x y :: "'a :: ordered_idom"
-  assumes "x \<noteq> y" obtains "x < y" | "y < x"
-  using assms by (rule linorder_neqE)
-
-
 text{*All three types of comparision involving 0 and 1 are covered.*}
 
-lemmas one_neq_zero = zero_neq_one [THEN not_sym]
-declare one_neq_zero [simp]
-
-lemma zero_le_one [simp]: "(0::'a::ordered_semidom) \<le> 1"
-  by (rule zero_less_one [THEN order_less_imp_le]) 
-
-lemma not_one_le_zero [simp]: "~ (1::'a::ordered_semidom) \<le> 0"
-by (simp add: linorder_not_le) 
-
-lemma not_one_less_zero [simp]: "~ (1::'a::ordered_semidom) < 0"
-by (simp add: linorder_not_less) 
-
-
-subsection{*More Monotonicity*}
-
-text{*Strict monotonicity in both arguments*}
-lemma mult_strict_mono:
-     "[|a<b; c<d; 0<b; 0\<le>c|] ==> a * c < b * (d::'a::ordered_semiring_strict)"
-apply (cases "c=0")
- apply (simp add: mult_pos_pos) 
-apply (erule mult_strict_right_mono [THEN order_less_trans])
- apply (force simp add: order_le_less) 
-apply (erule mult_strict_left_mono, assumption)
-done
-
-text{*This weaker variant has more natural premises*}
-lemma mult_strict_mono':
-     "[| a<b; c<d; 0 \<le> a; 0 \<le> c|] ==> a * c < b * (d::'a::ordered_semiring_strict)"
-apply (rule mult_strict_mono)
-apply (blast intro: order_le_less_trans)+
-done
-
-lemma less_1_mult: "[| 1 < m; 1 < n |] ==> 1 < m*(n::'a::ordered_semidom)"
-apply (insert mult_strict_mono [of 1 m 1 n]) 
-apply (simp add:  order_less_trans [OF zero_less_one]) 
-done
-
-lemma mult_less_le_imp_less: "(a::'a::ordered_semiring_strict) < b ==>
-    c <= d ==> 0 <= a ==> 0 < c ==> a * c < b * d"
-  apply (subgoal_tac "a * c < b * c")
-  apply (erule order_less_le_trans)
-  apply (erule mult_left_mono)
-  apply simp
-  apply (erule mult_strict_right_mono)
-  apply assumption
-done
-
-lemma mult_le_less_imp_less: "(a::'a::ordered_semiring_strict) <= b ==>
-    c < d ==> 0 < a ==> 0 <= c ==> a * c < b * d"
-  apply (subgoal_tac "a * c <= b * c")
-  apply (erule order_le_less_trans)
-  apply (erule mult_strict_left_mono)
-  apply simp
-  apply (erule mult_right_mono)
-  apply simp
-done
-
-
-subsection{*Cancellation Laws for Relationships With a Common Factor*}
-
-text{*Cancellation laws for @{term "c*a < c*b"} and @{term "a*c < b*c"},
-   also with the relations @{text "\<le>"} and equality.*}
-
-text{*These ``disjunction'' versions produce two cases when the comparison is
- an assumption, but effectively four when the comparison is a goal.*}
-
-lemma mult_less_cancel_right_disj:
-    "(a*c < b*c) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring_strict)))"
-apply (cases "c = 0")
-apply (auto simp add: linorder_neq_iff mult_strict_right_mono 
-                      mult_strict_right_mono_neg)
-apply (auto simp add: linorder_not_less 
-                      linorder_not_le [symmetric, of "a*c"]
-                      linorder_not_le [symmetric, of a])
-apply (erule_tac [!] notE)
-apply (auto simp add: order_less_imp_le mult_right_mono 
-                      mult_right_mono_neg)
-done
-
-lemma mult_less_cancel_left_disj:
-    "(c*a < c*b) = ((0 < c & a < b) | (c < 0 & b < (a::'a::ordered_ring_strict)))"
-apply (cases "c = 0")
-apply (auto simp add: linorder_neq_iff mult_strict_left_mono 
-                      mult_strict_left_mono_neg)
-apply (auto simp add: linorder_not_less 
-                      linorder_not_le [symmetric, of "c*a"]
-                      linorder_not_le [symmetric, of a])
-apply (erule_tac [!] notE)
-apply (auto simp add: order_less_imp_le mult_left_mono 
-                      mult_left_mono_neg)
-done
-
-
-text{*The ``conjunction of implication'' lemmas produce two cases when the
-comparison is a goal, but give four when the comparison is an assumption.*}
-
-lemma mult_less_cancel_right:
-  fixes c :: "'a :: ordered_ring_strict"
-  shows      "(a*c < b*c) = ((0 \<le> c --> a < b) & (c \<le> 0 --> b < a))"
-by (insert mult_less_cancel_right_disj [of a c b], auto)
-
-lemma mult_less_cancel_left:
-  fixes c :: "'a :: ordered_ring_strict"
-  shows      "(c*a < c*b) = ((0 \<le> c --> a < b) & (c \<le> 0 --> b < a))"
-by (insert mult_less_cancel_left_disj [of c a b], auto)
-
-lemma mult_le_cancel_right:
-     "(a*c \<le> b*c) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring_strict)))"
-by (simp add: linorder_not_less [symmetric] mult_less_cancel_right_disj)
-
-lemma mult_le_cancel_left:
-     "(c*a \<le> c*b) = ((0<c --> a\<le>b) & (c<0 --> b \<le> (a::'a::ordered_ring_strict)))"
-by (simp add: linorder_not_less [symmetric] mult_less_cancel_left_disj)
-
-lemma mult_less_imp_less_left:
-      assumes less: "c*a < c*b" and nonneg: "0 \<le> c"
-      shows "a < (b::'a::ordered_semiring_strict)"
-proof (rule ccontr)
-  assume "~ a < b"
-  hence "b \<le> a" by (simp add: linorder_not_less)
-  hence "c*b \<le> c*a" using nonneg by (rule mult_left_mono)
-  with this and less show False 
-    by (simp add: linorder_not_less [symmetric])
-qed
-
-lemma mult_less_imp_less_right:
-  assumes less: "a*c < b*c" and nonneg: "0 <= c"
-  shows "a < (b::'a::ordered_semiring_strict)"
-proof (rule ccontr)
-  assume "~ a < b"
-  hence "b \<le> a" by (simp add: linorder_not_less)
-  hence "b*c \<le> a*c" using nonneg by (rule mult_right_mono)
-  with this and less show False 
-    by (simp add: linorder_not_less [symmetric])
-qed  
-
-text{*Cancellation of equalities with a common factor*}
-lemma mult_cancel_right [simp,noatp]:
-  fixes a b c :: "'a::ring_no_zero_divisors"
-  shows "(a * c = b * c) = (c = 0 \<or> a = b)"
-proof -
-  have "(a * c = b * c) = ((a - b) * c = 0)"
-    by (simp add: ring_distribs)
-  thus ?thesis
-    by (simp add: disj_commute)
-qed
-
-lemma mult_cancel_left [simp,noatp]:
-  fixes a b c :: "'a::ring_no_zero_divisors"
-  shows "(c * a = c * b) = (c = 0 \<or> a = b)"
-proof -
-  have "(c * a = c * b) = (c * (a - b) = 0)"
-    by (simp add: ring_distribs)
-  thus ?thesis
-    by simp
-qed
-
+-- {* FIXME continue localization here *}
 
 subsubsection{*Special Cancellation Simprules for Multiplication*}
 
