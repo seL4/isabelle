@@ -888,7 +888,7 @@ fun update_thms _ ("", NONE) ctxt = ctxt
       in ((space', tab'), index') end);
 
 fun put_thms thms ctxt =
-  ctxt |> map_naming (K local_naming) |> update_thms (true, false) thms |> restore_naming ctxt;
+  ctxt |> map_naming (K local_naming) |> update_thms (false, false) thms |> restore_naming ctxt;
 
 
 (* note_thmss *)
