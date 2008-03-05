@@ -1223,8 +1223,11 @@ fun closeup _ false elem = elem
   | closeup ctxt true elem =
       let
         fun close_frees t =
-          let val frees = rev (filter_out (Variable.is_fixed ctxt o #1) (Term.add_frees t []))
-          in Term.list_all_free (frees, t) end;
+          let
+            val rev_frees =
+              Term.fold_aterms (fn Free (x, T) =>
+                if Variable.is_fixed ctxt x then I else insert (op =) (x, T) | _ => I) t [];
+          in Term.list_all_free (rev_frees, t) end;
 
         fun no_binds [] = []
           | no_binds _ = error "Illegal term bindings in locale element";
