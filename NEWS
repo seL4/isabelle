@@ -34,6 +34,9 @@ HOL/Library/Eval.thy for an ML example.
 
 *** HOL ***
 
+* Library/RBT.thy: New theory of red-black trees, an efficient
+implementation of finite maps.
+
 * Theory Int: The representation of numerals has changed.  The infix
 operator BIT and the bit datatype with constructors B0 and B1 have
 disappeared.  INCOMPATIBILITY, use "Int.Bit0 x" and "Int.Bit1 y" in
@@ -108,6 +111,26 @@ INCOMPATIBILITY: in cases explicitly referring to K_record.
 
 * Metis prover is now an order of magnitude faster, and also works
 with multithreading.
+
+
+*** ZF ***
+
+* Renamed theories:
+
+  Datatype.thy  -> Datatype_ZF.thy
+  Inductive.thy -> Inductive_ZF.thy
+  Int.thy       -> Int_ZF.thy
+  IntDiv.thy    -> IntDiv_ZF.thy
+  Nat.thy       -> Nat_ZF.thy
+  List.thy      -> List_ZF.thy
+  Main.thy      -> Main_ZF.thy
+
+ This is to allow to load both ZF and HOL in the same session.
+
+ INCOMPATIBILITY: ZF theories that import individual theories below
+ Main might need to be adapted. For compatibility, a new 
+ "theory Main imports Main_ZF begin end" is provided, so if you just
+ imported "Main", no changes are needed.
 
 
 *** ML ***
