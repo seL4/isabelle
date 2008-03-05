@@ -185,7 +185,7 @@ locale additive_subgroup = var H + struct G +
 
 lemma (in additive_subgroup) is_additive_subgroup:
   shows "additive_subgroup H G"
-by fact
+by (rule additive_subgroup_axioms)
 
 lemma additive_subgroupI:
   includes struct G
@@ -225,7 +225,7 @@ locale abelian_subgroup = additive_subgroup H G + abelian_group G +
 
 lemma (in abelian_subgroup) is_abelian_subgroup:
   shows "abelian_subgroup H G"
-by fact
+by (rule abelian_subgroup_axioms)
 
 lemma abelian_subgroupI:
   assumes a_normal: "normal H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"

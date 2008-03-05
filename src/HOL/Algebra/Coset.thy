@@ -826,7 +826,7 @@ lemma (in subgroup) subgroup_in_rcosets:
   includes group G
   shows "H \<in> rcosets H"
 proof -
-  from _ `subgroup H G` have "H #> \<one> = H"
+  from _ subgroup_axioms have "H #> \<one> = H"
     by (rule coset_join2) auto
   then show ?thesis
     by (auto simp add: RCOSETS_def)

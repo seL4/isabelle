@@ -25,7 +25,7 @@ done
 
 lemma (in ideal) is_ideal:
   "ideal I R"
-by fact
+by (rule ideal_axioms)
 
 lemma idealI:
   includes ring
@@ -55,7 +55,7 @@ locale principalideal = ideal +
 
 lemma (in principalideal) is_principalideal:
   shows "principalideal I R"
-by fact
+by (rule principalideal_axioms)
 
 lemma principalidealI:
   includes ideal
@@ -72,7 +72,7 @@ locale maximalideal = ideal +
 
 lemma (in maximalideal) is_maximalideal:
  shows "maximalideal I R"
-by fact
+by (rule maximalideal_axioms)
 
 lemma maximalidealI:
   includes ideal
@@ -91,7 +91,7 @@ locale primeideal = ideal + cring +
 
 lemma (in primeideal) is_primeideal:
  shows "primeideal I R"
-by fact
+by (rule primeideal_axioms)
 
 lemma primeidealI:
   includes ideal
