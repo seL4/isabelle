@@ -362,7 +362,7 @@ lemma (in ring) is_monoid:
 
 lemma (in ring) is_ring:
   "ring R"
-  by fact
+  by (rule ring_axioms)
 
 lemmas ring_record_simps = monoid_record_simps ring.simps
 
@@ -399,7 +399,7 @@ lemma (in cring) is_comm_monoid:
   by (auto intro!: comm_monoidI m_assoc m_comm)
 
 lemma (in cring) is_cring:
-  "cring R" by fact
+  "cring R" by (rule cring_axioms)
 
 
 subsubsection {* Normaliser for Rings *}

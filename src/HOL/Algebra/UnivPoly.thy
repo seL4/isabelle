@@ -1229,7 +1229,7 @@ lemma (in UP_pre_univ_prop) eval_monom:
   shows "eval R S h s (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
 proof -
   interpret UP_univ_prop [R S h P s _]
-    using `UP_pre_univ_prop R S h` P_def R S
+    using UP_pre_univ_prop_axioms P_def R S
     by (auto intro: UP_univ_prop.intro UP_univ_prop_axioms.intro)
   from R
   show ?thesis by (rule Eval_monom)
