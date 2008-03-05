@@ -9,6 +9,9 @@ Contributions to this Isabelle version
 * November 2007: Peter Lammich, Uni Muenster
   HOL-Lattice: some more lemmas.
 
+* March 2008: Markus Reiter, TUM
+  HOL/Library/RBT: red-black trees.
+
 
 Contributions to Isabelle2007
 -----------------------------
