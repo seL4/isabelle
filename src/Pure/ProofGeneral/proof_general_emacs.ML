@@ -108,7 +108,7 @@ fun proof_general_markup (name, props) =
       else ("", "");
     val (bg2, en2) =
       if print_mode_active IsabelleProcess.test_markupN
-      then IsabelleProcess.test_markup (name, props)
+      then IsabelleProcess.output_markup (name, props)
       else ("", "");
   in (bg1 ^ bg2, en2 ^ en1) end;
 
