@@ -22,8 +22,9 @@ General format of process output:
 
 signature ISABELLE_PROCESS =
 sig
+  val output_markup: Markup.T -> output * output
+  val full_markupN: string
   val test_markupN: string
-  val test_markup: Markup.T -> output * output
   val isabelle_processN: string
   val init: unit -> unit
 end;
@@ -31,15 +32,16 @@ end;
 structure IsabelleProcess: ISABELLE_PROCESS =
 struct
 
-(* test_markup *)
+(* explicit markup *)
 
-val test_markupN = "test_markup";
-
-fun test_markup (name, props) =
+fun output_markup (name, props) =
  (enclose "<" ">" (space_implode " " (name :: map XML.attribute props)),
   enclose "</" ">" name);
 
-val _ = Markup.add_mode test_markupN test_markup;
+val full_markupN = "full_markup";
+val test_markupN = "test_markup";
+
+val _ = Markup.add_mode test_markupN output_markup;
 
 
 (* symbol output *)
@@ -86,14 +88,17 @@ fun get_pos (elem as XML.Elem (name, atts, ts)) =
 in
 
 val _ = Markup.add_mode isabelle_processN (fn (name, props) =>
-  if name = Markup.positionN then test_markup (name, props) else ("", ""));
+  if print_mode_active full_markupN orelse name = Markup.positionN
+  then output_markup (name, props) else ("", ""));
 
 fun message ch raw_txt =
   let
     val (txt, pos) =
       (case try XML.tree_of_string (XML.element "message" [] [raw_txt]) of
         NONE => (raw_txt, Position.none)
-      | SOME xml => (XML.plain_content xml, the_default Position.none (get_pos xml)))
+      | SOME xml =>
+          (if print_mode_active full_markupN then XML.header ^ raw_txt else XML.plain_content xml,
+            the_default Position.none (get_pos xml)))
       |>> translate_string (fn c => if c = STX then DEL else c);
     val props =
       Position.properties_of (Position.thread_data ())
@@ -121,6 +126,42 @@ fun setup_channels () =
   Output.debug_fn    := message "F";
   Output.prompt_fn   := message "G");
 
+
+(* token translations *)
+
+local
+
+fun markup kind x =
+  ((output_markup (kind, []) |-> enclose) x, Symbol.length (Symbol.explode x));
+
+fun free_or_skolem x =
+  (case try Name.dest_skolem x of
+    NONE => markup Markup.freeN x
+  | SOME x' => markup Markup.skolemN x');
+
+fun var_or_skolem s =
+  (case Lexicon.read_variable s of
+    SOME (x, i) =>
+      (case try Name.dest_skolem x of
+        NONE => markup Markup.varN s
+      | SOME x' => markup Markup.skolemN
+          (setmp show_question_marks true Term.string_of_vname (x', i)))
+  | NONE => markup Markup.varN s);
+
+val token_trans =
+ Syntax.tokentrans_mode full_markupN
+  [("class", markup Markup.classN),
+   ("tfree", markup Markup.tfreeN),
+   ("tvar", markup Markup.tvarN),
+   ("free", free_or_skolem),
+   ("bound", markup Markup.boundN),
+   ("var", var_or_skolem)];
+
+in
+
+val _ = Context.add_setup (Sign.add_tokentrfuns token_trans);
+
+end;
 
 
 (* init *)
