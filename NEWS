@@ -31,6 +31,12 @@ Type-checking phase allows to refer to class operations uniformly.
 See HOL/Complex/Complex.thy for an Isar example and
 HOL/Library/Eval.thy for an ML example.
 
+* Indexing of literal facts: be more serious about including only
+facts from the visible specification/proof context, but not the
+background context (locale etc.).  Affects `prop` notation and method
+"fact".  INCOMPATIBILITY: need to name facts explicitly in rare
+situations.
+
 
 *** HOL ***
 
