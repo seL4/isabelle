@@ -204,7 +204,7 @@ lemma (in vectorspace) lin_vectorspace [intro]:
 proof -
   from `x \<in> V` have "subspace (lin x) V"
     by (rule lin_subspace)
-  from this and `vectorspace V` show ?thesis
+  from this and vectorspace_axioms show ?thesis
     by (rule subspace.vectorspace)
 qed
 

@@ -92,7 +92,7 @@ locale group = monoid +
   assumes inv_ex:
      "\<And>x. x \<in> carrier(G) \<Longrightarrow> \<exists>y \<in> carrier(G). y \<cdot> x = \<one> & x \<cdot> y = \<one>"
 
-lemma (in group) is_group [simp]: "group(G)" by fact
+lemma (in group) is_group [simp]: "group(G)" by (rule group_axioms)
 
 theorem groupI:
   includes struct G
@@ -1003,7 +1003,7 @@ lemma (in subgroup) subgroup_in_rcosets:
   shows "H \<in> rcosets H"
 proof -
   have "H #> \<one> = H"
-    using _ `subgroup(H, G)` by (rule coset_join2) simp_all
+    using _ subgroup_axioms by (rule coset_join2) simp_all
   then show ?thesis
     by (auto simp add: RCOSETS_def intro: sym)
 qed

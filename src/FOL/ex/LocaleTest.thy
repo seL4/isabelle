@@ -168,7 +168,7 @@ thm i2.th_x thm i3.th_x
 
 ML {* check_thm "i2.th_x"; check_thm "i3.th_x" *}
 
-lemma (in ID) th_y: "d == (a = b)" by fact
+lemma (in ID) th_y: "d == (a = b)" by (rule d_def)
 
 thm i2.th_y thm i3.th_y
 
