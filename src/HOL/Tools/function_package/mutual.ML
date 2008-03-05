@@ -168,8 +168,6 @@ fun define_projections fixes mutual fsum lthy =
     end
 
 
-fun beta_reduce thm = Thm.equal_elim (Thm.beta_conversion true (cprop_of thm)) thm
-                      
 fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
     let
       val thy = ProofContext.theory_of ctxt
@@ -222,7 +220,7 @@ fun mk_applied_form ctxt caTs thm =
       val xs = map_index (fn (i,T) => cterm_of thy (Free ("x" ^ string_of_int i, T))) caTs (* FIXME: Bind xs properly *)
     in
       fold (fn x => fn thm => combination thm (reflexive x)) xs thm
-           |> beta_reduce
+           |> Conv.fconv_rule (Thm.beta_conversion true)
            |> fold_rev forall_intr xs
            |> forall_elim_vars 0
     end

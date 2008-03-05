@@ -295,15 +295,16 @@ fun get_compat_thm thy cts i j ctxi ctxj =
 fun mk_replacement_lemma thy h ih_elim clause =
     let
         val ClauseInfo {cdata=ClauseContext {qs, lhs, rhs, cqs, ags, case_hyp, ...}, RCs, tree, ...} = clause
+        local open Conv in
+        val ih_conv = arg1_conv o arg_conv o arg_conv
+        end
 
-        val ih_elim_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ih_elim
+        val ih_elim_case = Conv.fconv_rule (ih_conv (K (case_hyp RS eq_reflection))) ih_elim
 
         val Ris = map (fn RCInfo {llRI, ...} => llRI) RCs
         val h_assums = map (fn RCInfo {h_assum, ...} => assume (cterm_of thy (subst_bounds (rev qs, h_assum)))) RCs
 
-        val ih_elim_case_inst = instantiate' [] [NONE, SOME (cterm_of thy h)] ih_elim_case (* Should be done globally *)
-
-        val (eql, _) = FundefCtxTree.rewrite_by_tree thy h ih_elim_case_inst (Ris ~~ h_assums) tree
+        val (eql, _) = FundefCtxTree.rewrite_by_tree thy h ih_elim_case (Ris ~~ h_assums) tree
 
         val replace_lemma = (eql RS meta_eq_to_obj_eq)
                                 |> implies_intr (cprop_of case_hyp)
@@ -418,6 +419,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
         val ihyp_thm = assume ihyp |> forall_elim_vars 0
         val ih_intro = ihyp_thm RS (f_def RS ex1_implies_ex)
         val ih_elim = ihyp_thm RS (f_def RS ex1_implies_un)
+                        |> instantiate' [] [NONE, SOME (cterm_of thy h)]
 
         val _ = Output.debug (K "Proving Replacement lemmas...")
         val repLemmas = map (mk_replacement_lemma thy h ih_elim) clauses
@@ -575,6 +577,9 @@ fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
 
 val acc_subset_induct = @{thm Orderings.predicate1I} RS @{thm Accessible_Part.accp_subset_induct}
 
+
+val binder_conv = Conv.arg_conv oo Conv.abs_conv
+
 fun mk_partial_induct_rule thy globals R complete_thm clauses =
     let
       val Globals {domT, x, z, a, P, D, ...} = globals
@@ -603,12 +608,14 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
 
   fun prove_case clause =
       let
-    val ClauseInfo {cdata = ClauseContext {qs, cqs, ags, gs, lhs, case_hyp, ...}, RCs, 
+    val ClauseInfo {cdata = ClauseContext {ctxt, qs, cqs, ags, gs, lhs, case_hyp, ...}, RCs, 
                     qglr = (oqs, _, _, _), ...} = clause
                        
-    val replace_x_ss = HOL_basic_ss addsimps [case_hyp]
-    val lhs_D = simplify replace_x_ss x_D (* lhs : D *)
-    val sih = full_simplify replace_x_ss aihyp
+    val case_hyp_conv = K (case_hyp RS eq_reflection)
+    local open Conv in 
+    val lhs_D = fconv_rule (arg_conv (arg_conv (case_hyp_conv))) x_D
+    val sih = fconv_rule (binder_conv (K (arg1_conv (arg_conv (arg_conv case_hyp_conv)))) ctxt) aihyp
+    end
           
     fun mk_Prec (RCInfo {llRI, RIvs, CCas, rcarg, ...}) =
         sih |> forall_elim (cterm_of thy rcarg)
@@ -632,7 +639,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
            |> fold Thm.elim_implies P_recs
           
     val res = cterm_of thy (HOLogic.mk_Trueprop (P $ x))
-           |> Simplifier.rewrite replace_x_ss
+           |> Conv.arg_conv (Conv.arg_conv case_hyp_conv)
            |> symmetric (* P lhs == P x *)
            |> (fn eql => equal_elim eql P_lhs) (* "P x" *)
            |> implies_intr (cprop_of case_hyp)
@@ -720,7 +727,7 @@ fun mk_nest_term_case thy globals R' ihyp clause =
             val used = map (fn (ctx,thm) => FundefCtxTree.export_thm thy ctx thm) (u @ sub)
                        
             val hyp = HOLogic.mk_Trueprop (R' $ arg $ lhs)
-                      |> fold_rev (curry Logic.mk_implies o prop_of) used
+                      |> fold_rev (curry Logic.mk_implies o prop_of) used (* additional hyps *)
                       |> FundefCtxTree.export_term (fixes, assumes) 
                       |> fold_rev (curry Logic.mk_implies o prop_of) ags
                       |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
@@ -729,25 +736,18 @@ fun mk_nest_term_case thy globals R' ihyp clause =
             val thm = assume hyp
                       |> fold forall_elim cqs
                       |> fold Thm.elim_implies ags
-                      |> FundefCtxTree.import_thm thy (fixes, assumes) (*  "(arg, lhs) : R'"  *)
-                      |> fold Thm.elim_implies used
+                      |> FundefCtxTree.import_thm thy (fixes, assumes)
+                      |> fold Thm.elim_implies used (*  "(arg, lhs) : R'"  *)
                       
-            val acc = thm COMP ih_case
-                      
-            val z_eq_arg = cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_eq (z, arg)))
-                           
-            val arg_eq_z = (assume z_eq_arg) RS sym
-                           
-            val z_acc = simplify (HOL_basic_ss addsimps [arg_eq_z]) acc (* fragile, slow... *)
-                        |> implies_intr (cprop_of case_hyp)
-                        |> implies_intr z_eq_arg
-
             val z_eq_arg = assume (cterm_of thy (HOLogic.mk_Trueprop (mk_eq (z, arg))))
-            val x_eq_lhs = assume (cterm_of thy (HOLogic.mk_Trueprop (mk_eq (x, lhs))))
-                           
-            val ethm = (z_acc OF [z_eq_arg, x_eq_lhs])
+
+            val acc = thm COMP ih_case
+            val z_acc_local = acc
+            |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (K (symmetric (z_eq_arg RS eq_reflection)))))
+
+            val ethm = z_acc_local
                          |> FundefCtxTree.export_thm thy (fixes, 
-                                                          z_eq_arg :: x_eq_lhs :: ags @ assumes)
+                                                          z_eq_arg :: case_hyp :: ags @ assumes)
                          |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
 
             val sub' = sub @ [(([],[]), acc)]

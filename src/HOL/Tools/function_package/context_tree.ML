@@ -104,8 +104,9 @@ val default_congs = map (fn c => c RS eq_reflection) [@{thm "cong"}, @{thm "ext"
 fun mk_branch ctx t = 
     let
       val (ctx', fixes, impl) = dest_all_all_ctx ctx t
+      val assms = Logic.strip_imp_prems impl
     in
-      (ctx', fixes, Logic.strip_imp_prems impl, rhs_of (Logic.strip_imp_concl impl))
+      (ctx', fixes, assms, rhs_of (Logic.strip_imp_concl impl))
     end
     
 fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
@@ -231,40 +232,37 @@ fun traverse_tree rcOp tr =
       snd o traverse_help ([], []) tr []
     end
 
-val is_refl = op aconv o Logic.dest_equals o prop_of
-
 fun rewrite_by_tree thy h ih x tr =
     let
-      fun rewrite_help fix f_as h_as x (Leaf t) = (reflexive (cterm_of thy t), x)
-        | rewrite_help fix f_as h_as x (RCall (_ $ arg, st)) =
+      fun rewrite_help _ _ x (Leaf t) = (reflexive (cterm_of thy t), x)
+        | rewrite_help fix h_as x (RCall (_ $ arg, st)) =
           let
-            val (inner, (lRi,ha)::x') = rewrite_help fix f_as h_as x st
+            val (inner, (lRi,ha)::x') = rewrite_help fix h_as x st (* "a' = a" *)
                                                      
-             (* Need not use the simplifier here. Can use primitive steps! *)
-            val rew_ha = if is_refl inner then I else simplify (HOL_basic_ss addsimps [inner])
-           
-            val h_a_eq_h_a' = combination (reflexive (cterm_of thy h)) inner
             val iha = import_thm thy (fix, h_as) ha (* (a', h a') : G *)
-                                 |> rew_ha
-                      
+                 |> Conv.fconv_rule (Conv.arg_conv (Conv.comb_conv (Conv.arg_conv (K inner))))
+                                                    (* (a, h a) : G   *)
             val inst_ih = instantiate' [] [SOME (cterm_of thy arg)] ih
-            val eq = implies_elim (implies_elim inst_ih lRi) iha
+            val eq = implies_elim (implies_elim inst_ih lRi) iha (* h a = f a *)
                      
-            val h_a'_eq_f_a' = eq RS eq_reflection
-            val result = transitive h_a_eq_h_a' h_a'_eq_f_a'
+            val h_a'_eq_h_a = combination (reflexive (cterm_of thy h)) inner
+            val h_a_eq_f_a = eq RS eq_reflection
+            val result = transitive h_a'_eq_h_a h_a_eq_f_a
           in
             (result, x')
           end
-        | rewrite_help fix f_as h_as x (Cong (crule, deps, branches)) =
+        | rewrite_help fix h_as x (Cong (crule, deps, branches)) =
           let
             fun sub_step lu i x =
                 let
                   val ((fixes, assumes), st) = nth branches i
-                  val used = fold_rev (cons o lu) (IntGraph.imm_succs deps i) []
-                  val used_rev = map (fn u_eq => (u_eq RS sym) RS eq_reflection) used
-                  val assumes' = map (simplify (HOL_basic_ss addsimps (filter_out is_refl used_rev))) assumes
+                  val used = map lu (IntGraph.imm_succs deps i)
+                             |> map (fn u_eq => (u_eq RS sym) RS eq_reflection)
+                             |> filter_out Thm.is_reflexive
+
+                  val assumes' = map (simplify (HOL_basic_ss addsimps used)) assumes
                                  
-                  val (subeq, x') = rewrite_help (fix @ fixes) (f_as @ assumes) (h_as @ assumes') x st
+                  val (subeq, x') = rewrite_help (fix @ fixes) (h_as @ assumes') x st
                   val subeq_exp = export_thm thy (fixes, assumes) (subeq RS meta_eq_to_obj_eq)
                 in
                   (subeq_exp, x')
@@ -275,7 +273,7 @@ fun rewrite_by_tree thy h ih x tr =
             (fold_rev (curry op COMP) subthms crule, x')
           end
     in
-      rewrite_help [] [] [] x tr
+      rewrite_help [] [] x tr
     end
     
 end
