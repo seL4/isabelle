@@ -33,7 +33,7 @@ done
 lemma (in ring_hom_ring) is_ring_hom_ring:
   includes struct R + struct S
   shows "ring_hom_ring R S h"
-by fact
+by (rule ring_hom_ring_axioms)
 
 lemma ring_hom_ringI:
   includes ring R + ring S
