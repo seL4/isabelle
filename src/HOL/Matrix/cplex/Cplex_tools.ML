@@ -1146,7 +1146,7 @@ fun solve_glpk prog =
     val cplex_path = getenv "GLPK_PATH"
     val cplex = if cplex_path = "" then "glpsol" else cplex_path
     val command = (wrap cplex)^" --lpt "^(wrap lpname)^" --output "^(wrap resultname)
-    val answer = execute command
+    val answer = #1 (system_out command)
     in
     let
         val result = load_glpkResult resultname
