@@ -192,6 +192,8 @@ struct
   end;
 end;
 
+fun string_of_pid _ = raise Fail "string_of_pid undefined";
+
 fun getenv var =
   (case OS.Process.getEnv var of
     NONE => ""
