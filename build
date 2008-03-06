@@ -18,12 +18,13 @@ ALL_LOGICS="Pure FOL HOL ZF CCL CTT Cube FOLP HOLCF LCF Sequents"
 
 ## settings
 
-export THIS_IS_ISABELLE_BUILD=true
-
 PRG="$(basename "$0")"
 
 ISABELLE_HOME="$(cd "$(dirname "$0")"; pwd -P)"
 source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
+
+ISABELLE_OUTPUT="$ISABELLE_HOME/heaps/$ML_IDENTIFIER"
+ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
 
 
 ## diagnostics
