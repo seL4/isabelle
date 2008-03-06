@@ -9,9 +9,9 @@ $ cd Isabelle/src/Pure
 $ env ALICE_JIT_MODE=0 alice
 - val ml_system = "alice";
 - use "ML-Systems/exn.ML";
+- use "ML-Systems/universal.ML";
 - use "ML-Systems/multithreading.ML";
 - use "ML-Systems/time_limit.ML";
-- use "ML-Systems/system_shell.ML";
 - use "ML-Systems/alice.ML";
 - use "ROOT.ML";
 - Session.finish ();
@@ -147,7 +147,36 @@ end;
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
-val system = OS.Process.system: string -> int;
+local
+
+fun read_file name =
+  let val is = TextIO.openIn name
+  in TextIO.inputAll is before TextIO.closeIn is end;
+
+fun write_file name txt =
+  let val os = TextIO.openOut name
+  in TextIO.output (os, txt) before TextIO.closeOut os end;
+
+in
+
+fun system_out script =
+  let
+    val script_name = OS.FileSys.tmpName ();
+    val _ = write_file script_name script;
+
+    val output_name = OS.FileSys.tmpName ();
+
+    val status =
+      OS.Process.system ("perl -w \"$ISABELLE_HOME/lib/scripts/system.pl\" nogroup " ^
+        script_name ^ " /dev/null " ^ output_name);
+    val rc = if OS.Process.isSuccess status then 0 else 1;
+
+    val output = read_file output_name handle IO.Io _ => "";
+    val _ = OS.FileSys.remove script_name handle OS.SysErr _ => ();
+    val _ = OS.FileSys.remove output_name handle OS.SysErr _ => ();
+  in (output, rc) end;
+
+end;
 
 structure OS =
 struct
@@ -155,9 +184,9 @@ struct
   structure FileSys =
   struct
     fun fileId name =
-      (case execute ("perl -e '@_ = stat(q:" ^ name ^ ":); print $_[1]'") of
-        "" => raise Fail "OS.FileSys.fileId"   (* FIXME IO.Io!? *)
-      | s => (case Int.fromString s of NONE => raise Fail "OS.FileSys.fileId" | SOME i => i));
+      (case system_out ("perl -e '@_ = stat(q:" ^ name ^ ":); print $_[1]'") of
+        ("", _) => raise Fail "OS.FileSys.fileId"   (* FIXME IO.Io!? *)
+      | (s, _) => (case Int.fromString s of NONE => raise Fail "OS.FileSys.fileId" | SOME i => i));
     val compare = Int.compare;
     open FileSys;
   end;
