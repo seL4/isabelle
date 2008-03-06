@@ -122,7 +122,7 @@ end;
 
 (* system shell processes, with propagation of interrupts *)
 
-fun system_out script = uninterruptible (fn restore_attributes => fn () =>
+fun system_out_threaded script = uninterruptible (fn restore_attributes => fn () =>
   let
     val script_name = OS.FileSys.tmpName ();
     val _ = write_file script_name script;
@@ -182,6 +182,10 @@ fun system_out script = uninterruptible (fn restore_attributes => fn () =>
     val _ = Thread.interrupt system_thread handle Thread _ => ();
     val rc = (case ! result of Signal => raise Interrupt | Result rc => rc);
   in (output, rc) end) ();
+
+val system_out =
+  if ml_system = "polyml-5.1" then system_out  (*signals not propagated from root thread!*)
+  else system_out_threaded;
 
 
 (* critical section -- may be nested within the same thread *)
