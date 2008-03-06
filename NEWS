@@ -153,6 +153,11 @@ print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
 
 *** System ***
 
+* System: removed obsolete THIS_IS_ISABELLE_BUILD feature.  NB: the
+documented way of changing the user's settings is via
+ISABELLE_HOME_USER/etc/settings, which is a fully featured bash
+script.
+
 * Default settings: PROOFGENERAL_OPTIONS no longer impose xemacs ---
 in accordance with Proof General 3.7, which prefers GNU emacs.
 
