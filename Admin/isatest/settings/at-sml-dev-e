@@ -19,14 +19,8 @@ ISABELLE_TMP_PREFIX="/tmp/isabelle-$USER"
 ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
 
 # Heap output location. ML system identifier is appended automatically later on.
-if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
-  #Isabelle build tells us to store heaps etc. within the distribution.
-  ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
-  ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
-else
-  ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
-  ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
-fi
+ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
+ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf -v true"
 
