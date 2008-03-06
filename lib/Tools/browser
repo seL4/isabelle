@@ -64,7 +64,7 @@ GRAPHFILE=""
 export CLASSPATH="$(javapath "$ISABELLE_HOME/lib/browser/GraphBrowser.jar")"
 
 if [ -z "$GRAPHFILE" ]; then
-  cd "$ISABELLE_BROWSER_INFO"
+  [ -d "$ISABELLE_BROWSER_INFO" ] && cd "$ISABELLE_BROWSER_INFO"
   exec java GraphBrowser.GraphBrowser
 else
   PRIVATE_FILE="${ISABELLE_TMP:-/tmp}/$$"$(basename "$GRAPHFILE")
