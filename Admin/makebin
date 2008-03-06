@@ -12,9 +12,6 @@ TMP="/var/tmp/isabelle-makebin$$"
 TAR=tar
 type -path gtar >/dev/null && TAR=gtar
 
-export THIS_IS_ISABELLE_BUILD=true
-export THIS_IS_ISABELLE_MAKEBIN=true
-
 
 ## diagnostics
 
