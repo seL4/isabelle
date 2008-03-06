@@ -4,7 +4,7 @@
 Compatibility wrapper for Poly/ML 5.0.
 *)
 
-use "ML-Systems/polyml.ML";
+use "ML-Systems/polyml_common.ML";
 
 val pointer_eq = PolyML.pointerEq;
 
