@@ -9,6 +9,7 @@ use "ML-Systems/overloading_smlnj.ML";
 use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
+use "ML-Systems/system_shell.ML";
 
 
 (*low-level pointer equality*)
@@ -229,27 +230,12 @@ val pwd = OS.FileSys.getDir;
 
 (* system command execution *)
 
-(*execute Unix command which doesn't take any input from stdin and
-  sends its output to stdout; could be done more easily by Unix.execute,
-  but that function doesn't use the PATH*)
-fun execute command =
-  let
-    val tmp_name = OS.FileSys.tmpName ();
-    val is = (OS.Process.system (command ^ " > " ^ tmp_name); TextIO.openIn tmp_name);
-    val result = TextIO.inputAll is;
-  in
-    TextIO.closeIn is;
-    OS.FileSys.remove tmp_name;
-    result
-  end;
-
-(*plain version; with return code*)
-val system = mk_int o OS.Process.system;
+val system_out = (fn (output, rc) => (output, mk_int rc)) o system_out;
 
 
 (*Convert a process ID to a decimal string (chiefly for tracing)*)
 fun string_of_pid pid =
-    Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
+  Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
 
 
 (* getenv *)

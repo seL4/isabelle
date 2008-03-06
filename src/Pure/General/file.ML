@@ -98,8 +98,10 @@ fun ident path =
       (case getenv "ISABELLE_FILE_IDENT" of
         "" => Path.implode (full_path path) ^ ": " ^ Time.toString time
       | cmd =>
-         let val id = execute ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ shell_path path) in
-           if id <> "" then id
+         let
+           val (id, rc) = system_out ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ shell_path path)
+         in
+           if id <> "" andalso rc = 0 then id
            else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)
          end)));
 

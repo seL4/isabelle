@@ -11,6 +11,7 @@ $ env ALICE_JIT_MODE=0 alice
 - use "ML-Systems/exn.ML";
 - use "ML-Systems/multithreading.ML";
 - use "ML-Systems/time_limit.ML";
+- use "ML-Systems/system_shell.ML";
 - use "ML-Systems/alice.ML";
 - use "ROOT.ML";
 - Session.finish ();
@@ -143,29 +144,9 @@ end;
 
 (** OS related **)
 
-(* current directory *)
-
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
-
-(* system command execution *)
-
-(*execute Unix command which doesn't take any input from stdin and
-  sends its output to stdout; could be done more easily by Unix.execute,
-  but that function doesn't use the PATH*)
-fun execute command =
-  let
-    val tmp_name = OS.FileSys.tmpName ();
-    val is = (OS.Process.system (command ^ " > " ^ tmp_name); TextIO.openIn tmp_name);
-    val result = TextIO.inputAll is;
-  in
-    TextIO.closeIn is;
-    OS.FileSys.remove tmp_name;
-    result
-  end;
-
-(*plain version; with return code*)
 val system = OS.Process.system: string -> int;
 
 structure OS =
@@ -181,9 +162,6 @@ struct
     open FileSys;
   end;
 end;
-
-
-(* getenv *)
 
 fun getenv var =
   (case OS.Process.getEnv var of

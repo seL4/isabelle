@@ -38,6 +38,7 @@ use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
+use "ML-Systems/system_shell.ML";
 
 
 (*low-level pointer equality*)
@@ -178,37 +179,10 @@ fun uninterruptible f x = f (fn (g: 'c -> 'd) => g) x;
 
 (** OS related **)
 
-(* current directory *)
-
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
-
-(* system command execution *)
-
-(*execute Unix command which doesn't take any input from stdin and
-  sends its output to stdout; could be done more easily by Unix.execute,
-  but that function doesn't use the PATH*)
-fun execute command =
-  let
-    val tmp_name = FileSys.tmpName ();
-    val is = (Process.system (command ^ " > " ^ tmp_name); TextIO.openIn tmp_name);
-    val result = TextIO.inputAll is;
-  in
-    TextIO.closeIn is;
-    FileSys.remove tmp_name;
-    result
-  end;
-
-(*plain version; with return code*)
-fun system cmd =
-  if Process.system cmd = Process.success then 0 else 1;
-
-
 val string_of_pid = Int.toString;
-
-
-(* getenv *)
 
 fun getenv var =
   (case Process.getEnv var of

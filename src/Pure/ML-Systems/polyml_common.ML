@@ -9,6 +9,8 @@ if List.exists (fn s => s = "Universal") (PolyML.Compiler.structureNames ()) the
 else use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
+use "ML-Systems/system_shell.ML";
+
 
 
 (** ML system and platform related **)
@@ -188,27 +190,6 @@ end;
 
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
-
-
-(* system command execution *)
-
-(*execute Unix command which doesn't take any input from stdin and
-  sends its output to stdout; could be done more easily by Unix.execute,
-  but that function doesn't use the PATH*)
-fun execute command =
-  let
-    val tmp_name = OS.FileSys.tmpName ();
-    val is = (OS.Process.system (command ^ " > " ^ tmp_name); TextIO.openIn tmp_name);
-    val result = TextIO.inputAll is;
-  in
-    TextIO.closeIn is;
-    OS.FileSys.remove tmp_name;
-    result
-  end;
-
-(*plain version; with return code*)
-fun system cmd =
-  if OS.Process.isSuccess (OS.Process.system cmd) then 0 else 1;
 
 
 (*Convert a process ID to a decimal string (chiefly for tracing)*)

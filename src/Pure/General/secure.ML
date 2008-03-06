@@ -14,7 +14,7 @@ sig
   val use_file: (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use: string -> unit
   val commit: unit -> unit
-  val execute: string -> string
+  val system_out: string -> string * int
   val system: string -> int
 end;
 
@@ -57,11 +57,10 @@ fun commit () = orig_use_text "" Output.ml_output false "commit();";
 
 fun secure_shell () = deny_secure "Cannot execute shell commands in secure mode";
 
-val orig_execute = execute;
-val orig_system = system;
+val orig_system_out = system_out;
 
-fun execute s = (secure_shell (); orig_execute s);
-fun system s = (secure_shell (); orig_system s);
+fun system_out s = (secure_shell (); orig_system_out s);
+fun system s = #2 (system_out s);
 
 end;
 
@@ -69,5 +68,5 @@ end;
 val use_text = Secure.use_text;
 val use_file = Secure.use_file;
 fun use s = Secure.use s handle ERROR msg => (writeln msg; raise Fail "ML error");
-val execute = Secure.execute;
+val system_out = Secure.system_out;
 val system = Secure.system;
