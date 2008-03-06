@@ -150,6 +150,10 @@ non-critical.  The global print_mode reference is for session
 management only; user-code should use print_mode_value,
 print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
 
+* system/system_out provides a robust way to invoke external shell
+commands, with propagation of interrupts (after Poly/ML 5.2).  Do not
+use OS.Process.system etc. directly.
+
 
 *** System ***
 
