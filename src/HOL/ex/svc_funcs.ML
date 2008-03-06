@@ -64,10 +64,10 @@ struct
       val svc_input_file  = File.tmp_path (Path.basic "SVM_in");
       val svc_output_file = File.tmp_path (Path.basic "SVM_out");
       val _ = (File.write svc_input_file svc_input;
-               execute (check_valid ^ " -dump-result " ^
+               #1 (system_out (check_valid ^ " -dump-result " ^
                         File.shell_path svc_output_file ^
                         " " ^ File.shell_path svc_input_file ^
-                        ">/dev/null 2>&1"))
+                        ">/dev/null 2>&1")))
       val svc_output =
         (case try File.read svc_output_file of
           SOME out => out
