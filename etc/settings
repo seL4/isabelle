@@ -138,14 +138,8 @@ ISABELLE_TMP_PREFIX="/tmp/isabelle-$USER"
 ISABELLE_PATH="$ISABELLE_HOME_USER/heaps/$ISABELLE_IDENTIFIER:$ISABELLE_HOME/heaps"
 
 # Heap output location. ML system identifier is appended automatically later on.
-if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
-  #Isabelle build tells us to store heaps etc. within the distribution.
-  ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
-  ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
-else
-  ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps/$ISABELLE_IDENTIFIER"
-  ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
-fi
+ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps/$ISABELLE_IDENTIFIER"
+ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 # Site settings check -- just to make it a little bit harder to copy this file verbatim!
 [ -n "$ISABELLE_SITE_SETTINGS_PRESENT" ] && \
@@ -220,8 +214,13 @@ PROOFGENERAL_OPTIONS=""
 
 ## Set HOME only for tools you have installed!
 
+# External provers
+E_HOME=$(choosefrom "$ISABELLE_HOME/contrib/E/$ML_PLATFORM" "/usr/local/E" "")
+VAMPIRE_HOME=$(choosefrom "$ISABELLE_HOME/contrib/vampire/$ML_PLATFORM" "/usr/local/Vampire" "")
+SPASS_HOME=$(choosefrom "$ISABELLE_HOME/contrib/spass/$ML_PLATFORM/bin" "/usr/local/SPASS" "")
+
 # HOL4 proof objects (cf. Isabelle/src/HOL/Import)
-HOL4_PROOFS="$PROOF_DIRS:$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
+#HOL4_PROOFS="$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
 
 # SVC (Stanford Validity Checker)
 #SVC_HOME=
@@ -258,8 +257,3 @@ HOL4_PROOFS="$PROOF_DIRS:$ISABELLE_HOME_USER/proofs:$ISABELLE_HOME/proofs"
 # Second option: use the open source glpk solver
 #LP_SOLVER=GLPK
 #GLPK_PATH=glpsol
-
-# External provers
-E_HOME=$(choosefrom "$ISABELLE_HOME/contrib/E/$ML_PLATFORM" "/usr/local/E" "")
-VAMPIRE_HOME=$(choosefrom "$ISABELLE_HOME/contrib/vampire/$ML_PLATFORM" "/usr/local/Vampire" "")
-SPASS_HOME=$(choosefrom "$ISABELLE_HOME/contrib/spass/$ML_PLATFORM/bin" "/usr/local/SPASS" "")
