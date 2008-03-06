@@ -3,7 +3,7 @@
 # $Id$
 # Author: Makarius
 #
-# Poly/ML startup script (for 5.0)
+# Poly/ML 5.0 startup script.
 
 export -n INFILE OUTFILE COPYDB COMPRESS MLTEXT TERMINATE NOWRITE
 
