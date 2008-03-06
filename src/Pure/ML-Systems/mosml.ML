@@ -38,7 +38,6 @@ use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
-use "ML-Systems/system_shell.ML";
 
 
 (*low-level pointer equality*)
@@ -178,6 +177,46 @@ fun uninterruptible f x = f (fn (g: 'c -> 'd) => g) x;
 
 
 (** OS related **)
+
+(*dummy implementation*)
+structure Posix =
+struct
+  structure ProcEnv =
+  struct
+    fun getpid () = 0;
+  end;  
+end;
+
+local
+
+fun read_file name =
+  let val is = TextIO.openIn name
+  in TextIO.inputAll is before TextIO.closeIn is end;
+
+fun write_file name txt =
+  let val os = TextIO.openOut name
+  in TextIO.output (os, txt) before TextIO.closeOut os end;
+
+in
+
+fun system_out script =
+  let
+    val script_name = OS.FileSys.tmpName ();
+    val _ = write_file script_name script;
+
+    val output_name = OS.FileSys.tmpName ();
+
+    val status =
+      OS.Process.system ("perl -w \"$ISABELLE_HOME/lib/scripts/system.pl\" nogroup " ^
+        script_name ^ " /dev/null " ^ output_name);
+    val rc = if status = OS.Process.success then 0 else 1;
+
+    val output = read_file output_name handle IO.Io _ => "";
+    val _ = OS.FileSys.remove script_name handle OS.SysErr _ => ();
+    val _ = OS.FileSys.remove output_name handle OS.SysErr _ => ();
+  in (output, rc) end;
+
+end;
 
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
