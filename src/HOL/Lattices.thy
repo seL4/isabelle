@@ -354,36 +354,10 @@ lemma Sup_Univ: "\<Squnion>UNIV = \<Sqinter>{}"
   unfolding Inf_Sup by auto
 
 lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
-  apply (rule antisym)
-  apply (rule le_infI)
-  apply (rule Inf_lower)
-  apply simp
-  apply (rule Inf_greatest)
-  apply (rule Inf_lower)
-  apply simp
-  apply (rule Inf_greatest)
-  apply (erule insertE)
-  apply (rule le_infI1)
-  apply simp
-  apply (rule le_infI2)
-  apply (erule Inf_lower)
-  done
+  by (auto intro: antisym Inf_greatest Inf_lower)
 
 lemma Sup_insert: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
-  apply (rule antisym)
-  apply (rule Sup_least)
-  apply (erule insertE)
-  apply (rule le_supI1)
-  apply simp
-  apply (rule le_supI2)
-  apply (erule Sup_upper)
-  apply (rule le_supI)
-  apply (rule Sup_upper)
-  apply simp
-  apply (rule Sup_least)
-  apply (rule Sup_upper)
-  apply simp
-  done
+  by (auto intro: antisym Sup_least Sup_upper)
 
 lemma Inf_singleton [simp]:
   "\<Sqinter>{a} = a"
