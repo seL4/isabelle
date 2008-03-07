@@ -40,8 +40,12 @@ situations.
 
 *** HOL ***
 
+* Library/Option_ord.thy: Canonical order on option type.
+
 * Library/RBT.thy: New theory of red-black trees, an efficient
 implementation of finite maps.
+
+* Library/Countable.thy: Type class for countable types.
 
 * Theory Int: The representation of numerals has changed.  The infix
 operator BIT and the bit datatype with constructors B0 and B1 have
@@ -5243,4 +5247,5 @@ have been removed;
 types;
 
 :mode=text:wrap=hard:maxLineLen=72:
+
 $Id$
