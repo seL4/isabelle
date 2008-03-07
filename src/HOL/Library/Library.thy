@@ -32,6 +32,7 @@ imports
   Nested_Environment
   Numeral_Type
   OptionalSugar
+  Option_ord
   Parity
   Permutation
   Primes

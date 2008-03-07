@@ -226,6 +226,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL \
   Library/Library/ROOT.ML Library/Library/document/root.tex \
   Library/Library/document/root.bib Library/While_Combinator.thy \
   Library/Product_ord.thy Library/Char_nat.thy Library/Char_ord.thy \
+  Library/Option_ord.thy \
   Library/List_lexord.thy Library/Commutative_Ring.thy Library/comm_ring.ML \
   Library/Coinductive_List.thy Library/AssocList.thy \
   Library/Parity.thy Library/GCD.thy Library/Binomial.thy \
