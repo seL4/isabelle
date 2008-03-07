@@ -530,7 +530,7 @@ definition
   "pred_nat = {(m, n). n = Suc m}"
 
 definition
-  less_than :: "(nat * nat)set" where
+  less_than :: "(nat * nat) set" where
   "less_than = pred_nat^+"
 
 lemma less_eq: "(m, n) \<in> pred_nat^+ \<longleftrightarrow> m < n"
