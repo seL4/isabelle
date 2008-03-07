@@ -10,7 +10,6 @@ elements.  See also structure Variable and Assumption.
 signature PROOF_CONTEXT =
 sig
   val theory_of: Proof.context -> theory
-  val tsig_of: Proof.context -> Type.tsig
   val init: theory -> Proof.context
   type mode
   val mode_default: mode
@@ -27,7 +26,6 @@ sig
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
   val the_const_constraint: Proof.context -> string -> typ
-  val add_arity: arity -> Proof.context -> Proof.context
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val theorems_of: Proof.context -> thm list NameSpace.table
@@ -185,15 +183,14 @@ val mode_abbrev    = make_mode (false, false, false, true);
 datatype ctxt =
   Ctxt of
    {mode: mode,                                       (*inner syntax mode*)
-    tsig: Type.tsig,                                  (*local type signature*)
     naming: NameSpace.naming,                         (*local naming conventions*)
     syntax: LocalSyntax.T,                            (*local syntax*)
     consts: Consts.T * Consts.T,                      (*local/global consts*)
     thms: thm list NameSpace.table * FactIndex.T,     (*local thms*)
     cases: (string * (RuleCases.T * bool)) list};     (*local contexts*)
 
-fun make_ctxt (mode, tsig, naming, syntax, consts, thms, cases) =
-  Ctxt {mode = mode, tsig = tsig, naming = naming, syntax = syntax,
+fun make_ctxt (mode, naming, syntax, consts, thms, cases) =
+  Ctxt {mode = mode, naming = naming, syntax = syntax,
     consts = consts, thms = thms, cases = cases};
 
 val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
@@ -202,7 +199,7 @@ structure ContextData = ProofDataFun
 (
   type T = ctxt;
   fun init thy =
-    make_ctxt (mode_default, Sign.tsig_of thy, local_naming, LocalSyntax.init thy,
+    make_ctxt (mode_default, local_naming, LocalSyntax.init thy,
       (Sign.consts_of thy, Sign.consts_of thy),
       (NameSpace.empty_table, FactIndex.empty), []);
 );
@@ -210,39 +207,35 @@ structure ContextData = ProofDataFun
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 
 fun map_context f =
-  ContextData.map (fn Ctxt {mode, tsig, naming, syntax, consts, thms, cases} =>
-    make_ctxt (f (mode, tsig, naming, syntax, consts, thms, cases)));
+  ContextData.map (fn Ctxt {mode, naming, syntax, consts, thms, cases} =>
+    make_ctxt (f (mode, naming, syntax, consts, thms, cases)));
 
-fun set_mode mode = map_context (fn (_, tsig, naming, syntax, consts, thms, cases) =>
-  (mode, tsig, naming, syntax, consts, thms, cases));
+fun set_mode mode = map_context (fn (_, naming, syntax, consts, thms, cases) =>
+  (mode, naming, syntax, consts, thms, cases));
 
 fun map_mode f =
-  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, tsig, naming, syntax, consts, thms, cases) =>
-    (make_mode (f (stmt, pattern, schematic, abbrev)), tsig, naming, syntax, consts, thms, cases));
-
-fun map_tsig f =
-  map_context (fn (mode, tsig, naming, syntax, consts, thms, cases) =>
-    (mode, f tsig, naming, syntax, consts, thms, cases));
+  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, consts, thms, cases) =>
+    (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, consts, thms, cases));
 
 fun map_naming f =
-  map_context (fn (mode, tsig, naming, syntax, consts, thms, cases) =>
-    (mode, tsig, f naming, syntax, consts, thms, cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, f naming, syntax, consts, thms, cases));
 
 fun map_syntax f =
-  map_context (fn (mode, tsig, naming, syntax, consts, thms, cases) =>
-    (mode, tsig, naming, f syntax, consts, thms, cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, naming, f syntax, consts, thms, cases));
 
 fun map_consts f =
-  map_context (fn (mode, tsig, naming, syntax, consts, thms, cases) =>
-    (mode, tsig, naming, syntax, f consts, thms, cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, naming, syntax, f consts, thms, cases));
 
 fun map_thms f =
-  map_context (fn (mode, tsig, naming, syntax, consts, thms, cases) =>
-    (mode, tsig, naming, syntax, consts, f thms, cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, naming, syntax, consts, f thms, cases));
 
 fun map_cases f =
-  map_context (fn (mode, tsig, naming, syntax, consts, thms, cases) =>
-    (mode, tsig, naming, syntax, consts, thms, f cases));
+  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
+    (mode, naming, syntax, consts, thms, f cases));
 
 val get_mode = #mode o rep_context;
 fun restore_mode ctxt = set_mode (get_mode ctxt);
@@ -253,7 +246,6 @@ fun set_stmt stmt =
 val naming_of = #naming o rep_context;
 val full_name = NameSpace.full o naming_of;
 
-val tsig_of = #tsig o rep_context;
 val syntax_of = #syntax o rep_context;
 val syn_of = LocalSyntax.syn_of o syntax_of;
 val set_syntax_mode = map_syntax o LocalSyntax.set_mode;
@@ -401,10 +393,6 @@ fun inferred_fixes ctxt =
   fold_map inferred_param (rev (map #2 (Variable.fixes_of ctxt))) ctxt;
 
 
-(* type signature *)
-
-fun add_arity arity ctxt = ctxt |> map_tsig (Type.add_arity (Syntax.pp ctxt) arity);
-
 (* type and constant names *)
 
 fun read_tyname ctxt c =
@@ -437,6 +425,8 @@ val read_term_abbrev    = read_term_mode mode_abbrev;
 
 
 (* local abbreviations *)
+
+val tsig_of = Sign.tsig_of o ProofContext.theory_of;
 
 local
 
