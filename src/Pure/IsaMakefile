@@ -39,7 +39,7 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML	\
   Isar/local_defs.ML Isar/local_syntax.ML Isar/local_theory.ML		\
   Isar/locale.ML Isar/method.ML Isar/net_rules.ML Isar/object_logic.ML	\
   Isar/obtain.ML Isar/outer_keyword.ML Isar/outer_lex.ML		\
-  Isar/outer_parse.ML Isar/outer_syntax.ML Isar/proof.ML		\
+  Isar/outer_parse.ML Isar/outer_syntax.ML Isar/overloading.ML Isar/proof.ML	\
   Isar/proof_context.ML Isar/proof_display.ML Isar/proof_history.ML	\
   Isar/rule_cases.ML Isar/rule_insts.ML Isar/session.ML			\
   Isar/skip_proof.ML Isar/spec_parse.ML Isar/specification.ML		\
