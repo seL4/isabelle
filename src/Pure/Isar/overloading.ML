@@ -14,6 +14,11 @@ sig
   val define: bool -> string -> string * term -> theory -> thm * theory
   val operation: Proof.context -> string -> (string * bool) option
   val pretty: Proof.context -> Pretty.T
+  
+  type improvable_syntax
+  val add_improvable_syntax: Proof.context -> Proof.context
+  val map_improvable_syntax: (improvable_syntax -> improvable_syntax)
+    -> Proof.context -> Proof.context
 end;
 
 structure Overloading: OVERLOADING =
@@ -44,45 +49,101 @@ fun define checked name (c, t) =
   Thm.add_def (not checked) true (name, Logic.mk_equals (Const (c, Term.fastype_of t), t));
 
 
-(* syntax *)
+(* generic check/uncheck combinators for improvable constants *)
 
-fun subst_operation overloading = map_aterms (fn t as Const (c, ty) =>
-    (case AList.lookup (op =) overloading (c, ty)
-     of SOME (v, _) => Free (v, ty)
-      | NONE => t)
-  | t => t);
+type improvable_syntax = {
+  local_constraints: (string * typ) list,
+  global_constraints: (string * typ) list,
+  improve: string * typ -> (typ * typ) option,
+  subst: string * typ -> (typ * term) option,
+  unchecks: (term * term) list,
+  passed: bool
+};
 
-fun term_check ts lthy =
+structure ImprovableSyntax = ProofDataFun(
+  type T = improvable_syntax;
+  fun init _ = {
+    local_constraints = [],
+    global_constraints = [],
+    improve = K NONE,
+    subst = K NONE,
+    unchecks = [],
+    passed = true
+  };
+);
+
+val map_improvable_syntax = ImprovableSyntax.map;
+
+val mark_passed = map_improvable_syntax
+  (fn { local_constraints, global_constraints, improve, subst, unchecks, passed } =>
+    { local_constraints = local_constraints, global_constraints = global_constraints,
+      improve = improve, subst = subst, unchecks = unchecks, passed = true });
+
+fun improve_term_check ts ctxt =
   let
-    val overloading = get_overloading lthy;
-    val ts' = map (subst_operation overloading) ts;
-  in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', lthy) end;
+    val { local_constraints, global_constraints, improve, subst, passed, ... } =
+      ImprovableSyntax.get ctxt;
+    val tsig = (Sign.tsig_of o ProofContext.theory_of) ctxt;
+    fun accumulate_improvements (Const (c, ty)) = (case improve (c, ty)
+         of SOME ty_ty' => (perhaps o try o Type.typ_match tsig) ty_ty'
+          | _ => I)
+      | accumulate_improvements _ = I;
+    val improvements = (fold o fold_aterms) accumulate_improvements ts Vartab.empty;
+    val ts' = (map o map_types) (Envir.typ_subst_TVars improvements) ts;
+    fun apply_subst t = Envir.expand_term (fn Const (c, ty) => (case subst (c, ty)
+         of SOME (ty', t') =>   
+              if Type.typ_instance tsig (ty, ty')
+              then SOME (ty', apply_subst t') else NONE
+          | NONE => NONE)
+      | _ => NONE) t;
+    val ts'' = map apply_subst ts';
+  in if eq_list (op aconv) (ts, ts'') andalso passed then NONE else
+    if passed then SOME (ts'', ctxt)
+    else SOME (ts'', ctxt
+      |> fold (ProofContext.add_const_constraint o apsnd SOME) global_constraints
+      |> mark_passed)
+  end;
 
-fun term_uncheck ts lthy =
+fun improve_term_uncheck ts ctxt =
   let
-    val overloading = get_overloading lthy;
-    fun subst (t as Free (v, ty)) = (case get_first (fn ((c, _), (v', _)) =>
-        if v = v' then SOME c else NONE) overloading
-         of SOME c => Const (c, ty)
-          | NONE => t)
-      | subst t = t;
-    val ts' = (map o map_aterms) subst ts;
-  in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', lthy) end;
+    val thy = ProofContext.theory_of ctxt;
+    val unchecks = (#unchecks o ImprovableSyntax.get) ctxt;
+    val ts' = map (Pattern.rewrite_term thy unchecks []) ts;
+  in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', ctxt) end;
+
+fun add_improvable_syntax ctxt = ctxt
+  |> Context.proof_map
+    (Syntax.add_term_check 0 "improvement" improve_term_check
+    #> Syntax.add_term_uncheck 0 "improvement" improve_term_uncheck)
+  |> fold (ProofContext.add_const_constraint o apsnd SOME)
+       ((#local_constraints o ImprovableSyntax.get) ctxt);
 
 
 (* target *)
 
-fun init overloading thy =
+fun init raw_overloading thy =
   let
-    val _ = if null overloading then error "At least one parameter must be given" else ();
+    val _ = if null raw_overloading then error "At least one parameter must be given" else ();
+    val overloading = map (fn (v, c_ty, checked) => (c_ty, (v, checked))) raw_overloading;
+    fun subst (c, ty) = case AList.lookup (op =) overloading (c, ty)
+     of SOME (v, _) => SOME (ty, Free (v, ty))
+      | NONE => NONE;
+    val unchecks =
+      map (fn (c_ty as (_, ty), (v, _)) => (Free (v, ty), Const c_ty)) overloading;
   in
     thy
     |> ProofContext.init
-    |> OverloadingData.put (map (fn (v, c_ty, checked) => (c_ty, (v, checked))) overloading)
-    |> fold (fn (v, (_, ty), _) => Variable.declare_term (Free (v, ty))) overloading
-    |> Context.proof_map (
-        Syntax.add_term_check 0 "overloading" term_check
-        #> Syntax.add_term_uncheck 0 "overloading" term_uncheck)
+    |> OverloadingData.put overloading
+    |> fold (fn (v, (_, ty), _) => Variable.declare_term (Free (v, ty))) raw_overloading
+    |> map_improvable_syntax (K {
+        local_constraints = [],
+        global_constraints = [],
+        improve = K NONE,
+        subst = subst,
+        unchecks = unchecks,
+        passed = false
+      })
+    |> add_improvable_syntax
   end;
 
 fun conclude lthy =
