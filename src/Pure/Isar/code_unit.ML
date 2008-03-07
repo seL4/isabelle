@@ -20,6 +20,7 @@ sig
   val constrain_thm: sort -> thm -> thm
 
   (*constants*)
+  val add_const_ident: thm -> theory -> theory
   val string_of_typ: theory -> typ -> string
   val string_of_const: theory -> string -> string
   val no_args: theory -> string -> int
@@ -159,7 +160,7 @@ fun typ_sort_inst algebra =
   in uncurry match end;
 
 
-(* making rewrite theorems *)
+(* rewrite theorems *)
 
 fun assert_rew thm =
   let
@@ -200,7 +201,31 @@ fun mk_rew thm =
   end;
 
 
-(* making defining equations *)
+(* defining equations *)
+
+structure ConstIdent = TheoryDataFun
+(
+  type T = thm list;
+  val empty = [];
+  val copy = I;
+  val extend = copy;
+  fun merge _ = Library.merge Thm.eq_thm_prop;
+);
+
+fun add_const_ident thm =
+  let
+    val t = Thm.prop_of thm;
+    val lhs_rhs = case try Logic.dest_equals t
+     of SOME lhs_rhs => lhs_rhs
+      | _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
+    val _ = if can (pairself dest_Const) lhs_rhs then ()
+      else bad_thm ("Not an equation with two constants: " ^ Display.string_of_thm thm);
+  in ConstIdent.map (cons thm) end;
+
+fun apply_ident thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+  in MetaSimplifier.rewrite_rule (ConstIdent.get thy) thm end;
 
 fun assert_func thm =
   let
@@ -233,7 +258,7 @@ fun assert_func thm =
     val _ = map (check 0) args;
   in thm end;
 
-val mk_func = assert_func o mk_rew;
+val mk_func = apply_ident o assert_func o mk_rew;
 
 fun head_func thm =
   let
