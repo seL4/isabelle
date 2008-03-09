@@ -33,7 +33,6 @@ code_datatype Const App
 subsubsection {* Class @{term term_of} *}
 
 class term_of = rtype +
-  constrains typ_of :: "'a\<Colon>{} itself \<Rightarrow> rtype"
   fixes term_of :: "'a \<Rightarrow> term"
 
 lemma term_of_anything: "term_of x \<equiv> t"
