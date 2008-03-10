@@ -180,4 +180,18 @@ proof (rule countable_classI [of "list_encode"])
   qed
 qed
 
+
+text {* Functions *}
+
+instance "fun" :: (finite, countable) countable
+proof
+  obtain xs :: "'a list" where xs: "set xs = UNIV"
+    using finite_list [OF finite_UNIV] ..
+  show "\<exists>to_nat::('a \<Rightarrow> 'b) \<Rightarrow> nat. inj to_nat"
+  proof
+    show "inj (\<lambda>f. to_nat (map f xs))"
+      by (rule injI, simp add: xs expand_fun_eq)
+  qed
+qed
+
 end
