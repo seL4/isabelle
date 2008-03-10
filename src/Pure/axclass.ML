@@ -40,6 +40,7 @@ sig
   type cache
   val of_sort: theory -> typ * sort -> cache -> thm list * cache  (*exception Sorts.CLASS_ERROR*)
   val cache: cache
+  val introN: string
   val axiomsN: string
 end;
 
