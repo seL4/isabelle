@@ -243,7 +243,7 @@ that are modeled after the Isar proof context commands (cf.\
   contextexpr: nameref | '(' contextexpr ')' |
   (contextexpr (name mixfix? +)) | (contextexpr + '+')
   ;
-  contextelem: fixes | constrains | assumes | defines | notes | includes
+  contextelem: fixes | constrains | assumes | defines | notes
   ;
   fixes: 'fixes' ((name ('::' type)? structmixfix? | vars) + 'and')
   ;
@@ -559,6 +559,9 @@ the full generality of locales combined with the commodity of type classes
   $\ASSUMESNAME$ in $body$ are also lifted, mapping each local parameter
   $f::\tau [\alpha]$ to its corresponding global constant
   $f::\tau [?\alpha::c]$.
+  A suitable introduction rule is provided as $c_class_axioms.intro$.
+  Explicit references to this should rarely be needed;  mostly
+  this rules will be applied implicitly by the $intro_classes$ method.
 
 \item [$\INSTANTIATION~\vec t~::~(\vec s)~s~\isarkeyword{begin}$]
   opens a theory target (cf.\S\ref{sec:target}) which allows to specify
