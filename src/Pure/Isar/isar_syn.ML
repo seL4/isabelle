@@ -427,8 +427,8 @@ val _ =
 
 val class_val =
   SpecParse.class_expr --
-    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.locale_element)) [] ||
-  Scan.repeat1 SpecParse.locale_element >> pair [];
+    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
+  Scan.repeat1 SpecParse.context_element >> pair [];
 
 val _ =
   OuterSyntax.command "class" "define type class" K.thy_decl
