@@ -51,17 +51,19 @@ fun define checked name (c, t) =
 
 (* generic check/uncheck combinators for improvable constants *)
 
-type improvable_syntax = {
-  local_constraints: (string * typ) list,
-  global_constraints: (string * typ) list,
-  improve: string * typ -> (typ * typ) option,
-  subst: string * typ -> (typ * term) option,
-  unchecks: (term * term) list,
-  passed: bool
-};
+type improvable_syntax = ((((string * typ) list * (string * typ) list) *
+  (((string * typ -> (typ * typ) option) * (string * typ -> (typ * term) option)) *
+    (term * term) list)) * bool);
 
 structure ImprovableSyntax = ProofDataFun(
-  type T = improvable_syntax;
+  type T = {
+    local_constraints: (string * typ) list,
+    global_constraints: (string * typ) list,
+    improve: string * typ -> (typ * typ) option,
+    subst: string * typ -> (typ * term) option,
+    unchecks: (term * term) list,
+    passed: bool
+  };
   fun init _ = {
     local_constraints = [],
     global_constraints = [],
@@ -72,12 +74,15 @@ structure ImprovableSyntax = ProofDataFun(
   };
 );
 
-val map_improvable_syntax = ImprovableSyntax.map;
+fun map_improvable_syntax f = ImprovableSyntax.map (fn { local_constraints,
+  global_constraints, improve, subst, unchecks, passed } => let
+    val (((local_constraints', global_constraints'), ((improve', subst'), unchecks')), passed')
+      = f (((local_constraints, global_constraints), ((improve, subst), unchecks)), passed)
+  in { local_constraints = local_constraints', global_constraints = global_constraints',
+    improve = improve', subst = subst', unchecks = unchecks', passed = passed'
+  } end);
 
-val mark_passed = map_improvable_syntax
-  (fn { local_constraints, global_constraints, improve, subst, unchecks, passed } =>
-    { local_constraints = local_constraints, global_constraints = global_constraints,
-      improve = improve, subst = subst, unchecks = unchecks, passed = true });
+val mark_passed = (map_improvable_syntax o apsnd) (K true);
 
 fun improve_term_check ts ctxt =
   let
@@ -135,14 +140,7 @@ fun init raw_overloading thy =
     |> ProofContext.init
     |> OverloadingData.put overloading
     |> fold (fn (v, (_, ty), _) => Variable.declare_term (Free (v, ty))) raw_overloading
-    |> map_improvable_syntax (K {
-        local_constraints = [],
-        global_constraints = [],
-        improve = K NONE,
-        subst = subst,
-        unchecks = unchecks,
-        passed = false
-      })
+    |> map_improvable_syntax (K ((([], []), ((K NONE, subst), unchecks)), false))
     |> add_improvable_syntax
   end;
 
