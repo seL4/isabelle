@@ -772,8 +772,9 @@ fun raw_loop secure src =
       NONE => (writeln "\nInterrupt."; raw_loop secure src)
     | SOME NONE => if secure then quit () else ()
     | SOME (SOME (tr, src')) => if >> tr orelse check_secure () then raw_loop secure src' else ())
-    handle exn => (CRITICAL (fn () => change crashes (cons exn));
-      warning "Recovering after Isar toplevel crash -- see also Toplevel.crashes";
+    handle exn => (Output.error_msg (exn_message exn) handle crash =>
+      (CRITICAL (fn () => change crashes (cons crash));
+        warning "Recovering after Isar toplevel crash -- see also Toplevel.crashes");
       raw_loop secure src)
   end;
 
