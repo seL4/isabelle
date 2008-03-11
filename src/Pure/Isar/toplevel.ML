@@ -39,6 +39,7 @@ sig
   val crashes: exn list ref
   exception TERMINATE
   exception RESTART
+  exception CONTEXT of Proof.context * exn
   exception TOPLEVEL_ERROR
   val exn_message: exn -> string
   val program: (unit -> 'a) -> 'a
@@ -249,51 +250,55 @@ exception TOPLEVEL_ERROR;
 
 (* print exceptions *)
 
+exception CONTEXT of Proof.context * exn;
+
+fun exn_context NONE exn = exn
+  | exn_context (SOME ctxt) exn = CONTEXT (ctxt, exn);
+
 local
 
-fun with_context f xs =
-  (case ML_Context.get_context () of NONE => []
-  | SOME context => map (f (Context.proof_of context)) xs);
+fun if_context NONE _ _ = []
+  | if_context (SOME ctxt) f xs = map (f ctxt) xs;
 
 fun raised name [] = "exception " ^ name ^ " raised"
   | raised name [msg] = "exception " ^ name ^ " raised: " ^ msg
   | raised name msgs = cat_lines (("exception " ^ name ^ " raised:") :: msgs);
 
-fun exn_msg _ TERMINATE = "Exit."
-  | exn_msg _ RESTART = "Restart."
-  | exn_msg _ Interrupt = "Interrupt."
-  | exn_msg _ TimeLimit.TimeOut = "Timeout."
-  | exn_msg _ TOPLEVEL_ERROR = "Error."
-  | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg
-  | exn_msg _ (ERROR msg) = msg
-  | exn_msg detailed (Exn.EXCEPTIONS (exns, "")) = cat_lines (map (exn_msg detailed) exns)
-  | exn_msg detailed (Exn.EXCEPTIONS (exns, msg)) = cat_lines (map (exn_msg detailed) exns @ [msg])
-  | exn_msg detailed (EXCURSION_FAIL (exn, msg)) = cat_lines [exn_msg detailed exn, msg]
-  | exn_msg false (THEORY (msg, _)) = msg
-  | exn_msg true (THEORY (msg, thys)) = raised "THEORY" (msg :: map Context.str_of_thy thys)
-  | exn_msg false (Syntax.AST (msg, _)) = raised "AST" [msg]
-  | exn_msg true (Syntax.AST (msg, asts)) =
-      raised "AST" (msg :: map (Pretty.string_of o Syntax.pretty_ast) asts)
-  | exn_msg false (TYPE (msg, _, _)) = raised "TYPE" [msg]
-  | exn_msg true (TYPE (msg, Ts, ts)) = raised "TYPE" (msg ::
-        with_context Syntax.string_of_typ Ts @ with_context Syntax.string_of_term ts)
-  | exn_msg false (TERM (msg, _)) = raised "TERM" [msg]
-  | exn_msg true (TERM (msg, ts)) =
-      raised "TERM" (msg :: with_context Syntax.string_of_term ts)
-  | exn_msg false (THM (msg, _, _)) = raised "THM" [msg]
-  | exn_msg true (THM (msg, i, thms)) =
-      raised ("THM " ^ string_of_int i) (msg :: with_context ProofContext.string_of_thm thms)
-  | exn_msg _ Option.Option = raised "Option" []
-  | exn_msg _ Library.UnequalLengths = raised "UnequalLengths" []
-  | exn_msg _ Empty = raised "Empty" []
-  | exn_msg _ Subscript = raised "Subscript" []
-  | exn_msg _ (Fail msg) = raised "Fail" [msg]
-  | exn_msg _ exn = General.exnMessage exn;
-
 in
 
-fun exn_message exn = exn_msg (! debug) exn;
-fun print_exn (exn, s) = Output.error_msg (cat_lines [exn_message exn, s]);
+fun exn_message e =
+  let
+    val detailed = ! debug;
+
+    fun exn_msg _ (CONTEXT (ctxt, exn)) = exn_msg (SOME ctxt) exn
+      | exn_msg ctxt (Exn.EXCEPTIONS (exns, "")) = cat_lines (map (exn_msg ctxt) exns)
+      | exn_msg ctxt (Exn.EXCEPTIONS (exns, msg)) = cat_lines (map (exn_msg ctxt) exns @ [msg])
+      | exn_msg ctxt (EXCURSION_FAIL (exn, loc)) = exn_msg ctxt exn ^
+          Output.escape (Markup.enclose Markup.location (Output.output ("\n" ^ loc)))
+      | exn_msg _ TERMINATE = "Exit."
+      | exn_msg _ RESTART = "Restart."
+      | exn_msg _ Interrupt = "Interrupt."
+      | exn_msg _ TimeLimit.TimeOut = "Timeout."
+      | exn_msg _ TOPLEVEL_ERROR = "Error."
+      | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg
+      | exn_msg _ (ERROR msg) = msg
+      | exn_msg _ (Fail msg) = raised "Fail" [msg]
+      | exn_msg _ (THEORY (msg, thys)) =
+          raised "THEORY" (msg :: (if detailed then map Context.str_of_thy thys else []))
+      | exn_msg _ (Syntax.AST (msg, asts)) = raised "AST" (msg ::
+            (if detailed then map (Pretty.string_of o Syntax.pretty_ast) asts else []))
+      | exn_msg ctxt (TYPE (msg, Ts, ts)) = raised "TYPE" (msg ::
+            (if detailed then
+              if_context ctxt Syntax.string_of_typ Ts @ if_context ctxt Syntax.string_of_term ts
+             else []))
+      | exn_msg ctxt (TERM (msg, ts)) = raised "TERM" (msg ::
+            (if detailed then if_context ctxt Syntax.string_of_term ts else []))
+      | exn_msg ctxt (THM (msg, i, thms)) = raised ("THM " ^ string_of_int i) (msg ::
+            (if detailed then if_context ctxt ProofContext.string_of_thm thms else []))
+      | exn_msg _ exn = raised (General.exnMessage exn) []
+  in exn_msg NONE e end;
+
+fun print_exn exn_info = Output.error_msg (exn_message (EXCURSION_FAIL exn_info));
 
 end;
 
@@ -306,8 +311,11 @@ fun debugging f x =
   if ! debug then exception_trace (fn () => f x)
   else f x;
 
-fun toplevel_error f x = f x
-  handle exn => (Output.error_msg (exn_message exn); raise TOPLEVEL_ERROR);
+fun toplevel_error f x =
+  let val ctxt = try ML_Context.the_local_context () in
+    f x handle exn =>
+      (Output.error_msg (exn_message (exn_context ctxt exn)); raise TOPLEVEL_ERROR)
+  end;
 
 in
 
@@ -332,7 +340,7 @@ local
 
 fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
 
-val stale_theory = ERROR "Stale theory encountered after succesful execution!";
+val stale_theory = ERROR "Stale theory encountered after successful execution!";
 
 fun map_theory f = History.map_current
   (fn Theory (gthy, _) => Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, NONE)
@@ -657,24 +665,27 @@ fun app int (tr as Transition {trans, pos, int_only, print, no_timing, ...}) =
       fun do_timing f x = (warning (command_msg "" tr); timeap f x);
       fun do_profiling f x = profile (! profiling) f x;
 
-      val (result, opt_exn) =
+      val (result, status) =
          state |> (apply_trans int pos trans
           |> (if ! profiling > 0 andalso not no_timing then do_profiling else I)
           |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
       val _ =
         if int andalso not (! quiet) andalso exists (member (op =) print) ("" :: print_mode_value ())
         then print_state false result else ();
-    in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_exn) end);
+
+    in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) status) end);
 
 in
 
 fun apply int tr st =
-  (case app int tr st of
-    (_, SOME TERMINATE) => NONE
-  | (_, SOME RESTART) => SOME (toplevel, NONE)
-  | (state', SOME (EXCURSION_FAIL exn_info)) => SOME (state', SOME exn_info)
-  | (state', SOME exn) => SOME (state', SOME (exn, at_command tr))
-  | (state', NONE) => SOME (state', NONE));
+  let val ctxt = try context_of st in
+    (case app int tr st of
+      (_, SOME TERMINATE) => NONE
+    | (_, SOME RESTART) => SOME (toplevel, NONE)
+    | (state', SOME (EXCURSION_FAIL exn_info)) => SOME (state', SOME exn_info)
+    | (state', SOME exn) => SOME (state', SOME (exn_context ctxt exn, at_command tr))
+    | (state', NONE) => SOME (state', NONE))
+  end;
 
 end;
 
