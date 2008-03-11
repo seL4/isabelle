@@ -91,13 +91,14 @@ val _ = Markup.add_mode isabelle_processN (fn (name, props) =>
   if print_mode_active full_markupN orelse name = Markup.positionN
   then output_markup (name, props) else ("", ""));
 
-fun message ch raw_txt =
+fun message ch txt0 =
   let
+    val txt1 = XML.element "message" [] [txt0];
     val (txt, pos) =
-      (case try XML.tree_of_string (XML.element "message" [] [raw_txt]) of
-        NONE => (raw_txt, Position.none)
+      (case try XML.tree_of_string txt1 of
+        NONE => (txt1, Position.none)
       | SOME xml =>
-          (if print_mode_active full_markupN then XML.header ^ raw_txt else XML.plain_content xml,
+          (if print_mode_active full_markupN then XML.header ^ txt1 else XML.plain_content xml,
             the_default Position.none (get_pos xml)))
       |>> translate_string (fn c => if c = STX then DEL else c);
     val props =
@@ -132,7 +133,7 @@ fun setup_channels () =
 local
 
 fun markup kind x =
-  ((output_markup (kind, []) |-> enclose) x, Symbol.length (Symbol.explode x));
+  ((output_markup (kind, []) |-> enclose) (Output.output x), Symbol.length (Symbol.explode x));
 
 fun free_or_skolem x =
   (case try Name.dest_skolem x of
