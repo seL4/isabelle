@@ -312,7 +312,9 @@ fun schedule n next_task = uninterruptible (fn restore_attributes => fn tasks =>
      (fork (Int.max (n, 1));
       while not (List.null (! running)) do
       (trace_active ();
-       if not (List.null (! status)) then (List.app Thread.interrupt (! running)) else ();
+       if not (List.null (! status))
+       then (List.app (fn t => Thread.interrupt t handle Thread _ => ()) (! running))
+       else ();
        wait_timeout ())));
 
   in ! status end);
