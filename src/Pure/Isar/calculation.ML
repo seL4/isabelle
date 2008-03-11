@@ -59,7 +59,7 @@ val calculationN = "calculation";
 fun put_calculation calc =
   `Proof.level #-> (fn lev => Proof.map_context (Context.proof_map
      (CalculationData.map (apsnd (K (Option.map (rpair lev) calc))))))
-  #> Proof.put_thms (calculationN, calc);
+  #> Proof.put_thms false (calculationN, calc);
 
 
 
