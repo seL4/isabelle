@@ -104,7 +104,7 @@ sig
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
   val hide_thms: bool -> string list -> Proof.context -> Proof.context
-  val put_thms: string * thm list option -> Proof.context -> Proof.context
+  val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
   val note_thmss: string ->
     ((bstring * attribute list) * (thmref * attribute list) list) list ->
       Proof.context -> (bstring * thm list) list * Proof.context
@@ -877,8 +877,8 @@ fun update_thms _ ("", NONE) ctxt = ctxt
         val index' = uncurry FactIndex.add_local opts (name, ths) index;
       in ((space', tab'), index') end);
 
-fun put_thms thms ctxt =
-  ctxt |> map_naming (K local_naming) |> update_thms (false, false) thms |> restore_naming ctxt;
+fun put_thms do_props thms ctxt =
+  ctxt |> map_naming (K local_naming) |> update_thms (do_props, false) thms |> restore_naming ctxt;
 
 
 (* note_thmss *)
@@ -1071,7 +1071,7 @@ fun gen_assms prepp exp args ctxt =
   in
     ctxt2
     |> auto_bind_facts (flat propss)
-    |> put_thms (AutoBind.premsN, SOME (Assumption.prems_of ctxt2))
+    |> put_thms false (AutoBind.premsN, SOME (Assumption.prems_of ctxt2))
     |> note_thmss_i Thm.assumptionK (map fst args ~~ map (map (fn th => ([th], []))) premss)
   end;
 
