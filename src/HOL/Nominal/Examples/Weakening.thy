@@ -150,8 +150,10 @@ next
     oops
   
 text{* 
-  To show that the proof is not simple, here proof without using 
-  the variable convention. 
+  To show that the proof with explicit renaming is not simple, 
+  here is the proof without using the variable convention. It
+  crucially depends on the equivariance property of the typing
+  relation.
 
 *}
 
@@ -197,7 +199,7 @@ proof (induct arbitrary: \<Gamma>2)
     then show "\<Gamma>2 \<turnstile> Lam [c].([(c,x)]\<bullet>t) : T1 \<rightarrow> T2" using fc1 by auto
   qed
   ultimately show "\<Gamma>2 \<turnstile> Lam [x].t : T1 \<rightarrow> T2" by simp
-qed (auto)
+qed (auto) (* var and app cases *)
 
 text {*
   Moral: compare the proof with explicit renamings to weakening_version1 

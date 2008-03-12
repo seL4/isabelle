@@ -5,7 +5,7 @@ imports "../Nominal"
 begin
 
 text {* 
-  We give here two examples that show if we use the variable  
+  We give here two examples showing that if we use the variable  
   convention carelessly in rule inductions, we might end 
   up with faulty lemmas. The point is that the examples
   are not variable-convention compatible and therefore in the 
@@ -109,7 +109,7 @@ by (induct xs)
 text {*
   Now comes the first faulty lemma. It is derived using the     
   variable convention (i.e. our strong induction principle). 
-  This faulty lemma states that if t unbinds to x::xs and t', 
+  This faulty lemma states that if t unbinds to x#xs and t', 
   and x is a free variable in t', then it is also a free 
   variable in bind xs t'. We show this lemma by assuming that 
   the binder x is fresh w.r.t. to the xs unbound previously. *}   
@@ -183,30 +183,27 @@ proof -
   then show "False" by (simp add: fresh_atm)
 qed 
 
-text {*
-  Moral: Who would have thought that the variable convention 
-  is in general an unsound reasoning principle.
-  *}
-
-
-text 
-  {* BTW: A similar effect can be achieved by using naive (that
-     is strong) inversion rules. *}
+text {* A similar effect can be achieved by using naive inversion 
+  on rules. *}
 
 lemma false3: 
   shows "False"
 proof -
   have "Lam [x].(Var x) \<rightarrow> (Var x)" by (auto intro: strip.intros)
-  moreover obtain y::name where y: "y\<sharp>x"
-    by (rule exists_fresh) (rule fin_supp)
+  moreover obtain y::"name" where fc: "y\<sharp>x" by (rule exists_fresh) (rule fin_supp)
   then have "Lam [x].(Var x) = Lam [y].(Var y)"
     by (simp add: lam.inject alpha calc_atm fresh_atm)
   ultimately have "Lam [y].(Var y) \<rightarrow> (Var x)" by simp
-  then have "Var y \<rightarrow> Var x" using y
-    by (cases rule: strip.strong_cases [where x=y])
+  then have "Var y \<rightarrow> Var x" using fc
+    by (cases rule: strip.strong_cases[where x=y])
        (simp_all add: lam.inject alpha abs_fresh)
-  then show "False" using y
+  then show "False" using fc
     by (cases) (simp_all add: lam.inject fresh_atm)
 qed
+
+text {*
+  Moral: Who would have thought that the variable convention 
+  is in general an unsound reasoning principle.
+  *}
 
 end

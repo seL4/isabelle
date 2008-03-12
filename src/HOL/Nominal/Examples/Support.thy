@@ -9,11 +9,10 @@ text {*
 
   x\<sharp>(A \<union> B) does not imply  x\<sharp>A and  x\<sharp>B
 
-  with A and B being sets. For this we set A to the set of 
-  even atoms and B to the set of odd atoms. Then A \<union> B, that 
-  is the set of all atoms, has empty support. The sets A, 
-  respectively B, however have the set of all atoms as 
-  their support. 
+  For this we set A to the set of even atoms and B to 
+  the set of odd atoms. Then A \<union> B, that is the set of 
+  all atoms, has empty support. The sets A, respectively B, 
+  however have the set of all atoms as their support. 
 *}
 
 atom_decl atom
@@ -38,7 +37,7 @@ lemma even_or_odd:
 
 text {* 
   The union of even and odd atoms is the set of all atoms. 
-  Unfortunately I do not know a simpler proof of this fact. *}
+  (Unfortunately I do not know a simpler proof of this fact.) *}
 lemma EVEN_union_ODD:
   shows "EVEN \<union> ODD = UNIV"
   using even_or_odd
@@ -84,7 +83,7 @@ next
 qed
 
 text {* 
-  A general fact about a set S of names that is both infinite and 
+  A general fact about a set S of atoms that is both infinite and 
   coinfinite. Then S has all atoms as its support. Steve Zdancewick 
   helped with proving this fact. *}
 
