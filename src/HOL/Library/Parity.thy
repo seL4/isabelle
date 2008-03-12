@@ -16,18 +16,11 @@ abbreviation
   odd :: "'a\<Colon>even_odd \<Rightarrow> bool" where
   "odd x \<equiv> \<not> even x"
 
-instantiation int  :: even_odd
+instantiation nat and int  :: even_odd
 begin
 
 definition
   even_def [presburger]: "even x \<longleftrightarrow> (x\<Colon>int) mod 2 = 0"
-
-instance ..
-
-end
-
-instantiation nat  :: even_odd
-begin
 
 definition
   even_nat_def [presburger]: "even x \<longleftrightarrow> even (int x)"

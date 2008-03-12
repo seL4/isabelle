@@ -40,6 +40,7 @@ sig
   val instantiation_param: local_theory -> string -> string option
   val confirm_declaration: string -> local_theory -> local_theory
   val pretty_instantiation: local_theory -> Pretty.T
+  val type_name: string -> string
 
   (*old axclass layer*)
   val axclass_cmd: bstring * xstring list
@@ -433,9 +434,9 @@ fun synchronize_class_syntax sups base_sort ctxt =
   in
     ctxt
     |> fold declare_const local_constraints
-    |> fold (ProofContext.add_const_constraint o apsnd SOME) local_constraints
     |> Overloading.map_improvable_syntax (K (((local_constraints, global_constraints),
         ((improve, subst), unchecks)), false))
+    |> Overloading.set_local_constraints
   end;
 
 fun refresh_syntax class ctxt =
@@ -661,22 +662,15 @@ fun instantiation_param lthy v = instantiation_params lthy
 
 fun synchronize_inst_syntax ctxt =
   let
-    val Instantiation { arities = (_, _, sorts), params = params } = Instantiation.get ctxt;
+    val Instantiation { arities = (_, _, sort), params = params } = Instantiation.get ctxt;
     val thy = ProofContext.theory_of ctxt;
-    val operations = these_operations thy sorts;
     fun subst_class_typ sort = map_atyps
       (fn TFree _ => TVar ((Name.aT, 0), sort) | ty' => ty');
-    val local_constraints =
-      (map o apsnd) (subst_class_typ [] o fst o snd) operations;
-    val global_constraints = map_filter (fn (c, (class, (ty, _))) =>
+    val operations = these_operations thy sort;
+    val global_constraints = (*map_filter (fn (c, (class, (ty, _))) =>
       if exists (fn ((c', _), _) => c = c') params
         then SOME (c, subst_class_typ [class] ty)
-        else NONE) operations;
-    fun improve (c, ty) = case AxClass.inst_tyco_of thy (c, ty)
-         of SOME tyco => (case AList.lookup (op =) params (c, tyco)
-             of SOME (_, ty') => SOME (ty, ty')
-              | NONE => NONE)
-          | NONE => NONE;
+        else NONE) operations;*)[];
           (*| NONE => (case map_filter
                (fn ((c', _), (_, ty')) => if c' = c then SOME ty' else NONE) params
              of [ty'] => (case Sign.const_typargs thy (c, ty)
@@ -692,9 +686,9 @@ fun synchronize_inst_syntax ctxt =
       map (fn ((c, _), v_ty as (_, ty)) => (Free v_ty, Const (c, ty))) params;
   in
     ctxt
-    |> fold (ProofContext.add_const_constraint o apsnd SOME) local_constraints
-    |> Overloading.map_improvable_syntax (K (((local_constraints, global_constraints),
-        ((improve, subst), unchecks)), false))
+    |> Overloading.map_improvable_syntax
+         (fn (((local_constraints, _), ((improve, _), _)), _) =>
+            (((local_constraints, global_constraints), ((improve, subst), unchecks)), false))
   end;
 
 
@@ -715,25 +709,37 @@ val sanatize_name = (*FIXME*)
     explode #> scan_valids #> implode
   end;
 
+fun type_name "*" = "prod"
+  | type_name "+" = "sum"
+  | type_name s = sanatize_name (NameSpace.base s); (*FIXME*)
+
 fun init_instantiation (tycos, vs, sort) thy =
   let
     val _ = if null tycos then error "At least one arity must be given" else ();
-    val _ = map (the_class_data thy) sort;
-    fun type_name "*" = "prod"
-      | type_name "+" = "sum"
-      | type_name s = sanatize_name (NameSpace.base s); (*FIXME*)
+    fun subst_class_typ sort = map_atyps
+      (fn TFree _ => TVar ((Name.aT, 0), sort) | ty' => ty');
     fun get_param tyco (param, (c, ty)) = if can (AxClass.param_of_inst thy) (c, tyco)
       then NONE else SOME ((c, tyco),
         (param ^ "_" ^ type_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
     val params = map_product get_param tycos (these_params thy sort) |> map_filter I;
+    val operations = these_operations thy sort;
+    val local_constraints = (map o apsnd) (subst_class_typ [] o fst o snd) operations;
+    fun improve (c, ty) = case AxClass.inst_tyco_of thy (c, ty)
+     of SOME tyco => (case AList.lookup (op =) params (c, tyco)
+         of SOME (_, ty') => SOME (ty, ty')
+          | NONE => NONE)
+      | NONE => NONE;
   in
     thy
     |> ProofContext.init
     |> Instantiation.put (mk_instantiation ((tycos, vs, sort), params))
     |> fold (Variable.declare_term o Logic.mk_type o TFree) vs
     |> fold (Variable.declare_names o Free o snd) params
-    |> synchronize_inst_syntax
+    |> (Overloading.map_improvable_syntax o apfst)
+         (fn ((_, global_constraints), ((_, subst), unchecks)) =>
+            ((local_constraints, global_constraints), ((improve, subst), unchecks)))
     |> Overloading.add_improvable_syntax
+    |> synchronize_inst_syntax
   end;
 
 fun confirm_declaration c = (map_instantiation o apsnd)
