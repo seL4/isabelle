@@ -115,8 +115,8 @@ text {*
   \begin{itemize}
     \item The monad model does not state anything about
        the kind of state; the model for the state is
-       completely orthogonal and has to (or may) be
-       specified completely independent.
+       completely orthogonal and may be
+       specified completely independently.
     \item There is no distinguished type constructor
        encapsulating away the state transformation, i.e.~transformations
        may be applied directly without using any lifting
@@ -190,6 +190,26 @@ text {*
 
 lemmas monad_collapse = monad_simp o_apply o_assoc split_Pair split_comp
   mbind_def fcomp_def run_def
+
+subsection {* ML abstract operations *}
+
+ML {*
+structure StateMonad =
+struct
+
+fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
+fun liftT' sT = sT --> sT;
+
+fun return T sT x = Const (@{const_name return}, T --> liftT T sT) $ x;
+
+fun mbind T1 T2 sT f g = Const (@{const_name mbind},
+  liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
+
+fun run T sT f = Const (@{const_name run}, liftT' (liftT T sT)) $ f;
+
+end;
+*}
+
 
 subsection {* Syntax *}
 
@@ -270,8 +290,7 @@ primrec
 | "list_yield f (x#xs) = (do y \<leftarrow> f x; ys \<leftarrow> list_yield f xs; return (y#ys) done)"
 
 definition
-  collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a"
-  where
+  collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
   "collapse f = (do g \<leftarrow> f; g done)"
 
 text {* combinator properties *}
