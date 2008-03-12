@@ -3,7 +3,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Canonical order on @{text option} type *}
+header {* Canonical order on option type *}
 
 theory Option_ord
 imports ATP_Linkup
