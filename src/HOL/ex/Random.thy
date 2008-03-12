@@ -198,71 +198,124 @@ subsection {* The @{text random} class *}
 class random =
   fixes random :: "index \<Rightarrow> seed \<Rightarrow> 'a\<Colon>{} \<times> seed"
 
--- {* FIXME dummy implementations *}
-
-instantiation nat :: random
+instantiation itself :: (type) random
 begin
 
 definition
-  "random k = (if k = 0 then return 0 else apfst nat_of_index \<circ> range k)"
+  "random _ = return TYPE('a)"
 
 instance ..
 
 end
 
-instantiation bool :: random
-begin
+lemma random_aux_if:
+  fixes random' :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> 'a \<times> seed"
+  assumes "random' 0 j = undefined"
+    and "\<And>i. random' (Suc_index i) j = rhs2 i"
+  shows "random' i j s = (if i = 0 then undefined else rhs2 (i - 1) s)"
+  by (cases i rule: index.exhaust) (insert assms, simp_all add: undefined_fun)
 
-definition
-  "random _ = apfst (op = 0) \<circ> range 2"
-
-instance ..
-
-end
-
-instantiation unit :: random
-begin
-
-definition
-  "random _ = return ()"
-
-instance ..
-
-end
-
-instantiation "+" :: ("{type, random}", "{type, random}") random
-begin
-
-definition
-  "random n = (do
-     k \<leftarrow> next;
-     let l = k div 2;
-     (if k mod 2 = 0 then do 
-       x \<leftarrow> random l;
-       return (Inl x)
-     done else do
-       x \<leftarrow> random l;
-       return (Inr x)
-     done)
-   done)"
-
-instance ..
-
-end
-
-instantiation "*" :: ("{type, random}", "{type, random}") random
-begin
-
-definition
-  "random n = (do
-     x \<leftarrow> random n;
-     y \<leftarrow> random n;
-     return (x, y)
-   done)"
-
-instance ..
-
-end
+setup {*
+let
+  fun random_inst tyco thy =
+    let
+      val { descr, index, ... } = DatatypePackage.the_datatype thy tyco;
+      val (raw_vs, _) = DatatypePackage.the_datatype_spec thy tyco;
+      val vs = (map o apsnd)
+        (curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort random}) raw_vs;
+      val ty = Type (tyco, map TFree vs);
+      val typ_of = DatatypeAux.typ_of_dtyp descr vs;
+      val SOME (_, _, constrs) = AList.lookup (op =) descr index;
+      val randomN = NameSpace.base @{const_name random};
+      val random_aux_name = randomN ^ "_" ^ Class.type_name tyco ^ "'";
+      fun lift_ty ty = StateMonad.liftT ty @{typ seed};
+      val ty_aux = @{typ index} --> @{typ index} --> lift_ty ty;
+      fun random ty =
+        Const (@{const_name random}, @{typ index} --> lift_ty ty);
+      val random_aux = Free (random_aux_name, ty_aux);
+      fun add_cons_arg dty (is_rec, t) =
+        let
+          val ty' = typ_of dty;
+          val random' = if can DatatypeAux.dest_DtRec dty
+            then random_aux $ @{term "i\<Colon>index"} $ @{term "j\<Colon>index"}
+            else random ty' $ @{term "j\<Colon>index"}
+          val is_rec' = is_rec orelse DatatypeAux.is_rec_type dty;
+          val t' = StateMonad.mbind ty' ty @{typ seed} random' (Abs ("", ty', t))
+        in (is_rec', t') end;
+      fun mk_cons_t (c, dtys) =
+        let
+          val ty' = map typ_of dtys ---> ty;
+          val t = StateMonad.return ty @{typ seed} (list_comb (Const (c, ty'),
+            map Bound (length dtys - 1 downto 0)));
+          val (is_rec, t') = fold_rev add_cons_arg dtys (false, t);
+        in (is_rec, StateMonad.run ty @{typ seed} t') end;
+      fun check_empty [] = NONE
+        | check_empty xs = SOME xs;
+      fun bundle_cons_ts cons_ts =
+        let
+          val ts = map snd cons_ts;
+          val t = HOLogic.mk_list (lift_ty ty) ts;
+          val t' = Const (@{const_name select}, HOLogic.listT (lift_ty ty) --> lift_ty (lift_ty ty)) $ t;
+          val t'' = Const (@{const_name collapse}, lift_ty (lift_ty ty) --> lift_ty ty) $ t';
+        in t'' end;
+      fun bundle_conss (some_rec_t, nonrec_t) =
+        let
+          val rec' = case some_rec_t
+           of SOME rec_t => SOME (HOLogic.mk_prod (@{term "i\<Colon>index"}, rec_t))
+            | NONE => NONE;
+          val nonrec' = HOLogic.mk_prod (@{term "1\<Colon>index"}, nonrec_t);
+          val i_ty = HOLogic.mk_prodT (@{typ index}, lift_ty ty);
+          val t = HOLogic.mk_list i_ty (the_list rec' @ single nonrec');
+          val t' = Const (@{const_name select_weight}, HOLogic.listT i_ty --> lift_ty (lift_ty ty)) $ t;
+          val t'' = Const (@{const_name collapse}, lift_ty (lift_ty ty) --> lift_ty ty) $ t';
+        in t'' end;
+      val random_rhs = constrs
+        |> map mk_cons_t 
+        |> List.partition fst
+        |> apfst (Option.map bundle_cons_ts o check_empty)
+        |> apsnd bundle_cons_ts
+        |> bundle_conss;
+      val random_aux_undef = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
+        (random_aux $ @{term "0\<Colon>index"} $ @{term "j\<Colon>index"}, Const (@{const_name undefined}, lift_ty ty))
+      val random_aux_eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
+        (random_aux $ @{term "Suc_index i"} $ @{term "j\<Colon>index"}, random_rhs);
+      val random_eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq) (Const (@{const_name random},
+        @{typ index} --> lift_ty ty) $ @{term "i\<Colon>index"},
+          random_aux $ @{term "i\<Colon>index"} $ @{term "i\<Colon>index"});
+      val del_func = Attrib.internal (fn _ => Thm.declaration_attribute
+        (fn thm => Context.mapping (Code.del_func thm) I));
+      fun add_code simps lthy =
+        let
+          val thy = ProofContext.theory_of lthy;
+          val thm = @{thm random_aux_if}
+            |> Drule.instantiate' [SOME (Thm.ctyp_of thy ty)] [SOME (Thm.cterm_of thy random_aux)]
+            |> (fn thm => thm OF simps)
+            |> singleton (ProofContext.export lthy (ProofContext.init thy))
+        in
+          lthy
+          |> LocalTheory.theory (PureThy.note Thm.internalK (random_aux_name ^ "_code", thm)
+               #-> Code.add_func)
+        end;
+    in
+      thy
+      |> TheoryTarget.instantiation ([tyco], vs, @{sort random})
+      |> PrimrecPackage.add_primrec [(random_aux_name, SOME ty_aux, NoSyn)]
+           [(("", [del_func]), random_aux_undef), (("", [del_func]), random_aux_eq)]
+      |-> add_code
+      |> `(fn lthy => Syntax.check_term lthy random_eq)
+      |-> (fn eq => Specification.definition (NONE, (("", []), eq)))
+      |> snd
+      |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
+      |> LocalTheory.exit
+      |> ProofContext.theory_of
+    end;
+  fun add_random_inst [tyco] = (fn thy => case try (random_inst tyco) thy
+       of SOME thy => thy
+        | NONE => (warning ("Failed to generate random elements for type" ^ tyco); thy))
+    | add_random_inst tycos = tap (fn _ => warning
+        ("Will not generated random elements for mutual recursive types " ^ commas (map quote tycos)));
+in DatatypePackage.interpretation add_random_inst end
+*}
 
 instantiation int :: random
 begin
@@ -272,35 +325,6 @@ definition
      (b, m) \<leftarrow> random n;
      return (if b then int m else - int m)
    done)"
-
-instance ..
-
-end
-
-instantiation list :: ("{type, random}") random
-begin
-
-primrec random_list' :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> 'a\<Colon>{type, random} list \<times> seed"
-where
-  "random_list' 0 j = undefined"
-  | "random_list' (Suc_index i) j = collapse (select_weight [
-      (i, collapse (select [do x \<leftarrow> random i; xs \<leftarrow> random_list' i j; return (x#xs) done])),
-      (1, collapse (select [do return [] done]))
-    ])"
-
-declare random_list'.simps [code func del]
-
-lemma random_list'_code [code func]:
-  "random_list' i j = (if i = 0 then undefined else collapse (select_weight [
-      (i - 1, collapse (select [do x \<leftarrow> random (i - 1); xs \<leftarrow> random_list' (i - 1) j; return (x#xs) done])),
-      (1, collapse (select [do return [] done]))
-    ]))"
-apply (cases i rule: index.exhaust)
-apply (simp only:, subst random_list'.simps(1), simp only: Suc_not_Zero refl if_False if_True)
-apply (simp only:, subst random_list'.simps(2), simp only: Suc_not_Zero refl if_False if_True Suc_index_minus_one Suc_not_Zero_index)
-done
-
-definition "random i = random_list' i i"
 
 instance ..
 
@@ -341,6 +365,19 @@ fun compile_generator_expr thy prop tys =
       (mk_generator_expr prop tys) [];
   in f #> run #> (Option.map o map) (Code.postprocess_term thy) end;
 
+fun VALUE prop tys thy =
+  let
+    val t = mk_generator_expr prop tys;
+    val eq = Logic.mk_equals (Free ("VALUE", fastype_of t), t)
+  in
+    thy
+    |> TheoryTarget.init NONE
+    |> Specification.definition (NONE, (("", []), eq))
+    |> snd
+    |> LocalTheory.exit
+    |> ProofContext.theory_of
+  end;
+
 end
 *}
 
@@ -362,6 +399,16 @@ ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
   @{term "\<lambda>(n::int) (m::int) (q::int). n = m + q + 1"} [@{typ int}, @{typ int}, @{typ int}] *}
 
+(*setup {* Quickcheck.VALUE @{term "\<lambda>(n::int) (m::int) (q::int). n = m + q + 1"} [@{typ int}, @{typ int}, @{typ int}] *}
+
+export_code VALUE in SML module_name QuickcheckExample file "~~/../../gen_code/quickcheck.ML"
+
+definition "FOO = (True, Suc 0)"
+
+code_module (test) QuickcheckExample
+  file "~~/../../gen_code/quickcheck'.ML"
+  contains FOO*)
+
 ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
@@ -373,10 +420,13 @@ ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 3 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(xs\<Colon>int list) ys. rev (xs @ ys) = rev xs @ rev ys"}
-  [@{typ "int list"}, @{typ "int list"}] *}
+  @{term "\<lambda>(xs\<Colon>nat list) ys. rev (xs @ ys) = rev xs @ rev ys"}
+  [@{typ "nat list"}, @{typ "nat list"}] *}
 
 ML {* f 15 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
@@ -395,9 +445,7 @@ ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-
-ML {*   *}
+ML {* f 88 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 
 subsection {* Incremental function generator *}
 
