@@ -14,7 +14,7 @@ no_document use_thys [
   "FuncSet",
   "Word",
   "Eval_Examples",
-  "Random"
+  "Quickcheck"
 ];
 
 no_document use_thy "Codegenerator";
