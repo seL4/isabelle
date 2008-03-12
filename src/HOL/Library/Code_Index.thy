@@ -139,6 +139,10 @@ instance ..
 
 end
 
+lemma nat_of_index_number [simp]:
+  "nat_of_index (number_of k) = number_of k"
+  by (simp add: number_of_index_def nat_number_of_def number_of_is_id)
+
 code_datatype "number_of \<Colon> int \<Rightarrow> index"
 
 
