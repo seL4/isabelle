@@ -65,6 +65,10 @@ sig
   val datatype_of_constr : theory -> string -> DatatypeAux.datatype_info option
   val datatype_of_case : theory -> string -> DatatypeAux.datatype_info option
   val get_datatype_constrs : theory -> string -> (string * typ) list option
+  val construction_interpretation: theory
+    -> { atom: typ -> 'a, dtyp: string -> 'a, rtyp: string -> 'a list -> 'a }
+    -> (string * Term.sort) list -> string list
+    -> (string * (string * 'a list) list) list
   val interpretation: (string list -> theory -> theory) -> theory -> theory
   val print_datatypes : theory -> unit
   val make_case :  Proof.context -> bool -> string list -> term ->
@@ -158,6 +162,22 @@ fun get_datatype_constrs thy dtco =
           fun mk_co (co, tys) = (co, map (Term.map_atyps subst_ty) tys ---> dty);
         in SOME (map mk_co cos) end
     | NONE => NONE;
+
+fun construction_interpretation thy { atom, dtyp, rtyp } sorts tycos =
+  let
+    val descr = (#descr o the_datatype thy o hd) tycos;
+    val k = length tycos;
+    val descr_of = the o AList.lookup (op =) descr;
+    fun interpT (T as DtTFree _) = atom (typ_of_dtyp descr sorts T)
+      | interpT (T as DtType (tyco, Ts)) = if is_rec_type T
+          then rtyp tyco (map interpT Ts)
+          else atom (typ_of_dtyp descr sorts T)
+      | interpT (DtRec l) = if l < k then (dtyp o #1 o descr_of) l
+          else let val (tyco, Ts, _) = descr_of l
+          in rtyp tyco (map interpT Ts) end;
+    fun interpC (c, Ts) = (c, map interpT Ts);
+    fun interpK (_, (tyco, _, cs)) = (tyco, map interpC cs);
+  in map interpK (Library.take (k, descr)) end;
 
 fun find_tname var Bi =
   let val frees = map dest_Free (term_frees Bi)

@@ -46,7 +46,8 @@ fun mk_term f g (Const (c, ty)) =
       @{term Const} $ Message_String.mk c $ g ty
   | mk_term f g (t1 $ t2) =
       @{term App} $ mk_term f g t1 $ mk_term f g t2
-  | mk_term f g (Free v) = f v;
+  | mk_term f g (Free v) = f v
+  | mk_term f g (Bound i) = Bound i;
 
 fun mk_term_of ty t = Const (@{const_name term_of}, ty --> @{typ term}) $ t;
 
@@ -157,6 +158,7 @@ subsection {* Evaluation setup *}
 ML {*
 signature EVAL =
 sig
+  val mk_term: ((string * typ) -> term) -> (typ -> term) -> term -> term
   val eval_ref: (unit -> term) option ref
   val eval_term: theory -> term -> term
   val evaluate: Proof.context -> term -> unit
@@ -234,6 +236,7 @@ end
 *}
 
 hide (open) const term_of
-hide const Const App dummy_term
+hide (open) const Const App
+hide const dummy_term
 
 end
