@@ -95,6 +95,7 @@ sig
   val const_syntax_name: theory -> string -> string
   val const_typargs: theory -> string * typ -> typ list
   val const_instance: theory -> string * typ list -> typ
+  val mk_const: theory -> string * typ list -> term
   val class_space: theory -> NameSpace.T
   val type_space: theory -> NameSpace.T
   val const_space: theory -> NameSpace.T
@@ -263,6 +264,8 @@ val const_monomorphic = Consts.is_monomorphic o consts_of;
 val const_syntax_name = Consts.syntax_name o consts_of;
 val const_typargs = Consts.typargs o consts_of;
 val const_instance = Consts.instance o consts_of;
+
+fun mk_const thy (c, Ts) = Const (c, const_instance thy (c, Ts));
 
 val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
 val declared_const = can o the_const_constraint;

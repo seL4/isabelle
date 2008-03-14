@@ -257,8 +257,7 @@ val _ = inline_antiq "const"
     >> (fn ((ctxt, c), Ts) =>
       let
         val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c);
-        val T = Consts.instance (ProofContext.consts_of ctxt) (c, Ts);
-      in ML_Syntax.atomic (ML_Syntax.print_term (Const (c, T))) end));
+      in ML_Syntax.atomic (ML_Syntax.print_term (ProofContext.mk_const ctxt (c, Ts))) end));
 
 in val _ = () end;
 
