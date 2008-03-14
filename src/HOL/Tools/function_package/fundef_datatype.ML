@@ -309,7 +309,7 @@ fun fun_cmd config fixes statements flags lthy =
       |> LocalTheory.set_group group
       |> FundefPackage.add_fundef fixes statements config flags
       |> by_pat_completeness_simp
-      |> LocalTheory.reinit
+      |> LocalTheory.restore
       |> LocalTheory.set_group group
       |> termination_by_lexicographic_order
   end;
