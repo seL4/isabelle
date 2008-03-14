@@ -54,7 +54,7 @@ fun instance_cmd raw_arities defs thy =
     |> `(fn ctxt => map (mk_def ctxt) defs)
     |-> (fn defs => fold_map Specification.definition defs)
     |> snd
-    |> LocalTheory.reinit
+    |> LocalTheory.restore
     |> Class.instantiation_instance Class.conclude_instantiation
   else
     thy
