@@ -29,37 +29,29 @@ text {*
 
 subsection {* State transformations and combinators *}
 
-(*<*)
-typedecl \<alpha>
-typedecl \<beta>
-typedecl \<gamma>
-typedecl \<sigma>
-typedecl \<sigma>'
-(*>*)
-
 text {*
   We classify functions operating on states into two categories:
 
   \begin{description}
     \item[transformations]
-      with type signature @{typ "\<sigma> \<Rightarrow> \<sigma>'"},
+      with type signature @{text "\<sigma> \<Rightarrow> \<sigma>'"},
       transforming a state.
     \item[``yielding'' transformations]
-      with type signature @{typ "\<sigma> \<Rightarrow> \<alpha> \<times> \<sigma>'"},
+      with type signature @{text "\<sigma> \<Rightarrow> \<alpha> \<times> \<sigma>'"},
       ``yielding'' a side result while transforming a state.
     \item[queries]
-      with type signature @{typ "\<sigma> \<Rightarrow> \<alpha>"},
+      with type signature @{text "\<sigma> \<Rightarrow> \<alpha>"},
       computing a result dependent on a state.
   \end{description}
 
-  By convention we write @{typ "\<sigma>"} for types representing states
-  and @{typ "\<alpha>"}, @{typ "\<beta>"}, @{typ "\<gamma>"}, @{text "\<dots>"}
+  By convention we write @{text "\<sigma>"} for types representing states
+  and @{text "\<alpha>"}, @{text "\<beta>"}, @{text "\<gamma>"}, @{text "\<dots>"}
   for types representing side results.  Type changes due
   to transformations are not excluded in our scenario.
 
-  We aim to assert that values of any state type @{typ "\<sigma>"}
+  We aim to assert that values of any state type @{text "\<sigma>"}
   are used in a single-threaded way: after application
-  of a transformation on a value of type @{typ "\<sigma>"}, the
+  of a transformation on a value of type @{text "\<sigma>"}, the
   former value should not be used again.  To achieve this,
   we use a set of monad combinators:
 *}
