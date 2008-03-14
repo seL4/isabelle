@@ -33,6 +33,7 @@ imports
   Numeral_Type
   OptionalSugar
   Option_ord
+  Order_Relation
   Parity
   Permutation
   Primes
