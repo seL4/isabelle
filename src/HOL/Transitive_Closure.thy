@@ -63,6 +63,18 @@ notation (HTML output)
   reflcl  ("(_\<^sup>=)" [1000] 999)
 
 
+subsection {* Reflexive closure *}
+
+lemma reflexive_reflcl[simp]: "reflexive(r^=)"
+by(simp add:refl_def)
+
+lemma antisym_reflcl[simp]: "antisym(r^=) = antisym r"
+by(simp add:antisym_def)
+
+lemma trans_reflclI[simp]: "trans r \<Longrightarrow> trans(r^=)"
+unfolding trans_def by blast
+
+
 subsection {* Reflexive-transitive closure *}
 
 lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) op =) = (\<lambda>x y. (x, y) \<in> r Un Id)"
@@ -546,7 +558,7 @@ lemma trancl_domain [simp]: "Domain (r^+) = Domain r"
   by (unfold Domain_def) (blast dest: tranclD)
 
 lemma trancl_range [simp]: "Range (r^+) = Range r"
-  by (simp add: Range_def trancl_converse [symmetric])
+unfolding Range_def by(simp add: trancl_converse [symmetric])
 
 lemma Not_Domain_rtrancl:
     "x ~: Domain R ==> ((x, y) : R^*) = (x = y)"

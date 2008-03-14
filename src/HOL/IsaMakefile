@@ -170,7 +170,7 @@ $(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex			\
 HOL-Complex: HOL $(OUT)/HOL-Complex
 
 $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML $(SRC)/Tools/float.ML \
-  Library/Zorn.thy							\
+  Library/Zorn.thy Library/Order_Relation.thy				\
   Real/ContNotDenum.thy Real/float_arith.ML Real/Float.thy		\
   Real/Lubs.thy Real/PReal.thy Real/RComplete.thy 			\
   Real/Rational.thy Real/Real.thy Real/RealDef.thy Real/RealPow.thy	\
