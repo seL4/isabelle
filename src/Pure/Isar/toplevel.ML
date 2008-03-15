@@ -273,8 +273,8 @@ fun exn_message e =
     fun exn_msg _ (CONTEXT (ctxt, exn)) = exn_msg (SOME ctxt) exn
       | exn_msg ctxt (Exn.EXCEPTIONS (exns, "")) = cat_lines (map (exn_msg ctxt) exns)
       | exn_msg ctxt (Exn.EXCEPTIONS (exns, msg)) = cat_lines (map (exn_msg ctxt) exns @ [msg])
-      | exn_msg ctxt (EXCURSION_FAIL (exn, loc)) = exn_msg ctxt exn ^
-          Output.escape (Markup.enclose Markup.location (Output.output ("\n" ^ loc)))
+      | exn_msg ctxt (EXCURSION_FAIL (exn, loc)) =
+          exn_msg ctxt exn ^ Markup.markup Markup.location ("\n" ^ loc)
       | exn_msg _ TERMINATE = "Exit."
       | exn_msg _ RESTART = "Restart."
       | exn_msg _ Interrupt = "Interrupt."
