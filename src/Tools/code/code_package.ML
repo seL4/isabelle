@@ -194,7 +194,7 @@ fun mk_codeprops thy all_cs sel_cs =
         val propdef = (((c, ty), tfree_vars @ map Free vars), t);
       in if c = "" then NONE else SOME (thmref, propdef) end;
   in
-    PureThy.thms_containing thy ([], [])
+    Facts.dest (PureThy.all_facts_of thy)
     |> maps PureThy.selections
     |> map_filter select
     |> map_filter mk_codeprop
