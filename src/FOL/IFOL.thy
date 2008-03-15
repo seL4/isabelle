@@ -784,7 +784,115 @@ lemma LetI:
   done
 
 
-subsection {* ML bindings *}
+subsection {* Intuitionistic simplification rules *}
+
+lemma conj_simps:
+  "P & True <-> P"
+  "True & P <-> P"
+  "P & False <-> False"
+  "False & P <-> False"
+  "P & P <-> P"
+  "P & P & Q <-> P & Q"
+  "P & ~P <-> False"
+  "~P & P <-> False"
+  "(P & Q) & R <-> P & (Q & R)"
+  by iprover+
+
+lemma disj_simps:
+  "P | True <-> True"
+  "True | P <-> True"
+  "P | False <-> P"
+  "False | P <-> P"
+  "P | P <-> P"
+  "P | P | Q <-> P | Q"
+  "(P | Q) | R <-> P | (Q | R)"
+  by iprover+
+
+lemma not_simps:
+  "~(P|Q)  <-> ~P & ~Q"
+  "~ False <-> True"
+  "~ True <-> False"
+  by iprover+
+
+lemma imp_simps:
+  "(P --> False) <-> ~P"
+  "(P --> True) <-> True"
+  "(False --> P) <-> True"
+  "(True --> P) <-> P"
+  "(P --> P) <-> True"
+  "(P --> ~P) <-> ~P"
+  by iprover+
+
+lemma iff_simps:
+  "(True <-> P) <-> P"
+  "(P <-> True) <-> P"
+  "(P <-> P) <-> True"
+  "(False <-> P) <-> ~P"
+  "(P <-> False) <-> ~P"
+  by iprover+
+
+(*The x=t versions are needed for the simplification procedures*)
+lemma quant_simps:
+  "!!P. (ALL x. P) <-> P"
+  "(ALL x. x=t --> P(x)) <-> P(t)"
+  "(ALL x. t=x --> P(x)) <-> P(t)"
+  "!!P. (EX x. P) <-> P"
+  "EX x. x=t"
+  "EX x. t=x"
+  "(EX x. x=t & P(x)) <-> P(t)"
+  "(EX x. t=x & P(x)) <-> P(t)"
+  by iprover+
+
+(*These are NOT supplied by default!*)
+lemma distrib_simps:
+  "P & (Q | R) <-> P&Q | P&R"
+  "(Q | R) & P <-> Q&P | R&P"
+  "(P | Q --> R) <-> (P --> R) & (Q --> R)"
+  by iprover+
+
+
+text {* Conversion into rewrite rules *}
+
+lemma P_iff_F: "~P ==> (P <-> False)" by iprover
+lemma iff_reflection_F: "~P ==> (P == False)" by (rule P_iff_F [THEN iff_reflection])
+
+lemma P_iff_T: "P ==> (P <-> True)" by iprover
+lemma iff_reflection_T: "P ==> (P == True)" by (rule P_iff_T [THEN iff_reflection])
+
+
+text {* More rewrite rules *}
+
+lemma conj_commute: "P&Q <-> Q&P" by iprover
+lemma conj_left_commute: "P&(Q&R) <-> Q&(P&R)" by iprover
+lemmas conj_comms = conj_commute conj_left_commute
+
+lemma disj_commute: "P|Q <-> Q|P" by iprover
+lemma disj_left_commute: "P|(Q|R) <-> Q|(P|R)" by iprover
+lemmas disj_comms = disj_commute disj_left_commute
+
+lemma conj_disj_distribL: "P&(Q|R) <-> (P&Q | P&R)" by iprover
+lemma conj_disj_distribR: "(P|Q)&R <-> (P&R | Q&R)" by iprover
+
+lemma disj_conj_distribL: "P|(Q&R) <-> (P|Q) & (P|R)" by iprover
+lemma disj_conj_distribR: "(P&Q)|R <-> (P|R) & (Q|R)" by iprover
+
+lemma imp_conj_distrib: "(P --> (Q&R)) <-> (P-->Q) & (P-->R)" by iprover
+lemma imp_conj: "((P&Q)-->R)   <-> (P --> (Q --> R))" by iprover
+lemma imp_disj: "(P|Q --> R)   <-> (P-->R) & (Q-->R)" by iprover
+
+lemma de_Morgan_disj: "(~(P | Q)) <-> (~P & ~Q)" by iprover
+
+lemma not_ex: "(~ (EX x. P(x))) <-> (ALL x.~P(x))" by iprover
+lemma imp_ex: "((EX x. P(x)) --> Q) <-> (ALL x. P(x) --> Q)" by iprover
+
+lemma ex_disj_distrib:
+  "(EX x. P(x) | Q(x)) <-> ((EX x. P(x)) | (EX x. Q(x)))" by iprover
+
+lemma all_conj_distrib:
+  "(ALL x. P(x) & Q(x)) <-> ((ALL x. P(x)) & (ALL x. Q(x)))" by iprover
+
+
+subsection {* Legacy ML bindings *}
 
 ML {*
 val refl = @{thm refl}

@@ -198,6 +198,91 @@ lemma all_comm: "(ALL x y. P(x,y)) <-> (ALL y x. P(x,y))" by blast
 
 lemma ex_comm: "(EX x y. P(x,y)) <-> (EX y x. P(x,y))" by blast
 
+
+
+(*** Classical simplification rules ***)
+
+(*Avoids duplication of subgoals after expand_if, when the true and false
+  cases boil down to the same thing.*)
+lemma cases_simp: "(P --> Q) & (~P --> Q) <-> Q" by blast
+
+
+(*** Miniscoping: pushing quantifiers in
+     We do NOT distribute of ALL over &, or dually that of EX over |
+     Baaz and Leitsch, On Skolemization and Proof Complexity (1994)
+     show that this step can increase proof length!
+***)
+
+(*existential miniscoping*)
+lemma int_ex_simps:
+  "!!P Q. (EX x. P(x) & Q) <-> (EX x. P(x)) & Q"
+  "!!P Q. (EX x. P & Q(x)) <-> P & (EX x. Q(x))"
+  "!!P Q. (EX x. P(x) | Q) <-> (EX x. P(x)) | Q"
+  "!!P Q. (EX x. P | Q(x)) <-> P | (EX x. Q(x))"
+  by iprover+
+
+(*classical rules*)
+lemma cla_ex_simps:
+  "!!P Q. (EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q"
+  "!!P Q. (EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"
+  by blast+
+
+lemmas ex_simps = int_ex_simps cla_ex_simps
+
+(*universal miniscoping*)
+lemma int_all_simps:
+  "!!P Q. (ALL x. P(x) & Q) <-> (ALL x. P(x)) & Q"
+  "!!P Q. (ALL x. P & Q(x)) <-> P & (ALL x. Q(x))"
+  "!!P Q. (ALL x. P(x) --> Q) <-> (EX x. P(x)) --> Q"
+  "!!P Q. (ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))"
+  by iprover+
+
+(*classical rules*)
+lemma cla_all_simps:
+  "!!P Q. (ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q"
+  "!!P Q. (ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"
+  by blast+
+
+lemmas all_simps = int_all_simps cla_all_simps
+
+
+(*** Named rewrite rules proved for IFOL ***)
+
+lemma imp_disj1: "(P-->Q) | R <-> (P-->Q | R)" by blast
+lemma imp_disj2: "Q | (P-->R) <-> (P-->Q | R)" by blast
+
+lemma de_Morgan_conj: "(~(P & Q)) <-> (~P | ~Q)" by blast
+
+lemma not_imp: "~(P --> Q) <-> (P & ~Q)" by blast
+lemma not_iff: "~(P <-> Q) <-> (P <-> ~Q)" by blast
+
+lemma not_all: "(~ (ALL x. P(x))) <-> (EX x.~P(x))" by blast
+lemma imp_all: "((ALL x. P(x)) --> Q) <-> (EX x. P(x) --> Q)" by blast
+
+
+lemmas meta_simps =
+  triv_forall_equality (* prunes params *)
+  True_implies_equals  (* prune asms `True' *)
+
+lemmas IFOL_simps =
+  refl [THEN P_iff_T] conj_simps disj_simps not_simps
+  imp_simps iff_simps quant_simps
+
+lemma notFalseI: "~False" by iprover
+
+lemma cla_simps_misc:
+  "~(P&Q) <-> ~P | ~Q"
+  "P | ~P"
+  "~P | P"
+  "~ ~ P <-> P"
+  "(~P --> P) <-> P"
+  "(~P <-> ~Q) <-> (P<->Q)" by blast+
+
+lemmas cla_simps =
+  de_Morgan_conj de_Morgan_disj imp_disj1 imp_disj2
+  not_imp not_all not_ex cases_simp cla_simps_misc
+
+
 use "simpdata.ML"
 setup simpsetup
 setup "Simplifier.method_setup Splitter.split_modifiers"
