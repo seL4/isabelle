@@ -29,8 +29,7 @@ sig
   val mk_const: Proof.context -> string * typ list -> term
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
-  val theorems_of: Proof.context -> thm list NameSpace.table
-  val fact_index_of: Proof.context -> FactIndex.T
+  val facts_of: Proof.context -> Facts.T
   val transfer: theory -> Proof.context -> Proof.context
   val theory: (theory -> theory) -> Proof.context -> Proof.context
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
@@ -93,18 +92,14 @@ sig
   val fact_tac: thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
   val get_thm: Proof.context -> thmref -> thm
-  val get_thm_closure: Proof.context -> thmref -> thm
   val get_thms: Proof.context -> thmref -> thm list
-  val get_thms_closure: Proof.context -> thmref -> thm list
   val valid_thms: Proof.context -> string * thm list -> bool
-  val lthms_containing: Proof.context -> FactIndex.spec -> (string * thm list) list
   val add_path: string -> Proof.context -> Proof.context
   val no_base_names: Proof.context -> Proof.context
   val qualified_names: Proof.context -> Proof.context
   val sticky_prefix: string -> Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
-  val hide_thms: bool -> string list -> Proof.context -> Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
   val note_thmss: string ->
     ((bstring * attribute list) * (thmref * attribute list) list) list ->
@@ -155,7 +150,6 @@ structure ProofContext: PROOF_CONTEXT =
 struct
 
 val theory_of = Context.theory_of_proof;
-
 val init = Context.init_proof;
 
 
@@ -187,12 +181,12 @@ datatype ctxt =
     naming: NameSpace.naming,                         (*local naming conventions*)
     syntax: LocalSyntax.T,                            (*local syntax*)
     consts: Consts.T * Consts.T,                      (*local/global consts*)
-    thms: thm list NameSpace.table * FactIndex.T,     (*local thms*)
-    cases: (string * (RuleCases.T * bool)) list};     (*local contexts*)
+    facts: Facts.T,                                   (*local facts*)
+    cases: (string * (RuleCases.T * bool)) list};     (*named case contexts*)
 
-fun make_ctxt (mode, naming, syntax, consts, thms, cases) =
+fun make_ctxt (mode, naming, syntax, consts, facts, cases) =
   Ctxt {mode = mode, naming = naming, syntax = syntax,
-    consts = consts, thms = thms, cases = cases};
+    consts = consts, facts = facts, cases = cases};
 
 val local_naming = NameSpace.default_naming |> NameSpace.add_path "local";
 
@@ -201,42 +195,41 @@ structure ContextData = ProofDataFun
   type T = ctxt;
   fun init thy =
     make_ctxt (mode_default, local_naming, LocalSyntax.init thy,
-      (Sign.consts_of thy, Sign.consts_of thy),
-      (NameSpace.empty_table, FactIndex.empty), []);
+      (Sign.consts_of thy, Sign.consts_of thy), Facts.empty, []);
 );
 
 fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
 
 fun map_context f =
-  ContextData.map (fn Ctxt {mode, naming, syntax, consts, thms, cases} =>
-    make_ctxt (f (mode, naming, syntax, consts, thms, cases)));
+  ContextData.map (fn Ctxt {mode, naming, syntax, consts, facts, cases} =>
+    make_ctxt (f (mode, naming, syntax, consts, facts, cases)));
 
-fun set_mode mode = map_context (fn (_, naming, syntax, consts, thms, cases) =>
-  (mode, naming, syntax, consts, thms, cases));
+fun set_mode mode = map_context (fn (_, naming, syntax, consts, facts, cases) =>
+  (mode, naming, syntax, consts, facts, cases));
 
 fun map_mode f =
-  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, consts, thms, cases) =>
-    (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, consts, thms, cases));
+  map_context (fn (Mode {stmt, pattern, schematic, abbrev}, naming, syntax, consts, facts, cases) =>
+    (make_mode (f (stmt, pattern, schematic, abbrev)), naming, syntax, consts, facts, cases));
 
 fun map_naming f =
-  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
-    (mode, f naming, syntax, consts, thms, cases));
+  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
+    (mode, f naming, syntax, consts, facts, cases));
 
 fun map_syntax f =
-  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
-    (mode, naming, f syntax, consts, thms, cases));
+  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
+    (mode, naming, f syntax, consts, facts, cases));
 
 fun map_consts f =
-  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
-    (mode, naming, syntax, f consts, thms, cases));
+  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
+    (mode, naming, syntax, f consts, facts, cases));
 
-fun map_thms f =
-  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
-    (mode, naming, syntax, consts, f thms, cases));
+fun map_facts f =
+  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
+    (mode, naming, syntax, consts, f facts, cases));
 
 fun map_cases f =
-  map_context (fn (mode, naming, syntax, consts, thms, cases) =>
-    (mode, naming, syntax, consts, thms, f cases));
+  map_context (fn (mode, naming, syntax, consts, facts, cases) =>
+    (mode, naming, syntax, consts, facts, f cases));
 
 val get_mode = #mode o rep_context;
 fun restore_mode ctxt = set_mode (get_mode ctxt);
@@ -258,10 +251,7 @@ val the_const_constraint = Consts.the_constraint o consts_of;
 
 fun mk_const ctxt (c, Ts) = Const (c, Consts.instance (consts_of ctxt) (c, Ts));
 
-val thms_of = #thms o rep_context;
-val theorems_of = #1 o thms_of;
-val fact_index_of = #2 o thms_of;
-
+val facts_of = #facts o rep_context;
 val cases_of = #cases o rep_context;
 
 
@@ -795,10 +785,7 @@ fun comp_incr_tac [] _ st = no_tac st
 fun fact_tac facts = Goal.norm_hhf_tac THEN' comp_incr_tac facts;
 
 fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) =>
-  let
-    val index = fact_index_of ctxt;
-    val facts = FactIndex.could_unify index (Term.strip_all_body goal);
-  in fact_tac facts i end);
+  fact_tac (Facts.could_unify (facts_of ctxt) (Term.strip_all_body goal)) i);
 
 
 (* get_thm(s) *)
@@ -813,21 +800,20 @@ fun retrieve_thms _ pick ctxt (Fact s) =
   | retrieve_thms from_thy pick ctxt xthmref =
       let
         val thy = theory_of ctxt;
-        val (space, tab) = #1 (thms_of ctxt);
+        val local_facts = facts_of ctxt;
+        val space = Facts.space_of local_facts;
         val thmref = PureThy.map_name_of_thmref (NameSpace.intern space) xthmref;
         val name = PureThy.name_of_thmref thmref;
         val thms =
           if name = "" then [Thm.transfer thy Drule.dummy_thm]
           else
-            (case Symtab.lookup tab name of
+            (case Facts.lookup local_facts name of
               SOME ths => map (Thm.transfer thy) (PureThy.select_thm thmref ths)
             | NONE => from_thy thy xthmref);
       in pick name thms end;
 
 val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
-val get_thm_closure = retrieve_thms PureThy.get_thms_closure PureThy.single_thm;
 val get_thms = retrieve_thms PureThy.get_thms (K I);
-val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 
 
 (* valid_thms *)
@@ -836,15 +822,6 @@ fun valid_thms ctxt (name, ths) =
   (case try (fn () => get_thms ctxt (Name name)) () of
     NONE => false
   | SOME ths' => Thm.eq_thms (ths, ths'));
-
-
-(* lthms_containing *)
-
-fun lthms_containing ctxt spec =
-  FactIndex.find (fact_index_of ctxt) spec
-  |> map (fn (name, ths) =>
-    if valid_thms ctxt (name, ths) then (name, ths)
-    else (NameSpace.hidden (if name = "" then "unnamed" else name), ths));
 
 
 (* name space operations *)
@@ -856,35 +833,15 @@ val sticky_prefix   = map_naming o NameSpace.sticky_prefix;
 val restore_naming  = map_naming o K o naming_of;
 val reset_naming    = map_naming (K local_naming);
 
-fun hide_thms fully names = map_thms (fn ((space, tab), index) =>
-  ((fold (NameSpace.hide fully) names space, tab), index));
 
+(* facts *)
 
-(* put_thms *)
-
-fun update_thms _ ("", NONE) ctxt = ctxt
-  | update_thms opts ("", SOME ths) ctxt = ctxt |> map_thms (fn (facts, index) =>
-      let
-        val index' = uncurry FactIndex.add_local opts ("", ths) index;
-      in (facts, index') end)
-  | update_thms _ (bname, NONE) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
-      let
-        val name = full_name ctxt bname;
-        val tab' = Symtab.delete_safe name tab;
-      in ((space, tab'), index) end)
-  | update_thms opts (bname, SOME ths) ctxt = ctxt |> map_thms (fn ((space, tab), index) =>
-      let
-        val name = full_name ctxt bname;
-        val space' = NameSpace.declare (naming_of ctxt) name space;
-        val tab' = Symtab.update (name, ths) tab;
-        val index' = uncurry FactIndex.add_local opts (name, ths) index;
-      in ((space', tab'), index') end);
+fun update_thms _ (bname, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt bname))
+  | update_thms do_props (bname, SOME ths) ctxt = ctxt |> map_facts
+      (Facts.add do_props (naming_of ctxt) (full_name ctxt bname, ths));
 
 fun put_thms do_props thms ctxt =
-  ctxt |> map_naming (K local_naming) |> update_thms (do_props, false) thms |> restore_naming ctxt;
-
-
-(* note_thmss *)
+  ctxt |> map_naming (K local_naming) |> update_thms do_props thms |> restore_naming ctxt;
 
 local
 
@@ -897,7 +854,7 @@ fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn c
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = PureThy.name_thms false false name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;
-  in ((bname, thms), ctxt' |> update_thms (stmt, true) (bname, SOME thms)) end);
+  in ((bname, thms), ctxt' |> update_thms stmt (bname, SOME thms)) end);
 
 in
 
@@ -1197,10 +1154,9 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 
 fun pretty_lthms ctxt =
   let
-    val props = FactIndex.props (fact_index_of ctxt);
-    val facts =
-      (if null props then I else cons ("unnamed", props))
-      (NameSpace.extern_table (#1 (thms_of ctxt)));
+    val local_facts = facts_of ctxt;
+    val props = Facts.props local_facts;
+    val facts = (if null props then I else cons ("unnamed", props)) (Facts.extern local_facts);
   in
     if null facts andalso not (! verbose) then []
     else [Pretty.big_list "facts:" (map (pretty_fact ctxt) facts)]
