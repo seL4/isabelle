@@ -250,24 +250,46 @@ fun selections (name, [thm]) = [(Name name, thm)]
 
 (* lookup/get thms *)
 
-fun lookup_thms thy =
+local
+
+fun lookup_thms thy xname =
   let
     val (space, thms) = #theorems (get_theorems thy);
-    val thy_ref = Theory.check_thy thy;
-  in
-    fn name =>
-      Option.map (map (Thm.transfer (Theory.deref thy_ref)))     (*dynamic identity*)
-      (Symtab.lookup thms (NameSpace.intern space name)) (*static content*)
-  end;
+    val name = NameSpace.intern space xname;
+  in Option.map (pair name) (Symtab.lookup thms name) end;
+
+fun lookup_fact thy xname =
+  let
+    val facts = all_facts_of thy;
+    val name = NameSpace.intern (Facts.space_of facts) xname;
+  in Option.map (pair name) (Facts.lookup facts name) end;
+
+fun show_result NONE = "none"
+  | show_result (SOME (name, _)) = quote name;
+
+in
 
 fun get_thms theory thmref =
-  let val name = name_of_thmref thmref in
-    get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory)
-    |> the_thms name |> select_thm thmref |> map (Thm.transfer theory)
-  end;
+  let
+    val name = name_of_thmref thmref;
+    val new_res = lookup_fact theory name;
+    val old_res = get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory);
+    val is_same =
+      (case (new_res, old_res) of
+        (NONE, NONE) => true
+      | (SOME (name1, ths1), SOME (name2, ths2)) => name1 = name2 andalso Thm.eq_thms (ths1, ths2)
+      | _ => false);
+    val _ =
+      if is_same then ()
+      else legacy_feature ("Fact lookup differs from old-style thm database:\n" ^
+        show_result new_res ^ " vs " ^ show_result old_res ^
+        Position.str_of (Position.thread_data ()));
+  in Option.map #2 old_res |> the_thms name |> select_thm thmref |> map (Thm.transfer theory) end;
 
 fun get_thmss thy thmrefs = maps (get_thms thy) thmrefs;
 fun get_thm thy thmref = single_thm (name_of_thmref thmref) (get_thms thy thmref);
+
+end;
 
 
 (* thms_of etc. *)
