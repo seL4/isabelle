@@ -283,7 +283,7 @@ fun try_ml_file dir name time =
     if is_none (ThyLoad.check_file dir path) then ()
     else
       let
-        val _ = legacy_feature ("loading attached ML script " ^ quote (Path.implode path));
+        val _ = legacy_feature ("Loading attached ML script " ^ quote (Path.implode path));
         val tr = Toplevel.imperative (fn () =>
           ML_Context.setmp (SOME (Context.Theory (ThyInfo.get_theory name)))
             (fn () => ThyInfo.load_file time path) ());

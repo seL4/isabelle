@@ -222,7 +222,7 @@ fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
 
 fun legacy_tac st =
   (legacy_feature
-      ("implicit use of prems in assumption proof" ^ Position.str_of (Position.thread_data ()));
+      ("Implicit use of prems in assumption proof" ^ Position.str_of (Position.thread_data ()));
     all_tac st);
 
 fun assm_tac ctxt =

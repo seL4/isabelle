@@ -309,7 +309,7 @@ fun make_cases is_open rule =
   RuleCases.make_common is_open (Thm.theory_of_thm rule, Thm.prop_of rule);
 
 fun warn_open true =
-      legacy_feature ("open rule cases in proof method" ^ Position.str_of (Position.thread_data ()))
+      legacy_feature ("Open rule cases in proof method" ^ Position.str_of (Position.thread_data ()))
   | warn_open false = ();
 
 

@@ -111,7 +111,7 @@ fun prompt s = ! prompt_fn (output s);
 
 val tolerate_legacy_features = ref true;
 fun legacy_feature s =
-  (if ! tolerate_legacy_features then warning else error) ("Legacy feature: " ^ s);
+  (if ! tolerate_legacy_features then warning else error) ("Legacy feature! " ^ s);
 
 fun no_warnings f = setmp warning_fn (K ()) f;
 
