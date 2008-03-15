@@ -45,18 +45,13 @@ sig
   val has_internal: Markup.property list -> bool
   val is_internal: thm -> bool
   val string_of_thmref: thmref -> string
-  val get_thm_closure: theory -> thmref -> thm
-  val get_thms_closure: theory -> thmref -> thm list
   val single_thm: string -> thm list -> thm
   val name_of_thmref: thmref -> string
   val map_name_of_thmref: (string -> string) -> thmref -> thmref
   val select_thm: thmref -> thm list -> thm list
   val selections: string * thm list -> (thmref * thm) list
   val theorems_of: theory -> thm list NameSpace.table
-  val fact_index_of: theory -> FactIndex.T
-  val valid_thms: theory -> thmref * thm list -> bool
-  val thms_containing: theory -> FactIndex.spec -> (string * thm list) list
-  val thms_containing_consts: theory -> string list -> (string * thm) list
+  val all_facts_of: theory -> Facts.T
   val thms_of: theory -> (string * thm) list
   val all_thms_of: theory -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
@@ -156,25 +151,28 @@ val is_internal = has_internal o Thm.get_tags;
 
 (** dataype theorems **)
 
+datatype thms = Thms of
+ {theorems: thm list NameSpace.table,   (* FIXME legacy *)
+  all_facts: Facts.T};
+
+fun make_thms theorems all_facts = Thms {theorems = theorems, all_facts = all_facts};
+
 structure TheoremsData = TheoryDataFun
 (
-  type T =
-   {theorems: thm list NameSpace.table,
-    index: FactIndex.T} ref;
-
-  fun mk_empty _ =
-    ref {theorems = NameSpace.empty_table, index = FactIndex.empty}: T;
-
-  val empty = mk_empty ();
+  type T = thms ref;   (* FIXME legacy *)
+  val empty = ref (make_thms NameSpace.empty_table Facts.empty);
   fun copy (ref x) = ref x;
-  val extend = mk_empty;
-  fun merge _ = mk_empty;
+  fun extend (ref (Thms {theorems = _, all_facts})) = ref (make_thms NameSpace.empty_table all_facts);
+  fun merge _
+     (ref (Thms {theorems = _, all_facts = all_facts1}),
+      ref (Thms {theorems = _, all_facts = all_facts2})) =
+    ref (make_thms NameSpace.empty_table (Facts.merge (all_facts1, all_facts2)));
 );
 
 val get_theorems_ref = TheoremsData.get;
-val get_theorems = ! o get_theorems_ref;
+val get_theorems = (fn Thms args => args) o ! o get_theorems_ref;
 val theorems_of = #theorems o get_theorems;
-val fact_index_of = #index o get_theorems;
+val all_facts_of = #all_facts o get_theorems;
 
 
 
@@ -250,9 +248,7 @@ fun selections (name, [thm]) = [(Name name, thm)]
       (NameSelection (name, [Single i]), thm));
 
 
-(* get_thm(s)_closure -- statically scoped versions *)
-
-(*beware of proper order of evaluation!*)
+(* lookup/get thms *)
 
 fun lookup_thms thy =
   let
@@ -264,20 +260,6 @@ fun lookup_thms thy =
       (Symtab.lookup thms (NameSpace.intern space name)) (*static content*)
   end;
 
-fun get_thms_closure thy =
-  let val closures = map lookup_thms (thy :: Theory.ancestors_of thy) in
-    fn thmref =>
-      let val name = name_of_thmref thmref;
-      in select_thm thmref (the_thms name (get_first (fn f => f name) closures)) end
-  end;
-
-fun get_thm_closure thy =
-  let val get = get_thms_closure thy
-  in fn thmref => single_thm (name_of_thmref thmref) (get thmref) end;
-
-
-(* get_thms etc. *)
-
 fun get_thms theory thmref =
   let val name = name_of_thmref thmref in
     get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory)
@@ -286,25 +268,6 @@ fun get_thms theory thmref =
 
 fun get_thmss thy thmrefs = maps (get_thms thy) thmrefs;
 fun get_thm thy thmref = single_thm (name_of_thmref thmref) (get_thms thy thmref);
-
-
-(* thms_containing etc. *)
-
-fun valid_thms thy (thmref, ths) =
-  (case try (get_thms thy) thmref of
-    NONE => false
-  | SOME ths' => Thm.eq_thms (ths, ths'));
-
-fun thms_containing theory spec =
-  (theory :: Theory.ancestors_of theory)
-  |> maps (fn thy =>
-      FactIndex.find (fact_index_of thy) spec
-      |> List.filter (fn (name, ths) => valid_thms theory (Name name, ths))
-      |> distinct (eq_fst (op =)));
-
-fun thms_containing_consts thy consts =
-  thms_containing thy (consts, []) |> maps #2
-  |> map (`(get_name_hint));
 
 
 (* thms_of etc. *)
@@ -323,9 +286,9 @@ fun all_thms_of thy = maps thms_of (thy :: Theory.ancestors_of thy);
 
 fun hide_thms fully names thy = CRITICAL (fn () =>
   let
-    val r as ref {theorems = (space, thms), index} = get_theorems_ref thy;
+    val r as ref (Thms {theorems = (space, thms), all_facts}) = get_theorems_ref thy;
     val space' = fold (NameSpace.hide fully) names space;
-  in r := {theorems = (space', thms), index = index}; thy end);
+  in r := make_thms (space', thms) all_facts; thy end);
 
 
 (* fact specifications *)
@@ -365,17 +328,17 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
       let
         val name = Sign.full_name thy bname;
         val (thy', thms') = apsnd (post_name name) (app_att (thy, pre_name name thms));
-        val r as ref {theorems = (space, theorems), index} = get_theorems_ref thy';
+        val r as ref (Thms {theorems = (space, theorems), all_facts}) = get_theorems_ref thy';
         val space' = Sign.declare_name thy' name space;
         val theorems' = Symtab.update (name, thms') theorems;
-        val index' = FactIndex.add_global (name, thms') index;
+        val all_facts' = Facts.add false (Sign.naming_of thy') (name, thms') all_facts;
       in
         (case Symtab.lookup theorems name of
           NONE => ()
         | SOME thms'' =>
             if Thm.eq_thms (thms', thms'') then warn_same name
             else warn_overwrite name);
-        r := {theorems = (space', theorems'), index = index'};
+        r := make_thms (space', theorems') all_facts';
         (thms', thy')
       end);
 
