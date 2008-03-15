@@ -469,7 +469,7 @@ let
                    (*some risk of excessive simplification here -- might have
                      to identify the bare minimum set of rewrites*)
                    full_simp_tac
-                      (mut_ss addsimps conj_simps @ imp_simps @ quant_simps) 1
+                      (mut_ss addsimps @{thms conj_simps} @ @{thms imp_simps} @ @{thms quant_simps}) 1
                    THEN
                    (*unpackage and use "prem" in the corresponding place*)
                    REPEAT (rtac impI 1)  THEN

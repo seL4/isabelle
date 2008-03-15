@@ -63,7 +63,7 @@ done
 
 (*backtracking version*)
 ML {*
-val prolog_tac = DEPTH_FIRST (has_fewer_prems 1) (resolve_tac (thms "rules") 1)
+val prolog_tac = DEPTH_FIRST (has_fewer_prems 1) (resolve_tac (@{thms rules}) 1)
 *}
 
 lemma "rev(?x, a:b:c:Nil)"
@@ -76,13 +76,13 @@ done
 
 (*rev([a..p], ?w) requires 153 inferences *)
 lemma "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil, ?w)"
-apply (tactic {* DEPTH_SOLVE (resolve_tac ([refl, conjI] @ thms "rules") 1) *})
+apply (tactic {* DEPTH_SOLVE (resolve_tac ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1) *})
 done
 
 (*?x has 16, ?y has 32;  rev(?y,?w) requires 561 (rather large) inferences
   total inferences = 2 + 1 + 17 + 561 = 581*)
 lemma "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:Nil = ?x & app(?x,?x,?y) & rev(?y,?w)"
-apply (tactic {* DEPTH_SOLVE (resolve_tac ([refl, conjI] @ thms "rules") 1) *})
+apply (tactic {* DEPTH_SOLVE (resolve_tac ([@{thm refl}, @{thm conjI}] @ @{thms rules}) 1) *})
 done
 
 end

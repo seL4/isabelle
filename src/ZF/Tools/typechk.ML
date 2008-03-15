@@ -93,8 +93,8 @@ fun typecheck_step_tac (TC{net,...}) =
 fun typecheck_tac ctxt = REPEAT (typecheck_step_tac (tcset_of ctxt));
 
 (*Compiles a term-net for speed*)
-val basic_res_tac = net_resolve_tac [TrueI,refl,reflexive_thm,iff_refl,
-                                     @{thm ballI},allI,conjI,impI];
+val basic_res_tac = net_resolve_tac [@{thm TrueI}, @{thm refl}, reflexive_thm, @{thm iff_refl},
+                                     @{thm ballI}, @{thm allI}, @{thm conjI}, @{thm impI}];
 
 (*Instantiates variables in typing conditions.
   drawback: does not simplify conjunctions*)

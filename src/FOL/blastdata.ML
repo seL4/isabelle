@@ -1,14 +1,12 @@
 
-val ccontr = thm "ccontr";
-
 (*** Applying BlastFun to create Blast_tac ***)
 structure Blast_Data = 
   struct
   type claset	= Cla.claset
-  val equality_name = "op ="
-  val not_name = "Not"
-  val notE	= notE
-  val ccontr	= ccontr
+  val equality_name = @{const_name "op ="}
+  val not_name = @{const_name Not}
+  val notE	= @{thm notE}
+  val ccontr	= @{thm ccontr}
   val contr_tac = Cla.contr_tac
   val dup_intr	= Cla.dup_intr
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac

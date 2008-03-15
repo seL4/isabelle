@@ -130,7 +130,7 @@ val natifys = [@{thm natify_0}, @{thm natify_ident}, @{thm add_natify1}, @{thm a
 fun simplify_meta_eq rules =
   let val ss0 =
     FOL_ss addeqcongs [@{thm eq_cong2}, @{thm iff_cong2}]
-      delsimps iff_simps (*these could erase the whole rule!*)
+      delsimps @{thms iff_simps} (*these could erase the whole rule!*)
       addsimps rules
   in fn ss => mk_meta_eq o simplify (Simplifier.inherit_context ss ss0) end;
 

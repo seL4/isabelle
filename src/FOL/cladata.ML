@@ -11,9 +11,9 @@ section "Classical Reasoner";
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
   struct
-  val mp        = mp
-  val not_elim  = notE
-  val classical = thm "classical"
+  val mp        = @{thm mp}
+  val not_elim  = @{thm notE}
+  val classical = @{thm classical}
   val sizef     = size_of_thm
   val hyp_subst_tacs=[hyp_subst_tac]
   end;
@@ -27,12 +27,13 @@ ML_Context.value_antiq "claset"
 
 (*Propositional rules*)
 val prop_cs = empty_cs
-  addSIs [refl, TrueI, conjI, thm "disjCI", impI, notI, iffI]
-  addSEs [conjE, disjE, thm "impCE", FalseE, thm "iffCE"];
+  addSIs [@{thm refl}, @{thm TrueI}, @{thm conjI}, @{thm disjCI}, @{thm impI},
+    @{thm notI}, @{thm iffI}]
+  addSEs [@{thm conjE}, @{thm disjE}, @{thm impCE}, @{thm FalseE}, @{thm iffCE}];
 
 (*Quantifier rules*)
-val FOL_cs = prop_cs addSIs [allI, thm "ex_ex1I"] addIs [exI]
-                     addSEs [exE, thm "alt_ex1E"] addEs [allE];
+val FOL_cs = prop_cs addSIs [@{thm allI}, @{thm ex_ex1I}] addIs [@{thm exI}]
+                     addSEs [@{thm exE}, @{thm alt_ex1E}] addEs [@{thm allE}];
 
 val cla_setup = (fn thy => (change_claset_of thy (fn _ => FOL_cs); thy));
 
