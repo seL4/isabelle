@@ -1,6 +1,6 @@
 (*  Title:      Pure/Isar/find_theorems.ML
     ID:         $Id$
-    Author:     Rafal Kolanski, NICTA and Tobias Nipkow, TU Muenchen
+    Author:     Rafal Kolanski and Gerwin Klein, NICTA
 
 Retrieve theorems from proof context.
 *)
@@ -89,8 +89,8 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 
     val match_thm = matches o refine_term;
   in
-    map (substsize o refine_term)
-        (filter match_thm (extract_terms term_src)) |> bestmatch
+    map (substsize o refine_term) (filter match_thm (extract_terms term_src))
+    |> bestmatch
   end;
 
 
@@ -145,11 +145,11 @@ fun filter_elim ctxt goal (_, thm) =
       val rule = Thm.full_prop_of thm;
       val prems = Logic.prems_of_goal goal 1;
       val goal_concl = Logic.concl_of_goal goal 1;
-      val rule_mp = (hd o Logic.strip_imp_prems) rule;
+      val rule_mp = hd (Logic.strip_imp_prems rule);
       val rule_concl = Logic.strip_imp_concl rule;
-      fun combine t1 t2 = Const ("combine", dummyT --> dummyT) $ (t1 $ t2);
+      fun combine t1 t2 = Const ("*combine*", dummyT --> dummyT) $ (t1 $ t2);
       val rule_tree = combine rule_mp rule_concl;
-      fun goal_tree prem = (combine prem goal_concl);
+      fun goal_tree prem = combine prem goal_concl;
       fun try_subst prem =
         is_matching_thm (single, I) ctxt true (goal_tree prem) rule_tree;
       val successful = prems |> map_filter try_subst;
@@ -204,7 +204,7 @@ fun filter_crit _ _ (Name name) = filter_name name
 fun opt_not x = if is_some x then NONE else SOME (0, 0);
 
 fun opt_add (SOME (a, x)) (SOME (b, y)) = SOME (Int.max (a, b), x + y : int)
- |  opt_add _ _ = NONE;
+  | opt_add _ _ = NONE;
 
 in
 
@@ -213,7 +213,7 @@ fun filter_criterion ctxt opt_goal (b, c) =
 
 fun all_filters filters thms =
   let
-    fun eval_filters filters thm =
+    fun eval_filters thm =
       fold opt_add (map (fn f => f thm) filters) (SOME (0, 0));
 
     (*filters return: (number of assumptions, substitution size) option, so
@@ -222,7 +222,7 @@ fun all_filters filters thms =
     fun thm_ord (((p0, s0), _), ((p1, s1), _)) =
       prod_ord int_ord int_ord ((p1, s1), (p0, s0));
   in
-    map (`(eval_filters filters)) thms
+    map (`eval_filters) thms
     |> map_filter (fn (SOME x, y) => SOME (x, y) | (NONE, _) => NONE)
     |> sort thm_ord |> map #2
   end;
@@ -259,32 +259,28 @@ fun rem_thm_dups xs =
     fun rem_cdups xs =
       let
         fun rem_c rev_seen [] = rev rev_seen
-          | rem_c rev_seen [x] = rem_c (x::rev_seen) []
-          | rem_c rev_seen ((x as ((n,t),_))::(y as ((n',t'),_))::xs) =
-            if Thm.eq_thm_prop (t,t')
-            then if nicer n n'
-                 then rem_c rev_seen (x::xs)
-                 else rem_c rev_seen (y::xs)
-            else rem_c (x::rev_seen) (y::xs)
+          | rem_c rev_seen [x] = rem_c (x :: rev_seen) []
+          | rem_c rev_seen ((x as ((n, t), _)) :: (y as ((n', t'), _)) :: xs) =
+            if Thm.eq_thm_prop (t, t')
+            then rem_c rev_seen ((if nicer n n' then x else y) :: xs)
+            else rem_c (x :: rev_seen) (y :: xs)
       in rem_c [] xs end;
 
-  in ListPair.zip (xs, 1 upto length xs)
-     |> sort (Term.fast_term_ord o pairself (prop_of o #2 o #1))
-     |> rem_cdups
-     |> sort (int_ord o pairself #2)
-     |> map #1
+  in
+    xs ~~ (1 upto length xs)
+    |> sort (Term.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
+    |> rem_cdups
+    |> sort (int_ord o pairself #2)
+    |> map #1
   end;
 
 
 (* print_theorems *)
 
-fun find_thms ctxt spec =
-  (PureThy.thms_containing (ProofContext.theory_of ctxt) spec
-    |> maps PureThy.selections) @
-  (ProofContext.lthms_containing ctxt spec
-    |> maps PureThy.selections
-    |> distinct (fn ((r1, th1), (r2, th2)) =>
-        r1 = r2 andalso Thm.eq_thm_prop (th1, th2)));
+fun all_facts_of ctxt =
+  maps PureThy.selections
+   (Facts.dest (PureThy.all_facts_of (ProofContext.theory_of ctxt)) @
+    Facts.dest (ProofContext.facts_of ctxt));
 
 val limit = ref 40;
 
@@ -293,7 +289,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
     val filters = map (filter_criterion ctxt opt_goal) criteria;
 
-    val raw_matches = all_filters filters (find_thms ctxt ([], []));
+    val raw_matches = all_filters filters (all_facts_of ctxt);
     val matches =
       if rem_dups
       then rem_thm_dups raw_matches
