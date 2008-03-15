@@ -62,7 +62,7 @@ use "interpretation.ML";
 use "proofterm.ML";
 use "thm.ML";
 use "more_thm.ML";
-use "fact_index.ML";
+use "facts.ML";
 use "pure_thy.ML";
 use "display.ML";
 use "drule.ML";
