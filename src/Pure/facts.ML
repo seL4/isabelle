@@ -77,6 +77,9 @@ fun add do_props naming (name, ths) (Facts {facts, props}) =
   in make_facts facts' props' end;
 
 fun del name (Facts {facts = (space, tab), props}) =
-  make_facts (space, Symtab.delete_safe name tab) props;
+  let
+    val space' = NameSpace.hide true name space handle ERROR _ => space;
+    val tab' = Symtab.delete_safe name tab;
+  in make_facts (space', tab') props end;
 
 end;
