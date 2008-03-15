@@ -37,7 +37,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
       |> ObjectLogic.ensure_propT thy;
     fun after_qed thm =
       LocalTheory.theory (Class.prove_subclass (sub, sup) thm)
-      #> LocalTheory.reinit;
+      #> (TheoryTarget.init (SOME sub) o ProofContext.theory_of);
   in
     do_proof after_qed sublocale_prop lthy
   end;
