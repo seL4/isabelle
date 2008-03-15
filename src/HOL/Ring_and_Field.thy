@@ -240,6 +240,25 @@ qed
 end
 
 class ring_1_no_zero_divisors = ring_1 + ring_no_zero_divisors
+begin
+
+lemma mult_cancel_right1 [simp]:
+  "c = b * c \<longleftrightarrow> c = 0 \<or> b = 1"
+  by (insert mult_cancel_right [of 1 c b], force)
+
+lemma mult_cancel_right2 [simp]:
+  "a * c = c \<longleftrightarrow> c = 0 \<or> a = 1"
+  by (insert mult_cancel_right [of a c 1], simp)
+ 
+lemma mult_cancel_left1 [simp]:
+  "c = c * b \<longleftrightarrow> c = 0 \<or> b = 1"
+  by (insert mult_cancel_left [of c 1 b], force)
+
+lemma mult_cancel_left2 [simp]:
+  "c * a = c \<longleftrightarrow> c = 0 \<or> a = 1"
+  by (insert mult_cancel_left [of c a 1], simp)
+
+end
 
 class idom = comm_ring_1 + no_zero_divisors
 begin
@@ -270,6 +289,95 @@ proof unfold_locales
       by simp
   qed
 qed
+
+lemma nonzero_imp_inverse_nonzero:
+  "a \<noteq> 0 \<Longrightarrow> inverse a \<noteq> 0"
+proof
+  assume ianz: "inverse a = 0"
+  assume "a \<noteq> 0"
+  hence "1 = a * inverse a" by simp
+  also have "... = 0" by (simp add: ianz)
+  finally have "1 = 0" .
+  thus False by (simp add: eq_commute)
+qed
+
+lemma inverse_zero_imp_zero:
+  "inverse a = 0 \<Longrightarrow> a = 0"
+apply (rule classical)
+apply (drule nonzero_imp_inverse_nonzero)
+apply auto
+done
+
+lemma nonzero_inverse_minus_eq:
+  assumes "a \<noteq> 0"
+  shows "inverse (- a) = - inverse a"
+proof -
+  have "- a * inverse (- a) = - a * - inverse a"
+    using assms by simp
+  then show ?thesis unfolding mult_cancel_left using assms by simp 
+qed
+
+lemma nonzero_inverse_inverse_eq:
+  assumes "a \<noteq> 0"
+  shows "inverse (inverse a) = a"
+proof -
+  have "(inverse (inverse a) * inverse a) * a = a" 
+    using assms by (simp add: nonzero_imp_inverse_nonzero)
+  then show ?thesis using assms by (simp add: mult_assoc)
+qed
+
+lemma nonzero_inverse_eq_imp_eq:
+  assumes inveq: "inverse a = inverse b"
+    and anz:  "a \<noteq> 0"
+    and bnz:  "b \<noteq> 0"
+  shows "a = b"
+proof -
+  have "a * inverse b = a * inverse a"
+    by (simp add: inveq)
+  hence "(a * inverse b) * b = (a * inverse a) * b"
+    by simp
+  then show "a = b"
+    by (simp add: mult_assoc anz bnz)
+qed
+
+lemma inverse_1 [simp]: "inverse 1 = 1"
+proof -
+  have "inverse 1 * 1 = 1" 
+    by (rule left_inverse) (rule one_neq_zero)
+  then show ?thesis by simp
+qed
+
+lemma inverse_unique: 
+  assumes ab: "a * b = 1"
+  shows "inverse a = b"
+proof -
+  have "a \<noteq> 0" using ab by (cases "a = 0") simp_all
+  moreover have "inverse a * (a * b) = inverse a" by (simp add: ab) 
+  ultimately show ?thesis by (simp add: mult_assoc [symmetric]) 
+qed
+
+lemma nonzero_inverse_mult_distrib: 
+  assumes anz: "a \<noteq> 0"
+    and bnz: "b \<noteq> 0"
+  shows "inverse (a * b) = inverse b * inverse a"
+proof -
+  have "inverse (a * b) * (a * b) * inverse b = inverse b" 
+    by (simp add: anz bnz)
+  hence "inverse (a * b) * a = inverse b" 
+    by (simp add: mult_assoc bnz)
+  hence "inverse (a * b) * a * inverse a = inverse b * inverse a" 
+    by simp
+  thus ?thesis
+    by (simp add: mult_assoc anz)
+qed
+
+lemma division_ring_inverse_add:
+  "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse a + inverse b = inverse a * (a + b) * inverse b"
+  by (simp add: ring_simps mult_assoc)
+
+lemma division_ring_inverse_diff:
+  "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> inverse a - inverse b = inverse a * (b - a) * inverse b"
+  by (simp add: ring_simps mult_assoc)
 
 end
 
@@ -831,80 +939,46 @@ lemma linorder_neqE_ordered_idom:
   assumes "x \<noteq> y" obtains "x < y" | "y < x"
   using assms by (rule neqE)
 
+text {* These cancellation simprules also produce two cases when the comparison is a goal. *}
+
+lemma mult_le_cancel_right1:
+  "c \<le> b * c \<longleftrightarrow> (0 < c \<longrightarrow> 1 \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> 1)"
+  by (insert mult_le_cancel_right [of 1 c b], simp)
+
+lemma mult_le_cancel_right2:
+  "a * c \<le> c \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> 1) \<and> (c < 0 \<longrightarrow> 1 \<le> a)"
+  by (insert mult_le_cancel_right [of a c 1], simp)
+
+lemma mult_le_cancel_left1:
+  "c \<le> c * b \<longleftrightarrow> (0 < c \<longrightarrow> 1 \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> 1)"
+  by (insert mult_le_cancel_left [of c 1 b], simp)
+
+lemma mult_le_cancel_left2:
+  "c * a \<le> c \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> 1) \<and> (c < 0 \<longrightarrow> 1 \<le> a)"
+  by (insert mult_le_cancel_left [of c a 1], simp)
+
+lemma mult_less_cancel_right1:
+  "c < b * c \<longleftrightarrow> (0 \<le> c \<longrightarrow> 1 < b) \<and> (c \<le> 0 \<longrightarrow> b < 1)"
+  by (insert mult_less_cancel_right [of 1 c b], simp)
+
+lemma mult_less_cancel_right2:
+  "a * c < c \<longleftrightarrow> (0 \<le> c \<longrightarrow> a < 1) \<and> (c \<le> 0 \<longrightarrow> 1 < a)"
+  by (insert mult_less_cancel_right [of a c 1], simp)
+
+lemma mult_less_cancel_left1:
+  "c < c * b \<longleftrightarrow> (0 \<le> c \<longrightarrow> 1 < b) \<and> (c \<le> 0 \<longrightarrow> b < 1)"
+  by (insert mult_less_cancel_left [of c 1 b], simp)
+
+lemma mult_less_cancel_left2:
+  "c * a < c \<longleftrightarrow> (0 \<le> c \<longrightarrow> a < 1) \<and> (c \<le> 0 \<longrightarrow> 1 < a)"
+  by (insert mult_less_cancel_left [of c a 1], simp)
+
 end
 
 class ordered_field = field + ordered_idom
 
-text{*All three types of comparision involving 0 and 1 are covered.*}
+text {* Simprules for comparisons where common factors can be cancelled. *}
 
--- {* FIXME continue localization here *}
-
-subsubsection{*Special Cancellation Simprules for Multiplication*}
-
-text{*These also produce two cases when the comparison is a goal.*}
-
-lemma mult_le_cancel_right1:
-  fixes c :: "'a :: ordered_idom"
-  shows "(c \<le> b*c) = ((0<c --> 1\<le>b) & (c<0 --> b \<le> 1))"
-by (insert mult_le_cancel_right [of 1 c b], simp)
-
-lemma mult_le_cancel_right2:
-  fixes c :: "'a :: ordered_idom"
-  shows "(a*c \<le> c) = ((0<c --> a\<le>1) & (c<0 --> 1 \<le> a))"
-by (insert mult_le_cancel_right [of a c 1], simp)
-
-lemma mult_le_cancel_left1:
-  fixes c :: "'a :: ordered_idom"
-  shows "(c \<le> c*b) = ((0<c --> 1\<le>b) & (c<0 --> b \<le> 1))"
-by (insert mult_le_cancel_left [of c 1 b], simp)
-
-lemma mult_le_cancel_left2:
-  fixes c :: "'a :: ordered_idom"
-  shows "(c*a \<le> c) = ((0<c --> a\<le>1) & (c<0 --> 1 \<le> a))"
-by (insert mult_le_cancel_left [of c a 1], simp)
-
-lemma mult_less_cancel_right1:
-  fixes c :: "'a :: ordered_idom"
-  shows "(c < b*c) = ((0 \<le> c --> 1<b) & (c \<le> 0 --> b < 1))"
-by (insert mult_less_cancel_right [of 1 c b], simp)
-
-lemma mult_less_cancel_right2:
-  fixes c :: "'a :: ordered_idom"
-  shows "(a*c < c) = ((0 \<le> c --> a<1) & (c \<le> 0 --> 1 < a))"
-by (insert mult_less_cancel_right [of a c 1], simp)
-
-lemma mult_less_cancel_left1:
-  fixes c :: "'a :: ordered_idom"
-  shows "(c < c*b) = ((0 \<le> c --> 1<b) & (c \<le> 0 --> b < 1))"
-by (insert mult_less_cancel_left [of c 1 b], simp)
-
-lemma mult_less_cancel_left2:
-  fixes c :: "'a :: ordered_idom"
-  shows "(c*a < c) = ((0 \<le> c --> a<1) & (c \<le> 0 --> 1 < a))"
-by (insert mult_less_cancel_left [of c a 1], simp)
-
-lemma mult_cancel_right1 [simp]:
-  fixes c :: "'a :: ring_1_no_zero_divisors"
-  shows "(c = b*c) = (c = 0 | b=1)"
-by (insert mult_cancel_right [of 1 c b], force)
-
-lemma mult_cancel_right2 [simp]:
-  fixes c :: "'a :: ring_1_no_zero_divisors"
-  shows "(a*c = c) = (c = 0 | a=1)"
-by (insert mult_cancel_right [of a c 1], simp)
- 
-lemma mult_cancel_left1 [simp]:
-  fixes c :: "'a :: ring_1_no_zero_divisors"
-  shows "(c = c*b) = (c = 0 | b=1)"
-by (insert mult_cancel_left [of c 1 b], force)
-
-lemma mult_cancel_left2 [simp]:
-  fixes c :: "'a :: ring_1_no_zero_divisors"
-  shows "(c*a = c) = (c = 0 | a=1)"
-by (insert mult_cancel_left [of c a 1], simp)
-
-
-text{*Simprules for comparisons where common factors can be cancelled.*}
 lemmas mult_compare_simps =
     mult_le_cancel_right mult_le_cancel_left
     mult_le_cancel_right1 mult_le_cancel_right2
@@ -916,73 +990,11 @@ lemmas mult_compare_simps =
     mult_cancel_right1 mult_cancel_right2
     mult_cancel_left1 mult_cancel_left2
 
-
-(* what ordering?? this is a straight instance of mult_eq_0_iff
-text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
-      of an ordering.*}
-lemma field_mult_eq_0_iff [simp]:
-  "(a*b = (0::'a::division_ring)) = (a = 0 | b = 0)"
-by simp
-*)
-(* subsumed by mult_cancel lemmas on ring_no_zero_divisors
-text{*Cancellation of equalities with a common factor*}
-lemma field_mult_cancel_right_lemma:
-      assumes cnz: "c \<noteq> (0::'a::division_ring)"
-         and eq:  "a*c = b*c"
-        shows "a=b"
-proof -
-  have "(a * c) * inverse c = (b * c) * inverse c"
-    by (simp add: eq)
-  thus "a=b"
-    by (simp add: mult_assoc cnz)
-qed
-
-lemma field_mult_cancel_right [simp]:
-     "(a*c = b*c) = (c = (0::'a::division_ring) | a=b)"
-by simp
-
-lemma field_mult_cancel_left [simp]:
-     "(c*a = c*b) = (c = (0::'a::division_ring) | a=b)"
-by simp
-*)
-lemma nonzero_imp_inverse_nonzero:
-  "a \<noteq> 0 ==> inverse a \<noteq> (0::'a::division_ring)"
-proof
-  assume ianz: "inverse a = 0"
-  assume "a \<noteq> 0"
-  hence "1 = a * inverse a" by simp
-  also have "... = 0" by (simp add: ianz)
-  finally have "1 = (0::'a::division_ring)" .
-  thus False by (simp add: eq_commute)
-qed
-
-
-subsection{*Basic Properties of @{term inverse}*}
-
-lemma inverse_zero_imp_zero: "inverse a = 0 ==> a = (0::'a::division_ring)"
-apply (rule ccontr) 
-apply (blast dest: nonzero_imp_inverse_nonzero) 
-done
-
-lemma inverse_nonzero_imp_nonzero:
-   "inverse a = 0 ==> a = (0::'a::division_ring)"
-apply (rule ccontr) 
-apply (blast dest: nonzero_imp_inverse_nonzero) 
-done
+-- {* FIXME continue localization here *}
 
 lemma inverse_nonzero_iff_nonzero [simp]:
    "(inverse a = 0) = (a = (0::'a::{division_ring,division_by_zero}))"
-by (force dest: inverse_nonzero_imp_nonzero) 
-
-lemma nonzero_inverse_minus_eq:
-      assumes [simp]: "a\<noteq>0"
-      shows "inverse(-a) = -inverse(a::'a::division_ring)"
-proof -
-  have "-a * inverse (- a) = -a * - inverse a"
-    by simp
-  thus ?thesis 
-    by (simp only: mult_cancel_left, simp)
-qed
+by (force dest: inverse_zero_imp_zero) 
 
 lemma inverse_minus_eq [simp]:
    "inverse(-a) = -inverse(a::'a::{division_ring,division_by_zero})"
@@ -991,20 +1003,6 @@ proof cases
 next
   assume "a\<noteq>0" 
   thus ?thesis by (simp add: nonzero_inverse_minus_eq)
-qed
-
-lemma nonzero_inverse_eq_imp_eq:
-      assumes inveq: "inverse a = inverse b"
-	  and anz:  "a \<noteq> 0"
-	  and bnz:  "b \<noteq> 0"
-	 shows "a = (b::'a::division_ring)"
-proof -
-  have "a * inverse b = a * inverse a"
-    by (simp add: inveq)
-  hence "(a * inverse b) * b = (a * inverse a) * b"
-    by simp
-  thus "a = b"
-    by (simp add: mult_assoc anz bnz)
 qed
 
 lemma inverse_eq_imp_eq:
@@ -1019,16 +1017,6 @@ lemma inverse_eq_iff_eq [simp]:
   "(inverse a = inverse b) = (a = (b::'a::{division_ring,division_by_zero}))"
 by (force dest!: inverse_eq_imp_eq)
 
-lemma nonzero_inverse_inverse_eq:
-      assumes [simp]: "a \<noteq> 0"
-      shows "inverse(inverse (a::'a::division_ring)) = a"
-  proof -
-  have "(inverse (inverse a) * inverse a) * a = a" 
-    by (simp add: nonzero_imp_inverse_nonzero)
-  thus ?thesis
-    by (simp add: mult_assoc)
-  qed
-
 lemma inverse_inverse_eq [simp]:
      "inverse(inverse (a::'a::{division_ring,division_by_zero})) = a"
   proof cases
@@ -1036,37 +1024,6 @@ lemma inverse_inverse_eq [simp]:
   next
     assume "a\<noteq>0" 
     thus ?thesis by (simp add: nonzero_inverse_inverse_eq)
-  qed
-
-lemma inverse_1 [simp]: "inverse 1 = (1::'a::division_ring)"
-  proof -
-  have "inverse 1 * 1 = (1::'a::division_ring)" 
-    by (rule left_inverse [OF zero_neq_one [symmetric]])
-  thus ?thesis  by simp
-  qed
-
-lemma inverse_unique: 
-  assumes ab: "a*b = 1"
-  shows "inverse a = (b::'a::division_ring)"
-proof -
-  have "a \<noteq> 0" using ab by auto
-  moreover have "inverse a * (a * b) = inverse a" by (simp add: ab) 
-  ultimately show ?thesis by (simp add: mult_assoc [symmetric]) 
-qed
-
-lemma nonzero_inverse_mult_distrib: 
-      assumes anz: "a \<noteq> 0"
-          and bnz: "b \<noteq> 0"
-      shows "inverse(a*b) = inverse(b) * inverse(a::'a::division_ring)"
-  proof -
-  have "inverse(a*b) * (a * b) * inverse(b) = inverse(b)" 
-    by (simp add: anz bnz)
-  hence "inverse(a*b) * a = inverse(b)" 
-    by (simp add: mult_assoc bnz)
-  hence "inverse(a*b) * a * inverse(a) = inverse(b) * inverse(a)" 
-    by simp
-  thus ?thesis
-    by (simp add: mult_assoc anz)
   qed
 
 text{*This version builds in division by zero while also re-orienting
@@ -1082,16 +1039,6 @@ lemma inverse_mult_distrib [simp]:
     thus ?thesis
       by force
   qed
-
-lemma division_ring_inverse_add:
-  "[|(a::'a::division_ring) \<noteq> 0; b \<noteq> 0|]
-   ==> inverse a + inverse b = inverse a * (a+b) * inverse b"
-by (simp add: ring_simps)
-
-lemma division_ring_inverse_diff:
-  "[|(a::'a::division_ring) \<noteq> 0; b \<noteq> 0|]
-   ==> inverse a - inverse b = inverse a * (b-a) * inverse b"
-by (simp add: ring_simps)
 
 text{*There is no slick version using division by zero.*}
 lemma inverse_add:
