@@ -282,6 +282,10 @@ end
 
 subsection {* Examples *}
 
+ML {* Quickcheck.mk_generator_expr
+  @{term "\<lambda>(n::nat) (m::nat) (q::nat). n = m + q + 1"} [@{typ nat}, @{typ nat}, @{typ nat}]
+|> Sign.string_of_term @{theory} *}
+
 (*setup {* Quickcheck.VALUE @{term "\<lambda>(n::nat) (m::nat) (q::nat). n = m + q + 1"} [@{typ nat}, @{typ nat}, @{typ nat}] *}
 export_code VALUE in SML module_name QuickcheckExample file "~~/../../gen_code/quickcheck.ML"
 use "~~/../../gen_code/quickcheck.ML"
@@ -386,12 +390,5 @@ ML {* f 10 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 10 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-
-definition "map2 f xs ys = map (split f) (zip xs ys)"
-
-lemma
-  assumes "\<And>x. f x x = x"
-  shows "map2 f xs xs = xs"
-  by (induct xs) (simp_all add: map2_def assms)
 
 end
