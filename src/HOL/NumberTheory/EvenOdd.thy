@@ -249,7 +249,7 @@ lemma neg_one_power: "(-1::int)^n = 1 | (-1::int)^n = -1"
 
 lemma neg_one_power_eq_mod_m: "[| 2 < m; [(-1::int)^j = (-1::int)^k] (mod m) |]
     ==> ((-1::int)^j = (-1::int)^k)"
-  using neg_one_power [of j] and insert neg_one_power [of k]
+  using neg_one_power [of j] and ListMem.insert neg_one_power [of k]
   by (auto simp add: one_not_neg_one_mod_m zcong_sym)
 
 end

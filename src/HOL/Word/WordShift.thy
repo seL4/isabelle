@@ -1093,7 +1093,7 @@ lemma word_rsplit_same: "word_rsplit w = [w]"
 lemma word_rsplit_empty_iff_size:
   "(word_rsplit w = []) = (size w = 0)" 
   unfolding word_rsplit_def bin_rsplit_def word_size
-  by (simp add: bin_rsplit_aux_simp_alt Let_def split: split_split)
+  by (simp add: bin_rsplit_aux_simp_alt Let_def split: Product_Type.split_split)
 
 lemma test_bit_rsplit:
   "sw = word_rsplit w ==> m < size (hd sw :: 'a :: len word) ==> 

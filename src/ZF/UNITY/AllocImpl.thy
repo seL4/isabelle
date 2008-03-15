@@ -1,4 +1,4 @@
-(*Title: ZF/UNITY/AllocImpl
+(*  Title: ZF/UNITY/AllocImpl.thy
     ID:    $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2002  University of Cambridge
@@ -124,7 +124,8 @@ done
 
 (** Safety property: (28) **)
 lemma alloc_prog_Increasing_giv: "alloc_prog \<in> program guarantees Incr(lift(giv))"
-apply (auto intro!: increasing_imp_Increasing simp add: guar_def increasing_def alloc_prog_ok_iff alloc_prog_Allowed, safety+)
+apply (auto intro!: increasing_imp_Increasing simp add: guar_def
+  Increasing.increasing_def alloc_prog_ok_iff alloc_prog_Allowed, safety+)
 apply (auto dest: ActsD)
 apply (drule_tac f = "lift (giv) " in preserves_imp_eq)
 apply auto

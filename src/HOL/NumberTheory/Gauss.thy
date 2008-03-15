@@ -51,7 +51,7 @@ lemma p_g_0: "0 < p"
   using p_g_2 by auto
 
 lemma int_nat: "int (nat ((p - 1) div 2)) = (p - 1) div 2"
-  using insert p_g_2 by (auto simp add: pos_imp_zdiv_nonneg_iff)
+  using ListMem.insert p_g_2 by (auto simp add: pos_imp_zdiv_nonneg_iff)
 
 lemma p_minus_one_l: "(p - 1) div 2 < p"
 proof -

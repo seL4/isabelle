@@ -121,7 +121,7 @@ lemma client_prog_Increasing_ask_rel:
 "client_prog: program guarantees Incr(lift(ask)) Int Incr(lift(rel))"
 apply (unfold guar_def)
 apply (auto intro!: increasing_imp_Increasing 
-            simp add: client_prog_ok_iff increasing_def preserves_imp_prefix)
+            simp add: client_prog_ok_iff Increasing.increasing_def preserves_imp_prefix)
 apply (safety, force, force)+
 done
 

@@ -322,7 +322,7 @@ proof -
     apply (frule is_type_pTs [OF wf], assumption+)
     apply clarify
     apply (drule rule [OF wf], assumption+)
-    apply (rule refl)
+    apply (rule HOL.refl)
     apply assumption+
     done
 qed
