@@ -475,11 +475,12 @@ fun all_valid_thms ctxt =
     val thy = ProofContext.theory_of ctxt;
     val all_thys = thy :: Theory.ancestors_of thy;
 
+    val local_facts = ProofContext.facts_of ctxt;
+
     fun dest_valid (space, tab) = Symtab.fold (extern_valid space) tab [];
   in
     maps (dest_valid o PureThy.theorems_of) all_thys @
-    fold (extern_valid (#1 (ProofContext.theorems_of ctxt)))
-      (FactIndex.find (ProofContext.fact_index_of ctxt) ([], [])) []
+    fold (extern_valid (Facts.space_of local_facts)) (Facts.dest local_facts) []
   end;
 
 fun multi_name a (th, (n,pairs)) =
