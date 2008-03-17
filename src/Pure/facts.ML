@@ -2,8 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Environment of named facts (admits overriding).  Optional indexing by
-proposition.
+Environment of named facts, optionally indexed by proposition.
 *)
 
 signature FACTS =
@@ -17,7 +16,8 @@ sig
   val could_unify: T -> term -> thm list
   val empty: T
   val merge: T * T -> T
-  val add: bool -> NameSpace.naming -> string * thm list -> T -> T
+  val add_global: NameSpace.naming -> string * thm list -> T -> T
+  val add_local: bool -> NameSpace.naming -> string * thm list -> T -> T
   val del: string -> T -> T
 end;
 
@@ -61,7 +61,7 @@ fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props 
     val props' = Net.merge (is_equal o prop_ord) (props1, props2);
   in make_facts facts' props' end;
 
-fun add do_props naming (name, ths) (Facts {facts, props}) =
+fun add permissive do_props naming (name, ths) (Facts {facts, props}) =
   let
     val facts' =
       if name = "" then facts
@@ -69,12 +69,17 @@ fun add do_props naming (name, ths) (Facts {facts, props}) =
         let
           val (space, tab) = facts;
           val space' = NameSpace.declare naming name space;
-          val tab' = Symtab.update (name, ths) tab;
+          val tab' = (if permissive then Symtab.update else Symtab.update_new) (name, ths) tab
+            handle Symtab.DUP dup => (legacy_feature ("Duplicate fact " ^ quote dup ^
+              Position.str_of (Position.thread_data ())); tab);
         in (space', tab') end;
     val props' =
       if do_props then fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths props
       else props;
   in make_facts facts' props' end;
+
+val add_global = add false false;
+val add_local = add true;
 
 fun del name (Facts {facts = (space, tab), props}) =
   let
