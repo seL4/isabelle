@@ -267,7 +267,7 @@ lemma knows_Outpts_secureM:
       "secureM \<longrightarrow> knows A (Outpts C A X # evs) = insert X (knows A evs)"
 by simp
 
-lemma knows_Outpts_secureM: 
+lemma knows_Outpts_insecureM: 
       "insecureM \<longrightarrow> knows Spy (Outpts C A X # evs) = insert X (knows Spy evs)"
 by simp
 (*somewhat equivalent to knows_Spy_Outpts_insecureM*)
@@ -293,9 +293,8 @@ by (simp add: subset_insertI)
 lemma knows_subset_knows_Outpts: "knows A evs \<subseteq> knows A (Outpts C A' X # evs)"
 by (simp add: subset_insertI)
 
-lemma knows_subset_knows_Gets: "knows A evs \<subseteq> knows A (A_Gets A' X # evs)"
+lemma knows_subset_knows_A_Gets: "knows A evs \<subseteq> knows A (A_Gets A' X # evs)"
 by (simp add: subset_insertI)
-
 
 
 text{*Agents know what they say*}
