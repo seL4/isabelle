@@ -624,12 +624,6 @@ qed
 lemma complex_mod_rcis [simp]: "cmod(rcis r a) = abs r"
 by (simp add: rcis_def cis_def sin_cos_squared_add2_mult)
 
-lemma complex_Re_cnj [simp]: "Re(cnj z) = Re z"
-by (induct z, simp add: complex_cnj)
-
-lemma complex_Im_cnj [simp]: "Im(cnj z) = - Im z"
-by (induct z, simp add: complex_cnj)
-
 lemma complex_mod_sqrt_Re_mult_cnj: "cmod z = sqrt (Re (z * cnj z))"
 by (simp add: cmod_def power2_eq_square)
 
