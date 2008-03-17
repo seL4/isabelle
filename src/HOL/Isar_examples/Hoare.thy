@@ -446,6 +446,9 @@ lemma WhileRule:
   apply blast
   done
 
+lemma Compl_Collect: "- Collect b = {x. \<not> b x}"
+  by blast
+
 use "~~/src/HOL/Hoare/hoare_tac.ML"
 
 method_setup hoare = {*
