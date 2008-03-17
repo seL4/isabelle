@@ -353,7 +353,7 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
         val r as ref (Thms {theorems = (space, theorems), all_facts}) = get_theorems_ref thy';
         val space' = Sign.declare_name thy' name space;
         val theorems' = Symtab.update (name, thms') theorems;
-        val all_facts' = Facts.add false (Sign.naming_of thy') (name, thms') all_facts;
+        val all_facts' = Facts.add_global (Sign.naming_of thy') (name, thms') all_facts;
       in
         (case Symtab.lookup theorems name of
           NONE => ()
