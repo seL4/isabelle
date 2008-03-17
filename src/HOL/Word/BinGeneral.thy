@@ -459,7 +459,8 @@ lemma bintrunc_Suc_lem:
   by auto
 
 lemmas bintrunc_Suc_Ialts = 
-  bintrunc_Min_I bintrunc_BIT_I [THEN bintrunc_Suc_lem, standard]
+  bintrunc_Min_I [THEN bintrunc_Suc_lem, standard]
+  bintrunc_BIT_I [THEN bintrunc_Suc_lem, standard]
 
 lemmas sbintrunc_BIT_I = trans [OF sbintrunc_Suc_BIT thobini1]
 
