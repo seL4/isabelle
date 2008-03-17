@@ -54,6 +54,10 @@ definition
   refl :: "['a set, ('a * 'a) set] => bool" where -- {* reflexivity over a set *}
   "refl A r == r \<subseteq> A \<times> A & (ALL x: A. (x,x) : r)"
 
+abbreviation
+  reflexive :: "('a * 'a) set => bool" where -- {* reflexivity over a type *}
+  "reflexive == refl UNIV"
+
 definition
   sym :: "('a * 'a) set => bool" where -- {* symmetry predicate *}
   "sym r == ALL x y. (x,y): r --> (y,x): r"
@@ -73,10 +77,6 @@ definition
 definition
   inv_image :: "('b * 'b) set => ('a => 'b) => ('a * 'a) set" where
   "inv_image r f == {(x, y). (f x, f y) : r}"
-
-abbreviation
-  reflexive :: "('a * 'a) set => bool" where -- {* reflexivity over a type *}
-  "reflexive == refl UNIV"
 
 
 subsection {* The identity relation *}
@@ -194,6 +194,9 @@ by (unfold refl_def) fast
 lemma refl_UNION:
   "ALL x:S. refl (A x) (r x) \<Longrightarrow> refl (UNION S A) (UNION S r)"
 by (unfold refl_def) blast
+
+lemma refl_empty[simp]: "refl {} {}"
+by(simp add:refl_def)
 
 lemma refl_diag: "refl A (diag A)"
 by (rule reflI [OF diag_subset_Times diagI])
