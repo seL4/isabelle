@@ -1404,7 +1404,7 @@ apply (force dest!: authK_authentic Says_imp_knows [THEN analz.Inj, THEN analz.D
 done
 
 
-lemma K3_imp_Gets:
+lemma K3_imp_Gets_evs:
   "\<lbrakk> Says A Tgs \<lbrace>Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Number Ta\<rbrace>,
                  Crypt authK \<lbrace>Agent A, Number T2\<rbrace>, Agent B\<rbrace> 
       \<in> set evs;  A \<notin> bad; evs \<in> kerbIV_gets \<rbrakk>
@@ -1429,7 +1429,7 @@ lemma Tgs_authenticates_and_keydist_to_A:
 apply (frule Gets_imp_knows_Spy [THEN parts.Inj, THEN parts.Fst], assumption)
 apply (drule Gets_imp_knows_Spy [THEN parts.Inj, THEN parts.Snd, THEN parts.Fst], assumption)
 apply (drule Tgs_authenticates_A, assumption+, simp)
-apply (force dest!: K3_imp_Gets Gets_imp_knows [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Fst])
+apply (force dest!: K3_imp_Gets_evs Gets_imp_knows [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Fst])
 done
 
 lemma K4_imp_Gets:
