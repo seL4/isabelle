@@ -838,7 +838,7 @@ val reset_naming    = map_naming (K local_naming);
 
 fun update_thms _ (bname, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt bname))
   | update_thms do_props (bname, SOME ths) ctxt = ctxt |> map_facts
-      (Facts.add do_props (naming_of ctxt) (full_name ctxt bname, ths));
+      (Facts.add_local do_props (naming_of ctxt) (full_name ctxt bname, ths));
 
 fun put_thms do_props thms ctxt =
   ctxt |> map_naming (K local_naming) |> update_thms do_props thms |> restore_naming ctxt;
