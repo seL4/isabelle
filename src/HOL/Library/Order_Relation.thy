@@ -8,9 +8,7 @@ theory Order_Relation
 imports ATP_Linkup Hilbert_Choice
 begin
 
-(* FIXME to Relation *)
-
-definition "refl_on A r \<equiv> \<forall>x\<in>A. (x,x) \<in> r"
+text{* This prelude could be moved to theory Relation: *}
 
 definition "irrefl r \<equiv> \<forall>x. (x,x) \<notin> r"
 
@@ -19,14 +17,11 @@ definition "total_on A r \<equiv> \<forall>x\<in>A.\<forall>y\<in>A. x\<noteq>y 
 abbreviation "total \<equiv> total_on UNIV"
 
 
-lemma refl_on_empty[simp]: "refl_on {} r"
-by(simp add:refl_on_def)
-
 lemma total_on_empty[simp]: "total_on {} r"
 by(simp add:total_on_def)
 
-lemma refl_on_converse[simp]: "refl_on A (r^-1) = refl_on A r"
-by(simp add:refl_on_def)
+lemma refl_on_converse[simp]: "refl A (r^-1) = refl A r"
+by(auto simp add:refl_def)
 
 lemma total_on_converse[simp]: "total_on A (r^-1) = total_on A r"
 by (auto simp: total_on_def)
@@ -42,9 +37,10 @@ declare [[simp_depth_limit = 50]]
 lemma total_on_diff_Id[simp]: "total_on A (r-Id) = total_on A r"
 by(simp add: total_on_def)
 
+
 subsection{* Orders on a set *}
 
-definition "preorder_on A r \<equiv> refl_on A r \<and> trans r"
+definition "preorder_on A r \<equiv> refl A r \<and> trans r"
 
 definition "partial_order_on A r \<equiv> preorder_on A r \<and> antisym r"
 
@@ -91,7 +87,7 @@ by(simp add: order_on_defs trans_diff_Id)
 
 subsection{* Orders on the field *}
 
-abbreviation "Refl r \<equiv> refl_on (Field r) r"
+abbreviation "Refl r \<equiv> refl (Field r) r"
 
 abbreviation "Preorder r \<equiv> preorder_on (Field r) r"
 
@@ -107,7 +103,7 @@ abbreviation "Well_order r \<equiv> well_order_on (Field r) r"
 lemma subset_Image_Image_iff:
   "\<lbrakk> Preorder r; A \<subseteq> Field r; B \<subseteq> Field r\<rbrakk> \<Longrightarrow>
    r `` A \<subseteq> r `` B \<longleftrightarrow> (\<forall>a\<in>A.\<exists>b\<in>B. (b,a):r)"
-apply(auto simp add:subset_def preorder_on_def refl_on_def Image_def)
+apply(auto simp add:subset_def preorder_on_def refl_def Image_def)
 apply metis
 by(metis trans_def)
 
@@ -117,7 +113,7 @@ by(simp add:subset_Image_Image_iff)
 
 lemma Refl_antisym_eq_Image1_Image1_iff:
   "\<lbrakk>Refl r; antisym r; a:Field r; b:Field r\<rbrakk> \<Longrightarrow> r `` {a} = r `` {b} \<longleftrightarrow> a=b"
-by(simp add: expand_set_eq antisym_def refl_on_def) metis
+by(simp add: expand_set_eq antisym_def refl_def) metis
 
 lemma Partial_order_eq_Image1_Image1_iff:
   "\<lbrakk>Partial_order r; a:Field r; b:Field r\<rbrakk> \<Longrightarrow> r `` {a} = r `` {b} \<longleftrightarrow> a=b"

@@ -301,7 +301,7 @@ proof-
       fix a B assume aB: "B:C" "a:B"
       with 1 obtain x where "x:Field r" "B = r^-1 `` {x}" by auto
       thus "(a,u) : r" using uA aB `Preorder r`
-	by (auto simp add: preorder_on_def refl_on_def) (metis transD)
+	by (auto simp add: preorder_on_def refl_def) (metis transD)
     qed
     thus "EX u:Field r. ?P u" using `u:Field r` by blast
   qed
@@ -414,7 +414,7 @@ proof-
     by(simp add:Chain_def I_def) blast
   have FI: "Field I = ?WO" by(auto simp add:I_def init_seg_of_def Field_def)
   hence 0: "Partial_order I"
-    by(auto simp: partial_order_on_def preorder_on_def antisym_def antisym_init_seg_of refl_on_def trans_def I_def elim!: trans_init_seg_of)
+    by(auto simp: partial_order_on_def preorder_on_def antisym_def antisym_init_seg_of refl_def trans_def I_def elim!: trans_init_seg_of)
 -- {*I-chains have upper bounds in ?WO wrt I: their Union*}
   { fix R assume "R \<in> Chain I"
     hence Ris: "R \<in> Chain init_seg_of" using mono_Chain[OF I_init] by blast
@@ -423,7 +423,7 @@ proof-
     have "\<forall>r\<in>R. Refl r" "\<forall>r\<in>R. trans r" "\<forall>r\<in>R. antisym r" "\<forall>r\<in>R. Total r"
          "\<forall>r\<in>R. wf(r-Id)"
       using Chain_wo[OF `R \<in> Chain I`] by(simp_all add:order_on_defs)
-    have "Refl (\<Union>R)" using `\<forall>r\<in>R. Refl r` by(auto simp:refl_on_def)
+    have "Refl (\<Union>R)" using `\<forall>r\<in>R. Refl r` by(auto simp:refl_def)
     moreover have "trans (\<Union>R)"
       by(rule chain_subset_trans_Union[OF subch `\<forall>r\<in>R. trans r`])
     moreover have "antisym(\<Union>R)"
@@ -455,7 +455,7 @@ proof-
     proof
       assume "m={}"
       moreover have "Well_order {(x,x)}"
-	by(simp add:order_on_defs refl_on_def trans_def antisym_def total_on_def Field_def Domain_def Range_def)
+	by(simp add:order_on_defs refl_def trans_def antisym_def total_on_def Field_def Domain_def Range_def)
       ultimately show False using max
 	by (auto simp:I_def init_seg_of_def simp del:Field_insert)
     qed
@@ -470,7 +470,7 @@ proof-
     have "Refl m" "trans m" "antisym m" "Total m" "wf(m-Id)"
       using `Well_order m` by(simp_all add:order_on_defs)
 --{*We show that the extension is a well-order*}
-    have "Refl ?m" using `Refl m` Fm by(auto simp:refl_on_def)
+    have "Refl ?m" using `Refl m` Fm by(auto simp:refl_def)
     moreover have "trans ?m" using `trans m` `x \<notin> Field m`
       unfolding trans_def Field_def Domain_def Range_def by blast
     moreover have "antisym ?m" using `antisym m` `x \<notin> Field m`
@@ -503,10 +503,10 @@ proof -
     using well_ordering[where 'a = "'a"] by blast
   let ?r = "{(x,y). x:A & y:A & (x,y):r}"
   have 1: "Field ?r = A" using wo univ
-    by(fastsimp simp: Field_def Domain_def Range_def order_on_defs refl_on_def)
+    by(fastsimp simp: Field_def Domain_def Range_def order_on_defs refl_def)
   have "Refl r" "trans r" "antisym r" "Total r" "wf(r-Id)"
     using `Well_order r` by(simp_all add:order_on_defs)
-  have "Refl ?r" using `Refl r` by(auto simp:refl_on_def 1 univ)
+  have "Refl ?r" using `Refl r` by(auto simp:refl_def 1 univ)
   moreover have "trans ?r" using `trans r`
     unfolding trans_def by blast
   moreover have "antisym ?r" using `antisym r`
