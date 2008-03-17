@@ -115,26 +115,19 @@ ML {*
    functions defined in theory Intensional in that they introduce a
    "world" parameter of type "behavior".
 *)
-local
-  val action_rews = thms "action_rews";
-  val tempD = thm "tempD";
-in
-
 fun temp_unlift th =
-  (rewrite_rule action_rews (th RS tempD)) handle THM _ => action_unlift th;
+  (rewrite_rule @{thms action_rews} (th RS @{thm tempD})) handle THM _ => action_unlift th;
 
 (* Turn  |- F = G  into meta-level rewrite rule  F == G *)
 val temp_rewrite = int_rewrite
 
 fun temp_use th =
   case (concl_of th) of
-    Const _ $ (Const ("Intensional.Valid", _) $ _) =>
+    Const _ $ (Const (@{const_name Intensional.Valid}, _) $ _) =>
             ((flatten (temp_unlift th)) handle THM _ => th)
   | _ => th;
 
 fun try_rewrite th = temp_rewrite th handle THM _ => temp_use th;
-
-end
 *}
 
 setup {*
@@ -150,7 +143,7 @@ setup {*
 declare tempI [intro!]
 declare tempD [dest]
 ML {*
-val temp_css = (claset(), simpset())
+val temp_css = (@{claset}, @{simpset})
 val temp_cs = op addss temp_css
 *}
 
@@ -309,30 +302,20 @@ lemmas box_conjE_act = box_conjE [where 'a = "state * state", standard]
 lemma box_thin: "[| sigma |= []F; PROP W |] ==> PROP W" .
 
 ML {*
-local
-  val box_conjE = thm "box_conjE";
-  val box_thin = thm "box_thin";
-  val box_conjE_temp = thm "box_conjE_temp";
-  val box_conjE_stp = thm "box_conjE_stp";
-  val box_conjE_act = thm "box_conjE_act";
-in
-
 fun merge_box_tac i =
-   REPEAT_DETERM (EVERY [etac box_conjE i, atac i, etac box_thin i])
+   REPEAT_DETERM (EVERY [etac @{thm box_conjE} i, atac i, etac @{thm box_thin} i])
 
 fun merge_temp_box_tac i =
-   REPEAT_DETERM (EVERY [etac box_conjE_temp i, atac i,
-                         eres_inst_tac [("'a","behavior")] box_thin i])
+   REPEAT_DETERM (EVERY [etac @{thm box_conjE_temp} i, atac i,
+                         eres_inst_tac [("'a","behavior")] @{thm box_thin} i])
 
 fun merge_stp_box_tac i =
-   REPEAT_DETERM (EVERY [etac box_conjE_stp i, atac i,
-                         eres_inst_tac [("'a","state")] box_thin i])
+   REPEAT_DETERM (EVERY [etac @{thm box_conjE_stp} i, atac i,
+                         eres_inst_tac [("'a","state")] @{thm box_thin} i])
 
 fun merge_act_box_tac i =
-   REPEAT_DETERM (EVERY [etac box_conjE_act i, atac i,
-                         eres_inst_tac [("'a","state * state")] box_thin i])
-
-end
+   REPEAT_DETERM (EVERY [etac @{thm box_conjE_act} i, atac i,
+                         eres_inst_tac [("'a","state * state")] @{thm box_thin} i])
 *}
 
 (* rewrite rule to push universal quantification through box:
@@ -450,7 +433,7 @@ lemmas temp_simps [temp_rewrite, simp] = BoxConst DmdConst
 
 (* Make these rewrites active by default *)
 ML {*
-val temp_css = temp_css addsimps2 (thms "temp_simps")
+val temp_css = temp_css addsimps2 @{thms temp_simps}
 val temp_cs = op addss temp_css
 *}
 
@@ -466,7 +449,7 @@ lemma NotDmd: "|- (~<>F) = ([]~F)"
 
 (* These are not declared by default, because they could be harmful,
    e.g. []F & ~[]F becomes []F & <>~F !! *)
-lemmas more_temp_simps =
+lemmas more_temp_simps1 =
   STL3 [temp_rewrite] DmdDmd [temp_rewrite] NotBox [temp_rewrite] NotDmd [temp_rewrite]
   NotBox [temp_unlift, THEN eq_reflection]
   NotDmd [temp_unlift, THEN eq_reflection]
@@ -480,7 +463,7 @@ lemma BoxDmdBox: "|- ([]<>[]F) = (<>[]F)"
     apply (drule STL6 [temp_use])
      apply assumption
     apply simp
-   apply (simp_all add: more_temp_simps)
+   apply (simp_all add: more_temp_simps1)
   done
 
 lemma DmdBoxDmd: "|- (<>[]<>F) = ([]<>F)"
@@ -488,7 +471,7 @@ lemma DmdBoxDmd: "|- (<>[]<>F) = ([]<>F)"
   apply (auto simp: BoxDmdBox [unfolded dmd_def, try_rewrite])
   done
 
-lemmas more_temp_simps = more_temp_simps BoxDmdBox [temp_rewrite] DmdBoxDmd [temp_rewrite]
+lemmas more_temp_simps2 = more_temp_simps1 BoxDmdBox [temp_rewrite] DmdBoxDmd [temp_rewrite]
 
 
 (* ------------------------ Miscellaneous ----------------------------------- *)
@@ -500,7 +483,7 @@ lemma BoxOr: "!!sigma. [| sigma |= []F | []G |] ==> sigma |= [](F | G)"
 lemma DBImplBD: "|- <>[]F --> []<>F"
   apply clarsimp
   apply (rule ccontr)
-  apply (simp add: more_temp_simps)
+  apply (simp add: more_temp_simps2)
   apply (drule STL6 [temp_use])
    apply assumption
   apply simp
@@ -509,7 +492,7 @@ lemma DBImplBD: "|- <>[]F --> []<>F"
 lemma BoxDmdDmdBox: "|- []<>F & <>[]G --> []<>(F & G)"
   apply clarsimp
   apply (rule ccontr)
-  apply (unfold more_temp_simps)
+  apply (unfold more_temp_simps2)
   apply (drule STL6 [temp_use])
    apply assumption
   apply (subgoal_tac "sigma |= <>[]~F")
@@ -571,7 +554,7 @@ lemma box_stp_act: "|- ([]$P) = ([]P)"
 lemmas box_stp_actI = box_stp_act [temp_use, THEN iffD2, standard]
 lemmas box_stp_actD = box_stp_act [temp_use, THEN iffD1, standard]
 
-lemmas more_temp_simps = box_stp_act [temp_rewrite] more_temp_simps
+lemmas more_temp_simps3 = box_stp_act [temp_rewrite] more_temp_simps2
 
 lemma INV1: 
   "|- (Init P) --> (stable P) --> []P"
@@ -609,20 +592,12 @@ lemma DmdStable: "|- (stable P) & <>P --> <>[]P"
 (* ---------------- (Semi-)automatic invariant tactics ---------------------- *)
 
 ML {*
-local
-  val INV1 = thm "INV1";
-  val Stable = thm "Stable";
-  val Init_stp = thm "Init_stp";
-  val Init_act = thm "Init_act";
-  val squareE = thm "squareE";
-in
-
 (* inv_tac reduces goals of the form ... ==> sigma |= []P *)
 fun inv_tac css = SELECT_GOAL
      (EVERY [auto_tac css,
              TRY (merge_box_tac 1),
-             rtac (temp_use INV1) 1, (* fail if the goal is not a box *)
-             TRYALL (etac Stable)]);
+             rtac (temp_use @{thm INV1}) 1, (* fail if the goal is not a box *)
+             TRYALL (etac @{thm Stable})]);
 
 (* auto_inv_tac applies inv_tac and then tries to attack the subgoals
    in simple cases it may be able to handle goals like |- MyProg --> []Inv.
@@ -631,9 +606,9 @@ fun inv_tac css = SELECT_GOAL
    too late.
 *)
 fun auto_inv_tac ss = SELECT_GOAL
-    ((inv_tac (claset(),ss) 1) THEN
-     (TRYALL (action_simp_tac (ss addsimps [Init_stp, Init_act]) [] [squareE])));
-end
+    ((inv_tac (@{claset}, ss) 1) THEN
+     (TRYALL (action_simp_tac
+       (ss addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
 *}
 
 lemma unless: "|- []($P --> P` | Q`) --> (stable P) | <>Q"
@@ -673,7 +648,7 @@ lemma InfinitePrime: "|- ([]<>P) = ([]<>P`)"
    apply (subgoal_tac "sigma |= <>[] (<>P & []~P`)")
     apply (force simp: boxInit_stp [temp_use]
       elim!: DmdImplE [temp_use] STL4E [temp_use] DmdRec2 [temp_use])
-   apply (force intro!: STL6 [temp_use] simp: more_temp_simps)
+   apply (force intro!: STL6 [temp_use] simp: more_temp_simps3)
   apply (fastsimp intro: DmdPrime [temp_use] elim!: STL4E [temp_use])
   done
 
@@ -700,18 +675,18 @@ lemma SF_alt: "|- SF(A)_v = (<>[]~Enabled(<A>_v) | []<><A>_v)"
 
 (* theorems to "box" fairness conditions *)
 lemma BoxWFI: "|- WF(A)_v --> []WF(A)_v"
-  by (auto simp: WF_alt [try_rewrite] more_temp_simps intro!: BoxOr [temp_use])
+  by (auto simp: WF_alt [try_rewrite] more_temp_simps3 intro!: BoxOr [temp_use])
 
 lemma WF_Box: "|- ([]WF(A)_v) = WF(A)_v"
   by (fastsimp intro!: BoxWFI [temp_use] dest!: STL2 [temp_use])
 
 lemma BoxSFI: "|- SF(A)_v --> []SF(A)_v"
-  by (auto simp: SF_alt [try_rewrite] more_temp_simps intro!: BoxOr [temp_use])
+  by (auto simp: SF_alt [try_rewrite] more_temp_simps3 intro!: BoxOr [temp_use])
 
 lemma SF_Box: "|- ([]SF(A)_v) = SF(A)_v"
   by (fastsimp intro!: BoxSFI [temp_use] dest!: STL2 [temp_use])
 
-lemmas more_temp_simps = more_temp_simps WF_Box [temp_rewrite] SF_Box [temp_rewrite]
+lemmas more_temp_simps = more_temp_simps3 WF_Box [temp_rewrite] SF_Box [temp_rewrite]
 
 lemma SFImplWF: "|- SF(A)_v --> WF(A)_v"
   apply (unfold SF_def WF_def)
@@ -720,12 +695,7 @@ lemma SFImplWF: "|- SF(A)_v --> WF(A)_v"
 
 (* A tactic that "boxes" all fairness conditions. Apply more_temp_simps to "unbox". *)
 ML {*
-local
-  val BoxWFI = thm "BoxWFI";
-  val BoxSFI = thm "BoxSFI";
-in 
-val box_fair_tac = SELECT_GOAL (REPEAT (dresolve_tac [BoxWFI,BoxSFI] 1))
-end
+val box_fair_tac = SELECT_GOAL (REPEAT (dresolve_tac [@{thm BoxWFI}, @{thm BoxSFI}] 1))
 *}
 
 
