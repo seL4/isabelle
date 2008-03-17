@@ -47,9 +47,6 @@ lemma nonemptyE: "S ~= {} ==> (!!x. x : S ==> R) ==> R"
 lemma gt_or_eq_0: "0 < y \<or> 0 = (y::nat)" by auto
 
 constdefs
-  mod_alt :: "'a => 'a => 'a :: Divides.div"
-  "mod_alt n m == n mod m" 
-
   -- "alternative way of defining @{text bin_last}, @{text bin_rest}"
   bin_rl :: "int => int * bit" 
   "bin_rl w == SOME (r, l). w = r BIT l"
@@ -108,8 +105,7 @@ lemmas pos_mod_bound2 = zless2 [THEN pos_mod_bound [where b = "2::int"]]
 
 -- "the inverse(s) of @{text number_of}"
 lemma nmod2: "n mod (2::int) = 0 | n mod 2 = 1"
-  using pos_mod_sign2 [of n] pos_mod_bound2 [of n]
-  unfolding mod_alt_def [symmetric] by auto
+  by (cases "n mod 2 = 0", simp_all)
 
 lemma emep1:
   "even n ==> even d ==> 0 <= d ==> (n + 1) mod (d :: int) = (n mod d) + 1"
