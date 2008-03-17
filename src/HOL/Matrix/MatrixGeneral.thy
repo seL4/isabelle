@@ -342,10 +342,10 @@ by (simp add: apply_matrix_def)
 lemma Rep_combine_matrix[simp]: "f 0 0 = 0 \<Longrightarrow> Rep_matrix (combine_matrix f A B) j i = f (Rep_matrix A j i) (Rep_matrix B j i)"
   by(simp add: combine_matrix_def)
 
-lemma combine_nrows: "f 0 0 = 0  \<Longrightarrow> nrows (combine_matrix f A B) <= max (nrows A) (nrows B)"
+lemma combine_nrows_max: "f 0 0 = 0  \<Longrightarrow> nrows (combine_matrix f A B) <= max (nrows A) (nrows B)"
 by (simp add: nrows_le)
 
-lemma combine_ncols: "f 0 0 = 0 \<Longrightarrow> ncols (combine_matrix f A B) <= max (ncols A) (ncols B)"
+lemma combine_ncols_max: "f 0 0 = 0 \<Longrightarrow> ncols (combine_matrix f A B) <= max (ncols A) (ncols B)"
 by (simp add: ncols_le)
 
 lemma combine_nrows: "f 0 0 = 0 \<Longrightarrow> nrows A <= q \<Longrightarrow> nrows B <= q \<Longrightarrow> nrows(combine_matrix f A B) <= q"

@@ -45,7 +45,7 @@ lemma index_case:
   shows P
   by (rule assms [of "nat_of_index k"]) simp
 
-lemma index_induct:
+lemma index_induct_raw:
   assumes "\<And>n. P (index_of_nat n)"
   shows "P k"
 proof -

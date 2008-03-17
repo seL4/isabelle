@@ -481,7 +481,7 @@ lemma Upair_nonEmpty: "Upair a b \<noteq> Empty"
 lemma Singleton_nonEmpty: "Singleton x \<noteq> Empty"
   by (auto simp add: Singleton_def Upair_nonEmpty)
 
-lemma antisym_Elem: "Not(Elem a b & Elem b a)"
+lemma notsym_Elem: "Not(Elem a b & Elem b a)"
 proof -
   {
     fix a b
@@ -504,10 +504,10 @@ proof -
 qed
 
 lemma irreflexiv_Elem: "Not(Elem a a)"
-  by (simp add: antisym_Elem[of a a, simplified])
+  by (simp add: notsym_Elem[of a a, simplified])
 
 lemma antisym_Elem: "Elem a b \<Longrightarrow> Not (Elem b a)"
-  apply (insert antisym_Elem[of a b])
+  apply (insert notsym_Elem[of a b])
   apply auto
   done
 

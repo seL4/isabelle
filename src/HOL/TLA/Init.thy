@@ -45,7 +45,7 @@ lemma const_simps [int_rewrite, simp]:
   "|- (Init #False) = #False"
   by (auto simp: Init_def)
 
-lemma Init_simps [int_rewrite]:
+lemma Init_simps1 [int_rewrite]:
   "!!F. |- (Init ~F) = (~ Init F)"
   "|- (Init (P --> Q)) = (Init P --> Init Q)"
   "|- (Init (P & Q)) = (Init P & Init Q)"
@@ -59,13 +59,13 @@ lemma Init_simps [int_rewrite]:
 lemma Init_stp_act: "|- (Init $P) = (Init P)"
   by (auto simp add: Init_def fw_act_def fw_stp_def)
 
-lemmas Init_simps = Init_stp_act [int_rewrite] Init_simps
+lemmas Init_simps2 = Init_stp_act [int_rewrite] Init_simps1
 lemmas Init_stp_act_rev = Init_stp_act [int_rewrite, symmetric]
 
 lemma Init_temp: "|- (Init F) = F"
   by (auto simp add: Init_def fw_temp_def)
 
-lemmas Init_simps = Init_temp [int_rewrite] Init_simps
+lemmas Init_simps = Init_temp [int_rewrite] Init_simps2
 
 (* Trivial instances of the definitions that avoid introducing lambda expressions. *)
 lemma Init_stp: "(sigma |= Init P) = P (st1 sigma)"

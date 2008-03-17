@@ -95,7 +95,7 @@ lemmas [simp del] = compose_hint
 
 subsection {* @{const delete} *}
 
-lemma delete_def:
+lemma delete_eq:
   "delete k xs = filter (\<lambda>p. fst p \<noteq> k) xs"
   by (induct xs) auto
 
@@ -163,14 +163,14 @@ lemma insert_fst_filter:
   by (induct ps) auto
 
 lemma dom_clearjunk: "fst ` set (clearjunk al) = fst ` set al"
-  by (induct al rule: clearjunk.induct) (simp_all add: insert_fst_filter delete_def)
+  by (induct al rule: clearjunk.induct) (simp_all add: insert_fst_filter delete_eq)
 
 lemma notin_filter_fst: "a \<notin> fst ` {x \<in> set ps. fst x \<noteq> a}"
   by (induct ps) auto
 
 lemma distinct_clearjunk [simp]: "distinct (map fst (clearjunk al))"
   by (induct al rule: clearjunk.induct) 
-     (simp_all add: dom_clearjunk notin_filter_fst delete_def)
+     (simp_all add: dom_clearjunk notin_filter_fst delete_eq)
 
 lemma map_of_filter: "k \<noteq> a \<Longrightarrow> map_of [q\<leftarrow>ps . fst q \<noteq> a] k = map_of ps k"
   by (induct ps) auto
@@ -188,11 +188,11 @@ proof (induct al rule: clearjunk.induct [case_names Nil Cons])
 next
   case (Cons p ps)
   from Cons have "length (clearjunk [q\<leftarrow>ps . fst q \<noteq> fst p]) \<le> length [q\<leftarrow>ps . fst q \<noteq> fst p]" 
-    by (simp add: delete_def)
+    by (simp add: delete_eq)
   also have "\<dots> \<le> length ps"
     by simp
   finally show ?case
-    by (simp add: delete_def)
+    by (simp add: delete_eq)
 qed
 
 lemma notin_fst_filter: "a \<notin> fst ` set ps \<Longrightarrow> [q\<leftarrow>ps . fst q \<noteq> a] = ps"
@@ -319,7 +319,7 @@ lemma update_filter:
   by (induct ps) auto
 
 lemma clearjunk_update: "clearjunk (update k v al) = update k v (clearjunk al)"
-  by (induct al rule: clearjunk.induct) (auto simp add: update_filter delete_def)
+  by (induct al rule: clearjunk.induct) (auto simp add: update_filter delete_eq)
 
 lemma update_triv: "map_of al k = Some v \<Longrightarrow> update k v al = al"
   by (induct al) auto
@@ -442,7 +442,7 @@ lemma map_ran_filter: "map_ran f [p\<leftarrow>ps. fst p \<noteq> a] = [p\<lefta
   by (induct ps) auto
 
 lemma clearjunk_map_ran: "clearjunk (map_ran f al) = map_ran f (clearjunk al)"
-  by (induct al rule: clearjunk.induct) (auto simp add: delete_def map_ran_filter)
+  by (induct al rule: clearjunk.induct) (auto simp add: delete_eq map_ran_filter)
 
 
 subsection {* @{const merge} *}
@@ -673,7 +673,7 @@ lemma map_comp_None_iff:
 
 subsection {* @{const restrict} *}
 
-lemma restrict_def:
+lemma restrict_eq:
   "restrict A = filter (\<lambda>p. fst p \<in> A)"
 proof
   fix xs
@@ -682,13 +682,13 @@ proof
 qed
 
 lemma distinct_restr: "distinct (map fst al) \<Longrightarrow> distinct (map fst (restrict A al))"
-  by (induct al) (auto simp add: restrict_def)
+  by (induct al) (auto simp add: restrict_eq)
 
 lemma restr_conv: "map_of (restrict A al) k = ((map_of al)|` A) k"
   apply (induct al)
-  apply  (simp add: restrict_def)
+  apply  (simp add: restrict_eq)
   apply (cases "k\<in>A")
-  apply (auto simp add: restrict_def)
+  apply (auto simp add: restrict_eq)
   done
 
 lemma restr_conv': "map_of (restrict A al) = ((map_of al)|` A)"
@@ -697,7 +697,7 @@ lemma restr_conv': "map_of (restrict A al) = ((map_of al)|` A)"
 lemma restr_empty [simp]: 
   "restrict {} al = []" 
   "restrict A [] = []"
-  by (induct al) (auto simp add: restrict_def)
+  by (induct al) (auto simp add: restrict_eq)
 
 lemma restr_in [simp]: "x \<in> A \<Longrightarrow> map_of (restrict A al) x = map_of al x"
   by (simp add: restr_conv')
@@ -706,13 +706,13 @@ lemma restr_out [simp]: "x \<notin> A \<Longrightarrow> map_of (restrict A al) x
   by (simp add: restr_conv')
 
 lemma dom_restr [simp]: "fst ` set (restrict A al) = fst ` set al \<inter> A"
-  by (induct al) (auto simp add: restrict_def)
+  by (induct al) (auto simp add: restrict_eq)
 
 lemma restr_upd_same [simp]: "restrict (-{x}) (update x y al) = restrict (-{x}) al"
-  by (induct al) (auto simp add: restrict_def)
+  by (induct al) (auto simp add: restrict_eq)
 
 lemma restr_restr [simp]: "restrict A (restrict B al) = restrict (A\<inter>B) al"
-  by (induct al) (auto simp add: restrict_def)
+  by (induct al) (auto simp add: restrict_eq)
 
 lemma restr_update[simp]:
  "map_of (restrict D (update x y al)) = 
@@ -747,18 +747,18 @@ next
 	case True 
 	with not_fst_a_x 
 	have "delete x (restrict D (a#al)) = a#(delete x (restrict D al))"
-	  by (cases a) (simp add: restrict_def)
+	  by (cases a) (simp add: restrict_eq)
 	also from not_fst_a_x True hyp have "\<dots> = restrict (D - {x}) (a # al)"
-	  by (cases a) (simp add: restrict_def)
+	  by (cases a) (simp add: restrict_eq)
 	finally show ?thesis
 	  using x_D by simp
       next
 	case False
 	hence "delete x (restrict D (a#al)) = delete x (restrict D al)"
-	  by (cases a) (simp add: restrict_def)
+	  by (cases a) (simp add: restrict_eq)
 	moreover from False not_fst_a_x
 	have "restrict (D - {x}) (a # al) = restrict (D - {x}) al"
-	  by (cases a) (simp add: restrict_def)
+	  by (cases a) (simp add: restrict_eq)
 	ultimately
 	show ?thesis using x_D hyp by simp
       qed

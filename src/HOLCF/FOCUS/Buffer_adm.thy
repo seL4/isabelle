@@ -233,7 +233,7 @@ done
 
 (**** new approach for admissibility, reduces itself to absurdity *************)
 
-lemma adm_BufAC_Asm: "adm (\<lambda>x. x\<in>BufAC_Asm)"
+lemma adm_BufAC_Asm': "adm (\<lambda>x. x\<in>BufAC_Asm)"
 apply (rule def_gfp_admI)
 apply (rule BufAC_Asm_def [THEN eq_reflection])
 apply (safe)

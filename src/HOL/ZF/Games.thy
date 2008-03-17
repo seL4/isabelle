@@ -375,7 +375,7 @@ recdef ge_game "(gprod_2_1 option_of)"
 
 declare ge_game.simps [simp del]
 
-lemma ge_game_def: "ge_game (G, H) = (\<forall> x. (zin x (right_options G) \<longrightarrow> \<not> ge_game (H, x)) \<and> (zin x (left_options H) \<longrightarrow> \<not> ge_game (x, G)))"
+lemma ge_game_eq: "ge_game (G, H) = (\<forall> x. (zin x (right_options G) \<longrightarrow> \<not> ge_game (H, x)) \<and> (zin x (left_options H) \<longrightarrow> \<not> ge_game (x, G)))"
   apply (subst ge_game.simps[where G=G and H=H])
   apply (auto)
   done
@@ -391,7 +391,7 @@ proof (induct x rule: wf_induct[OF wf_option_of])
     proof -
       have "(y, g) \<in> option_of" by (auto intro: y)
       with 1 have "ge_game (y, y)" by auto
-      with y show ?thesis by (subst ge_game_def, auto)
+      with y show ?thesis by (subst ge_game_eq, auto)
     qed
   }
   note right = this
@@ -402,12 +402,12 @@ proof (induct x rule: wf_induct[OF wf_option_of])
     proof -
       have "(y, g) \<in> option_of" by (auto intro: y)
       with 1 have "ge_game (y, y)" by auto
-      with y show ?thesis by (subst ge_game_def, auto)
+      with y show ?thesis by (subst ge_game_eq, auto)
     qed
   } 
   note left = this
   from left right show ?case
-    by (auto, subst ge_game_def, auto)
+    by (auto, subst ge_game_eq, auto)
 qed
 
 lemma ge_game_refl: "ge_game (x,x)" by (simp add: ge_game_leftright_refl)
@@ -421,19 +421,19 @@ proof (induct x rule: wf_induct[OF wf_option_of])
       from goal1 have "(y, g) \<in> option_of" by (auto)
       with 1 have "ge_game (y, y)" by auto
       with goal1 have "\<not> ge_game (g, y)" 
-	by (subst ge_game_def, auto)
+	by (subst ge_game_eq, auto)
       with goal1 show ?case by auto}
     note right = this
     {case (goal2 y)
       from goal2 have "(y, g) \<in> option_of" by (auto)
       with 1 have "ge_game (y, y)" by auto
       with goal2 have "\<not> ge_game (y, g)" 
-	by (subst ge_game_def, auto)
+	by (subst ge_game_eq, auto)
       with goal2 show ?case by auto}
     note left = this
     {case goal3
       from left right show ?case
-	by (subst ge_game_def, auto)
+	by (subst ge_game_eq, auto)
     }
   qed
 qed
@@ -473,7 +473,7 @@ proof -
 	      apply (auto intro: xr lprod_3_1 simp add: prems)
 	      done
 	    moreover from xr have "\<not> ge_game (y, xr)"
-	      by (simp add: goal1(2)[simplified ge_game_def[of x y], rule_format, of xr, simplified xr])
+	      by (simp add: goal1(2)[simplified ge_game_eq[of x y], rule_format, of xr, simplified xr])
 	    ultimately have "False" by auto      
 	  }
 	  note xr = this
@@ -485,12 +485,12 @@ proof -
 	      apply (auto intro: zl lprod_3_2 simp add: prems)
 	      done
 	    moreover from zl have "\<not> ge_game (zl, y)"
-	      by (simp add: goal1(3)[simplified ge_game_def[of y z], rule_format, of zl, simplified zl])
+	      by (simp add: goal1(3)[simplified ge_game_eq[of y z], rule_format, of zl, simplified zl])
 	    ultimately have "False" by auto
 	  }
 	  note zl = this
 	  show ?thesis
-	    by (auto simp add: ge_game_def[of x z] intro: xr zl)
+	    by (auto simp add: ge_game_eq[of x z] intro: xr zl)
 	qed
       qed
     qed
@@ -708,7 +708,7 @@ proof -
 	  { fix yr
 	    assume yr: "zin yr (right_options y)"
 	    from hyp have "\<not> (ge_game (plus_game (x, z), plus_game (x, yr)))"
-	      by (auto simp add: ge_game_def[of "plus_game (x,y)" "plus_game(x,z)"]
+	      by (auto simp add: ge_game_eq[of "plus_game (x,y)" "plus_game(x,z)"]
 		right_options_plus zunion zimage_iff intro: yr)
 	    then have "\<not> (ge_game (z, yr))"
 	      apply (subst induct_hyp[where y="[x, z, yr]", of "x" "z" "yr"])
@@ -719,7 +719,7 @@ proof -
 	  { fix zl
 	    assume zl: "zin zl (left_options z)"
 	    from hyp have "\<not> (ge_game (plus_game (x, zl), plus_game (x, y)))"
-	      by (auto simp add: ge_game_def[of "plus_game (x,y)" "plus_game(x,z)"]
+	      by (auto simp add: ge_game_eq[of "plus_game (x,y)" "plus_game(x,z)"]
 		left_options_plus zunion zimage_iff intro: zl)
 	    then have "\<not> (ge_game (zl, y))"
 	      apply (subst goal1(1)[rule_format, where y="[x, zl, y]", of "x" "zl" "y"])
@@ -728,7 +728,7 @@ proof -
 	  }	
 	  note zl = this
 	  show "ge_game (y, z)"
-	    apply (subst ge_game_def)
+	    apply (subst ge_game_eq)
 	    apply (auto simp add: yr zl)
 	    done
 	qed      
@@ -741,7 +741,7 @@ proof -
 	  assume x': "zin x' (right_options x)"
 	  assume hyp: "ge_game (plus_game (x, z), plus_game (x', y))"
 	  then have n: "\<not> (ge_game (plus_game (x', y), plus_game (x', z)))"
-	    by (auto simp add: ge_game_def[of "plus_game (x,z)" "plus_game (x', y)"] 
+	    by (auto simp add: ge_game_eq[of "plus_game (x,z)" "plus_game (x', y)"] 
 	      right_options_plus zunion zimage_iff intro: x')
 	  have t: "ge_game (plus_game (x', y), plus_game (x', z))"
 	    apply (subst induct_hyp[symmetric])
@@ -755,7 +755,7 @@ proof -
 	  assume x': "zin x' (left_options x)"
 	  assume hyp: "ge_game (plus_game (x', z), plus_game (x, y))"
 	  then have n: "\<not> (ge_game (plus_game (x', y), plus_game (x', z)))"
-	    by (auto simp add: ge_game_def[of "plus_game (x',z)" "plus_game (x, y)"] 
+	    by (auto simp add: ge_game_eq[of "plus_game (x',z)" "plus_game (x, y)"] 
 	      left_options_plus zunion zimage_iff intro: x')
 	  have t: "ge_game (plus_game (x', y), plus_game (x', z))"
 	    apply (subst induct_hyp[symmetric])
@@ -791,7 +791,7 @@ proof -
 	}
 	note case4 = this   
 	have "ge_game(plus_game (x, y), plus_game (x, z))"
-	  apply (subst ge_game_def)
+	  apply (subst ge_game_eq)
 	  apply (auto simp add: right_options_plus left_options_plus zunion zimage_iff)
 	  apply (auto intro: case1 case2 case3 case4)
 	  done
@@ -831,7 +831,7 @@ proof -
       }
       note yr = this
       show ?case
-	by (auto simp add: ge_game_def[of "neg_game x" "neg_game y"] ge_game_def[of "y" "x"]
+	by (auto simp add: ge_game_eq[of "neg_game x" "neg_game y"] ge_game_eq[of "y" "x"]
 	  right_options_neg left_options_neg zimage_iff  xl yr)
     qed
   }

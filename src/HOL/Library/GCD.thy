@@ -224,11 +224,11 @@ subsection {* LCM defined by GCD *}
 definition
   lcm :: "nat \<times> nat \<Rightarrow> nat"
 where
-  "lcm = (\<lambda>(m, n). m * n div gcd (m, n))"
+  lcm_prim_def: "lcm = (\<lambda>(m, n). m * n div gcd (m, n))"
 
 lemma lcm_def:
   "lcm (m, n) = m * n div gcd (m, n)"
-  unfolding lcm_def by simp
+  unfolding lcm_prim_def by simp
 
 lemma prod_gcd_lcm:
   "m * n = gcd (m, n) * lcm (m, n)"
