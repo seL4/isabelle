@@ -414,12 +414,12 @@ lemma get_ref_upd [simp]: "get_ref r (upd a i v h) = get_ref r h"
 lemma new_ref_upd: "fst (ref v (upd a i v' h)) = fst (ref v h)"
   by (simp add: set_array_def get_array_def Let_def ref_new_set upd_def ref_def  new_ref_def)
 
-(*not actually true ???
+text {*not actually true ???*}
 lemma upd_set_ref_swap: "upd a i v (set_ref r v' h) = set_ref r v' (upd a i v h)"
 apply (case_tac a)
 apply (simp add: Let_def upd_def)
 apply auto
-done*)
+oops
 
 lemma length_new_ref[simp]: 
   "length a (snd (ref v h)) = length a h"
@@ -428,10 +428,6 @@ lemma length_new_ref[simp]:
 lemma get_array_new_ref [simp]: 
   "get_array a (snd (ref v h)) = get_array a h"
   by (simp add: new_ref_def ref_def set_ref_def get_array_def Let_def)
-
-lemma get_array_new_ref [simp]:
-  "get_array a (snd (ref v h)) ! i = get_array a h ! i"
-  by (simp add: get_array_def new_ref_def ref_def set_ref_def Let_def)
 
 lemma ref_present_upd [simp]: 
   "ref_present r (upd a i v h) = ref_present r h"

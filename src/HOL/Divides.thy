@@ -316,7 +316,7 @@ proof -
   then show ?thesis using divmod_div_mod by simp
 qed
 
-text {* The ''recursion´´ equations for @{const div} and @{const mod} *}
+text {* The ''recursion'' equations for @{const div} and @{const mod} *}
 
 lemma div_less [simp]:
   fixes m n :: nat
@@ -702,61 +702,6 @@ lemma nat_mod_div_trivial [simp]: "m mod n div n = (0 :: nat)"
 
 lemma nat_mod_mod_trivial [simp]: "m mod n mod n = (m mod n :: nat)"
   by (cases "n = 0") auto
-
-
-(* Antimonotonicity of div in second argument *)
-lemma div_le_mono2: "!!m::nat. [| 0<m; m\<le>n |] ==> (k div n) \<le> (k div m)"
-apply (subgoal_tac "0<n")
- prefer 2 apply simp
-apply (induct_tac k rule: nat_less_induct)
-apply (rename_tac "k")
-apply (case_tac "k<n", simp)
-apply (subgoal_tac "~ (k<m) ")
- prefer 2 apply simp
-apply (simp add: div_geq)
-apply (subgoal_tac "(k-n) div n \<le> (k-m) div n")
- prefer 2
- apply (blast intro: div_le_mono diff_le_mono2)
-apply (rule le_trans, simp)
-apply (simp)
-done
-
-lemma div_le_dividend [simp]: "m div n \<le> (m::nat)"
-apply (case_tac "n=0", simp)
-apply (subgoal_tac "m div n \<le> m div 1", simp)
-apply (rule div_le_mono2)
-apply (simp_all (no_asm_simp))
-done
-
-(* Similar for "less than" *)
-lemma div_less_dividend [rule_format]:
-     "!!n::nat. 1<n ==> 0 < m --> m div n < m"
-apply (induct_tac m rule: nat_less_induct)
-apply (rename_tac "m")
-apply (case_tac "m<n", simp)
-apply (subgoal_tac "0<n")
- prefer 2 apply simp
-apply (simp add: div_geq)
-apply (case_tac "n<m")
- apply (subgoal_tac "(m-n) div n < (m-n) ")
-  apply (rule impI less_trans_Suc)+
-apply assumption
-  apply (simp_all)
-done
-
-declare div_less_dividend [simp]
-
-text{*A fact for the mutilated chess board*}
-lemma mod_Suc: "Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))"
-apply (case_tac "n=0", simp)
-apply (induct "m" rule: nat_less_induct)
-apply (case_tac "Suc (na) <n")
-(* case Suc(na) < n *)
-apply (frule lessI [THEN less_trans], simp add: less_not_refl3)
-(* case n \<le> Suc(na) *)
-apply (simp add: linorder_not_less le_Suc_eq mod_geq)
-apply (auto simp add: Suc_diff_le le_mod_geq)
-done
 
 
 subsubsection{*The Divides Relation*}

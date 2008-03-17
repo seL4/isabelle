@@ -855,9 +855,6 @@ by (force simp del: add_Suc_right
 
 subsubsection {* More results about difference *}
 
-lemma diff_self_eq_0 [simp]: "(m::nat) - m = 0"
-by (induct m) simp_all
-
 text {* Addition is the inverse of subtraction:
   if @{term "n \<le> m"} then @{term "n + (m - n) = m"}. *}
 lemma add_diff_inverse: "~  m < n ==> n + (m - n) = (m::nat)"

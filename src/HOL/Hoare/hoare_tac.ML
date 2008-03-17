@@ -86,15 +86,10 @@ end;
 (** input does not suffer any unexpected transformation                     **)
 (*****************************************************************************)
 
-Goal "-(Collect b) = {x. ~(b x)}";
-by (Fast_tac 1);
-qed "Compl_Collect";
-
-
 (**Simp_tacs**)
 
 val before_set2pred_simp_tac =
-  (simp_tac (HOL_basic_ss addsimps [Collect_conj_eq RS sym,Compl_Collect]));
+  (simp_tac (HOL_basic_ss addsimps [Collect_conj_eq RS sym, @{thm Compl_Collect}]));
 
 val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [split_conv]));
 

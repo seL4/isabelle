@@ -1220,10 +1220,6 @@ by (simp add: nth_list_update)
 lemma nth_list_update_neq [simp]: "i \<noteq> j ==> xs[i:=x]!j = xs!j"
 by (induct xs arbitrary: i j) (auto simp add: nth_Cons split: nat.split)
 
-lemma list_update_overwrite [simp]:
-"i < size xs ==> xs[i:=x, i:=y] = xs[i:=y]"
-by (induct xs arbitrary: i) (auto split: nat.split)
-
 lemma list_update_id[simp]: "xs[i := xs!i] = xs"
 by (induct xs arbitrary: i) (simp_all split:nat.splits)
 

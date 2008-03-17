@@ -897,24 +897,6 @@ apply (simp add: AKcryptSK_def)
 apply (blast dest: unique_servKeys Says_Tgs_message_form)
 done
 
-lemma AKcryptSK_not_AKcryptSK:
-     "\<lbrakk> AKcryptSK authK servK evs;  evs \<in> kerbV \<rbrakk>
-      \<Longrightarrow> \<not> AKcryptSK servK K evs"
-apply (erule rev_mp)
-apply (erule kerbV.induct)
-apply (frule_tac [7] Says_ticket_parts)
-apply (frule_tac [5] Says_ticket_parts, simp_all, safe)
-txt{*K4 splits into subcases*}
-apply simp_all
-prefer 4 apply (blast dest!: authK_not_AKcryptSK)
-txt{*servK is fresh and so could not have been used, by
-   @{text new_keys_not_used}*}
- prefer 2 
- apply (force dest!: Crypt_imp_invKey_keysFor simp add: AKcryptSK_def)
-txt{*Others by freshness*}
-apply (blast+)
-done
-
 text{*The only session keys that can be found with the help of session keys are
   those sent by Tgs in step K4.  *}
 

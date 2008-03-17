@@ -143,14 +143,6 @@ lemma sorted_spvec_minus_spvec:
   apply (simp add: sorted_spvec.simps split:list.split_asm)
   done
 
-lemma sorted_spvec_minus_spvec:
-  "sorted_spvec v \<Longrightarrow> sorted_spvec (minus_spvec v)"
-  apply (induct v)
-  apply (simp)
-  apply (frule sorted_spvec_cons1, simp)
-  apply (simp add: sorted_spvec.simps split:list.split_asm)
-  done
-
 lemma sorted_spvec_abs_spvec:
   "sorted_spvec v \<Longrightarrow> sorted_spvec (abs_spvec v)"
   apply (induct v)

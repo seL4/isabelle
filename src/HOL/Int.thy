@@ -1911,10 +1911,6 @@ lemmas zadd_zmult_distrib2 = right_distrib [of "w::int" "z1" "z2", standard]
 lemmas zdiff_zmult_distrib = left_diff_distrib [of "z1::int" "z2" "w", standard]
 lemmas zdiff_zmult_distrib2 = right_diff_distrib [of "w::int" "z1" "z2", standard]
 
-lemmas int_distrib =
-  zadd_zmult_distrib zadd_zmult_distrib2
-  zdiff_zmult_distrib zdiff_zmult_distrib2
-
 lemmas zmult_1 = mult_1_left [of "z::int", standard]
 lemmas zmult_1_right = mult_1_right [of "z::int", standard]
 

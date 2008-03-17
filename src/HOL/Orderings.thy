@@ -39,9 +39,6 @@ unfolding less_le by blast
 lemma less_imp_le: "x < y \<Longrightarrow> x \<le> y"
 unfolding less_le by blast
 
-lemma less_imp_neq: "x < y \<Longrightarrow> x \<noteq> y"
-by (erule contrapos_pn, erule subst, rule less_irrefl)
-
 
 text {* Useful for simplification, but too risky to include by default. *}
 
