@@ -114,7 +114,7 @@ by (auto simp add: real_is_int_def int_of_real_def)
 lemma float_transfer: "real_is_int ((real a)*(pow2 c)) \<Longrightarrow> float (a, b) = float (int_of_real ((real a)*(pow2 c)), b - c)"
 by (simp add: float_def real_is_int_def2 pow2_add[symmetric])
 
-lemma pow2_int: "pow2 (int c) = (2::real)^c"
+lemma pow2_int: "pow2 (int c) = 2^c"
 by (simp add: pow2_def)
 
 lemma float_transfer_nat: "float (a, b) = float (a * 2^c, b - int c)"
@@ -316,9 +316,6 @@ proof -
   then obtain a b where "x = (a, b)" by blast
   then show ?thesis by (simp only: helper)
 qed
-
-lemma pow2_int: "pow2 (int n) = 2^n"
-  by (simp add: pow2_def)
 
 lemma float_add_l0: "float (0, e) + x = x"
   by (simp add: float_def)

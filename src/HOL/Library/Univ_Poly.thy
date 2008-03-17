@@ -317,7 +317,7 @@ lemma (in idom) poly_roots_index_length: "poly p x \<noteq> poly [] x ==>
       \<exists>i. \<forall>x. (poly p x = 0) --> (\<exists>n. n \<le> length p & x = i n)"
 by (blast intro: poly_roots_index_lemma)
 
-lemma (in idom) poly_roots_finite_lemma: "poly p x \<noteq> poly [] x ==>
+lemma (in idom) poly_roots_finite_lemma1: "poly p x \<noteq> poly [] x ==>
       \<exists>N i. \<forall>x. (poly p x = 0) --> (\<exists>n. (n::nat) < N & x = i n)"
 apply (drule poly_roots_index_length, safe)
 apply (rule_tac x = "Suc (length p)" in exI)
@@ -337,7 +337,7 @@ proof-
 qed
 
 
-lemma (in idom) poly_roots_finite_lemma: "poly p x \<noteq> poly [] x ==>
+lemma (in idom) poly_roots_finite_lemma2: "poly p x \<noteq> poly [] x ==>
       \<exists>i. \<forall>x. (poly p x = 0) --> x \<in> set i"
 apply (drule poly_roots_index_length, safe)
 apply (rule_tac x="map (\<lambda>n. i n) [0 ..< Suc (length p)]" in exI)
@@ -386,7 +386,7 @@ proof
     apply -
     apply (erule contrapos_np, rule ext)
     apply (rule ccontr)
-    apply (clarify dest!: poly_roots_finite_lemma)
+    apply (clarify dest!: poly_roots_finite_lemma2)
     using finite_subset
   proof-
     fix x i
@@ -403,14 +403,19 @@ qed
 
 text{*Entirety and Cancellation for polynomials*}
 
-lemma (in idom_char_0) poly_entire_lemma: "\<lbrakk>poly p \<noteq> poly [] ; poly q \<noteq> poly [] \<rbrakk>
-      \<Longrightarrow>  poly (p *** q) \<noteq> poly []"
-by (auto simp add: poly_roots_finite poly_mult Collect_disj_eq)
+lemma (in idom_char_0) poly_entire_lemma2: 
+  assumes p0: "poly p \<noteq> poly []" and q0: "poly q \<noteq> poly []"
+  shows "poly (p***q) \<noteq> poly []"
+proof-
+  let ?S = "\<lambda>p. {x. poly p x = 0}"
+  have "?S (p *** q) = ?S p \<union> ?S q" by (auto simp add: poly_mult)
+  with p0 q0 show ?thesis  unfolding poly_roots_finite by auto
+qed
 
-lemma (in idom_char_0) poly_entire: "poly (p *** q) = poly [] \<longleftrightarrow>(poly p = poly []) | (poly q = poly [])"
-apply (auto intro: ext dest: fun_cong simp add: poly_entire_lemma poly_mult)
-apply (blast intro: ccontr dest: poly_entire_lemma poly_mult [THEN subst])
-done
+lemma (in idom_char_0) poly_entire: 
+  "poly (p *** q) = poly [] \<longleftrightarrow> poly p = poly [] \<or> poly q = poly []"
+using poly_entire_lemma2[of p q] 
+by auto (rule ext, simp add: poly_mult)+
 
 lemma (in idom_char_0) poly_entire_neg: "(poly (p *** q) \<noteq> poly []) = ((poly p \<noteq> poly []) & (poly q \<noteq> poly []))"
 by (simp add: poly_entire)
@@ -956,7 +961,7 @@ lemma (in semiring_0) last_pnormalize: "pnormalize p \<noteq> [] \<Longrightarro
 lemma (in semiring_0) pnormal_degree: "last p \<noteq> 0 \<Longrightarrow> degree p = length p - 1"
   using pnormalize_eq[of p] unfolding degree_def by simp
 
-lemma (in semiring_0) poly_Nil: "poly [] = (\<lambda>x. 0)" by (rule ext, simp) 
+lemma (in semiring_0) poly_Nil_ext: "poly [] = (\<lambda>x. 0)" by (rule ext) simp
 
 lemma (in idom_char_0) linear_mul_degree: assumes p: "poly p \<noteq> poly []"
   shows "degree ([a,1] *** p) = degree p + 1"
@@ -979,20 +984,6 @@ proof-
   show ?thesis by (simp add: degree_unique[OF poly_normalize])
 qed
 
-lemma (in idom_char_0) poly_entire_lemma: 
-  assumes p0: "poly p \<noteq> poly []" and q0: "poly q \<noteq> poly []"
-  shows "poly (p***q) \<noteq> poly []"
-proof-
-  let ?S = "\<lambda>p. {x. poly p x = 0}"
-  have "?S (p *** q) = ?S p \<union> ?S q" by (auto simp add: poly_mult)
-  with p0 q0 show ?thesis  unfolding poly_roots_finite by auto
-qed
-
-lemma (in idom_char_0) poly_entire: 
-  "poly (p *** q) = poly [] \<longleftrightarrow> poly p = poly [] \<or> poly q = poly []"
-using poly_entire_lemma[of p q] 
-by auto (rule ext, simp add: poly_mult)+
-
 lemma (in idom_char_0) linear_pow_mul_degree:
   "degree([a,1] %^n *** p) = (if poly p = poly [] then 0 else degree p + n)"
 proof(induct n arbitrary: a p)
@@ -1000,7 +991,7 @@ proof(induct n arbitrary: a p)
   {assume p: "poly p = poly []"
     hence ?case using degree_unique[OF p] by (simp add: degree_def)}
   moreover
-  {assume p: "poly p \<noteq> poly []" hence ?case by (auto simp add: poly_Nil) }
+  {assume p: "poly p \<noteq> poly []" hence ?case by (auto simp add: poly_Nil_ext) }
   ultimately show ?case by blast
 next
   case (Suc n a p)
