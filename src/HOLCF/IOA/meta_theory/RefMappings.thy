@@ -69,7 +69,7 @@ done
 
 subsection "weak_ref_map and ref_map"
 
-lemma imp_conj_lemma: 
+lemma weak_ref_map2ref_map:
   "[| ext C = ext A;  
      is_weak_ref_map f C A |] ==> is_ref_map f C A"
 apply (unfold is_weak_ref_map_def is_ref_map_def)
