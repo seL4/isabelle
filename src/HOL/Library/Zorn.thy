@@ -279,7 +279,7 @@ lemma Zorns_po_lemma:
 assumes po: "Partial_order r" and u: "\<forall>C\<in>Chain r. \<exists>u\<in>Field r. \<forall>a\<in>C. (a,u):r"
 shows "\<exists>m\<in>Field r. \<forall>a\<in>Field r. (m,a):r \<longrightarrow> a=m"
 proof-
-  have "Preorder r" using po by(simp add:Partial_order_def)
+  have "Preorder r" using po by(simp add:partial_order_on_def)
 --{* Mirror r in the set of subsets below (wrt r) elements of A*}
   let ?B = "%x. r^-1 `` {x}" let ?S = "?B ` Field r"
   have "\<forall>C \<in> chain ?S. EX U:?S. ALL A:C. A\<subseteq>U"
@@ -301,7 +301,7 @@ proof-
       fix a B assume aB: "B:C" "a:B"
       with 1 obtain x where "x:Field r" "B = r^-1 `` {x}" by auto
       thus "(a,u) : r" using uA aB `Preorder r`
-	by (auto simp add: Preorder_def Refl_def) (metis transD)
+	by (auto simp add: preorder_on_def refl_on_def) (metis transD)
     qed
     thus "EX u:Field r. ?P u" using `u:Field r` by blast
   qed
@@ -358,18 +358,18 @@ done
 lemma chain_subset_Total_Union:
 assumes "chain\<^bsub>\<subseteq>\<^esub> R" "\<forall>r\<in>R. Total r"
 shows "Total (\<Union>R)"
-proof (simp add: Total_def Ball_def, auto del:disjCI)
+proof (simp add: total_on_def Ball_def, auto del:disjCI)
   fix r s a b assume A: "r:R" "s:R" "a:Field r" "b:Field s" "a\<noteq>b"
   from `chain\<^bsub>\<subseteq>\<^esub> R` `r:R` `s:R` have "r\<subseteq>s \<or> s\<subseteq>r"
     by(simp add:chain_subset_def)
   thus "(\<exists>r\<in>R. (a,b) \<in> r) \<or> (\<exists>r\<in>R. (b,a) \<in> r)"
   proof
     assume "r\<subseteq>s" hence "(a,b):s \<or> (b,a):s" using assms(2) A
-      by(simp add:Total_def)(metis mono_Field subsetD)
+      by(simp add:total_on_def)(metis mono_Field subsetD)
     thus ?thesis using `s:R` by blast
   next
     assume "s\<subseteq>r" hence "(a,b):r \<or> (b,a):r" using assms(2) A
-      by(simp add:Total_def)(metis mono_Field subsetD)
+      by(simp add:total_on_def)(metis mono_Field subsetD)
     thus ?thesis using `r:R` by blast
   qed
 qed
@@ -414,7 +414,7 @@ proof-
     by(simp add:Chain_def I_def) blast
   have FI: "Field I = ?WO" by(auto simp add:I_def init_seg_of_def Field_def)
   hence 0: "Partial_order I"
-    by(auto simp add: Partial_order_def Preorder_def antisym_def antisym_init_seg_of Refl_def trans_def I_def)(metis trans_init_seg_of)
+    by(auto simp: partial_order_on_def preorder_on_def antisym_def antisym_init_seg_of refl_on_def trans_def I_def elim!: trans_init_seg_of)
 -- {*I-chains have upper bounds in ?WO wrt I: their Union*}
   { fix R assume "R \<in> Chain I"
     hence Ris: "R \<in> Chain init_seg_of" using mono_Chain[OF I_init] by blast
@@ -422,8 +422,8 @@ proof-
       by(auto simp:init_seg_of_def chain_subset_def Chain_def)
     have "\<forall>r\<in>R. Refl r" "\<forall>r\<in>R. trans r" "\<forall>r\<in>R. antisym r" "\<forall>r\<in>R. Total r"
          "\<forall>r\<in>R. wf(r-Id)"
-      using Chain_wo[OF `R \<in> Chain I`] by(simp_all add:Order_defs)
-    have "Refl (\<Union>R)" using `\<forall>r\<in>R. Refl r` by(auto simp:Refl_def)
+      using Chain_wo[OF `R \<in> Chain I`] by(simp_all add:order_on_defs)
+    have "Refl (\<Union>R)" using `\<forall>r\<in>R. Refl r` by(auto simp:refl_on_def)
     moreover have "trans (\<Union>R)"
       by(rule chain_subset_trans_Union[OF subch `\<forall>r\<in>R. trans r`])
     moreover have "antisym(\<Union>R)"
@@ -436,7 +436,7 @@ proof-
       with `\<forall>r\<in>R. wf(r-Id)` wf_Union_wf_init_segs[OF Chain_inits_DiffI[OF Ris]]
       show ?thesis by (simp (no_asm_simp)) blast
     qed
-    ultimately have "Well_order (\<Union>R)" by(simp add:Order_defs)
+    ultimately have "Well_order (\<Union>R)" by(simp add:order_on_defs)
     moreover have "\<forall>r \<in> R. r initial_segment_of \<Union>R" using Ris
       by(simp add: Chain_init_seg_of_Union)
     ultimately have "\<Union>R : ?WO \<and> (\<forall>r\<in>R. (r,\<Union>R) : I)"
@@ -455,26 +455,27 @@ proof-
     proof
       assume "m={}"
       moreover have "Well_order {(x,x)}"
-	by(simp add:Order_defs Refl_def trans_def antisym_def Total_def Field_def Domain_def Range_def)
+	by(simp add:order_on_defs refl_on_def trans_def antisym_def total_on_def Field_def Domain_def Range_def)
       ultimately show False using max
 	by (auto simp:I_def init_seg_of_def simp del:Field_insert)
     qed
     hence "Field m \<noteq> {}" by(auto simp:Field_def)
-    moreover have "wf(m-Id)" using `Well_order m` by(simp add:Well_order_def)
+    moreover have "wf(m-Id)" using `Well_order m`
+      by(simp add:well_order_on_def)
 --{*The extension of m by x:*}
     let ?s = "{(a,x)|a. a : Field m}" let ?m = "insert (x,x) m Un ?s"
     have Fm: "Field ?m = insert x (Field m)"
       apply(simp add:Field_insert Field_Un)
       unfolding Field_def by auto
     have "Refl m" "trans m" "antisym m" "Total m" "wf(m-Id)"
-      using `Well_order m` by(simp_all add:Order_defs)
+      using `Well_order m` by(simp_all add:order_on_defs)
 --{*We show that the extension is a well-order*}
-    have "Refl ?m" using `Refl m` Fm by(auto simp:Refl_def)
+    have "Refl ?m" using `Refl m` Fm by(auto simp:refl_on_def)
     moreover have "trans ?m" using `trans m` `x \<notin> Field m`
       unfolding trans_def Field_def Domain_def Range_def by blast
     moreover have "antisym ?m" using `antisym m` `x \<notin> Field m`
       unfolding antisym_def Field_def Domain_def Range_def by blast
-    moreover have "Total ?m" using `Total m` Fm by(auto simp: Total_def)
+    moreover have "Total ?m" using `Total m` Fm by(auto simp: total_on_def)
     moreover have "wf(?m-Id)"
     proof-
       have "wf ?s" using `x \<notin> Field m`
@@ -483,7 +484,7 @@ proof-
 	wf_subset[OF `wf ?s` Diff_subset]
 	by (fastsimp intro!: wf_Un simp add: Un_Diff Field_def)
     qed
-    ultimately have "Well_order ?m" by(simp add:Order_defs)
+    ultimately have "Well_order ?m" by(simp add:order_on_defs)
 --{*We show that the extension is above m*}
     moreover hence "(m,?m) : I" using `Well_order m` `x \<notin> Field m`
       by(fastsimp simp:I_def init_seg_of_def Field_def Domain_def Range_def)
@@ -496,24 +497,24 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-corollary well_ordering_set: "\<exists>r::('a*'a)set. Well_order r \<and> Field r = A"
+corollary well_order_on: "\<exists>r::('a*'a)set. well_order_on A r"
 proof -
   obtain r::"('a*'a)set" where wo: "Well_order r" and univ: "Field r = UNIV"
     using well_ordering[where 'a = "'a"] by blast
   let ?r = "{(x,y). x:A & y:A & (x,y):r}"
   have 1: "Field ?r = A" using wo univ
-    by(fastsimp simp: Field_def Domain_def Range_def Order_defs Refl_def)
+    by(fastsimp simp: Field_def Domain_def Range_def order_on_defs refl_on_def)
   have "Refl r" "trans r" "antisym r" "Total r" "wf(r-Id)"
-    using `Well_order r` by(simp_all add:Order_defs)
-  have "Refl ?r" using `Refl r` by(auto simp:Refl_def 1 univ)
+    using `Well_order r` by(simp_all add:order_on_defs)
+  have "Refl ?r" using `Refl r` by(auto simp:refl_on_def 1 univ)
   moreover have "trans ?r" using `trans r`
     unfolding trans_def by blast
   moreover have "antisym ?r" using `antisym r`
     unfolding antisym_def by blast
-  moreover have "Total ?r" using `Total r` by(simp add:Total_def 1 univ)
+  moreover have "Total ?r" using `Total r` by(simp add:total_on_def 1 univ)
   moreover have "wf(?r - Id)" by(rule wf_subset[OF `wf(r-Id)`]) blast
-  ultimately have "Well_order ?r" by(simp add:Order_defs)
-  with 1 show ?thesis by blast
+  ultimately have "Well_order ?r" by(simp add:order_on_defs)
+  with 1 show ?thesis by metis
 qed
 
 end
