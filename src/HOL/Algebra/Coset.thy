@@ -369,7 +369,7 @@ lemma normal_imp_subgroup: "H \<lhd> G \<Longrightarrow> subgroup H G"
   by (simp add: normal_def subgroup_def)
 
 lemma (in group) normalI: 
-  "subgroup H G \<Longrightarrow> (\<forall>x \<in> carrier G. H #> x = x <# H) \<Longrightarrow> H \<lhd> G";
+  "subgroup H G \<Longrightarrow> (\<forall>x \<in> carrier G. H #> x = x <# H) \<Longrightarrow> H \<lhd> G"
   by (simp add: normal_def normal_axioms_def prems) 
 
 lemma (in normal) inv_op_closed1:
@@ -385,7 +385,7 @@ done
 lemma (in normal) inv_op_closed2:
      "\<lbrakk>x \<in> carrier G; h \<in> H\<rbrakk> \<Longrightarrow> x \<otimes> h \<otimes> (inv x) \<in> H"
 apply (subgoal_tac "inv (inv x) \<otimes> h \<otimes> (inv x) \<in> H") 
-apply (simp add: ); 
+apply (simp add: ) 
 apply (blast intro: inv_op_closed1) 
 done
 
@@ -640,7 +640,7 @@ lemma (in group) rcos_equation:
         h \<in> H;  ha \<in> H;  hb \<in> H\<rbrakk>
       \<Longrightarrow> hb \<otimes> a \<in> (\<Union>h\<in>H. {h \<otimes> b})"
 apply (rule UN_I [of "hb \<otimes> ((inv ha) \<otimes> h)"])
-apply (simp add: ); 
+apply (simp add: ) 
 apply (simp add: m_assoc transpose_inv)
 done
 
@@ -730,14 +730,6 @@ subsection {*Order of a Group and Lagrange's Theorem*}
 constdefs
   order :: "('a, 'b) monoid_scheme \<Rightarrow> nat"
   "order S \<equiv> card (carrier S)"
-
-lemma (in group) rcos_self:
-  includes subgroup
-  shows "x \<in> carrier G \<Longrightarrow> x \<in> H #> x"
-apply (simp add: r_coset_def)
-apply (rule_tac x="\<one>" in bexI) 
-apply (auto simp add: ); 
-done
 
 lemma (in group) rcosets_part_G:
   includes subgroup
@@ -873,7 +865,7 @@ constdefs
   kernel :: "('a, 'm) monoid_scheme \<Rightarrow> ('b, 'n) monoid_scheme \<Rightarrow> 
              ('a \<Rightarrow> 'b) \<Rightarrow> 'a set" 
     --{*the kernel of a homomorphism*}
-  "kernel G H h \<equiv> {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}";
+  "kernel G H h \<equiv> {x. x \<in> carrier G & h x = \<one>\<^bsub>H\<^esub>}"
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"
 apply (rule subgroup.intro) 
@@ -939,10 +931,10 @@ text{*Lemma for the following injectivity result*}
 lemma (in group_hom) FactGroup_subset:
      "\<lbrakk>g \<in> carrier G; g' \<in> carrier G; h g = h g'\<rbrakk>
       \<Longrightarrow>  kernel G H h #> g \<subseteq> kernel G H h #> g'"
-apply (clarsimp simp add: kernel_def r_coset_def image_def);
+apply (clarsimp simp add: kernel_def r_coset_def image_def)
 apply (rename_tac y)  
 apply (rule_tac x="y \<otimes> g \<otimes> inv g'" in exI) 
-apply (simp add: G.m_assoc); 
+apply (simp add: G.m_assoc) 
 done
 
 lemma (in group_hom) FactGroup_inj_on:
@@ -977,7 +969,7 @@ proof
     fix y
     assume y: "y \<in> carrier H"
     with h obtain g where g: "g \<in> carrier G" "h g = y"
-      by (blast elim: equalityE); 
+      by (blast elim: equalityE) 
     hence "(\<Union>x\<in>kernel G H h #> g. {h x}) = {y}" 
       by (auto simp add: y kernel_def r_coset_def) 
     with g show "y \<in> (\<lambda>X. contents (h ` X)) ` carrier (G Mod kernel G H h)" 

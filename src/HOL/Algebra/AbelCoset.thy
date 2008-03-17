@@ -413,7 +413,7 @@ by (rule group.rcos_disjoint [OF a_group a_subgroup,
 
 lemma (in abelian_subgroup) a_rcos_self:
   shows "x \<in> carrier G \<Longrightarrow> x \<in> H +> x"
-by (rule group.rcos_self [OF a_group a_subgroup,
+by (rule group.rcos_self [OF a_group _ a_subgroup,
     folded a_r_coset_def, simplified monoid_record_simps])
 
 lemma (in abelian_subgroup) a_rcosets_part_G:
