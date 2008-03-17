@@ -232,7 +232,7 @@ lemma n_leaves_appnd [simp]:
   done
 
 ML {*ResAtp.problem_name := "BT__bt_map_appnd"*}
-lemma bt_map_appnd:
+lemma (*bt_map_appnd:*)
      "bt_map f (appnd t1 t2) = appnd (bt_map f t1) (bt_map f t2)"
   apply (induct t1)
   apply (metis appnd.simps(1) bt_map_appnd)

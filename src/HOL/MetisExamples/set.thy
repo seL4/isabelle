@@ -215,7 +215,7 @@ lemma fixedpoint:
     "\<exists>!x. f (g x) = x \<Longrightarrow> \<exists>!y. g (f y) = y"
 by metis
 
-lemma fixedpoint:
+lemma (*fixedpoint:*)
     "\<exists>!x. f (g x) = x \<Longrightarrow> \<exists>!y. g (f y) = y"
 proof (neg_clausify)
 fix x xa

@@ -99,7 +99,7 @@ where
 by pat_completeness auto
 termination by lexicographic_order
 
-lemmas unionl_def = unionl.simps(2)
+lemmas unionl_eq = unionl.simps(2)
 
 function intersect :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -109,7 +109,7 @@ where
 by pat_completeness auto
 termination by lexicographic_order
 
-lemmas intersect_def = intersect.simps(3)
+lemmas intersect_eq = intersect.simps(3)
 
 function subtract :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
@@ -119,7 +119,7 @@ where
 by pat_completeness auto
 termination by lexicographic_order
 
-lemmas subtract_def = subtract.simps(3)
+lemmas subtract_eq = subtract.simps(3)
 
 function map_distinct :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"
 where
@@ -128,7 +128,7 @@ where
 by pat_completeness auto
 termination by lexicographic_order
 
-lemmas map_distinct_def = map_distinct.simps(2)
+lemmas map_distinct_eq = map_distinct.simps(2)
 
 function unions :: "'a list list \<Rightarrow> 'a list"
 where
@@ -137,7 +137,7 @@ where
 by pat_completeness auto
 termination by lexicographic_order
 
-lemmas unions_def = unions.simps(2)
+lemmas unions_eq = unions.simps(2)
 
 consts intersects :: "'a list list \<Rightarrow> 'a list"
 primrec
@@ -169,12 +169,12 @@ lemma iso_remove1:
 
 lemma iso_union:
   "set (unionl xs ys) = set xs \<union> set ys"
-  unfolding unionl_def
+  unfolding unionl_eq
   by (induct xs arbitrary: ys) (simp_all add: iso_insert)
 
 lemma iso_intersect:
   "set (intersect xs ys) = set xs \<inter> set ys"
-  unfolding intersect_def Int_def by (simp add: Int_def iso_member) auto
+  unfolding intersect_eq Int_def by (simp add: Int_def iso_member) auto
 
 definition
   subtract' :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -185,16 +185,16 @@ lemma iso_subtract:
   assumes distnct: "distinct ys"
   shows "set (subtract' ys xs) = set ys - set xs"
     and "distinct (subtract' ys xs)"
-  unfolding subtract'_def flip_def subtract_def
+  unfolding subtract'_def flip_def subtract_eq
   using distnct by (induct xs arbitrary: ys) auto
 
 lemma iso_map_distinct:
   "set (map_distinct f xs) = image f (set xs)"
-  unfolding map_distinct_def by (induct xs) (simp_all add: iso_insert)
+  unfolding map_distinct_eq by (induct xs) (simp_all add: iso_insert)
 
 lemma iso_unions:
   "set (unions xss) = \<Union> set (map set xss)"
-  unfolding unions_def
+  unfolding unions_eq
 proof (induct xss)
   case Nil show ?case by simp
 next

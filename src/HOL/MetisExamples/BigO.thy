@@ -33,7 +33,7 @@ lemma bigo_pos_const: "(EX (c::'a::ordered_idom).
 
 declare [[reconstruction_modulus = 1]]
 
-lemma bigo_pos_const: "(EX (c::'a::ordered_idom). 
+lemma (*bigo_pos_const:*) "(EX (c::'a::ordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
       = (EX c. 0 < c & (ALL x. (abs(h x)) <= (c * (abs (f x)))))"
   apply auto
@@ -374,7 +374,7 @@ lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==>
   apply (metis OrderedGroup.abs_le_D1 Orderings.linorder_class.not_less  order_less_le  Orderings.xt1(12)  Ring_and_Field.abs_mult)
   done
 
-lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> 
+lemma (*bigo_bounded_alt:*) "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> 
     f : O(g)" 
   apply (auto simp add: bigo_def)
 (*Version 2: single-step proof*)

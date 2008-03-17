@@ -56,7 +56,7 @@ definition
 
 subsection {* Bounded Sequences *}
 
-lemma BseqI: assumes K: "\<And>n. norm (X n) \<le> K" shows "Bseq X"
+lemma BseqI': assumes K: "\<And>n. norm (X n) \<le> K" shows "Bseq X"
 unfolding Bseq_def
 proof (intro exI conjI allI)
   show "0 < max K 1" by simp
@@ -66,14 +66,11 @@ next
   thus "norm (X n) \<le> max K 1" by simp
 qed
 
-lemma BseqD: "Bseq X \<Longrightarrow> \<exists>K>0. \<forall>n. norm (X n) \<le> K"
-unfolding Bseq_def by simp
-
 lemma BseqE: "\<lbrakk>Bseq X; \<And>K. \<lbrakk>0 < K; \<forall>n. norm (X n) \<le> K\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 unfolding Bseq_def by auto
 
-lemma BseqI2: assumes K: "\<forall>n\<ge>N. norm (X n) \<le> K" shows "Bseq X"
-proof (rule BseqI)
+lemma BseqI2': assumes K: "\<forall>n\<ge>N. norm (X n) \<le> K" shows "Bseq X"
+proof (rule BseqI')
   let ?A = "norm ` X ` {..N}"
   have 1: "finite ?A" by simp
   have 2: "?A \<noteq> {}" by auto
@@ -96,7 +93,7 @@ unfolding Bseq_def by auto
 
 lemma Bseq_offset: "Bseq (\<lambda>n. X (n + k)) \<Longrightarrow> Bseq X"
 apply (erule BseqE)
-apply (rule_tac N="k" and K="K" in BseqI2)
+apply (rule_tac N="k" and K="K" in BseqI2')
 apply clarify
 apply (drule_tac x="n - k" in spec, simp)
 done
@@ -413,7 +410,7 @@ proof -
   obtain N where N: "\<And>n. N \<le> n \<Longrightarrow> norm (X n - a) < r"
     using LIMSEQ_D [OF X r1] by fast
   show ?thesis
-  proof (rule BseqI2 [rule_format])
+  proof (rule BseqI2' [rule_format])
     fix n assume n: "N \<le> n"
     hence 1: "norm (X n - a) < r" by (rule N)
     hence 2: "X n \<noteq> 0" using r2 by auto
