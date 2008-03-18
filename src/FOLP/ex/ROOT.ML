@@ -10,18 +10,14 @@ use_thys [
   "Intro",
   "Nat",
   "Foundation",
-  "If"
+  "If",
+  "Intuitionistic",
+  "Classical"
 ];
-
-writeln"\n** Intuitionistic examples **\n";
-time_use     "int.ML";
 
 val thy = theory "IFOLP"  and  tac = IntPr.fast_tac 1;
 time_use     "prop.ML";
 time_use     "quant.ML";
-
-writeln"\n** Classical examples **\n";
-time_use     "cla.ML";
 
 val thy = theory "FOLP"  and  tac = Cla.fast_tac FOLP_cs 1;
 time_use     "prop.ML";

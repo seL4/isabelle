@@ -6,86 +6,39 @@
 Simplification data for FOLP.
 *)
 
-(*** Rewrite rules ***)
 
-fun int_prove_fun_raw s =
-    (writeln s;  prove_goal (the_context ()) s
-       (fn prems => [ (cut_facts_tac prems 1), (IntPr.fast_tac 1) ]));
+fun make_iff_T th = th RS @{thm P_Imp_P_iff_T};
 
-fun int_prove_fun s = int_prove_fun_raw ("?p : "^s);
+val refl_iff_T = make_iff_T @{thm refl};
 
-val conj_rews = map int_prove_fun
- ["P & True <-> P",     "True & P <-> P",
-  "P & False <-> False", "False & P <-> False",
-  "P & P <-> P",
-  "P & ~P <-> False",   "~P & P <-> False",
-  "(P & Q) & R <-> P & (Q & R)"];
-
-val disj_rews = map int_prove_fun
- ["P | True <-> True",  "True | P <-> True",
-  "P | False <-> P",    "False | P <-> P",
-  "P | P <-> P",
-  "(P | Q) | R <-> P | (Q | R)"];
-
-val not_rews = map int_prove_fun
- ["~ False <-> True",   "~ True <-> False"];
-
-val imp_rews = map int_prove_fun
- ["(P --> False) <-> ~P",       "(P --> True) <-> True",
-  "(False --> P) <-> True",     "(True --> P) <-> P",
-  "(P --> P) <-> True",         "(P --> ~P) <-> ~P"];
-
-val iff_rews = map int_prove_fun
- ["(True <-> P) <-> P",         "(P <-> True) <-> P",
-  "(P <-> P) <-> True",
-  "(False <-> P) <-> ~P",       "(P <-> False) <-> ~P"];
-
-val quant_rews = map int_prove_fun
- ["(ALL x. P) <-> P",    "(EX x. P) <-> P"];
-
-(*These are NOT supplied by default!*)
-val distrib_rews  = map int_prove_fun
- ["~(P|Q) <-> ~P & ~Q",
-  "P & (Q | R) <-> P&Q | P&R", "(Q | R) & P <-> Q&P | R&P",
-  "(P | Q --> R) <-> (P --> R) & (Q --> R)",
-  "~(EX x. NORM(P(x))) <-> (ALL x. ~NORM(P(x)))",
-  "((EX x. NORM(P(x))) --> Q) <-> (ALL x. NORM(P(x)) --> Q)",
-  "(EX x. NORM(P(x))) & NORM(Q) <-> (EX x. NORM(P(x)) & NORM(Q))",
-  "NORM(Q) & (EX x. NORM(P(x))) <-> (EX x. NORM(Q) & NORM(P(x)))"];
-
-val P_Imp_P_iff_T = int_prove_fun_raw "p:P ==> ?p:(P <-> True)";
-
-fun make_iff_T th = th RS P_Imp_P_iff_T;
-
-val refl_iff_T = make_iff_T refl;
-
-val norm_thms = [(norm_eq RS sym, norm_eq),
-                 (NORM_iff RS iff_sym, NORM_iff)];
+val norm_thms = [(@{thm norm_eq} RS @{thm sym}, @{thm norm_eq}),
+                 (@{thm NORM_iff} RS @{thm iff_sym}, @{thm NORM_iff})];
 
 
 (* Conversion into rewrite rules *)
 
-val not_P_imp_P_iff_F = int_prove_fun_raw "p:~P ==> ?p:(P <-> False)";
-
 fun mk_eq th = case concl_of th of
-      _ $ (Const("op <->",_)$_$_) $ _ => th
-    | _ $ (Const("op =",_)$_$_) $ _ => th
-    | _ $ (Const("Not",_)$_) $ _ => th RS not_P_imp_P_iff_F
+      _ $ (Const (@{const_name "op <->"}, _) $ _ $ _) $ _ => th
+    | _ $ (Const (@{const_name "op ="}, _) $ _ $ _) $ _ => th
+    | _ $ (Const (@{const_name Not}, _) $ _) $ _ => th RS @{thm not_P_imp_P_iff_F}
     | _ => make_iff_T th;
 
 
 val mksimps_pairs =
-  [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
-   ("All", [spec]), ("True", []), ("False", [])];
+  [(@{const_name "op -->"}, [@{thm mp}]),
+   (@{const_name "op &"}, [@{thm conjunct1}, @{thm conjunct2}]),
+   (@{const_name "All"}, [@{thm spec}]),
+   (@{const_name True}, []),
+   (@{const_name False}, [])];
 
 fun mk_atomize pairs =
   let fun atoms th =
         (case concl_of th of
-           Const("Trueprop",_) $ p =>
+           Const ("Trueprop", _) $ p =>
              (case head_of p of
                 Const(a,_) =>
                   (case AList.lookup (op =) pairs a of
-                     SOME(rls) => List.concat (map atoms ([th] RL rls))
+                     SOME(rls) => maps atoms ([th] RL rls)
                    | NONE => [th])
               | _ => [th])
          | _ => [th])
@@ -95,47 +48,40 @@ fun mk_rew_rules th = map mk_eq (mk_atomize mksimps_pairs th);
 
 (*destruct function for analysing equations*)
 fun dest_red(_ $ (red $ lhs $ rhs) $ _) = (red,lhs,rhs)
-  | dest_red t = raise TERM("FOL/dest_red", [t]);
+  | dest_red t = raise TERM("dest_red", [t]);
 
 structure FOLP_SimpData : SIMP_DATA =
-  struct
-  val refl_thms         = [refl, iff_refl]
-  val trans_thms        = [trans, iff_trans]
-  val red1              = iffD1
-  val red2              = iffD2
+struct
+  val refl_thms         = [@{thm refl}, @{thm iff_refl}]
+  val trans_thms        = [@{thm trans}, @{thm iff_trans}]
+  val red1              = @{thm iffD1}
+  val red2              = @{thm iffD2}
   val mk_rew_rules      = mk_rew_rules
   val case_splits       = []         (*NO IF'S!*)
   val norm_thms         = norm_thms
-  val subst_thms        = [subst];
+  val subst_thms        = [@{thm subst}];
   val dest_red          = dest_red
-  end;
+end;
 
 structure FOLP_Simp = SimpFun(FOLP_SimpData);
 
 (*not a component of SIMP_DATA, but an argument of SIMP_TAC *)
 val FOLP_congs =
-   [all_cong,ex_cong,eq_cong,
-    conj_cong,disj_cong,imp_cong,iff_cong,not_cong] @ pred_congs;
+   [@{thm all_cong}, @{thm ex_cong}, @{thm eq_cong},
+    @{thm conj_cong}, @{thm disj_cong}, @{thm imp_cong},
+    @{thm iff_cong}, @{thm not_cong}] @ @{thms pred_congs};
 
 val IFOLP_rews =
-   [refl_iff_T] @ conj_rews @ disj_rews @ not_rews @
-    imp_rews @ iff_rews @ quant_rews;
+   [refl_iff_T] @ @{thms conj_rews} @ @{thms disj_rews} @ @{thms not_rews} @
+    @{thms imp_rews} @ @{thms iff_rews} @ @{thms quant_rews};
 
 open FOLP_Simp;
 
-val auto_ss = empty_ss setauto ares_tac [TrueI];
+val auto_ss = empty_ss setauto ares_tac [@{thm TrueI}];
 
 val IFOLP_ss = auto_ss addcongs FOLP_congs addrews IFOLP_rews;
 
-(*Classical version...*)
-fun prove_fun s =
-    (writeln s;  prove_goal (the_context ()) s
-       (fn prems => [ (cut_facts_tac prems 1), (Cla.fast_tac FOLP_cs 1) ]));
 
-val cla_rews = map prove_fun
- ["?p:P | ~P",          "?p:~P | P",
-  "?p:~ ~ P <-> P",     "?p:(~P --> P) <-> P"];
-
-val FOLP_rews = IFOLP_rews@cla_rews;
+val FOLP_rews = IFOLP_rews @ @{thms cla_rews};
 
 val FOLP_ss = auto_ss addcongs FOLP_congs addrews FOLP_rews;
