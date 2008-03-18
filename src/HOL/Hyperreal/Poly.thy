@@ -739,7 +739,7 @@ lemma poly_order: "poly p \<noteq> poly []
       ==> EX! n. ([-a, 1] %^ n) divides p &
                  ~(([-a, 1] %^ (Suc n)) divides p)"
 apply (auto intro: poly_order_exists simp add: less_linear simp del: pmult_Cons pexp_Suc)
-apply (metis Suc_leI Nat.less_linear poly_exp_divides)
+apply (metis Suc_leI less_linear poly_exp_divides)
 done
 
 text{*Order*}

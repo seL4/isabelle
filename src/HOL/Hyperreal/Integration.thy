@@ -561,7 +561,7 @@ apply (drule_tac n = m in partition_lt_gen, auto)
 apply (frule partition_eq_bound)
 apply (drule_tac [2] partition_gt, auto)
 apply (metis dense_linear_order_class.dlo_simps(8) not_less partition_rhs partition_rhs2)
-apply (metis Nat.le_less_trans dense_linear_order_class.dlo_simps(8) nat_le_linear partition_eq_bound partition_rhs2)
+apply (metis le_less_trans dense_linear_order_class.dlo_simps(8) nat_le_linear partition_eq_bound partition_rhs2)
 done
 
 lemma lemma_additivity4_psize_eq:
@@ -574,7 +574,7 @@ apply (rule some_equality)
 apply (auto intro: partition_lt_Suc)
 apply (drule_tac n = n in partition_lt_gen, assumption)
 apply (arith, arith)
-apply (cut_tac m = na and n = "psize D" in Nat.less_linear)
+apply (cut_tac x = na and y = "psize D" in less_linear)
 apply (auto dest: partition_lt_cancel)
 apply (rule_tac x=N and y=n in linorder_cases)
 apply (drule_tac x = n and P="%m. N \<le> m --> ?f m = ?g m" in spec, simp)

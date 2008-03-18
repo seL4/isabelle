@@ -336,7 +336,7 @@ apply(case_tac "\<exists>m<length path. M!(path!m)=Black")
  apply(erule_tac P = "\<lambda>i. i < Suc nat \<longrightarrow> ?P i" and x = "nat" in allE)
  apply simp
  apply(case_tac "j\<le>R")
-  apply(drule Nat.le_imp_less_or_eq)
+  apply(drule le_imp_less_or_eq [of _ R])
   apply(erule disjE)
    apply(erule allE , erule (1) notE impE)
    apply force

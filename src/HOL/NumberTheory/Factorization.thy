@@ -295,7 +295,7 @@ lemma perm_primel_ex:
 lemma primel_prod_less:
   "primel (x # xs) ==>
     primel ys ==> prod (x # xs) = prod ys ==> prod xs < prod ys"
-  by (metis Nat.less_asym linorder_neqE_nat mult_less_cancel2 nat_0_less_mult_iff
+  by (metis less_asym linorder_neqE_nat mult_less_cancel2 nat_0_less_mult_iff
     nat_less_le nat_mult_1 prime_def primel_hd_tl primel_prod_gz prod.simps(2))
 
 lemma prod_one_empty:
