@@ -547,23 +547,22 @@ Each record declaration introduces a number of derived operations to
   be the same as \isa{point{\isachardot}make}.
 
   \begin{isabelle}%
-point{\isachardot}make\ Xcoord\ Ycoord\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}\isasep\isanewline%
+point{\isachardot}make\ Xcoord\ Ycoord\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isasymrparr}\isasep\isanewline%
 point{\isachardot}extend\ r\ more\ {\isasymequiv}\isanewline
 {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}\isasep\isanewline%
-point{\isachardot}truncate\ r\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}%
+point{\isachardot}truncate\ r\ {\isasymequiv}\ {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isasymrparr}%
 \end{isabelle}
 
   Contrast those with the corresponding functions for record \isa{cpoint}.  Observe \isa{cpoint{\isachardot}fields} in particular.
 
   \begin{isabelle}%
 cpoint{\isachardot}make\ Xcoord\ Ycoord\ col\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isacharcomma}\ col\ {\isacharequal}\ col{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}\isasep\isanewline%
-cpoint{\isachardot}fields\ col\ {\isasymequiv}\ {\isasymlparr}col\ {\isacharequal}\ col{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}\isasep\isanewline%
+{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord{\isacharcomma}\ col\ {\isacharequal}\ col{\isasymrparr}\isasep\isanewline%
+cpoint{\isachardot}fields\ col\ {\isasymequiv}\ {\isasymlparr}col\ {\isacharequal}\ col{\isasymrparr}\isasep\isanewline%
 cpoint{\isachardot}extend\ r\ more\ {\isasymequiv}\isanewline
 {\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ col\ {\isacharequal}\ col\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ more{\isasymrparr}\isasep\isanewline%
 cpoint{\isachardot}truncate\ r\ {\isasymequiv}\isanewline
-{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ col\ {\isacharequal}\ col\ r{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}%
+{\isasymlparr}Xcoord\ {\isacharequal}\ Xcoord\ r{\isacharcomma}\ Ycoord\ {\isacharequal}\ Ycoord\ r{\isacharcomma}\ col\ {\isacharequal}\ col\ r{\isasymrparr}%
 \end{isabelle}
 
   To demonstrate these functions, we declare a new coloured point by

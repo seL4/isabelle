@@ -3,8 +3,6 @@ module Classes where {
 
 data Nat = Suc Nat | Zero_nat;
 
-data Bit = B1 | B0;
-
 nat_aux :: Integer -> Nat -> Nat;
 nat_aux i n = (if i <= 0 then n else nat_aux (i - 1) (Suc n));
 

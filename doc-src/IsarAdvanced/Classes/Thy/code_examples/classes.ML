@@ -3,8 +3,6 @@ struct
 
 datatype nat = Suc of nat | Zero_nat;
 
-datatype bit = B1 | B0;
-
 fun nat_aux i n =
   (if IntInf.<= (i, (0 : IntInf.int)) then n
     else nat_aux (IntInf.- (i, (1 : IntInf.int))) (Suc n));

@@ -33,10 +33,10 @@ fun eqop_nat Zero_nat Zero_nat = true
 
 val eq_nat = {eqop = eqop_nat} : nat HOL.eq;
 
-fun less_nat n (Suc m) = less_eq_nat n m
+fun less_nat m (Suc n) = less_eq_nat m n
   | less_nat n Zero_nat = false
-and less_eq_nat (Suc n) m = less_nat n m
-  | less_eq_nat Zero_nat m = true;
+and less_eq_nat (Suc m) n = less_nat m n
+  | less_eq_nat Zero_nat n = true;
 
 val ord_nat = {less_eq = less_eq_nat, less = less_nat} : nat HOL.ord;
 

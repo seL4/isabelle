@@ -3,10 +3,10 @@ struct
 
 datatype nat = Suc of nat | Zero_nat;
 
-fun less_nat n (Suc m) = less_eq_nat n m
+fun less_nat m (Suc n) = less_eq_nat m n
   | less_nat n Zero_nat = false
-and less_eq_nat (Suc n) m = less_nat n m
-  | less_eq_nat Zero_nat m = true;
+and less_eq_nat (Suc m) n = less_nat m n
+  | less_eq_nat Zero_nat n = true;
 
 fun minus_nat (Suc m) (Suc n) = minus_nat m n
   | minus_nat Zero_nat n = Zero_nat
