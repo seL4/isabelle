@@ -99,7 +99,6 @@ lemma collinear_inv_rotation:
   by (algebra add: collinear_def split_def fst_conv snd_conv)
 
 lemma "EX (d::int). a*y - a*x = n*d \<Longrightarrow> EX u v. a*u + n*v = 1 \<Longrightarrow> EX e. y - x = n*e"
-  apply algebra
-  done
+  by algebra
 
 end
