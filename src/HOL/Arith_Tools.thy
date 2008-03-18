@@ -327,24 +327,12 @@ declare mult_le_cancel_right_number_of [simp,noatp]
 
 text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}
 
-lemmas le_divide_eq_number_of = le_divide_eq [of _ _ "number_of w", standard]
-declare le_divide_eq_number_of [simp]
-
-lemmas divide_le_eq_number_of = divide_le_eq [of _ "number_of w", standard]
-declare divide_le_eq_number_of [simp]
-
-lemmas less_divide_eq_number_of = less_divide_eq [of _ _ "number_of w", standard]
-declare less_divide_eq_number_of [simp]
-
-lemmas divide_less_eq_number_of = divide_less_eq [of _ "number_of w", standard]
-declare divide_less_eq_number_of [simp]
-
-lemmas eq_divide_eq_number_of = eq_divide_eq [of _ _ "number_of w", standard]
-declare eq_divide_eq_number_of [simp]
-
-lemmas divide_eq_eq_number_of = divide_eq_eq [of _ "number_of w", standard]
-declare divide_eq_eq_number_of [simp]
-
+lemmas le_divide_eq_number_of1 [simp] = le_divide_eq [of _ _ "number_of w", standard]
+lemmas divide_le_eq_number_of1 [simp] = divide_le_eq [of _ "number_of w", standard]
+lemmas less_divide_eq_number_of1 [simp] = less_divide_eq [of _ _ "number_of w", standard]
+lemmas divide_less_eq_number_of1 [simp] = divide_less_eq [of _ "number_of w", standard]
+lemmas eq_divide_eq_number_of1 [simp] = eq_divide_eq [of _ _ "number_of w", standard]
+lemmas divide_eq_eq_number_of1 [simp] = divide_eq_eq [of _ "number_of w", standard]
 
 
 subsubsection{*Optional Simplification Rules Involving Constants*}
@@ -600,7 +588,7 @@ fun mk_const phi cT x =
 in
  val field_comp_conv = comp_conv;
  val fieldgb_declaration = 
-  NormalizerData.funs @{thm class_fieldgb.axioms}
+  NormalizerData.funs @{thm class_fieldgb.fieldgb_axioms}
    {is_const = K numeral_is_const,
     dest_const = K dest_const,
     mk_const = mk_const,

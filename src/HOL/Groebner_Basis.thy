@@ -159,10 +159,10 @@ next show "pwr x (Suc (2 * n)) = mul x (mul (pwr x n) (pwr x n))"
 qed
 
 
-lemma "axioms" [normalizer
+lemmas gb_semiring_axioms =
+  gb_semiring_axioms [normalizer
     semiring ops: semiring_ops
-    semiring rules: semiring_rules]:
-  "gb_semiring add mul pwr r0 r1" by (rule gb_semiring_axioms)
+    semiring rules: semiring_rules]
 
 end
 
@@ -216,7 +216,7 @@ fun normalizer_funs key =
 end
 *}
 
-declaration {* normalizer_funs @{thm class_semiring.axioms} *}
+declaration {* normalizer_funs @{thm class_semiring.gb_semiring_axioms} *}
 
 
 locale gb_ring = gb_semiring +
@@ -232,12 +232,12 @@ lemma ring_ops:
 
 lemmas ring_rules = neg_mul sub_add
 
-lemma "axioms" [normalizer
-  semiring ops: semiring_ops
-  semiring rules: semiring_rules
-  ring ops: ring_ops
-  ring rules: ring_rules]:
-  "gb_ring add mul pwr r0 r1 sub neg" by (rule gb_ring_axioms)
+lemmas gb_ring_axioms =
+  gb_ring_axioms [normalizer
+    semiring ops: semiring_ops
+    semiring rules: semiring_rules
+    ring ops: ring_ops
+    ring rules: ring_rules]
 
 end
 
@@ -247,7 +247,7 @@ interpretation class_ring: gb_ring ["op +" "op *" "op ^"
   by unfold_locales simp_all
 
 
-declaration {* normalizer_funs @{thm class_ring.axioms} *}
+declaration {* normalizer_funs @{thm class_ring.gb_ring_axioms} *}
 
 use "Tools/Groebner_Basis/normalizer.ML"
 
@@ -263,12 +263,12 @@ locale gb_field = gb_ring +
      and inverse: "inverse x = divide r1 x"
 begin
 
-lemma "axioms" [normalizer
-  semiring ops: semiring_ops
-  semiring rules: semiring_rules
-  ring ops: ring_ops
-  ring rules: ring_rules]:
-  "gb_field add mul pwr r0 r1 sub neg divide inverse" by (rule gb_field_axioms)
+lemmas gb_field_axioms =
+  gb_field_axioms [normalizer
+    semiring ops: semiring_ops
+    semiring rules: semiring_rules
+    ring ops: ring_ops
+    ring rules: ring_rules]
 
 end
 
@@ -307,13 +307,12 @@ proof-
   thus "x = add x a \<longleftrightarrow> a = r0" by (auto simp add: add_c add_0)
 qed
 
-declare "axioms" [normalizer del]
+declare gb_semiring_axioms [normalizer del]
 
-lemma "axioms" [normalizer
+lemmas semiringb_axioms = semiringb_axioms [normalizer
   semiring ops: semiring_ops
   semiring rules: semiring_rules
-  idom rules: noteq_reduce add_scale_eq_noteq]:
-  "semiringb add mul pwr r0 r1" by (rule semiringb_axioms)
+  idom rules: noteq_reduce add_scale_eq_noteq]
 
 end
 
@@ -321,16 +320,15 @@ locale ringb = semiringb + gb_ring +
   assumes subr0_iff: "sub x y = r0 \<longleftrightarrow> x = y"
 begin
 
-declare "axioms" [normalizer del]
+declare gb_ring_axioms [normalizer del]
 
-lemma "axioms" [normalizer
+lemmas ringb_axioms = ringb_axioms [normalizer
   semiring ops: semiring_ops
   semiring rules: semiring_rules
   ring ops: ring_ops
   ring rules: ring_rules
   idom rules: noteq_reduce add_scale_eq_noteq
-  ideal rules: subr0_iff add_r0_iff]:
-  "ringb add mul pwr r0 r1 sub neg" by (rule ringb_axioms)
+  ideal rules: subr0_iff add_r0_iff]
 
 end
 
@@ -358,7 +356,7 @@ proof(unfold_locales, simp add: ring_simps power_Suc, auto)
   thus "w = x"  by simp
 qed
 
-declaration {* normalizer_funs @{thm class_ringb.axioms} *}
+declaration {* normalizer_funs @{thm class_ringb.ringb_axioms} *}
 
 interpretation natgb: semiringb
   ["op +" "op *" "op ^" "0::nat" "1"]
@@ -382,21 +380,21 @@ proof (unfold_locales, simp add: ring_simps power_Suc)
   thus "(w * y + x * z = w * z + x * y) = (w = x \<or> y = z)" by auto
 qed
 
-declaration {* normalizer_funs @{thm natgb.axioms} *}
+declaration {* normalizer_funs @{thm natgb.semiringb_axioms} *}
 
 locale fieldgb = ringb + gb_field
 begin
 
-declare "axioms" [normalizer del]
+declare gb_field_axioms [normalizer del]
 
-lemma "axioms" [normalizer
+lemmas fieldgb_axioms = fieldgb_axioms [normalizer
   semiring ops: semiring_ops
   semiring rules: semiring_rules
   ring ops: ring_ops
   ring rules: ring_rules
   idom rules: noteq_reduce add_scale_eq_noteq
-  ideal rules: subr0_iff add_r0_iff]:
-  "fieldgb add mul pwr r0 r1 sub neg divide inverse" by unfold_locales
+  ideal rules: subr0_iff add_r0_iff]
+
 end
 
 
