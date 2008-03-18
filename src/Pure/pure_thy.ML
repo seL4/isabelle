@@ -50,6 +50,7 @@ sig
   val map_name_of_thmref: (string -> string) -> thmref -> thmref
   val select_thm: thmref -> thm list -> thm list
   val selections: string * thm list -> (thmref * thm) list
+  val check_lookup: bool ref
   val theorems_of: theory -> thm list NameSpace.table
   val all_facts_of: theory -> Facts.T
   val thms_of: theory -> (string * thm) list
@@ -250,6 +251,8 @@ fun selections (name, [thm]) = [(Name name, thm)]
 
 (* lookup/get thms *)
 
+val check_lookup = ref false;
+
 local
 
 fun lookup_thms thy xname =
@@ -280,7 +283,7 @@ fun get_thms theory thmref =
       | (SOME (name1, ths1), SOME (name2, ths2)) => name1 = name2 andalso Thm.eq_thms (ths1, ths2)
       | _ => false);
     val _ =
-      if is_same then ()
+      if is_same orelse not (! check_lookup) then ()
       else legacy_feature ("Fact lookup differs from old-style thm database:\n" ^
         show_result new_res ^ " vs " ^ show_result old_res ^
         Position.str_of (Position.thread_data ()));
