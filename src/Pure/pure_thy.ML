@@ -50,7 +50,7 @@ sig
   val map_name_of_thmref: (string -> string) -> thmref -> thmref
   val select_thm: thmref -> thm list -> thm list
   val selections: string * thm list -> (thmref * thm) list
-  val check_lookup: bool ref
+  val get_thms_silent: theory -> thmref -> thm list
   val theorems_of: theory -> thm list NameSpace.table
   val all_facts_of: theory -> Facts.T
   val thms_of: theory -> (string * thm) list
@@ -251,8 +251,6 @@ fun selections (name, [thm]) = [(Name name, thm)]
 
 (* lookup/get thms *)
 
-val check_lookup = ref false;
-
 local
 
 fun lookup_thms thy xname =
@@ -270,9 +268,7 @@ fun lookup_fact thy xname =
 fun show_result NONE = "none"
   | show_result (SOME (name, _)) = quote name;
 
-in
-
-fun get_thms theory thmref =
+fun get_fact silent theory thmref =
   let
     val name = name_of_thmref thmref;
     val new_res = lookup_fact theory name;
@@ -283,12 +279,16 @@ fun get_thms theory thmref =
       | (SOME (name1, ths1), SOME (name2, ths2)) => name1 = name2 andalso Thm.eq_thms (ths1, ths2)
       | _ => false);
     val _ =
-      if is_same orelse not (! check_lookup) then ()
+      if is_same orelse silent then ()
       else legacy_feature ("Fact lookup differs from old-style thm database:\n" ^
         show_result new_res ^ " vs " ^ show_result old_res ^
         Position.str_of (Position.thread_data ()));
   in Option.map #2 old_res |> the_thms name |> select_thm thmref |> map (Thm.transfer theory) end;
 
+in
+
+val get_thms_silent = get_fact true;
+val get_thms = get_fact false;
 fun get_thmss thy thmrefs = maps (get_thms thy) thmrefs;
 fun get_thm thy thmref = single_thm (name_of_thmref thmref) (get_thms thy thmref);
 
