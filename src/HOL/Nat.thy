@@ -386,7 +386,8 @@ lemma less_SucI: "m < n \<Longrightarrow> m < Suc n"
 lemma Suc_lessD: "Suc m < n \<Longrightarrow> m < n"
   by (simp add: less_eq_Suc_le) (erule Suc_leD)
 
-instance proof
+instance
+proof
   fix n m :: nat
   have less_imp_le: "n < m \<Longrightarrow> n \<le> m"
     unfolding less_eq_Suc_le by (erule Suc_leD)
@@ -435,8 +436,6 @@ lemma lessI [iff]: "n < Suc n"
 lemma zero_less_Suc [iff]: "0 < Suc n"
   by (simp add: less_Suc_eq_le)
 
-lemma less_trans: "i < j ==> j < k ==> i < (k::nat)"
-  by (rule order_less_trans)
 
 subsubsection {* Elimination properties *}
 
@@ -477,9 +476,6 @@ lemma less_Suc0 [iff]: "(n < Suc 0) = (n = 0)"
 
 lemma Suc_mono: "m < n ==> Suc m < Suc n"
   by simp
-
-lemma less_linear: "m < n | m = n | n < (m::nat)"
-  by (rule less_linear)
 
 text {* "Less than" is antisymmetric, sort of *}
 lemma less_antisym: "\<lbrakk> \<not> n < m; n < Suc m \<rbrakk> \<Longrightarrow> m = n"
@@ -569,17 +565,14 @@ text {* Stronger version of @{text Suc_leD} *}
 lemma Suc_le_lessD: "Suc m \<le> n ==> m < n"
   unfolding Suc_le_eq .
 
-lemma less_imp_le: "m < n ==> m \<le> (n::nat)"
+lemma less_imp_le_nat: "m < n ==> m \<le> (n::nat)"
   unfolding less_eq_Suc_le by (rule Suc_leD)
 
 text {* For instance, @{text "(Suc m < Suc n) = (Suc m \<le> n) = (m < n)"} *}
-lemmas le_simps = less_imp_le less_Suc_eq_le Suc_le_eq
+lemmas le_simps = less_imp_le_nat less_Suc_eq_le Suc_le_eq
 
 
 text {* Equivalence of @{term "m \<le> n"} and @{term "m < n | m = n"} *}
-
-lemma le_imp_less_or_eq: "m \<le> n ==> m < n | m = (n::nat)"
-  unfolding le_less .
 
 lemma less_or_eq_imp_le: "m < n | m = n ==> m \<le> (n::nat)"
   unfolding le_less .
@@ -593,12 +586,6 @@ lemma eq_imp_le: "(m::nat) = n ==> m \<le> n"
 
 lemma le_refl: "n \<le> (n::nat)"
   by simp
-
-lemma le_less_trans: "[| i \<le> j; j < k |] ==> i < (k::nat)"
-  by (rule order_le_less_trans)
-
-lemma less_le_trans: "[| i < j; j \<le> k |] ==> i < (k::nat)"
-  by (rule order_less_le_trans)
 
 lemma le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::nat)"
   by (rule order_trans)
