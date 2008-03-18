@@ -32,7 +32,7 @@ sig
   val session_entries: (Url.T * string) list -> text
   val verbatim_source: Symbol.symbol list -> text
   val begin_theory: Url.T * string -> string -> (Url.T option * string) list ->
-    (Url.T option * Url.T * bool option) list -> text -> text
+    (Url.T option * Url.T * bool) list -> text -> text
   val end_theory: text
   val ml_file: Url.T -> string -> text
   val results: Proof.context -> string -> (string * thm list) list -> text
@@ -386,11 +386,8 @@ fun verbatim_source ss =
 
 
 local
-  fun encl NONE = enclose "[" "]"
-    | encl (SOME false) = enclose "(" ")"
-    | encl (SOME true) = I;
-
-  fun file (opt_ref, path, loadit) = href_opt_path opt_ref (encl loadit (file_path path));
+  fun file (opt_ref, path, loadit) =
+    href_opt_path opt_ref (if loadit then enclose "(" ")" (file_path path) else file_path path);
 
   fun theory up A =
     begin_document ("Theory " ^ A) ^ "\n" ^ up_link up ^

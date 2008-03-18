@@ -274,24 +274,11 @@ fun isar term =
 fun check_text s state = (ThyOutput.eval_antiquote (#1 (get_lexicons ())) state s; ());
 
 
-(* load_thy *)
+(* load_thy (backpatching) *)
 
 local
 
-fun try_ml_file dir name time =
-  let val path = ThyLoad.ml_path name in
-    if is_none (ThyLoad.check_file dir path) then ()
-    else
-      let
-        val _ = legacy_feature ("Loading attached ML script " ^ quote (Path.implode path));
-        val tr = Toplevel.imperative (fn () =>
-          ML_Context.setmp (SOME (Context.Theory (ThyInfo.get_theory name)))
-            (fn () => ThyInfo.load_file time path) ());
-        val tr_name = if time then "time_use" else "use";
-      in Toplevel.excursion [Toplevel.empty |> Toplevel.name tr_name |> tr] end
-  end;
-
-fun run_thy dir name pos text time =
+fun load_thy dir name pos text time =
   let
     val text_src = Source.of_list (Library.untabify text);
 
@@ -313,15 +300,7 @@ fun run_thy dir name pos text time =
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
   in () end;
 
-fun load_thy dir name pos text time =
- (run_thy dir name pos text time;
-  try_ml_file dir name time);
-
-in
-
-val _ = ThyLoad.load_thy_fn := load_thy;
-
-end;
+in val _ = ThyLoad.load_thy_fn := load_thy end;
 
 
 

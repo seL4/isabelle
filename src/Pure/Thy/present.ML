@@ -462,15 +462,12 @@ fun parent_link remote_path curr_session thy =
         else Url.File (Path.append (mk_rel_path curr_session session) (html_path name)));
   in (link, name) end;
 
-fun begin_theory update_time dir orig_files thy =
+fun begin_theory update_time dir files thy =
     with_session thy (fn {name = sess_name, session, path, html_prefix, remote_path, ...} =>
   let
     val name = Context.theory_name thy;
     val parents = Theory.parents_of thy;
     val parent_specs = map (parent_link remote_path path) parents;
-    val ml_path = ThyLoad.ml_path name;
-    val files = map (apsnd SOME) orig_files @
-      (if is_some (ThyLoad.check_file dir ml_path) then [(ml_path, NONE)] else []);
 
     fun prep_file (raw_path, loadit) =
       (case ThyLoad.check_ml dir raw_path of
@@ -478,21 +475,17 @@ fun begin_theory update_time dir orig_files thy =
           let
             val base = Path.base path;
             val base_html = html_ext base;
-          in
-            add_file (Path.append html_prefix base_html,
+            val _ = add_file (Path.append html_prefix base_html,
               HTML.ml_file (Url.File base) (File.read path));
-            (SOME (Url.File base_html), Url.File raw_path, loadit)
-          end
+          in (SOME (Url.File base_html), Url.File raw_path, loadit) end
       | NONE =>
           (warning ("Browser info: expected to find ML file" ^ quote (Path.implode raw_path));
             (NONE, Url.File raw_path, loadit)));
 
-    val files_html = map prep_file files;
-
     fun prep_html_source (tex_source, html_source, html) =
       let
         val txt = HTML.begin_theory (Url.File index_path, session)
-          name parent_specs files_html (Buffer.content html_source)
+          name parent_specs (map prep_file files) (Buffer.content html_source)
       in (tex_source, Buffer.empty, Buffer.add txt html) end;
 
     val entry =

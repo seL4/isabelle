@@ -22,6 +22,10 @@ implicit ML context, which was occasionally hard to predict and in
 conflict with concurrency.  INCOMPATIBILITY, use ML within Isar which
 provides a proper context already.
 
+* Theory loader: old-style ML proof scripts being *attached* to a thy
+file are no longer supported.  INCOMPATIBILITY, regular 'uses' and
+'use' within a theory file will do the job.
+
 
 *** Pure ***
 
@@ -44,7 +48,7 @@ situations.
 redundant lemmas less_trans, less_linear, le_imp_less_or_eq,
 le_less_trans, less_le_trans, which merely duplicate lemmas of the
 same name in theory Orderings.  Potential INCOMPATIBILITY due to more
-general and different variable names.
+general types and different variable names.
 
 * Library/Option_ord.thy: Canonical order on option type.
 
