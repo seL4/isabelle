@@ -814,12 +814,13 @@ fun retrieve_thms _ pick ctxt (Fact s) =
 
 val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
 val get_thms = retrieve_thms PureThy.get_thms (K I);
+val get_thms_silent = retrieve_thms PureThy.get_thms_silent (K I);
 
 
 (* valid_thms *)
 
 fun valid_thms ctxt (name, ths) =
-  (case try (fn () => get_thms ctxt (Name name)) () of
+  (case try (fn () => get_thms_silent ctxt (Name name)) () of
     NONE => false
   | SOME ths' => Thm.eq_thms (ths, ths'));
 
