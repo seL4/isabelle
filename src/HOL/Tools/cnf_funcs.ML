@@ -54,7 +54,7 @@ structure cnf : CNF =
 struct
 
 fun thm_by_auto (G : string) : thm =
-	prove_goal (the_context ()) G (fn prems => [cut_facts_tac prems 1, Auto_tac]);
+	prove_goal (the_context ()) G (fn prems => [cut_facts_tac prems 1, CLASIMPSET auto_tac]);
 
 (* Thm.thm *)
 val clause2raw_notE      = thm_by_auto "[| P; ~P |] ==> False";
