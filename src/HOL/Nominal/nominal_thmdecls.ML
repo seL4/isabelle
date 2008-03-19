@@ -10,9 +10,6 @@
    respectively the lemma from the data-slot.
 *)
 
-fun dynamic_thm thy name = PureThy.get_thm thy (Facts.Named (name, NONE));
-fun dynamic_thms thy name = PureThy.get_thms thy (Facts.Named (name, NONE));
-
 signature NOMINAL_THMDECLS =
 sig
   val print_data: Proof.context -> unit
@@ -83,7 +80,7 @@ fun tactic_eqvt ctx orig_thm pi typi =
     let
         val mypi = Thm.cterm_of ctx (Var (pi,typi))
         val mypifree = Thm.cterm_of ctx (Const ("List.rev",typi --> typi) $ Free (fst pi,typi))
-        val perm_pi_simp = dynamic_thms ctx "perm_pi_simp"
+        val perm_pi_simp = PureThy.get_thms ctx "perm_pi_simp"
     in
         EVERY [tactic ("iffI applied",rtac iffI 1),
 	       tactic ("remove pi with perm_boolE", (dtac @{thm perm_boolE} 1)),

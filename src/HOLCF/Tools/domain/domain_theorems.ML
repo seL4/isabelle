@@ -126,7 +126,7 @@ val pg = pg' thy;
 (* ----- getting the axioms and definitions --------------------------------- *)
 
 local
-  fun ga s dn = PureThy.get_thm thy (Facts.Named (dn ^ "." ^ s, NONE));
+  fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
 in
   val ax_abs_iso  = ga "abs_iso"  dname;
   val ax_rep_iso  = ga "rep_iso"  dname;
@@ -612,7 +612,7 @@ val pg = pg' thy;
 (* ----- getting the composite axiom and definitions ------------------------ *)
 
 local
-  fun ga s dn = PureThy.get_thm thy (Facts.Named (dn ^ "." ^ s, NONE));
+  fun ga s dn = PureThy.get_thm thy (dn ^ "." ^ s);
 in
   val axs_reach      = map (ga "reach"     ) dnames;
   val axs_take_def   = map (ga "take_def"  ) dnames;
@@ -622,8 +622,8 @@ in
 end;
 
 local
-  fun gt  s dn = PureThy.get_thm  thy (Facts.Named (dn ^ "." ^ s, NONE));
-  fun gts s dn = PureThy.get_thms thy (Facts.Named (dn ^ "." ^ s, NONE));
+  fun gt  s dn = PureThy.get_thm  thy (dn ^ "." ^ s);
+  fun gts s dn = PureThy.get_thms thy (dn ^ "." ^ s);
 in
   val cases = map (gt  "casedist" ) dnames;
   val con_rews  = maps (gts "con_rews" ) dnames;

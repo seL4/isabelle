@@ -71,8 +71,8 @@ val perm_aux_fold       = @{thm "perm_aux_fold"};
 val supports_fresh_rule = @{thm "supports_fresh"};
 
 (* pulls out dynamically a thm via the proof state *)
-fun global_thms st name = PureThy.get_thms (theory_of_thm st) (Facts.Named (name, NONE));
-fun global_thm  st name = PureThy.get_thm  (theory_of_thm st) (Facts.Named (name, NONE));
+fun dynamic_thms st name = PureThy.get_thms (theory_of_thm st) name;
+fun dynamic_thm  st name = PureThy.get_thm  (theory_of_thm st) name;
 
 
 (* needed in the process of fully simplifying permutations *)
@@ -111,8 +111,8 @@ fun perm_simproc_app' sg ss redex =
             (if (applicable_app f) then
               let
                 val name = Sign.base_name n
-                val at_inst = dynamic_thm sg ("at_" ^ name ^ "_inst")
-                val pt_inst = dynamic_thm sg ("pt_" ^ name ^ "_inst")
+                val at_inst = PureThy.get_thm sg ("at_" ^ name ^ "_inst")
+                val pt_inst = PureThy.get_thm sg ("pt_" ^ name ^ "_inst")
               in SOME ((at_inst RS (pt_inst RS perm_eq_app)) RS eq_reflection) end
             else NONE)
       | _ => NONE
@@ -146,7 +146,7 @@ fun perm_simp_gen dyn_thms eqvt_thms ss i =
     ("general simplification of permutations", fn st =>
     let
        val ss' = Simplifier.theory_context (theory_of_thm st) ss
-         addsimps ((List.concat (map (global_thms st) dyn_thms))@eqvt_thms)
+         addsimps (maps (dynamic_thms st) dyn_thms @ eqvt_thms)
          delcongs weak_congs
          addcongs strong_congs
          addsimprocs [perm_simproc_fun, perm_simproc_app]
@@ -198,13 +198,13 @@ fun perm_compose_simproc' sg ss redex =
           SOME (Drule.instantiate'
             [SOME (ctyp_of sg (fastype_of t))]
             [SOME (cterm_of sg pi1), SOME (cterm_of sg pi2), SOME (cterm_of sg t)]
-            (mk_meta_eq ([dynamic_thm sg ("pt_"^tname'^"_inst"),
-             dynamic_thm sg ("at_"^tname'^"_inst")] MRS pt_perm_compose_aux)))
+            (mk_meta_eq ([PureThy.get_thm sg ("pt_"^tname'^"_inst"),
+             PureThy.get_thm sg ("at_"^tname'^"_inst")] MRS pt_perm_compose_aux)))
         else
           SOME (Drule.instantiate'
             [SOME (ctyp_of sg (fastype_of t))]
             [SOME (cterm_of sg pi1), SOME (cterm_of sg pi2), SOME (cterm_of sg t)]
-            (mk_meta_eq (dynamic_thm sg ("cp_"^tname'^"_"^uname'^"_inst") RS 
+            (mk_meta_eq (PureThy.get_thm sg ("cp_"^tname'^"_"^uname'^"_inst") RS 
              cp1_aux)))
       else NONE
     end
@@ -307,7 +307,7 @@ fun finite_guess_tac tactical ss i st =
               Logic.strip_assums_concl (hd (prems_of supports_rule'));
             val supports_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_rule'
-            val fin_supp = global_thms st ("fin_supp")
+            val fin_supp = dynamic_thms st ("fin_supp")
             val ss' = ss addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
           in
             (tactical ("guessing of the right supports-set",
@@ -326,8 +326,8 @@ fun finite_guess_tac tactical ss i st =
 fun fresh_guess_tac tactical ss i st =
     let 
 	val goal = List.nth(cprems_of st, i-1)
-        val fin_supp = global_thms st ("fin_supp")
-        val fresh_atm = global_thms st ("fresh_atm")
+        val fin_supp = dynamic_thms st ("fin_supp")
+        val fresh_atm = dynamic_thms st ("fresh_atm")
 	val ss1 = ss addsimps [symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm
         val ss2 = ss addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
     in

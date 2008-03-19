@@ -19,7 +19,7 @@ ML {* set show_sorts *}
 ML {*
   fun check_thm name = let
     val thy = the_context ();
-    val thm = get_thm thy (Facts.Named (name, NONE));
+    val thm = PureThy.get_thm thy name;
     val {prop, hyps, ...} = rep_thm thm;
     val prems = Logic.strip_imp_prems prop;
     val _ = if null hyps then ()

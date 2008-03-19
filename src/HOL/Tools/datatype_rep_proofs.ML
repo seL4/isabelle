@@ -57,11 +57,10 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val [In0_inject, In1_inject, Scons_inject, Leaf_inject,
          In0_eq, In1_eq, In0_not_In1, In1_not_In0,
-         Lim_inject, Suml_inject, Sumr_inject] =
-          map (fn a => get_thm Datatype_thy (Facts.Named (a, NONE)))
-        ["In0_inject", "In1_inject", "Scons_inject", "Leaf_inject",
-         "In0_eq", "In1_eq", "In0_not_In1", "In1_not_In0",
-         "Lim_inject", "Suml_inject", "Sumr_inject"];
+         Lim_inject, Suml_inject, Sumr_inject] = map (PureThy.get_thm Datatype_thy)
+          ["In0_inject", "In1_inject", "Scons_inject", "Leaf_inject",
+           "In0_eq", "In1_eq", "In0_not_In1", "In1_not_In0",
+           "Lim_inject", "Suml_inject", "Sumr_inject"];
 
     val descr' = List.concat descr;
 

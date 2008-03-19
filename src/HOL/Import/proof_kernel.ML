@@ -1277,10 +1277,10 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 	case get_hol4_mapping thyname thmname thy of
 	    SOME (SOME thmname) =>
 	    let
-		val th1 = (SOME (PureThy.get_thm thy (Facts.Named (thmname, NONE)))
+		val th1 = (SOME (PureThy.get_thm thy thmname)
 			   handle ERROR _ =>
 				  (case split_name thmname of
-				       SOME (listname,idx) => (SOME (List.nth(PureThy.get_thms thy (Facts.Named (listname, NONE)),idx-1))
+				       SOME (listname,idx) => (SOME (List.nth(PureThy.get_thms thy listname,idx-1))
 							       handle _ => NONE)
 				     | NONE => NONE))
 	    in
@@ -2158,17 +2158,10 @@ fun add_dump_syntax thy name =
       add_dump ("syntax\n  "^n^" :: _ "^syn) thy
     end
 
-(*val type_intro_replay_history = ref (Symtab.empty:unit Symtab.table)
-fun choose_upon_replay_history thy s dth =
-    case Symtab.lookup (!type_intro_replay_history) s of
-	NONE => (type_intro_replay_history := Symtab.update (s, ()) (!type_intro_replay_history); dth)
-      | SOME _ => HOLThm([], PureThy.get_thm thy (PureThy.Name s))
-*)
-
 fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
     case HOL4DefThy.get thy of
 	Replaying _ => (thy,
-          HOLThm([], PureThy.get_thm thy (Facts.Named (thmname^"_@intern", NONE))) handle ERROR _ => hth)
+          HOLThm([], PureThy.get_thm thy (thmname^"_@intern")) handle ERROR _ => hth)
       | _ =>
 	let
             val _ = message "TYPE_INTRO:"

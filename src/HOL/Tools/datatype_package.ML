@@ -391,7 +391,7 @@ fun distinct_rule thy ss tname eq_t = case #distinct (the_datatype thy tname) of
   | ManyConstrs (thm, simpset) =>
       let
         val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
-          map (fn a => get_thm (ThyInfo.the_theory "Datatype" thy) (Facts.Named (a, NONE)))
+          map (PureThy.get_thm (ThyInfo.the_theory "Datatype" thy))
             ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"];
       in
         Goal.prove (Simplifier.the_context ss) [] [] eq_t (K

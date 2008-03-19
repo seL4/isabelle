@@ -977,7 +977,7 @@ in
 	 val s =  post_last_dot(fst(qtn a));
 	 fun param_types ((Const("Trueprop",_)) $ (_ $ (Var(_,Type(_,t)))))  = t |
 	 param_types _ = error "malformed induct-theorem in preprocess_td";	
-	 val induct_rule = PureThy.get_thm sg (Facts.Named (s ^ ".induct", NONE));
+	 val induct_rule = PureThy.get_thm sg (s ^ ".induct");
 	 val pl = param_types (concl_of induct_rule);
          val l = split_constrs sg (snd(qtn a)) pl (prems_of induct_rule);
 	 val ntl = new_types l;

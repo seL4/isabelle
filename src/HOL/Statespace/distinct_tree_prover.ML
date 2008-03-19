@@ -339,7 +339,7 @@ fun get_fst_success f [] = NONE
 
 fun neq_x_y ctxt x y name =
   (let
-    val dist_thm = the (try (ProofContext.get_thm ctxt) (Facts.Named (name, NONE)));
+    val dist_thm = the (try (ProofContext.get_thm ctxt) name);
     val ctree = cprop_of dist_thm |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
     val tree = term_of ctree;
     val x_path = the (find_tree x tree);

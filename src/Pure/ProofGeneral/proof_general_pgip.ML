@@ -712,7 +712,7 @@ fun askrefs (Askrefs vs) =
                    What we want is mapping onto simple PGIP name/context model. *)
                 val ctx = Toplevel.context_of (Toplevel.get_state()) (* NB: raises UNDEF *)
                 val thy = Context.theory_of_proof ctx
-                val ths = [PureThy.get_thm thy (Facts.Named (thmname, NONE))]
+                val ths = [PureThy.get_thm thy thmname]
                 val deps = filter_out (equal "")
                                       (Symtab.keys (fold Proofterm.thms_of_proof
                                                          (map Thm.proof_of ths) Symtab.empty))
@@ -764,7 +764,7 @@ fun showid (Showid vs) =
                                         [] (* asms *)
                                         th))
 
-        fun strings_of_thm (thy, name) = map string_of_thm (get_thms thy (Facts.Named (name, NONE)))
+        fun strings_of_thm (thy, name) = map string_of_thm (PureThy.get_thms thy name)
 
         val string_of_thy = Output.output o
                                 Pretty.string_of o (ProofDisplay.pretty_full_theory false)

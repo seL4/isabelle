@@ -267,7 +267,7 @@ fun fix_pat thy t =
     val eq = mk_trp (HOLogic.eq_const T $ t $ Var (("x",0),T));
     val cname = case chead_of t of Const(c,_) => c | _ =>
               fixrec_err "function is not declared as constant in theory";
-    val unfold_thm = PureThy.get_thm thy (Facts.Named (cname^"_unfold", NONE));
+    val unfold_thm = PureThy.get_thm thy (cname^"_unfold");
     val simp = Goal.prove_global thy [] [] eq
           (fn _ => EVERY [stac unfold_thm 1, simp_tac (simpset_of thy) 1]);
   in simp end;
