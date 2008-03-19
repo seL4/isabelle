@@ -213,18 +213,18 @@ val notation_cmd = gen_notation ProofContext.read_const;
 
 (* fact statements *)
 
-fun gen_theorems prep_thms prep_att kind raw_facts lthy =
+fun gen_theorems prep_fact prep_att kind raw_facts lthy =
   let
     val attrib = prep_att (ProofContext.theory_of lthy);
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map attrib atts),
-        bs |> map (fn (b, more_atts) => (prep_thms lthy b, map attrib more_atts))));
+        bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
     val (res, lthy') = lthy |> LocalTheory.notes kind facts;
     val _ = ProofDisplay.present_results lthy' ((kind, ""), res);
   in (res, lthy') end;
 
 val theorems = gen_theorems (K I) (K I);
-val theorems_cmd = gen_theorems ProofContext.get_thms Attrib.intern_src;
+val theorems_cmd = gen_theorems ProofContext.get_fact Attrib.intern_src;
 
 
 (* complex goal statements *)

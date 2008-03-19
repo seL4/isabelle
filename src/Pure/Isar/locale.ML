@@ -1407,7 +1407,7 @@ fun prep_facts _ _ _ ctxt (Int elem) = elem
 
 in
 
-fun read_facts x = prep_facts check_name ProofContext.get_thms Attrib.intern_src x;
+fun read_facts x = prep_facts check_name ProofContext.get_fact Attrib.intern_src x;
 fun cert_facts x = prep_facts I (K I) (K I) x;
 
 end;
