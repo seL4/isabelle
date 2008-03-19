@@ -7,8 +7,6 @@ Theorem storage.  The ProtoPure theory.
 
 signature BASIC_PURE_THY =
 sig
-  val get_thm: theory -> Facts.ref -> thm
-  val get_thms: theory -> Facts.ref -> thm list
   structure ProtoPure:
     sig
       val thy: theory
@@ -38,7 +36,10 @@ sig
   val kind_internal: attribute
   val has_internal: Markup.property list -> bool
   val is_internal: thm -> bool
-  val get_thms_silent: theory -> Facts.ref -> thm list
+  val get_fact: theory -> Facts.ref -> thm list
+  val get_fact_silent: theory -> Facts.ref -> thm list
+  val get_thms: theory -> xstring -> thm list
+  val get_thm: theory -> xstring -> thm
   val theorems_of: theory -> thm list NameSpace.table
   val all_facts_of: theory -> Facts.T
   val thms_of: theory -> (string * thm) list
@@ -187,7 +188,7 @@ fun lookup_fact thy xname =
 fun show_result NONE = "none"
   | show_result (SOME (name, _)) = quote name;
 
-fun get_fact silent theory thmref =
+fun get silent theory thmref =
   let
     val name = Facts.name_of_ref thmref;
     val new_res = lookup_fact theory name;
@@ -206,9 +207,11 @@ fun get_fact silent theory thmref =
 
 in
 
-val get_thms_silent = get_fact true;
-val get_thms = get_fact false;
-fun get_thm thy thmref = Facts.the_single (Facts.name_of_ref thmref) (get_thms thy thmref);
+val get_fact_silent = get true;
+val get_fact = get false;
+
+fun get_thms thy name = get_fact thy (Facts.Named (name, NONE));
+fun get_thm thy name = Facts.the_single name (get_thms thy name);
 
 end;
 
@@ -316,7 +319,7 @@ fun gen_note_thmss get tag = fold_map (fn ((bname, more_atts), ths_atts) => fn t
 
 in
 
-fun note_thmss k = gen_note_thmss get_thms (kind k);
+fun note_thmss k = gen_note_thmss get_fact (kind k);
 fun note_thmss_i k = gen_note_thmss (K I) (kind k);
 fun note_thmss_grouped k g = gen_note_thmss (K I) (kind k #> group g);
 
