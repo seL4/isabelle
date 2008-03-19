@@ -14,8 +14,6 @@ sig
   val try_thm: (thm -> thm) -> thm -> thm option
 
   (*typ instantiations*)
-  val typ_sort_inst: Sorts.algebra -> typ * sort
-    -> sort Vartab.table -> sort Vartab.table
   val inst_thm: sort Vartab.table -> thm -> thm
   val constrain_thm: sort -> thm -> thm
 
@@ -146,18 +144,6 @@ fun constrset_of_consts thy cs =
     val vs = Name.names Name.context Name.aT sorts;
     val cs''' = map (inst vs) cs'';
   in (tyco, (vs, cs''')) end;
-
-
-(* dictionary values *)
-
-fun typ_sort_inst algebra =
-  let
-    val inters = Sorts.inter_sort algebra;
-    fun match _ [] = I
-      | match (TVar (v, S)) S' = Vartab.map_default (v, []) (fn S'' => inters (S, inters (S', S'')))
-      | match (Type (a, Ts)) S =
-          fold2 match Ts (Sorts.mg_domain algebra a S)
-  in uncurry match end;
 
 
 (* rewrite theorems *)
