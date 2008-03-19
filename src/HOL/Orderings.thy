@@ -925,7 +925,7 @@ qed
 
 subsection {* Order on bool *}
 
-instantiation bool :: order 
+instantiation bool :: order
 begin
 
 definition
