@@ -91,8 +91,10 @@ sig
     -> Proof.context * (term list list * (Proof.context -> Proof.context))
   val fact_tac: thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
-  val get_thm: Proof.context -> Facts.ref -> thm
-  val get_thms: Proof.context -> Facts.ref -> thm list
+  val get_fact: Proof.context -> Facts.ref -> thm list
+  val get_fact_single: Proof.context -> Facts.ref -> thm
+  val get_thms: Proof.context -> xstring -> thm list
+  val get_thm: Proof.context -> xstring -> thm
   val valid_thms: Proof.context -> string * thm list -> bool
   val add_path: string -> Proof.context -> Proof.context
   val no_base_names: Proof.context -> Proof.context
@@ -812,15 +814,19 @@ fun retrieve_thms _ pick ctxt (Facts.Fact s) =
             | NONE => from_thy thy xthmref);
       in pick name thms end;
 
-val get_thm = retrieve_thms PureThy.get_thms Facts.the_single;
-val get_thms = retrieve_thms PureThy.get_thms (K I);
-val get_thms_silent = retrieve_thms PureThy.get_thms_silent (K I);
+val get_fact_silent = retrieve_thms PureThy.get_fact_silent (K I);
+
+val get_fact = retrieve_thms PureThy.get_fact (K I);
+val get_fact_single = retrieve_thms PureThy.get_fact Facts.the_single;
+
+fun get_thms ctxt name = get_fact ctxt (Facts.Named (name, NONE));
+fun get_thm ctxt name = get_fact_single ctxt (Facts.Named (name, NONE));
 
 
 (* valid_thms *)
 
 fun valid_thms ctxt (name, ths) =
-  (case try (fn () => get_thms_silent ctxt (Facts.Named (name, NONE))) () of
+  (case try (fn () => get_fact_silent ctxt (Facts.Named (name, NONE))) () of
     NONE => false
   | SOME ths' => Thm.eq_thms (ths, ths'));
 
@@ -859,7 +865,7 @@ fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn c
 
 in
 
-fun note_thmss k = gen_note_thmss get_thms k;
+fun note_thmss k = gen_note_thmss get_fact k;
 fun note_thmss_i k = gen_note_thmss (K I) k;
 
 end;

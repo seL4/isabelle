@@ -264,8 +264,8 @@ in val _ = () end;
 
 (** fact references **)
 
-fun thm name = ProofContext.get_thm (the_local_context ()) (Facts.Named (name, NONE));
-fun thms name = ProofContext.get_thms (the_local_context ()) (Facts.Named (name, NONE));
+fun thm name = ProofContext.get_thm (the_local_context ()) name;
+fun thms name = ProofContext.get_thms (the_local_context ()) name;
 
 
 local
@@ -280,15 +280,15 @@ fun thm_sel name =
     ML_Syntax.print_pair ML_Syntax.print_string
       (ML_Syntax.print_option (ML_Syntax.print_list print_interval)) (name, sel));
 
-fun thm_antiq kind = value_antiq kind
+fun thm_antiq name get = value_antiq name
   (Scan.lift (Args.name :-- thm_sel) >> apsnd (fn sel =>
-    "ProofContext.get_" ^ kind ^ " (ML_Context.the_local_context ()) " ^ ML_Syntax.atomic sel));
+    get ^ " (ML_Context.the_local_context ()) " ^ ML_Syntax.atomic sel));
 
 in
 
 val _ = add_keywords ["(", ")", "-", ","];
-val _ = thm_antiq "thm";
-val _ = thm_antiq "thms";
+val _ = thm_antiq "thm" "ProofContext.get_fact_single";
+val _ = thm_antiq "thms" "ProofContext.get_fact";
 
 end;
 
