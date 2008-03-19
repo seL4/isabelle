@@ -60,7 +60,11 @@ fun secure_shell () = deny_secure "Cannot execute shell commands in secure mode"
 val orig_system_out = system_out;
 
 fun system_out s = (secure_shell (); orig_system_out s);
-fun system s = #2 (system_out s);
+
+fun system s =
+  (case system_out s of
+    ("", rc) => rc
+  | (out, rc) => (writeln (perhaps (try (unsuffix "\n")) out); rc));
 
 end;
 
