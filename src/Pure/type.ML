@@ -56,9 +56,11 @@ sig
   (*matching and unification*)
   exception TYPE_MATCH
   type tyenv = (sort * typ) Vartab.table
-  val lookup: tyenv * (indexname * sort) -> typ option
+  val lookup: tyenv -> indexname * sort -> typ option
   val typ_match: tsig -> typ * typ -> tyenv -> tyenv
   val typ_instance: tsig -> typ * typ -> bool
+  val typ_of_sort: Sorts.algebra -> typ -> sort
+    -> sort Vartab.table -> sort Vartab.table
   val raw_match: typ * typ -> tyenv -> tyenv
   val raw_matches: typ list * typ list -> tyenv -> tyenv
   val raw_instance: typ * typ -> bool
@@ -337,7 +339,7 @@ fun tvar_clash ixn S S' = raise TYPE ("Type variable " ^
   quote (Term.string_of_vname ixn) ^ " has two distinct sorts",
   [TVar (ixn, S), TVar (ixn, S')], []);
 
-fun lookup (tye, (ixn, S)) =
+fun lookup tye (ixn, S) =
   (case Vartab.lookup tye ixn of
     NONE => NONE
   | SOME (S', T) => if S = S' then SOME T else tvar_clash ixn S S');
@@ -347,10 +349,22 @@ fun lookup (tye, (ixn, S)) =
 
 exception TYPE_MATCH;
 
+fun typ_of_sort algebra =
+  let
+    val inters = Sorts.inter_sort algebra;
+    fun of_sort _ [] = I
+      | of_sort (TVar (v, S)) S' = Vartab.map_default (v, [])
+          (fn S'' => inters (S, inters (S', S'')))
+      | of_sort (TFree (_, S)) S' = if Sorts.sort_le algebra (S, S') then I
+          else raise Sorts.CLASS_ERROR (Sorts.NoSubsort (S, S'))
+      | of_sort (Type (a, Ts)) S =
+          fold2 of_sort Ts (Sorts.mg_domain algebra a S)
+  in of_sort end;
+
 fun typ_match tsig =
   let
     fun match (TVar (v, S), T) subs =
-          (case lookup (subs, (v, S)) of
+          (case lookup subs (v, S) of
             NONE =>
               if of_sort tsig (T, S) then Vartab.update_new (v, (S, T)) subs
               else raise TYPE_MATCH
@@ -370,7 +384,7 @@ fun typ_instance tsig (T, U) =
 
 (*purely structural matching*)
 fun raw_match (TVar (v, S), T) subs =
-      (case lookup (subs, (v, S)) of
+      (case lookup subs (v, S) of
         NONE => Vartab.update_new (v, (S, T)) subs
       | SOME U => if U = T then subs else raise TYPE_MATCH)
   | raw_match (Type (a, Ts), Type (b, Us)) subs =
@@ -398,14 +412,14 @@ fun occurs v tye =
       | occ (TFree _) = false
       | occ (TVar (w, S)) =
           eq_ix (v, w) orelse
-            (case lookup (tye, (w, S)) of
+            (case lookup tye (w, S) of
               NONE => false
             | SOME U => occ U);
   in occ end;
 
 (*chase variable assignments; if devar returns a type var then it must be unassigned*)
 fun devar tye (T as TVar v) =
-      (case lookup (tye, v) of
+      (case lookup tye v of
         SOME U => devar tye U
       | NONE => T)
   | devar tye T = T;
