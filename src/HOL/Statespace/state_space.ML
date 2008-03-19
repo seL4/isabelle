@@ -270,7 +270,7 @@ fun interprete_parent name dist_thm_name parent_expr thy =
 
     fun solve_tac ctxt (_,i) st =
       let
-        val distinct_thm = ProofContext.get_thm ctxt (Name dist_thm_name);
+        val distinct_thm = ProofContext.get_thm ctxt (Facts.Named (dist_thm_name, NONE));
         val goal = List.nth (cprems_of st,i-1);
         val rule = DistinctTreeProver.distinct_implProver distinct_thm goal;
       in EVERY [rtac rule i] st

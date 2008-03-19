@@ -264,21 +264,21 @@ in val _ = () end;
 
 (** fact references **)
 
-fun thm name = ProofContext.get_thm (the_local_context ()) (Name name);
-fun thms name = ProofContext.get_thms (the_local_context ()) (Name name);
+fun thm name = ProofContext.get_thm (the_local_context ()) (Facts.Named (name, NONE));
+fun thms name = ProofContext.get_thms (the_local_context ()) (Facts.Named (name, NONE));
 
 
 local
 
-fun print_interval (FromTo arg) =
-      "PureThy.FromTo " ^ ML_Syntax.print_pair ML_Syntax.print_int ML_Syntax.print_int arg
-  | print_interval (From i) = "PureThy.From " ^ ML_Syntax.print_int i
-  | print_interval (Single i) = "PureThy.Single " ^ ML_Syntax.print_int i;
+fun print_interval (Facts.FromTo arg) =
+      "Facts.FromTo " ^ ML_Syntax.print_pair ML_Syntax.print_int ML_Syntax.print_int arg
+  | print_interval (Facts.From i) = "Facts.From " ^ ML_Syntax.print_int i
+  | print_interval (Facts.Single i) = "Facts.Single " ^ ML_Syntax.print_int i;
 
 fun thm_sel name =
-  Args.thm_sel >> (fn is => "PureThy.NameSelection " ^
-    ML_Syntax.print_pair ML_Syntax.print_string (ML_Syntax.print_list print_interval) (name, is))
-  || Scan.succeed ("PureThy.Name " ^ ML_Syntax.print_string name);
+  Scan.option Args.thm_sel >> (fn sel => "Facts.Named " ^
+    ML_Syntax.print_pair ML_Syntax.print_string
+      (ML_Syntax.print_option (ML_Syntax.print_list print_interval)) (name, sel));
 
 fun thm_antiq kind = value_antiq kind
   (Scan.lift (Args.name :-- thm_sel) >> apsnd (fn sel =>

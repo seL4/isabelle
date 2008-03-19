@@ -98,7 +98,7 @@ afpl (a::r) = a :: (afpl r);
 fun unqualify s = implode(rev(afpl(rev(explode s))));
 val q_atypstr = act_name thy atyp;
 val uq_atypstr = unqualify q_atypstr;
-val prem = prems_of (get_thm thy (Name (uq_atypstr ^ ".induct")));
+val prem = prems_of (PureThy.get_thm thy (Facts.Named (uq_atypstr ^ ".induct", NONE)));
 in
 extract_constrs thy prem
 handle malformed =>
@@ -284,7 +284,7 @@ fun aut_type_of thy aut_name =
 let
 fun left_of (( _ $ left) $ _) = left |
 left_of _ = raise malformed;
-val aut_def = concl_of (get_thm thy (Name (aut_name ^ "_def")));
+val aut_def = concl_of (PureThy.get_thm thy (Facts.Named (aut_name ^ "_def", NONE)));
 in
 (#T(rep_cterm(cterm_of thy (left_of aut_def))))
 handle malformed => error ("malformed_theorem : " ^ aut_name ^ "_def")

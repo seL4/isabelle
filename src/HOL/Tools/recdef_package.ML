@@ -22,7 +22,7 @@ sig
       * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val add_recdef_i: bool -> xstring -> term -> ((bstring * term) * attribute list) list ->
     theory -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val defer_recdef: xstring -> string list -> (thmref * Attrib.src list) list
+  val defer_recdef: xstring -> string list -> (Facts.ref * Attrib.src list) list
     -> theory -> theory * {induct_rules: thm}
   val defer_recdef_i: xstring -> term list -> (thm list * attribute list) list
     -> theory -> theory * {induct_rules: thm}

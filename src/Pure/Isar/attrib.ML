@@ -19,7 +19,7 @@ sig
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
   val attribute: theory -> src -> attribute
   val attribute_i: theory -> src -> attribute
-  val eval_thms: Proof.context -> (thmref * src list) list -> thm list
+  val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
   val map_specs: ('a -> 'att) ->
     (('c * 'a list) * 'd) list -> (('c * 'att list) * 'd) list
   val map_facts: ('a -> 'att) ->
@@ -157,34 +157,36 @@ fun add_del_args add del = syntax
 
 local
 
-val get_thms = Context.cases PureThy.get_thms ProofContext.get_thms;
-
 val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
 
-fun gen_thm pick = Scan.depend (fn st =>
-  Args.$$$ "[" |-- Args.attribs (intern (Context.theory_of st)) --| Args.$$$ "]"
-    >> (fn srcs =>
+fun gen_thm pick = Scan.depend (fn context =>
+  let
+    val thy = Context.theory_of context;
+    val get = Context.cases PureThy.get_thms ProofContext.get_thms context;
+    fun get_fact s = get (Facts.Fact s);
+    fun get_named s = get (Facts.Named (s, NONE));
+  in
+    Args.$$$ "[" |-- Args.attribs (intern thy) --| Args.$$$ "]" >> (fn srcs =>
       let
-        val atts = map (attribute_i (Context.theory_of st)) srcs;
-        val (st', th') = Library.apply atts (st, Drule.dummy_thm);
-      in (st', pick "" [th']) end) ||
-  (Scan.ahead Args.alt_name -- Args.named_fact (get_thms st o Fact)
-    >> (fn (s, fact) => ("", Fact s, fact)) ||
-  Scan.ahead fact_name -- Args.named_fact (get_thms st o Name) -- Args.thm_sel
-    >> (fn ((name, fact), sel) => (name, NameSelection (name, sel), fact)) ||
-  Scan.ahead fact_name -- Args.named_fact (get_thms st o Name)
-    >> (fn (name, fact) => (name, Name name, fact)))
-  -- Args.opt_attribs (intern (Context.theory_of st))
-  >> (fn ((name, thmref, fact), srcs) =>
-    let
-      val ths = PureThy.select_thm thmref fact;
-      val atts = map (attribute_i (Context.theory_of st)) srcs;
-      val (st', ths') = foldl_map (Library.apply atts) (st, ths);
-    in (st', pick name ths') end));
+        val atts = map (attribute_i thy) srcs;
+        val (context', th') = Library.apply atts (context, Drule.dummy_thm);
+      in (context', pick "" [th']) end)
+    ||
+    (Scan.ahead Args.alt_name -- Args.named_fact get_fact
+      >> (fn (s, fact) => ("", Facts.Fact s, fact))
+    || Scan.ahead fact_name -- Args.named_fact get_named -- Scan.option Args.thm_sel
+      >> (fn ((name, fact), sel) => (name, Facts.Named (name, sel), fact)))
+    -- Args.opt_attribs (intern thy) >> (fn ((name, thmref, fact), srcs) =>
+      let
+        val ths = Facts.select thmref fact;
+        val atts = map (attribute_i thy) srcs;
+        val (context', ths') = foldl_map (Library.apply atts) (context, ths);
+      in (context', pick name ths') end)
+  end);
 
 in
 
-val thm = gen_thm PureThy.single_thm;
+val thm = gen_thm Facts.the_single;
 val multi_thm = gen_thm (K I);
 val thms = Scan.repeat multi_thm >> flat;
 

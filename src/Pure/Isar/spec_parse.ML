@@ -17,10 +17,10 @@ sig
   val named_spec: token list -> ((bstring * Attrib.src list) * string list) * token list
   val spec_name: token list -> ((bstring * string) * Attrib.src list) * token list
   val spec_opt_name: token list -> ((bstring * string) * Attrib.src list) * token list
-  val xthm: token list -> (thmref * Attrib.src list) * token list
-  val xthms1: token list -> (thmref * Attrib.src list) list * token list
+  val xthm: token list -> (Facts.ref * Attrib.src list) * token list
+  val xthms1: token list -> (Facts.ref * Attrib.src list) list * token list
   val name_facts: token list ->
-    ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list * token list
+    ((bstring * Attrib.src list) * (Facts.ref * Attrib.src list) list) list * token list
   val locale_mixfix: token list -> mixfix * token list
   val locale_fixes: token list -> (string * string option * mixfix) list * token list
   val locale_insts: token list ->
@@ -65,13 +65,13 @@ val spec_name = thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y));
 val spec_opt_name = opt_thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y));
 
 val thm_sel = P.$$$ "(" |-- P.list1
- (P.nat --| P.minus -- P.nat >> PureThy.FromTo ||
-  P.nat --| P.minus >> PureThy.From ||
-  P.nat >> PureThy.Single) --| P.$$$ ")";
+ (P.nat --| P.minus -- P.nat >> Facts.FromTo ||
+  P.nat --| P.minus >> Facts.From ||
+  P.nat >> Facts.Single) --| P.$$$ ")";
 
 val xthm =
-  P.$$$ "[" |-- attribs --| P.$$$ "]" >> pair (Name "") ||
-  (P.alt_string >> Fact || P.xname -- thm_sel >> NameSelection || P.xname >> Name) -- opt_attribs;
+  P.$$$ "[" |-- attribs --| P.$$$ "]" >> pair (Facts.Named ("", NONE)) ||
+  (P.alt_string >> Facts.Fact || P.xname -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
 
 val xthms1 = Scan.repeat1 xthm;
 

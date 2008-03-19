@@ -111,8 +111,9 @@ fun name_results "" res = res
             if a <> "" then ((a, ths), j)
             else if m = n then ((name, ths), j)
             else if m = 1 then
-              ((PureThy.string_of_thmref (NameSelection (name, [Single i])), ths), j)
-            else ((PureThy.string_of_thmref (NameSelection (name, [FromTo (i, j - 1)])), ths), j)
+              ((Facts.string_of_ref (Facts.Named (name, SOME [Facts.Single i])), ths), j)
+            else
+              ((Facts.string_of_ref (Facts.Named (name, SOME [Facts.FromTo (i, j - 1)])), ths), j)
           end;
       in fst (fold_map name_res res 1) end;
 

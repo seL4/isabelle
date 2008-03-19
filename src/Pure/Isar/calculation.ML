@@ -14,9 +14,9 @@ sig
   val sym_add: attribute
   val sym_del: attribute
   val symmetric: attribute
-  val also: (thmref * Attrib.src list) list option -> bool -> Proof.state -> Proof.state Seq.seq
+  val also: (Facts.ref * Attrib.src list) list option -> bool -> Proof.state -> Proof.state Seq.seq
   val also_i: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
-  val finally_: (thmref * Attrib.src list) list option -> bool ->
+  val finally_: (Facts.ref * Attrib.src list) list option -> bool ->
     Proof.state -> Proof.state Seq.seq
   val finally_i: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
   val moreover: bool -> Proof.state -> Proof.state

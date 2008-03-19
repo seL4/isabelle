@@ -49,7 +49,7 @@ fun pretty_criterion ctxt (b, c) =
 (** search criterion filters **)
 
 (*generated filters are to be of the form
-  input: (thmref * thm)
+  input: (Facts.ref * thm)
   output: (p:int, s:int) option, where
     NONE indicates no match
     p is the primary sorting criterion
@@ -107,7 +107,7 @@ fun match_string pat str =
   in match (space_explode "*" pat) str end;
 
 fun filter_name str_pat (thmref, _) =
-  if match_string str_pat (PureThy.name_of_thmref thmref)
+  if match_string str_pat (Facts.name_of_ref thmref)
   then SOME (0, 0) else NONE;
 
 
@@ -243,42 +243,36 @@ fun nicer_name x y =
     EQUAL => (case qual_ord (x, y) of EQUAL => txt_ord (x, y) | ord => ord)
   | ord => ord) <> GREATER;
 
+fun nicer (Facts.Named (x, _)) (Facts.Named (y, _)) = nicer_name x y
+  | nicer (Facts.Fact _) (Facts.Named _) = true
+  | nicer (Facts.Named _) (Facts.Fact _) = false;
+
+fun rem_cdups xs =
+  let
+    fun rem_c rev_seen [] = rev rev_seen
+      | rem_c rev_seen [x] = rem_c (x :: rev_seen) []
+      | rem_c rev_seen ((x as ((n, t), _)) :: (y as ((n', t'), _)) :: xs) =
+        if Thm.eq_thm_prop (t, t')
+        then rem_c rev_seen ((if nicer n n' then x else y) :: xs)
+        else rem_c (x :: rev_seen) (y :: xs)
+  in rem_c [] xs end;
+
 in
 
-fun nicer (Fact _) _ = true
-  | nicer (PureThy.Name x) (PureThy.Name y) = nicer_name x y
-  | nicer (PureThy.Name _) (Fact _) = false
-  | nicer (PureThy.Name _) _ = true
-  | nicer (NameSelection (x, _)) (NameSelection (y, _)) = nicer_name x y
-  | nicer (NameSelection _) _ = false;
+fun rem_thm_dups xs =
+  xs ~~ (1 upto length xs)
+  |> sort (Term.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
+  |> rem_cdups
+  |> sort (int_ord o pairself #2)
+  |> map #1;
 
 end;
-
-fun rem_thm_dups xs =
-  let
-    fun rem_cdups xs =
-      let
-        fun rem_c rev_seen [] = rev rev_seen
-          | rem_c rev_seen [x] = rem_c (x :: rev_seen) []
-          | rem_c rev_seen ((x as ((n, t), _)) :: (y as ((n', t'), _)) :: xs) =
-            if Thm.eq_thm_prop (t, t')
-            then rem_c rev_seen ((if nicer n n' then x else y) :: xs)
-            else rem_c (x :: rev_seen) (y :: xs)
-      in rem_c [] xs end;
-
-  in
-    xs ~~ (1 upto length xs)
-    |> sort (Term.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
-    |> rem_cdups
-    |> sort (int_ord o pairself #2)
-    |> map #1
-  end;
 
 
 (* print_theorems *)
 
 fun all_facts_of ctxt =
-  maps PureThy.selections
+  maps Facts.selections
    (Facts.dest (PureThy.all_facts_of (ProofContext.theory_of ctxt)) @
     Facts.dest (ProofContext.facts_of ctxt));
 
@@ -300,7 +294,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     val thms = Library.drop (len - lim, matches);
 
     fun prt_fact (thmref, thm) =
-      ProofContext.pretty_fact ctxt (PureThy.string_of_thmref thmref, [thm]);
+      ProofContext.pretty_fact ctxt (Facts.string_of_ref thmref, [thm]);
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) :: Pretty.str "" ::
      (if null thms then [Pretty.str "nothing found"]

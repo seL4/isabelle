@@ -11,16 +11,16 @@ sig
   datatype ('typ, 'term) stmt =
     Shows of ((string * Attrib.src list) * ('term * 'term list) list) list |
     Obtains of (string * ((string * 'typ option) list * 'term list)) list
-  type statement  (*= (string, string) stmt*)
-  type statement_i  (*= (typ, term) stmt*)
+  type statement = (string, string) stmt
+  type statement_i = (typ, term) stmt
   datatype ('typ, 'term, 'fact) ctxt =
     Fixes of (string * 'typ option * mixfix) list |
     Constrains of (string * 'typ) list |
     Assumes of ((string * Attrib.src list) * ('term * 'term list) list) list |
     Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
     Notes of string * ((string * Attrib.src list) * ('fact * Attrib.src list) list) list
-  type context (*= (string, string, thmref) ctxt*)
-  type context_i (*= (typ, term, thm list) ctxt*)
+  type context = (string, string, Facts.ref) ctxt
+  type context_i = (typ, term, thm list) ctxt
   val facts_map: (('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt) ->
    ((string * Attrib.src list) * ('fact * Attrib.src list) list) list ->
    ((string * Attrib.src list) * ('c * Attrib.src list) list) list
@@ -99,7 +99,7 @@ datatype ('typ, 'term, 'fact) ctxt =
   Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
   Notes of string * ((string * Attrib.src list) * ('fact * Attrib.src list) list) list;
 
-type context = (string, string, thmref) ctxt;
+type context = (string, string, Facts.ref) ctxt;
 type context_i = (typ, term, thm list) ctxt;
 
 fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts');

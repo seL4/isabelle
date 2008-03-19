@@ -48,8 +48,8 @@ sig
        split_thms : (thm * thm) list,
        induction : thm,
        simps : thm list} * theory
-  val rep_datatype : string list option -> (thmref * Attrib.src list) list list ->
-    (thmref * Attrib.src list) list list -> thmref * Attrib.src list -> theory ->
+  val rep_datatype : string list option -> (Facts.ref * Attrib.src list) list list ->
+    (Facts.ref * Attrib.src list) list list -> Facts.ref * Attrib.src list -> theory ->
       {distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,
@@ -391,7 +391,7 @@ fun distinct_rule thy ss tname eq_t = case #distinct (the_datatype thy tname) of
   | ManyConstrs (thm, simpset) =>
       let
         val [In0_inject, In1_inject, In0_not_In1, In1_not_In0] =
-          map (get_thm (ThyInfo.the_theory "Datatype" thy) o Name)
+          map (fn a => get_thm (ThyInfo.the_theory "Datatype" thy) (Facts.Named (a, NONE)))
             ["In0_inject", "In1_inject", "In0_not_In1", "In1_not_In0"];
       in
         Goal.prove (Simplifier.the_context ss) [] [] eq_t (K

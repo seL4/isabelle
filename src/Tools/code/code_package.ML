@@ -187,7 +187,7 @@ fun mk_codeprops thy all_cs sel_cs =
         val tfrees' = subtract (op =) tfrees2 tfrees1 |> map TFree;
         val ty = map Term.itselfT tfrees' @ map snd vars ---> ty_judg;
         val tfree_vars = map Logic.mk_type tfrees';
-        val c = PureThy.string_of_thmref thmref
+        val c = Facts.string_of_ref thmref
           |> NameSpace.explode
           |> (fn [x] => [x] | (x::xs) => xs)
           |> space_implode "_"
@@ -195,7 +195,7 @@ fun mk_codeprops thy all_cs sel_cs =
       in if c = "" then NONE else SOME (thmref, propdef) end;
   in
     Facts.dest (PureThy.all_facts_of thy)
-    |> maps PureThy.selections
+    |> maps Facts.selections
     |> map_filter select
     |> map_filter mk_codeprop
   end;
@@ -206,7 +206,7 @@ fun add_codeprops all_cs sel_cs thy =
     fun lift_name_yield f x = (Name.context, x) |> f ||> snd;
     fun add (thmref, (((raw_c, ty), ts), t)) (names, thy) =
       let
-        val _ = warning ("Adding theorem " ^ quote (PureThy.string_of_thmref thmref)
+        val _ = warning ("Adding theorem " ^ quote (Facts.string_of_ref thmref)
           ^ " as code property " ^ quote raw_c);
         val ([raw_c'], names') = Name.variants [raw_c] names;
         val (const as Const (c, _), thy') = thy |> Sign.declare_const [] (raw_c', ty, NoSyn);

@@ -17,7 +17,7 @@ sig
   val oracle: bstring -> string -> string -> theory -> theory
   val add_axioms: ((bstring * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((bstring * string) * Attrib.src list) list -> theory -> theory
-  val apply_theorems: (thmref * Attrib.src list) list -> theory -> thm list * theory
+  val apply_theorems: (Facts.ref * Attrib.src list) list -> theory -> thm list * theory
   val apply_theorems_i: (thm list * attribute list) list -> theory -> thm list * theory
   val declaration: string -> local_theory -> local_theory
   val simproc_setup: string -> string list -> string -> string list -> local_theory -> local_theory
@@ -91,18 +91,18 @@ sig
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
   val class_deps: Toplevel.transition -> Toplevel.transition
   val thy_deps: Toplevel.transition -> Toplevel.transition
-  val thm_deps: (thmref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
+  val thm_deps: (Facts.ref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val find_theorems: (int option * bool) * (bool * string FindTheorems.criterion) list
     -> Toplevel.transition -> Toplevel.transition
   val unused_thms: (string list * string list option) option ->
     Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
-  val print_stmts: string list * (thmref * Attrib.src list) list
+  val print_stmts: string list * (Facts.ref * Attrib.src list) list
     -> Toplevel.transition -> Toplevel.transition
-  val print_thms: string list * (thmref * Attrib.src list) list
+  val print_thms: string list * (Facts.ref * Attrib.src list) list
     -> Toplevel.transition -> Toplevel.transition
-  val print_prfs: bool -> string list * (thmref * Attrib.src list) list option
+  val print_prfs: bool -> string list * (Facts.ref * Attrib.src list) list option
     -> Toplevel.transition -> Toplevel.transition
   val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition

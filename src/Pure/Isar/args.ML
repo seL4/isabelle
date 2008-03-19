@@ -82,7 +82,7 @@ sig
   val tyname: Context.generic * T list -> string * (Context.generic * T list)
   val const: Context.generic * T list -> string * (Context.generic * T list)
   val const_proper: Context.generic * T list -> string * (Context.generic * T list)
-  val thm_sel: T list -> PureThy.interval list * T list
+  val thm_sel: T list -> Facts.interval list * T list
   val bang_facts: Context.generic * T list -> thm list * (Context.generic * T list)
   val goal_spec: ((int -> tactic) -> tactic) -> ('a * T list)
     -> ((int -> tactic) -> tactic) * ('a * T list)
@@ -344,9 +344,9 @@ val const_proper = Scan.peek (named_term o ProofContext.read_const_proper o Cont
 (* misc *)
 
 val thm_sel = parens (list1
- (nat --| $$$ "-" -- nat >> PureThy.FromTo ||
-  nat --| $$$ "-" >> PureThy.From ||
-  nat >> PureThy.Single));
+ (nat --| $$$ "-" -- nat >> Facts.FromTo ||
+  nat --| $$$ "-" >> Facts.From ||
+  nat >> Facts.Single));
 
 val bang_facts = Scan.peek (fn context =>
   $$$ "!" >> (fn _ => (warning "use of prems in proof method";

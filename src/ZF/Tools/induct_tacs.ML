@@ -13,8 +13,8 @@ sig
   val induct_tac: string -> int -> tactic
   val exhaust_tac: string -> int -> tactic
   val rep_datatype_i: thm -> thm -> thm list -> thm list -> theory -> theory
-  val rep_datatype: thmref * Attrib.src list -> thmref * Attrib.src list ->
-    (thmref * Attrib.src list) list -> (thmref * Attrib.src list) list -> theory -> theory
+  val rep_datatype: Facts.ref * Attrib.src list -> Facts.ref * Attrib.src list ->
+    (Facts.ref * Attrib.src list) list -> (Facts.ref * Attrib.src list) list -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -167,8 +167,8 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
 fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
   let
     val ctxt = ProofContext.init thy;
-    val elim = PureThy.single_thm "elimination" (Attrib.eval_thms ctxt [raw_elim]);
-    val induct = PureThy.single_thm "induction" (Attrib.eval_thms ctxt [raw_induct]);
+    val elim = Facts.the_single "elimination" (Attrib.eval_thms ctxt [raw_elim]);
+    val induct = Facts.the_single "induction" (Attrib.eval_thms ctxt [raw_induct]);
     val case_eqns = Attrib.eval_thms ctxt raw_case_eqns;
     val recursor_eqns = Attrib.eval_thms ctxt raw_recursor_eqns;
   in rep_datatype_i elim induct case_eqns recursor_eqns thy end;

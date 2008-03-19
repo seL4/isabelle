@@ -276,8 +276,7 @@ fun rename tab = map (fn x => the_default x (AList.lookup op = tab x));
 fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
   let
     val qualifier = NameSpace.qualifier (name_of_thm induct);
-    val inducts = PureThy.get_thms thy (Name
-      (NameSpace.qualified qualifier "inducts"));
+    val inducts = PureThy.get_thms thy (Facts.Named (NameSpace.qualified qualifier "inducts", NONE));
     val iTs = term_tvars (prop_of (hd intrs));
     val ar = length vs + length iTs;
     val params = InductivePackage.params_of raw_induct;

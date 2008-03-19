@@ -766,7 +766,7 @@ val _ =
     (Scan.repeat1 (P.xname -- parse_vars --| P.$$$ ":" -- P.string -- P.string) >>
      (fn xs => Toplevel.theory (fn thy => add_realizers
        (map (fn (((a, vs), s1), s2) =>
-         (PureThy.get_thm thy (Name a), (vs, s1, s2))) xs) thy)));
+         (PureThy.get_thm thy (Facts.Named (a, NONE)), (vs, s1, s2))) xs) thy)));
 
 val _ =
   OuterSyntax.command "realizability"
@@ -780,8 +780,8 @@ val _ =
 
 val _ =
   OuterSyntax.command "extract" "extract terms from proofs" K.thy_decl
-    (Scan.repeat1 (P.xname -- parse_vars) >> (fn xs => Toplevel.theory
-      (fn thy => extract (map (apfst (PureThy.get_thm thy o Name)) xs) thy)));
+    (Scan.repeat1 (P.xname -- parse_vars) >> (fn xs => Toplevel.theory (fn thy =>
+      extract (map (fn (a, vs) => (PureThy.get_thm thy (Facts.Named (a, NONE)), vs)) xs) thy)));
 
 val etype_of = etype_of o add_syntax;
 

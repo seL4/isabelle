@@ -7,6 +7,16 @@ Environment of named facts, optionally indexed by proposition.
 
 signature FACTS =
 sig
+  val the_single: string -> thm list -> thm
+  datatype interval = FromTo of int * int | From of int | Single of int
+  datatype ref =
+    Named of string * interval list option |
+    Fact of string
+  val string_of_ref: ref -> string
+  val name_of_ref: ref -> string
+  val map_name_of_ref: (string -> string) -> ref -> ref
+  val select: ref -> thm list -> thm list
+  val selections: string * thm list -> (ref * thm) list
   type T
   val space_of: T -> NameSpace.T
   val lookup: T -> string -> thm list option
@@ -24,7 +34,76 @@ end;
 structure Facts: FACTS =
 struct
 
-(* datatype *)
+(** fact references **)
+
+fun the_single _ [th] : thm = th
+  | the_single name _ = error ("Single theorem expected " ^ quote name);
+
+
+(* datatype interval *)
+
+datatype interval =
+  FromTo of int * int |
+  From of int |
+  Single of int;
+
+fun string_of_interval (FromTo (i, j)) = string_of_int i ^ "-" ^ string_of_int j
+  | string_of_interval (From i) = string_of_int i ^ "-"
+  | string_of_interval (Single i) = string_of_int i;
+
+fun interval n iv =
+  let fun err () = raise Fail ("Bad interval specification " ^ string_of_interval iv) in
+    (case iv of
+      FromTo (i, j) => if i <= j then i upto j else err ()
+    | From i => if i <= n then i upto n else err ()
+    | Single i => [i])
+  end;
+
+
+(* datatype ref *)
+
+datatype ref =
+  Named of string * interval list option |
+  Fact of string;
+
+fun name_of_ref (Named (name, _)) = name
+  | name_of_ref (Fact _) = error "Illegal literal fact";
+
+fun map_name_of_ref f (Named (name, is)) = Named (f name, is)
+  | map_name_of_ref _ r = r;
+
+fun string_of_ref (Named (name, NONE)) = name
+  | string_of_ref (Named (name, SOME is)) =
+      name ^ enclose "(" ")" (commas (map string_of_interval is))
+  | string_of_ref (Fact _) = error "Illegal literal fact";
+
+
+(* select *)
+
+fun select (Fact _) ths = ths
+  | select (Named (_, NONE)) ths = ths
+  | select (Named (name, SOME ivs)) ths =
+      let
+        val n = length ths;
+        fun err msg = error (msg ^ " for " ^ quote name ^ " (length " ^ string_of_int n ^ ")");
+        fun sel i =
+          if i < 1 orelse i > n then err ("Bad subscript " ^ string_of_int i)
+          else nth ths (i - 1);
+        val is = maps (interval n) ivs handle Fail msg => err msg;
+      in map sel is end;
+
+
+(* selections *)
+
+fun selections (name, [th]) = [(Named (name, NONE), th)]
+  | selections (name, ths) =
+      map2 (fn i => fn th => (Named (name, SOME [Single i]), th)) (1 upto length ths) ths;
+
+
+
+(** fact environment **)
+
+(* datatype T *)
 
 datatype T = Facts of
  {facts: thm list NameSpace.table,

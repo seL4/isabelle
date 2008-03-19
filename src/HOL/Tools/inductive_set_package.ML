@@ -18,7 +18,7 @@ sig
       local_theory -> InductivePackage.inductive_result * local_theory
   val add_inductive: bool -> bool -> (string * string option * mixfix) list ->
     (string * string option * mixfix) list ->
-    ((bstring * Attrib.src list) * string) list -> (thmref * Attrib.src list) list ->
+    ((bstring * Attrib.src list) * string) list -> (Facts.ref * Attrib.src list) list ->
     local_theory -> InductivePackage.inductive_result * local_theory
   val setup: theory -> theory
 end;

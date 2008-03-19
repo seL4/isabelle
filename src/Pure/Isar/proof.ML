@@ -60,18 +60,18 @@ sig
     ((string * mixfix) * (term * term list))) list -> state -> state
   val chain: state -> state
   val chain_facts: thm list -> state -> state
-  val get_thmss: state -> (thmref * Attrib.src list) list -> thm list
+  val get_thmss: state -> (Facts.ref * Attrib.src list) list -> thm list
   val note_thmss: ((string * Attrib.src list) *
-    (thmref * Attrib.src list) list) list -> state -> state
+    (Facts.ref * Attrib.src list) list) list -> state -> state
   val note_thmss_i: ((string * attribute list) *
     (thm list * attribute list) list) list -> state -> state
-  val from_thmss: ((thmref * Attrib.src list) list) list -> state -> state
+  val from_thmss: ((Facts.ref * Attrib.src list) list) list -> state -> state
   val from_thmss_i: ((thm list * attribute list) list) list -> state -> state
-  val with_thmss: ((thmref * Attrib.src list) list) list -> state -> state
+  val with_thmss: ((Facts.ref * Attrib.src list) list) list -> state -> state
   val with_thmss_i: ((thm list * attribute list) list) list -> state -> state
-  val using: ((thmref * Attrib.src list) list) list -> state -> state
+  val using: ((Facts.ref * Attrib.src list) list) list -> state -> state
   val using_i: ((thm list * attribute list) list) list -> state -> state
-  val unfolding: ((thmref * Attrib.src list) list) list -> state -> state
+  val unfolding: ((Facts.ref * Attrib.src list) list) list -> state -> state
   val unfolding_i: ((thm list * attribute list) list) list -> state -> state
   val invoke_case: string * string option list * Attrib.src list -> state -> state
   val invoke_case_i: string * string option list * attribute list -> state -> state

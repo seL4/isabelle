@@ -126,7 +126,7 @@ val pg = pg' thy;
 (* ----- getting the axioms and definitions --------------------------------- *)
 
 local
-  fun ga s dn = get_thm thy (Name (dn ^ "." ^ s));
+  fun ga s dn = PureThy.get_thm thy (Facts.Named (dn ^ "." ^ s, NONE));
 in
   val ax_abs_iso  = ga "abs_iso"  dname;
   val ax_rep_iso  = ga "rep_iso"  dname;
@@ -142,7 +142,7 @@ in
       fun def_of_arg arg = Option.map def_of_sel (sel_of arg);
       fun defs_of_con (_, args) = List.mapPartial def_of_arg args;
     in
-      List.concat (map defs_of_con cons)
+      maps defs_of_con cons
     end;
   val ax_copy_def = ga "copy_def" dname;
 end; (* local *)
@@ -281,7 +281,7 @@ local
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs_dis_def goal tacs end;
 
-  val dis_apps = List.concat (map (fn (c,_) => map (dis_app c) cons) cons);
+  val dis_apps = maps (fn (c,_) => map (dis_app c) cons) cons;
 
   fun dis_defin (con, args) =
     let
@@ -320,7 +320,7 @@ local
     in pg axs_mat_def goal tacs end;
 
   val mat_apps =
-    List.concat (map (fn (c,_) => map (one_mat c) cons) cons);
+    maps (fn (c,_) => map (one_mat c) cons) cons;
 in
   val mat_rews = mat_stricts @ mat_apps;
 end;
@@ -352,7 +352,7 @@ local
     in pg axs goal tacs end;
 
   val pat_stricts = map pat_strict cons;
-  val pat_apps = List.concat (map (fn c => map (pat_app c) cons) cons);
+  val pat_apps = maps (fn c => map (pat_app c) cons) cons;
 in
   val pat_rews = pat_stricts @ pat_apps;
 end;
@@ -379,7 +379,7 @@ local
         asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
     in pg [] goal tacs end;
 in
-  val con_stricts = List.concat (map con_strict cons);
+  val con_stricts = maps con_strict cons;
   val con_defins = map con_defin cons;
   val con_rews = con_stricts @ con_defins;
 end;
@@ -407,7 +407,7 @@ local
   fun sel_strict (_, args) =
     List.mapPartial (Option.map one_sel o sel_of) args;
 in
-  val sel_stricts = List.concat (map sel_strict cons);
+  val sel_stricts = maps sel_strict cons;
 end;
 
 local
@@ -442,9 +442,9 @@ local
   fun one_sel c n sel = map (sel_app c n sel) cons;
   fun one_sel' c n arg = Option.map (one_sel c n) (sel_of arg);
   fun one_con (c, args) =
-    List.concat (List.mapPartial I (mapn (one_sel' c) 0 args));
+    flat (map_filter I (mapn (one_sel' c) 0 args));
 in
-  val sel_apps = List.concat (map one_con cons);
+  val sel_apps = maps one_con cons;
 end;
 
 local
@@ -491,7 +491,7 @@ val distincts_le =
     fun distincts []      = []
       | distincts (c::cs) = (map (distinct c) cs) :: distincts cs;
   in distincts cons end;
-val dist_les = List.concat (List.concat distincts_le);
+val dist_les = flat (flat distincts_le);
 val dist_eqs =
   let
     fun distinct (_,args1) ((_,args2), leqs) =
@@ -504,7 +504,7 @@ val dist_eqs =
           [eq1, eq2]
       end;
     fun distincts []      = []
-      | distincts ((c,leqs)::cs) = List.concat
+      | distincts ((c,leqs)::cs) = flat
 	            (ListPair.map (distinct c) ((map #1 cs),leqs)) @
 		    distincts cs;
   in map standard (distincts (cons ~~ distincts_le)) end;
@@ -612,7 +612,7 @@ val pg = pg' thy;
 (* ----- getting the composite axiom and definitions ------------------------ *)
 
 local
-  fun ga s dn = get_thm thy (Name (dn ^ "." ^ s));
+  fun ga s dn = PureThy.get_thm thy (Facts.Named (dn ^ "." ^ s, NONE));
 in
   val axs_reach      = map (ga "reach"     ) dnames;
   val axs_take_def   = map (ga "take_def"  ) dnames;
@@ -622,12 +622,12 @@ in
 end;
 
 local
-  fun gt  s dn = get_thm  thy (Name (dn ^ "." ^ s));
-  fun gts s dn = get_thms thy (Name (dn ^ "." ^ s));
+  fun gt  s dn = PureThy.get_thm  thy (Facts.Named (dn ^ "." ^ s, NONE));
+  fun gts s dn = PureThy.get_thms thy (Facts.Named (dn ^ "." ^ s, NONE));
 in
   val cases = map (gt  "casedist" ) dnames;
-  val con_rews  = List.concat (map (gts "con_rews" ) dnames);
-  val copy_rews = List.concat (map (gts "copy_rews") dnames);
+  val con_rews  = maps (gts "con_rews" ) dnames;
+  val copy_rews = maps (gts "copy_rews") dnames;
 end;
 
 fun dc_take dn = %%:(dn^"_take");
@@ -668,7 +668,7 @@ local
           val rhs = con_app2 con (app_rec_arg mk_take) args;
         in Library.foldr mk_all (map vname args, lhs === rhs) end;
       fun mk_eqns ((dn, _), cons) = map (mk_eqn dn) cons;
-      val goal = mk_trp (foldr1 mk_conj (List.concat (map mk_eqns eqs)));
+      val goal = mk_trp (foldr1 mk_conj (maps mk_eqns eqs));
       val simps = List.filter (has_fewer_prems 1) copy_rews;
       fun con_tac (con, args) =
         if nonlazy_rec args = []
@@ -682,7 +682,7 @@ local
         simp_tac (iterate_Cprod_ss addsimps copy_con_rews) 1 ::
         asm_full_simp_tac (HOLCF_ss addsimps simps) 1 ::
         TRY (safe_tac HOL_cs) ::
-        List.concat (map eq_tacs eqs);
+        maps eq_tacs eqs;
     in pg copy_take_defs goal tacs end;
 in
   val take_rews = map standard
@@ -709,14 +709,14 @@ local
     (mapn (fn n => fn _ => res_inst_tac [("x", x_name n)] spec i) 1 dnames);
 
   fun ind_prems_tac prems = EVERY
-    (List.concat (map (fn cons =>
+    (maps (fn cons =>
       (resolve_tac prems 1 ::
-        List.concat (map (fn (_,args) => 
+        maps (fn (_,args) => 
           resolve_tac prems 1 ::
           map (K(atac 1)) (nonlazy args) @
           map (K(atac 1)) (List.filter is_rec args))
-        cons)))
-      conss));
+        cons))
+      conss);
   local 
     (* check whether every/exists constructor of the n-th part of the equation:
        it has a possibly indirectly recursive argument that isn't/is possibly 
@@ -765,9 +765,9 @@ in (* local *)
           fun cases_tacs (cons, cases) =
             res_inst_tac [("x","x")] cases 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::
-            List.concat (map con_tacs cons);
+            maps con_tacs cons;
         in
-          tacs1 @ List.concat (map cases_tacs (conss ~~ cases))
+          tacs1 @ maps cases_tacs (conss ~~ cases)
         end;
     in pg'' thy [] goal tacf end;
 
@@ -836,19 +836,19 @@ in (* local *)
               asm_simp_tac take_ss 1];
             fun con_tacs (con, args) =
               asm_simp_tac take_ss 1 ::
-              List.concat (map arg_tacs (nonlazy_rec args));
+              maps arg_tacs (nonlazy_rec args);
             fun foo_tacs n (cons, cases) =
               simp_tac take_ss 1 ::
               rtac allI 1 ::
               res_inst_tac [("x",x_name n)] cases 1 ::
               asm_simp_tac take_ss 1 ::
-              List.concat (map con_tacs cons);
+              maps con_tacs cons;
             val tacs =
               rtac allI 1 ::
               induct_tac "n" 1 ::
               simp_tac take_ss 1 ::
               TRY (safe_tac (empty_cs addSEs [conjE] addSIs [conjI])) ::
-              List.concat (mapn foo_tacs 1 (conss ~~ cases));
+              flat (mapn foo_tacs 1 (conss ~~ cases));
           in pg [] goal tacs end;
 
         fun one_finite (dn, l1b) =
@@ -876,7 +876,7 @@ in (* local *)
                   ind_prems_tac prems];
               in
                 TRY (safe_tac HOL_cs) ::
-                List.concat (map finite_tacs (finites ~~ atomize finite_ind))
+                maps finite_tacs (finites ~~ atomize finite_ind)
               end;
           in pg'' thy [] (ind_term concf) tacf end;
       in (finites, ind) end (* let *)
@@ -941,7 +941,7 @@ local
         induct_tac "n" 1,
         simp_tac take_ss 1,
         safe_tac HOL_cs] @
-        List.concat (mapn x_tacs 0 xs);
+        flat (mapn x_tacs 0 xs);
     in pg [ax_bisim_def] goal tacs end;
 in
   val coind = 
@@ -954,11 +954,11 @@ in
             mk_trp (foldr1 mk_conj (map mk_eqn xs)));
       val tacs =
         TRY (safe_tac HOL_cs) ::
-        List.concat (map (fn take_lemma => [
+        maps (fn take_lemma => [
           rtac take_lemma 1,
           cut_facts_tac [coind_lemma] 1,
           fast_tac HOL_cs 1])
-        take_lemmas);
+        take_lemmas;
     in pg [] goal tacs end;
 end; (* local *)
 

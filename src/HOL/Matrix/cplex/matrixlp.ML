@@ -78,7 +78,7 @@ local
 	"SparseMatrix.sorted_sp_simps",
         "ComputeNumeral.number_norm",
 	"ComputeNumeral.natnorm"]
-    fun get_thms n = ComputeHOL.prep_thms (PureThy.get_thms @{theory "Cplex"} (Name n))
+    fun get_thms n = ComputeHOL.prep_thms (PureThy.get_thms @{theory "Cplex"} (Facts.Named (n, NONE)))
     val ths = List.concat (map get_thms matrix_lemmas)
     val computer = PCompute.make Compute.SML @{theory "Cplex"} ths []
 in

@@ -45,7 +45,7 @@ sig
       local_theory -> inductive_result * local_theory
   val add_inductive: bool -> bool -> (string * string option * mixfix) list ->
     (string * string option * mixfix) list ->
-    ((bstring * Attrib.src list) * string) list -> (thmref * Attrib.src list) list ->
+    ((bstring * Attrib.src list) * string) list -> (Facts.ref * Attrib.src list) list ->
     local_theory -> inductive_result * local_theory
   val add_inductive_global: string ->
     {verbose: bool, kind: string, alt_name: bstring, coind: bool, no_elim: bool, no_ind: bool} ->
@@ -76,7 +76,7 @@ sig
   val gen_add_inductive: add_ind_def ->
     bool -> bool -> (string * string option * mixfix) list ->
     (string * string option * mixfix) list ->
-    ((bstring * Attrib.src list) * string) list -> (thmref * Attrib.src list) list ->
+    ((bstring * Attrib.src list) * string) list -> (Facts.ref * Attrib.src list) list ->
     local_theory -> inductive_result * local_theory
   val gen_ind_decl: add_ind_def ->
     bool -> OuterParse.token list ->

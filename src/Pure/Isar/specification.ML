@@ -43,10 +43,11 @@ sig
     local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
-  val theorems: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list
-    -> local_theory -> (bstring * thm list) list * local_theory
-  val theorems_cmd: string -> ((bstring * Attrib.src list) * (thmref * Attrib.src list) list) list
-    -> local_theory -> (bstring * thm list) list * local_theory
+  val theorems: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    local_theory -> (bstring * thm list) list * local_theory
+  val theorems_cmd: string ->
+    ((bstring * Attrib.src list) * (Facts.ref * Attrib.src list) list) list ->
+    local_theory -> (bstring * thm list) list * local_theory
   val theorem: string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) ->
     string * Attrib.src list -> Element.context_i Locale.element list -> Element.statement_i ->

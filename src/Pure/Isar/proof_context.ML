@@ -91,8 +91,8 @@ sig
     -> Proof.context * (term list list * (Proof.context -> Proof.context))
   val fact_tac: thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
-  val get_thm: Proof.context -> thmref -> thm
-  val get_thms: Proof.context -> thmref -> thm list
+  val get_thm: Proof.context -> Facts.ref -> thm
+  val get_thms: Proof.context -> Facts.ref -> thm list
   val valid_thms: Proof.context -> string * thm list -> bool
   val add_path: string -> Proof.context -> Proof.context
   val no_base_names: Proof.context -> Proof.context
@@ -102,7 +102,7 @@ sig
   val reset_naming: Proof.context -> Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
   val note_thmss: string ->
-    ((bstring * attribute list) * (thmref * attribute list) list) list ->
+    ((bstring * attribute list) * (Facts.ref * attribute list) list) list ->
       Proof.context -> (bstring * thm list) list * Proof.context
   val note_thmss_i: string ->
     ((bstring * attribute list) * (thm list * attribute list) list) list ->
@@ -790,7 +790,7 @@ fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) =>
 
 (* get_thm(s) *)
 
-fun retrieve_thms _ pick ctxt (Fact s) =
+fun retrieve_thms _ pick ctxt (Facts.Fact s) =
       let
         val prop = Syntax.read_prop (set_mode mode_default ctxt) s
           |> singleton (Variable.polymorphic ctxt);
@@ -802,17 +802,17 @@ fun retrieve_thms _ pick ctxt (Fact s) =
         val thy = theory_of ctxt;
         val local_facts = facts_of ctxt;
         val space = Facts.space_of local_facts;
-        val thmref = PureThy.map_name_of_thmref (NameSpace.intern space) xthmref;
-        val name = PureThy.name_of_thmref thmref;
+        val thmref = Facts.map_name_of_ref (NameSpace.intern space) xthmref;
+        val name = Facts.name_of_ref thmref;
         val thms =
           if name = "" then [Thm.transfer thy Drule.dummy_thm]
           else
             (case Facts.lookup local_facts name of
-              SOME ths => map (Thm.transfer thy) (PureThy.select_thm thmref ths)
+              SOME ths => map (Thm.transfer thy) (Facts.select thmref ths)
             | NONE => from_thy thy xthmref);
       in pick name thms end;
 
-val get_thm = retrieve_thms PureThy.get_thms PureThy.single_thm;
+val get_thm = retrieve_thms PureThy.get_thms Facts.the_single;
 val get_thms = retrieve_thms PureThy.get_thms (K I);
 val get_thms_silent = retrieve_thms PureThy.get_thms_silent (K I);
 
@@ -820,7 +820,7 @@ val get_thms_silent = retrieve_thms PureThy.get_thms_silent (K I);
 (* valid_thms *)
 
 fun valid_thms ctxt (name, ths) =
-  (case try (fn () => get_thms_silent ctxt (Name name)) () of
+  (case try (fn () => get_thms_silent ctxt (Facts.Named (name, NONE))) () of
     NONE => false
   | SOME ths' => Thm.eq_thms (ths, ths'));
 

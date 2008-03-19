@@ -7,14 +7,8 @@ Theorem storage.  The ProtoPure theory.
 
 signature BASIC_PURE_THY =
 sig
-  datatype interval = FromTo of int * int | From of int | Single of int
-  datatype thmref =
-    Name of string |
-    NameSelection of string * interval list |
-    Fact of string
-  val get_thm: theory -> thmref -> thm
-  val get_thms: theory -> thmref -> thm list
-  val get_thmss: theory -> thmref list -> thm list
+  val get_thm: theory -> Facts.ref -> thm
+  val get_thms: theory -> Facts.ref -> thm list
   structure ProtoPure:
     sig
       val thy: theory
@@ -44,13 +38,7 @@ sig
   val kind_internal: attribute
   val has_internal: Markup.property list -> bool
   val is_internal: thm -> bool
-  val string_of_thmref: thmref -> string
-  val single_thm: string -> thm list -> thm
-  val name_of_thmref: thmref -> string
-  val map_name_of_thmref: (string -> string) -> thmref -> thmref
-  val select_thm: thmref -> thm list -> thm list
-  val selections: string * thm list -> (thmref * thm) list
-  val get_thms_silent: theory -> thmref -> thm list
+  val get_thms_silent: theory -> Facts.ref -> thm list
   val theorems_of: theory -> thm list NameSpace.table
   val all_facts_of: theory -> Facts.T
   val thms_of: theory -> (string * thm) list
@@ -73,7 +61,7 @@ sig
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory
   val note: string -> string * thm -> theory -> thm * theory
   val note_thmss: string -> ((bstring * attribute list) *
-    (thmref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
+    (Facts.ref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_i: string -> ((bstring * attribute list) *
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_grouped: string -> string -> ((bstring * attribute list) *
@@ -182,75 +170,6 @@ val all_facts_of = #all_facts o get_theorems;
 fun the_thms _ (SOME thms) = thms
   | the_thms name NONE = error ("Unknown theorem(s) " ^ quote name);
 
-fun single_thm _ [thm] = thm
-  | single_thm name _ = error ("Single theorem expected " ^ quote name);
-
-
-(* datatype interval *)
-
-datatype interval =
-  FromTo of int * int |
-  From of int |
-  Single of int;
-
-fun string_of_interval (FromTo (i, j)) = string_of_int i ^ "-" ^ string_of_int j
-  | string_of_interval (From i) = string_of_int i ^ "-"
-  | string_of_interval (Single i) = string_of_int i;
-
-fun interval n iv =
-  let fun err () = raise Fail ("Bad interval specification " ^ string_of_interval iv) in
-    (case iv of
-      FromTo (i, j) => if i <= j then i upto j else err ()
-    | From i => if i <= n then i upto n else err ()
-    | Single i => [i])
-  end;
-
-
-(* datatype thmref *)
-
-datatype thmref =
-  Name of string |
-  NameSelection of string * interval list |
-  Fact of string;
-
-fun name_of_thmref (Name name) = name
-  | name_of_thmref (NameSelection (name, _)) = name
-  | name_of_thmref (Fact _) = error "Illegal literal fact";
-
-fun map_name_of_thmref f (Name name) = Name (f name)
-  | map_name_of_thmref f (NameSelection (name, is)) = NameSelection (f name, is)
-  | map_name_of_thmref _ thmref = thmref;
-
-fun string_of_thmref (Name name) = name
-  | string_of_thmref (NameSelection (name, is)) =
-      name ^ enclose "(" ")" (commas (map string_of_interval is))
-  | string_of_thmref (Fact _) = error "Illegal literal fact";
-
-
-(* select_thm *)
-
-fun select_thm (Name _) thms = thms
-  | select_thm (Fact _) thms = thms
-  | select_thm (NameSelection (name, ivs)) thms =
-      let
-        val n = length thms;
-        fun err msg = error (msg ^ " for " ^ quote name ^ " (length " ^ string_of_int n ^ ")");
-        fun select i =
-          if i < 1 orelse i > n then err ("Bad subscript " ^ string_of_int i)
-          else nth thms (i - 1);
-        val is = maps (interval n) ivs handle Fail msg => err msg;
-      in map select is end;
-
-
-(* selections *)
-
-fun selections (name, [thm]) = [(Name name, thm)]
-  | selections (name, thms) = (1 upto length thms, thms) |> ListPair.map (fn (i, thm) =>
-      (NameSelection (name, [Single i]), thm));
-
-
-(* lookup/get thms *)
-
 local
 
 fun lookup_thms thy xname =
@@ -270,7 +189,7 @@ fun show_result NONE = "none"
 
 fun get_fact silent theory thmref =
   let
-    val name = name_of_thmref thmref;
+    val name = Facts.name_of_ref thmref;
     val new_res = lookup_fact theory name;
     val old_res = get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory);
     val is_same =
@@ -283,14 +202,13 @@ fun get_fact silent theory thmref =
       else legacy_feature ("Fact lookup differs from old-style thm database:\n" ^
         show_result new_res ^ " vs " ^ show_result old_res ^
         Position.str_of (Position.thread_data ()));
-  in Option.map #2 old_res |> the_thms name |> select_thm thmref |> map (Thm.transfer theory) end;
+  in Option.map #2 old_res |> the_thms name |> Facts.select thmref |> map (Thm.transfer theory) end;
 
 in
 
 val get_thms_silent = get_fact true;
 val get_thms = get_fact false;
-fun get_thmss thy thmrefs = maps (get_thms thy) thmrefs;
-fun get_thm thy thmref = single_thm (name_of_thmref thmref) (get_thms thy thmref);
+fun get_thm thy thmref = Facts.the_single (Facts.name_of_ref thmref) (get_thms thy thmref);
 
 end;
 
