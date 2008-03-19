@@ -129,16 +129,16 @@ lemma long_div_eucl_size:
   apply (rule_tac x = "((% (q,r,k) . (monom (lcoeff g ^ k * lcoeff x) (deg x - deg g) + q)) xa, (% (q,r,k) . r) xa, (% (q,r,k) . Suc k) xa) " in exI)
   apply clarify
   apply (drule sym)
-  apply (tactic {* simp_tac (simpset() addsimps [thm "l_distr", thm "a_assoc"]
+  apply (tactic {* simp_tac (@{simpset} addsimps [@{thm l_distr}, @{thm a_assoc}]
     delsimprocs [ring_simproc]) 1 *})
-  apply (tactic {* asm_simp_tac (simpset() delsimprocs [ring_simproc]) 1 *})
-  apply (tactic {* simp_tac (simpset () addsimps [thm "minus_def", thm "smult_r_distr",
+  apply (tactic {* asm_simp_tac (@{simpset} delsimprocs [ring_simproc]) 1 *})
+  apply (tactic {* simp_tac (@{simpset} addsimps [thm "minus_def", thm "smult_r_distr",
     thm "smult_r_minus", thm "monom_mult_smult", thm "smult_assoc1", thm "smult_assoc2"]
     delsimprocs [ring_simproc]) 1 *})
   apply simp
   done
 
-ML {* simplify (simpset() addsimps [thm "eucl_size_def"]
+ML {* simplify (@{simpset} addsimps [thm "eucl_size_def"]
     delsimprocs [ring_simproc]) (thm "long_div_eucl_size") *}
 
 thm long_div_eucl_size [simplified]
@@ -148,9 +148,9 @@ lemma long_div_ring:
      Ex (% (q, r, k).  
        (lcoeff g)^k *s f = q * g + r & (r = 0 | deg r < deg g))"
   apply (tactic {* forw_inst_tac [("f", "f")]
-    (simplify (simpset() addsimps [thm "eucl_size_def"]
+    (simplify (@{simpset} addsimps [thm "eucl_size_def"]
       delsimprocs [ring_simproc]) (thm "long_div_eucl_size")) 1 *})
-  apply (tactic {* auto_tac (claset(), simpset() delsimprocs [ring_simproc]) *})
+  apply (tactic {* auto_tac (@{claset}, @{simpset} delsimprocs [ring_simproc]) *})
   apply (case_tac "aa = 0")
    apply blast
   (* case "aa ~= 0 *)
@@ -169,7 +169,7 @@ lemma long_div_unit:
   apply (rule conjI)
    apply (drule sym)
    apply (tactic {* asm_simp_tac
-     (simpset() addsimps [thm "smult_r_distr" RS sym, thm "smult_assoc2"]
+     (@{simpset} addsimps [thm "smult_r_distr" RS sym, thm "smult_assoc2"]
      delsimprocs [ring_simproc]) 1 *})
    apply (simp (no_asm_simp) add: l_inverse_ring unit_power smult_assoc1 [symmetric])
   (* degree property *)
@@ -194,7 +194,7 @@ lemma uminus_zero: "- (0::'a::ring) = 0"
 
 lemma diff_zero_imp_eq: "!!a::'a::ring. a - b = 0 ==> a = b"
   apply (rule_tac s = "a - (a - b) " in trans)
-   apply (tactic {* asm_simp_tac (simpset() delsimprocs [ring_simproc]) 1 *})
+   apply (tactic {* asm_simp_tac (@{simpset} delsimprocs [ring_simproc]) 1 *})
    apply simp
   apply (simp (no_asm))
   done
@@ -215,22 +215,22 @@ lemma long_div_quo_unique:
   (* r1 = 0 *)
     apply (erule disjE)
   (* r2 = 0 *)
-     apply (tactic {* asm_full_simp_tac (simpset()
+     apply (tactic {* asm_full_simp_tac (@{simpset}
        addsimps [thm "integral_iff", thm "minus_def", thm "l_zero", thm "uminus_zero"]
        delsimprocs [ring_simproc]) 1 *})
   (* r2 ~= 0 *)
     apply (drule_tac f = "deg" and y = "r2 - r1" in arg_cong)
-    apply (tactic {* asm_full_simp_tac (simpset() addsimps
+    apply (tactic {* asm_full_simp_tac (@{simpset} addsimps
       [thm "minus_def", thm "l_zero", thm "uminus_zero"] delsimprocs [ring_simproc]) 1 *})
   (* r1 ~=0 *)
    apply (erule disjE)
   (* r2 = 0 *)
     apply (drule_tac f = "deg" and y = "r2 - r1" in arg_cong)
-    apply (tactic {* asm_full_simp_tac (simpset() addsimps
+    apply (tactic {* asm_full_simp_tac (@{simpset} addsimps
       [thm "minus_def", thm "l_zero", thm "uminus_zero"] delsimprocs [ring_simproc]) 1 *})
   (* r2 ~= 0 *)
    apply (drule_tac f = "deg" and y = "r2 - r1" in arg_cong)
-   apply (tactic {* asm_full_simp_tac (simpset() addsimps [thm "minus_def"]
+   apply (tactic {* asm_full_simp_tac (@{simpset} addsimps [thm "minus_def"]
      delsimprocs [ring_simproc]) 1 *})
    apply (drule order_eq_refl [THEN add_leD2])
    apply (drule leD)

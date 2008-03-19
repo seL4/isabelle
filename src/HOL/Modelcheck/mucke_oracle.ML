@@ -111,7 +111,7 @@ in
 (
 OldGoals.push_proof();
 OldGoals.goalw_cterm [] (cterm_of sign trm);
-by (simp_tac (simpset()) 1);
+by (SIMPSET' simp_tac 1);
         let
         val if_tmp_result = result()
         in

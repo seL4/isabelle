@@ -459,7 +459,7 @@ lemma "((\<exists>x. A(x) & (\<forall>y. C(y) --> (\<forall>z. D(x,y,z)))) -->
                   ((C(y) & Q(w,y,y)) & OO(w,b) --> P(v,y) & OO(v,b)))))  
    -->                   
    ~ (\<exists>x. A(x) & (\<forall>y. C(y) --> (\<forall>z. D(x,y,z))))"
-by (tactic{*Blast.depth_tac (claset ()) 12 1*})
+by (tactic{*Blast.depth_tac @{claset} 12 1*})
    --{*Needed because the search for depths below 12 is very slow*}
 
 

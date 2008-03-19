@@ -844,8 +844,8 @@ struct
   concerns  Crypt K X \<notin> Key`shrK`bad  and cannot be proved by rewriting
   alone.*)
 fun prove_simple_subgoals_tac i =
-    force_tac (claset(), simpset() addsimps [@{thm image_eq_UN}]) i THEN
-    ALLGOALS Asm_simp_tac
+    CLASIMPSET' (fn (cs, ss) => force_tac (cs, ss addsimps [@{thm image_eq_UN}])) i THEN
+    ALLGOALS (SIMPSET' asm_simp_tac)
 
 (*Analysis of Fake cases.  Also works for messages that forward unknown parts,
   but this application is no longer necessary if analz_insert_eq is used.
@@ -883,7 +883,7 @@ fun gen_spy_analz_tac (cs,ss) i =
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
        DEPTH_SOLVE (atomic_spy_analz_tac (cs,ss) 1)]) i)
 
-fun spy_analz_tac i = gen_spy_analz_tac (claset(), simpset()) i
+val spy_analz_tac = CLASIMPSET' gen_spy_analz_tac;
 
 end
 *}

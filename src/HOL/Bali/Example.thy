@@ -1193,7 +1193,7 @@ declare BaseCl_def [simp] ExtCl_def [simp] Ext_foo_def [simp]
         Base_foo_defs  [simp]
 
 ML_setup {* bind_thms ("eval_intros", map 
-        (simplify (simpset() delsimps @{thms Skip_eq}
+        (simplify (@{simpset} delsimps @{thms Skip_eq}
                              addsimps @{thms lvar_def}) o 
          rewrite_rule [@{thm assign_def}, @{thm Let_def}]) @{thms eval.intros}) *}
 lemmas eval_Is = eval_Init eval_StatRef AbruptIs eval_intros

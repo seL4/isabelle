@@ -465,7 +465,7 @@ lemma inverse_unique: "!! a::'a::ring. [| a * x = 1; a * y = 1 |] ==> x = y"
 
 lemma r_inverse_ring: "!! a::'a::ring. a dvd 1 ==> a * inverse a = 1"
   apply (unfold inverse_def dvd_def)
-  apply (tactic {* asm_full_simp_tac (simpset () delsimprocs [ring_simproc]) 1 *})
+  apply (tactic {* asm_full_simp_tac (@{simpset} delsimprocs [ring_simproc]) 1 *})
   apply clarify
   apply (rule theI)
    apply assumption

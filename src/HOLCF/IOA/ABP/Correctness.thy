@@ -82,7 +82,7 @@ text {* shows applicability of the induction hypothesis of the following Lemma 1
 lemma last_ind_on_first:
     "l ~= [] ==> hd (reverse (reduce (a # l))) = hd (reverse (reduce l))"
   apply simp
-  apply (tactic {* auto_tac (claset(),
+  apply (tactic {* auto_tac (@{claset},
     HOL_ss addsplits [thm"list.split"]
     addsimps (thms "reverse.simps" @ [thm "hd_append", thm "rev_red_not_nil"])) *})
   done

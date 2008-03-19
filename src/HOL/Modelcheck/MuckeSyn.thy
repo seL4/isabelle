@@ -221,7 +221,7 @@ val pair_eta_expand_proc =
   Simplifier.simproc (the_context ()) "pair_eta_expand" ["f::'a*'b=>'c"]
   (fn _ => fn _ => fn t => case t of Abs _ => SOME pair_eta_expand | _ => NONE);
 
-val Mucke_ss = simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
+val Mucke_ss = @{simpset} addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
 
 
 (* the interface *)

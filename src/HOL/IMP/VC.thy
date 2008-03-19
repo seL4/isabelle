@@ -77,7 +77,7 @@ apply (induct c arbitrary: Q)
   apply fast
  (* if *)
  apply atomize
- apply (tactic "Deepen_tac 4 1")
+ apply (tactic "deepen_tac @{claset} 4 1")
 (* while *)
 apply atomize
 apply (intro allI impI)

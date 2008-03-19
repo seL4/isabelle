@@ -625,7 +625,7 @@ lemmas power_number_of_odd_number_of [simp] =
 
 ML
 {*
-val numeral_ss = simpset() addsimps @{thms numerals};
+val numeral_ss = @{simpset} addsimps @{thms numerals};
 
 val nat_bin_arith_setup =
  LinArith.map_data

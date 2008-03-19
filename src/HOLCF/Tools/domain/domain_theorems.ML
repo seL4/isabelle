@@ -6,7 +6,7 @@
 Proof generator for domain command.
 *)
 
-val HOLCF_ss = simpset();
+val HOLCF_ss = @{simpset};
 
 structure Domain_Theorems = struct
 
@@ -113,7 +113,7 @@ val all2E = prove_goal HOL.thy "[| !x y . P x y; P x y ==> R |] ==> R"
 
 val dist_eqI = prove_goal (the_context ()) "!!x::'a::po. ~ x << y ==> x ~= y" 
   (fn prems =>
-    [blast_tac (claset () addDs [antisym_less_inverse]) 1]);
+    [blast_tac (@{claset} addDs [antisym_less_inverse]) 1]);
 
 in
 
@@ -638,7 +638,7 @@ val n_eqs = length eqs;
 (* ----- theorems concerning finite approximation and finite induction ------ *)
 
 local
-  val iterate_Cprod_ss = simpset_of (theory "Fix");
+  val iterate_Cprod_ss = simpset_of @{theory Fix};
   val copy_con_rews  = copy_rews @ con_rews;
   val copy_take_defs =
     (if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;

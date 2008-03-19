@@ -397,7 +397,7 @@ local
   val lfpI = thm "lfpI"
   val coinduct3_mono_lemma = thm "coinduct3_mono_lemma"
   fun mk_thm s = prove_goal (the_context ()) s (fn mono::prems =>
-       [fast_tac (claset () addIs ((mono RS coinduct3_mono_lemma RS lfpI)::prems)) 1])
+       [fast_tac (@{claset} addIs ((mono RS coinduct3_mono_lemma RS lfpI)::prems)) 1])
 in
 val ci3_RI    = mk_thm "[|  mono(Agen);  a : R |] ==> a : lfp(%x. Agen(x) Un R Un A)"
 val ci3_AgenI = mk_thm "[|  mono(Agen);  a : Agen(lfp(%x. Agen(x) Un R Un A)) |] ==> a : lfp(%x. Agen(x) Un R Un A)"
@@ -405,8 +405,8 @@ val ci3_AI    = mk_thm "[|  mono(Agen);  a : A |] ==> a : lfp(%x. Agen(x) Un R U
 
 fun mk_genIs thy defs genXH gen_mono s = prove_goalw thy defs s
       (fn prems => [rtac (genXH RS iffD2) 1,
-                    simp_tac (simpset ()) 1,
-                    TRY (fast_tac (claset () addIs
+                    SIMPSET' simp_tac 1,
+                    TRY (fast_tac (@{claset} addIs
                             ([genXH RS iffD2,gen_mono RS coinduct3_mono_lemma RS lfpI]
                              @ prems)) 1)])
 end;

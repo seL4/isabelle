@@ -115,7 +115,7 @@ lemma PsiInv_stutter: "|- unchanged (x,y,sem,pc1,pc2) & $PsiInv --> PsiInv$"
   by (auto simp: PsiInv_defs)
 
 lemma PsiInv: "|- Psi --> []PsiInv"
-  apply (tactic {* inv_tac (clasimpset () addsimps2 [thm "Psi_def"]) 1 *})
+  apply (tactic {* inv_tac (@{clasimpset} addsimps2 [@{thm Psi_def}]) 1 *})
    apply (force simp: PsiInv_Init [try_rewrite] Init_def)
   apply (auto intro: PsiInv_alpha1 [try_rewrite] PsiInv_alpha2 [try_rewrite]
     PsiInv_beta1 [try_rewrite] PsiInv_beta2 [try_rewrite] PsiInv_gamma1 [try_rewrite]
@@ -128,7 +128,7 @@ lemma PsiInv: "|- Psi --> []PsiInv"
 *)
 
 lemma "|- Psi --> []PsiInv"
-  by (tactic {* auto_inv_tac (simpset() addsimps (thms "PsiInv_defs" @ thms "Psi_defs")) 1 *})
+  by (tactic {* auto_inv_tac (@{simpset} addsimps (@{thms PsiInv_defs} @ @{thms Psi_defs})) 1 *})
 
 
 (**** Step simulation ****)
@@ -174,9 +174,9 @@ lemma g1_leadsto_a1:
     --> (pc1 = #g ~> pc1 = #a)"
   apply (rule SF1)
     apply (tactic
-      {* action_simp_tac (simpset () addsimps (thms "Psi_defs")) [] [thm "squareE"] 1 *})
+      {* action_simp_tac (@{simpset} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
    apply (tactic
-      {* action_simp_tac (simpset () addsimps (thm "angle_def" :: thms "Psi_defs")) [] [] 1 *})
+      {* action_simp_tac (@{simpset} addsimps @{thm angle_def} :: @{thms Psi_defs}) [] [] 1 *})
   (* reduce |- []A --> <>Enabled B  to  |- A --> Enabled B *)
   apply (auto intro!: InitDmd_gen [temp_use] N1_enabled_at_g [temp_use]
     dest!: STL2_gen [temp_use] simp: Init_def)
@@ -195,8 +195,8 @@ lemma g2_leadsto_a2:
   "|- [][(N1 | N2) & ~beta1]_(x,y,sem,pc1,pc2) & SF(N2)_(x,y,sem,pc1,pc2) & []#True  
     --> (pc2 = #g ~> pc2 = #a)"
   apply (rule SF1)
-  apply (tactic {* action_simp_tac (simpset () addsimps (thms "Psi_defs")) [] [thm "squareE"] 1 *})
-  apply (tactic {* action_simp_tac (simpset () addsimps (thm "angle_def" :: thms "Psi_defs"))
+  apply (tactic {* action_simp_tac (@{simpset} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
+  apply (tactic {* action_simp_tac (@{simpset} addsimps @{thm angle_def} :: @{thms Psi_defs})
     [] [] 1 *})
   apply (auto intro!: InitDmd_gen [temp_use] N2_enabled_at_g [temp_use]
     dest!: STL2_gen [temp_use] simp add: Init_def)
@@ -215,9 +215,9 @@ lemma b2_leadsto_g2:
     --> (pc2 = #b ~> pc2 = #g)"
   apply (rule SF1)
     apply (tactic
-      {* action_simp_tac (simpset () addsimps (thms "Psi_defs")) [] [thm "squareE"] 1 *})
+      {* action_simp_tac (@{simpset} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
    apply (tactic
-     {* action_simp_tac (simpset () addsimps (thm "angle_def" :: thms "Psi_defs")) [] [] 1 *})
+     {* action_simp_tac (@{simpset} addsimps @{thm angle_def} :: @{thms Psi_defs}) [] [] 1 *})
   apply (auto intro!: InitDmd_gen [temp_use] N2_enabled_at_b [temp_use]
     dest!: STL2_gen [temp_use] simp: Init_def)
   done
@@ -257,9 +257,9 @@ lemma a1_leadsto_b1:
          & SF(N1)_(x,y,sem,pc1,pc2) & [] SF(N2)_(x,y,sem,pc1,pc2)   
          --> (pc1 = #a ~> pc1 = #b)"
   apply (rule SF1)
-  apply (tactic {* action_simp_tac (simpset () addsimps thms "Psi_defs") [] [thm "squareE"] 1 *})
+  apply (tactic {* action_simp_tac (@{simpset} addsimps @{thms Psi_defs}) [] [@{thm squareE}] 1 *})
   apply (tactic
-    {* action_simp_tac (simpset () addsimps (thm "angle_def" :: thms "Psi_defs")) [] [] 1 *})
+    {* action_simp_tac (@{simpset} addsimps (@{thm angle_def} :: @{thms Psi_defs})) [] [] 1 *})
   apply (clarsimp intro!: N1_enabled_at_both_a [THEN DmdImpl [temp_use]])
   apply (auto intro!: BoxDmd2_simple [temp_use] N2_live [temp_use]
     simp: split_box_conj more_temp_simps)

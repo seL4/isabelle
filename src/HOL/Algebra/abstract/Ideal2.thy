@@ -115,8 +115,8 @@ lemma ideal_of_2_structure:
    apply (rule subsetI)
    apply (drule InterD)
     prefer 2 apply assumption
-   apply (tactic {* auto_tac (claset() addIs [thm "is_ideal_2"],
-     simpset() delsimprocs [ring_simproc]) *})
+   apply (tactic {* auto_tac (@{claset} addIs [@{thm is_ideal_2}],
+     @{simpset} delsimprocs [ring_simproc]) *})
    apply (rule_tac x = "1" in exI)
    apply (rule_tac x = "0" in exI)
    apply (rule_tac [2] x = "0" in exI)
@@ -283,7 +283,7 @@ lemma pid_irred_imp_prime: "irred a ==> prime (a::'a::pid)"
   apply (drule_tac f = "op* aa" in arg_cong)
   apply (simp add: r_distr)
   apply (erule subst)
-  apply (tactic {* asm_simp_tac (simpset() addsimps [thm "m_assoc" RS sym]
+  apply (tactic {* asm_simp_tac (@{simpset} addsimps [@{thm m_assoc} RS sym]
     delsimprocs [ring_simproc]) 1 *})
   done
 

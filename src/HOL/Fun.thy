@@ -532,7 +532,7 @@ code_const "id"
 subsection {* ML legacy bindings *} 
 
 ML {*
-val set_cs = claset() delrules [equalityI]
+val set_cs = @{claset} delrules [@{thm equalityI}]
 *}
 
 ML {*

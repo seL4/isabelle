@@ -390,7 +390,7 @@ ML {*
 local
   fun mk_thm s = prove_goal (the_context ()) s (fn _ =>
                           [rtac notI 1,dtac (thm "case_pocong") 1,etac rev_mp 5,
-                           ALLGOALS (simp_tac (simpset ())),
+                           ALLGOALS (simp_tac @{simpset}),
                            REPEAT (resolve_tac [thm "po_refl", thm "npo_lam_bot"] 1)])
 in
 

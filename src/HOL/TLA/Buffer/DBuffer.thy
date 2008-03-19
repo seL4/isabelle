@@ -63,7 +63,7 @@ lemma DB_step_simulation: "|- [DBNext]_(inp,mid,out,q1,q2) --> [Next inp qc out]
   apply (rule square_simulation)
    apply clarsimp
   apply (tactic
-    {* action_simp_tac (simpset () addsimps (thm "hd_append" :: thms "db_defs")) [] [] 1 *})
+    {* action_simp_tac (@{simpset} addsimps (@{thm hd_append} :: @{thms db_defs})) [] [] 1 *})
   done
 
 

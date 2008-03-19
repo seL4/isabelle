@@ -65,8 +65,8 @@ lemma all_simps:
 lemmas mini_simps = demorgans nnf_simps ex_simps all_simps
 
 ML {*
-val mini_ss = simpset() addsimps (thms "mini_simps");
-val mini_tac = rtac (thm "ccontr") THEN' asm_full_simp_tac mini_ss;
+val mini_ss = @{simpset} addsimps @{thms mini_simps};
+val mini_tac = rtac @{thm ccontr} THEN' asm_full_simp_tac mini_ss;
 *}
 
 end

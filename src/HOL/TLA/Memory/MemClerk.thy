@@ -84,7 +84,7 @@ lemma MClkbusy: "|- $Calling rcv p --> ~MClkNext send rcv cst p"
 lemma MClkFwd_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, cst!p) ==>  
       |- Calling send p & ~Calling rcv p & cst!p = #clkA   
          --> Enabled (MClkFwd send rcv cst p)"
-  by (tactic {* action_simp_tac (simpset () addsimps [thm "MClkFwd_def",
+  by (tactic {* action_simp_tac (@{simpset} addsimps [thm "MClkFwd_def",
     thm "Call_def", thm "caller_def", thm "rtrner_def"]) [exI]
     [thm "base_enabled", Pair_inject] 1 *})
 
@@ -99,9 +99,9 @@ lemma MClkReply_change: "|- MClkReply send rcv cst p -->
 lemma MClkReply_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, cst!p) ==>  
       |- Calling send p & ~Calling rcv p & cst!p = #clkB   
          --> Enabled (<MClkReply send rcv cst p>_(cst!p, rtrner send!p, caller rcv!p))"
-  apply (tactic {* action_simp_tac (simpset ())
+  apply (tactic {* action_simp_tac @{simpset}
     [thm "MClkReply_change" RSN (2, thm "enabled_mono") ] [] 1 *})
-  apply (tactic {* action_simp_tac (simpset () addsimps
+  apply (tactic {* action_simp_tac (@{simpset} addsimps
     [thm "MClkReply_def", thm "Return_def", thm "caller_def", thm "rtrner_def"])
     [exI] [thm "base_enabled", Pair_inject] 1 *})
   done

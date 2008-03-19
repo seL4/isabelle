@@ -386,9 +386,11 @@ lemma fresh_prodD:
   and   "a\<sharp>(x,y) \<Longrightarrow> a\<sharp>y"
   by (simp_all add: fresh_prod)
 
-ML_setup {*
-  val mksimps_pairs = ("Nominal.fresh", thms "fresh_prodD")::mksimps_pairs;
-  change_simpset (fn ss => ss setmksimps (mksimps mksimps_pairs));
+ML {*
+  val mksimps_pairs = (@{const_name Nominal.fresh}, @{thms fresh_prodD}) :: mksimps_pairs;
+*}
+declaration {* fn _ =>
+  Simplifier.map_ss (fn ss => ss setmksimps (mksimps mksimps_pairs))
 *}
 
 

@@ -209,11 +209,11 @@ in
 
 fun raw_mk_beta_rl defs s = prove_goalw (the_context ()) defs s
            (fn _ => [stac letrecB 1,
-                     simp_tac (simpset () addsimps rawBs) 1]);
+                     simp_tac (@{simpset} addsimps rawBs) 1]);
 fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 
 fun raw_mk_beta_rl defs s = prove_goalw (the_context ()) defs s
-           (fn _ => [simp_tac (simpset () addsimps rawBs
+           (fn _ => [simp_tac (@{simpset} addsimps rawBs
                                setloop (stac letrecB)) 1]);
 fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 
@@ -298,7 +298,7 @@ ML_setup {*
 
 local
   fun mk_thm s = prove_goalw (the_context ()) (thms "data_defs") s (fn _ =>
-    [simp_tac (simpset () addsimps (thms "ccl_porews")) 1])
+    [simp_tac (@{simpset} addsimps (thms "ccl_porews")) 1])
 in
   val term_porews = map mk_thm ["inl(a) [= inl(a') <-> a [= a'",
                                 "inr(b) [= inr(b') <-> b [= b'",

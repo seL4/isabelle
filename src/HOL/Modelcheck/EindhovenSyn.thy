@@ -72,7 +72,7 @@ val pair_eta_expand_proc =
   (fn _ => fn _ => fn t => case t of Abs _ => SOME pair_eta_expand | _ => NONE);
 
 val Eindhoven_ss =
-  simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
+  @{simpset} addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
 
 (*check if user has pmu installed*)
 fun eindhoven_enabled () = getenv "EINDHOVEN_HOME" <> "";

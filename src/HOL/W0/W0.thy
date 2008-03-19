@@ -196,15 +196,15 @@ lemma new_tv_subst:
   apply (unfold new_tv_def)
   apply (tactic "safe_tac HOL_cs")
   -- {* @{text \<Longrightarrow>} *}
-    apply (tactic {* fast_tac (HOL_cs addDs [@{thm leD}] addss (simpset()
+    apply (tactic {* fast_tac (HOL_cs addDs [@{thm leD}] addss (@{simpset}
       addsimps [thm "free_tv_subst", thm "dom_def"])) 1 *})
    apply (subgoal_tac "m \<in> cod s \<or> s l = TVar l")
     apply (tactic "safe_tac HOL_cs")
-     apply (tactic {* fast_tac (HOL_cs addDs [UnI2] addss (simpset()
+     apply (tactic {* fast_tac (HOL_cs addDs [UnI2] addss (@{simpset}
        addsimps [thm "free_tv_subst"])) 1 *})
     apply (drule_tac P = "\<lambda>x. m \<in> free_tv x" in subst, assumption)
     apply simp
-   apply (tactic {* fast_tac (set_cs addss (simpset()
+   apply (tactic {* fast_tac (set_cs addss (@{simpset}
      addsimps [thm "free_tv_subst", thm "cod_def", thm "dom_def"])) 1 *})
   -- {* @{text \<Longleftarrow>} *}
   apply (unfold free_tv_subst cod_def dom_def)
@@ -350,7 +350,7 @@ lemma free_tv_comp_subst:
   apply (tactic {*
     fast_tac (set_cs addSDs [thm "free_tv_app_subst_te" RS subsetD,
     thm "free_tv_subst_var" RS subsetD]
-    addss (simpset() delsimps (thms "bex_simps")
+    addss (@{simpset} delsimps (thms "bex_simps")
     addsimps [thm "cod_def", thm "dom_def"])) 1 *})
   done
 
@@ -555,7 +555,7 @@ lemma new_tv_W: "!!n a s t m.
       new_tv_le)
    apply (tactic {* fast_tac (HOL_cs addDs [thm "W_var_geD"]
      addIs [thm "new_tv_list_le", thm "new_tv_subst_tel", thm "new_tv_le"]
-     addss (simpset())) 1 *})
+     addss @{simpset}) 1 *})
   apply (rule lessI [THEN new_tv_subst_var])
   apply (erule sym [THEN mgu_new])
     apply (bestsimp intro!: lessI [THEN less_imp_le, THEN new_tv_le] new_tv_subst_te
@@ -563,7 +563,7 @@ lemma new_tv_W: "!!n a s t m.
         lessI [THEN less_imp_le, THEN new_tv_subst_le] new_tv_le)
   apply (tactic {* fast_tac (HOL_cs addDs [thm "W_var_geD"]
     addIs [thm "new_tv_list_le", thm "new_tv_subst_tel", thm "new_tv_le"]
-    addss (simpset())) 1 *})
+    addss @{simpset}) 1 *})
   done
 
 lemma free_tv_W: "!!n a s t m v. \<W> e a n = Ok (s, t, m) \<Longrightarrow>
@@ -616,7 +616,7 @@ lemma free_tv_W: "!!n a s t m v. \<W> e a n = Ok (s, t, m) \<Longrightarrow>
     thm "free_tv_subst_var" RS subsetD,
     thm "free_tv_app_subst_te" RS subsetD,
     thm "free_tv_app_subst_tel" RS subsetD, @{thm less_le_trans}, subsetD]
-    addSEs [UnE] addss (simpset() setSolver unsafe_solver)) 1 *})
+    addSEs [UnE] addss (@{simpset} setSolver unsafe_solver)) 1 *})
       -- {* builtin arithmetic in simpset messes things up *}
   done
 
@@ -798,7 +798,7 @@ lemma I_correct_wrt_W: "!!a m s s' t n.
     apply (simp add: app_subst_list split: split_if)
    txt {* case @{text "Abs e"} *}
    apply (tactic {* asm_full_simp_tac
-     (simpset() setloop (split_inside_tac [thm "split_bind"])) 1 *})
+     (@{simpset} setloop (split_inside_tac [thm "split_bind"])) 1 *})
    apply (intro strip)
    apply (rule conjI)
     apply (intro strip)
@@ -814,7 +814,7 @@ lemma I_correct_wrt_W: "!!a m s s' t n.
    apply (tactic {* fast_tac (HOL_cs addIs [thm "new_tv_Suc_list" RS mp,
      thm "new_tv_subst_le", @{thm less_imp_le}, @{thm lessI}]) 1 *})
   txt {* case @{text "App e1 e2"} *}
-  apply (tactic {* simp_tac (simpset () setloop (split_inside_tac [thm "split_bind"])) 1 *})
+  apply (tactic {* simp_tac (@{simpset} setloop (split_inside_tac [thm "split_bind"])) 1 *})
   apply (intro strip)
   apply (rename_tac s1' t1 n1 s2' t2 n2 sa)
   apply (rule conjI)

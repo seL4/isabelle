@@ -1200,7 +1200,7 @@ apply(tactic {* TRYALL (etac disjE) *})
 --{* 72 subgoals left *}
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 --{* 35 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI1,rtac subset_trans,etac (thm "Graph3"),force_tac (clasimpset ()), assume_tac]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI1,rtac subset_trans,etac @{thm Graph3},force_tac @{clasimpset}, assume_tac]) *})
 --{* 28 subgoals left *}
 apply(tactic {* TRYALL (etac conjE) *})
 apply(tactic {* TRYALL (etac disjE) *})
@@ -1210,17 +1210,17 @@ apply(rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_e
 apply(tactic {* ALLGOALS(case_tac "M x!(T (Muts x ! j))=Black") *})
 apply(simp_all add:Graph10)
 --{* 47 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac (thm "subset_psubset_trans"),etac (thm "Graph11"),force_tac (clasimpset ())]) *})
+apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac (thm "subset_psubset_trans"),etac (thm "Graph11"),force_tac @{clasimpset}]) *})
 --{* 41 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI1, etac @{thm le_trans}, force_tac (claset(),simpset() addsimps [thm "Queue_def", @{thm less_Suc_eq_le}, thm "le_length_filter_update"])]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI1, etac @{thm le_trans}, force_tac (@{claset},@{simpset} addsimps [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}])]) *})
 --{* 35 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac (thm "psubset_subset_trans"),rtac (thm "Graph9"),force_tac (clasimpset ())]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac (thm "psubset_subset_trans"),rtac (thm "Graph9"),force_tac @{clasimpset}]) *})
 --{* 31 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac (thm "subset_psubset_trans"),etac (thm "Graph11"),force_tac (clasimpset ())]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac (thm "subset_psubset_trans"),etac (thm "Graph11"),force_tac @{clasimpset}]) *})
 --{* 29 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac (thm "subset_psubset_trans"),etac (thm "subset_psubset_trans"),etac (thm "Graph11"),force_tac (clasimpset ())]) *})
+apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac (thm "subset_psubset_trans"),etac (thm "subset_psubset_trans"),etac (thm "Graph11"),force_tac @{clasimpset}]) *})
 --{* 25 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI2, rtac disjI1, etac @{thm le_trans}, force_tac (claset(),simpset() addsimps [thm "Queue_def", @{thm less_Suc_eq_le}, thm "le_length_filter_update"])]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI2, rtac disjI1, etac @{thm le_trans}, force_tac (@{claset},@{simpset} addsimps [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}])]) *})
 --{* 10 subgoals left *}
 apply(rule disjI2,rule disjI2,rule conjI,erule less_le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update, rule disjI1, rule less_imp_le, erule less_le_trans, force simp add:Queue_def less_Suc_eq_le le_length_filter_update)+
 done
