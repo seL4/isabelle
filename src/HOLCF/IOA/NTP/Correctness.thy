@@ -14,9 +14,9 @@ definition
   "hom s = rq(rec(s)) @ (if rbit(rec s) = sbit(sen s) then sq(sen s)
                          else tl(sq(sen s)))"
 
-ML_setup {*
-(* repeated from Traces.ML *)
-change_claset (fn cs => cs delSWrapper "split_all_tac")
+declaration {* fn _ =>
+  (* repeated from Traces.ML *)
+  Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")
 *}
 
 lemmas hom_ioas = Spec.ioa_def Spec.trans_def sender_trans_def receiver_trans_def impl_ioas

@@ -635,7 +635,9 @@ primrec
 lemma ospec [dest]: "(ALL x:o2s A. P x) ==> A = Some x ==> P x"
   by simp
 
-ML_setup {* change_claset (fn cs => cs addSD2 ("ospec", thm "ospec")) *}
+declaration {* fn _ =>
+  Classical.map_cs (fn cs => cs addSD2 ("ospec", thm "ospec"))
+*}
 
 lemma elem_o2s [iff]: "(x : o2s xo) = (xo = Some x)"
   by (cases xo) auto

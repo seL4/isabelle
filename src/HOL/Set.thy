@@ -428,8 +428,8 @@ text {*
   Gives better instantiation for bound:
 *}
 
-ML_setup {*
-  change_claset (fn cs => cs addbefore ("bspec", datac @{thm bspec} 1))
+declaration {* fn _ =>
+  Classical.map_cs (fn cs => cs addbefore ("bspec", datac @{thm bspec} 1))
 *}
 
 lemma bexI [intro]: "P x ==> x:A ==> EX x:A. P x"
@@ -1031,9 +1031,11 @@ lemmas mem_simps =
    ("Collect", [CollectD]), ("Inter", [InterD]), ("INTER", [INT_D])]
  *)
 
-ML_setup {*
+ML {*
   val mksimps_pairs = [("Ball", @{thms bspec})] @ mksimps_pairs;
-  change_simpset (fn ss => ss setmksimps (mksimps mksimps_pairs));
+*}
+declaration {* fn _ =>
+  Simplifier.map_ss (fn ss => ss setmksimps (mksimps mksimps_pairs))
 *}
 
 

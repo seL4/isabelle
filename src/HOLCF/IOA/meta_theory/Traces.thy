@@ -195,7 +195,7 @@ Traces_def:
 
 lemmas [simp del] = ex_simps all_simps split_paired_Ex
 declare Let_def [simp]
-ML_setup {* change_claset (fn cs => cs delSWrapper "split_all_tac") *}
+declaration {* fn _ => Classical.map_cs (fn cs => cs delSWrapper "split_all_tac") *}
 
 lemmas exec_rws = executions_def is_exec_frag_def
 

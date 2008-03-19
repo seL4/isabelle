@@ -72,8 +72,8 @@ lemma transrec3_Limit:
 by (rule transrec3_def [THEN def_transrec, THEN trans], force)
 
 
-ML_setup {*
-  change_simpset (fn ss => ss setmksimps (map mk_eq o Ord_atomize o gen_all));
+declaration {* fn _ =>
+  Simplifier.map_ss (fn ss => ss setmksimps (map mk_eq o Ord_atomize o gen_all))
 *}
 
 end
