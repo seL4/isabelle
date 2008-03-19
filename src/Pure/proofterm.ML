@@ -421,12 +421,12 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
 
 fun del_conflicting_tvars envT T = TermSubst.instantiateT
   (map_filter (fn ixnS as (_, S) =>
-     (Type.lookup (envT, ixnS); NONE) handle TYPE _ =>
+     (Type.lookup envT ixnS; NONE) handle TYPE _ =>
         SOME (ixnS, TFree ("'dummy", S))) (typ_tvars T)) T;
 
 fun del_conflicting_vars env t = TermSubst.instantiate
   (map_filter (fn ixnS as (_, S) =>
-     (Type.lookup (type_env env, ixnS); NONE) handle TYPE _ =>
+     (Type.lookup (type_env env) ixnS; NONE) handle TYPE _ =>
         SOME (ixnS, TFree ("'dummy", S))) (term_tvars t),
    map_filter (fn Var (ixnT as (_, T)) =>
      (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>

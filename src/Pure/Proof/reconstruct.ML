@@ -68,7 +68,7 @@ fun unifyT thy env T U =
     Sign.string_of_typ thy T ^ "\n\n" ^ Sign.string_of_typ thy U);
 
 fun chaseT (env as Envir.Envir {iTs, ...}) (T as TVar ixnS) =
-      (case Type.lookup (iTs, ixnS) of NONE => T | SOME T' => chaseT env T')
+      (case Type.lookup iTs ixnS of NONE => T | SOME T' => chaseT env T')
   | chaseT _ T = T;
 
 fun infer_type thy (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs

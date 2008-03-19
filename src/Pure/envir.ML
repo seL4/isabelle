@@ -151,7 +151,7 @@ fun norm_term1 same (asol,t) : term =
 
 fun normT iTs (Type (a, Ts)) = Type (a, normTs iTs Ts)
   | normT iTs (TFree _) = raise SAME
-  | normT iTs (TVar vS) = (case Type.lookup (iTs, vS) of
+  | normT iTs (TVar vS) = (case Type.lookup iTs vS of
           SOME U => normTh iTs U
         | NONE => raise SAME)
 and normTh iTs T = ((normT iTs T) handle SAME => T)
@@ -256,7 +256,7 @@ let val funerr = "fastype: expected function type";
         (case fast Ts f of
            Type ("fun", [_, T]) => T
          | TVar ixnS =>
-                (case Type.lookup (iTs, ixnS) of
+                (case Type.lookup iTs ixnS of
                    SOME (Type ("fun", [_, T])) => T
                  | _ => raise TERM (funerr, [f $ u]))
          | _ => raise TERM (funerr, [f $ u]))
@@ -275,7 +275,7 @@ fun typ_subst_TVars iTs T = if Vartab.is_empty iTs then T else
   let fun subst(Type(a, Ts)) = Type(a, map subst Ts)
         | subst(T as TFree _) = T
         | subst(T as TVar ixnS) =
-            (case Type.lookup (iTs, ixnS) of NONE => T | SOME(U) => U)
+            (case Type.lookup iTs ixnS of NONE => T | SOME(U) => U)
   in subst T end;
 
 (*Substitute for type Vars in a term*)

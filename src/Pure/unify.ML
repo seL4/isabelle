@@ -55,14 +55,14 @@ type dpair = binderlist * term * term;
 
 fun body_type(Envir.Envir{iTs,...}) =
 let fun bT(Type("fun",[_,T])) = bT T
-      | bT(T as TVar ixnS) = (case Type.lookup (iTs, ixnS) of
+      | bT(T as TVar ixnS) = (case Type.lookup iTs ixnS of
     NONE => T | SOME(T') => bT T')
       | bT T = T
 in bT end;
 
 fun binder_types(Envir.Envir{iTs,...}) =
 let fun bTs(Type("fun",[T,U])) = T :: bTs U
-      | bTs(T as TVar ixnS) = (case Type.lookup (iTs, ixnS) of
+      | bTs(T as TVar ixnS) = (case Type.lookup iTs ixnS of
     NONE => [] | SOME(T') => bTs T')
       | bTs _ = []
 in bTs end;
@@ -77,7 +77,7 @@ fun eta_norm(env as Envir.Envir{iTs,...}) =
   let fun etif (Type("fun",[T,U]), t) =
       Abs("", T, etif(U, incr_boundvars 1 t $ Bound 0))
   | etif (TVar ixnS, t) =
-      (case Type.lookup (iTs, ixnS) of
+      (case Type.lookup iTs ixnS of
       NONE => t | SOME(T) => etif(T,t))
   | etif (_,t) = t;
       fun eta_nm (rbinder, Abs(a,T,body)) =

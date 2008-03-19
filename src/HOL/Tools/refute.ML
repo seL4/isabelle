@@ -451,7 +451,7 @@ struct
   fun monomorphic_term typeSubs t =
     map_types (map_type_tvar
       (fn v =>
-        case Type.lookup (typeSubs, v) of
+        case Type.lookup typeSubs v of
           NONE =>
           (* schematic type variable not instantiated *)
           raise REFUTE ("monomorphic_term",
