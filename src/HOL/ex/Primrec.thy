@@ -335,7 +335,7 @@ lemma ack_bounds_PRIMREC: "PRIMREC f ==> \<exists>k. \<forall>l. f l < ack (k, l
 lemma ack_not_PRIMREC: "\<not> PRIMREC (\<lambda>l. case l of [] => 0 | x # l' => ack (x, x))"
   apply (rule notI)
   apply (erule ack_bounds_PRIMREC [THEN exE])
-  apply (rule Nat.less_irrefl)
+  apply (rule less_irrefl [THEN notE])
   apply (drule_tac x = "[x]" in spec)
   apply simp
   done
