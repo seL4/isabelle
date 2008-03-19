@@ -56,8 +56,9 @@ val res_inst_tac_term' =
 fun cut_inst_tac_term' tinst th =
   res_inst_tac_term' tinst false (Tactic.make_elim_preserve th);
 
-fun get_dyn_thm thy name atom_name = (PureThy.get_thm thy (Name name)) handle _ => 
-                                          raise ERROR ("The atom type "^atom_name^" is not defined."); 
+fun get_dyn_thm thy name atom_name =
+  dynamic_thm thy name handle ERROR _ =>
+    raise ERROR ("The atom type "^atom_name^" is not defined.");
 
 (* End of function waiting to be in the library :o) *)
 
@@ -145,8 +146,8 @@ fun fresh_fun_tac no_asm i thm =
     val thy = theory_of_thm thm;
     val ctx = Context.init_proof thy;
     val ss = simpset_of thy;
-    val abs_fresh = PureThy.get_thms thy (Name "abs_fresh");
-    val fresh_perm_app = PureThy.get_thms thy (Name "fresh_perm_app");
+    val abs_fresh = dynamic_thms thy "abs_fresh";
+    val fresh_perm_app = dynamic_thms thy "fresh_perm_app";
     val ss' = ss addsimps fresh_prod::abs_fresh;
     val ss'' = ss' addsimps fresh_perm_app;
     val x = hd (tl (term_vars (prop_of exI)));

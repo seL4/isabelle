@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nominal/nominal_atoms.ML
+(*  title:      HOL/Nominal/nominal_atoms.ML
     ID:         $Id$
     Author:     Christian Urban and Stefan Berghofer, TU Muenchen
 
@@ -230,17 +230,17 @@ fun create_nom_typedecls ak_names thy =
       let
         val ak_name_qu = Sign.full_name thy5 (ak_name);
         val i_type = Type(ak_name_qu,[]);
-	val cat = Const ("Nominal.at",(Term.itselfT i_type)  --> HOLogic.boolT);
+        val cat = Const ("Nominal.at",(Term.itselfT i_type)  --> HOLogic.boolT);
         val at_type = Logic.mk_type i_type;
-        val simp_s = HOL_ss addsimps PureThy.get_thmss thy5
-                                  [Name "at_def",
-                                   Name (ak_name ^ "_prm_" ^ ak_name ^ "_def"),
-                                   Name (ak_name ^ "_prm_" ^ ak_name ^ ".simps"),
-                                   Name ("swap_" ^ ak_name ^ "_def"),
-                                   Name ("swap_" ^ ak_name ^ ".simps"),
-                                   Name (ak_name ^ "_infinite")]
-	    
-	val name = "at_"^ak_name^ "_inst";
+        val simp_s = HOL_ss addsimps maps (dynamic_thms thy5)
+                                  ["at_def",
+                                   ak_name ^ "_prm_" ^ ak_name ^ "_def",
+                                   ak_name ^ "_prm_" ^ ak_name ^ ".simps",
+                                   "swap_" ^ ak_name ^ "_def",
+                                   "swap_" ^ ak_name ^ ".simps",
+                                   ak_name ^ "_infinite"]
+            
+        val name = "at_"^ak_name^ "_inst";
         val statement = HOLogic.mk_Trueprop (cat $ at_type);
 
         val proof = fn _ => simp_tac simp_s 1
@@ -256,7 +256,7 @@ fun create_nom_typedecls ak_names thy =
     (* pt_<ak>3:       pi1 ~ pi2 ==> perm pi1 x = perm pi2 x     *)
      val (pt_ax_classes,thy7) =  fold_map (fn (ak_name, T) => fn thy =>
       let 
-	  val cl_name = "pt_"^ak_name;
+          val cl_name = "pt_"^ak_name;
           val ty = TFree("'a",["HOL.type"]);
           val x   = Free ("x", ty);
           val pi1 = Free ("pi1", mk_permT T);
@@ -293,16 +293,16 @@ fun create_nom_typedecls ak_names thy =
         val pt_name_qu = Sign.full_name thy7 ("pt_"^ak_name);
         val i_type1 = TFree("'x",[pt_name_qu]);
         val i_type2 = Type(ak_name_qu,[]);
-	val cpt = Const ("Nominal.pt",(Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
+        val cpt = Const ("Nominal.pt",(Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
         val pt_type = Logic.mk_type i_type1;
         val at_type = Logic.mk_type i_type2;
-        val simp_s = HOL_ss addsimps PureThy.get_thmss thy7
-                                  [Name "pt_def",
-                                   Name ("pt_" ^ ak_name ^ "1"),
-                                   Name ("pt_" ^ ak_name ^ "2"),
-                                   Name ("pt_" ^ ak_name ^ "3")];
+        val simp_s = HOL_ss addsimps maps (dynamic_thms thy7)
+                                  ["pt_def",
+                                   "pt_" ^ ak_name ^ "1",
+                                   "pt_" ^ ak_name ^ "2",
+                                   "pt_" ^ ak_name ^ "3"];
 
-	val name = "pt_"^ak_name^ "_inst";
+        val name = "pt_"^ak_name^ "_inst";
         val statement = HOLogic.mk_Trueprop (cpt $ pt_type $ at_type);
 
         val proof = fn _ => simp_tac simp_s 1;
@@ -315,8 +315,8 @@ fun create_nom_typedecls ak_names thy =
      (* fs_<ak>1: finite ((supp x)::<ak> set)            *)
      val (fs_ax_classes,thy11) =  fold_map (fn (ak_name, T) => fn thy =>
        let 
-	  val cl_name = "fs_"^ak_name;
-	  val pt_name = Sign.full_name thy ("pt_"^ak_name);
+          val cl_name = "fs_"^ak_name;
+          val pt_name = Sign.full_name thy ("pt_"^ak_name);
           val ty = TFree("'a",["HOL.type"]);
           val x   = Free ("x", ty);
           val csupp    = Const ("Nominal.supp", ty --> HOLogic.mk_setT T);
@@ -327,7 +327,7 @@ fun create_nom_typedecls ak_names thy =
        in  
         AxClass.define_class (cl_name, [pt_name]) [] [((cl_name ^ "1", []), [axiom1])] thy            
        end) ak_names_types thy8; 
-	 
+         
      (* proves that every fs_<ak>-type together with <ak>-type   *)
      (* instance of fs-type                                      *)
      (* lemma abst_<ak>_inst:                                    *)
@@ -339,15 +339,15 @@ fun create_nom_typedecls ak_names thy =
          val fs_name_qu = Sign.full_name thy11 ("fs_"^ak_name);
          val i_type1 = TFree("'x",[fs_name_qu]);
          val i_type2 = Type(ak_name_qu,[]);
- 	 val cfs = Const ("Nominal.fs", 
+         val cfs = Const ("Nominal.fs", 
                                  (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
          val fs_type = Logic.mk_type i_type1;
          val at_type = Logic.mk_type i_type2;
-	 val simp_s = HOL_ss addsimps PureThy.get_thmss thy11
-                                   [Name "fs_def",
-                                    Name ("fs_" ^ ak_name ^ "1")];
+         val simp_s = HOL_ss addsimps maps (dynamic_thms thy11)
+                                   ["fs_def",
+                                    "fs_" ^ ak_name ^ "1"];
     
-	 val name = "fs_"^ak_name^ "_inst";
+         val name = "fs_"^ak_name^ "_inst";
          val statement = HOLogic.mk_Trueprop (cfs $ fs_type $ at_type);
 
          val proof = fn _ => simp_tac simp_s 1;
@@ -359,54 +359,54 @@ fun create_nom_typedecls ak_names thy =
        (* cp_<ak1>_<ak2> giving a composition property                   *)
        (* cp_<ak1>_<ak2>1: pi1 o pi2 o x = (pi1 o pi2) o (pi1 o x)       *)
         val (cp_ax_classes,thy12b) = fold_map (fn (ak_name, T) => fn thy =>
-	 fold_map (fn (ak_name', T') => fn thy' =>
-	     let
-	       val cl_name = "cp_"^ak_name^"_"^ak_name';
-	       val ty = TFree("'a",["HOL.type"]);
+         fold_map (fn (ak_name', T') => fn thy' =>
+             let
+               val cl_name = "cp_"^ak_name^"_"^ak_name';
+               val ty = TFree("'a",["HOL.type"]);
                val x   = Free ("x", ty);
                val pi1 = Free ("pi1", mk_permT T);
-	       val pi2 = Free ("pi2", mk_permT T');                  
-	       val cperm1 = Const ("Nominal.perm", mk_permT T  --> ty --> ty);
+               val pi2 = Free ("pi2", mk_permT T');                  
+               val cperm1 = Const ("Nominal.perm", mk_permT T  --> ty --> ty);
                val cperm2 = Const ("Nominal.perm", mk_permT T' --> ty --> ty);
                val cperm3 = Const ("Nominal.perm", mk_permT T  --> mk_permT T' --> mk_permT T');
 
                val ax1   = HOLogic.mk_Trueprop 
-			   (HOLogic.mk_eq (cperm1 $ pi1 $ (cperm2 $ pi2 $ x), 
+                           (HOLogic.mk_eq (cperm1 $ pi1 $ (cperm2 $ pi2 $ x), 
                                            cperm2 $ (cperm3 $ pi1 $ pi2) $ (cperm1 $ pi1 $ x)));
-	       in  
-		 AxClass.define_class (cl_name, ["HOL.type"]) [] [((cl_name ^ "1", []), [ax1])] thy'  
-	       end) ak_names_types thy) ak_names_types thy12;
+               in  
+                 AxClass.define_class (cl_name, ["HOL.type"]) [] [((cl_name ^ "1", []), [ax1])] thy'  
+               end) ak_names_types thy) ak_names_types thy12;
 
         (* proves for every <ak>-combination a cp_<ak1>_<ak2>_inst theorem;     *)
         (* lemma cp_<ak1>_<ak2>_inst:                                           *)
         (* cp TYPE('a::cp_<ak1>_<ak2>) TYPE(<ak1>) TYPE(<ak2>)                  *)
         val (cp_thms,thy12c) = fold_map (fn (ak_name, T) => fn thy =>
-	 fold_map (fn (ak_name', T') => fn thy' =>
+         fold_map (fn (ak_name', T') => fn thy' =>
            let
              val ak_name_qu  = Sign.full_name thy' (ak_name);
-	     val ak_name_qu' = Sign.full_name thy' (ak_name');
+             val ak_name_qu' = Sign.full_name thy' (ak_name');
              val cp_name_qu  = Sign.full_name thy' ("cp_"^ak_name^"_"^ak_name');
              val i_type0 = TFree("'a",[cp_name_qu]);
              val i_type1 = Type(ak_name_qu,[]);
              val i_type2 = Type(ak_name_qu',[]);
-	     val ccp = Const ("Nominal.cp",
+             val ccp = Const ("Nominal.cp",
                              (Term.itselfT i_type0)-->(Term.itselfT i_type1)-->
                                                       (Term.itselfT i_type2)-->HOLogic.boolT);
              val at_type  = Logic.mk_type i_type1;
              val at_type' = Logic.mk_type i_type2;
-	     val cp_type  = Logic.mk_type i_type0;
-             val simp_s   = HOL_basic_ss addsimps PureThy.get_thmss thy' [(Name "cp_def")];
-	     val cp1      = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"1"));
+             val cp_type  = Logic.mk_type i_type0;
+             val simp_s   = HOL_basic_ss addsimps maps (dynamic_thms thy') ["cp_def"];
+             val cp1      = dynamic_thm thy' ("cp_" ^ ak_name ^ "_" ^ ak_name' ^ "1");
 
-	     val name = "cp_"^ak_name^ "_"^ak_name'^"_inst";
+             val name = "cp_"^ak_name^ "_"^ak_name'^"_inst";
              val statement = HOLogic.mk_Trueprop (ccp $ cp_type $ at_type $ at_type');
 
              val proof = fn _ => EVERY [simp_tac simp_s 1, 
                                         rtac allI 1, rtac allI 1, rtac allI 1,
                                         rtac cp1 1];
-	   in
-	     PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
-	   end) 
+           in
+             PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
+           end) 
            ak_names_types thy) ak_names_types thy12b;
        
         (* proves for every non-trivial <ak>-combination a disjointness   *)
@@ -414,33 +414,33 @@ fun create_nom_typedecls ak_names thy =
         (* lemma ds_<ak1>_<ak2>:                                          *)
         (* dj TYPE(<ak1>) TYPE(<ak2>)                                     *)
         val (dj_thms, thy12d) = fold_map (fn (ak_name,T) => fn thy =>
-	  fold_map (fn (ak_name',T') => fn thy' =>
+          fold_map (fn (ak_name',T') => fn thy' =>
           (if not (ak_name = ak_name') 
            then 
-	       let
-		 val ak_name_qu  = Sign.full_name thy' ak_name;
-	         val ak_name_qu' = Sign.full_name thy' ak_name';
+               let
+                 val ak_name_qu  = Sign.full_name thy' ak_name;
+                 val ak_name_qu' = Sign.full_name thy' ak_name';
                  val i_type1 = Type(ak_name_qu,[]);
                  val i_type2 = Type(ak_name_qu',[]);
-	         val cdj = Const ("Nominal.disjoint",
+                 val cdj = Const ("Nominal.disjoint",
                            (Term.itselfT i_type1)-->(Term.itselfT i_type2)-->HOLogic.boolT);
                  val at_type  = Logic.mk_type i_type1;
                  val at_type' = Logic.mk_type i_type2;
-                 val simp_s = HOL_ss addsimps PureThy.get_thmss thy' 
-					   [Name "disjoint_def",
-                                            Name (ak_name^"_prm_"^ak_name'^"_def"),
-                                            Name (ak_name'^"_prm_"^ak_name^"_def")];
+                 val simp_s = HOL_ss addsimps maps (dynamic_thms thy')
+                                           ["disjoint_def",
+                                            ak_name ^ "_prm_" ^ ak_name' ^ "_def",
+                                            ak_name' ^ "_prm_" ^ ak_name ^ "_def"];
 
-	         val name = "dj_"^ak_name^"_"^ak_name';
+                 val name = "dj_"^ak_name^"_"^ak_name';
                  val statement = HOLogic.mk_Trueprop (cdj $ at_type $ at_type');
 
                  val proof = fn _ => simp_tac simp_s 1;
-	       in
-		PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
-	       end
+               in
+                PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
+               end
            else 
             ([],thy')))  (* do nothing branch, if ak_name = ak_name' *) 
-	    ak_names_types thy) ak_names_types thy12c;
+            ak_names_types thy) ak_names_types thy12c;
 
      (********  pt_<ak> class instances  ********)
      (*=========================================*)
@@ -462,11 +462,11 @@ fun create_nom_typedecls ak_names thy =
      (* every <ak> is an instance of pt_<ak'>; the proof for       *)
      (* ak!=ak' is by definition; the case ak=ak' uses at_pt_inst. *)
      val thy13 = fold (fn ak_name => fn thy =>
-	fold (fn ak_name' => fn thy' =>
+        fold (fn ak_name' => fn thy' =>
          let
            val qu_name =  Sign.full_name thy' ak_name';
            val cls_name = Sign.full_name thy' ("pt_"^ak_name);
-           val at_inst  = PureThy.get_thm thy' (Name ("at_"^ak_name'^"_inst")); 
+           val at_inst  = dynamic_thm thy' ("at_" ^ ak_name' ^ "_inst");
 
            val proof1 = EVERY [Class.intro_classes_tac [],
                                  rtac ((at_inst RS at_pt_inst) RS pt1) 1,
@@ -474,7 +474,7 @@ fun create_nom_typedecls ak_names thy =
                                  rtac ((at_inst RS at_pt_inst) RS pt3) 1,
                                  atac 1];
            val simp_s = HOL_basic_ss addsimps 
-                        PureThy.get_thmss thy' [Name (ak_name^"_prm_"^ak_name'^"_def")];  
+                        maps (dynamic_thms thy') [ak_name ^ "_prm_" ^ ak_name' ^ "_def"];  
            val proof2 = EVERY [Class.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
 
          in
@@ -496,8 +496,8 @@ fun create_nom_typedecls ak_names thy =
      val thy18 = fold (fn ak_name => fn thy =>
        let
           val cls_name = Sign.full_name thy ("pt_"^ak_name);
-          val at_thm   = PureThy.get_thm thy (Name ("at_"^ak_name^"_inst"));
-          val pt_inst  = PureThy.get_thm thy (Name ("pt_"^ak_name^"_inst"));
+          val at_thm   = dynamic_thm thy ("at_"^ak_name^"_inst");
+          val pt_inst  = dynamic_thm thy ("pt_"^ak_name^"_inst");
 
           fun pt_proof thm = 
               EVERY [Class.intro_classes_tac [],
@@ -546,11 +546,11 @@ fun create_nom_typedecls ak_names thy =
            val proof =
                (if ak_name = ak_name'
                 then
-                  let val at_thm = PureThy.get_thm thy' (Name ("at_"^ak_name^"_inst"));
+                  let val at_thm = dynamic_thm thy' ("at_"^ak_name^"_inst");
                   in  EVERY [Class.intro_classes_tac [],
                              rtac ((at_thm RS fs_at_inst) RS fs1) 1] end
                 else
-                  let val dj_inst = PureThy.get_thm thy' (Name ("dj_"^ak_name'^"_"^ak_name));
+                  let val dj_inst = dynamic_thm thy' ("dj_"^ak_name'^"_"^ak_name);
                       val simp_s = HOL_basic_ss addsimps [dj_inst RS dj_supp, finite_emptyI];
                   in EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1] end)
         in
@@ -568,7 +568,7 @@ fun create_nom_typedecls ak_names thy =
        val thy24 = fold (fn ak_name => fn thy => 
         let
           val cls_name = Sign.full_name thy ("fs_"^ak_name);
-          val fs_inst  = PureThy.get_thm thy (Name ("fs_"^ak_name^"_inst"));
+          val fs_inst  = dynamic_thm thy ("fs_"^ak_name^"_inst");
           fun fs_proof thm = EVERY [Class.intro_classes_tac [], rtac (thm RS fs1) 1];
 
           val fs_thm_unit  = fs_unit_inst;
@@ -613,20 +613,20 @@ fun create_nom_typedecls ak_names thy =
               val proof =
                 (if (ak_name'=ak_name'') then 
                   (let
-                    val pt_inst  = PureThy.get_thm thy'' (Name ("pt_"^ak_name''^"_inst"));
-                    val at_inst  = PureThy.get_thm thy'' (Name ("at_"^ak_name''^"_inst"));
+                    val pt_inst  = dynamic_thm thy'' ("pt_"^ak_name''^"_inst");
+                    val at_inst  = dynamic_thm thy'' ("at_"^ak_name''^"_inst");
                   in
-		   EVERY [Class.intro_classes_tac [],
+                   EVERY [Class.intro_classes_tac [],
                           rtac (at_inst RS (pt_inst RS pt_perm_compose)) 1]
                   end)
-		else
-		  (let
-                     val dj_inst  = PureThy.get_thm thy'' (Name ("dj_"^ak_name''^"_"^ak_name'));
-		     val simp_s = HOL_basic_ss addsimps
+                else
+                  (let
+                     val dj_inst  = dynamic_thm thy'' ("dj_"^ak_name''^"_"^ak_name');
+                     val simp_s = HOL_basic_ss addsimps
                                         ((dj_inst RS dj_pp_forget)::
-                                         (PureThy.get_thmss thy''
-                                           [Name (ak_name' ^"_prm_"^ak_name^"_def"),
-                                            Name (ak_name''^"_prm_"^ak_name^"_def")]));
+                                         (maps (dynamic_thms thy'')
+                                           [ak_name' ^"_prm_"^ak_name^"_def",
+                                            ak_name''^"_prm_"^ak_name^"_def"]));
                   in
                     EVERY [Class.intro_classes_tac [], simp_tac simp_s 1]
                   end))
@@ -644,15 +644,15 @@ fun create_nom_typedecls ak_names thy =
        (*      sets                                                     *)
        (* are instances of cp_<ak>_<ai> for every <ak>/<ai>-combination *)
        val thy26 = fold (fn ak_name => fn thy =>
-	fold (fn ak_name' => fn thy' =>
+        fold (fn ak_name' => fn thy' =>
         let
             val cls_name = Sign.full_name thy' ("cp_"^ak_name^"_"^ak_name');
-            val cp_inst  = PureThy.get_thm thy' (Name ("cp_"^ak_name^"_"^ak_name'^"_inst"));
-            val pt_inst  = PureThy.get_thm thy' (Name ("pt_"^ak_name^"_inst"));
-            val at_inst  = PureThy.get_thm thy' (Name ("at_"^ak_name^"_inst"));
+            val cp_inst  = dynamic_thm thy' ("cp_"^ak_name^"_"^ak_name'^"_inst");
+            val pt_inst  = dynamic_thm thy' ("pt_"^ak_name^"_inst");
+            val at_inst  = dynamic_thm thy' ("at_"^ak_name^"_inst");
 
             fun cp_proof thm  = EVERY [Class.intro_classes_tac [],rtac (thm RS cp1) 1];
-	  
+          
             val cp_thm_unit = cp_unit_inst;
             val cp_thm_prod = cp_inst RS (cp_inst RS cp_prod_inst);
             val cp_thm_list = cp_inst RS cp_list_inst;
@@ -663,7 +663,7 @@ fun create_nom_typedecls ak_names thy =
         in
          thy'
          |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
-	 |> AxClass.prove_arity ("*",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
+         |> AxClass.prove_arity ("*",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
          |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
          |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
          |> AxClass.prove_arity ("Datatype.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
@@ -677,36 +677,36 @@ fun create_nom_typedecls ak_names thy =
      (* which renders the proofs to be simple "simp_all"-proofs.             *)
      val thy32 =
         let
-	  fun discrete_pt_inst discrete_ty defn =
-	     fold (fn ak_name => fn thy =>
-	     let
-	       val qu_class = Sign.full_name thy ("pt_"^ak_name);
-	       val simp_s = HOL_basic_ss addsimps [defn];
+          fun discrete_pt_inst discrete_ty defn =
+             fold (fn ak_name => fn thy =>
+             let
+               val qu_class = Sign.full_name thy ("pt_"^ak_name);
+               val simp_s = HOL_basic_ss addsimps [defn];
                val proof = EVERY [Class.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
              in 
-	       AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
+               AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
              end) ak_names;
 
           fun discrete_fs_inst discrete_ty defn = 
-	     fold (fn ak_name => fn thy =>
-	     let
-	       val qu_class = Sign.full_name thy ("fs_"^ak_name);
-	       val supp_def = @{thm "Nominal.supp_def"};
+             fold (fn ak_name => fn thy =>
+             let
+               val qu_class = Sign.full_name thy ("fs_"^ak_name);
+               val supp_def = @{thm "Nominal.supp_def"};
                val simp_s = HOL_ss addsimps [supp_def,Collect_const,finite_emptyI,defn];
                val proof = EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1];
              in 
-	       AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
+               AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
              end) ak_names;
 
           fun discrete_cp_inst discrete_ty defn = 
-	     fold (fn ak_name' => (fold (fn ak_name => fn thy =>
-	     let
-	       val qu_class = Sign.full_name thy ("cp_"^ak_name^"_"^ak_name');
-	       val supp_def = @{thm "Nominal.supp_def"};
+             fold (fn ak_name' => (fold (fn ak_name => fn thy =>
+             let
+               val qu_class = Sign.full_name thy ("cp_"^ak_name^"_"^ak_name');
+               val supp_def = @{thm "Nominal.supp_def"};
                val simp_s = HOL_ss addsimps [defn];
                val proof = EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1];
              in
-	       AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
+               AxClass.prove_arity (discrete_ty,[],[qu_class]) proof thy
              end) ak_names)) ak_names;
 
         in
@@ -771,7 +771,7 @@ fun create_nom_typedecls ak_names thy =
        val at_exists_fresh     = @{thm "Nominal.at_exists_fresh"};
        val at_exists_fresh'    = @{thm "Nominal.at_exists_fresh'"};
        val fresh_perm_app_ineq = @{thm "Nominal.pt_fresh_perm_app_ineq"};
-       val fresh_perm_app      = @{thm "Nominal.pt_fresh_perm_app"};	
+       val fresh_perm_app      = @{thm "Nominal.pt_fresh_perm_app"};    
        val fresh_aux           = @{thm "Nominal.pt_fresh_aux"};  
        val pt_perm_supp_ineq   = @{thm "Nominal.pt_perm_supp_ineq"};
        val pt_perm_supp        = @{thm "Nominal.pt_perm_supp"};
@@ -804,58 +804,58 @@ fun create_nom_typedecls ak_names thy =
 
              
              (* list of all at_inst-theorems *)
-             val ats = map (fn ak => PureThy.get_thm thy32 (Name ("at_"^ak^"_inst"))) ak_names
+             val ats = map (fn ak => dynamic_thm thy32 ("at_"^ak^"_inst")) ak_names
              (* list of all pt_inst-theorems *)
-             val pts = map (fn ak => PureThy.get_thm thy32 (Name ("pt_"^ak^"_inst"))) ak_names
+             val pts = map (fn ak => dynamic_thm thy32 ("pt_"^ak^"_inst")) ak_names
              (* list of all cp_inst-theorems as a collection of lists*)
              val cps = 
-		 let fun cps_fun ak1 ak2 = PureThy.get_thm thy32 (Name ("cp_"^ak1^"_"^ak2^"_inst"))
-		 in map (fn aki => (map (cps_fun aki) ak_names)) ak_names end; 
+                 let fun cps_fun ak1 ak2 =  dynamic_thm thy32 ("cp_"^ak1^"_"^ak2^"_inst")
+                 in map (fn aki => (map (cps_fun aki) ak_names)) ak_names end; 
              (* list of all cp_inst-theorems that have different atom types *)
              val cps' = 
-		let fun cps'_fun ak1 ak2 = 
-		if ak1=ak2 then NONE else SOME(PureThy.get_thm thy32 (Name ("cp_"^ak1^"_"^ak2^"_inst")))
-		in map (fn aki => (List.mapPartial I (map (cps'_fun aki) ak_names))) ak_names end;
+                let fun cps'_fun ak1 ak2 = 
+                if ak1=ak2 then NONE else SOME (dynamic_thm thy32 ("cp_"^ak1^"_"^ak2^"_inst"))
+                in map (fn aki => (List.mapPartial I (map (cps'_fun aki) ak_names))) ak_names end;
              (* list of all dj_inst-theorems *)
              val djs = 
-	       let fun djs_fun ak1 ak2 = 
-		     if ak1=ak2 then NONE else SOME(PureThy.get_thm thy32 (Name ("dj_"^ak2^"_"^ak1)))
-	       in map_filter I (map_product djs_fun ak_names ak_names) end;
+               let fun djs_fun ak1 ak2 = 
+                     if ak1=ak2 then NONE else SOME(dynamic_thm thy32 ("dj_"^ak2^"_"^ak1))
+               in map_filter I (map_product djs_fun ak_names ak_names) end;
              (* list of all fs_inst-theorems *)
-             val fss = map (fn ak => PureThy.get_thm thy32 (Name ("fs_"^ak^"_inst"))) ak_names
+             val fss = map (fn ak => dynamic_thm thy32 ("fs_"^ak^"_inst")) ak_names
              (* list of all at_inst-theorems *)
-             val fs_axs = map (fn ak => PureThy.get_thm thy32 (Name ("fs_"^ak^"1"))) ak_names
+             val fs_axs = map (fn ak => dynamic_thm thy32 ("fs_"^ak^"1")) ak_names
 
              fun inst_pt thms = maps (fn ti => instR ti pts) thms;
              fun inst_at thms = maps (fn ti => instR ti ats) thms;
              fun inst_fs thms = maps (fn ti => instR ti fss) thms;
              fun inst_cp thms cps = flat (inst_mult thms cps);
-	     fun inst_pt_at thms = inst_zip ats (inst_pt thms);
+             fun inst_pt_at thms = inst_zip ats (inst_pt thms);
              fun inst_dj thms = maps (fn ti => instR ti djs) thms;
-	     fun inst_pt_pt_at_cp thms = inst_cp (inst_zip ats (inst_zip pts (inst_pt thms))) cps;
+             fun inst_pt_pt_at_cp thms = inst_cp (inst_zip ats (inst_zip pts (inst_pt thms))) cps;
              fun inst_pt_at_fs thms = inst_zip (inst_fs [fs1]) (inst_zip ats (inst_pt thms));
-	     fun inst_pt_pt_at_cp thms =
-		 let val i_pt_pt_at = inst_zip ats (inst_zip pts (inst_pt thms));
+             fun inst_pt_pt_at_cp thms =
+                 let val i_pt_pt_at = inst_zip ats (inst_zip pts (inst_pt thms));
                      val i_pt_pt_at_cp = inst_cp i_pt_pt_at cps';
-		 in i_pt_pt_at_cp end;
+                 in i_pt_pt_at_cp end;
              fun inst_pt_pt_at_cp_dj thms = inst_zip djs (inst_pt_pt_at_cp thms);
            in
             thy32 
-	    |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
+            |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
             ||>> PureThy.add_thmss [(("alpha'", inst_pt_at [abs_fun_eq']),[])]
             ||>> PureThy.add_thmss [(("alpha_fresh", inst_pt_at [abs_fun_fresh]),[])]
             ||>> PureThy.add_thmss [(("alpha_fresh'", inst_pt_at [abs_fun_fresh']),[])]
             ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij] @ inst_pt_at [pt_swap_bij']),[])]
-            ||>> PureThy.add_thmss [(("swap_simps", inst_at at_swap_simps),[])]	 
+            ||>> PureThy.add_thmss [(("swap_simps", inst_at at_swap_simps),[])]  
             ||>> PureThy.add_thmss 
-	      let val thms1 = inst_pt_at [pt_pi_rev];
-		  val thms2 = inst_pt_at [pt_rev_pi];
+              let val thms1 = inst_pt_at [pt_pi_rev];
+                  val thms2 = inst_pt_at [pt_rev_pi];
               in [(("perm_pi_simp",thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
             ||>> PureThy.add_thmss [(("perm_bij", inst_pt_at [pt_bij]),[])]
             ||>> PureThy.add_thmss 
-	      let val thms1 = inst_pt_at [pt_perm_compose];
-		  val thms2 = instR cp1 (Library.flat cps');
+              let val thms1 = inst_pt_at [pt_perm_compose];
+                  val thms2 = instR cp1 (Library.flat cps');
               in [(("perm_compose",thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss [(("perm_compose'",inst_pt_at [pt_perm_compose']),[])] 
             ||>> PureThy.add_thmss [(("perm_app", inst_pt_at [perm_app]),[])]
@@ -871,74 +871,74 @@ fun create_nom_typedecls ak_names thy =
               end
             ||>> PureThy.add_thmss [(("ex_eqvt", inst_pt_at [ex_eqvt]),[NominalThmDecls.eqvt_force_add])]
             ||>> PureThy.add_thmss 
-	      let val thms1 = inst_at [at_fresh]
-		  val thms2 = inst_dj [at_fresh_ineq]
-	      in [(("fresh_atm", thms1 @ thms2),[])] end
+              let val thms1 = inst_at [at_fresh]
+                  val thms2 = inst_dj [at_fresh_ineq]
+              in [(("fresh_atm", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = filter
+              let val thms1 = filter
                 (fn th => case prop_of th of _ $ _ $ Var _ => true | _ => false)
                 (List.concat (List.concat perm_defs))
               in [(("calc_atm", (inst_at at_calc) @ thms1),[])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [abs_fun_pi]
-		  and thms2 = inst_pt_pt_at_cp [abs_fun_pi_ineq]
-	      in [(("abs_perm", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end
+              let val thms1 = inst_pt_at [abs_fun_pi]
+                  and thms2 = inst_pt_pt_at_cp [abs_fun_pi_ineq]
+              in [(("abs_perm", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_dj [dj_perm_forget]
-		  and thms2 = inst_dj [dj_pp_forget]
+              let val thms1 = inst_dj [dj_perm_forget]
+                  and thms2 = inst_dj [dj_pp_forget]
               in [(("perm_dj", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at_fs [fresh_iff]
+              let val thms1 = inst_pt_at_fs [fresh_iff]
                   and thms2 = inst_pt_at [fresh_iff]
-		  and thms3 = inst_pt_pt_at_cp_dj [fresh_iff_ineq]
-	    in [(("abs_fresh", thms1 @ thms2 @ thms3),[])] end
-	    ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [abs_fun_supp]
-		  and thms2 = inst_pt_at_fs [abs_fun_supp]
-		  and thms3 = inst_pt_pt_at_cp_dj [abs_fun_supp_ineq]
-	      in [(("abs_supp", thms1 @ thms2 @ thms3),[])] end
+                  and thms3 = inst_pt_pt_at_cp_dj [fresh_iff_ineq]
+            in [(("abs_fresh", thms1 @ thms2 @ thms3),[])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [fresh_left]
-		  and thms2 = inst_pt_pt_at_cp [fresh_left_ineq]
-	      in [(("fresh_left", thms1 @ thms2),[])] end
+              let val thms1 = inst_pt_at [abs_fun_supp]
+                  and thms2 = inst_pt_at_fs [abs_fun_supp]
+                  and thms3 = inst_pt_pt_at_cp_dj [abs_fun_supp_ineq]
+              in [(("abs_supp", thms1 @ thms2 @ thms3),[])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [fresh_right]
-		  and thms2 = inst_pt_pt_at_cp [fresh_right_ineq]
-	      in [(("fresh_right", thms1 @ thms2),[])] end
+              let val thms1 = inst_pt_at [fresh_left]
+                  and thms2 = inst_pt_pt_at_cp [fresh_left_ineq]
+              in [(("fresh_left", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [fresh_bij]
- 		  and thms2 = inst_pt_pt_at_cp [fresh_bij_ineq]
-	      in [(("fresh_bij", thms1 @ thms2),[])] end
+              let val thms1 = inst_pt_at [fresh_right]
+                  and thms2 = inst_pt_pt_at_cp [fresh_right_ineq]
+              in [(("fresh_right", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [fresh_eqvt]
+              let val thms1 = inst_pt_at [fresh_bij]
+                  and thms2 = inst_pt_pt_at_cp [fresh_bij_ineq]
+              in [(("fresh_bij", thms1 @ thms2),[])] end
+            ||>> PureThy.add_thmss
+              let val thms1 = inst_pt_at [fresh_eqvt]
                   and thms2 = inst_pt_pt_at_cp_dj [fresh_eqvt_ineq]
-	      in [(("fresh_eqvt", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end
+              in [(("fresh_eqvt", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [in_eqvt]
-	      in [(("in_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
-  	    ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [eq_eqvt]
-	      in [(("eq_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
-	    ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [set_diff_eqvt]
-	      in [(("set_diff_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
+              let val thms1 = inst_pt_at [in_eqvt]
+              in [(("in_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [subseteq_eqvt]
-	      in [(("subseteq_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
+              let val thms1 = inst_pt_at [eq_eqvt]
+              in [(("eq_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [fresh_aux]
-		  and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
-	      in  [(("fresh_aux", thms1 @ thms2),[])] end  
+              let val thms1 = inst_pt_at [set_diff_eqvt]
+              in [(("set_diff_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [fresh_perm_app]
-		  and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
-	      in  [(("fresh_perm_app", thms1 @ thms2),[])] end 
+              let val thms1 = inst_pt_at [subseteq_eqvt]
+              in [(("subseteq_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
             ||>> PureThy.add_thmss
-	      let val thms1 = inst_pt_at [pt_perm_supp]
-		  and thms2 = inst_pt_pt_at_cp [pt_perm_supp_ineq] 
-	      in  [(("supp_eqvt", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end  
+              let val thms1 = inst_pt_at [fresh_aux]
+                  and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
+              in  [(("fresh_aux", thms1 @ thms2),[])] end  
+            ||>> PureThy.add_thmss
+              let val thms1 = inst_pt_at [fresh_perm_app]
+                  and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
+              in  [(("fresh_perm_app", thms1 @ thms2),[])] end 
+            ||>> PureThy.add_thmss
+              let val thms1 = inst_pt_at [pt_perm_supp]
+                  and thms2 = inst_pt_pt_at_cp [pt_perm_supp_ineq] 
+              in  [(("supp_eqvt", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end  
             ||>> PureThy.add_thmss [(("fin_supp",fs_axs),[])]
-	   end;
+           end;
 
     in 
       NominalData.map (fold Symtab.update (full_ak_names ~~ map make_atom_info

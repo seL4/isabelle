@@ -10,6 +10,9 @@
    respectively the lemma from the data-slot.
 *)
 
+fun dynamic_thm thy name = PureThy.get_thm thy (Facts.Named (name, NONE));
+fun dynamic_thms thy name = PureThy.get_thms thy (Facts.Named (name, NONE));
+
 signature NOMINAL_THMDECLS =
 sig
   val print_data: Proof.context -> unit
@@ -75,8 +78,6 @@ fun tactic (msg,tac) =
     if !NOMINAL_EQVT_DEBUG
     then (EVERY [tac, print_tac ("after "^msg)])
     else tac
-
-fun dynamic_thms thy name = PureThy.get_thms thy (Name name)
 
 fun tactic_eqvt ctx orig_thm pi typi =
     let

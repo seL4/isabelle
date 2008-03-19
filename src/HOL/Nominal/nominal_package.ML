@@ -140,8 +140,8 @@ fun perm_simproc' thy ss (Const ("Nominal.perm", T) $ t $ (u as Const ("Nominal.
           let
             val a' = Sign.base_name a;
             val b' = Sign.base_name b;
-            val cp = PureThy.get_thm thy (Name ("cp_" ^ a' ^ "_" ^ b' ^ "_inst"));
-            val dj = PureThy.get_thm thy (Name ("dj_" ^ b' ^ "_" ^ a'));
+            val cp = dynamic_thm thy ("cp_" ^ a' ^ "_" ^ b' ^ "_inst");
+            val dj = dynamic_thm thy ("dj_" ^ b' ^ "_" ^ a');
             val dj_cp' = [cp, dj] MRS dj_cp;
             val cert = SOME o cterm_of thy
           in
@@ -309,7 +309,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val _ = warning ("length new_type_names: " ^ string_of_int (length new_type_names));
 
     val perm_indnames = DatatypeProp.make_tnames (map body_type perm_types);
-    val perm_fun_def = PureThy.get_thm thy2 (Name "perm_fun_def");
+    val perm_fun_def = dynamic_thm thy2 "perm_fun_def";
 
     val unfolded_perm_eq_thms =
       if length descr = length new_type_names then []
@@ -353,18 +353,17 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val _ = warning "perm_append_thms";
 
     (*FIXME: these should be looked up statically*)
-    val at_pt_inst = PureThy.get_thm thy2 (Name "at_pt_inst");
-    val pt2 = PureThy.get_thm thy2 (Name "pt2");
+    val at_pt_inst = dynamic_thm thy2 "at_pt_inst";
+    val pt2 = dynamic_thm thy2 "pt2";
 
     val perm_append_thms = List.concat (map (fn a =>
       let
         val permT = mk_permT (Type (a, []));
         val pi1 = Free ("pi1", permT);
         val pi2 = Free ("pi2", permT);
-        val pt_inst = PureThy.get_thm thy2 (Name ("pt_" ^ Sign.base_name a ^ "_inst"));
+        val pt_inst = dynamic_thm thy2 ("pt_" ^ Sign.base_name a ^ "_inst");
         val pt2' = pt_inst RS pt2;
-        val pt2_ax = PureThy.get_thm thy2
-          (Name (NameSpace.map_base (fn s => "pt_" ^ s ^ "2") a));
+        val pt2_ax = dynamic_thm thy2 (NameSpace.map_base (fn s => "pt_" ^ s ^ "2") a);
       in List.take (map standard (split_conj_thm
         (Goal.prove_global thy2 [] []
              (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
@@ -386,8 +385,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val _ = warning "perm_eq_thms";
 
-    val pt3 = PureThy.get_thm thy2 (Name "pt3");
-    val pt3_rev = PureThy.get_thm thy2 (Name "pt3_rev");
+    val pt3 = dynamic_thm thy2 "pt3";
+    val pt3_rev = dynamic_thm thy2 "pt3_rev";
 
     val perm_eq_thms = List.concat (map (fn a =>
       let
@@ -395,12 +394,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val pi1 = Free ("pi1", permT);
         val pi2 = Free ("pi2", permT);
         (*FIXME: not robust - better access these theorems using NominalData?*)
-        val at_inst = PureThy.get_thm thy2 (Name ("at_" ^ Sign.base_name a ^ "_inst"));
-        val pt_inst = PureThy.get_thm thy2 (Name ("pt_" ^ Sign.base_name a ^ "_inst"));
+        val at_inst = dynamic_thm thy2 ("at_" ^ Sign.base_name a ^ "_inst");
+        val pt_inst = dynamic_thm thy2 ("pt_" ^ Sign.base_name a ^ "_inst");
         val pt3' = pt_inst RS pt3;
         val pt3_rev' = at_inst RS (pt_inst RS pt3_rev);
-        val pt3_ax = PureThy.get_thm thy2
-          (Name (NameSpace.map_base (fn s => "pt_" ^ s ^ "3") a));
+        val pt3_ax = dynamic_thm thy2 (NameSpace.map_base (fn s => "pt_" ^ s ^ "3") a);
       in List.take (map standard (split_conj_thm
         (Goal.prove_global thy2 [] [] (Logic.mk_implies
              (HOLogic.mk_Trueprop (Const ("Nominal.prm_eq",
@@ -421,11 +419,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (**** prove pi1 \<bullet> (pi2 \<bullet> t) = (pi1 \<bullet> pi2) \<bullet> (pi1 \<bullet> t) ****)
 
-    val cp1 = PureThy.get_thm thy2 (Name "cp1");
-    val dj_cp = PureThy.get_thm thy2 (Name "dj_cp");
-    val pt_perm_compose = PureThy.get_thm thy2 (Name "pt_perm_compose");
-    val pt_perm_compose_rev = PureThy.get_thm thy2 (Name "pt_perm_compose_rev");
-    val dj_perm_perm_forget = PureThy.get_thm thy2 (Name "dj_perm_perm_forget");
+    val cp1 = dynamic_thm thy2 "cp1";
+    val dj_cp = dynamic_thm thy2 "dj_cp";
+    val pt_perm_compose = dynamic_thm thy2 "pt_perm_compose";
+    val pt_perm_compose_rev = dynamic_thm thy2 "pt_perm_compose_rev";
+    val dj_perm_perm_forget = dynamic_thm thy2 "dj_perm_perm_forget";
 
     fun composition_instance name1 name2 thy =
       let
@@ -437,16 +435,15 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val augment = map_type_tfree
           (fn (x, S) => TFree (x, cp_class :: S));
         val Ts = map (augment o body_type) perm_types;
-        val cp_inst = PureThy.get_thm thy
-          (Name ("cp_" ^ name1' ^ "_" ^ name2' ^ "_inst"));
+        val cp_inst = dynamic_thm thy ("cp_" ^ name1' ^ "_" ^ name2' ^ "_inst");
         val simps = simpset_of thy addsimps (perm_fun_def ::
           (if name1 <> name2 then
-             let val dj = PureThy.get_thm thy (Name ("dj_" ^ name2' ^ "_" ^ name1'))
+             let val dj = dynamic_thm thy ("dj_" ^ name2' ^ "_" ^ name1')
              in [dj RS (cp_inst RS dj_cp), dj RS dj_perm_perm_forget] end
            else
              let
-               val at_inst = PureThy.get_thm thy (Name ("at_" ^ name1' ^ "_inst"));
-               val pt_inst = PureThy.get_thm thy (Name ("pt_" ^ name1' ^ "_inst"))
+               val at_inst = dynamic_thm thy ("at_" ^ name1' ^ "_inst");
+               val pt_inst = dynamic_thm thy ("pt_" ^ name1' ^ "_inst");
              in
                [cp_inst RS cp1 RS sym,
                 at_inst RS (pt_inst RS pt_perm_compose) RS sym,
@@ -574,7 +571,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val _ = warning "proving closure under permutation...";
 
-    val abs_perm = PureThy.get_thms thy4 (Name "abs_perm");
+    val abs_perm = dynamic_thms thy4 "abs_perm";
 
     val perm_indnames' = List.mapPartial
       (fn (x, (_, ("Nominal.noption", _, _))) => NONE | (x, _) => SOME x)
@@ -659,8 +656,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               asm_full_simp_tac (simpset_of thy addsimps [Rep_inverse]) 1,
               asm_full_simp_tac (simpset_of thy addsimps
                 [Rep RS perm_closed RS Abs_inverse]) 1,
-              asm_full_simp_tac (HOL_basic_ss addsimps [PureThy.get_thm thy
-                (Name ("pt_" ^ Sign.base_name atom ^ "3"))]) 1]) thy)
+              asm_full_simp_tac (HOL_basic_ss addsimps [dynamic_thm thy
+                ("pt_" ^ Sign.base_name atom ^ "3")]) 1]) thy)
         (Abs_inverse_thms ~~ Rep_inverse_thms ~~ Rep_thms ~~ perm_defs ~~
            new_type_names ~~ tyvars ~~ perm_closed_thms);
 
@@ -673,7 +670,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       let
         val name = "cp_" ^ Sign.base_name atom1 ^ "_" ^ Sign.base_name atom2;
         val class = Sign.intern_class thy name;
-        val cp1' = PureThy.get_thm thy (Name (name ^ "_inst")) RS cp1
+        val cp1' = dynamic_thm thy (name ^ "_inst") RS cp1
       in fold (fn ((((((Abs_inverse, Rep),
         perm_def), name), tvs), perm_closed1), perm_closed2) => fn thy =>
           AxClass.prove_arity
@@ -923,8 +920,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     (** prove injectivity of constructors **)
 
     val rep_inject_thms' = map (fn th => th RS sym) rep_inject_thms;
-    val alpha = PureThy.get_thms thy8 (Name "alpha");
-    val abs_fresh = PureThy.get_thms thy8 (Name "abs_fresh");
+    val alpha = dynamic_thms thy8 "alpha";
+    val abs_fresh = dynamic_thms thy8 "abs_fresh";
 
     val inject_thms = map (fn (((i, (_, _, constrs)), tname), constr_rep_thms) =>
       let val T = nth_dtyp' i
@@ -1069,8 +1066,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val indnames = DatatypeProp.make_tnames recTs;
 
-    val abs_supp = PureThy.get_thms thy8 (Name "abs_supp");
-    val supp_atm = PureThy.get_thms thy8 (Name "supp_atm");
+    val abs_supp = dynamic_thms thy8 "abs_supp";
+    val supp_atm = dynamic_thms thy8 "supp_atm";
 
     val finite_supp_thms = map (fn atom =>
       let val atomT = Type (atom, [])
@@ -1083,7 +1080,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            (fn _ => indtac dt_induct indnames 1 THEN
             ALLGOALS (asm_full_simp_tac (simpset_of thy8 addsimps
               (abs_supp @ supp_atm @
-               PureThy.get_thms thy8 (Name ("fs_" ^ Sign.base_name atom ^ "1")) @
+               dynamic_thms thy8 ("fs_" ^ Sign.base_name atom ^ "1") @
                List.concat supp_thms))))),
          length new_type_names))
       end) atoms;
@@ -1210,23 +1207,23 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         (descr'' ~~ recTs ~~ tnames)));
 
     val fin_set_supp = map (fn Type (s, _) =>
-      PureThy.get_thm thy9 (Name ("at_" ^ Sign.base_name s ^ "_inst")) RS
+      dynamic_thm thy9 ("at_" ^ Sign.base_name s ^ "_inst") RS
         at_fin_set_supp) dt_atomTs;
     val fin_set_fresh = map (fn Type (s, _) =>
-      PureThy.get_thm thy9 (Name ("at_" ^ Sign.base_name s ^ "_inst")) RS
+      dynamic_thm thy9 ("at_" ^ Sign.base_name s ^ "_inst") RS
         at_fin_set_fresh) dt_atomTs;
     val pt1_atoms = map (fn Type (s, _) =>
-      PureThy.get_thm thy9 (Name ("pt_" ^ Sign.base_name s ^ "1"))) dt_atomTs;
+      dynamic_thm thy9 ("pt_" ^ Sign.base_name s ^ "1")) dt_atomTs;
     val pt2_atoms = map (fn Type (s, _) =>
-      PureThy.get_thm thy9 (Name ("pt_" ^ Sign.base_name s ^ "2")) RS sym) dt_atomTs;
-    val exists_fresh' = PureThy.get_thms thy9 (Name "exists_fresh'");
-    val fs_atoms = PureThy.get_thms thy9 (Name "fin_supp");
-    val abs_supp = PureThy.get_thms thy9 (Name "abs_supp");
-    val perm_fresh_fresh = PureThy.get_thms thy9 (Name "perm_fresh_fresh");
-    val calc_atm = PureThy.get_thms thy9 (Name "calc_atm");
-    val fresh_atm = PureThy.get_thms thy9 (Name "fresh_atm");
-    val fresh_left = PureThy.get_thms thy9 (Name "fresh_left");
-    val perm_swap = PureThy.get_thms thy9 (Name "perm_swap");
+      dynamic_thm thy9 ("pt_" ^ Sign.base_name s ^ "2") RS sym) dt_atomTs;
+    val exists_fresh' = dynamic_thms thy9 "exists_fresh'";
+    val fs_atoms = dynamic_thms thy9 "fin_supp";
+    val abs_supp = dynamic_thms thy9 "abs_supp";
+    val perm_fresh_fresh = dynamic_thms thy9 "perm_fresh_fresh";
+    val calc_atm = dynamic_thms thy9 "calc_atm";
+    val fresh_atm = dynamic_thms thy9 "fresh_atm";
+    val fresh_left = dynamic_thms thy9 "fresh_left";
+    val perm_swap = dynamic_thms thy9 "perm_swap";
 
     fun obtain_fresh_name' ths ts T (freshs1, freshs2, ctxt) =
       let
@@ -1499,8 +1496,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     (** equivariance **)
 
-    val fresh_bij = PureThy.get_thms thy11 (Name "fresh_bij");
-    val perm_bij = PureThy.get_thms thy11 (Name "perm_bij");
+    val fresh_bij = dynamic_thms thy11 "fresh_bij";
+    val perm_bij = dynamic_thms thy11 "perm_bij";
 
     val (rec_equiv_thms, rec_equiv_thms') = ListPair.unzip (map (fn aT =>
       let
@@ -1538,7 +1535,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val rec_fin_supp_thms = map (fn aT =>
       let
         val name = Sign.base_name (fst (dest_Type aT));
-        val fs_name = PureThy.get_thm thy11 (Name ("fs_" ^ name ^ "1"));
+        val fs_name = dynamic_thm thy11 ("fs_" ^ name ^ "1");
         val aset = HOLogic.mk_setT aT;
         val finite = Const ("Finite_Set.finite", aset --> HOLogic.boolT);
         val fins = map (fn (f, T) => HOLogic.mk_Trueprop
@@ -1571,7 +1568,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val rec_fresh_thms = map (fn ((aT, eqvt_ths), finite_prems) =>
       let
         val name = Sign.base_name (fst (dest_Type aT));
-        val fs_name = PureThy.get_thm thy11 (Name ("fs_" ^ name ^ "1"));
+        val fs_name = dynamic_thm thy11 ("fs_" ^ name ^ "1");
         val a = Free ("a", aT);
         val freshs = map (fn (f, fT) => HOLogic.mk_Trueprop
           (fresh_const aT fT $ a $ f)) (rec_fns ~~ rec_fn_Ts)

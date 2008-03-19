@@ -273,19 +273,19 @@ fun prove_strong_ind s avoids thy =
            (NominalPackage.fresh_const U T $ u $ t)) bvars)
              (ts ~~ binder_types (fastype_of p)))) prems;
 
-    val perm_pi_simp = PureThy.get_thms thy (Name "perm_pi_simp");
-    val pt2_atoms = map (fn aT => PureThy.get_thm thy
-      (Name ("pt_" ^ Sign.base_name (fst (dest_Type aT)) ^ "2"))) atomTs;
+    val perm_pi_simp = dynamic_thms thy "perm_pi_simp";
+    val pt2_atoms = map (fn aT => dynamic_thm thy
+      ("pt_" ^ Sign.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
     val eqvt_ss = HOL_basic_ss addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
       addsimprocs [mk_perm_bool_simproc ["Fun.id"]];
-    val fresh_bij = PureThy.get_thms thy (Name "fresh_bij");
-    val perm_bij = PureThy.get_thms thy (Name "perm_bij");
-    val fs_atoms = map (fn aT => PureThy.get_thm thy
-      (Name ("fs_" ^ Sign.base_name (fst (dest_Type aT)) ^ "1"))) atomTs;
-    val exists_fresh' = PureThy.get_thms thy (Name "exists_fresh'");
-    val fresh_atm = PureThy.get_thms thy (Name "fresh_atm");
-    val calc_atm = PureThy.get_thms thy (Name "calc_atm");
-    val perm_fresh_fresh = PureThy.get_thms thy (Name "perm_fresh_fresh");
+    val fresh_bij = dynamic_thms thy "fresh_bij";
+    val perm_bij = dynamic_thms thy "perm_bij";
+    val fs_atoms = map (fn aT => dynamic_thm thy
+      ("fs_" ^ Sign.base_name (fst (dest_Type aT)) ^ "1")) atomTs;
+    val exists_fresh' = dynamic_thms thy "exists_fresh'";
+    val fresh_atm = dynamic_thms thy "fresh_atm";
+    val calc_atm = dynamic_thms thy "calc_atm";
+    val perm_fresh_fresh = dynamic_thms thy "perm_fresh_fresh";
 
     fun obtain_fresh_name ts T (freshs1, freshs2, ctxt) =
       let
@@ -604,7 +604,7 @@ fun prove_eqvt s xatoms thy =
            | xs => error ("No such atoms: " ^ commas xs);
          atoms)
       end;
-    val perm_pi_simp = PureThy.get_thms thy (Name "perm_pi_simp");
+    val perm_pi_simp = dynamic_thms thy "perm_pi_simp";
     val eqvt_ss = HOL_basic_ss addsimps
       (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
       [mk_perm_bool_simproc names];
