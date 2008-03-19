@@ -439,28 +439,17 @@ lemma zero_less_Suc [iff]: "0 < Suc n"
 
 subsubsection {* Elimination properties *}
 
-lemma less_not_sym: "n < m ==> ~ m < (n::nat)"
-  by (rule order_less_not_sym)
-
-lemma less_asym:
-  assumes h1: "(n::nat) < m" and h2: "~ P ==> m < n" shows P
-  apply (rule contrapos_np)
-  apply (rule less_not_sym)
-  apply (rule h1)
-  apply (erule h2)
-  done
-
 lemma less_not_refl: "~ n < (n::nat)"
   by (rule order_less_irrefl)
 
-lemma less_irrefl [elim!]: "(n::nat) < n ==> R"
-  by (rule notE, rule less_not_refl)
+lemma less_not_refl2: "n < m ==> m \<noteq> (n::nat)"
+  by (rule not_sym) (rule less_imp_neq) 
 
 lemma less_not_refl3: "(s::nat) < t ==> s \<noteq> t"
   by (rule less_imp_neq)
 
-lemma less_not_refl2: "n < m ==> m \<noteq> (n::nat)"
-  by (rule not_sym) (rule less_imp_neq) 
+lemma less_irrefl_nat: "(n::nat) < n ==> R"
+  by (rule notE, rule less_not_refl)
 
 lemma less_zeroE: "(n::nat) < 0 ==> R"
   by (rule notE) (rule not_less0)
@@ -815,7 +804,8 @@ done
 
 lemma not_add_less1 [iff]: "~ (i + j < (i::nat))"
 apply (rule notI)
-apply (erule add_lessD1 [THEN less_irrefl])
+apply (drule add_lessD1)
+apply (erule less_irrefl [THEN notE])
 done
 
 lemma not_add_less2 [iff]: "~ (j + i < (i::nat))"

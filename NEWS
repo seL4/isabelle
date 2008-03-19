@@ -44,11 +44,20 @@ situations.
 
 *** HOL ***
 
-* Theory Nat: renamed less_imp_le to less_imp_le_nat; removed
-redundant lemmas less_trans, less_linear, le_imp_less_or_eq,
-le_less_trans, less_le_trans, which merely duplicate lemmas of the
-same name in theory Orderings.  Potential INCOMPATIBILITY due to more
-general types and different variable names.
+* Theory Nat: removed redundant lemmas that merely duplicate lemmas of
+the same name in theory Orderings:
+
+  less_trans
+  less_linear
+  le_imp_less_or_eq
+  le_less_trans
+  less_le_trans
+  less_not_sym
+  less_asym
+
+Renamed less_imp_le to less_imp_le_nat, and less_irrefl to
+less_irrefl_nat.  Potential INCOMPATIBILITY due to more general types
+and different variable names.
 
 * Library/Option_ord.thy: Canonical order on option type.
 
