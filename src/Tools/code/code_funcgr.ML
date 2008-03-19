@@ -102,18 +102,26 @@ val timing = ref false;
 
 local
 
-exception INVALID of string list * string;
+exception CLASS_ERROR of string list * string;
 
 fun resort_thms algebra tap_typ [] = []
   | resort_thms algebra tap_typ (thms as thm :: _) =
       let
         val thy = Thm.theory_of_thm thm;
+        val pp = Sign.pp thy;
         val cs = fold_consts (insert (op =)) thms [];
+        fun class_error (c, ty_decl) e =
+          error ;
         fun match_const c (ty, ty_decl) =
           let
             val tys = Sign.const_typargs thy (c, ty);
             val sorts = map (snd o dest_TVar) (Sign.const_typargs thy (c, ty_decl));
-          in fold2 (curry (CodeUnit.typ_sort_inst algebra)) tys sorts end;
+          in fn tab => fold2 (Type.typ_of_sort algebra) tys sorts tab 
+            handle Sorts.CLASS_ERROR e => raise CLASS_ERROR ([c], Sorts.msg_class_error pp e ^ ",\n"
+              ^ "for constant " ^ CodeUnit.string_of_const thy c
+              ^ "\nin defining equations(s)\n"
+              ^ (cat_lines o map string_of_thm) thms)
+          end;
         fun match (c, ty) =
           case tap_typ c
            of SOME ty_decl => match_const c (ty, ty_decl)
@@ -124,11 +132,7 @@ fun resort_thms algebra tap_typ [] = []
 fun resort_funcss thy algebra funcgr =
   let
     val typ_funcgr = try (fst o Graph.get_node funcgr);
-    fun resort_dep (const, thms) = (const, resort_thms algebra typ_funcgr thms)
-      handle Sorts.CLASS_ERROR e => raise INVALID ([const], Sorts.msg_class_error (Sign.pp thy) e
-                    ^ ",\nfor constant " ^ CodeUnit.string_of_const thy const
-                    ^ "\nin defining equations\n"
-                    ^ (cat_lines o map string_of_thm) thms)
+    val resort_dep = apsnd (resort_thms algebra typ_funcgr);
     fun resort_rec tap_typ (const, []) = (true, (const, []))
       | resort_rec tap_typ (const, thms as thm :: _) =
           let
@@ -169,7 +173,7 @@ fun instances_of thy algebra insts =
 fun instances_of_consts thy algebra funcgr consts =
   let
     fun inst (cexpr as (c, ty)) = insts_of thy algebra c
-      ((fst o Graph.get_node funcgr) c) ty handle CLASS_ERROR => [];
+      ((fst o Graph.get_node funcgr) c) ty handle Sorts.CLASS_ERROR _ => [];
   in
     []
     |> fold (fold (insert (op =)) o inst) consts
@@ -220,10 +224,10 @@ fun merge_funcss thy algebra raw_funcss funcgr =
                 val tys = Sign.const_typargs thy (c, ty);
                 val sorts = map (snd o dest_TVar) tys;
               in if sorts = sorts_decl then ty
-                else raise INVALID ([c], "Illegal instantation for class operation "
+                else raise CLASS_ERROR ([c], "Illegal instantation for class operation "
                   ^ CodeUnit.string_of_const thy c
                   ^ "\nin defining equations\n"
-                  ^ (cat_lines o map string_of_thm) thms)
+                  ^ (cat_lines o map (string_of_thm o AxClass.overload thy)) thms)
               end
           | NONE => (snd o CodeUnit.head_func) thm;
     fun add_funcs (const, thms) =
@@ -253,8 +257,8 @@ and ensure_consts' thy algebra cs funcgr =
     |> fold (merge_funcss thy algebra)
          (map (AList.make (Graph.get_node auxgr))
          (rev (Graph.strong_conn auxgr)))
-  end handle INVALID (cs', msg)
-    => raise INVALID (fold (insert (op =)) cs' cs, msg);
+  end handle CLASS_ERROR (cs', msg)
+    => raise CLASS_ERROR (fold (insert (op =)) cs' cs, msg);
 
 in
 
@@ -262,7 +266,7 @@ in
 
 fun ensure_consts thy algebra consts funcgr =
   ensure_consts' thy algebra consts funcgr
-    handle INVALID (cs', msg) => error (msg ^ ",\nwhile preprocessing equations for constant(s) "
+    handle CLASS_ERROR (cs', msg) => error (msg ^ ",\nwhile preprocessing equations for constant(s) "
     ^ commas (map (CodeUnit.string_of_const thy) cs'));
 
 fun check_consts thy consts funcgr =
@@ -270,7 +274,7 @@ fun check_consts thy consts funcgr =
     val algebra = Code.coregular_algebra thy;
     fun try_const const funcgr =
       (SOME const, ensure_consts' thy algebra [const] funcgr)
-      handle INVALID (cs', msg) => (NONE, funcgr);
+      handle CLASS_ERROR (cs', msg) => (NONE, funcgr);
     val (consts', funcgr') = fold_map try_const consts funcgr;
   in (map_filter I consts', funcgr') end;
 
@@ -287,7 +291,8 @@ fun raw_eval thy f ct funcgr =
     val funcgr' = ensure_consts thy algebra cs funcgr;
     val (_, thm2) = Thm.varifyT' [] thm1;
     val thm3 = Thm.reflexive (Thm.rhs_of thm2);
-    val [thm4] = resort_thms algebra (try (fst o Graph.get_node funcgr')) [thm3];
+    val [thm4] = resort_thms algebra (try (fst o Graph.get_node funcgr')) [thm3]
+      handle CLASS_ERROR (_, msg) => error msg;
     val tfrees = Term.add_tfrees (Thm.prop_of thm1) [];
     fun inst thm =
       let
