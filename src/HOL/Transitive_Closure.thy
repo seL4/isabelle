@@ -618,18 +618,18 @@ declare trancl_into_rtrancl [elim]
 
 subsection {* Setup of transitivity reasoner *}
 
-ML_setup {*
+ML {*
 
 structure Trancl_Tac = Trancl_Tac_Fun (
   struct
-    val r_into_trancl = thm "trancl.r_into_trancl";
-    val trancl_trans  = thm "trancl_trans";
-    val rtrancl_refl = thm "rtrancl.rtrancl_refl";
-    val r_into_rtrancl = thm "r_into_rtrancl";
-    val trancl_into_rtrancl = thm "trancl_into_rtrancl";
-    val rtrancl_trancl_trancl = thm "rtrancl_trancl_trancl";
-    val trancl_rtrancl_trancl = thm "trancl_rtrancl_trancl";
-    val rtrancl_trans = thm "rtrancl_trans";
+    val r_into_trancl = @{thm trancl.r_into_trancl};
+    val trancl_trans  = @{thm trancl_trans};
+    val rtrancl_refl = @{thm rtrancl.rtrancl_refl};
+    val r_into_rtrancl = @{thm r_into_rtrancl};
+    val trancl_into_rtrancl = @{thm trancl_into_rtrancl};
+    val rtrancl_trancl_trancl = @{thm rtrancl_trancl_trancl};
+    val trancl_rtrancl_trancl = @{thm trancl_rtrancl_trancl};
+    val rtrancl_trans = @{thm rtrancl_trans};
 
   fun decomp (Trueprop $ t) =
     let fun dec (Const ("op :", _) $ (Const ("Pair", _) $ a $ b) $ rel ) =
@@ -645,14 +645,14 @@ structure Trancl_Tac = Trancl_Tac_Fun (
 
 structure Tranclp_Tac = Trancl_Tac_Fun (
   struct
-    val r_into_trancl = thm "tranclp.r_into_trancl";
-    val trancl_trans  = thm "tranclp_trans";
-    val rtrancl_refl = thm "rtranclp.rtrancl_refl";
-    val r_into_rtrancl = thm "r_into_rtranclp";
-    val trancl_into_rtrancl = thm "tranclp_into_rtranclp";
-    val rtrancl_trancl_trancl = thm "rtranclp_tranclp_tranclp";
-    val trancl_rtrancl_trancl = thm "tranclp_rtranclp_tranclp";
-    val rtrancl_trans = thm "rtranclp_trans";
+    val r_into_trancl = @{thm tranclp.r_into_trancl};
+    val trancl_trans  = @{thm tranclp_trans};
+    val rtrancl_refl = @{thm rtranclp.rtrancl_refl};
+    val r_into_rtrancl = @{thm r_into_rtranclp};
+    val trancl_into_rtrancl = @{thm tranclp_into_rtranclp};
+    val rtrancl_trancl_trancl = @{thm rtranclp_tranclp_tranclp};
+    val trancl_rtrancl_trancl = @{thm tranclp_rtranclp_tranclp};
+    val rtrancl_trans = @{thm rtranclp_trans};
 
   fun decomp (Trueprop $ t) =
     let fun dec (rel $ a $ b) =
@@ -665,13 +665,14 @@ structure Tranclp_Tac = Trancl_Tac_Fun (
     in dec t end;
 
   end);
+*}
 
-change_simpset (fn ss => ss
-  addSolver (mk_solver "Trancl" (fn _ => Trancl_Tac.trancl_tac))
-  addSolver (mk_solver "Rtrancl" (fn _ => Trancl_Tac.rtrancl_tac))
-  addSolver (mk_solver "Tranclp" (fn _ => Tranclp_Tac.trancl_tac))
-  addSolver (mk_solver "Rtranclp" (fn _ => Tranclp_Tac.rtrancl_tac)));
-
+declaration {* fn _ =>
+  Simplifier.map_ss (fn ss => ss
+    addSolver (mk_solver "Trancl" (fn _ => Trancl_Tac.trancl_tac))
+    addSolver (mk_solver "Rtrancl" (fn _ => Trancl_Tac.rtrancl_tac))
+    addSolver (mk_solver "Tranclp" (fn _ => Tranclp_Tac.trancl_tac))
+    addSolver (mk_solver "Rtranclp" (fn _ => Tranclp_Tac.rtrancl_tac)))
 *}
 
 (* Optional methods *)

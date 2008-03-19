@@ -322,7 +322,7 @@ text {*
   ?P(a, b)"} which cannot be solved by reflexivity.
 *}
 
-ML_setup {*
+ML {*
   (* replace parameters of product type by individual component parameters *)
   val safe_full_simp_tac = generic_simp_tac true (true, false, false);
   local (* filtering with exists_paired_all is an essential optimization *)
@@ -332,7 +332,7 @@ ML_setup {*
       | exists_paired_all (Abs (_, _, t)) = exists_paired_all t
       | exists_paired_all _ = false;
     val ss = HOL_basic_ss
-      addsimps [thm "split_paired_all", thm "unit_all_eq2", thm "unit_abs_eta_conv"]
+      addsimps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
       addsimprocs [unit_eq_proc];
   in
     val split_all_tac = SUBGOAL (fn (t, i) =>
@@ -340,10 +340,12 @@ ML_setup {*
     val unsafe_split_all_tac = SUBGOAL (fn (t, i) =>
       if exists_paired_all t then full_simp_tac ss i else no_tac);
     fun split_all th =
-   if exists_paired_all (#prop (Thm.rep_thm th)) then full_simplify ss th else th;
+   if exists_paired_all (Thm.prop_of th) then full_simplify ss th else th;
   end;
+*}
 
-change_claset (fn cs => cs addSbefore ("split_all_tac", split_all_tac));
+declaration {* fn _ =>
+  Classical.map_cs (fn cs => cs addSbefore ("split_all_tac", split_all_tac))
 *}
 
 lemma split_paired_All [simp]: "(ALL x. P x) = (ALL a b. P (a, b))"
@@ -541,7 +543,7 @@ lemma mem_splitE:
 declare mem_splitI2 [intro!] mem_splitI [intro!] splitI2' [intro!] splitI2 [intro!] splitI [intro!]
 declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]
 
-ML_setup {*
+ML {*
 local (* filtering with exists_p_split is an essential optimization *)
   fun exists_p_split (Const ("split",_) $ _ $ (Const ("Pair",_)$_$_)) = true
     | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
@@ -552,9 +554,12 @@ in
 val split_conv_tac = SUBGOAL (fn (t, i) =>
     if exists_p_split t then safe_full_simp_tac ss i else no_tac);
 end;
+*}
+
 (* This prevents applications of splitE for already splitted arguments leading
    to quite time-consuming computations (in particular for nested tuples) *)
-change_claset (fn cs => cs addSbefore ("split_conv_tac", split_conv_tac));
+declaration {* fn _ =>
+  Classical.map_cs (fn cs => cs addSbefore ("split_conv_tac", split_conv_tac))
 *}
 
 lemma split_eta_SetCompr [simp,noatp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
