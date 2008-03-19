@@ -132,6 +132,10 @@ INCOMPATIBILITY: in cases explicitly referring to K_record.
 * Metis prover is now an order of magnitude faster, and also works
 with multithreading.
 
+* Sledgehammer no longer produces structured proofs by default. To enable, 
+declare [[sledgehammer_full = true]]. Attributes reconstruction_modulus,  
+reconstruction_sorts renamed sledgehammer_modulus, sledgehammer_sorts. 
+INCOMPATIBILITY.
 
 *** ZF ***
 

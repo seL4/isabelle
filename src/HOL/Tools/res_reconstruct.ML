@@ -38,13 +38,18 @@ val trace_path = Path.basic "atp_trace";
 fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s
               else ();
 
+val string_of_thm = PrintMode.setmp [] string_of_thm;
+
 (*For generating structured proofs: keep every nth proof line*)
-val (modulus, modulus_setup) = Attrib.config_int "reconstruction_modulus" 1;
+val (modulus, modulus_setup) = Attrib.config_int "sledgehammer_modulus" 1;
 
 (*Indicates whether to include sort information in generated proofs*)
-val (recon_sorts, recon_sorts_setup) = Attrib.config_bool "reconstruction_sorts" true;
+val (recon_sorts, recon_sorts_setup) = Attrib.config_bool "sledgehammer_sorts" true;
 
-val setup = modulus_setup #> recon_sorts_setup;
+(*Indicates whether to generate full proofs or just lemma lists*)
+val (full_proofs, full_proofs_setup) = Attrib.config_bool "sledgehammer_full" false;
+
+val setup = modulus_setup #> recon_sorts_setup #> full_proofs_setup;
 
 datatype atp = E | SPASS | Vampire;
 
@@ -352,6 +357,7 @@ fun have_or_show "show " lname = "show \""
   ATP may have their literals reordered.*)
 fun isar_lines ctxt ctms =
   let val string_of = Syntax.string_of_term ctxt
+      val _ = trace ("\n\nisar_lines: start\n")
       fun doline have (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
            (case permuted_clause t ctms of
                 SOME u => "assume " ^ lname ^ ": \"" ^ string_of u ^ "\"\n"
@@ -440,22 +446,29 @@ fun isar_header [] = proofstart
   | isar_header ts = proofstart ^ "fix " ^ space_implode " " ts ^ "\n";
 
 fun decode_tstp_file cnfs ctxt th sgno thm_names =
-  let val tuples = map (dest_tstp o tstp_line o explode) cnfs
+  let val _ = trace "\ndecode_tstp_file: start\n"
+      val tuples = map (dest_tstp o tstp_line o explode) cnfs
+      val _ = trace (Int.toString (length tuples) ^ " tuples extracted\n")
       val ctxt = ProofContext.set_mode ProofContext.mode_schematic ctxt
-      val nonnull_lines =
-              foldr add_nonnull_prfline []
-                    (foldr add_prfline [] (decode_tstp_list ctxt tuples))
+      val raw_lines = foldr add_prfline [] (decode_tstp_list ctxt tuples)
+      val _ = trace (Int.toString (length raw_lines) ^ " raw_lines extracted\n")
+      val nonnull_lines = foldr add_nonnull_prfline [] raw_lines
+      val _ = trace (Int.toString (length nonnull_lines) ^ " nonnull_lines extracted\n")
       val (_,lines) = foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
+      val _ = trace (Int.toString (length lines) ^ " lines extracted\n")
       val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
+      val _ = trace (Int.toString (length ccls) ^ " conjecture clauses\n")
       val ccls = map forall_intr_vars ccls
+      val _ = if !Output.debugging then app (fn th => trace ("\nccl: " ^ string_of_thm th)) ccls
+              else ()
+      val ilines = isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines)
+      val _ = trace "\ndecode_tstp_file: finishing\n"
   in
-    app (fn th => Output.debug (fn () => string_of_thm th)) ccls;
-    isar_header (map #1 fixes) ^
-    String.concat (isar_lines ctxt (map prop_of ccls) (stringify_deps thm_names [] lines)) ^
-    "qed\n"
+    isar_header (map #1 fixes) ^ String.concat ilines ^ "qed\n"
   end
   handle e => (*FIXME: exn handler is too general!*)
-    "Translation of TSTP raised an exception: " ^ Toplevel.exn_message e;
+    let val msg = "Translation of TSTP raised an exception: " ^ Toplevel.exn_message e
+    in  trace msg; msg  end;
 
 (*Could use split_lines, but it can return blank lines...*)
 val lines = String.tokens (equal #"\n");
@@ -552,15 +565,20 @@ val nochained = filter_out (fn y => y = chained_hint);
 
 (*The signal handler in watcher.ML must be able to read the output of this.*)
 fun lemma_list atp proofextract thm_names probfile toParent ppid =
+ (trace "\nlemma_list: ready to signal success";
   signal_success probfile toParent ppid 
-                 (metis_line (nochained (get_axiom_names_for atp proofextract thm_names)));
+                 (metis_line (nochained (get_axiom_names_for atp proofextract thm_names))));
 
 fun tstp_extract proofextract thm_names probfile toParent ppid ctxt th sgno =
-  let val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
+  let val _ = trace "\nAttempting to extract structured proof from TSTP\n"
+      val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
+      val _ = trace (Int.toString (length cnfs) ^ " cnfs found")
       val names = get_axiom_names_tstp proofextract thm_names
       val line1 = metis_line (nochained names)
+      val _ = trace ("\nExtracted one-line proof: " ^ line1)
       val line2 = if chained_hint mem_string names then ""
                   else decode_tstp_file cnfs ctxt th sgno thm_names
+      val _ = trace "\ntstp_extract: ready to signal success"
   in
     signal_success probfile toParent ppid (line1 ^ "\n" ^ line2)
   end;
@@ -599,7 +617,7 @@ fun startTransfer endS (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm
 	     if any_substring [endS,end_TSTP] thisLine
 	     then
 	      (trace ("\nExtracted proof:\n" ^ proofextract);
-	       if String.isPrefix "cnf(" proofextract
+	       if Config.get ctxt full_proofs andalso String.isPrefix "cnf(" proofextract
 	       then tstp_extract proofextract thm_names probfile toParent ppid ctxt th sgno
 	       else lemma_list atp proofextract thm_names probfile toParent ppid;
 	       true)
