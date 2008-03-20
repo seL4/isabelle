@@ -1,5 +1,5 @@
 (*  Title:      HOL/Hilbert_Choice.thy
-    ID: $Id$
+    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   2001  University of Cambridge
 *)
@@ -280,13 +280,13 @@ text {*Hilbert's Epsilon and the @{term split} Operator*}
 
 text{*Looping simprule*}
 lemma split_paired_Eps: "(SOME x. P x) = (SOME (a,b). P(a,b))"
-by (simp add: split_Pair_apply)
+  by simp
 
 lemma Eps_split: "Eps (split P) = (SOME xy. P (fst xy) (snd xy))"
-by (simp add: split_def)
+  by (simp add: split_def)
 
 lemma Eps_split_eq [simp]: "(@(x',y'). x = x' & y = y') = (x,y)"
-by blast
+  by blast
 
 
 text{*A relation is wellfounded iff it has no infinite descending chain*}
