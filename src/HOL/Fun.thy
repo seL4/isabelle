@@ -20,7 +20,7 @@ apply (simp (no_asm_simp))
 done
 
 lemma apply_inverse:
-  "f x =u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
+  "f x = u \<Longrightarrow> (\<And>x. P x \<Longrightarrow> g (f x) = x) \<Longrightarrow> P x \<Longrightarrow> x = g u"
   by auto
 
 
@@ -80,6 +80,32 @@ by (simp add: comp_def, blast)
 
 lemma UN_o: "UNION A (g o f) = UNION (f`A) g"
 by (unfold comp_def, blast)
+
+
+subsection {* The Forward Composition Operator @{text "f \<circ>> g"} *}
+
+definition
+  fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o>" 60)
+where
+  "f o> g = (\<lambda>x. g (f x))"
+
+notation (xsymbols)
+  fcomp  (infixl "\<circ>>" 60)
+
+notation (HTML output)
+  fcomp  (infixl "\<circ>>" 60)
+
+lemma fcomp_apply:  "(f o> g) x = g (f x)"
+  by (simp add: fcomp_def)
+
+lemma fcomp_assoc: "(f o> g) o> h = f o> (g o> h)"
+  by (simp add: fcomp_def)
+
+lemma id_fcomp [simp]: "id o> g = g"
+  by (simp add: fcomp_def)
+
+lemma fcomp_id [simp]: "f o> id = f"
+  by (simp add: fcomp_def)
 
 
 subsection {* Injectivity and Surjectivity *}
@@ -527,24 +553,5 @@ code_const "op \<circ>"
 
 code_const "id"
   (Haskell "id")
-
-
-subsection {* ML legacy bindings *} 
-
-ML {*
-val set_cs = @{claset} delrules [@{thm equalityI}]
-*}
-
-ML {*
-val id_apply = @{thm id_apply}
-val id_def = @{thm id_def}
-val o_apply = @{thm o_apply}
-val o_assoc = @{thm o_assoc}
-val o_def = @{thm o_def}
-val injD = @{thm injD}
-val datatype_injI = @{thm datatype_injI}
-val range_ex1_eq = @{thm range_ex1_eq}
-val expand_fun_eq = @{thm expand_fun_eq}
-*}
 
 end
