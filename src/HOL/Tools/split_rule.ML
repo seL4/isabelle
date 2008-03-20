@@ -123,6 +123,9 @@ fun complete_split_rule rl =
   end;
 
 
+fun pair_tac s =
+  EVERY' [res_inst_tac [("p", s)] @{thm PairE}, hyp_subst_tac, K prune_params_tac];
+
 val split_rule_ss = HOL_basic_ss addsimps [split_conv, fst_conv, snd_conv];
 
 fun split_rule_goal xss rl =
