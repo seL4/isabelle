@@ -157,9 +157,7 @@ done
 
 lemma fst_splitE [elim!]: 
 "[| fst s' = x';  !!x s. [| s' = (x,s);  x = x' |] ==> Q |] ==> Q"
-apply (cut_tac p = "s'" in surjective_pairing)
-apply auto
-done
+by (cases s') auto
 
 lemma fst_in_set_lemma [rule_format (no_asm)]: "(x, y) : set l --> x : fst ` set l"
 apply (induct_tac "l")

@@ -102,7 +102,8 @@ lemma givenBy_DiffI:
 apply (simp (no_asm_use) add: givenBy_eq_Collect)
 apply safe
 apply (rule_tac x = "%z. ?R z & ~ ?Q z" in exI)
-apply (tactic "deepen_tac (set_cs addSIs [equalityI]) 0 1")
+unfolding set_diff_def
+apply auto
 done
 
 
