@@ -18,6 +18,7 @@ imports
   Countable
   Dense_Linear_Order
   Efficient_Nat
+  Enum
   Eval
   Eval_Witness
   Executable_Set
