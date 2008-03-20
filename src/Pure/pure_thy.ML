@@ -168,9 +168,6 @@ val all_facts_of = #all_facts o get_theorems;
 
 (** retrieve theorems **)
 
-fun the_thms _ (SOME thms) = thms
-  | the_thms name NONE = error ("Unknown theorem(s) " ^ quote name);
-
 local
 
 fun lookup_thms thy xname =
@@ -191,6 +188,7 @@ fun show_result NONE = "none"
 fun get silent theory thmref =
   let
     val name = Facts.name_of_ref thmref;
+    val pos = Facts.pos_of_ref thmref;
     val new_res = lookup_fact theory name;
     val old_res = get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory);
     val is_same =
@@ -201,9 +199,12 @@ fun get silent theory thmref =
     val _ =
       if is_same orelse silent then ()
       else legacy_feature ("Fact lookup differs from old-style thm database:\n" ^
-        show_result new_res ^ " vs " ^ show_result old_res ^
-        Position.str_of (Position.thread_data ()));
-  in Option.map #2 old_res |> the_thms name |> Facts.select thmref |> map (Thm.transfer theory) end;
+        show_result new_res ^ " vs " ^ show_result old_res ^ Position.str_of pos);
+  in
+    (case old_res of
+      NONE => error ("Unknown theorem(s) " ^ quote name ^ Position.str_of pos)
+    | SOME (_, ths) => Facts.select thmref (map (Thm.transfer theory) ths))
+  end;
 
 in
 
