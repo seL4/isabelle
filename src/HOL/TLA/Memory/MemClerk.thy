@@ -87,9 +87,6 @@ lemma MClkFwd_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, cst!p) ==>
   by (tactic {* action_simp_tac (@{simpset} addsimps [@{thm MClkFwd_def},
     @{thm Call_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
     [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
-  by (tactic {* action_simp_tac (@{simpset} addsimps [thm "MClkFwd_def",
-    thm "Call_def", thm "caller_def", thm "rtrner_def"]) [exI]
-    [thm "base_enabled", Pair_inject] 1 *})
 
 lemma MClkFwd_ch_enabled: "|- Enabled (MClkFwd send rcv cst p)  -->   
          Enabled (<MClkFwd send rcv cst p>_(cst!p, rtrner send!p, caller rcv!p))"
