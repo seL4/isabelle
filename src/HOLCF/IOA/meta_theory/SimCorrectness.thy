@@ -174,14 +174,13 @@ lemma traces_coincide_sim [rule_format (no_asm)]:
 
 apply (tactic {* pair_induct_tac "ex" [thm "is_exec_frag_def"] 1 *})
 (* cons case *)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rename_tac ex a t s s')
 apply (simp add: mk_traceConc)
 apply (frule reachable.reachable_n)
 apply assumption
 apply (erule_tac x = "t" in allE)
 apply (erule_tac x = "@t'. ? ex1. (t,t') :R & move A ex1 s' a t'" in allE)
-apply simp
 apply (simp add: move_subprop5_sim [unfolded Let_def]
   move_subprop4_sim [unfolded Let_def] split add: split_if)
 done
@@ -200,7 +199,7 @@ lemma correspsim_is_execution [rule_format (no_asm)]:
 
 apply (tactic {* pair_induct_tac "ex" [thm "is_exec_frag_def"] 1 *})
 (* main case *)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rename_tac ex a t s s')
 apply (rule_tac t = "@t'. ? ex1. (t,t') :R & move A ex1 s' a t'" in lemma_2_1)
 
@@ -262,7 +261,7 @@ lemma trace_inclusion_for_simulations:
   apply (unfold traces_def)
 
   apply (simp (no_asm) add: has_trace_def2)
-  apply (tactic "safe_tac set_cs")
+  apply auto
 
   (* give execution of abstract automata *)
   apply (rule_tac x = "corresp_ex_sim A R ex" in bexI)

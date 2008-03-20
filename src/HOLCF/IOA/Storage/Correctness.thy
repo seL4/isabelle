@@ -33,7 +33,7 @@ lemma issimulation:
 apply (simp (no_asm) add: is_simulation_def)
 apply (rule conjI)
 txt {* start states *}
-apply (tactic "SELECT_GOAL (safe_tac set_cs) 1")
+apply (auto)[1]
 apply (rule_tac x = " ({},False) " in exI)
 apply (simp add: sim_relation_def starts_of_def Spec.ioa_def Impl.ioa_def)
 txt {* main-part *}
@@ -42,7 +42,7 @@ apply (rule imp_conj_lemma)
 apply (rename_tac k b used c k' b' a)
 apply (induct_tac "a")
 apply (simp_all (no_asm) add: sim_relation_def Impl.ioa_def Impl.trans_def trans_of_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 txt {* NEW *}
 apply (rule_tac x = "(used,True)" in exI)
 apply simp

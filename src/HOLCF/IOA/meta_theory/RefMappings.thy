@@ -73,12 +73,9 @@ lemma weak_ref_map2ref_map:
   "[| ext C = ext A;  
      is_weak_ref_map f C A |] ==> is_ref_map f C A"
 apply (unfold is_weak_ref_map_def is_ref_map_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (case_tac "a:ext A")
-apply (rule transition_is_ex)
-apply (simp (no_asm_simp))
-apply (rule nothing_is_ex)
-apply simp
+apply (auto intro: transition_is_ex nothing_is_ex)
 done
 
 

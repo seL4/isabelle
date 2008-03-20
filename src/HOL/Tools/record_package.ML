@@ -64,8 +64,8 @@ val atomize_imp = thm "HOL.atomize_imp";
 val meta_allE = thm "Pure.meta_allE";
 val prop_subst = thm "prop_subst";
 val Pair_sel_convs = [fst_conv,snd_conv];
-val K_record_comp = thm "K_record_comp";
-val K_comp_convs = [o_apply, K_record_comp]
+val K_record_comp = @{thm "K_record_comp"};
+val K_comp_convs = [@{thm o_apply}, K_record_comp]
 
 (** name components **)
 
@@ -2063,7 +2063,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       in
         prove_standard [assm] concl (fn {prems, ...} =>
           try_param_tac rN induct_scheme 1
-          THEN try_param_tac "more" unit_induct 1
+          THEN try_param_tac "more" @{thm unit_induct} 1
           THEN resolve_tac prems 1)
       end;
     val induct = timeit_msg "record induct proof:" induct_prf;

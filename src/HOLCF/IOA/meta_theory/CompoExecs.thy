@@ -218,9 +218,7 @@ lemma lemma_1_1a: "!s. is_exec_frag (A||B) (s,xs)
 
 apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def"] 1 *})
 (* main case *)
-apply (rename_tac ss a t)
-apply (tactic "safe_tac set_cs")
-apply (simp_all add: trans_of_defs2)
+apply (auto simp add: trans_of_defs2)
 done
 
 
@@ -234,8 +232,7 @@ lemma lemma_1_1b: "!s. is_exec_frag (A||B) (s,xs)
 
 apply (tactic {* pair_induct_tac "xs" [thm "stutter_def", thm "is_exec_frag_def"] 1 *})
 (* main case *)
-apply (tactic "safe_tac set_cs")
-apply (simp_all add: trans_of_defs2)
+apply (auto simp add: trans_of_defs2)
 done
 
 
@@ -249,8 +246,8 @@ lemma lemma_1_1c: "!s. (is_exec_frag (A||B) (s,xs)
 apply (tactic {* pair_induct_tac "xs" [thm "Forall_def", thm "sforall_def",
   thm "is_exec_frag_def"] 1 *})
 (* main case *)
-apply (tactic "safe_tac set_cs")
-apply (simp_all add: trans_of_defs2 actions_asig_comp asig_of_par)
+apply auto
+apply (simp add: trans_of_defs2 actions_asig_comp asig_of_par)
 done
 
 
@@ -268,10 +265,7 @@ lemma lemma_1_2:
 
 apply (tactic {* pair_induct_tac "xs" [thm "Forall_def", thm "sforall_def",
   thm "is_exec_frag_def", thm "stutter_def"] 1 *})
-apply (simp add: trans_of_defs1 actions_asig_comp asig_of_par)
-apply (tactic "safe_tac set_cs")
-apply simp
-apply simp
+apply (auto simp add: trans_of_defs1 actions_asig_comp asig_of_par)
 done
 
 

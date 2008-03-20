@@ -52,7 +52,7 @@ apply (simp add: is_asig_of_def)
 apply (frule_tac A1 = "A1" in compat_commute [THEN iffD1])
 apply (frule_tac A1 = "A2" in compat_commute [THEN iffD1])
 apply (simp add: ioa_implements_def inputs_of_par outputs_of_par externals_of_par)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (simp add: compositionality_tr)
 apply (subgoal_tac "ext A1 = ext A2 & ext B1 = ext B2")
 prefer 2
@@ -60,7 +60,7 @@ apply (simp add: externals_def)
 apply (erule conjE)+
 (* rewrite with proven subgoal *)
 apply (simp add: externals_of_par)
-apply (tactic "safe_tac set_cs")
+apply auto
 
 (* 2 goals, the 3rd has been solved automatically *)
 (* 1: Filter A2 x : traces A2 *)

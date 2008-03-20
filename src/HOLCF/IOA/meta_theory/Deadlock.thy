@@ -15,7 +15,7 @@ lemma scheds_input_enabled:
   "[| Filter (%x. x:act A)$sch : schedules A; a:inp A; input_enabled A; Finite sch|]  
           ==> Filter (%x. x:act A)$sch @@ a>>nil : schedules A"
 apply (simp add: schedules_def has_schedule_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (frule inp_is_act)
 apply (simp add: executions_def)
 apply (tactic {* pair_tac "ex" 1 *})

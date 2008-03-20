@@ -106,11 +106,7 @@ apply (unfold cex_abs_def)
 apply simp
 apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def"] 1 *})
 txt {* main case *}
-apply (tactic "safe_tac set_cs")
-apply (simp add: is_abstraction_def)
-apply (frule reachable.reachable_n)
-apply assumption
-apply simp
+apply (auto dest: reachable.reachable_n simp add: is_abstraction_def)
 done
 
 
@@ -131,8 +127,7 @@ lemma AbsRuleT1: "[|is_abstraction h C A; validIOA A Q; temp_strengthening Q P h
           ==> validIOA C P"
 apply (drule abs_is_weakening)
 apply (simp add: weakeningIOA_def validIOA_def temp_strengthening_def)
-apply (tactic "safe_tac set_cs")
-apply (tactic {* pair_tac "ex" 1 *})
+apply (auto simp add: split_paired_all)
 done
 
 
@@ -161,8 +156,7 @@ apply (unfold is_live_abstraction_def)
 apply auto
 apply (drule abs_is_weakening)
 apply (simp add: weakeningIOA_def temp_weakening_def2 validLIOA_def validIOA_def temp_strengthening_def)
-apply (tactic "safe_tac set_cs")
-apply (tactic {* pair_tac "ex" 1 *})
+apply (auto simp add: split_paired_all)
 done
 
 
@@ -175,8 +169,7 @@ apply (unfold is_live_abstraction_def)
 apply auto
 apply (drule abs_is_weakening)
 apply (simp add: weakeningIOA_def temp_weakening_def2 validLIOA_def validIOA_def temp_strengthening_def)
-apply (tactic "safe_tac set_cs")
-apply (tactic {* pair_tac "ex" 1 *})
+apply (auto simp add: split_paired_all)
 done
 
 
@@ -185,7 +178,7 @@ subsection "Correctness of safe abstraction"
 lemma abstraction_is_ref_map:
 "is_abstraction h C A ==> is_ref_map h C A"
 apply (unfold is_abstraction_def is_ref_map_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rule_tac x = "(a,h t) >>nil" in exI)
 apply (simp add: move_def)
 done
@@ -223,9 +216,9 @@ lemma abs_liveness: "[| inp(C)=inp(A); out(C)=out(A);
                    is_live_abstraction h (C,M) (A,L) |]
                 ==> live_implements (C,M) (A,L)"
 apply (simp add: is_live_abstraction_def live_implements_def livetraces_def liveexecutions_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rule_tac x = "cex_abs h ex" in exI)
-apply (tactic "safe_tac set_cs")
+apply auto
   (* Traces coincide *)
   apply (tactic {* pair_tac "ex" 1 *})
   apply (rule traces_coincide_abs)
@@ -251,9 +244,7 @@ done
 
 lemma implements_trans:
 "[| A =<| B; B =<| C|] ==> A =<| C"
-apply (unfold ioa_implements_def)
-apply auto
-done
+by (auto simp add: ioa_implements_def)
 
 
 subsection "Abstraction Rules for Automata"
@@ -373,7 +364,7 @@ apply (rule impI)
 apply (tactic {* Seq_Finite_induct_tac 1 *})
 apply blast
 (* main case *)
-apply (tactic "clarify_tac set_cs 1")
+apply clarify
 apply (tactic {* pair_tac "ex" 1 *})
 apply (tactic {* Seq_case_simp_tac "y" 1 *})
 (* UU case *)
@@ -425,9 +416,9 @@ lemma strength_Box:
 "[| temp_strengthening P Q h |]
        ==> temp_strengthening ([] P) ([] Q) h"
 apply (unfold temp_strengthening_def state_strengthening_def temp_sat_def satisfies_def Box_def)
-apply (tactic "clarify_tac set_cs 1")
+apply clarify
 apply (frule ex2seq_tsuffix)
-apply (tactic "clarify_tac set_cs 1")
+apply clarify
 apply (drule_tac h = "h" in cex_absSeq_tsuffix)
 apply (simp add: ex2seq_abs_cex)
 done
@@ -440,7 +431,7 @@ lemma strength_Init:
        ==> temp_strengthening (Init P) (Init Q) h"
 apply (unfold temp_strengthening_def state_strengthening_def
   temp_sat_def satisfies_def Init_def unlift_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (tactic {* pair_tac "ex" 1 *})
 apply (tactic {* Seq_case_simp_tac "y" 1 *})
 apply (tactic {* pair_tac "a" 1 *})
@@ -505,7 +496,7 @@ lemma strength_Next:
        ==> temp_strengthening (Next P) (Next Q) h"
 apply (unfold temp_strengthening_def state_strengthening_def temp_sat_def satisfies_def Next_def)
 apply simp
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (simp add: TL_ex2seq_nil TL_ex2seq_UU)
 apply (simp add: TL_ex2seq_nil TL_ex2seq_UU)
 apply (simp add: TL_ex2seq_nil TL_ex2seq_UU)
@@ -526,7 +517,7 @@ lemma weak_Init:
        ==> temp_weakening (Init P) (Init Q) h"
 apply (simp add: temp_weakening_def2 state_weakening_def2
   temp_sat_def satisfies_def Init_def unlift_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (tactic {* pair_tac "ex" 1 *})
 apply (tactic {* Seq_case_simp_tac "y" 1 *})
 apply (tactic {* pair_tac "a" 1 *})

@@ -60,9 +60,9 @@ lemma live_implements: "[| inp(C)=inp(A); out(C)=out(A);
                    is_live_ref_map f (C,M) (A,L) |]
                 ==> live_implements (C,M) (A,L)"
 apply (simp add: is_live_ref_map_def live_implements_def livetraces_def liveexecutions_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rule_tac x = "corresp_ex A f ex" in exI)
-apply (tactic "safe_tac set_cs")
+apply auto
   (* Traces coincide, Lemma 1 *)
   apply (tactic {* pair_tac "ex" 1 *})
   apply (erule lemma_1 [THEN spec, THEN mp])
@@ -80,8 +80,6 @@ apply (tactic "safe_tac set_cs")
   apply (erule lemma_2 [THEN spec, THEN mp])
   apply (simp add: reachable.reachable_0)
 
- (* Liveness *)
-apply auto
 done
 
 end

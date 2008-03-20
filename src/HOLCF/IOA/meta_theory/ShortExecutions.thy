@@ -223,11 +223,11 @@ lemma exists_LastActExtsch:
                LastActExtsch A sch"
 
 apply (unfold schedules_def has_schedule_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rule_tac x = "filter_act$ (Cut (%a. fst a:ext A) (snd ex))" in exI)
 apply (simp add: executions_def)
 apply (tactic {* pair_tac "ex" 1 *})
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rule_tac x = " (x,Cut (%a. fst a:ext A) y) " in exI)
 apply (simp (no_asm_simp))
 

@@ -401,7 +401,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
         val rewrites = map mk_meta_eq iso_char_thms;
         val inj_thms' = map snd newT_iso_inj_thms @
-          map (fn r => r RS injD) inj_thms;
+          map (fn r => r RS @{thm injD}) inj_thms;
 
         val inj_thm = Goal.prove_global thy5 [] []
           (HOLogic.mk_Trueprop (mk_conj ind_concl1)) (fn _ => EVERY
@@ -425,7 +425,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                              Lim_inject :: fun_cong :: inj_thms')) 1),
                          atac 1]))])])])]);
 
-        val inj_thms'' = map (fn r => r RS datatype_injI)
+        val inj_thms'' = map (fn r => r RS @{thm datatype_injI})
                              (split_conj_thm inj_thm);
 
         val elem_thm = 
@@ -442,7 +442,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val (iso_inj_thms_unfolded, iso_elem_thms) = foldr prove_iso_thms
       ([], map #3 newT_iso_axms) (tl descr);
     val iso_inj_thms = map snd newT_iso_inj_thms @
-      map (fn r => r RS injD) iso_inj_thms_unfolded;
+      map (fn r => r RS @{thm injD}) iso_inj_thms_unfolded;
 
     (* prove  dt_rep_set_i x --> x : range dt_Rep_i *)
 
@@ -461,7 +461,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (* all the theorems are proved by one single simultaneous induction *)
 
-    val range_eqs = map (fn r => mk_meta_eq (r RS range_ex1_eq))
+    val range_eqs = map (fn r => mk_meta_eq (r RS @{thm range_ex1_eq}))
       iso_inj_thms_unfolded;
 
     val iso_thms = if length descr = 1 then [] else
@@ -470,7 +470,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
            [(indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
             REPEAT (rtac TrueI 1),
             rewrite_goals_tac (mk_meta_eq choice_eq ::
-              symmetric (mk_meta_eq expand_fun_eq) :: range_eqs),
+              symmetric (mk_meta_eq @{thm expand_fun_eq}) :: range_eqs),
             rewrite_goals_tac (map symmetric range_eqs),
             REPEAT (EVERY
               [REPEAT (eresolve_tac ([rangeE, ex1_implies_ex RS exE] @
@@ -495,7 +495,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     fun prove_constr_rep_thm eqn =
       let
         val inj_thms = map fst newT_iso_inj_thms;
-        val rewrites = o_def :: constr_defs @ (map (mk_meta_eq o #2) newT_iso_axms)
+        val rewrites = @{thm o_def} :: constr_defs @ (map (mk_meta_eq o #2) newT_iso_axms)
       in Goal.prove_global thy5 [] [] eqn (fn _ => EVERY
         [resolve_tac inj_thms 1,
          rewrite_goals_tac rewrites,

@@ -345,21 +345,7 @@ subsection "has_trace, mk_trace"
 lemma has_trace_def2: 
 "has_trace A b = (? ex:executions A. b = mk_trace A$(snd ex))"
 apply (unfold executions_def mk_trace_def has_trace_def schedules_def has_schedule_def)
-apply (tactic "safe_tac set_cs")
-(* 1 *)
-apply (rule_tac x = "ex" in bexI)
-apply (simplesubst beta_cfun)
-apply (tactic "cont_tacR 1")
-apply (simp (no_asm))
-apply (simp (no_asm_simp))
-(* 2 *)
-apply (rule_tac x = "filter_act$ (snd ex) " in bexI)
-apply (simplesubst beta_cfun)
-apply (tactic "cont_tacR 1")
-apply (simp (no_asm))
-apply (tactic "safe_tac set_cs")
-apply (rule_tac x = "ex" in bexI)
-apply simp_all
+apply auto
 done
 
 
@@ -376,9 +362,7 @@ lemma execfrag_in_sig:
 apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def",
   thm "Forall_def", thm "sforall_def"] 1 *})
 (* main case *)
-apply (rename_tac ss a t)
-apply (tactic "safe_tac set_cs")
-apply (simp_all add: is_trans_of_def)
+apply (auto simp add: is_trans_of_def)
 done
 
 lemma exec_in_sig: 

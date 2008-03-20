@@ -166,7 +166,7 @@ lemma TL_TLS:
               .--> (Next (Init (%(s,a,t).Q s))))"
 apply (unfold Init_def Next_def temp_sat_def satisfies_def IMPLIES_def AND_def)
 
-apply (tactic "clarify_tac set_cs 1")
+apply clarify
 apply (simp split add: split_if)
 (* TL = UU *)
 apply (rule conjI)

@@ -183,12 +183,10 @@ lemma lemma_1:
 apply (unfold corresp_ex_def)
 apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def"] 1 *})
 (* cons case *)
-apply (tactic "safe_tac set_cs")
-apply (simp add: mk_traceConc)
+apply (auto simp add: mk_traceConc)
 apply (frule reachable.reachable_n)
 apply assumption
 apply (erule_tac x = "y" in allE)
-apply simp
 apply (simp add: move_subprop4 split add: split_if)
 done
 
@@ -214,8 +212,7 @@ lemma lemma_2_1 [rule_format (no_asm)]:
 apply (rule impI)
 apply (tactic {* Seq_Finite_induct_tac 1 *})
 (* main case *)
-apply (tactic "safe_tac set_cs")
-apply (tactic {* pair_tac "a" 1 *})
+apply (auto simp add: split_paired_all)
 done
 
 
@@ -235,7 +232,7 @@ apply (unfold corresp_ex_def)
 apply simp
 apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def"] 1 *})
 (* main case *)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rule_tac t = "f y" in lemma_2_1)
 
 (* Finite *)
@@ -270,7 +267,7 @@ lemma trace_inclusion:
   apply (unfold traces_def)
 
   apply (simp (no_asm) add: has_trace_def2)
-  apply (tactic "safe_tac set_cs")
+  apply auto
 
   (* give execution of abstract automata *)
   apply (rule_tac x = "corresp_ex A f ex" in bexI)
@@ -322,9 +319,9 @@ lemma fair_trace_inclusion: "!! C A.
           !! ex. [| ex:executions C; fair_ex C ex|] ==> fair_ex A (corresp_ex A f ex) |]
           ==> fairtraces C <= fairtraces A"
 apply (simp (no_asm) add: fairtraces_def fairexecutions_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rule_tac x = "corresp_ex A f ex" in exI)
-apply (tactic "safe_tac set_cs")
+apply auto
 
   (* Traces coincide, Lemma 1 *)
   apply (tactic {* pair_tac "ex" 1 *})
@@ -342,8 +339,6 @@ apply (tactic "safe_tac set_cs")
   apply (erule lemma_2 [THEN spec, THEN mp])
   apply (simp add: reachable.reachable_0)
 
- (* Fairness *)
-apply auto
 done
 
 lemma fair_trace_inclusion2: "!! C A.
@@ -351,9 +346,10 @@ lemma fair_trace_inclusion2: "!! C A.
              is_fair_ref_map f C A |]
           ==> fair_implements C A"
 apply (simp add: is_fair_ref_map_def fair_implements_def fairtraces_def fairexecutions_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rule_tac x = "corresp_ex A f ex" in exI)
-apply (tactic "safe_tac set_cs")
+apply auto
+
   (* Traces coincide, Lemma 1 *)
   apply (tactic {* pair_tac "ex" 1 *})
   apply (erule lemma_1 [THEN spec, THEN mp])
@@ -371,8 +367,6 @@ apply (tactic "safe_tac set_cs")
   apply (erule lemma_2 [THEN spec, THEN mp])
   apply (simp add: reachable.reachable_0)
 
- (* Fairness *)
-apply auto
 done
 
 

@@ -237,8 +237,8 @@ lemma sch_actions_in_AorB: "!s. is_exec_frag (A||B) (s,xs)
 apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def", thm "Forall_def",
   thm "sforall_def"] 1 *})
 (* main case *)
-apply (tactic "safe_tac set_cs")
-apply (auto simp add: trans_of_defs2 actions_asig_comp asig_of_par)
+apply auto
+apply (simp add: trans_of_defs2 actions_asig_comp asig_of_par)
 done
 
 
@@ -260,7 +260,7 @@ apply (tactic {* Seq_induct_tac "sch" [thm "Filter_def", thm "Forall_def",
 
 (* main case *)
 (* splitting into 4 cases according to a:A, a:B *)
-apply (tactic "safe_tac set_cs")
+apply auto
 
 (* Case y:A, y:B *)
 apply (tactic {* Seq_case_simp_tac "exA" 1 *})
@@ -301,7 +301,7 @@ in
 fun mkex_induct_tac sch exA exB =
     EVERY1[Seq_induct_tac sch defs,
            SIMPSET' asm_full_simp_tac,
-           SELECT_GOAL (safe_tac set_cs),
+           SELECT_GOAL (safe_tac (claset_of @{theory Fun})),
            Seq_case_simp_tac exA,
            Seq_case_simp_tac exB,
            SIMPSET' asm_full_simp_tac,
@@ -502,7 +502,7 @@ lemma compositionality_sch:
    Filter (%a. a:act B)$sch : schedules B &
    Forall (%x. x:act (A||B)) sch)"
 apply (simp (no_asm) add: schedules_def has_schedule_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 (* ==> *)
 apply (rule_tac x = "Filter_ex (asig_of A) (ProjA ex) " in bexI)
 prefer 2

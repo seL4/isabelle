@@ -200,7 +200,7 @@ lemma ForallAorB_mksch [rule_format]:
     ! schA schB. Forall (%x. x:act (A||B)) tr  
     --> Forall (%x. x:act (A||B)) (mksch A B$tr$schA$schB)"
 apply (tactic {* Seq_induct_tac "tr" [thm "Forall_def", thm "sforall_def", thm "mksch_def"] 1 *})
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (simp add: actions_of_par)
 apply (case_tac "a:act A")
 apply (case_tac "a:act B")
@@ -227,7 +227,7 @@ lemma ForallBnAmksch [rule_format (no_asm)]: "!!A B. compatible B A  ==>
     ! schA schB.  (Forall (%x. x:act B & x~:act A) tr  
     --> Forall (%x. x:act B & x~:act A) (mksch A B$tr$schA$schB))"
 apply (tactic {* Seq_induct_tac "tr" [thm "Forall_def", thm "sforall_def", thm "mksch_def"] 1 *})
-apply (tactic "safe_tac set_cs")
+apply auto
 apply (rule Forall_Conc_impl [THEN mp])
 apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act)
 done
@@ -236,8 +236,7 @@ lemma ForallAnBmksch [rule_format (no_asm)]: "!!A B. compatible A B ==>
     ! schA schB.  (Forall (%x. x:act A & x~:act B) tr  
     --> Forall (%x. x:act A & x~:act B) (mksch A B$tr$schA$schB))"
 apply (tactic {* Seq_induct_tac "tr" [thm "Forall_def", thm "sforall_def", thm "mksch_def"] 1 *})
-apply (tactic "safe_tac set_cs")
-apply simp
+apply auto
 apply (rule Forall_Conc_impl [THEN mp])
 apply (simp add: ForallPTakewhileQ intA_is_not_actB int_is_act)
 done
@@ -256,7 +255,7 @@ apply (erule Seq_Finite_ind)
 apply simp
 (* main case *)
 apply simp
-apply (tactic "safe_tac set_cs")
+apply auto
 
 (* a: act A; a: act B *)
 apply (frule sym [THEN antisym_less_inverse, THEN conjunct1, THEN divide_Seq])
@@ -415,7 +414,7 @@ lemma FilterA_mksch_is_tr:
 apply (tactic {* Seq_induct_tac "tr" [thm "Forall_def", thm "sforall_def", thm "mksch_def"] 1 *})
 (* main case *)
 (* splitting into 4 cases according to a:A, a:B *)
-apply (tactic "safe_tac set_cs")
+apply auto
 
 (* Case a:A, a:B *)
 apply (frule divide_Seq)
@@ -903,7 +902,7 @@ lemma compositionality_tr:
               Forall (%x. x:ext(A||B)) tr)"
 
 apply (simp (no_asm) add: traces_def has_trace_def)
-apply (tactic "safe_tac set_cs")
+apply auto
 
 (* ==> *)
 (* There is a schedule of A *)

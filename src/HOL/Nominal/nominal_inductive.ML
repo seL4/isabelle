@@ -110,7 +110,7 @@ fun inst_conj_all names ps pis (Const ("op &", _) $ p $ q) _ =
 fun inst_conj_all_tac k = EVERY
   [TRY (EVERY [etac conjE 1, rtac conjI 1, atac 1]),
    REPEAT_DETERM_N k (etac allE 1),
-   simp_tac (HOL_basic_ss addsimps [id_apply]) 1];
+   simp_tac (HOL_basic_ss addsimps [@{thm id_apply}]) 1];
 
 fun map_term f t u = (case f t u of
       NONE => map_term' f t u | x => x)
@@ -305,7 +305,7 @@ fun prove_strong_ind s avoids thy =
           (fn _ => EVERY
             [etac exE 1,
              full_simp_tac (HOL_ss addsimps (fresh_prod :: fresh_atm)) 1,
-             full_simp_tac (HOL_basic_ss addsimps [id_apply]) 1,
+             full_simp_tac (HOL_basic_ss addsimps [@{thm id_apply}]) 1,
              REPEAT (etac conjE 1)])
           [ex] ctxt
       in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
@@ -347,7 +347,7 @@ fun prove_strong_ind s avoids thy =
                     map (fold_rev (NominalPackage.mk_perm [])
                       (rev pis' @ pis)) params' @ [z])) ihyp;
                  fun mk_pi th =
-                   Simplifier.simplify (HOL_basic_ss addsimps [id_apply]
+                   Simplifier.simplify (HOL_basic_ss addsimps [@{thm id_apply}]
                        addsimprocs [NominalPackage.perm_simproc])
                      (Simplifier.simplify eqvt_ss
                        (fold_rev (mk_perm_bool o cterm_of thy)

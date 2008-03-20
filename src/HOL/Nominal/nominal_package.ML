@@ -959,7 +959,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                   alpha @ abs_perm @ abs_fresh @ rep_inject_thms @
                   perm_rep_perm_thms)) 1),
                 TRY (asm_full_simp_tac (HOL_basic_ss addsimps (perm_fun_def ::
-                  expand_fun_eq :: rep_inject_thms @ perm_rep_perm_thms)) 1)])
+                  @{thm expand_fun_eq} :: rep_inject_thms @ perm_rep_perm_thms)) 1)])
         end) (constrs ~~ constr_rep_thms)
       end) (List.take (pdescr, length new_type_names) ~~ new_type_names ~~ constr_rep_thmss);
 
