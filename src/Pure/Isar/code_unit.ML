@@ -18,7 +18,7 @@ sig
   val constrain_thm: sort -> thm -> thm
 
   (*constants*)
-  val add_const_ident: thm -> theory -> theory
+  val add_const_alias: thm -> theory -> theory
   val string_of_typ: theory -> typ -> string
   val string_of_const: theory -> string -> string
   val no_args: theory -> string -> int
@@ -66,27 +66,204 @@ fun string_of_const thy c = case AxClass.inst_of_param thy c
 
 fun no_args thy = length o fst o strip_type o Sign.the_const_type thy;
 
+
+(* utilities *)
+
+fun inst_thm tvars' thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+    val tvars = (Term.add_tvars o Thm.prop_of) thm [];
+    fun mk_inst (tvar as (v, _)) = case Vartab.lookup tvars' v
+     of SOME sort => SOME (pairself (Thm.ctyp_of thy o TVar) (tvar, (v, sort)))
+      | NONE => NONE;
+    val insts = map_filter mk_inst tvars;
+  in Thm.instantiate (insts, []) thm end;
+
+fun constrain_thm sort thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+    val constrain = curry (Sorts.inter_sort (Sign.classes_of thy)) sort
+    val tvars = (Term.add_tvars o Thm.prop_of) thm [];
+    fun mk_inst (tvar as (v, sort)) = pairself (Thm.ctyp_of thy o TVar o pair v)
+      (sort, constrain sort)
+    val insts = map mk_inst tvars;
+  in Thm.instantiate (insts, []) thm end;
+
+fun expand_eta k thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+    val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm;
+    val (head, args) = strip_comb lhs;
+    val l = if k = ~1
+      then (length o fst o strip_abs) rhs
+      else Int.max (0, k - length args);
+    val used = Name.make_context (map (fst o fst) (Term.add_vars lhs []));
+    fun get_name _ 0 = pair []
+      | get_name (Abs (v, ty, t)) k =
+          Name.variants [v]
+          ##>> get_name t (k - 1)
+          #>> (fn ([v'], vs') => (v', ty) :: vs')
+      | get_name t k = 
+          let
+            val (tys, _) = (strip_type o fastype_of) t
+          in case tys
+           of [] => raise TERM ("expand_eta", [t])
+            | ty :: _ =>
+                Name.variants [""]
+                #-> (fn [v] => get_name (t $ Var ((v, 0), ty)) (k - 1)
+                #>> (fn vs' => (v, ty) :: vs'))
+          end;
+    val (vs, _) = get_name rhs l used;
+    fun expand (v, ty) thm = Drule.fun_cong_rule thm
+      (Thm.cterm_of thy (Var ((v, 0), ty)));
+  in
+    thm
+    |> fold expand vs
+    |> Conv.fconv_rule Drule.beta_eta_conversion
+  end;
+
+fun func_conv conv =
+  let
+    fun lhs_conv ct = if can Thm.dest_comb ct
+      then (Conv.combination_conv lhs_conv conv) ct
+      else Conv.all_conv ct;
+  in Conv.combination_conv (Conv.arg_conv lhs_conv) conv end;
+
+fun head_conv conv =
+  let
+    fun lhs_conv ct = if can Thm.dest_comb ct
+      then (Conv.fun_conv lhs_conv) ct
+      else conv ct;
+  in Conv.fun_conv (Conv.arg_conv lhs_conv) end;
+
+val rewrite_func = Conv.fconv_rule o func_conv o MetaSimplifier.rewrite false;
+
+val rewrite_head = Conv.fconv_rule o head_conv o MetaSimplifier.rewrite false;
+
+fun norm_args thms =
+  let
+    val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
+    val k = fold (curry Int.max o num_args_of o Thm.plain_prop_of) thms 0;
+  in
+    thms
+    |> map (expand_eta k)
+    |> map (Conv.fconv_rule Drule.beta_eta_conversion)
+  end;
+
+fun canonical_tvars purify_tvar thm =
+  let
+    val ctyp = Thm.ctyp_of (Thm.theory_of_thm thm);
+    fun tvars_subst_for thm = (fold_types o fold_atyps)
+      (fn TVar (v_i as (v, _), sort) => let
+            val v' = purify_tvar v
+          in if v = v' then I
+          else insert (op =) (v_i, (v', sort)) end
+        | _ => I) (prop_of thm) [];
+    fun mk_inst (v_i, (v', sort)) (maxidx, acc) =
+      let
+        val ty = TVar (v_i, sort)
+      in
+        (maxidx + 1, (ctyp ty, ctyp (TVar ((v', maxidx), sort))) :: acc)
+      end;
+    val maxidx = Thm.maxidx_of thm + 1;
+    val (_, inst) = fold mk_inst (tvars_subst_for thm) (maxidx + 1, []);
+  in Thm.instantiate (inst, []) thm end;
+
+fun canonical_vars purify_var thm =
+  let
+    val cterm = Thm.cterm_of (Thm.theory_of_thm thm);
+    fun vars_subst_for thm = fold_aterms
+      (fn Var (v_i as (v, _), ty) => let
+            val v' = purify_var v
+          in if v = v' then I
+          else insert (op =) (v_i, (v', ty)) end
+        | _ => I) (prop_of thm) [];
+    fun mk_inst (v_i as (v, i), (v', ty)) (maxidx, acc) =
+      let
+        val t = Var (v_i, ty)
+      in
+        (maxidx + 1, (cterm t, cterm (Var ((v', maxidx), ty))) :: acc)
+      end;
+    val maxidx = Thm.maxidx_of thm + 1;
+    val (_, inst) = fold mk_inst (vars_subst_for thm) (maxidx + 1, []);
+  in Thm.instantiate ([], inst) thm end;
+
+fun canonical_absvars purify_var thm =
+  let
+    val t = Thm.plain_prop_of thm;
+    val t' = Term.map_abs_vars purify_var t;
+  in Thm.rename_boundvars t t' thm end;
+
+fun norm_varnames purify_tvar purify_var thms =
+  let
+    fun burrow_thms f [] = []
+      | burrow_thms f thms =
+          thms
+          |> Conjunction.intr_balanced
+          |> f
+          |> Conjunction.elim_balanced (length thms)
+  in
+    thms
+    |> burrow_thms (canonical_tvars purify_tvar)
+    |> map (canonical_vars purify_var)
+    |> map (canonical_absvars purify_var)
+    |> map Drule.zero_var_indexes
+  end;
+
+(* const aliasses *)
+
+structure ConstAlias = TheoryDataFun
+(
+  type T = ((string * string) * thm) list;
+  val empty = [];
+  val copy = I;
+  val extend = copy;
+  fun merge _ = Library.merge (eq_snd Thm.eq_thm_prop);
+);
+
+fun add_const_alias thm =
+  let
+    val t = Thm.prop_of thm;
+    val thy = Thm.theory_of_thm thm;
+    val lhs_rhs = case try Logic.dest_equals t
+     of SOME lhs_rhs => lhs_rhs
+      | _ => error ("Not an equation: " ^ Display.string_of_thm thm);
+    val c_c' = case try (pairself (AxClass.unoverload_const thy o dest_Const)) lhs_rhs
+     of SOME c_c' => c_c'
+      | _ => error ("Not an equation with two constants: " ^ Display.string_of_thm thm);
+  in ConstAlias.map (cons (c_c', thm)) end;
+
+fun rew_alias thm =
+  let
+    val thy = Thm.theory_of_thm thm;
+  in rewrite_head (map snd (ConstAlias.get thy)) thm end;
+
+fun subst_alias thy c = ConstAlias.get thy
+  |> get_first (fn ((c', c''), _) => if c = c' then SOME c'' else NONE)
+  |> the_default c;
+
 (* reading constants as terms and wildcards pattern *)
 
 fun check_bare_const thy t = case try dest_Const t
  of SOME c_ty => c_ty
   | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t);
 
-fun check_const thy = AxClass.unoverload_const thy o check_bare_const thy;
+fun check_const thy = subst_alias thy o AxClass.unoverload_const thy o check_bare_const thy;
 
 fun read_bare_const thy = check_bare_const thy o Syntax.read_term_global thy;
 
-fun read_const thy = AxClass.unoverload_const thy o read_bare_const thy;
+fun read_const thy = subst_alias thy o AxClass.unoverload_const thy o read_bare_const thy;
 
 local
 
 fun consts_of thy some_thyname =
   let
     val this_thy = Option.map theory some_thyname |> the_default thy;
-    val cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
+    val raw_cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
       ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) this_thy) [];
+    val cs = map (subst_alias thy) raw_cs;
     fun belongs_here thyname c =
-          not (exists (fn thy' => Sign.declared_const thy' c) (Theory.parents_of this_thy))
+      not (exists (fn thy' => Sign.declared_const thy' c) (Theory.parents_of this_thy))
   in case some_thyname
    of NONE => cs
     | SOME thyname => filter (belongs_here thyname) cs
@@ -189,30 +366,6 @@ fun mk_rew thm =
 
 (* defining equations *)
 
-structure ConstIdent = TheoryDataFun
-(
-  type T = thm list;
-  val empty = [];
-  val copy = I;
-  val extend = copy;
-  fun merge _ = Library.merge Thm.eq_thm_prop;
-);
-
-fun add_const_ident thm =
-  let
-    val t = Thm.prop_of thm;
-    val lhs_rhs = case try Logic.dest_equals t
-     of SOME lhs_rhs => lhs_rhs
-      | _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
-    val _ = if can (pairself dest_Const) lhs_rhs then ()
-      else bad_thm ("Not an equation with two constants: " ^ Display.string_of_thm thm);
-  in ConstIdent.map (cons thm) end;
-
-fun apply_ident thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-  in MetaSimplifier.rewrite_rule (ConstIdent.get thy) thm end;
-
 fun assert_func thm =
   let
     val thy = Thm.theory_of_thm thm;
@@ -244,7 +397,7 @@ fun assert_func thm =
     val _ = map (check 0) args;
   in thm end;
 
-val mk_func = apply_ident o assert_func o mk_rew;
+val mk_func = rew_alias o assert_func o mk_rew;
 
 fun head_func thm =
   let
@@ -252,141 +405,6 @@ fun head_func thm =
     val Const (c, ty) = (fst o strip_comb o fst o Logic.dest_equals
       o ObjectLogic.drop_judgment thy o Thm.plain_prop_of) thm;
   in (c, ty) end;
-
-
-(* utilities *)
-
-fun inst_thm tvars' thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-    val tvars = (Term.add_tvars o Thm.prop_of) thm [];
-    fun mk_inst (tvar as (v, _)) = case Vartab.lookup tvars' v
-     of SOME sort => SOME (pairself (Thm.ctyp_of thy o TVar) (tvar, (v, sort)))
-      | NONE => NONE;
-    val insts = map_filter mk_inst tvars;
-  in Thm.instantiate (insts, []) thm end;
-
-fun constrain_thm sort thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-    val constrain = curry (Sorts.inter_sort (Sign.classes_of thy)) sort
-    val tvars = (Term.add_tvars o Thm.prop_of) thm [];
-    fun mk_inst (tvar as (v, sort)) = pairself (Thm.ctyp_of thy o TVar o pair v)
-      (sort, constrain sort)
-    val insts = map mk_inst tvars;
-  in Thm.instantiate (insts, []) thm end;
-
-fun expand_eta k thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-    val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm;
-    val (head, args) = strip_comb lhs;
-    val l = if k = ~1
-      then (length o fst o strip_abs) rhs
-      else Int.max (0, k - length args);
-    val used = Name.make_context (map (fst o fst) (Term.add_vars lhs []));
-    fun get_name _ 0 = pair []
-      | get_name (Abs (v, ty, t)) k =
-          Name.variants [v]
-          ##>> get_name t (k - 1)
-          #>> (fn ([v'], vs') => (v', ty) :: vs')
-      | get_name t k = 
-          let
-            val (tys, _) = (strip_type o fastype_of) t
-          in case tys
-           of [] => raise TERM ("expand_eta", [t])
-            | ty :: _ =>
-                Name.variants [""]
-                #-> (fn [v] => get_name (t $ Var ((v, 0), ty)) (k - 1)
-                #>> (fn vs' => (v, ty) :: vs'))
-          end;
-    val (vs, _) = get_name rhs l used;
-    fun expand (v, ty) thm = Drule.fun_cong_rule thm
-      (Thm.cterm_of thy (Var ((v, 0), ty)));
-  in
-    thm
-    |> fold expand vs
-    |> Conv.fconv_rule Drule.beta_eta_conversion
-  end;
-
-fun func_conv conv =
-  let
-    fun lhs_conv ct = if can Thm.dest_comb ct
-      then (Conv.combination_conv lhs_conv conv) ct
-      else Conv.all_conv ct;
-  in Conv.combination_conv (Conv.arg_conv lhs_conv) conv end;
-
-val rewrite_func = Conv.fconv_rule o func_conv o MetaSimplifier.rewrite false;
-
-fun norm_args thms =
-  let
-    val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
-    val k = fold (curry Int.max o num_args_of o Thm.plain_prop_of) thms 0;
-  in
-    thms
-    |> map (expand_eta k)
-    |> map (Conv.fconv_rule Drule.beta_eta_conversion)
-  end;
-
-fun canonical_tvars purify_tvar thm =
-  let
-    val ctyp = Thm.ctyp_of (Thm.theory_of_thm thm);
-    fun tvars_subst_for thm = (fold_types o fold_atyps)
-      (fn TVar (v_i as (v, _), sort) => let
-            val v' = purify_tvar v
-          in if v = v' then I
-          else insert (op =) (v_i, (v', sort)) end
-        | _ => I) (prop_of thm) [];
-    fun mk_inst (v_i, (v', sort)) (maxidx, acc) =
-      let
-        val ty = TVar (v_i, sort)
-      in
-        (maxidx + 1, (ctyp ty, ctyp (TVar ((v', maxidx), sort))) :: acc)
-      end;
-    val maxidx = Thm.maxidx_of thm + 1;
-    val (_, inst) = fold mk_inst (tvars_subst_for thm) (maxidx + 1, []);
-  in Thm.instantiate (inst, []) thm end;
-
-fun canonical_vars purify_var thm =
-  let
-    val cterm = Thm.cterm_of (Thm.theory_of_thm thm);
-    fun vars_subst_for thm = fold_aterms
-      (fn Var (v_i as (v, _), ty) => let
-            val v' = purify_var v
-          in if v = v' then I
-          else insert (op =) (v_i, (v', ty)) end
-        | _ => I) (prop_of thm) [];
-    fun mk_inst (v_i as (v, i), (v', ty)) (maxidx, acc) =
-      let
-        val t = Var (v_i, ty)
-      in
-        (maxidx + 1, (cterm t, cterm (Var ((v', maxidx), ty))) :: acc)
-      end;
-    val maxidx = Thm.maxidx_of thm + 1;
-    val (_, inst) = fold mk_inst (vars_subst_for thm) (maxidx + 1, []);
-  in Thm.instantiate ([], inst) thm end;
-
-fun canonical_absvars purify_var thm =
-  let
-    val t = Thm.plain_prop_of thm;
-    val t' = Term.map_abs_vars purify_var t;
-  in Thm.rename_boundvars t t' thm end;
-
-fun norm_varnames purify_tvar purify_var thms =
-  let
-    fun burrow_thms f [] = []
-      | burrow_thms f thms =
-          thms
-          |> Conjunction.intr_balanced
-          |> f
-          |> Conjunction.elim_balanced (length thms)
-  in
-    thms
-    |> burrow_thms (canonical_tvars purify_tvar)
-    |> map (canonical_vars purify_var)
-    |> map (canonical_absvars purify_var)
-    |> map Drule.zero_var_indexes
-  end;
 
 
 (* case cerificates *)
