@@ -10,8 +10,9 @@ sig
   val the_single: string -> thm list -> thm
   datatype interval = FromTo of int * int | From of int | Single of int
   datatype ref =
-    Named of string * interval list option |
+    Named of (string * Position.T) * interval list option |
     Fact of string
+  val named: string -> ref
   val string_of_ref: ref -> string
   val name_of_ref: ref -> string
   val map_name_of_ref: (string -> string) -> ref -> ref
@@ -63,17 +64,19 @@ fun interval n iv =
 (* datatype ref *)
 
 datatype ref =
-  Named of string * interval list option |
+  Named of (string * Position.T) * interval list option |
   Fact of string;
 
-fun name_of_ref (Named (name, _)) = name
+fun named name = Named ((name, Position.none), NONE);
+
+fun name_of_ref (Named ((name, _), _)) = name
   | name_of_ref (Fact _) = error "Illegal literal fact";
 
-fun map_name_of_ref f (Named (name, is)) = Named (f name, is)
+fun map_name_of_ref f (Named ((name, pos), is)) = Named ((f name, pos), is)
   | map_name_of_ref _ r = r;
 
-fun string_of_ref (Named (name, NONE)) = name
-  | string_of_ref (Named (name, SOME is)) =
+fun string_of_ref (Named ((name, _), NONE)) = name
+  | string_of_ref (Named ((name, _), SOME is)) =
       name ^ enclose "(" ")" (commas (map string_of_interval is))
   | string_of_ref (Fact _) = error "Illegal literal fact";
 
@@ -82,10 +85,12 @@ fun string_of_ref (Named (name, NONE)) = name
 
 fun select (Fact _) ths = ths
   | select (Named (_, NONE)) ths = ths
-  | select (Named (name, SOME ivs)) ths =
+  | select (Named ((name, pos), SOME ivs)) ths =
       let
         val n = length ths;
-        fun err msg = error (msg ^ " for " ^ quote name ^ " (length " ^ string_of_int n ^ ")");
+        fun err msg =
+          error (msg ^ " for " ^ quote name ^ " (length " ^ string_of_int n ^ ")" ^
+            Position.str_of pos);
         fun sel i =
           if i < 1 orelse i > n then err ("Bad subscript " ^ string_of_int i)
           else nth ths (i - 1);
@@ -95,9 +100,9 @@ fun select (Fact _) ths = ths
 
 (* selections *)
 
-fun selections (name, [th]) = [(Named (name, NONE), th)]
-  | selections (name, ths) =
-      map2 (fn i => fn th => (Named (name, SOME [Single i]), th)) (1 upto length ths) ths;
+fun selections (name, [th]) = [(Named ((name, Position.none), NONE), th)]
+  | selections (name, ths) = map2 (fn i => fn th =>
+      (Named ((name, Position.none), SOME [Single i]), th)) (1 upto length ths) ths;
 
 
 

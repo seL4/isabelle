@@ -275,14 +275,14 @@ fun print_interval (Facts.FromTo arg) =
   | print_interval (Facts.From i) = "Facts.From " ^ ML_Syntax.print_int i
   | print_interval (Facts.Single i) = "Facts.Single " ^ ML_Syntax.print_int i;
 
-fun thm_sel name =
+fun thm_sel name_pos =
   Scan.option Args.thm_sel >> (fn sel => "Facts.Named " ^
-    ML_Syntax.print_pair ML_Syntax.print_string
-      (ML_Syntax.print_option (ML_Syntax.print_list print_interval)) (name, sel));
+    ML_Syntax.print_pair (ML_Syntax.print_pair ML_Syntax.print_string ML_Syntax.print_position)
+      (ML_Syntax.print_option (ML_Syntax.print_list print_interval)) (name_pos, sel));
 
-fun thm_antiq name get = value_antiq name
-  (Scan.lift (Args.name :-- thm_sel) >> apsnd (fn sel =>
-    get ^ " (ML_Context.the_local_context ()) " ^ ML_Syntax.atomic sel));
+fun thm_antiq kind get = value_antiq kind
+  (Scan.lift (Args.position Args.name :-- thm_sel) >> (fn ((name, _), sel) =>
+    (name, get ^ " (ML_Context.the_local_context ()) " ^ ML_Syntax.atomic sel)));
 
 in
 

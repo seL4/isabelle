@@ -210,7 +210,7 @@ in
 val get_fact_silent = get true;
 val get_fact = get false;
 
-fun get_thms thy name = get_fact thy (Facts.Named (name, NONE));
+fun get_thms thy = get_fact thy o Facts.named;
 fun get_thm thy name = Facts.the_single name (get_thms thy name);
 
 end;

@@ -792,6 +792,8 @@ fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) =>
 
 (* get_thm(s) *)
 
+local
+
 fun retrieve_thms _ pick ctxt (Facts.Fact s) =
       let
         val prop = Syntax.read_prop (set_mode mode_default ctxt) s
@@ -814,19 +816,22 @@ fun retrieve_thms _ pick ctxt (Facts.Fact s) =
             | NONE => from_thy thy xthmref);
       in pick name thms end;
 
-val get_fact_silent = retrieve_thms PureThy.get_fact_silent (K I);
+in
 
 val get_fact = retrieve_thms PureThy.get_fact (K I);
 val get_fact_single = retrieve_thms PureThy.get_fact Facts.the_single;
 
-fun get_thms ctxt name = get_fact ctxt (Facts.Named (name, NONE));
-fun get_thm ctxt name = get_fact_single ctxt (Facts.Named (name, NONE));
+fun get_thms_silent ctxt = retrieve_thms PureThy.get_fact_silent (K I) ctxt o Facts.named;
+fun get_thms ctxt = get_fact ctxt o Facts.named;
+fun get_thm ctxt = get_fact_single ctxt o Facts.named;
+
+end;
 
 
 (* valid_thms *)
 
 fun valid_thms ctxt (name, ths) =
-  (case try (fn () => get_fact_silent ctxt (Facts.Named (name, NONE))) () of
+  (case try (fn () => get_thms_silent ctxt name) () of
     NONE => false
   | SOME ths' => Thm.eq_thms (ths, ths'));
 

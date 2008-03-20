@@ -70,8 +70,9 @@ val thm_sel = P.$$$ "(" |-- P.list1
   P.nat >> Facts.Single) --| P.$$$ ")";
 
 val xthm =
-  P.$$$ "[" |-- attribs --| P.$$$ "]" >> pair (Facts.Named ("", NONE)) ||
-  (P.alt_string >> Facts.Fact || P.xname -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
+  P.$$$ "[" |-- attribs --| P.$$$ "]" >> pair (Facts.named "") ||
+  (P.alt_string >> Facts.Fact ||
+    P.position P.xname -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
 
 val xthms1 = Scan.repeat1 xthm;
 

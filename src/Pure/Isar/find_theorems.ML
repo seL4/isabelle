@@ -243,7 +243,7 @@ fun nicer_name x y =
     EQUAL => (case qual_ord (x, y) of EQUAL => txt_ord (x, y) | ord => ord)
   | ord => ord) <> GREATER;
 
-fun nicer (Facts.Named (x, _)) (Facts.Named (y, _)) = nicer_name x y
+fun nicer (Facts.Named ((x, _), _)) (Facts.Named ((y, _), _)) = nicer_name x y
   | nicer (Facts.Fact _) (Facts.Named _) = true
   | nicer (Facts.Named _) (Facts.Fact _) = false;
 

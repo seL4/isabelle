@@ -163,8 +163,8 @@ fun gen_thm pick = Scan.depend (fn context =>
   let
     val thy = Context.theory_of context;
     val get = Context.cases PureThy.get_fact ProofContext.get_fact context;
-    fun get_fact s = get (Facts.Fact s);
-    fun get_named s = get (Facts.Named (s, NONE));
+    val get_fact = get o Facts.Fact;
+    val get_named = get o Facts.named;
   in
     Args.$$$ "[" |-- Args.attribs (intern thy) --| Args.$$$ "]" >> (fn srcs =>
       let
@@ -174,8 +174,8 @@ fun gen_thm pick = Scan.depend (fn context =>
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
       >> (fn (s, fact) => ("", Facts.Fact s, fact))
-    || Scan.ahead fact_name -- Args.named_fact get_named -- Scan.option Args.thm_sel
-      >> (fn ((name, fact), sel) => (name, Facts.Named (name, sel), fact)))
+    || Scan.ahead fact_name -- Args.position (Args.named_fact get_named) -- Scan.option Args.thm_sel
+      >> (fn ((name, (fact, pos)), sel) => (name, Facts.Named ((name, pos), sel), fact)))
     -- Args.opt_attribs (intern thy) >> (fn ((name, thmref, fact), srcs) =>
       let
         val ths = Facts.select thmref fact;
