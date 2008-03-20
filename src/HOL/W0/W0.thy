@@ -204,11 +204,10 @@ lemma new_tv_subst:
        addsimps [thm "free_tv_subst"])) 1 *})
     apply (drule_tac P = "\<lambda>x. m \<in> free_tv x" in subst, assumption)
     apply simp
-   apply (tactic {* fast_tac (set_cs addss (@{simpset}
-     addsimps [thm "free_tv_subst", thm "cod_def", thm "dom_def"])) 1 *})
-  -- {* @{text \<Longleftarrow>} *}
-  apply (unfold free_tv_subst cod_def dom_def)
+    apply (unfold free_tv_subst cod_def dom_def)
+    apply clarsimp
   apply safe
+  apply metis
   apply (metis linorder_not_less)+
   done
 
@@ -347,11 +346,8 @@ lemma free_tv_app_subst_tel: "free_tv ($s (ts::typ list)) \<subseteq> cod s \<un
 lemma free_tv_comp_subst:
     "free_tv (\<lambda>u::nat. $s1 (s2 u) :: typ) \<subseteq> free_tv s1 \<union> free_tv s2"
   apply (unfold free_tv_subst dom_def)
-  apply (tactic {*
-    fast_tac (set_cs addSDs [thm "free_tv_app_subst_te" RS subsetD,
-    thm "free_tv_subst_var" RS subsetD]
-    addss (@{simpset} delsimps (thms "bex_simps")
-    addsimps [thm "cod_def", thm "dom_def"])) 1 *})
+  apply (auto dest!: free_tv_subst_var [THEN subsetD] free_tv_app_subst_te [THEN subsetD]
+    simp add: cod_def dom_def simp del: bex_simps)
   done
 
 
@@ -746,8 +742,8 @@ lemma W_complete_aux: "!!s' a t' n. $s' a |- e :: t' \<Longrightarrow> new_tv n 
    apply (frule_tac n = m in new_tv_W, assumption)
    apply (erule conjE)
    apply (drule free_tv_app_subst_tel [THEN subsetD])
-   apply (tactic {* fast_tac (set_cs addDs [sym RS thm "W_var_geD", thm "new_tv_list_le",
-     thm "codD", thm "new_tv_not_free_tv"]) 1 *})
+   apply (auto dest: W_var_geD [OF sym] new_tv_list_le
+     codD new_tv_not_free_tv)
   apply (case_tac "na \<in> free_tv t - free_tv sa")
    prefer 2
    txt {* case @{text "na \<notin> free_tv t - free_tv sa"} *}
@@ -758,7 +754,6 @@ lemma W_complete_aux: "!!s' a t' n. $s' a |- e :: t' \<Longrightarrow> new_tv n 
    apply (drule free_tv_app_subst_tel [THEN subsetD])
    apply (fastsimp dest: codD subst_comp_tel [THEN [2] trans]
      eq_subst_tel_eq_free simp add: free_tv_subst dom_def)
-  apply fast
   done
 
 lemma W_complete: "[] |- e :: t' ==>
