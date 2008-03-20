@@ -36,6 +36,7 @@ code_const "op = \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
 code_instance bool :: eq
   (Haskell -)
 
+
 subsection {* Unit *}
 
 typedef unit = "{True}"
@@ -88,22 +89,53 @@ lemma unit_abs_eta_conv [simp,noatp]: "(%u::unit. f ()) = f"
   by (rule ext) simp
 
 
+text {* code generator setup *}
+
+instance unit :: eq ..
+
+lemma [code func]:
+  "(u\<Colon>unit) = v \<longleftrightarrow> True" unfolding unit_eq [of u] unit_eq [of v] by rule+
+
+code_type unit
+  (SML "unit")
+  (OCaml "unit")
+  (Haskell "()")
+
+code_instance unit :: eq
+  (Haskell -)
+
+code_const "op = \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_const Unity
+  (SML "()")
+  (OCaml "()")
+  (Haskell "()")
+
+code_reserved SML
+  unit
+
+code_reserved OCaml
+  unit
+
+
 subsection {* Pairs *}
 
-subsubsection {* Type definition *}
+subsubsection {* Product type, basic operations and concrete syntax *}
 
-constdefs
-  Pair_Rep :: "['a, 'b] => ['a, 'b] => bool"
-  "Pair_Rep == (%a b. %x y. x=a & y=b)"
+definition
+  Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
+where
+  "Pair_Rep a b = (\<lambda>x y. x = a \<and> y = b)"
 
 global
 
 typedef (Prod)
   ('a, 'b) "*"    (infixr "*" 20)
-    = "{f. EX a b. f = Pair_Rep (a::'a) (b::'b)}"
+    = "{f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
 proof
-  fix a b show "Pair_Rep a b : ?Prod"
-    by blast
+  fix a b show "Pair_Rep a b \<in> ?Prod"
+    by rule+
 qed
 
 syntax (xsymbols)
@@ -111,20 +143,12 @@ syntax (xsymbols)
 syntax (HTML output)
   "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 
-local
-
-subsubsection {* Definitions *}
-
-global
-
 consts
-  fst      :: "'a * 'b => 'a"
-  snd      :: "'a * 'b => 'b"
-  split    :: "[['a, 'b] => 'c, 'a * 'b] => 'c"
-  curry    :: "['a * 'b => 'c, 'a, 'b] => 'c"
-  prod_fun :: "['a => 'b, 'c => 'd, 'a * 'c] => 'b * 'd"
-  Pair     :: "['a, 'b] => 'a * 'b"
-  Sigma    :: "['a set, 'a => 'b set] => ('a * 'b) set"
+  Pair     :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b"
+  fst      :: "'a \<times> 'b \<Rightarrow> 'a"
+  snd      :: "'a \<times> 'b \<Rightarrow> 'b"
+  split    :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"
+  curry    :: "('a \<times> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'c"
 
 local
 
@@ -134,22 +158,6 @@ defs
   snd_def:      "snd p == THE b. EX a. p = Pair a b"
   split_def:    "split == (%c p. c (fst p) (snd p))"
   curry_def:    "curry == (%c x y. c (Pair x y))"
-  prod_fun_def: "prod_fun f g == split (%x y. Pair (f x) (g y))"
-  Sigma_def [code func]:    "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
-
-abbreviation
-  Times :: "['a set, 'b set] => ('a * 'b) set"
-    (infixr "<*>" 80) where
-  "A <*> B == Sigma A (%_. B)"
-
-notation (xsymbols)
-  Times  (infixr "\<times>" 80)
-
-notation (HTML output)
-  Times  (infixr "\<times>" 80)
-
-
-subsubsection {* Concrete syntax *}
 
 text {*
   Patterns -- extends pre-defined type @{typ pttrn} used in
@@ -166,7 +174,6 @@ syntax
   "_pattern"    :: "[pttrn, patterns] => pttrn"         ("'(_,/ _')")
   ""            :: "pttrn => patterns"                  ("_")
   "_patterns"   :: "[pttrn, patterns] => patterns"      ("_,/ _")
-  "@Sigma" ::"[pttrn, 'a set, 'b set] => ('a * 'b) set" ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
 
 translations
   "(x, y)"       == "Pair x y"
@@ -176,7 +183,6 @@ translations
   "_abs (Pair x y) t" => "%(x,y).t"
   (* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *)
-  "SIGMA x:A. B" == "Sigma A (%x. B)"
 
 (* reconstructs pattern from (nested) splits, avoiding eta-contraction of body*)
 (* works best with enclosing "let", if "let" does not avoid eta-contraction   *)
@@ -232,15 +238,29 @@ end
 *}
 
 
-subsubsection {* Lemmas and proof tool setup *}
+text {* Towards a datatype declaration *}
 
-lemma ProdI: "Pair_Rep a b : Prod"
-  unfolding Prod_def by blast
-
-lemma Pair_Rep_inject: "Pair_Rep a b = Pair_Rep a' b' ==> a = a' & b = b'"
-  apply (unfold Pair_Rep_def)
-  apply (drule fun_cong [THEN fun_cong], blast)
+lemma surj_pair [simp]: "EX x y. p = (x, y)"
+  apply (unfold Pair_def)
+  apply (rule Rep_Prod [unfolded Prod_def, THEN CollectE])
+  apply (erule exE, erule exE, rule exI, rule exI)
+  apply (rule Rep_Prod_inverse [symmetric, THEN trans])
+  apply (erule arg_cong)
   done
+
+lemma PairE [cases type: *]:
+  obtains x y where "p = (x, y)"
+  using surj_pair [of p] by blast
+
+
+lemma prod_induct [induct type: *]: "(\<And>a b. P (a, b)) \<Longrightarrow> P x"
+  by (cases x) simp
+
+lemma ProdI: "Pair_Rep a b \<in> Prod"
+  unfolding Prod_def by rule+
+
+lemma Pair_Rep_inject: "Pair_Rep a b = Pair_Rep a' b' \<Longrightarrow> a = a' \<and> b = b'"
+  unfolding Pair_Rep_def by (drule fun_cong, drule fun_cong) blast
 
 lemma inj_on_Abs_Prod: "inj_on Abs_Prod Prod"
   apply (rule inj_on_inverseI)
@@ -265,42 +285,23 @@ lemma fst_conv [simp, code]: "fst (a, b) = a"
 lemma snd_conv [simp, code]: "snd (a, b) = b"
   unfolding snd_def by blast
 
+rep_datatype prod
+  inject Pair_eq
+  induction prod_induct
+
+
+subsubsection {* Basic rules and proof tools *}
+
 lemma fst_eqD: "fst (x, y) = a ==> x = a"
   by simp
 
 lemma snd_eqD: "snd (x, y) = a ==> y = a"
   by simp
 
-lemma PairE_lemma: "EX x y. p = (x, y)"
-  apply (unfold Pair_def)
-  apply (rule Rep_Prod [unfolded Prod_def, THEN CollectE])
-  apply (erule exE, erule exE, rule exI, rule exI)
-  apply (rule Rep_Prod_inverse [symmetric, THEN trans])
-  apply (erule arg_cong)
-  done
-
-lemma PairE [cases type: *]: "(!!x y. p = (x, y) ==> Q) ==> Q"
-  using PairE_lemma [of p] by blast
-
-ML {*
-  local val PairE = thm "PairE" in
-    fun pair_tac s =
-      EVERY' [res_inst_tac [("p", s)] PairE, hyp_subst_tac, K prune_params_tac];
-  end;
-*}
-
-lemma surjective_pairing: "p = (fst p, snd p)"
-  -- {* Do not add as rewrite rule: invalidates some proofs in IMP *}
+lemma pair_collapse [simp]: "(fst p, snd p) = p"
   by (cases p) simp
 
-lemmas pair_collapse = surjective_pairing [symmetric]
-declare pair_collapse [simp]
-
-lemma surj_pair [simp]: "EX x y. z = (x, y)"
-  apply (rule exI)
-  apply (rule exI)
-  apply (rule surjective_pairing)
-  done
+lemmas surjective_pairing = pair_collapse [symmetric]
 
 lemma split_paired_all: "(!!x. PROP P x) == (!!a b. PROP P (a, b))"
 proof
@@ -313,8 +314,6 @@ next
   from `PROP P (fst x, snd x)` show "PROP P x" by simp
 qed
 
-lemmas split_tupled_all = split_paired_all unit_all_eq2
-
 text {*
   The rule @{thm [source] split_paired_all} does not work with the
   Simplifier because it also affects premises in congrence rules,
@@ -322,7 +321,9 @@ text {*
   ?P(a, b)"} which cannot be solved by reflexivity.
 *}
 
-ML {*
+lemmas split_tupled_all = split_paired_all unit_all_eq2
+
+ML_setup {*
   (* replace parameters of product type by individual component parameters *)
   val safe_full_simp_tac = generic_simp_tac true (true, false, false);
   local (* filtering with exists_paired_all is an essential optimization *)
@@ -352,70 +353,70 @@ lemma split_paired_All [simp]: "(ALL x. P x) = (ALL a b. P (a, b))"
   -- {* @{text "[iff]"} is not a good idea because it makes @{text blast} loop *}
   by fast
 
+lemma split_paired_Ex [simp]: "(EX x. P x) = (EX a b. P (a, b))"
+  by fast
+
+lemma Pair_fst_snd_eq: "s = t \<longleftrightarrow> fst s = fst t \<and> snd s = snd t"
+  by (cases s, cases t) simp
+
+lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longrightarrow> p = q"
+  by (simp add: Pair_fst_snd_eq)
+
+
+subsubsection {* @{text split} and @{text curry} *}
+
+lemma split_conv [simp, code func]: "split f (a, b) = f a b"
+  by (simp add: split_def)
+
+lemma curry_conv [simp, code func]: "curry f a b = f (a, b)"
+  by (simp add: curry_def)
+
+lemmas split = split_conv  -- {* for backwards compatibility *}
+
+lemma splitI: "f a b \<Longrightarrow> split f (a, b)"
+  by (rule split_conv [THEN iffD2])
+
+lemma splitD: "split f (a, b) \<Longrightarrow> f a b"
+  by (rule split_conv [THEN iffD1])
+
+lemma curryI [intro!]: "f (a, b) \<Longrightarrow> curry f a b"
+  by (simp add: curry_def)
+
+lemma curryD [dest!]: "curry f a b \<Longrightarrow> f (a, b)"
+  by (simp add: curry_def)
+
+lemma curryE: "curry f a b \<Longrightarrow> (f (a, b) \<Longrightarrow> Q) \<Longrightarrow> Q"
+  by (simp add: curry_def)
+
 lemma curry_split [simp]: "curry (split f) = f"
   by (simp add: curry_def split_def)
 
 lemma split_curry [simp]: "split (curry f) = f"
   by (simp add: curry_def split_def)
 
-lemma curryI [intro!]: "f (a,b) ==> curry f a b"
-  by (simp add: curry_def)
+lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
+  by (simp add: split_def id_def)
 
-lemma curryD [dest!]: "curry f a b ==> f (a,b)"
-  by (simp add: curry_def)
-
-lemma curryE: "[| curry f a b ; f (a,b) ==> Q |] ==> Q"
-  by (simp add: curry_def)
-
-lemma curry_conv [simp, code func]: "curry f a b = f (a,b)"
-  by (simp add: curry_def)
-
-lemma prod_induct [induct type: *]: "!!x. (!!a b. P (a, b)) ==> P x"
-  by fast
-
-rep_datatype prod
-  inject Pair_eq
-  induction prod_induct
-
-lemma split_paired_Ex [simp]: "(EX x. P x) = (EX a b. P (a, b))"
-  by fast
-
-lemma split_conv [simp, code func]: "split c (a, b) = c a b"
-  by (simp add: split_def)
-
-lemmas split = split_conv  -- {* for backwards compatibility *}
-
-lemmas splitI = split_conv [THEN iffD2, standard]
-lemmas splitD = split_conv [THEN iffD1, standard]
-
-lemma split_Pair_apply: "split (%x y. f (x, y)) = f"
+lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
   -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity function. *}
-  apply (rule ext)
-  apply (tactic {* pair_tac "x" 1 *}, simp)
-  done
+  by (rule ext) auto
+
+lemma split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
+  by (cases x) simp
+
+lemma split_twice: "split f (split g p) = split (\<lambda>x y. split f (g x y)) p"
+  unfolding split_def ..
 
 lemma split_paired_The: "(THE x. P x) = (THE (a, b). P (a, b))"
   -- {* Can't be added to simpset: loops! *}
-  by (simp add: split_Pair_apply)
+  by (simp add: split_eta)
 
 lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
   by (simp add: split_def)
 
-lemma Pair_fst_snd_eq: "!!s t. (s = t) = (fst s = fst t & snd s = snd t)"
-by (simp only: split_tupled_all, simp)
-
-lemma prod_eqI [intro?]: "fst p = fst q ==> snd p = snd q ==> p = q"
-  by (simp add: Pair_fst_snd_eq)
-
-lemma split_weak_cong: "p = q ==> split c p = split c q"
+lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
   -- {* Prevents simplification of @{term c}: much faster *}
   by (erule arg_cong)
-
-lemma split_eta: "(%(x, y). f (x, y)) = f"
-  apply (rule ext)
-  apply (simp only: split_tupled_all)
-  apply (rule split_conv)
-  done
 
 lemma cond_split_eta: "(!!x y. f x y = g (x, y)) ==> (%(x, y). f x y) = g"
   by (simp add: split_eta)
@@ -425,7 +426,8 @@ text {*
   @{thm [source] split_eta} as a rewrite rule is not general enough,
   and using @{thm [source] cond_split_eta} directly would render some
   existing proofs very inefficient; similarly for @{text
-  split_beta}. *}
+  split_beta}.
+*}
 
 ML_setup {*
 
@@ -581,6 +583,11 @@ lemma split_comp_eq:
   shows "(%u. f (g (fst u)) (snd u)) = (split (%x. f (g x)))"
   by (rule ext) auto
 
+lemma pair_imageI [intro]: "(a, b) : A ==> f a b : (%(a, b). f a b) ` A"
+  apply (rule_tac x = "(a, b)" in image_eqI)
+   apply auto
+  done
+
 lemma The_split_eq [simp]: "(THE (x',y'). x = x' & y = y') = (x, y)"
   by blast
 
@@ -596,192 +603,6 @@ by (split_all_tac 1)
 by (Asm_full_simp_tac 1)
 qed "The_split_eq";
 *)
-
-lemma injective_fst_snd: "!!x y. [|fst x = fst y; snd x = snd y|] ==> x = y"
-  by auto
-
-
-text {*
-  \bigskip @{term prod_fun} --- action of the product functor upon
-  functions.
-*}
-
-lemma prod_fun [simp, code func]: "prod_fun f g (a, b) = (f a, g b)"
-  by (simp add: prod_fun_def)
-
-lemma prod_fun_compose: "prod_fun (f1 o f2) (g1 o g2) = (prod_fun f1 g1 o prod_fun f2 g2)"
-  apply (rule ext)
-  apply (tactic {* pair_tac "x" 1 *}, simp)
-  done
-
-lemma prod_fun_ident [simp]: "prod_fun (%x. x) (%y. y) = (%z. z)"
-  apply (rule ext)
-  apply (tactic {* pair_tac "z" 1 *}, simp)
-  done
-
-lemma prod_fun_imageI [intro]: "(a, b) : r ==> (f a, g b) : prod_fun f g ` r"
-  apply (rule image_eqI)
-  apply (rule prod_fun [symmetric], assumption)
-  done
-
-lemma prod_fun_imageE [elim!]:
-  assumes major: "c: (prod_fun f g)`r"
-    and cases: "!!x y. [| c=(f(x),g(y));  (x,y):r |] ==> P"
-  shows P
-  apply (rule major [THEN imageE])
-  apply (rule_tac p = x in PairE)
-  apply (rule cases)
-   apply (blast intro: prod_fun)
-  apply blast
-  done
-
-
-definition
-  upd_fst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b"
-where
-  [code func del]: "upd_fst f = prod_fun f id"
-
-definition
-  upd_snd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c"
-where
-  [code func del]: "upd_snd f = prod_fun id f"
-
-lemma upd_fst_conv [simp, code]:
-  "upd_fst f (x, y) = (f x, y)" 
-  by (simp add: upd_fst_def)
-
-lemma upd_snd_conv [simp, code]:
-  "upd_snd f (x, y) = (x, f y)" 
-  by (simp add: upd_snd_def)
-
-text {*
-  \bigskip Disjoint union of a family of sets -- Sigma.
-*}
-
-lemma SigmaI [intro!]: "[| a:A;  b:B(a) |] ==> (a,b) : Sigma A B"
-  by (unfold Sigma_def) blast
-
-lemma SigmaE [elim!]:
-    "[| c: Sigma A B;
-        !!x y.[| x:A;  y:B(x);  c=(x,y) |] ==> P
-     |] ==> P"
-  -- {* The general elimination rule. *}
-  by (unfold Sigma_def) blast
-
-text {*
-  Elimination of @{term "(a, b) : A \<times> B"} -- introduces no
-  eigenvariables.
-*}
-
-lemma SigmaD1: "(a, b) : Sigma A B ==> a : A"
-  by blast
-
-lemma SigmaD2: "(a, b) : Sigma A B ==> b : B a"
-  by blast
-
-lemma SigmaE2:
-    "[| (a, b) : Sigma A B;
-        [| a:A;  b:B(a) |] ==> P
-     |] ==> P"
-  by blast
-
-lemma Sigma_cong:
-     "\<lbrakk>A = B; !!x. x \<in> B \<Longrightarrow> C x = D x\<rbrakk>
-      \<Longrightarrow> (SIGMA x: A. C x) = (SIGMA x: B. D x)"
-  by auto
-
-lemma Sigma_mono: "[| A <= C; !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D"
-  by blast
-
-lemma Sigma_empty1 [simp]: "Sigma {} B = {}"
-  by blast
-
-lemma Sigma_empty2 [simp]: "A <*> {} = {}"
-  by blast
-
-lemma UNIV_Times_UNIV [simp]: "UNIV <*> UNIV = UNIV"
-  by auto
-
-lemma Compl_Times_UNIV1 [simp]: "- (UNIV <*> A) = UNIV <*> (-A)"
-  by auto
-
-lemma Compl_Times_UNIV2 [simp]: "- (A <*> UNIV) = (-A) <*> UNIV"
-  by auto
-
-lemma mem_Sigma_iff [iff]: "((a,b): Sigma A B) = (a:A & b:B(a))"
-  by blast
-
-lemma Times_subset_cancel2: "x:C ==> (A <*> C <= B <*> C) = (A <= B)"
-  by blast
-
-lemma Times_eq_cancel2: "x:C ==> (A <*> C = B <*> C) = (A = B)"
-  by (blast elim: equalityE)
-
-lemma SetCompr_Sigma_eq:
-    "Collect (split (%x y. P x & Q x y)) = (SIGMA x:Collect P. Collect (Q x))"
-  by blast
-
-text {*
-  \bigskip Complex rules for Sigma.
-*}
-
-lemma Collect_split [simp]: "{(a,b). P a & Q b} = Collect P <*> Collect Q"
-  by blast
-
-lemma UN_Times_distrib:
-  "(UN (a,b):(A <*> B). E a <*> F b) = (UNION A E) <*> (UNION B F)"
-  -- {* Suggested by Pierre Chartier *}
-  by blast
-
-lemma split_paired_Ball_Sigma [simp,noatp]:
-    "(ALL z: Sigma A B. P z) = (ALL x:A. ALL y: B x. P(x,y))"
-  by blast
-
-lemma split_paired_Bex_Sigma [simp,noatp]:
-    "(EX z: Sigma A B. P z) = (EX x:A. EX y: B x. P(x,y))"
-  by blast
-
-lemma Sigma_Un_distrib1: "(SIGMA i:I Un J. C(i)) = (SIGMA i:I. C(i)) Un (SIGMA j:J. C(j))"
-  by blast
-
-lemma Sigma_Un_distrib2: "(SIGMA i:I. A(i) Un B(i)) = (SIGMA i:I. A(i)) Un (SIGMA i:I. B(i))"
-  by blast
-
-lemma Sigma_Int_distrib1: "(SIGMA i:I Int J. C(i)) = (SIGMA i:I. C(i)) Int (SIGMA j:J. C(j))"
-  by blast
-
-lemma Sigma_Int_distrib2: "(SIGMA i:I. A(i) Int B(i)) = (SIGMA i:I. A(i)) Int (SIGMA i:I. B(i))"
-  by blast
-
-lemma Sigma_Diff_distrib1: "(SIGMA i:I - J. C(i)) = (SIGMA i:I. C(i)) - (SIGMA j:J. C(j))"
-  by blast
-
-lemma Sigma_Diff_distrib2: "(SIGMA i:I. A(i) - B(i)) = (SIGMA i:I. A(i)) - (SIGMA i:I. B(i))"
-  by blast
-
-lemma Sigma_Union: "Sigma (Union X) B = (UN A:X. Sigma A B)"
-  by blast
-
-text {*
-  Non-dependent versions are needed to avoid the need for higher-order
-  matching, especially when the rules are re-oriented.
-*}
-
-lemma Times_Un_distrib1: "(A Un B) <*> C = (A <*> C) Un (B <*> C)"
-  by blast
-
-lemma Times_Int_distrib1: "(A Int B) <*> C = (A <*> C) Int (B <*> C)"
-  by blast
-
-lemma Times_Diff_distrib1: "(A - B) <*> C = (A <*> C) - (B <*> C)"
-  by blast
-
-
-lemma pair_imageI [intro]: "(a, b) : A ==> f a b : (%(a, b). f a b) ` A"
-  apply (rule_tac x = "(a, b)" in image_eqI)
-   apply auto
-  done
-
 
 text {*
   Setup of internal @{text split_rule}.
@@ -799,8 +620,6 @@ hide const internal_split
 
 use "Tools/split_rule.ML"
 setup SplitRule.setup
-
-
 
 lemmas prod_caseI = prod.cases [THEN iffD2, standard]
 
@@ -874,45 +693,234 @@ lemma prod_induct7 [case_names fields, induct type]:
   by (cases x) blast
 
 
-subsection {* Further lemmas *}
+subsubsection {* Derived operations *}
 
-lemma
-  split_Pair: "split Pair x = x"
-  unfolding split_def by auto
+text {*
+  The composition-uncurry combinator.
+*}
 
-lemma
-  split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
-  by (cases x, simp)
+definition
+  mbind :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "o->" 60)
+where
+  "f o-> g = (\<lambda>x. split g (f x))"
+
+notation (xsymbols)
+  mbind  (infixl "\<circ>\<rightarrow>" 60)
+
+notation (HTML output)
+  mbind  (infixl "\<circ>\<rightarrow>" 60)
+
+lemma mbind_apply:  "(f \<circ>\<rightarrow> g) x = split g (f x)"
+  by (simp add: mbind_def)
+
+lemma Pair_mbind: "Pair x \<circ>\<rightarrow> f = f x"
+  by (simp add: expand_fun_eq mbind_apply)
+
+lemma mbind_Pair: "x \<circ>\<rightarrow> Pair = x"
+  by (simp add: expand_fun_eq mbind_apply)
+
+lemma mbind_mbind: "(f \<circ>\<rightarrow> g) \<circ>\<rightarrow> h = f \<circ>\<rightarrow> (\<lambda>x. g x \<circ>\<rightarrow> h)"
+  by (simp add: expand_fun_eq split_twice mbind_def)
+
+lemma mbind_fcomp: "(f \<circ>\<rightarrow> g) \<circ>> h = f \<circ>\<rightarrow> (\<lambda>x. g x \<circ>> h)"
+  by (simp add: expand_fun_eq mbind_apply fcomp_def split_def)
+
+lemma fcomp_mbind: "(f \<circ>> g) \<circ>\<rightarrow> h = f \<circ>> (g \<circ>\<rightarrow> h)"
+  by (simp add: expand_fun_eq mbind_apply fcomp_apply)
 
 
-subsection {* Code generator setup *}
+text {*
+  @{term prod_fun} --- action of the product functor upon
+  functions.
+*}
 
-instance unit :: eq ..
+definition prod_fun :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd" where
+  [code func del]: "prod_fun f g = (\<lambda>(x, y). (f x, g y))"
 
-lemma [code func]:
-  "(u\<Colon>unit) = v \<longleftrightarrow> True" unfolding unit_eq [of u] unit_eq [of v] by rule+
+lemma prod_fun [simp, code func]: "prod_fun f g (a, b) = (f a, g b)"
+  by (simp add: prod_fun_def)
 
-code_type unit
-  (SML "unit")
-  (OCaml "unit")
-  (Haskell "()")
+lemma prod_fun_compose: "prod_fun (f1 o f2) (g1 o g2) = (prod_fun f1 g1 o prod_fun f2 g2)"
+  by (rule ext) auto
 
-code_instance unit :: eq
-  (Haskell -)
+lemma prod_fun_ident [simp]: "prod_fun (%x. x) (%y. y) = (%z. z)"
+  by (rule ext) auto
 
-code_const "op = \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
+lemma prod_fun_imageI [intro]: "(a, b) : r ==> (f a, g b) : prod_fun f g ` r"
+  apply (rule image_eqI)
+  apply (rule prod_fun [symmetric], assumption)
+  done
 
-code_const Unity
-  (SML "()")
-  (OCaml "()")
-  (Haskell "()")
+lemma prod_fun_imageE [elim!]:
+  assumes major: "c: (prod_fun f g)`r"
+    and cases: "!!x y. [| c=(f(x),g(y));  (x,y):r |] ==> P"
+  shows P
+  apply (rule major [THEN imageE])
+  apply (rule_tac p = x in PairE)
+  apply (rule cases)
+   apply (blast intro: prod_fun)
+  apply blast
+  done
 
-code_reserved SML
-  unit
+definition
+  apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b"
+where
+  [code func del]: "apfst f = prod_fun f id"
 
-code_reserved OCaml
-  unit
+definition
+  apsnd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c"
+where
+  [code func del]: "apsnd f = prod_fun id f"
+
+lemma apfst_conv [simp, code]:
+  "apfst f (x, y) = (f x, y)" 
+  by (simp add: apfst_def)
+
+lemma upd_snd_conv [simp, code]:
+  "apsnd f (x, y) = (x, f y)" 
+  by (simp add: apsnd_def)
+
+
+text {*
+  Disjoint union of a family of sets -- Sigma.
+*}
+
+definition  Sigma :: "['a set, 'a => 'b set] => ('a \<times> 'b) set" where
+  Sigma_def: "Sigma A B == UN x:A. UN y:B x. {Pair x y}"
+
+abbreviation
+  Times :: "['a set, 'b set] => ('a * 'b) set"
+    (infixr "<*>" 80) where
+  "A <*> B == Sigma A (%_. B)"
+
+notation (xsymbols)
+  Times  (infixr "\<times>" 80)
+
+notation (HTML output)
+  Times  (infixr "\<times>" 80)
+
+syntax
+  "@Sigma" ::"[pttrn, 'a set, 'b set] => ('a * 'b) set" ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
+
+translations
+  "SIGMA x:A. B" == "Product_Type.Sigma A (%x. B)"
+
+lemma SigmaI [intro!]: "[| a:A;  b:B(a) |] ==> (a,b) : Sigma A B"
+  by (unfold Sigma_def) blast
+
+lemma SigmaE [elim!]:
+    "[| c: Sigma A B;
+        !!x y.[| x:A;  y:B(x);  c=(x,y) |] ==> P
+     |] ==> P"
+  -- {* The general elimination rule. *}
+  by (unfold Sigma_def) blast
+
+text {*
+  Elimination of @{term "(a, b) : A \<times> B"} -- introduces no
+  eigenvariables.
+*}
+
+lemma SigmaD1: "(a, b) : Sigma A B ==> a : A"
+  by blast
+
+lemma SigmaD2: "(a, b) : Sigma A B ==> b : B a"
+  by blast
+
+lemma SigmaE2:
+    "[| (a, b) : Sigma A B;
+        [| a:A;  b:B(a) |] ==> P
+     |] ==> P"
+  by blast
+
+lemma Sigma_cong:
+     "\<lbrakk>A = B; !!x. x \<in> B \<Longrightarrow> C x = D x\<rbrakk>
+      \<Longrightarrow> (SIGMA x: A. C x) = (SIGMA x: B. D x)"
+  by auto
+
+lemma Sigma_mono: "[| A <= C; !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D"
+  by blast
+
+lemma Sigma_empty1 [simp]: "Sigma {} B = {}"
+  by blast
+
+lemma Sigma_empty2 [simp]: "A <*> {} = {}"
+  by blast
+
+lemma UNIV_Times_UNIV [simp]: "UNIV <*> UNIV = UNIV"
+  by auto
+
+lemma Compl_Times_UNIV1 [simp]: "- (UNIV <*> A) = UNIV <*> (-A)"
+  by auto
+
+lemma Compl_Times_UNIV2 [simp]: "- (A <*> UNIV) = (-A) <*> UNIV"
+  by auto
+
+lemma mem_Sigma_iff [iff]: "((a,b): Sigma A B) = (a:A & b:B(a))"
+  by blast
+
+lemma Times_subset_cancel2: "x:C ==> (A <*> C <= B <*> C) = (A <= B)"
+  by blast
+
+lemma Times_eq_cancel2: "x:C ==> (A <*> C = B <*> C) = (A = B)"
+  by (blast elim: equalityE)
+
+lemma SetCompr_Sigma_eq:
+    "Collect (split (%x y. P x & Q x y)) = (SIGMA x:Collect P. Collect (Q x))"
+  by blast
+
+lemma Collect_split [simp]: "{(a,b). P a & Q b} = Collect P <*> Collect Q"
+  by blast
+
+lemma UN_Times_distrib:
+  "(UN (a,b):(A <*> B). E a <*> F b) = (UNION A E) <*> (UNION B F)"
+  -- {* Suggested by Pierre Chartier *}
+  by blast
+
+lemma split_paired_Ball_Sigma [simp,noatp]:
+    "(ALL z: Sigma A B. P z) = (ALL x:A. ALL y: B x. P(x,y))"
+  by blast
+
+lemma split_paired_Bex_Sigma [simp,noatp]:
+    "(EX z: Sigma A B. P z) = (EX x:A. EX y: B x. P(x,y))"
+  by blast
+
+lemma Sigma_Un_distrib1: "(SIGMA i:I Un J. C(i)) = (SIGMA i:I. C(i)) Un (SIGMA j:J. C(j))"
+  by blast
+
+lemma Sigma_Un_distrib2: "(SIGMA i:I. A(i) Un B(i)) = (SIGMA i:I. A(i)) Un (SIGMA i:I. B(i))"
+  by blast
+
+lemma Sigma_Int_distrib1: "(SIGMA i:I Int J. C(i)) = (SIGMA i:I. C(i)) Int (SIGMA j:J. C(j))"
+  by blast
+
+lemma Sigma_Int_distrib2: "(SIGMA i:I. A(i) Int B(i)) = (SIGMA i:I. A(i)) Int (SIGMA i:I. B(i))"
+  by blast
+
+lemma Sigma_Diff_distrib1: "(SIGMA i:I - J. C(i)) = (SIGMA i:I. C(i)) - (SIGMA j:J. C(j))"
+  by blast
+
+lemma Sigma_Diff_distrib2: "(SIGMA i:I. A(i) - B(i)) = (SIGMA i:I. A(i)) - (SIGMA i:I. B(i))"
+  by blast
+
+lemma Sigma_Union: "Sigma (Union X) B = (UN A:X. Sigma A B)"
+  by blast
+
+text {*
+  Non-dependent versions are needed to avoid the need for higher-order
+  matching, especially when the rules are re-oriented.
+*}
+
+lemma Times_Un_distrib1: "(A Un B) <*> C = (A <*> C) Un (B <*> C)"
+  by blast
+
+lemma Times_Int_distrib1: "(A Int B) <*> C = (A <*> C) Int (B <*> C)"
+  by blast
+
+lemma Times_Diff_distrib1: "(A - B) <*> C = (A <*> C) - (B <*> C)"
+  by blast
+
+
+subsubsection {* Code generator setup *}
 
 instance * :: (eq, eq) eq ..
 
@@ -1044,12 +1052,10 @@ val Collect_split = thm "Collect_split";
 val Compl_Times_UNIV1 = thm "Compl_Times_UNIV1";
 val Compl_Times_UNIV2 = thm "Compl_Times_UNIV2";
 val PairE = thm "PairE";
-val PairE_lemma = thm "PairE_lemma";
 val Pair_Rep_inject = thm "Pair_Rep_inject";
 val Pair_def = thm "Pair_def";
 val Pair_eq = thm "Pair_eq";
 val Pair_fst_snd_eq = thm "Pair_fst_snd_eq";
-val Pair_inject = thm "Pair_inject";
 val ProdI = thm "ProdI";
 val SetCompr_Sigma_eq = thm "SetCompr_Sigma_eq";
 val SigmaD1 = thm "SigmaD1";
@@ -1084,7 +1090,6 @@ val fst_conv = thm "fst_conv";
 val fst_def = thm "fst_def";
 val fst_eqD = thm "fst_eqD";
 val inj_on_Abs_Prod = thm "inj_on_Abs_Prod";
-val injective_fst_snd = thm "injective_fst_snd";
 val mem_Sigma_iff = thm "mem_Sigma_iff";
 val mem_splitE = thm "mem_splitE";
 val mem_splitI = thm "mem_splitI";
@@ -1109,7 +1114,6 @@ val splitE2 = thm "splitE2";
 val splitI = thm "splitI";
 val splitI2 = thm "splitI2";
 val splitI2' = thm "splitI2'";
-val split_Pair_apply = thm "split_Pair_apply";
 val split_beta = thm "split_beta";
 val split_conv = thm "split_conv";
 val split_def = thm "split_def";
@@ -1133,7 +1137,6 @@ val unit_abs_eta_conv = thm "unit_abs_eta_conv";
 val unit_all_eq1 = thm "unit_all_eq1";
 val unit_all_eq2 = thm "unit_all_eq2";
 val unit_eq = thm "unit_eq";
-val unit_induct = thm "unit_induct";
 *}
 
 
