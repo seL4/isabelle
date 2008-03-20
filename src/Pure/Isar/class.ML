@@ -599,7 +599,7 @@ fun declare class pos ((c, mx), dict) thy =
     ||>> get_axiom
     |-> (fn (def, def') => class_interpretation class [def] [Thm.prop_of def]
       #> register_operation class (c', (dict', SOME (Thm.symmetric def')))
-      #> PureThy.note Thm.internalK (c, def')
+      #> PureThy.note Thm.internalK (c ^ "_raw", def')
       #> snd)
     |> Sign.restore_naming thy
     |> Sign.add_const_constraint (c', SOME ty')
@@ -716,17 +716,18 @@ fun init_instantiation (tycos, vs, sort) thy =
     val local_constraints = map (apsnd (subst_class_typ []) o snd) params;
     val pseudo_constraints = map (fn (_, (c, _)) => (c, class_of c)) params;
     val typ_of_sort = Type.typ_of_sort (Sign.classes_of thy);
-    val typarg = the_single o Sign.const_typargs thy;
+    val typargs = Sign.const_typargs thy;
     val pp = Sign.pp thy;
-    fun constrain_class (c, ty) class =
+    fun constrain_typ tys sorts ty =
       let
-        val ty' = typarg (c, ty);
-        val tyenv = typ_of_sort ty' [class] Vartab.empty
+        val tyenv = fold2 typ_of_sort tys sorts Vartab.empty
           handle Sorts.CLASS_ERROR e => Sorts.class_error pp e;
       in
         map_atyps (fn TVar (vi, _) => TVar (vi, the (Vartab.lookup tyenv vi))
           | ty => ty) ty
       end;
+    fun constrain_class (c, ty) class =
+      constrain_typ (typargs (c, ty)) [[class]] ty;
     fun improve_param (c, ty) = case AxClass.inst_tyco_of thy (c, ty)
      of SOME tyco => (case AList.lookup (op =) inst_params (c, tyco)
          of SOME (_, ty') => SOME (ty, ty')
