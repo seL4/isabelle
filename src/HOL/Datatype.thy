@@ -28,7 +28,6 @@ types 'a item        = "('a, unit) node set"
       ('a, 'b) dtree = "('a, 'b) node set"
 
 consts
-  apfst     :: "['a=>'c, 'a*'b] => 'c*'b"
   Push      :: "[('b + nat), nat => ('b + nat)] => (nat => ('b + nat))"
 
   Push_Node :: "[('b + nat), ('a, 'b) node] => ('a, 'b) node"
@@ -61,7 +60,6 @@ defs
   Push_Node_def:  "Push_Node == (%n x. Abs_Node (apfst (Push n) (Rep_Node x)))"
 
   (*crude "lists" of nats -- needed for the constructions*)
-  apfst_def:  "apfst == (%f (x,y). (f(x),y))"
   Push_def:   "Push == (%b h. nat_case b h)"
 
   (** operations on S-expressions -- sets of nodes **)
@@ -103,12 +101,6 @@ defs
   dsum_def:   "dsum r s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un
                           (UN (y,y'):s. {(In1(y),In1(y'))})"
 
-
-
-(** apfst -- can be used in similar type definitions **)
-
-lemma apfst_conv [simp, code]: "apfst f (a, b) = (f a, b)"
-by (simp add: apfst_def)
 
 
 lemma apfst_convE: 
