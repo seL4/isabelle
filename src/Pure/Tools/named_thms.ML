@@ -9,6 +9,8 @@ signature NAMED_THMS =
 sig
   val get: Proof.context -> thm list
   val pretty: Proof.context -> Pretty.T
+  val add_thm: thm -> Context.generic -> Context.generic
+  val del_thm: thm -> Context.generic -> Context.generic
   val add: attribute
   val del: attribute
   val setup: theory -> theory
@@ -30,8 +32,11 @@ val get = Data.get o Context.Proof;
 fun pretty ctxt =
   Pretty.big_list (description ^ ":") (map (ProofContext.pretty_thm ctxt) (get ctxt));
 
-val add = Thm.declaration_attribute (Data.map o Thm.add_thm);
-val del = Thm.declaration_attribute (Data.map o Thm.del_thm);
+val add_thm = Data.map o Thm.add_thm;
+val del_thm = Data.map o Thm.del_thm;
+
+val add = Thm.declaration_attribute add_thm;
+val del = Thm.declaration_attribute del_thm;
 
 val setup =
   Attrib.add_attributes [(name, Attrib.add_del_args add del, "declaration of " ^ description)];
