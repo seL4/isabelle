@@ -1,6 +1,6 @@
 (*  Title:      HOL/Library/Countable.thy
     ID:         $Id$
-    Author:     Tobias Nipkow
+    Author:     Alexander Krauss, TU Muenchen
 *)
 
 header {* Encoding (almost) everything into natural numbers *}
