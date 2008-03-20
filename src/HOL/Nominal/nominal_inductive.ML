@@ -605,9 +605,10 @@ fun prove_eqvt s xatoms thy =
          atoms)
       end;
     val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp";
-    val eqvt_ss = HOL_basic_ss addsimps
+    val eqvt_ss = Simplifier.theory_context thy HOL_basic_ss addsimps
       (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
-      [mk_perm_bool_simproc names];
+      [mk_perm_bool_simproc names,
+       NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
     val t = Logic.unvarify (concl_of raw_induct);
     val pi = Name.variant (add_term_names (t, [])) "pi";
     val ps = map (fst o HOLogic.dest_imp)
