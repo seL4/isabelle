@@ -44,6 +44,10 @@ situations.
 
 *** HOL ***
 
+* Theory Product_Type: duplicated lemmas split_Pair_apply and injective_fst_snd
+removed, use split_eta and prod_eqI instead.  Renamed upd_fst to apfst and upd_snd
+to apsnd.  INCOMPATIBILITY.
+
 * Theory Nat: removed redundant lemmas that merely duplicate lemmas of
 the same name in theory Orderings:
 
@@ -111,7 +115,7 @@ INCOMPATIBILITY.
 definition/function/....  No separate induction rule is provided.  The
 "primrec" command distinguishes old-style and new-style specifications
 by syntax.  The former primrec package is now named OldPrimrecPackage.
-When adjusting theories, beware: constants stemming for new-style
+When adjusting theories, beware: constants stemming from new-style
 primrec specifications have authentic syntax.
 
 * Library/Multiset: {#a, b, c#} abbreviates {#a#} + {#b#} + {#c#}.
@@ -1028,7 +1032,7 @@ numerals on all operations.
     includes Code_Integer.
   - Code_Index provides an additional datatype index which is mapped to
     target-language built-in integers.
-  - Code_Message provides an additional datatype message_string} which is isomorphic to
+  - Code_Message provides an additional datatype message_string which is isomorphic to
     strings; messages are mapped to target-language strings.
 
 * New package for inductive predicates
