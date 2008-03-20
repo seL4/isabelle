@@ -8,7 +8,7 @@
 header {* Procedure interface for RPC-Memory components *}
 
 theory ProcedureInterface
-imports TLA RPCMemoryParams
+imports "../TLA" RPCMemoryParams
 begin
 
 typedecl
