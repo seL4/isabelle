@@ -15,6 +15,7 @@ sig
   val named: string -> ref
   val string_of_ref: ref -> string
   val name_of_ref: ref -> string
+  val pos_of_ref: ref -> Position.T
   val map_name_of_ref: (string -> string) -> ref -> ref
   val select: ref -> thm list -> thm list
   val selections: string * thm list -> (ref * thm) list
@@ -69,8 +70,11 @@ datatype ref =
 
 fun named name = Named ((name, Position.none), NONE);
 
-fun name_of_ref (Named ((name, _), _)) = name
-  | name_of_ref (Fact _) = error "Illegal literal fact";
+fun name_pos_of_ref (Named (name_pos, _)) = name_pos
+  | name_pos_of_ref (Fact _) = error "Illegal literal fact";
+
+val name_of_ref = #1 o name_pos_of_ref;
+val pos_of_ref = #2 o name_pos_of_ref;
 
 fun map_name_of_ref f (Named ((name, pos), is)) = Named ((f name, pos), is)
   | map_name_of_ref _ r = r;
