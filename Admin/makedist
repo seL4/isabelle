@@ -10,7 +10,7 @@
 DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
 SRCS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents Tools ZF"
 
-export CVSROOT=/usr/proj/isabelle-repository/archive
+export CVSROOT=/home/isabelle-repository/archive
 [ ! -d "$CVSROOT" ] && CVSROOT="${ISABELLE_USER:-$USER}@atbroy100.informatik.tu-muenchen.de:$CVSROOT"
 
 umask 022
