@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
     ID:         $Id$
 
-Compatibility wrapper for Poly/ML 5.1/5.2.
+Compatibility wrapper for Poly/ML (after 5.1).
 *)
 
 use "ML-Systems/polyml_common.ML";
@@ -24,7 +24,7 @@ end;
 
 fun use_text (tune: string -> string) name (print, err) verbose txt =
   let
-    val in_buffer = ref (explode (tune txt));
+    val in_buffer = ref (String.explode (tune txt));
     val out_buffer = ref ([]: string list);
     fun output () = implode (rev (case ! out_buffer of "\n" :: cs => cs | cs => cs));
 
@@ -32,16 +32,17 @@ fun use_text (tune: string -> string) name (print, err) verbose txt =
     fun line () = ! line_no;
     fun get () =
       (case ! in_buffer of
-        [] => ""
-      | c :: cs => (in_buffer := cs; if c = "\n" then line_no := ! line_no + 1 else (); c));
+        [] => NONE
+      | c :: cs => (in_buffer := cs; if c = #"\n" then line_no := ! line_no + 1 else (); SOME c));
     fun put s = out_buffer := s :: ! out_buffer;
 
-    fun exec () =
-      (case ! in_buffer of
-        [] => ()
-      | _ => (PolyML.compilerEx (get, put, line, name) (); exec ()));
+    val _ =
+      (while not (List.null (! in_buffer)) do
+        PolyML.compiler
+          {getChar = get, putString = put, lineNumber = line, fileName = name,
+            nameSpace = PolyML.globalNameSpace} ())
+      handle exn => (err (output ()); raise exn);
   in
-    exec () handle exn => (err (output ()); raise exn);
     if verbose then print (output ()) else ()
   end;
 
@@ -50,3 +51,4 @@ fun use_file tune output verbose name =
     val instream = TextIO.openIn name;
     val txt = TextIO.inputAll instream before TextIO.closeIn instream;
   in use_text tune name output verbose txt end;
+
