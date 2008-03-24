@@ -110,7 +110,7 @@ fun install_pp (path, pp) = CompilerPPTable.install_pp path pp;
 
 (* ML command execution *)
 
-fun use_text (tune: string -> string) name (print, err) verbose txt =
+fun use_text (tune: string -> string) (line: int, name) (print, err) verbose txt =
   let
     val ref out_orig = Control.Print.out;
 
@@ -132,7 +132,7 @@ fun use_file tune output verbose name =
   let
     val instream = TextIO.openIn name;
     val txt = TextIO.inputAll instream before TextIO.closeIn instream;
-  in use_text tune name output verbose txt end;
+  in use_text tune (1, name) output verbose txt end;
 
 
 

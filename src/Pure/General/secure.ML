@@ -10,7 +10,7 @@ sig
   val set_secure: unit -> unit
   val is_secure: unit -> bool
   val deny_secure: string -> unit
-  val use_text: string -> (string -> unit) * (string -> 'a) -> bool -> string -> unit
+  val use_text: int * string -> (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use_file: (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use: string -> unit
   val commit: unit -> unit
@@ -41,8 +41,8 @@ fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 fun orig_use_text x = use_text ML_Parse.fix_ints x;
 fun orig_use_file x = use_file ML_Parse.fix_ints x;
 
-fun use_text name pr verbose txt =
-  (secure_mltext (); orig_use_text name pr verbose txt);
+fun use_text pos pr verbose txt =
+  (secure_mltext (); orig_use_text pos pr verbose txt);
 
 fun use_file pr verbose name =
   (secure_mltext (); orig_use_file pr verbose name);
@@ -50,7 +50,7 @@ fun use_file pr verbose name =
 fun use name = use_file Output.ml_output true name;
 
 (*commit is dynamically bound!*)
-fun commit () = orig_use_text "" Output.ml_output false "commit();";
+fun commit () = orig_use_text (0, "") Output.ml_output false "commit();";
 
 
 (* shell commands *)

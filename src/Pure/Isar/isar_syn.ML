@@ -307,41 +307,41 @@ val _ =
 
 val _ =
   OuterSyntax.command "ML" "eval ML text (diagnostic)" (K.tag_ml K.diag)
-    (P.text >> IsarCmd.use_mltext true);
+    (P.position P.text >> IsarCmd.use_mltext true);
 
 val _ =
   OuterSyntax.command "ML_command" "eval ML text" (K.tag_ml K.diag)
-    (P.text >> (Toplevel.no_timing oo IsarCmd.use_mltext false));
+    (P.position P.text >> (Toplevel.no_timing oo IsarCmd.use_mltext false));
 
 val _ =
   OuterSyntax.command "ML_setup" "eval ML text (may change theory)" (K.tag_ml K.thy_decl)
-    (P.text >> IsarCmd.use_mltext_theory);
+    (P.position P.text >> IsarCmd.use_mltext_theory);
 
 val _ =
   OuterSyntax.command "setup" "apply ML theory setup" (K.tag_ml K.thy_decl)
-    (Scan.option P.text >> (Toplevel.theory o IsarCmd.generic_setup));
+    (Scan.option (P.position P.text) >> (Toplevel.theory o IsarCmd.generic_setup));
 
 val _ =
   OuterSyntax.command "method_setup" "define proof method in ML" (K.tag_ml K.thy_decl)
-    (((P.name -- P.!!! (P.$$$ "=" |-- P.text -- P.text) >> P.triple2))
-      >> (Toplevel.theory o Method.method_setup));
+    (P.name -- P.!!! (P.$$$ "=" |-- P.position P.text -- P.text)
+    >> (fn (name, (txt, cmt)) => Toplevel.theory (Method.method_setup name txt cmt)));
 
 val _ =
   OuterSyntax.command "declaration" "generic ML declaration" (K.tag_ml K.thy_decl)
-    (P.opt_target -- P.text
+    (P.opt_target -- P.position P.text
     >> (fn (loc, txt) => Toplevel.local_theory loc (IsarCmd.declaration txt)));
 
 val _ =
   OuterSyntax.command "simproc_setup" "define simproc in ML" (K.tag_ml K.thy_decl)
     (P.opt_target --
-      P.name -- (P.$$$ "(" |-- P.enum1 "|" P.term --| P.$$$ ")" --| P.$$$ "=") -- P.text --
-      Scan.optional (P.$$$ "identifier" |-- Scan.repeat1 P.xname) []
+      P.name -- (P.$$$ "(" |-- P.enum1 "|" P.term --| P.$$$ ")" --| P.$$$ "=") --
+      P.position P.text -- Scan.optional (P.$$$ "identifier" |-- Scan.repeat1 P.xname) []
     >> (fn ((((loc, a), b), c), d) => Toplevel.local_theory loc (IsarCmd.simproc_setup a b c d)));
 
 
 (* translation functions *)
 
-val trfun = P.opt_keyword "advanced" -- P.text;
+val trfun = P.opt_keyword "advanced" -- P.position P.text;
 
 val _ =
   OuterSyntax.command "parse_ast_translation" "install parse ast translation functions"
@@ -371,7 +371,7 @@ val _ =
 val _ =
   OuterSyntax.command "token_translation" "install token translation functions"
     (K.tag_ml K.thy_decl)
-    (P.text >> (Toplevel.theory o IsarCmd.token_translation));
+    (P.position P.text >> (Toplevel.theory o IsarCmd.token_translation));
 
 
 (* oracles *)
@@ -379,7 +379,7 @@ val _ =
 val _ =
   OuterSyntax.command "oracle" "declare oracle" (K.tag_ml K.thy_decl)
     (P.name -- (P.$$$ "(" |-- P.text --| P.$$$ ")" --| P.$$$ "=")
-      -- P.text >> (fn ((x, y), z) => Toplevel.theory (IsarCmd.oracle x y z)));
+      -- P.position P.text >> (fn ((x, y), z) => Toplevel.theory (IsarCmd.oracle x y z)));
 
 
 (* local theories *)

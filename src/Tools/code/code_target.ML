@@ -1093,7 +1093,7 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms includes ra
 fun isar_seri_sml module file =
   let
     val output = case file
-     of NONE => use_text "generated code" Output.ml_output false o code_output
+     of NONE => use_text (1, "generated code") Output.ml_output false o code_output
       | SOME "-" => PrintMode.setmp [] writeln o code_output
       | SOME file => File.write (Path.explode file) o code_output;
   in

@@ -31,11 +31,11 @@ sig
     (Context.generic * Args.T list -> (string * string) * (Context.generic * Args.T list)) -> unit
   val proj_value_antiq: string -> (Context.generic * Args.T list ->
       (string * string * string) * (Context.generic * Args.T list)) -> unit
-  val eval_antiquotes_fn: (string -> string * string) ref  (* FIXME tmp *)
+  val eval_antiquotes_fn: (string * Position.T -> string * string) ref  (* FIXME tmp *)
   val trace: bool ref
-  val use_mltext: string -> bool -> Context.generic option -> unit
-  val use_mltext_update: string -> bool -> Context.generic -> Context.generic
-  val use_let: string -> string -> string -> Context.generic -> Context.generic
+  val use_mltext: bool -> Position.T -> string -> Context.generic option -> unit
+  val use_mltext_update: bool -> Position.T -> string -> Context.generic -> Context.generic
+  val use_let: Position.T -> string -> string -> string -> Context.generic -> Context.generic
   val use: Path.T -> unit
   val evaluate: (string -> unit) * (string -> 'b) -> bool ->
     string * (unit -> 'a) option ref -> string -> 'a
@@ -141,9 +141,9 @@ local
 val isabelle_struct = enclose "structure Isabelle =\nstruct\n" "end;";
 val isabelle_struct0 = isabelle_struct "";
 
-fun eval_antiquotes txt =
+fun eval_antiquotes txt_pos =
   let
-    val ants = Antiquote.scan_antiquotes (txt, Position.line 1);
+    val ants = Antiquote.scan_antiquotes txt_pos;
 
     fun expand (Antiquote.Text s) names = (("", Symbol.escape s), names)
       | expand (Antiquote.Antiq x) names =
@@ -170,49 +170,50 @@ val eval_antiquotes_fn = ref eval_antiquotes;
 
 val trace = ref false;
 
-fun eval_wrapper name pr verbose txt =
+fun eval_wrapper pr verbose pos txt =
   let
-    val (txt1, txt2) = ! eval_antiquotes_fn txt;  (* FIXME tmp hook *)
+    val (txt1, txt2) = ! eval_antiquotes_fn (txt, pos);  (* FIXME tmp hook *)
     val _ = if ! trace then tracing (cat_lines [txt1, txt2]) else ();
-    fun eval nm = use_text nm pr;
+    fun eval p =
+      use_text (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p)) pr;
   in
     NAMED_CRITICAL "ML" (fn () =>
-      (eval "" false txt1; eval name verbose txt2; eval "" false isabelle_struct0))
+     (eval Position.none false txt1;
+      eval pos verbose txt2;
+      eval Position.none false isabelle_struct0))
   end;
-
-fun ML_wrapper pr = eval_wrapper "ML" pr;
 
 end;
 
 
 (* ML evaluation *)
 
-fun use_mltext txt verbose opt_context =
-  setmp opt_context (fn () => ML_wrapper Output.ml_output verbose txt) ();
+fun use_mltext verbose pos txt opt_context =
+  setmp opt_context (fn () => eval_wrapper Output.ml_output verbose pos txt) ();
 
-fun use_mltext_update txt verbose context =
-  #2 (pass_context context (fn () => ML_wrapper Output.ml_output verbose txt) ());
+fun use_mltext_update verbose pos txt context =
+  #2 (pass_context context (fn () => eval_wrapper Output.ml_output verbose pos txt) ());
 
-fun use_context txt = use_mltext_update
-  ("ML_Context.set_context (SOME ((" ^ txt ^ ") (ML_Context.the_generic_context ())));") false;
+fun use_let pos bind body txt =
+  use_mltext_update false pos
+    ("ML_Context.set_context (SOME (let " ^ bind ^ " = " ^ txt ^ " in " ^ body ^
+      " end (ML_Context.the_generic_context ())));");
 
-fun use_let bind body txt =
-  use_context ("let " ^ bind ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
-
-fun use path = eval_wrapper (Path.implode path) Output.ml_output true (File.read path);
+fun use path = eval_wrapper Output.ml_output true (Position.path path) (File.read path);
 
 fun evaluate pr verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
   let
     val _ = r := NONE;
-    val _ = ML_wrapper pr verbose ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))");
+    val _ = eval_wrapper pr verbose Position.none
+      ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))");
   in (case ! r of NONE => error ("Bad evaluation for " ^ ref_name) | SOME e => e) end) ();
 
 
 (* basic antiquotations *)
 
-local
-
 fun context x = (Scan.state >> Context.proof_of) x;
+
+local
 
 val _ = value_antiq "context" (Scan.succeed ("context", "ML_Context.the_local_context ()"));
 
@@ -243,7 +244,7 @@ fun type_ syn = (context -- Scan.lift Args.name >> (fn (ctxt, c) =>
 val _ = inline_antiq "type_name" (type_ false);
 val _ = inline_antiq "type_syntax" (type_ true);
 
-fun const syn = (Scan.state >> Context.proof_of) -- Scan.lift Args.name >> (fn (ctxt, c) =>
+fun const syn = context -- Scan.lift Args.name >> (fn (ctxt, c) =>
   #1 (Term.dest_Const (ProofContext.read_const_proper ctxt c))
   |> syn ? ProofContext.const_syntax_name ctxt
   |> ML_Syntax.print_string);
@@ -252,7 +253,7 @@ val _ = inline_antiq "const_name" (const false);
 val _ = inline_antiq "const_syntax" (const true);
 
 val _ = inline_antiq "const"
-  ((Scan.state >> Context.proof_of) -- Scan.lift Args.name --
+  (context -- Scan.lift Args.name --
     Scan.optional (Scan.lift (Args.$$$ "(") |-- Args.enum1 "," Args.typ --| Scan.lift (Args.$$$ ")")) []
     >> (fn ((ctxt, c), Ts) =>
       let
@@ -276,8 +277,7 @@ fun print_interval (Facts.FromTo arg) =
   | print_interval (Facts.Single i) = "Facts.Single " ^ ML_Syntax.print_int i;
 
 fun thm_antiq kind get get_name = value_antiq kind
-  ((Scan.state >> Context.proof_of) --
-    Scan.lift (Args.position Args.name -- Scan.option Args.thm_sel)
+  (context -- Scan.lift (Args.position Args.name -- Scan.option Args.thm_sel)
   >> (fn (ctxt, ((name, pos), sel)) =>
       let
         val _ = get ctxt (Facts.Named ((name, pos), sel));

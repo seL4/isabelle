@@ -52,7 +52,7 @@ sig
   val frule: int -> thm list -> method
   val iprover_tac: Proof.context -> int option -> int -> tactic
   val set_tactic: (Proof.context -> thm list -> tactic) -> unit
-  val tactic: string -> Proof.context -> method
+  val tactic: string * Position.T -> Proof.context -> method
   type src
   datatype text =
     Basic of (Proof.context -> method) * Position.T |
@@ -76,7 +76,7 @@ sig
     -> theory -> theory
   val add_method: bstring * (src -> Proof.context -> method) * string
     -> theory -> theory
-  val method_setup: bstring * string * string -> theory -> theory
+  val method_setup: bstring -> string * Position.T -> string -> theory -> theory
   val syntax: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list))
     -> src -> Proof.context -> 'a * Proof.context
   val simple_args: (Args.T list -> 'a * Args.T list)
@@ -353,10 +353,10 @@ end;
 val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic);
 fun set_tactic f = tactic_ref := f;
 
-fun ml_tactic txt ctxt = NAMED_CRITICAL "ML" (fn () =>
-  (ML_Context.use_mltext
+fun ml_tactic (txt, pos) ctxt = NAMED_CRITICAL "ML" (fn () =>
+  (ML_Context.use_mltext false pos
     ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic =\n"
-      ^ txt ^ "\nin Method.set_tactic tactic end") false (SOME (Context.Proof ctxt));
+      ^ txt ^ "\nin Method.set_tactic tactic end") (SOME (Context.Proof ctxt));
     ML_Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt)));
 
 fun tactic txt ctxt = METHOD (ml_tactic txt ctxt);
@@ -446,8 +446,8 @@ val add_method = add_methods o Library.single;
 
 (* method_setup *)
 
-fun method_setup (name, txt, cmt) =
-  ML_Context.use_let
+fun method_setup name (txt, pos) cmt =
+  ML_Context.use_let pos
     "val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
     "Context.map_theory (Method.add_method method)"
     ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")")
@@ -577,8 +577,8 @@ val _ = Context.add_setup (add_methods
     "rename parameters of goal"),
   ("rotate_tac", goal_args (Scan.optional Args.int 1) Tactic.rotate_tac,
     "rotate assumptions of goal"),
-  ("tactic", simple_args Args.name tactic, "ML tactic as proof method"),
-  ("raw_tactic", simple_args Args.name raw_tactic, "ML tactic as raw proof method")]);
+  ("tactic", simple_args (Args.position Args.name) tactic, "ML tactic as proof method"),
+  ("raw_tactic", simple_args (Args.position Args.name) raw_tactic, "ML tactic as raw proof method")]);
 
 
 (* outer parser *)

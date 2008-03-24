@@ -501,8 +501,8 @@ fun ml_val txt = "fn _ => (" ^ txt ^ ");";
 fun ml_type txt = "val _ = NONE : (" ^ txt ^ ") option;";
 fun ml_struct txt = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;"
 
-fun output_ml ml src ctxt txt =
- (ML_Context.use_mltext (ml txt) false (SOME (Context.Proof ctxt));
+fun output_ml ml src ctxt (txt, pos) =
+ (ML_Context.use_mltext false pos (ml txt) (SOME (Context.Proof ctxt));
   (if ! source then str_of_source src else txt)
   |> (if ! quotes then quote else I)
   |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
@@ -531,8 +531,8 @@ val _ = add_commands
   ("prf", args Attrib.thms (output (pretty_prf false))),
   ("full_prf", args Attrib.thms (output (pretty_prf true))),
   ("theory", args (Scan.lift Args.name) (output pretty_theory)),
-  ("ML", args (Scan.lift Args.name) (output_ml ml_val)),
-  ("ML_type", args (Scan.lift Args.name) (output_ml ml_type)),
-  ("ML_struct", args (Scan.lift Args.name) (output_ml ml_struct))];
+  ("ML", args (Scan.lift (Args.position Args.name)) (output_ml ml_val)),
+  ("ML_type", args (Scan.lift (Args.position Args.name)) (output_ml ml_type)),
+  ("ML_struct", args (Scan.lift (Args.position Args.name)) (output_ml ml_struct))];
 
 end;
