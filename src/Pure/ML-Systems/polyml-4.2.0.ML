@@ -5,3 +5,7 @@ Compatibility wrapper for Poly/ML 4.2.0.
 *)
 
 use "ML-Systems/polyml_common.ML";
+use "ML-Systems/polyml_old_compiler4.ML";
+
+val pointer_eq = Address.wordEq;
+
