@@ -48,20 +48,17 @@ function fail()
 # make file flags and nice setup for different target platforms
 case $HOSTNAME in
     atbroy51)
-        # 2 processors
         MFLAGS="-j 2"
-        # MFLAGS=""
         NICE=""
         ;;
 
     atbroy98)
-	MFLAGS=""
-	NICE=""
-	;;
+        MFLAGS=""
+        NICE=""
+        ;;
 
     atbroy31)
-        # cluster
-        MFLAGS="-j 5"
+        MFLAGS="-j 2"
         ;;
   
     sunbroy2)
@@ -75,6 +72,11 @@ case $HOSTNAME in
         ;;
 
     macbroy5)
+        MFLAGS="-j 2"
+        NICE=""
+        ;;
+
+    macbroy2[0-9])
         MFLAGS="-j 2"
         NICE=""
         ;;
