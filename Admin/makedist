@@ -11,15 +11,25 @@ DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
 SRCS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents Tools ZF"
 
 export CVSROOT=/usr/proj/isabelle-repository/archive
-[ ! -d "$CVSROOT" ] && CVSROOT="${ISABELLE_USER:-$USER}@sunbroy2.informatik.tu-muenchen.de:$CVSROOT"
+[ ! -d "$CVSROOT" ] && CVSROOT="${ISABELLE_USER:-$USER}@atbroy100.informatik.tu-muenchen.de:$CVSROOT"
 
 umask 022
+
+
+## executables
 
 TAR=tar
 type -path gtar >/dev/null && TAR=gtar
 
 FIND=find
 type -path gfind >/dev/null && FIND=gfind
+
+[ -z "$CVS2CL" ] && type -path cvs2cl && CVS2CL=cvs2cl
+
+#paranoia setting for sunbroy
+PATH="/usr/local/dist/DIR/j2sdk1.5.0/bin:$PATH"
+
+PATH="/home/scala/bin:$PATH"
 
 
 ## diagnostics
@@ -47,7 +57,7 @@ Usage: $PRG VERSION [NAME]
     * Check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS.
     * Try "isatool makeall all" with Poly/ML, SML/NJ, etc.
     * Tag the current repository version, e.g.:
-        cvs -d /usr/proj/isabelle-repository/archive rtag IsabelleXXXX isabelle
+        cvs -d /home/isabelle-repository/archive rtag IsabelleXXXX isabelle
       PLEASE DO NOT DO THIS UNLESS YOU KNOW WHAT YOU ARE DOING!
 
    After running this script:
@@ -178,9 +188,6 @@ mv $SRCS src
 mv Distribution/* .
 rmdir Distribution
 
-
-#paranoia setting for sunbroy
-PATH=/usr/local/dist/DIR/j2sdk1.5.0/bin:$PATH
 
 ( cd lib/browser; make; ) || fail "Failed to build graph browser!"
 
