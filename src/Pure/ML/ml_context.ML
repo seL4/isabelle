@@ -275,19 +275,16 @@ fun print_interval (Facts.FromTo arg) =
   | print_interval (Facts.From i) = "Facts.From " ^ ML_Syntax.print_int i
   | print_interval (Facts.Single i) = "Facts.Single " ^ ML_Syntax.print_int i;
 
-fun print_named args =
-  "Facts.Named " ^
-    ML_Syntax.print_pair (ML_Syntax.print_pair ML_Syntax.print_string ML_Syntax.print_position)
-      (ML_Syntax.print_option (ML_Syntax.print_list print_interval)) args;
-
 fun thm_antiq kind get get_name = value_antiq kind
   ((Scan.state >> Context.proof_of) --
     Scan.lift (Args.position Args.name -- Scan.option Args.thm_sel)
-  >> (fn (ctxt, thmspec as ((name, _), _)) =>
+  >> (fn (ctxt, ((name, pos), sel)) =>
       let
-        val _ = get ctxt (Facts.Named thmspec);
-        val thmspec_txt = ML_Syntax.atomic (print_named thmspec);
-      in (name, get_name ^ " (ML_Context.the_local_context ()) " ^ thmspec_txt) end));
+        val _ = get ctxt (Facts.Named ((name, pos), sel));
+        val txt =
+          "(Facts.Named ((" ^ ML_Syntax.print_string name ^ ", Position.none), " ^
+            ML_Syntax.print_option (ML_Syntax.print_list print_interval) sel ^ "))";
+      in (name, get_name ^ " (ML_Context.the_local_context ()) " ^ txt) end));
 
 in
 
