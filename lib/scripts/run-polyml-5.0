@@ -76,13 +76,8 @@ else
   FEEDER_OPTS="-q"
 fi
 
-if [ "$PRG" = "$POLY" ]; then
-  "$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-    { read FPID; "$PRG" -q $ML_OPTIONS; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
-else
-  "$ISABELLE_HOME/lib/scripts/feeder" -p -t "$MLEXIT" $FEEDER_OPTS | \
-    { read FPID; "$PRG" -q $ML_OPTIONS "$MLTEXT"; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
-fi
+"$ISABELLE_HOME/lib/scripts/feeder" -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
+  { read FPID; "$PRG" -q $ML_OPTIONS; RC="$?"; kill -HUP "$FPID"; exit "$RC"; }
 RC="$?"
 
 if [ -n "$OUTFILE" ]; then
