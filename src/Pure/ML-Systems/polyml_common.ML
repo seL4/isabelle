@@ -23,12 +23,6 @@ PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
 
 
-(* String compatibility *)
-
-(*low-level pointer equality*)
-val pointer_eq = Address.wordEq;
-
-
 (* old Poly/ML emulation *)
 
 local
@@ -91,50 +85,6 @@ in
 end;
 
 
-(* ML command execution -- 'eval' *)
-
-fun use_text (tune: string -> string) name (print, err) verbose txt =
-  let
-    val in_buffer = ref (explode (tune txt));
-    val out_buffer = ref ([]: string list);
-    fun output () = implode (rev (case ! out_buffer of "\n" :: cs => cs | cs => cs));
-
-    fun get () =
-      (case ! in_buffer of
-        [] => ""
-      | c :: cs => (in_buffer := cs; c));
-    fun put s = out_buffer := s :: ! out_buffer;
-
-    fun exec () =
-      (case ! in_buffer of
-        [] => ()
-      | _ => (PolyML.compiler (get, put) (); exec ()));
-  in
-    exec () handle exn =>
-      (err ((if name = "" then "" else "Error in " ^ name ^ "\n") ^ output ()); raise exn);
-    if verbose then print (output ()) else ()
-  end;
-
-fun use_file tune output verbose name =
-  let
-    val instream = TextIO.openIn name;
-    val txt = TextIO.inputAll instream before TextIO.closeIn instream;
-  in use_text tune name output verbose txt end;
-
-
-(*eval command line arguments*)
-local
-  fun println s =
-    (TextIO.output (TextIO.stdOut, s ^ "\n"); TextIO.flushOut TextIO.stdOut);
-  fun eval "-q" = ()
-    | eval txt = use_text (fn x => x) "" (println, println) false txt;
-in
-  val _ = PolyML.onEntry (fn () =>
-   (Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ()));
-    app eval (CommandLine.arguments ())));
-end;
-
-
 
 (** interrupts **)
 
@@ -146,6 +96,7 @@ val sig_int = 2;
 val default_handler = Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ());
 
 val _ = Signal.signal (sig_int, default_handler);
+val _ = PolyML.onEntry (fn () => (Signal.signal (sig_int, default_handler); ()));
 
 fun change_signal new_handler f x =
   let
