@@ -1,6 +1,6 @@
 # -*- shell-script -*-
 
-  POLYML_HOME="/usr/proj/polyml/polyml-5.1"
+  POLYML_HOME="/home/polyml/polyml-5.1"
   ML_SYSTEM="polyml-5.1"
   ML_PLATFORM="x86_64-linux"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
