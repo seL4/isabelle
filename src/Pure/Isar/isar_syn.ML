@@ -310,7 +310,11 @@ val _ =
     (P.position P.text >> IsarCmd.use_mltext true);
 
 val _ =
-  OuterSyntax.command "ML_command" "eval ML text" (K.tag_ml K.diag)
+  OuterSyntax.command "ML_val" "eval ML text (diagnostic)" (K.tag_ml K.diag)
+    (P.position P.text >> IsarCmd.use_mltext true);
+
+val _ =
+  OuterSyntax.command "ML_command" "silently eval ML text (diagnostic)" (K.tag_ml K.diag)
     (P.position P.text >> (Toplevel.no_timing oo IsarCmd.use_mltext false));
 
 val _ =
