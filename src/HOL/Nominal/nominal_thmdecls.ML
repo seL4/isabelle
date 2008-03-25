@@ -108,9 +108,12 @@ fun get_derived_thm thy hyp concl orig_thm pi typi =
 fun update_context flag thms context =
   let
      val context' = fold (fn thm => Data.map (flag thm)) thms context
-  in
-    Context.mapping (snd o PureThy.add_thmss [(("eqvts",(#eqvts (Data.get context'))),[])]) I context'
-  end;
+     fun update_eqvts thy = thy
+       |> Sign.root_path
+       |> Sign.add_path "Nominal"
+       |> (snd o PureThy.add_thmss [(("eqvts", (#eqvts (Data.get context'))), [])])
+       |> Sign.restore_naming thy;
+  in Context.mapping update_eqvts I context' end;
 
 (* replaces every variable x in t with pi o x *)
 fun apply_pi trm (pi,typi) =
@@ -220,6 +223,9 @@ val setup =
       ("eqvt_force", Attrib.add_del_args eqvt_force_add eqvt_force_del,
         "equivariance theorem declaration (without checking the form of the lemma)"),
       ("fresh", Attrib.add_del_args fresh_add fresh_del, "freshness theorem declaration"),
-      ("bij",   Attrib.add_del_args bij_add bij_del,     "bijection theorem declaration")];
+      ("bij",   Attrib.add_del_args bij_add bij_del,     "bijection theorem declaration")] #>
+  PureThy.add_thms_dynamic ("eqvts", #eqvts o Data.get) #>
+  PureThy.add_thms_dynamic ("freshs", #freshs o Data.get) #>
+  PureThy.add_thms_dynamic ("bijs", #bijs o Data.get);
 
 end;
