@@ -129,18 +129,6 @@ fun create_nom_typedecls ak_names thy =
     val full_ak_names = map (Sign.intern_type thy1) ak_names;
     val ak_names_types = ak_names ~~ map (Type o rpair []) full_ak_names;
      
-    (* adds for every atom-kind an axiom             *)
-    (* <ak>_infinite: infinite (UNIV::<ak_type> set) *)
-    val (inf_axs,thy2) = PureThy.add_axioms_i (map (fn (ak_name, T) =>
-      let 
-    val name = ak_name ^ "_infinite"
-        val axiom = HOLogic.mk_Trueprop (HOLogic.mk_not
-                    (Const ("Finite_Set.finite", HOLogic.mk_setT T --> HOLogic.boolT) $
-                       HOLogic.mk_UNIV T))
-      in
-        ((name, axiom), []) 
-      end) ak_names_types) thy1;
-    
     (* declares a swapping function for every atom-kind, it is         *)
     (* const swap_<ak> :: <akT> * <akT> => <akT> => <akT>              *)
     (* swap_<ak> (a,b) c = (if a=c then b (else if b=c then a else c)) *)
@@ -167,7 +155,7 @@ fun create_nom_typedecls ak_names thy =
             |> PureThy.add_defs_unchecked_i true [((name, def2),[])]
             |> snd
             |> OldPrimrecPackage.add_primrec_unchecked_i "" [(("", def1),[])]
-      end) ak_names_types thy2;
+      end) ak_names_types thy1;
     
     (* declares a permutation function for every atom-kind acting  *)
     (* on such atoms                                               *)
