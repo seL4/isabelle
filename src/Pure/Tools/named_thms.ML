@@ -39,7 +39,8 @@ val add = Thm.declaration_attribute add_thm;
 val del = Thm.declaration_attribute del_thm;
 
 val setup =
-  Attrib.add_attributes [(name, Attrib.add_del_args add del, "declaration of " ^ description)];
+  Attrib.add_attributes [(name, Attrib.add_del_args add del, "declaration of " ^ description)] #>
+  PureThy.add_thms_dynamic (name, Data.get);
 
 val _ =
   OuterSyntax.improper_command ("print_" ^ name ^ "_rules") ("print " ^ description)
