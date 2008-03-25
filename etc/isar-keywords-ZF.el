@@ -13,6 +13,7 @@
     "ML"
     "ML_command"
     "ML_setup"
+    "ML_val"
     "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
     "ProofGeneral\\.kill_proof"
@@ -267,6 +268,7 @@
 (defconst isar-keywords-diag
   '("ML"
     "ML_command"
+    "ML_val"
     "cd"
     "class_deps"
     "commit"
