@@ -195,7 +195,7 @@ fun get silent theory thmref =
     val is_same =
       (case (new_res, old_res) of
         (NONE, NONE) => true
-      | (SOME (name1, ths1), SOME (name2, ths2)) => name1 = name2 andalso Thm.eq_thms (ths1, ths2)
+      | (SOME (_, ths1), SOME (_, ths2)) => Thm.eq_thms (ths1, ths2)
       | _ => false);
     val _ =
       if is_same orelse silent then ()
