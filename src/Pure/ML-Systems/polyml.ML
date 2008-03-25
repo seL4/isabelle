@@ -10,17 +10,7 @@ use "ML-Systems/multithreading_polyml.ML";
 val pointer_eq = PolyML.pointerEq;
 
 
-(* single-threaded profiling *)
-
-local val profile_orig = profile in
-
-fun profile 0 f x = f x
-  | profile n f x = NAMED_CRITICAL "profile" (fn () => profile_orig n f x);
-
-end;
-
-
-(* improved versions of use_text/file *)
+(* runtime compilation *)
 
 fun use_text (tune: string -> string) (line, name) (print, err) verbose txt =
   let

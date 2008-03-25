@@ -10,12 +10,3 @@ use "ML-Systems/polyml_old_compiler5.ML";
 
 val pointer_eq = PolyML.pointerEq;
 
-
-(* single-threaded profiling *)
-
-local val profile_orig = profile in
-
-fun profile 0 f x = f x
-  | profile n f x = NAMED_CRITICAL "profile" (fn () => profile_orig n f x);
-
-end;

@@ -13,6 +13,7 @@ sig
   val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
   val system_out: string -> string * int
   structure TimeLimit: TIME_LIMIT
+  val profile: int -> ('a -> 'b) -> 'a -> 'b
 end;
 
 signature BASIC_MULTITHREADING =
@@ -318,6 +319,16 @@ fun schedule n next_task = uninterruptible (fn restore_attributes => fn tasks =>
        wait_timeout ())));
 
   in ! status end);
+
+
+(* profiling *)
+
+local val profile_orig = profile in
+
+fun profile 0 f x = f x
+  | profile n f x = NAMED_CRITICAL "profile" (fn () => profile_orig n f x);
+
+end;
 
 
 (* serial numbers *)
