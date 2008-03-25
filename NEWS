@@ -172,6 +172,9 @@ INCOMPATIBILITY.
 
 *** ML ***
 
+* Functor NamedThmsFun: data is available to the user as dynamic fact
+(of the same name).
+
 * Removed obsolete "use_legacy_bindings" function.  INCOMPATIBILITY.
 
 * ML within Isar: antiquotation @{const name} or @{const
