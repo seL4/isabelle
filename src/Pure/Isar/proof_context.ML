@@ -811,7 +811,7 @@ fun retrieve_thms _ pick ctxt (Facts.Fact s) =
         val thms =
           if name = "" then [Thm.transfer thy Drule.dummy_thm]
           else
-            (case Facts.lookup local_facts name of
+            (case Facts.lookup (Context.Proof ctxt) local_facts name of
               SOME ths => map (Thm.transfer thy) (Facts.select thmref ths)
             | NONE => from_thy thy xthmref);
       in pick name thms end;

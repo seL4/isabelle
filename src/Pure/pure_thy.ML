@@ -58,6 +58,7 @@ sig
   val smart_store_thms_open: (bstring * thm list) -> thm list
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
+  val add_thms_dynamic: bstring * (Context.generic -> thm list) -> theory -> theory
   val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory
   val note: string -> string * thm -> theory -> thm * theory
@@ -180,7 +181,7 @@ fun lookup_fact thy xname =
   let
     val facts = all_facts_of thy;
     val name = NameSpace.intern (Facts.space_of facts) xname;
-  in Option.map (pair name) (Facts.lookup facts name) end;
+  in Option.map (pair name) (Facts.lookup (Context.Theory thy) facts name) end;
 
 fun show_result NONE = "none"
   | show_result (SOME (name, _)) = quote name;
@@ -263,6 +264,17 @@ fun name_thms pre official name xs =
 
 fun name_thmss official name fact =
   burrow_fact (name_thms true official name) fact;
+
+
+(* add_thms_dynamic *)
+
+fun add_thms_dynamic (bname, f) thy = CRITICAL (fn () =>
+  let
+    val name = Sign.full_name thy bname;
+    val r as ref (Thms {theorems, all_facts}) = get_theorems_ref thy;
+    val all_facts' = Facts.add_dynamic (Sign.naming_of thy) (name, f) all_facts;
+    val _ = r := make_thms theorems all_facts';
+  in thy end);
 
 
 (* enter_thms *)
@@ -544,3 +556,4 @@ end;
 
 structure BasicPureThy: BASIC_PURE_THY = PureThy;
 open BasicPureThy;
+
