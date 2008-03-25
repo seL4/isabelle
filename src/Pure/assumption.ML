@@ -76,6 +76,13 @@ val prems_of = #prems o rep_data;
 fun extra_hyps ctxt th = subtract (op aconv) (map Thm.term_of (assms_of ctxt)) (Thm.hyps_of th);
 
 
+(* named prems -- legacy feature *)
+
+val _ = Context.add_setup
+  (PureThy.add_thms_dynamic ("prems",
+    fn Context.Theory _ => [] | Context.Proof ctxt => prems_of ctxt));
+
+
 (* add assumptions *)
 
 fun add_assms export new_asms =
