@@ -539,8 +539,8 @@ lemma letV:
   apply (unfold let_def)
   apply (rule 1 [THEN canonical])
   apply (tactic {*
-    REPEAT (DEPTH_SOLVE_1 (resolve_tac (thms "prems" @ thms "eval_rls") 1 ORELSE
-                           etac (thm "substitute") 1)) *})
+    REPEAT (DEPTH_SOLVE_1 (resolve_tac (@{thms assms} @ @{thms eval_rls}) 1 ORELSE
+      etac @{thm substitute} 1)) *})
   done
 
 lemma fixV: "f(fix(f)) ---> c ==> fix(f) ---> c"

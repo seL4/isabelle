@@ -500,7 +500,7 @@ lemma SumE_snd:
   apply (unfold basic_defs)
   apply (rule major [THEN SumE])
   apply (rule SumC [THEN subst_eqtyparg, THEN replace_type])
-  apply (tactic {* typechk_tac (thms "prems") *})
+  apply (tactic {* typechk_tac @{thms assms} *})
   done
 
 end
