@@ -278,7 +278,7 @@ fun provide path name info (deps as SOME {update_time, master, text, parents, fi
   | provide _ _ _ NONE = NONE;
 
 fun run_file path =
-  (case Option.map (Context.theory_name o Context.the_theory) (ML_Context.get_context ()) of
+  (case Option.map (Context.theory_name o Context.the_theory) (Context.thread_data ()) of
     NONE => (ThyLoad.load_ml Path.current path; ())
   | SOME name =>
       (case lookup_deps name of

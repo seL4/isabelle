@@ -357,7 +357,7 @@ fun ml_tactic (txt, pos) ctxt = NAMED_CRITICAL "ML" (fn () =>
   (ML_Context.use_mltext false pos
     ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic =\n"
       ^ txt ^ "\nin Method.set_tactic tactic end") (SOME (Context.Proof ctxt));
-    ML_Context.setmp (SOME (Context.Proof ctxt)) (! tactic_ref ctxt)));
+    Context.setmp_thread_data (SOME (Context.Proof ctxt)) (! tactic_ref ctxt)));
 
 fun tactic txt ctxt = METHOD (ml_tactic txt ctxt);
 fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);

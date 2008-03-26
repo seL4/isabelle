@@ -309,7 +309,7 @@ in val _ = ThyLoad.load_thy_fn := load_thy end;
 (* main loop *)
 
 fun gen_loop secure do_terminate =
- (CRITICAL (fn () => ML_Context.set_context NONE);
+ (CRITICAL (fn () => Context.set_thread_data NONE);
   Toplevel.loop secure (isar do_terminate));
 
 fun gen_main secure do_terminate =

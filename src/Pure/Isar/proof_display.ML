@@ -123,7 +123,7 @@ fun print_results true = Pretty.writeln oo pretty_results
 fun present_results ctxt ((kind, name), res) =
   if kind = "" orelse kind = Thm.internalK then ()
   else (print_results true ctxt ((kind, name), res);
-    ML_Context.setmp (SOME (Context.Proof ctxt))
+    Context.setmp_thread_data (SOME (Context.Proof ctxt))
       (Present.results kind) (name_results name res));
 
 end;

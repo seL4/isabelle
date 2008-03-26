@@ -200,7 +200,7 @@ fun oracle name typ (oracle, pos) =
     \  val oracle: theory -> T -> term = " ^ oracle ^ ";\n\
     \  val name = " ^ quote name ^ ";\n\
     \  exception Arg of T;\n\
-    \  val _ = ML_Context.>> (Theory.add_oracle (name, fn (thy, Arg x) => oracle thy x));\n\
+    \  val _ = Context.>> (Theory.add_oracle (name, fn (thy, Arg x) => oracle thy x));\n\
     \  val thy = ML_Context.the_context ();\n\
     \  val invoke_" ^ name ^ " = Thm.invoke_oracle_i thy (Sign.full_name thy name);\n\
     \in\n\
@@ -316,7 +316,7 @@ val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 val welcome = Toplevel.imperative (writeln o Session.welcome);
 
 val exit = Toplevel.keep (fn state =>
- (CRITICAL (fn () => ML_Context.set_context (try Toplevel.generic_theory_of state));
+ (CRITICAL (fn () => Context.set_thread_data (try Toplevel.generic_theory_of state));
   raise Toplevel.TERMINATE));
 
 val quit = Toplevel.imperative quit;
@@ -380,7 +380,7 @@ val back =
 (* use ML text *)
 
 fun use path = Toplevel.keep (fn state =>
-  ML_Context.setmp (try Toplevel.generic_theory_of state) (ThyInfo.load_file false) path);
+  Context.setmp_thread_data (try Toplevel.generic_theory_of state) (ThyInfo.load_file false) path);
 
 (*passes changes of theory context*)
 fun use_mltext_theory (txt, pos) =
@@ -633,8 +633,8 @@ fun add_header s = Toplevel.keep' (fn int => fn state =>
 local
 
 fun present _ txt true node = OuterSyntax.check_text txt (SOME node)
-  | present f (s, _) false node =
-      ML_Context.setmp (try (Toplevel.cases_node I (Context.Proof o Proof.context_of)) node) f s;
+  | present f (s, _) false node = Context.setmp_thread_data
+      (try (Toplevel.cases_node I (Context.Proof o Proof.context_of)) node) f s;
 
 fun present_local_theory f (loc, txt) = Toplevel.present_local_theory loc (present f txt);
 fun present_proof f txt = Toplevel.print o Toplevel.present_proof (present f txt);
