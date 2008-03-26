@@ -364,7 +364,7 @@ fun ensures_tac ctxt sact =
                  (*simplify the command's domain*)
               simp_tac (ss addsimps [@{thm domain_def}]) 3, 
               (* proving the domain part *)
-             clarify_tac cs 3, dtac Cla.swap 3, force_tac css 4,
+             clarify_tac cs 3, dtac @{thm swap} 3, force_tac css 4,
              rtac @{thm ReplaceI} 3, force_tac css 3, force_tac css 4,
              asm_full_simp_tac ss 3, rtac conjI 3, simp_tac ss 4,
              REPEAT (rtac @{thm state_update_type} 3),
