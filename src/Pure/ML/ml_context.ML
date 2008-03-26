@@ -20,9 +20,7 @@ sig
   val setmp: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val the_generic_context: unit -> Context.generic
   val the_local_context: unit -> Proof.context
-  val pass: Context.generic option -> ('a -> 'b) -> 'a -> 'b * Context.generic option
   val pass_context: Context.generic -> ('a -> 'b) -> 'a -> 'b * Context.generic
-  val save: ('a -> 'b) -> 'a -> 'b
   val >> : (theory -> theory) -> unit
   val add_keywords: string list -> unit
   val inline_antiq: string ->
@@ -63,15 +61,10 @@ val the_local_context = Context.proof_of o the_generic_context;
 
 val the_context = Context.theory_of o the_generic_context;
 
-fun pass opt_context f x =
-  setmp opt_context (fn x => let val y = f x in (y, get_context ()) end) x;
-
 fun pass_context context f x =
-  (case pass (SOME context) f x of
+  (case setmp (SOME context) (fn () => (f x, get_context ())) () of
     (y, SOME context') => (y, context')
   | (_, NONE) => error "Lost context in ML");
-
-fun save f x = NAMED_CRITICAL "ML" (fn () => setmp (get_context ()) f x);
 
 fun change_theory f = NAMED_CRITICAL "ML" (fn () =>
   set_context (SOME (Context.map_theory f (the_generic_context ()))));
