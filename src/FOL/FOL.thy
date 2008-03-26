@@ -163,6 +163,12 @@ proof (rule ex1E)
   qed
 qed
 
+lemma imp_elim: "P --> Q ==> (~ R ==> P) ==> (Q ==> R) ==> R"
+  by (rule classical) iprover
+
+lemma swap: "~ P ==> (~ R ==> P) ==> R"
+  by (rule classical) iprover
+
 use "cladata.ML"
 setup Cla.setup
 setup cla_setup

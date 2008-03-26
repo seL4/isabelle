@@ -883,6 +883,12 @@ subsection {* Package setup *}
 
 subsubsection {* Classical Reasoner setup *}
 
+lemma imp_elim: "P --> Q ==> (~ R ==> P) ==> (Q ==> R) ==> R"
+  by (rule classical) iprover
+
+lemma swap: "~ P ==> (~ R ==> P) ==> R"
+  by (rule classical) iprover
+
 lemma thin_refl:
   "\<And>X. \<lbrakk> x=x; PROP W \<rbrakk> \<Longrightarrow> PROP W" .
 
@@ -893,21 +899,22 @@ struct
   val dest_eq = HOLogic.dest_eq
   val dest_Trueprop = HOLogic.dest_Trueprop
   val dest_imp = HOLogic.dest_imp
-  val eq_reflection = @{thm HOL.eq_reflection}
-  val rev_eq_reflection = @{thm HOL.meta_eq_to_obj_eq}
-  val imp_intr = @{thm HOL.impI}
-  val rev_mp = @{thm HOL.rev_mp}
-  val subst = @{thm HOL.subst}
-  val sym = @{thm HOL.sym}
+  val eq_reflection = @{thm eq_reflection}
+  val rev_eq_reflection = @{thm meta_eq_to_obj_eq}
+  val imp_intr = @{thm impI}
+  val rev_mp = @{thm rev_mp}
+  val subst = @{thm subst}
+  val sym = @{thm sym}
   val thin_refl = @{thm thin_refl};
 end);
 open Hypsubst;
 
 structure Classical = ClassicalFun(
 struct
-  val mp = @{thm HOL.mp}
-  val not_elim = @{thm HOL.notE}
-  val classical = @{thm HOL.classical}
+  val imp_elim = @{thm imp_elim}
+  val not_elim = @{thm notE}
+  val swap = @{thm swap}
+  val classical = @{thm classical}
   val sizef = Drule.size_of_thm
   val hyp_subst_tacs = [Hypsubst.hyp_subst_tac]
 end);
@@ -996,8 +1003,8 @@ structure Blast = BlastFun
   type claset = Classical.claset
   val equality_name = @{const_name "op ="}
   val not_name = @{const_name Not}
-  val notE = @{thm HOL.notE}
-  val ccontr = @{thm HOL.ccontr}
+  val notE = @{thm notE}
+  val ccontr = @{thm ccontr}
   val contr_tac = Classical.contr_tac
   val dup_intr = Classical.dup_intr
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac

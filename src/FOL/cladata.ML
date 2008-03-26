@@ -10,13 +10,14 @@ section "Classical Reasoner";
 
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
-  struct
-  val mp        = @{thm mp}
+struct
+  val imp_elim  = @{thm imp_elim}
   val not_elim  = @{thm notE}
+  val swap      = @{thm swap}
   val classical = @{thm classical}
   val sizef     = size_of_thm
   val hyp_subst_tacs=[hyp_subst_tac]
-  end;
+end;
 
 structure Cla = ClassicalFun(Classical_Data);
 structure BasicClassical: BASIC_CLASSICAL = Cla; open BasicClassical;
