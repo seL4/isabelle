@@ -8,6 +8,10 @@ ML context and antiquotations.
 signature BASIC_ML_CONTEXT =
 sig
   val the_context: unit -> theory
+  val store_thm: string * thm -> thm
+  val store_thms: string * thm list -> thm list
+  val bind_thm: string * thm -> unit
+  val bind_thms: string * thm list -> unit
   val thm: xstring -> thm
   val thms: xstring -> thm list
 end
@@ -15,13 +19,12 @@ end
 signature ML_CONTEXT =
 sig
   include BASIC_ML_CONTEXT
-  val get_context: unit -> Context.generic option
-  val set_context: Context.generic option -> unit
-  val setmp: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val the_generic_context: unit -> Context.generic
   val the_local_context: unit -> Proof.context
   val pass_context: Context.generic -> ('a -> 'b) -> 'a -> 'b * Context.generic
-  val >> : (theory -> theory) -> unit
+  val stored_thms: thm list ref
+  val ml_store_thm: string * thm -> unit
+  val ml_store_thms: string * thm list -> unit
   val add_keywords: string list -> unit
   val inline_antiq: string ->
     (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
@@ -42,32 +45,48 @@ end
 structure ML_Context: ML_CONTEXT =
 struct
 
-(** Implicit ML context **)
+(** implicit ML context **)
 
-local
-  val current_context = ref (NONE: Context.generic option);
-in
-  fun get_context () = ! current_context;
-  fun set_context opt_context = current_context := opt_context;
-  fun setmp opt_context f x = Library.setmp current_context opt_context f x;
-end;
-
-fun the_generic_context () =
-  (case get_context () of
-    SOME context => context
-  | _ => error "Unknown context");
-
+val the_generic_context = Context.the_thread_data;
 val the_local_context = Context.proof_of o the_generic_context;
-
 val the_context = Context.theory_of o the_generic_context;
 
 fun pass_context context f x =
-  (case setmp (SOME context) (fn () => (f x, get_context ())) () of
+  (case Context.setmp_thread_data (SOME context) (fn () => (f x, Context.thread_data ())) () of
     (y, SOME context') => (y, context')
-  | (_, NONE) => error "Lost context in ML");
+  | (_, NONE) => error "Lost context after evaluation");
 
-fun change_theory f = NAMED_CRITICAL "ML" (fn () =>
-  set_context (SOME (Context.map_theory f (the_generic_context ()))));
+
+(* theorem bindings *)
+
+val store_thms = PureThy.smart_store_thms;
+fun store_thm (name, th) = the_single (store_thms (name, [th]));
+
+val stored_thms: thm list ref = ref [];
+
+fun no_ml name =
+  if name = "" then true
+  else if ML_Syntax.is_identifier name then false
+  else error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value");
+
+val use_text_verbose = use_text (0, "") Output.ml_output true;
+
+fun ml_store_thm (name, th) =
+  let val th' = store_thm (name, th) in
+    if no_ml name then ()
+    else setmp stored_thms [th']
+      (fn () => use_text_verbose ("val " ^ name ^ " = hd (! ML_Context.stored_thms);")) ()
+  end;
+
+fun ml_store_thms (name, ths) =
+  let val ths' = store_thms (name, ths) in
+    if no_ml name then ()
+    else setmp stored_thms ths'
+      (fn () => use_text_verbose ("val " ^ name ^ " = ! ML_Context.stored_thms;")) ()
+  end;
+
+fun bind_thm (name, thm) = ml_store_thm (name, Drule.standard thm);
+fun bind_thms (name, thms) = ml_store_thms (name, map Drule.standard thms);
 
 
 
@@ -182,14 +201,14 @@ end;
 (* ML evaluation *)
 
 fun use_mltext verbose pos txt opt_context =
-  setmp opt_context (fn () => eval_wrapper Output.ml_output verbose pos txt) ();
+  Context.setmp_thread_data opt_context (fn () => eval_wrapper Output.ml_output verbose pos txt) ();
 
 fun use_mltext_update verbose pos txt context =
   #2 (pass_context context (fn () => eval_wrapper Output.ml_output verbose pos txt) ());
 
 fun use_let pos bind body txt =
   use_mltext_update false pos
-    ("ML_Context.set_context (SOME (let " ^ bind ^ " = " ^ txt ^ " in " ^ body ^
+    ("Context.set_thread_data (SOME (let " ^ bind ^ " = " ^ txt ^ " in " ^ body ^
       " end (ML_Context.the_generic_context ())));");
 
 fun use path = eval_wrapper Output.ml_output true (Position.path path) (File.read path);
@@ -256,6 +275,7 @@ val _ = inline_antiq "const"
 in val _ = () end;
 
 
+
 (** fact references **)
 
 fun thm name = ProofContext.get_thm (the_local_context ()) name;
@@ -292,10 +312,6 @@ val _ = proj_value_antiq "cpat" (Scan.lift Args.name >>
       "Thm.cterm_of (ML_Context.the_context ()) (Syntax.read_term \
       \(ProofContext.set_mode ProofContext.mode_pattern (ML_Context.the_local_context ()))"
       ^ ML_Syntax.print_string name ^ ")", "")));
-
-(*final declarations of this structure!*)
-nonfix >>;
-fun >> f = change_theory f;
 
 end;
 
