@@ -241,7 +241,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML the_context: "unit -> theory"} \\
-  @{index_ML "ML_Context.>> ": "(theory -> theory) -> unit"} \\
+  @{index_ML "Context.>> ": "(theory -> theory) -> unit"} \\
   \end{mldecls}
 
   \begin{description}
@@ -255,7 +255,7 @@ text %mlref {*
   information immediately, or produce an explicit @{ML_type
   theory_ref} (cf.\ \secref{sec:context-theory}).
 
-  \item @{ML "ML_Context.>>"}~@{text f} applies theory transformation
+  \item @{ML "Context.>>"}~@{text f} applies theory transformation
   @{text f} to the current theory of the {\ML} toplevel.  In order to
   work as expected, the theory should be still under construction, and
   the Isar language element that invoked the {\ML} compiler in the
