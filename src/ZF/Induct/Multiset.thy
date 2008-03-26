@@ -364,7 +364,7 @@ done
 
 lemma msize_eq_0_iff: "multiset(M) ==> msize(M)=#0 <-> M=0"
 apply (simp add: msize_def, auto)
-apply (rule_tac Pa = "setsum (?u,?v) \<noteq> #0" in swap)
+apply (rule_tac P = "setsum (?u,?v) \<noteq> #0" in swap)
 apply blast
 apply (drule not_empty_multiset_imp_exist, assumption, clarify)
 apply (subgoal_tac "Finite (mset_of (M) - {a}) ")
