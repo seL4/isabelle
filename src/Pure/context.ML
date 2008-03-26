@@ -63,6 +63,12 @@ sig
   val proof_map: (generic -> generic) -> proof -> proof
   val theory_of: generic -> theory   (*total*)
   val proof_of: generic -> proof     (*total*)
+  (*thread data*)
+  val thread_data: unit -> generic option
+  val the_thread_data: unit -> generic
+  val set_thread_data: generic option -> unit
+  val setmp_thread_data: generic option -> ('a -> 'b) -> 'a -> 'b
+  val >> : (theory -> theory) -> unit
   (*delayed setup*)
   val add_setup: (theory -> theory) -> unit
   val setup: unit -> theory -> theory
@@ -500,6 +506,29 @@ fun proof_map f = the_proof o f o Proof;
 
 val theory_of = cases I theory_of_proof;
 val proof_of = cases init_proof I;
+
+
+
+(** thread data **)
+
+local val tag = Universal.tag () : generic option Universal.tag in
+
+fun thread_data () =
+  (case Multithreading.get_data tag of
+    SOME (SOME context) => SOME context
+  | _ => NONE);
+
+fun the_thread_data () =
+  (case thread_data () of
+    SOME context => context
+  | _ => error "Unknown context");
+
+fun set_thread_data context = Multithreading.put_data (tag, context);
+fun setmp_thread_data context = Library.setmp_thread_data tag (thread_data ()) context;
+
+fun >> f = set_thread_data (SOME (map_theory f (the_thread_data ())));
+
+end;
 
 
 
