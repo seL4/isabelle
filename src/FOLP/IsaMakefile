@@ -26,8 +26,8 @@ FOLP: Pure $(OUT)/FOLP
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/FOLP: $(OUT)/Pure FOLP.thy IFOLP.thy ROOT.ML \
-  classical.ML hypsubst.ML intprover.ML simp.ML simpdata.ML
+$(OUT)/FOLP: $(OUT)/Pure FOLP.thy IFOLP.thy ROOT.ML classical.ML	\
+  hypsubst.ML intprover.ML simp.ML simpdata.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure FOLP
 
 
@@ -35,10 +35,11 @@ $(OUT)/FOLP: $(OUT)/Pure FOLP.thy IFOLP.thy ROOT.ML \
 
 FOLP-ex: FOLP $(LOG)/FOLP-ex.gz
 
-$(LOG)/FOLP-ex.gz: $(OUT)/FOLP ex/ROOT.ML ex/Foundation.thy \
-  ex/If.thy ex/Intro.thy ex/Nat.thy ex/Intuitionistic.thy   \
-  ex/Classical.thy					    \
-  ex/Prolog.ML ex/Prolog.thy ex/prop.ML ex/quant.ML
+$(LOG)/FOLP-ex.gz: $(OUT)/FOLP ex/ROOT.ML ex/Foundation.thy ex/If.thy	\
+  ex/Intro.thy ex/Nat.thy ex/Intuitionistic.thy ex/Classical.thy	\
+  ex/Prolog.ML ex/Prolog.thy ex/Propositional_Int.thy			\
+  ex/Propositional_Cla.thy ex/Quantifiers_Int.thy			\
+  ex/Quantifiers_Cla.thy
 	@$(ISATOOL) usedir $(OUT)/FOLP ex
 
 
