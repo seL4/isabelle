@@ -27,9 +27,10 @@ type wrapper = (int -> tactic) -> (int -> tactic);
 
 signature CLASSICAL_DATA =
 sig
-  val mp        : thm           (* [| P-->Q;  P |] ==> Q *)
-  val not_elim  : thm           (* [| ~P;  P |] ==> R *)
-  val classical : thm           (* (~P ==> P) ==> P *)
+  val imp_elim  : thm           (* P --> Q ==> (~ R ==> P) ==> (Q ==> R) ==> R *)
+  val not_elim  : thm           (* ~P ==> P ==> R *)
+  val swap      : thm           (* ~ P ==> (~ R ==> P) ==> R *)
+  val classical : thm           (* (~ P ==> P) ==> P *)
   val sizef     : thm -> int    (* size function for BEST_FIRST *)
   val hyp_subst_tacs: (int -> tactic) list
 end;
@@ -133,7 +134,6 @@ end;
 signature CLASSICAL =
 sig
   include BASIC_CLASSICAL
-  val swap: thm  (* ~P ==> (~Q ==> P) ==> Q *)
   val classical_rule: thm -> thm
   val add_context_safe_wrapper: string * (Proof.context -> wrapper) -> theory -> theory
   val del_context_safe_wrapper: string -> theory -> theory
@@ -206,9 +206,6 @@ val flat_rule = Conv.fconv_rule (Conv.prems_conv ~1 ObjectLogic.atomize_prems);
 
 (*** Useful tactics for classical reasoning ***)
 
-val imp_elim = (*cannot use bind_thm within a structure!*)
-  store_thm ("imp_elim", Thm.transfer (the_context ()) (classical_rule (Tactic.make_elim mp)));
-
 (*Prove goal that assumes both P and ~P.
   No backtracking if it finds an equal assumption.  Perhaps should call
   ematch_tac instead of eresolve_tac, but then cannot prove ZF/cantor.*)
@@ -217,23 +214,19 @@ val contr_tac = eresolve_tac [not_elim]  THEN'
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q.
   Could do the same thing for P<->Q and P... *)
-fun mp_tac i = eresolve_tac [not_elim, imp_elim] i  THEN  assume_tac i;
+fun mp_tac i = eresolve_tac [not_elim, Data.imp_elim] i  THEN  assume_tac i;
 
 (*Like mp_tac but instantiates no variables*)
-fun eq_mp_tac i = ematch_tac [not_elim, imp_elim] i  THEN  eq_assume_tac i;
-
-val swap =
-  store_thm ("swap", Thm.transfer (the_context ())
-    (rule_by_tactic (etac thin_rl 1) (not_elim RS classical)));
+fun eq_mp_tac i = ematch_tac [not_elim, Data.imp_elim] i  THEN  eq_assume_tac i;
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
-fun swapify intrs = intrs RLN (2, [swap]);
-fun swapped x = Attrib.no_args (fn (x, th) => (x, th RSN (2, swap))) x;
+fun swapify intrs = intrs RLN (2, [Data.swap]);
+fun swapped x = Attrib.no_args (fn (x, th) => (x, th RSN (2, Data.swap))) x;
 
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
 fun swap_res_tac rls =
-    let fun addrl (rl,brls) = (false, rl) :: (true, rl RSN (2,swap)) :: brls
+    let fun addrl (rl,brls) = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls
     in  assume_tac      ORELSE'
         contr_tac       ORELSE'
         biresolve_tac (foldr addrl [] rls)
