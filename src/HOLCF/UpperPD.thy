@@ -95,7 +95,7 @@ done
 subsection {* Type definition *}
 
 cpodef (open) 'a upper_pd =
-  "{S::'a::bifinite pd_basis set. upper_le.ideal S}"
+  "{S::'a::profinite pd_basis set. upper_le.ideal S}"
 apply (simp add: upper_le.adm_ideal)
 apply (fast intro: upper_le.ideal_principal)
 done
@@ -153,7 +153,7 @@ by (rule upper_pd_minimal [THEN UU_I, symmetric])
 
 subsection {* Approximation *}
 
-instance upper_pd :: (bifinite) approx ..
+instance upper_pd :: (profinite) approx ..
 
 defs (overloaded)
   approx_upper_pd_def:
@@ -192,13 +192,15 @@ lemma finite_fixes_approx_upper_pd:
 unfolding approx_upper_pd_def
 by (rule upper_pd.finite_fixes_basis_fun_take)
 
-instance upper_pd :: (bifinite) bifinite
+instance upper_pd :: (profinite) profinite
 apply intro_classes
 apply (simp add: chain_approx_upper_pd)
 apply (rule lub_approx_upper_pd)
 apply (rule approx_upper_pd_idem)
 apply (rule finite_fixes_approx_upper_pd)
 done
+
+instance upper_pd :: (bifinite) bifinite ..
 
 lemma compact_imp_upper_principal:
   "compact xs \<Longrightarrow> \<exists>t. xs = upper_principal t"

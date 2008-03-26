@@ -142,7 +142,7 @@ done
 subsection {* Type definition *}
 
 cpodef (open) 'a convex_pd =
-  "{S::'a::bifinite pd_basis set. convex_le.ideal S}"
+  "{S::'a::profinite pd_basis set. convex_le.ideal S}"
 apply (simp add: convex_le.adm_ideal)
 apply (fast intro: convex_le.ideal_principal)
 done
@@ -206,7 +206,7 @@ by (rule convex_pd_minimal [THEN UU_I, symmetric])
 
 subsection {* Approximation *}
 
-instance convex_pd :: (bifinite) approx ..
+instance convex_pd :: (profinite) approx ..
 
 defs (overloaded)
   approx_convex_pd_def:
@@ -245,13 +245,15 @@ lemma finite_fixes_approx_convex_pd:
 unfolding approx_convex_pd_def
 by (rule convex_pd.finite_fixes_basis_fun_take)
 
-instance convex_pd :: (bifinite) bifinite
+instance convex_pd :: (profinite) profinite
 apply intro_classes
 apply (simp add: chain_approx_convex_pd)
 apply (rule lub_approx_convex_pd)
 apply (rule approx_convex_pd_idem)
 apply (rule finite_fixes_approx_convex_pd)
 done
+
+instance convex_pd :: (bifinite) bifinite ..
 
 lemma compact_imp_convex_principal:
   "compact xs \<Longrightarrow> \<exists>t. xs = convex_principal t"

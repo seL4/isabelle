@@ -97,7 +97,7 @@ done
 subsection {* Type definition *}
 
 cpodef (open) 'a lower_pd =
-  "{S::'a::bifinite pd_basis set. lower_le.ideal S}"
+  "{S::'a::profinite pd_basis set. lower_le.ideal S}"
 apply (simp add: lower_le.adm_ideal)
 apply (fast intro: lower_le.ideal_principal)
 done
@@ -171,7 +171,7 @@ by (rule lower_pd_minimal [THEN UU_I, symmetric])
 
 subsection {* Approximation *}
 
-instance lower_pd :: (bifinite) approx ..
+instance lower_pd :: (profinite) approx ..
 
 defs (overloaded)
   approx_lower_pd_def:
@@ -210,13 +210,15 @@ lemma finite_fixes_approx_lower_pd:
 unfolding approx_lower_pd_def
 by (rule lower_pd.finite_fixes_basis_fun_take)
 
-instance lower_pd :: (bifinite) bifinite
+instance lower_pd :: (profinite) profinite
 apply intro_classes
 apply (simp add: chain_approx_lower_pd)
 apply (rule lub_approx_lower_pd)
 apply (rule approx_lower_pd_idem)
 apply (rule finite_fixes_approx_lower_pd)
 done
+
+instance lower_pd :: (bifinite) bifinite ..
 
 lemma compact_imp_lower_principal:
   "compact xs \<Longrightarrow> \<exists>t. xs = lower_principal t"

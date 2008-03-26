@@ -311,13 +311,13 @@ by (cases x, simp_all)
 
 subsection {* Lifted cpo is a bifinite domain *}
 
-instance u :: (bifinite_cpo) approx ..
+instance u :: (profinite) approx ..
 
 defs (overloaded)
   approx_up_def:
     "approx \<equiv> \<lambda>n. fup\<cdot>(\<Lambda> x. up\<cdot>(approx n\<cdot>x))"
 
-instance u :: (bifinite_cpo) bifinite
+instance u :: (profinite) bifinite
 proof
   fix i :: nat and x :: "'a u"
   show "chain (\<lambda>i. approx i\<cdot>x)"

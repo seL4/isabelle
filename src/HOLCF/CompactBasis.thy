@@ -355,9 +355,9 @@ end
 
 subsection {* Compact bases of bifinite domains *}
 
-defaultsort bifinite
+defaultsort profinite
 
-typedef (open) 'a compact_basis = "{x::'a::bifinite. compact x}"
+typedef (open) 'a compact_basis = "{x::'a::profinite. compact x}"
 by (fast intro: compact_approx)
 
 lemma compact_Rep_compact_basis [simp]: "compact (Rep_compact_basis a)"
@@ -393,7 +393,7 @@ by (rule preorder.intro, rule compact_le_refl, rule compact_le_trans)
 text {* minimal compact element *}
 
 definition
-  compact_bot :: "'a compact_basis" where
+  compact_bot :: "'a::bifinite compact_basis" where
   "compact_bot = Abs_compact_basis \<bottom>"
 
 lemma Rep_compact_bot: "Rep_compact_basis compact_bot = \<bottom>"
@@ -544,7 +544,7 @@ done
 subsection {* A compact basis for powerdomains *}
 
 typedef 'a pd_basis =
-  "{S::'a::bifinite compact_basis set. finite S \<and> S \<noteq> {}}"
+  "{S::'a::profinite compact_basis set. finite S \<and> S \<noteq> {}}"
 by (rule_tac x="{arbitrary}" in exI, simp)
 
 lemma finite_Rep_pd_basis [simp]: "finite (Rep_pd_basis u)"
