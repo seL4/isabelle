@@ -29,7 +29,6 @@ use "../Thy/latex.ML";
 use "../Thy/present.ML";
 use "../Thy/thy_info.ML";
 use "../Thy/thm_deps.ML";
-use "../Thy/thm_database.ML";
 
 (*basic proof engine*)
 use "proof_display.ML";
