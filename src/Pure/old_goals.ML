@@ -30,8 +30,6 @@ sig
   val back: unit -> unit
   val choplev: int -> unit
   val undo: unit -> unit
-  val bind_thm: string * thm -> unit
-  val bind_thms: string * thm list -> unit
   val qed: string -> unit
   val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
   val qed_goalw: string -> theory -> thm list -> string
@@ -500,17 +498,14 @@ fun fd rl = fds [rl];
 fun fa() = by (FIRSTGOAL (trace_goalno_tac assume_tac));
 
 
-(** theorem database **)
+(** theorem bindings **)
 
-fun bind_thm (name, thm) = ThmDatabase.ml_store_thm (name, standard thm);
-fun bind_thms (name, thms) = ThmDatabase.ml_store_thms (name, map standard thms);
-
-fun qed name = ThmDatabase.ml_store_thm (name, result ());
-fun qed_goal name thy goal tacsf = ThmDatabase.ml_store_thm (name, prove_goal thy goal tacsf);
+fun qed name = ML_Context.ml_store_thm (name, result ());
+fun qed_goal name thy goal tacsf = ML_Context.ml_store_thm (name, prove_goal thy goal tacsf);
 fun qed_goalw name thy rews goal tacsf =
-  ThmDatabase.ml_store_thm (name, prove_goalw thy rews goal tacsf);
+  ML_Context.ml_store_thm (name, prove_goalw thy rews goal tacsf);
 fun qed_spec_mp name =
-  ThmDatabase.ml_store_thm (name, ObjectLogic.rulify_no_asm (result ()));
+  ML_Context.ml_store_thm (name, ObjectLogic.rulify_no_asm (result ()));
 fun qed_goal_spec_mp name thy s p =
   bind_thm (name, ObjectLogic.rulify_no_asm (prove_goal thy s p));
 fun qed_goalw_spec_mp name thy defs s p =
