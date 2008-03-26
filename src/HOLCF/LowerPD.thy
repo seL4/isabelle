@@ -13,10 +13,10 @@ subsection {* Basis preorder *}
 
 definition
   lower_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix "\<le>\<flat>" 50) where
-  "lower_le = (\<lambda>u v. \<forall>x\<in>Rep_pd_basis u. \<exists>y\<in>Rep_pd_basis v. compact_le x y)"
+  "lower_le = (\<lambda>u v. \<forall>x\<in>Rep_pd_basis u. \<exists>y\<in>Rep_pd_basis v. x \<sqsubseteq> y)"
 
 lemma lower_le_refl [simp]: "t \<le>\<flat> t"
-unfolding lower_le_def by (fast intro: compact_le_refl)
+unfolding lower_le_def by fast
 
 lemma lower_le_trans: "\<lbrakk>t \<le>\<flat> u; u \<le>\<flat> v\<rbrakk> \<Longrightarrow> t \<le>\<flat> v"
 unfolding lower_le_def
@@ -24,7 +24,7 @@ apply (rule ballI)
 apply (drule (1) bspec, erule bexE)
 apply (drule (1) bspec, erule bexE)
 apply (erule rev_bexI)
-apply (erule (1) compact_le_trans)
+apply (erule (1) trans_less)
 done
 
 interpretation lower_le: preorder [lower_le]
@@ -34,17 +34,17 @@ lemma lower_le_minimal [simp]: "PDUnit compact_bot \<le>\<flat> t"
 unfolding lower_le_def Rep_PDUnit
 by (simp, rule Rep_pd_basis_nonempty [folded ex_in_conv])
 
-lemma PDUnit_lower_mono: "compact_le x y \<Longrightarrow> PDUnit x \<le>\<flat> PDUnit y"
+lemma PDUnit_lower_mono: "x \<sqsubseteq> y \<Longrightarrow> PDUnit x \<le>\<flat> PDUnit y"
 unfolding lower_le_def Rep_PDUnit by fast
 
 lemma PDPlus_lower_mono: "\<lbrakk>s \<le>\<flat> t; u \<le>\<flat> v\<rbrakk> \<Longrightarrow> PDPlus s u \<le>\<flat> PDPlus t v"
 unfolding lower_le_def Rep_PDPlus by fast
 
 lemma PDPlus_lower_less: "t \<le>\<flat> PDPlus t u"
-unfolding lower_le_def Rep_PDPlus by (fast intro: compact_le_refl)
+unfolding lower_le_def Rep_PDPlus by fast
 
 lemma lower_le_PDUnit_PDUnit_iff [simp]:
-  "(PDUnit a \<le>\<flat> PDUnit b) = compact_le a b"
+  "(PDUnit a \<le>\<flat> PDUnit b) = a \<sqsubseteq> b"
 unfolding lower_le_def Rep_PDUnit by fast
 
 lemma lower_le_PDUnit_PDPlus_iff:
@@ -56,7 +56,7 @@ unfolding lower_le_def Rep_PDPlus by fast
 
 lemma lower_le_induct [induct set: lower_le]:
   assumes le: "t \<le>\<flat> u"
-  assumes 1: "\<And>a b. compact_le a b \<Longrightarrow> P (PDUnit a) (PDUnit b)"
+  assumes 1: "\<And>a b. a \<sqsubseteq> b \<Longrightarrow> P (PDUnit a) (PDUnit b)"
   assumes 2: "\<And>t u a. P (PDUnit a) t \<Longrightarrow> P (PDUnit a) (PDPlus t u)"
   assumes 3: "\<And>t u v. \<lbrakk>P t v; P u v\<rbrakk> \<Longrightarrow> P (PDPlus t u) v"
   shows "P t u"
@@ -123,18 +123,18 @@ apply (rule lower_le.ideal_principal)
 done
 
 interpretation lower_pd:
-  bifinite_basis [lower_le lower_principal Rep_lower_pd approx_pd]
+  bifinite_basis [lower_le approx_pd lower_principal Rep_lower_pd]
 apply unfold_locales
-apply (rule ideal_Rep_lower_pd)
-apply (rule cont_Rep_lower_pd)
-apply (rule Rep_lower_principal)
-apply (simp only: less_lower_pd_def less_set_def)
 apply (rule approx_pd_lower_le)
 apply (rule approx_pd_idem)
 apply (erule approx_pd_lower_mono)
 apply (rule approx_pd_lower_mono1, simp)
 apply (rule finite_range_approx_pd)
 apply (rule ex_approx_pd_eq)
+apply (rule ideal_Rep_lower_pd)
+apply (rule cont_Rep_lower_pd)
+apply (rule Rep_lower_principal)
+apply (simp only: less_lower_pd_def less_set_def)
 done
 
 lemma lower_principal_less_iff [simp]:

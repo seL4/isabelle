@@ -24,9 +24,9 @@ theorem typedef_po:
   shows "OFCLASS('b, po_class)"
  apply (intro_classes, unfold less)
    apply (rule refl_less)
-  apply (rule type_definition.Rep_inject [OF type, THEN iffD1])
-  apply (erule (1) antisym_less)
- apply (erule (1) trans_less)
+  apply (erule (1) trans_less)
+ apply (rule type_definition.Rep_inject [OF type, THEN iffD1])
+ apply (erule (1) antisym_less)
 done
 
 subsection {* Proving a subtype is finite *}

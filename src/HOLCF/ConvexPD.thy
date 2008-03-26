@@ -27,18 +27,18 @@ by (rule preorder.intro, rule convex_le_refl, rule convex_le_trans)
 lemma upper_le_minimal [simp]: "PDUnit compact_bot \<le>\<natural> t"
 unfolding convex_le_def Rep_PDUnit by simp
 
-lemma PDUnit_convex_mono: "compact_le x y \<Longrightarrow> PDUnit x \<le>\<natural> PDUnit y"
+lemma PDUnit_convex_mono: "x \<sqsubseteq> y \<Longrightarrow> PDUnit x \<le>\<natural> PDUnit y"
 unfolding convex_le_def by (fast intro: PDUnit_upper_mono PDUnit_lower_mono)
 
 lemma PDPlus_convex_mono: "\<lbrakk>s \<le>\<natural> t; u \<le>\<natural> v\<rbrakk> \<Longrightarrow> PDPlus s u \<le>\<natural> PDPlus t v"
 unfolding convex_le_def by (fast intro: PDPlus_upper_mono PDPlus_lower_mono)
 
 lemma convex_le_PDUnit_PDUnit_iff [simp]:
-  "(PDUnit a \<le>\<natural> PDUnit b) = compact_le a b"
+  "(PDUnit a \<le>\<natural> PDUnit b) = a \<sqsubseteq> b"
 unfolding convex_le_def upper_le_def lower_le_def Rep_PDUnit by fast
 
 lemma convex_le_PDUnit_lemma1:
-  "(PDUnit a \<le>\<natural> t) = (\<forall>b\<in>Rep_pd_basis t. compact_le a b)"
+  "(PDUnit a \<le>\<natural> t) = (\<forall>b\<in>Rep_pd_basis t. a \<sqsubseteq> b)"
 unfolding convex_le_def upper_le_def lower_le_def Rep_PDUnit
 using Rep_pd_basis_nonempty [of t, folded ex_in_conv] by fast
 
@@ -47,7 +47,7 @@ lemma convex_le_PDUnit_PDPlus_iff [simp]:
 unfolding convex_le_PDUnit_lemma1 Rep_PDPlus by fast
 
 lemma convex_le_PDUnit_lemma2:
-  "(t \<le>\<natural> PDUnit b) = (\<forall>a\<in>Rep_pd_basis t. compact_le a b)"
+  "(t \<le>\<natural> PDUnit b) = (\<forall>a\<in>Rep_pd_basis t. a \<sqsubseteq> b)"
 unfolding convex_le_def upper_le_def lower_le_def Rep_PDUnit
 using Rep_pd_basis_nonempty [of t, folded ex_in_conv] by fast
 
@@ -59,8 +59,8 @@ lemma convex_le_PDPlus_lemma:
   assumes z: "PDPlus t u \<le>\<natural> z"
   shows "\<exists>v w. z = PDPlus v w \<and> t \<le>\<natural> v \<and> u \<le>\<natural> w"
 proof (intro exI conjI)
-  let ?A = "{b\<in>Rep_pd_basis z. \<exists>a\<in>Rep_pd_basis t. compact_le a b}"
-  let ?B = "{b\<in>Rep_pd_basis z. \<exists>a\<in>Rep_pd_basis u. compact_le a b}"
+  let ?A = "{b\<in>Rep_pd_basis z. \<exists>a\<in>Rep_pd_basis t. a \<sqsubseteq> b}"
+  let ?B = "{b\<in>Rep_pd_basis z. \<exists>a\<in>Rep_pd_basis u. a \<sqsubseteq> b}"
   let ?v = "Abs_pd_basis ?A"
   let ?w = "Abs_pd_basis ?B"
   have Rep_v: "Rep_pd_basis ?v = ?A"
@@ -102,7 +102,7 @@ qed
 lemma convex_le_induct [induct set: convex_le]:
   assumes le: "t \<le>\<natural> u"
   assumes 2: "\<And>t u v. \<lbrakk>P t u; P u v\<rbrakk> \<Longrightarrow> P t v"
-  assumes 3: "\<And>a b. compact_le a b \<Longrightarrow> P (PDUnit a) (PDUnit b)"
+  assumes 3: "\<And>a b. a \<sqsubseteq> b \<Longrightarrow> P (PDUnit a) (PDUnit b)"
   assumes 4: "\<And>t u v w. \<lbrakk>P t v; P u w\<rbrakk> \<Longrightarrow> P (PDPlus t u) (PDPlus v w)"
   shows "P t u"
 using le apply (induct t arbitrary: u rule: pd_basis_induct)
@@ -168,18 +168,18 @@ apply (rule convex_le.ideal_principal)
 done
 
 interpretation convex_pd:
-  bifinite_basis [convex_le convex_principal Rep_convex_pd approx_pd]
+  bifinite_basis [convex_le approx_pd convex_principal Rep_convex_pd]
 apply unfold_locales
-apply (rule ideal_Rep_convex_pd)
-apply (rule cont_Rep_convex_pd)
-apply (rule Rep_convex_principal)
-apply (simp only: less_convex_pd_def less_set_def)
 apply (rule approx_pd_convex_le)
 apply (rule approx_pd_idem)
 apply (erule approx_pd_convex_mono)
 apply (rule approx_pd_convex_mono1, simp)
 apply (rule finite_range_approx_pd)
 apply (rule ex_approx_pd_eq)
+apply (rule ideal_Rep_convex_pd)
+apply (rule cont_Rep_convex_pd)
+apply (rule Rep_convex_principal)
+apply (simp only: less_convex_pd_def less_set_def)
 done
 
 lemma convex_principal_less_iff [simp]:
