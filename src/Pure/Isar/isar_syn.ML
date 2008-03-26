@@ -947,7 +947,8 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "use_thy" "use theory file" K.diag
-    (P.name >> (Toplevel.no_timing oo IsarCmd.use_thy));
+    (P.name >> (fn name =>
+      Toplevel.no_timing o Toplevel.imperative (fn () => ThyInfo.use_thy name)));
 
 val _ =
   OuterSyntax.improper_command "touch_thy" "outdate theory, including descendants" K.diag
