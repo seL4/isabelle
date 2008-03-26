@@ -302,7 +302,7 @@ The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexml{the-context}\verb|the_context: unit -> theory| \\
-  \indexml{ML-Context.$>$$>$ }\verb|ML_Context.>> : (theory -> theory) -> unit| \\
+  \indexml{Context.$>$$>$ }\verb|Context.>> : (theory -> theory) -> unit| \\
   \end{mldecls}
 
   \begin{description}
@@ -315,7 +315,7 @@ The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
   should be avoided: code should either project out the desired
   information immediately, or produce an explicit \verb|theory_ref| (cf.\ \secref{sec:context-theory}).
 
-  \item \verb|ML_Context.>>|~\isa{f} applies theory transformation
+  \item \verb|Context.>>|~\isa{f} applies theory transformation
   \isa{f} to the current theory of the {\ML} toplevel.  In order to
   work as expected, the theory should be still under construction, and
   the Isar language element that invoked the {\ML} compiler in the
