@@ -7,7 +7,6 @@ ML context and antiquotations.
 
 signature BASIC_ML_CONTEXT =
 sig
-  val the_context: unit -> theory
   val store_thm: string * thm -> thm
   val store_thms: string * thm list -> thm list
   val bind_thm: string * thm -> unit
@@ -20,6 +19,7 @@ signature ML_CONTEXT =
 sig
   include BASIC_ML_CONTEXT
   val the_generic_context: unit -> Context.generic
+  val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
   val pass_context: Context.generic -> ('a -> 'b) -> 'a -> 'b * Context.generic
   val stored_thms: thm list ref
@@ -48,8 +48,8 @@ struct
 (** implicit ML context **)
 
 val the_generic_context = Context.the_thread_data;
+val the_global_context = Context.theory_of o the_generic_context;
 val the_local_context = Context.proof_of o the_generic_context;
-val the_context = Context.theory_of o the_generic_context;
 
 fun pass_context context f x =
   (case Context.setmp_thread_data (SOME context) (fn () => (f x, Context.thread_data ())) () of
@@ -238,15 +238,15 @@ val _ = inline_antiq "prop" (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_te
 
 val _ = value_antiq "ctyp" (Args.typ >> (fn T =>
   ("ctyp",
-    "Thm.ctyp_of (ML_Context.the_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_typ T))));
+    "Thm.ctyp_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_typ T))));
 
 val _ = value_antiq "cterm" (Args.term >> (fn t =>
   ("cterm",
-    "Thm.cterm_of (ML_Context.the_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
+    "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 val _ = value_antiq "cprop" (Args.prop >> (fn t =>
   ("cprop",
-    "Thm.cterm_of (ML_Context.the_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
+    "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 fun type_ syn = (context -- Scan.lift Args.name >> (fn (ctxt, c) =>
     #1 (Term.dest_Type (ProofContext.read_tyname ctxt c))
@@ -309,7 +309,7 @@ end;
 
 val _ = proj_value_antiq "cpat" (Scan.lift Args.name >>
     (fn name => ("cpat",
-      "Thm.cterm_of (ML_Context.the_context ()) (Syntax.read_term \
+      "Thm.cterm_of (ML_Context.the_global_context ()) (Syntax.read_term \
       \(ProofContext.set_mode ProofContext.mode_pattern (ML_Context.the_local_context ()))"
       ^ ML_Syntax.print_string name ^ ")", "")));
 
