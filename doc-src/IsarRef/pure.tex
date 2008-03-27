@@ -483,9 +483,7 @@ following commands provide some way to do so.
 \begin{rail}
   'use' name
   ;
-  ('ML' | 'ML\_val' | 'ML\_command' | 'ML\_setup') text
-  ;
-  'setup' text?
+  ('ML' | 'ML\_val' | 'ML\_command' | 'ML\_setup' | 'setup') text
   ;
   'method\_setup' name '=' text text
   ;
@@ -509,12 +507,11 @@ following commands provide some way to do so.
   theory context is passed down to the ML session, and fetched back
   afterwards.  Thus $text$ may actually change the theory as a side effect.
   
-\item [$\isarkeyword{setup}~text$] changes the current theory context by
-  applying $text$, which refers to an ML expression of type
-  \texttt{theory~->~theory)}.  The $\isarkeyword{setup}$ command is the
-  canonical way to initialize any object-logic specific tools and packages
-  written in ML.  If the $text$ is omitted, the setup value is taken from the
-  implicit context maintained via \verb,Context.add_setup,.
+\item [$\isarkeyword{setup}~text$] changes the current theory context
+  by applying $text$, which refers to an ML expression of type
+  \texttt{theory~->~theory)}.  The $\isarkeyword{setup}$ command is
+  the canonical way to initialize any object-logic specific tools and
+  packages written in ML.
   
 \item [$\isarkeyword{method_setup}~name = text~description$] defines a proof
   method in the current theory.  The given $text$ has to be an ML expression

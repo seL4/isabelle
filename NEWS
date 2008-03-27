@@ -31,6 +31,8 @@ file are no longer supported.  INCOMPATIBILITY, regular 'uses' and
 
 * Eliminated theory ProtoPure.  Potential INCOMPATIBILITY.
 
+* Command 'setup': discontinued implicit version.
+
 * Instantiation target allows for simultaneous specification of class
 instance operations together with an instantiation proof.
 Type-checking phase allows to refer to class operations uniformly.
