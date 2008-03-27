@@ -117,7 +117,7 @@ fun trace_thms str thms =
     (tracing str; map (trace_thm "") thms);
 
 fun trace_term str t =
-    tracing (str ^ (Display.raw_string_of_term t));
+    tracing (str ^ Sign.string_of_term CPure.thy t);
 
 (* timing *)
 

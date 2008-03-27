@@ -35,7 +35,7 @@ fun num_of_term vs t = case t
         | _ => error "num_of_term: unsupported Multiplication")
       | Const("RealDef.real",_) $ Const (@{const_name "Int.number_of"},_)$t' => C (HOLogic.dest_numeral t')
       | Const (@{const_name "Int.number_of"},_)$t' => C (HOLogic.dest_numeral t')
-      | _ => error ("num_of_term: unknown term " ^ (Display.raw_string_of_term t));
+      | _ => error ("num_of_term: unknown term " ^ Sign.string_of_term CPure.thy t);
 
 (* pseudo reification : term -> fm *)
 fun fm_of_term vs t = 
@@ -56,7 +56,7 @@ fun fm_of_term vs t =
 	E(fm_of_term (map (fn(v,n) => (v,1+ n)) vs) p)
       | Const("All",_)$Term.Abs(xn,xT,p) => 
 	A(fm_of_term (map (fn(v,n) => (v,1+ n)) vs) p)
-      | _ => error ("fm_of_term : unknown term!" ^ (Display.raw_string_of_term t));
+      | _ => error ("fm_of_term : unknown term!" ^ Sign.string_of_term CPure.thy t);
 
 
 fun start_vs t =

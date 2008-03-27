@@ -28,9 +28,6 @@ end;
 signature DISPLAY =
 sig
   include BASIC_DISPLAY
-  val raw_string_of_sort: sort -> string
-  val raw_string_of_typ: typ -> string
-  val raw_string_of_term: term -> string
   val pretty_flexpair: Pretty.pp -> term * term -> Pretty.T
   val pretty_thm_aux: Pretty.pp -> bool -> bool -> term list -> thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
@@ -47,13 +44,6 @@ end;
 
 structure Display: DISPLAY =
 struct
-
-(** raw output **)
-
-val raw_string_of_sort = Sign.string_of_sort ProtoPure.thy;
-val raw_string_of_typ = Sign.string_of_typ ProtoPure.thy;
-val raw_string_of_term = Sign.string_of_term ProtoPure.thy;
-
 
 
 (** print thm **)

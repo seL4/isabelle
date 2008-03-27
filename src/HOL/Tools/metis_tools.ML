@@ -165,9 +165,10 @@ struct
   fun apply_list rator nargs rands =
     let val trands = terms_of rands
     in  if length trands = nargs then Term (list_comb(rator, trands))
-        else error ("apply_list: wrong number of arguments: " ^ Display.raw_string_of_term rator ^
-                    " expected " ^
-                    Int.toString nargs ^ " received " ^ commas (map Display.raw_string_of_term trands))
+        else error
+          ("apply_list: wrong number of arguments: " ^ Sign.string_of_term CPure.thy rator ^
+            " expected " ^
+            Int.toString nargs ^ " received " ^ commas (map (Sign.string_of_term CPure.thy) trands))
     end;
 
 (*Instantiate constant c with the supplied types, but if they don't match its declared
