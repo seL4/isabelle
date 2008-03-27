@@ -395,7 +395,7 @@ fun add_types tys thy =
 
 (** Pure setup **)
 
-val _ = Context.add_setup
+val _ = Context.>>
   (add_types [("prop", ([], NONE))] #>
 
    add_typeof_eqns

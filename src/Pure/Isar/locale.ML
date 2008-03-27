@@ -2000,7 +2000,7 @@ val add_locale_i = gen_add_locale cert_context (K I);
 
 end;
 
-val _ = Context.add_setup
+val _ = Context.>>
  (add_locale_i (SOME "") "var" empty [Fixes [(Name.internal "x", NONE, NoSyn)]] #>
   snd #> ProofContext.theory_of #>
   add_locale_i (SOME "") "struct" empty [Fixes [(Name.internal "S", NONE, Structure)]] #>
@@ -2041,7 +2041,7 @@ fun intro_locales_tac eager ctxt facts st =
     Method.intros_tac (wits @ intros) facts st
   end;
 
-val _ = Context.add_setup (Method.add_methods
+val _ = Context.>> (Method.add_methods
   [("intro_locales",
     Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac false ctxt)),
     "back-chain introduction rules of locales without unfolding predicates"),

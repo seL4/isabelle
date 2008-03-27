@@ -571,7 +571,7 @@ fun standard_term_check ctxt =
 fun standard_term_uncheck ctxt =
   map (contract_abbrevs ctxt);
 
-fun add eq what f = Context.add_setup
+fun add eq what f = Context.>>
   (Context.theory_map (what (fn xs => fn ctxt =>
     let val xs' = f ctxt xs in if eq_list eq (xs, xs') then NONE else SOME (xs', ctxt) end)));
 
@@ -922,7 +922,7 @@ fun const_ast_tr intern ctxt [Syntax.Variable c] =
 
 in
 
-val _ = Context.add_setup
+val _ = Context.>>
  (Sign.add_syntax
    [("_context_const", "id => 'a", Delimfix "CONST _"),
     ("_context_const", "longid => 'a", Delimfix "CONST _"),

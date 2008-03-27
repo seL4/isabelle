@@ -22,9 +22,6 @@ structure Pure = struct val thy = ML_Context.the_global_context () end;
 Context.set_thread_data NONE;
 ThyInfo.register_theory Pure.thy;
 
-Context.add_setup
- (Sign.del_modesyntax_i Syntax.mode_default PureThy.appl_syntax #>
-  Sign.add_syntax_i PureThy.applC_syntax);
 use_thy "CPure";
 structure CPure = struct val thy = theory "CPure" end;
 

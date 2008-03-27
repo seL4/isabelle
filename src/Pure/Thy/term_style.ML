@@ -65,7 +65,7 @@ fun style_parm_premise i ctxt t =
       " in propositon: " ^ Syntax.string_of_term ctxt t)
   end;
 
-val _ = Context.add_setup
+val _ = Context.>>
  (add_style "lhs" (fst oo style_binargs) #>
   add_style "rhs" (snd oo style_binargs) #>
   add_style "prem1" (style_parm_premise 1) #>

@@ -2,10 +2,7 @@
     ID:         $Id$
 *)
 
-section {* The Pure theory *}
-
-setup  -- {* Common setup of internal components *}
-
+section {* Further content for the Pure theory *}
 
 subsection {* Meta-level connectives in assumptions *}
 

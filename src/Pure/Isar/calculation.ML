@@ -92,7 +92,7 @@ val symmetric = Thm.rule_attribute (fn x => fn th =>
 val trans_att = Attrib.add_del_args trans_add trans_del;
 val sym_att = Attrib.add_del_args sym_add sym_del;
 
-val _ = Context.add_setup
+val _ = Context.>>
  (Attrib.add_attributes
    [("trans", trans_att, "declaration of transitivity rule"),
     ("sym", sym_att, "declaration of symmetry rule"),

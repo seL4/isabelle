@@ -218,7 +218,7 @@ end;
 
 (* setup *)
 
-val _ = Context.add_setup (Attrib.add_attributes
+val _ = Context.>> (Attrib.add_attributes
  [("where", where_att, "named instantiation of theorem"),
   ("of", of_att, "positional instantiation of theorem")]);
 
@@ -367,7 +367,7 @@ fun inst_args_var f src ctxt =
 
 (* setup *)
 
-val _ = Context.add_setup (Method.add_methods
+val _ = Context.>> (Method.add_methods
  [("rule_tac", inst_args_var res_inst_meth,
     "apply rule (dynamic instantiation)"),
   ("erule_tac", inst_args_var eres_inst_meth,

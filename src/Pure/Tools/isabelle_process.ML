@@ -160,7 +160,7 @@ val token_trans =
 
 in
 
-val _ = Context.add_setup (Sign.add_tokentrfuns token_trans);
+val _ = Context.>> (Sign.add_tokentrfuns token_trans);
 
 end;
 

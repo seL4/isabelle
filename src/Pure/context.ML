@@ -68,9 +68,6 @@ sig
   val setmp_thread_data: generic option -> ('a -> 'b) -> 'a -> 'b
   val >> : (theory -> theory) -> unit
   val >>> : (theory -> 'a * theory) -> 'a
-  (*delayed setup*)
-  val add_setup: (theory -> theory) -> unit
-  val setup: unit -> theory -> theory
 end;
 
 signature PRIVATE_CONTEXT =
@@ -536,17 +533,6 @@ nonfix >>;
 fun >> f = >>> (fn thy => ((), f thy));
 
 val _ = set_thread_data (SOME (Theory pre_pure_thy));
-
-
-
-(** delayed theory setup **)
-
-local
-  val setup_fn = ref (I: theory -> theory);
-in
-  fun add_setup f = CRITICAL (fn () => setup_fn := (! setup_fn #> f));
-  fun setup () = CRITICAL (fn () => let val f = ! setup_fn in setup_fn := I; f end);
-end;
 
 end;
 

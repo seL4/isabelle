@@ -267,7 +267,7 @@ val html_trans =
   ("var",   var_or_skolem),
   ("xstr",  style "xstr")];
 
-val _ = Context.add_setup (Sign.add_mode_tokentrfuns htmlN html_trans);
+val _ = Context.>> (Sign.add_mode_tokentrfuns htmlN html_trans);
 
 
 

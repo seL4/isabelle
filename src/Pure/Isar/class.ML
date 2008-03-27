@@ -395,7 +395,7 @@ fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
     default_intro_classes_tac facts;
 
-val _ = Context.add_setup (Method.add_methods
+val _ = Context.>> (Method.add_methods
  [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
     "back-chain introduction rules of classes"),
   ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac),

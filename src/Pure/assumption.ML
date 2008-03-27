@@ -78,7 +78,7 @@ fun extra_hyps ctxt th = subtract (op aconv) (map Thm.term_of (assms_of ctxt)) (
 
 (* named prems -- legacy feature *)
 
-val _ = Context.add_setup
+val _ = Context.>>
   (PureThy.add_thms_dynamic ("prems",
     fn Context.Theory _ => [] | Context.Proof ctxt => prems_of ctxt));
 

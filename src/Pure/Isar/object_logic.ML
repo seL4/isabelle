@@ -193,7 +193,7 @@ fun add_rulify th = map_data (fn (base_sort, judgment, (atomize, rulify)) =>
 val declare_atomize = Thm.declaration_attribute (fn th => Context.mapping (add_atomize th) I);
 val declare_rulify = Thm.declaration_attribute (fn th => Context.mapping (add_rulify th) I);
 
-val _ = Context.add_setup (add_rulify Drule.norm_hhf_eq);
+val _ = Context.>> (add_rulify Drule.norm_hhf_eq);
 
 
 (* atomize *)

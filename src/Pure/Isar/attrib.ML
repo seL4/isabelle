@@ -276,7 +276,7 @@ val rotated = syntax
 
 (* theory setup *)
 
-val _ = Context.add_setup
+val _ = Context.>>
  (add_attributes
    [("attribute", internal_att, "internal attribute"),
     ("tagged", tagged, "tagged theorem"),
@@ -379,7 +379,7 @@ end;
 
 (* theory setup *)
 
-val _ = Context.add_setup
+val _ = Context.>>
  (register_config Unify.trace_bound_value #>
   register_config Unify.search_bound_value #>
   register_config Unify.trace_simp_value #>

@@ -7,7 +7,7 @@ Derived Isar commands.
 
 signature ISAR_CMD =
 sig
-  val generic_setup: (string * Position.T) option -> theory -> theory
+  val generic_setup: string * Position.T -> theory -> theory
   val parse_ast_translation: bool * (string * Position.T) -> theory -> theory
   val parse_translation: bool * (string * Position.T) -> theory -> theory
   val print_translation: bool * (string * Position.T) -> theory -> theory
@@ -134,10 +134,9 @@ struct
 
 (* generic_setup *)
 
-fun generic_setup NONE = (fn thy => thy |> Context.setup ())
-  | generic_setup (SOME (txt, pos)) =
-      ML_Context.use_let pos "val setup: theory -> theory" "Context.map_theory setup" txt
-      |> Context.theory_map;
+fun generic_setup (txt, pos) =
+  ML_Context.use_let pos "val setup: theory -> theory" "Context.map_theory setup" txt
+  |> Context.theory_map;
 
 
 (* translation functions *)

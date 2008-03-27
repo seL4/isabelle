@@ -323,7 +323,7 @@ val _ =
 
 val _ =
   OuterSyntax.command "setup" "apply ML theory setup" (K.tag_ml K.thy_decl)
-    (Scan.option (P.position P.text) >> (Toplevel.theory o IsarCmd.generic_setup));
+    (P.position P.text >> (Toplevel.theory o IsarCmd.generic_setup));
 
 val _ =
   OuterSyntax.command "method_setup" "define proof method in ML" (K.tag_ml K.thy_decl)

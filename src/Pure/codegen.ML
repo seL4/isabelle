@@ -339,7 +339,7 @@ fun add_unfold eqn =
       end)
   in add_preprocessor prep end;
 
-val _ = Context.add_setup
+val _ = Context.>>
   (let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
   in
@@ -786,7 +786,7 @@ fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
                  (add_edge (node_id, dep) gr'', p module''))
            end);
 
-val _ = Context.add_setup
+val _ = Context.>>
  (add_codegen "default" default_codegen #>
   add_tycodegen "default" default_tycodegen);
 
@@ -1026,7 +1026,7 @@ fun test_goal' int state =
     else state
   end;
 
-val _ = Context.add_setup
+val _ = Context.>>
   (Context.theory_map (Specification.add_theorem_hook test_goal'));
 
 
@@ -1078,7 +1078,7 @@ fun evaluation_conv ct =
   let val {thy, t, ...} = rep_cterm ct
   in Thm.invoke_oracle_i thy "Pure.evaluation" (thy, Evaluation t) end;
 
-val _ = Context.add_setup
+val _ = Context.>>
   (Theory.add_oracle ("evaluation", evaluation_oracle));
 
 

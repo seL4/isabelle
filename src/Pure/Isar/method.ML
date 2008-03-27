@@ -554,7 +554,7 @@ fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
 
 (* theory setup *)
 
-val _ = Context.add_setup (add_methods
+val _ = Context.>> (add_methods
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
   ("-", no_args insert_facts, "do nothing (insert current facts only)"),
