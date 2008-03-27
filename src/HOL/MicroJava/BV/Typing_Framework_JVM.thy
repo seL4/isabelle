@@ -10,7 +10,7 @@ theory Typing_Framework_JVM imports Typing_Framework_err JVMType EffectMono BVSp
 
 
 constdefs
-  exec :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list \<Rightarrow> state step_type"
+  exec :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list \<Rightarrow> JVMType.state step_type"
   "exec G maxs rT et bs == 
   err_step (size bs) (\<lambda>pc. app (bs!pc) G maxs rT pc et) (\<lambda>pc. eff (bs!pc) G pc et)"
 

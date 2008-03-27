@@ -12,7 +12,7 @@ theory Altern imports BVSpec begin
 
 
 constdefs
-  check_type :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> bool"
+  check_type :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state \<Rightarrow> bool"
   "check_type G mxs mxr s \<equiv> s \<in> states G mxs mxr"
 
   wt_instr_altern :: "[instr,jvm_prog,ty,method_type,nat,nat,p_count,

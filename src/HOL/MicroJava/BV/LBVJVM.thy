@@ -10,20 +10,20 @@ theory LBVJVM
 imports LBVCorrect LBVComplete Typing_Framework_JVM
 begin
 
-types prog_cert = "cname \<Rightarrow> sig \<Rightarrow> state list"
+types prog_cert = "cname \<Rightarrow> sig \<Rightarrow> JVMType.state list"
 
 constdefs
-  check_cert :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state list \<Rightarrow> bool"
+  check_cert :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state list \<Rightarrow> bool"
   "check_cert G mxs mxr n cert \<equiv> check_types G mxs mxr cert \<and> length cert = n+1 \<and>
                                  (\<forall>i<n. cert!i \<noteq> Err) \<and> cert!n = OK None"
 
   lbvjvm :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> 
-             state list \<Rightarrow> instr list \<Rightarrow> state \<Rightarrow> state"
+             JVMType.state list \<Rightarrow> instr list \<Rightarrow> JVMType.state \<Rightarrow> JVMType.state"
   "lbvjvm G maxs maxr rT et cert bs \<equiv>
   wtl_inst_list bs cert  (JVMType.sup G maxs maxr) (JVMType.le G maxs maxr) Err (OK None) (exec G maxs rT et bs) 0"
 
   wt_lbv :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
-             exception_table \<Rightarrow> state list \<Rightarrow> instr list \<Rightarrow> bool"
+             exception_table \<Rightarrow> JVMType.state list \<Rightarrow> instr list \<Rightarrow> bool"
   "wt_lbv G C pTs rT mxs mxl et cert ins \<equiv>
    check_bounded ins et \<and> 
    check_cert G mxs (1+size pTs+mxl) (length ins) cert \<and>
@@ -37,7 +37,7 @@ constdefs
   wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b,et)). wt_lbv G C (snd sig) rT maxs maxl et (cert C sig) b) G"
 
   mk_cert :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list 
-              \<Rightarrow> method_type \<Rightarrow> state list"
+              \<Rightarrow> method_type \<Rightarrow> JVMType.state list"
   "mk_cert G maxs rT et bs phi \<equiv> make_cert (exec G maxs rT et bs) (map OK phi) (OK None)"
 
   prg_cert :: "jvm_prog \<Rightarrow> prog_type \<Rightarrow> prog_cert"

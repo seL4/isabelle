@@ -11,7 +11,7 @@ theory JVM imports Kildall Typing_Framework_JVM begin
 
 constdefs
   kiljvm :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> 
-             instr list \<Rightarrow> state list \<Rightarrow> state list"
+             instr list \<Rightarrow> JVMType.state list \<Rightarrow> JVMType.state list"
   "kiljvm G maxs maxr rT et bs ==
   kildall (JVMType.le G maxs maxr) (JVMType.sup G maxs maxr) (exec G maxs rT et bs)"
 
