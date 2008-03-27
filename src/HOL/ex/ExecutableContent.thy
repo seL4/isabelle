@@ -8,6 +8,7 @@ theory ExecutableContent
 imports
   Main
   Eval
+  Enum
   Code_Index
   "~~/src/HOL/ex/Records"
   AssocList
