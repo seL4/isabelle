@@ -72,8 +72,6 @@ sig
     theory -> thm list * theory
   val add_defs_unchecked_i: bool -> ((bstring * term) * attribute list) list ->
     theory -> thm list * theory
-  val appl_syntax: (string * typ * mixfix) list
-  val applC_syntax: (string * typ * mixfix) list
 end;
 
 structure PureThy: PURE_THY =
@@ -427,16 +425,6 @@ val typ = SimpleSyntax.read_typ;
 val term = SimpleSyntax.read_term;
 val prop = SimpleSyntax.read_prop;
 
-val appl_syntax =
- [("_appl", typ "('b => 'a) => args => logic", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000)),
-  ("_appl", typ "('b => 'a) => args => aprop", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000))];
-
-val applC_syntax =
- [("",       typ "'a => cargs",                  Delimfix "_"),
-  ("_cargs", typ "'a => cargs => cargs",         Mixfix ("_/ _", [1000, 1000], 1000)),
-  ("_applC", typ "('b => 'a) => cargs => logic", Mixfix ("(1_/ _)", [1000, 1000], 999)),
-  ("_applC", typ "('b => 'a) => cargs => aprop", Mixfix ("(1_/ _)", [1000, 1000], 999))];
-
 val _ = Context.>>
   (Sign.add_types
    [("fun", 2, NoSyn),
@@ -445,44 +433,45 @@ val _ = Context.>>
     ("dummy", 0, NoSyn)]
   #> Sign.add_nonterminals Syntax.basic_nonterms
   #> Sign.add_syntax_i
-   [("_lambda",     typ "pttrns => 'a => logic",     Mixfix ("(3%_./ _)", [0, 3], 3)),
-    ("_abs",        typ "'a",                        NoSyn),
-    ("",            typ "'a => args",                Delimfix "_"),
-    ("_args",       typ "'a => args => args",        Delimfix "_,/ _"),
-    ("",            typ "id => idt",                 Delimfix "_"),
-    ("_idtdummy",   typ "idt",                       Delimfix "'_"),
-    ("_idtyp",      typ "id => type => idt",         Mixfix ("_::_", [], 0)),
-    ("_idtypdummy", typ "type => idt",               Mixfix ("'_()::_", [], 0)),
-    ("",            typ "idt => idt",                Delimfix "'(_')"),
-    ("",            typ "idt => idts",               Delimfix "_"),
-    ("_idts",       typ "idt => idts => idts",       Mixfix ("_/ _", [1, 0], 0)),
-    ("",            typ "idt => pttrn",              Delimfix "_"),
-    ("",            typ "pttrn => pttrns",           Delimfix "_"),
-    ("_pttrns",     typ "pttrn => pttrns => pttrns", Mixfix ("_/ _", [1, 0], 0)),
-    ("",            typ "id => aprop",               Delimfix "_"),
-    ("",            typ "longid => aprop",           Delimfix "_"),
-    ("",            typ "var => aprop",              Delimfix "_"),
-    ("_DDDOT",      typ "aprop",                     Delimfix "..."),
-    ("_aprop",      typ "aprop => prop",             Delimfix "PROP _"),
-    ("_asm",        typ "prop => asms",              Delimfix "_"),
-    ("_asms",       typ "prop => asms => asms",      Delimfix "_;/ _"),
-    ("_bigimpl",    typ "asms => prop => prop",      Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
-    ("_ofclass",    typ "type => logic => prop",     Delimfix "(1OFCLASS/(1'(_,/ _')))"),
-    ("_mk_ofclass", typ "dummy",                     NoSyn),
-    ("_TYPE",       typ "type => logic",             Delimfix "(1TYPE/(1'(_')))"),
-    ("",            typ "id => logic",               Delimfix "_"),
-    ("",            typ "longid => logic",           Delimfix "_"),
-    ("",            typ "var => logic",              Delimfix "_"),
-    ("_DDDOT",      typ "logic",                     Delimfix "..."),
-    ("_constify",   typ "num => num_const",          Delimfix "_"),
-    ("_indexnum",   typ "num_const => index",        Delimfix "\\<^sub>_"),
-    ("_index",      typ "logic => index",            Delimfix "(00\\<^bsub>_\\<^esub>)"),
-    ("_indexdefault", typ "index",                   Delimfix ""),
-    ("_indexvar",   typ "index",                     Delimfix "'\\<index>"),
-    ("_struct",     typ "index => logic",            Mixfix ("\\<struct>_", [1000], 1000)),
-    ("==>",         typ "prop => prop => prop",      Delimfix "op ==>"),
-    (Term.dummy_patternN, typ "aprop",               Delimfix "'_")]
-  #> Sign.add_syntax_i appl_syntax
+   [("_lambda",     typ "pttrns => 'a => logic",       Mixfix ("(3%_./ _)", [0, 3], 3)),
+    ("_abs",        typ "'a",                          NoSyn),
+    ("",            typ "'a => args",                  Delimfix "_"),
+    ("_args",       typ "'a => args => args",          Delimfix "_,/ _"),
+    ("",            typ "id => idt",                   Delimfix "_"),
+    ("_idtdummy",   typ "idt",                         Delimfix "'_"),
+    ("_idtyp",      typ "id => type => idt",           Mixfix ("_::_", [], 0)),
+    ("_idtypdummy", typ "type => idt",                 Mixfix ("'_()::_", [], 0)),
+    ("",            typ "idt => idt",                  Delimfix "'(_')"),
+    ("",            typ "idt => idts",                 Delimfix "_"),
+    ("_idts",       typ "idt => idts => idts",         Mixfix ("_/ _", [1, 0], 0)),
+    ("",            typ "idt => pttrn",                Delimfix "_"),
+    ("",            typ "pttrn => pttrns",             Delimfix "_"),
+    ("_pttrns",     typ "pttrn => pttrns => pttrns",   Mixfix ("_/ _", [1, 0], 0)),
+    ("",            typ "id => aprop",                 Delimfix "_"),
+    ("",            typ "longid => aprop",             Delimfix "_"),
+    ("",            typ "var => aprop",                Delimfix "_"),
+    ("_DDDOT",      typ "aprop",                       Delimfix "..."),
+    ("_aprop",      typ "aprop => prop",               Delimfix "PROP _"),
+    ("_asm",        typ "prop => asms",                Delimfix "_"),
+    ("_asms",       typ "prop => asms => asms",        Delimfix "_;/ _"),
+    ("_bigimpl",    typ "asms => prop => prop",        Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
+    ("_ofclass",    typ "type => logic => prop",       Delimfix "(1OFCLASS/(1'(_,/ _')))"),
+    ("_mk_ofclass", typ "dummy",                       NoSyn),
+    ("_TYPE",       typ "type => logic",               Delimfix "(1TYPE/(1'(_')))"),
+    ("",            typ "id => logic",                 Delimfix "_"),
+    ("",            typ "longid => logic",             Delimfix "_"),
+    ("",            typ "var => logic",                Delimfix "_"),
+    ("_DDDOT",      typ "logic",                       Delimfix "..."),
+    ("_constify",   typ "num => num_const",            Delimfix "_"),
+    ("_indexnum",   typ "num_const => index",          Delimfix "\\<^sub>_"),
+    ("_index",      typ "logic => index",              Delimfix "(00\\<^bsub>_\\<^esub>)"),
+    ("_indexdefault", typ "index",                     Delimfix ""),
+    ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),
+    ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
+    ("==>",         typ "prop => prop => prop",        Delimfix "op ==>"),
+    (Term.dummy_patternN, typ "aprop",                 Delimfix "'_"),
+    ("_appl",       typ "('b => 'a) => args => logic", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000)),
+    ("_appl",       typ "('b => 'a) => args => aprop", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000))]
   #> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
    [("fun",      typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
     ("_bracket", typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
