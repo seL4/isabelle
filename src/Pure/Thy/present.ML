@@ -83,7 +83,7 @@ structure BrowserInfoData = TheoryDataFun
 );
 
 fun get_info thy =
-  if member (op =) [Context.ProtoPureN, Context.PureN, Context.CPureN] (Context.theory_name thy)
+  if member (op =) [Context.PureN, Context.CPureN] (Context.theory_name thy)
   then {name = Context.PureN, session = [], is_local = false}
   else BrowserInfoData.get thy;
 
@@ -244,7 +244,7 @@ fun make_session_info
 val session_info = ref (NONE: session_info option);
 
 fun with_session x f = (case ! session_info of NONE => x | SOME info => f info);
-fun with_context f = f (Context.theory_name (ML_Context.the_context ()));
+fun with_context f = f (Context.theory_name (ML_Context.the_global_context ()));
 
 
 
