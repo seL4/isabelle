@@ -1,7 +1,3 @@
-(*  Title:      HOLCF/IMP/ROOT.ML
-    ID:         $Id$
-    Author:     Tobias Nipkow
-    Copyright   1997  TU Muenchen
-*)
+(* $Id$ *)
 
-use_thys ["../../HOL/IMP/Natural", "HoareEx"];
+use_thys ["HoareEx"];

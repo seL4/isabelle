@@ -9,7 +9,7 @@ The invariant for the type safety proof.
 
 header {* \isaheader{BV Type Safety Invariant} *}
 
-theory Correct imports BVSpec JVMExec begin
+theory Correct imports BVSpec "../JVM/JVMExec" begin
 
 constdefs
   approx_val :: "[jvm_prog,aheap,val,ty err] \<Rightarrow> bool"
