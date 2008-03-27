@@ -172,12 +172,7 @@ fun to_hol_eq th = @{thm "meta_eq_imp_eq"} OF [th] handle THM _ => @{thm "eq_tri
 
 fun prep_thms ths = map (convert_conditions o to_meta_eq) ths
 
-local
-    val sym_HOL = @{thm "HOL.sym"}
-    val sym_Pure = @{thm "ProtoPure.symmetric"}
-in
-  fun symmetric th = ((sym_HOL OF [th]) handle THM _ => (sym_Pure OF [th]))
-end
+fun symmetric th = @{thm "HOL.sym"} OF [th] handle THM _ => @{thm "Pure.symmetric"} OF [th]
 
 local
     val trans_HOL = @{thm "HOL.trans"}

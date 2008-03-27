@@ -149,7 +149,7 @@ fun bigimpl_ast_tr (*"_bigimpl"*) (asts as [asms, concl]) =
 
 (* meta conjunction *)
 
-fun conjunction_tr [t, u] = Lexicon.const "ProtoPure.conjunction" $ t $ u
+fun conjunction_tr [t, u] = Lexicon.const "Pure.conjunction" $ t $ u
   | conjunction_tr ts = raise TERM ("conjunction_tr", ts);
 
 
@@ -159,7 +159,7 @@ fun type_tr (*"_TYPE"*) [ty] =
       Lexicon.const "_constrain" $ Lexicon.const "TYPE" $ (Lexicon.const "itself" $ ty)
   | type_tr (*"_TYPE"*) ts = raise TERM ("type_tr", ts);
 
-fun term_tr [t] = Lexicon.const "ProtoPure.term" $ t
+fun term_tr [t] = Lexicon.const "Pure.term" $ t
   | term_tr ts = raise TERM ("term_tr", ts);
 
 
@@ -341,7 +341,7 @@ fun prop_tr' tm =
     fun is_prop Ts t =
       fastype_of1 (Ts, t) = propT handle TERM _ => false;
 
-    fun is_term (Const ("ProtoPure.term", _) $ _) = true
+    fun is_term (Const ("Pure.term", _) $ _) = true
       | is_term _ = false;
 
     fun tr' _ (t as Const _) = t

@@ -203,13 +203,11 @@ val defn_del = Thm.declaration_attribute (Rules.map o Thm.del_thm);
 
 (* meta rewrite rules *)
 
-val equals_ss =
-  MetaSimplifier.theory_context ProtoPure.thy MetaSimplifier.empty_ss
-    addeqcongs [Drule.equals_cong];    (*protect meta-level equality*)
-
 fun meta_rewrite_conv ctxt =
   MetaSimplifier.rewrite_cterm (false, false, false) (K (K NONE))
-    (equals_ss addsimps (Rules.get (Context.Proof ctxt)));
+    (MetaSimplifier.context ctxt MetaSimplifier.empty_ss
+      addeqcongs [Drule.equals_cong]    (*protect meta-level equality*)
+      addsimps (Rules.get (Context.Proof ctxt)));
 
 val meta_rewrite_rule = Conv.fconv_rule o meta_rewrite_conv;
 

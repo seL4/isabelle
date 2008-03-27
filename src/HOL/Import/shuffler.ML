@@ -90,7 +90,7 @@ fun print_shuffles thy =
 
 val weaken =
     let
-        val cert = cterm_of ProtoPure.thy
+        val cert = cterm_of Pure.thy
         val P = Free("P",propT)
         val Q = Free("Q",propT)
         val PQ = Logic.mk_implies(P,Q)
@@ -109,7 +109,7 @@ val weaken =
 
 val imp_comm =
     let
-        val cert = cterm_of ProtoPure.thy
+        val cert = cterm_of Pure.thy
         val P = Free("P",propT)
         val Q = Free("Q",propT)
         val R = Free("R",propT)
@@ -129,7 +129,7 @@ val imp_comm =
 
 val def_norm =
     let
-        val cert = cterm_of ProtoPure.thy
+        val cert = cterm_of Pure.thy
         val aT = TFree("'a",[])
         val bT = TFree("'b",[])
         val v = Free("v",aT)
@@ -156,7 +156,7 @@ val def_norm =
 
 val all_comm =
     let
-        val cert = cterm_of ProtoPure.thy
+        val cert = cterm_of Pure.thy
         val xT = TFree("'a",[])
         val yT = TFree("'b",[])
         val P = Free("P",xT-->yT-->propT)
@@ -180,7 +180,7 @@ val all_comm =
 
 val equiv_comm =
     let
-        val cert = cterm_of ProtoPure.thy
+        val cert = cterm_of Pure.thy
         val T    = TFree("'a",[])
         val t    = Free("t",T)
         val u    = Free("u",T)

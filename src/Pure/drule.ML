@@ -160,7 +160,7 @@ fun ctyp_fun f cT =
   let val {T, thy, ...} = Thm.rep_ctyp cT
   in Thm.ctyp_of thy (f T) end;
 
-val cert = cterm_of ProtoPure.thy;
+val cert = cterm_of (Context.the_theory (Context.the_thread_data ()));
 
 val implies = cert Term.implies;
 fun mk_implies (A, B) = Thm.capply (Thm.capply implies A) B;
@@ -518,7 +518,7 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 
 (*** Meta-Rewriting Rules ***)
 
-val read_prop = Thm.cterm_of ProtoPure.thy o SimpleSyntax.read_prop;
+val read_prop = cert o SimpleSyntax.read_prop;
 
 fun store_thm name thm = hd (PureThy.smart_store_thms (name, [thm]));
 fun store_standard_thm name thm = store_thm name (standard thm);
@@ -858,8 +858,9 @@ end;
 
 local
   val A = cert (Free ("A", propT));
-  val prop_def = Thm.unvarify ProtoPure.prop_def;
-  val term_def = Thm.unvarify ProtoPure.term_def;
+  val get_axiom = Thm.unvarify o Thm.get_axiom (Context.the_theory (Context.the_thread_data ()));
+  val prop_def = get_axiom "prop_def";
+  val term_def = get_axiom "term_def";
 in
   val protect = Thm.capply (cert Logic.protectC);
   val protectI = store_thm "protectI" (PureThy.kind_rule Thm.internalK (standard
@@ -899,7 +900,7 @@ fun dest_term th =
 fun cterm_rule f = dest_term o f o mk_term;
 fun term_rule thy f t = Thm.term_of (cterm_rule f (Thm.cterm_of thy t));
 
-val dummy_thm = mk_term (Thm.cterm_of ProtoPure.thy (Term.dummy_pattern propT));
+val dummy_thm = mk_term (cert (Term.dummy_pattern propT));
 
 
 

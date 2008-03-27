@@ -784,17 +784,17 @@ val equality_axms =
 
 val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =
-    map (fn (s, t) => PAxm ("ProtoPure." ^ s, varify t, NONE)) equality_axms;
+    map (fn (s, t) => PAxm ("Pure." ^ s, varify t, NONE)) equality_axms;
 
 end;
 
 val reflexive = reflexive_axm % NONE;
 
-fun symmetric (prf as PAxm ("ProtoPure.reflexive", _, _) % _) = prf
+fun symmetric (prf as PAxm ("Pure.reflexive", _, _) % _) = prf
   | symmetric prf = symmetric_axm % NONE % NONE %% prf;
 
-fun transitive _ _ (PAxm ("ProtoPure.reflexive", _, _) % _) prf2 = prf2
-  | transitive _ _ prf1 (PAxm ("ProtoPure.reflexive", _, _) % _) = prf1
+fun transitive _ _ (PAxm ("Pure.reflexive", _, _) % _) prf2 = prf2
+  | transitive _ _ prf1 (PAxm ("Pure.reflexive", _, _) % _) = prf1
   | transitive u (Type ("prop", [])) prf1 prf2 =
       transitive_axm % NONE % SOME (remove_types u) % NONE %% prf1 %% prf2
   | transitive u T prf1 prf2 =
@@ -803,11 +803,11 @@ fun transitive _ _ (PAxm ("ProtoPure.reflexive", _, _) % _) prf2 = prf2
 fun abstract_rule x a prf =
   abstract_rule_axm % NONE % NONE %% forall_intr_proof x a prf;
 
-fun check_comb (PAxm ("ProtoPure.combination", _, _) % f % g % _ % _ %% prf %% _) =
+fun check_comb (PAxm ("Pure.combination", _, _) % f % g % _ % _ %% prf %% _) =
       is_some f orelse check_comb prf
-  | check_comb (PAxm ("ProtoPure.transitive", _, _) % _ % _ % _ %% prf1 %% prf2) =
+  | check_comb (PAxm ("Pure.transitive", _, _) % _ % _ % _ %% prf1 %% prf2) =
       check_comb prf1 andalso check_comb prf2
-  | check_comb (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
+  | check_comb (PAxm ("Pure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
   | check_comb _ = false;
 
 fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
@@ -817,7 +817,7 @@ fun combination f g t u (Type (_, [T, U])) prf1 prf2 =
     val prf =  if check_comb prf1 then
         combination_axm % NONE % NONE
       else (case prf1 of
-          PAxm ("ProtoPure.reflexive", _, _) % _ =>
+          PAxm ("Pure.reflexive", _, _) % _ =>
             combination_axm %> remove_types f % NONE
         | _ => combination_axm %> remove_types f %> remove_types g)
   in

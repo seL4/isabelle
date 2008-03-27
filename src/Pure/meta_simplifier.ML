@@ -1332,16 +1332,17 @@ local
 
 fun gen_norm_hhf ss th =
   (if Drule.is_norm_hhf (Thm.prop_of th) then th
-   else Conv.fconv_rule (rewrite_cterm (true, false, false) (K (K NONE)) ss) th)
+   else Conv.fconv_rule
+    (rewrite_cterm (true, false, false) (K (K NONE)) (theory_context (Thm.theory_of_thm th) ss)) th)
   |> Thm.adjust_maxidx_thm ~1
   |> Drule.gen_all;
 
-val ss = theory_context ProtoPure.thy empty_ss addsimps [Drule.norm_hhf_eq];
+val hhf_ss = empty_ss addsimps [Drule.norm_hhf_eq];
 
 in
 
-val norm_hhf = gen_norm_hhf ss;
-val norm_hhf_protect = gen_norm_hhf (ss addeqcongs [Drule.protect_cong]);
+val norm_hhf = gen_norm_hhf hhf_ss;
+val norm_hhf_protect = gen_norm_hhf (hhf_ss addeqcongs [Drule.protect_cong]);
 
 end;
 

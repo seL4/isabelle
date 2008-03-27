@@ -145,7 +145,7 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 (** conjunction **)
 
 val true_prop = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0));
-val conjunction = Const ("ProtoPure.conjunction", propT --> propT --> propT);
+val conjunction = Const ("Pure.conjunction", propT --> propT --> propT);
 
 
 (*A && B*)
@@ -161,7 +161,7 @@ fun mk_conjunction_balanced [] = true_prop
 
 
 (*A && B*)
-fun dest_conjunction (Const ("ProtoPure.conjunction", _) $ A $ B) = (A, B)
+fun dest_conjunction (Const ("Pure.conjunction", _) $ A $ B) = (A, B)
   | dest_conjunction t = raise TERM ("dest_conjunction", [t]);
 
 (*A && B && C -- improper*)
@@ -264,9 +264,9 @@ fun unprotect (Const ("prop", _) $ t) = t
   | unprotect t = raise TERM ("unprotect", [t]);
 
 
-fun mk_term t = Const ("ProtoPure.term", Term.fastype_of t --> propT) $ t;
+fun mk_term t = Const ("Pure.term", Term.fastype_of t --> propT) $ t;
 
-fun dest_term (Const ("ProtoPure.term", _) $ t) = t
+fun dest_term (Const ("Pure.term", _) $ t) = t
   | dest_term t = raise TERM ("dest_term", [t]);
 
 

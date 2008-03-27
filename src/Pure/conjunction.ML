@@ -29,7 +29,7 @@ struct
 
 (** abstract syntax **)
 
-val cert = Thm.cterm_of ProtoPure.thy;
+val cert = Thm.cterm_of (Context.the_theory (Context.the_thread_data ()));
 val read_prop = cert o SimpleSyntax.read_prop;
 
 val true_prop = cert Logic.true_prop;
@@ -42,7 +42,7 @@ fun mk_conjunction_balanced [] = true_prop
 
 fun dest_conjunction ct =
   (case Thm.term_of ct of
-    (Const ("ProtoPure.conjunction", _) $ _ $ _) => Thm.dest_binop ct
+    (Const ("Pure.conjunction", _) $ _ $ _) => Thm.dest_binop ct
   | _ => raise TERM ("dest_conjunction", [Thm.term_of ct]));
 
 
@@ -69,7 +69,8 @@ val C = read_prop "C";
 val ABC = read_prop "A ==> B ==> C";
 val A_B = read_prop "A && B";
 
-val conjunction_def = Thm.unvarify ProtoPure.conjunction_def;
+val conjunction_def =
+  Thm.unvarify (Thm.get_axiom (Context.the_theory (Context.the_thread_data ())) "conjunction_def");
 
 fun conjunctionD which =
   Drule.implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP
@@ -121,8 +122,8 @@ fun elim_balanced 0 _ = []
 
 local
 
-fun conjs n =
-  let val As = map (fn A => cert (Free (A, propT))) (Name.invents Name.context "A" n)
+fun conjs thy n =
+  let val As = map (fn A => Thm.cterm_of thy (Free (A, propT))) (Name.invents Name.context "A" n)
   in (As, mk_conjunction_balanced As) end;
 
 val B = read_prop "B";
@@ -142,7 +143,8 @@ fun curry_balanced n th =
   if n < 2 then th
   else
     let
-      val (As, C) = conjs n;
+      val thy = Thm.theory_of_thm th;
+      val (As, C) = conjs thy n;
       val D = Drule.mk_implies (C, B);
     in
       comp_rule th
@@ -159,7 +161,8 @@ fun uncurry_balanced n th =
   if n < 2 then th
   else
     let
-      val (As, C) = conjs n;
+      val thy = Thm.theory_of_thm th;
+      val (As, C) = conjs thy n;
       val D = Drule.list_implies (As, B);
     in
       comp_rule th

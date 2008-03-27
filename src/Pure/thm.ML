@@ -1146,7 +1146,7 @@ fun class_triv thy c =
     val Cterm {t, maxidx, sorts, ...} =
       cterm_of thy (Logic.mk_inclass (TVar ((Name.aT, 0), [c]), Sign.certify_class thy c))
         handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
-    val der = Pt.infer_derivs' I (false, Pt.PAxm ("ProtoPure.class_triv:" ^ c, t, SOME []));
+    val der = Pt.infer_derivs' I (false, Pt.PAxm ("Pure.class_triv:" ^ c, t, SOME []));
   in
     Thm {thy_ref = Theory.check_thy thy, der = der, tags = [], maxidx = maxidx,
       shyps = sorts, hyps = [], tpairs = [], prop = t}
@@ -1164,7 +1164,7 @@ fun unconstrainT
     val constraints = map (curry Logic.mk_inclass T') S;
   in
     Thm {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
-      der = Pt.infer_derivs' I (false, Pt.PAxm ("ProtoPure.unconstrainT", prop, SOME [])),
+      der = Pt.infer_derivs' I (false, Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
       tags = [],
       maxidx = Int.max (maxidx, i),
       shyps = Sorts.remove_sort S shyps,
