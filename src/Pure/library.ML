@@ -109,6 +109,8 @@ sig
   val ~~ : 'a list * 'b list -> ('a * 'b) list
   val map_split: ('a -> 'b * 'c) -> 'a list -> 'b list * 'c list
   val split_list: ('a * 'b) list -> 'a list * 'b list
+  val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
+  val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val separate: 'a -> 'a list -> 'a list
   val surround: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
@@ -158,8 +160,6 @@ sig
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
   val multiply: 'a list -> 'a list list -> 'a list list
-  val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
-  val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
