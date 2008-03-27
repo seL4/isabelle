@@ -236,11 +236,9 @@ fun burrow_facts f = split_list ##> burrow (burrow_fact f) #> op ~~;
 
 (* naming *)
 
-fun gen_names _ len "" = replicate len ""
-  | gen_names j len name = map (fn i => name ^ "_" ^ string_of_int i) (j + 1 upto j + len);
-
 fun name_multi name [x] = [(name, x)]
-  | name_multi name xs = gen_names 0 (length xs) name ~~ xs;
+  | name_multi "" xs = map (pair "") xs
+  | name_multi name xs = map_index (fn (i, x) => (name ^ "_" ^ string_of_int (i + 1), x)) xs;
 
 fun name_thm pre official name thm = thm
   |> (if Thm.get_name thm <> "" andalso pre orelse not official then I else Thm.put_name name)
