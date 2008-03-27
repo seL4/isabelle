@@ -31,9 +31,9 @@ definition
 section "admissibility"
 
 lemma flatstream_adm_lemma:
-  assumes 1: "chain Y"
+  assumes 1: "Porder.chain Y"
   assumes 2: "!i. P (Y i)"
-  assumes 3: "(!!Y. [| chain Y; !i. P (Y i); !k. ? j. Fin k < #((Y j)::'a::flat stream)|]
+  assumes 3: "(!!Y. [| Porder.chain Y; !i. P (Y i); !k. ? j. Fin k < #((Y j)::'a::flat stream)|]
   ==> P(lub (range Y)))"
   shows "P(lub (range Y))"
 apply (rule increasing_chain_adm_lemma [OF 1 2])
@@ -61,7 +61,7 @@ done
 
 
 (* should be without reference to stream length? *)
-lemma flatstream_admI: "[|(!!Y. [| chain Y; !i. P (Y i); 
+lemma flatstream_admI: "[|(!!Y. [| Porder.chain Y; !i. P (Y i); 
  !k. ? j. Fin k < #((Y j)::'a::flat stream)|] ==> P(lub (range Y)))|]==> adm P"
 apply (unfold adm_def)
 apply (intro strip)
@@ -197,13 +197,13 @@ apply (fast)
 done
 
 lemma adm_set:
-"{lub (range Y) |Y. chain Y & (\<forall>i. Y i \<in> P)} \<subseteq> P \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
+"{lub (range Y) |Y. Porder.chain Y & (\<forall>i. Y i \<in> P)} \<subseteq> P \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
 apply (unfold adm_def)
 apply (fast)
 done
 
-lemma def_gfp_admI: "P \<equiv> gfp F \<Longrightarrow> {lub (range Y) |Y. chain Y \<and> (\<forall>i. Y i \<in> P)} \<subseteq> 
-  F {lub (range Y) |Y. chain Y \<and> (\<forall>i. Y i \<in> P)} \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
+lemma def_gfp_admI: "P \<equiv> gfp F \<Longrightarrow> {lub (range Y) |Y. Porder.chain Y \<and> (\<forall>i. Y i \<in> P)} \<subseteq> 
+  F {lub (range Y) |Y. Porder.chain Y \<and> (\<forall>i. Y i \<in> P)} \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
 apply (simp)
 apply (rule adm_set)
 apply (erule gfp_upperbound)
