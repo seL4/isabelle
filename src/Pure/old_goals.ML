@@ -11,6 +11,7 @@ may be a stack of pending proofs.
 
 signature GOALS =
 sig
+  val the_context: unit -> theory
   val premises: unit -> thm list
   val prove_goal: theory -> string -> (thm list -> tactic list) -> thm
   val prove_goalw: theory -> thm list -> string -> (thm list -> tactic list) -> thm
@@ -86,6 +87,9 @@ end;
 structure OldGoals: OLD_GOALS =
 struct
 
+val the_context = ML_Context.the_global_context;
+
+
 (*** Goal package ***)
 
 (*Each level of goal stack includes a proof state and alternative states,
@@ -107,11 +111,9 @@ fun premises() = !curr_prems;
 fun init_mkresult _ = error "No goal has been supplied in subgoal module";
 val curr_mkresult = ref (init_mkresult: bool*thm->thm);
 
-val dummy = Thm.trivial (Thm.read_cterm ProtoPure.thy ("PROP No_goal_has_been_supplied", propT));
-
 (*List of previous goal stacks, for the undo operation.  Set by setstate.
   A list of lists!*)
-val undo_list = ref([[(dummy, Seq.empty)]] : gstack list);
+val undo_list = ref([[(asm_rl, Seq.empty)]] : gstack list);
 
 (* Stack of proof attempts *)
 val proofstack = ref([]: proof list);
@@ -119,7 +121,7 @@ val proofstack = ref([]: proof list);
 (*reset all refs*)
 fun reset_goals () =
   (curr_prems := []; curr_mkresult := init_mkresult;
-    undo_list := [[(dummy, Seq.empty)]]);
+    undo_list := [[(asm_rl, Seq.empty)]]);
 
 
 (*** Setting up goal-directed proof ***)
@@ -368,7 +370,7 @@ val goalw = agoalw false;
 fun goal thy = goalw thy [];
 
 (*now the versions that wrap the goal up in `Goal' to make it atomic*)
-fun Goalw thms s = agoalw true (ML_Context.the_context ()) thms s;
+fun Goalw thms s = agoalw true (ML_Context.the_global_context ()) thms s;
 val Goal = Goalw [];
 
 (*simple version with minimal amount of checking and postprocessing*)
@@ -514,7 +516,7 @@ fun qed_goalw_spec_mp name thy defs s p =
 fun no_qed () = ();
 
 (*shorthand for instantiating just one variable in the current theory*)
-fun inst x t = read_instantiate_sg (the_context()) [(x,t)];
+fun inst x t = read_instantiate_sg (ML_Context.the_global_context()) [(x,t)];
 
 end;
 
