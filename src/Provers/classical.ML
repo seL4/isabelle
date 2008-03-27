@@ -879,12 +879,12 @@ fun map_context_cs f = GlobalClaset.map (apsnd
   (fn ContextCS {swrappers, uwrappers} => make_context_cs (f (swrappers, uwrappers))));
 
 val change_claset_of = change o #1 o GlobalClaset.get;
-fun change_claset f = change_claset_of (ML_Context.the_context ()) f;
+fun change_claset f = change_claset_of (ML_Context.the_global_context ()) f;
 
 fun claset_of thy =
   let val (cs_ref, ctxt_cs) = GlobalClaset.get thy
   in context_cs (ProofContext.init thy) (! cs_ref) (ctxt_cs) end;
-val claset = claset_of o ML_Context.the_context;
+val claset = claset_of o ML_Context.the_global_context;
 
 fun CLASET tacf st = tacf (claset_of (Thm.theory_of_thm st)) st;
 fun CLASET' tacf i st = tacf (claset_of (Thm.theory_of_thm st)) i st;

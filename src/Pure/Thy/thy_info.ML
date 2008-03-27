@@ -206,13 +206,13 @@ fun the_theory name thy =
 val _ = ML_Context.value_antiq "theory"
   (Scan.lift Args.name
     >> (fn name => (name ^ "_thy", "ThyInfo.theory " ^ ML_Syntax.print_string name))
-  || Scan.succeed ("thy", "ML_Context.the_context ()"));
+  || Scan.succeed ("thy", "ML_Context.the_global_context ()"));
 
 val _ = ML_Context.value_antiq "theory_ref"
   (Scan.lift Args.name
     >> (fn name => (name ^ "_thy",
         "Theory.check_thy (ThyInfo.theory " ^ ML_Syntax.print_string name ^ ")"))
-  || Scan.succeed ("thy", "Theory.check_thy (ML_Context.the_context ())"));
+  || Scan.succeed ("thy", "Theory.check_thy (ML_Context.the_global_context ())"));
 
 
 
@@ -602,8 +602,6 @@ fun register_theory theory =
     else if not (null variants) then err "different versions of parent theories" variants
     else CRITICAL (fn () => (change_thys register; perform Update name))
   end;
-
-val _ = register_theory ProtoPure.thy;
 
 
 (* finish all theories *)
