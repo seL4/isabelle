@@ -793,7 +793,8 @@ fun replicate_string (0: int) _ = ""
 
 (** lists as sets -- see also Pure/General/ord_list.ML **)
 
-(*canonical member, insert, remove*)
+(* canonical operations *)
+
 fun member eq list x =
   let
     fun memb [] = false
@@ -809,11 +810,12 @@ fun subtract eq = fold (remove eq);
 fun merge _ ([], ys) = ys
   | merge eq (xs, ys) = fold_rev (insert eq) ys xs;
 
-(*old-style infixes*)
+
+(* old-style infixes *)
+
 fun x mem xs = member (op =) xs x;
 fun (x: int) mem_int xs = member (op =) xs x;
 fun (x: string) mem_string xs = member (op =) xs x;
-
 
 (*union of sets represented as lists: no repetitions*)
 fun xs union [] = xs
