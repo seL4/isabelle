@@ -23,7 +23,7 @@ constdefs
                      (\<forall>e \<in> set et. fst (snd (snd e)) < length ins)"
 
   -- "The method type only contains declared classes:"
-  check_types :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> state list \<Rightarrow> bool"
+  check_types :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state list \<Rightarrow> bool"
   "check_types G mxs mxr phi \<equiv> set phi \<subseteq> states G mxs mxr"
 
   -- "An instruction is welltyped if it is applicable and its effect"
