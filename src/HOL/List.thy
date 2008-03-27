@@ -418,17 +418,26 @@ done
 lemma impossible_Cons: "length xs <= length ys ==> xs = x # ys = False"
   by (induct xs) auto
 
-lemma list_induct2 [consumes 1]:
-  "\<lbrakk> length xs = length ys;
-   P [] [];
-   \<And>x xs y ys. \<lbrakk> length xs = length ys; P xs ys \<rbrakk> \<Longrightarrow> P (x#xs) (y#ys) \<rbrakk>
- \<Longrightarrow> P xs ys"
-apply(induct xs arbitrary: ys)
- apply simp
-apply(case_tac ys)
- apply simp
-apply simp
-done
+lemma list_induct2 [consumes 1, case_names Nil Cons]:
+  "length xs = length ys \<Longrightarrow> P [] [] \<Longrightarrow>
+   (\<And>x xs y ys. length xs = length ys \<Longrightarrow> P xs ys \<Longrightarrow> P (x#xs) (y#ys))
+   \<Longrightarrow> P xs ys"
+proof (induct xs arbitrary: ys)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs ys) then show ?case by (cases ys) simp_all
+qed
+
+lemma list_induct3 [consumes 2, case_names Nil Cons]:
+  "length xs = length ys \<Longrightarrow> length ys = length zs \<Longrightarrow> P [] [] [] \<Longrightarrow>
+   (\<And>x xs y ys z zs. length xs = length ys \<Longrightarrow> length ys = length zs \<Longrightarrow> P xs ys zs \<Longrightarrow> P (x#xs) (y#ys) (z#zs))
+   \<Longrightarrow> P xs ys zs"
+proof (induct xs arbitrary: ys zs)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs ys zs) then show ?case by (cases ys, simp_all)
+    (cases zs, simp_all)
+qed
 
 lemma list_induct2': 
   "\<lbrakk> P [] [];
@@ -951,6 +960,9 @@ done
 lemma card_length: "card (set xs) \<le> length xs"
 by (induct xs) (auto simp add: card_insert_if)
 
+lemma set_minus_filter_out:
+  "set xs - {y} = set (filter (\<lambda>x. \<not> (x = y)) xs)"
+  by (induct xs) auto
 
 subsubsection {* @{text filter} *}
 
@@ -1090,6 +1102,41 @@ lemma filter_cong[fundef_cong, recdef_cong]:
 apply simp
 apply(erule thin_rl)
 by (induct ys) simp_all
+
+
+subsubsection {* List partitioning *}
+
+primrec partition :: "('a \<Rightarrow> bool) \<Rightarrow>'a list \<Rightarrow> 'a list \<times> 'a list" where
+  "partition P [] = ([], [])"
+  | "partition P (x # xs) = 
+      (let (yes, no) = partition P xs
+      in if P x then (x # yes, no) else (yes, x # no))"
+
+lemma partition_filter1:
+    "fst (partition P xs) = filter P xs"
+by (induct xs) (auto simp add: Let_def split_def)
+
+lemma partition_filter2:
+    "snd (partition P xs) = filter (Not o P) xs"
+by (induct xs) (auto simp add: Let_def split_def)
+
+lemma partition_P:
+  assumes "partition P xs = (yes, no)"
+  shows "(\<forall>p \<in> set yes.  P p) \<and> (\<forall>p  \<in> set no. \<not> P p)"
+proof -
+  from assms have "yes = fst (partition P xs)" and "no = snd (partition P xs)"
+    by simp_all
+  then show ?thesis by (simp_all add: partition_filter1 partition_filter2)
+qed
+
+lemma partition_set:
+  assumes "partition P xs = (yes, no)"
+  shows "set yes \<union> set no = set xs"
+proof -
+  from assms have "yes = fst (partition P xs)" and "no = snd (partition P xs)"
+    by simp_all
+  then show ?thesis by (auto simp add: partition_filter1 partition_filter2) 
+qed
 
 
 subsubsection {* @{text concat} *}
@@ -1966,17 +2013,19 @@ by(simp add:concat_conv_foldl monoid_append.foldl_absorb0)
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 
-lemma listsum_append[simp]: "listsum (xs @ ys) = listsum xs + listsum ys"
+lemma listsum_append [simp]: "listsum (xs @ ys) = listsum xs + listsum ys"
 by (induct xs) (simp_all add:add_assoc)
 
-lemma listsum_rev[simp]:
-fixes xs :: "'a::comm_monoid_add list"
-shows "listsum (rev xs) = listsum xs"
+lemma listsum_rev [simp]:
+  fixes xs :: "'a\<Colon>comm_monoid_add list"
+  shows "listsum (rev xs) = listsum xs"
 by (induct xs) (simp_all add:add_ac)
 
-lemma listsum_foldr:
- "listsum xs = foldr (op +) xs 0"
-by(induct xs) auto
+lemma listsum_foldr: "listsum xs = foldr (op +) xs 0"
+by (induct xs) auto
+
+lemma length_concat: "length (concat xss) = listsum (map length xss)"
+by (induct xss) simp_all
 
 text{* For efficient code generation ---
        @{const listsum} is not tail recursive but @{const foldl} is. *}
@@ -1997,13 +2046,17 @@ translations -- {* Beware of argument permutation! *}
   "SUM x<-xs. b" == "CONST listsum (map (%x. b) xs)"
   "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (map (%x. b) xs)"
 
+lemma listsum_triv: "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"
+  by (induct xs) (simp_all add: left_distrib)
+
 lemma listsum_0 [simp]: "(\<Sum>x\<leftarrow>xs. 0) = 0"
-by (induct xs) simp_all
+  by (induct xs) (simp_all add: left_distrib)
 
 text{* For non-Abelian groups @{text xs} needs to be reversed on one side: *}
 lemma uminus_listsum_map:
- "- listsum (map f xs) = (listsum (map (uminus o f) xs) :: 'a::ab_group_add)"
-by(induct xs) simp_all
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>ab_group_add"
+  shows "- listsum (map f xs) = (listsum (map (uminus o f) xs))"
+by (induct xs) simp_all
 
 
 subsubsection {* @{text upt} *}
@@ -3164,8 +3217,6 @@ qed
 instance nibble :: finite
   by default (simp add: UNIV_nibble)
 
-declare UNIV_nibble [code func]
- 
 datatype char = Char nibble nibble
   -- "Note: canonical order of character encoding coincides with standard term ordering"
 
@@ -3275,14 +3326,6 @@ end;
 
 subsubsection {* Generation of efficient code *}
 
-consts
-  null:: "'a list \<Rightarrow> bool"
-  list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-  list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
-  list_all :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<Rightarrow> bool)"
-  filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
-  map_filter :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list"
-
 primrec
   member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
 where 
@@ -3290,33 +3333,44 @@ where
   | "x mem (y#ys) \<longleftrightarrow> (if y = x then True else x mem ys)"
 
 primrec
+  null:: "'a list \<Rightarrow> bool"
+where
   "null [] = True"
-  "null (x#xs) = False"
+  | "null (x#xs) = False"
 
 primrec
+  list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+where
   "list_inter [] bs = []"
-  "list_inter (a#as) bs =
+  | "list_inter (a#as) bs =
      (if a \<in> set bs then a # list_inter as bs else list_inter as bs)"
 
 primrec
+  list_all :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<Rightarrow> bool)"
+where
   "list_all P [] = True"
-  "list_all P (x#xs) = (P x \<and> list_all P xs)"
+  | "list_all P (x#xs) = (P x \<and> list_all P xs)"
 
 primrec
+  list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
+where
   "list_ex P [] = False"
-  "list_ex P (x#xs) = (P x \<or> list_ex P xs)"
+  | "list_ex P (x#xs) = (P x \<or> list_ex P xs)"
 
 primrec
+  filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
+where
   "filtermap f [] = []"
-  "filtermap f (x#xs) =
+  | "filtermap f (x#xs) =
      (case f x of None \<Rightarrow> filtermap f xs
       | Some y \<Rightarrow> y # filtermap f xs)"
 
 primrec
+  map_filter :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list"
+where
   "map_filter f P [] = []"
-  "map_filter f P (x#xs) =
+  | "map_filter f P (x#xs) =
      (if P x then f x # map_filter f P xs else map_filter f P xs)"
-
 
 text {*
   Only use @{text mem} for generating executable code.  Otherwise use
@@ -3448,65 +3502,9 @@ lemma ex_nat_less [code unfold]:
   "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
 by auto
 
-lemma setsum_set_upt_conv_listsum[code unfold]:
-  "setsum f (set[k..<n]) = listsum (map f [k..<n])"
+lemma setsum_set_upt_conv_listsum [code unfold]:
+  "setsum f (set [k..<n]) = listsum (map f [k..<n])"
 apply(subst atLeastLessThan_upt[symmetric])
 by (induct n) simp_all
-
-subsubsection {* List partitioning *}
-
-consts
-  partition :: "('a \<Rightarrow> bool) \<Rightarrow>'a list \<Rightarrow> 'a list \<times> 'a list"
-primrec
-  "partition P [] = ([], [])"
-  "partition P (x # xs) = 
-      (let (yes, no) = partition P xs
-      in if P x then (x # yes, no) else (yes, x # no))"
-
-lemma partition_P:
-  "partition P xs = (yes, no) \<Longrightarrow> (\<forall>p\<in> set yes.  P p) \<and> (\<forall>p\<in> set no. \<not> P p)"
-proof (induct xs arbitrary: yes no rule: partition.induct)
-  case Nil then show ?case by simp
-next
-  case (Cons a as)
-  let ?p = "partition P as"
-  let ?p' = "partition P (a # as)"
-  note prem = `?p' = (yes, no)`
-  show ?case
-  proof (cases "P a")
-    case True
-    with prem have yes: "yes = a # fst ?p" and no: "no = snd ?p"
-      by (simp_all add: Let_def split_def)
-    have "(\<forall>p\<in> set (fst ?p).  P p) \<and> (\<forall>p\<in> set no. \<not> P p)"
-      by (rule Cons.hyps) (simp add: yes no)
-    with True yes show ?thesis by simp
-  next
-    case False
-    with prem have yes: "yes = fst ?p" and no: "no = a # snd ?p"
-      by (simp_all add: Let_def split_def)
-    have "(\<forall>p\<in> set yes.  P p) \<and> (\<forall>p\<in> set (snd ?p). \<not> P p)"
-      by (rule Cons.hyps) (simp add: yes no)
-    with False no show ?thesis by simp
-  qed
-qed
-
-lemma partition_filter1:
-    "fst (partition P xs) = filter P xs"
-by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
-
-lemma partition_filter2:
-    "snd (partition P xs) = filter (Not o P) xs"
-by (induct xs rule: partition.induct) (auto simp add: Let_def split_def)
-
-lemma partition_set:
-  assumes "partition P xs = (yes, no)"
-  shows "set yes \<union> set no = set xs"
-proof -
-  have "set xs = {x. x \<in> set xs \<and> P x} \<union> {x. x \<in> set xs \<and> \<not> P x}" by blast
-  also have "\<dots> = set (List.filter P xs) Un (set (List.filter (Not o P) xs))" by simp
-  also have "\<dots> = set (fst (partition P xs)) \<union> set (snd (partition P xs))"
-    using partition_filter1 [of P xs] partition_filter2 [of P xs] by simp
-  finally show "set yes Un set no = set xs" using assms by simp
-qed
 
 end
