@@ -44,6 +44,7 @@ sig
   val scan: string -> OuterLex.token list
   val read: OuterLex.token list -> (string * OuterLex.token list * Toplevel.transition) list
   val parse: Position.T -> string -> Toplevel.transition list
+  val process_file: Path.T -> theory -> theory
   val isar: bool -> unit Toplevel.isar
 end;
 
@@ -255,6 +256,17 @@ fun parse pos str =
   |> T.source (SOME false) get_lexicons pos
   |> toplevel_source false false NONE get_parser
   |> Source.exhaust;
+
+
+(* process file *)
+
+fun process_file path thy =
+  let
+    val result = ref thy;
+    val trs = parse (Position.path path) (File.read path);
+    val init = Toplevel.init_theory (K thy) (fn thy' => result := thy') (K ());
+    val _ = Toplevel.excursion (init Toplevel.empty :: trs @ [Toplevel.exit Toplevel.empty]);
+  in ! result end;
 
 
 (* interactive source of toplevel transformers *)
