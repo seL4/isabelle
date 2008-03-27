@@ -355,15 +355,15 @@ lemma not_equal_is_parallel:
   shows "xs \<parallel> ys"
   using len neq
 proof (induct rule: list_induct2)
-  case 1
+  case Nil
   then show ?case by simp
 next
-  case (2 a as b bs)
+  case (Cons a as b bs)
   have ih: "as \<noteq> bs \<Longrightarrow> as \<parallel> bs" by fact
   show ?case
   proof (cases "a = b")
     case True
-    then have "as \<noteq> bs" using 2 by simp
+    then have "as \<noteq> bs" using Cons by simp
     then show ?thesis by (rule Cons_parallelI2 [OF True ih])
   next
     case False

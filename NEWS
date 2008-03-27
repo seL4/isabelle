@@ -48,6 +48,12 @@ situations.
 
 *** HOL ***
 
+* Class finite no longer treats UNIV as class parameter.  Use class enum from
+theory Library/Enum instead to achieve a similar effect.  INCOMPATIBILITY.
+
+* Theory List: rule list_induct2 now has explicitly named cases "Nil" and "Cons".
+INCOMPATIBILITY.
+
 * HOL (and FOL): renamed variables in rules imp_elim and swap.
 Potential INCOMPATIBILITY.
 
