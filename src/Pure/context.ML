@@ -526,6 +526,7 @@ fun the_thread_data () =
 fun set_thread_data context = Multithreading.put_data (tag, context);
 fun setmp_thread_data context = Library.setmp_thread_data tag (thread_data ()) context;
 
+nonfix >>;
 fun >> f = set_thread_data (SOME (map_theory f (the_thread_data ())));
 
 end;
