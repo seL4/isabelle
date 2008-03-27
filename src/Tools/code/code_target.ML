@@ -1737,6 +1737,23 @@ fun eval thy (ref_name, reff) code (t, ty) args =
 
 local
 
+fun ocaml_char c =
+  let
+    fun chr i =
+      let
+        val xs = string_of_int i;
+        val ys = replicate_string (3 - length (explode xs)) "0";
+      in "\\" ^ ys ^ xs end;
+    val i = ord c;
+    val s = if i < 32 orelse i = 34 orelse i = 39 orelse i = 92 orelse i > 126
+      then chr i else c
+  in s end;
+
+fun haskell_char c =
+  let
+    val s = ML_Syntax.print_char c;
+  in if s = "'" then "\\'" else s end;
+
 val pretty : (string * {
     pretty_char: string -> string,
     pretty_string: string -> string,
@@ -1745,19 +1762,14 @@ val pretty : (string * {
     infix_cons: int * string
   }) list = [
   ("SML", { pretty_char = prefix "#" o quote o ML_Syntax.print_char,
-      pretty_string = ML_Syntax.print_string,
+      pretty_string = quote o translate_string ML_Syntax.print_char,
       pretty_numeral = fn unbounded => fn k =>
         if unbounded then "(" ^ string_of_int k ^ " : IntInf.int)"
         else string_of_int k,
       pretty_list = Pretty.enum "," "[" "]",
       infix_cons = (7, "::")}),
-  ("OCaml", { pretty_char = fn c => enclose "'" "'"
-        (let val i = ord c
-          in if i < 32 orelse i = 39 orelse i = 92
-            then prefix "\\" (string_of_int i)
-            else c
-          end),
-      pretty_string = ML_Syntax.print_string,
+  ("OCaml", { pretty_char = enclose "'" "'" o ocaml_char,
+      pretty_string = quote o translate_string ocaml_char,
       pretty_numeral = fn unbounded => fn k => if k >= 0 then
             if unbounded then
               "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
@@ -1769,13 +1781,8 @@ val pretty : (string * {
             else (enclose "(" ")" o prefix "-" o string_of_int o op ~) k,
       pretty_list = Pretty.enum ";" "[" "]",
       infix_cons = (6, "::")}),
-  ("Haskell", { pretty_char = fn c => enclose "'" "'"
-        (let val i = ord c
-          in if i < 32 orelse i = 39 orelse i = 92
-            then Library.prefix "\\" (string_of_int i)
-            else c
-          end),
-      pretty_string = ML_Syntax.print_string,
+  ("Haskell", { pretty_char = enclose "'" "'" o haskell_char,
+      pretty_string = quote o translate_string haskell_char,
       pretty_numeral = fn unbounded => fn k => if k >= 0 then string_of_int k
           else enclose "(" ")" (signed_string_of_int k),
       pretty_list = Pretty.enum "," "[" "]",
@@ -1813,9 +1820,9 @@ fun pretty_list_string c_nil c_cons c_char c_nibbles target =
     val mk_string = #pretty_string pretty_ops;
     fun pretty pr vars fxy [(t1, _), (t2, _)] =
       case Option.map (cons t1) (implode_list c_nil c_cons t2)
-       of SOME ts => case implode_string c_char c_nibbles mk_char mk_string ts
+       of SOME ts => (case implode_string c_char c_nibbles mk_char mk_string ts
            of SOME p => p
-            | NONE => mk_list (map (pr vars NOBR) ts)
+            | NONE => mk_list (map (pr vars NOBR) ts))
         | NONE => default_list (#infix_cons pretty_ops) (pr vars) fxy t1 t2;
   in (2, pretty) end;
 
