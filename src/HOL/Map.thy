@@ -170,6 +170,55 @@ lemma map_of_zip_is_None [simp]:
   "length xs = length ys \<Longrightarrow> (map_of (zip xs ys) x = None) = (x \<notin> set xs)"
 by (induct rule: list_induct2) simp_all
 
+lemma map_of_zip_is_Some:
+  assumes "length xs = length ys"
+  shows "x \<in> set xs \<longleftrightarrow> (\<exists>y. map_of (zip xs ys) x = Some y)"
+using assms by (induct rule: list_induct2) simp_all
+
+lemma map_of_zip_upd:
+  fixes x :: 'a and xs :: "'a list" and ys zs :: "'b list"
+  assumes "length ys = length xs"
+    and "length zs = length xs"
+    and "x \<notin> set xs"
+    and "map_of (zip xs ys)(x \<mapsto> y) = map_of (zip xs zs)(x \<mapsto> z)"
+  shows "map_of (zip xs ys) = map_of (zip xs zs)"
+proof
+  fix x' :: 'a
+  show "map_of (zip xs ys) x' = map_of (zip xs zs) x'"
+  proof (cases "x = x'")
+    case True
+    from assms True map_of_zip_is_None [of xs ys x']
+      have "map_of (zip xs ys) x' = None" by simp
+    moreover from assms True map_of_zip_is_None [of xs zs x']
+      have "map_of (zip xs zs) x' = None" by simp
+    ultimately show ?thesis by simp
+  next
+    case False from assms
+      have "(map_of (zip xs ys)(x \<mapsto> y)) x' = (map_of (zip xs zs)(x \<mapsto> z)) x'" by auto
+    with False show ?thesis by simp
+  qed
+qed
+
+lemma map_of_zip_inject:
+  assumes "length ys = length xs"
+    and "length zs = length xs"
+    and dist: "distinct xs"
+    and map_of: "map_of (zip xs ys) = map_of (zip xs zs)"
+  shows "ys = zs"
+using assms(1) assms(2)[symmetric] using dist map_of proof (induct ys xs zs rule: list_induct3)
+  case Nil show ?case by simp
+next
+  case (Cons y ys x xs z zs)
+  from `map_of (zip (x#xs) (y#ys)) = map_of (zip (x#xs) (z#zs))`
+    have map_of: "map_of (zip xs ys)(x \<mapsto> y) = map_of (zip xs zs)(x \<mapsto> z)" by simp
+  from Cons have "length ys = length xs" and "length zs = length xs"
+    and "x \<notin> set xs" by simp_all
+  then have "map_of (zip xs ys) = map_of (zip xs zs)" using map_of by (rule map_of_zip_upd)
+  with Cons.hyps `distinct (x # xs)` have "ys = zs" by simp
+  moreover from map_of have "y = z" by (rule map_upd_eqD1)
+  ultimately show ?case by simp
+qed
+
 lemma finite_range_map_of: "finite (range (map_of xys))"
 apply (induct xys)
  apply (simp_all add: image_constant)
