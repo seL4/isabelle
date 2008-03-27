@@ -383,26 +383,7 @@ end
 instance compact_basis :: (profinite) po
 by (rule typedef_po
     [OF type_definition_compact_basis compact_le_def])
-(*
-definition
-  compact_le :: "'a compact_basis \<Rightarrow> 'a compact_basis \<Rightarrow> bool" where
-  "compact_le = (\<lambda>x y. Rep_compact_basis x \<sqsubseteq> Rep_compact_basis y)"
 
-lemma compact_le_refl: "compact_le x x"
-unfolding compact_le_def by (rule refl_less)
-
-lemma compact_le_trans: "\<lbrakk>compact_le x y; compact_le y z\<rbrakk> \<Longrightarrow> compact_le x z"
-unfolding compact_le_def by (rule trans_less)
-
-lemma compact_le_antisym: "\<lbrakk>compact_le x y; compact_le y x\<rbrakk> \<Longrightarrow> x = y"
-unfolding compact_le_def
-apply (rule Rep_compact_basis_inject [THEN iffD1])
-apply (erule (1) antisym_less)
-done
-
-interpretation compact_le: preorder [compact_le]
-by (rule preorder.intro, rule compact_le_refl, rule compact_le_trans)
-*)
 text {* minimal compact element *}
 
 definition
