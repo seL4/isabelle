@@ -502,7 +502,7 @@ fun ml_type txt = "val _ = NONE : (" ^ txt ^ ") option;";
 fun ml_struct txt = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;"
 
 fun output_ml ml src ctxt (txt, pos) =
- (ML_Context.use_mltext false pos (ml txt) (SOME (Context.Proof ctxt));
+ (ML_Context.eval_in (SOME (Context.Proof ctxt)) false pos (ml txt);
   (if ! source then str_of_source src else txt)
   |> (if ! quotes then quote else I)
   |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"

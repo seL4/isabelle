@@ -354,9 +354,9 @@ val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic
 fun set_tactic f = tactic_ref := f;
 
 fun ml_tactic (txt, pos) ctxt = NAMED_CRITICAL "ML" (fn () =>
-  (ML_Context.use_mltext false pos
+  (ML_Context.eval_in (SOME (Context.Proof ctxt)) false pos
     ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic =\n"
-      ^ txt ^ "\nin Method.set_tactic tactic end") (SOME (Context.Proof ctxt));
+      ^ txt ^ "\nin Method.set_tactic tactic end");
     Context.setmp_thread_data (SOME (Context.Proof ctxt)) (! tactic_ref ctxt)));
 
 fun tactic txt ctxt = METHOD (ml_tactic txt ctxt);
@@ -447,7 +447,7 @@ val add_method = add_methods o Library.single;
 (* method_setup *)
 
 fun method_setup name (txt, pos) cmt =
-  ML_Context.use_let pos
+  ML_Context.expression pos
     "val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
     "Context.map_theory (Method.add_method method)"
     ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")")

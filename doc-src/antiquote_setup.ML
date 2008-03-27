@@ -36,7 +36,7 @@ fun index_ml kind ml src ctxt (txt1, txt2) =
       else txt1 ^ ": " ^ txt2;
     val txt' = if kind = "" then txt else kind ^ " " ^ txt;
     val _ = writeln (ml (txt1, txt2));
-    val _ = ML_Context.use_mltext false Position.none (ml (txt1, txt2)) (SOME (Context.Proof ctxt));
+    val _ = ML_Context.eval_in (SOME (Context.Proof ctxt)) false Position.none (ml (txt1, txt2));
   in
     "\\indexml" ^ kind ^ enclose "{" "}"
       (translate_string (fn "_" => "-" | ">" => "$>$" | "#" => "\\#" | c => c) txt1) ^

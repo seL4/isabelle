@@ -963,7 +963,7 @@ fun test_term thy quiet sz i t =
                   [Pretty.str "]"])]]),
           Pretty.str ");"]) ^
       "\n\nend;\n") ();
-    val _ = ML_Context.use_mltext false Position.none s (SOME (Context.Theory thy));
+    val _ = ML_Context.eval_in (SOME (Context.Theory thy)) false Position.none s;
     fun iter f k = if k > i then NONE
       else (case (f () handle Match =>
           (if quiet then ()
@@ -1053,7 +1053,7 @@ fun eval_term thy t =
               [Pretty.str "(result ())"],
             Pretty.str ");"]) ^
         "\n\nend;\n";
-      val _ = ML_Context.use_mltext false Position.none s (SOME (Context.Theory thy));
+      val _ = ML_Context.eval_in (SOME (Context.Theory thy)) false Position.none s;
     in !eval_result end) ();
   in e () end;
 
@@ -1148,8 +1148,9 @@ fun parse_code lib =
        val mode'' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode');
        val (code, gr) = setmp mode mode'' (generate_code thy modules module) xs
      in ((case opt_fname of
-         NONE => ML_Context.use_mltext false Position.none (space_implode "\n" (map snd code))
-           (SOME (Context.Theory thy))
+         NONE =>
+           ML_Context.eval_in (SOME (Context.Theory thy)) false Position.none
+             (space_implode "\n" (map snd code))
        | SOME fname =>
            if lib then
              app (fn (name, s) => File.write

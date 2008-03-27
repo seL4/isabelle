@@ -119,7 +119,7 @@ fun deps_thy dir name =
 fun load_ml dir raw_path =
   (case check_ml dir raw_path of
     NONE => error ("Could not find ML file " ^ quote (Path.implode raw_path))
-  | SOME (path, id) => (ML_Context.use path; (path, id)));
+  | SOME (path, id) => (ML_Context.eval_file path; (path, id)));
 
 (*dependent on outer syntax*)
 val load_thy_fn =

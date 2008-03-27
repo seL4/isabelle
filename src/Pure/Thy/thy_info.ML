@@ -546,9 +546,8 @@ fun begin_theory name parents uses int =
       |> Present.begin_theory update_time dir uses;
 
     val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
-    val ((), theory'') =
-      ML_Context.pass_context (Context.Theory theory') (List.app (load_file false)) uses_now
-      ||> Context.the_theory;
+    val theory'' =
+      Context.theory_map (ML_Context.exec (fn () => List.app (load_file false) uses_now)) theory';
   in theory'' end;
 
 fun end_theory theory =

@@ -21,7 +21,7 @@ sig
   val the_generic_context: unit -> Context.generic
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
-  val pass_context: Context.generic -> ('a -> 'b) -> 'a -> 'b * Context.generic
+  val exec: (unit -> unit) -> Context.generic -> Context.generic
   val stored_thms: thm list ref
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
@@ -34,12 +34,12 @@ sig
       (string * string * string) * (Context.generic * Args.T list)) -> unit
   val eval_antiquotes_fn: (string * Position.T -> string * string) ref  (* FIXME tmp *)
   val trace: bool ref
-  val use_mltext: bool -> Position.T -> string -> Context.generic option -> unit
-  val use_mltext_update: bool -> Position.T -> string -> Context.generic -> Context.generic
-  val use_let: Position.T -> string -> string -> string -> Context.generic -> Context.generic
-  val use: Path.T -> unit
+  val eval: bool -> Position.T -> string -> unit
+  val eval_file: Path.T -> unit
+  val eval_in: Context.generic option -> bool -> Position.T -> string -> unit
   val evaluate: (string -> unit) * (string -> 'b) -> bool ->
     string * (unit -> 'a) option ref -> string -> 'a
+  val expression: Position.T -> string -> string -> string -> Context.generic -> Context.generic
 end
 
 structure ML_Context: ML_CONTEXT =
@@ -51,10 +51,10 @@ val the_generic_context = Context.the_thread_data;
 val the_global_context = Context.theory_of o the_generic_context;
 val the_local_context = Context.proof_of o the_generic_context;
 
-fun pass_context context f x =
-  (case Context.setmp_thread_data (SOME context) (fn () => (f x, Context.thread_data ())) () of
-    (y, SOME context') => (y, context')
-  | (_, NONE) => error "Lost context after evaluation");
+fun exec (e: unit -> unit) context =
+  (case Context.setmp_thread_data (SOME context) (fn () => (e (); Context.thread_data ())) () of
+    SOME context' => context'
+  | NONE => error "Missing context after execution");
 
 
 (* theorem bindings *)
@@ -200,18 +200,11 @@ end;
 
 (* ML evaluation *)
 
-fun use_mltext verbose pos txt opt_context =
-  Context.setmp_thread_data opt_context (fn () => eval_wrapper Output.ml_output verbose pos txt) ();
+val eval = eval_wrapper Output.ml_output;
+fun eval_file path = eval true (Position.path path) (File.read path);
 
-fun use_mltext_update verbose pos txt context =
-  #2 (pass_context context (fn () => eval_wrapper Output.ml_output verbose pos txt) ());
-
-fun use_let pos bind body txt =
-  use_mltext_update false pos
-    ("Context.set_thread_data (SOME (let " ^ bind ^ " = " ^ txt ^ " in " ^ body ^
-      " end (ML_Context.the_generic_context ())));");
-
-fun use path = eval_wrapper Output.ml_output true (Position.path path) (File.read path);
+fun eval_in context verbose pos txt =
+  Context.setmp_thread_data context (fn () => eval verbose pos txt) ();
 
 fun evaluate pr verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
   let
@@ -219,6 +212,11 @@ fun evaluate pr verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
     val _ = eval_wrapper pr verbose Position.none
       ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))");
   in (case ! r of NONE => error ("Bad evaluation for " ^ ref_name) | SOME e => e) end) ();
+
+fun expression pos bind body txt =
+  exec (fn () => eval false pos
+    ("Context.set_thread_data (SOME (let " ^ bind ^ " = " ^ txt ^ " in " ^ body ^
+      " end (ML_Context.the_generic_context ())));"));
 
 
 (* basic antiquotations *)

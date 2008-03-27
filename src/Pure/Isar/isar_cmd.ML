@@ -135,7 +135,7 @@ struct
 (* generic_setup *)
 
 fun generic_setup (txt, pos) =
-  ML_Context.use_let pos "val setup: theory -> theory" "Context.map_theory setup" txt
+  ML_Context.expression pos "val setup: theory -> theory" "Context.map_theory setup" txt
   |> Context.theory_map;
 
 
@@ -152,37 +152,42 @@ fun advancedN false = ""
 in
 
 fun parse_ast_translation (a, (txt, pos)) =
-  txt |> ML_Context.use_let pos ("val parse_ast_translation: (string * (" ^ advancedT a ^
+  txt |> ML_Context.expression pos
+    ("val parse_ast_translation: (string * (" ^ advancedT a ^
       "Syntax.ast list -> Syntax.ast)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns (parse_ast_translation, [], [], []))")
   |> Context.theory_map;
 
 fun parse_translation (a, (txt, pos)) =
-  txt |> ML_Context.use_let pos ("val parse_translation: (string * (" ^ advancedT a ^
+  txt |> ML_Context.expression pos
+    ("val parse_translation: (string * (" ^ advancedT a ^
       "term list -> term)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], parse_translation, [], []))")
   |> Context.theory_map;
 
 fun print_translation (a, (txt, pos)) =
-  txt |> ML_Context.use_let pos ("val print_translation: (string * (" ^ advancedT a ^
+  txt |> ML_Context.expression pos
+    ("val print_translation: (string * (" ^ advancedT a ^
       "term list -> term)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], print_translation, []))")
   |> Context.theory_map;
 
 fun print_ast_translation (a, (txt, pos)) =
-  txt |> ML_Context.use_let pos ("val print_ast_translation: (string * (" ^ advancedT a ^
+  txt |> ML_Context.expression pos
+    ("val print_ast_translation: (string * (" ^ advancedT a ^
       "Syntax.ast list -> Syntax.ast)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], [], print_ast_translation))")
   |> Context.theory_map;
 
 fun typed_print_translation (a, (txt, pos)) =
-  txt |> ML_Context.use_let pos ("val typed_print_translation: (string * (" ^ advancedT a ^
+  txt |> ML_Context.expression pos
+    ("val typed_print_translation: (string * (" ^ advancedT a ^
       "bool -> typ -> term list -> term)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfunsT typed_print_translation)")
   |> Context.theory_map;
 
 fun token_translation (txt, pos) =
-  txt |> ML_Context.use_let pos
+  txt |> ML_Context.expression pos
     "val token_translation: (string * string * (string -> output * int)) list"
       "Context.map_theory (Sign.add_tokentrfuns token_translation)"
   |> Context.theory_map;
@@ -205,8 +210,7 @@ fun oracle name typ (oracle, pos) =
     \in\n\
     \  fun " ^ name ^ " thy x = invoke_" ^ name ^ " (thy, Arg x);\n\
     \end;\n";
-  in ML_Context.use_mltext_update false pos txt end
-  |> Context.theory_map;
+  in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false pos txt)) end;
 
 
 (* axioms *)
@@ -233,7 +237,8 @@ fun apply_theorems_i args = apfst (maps snd) o PureThy.note_thmss_i "" [(("", []
 (* declarations *)
 
 fun declaration (txt, pos) =
-  txt |> ML_Context.use_let pos "val declaration: Morphism.declaration"
+  txt |> ML_Context.expression pos
+    "val declaration: Morphism.declaration"
     "Context.map_proof (LocalTheory.declaration declaration)"
   |> Context.proof_map;
 
@@ -241,7 +246,7 @@ fun declaration (txt, pos) =
 (* simprocs *)
 
 fun simproc_setup name lhss (proc, pos) identifier =
-  ML_Context.use_let pos
+  ML_Context.expression pos
     "val proc: Morphism.morphism -> Simplifier.simpset -> cterm -> thm option"
   ("Context.map_proof (Simplifier.def_simproc {name = " ^ ML_Syntax.print_string name ^ ", \
     \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
@@ -382,12 +387,12 @@ fun use path = Toplevel.keep (fn state =>
   Context.setmp_thread_data (try Toplevel.generic_theory_of state) (ThyInfo.load_file false) path);
 
 (*passes changes of theory context*)
-fun use_mltext_theory (txt, pos) =
-  Toplevel.theory' (fn int => Context.theory_map (ML_Context.use_mltext_update int pos txt));
+fun use_mltext_theory (txt, pos) = Toplevel.theory' (fn int =>
+  Context.theory_map (ML_Context.exec (fn () => ML_Context.eval int pos txt)));
 
 (*ignore result theory context*)
 fun use_mltext verbose (txt, pos) = Toplevel.keep' (fn int => fn state =>
-  (ML_Context.use_mltext (verbose andalso int) pos txt (try Toplevel.generic_theory_of state)));
+  (ML_Context.eval_in (try Toplevel.generic_theory_of state) (verbose andalso int) pos txt));
 
 val use_commit = Toplevel.imperative Secure.commit;
 
