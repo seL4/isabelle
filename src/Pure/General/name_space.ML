@@ -6,8 +6,8 @@ Generic name spaces with declared and hidden entries.  Unknown names
 are considered global; no support for absolute addressing.
 *)
 
-type bstring = string;    (*names to be bound / internalized*)
-type xstring = string;    (*externalized names / to be printed*)
+type bstring = string;    (*names to be bound*)
+type xstring = string;    (*external names*)
 
 signature BASIC_NAME_SPACE =
 sig
@@ -157,14 +157,14 @@ fun extern space name =
   let
     fun valid unique xname =
       let val (name', uniq) = lookup space xname
-      in name = name' andalso (uniq orelse (not unique)) end;
+      in name = name' andalso (uniq orelse not unique) end;
 
-    fun ex [] = if valid false name then name else hidden name
-      | ex (nm :: nms) = if valid (! unique_names) nm then nm else ex nms;
+    fun ext [] = if valid false name then name else hidden name
+      | ext (nm :: nms) = if valid (! unique_names) nm then nm else ext nms;
   in
     if ! long_names then name
     else if ! short_names then base name
-    else ex (get_accesses space name)
+    else ext (get_accesses space name)
   end;
 
 
@@ -176,14 +176,11 @@ fun map_space f xname (NameSpace (tab, xtab)) =
   NameSpace (Symtab.map_default (xname, (([], []), stamp ()))
     (fn (entry, _) => (f entry, stamp ())) tab, xtab);
 
-fun del (name: string) = remove (op =) name;
-fun add name names = name :: del name names;
-
 in
 
-val del_name = map_space o apfst o del;
-val add_name = map_space o apfst o add;
-val add_name' = map_space o apsnd o add;
+val del_name = map_space o apfst o remove (op =);
+val add_name = map_space o apfst o update (op =);
+val add_name' = map_space o apsnd o update (op =);
 
 end;
 
@@ -220,6 +217,7 @@ fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
         if stamp1 = stamp2 then raise Symtab.SAME
         else (Library.merge (op =) (xnames2, xnames1), stamp ())));
   in NameSpace (tab', xtab') end;
+
 
 
 (** naming contexts **)
