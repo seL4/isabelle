@@ -141,6 +141,7 @@ lemma finite_conv_nat_seg_image:
   "finite A = (\<exists> (n::nat) f. A = f ` {i::nat. i<n})"
 by(blast intro: nat_seg_image_imp_finite dest: finite_imp_nat_seg_image_inj_on)
 
+
 subsubsection{* Finiteness and set theoretic constructions *}
 
 lemma finite_UnI: "finite F ==> finite G ==> finite (F Un G)"
@@ -188,6 +189,11 @@ lemma finite_insert [simp]: "finite (insert a A) = finite A"
   apply (subst insert_is_Un)
   apply (simp only: finite_Un, blast)
   done
+
+lemma finite_code [code func]:
+  "finite {} \<longleftrightarrow> True"
+  "finite (insert a A) \<longleftrightarrow> finite A"
+  by auto
 
 lemma finite_Union[simp, intro]:
  "\<lbrakk> finite A; !!M. M \<in> A \<Longrightarrow> finite M \<rbrakk> \<Longrightarrow> finite(\<Union>A)"
@@ -420,21 +426,16 @@ lemma finite_trancl: "finite (r^+) = finite r"
   done
 
 
-subsection {* Class @{text finite} and code generation *}
-
-lemma finite_code [code func]:
-  "finite {} \<longleftrightarrow> True"
-  "finite (insert a A) \<longleftrightarrow> finite A"
-  by auto
+subsection {* Class @{text finite}  *}
 
 setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
-class finite (attach UNIV) = itself +
+class finite = itself +
   assumes finite_UNIV: "finite (UNIV \<Colon> 'a set)"
 setup {* Sign.parent_path *}
 hide const finite
 
 lemma finite [simp]: "finite (A \<Colon> 'a\<Colon>finite set)"
-  by (rule finite_subset [OF subset_UNIV finite_UNIV])
+  by (rule subset_UNIV finite_UNIV finite_subset)+
 
 lemma UNIV_unit [noatp]:
   "UNIV = {()}" by auto
@@ -442,30 +443,20 @@ lemma UNIV_unit [noatp]:
 instance unit :: finite
   by default (simp add: UNIV_unit)
 
-lemmas [code func] = UNIV_unit
-
 lemma UNIV_bool [noatp]:
   "UNIV = {False, True}" by auto
 
 instance bool :: finite
   by default (simp add: UNIV_bool)
 
-lemmas [code func] = UNIV_bool
-
 instance * :: (finite, finite) finite
   by default (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product finite)
-
-declare UNIV_Times_UNIV [symmetric, code func]
 
 instance "+" :: (finite, finite) finite
   by default (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
 
-declare UNIV_Plus_UNIV [symmetric, code func]
-
 instance set :: (finite) finite
   by default (simp only: Pow_UNIV [symmetric] finite_Pow_iff finite)
-
-declare Pow_UNIV [symmetric, code func]
 
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
   by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
@@ -479,22 +470,6 @@ proof
     show "inj ?graph" by (rule inj_graph)
   qed
 qed
-
-
-subsection {* Equality and order on functions *}
-
-instance "fun" :: (finite, eq) eq ..
-
-lemma eq_fun [code func]:
-  fixes f g :: "'a\<Colon>finite \<Rightarrow> 'b\<Colon>eq"
-  shows "f = g \<longleftrightarrow> (\<forall>x\<in>UNIV. f x = g x)"
-  unfolding expand_fun_eq by auto
-
-lemma order_fun [code func]:
-  fixes f g :: "'a\<Colon>finite \<Rightarrow> 'b\<Colon>order"
-  shows "f \<le> g \<longleftrightarrow> (\<forall>x\<in>UNIV. f x \<le> g x)"
-    and "f < g \<longleftrightarrow> f \<le> g \<and> (\<exists>x\<in>UNIV. f x \<noteq> g x)"
-  by (auto simp add: expand_fun_eq le_fun_def less_fun_def order_less_le)
 
 
 subsection {* A fold functional for finite sets *}

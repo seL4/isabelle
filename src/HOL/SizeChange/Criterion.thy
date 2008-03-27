@@ -47,7 +47,6 @@ proof
     by (simp add: sedge_UNIV)
 qed
 
-lemmas [code func] = sedge_UNIV
 
 
 types 'a scg = "('a, sedge) graph"
