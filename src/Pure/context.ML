@@ -22,7 +22,6 @@ sig
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
   val is_stale: theory -> bool
-  val ProtoPureN: string
   val PureN: string
   val CPureN: string
   val draftN: string
@@ -43,7 +42,6 @@ sig
   val copy_thy: theory -> theory
   val checkpoint_thy: theory -> theory
   val finish_thy: theory -> theory
-  val pre_pure_thy: theory
   val begin_thy: (theory -> Pretty.pp) -> string -> theory list -> theory
   (*proof context*)
   type proof
@@ -69,6 +67,7 @@ sig
   val set_thread_data: generic option -> unit
   val setmp_thread_data: generic option -> ('a -> 'b) -> 'a -> 'b
   val >> : (theory -> theory) -> unit
+  val >>> : (theory -> 'a * theory) -> 'a
   (*delayed setup*)
   val add_setup: (theory -> theory) -> unit
   val setup: unit -> theory -> theory
@@ -198,7 +197,6 @@ fun vitalize (thy as Theory ({self = SOME r, ...}, _, _, _)) = (r := thy; thy)
 
 (* names *)
 
-val ProtoPureN = "ProtoPure";
 val PureN = "Pure";
 val CPureN = "CPure";
 
@@ -337,7 +335,7 @@ fun copy_thy thy =
   in thy' end;
 
 val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Inttab.empty
-  Datatab.empty (make_ancestry [] []) (make_history ProtoPureN 0 []);
+  Datatab.empty (make_ancestry [] []) (make_history PureN 0 []);
 
 
 (* named theory nodes *)
@@ -526,10 +524,18 @@ fun the_thread_data () =
 fun set_thread_data context = Multithreading.put_data (tag, context);
 fun setmp_thread_data context = Library.setmp_thread_data tag (thread_data ()) context;
 
-nonfix >>;
-fun >> f = set_thread_data (SOME (map_theory f (the_thread_data ())));
-
 end;
+
+fun >>> f =
+  let
+    val (res, thy') = f (the_theory (the_thread_data ()));
+    val _ = set_thread_data (SOME (Theory thy'));
+  in res end;
+
+nonfix >>;
+fun >> f = >>> (fn thy => ((), f thy));
+
+val _ = set_thread_data (SOME (Theory pre_pure_thy));
 
 
 
