@@ -29,6 +29,8 @@ file are no longer supported.  INCOMPATIBILITY, regular 'uses' and
 
 *** Pure ***
 
+* Eliminated theory ProtoPure.  Potential INCOMPATIBILITY.
+
 * Instantiation target allows for simultaneous specification of class
 instance operations together with an instantiation proof.
 Type-checking phase allows to refer to class operations uniformly.
@@ -43,6 +45,9 @@ situations.
 
 
 *** HOL ***
+
+* HOL (and FOL): renamed variables in rules imp_elim and swap.
+Potential INCOMPATIBILITY.
 
 * Theory Product_Type: duplicated lemmas split_Pair_apply and injective_fst_snd
 removed, use split_eta and prod_eqI instead.  Renamed upd_fst to apfst and upd_snd
