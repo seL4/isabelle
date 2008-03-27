@@ -105,10 +105,10 @@ text {*
   terms.
 *}
 
-lemma cont_Rep_CFun_app: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s)"
+lemma cont_Rep_CFun_app [simp]: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s)"
 by (rule cont2cont_Rep_CFun [THEN cont2cont_fun])
 
-lemma cont_Rep_CFun_app_app: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s t)"
+lemma cont_Rep_CFun_app_app [simp]: "\<lbrakk>cont g; cont f\<rbrakk> \<Longrightarrow> cont(\<lambda>x. ((f x)\<cdot>(g x)) s t)"
 by (rule cont_Rep_CFun_app [THEN cont2cont_fun])
 
 subsection {* Further operations *}
@@ -148,17 +148,17 @@ apply (rule cont_lift_case2)
 apply (rule cont_lift_case1)
 done
 
-lemma cont2cont_flift1:
+lemma cont2cont_flift1 [simp]:
   "\<lbrakk>\<And>y. cont (\<lambda>x. f x y)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. FLIFT y. f x y)"
 apply (rule cont_flift1 [THEN cont2cont_app3])
-apply (simp add: cont2cont_lambda)
+apply simp
 done
 
-lemma cont2cont_lift_case:
+lemma cont2cont_lift_case [simp]:
   "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. lift_case UU (f x) (g x))"
 apply (subgoal_tac "cont (\<lambda>x. (FLIFT y. f x y)\<cdot>(g x))")
 apply (simp add: flift1_def cont_lift_case2)
-apply (simp add: cont2cont_flift1)
+apply simp
 done
 
 text {* rewrites for @{term flift1}, @{term flift2} *}
@@ -185,7 +185,7 @@ text {*
   \medskip Extension of @{text cont_tac} and installation of simplifier.
 *}
 
-lemmas cont_lemmas_ext [simp] =
+lemmas cont_lemmas_ext =
   cont2cont_flift1 cont2cont_lift_case cont2cont_lambda
   cont_Rep_CFun_app cont_Rep_CFun_app_app cont_if
 

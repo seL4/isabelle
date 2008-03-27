@@ -240,21 +240,23 @@ done
 
 text {* Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"} *}
 
-lemma mono2mono_lambda: "(\<And>y. monofun (\<lambda>x. f x y)) \<Longrightarrow> monofun f"
+lemma mono2mono_lambda:
+  assumes f: "\<And>y. monofun (\<lambda>x. f x y)" shows "monofun f"
 apply (rule monofunI)
 apply (rule less_fun_ext)
-apply (blast dest: monofunE)
+apply (erule monofunE [OF f])
 done
 
-lemma cont2cont_lambda: "(\<And>y. cont (\<lambda>x. f x y)) \<Longrightarrow> cont f"
+lemma cont2cont_lambda [simp]:
+  assumes f: "\<And>y. cont (\<lambda>x. f x y)" shows "cont f"
 apply (subgoal_tac "monofun f")
 apply (rule monocontlub2cont)
 apply assumption
 apply (rule contlubI)
 apply (rule ext)
 apply (simp add: thelub_fun ch2ch_monofun)
-apply (blast dest: cont2contlubE)
-apply (simp add: mono2mono_lambda cont2mono)
+apply (erule cont2contlubE [OF f])
+apply (simp add: mono2mono_lambda cont2mono f)
 done
 
 text {* What D.A.Schmidt calls continuity of abstraction; never used here *}
@@ -268,9 +270,7 @@ lemma contlub_abstraction:
   "\<lbrakk>chain Y; \<forall>y. cont (\<lambda>x.(c::'a::cpo\<Rightarrow>'b::type\<Rightarrow>'c::cpo) x y)\<rbrakk> \<Longrightarrow>
     (\<lambda>y. \<Squnion>i. c (Y i) y) = (\<Squnion>i. (\<lambda>y. c (Y i) y))"
 apply (rule thelub_fun [symmetric])
-apply (rule ch2ch_cont)
-apply (simp add: cont2cont_lambda)
-apply assumption
+apply (simp add: ch2ch_cont)
 done
 
 lemma mono2mono_app:
