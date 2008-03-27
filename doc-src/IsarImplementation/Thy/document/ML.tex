@@ -18,7 +18,7 @@
 %
 \endisadelimtheory
 %
-\isamarkupchapter{Aesthetics of ML programming%
+\isamarkupchapter{Advanced ML programming%
 }
 \isamarkuptrue%
 %
@@ -381,7 +381,7 @@ Many problems in functional programming can be thought of
 
   Written with naive application, an addition of constant
   \isa{bar} with type \isa{foo\ {\isasymRightarrow}\ foo} and
-  a corresponding definition \isa{bar\ {\isasymequiv}\ {\isasymlambda}x{\isachardot}\ x} would look like:
+  a corresponding definition \isa{bar{\isasymColon}{\isacharprime}a{\isasymColon}{\isacharbraceleft}{\isacharbraceright}\ {\isasymRightarrow}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}{\isacharbraceright}\ {\isasymequiv}\ {\isasymlambda}x{\isasymColon}{\isacharprime}a{\isasymColon}{\isacharbraceleft}{\isacharbraceright}{\isachardot}\ x} would look like:
 
   \begin{quotation}
    \verb|(fn (t, thy) => Thm.add_def false false|\isasep\isanewline%
@@ -770,19 +770,6 @@ Tables are an efficient representation of finite mappings without
   as key type.
 
   Most table functions correspond to those of association lists.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupchapter{Cookbook%
-}
-\isamarkuptrue%
-%
-\isamarkupsection{A method that depends on declarations in the context%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-FIXME%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

@@ -2,7 +2,7 @@
 
 theory "ML" imports base begin
 
-chapter {* Aesthetics of ML programming *}
+chapter {* Advanced ML programming *}
 
 section {* Style *}
 
@@ -625,11 +625,5 @@ text {*
   Most table functions correspond to those of association lists.
 *}
 
-
-chapter {* Cookbook *}
-
-section {* A method that depends on declarations in the context *}
-
-text FIXME
 
 end
