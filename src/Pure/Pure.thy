@@ -2,11 +2,7 @@
     ID:         $Id$
 *)
 
-header {* The Pure theory *}
-
-theory Pure
-imports ProtoPure
-begin
+section {* The Pure theory *}
 
 setup  -- {* Common setup of internal components *}
 
@@ -103,4 +99,3 @@ next
   qed
 qed
 
-end
