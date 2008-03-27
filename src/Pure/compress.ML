@@ -9,7 +9,6 @@ called only for axioms, stored theorems, etc.
 
 signature COMPRESS =
 sig
-  val init_data: theory -> theory
   val typ: theory -> typ -> typ
   val term: theory -> term -> term
 end;
@@ -31,7 +30,7 @@ structure CompressData = TheoryDataFun
     ref (Termtab.merge (K true) (terms1, terms2)));
 );
 
-val init_data = CompressData.init;
+val _ = Context.>> CompressData.init;
 
 
 (* compress types *)

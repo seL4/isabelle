@@ -16,8 +16,11 @@ fun time_use_thy name = Toplevel.program (fn () => ThyInfo.time_use_thy name);
 
 (* the Pure theories *)
 
-use_thy "Pure";
-structure Pure = struct val thy = theory "Pure" end;
+Context.>> (OuterSyntax.process_file (Path.explode "Pure.thy"));
+Context.>> Theory.end_theory;
+structure Pure = struct val thy = ML_Context.the_global_context () end;
+Context.set_thread_data NONE;
+ThyInfo.register_theory Pure.thy;
 
 Context.add_setup
  (Sign.del_modesyntax_i Syntax.mode_default PureThy.appl_syntax #>
