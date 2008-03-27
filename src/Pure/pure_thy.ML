@@ -2,23 +2,11 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Theorem storage.  The ProtoPure theory.
+Theorem storage.  Pure theory syntax and logical content.
 *)
-
-signature BASIC_PURE_THY =
-sig
-  structure ProtoPure:
-    sig
-      val thy: theory
-      val prop_def: thm
-      val term_def: thm
-      val conjunction_def: thm
-    end
-end;
 
 signature PURE_THY =
 sig
-  include BASIC_PURE_THY
   val tag_rule: Markup.property -> thm -> thm
   val untag_rule: string -> thm -> thm
   val tag: Markup.property -> attribute
@@ -159,6 +147,8 @@ structure TheoremsData = TheoryDataFun
       ref (Thms {theorems = _, all_facts = all_facts2})) =
     ref (make_thms NameSpace.empty_table (Facts.merge (all_facts1, all_facts2)));
 );
+
+val _ = Context.>> TheoremsData.init;
 
 val get_theorems_ref = TheoremsData.get;
 val get_theorems = (fn Thms args => args) o ! o get_theorems_ref;
@@ -431,7 +421,7 @@ end;
 
 
 
-(*** the ProtoPure theory ***)
+(*** Pure theory syntax and logical content ***)
 
 val typ = SimpleSyntax.read_typ;
 val term = SimpleSyntax.read_term;
@@ -447,17 +437,14 @@ val applC_syntax =
   ("_applC", typ "('b => 'a) => cargs => logic", Mixfix ("(1_/ _)", [1000, 1000], 999)),
   ("_applC", typ "('b => 'a) => cargs => aprop", Mixfix ("(1_/ _)", [1000, 1000], 999))];
 
-val proto_pure =
-  Context.pre_pure_thy
-  |> Compress.init_data
-  |> TheoremsData.init
-  |> Sign.add_types
+val _ = Context.>>
+  (Sign.add_types
    [("fun", 2, NoSyn),
     ("prop", 0, NoSyn),
     ("itself", 1, NoSyn),
     ("dummy", 0, NoSyn)]
-  |> Sign.add_nonterminals Syntax.basic_nonterms
-  |> Sign.add_syntax_i
+  #> Sign.add_nonterminals Syntax.basic_nonterms
+  #> Sign.add_syntax_i
    [("_lambda",     typ "pttrns => 'a => logic",     Mixfix ("(3%_./ _)", [0, 3], 3)),
     ("_abs",        typ "'a",                        NoSyn),
     ("",            typ "'a => args",                Delimfix "_"),
@@ -495,8 +482,8 @@ val proto_pure =
     ("_struct",     typ "index => logic",            Mixfix ("\\<struct>_", [1000], 1000)),
     ("==>",         typ "prop => prop => prop",      Delimfix "op ==>"),
     (Term.dummy_patternN, typ "aprop",               Delimfix "'_")]
-  |> Sign.add_syntax_i appl_syntax
-  |> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
+  #> Sign.add_syntax_i appl_syntax
+  #> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
    [("fun",      typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
     ("_bracket", typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
     ("_ofsort",  typ "tid => sort => type",    Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
@@ -511,49 +498,37 @@ val proto_pure =
     ("_DDDOT",   typ "aprop",                  Delimfix "\\<dots>"),
     ("_bigimpl", typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
     ("_DDDOT",   typ "logic",                  Delimfix "\\<dots>")]
-  |> Sign.add_modesyntax_i ("", false)
+  #> Sign.add_modesyntax_i ("", false)
    [("prop", typ "prop => prop", Mixfix ("_", [0], 0)),
-    ("ProtoPure.term", typ "'a => prop", Delimfix "TERM _"),
-    ("ProtoPure.conjunction", typ "prop => prop => prop", InfixrName ("&&", 2))]
-  |> Sign.add_modesyntax_i ("HTML", false)
+    ("Pure.term", typ "'a => prop", Delimfix "TERM _"),
+    ("Pure.conjunction", typ "prop => prop => prop", InfixrName ("&&", 2))]
+  #> Sign.add_modesyntax_i ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
-  |> Sign.add_consts_i
+  #> Sign.add_consts_i
    [("==", typ "'a => 'a => prop", InfixrName ("==", 2)),
     ("==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     ("all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("prop", typ "prop => prop", NoSyn),
     ("TYPE", typ "'a itself", NoSyn),
     (Term.dummy_patternN, typ "'a", Delimfix "'_")]
-  |> Theory.add_deps "==" ("==", typ "'a => 'a => prop") []
-  |> Theory.add_deps "==>" ("==>", typ "prop => prop => prop") []
-  |> Theory.add_deps "all" ("all", typ "('a => prop) => prop") []
-  |> Theory.add_deps "TYPE" ("TYPE", typ "'a itself") []
-  |> Theory.add_deps Term.dummy_patternN (Term.dummy_patternN, typ "'a") []
-  |> Sign.add_trfuns Syntax.pure_trfuns
-  |> Sign.add_trfunsT Syntax.pure_trfunsT
-  |> Sign.local_path
-  |> Sign.add_consts_i
+  #> Theory.add_deps "==" ("==", typ "'a => 'a => prop") []
+  #> Theory.add_deps "==>" ("==>", typ "prop => prop => prop") []
+  #> Theory.add_deps "all" ("all", typ "('a => prop) => prop") []
+  #> Theory.add_deps "TYPE" ("TYPE", typ "'a itself") []
+  #> Theory.add_deps Term.dummy_patternN (Term.dummy_patternN, typ "'a") []
+  #> Sign.add_trfuns Syntax.pure_trfuns
+  #> Sign.add_trfunsT Syntax.pure_trfunsT
+  #> Sign.local_path
+  #> Sign.add_consts_i
    [("term", typ "'a => prop", NoSyn),
     ("conjunction", typ "prop => prop => prop", NoSyn)]
-  |> (add_defs_i false o map Thm.no_attributes)
+  #> (add_defs_i false o map Thm.no_attributes)
    [("prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
-    ("term_def", prop "(CONST ProtoPure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
-    ("conjunction_def", prop "(A && B) == (!!C::prop. (A ==> B ==> C) ==> C)")] |> snd
-  |> Sign.hide_consts false ["conjunction", "term"]
-  |> add_thmss [(("nothing", []), [])] |> snd
-  |> Theory.add_axioms_i Proofterm.equality_axms
-  |> Theory.end_theory;
-
-structure ProtoPure =
-struct
-  val thy = proto_pure;
-  val prop_def = get_axiom thy "prop_def";
-  val term_def = get_axiom thy "term_def";
-  val conjunction_def = get_axiom thy "conjunction_def";
-end;
+    ("term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
+    ("conjunction_def", prop "(A && B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
+  #> Sign.hide_consts false ["conjunction", "term"]
+  #> add_thmss [(("nothing", []), [])] #> snd
+  #> Theory.add_axioms_i Proofterm.equality_axms);
 
 end;
-
-structure BasicPureThy: BASIC_PURE_THY = PureThy;
-open BasicPureThy;
 
