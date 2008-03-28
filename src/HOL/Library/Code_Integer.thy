@@ -6,7 +6,7 @@
 header {* Pretty integer literals for code generation *}
 
 theory Code_Integer
-imports Presburger
+imports ATP_Linkup
 begin
 
 text {*
