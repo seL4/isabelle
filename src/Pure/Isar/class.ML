@@ -21,7 +21,7 @@ sig
   val refresh_syntax: class -> Proof.context -> Proof.context
 
   val intro_classes_tac: thm list -> tactic
-  val default_intro_classes_tac: thm list -> tactic
+  val default_intro_tac: Proof.context -> thm list -> tactic
   val prove_subclass: class * class -> thm -> theory -> theory
 
   val class_prefix: string -> string
@@ -388,12 +388,13 @@ fun intro_classes_tac facts st =
     Method.intros_tac (class_trivs @ class_intros @ assm_intros) facts st
   end;
 
-fun default_intro_classes_tac [] = intro_classes_tac []
-  | default_intro_classes_tac _ = no_tac;
+fun default_intro_tac ctxt [] =
+      intro_classes_tac [] ORELSE Locale.intro_locales_tac true ctxt []
+  | default_intro_tac _ _ = no_tac;
 
 fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
-    default_intro_classes_tac facts;
+    default_intro_tac ctxt facts;
 
 val _ = Context.>> (Context.map_theory
   (Method.add_methods
