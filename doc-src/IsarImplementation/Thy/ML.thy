@@ -6,24 +6,22 @@ chapter {* Advanced ML programming *}
 
 section {* Style *}
 
-text FIXME
-
-text {* This style guide is loosely based on
-  \url{http://caml.inria.fr/resources/doc/guides/guidelines.en.html}.
-%  FIMXE \url{http://www.cs.cornell.edu/Courses/cs312/2003sp/handouts/style.htm}
-
-  Like any style guide, it should not be interpreted dogmatically, but
-  with care and discernment.  Instead, it forms a collection of
-  recommendations which, if obeyed, result in code that is not
-  considered to be obfuscated.  In certain cases, derivations are
-  encouraged, as far as you know what you are doing.
+text {*
+  Like any style guide, also this one should not be interpreted dogmatically, but
+  with care and discernment.  It consists of a collection of
+  recommendations which have been turned out useful over long years of
+  Isabelle system development and are supposed to support writing of readable
+  and managable code.  Special cases encourage derivations,
+  as far as you know what you are doing.
+  \footnote{This style guide is loosely based on
+  \url{http://caml.inria.fr/resources/doc/guides/guidelines.en.html}}
 
   \begin{description}
 
     \item[fundamental law of programming]
       Whenever writing code, keep in mind: A program is
       written once, modified ten times, and read
-      100 times.  So simplify its writing,
+      hundred times.  So simplify its writing,
       always keep future modifications in mind,
       and never jeopardize readability.  Every second you hesitate
       to spend on making your code more clear you will
@@ -70,7 +68,7 @@ text {* This style guide is loosely based on
         reasonable auxiliary function (if there is no
         such function, very likely you got something wrong).
         Any copy-and-paste will turn out to be painful 
-        when something has to be changed or fixed later on.
+        when something has to be changed later on.
 
     \item[comments]
       are a device which requires careful thinking before using
@@ -79,10 +77,11 @@ text {* This style guide is loosely based on
       over efforts to explain nasty code.
 
     \item[functional programming is based on functions]
-      Avoid ``constructivisms'', i.e.\ unnecessary concrete datatype
-      representations.  Instead model things as abstract as
-      appropriate.  For example, pass a table lookup function rather
-      than a concrete table with lookup performed in body.  Accustom
+      Model things as abstract as appropriate.  Avoid unnecessarrily
+      concrete datatype  representations.  For example, consider a function
+      taking some table data structure as argument and performing
+      lookups on it.  Instead of taking a table, it could likewise
+      take just a lookup function.  Accustom
       your way of coding to the level of expressiveness a functional
       programming language is giving onto you.
 
@@ -288,7 +287,8 @@ chapter {* Basic library functions *}
 text {*
   Beyond the proposal of the SML/NJ basis library, Isabelle comes
   with its own library, from which selected parts are given here.
-  See further files \emph{Pure/library.ML} and \emph{Pure/General/*.ML}.
+  These should encourage a study of the Isabelle sources,
+  in particular files \emph{Pure/library.ML} and \emph{Pure/General/*.ML}.
 *}
 
 section {* Linear transformations *}
@@ -310,29 +310,28 @@ val thy = Theory.copy @{theory}
 text {*
   Many problems in functional programming can be thought of
   as linear transformations, i.e.~a caluclation starts with a
-  particular value @{text "x \<Colon> foo"} which is then transformed
-  by application of a function @{text "f \<Colon> foo \<Rightarrow> foo"},
-  continued by an application of a function @{text "g \<Colon> foo \<Rightarrow> bar"},
+  particular value @{ML_text "x : foo"} which is then transformed
+  by application of a function @{ML_text "f : foo -> foo"},
+  continued by an application of a function @{ML_text "g : foo -> bar"},
   and so on.  As a canoncial example, take functions enriching
   a theory by constant declararion and primitive definitions:
 
-  \begin{quotation}
-    @{ML "Sign.declare_const: Markup.property list -> bstring * typ * mixfix
-       -> theory -> term * theory"}
-
-    @{ML "Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory"}
-  \end{quotation}
+  \smallskip\begin{mldecls}
+  @{ML "Sign.declare_const: Markup.property list -> bstring * typ * mixfix
+  -> theory -> term * theory"} \\
+  @{ML "Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory"}
+  \end{mldecls}
 
   Written with naive application, an addition of constant
-  @{text bar} with type @{typ "foo \<Rightarrow> foo"} and
+  @{term bar} with type @{typ "foo \<Rightarrow> foo"} and
   a corresponding definition @{term "bar \<equiv> \<lambda>x. x"} would look like:
 
-  \begin{quotation}
-   @{ML "(fn (t, thy) => Thm.add_def false false
+  \smallskip\begin{mldecls}
+  @{ML "(fn (t, thy) => Thm.add_def false false
   (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})) thy)
     (Sign.declare_const []
       (\"bar\", @{typ \"foo => foo\"}, NoSyn) thy)"}
-  \end{quotation}
+  \end{mldecls}
 
   With increasing numbers of applications, this code gets quite
   unreadable.  Further, it is unintuitive that things are
@@ -342,13 +341,14 @@ text {*
 text {*
   \noindent At this stage, Isabelle offers some combinators which allow
   for more convenient notation, most notably reverse application:
-  \begin{quotation}
+
+  \smallskip\begin{mldecls}
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
 |> (fn (t, thy) => thy
 |> Thm.add_def false false
      (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))"}
-  \end{quotation}
+  \end{mldecls}
 *}
 
 text %mlref {*
@@ -365,26 +365,29 @@ text {*
   side results; to use these conveniently, yet another
   set of combinators is at hand, most notably @{ML "op |->"}
   which allows curried access to side results:
-  \begin{quotation}
+
+  \smallskip\begin{mldecls}
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
 |-> (fn t => Thm.add_def false false
       (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
 "}
-  \end{quotation}
+  \end{mldecls}
 
   \noindent @{ML "op |>>"} allows for processing side results on their own:
-  \begin{quotation}
+
+  \smallskip\begin{mldecls}
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
 |>> (fn t => Logic.mk_equals (t, @{term \"%x. x\"}))
 |-> (fn def => Thm.add_def false false (\"bar_def\", def))
 "}
-  \end{quotation}
+  \end{mldecls}
 
   \noindent Orthogonally, @{ML "op ||>"} applies a transformation
   in the presence of side results which are left unchanged:
-  \begin{quotation}
+
+  \smallskip\begin{mldecls}
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
 ||> Sign.add_path \"foobar\"
@@ -392,17 +395,18 @@ text {*
       (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
 ||> Sign.restore_naming thy
 "}
-  \end{quotation}
+  \end{mldecls}
 
-  \noindent @{index_ML "op ||>>"} accumulates side results:
-  \begin{quotation}
+  \noindent @{ML "op ||>>"} accumulates side results:
+
+  \smallskip\begin{mldecls}
 @{ML "thy
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
 ||>> Sign.declare_const [] (\"foobar\", @{typ \"foo => foo\"}, NoSyn)
 |-> (fn (t1, t2) => Thm.add_def false false
       (\"bar_def\", Logic.mk_equals (t1, t2)))
 "}
-  \end{quotation}
+  \end{mldecls}
 *}
 
 text %mlref {*
@@ -413,29 +417,32 @@ text %mlref {*
 *}
 
 text {*
-  \noindent This principles naturally lift to @{text lists} using
+  \noindent This principles naturally lift to \emph{lists} using
   the @{ML fold} and @{ML fold_map} combinators.
   The first lifts a single function
-  \[
-    \mbox{@{text "f \<Colon> 'a -> 'b -> 'b"} to @{text "'a list -> 'b -> 'b"}}
-  \]
+  \begin{quote}\footnotesize
+    @{ML_text "f : 'a -> 'b -> 'b"} to @{ML_text "'a list -> 'b -> 'b"}
+  \end{quote}
   such that
-  \[
-    \mbox{@{text "y |> fold f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv> y |> f x\<^isub>1 |> f x\<^isub>2 |> \<dots> |> f x\<^isub>n"}}
-  \]
+  \begin{quote}\footnotesize
+    @{ML_text "y |> fold f [x1, x2, ..., x_n]"} \\
+    \hspace*{2ex}@{text "\<leadsto>"} @{ML_text "y |> f x1 |> f x2 |> ... |> f x_n"}
+  \end{quote}
   The second accumulates side results in a list by lifting
   a single function
-  \[
-    \mbox{@{text "f \<Colon> 'a -> 'b -> 'c \<times> 'b"} to @{text "'a list -> 'b -> 'c list \<times> 'b"}}
-  \]
+  \begin{quote}\footnotesize
+    @{ML_text "f : 'a -> 'b -> 'c * 'b"} to @{ML_text "'a list -> 'b -> 'c list * 'b"}
+  \end{quote}
   such that
-  \[
-    \mbox{@{text "y |> fold_map f [x\<^isub>1, x\<^isub>2, \<dots> x\<^isub>n] \<equiv>"}} \\
-    ~~\mbox{@{text "y |> f x\<^isub>1 ||>> f x\<^isub>2 ||>> \<dots> ||>> f x\<^isub>n ||> (fn ((z\<^isub>1, z\<^isub>2), \<dots> z\<^isub>n) => [z\<^isub>1, z\<^isub>2, \<dots> z\<^isub>n])"}}
-  \]
+  \begin{quote}\footnotesize
+    @{ML_text "y |> fold_map f [x1, x2, ..., x_n]"} \\
+    \hspace*{2ex}@{text "\<leadsto>"} @{ML_text "y |> f x1 ||>> f x2 ||>> ... ||>> f x_n"} \\
+    \hspace*{6ex}@{ML_text "||> (fn ((z1, z2), ..., z_n) => [z1, z2, ..., z_n])"}
+  \end{quote}
   
-  Example:
-  \begin{quotation}
+  \noindent Example:
+
+  \smallskip\begin{mldecls}
 @{ML "let
   val consts = [\"foo\", \"bar\"];
 in
@@ -445,9 +452,8 @@ in
   |>> map (fn t => Logic.mk_equals (t, @{term \"%x. x\"}))
   |-> (fn defs => fold_map (fn def =>
        Thm.add_def false false (\"\", def)) defs)
-end
-"}
-  \end{quotation}
+end"}
+  \end{mldecls}
 *}
 
 text %mlref {*
@@ -477,7 +483,7 @@ text {*
   \noindent These operators allow to ``query'' a context
   in a series of context transformations:
 
-  \begin{quotation}
+  \smallskip\begin{mldecls}
 @{ML "thy
 |> tap (fn _ => writeln \"now adding constant\")
 |> Sign.declare_const [] (\"bar\", @{typ \"foo => foo\"}, NoSyn)
@@ -487,7 +493,7 @@ text {*
        else Sign.declare_const []
          (\"foobar\", @{typ \"foo => foo\"}, NoSyn) #> snd)
 "}
-  \end{quotation}
+  \end{mldecls}
 *}
 
 section {* Options and partiality *}
@@ -508,9 +514,9 @@ text %mlref {*
 text {*
   Standard selector functions on @{text option}s are provided.  The
   @{ML try} and @{ML can} functions provide a convenient interface for
-  handling exceptions -- both take as arguments a function @{text f}
-  together with a parameter @{text x} and handle any exception during
-  the evaluation of the application of @{text f} to @{text x}, either
+  handling exceptions -- both take as arguments a function @{ML_text f}
+  together with a parameter @{ML_text x} and handle any exception during
+  the evaluation of the application of @{ML_text f} to @{ML_text x}, either
   return a lifted result (@{ML NONE} on failure) or a boolean value
   (@{ML false} on failure).
 *}
@@ -624,6 +630,5 @@ text {*
 
   Most table functions correspond to those of association lists.
 *}
-
 
 end

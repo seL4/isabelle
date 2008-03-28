@@ -27,27 +27,21 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-This style guide is loosely based on
-  \url{http://caml.inria.fr/resources/doc/guides/guidelines.en.html}.
-%  FIMXE \url{http://www.cs.cornell.edu/Courses/cs312/2003sp/handouts/style.htm}
-
-  Like any style guide, it should not be interpreted dogmatically, but
-  with care and discernment.  Instead, it forms a collection of
-  recommendations which, if obeyed, result in code that is not
-  considered to be obfuscated.  In certain cases, derivations are
-  encouraged, as far as you know what you are doing.
+Like any style guide, also this one should not be interpreted dogmatically, but
+  with care and discernment.  It consists of a collection of
+  recommendations which have been turned out useful over long years of
+  Isabelle system development and are supposed to support writing of readable
+  and managable code.  Special cases encourage derivations,
+  as far as you know what you are doing.
+  \footnote{This style guide is loosely based on
+  \url{http://caml.inria.fr/resources/doc/guides/guidelines.en.html}}
 
   \begin{description}
 
     \item[fundamental law of programming]
       Whenever writing code, keep in mind: A program is
       written once, modified ten times, and read
-      100 times.  So simplify its writing,
+      hundred times.  So simplify its writing,
       always keep future modifications in mind,
       and never jeopardize readability.  Every second you hesitate
       to spend on making your code more clear you will
@@ -94,7 +88,7 @@ This style guide is loosely based on
         reasonable auxiliary function (if there is no
         such function, very likely you got something wrong).
         Any copy-and-paste will turn out to be painful 
-        when something has to be changed or fixed later on.
+        when something has to be changed later on.
 
     \item[comments]
       are a device which requires careful thinking before using
@@ -103,10 +97,11 @@ This style guide is loosely based on
       over efforts to explain nasty code.
 
     \item[functional programming is based on functions]
-      Avoid ``constructivisms'', i.e.\ unnecessary concrete datatype
-      representations.  Instead model things as abstract as
-      appropriate.  For example, pass a table lookup function rather
-      than a concrete table with lookup performed in body.  Accustom
+      Model things as abstract as appropriate.  Avoid unnecessarrily
+      concrete datatype  representations.  For example, consider a function
+      taking some table data structure as argument and performing
+      lookups on it.  Instead of taking a table, it could likewise
+      take just a lookup function.  Accustom
       your way of coding to the level of expressiveness a functional
       programming language is giving onto you.
 
@@ -322,7 +317,8 @@ Recent versions of Poly/ML (5.1 or later) support multithreaded
 \begin{isamarkuptext}%
 Beyond the proposal of the SML/NJ basis library, Isabelle comes
   with its own library, from which selected parts are given here.
-  See further files \emph{Pure/library.ML} and \emph{Pure/General/*.ML}.%
+  These should encourage a study of the Isabelle sources,
+  in particular files \emph{Pure/library.ML} and \emph{Pure/General/*.ML}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -366,29 +362,28 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \begin{isamarkuptext}%
 Many problems in functional programming can be thought of
   as linear transformations, i.e.~a caluclation starts with a
-  particular value \isa{x\ {\isasymColon}\ foo} which is then transformed
-  by application of a function \isa{f\ {\isasymColon}\ foo\ {\isasymRightarrow}\ foo},
-  continued by an application of a function \isa{g\ {\isasymColon}\ foo\ {\isasymRightarrow}\ bar},
+  particular value \verb|x : foo| which is then transformed
+  by application of a function \verb|f : foo -> foo|,
+  continued by an application of a function \verb|g : foo -> bar|,
   and so on.  As a canoncial example, take functions enriching
   a theory by constant declararion and primitive definitions:
 
-  \begin{quotation}
-    \verb|Sign.declare_const: Markup.property list -> bstring * typ * mixfix|\isasep\isanewline%
-\verb|       -> theory -> term * theory|
-
-    \verb|Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory|
-  \end{quotation}
+  \smallskip\begin{mldecls}
+  \verb|Sign.declare_const: Markup.property list -> bstring * typ * mixfix|\isasep\isanewline%
+\verb|  -> theory -> term * theory| \\
+  \verb|Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory|
+  \end{mldecls}
 
   Written with naive application, an addition of constant
   \isa{bar} with type \isa{foo\ {\isasymRightarrow}\ foo} and
-  a corresponding definition \isa{bar{\isasymColon}{\isacharprime}a{\isasymColon}{\isacharbraceleft}{\isacharbraceright}\ {\isasymRightarrow}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}{\isacharbraceright}\ {\isasymequiv}\ {\isasymlambda}x{\isasymColon}{\isacharprime}a{\isasymColon}{\isacharbraceleft}{\isacharbraceright}{\isachardot}\ x} would look like:
+  a corresponding definition \isa{bar\ {\isasymequiv}\ {\isasymlambda}x{\isachardot}\ x} would look like:
 
-  \begin{quotation}
-   \verb|(fn (t, thy) => Thm.add_def false false|\isasep\isanewline%
+  \smallskip\begin{mldecls}
+  \verb|(fn (t, thy) => Thm.add_def false false|\isasep\isanewline%
 \verb|  ("bar_def", Logic.mk_equals (t, @{term "%x. x"})) thy)|\isasep\isanewline%
 \verb|    (Sign.declare_const []|\isasep\isanewline%
 \verb|      ("bar", @{typ "foo => foo"}, NoSyn) thy)|
-  \end{quotation}
+  \end{mldecls}
 
   With increasing numbers of applications, this code gets quite
   unreadable.  Further, it is unintuitive that things are
@@ -399,13 +394,14 @@ Many problems in functional programming can be thought of
 \begin{isamarkuptext}%
 \noindent At this stage, Isabelle offers some combinators which allow
   for more convenient notation, most notably reverse application:
-  \begin{quotation}
+
+  \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|> (fn (t, thy) => thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Thm.add_def false false|\isasep\isanewline%
 \verb|     ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|
-  \end{quotation}%
+  \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -437,26 +433,29 @@ Many problems in functional programming can be thought of
   side results; to use these conveniently, yet another
   set of combinators is at hand, most notably \verb|op |\verb,|,\verb|->|
   which allows curried access to side results:
-  \begin{quotation}
+
+  \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn t => Thm.add_def false false|\isasep\isanewline%
 \verb|      ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
 
-  \end{quotation}
+  \end{mldecls}
 
   \noindent \verb|op |\verb,|,\verb|>>| allows for processing side results on their own:
-  \begin{quotation}
+
+  \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|>> (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn def => Thm.add_def false false ("bar_def", def))|\isasep\isanewline%
 
-  \end{quotation}
+  \end{mldecls}
 
   \noindent Orthogonally, \verb|op |\verb,|,\verb||\verb,|,\verb|>| applies a transformation
   in the presence of side results which are left unchanged:
-  \begin{quotation}
+
+  \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|> Sign.add_path "foobar"|\isasep\isanewline%
@@ -464,17 +463,18 @@ Many problems in functional programming can be thought of
 \verb|      ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|> Sign.restore_naming thy|\isasep\isanewline%
 
-  \end{quotation}
+  \end{mldecls}
 
-  \noindent \indexml{op ||$>$$>$}\verb|op |\verb,|,\verb||\verb,|,\verb|>>| accumulates side results:
-  \begin{quotation}
+  \noindent \verb|op |\verb,|,\verb||\verb,|,\verb|>>| accumulates side results:
+
+  \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|>> Sign.declare_const [] ("foobar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn (t1, t2) => Thm.add_def false false|\isasep\isanewline%
 \verb|      ("bar_def", Logic.mk_equals (t1, t2)))|\isasep\isanewline%
 
-  \end{quotation}%
+  \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -500,29 +500,32 @@ Many problems in functional programming can be thought of
 \endisadelimmlref
 %
 \begin{isamarkuptext}%
-\noindent This principles naturally lift to \isa{lists} using
+\noindent This principles naturally lift to \emph{lists} using
   the \verb|fold| and \verb|fold_map| combinators.
   The first lifts a single function
-  \[
-    \mbox{\isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b} to \isa{{\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}b}}
-  \]
+  \begin{quote}\footnotesize
+    \verb|f : 'a -> 'b -> 'b| to \verb|'a list -> 'b -> 'b|
+  \end{quote}
   such that
-  \[
-    \mbox{\isa{y\ {\isacharbar}{\isachargreater}\ fold\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}\ y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub n}}
-  \]
+  \begin{quote}\footnotesize
+    \verb|y |\verb,|,\verb|> fold f [x1, x2, ..., x_n]| \\
+    \hspace*{2ex}\isa{{\isasymleadsto}} \verb|y |\verb,|,\verb|> f x1 |\verb,|,\verb|> f x2 |\verb,|,\verb|> ... |\verb,|,\verb|> f x_n|
+  \end{quote}
   The second accumulates side results in a list by lifting
   a single function
-  \[
-    \mbox{\isa{f\ {\isasymColon}\ {\isacharprime}a\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}c\ {\isasymtimes}\ {\isacharprime}b} to \isa{{\isacharprime}a\ list\ {\isacharminus}{\isachargreater}\ {\isacharprime}b\ {\isacharminus}{\isachargreater}\ {\isacharprime}c\ list\ {\isasymtimes}\ {\isacharprime}b}}
-  \]
+  \begin{quote}\footnotesize
+    \verb|f : 'a -> 'b -> 'c * 'b| to \verb|'a list -> 'b -> 'c list * 'b|
+  \end{quote}
   such that
-  \[
-    \mbox{\isa{y\ {\isacharbar}{\isachargreater}\ fold{\isacharunderscore}map\ f\ {\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ x\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ x\isactrlisub n{\isacharbrackright}\ {\isasymequiv}}} \\
-    ~~\mbox{\isa{y\ {\isacharbar}{\isachargreater}\ f\ x\isactrlisub {\isadigit{1}}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ f\ x\isactrlisub {\isadigit{2}}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ {\isasymdots}\ {\isacharbar}{\isacharbar}{\isachargreater}{\isachargreater}\ f\ x\isactrlisub n\ {\isacharbar}{\isacharbar}{\isachargreater}\ {\isacharparenleft}fn\ {\isacharparenleft}{\isacharparenleft}z\isactrlisub {\isadigit{1}}{\isacharcomma}\ z\isactrlisub {\isadigit{2}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}\ z\isactrlisub n{\isacharparenright}\ {\isacharequal}{\isachargreater}\ {\isacharbrackleft}z\isactrlisub {\isadigit{1}}{\isacharcomma}\ z\isactrlisub {\isadigit{2}}{\isacharcomma}\ {\isasymdots}\ z\isactrlisub n{\isacharbrackright}{\isacharparenright}}}
-  \]
+  \begin{quote}\footnotesize
+    \verb|y |\verb,|,\verb|> fold_map f [x1, x2, ..., x_n]| \\
+    \hspace*{2ex}\isa{{\isasymleadsto}} \verb|y |\verb,|,\verb|> f x1 |\verb,|,\verb||\verb,|,\verb|>> f x2 |\verb,|,\verb||\verb,|,\verb|>> ... |\verb,|,\verb||\verb,|,\verb|>> f x_n| \\
+    \hspace*{6ex}\verb||\verb,|,\verb||\verb,|,\verb|> (fn ((z1, z2), ..., z_n) => [z1, z2, ..., z_n])|
+  \end{quote}
   
-  Example:
-  \begin{quotation}
+  \noindent Example:
+
+  \smallskip\begin{mldecls}
 \verb|let|\isasep\isanewline%
 \verb|  val consts = ["foo", "bar"];|\isasep\isanewline%
 \verb|in|\isasep\isanewline%
@@ -532,9 +535,8 @@ Many problems in functional programming can be thought of
 \verb|  |\verb,|,\verb|>> map (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
 \verb|  |\verb,|,\verb|-> (fn defs => fold_map (fn def =>|\isasep\isanewline%
 \verb|       Thm.add_def false false ("", def)) defs)|\isasep\isanewline%
-\verb|end|\isasep\isanewline%
-
-  \end{quotation}%
+\verb|end|
+  \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -594,7 +596,7 @@ Many problems in functional programming can be thought of
 \noindent These operators allow to ``query'' a context
   in a series of context transformations:
 
-  \begin{quotation}
+  \smallskip\begin{mldecls}
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> tap (fn _ => writeln "now adding constant")|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ("bar", @{typ "foo => foo"}, NoSyn)|\isasep\isanewline%
@@ -604,7 +606,7 @@ Many problems in functional programming can be thought of
 \verb|       else Sign.declare_const []|\isasep\isanewline%
 \verb|         ("foobar", @{typ "foo => foo"}, NoSyn) #> snd)|\isasep\isanewline%
 
-  \end{quotation}%
+  \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -642,9 +644,9 @@ Many problems in functional programming can be thought of
 \begin{isamarkuptext}%
 Standard selector functions on \isa{option}s are provided.  The
   \verb|try| and \verb|can| functions provide a convenient interface for
-  handling exceptions -- both take as arguments a function \isa{f}
-  together with a parameter \isa{x} and handle any exception during
-  the evaluation of the application of \isa{f} to \isa{x}, either
+  handling exceptions -- both take as arguments a function \verb|f|
+  together with a parameter \verb|x| and handle any exception during
+  the evaluation of the application of \verb|f| to \verb|x|, either
   return a lifted result (\verb|NONE| on failure) or a boolean value
   (\verb|false| on failure).%
 \end{isamarkuptext}%
