@@ -6,7 +6,7 @@
 header {* Simple examples for Efficient\_Nat theory.  *}
 
 theory Efficient_Nat_examples
-imports "~~/src/HOL/Real/RealDef" Efficient_Nat
+imports Main "~~/src/HOL/Real/RealDef" Efficient_Nat
 begin
 
 fun
