@@ -588,7 +588,7 @@ fun mk_const phi cT x =
 in
  val field_comp_conv = comp_conv;
  val fieldgb_declaration = 
-  NormalizerData.funs @{thm class_fieldgb.fieldgb_axioms}
+  NormalizerData.funs @{thm class_fieldgb.fieldgb_axioms'}
    {is_const = K numeral_is_const,
     dest_const = K dest_const,
     mk_const = mk_const,
