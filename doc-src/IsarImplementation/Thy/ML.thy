@@ -308,7 +308,7 @@ val thy = Theory.copy @{theory}
 (*>*)
 
 text {*
-  Many problems in functional programming can be thought of
+  \noindent Many problems in functional programming can be thought of
   as linear transformations, i.e.~a caluclation starts with a
   particular value @{ML_text "x : foo"} which is then transformed
   by application of a function @{ML_text "f : foo -> foo"},
@@ -322,7 +322,7 @@ text {*
   @{ML "Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory"}
   \end{mldecls}
 
-  Written with naive application, an addition of constant
+  \noindent Written with naive application, an addition of constant
   @{term bar} with type @{typ "foo \<Rightarrow> foo"} and
   a corresponding definition @{term "bar \<equiv> \<lambda>x. x"} would look like:
 
@@ -333,7 +333,7 @@ text {*
       (\"bar\", @{typ \"foo => foo\"}, NoSyn) thy)"}
   \end{mldecls}
 
-  With increasing numbers of applications, this code gets quite
+  \noindent With increasing numbers of applications, this code gets quite
   unreadable.  Further, it is unintuitive that things are
   written down in the opposite order as they actually ``happen''.
 *}
@@ -428,7 +428,7 @@ text {*
     @{ML_text "y |> fold f [x1, x2, ..., x_n]"} \\
     \hspace*{2ex}@{text "\<leadsto>"} @{ML_text "y |> f x1 |> f x2 |> ... |> f x_n"}
   \end{quote}
-  The second accumulates side results in a list by lifting
+  \noindent The second accumulates side results in a list by lifting
   a single function
   \begin{quote}\footnotesize
     @{ML_text "f : 'a -> 'b -> 'c * 'b"} to @{ML_text "'a list -> 'b -> 'c list * 'b"}
