@@ -51,7 +51,7 @@ sig
   val drule: int -> thm list -> method
   val frule: int -> thm list -> method
   val iprover_tac: Proof.context -> int option -> int -> tactic
-  val set_tactic: (Proof.context -> thm list -> tactic) -> unit
+  val set_tactic: (Proof.context -> thm list -> tactic) -> Proof.context -> Proof.context
   val tactic: string * Position.T -> Proof.context -> method
   type src
   datatype text =
@@ -350,14 +350,21 @@ end;
 
 (* ML tactics *)
 
-val tactic_ref = ref ((fn _ => raise Match): Proof.context -> thm list -> tactic);
-fun set_tactic f = tactic_ref := f;
+structure TacticData = ProofDataFun
+(
+  type T = Proof.context -> thm list -> tactic;
+  fun init _ = undefined;
+);
 
-fun ml_tactic (txt, pos) ctxt = NAMED_CRITICAL "ML" (fn () =>
-  (ML_Context.eval_in (SOME (Context.Proof ctxt)) false pos
-    ("let fun tactic (ctxt: Proof.context) (facts: thm list) : tactic =\n"
-      ^ txt ^ "\nin Method.set_tactic tactic end");
-    Context.setmp_thread_data (SOME (Context.Proof ctxt)) (! tactic_ref ctxt)));
+val set_tactic = TacticData.put;
+
+fun ml_tactic (txt, pos) ctxt =
+  let
+    val ctxt' = ctxt |> Context.proof_map
+      (ML_Context.expression Position.none
+        "fun tactic (ctxt: Proof.context) (facts: thm list) : tactic"
+        "Context.map_proof (Method.set_tactic tactic)" txt);
+  in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (TacticData.get ctxt' ctxt) end;
 
 fun tactic txt ctxt = METHOD (ml_tactic txt ctxt);
 fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);
@@ -447,11 +454,10 @@ val add_method = add_methods o Library.single;
 (* method_setup *)
 
 fun method_setup name (txt, pos) cmt =
-  ML_Context.expression pos
+  Context.theory_map (ML_Context.expression pos
     "val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
     "Context.map_theory (Method.add_method method)"
-    ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")")
-  |> Context.theory_map;
+    ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")"));
 
 
 
