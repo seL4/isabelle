@@ -24,6 +24,8 @@ $ isabelle RAW_ML_SYSTEM
 
 val ml_system_fix_ints = false;
 
+fun forget_structure _ = ();
+
 load "Obj";
 load "Bool";
 load "Int";

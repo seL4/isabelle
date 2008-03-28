@@ -19,6 +19,8 @@ $ env ALICE_JIT_MODE=0 alice
 
 val ml_system_fix_ints = false;
 
+fun forget_structure _ = ();
+
 fun exit 0 = (OS.Process.exit OS.Process.success): unit
   | exit _ = OS.Process.exit OS.Process.failure;
 

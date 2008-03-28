@@ -15,6 +15,9 @@ use "ML-Systems/system_shell.ML";
 
 (** ML system and platform related **)
 
+val forget_structure = PolyML.Compiler.forgetStructure;
+
+
 (* Compiler options *)
 
 val ml_system_fix_ints = false;

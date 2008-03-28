@@ -52,6 +52,7 @@ in
     Control.Print.printLength := dest_int n);
 end;
 
+
 (* compiler-independent timing functions *)
 
 fun start_timing () =
@@ -133,6 +134,10 @@ fun use_file tune output verbose name =
     val instream = TextIO.openIn name;
     val txt = TextIO.inputAll instream before TextIO.closeIn instream;
   in use_text tune (1, name) output verbose txt end;
+
+fun forget_structure name =
+  use_text (fn x => x) (1, "ML") (TextIO.print, fn s => raise Fail s) false
+    ("structure " ^ name ^ " = struct end");
 
 
 
