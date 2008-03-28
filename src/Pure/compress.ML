@@ -30,7 +30,7 @@ structure CompressData = TheoryDataFun
     ref (Termtab.merge (K true) (terms1, terms2)));
 );
 
-val _ = Context.>> CompressData.init;
+val _ = Context.>> (Context.map_theory CompressData.init);
 
 
 (* compress types *)

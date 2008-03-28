@@ -554,31 +554,33 @@ fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
 
 (* theory setup *)
 
-val _ = Context.>> (add_methods
- [("fail", no_args fail, "force failure"),
-  ("succeed", no_args succeed, "succeed"),
-  ("-", no_args insert_facts, "do nothing (insert current facts only)"),
-  ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
-  ("intro", thms_args intro, "repeatedly apply introduction rules"),
-  ("elim", thms_args elim, "repeatedly apply elimination rules"),
-  ("unfold", thms_ctxt_args unfold_meth, "unfold definitions"),
-  ("fold", thms_ctxt_args fold_meth, "fold definitions"),
-  ("atomize", (atomize o fst) oo syntax (Args.mode "full"),
-    "present local premises as object-level statements"),
-  ("iprover", iprover_meth, "intuitionistic proof search"),
-  ("rule", thms_ctxt_args some_rule, "apply some intro/elim rule"),
-  ("erule", nat_thms_args erule, "apply rule in elimination manner (improper)"),
-  ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
-  ("frule", nat_thms_args frule, "apply rule in forward manner (improper)"),
-  ("this", no_args this, "apply current facts as rules"),
-  ("fact", thms_ctxt_args fact, "composition by facts from context"),
-  ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
-  ("rename_tac", goal_args (Scan.repeat1 Args.name) Tactic.rename_params_tac,
-    "rename parameters of goal"),
-  ("rotate_tac", goal_args (Scan.optional Args.int 1) Tactic.rotate_tac,
-    "rotate assumptions of goal"),
-  ("tactic", simple_args (Args.position Args.name) tactic, "ML tactic as proof method"),
-  ("raw_tactic", simple_args (Args.position Args.name) raw_tactic, "ML tactic as raw proof method")]);
+val _ = Context.>> (Context.map_theory
+  (add_methods
+   [("fail", no_args fail, "force failure"),
+    ("succeed", no_args succeed, "succeed"),
+    ("-", no_args insert_facts, "do nothing (insert current facts only)"),
+    ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
+    ("intro", thms_args intro, "repeatedly apply introduction rules"),
+    ("elim", thms_args elim, "repeatedly apply elimination rules"),
+    ("unfold", thms_ctxt_args unfold_meth, "unfold definitions"),
+    ("fold", thms_ctxt_args fold_meth, "fold definitions"),
+    ("atomize", (atomize o fst) oo syntax (Args.mode "full"),
+      "present local premises as object-level statements"),
+    ("iprover", iprover_meth, "intuitionistic proof search"),
+    ("rule", thms_ctxt_args some_rule, "apply some intro/elim rule"),
+    ("erule", nat_thms_args erule, "apply rule in elimination manner (improper)"),
+    ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
+    ("frule", nat_thms_args frule, "apply rule in forward manner (improper)"),
+    ("this", no_args this, "apply current facts as rules"),
+    ("fact", thms_ctxt_args fact, "composition by facts from context"),
+    ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
+    ("rename_tac", goal_args (Scan.repeat1 Args.name) Tactic.rename_params_tac,
+      "rename parameters of goal"),
+    ("rotate_tac", goal_args (Scan.optional Args.int 1) Tactic.rotate_tac,
+      "rotate assumptions of goal"),
+    ("tactic", simple_args (Args.position Args.name) tactic, "ML tactic as proof method"),
+    ("raw_tactic", simple_args (Args.position Args.name) raw_tactic,
+      "ML tactic as raw proof method")]));
 
 
 (* outer parser *)

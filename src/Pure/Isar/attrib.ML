@@ -276,7 +276,7 @@ val rotated = syntax
 
 (* theory setup *)
 
-val _ = Context.>>
+val _ = Context.>> (Context.map_theory
  (add_attributes
    [("attribute", internal_att, "internal attribute"),
     ("tagged", tagged, "tagged theorem"),
@@ -301,7 +301,7 @@ val _ = Context.>>
     ("rule_format", rule_format, "result put into standard rule format"),
     ("rotated", rotated, "rotated theorem premises"),
     ("defn", add_del_args LocalDefs.defn_add LocalDefs.defn_del,
-      "declaration of definitional transformations")]);
+      "declaration of definitional transformations")]));
 
 
 
@@ -379,12 +379,12 @@ end;
 
 (* theory setup *)
 
-val _ = Context.>>
+val _ = Context.>> (Context.map_theory
  (register_config Unify.trace_bound_value #>
   register_config Unify.search_bound_value #>
   register_config Unify.trace_simp_value #>
   register_config Unify.trace_types_value #>
-  register_config MetaSimplifier.simp_depth_limit_value);
+  register_config MetaSimplifier.simp_depth_limit_value));
 
 end;
 

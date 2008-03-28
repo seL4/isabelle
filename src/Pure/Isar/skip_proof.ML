@@ -24,7 +24,8 @@ fun skip_proof (_, SkipProof prop) =
   if ! quick_and_dirty then prop
   else error "Proof may be skipped in quick_and_dirty mode only!";
 
-val _ = Context.>> (Theory.add_oracle ("skip_proof", skip_proof));
+val _ = Context.>> (Context.map_theory
+  (Theory.add_oracle ("skip_proof", skip_proof)));
 
 
 (* basic cheating *)

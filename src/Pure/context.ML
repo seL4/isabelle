@@ -66,8 +66,8 @@ sig
   val the_thread_data: unit -> generic
   val set_thread_data: generic option -> unit
   val setmp_thread_data: generic option -> ('a -> 'b) -> 'a -> 'b
-  val >> : (theory -> theory) -> unit
-  val >>> : (theory -> 'a * theory) -> 'a
+  val >> : (generic -> generic) -> unit
+  val >>> : (generic -> 'a * generic) -> 'a
 end;
 
 signature PRIVATE_CONTEXT =
@@ -525,12 +525,12 @@ end;
 
 fun >>> f =
   let
-    val (res, thy') = f (the_theory (the_thread_data ()));
-    val _ = set_thread_data (SOME (Theory thy'));
+    val (res, context') = f (the_thread_data ());
+    val _ = set_thread_data (SOME context');
   in res end;
 
 nonfix >>;
-fun >> f = >>> (fn thy => ((), f thy));
+fun >> f = >>> (fn context => ((), f context));
 
 val _ = set_thread_data (SOME (Theory pre_pure_thy));
 

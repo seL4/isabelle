@@ -204,7 +204,8 @@ fun oracle name typ (oracle, pos) =
     \  val oracle: theory -> T -> term = " ^ oracle ^ ";\n\
     \  val name = " ^ quote name ^ ";\n\
     \  exception Arg of T;\n\
-    \  val _ = Context.>> (Theory.add_oracle (name, fn (thy, Arg x) => oracle thy x));\n\
+    \  val _ = Context.>> (Context.map_theory\n\
+    \    (Theory.add_oracle (name, fn (thy, Arg x) => oracle thy x)));\n\
     \  val thy = ML_Context.the_global_context ();\n\
     \  val invoke_" ^ name ^ " = Thm.invoke_oracle_i thy (Sign.full_name thy name);\n\
     \in\n\

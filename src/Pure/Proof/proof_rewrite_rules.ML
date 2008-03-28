@@ -187,7 +187,7 @@ fun rew b _ =
   in rew' end;
 
 fun rprocs b = [("Pure/meta_equality", rew b)];
-val _ = Context.>> (fold Proofterm.add_prf_rproc (rprocs false));
+val _ = Context.>> (Context.map_theory (fold Proofterm.add_prf_rproc (rprocs false)));
 
 
 (**** apply rewriting function to all terms in proof ****)

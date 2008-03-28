@@ -65,7 +65,7 @@ fun style_parm_premise i ctxt t =
       " in propositon: " ^ Syntax.string_of_term ctxt t)
   end;
 
-val _ = Context.>>
+val _ = Context.>> (Context.map_theory
  (add_style "lhs" (fst oo style_binargs) #>
   add_style "rhs" (snd oo style_binargs) #>
   add_style "prem1" (style_parm_premise 1) #>
@@ -87,6 +87,6 @@ val _ = Context.>>
   add_style "prem17" (style_parm_premise 17) #>
   add_style "prem18" (style_parm_premise 18) #>
   add_style "prem19" (style_parm_premise 19) #>
-  add_style "concl" (K Logic.strip_imp_concl));
+  add_style "concl" (K Logic.strip_imp_concl)));
 
 end;

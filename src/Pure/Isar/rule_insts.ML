@@ -218,9 +218,10 @@ end;
 
 (* setup *)
 
-val _ = Context.>> (Attrib.add_attributes
- [("where", where_att, "named instantiation of theorem"),
-  ("of", of_att, "positional instantiation of theorem")]);
+val _ = Context.>> (Context.map_theory
+  (Attrib.add_attributes
+   [("where", where_att, "named instantiation of theorem"),
+    ("of", of_att, "positional instantiation of theorem")]));
 
 
 
@@ -367,21 +368,22 @@ fun inst_args_var f src ctxt =
 
 (* setup *)
 
-val _ = Context.>> (Method.add_methods
- [("rule_tac", inst_args_var res_inst_meth,
-    "apply rule (dynamic instantiation)"),
-  ("erule_tac", inst_args_var eres_inst_meth,
-    "apply rule in elimination manner (dynamic instantiation)"),
-  ("drule_tac", inst_args_var dres_inst_meth,
-    "apply rule in destruct manner (dynamic instantiation)"),
-  ("frule_tac", inst_args_var forw_inst_meth,
-    "apply rule in forward manner (dynamic instantiation)"),
-  ("cut_tac", inst_args_var cut_inst_meth,
-    "cut rule (dynamic instantiation)"),
-  ("subgoal_tac", Method.goal_args_ctxt (Scan.repeat1 Args.name) subgoals_tac,
-    "insert subgoal (dynamic instantiation)"),
-  ("thin_tac", Method.goal_args_ctxt Args.name thin_tac,
-    "remove premise (dynamic instantiation)")]);
+val _ = Context.>> (Context.map_theory
+  (Method.add_methods
+   [("rule_tac", inst_args_var res_inst_meth,
+      "apply rule (dynamic instantiation)"),
+    ("erule_tac", inst_args_var eres_inst_meth,
+      "apply rule in elimination manner (dynamic instantiation)"),
+    ("drule_tac", inst_args_var dres_inst_meth,
+      "apply rule in destruct manner (dynamic instantiation)"),
+    ("frule_tac", inst_args_var forw_inst_meth,
+      "apply rule in forward manner (dynamic instantiation)"),
+    ("cut_tac", inst_args_var cut_inst_meth,
+      "cut rule (dynamic instantiation)"),
+    ("subgoal_tac", Method.goal_args_ctxt (Scan.repeat1 Args.name) subgoals_tac,
+      "insert subgoal (dynamic instantiation)"),
+    ("thin_tac", Method.goal_args_ctxt Args.name thin_tac,
+      "remove premise (dynamic instantiation)")]));
 
 end;
 

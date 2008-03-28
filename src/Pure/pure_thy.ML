@@ -146,7 +146,7 @@ structure TheoremsData = TheoryDataFun
     ref (make_thms NameSpace.empty_table (Facts.merge (all_facts1, all_facts2)));
 );
 
-val _ = Context.>> TheoremsData.init;
+val _ = Context.>> (Context.map_theory TheoremsData.init);
 
 val get_theorems_ref = TheoremsData.get;
 val get_theorems = (fn Thms args => args) o ! o get_theorems_ref;
@@ -423,7 +423,7 @@ val typ = SimpleSyntax.read_typ;
 val term = SimpleSyntax.read_term;
 val prop = SimpleSyntax.read_prop;
 
-val _ = Context.>>
+val _ = Context.>> (Context.map_theory
   (Sign.add_types
    [("fun", 2, NoSyn),
     ("prop", 0, NoSyn),
@@ -515,7 +515,7 @@ val _ = Context.>>
     ("conjunction_def", prop "(A && B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
   #> Sign.hide_consts false ["conjunction", "term"]
   #> add_thmss [(("nothing", []), [])] #> snd
-  #> Theory.add_axioms_i Proofterm.equality_axms);
+  #> Theory.add_axioms_i Proofterm.equality_axms));
 
 end;
 

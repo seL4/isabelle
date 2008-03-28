@@ -105,7 +105,7 @@ structure GlobalSimpset = TheoryDataFun
   fun merge _ (ref ss1, ref ss2) = ref (merge_ss (ss1, ss2));
 );
 
-val _ = Context.>> GlobalSimpset.init;
+val _ = Context.>> (Context.map_theory GlobalSimpset.init);
 fun print_simpset thy = print_ss (! (GlobalSimpset.get thy));
 val get_simpset = ! o GlobalSimpset.get;
 
@@ -369,12 +369,12 @@ end;
 
 (* setup attributes *)
 
-val _ = Context.>>
+val _ = Context.>> (Context.map_theory
  (Attrib.add_attributes
    [(simpN, Attrib.add_del_args simp_add simp_del, "declaration of Simplifier rewrite rule"),
     (congN, Attrib.add_del_args cong_add cong_del, "declaration of Simplifier congruence rule"),
     ("simproc", simproc_att, "declaration of simplification procedures"),
-    ("simplified", simplified, "simplified rule")]);
+    ("simplified", simplified, "simplified rule")]));
 
 
 

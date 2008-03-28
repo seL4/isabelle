@@ -107,8 +107,9 @@ val _ =
     val code_attr = Attrib.syntax (Scan.peek (fn context =>
       List.foldr op || Scan.fail (map snd (CodeAttr.get (Context.theory_of context)))));
   in
-    Context.>> (Attrib.add_attributes
-      [("code", code_attr, "declare theorems for code generation")])
+    Context.>> (Context.map_theory
+      (Attrib.add_attributes
+        [("code", code_attr, "declare theorems for code generation")]))
   end;
 
 
@@ -387,7 +388,7 @@ structure CodeData = TheoryDataFun
     in (exec, ref data) end;
 );
 
-val _ = Context.>> CodeData.init;
+val _ = Context.>> (Context.map_theory CodeData.init);
 
 fun thy_data f thy = f ((snd o CodeData.get) thy);
 
@@ -864,7 +865,7 @@ fun del_post thm thy =
     (remove Thm.eq_thm_prop (CodeUnit.error_thm CodeUnit.mk_rew thm)) thy;
         (*fully applied in order to get right context for mk_rew!*)
 
-val _ = Context.>>
+val _ = Context.>> (Context.map_theory
   (let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
     fun add_simple_attribute (name, f) =
@@ -877,7 +878,7 @@ val _ = Context.>>
     #> add_del_attribute ("func", (add_func, del_func))
     #> add_del_attribute ("inline", (add_inline, del_inline))
     #> add_del_attribute ("post", (add_post, del_post))
-  end);
+  end));
 
 
 (** post- and preprocessing **)

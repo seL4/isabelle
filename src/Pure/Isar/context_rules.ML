@@ -198,8 +198,8 @@ val intro_query = rule_add intro_queryK I;
 val elim_query  = rule_add elim_queryK I;
 val dest_query  = rule_add elim_queryK Tactic.make_elim;
 
-val _ = Context.>>
-  (snd o PureThy.add_thms [(("", Drule.equal_intr_rule), [intro_query NONE])]);
+val _ = Context.>> (Context.map_theory
+  (snd o PureThy.add_thms [(("", Drule.equal_intr_rule), [intro_query NONE])]));
 
 
 (* concrete syntax *)
@@ -215,6 +215,6 @@ val rule_atts =
   ("rule", Attrib.syntax (Scan.lift Args.del >> K rule_del),
     "remove declaration of intro/elim/dest rule")];
 
-val _ = Context.>> (Attrib.add_attributes rule_atts);
+val _ = Context.>> (Context.map_theory (Attrib.add_attributes rule_atts));
 
 end;

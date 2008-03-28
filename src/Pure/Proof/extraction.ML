@@ -395,7 +395,7 @@ fun add_types tys thy =
 
 (** Pure setup **)
 
-val _ = Context.>>
+val _ = Context.>> (Context.map_theory
   (add_types [("prop", ([], NONE))] #>
 
    add_typeof_eqns
@@ -441,7 +441,7 @@ val _ = Context.>>
 
    Attrib.add_attributes
      [("extraction_expand", extraction_expand,
-       "specify theorems / definitions to be expanded during extraction")]);
+       "specify theorems / definitions to be expanded during extraction")]));
 
 
 (**** extract program ****)

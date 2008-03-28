@@ -140,7 +140,7 @@ fun rep_class_data (ClassData d) = d;
 fun mk_class_data ((consts, base_sort, inst, morphism, assm_intro, of_class, axiom),
     (defs, operations)) =
   ClassData { consts = consts, base_sort = base_sort, inst = inst,
-    morphism = morphism, assm_intro = assm_intro, of_class = of_class, axiom = axiom, 
+    morphism = morphism, assm_intro = assm_intro, of_class = of_class, axiom = axiom,
     defs = defs, operations = operations };
 fun map_class_data f (ClassData { consts, base_sort, inst, morphism,
     assm_intro, of_class, axiom, defs, operations }) =
@@ -304,7 +304,7 @@ fun calculate sups base_sort assm_axiom param_map class thy =
       #> map_types subst_typ;
     fun subst_thm defs = Drule.standard' #> instantiate_class #> lift_axiom
       #> MetaSimplifier.rewrite_rule defs;
-    fun morphism thy defs = 
+    fun morphism thy defs =
       Morphism.typ_morphism subst_typ
       $> Morphism.term_morphism (subst_term thy defs)
       $> Morphism.thm_morphism (subst_thm defs);
@@ -395,11 +395,13 @@ fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
     default_intro_classes_tac facts;
 
-val _ = Context.>> (Method.add_methods
- [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
-    "back-chain introduction rules of classes"),
-  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac),
-    "apply some intro/elim rule")]);
+val _ = Context.>> (Context.map_theory
+  (Method.add_methods
+   [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
+      "back-chain introduction rules of classes"),
+    ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac),
+      "apply some intro/elim rule")]));
+
 
 
 (** classes and class target **)

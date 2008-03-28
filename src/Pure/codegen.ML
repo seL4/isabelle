@@ -343,8 +343,8 @@ val _ = Context.>>
   (let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
   in
-    Code.add_attribute ("unfold", Scan.succeed (mk_attribute
-      (fn thm => add_unfold thm #> Code.add_inline thm)))
+    Context.map_theory (Code.add_attribute ("unfold", Scan.succeed (mk_attribute
+      (fn thm => add_unfold thm #> Code.add_inline thm))))
   end);
 
 
@@ -786,9 +786,9 @@ fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
                  (add_edge (node_id, dep) gr'', p module''))
            end);
 
-val _ = Context.>>
+val _ = Context.>> (Context.map_theory
  (add_codegen "default" default_codegen #>
-  add_tycodegen "default" default_tycodegen);
+  add_tycodegen "default" default_tycodegen));
 
 
 fun mk_tuple [p] = p
@@ -1026,8 +1026,7 @@ fun test_goal' int state =
     else state
   end;
 
-val _ = Context.>>
-  (Context.theory_map (Specification.add_theorem_hook test_goal'));
+val _ = Context.>> (Specification.add_theorem_hook test_goal');
 
 
 (**** Evaluator for terms ****)
@@ -1078,8 +1077,8 @@ fun evaluation_conv ct =
   let val {thy, t, ...} = rep_cterm ct
   in Thm.invoke_oracle_i thy "Pure.evaluation" (thy, Evaluation t) end;
 
-val _ = Context.>>
-  (Theory.add_oracle ("evaluation", evaluation_oracle));
+val _ = Context.>> (Context.map_theory
+  (Theory.add_oracle ("evaluation", evaluation_oracle)));
 
 
 (**** Interface ****)
