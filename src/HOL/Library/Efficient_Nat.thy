@@ -6,7 +6,7 @@
 header {* Implementation of natural numbers by target-language integers *}
 
 theory Efficient_Nat
-imports Main Code_Integer Code_Index
+imports Code_Integer Code_Index
 begin
 
 text {*
