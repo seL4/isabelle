@@ -32,7 +32,7 @@ sig
     (Context.generic * Args.T list -> (string * string) * (Context.generic * Args.T list)) -> unit
   val proj_value_antiq: string -> (Context.generic * Args.T list ->
       (string * string * string) * (Context.generic * Args.T list)) -> unit
-  val eval_antiquotes_fn: (string * Position.T -> string * string) ref  (* FIXME tmp *)
+  val eval_antiquotes_fn: (string -> string * Position.T -> string * string) ref  (* FIXME tmp *)
   val trace: bool ref
   val eval: bool -> Position.T -> string -> unit
   val eval_file: Path.T -> unit
@@ -150,16 +150,14 @@ val antiq =
 
 local
 
-val isabelle_struct = enclose "structure Isabelle =\nstruct\n" "end;";
-val isabelle_struct0 = isabelle_struct "";
-
-fun eval_antiquotes txt_pos =
+fun eval_antiquotes struct_name txt_pos =
   let
+    val lex = ! global_lexicon;
     val ants = Antiquote.scan_antiquotes txt_pos;
 
     fun expand (Antiquote.Text s) names = (("", Symbol.escape s), names)
       | expand (Antiquote.Antiq x) names =
-          (case command (Antiquote.scan_arguments (! global_lexicon) antiq x) of
+          (case command (Antiquote.scan_arguments lex antiq x) of
             Inline s => (("", s), names)
           | ProjValue (a, s, f) =>
               let
@@ -167,14 +165,14 @@ fun eval_antiquotes txt_pos =
                 val ([b], names') = Name.variants [a'] names;
                 val binding = "val " ^ b ^ " = " ^ s ^ ";\n";
                 val value =
-                  if f = "" then "Isabelle." ^ b
-                  else "(" ^ f ^ " Isabelle." ^ b ^ ")";
+                  if f = "" then struct_name ^ "." ^ b
+                  else "(" ^ f ^ " " ^ struct_name ^ "." ^ b ^ ")";
               in ((binding, value), names') end);
 
     val (decls, body) =
-      NAMED_CRITICAL "ML" (fn () => fold_map expand ants ML_Syntax.reserved)
+      fold_map expand ants ML_Syntax.reserved
       |> #1 |> split_list |> pairself implode;
-  in (isabelle_struct decls, body) end;
+  in ("structure " ^ struct_name ^ " =\nstruct\n" ^ decls ^ "end;", body) end;
 
 in
 
@@ -184,15 +182,17 @@ val trace = ref false;
 
 fun eval_wrapper pr verbose pos txt =
   let
-    val (txt1, txt2) = ! eval_antiquotes_fn (txt, pos);  (* FIXME tmp hook *)
+    val struct_name =
+      if Multithreading.available then "Isabelle" ^ serial_string ()
+      else "Isabelle";
+    val (txt1, txt2) = ! eval_antiquotes_fn struct_name (txt, pos);  (* FIXME tmp hook *)
     val _ = if ! trace then tracing (cat_lines [txt1, txt2]) else ();
     fun eval p =
       use_text (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p)) pr;
   in
-    NAMED_CRITICAL "ML" (fn () =>
-     (eval Position.none false txt1;
-      eval pos verbose txt2;
-      eval Position.none false isabelle_struct0))
+    eval Position.none false txt1;
+    eval pos verbose txt2;
+    forget_structure struct_name
   end;
 
 end;
@@ -266,8 +266,7 @@ val _ = inline_antiq "const"
   (context -- Scan.lift Args.name --
     Scan.optional (Scan.lift (Args.$$$ "(") |-- Args.enum1 "," Args.typ --| Scan.lift (Args.$$$ ")")) []
     >> (fn ((ctxt, c), Ts) =>
-      let
-        val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c);
+      let val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c)
       in ML_Syntax.atomic (ML_Syntax.print_term (ProofContext.mk_const ctxt (c, Ts))) end));
 
 in val _ = () end;
