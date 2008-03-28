@@ -1725,7 +1725,7 @@ lemma image_eq_fold: "finite A ==> f ` A = fold (op Un) (%x. {f x}) {} A"
 proof (induct rule: finite_induct)
   case empty then show ?case by simp
 next
-  invoke ab_semigroup_mult ["op Un"]
+  interpret ab_semigroup_mult ["op Un"]
     by unfold_locales auto
   case insert 
   then show ?case by simp
@@ -2134,7 +2134,7 @@ lemma below_fold1_iff:
   assumes "finite A" "A \<noteq> {}"
   shows "x \<le> fold1 inf A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
 proof -
-  invoke ab_semigroup_idem_mult [inf]
+  interpret ab_semigroup_idem_mult [inf]
     by (rule ab_semigroup_idem_mult_inf)
   show ?thesis using assms by (induct rule: finite_ne_induct) simp_all
 qed
@@ -2146,7 +2146,7 @@ lemma fold1_belowI:
 using assms proof (induct rule: finite_ne_induct)
   case singleton thus ?case by simp
 next
-  invoke ab_semigroup_idem_mult [inf]
+  interpret ab_semigroup_idem_mult [inf]
     by (rule ab_semigroup_idem_mult_inf)
   case (insert x F)
   from insert(5) have "a = x \<or> a \<in> F" by simp
@@ -2220,7 +2220,7 @@ lemma sup_Inf1_distrib:
     and "A \<noteq> {}"
   shows "sup x (\<Sqinter>\<^bsub>fin\<^esub>A) = \<Sqinter>\<^bsub>fin\<^esub>{sup x a|a. a \<in> A}"
 proof -
-  invoke ab_semigroup_idem_mult [inf]
+  interpret ab_semigroup_idem_mult [inf]
     by (rule ab_semigroup_idem_mult_inf)
   from assms show ?thesis
     by (simp add: Inf_fin_def image_def
@@ -2235,7 +2235,7 @@ using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
     by (simp add: sup_Inf1_distrib [OF B] fold1_singleton_def [OF Inf_fin_def])
 next
-  invoke ab_semigroup_idem_mult [inf]
+  interpret ab_semigroup_idem_mult [inf]
     by (rule ab_semigroup_idem_mult_inf)
   case (insert x A)
   have finB: "finite {sup x b |b. b \<in> B}"
@@ -2265,7 +2265,7 @@ lemma inf_Sup1_distrib:
   assumes "finite A" and "A \<noteq> {}"
   shows "inf x (\<Squnion>\<^bsub>fin\<^esub>A) = \<Squnion>\<^bsub>fin\<^esub>{inf x a|a. a \<in> A}"
 proof -
-  invoke ab_semigroup_idem_mult [sup]
+  interpret ab_semigroup_idem_mult [sup]
     by (rule ab_semigroup_idem_mult_sup)
   from assms show ?thesis
     by (simp add: Sup_fin_def image_def hom_fold1_commute [where h="inf x", OF inf_sup_distrib1])
@@ -2289,7 +2289,7 @@ next
     thus ?thesis by(simp add: insert(1) B(1))
   qed
   have ne: "{inf a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
-  invoke ab_semigroup_idem_mult [sup]
+  interpret ab_semigroup_idem_mult [sup]
     by (rule ab_semigroup_idem_mult_sup)
   have "inf (\<Squnion>\<^bsub>fin\<^esub>(insert x A)) (\<Squnion>\<^bsub>fin\<^esub>B) = inf (sup x (\<Squnion>\<^bsub>fin\<^esub>A)) (\<Squnion>\<^bsub>fin\<^esub>B)"
     using insert by (simp add: fold1_insert_idem_def [OF Sup_fin_def])
@@ -2318,7 +2318,7 @@ lemma Inf_fin_Inf:
   assumes "finite A" and "A \<noteq> {}"
   shows "\<Sqinter>\<^bsub>fin\<^esub>A = Inf A"
 proof -
-  invoke ab_semigroup_idem_mult [inf]
+  interpret ab_semigroup_idem_mult [inf]
     by (rule ab_semigroup_idem_mult_inf)
   from assms show ?thesis
   unfolding Inf_fin_def by (induct A set: finite)
@@ -2329,7 +2329,7 @@ lemma Sup_fin_Sup:
   assumes "finite A" and "A \<noteq> {}"
   shows "\<Squnion>\<^bsub>fin\<^esub>A = Sup A"
 proof -
-  invoke ab_semigroup_idem_mult [sup]
+  interpret ab_semigroup_idem_mult [sup]
     by (rule ab_semigroup_idem_mult_sup)
   from assms show ?thesis
   unfolding Sup_fin_def by (induct A set: finite)
@@ -2378,7 +2378,7 @@ lemma strict_below_fold1_iff:
   assumes "finite A" and "A \<noteq> {}"
   shows "x < fold1 min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
 proof -
-  invoke ab_semigroup_idem_mult [min]
+  interpret ab_semigroup_idem_mult [min]
     by (rule ab_semigroup_idem_mult_min)
   from assms show ?thesis
   by (induct rule: finite_ne_induct)
@@ -2389,7 +2389,7 @@ lemma fold1_below_iff:
   assumes "finite A" and "A \<noteq> {}"
   shows "fold1 min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
 proof -
-  invoke ab_semigroup_idem_mult [min]
+  interpret ab_semigroup_idem_mult [min]
     by (rule ab_semigroup_idem_mult_min)
   from assms show ?thesis
   by (induct rule: finite_ne_induct)
@@ -2400,7 +2400,7 @@ lemma fold1_strict_below_iff:
   assumes "finite A" and "A \<noteq> {}"
   shows "fold1 min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
 proof -
-  invoke ab_semigroup_idem_mult [min]
+  interpret ab_semigroup_idem_mult [min]
     by (rule ab_semigroup_idem_mult_min)
   from assms show ?thesis
   by (induct rule: finite_ne_induct)
@@ -2413,7 +2413,7 @@ lemma fold1_antimono:
 proof cases
   assume "A = B" thus ?thesis by simp
 next
-  invoke ab_semigroup_idem_mult [min]
+  interpret ab_semigroup_idem_mult [min]
     by (rule ab_semigroup_idem_mult_min)
   assume "A \<noteq> B"
   have B: "B = A \<union> (B-A)" using `A \<subseteq> B` by blast
@@ -2447,7 +2447,7 @@ lemma Min_insert [simp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min (insert x A) = min x (Min A)"
 proof -
-  invoke ab_semigroup_idem_mult [min]
+  interpret ab_semigroup_idem_mult [min]
     by (rule ab_semigroup_idem_mult_min)
   from assms show ?thesis by (rule fold1_insert_idem_def [OF Min_def])
 qed
@@ -2456,7 +2456,7 @@ lemma Max_insert [simp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max (insert x A) = max x (Max A)"
 proof -
-  invoke ab_semigroup_idem_mult [max]
+  interpret ab_semigroup_idem_mult [max]
     by (rule ab_semigroup_idem_mult_max)
   from assms show ?thesis by (rule fold1_insert_idem_def [OF Max_def])
 qed
@@ -2465,7 +2465,7 @@ lemma Min_in [simp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min A \<in> A"
 proof -
-  invoke ab_semigroup_idem_mult [min]
+  interpret ab_semigroup_idem_mult [min]
     by (rule ab_semigroup_idem_mult_min)
   from assms fold1_in show ?thesis by (fastsimp simp: Min_def min_def)
 qed
@@ -2474,7 +2474,7 @@ lemma Max_in [simp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A \<in> A"
 proof -
-  invoke ab_semigroup_idem_mult [max]
+  interpret ab_semigroup_idem_mult [max]
     by (rule ab_semigroup_idem_mult_max)
   from assms fold1_in [of A] show ?thesis by (fastsimp simp: Max_def max_def)
 qed
@@ -2483,7 +2483,7 @@ lemma Min_Un:
   assumes "finite A" and "A \<noteq> {}" and "finite B" and "B \<noteq> {}"
   shows "Min (A \<union> B) = min (Min A) (Min B)"
 proof -
-  invoke ab_semigroup_idem_mult [min]
+  interpret ab_semigroup_idem_mult [min]
     by (rule ab_semigroup_idem_mult_min)
   from assms show ?thesis
     by (simp add: Min_def fold1_Un2)
@@ -2493,7 +2493,7 @@ lemma Max_Un:
   assumes "finite A" and "A \<noteq> {}" and "finite B" and "B \<noteq> {}"
   shows "Max (A \<union> B) = max (Max A) (Max B)"
 proof -
-  invoke ab_semigroup_idem_mult [max]
+  interpret ab_semigroup_idem_mult [max]
     by (rule ab_semigroup_idem_mult_max)
   from assms show ?thesis
     by (simp add: Max_def fold1_Un2)
@@ -2504,7 +2504,7 @@ lemma hom_Min_commute:
     and "finite N" and "N \<noteq> {}"
   shows "h (Min N) = Min (h ` N)"
 proof -
-  invoke ab_semigroup_idem_mult [min]
+  interpret ab_semigroup_idem_mult [min]
     by (rule ab_semigroup_idem_mult_min)
   from assms show ?thesis
     by (simp add: Min_def hom_fold1_commute)
@@ -2515,7 +2515,7 @@ lemma hom_Max_commute:
     and "finite N" and "N \<noteq> {}"
   shows "h (Max N) = Max (h ` N)"
 proof -
-  invoke ab_semigroup_idem_mult [max]
+  interpret ab_semigroup_idem_mult [max]
     by (rule ab_semigroup_idem_mult_max)
   from assms show ?thesis
     by (simp add: Max_def hom_fold1_commute [of h])
@@ -2525,7 +2525,7 @@ lemma Min_le [simp]:
   assumes "finite A" and "A \<noteq> {}" and "x \<in> A"
   shows "Min A \<le> x"
 proof -
-  invoke lower_semilattice [_ _ min]
+  interpret lower_semilattice ["op \<le>" "op <" min]
     by (rule min_lattice)
   from assms show ?thesis by (simp add: Min_def fold1_belowI)
 qed
@@ -2534,7 +2534,7 @@ lemma Max_ge [simp]:
   assumes "finite A" and "A \<noteq> {}" and "x \<in> A"
   shows "x \<le> Max A"
 proof -
-  invoke lower_semilattice [_ _ max]
+  invoke lower_semilattice ["op \<ge>" "op >" max]
     by (rule max_lattice)
   from assms show ?thesis by (simp add: Max_def fold1_belowI)
 qed
@@ -2543,7 +2543,7 @@ lemma Min_ge_iff [simp, noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
 proof -
-  invoke lower_semilattice [_ _ min]
+  interpret lower_semilattice ["op \<le>" "op <" min]
     by (rule min_lattice)
   from assms show ?thesis by (simp add: Min_def below_fold1_iff)
 qed
@@ -2552,7 +2552,7 @@ lemma Max_le_iff [simp, noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
 proof -
-  invoke lower_semilattice [_ _ max]
+  invoke lower_semilattice ["op \<ge>" "op >" max]
     by (rule max_lattice)
   from assms show ?thesis by (simp add: Max_def below_fold1_iff)
 qed
@@ -2561,7 +2561,7 @@ lemma Min_gr_iff [simp, noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x < Min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
 proof -
-  invoke lower_semilattice [_ _ min]
+  interpret lower_semilattice ["op \<le>" "op <" min]
     by (rule min_lattice)
   from assms show ?thesis by (simp add: Min_def strict_below_fold1_iff)
 qed
@@ -2571,7 +2571,7 @@ lemma Max_less_iff [simp, noatp]:
   shows "Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
 proof -
   note Max = Max_def
-  invoke linorder ["op \<ge>" "op >"]
+  interpret linorder ["op \<ge>" "op >"]
     by (rule dual_linorder)
   from assms show ?thesis
     by (simp add: Max strict_below_fold1_iff [folded dual_max])
@@ -2581,7 +2581,7 @@ lemma Min_le_iff [noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
 proof -
-  invoke lower_semilattice [_ _ min]
+  interpret lower_semilattice ["op \<le>" "op <" min]
     by (rule min_lattice)
   from assms show ?thesis
     by (simp add: Min_def fold1_below_iff)
@@ -2592,7 +2592,7 @@ lemma Max_ge_iff [noatp]:
   shows "x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
 proof -
   note Max = Max_def
-  invoke linorder ["op \<ge>" "op >"]
+  interpret linorder ["op \<ge>" "op >"]
     by (rule dual_linorder)
   from assms show ?thesis
     by (simp add: Max fold1_below_iff [folded dual_max])
@@ -2602,7 +2602,7 @@ lemma Min_less_iff [noatp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
 proof -
-  invoke lower_semilattice [_ _ min]
+  interpret lower_semilattice ["op \<le>" "op <" min]
     by (rule min_lattice)
   from assms show ?thesis
     by (simp add: Min_def fold1_strict_below_iff)
@@ -2613,7 +2613,7 @@ lemma Max_gr_iff [noatp]:
   shows "x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
 proof -
   note Max = Max_def
-  invoke linorder ["op \<ge>" "op >"]
+  interpret linorder ["op \<ge>" "op >"]
     by (rule dual_linorder)
   from assms show ?thesis
     by (simp add: Max fold1_strict_below_iff [folded dual_max])
@@ -2623,7 +2623,7 @@ lemma Min_antimono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Min N \<le> Min M"
 proof -
-  invoke distrib_lattice ["op \<le>" "op <" min max]
+  interpret distrib_lattice ["op \<le>" "op <" min max]
     by (rule distrib_lattice_min_max)
   from assms show ?thesis by (simp add: Min_def fold1_antimono)
 qed
@@ -2633,7 +2633,7 @@ lemma Max_mono:
   shows "Max M \<le> Max N"
 proof -
   note Max = Max_def
-  invoke linorder ["op \<ge>" "op >"]
+  interpret linorder ["op \<ge>" "op >"]
     by (rule dual_linorder)
   from assms show ?thesis
     by (simp add: Max fold1_antimono [folded dual_max])
