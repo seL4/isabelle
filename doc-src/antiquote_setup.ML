@@ -46,6 +46,13 @@ fun index_ml kind ml src ctxt (txt1, txt2) =
     else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
   end;
 
+fun output_ml ctxt src =
+  if ! O.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
+    else
+    split_lines
+    #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
+    #> space_implode "\\isasep\\isanewline%\n";
+
 fun output_verbatim _ _ = split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n";
 
 fun arguments x = O.args (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) "")) x;
@@ -92,6 +99,7 @@ val _ = O.add_commands
   ("thy_file", O.args (Scan.lift Args.name) (O.output (K pretty_thy_file))),
   ("named_thms", O.args (Scan.repeat (Attrib.thm --
        Scan.lift (Args.$$$ "(" |-- Args.name --| Args.$$$ ")")))
-     (output_named_list pretty_thm))];
+     (output_named_list pretty_thm)),
+  ("ML_text", O.args (Scan.lift Args.name) output_ml)];
 
 end;
