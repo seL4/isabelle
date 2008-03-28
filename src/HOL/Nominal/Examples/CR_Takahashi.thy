@@ -45,23 +45,17 @@ lemma forget:
 by (nominal_induct t avoiding: x s rule: lam.induct)
    (auto simp add: abs_fresh fresh_atm)
 
-lemma fresh_fact1:
+lemma fresh_fact:
   fixes z::"name"
-  shows "z\<sharp>(t,s) \<Longrightarrow> z\<sharp>t[y::=s]"
+  shows "z\<sharp>s \<and> (z=y \<or> z\<sharp>t) \<Longrightarrow> z\<sharp>t[y::=s]"
 by (nominal_induct t avoiding: z y s rule: lam.induct)
    (auto simp add: abs_fresh fresh_prod fresh_atm)
-
-lemma fresh_fact2: 
-  fixes x::"name"
-  shows "x\<sharp>s \<Longrightarrow> x\<sharp>t[x::=s]"
-by (nominal_induct t avoiding: x s rule: lam.induct)
-   (auto simp add: abs_fresh fresh_atm)
 
 lemma substitution_lemma:  
   assumes a: "x\<noteq>y" "x\<sharp>u"
   shows "t[x::=s][y::=u] = t[y::=u][x::=s[y::=u]]"
 using a by (nominal_induct t avoiding: x y s u rule: lam.induct)
-           (auto simp add: fresh_fact1 forget)
+           (auto simp add: fresh_fact forget)
 
 lemma subst_rename: 
   assumes a: "y\<sharp>t"
@@ -100,7 +94,7 @@ where
 
 equivariance One
 nominal_inductive One 
-  by (simp_all add: abs_fresh fresh_fact2)
+  by (simp_all add: abs_fresh fresh_fact)
 
 lemma One_refl:
   shows "t \<longrightarrow>\<^isub>1 t"
@@ -110,7 +104,7 @@ lemma One_subst:
   assumes a: "t1 \<longrightarrow>\<^isub>1 t2" "s1 \<longrightarrow>\<^isub>1 s2"
   shows "t1[x::=s1] \<longrightarrow>\<^isub>1 t2[x::=s2]" 
 using a by (nominal_induct t1 t2 avoiding: s1 s2 x rule: One.strong_induct)
-           (auto simp add: substitution_lemma fresh_atm fresh_fact1)
+           (auto simp add: substitution_lemma fresh_atm fresh_fact)
 
 lemma better_o4_intro:
   assumes a: "t1 \<longrightarrow>\<^isub>1 t2" "s1 \<longrightarrow>\<^isub>1 s2"
@@ -142,6 +136,12 @@ lemma One_App:
          (\<exists>x p p' s'. r = p'[x::=s'] \<and> t = Lam [x].p \<and> p \<longrightarrow>\<^isub>1 p' \<and> s \<longrightarrow>\<^isub>1 s' \<and> x\<sharp>(s,s'))" 
 using a by (cases rule: One.cases) (auto simp add: lam.inject)
 
+lemma One_App_: 
+  assumes a: "App t s \<longrightarrow>\<^isub>1 r"
+  obtains t' s' where "r = App t' s'" "t \<longrightarrow>\<^isub>1 t'" "s \<longrightarrow>\<^isub>1 s'" 
+        | x p p' s' where "r = p'[x::=s']" "t = Lam [x].p" "p \<longrightarrow>\<^isub>1 p'" "s \<longrightarrow>\<^isub>1 s'" "x\<sharp>(s,s')"
+using a by (cases rule: One.cases) (auto simp add: lam.inject)
+
 lemma One_Redex: 
   assumes a: "App (Lam [x].t) s \<longrightarrow>\<^isub>1 r" "x\<sharp>(s,r)"
   shows "(\<exists>t' s'. r = App (Lam [x].t') s' \<and> t \<longrightarrow>\<^isub>1 t' \<and> s \<longrightarrow>\<^isub>1 s') \<or> 
@@ -171,7 +171,7 @@ where
 
 equivariance Dev
 nominal_inductive Dev 
-  by (simp_all add: abs_fresh fresh_fact2)
+  by (simp_all add: abs_fresh fresh_fact)
 
 lemma better_d4_intro:
   assumes a: "t1 \<longrightarrow>\<^isub>d t2" "s1 \<longrightarrow>\<^isub>d s2"
@@ -190,7 +190,7 @@ lemma Dev_preserves_fresh:
   assumes a: "M\<longrightarrow>\<^isub>d N"  
   shows "x\<sharp>M \<Longrightarrow> x\<sharp>N"
 using a
-by (induct) (auto simp add: abs_fresh fresh_fact1 fresh_fact2)
+by (induct) (auto simp add: abs_fresh fresh_fact)
 
 lemma Dev_Lam:
   assumes a: "Lam [x].M \<longrightarrow>\<^isub>d N" 
@@ -212,10 +212,31 @@ lemma Triangle:
   assumes a: "t \<longrightarrow>\<^isub>d t1" "t \<longrightarrow>\<^isub>1 t2"
   shows "t2 \<longrightarrow>\<^isub>1 t1"
 using a 
-apply(nominal_induct avoiding: t2 rule: Dev.strong_induct)
-apply(auto dest!: One_Var One_Lam One_App)[3]
-apply(auto dest!: One_Redex intro: One_subst)
-done
+proof(nominal_induct avoiding: t2 rule: Dev.strong_induct)
+  case (d4 x s1 s2 t1 t1' t2) 
+  have ih1: "\<And>t. t1 \<longrightarrow>\<^isub>1 t \<Longrightarrow>  t \<longrightarrow>\<^isub>1 t1'"
+  and  ih2: "\<And>s. s1 \<longrightarrow>\<^isub>1 s \<Longrightarrow>  s \<longrightarrow>\<^isub>1 s2"
+  and  fc: "x\<sharp>t2" "x\<sharp>s1" "x\<sharp>s2" by fact+ 
+  have "App (Lam [x].t1) s1 \<longrightarrow>\<^isub>1 t2" by fact
+  then obtain t' s' where "(t2 = App (Lam [x].t') s' \<and> t1 \<longrightarrow>\<^isub>1 t' \<and> s1 \<longrightarrow>\<^isub>1 s') \<or> 
+                           (t2 = t'[x::=s'] \<and> t1 \<longrightarrow>\<^isub>1 t' \<and> s1 \<longrightarrow>\<^isub>1 s')"
+    (* MARKUS: How does I do this better *) using fc by (auto dest!: One_Redex)
+  then show "t2 \<longrightarrow>\<^isub>1 t1'[x::=s2]"
+    apply -
+    apply(erule disjE)
+    apply(erule conjE)+
+    apply(simp)
+    apply(rule o4)
+    using fc apply(simp)
+    using ih1 apply(simp)
+    using ih2 apply(simp)
+    apply(erule conjE)+
+    apply(simp)
+    apply(rule One_subst)
+    using ih1 apply(simp)
+    using ih2 apply(simp)    
+    done
+qed (auto dest!: One_Lam One_Var One_App)
 
 lemma Diamond_for_One:
   assumes a: "t \<longrightarrow>\<^isub>1 t1" "t \<longrightarrow>\<^isub>1 t2"
