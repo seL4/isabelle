@@ -57,6 +57,8 @@ sig
   val the_proof: generic -> proof
   val map_theory: (theory -> theory) -> generic -> generic
   val map_proof: (proof -> proof) -> generic -> generic
+  val map_theory_result: (theory -> 'a * theory) -> generic -> 'a * generic
+  val map_proof_result: (proof -> 'a * proof) -> generic -> 'a * generic
   val theory_map: (generic -> generic) -> theory -> theory
   val proof_map: (generic -> generic) -> proof -> proof
   val theory_of: generic -> theory   (*total*)
@@ -495,6 +497,9 @@ val the_proof = cases (fn _ => error "Ill-typed context: proof expected") I;
 
 fun map_theory f = Theory o f o the_theory;
 fun map_proof f = Proof o f o the_proof;
+
+fun map_theory_result f = apsnd Theory o f o the_theory;
+fun map_proof_result f = apsnd Proof o f o the_proof;
 
 fun theory_map f = the_theory o f o Theory;
 fun proof_map f = the_proof o f o Proof;
