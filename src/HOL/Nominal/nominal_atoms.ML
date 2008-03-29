@@ -56,7 +56,6 @@ fun mk_Cons x xs =
   let val T = fastype_of x
   in Const ("List.list.Cons", T --> HOLogic.listT T --> HOLogic.listT T) $ x $ xs end;
 
-
 (* this function sets up all matters related to atom-  *)
 (* kinds; the user specifies a list of atom-kind names *)
 (* atom_decl <ak1> ... <akn>                           *)
@@ -118,7 +117,7 @@ fun create_nom_typedecls ak_names thy =
                                           simp_tac (HOL_basic_ss addsimps simp3) 1]  
            
               val (inf_thm,thy4) =  
-                    PureThy.add_thms [((ak^"_infinite",Goal.prove_global thy1 [] [] stmnt3 proof3), [])] thy3
+                    PureThy.add_thms [((ak^"_infinite",Goal.prove_global thy3 [] [] stmnt3 proof3), [])] thy3
           in 
             ((inj_thm,inject_thm,inf_thm),thy4)
           end) ak_names thy
@@ -469,7 +468,7 @@ fun create_nom_typedecls ak_names thy =
            thy'
            |> AxClass.prove_arity (qu_name,[],[cls_name])
               (if ak_name = ak_name' then proof1 else proof2)
-         end) ak_names thy) ak_names thy12c;
+         end) ak_names thy) ak_names thy12d;
 
      (* show that                       *)
      (*      fun(pt_<ak>,pt_<ak>)       *)
