@@ -306,7 +306,7 @@ ML {*
   end;
 *}
 
-ML_setup {* Addsimprocs [ring_simproc] *}
+ML {* Addsimprocs [ring_simproc] *}
 
 lemma natsum_ldistr:
   "!!a::'a::ring. setsum f {..n::nat} * a = setsum (%i. f i * a) {..n}"

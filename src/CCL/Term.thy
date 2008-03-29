@@ -220,7 +220,7 @@ fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 end
 *}
 
-ML_setup {*
+ML {*
 bind_thm ("ifBtrue", mk_beta_rl "if true then t else u = t");
 bind_thm ("ifBfalse", mk_beta_rl "if false then t else u = u");
 bind_thm ("ifBbot", mk_beta_rl "if bot then t else u = bot");
@@ -272,7 +272,7 @@ bind_thms ("termBs", [thm "letB", thm "applyB", thm "applyBbot", splitB,splitBbo
 
 subsection {* Constructors are injective *}
 
-ML_setup {*
+ML {*
 
 bind_thms ("term_injs", map (mk_inj_rl (the_context ())
   [thm "applyB", thm "splitB", thm "whenBinl", thm "whenBinr", thm "ncaseBsucc", thm "lcaseBcons"])
@@ -285,7 +285,7 @@ bind_thms ("term_injs", map (mk_inj_rl (the_context ())
 
 subsection {* Constructors are distinct *}
 
-ML_setup {*
+ML {*
 bind_thms ("term_dstncts",
   mkall_dstnct_thms (the_context ()) (thms "data_defs") (thms "ccl_injs" @ thms "term_injs")
     [["bot","inl","inr"], ["bot","zero","succ"], ["bot","nil","cons"]]);
@@ -294,7 +294,7 @@ bind_thms ("term_dstncts",
 
 subsection {* Rules for pre-order @{text "[="} *}
 
-ML_setup {*
+ML {*
 
 local
   fun mk_thm s = prove_goalw (the_context ()) (thms "data_defs") s (fn _ =>
@@ -311,7 +311,7 @@ bind_thms ("term_porews", term_porews);
 
 subsection {* Rewriting and Proving *}
 
-ML_setup {*
+ML {*
   bind_thms ("term_injDs", XH_to_Ds @{thms term_injs});
 *}
 

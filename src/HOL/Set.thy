@@ -473,7 +473,7 @@ lemma ball_one_point1 [simp]: "(ALL x:A. x = a --> P x) = (a:A --> P a)"
 lemma ball_one_point2 [simp]: "(ALL x:A. a = x --> P x) = (a:A --> P a)"
   by blast
 
-ML_setup {*
+ML {*
   local
     val unfold_bex_tac = unfold_tac @{thms "Bex_def"};
     fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;

@@ -266,7 +266,7 @@ constdefs
   is_stmt :: "term \<Rightarrow> bool"
  "is_stmt t \<equiv> \<exists>c. t=In1r c"
 
-ML_setup {* bind_thms ("is_stmt_rews", sum3_instantiate @{thm is_stmt_def}) *}
+ML {* bind_thms ("is_stmt_rews", sum3_instantiate @{thm is_stmt_def}) *}
 
 declare is_stmt_rews [simp]
 

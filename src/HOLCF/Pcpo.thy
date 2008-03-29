@@ -197,7 +197,7 @@ by (rule UU_least [THEN spec])
 lemma UU_reorient: "(\<bottom> = x) = (x = \<bottom>)"
 by auto
 
-ML_setup {*
+ML {*
 local
   val meta_UU_reorient = thm "UU_reorient" RS eq_reflection;
   fun reorient_proc sg _ (_ $ t $ u) =

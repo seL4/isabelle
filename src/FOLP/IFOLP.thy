@@ -502,7 +502,7 @@ lemma pred3_cong: "[| p:a=a';  q:b=b';  r:c=c' |] ==> ?p:P(a,b,c) <-> P(a',b',c'
 
 (*special cases for free variables P, Q, R, S -- up to 3 arguments*)
 
-ML_setup {*
+ML {*
   bind_thms ("pred_congs",
     flat (map (fn c =>
                map (fn th => read_instantiate [("P",c)] th)

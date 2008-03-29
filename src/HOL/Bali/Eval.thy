@@ -749,7 +749,7 @@ where
  29(AVar),24(Call)]
 *)
 
-ML_setup {*
+ML {*
 bind_thm ("eval_induct_", rearrange_prems 
 [0,1,2,8,4,30,31,27,15,16,
  17,18,19,20,21,3,5,25,26,23,6,
@@ -890,7 +890,7 @@ simproc_setup eval_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (
       (_ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
     | _ => SOME (mk_meta_eq @{thm eval_stmt_eq})) *}
 
-ML_setup {*
+ML {*
 bind_thms ("AbruptIs", sum3_instantiate @{thm eval.Abrupt})
 *}
 

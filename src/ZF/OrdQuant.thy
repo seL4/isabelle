@@ -369,7 +369,7 @@ declaration {* fn _ =>
 
 text {* Setting up the one-point-rule simproc *}
 
-ML_setup {*
+ML {*
 local
 
 val unfold_rex_tac = unfold_tac [@{thm rex_def}];

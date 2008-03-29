@@ -282,7 +282,7 @@ proof -
   finally show ?thesis .
 qed
 
-(* ML_setup {* Addsimprocs [ring_simproc] *} *)
+(* ML {* Addsimprocs [ring_simproc] *} *)
 
 instance up :: (ring) ring
 proof
@@ -378,7 +378,7 @@ proof (rule up_eqI)
   qed
 qed
 *)
-ML_setup {* Delsimprocs [ring_simproc] *}
+ML {* Delsimprocs [ring_simproc] *}
 
 lemma monom_mult_is_smult:
   "monom (a::'a::ring) 0 * p = a *s p"
@@ -393,7 +393,7 @@ proof (rule up_eqI)
   then show "coeff (monom a 0 * p) k = coeff (a *s p) k" by ring
 qed
 
-ML_setup {* Addsimprocs [ring_simproc] *}
+ML {* Addsimprocs [ring_simproc] *}
 
 lemma monom_add [simp]:
   "monom (a + b) n = monom (a::'a::ring) n + monom b n"
@@ -442,14 +442,14 @@ by (rule up_eqI) simp
 
 (* Polynomials form an algebra *)
 
-ML_setup {* Delsimprocs [ring_simproc] *}
+ML {* Delsimprocs [ring_simproc] *}
 
 lemma smult_assoc2:
   "(a *s p) * q = (a::'a::ring) *s (p * q)"
 by (rule up_eqI) (simp add: natsum_rdistr m_assoc)
 (* Simproc fails. *)
 
-ML_setup {* Addsimprocs [ring_simproc] *}
+ML {* Addsimprocs [ring_simproc] *}
 
 (* the following can be derived from the above ones,
    for generality reasons, it is therefore done *)

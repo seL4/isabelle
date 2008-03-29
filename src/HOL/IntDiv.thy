@@ -257,7 +257,7 @@ by(simp add: mult_commute zmod_zdiv_equality[symmetric])
 
 text {* Tool setup *}
 
-ML_setup {*
+ML {*
 local 
 
 structure CancelDivMod = CancelDivModFun(

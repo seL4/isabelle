@@ -1421,7 +1421,7 @@ val dest_eqI =
 end);
 *}
 
-ML_setup {*
+ML {*
   Addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv];
 *}
 

@@ -398,7 +398,7 @@ text {*
   predicate is defined.
 *}
 (*<*)
-ML_setup {*
+ML {*
   val [comm_semi_ax1, comm_semi_ax2] = thms "comm_semi.axioms";
   bind_thm ("comm_semi_ax1", comm_semi_ax1);
   bind_thm ("comm_semi_ax2", comm_semi_ax2);

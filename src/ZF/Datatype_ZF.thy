@@ -12,7 +12,7 @@ imports Inductive_ZF Univ QUniv
 uses "Tools/datatype_package.ML"
 begin
 
-ML_setup {*
+ML {*
 (*Typechecking rules for most datatypes involving univ*)
 structure Data_Arg =
   struct

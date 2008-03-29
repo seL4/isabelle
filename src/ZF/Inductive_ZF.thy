@@ -41,7 +41,7 @@ use "Tools/primrec_package.ML"
 setup IndCases.setup
 setup DatatypeTactics.setup
 
-ML_setup {*
+ML {*
 structure Lfp =
   struct
   val oper      = @{const lfp}

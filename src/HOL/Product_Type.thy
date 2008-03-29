@@ -57,7 +57,7 @@ text {*
   this rule directly --- it loops!
 *}
 
-ML_setup {*
+ML {*
   val unit_eq_proc =
     let val unit_meta_eq = mk_meta_eq @{thm unit_eq} in
       Simplifier.simproc @{theory} "unit_eq" ["x::unit"]
@@ -323,7 +323,7 @@ text {*
 
 lemmas split_tupled_all = split_paired_all unit_all_eq2
 
-ML_setup {*
+ML {*
   (* replace parameters of product type by individual component parameters *)
   val safe_full_simp_tac = generic_simp_tac true (true, false, false);
   local (* filtering with exists_paired_all is an essential optimization *)
@@ -429,7 +429,7 @@ text {*
   split_beta}.
 *}
 
-ML_setup {*
+ML {*
 
 local
   val cond_split_eta_ss = HOL_basic_ss addsimps [thm "cond_split_eta"]

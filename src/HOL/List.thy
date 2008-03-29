@@ -591,7 +591,7 @@ Currently only tries to rearrange @{text "@"} to see if
 - or both lists end in the same list.
 *}
 
-ML_setup {*
+ML {*
 local
 
 fun last (cons as Const("List.list.Cons",_) $ _ $ xs) =

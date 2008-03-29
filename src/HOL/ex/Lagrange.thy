@@ -25,7 +25,7 @@ a priori, nothing to do with nat. *}
 
 (* These two simprocs are even less efficient than ordered rewriting
    and kill the second example: *)
-ML_setup {*
+ML {*
   Delsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]
 *}
 
