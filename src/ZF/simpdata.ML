@@ -61,10 +61,10 @@ val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
 
 in
 
-val defBEX_regroup = Simplifier.simproc @{theory}
+val defBEX_regroup = Simplifier.simproc (Theory.deref @{theory_ref})
   "defined BEX" ["EX x:A. P(x) & Q(x)"] rearrange_bex;
 
-val defBALL_regroup = Simplifier.simproc @{theory}
+val defBALL_regroup = Simplifier.simproc (Theory.deref @{theory_ref})
   "defined BALL" ["ALL x:A. P(x) --> Q(x)"] rearrange_ball;
 
 end;
