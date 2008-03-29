@@ -62,10 +62,7 @@ sig
   val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
   val kill: Toplevel.transition -> Toplevel.transition
   val back: Toplevel.transition -> Toplevel.transition
-  val use: Path.T -> Toplevel.transition -> Toplevel.transition
-  val use_mltext_theory: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val use_mltext: bool -> string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val use_commit: Toplevel.transition -> Toplevel.transition
+  val ml_diag: bool -> string * Position.T -> Toplevel.transition -> Toplevel.transition
   val nested_command: Markup.property list -> string * Position.T -> Toplevel.transition
   val cd: Path.T -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
@@ -382,20 +379,10 @@ val back =
   Toplevel.skip_proof (History.apply I);
 
 
-(* use ML text *)
+(* diagnostic ML evaluation *)
 
-fun use path = Toplevel.keep (fn state =>
-  Context.setmp_thread_data (try Toplevel.generic_theory_of state) (ThyInfo.load_file false) path);
-
-(*passes changes of theory context*)
-fun use_mltext_theory (txt, pos) = Toplevel.theory' (fn int =>
-  Context.theory_map (ML_Context.exec (fn () => ML_Context.eval int pos txt)));
-
-(*ignore result theory context*)
-fun use_mltext verbose (txt, pos) = Toplevel.keep' (fn int => fn state =>
-  (ML_Context.eval_in (try Toplevel.generic_theory_of state) (verbose andalso int) pos txt));
-
-val use_commit = Toplevel.imperative Secure.commit;
+fun ml_diag verbose (txt, pos) = Toplevel.keep (fn state =>
+  (ML_Context.eval_in (try Toplevel.generic_theory_of state) verbose pos txt));
 
 
 (* nested commands *)
