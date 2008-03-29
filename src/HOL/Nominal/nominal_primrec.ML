@@ -8,7 +8,6 @@ Taken from HOL/Tools/primrec_package.ML
 
 signature NOMINAL_PRIMREC =
 sig
-  val quiet_mode: bool ref
   val add_primrec: string -> string list option -> string option ->
     ((bstring * string) * Attrib.src list) list -> theory -> Proof.state
   val add_primrec_unchecked: string -> string list option -> string option ->
@@ -29,12 +28,6 @@ exception RecError of string;
 fun primrec_err s = error ("Nominal primrec definition error:\n" ^ s);
 fun primrec_eq_err thy s eq =
   primrec_err (s ^ "\nin\n" ^ quote (Sign.string_of_term thy eq));
-
-
-(* messages *)
-
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
 
 
 (* preprocessing of equations *)
