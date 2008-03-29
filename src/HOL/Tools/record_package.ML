@@ -24,7 +24,6 @@ end;
 signature RECORD_PACKAGE =
 sig
   include BASIC_RECORD_PACKAGE
-  val quiet_mode: bool ref
   val timing: bool ref
   val record_quick_and_dirty_sensitive: bool ref
   val updateN: string
@@ -44,9 +43,9 @@ sig
   val get_extinjects: theory -> thm list
   val get_simpset: theory -> simpset
   val print_records: theory -> unit
-  val add_record: string list * string -> string option -> (string * string * mixfix) list
+  val add_record: bool -> string list * string -> string option -> (string * string * mixfix) list
     -> theory -> theory
-  val add_record_i: string list * string -> (typ list * string) option
+  val add_record_i: bool -> string list * string -> (typ list * string) option
     -> (string * typ * mixfix) list -> theory -> theory
   val setup: theory -> theory
 end;
@@ -106,9 +105,6 @@ fun range_type' T =
     range_type T handle Match => T;
 
 (* messages *)
-
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
 
 fun trace_thm str thm =
     tracing (str ^ (Pretty.string_of (Display.pretty_thm thm)));
@@ -2212,10 +2208,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
 (*we do all preparations and error checks here, deferring the real
   work to record_definition*)
-fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_fields thy =
+fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_parent raw_fields thy =
   let
     val _ = Theory.requires thy "Record" "record definitions";
-    val _ = message ("Defining record " ^ quote bname ^ " ...");
+    val _ = if quiet_mode then () else writeln ("Defining record " ^ quote bname ^ " ...");
 
 
     (* parents *)
@@ -2312,7 +2308,7 @@ val record_decl =
 
 val _ =
   OuterSyntax.command "record" "define extensible record" K.thy_decl
-    (record_decl >> (fn (x, (y, z)) => Toplevel.theory (add_record x y z)));
+    (record_decl >> (fn (x, (y, z)) => Toplevel.theory (add_record false x y z)));
 
 end;
 

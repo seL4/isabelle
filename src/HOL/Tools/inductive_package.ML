@@ -21,7 +21,6 @@ Features:
 
 signature BASIC_INDUCTIVE_PACKAGE =
 sig
-  val quiet_mode: bool ref
   type inductive_result
   val morph_result: morphism -> inductive_result -> inductive_result
   type inductive_info
@@ -39,7 +38,8 @@ sig
   val inductive_cases_i: ((bstring * Attrib.src list) * term list) list ->
     Proof.context -> thm list list * local_theory
   val add_inductive_i:
-    {verbose: bool, kind: string, alt_name: bstring, coind: bool, no_elim: bool, no_ind: bool} ->
+    {quiet_mode: bool, verbose: bool, kind: string, alt_name: bstring,
+      coind: bool, no_elim: bool, no_ind: bool} ->
     ((string * typ) * mixfix) list ->
     (string * typ) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
       local_theory -> inductive_result * local_theory
@@ -48,7 +48,8 @@ sig
     ((bstring * Attrib.src list) * string) list -> (Facts.ref * Attrib.src list) list ->
     local_theory -> inductive_result * local_theory
   val add_inductive_global: string ->
-    {verbose: bool, kind: string, alt_name: bstring, coind: bool, no_elim: bool, no_ind: bool} ->
+    {quiet_mode: bool, verbose: bool, kind: string, alt_name: bstring,
+      coind: bool, no_elim: bool, no_ind: bool} ->
     ((string * typ) * mixfix) list -> (string * typ) list ->
     ((bstring * Attrib.src list) * term) list -> thm list -> theory -> inductive_result * theory
   val arities_of: thm -> (string * int) list
@@ -69,7 +70,8 @@ sig
     thm -> local_theory -> thm list * thm list * thm * local_theory
   val add_ind_def: add_ind_def
   val gen_add_inductive_i: add_ind_def ->
-    {verbose: bool, kind: string, alt_name: bstring, coind: bool, no_elim: bool, no_ind: bool} ->
+    {quiet_mode: bool, verbose: bool, kind: string, alt_name: bstring,
+      coind: bool, no_elim: bool, no_ind: bool} ->
     ((string * typ) * mixfix) list ->
     (string * typ) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
       local_theory -> inductive_result * local_theory
@@ -192,9 +194,8 @@ val mono_del = Thm.declaration_attribute (map_monos o fold Thm.del_thm o mk_mono
 
 (** misc utilities **)
 
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
-fun clean_message s = if ! quick_and_dirty then () else message s;
+fun message quiet_mode s = if quiet_mode then () else writeln s;
+fun clean_message quiet_mode s = if ! quick_and_dirty then () else message quiet_mode s;
 
 fun coind_prefix true = "co"
   | coind_prefix false = "";
@@ -316,8 +317,8 @@ end;
 
 (* prove monotonicity -- NOT subject to quick_and_dirty! *)
 
-fun prove_mono predT fp_fun monos ctxt =
- (message "  Proving monotonicity ...";
+fun prove_mono quiet_mode predT fp_fun monos ctxt =
+ (message quiet_mode "  Proving monotonicity ...";
   Goal.prove ctxt [] []   (*NO quick_and_dirty here!*)
     (HOLogic.mk_Trueprop
       (Const (@{const_name Orderings.mono}, (predT --> predT) --> HOLogic.boolT) $ fp_fun))
@@ -331,9 +332,9 @@ fun prove_mono predT fp_fun monos ctxt =
 
 (* prove introduction rules *)
 
-fun prove_intrs coind mono fp_def k params intr_ts rec_preds_defs ctxt =
+fun prove_intrs quiet_mode coind mono fp_def k params intr_ts rec_preds_defs ctxt =
   let
-    val _ = clean_message "  Proving the introduction rules ...";
+    val _ = clean_message quiet_mode "  Proving the introduction rules ...";
 
     val unfold = funpow k (fn th => th RS fun_cong)
       (mono RS (fp_def RS
@@ -359,9 +360,9 @@ fun prove_intrs coind mono fp_def k params intr_ts rec_preds_defs ctxt =
 
 (* prove elimination rules *)
 
-fun prove_elims cs params intr_ts intr_names unfold rec_preds_defs ctxt =
+fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ctxt =
   let
-    val _ = clean_message "  Proving the elimination rules ...";
+    val _ = clean_message quiet_mode "  Proving the elimination rules ...";
 
     val ([pname], ctxt') = ctxt |>
       Variable.add_fixes (map (fst o dest_Free) params) |> snd |>
@@ -476,10 +477,10 @@ fun ind_cases src = Method.syntax (Scan.lift (Scan.repeat1 Args.name --
 
 (* prove induction rule *)
 
-fun prove_indrule cs argTs bs xs rec_const params intr_ts mono
+fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
     fp_def rec_preds_defs ctxt =
   let
-    val _ = clean_message "  Proving the induction rule ...";
+    val _ = clean_message quiet_mode "  Proving the induction rule ...";
     val thy = ProofContext.theory_of ctxt;
 
     (* predicates for induction rule *)
@@ -585,7 +586,7 @@ fun prove_indrule cs argTs bs xs rec_const params intr_ts mono
 
 (** specification of (co)inductive predicates **)
 
-fun mk_ind_def alt_name coind cs intr_ts monos params cnames_syn ctxt =
+fun mk_ind_def quiet_mode alt_name coind cs intr_ts monos params cnames_syn ctxt =
   let
     val fp_name = if coind then @{const_name Inductive.gfp} else @{const_name Inductive.lfp};
 
@@ -663,7 +664,7 @@ fun mk_ind_def alt_name coind cs intr_ts monos params cnames_syn ctxt =
     val (consts_defs, ctxt'') = fold_map (LocalTheory.define Thm.internalK) specs ctxt';
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
-    val mono = prove_mono predT fp_fun monos ctxt''
+    val mono = prove_mono quiet_mode predT fp_fun monos ctxt''
 
   in (ctxt'', rec_name, mono, fp_def', map (#2 o #2) consts_defs,
     list_comb (rec_const, params), preds, argTs, bs, xs)
@@ -715,30 +716,31 @@ fun declare_rules kind rec_name coind no_ind cnames intrs intr_names intr_atts
   in (intrs', elims', induct', ctxt3) end;
 
 type add_ind_def =
-  {verbose: bool, kind: string, alt_name: bstring, coind: bool, no_elim: bool, no_ind: bool} ->
+  {quiet_mode: bool, verbose: bool, kind: string, alt_name: bstring,
+    coind: bool, no_elim: bool, no_ind: bool} ->
   term list -> ((string * Attrib.src list) * term) list -> thm list ->
   term list -> (string * mixfix) list ->
   local_theory -> inductive_result * local_theory
 
-fun add_ind_def {verbose, kind, alt_name, coind, no_elim, no_ind}
+fun add_ind_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind}
     cs intros monos params cnames_syn ctxt =
   let
     val _ = null cnames_syn andalso error "No inductive predicates given";
-    val _ =
-      if verbose then message ("Proofs for " ^ coind_prefix coind ^ "inductive predicate(s) " ^
-        commas_quote (map fst cnames_syn)) else ();
+    val _ = message (quiet_mode andalso not verbose)
+      ("Proofs for " ^ coind_prefix coind ^ "inductive predicate(s) " ^
+        commas_quote (map fst cnames_syn));
 
     val cnames = map (Sign.full_name (ProofContext.theory_of ctxt) o #1) cnames_syn;  (* FIXME *)
     val ((intr_names, intr_atts), intr_ts) =
       apfst split_list (split_list (map (check_rule ctxt cs params) intros));
 
     val (ctxt1, rec_name, mono, fp_def, rec_preds_defs, rec_const, preds,
-      argTs, bs, xs) = mk_ind_def alt_name coind cs intr_ts monos params cnames_syn ctxt;
+      argTs, bs, xs) = mk_ind_def quiet_mode alt_name coind cs intr_ts monos params cnames_syn ctxt;
 
-    val (intrs, unfold) = prove_intrs coind mono fp_def (length bs + length xs)
+    val (intrs, unfold) = prove_intrs quiet_mode coind mono fp_def (length bs + length xs)
       params intr_ts rec_preds_defs ctxt1;
     val elims = if no_elim then [] else
-      prove_elims cs params intr_ts intr_names unfold rec_preds_defs ctxt1;
+      prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ctxt1;
     val raw_induct = zero_var_indexes
       (if no_ind then Drule.asm_rl else
        if coind then
@@ -748,7 +750,7 @@ fun add_ind_def {verbose, kind, alt_name, coind, no_elim, no_ind}
              (rewrite_tac [le_fun_def, le_bool_def, sup_fun_eq, sup_bool_eq] THEN
                fold_tac rec_preds_defs) (mono RS (fp_def RS def_coinduct)))))
        else
-         prove_indrule cs argTs bs xs rec_const params intr_ts mono fp_def
+         prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono fp_def
            rec_preds_defs ctxt1);
 
     val (intrs', elims', induct, ctxt2) = declare_rules kind rec_name coind no_ind
@@ -771,7 +773,8 @@ fun add_ind_def {verbose, kind, alt_name, coind, no_elim, no_ind}
 
 (* external interfaces *)
 
-fun gen_add_inductive_i mk_def (flags as {verbose, kind, alt_name, coind, no_elim, no_ind})
+fun gen_add_inductive_i mk_def
+    (flags as {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind})
     cnames_syn pnames spec monos lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -835,7 +838,7 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
     val (cs, ps) = chop (length cnames_syn) vars;
     val intrs = map (apsnd the_single) specs;
     val monos = Attrib.eval_thms lthy raw_monos;
-    val flags = {verbose = verbose, kind = Thm.theoremK, alt_name = "",
+    val flags = {quiet_mode = false, verbose = verbose, kind = Thm.theoremK, alt_name = "",
       coind = coind, no_elim = false, no_ind = false};
   in
     lthy
