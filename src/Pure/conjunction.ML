@@ -29,11 +29,11 @@ struct
 
 (** abstract syntax **)
 
-val cert = Thm.cterm_of (Context.the_theory (Context.the_thread_data ()));
-val read_prop = cert o SimpleSyntax.read_prop;
+fun certify t = Thm.cterm_of (Context.the_theory (Context.the_thread_data ())) t;
+val read_prop = certify o SimpleSyntax.read_prop;
 
-val true_prop = cert Logic.true_prop;
-val conjunction = cert Logic.conjunction;
+val true_prop = certify Logic.true_prop;
+val conjunction = certify Logic.conjunction;
 
 fun mk_conjunction (A, B) = Thm.capply (Thm.capply conjunction A) B;
 
