@@ -218,7 +218,11 @@ fun NAMED_CRITICAL name e =
               val _ = tracing 4 (fn () => "CRITICAL" ^ show name ^ show' name' ^ ": waiting");
               val _ = Mutex.lock critical_lock;
               val time = Timer.checkRealTimer timer;
-              val _ = tracing (if Time.> (time, Time.fromMilliseconds 10) then 3 else 4) (fn () =>
+              val trace_time =
+                if Time.>= (time, Time.fromMilliseconds 1000) then 1
+                else if Time.>= (time, Time.fromMilliseconds 100) then 2
+                else if Time.>= (time, Time.fromMilliseconds 10) then 3 else 4;
+              val _ = tracing trace_time (fn () =>
                 "CRITICAL" ^ show name ^ show' name' ^ ": passed after " ^ Time.toString time);
             in () end;
         val _ = critical_thread := SOME (Thread.self ());
