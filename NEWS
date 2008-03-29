@@ -32,7 +32,7 @@ file are no longer supported.  INCOMPATIBILITY, regular 'uses' and
 * Eliminated destructive theorem database.  Potential INCOMPATIBILITY,
 really need to observe linear functional update of theories.
 
-* Commands 'use' and 'ML' are now purely functional, opearing on
+* Commands 'use' and 'ML' are now purely functional, operating on
 theory/local_theory.  Removed former 'ML_setup' (on theory), use 'ML'
 instead.  Added 'ML_val' as mere diagnostic replacement for 'ML'.
 INCOMPATIBILITY.
