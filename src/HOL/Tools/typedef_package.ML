@@ -8,7 +8,6 @@ represented by a non-empty subset.
 
 signature TYPEDEF_PACKAGE =
 sig
-  val quiet_mode: bool ref
   type info =
    {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
     type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
@@ -47,12 +46,6 @@ val Abs_induct = thm "type_definition.Abs_induct";
 
 
 (** type definitions **)
-
-(* messages *)
-
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
-
 
 (* theory data *)
 
@@ -227,17 +220,12 @@ local
 
 fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
   let
-    val string_of_term = Sign.string_of_term thy;
     val name = the_default (#1 typ) opt_name;
     val (set, goal, _, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
-    val _ = message ("Proving non-emptiness of set " ^ quote (string_of_term set) ^ " ...");
     val non_empty = Goal.prove_global thy [] [] goal (K tac) handle ERROR msg =>
-      cat_error msg ("Failed to prove non-emptiness of " ^ quote (string_of_term set));
-  in
-    thy
-    |> typedef_result non_empty
-  end;
+      cat_error msg ("Failed to prove non-emptiness of " ^ quote (Sign.string_of_term thy set));
+  in typedef_result non_empty thy end;
 
 in
 

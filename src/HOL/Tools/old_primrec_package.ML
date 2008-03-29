@@ -7,7 +7,6 @@ Package for defining functions on datatypes by primitive recursion.
 
 signature OLD_PRIMREC_PACKAGE =
 sig
-  val quiet_mode: bool ref
   val unify_consts: theory -> term list -> term list -> term list * term list
   val add_primrec: string -> ((bstring * string) * Attrib.src list) list
     -> theory -> thm list * theory
@@ -29,12 +28,6 @@ exception RecError of string;
 fun primrec_err s = error ("Primrec definition error:\n" ^ s);
 fun primrec_eq_err thy s eq =
   primrec_err (s ^ "\nin\n" ^ quote (Sign.string_of_term thy eq));
-
-
-(* messages *)
-
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
 
 
 (*the following code ensures that each recursive set always has the
@@ -283,8 +276,6 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
       |> Sign.add_path primrec_name
       |> fold_map def (map (fn (name, t) => ((name, []), t)) defs');
     val rewrites = (map mk_meta_eq rec_rewrites) @ map snd defs_thms';
-    val _ = message ("Proving equations for primrec function(s) " ^
-      commas_quote (map fst nameTs1) ^ " ...");
     val simps = map (fn (_, t) => Goal.prove_global thy' [] [] t
         (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])) eqns;
     val (simps', thy'') =

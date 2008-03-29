@@ -8,7 +8,6 @@ typedef.
 
 signature PCPODEF_PACKAGE =
 sig
-  val quiet_mode: bool ref
   val pcpodef_proof: (bool * string) * (bstring * string list * mixfix) * string
     * (string * string) option -> theory -> Proof.state
   val pcpodef_proof_i: (bool * string) * (bstring * string list * mixfix) * term
@@ -41,12 +40,6 @@ val Abs_defined = thm "typedef_Abs_defined";
 
 
 (** type definitions **)
-
-(* messages *)
-
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
-
 
 (* prepare_cpodef *)
 

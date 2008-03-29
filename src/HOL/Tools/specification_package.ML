@@ -7,7 +7,6 @@ Package for defining constants by specification.
 
 signature SPECIFICATION_PACKAGE =
 sig
-  val quiet_mode: bool ref
   val add_specification: string option -> (bstring * xstring * bool) list ->
     theory * thm -> theory * thm
 end
@@ -15,17 +14,9 @@ end
 structure SpecificationPackage: SPECIFICATION_PACKAGE =
 struct
 
-(* messages *)
-
-val quiet_mode = ref false
-fun message s = if ! quiet_mode then () else writeln s
-
-
-(* Actual code *)
+(* actual code *)
 
 local
-    val exE_some = thm "exE_some";
-
     fun mk_definitional [] arg = arg
       | mk_definitional ((thname,cname,covld)::cos) (thy,thm) =
         case HOLogic.dest_Trueprop (concl_of thm) of
@@ -39,7 +30,7 @@ local
                 val def_eq = Logic.mk_equals (Const(cname_full,ctype),
                                               HOLogic.choice_const ctype $  P)
                 val (thms, thy') = PureThy.add_defs_i covld [((cdefname,def_eq),[])] thy
-                val thm' = [thm,hd thms] MRS exE_some
+                val thm' = [thm,hd thms] MRS @{thm exE_some}
             in
                 mk_definitional cos (thy',thm')
             end

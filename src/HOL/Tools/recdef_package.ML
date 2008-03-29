@@ -7,7 +7,6 @@ Wrapper module for Konrad Slind's TFL package.
 
 signature RECDEF_PACKAGE =
 sig
-  val quiet_mode: bool ref
   val get_recdef: theory -> string
     -> {simps: thm list, rules: thm list list, induct: thm, tcs: term list} option
   val get_hints: Proof.context -> {simps: thm list, congs: (string * thm) list, wfs: thm list}
@@ -33,9 +32,6 @@ end;
 
 structure RecdefPackage: RECDEF_PACKAGE =
 struct
-
-val quiet_mode = Tfl.quiet_mode;
-val message = Tfl.message;
 
 
 (** recdef hints **)
@@ -198,7 +194,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
 
     val name = Sign.intern_const thy raw_name;
     val bname = Sign.base_name name;
-    val _ = message ("Defining recursive function " ^ quote name ^ " ...");
+    val _ = writeln ("Defining recursive function " ^ quote name ^ " ...");
 
     val ((eq_names, eqs), raw_eq_atts) = apfst split_list (split_list eq_srcs);
     val eq_atts = map (map (prep_att thy)) raw_eq_atts;
@@ -239,7 +235,7 @@ fun gen_defer_recdef tfl_fn app_thms raw_name eqs raw_congs thy =
     val bname = Sign.base_name name;
 
     val _ = requires_recdef thy;
-    val _ = message ("Deferred recursive function " ^ quote name ^ " ...");
+    val _ = writeln ("Deferred recursive function " ^ quote name ^ " ...");
 
     val (congs, thy1) = thy |> app_thms raw_congs;
     val (thy2, induct_rules) = tfl_fn thy1 congs name eqs;

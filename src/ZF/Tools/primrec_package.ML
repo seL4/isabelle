@@ -9,19 +9,12 @@ Package for defining functions on datatypes by primitive recursion
 
 signature PRIMREC_PACKAGE =
 sig
-  val quiet_mode: bool ref
   val add_primrec: ((bstring * string) * Attrib.src list) list -> theory -> theory * thm list
   val add_primrec_i: ((bstring * term) * attribute list) list -> theory -> theory * thm list
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
 struct
-
-(* messages *)
-
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
-
 
 exception RecError of string;
 
@@ -181,10 +174,9 @@ fun add_primrec_i args thy =
 
     val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)
     val eqn_thms =
-     (message ("Proving equations for primrec function " ^ fname);
       eqn_terms |> map (fn t =>
         Goal.prove_global thy1 [] [] (Ind_Syntax.traceIt "next primrec equation = " thy1 t)
-          (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])));
+          (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1]));
 
     val (eqn_thms', thy2) =
       thy1

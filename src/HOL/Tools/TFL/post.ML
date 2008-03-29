@@ -8,9 +8,6 @@ Second part of main module (postprocessing of TFL definitions).
 
 signature TFL =
 sig
-  val trace: bool ref
-  val quiet_mode: bool ref
-  val message: string -> unit
   val tgoalw: theory -> thm list -> thm list -> thm list
   val tgoal: theory -> thm list -> thm list
   val define_i: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
@@ -25,15 +22,6 @@ structure Tfl: TFL =
 struct
 
 structure S = USyntax
-
-
-(* messages *)
-
-val trace = Prim.trace
-
-val quiet_mode = ref false;
-fun message s = if ! quiet_mode then () else writeln s;
-
 
 (* misc *)
 
@@ -120,15 +108,15 @@ fun join_assums th =
 in
 fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
   let
-    val _ = message "Proving induction theorem ..."
+    val _ = writeln "Proving induction theorem ..."
     val ind = Prim.mk_induction theory {fconst=f, R=R, SV=[], pat_TCs_list=full_pats_TCs}
-    val _ = message "Postprocessing ...";
+    val _ = writeln "Postprocessing ...";
     val {rules, induction, nested_tcs} =
       std_postprocessor strict cs ss wfs theory {rules=rules, induction=ind, TCs=TCs}
   in
   case nested_tcs
   of [] => {induction=induction, rules=rules,tcs=[]}
-  | L  => let val dummy = message "Simplifying nested TCs ..."
+  | L  => let val dummy = writeln "Simplifying nested TCs ..."
               val (solved,simplified,stubborn) =
                fold_rev (fn th => fn (So,Si,St) =>
                      if (id_thm th) then (So, Si, th::St) else
@@ -144,7 +132,7 @@ fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
               val dummy = Prim.trace_thms "Simplifying the recursion rules..."
                                           [rules]
               val rules'     = rewr rules
-              val _ = message "... Postprocessing finished";
+              val _ = writeln "... Postprocessing finished";
           in
           {induction = induction',
                rules = rules',
@@ -263,7 +251,7 @@ fun defer_i thy congs fid eqs =
  let val {rules,R,theory,full_pats_TCs,SV,...} =
              Prim.lazyR_def thy (Sign.base_name fid) congs eqs
      val f = func_of_cond_eqn (concl (R.CONJUNCT1 rules handle U.ERR _ => rules));
-     val dummy = message "Proving induction theorem ...";
+     val dummy = writeln "Proving induction theorem ...";
      val induction = Prim.mk_induction theory
                         {fconst=f, R=R, SV=SV, pat_TCs_list=full_pats_TCs}
  in (theory,
