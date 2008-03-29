@@ -36,9 +36,8 @@
       <OPERATOR>.</OPERATOR>
       <OPERATOR>..</OPERATOR>
       <INVALID>Isabelle.command</INVALID>
-      <LABEL>ML</LABEL>
+      <OPERATOR>ML</OPERATOR>
       <LABEL>ML_command</LABEL>
-      <OPERATOR>ML_setup</OPERATOR>
       <LABEL>ML_val</LABEL>
       <OPERATOR>abbreviation</OPERATOR>
       <KEYWORD4>actions</KEYWORD4>
@@ -325,7 +324,7 @@
       <INVALID>undos_proof</INVALID>
       <OPERATOR>unfolding</OPERATOR>
       <LABEL>unused_thms</LABEL>
-      <LABEL>use</LABEL>
+      <OPERATOR>use</OPERATOR>
       <LABEL>use_thy</LABEL>
       <KEYWORD4>uses</KEYWORD4>
       <OPERATOR>using</OPERATOR>

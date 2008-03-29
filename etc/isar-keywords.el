@@ -12,7 +12,6 @@
     "Isabelle\\.command"
     "ML"
     "ML_command"
-    "ML_setup"
     "ML_val"
     "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
@@ -326,8 +325,7 @@
     "undos_proof"))
 
 (defconst isar-keywords-diag
-  '("ML"
-    "ML_command"
+  '("ML_command"
     "ML_val"
     "cd"
     "class_deps"
@@ -389,7 +387,6 @@
     "touch_thy"
     "typ"
     "unused_thms"
-    "use"
     "use_thy"
     "value"
     "welcome"))
@@ -410,7 +407,7 @@
     "subsubsection"))
 
 (defconst isar-keywords-theory-decl
-  '("ML_setup"
+  '("ML"
     "abbreviation"
     "arities"
     "atom_decl"
@@ -497,7 +494,8 @@
     "typed_print_translation"
     "typedecl"
     "types"
-    "types_code"))
+    "types_code"
+    "use"))
 
 (defconst isar-keywords-theory-script
   '("inductive_cases"))
