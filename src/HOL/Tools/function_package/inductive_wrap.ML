@@ -41,7 +41,8 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
     let
       val ({intrs = intrs_gen, elims = [elim_gen], preds = [ Rdef ], induct, ...}, lthy) =
           InductivePackage.add_inductive_i
-            {verbose = ! Toplevel.debug,
+            {quiet_mode = false,
+              verbose = ! Toplevel.debug,
               kind = Thm.internalK,
               alt_name = "",
               coind = false,

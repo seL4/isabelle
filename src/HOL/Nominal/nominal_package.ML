@@ -559,13 +559,12 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val rep_set_names'' = map (Sign.full_name thy3) rep_set_names';
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
-      setmp InductivePackage.quiet_mode false
-        (InductivePackage.add_inductive_global (serial_string ())
-          {verbose = false, kind = Thm.internalK,
+        InductivePackage.add_inductive_global (serial_string ())
+          {quiet_mode = false, verbose = false, kind = Thm.internalK,
             alt_name = big_rep_name, coind = false, no_elim = true, no_ind = false}
           (map (fn (s, T) => ((s, T --> HOLogic.boolT), NoSyn))
              (rep_set_names' ~~ recTs'))
-          [] (map (fn x => (("", []), x)) intr_ts) []) thy3;
+          [] (map (fn x => (("", []), x)) intr_ts) [] thy3;
 
     (**** Prove that representing set is closed under permutation ****)
 
@@ -609,13 +608,12 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (typedefs, thy6) =
       thy5
       |> fold_map (fn ((((name, mx), tvs), (cname, U)), name') => fn thy =>
-        setmp TypedefPackage.quiet_mode true
-          (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx)
+          TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx)
             (Const ("Collect", (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
-              (resolve_tac rep_intrs 1))) thy |> (fn ((_, r), thy) =>
+              (resolve_tac rep_intrs 1)) thy |> (fn ((_, r), thy) =>
         let
           val permT = mk_permT (TFree (Name.variant tvs "'a", HOLogic.typeS));
           val pi = Free ("pi", permT);
@@ -1484,13 +1482,12 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val ({intrs = rec_intrs, elims = rec_elims, raw_induct = rec_induct, ...}, thy11) =
       thy10 |>
-      setmp InductivePackage.quiet_mode (!quiet_mode)
-        (InductivePackage.add_inductive_global (serial_string ())
-          {verbose = false, kind = Thm.internalK,
+        InductivePackage.add_inductive_global (serial_string ())
+          {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
             alt_name = big_rec_name, coind = false, no_elim = false, no_ind = false}
           (map (fn (s, T) => ((s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => (("", []), x)) rec_intr_ts) []) ||>
+          (map (fn x => (("", []), x)) rec_intr_ts) [] ||>
       PureThy.hide_thms true [NameSpace.append
         (Sign.full_name thy10 big_rec_name) "induct"];
 

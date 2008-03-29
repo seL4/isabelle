@@ -106,9 +106,8 @@ fun gen_add_typecopy prep_typ (raw_tyco, raw_vs) raw_ty constr_proj thy =
         end
   in
     thy
-    |> setmp TypedefPackage.quiet_mode true
-        (TypedefPackage.add_typedef_i false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
-          (HOLogic.mk_UNIV ty) (Option.map swap constr_proj)) tac
+    |> TypedefPackage.add_typedef_i false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
+      (HOLogic.mk_UNIV ty) (Option.map swap constr_proj) tac
     |-> (fn (tyco, info) => add_info tyco info)
   end;
 

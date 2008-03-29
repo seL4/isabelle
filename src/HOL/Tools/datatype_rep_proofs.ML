@@ -176,24 +176,22 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names'));
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
-      setmp InductivePackage.quiet_mode (! quiet_mode)
-        (InductivePackage.add_inductive_global (serial_string ())
-          {verbose = false, kind = Thm.internalK, alt_name = big_rec_name,
+        InductivePackage.add_inductive_global (serial_string ())
+          {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK, alt_name = big_rec_name,
             coind = false, no_elim = true, no_ind = false}
           (map (fn s => ((s, UnivT'), NoSyn)) rep_set_names') []
-          (map (fn x => (("", []), x)) intr_ts) []) thy1;
+          (map (fn x => (("", []), x)) intr_ts) [] thy1;
 
     (********************************* typedef ********************************)
 
     val (typedefs, thy3) = thy2 |>
       parent_path flat_names |>
       fold_map (fn ((((name, mx), tvs), c), name') =>
-        setmp TypedefPackage.quiet_mode true
-          (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx)
+          TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
-              (resolve_tac rep_intrs 1))))
+              (resolve_tac rep_intrs 1)))
                 (types_syntax ~~ tyvars ~~
                   (Library.take (length newTs, rep_set_names)) ~~ new_type_names) ||>
       add_path flat_names big_name;
