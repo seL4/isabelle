@@ -155,7 +155,7 @@ val IFOL_ss =
 (*classical simprules too*)
 val FOL_ss = IFOL_ss addsimps (@{thms cla_simps} @ @{thms cla_ex_simps} @ @{thms cla_all_simps});
 
-val simpsetup = (fn thy => (change_simpset_of thy (fn _ => FOL_ss); thy));
+val simpsetup = Simplifier.map_simpset (K FOL_ss);
 
 
 (*** integration of simplifier with classical reasoner ***)

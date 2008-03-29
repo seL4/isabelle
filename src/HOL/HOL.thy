@@ -1285,9 +1285,9 @@ ML {* open Simpdata *}
 
 setup {*
   Simplifier.method_setup Splitter.split_modifiers
-  #> (fn thy => (change_simpset_of thy (fn _ => Simpdata.simpset_simprocs); thy))
+  #> Simplifier.map_simpset (K Simpdata.simpset_simprocs)
   #> Splitter.setup
-  #> Clasimp.setup
+  #> clasimp_setup
   #> EqSubst.setup
 *}
 

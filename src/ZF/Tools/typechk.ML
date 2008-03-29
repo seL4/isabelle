@@ -129,6 +129,6 @@ val _ =
 val setup =
   Attrib.add_attributes [("TC", TC_att, "declaration of type-checking rule")] #>
   Method.add_methods [("typecheck", typecheck_meth, "ZF type-checking")] #>
-  (fn thy => (change_simpset_of thy (fn ss => ss setSolver type_solver); thy));
+  Simplifier.map_simpset (fn ss => ss setSolver type_solver);
 
 end;

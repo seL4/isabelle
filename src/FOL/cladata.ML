@@ -36,7 +36,7 @@ val prop_cs = empty_cs
 val FOL_cs = prop_cs addSIs [@{thm allI}, @{thm ex_ex1I}] addIs [@{thm exI}]
                      addSEs [@{thm exE}, @{thm alt_ex1E}] addEs [@{thm allE}];
 
-val cla_setup = (fn thy => (change_claset_of thy (fn _ => FOL_cs); thy));
+val cla_setup = Cla.map_claset (K FOL_cs);
 
 val case_setup =
  (Method.add_methods

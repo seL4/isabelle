@@ -381,8 +381,7 @@ fun statefun_simp_attr src (ctxt,thm) =
             | _ => (lookup_ss addsimps [thm], ex_lookup_ss))
      fun activate_simprocs ctxt =
           if simprocs_active then ctxt
-          else StateSpace.change_simpset 
-                (fn ss => ss addsimprocs [lookup_simproc,update_simproc]) ctxt
+          else Simplifier.map_ss (fn ss => ss addsimprocs [lookup_simproc,update_simproc]) ctxt
                
 
      val ctxt' = ctxt 

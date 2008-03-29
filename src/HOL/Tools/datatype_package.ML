@@ -428,7 +428,7 @@ val dist_ss = HOL_ss addsimprocs [distinct_simproc];
 
 val simproc_setup =
   Theory.add_oracle (distinctN, fn (_, ConstrDistinct t) => t) #>
-  (fn thy => ((change_simpset_of thy) (fn ss => ss addsimprocs [distinct_simproc]); thy));
+  Simplifier.map_simpset (fn ss => ss addsimprocs [distinct_simproc]);
 
 
 (**** translation rules for case ****)

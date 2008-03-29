@@ -138,9 +138,6 @@ in
     Simplifier.simproc thy "cont_proc" ["cont f"] solve_cont;
 end;
 
-val setup =
-  (fn thy =>
-    (Simplifier.change_simpset_of thy
-      (fn ss => ss addsimprocs [cont_proc thy]); thy));
+fun setup thy = Simplifier.map_simpset (fn ss => ss addsimprocs [cont_proc thy]) thy;
 
 end;

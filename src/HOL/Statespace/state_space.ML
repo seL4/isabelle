@@ -46,9 +46,6 @@ signature STATE_SPACE =
     val distinct_simproc : MetaSimplifier.simproc
 
 
-    val change_simpset : (MetaSimplifier.simpset -> MetaSimplifier.simpset) ->
-       Context.generic -> Context.generic
-
     val get_comp : Context.generic -> string -> (Term.typ * string) Option.option
     val get_silent : Context.generic -> bool
     val set_silent : bool -> Context.generic -> Context.generic
@@ -247,11 +244,6 @@ val distinct_simproc =
         | NONE => NONE)
       | _ => NONE))
 
-fun change_simpset f =
-     Context.mapping
-       (fn thy  => (change_simpset_of thy f; thy))
-       (fn ctxt => Simplifier.put_local_simpset (f (Simplifier.get_local_simpset ctxt)) ctxt);
-
 fun read_typ thy s =
   Sign.read_typ thy s;
 
@@ -309,7 +301,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
           val tt' = tt |> fold upd all_names;
           val activate_simproc =
               Output.no_warnings
-               (change_simpset (fn ss => ss addsimprocs [distinct_simproc]));
+               (Simplifier.map_ss (fn ss => ss addsimprocs [distinct_simproc]));
           val ctxt' =
               ctxt
               |> NameSpaceData.put {declinfo=declinfo,distinctthm=tt',silent=silent}

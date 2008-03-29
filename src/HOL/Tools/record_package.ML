@@ -2295,8 +2295,8 @@ val add_record_i = gen_add_record cert_typ (K I);
 val setup =
   Sign.add_trfuns ([], parse_translation, [], []) #>
   Sign.add_advanced_trfuns ([], adv_parse_translation, [], []) #>
-  (fn thy => (Simplifier.change_simpset_of thy
-    (fn ss => ss addsimprocs [record_simproc, record_upd_simproc, record_eq_simproc]); thy));
+  Simplifier.map_simpset (fn ss =>
+    ss addsimprocs [record_simproc, record_upd_simproc, record_eq_simproc]);
 
 (* outer syntax *)
 
