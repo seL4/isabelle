@@ -41,14 +41,12 @@ sig
   val name_thm: bool -> bool -> string -> thm -> thm
   val name_thms: bool -> bool -> string -> thm list -> thm list
   val name_thmss: bool -> string -> (thm list * 'a) list -> (thm list * 'a) list
-  val store_thm: (bstring * thm) * attribute list -> theory -> thm * theory
-  val smart_store_thms: (bstring * thm list) -> thm list
-  val smart_store_thms_open: (bstring * thm list) -> thm list
-  val forall_elim_var: int -> thm -> thm
-  val forall_elim_vars: int -> thm -> thm
-  val add_thms_dynamic: bstring * (Context.generic -> thm list) -> theory -> theory
+  val store_thms: bstring * thm list -> theory -> thm list * theory
+  val store_thm: bstring * thm -> theory -> thm * theory
+  val store_thm_open: bstring * thm -> theory -> thm * theory
   val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory
+  val add_thms_dynamic: bstring * (Context.generic -> thm list) -> theory -> theory
   val note: string -> string * thm -> theory -> thm * theory
   val note_thmss: string -> ((bstring * attribute list) *
     (Facts.ref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
@@ -58,6 +56,8 @@ sig
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_qualified: string -> string -> ((bstring * attribute list) *
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
+  val forall_elim_var: int -> thm -> thm
+  val forall_elim_vars: int -> thm -> thm
   val add_axioms: ((bstring * string) * attribute list) list -> theory -> thm list * theory
   val add_axioms_i: ((bstring * term) * attribute list) list -> theory -> thm list * theory
   val add_axiomss: ((bstring * string list) * attribute list) list ->
@@ -132,24 +132,24 @@ datatype thms = Thms of
  {theorems: thm list NameSpace.table,   (* FIXME legacy *)
   all_facts: Facts.T};
 
-fun make_thms theorems all_facts = Thms {theorems = theorems, all_facts = all_facts};
+fun make_thms (theorems, all_facts) = Thms {theorems = theorems, all_facts = all_facts};
 
 structure TheoremsData = TheoryDataFun
 (
-  type T = thms ref;   (* FIXME legacy *)
-  val empty = ref (make_thms NameSpace.empty_table Facts.empty);
-  fun copy (ref x) = ref x;
-  fun extend (ref (Thms {theorems = _, all_facts})) = ref (make_thms NameSpace.empty_table all_facts);
+  type T = thms;
+  val empty = make_thms (NameSpace.empty_table, Facts.empty);
+  val copy = I;
+  fun extend (Thms {theorems = _, all_facts}) = make_thms (NameSpace.empty_table, all_facts);
   fun merge _
-     (ref (Thms {theorems = _, all_facts = all_facts1}),
-      ref (Thms {theorems = _, all_facts = all_facts2})) =
-    ref (make_thms NameSpace.empty_table (Facts.merge (all_facts1, all_facts2)));
+     (Thms {theorems = _, all_facts = all_facts1},
+      Thms {theorems = _, all_facts = all_facts2}) =
+    make_thms (NameSpace.empty_table, Facts.merge (all_facts1, all_facts2));
 );
 
-val _ = Context.>> (Context.map_theory TheoremsData.init);
+fun map_theorems f =
+  TheoremsData.map (fn Thms {theorems, all_facts} => make_thms (f (theorems, all_facts)));
 
-val get_theorems_ref = TheoremsData.get;
-val get_theorems = (fn Thms args => args) o ! o get_theorems_ref;
+val get_theorems = (fn Thms args => args) o TheoremsData.get;
 val theorems_of = #theorems o get_theorems;
 val all_facts_of = #all_facts o get_theorems;
 
@@ -180,6 +180,7 @@ fun get silent theory thmref =
     val pos = Facts.pos_of_ref thmref;
     val new_res = lookup_fact theory name;
     val old_res = get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory);
+    val _ = Theory.check_thy theory;
     val is_same =
       (case (new_res, old_res) of
         (NONE, NONE) => true
@@ -216,15 +217,14 @@ fun all_thms_of thy = maps thms_of (thy :: Theory.ancestors_of thy);
 
 
 
-(** store theorems **)                    (*DESTRUCTIVE*)
+(** store theorems **)
 
 (* hiding -- affects current theory node only *)
 
-fun hide_thms fully names thy = NAMED_CRITICAL "thm" (fn () =>
-  let
-    val r as ref (Thms {theorems = (space, thms), all_facts}) = get_theorems_ref thy;
-    val space' = fold (NameSpace.hide fully) names space;
-  in r := make_thms (space', thms) all_facts; thy end);
+fun hide_thms fully names =
+  map_theorems (fn ((space, thms), all_facts) =>
+    let val space' = fold (NameSpace.hide fully) names space
+    in ((space', thms), all_facts) end);
 
 
 (* fact specifications *)
@@ -252,40 +252,31 @@ fun name_thmss official name fact =
   burrow_fact (name_thms true official name) fact;
 
 
-(* add_thms_dynamic *)
-
-fun add_thms_dynamic (bname, f) thy = NAMED_CRITICAL "thm" (fn () =>
-  let
-    val name = Sign.full_name thy bname;
-    val r as ref (Thms {theorems, all_facts}) = get_theorems_ref thy;
-    val all_facts' = Facts.add_dynamic (Sign.naming_of thy) (name, f) all_facts;
-    val _ = r := make_thms theorems all_facts';
-  in thy end);
-
-
 (* enter_thms *)
 
-fun warn_overwrite name = warning ("Replaced old copy of theorems " ^ quote name);
-fun warn_same name = warning ("Theorem database already contains a copy of " ^ quote name);
-
 fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
-  | enter_thms pre_name post_name app_att (bname, thms) thy = NAMED_CRITICAL "thm" (fn () =>
+  | enter_thms pre_name post_name app_att (bname, thms) thy =
       let
-        val name = Sign.full_name thy bname;
+        val naming = Sign.naming_of thy;
+        val name = NameSpace.full naming bname;
         val (thy', thms') = apsnd (post_name name) (app_att (thy, pre_name name thms));
-        val r as ref (Thms {theorems = (space, theorems), all_facts}) = get_theorems_ref thy';
-        val space' = Sign.declare_name thy' name space;
-        val theorems' = Symtab.update (name, thms') theorems;
-        val all_facts' = Facts.add_global (Sign.naming_of thy') (name, thms') all_facts;
-      in
-        (case Symtab.lookup theorems name of
-          NONE => ()
-        | SOME thms'' =>
-            if Thm.eq_thms (thms', thms'') then warn_same name
-            else warn_overwrite name);
-        r := make_thms (space', theorems') all_facts';
-        (thms', thy')
-      end);
+        val thms'' = map (Thm.transfer thy') thms';
+        val thy'' = thy' |> map_theorems (fn ((space, theorems), all_facts) =>
+          let
+            val space' = NameSpace.declare naming name space;
+            val theorems' = Symtab.update (name, thms'') theorems;
+            val all_facts' = Facts.add_global naming (name, thms'') all_facts;
+          in ((space', theorems'), all_facts') end);
+      in (thms'', thy'') end;
+
+
+(* store_thm(s) *)
+
+val store_thms = enter_thms (name_thms true true) (name_thms false true) I;
+fun store_thm (name, th) = store_thms (name, [th]) #>> the_single;
+
+fun store_thm_open (name, th) =
+  enter_thms (name_thms true false) (name_thms false false) I (name, [th]) #>> the_single;
 
 
 (* add_thms(s) *)
@@ -302,6 +293,16 @@ fun gen_add_thms pre_name args =
 
 val add_thmss = gen_add_thmss (name_thms true true);
 val add_thms = gen_add_thms (name_thms true true);
+
+
+(* add_thms_dynamic *)
+
+fun add_thms_dynamic (bname, f) thy =
+  let
+    val name = Sign.full_name thy bname;
+    val thy' = thy |> map_theorems (fn (theorems, all_facts) =>
+      (theorems, Facts.add_dynamic (Sign.naming_of thy) (name, f) all_facts));
+  in thy' end;
 
 
 (* note_thmss(_i) *)
@@ -334,35 +335,6 @@ fun note_thmss_qualified k path facts thy =
   |> Sign.no_base_names
   |> note_thmss_i k facts
   ||> Sign.restore_naming thy;
-
-
-(* store_thm *)
-
-fun store_thm ((bname, thm), atts) thy =
-  let val ([th'], thy') = add_thms_atts (name_thms true true) ((bname, [thm]), atts) thy
-  in (th', thy') end;
-
-
-(* smart_store_thms(_open) *)
-
-local
-
-fun smart_store _ (name, []) =
-      error ("Cannot store empty list of theorems: " ^ quote name)
-  | smart_store official (name, [thm]) =
-      fst (enter_thms (name_thms true official) (name_thms false official) I (name, [thm])
-        (Thm.theory_of_thm thm))
-  | smart_store official (name, thms) =
-      let val thy = Theory.merge_list (map Thm.theory_of_thm thms) in
-        fst (enter_thms (name_thms true official) (name_thms false official) I (name, thms) thy)
-      end;
-
-in
-
-val smart_store_thms = smart_store true;
-val smart_store_thms_open = smart_store false;
-
-end;
 
 
 (* forall_elim_var(s) -- belongs to drule.ML *)
