@@ -735,11 +735,11 @@ fun extract thms thy =
                     Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
            in
              thy'
-             |> PureThy.store_thm ((corr_name s vs,
+             |> PureThy.store_thm (corr_name s vs,
                   Thm.varifyT (funpow (length (term_vars corr_prop))
                     (forall_elim_var 0) (forall_intr_frees
                       (ProofChecker.thm_of_proof thy'
-                       (fst (Proofterm.freeze_thaw_prf prf)))))), [])
+                       (fst (Proofterm.freeze_thaw_prf prf))))))
              |> snd
              |> fold Code.add_default_func def_thms
            end

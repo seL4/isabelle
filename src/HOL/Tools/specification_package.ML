@@ -185,7 +185,7 @@ fun process_spec axiomatic cos alt_props thy =
                             if name = ""
                             then arg |> Library.swap
                             else (writeln ("  " ^ name ^ ": " ^ (string_of_thm thm));
-                                  PureThy.store_thm ((name, thm), []) thy)
+                                  PureThy.store_thm (name, thm) thy)
                     in
                         args |> apsnd (remove_alls frees)
                              |> apsnd undo_imps

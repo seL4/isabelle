@@ -390,7 +390,7 @@ fun export_hol4_pending thy =
         val thm2 = standard thm1;
       in
         thy
-        |> PureThy.store_thm ((bthm, thm2), [])
+        |> PureThy.store_thm (bthm, thm2)
         |> snd
         |> add_hol4_theorem bthy bthm hth
       end;
