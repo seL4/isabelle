@@ -68,6 +68,7 @@ sig
   val keep': (bool -> state -> unit) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
+  val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
   val begin_local_theory: bool -> (theory -> local_theory) -> transition -> transition
   val end_local_theory: transition -> transition
@@ -523,6 +524,10 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 
 
 (* theory transitions *)
+
+fun generic_theory f = app_current (fn _ =>
+  (fn Theory (gthy, _) => Theory (f gthy, NONE)
+    | _ => raise UNDEF));
 
 fun theory' f = app_current (fn int =>
   (fn Theory (Context.Theory thy, _) => Theory (Context.Theory (f int thy), NONE)
