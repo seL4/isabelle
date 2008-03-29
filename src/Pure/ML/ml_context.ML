@@ -7,8 +7,6 @@ ML context and antiquotations.
 
 signature BASIC_ML_CONTEXT =
 sig
-  val store_thm: string * thm -> thm
-  val store_thms: string * thm list -> thm list
   val bind_thm: string * thm -> unit
   val bind_thms: string * thm list -> unit
   val thm: xstring -> thm
@@ -59,31 +57,22 @@ fun exec (e: unit -> unit) context =
 
 (* theorem bindings *)
 
-val store_thms = PureThy.smart_store_thms;
-fun store_thm (name, th) = the_single (store_thms (name, [th]));
-
 val stored_thms: thm list ref = ref [];
 
-fun no_ml name =
-  if name = "" then true
-  else if ML_Syntax.is_identifier name then false
-  else error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value");
+fun ml_store sel (name, ths) =
+  let
+    val ths' = Context.>>> (Context.map_theory_result (PureThy.store_thms (name, ths)));
+    val _ =
+      if name = "" then ()
+      else if not (ML_Syntax.is_identifier name) then
+        error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
+      else setmp stored_thms ths' (fn () =>
+        use_text (0, "") Output.ml_output true
+          ("val " ^ name ^ " = " ^ sel ^ "(! ML_Context.stored_thms);")) ();
+  in () end;
 
-val use_text_verbose = use_text (0, "") Output.ml_output true;
-
-fun ml_store_thm (name, th) =
-  let val th' = store_thm (name, th) in
-    if no_ml name then ()
-    else setmp stored_thms [th']
-      (fn () => use_text_verbose ("val " ^ name ^ " = hd (! ML_Context.stored_thms);")) ()
-  end;
-
-fun ml_store_thms (name, ths) =
-  let val ths' = store_thms (name, ths) in
-    if no_ml name then ()
-    else setmp stored_thms ths'
-      (fn () => use_text_verbose ("val " ^ name ^ " = ! ML_Context.stored_thms;")) ()
-  end;
+val ml_store_thms = ml_store "";
+fun ml_store_thm (name, th) = ml_store "hd" (name, [th]);
 
 fun bind_thm (name, thm) = ml_store_thm (name, Drule.standard thm);
 fun bind_thms (name, thms) = ml_store_thms (name, map Drule.standard thms);
