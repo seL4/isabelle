@@ -160,9 +160,9 @@ fun ctyp_fun f cT =
   let val {T, thy, ...} = Thm.rep_ctyp cT
   in Thm.ctyp_of thy (f T) end;
 
-val cert = cterm_of (Context.the_theory (Context.the_thread_data ()));
+fun certify t = Thm.cterm_of (Context.the_theory (Context.the_thread_data ())) t;
 
-val implies = cert Term.implies;
+val implies = certify Term.implies;
 fun mk_implies (A, B) = Thm.capply (Thm.capply implies A) B;
 
 (*cterm version of list_implies: [A1,...,An], B  goes to [|A1;==>;An|]==>B *)
@@ -518,15 +518,19 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 
 (*** Meta-Rewriting Rules ***)
 
-val read_prop = cert o SimpleSyntax.read_prop;
+val read_prop = certify o SimpleSyntax.read_prop;
 
-fun store_thm name thm = hd (PureThy.smart_store_thms (name, [thm]));
-fun store_standard_thm name thm = store_thm name (standard thm);
-fun store_thm_open name thm = hd (PureThy.smart_store_thms_open (name, [thm]));
+fun store_thm name th =
+  Context.>>> (Context.map_theory_result (PureThy.store_thm (name, th)));
+
+fun store_thm_open name th =
+  Context.>>> (Context.map_theory_result (PureThy.store_thm_open (name, th)));
+
+fun store_standard_thm name th = store_thm name (standard th);
 fun store_standard_thm_open name thm = store_thm_open name (standard' thm);
 
 val reflexive_thm =
-  let val cx = cert (Var(("x",0),TVar(("'a",0),[])))
+  let val cx = certify (Var(("x",0),TVar(("'a",0),[])))
   in store_standard_thm_open "reflexive" (Thm.reflexive cx) end;
 
 val symmetric_thm =
@@ -667,7 +671,7 @@ val thin_rl =
 val triv_forall_equality =
   let val V  = read_prop "V"
       and QV = read_prop "!!x::'a. V"
-      and x  = cert (Free ("x", Term.aT []));
+      and x  = certify (Free ("x", Term.aT []));
   in
     store_standard_thm_open "triv_forall_equality"
       (equal_intr (implies_intr QV (forall_elim x (assume QV)))
@@ -743,10 +747,10 @@ val norm_hhf_eq =
     val phi = Free ("phi", propT);
     val psi = Free ("psi", aT --> propT);
 
-    val cx = cert x;
-    val cphi = cert phi;
-    val lhs = cert (Logic.mk_implies (phi, all $ Abs ("x", aT, psi $ Bound 0)));
-    val rhs = cert (all $ Abs ("x", aT, Logic.mk_implies (phi, psi $ Bound 0)));
+    val cx = certify x;
+    val cphi = certify phi;
+    val lhs = certify (Logic.mk_implies (phi, all $ Abs ("x", aT, psi $ Bound 0)));
+    val rhs = certify (all $ Abs ("x", aT, Logic.mk_implies (phi, psi $ Bound 0)));
   in
     Thm.equal_intr
       (Thm.implies_elim (Thm.assume lhs) (Thm.assume cphi)
@@ -857,12 +861,12 @@ end;
 (** protected propositions and embedded terms **)
 
 local
-  val A = cert (Free ("A", propT));
+  val A = certify (Free ("A", propT));
   val get_axiom = Thm.unvarify o Thm.get_axiom (Context.the_theory (Context.the_thread_data ()));
   val prop_def = get_axiom "prop_def";
   val term_def = get_axiom "term_def";
 in
-  val protect = Thm.capply (cert Logic.protectC);
+  val protect = Thm.capply (certify Logic.protectC);
   val protectI = store_thm "protectI" (PureThy.kind_rule Thm.internalK (standard
       (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
   val protectD = store_thm "protectD" (PureThy.kind_rule Thm.internalK (standard
@@ -900,7 +904,7 @@ fun dest_term th =
 fun cterm_rule f = dest_term o f o mk_term;
 fun term_rule thy f t = Thm.term_of (cterm_rule f (Thm.cterm_of thy t));
 
-val dummy_thm = mk_term (cert (Term.dummy_pattern propT));
+val dummy_thm = mk_term (certify (Term.dummy_pattern propT));
 
 
 
