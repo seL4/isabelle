@@ -81,7 +81,7 @@ command of any theory file loaded in batch-mode.
   Isabelle, \texttt{$A$.thy} may be also accompanied by an additional file
   \texttt{$A$.ML} consisting of ML code that is executed in the context of the
   \emph{finished} theory $A$.  That file should not be included in the
-  $\isarkeyword{files}$ dependency declaration, though.
+  $\isarkeyword{uses}$ dependency declaration, though.
   
 \item [$\END$] concludes the current theory definition or context switch.
   Note that this command cannot be undone, but the whole theory definition has
@@ -466,16 +466,13 @@ following commands provide some way to do so.
 
 \subsection{Incorporating ML code}\label{sec:ML}
 
-\indexisarcmd{use}\indexisarcmd{ML}
-\indexisarcmd{ML-val}\indexisarcmd{ML-command}
-\indexisarcmd{ML-setup}\indexisarcmd{setup}
-\indexisarcmd{method-setup}
+\indexisarcmd{use}\indexisarcmd{ML}\indexisarcmd{ML-val}\indexisarcmd{ML-command}
+\indexisarcmd{setup}\indexisarcmd{method-setup}
 \begin{matharray}{rcl}
-  \isarcmd{use} & : & \isartrans{\cdot}{\cdot} \\
-  \isarcmd{ML} & : & \isartrans{\cdot}{\cdot} \\
+  \isarcmd{use} & : & \isarkeep{theory~|~local{\dsh}theory} \\
+  \isarcmd{ML} & : & \isarkeep{theory~|~local{\dsh}theory} \\
   \isarcmd{ML_val} & : & \isartrans{\cdot}{\cdot} \\
   \isarcmd{ML_command} & : & \isartrans{\cdot}{\cdot} \\
-  \isarcmd{ML_setup} & : & \isartrans{theory}{theory} \\
   \isarcmd{setup} & : & \isartrans{theory}{theory} \\
   \isarcmd{method_setup} & : & \isartrans{theory}{theory} \\
 \end{matharray}
@@ -483,29 +480,28 @@ following commands provide some way to do so.
 \begin{rail}
   'use' name
   ;
-  ('ML' | 'ML\_val' | 'ML\_command' | 'ML\_setup' | 'setup') text
+  ('ML' | 'ML\_val' | 'ML\_command' | 'setup') text
   ;
   'method\_setup' name '=' text text
   ;
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{use}~file$] reads and executes ML commands from $file$.
-  The current theory context (if present) is passed down to the ML session,
-  but may not be modified.  Furthermore, the file name is checked with the
-  $\isarkeyword{files}$ dependency declaration given in the theory header (see
-  also \S\ref{sec:begin-thy}).
+\item [$\isarkeyword{use}~file$] reads and executes ML commands from
+  $file$.  The current theory context is passed down to the ML
+  toplevel and may be modified, using \verb,Context.>>, or any other
+  ML commands derived from it.  The file name is checked with the
+  $\isarkeyword{uses}$ dependency declaration given in the theory
+  header (see also \S\ref{sec:begin-thy}).
   
-\item [$\isarkeyword{ML}~text$ and $\isarkeyword{ML_val}~text$ and
-  $\isarkeyword{ML_command}~text$] execute ML commands from $text$.
-  The theory context is passed in the same way as for
-  $\isarkeyword{use}$, but may not be changed.  Note that the output
-  of $\isarkeyword{ML_command}$ is less verbose than plain
-  $\isarkeyword{ML}$.
-  
-\item [$\isarkeyword{ML_setup}~text$] executes ML commands from $text$.  The
-  theory context is passed down to the ML session, and fetched back
-  afterwards.  Thus $text$ may actually change the theory as a side effect.
+\item [$\isarkeyword{ML}~text$] is similar to $\isarkeyword{use}$, but
+  executes ML commands from the given $text$.
+
+\item [$\isarkeyword{ML_val}$ and $\isarkeyword{ML_command}$] are
+  diagnostic versions of $\isarkeyword{ML}$, which means that the
+  context may not be updated.  $\isarkeyword{ML_val}$ echos the
+  bindings produced at the ML toplevel, but $\isarkeyword{ML_command}$
+  is silent.
   
 \item [$\isarkeyword{setup}~text$] changes the current theory context
   by applying $text$, which refers to an ML expression of type
