@@ -25,8 +25,11 @@ sig
   include CLASIMP_DATA
   type claset
   type clasimpset
+  val get_css: Context.generic -> clasimpset
+  val map_css: (clasimpset -> clasimpset) -> Context.generic -> Context.generic
   val change_clasimpset: (clasimpset -> clasimpset) -> unit
   val clasimpset: unit -> clasimpset
+  val local_clasimpset_of: Proof.context -> clasimpset
   val addSIs2: clasimpset * thm list -> clasimpset
   val addSEs2: clasimpset * thm list -> clasimpset
   val addSDs2: clasimpset * thm list -> clasimpset
@@ -57,14 +60,12 @@ sig
   val slow_simp_tac: clasimpset -> int -> tactic
   val best_simp_tac: clasimpset -> int -> tactic
   val attrib: (clasimpset * thm list -> clasimpset) -> attribute
-  val get_local_clasimpset: Proof.context -> clasimpset
-  val local_clasimpset_of: Proof.context -> clasimpset
   val iff_add: attribute
   val iff_add': attribute
   val iff_del: attribute
   val iff_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val clasimp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
-  val setup: theory -> theory
+  val clasimp_setup: theory -> theory
 end;
 
 functor ClasimpFun(Data: CLASIMP_DATA): CLASIMP =
@@ -72,17 +73,23 @@ struct
 
 open Data;
 
+
+(* type clasimpset *)
+
 type claset = Classical.claset;
 type clasimpset = claset * simpset;
 
-fun change_clasimpset_of thy f =
-  let val (cs', ss') = f (Classical.get_claset thy, Simplifier.get_simpset thy) in
-    Classical.change_claset_of thy (fn _ => cs');
-    Simplifier.change_simpset_of thy (fn _ => ss')
-  end;
+fun get_css context = (Classical.get_cs context, Simplifier.get_ss context);
 
-fun change_clasimpset f = change_clasimpset_of (ML_Context.the_global_context ()) f;
+fun map_css f context =
+  let val (cs', ss') = f (get_css context)
+  in context |> Classical.map_cs (K cs') |> Simplifier.map_ss (K ss') end;
+
+fun change_clasimpset f = Context.>> (fn context => (Context.the_theory context; map_css f context));
 fun clasimpset () = (Classical.claset (), Simplifier.simpset ());
+
+fun local_clasimpset_of ctxt =
+  (Classical.local_claset_of ctxt, Simplifier.local_simpset_of ctxt);
 
 
 (* clasimpset operations *)
@@ -90,8 +97,8 @@ fun clasimpset () = (Classical.claset (), Simplifier.simpset ());
 (*this interface for updating a clasimpset is rudimentary and just for
   convenience for the most common cases*)
 
-fun pair_upd1 f ((a,b),x) = (f(a,x), b);
-fun pair_upd2 f ((a,b),x) = (a, f(b,x));
+fun pair_upd1 f ((a, b), x) = (f (a, x), b);
+fun pair_upd2 f ((a, b), x) = (a, f (b, x));
 
 fun op addSIs2   arg = pair_upd1 Classical.addSIs arg;
 fun op addSEs2   arg = pair_upd1 Classical.addSEs arg;
@@ -156,9 +163,9 @@ val delXs = modifier ContextRules.rule_del;
 in
 
 val op addIffs =
-  Library.foldl 
+  Library.foldl
       (addIff (Classical.addSEs, Classical.addSIs)
-              (Classical.addEs, Classical.addIs) 
+              (Classical.addEs, Classical.addIs)
               Simplifier.addsimps);
 val op delIffs = Library.foldl (delIff Classical.delrules Simplifier.delsimps);
 
@@ -251,28 +258,11 @@ val best_simp_tac = ADDSS Classical.best_tac;
 
 (* access clasimpset *)
 
-fun get_local_clasimpset ctxt =
-  (Classical.get_local_claset ctxt, Simplifier.get_local_simpset ctxt);
-
-fun local_clasimpset_of ctxt =
-  (Classical.local_claset_of ctxt, Simplifier.local_simpset_of ctxt);
 
 
 (* attributes *)
 
-fun attrib f = Thm.declaration_attribute (fn th =>
- fn Context.Theory thy => (change_clasimpset_of thy (fn css => f (css, [th])); Context.Theory thy)
-  | Context.Proof ctxt =>
-      let
-        val cs = Classical.get_local_claset ctxt;
-        val ss = Simplifier.get_local_simpset ctxt;
-        val (cs', ss') = f ((cs, ss), [th]);
-        val ctxt' =
-          ctxt
-          |> Classical.put_local_claset cs'
-          |> Simplifier.put_local_simpset ss';
-      in Context.Proof ctxt' end);
-
+fun attrib f = Thm.declaration_attribute (fn th => map_css (fn css => f (css, [th])));
 fun attrib' f (x, th) = (f (x, [th]), th);
 
 val iff_add = attrib (op addIffs);
@@ -320,7 +310,7 @@ fun auto_meth NONE = clasimp_meth (CHANGED_PROP o auto_tac)
 
 (* theory setup *)
 
-val setup =
+val clasimp_setup =
  (Attrib.add_attributes
    [("iff", iff_att, "declaration of Simplifier / Classical rules")] #>
   Method.add_methods

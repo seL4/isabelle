@@ -40,7 +40,6 @@ sig
   type claset
   val empty_cs: claset
   val print_cs: claset -> unit
-  val print_claset: theory -> unit
   val rep_cs:
     claset -> {safeIs: thm list, safeEs: thm list,
                  hazIs: thm list, hazEs: thm list,
@@ -72,7 +71,6 @@ sig
   val appSWrappers      : claset -> wrapper
   val appWrappers       : claset -> wrapper
 
-  val change_claset_of: theory -> (claset -> claset) -> unit
   val change_claset: (claset -> claset) -> unit
   val claset_of: theory -> claset
   val claset: unit -> claset
@@ -140,9 +138,7 @@ sig
   val add_context_unsafe_wrapper: string * (Proof.context -> wrapper) -> theory -> theory
   val del_context_unsafe_wrapper: string -> theory -> theory
   val get_claset: theory -> claset
-  val get_local_claset: Proof.context -> claset
-  val put_local_claset: claset -> Proof.context -> Proof.context
-  val print_local_claset: Proof.context -> unit
+  val map_claset: (claset -> claset) -> theory -> theory
   val get_cs: Context.generic -> claset
   val map_cs: (claset -> claset) -> Context.generic -> Context.generic
   val safe_dest: int option -> attribute
@@ -863,27 +859,26 @@ fun merge_context_cs (ctxt_cs1, ctxt_cs2) =
 
 structure GlobalClaset = TheoryDataFun
 (
-  type T = claset ref * context_cs;
-  val empty = (ref empty_cs, empty_context_cs);
-  fun copy (ref cs, ctxt_cs) = (ref cs, ctxt_cs): T;
-  val extend = copy;
-  fun merge _ ((ref cs1, ctxt_cs1), (ref cs2, ctxt_cs2)) =
-    (ref (merge_cs (cs1, cs2)), merge_context_cs (ctxt_cs1, ctxt_cs2));
+  type T = claset * context_cs;
+  val empty = (empty_cs, empty_context_cs);
+  val copy = I;
+  val extend = I;
+  fun merge _ ((cs1, ctxt_cs1), (cs2, ctxt_cs2)) =
+    (merge_cs (cs1, cs2), merge_context_cs (ctxt_cs1, ctxt_cs2));
 );
 
-val print_claset = print_cs o ! o #1 o GlobalClaset.get;
-val get_claset = ! o #1 o GlobalClaset.get;
+val get_claset = #1 o GlobalClaset.get;
+val map_claset = GlobalClaset.map o apfst;
 
 val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
 fun map_context_cs f = GlobalClaset.map (apsnd
   (fn ContextCS {swrappers, uwrappers} => make_context_cs (f (swrappers, uwrappers))));
 
-val change_claset_of = change o #1 o GlobalClaset.get;
-fun change_claset f = change_claset_of (ML_Context.the_global_context ()) f;
+fun change_claset f = Context.>> (Context.map_theory (map_claset f));
 
 fun claset_of thy =
-  let val (cs_ref, ctxt_cs) = GlobalClaset.get thy
-  in context_cs (ProofContext.init thy) (! cs_ref) (ctxt_cs) end;
+  let val (cs, ctxt_cs) = GlobalClaset.get thy
+  in context_cs (ProofContext.init thy) cs (ctxt_cs) end;
 val claset = claset_of o ML_Context.the_global_context;
 
 fun CLASET tacf st = tacf (claset_of (Thm.theory_of_thm st)) st;
@@ -900,15 +895,11 @@ fun Delrules args = change_claset (fn cs => cs delrules args);
 
 (* context dependent components *)
 
-fun add_context_safe_wrapper wrapper = (map_context_cs o apfst)
-  (AList.update (op =) wrapper);
-fun del_context_safe_wrapper name = (map_context_cs o apfst)
-  (AList.delete (op =) name);
+fun add_context_safe_wrapper wrapper = map_context_cs (apfst ((AList.update (op =) wrapper)));
+fun del_context_safe_wrapper name = map_context_cs (apfst ((AList.delete (op =) name)));
 
-fun add_context_unsafe_wrapper wrapper = (map_context_cs o apsnd)
-  (AList.update (op =) wrapper);
-fun del_context_unsafe_wrapper name = (map_context_cs o apsnd)
-  (AList.delete (op =) name);
+fun add_context_unsafe_wrapper wrapper = map_context_cs (apsnd ((AList.update (op =) wrapper)));
+fun del_context_unsafe_wrapper name = map_context_cs (apsnd ((AList.delete (op =) name)));
 
 
 (* local clasets *)
@@ -919,29 +910,20 @@ structure LocalClaset = ProofDataFun
   val init = get_claset;
 );
 
-val get_local_claset = LocalClaset.get;
-val put_local_claset = LocalClaset.put;
-
 fun local_claset_of ctxt =
-  context_cs ctxt (get_local_claset ctxt) (get_context_cs ctxt);
-
-val print_local_claset = print_cs o local_claset_of;
+  context_cs ctxt (LocalClaset.get ctxt) (get_context_cs ctxt);
 
 
 (* generic clasets *)
 
-fun get_cs (Context.Theory thy) = claset_of thy
-  | get_cs (Context.Proof ctxt) = local_claset_of ctxt;
-
-fun map_cs f (Context.Theory thy) = (change_claset_of thy f; Context.Theory thy)
-  | map_cs f (Context.Proof ctxt) = Context.Proof (LocalClaset.map f ctxt);
+val get_cs = Context.cases claset_of local_claset_of;
+fun map_cs f = Context.mapping (map_claset f) (LocalClaset.map f);
 
 
 (* attributes *)
 
 fun attrib f = Thm.declaration_attribute (fn th =>
-   fn Context.Theory thy => (change_claset_of thy (f th); Context.Theory thy)
-    | Context.Proof ctxt => Context.Proof (LocalClaset.map (f th) ctxt));
+  Context.mapping (map_claset (f th)) (LocalClaset.map (f th)));
 
 fun safe_dest w = attrib (addSE w o make_elim);
 val safe_elim = attrib o addSE;
@@ -1071,7 +1053,7 @@ val setup_methods = Method.add_methods
 
 (** theory setup **)
 
-val setup = GlobalClaset.init #> setup_attrs #> setup_methods;
+val setup = setup_attrs #> setup_methods;
 
 
 
@@ -1080,9 +1062,7 @@ val setup = GlobalClaset.init #> setup_attrs #> setup_methods;
 val _ =
   OuterSyntax.improper_command "print_claset" "print context of Classical Reasoner"
     OuterKeyword.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o (Toplevel.keep
-      (Toplevel.node_case
-        (Context.cases print_claset print_local_claset)
-        (print_local_claset o Proof.context_of)))));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+      Toplevel.keep (print_cs o local_claset_of o Toplevel.context_of)));
 
 end;

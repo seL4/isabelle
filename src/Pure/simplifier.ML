@@ -9,8 +9,6 @@ meta_simplifier.ML for the actual meta-level rewriting engine).
 signature BASIC_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
-  val print_simpset: theory -> unit
-  val change_simpset_of: theory -> (simpset -> simpset) -> unit
   val change_simpset: (simpset -> simpset) -> unit
   val simpset_of: theory -> simpset
   val simpset: unit -> simpset
@@ -60,10 +58,6 @@ sig
   val     full_rewrite: simpset -> conv
   val   asm_lr_rewrite: simpset -> conv
   val asm_full_rewrite: simpset -> conv
-  val get_simpset: theory -> simpset
-  val print_local_simpset: Proof.context -> unit
-  val get_local_simpset: Proof.context -> simpset
-  val put_local_simpset: simpset -> Proof.context -> Proof.context
   val get_ss: Context.generic -> simpset
   val map_ss: (simpset -> simpset) -> Context.generic -> Context.generic
   val attrib: (simpset * thm list -> simpset) -> attribute
@@ -71,6 +65,7 @@ sig
   val simp_del: attribute
   val cong_add: attribute
   val cong_del: attribute
+  val map_simpset: (simpset -> simpset) -> theory -> theory
   val get_simproc: Context.generic -> xstring -> simproc
   val def_simproc: {name: string, lhss: string list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} ->
@@ -94,27 +89,34 @@ open MetaSimplifier;
 
 (** simpset data **)
 
-(* global simpsets *)
-
-structure GlobalSimpset = TheoryDataFun
+structure SimpsetData = GenericDataFun
 (
-  type T = simpset ref;
-  val empty = ref empty_ss;
-  fun copy (ref ss) = ref ss: T;
-  fun extend (ref ss) = ref (MetaSimplifier.inherit_context empty_ss ss);
-  fun merge _ (ref ss1, ref ss2) = ref (merge_ss (ss1, ss2));
+  type T = simpset;
+  val empty = empty_ss;
+  fun extend ss = MetaSimplifier.inherit_context empty_ss ss;
+  fun merge _ = merge_ss;
 );
 
-val _ = Context.>> (Context.map_theory GlobalSimpset.init);
-fun print_simpset thy = print_ss (! (GlobalSimpset.get thy));
-val get_simpset = ! o GlobalSimpset.get;
+val get_ss = SimpsetData.get;
+val map_ss = SimpsetData.map;
 
-fun change_simpset_of thy f = CRITICAL (fn () => change (GlobalSimpset.get thy) f);
-fun change_simpset f = CRITICAL (fn () => change_simpset_of (ML_Context.the_global_context ()) f);
 
-fun simpset_of thy = MetaSimplifier.context (ProofContext.init thy) (get_simpset thy);
+(* attributes *)
+
+fun attrib f = Thm.declaration_attribute (fn th => map_ss (fn ss => f (ss, [th])));
+
+val simp_add = attrib (op addsimps);
+val simp_del = attrib (op delsimps);
+val cong_add = attrib (op addcongs);
+val cong_del = attrib (op delcongs);
+
+
+(* global simpset *)
+
+fun map_simpset f = Context.theory_map (map_ss f);
+fun change_simpset f = Context.>> (Context.map_theory (map_simpset f));
+fun simpset_of thy = MetaSimplifier.context (ProofContext.init thy) (get_ss (Context.Theory thy));
 val simpset = simpset_of o ML_Context.the_global_context;
-
 
 fun SIMPSET tacf st = tacf (simpset_of (Thm.theory_of_thm st)) st;
 fun SIMPSET' tacf i st = tacf (simpset_of (Thm.theory_of_thm st)) i st;
@@ -127,41 +129,12 @@ fun Addcongs args = change_simpset (fn ss => ss addcongs args);
 fun Delcongs args = change_simpset (fn ss => ss delcongs args);
 
 
-(* local simpsets *)
+(* local simpset *)
 
-structure LocalSimpset = ProofDataFun
-(
-  type T = simpset;
-  val init = get_simpset;
-);
-
-val print_local_simpset = print_ss o LocalSimpset.get;
-val get_local_simpset = LocalSimpset.get;
-val put_local_simpset = LocalSimpset.put;
-
-fun local_simpset_of ctxt = MetaSimplifier.context ctxt (get_local_simpset ctxt);
+fun local_simpset_of ctxt = MetaSimplifier.context ctxt (get_ss (Context.Proof ctxt));
 
 val _ = ML_Context.value_antiq "simpset"
   (Scan.succeed ("simpset", "Simplifier.local_simpset_of (ML_Context.the_local_context ())"));
-
-
-(* generic simpsets *)
-
-fun get_ss (Context.Theory thy) = simpset_of thy
-  | get_ss (Context.Proof ctxt) = local_simpset_of ctxt;
-
-fun map_ss f (Context.Theory thy) = (change_simpset_of thy f; Context.Theory thy)
-  | map_ss f (Context.Proof ctxt) = Context.Proof (LocalSimpset.map f ctxt);
-
-
-(* attributes *)
-
-fun attrib f = Thm.declaration_attribute (fn th => map_ss (fn ss => f (ss, [th])));
-
-val simp_add = attrib (op addsimps);
-val simp_del = attrib (op delsimps);
-val cong_add = attrib (op addcongs);
-val cong_del = attrib (op delcongs);
 
 
 
@@ -399,14 +372,14 @@ val simp_modifiers =
   Args.$$$ simpN -- Args.add -- Args.colon >> K (I, simp_add),
   Args.$$$ simpN -- Args.del -- Args.colon >> K (I, simp_del),
   Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon
-    >> K (LocalSimpset.map MetaSimplifier.clear_ss, simp_add)]
+    >> K (Context.proof_map (map_ss MetaSimplifier.clear_ss), simp_add)]
    @ cong_modifiers;
 
 val simp_modifiers' =
  [Args.add -- Args.colon >> K (I, simp_add),
   Args.del -- Args.colon >> K (I, simp_del),
   Args.$$$ onlyN -- Args.colon
-    >> K (LocalSimpset.map MetaSimplifier.clear_ss, simp_add)]
+    >> K (Context.proof_map (map_ss MetaSimplifier.clear_ss), simp_add)]
    @ cong_modifiers;
 
 fun simp_args more_mods =
@@ -429,7 +402,7 @@ fun method_setup more_mods = Method.add_methods
  [(simpN, simp_args more_mods simp_method', "simplification"),
   ("simp_all", simp_args more_mods simp_method, "simplification (all goals)")];
 
-fun easy_setup reflect trivs = method_setup [] #> (fn thy =>
+fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn _ =>
   let
     val trivialities = Drule.reflexive_thm :: trivs;
 
@@ -445,13 +418,12 @@ fun easy_setup reflect trivs = method_setup [] #> (fn thy =>
       else [thm RS reflect] handle THM _ => [];
 
     fun mksimps thm = mk_eq (Drule.forall_elim_vars (#maxidx (Thm.rep_thm thm) + 1) thm);
-    val _ = CRITICAL (fn () =>
-      GlobalSimpset.get thy :=
-        empty_ss setsubgoaler asm_simp_tac
-        setSSolver safe_solver
-        setSolver unsafe_solver
-        setmksimps mksimps);
-  in thy end);
+  in
+    empty_ss setsubgoaler asm_simp_tac
+    setSSolver safe_solver
+    setSolver unsafe_solver
+    setmksimps mksimps
+  end));
 
 end;
 
