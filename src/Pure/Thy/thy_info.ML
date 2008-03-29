@@ -33,6 +33,7 @@ sig
   val touch_child_thys: string -> unit
   val provide_file: Path.T -> string -> unit
   val load_file: bool -> Path.T -> unit
+  val exec_file: bool -> Path.T -> Context.generic -> Context.generic
   val use: string -> unit
   val time_use: string -> unit
   val use_thys: string list -> unit
@@ -308,6 +309,8 @@ fun load_file time path =
     end
   else run_file path;
 
+fun exec_file time path = ML_Context.exec (fn () => load_file time path);
+
 val use = load_file false o Path.explode;
 val time_use = load_file true o Path.explode;
 
@@ -546,8 +549,7 @@ fun begin_theory name parents uses int =
       |> Present.begin_theory update_time dir uses;
 
     val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
-    val theory'' =
-      Context.theory_map (ML_Context.exec (fn () => List.app (load_file false) uses_now)) theory';
+    val theory'' = fold (Context.theory_map o exec_file false) uses_now theory';
   in theory'' end;
 
 fun end_theory theory =
