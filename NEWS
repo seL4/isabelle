@@ -144,6 +144,10 @@ primrec specifications have authentic syntax.
 
 * Library/ListVector: new theory of arithmetic vector operations.
 
+* Library/Order_Relation: new theory of various orderings as sets of pairs.
+  Defines preorders, partial orders, linear orders and well-orders
+  on sets and on types.
+
 * Constants "card", "internal_split", "option_map" now with authentic
 syntax.  INCOMPATIBILITY.
 
