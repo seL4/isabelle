@@ -97,13 +97,13 @@ fun helper_path evar base =
       "" => error  ("Isabelle environment variable " ^ evar ^ " not defined")
     | home =>
         let val path = home ^ "/" ^ base
-        in  if File.exists (File.explode_platform_path path) then path
+        in  if File.exists (Path.explode path) then path
             else error ("Could not find the file " ^ path)
         end;
 
 fun probfile_nosuffix _ =
   if !destdir = "" then File.platform_path (File.tmp_path (Path.basic (!problem_name)))
-  else if File.exists (File.explode_platform_path (!destdir))
+  else if File.exists (Path.explode (!destdir))
   then !destdir ^ "/" ^ !problem_name
   else error ("No such directory: " ^ !destdir);
 
@@ -113,7 +113,7 @@ fun atp_input_file () =
     let val file = !problem_name
     in
         if !destdir = "" then File.platform_path (File.tmp_path (Path.basic file))
-        else if File.exists (File.explode_platform_path (!destdir))
+        else if File.exists (Path.explode (!destdir))
         then !destdir ^ "/" ^ file
         else error ("No such directory: " ^ !destdir)
     end;
@@ -717,7 +717,7 @@ fun watcher_call_provers files (childin, childout, pid) =
 
 (*For debugging the generated set of theorem names*)
 fun trace_vector fname =
-  let val path = File.explode_platform_path (fname ^ "_thm_names")
+  let val path = Path.explode (fname ^ "_thm_names")
   in  Vector.app (File.append path o (fn s => s ^ "\n"))  end;
 
 (*We write out problem files for each subgoal. Argument probfile generates filenames,
