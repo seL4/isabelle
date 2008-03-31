@@ -132,7 +132,7 @@ fun use_text (tune: string -> string) (line: int, name) (print, err) verbose txt
 fun use_file tune output verbose name =
   let
     val instream = TextIO.openIn name;
-    val txt = TextIO.inputAll instream before TextIO.closeIn instream;
+    val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
   in use_text tune (1, name) output verbose txt end;
 
 fun forget_structure name =

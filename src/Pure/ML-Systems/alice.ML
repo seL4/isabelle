@@ -152,11 +152,11 @@ local
 
 fun read_file name =
   let val is = TextIO.openIn name
-  in TextIO.inputAll is before TextIO.closeIn is end;
+  in Exn.release (Exn.capture TextIO.inputAll is before TextIO.closeIn is) end;
 
 fun write_file name txt =
   let val os = TextIO.openOut name
-  in TextIO.output (os, txt) before TextIO.closeOut os end;
+  in Exn.release (Exn.capture TextIO.output (os, txt) before TextIO.closeOut os) end;
 
 in
 
