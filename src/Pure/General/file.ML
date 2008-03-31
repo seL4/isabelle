@@ -7,11 +7,7 @@ File system operations.
 
 signature FILE =
 sig
-  val explode_platform_path_fn: (string -> Path.T) ref
-  val explode_platform_path: string -> Path.T
-  val platform_path_fn: (Path.T -> string) ref
   val platform_path: Path.T -> string
-  val shell_path_fn: (Path.T -> string) ref
   val shell_path: Path.T -> string
   val cd: Path.T -> unit
   val pwd: unit -> Path.T
@@ -26,6 +22,9 @@ sig
   val check: Path.T -> unit
   val rm: Path.T -> unit
   val mkdir: Path.T -> unit
+  val open_input: (TextIO.instream -> 'a) -> Path.T -> 'a
+  val open_output: (TextIO.outstream -> 'a) -> Path.T -> 'a
+  val open_append: (TextIO.outstream -> 'a) -> Path.T -> 'a
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
@@ -39,30 +38,25 @@ end;
 structure File: FILE =
 struct
 
-(* platform specific path representations *)
+(* system path representations *)
 
-val explode_platform_path_fn = ref Path.explode;
-fun explode_platform_path s = ! explode_platform_path_fn s;
-
-val platform_path_fn = ref (Path.implode o Path.expand);
-fun platform_path path = ! platform_path_fn path;
-
-val shell_path_fn = ref (enclose "'" "'" o Path.implode o Path.expand);
-fun shell_path path = ! shell_path_fn path;
+val platform_path = Path.implode o Path.expand;
+val shell_path = enclose "'" "'" o Path.implode o Path.expand;
 
 
-(* current path *)
+(* current working directory *)
 
 val cd = cd o platform_path;
-val pwd = explode_platform_path o pwd;
+val pwd = Path.explode o pwd;
 
-fun norm_absolute p = NAMED_CRITICAL "IO" (fn () =>
+(* FIXME not thread-safe! *)
+fun norm_absolute p =
   let
     val p' = pwd ();
     fun norm p = if can cd p then pwd ()
       else Path.append (norm (Path.dir p)) (Path.base p);
     val p'' = norm p;
-  in (cd p'; p'') end);
+  in (cd p'; p'') end;
 
 fun full_path path =
   (if Path.is_absolute path then path
@@ -123,22 +117,22 @@ fun is_dir path =
 
 local
 
-fun fail_safe f g x =
-  let val y = f x handle exn => (g x; raise exn)
-  in g x; y end;
+fun with_file open_file close_file f path =
+  let val file = open_file path
+  in Exn.release (Exn.capture f file before close_file file) end;
 
-fun output txts stream = List.app (fn txt => TextIO.output (stream, txt)) txts;
+fun output txts file = List.app (fn txt => TextIO.output (file, txt)) txts;
 
 in
 
-fun read path =
-  fail_safe TextIO.inputAll TextIO.closeIn (TextIO.openIn (platform_path path));
+fun open_input f = with_file TextIO.openIn TextIO.closeIn f o platform_path;
+fun open_output f = with_file TextIO.openOut TextIO.closeOut f o platform_path;
+fun open_append f = with_file TextIO.openAppend TextIO.closeOut f o platform_path;
 
-fun write_list path txts =
-  fail_safe (output txts) TextIO.closeOut (TextIO.openOut (platform_path path));
+val read = open_input TextIO.inputAll;
 
-fun append_list path txts =
-  fail_safe (output txts) TextIO.closeOut (TextIO.openAppend (platform_path path));
+fun write_list path txts = open_output (output txts) path;
+fun append_list path txts = open_append (output txts) path;
 
 fun write path txt = write_list path [txt];
 fun append path txt = append_list path [txt];
