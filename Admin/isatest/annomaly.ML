@@ -9,23 +9,62 @@ local
 
   val smlnj_use_text = use_text
 
-  fun strip ([], "src" :: name, _) = name
-    | strip (["Distribution"], name, _) = name
-    | strip ([], name, _) = name
-    | strip (h1 :: t1, h2 :: t2, def) =
-      if h1 = h2 then strip (t1, t2, def) else def
+  val smlnj_use_file = use_file
 
-  fun rewrite (NONE, name) = "use_text" :: name
-    | rewrite (SOME home, name) =
-      strip (#arcs (OS.Path.fromString home), name, "use_text" :: name)
+  val smlnj_forget_structure = forget_structure
+
+  fun mkAbsolute path =
+      OS.Path.mkAbsolute { path = path, relativeTo = OS.FileSys.getDir () }
+
+  fun toArcs path = #arcs (OS.Path.fromString path)
+
+  val isabelleHome =
+      case OS.Process.getEnv "ISABELLE_HOME"
+       of  NONE => OS.FileSys.getDir ()
+	 | SOME home => mkAbsolute home
+
+  fun noparent [] = []
+    | noparent (n :: ns) =
+      if n = OS.Path.parentArc then noparent ns else n :: noparent ns
+
+  fun isabellePath [] = []
+    | isabellePath ("src" :: name) = "Isabelle" :: name
+    | isabellePath (name as (n :: ns)) =
+      if n = OS.Path.parentArc then noparent ns else "Isabelle" :: name
+
+  fun rewrite defPrefix name =
+      let val abs = mkAbsolute name
+	  val rel = OS.Path.mkRelative { path = abs, relativeTo = isabelleHome }
+	  val exists = (OS.FileSys.access(abs, nil)
+			handle OS.SysErr _ => false)
+      in  if exists andalso rel <> ""
+	  then isabellePath (toArcs rel)
+	  else defPrefix @ noparent (toArcs name)
+      end handle OS.Path.Path => defPrefix @ noparent (toArcs name)
 
 in
 
-  fun use_text tune name p v t =
+  fun use_text tune (line, name) p v t =
     let val name = case name of "" => "unnamed" | name => name
-        val arcs = rewrite (OS.Process.getEnv "ISABELLE_HOME",
-                            #arcs (OS.Path.fromString name))
-        val _    = AnnoMaLy.nameNextStream ("isabelle" :: arcs)
-    in  smlnj_use_text tune name p v t  end
+        val arcs = rewrite ["use_text"] name
+        (* should we have different files for different line numbers? *
+        val arcs = if line <= 1 then arcs
+                   else arcs @ [ "l." ^ Int.toString line ]
+	*)
+	val arcs = if t = "structure Isabelle =\nstruct\nend;"
+		      andalso name = "ML"
+		   then ["empty_Isabelle", "empty" ] else arcs
+        val _    = AnnoMaLy.nameNextStream arcs
+    in  smlnj_use_text tune (line, name) p v t  end;
+
+  fun use_file tune output verbose name =
+      let val arcs = rewrite ["use_file"] name
+          val _    = AnnoMaLy.nameNextStream arcs
+      in  smlnj_use_file tune output verbose name  end;
+
+  fun forget_structure name =
+      let val arcs = [ "forget_structure", name ]
+          val _    = AnnoMaLy.nameNextStream arcs
+      in  smlnj_forget_structure name  end;
 
 end;
