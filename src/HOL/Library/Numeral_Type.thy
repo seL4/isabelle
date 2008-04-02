@@ -8,7 +8,7 @@
 header "Numeral Syntax for Types"
 
 theory Numeral_Type
-  imports Infinite_Set
+  imports ATP_Linkup
 begin
 
 subsection {* Preliminary lemmas *}
@@ -127,7 +127,7 @@ lemma card_bit1: "CARD('a::finite bit1) = Suc (2 * CARD('a))"
   by (simp only: card_prod card_option card_bool)
 
 lemma card_num0: "CARD (num0) = 0"
-  by (simp add: type_definition.card [OF type_definition_num0])
+  by (simp add: infinite_UNIV_nat card_eq_0_iff type_definition.card [OF type_definition_num0])
 
 lemmas card_univ_simps [simp] =
   card_unit
