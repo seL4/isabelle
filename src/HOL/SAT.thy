@@ -8,12 +8,11 @@ Basic setup for the 'sat' and 'satx' tactic.
 
 header {* Reconstructing external resolution proofs for propositional logic *}
 
-theory SAT imports Refute
-
+theory SAT
+imports Refute
 uses
-     "Tools/cnf_funcs.ML"
-     "Tools/sat_funcs.ML"
-
+  "Tools/cnf_funcs.ML"
+  "Tools/sat_funcs.ML"
 begin
 
 text {* \medskip Late package setup: default values for refute, see
@@ -26,7 +25,6 @@ refute_params
   maxvars=10000,
   maxtime=60,
   satsolver="auto"]
-
 
 ML {* structure sat = SATFunc(structure cnf = cnf); *}
 

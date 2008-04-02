@@ -9,11 +9,12 @@ Basic setup and documentation for the 'refute' (and 'refute_params') command.
 header {* Refute *}
 
 theory Refute
-imports Datatype
-uses "Tools/prop_logic.ML"
-     "Tools/sat_solver.ML"
-     "Tools/refute.ML"
-     "Tools/refute_isar.ML"
+imports Inductive
+uses
+  "Tools/prop_logic.ML"
+  "Tools/sat_solver.ML"
+  "Tools/refute.ML"
+  "Tools/refute_isar.ML"
 begin
 
 setup Refute.setup
