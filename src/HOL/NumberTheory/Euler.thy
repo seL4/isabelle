@@ -88,7 +88,7 @@ lemma MultInvPair_card_two: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   apply (auto simp add: MultInvPair_def)
   apply (subgoal_tac "~ (StandardRes p j = StandardRes p (a * MultInv p j))")
   apply auto
-  apply (metis MultInvPair_distinct Pls_def StandardRes_prop2 int_0_less_1 less_Pls_Bit0 number_of_is_id one_is_num_one order_less_trans)
+  apply (metis MultInvPair_distinct Pls_def StandardRes_def aux number_of_is_id one_is_num_one)
   done
 
 
