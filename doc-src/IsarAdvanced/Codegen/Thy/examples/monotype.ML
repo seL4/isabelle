@@ -3,10 +3,10 @@ struct
 
 datatype nat = Suc of nat | Zero_nat;
 
-fun eqop_nat Zero_nat Zero_nat = true
-  | eqop_nat (Suc m) (Suc n) = eqop_nat m n
-  | eqop_nat Zero_nat (Suc a) = false
-  | eqop_nat (Suc a) Zero_nat = false;
+fun eq_nat Zero_nat Zero_nat = true
+  | eq_nat (Suc m) (Suc n) = eq_nat m n
+  | eq_nat Zero_nat (Suc a) = false
+  | eq_nat (Suc a) Zero_nat = false;
 
 end; (*struct Nat*)
 
@@ -27,8 +27,8 @@ struct
 
 datatype monotype = Mono of Nat.nat * monotype list;
 
-fun eqop_monotype (Mono (tyco1, typargs1)) (Mono (tyco2, typargs2)) =
-  Nat.eqop_nat tyco1 tyco2 andalso
-    List.list_all2 eqop_monotype typargs1 typargs2;
+fun eq_monotype (Mono (tyco1, typargs1)) (Mono (tyco2, typargs2)) =
+  Nat.eq_nat tyco1 tyco2 andalso
+    List.list_all2 eq_monotype typargs1 typargs2;
 
 end; (*struct Codegen*)

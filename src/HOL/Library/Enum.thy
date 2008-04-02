@@ -38,12 +38,16 @@ end
 
 subsection {* Equality and order on functions *}
 
-instance "fun" :: (enum, eq) eq ..
+instantiation "fun" :: (enum, eq) eq
+begin
 
-lemma eq_fun [code func]:
-  fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>eq"
-  shows "f = g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
-  by (simp add: enum_all expand_fun_eq)
+definition
+  "eq f g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
+
+instance by default
+  (simp_all add: eq_fun_def enum_all expand_fun_eq)
+
+end
 
 lemma order_fun [code func]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"

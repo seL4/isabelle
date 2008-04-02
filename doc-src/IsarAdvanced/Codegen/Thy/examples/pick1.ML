@@ -24,7 +24,7 @@ end; (*struct Nat*)
 structure Product_Type = 
 struct
 
-fun split c (a, b) = c a b;
+fun split f (a, b) = f a b;
 
 end; (*struct Product_Type*)
 

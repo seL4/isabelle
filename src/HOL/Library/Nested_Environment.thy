@@ -527,21 +527,21 @@ text {* Equality of environments for code generation *}
 
 lemma [code func, code func del]:
   fixes e1 e2 :: "('b\<Colon>eq, 'a\<Colon>eq, 'c\<Colon>eq) env"
-  shows "e1 = e2 \<longleftrightarrow> e1 = e2" ..
+  shows "eq e1 e2 \<longleftrightarrow> eq e1 e2" ..
 
 lemma eq_env_code [code func]:
   fixes x y :: "'a\<Colon>eq"
     and f g :: "'c\<Colon>{eq, finite} \<Rightarrow> ('b\<Colon>eq, 'a, 'c) env option"
-  shows "Env x f = Env y g \<longleftrightarrow>
-  x = y \<and> (\<forall>z\<in>UNIV. case f z
+  shows "eq (Env x f) (Env y g) \<longleftrightarrow>
+  eq x y \<and> (\<forall>z\<in>UNIV. case f z
    of None \<Rightarrow> (case g z
         of None \<Rightarrow> True | Some _ \<Rightarrow> False)
     | Some a \<Rightarrow> (case g z
-        of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" (is ?env)
-    and "Val a = Val b \<longleftrightarrow> a = b"
-    and "Val a = Env y g \<longleftrightarrow> False"
-    and "Env x f = Val b \<longleftrightarrow> False"
-proof -
+        of None \<Rightarrow> False | Some b \<Rightarrow> eq a b))" (is ?env)
+    and "eq (Val a) (Val b) \<longleftrightarrow> eq a b"
+    and "eq (Val a) (Env y g) \<longleftrightarrow> False"
+    and "eq (Env x f) (Val b) \<longleftrightarrow> False"
+proof (unfold eq)
   have "f = g \<longleftrightarrow> (\<forall>z. case f z
    of None \<Rightarrow> (case g z
         of None \<Rightarrow> True | Some _ \<Rightarrow> False)
@@ -559,7 +559,12 @@ proof -
       then show "f z = g z" by (auto split: option.splits)
     qed
   qed
-  then show ?env by simp
+  then show "Env x f = Env y g \<longleftrightarrow>
+    x = y \<and> (\<forall>z\<in>UNIV. case f z
+     of None \<Rightarrow> (case g z
+          of None \<Rightarrow> True | Some _ \<Rightarrow> False)
+      | Some a \<Rightarrow> (case g z
+          of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" by simp
 qed simp_all
 
 end

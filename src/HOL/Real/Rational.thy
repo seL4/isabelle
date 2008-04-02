@@ -666,10 +666,17 @@ lemma [code]:
   by (cases "l = 0")
     (auto simp add: Rational_simp of_rat_rat [simplified Fract_of_int_quotient [of k l], symmetric])
 
-instance rat :: eq ..
+instantiation rat :: eq
+begin
 
-lemma rat_eq_code [code]: "Rational x = Rational y \<longleftrightarrow> normNum x = normNum y"
-  unfolding Rational_def INum_normNum_iff ..
+definition [code func del]: "eq (r\<Colon>rat) s \<longleftrightarrow> r = s"
+
+instance by default (simp add: eq_rat_def)
+
+lemma rat_eq_code [code]: "eq (Rational x) (Rational y) \<longleftrightarrow> eq (normNum x) (normNum y)"
+  unfolding Rational_def INum_normNum_iff eq ..
+
+end
 
 lemma rat_less_eq_code [code]: "Rational x \<le> Rational y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
 proof -

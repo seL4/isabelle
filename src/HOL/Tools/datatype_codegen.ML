@@ -431,26 +431,44 @@ end;
 
 fun add_datatypes_equality vs dtcos thy =
   let
+    val vs' = (map o apsnd)
+      (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq]) vs;
+    fun add_def tyco lthy =
+      let
+        val ty = Type (tyco, map TFree vs');
+        fun mk_side const_name = Const (const_name, ty --> ty --> HOLogic.boolT)
+          $ Free ("x", ty) $ Free ("y", ty);
+        val def = HOLogic.mk_Trueprop (HOLogic.mk_eq
+          (mk_side @{const_name eq}, mk_side @{const_name "op ="}));
+        val def' = Syntax.check_term lthy def;
+        val ((_, (_, thm)), lthy') = Specification.definition
+          (NONE, (("", []), def')) lthy;
+        val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy);
+        val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
+      in (thm', lthy') end;
+    fun tac thms = Class.intro_classes_tac []
+      THEN ALLGOALS (ProofContext.fact_tac thms);
     fun get_eq' thy dtco = get_eq thy dtco
       |> map (CodeUnit.constrain_thm [HOLogic.class_eq])
-      |> maps ((#mk o #mk_rews o snd o MetaSimplifier.rep_ss o Simplifier.simpset_of) thy);
+      |> map Simpdata.mk_eq
+      |> map (MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}]);
     fun add_eq_thms dtco thy =
       let
         val thy_ref = Theory.check_thy thy;
-        val const = AxClass.param_of_inst thy ("op =", dtco);
+        val const = AxClass.param_of_inst thy (@{const_name eq}, dtco);
         val get_thms = (fn () => get_eq' (Theory.deref thy_ref) dtco |> rev);
       in
         Code.add_funcl (const, Susp.delay get_thms) thy
       end;
-    val vs' = (map o apsnd)
-      (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq]) vs;
   in
     thy
     |> TheoryTarget.instantiation (dtcos, vs', [HOLogic.class_eq])
-    |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-    |> LocalTheory.exit
-    |> ProofContext.theory_of
-    |> fold add_eq_thms dtcos
+    |> fold_map add_def dtcos
+    |-> (fn thms => Class.prove_instantiation_instance (K (tac thms))
+    #> LocalTheory.exit
+    #> ProofContext.theory_of
+    #> fold Code.del_func thms
+    #> fold add_eq_thms dtcos)
   end;
 
 

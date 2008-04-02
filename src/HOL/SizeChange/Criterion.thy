@@ -44,7 +44,7 @@ qed auto
 instance sedge :: finite
 proof
   show "finite (UNIV::sedge set)"
-    by (simp add: sedge_UNIV)
+  by (simp add: sedge_UNIV)
 qed
 
 
@@ -62,7 +62,7 @@ abbreviation (input)
   "dsc G i j \<equiv> has_edge G i LESS j"
 
 abbreviation (input)
-  "eq G i j \<equiv> has_edge G i LEQ j"
+  "eqp G i j \<equiv> has_edge G i LEQ j"
 
 abbreviation
   eql :: "'a scg \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"

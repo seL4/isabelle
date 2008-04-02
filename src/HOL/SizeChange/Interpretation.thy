@@ -190,7 +190,7 @@ definition
   where
   "approx G C C' M M'
   = (\<forall>i j. (dsc G i j \<longrightarrow> decr C C' (M i) (M' j))
-  \<and>(eq G i j \<longrightarrow> decreq C C' (M i) (M' j)))"
+  \<and>(eqp G i j \<longrightarrow> decreq C C' (M i) (M' j)))"
 
 
 
@@ -360,7 +360,7 @@ proof (rule, rule classical)
 	assume "n < i"
 	
 	with fr	have "eqlat ?p th i" by simp 
-	hence "dsc (Gs i) ?q1 ?q2 \<or> eq (Gs i) ?q1 ?q2" 
+	hence "dsc (Gs i) ?q1 ?q2 \<or> eqp (Gs i) ?q1 ?q2" 
       by simp
 	thus "?seq (Suc i) \<le> ?seq i"
 	proof
@@ -376,7 +376,7 @@ proof (rule, rule classical)
 		apply (rule decr_in_cdesc[of _ "s (Suc i)" "s i"])
 		by (rule ird a)+
 	next
-	  assume "eq (Gs i) ?q1 ?q2"
+	  assume "eqp (Gs i) ?q1 ?q2"
 	  
 	  with approx
 	  have a:"decreq (cs i) (cs (Suc i)) 

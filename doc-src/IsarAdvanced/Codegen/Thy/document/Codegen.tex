@@ -4,6 +4,7 @@
 %
 \isadelimtheory
 \isanewline
+\isanewline
 %
 \endisadelimtheory
 %
@@ -761,31 +762,13 @@ The membership test during preprocessing is rewritten,
 %
 \begin{isamarkuptext}%
 Obviously, polymorphic equality is implemented the Haskell
-  way using a type class.  How is this achieved?  By an
-  almost trivial definition in the HOL setup:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-\isacommand{class}\isamarkupfalse%
-\ eq\ {\isacharparenleft}\isakeyword{attach}\ {\isachardoublequoteopen}op\ {\isacharequal}{\isachardoublequoteclose}{\isacharparenright}\ {\isacharequal}\ type%
-\begin{isamarkuptext}%
-This merely introduces a class \isa{eq} with corresponding
-  operation \isa{op\ {\isacharequal}};
-  the preprocessing framework does the rest.
+  way using a type class.  How is this achieved?  HOL introduces
+  an explicit class \isa{eq} with a corresponding operation
+  \isa{eq{\isacharunderscore}class{\isachardot}eq} such that \isa{eq{\isacharunderscore}class{\isachardot}eq\ x\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}}.
+  The preprocessing framework does the rest.
   For datatypes, instances of \isa{eq} are implicitly derived
-  when possible.
+  when possible.  For other types, you may instantiate \isa{eq}
+  manually like any other type class.
 
   Though this \isa{eq} class is designed to get rarely in
   the way, a subtlety
@@ -794,19 +777,6 @@ This merely introduces a class \isa{eq} with corresponding
   us define a lexicographic ordering on tuples:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-%
-\isadelimML
-%
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
 \isacommand{instantiation}\isamarkupfalse%
 \ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}ord{\isacharcomma}\ ord{\isacharparenright}\ ord\isanewline
 \isakeyword{begin}\isanewline
@@ -1347,21 +1317,31 @@ A problem now occurs whenever a type which
 \isacommand{typedecl}\isamarkupfalse%
 \ bar\isanewline
 \isanewline
+\isacommand{instantiation}\isamarkupfalse%
+\ bar\ {\isacharcolon}{\isacharcolon}\ eq\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isachardoublequoteopen}eq\ {\isacharparenleft}x{\isasymColon}bar{\isacharparenright}\ y\ {\isasymlongleftrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+\isanewline
 \isacommand{instance}\isamarkupfalse%
-\ bar\ {\isacharcolon}{\isacharcolon}\ eq%
+%
 \isadelimproof
 \ %
 \endisadelimproof
 %
 \isatagproof
-\isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-%
+\isacommand{by}\isamarkupfalse%
+\ default\ {\isacharparenleft}simp\ add{\isacharcolon}\ eq{\isacharunderscore}bar{\isacharunderscore}def{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
 %
 \endisadelimproof
+\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
 \isanewline
 %
 \isadelimtt

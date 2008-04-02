@@ -2261,13 +2261,6 @@ lemma in_code [code func]:
   "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. a = x)"
   by simp
 
-instance set :: (eq) eq ..
-
-lemma eq_set_code [code func]:
-  fixes A B :: "'a\<Colon>eq set"
-  shows "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
-  by auto
-
 lemma subset_eq_code [code func]:
   fixes A B :: "'a\<Colon>eq set"
   shows "A \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
@@ -2277,6 +2270,16 @@ lemma subset_code [code func]:
   fixes A B :: "'a\<Colon>eq set"
   shows "A \<subset> B \<longleftrightarrow> A \<subseteq> B \<and> \<not> B \<subseteq> A"
   by auto
+
+instantiation set :: (eq) eq
+begin
+
+definition
+  "eq A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
+
+instance by default (auto simp add: eq_set_def)
+
+end
 
 
 subsubsection {* Derived operations *}
@@ -2302,7 +2305,7 @@ lemma Union_code [code func]:
   "Union A = UNION A (\<lambda>x. x)"
   by auto
 
-code_reserved SML union inter (* Avoid clashes with ML infixes *)
+code_reserved SML union inter -- {* avoid clashes with ML infixes *}
 
 subsection {* Basic ML bindings *}
 

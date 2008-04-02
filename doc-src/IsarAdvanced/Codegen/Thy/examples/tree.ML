@@ -1,12 +1,14 @@
 structure HOL = 
 struct
 
-type 'a eq = {eqop : 'a -> 'a -> bool};
-fun eqop (A_:'a eq) = #eqop A_;
+type 'a eq = {eq : 'a -> 'a -> bool};
+fun eq (A_:'a eq) = #eq A_;
 
 type 'a ord = {less_eq : 'a -> 'a -> bool, less : 'a -> 'a -> bool};
 fun less_eq (A_:'a ord) = #less_eq A_;
 fun less (A_:'a ord) = #less A_;
+
+fun eqop A_ a = eq A_ a;
 
 end; (*struct HOL*)
 
@@ -26,12 +28,12 @@ struct
 
 datatype nat = Suc of nat | Zero_nat;
 
-fun eqop_nat Zero_nat Zero_nat = true
-  | eqop_nat (Suc m) (Suc n) = eqop_nat m n
-  | eqop_nat Zero_nat (Suc a) = false
-  | eqop_nat (Suc a) Zero_nat = false;
+fun eq_nat Zero_nat Zero_nat = true
+  | eq_nat (Suc m) (Suc n) = eq_nat m n
+  | eq_nat Zero_nat (Suc a) = false
+  | eq_nat (Suc a) Zero_nat = false;
 
-val eq_nat = {eqop = eqop_nat} : nat HOL.eq;
+val eq_nata = {eq = eq_nat} : nat HOL.eq;
 
 fun less_nat m (Suc n) = less_eq_nat m n
   | less_nat n Zero_nat = false
@@ -68,13 +70,13 @@ fun update (A1_, A2_) (it, entry) (Branch (t1, key, t2)) =
              else Branch (Leaf (key, vala), it, Leaf (it, entry))));
 
 val example : (Nat.nat, (Nat.nat list)) searchtree =
-  update (Nat.eq_nat, Nat.linorder_nat)
+  update (Nat.eq_nata, Nat.linorder_nat)
     (Nat.Suc (Nat.Suc (Nat.Suc (Nat.Suc Nat.Zero_nat))),
       [Nat.Suc (Nat.Suc Nat.Zero_nat), Nat.Suc (Nat.Suc Nat.Zero_nat)])
-    (update (Nat.eq_nat, Nat.linorder_nat)
+    (update (Nat.eq_nata, Nat.linorder_nat)
       (Nat.Suc (Nat.Suc (Nat.Suc Nat.Zero_nat)),
         [Nat.Suc (Nat.Suc (Nat.Suc Nat.Zero_nat))])
-      (update (Nat.eq_nat, Nat.linorder_nat)
+      (update (Nat.eq_nata, Nat.linorder_nat)
         (Nat.Suc (Nat.Suc Nat.Zero_nat), [Nat.Suc (Nat.Suc Nat.Zero_nat)])
         (Leaf (Nat.Suc Nat.Zero_nat, []))));
 

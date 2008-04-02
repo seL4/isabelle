@@ -1,3 +1,4 @@
+
 (* $Id$ *)
 
 (*<*)
@@ -607,21 +608,13 @@ text {*
 
 text {*
   Obviously, polymorphic equality is implemented the Haskell
-  way using a type class.  How is this achieved?  By an
-  almost trivial definition in the HOL setup:
-*}
-(*<*)
-setup {* Sign.add_path "foo" *}
-consts "op =" :: "'a"
-(*>*)
-class eq (attach "op =") = type
-
-text {*
-  This merely introduces a class @{text eq} with corresponding
-  operation @{text "op ="};
-  the preprocessing framework does the rest.
+  way using a type class.  How is this achieved?  HOL introduces
+  an explicit class @{text eq} with a corresponding operation
+  @{const eq} such that @{thm eq [no_vars]}.
+  The preprocessing framework does the rest.
   For datatypes, instances of @{text eq} are implicitly derived
-  when possible.
+  when possible.  For other types, you may instantiate @{text eq}
+  manually like any other type class.
 
   Though this @{text eq} class is designed to get rarely in
   the way, a subtlety
@@ -629,11 +622,7 @@ text {*
   are dependent on operational equality.  For example, let
   us define a lexicographic ordering on tuples:
 *}
-(*<*)
-hide (open) "class" eq
-hide (open) const "op ="
-setup {* Sign.parent_path *}
-(*>*)
+
 instantiation * :: (ord, ord) ord
 begin
 
@@ -942,7 +931,14 @@ text {*
 
 typedecl bar
 
-instance bar :: eq ..
+instantiation bar :: eq
+begin
+
+definition "eq (x\<Colon>bar) y \<longleftrightarrow> x = y"
+
+instance by default (simp add: eq_bar_def)
+
+end
 
 code_type %tt bar
   (Haskell "Integer")

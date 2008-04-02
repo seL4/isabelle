@@ -978,10 +978,17 @@ lemma one_real_code [code, code unfold]:
   "1 = Ratreal 1\<^sub>N" by simp
 declare one_real_code [symmetric, code post]
 
-instance real :: eq ..
+instantiation real :: eq
+begin
+
+definition "eq (x\<Colon>real) y \<longleftrightarrow> x = y"
+
+instance by default (simp add: eq_real_def)
 
 lemma real_eq_code [code]: "Ratreal x = Ratreal y \<longleftrightarrow> normNum x = normNum y"
-  unfolding Ratreal_def INum_normNum_iff ..
+  unfolding Ratreal_def INum_normNum_iff eq ..
+
+end
 
 lemma real_less_eq_code [code]: "Ratreal x \<le> Ratreal y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
 proof -

@@ -637,7 +637,7 @@ qed
 
 lemma desc_scgcomp:
   "dsc (G * H) m r =
-  (\<exists>n. (dsc G m n \<and> eql H n r) \<or> (eq G m n \<and> dsc H n r))" (is "?L = ?R")
+  (\<exists>n. (dsc G m n \<and> eql H n r) \<or> (eqp G m n \<and> dsc H n r))" (is "?L = ?R")
 proof
   show "?R \<Longrightarrow> ?L" by (auto simp:in_grcomp mult_sedge_def)
 

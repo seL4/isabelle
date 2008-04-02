@@ -1,8 +1,10 @@
 structure HOL = 
 struct
 
-type 'a eq = {eqop : 'a -> 'a -> bool};
-fun eqop (A_:'a eq) = #eqop A_;
+type 'a eq = {eq : 'a -> 'a -> bool};
+fun eq (A_:'a eq) = #eq A_;
+
+fun eqop A_ a = eq A_ a;
 
 end; (*struct HOL*)
 

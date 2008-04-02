@@ -125,15 +125,39 @@ fun add_typecopy_spec tyco thy =
     val SOME { constr, proj_def, inject, vs, ... } = get_info thy tyco;
     val vs' = (map o apsnd) (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq]) vs;
     val ty = Logic.unvarifyT (Sign.the_const_type thy constr);
+    fun add_def tyco lthy =
+      let
+        val ty = Type (tyco, map TFree vs');
+        fun mk_side const_name = Const (const_name, ty --> ty --> HOLogic.boolT)
+          $ Free ("x", ty) $ Free ("y", ty);
+        val def = HOLogic.mk_Trueprop (HOLogic.mk_eq
+          (mk_side @{const_name eq}, mk_side @{const_name "op ="}));
+        val def' = Syntax.check_term lthy def;
+        val ((_, (_, thm)), lthy') = Specification.definition
+          (NONE, (("", []), def')) lthy;
+        val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy);
+        val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
+      in (thm', lthy') end;
+    fun tac thms = Class.intro_classes_tac []
+      THEN ALLGOALS (ProofContext.fact_tac thms);
+    fun add_eq_thm thy = 
+      let
+        val eq = inject
+          |> CodeUnit.constrain_thm [HOLogic.class_eq]
+          |> Simpdata.mk_eq
+          |> MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}];
+      in Code.add_func eq thy end;
   in
     thy
     |> Code.add_datatype [(constr, ty)]
     |> Code.add_func proj_def
     |> TheoryTarget.instantiation ([tyco], vs', [HOLogic.class_eq])
-    |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-    |> LocalTheory.exit
-    |> ProofContext.theory_of
-    |> Code.add_func (CodeUnit.constrain_thm [HOLogic.class_eq] inject)
+    |> add_def tyco
+    |-> (fn thm => Class.prove_instantiation_instance (K (tac [thm]))
+    #> LocalTheory.exit
+    #> ProofContext.theory_of
+    #> Code.del_func thm
+    #> add_eq_thm)
   end;
 
 val setup =

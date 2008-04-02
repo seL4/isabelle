@@ -1644,24 +1644,6 @@ subsection {* Code generator basic setup -- see further @{text Code_Setup.thy} *
 
 setup "CodeName.setup #> CodeTarget.setup #> Nbe.setup"
 
-class eq (attach "op =") = type
-
-lemma [code func]:
-  shows "False \<and> x \<longleftrightarrow> False"
-    and "True \<and> x \<longleftrightarrow> x"
-    and "x \<and> False \<longleftrightarrow> False"
-    and "x \<and> True \<longleftrightarrow> x" by simp_all
-
-lemma [code func]:
-  shows "False \<or> x \<longleftrightarrow> x"
-    and "True \<or> x \<longleftrightarrow> True"
-    and "x \<or> False \<longleftrightarrow> x"
-    and "x \<or> True \<longleftrightarrow> True" by simp_all
-
-lemma [code func]:
-  shows "\<not> True \<longleftrightarrow> False"
-    and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
-
 code_datatype Trueprop "prop"
 
 code_datatype "TYPE('a\<Colon>{})"
@@ -1682,6 +1664,37 @@ setup {*
   #> Code.add_case @{thm If_case_cert}
   #> Code.add_undefined @{const_name undefined}
 *}
+
+class eq = type +
+  fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  assumes eq: "eq x y \<longleftrightarrow> x = y "
+begin
+
+lemma equals_eq [code inline, code func]: "op = \<equiv> eq"
+  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq)
+
+end
+
+setup {*
+  CodeUnit.add_const_alias @{thm equals_eq}
+*}
+
+lemma [code func]:
+  shows "False \<and> x \<longleftrightarrow> False"
+    and "True \<and> x \<longleftrightarrow> x"
+    and "x \<and> False \<longleftrightarrow> False"
+    and "x \<and> True \<longleftrightarrow> x" by simp_all
+
+lemma [code func]:
+  shows "False \<or> x \<longleftrightarrow> x"
+    and "True \<or> x \<longleftrightarrow> True"
+    and "x \<or> False \<longleftrightarrow> x"
+    and "x \<or> True \<longleftrightarrow> True" by simp_all
+
+lemma [code func]:
+  shows "\<not> True \<longleftrightarrow> False"
+    and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
+
 
 
 subsection {* Legacy tactics and ML bindings *}
