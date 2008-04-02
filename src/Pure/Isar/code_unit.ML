@@ -248,11 +248,13 @@ fun check_bare_const thy t = case try dest_Const t
  of SOME c_ty => c_ty
   | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t);
 
-fun check_const thy = subst_alias thy o AxClass.unoverload_const thy o check_bare_const thy;
+fun check_const thy = subst_alias thy o AxClass.unoverload_const thy o apfst (subst_alias thy)
+  o check_bare_const thy;
 
 fun read_bare_const thy = check_bare_const thy o Syntax.read_term_global thy;
 
-fun read_const thy = subst_alias thy o AxClass.unoverload_const thy o read_bare_const thy;
+fun read_const thy = subst_alias thy o AxClass.unoverload_const thy o apfst (subst_alias thy)
+  o read_bare_const thy;
 
 local
 
