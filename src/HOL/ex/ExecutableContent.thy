@@ -21,6 +21,7 @@ imports
   Nat_Infinity
   NatPair
   Nested_Environment
+  Option_ord
   Permutation
   Primes
   Product_ord
