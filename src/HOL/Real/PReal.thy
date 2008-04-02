@@ -42,8 +42,6 @@ qed
 typedef preal = "{A. cut A}"
   by (blast intro: cut_of_rat [OF zero_less_one])
 
-instance preal :: "{ord, plus, minus, times, inverse, one}" ..
-
 definition
   preal_of_rat :: "rat => preal" where
   "preal_of_rat q = Abs_preal {x::rat. 0 < x & x < q}"
@@ -68,29 +66,40 @@ definition
   inverse_set :: "rat set => rat set" where
   "inverse_set A = {x. \<exists>y. 0 < x & x < y & inverse y \<notin> A}"
 
+instantiation preal :: "{ord, plus, minus, times, inverse, one}"
+begin
 
-defs (overloaded)
-
+definition
   preal_less_def:
     "R < S == Rep_preal R < Rep_preal S"
 
+definition
   preal_le_def:
     "R \<le> S == Rep_preal R \<subseteq> Rep_preal S"
 
+definition
   preal_add_def:
     "R + S == Abs_preal (add_set (Rep_preal R) (Rep_preal S))"
 
+definition
   preal_diff_def:
     "R - S == Abs_preal (diff_set (Rep_preal R) (Rep_preal S))"
 
+definition
   preal_mult_def:
     "R * S == Abs_preal (mult_set (Rep_preal R) (Rep_preal S))"
 
+definition
   preal_inverse_def:
     "inverse R == Abs_preal (inverse_set (Rep_preal R))"
 
+definition
   preal_one_def:
     "1 == preal_of_rat 1"
+
+instance ..
+
+end
 
 
 text{*Reduces equality on abstractions to equality on representatives*}
