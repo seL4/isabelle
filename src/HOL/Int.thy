@@ -1797,9 +1797,125 @@ lemmas zpower_int = int_power [symmetric]
 
 subsection {* Configuration of the code generator *}
 
-instance int :: eq ..
-
 code_datatype Pls Min Bit0 Bit1 "number_of \<Colon> int \<Rightarrow> int"
+
+lemmas pred_succ_numeral_code [code func] =
+  pred_bin_simps succ_bin_simps
+
+lemmas plus_numeral_code [code func] =
+  add_bin_simps
+  arith_extra_simps(1) [where 'a = int]
+
+lemmas minus_numeral_code [code func] =
+  minus_bin_simps
+  arith_extra_simps(2) [where 'a = int]
+  arith_extra_simps(5) [where 'a = int]
+
+lemmas times_numeral_code [code func] =
+  mult_bin_simps
+  arith_extra_simps(4) [where 'a = int]
+
+instantiation int :: eq
+begin
+
+definition [code func del]: "eq k l \<longleftrightarrow> k - l = (0\<Colon>int)"
+
+instance by default (simp add: eq_int_def)
+
+end
+
+lemma eq_number_of_int_code [code func]:
+  "eq (number_of k \<Colon> int) (number_of l) \<longleftrightarrow> eq k l"
+  unfolding eq_int_def number_of_is_id ..
+
+lemma eq_int_code [code func]:
+  "eq Int.Pls Int.Pls \<longleftrightarrow> True"
+  "eq Int.Pls Int.Min \<longleftrightarrow> False"
+  "eq Int.Pls (Int.Bit0 k2) \<longleftrightarrow> eq Int.Pls k2"
+  "eq Int.Pls (Int.Bit1 k2) \<longleftrightarrow> False"
+  "eq Int.Min Int.Pls \<longleftrightarrow> False"
+  "eq Int.Min Int.Min \<longleftrightarrow> True"
+  "eq Int.Min (Int.Bit0 k2) \<longleftrightarrow> False"
+  "eq Int.Min (Int.Bit1 k2) \<longleftrightarrow> eq Int.Min k2"
+  "eq (Int.Bit0 k1) Int.Pls \<longleftrightarrow> eq Int.Pls k1"
+  "eq (Int.Bit1 k1) Int.Pls \<longleftrightarrow> False"
+  "eq (Int.Bit0 k1) Int.Min \<longleftrightarrow> False"
+  "eq (Int.Bit1 k1) Int.Min \<longleftrightarrow> eq Int.Min k1"
+  "eq (Int.Bit0 k1) (Int.Bit0 k2) \<longleftrightarrow> eq k1 k2"
+  "eq (Int.Bit0 k1) (Int.Bit1 k2) \<longleftrightarrow> False"
+  "eq (Int.Bit1 k1) (Int.Bit0 k2) \<longleftrightarrow> False"
+  "eq (Int.Bit1 k1) (Int.Bit1 k2) \<longleftrightarrow> eq k1 k2"
+  unfolding eq_number_of_int_code [symmetric, of Int.Pls] 
+    eq_number_of_int_code [symmetric, of Int.Min]
+    eq_number_of_int_code [symmetric, of "Int.Bit0 k1"]
+    eq_number_of_int_code [symmetric, of "Int.Bit1 k1"]
+    eq_number_of_int_code [symmetric, of "Int.Bit0 k2"]
+    eq_number_of_int_code [symmetric, of "Int.Bit1 k2"]
+  by (simp_all add: eq Pls_def,
+    simp_all only: Min_def succ_def pred_def number_of_is_id)
+    (auto simp add: iszero_def)
+
+lemma less_eq_number_of_int_code [code func]:
+  "(number_of k \<Colon> int) \<le> number_of l \<longleftrightarrow> k \<le> l"
+  unfolding number_of_is_id ..
+
+lemma less_eq_int_code [code func]:
+  "Int.Pls \<le> Int.Pls \<longleftrightarrow> True"
+  "Int.Pls \<le> Int.Min \<longleftrightarrow> False"
+  "Int.Pls \<le> Int.Bit0 k \<longleftrightarrow> Int.Pls \<le> k"
+  "Int.Pls \<le> Int.Bit1 k \<longleftrightarrow> Int.Pls \<le> k"
+  "Int.Min \<le> Int.Pls \<longleftrightarrow> True"
+  "Int.Min \<le> Int.Min \<longleftrightarrow> True"
+  "Int.Min \<le> Int.Bit0 k \<longleftrightarrow> Int.Min < k"
+  "Int.Min \<le> Int.Bit1 k \<longleftrightarrow> Int.Min \<le> k"
+  "Int.Bit0 k \<le> Int.Pls \<longleftrightarrow> k \<le> Int.Pls"
+  "Int.Bit1 k \<le> Int.Pls \<longleftrightarrow> k < Int.Pls"
+  "Int.Bit0 k \<le> Int.Min \<longleftrightarrow> k \<le> Int.Min"
+  "Int.Bit1 k \<le> Int.Min \<longleftrightarrow> k \<le> Int.Min"
+  "Int.Bit0 k1 \<le> Int.Bit0 k2 \<longleftrightarrow> k1 \<le> k2"
+  "Int.Bit0 k1 \<le> Int.Bit1 k2 \<longleftrightarrow> k1 \<le> k2"
+  "Int.Bit1 k1 \<le> Int.Bit0 k2 \<longleftrightarrow> k1 < k2"
+  "Int.Bit1 k1 \<le> Int.Bit1 k2 \<longleftrightarrow> k1 \<le> k2"
+  unfolding less_eq_number_of_int_code [symmetric, of Int.Pls] 
+    less_eq_number_of_int_code [symmetric, of Int.Min]
+    less_eq_number_of_int_code [symmetric, of "Int.Bit0 k1"]
+    less_eq_number_of_int_code [symmetric, of "Int.Bit1 k1"]
+    less_eq_number_of_int_code [symmetric, of "Int.Bit0 k2"]
+    less_eq_number_of_int_code [symmetric, of "Int.Bit1 k2"]
+  by (simp_all add: Pls_def, simp_all only: Min_def succ_def pred_def number_of_is_id)
+    (auto simp add: neg_def linorder_not_less group_simps
+      zle_add1_eq_le [symmetric] del: iffI , auto simp only: Bit0_def Bit1_def)
+
+lemma less_number_of_int_code [code func]:
+  "(number_of k \<Colon> int) < number_of l \<longleftrightarrow> k < l"
+  unfolding number_of_is_id ..
+
+lemma less_int_code [code func]:
+  "Int.Pls < Int.Pls \<longleftrightarrow> False"
+  "Int.Pls < Int.Min \<longleftrightarrow> False"
+  "Int.Pls < Int.Bit0 k \<longleftrightarrow> Int.Pls < k"
+  "Int.Pls < Int.Bit1 k \<longleftrightarrow> Int.Pls \<le> k"
+  "Int.Min < Int.Pls \<longleftrightarrow> True"
+  "Int.Min < Int.Min \<longleftrightarrow> False"
+  "Int.Min < Int.Bit0 k \<longleftrightarrow> Int.Min < k"
+  "Int.Min < Int.Bit1 k \<longleftrightarrow> Int.Min < k"
+  "Int.Bit0 k < Int.Pls \<longleftrightarrow> k < Int.Pls"
+  "Int.Bit1 k < Int.Pls \<longleftrightarrow> k < Int.Pls"
+  "Int.Bit0 k < Int.Min \<longleftrightarrow> k \<le> Int.Min"
+  "Int.Bit1 k < Int.Min \<longleftrightarrow> k < Int.Min"
+  "Int.Bit0 k1 < Int.Bit0 k2 \<longleftrightarrow> k1 < k2"
+  "Int.Bit0 k1 < Int.Bit1 k2 \<longleftrightarrow> k1 \<le> k2"
+  "Int.Bit1 k1 < Int.Bit0 k2 \<longleftrightarrow> k1 < k2"
+  "Int.Bit1 k1 < Int.Bit1 k2 \<longleftrightarrow> k1 < k2"
+  unfolding less_number_of_int_code [symmetric, of Int.Pls] 
+    less_number_of_int_code [symmetric, of Int.Min]
+    less_number_of_int_code [symmetric, of "Int.Bit0 k1"]
+    less_number_of_int_code [symmetric, of "Int.Bit1 k1"]
+    less_number_of_int_code [symmetric, of "Int.Bit0 k2"]
+    less_number_of_int_code [symmetric, of "Int.Bit1 k2"]
+  by (simp_all add: Pls_def, simp_all only: Min_def succ_def pred_def number_of_is_id)
+    (auto simp add: neg_def group_simps zle_add1_eq_le [symmetric] del: iffI,
+      auto simp only: Bit0_def Bit1_def)
 
 definition
   int_aux :: "nat \<Rightarrow> int \<Rightarrow> int" where

@@ -1486,6 +1486,45 @@ lemmas zmod_simps =
 
 text {* code generator setup *}
 
+context ring_1
+begin
+
+lemma of_int_num [code func]:
+  "of_int k = (if k = 0 then 0 else if k < 0 then
+     - of_int (- k) else let
+       (l, m) = divAlg (k, 2);
+       l' = of_int l
+     in if m = 0 then l' + l' else l' + l' + 1)"
+proof -
+  have aux1: "k mod (2\<Colon>int) \<noteq> (0\<Colon>int) \<Longrightarrow> 
+    of_int k = of_int (k div 2 * 2 + 1)"
+  proof -
+    have "k mod 2 < 2" by (auto intro: pos_mod_bound)
+    moreover have "0 \<le> k mod 2" by (auto intro: pos_mod_sign)
+    moreover assume "k mod 2 \<noteq> 0"
+    ultimately have "k mod 2 = 1" by arith
+    moreover have "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
+    ultimately show ?thesis by auto
+  qed
+  have aux2: "\<And>x. of_int 2 * x = x + x"
+  proof -
+    fix x
+    have int2: "(2::int) = 1 + 1" by arith
+    show "of_int 2 * x = x + x"
+    unfolding int2 of_int_add left_distrib by simp
+  qed
+  have aux3: "\<And>x. x * of_int 2 = x + x"
+  proof -
+    fix x
+    have int2: "(2::int) = 1 + 1" by arith
+    show "x * of_int 2 = x + x" 
+    unfolding int2 of_int_add right_distrib by simp
+  qed
+  from aux1 show ?thesis by (auto simp add: divAlg_mod_div Let_def aux2 aux3)
+qed
+
+end
+
 code_modulename SML
   IntDiv Integer
 
