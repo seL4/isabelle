@@ -258,35 +258,14 @@ fun add_arity th thy =
     val prop = Thm.plain_prop_of (Thm.transfer thy th);
     val (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
     val _ = map (Sign.certify_sort thy) Ss = Ss orelse err ();
-    (*FIXME turn this into a mere check as soon as "attach" has disappeared*)
-    val missing_params = Sign.complete_sort thy [c]
-      |> maps (these o Option.map (fn AxClass { params, ... } => params) o lookup_def thy)
-      |> filter_out (fn (p, _) => can (get_inst_param thy) (p, t));
-    fun declare_missing (p, T0) thy =
-      let
-        val name_inst = instance_name (t, c) ^ "_inst";
-        val p' = NameSpace.base p ^ "_" ^ NameSpace.base t;
-        val vs = Name.names Name.context Name.aT (replicate (Sign.arity_number thy t) []);
-        val T = map_atyps (fn _ => Type (t, map TFree vs)) T0;
-      in
-        thy
-        |> Sign.sticky_prefix name_inst
-        |> Sign.no_base_names
-        |> Sign.declare_const [] (p', T, NoSyn)
-        |-> (fn const' as Const (p'', _) => Thm.add_def false true
-              (Thm.def_name p', Logic.mk_equals (const', Const (p, T)))
-        #>> Thm.varifyT
-        #-> (fn thm => add_inst_param (p, t) (p'', Thm.symmetric thm)
-        #> PureThy.note Thm.internalK (p', thm)
-        #> snd
-        #> Sign.restore_naming thy))
-      end;
-
+    val _ = case filter_out (fn c => can (get_inst_param thy) (c, t)) (params_of thy c)
+     of [] => ()
+      | cs => Output.legacy_feature
+          ("Missing specifications for overloaded parameters " ^ commas_quote cs)
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
     |> put_arity ((t, Ss, c), Drule.unconstrainTs th)
-    |> fold declare_missing missing_params
   end;
 
 

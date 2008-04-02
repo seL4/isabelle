@@ -47,8 +47,11 @@ fun instance_cmd raw_arities defs thy =
       in Specification.definition def' ctxt end;
     val _ = if not (null defs) then Output.legacy_feature
       "Instance command with attached definitions; use instantiation instead." else ();
-  in if not (null defs) orelse forall (Class.is_class thy) sort
+  in if null defs
   then
+    thy
+    |> Class.instance_arity I (tyco, map snd vs, sort)
+  else
     thy
     |> TheoryTarget.instantiation ([tyco], vs, sort)
     |> `(fn ctxt => map (mk_def ctxt) defs)
@@ -56,9 +59,6 @@ fun instance_cmd raw_arities defs thy =
     |> snd
     |> LocalTheory.restore
     |> Class.instantiation_instance Class.conclude_instantiation
-  else
-    thy
-    |> Class.instance_arity I (tyco, map snd vs, sort)
   end;
 
 end;

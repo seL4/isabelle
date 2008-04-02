@@ -433,12 +433,10 @@ val class_val =
 
 val _ =
   OuterSyntax.command "class" "define type class" K.thy_decl
-   (P.name --
-     Scan.optional (P.$$$ "(" |-- P.$$$ "attach" |-- Scan.repeat P.term --| P.$$$ ")") [] --  (* FIXME ?? *)
-     (P.$$$ "=" |-- class_val) -- P.opt_begin
-    >> (fn (((name, add_consts), (supclasses, elems)), begin) =>
+   (P.name -- (P.$$$ "=" |-- class_val) -- P.opt_begin
+    >> (fn ((name, (supclasses, elems)), begin) =>
         (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-          (Class.class_cmd name supclasses elems add_consts #-> TheoryTarget.begin)));
+          (Class.class_cmd name supclasses elems #-> TheoryTarget.begin)));
 
 val _ =
   OuterSyntax.command "subclass" "prove a subclass relation" K.thy_goal
