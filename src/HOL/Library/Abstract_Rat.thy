@@ -264,7 +264,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma INum_normNum_iff [code]: "(INum x ::'a::{field, division_by_zero, ring_char_0}) = INum y \<longleftrightarrow> normNum x = normNum y" (is "?lhs = ?rhs")
+lemma INum_normNum_iff: "(INum x ::'a::{field, division_by_zero, ring_char_0}) = INum y \<longleftrightarrow> normNum x = normNum y" (is "?lhs = ?rhs")
 proof -
   have "normNum x = normNum y \<longleftrightarrow> (INum (normNum x) :: 'a) = INum (normNum y)"
     by (simp del: normNum)
