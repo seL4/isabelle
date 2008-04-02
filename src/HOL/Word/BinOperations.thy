@@ -306,7 +306,7 @@ lemma le_int_or:
   apply (case_tac x rule: bin_exhaust)
   apply (case_tac b)
    apply (case_tac [!] bit)
-     apply (auto simp: less_eq_numeral_code)
+     apply (auto simp: less_eq_int_code)
   done
 
 lemmas int_and_le =

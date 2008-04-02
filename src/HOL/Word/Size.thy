@@ -17,27 +17,42 @@ text {*
   default instantiation for numeral types. This independence requires
   some duplication with the definitions in Numeral\_Type.
 *}
-axclass len0 < type
 
-consts
-  len_of :: "('a :: len0 itself) => nat"
+class len0 = type +
+  fixes len_of :: "'a itself \<Rightarrow> nat"
 
 text {* 
   Some theorems are only true on words with length greater 0.
 *}
-axclass len < len0
-  len_gt_0 [iff]: "0 < len_of TYPE ('a :: len0)"
 
-instance num0  :: len0 ..
-instance num1 :: len0 ..
-instance bit0 :: (len0) len0 ..
-instance bit1 :: (len0) len0 ..
+class len = len0 +
+  assumes len_gt_0 [iff]: "0 < len_of TYPE ('a)"
 
-defs (overloaded)
-  len_num0:  "len_of (x::num0 itself) == 0"
-  len_num1: "len_of (x::num1 itself) == 1"
-  len_bit0: "len_of (x::'a::len0 bit0 itself) == 2 * len_of TYPE ('a)"
-  len_bit1: "len_of (x::'a::len0 bit1 itself) == 2 * len_of TYPE ('a) + 1"
+instantiation num0 and num1 :: len0
+begin
+
+definition
+  len_num0:  "len_of (x::num0 itself) = 0"
+
+definition
+  len_num1: "len_of (x::num1 itself) = 1"
+
+instance ..
+
+end
+
+instantiation bit0 and bit1 :: (len0) len0
+begin
+
+definition
+  len_bit0: "len_of (x::'a::len0 bit0 itself) = 2 * len_of TYPE ('a)"
+
+definition
+  len_bit1: "len_of (x::'a::len0 bit1 itself) = 2 * len_of TYPE ('a) + 1"
+
+instance ..
+
+end
 
 lemmas len_of_numeral_defs [simp] = len_num0 len_num1 len_bit0 len_bit1
 

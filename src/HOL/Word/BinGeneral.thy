@@ -19,15 +19,15 @@ lemma brlem: "(bin = Int.Min) = (- bin + Int.pred 0 = 0)"
   unfolding Min_def pred_def by arith
 
 function
-  bin_rec' :: "int * 'a * 'a * (int => bit => 'a => 'a) => 'a"  
-  where 
-  "bin_rec' (bin, f1, f2, f3) = (if bin = Int.Pls then f1 
+  bin_rec :: "'a \<Rightarrow> 'a \<Rightarrow> (int \<Rightarrow> bit \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> int \<Rightarrow> 'a"  
+where 
+  "bin_rec f1 f2 f3 bin = (if bin = Int.Pls then f1 
     else if bin = Int.Min then f2
-    else case bin_rl bin of (w, b) => f3 w b (bin_rec' (w, f1, f2, f3)))"
+    else case bin_rl bin of (w, b) => f3 w b (bin_rec f1 f2 f3 w))"
   by pat_completeness auto
 
 termination 
-  apply (relation "measure (nat o abs o fst)")
+  apply (relation "measure (nat o abs o snd o snd o snd)")
    apply simp
   apply (simp add: Pls_def brlem)
   apply (clarsimp simp: bin_rl_char pred_def)
@@ -38,41 +38,41 @@ termination
    apply auto
   done
 
-constdefs
-  bin_rec :: "'a => 'a => (int => bit => 'a => 'a) => int => 'a"
-  "bin_rec f1 f2 f3 bin == bin_rec' (bin, f1, f2, f3)"
+declare bin_rec.simps [simp del]
 
 lemma bin_rec_PM:
   "f = bin_rec f1 f2 f3 ==> f Int.Pls = f1 & f Int.Min = f2"
-  apply safe
-   apply (unfold bin_rec_def)
-   apply (auto intro: bin_rec'.simps [THEN trans])
-  done
+  by (auto simp add: bin_rec.simps)
 
 lemma bin_rec_Pls: "bin_rec f1 f2 f3 Int.Pls = f1"
-  unfolding bin_rec_def by simp
+  by (simp add: bin_rec.simps)
 
 lemma bin_rec_Min: "bin_rec f1 f2 f3 Int.Min = f2"
-  unfolding bin_rec_def by simp
+  by (simp add: bin_rec.simps)
 
 lemma bin_rec_Bit0:
   "f3 Int.Pls bit.B0 f1 = f1 \<Longrightarrow>
     bin_rec f1 f2 f3 (Int.Bit0 w) = f3 w bit.B0 (bin_rec f1 f2 f3 w)"
-  apply (unfold bin_rec_def)
-  apply (rule bin_rec'.simps [THEN trans])
-  apply (fold bin_rec_def)
-  apply (simp add: eq_Bit0_Pls eq_Bit0_Min bin_rec_Pls)
+  apply (simp add: bin_rec_Pls bin_rec.simps [of _ _ _ "Int.Bit0 w"])
+  unfolding Pls_def Min_def Bit0_def
+  apply auto
+  apply presburger
+  apply (simp add: bin_rec.simps)
   done
 
 lemma bin_rec_Bit1:
   "f3 Int.Min bit.B1 f2 = f2 \<Longrightarrow>
     bin_rec f1 f2 f3 (Int.Bit1 w) = f3 w bit.B1 (bin_rec f1 f2 f3 w)"
-  apply (unfold bin_rec_def)
-  apply (rule bin_rec'.simps [THEN trans])
-  apply (fold bin_rec_def)
-  apply (simp add: eq_Bit1_Pls eq_Bit1_Min bin_rec_Min)
+  apply (simp add: bin_rec.simps [of _ _ _ "Int.Bit1 w"])
+  unfolding Pls_def Min_def Bit1_def
+  apply auto
+  apply (cases w)
+  apply auto
+  apply (simp add: bin_rec.simps)
+    unfolding Min_def Pls_def number_of_is_id apply auto
+  unfolding Bit0_def apply presburger
   done
-
+  
 lemma bin_rec_Bit:
   "f = bin_rec f1 f2 f3  ==> f3 Int.Pls bit.B0 f1 = f1 ==> 
     f3 Int.Min bit.B1 f2 = f2 ==> f (w BIT b) = f3 w b (f w)"
@@ -83,21 +83,18 @@ lemmas bin_rec_simps = refl [THEN bin_rec_Bit] bin_rec_Pls bin_rec_Min
 
 subsection {* Destructors for binary integers *}
 
-consts
-  -- "corresponding operations analysing bins"
-  bin_last :: "int => bit"
-  bin_rest :: "int => int"
-  bin_sign :: "int => int"
-  bin_nth :: "int => nat => bool"
+definition
+  bin_rest_def [code func del]: "bin_rest w = fst (bin_rl w)"
 
-primrec
-  Z : "bin_nth w 0 = (bin_last w = bit.B1)"
-  Suc : "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
+definition
+  bin_last_def [code func del] : "bin_last w = snd (bin_rl w)"
 
-defs  
-  bin_rest_def : "bin_rest w == fst (bin_rl w)"
-  bin_last_def : "bin_last w == snd (bin_rl w)"
-  bin_sign_def : "bin_sign == bin_rec Int.Pls Int.Min (%w b s. s)"
+definition
+  bin_sign_def [code func del] : "bin_sign = bin_rec Int.Pls Int.Min (%w b s. s)"
+
+primrec bin_nth where
+  "bin_nth.Z" : "bin_nth w 0 = (bin_last w = bit.B1)"
+  | "bin_nth.Suc" : "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
 
 lemma bin_rl: "bin_rl w = (bin_rest w, bin_last w)"
   unfolding bin_rest_def bin_last_def by auto
@@ -107,26 +104,32 @@ lemmas bin_rl_simp [simp] = iffD1 [OF bin_rl_char bin_rl]
 lemma bin_rest_simps [simp]: 
   "bin_rest Int.Pls = Int.Pls"
   "bin_rest Int.Min = Int.Min"
-  "bin_rest (w BIT b) = w"
   "bin_rest (Int.Bit0 w) = w"
   "bin_rest (Int.Bit1 w) = w"
+  "bin_rest (w BIT b) = w"
   unfolding bin_rest_def by auto
+
+declare bin_rest_simps(1-4) [code func]
 
 lemma bin_last_simps [simp]: 
   "bin_last Int.Pls = bit.B0"
   "bin_last Int.Min = bit.B1"
-  "bin_last (w BIT b) = b"
   "bin_last (Int.Bit0 w) = bit.B0"
   "bin_last (Int.Bit1 w) = bit.B1"
+  "bin_last (w BIT b) = b"
   unfolding bin_last_def by auto
+
+declare bin_last_simps(1-4) [code func]
 
 lemma bin_sign_simps [simp]:
   "bin_sign Int.Pls = Int.Pls"
   "bin_sign Int.Min = Int.Min"
-  "bin_sign (w BIT b) = bin_sign w"
   "bin_sign (Int.Bit0 w) = bin_sign w"
   "bin_sign (Int.Bit1 w) = bin_sign w"
+  "bin_sign (w BIT b) = bin_sign w"
   unfolding bin_sign_def by (auto simp: bin_rec_simps)
+
+declare bin_sign_simps(1-4) [code func]
 
 lemma bin_r_l_extras [simp]:
   "bin_last 0 = bit.B0"

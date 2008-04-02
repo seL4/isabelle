@@ -13,7 +13,7 @@ datatype bit = B0 | B1
 
 definition
   Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
-  [code func del]: "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
+  "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
 
 lemma BIT_B0_eq_Bit0 [simp]: "w BIT B0 = Int.Bit0 w"
   unfolding Bit_def Bit0_def by simp

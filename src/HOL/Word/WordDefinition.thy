@@ -28,7 +28,9 @@ definition
         only difference in these is the type class *}
   word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word"
 where
-  "word_of_int w = Abs_word (bintrunc (len_of TYPE ('a)) w)" 
+  [code func del]: "word_of_int w = Abs_word (bintrunc (len_of TYPE ('a)) w)" 
+
+code_datatype word_of_int
 
 
 subsection "Type conversions and casting"
@@ -91,6 +93,13 @@ translations
 
 
 subsection  "Arithmetic operations"
+
+declare uint_def [code func del]
+
+lemma [code func]: "uint (word_of_int w \<Colon> 'a\<Colon>len0 word) = bintrunc (len_of TYPE('a)) w"
+  unfolding uint_def word_of_int_def
+  apply (rule Abs_word_inverse)
+  using range_bintrunc by auto
 
 instantiation word :: (len0) "{number, uminus, minus, plus, one, zero, times, Divides.div, power, ord, bit}"
 begin
