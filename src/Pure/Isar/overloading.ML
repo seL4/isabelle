@@ -19,7 +19,7 @@ sig
   val add_improvable_syntax: Proof.context -> Proof.context
   val map_improvable_syntax: (improvable_syntax -> improvable_syntax)
     -> Proof.context -> Proof.context
-  val set_local_constraints: Proof.context -> Proof.context
+  val set_primary_constraints: Proof.context -> Proof.context
 end;
 
 structure Overloading: OVERLOADING =
@@ -33,16 +33,16 @@ type improvable_syntax = ((((string * typ) list * (string * typ) list) *
 
 structure ImprovableSyntax = ProofDataFun(
   type T = {
-    local_constraints: (string * typ) list,
-    global_constraints: (string * typ) list,
+    primary_constraints: (string * typ) list,
+    secondary_constraints: (string * typ) list,
     improve: string * typ -> (typ * typ) option,
     subst: string * typ -> (typ * term) option,
     unchecks: (term * term) list,
     passed: bool
   };
   fun init _ = {
-    local_constraints = [],
-    global_constraints = [],
+    primary_constraints = [],
+    secondary_constraints = [],
     improve = K NONE,
     subst = K NONE,
     unchecks = [],
@@ -50,11 +50,11 @@ structure ImprovableSyntax = ProofDataFun(
   };
 );
 
-fun map_improvable_syntax f = ImprovableSyntax.map (fn { local_constraints,
-  global_constraints, improve, subst, unchecks, passed } => let
-    val (((local_constraints', global_constraints'), ((improve', subst'), unchecks')), passed')
-      = f (((local_constraints, global_constraints), ((improve, subst), unchecks)), passed)
-  in { local_constraints = local_constraints', global_constraints = global_constraints',
+fun map_improvable_syntax f = ImprovableSyntax.map (fn { primary_constraints,
+  secondary_constraints, improve, subst, unchecks, passed } => let
+    val (((primary_constraints', secondary_constraints'), ((improve', subst'), unchecks')), passed')
+      = f (((primary_constraints, secondary_constraints), ((improve, subst), unchecks)), passed)
+  in { primary_constraints = primary_constraints', secondary_constraints = secondary_constraints',
     improve = improve', subst = subst', unchecks = unchecks', passed = passed'
   } end);
 
@@ -62,7 +62,7 @@ val mark_passed = (map_improvable_syntax o apsnd) (K true);
 
 fun improve_term_check ts ctxt =
   let
-    val { local_constraints, global_constraints, improve, subst, passed, ... } =
+    val { primary_constraints, secondary_constraints, improve, subst, passed, ... } =
       ImprovableSyntax.get ctxt;
     val tsig = (Sign.tsig_of o ProofContext.theory_of) ctxt;
     fun accumulate_improvements (Const (c, ty)) = (case improve (c, ty)
@@ -81,7 +81,7 @@ fun improve_term_check ts ctxt =
   in if eq_list (op aconv) (ts, ts'') andalso passed then NONE else
     if passed then SOME (ts'', ctxt)
     else SOME (ts'', ctxt
-      |> fold (ProofContext.add_const_constraint o apsnd SOME) global_constraints
+      |> fold (ProofContext.add_const_constraint o apsnd SOME) secondary_constraints
       |> mark_passed)
   end;
 
@@ -92,16 +92,16 @@ fun improve_term_uncheck ts ctxt =
     val ts' = map (Pattern.rewrite_term thy unchecks []) ts;
   in if eq_list (op aconv) (ts, ts') then NONE else SOME (ts', ctxt) end;
 
-fun set_local_constraints ctxt =
+fun set_primary_constraints ctxt =
   let
-    val { local_constraints, ... } = ImprovableSyntax.get ctxt;
-  in fold (ProofContext.add_const_constraint o apsnd SOME) local_constraints ctxt end;
+    val { primary_constraints, ... } = ImprovableSyntax.get ctxt;
+  in fold (ProofContext.add_const_constraint o apsnd SOME) primary_constraints ctxt end;
 
 val add_improvable_syntax =
   Context.proof_map
     (Syntax.add_term_check 0 "improvement" improve_term_check
     #> Syntax.add_term_uncheck 0 "improvement" improve_term_uncheck)
-  #> set_local_constraints;
+  #> set_primary_constraints;
 
 
 (** overloading target **)
