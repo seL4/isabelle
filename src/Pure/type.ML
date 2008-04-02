@@ -59,8 +59,6 @@ sig
   val lookup: tyenv -> indexname * sort -> typ option
   val typ_match: tsig -> typ * typ -> tyenv -> tyenv
   val typ_instance: tsig -> typ * typ -> bool
-  val typ_of_sort: Sorts.algebra -> typ -> sort
-    -> sort Vartab.table -> sort Vartab.table
   val raw_match: typ * typ -> tyenv -> tyenv
   val raw_matches: typ list * typ list -> tyenv -> tyenv
   val raw_instance: typ * typ -> bool
@@ -348,18 +346,6 @@ fun lookup tye (ixn, S) =
 (* matching *)
 
 exception TYPE_MATCH;
-
-fun typ_of_sort algebra =
-  let
-    val inters = Sorts.inter_sort algebra;
-    fun of_sort _ [] = I
-      | of_sort (TVar (v, S)) S' = Vartab.map_default (v, [])
-          (fn S'' => inters (S, inters (S', S'')))
-      | of_sort (TFree (_, S)) S' = if Sorts.sort_le algebra (S, S') then I
-          else raise Sorts.CLASS_ERROR (Sorts.NoSubsort (S, S'))
-      | of_sort (Type (a, Ts)) S =
-          fold2 of_sort Ts (Sorts.mg_domain algebra a S)
-  in of_sort end;
 
 fun typ_match tsig =
   let

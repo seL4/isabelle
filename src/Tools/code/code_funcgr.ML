@@ -76,7 +76,7 @@ fun insts_of thy algebra c ty_decl ty =
       Sorts.of_sort_derivation (Sign.pp thy) algebra
         { class_relation = class_relation, type_constructor = type_constructor,
           type_variable = type_variable }
-        (ty, sort)
+        (ty, sort) handle Sorts.CLASS_ERROR _ => [] (*permissive!*)
   in
     flat (maps of_sort_deriv (fold2 mk_inst tys tys_decl []))
   end;
@@ -110,20 +110,18 @@ fun resort_thms algebra tap_typ [] = []
         val thy = Thm.theory_of_thm thm;
         val pp = Sign.pp thy;
         val cs = fold_consts (insert (op =)) thms [];
-        fun class_error (c, ty_decl) e =
-          error ;
         fun match_const c (ty, ty_decl) =
           let
             val tys = Sign.const_typargs thy (c, ty);
             val sorts = map (snd o dest_TVar) (Sign.const_typargs thy (c, ty_decl));
-          in fn tab => fold2 (Type.typ_of_sort algebra) tys sorts tab 
+          in fn tab => fold2 (curry (Sorts.meet_sort algebra)) tys sorts tab
             handle Sorts.CLASS_ERROR e => raise CLASS_ERROR ([c], Sorts.msg_class_error pp e ^ ",\n"
               ^ "for constant " ^ CodeUnit.string_of_const thy c
               ^ "\nin defining equations(s)\n"
               ^ (cat_lines o map string_of_thm) thms)
+            (*handle Sorts.CLASS_ERROR _ => tab (*permissive!*)*)
           end;
-        fun match (c, ty) =
-          case tap_typ c
+        fun match (c, ty) = case tap_typ c
            of SOME ty_decl => match_const c (ty, ty_decl)
             | NONE => I;
         val tvars = fold match cs Vartab.empty;
@@ -161,7 +159,7 @@ fun instances_of thy algebra insts =
     val thy_classes = (#classes o Sorts.rep_algebra o Sign.classes_of) thy;
     fun all_classparams tyco class =
       these (try (#params o AxClass.get_info thy) class)
-      |> map (fn (c, _) => AxClass.param_of_inst thy (c, tyco))
+      |> map_filter (fn (c, _) => try (AxClass.param_of_inst thy) (c, tyco))
   in
     Symtab.empty
     |> fold (fn (tyco, class) =>
@@ -173,7 +171,7 @@ fun instances_of thy algebra insts =
 fun instances_of_consts thy algebra funcgr consts =
   let
     fun inst (cexpr as (c, ty)) = insts_of thy algebra c
-      ((fst o Graph.get_node funcgr) c) ty handle Sorts.CLASS_ERROR _ => [];
+      ((fst o Graph.get_node funcgr) c) ty;
   in
     []
     |> fold (fold (insert (op =)) o inst) consts

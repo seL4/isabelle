@@ -50,10 +50,10 @@ sig
   type class_error
   val msg_class_error: Pretty.pp -> class_error -> string
   val class_error: Pretty.pp -> class_error -> 'a
-  val NoSubsort: sort * sort -> class_error
   exception CLASS_ERROR of class_error
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
   val of_sort: algebra -> typ * sort -> bool
+  val meet_sort: algebra -> typ * sort -> sort Vartab.table -> sort Vartab.table
   val of_sort_derivation: Pretty.pp -> algebra ->
     {class_relation: 'a * class -> class -> 'a,
      type_constructor: string -> ('a * class) list list -> class -> 'a,
@@ -353,6 +353,20 @@ fun of_sort algebra =
             ListPair.all ofS (Ts, Ss)
           end handle CLASS_ERROR _ => false;
   in ofS end;
+
+
+(* meet_sort *)
+
+fun meet_sort algebra =
+  let
+    fun meet _ [] = I
+      | meet (TFree (_, S)) S' = if sort_le algebra (S, S') then I
+          else raise CLASS_ERROR (NoSubsort (S, S'))
+      | meet (TVar (v, S)) S' = if sort_le algebra (S, S') then I
+          else Vartab.map_default (v, S) (curry (inter_sort algebra) S')
+      | meet (Type (a, Ts)) S =
+          fold2 meet Ts (mg_domain algebra a S)
+  in uncurry meet end;
 
 
 (* of_sort_derivation *)
