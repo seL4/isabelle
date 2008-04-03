@@ -3,11 +3,12 @@
     Author:     David Aspinall and Markus Wenzel
 
 Isabelle/Isar configuration for Emacs Proof General.
-See http://proofgeneral.inf.ed.ac.uk
+See also http://proofgeneral.inf.ed.ac.uk
 *)
 
 signature PROOF_GENERAL =
 sig
+  val test_markupN: string
   val init: bool -> unit
   val init_outer_syntax: unit -> unit
   val sendback: string -> Pretty.T list -> unit
@@ -22,6 +23,9 @@ struct
 val proof_generalN = "ProofGeneralEmacs";  (*token markup (colouring vars, etc.)*)
 val pgasciiN = "PGASCII";                  (*plain 7-bit ASCII communication*)
 val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
+val test_markupN = "test_markup";          (*XML markup for everything*)
+
+val _ = Markup.add_mode test_markupN XML.output_markup;
 
 fun special oct =
   if print_mode_active pgasciiN then Symbol.SOH ^ chr (ord (oct_char oct) - 167)
@@ -107,7 +111,7 @@ fun proof_general_markup (name, props) =
       else if name = Markup.hiliteN then (special "327", special "330")
       else ("", "");
     val (bg2, en2) =
-      if print_mode_active IsabelleProcess.test_markupN
+      if print_mode_active test_markupN
       then XML.output_markup (name, props)
       else ("", "");
   in (bg1 ^ bg2, en2 ^ en1) end;
