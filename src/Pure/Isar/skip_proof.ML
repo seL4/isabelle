@@ -11,6 +11,8 @@ sig
   val cheat_tac: theory -> tactic
   val prove: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
+  val prove_global: theory -> string list -> term list -> term ->
+    (thm list -> tactic) -> thm
 end;
 
 structure SkipProof: SKIP_PROOF =
@@ -41,5 +43,8 @@ fun prove ctxt xs asms prop tac =
     if ! quick_and_dirty
     then setmp quick_and_dirty true (cheat_tac (ProofContext.theory_of ctxt)) st
     else tac args st);
+
+fun prove_global thy xs asms prop tac =
+  Drule.standard (prove (ProofContext.init thy) xs asms prop (fn {prems, ...} => tac prems));
 
 end;
