@@ -393,6 +393,19 @@ declaration {* fn _ =>
   Simplifier.map_ss (fn ss => ss setmksimps (mksimps mksimps_pairs))
 *}
 
+section {* generalisation of freshness to lists and sets of atoms *}
+(*================================================================*)
+ 
+consts
+  fresh_star :: "'b \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp>* _" [100,100] 100)
+
+defs (overloaded)
+  fresh_star_set: "xs\<sharp>*c \<equiv> \<forall>x\<in>xs. x\<sharp>c"
+
+defs (overloaded)
+  fresh_star_list: "xs\<sharp>*c \<equiv> \<forall>x\<in>set xs. x\<sharp>c"
+
+lemmas fresh_star_def = fresh_star_list fresh_star_set
 
 section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
