@@ -65,10 +65,7 @@ end;
 
 (* message markup *)
 
-val STX = chr 2;
-val DEL = chr 127;
-
-fun special ch = STX ^ ch;
+fun special ch = Symbol.STX ^ ch;
 val special_sep = special ",";
 val special_end = special ".";
 
@@ -77,7 +74,7 @@ local
 fun print_props props =
   let
     val clean = translate_string (fn c =>
-      if c = STX orelse c = "\n" orelse c = "\r" then DEL else c);
+      if c = Symbol.STX orelse c = "\n" orelse c = "\r" then Symbol.DEL else c);
   in implode (map (fn (x, y) => clean x ^ "=" ^ clean y ^ special_sep ^ "\n") props) end;
 
 fun get_pos (elem as XML.Elem (name, atts, ts)) =
@@ -100,7 +97,7 @@ fun message ch txt0 =
       | SOME xml =>
           (if print_mode_active full_markupN then XML.header ^ txt1 else XML.plain_content xml,
             the_default Position.none (get_pos xml)))
-      |>> translate_string (fn c => if c = STX then DEL else c);
+      |>> translate_string (fn c => if c = Symbol.STX then Symbol.DEL else c);
     val props =
       Position.properties_of (Position.thread_data ())
       |> Position.default_properties pos;
