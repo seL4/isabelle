@@ -12,8 +12,7 @@ sig
   val to_pred_att: thm list -> attribute
   val pred_set_conv_att: attribute
   val add_inductive_i:
-    {quiet_mode: bool, verbose: bool, kind: string, alt_name: bstring,
-      coind: bool, no_elim: bool, no_ind: bool} ->
+    InductivePackage.inductive_flags ->
     ((string * typ) * mixfix) list ->
     (string * typ) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
       local_theory -> InductivePackage.inductive_result * local_theory
@@ -402,7 +401,7 @@ fun code_ind_att optmod = to_pred_att [] #> InductiveCodegen.add optmod NONE;
 
 (**** definition of inductive sets ****)
 
-fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind}
+fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, skip_mono}
     cs intros monos params cnames_syn ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
@@ -466,7 +465,7 @@ fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind
     val monos' = map (to_pred [] (Context.Proof ctxt)) monos;
     val ({preds, intrs, elims, raw_induct, ...}, ctxt1) =
       InductivePackage.add_ind_def {quiet_mode = quiet_mode, verbose = verbose, kind = kind,
-          alt_name = "", coind = coind, no_elim = no_elim, no_ind = no_ind}
+          alt_name = "", coind = coind, no_elim = no_elim, no_ind = no_ind, skip_mono = skip_mono}
         cs' intros' monos' params1 cnames_syn' ctxt;
 
     (* define inductive sets using previously defined predicates *)
