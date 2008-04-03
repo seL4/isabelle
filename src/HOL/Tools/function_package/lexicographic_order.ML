@@ -133,8 +133,8 @@ fun mk_all_measure_funs thy (T as Type ("+", _)) =
 fun dest_term (t : term) =
     let
       val (vars, prop) = FundefLib.dest_all_all t
-      val prems = Logic.strip_imp_prems prop
-      val (lhs, rhs) = Logic.strip_imp_concl prop
+      val (prems, concl) = Logic.strip_horn prop
+      val (lhs, rhs) = concl
                          |> HOLogic.dest_Trueprop
                          |> HOLogic.dest_mem |> fst
                          |> HOLogic.dest_prod

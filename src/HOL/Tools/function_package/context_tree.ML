@@ -81,8 +81,7 @@ val rhs_of = snd o HOLogic.dest_eq o HOLogic.dest_Trueprop
 fun branch_vars t = 
     let 
       val t' = snd (dest_all_all t)
-      val assumes = Logic.strip_imp_prems t'
-      val concl = Logic.strip_imp_concl t'
+      val (assumes, concl) = Logic.strip_horn t'
     in (fold (curry add_term_vars) assumes [], term_vars concl)
     end
 
@@ -104,9 +103,9 @@ val default_congs = map (fn c => c RS eq_reflection) [@{thm "cong"}, @{thm "ext"
 fun mk_branch ctx t = 
     let
       val (ctx', fixes, impl) = dest_all_all_ctx ctx t
-      val assms = Logic.strip_imp_prems impl
+      val (assms, concl) = Logic.strip_horn impl
     in
-      (ctx', fixes, assms, rhs_of (Logic.strip_imp_concl impl))
+      (ctx', fixes, assms, rhs_of concl)
     end
     
 fun find_cong_rule ctx fvar h ((r,dep)::rs) t =

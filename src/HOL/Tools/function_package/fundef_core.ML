@@ -684,7 +684,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
         |> forall_intr (cterm_of thy a)
         |> forall_intr (cterm_of thy P)
     in
-      (subset_induct_all, simple_induct_rule)
+      simple_induct_rule
     end
 
 
@@ -927,7 +927,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
                         
             val psimps = PROFILE "Proving simplification rules" (mk_psimps newthy globals R xclauses values f_iff) graph_is_function
                          
-            val (subset_pinduct, simple_pinduct) = PROFILE "Proving partial induction rule" 
+            val simple_pinduct = PROFILE "Proving partial induction rule" 
                                                            (mk_partial_induct_rule newthy globals R complete_thm) xclauses
                                                    
                                                    
@@ -940,7 +940,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
                                                                         
           in 
             FundefResult {fs=[f], G=G, R=R, cases=complete_thm, 
-                          psimps=psimps, subset_pinducts=[subset_pinduct], simple_pinducts=[simple_pinduct], 
+                          psimps=psimps, simple_pinducts=[simple_pinduct], 
                           termination=total_intro, trsimps=trsimps,
                           domintros=dom_intros}
           end

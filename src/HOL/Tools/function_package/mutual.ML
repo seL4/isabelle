@@ -269,7 +269,7 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, RST, parts, ...})
 fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) proof =
     let
       val result = inner_cont proof
-      val FundefResult {fs=[f], G, R, cases, psimps, trsimps, subset_pinducts=[subset_pinduct],simple_pinducts=[simple_pinduct],
+      val FundefResult {fs=[f], G, R, cases, psimps, trsimps, simple_pinducts=[simple_pinduct],
                         termination,domintros} = result
                                                                                                                
       val (all_f_defs, fs) = map (fn MutualPart {f_defthm = SOME f_def, f = SOME f, cargTs, ...} =>
@@ -290,7 +290,7 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
       val mdomintros = map_option (map (full_simplify rew_ss)) domintros
     in
       FundefResult { fs=fs, G=G, R=R,
-                     psimps=mpsimps, subset_pinducts=[subset_pinduct], simple_pinducts=minducts,
+                     psimps=mpsimps, simple_pinducts=minducts,
                      cases=cases, termination=mtermination,
                      domintros=mdomintros,
                      trsimps=mtrsimps}

@@ -37,7 +37,6 @@ datatype fundef_result =
       psimps : thm list, 
       trsimps : thm list option, 
 
-      subset_pinducts : thm list, 
       simple_pinducts : thm list, 
       cases : thm,
       termination : thm,
@@ -51,7 +50,8 @@ datatype fundef_context_data =
       defname : string,
 
       (* contains no logical entities: invariant under morphisms *)
-      add_simps : string -> Attrib.src list -> thm list -> local_theory -> thm list * local_theory,
+      add_simps : (string -> string) -> string -> Attrib.src list -> thm list 
+                  -> local_theory -> thm list * local_theory,
       case_names : string list,
 
       fs : term list,
@@ -179,9 +179,7 @@ fun split_def ctxt geq =
     let
       fun input_error msg = cat_lines [msg, Syntax.string_of_term ctxt geq]
       val (qs, imp) = open_all_all geq
-
-      val gs = Logic.strip_imp_prems imp
-      val eq = Logic.strip_imp_concl imp
+      val (gs, eq) = Logic.strip_horn imp
 
       val (f_args, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
           handle TERM _ => error (input_error "Not an equation")

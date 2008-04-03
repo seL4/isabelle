@@ -40,11 +40,12 @@ val note_theorem = LocalTheory.note Thm.theoremK
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_" 
 
-fun add_simps fnames post sort label moreatts simps lthy =
+fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
     let
       val atts = Attrib.internal (K Simplifier.simp_add) :: moreatts
       val spec = post simps
                    |> map (apfst (apsnd (append atts)))
+                   |> map (apfst (apfst extra_qualify))
 
       val (saved_spec_simps, lthy) =
         fold_map note_theorem spec lthy
@@ -61,7 +62,7 @@ fun add_simps fnames post sort label moreatts simps lthy =
 
 fun fundef_afterqed config fixes post defname cont sort_cont cnames [[proof]] lthy =
     let
-      val FundefResult {fs, R, psimps, trsimps, subset_pinducts, simple_pinducts, termination, domintros, cases, ...} = 
+      val FundefResult {fs, R, psimps, trsimps,  simple_pinducts, termination, domintros, cases, ...} = 
           cont (Goal.close_result proof)
 
       val fnames = map (fst o fst) fixes
@@ -70,8 +71,8 @@ fun fundef_afterqed config fixes post defname cont sort_cont cnames [[proof]] lt
 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
-            |> addsmps "psimps" [] psimps
-            ||> fold_option (snd oo addsmps "simps" []) trsimps
+            |> addsmps (NameSpace.qualified "partial") "psimps" [] psimps
+            ||> fold_option (snd oo addsmps I "simps" []) trsimps
             ||>> note_theorem ((qualify "pinduct",
                    [Attrib.internal (K (RuleCases.case_names cnames)),
                     Attrib.internal (K (RuleCases.consumes 1)),
@@ -125,7 +126,7 @@ fun total_termination_afterqed data [[totality]] lthy =
       val qualify = NameSpace.qualified defname;
     in
       lthy
-        |> add_simps "simps" allatts tsimps |> snd
+        |> add_simps I "simps" allatts tsimps |> snd
         |> note_theorem ((qualify "induct", [Attrib.internal (K (RuleCases.case_names case_names))]), tinduct) |> snd
     end
 
