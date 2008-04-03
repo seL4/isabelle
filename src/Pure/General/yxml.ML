@@ -30,6 +30,8 @@ struct
 
 (** string representation **)
 
+(* markers *)
+
 val X = Symbol.ENQ;
 val Y = Symbol.ACK;
 val XY = X ^ Y;
@@ -38,7 +40,7 @@ val XYX = XY ^ X;
 val detect = String.isPrefix XY;
 
 
-(* naive pasting of strings *)
+(* output *)
 
 fun output_markup (name, atts) =
   (XY ^ name ^ implode (map (fn (a, x) => Y ^ a ^ "=" ^ x) atts) ^ X, XYX);
@@ -46,9 +48,6 @@ fun output_markup (name, atts) =
 fun element name atts body =
   let val (pre, post) = output_markup (name, atts)
   in pre ^ implode body ^ post end;
-
-
-(* scalable buffer output *)
 
 fun string_of t =
   let
