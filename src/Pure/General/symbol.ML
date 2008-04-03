@@ -10,8 +10,8 @@ sig
   type symbol
   val SOH: symbol
   val STX: symbol
-  val ETX: symbol
-  val EOT: symbol
+  val ENQ: symbol
+  val ACK: symbol
   val DEL: symbol
   val space: symbol
   val spaces: int -> string
@@ -87,8 +87,8 @@ type symbol = string;
 
 val SOH = chr 1;
 val STX = chr 2;
-val ETX = chr 3;
-val EOT = chr 4;
+val ENQ = chr 5;
+val ACK = chr 6;
 val DEL = chr 127;
 
 val space = chr 32;
