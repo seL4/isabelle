@@ -7,32 +7,41 @@ Basic support for XML.
 
 signature XML =
 sig
-  (*string functions*)
-  val detect: string -> bool
-  val header: string
-  val text: string -> string
   type attributes = Markup.property list
-  val element: string -> attributes -> string list -> string
-  val output_markup: Markup.T -> output * output
-  (*tree functions*)
   datatype tree =
       Elem of string * attributes * tree list
     | Text of string
     | Output of output
-  type content = tree list
-  type element = string * attributes * content
+  val add_content: tree -> Buffer.T -> Buffer.T
+  val detect: string -> bool
+  val header: string
+  val text: string -> string
+  val element: string -> attributes -> string list -> string
+  val output_markup: Markup.T -> output * output
   val string_of: tree -> string
-  val plain_content: tree -> string
+  val output: tree -> TextIO.outstream -> unit
   val parse_string : string -> string option
   val parse_comment_whspc: string list -> unit * string list
-  val parse_content: string list -> tree list * string list
-  val parse_elem: string list -> tree * string list
-  val parse_document: string list -> (string option * tree) * string list
+  val parse_element: string list -> tree * string list
   val parse: string -> tree
 end;
 
 structure XML: XML =
 struct
+
+(** XML trees **)
+
+type attributes = Markup.property list;
+
+datatype tree =
+    Elem of string * attributes * tree list
+  | Text of string
+  | Output of output;   (* FIXME !? *)
+
+fun add_content (Elem (_, _, ts)) = fold add_content ts
+  | add_content (Text s) = Buffer.add s
+  | add_content (Output _) = I;    (* FIXME !? *)
+
 
 
 (** string representation **)
@@ -41,7 +50,7 @@ val detect = String.isPrefix "<?xml";
 val header = "<?xml version=\"1.0\"?>\n";
 
 
-(* text and character data *)
+(* escaped text *)
 
 fun decode "&lt;" = "<"
   | decode "&gt;" = ">"
@@ -62,8 +71,6 @@ val text = translate_string encode;
 
 (* elements *)
 
-type attributes = Markup.property list;
-
 fun elem name atts =
   space_implode " " (name :: map (fn (a, x) => a ^ " = \"" ^ text x ^ "\"") atts);
 
@@ -78,39 +85,28 @@ fun output_markup (name, atts) =
   enclose "</" ">" name);
 
 
+(* output *)
 
-(** explicit XML trees **)
-
-datatype tree =
-    Elem of string * attributes * tree list
-  | Text of string
-  | Output of output;
-
-type content = tree list;
-type element = string * attributes * content;
-
-fun string_of t =
+fun buffer_of tree =
   let
-    fun tree (Elem (name, atts, [])) =
+    fun traverse (Elem (name, atts, [])) =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add "/>"
-      | tree (Elem (name, atts, ts)) =
+      | traverse (Elem (name, atts, ts)) =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add ">" #>
-          fold tree ts #>
+          fold traverse ts #>
           Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
-      | tree (Text s) = Buffer.add (text s)
-      | tree (Output s) = Buffer.add s;
-  in Buffer.empty |> tree t |> Buffer.content end;
+      | traverse (Text s) = Buffer.add (text s)
+      | traverse (Output s) = Buffer.add s;
+  in Buffer.empty |> traverse tree end;
 
-fun plain_content tree =
-  let
-    fun content (Elem (_, _, ts)) = fold content ts
-      | content (Text s) = Buffer.add s
-      | content (Output _) = I;    (* FIXME !? *)
-  in Buffer.empty |> content tree |> Buffer.content end;
+val string_of = Buffer.content o buffer_of;
+val output = Buffer.output o buffer_of;
 
 
 
-(** XML parsing **)
+(** XML parsing (slow) **)
+
+local
 
 fun err s (xs, _) =
   "XML parsing error: " ^ s ^ "\nfound: " ^ quote (Symbol.beginning 100 xs);
@@ -121,8 +117,6 @@ val scan_special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
 
 val parse_chars = Scan.repeat1 (Scan.unless ((* scan_whspc -- *)$$ "<")
   (scan_special || Scan.one Symbol.is_regular)) >> implode;
-
-val parse_string = Scan.read Symbol.stopper parse_chars o explode;
 
 val parse_cdata = Scan.this_string "<![CDATA[" |--
   (Scan.repeat (Scan.unless (Scan.this_string "]]>") (Scan.one Symbol.is_regular)) >>
@@ -137,24 +131,25 @@ val parse_comment = Scan.this_string "<!--" --
   Scan.repeat (Scan.unless (Scan.this_string "-->") (Scan.one Symbol.is_regular)) --
   Scan.this_string "-->";
 
-val parse_comment_whspc =
-  (scan_whspc >> K()) --| (Scan.repeat (parse_comment |-- (scan_whspc >> K())));
-
 val parse_pi = Scan.this_string "<?" |--
   Scan.repeat (Scan.unless (Scan.this_string "?>") (Scan.one Symbol.is_regular)) --|
   Scan.this_string "?>";
 
+in
+
+val parse_string = Scan.read Symbol.stopper parse_chars o explode;
+
 fun parse_content xs =
   ((Scan.optional ((* scan_whspc |-- *) parse_chars >> (single o Text)) [] --
     (Scan.repeat ((* scan_whspc |-- *)
-       (   parse_elem >> single
+       (   parse_element >> single
         || parse_cdata >> (single o Text)
         || parse_pi >> K []
         || parse_comment >> K []) --
        Scan.optional ((* scan_whspc |-- *) parse_chars >> (single o Text)) []
          >> op @) >> flat) >> op @)(* --| scan_whspc*)) xs
 
-and parse_elem xs =
+and parse_element xs =
   ($$ "<" |-- Symbol.scan_id --
     Scan.repeat (scan_whspc |-- parse_att) --| scan_whspc :-- (fn (s, _) =>
       !! (err "Expected > or />")
@@ -164,16 +159,15 @@ and parse_elem xs =
               (Scan.this_string ("</" ^ s) --| scan_whspc --| $$ ">"))) >>
     (fn ((s, atts), ts) => Elem (s, atts, ts))) xs;
 
-val parse_document =
-  Scan.option (Scan.this_string "<!DOCTYPE" -- scan_whspc |--
-    (Scan.repeat (Scan.unless ($$ ">")
-      (Scan.one Symbol.is_regular)) >> implode) --| $$ ">" --| scan_whspc) --
-  parse_elem;
+val parse_comment_whspc =
+  (scan_whspc >> K()) --| (Scan.repeat (parse_comment |-- (scan_whspc >> K())));
 
 fun parse s =
   (case Scan.finite Symbol.stopper (Scan.error (!! (err "Malformed element")
-      (scan_whspc |-- parse_elem --| scan_whspc))) (Symbol.explode s) of
+      (scan_whspc |-- parse_element --| scan_whspc))) (Symbol.explode s) of
     (x, []) => x
   | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^ Symbol.beginning 100 ys));
+
+end;
 
 end;
