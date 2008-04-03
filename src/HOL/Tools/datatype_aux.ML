@@ -30,8 +30,7 @@ sig
   val indtac : thm -> string list -> int -> tactic
   val exh_tac : (string -> thm) -> int -> tactic
 
-  datatype simproc_dist = QuickAndDirty
-                        | FewConstrs of thm list
+  datatype simproc_dist = FewConstrs of thm list
                         | ManyConstrs of thm * simpset;
 
   datatype dtyp =
@@ -164,8 +163,7 @@ fun exh_tac exh_thm_of i state =
 
 (* handling of distinctness theorems *)
 
-datatype simproc_dist = QuickAndDirty
-                      | FewConstrs of thm list
+datatype simproc_dist = FewConstrs of thm list
                       | ManyConstrs of thm * simpset;
 
 (********************** Internal description of datatypes *********************)
