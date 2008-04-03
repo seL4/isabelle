@@ -8,6 +8,11 @@ Generalized characters with infinitely many named symbols.
 signature SYMBOL =
 sig
   type symbol
+  val SOH: symbol
+  val STX: symbol
+  val ETX: symbol
+  val EOT: symbol
+  val DEL: symbol
   val space: symbol
   val spaces: int -> string
   val is_char: symbol -> bool
@@ -80,7 +85,13 @@ struct
 
 type symbol = string;
 
-val space = " ";
+val SOH = chr 1;
+val STX = chr 2;
+val ETX = chr 3;
+val EOT = chr 4;
+val DEL = chr 127;
+
+val space = chr 32;
 
 local
   val small_spaces = Vector.tabulate (65, fn i => Library.replicate_string i space);
