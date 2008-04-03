@@ -28,14 +28,14 @@ sig
   | Unparseable   of { text: string }
   | Metainfo      of { name: string option, text: string }
   (* Last three for PGIP literate markup only: *)
-  | Litcomment    of { format: string option, content: XML.content }
+  | Litcomment    of { format: string option, content: XML.tree list }
   | Showcode      of { show: bool }
   | Setformat     of { format: string }
 
   type pgipdocument = pgipdoc list
   type pgip_parser  = string -> pgipdocument       (* system must provide a parser P *)
   val unparse_doc : pgipdocument -> string list    (* s.t. unparse (P x) = x         *)
-  val output_doc : pgipdocument -> XML.content
+  val output_doc : pgipdocument -> XML.tree list
   val doc_markup_elements : string list            (* used in pgip_input *)
   val doc_markup_elements_ignored : string list    (* used in pgip_input *)
 end
@@ -65,7 +65,7 @@ struct
   | Badcmd        of { text: string }
   | Unparseable   of { text: string }
   | Metainfo      of { name: string option, text: string }
-  | Litcomment    of { format: string option, content: XML.content }
+  | Litcomment    of { format: string option, content: XML.tree list }
   | Showcode      of { show: bool }
   | Setformat     of { format: string }
 

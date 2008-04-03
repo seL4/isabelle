@@ -63,7 +63,7 @@ sig
     (* unofficial escape command for debugging *)
     | Quitpgip       of { }
 
-    val input           : XML.element -> pgipinput option        (* raises PGIP *)
+    val input: string * XML.attributes * XML.tree list -> pgipinput option  (* raises PGIP *)
 end
 
 structure PgipInput : PGIPINPUT = 

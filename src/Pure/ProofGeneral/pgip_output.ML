@@ -9,16 +9,16 @@ signature PGIPOUTPUT =
 sig
     (* These are the PGIP messages which the prover emits. *) 
     datatype pgipoutput = 
-      Normalresponse      of { content: XML.content }
+      Normalresponse      of { content: XML.tree list }
     | Errorresponse       of { fatality: PgipTypes.fatality, 
                                location: PgipTypes.location option, 
-                               content: XML.content }
+                               content: XML.tree list }
     | Informfileloaded    of { url: PgipTypes.pgipurl, completed: bool }
     | Informfileoutdated  of { url: PgipTypes.pgipurl, completed: bool }
     | Informfileretracted of { url: PgipTypes.pgipurl, completed: bool }
     | Metainforesponse    of { attrs: XML.attributes, 
-                               content: XML.content }
-    | Lexicalstructure    of { content: XML.content }
+                               content: XML.tree list }
+    | Lexicalstructure    of { content: XML.tree list }
     | Proverinfo          of { name: string, 
                                version: string, 
                                instance: string,
@@ -40,13 +40,13 @@ sig
     | Idvalue             of { thyname: PgipTypes.objname option,
 			       objtype: PgipTypes.objtype, 
 			       name: PgipTypes.objname, 
-			       text: XML.content }
+			       text: XML.tree list }
     | Informguise         of { file : PgipTypes.pgipurl option,  
                                theory: PgipTypes.objname option, 
                                theorem: PgipTypes.objname option, 
                                proofpos: int option }
     | Parseresult         of { attrs: XML.attributes, doc:PgipMarkup.pgipdocument, 
-			       errs: XML.content } (* errs to become PGML *)
+			       errs: XML.tree list } (* errs to become PGML *)
     | Usespgip            of { version: string, 
                                pgipelems: (string * bool * string list) list }
     | Usespgml            of { version: string }
@@ -56,7 +56,7 @@ sig
                                destid: string option,
                                refid: string option,
                                refseq: int option,
-                               content: XML.content }
+                               content: XML.tree list }
     | Ready               of { }
 
     val output : pgipoutput -> XML.tree                                  
@@ -67,15 +67,15 @@ struct
 open PgipTypes
 
 datatype pgipoutput = 
-	 Normalresponse      of { content: XML.content }
+	 Normalresponse      of { content: XML.tree list }
        | Errorresponse       of { fatality: fatality, 
                                   location: location option, 
-				  content: XML.content }
+				  content: XML.tree list }
        | Informfileloaded    of { url: Path.T, completed: bool }
        | Informfileoutdated  of { url: Path.T, completed: bool }
        | Informfileretracted of { url: Path.T, completed: bool }
-       | Metainforesponse    of { attrs: XML.attributes, content: XML.content }
-       | Lexicalstructure    of { content: XML.content }
+       | Metainforesponse    of { attrs: XML.attributes, content: XML.tree list }
+       | Lexicalstructure    of { content: XML.tree list }
        | Proverinfo          of { name: string, version: string, instance: string,
                                   descr: string, url: Url.T, filenameextns: string }
        | Setids              of { idtables: PgipTypes.idtable list  }
@@ -86,7 +86,7 @@ datatype pgipoutput =
        | Idvalue             of { thyname: PgipTypes.objname option,
 				  objtype: PgipTypes.objtype, 
 				  name: PgipTypes.objname, 
-				  text: XML.content }
+				  text: XML.tree list }
        | Setrefs             of { url: PgipTypes.pgipurl option,
 				  thyname: PgipTypes.objname option,
 				  objtype: PgipTypes.objtype option,
@@ -98,7 +98,7 @@ datatype pgipoutput =
 				  theorem: PgipTypes.objname option, 
 				  proofpos: int option }
        | Parseresult         of { attrs: XML.attributes, doc: PgipMarkup.pgipdocument,
-				  errs: XML.content } (* errs to become PGML *)
+				  errs: XML.tree list } (* errs to become PGML *)
        | Usespgip            of { version: string, 
                                   pgipelems: (string * bool * string list) list }
        | Usespgml            of { version: string }
@@ -108,7 +108,7 @@ datatype pgipoutput =
                                   destid: string option,
                                   refid: string option,
                                   refseq: int option,
-                                  content: XML.content }
+                                  content: XML.tree list }
        | Ready               of { }
 
 

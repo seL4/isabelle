@@ -1115,7 +1115,7 @@ and handler (e,srco) =
 in
   (* TODO: add socket interface *)
 
-  val xmlP = XML.parse_comment_whspc |-- XML.parse_elem >> single
+  val xmlP = XML.parse_comment_whspc |-- XML.parse_element >> single
 
   val tty_src = Source.set_prompt "" (Source.source Symbol.stopper xmlP NONE Source.tty)
 

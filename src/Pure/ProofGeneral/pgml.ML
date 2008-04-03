@@ -33,7 +33,7 @@ sig
 			  xref: PgipTypes.pgipurl option,
 			  content: pgmlterm list }
 	   | Alt of { kind: string option, content: pgmlterm list }
-	   | Embed of XML.content
+	   | Embed of XML.tree list
 	   | Raw of XML.tree
 
     datatype pgml = 
@@ -77,7 +77,7 @@ struct
 			  xref: PgipTypes.pgipurl option,
 			  content: pgmlterm list }
 	   | Alt of { kind: string option, content: pgmlterm list }
-	   | Embed of XML.content
+	   | Embed of XML.tree list
 	   | Raw of XML.tree
 
 		       
