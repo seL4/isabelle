@@ -1,8 +1,7 @@
 (*  Title:      HOL/Import/xml.ML
     ID:         $Id$
-    Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
 
-Basic support for XML.
+Yet another version of XML support.
 *)
 
 signature XML =
