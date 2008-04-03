@@ -85,7 +85,7 @@ fun xml_of_proof (PBound i) =
 fun write_to_file path elname x =
   File.write path
     ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ^
-     XML.string_of_tree (XML.Elem (elname,
+     XML.string_of (XML.Elem (elname,
        [("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"),
         ("xsi:noNamespaceSchemaLocation", "isabelle.xsd")],
        [x])));
