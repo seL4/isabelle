@@ -2,68 +2,84 @@
     ID:         $Id$
     Author:     Makarius
 
-Why XML notation?  Efficient text representation of XML trees, using
-extra characters ETX and EOT -- no escaping, may nest marked text
-verbatim.  Markup <elem att="val" ...>...body...</elem> is encoded as:
+Efficient text representation of XML trees using extra characters X
+and Y -- no escaping, may nest marked text verbatim.
 
-  ETX EOT name EOT att=val ... ETX
+Markup <elem att="val" ...>...body...</elem> is encoded as:
+
+  X Y name Y att=val ... X
   ...
   body
   ...
-  ETX EOT ETX
+  X Y X
 *)
 
 signature YXML =
 sig
   val detect: string -> bool
+  val output_markup: Markup.T -> string * string
   val element: string -> XML.attributes -> string list -> string
   val string_of: XML.tree -> string
   val parse_body: string -> XML.tree list
+  val parse_element: string -> string * XML.attributes * XML.tree list
   val parse: string -> XML.tree
 end;
 
 structure YXML: YXML =
 struct
 
-(* string representation *)
+(** string representation **)
 
-val ETX = Symbol.ETX;
-val EOT = Symbol.EOT;
+val X = Symbol.ENQ;
+val Y = Symbol.ACK;
+val XY = X ^ Y;
+val XYX = XY ^ X;
 
-fun detect s = ord s = ord EOT;
+val detect = String.isPrefix XY;
 
 
-(*naive pasting of strings*)
+(* naive pasting of strings *)
+
+fun output_markup (name, atts) =
+  (XY ^ name ^ implode (map (fn (a, x) => Y ^ a ^ "=" ^ x) atts) ^ X, XYX);
+
 fun element name atts body =
-  ETX ^ EOT ^ name ^ implode (map (fn (a, x) => EOT ^ a ^ "=" ^ x) atts) ^ ETX ^
-  implode body ^
-  ETX ^ EOT ^ ETX;
+  let val (pre, post) = output_markup (name, atts)
+  in pre ^ implode body ^ post end;
 
-(*scalable buffer output*)
+
+(* scalable buffer output *)
+
 fun string_of t =
   let
     fun attrib (a, x) =
-      Buffer.add EOT #>
+      Buffer.add Y #>
       Buffer.add a #> Buffer.add "=" #> Buffer.add x;
     fun tree (XML.Elem (name, atts, ts)) =
-          Buffer.add ETX #>
-          Buffer.add EOT #> Buffer.add name #>
-          fold attrib atts #>
-          Buffer.add ETX #>
+          Buffer.add XY #> Buffer.add name #> fold attrib atts #> Buffer.add X #>
           fold tree ts #>
-          Buffer.add ETX #>
-          Buffer.add EOT #>
-          Buffer.add ETX
+          Buffer.add XYX
       | tree (XML.Text s) = Buffer.add s
       | tree (XML.Output s) = Buffer.add s;
   in Buffer.empty |> tree t |> Buffer.content end;
 
 
-(* efficient YXML parsing *)
+
+(** efficient YXML parsing **)
 
 local
 
-(* errors *)
+(* splitting *)
+
+fun is_char s c = ord s = Char.ord c;
+
+val split_string =
+  Substring.full #>
+  Substring.tokens (is_char X) #>
+  map (Substring.fields (is_char Y) #> map Substring.string);
+
+
+(* structural errors *)
 
 fun err msg = raise Fail ("Malformed YXML encoding: " ^ msg);
 fun err_attribute () = err "bad attribute";
@@ -83,9 +99,7 @@ fun pop ((("", _), _) :: _) = err_unbalanced ""
   | pop (((name, atts), body) :: pending) = add (XML.Elem (name, atts, rev body)) pending;
 
 
-(* parsers *)
-
-fun is_char s c = ord s = Char.ord c;
+(* parsing *)
 
 fun parse_attrib s =
   (case String.fields (is_char "=") s of
@@ -93,17 +107,14 @@ fun parse_attrib s =
   | "" :: _ => err_attribute ()
   | a :: xs => (a, space_implode "=" xs));
 
-fun parse_chunk chunk =
-  (case String.fields (is_char EOT) chunk of
-    ["", ""] => pop
-  | "" :: name :: atts => push name (map parse_attrib atts)
-  | [_] => add (XML.Text chunk)
-  | _ => err "bad text");
+fun parse_chunk ["", ""] = pop
+  | parse_chunk ("" :: name :: atts) = push name (map parse_attrib atts)
+  | parse_chunk txts = fold (add o XML.Text) txts;
 
 in
 
 fun parse_body source =
-  (case fold parse_chunk (String.tokens (is_char ETX) source) [(("", []), [])] of
+  (case fold parse_chunk (split_string source) [(("", []), [])] of
     [(("", _), result)] => rev result
   | ((name, _), _) :: _ => err_unbalanced name);
 
@@ -111,6 +122,8 @@ fun parse source =
   (case parse_body source of
     [result as XML.Elem _] => result
   | _ => err "no root element");
+
+val parse_element = parse #> (fn XML.Elem elem => elem);
 
 end;
 
