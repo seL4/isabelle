@@ -24,7 +24,7 @@ val pgasciiN = "PGASCII";                  (*plain 7-bit ASCII communication*)
 val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
 
 fun special oct =
-  if print_mode_active pgasciiN then chr 1 ^ chr (ord (oct_char oct) - 167)
+  if print_mode_active pgasciiN then Symbol.SOH ^ chr (ord (oct_char oct) - 167)
   else oct_char oct;
 
 
