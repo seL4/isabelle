@@ -70,7 +70,7 @@ fun prove_casedist_thms new_type_names descr sorts induct case_names_exhausts th
           (split_conj_thm (cterm_instantiate insts' induct), i)) RSN (2, rev_mp))
 
       in
-        Goal.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+        SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
           (fn prems => EVERY
             [rtac induct' 1,
              REPEAT (rtac TrueI 1),
@@ -156,7 +156,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
-            alt_name = big_rec_name', coind = false, no_elim = false, no_ind = true}
+            alt_name = big_rec_name', coind = false, no_elim = false, no_ind = true,
+            skip_mono = true}
           (map (fn (s, T) => ((s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
           (map (fn x => (("", []), x)) rec_intr_ts) [] thy0;
@@ -216,7 +217,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
               THEN rewtac (mk_meta_eq choice_eq), rec_intrs),
             descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts);
 
-      in split_conj_thm (Goal.prove_global thy1 [] []
+      in split_conj_thm (SkipProof.prove_global thy1 [] []
         (HOLogic.mk_Trueprop (mk_conj rec_unique_ts)) (K tac))
       end;
 
@@ -250,7 +251,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val _ = message "Proving characteristic theorems for primrec combinators ..."
 
-    val rec_thms = map (fn t => Goal.prove_global thy2 [] [] t
+    val rec_thms = map (fn t => SkipProof.prove_global thy2 [] [] t
       (fn _ => EVERY
         [rewrite_goals_tac reccomb_defs,
          rtac the1_equality 1,
@@ -328,7 +329,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
         end) (([], thy1), (hd descr) ~~ newTs ~~ case_names ~~
           (Library.take (length newTs, reccomb_names)));
 
-    val case_thms = map (map (fn t => Goal.prove_global thy2 [] [] t
+    val case_thms = map (map (fn t => SkipProof.prove_global thy2 [] [] t
       (fn _ => EVERY [rewrite_goals_tac (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1])))
           (DatatypeProp.make_cases new_type_names descr sorts thy2)
 
@@ -361,8 +362,8 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
         val tacf = K (EVERY [rtac exhaustion' 1, ALLGOALS (asm_simp_tac
           (HOL_ss addsimps (dist_rewrites' @ inject @ case_thms')))])
       in
-        (Goal.prove_global thy [] [] t1 tacf,
-         Goal.prove_global thy [] [] t2 tacf)
+        (SkipProof.prove_global thy [] [] t1 tacf,
+         SkipProof.prove_global thy [] [] t2 tacf)
       end;
 
     val split_thm_pairs = map prove_split_thms
@@ -381,7 +382,7 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
 fun prove_weak_case_congs new_type_names descr sorts thy =
   let
     fun prove_weak_case_cong t =
-       Goal.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+       SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
          (fn prems => EVERY [rtac ((hd prems) RS arg_cong) 1])
 
     val weak_case_congs = map prove_weak_case_cong (DatatypeProp.make_weak_case_congs
@@ -402,7 +403,7 @@ fun prove_nchotomys new_type_names descr sorts casedist_thms thy =
               hyp_subst_tac i, REPEAT (rtac exI i), rtac refl i]
           | tac i n = rtac disjI2 i THEN tac i (n - 1)
       in 
-        Goal.prove_global thy [] [] t (fn _ =>
+        SkipProof.prove_global thy [] [] t (fn _ =>
           EVERY [rtac allI 1,
            exh_tac (K exhaustion) 1,
            ALLGOALS (fn i => tac i (i-1))])
@@ -424,7 +425,7 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
         val nchotomy'' = cterm_instantiate
           [(cert (hd (add_term_vars (concl_of nchotomy', []))), cert Ma)] nchotomy'
       in
-        Goal.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
+        SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
           (fn prems => 
             let val simplify = asm_simp_tac (HOL_ss addsimps (prems @ case_rewrites))
             in EVERY [simp_tac (HOL_ss addsimps [hd prems]) 1,
