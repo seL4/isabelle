@@ -22,9 +22,7 @@ General format of process output:
 
 signature ISABELLE_PROCESS =
 sig
-  val yxmlN: string
   val full_markupN: string
-  val test_markupN: string
   val isabelle_processN: string
   val init: unit -> unit
 end;
@@ -32,32 +30,16 @@ end;
 structure IsabelleProcess: ISABELLE_PROCESS =
 struct
 
-(* explicit markup *)
-
-val yxmlN = "YXML";
-val full_markupN = "full_markup";
-val test_markupN = "test_markup";
-
-val _ = Markup.add_mode test_markupN XML.output_markup;
-
-
-(* symbol output *)
+(* print modes *)
 
 val isabelle_processN = "isabelle_process";
+val full_markupN = "full_markup";
 
-local
+val _ = Output.add_mode isabelle_processN Output.default_output Output.default_escape;
 
-fun output str =
-  let
-    fun out s = if Symbol.is_raw s then Symbol.decode_raw s else XML.text s;
-    val syms = Symbol.explode str;
-  in (implode (map out syms), Symbol.length syms) end;
-
-in
-
-val _ = Output.add_mode isabelle_processN output Symbol.encode_raw;
-
-end;
+val _ = Markup.add_mode isabelle_processN (fn (name, props) =>
+  if print_mode_active full_markupN orelse name = Markup.positionN
+  then YXML.output_markup (name, props) else ("", ""));
 
 
 (* message markup *)
@@ -68,44 +50,43 @@ val special_end = special ".";
 
 local
 
-fun print_props props =
+fun message_props props =
   let
     val clean = translate_string (fn c =>
       if c = Symbol.STX orelse c = "\n" orelse c = "\r" then Symbol.DEL else c);
   in implode (map (fn (x, y) => clean x ^ "=" ^ clean y ^ special_sep ^ "\n") props) end;
 
-fun get_pos (elem as XML.Elem (name, atts, ts)) =
+fun message_text ts =
+  (if print_mode_active full_markupN
+    then XML.header ^ XML.string_of (XML.Elem ("message", [], ts))
+    else Buffer.content (fold XML.add_content ts Buffer.empty))
+  |> translate_string (fn c => if c = Symbol.STX then Symbol.DEL else c);
+
+fun message_pos ts = get_first get_pos ts
+and get_pos (elem as XML.Elem (name, atts, ts)) =
       if name = Markup.positionN then SOME (Position.of_properties atts)
-      else get_first get_pos ts
-  | get_pos _ = NONE;
+      else message_pos ts
+  | get_pos _ = NONE
 
 in
 
-val _ = Markup.add_mode isabelle_processN (fn (name, props) =>
-  if print_mode_active full_markupN orelse name = Markup.positionN
-  then XML.output_markup (name, props) else ("", ""));
-
-fun message ch txt0 =
+fun message ch body =
   let
-    val txt1 = XML.element "message" [] [txt0];
     val (txt, pos) =
-      (case try XML.parse txt1 of
-        NONE => (txt1, Position.none)
-      | SOME xml =>
-          (if print_mode_active full_markupN then XML.header ^ txt1 else XML.plain_content xml,
-            the_default Position.none (get_pos xml)))
-      |>> translate_string (fn c => if c = Symbol.STX then Symbol.DEL else c);
+      let val ts = YXML.parse_body body
+      in (message_text ts, the_default Position.none (message_pos ts)) end
+      handle Fail msg => ("*** MALFORMED MESSAGE ***\n" ^ msg, Position.none);
     val props =
       Position.properties_of (Position.thread_data ())
       |> Position.default_properties pos;
-  in Output.writeln_default (special ch ^ print_props props ^ txt ^ special_end) end;
+  in Output.writeln_default (special ch ^ message_props props ^ txt ^ special_end) end;
 
 fun init_message () =
   let
     val pid = ("pid", string_of_pid (Posix.ProcEnv.getpid ()));
     val session = ("session", List.last (Session.id ()) handle List.Empty => "unknown");
     val welcome = Session.welcome ();
-  in Output.writeln_default (special "H" ^ print_props [pid, session] ^ welcome ^ special_end) end;
+  in Output.writeln_default (special "H" ^ message_props [pid, session] ^ welcome ^ special_end) end;
 
 end;
 
@@ -127,7 +108,7 @@ fun setup_channels () =
 local
 
 fun markup kind x =
-  ((XML.output_markup (kind, []) |-> enclose) (Output.output x), Symbol.length (Symbol.explode x));
+  ((YXML.output_markup (kind, []) |-> enclose) (Output.output x), Symbol.length (Symbol.explode x));
 
 fun free_or_skolem x =
   (case try Name.dest_skolem x of
