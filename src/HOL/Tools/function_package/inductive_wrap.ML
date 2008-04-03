@@ -47,7 +47,8 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
               alt_name = "",
               coind = false,
               no_elim = false,
-              no_ind = false}
+              no_ind = false,
+              skip_mono = true}
             [((R, T), NoSyn)] (* the relation *)
             [] (* no parameters *)
             (map (fn t => (("", []), t)) defs) (* the intros *)
