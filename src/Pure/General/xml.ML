@@ -21,7 +21,7 @@ sig
   val string_of: tree -> string
   val output: tree -> TextIO.outstream -> unit
   val parse_string : string -> string option
-  val parse_comment_whspc: string list -> unit * string list
+  val parse_comments: string list -> unit * string list
   val parse_element: string list -> tree * string list
   val parse: string -> tree
 end;
@@ -72,7 +72,7 @@ val text = translate_string encode;
 (* elements *)
 
 fun elem name atts =
-  space_implode " " (name :: map (fn (a, x) => a ^ " = \"" ^ text x ^ "\"") atts);
+  space_implode " " (name :: map (fn (a, x) => a ^ "=\"" ^ text x ^ "\"") atts);
 
 fun element name atts body =
   let val b = implode body in
@@ -111,60 +111,65 @@ local
 fun err s (xs, _) =
   "XML parsing error: " ^ s ^ "\nfound: " ^ quote (Symbol.beginning 100 xs);
 
-val scan_whspc = Scan.many Symbol.is_blank;
+val blanks = Scan.many Symbol.is_blank;
+val special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
+val regular = Scan.one Symbol.is_regular;
+fun regular_except x = Scan.one (fn c => Symbol.is_regular c andalso c <> x);
 
-val scan_special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
+val parse_chars = Scan.repeat1 (special || regular_except "<") >> implode;
 
-val parse_chars = Scan.repeat1 (Scan.unless ((* scan_whspc -- *)$$ "<")
-  (scan_special || Scan.one Symbol.is_regular)) >> implode;
-
-val parse_cdata = Scan.this_string "<![CDATA[" |--
-  (Scan.repeat (Scan.unless (Scan.this_string "]]>") (Scan.one Symbol.is_regular)) >>
-    implode) --| Scan.this_string "]]>";
+val parse_cdata =
+  Scan.this_string "<![CDATA[" |--
+  (Scan.repeat (Scan.unless (Scan.this_string "]]>") regular) >> implode) --|
+  Scan.this_string "]]>";
 
 val parse_att =
-  Symbol.scan_id --| scan_whspc --| $$ "=" --| scan_whspc --
-  (($$ "\"" || $$ "'") :|-- (fn s => (Scan.repeat (Scan.unless ($$ s)
-    (scan_special || Scan.one Symbol.is_regular)) >> implode) --| $$ s));
+  (Symbol.scan_id --| (blanks -- $$ "=" -- blanks)) --
+  (($$ "\"" || $$ "'") :|-- (fn s =>
+    (Scan.repeat (special || regular_except s) >> implode) --| $$ s));
 
-val parse_comment = Scan.this_string "<!--" --
-  Scan.repeat (Scan.unless (Scan.this_string "-->") (Scan.one Symbol.is_regular)) --
-  Scan.this_string "-->";
+val parse_comment =
+  Scan.this_string "<!--" --
+  Scan.repeat (Scan.unless (Scan.this_string "-->") regular) --
+  Scan.this_string "-->" >> K [];
 
-val parse_pi = Scan.this_string "<?" |--
-  Scan.repeat (Scan.unless (Scan.this_string "?>") (Scan.one Symbol.is_regular)) --|
-  Scan.this_string "?>";
+val parse_processing_instruction =
+  Scan.this_string "<?" --
+  Scan.repeat (Scan.unless (Scan.this_string "?>") regular) --
+  Scan.this_string "?>" >> K [];
+
+val parse_optional_text =
+  Scan.optional (parse_chars >> (single o Text)) [];
 
 in
 
 val parse_string = Scan.read Symbol.stopper parse_chars o explode;
 
 fun parse_content xs =
-  ((Scan.optional ((* scan_whspc |-- *) parse_chars >> (single o Text)) [] --
-    (Scan.repeat ((* scan_whspc |-- *)
-       (   parse_element >> single
-        || parse_cdata >> (single o Text)
-        || parse_pi >> K []
-        || parse_comment >> K []) --
-       Scan.optional ((* scan_whspc |-- *) parse_chars >> (single o Text)) []
-         >> op @) >> flat) >> op @)(* --| scan_whspc*)) xs
+  (parse_optional_text @@@
+    (Scan.repeat
+      ((parse_element >> single ||
+        parse_cdata >> (single o Text) ||
+        parse_processing_instruction >> K [] ||
+        parse_comment >> K [])
+      @@@ parse_optional_text) >> flat)) xs
 
 and parse_element xs =
   ($$ "<" |-- Symbol.scan_id --
-    Scan.repeat (scan_whspc |-- parse_att) --| scan_whspc :-- (fn (s, _) =>
+    Scan.repeat (blanks |-- parse_att) --| blanks :-- (fn (s, _) =>
       !! (err "Expected > or />")
         (Scan.this_string "/>" >> K []
          || $$ ">" |-- parse_content --|
             !! (err ("Expected </" ^ s ^ ">"))
-              (Scan.this_string ("</" ^ s) --| scan_whspc --| $$ ">"))) >>
+              (Scan.this_string ("</" ^ s) --| blanks --| $$ ">"))) >>
     (fn ((s, atts), ts) => Elem (s, atts, ts))) xs;
 
-val parse_comment_whspc =
-  (scan_whspc >> K()) --| (Scan.repeat (parse_comment |-- (scan_whspc >> K())));
+val parse_comments =
+  blanks -- Scan.repeat (parse_comment -- blanks >> K ()) >> K ();
 
 fun parse s =
   (case Scan.finite Symbol.stopper (Scan.error (!! (err "Malformed element")
-      (scan_whspc |-- parse_element --| scan_whspc))) (Symbol.explode s) of
+      (blanks |-- parse_element --| blanks))) (Symbol.explode s) of
     (x, []) => x
   | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^ Symbol.beginning 100 ys));
 
