@@ -22,7 +22,7 @@ General format of process output:
 
 signature ISABELLE_PROCESS =
 sig
-  val output_markup: Markup.T -> output * output
+  val yxmlN: string
   val full_markupN: string
   val test_markupN: string
   val isabelle_processN: string
@@ -34,14 +34,11 @@ struct
 
 (* explicit markup *)
 
-fun output_markup (name, props) =
- (enclose "<" ">" (space_implode " " (name :: map XML.attribute props)),
-  enclose "</" ">" name);
-
+val yxmlN = "YXML";
 val full_markupN = "full_markup";
 val test_markupN = "test_markup";
 
-val _ = Markup.add_mode test_markupN output_markup;
+val _ = Markup.add_mode test_markupN XML.output_markup;
 
 
 (* symbol output *)
@@ -86,13 +83,13 @@ in
 
 val _ = Markup.add_mode isabelle_processN (fn (name, props) =>
   if print_mode_active full_markupN orelse name = Markup.positionN
-  then output_markup (name, props) else ("", ""));
+  then XML.output_markup (name, props) else ("", ""));
 
 fun message ch txt0 =
   let
     val txt1 = XML.element "message" [] [txt0];
     val (txt, pos) =
-      (case try XML.tree_of_string txt1 of
+      (case try XML.parse txt1 of
         NONE => (txt1, Position.none)
       | SOME xml =>
           (if print_mode_active full_markupN then XML.header ^ txt1 else XML.plain_content xml,
@@ -130,7 +127,7 @@ fun setup_channels () =
 local
 
 fun markup kind x =
-  ((output_markup (kind, []) |-> enclose) (Output.output x), Symbol.length (Symbol.explode x));
+  ((XML.output_markup (kind, []) |-> enclose) (Output.output x), Symbol.length (Symbol.explode x));
 
 fun free_or_skolem x =
   (case try Name.dest_skolem x of
