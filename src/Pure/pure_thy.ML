@@ -60,10 +60,6 @@ sig
   val forall_elim_vars: int -> thm -> thm
   val add_axioms: ((bstring * string) * attribute list) list -> theory -> thm list * theory
   val add_axioms_i: ((bstring * term) * attribute list) list -> theory -> thm list * theory
-  val add_axiomss: ((bstring * string list) * attribute list) list ->
-    theory -> thm list list * theory
-  val add_axiomss_i: ((bstring * term list) * attribute list) list ->
-    theory -> thm list list * theory
   val add_defs: bool -> ((bstring * string) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_i: bool -> ((bstring * term) * attribute list) list ->
@@ -362,29 +358,19 @@ fun forall_elim_var i th = forall_elim_vars_aux
 local
   fun get_ax thy (name, _) = Thm.get_axiom_i thy (Sign.full_name thy name);
   fun get_axs thy named_axs = map (forall_elim_vars 0 o get_ax thy) named_axs;
-  fun add_single add ((name, ax), atts) thy =
+  fun add_axm add = fold_map (fn ((name, ax), atts) => fn thy =>
     let
       val named_ax = [(name, ax)];
       val thy' = add named_ax thy;
       val thm = hd (get_axs thy' named_ax);
-    in apfst hd (gen_add_thms (K I) [((name, thm), atts)] thy') end;
-  fun add_multi add ((name, axs), atts) thy =
-    let
-      val named_axs = name_multi name axs;
-      val thy' = add named_axs thy;
-      val thms = get_axs thy' named_axs;
-    in apfst hd (gen_add_thmss (K I) [((name, thms), atts)] thy') end;
-  fun add_singles add = fold_map (add_single add);
-  fun add_multis add = fold_map (add_multi add);
+    in apfst hd (gen_add_thms (K I) [((name, thm), atts)] thy') end);
 in
-  val add_axioms           = add_singles Theory.add_axioms;
-  val add_axioms_i         = add_singles Theory.add_axioms_i;
-  val add_axiomss          = add_multis Theory.add_axioms;
-  val add_axiomss_i        = add_multis Theory.add_axioms_i;
-  val add_defs             = add_singles o Theory.add_defs false;
-  val add_defs_i           = add_singles o Theory.add_defs_i false;
-  val add_defs_unchecked   = add_singles o Theory.add_defs true;
-  val add_defs_unchecked_i = add_singles o Theory.add_defs_i true;
+  val add_axioms           = add_axm Theory.add_axioms;
+  val add_axioms_i         = add_axm Theory.add_axioms_i;
+  val add_defs             = add_axm o Theory.add_defs false;
+  val add_defs_i           = add_axm o Theory.add_defs_i false;
+  val add_defs_unchecked   = add_axm o Theory.add_defs true;
+  val add_defs_unchecked_i = add_axm o Theory.add_defs_i true;
 end;
 
 
