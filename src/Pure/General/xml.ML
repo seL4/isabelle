@@ -8,6 +8,7 @@ Basic support for XML.
 signature XML =
 sig
   (*string functions*)
+  val detect: string -> bool
   val header: string
   val text: string -> string
   type attributes = (string * string) list
@@ -20,7 +21,6 @@ sig
     | Output of output
   type content = tree list
   type element = string * attributes * content
-  val buffer_of_tree: tree -> Buffer.T
   val string_of_tree: tree -> string
   val plain_content: tree -> string
   val parse_string : string -> string option
@@ -34,8 +34,10 @@ end;
 structure XML: XML =
 struct
 
-(** string based representation (small scale) **)
 
+(** string representation **)
+
+val detect = String.isPrefix "<?xml";
 val header = "<?xml version=\"1.0\"?>\n";
 
 
@@ -62,10 +64,13 @@ val text = translate_string encode;
 
 fun attribute (a, x) = a ^ " = \"" ^ text x ^ "\"";
 
-fun element name atts cs =
-  let val elem = space_implode " " (name :: map attribute atts) in
-    if null cs then enclose "<" "/>" elem
-    else enclose "<" ">" elem ^ implode cs ^ enclose "</" ">" name
+fun element name atts body =
+  let
+    val elem = space_implode " " (name :: map attribute atts);
+    val b = implode body;
+  in
+    if b = "" then enclose "<" "/>" elem
+    else enclose "<" ">" elem ^ b ^ enclose "</" ">" name
   end;
 
 
@@ -82,25 +87,18 @@ datatype tree =
 type content = tree list;
 type element = string * attributes * content;
 
-fun buffer_of_tree tree =
+fun string_of_tree t =
   let
-    fun string_of (Elem (name, atts, ts)) buf =
-        let val buf' =
-          buf |> Buffer.add "<"
-          |> fold Buffer.add (separate " " (name :: map attribute atts))
-        in
-          if null ts then
-            buf' |> Buffer.add "/>"
-          else
-            buf' |> Buffer.add ">"
-            |> fold string_of ts
-            |> Buffer.add "</" |> Buffer.add name |> Buffer.add ">"
-        end
-      | string_of (Text s) buf = Buffer.add (text s) buf
-      | string_of (Output s) buf = Buffer.add s buf;
-  in string_of tree Buffer.empty end;
-
-val string_of_tree = Buffer.content o buffer_of_tree;
+    fun name_atts name atts = fold Buffer.add (separate " " (name :: map attribute atts));
+    fun tree (Elem (name, atts, [])) =
+          Buffer.add "<" #> name_atts name atts #> Buffer.add "/>"
+      | tree (Elem (name, atts, ts)) =
+          Buffer.add "<" #> name_atts name atts #> Buffer.add ">" #>
+          fold tree ts #>
+          Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
+      | tree (Text s) = Buffer.add (text s)
+      | tree (Output s) = Buffer.add s;
+  in Buffer.empty |> tree t |> Buffer.content end;
 
 fun plain_content tree =
   let
