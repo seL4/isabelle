@@ -13,7 +13,7 @@ sig
   val add_substring: substring -> T -> T
   val markup: Markup.T -> (T -> T) -> T -> T
   val content: T -> string
-  val output: TextIO.outstream -> T -> unit
+  val output: T -> TextIO.outstream -> unit
   val write: Path.T -> T -> unit
 end;
 
@@ -55,13 +55,13 @@ fun rev_buffer EmptyBuffer acc = acc
   | rev_buffer (String (s, buf)) acc = rev_buffer buf (String (s, acc))
   | rev_buffer (Substring (s, buf)) acc = rev_buffer buf (Substring (s, acc));
 
-fun output stream buffer =
+fun output buffer stream =
   let
     fun rev_output EmptyBuffer = ()
       | rev_output (String (s, buf)) = (TextIO.output (stream, s); rev_output buf)
       | rev_output (Substring (s, buf)) = (TextIO.outputSubstr (stream, s); rev_output buf);
   in rev_output (rev_buffer buffer empty) end;
 
-fun write path buf = File.open_output (fn stream => output stream buf) path;
+fun write path buf = File.open_output (output buf) path;
 
 end;
