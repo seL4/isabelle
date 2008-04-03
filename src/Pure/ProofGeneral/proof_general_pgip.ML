@@ -141,16 +141,16 @@ fun init_pgip_session_id () =
 fun matching_pgip_id id = (id = !pgip_id)
 
 val output_xml_fn = ref Output.writeln_default
-fun output_xml s = (!output_xml_fn) (XML.string_of_tree s);  (* TODO: string buffer *)
+fun output_xml s = (!output_xml_fn) (XML.string_of s);  (* TODO: string buffer *)
 
 val output_pgips =
-  XML.string_of_tree o PgipOutput.output o assemble_pgips o map PgipOutput.output;
+  XML.string_of o PgipOutput.output o assemble_pgips o map PgipOutput.output;
 
 val output_pgmlterm = 
-  XML.string_of_tree o Pgml.pgmlterm_to_xml;
+  XML.string_of o Pgml.pgmlterm_to_xml;
 
 val output_pgmltext = 
-  XML.string_of_tree o Pgml.pgml_to_xml;
+  XML.string_of o Pgml.pgml_to_xml;
 
 
 fun issue_pgip_rawtext str =
@@ -1031,7 +1031,7 @@ fun process_pgip_element pgipxml =
         xml as (XML.Elem elem) =>
         (case Pgip.input elem of
              NONE => warning ("Unrecognized PGIP command, ignored: \n" ^
-                              (XML.string_of_tree xml))
+                              (XML.string_of xml))
            | SOME inp => (process_input inp)) (* errors later; packet discarded *)
       | XML.Text t => ignored_text_warning t
       | XML.Output t => ignored_text_warning t
@@ -1067,12 +1067,12 @@ fun process_pgip_tree xml =
         | _ => raise PGIP "Invalid PGIP packet received")
      handle PGIP msg =>
             (Output.error_msg ((msg ^ "\nPGIP error occured in XML text below:\n") ^
-                               (XML.string_of_tree xml));
+                               (XML.string_of xml));
              true))
 
 (* External input *)
 
-val process_pgip_plain = K () o process_pgip_tree o XML.tree_of_string
+val process_pgip_plain = K () o process_pgip_tree o XML.parse
 
 (* PGIP loop: process PGIP input only *)
 
@@ -1115,7 +1115,7 @@ and handler (e,srco) =
 in
   (* TODO: add socket interface *)
 
-  val xmlP = XML.scan_comment_whspc |-- XML.parse_elem >> single
+  val xmlP = XML.parse_comment_whspc |-- XML.parse_elem >> single
 
   val tty_src = Source.set_prompt "" (Source.source Symbol.stopper xmlP NONE Source.tty)
 

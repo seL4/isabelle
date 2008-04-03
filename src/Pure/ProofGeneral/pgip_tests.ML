@@ -14,25 +14,23 @@ fun asseq_p toS a b =
     else error("PGIP test: expected these two values to be equal:\n" ^
 	       (toS a) ^"\n and: \n" ^ (toS b))
 
-val asseqx = asseq_p XML.string_of_tree
+val asseqx = asseq_p XML.string_of
 val asseqs = asseq_p I
 val asseqb = asseq_p (fn b=>if b then "true" else "false")
-
-val p = XML.tree_of_string (* parse *)
 
 open PgipTypes;
 in
 
-val _ = asseqx (pgiptype_to_xml Pgipnull) (p "<pgipnull/>");
-val _ = asseqx (pgiptype_to_xml Pgipbool) (p "<pgipbool/>");
-val _ = asseqx (pgiptype_to_xml (Pgipint (NONE,NONE))) (p "<pgipint/>");
-val _ = asseqx (pgiptype_to_xml (Pgipint (SOME 5,SOME 7))) (p "<pgipint min='5' max='7'/>");
-val _ = asseqx (pgiptype_to_xml (Pgipint (NONE,SOME 7))) (p "<pgipint max='7'/>");
-val _ = asseqx (pgiptype_to_xml (Pgipint (SOME ~5,NONE))) (p "<pgipint min='-5'/>");
-val _ = asseqx (pgiptype_to_xml Pgipstring) (p "<pgipstring/>");
-val _ = asseqx (pgiptype_to_xml (Pgipconst "radio1"))  (p "<pgipconst name='radio1'/>");
+val _ = asseqx (pgiptype_to_xml Pgipnull) (XML.parse "<pgipnull/>");
+val _ = asseqx (pgiptype_to_xml Pgipbool) (XML.parse "<pgipbool/>");
+val _ = asseqx (pgiptype_to_xml (Pgipint (NONE,NONE))) (XML.parse "<pgipint/>");
+val _ = asseqx (pgiptype_to_xml (Pgipint (SOME 5,SOME 7))) (XML.parse "<pgipint min='5' max='7'/>");
+val _ = asseqx (pgiptype_to_xml (Pgipint (NONE,SOME 7))) (XML.parse "<pgipint max='7'/>");
+val _ = asseqx (pgiptype_to_xml (Pgipint (SOME ~5,NONE))) (XML.parse "<pgipint min='-5'/>");
+val _ = asseqx (pgiptype_to_xml Pgipstring) (XML.parse "<pgipstring/>");
+val _ = asseqx (pgiptype_to_xml (Pgipconst "radio1"))  (XML.parse "<pgipconst name='radio1'/>");
 val _ = asseqx (pgiptype_to_xml (Pgipchoice [Pgipdtype (SOME "the best choice",Pgipbool)]))
-       (p "<pgipchoice><pgipbool descr='the best choice'/></pgipchoice>");
+       (XML.parse "<pgipchoice><pgipbool descr='the best choice'/></pgipchoice>");
 
 val _ = asseqs (pgval_to_string (read_pgval Pgipbool "true")) "true";
 val _ = asseqs (pgval_to_string (read_pgval Pgipbool "false")) "false";
@@ -54,16 +52,14 @@ end
 
 val _ = asseqx (haspref {name="provewithgusto",descr=SOME "use energetic proofs",
 		 default=SOME "true", pgiptype=Pgipbool})
-       (p "<haspref name='provewithgusto' descr='use energetic proofs' default='true'><pgipbool/></haspref>");
+       (XML.parse "<haspref name='provewithgusto' descr='use energetic proofs' default='true'><pgipbool/></haspref>");
 end
 
 
 (** pgip_input.ML **)
 local
 
-val p = XML.tree_of_string (* parse *)
-
-fun e str = case p str of 
+fun e str = case XML.parse str of 
 		(XML.Elem args) => args
 	      | _ => error("Expected to get an XML Element")
 
