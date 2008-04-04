@@ -244,13 +244,14 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
         "\nare not mutually recursive");
     val qualify = NameSpace.qualified
       (space_implode "_" (map (Sign.base_name o #1) defs));
+    val spec' = (map o apfst o apfst) qualify spec;
     val simp_atts = map (Attrib.internal o K)
       [Simplifier.simp_add, RecfunCodegen.add NONE];
   in
     lthy
     |> set_group ? LocalTheory.set_group (serial_string ())
     |> fold_map (LocalTheory.define Thm.definitionK o make_def lthy fixes fs) defs
-    |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec))
+    |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec'))
     |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
     |-> (fn simps' => LocalTheory.note Thm.theoremK
           ((qualify "simps", simp_atts), maps snd simps'))
