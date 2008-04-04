@@ -8,7 +8,9 @@
 
 header {* Definition of Word Type *}
 
-theory WordDefinition imports Size BinBoolList TdThs begin
+theory WordDefinition
+imports Size BinBoolList TdThs
+begin
 
 typedef (open word) 'a word
   = "{(0::int) ..< 2^len_of TYPE('a::len0)}" by auto
@@ -97,9 +99,8 @@ subsection  "Arithmetic operations"
 declare uint_def [code func del]
 
 lemma [code func]: "uint (word_of_int w \<Colon> 'a\<Colon>len0 word) = bintrunc (len_of TYPE('a)) w"
-  unfolding uint_def word_of_int_def
-  apply (rule Abs_word_inverse)
-  using range_bintrunc by auto
+  by (auto simp add: uint_def word_of_int_def intro!: Abs_word_inverse)
+    (insert range_bintrunc, auto)
 
 instantiation word :: (len0) "{number, uminus, minus, plus, one, zero, times, Divides.div, power, ord, bit}"
 begin
@@ -187,25 +188,54 @@ constdefs
   "(x <s y) == (x <=s y & x ~= y)"
 
 
+
 subsection "Bit-wise operations"
 
-defs (overloaded)
-  word_test_bit_def: 
-  "test_bit (a::'a::len0 word) == bin_nth (uint a)"
 
-  word_set_bit_def: 
-  "set_bit (a::'a::len0 word) n x == 
+
+instantiation word :: (len0) bits
+begin
+
+definition
+  word_test_bit_def: "test_bit a = bin_nth (uint a)"
+
+definition
+  word_set_bit_def: "set_bit a n x =
    word_of_int (bin_sc n (If x bit.B1 bit.B0) (uint a))"
 
-  word_set_bits_def:  
-  "(BITS n. f n)::'a::len0 word == of_bl (bl_of_nth (len_of TYPE ('a)) f)"
+definition
+  word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth (len_of TYPE ('a)) f)"
 
-  word_lsb_def: 
-  "lsb (a::'a::len0 word) == bin_last (uint a) = bit.B1"
+definition
+  word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a) = bit.B1"
 
+definition shiftl1 :: "'a word \<Rightarrow> 'a word" where
+  "shiftl1 w = word_of_int (uint w BIT bit.B0)"
+
+definition shiftr1 :: "'a word \<Rightarrow> 'a word" where
+  -- "shift right as unsigned or as signed, ie logical or arithmetic"
+  "shiftr1 w = word_of_int (bin_rest (uint w))"
+
+definition
+  shiftl_def: "w << n = (shiftl1 ^ n) w"
+
+definition
+  shiftr_def: "w >> n = (shiftr1 ^ n) w"
+
+instance ..
+
+end
+
+instantiation word :: (len) bitss
+begin
+
+definition
   word_msb_def: 
-  "msb (a::'a::len word) == bin_sign (sint a) = Int.Min"
+  "msb a \<longleftrightarrow> bin_sign (sint a) = Int.Min"
 
+instance ..
+
+end
 
 constdefs
   setBit :: "'a :: len0 word => nat => 'a word" 
@@ -218,13 +248,6 @@ constdefs
 subsection "Shift operations"
 
 constdefs
-  shiftl1 :: "'a :: len0 word => 'a word"
-  "shiftl1 w == word_of_int (uint w BIT bit.B0)"
-
-  -- "shift right as unsigned or as signed, ie logical or arithmetic"
-  shiftr1 :: "'a :: len0 word => 'a word"
-  "shiftr1 w == word_of_int (bin_rest (uint w))"
-
   sshiftr1 :: "'a :: len word => 'a word" 
   "sshiftr1 w == word_of_int (bin_rest (sint w))"
 
@@ -245,11 +268,6 @@ constdefs
 
   slice :: "nat => 'a :: len0 word => 'b :: len0 word"
   "slice n w == slice1 (size w - n) w"
-
-
-defs (overloaded)
-  shiftl_def: "(w::'a::len0 word) << n == (shiftl1 ^ n) w"
-  shiftr_def: "(w::'a::len0 word) >> n == (shiftr1 ^ n) w"
 
 
 subsection "Rotation"
@@ -302,7 +320,6 @@ consts
 primrec
   "of_bool False = 0"
   "of_bool True = 1"
-
 
 
 lemmas of_nth_def = word_set_bits_def
@@ -936,7 +953,7 @@ lemma ucast_down_bl': "uc = ucast ==> is_down uc ==> uc (of_bl bl) = of_bl bl"
 lemmas ucast_down_bl = ucast_down_bl' [OF refl]
 
 lemmas slice_def' = slice_def [unfolded word_size]
-lemmas test_bit_def' = word_test_bit_def [THEN meta_eq_to_obj_eq, THEN fun_cong]
+lemmas test_bit_def' = word_test_bit_def [THEN fun_cong]
 
 lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
 lemmas word_log_bin_defs = word_log_defs
