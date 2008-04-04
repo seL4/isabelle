@@ -1673,10 +1673,13 @@ begin
 lemma equals_eq [code inline, code func]: "op = \<equiv> eq"
   by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq)
 
+declare equals_eq [symmetric, code post]
+
 end
 
 setup {*
-  CodeUnit.add_const_alias @{thm equals_eq}
+  Sign.hide_names_i true ("const", ["HOL.eq"])
+  #> CodeUnit.add_const_alias @{thm equals_eq}
 *}
 
 lemma [code func]:

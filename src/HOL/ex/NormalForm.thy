@@ -8,8 +8,6 @@ theory NormalForm
 imports Main "~~/src/HOL/Real/Rational"
 begin
 
-declare equals_eq [symmetric, code post]
-
 lemma "True" by normalization
 lemma "p \<longrightarrow> True" by normalization
 declare disj_assoc [code func]
