@@ -9,28 +9,9 @@ theory Num_Lemmas
 imports Main Parity
 begin
 
-datatype bit = B0 | B1
-
-definition
-  Bit :: "int \<Rightarrow> bit \<Rightarrow> int" (infixl "BIT" 90) where
-  "k BIT b = (case b of B0 \<Rightarrow> 0 | B1 \<Rightarrow> 1) + k + k"
-
-lemma BIT_B0_eq_Bit0 [simp]: "w BIT B0 = Int.Bit0 w"
-  unfolding Bit_def Bit0_def by simp
-
-lemma BIT_B1_eq_Bit1 [simp]: "w BIT B1 = Int.Bit1 w"
-  unfolding Bit_def Bit1_def by simp
-
-lemmas BIT_simps = BIT_B0_eq_Bit0 BIT_B1_eq_Bit1
-
-hide (open) const B0 B1
-
 lemma contentsI: "y = {x} ==> contents y = x" 
-  unfolding contents_def by auto
+  unfolding contents_def by auto -- {* FIXME move *}
 
-lemma prod_case_split: "prod_case = split"
-  by (rule ext)+ auto
- 
 lemmas split_split = prod.split [unfolded prod_case_split] 
 lemmas split_split_asm = prod.split_asm [unfolded prod_case_split]
 lemmas "split.splits" = split_split split_split_asm 
@@ -46,11 +27,6 @@ lemma nonemptyE: "S ~= {} ==> (!!x. x : S ==> R) ==> R"
 
 lemma gt_or_eq_0: "0 < y \<or> 0 = (y::nat)" by auto
 
-constdefs
-  -- "alternative way of defining @{text bin_last}, @{text bin_rest}"
-  bin_rl :: "int => int * bit" 
-  "bin_rl w == SOME (r, l). w = r BIT l"
-
 declare iszero_0 [iff]
 
 lemmas xtr1 = xtrans(1)
@@ -61,21 +37,6 @@ lemmas xtr5 = xtrans(5)
 lemmas xtr6 = xtrans(6)
 lemmas xtr7 = xtrans(7)
 lemmas xtr8 = xtrans(8)
-
-lemma Min_ne_Pls [iff]:  
-  "Int.Min ~= Int.Pls"
-  unfolding Min_def Pls_def by auto
-
-lemmas Pls_ne_Min [iff] = Min_ne_Pls [symmetric]
-
-lemmas PlsMin_defs [intro!] = 
-  Pls_def Min_def Pls_def [symmetric] Min_def [symmetric]
-
-lemmas PlsMin_simps [simp] = PlsMin_defs [THEN Eq_TrueI]
-
-lemma number_of_False_cong: 
-  "False \<Longrightarrow> number_of x = number_of y"
-  by (rule FalseE)
 
 lemmas nat_simps = diff_add_inverse2 diff_add_inverse
 lemmas nat_iffs = le_add1 le_add2
@@ -152,141 +113,6 @@ lemma z1pdiv2:
 lemmas zdiv_le_dividend = xtr3 [OF zdiv_1 [symmetric] zdiv_mono2,
   simplified int_one_le_iff_zero_less, simplified, standard]
   
-(** ways in which type Bin resembles a datatype **)
-
-lemma BIT_eq: "u BIT b = v BIT c ==> u = v & b = c"
-  apply (unfold Bit_def)
-  apply (simp (no_asm_use) split: bit.split_asm)
-     apply simp_all
-   apply (drule_tac f=even in arg_cong, clarsimp)+
-  done
-     
-lemmas BIT_eqE [elim!] = BIT_eq [THEN conjE, standard]
-
-lemma BIT_eq_iff [simp]: 
-  "(u BIT b = v BIT c) = (u = v \<and> b = c)"
-  by (rule iffI) auto
-
-lemmas BIT_eqI [intro!] = conjI [THEN BIT_eq_iff [THEN iffD2]]
-
-lemma less_Bits: 
-  "(v BIT b < w BIT c) = (v < w | v <= w & b = bit.B0 & c = bit.B1)"
-  unfolding Bit_def by (auto split: bit.split)
-
-lemma le_Bits: 
-  "(v BIT b <= w BIT c) = (v < w | v <= w & (b ~= bit.B1 | c ~= bit.B0))" 
-  unfolding Bit_def by (auto split: bit.split)
-
-lemma neB1E [elim!]:
-  assumes ne: "y \<noteq> bit.B1"
-  assumes y: "y = bit.B0 \<Longrightarrow> P"
-  shows "P"
-  apply (rule y)
-  apply (cases y rule: bit.exhaust, simp)
-  apply (simp add: ne)
-  done
-
-lemma bin_ex_rl: "EX w b. w BIT b = bin"
-  apply (unfold Bit_def)
-  apply (cases "even bin")
-   apply (clarsimp simp: even_equiv_def)
-   apply (auto simp: odd_equiv_def split: bit.split)
-  done
-
-lemma bin_exhaust:
-  assumes Q: "\<And>x b. bin = x BIT b \<Longrightarrow> Q"
-  shows "Q"
-  apply (insert bin_ex_rl [of bin])  
-  apply (erule exE)+
-  apply (rule Q)
-  apply force
-  done
-
-lemma bin_rl_char: "(bin_rl w = (r, l)) = (r BIT l = w)"
-  apply (unfold bin_rl_def)
-  apply safe
-   apply (cases w rule: bin_exhaust)
-   apply auto
-  done
-
-lemma bin_rl_simps [simp]:
-  "bin_rl Int.Pls = (Int.Pls, bit.B0)"
-  "bin_rl Int.Min = (Int.Min, bit.B1)"
-  "bin_rl (r BIT b) = (r, b)"
-  "bin_rl (Int.Bit0 r) = (r, bit.B0)"
-  "bin_rl (Int.Bit1 r) = (r, bit.B1)"
-  unfolding bin_rl_char by simp_all
-
-lemma bin_abs_lem:
-  "bin = (w BIT b) ==> ~ bin = Int.Min --> ~ bin = Int.Pls -->
-    nat (abs w) < nat (abs bin)"
-  apply (clarsimp simp add: bin_rl_char)
-  apply (unfold Pls_def Min_def Bit_def)
-  apply (cases b)
-   apply (clarsimp, arith)
-  apply (clarsimp, arith)
-  done
-
-lemma bin_induct:
-  assumes PPls: "P Int.Pls"
-    and PMin: "P Int.Min"
-    and PBit: "!!bin bit. P bin ==> P (bin BIT bit)"
-  shows "P bin"
-  apply (rule_tac P=P and a=bin and f1="nat o abs" 
-                  in wf_measure [THEN wf_induct])
-  apply (simp add: measure_def inv_image_def)
-  apply (case_tac x rule: bin_exhaust)
-  apply (frule bin_abs_lem)
-  apply (auto simp add : PPls PMin PBit)
-  done
-
-lemma numeral_induct:
-  assumes Pls: "P Int.Pls"
-  assumes Min: "P Int.Min"
-  assumes Bit0: "\<And>w. \<lbrakk>P w; w \<noteq> Int.Pls\<rbrakk> \<Longrightarrow> P (Int.Bit0 w)"
-  assumes Bit1: "\<And>w. \<lbrakk>P w; w \<noteq> Int.Min\<rbrakk> \<Longrightarrow> P (Int.Bit1 w)"
-  shows "P x"
-  apply (induct x rule: bin_induct)
-    apply (rule Pls)
-   apply (rule Min)
-  apply (case_tac bit)
-   apply (case_tac "bin = Int.Pls")
-    apply simp
-   apply (simp add: Bit0)
-  apply (case_tac "bin = Int.Min")
-   apply simp
-  apply (simp add: Bit1)
-  done
-
-lemma no_no [simp]: "number_of (number_of i) = i"
-  unfolding number_of_eq by simp
-
-lemma Bit_B0:
-  "k BIT bit.B0 = k + k"
-   by (unfold Bit_def) simp
-
-lemma Bit_B1:
-  "k BIT bit.B1 = k + k + 1"
-   by (unfold Bit_def) simp
-  
-lemma Bit_B0_2t: "k BIT bit.B0 = 2 * k"
-  by (rule trans, rule Bit_B0) simp
-
-lemma Bit_B1_2t: "k BIT bit.B1 = 2 * k + 1"
-  by (rule trans, rule Bit_B1) simp
-
-lemma B_mod_2': 
-  "X = 2 ==> (w BIT bit.B1) mod X = 1 & (w BIT bit.B0) mod X = 0"
-  apply (simp (no_asm) only: Bit_B0 Bit_B1)
-  apply (simp add: z1pmod2)
-  done
-
-lemma B1_mod_2 [simp]: "(Int.Bit1 w) mod 2 = 1"
-  unfolding numeral_simps number_of_is_id by (simp add: z1pmod2)
-
-lemma B0_mod_2 [simp]: "(Int.Bit0 w) mod 2 = 0"
-  unfolding numeral_simps number_of_is_id by simp
-
 lemma axxbyy:
   "a + m + m = b + n + n ==> (a = 0 | a = 1) ==> (b = 0 | b = 1) ==>  
    a = b & m = (n :: int)"

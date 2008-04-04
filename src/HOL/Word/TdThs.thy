@@ -8,7 +8,9 @@
 
 header {* Type Definition Theorems *}
 
-theory TdThs imports Main begin
+theory TdThs
+imports Main
+begin
 
 section "More lemmas about normal type definitions"
 

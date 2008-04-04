@@ -9,8 +9,9 @@
 
 header {* Word Arithmetic *}
 
-theory WordArith imports WordDefinition begin
-
+theory WordArith
+imports WordDefinition
+begin
 
 lemma word_less_alt: "(a < b) = (uint a < uint b)"
   unfolding word_less_def word_le_def

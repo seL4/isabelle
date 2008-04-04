@@ -6,7 +6,7 @@
     Used primarily to parameterize machine word sizes. 
 *)
 
-header "The size class"
+header "The len classes"
 
 theory Size
 imports Numeral_Type
@@ -15,7 +15,7 @@ begin
 text {*
   The aim of this is to allow any type as index type, but to provide a
   default instantiation for numeral types. This independence requires
-  some duplication with the definitions in Numeral\_Type.
+  some duplication with the definitions in @{text "Numeral_Type"}.
 *}
 
 class len0 = type +

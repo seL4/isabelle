@@ -7,7 +7,8 @@
 
 header {* Main Word Library *}
 
-theory WordMain imports WordGenLib
+theory WordMain
+imports WordGenLib
 begin
 
 lemmas word_no_1 [simp] = word_1_no [symmetric, unfolded BIT_simps]
