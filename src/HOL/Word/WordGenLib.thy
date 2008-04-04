@@ -8,7 +8,8 @@
 
 header {* Miscellaneous Library for Words *}
 
-theory WordGenLib imports WordShift Boolean_Algebra
+theory WordGenLib
+imports WordShift Boolean_Algebra
 begin
 
 declare of_nat_2p [simp]
@@ -174,14 +175,14 @@ lemma bl_and_mask:
 proof - 
   note [simp] = map_replicate_True map_replicate_False
   have "to_bl (w AND mask n) = 
-        app2 op & (to_bl w) (to_bl (mask n::'a::len word))"
+        map2 op & (to_bl w) (to_bl (mask n::'a::len word))"
     by (simp add: bl_word_and)
   also
   have "to_bl w = take n' (to_bl w) @ drop n' (to_bl w)" by simp
   also
-  have "app2 op & \<dots> (to_bl (mask n::'a::len word)) = 
+  have "map2 op & \<dots> (to_bl (mask n::'a::len word)) = 
         replicate n' False @ drop n' (to_bl w)"
-    unfolding to_bl_mask n'_def app2_def
+    unfolding to_bl_mask n'_def map2_def
     by (subst zip_append) auto
   finally
   show ?thesis .

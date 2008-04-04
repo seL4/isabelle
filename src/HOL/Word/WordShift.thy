@@ -7,7 +7,9 @@
 
 header {* Shifting, Rotating, and Splitting Words *}
 
-theory WordShift imports WordBitwise begin
+theory WordShift
+imports WordBitwise
+begin
 
 subsection "Bit shifting"
 
@@ -421,7 +423,7 @@ lemmas msb_shift = msb_shift' [unfolded word_size]
 lemma align_lem_or [rule_format] :
   "ALL x m. length x = n + m --> length y = n + m --> 
     drop m x = replicate n False --> take m y = replicate m False --> 
-    app2 op | x y = take m x @ drop m y"
+    map2 op | x y = take m x @ drop m y"
   apply (induct_tac y)
    apply force
   apply clarsimp
@@ -435,7 +437,7 @@ lemma align_lem_or [rule_format] :
 lemma align_lem_and [rule_format] :
   "ALL x m. length x = n + m --> length y = n + m --> 
     drop m x = replicate n False --> take m y = replicate m False --> 
-    app2 op & x y = replicate (n + m) False"
+    map2 op & x y = replicate (n + m) False"
   apply (induct_tac y)
    apply force
   apply clarsimp
@@ -1344,7 +1346,7 @@ lemmas rotater_0 = rotater_eqs (1)
 lemmas rotater_add = rotater_eqs (2)
 
 
-subsubsection "map, app2, commuting with rotate(r)"
+subsubsection "map, map2, commuting with rotate(r)"
 
 lemma last_map: "xs ~= [] ==> last (map f xs) = f (last xs)"
   by (induct xs) auto
@@ -1371,13 +1373,13 @@ lemma but_last_zip [rule_format] :
      apply ((case_tac ys, auto simp: neq_Nil_conv)[1])+
   done
 
-lemma but_last_app2 [rule_format] :
+lemma but_last_map2 [rule_format] :
   "ALL ys. length xs = length ys --> xs ~= [] --> 
-    last (app2 f xs ys) = f (last xs) (last ys) & 
-    butlast (app2 f xs ys) = app2 f (butlast xs) (butlast ys)" 
+    last (map2 f xs ys) = f (last xs) (last ys) & 
+    butlast (map2 f xs ys) = map2 f (butlast xs) (butlast ys)" 
   apply (induct "xs")
   apply auto
-     apply (unfold app2_def)
+     apply (unfold map2_def)
      apply ((case_tac ys, auto simp: neq_Nil_conv)[1])+
   done
 
@@ -1390,35 +1392,35 @@ lemma rotater1_zip:
    apply ((case_tac ys, auto simp: neq_Nil_conv but_last_zip)[1])+
   done
 
-lemma rotater1_app2:
+lemma rotater1_map2:
   "length xs = length ys ==> 
-    rotater1 (app2 f xs ys) = app2 f (rotater1 xs) (rotater1 ys)" 
-  unfolding app2_def by (simp add: rotater1_map rotater1_zip)
+    rotater1 (map2 f xs ys) = map2 f (rotater1 xs) (rotater1 ys)" 
+  unfolding map2_def by (simp add: rotater1_map rotater1_zip)
 
 lemmas lrth = 
   box_equals [OF asm_rl length_rotater [symmetric] 
                  length_rotater [symmetric], 
-              THEN rotater1_app2]
+              THEN rotater1_map2]
 
-lemma rotater_app2: 
+lemma rotater_map2: 
   "length xs = length ys ==> 
-    rotater n (app2 f xs ys) = app2 f (rotater n xs) (rotater n ys)" 
+    rotater n (map2 f xs ys) = map2 f (rotater n xs) (rotater n ys)" 
   by (induct n) (auto intro!: lrth)
 
-lemma rotate1_app2:
+lemma rotate1_map2:
   "length xs = length ys ==> 
-    rotate1 (app2 f xs ys) = app2 f (rotate1 xs) (rotate1 ys)" 
-  apply (unfold app2_def)
+    rotate1 (map2 f xs ys) = map2 f (rotate1 xs) (rotate1 ys)" 
+  apply (unfold map2_def)
   apply (cases xs)
    apply (cases ys, auto simp add : rotate1_def)+
   done
 
 lemmas lth = box_equals [OF asm_rl length_rotate [symmetric] 
-  length_rotate [symmetric], THEN rotate1_app2]
+  length_rotate [symmetric], THEN rotate1_map2]
 
-lemma rotate_app2: 
+lemma rotate_map2: 
   "length xs = length ys ==> 
-    rotate n (app2 f xs ys) = app2 f (rotate n xs) (rotate n ys)" 
+    rotate n (map2 f xs ys) = map2 f (rotate n xs) (rotate n ys)" 
   by (induct n) (auto intro!: lth)
 
 
@@ -1537,11 +1539,11 @@ lemmas blwl_syms [symmetric] = bl_word_not bl_word_and bl_word_or bl_word_xor
 
 lemmas lbl_lbl = trans [OF word_bl.Rep' word_bl.Rep' [symmetric]]
 
-lemmas ths_app2 [OF lbl_lbl] = rotate_app2 rotater_app2
+lemmas ths_map2 [OF lbl_lbl] = rotate_map2 rotater_map2
 
 lemmas ths_map [where xs = "to_bl v"] = rotate_map rotater_map
 
-lemmas th1s [simplified word_rot_defs' [symmetric]] = ths_app2 ths_map
+lemmas th1s [simplified word_rot_defs' [symmetric]] = ths_map2 ths_map
 
 lemma word_rot_logs:
   "word_rotl n (NOT v) = NOT word_rotl n v"

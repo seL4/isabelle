@@ -9,8 +9,8 @@
 
 header {* Bitwise Operations on Binary Integers *}
 
-theory BinOperations imports BinGeneral BitSyntax
-
+theory BinOperations
+imports BinGeneral BitSyntax
 begin
 
 subsection {* Logical operations *}
@@ -21,19 +21,19 @@ instantiation int :: bit
 begin
 
 definition
-  int_not_def: "bitNOT = bin_rec Int.Min Int.Pls 
+  int_not_def [code func del]: "bitNOT = bin_rec Int.Min Int.Pls 
     (\<lambda>w b s. s BIT (NOT b))"
 
 definition
-  int_and_def: "bitAND = bin_rec (\<lambda>x. Int.Pls) (\<lambda>y. y) 
+  int_and_def [code func del]: "bitAND = bin_rec (\<lambda>x. Int.Pls) (\<lambda>y. y) 
     (\<lambda>w b s y. s (bin_rest y) BIT (b AND bin_last y))"
 
 definition
-  int_or_def: "bitOR = bin_rec (\<lambda>x. x) (\<lambda>y. Int.Min) 
+  int_or_def [code func del]: "bitOR = bin_rec (\<lambda>x. x) (\<lambda>y. Int.Min) 
     (\<lambda>w b s y. s (bin_rest y) BIT (b OR bin_last y))"
 
 definition
-  int_xor_def: "bitXOR = bin_rec (\<lambda>x. x) bitNOT 
+  int_xor_def [code func del]: "bitXOR = bin_rec (\<lambda>x. x) bitNOT 
     (\<lambda>w b s y. s (bin_rest y) BIT (b XOR bin_last y))"
 
 instance ..
@@ -43,16 +43,18 @@ end
 lemma int_not_simps [simp]:
   "NOT Int.Pls = Int.Min"
   "NOT Int.Min = Int.Pls"
-  "NOT (w BIT b) = (NOT w) BIT (NOT b)"
   "NOT (Int.Bit0 w) = Int.Bit1 (NOT w)"
   "NOT (Int.Bit1 w) = Int.Bit0 (NOT w)"
+  "NOT (w BIT b) = (NOT w) BIT (NOT b)"
   unfolding int_not_def by (simp_all add: bin_rec_simps)
 
-lemma int_xor_Pls [simp]: 
+declare int_not_simps(1-4) [code func]
+
+lemma int_xor_Pls [simp, code func]: 
   "Int.Pls XOR x = x"
   unfolding int_xor_def by (simp add: bin_rec_PM)
 
-lemma int_xor_Min [simp]: 
+lemma int_xor_Min [simp, code func]: 
   "Int.Min XOR x = NOT x"
   unfolding int_xor_def by (simp add: bin_rec_PM)
 
@@ -67,7 +69,7 @@ lemma int_xor_Bits [simp]:
   apply (simp add: int_not_simps [symmetric])
   done
 
-lemma int_xor_Bits2 [simp]: 
+lemma int_xor_Bits2 [simp, code func]: 
   "(Int.Bit0 x) XOR (Int.Bit0 y) = Int.Bit0 (x XOR y)"
   "(Int.Bit0 x) XOR (Int.Bit1 y) = Int.Bit1 (x XOR y)"
   "(Int.Bit1 x) XOR (Int.Bit0 y) = Int.Bit1 (x XOR y)"
@@ -83,16 +85,16 @@ lemma int_xor_x_simps':
    apply clarsimp+
   done
 
-lemma int_xor_extra_simps [simp]:
+lemma int_xor_extra_simps [simp, code func]:
   "w XOR Int.Pls = w"
   "w XOR Int.Min = NOT w"
   using int_xor_x_simps' by simp_all
 
-lemma int_or_Pls [simp]: 
+lemma int_or_Pls [simp, code func]: 
   "Int.Pls OR x = x"
   by (unfold int_or_def) (simp add: bin_rec_PM)
   
-lemma int_or_Min [simp]:
+lemma int_or_Min [simp, code func]:
   "Int.Min OR x = Int.Min"
   by (unfold int_or_def) (simp add: bin_rec_PM)
 
@@ -100,7 +102,7 @@ lemma int_or_Bits [simp]:
   "(x BIT b) OR (y BIT c) = (x OR y) BIT (b OR c)"
   unfolding int_or_def by (simp add: bin_rec_simps)
 
-lemma int_or_Bits2 [simp]: 
+lemma int_or_Bits2 [simp, code func]: 
   "(Int.Bit0 x) OR (Int.Bit0 y) = Int.Bit0 (x OR y)"
   "(Int.Bit0 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
   "(Int.Bit1 x) OR (Int.Bit0 y) = Int.Bit1 (x OR y)"
@@ -116,16 +118,16 @@ lemma int_or_x_simps':
    apply clarsimp+
   done
 
-lemma int_or_extra_simps [simp]:
+lemma int_or_extra_simps [simp, code func]:
   "w OR Int.Pls = w"
   "w OR Int.Min = Int.Min"
   using int_or_x_simps' by simp_all
 
-lemma int_and_Pls [simp]:
+lemma int_and_Pls [simp, code func]:
   "Int.Pls AND x = Int.Pls"
   unfolding int_and_def by (simp add: bin_rec_PM)
 
-lemma int_and_Min [simp]:
+lemma int_and_Min [simp, code func]:
   "Int.Min AND x = x"
   unfolding int_and_def by (simp add: bin_rec_PM)
 
@@ -133,7 +135,7 @@ lemma int_and_Bits [simp]:
   "(x BIT b) AND (y BIT c) = (x AND y) BIT (b AND c)" 
   unfolding int_and_def by (simp add: bin_rec_simps)
 
-lemma int_and_Bits2 [simp]: 
+lemma int_and_Bits2 [simp, code func]: 
   "(Int.Bit0 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
   "(Int.Bit0 x) AND (Int.Bit1 y) = Int.Bit0 (x AND y)"
   "(Int.Bit1 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
@@ -149,7 +151,7 @@ lemma int_and_x_simps':
    apply clarsimp+
   done
 
-lemma int_and_extra_simps [simp]:
+lemma int_and_extra_simps [simp, code func]:
   "w AND Int.Pls = Int.Pls"
   "w AND Int.Min = w"
   using int_and_x_simps' by simp_all
@@ -374,13 +376,11 @@ lemmas bin_trunc_or = bin_trunc_ao(2) [THEN bintr_bintr_i]
 
 subsection {* Setting and clearing bits *}
 
-consts
-  bin_sc :: "nat => bit => int => int"
-
 primrec
-  Z : "bin_sc 0 b w = bin_rest w BIT b"
-  Suc :
-    "bin_sc (Suc n) b w = bin_sc n b (bin_rest w) BIT bin_last w"
+  bin_sc :: "nat => bit => int => int"
+where
+  Z: "bin_sc 0 b w = bin_rest w BIT b"
+  | Suc: "bin_sc (Suc n) b w = bin_sc n b (bin_rest w) BIT bin_last w"
 
 (** nth bit, set/clear **)
 
@@ -479,76 +479,63 @@ lemmas bin_sc_Suc_pred [simp] =
 
 subsection {* Operations on lists of booleans *}
 
-consts
-  bin_to_bl :: "nat => int => bool list"
-  bin_to_bl_aux :: "nat => int => bool list => bool list"
-  bl_to_bin :: "bool list => int"
-  bl_to_bin_aux :: "int => bool list => int"
+primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int" where
+  Nil: "bl_to_bin_aux [] w = w"
+  | Cons: "bl_to_bin_aux (b # bs) w = 
+      bl_to_bin_aux bs (w BIT (if b then bit.B1 else bit.B0))"
 
-  bl_of_nth :: "nat => (nat => bool) => bool list"
+definition bl_to_bin :: "bool list \<Rightarrow> int" where
+  bl_to_bin_def : "bl_to_bin bs = bl_to_bin_aux bs Int.Pls"
 
-primrec
-  Nil : "bl_to_bin_aux w [] = w"
-  Cons : "bl_to_bin_aux w (b # bs) = 
-      bl_to_bin_aux (w BIT (if b then bit.B1 else bit.B0)) bs"
+primrec bin_to_bl_aux :: "nat \<Rightarrow> int \<Rightarrow> bool list \<Rightarrow> bool list" where
+  Z: "bin_to_bl_aux 0 w bl = bl"
+  | Suc: "bin_to_bl_aux (Suc n) w bl =
+      bin_to_bl_aux n (bin_rest w) ((bin_last w = bit.B1) # bl)"
 
-primrec
-  Z : "bin_to_bl_aux 0 w bl = bl"
-  Suc : "bin_to_bl_aux (Suc n) w bl =
-    bin_to_bl_aux n (bin_rest w) ((bin_last w = bit.B1) # bl)"
+definition bin_to_bl :: "nat \<Rightarrow> int \<Rightarrow> bool list" where
+  bin_to_bl_def : "bin_to_bl n w = bin_to_bl_aux n w []"
 
-defs
-  bin_to_bl_def : "bin_to_bl n w == bin_to_bl_aux n w []"
-  bl_to_bin_def : "bl_to_bin bs == bl_to_bin_aux Int.Pls bs"
+primrec bl_of_nth :: "nat \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool list" where
+  Suc: "bl_of_nth (Suc n) f = f n # bl_of_nth n f"
+  | Z: "bl_of_nth 0 f = []"
 
-primrec
-  Suc : "bl_of_nth (Suc n) f = f n # bl_of_nth n f"
-  Z : "bl_of_nth 0 f = []"
+primrec takefill :: "'a \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  Z: "takefill fill 0 xs = []"
+  | Suc: "takefill fill (Suc n) xs = (
+      case xs of [] => fill # takefill fill n xs
+        | y # ys => y # takefill fill n ys)"
 
-consts
-  takefill :: "'a => nat => 'a list => 'a list"
-  app2 :: "('a => 'b => 'c) => 'a list => 'b list => 'c list"
+definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
+  "map2 f as bs = map (split f) (zip as bs)"
 
--- "takefill - like take but if argument list too short,"
--- "extends result to get requested length"
-primrec
-  Z : "takefill fill 0 xs = []"
-  Suc : "takefill fill (Suc n) xs = (
-    case xs of [] => fill # takefill fill n xs
-      | y # ys => y # takefill fill n ys)"
-
-defs
-  app2_def : "app2 f as bs == map (split f) (zip as bs)"
 
 subsection {* Splitting and concatenation *}
 
--- "rcat and rsplit"
-consts
-  bin_rcat :: "nat => int list => int"
-  bin_rsplit_aux :: "nat * int list * nat * int => int list"
-  bin_rsplit :: "nat => (nat * int) => int list"
-  bin_rsplitl_aux :: "nat * int list * nat * int => int list"
-  bin_rsplitl :: "nat => (nat * int) => int list"
-  
-recdef bin_rsplit_aux "measure (fst o snd o snd)"
-  "bin_rsplit_aux (n, bs, (m, c)) =
+definition bin_rcat :: "nat \<Rightarrow> int list \<Rightarrow> int" where
+  "bin_rcat n = foldl (%u v. bin_cat u n v) Int.Pls"
+
+function bin_rsplit_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list" where
+  "bin_rsplit_aux n m c bs =
     (if m = 0 | n = 0 then bs else
       let (a, b) = bin_split n c 
-      in bin_rsplit_aux (n, b # bs, (m - n, a)))"
+      in bin_rsplit_aux n (m - n) a (b # bs))"
+by pat_completeness auto
+termination by (relation "measure (fst o snd)") simp_all
 
-recdef bin_rsplitl_aux "measure (fst o snd o snd)"
-  "bin_rsplitl_aux (n, bs, (m, c)) =
+definition bin_rsplit :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list" where
+  "bin_rsplit n w = bin_rsplit_aux n (fst w) (snd w) []"
+
+function bin_rsplitl_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list" where
+  "bin_rsplitl_aux n m c bs =
     (if m = 0 | n = 0 then bs else
       let (a, b) = bin_split (min m n) c 
-      in bin_rsplitl_aux (n, b # bs, (m - n, a)))"
+      in bin_rsplitl_aux n (m - n) a (b # bs))"
+by pat_completeness auto
+termination by (relation "measure (fst o snd)") simp_all
 
-defs
-  bin_rcat_def : "bin_rcat n bs == foldl (%u v. bin_cat u n v) Int.Pls bs"
-  bin_rsplit_def : "bin_rsplit n w == bin_rsplit_aux (n, [], w)"
-  bin_rsplitl_def : "bin_rsplitl n w == bin_rsplitl_aux (n, [], w)"
-     
- 
-(* potential for looping *)
+definition bin_rsplitl :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list" where
+  "bin_rsplitl n w = bin_rsplitl_aux n (fst w) (snd w) []"
+
 declare bin_rsplit_aux.simps [simp del]
 declare bin_rsplitl_aux.simps [simp del]
 

@@ -7,7 +7,9 @@
 
 header {* Bitwise Operations on Words *}
 
-theory WordBitwise imports WordArith begin
+theory WordBitwise
+imports WordArith
+begin
 
 lemmas bin_log_bintrs = bin_trunc_not bin_trunc_xor bin_trunc_and bin_trunc_or
   
@@ -205,15 +207,15 @@ lemma bl_word_not: "to_bl (NOT w) = map Not (to_bl w)"
   unfolding to_bl_def word_log_defs
   by (simp add: bl_not_bin number_of_is_id word_no_wi [symmetric])
 
-lemma bl_word_xor: "to_bl (v XOR w) = app2 op ~= (to_bl v) (to_bl w)" 
+lemma bl_word_xor: "to_bl (v XOR w) = map2 op ~= (to_bl v) (to_bl w)" 
   unfolding to_bl_def word_log_defs bl_xor_bin
   by (simp add: number_of_is_id word_no_wi [symmetric])
 
-lemma bl_word_or: "to_bl (v OR w) = app2 op | (to_bl v) (to_bl w)" 
+lemma bl_word_or: "to_bl (v OR w) = map2 op | (to_bl v) (to_bl w)" 
   unfolding to_bl_def word_log_defs
   by (simp add: bl_or_bin number_of_is_id word_no_wi [symmetric])
 
-lemma bl_word_and: "to_bl (v AND w) = app2 op & (to_bl v) (to_bl w)" 
+lemma bl_word_and: "to_bl (v AND w) = map2 op & (to_bl v) (to_bl w)" 
   unfolding to_bl_def word_log_defs
   by (simp add: bl_and_bin number_of_is_id word_no_wi [symmetric])
 
