@@ -140,9 +140,19 @@ instance ..
 
 end
 
-instance up :: (type) Divides.div ..
+instantiation up :: ("{times, one, comm_monoid_add, uminus, minus}") Divides.div
+begin
 
-instantiation up :: ("{times, one, comm_monoid_add}") inverse
+definition "a div (b \<Colon> 'a up) = undefined a b"
+
+definition "a mod (b \<Colon> 'a up) = a - (a div b) * b"
+
+instance ..
+
+end
+
+
+instantiation up :: ("{times, one, comm_monoid_add, uminus, minus}") inverse
 begin
 
 definition
