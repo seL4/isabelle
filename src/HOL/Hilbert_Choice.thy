@@ -635,6 +635,8 @@ subsection {* Meson package *}
 
 use "Tools/meson.ML"
 
+setup Meson.setup
+
 
 subsection {* Specification package -- Hilbertized version *}
 

@@ -339,7 +339,7 @@ fun apply_depth (f$t) = Int.max (apply_depth f, apply_depth t + 1)
 
 fun too_complex t = 
   apply_depth t > max_apply_depth orelse 
-  Meson.too_many_clauses t orelse
+  Meson.too_many_clauses NONE t orelse
   excessive_lambdas_fm [] t;
   
 fun is_strange_thm th =

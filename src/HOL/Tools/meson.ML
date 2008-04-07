@@ -14,7 +14,7 @@ sig
   val first_order_resolve: thm -> thm -> thm
   val flexflex_first_order: thm -> thm
   val size_of_subgoals: thm -> int
-  val too_many_clauses: term -> bool
+  val too_many_clauses: Proof.context option -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val make_nnf: thm -> thm
@@ -41,10 +41,14 @@ sig
   val negate_head: thm -> thm
   val select_literal: int -> thm -> thm
   val skolemize_tac: int -> tactic
+  val setup: Context.theory -> Context.theory
 end
 
 structure Meson: MESON =
 struct
+
+val max_clauses_default = 60;
+val (max_clauses, setup) = Attrib.config_int "max_clauses" max_clauses_default;
 
 val not_conjD = thm "meson_not_conjD";
 val not_disjD = thm "meson_not_disjD";
@@ -237,37 +241,39 @@ fun nodups th =
 
 (*** The basic CNF transformation ***)
 
-val max_clauses = 40;
-
-fun sum x y = if x < max_clauses andalso y < max_clauses then x+y else max_clauses;
-fun prod x y = if x < max_clauses andalso y < max_clauses then x*y else max_clauses;
-
-(*Estimate the number of clauses in order to detect infeasible theorems*)
-fun signed_nclauses b (Const("Trueprop",_) $ t) = signed_nclauses b t
-  | signed_nclauses b (Const("Not",_) $ t) = signed_nclauses (not b) t
-  | signed_nclauses b (Const("op &",_) $ t $ u) =
-      if b then sum (signed_nclauses b t) (signed_nclauses b u)
-           else prod (signed_nclauses b t) (signed_nclauses b u)
-  | signed_nclauses b (Const("op |",_) $ t $ u) =
-      if b then prod (signed_nclauses b t) (signed_nclauses b u)
-           else sum (signed_nclauses b t) (signed_nclauses b u)
-  | signed_nclauses b (Const("op -->",_) $ t $ u) =
-      if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
-           else sum (signed_nclauses (not b) t) (signed_nclauses b u)
-  | signed_nclauses b (Const("op =", Type ("fun", [T, _])) $ t $ u) =
-      if T = HOLogic.boolT then (*Boolean equality is if-and-only-if*)
-          if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
-                        (prod (signed_nclauses (not b) u) (signed_nclauses b t))
-               else sum (prod (signed_nclauses b t) (signed_nclauses b u))
-                        (prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
-      else 1
-  | signed_nclauses b (Const("Ex", _) $ Abs (_,_,t)) = signed_nclauses b t
-  | signed_nclauses b (Const("All",_) $ Abs (_,_,t)) = signed_nclauses b t
-  | signed_nclauses _ _ = 1; (* literal *)
-
-val nclauses = signed_nclauses true;
-
-fun too_many_clauses t = nclauses t >= max_clauses;
+fun too_many_clauses ctxto t = 
+ let
+  val max_cl = case ctxto of SOME ctxt => Config.get ctxt max_clauses
+                           | NONE => max_clauses_default
+  
+  fun sum x y = if x < max_cl andalso y < max_cl then x+y else max_cl;
+  fun prod x y = if x < max_cl andalso y < max_cl then x*y else max_cl;
+  
+  (*Estimate the number of clauses in order to detect infeasible theorems*)
+  fun signed_nclauses b (Const("Trueprop",_) $ t) = signed_nclauses b t
+    | signed_nclauses b (Const("Not",_) $ t) = signed_nclauses (not b) t
+    | signed_nclauses b (Const("op &",_) $ t $ u) =
+	if b then sum (signed_nclauses b t) (signed_nclauses b u)
+	     else prod (signed_nclauses b t) (signed_nclauses b u)
+    | signed_nclauses b (Const("op |",_) $ t $ u) =
+	if b then prod (signed_nclauses b t) (signed_nclauses b u)
+	     else sum (signed_nclauses b t) (signed_nclauses b u)
+    | signed_nclauses b (Const("op -->",_) $ t $ u) =
+	if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
+	     else sum (signed_nclauses (not b) t) (signed_nclauses b u)
+    | signed_nclauses b (Const("op =", Type ("fun", [T, _])) $ t $ u) =
+	if T = HOLogic.boolT then (*Boolean equality is if-and-only-if*)
+	    if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
+			  (prod (signed_nclauses (not b) u) (signed_nclauses b t))
+		 else sum (prod (signed_nclauses b t) (signed_nclauses b u))
+			  (prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
+	else 1
+    | signed_nclauses b (Const("Ex", _) $ Abs (_,_,t)) = signed_nclauses b t
+    | signed_nclauses b (Const("All",_) $ Abs (_,_,t)) = signed_nclauses b t
+    | signed_nclauses _ _ = 1; (* literal *)
+ in 
+  signed_nclauses true t >= max_cl
+ end;
 
 (*Replaces universally quantified variables by FREE variables -- because
   assumptions may not contain scheme variables.  Later, generalize using Variable.export. *)
@@ -328,8 +334,8 @@ fun cnf skoths ctxt (th,ths) =
           | _ => nodups th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th,[])
       val cls = 
-	    if too_many_clauses (concl_of th)
-	    then (Output.debug (fn () => ("cnf is ignoring: " ^ string_of_thm th)); ths)
+	    if too_many_clauses (SOME ctxt) (concl_of th)
+	    then (warning ("cnf is ignoring: " ^ string_of_thm th); ths)
 	    else cnf_aux (th,ths)
   in  (cls, !ctxtr)  end;
 
