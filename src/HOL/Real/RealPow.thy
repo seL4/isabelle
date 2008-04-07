@@ -12,20 +12,21 @@ begin
 
 declare abs_mult_self [simp]
 
-instance real :: power ..
+instantiation real :: recpower
+begin
 
-primrec (realpow)
-     realpow_0:   "r ^ 0       = 1"
-     realpow_Suc: "r ^ (Suc n) = (r::real) * (r ^ n)"
+primrec power_real where
+  realpow_0:     "r ^ 0     = (1\<Colon>real)"
+  | realpow_Suc: "r ^ Suc n = (r\<Colon>real) * r ^ n"
 
-
-instance real :: recpower
-proof
+instance proof
   fix z :: real
   fix n :: nat
   show "z^0 = 1" by simp
   show "z^(Suc n) = z * (z^n)" by simp
 qed
+
+end
 
 
 lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
