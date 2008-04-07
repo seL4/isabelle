@@ -206,7 +206,7 @@ fun atomize ct =
 
 fun atomize_prems ct =
   if Logic.has_meta_prems (Thm.term_of ct) then
-    Conv.forall_conv ~1 (K (Conv.prems_conv ~1 atomize))
+    Conv.params_conv ~1 (K (Conv.prems_conv ~1 atomize))
       (ProofContext.init (Thm.theory_of_cterm ct)) ct
   else Conv.all_conv ct;
 

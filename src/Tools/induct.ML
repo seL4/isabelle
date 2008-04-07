@@ -528,7 +528,7 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   end);
 
 fun miniscope_tac p = CONVERSION o
-  Conv.forall_conv p (K (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]));
+  Conv.params_conv p (K (MetaSimplifier.rewrite true [Thm.symmetric Drule.norm_hhf_eq]));
 
 in
 

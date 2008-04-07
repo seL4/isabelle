@@ -27,7 +27,7 @@ val atomize_conv =
     (HOL_basic_ss addsimps inductive_atomize);
 val atomize_intr = Conv.fconv_rule (Conv.prems_conv ~1 atomize_conv);
 fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
-  (Conv.forall_conv ~1 (K (Conv.prems_conv ~1 atomize_conv)) ctxt));
+  (Conv.params_conv ~1 (K (Conv.prems_conv ~1 atomize_conv)) ctxt));
 
 val finite_Un = thm "finite_Un";
 val supp_prod = thm "supp_prod";
