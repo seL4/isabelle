@@ -712,11 +712,14 @@ using one_step_implies_mult_aux by blast
 
 subsubsection {* Partial-order properties *}
 
-instance multiset :: (type) ord ..
+instantiation multiset :: (order) order
+begin
 
-defs (overloaded)
-  less_multiset_def: "M' < M == (M', M) \<in> mult {(x', x). x' < x}"
-  le_multiset_def: "M' <= M == M' = M \<or> M' < (M::'a multiset)"
+definition
+  less_multiset_def: "M' < M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
+
+definition
+  le_multiset_def: "M' <= M \<longleftrightarrow> M' = M \<or> M' < (M::'a multiset)"
 
 lemma trans_base_order: "trans {(x', x). x' < (x::'a::order)}"
 unfolding trans_def by (blast intro: order_less_trans)
@@ -775,15 +778,15 @@ unfolding le_multiset_def by (blast intro: mult_less_trans)
 theorem mult_less_le: "(M < N) = (M <= N \<and> M \<noteq> (N::'a::order multiset))"
 unfolding le_multiset_def by auto
 
-text {* Partial order. *}
-
-instance multiset :: (order) order
+instance
 apply intro_classes
    apply (rule mult_less_le)
   apply (rule mult_le_refl)
  apply (erule mult_le_trans, assumption)
 apply (erule mult_le_antisym, assumption)
 done
+
+end
 
 
 subsubsection {* Monotonicity of multiset union *}
