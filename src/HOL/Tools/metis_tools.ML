@@ -295,17 +295,17 @@ fun infer_types ctxt =
       (ProofContext.theory_of ctxt)
       (singleton (fol_terms_to_hol ctxt) (Metis.Term.Fn atm));
 
-  (* INFERENCE RULE: INSTANTIATE. Type instantiations are ignored. Attempting to reconstruct
+  (* INFERENCE RULE: INSTANTIATE (Subst). Type instantiations are ignored. Trying to reconstruct
      them admits new possibilities of errors, e.g. concerning sorts. Instead we try to arrange
      that new TVars are distinct and that types can be inferred from terms.*)
-  fun inst_inf ctxt thpairs fsubst th =
+  fun inst_inf ctxt thpairs fsubst th =    
     let val thy = ProofContext.theory_of ctxt
         val i_th   = lookth thpairs th
         val i_th_vars = term_vars (prop_of i_th)
         fun find_var x = valOf (List.find (fn Term.Var((a,_),_) => a=x) i_th_vars)
         fun subst_translation (x,y) =
               let val v = find_var x
-                  val t = fol_term_to_hol_RAW ctxt y
+                  val t = fol_term_to_hol_RAW ctxt y (*we call infer_types below*)
               in  SOME (cterm_of thy v, t)  end
               handle Option =>
                   (Output.debug (fn() => "List.find failed for the variable " ^ x ^
@@ -606,7 +606,7 @@ fun infer_types ctxt =
                       (_,ith)::_ => (Output.debug (fn () => "success: " ^ string_of_thm ith); ith)
                     | _ => error "METIS: no result"
               end
-          | Metis.Resolution.Satisfiable _ => error "Metis finds the theorem to be invalid"
+          | Metis.Resolution.Satisfiable _ => error "Metis: No first-order proof with the lemmas supplied"
     end;
 
   fun metis_general_tac mode ctxt ths i st0 =
