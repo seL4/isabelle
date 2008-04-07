@@ -6,7 +6,9 @@ header {* Field, method, interface, and class declarations, whole Java programs
 *}
 
 (** order is significant, because of clash for "var" **)
-theory Decl imports Term Table begin
+theory Decl
+imports Term Table
+begin
 
 text {*
 improvements:
@@ -50,21 +52,21 @@ most restrictive access and public the most liberal access policy:
   Private < Package < Protected < Public
 *}
  
-instance acc_modi:: ord ..
+instantiation acc_modi :: linorder
+begin
 
-defs (overloaded)
-less_acc_def: 
- "a < (b::acc_modi) 
-      \<equiv> (case a of
+definition
+  less_acc_def: "a < b
+      \<longleftrightarrow> (case a of
              Private    \<Rightarrow> (b=Package \<or> b=Protected \<or> b=Public)
            | Package    \<Rightarrow> (b=Protected \<or> b=Public)
            | Protected  \<Rightarrow> (b=Public)
            | Public     \<Rightarrow> False)"
-le_acc_def:
- "a \<le> (b::acc_modi) \<equiv> (a = b) \<or> (a < b)"
 
-instance acc_modi:: order
-proof
+definition
+  le_acc_def: "a \<le> (b::acc_modi) \<longleftrightarrow> (a = b) \<or> (a < b)"
+
+instance proof
   fix x y z::acc_modi
   {
   show "x \<le> x"               \<spacespace>\<spacespace>    -- reflexivity
@@ -86,14 +88,12 @@ proof
   show "(x < y) = (x \<le> y \<and> x \<noteq> y)"
     by (auto simp add: le_acc_def less_acc_def split add: acc_modi.split) 
   }
-qed
-  
-instance acc_modi:: linorder
-proof
   fix x y:: acc_modi
   show  "x \<le> y \<or> y \<le> x"   
   by (auto simp add: less_acc_def le_acc_def split add: acc_modi.split)
 qed
+  
+end
 
 lemma acc_modi_top [simp]: "Public \<le> a \<Longrightarrow> a = Public"
 by (auto simp add: le_acc_def less_acc_def split: acc_modi.splits)

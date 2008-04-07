@@ -43,10 +43,15 @@ notation (HTML output)
 
 subsection {* Real vector class instances *}
 
-instance star :: (scaleR) scaleR ..
+instantiation star :: (scaleR) scaleR
+begin
 
-defs (overloaded)
+definition
   star_scaleR_def [transfer_unfold]: "scaleR r \<equiv> *f* (scaleR r)"
+
+instance ..
+
+end
 
 lemma Standard_scaleR [simp]: "x \<in> Standard \<Longrightarrow> scaleR r x \<in> Standard"
 by (simp add: star_scaleR_def)
