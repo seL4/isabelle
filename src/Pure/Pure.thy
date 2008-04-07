@@ -21,7 +21,7 @@ lemma meta_spec:
 lemmas meta_allE = meta_spec [elim_format]
 
 lemma swap_params:
-  "(\<And>x y. PROP P(x, y)) == (\<And>y x. PROP P(x, y))" ..
+  "(!!x y. PROP P(x, y)) == (!!y x. PROP P(x, y))" ..
 
 
 subsection {* Embedded terms *}
@@ -42,7 +42,7 @@ lemma all_conjunction:
   shows "(!!x. PROP A(x) && PROP B(x)) == ((!!x. PROP A(x)) && (!!x. PROP B(x)))"
 proof
   assume conj: "!!x. PROP A(x) && PROP B(x)"
-  show "(\<And>x. PROP A(x)) && (\<And>x. PROP B(x))"
+  show "(!!x. PROP A(x)) && (!!x. PROP B(x))"
   proof -
     fix x
     from conj show "PROP A(x)" by (rule conjunctionD1)
