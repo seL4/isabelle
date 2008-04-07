@@ -93,6 +93,8 @@ definition
   preal_inverse_def:
     "inverse R == Abs_preal (inverse_set (Rep_preal R))"
 
+definition "R / S = R * inverse (S\<Colon>preal)"
+
 definition
   preal_one_def:
     "1 == preal_of_rat 1"
