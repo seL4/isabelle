@@ -20,6 +20,9 @@ lemma meta_spec:
 
 lemmas meta_allE = meta_spec [elim_format]
 
+lemma swap_params:
+  "(\<And>x y. PROP P(x, y)) == (\<And>y x. PROP P(x, y))" ..
+
 
 subsection {* Embedded terms *}
 
