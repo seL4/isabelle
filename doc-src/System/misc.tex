@@ -313,11 +313,11 @@ The YXML format is defined as follows.
 
 \end{enumerate}
 
-Parsing YXML is pretty straight-forward: split the text into chunks
-separated by \emph{X}, then split each chunk into sub-chunks separated
-by \emph{Y}.  Markup chunks start with an empty sub-chunk, and a
-second empty sub-chunk indicates close of an element.  Any other chunk
-consists of plain text.
+Parsing YXML is pretty straight-forward: split the text into chunks separated
+by \emph{X}, then split each chunk into sub-chunks separated by \emph{Y}.
+Markup chunks start with an empty sub-chunk, and a second empty sub-chunk
+indicates close of an element.  Any other non-empty chunk consists of plain
+text.
 
 YXML documents may be detected quickly by checking that the first two
 characters are \emph{X\,Y}.
