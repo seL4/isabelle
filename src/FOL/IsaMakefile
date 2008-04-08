@@ -35,7 +35,7 @@ $(OUT)/FOL$(ML_SUFFIX): $(OUT)/Pure$(ML_SUFFIX) $(SRC)/Provers/blast.ML	\
   $(SRC)/Tools/IsaPlanner/rw_tools.ML	\
   $(SRC)/Tools/IsaPlanner/rw_inst.ML \
   $(SRC)/Provers/eqsubst.ML $(SRC)/Provers/hypsubst.ML			\
-  $(SRC)/Tools/induct.ML			\
+  $(SRC)/Tools/induct.ML $(SRC)/Tools/atomize_elim.ML \
   $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
   $(SRC)/Provers/splitter.ML FOL.thy IFOL.thy ROOT.ML blastdata.ML cladata.ML 		\
   document/root.tex fologic.ML hypsubstdata.ML intprover.ML simpdata.ML
