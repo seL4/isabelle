@@ -22,8 +22,9 @@ General format of process output:
 
 signature ISABELLE_PROCESS =
 sig
-  val full_markupN: string
   val isabelle_processN: string
+  val full_markupN: string
+  val yxmlN: string
   val init: unit -> unit
 end;
 
@@ -34,6 +35,7 @@ struct
 
 val isabelle_processN = "isabelle_process";
 val full_markupN = "full_markup";
+val yxmlN = "YXML";
 
 val _ = Output.add_mode isabelle_processN Output.default_output Output.default_escape;
 
@@ -50,17 +52,24 @@ val special_end = special ".";
 
 local
 
+fun clean_string bad str =
+  if exists_string (member (op =) bad) str then
+    translate_string (fn c => if member (op =) bad c then Symbol.DEL else c) str
+  else str;
+
 fun message_props props =
-  let
-    val clean = translate_string (fn c =>
-      if c = Symbol.STX orelse c = "\n" orelse c = "\r" then Symbol.DEL else c);
+  let val clean = clean_string [Symbol.STX, "\n", "\r"]
   in implode (map (fn (x, y) => clean x ^ "=" ^ clean y ^ special_sep ^ "\n") props) end;
 
 fun message_text ts =
-  (if print_mode_active full_markupN
-    then XML.header ^ XML.string_of (XML.Elem ("message", [], ts))
-    else Buffer.content (fold XML.add_content ts Buffer.empty))
-  |> translate_string (fn c => if c = Symbol.STX then Symbol.DEL else c);
+  let
+    val doc = XML.Elem ("message", [], ts);
+    val msg =
+      if not (print_mode_active full_markupN) then
+        Buffer.content (fold XML.add_content ts Buffer.empty)
+      else if print_mode_active yxmlN then YXML.string_of doc
+      else XML.header ^ XML.string_of doc;
+  in clean_string [Symbol.STX] msg end;
 
 fun message_pos ts = get_first get_pos ts
 and get_pos (elem as XML.Elem (name, atts, ts)) =
