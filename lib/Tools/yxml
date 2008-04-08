@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: simple XML to YXML converter
+
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG"
+  echo
+  echo "  Convert XML (stdin) to YXML (stdout)."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ "$#" -ne 0 ] && usage
+
+
+## main
+
+exec perl -w "$ISABELLE_HOME/lib/scripts/yxml.pl"

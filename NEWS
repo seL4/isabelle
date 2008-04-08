@@ -223,8 +223,12 @@ use OS.Process.system etc. directly.
 
 *** System ***
 
-* System: removed obsolete THIS_IS_ISABELLE_BUILD feature.  NB: the
-documented way of changing the user's settings is via
+* YXML notation provides a simple and efficient alternative to
+standard XML transfer syntax.  See src/Pure/General/yxml.ML and
+isatool yxml as described in the Isabelle system manual.
+
+* Removed obsolete THIS_IS_ISABELLE_BUILD feature.  NB: the documented
+way of changing the user's settings is via
 ISABELLE_HOME_USER/etc/settings, which is a fully featured bash
 script.
 
