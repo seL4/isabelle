@@ -595,12 +595,12 @@ txt {*
   This is an arithmetic triviality, but unfortunately the
   @{text arith} method cannot handle this specific form of an
   elimination rule. However, we can use the method @{text
-  "elim_to_cases"} to do an ad-hoc conversion to a disjunction of
+  "atomize_elim"} to do an ad-hoc conversion to a disjunction of
   existentials, which can then be soved by the arithmetic decision procedure.
   Pattern compatibility and termination are automatic as usual.
 *}
 (*<*)ML "goals_limit := 10"(*>*)
-apply elim_to_cases
+apply atomize_elim
 apply arith
 apply auto
 done
@@ -616,7 +616,7 @@ function ev :: "nat \<Rightarrow> bool"
 where
   "ev (2 * n) = True"
 | "ev (2 * n + 1) = False"
-apply elim_to_cases
+apply atomize_elim
 by arith+
 termination by (relation "{}") simp
 
@@ -649,7 +649,7 @@ where
 | "gcd 0 y = y"
 | "x < y \<Longrightarrow> gcd (Suc x) (Suc y) = gcd (Suc x) (y - x)"
 | "\<not> x < y \<Longrightarrow> gcd (Suc x) (Suc y) = gcd (x - y) (Suc y)"
-by (elim_to_cases, auto, arith)
+by (atomize_elim, auto, arith)
 termination by lexicographic_order
 
 text {*

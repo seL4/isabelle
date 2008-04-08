@@ -23,6 +23,7 @@ uses
   "~~/src/Provers/quantifier1.ML"
   ("simpdata.ML")
   "~~/src/Tools/random_word.ML"
+  "~~/src/Tools/atomize_elim.ML"
   "~~/src/Tools/induct.ML"
   "~~/src/Tools/code/code_name.ML"
   "~~/src/Tools/code/code_funcgr.ML"
@@ -877,6 +878,22 @@ qed
 
 lemmas [symmetric, rulify] = atomize_all atomize_imp
   and [symmetric, defn] = atomize_all atomize_imp atomize_eq
+
+
+subsubsection {* Atomizing elimination rules *}
+
+setup AtomizeElim.setup
+
+lemma atomize_exL[atomize_elim]: "(!!x. P x ==> Q) == ((EX x. P x) ==> Q)"
+  by rule iprover+
+
+lemma atomize_conjL[atomize_elim]: "(A ==> B ==> C) == (A & B ==> C)"
+  by rule iprover+
+
+lemma atomize_disjL[atomize_elim]: "((A ==> C) ==> (B ==> C) ==> C) == ((A | B ==> C) ==> C)"
+  by rule iprover+
+
+lemma atomize_elimL[atomize_elim]: "(!!B. (A ==> B) ==> B) == Trueprop A" ..
 
 
 subsection {* Package setup *}

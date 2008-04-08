@@ -121,7 +121,7 @@ lemma int_pos_neg_zero:
   obtains (zero) "(z::int) = 0" "sgn z = 0" "abs z = 0"
   | (pos) n where "z = of_nat n" "sgn z = 1" "abs z = of_nat n"
   | (neg) n where "z = - (of_nat n)" "sgn z = -1" "abs z = of_nat n"
-apply elim_to_cases
+apply atomize_elim
 apply (insert int_cases[of z])
 apply (auto simp:zsgn_def)
 apply (rule_tac x="nat (-z)" in exI, simp)
