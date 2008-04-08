@@ -71,18 +71,6 @@ echo "referring to distribution at $DISTDIR"
 
 # standalone binaries
 
-#set by configure
-AUTO_BASH=bash
-
-case "$AUTO_BASH" in
-  /*)
-    BASH="$AUTO_BASH"
-    ;;
-  *)
-    BASH="/usr/bin/env bash"
-    ;;
-esac
-
 if [ -n "$BINDIR" ]; then
   mkdir -p "$BINDIR" || fail "Bad directory: $BINDIR"
 
@@ -92,7 +80,7 @@ if [ -n "$BINDIR" ]; then
     DIST="$DISTDIR/bin/$NAME"
     echo "installing $BIN"
     rm -f "$BIN"
-    echo "#!$BASH" > "$BIN" || fail "Cannot write file: $BIN"
+    echo "#!/usr/bin/env bash" > "$BIN" || fail "Cannot write file: $BIN"
     echo >> "$BIN"
     echo "exec \"$DIST\" \"\$@\"" >> "$BIN"
     chmod +x "$BIN"
