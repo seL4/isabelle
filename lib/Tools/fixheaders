@@ -33,8 +33,5 @@ SPECS="$@"; shift "$#"
 
 ## main
 
-#set by configure
-AUTO_PERL=perl
-
 find $SPECS -name \*.thy -print | \
-  xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/fixheaders.pl"
+  xargs perl -w "$ISABELLE_HOME/lib/scripts/fixheaders.pl"

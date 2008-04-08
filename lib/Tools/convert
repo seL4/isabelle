@@ -35,8 +35,5 @@ SPECS="$@"; shift "$#"
 
 ## main
 
-#set by configure
-AUTO_PERL=perl
-
 find $SPECS \( -name \*.ML \) -print | \
-  xargs "$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/convert.pl"
+  xargs perl -w "$ISABELLE_HOME/lib/scripts/convert.pl"

@@ -70,12 +70,9 @@ if [ -z "$OUTFILE" ]; then
   OUTFILE="isabelle${OUTFILE}.eps"
 fi
 
-#set by configure
-AUTO_PERL=perl
-
 if [ "$OUTFILE" = "-" ]; then
-  "$AUTO_PERL" -p -e "s/<any>/$NAME/" "$ISABELLE_HOME/lib/logo/isabelle_any.eps"
+  perl -p -e "s/<any>/$NAME/" "$ISABELLE_HOME/lib/logo/isabelle_any.eps"
 else
   [ -z "$QUIET" ] && echo "$OUTFILE" >&2
-  "$AUTO_PERL" -p -e "s/<any>/$NAME/" "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "$OUTFILE"
+  perl -p -e "s/<any>/$NAME/" "$ISABELLE_HOME/lib/logo/isabelle_any.eps" > "$OUTFILE"
 fi

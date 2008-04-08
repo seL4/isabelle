@@ -57,9 +57,6 @@ LOGS="$@"; shift "$#"
 
 ## main
 
-#set by configure
-AUTO_PERL=perl
-
 SESSIONS=""
 for LOG in $LOGS
 do
@@ -80,4 +77,4 @@ do
   fi
   echo
 done | \
-"$AUTO_PERL" -w "$ISABELLE_HOME/lib/scripts/keywords.pl" "$KEYWORDS_NAME" "$TARGET_TOOL" "$SESSIONS"
+perl -w "$ISABELLE_HOME/lib/scripts/keywords.pl" "$KEYWORDS_NAME" "$TARGET_TOOL" "$SESSIONS"
