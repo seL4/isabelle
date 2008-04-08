@@ -162,11 +162,6 @@ instance ..
 
 end 
 
-abbreviation
-  word_power :: "'a\<Colon>len0 word \<Rightarrow> nat \<Rightarrow> 'a word"
-where
-  "word_power == op ^"
-
 definition
   word_succ :: "'a :: len0 word => 'a word"
 where
