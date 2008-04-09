@@ -1388,6 +1388,9 @@ done
 lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1)"
 by(induct xs)(auto simp:neq_Nil_conv)
 
+lemma butlast_conv_take: "butlast xs = take (length xs - 1) xs"
+by (induct xs, simp, case_tac xs, simp_all)
+
 
 subsubsection {* @{text take} and @{text drop} *}
 
@@ -1411,8 +1414,17 @@ by(clarsimp simp add:neq_Nil_conv)
 lemma drop_Suc: "drop (Suc n) xs = drop n (tl xs)"
 by(cases xs, simp_all)
 
+lemma take_tl: "take n (tl xs) = tl (take (Suc n) xs)"
+by (induct xs arbitrary: n) simp_all
+
 lemma drop_tl: "drop n (tl xs) = tl(drop n xs)"
 by(induct xs arbitrary: n, simp_all add:drop_Cons drop_Suc split:nat.split)
+
+lemma tl_take: "tl (take n xs) = take (n - 1) (tl xs)"
+by (cases n, simp, cases xs, auto)
+
+lemma tl_drop: "tl (drop n xs) = drop n (tl xs)"
+by (simp only: drop_tl)
 
 lemma nth_via_drop: "drop n xs = y#ys \<Longrightarrow> xs!n = y"
 apply (induct xs arbitrary: n, simp)
@@ -1521,6 +1533,19 @@ lemma nth_drop [simp]:
 apply (induct n arbitrary: xs i, auto)
 apply (case_tac xs, auto)
 done
+
+lemma butlast_take:
+  "n <= length xs ==> butlast (take n xs) = take (n - 1) xs"
+by (simp add: butlast_conv_take min_max.inf_absorb1 min_max.inf_absorb2)
+
+lemma butlast_drop: "butlast (drop n xs) = drop n (butlast xs)"
+by (simp add: butlast_conv_take drop_take)
+
+lemma take_butlast: "n < length xs ==> take n (butlast xs) = take n xs"
+by (simp add: butlast_conv_take min_max.inf_absorb1)
+
+lemma drop_butlast: "drop n (butlast xs) = butlast (drop n xs)"
+by (simp add: butlast_conv_take drop_take)
 
 lemma hd_drop_conv_nth: "\<lbrakk> xs \<noteq> []; n < length xs \<rbrakk> \<Longrightarrow> hd(drop n xs) = xs!n"
 by(simp add: hd_conv_nth)

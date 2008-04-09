@@ -38,39 +38,6 @@ primrec rbl_mult :: "bool list => bool list => bool list" where
   | Cons: "rbl_mult (y # ys) x = (let ws = False # rbl_mult ys x in 
     if y then rbl_add ws x else ws)"
 
-lemma tl_take: "tl (take n l) = take (n - 1) (tl l)"
-  apply (cases n, clarsimp)
-  apply (cases l, auto)
-  done
-
-lemma take_butlast [rule_format] :
-  "ALL n. n < length l --> take n (butlast l) = take n l"
-  apply (induct l, clarsimp)
-  apply clarsimp
-  apply (case_tac n)
-  apply auto
-  done
-
-lemma butlast_take [rule_format] :
-  "ALL n. n <= length l --> butlast (take n l) = take (n - 1) l"
-  apply (induct l, clarsimp)
-  apply clarsimp
-  apply (case_tac "n")
-   apply safe
-   apply simp_all
-  apply (case_tac "nat")
-   apply auto
-  done
-
-lemma butlast_drop [rule_format] :
-  "ALL n. butlast (drop n l) = drop n (butlast l)"
-  apply (induct l)
-   apply clarsimp
-  apply clarsimp
-  apply safe
-   apply ((case_tac n, auto)[1])+
-  done
-
 lemma butlast_power:
   "(butlast ^ n) bl = take (length bl - n) bl"
   by (induct n) (auto simp: butlast_take)
