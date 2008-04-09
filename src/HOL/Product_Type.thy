@@ -699,34 +699,33 @@ text {*
   The composition-uncurry combinator.
 *}
 
+notation fcomp (infixl "o>" 60)
+
 definition
-  mbind :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "o->" 60)
+  scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "o\<rightarrow>" 60)
 where
-  "f o-> g = (\<lambda>x. split g (f x))"
+  "f o\<rightarrow> g = (\<lambda>x. split g (f x))"
 
-notation (xsymbols)
-  mbind  (infixl "\<circ>\<rightarrow>" 60)
+lemma scomp_apply:  "(f o\<rightarrow> g) x = split g (f x)"
+  by (simp add: scomp_def)
 
-notation (HTML output)
-  mbind  (infixl "\<circ>\<rightarrow>" 60)
+lemma Pair_scomp: "Pair x o\<rightarrow> f = f x"
+  by (simp add: expand_fun_eq scomp_apply)
 
-lemma mbind_apply:  "(f \<circ>\<rightarrow> g) x = split g (f x)"
-  by (simp add: mbind_def)
+lemma scomp_Pair: "x o\<rightarrow> Pair = x"
+  by (simp add: expand_fun_eq scomp_apply)
 
-lemma Pair_mbind: "Pair x \<circ>\<rightarrow> f = f x"
-  by (simp add: expand_fun_eq mbind_apply)
+lemma scomp_scomp: "(f o\<rightarrow> g) o\<rightarrow> h = f o\<rightarrow> (\<lambda>x. g x o\<rightarrow> h)"
+  by (simp add: expand_fun_eq split_twice scomp_def)
 
-lemma mbind_Pair: "x \<circ>\<rightarrow> Pair = x"
-  by (simp add: expand_fun_eq mbind_apply)
+lemma scomp_fcomp: "(f o\<rightarrow> g) o> h = f o\<rightarrow> (\<lambda>x. g x o> h)"
+  by (simp add: expand_fun_eq scomp_apply fcomp_def split_def)
 
-lemma mbind_mbind: "(f \<circ>\<rightarrow> g) \<circ>\<rightarrow> h = f \<circ>\<rightarrow> (\<lambda>x. g x \<circ>\<rightarrow> h)"
-  by (simp add: expand_fun_eq split_twice mbind_def)
+lemma fcomp_scomp: "(f o> g) o\<rightarrow> h = f o> (g o\<rightarrow> h)"
+  by (simp add: expand_fun_eq scomp_apply fcomp_apply)
 
-lemma mbind_fcomp: "(f \<circ>\<rightarrow> g) \<circ>> h = f \<circ>\<rightarrow> (\<lambda>x. g x \<circ>> h)"
-  by (simp add: expand_fun_eq mbind_apply fcomp_def split_def)
-
-lemma fcomp_mbind: "(f \<circ>> g) \<circ>\<rightarrow> h = f \<circ>> (g \<circ>\<rightarrow> h)"
-  by (simp add: expand_fun_eq mbind_apply fcomp_apply)
+no_notation fcomp (infixl "o>" 60)
+no_notation scomp (infixl "o\<rightarrow>" 60)
 
 
 text {*

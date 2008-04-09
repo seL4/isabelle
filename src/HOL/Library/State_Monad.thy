@@ -56,28 +56,17 @@ text {*
   we use a set of monad combinators:
 *}
 
-definition
-  mbind :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"
-    (infixl ">>=" 60) where
-  "f >>= g = split g \<circ> f"
+notation fcomp (infixl ">>" 60)
+notation (xsymbols) fcomp (infixl "\<guillemotright>" 60)
+notation scomp (infixl ">>=" 60)
+notation (xsymbols) scomp (infixl "\<guillemotright>=" 60)
 
-definition
-  fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"
-    (infixl ">>" 60) where
-  "f >> g = g \<circ> f"
+abbreviation (input)
+  "return \<equiv> Pair"
 
 definition
   run :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
   "run f = f"
-
-syntax (xsymbols)
-  mbind :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"
-    (infixl "\<guillemotright>=" 60)
-  fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"
-    (infixl "\<guillemotright>" 60)
-
-abbreviation (input)
-  "return \<equiv> Pair"
 
 print_ast_translation {*
   [(@{const_syntax "run"}, fn (f::ts) => Syntax.mk_appl f ts)]
@@ -142,12 +131,12 @@ text {*
 *}
 
 lemma
-  return_mbind [simp]: "return x \<guillemotright>= f = f x"
-  unfolding mbind_def by (simp add: expand_fun_eq)
+  return_scomp [simp]: "return x \<guillemotright>= f = f x"
+  unfolding scomp_def by (simp add: expand_fun_eq)
 
 lemma
-  mbind_return [simp]: "x \<guillemotright>= return = x"
-  unfolding mbind_def by (simp add: expand_fun_eq split_Pair)
+  scomp_return [simp]: "x \<guillemotright>= return = x"
+  unfolding scomp_def by (simp add: expand_fun_eq split_Pair)
 
 lemma
   id_fcomp [simp]: "id \<guillemotright> f = f"
@@ -158,30 +147,30 @@ lemma
   unfolding fcomp_def by simp
 
 lemma
-  mbind_mbind [simp]: "(f \<guillemotright>= g) \<guillemotright>= h = f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= h)"
-  unfolding mbind_def by (simp add: split_def expand_fun_eq)
+  scomp_scomp [simp]: "(f \<guillemotright>= g) \<guillemotright>= h = f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= h)"
+  unfolding scomp_def by (simp add: split_def expand_fun_eq)
 
 lemma
-  mbind_fcomp [simp]: "(f \<guillemotright>= g) \<guillemotright> h = f \<guillemotright>= (\<lambda>x. g x \<guillemotright> h)"
-  unfolding mbind_def fcomp_def by (simp add: split_def expand_fun_eq)
+  scomp_fcomp [simp]: "(f \<guillemotright>= g) \<guillemotright> h = f \<guillemotright>= (\<lambda>x. g x \<guillemotright> h)"
+  unfolding scomp_def fcomp_def by (simp add: split_def expand_fun_eq)
 
 lemma
-  fcomp_mbind [simp]: "(f \<guillemotright> g) \<guillemotright>= h = f \<guillemotright> (g \<guillemotright>= h)"
-  unfolding mbind_def fcomp_def by (simp add: split_def expand_fun_eq)
+  fcomp_scomp [simp]: "(f \<guillemotright> g) \<guillemotright>= h = f \<guillemotright> (g \<guillemotright>= h)"
+  unfolding scomp_def fcomp_def by (simp add: split_def expand_fun_eq)
 
 lemma
   fcomp_fcomp [simp]: "(f \<guillemotright> g) \<guillemotright> h = f \<guillemotright> (g \<guillemotright> h)"
   unfolding fcomp_def o_assoc ..
 
-lemmas monad_simp = run_simp return_mbind mbind_return id_fcomp fcomp_id
-  mbind_mbind mbind_fcomp fcomp_mbind fcomp_fcomp
+lemmas monad_simp = run_simp return_scomp scomp_return id_fcomp fcomp_id
+  scomp_scomp scomp_fcomp fcomp_scomp fcomp_fcomp
 
 text {*
   Evaluation of monadic expressions by force:
 *}
 
 lemmas monad_collapse = monad_simp o_apply o_assoc split_Pair split_comp
-  mbind_def fcomp_def run_def
+  scomp_def fcomp_def run_def
 
 subsection {* ML abstract operations *}
 
@@ -194,7 +183,7 @@ fun liftT' sT = sT --> sT;
 
 fun return T sT x = Const (@{const_name return}, T --> liftT T sT) $ x;
 
-fun mbind T1 T2 sT f g = Const (@{const_name mbind},
+fun scomp T1 T2 sT f g = Const (@{const_name scomp},
   liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
 
 fun run T sT f = Const (@{const_name run}, liftT' (liftT T sT)) $ f;
@@ -216,7 +205,7 @@ nonterminals do_expr
 syntax
   "_do" :: "do_expr \<Rightarrow> 'a"
     ("do _ done" [12] 12)
-  "_mbind" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
+  "_scomp" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
     ("_ <- _;// _" [1000, 13, 12] 12)
   "_fcomp" :: "'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
     ("_;// _" [13, 12] 12)
@@ -226,12 +215,12 @@ syntax
     ("_" [12] 12)
 
 syntax (xsymbols)
-  "_mbind" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
+  "_scomp" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
     ("_ \<leftarrow> _;// _" [1000, 13, 12] 12)
 
 translations
   "_do f" => "CONST run f"
-  "_mbind x f g" => "f \<guillemotright>= (\<lambda>x. g)"
+  "_scomp x f g" => "f \<guillemotright>= (\<lambda>x. g)"
   "_fcomp f g" => "f \<guillemotright> g"
   "_let x t f" => "CONST Let t (\<lambda>x. f)"
   "_nil f" => "f"
@@ -246,10 +235,10 @@ let
         let
           val (v, t) = Syntax.variant_abs ("", dummyT, t $ Bound 0);
         in ((v, dummyT), t) end
-  fun unfold_monad (Const (@{const_syntax mbind}, _) $ f $ g) =
+  fun unfold_monad (Const (@{const_syntax scomp}, _) $ f $ g) =
         let
           val ((v, ty), g') = dest_abs_eta g;
-        in Const ("_mbind", dummyT) $ Free (v, ty) $ f $ unfold_monad g' end
+        in Const ("_scomp", dummyT) $ Free (v, ty) $ f $ unfold_monad g' end
     | unfold_monad (Const (@{const_syntax fcomp}, _) $ f $ g) =
         Const ("_fcomp", dummyT) $ f $ unfold_monad g
     | unfold_monad (Const (@{const_syntax Let}, _) $ f $ g) =

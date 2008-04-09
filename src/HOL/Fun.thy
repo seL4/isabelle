@@ -82,18 +82,12 @@ lemma UN_o: "UNION A (g o f) = UNION (f`A) g"
 by (unfold comp_def, blast)
 
 
-subsection {* The Forward Composition Operator @{text "f \<circ>> g"} *}
+subsection {* The Forward Composition Operator @{text fcomp} *}
 
 definition
   fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o>" 60)
 where
   "f o> g = (\<lambda>x. g (f x))"
-
-notation (xsymbols)
-  fcomp  (infixl "\<circ>>" 60)
-
-notation (HTML output)
-  fcomp  (infixl "\<circ>>" 60)
 
 lemma fcomp_apply:  "(f o> g) x = g (f x)"
   by (simp add: fcomp_def)
@@ -106,6 +100,8 @@ lemma id_fcomp [simp]: "id o> g = g"
 
 lemma fcomp_id [simp]: "f o> id = f"
   by (simp add: fcomp_def)
+
+no_notation fcomp (infixl "o>" 60)
 
 
 subsection {* Injectivity and Surjectivity *}
