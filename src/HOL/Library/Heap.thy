@@ -134,7 +134,7 @@ subsection {* Imperative references and arrays *}
 
 text {*
   References and arrays are developed in parallel,
-  but keeping them seperate makes some later proofs simpler.
+  but keeping them separate makes some later proofs simpler.
 *}
 
 subsubsection {* Primitive operations *}
