@@ -60,7 +60,7 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
        fold2 add_for_f fnames simps_by_f lthy)
     end
 
-fun fundef_afterqed config fixes post defname cont sort_cont cnames [[proof]] lthy =
+fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] lthy =
     let
       val FundefResult {fs, R, psimps, trsimps,  simple_pinducts, termination, domintros, cases, ...} = 
           cont (Goal.close_result proof)
@@ -84,14 +84,16 @@ fun fundef_afterqed config fixes post defname cont sort_cont cnames [[proof]] lt
 
       val cdata = FundefCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
                                   pinducts=snd pinducts', termination=termination', fs=fs, R=R, defname=defname }
-      val _ = Specification.print_consts lthy (K false) (map fst fixes)
+      val _ =
+        if not do_print then ()
+        else Specification.print_consts lthy (K false) (map fst fixes)
     in
       lthy 
         |> LocalTheory.declaration (add_fundef_data o morph_fundef_data cdata)
     end
 
 
-fun gen_add_fundef set_group prep fixspec eqnss config flags lthy =
+fun gen_add_fundef is_external prep fixspec eqnss config flags lthy =
     let
       val ((fixes, spec), ctxt') = prep fixspec (map (fn (n_a, eq) => [(n_a, [eq])]) eqnss) lthy
       val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
@@ -101,10 +103,10 @@ fun gen_add_fundef set_group prep fixspec eqnss config flags lthy =
       val ((goalstate, cont), lthy) =
           FundefMutual.prepare_fundef_mutual config defname fixes eqs lthy
 
-      val afterqed = fundef_afterqed config fixes post defname cont sort_cont cnames
+      val afterqed = fundef_afterqed is_external fixes post defname cont sort_cont cnames
     in
       lthy
-        |> set_group ? LocalTheory.set_group (serial_string ())
+        |> is_external ? LocalTheory.set_group (serial_string ())
         |> Proof.theorem_i NONE afterqed [[(Logic.unprotect (concl_of goalstate), [])]]
         |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
     end
