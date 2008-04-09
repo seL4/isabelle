@@ -142,21 +142,23 @@ end;
 
 (* axiomatization *)
 
-fun gen_axioms prep raw_vars raw_specs lthy =
+fun gen_axioms do_print prep raw_vars raw_specs lthy =
   let
     val ((vars, specs), _) = prep raw_vars [raw_specs] lthy;
     val ((consts, axioms), lthy') = LocalTheory.axioms Thm.axiomK (vars, specs) lthy;
     val consts' = map (Morphism.term (LocalTheory.target_morphism lthy')) consts;
-    val _ = print_consts lthy' (member (op =) (fold Term.add_frees consts' [])) (map fst vars);
+    val _ =
+      if not do_print then ()
+      else print_consts lthy' (member (op =) (fold Term.add_frees consts' [])) (map fst vars);
   in ((consts, axioms), lthy') end;
 
-val axiomatization = gen_axioms check_specification;
-val axiomatization_cmd = gen_axioms read_specification;
+val axiomatization = gen_axioms false check_specification;
+val axiomatization_cmd = gen_axioms true read_specification;
 
 
 (* definition *)
 
-fun gen_def prep (raw_var, (raw_a, raw_prop)) lthy =
+fun gen_def do_print prep (raw_var, (raw_a, raw_prop)) lthy =
   let
     val (vars, [((raw_name, atts), [prop])]) =
       fst (prep (the_list raw_var) [(raw_a, [raw_prop])] lthy);
@@ -172,16 +174,18 @@ fun gen_def prep (raw_var, (raw_a, raw_prop)) lthy =
           ((name, Code.add_default_func_attr :: atts), [prove lthy2 th]);
 
     val lhs' = Morphism.term (LocalTheory.target_morphism lthy3) lhs;
-    val _ = print_consts lthy3 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
+    val _ =
+      if not do_print then ()
+      else print_consts lthy3 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
   in ((lhs, (b, th')), lthy3) end;
 
-val definition = gen_def check_free_specification;
-val definition_cmd = gen_def read_free_specification;
+val definition = gen_def false check_free_specification;
+val definition_cmd = gen_def true read_free_specification;
 
 
 (* abbreviation *)
 
-fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
+fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
   let
     val ((vars, [(_, [prop])]), _) =
       prep (the_list raw_var) [(("", []), [raw_prop])]
@@ -195,11 +199,11 @@ fun gen_abbrev prep mode (raw_var, raw_prop) lthy =
       |> LocalTheory.abbrev mode ((x, mx), rhs) |> snd
       |> ProofContext.restore_syntax_mode lthy;
 
-    val _ = print_consts lthy' (K false) [(x, T)]
+    val _ = if not do_print then () else print_consts lthy' (K false) [(x, T)];
   in lthy' end;
 
-val abbreviation = gen_abbrev check_free_specification;
-val abbreviation_cmd = gen_abbrev read_free_specification;
+val abbreviation = gen_abbrev false check_free_specification;
+val abbreviation_cmd = gen_abbrev true read_free_specification;
 
 
 (* notation *)
