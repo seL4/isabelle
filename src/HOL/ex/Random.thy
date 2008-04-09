@@ -114,7 +114,7 @@ proof -
     "range_aux (log 2147483561 k) 1 s = (v, w)"
     by (cases "range_aux (log 2147483561 k) 1 s")
   with assms show ?thesis
-    by (simp add: range_def run_def mbind_def split_def del: range_aux.simps log.simps)
+    by (simp add: range_def run_def scomp_def split_def del: range_aux.simps log.simps)
 qed
 
 definition
@@ -135,7 +135,7 @@ proof -
   then have
     "nat_of_index (fst (range (index_of_nat (length xs)) s)) < length xs" by simp
   then show ?thesis
-    by (auto simp add: select_def run_def mbind_def split_def)
+    by (auto simp add: select_def run_def scomp_def split_def)
 qed
 
 definition
@@ -148,7 +148,7 @@ where
 
 lemma select_default_zero:
   "fst (select_default 0 x y s) = y"
-  by (simp add: run_def mbind_def split_def select_default_def)
+  by (simp add: run_def scomp_def split_def select_default_def)
 
 lemma select_default_code [code]:
   "select_default k x y = (if k = 0 then do
@@ -162,7 +162,7 @@ proof (cases "k = 0")
   case False then show ?thesis by (simp add: select_default_def)
 next
   case True then show ?thesis
-    by (simp add: run_def mbind_def split_def select_default_def expand_fun_eq range_def)
+    by (simp add: run_def scomp_def split_def select_default_def expand_fun_eq range_def)
 qed
 
 

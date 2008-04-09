@@ -42,8 +42,8 @@ let
   fun term_ty ty = HOLogic.mk_prodT (ty, @{typ "unit \<Rightarrow> term"});
   fun mk_split thy ty ty' = Sign.mk_const thy
     (@{const_name split}, [ty, @{typ "unit \<Rightarrow> term"}, StateMonad.liftT (term_ty ty') @{typ seed}]);
-  fun mk_mbind_split thy ty ty' t t' =
-    StateMonad.mbind (term_ty ty) (term_ty ty') @{typ seed} t
+  fun mk_scomp_split thy ty ty' t t' =
+    StateMonad.scomp (term_ty ty) (term_ty ty') @{typ seed} t
       (mk_split thy ty ty' $ Abs ("", ty, Abs ("", @{typ "unit \<Rightarrow> term"}, t')))
   fun mk_cons thy this_ty (c, args) =
     let
@@ -59,7 +59,7 @@ let
       val return = StateMonad.return (term_ty this_ty) @{typ seed}
         (HOLogic.mk_prod (c_t, t_t));
       val t = fold_rev (fn ((ty, _), random) =>
-        mk_mbind_split thy ty this_ty random)
+        mk_scomp_split thy ty this_ty random)
           args return;
       val is_rec = exists (snd o fst) args;
     in (is_rec, StateMonad.run (term_ty this_ty) @{typ seed} t) end;
@@ -268,10 +268,10 @@ fun mk_generator_expr thy prop tys =
     fun mk_termtyp ty = HOLogic.mk_prodT (ty, @{typ "unit \<Rightarrow> term"});
     fun mk_split ty = Sign.mk_const thy
       (@{const_name split}, [ty, @{typ "unit \<Rightarrow> term"}, StateMonad.liftT @{typ "term list option"} @{typ seed}]);
-    fun mk_mbind_split ty t t' =
-      StateMonad.mbind (mk_termtyp ty) @{typ "term list option"} @{typ seed} t (*FIXME*)
+    fun mk_scomp_split ty t t' =
+      StateMonad.scomp (mk_termtyp ty) @{typ "term list option"} @{typ seed} t (*FIXME*)
         (mk_split ty $ Abs ("", ty, Abs ("", @{typ "unit \<Rightarrow> term"}, t')));
-    fun mk_bindclause (_, _, i, ty) = mk_mbind_split ty
+    fun mk_bindclause (_, _, i, ty) = mk_scomp_split ty
       (Sign.mk_const thy (@{const_name random}, [ty]) $ Bound i)
     val t = fold_rev mk_bindclause bounds (return $ check);
   in Abs ("n", @{typ index}, t) end;
