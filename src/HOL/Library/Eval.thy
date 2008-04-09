@@ -184,7 +184,7 @@ let
   fun rterm_of_tr [t] = Lexicon.const @{const_name rterm_of} $ t
     | rterm_of_tr ts = raise TERM ("rterm_of_tr", ts);
 in
-  [("\<^fixed>rterm_of_syntax", rterm_of_tr)]
+  [(Syntax.fixedN ^ "rterm_of_syntax", rterm_of_tr)]
 end
 *}
 
