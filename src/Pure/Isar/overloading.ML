@@ -66,7 +66,7 @@ fun improve_term_check ts ctxt =
       ImprovableSyntax.get ctxt;
     val tsig = (Sign.tsig_of o ProofContext.theory_of) ctxt;
     fun accumulate_improvements (Const (c, ty)) = (case improve (c, ty)
-         of SOME ty_ty' => (perhaps o try o Type.typ_match tsig) ty_ty'
+         of SOME ty_ty' => Type.typ_match tsig ty_ty'
           | _ => I)
       | accumulate_improvements _ = I;
     val improvements = (fold o fold_aterms) accumulate_improvements ts Vartab.empty;
