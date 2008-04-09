@@ -13,7 +13,7 @@ begin
 
 subsection {* Term representation *}
 
-subsubsection {* Definitions *}
+subsubsection {* Terms and class @{text term_of} *}
 
 datatype "term" = dummy_term
 
@@ -28,9 +28,6 @@ where
   "App _ _ = dummy_term"
 
 code_datatype Const App
-
-
-subsubsection {* Class @{term term_of} *}
 
 class term_of = rtype +
   fixes term_of :: "'a \<Rightarrow> term"
@@ -47,12 +44,16 @@ fun mk_term f g (Const (c, ty)) =
   | mk_term f g (t1 $ t2) =
       @{term App} $ mk_term f g t1 $ mk_term f g t2
   | mk_term f g (Free v) = f v
-  | mk_term f g (Bound i) = Bound i;
+  | mk_term f g (Bound i) = Bound i
+  | mk_term f g (Abs (v, _, t)) = Abs (v, @{typ term}, mk_term f g t);
 
 fun mk_term_of ty t = Const (@{const_name term_of}, ty --> @{typ term}) $ t;
 
 end;
 *}
+
+
+subsubsection {* @{text term_of} instances *}
 
 setup {*
 let
@@ -130,6 +131,7 @@ in
 end
 *}
 
+
 subsubsection {* Code generator setup *}
 
 lemmas [code func del] = term.recs term.cases term.size
@@ -151,6 +153,72 @@ code_const "term_of \<Colon> index \<Rightarrow> term"
 
 code_const "term_of \<Colon> message_string \<Rightarrow> term"
   (SML "Message'_String.mk")
+
+
+subsubsection {* Syntax *}
+
+print_translation {*
+let
+  val term = Const ("<TERM>", dummyT);
+  fun tr1' [_, _] = term;
+  fun tr2' [] = term;
+in
+  [(@{const_syntax Const}, tr1'),
+    (@{const_syntax App}, tr1'),
+    (@{const_syntax dummy_term}, tr2')]
+end
+*}
+setup {*
+  Sign.declare_const [] ("rterm_of", @{typ "'a \<Rightarrow> 'b"}, NoSyn)
+  #> snd
+*}
+
+notation (output)
+  rterm_of ("\<guillemotleft>_\<guillemotright>")
+
+locale (open) rterm_syntax =
+  fixes rterm_of_syntax :: "'a \<Rightarrow> 'b" ("\<guillemotleft>_\<guillemotright>")
+
+parse_translation {*
+let
+  fun rterm_of_tr [t] = Lexicon.const @{const_name rterm_of} $ t
+    | rterm_of_tr ts = raise TERM ("rterm_of_tr", ts);
+in
+  [("\<^fixed>rterm_of_syntax", rterm_of_tr)]
+end
+*}
+
+setup {*
+let
+  val subst_rterm_of = Eval.mk_term
+    (fn (v, _) => error ("illegal free variable in term quotation: " ^ quote v))
+    (RType.mk (fn (v, sort) => RType.rtype (TFree (v, sort))));
+  fun subst_rterm_of' (Const (@{const_name rterm_of}, _), [t]) = subst_rterm_of t
+    | subst_rterm_of' (Const (@{const_name rterm_of}, _), _) =
+        error ("illegal number of arguments for " ^ quote @{const_name rterm_of})
+    | subst_rterm_of' (t, ts) = list_comb (t, map (subst_rterm_of' o strip_comb) ts);
+  fun subst_rterm_of'' t = 
+    let
+      val t' = subst_rterm_of' (strip_comb t);
+    in if t aconv t'
+      then NONE
+      else SOME t'
+    end;
+  fun check_rterm_of ts ctxt =
+    let
+      val ts' = map subst_rterm_of'' ts;
+    in if exists is_some ts'
+      then SOME (map2 the_default ts ts', ctxt)
+      else NONE
+    end;
+in
+  Context.theory_map (Syntax.add_term_check 0 "rterm_of" check_rterm_of)
+end;
+*}
+
+hide const dummy_term
+hide (open) const Const App
+hide (open) const term_of
 
 
 subsection {* Evaluation setup *}
@@ -222,21 +290,5 @@ ML {*
       >> (fn (some_name, t) => Toplevel.no_timing o Toplevel.keep
            (Eval.evaluate_cmd some_name t)));
 *}
-
-print_translation {*
-let
-  val term = Const ("<TERM>", dummyT);
-  fun tr1' [_, _] = term;
-  fun tr2' [] = term;
-in
-  [(@{const_syntax Const}, tr1'),
-    (@{const_syntax App}, tr1'),
-    (@{const_syntax dummy_term}, tr2')]
-end
-*}
-
-hide (open) const term_of
-hide (open) const Const App
-hide const dummy_term
 
 end
