@@ -24,7 +24,7 @@ proof (intro_classes, rule exI)
 qed
 
 
-subsection {* Converion functions *}
+subsection {* Conversion functions *}
 
 definition to_nat :: "'a\<Colon>countable \<Rightarrow> nat" where
   "to_nat = (SOME f. inj f)"
