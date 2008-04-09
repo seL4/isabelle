@@ -323,7 +323,7 @@ public class IsabelleProcess {
      */
     public synchronized void ML(String text) throws IsabelleProcessException
     {
-        outputSync("ML " + encodeString(text));
+        outputSync("ML_val " + encodeString(text));
     }
 
     /**
@@ -331,7 +331,7 @@ public class IsabelleProcess {
      */
     public synchronized void ML(Properties props, String text) throws IsabelleProcessException
     {
-        command(props, "ML " + encodeString(text));
+        command(props, "ML_val " + encodeString(text));
     }
 
 
