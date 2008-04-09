@@ -411,6 +411,7 @@ val _ = Context.>> (Context.map_theory
 fun synchronize_class_syntax sups base_sort ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
+    val algebra = Sign.classes_of thy;
     val operations = these_operations thy sups;
     fun subst_class_typ sort = map_type_tfree (K (TVar ((Name.aT, 0), sort)));
     val primary_constraints =
@@ -423,10 +424,11 @@ fun synchronize_class_syntax sups base_sort ctxt =
     fun improve (c, ty) = (case AList.lookup (op =) primary_constraints c
      of SOME ty' => (case try (Type.raw_match (ty', ty)) Vartab.empty
          of SOME tyenv => (case Vartab.lookup tyenv (Name.aT, 0)
-             of SOME (_, ty' as TVar (tvar as (vi, _))) =>
+             of SOME (_, ty' as TVar (tvar as (vi, sort))) =>
                   if TypeInfer.is_param vi
-                    then SOME (ty', TFree (Name.aT, base_sort))
-                    else NONE
+                    andalso Sorts.sort_le algebra (base_sort, sort)
+                      then SOME (ty', TFree (Name.aT, base_sort))
+                      else NONE
               | _ => NONE)
           | NONE => NONE)
       | NONE => NONE)
