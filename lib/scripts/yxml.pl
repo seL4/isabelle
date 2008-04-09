@@ -32,5 +32,5 @@ my $parser = new XML::Parser(Handlers =>
     End => \&handle_end,
     Char => \&handle_char});
 
-$parser->parse(*STDIN);
+$parser->parse(*STDIN) or die $!;
 
