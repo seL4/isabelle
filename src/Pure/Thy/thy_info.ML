@@ -8,7 +8,6 @@ file dependencies.
 
 signature BASIC_THY_INFO =
 sig
-  val theory: string -> theory
   val touch_thy: string -> unit
   val remove_thy: string -> unit
 end;
@@ -19,7 +18,7 @@ sig
   datatype action = Update | Outdate | Remove
   val str_of_action: action -> string
   val add_hook: (action -> string -> unit) -> unit
-  val names: unit -> string list
+  val get_names: unit -> string list
   val known_thy: string -> bool
   val check_known_thy: string -> bool
   val if_known_thy: (string -> unit) -> string -> unit
@@ -29,7 +28,6 @@ sig
   val is_finished: string -> bool
   val loaded_files: string -> Path.T list
   val get_parents: string -> string list
-  val pretty_theory: theory -> Pretty.T
   val touch_child_thys: string -> unit
   val provide_file: Path.T -> string -> unit
   val load_file: bool -> Path.T -> unit
@@ -169,25 +167,6 @@ fun get_parents name =
     error (loader_msg "nothing known about theory" [name]);
 
 
-(* pretty_theory *)
-
-local
-
-fun relevant_names names =
-  let
-    val (finished, unfinished) =
-      List.filter (fn name => name = Context.draftN orelse known_thy name) names
-      |> List.partition (fn name => name <> Context.draftN andalso is_finished name);
-  in (if not (null finished) then [List.last finished] else []) @ unfinished end;
-
-in
-
-fun pretty_theory thy =
-  Pretty.str_list "{" "}" (relevant_names (Context.names_of thy));
-
-end;
-
-
 (* access theory *)
 
 fun lookup_theory name =
@@ -206,7 +185,7 @@ fun the_theory name thy =
 
 val _ = ML_Context.value_antiq "theory"
   (Scan.lift Args.name
-    >> (fn name => (name ^ "_thy", "ThyInfo.theory " ^ ML_Syntax.print_string name))
+    >> (fn name => (name ^ "_thy", "ThyInfo.get_theory " ^ ML_Syntax.print_string name))
   || Scan.succeed ("thy", "ML_Context.the_global_context ()"));
 
 val _ = ML_Context.value_antiq "theory_ref"
@@ -334,7 +313,7 @@ fun load_thy time upd_time initiators dir name =
     val _ = CRITICAL (fn () =>
       change_deps name (Option.map (fn {master, text, parents, files, ...} =>
         make_deps upd_time master text parents files)));
-    val _ = ThyLoad.load_thy dir name pos text (time orelse ! Output.timing);
+    val _ = OuterSyntax.load_thy dir name pos text (time orelse ! Output.timing);
   in
     CRITICAL (fn () =>
      (change_deps name
@@ -608,11 +587,6 @@ fun register_theory theory =
 (* finish all theories *)
 
 fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (NONE, entry)));
-
-
-(*final declarations of this structure*)
-val theory = get_theory;
-val names = get_names;
 
 end;
 
