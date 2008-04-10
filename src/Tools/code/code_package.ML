@@ -144,6 +144,35 @@ fun code_antiq (ctxt, args) =
 
 (* const expressions *)
 
+local
+
+fun consts_of thy some_thyname =
+  let
+    val this_thy = Option.map ThyInfo.get_theory some_thyname |> the_default thy;
+    val raw_cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
+      ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) this_thy) [];
+    val cs = map (CodeUnit.subst_alias thy) raw_cs;
+    fun belongs_here thyname c =
+      not (exists (fn thy' => Sign.declared_const thy' c) (Theory.parents_of this_thy))
+  in case some_thyname
+   of NONE => cs
+    | SOME thyname => filter (belongs_here thyname) cs
+  end;
+
+fun read_const_expr thy "*" = ([], consts_of thy NONE)
+  | read_const_expr thy s = if String.isSuffix ".*" s
+      then ([], consts_of thy (SOME (unsuffix ".*" s)))
+      else ([CodeUnit.read_const thy s], []);
+
+in
+
+fun read_const_exprs thy select exprs =
+  case (pairself flat o split_list o map (read_const_expr thy)) exprs
+   of (consts, []) => (false, consts)
+    | (consts, consts') => (true, consts @ select consts');
+
+end; (*local*)
+
 fun filter_generatable thy consts =
   let
     val (consts', funcgr) = CodeFuncgr.make_consts thy consts;
@@ -154,7 +183,7 @@ fun filter_generatable thy consts =
 
 fun generate_const_exprs thy raw_cs =
   let
-    val (perm1, cs) = CodeUnit.read_const_exprs thy
+    val (perm1, cs) = read_const_exprs thy
       (filter_generatable thy) raw_cs;
     val (perm2, cs') = case generate thy (CodeFuncgr.make thy cs)
       (fold_map ooo ensure_const) cs
@@ -236,10 +265,10 @@ fun code_cmd raw_cs seris thy =
   in () end;
 
 fun code_thms_cmd thy =
-  code_thms thy o snd o CodeUnit.read_const_exprs thy (fst o CodeFuncgr.make_consts thy);
+  code_thms thy o snd o read_const_exprs thy (fst o CodeFuncgr.make_consts thy);
 
 fun code_deps_cmd thy =
-  code_deps thy o snd o CodeUnit.read_const_exprs thy (fst o CodeFuncgr.make_consts thy);
+  code_deps thy o snd o read_const_exprs thy (fst o CodeFuncgr.make_consts thy);
 
 fun code_props_cmd raw_cs seris thy =
   let
