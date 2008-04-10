@@ -27,8 +27,6 @@ use "../Thy/thy_load.ML";
 use "../Thy/html.ML";
 use "../Thy/latex.ML";
 use "../Thy/present.ML";
-use "../Thy/thy_info.ML";
-use "../Thy/thm_deps.ML";
 
 (*basic proof engine*)
 use "proof_display.ML";
@@ -62,24 +60,24 @@ use "specification.ML";
 use "instance.ML";
 use "constdefs.ML";
 
-(*toplevel environment*)
+(*toplevel transactions*)
 use "proof_history.ML";
 use "toplevel.ML";
 
-(*theory presentation*)
+(*theory syntax*)
 use "../Thy/term_style.ML";
 use "../Thy/thy_output.ML";
-
-(*theory syntax*)
-use "session.ML";
 use "../old_goals.ML";
 use "outer_syntax.ML";
+use "../Thy/thy_info.ML";
+use "session.ML";
 use "isar.ML";
 use "../Thy/thy_edit.ML";
 
 (*theory and proof operations*)
 use "rule_insts.ML";
 use "../simplifier.ML";
+use "../Thy/thm_deps.ML";
 use "find_theorems.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";
