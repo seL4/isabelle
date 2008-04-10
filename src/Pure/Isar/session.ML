@@ -92,7 +92,7 @@ fun use_dir root build modes reset info doc doc_graph doc_versions
   ((fn () =>
      (init reset parent name;
       Present.init build info doc doc_graph doc_versions (path ()) name
-        (dumping dump) (get_rpath rpath) verbose (map ThyInfo.theory (ThyInfo.names ()));
+        (dumping dump) (get_rpath rpath) verbose (map ThyInfo.get_theory (ThyInfo.get_names ()));
       use root;
       finish ()))
     |> setmp_noncritical Proofterm.proofs level
