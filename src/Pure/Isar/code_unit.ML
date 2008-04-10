@@ -216,7 +216,7 @@ structure ConstAlias = TheoryDataFun
   type T = ((string * string) * thm) list;
   val empty = [];
   val copy = I;
-  val extend = copy;
+  val extend = I;
   fun merge _ = Library.merge (eq_snd Thm.eq_thm_prop);
 );
 

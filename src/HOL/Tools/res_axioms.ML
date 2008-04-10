@@ -394,11 +394,11 @@ fun skolem thy th =
   Skolem functions.*)
 structure ThmCache = TheoryDataFun
 (
-  type T = (thm list) Thmtab.table;
+  type T = thm list Thmtab.table;
   val empty = Thmtab.empty;
-  fun copy tab : T = tab;
-  val extend = copy;
-  fun merge _ (tab1, tab2) : T = Thmtab.merge (K true) (tab1, tab2);
+  val copy = I;
+  val extend = I;
+  fun merge _ tabs : T = Thmtab.merge (K true) tabs;
 );
 
 (*Populate the clause cache using the supplied theorem. Return the clausal form

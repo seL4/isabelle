@@ -56,7 +56,7 @@ structure ConstructorsData = TheoryDataFun
   val empty = Symtab.empty
   val copy = I;
   val extend = I
-  fun merge _ tabs: T = Symtab.merge (K true) tabs;
+  fun merge _ tabs : T = Symtab.merge (K true) tabs;
 );
 
 structure DatatypeTactics : DATATYPE_TACTICS =
