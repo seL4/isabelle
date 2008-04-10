@@ -74,6 +74,7 @@ use "../Thy/thy_output.ML";
 use "session.ML";
 use "../old_goals.ML";
 use "outer_syntax.ML";
+use "isar.ML";
 use "../Thy/thy_edit.ML";
 
 (*theory and proof operations*)

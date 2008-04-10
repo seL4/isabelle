@@ -35,7 +35,7 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML	\
   Isar/antiquote.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML	\
   Isar/calculation.ML Isar/class.ML Isar/code.ML Isar/code_unit.ML	\
   Isar/constdefs.ML Isar/context_rules.ML Isar/element.ML		\
-  Isar/find_theorems.ML Isar/instance.ML Isar/isar_cmd.ML		\
+  Isar/find_theorems.ML Isar/instance.ML Isar/isar.ML Isar/isar_cmd.ML	\
   Isar/isar_syn.ML Isar/local_defs.ML Isar/local_syntax.ML		\
   Isar/local_theory.ML Isar/locale.ML Isar/method.ML Isar/net_rules.ML	\
   Isar/object_logic.ML Isar/obtain.ML Isar/outer_keyword.ML		\
