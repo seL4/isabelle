@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-The Isabelle/Isar toplevel.
+Isabelle/Isar toplevel transactions.
 *)
 
 signature TOPLEVEL =
@@ -15,6 +15,7 @@ sig
   val cases_node: (generic_theory -> 'a) -> (Proof.state -> 'a) -> node -> 'a
   val presentation_context: node option -> xstring option -> Proof.context
   type state
+  val toplevel: state
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
@@ -36,7 +37,6 @@ sig
   val timing: bool ref
   val profiling: int ref
   val skip_proofs: bool ref
-  val crashes: exn list ref
   exception TERMINATE
   exception RESTART
   exception CONTEXT of Proof.context * exn
@@ -92,16 +92,10 @@ sig
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
+  val error_msg: transition -> exn * string -> unit
+  val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
   val excursion: transition list -> unit
-  val set_state: state -> unit
-  val get_state: unit -> state
-  val exn: unit -> (exn * string) option
-  val >> : transition -> bool
-  val >>> : transition list -> unit
-  val init_state: unit -> unit
-  type 'a isar
-  val loop: bool -> 'a isar -> unit
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -240,7 +234,6 @@ val interact = ref false;
 val timing = Output.timing;
 val profiling = ref 0;
 val skip_proofs = ref false;
-val crashes = ref ([]: exn list);
 
 exception TERMINATE;
 exception RESTART;
@@ -298,8 +291,6 @@ fun exn_message e =
             (if detailed then if_context ctxt ProofContext.string_of_thm thms else []))
       | exn_msg _ exn = raised (General.exnMessage exn) []
   in exn_msg NONE e end;
-
-fun print_exn exn_info = Output.error_msg (exn_message (EXCURSION_FAIL exn_info));
 
 end;
 
@@ -655,6 +646,9 @@ fun skip_proof_to_theory p = map_current (fn _ =>
 fun setmp_thread_position (Transition {pos, ...}) f x =
   Position.setmp_thread_data pos f x;
 
+fun error_msg tr exn_info =
+  setmp_thread_position tr (fn () => Output.error_msg (exn_message (EXCURSION_FAIL exn_info))) ();
+
 
 (* apply transitions *)
 
@@ -682,7 +676,7 @@ fun app int (tr as Transition {trans, pos, int_only, print, no_timing, ...}) =
 
 in
 
-fun apply int tr st =
+fun transition int tr st =
   let val ctxt = try context_of st in
     (case app int tr st of
       (_, SOME TERMINATE) => NONE
@@ -701,7 +695,7 @@ local
 
 fun excur [] x = x
   | excur ((tr, pr) :: trs) (st, res) =
-      (case apply (! interact) tr st of
+      (case transition (! interact) tr st of
         SOME (st', NONE) =>
           excur trs (st', pr st st' res handle exn =>
             raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
@@ -719,73 +713,6 @@ fun present_excursion trs res =
   handle exn => error (exn_message exn);
 
 fun excursion trs = present_excursion (map (rpair no_pr) trs) ();
-
-end;
-
-
-
-(** interactive transformations **)
-
-(* the global state reference *)
-
-val global_state = ref (toplevel, NONE: (exn * string) option);
-
-fun set_state state = global_state := (state, NONE);
-fun get_state () = fst (! global_state);
-fun exn () = snd (! global_state);
-
-
-(* apply transformers to global state --- NOT THREAD-SAFE! *)
-
-nonfix >> >>>;
-
-fun >> tr =
-  (case apply true tr (get_state ()) of
-    NONE => false
-  | SOME (state', exn_info) =>
-      (global_state := (state', exn_info);
-        (case exn_info of
-          NONE => ()
-        | SOME err => setmp_thread_position tr print_exn err);
-        true));
-
-fun >>> [] = ()
-  | >>> (tr :: trs) = if >> tr then >>> trs else ();
-
-fun init_state () = (>> (init_empty (K true) (K ()) empty); ());
-
-
-(* the Isar source of transitions *)
-
-type 'a isar =
-  (transition, (transition option,
-    (OuterLex.token, (OuterLex.token option, (OuterLex.token, (OuterLex.token,
-      Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source)
-          Source.source) Source.source) Source.source) Source.source) Source.source) Source.source;
-
-local
-
-(*Spurious interrupts ahead!  Race condition?*)
-fun get_interrupt src = SOME (Source.get_single src) handle Interrupt => NONE;
-
-fun raw_loop secure src =
-  let
-    fun check_secure () =
-      (if secure then warning "Secure loop -- cannot exit to ML" else (); secure);
-  in
-    (case get_interrupt (Source.set_prompt Source.default_prompt src) of
-      NONE => (writeln "\nInterrupt."; raw_loop secure src)
-    | SOME NONE => if secure then quit () else ()
-    | SOME (SOME (tr, src')) => if >> tr orelse check_secure () then raw_loop secure src' else ())
-    handle exn => (Output.error_msg (exn_message exn) handle crash =>
-      (CRITICAL (fn () => change crashes (cons crash));
-        warning "Recovering after Isar toplevel crash -- see also Toplevel.crashes");
-      raw_loop secure src)
-  end;
-
-in
-
-fun loop secure src = uninterruptible (fn _ => raw_loop secure) src;
 
 end;
 
