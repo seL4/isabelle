@@ -275,7 +275,7 @@ val _ =
   OuterSyntax.command codeK "generate executable code for constants"
     K.diag (P.!!! (code_exprP code_cmd) >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
-fun codegen_shell_command thyname cmd = Isar.toplevel (fn _ =>
+fun codegen_shell_command thyname cmd = Toplevel.program (fn _ =>
   (use_thy thyname; case Scan.read OuterLex.stopper (P.!!! (code_exprP code_cmd)) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
    of SOME f => (writeln "Now generating code..."; f (theory thyname))
     | NONE => error ("Bad directive " ^ quote cmd)))
