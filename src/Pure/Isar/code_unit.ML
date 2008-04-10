@@ -19,14 +19,13 @@ sig
 
   (*constants*)
   val add_const_alias: thm -> theory -> theory
+  val subst_alias: theory -> string -> string
   val string_of_typ: theory -> typ -> string
   val string_of_const: theory -> string -> string
   val no_args: theory -> string -> int
   val check_const: theory -> term -> string
   val read_bare_const: theory -> string -> string * typ
   val read_const: theory -> string -> string
-  val read_const_exprs: theory -> (string list -> string list)
-    -> string list -> bool * string list
 
   (*constructor sets*)
   val constrset_of_consts: theory -> (string * typ) list
@@ -242,7 +241,7 @@ fun subst_alias thy c = ConstAlias.get thy
   |> get_first (fn ((c', c''), _) => if c = c' then SOME c'' else NONE)
   |> the_default c;
 
-(* reading constants as terms and wildcards pattern *)
+(* reading constants as terms *)
 
 fun check_bare_const thy t = case try dest_Const t
  of SOME c_ty => c_ty
@@ -255,35 +254,6 @@ fun read_bare_const thy = check_bare_const thy o Syntax.read_term_global thy;
 
 fun read_const thy = subst_alias thy o AxClass.unoverload_const thy o apfst (subst_alias thy)
   o read_bare_const thy;
-
-local
-
-fun consts_of thy some_thyname =
-  let
-    val this_thy = Option.map theory some_thyname |> the_default thy;
-    val raw_cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
-      ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) this_thy) [];
-    val cs = map (subst_alias thy) raw_cs;
-    fun belongs_here thyname c =
-      not (exists (fn thy' => Sign.declared_const thy' c) (Theory.parents_of this_thy))
-  in case some_thyname
-   of NONE => cs
-    | SOME thyname => filter (belongs_here thyname) cs
-  end;
-
-fun read_const_expr thy "*" = ([], consts_of thy NONE)
-  | read_const_expr thy s = if String.isSuffix ".*" s
-      then ([], consts_of thy (SOME (unsuffix ".*" s)))
-      else ([read_const thy s], []);
-
-in
-
-fun read_const_exprs thy select exprs =
-  case (pairself flat o split_list o map (read_const_expr thy)) exprs
-   of (consts, []) => (false, consts)
-    | (consts, consts') => (true, consts @ select consts');
-
-end; (*local*)
 
 
 (* constructor sets *)
