@@ -15,11 +15,9 @@ sig
   val >>> : Toplevel.transition list -> unit
   val init: unit -> unit
   val crashes: exn list ref
-  val main: unit -> unit
+  val toplevel_loop: {init: bool, sync: bool, secure: bool} -> unit
   val loop: unit -> unit
-  val sync_main: unit -> unit
-  val sync_loop: unit -> unit
-  val secure_main: unit -> unit
+  val main: unit -> unit
 end;
 
 structure Isar: ISAR =
@@ -61,24 +59,20 @@ fun >>> [] = ()
 fun init () = (>> (Toplevel.init_empty (K true) (K ()) Toplevel.empty); ());
 
 
-(* main loop *)
+(* toplevel loop *)
 
 val crashes = ref ([]: exn list);
 
 local
-
-(*Spurious interrupts ahead!  Race condition?*)
-fun get_interrupt src = SOME (Source.get_single src) handle Interrupt => NONE;
 
 fun raw_loop secure src =
   let
     fun check_secure () =
       (if secure then warning "Secure loop -- cannot exit to ML" else (); secure);
   in
-    (case get_interrupt (Source.set_prompt Source.default_prompt src) of
-      NONE => (writeln "\nInterrupt."; raw_loop secure src)
-    | SOME NONE => if secure then quit () else ()
-    | SOME (SOME (tr, src')) => if >> tr orelse check_secure () then raw_loop secure src' else ())
+    (case Source.get_single (Source.set_prompt Source.default_prompt src) of
+      NONE => if secure then quit () else ()
+    | SOME (tr, src') => if >> tr orelse check_secure () then raw_loop secure src' else ())
     handle exn => (Output.error_msg (Toplevel.exn_message exn) handle crash =>
       (CRITICAL (fn () => change crashes (cons crash));
         warning "Recovering after Isar toplevel crash -- see also Isar.crashes");
@@ -87,22 +81,15 @@ fun raw_loop secure src =
 
 in
 
-fun gen_loop secure do_terminate =
+fun toplevel_loop {init = do_init, sync, secure} =
  (Context.set_thread_data NONE;
-  uninterruptible (fn _ => fn () => raw_loop secure (OuterSyntax.isar do_terminate)) ());
-
-fun gen_main secure do_terminate =
- (init ();
-  writeln (Session.welcome ());
-  gen_loop secure do_terminate);
+  if do_init then (init (); writeln (Session.welcome ())) else ();
+  uninterruptible (fn _ => fn () => raw_loop secure (OuterSyntax.isar sync)) ());
 
 end;
 
-fun main () = gen_main (Secure.is_secure ()) false;
-fun loop () = gen_loop (Secure.is_secure ()) false;
-fun sync_main () = gen_main (Secure.is_secure ()) true;
-fun sync_loop () = gen_loop (Secure.is_secure ()) true;
-fun secure_main () = (init (); gen_loop true true);
+fun loop () = toplevel_loop {init = false, sync = false, secure = Secure.is_secure ()};
+fun main () = toplevel_loop {init = true, sync = false, secure = Secure.is_secure ()};
 
 end;
 
