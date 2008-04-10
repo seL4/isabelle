@@ -28,17 +28,9 @@ sig
   val deps_thy: Path.T -> string ->
    {master: Path.T * File.ident, text: string list, imports: string list, uses: Path.T list}
   val load_ml: Path.T -> Path.T -> Path.T * File.ident
-  val load_thy: Path.T -> string -> Position.T -> string list -> bool -> unit
 end;
 
-signature PRIVATE_THY_LOAD =
-sig
-  include THY_LOAD
-  (*this backdoor is sealed later*)
-  val load_thy_fn: (Path.T -> string -> Position.T -> string list -> bool -> unit) ref
-end;
-
-structure ThyLoad: PRIVATE_THY_LOAD =
+structure ThyLoad: THY_LOAD =
 struct
 
 
@@ -120,11 +112,6 @@ fun load_ml dir raw_path =
   (case check_ml dir raw_path of
     NONE => error ("Could not find ML file " ^ quote (Path.implode raw_path))
   | SOME (path, id) => (ML_Context.eval_file path; (path, id)));
-
-(*dependent on outer syntax*)
-val load_thy_fn =
-  ref (undefined: Path.T -> string -> Position.T -> string list -> bool -> unit);
-fun load_thy dir name pos text time = ! load_thy_fn dir name pos text time;
 
 end;
 
