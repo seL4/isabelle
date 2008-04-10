@@ -16,6 +16,8 @@ fun time_use_thy name = Toplevel.program (fn () => ThyInfo.time_use_thy name);
 
 (* the Pure theories *)
 
+val theory = ThyInfo.get_theory;
+
 Context.>> (Context.map_theory
  (OuterSyntax.process_file (Path.explode "Pure.thy") #>
   Theory.end_theory));
