@@ -625,32 +625,32 @@ val _ =
 val _ =
   OuterSyntax.command "qed" "conclude (sub-)proof"
     (K.tag_proof K.qed_block)
-    (Scan.option Method.parse >> (Toplevel.print3 oo IsarCmd.qed));
+    (Scan.option Method.parse >> (Toplevel.print oo IsarCmd.qed));
 
 val _ =
   OuterSyntax.command "by" "terminal backward proof"
     (K.tag_proof K.qed)
-    (Method.parse -- Scan.option Method.parse >> (Toplevel.print3 oo IsarCmd.terminal_proof));
+    (Method.parse -- Scan.option Method.parse >> (Toplevel.print oo IsarCmd.terminal_proof));
 
 val _ =
   OuterSyntax.command ".." "default proof"
     (K.tag_proof K.qed)
-    (Scan.succeed (Toplevel.print3 o IsarCmd.default_proof));
+    (Scan.succeed (Toplevel.print o IsarCmd.default_proof));
 
 val _ =
   OuterSyntax.command "." "immediate proof"
     (K.tag_proof K.qed)
-    (Scan.succeed (Toplevel.print3 o IsarCmd.immediate_proof));
+    (Scan.succeed (Toplevel.print o IsarCmd.immediate_proof));
 
 val _ =
   OuterSyntax.command "done" "done proof"
     (K.tag_proof K.qed)
-    (Scan.succeed (Toplevel.print3 o IsarCmd.done_proof));
+    (Scan.succeed (Toplevel.print o IsarCmd.done_proof));
 
 val _ =
   OuterSyntax.command "sorry" "skip proof (quick-and-dirty mode only!)"
     (K.tag_proof K.qed)
-    (Scan.succeed (Toplevel.print3 o IsarCmd.skip_proof));
+    (Scan.succeed (Toplevel.print o IsarCmd.skip_proof));
 
 val _ =
   OuterSyntax.command "oops" "forget proof"
