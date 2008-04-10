@@ -340,7 +340,7 @@ fun trace_action action name =
 
 in
   fun setup_thy_loader () = ThyInfo.add_hook trace_action;
-  fun sync_thy_loader () = List.app (trace_action ThyInfo.Update) (ThyInfo.names ());
+  fun sync_thy_loader () = List.app (trace_action ThyInfo.Update) (ThyInfo.get_names ());
 end;
 
 
@@ -656,13 +656,13 @@ fun askids (Askids vs) =
     in 
         case (thyname,objtype) of
            (NONE, NONE) =>
-           setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris*)
+           setids (idtable ObjFile NONE (ThyInfo.get_names())) (*FIXME: uris*)
          | (NONE, SOME ObjFile) =>
-           setids (idtable ObjFile NONE (ThyInfo.names())) (*FIXME: uris*)
+           setids (idtable ObjFile NONE (ThyInfo.get_names())) (*FIXME: uris*)
          | (SOME fi, SOME ObjFile) =>
            setids (idtable ObjTheory (SOME fi) [fi])       (* TODO: check exists *)
          | (NONE, SOME ObjTheory) =>
-           setids (idtable ObjTheory NONE (ThyInfo.names()))
+           setids (idtable ObjTheory NONE (ThyInfo.get_names()))
          | (SOME thy, SOME ObjTheory) =>
            setids (idtable ObjTheory (SOME thy) (subthys_of_thy thy))
          | (SOME thy, SOME ObjTheorem) =>
@@ -671,9 +671,9 @@ fun askids (Askids vs) =
            (* A large query, but not unreasonable. ~5000 results for HOL.*)
            (* Several setids should be allowed, but Eclipse code is currently broken:
               List.app (fn thy => setids (idtable ObjTheorem (SOME thy) (subthms_of_thy thy)))
-                         (ThyInfo.names()) *)
+                         (ThyInfo.get_names()) *)
            setids (idtable ObjTheorem NONE (* this one gives ~7000 for HOL *)
-                           (maps qualified_thms_of_thy (ThyInfo.names())))
+                           (maps qualified_thms_of_thy (ThyInfo.get_names())))
          | _ => warning ("askids: ignored argument combination")
     end
 

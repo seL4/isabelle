@@ -167,7 +167,7 @@ fun trace_action action name =
 
 in
   fun setup_thy_loader () = ThyInfo.add_hook trace_action;
-  fun sync_thy_loader () = List.app (trace_action ThyInfo.Update) (ThyInfo.names ());
+  fun sync_thy_loader () = List.app (trace_action ThyInfo.Update) (ThyInfo.get_names ());
 end;
 
 
