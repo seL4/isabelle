@@ -7,26 +7,8 @@ statically determined at the very beginning; for interactive processing
 it may change dynamically.
 *)
 
-signature BASIC_OUTER_SYNTAX =
-sig
-  structure Isar:
-    sig
-      val state: unit -> Toplevel.state
-      val exn: unit -> (exn * string) option
-      val context: unit -> Proof.context
-      val goal: unit -> thm list * thm
-      val main: unit -> unit
-      val loop: unit -> unit
-      val sync_main: unit -> unit
-      val sync_loop: unit -> unit
-      val secure_main: unit -> unit
-      val toplevel: (unit -> 'a) -> 'a
-    end;
-end;
-
 signature OUTER_SYNTAX =
 sig
-  include BASIC_OUTER_SYNTAX
   type parser_fn = OuterLex.token list ->
     (Toplevel.transition -> Toplevel.transition) * OuterLex.token list
   val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
@@ -45,10 +27,11 @@ sig
   val read: OuterLex.token list -> (string * OuterLex.token list * Toplevel.transition) list
   val parse: Position.T -> string -> Toplevel.transition list
   val process_file: Path.T -> theory -> theory
-  val isar: bool -> unit Toplevel.isar
+  type isar
+  val isar: bool -> isar
 end;
 
-structure OuterSyntax : OUTER_SYNTAX  =
+structure OuterSyntax: OUTER_SYNTAX =
 struct
 
 structure T = OuterLex;
@@ -149,7 +132,7 @@ fun command_keyword name =
     SOME (Parser {kind, ...}) => SOME kind
   | NONE => NONE);
 
-fun command_tags name = these ((Option.map OuterKeyword.tags_of) (command_keyword name));
+fun command_tags name = these (Option.map OuterKeyword.tags_of (command_keyword name));
 
 fun is_markup kind name = AList.lookup (op =) (get_markups ()) name = SOME kind;
 
@@ -271,7 +254,13 @@ fun process_file path thy =
 
 (* interactive source of toplevel transformers *)
 
-fun isar term =
+type isar =
+  (Toplevel.transition, (Toplevel.transition option,
+    (OuterLex.token, (OuterLex.token option, (OuterLex.token, (OuterLex.token,
+      Position.T * (Symbol.symbol, (string, unit) Source.source) Source.source)
+          Source.source) Source.source) Source.source) Source.source) Source.source) Source.source;
+
+fun isar term : isar =
   Source.tty
   |> Symbol.source true
   |> T.source (SOME true) get_lexicons Position.none
@@ -314,44 +303,7 @@ fun load_thy dir name pos text time =
 
 in val _ = ThyLoad.load_thy_fn := load_thy end;
 
-
-
-(** the read-eval-print loop **)
-
-(* main loop *)
-
-fun gen_loop secure do_terminate =
- (CRITICAL (fn () => Context.set_thread_data NONE);
-  Toplevel.loop secure (isar do_terminate));
-
-fun gen_main secure do_terminate =
- (Toplevel.init_state ();
-  writeln (Session.welcome ());
-  gen_loop secure do_terminate);
-
-structure Isar =
-struct
-  val state = Toplevel.get_state;
-  val exn = Toplevel.exn;
-
-  fun context () =
-    Toplevel.context_of (state ())
-      handle Toplevel.UNDEF => error "Unknown context";
-
-  fun goal () =
-    #2 (Proof.get_goal (Toplevel.proof_of (state ())))
-      handle Toplevel.UNDEF => error "No goal present";
-
-  fun main () = gen_main (Secure.is_secure ()) false;
-  fun loop () = gen_loop (Secure.is_secure ()) false;
-  fun sync_main () = gen_main (Secure.is_secure ()) true;
-  fun sync_loop () = gen_loop (Secure.is_secure ()) true;
-  fun secure_main () = (Toplevel.init_state (); gen_loop true true);
-  val toplevel = Toplevel.program;
-end;
-
 end;
 
 structure ThyLoad: THY_LOAD = ThyLoad;
-structure BasicOuterSyntax: BASIC_OUTER_SYNTAX = OuterSyntax;
-open BasicOuterSyntax;
+
