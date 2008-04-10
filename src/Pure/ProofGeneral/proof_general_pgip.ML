@@ -485,7 +485,7 @@ fun isarcmd s =
     s |> OuterSyntax.scan |> OuterSyntax.read
       (*|> map (Toplevel.position Position.none o #3)*)
       |> map #3
-      |> Toplevel.>>>;
+      |> Isar.>>>;
 
 (* TODO:
     - apply a command given a transition function, e.g. IsarCmd.undo.
@@ -710,7 +710,7 @@ fun askrefs (Askrefs vs) =
             let
                 (* TODO: interim: this is probably not right.
                    What we want is mapping onto simple PGIP name/context model. *)
-                val ctx = Toplevel.context_of (Toplevel.get_state()) (* NB: raises UNDEF *)
+                val ctx = Toplevel.context_of (Isar.state ()) (* NB: raises UNDEF *)
                 val thy = Context.theory_of_proof ctx
                 val ths = [PureThy.get_thm thy thmname]
                 val deps = filter_out (equal "")
@@ -739,7 +739,7 @@ fun showid (Showid vs) =
         val objtype = #objtype vs
         val name = #name vs
 
-        val topthy = Toplevel.theory_of o Toplevel.get_state
+        val topthy = Toplevel.theory_of o Isar.state
 
         fun splitthy id =
             let val comps = NameSpace.explode id
@@ -796,7 +796,7 @@ fun askguise _ =
     let
         val openfile = !currently_open_file
 
-        val topthy = Toplevel.theory_of o Toplevel.get_state
+        val topthy = Toplevel.theory_of o Isar.state
         val topthy_name = Context.theory_name o topthy
 
         val opentheory = SOME (topthy_name()) handle Toplevel.UNDEF => NONE
