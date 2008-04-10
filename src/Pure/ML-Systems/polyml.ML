@@ -31,7 +31,9 @@ fun use_text (tune: string -> string) (line, name) (print, err) verbose txt =
         PolyML.compiler
           {getChar = get, putString = put, lineNumber = fn () => ! current_line, fileName = name,
             nameSpace = PolyML.globalNameSpace} ())
-      handle exn => (err (output ()); raise exn);
+      handle exn =>
+       (put ("Exception- " ^ General.exnMessage exn ^ " raised");
+        err (output ()); raise exn);
   in
     if verbose then print (output ()) else ()
   end;
