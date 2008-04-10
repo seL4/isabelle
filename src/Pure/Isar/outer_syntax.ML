@@ -29,6 +29,7 @@ sig
   val process_file: Path.T -> theory -> theory
   type isar
   val isar: bool -> isar
+  val load_thy: Path.T -> string -> Position.T -> string list -> bool -> unit
 end;
 
 structure OuterSyntax: OUTER_SYNTAX =
@@ -275,9 +276,7 @@ fun isar term : isar =
 fun check_text s state = (ThyOutput.eval_antiquote (#1 (get_lexicons ())) state s; ());
 
 
-(* load_thy (backpatching) *)
-
-local
+(* load_thy *)
 
 fun load_thy dir name pos text time =
   let
@@ -301,9 +300,5 @@ fun load_thy dir name pos text time =
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
   in () end;
 
-in val _ = ThyLoad.load_thy_fn := load_thy end;
-
 end;
-
-structure ThyLoad: THY_LOAD = ThyLoad;
 
