@@ -275,7 +275,7 @@ text %mlref {*
   @{index_ML Isar.state: "unit -> Toplevel.state"} \\
   @{index_ML Isar.exn: "unit -> (exn * string) option"} \\
   @{index_ML Isar.context: "unit -> Proof.context"} \\
-  @{index_ML Isar.goal: "unit -> thm list * thm"} \\
+  @{index_ML Isar.goal: "unit -> thm"} \\
   \end{mldecls}
 
   \begin{description}
@@ -294,9 +294,9 @@ text %mlref {*
   "Isar.state ()"}, analogous to @{ML Context.proof_of}
   (\secref{sec:generic-context}).
 
-  \item @{ML "Isar.goal ()"} picks the goal configuration from @{ML
-  "Isar.state ()"}, consisting on the current facts and the goal
-  represented as a theorem according to \secref{sec:tactical-goals}.
+  \item @{ML "Isar.goal ()"} picks the tactical goal from @{ML
+  "Isar.state ()"}, represented as a theorem according to
+  \secref{sec:tactical-goals}.
 
   \end{description}
 *}
