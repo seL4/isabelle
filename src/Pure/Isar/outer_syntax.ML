@@ -24,7 +24,6 @@ sig
   val report: unit -> unit
   val check_text: string * Position.T -> Toplevel.node option -> unit
   val scan: string -> OuterLex.token list
-  val read: OuterLex.token list -> (string * OuterLex.token list * Toplevel.transition) list
   val parse: Position.T -> string -> Toplevel.transition list
   val process_file: Path.T -> theory -> theory
   type isar
@@ -74,21 +73,18 @@ local
 fun terminate false = Scan.succeed ()
   | terminate true = P.group "end of input" (Scan.option P.sync -- P.semicolon >> K ());
 
-fun trace false parse = parse
-  | trace true parse = Scan.trace parse >> (fn (f, toks) => f o Toplevel.source toks);
-
-fun body cmd do_trace (name, _) =
+fun body cmd (name, _) =
   (case cmd name of
     SOME (Parser {int_only, parse, ...}) =>
-      P.!!! (Scan.prompt (name ^ "# ") (trace do_trace (P.tags |-- parse) >> pair int_only))
+      P.!!! (Scan.prompt (name ^ "# ") (P.tags |-- parse >> pair int_only))
   | NONE => sys_error ("no parser for outer syntax command " ^ quote name));
 
 in
 
-fun parse_command do_terminate do_trace cmd =
+fun parse_command do_terminate cmd =
   P.semicolon >> K NONE ||
   P.sync >> K NONE ||
-  (P.position P.command :-- body cmd do_trace) --| terminate do_terminate
+  (P.position P.command :-- body cmd) --| terminate do_terminate
     >> (fn ((name, pos), (int_only, f)) =>
       SOME (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
         Toplevel.interactive int_only |> f));
@@ -197,7 +193,7 @@ fun report () =
 
 (* basic sources *)
 
-fun toplevel_source term do_trace do_recover cmd src =
+fun toplevel_source term do_recover cmd src =
   let
     val no_terminator =
       Scan.unless P.semicolon (Scan.one (T.not_sync andf T.not_eof));
@@ -211,7 +207,7 @@ fun toplevel_source term do_trace do_recover cmd src =
         (Option.map recover do_recover)
     |> Source.map_filter I
     |> Source.source T.stopper
-        (Scan.bulk (fn xs => P.!!! (parse_command term do_trace (cmd ())) xs))
+        (Scan.bulk (fn xs => P.!!! (parse_command term (cmd ())) xs))
         (Option.map recover do_recover)
     |> Source.map_filter I
   end;
@@ -219,26 +215,17 @@ fun toplevel_source term do_trace do_recover cmd src =
 
 (* off-line scanning/parsing *)
 
-(*tokens*)
 fun scan str =
   Source.of_string str
   |> Symbol.source false
   |> T.source (SOME false) get_lexicons Position.none
   |> Source.exhaust;
 
-(*commands from tokens, with trace*)
-fun read toks =
-  Source.of_list toks
-  |> toplevel_source false true NONE get_parser
-  |> Source.exhaust
-  |> map (fn tr => (Toplevel.name_of tr, the (Toplevel.source_of tr), tr));
-
-(*commands from string, without trace*)
 fun parse pos str =
   Source.of_string str
   |> Symbol.source false
   |> T.source (SOME false) get_lexicons pos
-  |> toplevel_source false false NONE get_parser
+  |> toplevel_source false NONE get_parser
   |> Source.exhaust;
 
 
@@ -265,7 +252,7 @@ fun isar term : isar =
   Source.tty
   |> Symbol.source true
   |> T.source (SOME true) get_lexicons Position.none
-  |> toplevel_source term false (SOME true) get_parser;
+  |> toplevel_source term (SOME true) get_parser;
 
 
 
@@ -289,7 +276,7 @@ fun load_thy dir name pos text time =
       |> T.source NONE (K (get_lexicons ())) pos
       |> Source.exhausted;
     val trs = toks
-      |> toplevel_source false false NONE (K (get_parser ()))
+      |> toplevel_source false NONE (K (get_parser ()))
       |> Source.exhaust;
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
