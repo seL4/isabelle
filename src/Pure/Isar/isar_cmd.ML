@@ -318,7 +318,7 @@ val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 val welcome = Toplevel.imperative (writeln o Session.welcome);
 
 val exit = Toplevel.keep (fn state =>
- (CRITICAL (fn () => Context.set_thread_data (try Toplevel.generic_theory_of state));
+ (Context.set_thread_data (try Toplevel.generic_theory_of state);
   raise Toplevel.TERMINATE));
 
 val quit = Toplevel.imperative quit;
