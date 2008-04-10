@@ -24,7 +24,7 @@ sig
   val is_stale: theory -> bool
   val PureN: string
   val CPureN: string
-  val draftN: string
+  val is_draft: theory -> bool
   val exists_name: string -> theory -> bool
   val names_of: theory -> string list
   val pretty_thy: theory -> Pretty.T
