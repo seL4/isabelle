@@ -481,11 +481,7 @@ fun setup_preferences_tweak() =
 
 (* Sending commands to Isar *)
 
-fun isarcmd s =
-    s |> OuterSyntax.scan |> OuterSyntax.read
-      (*|> map (Toplevel.position Position.none o #3)*)
-      |> map #3
-      |> Isar.>>>;
+fun isarcmd s = Isar.>>> (OuterSyntax.parse Position.none s);
 
 (* TODO:
     - apply a command given a transition function, e.g. IsarCmd.undo.
