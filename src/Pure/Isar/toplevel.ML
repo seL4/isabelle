@@ -141,6 +141,9 @@ fun presentation_context (SOME (Theory (_, SOME ctxt))) NONE = ctxt
       loc_init loc (cases_node Context.theory_of Proof.theory_of node)
   | presentation_context NONE _ = raise UNDEF;
 
+fun reset_presentation (Theory (gthy, _)) = Theory (gthy, NONE)
+  | reset_presentation node = node;
+
 
 (* datatype state *)
 
@@ -326,36 +329,42 @@ local
 
 fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
 
-val stale_theory = ERROR "Stale theory encountered after successful execution!";
+fun is_draft_theory (Theory (gthy, _)) = Context.is_draft (Context.theory_of gthy)
+  | is_draft_theory _ = false;
+
+fun stale_error NONE = SOME (ERROR "Stale theory encountered after successful execution!")
+  | stale_error some = some;
 
 fun map_theory f = History.map_current
-  (fn Theory (gthy, _) => Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, NONE)
+  (fn Theory (gthy, ctxt) => Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, ctxt)
     | node => node);
-
-fun return (result, NONE) = result
-  | return (result, SOME exn) = raise FAILURE (result, exn);
 
 in
 
 fun transaction hist pos f (node, term) =
   let
-    val cont_node = map_theory Theory.checkpoint node;
-    val back_node = map_theory Theory.copy cont_node;
-    fun state nd = State (nd, term);
-    fun normal_state nd = (state nd, NONE);
-    fun error_state nd exn = (state nd, SOME exn);
+    val _ = is_draft_theory (History.current node) andalso
+      error "Illegal draft theory in toplevel state";
+    val cont_node = node |> History.map_current reset_presentation;
+    val back_node = cont_node |> map_theory Theory.copy |> map_theory Theory.checkpoint;
+    fun state_error e nd = (State (nd, term), e);
 
     val (result, err) =
       cont_node
       |> (f
           |> (if hist then History.apply' (History.current back_node) else History.map_current)
           |> controlled_execution)
-      |> normal_state
-      handle exn => error_state cont_node exn;
+      |> map_theory Theory.checkpoint
+      |> state_error NONE
+      handle exn => state_error (SOME exn) cont_node;
+
+    val (result', err') =
+      if is_stale result then state_error (stale_error err) back_node
+      else (result, err);
   in
-    if is_stale result
-    then return (error_state back_node (the_default stale_theory err))
-    else return (result, err)
+    (case err' of
+      NONE => result'
+    | SOME exn => raise FAILURE (result', exn))
   end;
 
 end;
@@ -392,7 +401,7 @@ local
 fun keep_state int f = controlled_execution (fn x => tap (f int) x);
 
 fun apply_tr int _ (Init (f, term)) (state as Toplevel _) =
-      let val node = Theory (Context.Theory (f int), NONE)
+      let val node = Theory (Context.Theory (Theory.checkpoint (f int)), NONE)
       in safe_exit state; State (History.init (undo_limit int) node, term) end
   | apply_tr int _ (InitEmpty (check, f)) (state as Toplevel _) =
       if check state then (safe_exit state; keep_state int (fn _ => fn _ => f ()) toplevel)
