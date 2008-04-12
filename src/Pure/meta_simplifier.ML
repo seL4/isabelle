@@ -458,7 +458,8 @@ fun default_reorient thy prems lhs rhs =
 
 fun decomp_simp thm =
   let
-    val {thy, prop, ...} = Thm.rep_thm thm;
+    val thy = Thm.theory_of_thm thm;
+    val prop = Thm.prop_of thm;
     val prems = Logic.strip_imp_prems prop;
     val concl = Drule.strip_imp_concl (Thm.cprop_of thm);
     val (lhs, rhs) = Thm.dest_equals concl handle TERM _ =>
@@ -833,7 +834,10 @@ fun check_conv msg ss thm thm' =
        (symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm')
   in if msg then trace_thm (fn () => "SUCCEEDED") ss thm' else (); SOME thm'' end
   handle THM _ =>
-    let val {thy, prop = _ $ _ $ prop0, ...} = Thm.rep_thm thm in
+    let
+      val thy = Thm.theory_of_thm thm;
+      val _ $ _ $ prop0 = Thm.prop_of thm;
+    in
       trace_thm (fn () => "Proved wrong thm (Check subgoaler?)") ss thm';
       trace_term false (fn () => "Should have proved:") ss thy prop0;
       NONE
@@ -897,7 +901,8 @@ fun rewritec (prover, thyt, maxt) ss t =
     val eta_t = term_of eta_t';
     fun rew {thm, name, lhs, elhs, extra, fo, perm} =
       let
-        val {thy, prop, maxidx, ...} = rep_thm thm;
+        val thy = Thm.theory_of_thm thm;
+        val {prop, maxidx, ...} = rep_thm thm;
         val (rthm, elhs') =
           if maxt = ~1 orelse not extra then (thm, elhs)
           else (Thm.incr_indexes (maxt + 1) thm, Thm.incr_indexes_cterm (maxt + 1) elhs);
@@ -1233,8 +1238,9 @@ fun check_bounds ss ct =
 
 fun rewrite_cterm mode prover raw_ss raw_ct =
   let
+    val thy = Thm.theory_of_cterm raw_ct;
     val ct = Thm.adjust_maxidx_cterm ~1 raw_ct;
-    val {thy, t, maxidx, ...} = Thm.rep_cterm ct;
+    val {t, maxidx, ...} = Thm.rep_cterm ct;
     val ss = inc_simp_depth (activate_context thy raw_ss);
     val depth = simp_depth ss;
     val _ =

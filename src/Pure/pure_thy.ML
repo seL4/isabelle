@@ -337,7 +337,8 @@ fun note_thmss_qualified k path facts thy =
 
 fun forall_elim_vars_aux strip_vars i th =
   let
-    val {thy, tpairs, prop, ...} = Thm.rep_thm th;
+    val thy = Thm.theory_of_thm th;
+    val {tpairs, prop, ...} = Thm.rep_thm th;
     val add_used = Term.fold_aterms
       (fn Var ((x, j), _) => if i = j then insert (op =) x else I | _ => I);
     val used = fold (fn (t, u) => add_used t o add_used u) tpairs (add_used prop []);

@@ -43,7 +43,7 @@ structure Compute :> COMPUTE = struct
 
 open Report;
 
-datatype machine = BARRAS | BARRAS_COMPILED | HASKELL | SML	 
+datatype machine = BARRAS | BARRAS_COMPILED | HASKELL | SML      
 
 (* Terms are mapped to integer codes *)
 structure Encode :> 
@@ -52,10 +52,10 @@ sig
     val empty : encoding
     val insert : term -> encoding -> int * encoding
     val lookup_code : term -> encoding -> int option
-    val lookup_term : int -> encoding -> term option					
+    val lookup_term : int -> encoding -> term option                                    
     val remove_code : int -> encoding -> encoding
     val remove_term : term -> encoding -> encoding
-    val fold : ((term * int) -> 'a -> 'a) -> encoding -> 'a -> 'a  						       
+    val fold : ((term * int) -> 'a -> 'a) -> encoding -> 'a -> 'a                                                      
 end 
 = 
 struct
@@ -66,7 +66,7 @@ val empty = (0, Termtab.empty, Inttab.empty)
 
 fun insert t (e as (count, term2int, int2term)) = 
     (case Termtab.lookup term2int t of
-	 NONE => (count, (count+1, Termtab.update_new (t, count) term2int, Inttab.update_new (count, t) int2term))
+         NONE => (count, (count+1, Termtab.update_new (t, count) term2int, Inttab.update_new (count, t) int2term))
        | SOME code => (code, e))
 
 fun lookup_code t (_, term2int, _) = Termtab.lookup term2int t
@@ -88,29 +88,29 @@ exception Compute of string;
 
 local
     fun make_constant t ty encoding = 
-	let 
-	    val (code, encoding) = Encode.insert t encoding 
-	in 
-	    (encoding, AbstractMachine.Const code)
-	end
+        let 
+            val (code, encoding) = Encode.insert t encoding 
+        in 
+            (encoding, AbstractMachine.Const code)
+        end
 in
 
 fun remove_types encoding t =
     case t of 
-	Var (_, ty) => make_constant t ty encoding
+        Var (_, ty) => make_constant t ty encoding
       | Free (_, ty) => make_constant t ty encoding
       | Const (_, ty) => make_constant t ty encoding
       | Abs (_, ty, t') => 
-	let val (encoding, t'') = remove_types encoding t' in
-	    (encoding, AbstractMachine.Abs t'')
-	end
+        let val (encoding, t'') = remove_types encoding t' in
+            (encoding, AbstractMachine.Abs t'')
+        end
       | a $ b => 
-	let
-	    val (encoding, a) = remove_types encoding a
-	    val (encoding, b) = remove_types encoding b
-	in
-	    (encoding, AbstractMachine.App (a,b))
-	end
+        let
+            val (encoding, a) = remove_types encoding a
+            val (encoding, b) = remove_types encoding b
+        in
+            (encoding, AbstractMachine.App (a,b))
+        end
       | Bound b => (encoding, AbstractMachine.Var b)
 end
     
@@ -123,23 +123,23 @@ in
 fun infer_types naming encoding =
     let
         fun infer_types _ bounds _ (AbstractMachine.Var v) = (Bound v, List.nth (bounds, v))
-	  | infer_types _ bounds _ (AbstractMachine.Const code) = 
-	    let
-		val c = the (Encode.lookup_term code encoding)
-	    in
-		(c, type_of c)
-	    end
-	  | infer_types level bounds _ (AbstractMachine.App (a, b)) = 
-	    let
-		val (a, aty) = infer_types level bounds NONE a
-		val (adom, arange) =
+          | infer_types _ bounds _ (AbstractMachine.Const code) = 
+            let
+                val c = the (Encode.lookup_term code encoding)
+            in
+                (c, type_of c)
+            end
+          | infer_types level bounds _ (AbstractMachine.App (a, b)) = 
+            let
+                val (a, aty) = infer_types level bounds NONE a
+                val (adom, arange) =
                     case aty of
                         Type ("fun", [dom, range]) => (dom, range)
                       | _ => sys_error "infer_types: function type expected"
                 val (b, bty) = infer_types level bounds (SOME adom) b
-	    in
-		(a $ b, arange)
-	    end
+            in
+                (a $ b, arange)
+            end
           | infer_types level bounds (SOME (ty as Type ("fun", [dom, range]))) (AbstractMachine.Abs m) =
             let
                 val (m, _) = infer_types (level+1) (dom::bounds) (SOME range) m
@@ -160,7 +160,7 @@ fun infer_types naming encoding =
 end
 
 datatype prog = 
-	 ProgBarras of AM_Interpreter.program 
+         ProgBarras of AM_Interpreter.program 
        | ProgBarrasC of AM_Compiler.program
        | ProgHaskell of AM_GHC.program
        | ProgSML of AM_SML.program
@@ -198,26 +198,26 @@ datatype cthm = ComputeThm of term list * sort list * term
 
 fun thm2cthm th = 
     let
-	val {hyps, prop, tpairs, shyps, ...} = Thm.rep_thm th
-	val _ = if not (null tpairs) then raise Make "theorems may not contain tpairs" else ()
+        val {hyps, prop, tpairs, shyps, ...} = Thm.rep_thm th
+        val _ = if not (null tpairs) then raise Make "theorems may not contain tpairs" else ()
     in
-	ComputeThm (hyps, shyps, prop)
+        ComputeThm (hyps, shyps, prop)
     end
 
 fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
     let
-	fun transfer (x:thm) = Thm.transfer thy x
-	val ths = map (thm2cthm o Thm.strip_shyps o transfer) raw_ths
+        fun transfer (x:thm) = Thm.transfer thy x
+        val ths = map (thm2cthm o Thm.strip_shyps o transfer) raw_ths
 
         fun make_pattern encoding n vars (var as AbstractMachine.Abs _) =
-	    raise (Make "no lambda abstractions allowed in pattern")
-	  | make_pattern encoding n vars (var as AbstractMachine.Var _) =
-	    raise (Make "no bound variables allowed in pattern")
-	  | make_pattern encoding n vars (AbstractMachine.Const code) =
-	    (case the (Encode.lookup_term code encoding) of
-		 Var _ => ((n+1, Inttab.update_new (code, n) vars, AbstractMachine.PVar)
-			   handle Inttab.DUP _ => raise (Make "no duplicate variable in pattern allowed"))
-	       | _ => (n, vars, AbstractMachine.PConst (code, [])))
+            raise (Make "no lambda abstractions allowed in pattern")
+          | make_pattern encoding n vars (var as AbstractMachine.Var _) =
+            raise (Make "no bound variables allowed in pattern")
+          | make_pattern encoding n vars (AbstractMachine.Const code) =
+            (case the (Encode.lookup_term code encoding) of
+                 Var _ => ((n+1, Inttab.update_new (code, n) vars, AbstractMachine.PVar)
+                           handle Inttab.DUP _ => raise (Make "no duplicate variable in pattern allowed"))
+               | _ => (n, vars, AbstractMachine.PConst (code, [])))
           | make_pattern encoding n vars (AbstractMachine.App (a, b)) =
             let
                 val (n, vars, pa) = make_pattern encoding n vars a
@@ -232,26 +232,26 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
 
         fun thm2rule (encoding, hyptable, shyptable) th =
             let
-		val (ComputeThm (hyps, shyps, prop)) = th
-		val hyptable = fold (fn h => Termtab.update (h, ())) hyps hyptable
-		val shyptable = fold (fn sh => Sorttab.update (sh, ())) shyps shyptable
-		val (prems, prop) = (Logic.strip_imp_prems prop, Logic.strip_imp_concl prop)
+                val (ComputeThm (hyps, shyps, prop)) = th
+                val hyptable = fold (fn h => Termtab.update (h, ())) hyps hyptable
+                val shyptable = fold (fn sh => Sorttab.update (sh, ())) shyps shyptable
+                val (prems, prop) = (Logic.strip_imp_prems prop, Logic.strip_imp_concl prop)
                 val (a, b) = Logic.dest_equals prop
                   handle TERM _ => raise (Make "theorems must be meta-level equations (with optional guards)")
-		val a = Envir.eta_contract a
-		val b = Envir.eta_contract b
-		val prems = map Envir.eta_contract prems
+                val a = Envir.eta_contract a
+                val b = Envir.eta_contract b
+                val prems = map Envir.eta_contract prems
 
                 val (encoding, left) = remove_types encoding a     
-		val (encoding, right) = remove_types encoding b  
+                val (encoding, right) = remove_types encoding b  
                 fun remove_types_of_guard encoding g = 
-		    (let
-			 val (t1, t2) = Logic.dest_equals g 
-			 val (encoding, t1) = remove_types encoding t1
-			 val (encoding, t2) = remove_types encoding t2
-		     in
-			 (encoding, AbstractMachine.Guard (t1, t2))
-		     end handle TERM _ => raise (Make "guards must be meta-level equations"))
+                    (let
+                         val (t1, t2) = Logic.dest_equals g 
+                         val (encoding, t1) = remove_types encoding t1
+                         val (encoding, t2) = remove_types encoding t2
+                     in
+                         (encoding, AbstractMachine.Guard (t1, t2))
+                     end handle TERM _ => raise (Make "guards must be meta-level equations"))
                 val (encoding, prems) = fold_rev (fn p => fn (encoding, ps) => let val (e, p) = remove_types_of_guard encoding p in (e, p::ps) end) prems (encoding, [])
 
                 (* Principally, a check should be made here to see if the (meta-) hyps contain any of the variables of the rule.
@@ -263,24 +263,24 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
                              AbstractMachine.PVar =>
                              raise (Make "patterns may not start with a variable")
                          (*  | AbstractMachine.PConst (_, []) => 
-			     (print th; raise (Make "no parameter rewrite found"))*)
-			   | _ => ())
+                             (print th; raise (Make "no parameter rewrite found"))*)
+                           | _ => ())
 
                 (* finally, provide a function for renaming the
                    pattern bound variables on the right hand side *)
 
                 fun rename level vars (var as AbstractMachine.Var _) = var
-		  | rename level vars (c as AbstractMachine.Const code) =
-		    (case Inttab.lookup vars code of 
-			 NONE => c 
-		       | SOME n => AbstractMachine.Var (vcount-n-1+level))
+                  | rename level vars (c as AbstractMachine.Const code) =
+                    (case Inttab.lookup vars code of 
+                         NONE => c 
+                       | SOME n => AbstractMachine.Var (vcount-n-1+level))
                   | rename level vars (AbstractMachine.App (a, b)) =
                     AbstractMachine.App (rename level vars a, rename level vars b)
                   | rename level vars (AbstractMachine.Abs m) =
                     AbstractMachine.Abs (rename (level+1) vars m)
-		    
-		fun rename_guard (AbstractMachine.Guard (a,b)) = 
-		    AbstractMachine.Guard (rename 0 vars a, rename 0 vars b)
+                    
+                fun rename_guard (AbstractMachine.Guard (a,b)) = 
+                    AbstractMachine.Guard (rename 0 vars a, rename 0 vars b)
             in
                 ((encoding, hyptable, shyptable), (map rename_guard prems, pattern, rename 0 vars right))
             end
@@ -293,35 +293,35 @@ fun make_internal machine thy stamp encoding cache_pattern_terms raw_ths =
           ths ((encoding, Termtab.empty, Sorttab.empty), [])
 
         fun make_cache_pattern t (encoding, cache_patterns) =
-	    let
-		val (encoding, a) = remove_types encoding t
-		val (_,_,p) = make_pattern encoding 0 Inttab.empty a
-	    in
-		(encoding, p::cache_patterns)
-	    end
-	
-	val (encoding, cache_patterns) = fold_rev make_cache_pattern cache_pattern_terms (encoding, [])
+            let
+                val (encoding, a) = remove_types encoding t
+                val (_,_,p) = make_pattern encoding 0 Inttab.empty a
+            in
+                (encoding, p::cache_patterns)
+            end
+        
+        val (encoding, cache_patterns) = fold_rev make_cache_pattern cache_pattern_terms (encoding, [])
 
-	fun arity (Type ("fun", [a,b])) = 1 + arity b
-	  | arity _ = 0
+        fun arity (Type ("fun", [a,b])) = 1 + arity b
+          | arity _ = 0
 
-	fun make_arity (Const (s, _), i) tab = 
-	    (Inttab.update (i, arity (Sign.the_const_type thy s)) tab handle TYPE _ => tab)
-	  | make_arity _ tab = tab
+        fun make_arity (Const (s, _), i) tab = 
+            (Inttab.update (i, arity (Sign.the_const_type thy s)) tab handle TYPE _ => tab)
+          | make_arity _ tab = tab
 
-	val const_arity_tab = Encode.fold make_arity encoding Inttab.empty
-	fun const_arity x = Inttab.lookup const_arity_tab x 
+        val const_arity_tab = Encode.fold make_arity encoding Inttab.empty
+        fun const_arity x = Inttab.lookup const_arity_tab x 
 
         val prog = 
-	    case machine of 
-		BARRAS => ProgBarras (AM_Interpreter.compile cache_patterns const_arity rules)
-	      | BARRAS_COMPILED => ProgBarrasC (AM_Compiler.compile cache_patterns const_arity rules)
-	      | HASKELL => ProgHaskell (AM_GHC.compile cache_patterns const_arity rules)
-	      | SML => ProgSML (AM_SML.compile cache_patterns const_arity rules)
+            case machine of 
+                BARRAS => ProgBarras (AM_Interpreter.compile cache_patterns const_arity rules)
+              | BARRAS_COMPILED => ProgBarrasC (AM_Compiler.compile cache_patterns const_arity rules)
+              | HASKELL => ProgHaskell (AM_GHC.compile cache_patterns const_arity rules)
+              | SML => ProgSML (AM_SML.compile cache_patterns const_arity rules)
 
         fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
 
-	val shyptable = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptable))) shyptable
+        val shyptable = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptable))) shyptable
 
     in (Theory.check_thy thy, encoding, Termtab.keys hyptable, shyptable, prog, stamp, default_naming) end
 
@@ -331,32 +331,32 @@ fun make machine thy raw_thms = make_with_cache machine thy [] raw_thms
 
 fun update_with_cache computer cache_patterns raw_thms =
     let 
-	val c = make_internal (machine_of_prog (prog_of computer)) (theory_of computer) (stamp_of computer) 
-			      (encoding_of computer) cache_patterns raw_thms
-	val _ = (ref_of computer) := SOME c	
+        val c = make_internal (machine_of_prog (prog_of computer)) (theory_of computer) (stamp_of computer) 
+                              (encoding_of computer) cache_patterns raw_thms
+        val _ = (ref_of computer) := SOME c     
     in
-	()
+        ()
     end
 
 fun update computer raw_thms = update_with_cache computer [] raw_thms
 
 fun discard computer =
     let
-	val _ = 
-	    case prog_of computer of
-		ProgBarras p => AM_Interpreter.discard p
-	      | ProgBarrasC p => AM_Compiler.discard p
-	      | ProgHaskell p => AM_GHC.discard p
-	      | ProgSML p => AM_SML.discard p
-	val _ = (ref_of computer) := NONE
+        val _ = 
+            case prog_of computer of
+                ProgBarras p => AM_Interpreter.discard p
+              | ProgBarrasC p => AM_Compiler.discard p
+              | ProgHaskell p => AM_GHC.discard p
+              | ProgSML p => AM_SML.discard p
+        val _ = (ref_of computer) := NONE
     in
-	()
+        ()
     end 
-					      
+                                              
 fun runprog (ProgBarras p) = AM_Interpreter.run p
   | runprog (ProgBarrasC p) = AM_Compiler.run p
   | runprog (ProgHaskell p) = AM_GHC.run p
-  | runprog (ProgSML p) = AM_SML.run p	  
+  | runprog (ProgSML p) = AM_SML.run p    
 
 (* ------------------------------------------------------------------------------------- *)
 (* An oracle for exporting theorems; must only be accessible from inside this structure! *)
@@ -377,15 +377,15 @@ fun merge_shyps shyps1 shyps2 = Sorttab.keys (add_shyps shyps2 (add_shyps shyps1
 
 fun export_oracle (thy, ExportThm (hyps, shyps, prop)) =
     let
-	val shyptab = add_shyps shyps Sorttab.empty
-	fun delete s shyptab = Sorttab.delete s shyptab handle Sorttab.UNDEF _ => shyptab
-	fun delete_term t shyptab = fold delete (Sorts.insert_term t []) shyptab
-	fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
-	val shyptab = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptab))) shyptab
-	val shyps = if Sorttab.is_empty shyptab then [] else Sorttab.keys (fold delete_term (prop::hyps) shyptab)
-	val _ = if not (null shyps) then raise Compute ("dangling sort hypotheses: "^(makestring shyps)) else ()
+        val shyptab = add_shyps shyps Sorttab.empty
+        fun delete s shyptab = Sorttab.delete s shyptab handle Sorttab.UNDEF _ => shyptab
+        fun delete_term t shyptab = fold delete (Sorts.insert_term t []) shyptab
+        fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
+        val shyptab = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptab))) shyptab
+        val shyps = if Sorttab.is_empty shyptab then [] else Sorttab.keys (fold delete_term (prop::hyps) shyptab)
+        val _ = if not (null shyps) then raise Compute ("dangling sort hypotheses: "^(makestring shyps)) else ()
     in
-	fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps prop
+        fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps prop
     end
   | export_oracle _ = raise Match
 
@@ -393,24 +393,25 @@ val setup_compute = (fn thy => Theory.add_oracle ("compute", export_oracle) thy)
 
 fun export_thm thy hyps shyps prop =
     let
-	val th = invoke_oracle_i thy "Compute_Oracle.compute" (thy, ExportThm (hyps, shyps, prop))
-	val hyps = map (fn h => assume (cterm_of thy h)) hyps
+        val th = invoke_oracle_i thy "Compute_Oracle.compute" (thy, ExportThm (hyps, shyps, prop))
+        val hyps = map (fn h => assume (cterm_of thy h)) hyps
     in
-	fold (fn h => fn p => implies_elim p h) hyps th 
+        fold (fn h => fn p => implies_elim p h) hyps th 
     end
-	
+        
 (* --------- Rewrite ----------- *)
 
 fun rewrite computer ct =
     let
-	val {t=t',T=ty,thy=thy,...} = rep_cterm ct
-	val _ = Theory.assert_super (theory_of computer) thy
-	val naming = naming_of computer
+        val thy = Thm.theory_of_cterm ct
+        val {t=t',T=ty,...} = rep_cterm ct
+        val _ = Theory.assert_super (theory_of computer) thy
+        val naming = naming_of computer
         val (encoding, t) = remove_types (encoding_of computer) t'
-	(*val _ = if (!print_encoding) then writeln (makestring ("encoding: ",Encode.fold (fn x => fn s => x::s) encoding [])) else ()*)
+        (*val _ = if (!print_encoding) then writeln (makestring ("encoding: ",Encode.fold (fn x => fn s => x::s) encoding [])) else ()*)
         val t = runprog (prog_of computer) t
         val t = infer_types naming encoding ty t
-	val eq = Logic.mk_equals (t', t)
+        val eq = Logic.mk_equals (t', t)
     in
         export_thm thy (hyps_of computer) (Sorttab.keys (shyptab_of computer)) eq
     end
@@ -418,7 +419,7 @@ fun rewrite computer ct =
 (* --------- Simplify ------------ *)
 
 datatype prem = EqPrem of AbstractMachine.term * AbstractMachine.term * Term.typ * int 
-	      | Prem of AbstractMachine.term
+              | Prem of AbstractMachine.term
 datatype theorem = Theorem of theory_ref * unit ref * (int * typ) Symtab.table * (AbstractMachine.term option) Inttab.table  
                * prem list * AbstractMachine.term * term list * sort list
 
@@ -439,46 +440,46 @@ let
       | collect_vars (Const _) tab = tab
       | collect_vars (Free _) tab = tab
       | collect_vars (Var ((s, i), ty)) tab = 
-	    if List.find (fn x => x=s) vars = NONE then 
-		tab
-	    else		
-		(case Symtab.lookup tab s of
-		     SOME ((s',i'),ty') => 
-	             if s' <> s orelse i' <> i orelse ty <> ty' then 
-			 raise Compute ("make_theorem: variable name '"^s^"' is not unique")
-		     else 
-			 tab
-		   | NONE => Symtab.update (s, ((s, i), ty)) tab)
+            if List.find (fn x => x=s) vars = NONE then 
+                tab
+            else                
+                (case Symtab.lookup tab s of
+                     SOME ((s',i'),ty') => 
+                     if s' <> s orelse i' <> i orelse ty <> ty' then 
+                         raise Compute ("make_theorem: variable name '"^s^"' is not unique")
+                     else 
+                         tab
+                   | NONE => Symtab.update (s, ((s, i), ty)) tab)
     val vartab = collect_vars prop Symtab.empty 
     fun encodevar (s, t as (_, ty)) (encoding, tab) = 
-	let
-	    val (x, encoding) = Encode.insert (Var t) encoding
-	in
-	    (encoding, Symtab.update (s, (x, ty)) tab)
-	end
-    val (encoding, vartab) = Symtab.fold encodevar vartab (encoding, Symtab.empty)  					 	       
+        let
+            val (x, encoding) = Encode.insert (Var t) encoding
+        in
+            (encoding, Symtab.update (s, (x, ty)) tab)
+        end
+    val (encoding, vartab) = Symtab.fold encodevar vartab (encoding, Symtab.empty)                                                     
     val varsubst = Inttab.make (map (fn (s, (x, _)) => (x, NONE)) (Symtab.dest vartab))
 
     (* make the premises and the conclusion *)
     fun mk_prem encoding t = 
-	(let
-	     val (a, b) = Logic.dest_equals t
-	     val ty = type_of a
-	     val (encoding, a) = remove_types encoding a
-	     val (encoding, b) = remove_types encoding b
-	     val (eq, encoding) = Encode.insert (Const ("==", ty --> ty --> @{typ "prop"})) encoding 
-	 in
-	     (encoding, EqPrem (a, b, ty, eq))
-	 end handle TERM _ => let val (encoding, t) = remove_types encoding t in (encoding, Prem t) end)
+        (let
+             val (a, b) = Logic.dest_equals t
+             val ty = type_of a
+             val (encoding, a) = remove_types encoding a
+             val (encoding, b) = remove_types encoding b
+             val (eq, encoding) = Encode.insert (Const ("==", ty --> ty --> @{typ "prop"})) encoding 
+         in
+             (encoding, EqPrem (a, b, ty, eq))
+         end handle TERM _ => let val (encoding, t) = remove_types encoding t in (encoding, Prem t) end)
     val (encoding, prems) = 
-	(fold_rev (fn t => fn (encoding, l) => 
-	    case mk_prem encoding t  of 
+        (fold_rev (fn t => fn (encoding, l) => 
+            case mk_prem encoding t  of 
                 (encoding, t) => (encoding, t::l)) (Logic.strip_imp_prems prop) (encoding, []))
     val (encoding, concl) = remove_types encoding (Logic.strip_imp_concl prop)
     val _ = set_encoding computer encoding
 in
     Theorem (Theory.check_thy (theory_of_thm th), stamp_of computer, vartab, varsubst, 
-	     prems, concl, hyps, shyps)
+             prems, concl, hyps, shyps)
 end
     
 fun theory_of_theorem (Theorem (rthy,_,_,_,_,_,_,_)) = Theory.deref rthy
@@ -498,7 +499,7 @@ fun update_shyps shyps (Theorem (p0,p1,p2,p3,p4,p5,p6,_)) = Theorem (p0,p1,p2,p3
 
 fun check_compatible computer th s = 
     if stamp_of computer <> stamp_of_theorem th then
-	raise Compute (s^": computer and theorem are incompatible")
+        raise Compute (s^": computer and theorem are incompatible")
     else ()
 
 fun instantiate computer insts th =
@@ -511,49 +512,49 @@ let
 
     fun rewrite computer t =
     let  
-	val naming = naming_of computer
+        val naming = naming_of computer
         val (encoding, t) = remove_types (encoding_of computer) t
         val t = runprog (prog_of computer) t
-	val _ = set_encoding computer encoding
+        val _ = set_encoding computer encoding
     in
         t
     end
 
     fun assert_varfree vs t = 
-	if AbstractMachine.forall_consts (fn x => Inttab.lookup vs x = NONE) t then
-	    ()
-	else
-	    raise Compute "instantiate: assert_varfree failed"
+        if AbstractMachine.forall_consts (fn x => Inttab.lookup vs x = NONE) t then
+            ()
+        else
+            raise Compute "instantiate: assert_varfree failed"
 
     fun assert_closed t =
-	if AbstractMachine.closed t then
-	    ()
-	else 
-	    raise Compute "instantiate: not a closed term"
+        if AbstractMachine.closed t then
+            ()
+        else 
+            raise Compute "instantiate: not a closed term"
 
     fun compute_inst (s, ct) vs =
-	let
-	    val _ = Theory.assert_super (theory_of_cterm ct) thy
-	    val ty = typ_of (ctyp_of_term ct) 
-	in	    
-	    (case Symtab.lookup vartab s of 
-		 NONE => raise Compute ("instantiate: variable '"^s^"' not found in theorem")
-	       | SOME (x, ty') => 
-		 (case Inttab.lookup vs x of 
-		      SOME (SOME _) => raise Compute ("instantiate: variable '"^s^"' has already been instantiated")
-		    | SOME NONE => 
-		      if ty <> ty' then 
-			  raise Compute ("instantiate: wrong type for variable '"^s^"'")
-		      else
-			  let
-			      val t = rewrite computer (term_of ct)
-			      val _ = assert_varfree vs t 
-			      val _ = assert_closed t
-			  in
-			      Inttab.update (x, SOME t) vs
-			  end
-		    | NONE => raise Compute "instantiate: internal error"))
-	end
+        let
+            val _ = Theory.assert_super (theory_of_cterm ct) thy
+            val ty = typ_of (ctyp_of_term ct) 
+        in          
+            (case Symtab.lookup vartab s of 
+                 NONE => raise Compute ("instantiate: variable '"^s^"' not found in theorem")
+               | SOME (x, ty') => 
+                 (case Inttab.lookup vs x of 
+                      SOME (SOME _) => raise Compute ("instantiate: variable '"^s^"' has already been instantiated")
+                    | SOME NONE => 
+                      if ty <> ty' then 
+                          raise Compute ("instantiate: wrong type for variable '"^s^"'")
+                      else
+                          let
+                              val t = rewrite computer (term_of ct)
+                              val _ = assert_varfree vs t 
+                              val _ = assert_closed t
+                          in
+                              Inttab.update (x, SOME t) vs
+                          end
+                    | NONE => raise Compute "instantiate: internal error"))
+        end
 
     val vs = fold compute_inst insts (varsubst_of_theorem th)
 in
@@ -561,39 +562,39 @@ in
 end
 
 fun match_aterms subst =
-    let	
-	exception no_match
-	open AbstractMachine
-	fun match subst (b as (Const c)) a = 
-	    if a = b then subst
-	    else 
-		(case Inttab.lookup subst c of 
-		     SOME (SOME a') => if a=a' then subst else raise no_match
-		   | SOME NONE => if AbstractMachine.closed a then 
-				      Inttab.update (c, SOME a) subst 
-				  else raise no_match
-		   | NONE => raise no_match)
-	  | match subst (b as (Var _)) a = if a=b then subst else raise no_match
-	  | match subst (App (u, v)) (App (u', v')) = match (match subst u u') v v'
-	  | match subst (Abs u) (Abs u') = match subst u u'
-	  | match subst _ _ = raise no_match
+    let 
+        exception no_match
+        open AbstractMachine
+        fun match subst (b as (Const c)) a = 
+            if a = b then subst
+            else 
+                (case Inttab.lookup subst c of 
+                     SOME (SOME a') => if a=a' then subst else raise no_match
+                   | SOME NONE => if AbstractMachine.closed a then 
+                                      Inttab.update (c, SOME a) subst 
+                                  else raise no_match
+                   | NONE => raise no_match)
+          | match subst (b as (Var _)) a = if a=b then subst else raise no_match
+          | match subst (App (u, v)) (App (u', v')) = match (match subst u u') v v'
+          | match subst (Abs u) (Abs u') = match subst u u'
+          | match subst _ _ = raise no_match
     in
-	fn b => fn a => (SOME (match subst b a) handle no_match => NONE)
+        fn b => fn a => (SOME (match subst b a) handle no_match => NONE)
     end
 
 fun apply_subst vars_allowed subst =
     let
-	open AbstractMachine
-	fun app (t as (Const c)) = 
-	    (case Inttab.lookup subst c of 
-		 NONE => t 
-	       | SOME (SOME t) => Computed t
-	       | SOME NONE => if vars_allowed then t else raise Compute "apply_subst: no vars allowed")
-	  | app (t as (Var _)) = t
-	  | app (App (u, v)) = App (app u, app v)
-	  | app (Abs m) = Abs (app m)
+        open AbstractMachine
+        fun app (t as (Const c)) = 
+            (case Inttab.lookup subst c of 
+                 NONE => t 
+               | SOME (SOME t) => Computed t
+               | SOME NONE => if vars_allowed then t else raise Compute "apply_subst: no vars allowed")
+          | app (t as (Var _)) = t
+          | app (App (u, v)) = App (app u, app v)
+          | app (Abs m) = Abs (app m)
     in
-	app
+        app
     end
 
 fun splicein n l L = List.take (L, n) @ l @ List.drop (L, n+1)
@@ -604,27 +605,27 @@ let
     val prems = prems_of_theorem th
     val varsubst = varsubst_of_theorem th
     fun run vars_allowed t = 
-	runprog (prog_of computer) (apply_subst vars_allowed varsubst t)
+        runprog (prog_of computer) (apply_subst vars_allowed varsubst t)
 in
     case List.nth (prems, prem_no) of
-	Prem _ => raise Compute "evaluate_prem: no equality premise"
-      | EqPrem (a, b, ty, _) => 	
-	let
-	    val a' = run false a
-	    val b' = run true b
-	in
-	    case match_aterms varsubst b' a' of
-		NONE => 
-		let
-		    fun mk s = makestring (infer_types (naming_of computer) (encoding_of computer) ty s)
-		    val left = "computed left side: "^(mk a')
-		    val right = "computed right side: "^(mk b')
-		in
-		    raise Compute ("evaluate_prem: cannot assign computed left to right hand side\n"^left^"\n"^right^"\n")
-		end
-	      | SOME varsubst => 
-		update_prems (splicein prem_no [] prems) (update_varsubst varsubst th)
-	end
+        Prem _ => raise Compute "evaluate_prem: no equality premise"
+      | EqPrem (a, b, ty, _) =>         
+        let
+            val a' = run false a
+            val b' = run true b
+        in
+            case match_aterms varsubst b' a' of
+                NONE => 
+                let
+                    fun mk s = makestring (infer_types (naming_of computer) (encoding_of computer) ty s)
+                    val left = "computed left side: "^(mk a')
+                    val right = "computed right side: "^(mk b')
+                in
+                    raise Compute ("evaluate_prem: cannot assign computed left to right hand side\n"^left^"\n"^right^"\n")
+                end
+              | SOME varsubst => 
+                update_prems (splicein prem_no [] prems) (update_varsubst varsubst th)
+        end
 end
 
 fun prem2term (Prem t) = t
@@ -635,33 +636,33 @@ fun modus_ponens computer prem_no th' th =
 let
     val _ = check_compatible computer th
     val thy = 
-	let
-	    val thy1 = theory_of_theorem th
-	    val thy2 = theory_of_thm th'
-	in
-	    if Context.subthy (thy1, thy2) then thy2 
-	    else if Context.subthy (thy2, thy1) then thy1 else
-	    raise Compute "modus_ponens: theorems are not compatible with each other"
-	end 
+        let
+            val thy1 = theory_of_theorem th
+            val thy2 = theory_of_thm th'
+        in
+            if Context.subthy (thy1, thy2) then thy2 
+            else if Context.subthy (thy2, thy1) then thy1 else
+            raise Compute "modus_ponens: theorems are not compatible with each other"
+        end 
     val th' = make_theorem computer th' []
     val varsubst = varsubst_of_theorem th
     fun run vars_allowed t =
-	runprog (prog_of computer) (apply_subst vars_allowed varsubst t)
+        runprog (prog_of computer) (apply_subst vars_allowed varsubst t)
     val prems = prems_of_theorem th
     val prem = run true (prem2term (List.nth (prems, prem_no)))
     val concl = run false (concl_of_theorem th')    
 in
     case match_aterms varsubst prem concl of
-	NONE => raise Compute "modus_ponens: conclusion does not match premise"
+        NONE => raise Compute "modus_ponens: conclusion does not match premise"
       | SOME varsubst =>
-	let
-	    val th = update_varsubst varsubst th
-	    val th = update_prems (splicein prem_no (prems_of_theorem th') prems) th
-	    val th = update_hyps (merge_hyps (hyps_of_theorem th) (hyps_of_theorem th')) th
-	    val th = update_shyps (merge_shyps (shyps_of_theorem th) (shyps_of_theorem th')) th
-	in
-	    update_theory thy th
-	end
+        let
+            val th = update_varsubst varsubst th
+            val th = update_prems (splicein prem_no (prems_of_theorem th') prems) th
+            val th = update_hyps (merge_hyps (hyps_of_theorem th) (hyps_of_theorem th')) th
+            val th = update_shyps (merge_shyps (shyps_of_theorem th) (shyps_of_theorem th')) th
+        in
+            update_theory thy th
+        end
 end
                      
 fun simplify computer th =

@@ -359,7 +359,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     fun mk_funs_inv thm =
       let
-        val {thy, prop, ...} = rep_thm thm;
+        val thy = Thm.theory_of_thm thm;
+        val prop = Thm.prop_of thm;
         val _ $ (_ $ ((S as Const (_, Type (_, [U, _]))) $ _ )) $
           (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.freeze prop;
         val used = add_term_tfree_names (a, []);

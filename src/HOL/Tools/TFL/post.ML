@@ -93,7 +93,7 @@ fun mk_meta_eq r = case concl_of r of
 fun rewrite L = rewrite_rule (map mk_meta_eq (List.filter(not o id_thm) L))
 
 fun join_assums th =
-  let val {thy,...} = rep_thm th
+  let val thy = Thm.theory_of_thm th
       val tych = cterm_of thy
       val {lhs,rhs} = S.dest_eq(#2 (S.strip_forall (concl th)))
       val cntxtl = (#1 o S.strip_imp) lhs  (* cntxtl should = cntxtr *)

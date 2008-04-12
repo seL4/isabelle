@@ -280,10 +280,11 @@ fun prep_inst thy align tune (tm, ts) =
     fun prep_var (x, SOME t) =
           let
             val cx = cert x;
-            val {T = xT, thy, ...} = Thm.rep_cterm cx;
+            val xT = #T (Thm.rep_cterm cx);
             val ct = cert (tune t);
+            val tT = Thm.ctyp_of_term ct;
           in
-            if Type.could_unify (#T (Thm.rep_cterm ct), xT) then SOME (cx, ct)
+            if Type.could_unify (Thm.typ_of tT, xT) then SOME (cx, ct)
             else error (Pretty.string_of (Pretty.block
              [Pretty.str "Ill-typed instantiation:", Pretty.fbrk,
               Display.pretty_cterm ct, Pretty.str " ::", Pretty.brk 1,
@@ -432,7 +433,8 @@ in
 
 fun guess_instance rule i st =
   let
-    val {thy, maxidx, ...} = Thm.rep_thm st;
+    val thy = Thm.theory_of_thm st;
+    val maxidx = Thm.maxidx_of st;
     val goal = Thm.term_of (Thm.cprem_of st i);  (*exception Subscript*)
     val params = rev (rename_wrt_term goal (Logic.strip_params goal));
   in

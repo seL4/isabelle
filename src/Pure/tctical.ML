@@ -425,8 +425,8 @@ fun metahyps_split_prem prem =
 
 fun metahyps_aux_tac tacf (prem,gno) state =
   let val (insts,params,hyps,concl) = metahyps_split_prem prem
-      val {thy = sign,maxidx,...} = rep_thm state
-      val cterm = cterm_of sign
+      val maxidx = Thm.maxidx_of state
+      val cterm = Thm.cterm_of (Thm.theory_of_thm state)
       val chyps = map cterm hyps
       val hypths = map assume chyps
       val subprems = map (forall_elim_vars 0) hypths

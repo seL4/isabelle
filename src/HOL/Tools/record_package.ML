@@ -1740,7 +1740,8 @@ fun obj_to_meta_all thm =
 
 fun meta_to_obj_all thm =
   let
-    val {thy, prop, ...} = rep_thm thm;
+    val thy = Thm.theory_of_thm thm;
+    val prop = Thm.prop_of thm;
     val params = Logic.strip_params prop;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl prop);
     val ct = cterm_of thy

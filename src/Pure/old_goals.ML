@@ -151,7 +151,8 @@ val result_error_fn = ref result_error_default;
 fun prepare_proof atomic rths chorn =
   let
       val _ = legacy_feature "Old goal command";
-      val {thy, t=horn,...} = rep_cterm chorn;
+      val thy = Thm.theory_of_cterm chorn;
+      val horn = Thm.term_of chorn;
       val _ = Term.no_dummy_patterns horn handle TERM (msg, _) => error msg;
       val (As, B) = Logic.strip_horn horn;
       val atoms = atomic andalso
@@ -170,7 +171,8 @@ fun prepare_proof atomic rths chorn =
             val ngoals = nprems_of state
             val ath = implies_intr_list cAs state
             val th = Goal.conclude ath
-            val {hyps,prop,thy=thy',...} = rep_thm th
+            val thy' = Thm.theory_of_thm th
+            val {hyps, prop, ...} = Thm.rep_thm th
             val final_th = standard th
         in  if not check then final_th
             else if not (eq_thy(thy,thy')) then !result_error_fn state
@@ -229,7 +231,7 @@ fun prove_goalw_cterm_general check rths chorn tacsf =
                SOME(st,_) => st
              | _ => error ("prove_goal: tactic failed"))
   in  mkresult (check, cond_timeit (!Output.timing) "" statef)  end
-  handle e => (print_sign_exn_unit (#thy (rep_cterm chorn)) e;
+  handle e => (print_sign_exn_unit (Thm.theory_of_cterm chorn) e;
                writeln ("The exception above was raised for\n" ^
                       Display.string_of_cterm chorn); raise e);
 

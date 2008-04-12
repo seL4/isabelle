@@ -110,8 +110,9 @@ fun prove_cont tac sign s T prems params (l, ts as ((t, _)::_)) =
 (*** instantiation of adm_subst theorem (a bit tricky) ***)
 
 fun inst_adm_subst_thm state i params s T subt t paths =
-  let val {thy = sign, maxidx, ...} = rep_thm state;
-      val j = maxidx+1;
+  let
+      val sign = Thm.theory_of_thm state;
+      val j = Thm.maxidx_of state + 1;
       val parTs = map snd (rev params);
       val rule = Thm.lift_rule (Thm.cprem_of state i) @{thm adm_subst};
       val types = valOf o (fst (types_sorts rule));

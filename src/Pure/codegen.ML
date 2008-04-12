@@ -1074,8 +1074,8 @@ fun evaluation_oracle (thy, Evaluation t) =
   Logic.mk_equals (t, eval_term thy t);
 
 fun evaluation_conv ct =
-  let val {thy, t, ...} = rep_cterm ct
-  in Thm.invoke_oracle_i thy "Pure.evaluation" (thy, Evaluation t) end;
+  let val thy = Thm.theory_of_cterm ct
+  in Thm.invoke_oracle_i thy "Pure.evaluation" (thy, Evaluation (Thm.term_of ct)) end;
 
 val _ = Context.>> (Context.map_theory
   (Theory.add_oracle ("evaluation", evaluation_oracle)));

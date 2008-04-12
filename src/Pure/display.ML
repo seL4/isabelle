@@ -109,20 +109,12 @@ fun prths ths = (prthq (Seq.of_list ths); ths);
 
 (* other printing commands *)
 
-fun pretty_ctyp cT =
-  let val {thy, T, ...} = rep_ctyp cT in Sign.pretty_typ thy T end;
-
-fun string_of_ctyp cT =
-  let val {thy, T, ...} = rep_ctyp cT in Sign.string_of_typ thy T end;
-
+fun pretty_ctyp cT = Sign.pretty_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
+fun string_of_ctyp cT = Sign.string_of_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
 val print_ctyp = writeln o string_of_ctyp;
 
-fun pretty_cterm ct =
-  let val {thy, t, ...} = rep_cterm ct in Sign.pretty_term thy t end;
-
-fun string_of_cterm ct =
-  let val {thy, t, ...} = rep_cterm ct in Sign.string_of_term thy t end;
-
+fun pretty_cterm ct = Sign.pretty_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
+fun string_of_cterm ct = Sign.string_of_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
 val print_cterm = writeln o string_of_cterm;
 
 

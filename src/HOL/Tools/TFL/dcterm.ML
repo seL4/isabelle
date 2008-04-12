@@ -187,7 +187,10 @@ val strip_disj   = rev o (op::) o strip dest_disj
  *---------------------------------------------------------------------------*)
 
 fun mk_prop ctm =
-  let val {t, thy, ...} = Thm.rep_cterm ctm in
+  let
+    val thy = Thm.theory_of_cterm ctm;
+    val t = Thm.term_of ctm;
+  in
     if can HOLogic.dest_Trueprop t then ctm
     else Thm.cterm_of thy (HOLogic.mk_Trueprop t)
   end

@@ -27,8 +27,7 @@ fun forall_intr_prf (t, prf) =
   in Abst (a, SOME T, Proofterm.prf_abstract_over t prf) end;
 
 fun prf_of thm =
-  let val {thy, prop, der = (_, prf), ...} = rep_thm thm
-  in Reconstruct.reconstruct_proof thy prop prf end;
+  Reconstruct.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
 
 fun prf_subst_vars inst =
   Proofterm.map_proof_terms (subst_vars ([], inst)) I;

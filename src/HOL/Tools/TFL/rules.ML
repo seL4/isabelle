@@ -171,7 +171,8 @@ fun LIST_CONJ [] = raise RULES_ERR "LIST_CONJ" "empty list"
 (*----------------------------------------------------------------------------
  *        Disjunction
  *---------------------------------------------------------------------------*)
-local val {prop,thy,...} = rep_thm disjI1
+local val thy = Thm.theory_of_thm disjI1
+      val prop = Thm.prop_of disjI1
       val [P,Q] = term_vars prop
       val disj1 = Thm.forall_intr (Thm.cterm_of thy Q) disjI1
 in
@@ -179,7 +180,8 @@ fun DISJ1 thm tm = thm RS (forall_elim (D.drop_prop tm) disj1)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ1" msg;
 end;
 
-local val {prop,thy,...} = rep_thm disjI2
+local val thy = Thm.theory_of_thm disjI2
+      val prop = Thm.prop_of disjI2
       val [P,Q] = term_vars prop
       val disj2 = Thm.forall_intr (Thm.cterm_of thy P) disjI2
 in
@@ -274,17 +276,15 @@ fun DISJ_CASESL disjth thl =
  *        Universals
  *---------------------------------------------------------------------------*)
 local (* this is fragile *)
-      val {prop,thy,...} = rep_thm spec
+      val thy = Thm.theory_of_thm spec
+      val prop = Thm.prop_of spec
       val x = hd (tl (term_vars prop))
       val cTV = ctyp_of thy (type_of x)
       val gspec = forall_intr (cterm_of thy x) spec
 in
 fun SPEC tm thm =
-   let val {thy,T,...} = rep_cterm tm
-       val gspec' = instantiate ([(cTV, ctyp_of thy T)], []) gspec
-   in
-      thm RS (forall_elim tm gspec')
-   end
+   let val gspec' = instantiate ([(cTV, Thm.ctyp_of_term tm)], []) gspec
+   in thm RS (forall_elim tm gspec') end
 end;
 
 fun SPEC_ALL thm = fold SPEC (#1(D.strip_forall(cconcl thm))) thm;
@@ -293,7 +293,8 @@ val ISPEC = SPEC
 val ISPECL = fold ISPEC;
 
 (* Not optimized! Too complicated. *)
-local val {prop,thy,...} = rep_thm allI
+local val thy = Thm.theory_of_thm allI
+      val prop = Thm.prop_of allI
       val [P] = add_term_vars (prop, [])
       fun cty_theta s = map (fn (i, (S, ty)) => (ctyp_of s (TVar (i, S)), ctyp_of s ty))
       fun ctm_theta s = map (fn (i, (_, tm2)) =>
@@ -306,12 +307,13 @@ local val {prop,thy,...} = rep_thm allI
 in
 fun GEN v th =
    let val gth = forall_intr v th
-       val {prop=Const("all",_)$Abs(x,ty,rst),thy,...} = rep_thm gth
+       val thy = Thm.theory_of_thm gth
+       val Const("all",_)$Abs(x,ty,rst) = Thm.prop_of gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
        val theta = Pattern.match thy (P,P') (Vartab.empty, Vartab.empty);
        val allI2 = instantiate (certify thy theta) allI
        val thm = Thm.implies_elim allI2 gth
-       val {prop = tp $ (A $ Abs(_,_,M)),thy,...} = rep_thm thm
+       val tp $ (A $ Abs(_,_,M)) = Thm.prop_of thm
        val prop' = tp $ (A $ Abs(x,ty,M))
    in ALPHA thm (cterm_of thy prop')
    end
@@ -320,7 +322,8 @@ end;
 val GENL = fold_rev GEN;
 
 fun GEN_ALL thm =
-   let val {prop,thy,...} = rep_thm thm
+   let val thy = Thm.theory_of_thm thm
+       val prop = Thm.prop_of thm
        val tycheck = cterm_of thy
        val vlist = map tycheck (add_term_vars (prop, []))
   in GENL vlist thm
@@ -352,18 +355,21 @@ fun CHOOSE (fvar, exth) fact =
   let
     val lam = #2 (D.dest_comb (D.drop_prop (cconcl exth)))
     val redex = D.capply lam fvar
-    val {thy, t = t$u,...} = Thm.rep_cterm redex
+    val thy = Thm.theory_of_cterm redex
+    val t$u = Thm.term_of redex
     val residue = Thm.cterm_of thy (Term.betapply (t, u))
   in
     GEN fvar (DISCH residue fact) RS (exth RS Thms.choose_thm)
       handle THM (msg, _, _) => raise RULES_ERR "CHOOSE" msg
   end;
 
-local val {prop,thy,...} = rep_thm exI
+local val thy = Thm.theory_of_thm exI
+      val prop = Thm.prop_of exI
       val [P,x] = term_vars prop
 in
 fun EXISTS (template,witness) thm =
-   let val {prop,thy,...} = rep_thm thm
+   let val thy = Thm.theory_of_thm thm
+       val prop = Thm.prop_of thm
        val P' = cterm_of thy P
        val x' = cterm_of thy x
        val abstr = #2 (D.dest_comb template)
@@ -396,16 +402,15 @@ fun EXISTL vlist th =
 (* Could be improved, but needs "subst_free" for certified terms *)
 
 fun IT_EXISTS blist th =
-   let val {thy,...} = rep_thm th
+   let val thy = Thm.theory_of_thm th
        val tych = cterm_of thy
-       val detype = #t o rep_cterm
-       val blist' = map (fn (x,y) => (detype x, detype y)) blist
+       val blist' = map (pairself Thm.term_of) blist
        fun ex v M  = cterm_of thy (S.mk_exists{Bvar=v,Body = M})
 
   in
   fold_rev (fn (b as (r1,r2)) => fn thm =>
         EXISTS(ex r2 (subst_free [b]
-                   (HOLogic.dest_Trueprop(#prop(rep_thm thm)))), tych r1)
+                   (HOLogic.dest_Trueprop(Thm.prop_of thm))), tych r1)
               thm)
        blist' th
   end;
@@ -451,13 +456,10 @@ fun Forall v M = S.mk_forall{Bvar=v, Body=M};
 
 (* Fragile: it's a cong if it is not "R y x ==> cut f R x y = f y" *)
 fun is_cong thm =
-  let val {prop, ...} = rep_thm thm
-  in case prop
+  case (Thm.prop_of thm)
      of (Const("==>",_)$(Const("Trueprop",_)$ _) $
          (Const("==",_) $ (Const ("Wellfounded_Recursion.cut",_) $ f $ R $ a $ x) $ _)) => false
-      | _ => true
-  end;
-
+      | _ => true;
 
 
 fun dest_equal(Const ("==",_) $
@@ -521,9 +523,9 @@ fun get ([],_,L) = rev L
 
 (* Note: rename_params_rule counts from 1, not 0 *)
 fun rename thm =
-  let val {prop,thy,...} = rep_thm thm
+  let val thy = Thm.theory_of_thm thm
       val tych = cterm_of thy
-      val ants = Logic.strip_imp_prems prop
+      val ants = Logic.strip_imp_prems (Thm.prop_of thm)
       val news = get (ants,1,[])
   in
   fold rename_params_rule news thm
@@ -745,12 +747,12 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               end end
 
              fun eliminate thm =
-               case (rep_thm thm)
-               of {prop = (Const("==>",_) $ imp $ _), thy, ...} =>
+               case Thm.prop_of thm
+               of Const("==>",_) $ imp $ _ =>
                    eliminate
                     (if not(is_all imp)
-                     then uq_eliminate (thm,imp,thy)
-                     else q_eliminate (thm,imp,thy))
+                     then uq_eliminate (thm, imp, Thm.theory_of_thm thm)
+                     else q_eliminate (thm, imp, Thm.theory_of_thm thm))
                             (* Assume that the leading constant is ==,   *)
                 | _ => thm  (* if it is not a ==>                        *)
          in SOME(eliminate (rename thm)) end
@@ -760,8 +762,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
           let val dummy = say "restrict_prover:"
               val cntxt = rev(MetaSimplifier.prems_of_ss ss)
               val dummy = print_thms "cntxt:" cntxt
-              val {prop = Const("==>",_) $ (Const("Trueprop",_) $ A) $ _,
-                   thy,...} = rep_thm thm
+              val thy = Thm.theory_of_thm thm
+              val Const("==>",_) $ (Const("Trueprop",_) $ A) $ _ = Thm.prop_of thm
               fun genl tm = let val vlist = subtract (op aconv) globals
                                            (add_term_frees(tm,[]))
                             in fold_rev Forall vlist tm
@@ -814,7 +816,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
 
 fun prove strict (ptm, tac) =
   let
-    val {thy, t, ...} = Thm.rep_cterm ptm;
+    val thy = Thm.theory_of_cterm ptm;
+    val t = Thm.term_of ptm;
     val ctxt = ProofContext.init thy |> Variable.auto_fixes t;
   in
     if strict then Goal.prove ctxt [] [] t (K tac)

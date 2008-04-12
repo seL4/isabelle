@@ -24,8 +24,10 @@ fun name_of_thm thm =
 val all_simps = map (symmetric o mk_meta_eq) (thms "HOL.all_simps");
 
 fun prf_of thm =
-  let val {thy, prop, der = (_, prf), ...} = rep_thm thm
-  in Reconstruct.expand_proof thy [("", NONE)] (Reconstruct.reconstruct_proof thy prop prf) end; (* FIXME *)
+  let
+    val thy = Thm.theory_of_thm thm;
+    val thm' = Reconstruct.reconstruct_proof thy (Thm.prop_of thm) (Thm.proof_of thm);
+  in Reconstruct.expand_proof thy [("", NONE)] thm' end; (* FIXME *)
 
 fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)

@@ -259,8 +259,9 @@ fun proof_syntax prf =
 
 fun proof_of full thm =
   let
-    val {thy, der = (_, prf), ...} = Thm.rep_thm thm;
+    val thy = Thm.theory_of_thm thm;
     val prop = Thm.full_prop_of thm;
+    val prf = Thm.proof_of thm;
     val prf' = (case strip_combt (fst (strip_combP prf)) of
         (PThm (_, prf', prop', _), _) => if prop = prop' then prf' else prf
       | _ => prf)
