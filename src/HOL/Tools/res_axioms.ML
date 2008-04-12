@@ -272,7 +272,8 @@ fun skolem_of_def def =
   let val (c,rhs) = Thm.dest_equals (cprop_of (freeze_thm def))
       val (ch, frees) = c_variant_abs_multi (rhs, [])
       val (chilbert,cabs) = Thm.dest_comb ch
-      val {thy,t, ...} = rep_cterm chilbert
+      val thy = Thm.theory_of_cterm chilbert
+      val t = Thm.term_of chilbert
       val T = case t of Const ("Hilbert_Choice.Eps", Type("fun",[_,T])) => T
                       | _ => raise THM ("skolem_of_def: expected Eps", 0, [def])
       val cex = Thm.cterm_of thy (HOLogic.exists_const T)
@@ -383,7 +384,7 @@ fun skolem thy th =
               val (cnfs,ctxt2) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt1
               val _ = Output.debug (fn () => Int.toString (length cnfs) ^ " clauses yielded")
               val cnfs' = cnfs |> map combinators |> Variable.export ctxt2 ctxt0 
-                               |> Meson.finish_cnf |> map Goal.close_result
+                               |> Meson.finish_cnf |> map Thm.close_derivation
           in (cnfs', thy') end
           handle Clausify_failure thy_e => ([],thy_e)
         )
@@ -430,7 +431,7 @@ fun cnf_axiom th =
   in
       case Thmtab.lookup (ThmCache.get thy) th of
           NONE => (Output.debug (fn () => "cnf_axiom: " ^ name_or_string th);
-                   map Goal.close_result (skolem_thm (fake_name th, th)))
+                   map Thm.close_derivation (skolem_thm (fake_name th, th)))
         | SOME cls => cls
   end;
 

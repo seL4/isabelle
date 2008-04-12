@@ -87,7 +87,6 @@ sig
   val beta_conv: cterm -> cterm -> cterm
   val add_used: thm -> string list -> string list
   val flexflex_unique: thm -> thm
-  val close_derivation: thm -> thm
   val store_thm: bstring -> thm -> thm
   val store_standard_thm: bstring -> thm -> thm
   val store_thm_open: bstring -> thm -> thm
@@ -152,13 +151,8 @@ fun strip_imp_concl ct =
 (*The premises of a theorem, as a cterm list*)
 val cprems_of = strip_imp_prems o cprop_of;
 
-fun cterm_fun f ct =
-  let val {t, thy, ...} = Thm.rep_cterm ct
-  in Thm.cterm_of thy (f t) end;
-
-fun ctyp_fun f cT =
-  let val {T, thy, ...} = Thm.rep_ctyp cT
-  in Thm.ctyp_of thy (f T) end;
+fun cterm_fun f ct = Thm.cterm_of (Thm.theory_of_cterm ct) (f (Thm.term_of ct));
+fun ctyp_fun f cT = Thm.ctyp_of (Thm.theory_of_ctyp cT) (f (Thm.typ_of cT));
 
 fun certify t = Thm.cterm_of (Context.the_theory (Context.the_thread_data ())) t;
 
@@ -284,7 +278,8 @@ val forall_intr_list = fold_rev forall_intr;
 (*Generalization over all suitable Free variables*)
 fun forall_intr_frees th =
     let
-      val {prop, hyps, tpairs, thy,...} = rep_thm th;
+      val thy = Thm.theory_of_thm th;
+      val {prop, hyps, tpairs, ...} = rep_thm th;
       val fixed = fold Term.add_frees (Thm.terms_of_tpairs tpairs @ hyps) [];
       val frees = Term.fold_aterms (fn Free v =>
         if member (op =) fixed v then I else insert (op =) v | _ => I) prop [];
@@ -305,7 +300,8 @@ fun outer_params t =
 (*generalize outermost parameters*)
 fun gen_all th =
   let
-    val {thy, prop, maxidx, ...} = Thm.rep_thm th;
+    val thy = Thm.theory_of_thm th;
+    val {prop, maxidx, ...} = Thm.rep_thm th;
     val cert = Thm.cterm_of thy;
     fun elim (x, T) = Thm.forall_elim (cert (Var ((x, maxidx + 1), T)));
   in fold elim (outer_params prop) th end;
@@ -369,10 +365,6 @@ fun flexflex_unique th =
     | []   => raise THM("flexflex_unique: impossible constraints", 0, [th])
     |  _   => raise THM("flexflex_unique: multiple unifiers", 0, [th]);
 
-fun close_derivation thm =
-  if Thm.get_name thm = "" then Thm.put_name "" thm
-  else thm;
-
 
 (* legacy standard operations *)
 
@@ -384,13 +376,12 @@ val standard' =
     forall_elim_vars (maxidx + 1)
     #> Thm.strip_shyps
     #> zero_var_indexes
-    #> Thm.varifyT
-    #> Thm.compress);
+    #> Thm.varifyT);
 
 val standard =
   flexflex_unique
   #> standard'
-  #> close_derivation;
+  #> Thm.close_derivation;
 
 
 (*Convert all Vars in a theorem to Frees.  Also return a function for
@@ -399,7 +390,8 @@ val standard =
 
 fun freeze_thaw_robust th =
  let val fth = Thm.freezeT th
-     val {prop, tpairs, thy, ...} = rep_thm fth
+     val thy = Thm.theory_of_thm fth
+     val {prop, tpairs, ...} = rep_thm fth
  in
    case List.foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
@@ -421,7 +413,8 @@ fun freeze_thaw_robust th =
   clashes with variables in the assumptions, so delete and use freeze_thaw_robust instead?*)
 fun freeze_thaw th =
  let val fth = Thm.freezeT th
-     val {prop, tpairs, thy, ...} = rep_thm fth
+     val thy = Thm.theory_of_thm fth
+     val {prop, tpairs, ...} = rep_thm fth
  in
    case List.foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn x => x)
@@ -829,8 +822,11 @@ fun read_instantiate' sinsts th =
   Instantiates distinct Vars by terms, inferring type instantiations. *)
 local
   fun add_types ((ct,cu), (thy,tye,maxidx)) =
-    let val {thy=thyt, t=t, T= T, maxidx=maxt,...} = rep_cterm ct
-        and {thy=thyu, t=u, T= U, maxidx=maxu,...} = rep_cterm cu;
+    let
+        val thyt = Thm.theory_of_cterm ct;
+        val thyu = Thm.theory_of_cterm cu;
+        val {t, T, maxidx = maxt, ...} = Thm.rep_cterm ct;
+        val {t = u, T = U, maxidx = maxu, ...} = Thm.rep_cterm cu;
         val maxi = Int.max(maxidx, Int.max(maxt, maxu));
         val thy' = Theory.merge(thy, Theory.merge(thyt, thyu))
         val (tye',maxi') = Sign.typ_unify thy' (T, U) (tye, maxi)
@@ -887,9 +883,10 @@ fun implies_intr_protected asms th =
 
 fun mk_term ct =
   let
-    val {thy, T, ...} = Thm.rep_cterm ct;
+    val thy = Thm.theory_of_cterm ct;
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
+    val T = Thm.typ_of (Thm.ctyp_of_term ct);
     val a = certT (TVar (("'a", 0), []));
     val x = cert (Var (("x", 0), T));
   in Thm.instantiate ([(a, certT T)], [(x, ct)]) termI end;
@@ -951,19 +948,20 @@ fun instantiate' cTs cts thm =
 
 fun rename_bvars [] thm = thm
   | rename_bvars vs thm =
-    let
-      val {thy, prop, ...} = rep_thm thm;
-      fun ren (Abs (x, T, t)) = Abs (AList.lookup (op =) vs x |> the_default x, T, ren t)
-        | ren (t $ u) = ren t $ ren u
-        | ren t = t;
-    in equal_elim (reflexive (cterm_of thy (ren prop))) thm end;
+      let
+        val cert = Thm.cterm_of (Thm.theory_of_thm thm);
+        fun ren (Abs (x, T, t)) = Abs (AList.lookup (op =) vs x |> the_default x, T, ren t)
+          | ren (t $ u) = ren t $ ren u
+          | ren t = t;
+      in equal_elim (reflexive (cert (ren (Thm.prop_of thm)))) thm end;
 
 
 (* renaming in left-to-right order *)
 
 fun rename_bvars' xs thm =
   let
-    val {thy, prop, ...} = rep_thm thm;
+    val cert = Thm.cterm_of (Thm.theory_of_thm thm);
+    val prop = Thm.prop_of thm;
     fun rename [] t = ([], t)
       | rename (x' :: xs) (Abs (x, T, t)) =
           let val (xs', t') = rename xs t
@@ -975,7 +973,7 @@ fun rename_bvars' xs thm =
           in (xs'', t' $ u') end
       | rename xs t = (xs, t);
   in case rename xs prop of
-      ([], prop') => equal_elim (reflexive (cterm_of thy prop')) thm
+      ([], prop') => equal_elim (reflexive (cert prop')) thm
     | _ => error "More names than abstractions in theorem"
   end;
 
