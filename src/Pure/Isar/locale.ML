@@ -348,7 +348,7 @@ struct
      exception TERM raised if not a meta equality *)
   fun add_equation ts thm regs =
     gen_add (fn (x, m, thms, eqns) =>
-      (x, m, thms, Termtab.update (thm |> prop_of |> Logic.dest_equals |> fst, Goal.close_result thm) eqns))
+      (x, m, thms, Termtab.update (thm |> prop_of |> Logic.dest_equals |> fst, Thm.close_derivation thm) eqns))
       ts regs;
 end;
 
@@ -1799,7 +1799,8 @@ fun def_pred bname parms defs ts norm_ts thy =
       thy
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
       |> Sign.declare_const [] (bname, predT, NoSyn) |> snd
-      |> PureThy.add_defs_i false [((Thm.def_name bname, Logic.mk_equals (head, body)), [])];
+      |> PureThy.add_defs_i false
+        [((Thm.def_name bname, Logic.mk_equals (head, body)), [PureThy.kind_internal])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;
@@ -1971,7 +1972,7 @@ fun gen_add_locale prep_ctxt prep_expr
     val (ctxt, (_, facts)) = activate_facts true (K I)
       (ProofContext.init pred_thy, axiomify predicate_axioms elemss');
     val view_ctxt = Assumption.add_view thy_ctxt predicate_statement ctxt;
-    val export = Goal.close_result o Goal.norm_result o
+    val export = Thm.close_derivation o Goal.norm_result o
       singleton (ProofContext.export view_ctxt thy_ctxt);
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
     val elems' = maps #2 (filter (equal "" o #1 o #1) elemss');
