@@ -18,6 +18,7 @@ sig
   val is_char: symbol -> bool
   val is_symbolic: symbol -> bool
   val is_printable: symbol -> bool
+  val is_utf8_trailer: symbol -> bool
   val eof: symbol
   val is_eof: symbol -> bool
   val stopper: symbol * (symbol -> bool)
@@ -110,6 +111,8 @@ fun is_symbolic s =
 fun is_printable s =
   if is_char s then ord space <= ord s andalso ord s <= ord "~"
   else not (String.isPrefix "\\<^" s);
+
+fun is_utf8_trailer s = is_char s andalso 128 <= ord s andalso ord s < 192;
 
 
 (* input source control *)
