@@ -46,8 +46,9 @@ fun file name = Pos (SOME (1, 1), [(Markup.fileN, name)]);
 val path = file o Path.implode o Path.expand;
 
 fun advance "\n" (Pos (SOME (m, _), props)) = Pos (SOME (m + 1, 1), props)
-  | advance sym (pos as Pos (SOME (m, n), props)) =
-      if Symbol.is_regular sym then Pos (SOME (m, n + 1), props) else pos
+  | advance s (pos as Pos (SOME (m, n), props)) =
+      if Symbol.is_regular s andalso not (Symbol.is_utf8_trailer s)
+      then Pos (SOME (m, n + 1), props) else pos
   | advance _ pos = pos;
 
 
