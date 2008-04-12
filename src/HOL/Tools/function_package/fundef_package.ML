@@ -63,7 +63,7 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
 fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] lthy =
     let
       val FundefResult {fs, R, psimps, trsimps,  simple_pinducts, termination, domintros, cases, ...} = 
-          cont (Goal.close_result proof)
+          cont (Thm.close_derivation proof)
 
       val fnames = map (fst o fst) fixes
       val qualify = NameSpace.qualified defname
@@ -115,7 +115,7 @@ fun total_termination_afterqed data [[totality]] lthy =
     let
       val FundefCtxData { add_simps, case_names, psimps, pinducts, defname, ... } = data
 
-      val totality = Goal.close_result totality
+      val totality = Thm.close_derivation totality
 
       val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
 

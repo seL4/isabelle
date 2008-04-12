@@ -20,7 +20,6 @@ sig
   val conclude: thm -> thm
   val finish: thm -> thm
   val norm_result: thm -> thm
-  val close_result: thm -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
@@ -84,17 +83,11 @@ fun finish th =
 
 (** results **)
 
-(* normal form *)
-
 val norm_result =
   Drule.flexflex_unique
   #> MetaSimplifier.norm_hhf_protect
   #> Thm.strip_shyps
   #> Drule.zero_var_indexes;
-
-val close_result =
-  Thm.compress
-  #> Drule.close_derivation;
 
 
 

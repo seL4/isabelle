@@ -314,7 +314,7 @@ fun calculate sups base_sort assm_axiom param_map class thy =
     val assm_intro = proto_assm_intro
       |> Option.map instantiate_base_sort
       |> Option.map (MetaSimplifier.rewrite_rule defs)
-      |> Option.map Goal.close_result;
+      |> Option.map Thm.close_derivation;
     val class_intro = (#intro o AxClass.get_info thy) class;
     val fixate = Thm.instantiate
       (map (pairself (Thm.ctyp_of thy)) [(TVar ((Name.aT, 0), []), TFree (Name.aT, base_sort)),
@@ -334,7 +334,7 @@ fun calculate sups base_sort assm_axiom param_map class thy =
         |> replicate num_trivs;
     val of_class = (fixate class_intro OF of_class_sups OF locale_dests OF pred_trivs)
       |> Drule.standard'
-      |> Goal.close_result;
+      |> Thm.close_derivation;
     val this_intro = assm_intro |> the_default class_intro;
   in
     thy

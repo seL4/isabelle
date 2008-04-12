@@ -311,7 +311,7 @@ fun mk_replacement_lemma thy h ih_elim clause =
                                 |> fold_rev (implies_intr o cprop_of) h_assums
                                 |> fold_rev (implies_intr o cprop_of) ags
                                 |> fold_rev forall_intr cqs
-                                |> Goal.close_result
+                                |> Thm.close_derivation
     in
       replace_lemma
     end
@@ -439,7 +439,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
                                   |> (fn it => fold (forall_intr o cterm_of thy) (term_vars (prop_of it)) it)
 
         val goalstate =  Conjunction.intr graph_is_function complete
-                          |> Goal.close_result
+                          |> Thm.close_derivation
                           |> Goal.protect
                           |> fold_rev (implies_intr o cprop_of) compat
                           |> implies_intr (cprop_of complete)

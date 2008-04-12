@@ -53,6 +53,7 @@ sig
   val read_cterm: theory -> string * typ -> cterm
   val elim_implies: thm -> thm -> thm
   val unvarify: thm -> thm
+  val close_derivation: thm -> thm
   val add_axiom: term list -> bstring * term -> theory -> thm * theory
   val add_def: bool -> bool -> bstring * term -> theory -> thm * theory
 end;
@@ -249,6 +250,10 @@ fun unvarify th =
       let val T' = TermSubst.instantiateT instT0 T
       in (cert (Var ((a, i), T')), cert (Free ((a, T')))) end);
   in Thm.instantiate (instT, inst) th end;
+
+fun close_derivation thm =
+  if Thm.get_name thm = "" then Thm.put_name "" thm
+  else thm;
 
 
 
