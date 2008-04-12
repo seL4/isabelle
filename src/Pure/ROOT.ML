@@ -34,7 +34,6 @@ use "sorts.ML";
 use "type.ML";
 use "type_infer.ML";
 use "config.ML";
-use "compress.ML";
 
 (*inner syntax module*)
 use "Syntax/ast.ML";

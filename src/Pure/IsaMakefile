@@ -71,10 +71,10 @@ $(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML	\
   Thy/thy_edit.ML Thy/thy_header.ML Thy/thy_info.ML Thy/thy_load.ML	\
   Thy/thy_output.ML Tools/ROOT.ML Tools/invoke.ML			\
   Tools/isabelle_process.ML Tools/named_thms.ML Tools/xml_syntax.ML	\
-  assumption.ML axclass.ML codegen.ML compress.ML config.ML		\
-  conjunction.ML consts.ML context.ML conv.ML defs.ML display.ML	\
-  drule.ML envir.ML facts.ML goal.ML interpretation.ML library.ML	\
-  logic.ML meta_simplifier.ML more_thm.ML morphism.ML name.ML net.ML	\
+  assumption.ML axclass.ML codegen.ML config.ML conjunction.ML		\
+  consts.ML context.ML conv.ML defs.ML display.ML drule.ML envir.ML	\
+  facts.ML goal.ML interpretation.ML library.ML logic.ML		\
+  meta_simplifier.ML more_thm.ML morphism.ML name.ML net.ML		\
   old_goals.ML pattern.ML primitive_defs.ML proofterm.ML pure_setup.ML	\
   pure_thy.ML search.ML sign.ML simplifier.ML sorts.ML subgoal.ML	\
   tactic.ML tctical.ML term.ML term_subst.ML theory.ML thm.ML type.ML	\
