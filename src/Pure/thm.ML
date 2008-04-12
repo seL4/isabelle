@@ -12,7 +12,7 @@ signature BASIC_THM =
   (*certified types*)
   type ctyp
   val rep_ctyp: ctyp ->
-   {thy: theory,
+   {thy_ref: theory_ref,
     T: typ,
     maxidx: int,
     sorts: sort list}
@@ -24,12 +24,12 @@ signature BASIC_THM =
   type cterm
   exception CTERM of string * cterm list
   val rep_cterm: cterm ->
-   {thy: theory,
+   {thy_ref: theory_ref,
     t: term,
     T: typ,
     maxidx: int,
     sorts: sort list}
-  val crep_cterm: cterm -> {thy: theory, t: term, T: ctyp, maxidx: int, sorts: sort list}
+  val crep_cterm: cterm -> {thy_ref: theory_ref, t: term, T: ctyp, maxidx: int, sorts: sort list}
   val theory_of_cterm: cterm -> theory
   val term_of: cterm -> term
   val cterm_of: theory -> term -> cterm
@@ -40,7 +40,7 @@ signature BASIC_THM =
   type conv = cterm -> thm
   type attribute = Context.generic * thm -> Context.generic * thm
   val rep_thm: thm ->
-   {thy: theory,
+   {thy_ref: theory_ref,
     der: bool * Proofterm.proof,
     tags: Markup.property list,
     maxidx: int,
@@ -49,7 +49,7 @@ signature BASIC_THM =
     tpairs: (term * term) list,
     prop: term}
   val crep_thm: thm ->
-   {thy: theory,
+   {thy_ref: theory_ref,
     der: bool * Proofterm.proof,
     tags: Markup.property list,
     maxidx: int,
@@ -140,7 +140,6 @@ sig
   val put_name: string -> thm -> thm
   val get_tags: thm -> Markup.property list
   val map_tags: (Markup.property list -> Markup.property list) -> thm -> thm
-  val compress: thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
@@ -181,12 +180,8 @@ abstype ctyp = Ctyp of
   sorts: sort list}
 with
 
-fun rep_ctyp (Ctyp {thy_ref, T, maxidx, sorts}) =
-  let val thy = Theory.deref thy_ref
-  in {thy = thy, T = T, maxidx = maxidx, sorts = sorts} end;
-
+fun rep_ctyp (Ctyp args) = args;
 fun theory_of_ctyp (Ctyp {thy_ref, ...}) = Theory.deref thy_ref;
-
 fun typ_of (Ctyp {T, ...}) = T;
 
 fun ctyp_of thy raw_T =
@@ -215,16 +210,11 @@ with
 
 exception CTERM of string * cterm list;
 
-fun rep_cterm (Cterm {thy_ref, t, T, maxidx, sorts}) =
-  let val thy =  Theory.deref thy_ref
-  in {thy = thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
+fun rep_cterm (Cterm args) = args;
 
 fun crep_cterm (Cterm {thy_ref, t, T, maxidx, sorts}) =
-  let val thy = Theory.deref thy_ref in
-   {thy = thy, t = t,
-      T = Ctyp {thy_ref = thy_ref, T = T, maxidx = maxidx, sorts = sorts},
-    maxidx = maxidx, sorts = sorts}
-  end;
+  {thy_ref = thy_ref, t = t, maxidx = maxidx, sorts = sorts,
+    T = Ctyp {thy_ref = thy_ref, T = T, maxidx = maxidx, sorts = sorts}};
 
 fun theory_of_cterm (Cterm {thy_ref, ...}) = Theory.deref thy_ref;
 fun term_of (Cterm {t, ...}) = t;
@@ -376,19 +366,11 @@ type attribute = Context.generic * thm -> Context.generic * thm;
 (*errors involving theorems*)
 exception THM of string * int * thm list;
 
-fun rep_thm (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
-  let val thy = Theory.deref thy_ref in
-   {thy = thy, der = der, tags = tags, maxidx = maxidx,
-    shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop}
-  end;
+fun rep_thm (Thm args) = args;
 
-(*version of rep_thm returning cterms instead of terms*)
 fun crep_thm (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
-  let
-    val thy = Theory.deref thy_ref;
-    fun cterm max t = Cterm {thy_ref = thy_ref, t = t, T = propT, maxidx = max, sorts = shyps};
-  in
-   {thy = thy, der = der, tags = tags, maxidx = maxidx, shyps = shyps,
+  let fun cterm max t = Cterm {thy_ref = thy_ref, t = t, T = propT, maxidx = max, sorts = shyps} in
+   {thy_ref = thy_ref, der = der, tags = tags, maxidx = maxidx, shyps = shyps,
     hyps = map (cterm ~1) hyps,
     tpairs = map (pairself (cterm maxidx)) tpairs,
     prop = cterm maxidx prop}
@@ -577,25 +559,6 @@ fun map_tags f (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
   Thm {thy_ref = thy_ref, der = der, tags = f tags, maxidx = maxidx,
     shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop};
 
-
-(*Compression of theorems -- a separate rule, not integrated with the others,
-  as it could be slow.*)
-fun compress (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
-  let
-    val thy = Theory.deref thy_ref;
-    val hyps' = map (Compress.term thy) hyps;
-    val tpairs' = map (pairself (Compress.term thy)) tpairs;
-    val prop' = Compress.term thy prop;
-  in
-    Thm {thy_ref = Theory.check_thy thy,
-      der = der,
-      tags = tags,
-      maxidx = maxidx,
-      shyps = shyps,
-      hyps = hyps',
-      tpairs = tpairs',
-      prop = prop'}
-  end;
 
 fun norm_proof (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
   let

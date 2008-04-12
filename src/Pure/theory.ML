@@ -211,7 +211,7 @@ local
 
 fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
-    val axms = map (apsnd (Compress.term thy o Logic.varify) o prep_axm thy) raw_axms;
+    val axms = map (apsnd Logic.varify o prep_axm thy) raw_axms;
     val axioms' = NameSpace.extend_table (Sign.naming_of thy) axms axioms
       handle Symtab.DUP dup => err_dup_axm dup;
   in axioms' end);
@@ -235,7 +235,7 @@ fun dependencies thy unchecked is_def name lhs rhs =
     val consts = Sign.consts_of thy;
     fun prep const =
       let val Const (c, T) = Sign.no_vars pp (Const const)
-      in (c, Consts.typargs consts (c, Compress.typ thy (Logic.varifyT T))) end;
+      in (c, Consts.typargs consts (c, Logic.varifyT T)) end;
 
     val lhs_vars = Term.add_tfreesT (#2 lhs) [];
     val rhs_extras = fold (#2 #> Term.fold_atyps (fn TFree v =>

@@ -661,7 +661,7 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
         val c' = if authentic then Syntax.constN ^ full_c else c;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote c);
-        val T' = Compress.typ thy (Logic.varifyT T);
+        val T' = Logic.varifyT T;
       in ((c, T'), (c', T', mx), Const (full_c, T)) end;
     val args = map prep raw_args;
   in
@@ -686,7 +686,7 @@ end;
 fun add_abbrev mode tags (c, raw_t) thy =
   let
     val pp = pp thy;
-    val prep_tm = Compress.term thy o no_frees pp o Term.no_dummy_patterns o cert_term_abbrev thy;
+    val prep_tm = no_frees pp o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
     val (res, consts') = consts_of thy
