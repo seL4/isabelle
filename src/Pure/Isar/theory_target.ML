@@ -119,7 +119,6 @@ fun import_export_proof ctxt (name, raw_th) =
     (*thm definition*)
     val result = th''
       |> PureThy.name_thm true true ""
-      |> Goal.close_result
       |> fold PureThy.tag_rule (Position.properties_of (Position.thread_data ()))
       |> PureThy.name_thm true true name;
 
