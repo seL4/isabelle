@@ -159,18 +159,6 @@ structure Pt = Proofterm;
 
 (*** Certified terms and types ***)
 
-(** collect occurrences of sorts -- unless all sorts non-empty **)
-
-fun may_insert_typ_sorts thy T = if Sign.all_sorts_nonempty thy then I else Sorts.insert_typ T;
-fun may_insert_term_sorts thy t = if Sign.all_sorts_nonempty thy then I else Sorts.insert_term t;
-
-(*NB: type unification may invent new sorts*)
-fun may_insert_env_sorts thy (env as Envir.Envir {iTs, ...}) =
-  if Sign.all_sorts_nonempty thy then I
-  else Vartab.fold (fn (_, (_, T)) => Sorts.insert_typ T) iTs;
-
-
-
 (** certified types **)
 
 abstype ctyp = Ctyp of
@@ -188,7 +176,7 @@ fun ctyp_of thy raw_T =
   let
     val T = Sign.certify_typ thy raw_T;
     val maxidx = Term.maxidx_of_typ T;
-    val sorts = may_insert_typ_sorts thy T [];
+    val sorts = Sorts.insert_typ T [];
   in Ctyp {thy_ref = Theory.check_thy thy, T = T, maxidx = maxidx, sorts = sorts} end;
 
 fun dest_ctyp (Ctyp {thy_ref, T = Type (s, Ts), maxidx, sorts}) =
@@ -225,7 +213,7 @@ fun ctyp_of_term (Cterm {thy_ref, T, maxidx, sorts, ...}) =
 fun cterm_of thy tm =
   let
     val (t, T, maxidx) = Sign.certify_term thy tm;
-    val sorts = may_insert_term_sorts thy t [];
+    val sorts = Sorts.insert_term t [];
   in Cterm {thy_ref = Theory.check_thy thy, t = t, T = T, maxidx = maxidx, sorts = sorts} end;
 
 fun merge_thys0 (Cterm {thy_ref = r1, t = t1, ...}) (Cterm {thy_ref = r2, t = t2, ...}) =
@@ -482,14 +470,9 @@ fun strip_shyps (thm as Thm {shyps = [], ...}) = thm
   | strip_shyps (thm as Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
       let
         val thy = Theory.deref thy_ref;
-        val shyps' =
-          if Sign.all_sorts_nonempty thy then []
-          else
-            let
-              val present = present_sorts thm;
-              val extra = Sorts.subtract present shyps;
-              val witnessed = map #2 (Sign.witness_sorts thy present extra);
-            in Sorts.subtract witnessed shyps end;
+        val present = present_sorts thm;
+        val extra = Sorts.subtract present shyps;
+        val shyps' = Sorts.subtract (map #2 (Sign.witness_sorts thy present extra)) shyps;
       in
         Thm {thy_ref = Theory.check_thy thy, der = der, tags = tags, maxidx = maxidx,
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop}
@@ -511,7 +494,7 @@ fun get_axiom_i theory name =
            let
              val der = Pt.infer_derivs' I (false, Pt.axm_proof name prop);
              val maxidx = maxidx_of_term prop;
-             val shyps = may_insert_term_sorts thy prop [];
+             val shyps = Sorts.insert_term prop [];
            in
              Thm {thy_ref = Theory.check_thy thy, der = der, tags = [],
                maxidx = maxidx, shyps = shyps, hyps = [], tpairs = [], prop = prop}
@@ -952,7 +935,7 @@ fun flexflex_rule (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, .
             val der = Pt.infer_derivs' (Pt.norm_proof' env) der;
             val prop' = Envir.norm_term env prop;
             val maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop');
-            val shyps = may_insert_env_sorts thy env shyps;
+            val shyps = Envir.insert_sorts env shyps;
           in
             Thm {thy_ref = Theory.check_thy thy, der = der, tags = [], maxidx = maxidx,
               shyps = shyps, hyps = hyps, tpairs = tpairs', prop = prop'}
@@ -1233,7 +1216,7 @@ fun assumption i state =
             Pt.assumption_proof Bs Bi n) der,
         tags = [],
         maxidx = maxidx,
-        shyps = may_insert_env_sorts thy env shyps,
+        shyps = Envir.insert_sorts env shyps,
         hyps = hyps,
         tpairs =
           if Envir.is_empty env then tpairs
@@ -1496,7 +1479,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
                     (Pt.bicompose_proof flatten Bs oldAs As A n (nlift+1))) rder' sder,
                  tags = [],
                  maxidx = maxidx,
-                 shyps = may_insert_env_sorts thy env (Sorts.union rshyps sshyps),
+                 shyps = Envir.insert_sorts env (Sorts.union rshyps sshyps),
                  hyps = union_hyps rhyps shyps,
                  tpairs = ntpairs,
                  prop = Logic.list_implies normp,
@@ -1587,7 +1570,7 @@ fun invoke_oracle_i thy1 name =
       let
         val thy' = Theory.merge (Theory.deref thy_ref1, thy2);
         val (prop, T, maxidx) = Sign.certify_term thy' (oracle (thy', data));
-        val shyps' = may_insert_term_sorts thy' prop [];
+        val shyps' = Sorts.insert_term prop [];
         val der = (true, Pt.oracle_proof name prop);
       in
         if T <> propT then
