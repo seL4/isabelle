@@ -291,8 +291,8 @@ fun strip_cong ps (PThm ("HOL.cong", _, _, _) % _ % _ % SOME x % SOME y %%
   | strip_cong ps (PThm ("HOL.refl", _, _, _) % SOME f) = SOME (f, ps)
   | strip_cong _ _ = NONE;
 
-val subst_prf = fst (strip_combt (#2 (#der (rep_thm subst))));
-val sym_prf = fst (strip_combt (#2 (#der (rep_thm sym))));
+val subst_prf = fst (strip_combt (Thm.proof_of subst));
+val sym_prf = fst (strip_combt (Thm.proof_of sym));
 
 fun make_subst Ts prf xs (_, []) = prf
   | make_subst Ts prf xs (f, ((x, y), prf') :: ps) =
