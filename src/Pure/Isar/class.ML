@@ -707,7 +707,7 @@ fun resort_terms pp algebra consts constraints ts =
               (Consts.typargs consts c_ty) sorts)
       | matchings _ = I
     val tvartab = (fold o fold_aterms) matchings ts Vartab.empty
-      handle Sorts.CLASS_ERROR e => Sorts.class_error pp e;
+      handle Sorts.CLASS_ERROR e => error (Sorts.class_error pp e);
     val inst = map_type_tvar (fn (vi, _) => TVar (vi, the (Vartab.lookup tvartab vi)));
   in if Vartab.is_empty tvartab then NONE else SOME ((map o map_types) inst ts) end;
 

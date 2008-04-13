@@ -115,7 +115,7 @@ fun resort_thms algebra tap_typ [] = []
             val tys = Sign.const_typargs thy (c, ty);
             val sorts = map (snd o dest_TVar) (Sign.const_typargs thy (c, ty_decl));
           in fn tab => fold2 (curry (Sorts.meet_sort algebra)) tys sorts tab
-            handle Sorts.CLASS_ERROR e => raise CLASS_ERROR ([c], Sorts.msg_class_error pp e ^ ",\n"
+            handle Sorts.CLASS_ERROR e => raise CLASS_ERROR ([c], Sorts.class_error pp e ^ ",\n"
               ^ "for constant " ^ CodeUnit.string_of_const thy c
               ^ "\nin defining equations(s)\n"
               ^ (cat_lines o map string_of_thm) thms)
