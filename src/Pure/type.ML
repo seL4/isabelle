@@ -18,12 +18,10 @@ sig
    {classes: NameSpace.T * Sorts.algebra,
     default: sort,
     types: (decl * serial) NameSpace.table,
-    log_types: string list,
-    witness: (typ * sort) option}
+    log_types: string list}
   val empty_tsig: tsig
   val defaultS: tsig -> sort
   val logical_types: tsig -> string list
-  val universal_witness: tsig -> (typ * sort) option
   val eq_sort: tsig -> sort * sort -> bool
   val subsort: tsig -> sort * sort -> bool
   val of_sort: tsig -> typ * sort -> bool
@@ -107,26 +105,21 @@ datatype tsig =
     classes: NameSpace.T * Sorts.algebra,   (*order-sorted algebra of type classes*)
     default: sort,                          (*default sort on input*)
     types: (decl * serial) NameSpace.table, (*declared types*)
-    log_types: string list,                 (*logical types sorted by number of arguments*)
-    witness: (typ * sort) option};          (*witness for non-emptiness of strictest sort*)
+    log_types: string list};                (*logical types sorted by number of arguments*)
 
 fun rep_tsig (TSig comps) = comps;
 
-fun make_tsig (classes, default, types, log_types, witness) =
-  TSig {classes = classes, default = default, types = types,
-    log_types = log_types, witness = witness};
+fun make_tsig (classes, default, types, log_types) =
+  TSig {classes = classes, default = default, types = types, log_types = log_types};
 
 fun build_tsig ((space, classes), default, types) =
   let
     val log_types =
       Symtab.fold (fn (c, (LogicalType n, _)) => cons (c, n) | _ => I) (snd types) []
       |> Library.sort (Library.int_ord o pairself snd) |> map fst;
-    val witness =
-      (case Sorts.witness_sorts classes log_types [] [Sorts.minimal_classes classes] of
-        [w] => SOME w | _ => NONE);
-  in make_tsig ((space, classes), default, types, log_types, witness) end;
+  in make_tsig ((space, classes), default, types, log_types) end;
 
-fun map_tsig f (TSig {classes, default, types, log_types = _, witness = _}) =
+fun map_tsig f (TSig {classes, default, types, log_types = _}) =
   build_tsig (f (classes, default, types));
 
 val empty_tsig =
@@ -137,7 +130,6 @@ val empty_tsig =
 
 fun defaultS (TSig {default, ...}) = default;
 fun logical_types (TSig {log_types, ...}) = log_types;
-fun universal_witness (TSig {witness, ...}) = witness;
 
 fun eq_sort (TSig {classes, ...}) = Sorts.sort_eq (#2 classes);
 fun subsort (TSig {classes, ...}) = Sorts.sort_le (#2 classes);
@@ -230,7 +222,7 @@ fun arity_number (TSig {types = (_, types), ...}) a =
 
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
   | arity_sorts pp (TSig {classes, ...}) a S = Sorts.mg_domain (#2 classes) a S
-      handle Sorts.CLASS_ERROR err => Sorts.class_error pp err;
+      handle Sorts.CLASS_ERROR err => error (Sorts.class_error pp err);
 
 
 
@@ -391,7 +383,7 @@ fun raw_instance (T, U) =
 
 exception TUNIFY;
 
-(*occurs_check*)
+(*occurs check*)
 fun occurs v tye =
   let
     fun occ (Type (_, Ts)) = exists occ Ts
@@ -625,9 +617,9 @@ fun hide_types fully cs = map_tsig (fn (classes, default, (space, types)) =>
 fun merge_tsigs pp (tsig1, tsig2) =
   let
     val (TSig {classes = (space1, classes1), default = default1, types = types1,
-      log_types = _, witness = _}) = tsig1;
+      log_types = _}) = tsig1;
     val (TSig {classes = (space2, classes2), default = default2, types = types2,
-      log_types = _, witness = _}) = tsig2;
+      log_types = _}) = tsig2;
 
     val space' = NameSpace.merge (space1, space2);
     val classes' = Sorts.merge_algebra pp (classes1, classes2);
