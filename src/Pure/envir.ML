@@ -13,6 +13,7 @@ sig
   type tenv
   datatype env = Envir of {asol: tenv, iTs: Type.tyenv, maxidx: int}
   val type_env: env -> Type.tyenv
+  val insert_sorts: env -> sort list -> sort list
   exception SAME
   val genvars: string -> env * typ list -> env * term list
   val genvar: string -> env * typ -> env * term
@@ -57,6 +58,9 @@ datatype env = Envir of
      iTs: Type.tyenv}  (*table of assignments to TVars*)
 
 fun type_env (Envir {iTs, ...}) = iTs;
+
+(*NB: type unification may invent new sorts*)
+val insert_sorts = Vartab.fold (fn (_, (_, T)) => Sorts.insert_typ T) o type_env;
 
 (*Generate a list of distinct variables.
   Increments index to make them distinct from ALL present variables. *)
