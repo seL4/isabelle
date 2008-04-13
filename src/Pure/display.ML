@@ -148,11 +148,6 @@ fun pretty_full_theory verbose thy =
     fun pretty_default S = Pretty.block
       [Pretty.str "default sort:", Pretty.brk 1, prt_sort S];
 
-    fun pretty_witness NONE = Pretty.str "universal non-emptiness witness: -"
-      | pretty_witness (SOME (T, S)) = Pretty.block
-          [Pretty.str "universal non-emptiness witness:", Pretty.brk 1,
-            prt_typ_no_tvars T, Pretty.str " ::", Pretty.brk 1, prt_sort S];
-
     val tfrees = map (fn v => TFree (v, []));
     fun pretty_type syn (t, (Type.LogicalType n, _)) =
           if syn then NONE
@@ -189,7 +184,7 @@ fun pretty_full_theory verbose thy =
     val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
     val {constants, constraints} = Consts.dest consts;
     val extern_const = NameSpace.extern (#1 constants);
-    val {classes, default, types, witness, ...} = Type.rep_tsig tsig;
+    val {classes, default, types, ...} = Type.rep_tsig tsig;
     val (class_space, class_algebra) = classes;
     val {classes, arities} = Sorts.rep_algebra class_algebra;
 
@@ -221,7 +216,6 @@ fun pretty_full_theory verbose thy =
     [Pretty.strs ["name prefix:", NameSpace.path_of naming],
       Pretty.big_list "classes:" (map pretty_classrel clsses),
       pretty_default default,
-      pretty_witness witness,
       Pretty.big_list "syntactic types:" (map_filter (pretty_type true) tdecls),
       Pretty.big_list "logical types:" (map_filter (pretty_type false) tdecls),
       Pretty.big_list "type arities:" (pretty_arities arties),
