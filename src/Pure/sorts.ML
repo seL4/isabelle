@@ -28,7 +28,6 @@ sig
    {classes: serial Graph.T,
     arities: (class * (class * sort list)) list Symtab.table}
   val all_classes: algebra -> class list
-  val minimal_classes: algebra -> class list
   val super_classes: algebra -> class -> class list
   val class_less: algebra -> class * class -> bool
   val class_le: algebra -> class * class -> bool
@@ -48,12 +47,11 @@ sig
   val subalgebra: Pretty.pp -> (class -> bool) -> (class * string -> sort list)
     -> algebra -> (sort -> sort) * algebra
   type class_error
-  val msg_class_error: Pretty.pp -> class_error -> string
-  val class_error: Pretty.pp -> class_error -> 'a
+  val class_error: Pretty.pp -> class_error -> string
   exception CLASS_ERROR of class_error
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
-  val of_sort: algebra -> typ * sort -> bool
   val meet_sort: algebra -> typ * sort -> sort Vartab.table -> sort Vartab.table
+  val of_sort: algebra -> typ * sort -> bool
   val of_sort_derivation: Pretty.pp -> algebra ->
     {class_relation: 'a * class -> class -> 'a,
      type_constructor: string -> ('a * class) list list -> class -> 'a,
@@ -126,7 +124,6 @@ fun map_arities f (Algebra {classes, arities}) = make_algebra (classes, f aritie
 
 fun all_classes (Algebra {classes, ...}) = Graph.all_preds classes (Graph.maximals classes);
 
-val minimal_classes = Graph.minimals o classes_of;
 val super_classes = Graph.imm_succs o classes_of;
 
 
@@ -306,20 +303,19 @@ fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
 
 (** sorts of types **)
 
-(* errors *)
+(* errors -- delayed message composition *)
 
-datatype class_error = NoClassrel of class * class
-  | NoArity of string * class
-  | NoSubsort of sort * sort
+datatype class_error =
+  NoClassrel of class * class |
+  NoArity of string * class |
+  NoSubsort of sort * sort;
 
-fun msg_class_error pp (NoClassrel (c1, c2)) =
+fun class_error pp (NoClassrel (c1, c2)) =
       "No class relation " ^ Pretty.string_of_classrel pp [c1, c2]
-  | msg_class_error pp (NoArity (a, c)) =
+  | class_error pp (NoArity (a, c)) =
       "No type arity " ^ Pretty.string_of_arity pp (a, [], [c])
-  | msg_class_error pp (NoSubsort (s1, s2)) =
-      Pretty.string_of_sort pp s1 ^ " is not subsort of " ^ Pretty.string_of_sort pp s2;
-
-fun class_error pp = error o msg_class_error pp;
+  | class_error pp (NoSubsort (s1, s2)) =
+      Pretty.string_of_sort pp s1 ^ " is not a subsort of " ^ Pretty.string_of_sort pp s2;
 
 exception CLASS_ERROR of class_error;
 
@@ -341,6 +337,22 @@ fun mg_domain algebra a S =
   end;
 
 
+(* meet_sort *)
+
+fun meet_sort algebra =
+  let
+    fun inters S S' = inter_sort algebra (S, S');
+    fun meet _ [] = I
+      | meet (TFree (_, S)) S' =
+          if sort_le algebra (S, S') then I
+          else raise CLASS_ERROR (NoSubsort (S, S'))
+      | meet (TVar (v, S)) S' =
+          if sort_le algebra (S, S') then I
+          else Vartab.map_default (v, S) (inters S')
+      | meet (Type (a, Ts)) S = fold2 meet Ts (mg_domain algebra a S);
+  in uncurry meet end;
+
+
 (* of_sort *)
 
 fun of_sort algebra =
@@ -353,20 +365,6 @@ fun of_sort algebra =
             ListPair.all ofS (Ts, Ss)
           end handle CLASS_ERROR _ => false;
   in ofS end;
-
-
-(* meet_sort *)
-
-fun meet_sort algebra =
-  let
-    fun meet _ [] = I
-      | meet (TFree (_, S)) S' = if sort_le algebra (S, S') then I
-          else raise CLASS_ERROR (NoSubsort (S, S'))
-      | meet (TVar (v, S)) S' = if sort_le algebra (S, S') then I
-          else Vartab.map_default (v, S) (curry (inter_sort algebra) S')
-      | meet (Type (a, Ts)) S =
-          fold2 meet Ts (mg_domain algebra a S)
-  in uncurry meet end;
 
 
 (* of_sort_derivation *)
