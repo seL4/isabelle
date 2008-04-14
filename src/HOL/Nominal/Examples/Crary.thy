@@ -458,7 +458,7 @@ apply(simp add: calc_atm)
 apply(perm_simp)
 done
 
-lemma test2:
+lemma test2b:
   assumes a: "x\<sharp>(\<Gamma>,s,t) \<and> (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<equiv> App t (Var x) : T\<^isub>2"
   shows "\<forall>x. x\<sharp>\<Gamma> \<longrightarrow> (x,T\<^isub>1)#\<Gamma> \<turnstile> App s (Var x) \<equiv> App t (Var x) : T\<^isub>2"
 using a
