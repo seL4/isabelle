@@ -31,6 +31,8 @@ datatype scheme_case =
 datatype ind_scheme =
   IndScheme of
   {
+   (*cvars : (string, typ) list,       
+   cassms : term list,    *)     (* additional context for partial rules *)
    T: typ,
    cases: scheme_case list
   }
@@ -104,13 +106,11 @@ fun mk_ineqs R (IndScheme {T, cases}) =
     end
 
 
-fun mk_induct_rule thy R complete_thm wf_thm ineqss (IndScheme {T, cases=scases}) =
+fun mk_induct_rule ctxt R P x complete_thm wf_thm ineqss (IndScheme {T, cases=scases}) =
     let
-      val x = Free ("x", T)
-      val P = Free ("P", T --> HOLogic.boolT)
-
+      val thy = ProofContext.theory_of ctxt
       val cert = cterm_of thy 
-                
+
       (* Inductive Hypothesis: !!z. (z,x):R ==> P z *)
       val ihyp = all T $ Abs ("z", T, 
                implies $ 
@@ -207,8 +207,11 @@ fun mk_ind_tac ctxt facts = (ALLGOALS (Method.insert_tac facts)) THEN HEADGOAL
                         
     val n = length tupTs
     val ST = BalancedTree.make (uncurry SumTree.mk_sumT) tupTs
-    val PsumT = ST --> HOLogic.boolT
-    val Psum = ("Psum", PsumT)
+
+    val ([Psn, Rn, xn], ctxt'') = Variable.variant_fixes ["Psum", "R", "x"] ctxt'
+    val Psum = (Psn, ST --> HOLogic.boolT)
+    val R = Free (Rn, mk_relT ST)
+    val x = Free (xn, ST)
                
     fun mk_rews (i, (P, Ts)) = 
         let
@@ -220,20 +223,19 @@ fun mk_ind_tac ctxt facts = (ALLGOALS (Method.insert_tac facts)) THEN HEADGOAL
         end
         
     val rews = map_index mk_rews PTss
-    val thy = ProofContext.theory_of ctxt'
+    val thy = ProofContext.theory_of ctxt''
     val cases' = map (Pattern.rewrite_term thy rews []) cases
                  
-    val scheme = mk_scheme' ctxt' cases' Psum
+    val scheme = mk_scheme' ctxt'' cases' Psum
 
     val cert = cterm_of thy
 
-    val R = Free ("R", mk_relT ST)
     val ineqss = mk_ineqs R scheme
                    |> map (map (assume o cert))
     val complete = mk_completeness ctxt scheme |> cert |> assume
     val wf_thm = mk_wf ctxt R scheme |> cert |> assume
 
-    val indthm = mk_induct_rule thy R complete wf_thm ineqss scheme
+    val indthm = mk_induct_rule ctxt'' R (Free Psum) x complete wf_thm ineqss scheme
 
     fun mk_P (P, Ts) = 
         let
