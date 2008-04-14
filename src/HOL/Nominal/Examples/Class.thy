@@ -5244,10 +5244,6 @@ lemma a_starI:
   shows "M \<longrightarrow>\<^isub>a* M'"
 using a by blast
 
-lemma a_star_refl:
-  shows "M \<longrightarrow>\<^isub>a* M"
-  by blast
-
 lemma a_starE:
   assumes a: "M \<longrightarrow>\<^isub>a* M'"
   shows "M = M' \<or> (\<exists>N. M \<longrightarrow>\<^isub>a N \<and> N \<longrightarrow>\<^isub>a* M')"
