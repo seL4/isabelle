@@ -297,6 +297,6 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
           set initialized);
         sync_thy_loader ();
        change print_mode (update (op =) proof_generalN);
-       Isar.toplevel_loop {init = true, sync = true, secure = Secure.is_secure ()});
+       Isar.toplevel_loop {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
 
 end;

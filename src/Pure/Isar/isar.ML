@@ -15,7 +15,7 @@ sig
   val >>> : Toplevel.transition list -> unit
   val init: unit -> unit
   val crashes: exn list ref
-  val toplevel_loop: {init: bool, sync: bool, secure: bool} -> unit
+  val toplevel_loop: {init: bool, welcome: bool, sync: bool, secure: bool} -> unit
   val loop: unit -> unit
   val main: unit -> unit
 end;
@@ -81,15 +81,18 @@ fun raw_loop secure src =
 
 in
 
-fun toplevel_loop {init = do_init, sync, secure} =
+fun toplevel_loop {init = do_init, welcome, sync, secure} =
  (Context.set_thread_data NONE;
-  if do_init then (init (); writeln (Session.welcome ())) else ();
+  if do_init then init () else ();
+  if welcome then writeln (Session.welcome ()) else ();
   uninterruptible (fn _ => fn () => raw_loop secure (OuterSyntax.isar sync)) ());
 
 end;
 
-fun loop () = toplevel_loop {init = false, sync = false, secure = Secure.is_secure ()};
-fun main () = toplevel_loop {init = true, sync = false, secure = Secure.is_secure ()};
+fun loop () =
+  toplevel_loop {init = false, welcome = false, sync = false, secure = Secure.is_secure ()};
+fun main () =
+  toplevel_loop {init = true, welcome = true, sync = false, secure = Secure.is_secure ()};
 
 end;
 

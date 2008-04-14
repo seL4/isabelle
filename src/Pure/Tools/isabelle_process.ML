@@ -155,7 +155,7 @@ fun init () =
  (change print_mode (update (op =) isabelle_processN);
   setup_channels ();
   init_message ();
-  Isar.toplevel_loop {init = true, sync = true, secure = true});
+  Isar.toplevel_loop {init = true, welcome = false, sync = true, secure = true});
 
 end;
 
