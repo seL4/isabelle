@@ -371,7 +371,7 @@ lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==>
     f : O(g)" 
   apply (auto simp add: bigo_def)
 (*Version 1: one-shot proof*)
-  apply (metis OrderedGroup.abs_le_D1 Orderings.linorder_class.not_less  order_less_le  Orderings.xt1(12)  Ring_and_Field.abs_mult)
+  apply (metis OrderedGroup.abs_le_D1 linorder_class.not_less  order_less_le  Orderings.xt1(12)  Ring_and_Field.abs_mult)
   done
 
 lemma (*bigo_bounded_alt:*) "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> 

@@ -120,7 +120,7 @@ interpretation i1: IC ["X::i" "Y::i"] by unfold_locales auto
 print_interps IA  (* output: i1 *)
 
 (* possible accesses *)
-thm i1.a.asm_A thm LocaleTest.i1.a.asm_A
+thm i1.a.asm_A thm LocaleTest.IA_locale.i1.a.asm_A thm IA_locale.i1.a.asm_A
 thm i1.asm_A thm LocaleTest.i1.asm_A
 
 ML {* check_thm "i1.a.asm_A" *}
@@ -134,7 +134,7 @@ interpretation IC ["W::'a" "Z::i"] by unfold_locales auto
 print_interps IA  (* output: <no prefix>, i1 *)
 
 (* possible accesses *)
-thm asm_C thm a_b.asm_C thm LocaleTest.a_b.asm_C thm LocaleTest.a_b.asm_C
+thm asm_C thm a_b.asm_C thm LocaleTest.IC_locale.a_b.asm_C thm IC_locale.a_b.asm_C
 
 ML {* check_thm "asm_C" *}
 
