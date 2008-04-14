@@ -39,9 +39,6 @@ lemma de_morgan: "((A|B)=False) = ((~A)&(~B))"
 
 subsection {* Lists *}
 
-lemma hd_append: "hd(l@m) = (if l~=[] then hd(l) else hd(m))"
-  by (induct l) simp_all
-
 lemma cons_not_nil: "l ~= [] --> (? x xs. l = (x#xs))"
   by (induct l) simp_all
 
