@@ -6,55 +6,6 @@ Logical signature content: naming conventions, concrete syntax, type
 signature, polymorphic constants.
 *)
 
-signature SIGN_THEORY =
-sig
-  val add_defsort: string -> theory -> theory
-  val add_defsort_i: sort -> theory -> theory
-  val add_types: (bstring * int * mixfix) list -> theory -> theory
-  val add_nonterminals: bstring list -> theory -> theory
-  val add_tyabbrs: (bstring * string list * string * mixfix) list -> theory -> theory
-  val add_tyabbrs_i: (bstring * string list * typ * mixfix) list -> theory -> theory
-  val add_syntax: (bstring * string * mixfix) list -> theory -> theory
-  val add_syntax_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
-  val add_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
-  val del_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
-  val del_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
-  val add_consts: (bstring * string * mixfix) list -> theory -> theory
-  val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_trfuns:
-    (string * (ast list -> ast)) list *
-    (string * (term list -> term)) list *
-    (string * (term list -> term)) list *
-    (string * (ast list -> ast)) list -> theory -> theory
-  val add_trfunsT:
-    (string * (bool -> typ -> term list -> term)) list -> theory -> theory
-  val add_advanced_trfuns:
-    (string * (Proof.context -> ast list -> ast)) list *
-    (string * (Proof.context -> term list -> term)) list *
-    (string * (Proof.context -> term list -> term)) list *
-    (string * (Proof.context -> ast list -> ast)) list -> theory -> theory
-  val add_advanced_trfunsT:
-    (string * (Proof.context -> bool -> typ -> term list -> term)) list -> theory -> theory
-  val add_tokentrfuns:
-    (string * string * (string -> output * int)) list -> theory -> theory
-  val add_mode_tokentrfuns: string -> (string * (string -> output * int)) list
-    -> theory -> theory
-  val add_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
-  val del_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
-  val add_trrules_i: ast Syntax.trrule list -> theory -> theory
-  val del_trrules_i: ast Syntax.trrule list -> theory -> theory
-  val add_path: string -> theory -> theory
-  val parent_path: theory -> theory
-  val root_path: theory -> theory
-  val absolute_path: theory -> theory
-  val local_path: theory -> theory
-  val no_base_names: theory -> theory
-  val qualified_names: theory -> theory
-  val sticky_prefix: string -> theory -> theory
-  val restore_naming: theory -> theory -> theory
-end
-
 signature SIGN =
 sig
   val rep_sg: theory ->
@@ -146,24 +97,63 @@ sig
   val simple_read_term: theory -> typ -> string -> term
   val read_term: theory -> string -> term
   val read_prop: theory -> string -> term
-  val declare_const: Markup.property list -> bstring * typ * mixfix -> theory -> term * theory
+  val add_defsort: string -> theory -> theory
+  val add_defsort_i: sort -> theory -> theory
+  val add_types: (bstring * int * mixfix) list -> theory -> theory
+  val add_nonterminals: bstring list -> theory -> theory
+  val add_tyabbrs: (bstring * string list * string * mixfix) list -> theory -> theory
+  val add_tyabbrs_i: (bstring * string list * typ * mixfix) list -> theory -> theory
+  val add_syntax: (bstring * string * mixfix) list -> theory -> theory
+  val add_syntax_i: (bstring * typ * mixfix) list -> theory -> theory
+  val add_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
+  val add_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
+  val del_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
+  val del_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
+  val add_consts: (bstring * string * mixfix) list -> theory -> theory
+  val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
+  val declare_const: Markup.property list -> bstring * typ * mixfix -> theory -> term * theory
   val add_abbrev: string -> Markup.property list ->
     bstring * term -> theory -> (term * term) * theory
   val revert_abbrev: string -> string -> theory -> theory
-  include SIGN_THEORY
   val add_const_constraint: string * typ option -> theory -> theory
   val primitive_class: string * class list -> theory -> theory
   val primitive_classrel: class * class -> theory -> theory
   val primitive_arity: arity -> theory -> theory
-  val hide_classes: bool -> xstring list -> theory -> theory
-  val hide_classes_i: bool -> string list -> theory -> theory
-  val hide_types: bool -> xstring list -> theory -> theory
-  val hide_types_i: bool -> string list -> theory -> theory
-  val hide_consts: bool -> xstring list -> theory -> theory
-  val hide_consts_i: bool -> string list -> theory -> theory
-  val hide_names: bool -> string * xstring list -> theory -> theory
-  val hide_names_i: bool -> string * string list -> theory -> theory
+  val add_trfuns:
+    (string * (ast list -> ast)) list *
+    (string * (term list -> term)) list *
+    (string * (term list -> term)) list *
+    (string * (ast list -> ast)) list -> theory -> theory
+  val add_trfunsT:
+    (string * (bool -> typ -> term list -> term)) list -> theory -> theory
+  val add_advanced_trfuns:
+    (string * (Proof.context -> ast list -> ast)) list *
+    (string * (Proof.context -> term list -> term)) list *
+    (string * (Proof.context -> term list -> term)) list *
+    (string * (Proof.context -> ast list -> ast)) list -> theory -> theory
+  val add_advanced_trfunsT:
+    (string * (Proof.context -> bool -> typ -> term list -> term)) list -> theory -> theory
+  val add_tokentrfuns:
+    (string * string * (string -> output * int)) list -> theory -> theory
+  val add_mode_tokentrfuns: string -> (string * (string -> output * int)) list
+    -> theory -> theory
+  val add_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
+  val del_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
+  val add_trrules_i: ast Syntax.trrule list -> theory -> theory
+  val del_trrules_i: ast Syntax.trrule list -> theory -> theory
+  val add_path: string -> theory -> theory
+  val parent_path: theory -> theory
+  val root_path: theory -> theory
+  val absolute_path: theory -> theory
+  val local_path: theory -> theory
+  val no_base_names: theory -> theory
+  val qualified_names: theory -> theory
+  val sticky_prefix: string -> theory -> theory
+  val restore_naming: theory -> theory -> theory
+  val hide_class: bool -> string -> theory -> theory
+  val hide_type: bool -> string -> theory -> theory
+  val hide_const: bool -> string -> theory -> theory
 end
 
 structure Sign: SIGN =
@@ -752,7 +742,7 @@ val add_trrules_i = map_syn o Syntax.update_trrules_i;
 val del_trrules_i = map_syn o Syntax.remove_trrules_i;
 
 
-(* modify naming *)
+(* naming *)
 
 val add_path        = map_naming o NameSpace.add_path;
 val no_base_names   = map_naming NameSpace.no_base_names;
@@ -769,37 +759,8 @@ fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
 
 (* hide names *)
 
-fun hide_classes b xs thy = thy |> map_tsig (Type.hide_classes b (map (intern_class thy) xs));
-val hide_classes_i = map_tsig oo Type.hide_classes;
-fun hide_types b xs thy = thy |> map_tsig (Type.hide_types b (map (intern_type thy) xs));
-val hide_types_i = map_tsig oo Type.hide_types;
-fun hide_consts b xs thy = thy |> map_consts (fold (Consts.hide b o intern_const thy) xs);
-val hide_consts_i = map_consts oo (fold o Consts.hide);
-
-local
-
-val kinds =
- [("class", (intern_class, can o certify_class, hide_classes_i)),
-  ("type", (intern_type, declared_tyname, hide_types_i)),
-  ("const", (intern_const, declared_const, hide_consts_i))];
-
-fun gen_hide int b (kind, xnames) thy =
-  (case AList.lookup (op =) kinds kind of
-    SOME (intern, check, hide) =>
-      let
-        val names = if int then map (intern thy) xnames else xnames;
-        val bads = filter_out (check thy) names;
-      in
-        if null bads then hide b names thy
-        else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
-      end
-  | NONE => error ("Bad name space specification: " ^ quote kind));
-
-in
-
-val hide_names = gen_hide true;
-val hide_names_i = gen_hide false;
-
-end;
+val hide_class = map_tsig oo Type.hide_class;
+val hide_type = map_tsig oo Type.hide_type;
+val hide_const = map_consts oo Consts.hide;
 
 end;
