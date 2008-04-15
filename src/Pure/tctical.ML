@@ -429,7 +429,7 @@ fun metahyps_aux_tac tacf (prem,gno) state =
       val cterm = Thm.cterm_of (Thm.theory_of_thm state)
       val chyps = map cterm hyps
       val hypths = map assume chyps
-      val subprems = map (forall_elim_vars 0) hypths
+      val subprems = map (Thm.forall_elim_vars 0) hypths
       val fparams = map Free params
       val cparams = map cterm fparams
       fun swap_ctpair (t,u) = (cterm u, cterm t)
@@ -481,7 +481,7 @@ fun metahyps_thms i state =
   let val prem = Logic.nth_prem (i, Thm.prop_of state)
       and cterm = cterm_of (Thm.theory_of_thm state)
       val (_,_,hyps,_) = metahyps_split_prem prem
-  in SOME (map (forall_elim_vars 0 o assume o cterm) hyps) end
+  in SOME (map (Thm.forall_elim_vars 0 o Thm.assume o cterm) hyps) end
   handle TERM ("nth_prem", [A]) => NONE;
 
 local

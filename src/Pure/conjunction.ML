@@ -74,7 +74,7 @@ val conjunction_def =
 
 fun conjunctionD which =
   Drule.implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP
-  Drule.forall_elim_vars 0 (Thm.equal_elim conjunction_def (Thm.assume A_B));
+  Thm.forall_elim_vars 0 (Thm.equal_elim conjunction_def (Thm.assume A_B));
 
 in
 
@@ -130,7 +130,7 @@ val B = read_prop "B";
 
 fun comp_rule th rule =
   Thm.adjust_maxidx_thm ~1 (th COMP
-    (rule |> Drule.forall_intr_frees |> Drule.forall_elim_vars (Thm.maxidx_of th + 1)));
+    (rule |> Drule.forall_intr_frees |> Thm.forall_elim_vars (Thm.maxidx_of th + 1)));
 
 in
 

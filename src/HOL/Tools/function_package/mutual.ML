@@ -222,7 +222,7 @@ fun mk_applied_form ctxt caTs thm =
       fold (fn x => fn thm => combination thm (reflexive x)) xs thm
            |> Conv.fconv_rule (Thm.beta_conversion true)
            |> fold_rev forall_intr xs
-           |> forall_elim_vars 0
+           |> Thm.forall_elim_vars 0
     end
 
 

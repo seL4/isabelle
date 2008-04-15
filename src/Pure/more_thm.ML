@@ -52,6 +52,8 @@ sig
     -> cterm list * (indexname * typ)list
   val read_cterm: theory -> string * typ -> cterm
   val elim_implies: thm -> thm -> thm
+  val forall_elim_var: int -> thm -> thm
+  val forall_elim_vars: int -> thm -> thm
   val unvarify: thm -> thm
   val close_derivation: thm -> thm
   val add_axiom: term list -> bstring * term -> theory -> thm * theory
@@ -129,7 +131,7 @@ fun is_reflexive th = op aconv (Logic.dest_equals (Thm.prop_of th))
 
 fun eq_thm ths =
   Context.joinable (pairself Thm.theory_of_thm ths) andalso
-  thm_ord ths = EQUAL;
+  is_equal (thm_ord ths);
 
 val eq_thms = eq_list eq_thm;
 
@@ -233,7 +235,36 @@ fun read_cterm thy sT =
 *)
 fun elim_implies thA thAB = Thm.implies_elim thAB thA;
 
-(*global schematic variables*)
+
+(* forall_elim_var(s) *)
+
+local
+
+fun forall_elim_vars_aux strip_vars i th =
+  let
+    val thy = Thm.theory_of_thm th;
+    val {tpairs, prop, ...} = Thm.rep_thm th;
+    val add_used = Term.fold_aterms
+      (fn Var ((x, j), _) => if i = j then insert (op =) x else I | _ => I);
+    val used = fold (fn (t, u) => add_used t o add_used u) tpairs (add_used prop []);
+    val vars = strip_vars prop;
+    val cvars = (Name.variant_list used (map #1 vars), vars)
+      |> ListPair.map (fn (x, (_, T)) => Thm.cterm_of thy (Var ((x, i), T)));
+  in fold Thm.forall_elim cvars th end;
+
+in
+
+val forall_elim_vars = forall_elim_vars_aux Term.strip_all_vars;
+
+fun forall_elim_var i th = forall_elim_vars_aux
+  (fn Const ("all", _) $ Abs (a, T, _) => [(a, T)]
+  | _ => raise THM ("forall_elim_vars", i, [th])) i th;
+
+end;
+
+
+(* unvarify: global schematic variables *)
+
 fun unvarify th =
   let
     val thy = Thm.theory_of_thm th;
@@ -250,6 +281,9 @@ fun unvarify th =
       let val T' = TermSubst.instantiateT instT0 T
       in (cert (Var ((a, i), T')), cert (Free ((a, T')))) end);
   in Thm.instantiate (instT, inst) th end;
+
+
+(* close_derivation *)
 
 fun close_derivation thm =
   if Thm.get_name thm = "" then Thm.put_name "" thm

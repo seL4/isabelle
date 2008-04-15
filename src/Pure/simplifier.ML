@@ -417,7 +417,7 @@ fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn
       if can Logic.dest_equals (Thm.concl_of thm) then [thm]
       else [thm RS reflect] handle THM _ => [];
 
-    fun mksimps thm = mk_eq (Drule.forall_elim_vars (#maxidx (Thm.rep_thm thm) + 1) thm);
+    fun mksimps thm = mk_eq (Thm.forall_elim_vars (#maxidx (Thm.rep_thm thm) + 1) thm);
   in
     empty_ss setsubgoaler asm_simp_tac
     setSSolver safe_solver

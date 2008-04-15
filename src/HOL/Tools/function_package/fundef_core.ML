@@ -416,7 +416,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
                                                              Abs ("y", ranT, G $ Bound 1 $ Bound 0)))
                        |> cterm_of thy
 
-        val ihyp_thm = assume ihyp |> forall_elim_vars 0
+        val ihyp_thm = assume ihyp |> Thm.forall_elim_vars 0
         val ih_intro = ihyp_thm RS (f_def RS ex1_implies_ex)
         val ih_elim = ihyp_thm RS (f_def RS ex1_implies_un)
                         |> instantiate' [] [NONE, SOME (cterm_of thy h)]
@@ -430,7 +430,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
 
         val _ = Output.debug (K "Proving: Graph is a function")
         val graph_is_function = complete
-                                  |> forall_elim_vars 0
+                                  |> Thm.forall_elim_vars 0
                                   |> fold (curry op COMP) ex1s
                                   |> implies_intr (ihyp)
                                   |> implies_intr (cterm_of thy (HOLogic.mk_Trueprop (mk_acc domT R $ x)))
@@ -652,7 +652,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
   val (cases, steps) = split_list (map prove_case clauses)
                        
   val istep = complete_thm
-                |> forall_elim_vars 0
+                |> Thm.forall_elim_vars 0
                 |> fold (curry op COMP) cases (*  P x  *)
                 |> implies_intr ihyp
                 |> implies_intr (cprop_of x_D)
@@ -700,7 +700,7 @@ fun mk_domain_intro thy (Globals {domT, ...}) R R_cases clause =
     in
       Goal.init goal 
       |> (SINGLE (resolve_tac [accI] 1)) |> the
-      |> (SINGLE (eresolve_tac [forall_elim_vars 0 R_cases] 1))  |> the
+      |> (SINGLE (eresolve_tac [Thm.forall_elim_vars 0 R_cases] 1))  |> the
       |> (SINGLE (CLASIMPSET auto_tac)) |> the
       |> Goal.conclude
       |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
@@ -778,7 +778,7 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
                                          $ HOLogic.mk_Trueprop (acc_R $ Bound 0))
                      |> cterm_of thy
 
-      val ihyp_a = assume ihyp |> forall_elim_vars 0
+      val ihyp_a = assume ihyp |> Thm.forall_elim_vars 0
                    
       val R_z_x = cterm_of thy (HOLogic.mk_Trueprop (R $ z $ x)) 
                   
@@ -821,7 +821,7 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
     let
       val Globals {domT, ranT, fvar, ...} = globals
 
-      val R_cases = forall_elim_vars 0 R_cases (* FIXME: Should be already in standard form. *)
+      val R_cases = Thm.forall_elim_vars 0 R_cases (* FIXME: Should be already in standard form. *)
 
       val graph_implies_dom = (* "G ?x ?y ==> dom ?x"  *)
           Goal.prove octxt ["x", "y"] [HOLogic.mk_Trueprop (G $ Free ("x", domT) $ Free ("y", ranT))]
@@ -847,7 +847,7 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
             Goal.prove ctxt [] [] trsimp
                        (fn _ =>  
                            rtac (instantiate' [] [SOME (cterm_of thy lhs_acc)] case_split) 1
-                                THEN (rtac (forall_elim_vars 0 psimp) THEN_ALL_NEW assume_tac) 1
+                                THEN (rtac (Thm.forall_elim_vars 0 psimp) THEN_ALL_NEW assume_tac) 1
                                 THEN (SIMPSET' simp_default_tac 1)
                                 THEN (etac not_acc_down 1)
                                 THEN ((etac R_cases) THEN_ALL_NEW (SIMPSET' simp_default_tac)) 1)
@@ -921,7 +921,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
             val (graph_is_function, complete_thm) = 
                 provedgoal
                   |> Conjunction.elim
-                  |> apfst (forall_elim_vars 0)
+                  |> apfst (Thm.forall_elim_vars 0)
                 
             val f_iff = graph_is_function RS (f_defthm RS ex1_implies_iff)
                         

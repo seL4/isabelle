@@ -181,7 +181,7 @@ fun assume_allified sgn (tyvs,vs) t =
       val ct = ctermify allified_term;
       val typ_allified_ct = ctermify (allify_term_typs tyvs allified_term);
     in (typ_allified_ct, 
-        Drule.forall_elim_vars 0 (Thm.assume ct)) end;
+        Thm.forall_elim_vars 0 (Thm.assume ct)) end;
 
 
 (* change type-vars to fresh type frees *)
@@ -271,7 +271,7 @@ fun fix_vars_upto_idx ix th =
 
 (* make free vars into schematic vars with index zero *)
  fun unfix_frees frees = 
-     apply (map (K (Drule.forall_elim_var 0)) frees) 
+     apply (map (K (Thm.forall_elim_var 0)) frees) 
      o Drule.forall_intr_list frees;
 
 (* fix term and type variables *)

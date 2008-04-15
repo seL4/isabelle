@@ -282,7 +282,7 @@ fun skolem_of_def def =
       fun tacf [prem] = rewrite_goals_tac [def] THEN rtac (prem RS someI_ex) 1
   in  Goal.prove_internal [ex_tm] conc tacf
        |> forall_intr_list frees
-       |> forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
+       |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
        |> Thm.varifyT
   end;
 

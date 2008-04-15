@@ -262,13 +262,13 @@ fun mk_ind_tac ctxt facts = (ALLGOALS (Method.insert_tac facts)) THEN HEADGOAL
 
     val res = Conjunction.intr_balanced (map_index project concls)
                 |> fold_rev (implies_intr o cprop_of) acases
-                |> forall_elim_vars 0
+                |> Thm.forall_elim_vars 0
         in
           (fn st =>
         Drule.compose_single (res, i, st)
           |> fold_rev (implies_intr o cprop_of) (complete :: wf_thm :: flat ineqss)
           |> forall_intr (cert R)
-          |> forall_elim_vars 0
+          |> Thm.forall_elim_vars 0
           |> Seq.single
           )
   end))

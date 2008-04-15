@@ -25,8 +25,6 @@ sig
   val forall_intr_frees: thm -> thm
   val forall_intr_vars: thm -> thm
   val forall_elim_list: cterm list -> thm -> thm
-  val forall_elim_var: int -> thm -> thm
-  val forall_elim_vars: int -> thm -> thm
   val gen_all: thm -> thm
   val lift_all: cterm -> thm -> thm
   val freeze_thaw: thm -> thm * (thm -> thm)
@@ -290,9 +288,6 @@ fun forall_intr_vars th =
   fold forall_intr
     (map (Thm.cterm_of (Thm.theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th [])) th;
 
-val forall_elim_var = PureThy.forall_elim_var;
-val forall_elim_vars = PureThy.forall_elim_vars;
-
 fun outer_params t =
   let val vs = Term.strip_all_vars t
   in Name.variant_list [] (map (Name.clean o #1) vs) ~~ map #2 vs end;
@@ -373,7 +368,7 @@ val standard' =
   #> forall_intr_frees
   #> `Thm.maxidx_of
   #-> (fn maxidx =>
-    forall_elim_vars (maxidx + 1)
+    Thm.forall_elim_vars (maxidx + 1)
     #> Thm.strip_shyps
     #> zero_var_indexes
     #> Thm.varifyT);

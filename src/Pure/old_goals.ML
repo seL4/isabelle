@@ -159,7 +159,7 @@ fun prepare_proof atomic rths chorn =
             forall (fn t => not (can Logic.dest_implies t orelse can Logic.dest_all t)) As;
       val (As,B) = if atoms then ([],horn) else (As,B);
       val cAs = map (cterm_of thy) As;
-      val prems = map (rewrite_rule rths o forall_elim_vars 0 o Thm.assume) cAs;
+      val prems = map (rewrite_rule rths o Thm.forall_elim_vars 0 o Thm.assume) cAs;
       val cB = cterm_of thy B;
       val st0 = let val st = Goal.init cB |> fold Thm.weaken cAs
                 in  rewrite_goals_rule rths st end
