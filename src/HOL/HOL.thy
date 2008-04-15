@@ -1695,7 +1695,7 @@ declare equals_eq [symmetric, code post]
 end
 
 setup {*
-  Sign.hide_names_i true ("const", ["HOL.eq"])
+  Sign.hide_const true "HOL.eq"
   #> CodeUnit.add_const_alias @{thm equals_eq}
 *}
 
