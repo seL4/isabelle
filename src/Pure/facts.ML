@@ -28,10 +28,11 @@ sig
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
-  val del: string -> T -> T
   val add_global: NameSpace.naming -> string * thm list -> T -> T
   val add_local: bool -> NameSpace.naming -> string * thm list -> T -> T
   val add_dynamic: NameSpace.naming -> string * (Context.generic -> thm list) -> T -> T
+  val del: string -> T -> T
+  val hide: bool -> string -> T -> T
 end;
 
 structure Facts: FACTS =
@@ -159,23 +160,18 @@ fun could_unify (Facts {props, ...}) = Net.unify_term props;
 
 fun err_dup_fact name = error ("Duplicate fact " ^ quote name);
 
+fun eq_entry ((Static ths1, _), (Static ths2, _)) = is_equal (list_ord Thm.thm_ord (ths1, ths2))
+  | eq_entry ((_, id1: serial), (_, id2)) = id1 = id2;
+
 fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props = props2}) =
   let
-    (* FIXME authentic version
-    val facts' = NameSpace.merge_tables (eq_snd (op =)) (facts1, facts2)
-      handle Symtab.DUP dup => err_dup_fact dup; *)
-    val facts' = NameSpace.merge_tables (K true) (facts1, facts2)
+    val facts' = NameSpace.merge_tables eq_entry (facts1, facts2)
+      handle Symtab.DUP dup => err_dup_fact dup;
     val props' = Net.merge (is_equal o prop_ord) (props1, props2);
   in make_facts facts' props' end;
 
 
-(* static entries *)
-
-fun del name (Facts {facts = (space, tab), props}) =
-  let
-    val space' = NameSpace.hide true name space handle ERROR _ => space;
-    val tab' = Symtab.delete_safe name tab;
-  in make_facts (space', tab') props end;
+(* add static entries *)
 
 fun add permissive do_props naming (name, ths) (Facts {facts, props}) =
   let
@@ -187,8 +183,7 @@ fun add permissive do_props naming (name, ths) (Facts {facts, props}) =
           val space' = NameSpace.declare naming name space;
           val entry = (name, (Static ths, serial ()));
           val tab' = (if permissive then Symtab.update else Symtab.update_new) entry tab
-            handle Symtab.DUP dup => (legacy_feature ("Duplicate fact " ^ quote dup ^
-              Position.str_of (Position.thread_data ())); tab);
+            handle Symtab.DUP dup => err_dup_fact dup;
         in (space', tab') end;
     val props' =
       if do_props then fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths props
@@ -199,7 +194,7 @@ val add_global = add false false;
 val add_local = add true;
 
 
-(* dynamic entries *)
+(* add dynamic entries *)
 
 fun add_dynamic naming (name, f) (Facts {facts = (space, tab), props}) =
   let
@@ -208,5 +203,17 @@ fun add_dynamic naming (name, f) (Facts {facts = (space, tab), props}) =
     val tab' = Symtab.update_new entry tab
       handle Symtab.DUP dup => err_dup_fact dup;
   in make_facts (space', tab') props end;
+
+
+(* remove entries *)
+
+fun del name (Facts {facts = (space, tab), props}) =
+  let
+    val space' = NameSpace.hide true name space handle ERROR _ => space;
+    val tab' = Symtab.delete_safe name tab;
+  in make_facts (space', tab') props end;
+
+fun hide fully name (Facts {facts = (space, tab), props}) =
+  make_facts (NameSpace.hide fully name space, tab) props;
 
 end;
