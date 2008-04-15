@@ -640,8 +640,8 @@ let
             val thy1 = theory_of_theorem th
             val thy2 = theory_of_thm th'
         in
-            if Context.subthy (thy1, thy2) then thy2 
-            else if Context.subthy (thy2, thy1) then thy1 else
+            if Theory.subthy (thy1, thy2) then thy2 
+            else if Theory.subthy (thy2, thy1) then thy1 else
             raise Compute "modus_ponens: theorems are not compatible with each other"
         end 
     val th' = make_theorem computer th' []
