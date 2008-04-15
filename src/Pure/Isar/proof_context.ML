@@ -804,8 +804,7 @@ fun retrieve_thms _ pick ctxt (Facts.Fact s) =
       let
         val thy = theory_of ctxt;
         val local_facts = facts_of ctxt;
-        val space = Facts.space_of local_facts;
-        val thmref = Facts.map_name_of_ref (NameSpace.intern space) xthmref;
+        val thmref = Facts.map_name_of_ref (Facts.intern local_facts) xthmref;
         val name = Facts.name_of_ref thmref;
         val thms =
           if name = "" then [Thm.transfer thy Drule.dummy_thm]
@@ -1167,7 +1166,8 @@ fun pretty_lthms ctxt =
   let
     val local_facts = facts_of ctxt;
     val props = Facts.props local_facts;
-    val facts = (if null props then I else cons ("unnamed", props)) (Facts.extern local_facts);
+    val facts =
+      (if null props then [] else [("unnamed", props)]) @ Facts.extern_table local_facts;
   in
     if null facts andalso not (! verbose) then []
     else [Pretty.big_list "facts:" (map (pretty_fact ctxt) facts)]
