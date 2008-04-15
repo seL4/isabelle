@@ -70,12 +70,12 @@ sig
 
   (*extend and merge type signatures*)
   val add_class: Pretty.pp -> NameSpace.naming -> bstring * class list -> tsig -> tsig
-  val hide_classes: bool -> string list -> tsig -> tsig
+  val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
   val add_types: NameSpace.naming -> (bstring * int) list -> tsig -> tsig
   val add_abbrevs: NameSpace.naming -> (string * string list * typ) list -> tsig -> tsig
   val add_nonterminals: NameSpace.naming -> string list -> tsig -> tsig
-  val hide_types: bool -> string list -> tsig -> tsig
+  val hide_type: bool -> string -> tsig -> tsig
   val add_arity: Pretty.pp -> arity -> tsig -> tsig
   val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
   val merge_tsigs: Pretty.pp -> tsig * tsig -> tsig
@@ -505,8 +505,8 @@ fun add_class pp naming (c, cs) tsig =
       val classes' = classes |> Sorts.add_class pp (c', cs');
     in ((space', classes'), default, types) end);
 
-fun hide_classes fully cs = map_tsig (fn ((space, classes), default, types) =>
-  ((fold (NameSpace.hide fully) cs space, classes), default, types));
+fun hide_class fully c = map_tsig (fn ((space, classes), default, types) =>
+  ((NameSpace.hide fully c space, classes), default, types));
 
 
 (* arities *)
@@ -608,8 +608,8 @@ fun merge_types (types1, types2) =
 
 end;
 
-fun hide_types fully cs = map_tsig (fn (classes, default, (space, types)) =>
-  (classes, default, (fold (NameSpace.hide fully) cs space, types)));
+fun hide_type fully c = map_tsig (fn (classes, default, (space, types)) =>
+  (classes, default, (NameSpace.hide fully c space, types)));
 
 
 (* merge type signatures *)
