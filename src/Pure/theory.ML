@@ -5,16 +5,10 @@
 Logical theory content: axioms, definitions, oracles.
 *)
 
-signature BASIC_THEORY =
+signature THEORY =
 sig
   val eq_thy: theory * theory -> bool
   val subthy: theory * theory -> bool
-end
-
-signature THEORY =
-sig
-  include BASIC_THEORY
-  include SIGN_THEORY
   val assert_super: theory -> theory -> theory
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
@@ -174,12 +168,6 @@ fun begin_theory name imports =
 
 fun end_theory thy =
   thy |> apply_wrappers (end_wrappers thy) |> Context.finish_thy;
-
-
-(* signature operations *)
-
-structure SignTheory: SIGN_THEORY = Sign;
-open SignTheory;
 
 
 
@@ -346,5 +334,3 @@ fun add_oracle (bname, oracle) thy = thy |> map_oracles (fn oracles =>
 
 end;
 
-structure BasicTheory: BASIC_THEORY = Theory;
-open BasicTheory;
