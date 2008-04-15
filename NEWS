@@ -40,6 +40,8 @@ duplicate fact bindings, or even accidental fact duplications.  Note
 that tools may maintain dynamically scoped facts systematically, using
 PureThy.add_thms_dynamic.
 
+* Command 'hide' now allows to hide from "fact" name space as well.
+
 * Eliminated destructive theorem database, simpset, claset, and
 clasimpset.  Potential INCOMPATIBILITY, really need to observe linear
 update of theories within ML code.
