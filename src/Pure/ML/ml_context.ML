@@ -30,7 +30,6 @@ sig
     (Context.generic * Args.T list -> (string * string) * (Context.generic * Args.T list)) -> unit
   val proj_value_antiq: string -> (Context.generic * Args.T list ->
       (string * string * string) * (Context.generic * Args.T list)) -> unit
-  val eval_antiquotes_fn: (string -> string * Position.T -> string * string) ref  (* FIXME tmp *)
   val trace: bool ref
   val eval: bool -> Position.T -> string -> unit
   val eval_file: Path.T -> unit
@@ -165,8 +164,6 @@ fun eval_antiquotes struct_name txt_pos =
 
 in
 
-val eval_antiquotes_fn = ref eval_antiquotes;
-
 val trace = ref false;
 
 fun eval_wrapper pr verbose pos txt =
@@ -174,13 +171,13 @@ fun eval_wrapper pr verbose pos txt =
     val struct_name =
       if Multithreading.available then "Isabelle" ^ serial_string ()
       else "Isabelle";
-    val (txt1, txt2) = ! eval_antiquotes_fn struct_name (txt, pos);  (* FIXME tmp hook *)
+    val (txt1, txt2) = eval_antiquotes struct_name (txt, pos);
     val _ = if ! trace then tracing (cat_lines [txt1, txt2]) else ();
     fun eval p =
       use_text (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p)) pr;
   in
     eval Position.none false txt1;
-    eval pos verbose txt2;
+    NAMED_CRITICAL "ML" (fn () => eval pos verbose txt2); (* FIXME non-critical with local ML env *)
     forget_structure struct_name
   end;
 
