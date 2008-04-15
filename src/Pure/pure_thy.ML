@@ -24,15 +24,17 @@ sig
   val kind_internal: attribute
   val has_internal: Markup.property list -> bool
   val is_internal: thm -> bool
+  val intern_fact: theory -> xstring -> string
+  val check_fact: theory -> string -> bool
   val get_fact: theory -> Facts.ref -> thm list
   val get_fact_silent: theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
   val theorems_of: theory -> thm list NameSpace.table
-  val all_facts_of: theory -> Facts.T
+  val facts_of: theory -> Facts.T
   val thms_of: theory -> (string * thm) list
   val all_thms_of: theory -> (string * thm) list
-  val hide_thms: bool -> string list -> theory -> theory
+  val hide_fact: bool -> string -> theory -> theory
   val map_facts: ('a -> 'b) -> ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val burrow_facts: ('a list -> 'b list) ->
@@ -145,7 +147,10 @@ fun map_theorems f =
 
 val get_theorems = (fn Thms args => args) o TheoremsData.get;
 val theorems_of = #theorems o get_theorems;
-val all_facts_of = #all_facts o get_theorems;
+val facts_of = #all_facts o get_theorems;
+
+val intern_fact = Facts.intern o facts_of;
+fun check_fact thy name = is_some (Facts.lookup (Context.Theory thy) (facts_of thy) name);
 
 
 
@@ -160,10 +165,8 @@ fun lookup_thms thy xname =
   in Option.map (pair name) (Symtab.lookup thms name) end;
 
 fun lookup_fact thy xname =
-  let
-    val facts = all_facts_of thy;
-    val name = NameSpace.intern (Facts.space_of facts) xname;
-  in Option.map (pair name) (Facts.lookup (Context.Theory thy) facts name) end;
+  let val name = intern_fact thy xname
+  in Option.map (pair name) (Facts.lookup (Context.Theory thy) (facts_of thy) name) end;
 
 fun get silent theory thmref =
   let
@@ -209,10 +212,10 @@ fun all_thms_of thy = maps thms_of (thy :: Theory.ancestors_of thy);
 
 (** store theorems **)
 
-(* hiding *)
+(* hide names *)
 
-fun hide_thms fully names =
-  map_theorems (fn (theorems, all_facts) => (theorems, fold (Facts.hide fully) names all_facts));
+fun hide_fact fully name =
+  map_theorems (fn (theorems, all_facts) => (theorems, Facts.hide fully name all_facts));
 
 
 (* fact specifications *)
@@ -443,7 +446,8 @@ val _ = Context.>> (Context.map_theory
    [("prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
     ("term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
     ("conjunction_def", prop "(A && B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
-  #> Sign.hide_consts false ["conjunction", "term"]
+  #> Sign.hide_const false "Pure.conjunction"
+  #> Sign.hide_const false "Pure.term"
   #> add_thmss [(("nothing", []), [])] #> snd
   #> Theory.add_axioms_i Proofterm.equality_axms));
 
