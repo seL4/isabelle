@@ -254,6 +254,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       (DatatypePackage.get_datatypes thy1) (hd full_new_type_names');
     fun nth_dtyp i = typ_of_dtyp descr sorts' (DtRec i);
 
+    val big_name = space_implode "_" new_type_names;
+
+
     (**** define permutation functions ****)
 
     val permT = mk_permT (TFree ("'x", HOLogic.typeS));
@@ -300,7 +303,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (perm_simps, thy2) = thy1 |>
       Sign.add_consts_i (map (fn (s, T) => (Sign.base_name s, T, NoSyn))
         (List.drop (perm_names_types, length new_type_names))) |>
-      OldPrimrecPackage.add_primrec_unchecked_i (serial_string ()) (* FIXME proper name *) perm_eqs;
+      OldPrimrecPackage.add_primrec_unchecked_i (big_name ^ "_perm") perm_eqs;
 
     (**** prove that permutation functions introduced by unfolding are ****)
     (**** equivalent to already existing permutation functions         ****)
@@ -598,16 +601,14 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                THEN_ALL_NEW (asm_full_simp_tac (simpset_of thy4 addsimps [perm_fun_def])))])),
         length new_type_names));
 
-    (* FIXME: theorems are stored in database for testing only *)
     val perm_closed_thmss = map mk_perm_closed atoms;
-    val (_, thy5) = PureThy.add_thmss [(("perm_closed", List.concat perm_closed_thmss), [])] thy4;
 
     (**** typedef ****)
 
     val _ = warning "defining type...";
 
     val (typedefs, thy6) =
-      thy5
+      thy4
       |> fold_map (fn ((((name, mx), tvs), (cname, U)), name') => fn thy =>
           TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx)
             (Const ("Collect", (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
@@ -636,8 +637,6 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val Abs_inverse_thms = map (collect_simp o #Abs_inverse o fst) typedefs;
     val Rep_inverse_thms = map (#Rep_inverse o fst) typedefs;
     val Rep_thms = map (collect_simp o #Rep o fst) typedefs;
-
-    val big_name = space_implode "_" new_type_names;
 
 
     (** prove that new types are in class pt_<name> **)
