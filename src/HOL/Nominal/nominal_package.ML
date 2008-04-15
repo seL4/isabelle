@@ -1489,8 +1489,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (map (fn (s, T) => ((s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
           (map (fn x => (("", []), x)) rec_intr_ts) [] ||>
-      PureThy.hide_thms true [NameSpace.append
-        (Sign.full_name thy10 big_rec_name) "induct"];
+      PureThy.hide_fact true (NameSpace.append (Sign.full_name thy10 big_rec_name) "induct");
 
     (** equivariance **)
 

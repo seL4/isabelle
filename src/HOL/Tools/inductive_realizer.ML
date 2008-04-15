@@ -359,8 +359,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
            subst_atomic rlzpreds' (Logic.unvarify rintr)))
              (rintrs ~~ maps snd rss)) [] ||>
       Sign.absolute_path;
-    val thy3 = PureThy.hide_thms false
-      (map name_of_thm (#intrs ind_info)) thy3';
+    val thy3 = fold (PureThy.hide_fact false o name_of_thm) (#intrs ind_info) thy3';
 
     (** realizer for induction rule **)
 
