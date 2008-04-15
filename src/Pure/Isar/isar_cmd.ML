@@ -22,6 +22,7 @@ sig
   val declaration: string * Position.T -> local_theory -> local_theory
   val simproc_setup: string -> string list -> string * Position.T -> string list ->
     local_theory -> local_theory
+  val hide_names: bool -> string * xstring list -> theory -> theory
   val have: ((string * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
   val hence: ((string * Attrib.src list) * (string * string list) list) list ->
@@ -250,6 +251,27 @@ fun simproc_setup name lhss (proc, pos) identifier =
     \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
     \identifier = Library.maps ML_Context.thms " ^ ML_Syntax.print_strings identifier ^ "})") proc
   |> Context.proof_map;
+
+
+(* hide names *)
+
+val hide_kinds =
+ [("class", (Sign.intern_class, can o Sign.certify_class, Sign.hide_class)),
+  ("type", (Sign.intern_type, Sign.declared_tyname, Sign.hide_type)),
+  ("const", (Sign.intern_const, Sign.declared_const, Sign.hide_const)),
+  ("fact", (PureThy.intern_fact, PureThy.check_fact, PureThy.hide_fact))];
+
+fun hide_names b (kind, xnames) thy =
+  (case AList.lookup (op =) hide_kinds kind of
+    SOME (intern, check, hide) =>
+      let
+        val names = map (intern thy) xnames;
+        val bads = filter_out (check thy) names;
+      in
+        if null bads then fold (hide b) names thy
+        else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
+      end
+  | NONE => error ("Bad name space specification: " ^ quote kind));
 
 
 (* goals *)
