@@ -56,8 +56,6 @@ sig
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_qualified: string -> string -> ((bstring * attribute list) *
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
-  val forall_elim_var: int -> thm -> thm
-  val forall_elim_vars: int -> thm -> thm
   val add_axioms: ((bstring * string) * attribute list) list -> theory -> thm list * theory
   val add_axioms_i: ((bstring * term) * attribute list) list -> theory -> thm list * theory
   val add_defs: bool -> ((bstring * string) * attribute list) list ->
@@ -167,9 +165,6 @@ fun lookup_fact thy xname =
     val name = NameSpace.intern (Facts.space_of facts) xname;
   in Option.map (pair name) (Facts.lookup (Context.Theory thy) facts name) end;
 
-fun show_result NONE = "none"
-  | show_result (SOME (name, _)) = quote name;
-
 fun get silent theory thmref =
   let
     val name = Facts.name_of_ref thmref;
@@ -179,15 +174,14 @@ fun get silent theory thmref =
     val _ = Theory.check_thy theory;
     val is_same =
       (case (new_res, old_res) of
-        (NONE, NONE) => true
-      | (SOME (_, ths1), SOME (_, ths2)) => Thm.eq_thms (ths1, ths2)
-      | _ => false);
+        (SOME (_, ths1), SOME (_, ths2)) => Thm.eq_thms (ths1, ths2)
+      | _ => true);
     val _ =
       if is_same orelse silent then ()
-      else legacy_feature ("Fact lookup differs from old-style thm database:\n" ^
-        show_result new_res ^ " vs " ^ show_result old_res ^ Position.str_of pos);
+      else error ("Fact lookup differs from old-style thm database:\n" ^
+        fst (the new_res) ^ " vs " ^ fst (the old_res) ^ Position.str_of pos);
   in
-    (case old_res of
+    (case new_res of
       NONE => error ("Unknown theorem(s) " ^ quote name ^ Position.str_of pos)
     | SOME (_, ths) => Facts.select thmref (map (Thm.transfer theory) ths))
   end;
@@ -215,12 +209,10 @@ fun all_thms_of thy = maps thms_of (thy :: Theory.ancestors_of thy);
 
 (** store theorems **)
 
-(* hiding -- affects current theory node only *)
+(* hiding *)
 
 fun hide_thms fully names =
-  map_theorems (fn ((space, thms), all_facts) =>
-    let val space' = fold (NameSpace.hide fully) names space
-    in ((space', thms), all_facts) end);
+  map_theorems (fn (theorems, all_facts) => (theorems, fold (Facts.hide fully) names all_facts));
 
 
 (* fact specifications *)
@@ -333,32 +325,11 @@ fun note_thmss_qualified k path facts thy =
   ||> Sign.restore_naming thy;
 
 
-(* forall_elim_var(s) -- belongs to drule.ML *)
-
-fun forall_elim_vars_aux strip_vars i th =
-  let
-    val thy = Thm.theory_of_thm th;
-    val {tpairs, prop, ...} = Thm.rep_thm th;
-    val add_used = Term.fold_aterms
-      (fn Var ((x, j), _) => if i = j then insert (op =) x else I | _ => I);
-    val used = fold (fn (t, u) => add_used t o add_used u) tpairs (add_used prop []);
-    val vars = strip_vars prop;
-    val cvars = (Name.variant_list used (map #1 vars), vars)
-      |> ListPair.map (fn (x, (_, T)) => Thm.cterm_of thy (Var ((x, i), T)));
-  in fold Thm.forall_elim cvars th end;
-
-val forall_elim_vars = forall_elim_vars_aux Term.strip_all_vars;
-
-fun forall_elim_var i th = forall_elim_vars_aux
-  (fn Const ("all", _) $ Abs (a, T, _) => [(a, T)]
-  | _ => raise THM ("forall_elim_vars", i, [th])) i th;
-
-
 (* store axioms as theorems *)
 
 local
   fun get_ax thy (name, _) = Thm.get_axiom_i thy (Sign.full_name thy name);
-  fun get_axs thy named_axs = map (forall_elim_vars 0 o get_ax thy) named_axs;
+  fun get_axs thy named_axs = map (Thm.forall_elim_vars 0 o get_ax thy) named_axs;
   fun add_axm add = fold_map (fn ((name, ax), atts) => fn thy =>
     let
       val named_ax = [(name, ax)];
