@@ -458,30 +458,18 @@ fun subtract_cls c_clauses ax_clauses =
       filter (not o known) c_clauses
   end;
 
+fun valid_facts facts =
+  Facts.dest_table facts
+  |> filter_out (fn (name, _) => !run_blacklist_filter andalso is_package_def name)
+  |> map (apfst (Facts.extern facts))
+  |> filter_out (NameSpace.is_hidden o #1)
+  |> map (apsnd (filter_out ResAxioms.bad_for_atp));
+
 fun all_valid_thms ctxt =
   let
-    fun blacklisted s = !run_blacklist_filter andalso is_package_def s
-
-    fun extern_valid space (name, ths) =
-      let
-        val is_valid = ProofContext.valid_thms ctxt;
-        val xname = NameSpace.extern space name;
-      in
-        if blacklisted name then I
-        else if is_valid (xname, ths) then cons (xname, filter_out ResAxioms.bad_for_atp ths)
-        else if is_valid (name, ths) then cons (name, filter_out ResAxioms.bad_for_atp ths)
-        else I
-      end;
-    val thy = ProofContext.theory_of ctxt;
-    val all_thys = thy :: Theory.ancestors_of thy;
-
+    val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
     val local_facts = ProofContext.facts_of ctxt;
-
-    fun dest_valid (space, tab) = Symtab.fold (extern_valid space) tab [];
-  in
-    maps (dest_valid o PureThy.theorems_of) all_thys @
-    fold (extern_valid (Facts.space_of local_facts)) (Facts.dest_table local_facts) []
-  end;
+  in valid_facts global_facts @ valid_facts local_facts end;
 
 fun multi_name a (th, (n,pairs)) =
   (n+1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs)
