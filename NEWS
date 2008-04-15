@@ -26,19 +26,30 @@ provides a proper context already.
 file are no longer supported.  INCOMPATIBILITY, regular 'uses' and
 'use' within a theory file will do the job.
 
+* Name space merge now observes canonical order, i.e. the second space
+is inserted into the first one, while existing entries in the first
+space take precedence.  INCOMPATIBILITY is rare situations, may try to
+swap theory imports.
+
 
 *** Pure ***
+
+* Authentic naming of facts disallows ad-hoc overwriting of previous
+theorems within the same name space.  INCOMPATIBILITY, need to remove
+duplicate fact bindings, or even accidental fact duplications.  Note
+that tools may maintain dynamically scoped facts systematically, using
+PureThy.add_thms_dynamic.
 
 * Eliminated destructive theorem database, simpset, claset, and
 clasimpset.  Potential INCOMPATIBILITY, really need to observe linear
 update of theories within ML code.
 
+* Eliminated theory ProtoPure.  Potential INCOMPATIBILITY.
+
 * Commands 'use' and 'ML' are now purely functional, operating on
 theory/local_theory.  Removed former 'ML_setup' (on theory), use 'ML'
 instead.  Added 'ML_val' as mere diagnostic replacement for 'ML'.
 INCOMPATIBILITY.
-
-* Eliminated theory ProtoPure.  Potential INCOMPATIBILITY.
 
 * Command 'setup': discontinued implicit version.
 
