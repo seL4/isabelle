@@ -12,7 +12,6 @@
 
 signature NOMINAL_THMDECLS =
 sig
-  val print_data: Proof.context -> unit
   val eqvt_add: attribute
   val eqvt_del: attribute
   val eqvt_force_add: attribute
@@ -50,18 +49,6 @@ structure Data = GenericDataFun
 (* equality-lemma can be derived. *)
 exception EQVT_FORM of string;
 
-fun print_data ctxt =
-  let
-    val data = Data.get (Context.Proof ctxt);
-    fun pretty_thms msg thms =
-      Pretty.big_list msg (map (ProofContext.pretty_thm ctxt) thms);
-  in
-    Pretty.writeln (Pretty.chunks
-     [pretty_thms "Equivariance lemmas:" (#eqvts data),
-      pretty_thms "Freshness lemmas:" (#freshs data),
-      pretty_thms "Bijection lemmas:" (#bijs data)])
-  end;
-
 val get_eqvt_thms = Context.Proof #> Data.get #> #eqvts;
 val get_fresh_thms = Context.Proof #> Data.get #> #freshs;
 val get_bij_thms = Context.Proof #> Data.get #> #bijs;
@@ -73,7 +60,7 @@ val NOMINAL_EQVT_DEBUG = ref false;
 
 fun tactic (msg,tac) =
     if !NOMINAL_EQVT_DEBUG
-    then (EVERY [tac, print_tac ("after "^msg)])
+    then tac THEN print_tac ("after "^msg)
     else tac
 
 fun tactic_eqvt ctx orig_thm pi typi =
@@ -101,19 +88,6 @@ fun get_derived_thm thy hyp concl orig_thm pi typi =
    in
      Goal.prove_global thy [] [] goal_term (fn _ => (tactic_eqvt thy orig_thm pi typi))
    end
-
-(* FIXME: something naughty here, but as long as there is no infrastructure to expose *)
-(* the eqvt_thm_list to the user, we have to manually update the context and the      *)
-(* thm-list eqvt *)
-fun update_context flag thms context =
-  let
-     val context' = fold (fn thm => Data.map (flag thm)) thms context
-     fun update_eqvts thy = thy
-       |> Sign.root_path
-       |> Sign.add_path "Nominal"
-       |> (snd o PureThy.add_thmss [(("eqvts", (#eqvts (Data.get context'))), [])])
-       |> Sign.restore_naming thy;
-  in Context.mapping update_eqvts I context' end;
 
 (* replaces every variable x in t with pi o x *)
 fun apply_pi trm (pi,typi) =
@@ -155,7 +129,7 @@ fun get_pi t thy =
     | _ => raise EQVT_FORM "All permutation should be the same")
   end;
 
-(* Either adds a theorem (orig_thm) to or deletes one from the equivaraince *)
+(* Either adds a theorem (orig_thm) to or deletes one from the equivariance *)
 (* lemma list depending on flag. To be added the lemma has to satisfy a     *)
 (* certain form. *)
 
@@ -182,7 +156,7 @@ fun eqvt_add_del_aux flag orig_thm context =
                else raise EQVT_FORM "Type Equality")
       | _ => raise EQVT_FORM "Type unknown")
   in
-      update_context flag thms_to_be_added context
+      fold (fn thm => Data.map (flag thm)) thms_to_be_added context
   end
   handle EQVT_FORM s =>
       error (string_of_thm orig_thm ^ " does not comply with the form of an equivariance lemma ("^s^").")
@@ -190,30 +164,19 @@ fun eqvt_add_del_aux flag orig_thm context =
 (* in cases of bij- and freshness, we just add the lemmas to the *)
 (* data-slot *)
 
-fun simple_add_del_aux record_access name flag th context =
-   let
-     val context' = Data.map (flag th) context
-   in
-     Context.mapping (snd o PureThy.add_thmss [((name,(record_access (Data.get context'))),[])]) I context'
-   end
+fun eqvt_map f (r:Data.T)  = {eqvts = f (#eqvts r), freshs = #freshs r, bijs = #bijs r};
+fun fresh_map f (r:Data.T) = {eqvts = #eqvts r, freshs = f (#freshs r), bijs = #bijs r};
+fun bij_map f (r:Data.T)   = {eqvts = #eqvts r, freshs = #freshs r, bijs = f (#bijs r)};
 
-fun bij_add_del_aux f   = simple_add_del_aux #bijs "bijs" f
-fun fresh_add_del_aux f = simple_add_del_aux #freshs "freshs" f
-fun eqvt_force_add_del_aux f = simple_add_del_aux #eqvts "eqvts" f
+val eqvt_add = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map o Thm.add_thm));
+val eqvt_del = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map o Thm.del_thm));
 
-fun eqvt_map f th (r:Data.T)  = {eqvts = (f th (#eqvts r)), freshs = #freshs r, bijs = #bijs r};
-fun fresh_map f th (r:Data.T) = {eqvts = #eqvts r, freshs = (f th (#freshs r)), bijs = #bijs r};
-fun bij_map f th (r:Data.T)   = {eqvts = #eqvts r, freshs = #freshs r, bijs = (f th (#bijs r))};
-
-val eqvt_add  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Thm.add_thm));
-val eqvt_del  = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map Thm.del_thm));
-val eqvt_force_add  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Thm.add_thm));
-val eqvt_force_del  = Thm.declaration_attribute (eqvt_force_add_del_aux (eqvt_map Thm.del_thm));
-
-val bij_add   = Thm.declaration_attribute (bij_add_del_aux (bij_map Thm.add_thm));
-val bij_del   = Thm.declaration_attribute (bij_add_del_aux (bij_map Thm.del_thm));
-val fresh_add = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Thm.add_thm));
-val fresh_del = Thm.declaration_attribute (fresh_add_del_aux (fresh_map Thm.del_thm));
+val eqvt_force_add  = Thm.declaration_attribute (Data.map o eqvt_map o Thm.add_thm);
+val eqvt_force_del  = Thm.declaration_attribute (Data.map o eqvt_map o Thm.del_thm);
+val bij_add   = Thm.declaration_attribute (Data.map o bij_map o Thm.add_thm);
+val bij_del   = Thm.declaration_attribute (Data.map o bij_map o Thm.del_thm);
+val fresh_add = Thm.declaration_attribute (Data.map o fresh_map o Thm.add_thm);
+val fresh_del = Thm.declaration_attribute (Data.map o fresh_map o Thm.del_thm);
 
 
 
