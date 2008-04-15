@@ -202,20 +202,18 @@ fun hide fully name space =
 
 (* merge *)
 
-(* FIXME non-canonical merge order!? *)
-
 fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
   let
     val tab' = (tab1, tab2) |> Symtab.join
       (K (fn (((names1, names1'), stamp1), ((names2, names2'), stamp2)) =>
         if stamp1 = stamp2 then raise Symtab.SAME
         else
-          ((Library.merge (op =) (names2, names1),
-            Library.merge (op =) (names2', names1')), stamp ())));
+          ((Library.merge (op =) (names1, names2),
+            Library.merge (op =) (names1', names2')), stamp ())));
     val xtab' = (xtab1, xtab2) |> Symtab.join
       (K (fn ((xnames1, stamp1), (xnames2, stamp2)) =>
         if stamp1 = stamp2 then raise Symtab.SAME
-        else (Library.merge (op =) (xnames2, xnames1), stamp ())));
+        else (Library.merge (op =) (xnames1, xnames2), stamp ())));
   in NameSpace (tab', xtab') end;
 
 
