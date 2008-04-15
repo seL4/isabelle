@@ -141,7 +141,7 @@ end;
 
 fun eq paths =
   (case try (pairself (OS.FileSys.fileId o platform_path)) paths of
-    SOME ids => OS.FileSys.compare ids = EQUAL
+    SOME ids => is_equal (OS.FileSys.compare ids)
   | NONE => false);
 
 fun copy src dst =

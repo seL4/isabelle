@@ -321,7 +321,7 @@ fun params xss = Thm.rule_attribute (K (rename_params xss));
 local
 
 fun equal_cterms ts us =
-  list_ord (Term.fast_term_ord o pairself Thm.term_of) (ts, us) = EQUAL;
+  is_equal (list_ord (Term.fast_term_ord o pairself Thm.term_of) (ts, us));
 
 fun prep_rule n th =
   let
