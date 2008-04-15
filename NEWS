@@ -28,7 +28,7 @@ file are no longer supported.  INCOMPATIBILITY, regular 'uses' and
 
 * Name space merge now observes canonical order, i.e. the second space
 is inserted into the first one, while existing entries in the first
-space take precedence.  INCOMPATIBILITY is rare situations, may try to
+space take precedence.  INCOMPATIBILITY in rare situations, may try to
 swap theory imports.
 
 
