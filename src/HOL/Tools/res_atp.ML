@@ -480,7 +480,7 @@ fun all_valid_thms ctxt =
     fun dest_valid (space, tab) = Symtab.fold (extern_valid space) tab [];
   in
     maps (dest_valid o PureThy.theorems_of) all_thys @
-    fold (extern_valid (Facts.space_of local_facts)) (Facts.dest local_facts) []
+    fold (extern_valid (Facts.space_of local_facts)) (Facts.dest_table local_facts) []
   end;
 
 fun multi_name a (th, (n,pairs)) =
