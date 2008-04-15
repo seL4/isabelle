@@ -296,7 +296,7 @@ val _ =
 val _ =
   OuterSyntax.command "hide" "hide names from given name space" K.thy_decl
     ((P.opt_keyword "open" >> not) -- (P.name -- Scan.repeat1 P.xname) >>
-      (Toplevel.theory o uncurry Sign.hide_names));
+      (Toplevel.theory o uncurry IsarCmd.hide_names));
 
 
 (* use ML text *)
