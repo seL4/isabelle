@@ -420,8 +420,8 @@ fun transfer thy' thm =
   let
     val Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop} = thm;
     val thy = Theory.deref thy_ref;
-    val _ = subthy (thy, thy') orelse raise THM ("transfer: not a super theory", 0, [thm]);
-    val is_eq = eq_thy (thy, thy');
+    val _ = Theory.subthy (thy, thy') orelse raise THM ("transfer: not a super theory", 0, [thm]);
+    val is_eq = Theory.eq_thy (thy, thy');
     val _ = Theory.check_thy thy;
   in
     if is_eq then thm

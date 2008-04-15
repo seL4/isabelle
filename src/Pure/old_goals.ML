@@ -175,7 +175,7 @@ fun prepare_proof atomic rths chorn =
             val {hyps, prop, ...} = Thm.rep_thm th
             val final_th = standard th
         in  if not check then final_th
-            else if not (eq_thy(thy,thy')) then !result_error_fn state
+            else if not (Theory.eq_thy(thy,thy')) then !result_error_fn state
                 ("Theory of proof state has changed!" ^
                  thy_error (thy,thy'))
             else if ngoals>0 then !result_error_fn state
@@ -189,7 +189,7 @@ fun prepare_proof atomic rths chorn =
             else  !result_error_fn state "proved a different theorem"
         end
   in
-     if eq_thy(thy, Thm.theory_of_thm st0)
+     if Theory.eq_thy(thy, Thm.theory_of_thm st0)
      then (prems, st0, mkresult)
      else error ("Definitions would change the proof state's theory" ^
                  thy_error (thy, Thm.theory_of_thm st0))

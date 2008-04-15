@@ -135,7 +135,7 @@ fun eq_thm ths =
 
 val eq_thms = eq_list eq_thm;
 
-val eq_thm_thy = eq_thy o pairself Thm.theory_of_thm;
+val eq_thm_thy = Theory.eq_thy o pairself Thm.theory_of_thm;
 val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
 
 
