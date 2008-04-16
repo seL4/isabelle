@@ -17,6 +17,7 @@ sig
     Node of string * parsetree list |
     Tip of Lexicon.token
   val parse: gram -> string -> Lexicon.token list -> parsetree list
+  val guess_infix_lr: gram -> string -> (string * bool * bool * int) option
   val branching_level: int ref
 end;
 
@@ -832,6 +833,20 @@ let val r =
   (case earley prods tags chains start (toks @ [Lexicon.EndToken]) of
     [] => sys_error "parse: no parse trees"
   | pts => pts);
-in r end
+in r end;
+
+
+fun guess_infix_lr (Gram gram) c = (*based on educated guess*)
+  let
+    fun freeze a = map (curry Array.sub a) (0 upto Array.length a - 1);
+    val prods = (maps snd o maps snd o freeze o #prods) gram;
+    fun guess (SOME ([Nonterminal (_, k), Terminal (Token s), Nonterminal (_, l)], _, j)) =
+          if k = j andalso l = j + 1 then SOME (s, true, false, j)
+          else if k = j + 1 then if l = j then SOME (s, false, true, j)
+            else if l = j + 1 then SOME (s, false, false, j)
+            else NONE
+          else NONE
+      | guess _ = NONE;
+  in guess (find_first (fn (_, s, _) => s = c) prods) end;
 
 end;

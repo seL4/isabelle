@@ -141,6 +141,7 @@ sig
   val string_of_sort: Proof.context -> sort -> string
   val string_of_classrel: Proof.context -> class list -> string
   val string_of_arity: Proof.context -> arity -> string
+  val guess_infix: syntax -> string -> mixfix option
   val pp: Proof.context -> Pretty.pp
 end;
 
@@ -832,6 +833,13 @@ fun pp ctxt = Pretty.pp
   fn x => pretty_sort ctxt x,
   fn x => pretty_classrel ctxt x,
   fn x => pretty_arity ctxt x);
+
+(*educated guess for reconstructing infixes*)
+fun guess_infix (Syntax (syn, _)) c = case Parser.guess_infix_lr (#gram syn) c
+ of SOME (s, l, r, j) => SOME (if l then Mixfix.InfixlName (s, j)
+      else if r then Mixfix.InfixrName (s, j)
+      else Mixfix.InfixName (s, j))
+  | NONE => NONE
 
 (*export parts of internal Syntax structures*)
 open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
