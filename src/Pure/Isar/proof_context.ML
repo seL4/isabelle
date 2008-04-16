@@ -95,7 +95,6 @@ sig
   val get_fact_single: Proof.context -> Facts.ref -> thm
   val get_thms: Proof.context -> xstring -> thm list
   val get_thm: Proof.context -> xstring -> thm
-  val valid_thms: Proof.context -> string * thm list -> bool
   val add_path: string -> Proof.context -> Proof.context
   val no_base_names: Proof.context -> Proof.context
   val qualified_names: Proof.context -> Proof.context
@@ -793,14 +792,14 @@ fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) =>
 
 local
 
-fun retrieve_thms _ pick ctxt (Facts.Fact s) =
+fun retrieve_thms pick ctxt (Facts.Fact s) =
       let
         val prop = Syntax.read_prop (set_mode mode_default ctxt) s
           |> singleton (Variable.polymorphic ctxt);
         val th = Goal.prove ctxt [] [] prop (K (ALLGOALS (some_fact_tac ctxt)))
           handle ERROR msg => cat_error msg "Failed to retrieve literal fact.";
       in pick "" [th] end
-  | retrieve_thms from_thy pick ctxt xthmref =
+  | retrieve_thms pick ctxt xthmref =
       let
         val thy = theory_of ctxt;
         val local_facts = facts_of ctxt;
@@ -811,27 +810,18 @@ fun retrieve_thms _ pick ctxt (Facts.Fact s) =
           else
             (case Facts.lookup (Context.Proof ctxt) local_facts name of
               SOME ths => map (Thm.transfer thy) (Facts.select thmref ths)
-            | NONE => from_thy thy xthmref);
+            | NONE => PureThy.get_fact (Context.Proof ctxt) thy xthmref);
       in pick name thms end;
 
 in
 
-val get_fact = retrieve_thms PureThy.get_fact (K I);
-val get_fact_single = retrieve_thms PureThy.get_fact Facts.the_single;
+val get_fact = retrieve_thms (K I);
+val get_fact_single = retrieve_thms Facts.the_single;
 
-fun get_thms_silent ctxt = retrieve_thms PureThy.get_fact_silent (K I) ctxt o Facts.named;
 fun get_thms ctxt = get_fact ctxt o Facts.named;
 fun get_thm ctxt = get_fact_single ctxt o Facts.named;
 
 end;
-
-
-(* valid_thms *)
-
-fun valid_thms ctxt (name, ths) =
-  (case try (fn () => get_thms_silent ctxt name) () of
-    NONE => false
-  | SOME ths' => Thm.eq_thms (ths, ths'));
 
 
 (* name space operations *)
@@ -1041,7 +1031,6 @@ fun gen_assms prepp exp args ctxt =
   in
     ctxt2
     |> auto_bind_facts (flat propss)
-    |> put_thms false (AutoBind.premsN, SOME (Assumption.prems_of ctxt2))
     |> note_thmss_i Thm.assumptionK (map fst args ~~ map (map (fn th => ([th], []))) premss)
   end;
 
