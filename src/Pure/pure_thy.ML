@@ -26,8 +26,7 @@ sig
   val is_internal: thm -> bool
   val intern_fact: theory -> xstring -> string
   val check_fact: theory -> string -> bool
-  val get_fact: theory -> Facts.ref -> thm list
-  val get_fact_silent: theory -> Facts.ref -> thm list
+  val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
   val theorems_of: theory -> thm list NameSpace.table
@@ -164,37 +163,31 @@ fun lookup_thms thy xname =
     val name = NameSpace.intern space xname;
   in Option.map (pair name) (Symtab.lookup thms name) end;
 
-fun lookup_fact thy xname =
+fun lookup_fact context thy xname =
   let val name = intern_fact thy xname
-  in Option.map (pair name) (Facts.lookup (Context.Theory thy) (facts_of thy) name) end;
-
-fun get silent theory thmref =
-  let
-    val name = Facts.name_of_ref thmref;
-    val pos = Facts.pos_of_ref thmref;
-    val new_res = lookup_fact theory name;
-    val old_res = get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory);
-    val _ = Theory.check_thy theory;
-    val is_same =
-      (case (new_res, old_res) of
-        (SOME (_, ths1), SOME (_, ths2)) => Thm.eq_thms (ths1, ths2)
-      | _ => true);
-    val _ =
-      if is_same orelse silent then ()
-      else error ("Fact lookup differs from old-style thm database:\n" ^
-        fst (the new_res) ^ " vs " ^ fst (the old_res) ^ Position.str_of pos);
-  in
-    (case new_res of
-      NONE => error ("Unknown theorem(s) " ^ quote name ^ Position.str_of pos)
-    | SOME (_, ths) => Facts.select thmref (map (Thm.transfer theory) ths))
-  end;
+  in Option.map (pair name) (Facts.lookup context (facts_of thy) name) end;
 
 in
 
-val get_fact_silent = get true;
-val get_fact = get false;
+fun get_fact context theory xthmref =
+  let
+    val xname = Facts.name_of_ref xthmref;
+    val pos = Facts.pos_of_ref xthmref;
+    val new_res = lookup_fact context theory xname;
+    val old_res = get_first (fn thy => lookup_thms thy xname) (theory :: Theory.ancestors_of theory);
+    val _ = Theory.check_thy theory;
+  in
+    (case (new_res, old_res) of
+      (SOME (_, ths1), SOME (_, ths2)) => Thm.eq_thms (ths1, ths2) orelse
+        error ("Fact lookup differs from old-style thm database:\n" ^
+          fst (the new_res) ^ " vs " ^ fst (the old_res) ^ Position.str_of pos)
+    | _ => true);
+    (case new_res of
+      NONE => error ("Unknown fact " ^ quote xname ^ Position.str_of pos)
+    | SOME (_, ths) => Facts.select xthmref (map (Thm.transfer theory) ths))
+  end;
 
-fun get_thms thy = get_fact thy o Facts.named;
+fun get_thms thy = get_fact (Context.Theory thy) thy o Facts.named;
 fun get_thm thy name = Facts.the_single name (get_thms thy name);
 
 end;
@@ -310,7 +303,7 @@ fun gen_note_thmss get tag = fold_map (fn ((bname, more_atts), ths_atts) => fn t
 
 in
 
-fun note_thmss k = gen_note_thmss get_fact (kind k);
+fun note_thmss k = gen_note_thmss (fn thy => get_fact (Context.Theory thy) thy) (kind k);
 fun note_thmss_i k = gen_note_thmss (K I) (kind k);
 fun note_thmss_grouped k g = gen_note_thmss (K I) (kind k #> group g);
 
