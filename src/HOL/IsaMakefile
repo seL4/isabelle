@@ -778,7 +778,7 @@ $(LOG)/TLA-Buffer.gz: $(OUT)/TLA TLA/Buffer/Buffer.thy TLA/Buffer/DBuffer.thy
 
 TLA-Memory: TLA $(LOG)/TLA-Memory.gz
 
-$(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
+$(LOG)/TLA-Memory.gz: $(OUT)/TLA \
   TLA/Memory/MemClerk.thy TLA/Memory/MemClerkParameters.thy \
   TLA/Memory/Memory.thy TLA/Memory/MemoryImplementation.thy \
   TLA/Memory/MemoryParameters.thy TLA/Memory/ProcedureInterface.thy \
