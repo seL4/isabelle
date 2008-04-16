@@ -140,7 +140,7 @@ text {*
 
 (*<*)
 hide const xor
-setup {* Theory.add_path "version1" *}
+setup {* Sign.add_path "version1" *}
 (*>*)
 constdefs
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
@@ -164,7 +164,7 @@ text {*
 
 (*<*)
 hide const xor
-setup {* Theory.add_path "version2" *}
+setup {* Sign.add_path "version2" *}
 (*>*)
 constdefs
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)
