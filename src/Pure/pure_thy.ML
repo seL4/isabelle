@@ -25,7 +25,7 @@ sig
   val has_internal: Markup.property list -> bool
   val is_internal: thm -> bool
   val intern_fact: theory -> xstring -> string
-  val check_fact: theory -> string -> bool
+  val defined_fact: theory -> string -> bool
   val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
@@ -149,7 +149,7 @@ val theorems_of = #theorems o get_theorems;
 val facts_of = #all_facts o get_theorems;
 
 val intern_fact = Facts.intern o facts_of;
-fun check_fact thy name = is_some (Facts.lookup (Context.Theory thy) (facts_of thy) name);
+val defined_fact = Facts.defined o facts_of;
 
 
 
