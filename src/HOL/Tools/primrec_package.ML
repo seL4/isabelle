@@ -10,6 +10,11 @@ signature PRIMREC_PACKAGE =
 sig
   val add_primrec: (string * typ option * mixfix) list ->
     ((bstring * Attrib.src list) * term) list -> local_theory -> thm list * local_theory
+  val add_primrec_global: (string * typ option * mixfix) list ->
+    ((bstring * Attrib.src list) * term) list -> theory -> thm list * theory
+  val add_primrec_overloaded: (string * (string * typ) * bool) list ->
+    (string * typ option * mixfix) list ->
+    ((bstring * Attrib.src list) * term) list -> theory -> thm list * theory
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -267,6 +272,20 @@ val add_primrec = gen_primrec false Specification.check_specification;
 val add_primrec_cmd = gen_primrec true Specification.read_specification;
 
 end;
+
+fun add_primrec_global fixes specs thy =
+  let
+    val lthy = TheoryTarget.init NONE thy;
+    val (simps, lthy') = add_primrec fixes specs lthy;
+    val simps' = ProofContext.export lthy' lthy simps;
+  in (simps', ProofContext.theory_of (LocalTheory.exit lthy')) end;
+
+fun add_primrec_overloaded ops fixes specs thy =
+  let
+    val lthy = TheoryTarget.overloading ops thy;
+    val (simps, lthy') = add_primrec fixes specs lthy;
+    val simps' = ProofContext.export lthy' lthy simps;
+  in (simps', ProofContext.theory_of (LocalTheory.exit lthy')) end;
 
 
 (* outer syntax *)
