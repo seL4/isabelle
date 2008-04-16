@@ -259,7 +259,7 @@ val hide_kinds =
  [("class", (Sign.intern_class, can o Sign.certify_class, Sign.hide_class)),
   ("type", (Sign.intern_type, Sign.declared_tyname, Sign.hide_type)),
   ("const", (Sign.intern_const, Sign.declared_const, Sign.hide_const)),
-  ("fact", (PureThy.intern_fact, PureThy.check_fact, PureThy.hide_fact))];
+  ("fact", (PureThy.intern_fact, PureThy.defined_fact, PureThy.hide_fact))];
 
 fun hide_names b (kind, xnames) thy =
   (case AList.lookup (op =) hide_kinds kind of
@@ -552,9 +552,9 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
   in
     ThmDeps.unused_thms
       (case opt_range of
-         NONE => (NONE, [thy])
-       | SOME (xs, NONE) => (SOME (map ThyInfo.get_theory xs), [thy])
-       | SOME (xs, SOME ys) => (SOME (map ThyInfo.get_theory xs), map ThyInfo.get_theory ys))
+        NONE => (Theory.parents_of thy, [thy])
+      | SOME (xs, NONE) => (map ThyInfo.get_theory xs, [thy])
+      | SOME (xs, SOME ys) => (map ThyInfo.get_theory xs, map ThyInfo.get_theory ys))
     |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
   end);
 
