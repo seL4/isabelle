@@ -301,12 +301,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         end) constrs
       end) descr;
 
-    val (perm_simps, thy2) = thy1 |>
-      Sign.add_consts_i (map (fn (s, T) => (Sign.base_name s, T, NoSyn))
-        (List.drop (perm_names_types, length new_type_names))) |>
+    val (perm_simps, thy2) =
       PrimrecPackage.add_primrec_overloaded
-        (map2 (fn s => fn sT => (s, sT, false)) perm_names' perm_names_types)
-        (map (fn s => (s, NONE, NoSyn)) perm_names') perm_eqs;
+        (map (fn (s, sT) => (s, sT, false))
+           (List.take (perm_names' ~~ perm_names_types, length new_type_names)))
+        (map (fn s => (s, NONE, NoSyn)) perm_names') perm_eqs thy1;
 
     (**** prove that permutation functions introduced by unfolding are ****)
     (**** equivalent to already existing permutation functions         ****)
