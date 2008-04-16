@@ -459,11 +459,13 @@ fun subtract_cls c_clauses ax_clauses =
   end;
 
 fun valid_facts facts =
-  Facts.dest_table facts
-  |> filter_out (fn (name, _) => !run_blacklist_filter andalso is_package_def name)
-  |> map (apfst (Facts.extern facts))
-  |> filter_out (NameSpace.is_hidden o #1)
-  |> map (apsnd (filter_out ResAxioms.bad_for_atp));
+  Facts.fold_static (fn (name, ths) =>
+    if !run_blacklist_filter andalso is_package_def name then I
+    else
+      let val xname = Facts.extern facts name in
+        if NameSpace.is_hidden xname then I
+        else cons (xname, filter_out ResAxioms.bad_for_atp ths)
+      end) facts [];
 
 fun all_valid_thms ctxt =
   let
