@@ -835,11 +835,13 @@ fun pp ctxt = Pretty.pp
   fn x => pretty_arity ctxt x);
 
 (*educated guess for reconstructing infixes*)
-fun guess_infix (Syntax (syn, _)) c = case Parser.guess_infix_lr (#gram syn) c
- of SOME (s, l, r, j) => SOME (if l then Mixfix.InfixlName (s, j)
+fun guess_infix (Syntax ({gram, ...}, _)) c =
+  (case Parser.guess_infix_lr gram c of
+    SOME (s, l, r, j) => SOME
+     (if l then Mixfix.InfixlName (s, j)
       else if r then Mixfix.InfixrName (s, j)
       else Mixfix.InfixName (s, j))
-  | NONE => NONE
+  | NONE => NONE);
 
 (*export parts of internal Syntax structures*)
 open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
@@ -849,11 +851,10 @@ end;
 structure BasicSyntax: BASIC_SYNTAX = Syntax;
 open BasicSyntax;
 
-structure Hidden = struct end;
-structure Ast = Hidden;
-structure SynExt = Hidden;
-structure Parser = Hidden;
-structure TypeExt = Hidden;
-structure SynTrans = Hidden;
-structure Mixfix = Hidden;
-structure Printer = Hidden;
+forget_structure "Ast";
+forget_structure "SynExt";
+forget_structure "Parser";
+forget_structure "TypeExt";
+forget_structure "SynTrans";
+forget_structure "Mixfix";
+forget_structure "Printer";

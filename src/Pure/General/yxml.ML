@@ -101,7 +101,7 @@ fun pop ((("", _), _) :: _) = err_unbalanced ""
 (* parsing *)
 
 fun parse_attrib s =
-  (case String.fields (is_char "=") s of
+  (case space_explode "=" s of
     [] => err_attribute ()
   | "" :: _ => err_attribute ()
   | a :: xs => (a, space_implode "=" xs));
