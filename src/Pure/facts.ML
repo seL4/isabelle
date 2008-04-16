@@ -21,12 +21,13 @@ sig
   val selections: string * thm list -> (ref * thm) list
   type T
   val empty: T
-  val space_of: T -> NameSpace.T
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
   val lookup: Context.generic -> T -> string -> thm list option
-  val dest_table: T -> (string * thm list) list
-  val extern_table: T -> (xstring * thm list) list
+  val defined: T -> string -> bool
+  val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
+  val dest_static: T -> (string * thm list) list
+  val extern_static: T -> (xstring * thm list) list
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
@@ -138,19 +139,19 @@ val table_of = #2 o facts_of;
 val intern = NameSpace.intern o space_of;
 val extern = NameSpace.extern o space_of;
 
+val defined = Symtab.defined o table_of;
+
 fun lookup context facts name =
   (case Symtab.lookup (table_of facts) name of
     NONE => NONE
   | SOME (Static ths, _) => SOME ths
   | SOME (Dynamic f, _) => SOME (f context));
 
-fun dest_table facts =
-  Symtab.fold (fn (name, (Static ths, _)) => cons (name, ths) | _ => I) (table_of facts) [];
+fun fold_static f = Symtab.fold (fn (name, (Static ths, _)) => f (name, ths) | _ => I) o table_of;
 
-fun extern_table facts =
-  dest_table facts
-  |> map (apfst (extern facts))
-  |> sort_wrt #1;
+fun dest_static facts = sort_wrt #1 (fold_static cons facts []);
+fun extern_static facts =
+  sort_wrt #1 (fold_static (fn (name, ths) => cons (extern facts name, ths)) facts []);
 
 
 (* indexed props *)
