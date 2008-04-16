@@ -34,6 +34,32 @@ swap theory imports.
 
 *** Pure ***
 
+* Unused theorems can be found using the new command 'unused_thms'.
+There are three ways of invoking it:
+
+(1) unused_thms
+     Only finds unused theorems in the current theory.
+
+(2) unused_thms thy_1 ... thy_n -
+     Finds unused theorems in the current theory and all of its ancestors,
+     excluding the theories thy_1 ... thy_n and all of their ancestors.
+
+(3) unused_thms thy_1 ... thy_n - thy'_1 ... thy'_m
+     Finds unused theorems in the theories thy'_1 ... thy'_m and all of
+     their ancestors, excluding the theories thy_1 ... thy_n and all of
+     their ancestors.
+
+In order to increase the readability of the list produced by unused_thms,
+theorems that have been created by a particular instance of a theory
+command such as inductive or fun(ction) are considered to belong to the
+same "group", meaning that if at least one theorem in this group is used,
+the other theorems in the same group are no longer reported as unused.
+Moreover, if all theorems in the group are unused, only one theorem in
+the group is displayed.
+Note that proof objects have to be switched on in order for unused_thms
+to work properly (i.e. !proofs must be >= 1, which is usually the case
+when using ProofGeneral with the default settings).
+
 * Authentic naming of facts disallows ad-hoc overwriting of previous
 theorems within the same name space.  INCOMPATIBILITY, need to remove
 duplicate fact bindings, or even accidental fact duplications.  Note
