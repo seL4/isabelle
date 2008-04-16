@@ -264,13 +264,14 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val perm_types = map (fn (i, _) =>
       let val T = nth_dtyp i
       in permT --> T --> T end) descr;
+    val perm_names' = DatatypeProp.indexify_names (map (fn (i, _) =>
+      "perm_" ^ name_of_typ (nth_dtyp i)) descr);
     val perm_names = replicate (length new_type_names) "Nominal.perm" @
-      DatatypeProp.indexify_names (map (fn i => Sign.full_name thy1
-        ("perm_" ^ name_of_typ (nth_dtyp i)))
-          (length new_type_names upto length descr - 1));
+      map (Sign.full_name thy1) (List.drop (perm_names', length new_type_names));
     val perm_names_types = perm_names ~~ perm_types;
+    val perm_names_types' = perm_names' ~~ perm_types;
 
-    val perm_eqs = List.concat (map (fn (i, (_, _, constrs)) =>
+    val perm_eqs = maps (fn (i, (_, _, constrs)) =>
       let val T = nth_dtyp i
       in map (fn (cname, dts) =>
         let
@@ -283,7 +284,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             in if is_rec_type dt then
                 let val (Us, _) = strip_type T
                 in list_abs (map (pair "x") Us,
-                  Const (List.nth (perm_names_types, body_index dt)) $ pi $
+                  Free (nth perm_names_types' (body_index dt)) $ pi $
                     list_comb (x, map (fn (i, U) =>
                       Const ("Nominal.perm", permT --> U --> U) $
                         (Const ("List.rev", permT --> permT) $ pi) $
@@ -292,18 +293,20 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               else Const ("Nominal.perm", permT --> T --> T) $ pi $ x
             end;
         in
-          (("", HOLogic.mk_Trueprop (HOLogic.mk_eq
-            (Const (List.nth (perm_names_types, i)) $
+          (("", []), HOLogic.mk_Trueprop (HOLogic.mk_eq
+            (Free (nth perm_names_types' i) $
                Free ("pi", mk_permT (TFree ("'x", HOLogic.typeS))) $
                list_comb (c, args),
-             list_comb (c, map perm_arg (dts ~~ args))))), [])
+             list_comb (c, map perm_arg (dts ~~ args)))))
         end) constrs
-      end) descr);
+      end) descr;
 
     val (perm_simps, thy2) = thy1 |>
       Sign.add_consts_i (map (fn (s, T) => (Sign.base_name s, T, NoSyn))
         (List.drop (perm_names_types, length new_type_names))) |>
-      OldPrimrecPackage.add_primrec_unchecked_i (big_name ^ "_perm") perm_eqs;
+      PrimrecPackage.add_primrec_overloaded
+        (map2 (fn s => fn sT => (s, sT, false)) perm_names' perm_names_types)
+        (map (fn s => (s, NONE, NoSyn)) perm_names') perm_eqs;
 
     (**** prove that permutation functions introduced by unfolding are ****)
     (**** equivalent to already existing permutation functions         ****)
