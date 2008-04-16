@@ -24,17 +24,17 @@ lemma
   assumes "A & B"
     and "A ==> B ==> C"
   shows C
-apply (rule prems)
+apply (rule assms)
 apply (rule conjunct1)
-apply (rule prems)
+apply (rule assms)
 apply (rule conjunct2)
-apply (rule prems)
+apply (rule assms)
 done
 
 lemma
   assumes "!!A. ~ ~A ==> A"
   shows "B | ~B"
-apply (rule prems)
+apply (rule assms)
 apply (rule notI)
 apply (rule_tac P = "~B" in notE)
 apply (rule_tac [2] notI)
@@ -52,7 +52,7 @@ done
 lemma
   assumes "!!A. ~ ~A ==> A"
   shows "B | ~B"
-apply (rule prems)
+apply (rule assms)
 apply (rule notI)
 apply (rule notE)
 apply (rule_tac [2] notI)
@@ -69,11 +69,11 @@ lemma
     and "~ ~A"
   shows A
 apply (rule disjE)
-apply (rule prems)
+apply (rule assms)
 apply assumption
 apply (rule FalseE)
 apply (rule_tac P = "~A" in notE)
-apply (rule prems)
+apply (rule assms)
 apply assumption
 done
 
@@ -85,7 +85,7 @@ lemma
   shows "ALL z. G(z)|H(z)"
 apply (rule allI)
 apply (rule disjI1)
-apply (rule prems [THEN spec])
+apply (rule assms [THEN spec])
 done
 
 lemma "ALL x. EX y. x=y"
@@ -113,7 +113,7 @@ lemma
   assumes "(EX z. F(z)) & B"
   shows "EX z. F(z) & B"
 apply (rule conjE)
-apply (rule prems)
+apply (rule assms)
 apply (rule exE)
 apply assumption
 apply (rule exI)
