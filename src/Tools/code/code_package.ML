@@ -223,7 +223,7 @@ fun mk_codeprops thy all_cs sel_cs =
         val propdef = (((c, ty), tfree_vars @ map Free vars), t);
       in if c = "" then NONE else SOME (thmref, propdef) end;
   in
-    Facts.dest_table (PureThy.facts_of thy)
+    Facts.dest_static (PureThy.facts_of thy)
     |> maps Facts.selections
     |> map_filter select
     |> map_filter mk_codeprop

@@ -273,8 +273,8 @@ end;
 
 fun all_facts_of ctxt =
   maps Facts.selections
-   (Facts.dest_table (PureThy.facts_of (ProofContext.theory_of ctxt)) @
-    Facts.dest_table (ProofContext.facts_of ctxt));
+   (Facts.dest_static (PureThy.facts_of (ProofContext.theory_of ctxt)) @
+    Facts.dest_static (ProofContext.facts_of ctxt));
 
 val limit = ref 40;
 
