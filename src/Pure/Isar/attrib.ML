@@ -107,8 +107,8 @@ fun attribute_i thy =
 fun attribute thy = attribute_i thy o intern_src thy;
 
 fun eval_thms ctxt args = ProofContext.note_thmss Thm.theoremK
-  [(("", []), map (apsnd (map (attribute (ProofContext.theory_of ctxt)))) args)] ctxt
-  |> (flat o map snd o fst);
+    [(("", []), map (apsnd (map (attribute (ProofContext.theory_of ctxt)))) args)] ctxt
+  |> fst |> maps snd;
 
 
 (* attributed declarations *)
@@ -162,7 +162,7 @@ val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
 fun gen_thm pick = Scan.depend (fn context =>
   let
     val thy = Context.theory_of context;
-    val get = Context.cases PureThy.get_fact ProofContext.get_fact context;
+    val get = Context.cases (PureThy.get_fact context) ProofContext.get_fact context;
     val get_fact = get o Facts.Fact;
     val get_named = get o Facts.named;
   in
