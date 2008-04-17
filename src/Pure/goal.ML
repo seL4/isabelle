@@ -25,7 +25,8 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
   val prove: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
-  val prove_global: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
+  val prove_global: theory -> string list -> term list -> term ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val extract: int -> int -> thm -> thm Seq.seq
   val retrofit: int -> int -> thm -> thm -> thm Seq.seq
   val conjunction_tac: int -> tactic
@@ -120,7 +121,8 @@ fun prove_multi ctxt xs asms props tac =
     val (prems, ctxt') = ctxt
       |> Variable.add_fixes_direct xs
       |> fold Variable.declare_internal (asms @ props)
-      |> Assumption.add_assumes casms;
+      |> Assumption.add_assumes casms
+      ||> Variable.set_body true;
 
     val goal = init (Conjunction.mk_conjunction_balanced cprops);
     val res =
@@ -144,7 +146,7 @@ fun prove_multi ctxt xs asms props tac =
 fun prove ctxt xs asms prop tac = hd (prove_multi ctxt xs asms [prop] tac);
 
 fun prove_global thy xs asms prop tac =
-  Drule.standard (prove (ProofContext.init thy) xs asms prop (fn {prems, ...} => tac prems));
+  Drule.standard (prove (ProofContext.init thy) xs asms prop tac);
 
 
 
