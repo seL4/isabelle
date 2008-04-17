@@ -28,7 +28,6 @@ sig
   val default_indent: string -> int -> output
   val add_mode: string -> (string -> int -> output) -> unit
   type T
-  val raw_str: output * int -> T
   val str: string -> T
   val brk: int -> T
   val fbrk: T
@@ -38,6 +37,7 @@ sig
   val block: T list -> T
   val strs: string list -> T
   val markup: Markup.T -> T list -> T
+  val mark: Markup.T -> T -> T
   val keyword: string -> T
   val command: string -> T
   val markup_chunks: Markup.T -> T list -> T
@@ -118,7 +118,6 @@ fun length (Block (_, _, _, len)) = len
 
 (** derived operations to create formatting expressions **)
 
-val raw_str = String;
 val str = String o Output.output_width;
 
 fun brk wd = Break (false, wd);
@@ -138,8 +137,9 @@ fun block prts = blk (2, prts);
 val strs = block o breaks o map str;
 
 fun markup m prts = markup_block m (0, prts);
-fun keyword name = markup (Markup.keyword name) [str name];
-fun command name = markup (Markup.command name) [str name];
+fun mark m prt = markup m [prt];
+fun keyword name = mark (Markup.keyword name) (str name);
+fun command name = mark (Markup.command name) (str name);
 
 fun markup_chunks m prts = markup m (fbreaks prts);
 val chunks = markup_chunks Markup.none;
