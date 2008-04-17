@@ -32,6 +32,7 @@ sig
   val fbreakN: string val fbreak: T
   val classN: string val class: string -> T
   val tyconN: string val tycon: string -> T
+  val fixedN: string val fixed: string -> T
   val constN: string val const: string -> T
   val axiomN: string val axiom: string -> T
   val tfreeN: string val tfree: T
@@ -132,6 +133,7 @@ val (fbreakN, fbreak) = markup_elem "fbreak";
 
 val (classN, class) = markup_string "class" nameN;
 val (tyconN, tycon) = markup_string "tycon" nameN;
+val (fixedN, fixed) = markup_string "fixed" nameN;
 val (constN, const) = markup_string "const" nameN;
 val (axiomN, axiom) = markup_string "axiom" nameN;
 
