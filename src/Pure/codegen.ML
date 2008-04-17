@@ -1018,7 +1018,7 @@ fun test_goal' int state =
           NONE => state
         | SOME NONE => state
         | SOME cex => Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
-            Pretty.markup Markup.hilite [pretty_counterex ctxt cex]]) state
+            Pretty.mark Markup.hilite (pretty_counterex ctxt cex)]) state
       end handle TimeLimit.TimeOut => (warning "Auto quickcheck: timeout."; state);
   in
     if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)

@@ -43,12 +43,12 @@ structure P = OuterParse;
 (* diagnostics *)
 
 fun report_keyword name =
-  Pretty.markup (Markup.keyword_decl name)
-    [Pretty.str ("Outer syntax keyword: " ^ quote name)];
+  Pretty.mark (Markup.keyword_decl name)
+    (Pretty.str ("Outer syntax keyword: " ^ quote name));
 
 fun report_command name kind =
-  Pretty.markup (Markup.command_decl name kind)
-    [Pretty.str ("Outer syntax command: " ^ quote name ^ " (" ^ kind ^ ")")];
+  Pretty.mark (Markup.command_decl name kind)
+    (Pretty.str ("Outer syntax command: " ^ quote name ^ " (" ^ kind ^ ")"));
 
 
 (* parsers *)
