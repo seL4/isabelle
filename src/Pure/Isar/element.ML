@@ -238,8 +238,7 @@ fun obtain prop ctxt =
   let
     val ((xs, prop'), ctxt') = Variable.focus prop ctxt;
     val As = Logic.strip_imp_prems (Thm.term_of prop');
-    fun var (x, T) = (ProofContext.revert_skolem ctxt' x, SOME T);
-  in (("", (map (var o Term.dest_Free o Thm.term_of) xs, As)), ctxt') end;
+  in (("", (map (apsnd SOME o Term.dest_Free o Thm.term_of) xs, As)), ctxt') end;
 
 in
 
@@ -251,23 +250,23 @@ fun pretty_statement ctxt kind raw_th =
     val th = MetaSimplifier.norm_hhf raw_th;
     val is_elim = ObjectLogic.is_elim th;
 
-    val ((_, [th']), ctxt') = Variable.import_thms true [th] ctxt;
+    val ((_, [th']), ctxt') = Variable.import_thms true [th] (Variable.set_body false ctxt);
     val prop = Thm.prop_of th';
     val (prems, concl) = Logic.strip_horn prop;
     val concl_term = ObjectLogic.drop_judgment thy concl;
 
     val fixes = fold_aterms (fn v as Free (x, T) =>
         if Variable.newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)
-        then insert (op =) (x, T) else I | _ => I) prop []
-      |> rev |> map (apfst (ProofContext.revert_skolem ctxt'));
+        then insert (op =) (x, T) else I | _ => I) prop [] |> rev;
     val (assumes, cases) = take_suffix (fn prem =>
       is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
   in
     pretty_ctxt ctxt' (Fixes (map (fn (x, T) => (x, SOME T, NoSyn)) fixes)) @
     pretty_ctxt ctxt' (Assumes (map (fn t => (("", []), [(t, [])])) assumes)) @
-    pretty_stmt ctxt'
-     (if null cases then Shows [(("", []), [(concl, [])])]
-      else Obtains (#1 (fold_map (obtain o cert) cases ctxt')))
+     (if null cases then pretty_stmt ctxt' (Shows [(("", []), [(concl, [])])])
+      else
+        let val (clauses, ctxt'') = fold_map (obtain o cert) cases ctxt'
+        in pretty_stmt ctxt'' (Obtains clauses) end)
   end |> thm_name kind raw_th;
 
 end;
