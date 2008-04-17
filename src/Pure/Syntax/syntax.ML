@@ -45,7 +45,8 @@ sig
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> ast list -> ast) * stamp)) list -> syntax -> syntax
-  val extend_tokentrfuns: (string * string * (string -> output * int)) list -> syntax -> syntax
+  val extend_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list ->
+    syntax -> syntax
   val update_const_gram: (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
   val remove_const_gram: (string -> bool) ->
@@ -239,7 +240,7 @@ datatype syntax =
     print_trtab: ((Proof.context -> bool -> typ -> term list -> term) * stamp) list Symtab.table,
     print_ruletab: ruletab,
     print_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
-    tokentrtab: (string * (string * ((string -> output * int) * stamp)) list) list,
+    tokentrtab: (string * (string * ((Proof.context -> string -> Pretty.T) * stamp)) list) list,
     prtabs: Printer.prtabs} * stamp;
 
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;

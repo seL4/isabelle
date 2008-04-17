@@ -186,7 +186,7 @@ fun typed_print_translation (a, (txt, pos)) =
 
 fun token_translation (txt, pos) =
   txt |> ML_Context.expression pos
-    "val token_translation: (string * string * (string -> output * int)) list"
+    "val token_translation: (string * string * (Proof.context -> string -> Pretty.T)) list"
       "Context.map_theory (Sign.add_tokentrfuns token_translation)"
   |> Context.theory_map;
 
@@ -602,17 +602,19 @@ fun string_of_prop state s =
   let
     val ctxt = Proof.context_of state;
     val prop = Syntax.read_prop ctxt s;
-  in Pretty.string_of (Pretty.quote (Syntax.pretty_term ctxt prop)) end;
+    val ctxt' = Variable.auto_fixes prop ctxt;
+  in Pretty.string_of (Pretty.quote (Syntax.pretty_term ctxt' prop)) end;
 
 fun string_of_term state s =
   let
     val ctxt = Proof.context_of state;
     val t = Syntax.read_term ctxt s;
     val T = Term.type_of t;
+    val ctxt' = Variable.auto_fixes t ctxt;
   in
     Pretty.string_of
-      (Pretty.block [Pretty.quote (Syntax.pretty_term ctxt t), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt T)])
+      (Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' T)])
   end;
 
 fun string_of_type state s =
