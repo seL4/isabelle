@@ -83,7 +83,9 @@ fun unused_thms (base_thys, thys) =
     fun add_fact (name, ths) =
       if exists (fn thy => PureThy.defined_fact thy name) base_thys then I
       else fold_rev (fn th => (case Thm.get_name th of "" => I | a => cons (a, th))) ths;
-    val thms = sort_wrt #1 (fold (Facts.fold_static add_fact o PureThy.facts_of) thys []);
+    val thms =
+      fold (Facts.fold_static add_fact o PureThy.facts_of) thys []
+      |> sort_distinct (string_ord o pairself #1);
     val tab = fold Proofterm.thms_of_proof
       (map (Proofterm.strip_thm o Thm.proof_of o snd) thms) Symtab.empty;
     fun is_unused (name, th) = case Symtab.lookup tab name of
