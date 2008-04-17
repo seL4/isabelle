@@ -49,7 +49,6 @@ sig
   val cert_typ_abbrev: Proof.context -> typ -> typ
   val get_skolem: Proof.context -> string -> string
   val revert_skolem: Proof.context -> string -> string
-  val revert_skolems: Proof.context -> term -> term
   val infer_type: Proof.context -> string -> typ
   val inferred_param: string -> Proof.context -> (string * typ) * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
@@ -347,37 +346,21 @@ fun no_skolem internal x =
   else x;
 
 
-(* revert Skolem constants -- approximation only! *)
+(* revert Skolem constants -- if possible *)
 
-fun revert_skolem ctxt =
-  let
-    val rev_fixes = map Library.swap (Variable.fixes_of ctxt);
-    val revert = AList.lookup (op =) rev_fixes;
-  in
-    fn x =>
-      (case revert x of
-        SOME x' => x'
-      | NONE => perhaps (try Name.dest_skolem) x)
-   end;
-
-fun revert_skolems ctxt =
-  let
-    val revert = revert_skolem ctxt;
-    fun reverts (Free (x, T)) = Free (revert x, T)
-      | reverts (t $ u) = reverts t $ reverts u
-      | reverts (Abs (x, T, t)) = Abs (x, T, reverts t)
-      | reverts a = a;
-  in reverts end;
+fun revert_skolem ctxt x =
+  (case find_first (fn (_, y) => y = x) (Variable.fixes_of ctxt) of
+    SOME (x', _) => if lookup_skolem ctxt x' = SOME x then x' else x
+  | NONE => x);
 
 
 (* default token translations *)
 
 local
 
-fun free_or_skolem ctxt x =   (* FIXME revert skolem *)
-  (case try Name.dest_skolem x of
-    NONE => Pretty.mark Markup.free (Pretty.str x)
-  | SOME x' => Pretty.mark Markup.skolem (Pretty.str x'))
+fun free_or_skolem ctxt x =
+  (if can Name.dest_skolem x then Pretty.mark Markup.skolem (Pretty.str (revert_skolem ctxt x))
+   else Pretty.mark Markup.free (Pretty.str x))
   |> Pretty.mark (if Variable.is_fixed ctxt x then Markup.fixed x else Markup.hilite);
 
 fun var_or_skolem _ s =
