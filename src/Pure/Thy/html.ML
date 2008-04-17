@@ -203,13 +203,11 @@ local
     ("\\<^bsup>", (0, "<sup>")),
     ("\\<^esup>", (0, "</sup>"))];
 
-  val escape = fn "<" => "&lt;" | ">" => "&gt;" | "&" => "&amp;" | c => c;
-
   fun output_sym s =
     if Symbol.is_raw s then (1, Symbol.decode_raw s)
     else
       (case Symtab.lookup html_syms s of SOME x => x
-      | NONE => (size s, translate_string escape s));
+      | NONE => (size s, XML.text s));
 
   fun output_sub s = apsnd (enclose "<sub>" "</sub>") (output_sym s);
   fun output_sup s = apsnd (enclose "<sup>" "</sup>") (output_sym s);
@@ -235,40 +233,17 @@ fun output_width str =
 val output = #1 o output_width;
 val output_symbols = map #2 o output_syms;
 
+val _ = Output.add_mode htmlN output_width Symbol.encode_raw;
+
 end;
 
 
-(* markup and token translations *)
+(* common markup *)
 
-fun span s = ("<span class=" ^ Library.quote s ^ ">", "</span>");
+fun span s = ("<span class=" ^ Library.quote (XML.text s) ^ ">", "</span>");
 
-fun style s = apfst (span s |-> enclose) o output_width;
-
-fun free_or_skolem x =
-  (case try Name.dest_skolem x of
-    NONE => style "free" x
-  | SOME x' => style "skolem" x');
-
-fun var_or_skolem s =
-  (case Lexicon.read_variable s of
-    SOME (x, i) =>
-      (case try Name.dest_skolem x of
-        NONE => style "var" s
-      | SOME x' => style "skolem"
-          (setmp show_question_marks true Term.string_of_vname (x', i)))
-  | NONE => style "var" s);
-
-val html_trans =
- [("class", style "tclass"),
-  ("tfree", style "tfree"),
-  ("tvar",  style "tvar"),
-  ("free",  free_or_skolem),
-  ("bound", style "bound"),
-  ("var",   var_or_skolem),
-  ("xstr",  style "xstr")];
-
-val _ = Context.>> (Context.map_theory
-  (Sign.add_mode_tokentrfuns htmlN html_trans));
+val _ = Markup.add_mode htmlN (fn (name, props) =>
+  if name = Markup.classN then span "tclass" else span name);
 
 
 
@@ -451,11 +426,5 @@ fun chapter heading = "\n\n<h1>" ^ plain heading ^ "</h1>\n";
 fun section heading = "\n\n<h2>" ^ plain heading ^ "</h2>\n";
 fun subsection heading = "\n\n<h3>" ^ plain heading ^ "</h3>\n";
 fun subsubsection heading = "\n\n<h4>" ^ plain heading ^ "</h4>\n";
-
-
-(* mode output *)
-
-val _ = Output.add_mode htmlN output_width Symbol.encode_raw;
-val _ = Markup.add_mode htmlN (span o #1);
 
 end;
