@@ -391,7 +391,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
           (fn (_, _ $ P, _ $ Q) => HOLogic.mk_imp (P, Q)) rlzs'));
         val rews = map mk_meta_eq
           (fst_conv :: snd_conv :: get #rec_thms dt_info);
-        val thm = Goal.prove_global thy [] prems concl (fn prems => EVERY
+        val thm = Goal.prove_global thy [] prems concl (fn {prems, ...} => EVERY
           [rtac (#raw_induct ind_info) 1,
            rewrite_goals_tac rews,
            REPEAT ((resolve_tac prems THEN_ALL_NEW EVERY'
@@ -450,7 +450,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         val rlz' = strip_all (Logic.unvarify rlz);
         val rews = map mk_meta_eq case_thms;
         val thm = Goal.prove_global thy []
-          (Logic.strip_imp_prems rlz') (Logic.strip_imp_concl rlz') (fn prems => EVERY
+          (Logic.strip_imp_prems rlz') (Logic.strip_imp_concl rlz') (fn {prems, ...} => EVERY
           [cut_facts_tac [hd prems] 1,
            etac elimR 1,
            ALLGOALS (asm_simp_tac HOL_basic_ss),

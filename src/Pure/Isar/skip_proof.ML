@@ -12,7 +12,7 @@ sig
   val prove: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_global: theory -> string list -> term list -> term ->
-    (thm list -> tactic) -> thm
+    ({prems: thm list, context: Proof.context} -> tactic) -> thm
 end;
 
 structure SkipProof: SKIP_PROOF =
@@ -45,6 +45,6 @@ fun prove ctxt xs asms prop tac =
     else tac args st);
 
 fun prove_global thy xs asms prop tac =
-  Drule.standard (prove (ProofContext.init thy) xs asms prop (fn {prems, ...} => tac prems));
+  Drule.standard (prove (ProofContext.init thy) xs asms prop tac);
 
 end;

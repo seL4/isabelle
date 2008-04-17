@@ -311,8 +311,7 @@ fun prove_strong_ind s avoids thy =
       in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
 
     fun mk_ind_proof thy thss =
-      let val ctxt = ProofContext.init thy
-      in Goal.prove_global thy [] prems' concl' (fn ihyps =>
+      Goal.prove_global thy [] prems' concl' (fn {prems = ihyps, context = ctxt} =>
         let val th = Goal.prove ctxt [] [] concl (fn {context, ...} =>
           rtac raw_induct 1 THEN
           EVERY (maps (fn ((((_, bvars, oprems, _), vc_compat_ths), ihyp), (vs, ihypt)) =>
@@ -404,8 +403,7 @@ fun prove_strong_ind s avoids thy =
           REPEAT (REPEAT (resolve_tac [conjI, impI] 1) THEN
             etac impE 1 THEN atac 1 THEN REPEAT (etac allE_Nil 1) THEN
             asm_full_simp_tac (simpset_of thy) 1)
-        end)
-      end;
+        end);
 
     (** strong case analysis rule **)
 
@@ -460,8 +458,8 @@ fun prove_strong_ind s avoids thy =
 
     fun mk_cases_proof thy ((((name, thss), elim), (prem, args, concl, prems)),
         prems') =
-      let val ctxt1 = ProofContext.init thy
-      in (name, Goal.prove_global thy [] (prem :: prems') concl (fn hyp :: hyps =>
+      (name, Goal.prove_global thy [] (prem :: prems') concl
+        (fn {prems = hyp :: hyps, context = ctxt1} =>
         EVERY (rtac (hyp RS elim) 1 ::
           map (fn (((_, vc_compat_ths), case_hyp), (_, qs, is, _)) =>
             SUBPROOF (fn {prems = case_hyps, params, context = ctxt2, concl, ...} =>
@@ -534,7 +532,6 @@ fun prove_strong_ind s avoids thy =
                   val final = ProofContext.export ctxt3 ctxt2 [th]
                 in resolve_tac final 1 end) ctxt1 1)
                   (thss ~~ hyps ~~ prems))))
-      end
 
   in
     thy |>

@@ -84,7 +84,7 @@ fun pg'' thy defs t tacs =
     val t' = legacy_infer_term thy t;
     val asms = Logic.strip_imp_prems t';
     val prop = Logic.strip_imp_concl t';
-    fun tac prems =
+    fun tac {prems, context} =
       rewrite_goals_tac defs THEN
       EVERY (tacs (map (rewrite_rule defs) prems));
   in Goal.prove_global thy [] asms prop tac end;

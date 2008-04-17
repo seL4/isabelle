@@ -71,7 +71,7 @@ fun prove_casedist_thms new_type_names descr sorts induct case_names_exhausts th
 
       in
         SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
-          (fn prems => EVERY
+          (fn {prems, ...} => EVERY
             [rtac induct' 1,
              REPEAT (rtac TrueI 1),
              REPEAT ((rtac impI 1) THEN (eresolve_tac prems 1)),
@@ -383,7 +383,7 @@ fun prove_weak_case_congs new_type_names descr sorts thy =
   let
     fun prove_weak_case_cong t =
        SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
-         (fn prems => EVERY [rtac ((hd prems) RS arg_cong) 1])
+         (fn {prems, ...} => EVERY [rtac ((hd prems) RS arg_cong) 1])
 
     val weak_case_congs = map prove_weak_case_cong (DatatypeProp.make_weak_case_congs
       new_type_names descr sorts thy)
@@ -426,7 +426,7 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
           [(cert (hd (add_term_vars (concl_of nchotomy', []))), cert Ma)] nchotomy'
       in
         SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
-          (fn prems => 
+          (fn {prems, ...} => 
             let val simplify = asm_simp_tac (HOL_ss addsimps (prems @ case_rewrites))
             in EVERY [simp_tac (HOL_ss addsimps [hd prems]) 1,
                 cut_facts_tac [nchotomy''] 1,

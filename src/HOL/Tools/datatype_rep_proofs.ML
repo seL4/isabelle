@@ -607,7 +607,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val dt_induct_prop = DatatypeProp.make_ind descr sorts;
     val dt_induct = SkipProof.prove_global thy6 []
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
-      (fn prems => EVERY
+      (fn {prems, ...} => EVERY
         [rtac indrule_lemma' 1,
          (indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY

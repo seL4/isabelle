@@ -1049,7 +1049,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val dt_induct_prop = DatatypeProp.make_ind descr' sorts';
     val dt_induct = Goal.prove_global thy8 []
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
-      (fn prems => EVERY
+      (fn {prems, ...} => EVERY
         [rtac indrule_lemma' 1,
          (indtac rep_induct [] THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
@@ -1270,7 +1270,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val _ = warning "proving strong induction theorem ...";
 
-    val induct_aux = Goal.prove_global thy9 [] ind_prems' ind_concl' (fn prems =>
+    val induct_aux = Goal.prove_global thy9 [] ind_prems' ind_concl' (fn {prems, context} =>
       let
         val (prems1, prems2) = chop (length dt_atomTs) prems;
         val ind_ss2 = HOL_ss addsimps
@@ -1283,7 +1283,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           fin_set_fresh @ calc_atm;
         val ind_ss5 = HOL_basic_ss addsimps pt1_atoms;
         val ind_ss6 = HOL_basic_ss addsimps flat perm_simps';
-        val th = Goal.prove (ProofContext.init thy9) [] [] aux_ind_concl
+        val th = Goal.prove context [] [] aux_ind_concl
           (fn {context = context1, ...} =>
              EVERY (indtac dt_induct tnames 1 ::
                maps (fn ((_, (_, _, constrs)), (_, constrs')) =>
@@ -1369,7 +1369,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         end) fresh_fs) induct_aux;
 
     val induct = Goal.prove_global thy9 [] ind_prems ind_concl
-      (fn prems => EVERY
+      (fn {prems, ...} => EVERY
          [rtac induct_aux' 1,
           REPEAT (resolve_tac fs_atoms 1),
           REPEAT ((resolve_tac prems THEN_ALL_NEW
@@ -1552,7 +1552,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                    HOLogic.mk_imp (R $ x $ y,
                      finite $ (Const ("Nominal.supp", U --> aset) $ y))
                  end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ (1 upto length recTs)))))
-            (fn fins => (rtac rec_induct THEN_ALL_NEW cut_facts_tac fins) 1 THEN REPEAT
+            (fn {prems = fins, ...} =>
+              (rtac rec_induct THEN_ALL_NEW cut_facts_tac fins) 1 THEN REPEAT
                (NominalPermeq.finite_guess_tac (HOL_ss addsimps [fs_name]) 1))))
       end) dt_atomTs;
 
@@ -1992,7 +1993,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (resolve_tac prems THEN_ALL_NEW atac)
       in
         Goal.prove_global thy12 [] prems' concl'
-          (fn prems => EVERY
+          (fn {prems, ...} => EVERY
             [rewrite_goals_tac reccomb_defs,
              rtac the1_equality 1,
              solve rec_unique_thms prems 1,
