@@ -263,8 +263,10 @@ val elim_format = no_args (Thm.rule_attribute (K Tactic.make_elim));
 
 val standard = no_args (Thm.rule_attribute (K Drule.standard));
 
-val no_vars = no_args (Thm.rule_attribute (fn ctxt => fn th =>
-  let val ((_, [th']), _) = Variable.import_thms true [th] (Context.proof_of ctxt)
+val no_vars = no_args (Thm.rule_attribute (fn context => fn th =>
+  let
+    val ctxt = Variable.set_body false (Context.proof_of context);
+    val ((_, [th']), _) = Variable.import_thms true [th] ctxt;
   in th' end));
 
 val eta_long =
