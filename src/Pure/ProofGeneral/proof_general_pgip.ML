@@ -44,7 +44,7 @@ fun xsym_output "\\" = "\\\\"
 fun pgml_sym s =
   (case Symbol.decode s of
     Symbol.Char s => XML.text s
-  | Symbol.Sym sn => 
+  | Symbol.Sym sn =>
     let val ascii = implode (map xsym_output (Symbol.explode s))
     in if !pgmlsymbols_flag then XML.element "sym" [("name", sn)] [XML.text ascii]
        else  ascii end
@@ -59,53 +59,6 @@ in
 
 fun setup_proofgeneral_output () =
   Output.add_mode proof_generalN pgml_output Symbol.encode_raw;
-
-end;
-
-
-(* token translations *)
-
-local
-
-val class_tag = "class"
-val tfree_tag = "tfree"
-val tvar_tag = "tvar"
-val free_tag = "free"
-val bound_tag = "bound"
-val var_tag = "var"
-val skolem_tag = "skolem"
-
-fun xml_atom kind x = XML.element "atom" [("kind", kind)] [XML.text x];
-
-fun tagit kind x =
-  (xml_atom kind x, Symbol.length (Symbol.explode x));
-
-fun free_or_skolem x =
-  (case try Name.dest_skolem x of
-    NONE => tagit free_tag x
-  | SOME x' => tagit skolem_tag x');
-
-fun var_or_skolem s =
-  (case Lexicon.read_variable s of
-    SOME (x, i) =>
-      (case try Name.dest_skolem x of
-        NONE => tagit var_tag s
-      | SOME x' => tagit skolem_tag
-          (setmp show_question_marks true Term.string_of_vname (x', i)))
-  | NONE => tagit var_tag s);
-
-val proof_general_trans =
- Syntax.tokentrans_mode proof_generalN
-  [("class", tagit class_tag),
-   ("tfree", tagit tfree_tag),
-   ("tvar", tagit tvar_tag),
-   ("free", free_or_skolem),
-   ("bound", tagit bound_tag),
-   ("var", var_or_skolem)];
-
-in
-
-val _ = Context.>> (Context.map_theory (Sign.add_tokentrfuns proof_general_trans));
 
 end;
 
@@ -146,10 +99,10 @@ fun output_xml s = (!output_xml_fn) (XML.string_of s);  (* TODO: string buffer *
 val output_pgips =
   XML.string_of o PgipOutput.output o assemble_pgips o map PgipOutput.output;
 
-val output_pgmlterm = 
+val output_pgmlterm =
   XML.string_of o Pgml.pgmlterm_to_xml;
 
-val output_pgmltext = 
+val output_pgmltext =
   XML.string_of o Pgml.pgml_to_xml;
 
 
@@ -179,10 +132,10 @@ local
             delayed_msgs := pgip :: ! delayed_msgs
         else issue_pgip pgip
 
-    fun wrap_pgml area s = 
-        if String.isPrefix "<pgml" s then  
+    fun wrap_pgml area s =
+        if String.isPrefix "<pgml" s then
             XML.Output s  (* already pgml outermost *)
-        else 
+        else
             Pgml.pgml_to_xml (pgml area [Pgml.Raw (XML.Output s)]) (* mixed *)
 
 in
@@ -242,9 +195,9 @@ fun log_msg s = errormsg Message Log s;
 
 (* immediate messages *)
 
-fun tell_clear_goals () = 
+fun tell_clear_goals () =
     issue_pgip (Normalresponse { content = [Pgml.pgml_to_xml (pgml Display [])] })
-fun tell_clear_response () = 
+fun tell_clear_response () =
     issue_pgip (Normalresponse { content = [Pgml.pgml_to_xml (pgml Message [])] })
 
 fun tell_file_loaded completed path   =
@@ -273,46 +226,39 @@ fun split_markup text =
 
 
 fun block_markup markup =
-    let 
-      val pgml = Pgml.Box { orient = NONE, 
+    let
+      val pgml = Pgml.Box { orient = NONE,
                             indent = Markup.get_int markup Markup.indentN,
                             content = pgmlterms_no_text }
     in split_markup (output_pgmlterm pgml) end;
 
 fun break_markup markup =
-    let 
+    let
       val pgml = Pgml.Break { mandatory = NONE,
                               indent = Markup.get_int markup Markup.widthN }
     in (output_pgmlterm pgml, "") end;
 
 fun fbreak_markup markup =
-    let 
+    let
       val pgml = Pgml.Break { mandatory = SOME true, indent = NONE }
     in (output_pgmlterm pgml, "") end;
 
 val state_markup =
     split_markup (output_pgmltext (pgml PgipTypes.Display pgmlterms_no_text))
 
-fun proof_general_markup (markup as (name, _)) =
-        if name = Markup.blockN    then block_markup markup
-   else if name = Markup.breakN    then break_markup markup
-   else if name = Markup.fbreakN   then fbreak_markup markup
-(* else if name = Markup.classN    then class_markup markup
-   else if name = Markup.tyconN    then tycon_markup markup
-   else if name = Markup.constN    then const_markup markup
-   else if name = Markup.axiomN    then axiom_markup markup
-   else if name = Markup.sortN     then sort_markup markup
-   else if name = Markup.typN      then typ_markup markup
-   else if name = Markup.termN     then term_markup markup
-   else if name = Markup.keywordN  then keyword_markup markup
-   else if name = Markup.commandN  then command_markup markup*)
-   else if name = Markup.stateN    then state_markup
-(* else if name = Markup.subgoalN  then subgoal_markup () *)
-   else ("", "");
+val token_markups =
+ [Markup.classN, Markup.tfreeN, Markup.tvarN, Markup.freeN,
+  Markup.boundN, Markup.varN, Markup.skolemN];
 
 in
 
-val _ = Markup.add_mode proof_generalN proof_general_markup;
+val _ = Markup.add_mode proof_generalN (fn (markup as (name, _)) =>
+   if name = Markup.blockN then block_markup markup
+   else if name = Markup.breakN then break_markup markup
+   else if name = Markup.fbreakN then fbreak_markup markup
+   else if name = Markup.stateN then state_markup
+   else if member (op =) token_markups name then XML.output_markup ("atom", [("kind", name)])
+   else ("", ""));
 
 end;
 
@@ -562,13 +508,13 @@ fun proverinit _ = restart ()
 
 fun proverexit _ = isarcmd "quit"
 
-fun set_proverflag_quiet b = 
+fun set_proverflag_quiet b =
     isarcmd (if b then "disable_pr" else "enable_pr")
 
 fun set_proverflag_pgmlsymbols b =
     (pgmlsymbols_flag := b;
       NAMED_CRITICAL "print_mode" (fn () =>
-        change print_mode 
+        change print_mode
             (fn mode =>
                 remove (op =) Symbol.xsymbolsN mode @ (if b then [Symbol.xsymbolsN] else []))))
 
@@ -577,17 +523,17 @@ fun set_proverflag_thmdeps b =
      Proofterm.proofs := (if b then 1 else 2))
 
 fun setproverflag (Setproverflag vs) =
-    let 
+    let
         val flagname = #flagname vs
         val value = #value vs
     in
         (case flagname of
              "quiet"            => set_proverflag_quiet value
            | "pgmlsymbols"      => set_proverflag_pgmlsymbols value
-           | "metainfo:thmdeps" => set_proverflag_thmdeps value 
-           | _ => log_msg ("Unrecognised prover control flag: " ^ 
+           | "metainfo:thmdeps" => set_proverflag_thmdeps value
+           | _ => log_msg ("Unrecognised prover control flag: " ^
                            (quote flagname) ^ " ignored."))
-    end 
+    end
 
 
 fun dostep (Dostep vs) =
@@ -643,13 +589,13 @@ fun askids (Askids vs) =
                | SOME prf => filter (String.isPrefix (unprefix (prf ^ NameSpace.separator) thy))
                                     (thms_of_thy prf))
        val qualified_thms_of_thy = (* for global query with single response *)
-            (map fst) o NameSpace.dest_table o PureThy.theorems_of o ThyInfo.get_theory; 
+            (map fst) o NameSpace.dest_table o PureThy.theorems_of o ThyInfo.get_theory;
 (* da: this version is equivalent to my previous, but splits up theorem sets with names
    that I can't get to access later with get_thm.  Anyway, would rather use sets.
    Is above right way to get qualified names in that case?  Filtering required again?
             map PureThy.get_name_hint o filter PureThy.has_name_hint o
               map snd o PureThy.thms_of o ThyInfo.get_theory; *)
-    in 
+    in
         case (thyname,objtype) of
            (NONE, NONE) =>
            setids (idtable ObjFile NONE (ThyInfo.get_names())) (*FIXME: uris*)
@@ -743,11 +689,11 @@ fun showid (Showid vs) =
                    (thy::(rest as _::_)) => (ThyInfo.get_theory thy, space_implode "." rest)
                  | [plainid] => (topthy(),plainid)
                  | _ => raise Toplevel.UNDEF (* assert false *)
-            end 
-                                            
+            end
+
 
         fun idvalue strings =
-            issue_pgip (Idvalue { thyname=thyname, objtype=objtype, name=name, 
+            issue_pgip (Idvalue { thyname=thyname, objtype=objtype, name=name,
                                   text=[XML.Elem("pgml",[],
                                                  map XML.Output strings)] })
 
@@ -1169,3 +1115,4 @@ fun process_pgip str =
 end
 
 end;
+

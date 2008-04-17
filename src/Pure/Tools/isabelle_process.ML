@@ -112,43 +112,6 @@ fun setup_channels () =
   Output.prompt_fn   := message "G");
 
 
-(* token translations *)
-
-local
-
-fun markup kind x =
-  ((YXML.output_markup (kind, []) |-> enclose) (Output.output x), Symbol.length (Symbol.explode x));
-
-fun free_or_skolem x =
-  (case try Name.dest_skolem x of
-    NONE => markup Markup.freeN x
-  | SOME x' => markup Markup.skolemN x');
-
-fun var_or_skolem s =
-  (case Lexicon.read_variable s of
-    SOME (x, i) =>
-      (case try Name.dest_skolem x of
-        NONE => markup Markup.varN s
-      | SOME x' => markup Markup.skolemN
-          (setmp show_question_marks true Term.string_of_vname (x', i)))
-  | NONE => markup Markup.varN s);
-
-val token_trans =
- Syntax.tokentrans_mode full_markupN
-  [("class", markup Markup.classN),
-   ("tfree", markup Markup.tfreeN),
-   ("tvar", markup Markup.tvarN),
-   ("free", free_or_skolem),
-   ("bound", markup Markup.boundN),
-   ("var", var_or_skolem)];
-
-in
-
-val _ = Context.>> (Context.map_theory (Sign.add_tokentrfuns token_trans));
-
-end;
-
-
 (* init *)
 
 fun init () =

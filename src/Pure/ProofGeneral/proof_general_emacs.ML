@@ -53,70 +53,27 @@ fun setup_xsymbols_output () =
 end;
 
 
-(* token translations *)
-
-local
-
-fun end_tag () = special "350";
-val class_tag = ("class", fn () => special "351");
-val tfree_tag = ("tfree", fn () => special "352");
-val tvar_tag = ("tvar", fn () => special "353");
-val free_tag = ("free", fn () => special "354");
-val bound_tag = ("bound", fn () => special "355");
-val var_tag = ("var", fn () => special "356");
-val skolem_tag = ("skolem", fn () => special "357");
-
-fun xml_atom kind x = XML.element "atom" [("kind", kind)] [XML.text x];
-
-fun tagit (kind, bg_tag) x =
-  (bg_tag () ^ x ^ end_tag (), Symbol.length (Symbol.explode x));
-
-fun free_or_skolem x =
-  (case try Name.dest_skolem x of
-    NONE => tagit free_tag x
-  | SOME x' => tagit skolem_tag x');
-
-fun var_or_skolem s =
-  (case Lexicon.read_variable s of
-    SOME (x, i) =>
-      (case try Name.dest_skolem x of
-        NONE => tagit var_tag s
-      | SOME x' => tagit skolem_tag
-          (setmp show_question_marks true Term.string_of_vname (x', i)))
-  | NONE => tagit var_tag s);
-
-val proof_general_trans =
- Syntax.tokentrans_mode proof_generalN
-  [("class", tagit class_tag),
-   ("tfree", tagit tfree_tag),
-   ("tvar", tagit tvar_tag),
-   ("free", free_or_skolem),
-   ("bound", tagit bound_tag),
-   ("var", var_or_skolem)];
-
-in
-
-val _ = Context.>> (Context.map_theory (Sign.add_tokentrfuns proof_general_trans));
-
-end;
-
-
 (* common markup *)
 
-fun proof_general_markup (name, props) =
+val _ = Markup.add_mode proof_generalN (fn (name, props) =>
   let
     val (bg1, en1) =
       if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
       else if name = Markup.sendbackN then (special "376", special "377")
       else if name = Markup.hiliteN then (special "327", special "330")
+      else if name = Markup.classN then (special "351", special "350")
+      else if name = Markup.tfreeN then (special "352", special "350")
+      else if name = Markup.tvarN then (special "353", special "350")
+      else if name = Markup.freeN then (special "354", special "350")
+      else if name = Markup.boundN then (special "355", special "350")
+      else if name = Markup.varN then (special "356", special "350")
+      else if name = Markup.skolemN then (special "357", special "350")
       else ("", "");
     val (bg2, en2) =
       if print_mode_active test_markupN
       then XML.output_markup (name, props)
       else ("", "");
-  in (bg1 ^ bg2, en2 ^ en1) end;
-
-val _ = Markup.add_mode proof_generalN proof_general_markup;
+  in (bg1 ^ bg2, en2 ^ en1) end);
 
 
 (* messages and notification *)
