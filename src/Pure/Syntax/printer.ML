@@ -31,10 +31,10 @@ sig
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: (string -> xstring) -> Proof.context -> bool -> prtabs
     -> (string -> (Proof.context -> Ast.ast list -> Ast.ast) list)
-    -> (string -> (string -> output * int) option) -> Ast.ast -> Pretty.T list
+    -> (string -> (Proof.context -> string -> Pretty.T) option) -> Ast.ast -> Pretty.T list
   val pretty_typ_ast: Proof.context -> bool -> prtabs
     -> (string -> (Proof.context -> Ast.ast list -> Ast.ast) list)
-    -> (string -> (string -> output * int) option) -> Ast.ast -> Pretty.T list
+    -> (string -> (Proof.context -> string -> Pretty.T) option) -> Ast.ast -> Pretty.T list
 end;
 
 structure Printer: PRINTER =
@@ -268,15 +268,14 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
-fun const_markup c = Pretty.markup (Markup.const c) o single;
-
 fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
   let
-    fun token_trans c [Ast.Variable x] =
-          (case tokentrf c of
-            NONE => NONE
-          | SOME f => SOME (f x))
-      | token_trans _ _ = NONE;
+    fun token_trans a x =
+      (case tokentrf a of
+        NONE =>
+          if member (op =) SynExt.standard_token_classes a
+          then SOME (Pretty.str x) else NONE
+      | SOME f => SOME (f ctxt x));
 
     (*default applications: prefix / postfix*)
     val appT =
@@ -324,13 +323,10 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
 
     and atomT a =
       (case try (unprefix Lexicon.constN) a of
-        SOME c => const_markup c (Pretty.str (extern_const c))
+        SOME c => Pretty.mark (Markup.const c) (Pretty.str (extern_const c))
       | NONE =>
           (case try (unprefix Lexicon.fixedN) a of
-            SOME x =>
-              (case tokentrf "_free" of
-                SOME f => Pretty.raw_str (f x)
-              | NONE => Pretty.str x)
+            SOME x => the (token_trans "_free" x)
           | NONE => Pretty.str a))
 
     and prefixT (_, a, [], _) = [atomT a]
@@ -344,7 +340,9 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
     and combT (tup as (c, a, args, p)) =
       let
         val nargs = length args;
-        val markup = const_markup (unprefix Lexicon.constN a)
+        val markup = Pretty.mark
+          (Markup.const (unprefix Lexicon.constN a) handle Fail _ =>
+            (Markup.fixed (unprefix Lexicon.fixedN a)))
           handle Fail _ => I;
 
         (*find matching table entry, or print as prefix / postfix*)
@@ -356,11 +354,13 @@ fun pretty extern_const ctxt tabs trf tokentrf type_mode curried ast0 p0 =
                 astT (appT (splitT n ([c], args)), p)
               else prnt (prnps, tbs);
       in
-        (case token_trans a args of     (*try token translation function*)
-          SOME s => [Pretty.raw_str s]
-        | NONE =>                       (*try print translation functions*)
-            astT (apply_trans ctxt (trf a) args, p) handle Match => prnt ([], tabs))
+        (case tokentrT a args of
+          SOME prt => [prt]
+        | NONE => astT (apply_trans ctxt (trf a) args, p) handle Match => prnt ([], tabs))
       end
+
+    and tokentrT a [Ast.Variable x] = token_trans a x
+      | tokentrT _ _ = NONE
 
     and astT (c as Ast.Constant a, p) = combT (c, a, [], p)
       | astT (Ast.Variable x, _) = [Pretty.str x]
