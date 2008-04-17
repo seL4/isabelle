@@ -255,7 +255,7 @@ val type_ext = syn_ext' false (K false)
    [],
    [],
    map SynExt.mk_trfun [("fun", K fun_ast_tr')])
-  (map (fn s => ("", s, Output.output_width)) SynExt.standard_token_classes)
+  []
   ([], []);
 
 end;
