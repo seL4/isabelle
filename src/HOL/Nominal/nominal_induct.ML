@@ -92,7 +92,8 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
 
     val finish_rule =
       split_all_tuples
-      #> rename_params_rule true (map (ProofContext.revert_skolem defs_ctxt o fst) avoiding);
+      #> rename_params_rule true
+        (map (Name.clean o ProofContext.revert_skolem defs_ctxt o fst) avoiding);
     fun rule_cases r = RuleCases.make_nested true (Thm.prop_of r) (Induct.rulified_term r);
   in
     (fn i => fn st =>

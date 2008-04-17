@@ -341,7 +341,7 @@ let
      val quant_induct =
        Goal.prove_global thy1 [] ind_prems
          (FOLogic.mk_Trueprop (Ind_Syntax.mk_all_imp (big_rec_tm, pred)))
-         (fn prems => EVERY
+         (fn {prems, ...} => EVERY
            [rewrite_goals_tac part_rec_defs,
             rtac (@{thm impI} RS @{thm allI}) 1,
             DETERM (etac raw_induct 1),
@@ -484,7 +484,7 @@ let
        if need_mutual then
          Goal.prove_global thy1 [] (map (induct_prem (rec_tms~~preds)) intr_tms)
            mutual_induct_concl
-           (fn prems => EVERY
+           (fn {prems, ...} => EVERY
              [rtac (quant_induct RS lemma) 1,
               mutual_ind_tac (rev prems) (length prems)])
        else TrueI;
