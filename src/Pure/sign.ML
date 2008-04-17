@@ -135,8 +135,8 @@ sig
   val add_advanced_trfunsT:
     (string * (Proof.context -> bool -> typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
-    (string * string * (string -> output * int)) list -> theory -> theory
-  val add_mode_tokentrfuns: string -> (string * (string -> output * int)) list
+    (string * string * (Proof.context -> string -> Pretty.T)) list -> theory -> theory
+  val add_mode_tokentrfuns: string -> (string * (Proof.context -> string -> Pretty.T)) list
     -> theory -> theory
   val add_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
   val del_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
