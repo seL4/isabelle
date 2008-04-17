@@ -300,8 +300,8 @@ fun add_fixes xs ctxt =
 fun variant_fixes raw_xs ctxt =
   let
     val names = names_of ctxt;
-    val xs = map Name.clean raw_xs;
-    val (xs', names') = Name.variants xs names |>> map Name.skolem;
+    val xs = map (fn x => Name.clean x |> can Name.dest_internal x ? Name.internal) raw_xs;
+    val (xs', names') = Name.variants xs names |>> (is_body ctxt ? map Name.skolem);
   in ctxt |> new_fixes names' xs xs' end;
 
 end;
@@ -401,7 +401,7 @@ fun importT_inst ts ctxt =
 
 fun import_inst is_open ts ctxt =
   let
-    val ren = if is_open then I else Name.internal;
+    val ren = Name.clean #> (if is_open then I else Name.internal);
     val (instT, ctxt') = importT_inst ts ctxt;
     val vars = map (apsnd (TermSubst.instantiateT instT)) (rev (fold Term.add_vars ts []));
     val (xs, ctxt'') = variant_fixes (map (ren o #1 o #1) vars) ctxt';
