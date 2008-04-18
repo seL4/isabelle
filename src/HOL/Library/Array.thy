@@ -46,14 +46,19 @@ definition
 where
   [code del]: "upd i x a = (do len \<leftarrow> length a;
                       (if i < len
-                           then Heap_Monad.heap (\<lambda>h. ((), Heap.upd a i x h))
-                           else raise (''array update: index out of range''));
-                      return a
+                           then Heap_Monad.heap (\<lambda>h. (a, Heap.upd a i x h))
+                           else raise (''array update: index out of range''))
                    done)" 
 
 lemma upd_return:
   "upd i x a \<guillemotright> return a = upd i x a"
-  unfolding upd_def by (simp add: monad_simp)
+proof (rule Heap_eqI)
+  fix h
+  obtain len h' where "Heap_Monad.execute (Array.length a) h = (len, h')"
+    by (cases "Heap_Monad.execute (Array.length a) h")
+  then show "Heap_Monad.execute (upd i x a \<guillemotright> return a) h = Heap_Monad.execute (upd i x a) h"
+    by (auto simp add: upd_def bindM_def run_drop split: sum.split)
+qed
 
 
 subsection {* Derivates *}
@@ -159,7 +164,8 @@ definition upd' where
 hide (open) const upd'
 lemma [code func]:
   "Array.upd i x a = Array.upd' a (index_of_nat i) x \<guillemotright> return a"
-  by (simp add: upd'_def monad_simp upd_return)
+  apply (simp add: upd'_def monad_simp)
+oops
 
 
 subsubsection {* SML *}
