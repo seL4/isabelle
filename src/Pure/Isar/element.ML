@@ -174,7 +174,7 @@ fun pretty_stmt ctxt =
 
     fun prt_var (x, SOME T) = Pretty.block [Pretty.str (x ^ " ::"), Pretty.brk 1, prt_typ T]
       | prt_var (x, NONE) = Pretty.str x;
-    val prt_vars =  separate (Pretty.keyword "and") o map prt_var;
+    val prt_vars = separate (Pretty.keyword "and") o map prt_var;
 
     fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (prt_terms ts))
       | prt_obtain (_, (xs, ts)) = Pretty.block (Pretty.breaks
