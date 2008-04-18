@@ -15,17 +15,16 @@ text {*
 typedecl nat
 arities nat :: "term"
 
-consts
-  Zero :: nat    ("0")
-  Suc :: "nat => nat"
+axiomatization
+  Zero :: nat    ("0") and
+  Suc :: "nat => nat" and
   rec :: "[nat, 'a, [nat, 'a] => 'a] => 'a"
-
-axioms
+where
   induct [case_names 0 Suc, induct type: nat]:
-    "P(0) ==> (!!x. P(x) ==> P(Suc(x))) ==> P(n)"
-  Suc_inject: "Suc(m) = Suc(n) ==> m = n"
-  Suc_neq_0: "Suc(m) = 0 ==> R"
-  rec_0: "rec(0, a, f) = a"
+    "P(0) ==> (!!x. P(x) ==> P(Suc(x))) ==> P(n)" and
+  Suc_inject: "Suc(m) = Suc(n) ==> m = n" and
+  Suc_neq_0: "Suc(m) = 0 ==> R" and
+  rec_0: "rec(0, a, f) = a" and
   rec_Suc: "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
 
 lemma Suc_n_not_n: "Suc(k) \<noteq> k"
@@ -35,6 +34,7 @@ proof (induct k)
     assume "Suc(0) = 0"
     then show False by (rule Suc_neq_0)
   qed
+next
   fix n assume hyp: "Suc(n) \<noteq> n"
   show "Suc(Suc(n)) \<noteq> Suc(n)"
   proof
@@ -45,15 +45,15 @@ proof (induct k)
 qed
 
 
-constdefs
-  add :: "[nat, nat] => nat"    (infixl "+" 60)
-  "m + n == rec(m, n, \<lambda>x y. Suc(y))"
+definition
+  add :: "[nat, nat] => nat"    (infixl "+" 60) where
+  "m + n = rec(m, n, \<lambda>x y. Suc(y))"
 
 lemma add_0 [simp]: "0 + n = n"
-  by (unfold add_def) (rule rec_0)
+  unfolding add_def by (rule rec_0)
 
 lemma add_Suc [simp]: "Suc(m) + n = Suc(m + n)"
-  by (unfold add_def) (rule rec_Suc)
+  unfolding add_def by (rule rec_Suc)
 
 lemma add_assoc: "(k + m) + n = k + (m + n)"
   by (induct k) simp_all
@@ -64,10 +64,9 @@ lemma add_0_right: "m + 0 = m"
 lemma add_Suc_right: "m + Suc(n) = Suc(m + n)"
   by (induct m) simp_all
 
-lemma "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i + j) = i + f(j)"
-proof -
-  assume "!!n. f(Suc(n)) = Suc(f(n))"
-  then show ?thesis by (induct i) simp_all
-qed
+lemma
+  assumes "!!n. f(Suc(n)) = Suc(f(n))"
+  shows "f(i + j) = i + f(j)"
+  using assms by (induct i) simp_all
 
 end
