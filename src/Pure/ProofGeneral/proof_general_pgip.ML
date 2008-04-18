@@ -628,8 +628,6 @@ fun askrefs (Askrefs vs) =
 
         fun idtable ty ctx ids = {objtype=ty,context=ctx,ids=ids}
 
-        val thms_of_thy = map fst o PureThy.thms_of o ThyInfo.get_theory
-
         val thy_name = Path.implode o #1 o Path.split_ext o Path.base
 
         fun filerefs f =
