@@ -1189,7 +1189,9 @@ val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
 
 (* local contexts *)
 
-fun pretty_cases ctxt =
+local
+
+fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
   let
     val prt_term = Syntax.pretty_term ctxt;
 
@@ -1203,26 +1205,33 @@ fun pretty_cases ctxt =
     fun prt_sect _ _ _ [] = []
       | prt_sect s sep prt xs = [Pretty.block (Pretty.breaks (Pretty.str s ::
             flat (Library.separate sep (map (Library.single o prt) xs))))];
-
-    fun prt_case (name, (fixes, (asms, (lets, cs)))) = Pretty.block (Pretty.fbreaks
+  in
+    Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
         prt_sect "fix" [] (Pretty.str o fst) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
           (map_filter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
           else prt_sect "assume" [Pretty.str "and"] prt_asm asms) @
-        prt_sect "subcases:" [] (Pretty.str o fst) cs));
+        prt_sect "subcases:" [] (Pretty.str o fst) cs))
+  end;
 
+in
+
+fun pretty_cases ctxt =
+  let
     fun add_case (_, (_, false)) = I
       | add_case (name, (c as RuleCases.Case {fixes, ...}, true)) =
-          cons (name, (fixes, #1 (case_result c ctxt)));
+          cons (name, (fixes, case_result c ctxt));
     val cases = fold add_case (cases_of ctxt) [];
   in
     if null cases andalso not (! verbose) then []
-    else [Pretty.big_list "cases:" (map prt_case cases)]
+    else [Pretty.big_list "cases:" (map pretty_case cases)]
   end;
 
 val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
+
+end;
 
 
 (* core context *)
