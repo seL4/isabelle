@@ -222,7 +222,6 @@
       <LABEL>print_abbrevs</LABEL>
       <LABEL>print_antiquotations</LABEL>
       <OPERATOR>print_ast_translation</OPERATOR>
-      <LABEL>print_atp_rules</LABEL>
       <LABEL>print_attributes</LABEL>
       <LABEL>print_binds</LABEL>
       <LABEL>print_cases</LABEL>
@@ -239,7 +238,6 @@
       <LABEL>print_locale</LABEL>
       <LABEL>print_locales</LABEL>
       <LABEL>print_methods</LABEL>
-      <LABEL>print_noatp_rules</LABEL>
       <LABEL>print_orders</LABEL>
       <LABEL>print_rules</LABEL>
       <LABEL>print_simpset</LABEL>
