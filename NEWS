@@ -246,7 +246,7 @@ INCOMPATIBILITY.
 *** ML ***
 
 * Functor NamedThmsFun: data is available to the user as dynamic fact
-(of the same name).
+(of the same name).  Removed obsolete print command.
 
 * Removed obsolete "use_legacy_bindings" function.  INCOMPATIBILITY.
 
