@@ -822,7 +822,7 @@ fun gen_add_inductive_i mk_def
             member (op =) ps t then I else insert (op =) v
         | _ => I) r []), r);
 
-    val intros = map (apsnd (close_rule #> expand)) pre_intros;
+    val intros = map (apsnd (Syntax.check_term lthy #> close_rule #> expand)) pre_intros;
     val preds = map (fn ((c, _), mx) => (c, mx)) cnames_syn';
   in
     lthy
