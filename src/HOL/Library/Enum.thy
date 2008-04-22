@@ -42,7 +42,7 @@ instantiation "fun" :: (enum, eq) eq
 begin
 
 definition
-  "eq f g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
+  "eq_class.eq f g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
 
 instance by default
   (simp_all add: eq_fun_def enum_all expand_fun_eq)

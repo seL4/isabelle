@@ -2275,7 +2275,7 @@ instantiation set :: (eq) eq
 begin
 
 definition
-  "eq A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
+  "eq_class.eq A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
 
 instance by default (auto simp add: eq_set_def)
 

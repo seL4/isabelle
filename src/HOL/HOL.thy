@@ -1694,9 +1694,11 @@ declare equals_eq [symmetric, code post]
 
 end
 
+hide (open) const eq
+hide const eq
+
 setup {*
-  Sign.hide_const true "HOL.eq"
-  #> CodeUnit.add_const_alias @{thm equals_eq}
+  CodeUnit.add_const_alias @{thm equals_eq}
 *}
 
 lemma [code func]:

@@ -527,20 +527,20 @@ text {* Equality of environments for code generation *}
 
 lemma [code func, code func del]:
   fixes e1 e2 :: "('b\<Colon>eq, 'a\<Colon>eq, 'c\<Colon>eq) env"
-  shows "eq e1 e2 \<longleftrightarrow> eq e1 e2" ..
+  shows "eq_class.eq e1 e2 \<longleftrightarrow> eq_class.eq e1 e2" ..
 
 lemma eq_env_code [code func]:
   fixes x y :: "'a\<Colon>eq"
     and f g :: "'c\<Colon>{eq, finite} \<Rightarrow> ('b\<Colon>eq, 'a, 'c) env option"
-  shows "eq (Env x f) (Env y g) \<longleftrightarrow>
-  eq x y \<and> (\<forall>z\<in>UNIV. case f z
+  shows "eq_class.eq (Env x f) (Env y g) \<longleftrightarrow>
+  eq_class.eq x y \<and> (\<forall>z\<in>UNIV. case f z
    of None \<Rightarrow> (case g z
         of None \<Rightarrow> True | Some _ \<Rightarrow> False)
     | Some a \<Rightarrow> (case g z
-        of None \<Rightarrow> False | Some b \<Rightarrow> eq a b))" (is ?env)
-    and "eq (Val a) (Val b) \<longleftrightarrow> eq a b"
-    and "eq (Val a) (Env y g) \<longleftrightarrow> False"
-    and "eq (Env x f) (Val b) \<longleftrightarrow> False"
+        of None \<Rightarrow> False | Some b \<Rightarrow> eq_class.eq a b))" (is ?env)
+    and "eq_class.eq (Val a) (Val b) \<longleftrightarrow> eq_class.eq a b"
+    and "eq_class.eq (Val a) (Env y g) \<longleftrightarrow> False"
+    and "eq_class.eq (Env x f) (Val b) \<longleftrightarrow> False"
 proof (unfold eq)
   have "f = g \<longleftrightarrow> (\<forall>z. case f z
    of None \<Rightarrow> (case g z

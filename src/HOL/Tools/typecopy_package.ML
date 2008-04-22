@@ -131,7 +131,7 @@ fun add_typecopy_spec tyco thy =
         fun mk_side const_name = Const (const_name, ty --> ty --> HOLogic.boolT)
           $ Free ("x", ty) $ Free ("y", ty);
         val def = HOLogic.mk_Trueprop (HOLogic.mk_eq
-          (mk_side @{const_name eq}, mk_side @{const_name "op ="}));
+          (mk_side @{const_name eq_class.eq}, mk_side @{const_name "op ="}));
         val def' = Syntax.check_term lthy def;
         val ((_, (_, thm)), lthy') = Specification.definition
           (NONE, (("", []), def')) lthy;

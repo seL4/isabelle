@@ -1818,33 +1818,33 @@ lemmas times_numeral_code [code func] =
 instantiation int :: eq
 begin
 
-definition [code func del]: "eq k l \<longleftrightarrow> k - l = (0\<Colon>int)"
+definition [code func del]: "eq_class.eq k l \<longleftrightarrow> k - l = (0\<Colon>int)"
 
 instance by default (simp add: eq_int_def)
 
 end
 
 lemma eq_number_of_int_code [code func]:
-  "eq (number_of k \<Colon> int) (number_of l) \<longleftrightarrow> eq k l"
+  "eq_class.eq (number_of k \<Colon> int) (number_of l) \<longleftrightarrow> eq_class.eq k l"
   unfolding eq_int_def number_of_is_id ..
 
 lemma eq_int_code [code func]:
-  "eq Int.Pls Int.Pls \<longleftrightarrow> True"
-  "eq Int.Pls Int.Min \<longleftrightarrow> False"
-  "eq Int.Pls (Int.Bit0 k2) \<longleftrightarrow> eq Int.Pls k2"
-  "eq Int.Pls (Int.Bit1 k2) \<longleftrightarrow> False"
-  "eq Int.Min Int.Pls \<longleftrightarrow> False"
-  "eq Int.Min Int.Min \<longleftrightarrow> True"
-  "eq Int.Min (Int.Bit0 k2) \<longleftrightarrow> False"
-  "eq Int.Min (Int.Bit1 k2) \<longleftrightarrow> eq Int.Min k2"
-  "eq (Int.Bit0 k1) Int.Pls \<longleftrightarrow> eq Int.Pls k1"
-  "eq (Int.Bit1 k1) Int.Pls \<longleftrightarrow> False"
-  "eq (Int.Bit0 k1) Int.Min \<longleftrightarrow> False"
-  "eq (Int.Bit1 k1) Int.Min \<longleftrightarrow> eq Int.Min k1"
-  "eq (Int.Bit0 k1) (Int.Bit0 k2) \<longleftrightarrow> eq k1 k2"
-  "eq (Int.Bit0 k1) (Int.Bit1 k2) \<longleftrightarrow> False"
-  "eq (Int.Bit1 k1) (Int.Bit0 k2) \<longleftrightarrow> False"
-  "eq (Int.Bit1 k1) (Int.Bit1 k2) \<longleftrightarrow> eq k1 k2"
+  "eq_class.eq Int.Pls Int.Pls \<longleftrightarrow> True"
+  "eq_class.eq Int.Pls Int.Min \<longleftrightarrow> False"
+  "eq_class.eq Int.Pls (Int.Bit0 k2) \<longleftrightarrow> eq_class.eq Int.Pls k2"
+  "eq_class.eq Int.Pls (Int.Bit1 k2) \<longleftrightarrow> False"
+  "eq_class.eq Int.Min Int.Pls \<longleftrightarrow> False"
+  "eq_class.eq Int.Min Int.Min \<longleftrightarrow> True"
+  "eq_class.eq Int.Min (Int.Bit0 k2) \<longleftrightarrow> False"
+  "eq_class.eq Int.Min (Int.Bit1 k2) \<longleftrightarrow> eq_class.eq Int.Min k2"
+  "eq_class.eq (Int.Bit0 k1) Int.Pls \<longleftrightarrow> eq_class.eq Int.Pls k1"
+  "eq_class.eq (Int.Bit1 k1) Int.Pls \<longleftrightarrow> False"
+  "eq_class.eq (Int.Bit0 k1) Int.Min \<longleftrightarrow> False"
+  "eq_class.eq (Int.Bit1 k1) Int.Min \<longleftrightarrow> eq_class.eq Int.Min k1"
+  "eq_class.eq (Int.Bit0 k1) (Int.Bit0 k2) \<longleftrightarrow> eq_class.eq k1 k2"
+  "eq_class.eq (Int.Bit0 k1) (Int.Bit1 k2) \<longleftrightarrow> False"
+  "eq_class.eq (Int.Bit1 k1) (Int.Bit0 k2) \<longleftrightarrow> False"
+  "eq_class.eq (Int.Bit1 k1) (Int.Bit1 k2) \<longleftrightarrow> eq_class.eq k1 k2"
   unfolding eq_number_of_int_code [symmetric, of Int.Pls] 
     eq_number_of_int_code [symmetric, of Int.Min]
     eq_number_of_int_code [symmetric, of "Int.Bit0 k1"]
@@ -2000,8 +2000,6 @@ consts_code
   "op < :: int => int => bool" ("(_ </ _)")
 
 quickcheck_params [default_type = int]
-
-(*setup continues in theory Presburger*)
 
 hide (open) const Pls Min Bit0 Bit1 succ pred
 

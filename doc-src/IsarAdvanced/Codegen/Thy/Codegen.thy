@@ -610,7 +610,7 @@ text {*
   Obviously, polymorphic equality is implemented the Haskell
   way using a type class.  How is this achieved?  HOL introduces
   an explicit class @{text eq} with a corresponding operation
-  @{const eq} such that @{thm eq [no_vars]}.
+  @{const eq_class.eq} such that @{thm eq [no_vars]}.
   The preprocessing framework does the rest.
   For datatypes, instances of @{text eq} are implicitly derived
   when possible.  For other types, you may instantiate @{text eq}
@@ -934,7 +934,7 @@ typedecl bar
 instantiation bar :: eq
 begin
 
-definition "eq (x\<Colon>bar) y \<longleftrightarrow> x = y"
+definition "eq_class.eq (x\<Colon>bar) y \<longleftrightarrow> x = y"
 
 instance by default (simp add: eq_bar_def)
 

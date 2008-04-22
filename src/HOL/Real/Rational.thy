@@ -669,11 +669,11 @@ lemma [code]:
 instantiation rat :: eq
 begin
 
-definition [code func del]: "eq (r\<Colon>rat) s \<longleftrightarrow> r = s"
+definition [code func del]: "eq_class.eq (r\<Colon>rat) s \<longleftrightarrow> r = s"
 
 instance by default (simp add: eq_rat_def)
 
-lemma rat_eq_code [code]: "eq (Rational x) (Rational y) \<longleftrightarrow> eq (normNum x) (normNum y)"
+lemma rat_eq_code [code]: "eq_class.eq (Rational x) (Rational y) \<longleftrightarrow> eq_class.eq (normNum x) (normNum y)"
   unfolding Rational_def INum_normNum_iff eq ..
 
 end

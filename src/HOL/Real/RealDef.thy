@@ -950,6 +950,13 @@ by simp
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 by simp
 
+instance real :: lordered_ring
+proof
+  fix a::real
+  show "abs a = sup a (-a)"
+    by (auto simp add: real_abs_def sup_real_def)
+qed
+
 
 subsection {* Implementation of rational real numbers as pairs of integers *}
 
@@ -981,11 +988,11 @@ declare one_real_code [symmetric, code post]
 instantiation real :: eq
 begin
 
-definition "eq (x\<Colon>real) y \<longleftrightarrow> x = y"
+definition "eq_class.eq (x\<Colon>real) y \<longleftrightarrow> x = y"
 
 instance by default (simp add: eq_real_def)
 
-lemma real_eq_code [code]: "Ratreal x = Ratreal y \<longleftrightarrow> normNum x = normNum y"
+lemma real_eq_code [code]: "eq_class.eq (Ratreal x) (Ratreal y) \<longleftrightarrow> eq_class.eq (normNum x) (normNum y)"
   unfolding Ratreal_def INum_normNum_iff eq ..
 
 end
@@ -1023,13 +1030,6 @@ lemma real_inv_code [code]: "inverse (Ratreal x) = Ratreal (Ninv x)"
 
 lemma real_div_code [code]: "Ratreal x / Ratreal y = Ratreal (x \<div>\<^sub>N y)"
   unfolding Ratreal_def by simp
-
-instance real :: lordered_ring
-proof
-  fix a::real
-  show "abs a = sup a (-a)"
-    by (auto simp add: real_abs_def sup_real_def)
-qed
 
 text {* Setup for SML code generator *}
 

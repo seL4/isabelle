@@ -11,8 +11,7 @@ text {*
   below and constants declared in HOL!
 *}
 
-hide const subset member quotient eq
-hide const eq
+hide const subset member quotient
 
 text {*
   Test data for the MESON proof procedure

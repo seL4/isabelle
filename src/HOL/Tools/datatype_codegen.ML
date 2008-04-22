@@ -439,7 +439,7 @@ fun add_datatypes_equality vs dtcos thy =
         fun mk_side const_name = Const (const_name, ty --> ty --> HOLogic.boolT)
           $ Free ("x", ty) $ Free ("y", ty);
         val def = HOLogic.mk_Trueprop (HOLogic.mk_eq
-          (mk_side @{const_name eq}, mk_side @{const_name "op ="}));
+          (mk_side @{const_name eq_class.eq}, mk_side @{const_name "op ="}));
         val def' = Syntax.check_term lthy def;
         val ((_, (_, thm)), lthy') = Specification.definition
           (NONE, (("", []), def')) lthy;
@@ -455,7 +455,7 @@ fun add_datatypes_equality vs dtcos thy =
     fun add_eq_thms dtco thy =
       let
         val thy_ref = Theory.check_thy thy;
-        val const = AxClass.param_of_inst thy (@{const_name eq}, dtco);
+        val const = AxClass.param_of_inst thy (@{const_name eq_class.eq}, dtco);
         val get_thms = (fn () => get_eq' (Theory.deref thy_ref) dtco |> rev);
       in
         Code.add_funcl (const, Susp.delay get_thms) thy
