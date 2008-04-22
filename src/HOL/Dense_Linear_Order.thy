@@ -264,7 +264,7 @@ lemma exists_neq: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t \<noteq>
 lemmas dlo_simps = order_refl less_irrefl not_less not_le exists_neq 
   le_less neq_iff linear less_not_permute
 
-lemma axiom: "dense_linear_order (op \<le>) (op <)" by fact
+lemma axiom: "dense_linear_order (op \<le>) (op <)" by (rule dense_linear_order_axioms)
 lemma atoms:
   includes meta_term_syntax
   shows "TERM (less :: 'a \<Rightarrow> _)"
@@ -500,7 +500,8 @@ lemmas nmi_thms = nmi_conj nmi_disj nmi_eq nmi_neq nmi_lt nmi_le nmi_gt nmi_ge n
 lemmas npi_thms = npi_conj npi_disj npi_eq npi_neq npi_lt npi_le npi_gt npi_ge npi_P
 lemmas lin_dense_thms = lin_dense_conj lin_dense_disj lin_dense_eq lin_dense_neq lin_dense_lt lin_dense_le lin_dense_gt lin_dense_ge lin_dense_P
 
-lemma ferrack_axiom: "constr_dense_linear_order less_eq less between" by fact
+lemma ferrack_axiom: "constr_dense_linear_order less_eq less between"
+  by (rule constr_dense_linear_order_axioms)
 lemma atoms:
   includes meta_term_syntax
   shows "TERM (less :: 'a \<Rightarrow> _)"
