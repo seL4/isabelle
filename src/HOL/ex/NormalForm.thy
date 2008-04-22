@@ -58,19 +58,19 @@ lemma "mul (S(S(S(S(S Z))))) (S(S(S Z))) = S(S(S(S(S(S(S(S(S(S(S(S(S(S(S Z))))))
 lemma "exp (S(S Z)) (S(S(S(S Z)))) = exp (S(S(S(S Z)))) (S(S Z))" by normalization
 
 lemma "(let ((x,y),(u,v)) = ((Z,Z),(Z,Z)) in add (add x y) (add u v)) = Z" by normalization
-lemma "split (%(x\<Colon>'a\<Colon>eq) y. x) (a, b) = a" by normalization rule
+lemma "split (%x y. x) (a, b) = a" by normalization rule
 lemma "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z)) = Z" by normalization
 
 lemma "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False" by normalization
 
 lemma "[] @ [] = []" by normalization
-lemma "map f [x,y,z::'x] = [f x \<Colon> 'a\<Colon>eq, f y, f z]" by normalization rule+
-lemma "[a \<Colon> 'a\<Colon>eq, b, c] @ xs = a # b # c # xs" by normalization rule+
-lemma "[] @ xs = (xs \<Colon> 'a\<Colon>eq list)" by normalization rule
+lemma "map f [x,y,z::'x] = [f x, f y, f z]" by normalization rule+
+lemma "[a, b, c] @ xs = a # b # c # xs" by normalization rule+
+lemma "[] @ xs = xs" by normalization rule
 lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization rule+
 lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs" by normalization rule+
-lemma "rev [a, b, c] = [c \<Colon> 'a\<Colon>eq, b, a]" by normalization rule+
-normal_form "rev (a#b#cs) = rev cs @ [b, a \<Colon> 'a\<Colon>eq]"
+lemma "rev [a, b, c] = [c, b, a]" by normalization rule+
+normal_form "rev (a#b#cs) = rev cs @ [b, a]"
 normal_form "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
 normal_form "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
 normal_form "map (%F. F [Z,S Z,S(S Z)]) (map map [S,add (S Z),mul (S(S Z)),id])"
@@ -78,19 +78,19 @@ lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) 
   by normalization
 normal_form "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
 normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs = P"
-lemma "let x = y in [x, x] = [y \<Colon> 'a\<Colon>eq, y]" by normalization rule+
-lemma "Let y (%x. [x,x]) = [y \<Colon> 'a\<Colon>eq, y]" by normalization rule+
+lemma "let x = y in [x, x] = [y, y]" by normalization rule+
+lemma "Let y (%x. [x,x]) = [y, y]" by normalization rule+
 normal_form "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
 lemma "(%(x,y). add x y) (S z,S z) = S (add z (S z))" by normalization rule+
 normal_form "filter (%x. x) ([True,False,x]@xs)"
 normal_form "filter Not ([True,False,x]@xs)"
 
-lemma "[x,y,z] @ [a,b,c] = [x, y, z, a, b ,c \<Colon> 'a\<Colon>eq]" by normalization rule+
-lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f \<Colon> 'a\<Colon>eq]" by normalization rule+
+lemma "[x,y,z] @ [a,b,c] = [x, y, z, a, b, c]" by normalization rule+
+lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]" by normalization rule+
 lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]" by normalization
 
-lemma "last [a, b, c \<Colon> 'a\<Colon>eq] = c" by normalization rule
-lemma "last ([a, b, c \<Colon> 'a\<Colon>eq] @ xs) = (if null xs then c else last xs)"
+lemma "last [a, b, c] = c" by normalization rule
+lemma "last ([a, b, c] @ xs) = (if null xs then c else last xs)"
   by normalization rule
 
 lemma "(2::int) + 3 - 1 + (- k) * 2 = 4 + - k * 2" by normalization rule
@@ -111,10 +111,10 @@ lemma "max (Suc 0) 0 = Suc 0" by normalization
 lemma "(42::rat) / 1704 = 1 / 284 + 3 / 142" by normalization
 normal_form "Suc 0 \<in> set ms"
 
-lemma "f = (f \<Colon> 'a\<Colon>eq)" by normalization rule+
-lemma "f x = (f x \<Colon> 'a\<Colon>eq)" by normalization rule+
-lemma "(f o g) x = (f (g x) \<Colon> 'a\<Colon>eq)" by normalization rule+
-lemma "(f o id) x = (f x \<Colon> 'a\<Colon>eq)" by normalization rule+
+lemma "f = f" by normalization rule+
+lemma "f x = f x" by normalization rule+
+lemma "(f o g) x = f (g x)" by normalization rule+
+lemma "(f o id) x = f x" by normalization rule+
 normal_form "(\<lambda>x. x)"
 
 (* Church numerals: *)

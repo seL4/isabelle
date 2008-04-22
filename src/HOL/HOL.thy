@@ -1659,8 +1659,6 @@ val trans = @{thm trans}
 
 subsection {* Code generator basic setup -- see further @{text Code_Setup.thy} *}
 
-setup "CodeName.setup #> CodeTarget.setup #> Nbe.setup"
-
 code_datatype Trueprop "prop"
 
 code_datatype "TYPE('a\<Colon>{})"
@@ -1699,6 +1697,9 @@ hide const eq
 
 setup {*
   CodeUnit.add_const_alias @{thm equals_eq}
+  #> CodeName.setup
+  #> CodeTarget.setup
+  #> Nbe.setup @{sort eq} [(@{const_name eq_class.eq}, @{const_name "op ="})]
 *}
 
 lemma [code func]:
