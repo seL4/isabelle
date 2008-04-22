@@ -16,8 +16,8 @@ sig
   val pretty: theory -> T -> Pretty.T
   val make: theory -> string list -> T
   val make_consts: theory -> string list -> string list * T
-  val eval_conv: theory -> (T -> cterm -> thm) -> cterm -> thm
-  val eval_term: theory -> (T -> term -> 'a) -> term -> 'a
+  val eval_conv: theory -> (term -> term * (T -> term -> thm)) -> cterm -> thm
+  val eval_term: theory -> (term -> term * (T -> term -> 'a)) -> term -> 'a
 end
 
 structure CodeFuncgr : CODE_FUNCGR =
@@ -276,55 +276,42 @@ fun check_consts thy consts funcgr =
     val (consts', funcgr') = fold_map try_const consts funcgr;
   in (map_filter I consts', funcgr') end;
 
-fun raw_eval thy f ct funcgr =
+fun proto_eval thy cterm_of evaluator_fr evaluator proto_ct funcgr =
   let
-    val algebra = Code.coregular_algebra thy;
-    fun consts_of ct = fold_aterms (fn Const c_ty => cons c_ty | _ => I)
-      (Thm.term_of ct) [];
+    val ct = cterm_of proto_ct;
     val _ = Sign.no_vars (Sign.pp thy) (Thm.term_of ct);
     val _ = Term.fold_types (Type.no_tvars #> K I) (Thm.term_of ct) ();
-    val thm1 = Code.preprocess_conv ct;
-    val ct' = Thm.rhs_of thm1;
-    val cs = map fst (consts_of ct');
-    val funcgr' = ensure_consts thy algebra cs funcgr;
-    val (_, thm2) = Thm.varifyT' [] thm1;
-    val thm3 = Thm.reflexive (Thm.rhs_of thm2);
-    val [thm4] = resort_thms algebra (try (fst o Graph.get_node funcgr')) [thm3]
-      handle CLASS_ERROR (_, msg) => error msg;
-    val tfrees = Term.add_tfrees (Thm.prop_of thm1) [];
-    fun inst thm =
-      let
-        val tvars = Term.add_tvars (Thm.prop_of thm) [];
-        val instmap = map2 (fn (v_i, sort) => fn (v, _) => pairself (Thm.ctyp_of thy)
-          (TVar (v_i, sort), TFree (v, sort))) tvars tfrees;
-      in Thm.instantiate (instmap, []) thm end;
-    val thm5 = inst thm2;
-    val thm6 = inst thm4;
-    val ct'' = Thm.rhs_of thm6;
-    val c_exprs = consts_of ct'';
-    val drop = drop_classes thy tfrees;
-    val instdefs = instances_of_consts thy algebra funcgr' c_exprs;
-    val funcgr'' = ensure_consts thy algebra instdefs funcgr';
-  in (f drop thm5 funcgr'' ct'', funcgr'') end;
+    fun consts_of t = fold_aterms (fn Const c_ty => cons c_ty | _ => I)
+      t [];
+    val algebra = Code.coregular_algebra thy;
+    val thm = Code.preprocess_conv ct;
+    val ct' = Thm.rhs_of thm;
+    val t' = Thm.term_of ct';
+    val consts = map fst (consts_of t');
+    val funcgr' = ensure_consts thy algebra consts funcgr;
+    val (t'', evaluator') = apsnd evaluator_fr (evaluator t');
+    val consts' = consts_of t'';
+    val dicts = instances_of_consts thy algebra funcgr' consts';
+    val funcgr'' = ensure_consts thy algebra dicts funcgr';
+  in (evaluator' thm funcgr'' t'', funcgr'') end;
 
-fun raw_eval_conv thy conv =
+fun proto_eval_conv thy =
   let
-    fun conv' drop_classes thm1 funcgr ct =
+    fun evaluator evaluator' thm1 funcgr t =
       let
-        val thm2 = conv funcgr ct;
+        val thm2 = evaluator' funcgr t;
         val thm3 = Code.postprocess_conv (Thm.rhs_of thm2);
-        val thm23 = drop_classes (Thm.transitive thm2 thm3);
       in
-        Thm.transitive thm1 thm23 handle THM _ =>
-          error ("could not construct proof:\n"
+        Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
+          error ("could not construct evaluation proof (probably due to wellsortedness problem):\n"
           ^ (cat_lines o map string_of_thm) [thm1, thm2, thm3])
       end;
-  in raw_eval thy conv' end;
+  in proto_eval thy I evaluator end;
 
-fun raw_eval_term thy f t =
+fun proto_eval_term thy =
   let
-    fun f' _ _ funcgr ct = f funcgr (Thm.term_of ct);
-  in raw_eval thy f' (Thm.cterm_of thy t) end;
+    fun evaluator evaluator' _ funcgr t = evaluator' funcgr t;
+  in proto_eval thy (Thm.cterm_of thy) evaluator end;
 
 end; (*local*)
 
@@ -346,9 +333,9 @@ fun make_consts thy =
   Funcgr.change_yield thy o check_consts thy;
 
 fun eval_conv thy f =
-  fst o Funcgr.change_yield thy o raw_eval_conv thy f;
+  fst o Funcgr.change_yield thy o proto_eval_conv thy f;
 
 fun eval_term thy f =
-  fst o Funcgr.change_yield thy o raw_eval_term thy f;
+  fst o Funcgr.change_yield thy o proto_eval_term thy f;
 
 end; (*struct*)

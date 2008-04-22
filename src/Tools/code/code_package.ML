@@ -8,12 +8,12 @@ Code generator interfaces and Isar setup.
 signature CODE_PACKAGE =
 sig
   val evaluate_conv: theory
-    -> (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
-       -> string list -> cterm -> thm)
+    -> (term -> term * (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
+       -> string list -> thm))
     -> cterm -> thm;
   val evaluate_term: theory
-    -> (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
-       -> string list -> term -> 'a)
+    -> (term -> term * (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
+       -> string list -> 'a))
     -> term -> 'a;
   val eval_conv: string * (unit -> thm) option ref
     -> theory -> cterm -> string list -> thm;
@@ -103,24 +103,31 @@ fun code thy permissive cs seris =
 
 (* evaluation machinery *)
 
-fun evaluate eval_kind term_of thy eval = eval_kind thy (fn funcgr => fn ct =>
+fun evaluate eval_kind thy evaluator =
   let
-    val ((code, (vs_ty_t, deps)), _) = generate thy funcgr
-      CodeThingol.ensure_value (term_of ct)
-  in eval code vs_ty_t deps ct end);
+    fun evaluator'' evaluator''' funcgr t =
+      let
+        val ((code, (vs_ty_t, deps)), _) =
+          generate thy funcgr CodeThingol.ensure_value t;
+      in evaluator''' code vs_ty_t deps end;
+    fun evaluator' t =
+      let
+        val (t', evaluator''') = evaluator t;
+      in (t', evaluator'' evaluator''') end;
+  in eval_kind thy evaluator' end
 
-fun evaluate_conv thy = evaluate CodeFuncgr.eval_conv Thm.term_of thy;
-fun evaluate_term thy = evaluate CodeFuncgr.eval_term I thy;
+fun evaluate_conv thy = evaluate CodeFuncgr.eval_conv thy;
+fun evaluate_term thy = evaluate CodeFuncgr.eval_term thy;
 
-fun eval_ml reff args thy code ((vs, ty), t) deps _ =
+fun eval_ml reff args thy code ((vs, ty), t) deps =
   CodeTarget.eval thy reff code (t, ty) args;
 
 fun eval evaluate term_of reff thy ct args =
   let
     val _ = if null (term_frees (term_of ct)) then () else error ("Term "
       ^ quote (Sign.string_of_term thy (term_of ct))
-      ^ " to be evaluated containts free variables");
-  in evaluate thy (eval_ml reff args thy) ct end;
+      ^ " to be evaluated contains free variables");
+  in evaluate thy (fn t => (t, eval_ml reff args thy)) ct end;
 
 fun eval_conv reff = eval evaluate_conv Thm.term_of reff;
 fun eval_term reff = eval evaluate_term I reff;
