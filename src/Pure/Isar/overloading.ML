@@ -28,7 +28,7 @@ struct
 (** generic check/uncheck combinators for improvable constants **)
 
 type improvable_syntax = ((((string * typ) list * (string * typ) list) *
-  (((string * typ -> (typ * typ) option) * (string * typ -> (typ * term) option)) *
+  ((((string * typ -> (typ * typ) option) * (string * typ -> (typ * term) option)) * bool) *
     (term * term) list)) * bool);
 
 structure ImprovableSyntax = ProofDataFun(
@@ -37,6 +37,7 @@ structure ImprovableSyntax = ProofDataFun(
     secondary_constraints: (string * typ) list,
     improve: string * typ -> (typ * typ) option,
     subst: string * typ -> (typ * term) option,
+    consider_abbrevs: bool,
     unchecks: (term * term) list,
     passed: bool
   };
@@ -45,26 +46,32 @@ structure ImprovableSyntax = ProofDataFun(
     secondary_constraints = [],
     improve = K NONE,
     subst = K NONE,
+    consider_abbrevs = false,
     unchecks = [],
     passed = true
   };
 );
 
 fun map_improvable_syntax f = ImprovableSyntax.map (fn { primary_constraints,
-  secondary_constraints, improve, subst, unchecks, passed } => let
-    val (((primary_constraints', secondary_constraints'), ((improve', subst'), unchecks')), passed')
-      = f (((primary_constraints, secondary_constraints), ((improve, subst), unchecks)), passed)
+  secondary_constraints, improve, subst, consider_abbrevs, unchecks, passed } => let
+    val (((primary_constraints', secondary_constraints'),
+      (((improve', subst'), consider_abbrevs'), unchecks')), passed')
+        = f (((primary_constraints, secondary_constraints),
+            (((improve, subst), consider_abbrevs), unchecks)), passed)
   in { primary_constraints = primary_constraints', secondary_constraints = secondary_constraints',
-    improve = improve', subst = subst', unchecks = unchecks', passed = passed'
+    improve = improve', subst = subst', consider_abbrevs = consider_abbrevs',
+    unchecks = unchecks', passed = passed'
   } end);
 
 val mark_passed = (map_improvable_syntax o apsnd) (K true);
 
 fun improve_term_check ts ctxt =
   let
-    val { primary_constraints, secondary_constraints, improve, subst, passed, ... } =
-      ImprovableSyntax.get ctxt;
+    val { primary_constraints, secondary_constraints, improve, subst,
+      consider_abbrevs, passed, ... } = ImprovableSyntax.get ctxt;
     val tsig = (Sign.tsig_of o ProofContext.theory_of) ctxt;
+    val is_abbrev = consider_abbrevs andalso ProofContext.is_abbrev_mode ctxt;
+    val passed_or_abbrev = passed orelse is_abbrev;
     fun accumulate_improvements (Const (c, ty)) = (case improve (c, ty)
          of SOME ty_ty' => Type.typ_match tsig ty_ty'
           | _ => I)
@@ -77,9 +84,9 @@ fun improve_term_check ts ctxt =
               then SOME (ty', apply_subst t') else NONE
           | NONE => NONE)
         | _ => NONE) t;
-    val ts'' = map apply_subst ts';
-  in if eq_list (op aconv) (ts, ts'') andalso passed then NONE else
-    if passed then SOME (ts'', ctxt)
+    val ts'' = if is_abbrev then ts' else map apply_subst ts';
+  in if eq_list (op aconv) (ts, ts'') andalso passed_or_abbrev then NONE else
+    if passed_or_abbrev then SOME (ts'', ctxt)
     else SOME (ts'', ctxt
       |> fold (ProofContext.add_const_constraint o apsnd SOME) secondary_constraints
       |> mark_passed)
@@ -147,7 +154,7 @@ fun init raw_overloading thy =
     |> ProofContext.init
     |> OverloadingData.put overloading
     |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
-    |> map_improvable_syntax (K ((([], []), ((K NONE, subst), unchecks)), false))
+    |> map_improvable_syntax (K ((([], []), (((K NONE, subst), false), unchecks)), false))
     |> add_improvable_syntax
   end;
 

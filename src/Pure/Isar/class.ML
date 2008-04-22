@@ -191,7 +191,6 @@ fun these_params thy =
 
 fun these_defs thy = maps (these o Option.map #defs o lookup_class_data thy) o ancestry thy;
 
-fun partial_morphism thy class = #morphism (the_class_data thy class) thy [];
 fun morphism thy class = #morphism (the_class_data thy class) thy (these_defs thy [class]);
 
 fun these_assm_intros thy =
@@ -438,7 +437,7 @@ fun synchronize_class_syntax sups base_sort ctxt =
     ctxt
     |> fold declare_const primary_constraints
     |> Overloading.map_improvable_syntax (K (((primary_constraints, secondary_constraints),
-        ((improve, subst), unchecks)), false))
+        (((improve, subst), true), unchecks)), false))
     |> Overloading.set_primary_constraints
   end;
 
@@ -581,7 +580,7 @@ fun declare class pos ((c, mx), dict) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
-    val phi = partial_morphism thy' class;
+    val phi = morphism thy' class;
 
     val c' = Sign.full_name thy' c;
     val dict' = Morphism.term phi dict;
@@ -608,14 +607,16 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
-    val phi = morphism thy class;
 
+    val unchecks = map (fn (c, (_, (ty, t))) => (t, Const (c, ty)))
+      (these_operations thy [class]);
     val c' = Sign.full_name thy' c;
-    val rhs' = Morphism.term phi rhs;
-    val ty' = Logic.unvarifyT (Term.fastype_of rhs');
+    val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
+    val rhs'' = map_types Logic.varifyT rhs';
+    val ty' = Term.fastype_of rhs';
   in
     thy'
-    |> Sign.add_abbrev (#1 prmode) pos (c, map_types Type.strip_sorts rhs') |> snd
+    |> Sign.add_abbrev (#1 prmode) pos (c, map_types Type.strip_sorts rhs'') |> snd
     |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> register_operation class (c', (rhs', NONE))
@@ -673,8 +674,8 @@ fun synchronize_inst_syntax ctxt =
   in
     ctxt
     |> Overloading.map_improvable_syntax
-         (fn (((primary_constraints, _), ((improve, _), _)), _) =>
-            (((primary_constraints, []), ((improve, subst), unchecks)), false))
+         (fn (((primary_constraints, _), (((improve, _), _), _)), _) =>
+            (((primary_constraints, []), (((improve, subst), false), unchecks)), false))
   end;
 
 
@@ -744,7 +745,7 @@ fun init_instantiation (tycos, vs, sort) thy =
     |> fold (Variable.declare_names o Free o snd) inst_params
     |> (Overloading.map_improvable_syntax o apfst)
          (fn ((_, _), ((_, subst), unchecks)) =>
-            ((primary_constraints, []), ((improve, K NONE), [])))
+            ((primary_constraints, []), (((improve, K NONE), false), [])))
     |> Overloading.add_improvable_syntax
     |> Context.proof_map (Syntax.add_term_check 0 "resorting" resort_check)
     |> synchronize_inst_syntax
