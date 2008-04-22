@@ -690,12 +690,17 @@ lemma ex_map_conv:
 by(induct ys, auto simp add: Cons_eq_map_conv)
 
 lemma map_eq_imp_length_eq:
-  "map f xs = map f ys ==> length xs = length ys"
-apply (induct ys arbitrary: xs)
- apply simp
-apply (metis Suc_length_conv length_map)
-done
-
+  assumes "map f xs = map f ys"
+  shows "length xs = length ys"
+using assms proof (induct ys arbitrary: xs)
+  case Nil then show ?case by simp
+next
+  case (Cons y ys) then obtain z zs where xs: "xs = z # zs" by auto
+  from Cons xs have "map f zs = map f ys" by simp
+  moreover with Cons have "length zs = length ys" by blast
+  with xs show ?case by simp
+qed
+  
 lemma map_inj_on:
  "[| map f xs = map f ys; inj_on f (set xs Un set ys) |]
   ==> xs = ys"
@@ -844,8 +849,8 @@ next
   case Cons thus ?case by (auto intro: Cons_eq_appendI)
 qed
 
-lemma in_set_conv_decomp: "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs)"
-by (metis Un_upper2 insert_subset set.simps(2) set_append split_list)
+lemma in_set_conv_decomp: "x \<in> set xs \<longleftrightarrow> (\<exists>ys zs. xs = ys @ x # zs)"
+  by (auto elim: split_list)
 
 lemma split_list_first: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys"
 proof (induct xs)
@@ -862,7 +867,7 @@ qed
 
 lemma in_set_conv_decomp_first:
   "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set ys)"
-by (metis in_set_conv_decomp split_list_first)
+  by (auto dest!: split_list_first)
 
 lemma split_list_last: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set zs"
 proof (induct xs rule:rev_induct)
@@ -879,7 +884,7 @@ qed
 
 lemma in_set_conv_decomp_last:
   "(x : set xs) = (\<exists>ys zs. xs = ys @ x # zs \<and> x \<notin> set zs)"
-by (metis in_set_conv_decomp split_list_last)
+  by (auto dest!: split_list_last)
 
 lemma split_list_prop: "\<exists>x \<in> set xs. P x \<Longrightarrow> \<exists>ys x zs. xs = ys @ x # zs & P x"
 proof (induct xs)
@@ -890,22 +895,22 @@ next
 qed
 
 lemma split_list_propE:
-assumes "\<exists>x \<in> set xs. P x"
-obtains ys x zs where "xs = ys @ x # zs" and "P x"
-by(metis split_list_prop[OF assms])
-
+  assumes "\<exists>x \<in> set xs. P x"
+  obtains ys x zs where "xs = ys @ x # zs" and "P x"
+using split_list_prop [OF assms] by blast
 
 lemma split_list_first_prop:
   "\<exists>x \<in> set xs. P x \<Longrightarrow>
    \<exists>ys x zs. xs = ys@x#zs \<and> P x \<and> (\<forall>y \<in> set ys. \<not> P y)"
-proof(induct xs)
+proof (induct xs)
   case Nil thus ?case by simp
 next
   case (Cons x xs)
   show ?case
   proof cases
     assume "P x"
-    thus ?thesis by simp (metis Un_upper1 contra_subsetD in_set_conv_decomp_first self_append_conv2 set_append)
+    thus ?thesis by simp
+      (metis Un_upper1 contra_subsetD in_set_conv_decomp_first self_append_conv2 set_append)
   next
     assume "\<not> P x"
     hence "\<exists>x\<in>set xs. P x" using Cons(2) by simp
@@ -914,15 +919,14 @@ next
 qed
 
 lemma split_list_first_propE:
-assumes "\<exists>x \<in> set xs. P x"
-obtains ys x zs where "xs = ys @ x # zs" and "P x" and "\<forall>y \<in> set ys. \<not> P y"
-by(metis split_list_first_prop[OF assms])
+  assumes "\<exists>x \<in> set xs. P x"
+  obtains ys x zs where "xs = ys @ x # zs" and "P x" and "\<forall>y \<in> set ys. \<not> P y"
+using split_list_first_prop [OF assms] by blast
 
 lemma split_list_first_prop_iff:
   "(\<exists>x \<in> set xs. P x) \<longleftrightarrow>
    (\<exists>ys x zs. xs = ys@x#zs \<and> P x \<and> (\<forall>y \<in> set ys. \<not> P y))"
-by(metis split_list_first_prop[where P=P] in_set_conv_decomp)
-
+by (rule, erule split_list_first_prop) auto
 
 lemma split_list_last_prop:
   "\<exists>x \<in> set xs. P x \<Longrightarrow>
@@ -942,20 +946,18 @@ next
 qed
 
 lemma split_list_last_propE:
-assumes "\<exists>x \<in> set xs. P x"
-obtains ys x zs where "xs = ys @ x # zs" and "P x" and "\<forall>z \<in> set zs. \<not> P z"
-by(metis split_list_last_prop[OF assms])
+  assumes "\<exists>x \<in> set xs. P x"
+  obtains ys x zs where "xs = ys @ x # zs" and "P x" and "\<forall>z \<in> set zs. \<not> P z"
+using split_list_last_prop [OF assms] by blast
 
 lemma split_list_last_prop_iff:
   "(\<exists>x \<in> set xs. P x) \<longleftrightarrow>
    (\<exists>ys x zs. xs = ys@x#zs \<and> P x \<and> (\<forall>z \<in> set zs. \<not> P z))"
-by(metis split_list_last_prop[where P=P] in_set_conv_decomp)
-
+by (metis split_list_last_prop [where P=P] in_set_conv_decomp)
 
 lemma finite_list: "finite A ==> EX xs. set xs = A"
-apply (erule finite_induct, auto)
-apply (metis set.simps(2))
-done
+  by (erule finite_induct)
+    (auto simp add: set.simps(2) [symmetric] simp del: set.simps(2))
 
 lemma card_length: "card (set xs) \<le> length xs"
 by (induct xs) (auto simp add: card_insert_if)
@@ -2109,7 +2111,7 @@ lemma upt_Suc_append: "i <= j ==> [i..<(Suc j)] = [i..<j]@[j]"
 by simp
 
 lemma upt_conv_Cons: "i < j ==> [i..<j] = i # [Suc i..<j]"
-by (metis upt_rec)
+  by (simp add: upt_rec)
 
 lemma upt_add_eq_append: "i<=j ==> [i..<j+k] = [i..<j]@[j..<j+k]"
 -- {* LOOPS as a simprule, since @{text "j <= j"}. *}
@@ -2232,8 +2234,8 @@ by (induct xs) auto
 lemma distinct_remdups_id: "distinct xs ==> remdups xs = xs"
 by (induct xs, auto)
 
-lemma remdups_id_iff_distinct[simp]: "(remdups xs = xs) = distinct xs"
-by(metis distinct_remdups distinct_remdups_id)
+lemma remdups_id_iff_distinct [simp]: "remdups xs = xs \<longleftrightarrow> distinct xs"
+by (metis distinct_remdups distinct_remdups_id)
 
 lemma finite_distinct_list: "finite A \<Longrightarrow> EX xs. set xs = A & distinct xs"
 by (metis distinct_remdups finite_list set_remdups)
@@ -2746,7 +2748,7 @@ lemma sorted_distinct_set_unique:
 assumes "sorted xs" "distinct xs" "sorted ys" "distinct ys" "set xs = set ys"
 shows "xs = ys"
 proof -
-  from assms have 1: "length xs = length ys" by (metis distinct_card)
+  from assms have 1: "length xs = length ys" by (auto dest!: distinct_card)
   from assms show ?thesis
   proof(induct rule:list_induct2[OF 1])
     case 1 show ?case by simp
@@ -2823,7 +2825,7 @@ by(simp add:upto_def finite_intvl)
 lemma insert_intvl: "i \<le> j \<Longrightarrow> insert i {successor i..j} = {i..j}"
 apply(insert successor_incr[of i])
 apply(auto simp: atLeastAtMost_def atLeast_def atMost_def)
-apply (metis ord_discrete less_le not_le)
+apply(metis ord_discrete less_le not_le)
 done
 
 lemma sorted_list_of_set_rec: "i \<le> j \<Longrightarrow>
