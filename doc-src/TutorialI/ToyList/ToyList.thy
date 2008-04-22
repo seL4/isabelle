@@ -1,12 +1,12 @@
 theory ToyList
-imports PreList
+imports Datatype
 begin
 
 text{*\noindent
-HOL already has a predefined theory of lists called @{text"List"} ---
-@{text"ToyList"} is merely a small fragment of it chosen as an example. In
+HOL already has a predefined theory of lists called @{text List} ---
+@{text ToyList} is merely a small fragment of it chosen as an example. In
 contrast to what is recommended in \S\ref{sec:Basic:Theories},
-@{text"ToyList"} is not based on @{text"Main"} but on @{text"PreList"}, a
+@{text ToyList} is not based on @{text Main} but on @{text Datatype}, a
 theory that contains pretty much everything but lists, thus avoiding
 ambiguities caused by defining lists twice.
 *}

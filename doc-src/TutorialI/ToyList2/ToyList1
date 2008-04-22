@@ -1,5 +1,5 @@
 theory ToyList
-imports PreList
+imports Datatype
 begin
 
 datatype 'a list = Nil                          ("[]")
