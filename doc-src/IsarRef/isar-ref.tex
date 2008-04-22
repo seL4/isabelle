@@ -2,23 +2,17 @@
 %% $Id$
 
 \documentclass[12pt,a4paper,fleqn]{report}
-\usepackage{latexsym,graphicx,../iman,../extra,../ttbox,../proof,../rail,../railsetup,../isar,../pdfsetup}
+\usepackage{latexsym,graphicx}
+\usepackage{../iman,../extra,../isar,../proof}
+\usepackage{Thy/document/isabelle,Thy/document/isabellesym}
+\usepackage{../ttbox,,../rail,../railsetup}
+\usepackage{style}
+\usepackage{../pdfsetup}
 
 \title{\includegraphics[scale=0.5]{isabelle_isar} \\[4ex] The Isabelle/Isar Reference Manual}
 \author{\emph{Markus Wenzel} \\ TU M\"unchen}
 
 \makeindex
-
-\newcommand{\isastyle}{\small\tt\slshape}
-\newcommand{\isa}[1]{\emph{\isastyle #1}}
-\newcommand{\isamath}[1]{\emph{$#1$}}
-\newcommand{\isasymColon}{\isamath{\mathrel{::}}}
-\newcommand{\isasymRightarrow}{\isamath{\Rightarrow}}
-\newcommand{\isasymleftharpoondown}{\isamath{\leftharpoondown}}
-\newcommand{\isasymrightharpoonup}{\isamath{\rightharpoonup}}
-\newcommand{\isasymrightleftharpoons}{\isamath{\rightleftharpoons}}
-\newcommand{\isasymequiv}{\isamath{\equiv}}
-\newcommand{\isasymsubseteq}{\isamath{\subseteq}}
 
 \railterm{percent,ppercent,underscore,lbrace,rbrace,atsign}
 \railterm{ident,longident,symident,var,textvar,typefree,typevar,nat,string,verbatim,keyword}
@@ -60,8 +54,6 @@
 \binperiod     %%%treat . like a binary operator
 
 \renewcommand{\phi}{\varphi}
-
-%\includeonly{}
 
 
 \begin{document}
