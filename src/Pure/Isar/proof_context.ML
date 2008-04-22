@@ -20,6 +20,7 @@ sig
   val set_mode: mode -> Proof.context -> Proof.context
   val get_mode: Proof.context -> mode
   val restore_mode: Proof.context -> Proof.context -> Proof.context
+  val is_abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
   val naming_of: Proof.context -> NameSpace.naming
   val full_name: Proof.context -> bstring -> string
@@ -164,6 +165,8 @@ datatype mode =
 
 fun make_mode (stmt, pattern, schematic, abbrev) =
   Mode {stmt = stmt, pattern = pattern, schematic = schematic, abbrev = abbrev};
+
+fun dest_mode (Mode mode) = mode;
 
 val mode_default   = make_mode (false, false, false, false);
 val mode_stmt      = make_mode (true, false, false, false);
@@ -444,11 +447,12 @@ val read_term_abbrev    = read_term_mode mode_abbrev;
 
 val tsig_of = Sign.tsig_of o ProofContext.theory_of;
 
+val is_abbrev_mode = #abbrev o dest_mode o get_mode;
+
 local
 
-fun certify_consts ctxt =
-  let val Mode {abbrev, ...} = get_mode ctxt
-  in Consts.certify (Syntax.pp ctxt) (tsig_of ctxt) (not abbrev) (consts_of ctxt) end;
+fun certify_consts ctxt = Consts.certify (Syntax.pp ctxt) (tsig_of ctxt)
+  (not (is_abbrev_mode ctxt)) (consts_of ctxt);
 
 fun reject_schematic (Var (xi, _)) =
       error ("Unbound schematic variable: " ^ Term.string_of_vname xi)
