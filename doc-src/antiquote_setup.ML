@@ -2,14 +2,40 @@
     ID:         $Id$
     Author:     Makarius
 
-Auxiliary antiquotations for Isabelle manuals.
+Auxiliary antiquotations for the Isabelle manuals.
 *)
 
-local
+structure AntiquoteSetup: sig end =
+struct
 
 structure O = ThyOutput;
 
+
+(* misc utils *)
+
 val str_of_source = space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
+
+fun tweak_line s =
+  if ! O.display then s else Symbol.strip_blanks s;
+
+val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.split_lines;
+
+fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
+fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
+
+
+(* verbatim text *)
+
+val verbatim = space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|";
+
+val _ = O.add_commands
+ [("verbatim", O.args (Scan.lift Args.name) (fn _ => fn _ =>
+      split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))];
+
+
+(* ML text *)
+
+local
 
 fun ml_val (txt1, "") = "fn _ => (" ^ txt1 ^ ");"
   | ml_val (txt1, txt2) = "fn _ => (" ^ txt1 ^ ": " ^ txt2 ^ ");";
@@ -24,15 +50,11 @@ fun ml_structure (txt, _) = "functor DUMMY_FUNCTOR() = struct structure DUMMY = 
 
 fun ml_functor _ = "val _ = ();";  (*no check!*)
 
-val verbatim = space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|";
-
 fun index_ml kind ml src ctxt (txt1, txt2) =
   let
     val txt = if txt2 = "" then txt1 else
-      if kind = "type"
-        then txt1 ^ " = " ^ txt2
-      else if kind = "exception"
-        then txt1 ^ " of " ^ txt2
+      if kind = "type" then txt1 ^ " = " ^ txt2
+      else if kind = "exception" then txt1 ^ " of " ^ txt2
       else txt1 ^ ": " ^ txt2;
     val txt' = if kind = "" then txt else kind ^ " " ^ txt;
     val _ = writeln (ml (txt1, txt2));
@@ -48,27 +70,33 @@ fun index_ml kind ml src ctxt (txt1, txt2) =
 
 fun output_ml ctxt src =
   if ! O.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
-    else
+  else
     split_lines
     #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
     #> space_implode "\\isasep\\isanewline%\n";
 
-fun output_verbatim _ _ = split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n";
+fun ml_args x = O.args (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) "")) x;
 
-fun arguments x = O.args (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) "")) x;
+in
 
-fun pretty_thy_file name = (ThyLoad.check_thy Path.current name; Pretty.str name);
+val _ = O.add_commands
+ [("index_ML", ml_args (index_ml "" ml_val)),
+  ("index_ML_type", ml_args (index_ml "type" ml_type)),
+  ("index_ML_exn", ml_args (index_ml "exception" ml_exn)),
+  ("index_ML_structure", ml_args (index_ml "structure" ml_structure)),
+  ("index_ML_functor", ml_args (index_ml "functor" ml_functor)),
+  ("ML_functor", O.args (Scan.lift Args.name) output_ml),
+  ("ML_text", O.args (Scan.lift Args.name) output_ml)];
+
+end;
 
 
 (* theorems with names *)
 
-fun tweak_line s =
-  if ! O.display then s else Symbol.strip_blanks s;
+local
 
-val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.split_lines;
-
-fun output_named_list pretty src ctxt xs =
-  map (apfst (pretty ctxt)) xs        (*always pretty in order to exhibit errors!*)
+fun output_named_thms src ctxt xs =
+  map (apfst (pretty_thm ctxt)) xs        (*always pretty in order to exhibit errors!*)
   |> (if ! O.quotes then map (apfst Pretty.quote) else I)
   |> (if ! O.display then
     map (fn (p, name) =>
@@ -83,23 +111,19 @@ fun output_named_list pretty src ctxt xs =
     #> space_implode "\\par\\smallskip%\n"
     #> enclose "\\isa{" "}");
 
-fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
-fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
-
 in
 
 val _ = O.add_commands
- [("index_ML", arguments (index_ml "" ml_val)),
-  ("index_ML_type", arguments (index_ml "type" ml_type)),
-  ("index_ML_exn", arguments (index_ml "exception" ml_exn)),
-  ("index_ML_structure", arguments (index_ml "structure" ml_structure)),
-  ("index_ML_functor", arguments (index_ml "functor" ml_functor)),
-  ("ML_functor", O.args (Scan.lift Args.name) output_verbatim),
-  ("verbatim", O.args (Scan.lift Args.name) output_verbatim),
-  ("thy_file", O.args (Scan.lift Args.name) (O.output (K pretty_thy_file))),
-  ("named_thms", O.args (Scan.repeat (Attrib.thm --
-       Scan.lift (Args.$$$ "(" |-- Args.name --| Args.$$$ ")")))
-     (output_named_list pretty_thm)),
-  ("ML_text", O.args (Scan.lift Args.name) output_ml)];
+ [("named_thms", O.args (Scan.repeat (Attrib.thm --
+      Scan.lift (Args.$$$ "(" |-- Args.name --| Args.$$$ ")"))) output_named_thms)];
+
+end;
+
+
+(* theory files *)
+
+val _ = O.add_commands
+ [("thy_file", O.args (Scan.lift Args.name) (O.output (fn _ => fn name =>
+      (ThyLoad.check_thy Path.current name; Pretty.str name))))];
 
 end;
