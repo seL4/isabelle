@@ -9,6 +9,10 @@
 \usepackage{style}
 \usepackage{../pdfsetup}
 
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+
+\isadroptag{theory}
 \title{\includegraphics[scale=0.5]{isabelle_isar} \\[4ex] The Isabelle/Isar Reference Manual}
 \author{\emph{Markus Wenzel} \\ TU M\"unchen}
 
@@ -64,16 +68,16 @@
 
 \pagenumbering{roman} \tableofcontents \clearfirst
 
-\include{intro}
-\include{basics}
-\include{syntax}
-\include{pure}
-\include{generic}
-\include{logics}
+\input{Thy/document/intro.tex}
+\input{basics.tex}
+\input{syntax.tex}
+\input{pure.tex}
+\input{generic.tex}
+\input{logics.tex}
 
 \appendix
-\include{refcard}
-\include{conversion}
+\input{refcard.tex}
+\input{conversion.tex}
 
 \begingroup
   \bibliographystyle{plain} \small\raggedright\frenchspacing

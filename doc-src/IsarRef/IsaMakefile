@@ -21,7 +21,7 @@ USEDIR = $(ISATOOL) usedir -v true -i false -d false -C false -D document
 
 Thy: $(LOG)/Pure-Thy.gz
 
-$(LOG)/Pure-Thy.gz: Thy/ROOT.ML ../antiquote_setup.ML
+$(LOG)/Pure-Thy.gz: Thy/ROOT.ML ../antiquote_setup.ML Thy/intro.thy
 	@$(USEDIR) Pure Thy
 
 
