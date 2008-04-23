@@ -164,8 +164,7 @@ definition upd' where
 hide (open) const upd'
 lemma [code func]:
   "Array.upd i x a = Array.upd' a (index_of_nat i) x \<guillemotright> return a"
-  apply (simp add: upd'_def monad_simp)
-oops
+  by (simp add: upd'_def monad_simp upd_return)
 
 
 subsubsection {* SML *}
