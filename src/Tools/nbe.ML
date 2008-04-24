@@ -23,7 +23,7 @@ sig
   val univs_ref: (unit -> Univ list -> Univ list) option ref
   val trace: bool ref
 
-  val setup: class list -> (string * string) list -> theory -> theory
+  val setup: theory -> theory
 end;
 
 structure Nbe: NBE =
@@ -373,41 +373,13 @@ fun compile_eval thy code vs_ty_t deps =
     |> term_of_univ thy idx_tab
   end;
 
-(* trivial type classes *)
-
-structure Nbe_Triv_Classes = TheoryDataFun
-(
-  type T = class list * (string * string) list;
-  val empty = ([], []);
-  val copy = I;
-  val extend = I;
-  fun merge _ ((classes1, consts1), (classes2, consts2)) =
-    (Library.merge (op =) (classes1, classes2), Library.merge (op =) (consts1, consts2));
-)
-
-fun add_triv_classes thy =
-  let
-    val (trivs, _) = Nbe_Triv_Classes.get thy;
-    val inters = curry (Sorts.inter_sort (Sign.classes_of thy)) trivs;
-    fun map_sorts f = (map_types o map_atyps)
-      (fn TVar (v, sort) => TVar (v, f sort)
-        | TFree (v, sort) => TFree (v, f sort));
-  in map_sorts inters end;
-
-fun subst_triv_consts thy =
-  let
-    fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => (case f c
-         of SOME c' => Term.Const (c', ty)
-          | NONE => t)
-      | t => t);
-    val (_, consts) = Nbe_Triv_Classes.get thy;
-    val subst_inst = perhaps (Option.map fst o AxClass.inst_of_param thy);
-  in map_aterms (subst_const (AList.lookup (op =) consts o subst_inst)) end;
-
 (* evaluation with type reconstruction *)
 
 fun eval thy t code vs_ty_t deps =
   let
+    fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
+      | t => t);
+    val subst_triv_consts = subst_const (CodeUnit.resubst_alias thy);
     val ty = type_of t;
     val type_free = AList.lookup (op =)
       (map (fn (s, T) => (s, Term.Free (s, T))) (Term.add_frees t []));
@@ -425,7 +397,7 @@ fun eval thy t code vs_ty_t deps =
   in
     compile_eval thy code vs_ty_t deps
     |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
-    |> subst_triv_consts thy
+    |> subst_triv_consts
     |> type_frees
     |> tracing (fn t => "Vars typed:\n" ^ string_of_term t)
     |> type_infer
@@ -445,6 +417,15 @@ fun norm_oracle (thy, Norm (t, code, vs_ty_t, deps)) =
 fun norm_invoke thy t code vs_ty_t deps =
   Thm.invoke_oracle_i thy "HOL.norm" (thy, Norm (t, code, vs_ty_t, deps));
   (*FIXME get rid of hardwired theory name*)
+
+fun add_triv_classes thy =
+  let
+    val inters = curry (Sorts.inter_sort (Sign.classes_of thy))
+      (CodeUnit.triv_classes thy);
+    fun map_sorts f = (map_types o map_atyps)
+      (fn TVar (v, sort) => TVar (v, f sort)
+        | TFree (v, sort) => TFree (v, f sort));
+  in map_sorts inters end;
 
 fun norm_conv ct =
   let
@@ -478,9 +459,7 @@ fun norm_print_term_cmd (modes, s) state =
   let val ctxt = Toplevel.context_of state
   in norm_print_term ctxt modes (Syntax.read_term ctxt s) end;
 
-fun setup nbe_classes nbe_consts =
-  Theory.add_oracle ("norm", norm_oracle)
-  #> Nbe_Triv_Classes.map (K (nbe_classes, nbe_consts));
+val setup = Theory.add_oracle ("norm", norm_oracle);
 
 local structure P = OuterParse and K = OuterKeyword in
 

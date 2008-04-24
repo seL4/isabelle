@@ -1699,7 +1699,7 @@ setup {*
   CodeUnit.add_const_alias @{thm equals_eq}
   #> CodeName.setup
   #> CodeTarget.setup
-  #> Nbe.setup @{sort eq} [(@{const_name eq_class.eq}, @{const_name "op ="})]
+  #> Nbe.setup
 *}
 
 lemma [code func]:

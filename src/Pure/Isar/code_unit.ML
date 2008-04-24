@@ -17,9 +17,13 @@ sig
   val inst_thm: sort Vartab.table -> thm -> thm
   val constrain_thm: sort -> thm -> thm
 
-  (*constants*)
+  (*constant aliasses*)
   val add_const_alias: thm -> theory -> theory
   val subst_alias: theory -> string -> string
+  val resubst_alias: theory -> string -> string
+  val triv_classes: theory -> class list
+
+  (*constants*)
   val string_of_typ: theory -> typ -> string
   val string_of_const: theory -> string -> string
   val no_args: theory -> string -> int
@@ -213,11 +217,13 @@ fun norm_varnames purify_tvar purify_var thms =
 
 structure ConstAlias = TheoryDataFun
 (
-  type T = ((string * string) * thm) list;
-  val empty = [];
+  type T = ((string * string) * thm) list * class list;
+  val empty = ([], []);
   val copy = I;
   val extend = I;
-  fun merge _ = Library.merge (eq_snd Thm.eq_thm_prop);
+  fun merge _ ((alias1, classes1), (alias2, classes2)) =
+    (Library.merge (eq_snd Thm.eq_thm_prop) (alias1, alias2),
+      Library.merge (op =) (classes1, classes2));
 );
 
 fun add_const_alias thm =
@@ -230,16 +236,34 @@ fun add_const_alias thm =
     val c_c' = case try (pairself (AxClass.unoverload_const thy o dest_Const)) lhs_rhs
      of SOME c_c' => c_c'
       | _ => error ("Not an equation with two constants: " ^ Display.string_of_thm thm);
-  in ConstAlias.map (cons (c_c', thm)) end;
+    val some_class = the_list (AxClass.class_of_param thy (snd c_c'));
+  in
+    ConstAlias.map (fn (alias, classes) =>
+      ((c_c', thm) :: alias, fold (insert (op =)) some_class classes))
+  end;
 
 fun rew_alias thm =
   let
     val thy = Thm.theory_of_thm thm;
-  in rewrite_head (map snd (ConstAlias.get thy)) thm end;
+  in rewrite_head ((map snd o fst o ConstAlias.get) thy) thm end;
 
 fun subst_alias thy c = ConstAlias.get thy
+  |> fst
   |> get_first (fn ((c', c''), _) => if c = c' then SOME c'' else NONE)
   |> the_default c;
+
+fun resubst_alias thy =
+  let
+    val alias = fst (ConstAlias.get thy);
+    val subst_inst_param = Option.map fst o AxClass.inst_of_param thy;
+    fun subst_alias c =
+      get_first (fn ((c', c''), _) => if c = c'' then SOME c' else NONE) alias;
+  in
+    perhaps subst_inst_param
+    #> perhaps subst_alias
+  end;
+
+val triv_classes = snd o ConstAlias.get;
 
 (* reading constants as terms *)
 
