@@ -6,24 +6,25 @@
 
 \usepackage{ifthen}
 
+\newcommand{\indexdef}[3]%
+{\ifthenelse{\equal{}{#1}}{\index{#3 (#2)|bold}}{\index{#3 (#1\ #2)|bold}}}
+\newcommand{\indexref}[3]{\ifthenelse{\equal{}{#1}}{\index{#3 (#2)}}{\index{#3 (#1\ #2)}}}
+
+\newcommand{\indexoutertoken}[1]{\indexdef{}{syntax}{#1}}
+\newcommand{\indexouternonterm}[1]{\indexdef{}{syntax}{#1}}
+\newcommand{\indexisarcmd}[1]{\indexdef{}{command}{#1}}
+\newcommand{\indexisarelem}[1]{\indexdef{}{element}{#1}}
+\newcommand{\indexisarmeth}[1]{\indexdef{}{method}{#1}}
+\newcommand{\indexisaratt}[1]{\indexdef{}{attribute}{#1}}
+\newcommand{\indexisarthm}[1]{\indexdef{}{fact}{#1}}
+\newcommand{\indexisarvar}[1]{\indexdef{}{term}{#1}}
+\newcommand{\indexisarcase}[1]{\indexdef{}{case}{#1}}
+\newcommand{\indexisarant}[1]{\indexdef{}{antiquotation}{#1}}
+\newcommand{\indexisarcmdof}[2]{\indexdef{#1}{command}{#2}}
+\newcommand{\indexisarmethof}[2]{\indexdef{#1}{method}{#2}}
+\newcommand{\indexisarattof}[2]{\indexdef{#1}{attribute}{#2}}
+
 \newcommand{\isarkeyword}[1]{{\mathord{\mathbf{#1}}}}
-
-\newcommand{\indexoutersyntax}[1]{\index{#1 (syntax)|bold}}
-\newcommand{\indexoutertoken}[1]{\index{#1 (syntax)|bold}}
-\newcommand{\indexouternonterm}[1]{\index{#1 (syntax)|bold}}
-\newcommand{\indexisarcmd}[1]{\index{#1 (command)|bold}}
-\newcommand{\indexisarelem}[1]{\index{#1 (element)|bold}}
-\newcommand{\indexisarmeth}[1]{\index{#1 (method)|bold}}
-\newcommand{\indexisaratt}[1]{\index{#1 (attribute)|bold}}
-\newcommand{\indexisarthm}[1]{\index{#1 (theorem)|bold}}
-\newcommand{\indexisarvar}[1]{\index{#1 (variable)|bold}}
-\newcommand{\indexisarcase}[1]{\index{#1 (case)|bold}}
-\newcommand{\indexisarant}[1]{\index{#1 (antiquotation)|bold}}
-
-\newcommand{\indexisarcmdof}[2]{\index{#2 (#1 command)|bold}}
-\newcommand{\indexisarmethof}[2]{\index{#2 (#1 method)|bold}}
-\newcommand{\indexisarattof}[2]{\index{#2 (#1 attribute)|bold}}
-
 \newcommand{\isarcmd}[1]{\isarkeyword{#1}}
 \newcommand{\isartrans}[2]{#1 \mathbin{\,\to\,} #2}
 \newcommand{\isarkeep}[1]{#1 \mathbin{\,\to\,} #1}
