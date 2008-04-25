@@ -119,6 +119,11 @@ fun import_last_fundef ctxt =
 
 val all_fundef_data = NetRules.rules o FundefData.get
 
+structure TerminationSimps = NamedThmsFun(
+  val name = "termination_simp" 
+  val description = "Simplification rule for termination proofs"
+);
+
 structure TerminationRule = GenericDataFun
 (
   type T = thm list

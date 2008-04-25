@@ -3265,6 +3265,15 @@ syntax
 setup StringSyntax.setup
 
 
+subsection {* Size function *}
+
+declare [[measure_function "list_size size"]]
+
+lemma list_size_estimation[termination_simp]:
+  "x \<in> set xs \<Longrightarrow> f x < list_size f xs"
+by (induct xs) auto
+
+
 subsection {* Code generator *}
 
 subsubsection {* Setup *}

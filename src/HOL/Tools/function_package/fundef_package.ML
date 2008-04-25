@@ -184,6 +184,7 @@ val setup =
       "declaration of congruence rule for function definitions")]
   #> setup_case_cong
   #> FundefRelation.setup
+  #> FundefCommon.TerminationSimps.setup
 
 val get_congs = FundefCtxTree.get_fundef_congs o Context.Theory
 

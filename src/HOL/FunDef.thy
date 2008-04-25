@@ -135,4 +135,10 @@ lemma comp_cong [fundef_cong]:
   "f (g x) = f' (g' x') \<Longrightarrow> (f o g) x = (f' o g') x'"
   unfolding o_apply .
 
+lemma termination_basic_simps[termination_simp]:
+  "x < y \<Longrightarrow> x < Suc y"
+  "x < (y::nat) \<Longrightarrow> x < y + z" 
+  "x < z \<Longrightarrow> x < y + z"
+by arith+
+
 end

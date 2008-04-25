@@ -582,7 +582,7 @@ where
 | "fib2 1 = 1"
 | "fib2 (n + 2) = fib2 n + fib2 (Suc n)"
 
-(*<*)ML "goals_limit := 1"(*>*)
+(*<*)ML_val "goals_limit := 1"(*>*)
 txt {*
   This kind of matching is again justified by the proof of pattern
   completeness and compatibility. 
@@ -599,7 +599,7 @@ txt {*
   existentials, which can then be soved by the arithmetic decision procedure.
   Pattern compatibility and termination are automatic as usual.
 *}
-(*<*)ML "goals_limit := 10"(*>*)
+(*<*)ML_val "goals_limit := 10"(*>*)
 apply atomize_elim
 apply arith
 apply auto
@@ -1152,14 +1152,11 @@ datatype 'a tree =
 text {* \noindent We can define a function which swaps the left and right subtrees recursively, using the 
   list functions @{const rev} and @{const map}: *}
 
-lemma [simp]: "x \<in> set l \<Longrightarrow> f x < Suc (list_size f l)"
-by (induct l) auto
-
-
-fun mirror :: "'a tree \<Rightarrow> 'a tree"
+function mirror :: "'a tree \<Rightarrow> 'a tree"
 where
   "mirror (Leaf n) = Leaf n"
 | "mirror (Branch l) = Branch (rev (map mirror l))"
+by pat_completeness auto
 
 
 text {*
