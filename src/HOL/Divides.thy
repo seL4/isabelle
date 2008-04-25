@@ -7,7 +7,7 @@
 header {* The division operators div,  mod and the divides relation dvd *}
 
 theory Divides
-imports Nat Power Product_Type Wellfounded_Recursion
+imports Nat Power Product_Type
 uses "~~/src/Provers/Arith/cancel_div_mod.ML"
 begin
 

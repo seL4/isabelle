@@ -50,7 +50,7 @@ fun mk_measures domT mfuns =
         val mlexT = (domT --> HOLogic.natT) --> relT --> relT
         fun mk_ms [] = Const (@{const_name "{}"}, relT)
           | mk_ms (f::fs) = 
-            Const (@{const_name "Wellfounded_Relations.mlex_prod"}, mlexT) $ f $ mk_ms fs
+            Const (@{const_name "mlex_prod"}, mlexT) $ f $ mk_ms fs
     in
         mk_ms mfuns
     end

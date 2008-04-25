@@ -1,12 +1,14 @@
 (*  ID:         $Id$
     Author:     Tobias Nipkow
-    Copyright   1992  University of Cambridge
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Konrad Slind, Alexander Krauss
+    Copyright   1992-2008  University of Cambridge and TU Muenchen
 *)
 
 header {*Well-founded Recursion*}
 
-theory Wellfounded_Recursion
-imports Transitive_Closure Nat
+theory Wellfounded
+imports Finite_Set Nat
 uses ("Tools/function_package/size.ML")
 begin
 
@@ -391,6 +393,22 @@ apply (simp add: acyclic_def)
 apply (blast intro: trancl_mono)
 done
 
+text{* Wellfoundedness of finite acyclic relations*}
+
+lemma finite_acyclic_wf [rule_format]: "finite r ==> acyclic r --> wf r"
+apply (erule finite_induct, blast)
+apply (simp (no_asm_simp) only: split_tupled_all)
+apply simp
+done
+
+lemma finite_acyclic_wf_converse: "[|finite r; acyclic r|] ==> wf (r^-1)"
+apply (erule finite_converse [THEN iffD2, THEN finite_acyclic_wf])
+apply (erule acyclic_converse [THEN iffD2])
+done
+
+lemma wf_iff_acyclic_if_finite: "finite r ==> wf r = acyclic r"
+by (blast intro: finite_acyclic_wf wf_acyclic)
+
 
 subsection{*Well-Founded Recursion*}
 
@@ -431,14 +449,6 @@ apply (intro strip)
 apply (erule adm_lemma [THEN wfrec_unique, THEN theI'])
 done
 
-
-text{** This form avoids giant explosions in proofs.  NOTE USE OF ==*}
-lemma def_wfrec: "[| f==wfrec r H;  wf(r) |] ==> f(a) = H (cut f r a) a"
-apply auto
-apply (blast intro: wfrec)
-done
-
-
 subsection {* Code generator setup *}
 
 consts_code
@@ -447,25 +457,6 @@ attach {*
 fun wfrec f x = f (wfrec f) x;
 *}
 
-
-subsection{*Variants for TFL: the Recdef Package*}
-
-lemma tfl_wf_induct: "ALL R. wf R -->  
-       (ALL P. (ALL x. (ALL y. (y,x):R --> P y) --> P x) --> (ALL x. P x))"
-apply clarify
-apply (rule_tac r = R and P = P and a = x in wf_induct, assumption, blast)
-done
-
-lemma tfl_cut_apply: "ALL f R. (x,a):R --> (cut f R a)(x) = f(x)"
-apply clarify
-apply (rule cut_apply, assumption)
-done
-
-lemma tfl_wfrec:
-     "ALL M R f. (f=wfrec R M) --> wf R --> (ALL x. f x = M (cut f R x) x)"
-apply clarify
-apply (erule wfrec)
-done
 
 subsection {*LEAST and wellorderings*}
 
@@ -557,89 +548,12 @@ lemma less_than_iff [iff]: "((x,y): less_than) = (x<y)"
 lemma wf_less: "wf {(x, y::nat). x < y}"
   using wf_less_than by (simp add: less_than_def less_eq [symmetric])
 
-text {* Complete induction, aka course-of-values induction *}
-lemma nat_less_induct:
-  assumes "!!n. \<forall>m::nat. m < n --> P m ==> P n" shows "P n"
-  apply (induct n rule: wf_induct [OF wf_pred_nat [THEN wf_trancl]])
-  apply (rule assms)
-  apply (unfold less_eq [symmetric], assumption)
-  done
-
-lemmas less_induct = nat_less_induct [rule_format, case_names less]
-
 text {* Type @{typ nat} is a wellfounded order *}
 
 instance nat :: wellorder
   by intro_classes
     (assumption |
       rule le_refl le_trans le_anti_sym nat_less_le nat_le_linear wf_less)+
-
-lemma nat_induct2: "[|P 0; P (Suc 0); !!k. P k ==> P (Suc (Suc k))|] ==> P n"
-  apply (rule nat_less_induct)
-  apply (case_tac n)
-  apply (case_tac [2] nat)
-  apply (blast intro: less_trans)+
-  done
-
-text {* The method of infinite descent, frequently used in number theory.
-Provided by Roelof Oosterhuis.
-$P(n)$ is true for all $n\in\mathbb{N}$ if
-\begin{itemize}
-  \item case ``0'': given $n=0$ prove $P(n)$,
-  \item case ``smaller'': given $n>0$ and $\neg P(n)$ prove there exists
-        a smaller integer $m$ such that $\neg P(m)$.
-\end{itemize} *}
-
-lemma infinite_descent0[case_names 0 smaller]: 
-  "\<lbrakk> P 0; !!n. n>0 \<Longrightarrow> \<not> P n \<Longrightarrow> (\<exists>m::nat. m < n \<and> \<not>P m) \<rbrakk> \<Longrightarrow> P n"
-by (induct n rule: less_induct, case_tac "n>0", auto)
-
-text{* A compact version without explicit base case: *}
-lemma infinite_descent:
-  "\<lbrakk> !!n::nat. \<not> P n \<Longrightarrow>  \<exists>m<n. \<not>  P m \<rbrakk> \<Longrightarrow>  P n"
-by (induct n rule: less_induct, auto)
-
-text {*
-Infinite descent using a mapping to $\mathbb{N}$:
-$P(x)$ is true for all $x\in D$ if there exists a $V: D \to \mathbb{N}$ and
-\begin{itemize}
-\item case ``0'': given $V(x)=0$ prove $P(x)$,
-\item case ``smaller'': given $V(x)>0$ and $\neg P(x)$ prove there exists a $y \in D$ such that $V(y)<V(x)$ and $~\neg P(y)$.
-\end{itemize}
-NB: the proof also shows how to use the previous lemma. *}
-
-corollary infinite_descent0_measure [case_names 0 smaller]:
-  assumes A0: "!!x. V x = (0::nat) \<Longrightarrow> P x"
-    and   A1: "!!x. V x > 0 \<Longrightarrow> \<not>P x \<Longrightarrow> (\<exists>y. V y < V x \<and> \<not>P y)"
-  shows "P x"
-proof -
-  obtain n where "n = V x" by auto
-  moreover have "\<And>x. V x = n \<Longrightarrow> P x"
-  proof (induct n rule: infinite_descent0)
-    case 0 -- "i.e. $V(x) = 0$"
-    with A0 show "P x" by auto
-  next -- "now $n>0$ and $P(x)$ does not hold for some $x$ with $V(x)=n$"
-    case (smaller n)
-    then obtain x where vxn: "V x = n " and "V x > 0 \<and> \<not> P x" by auto
-    with A1 obtain y where "V y < V x \<and> \<not> P y" by auto
-    with vxn obtain m where "m = V y \<and> m<n \<and> \<not> P y" by auto
-    then show ?case by auto
-  qed
-  ultimately show "P x" by auto
-qed
-
-text{* Again, without explicit base case: *}
-lemma infinite_descent_measure:
-assumes "!!x. \<not> P x \<Longrightarrow> \<exists>y. (V::'a\<Rightarrow>nat) y < V x \<and> \<not> P y" shows "P x"
-proof -
-  from assms obtain n where "n = V x" by auto
-  moreover have "!!x. V x = n \<Longrightarrow> P x"
-  proof (induct n rule: infinite_descent, auto)
-    fix x assume "\<not> P x"
-    with assms show "\<exists>m < V x. \<exists>y. V y = m \<and> \<not> P y" by auto
-  qed
-  ultimately show "P x" by auto
-qed
 
 text {* @{text LEAST} theorems for type @{typ nat}*}
 
@@ -681,6 +595,317 @@ lemma ex_least_nat_less: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarro
   done
 
 
+subsection {* Accessible Part *}
+
+text {*
+ Inductive definition of the accessible part @{term "acc r"} of a
+ relation; see also \cite{paulin-tlca}.
+*}
+
+inductive_set
+  acc :: "('a * 'a) set => 'a set"
+  for r :: "('a * 'a) set"
+  where
+    accI: "(!!y. (y, x) : r ==> y : acc r) ==> x : acc r"
+
+abbreviation
+  termip :: "('a => 'a => bool) => 'a => bool" where
+  "termip r == accp (r\<inverse>\<inverse>)"
+
+abbreviation
+  termi :: "('a * 'a) set => 'a set" where
+  "termi r == acc (r\<inverse>)"
+
+lemmas accpI = accp.accI
+
+text {* Induction rules *}
+
+theorem accp_induct:
+  assumes major: "accp r a"
+  assumes hyp: "!!x. accp r x ==> \<forall>y. r y x --> P y ==> P x"
+  shows "P a"
+  apply (rule major [THEN accp.induct])
+  apply (rule hyp)
+   apply (rule accp.accI)
+   apply fast
+  apply fast
+  done
+
+theorems accp_induct_rule = accp_induct [rule_format, induct set: accp]
+
+theorem accp_downward: "accp r b ==> r a b ==> accp r a"
+  apply (erule accp.cases)
+  apply fast
+  done
+
+lemma not_accp_down:
+  assumes na: "\<not> accp R x"
+  obtains z where "R z x" and "\<not> accp R z"
+proof -
+  assume a: "\<And>z. \<lbrakk>R z x; \<not> accp R z\<rbrakk> \<Longrightarrow> thesis"
+
+  show thesis
+  proof (cases "\<forall>z. R z x \<longrightarrow> accp R z")
+    case True
+    hence "\<And>z. R z x \<Longrightarrow> accp R z" by auto
+    hence "accp R x"
+      by (rule accp.accI)
+    with na show thesis ..
+  next
+    case False then obtain z where "R z x" and "\<not> accp R z"
+      by auto
+    with a show thesis .
+  qed
+qed
+
+lemma accp_downwards_aux: "r\<^sup>*\<^sup>* b a ==> accp r a --> accp r b"
+  apply (erule rtranclp_induct)
+   apply blast
+  apply (blast dest: accp_downward)
+  done
+
+theorem accp_downwards: "accp r a ==> r\<^sup>*\<^sup>* b a ==> accp r b"
+  apply (blast dest: accp_downwards_aux)
+  done
+
+theorem accp_wfPI: "\<forall>x. accp r x ==> wfP r"
+  apply (rule wfPUNIVI)
+  apply (induct_tac P x rule: accp_induct)
+   apply blast
+  apply blast
+  done
+
+theorem accp_wfPD: "wfP r ==> accp r x"
+  apply (erule wfP_induct_rule)
+  apply (rule accp.accI)
+  apply blast
+  done
+
+theorem wfP_accp_iff: "wfP r = (\<forall>x. accp r x)"
+  apply (blast intro: accp_wfPI dest: accp_wfPD)
+  done
+
+
+text {* Smaller relations have bigger accessible parts: *}
+
+lemma accp_subset:
+  assumes sub: "R1 \<le> R2"
+  shows "accp R2 \<le> accp R1"
+proof
+  fix x assume "accp R2 x"
+  then show "accp R1 x"
+  proof (induct x)
+    fix x
+    assume ih: "\<And>y. R2 y x \<Longrightarrow> accp R1 y"
+    with sub show "accp R1 x"
+      by (blast intro: accp.accI)
+  qed
+qed
+
+
+text {* This is a generalized induction theorem that works on
+  subsets of the accessible part. *}
+
+lemma accp_subset_induct:
+  assumes subset: "D \<le> accp R"
+    and dcl: "\<And>x z. \<lbrakk>D x; R z x\<rbrakk> \<Longrightarrow> D z"
+    and "D x"
+    and istep: "\<And>x. \<lbrakk>D x; (\<And>z. R z x \<Longrightarrow> P z)\<rbrakk> \<Longrightarrow> P x"
+  shows "P x"
+proof -
+  from subset and `D x`
+  have "accp R x" ..
+  then show "P x" using `D x`
+  proof (induct x)
+    fix x
+    assume "D x"
+      and "\<And>y. R y x \<Longrightarrow> D y \<Longrightarrow> P y"
+    with dcl and istep show "P x" by blast
+  qed
+qed
+
+
+text {* Set versions of the above theorems *}
+
+lemmas acc_induct = accp_induct [to_set]
+
+lemmas acc_induct_rule = acc_induct [rule_format, induct set: acc]
+
+lemmas acc_downward = accp_downward [to_set]
+
+lemmas not_acc_down = not_accp_down [to_set]
+
+lemmas acc_downwards_aux = accp_downwards_aux [to_set]
+
+lemmas acc_downwards = accp_downwards [to_set]
+
+lemmas acc_wfI = accp_wfPI [to_set]
+
+lemmas acc_wfD = accp_wfPD [to_set]
+
+lemmas wf_acc_iff = wfP_accp_iff [to_set]
+
+lemmas acc_subset = accp_subset [to_set]
+
+lemmas acc_subset_induct = accp_subset_induct [to_set]
+
+
+subsection {* Tools for building wellfounded relations *}
+
+text {* Inverse Image *}
+
+lemma wf_inv_image [simp,intro!]: "wf(r) ==> wf(inv_image r (f::'a=>'b))"
+apply (simp (no_asm_use) add: inv_image_def wf_eq_minimal)
+apply clarify
+apply (subgoal_tac "EX (w::'b) . w : {w. EX (x::'a) . x: Q & (f x = w) }")
+prefer 2 apply (blast del: allE)
+apply (erule allE)
+apply (erule (1) notE impE)
+apply blast
+done
+
+lemma in_inv_image[simp]: "((x,y) : inv_image r f) = ((f x, f y) : r)"
+  by (auto simp:inv_image_def)
+
+text {* Measure functions into @{typ nat} *}
+
+definition measure :: "('a => nat) => ('a * 'a)set"
+where "measure == inv_image less_than"
+
+lemma in_measure[simp]: "((x,y) : measure f) = (f x < f y)"
+  by (simp add:measure_def)
+
+lemma wf_measure [iff]: "wf (measure f)"
+apply (unfold measure_def)
+apply (rule wf_less_than [THEN wf_inv_image])
+done
+
+text{* Lexicographic combinations *}
+
+definition
+ lex_prod  :: "[('a*'a)set, ('b*'b)set] => (('a*'b)*('a*'b))set"
+               (infixr "<*lex*>" 80)
+where
+    "ra <*lex*> rb == {((a,b),(a',b')). (a,a') : ra | a=a' & (b,b') : rb}"
+
+lemma wf_lex_prod [intro!]: "[| wf(ra); wf(rb) |] ==> wf(ra <*lex*> rb)"
+apply (unfold wf_def lex_prod_def) 
+apply (rule allI, rule impI)
+apply (simp (no_asm_use) only: split_paired_All)
+apply (drule spec, erule mp) 
+apply (rule allI, rule impI)
+apply (drule spec, erule mp, blast) 
+done
+
+lemma in_lex_prod[simp]: 
+  "(((a,b),(a',b')): r <*lex*> s) = ((a,a'): r \<or> (a = a' \<and> (b, b') : s))"
+  by (auto simp:lex_prod_def)
+
+text{* @{term "op <*lex*>"} preserves transitivity *}
+
+lemma trans_lex_prod [intro!]: 
+    "[| trans R1; trans R2 |] ==> trans (R1 <*lex*> R2)"
+by (unfold trans_def lex_prod_def, blast) 
+
+text {* lexicographic combinations with measure functions *}
+
+definition 
+  mlex_prod :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" (infixr "<*mlex*>" 80)
+where
+  "f <*mlex*> R = inv_image (less_than <*lex*> R) (%x. (f x, x))"
+
+lemma wf_mlex: "wf R \<Longrightarrow> wf (f <*mlex*> R)"
+unfolding mlex_prod_def
+by auto
+
+lemma mlex_less: "f x < f y \<Longrightarrow> (x, y) \<in> f <*mlex*> R"
+unfolding mlex_prod_def by simp
+
+lemma mlex_leq: "f x \<le> f y \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (x, y) \<in> f <*mlex*> R"
+unfolding mlex_prod_def by auto
+
+text {* proper subset relation on finite sets *}
+
+definition finite_psubset  :: "('a set * 'a set) set"
+where "finite_psubset == {(A,B). A < B & finite B}"
+
+lemma wf_finite_psubset: "wf(finite_psubset)"
+apply (unfold finite_psubset_def)
+apply (rule wf_measure [THEN wf_subset])
+apply (simp add: measure_def inv_image_def less_than_def less_eq)
+apply (fast elim!: psubset_card_mono)
+done
+
+lemma trans_finite_psubset: "trans finite_psubset"
+by (simp add: finite_psubset_def psubset_def trans_def, blast)
+
+
+
+
+text {*Wellfoundedness of @{text same_fst}*}
+
+definition
+ same_fst :: "('a => bool) => ('a => ('b * 'b)set) => (('a*'b)*('a*'b))set"
+where
+    "same_fst P R == {((x',y'),(x,y)) . x'=x & P x & (y',y) : R x}"
+   --{*For @{text rec_def} declarations where the first n parameters
+       stay unchanged in the recursive call. 
+       See @{text "Library/While_Combinator.thy"} for an application.*}
+
+lemma same_fstI [intro!]:
+     "[| P x; (y',y) : R x |] ==> ((x,y'),(x,y)) : same_fst P R"
+by (simp add: same_fst_def)
+
+lemma wf_same_fst:
+  assumes prem: "(!!x. P x ==> wf(R x))"
+  shows "wf(same_fst P R)"
+apply (simp cong del: imp_cong add: wf_def same_fst_def)
+apply (intro strip)
+apply (rename_tac a b)
+apply (case_tac "wf (R a)")
+ apply (erule_tac a = b in wf_induct, blast)
+apply (blast intro: prem)
+done
+
+
+subsection{*Weakly decreasing sequences (w.r.t. some well-founded order) 
+   stabilize.*}
+
+text{*This material does not appear to be used any longer.*}
+
+lemma lemma1: "[| ALL i. (f (Suc i), f i) : r^* |] ==> (f (i+k), f i) : r^*"
+apply (induct_tac "k", simp_all)
+apply (blast intro: rtrancl_trans)
+done
+
+lemma lemma2: "[| ALL i. (f (Suc i), f i) : r^*; wf (r^+) |]  
+      ==> ALL m. f m = x --> (EX i. ALL k. f (m+i+k) = f (m+i))"
+apply (erule wf_induct, clarify)
+apply (case_tac "EX j. (f (m+j), f m) : r^+")
+ apply clarify
+ apply (subgoal_tac "EX i. ALL k. f ((m+j) +i+k) = f ( (m+j) +i) ")
+  apply clarify
+  apply (rule_tac x = "j+i" in exI)
+  apply (simp add: add_ac, blast)
+apply (rule_tac x = 0 in exI, clarsimp)
+apply (drule_tac i = m and k = k in lemma1)
+apply (blast elim: rtranclE dest: rtrancl_into_trancl1)
+done
+
+lemma wf_weak_decr_stable: "[| ALL i. (f (Suc i), f i) : r^*; wf (r^+) |]  
+      ==> EX i. ALL k. f (i+k) = f i"
+apply (drule_tac x = 0 in lemma2 [THEN spec], auto)
+done
+
+(* special case of the theorem above: <= *)
+lemma weak_decr_stable:
+     "ALL i. f (Suc i) <= ((f i)::nat) ==> EX i. ALL k. f (i+k) = f i"
+apply (rule_tac r = pred_nat in wf_weak_decr_stable)
+apply (simp add: pred_nat_trancl_eq_le)
+apply (intro wf_trancl wf_pred_nat)
+done
+
+
 subsection {* size of a datatype value *}
 
 use "Tools/function_package/size.ML"
@@ -689,5 +914,6 @@ setup Size.setup
 
 lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
+
 
 end

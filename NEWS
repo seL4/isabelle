@@ -100,6 +100,9 @@ situations.
 
 *** HOL ***
 
+* Merged theories Wellfounded_Recursion, Accessible_Part and Wellfounded_Relations
+  to "Wellfounded.thy"
+
 * Explicit class "eq" for executable equality.  INCOMPATIBILITY.
 
 * Class finite no longer treats UNIV as class parameter.  Use class enum from

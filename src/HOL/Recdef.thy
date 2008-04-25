@@ -6,7 +6,7 @@
 header {* TFL: recursive function definitions *}
 
 theory Recdef
-imports Wellfounded_Relations FunDef
+imports FunDef
 uses
   ("Tools/TFL/casesplit.ML")
   ("Tools/TFL/utils.ML")
@@ -19,6 +19,30 @@ uses
   ("Tools/TFL/post.ML")
   ("Tools/recdef_package.ML")
 begin
+
+text{** This form avoids giant explosions in proofs.  NOTE USE OF ==*}
+lemma def_wfrec: "[| f==wfrec r H;  wf(r) |] ==> f(a) = H (cut f r a) a"
+apply auto
+apply (blast intro: wfrec)
+done
+
+
+lemma tfl_wf_induct: "ALL R. wf R -->  
+       (ALL P. (ALL x. (ALL y. (y,x):R --> P y) --> P x) --> (ALL x. P x))"
+apply clarify
+apply (rule_tac r = R and P = P and a = x in wf_induct, assumption, blast)
+done
+
+lemma tfl_cut_apply: "ALL f R. (x,a):R --> (cut f R a)(x) = f(x)"
+apply clarify
+apply (rule cut_apply, assumption)
+done
+
+lemma tfl_wfrec:
+     "ALL M R f. (f=wfrec R M) --> wf R --> (ALL x. f x = M (cut f R x) x)"
+apply clarify
+apply (erule wfrec)
+done
 
 lemma tfl_eq_True: "(x = True) --> x"
   by blast

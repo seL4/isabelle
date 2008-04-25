@@ -9,7 +9,7 @@
 header {* The Integers as Equivalence Classes over Pairs of Natural Numbers *} 
 
 theory Int
-imports Equiv_Relations Nat Wellfounded_Relations
+imports Equiv_Relations Nat Wellfounded
 uses
   ("Tools/numeral.ML")
   ("Tools/numeral_syntax.ML")

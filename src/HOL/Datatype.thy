@@ -9,7 +9,7 @@ Could <*> be generalized to a general summation (Sigma)?
 header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
 
 theory Datatype
-imports Finite_Set
+imports Finite_Set Wellfounded
 begin
 
 lemma size_bool [code func]:

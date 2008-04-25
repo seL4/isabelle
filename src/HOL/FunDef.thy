@@ -6,7 +6,7 @@
 header {* General recursive function definitions *}
 
 theory FunDef
-imports Accessible_Part
+imports Wellfounded
 uses
   ("Tools/function_package/fundef_lib.ML")
   ("Tools/function_package/fundef_common.ML")
@@ -19,6 +19,8 @@ uses
   ("Tools/function_package/fundef_package.ML")
   ("Tools/function_package/auto_term.ML")
   ("Tools/function_package/induction_scheme.ML")
+  ("Tools/function_package/lexicographic_order.ML")
+  ("Tools/function_package/fundef_datatype.ML")
 begin
 
 text {* Definitions with default value. *}
@@ -106,10 +108,14 @@ use "Tools/function_package/pattern_split.ML"
 use "Tools/function_package/auto_term.ML"
 use "Tools/function_package/fundef_package.ML"
 use "Tools/function_package/induction_scheme.ML"
+use "Tools/function_package/lexicographic_order.ML"
+use "Tools/function_package/fundef_datatype.ML"
 
 setup {* 
   FundefPackage.setup 
   #> InductionScheme.setup
+  #> LexicographicOrder.setup 
+  #> FundefDatatype.setup
 *}
 
 lemma let_cong [fundef_cong]:

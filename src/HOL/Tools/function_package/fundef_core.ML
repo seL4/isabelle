@@ -95,17 +95,17 @@ datatype clause_info =
 (* Theory dependencies. *)
 val Pair_inject = @{thm Product_Type.Pair_inject};
 
-val acc_induct_rule = @{thm Accessible_Part.accp_induct_rule};
+val acc_induct_rule = @{thm accp_induct_rule};
 
 val ex1_implies_ex = @{thm FunDef.fundef_ex1_existence};
 val ex1_implies_un = @{thm FunDef.fundef_ex1_uniqueness};
 val ex1_implies_iff = @{thm FunDef.fundef_ex1_iff};
 
-val acc_downward = @{thm Accessible_Part.accp_downward};
-val accI = @{thm Accessible_Part.accp.accI};
+val acc_downward = @{thm accp_downward};
+val accI = @{thm accp.accI};
 val case_split = @{thm HOL.case_split_thm};
 val fundef_default_value = @{thm FunDef.fundef_default_value};
-val not_acc_down = @{thm Accessible_Part.not_accp_down};
+val not_acc_down = @{thm not_accp_down};
 
 
 
@@ -575,7 +575,7 @@ fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
 (** Induction rule **)
 
 
-val acc_subset_induct = @{thm Orderings.predicate1I} RS @{thm Accessible_Part.accp_subset_induct}
+val acc_subset_induct = @{thm Orderings.predicate1I} RS @{thm accp_subset_induct}
 
 
 fun binder_conv cv ctxt = Conv.arg_conv (Conv.abs_conv (K cv) ctxt);
@@ -710,7 +710,7 @@ fun mk_domain_intro thy (Globals {domT, ...}) R R_cases clause =
 
 (** Termination rule **)
 
-val wf_induct_rule = @{thm Wellfounded_Recursion.wfP_induct_rule};
+val wf_induct_rule = @{thm Wellfounded.wfP_induct_rule};
 val wf_in_rel = @{thm FunDef.wf_in_rel};
 val in_rel_def = @{thm FunDef.in_rel_def};
 
@@ -770,7 +770,7 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
       val Rrel = Free ("R", HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)))
       val inrel_R = Const ("FunDef.in_rel", HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)) --> fastype_of R) $ Rrel
                     
-      val wfR' = cterm_of thy (HOLogic.mk_Trueprop (Const ("Wellfounded_Recursion.wfP", (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
+      val wfR' = cterm_of thy (HOLogic.mk_Trueprop (Const (@{const_name "Wellfounded.wfP"}, (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
                           
       (* Inductive Hypothesis: !!z. (z,x):R' ==> z : acc R *)
       val ihyp = all domT $ Abs ("z", domT, 

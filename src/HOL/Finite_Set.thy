@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Divides
+imports Divides Transitive_Closure
 begin
 
 subsection {* Definition and basic properties *}
@@ -2637,6 +2637,35 @@ proof -
     by (rule dual_linorder)
   from assms show ?thesis
     by (simp add: Max fold1_antimono [folded dual_max])
+qed
+
+lemma finite_linorder_induct[consumes 1, case_names empty insert]:
+ "finite A \<Longrightarrow> P {} \<Longrightarrow>
+  (!!A b. finite A \<Longrightarrow> ALL a:A. a < b \<Longrightarrow> P A \<Longrightarrow> P(insert b A))
+  \<Longrightarrow> P A"
+proof (induct A rule: measure_induct_rule[where f=card])
+  fix A :: "'a set"
+  assume IH: "!! B. card B < card A \<Longrightarrow> finite B \<Longrightarrow> P {} \<Longrightarrow>
+                 (!!A b. finite A \<Longrightarrow> (\<forall>a\<in>A. a<b) \<Longrightarrow> P A \<Longrightarrow> P (insert b A))
+                  \<Longrightarrow> P B"
+  and "finite A" and "P {}"
+  and step: "!!A b. \<lbrakk>finite A; \<forall>a\<in>A. a < b; P A\<rbrakk> \<Longrightarrow> P (insert b A)"
+  show "P A"
+  proof cases
+    assume "A = {}" thus "P A" using `P {}` by simp
+  next
+    let ?B = "A - {Max A}" let ?A = "insert (Max A) ?B"
+    assume "A \<noteq> {}"
+    with `finite A` have "Max A : A" by auto
+    hence A: "?A = A" using insert_Diff_single insert_absorb by auto
+    note card_Diff1_less[OF `finite A` `Max A : A`]
+    moreover have "finite ?B" using `finite A` by simp
+    ultimately have "P ?B" using `P {}` step IH by blast
+    moreover have "\<forall>a\<in>?B. a < Max A"
+      using Max_ge[OF `finite A` `A \<noteq> {}`] by fastsimp
+    ultimately show "P A"
+      using A insert_Diff_single step[OF `finite ?B`] by fastsimp
+  qed
 qed
 
 end

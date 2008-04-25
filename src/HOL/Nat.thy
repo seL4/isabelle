@@ -734,7 +734,55 @@ lemma nat_mult_1_right: "n * (1::nat) = n"
 by simp
 
 
-subsubsection {* Additional theorems about "less than" *}
+subsubsection {* Additional theorems about @{term "op \<le>"} *}
+
+text {* Complete induction, aka course-of-values induction *}
+
+lemma less_induct [case_names less]:
+  fixes P :: "nat \<Rightarrow> bool"
+  assumes step: "\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x"
+  shows "P a"
+proof - 
+  have "\<And>z. z\<le>a \<Longrightarrow> P z"
+  proof (induct a)
+    case (0 z)
+    have "P 0" by (rule step) auto
+    thus ?case using 0 by auto
+  next
+    case (Suc x z)
+    then have "z \<le> x \<or> z = Suc x" by (simp add: le_Suc_eq)
+    thus ?case
+    proof
+      assume "z \<le> x" thus "P z" by (rule Suc(1))
+    next
+      assume z: "z = Suc x"
+      show "P z"
+        by (rule step) (rule Suc(1), simp add: z le_simps)
+    qed
+  qed
+  thus ?thesis by auto
+qed
+
+lemma nat_less_induct:
+  assumes "!!n. \<forall>m::nat. m < n --> P m ==> P n" shows "P n"
+  using assms less_induct by blast
+
+lemma measure_induct_rule [case_names less]:
+  fixes f :: "'a \<Rightarrow> nat"
+  assumes step: "\<And>x. (\<And>y. f y < f x \<Longrightarrow> P y) \<Longrightarrow> P x"
+  shows "P a"
+by (induct m\<equiv>"f a" arbitrary: a rule: less_induct) (auto intro: step)
+
+text {* old style induction rules: *}
+lemma measure_induct:
+  fixes f :: "'a \<Rightarrow> nat"
+  shows "(\<And>x. \<forall>y. f y < f x \<longrightarrow> P y \<Longrightarrow> P x) \<Longrightarrow> P a"
+  by (rule measure_induct_rule [of f P a]) iprover
+
+lemma full_nat_induct:
+  assumes step: "(!!n. (ALL m. Suc m <= n --> P m) ==> P n)"
+  shows "P n"
+  by (rule less_induct) (auto intro: step simp:le_simps)
 
 text{*An induction rule for estabilishing binary relations*}
 lemma less_Suc_induct:
@@ -753,6 +801,73 @@ proof -
     thus ?case by (auto intro: assms)
   qed
   thus "P i j" by (simp add: j)
+qed
+
+lemma nat_induct2: "[|P 0; P (Suc 0); !!k. P k ==> P (Suc (Suc k))|] ==> P n"
+  apply (rule nat_less_induct)
+  apply (case_tac n)
+  apply (case_tac [2] nat)
+  apply (blast intro: less_trans)+
+  done
+
+text {* The method of infinite descent, frequently used in number theory.
+Provided by Roelof Oosterhuis.
+$P(n)$ is true for all $n\in\mathbb{N}$ if
+\begin{itemize}
+  \item case ``0'': given $n=0$ prove $P(n)$,
+  \item case ``smaller'': given $n>0$ and $\neg P(n)$ prove there exists
+        a smaller integer $m$ such that $\neg P(m)$.
+\end{itemize} *}
+
+text{* A compact version without explicit base case: *}
+lemma infinite_descent:
+  "\<lbrakk> !!n::nat. \<not> P n \<Longrightarrow>  \<exists>m<n. \<not>  P m \<rbrakk> \<Longrightarrow>  P n"
+by (induct n rule: less_induct, auto)
+
+lemma infinite_descent0[case_names 0 smaller]: 
+  "\<lbrakk> P 0; !!n. n>0 \<Longrightarrow> \<not> P n \<Longrightarrow> (\<exists>m::nat. m < n \<and> \<not>P m) \<rbrakk> \<Longrightarrow> P n"
+by (rule infinite_descent) (case_tac "n>0", auto)
+
+text {*
+Infinite descent using a mapping to $\mathbb{N}$:
+$P(x)$ is true for all $x\in D$ if there exists a $V: D \to \mathbb{N}$ and
+\begin{itemize}
+\item case ``0'': given $V(x)=0$ prove $P(x)$,
+\item case ``smaller'': given $V(x)>0$ and $\neg P(x)$ prove there exists a $y \in D$ such that $V(y)<V(x)$ and $~\neg P(y)$.
+\end{itemize}
+NB: the proof also shows how to use the previous lemma. *}
+
+corollary infinite_descent0_measure [case_names 0 smaller]:
+  assumes A0: "!!x. V x = (0::nat) \<Longrightarrow> P x"
+    and   A1: "!!x. V x > 0 \<Longrightarrow> \<not>P x \<Longrightarrow> (\<exists>y. V y < V x \<and> \<not>P y)"
+  shows "P x"
+proof -
+  obtain n where "n = V x" by auto
+  moreover have "\<And>x. V x = n \<Longrightarrow> P x"
+  proof (induct n rule: infinite_descent0)
+    case 0 -- "i.e. $V(x) = 0$"
+    with A0 show "P x" by auto
+  next -- "now $n>0$ and $P(x)$ does not hold for some $x$ with $V(x)=n$"
+    case (smaller n)
+    then obtain x where vxn: "V x = n " and "V x > 0 \<and> \<not> P x" by auto
+    with A1 obtain y where "V y < V x \<and> \<not> P y" by auto
+    with vxn obtain m where "m = V y \<and> m<n \<and> \<not> P y" by auto
+    then show ?case by auto
+  qed
+  ultimately show "P x" by auto
+qed
+
+text{* Again, without explicit base case: *}
+lemma infinite_descent_measure:
+assumes "!!x. \<not> P x \<Longrightarrow> \<exists>y. (V::'a\<Rightarrow>nat) y < V x \<and> \<not> P y" shows "P x"
+proof -
+  from assms obtain n where "n = V x" by auto
+  moreover have "!!x. V x = n \<Longrightarrow> P x"
+  proof (induct n rule: infinite_descent, auto)
+    fix x assume "\<not> P x"
+    with assms show "\<exists>m < V x. \<exists>y. V y = m \<and> \<not> P y" by auto
+  qed
+  ultimately show "P x" by auto
 qed
 
 text {* A [clumsy] way of lifting @{text "<"}
@@ -809,7 +924,7 @@ apply (erule less_irrefl [THEN notE])
 done
 
 lemma not_add_less2 [iff]: "~ (j + i < (i::nat))"
-by (simp add: add_commute not_add_less1)
+by (simp add: add_commute)
 
 lemma add_leD1: "m + k \<le> n ==> m \<le> (n::nat)"
 apply (rule order_trans [of _ "m+k"])
@@ -841,7 +956,7 @@ lemma le_add_diff_inverse [simp]: "n \<le> m ==> n + (m - n) = (m::nat)"
 by (simp add: add_diff_inverse linorder_not_less)
 
 lemma le_add_diff_inverse2 [simp]: "n \<le> m ==> (m - n) + n = (m::nat)"
-by (simp add: le_add_diff_inverse add_commute)
+by (simp add: add_commute)
 
 lemma Suc_diff_le: "n \<le> m ==> Suc m - n = Suc (m - n)"
 by (induct m n rule: diff_induct) simp_all
@@ -1328,6 +1443,6 @@ Least_Suc}, since there appears to be no need.*}
 subsection {* size of a datatype value *}
 
 class size = type +
-  fixes size :: "'a \<Rightarrow> nat" -- {* see further theory @{text Wellfounded_Recursion} *}
+  fixes size :: "'a \<Rightarrow> nat" -- {* see further theory @{text Wellfounded} *}
 
 end
