@@ -13,6 +13,9 @@ structure O = ThyOutput;
 
 (* misc utils *)
 
+val clean_string =
+  translate_string (fn "_" => "-" | ">" => "$>$" | "#" => "\\#" | c => c);
+
 val str_of_source = space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
 
 fun tweak_line s =
@@ -60,12 +63,11 @@ fun index_ml kind ml src ctxt (txt1, txt2) =
     val _ = writeln (ml (txt1, txt2));
     val _ = ML_Context.eval_in (SOME (Context.Proof ctxt)) false Position.none (ml (txt1, txt2));
   in
-    "\\indexml" ^ kind ^ enclose "{" "}"
-      (translate_string (fn "_" => "-" | ">" => "$>$" | "#" => "\\#" | c => c) txt1) ^
+    "\\indexml" ^ kind ^ enclose "{" "}" (clean_string txt1) ^
     ((if ! O.source then str_of_source src else txt')
     |> (if ! O.quotes then quote else I)
     |> (if ! O.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
-    else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
+        else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
   end;
 
 fun output_ml ctxt src =
@@ -115,7 +117,7 @@ in
 
 val _ = O.add_commands
  [("named_thms", O.args (Scan.repeat (Attrib.thm --
-      Scan.lift (Args.$$$ "(" |-- Args.name --| Args.$$$ ")"))) output_named_thms)];
+      Scan.lift (Args.parens Args.name))) output_named_thms)];
 
 end;
 
@@ -125,5 +127,48 @@ end;
 val _ = O.add_commands
  [("thy_file", O.args (Scan.lift Args.name) (O.output (fn _ => fn name =>
       (ThyLoad.check_thy Path.current name; Pretty.str name))))];
+
+
+(* Isar entities (with index) *)
+
+local
+
+val arg = enclose "{" "}" o clean_string;
+
+fun output_entity index kind src ctxt (logic, name) =
+  (case index of
+    NONE => ""
+  | SOME is_def =>
+      "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name)
+  ^
+  (Output.output (if ! O.source then str_of_source src else name)
+    |> (if ! O.quotes then quote else I)
+    |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+        else enclose "\\isa{" "}"));
+
+fun entity index kind =
+  O.args (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
+    (output_entity index kind);
+    
+fun entity_antiqs kind =
+ [(kind, entity NONE kind),
+  (kind ^ "_def", entity (SOME true) kind), 
+  (kind ^ "_ref", entity (SOME false) kind)];
+
+in
+
+val _ = O.add_commands
+ (entity_antiqs "syntax" @
+  entity_antiqs "command" @
+  entity_antiqs "keyword" @
+  entity_antiqs "element" @
+  entity_antiqs "method" @
+  entity_antiqs "attribute" @
+  entity_antiqs "fact" @
+  entity_antiqs "term" @
+  entity_antiqs "case" @
+  entity_antiqs "antiquotation");
+
+end;
 
 end;
