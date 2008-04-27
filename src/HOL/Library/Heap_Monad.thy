@@ -298,24 +298,25 @@ hide (open) const Fail raise_exc
 
 subsubsection {* SML *}
 
-code_type Heap (SML "_")
+code_type Heap (SML "unit/ ->/ _")
+term "op \<guillemotright>="
 code_const Heap (SML "raise/ (Fail/ \"bare Heap\")")
-code_monad run "op \<guillemotright>=" SML
+code_monad run "op \<guillemotright>=" "()" SML
 code_const run (SML "_")
-code_const return (SML "_")
+code_const return (SML "(fn/ ()/ =>/ _)")
 code_const "Heap_Monad.Fail" (SML "Fail")
-code_const "Heap_Monad.raise_exc" (SML "raise")
+code_const "Heap_Monad.raise_exc" (SML "(fn/ ()/ =>/ raise/ _)")
 
 
 subsubsection {* OCaml *}
 
 code_type Heap (OCaml "_")
 code_const Heap (OCaml "failwith/ \"bare Heap\"")
-code_monad run "op \<guillemotright>=" OCaml
+code_monad run "op \<guillemotright>=" "()" OCaml
 code_const run (OCaml "_")
-code_const return (OCaml "_")
+code_const return (OCaml "(fn/ ()/ =>/ _)")
 code_const "Heap_Monad.Fail" (OCaml "Failure")
-code_const "Heap_Monad.raise_exc" (OCaml "raise")
+code_const "Heap_Monad.raise_exc" (OCaml "(fn/ ()/ =>/ raise/ _)")
 
 code_reserved OCaml Failure raise
 
@@ -366,7 +367,7 @@ text {* Monad *}
 code_type Heap (Haskell "ST '_s _")
 code_const Heap (Haskell "error \"bare Heap\")")
 code_const evaluate (Haskell "runST")
-code_monad run bindM Haskell
+code_monad run "op \<guillemotright>=" Haskell
 code_const return (Haskell "return")
 code_const "Heap_Monad.Fail" (Haskell "_")
 code_const "Heap_Monad.raise_exc" (Haskell "error")

@@ -62,9 +62,9 @@ subsubsection {* SML *}
 
 code_type ref (SML "_/ ref")
 code_const Ref (SML "raise/ (Fail/ \"bare Ref\")")
-code_const Ref.new (SML "ref")
-code_const Ref.lookup (SML "'!")
-code_const Ref.update (SML infixl 3 ":=")
+code_const Ref.new (SML "(fn/ ()/ =>/ ref/ _)")
+code_const Ref.lookup (SML "(fn/ ()/ =>/ !/ _)")
+code_const Ref.update (SML "(fn/ ()/ =>/ _/ :=/ _)")
 
 code_reserved SML ref
 
@@ -72,10 +72,10 @@ code_reserved SML ref
 subsubsection {* OCaml *}
 
 code_type ref (OCaml "_/ ref")
-code_const Ref (OCaml "failwith/ \"bare Ref\"")
-code_const Ref.new (OCaml "ref")
-code_const Ref.lookup (OCaml "'!")
-code_const Ref.update (OCaml infixr 1 ":=")
+code_const Ref (OCaml "failwith/ \"bare Ref\")")
+code_const Ref.new (OCaml "(fn/ ()/ =>/ ref/ _)")
+code_const Ref.lookup (OCaml "(fn/ ()/ =>/ !/ _)")
+code_const Ref.update (OCaml "(fn/ ()/ =>/ _/ :=/ _)")
 
 code_reserved OCaml ref
 

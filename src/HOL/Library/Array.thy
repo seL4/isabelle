@@ -171,12 +171,12 @@ subsubsection {* SML *}
 
 code_type array (SML "_/ array")
 code_const Array (SML "raise/ (Fail/ \"bare Array\")")
-code_const Array.new' (SML "Array.array ((_), (_))")
-code_const Array.of_list (SML "Array.fromList")
-code_const Array.make' (SML "Array.tabulate ((_), (_))")
-code_const Array.length' (SML "Array.length")
-code_const Array.nth' (SML "Array.sub ((_), (_))")
-code_const Array.upd' (SML "Array.update ((_), (_), (_))")
+code_const Array.new' (SML "(fn/ ()/ =>/ Array.array/ ((_),/ (_)))")
+code_const Array.of_list (SML "(fn/ ()/ =>/ Array.fromList/ _)")
+code_const Array.make' (SML "(fn/ ()/ =>/ Array.tabulate/ ((_),/ (_)))")
+code_const Array.length' (SML "(fn/ ()/ =>/ Array.length/ _)")
+code_const Array.nth' (SML "(fn/ ()/ =>/ Array.sub/ ((_),/ (_)))")
+code_const Array.upd' (SML "(fn/ ()/ =>/ Array.update/ ((_),/ (_),/ (_)))")
 
 code_reserved SML Array
 
@@ -185,12 +185,12 @@ subsubsection {* OCaml *}
 
 code_type array (OCaml "_/ array")
 code_const Array (OCaml "failwith/ \"bare Array\"")
-code_const Array.new' (OCaml "Array.make")
-code_const Array.of_list (OCaml "Array.of_list")
-code_const Array.make' (OCaml "Array.init")
-code_const Array.length' (OCaml "Array.length")
-code_const Array.nth' (OCaml "Array.get")
-code_const Array.upd' (OCaml "Array.set")
+code_const Array.new' (OCaml "(fn/ ()/ =>/ Array.make/ _/ _)")
+code_const Array.of_list (OCaml "(fn/ ()/ =>/ Array.of'_list/ _)")
+code_const Array.make' (OCaml "(fn/ ()/ =>/ Array.init/ _/ _)")
+code_const Array.length' (OCaml "(fn/ ()/ =>/ Array.length/ _)")
+code_const Array.nth' (OCaml "(fn/ ()/ =>/ Array.get/ _/ _)")
+code_const Array.upd' (OCaml "(fn/ ()/ =>/ Array.set/ _/ _/ _)")
 
 code_reserved OCaml Array
 
@@ -204,6 +204,5 @@ code_const Array.of_list' (Haskell "newListArray/ (0,/ _)")
 code_const Array.length' (Haskell "length")
 code_const Array.nth' (Haskell "readArray")
 code_const Array.upd' (Haskell "writeArray")
-
 
 end
