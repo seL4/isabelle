@@ -135,39 +135,40 @@ local
 
 val arg = enclose "{" "}" o clean_string;
 
-fun output_entity index kind src ctxt (logic, name) =
+fun output_entity markup index kind src ctxt (logic, name) =
   (case index of
     NONE => ""
   | SOME is_def =>
       "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name)
   ^
   (Output.output (if ! O.source then str_of_source src else name)
+    |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
     |> (if ! O.quotes then quote else I)
     |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
         else enclose "\\isa{" "}"));
 
-fun entity index kind =
+fun entity markup index kind =
   O.args (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
-    (output_entity index kind);
+    (output_entity markup index kind);
     
-fun entity_antiqs kind =
- [(kind, entity NONE kind),
-  (kind ^ "_def", entity (SOME true) kind), 
-  (kind ^ "_ref", entity (SOME false) kind)];
+fun entity_antiqs markup kind =
+ [(kind, entity markup NONE kind),
+  (kind ^ "_def", entity markup (SOME true) kind), 
+  (kind ^ "_ref", entity markup (SOME false) kind)];
 
 in
 
 val _ = O.add_commands
- (entity_antiqs "syntax" @
-  entity_antiqs "command" @
-  entity_antiqs "keyword" @
-  entity_antiqs "element" @
-  entity_antiqs "method" @
-  entity_antiqs "attribute" @
-  entity_antiqs "fact" @
-  entity_antiqs "term" @
-  entity_antiqs "case" @
-  entity_antiqs "antiquotation");
+ (entity_antiqs "" "syntax" @
+  entity_antiqs "isacommand" "command" @
+  entity_antiqs "isakeyword" "keyword" @
+  entity_antiqs "" "element" @
+  entity_antiqs "" "method" @
+  entity_antiqs "" "attribute" @
+  entity_antiqs "" "fact" @
+  entity_antiqs "" "variable" @
+  entity_antiqs "" "case" @
+  entity_antiqs "" "antiquotation");
 
 end;
 

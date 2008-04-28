@@ -294,8 +294,8 @@ The actual inner Isabelle syntax, that of types and terms of the
 %
 \begin{isamarkuptext}%
 Mixfix annotations specify concrete \emph{inner} syntax of Isabelle
-  types and terms.  Some commands such as \isa{types} (see
-  \S\ref{sec:types-pure}) admit infixes only, while \isa{consts} (see \S\ref{sec:consts}) and \isa{syntax} (see
+  types and terms.  Some commands such as \isa{\isacommand{types}} (see
+  \S\ref{sec:types-pure}) admit infixes only, while \isa{\isacommand{consts}} (see \S\ref{sec:consts}) and \isa{\isacommand{syntax}} (see
   \S\ref{sec:syn-trans}) support the full range of general mixfixes
   and binders.
 
@@ -426,7 +426,7 @@ Attributes (and proof methods, see \S\ref{sec:syn-meth}) have their
   involving an internal dummy fact, which will be ignored later on.
   So only the effect of the attribute on the background context will
   persist.  This form of in-place declarations is particularly useful
-  with commands like \isa{declare} and \isa{using}.
+  with commands like \isa{\isacommand{declare}} and \isa{\isacommand{using}}.
 
   \indexouternonterm{axmdecl}\indexouternonterm{thmdecl}
   \indexouternonterm{thmdef}\indexouternonterm{thmref}
@@ -490,8 +490,8 @@ Wherever explicit propositions (or term fragments) occur in a proof
   the typing refers to all variables, while in \isa{a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n} the naming refers to all propositions collectively.
   Isar language elements that refer to \railnonterm{vars} or
   \railnonterm{props} typically admit separate typings or namings via
-  another level of iteration, with explicit \indexref{}{keyword}{and}\isa{and}
-  separators; e.g.\ see \isa{fix} and \isa{assume} in
+  another level of iteration, with explicit \indexref{}{keyword}{and}\isa{\isakeyword{and}}
+  separators; e.g.\ see \isa{\isacommand{fix}} and \isa{\isacommand{assume}} in
   \S\ref{sec:proof-context}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -751,14 +751,14 @@ Each Isabelle/Isar command may be decorated by presentation tags:
   specifically, e.g.\ to fold proof texts, or drop parts of the text
   completely.
 
-  For example ``\isa{by}~\isa{{\isacharpercent}invisible\ auto}'' would
+  For example ``\isa{\isacommand{by}}~\isa{{\isacharpercent}invisible\ auto}'' would
   cause that piece of proof to be treated as \isa{invisible} instead
   of \isa{proof} (the default), which may be either show or hidden
-  depending on the document setup.  In contrast, ``\isa{by}~\isa{{\isacharpercent}visible\ auto}'' would force this text to be shown
+  depending on the document setup.  In contrast, ``\isa{\isacommand{by}}~\isa{{\isacharpercent}visible\ auto}'' would force this text to be shown
   invariably.
 
   Explicit tag specifications within a proof apply to all subsequent
-  commands of the same level of nesting.  For example, ``\isa{proof}~\isa{{\isacharpercent}visible\ {\isasymdots}}~\isa{qed}'' would force the
+  commands of the same level of nesting.  For example, ``\isa{\isacommand{proof}}~\isa{{\isacharpercent}visible\ {\isasymdots}}~\isa{\isacommand{qed}}'' would force the
   whole sub-proof to be typeset as \isa{visible} (unless some of its
   parts are tagged differently).%
 \end{isamarkuptext}%
