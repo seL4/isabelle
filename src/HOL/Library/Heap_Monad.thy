@@ -299,9 +299,8 @@ hide (open) const Fail raise_exc
 subsubsection {* SML *}
 
 code_type Heap (SML "unit/ ->/ _")
-term "op \<guillemotright>="
 code_const Heap (SML "raise/ (Fail/ \"bare Heap\")")
-code_monad run "op \<guillemotright>=" "()" SML
+code_monad run "op \<guillemotright>=" return "()" SML
 code_const run (SML "_")
 code_const return (SML "(fn/ ()/ =>/ _)")
 code_const "Heap_Monad.Fail" (SML "Fail")
@@ -312,7 +311,7 @@ subsubsection {* OCaml *}
 
 code_type Heap (OCaml "_")
 code_const Heap (OCaml "failwith/ \"bare Heap\"")
-code_monad run "op \<guillemotright>=" "()" OCaml
+code_monad run "op \<guillemotright>=" return "()" OCaml
 code_const run (OCaml "_")
 code_const return (OCaml "(fn/ ()/ =>/ _)")
 code_const "Heap_Monad.Fail" (OCaml "Failure")
