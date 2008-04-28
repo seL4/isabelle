@@ -1,0 +1,785 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{syntax}%
+%
+\isadelimtheory
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ {\isachardoublequoteopen}syntax{\isachardoublequoteclose}\isanewline
+\isakeyword{imports}\ CPure\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Syntax primitives%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The rather generic framework of Isabelle/Isar syntax emerges from
+  three main syntactic categories: \emph{commands} of the top-level
+  Isar engine (covering theory and proof elements), \emph{methods} for
+  general goal refinements (analogous to traditional ``tactics''), and
+  \emph{attributes} for operations on facts (within a certain
+  context).  Subsequently we give a reference of basic syntactic
+  entities underlying Isabelle/Isar syntax in a bottom-up manner.
+  Concrete theory and proof language elements will be introduced later
+  on.
+
+  \medskip In order to get started with writing well-formed
+  Isabelle/Isar documents, the most important aspect to be noted is
+  the difference of \emph{inner} versus \emph{outer} syntax.  Inner
+  syntax is that of Isabelle types and terms of the logic, while outer
+  syntax is that of Isabelle/Isar theory sources (specifications and
+  proofs).  As a general rule, inner syntax entities may occur only as
+  \emph{atomic entities} within outer syntax.  For example, the string
+  \texttt{"x + y"} and identifier \texttt{z} are legal term
+  specifications within a theory, while \texttt{x + y} is not.
+
+  Printed theory documents usually omit quotes to gain readability
+  (this is a matter of {\LaTeX} macro setup, say via
+  \verb,\isabellestyle,, see also \cite{isabelle-sys}).  Experienced
+  users of Isabelle/Isar may easily reconstruct the lost technical
+  information, while mere readers need not care about quotes at all.
+
+  \medskip Isabelle/Isar input may contain any number of input
+  termination characters ``\texttt{;}'' (semicolon) to separate
+  commands explicitly.  This is particularly useful in interactive
+  shell sessions to make clear where the current command is intended
+  to end.  Otherwise, the interpreter loop will continue to issue a
+  secondary prompt ``\verb,#,'' until an end-of-command is clearly
+  recognized from the input syntax, e.g.\ encounter of the next
+  command keyword.
+
+  More advanced interfaces such as Proof~General \cite{proofgeneral}
+  do not require explicit semicolons, the amount of input text is
+  determined automatically by inspecting the present content of the
+  Emacs text buffer.  In the printed presentation of Isabelle/Isar
+  documents semicolons are omitted altogether for readability.
+
+  \begin{warn}
+    Proof~General requires certain syntax classification tables in
+    order to achieve properly synchronized interaction with the
+    Isabelle/Isar process.  These tables need to be consistent with
+    the Isabelle version and particular logic image to be used in a
+    running session (common object-logics may well change the outer
+    syntax).  The standard setup should work correctly with any of the
+    ``official'' logic images derived from Isabelle/HOL (including
+    HOLCF etc.).  Users of alternative logics may need to tell
+    Proof~General explicitly, e.g.\ by giving an option \verb,-k ZF,
+    (in conjunction with \verb,-l ZF, to specify the default logic
+    image).
+  \end{warn}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Lexical matters \label{sec:lex-syntax}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Isabelle/Isar outer syntax provides token classes as presented
+  below; most of these coincide with the inner lexical syntax as
+  presented in \cite{isabelle-ref}.
+
+  \begin{matharray}{rcl}
+    \indexdef{}{syntax}{ident}\isa{ident} & = & letter\,quasiletter^* \\
+    \indexdef{}{syntax}{longident}\isa{longident} & = & ident (\verb,.,ident)^+ \\
+    \indexdef{}{syntax}{symident}\isa{symident} & = & sym^+ ~|~ \verb,\,\verb,<,ident\verb,>, \\
+    \indexdef{}{syntax}{nat}\isa{nat} & = & digit^+ \\
+    \indexdef{}{syntax}{var}\isa{var} & = & ident ~|~ \verb,?,ident ~|~ \verb,?,ident\verb,.,nat \\
+    \indexdef{}{syntax}{typefree}\isa{typefree} & = & \verb,',ident \\
+    \indexdef{}{syntax}{typevar}\isa{typevar} & = & typefree ~|~ \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
+    \indexdef{}{syntax}{string}\isa{string} & = & \verb,", ~\dots~ \verb,", \\
+    \indexdef{}{syntax}{altstring}\isa{altstring} & = & \backquote ~\dots~ \backquote \\
+    \indexdef{}{syntax}{verbatim}\isa{verbatim} & = & \verb,{*, ~\dots~ \verb,*,\verb,}, \\[1ex]
+
+    letter & = & latin ~|~ \verb,\,\verb,<,latin\verb,>, ~|~ \verb,\,\verb,<,latin\,latin\verb,>, ~|~ greek ~|~ \\
+           &   & \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
+    quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', \\
+    latin & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
+    digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
+    sym & = & \verb,!, ~|~ \verb,#, ~|~ \verb,$, ~|~ \verb,%, ~|~ \verb,&, ~|~
+     \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \\
+    & & \verb,<, ~|~ \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \texttt{\at} ~|~
+    \verb,^, ~|~ \verb,_, ~|~ \verb,|, ~|~ \verb,~, \\
+    greek & = & \verb,\<alpha>, ~|~ \verb,\<beta>, ~|~ \verb,\<gamma>, ~|~ \verb,\<delta>, ~| \\
+          &   & \verb,\<epsilon>, ~|~ \verb,\<zeta>, ~|~ \verb,\<eta>, ~|~ \verb,\<theta>, ~| \\
+          &   & \verb,\<iota>, ~|~ \verb,\<kappa>, ~|~ \verb,\<mu>, ~|~ \verb,\<nu>, ~| \\
+          &   & \verb,\<xi>, ~|~ \verb,\<pi>, ~|~ \verb,\<rho>, ~|~ \verb,\<sigma>, ~|~ \verb,\<tau>, ~| \\
+          &   & \verb,\<upsilon>, ~|~ \verb,\<phi>, ~|~ \verb,\<chi>, ~|~ \verb,\<psi>, ~| \\
+          &   & \verb,\<omega>, ~|~ \verb,\<Gamma>, ~|~ \verb,\<Delta>, ~|~ \verb,\<Theta>, ~| \\
+          &   & \verb,\<Lambda>, ~|~ \verb,\<Xi>, ~|~ \verb,\<Pi>, ~|~ \verb,\<Sigma>, ~| \\
+          &   & \verb,\<Upsilon>, ~|~ \verb,\<Phi>, ~|~ \verb,\<Psi>, ~|~ \verb,\<Omega>, \\
+  \end{matharray}
+
+  The syntax of \isa{string} admits any characters, including
+  newlines; ``\verb|"|'' (double-quote) and ``\verb|\|'' (backslash)
+  need to be escaped by a backslash; arbitrary character codes may be
+  specified as ``\verb|\|$ddd$'', with 3 decimal digits.  Alternative
+  strings according to \isa{altstring} are analogous, using single
+  back-quotes instead.  The body of \isa{verbatim} may consist of
+  any text not containing ``\verb,*,\verb,},''; this allows convenient
+  inclusion of quotes without further escapes.  The greek letters do
+  \emph{not} include \verb,\<lambda>,, which is already used differently in
+  the meta-logic.
+
+  Common mathematical symbols such as \isa{{\isasymforall}} are represented in
+  Isabelle as \verb,\<forall>,.  There are infinitely many Isabelle symbols
+  like this, although proper presentation is left to front-end tools
+  such as {\LaTeX} or Proof~General with the X-Symbol package.  A list
+  of standard Isabelle symbols that work well with these tools is
+  given in \cite[appendix~A]{isabelle-sys}.
+  
+  Source comments take the form \texttt{(*~\dots~*)} and may be
+  nested, although user-interface tools might prevent this.  Note that
+  \texttt{(*~\dots~*)} indicate source comments only, which are
+  stripped after lexical analysis of the input.  The Isar document
+  syntax also provides formal comments that are considered as part of
+  the text (see \S\ref{sec:comments}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Common syntax entities%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We now introduce several basic syntactic entities, such as names,
+  terms, and theorem specifications, which are factored out of the
+  actual Isar language elements to be described later.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Names%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Entity \railqtok{name} usually refers to any name of types,
+  constants, theorems etc.\ that are to be \emph{declared} or
+  \emph{defined} (so qualified identifiers are excluded here).  Quoted
+  strings provide an escape for non-identifier names or those ruled
+  out by outer syntax keywords (e.g.\ \verb|"let"|).  Already existing
+  objects are usually referenced by \railqtok{nameref}.
+
+  \indexoutertoken{name}\indexoutertoken{parname}\indexoutertoken{nameref}
+  \indexoutertoken{int}
+  \begin{rail}
+    name: ident | symident | string | nat
+    ;
+    parname: '(' name ')'
+    ;
+    nameref: name | longident
+    ;
+    int: nat | '-' nat
+    ;
+  \end{rail}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Comments \label{sec:comments}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Large chunks of plain \railqtok{text} are usually given
+  \railtok{verbatim}, i.e.\ enclosed in
+  \verb,{,\verb,*,~\dots~\verb,*,\verb,},.  For convenience, any of
+  the smaller text units conforming to \railqtok{nameref} are admitted
+  as well.  A marginal \railnonterm{comment} is of the form
+  \texttt{--} \railqtok{text}.  Any number of these may occur within
+  Isabelle/Isar commands.
+
+  \indexoutertoken{text}\indexouternonterm{comment}
+  \begin{rail}
+    text: verbatim | nameref
+    ;
+    comment: '--' text
+    ;
+  \end{rail}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Type classes, sorts and arities%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Classes are specified by plain names.  Sorts have a very simple
+  inner syntax, which is either a single class name \isa{c} or a
+  list \isa{{\isacharbraceleft}c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n{\isacharbraceright}} referring to the
+  intersection of these classes.  The syntax of type arities is given
+  directly at the outer level.
+
+  \railalias{subseteq}{\isasymsubseteq}
+  \railterm{subseteq}
+
+  \indexouternonterm{sort}\indexouternonterm{arity}
+  \indexouternonterm{classdecl}
+  \begin{rail}
+    classdecl: name (('<' | subseteq) (nameref + ','))?
+    ;
+    sort: nameref
+    ;
+    arity: ('(' (sort + ',') ')')? sort
+    ;
+  \end{rail}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Types and terms \label{sec:types-terms}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The actual inner Isabelle syntax, that of types and terms of the
+  logic, is far too sophisticated in order to be modelled explicitly
+  at the outer theory level.  Basically, any such entity has to be
+  quoted to turn it into a single token (the parsing and type-checking
+  is performed internally later).  For convenience, a slightly more
+  liberal convention is adopted: quotes may be omitted for any type or
+  term that is already atomic at the outer level.  For example, one
+  may just write \texttt{x} instead of \texttt{"x"}.  Note that
+  symbolic identifiers (e.g.\ \texttt{++} or \isa{{\isasymforall}} are available
+  as well, provided these have not been superseded by commands or
+  other keywords already (e.g.\ \texttt{=} or \texttt{+}).
+
+  \indexoutertoken{type}\indexoutertoken{term}\indexoutertoken{prop}
+  \begin{rail}
+    type: nameref | typefree | typevar
+    ;
+    term: nameref | var
+    ;
+    prop: term
+    ;
+  \end{rail}
+
+  Positional instantiations are indicated by giving a sequence of
+  terms, or the placeholder ``$\_$'' (underscore), which means to skip
+  a position.
+
+  \indexoutertoken{inst}\indexoutertoken{insts}
+  \begin{rail}
+    inst: underscore | term
+    ;
+    insts: (inst *)
+    ;
+  \end{rail}
+
+  Type declarations and definitions usually refer to
+  \railnonterm{typespec} on the left-hand side.  This models basic
+  type constructor application at the outer syntax level.  Note that
+  only plain postfix notation is available here, but no infixes.
+
+  \indexouternonterm{typespec}
+  \begin{rail}
+    typespec: (() | typefree | '(' ( typefree + ',' ) ')') name
+    ;
+  \end{rail}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Mixfix annotations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Mixfix annotations specify concrete \emph{inner} syntax of Isabelle
+  types and terms.  Some commands such as \isa{types} (see
+  \S\ref{sec:types-pure}) admit infixes only, while \isa{consts} (see \S\ref{sec:consts}) and \isa{syntax} (see
+  \S\ref{sec:syn-trans}) support the full range of general mixfixes
+  and binders.
+
+  \indexouternonterm{infix}\indexouternonterm{mixfix}\indexouternonterm{structmixfix}
+  \begin{rail}
+    infix: '(' ('infix' | 'infixl' | 'infixr') string? nat ')'
+    ;
+    mixfix: infix | '(' string prios? nat? ')' | '(' 'binder' string prios? nat ')'
+    ;
+    structmixfix: mixfix | '(' 'structure' ')'
+    ;
+
+    prios: '[' (nat + ',') ']'
+    ;
+  \end{rail}
+
+  Here the \railtok{string} specifications refer to the actual mixfix
+  template (see also \cite{isabelle-ref}), which may include literal
+  text, spacing, blocks, and arguments (denoted by ``$_$''); the
+  special symbol \verb,\<index>, (printed as ``\i'') represents an index
+  argument that specifies an implicit structure reference (see also
+  \S\ref{sec:locale}).  Infix and binder declarations provide common
+  abbreviations for particular mixfix declarations.  So in practice,
+  mixfix templates mostly degenerate to literal text for concrete
+  syntax, such as ``\verb,++,'' for an infix symbol, or
+  ``\verb,++,\i'' for an infix of an implicit structure.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Proof methods \label{sec:syn-meth}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Proof methods are either basic ones, or expressions composed of
+  methods via ``\texttt{,}'' (sequential composition), ``\texttt{|}''
+  (alternative choices), ``\texttt{?}'' (try), ``\texttt{+}'' (repeat
+  at least once), ``\texttt{[$n$]}'' (restriction to first \isa{n}
+  sub-goals, default $n = 1$).  In practice, proof methods are usually
+  just a comma separated list of \railqtok{nameref}~\railnonterm{args}
+  specifications.  Note that parentheses may be dropped for single
+  method specifications (with no arguments).
+
+  \indexouternonterm{method}
+  \begin{rail}
+    method: (nameref | '(' methods ')') (() | '?' | '+' | '[' nat? ']')
+    ;
+    methods: (nameref args | method) + (',' | '|')
+    ;
+  \end{rail}
+
+  Proper Isar proof methods do \emph{not} admit arbitrary goal
+  addressing, but refer either to the first sub-goal or all sub-goals
+  uniformly.  The goal restriction operator ``\texttt{[$n$]}''
+  evaluates a method expression within a sandbox consisting of the
+  first \isa{n} sub-goals (which need to exist).  For example,
+  \isa{simp{\isacharunderscore}all{\isacharbrackleft}{\isadigit{3}}{\isacharbrackright}} simplifies the first three sub-goals, while
+  \isa{{\isacharparenleft}rule\ foo{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}{\isacharbrackleft}{\isacharbrackright}} simplifies all new goals that
+  emerge from applying rule \isa{foo} to the originally first one.
+
+  Improper methods, notably tactic emulations, offer a separate
+  low-level goal addressing scheme as explicit argument to the
+  individual tactic being involved.  Here \isa{{\isacharbrackleft}{\isacharbang}{\isacharbrackright}} refers to all
+  goals, and \isa{{\isacharbrackleft}n{\isacharminus}{\isacharbrackright}} to all goals starting from \isa{n},
+
+  \indexouternonterm{goalspec}
+  \begin{rail}
+    goalspec: '[' (nat '-' nat | nat '-' | nat | '!' ) ']'
+    ;
+  \end{rail}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Attributes and theorems \label{sec:syn-att}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Attributes (and proof methods, see \S\ref{sec:syn-meth}) have their
+  own ``semi-inner'' syntax, in the sense that input conforming to
+  \railnonterm{args} below is parsed by the attribute a second time.
+  The attribute argument specifications may be any sequence of atomic
+  entities (identifiers, strings etc.), or properly bracketed argument
+  lists.  Below \railqtok{atom} refers to any atomic entity, including
+  any \railtok{keyword} conforming to \railtok{symident}.
+
+  \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
+  \begin{rail}
+    atom: nameref | typefree | typevar | var | nat | keyword
+    ;
+    arg: atom | '(' args ')' | '[' args ']'
+    ;
+    args: arg *
+    ;
+    attributes: '[' (nameref args * ',') ']'
+    ;
+  \end{rail}
+
+  Theorem specifications come in several flavors:
+  \railnonterm{axmdecl} and \railnonterm{thmdecl} usually refer to
+  axioms, assumptions or results of goal statements, while
+  \railnonterm{thmdef} collects lists of existing theorems.  Existing
+  theorems are given by \railnonterm{thmref} and
+  \railnonterm{thmrefs}, the former requires an actual singleton
+  result.
+
+  There are three forms of theorem references:
+  \begin{enumerate}
+  
+  \item named facts \isa{a}
+
+  \item selections from named facts \isa{a{\isacharparenleft}i{\isacharcomma}\ j\ {\isacharminus}\ k{\isacharparenright}}
+
+  \item literal fact propositions using \indexref{}{syntax}{altstring}\isa{altstring} syntax
+  $\backquote\phi\backquote$, (see also method \indexref{}{method}{fact}\isa{fact} in
+  \S\ref{sec:pure-meth-att}).
+
+  \end{enumerate}
+
+  Any kind of theorem specification may include lists of attributes
+  both on the left and right hand sides; attributes are applied to any
+  immediately preceding fact.  If names are omitted, the theorems are
+  not stored within the theorem database of the theory or proof
+  context, but any given attributes are applied nonetheless.
+
+  An extra pair of brackets around attribute declarations --- such as
+  ``\isa{{\isacharbrackleft}{\isacharbrackleft}simproc\ a{\isacharbrackright}{\isacharbrackright}}'' --- abbreviates a theorem reference
+  involving an internal dummy fact, which will be ignored later on.
+  So only the effect of the attribute on the background context will
+  persist.  This form of in-place declarations is particularly useful
+  with commands like \isa{declare} and \isa{using}.
+
+  \indexouternonterm{axmdecl}\indexouternonterm{thmdecl}
+  \indexouternonterm{thmdef}\indexouternonterm{thmref}
+  \indexouternonterm{thmrefs}\indexouternonterm{selection}
+  \begin{rail}
+    axmdecl: name attributes? ':'
+    ;
+    thmdecl: thmbind ':'
+    ;
+    thmdef: thmbind '='
+    ;
+    thmref: (nameref selection? | altstring) attributes? | '[' attributes ']'
+    ;
+    thmrefs: thmref +
+    ;
+
+    thmbind: name attributes | name | attributes
+    ;
+    selection: '(' ((nat | nat '-' nat?) + ',') ')'
+    ;
+  \end{rail}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Term patterns and declarations \label{sec:term-decls}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Wherever explicit propositions (or term fragments) occur in a proof
+  text, casual binding of schematic term variables may be given
+  specified via patterns of the form ``\isa{{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}}''.  This works both for \railqtok{term} and \railqtok{prop}.
+
+  \indexouternonterm{termpat}\indexouternonterm{proppat}
+  \begin{rail}
+    termpat: '(' ('is' term +) ')'
+    ;
+    proppat: '(' ('is' prop +) ')'
+    ;
+  \end{rail}
+
+  \medskip Declarations of local variables \isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} and
+  logical propositions \isa{a\ {\isacharcolon}\ {\isasymphi}} represent different views on
+  the same principle of introducing a local scope.  In practice, one
+  may usually omit the typing of \railnonterm{vars} (due to
+  type-inference), and the naming of propositions (due to implicit
+  references of current facts).  In any case, Isar proof elements
+  usually admit to introduce multiple such items simultaneously.
+
+  \indexouternonterm{vars}\indexouternonterm{props}
+  \begin{rail}
+    vars: (name+) ('::' type)?
+    ;
+    props: thmdecl? (prop proppat? +)
+    ;
+  \end{rail}
+
+  The treatment of multiple declarations corresponds to the
+  complementary focus of \railnonterm{vars} versus
+  \railnonterm{props}.  In ``\isa{x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}''
+  the typing refers to all variables, while in \isa{a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n} the naming refers to all propositions collectively.
+  Isar language elements that refer to \railnonterm{vars} or
+  \railnonterm{props} typically admit separate typings or namings via
+  another level of iteration, with explicit \indexref{}{keyword}{and}\isa{and}
+  separators; e.g.\ see \isa{fix} and \isa{assume} in
+  \S\ref{sec:proof-context}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Antiquotations \label{sec:antiq}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{antiquotation}{theory}\isa{theory} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{thm}\isa{thm} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{prop}\isa{prop} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{term}\isa{term} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{const}\isa{const} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{abbrev}\isa{abbrev} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{typeof}\isa{typeof} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{typ}\isa{typ} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{thm-style}\isa{thm{\isacharunderscore}style} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{term-style}\isa{term{\isacharunderscore}style} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{text}\isa{text} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{goals}\isa{goals} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{subgoals}\isa{subgoals} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{prf}\isa{prf} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{full-prf}\isa{full{\isacharunderscore}prf} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{ML}\isa{ML} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{ML-type}\isa{ML{\isacharunderscore}type} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{ML-struct}\isa{ML{\isacharunderscore}struct} & : & \isarantiq \\
+  \end{matharray}
+
+  The text body of formal comments (see also \S\ref{sec:comments}) may
+  contain antiquotations of logical entities, such as theorems, terms
+  and types, which are to be presented in the final output produced by
+  the Isabelle document preparation system (see also
+  \S\ref{sec:document-prep}).
+
+  Thus embedding of ``\isa{{\isacharat}{\isacharbraceleft}term\ {\isacharbrackleft}show{\isacharunderscore}types{\isacharbrackright}\ {\isachardoublequote}f\ x\ {\isacharequal}\ a\ {\isacharplus}\ x{\isachardoublequote}{\isacharbraceright}}''
+  within a text block would cause
+  \isa{{\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharplus}\ x} to appear in the final {\LaTeX} document.  Also note that theorem
+  antiquotations may involve attributes as well.  For example,
+  \texttt{{\at}{\ttlbrace}thm~sym~[no_vars]{\ttrbrace}} would print
+  the statement where all schematic variables have been replaced by
+  fixed ones, which are easier to read.
+
+  \begin{rail}
+    atsign lbrace antiquotation rbrace
+    ;
+
+    antiquotation:
+      'theory' options name |
+      'thm' options thmrefs |
+      'prop' options prop |
+      'term' options term |
+      'const' options term |
+      'abbrev' options term |
+      'typeof' options term |
+      'typ' options type |
+      'thm\_style' options name thmref |
+      'term\_style' options name term |
+      'text' options name |
+      'goals' options |
+      'subgoals' options |
+      'prf' options thmrefs |
+      'full\_prf' options thmrefs |
+      'ML' options name |
+      'ML\_type' options name |
+      'ML\_struct' options name
+    ;
+    options: '[' (option * ',') ']'
+    ;
+    option: name | name '=' name
+    ;
+  \end{rail}
+
+  Note that the syntax of antiquotations may \emph{not} include source
+  comments \texttt{(*~\dots~*)} or verbatim text
+  \verb|{*|~\dots~\verb|*|\verb|}|.
+
+  \begin{descr}
+  
+  \item [\isa{{\isacharat}{\isacharbraceleft}theory\ A{\isacharbraceright}}] prints the name \isa{A}, which is
+  guaranteed to refer to a valid ancestor theory in the current
+  context.
+
+  \item [\isa{{\isacharat}{\isacharbraceleft}thm\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}}] prints theorems \isa{a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n}.  Note that attribute specifications may be
+  included as well (see also \S\ref{sec:syn-att}); the \indexref{}{attribute}{no-vars}\isa{no{\isacharunderscore}vars} rule (see \S\ref{sec:misc-meth-att}) would be particularly
+  useful to suppress printing of schematic variables.
+
+  \item [\isa{{\isacharat}{\isacharbraceleft}prop\ {\isasymphi}{\isacharbraceright}}] prints a well-typed proposition \isa{{\isasymphi}}.
+
+  \item [\isa{{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}}] prints a well-typed term \isa{t}.
+
+  \item [\isa{{\isacharat}{\isacharbraceleft}const\ c{\isacharbraceright}}] prints a logical or syntactic constant
+  \isa{c}.
+  
+  \item [\isa{{\isacharat}{\isacharbraceleft}abbrev\ c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isacharbraceright}}] prints a constant
+  abbreviation \isa{c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ rhs} as defined in
+  the current context.
+
+  \item [\isa{{\isacharat}{\isacharbraceleft}typeof\ t{\isacharbraceright}}] prints the type of a well-typed term
+  \isa{t}.
+
+  \item [\isa{{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}}] prints a well-formed type \isa{{\isasymtau}}.
+  
+  \item [\isa{{\isacharat}{\isacharbraceleft}thm{\isacharunderscore}style\ s\ a{\isacharbraceright}}] prints theorem \isa{a},
+  previously applying a style \isa{s} to it (see below).
+  
+  \item [\isa{{\isacharat}{\isacharbraceleft}term{\isacharunderscore}style\ s\ t{\isacharbraceright}}] prints a well-typed term \isa{t} after applying a style \isa{s} to it (see below).
+
+  \item [\isa{{\isacharat}{\isacharbraceleft}text\ s{\isacharbraceright}}] prints uninterpreted source text \isa{s}.  This is particularly useful to print portions of text according
+  to the Isabelle {\LaTeX} output style, without demanding
+  well-formedness (e.g.\ small pieces of terms that should not be
+  parsed or type-checked yet).
+
+  \item [\isa{{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}}] prints the current \emph{dynamic} goal
+  state.  This is mainly for support of tactic-emulation scripts
+  within Isar --- presentation of goal states does not conform to
+  actual human-readable proof documents.
+
+  Please do not include goal states into document output unless you
+  really know what you are doing!
+  
+  \item [\isa{{\isacharat}{\isacharbraceleft}subgoals{\isacharbraceright}}] is similar to \isa{{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}}, but
+  does not print the main goal.
+  
+  \item [\isa{{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}}] prints the (compact)
+  proof terms corresponding to the theorems \isa{a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n}. Note that this requires proof terms to be switched on
+  for the current object logic (see the ``Proof terms'' section of the
+  Isabelle reference manual for information on how to do this).
+  
+  \item [\isa{{\isacharat}{\isacharbraceleft}full{\isacharunderscore}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}}] is like \isa{{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}}, but displays the full proof terms,
+  i.e.\ also displays information omitted in the compact proof term,
+  which is denoted by ``$_$'' placeholders there.
+  
+  \item [\isa{{\isacharat}{\isacharbraceleft}ML\ s{\isacharbraceright}}, \isa{{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}type\ s{\isacharbraceright}}, and \isa{{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}struct\ s{\isacharbraceright}}] check text \isa{s} as ML value, type, and
+  structure, respectively.  The source is displayed verbatim.
+
+  \end{descr}
+
+  \medskip The following standard styles for use with \isa{thm{\isacharunderscore}style} and \isa{term{\isacharunderscore}style} are available:
+
+  \begin{descr}
+  
+  \item [\isa{lhs}] extracts the first argument of any application
+  form with at least two arguments -- typically meta-level or
+  object-level equality, or any other binary relation.
+  
+  \item [\isa{rhs}] is like \isa{lhs}, but extracts the second
+  argument.
+  
+  \item [\isa{concl}] extracts the conclusion \isa{C} from a rule
+  in Horn-clause normal form \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}.
+  
+  \item [\isa{prem{\isadigit{1}}}, \dots, \isa{prem{\isadigit{9}}}] extract premise
+  number $1$, \dots, $9$, respectively, from from a rule in
+  Horn-clause normal form \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}
+
+  \end{descr}
+
+  \medskip
+  The following options are available to tune the output.  Note that most of
+  these coincide with ML flags of the same names (see also \cite{isabelle-ref}).
+
+  \begin{descr}
+
+  \item[\isa{show{\isacharunderscore}types\ {\isacharequal}\ bool} and \isa{show{\isacharunderscore}sorts\ {\isacharequal}\ bool}]
+  control printing of explicit type and sort constraints.
+
+  \item[\isa{show{\isacharunderscore}structs\ {\isacharequal}\ bool}] controls printing of implicit
+  structures.
+
+  \item[\isa{long{\isacharunderscore}names\ {\isacharequal}\ bool}] forces names of types and
+  constants etc.\ to be printed in their fully qualified internal
+  form.
+
+  \item[\isa{short{\isacharunderscore}names\ {\isacharequal}\ bool}] forces names of types and
+  constants etc.\ to be printed unqualified.  Note that internalizing
+  the output again in the current context may well yield a different
+  result.
+
+  \item[\isa{unique{\isacharunderscore}names\ {\isacharequal}\ bool}] determines whether the printed
+  version of qualified names should be made sufficiently long to avoid
+  overlap with names declared further back.  Set to \isa{false} for
+  more concise output.
+
+  \item[\isa{eta{\isacharunderscore}contract\ {\isacharequal}\ bool}] prints terms in \isa{{\isasymeta}}-contracted form.
+
+  \item[\isa{display\ {\isacharequal}\ bool}] indicates if the text is to be
+  output as multi-line ``display material'', rather than a small piece
+  of text without line breaks (which is the default).
+
+  \item[\isa{break\ {\isacharequal}\ bool}] controls line breaks in non-display
+  material.
+
+  \item[\isa{quotes\ {\isacharequal}\ bool}] indicates if the output should be
+  enclosed in double quotes.
+
+  \item[\isa{mode\ {\isacharequal}\ name}] adds \isa{name} to the print mode to
+  be used for presentation (see also \cite{isabelle-ref}).  Note that
+  the standard setup for {\LaTeX} output is already present by
+  default, including the modes \isa{latex} and \isa{xsymbols}.
+
+  \item[\isa{margin\ {\isacharequal}\ nat} and \isa{indent\ {\isacharequal}\ nat}] change the
+  margin or indentation for pretty printing of display material.
+
+  \item[\isa{source\ {\isacharequal}\ bool}] prints the source text of the
+  antiquotation arguments, rather than the actual value.  Note that
+  this does not affect well-formedness checks of \isa{thm}, \isa{term}, etc. (only the \isa{text} antiquotation admits arbitrary output).
+
+  \item[\isa{goals{\isacharunderscore}limit\ {\isacharequal}\ nat}] determines the maximum number of
+  goals to be printed.
+
+  \item[\isa{locale\ {\isacharequal}\ name}] specifies an alternative locale
+  context used for evaluating and printing the subsequent argument.
+
+  \end{descr}
+
+  For boolean flags, ``\isa{name\ {\isacharequal}\ true}'' may be abbreviated as
+  ``\isa{name}''.  All of the above flags are disabled by default,
+  unless changed from ML.
+
+  \medskip Note that antiquotations do not only spare the author from
+  tedious typing of logical entities, but also achieve some degree of
+  consistency-checking of informal explanations with formal
+  developments: well-formedness of terms and types with respect to the
+  current theory or proof context is ensured here.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Tagged commands \label{sec:tags}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Each Isabelle/Isar command may be decorated by presentation tags:
+
+  \indexouternonterm{tags}
+  \begin{rail}
+    tags: ( tag * )
+    ;
+    tag: '\%' (ident | string)
+  \end{rail}
+
+  The tags \isa{theory}, \isa{proof}, \isa{ML} are already
+  pre-declared for certain classes of commands:
+
+ \medskip
+
+  \begin{tabular}{ll}
+    \isa{theory} & theory begin/end \\
+    \isa{proof} & all proof commands \\
+    \isa{ML} & all commands involving ML code \\
+  \end{tabular}
+
+  \medskip The Isabelle document preparation system (see also
+  \cite{isabelle-sys}) allows tagged command regions to be presented
+  specifically, e.g.\ to fold proof texts, or drop parts of the text
+  completely.
+
+  For example ``\isa{by}~\isa{{\isacharpercent}invisible\ auto}'' would
+  cause that piece of proof to be treated as \isa{invisible} instead
+  of \isa{proof} (the default), which may be either show or hidden
+  depending on the document setup.  In contrast, ``\isa{by}~\isa{{\isacharpercent}visible\ auto}'' would force this text to be shown
+  invariably.
+
+  Explicit tag specifications within a proof apply to all subsequent
+  commands of the same level of nesting.  For example, ``\isa{proof}~\isa{{\isacharpercent}visible\ {\isasymdots}}~\isa{qed}'' would force the
+  whole sub-proof to be typeset as \isa{visible} (unless some of its
+  parts are tagged differently).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
