@@ -3,7 +3,9 @@
     Author:     Steven Obua
 *)
 
-theory MatrixGeneral imports Main begin
+theory MatrixGeneral
+imports Main
+begin
 
 types 'a infmatrix = "[nat, nat] \<Rightarrow> 'a"
 
@@ -36,12 +38,11 @@ proof cases
 next
   assume a: "nonzero_positions(Rep_matrix A) \<noteq> {}"
   let ?S = "fst`(nonzero_positions(Rep_matrix A))"
-  from a have b: "?S \<noteq> {}" by (simp)
   have c: "finite (?S)" by (simp add: finite_nonzero_positions)
   from hyp have d: "Max (?S) < m" by (simp add: a nrows_def)
   have "m \<notin> ?S"
     proof -
-      have "m \<in> ?S \<Longrightarrow> m <= Max(?S)" by (simp add: Max_ge[OF c b])
+      have "m \<in> ?S \<Longrightarrow> m <= Max(?S)" by (simp add: Max_ge [OF c])
       moreover from d have "~(m <= Max ?S)" by (simp)
       ultimately show "m \<notin> ?S" by (auto)
     qed

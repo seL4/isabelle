@@ -690,9 +690,9 @@ proof (auto simp add: finite_conv_nat_seg_image)
   let ?m = "Max ?P"
   have P0: "?P \<noteq> {}" using two_is_prime by auto
   from H have fP: "finite ?P" using finite_conv_nat_seg_image by blast 
-  from Max_in[OF fP P0]  have "?m \<in> ?P" . 
-  from Max_ge[OF fP P0] have contr: "\<forall> p. prime p \<longrightarrow> p \<le> ?m" by blast
-  from euclid[of ?m] obtain q where q: "prime q" "q > ?m" by blast
+  from Max_in [OF fP P0] have "?m \<in> ?P" . 
+  from Max_ge [OF fP] have contr: "\<forall> p. prime p \<longrightarrow> p \<le> ?m" by blast
+  from euclid [of ?m] obtain q where q: "prime q" "q > ?m" by blast
   with contr show False by auto
 qed
 
@@ -1045,4 +1045,5 @@ lemma coprime_divisors: "d dvd a \<Longrightarrow> e dvd b \<Longrightarrow> cop
 
 declare power_Suc0[simp del]
 declare even_dvd[simp del]
+
 end

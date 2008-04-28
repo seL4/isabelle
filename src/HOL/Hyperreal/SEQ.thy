@@ -73,7 +73,6 @@ lemma BseqI2': assumes K: "\<forall>n\<ge>N. norm (X n) \<le> K" shows "Bseq X"
 proof (rule BseqI')
   let ?A = "norm ` X ` {..N}"
   have 1: "finite ?A" by simp
-  have 2: "?A \<noteq> {}" by auto
   fix n::nat
   show "norm (X n) \<le> max K (Max ?A)"
   proof (cases rule: linorder_le_cases)
@@ -83,7 +82,7 @@ proof (rule BseqI')
   next
     assume "n \<le> N"
     hence "norm (X n) \<in> ?A" by simp
-    with 1 2 have "norm (X n) \<le> Max ?A" by (rule Max_ge)
+    with 1 have "norm (X n) \<le> Max ?A" by (rule Max_ge)
     thus "norm (X n) \<le> max K (Max ?A)" by simp
   qed
 qed

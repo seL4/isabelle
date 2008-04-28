@@ -2140,32 +2140,36 @@ proof -
 qed
 
 lemma fold1_belowI:
-  assumes "finite A" "A \<noteq> {}"
+  assumes "finite A"
     and "a \<in> A"
   shows "fold1 inf A \<le> a"
-using assms proof (induct rule: finite_ne_induct)
-  case singleton thus ?case by simp
-next
-  interpret ab_semigroup_idem_mult [inf]
-    by (rule ab_semigroup_idem_mult_inf)
-  case (insert x F)
-  from insert(5) have "a = x \<or> a \<in> F" by simp
-  thus ?case
-  proof
-    assume "a = x" thus ?thesis using insert
-      by (simp add: mult_ac_idem)
+proof -
+  from assms have "A \<noteq> {}" by auto
+  from `finite A` `A \<noteq> {}` `a \<in> A` show ?thesis
+  proof (induct rule: finite_ne_induct)
+    case singleton thus ?case by simp
   next
-    assume "a \<in> F"
-    hence bel: "fold1 inf F \<le> a" by (rule insert)
-    have "inf (fold1 inf (insert x F)) a = inf x (inf (fold1 inf F) a)"
-      using insert by (simp add: mult_ac_idem)
-    also have "inf (fold1 inf F) a = fold1 inf F"
-      using bel by (auto intro: antisym)
-    also have "inf x \<dots> = fold1 inf (insert x F)"
-      using insert by (simp add: mult_ac_idem)
-    finally have aux: "inf (fold1 inf (insert x F)) a = fold1 inf (insert x F)" .
-    moreover have "inf (fold1 inf (insert x F)) a \<le> a" by simp
-    ultimately show ?thesis by simp
+    interpret ab_semigroup_idem_mult [inf]
+      by (rule ab_semigroup_idem_mult_inf)
+    case (insert x F)
+    from insert(5) have "a = x \<or> a \<in> F" by simp
+    thus ?case
+    proof
+      assume "a = x" thus ?thesis using insert
+        by (simp add: mult_ac_idem)
+    next
+      assume "a \<in> F"
+      hence bel: "fold1 inf F \<le> a" by (rule insert)
+      have "inf (fold1 inf (insert x F)) a = inf x (inf (fold1 inf F) a)"
+        using insert by (simp add: mult_ac_idem)
+      also have "inf (fold1 inf F) a = fold1 inf F"
+        using bel by (auto intro: antisym)
+      also have "inf x \<dots> = fold1 inf (insert x F)"
+        using insert by (simp add: mult_ac_idem)
+      finally have aux: "inf (fold1 inf (insert x F)) a = fold1 inf (insert x F)" .
+      moreover have "inf (fold1 inf (insert x F)) a \<le> a" by simp
+      ultimately show ?thesis by simp
+    qed
   qed
 qed
 
@@ -2195,18 +2199,18 @@ apply(subgoal_tac "EX a. a:A")
 prefer 2 apply blast
 apply(erule exE)
 apply(rule order_trans)
-apply(erule (2) fold1_belowI)
-apply(erule (2) lower_semilattice.fold1_belowI [OF dual_lattice])
+apply(erule (1) fold1_belowI)
+apply(erule (1) lower_semilattice.fold1_belowI [OF dual_lattice])
 done
 
 lemma sup_Inf_absorb [simp]:
-  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (sup a (\<Sqinter>\<^bsub>fin\<^esub>A)) = a"
+  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a (\<Sqinter>\<^bsub>fin\<^esub>A) = a"
 apply(subst sup_commute)
 apply(simp add: Inf_fin_def sup_absorb2 fold1_belowI)
 done
 
 lemma inf_Sup_absorb [simp]:
-  "\<lbrakk> finite A; A \<noteq> {}; a \<in> A \<rbrakk> \<Longrightarrow> (inf a (\<Squnion>\<^bsub>fin\<^esub>A)) = a"
+  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> inf a (\<Squnion>\<^bsub>fin\<^esub>A) = a"
 by (simp add: Sup_fin_def inf_absorb1
   lower_semilattice.fold1_belowI [OF dual_lattice])
 
@@ -2522,7 +2526,7 @@ proof -
 qed
 
 lemma Min_le [simp]:
-  assumes "finite A" and "A \<noteq> {}" and "x \<in> A"
+  assumes "finite A" and "x \<in> A"
   shows "Min A \<le> x"
 proof -
   interpret lower_semilattice ["op \<le>" "op <" min]
@@ -2531,7 +2535,7 @@ proof -
 qed
 
 lemma Max_ge [simp]:
-  assumes "finite A" and "A \<noteq> {}" and "x \<in> A"
+  assumes "finite A" and "x \<in> A"
   shows "x \<le> Max A"
 proof -
   invoke lower_semilattice ["op \<ge>" "op >" max]
@@ -2651,7 +2655,7 @@ proof (induct A rule: measure_induct_rule[where f=card])
   and "finite A" and "P {}"
   and step: "!!A b. \<lbrakk>finite A; \<forall>a\<in>A. a < b; P A\<rbrakk> \<Longrightarrow> P (insert b A)"
   show "P A"
-  proof cases
+  proof (cases "A = {}")
     assume "A = {}" thus "P A" using `P {}` by simp
   next
     let ?B = "A - {Max A}" let ?A = "insert (Max A) ?B"
@@ -2662,7 +2666,7 @@ proof (induct A rule: measure_induct_rule[where f=card])
     moreover have "finite ?B" using `finite A` by simp
     ultimately have "P ?B" using `P {}` step IH by blast
     moreover have "\<forall>a\<in>?B. a < Max A"
-      using Max_ge[OF `finite A` `A \<noteq> {}`] by fastsimp
+      using Max_ge [OF `finite A`] by fastsimp
     ultimately show "P A"
       using A insert_Diff_single step[OF `finite ?B`] by fastsimp
   qed
