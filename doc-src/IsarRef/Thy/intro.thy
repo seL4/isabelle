@@ -64,11 +64,12 @@ section {* Quick start *}
 subsection {* Terminal sessions *}
 
 text {*
-  Isar is already part of Isabelle.  The low-level \texttt{isabelle} binary
-  provides option \texttt{-I} to run the Isabelle/Isar interaction loop at
-  startup, rather than the raw ML top-level.  So the most basic way to do
-  anything with Isabelle/Isar is as follows:
-\begin{ttbox}
+  Isar is already part of Isabelle.  The low-level @{verbatim
+  isabelle} binary provides option @{verbatim "-I"} to run the
+  Isabelle/Isar interaction loop at startup, rather than the raw ML
+  top-level.  So the most basic way to do anything with Isabelle/Isar
+  is as follows:
+\begin{ttbox}  % FIXME update
 isabelle -I HOL\medskip
 \out{> Welcome to Isabelle/HOL (Isabelle2005)}\medskip
 theory Foo imports Main begin;
@@ -77,10 +78,10 @@ lemma "0 < foo" by (simp add: foo_def);
 end;
 \end{ttbox}
 
-  Note that any Isabelle/Isar command may be retracted by
-  \texttt{undo}.  See the Isabelle/Isar Quick Reference
-  (appendix~\ref{ap:refcard}) for a comprehensive overview of
-  available commands and other language elements.
+  Note that any Isabelle/Isar command may be retracted by @{command
+  "undo"}.  See the Isabelle/Isar Quick Reference
+  (\appref{ap:refcard}) for a comprehensive overview of available
+  commands and other language elements.
 *}
 
 
@@ -109,11 +110,11 @@ text {*
   Proof~General (including XEmacs or GNU Emacs).  The default
   configuration of Isabelle is smart enough to detect the
   Proof~General distribution in several canonical places (e.g.\
-  \texttt{\$ISABELLE_HOME/contrib/ProofGeneral}).  Thus the capital
-  \texttt{Isabelle} executable would already refer to the
-  \texttt{ProofGeneral/isar} interface without further ado.  The
-  Isabelle interface script provides several options; pass \verb,-?,
-  to see its usage.
+  @{verbatim "$ISABELLE_HOME/contrib/ProofGeneral"}).  Thus the
+  capital @{verbatim Isabelle} executable would already refer to the
+  @{verbatim "ProofGeneral/isar"} interface without further ado.  The
+  Isabelle interface script provides several options; pass @{verbatim
+  "-?"}  to see its usage.
 
   With the proper Isabelle interface setup, Isar documents may now be edited by
   visiting appropriate theory files, e.g.\ 
@@ -123,8 +124,8 @@ Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/Summation.thy
   Beginners may note the tool bar for navigating forward and backward
   through the text (this depends on the local Emacs installation).
   Consult the Proof~General documentation \cite{proofgeneral} for
-  further basic command sequences, in particular ``\texttt{C-c
-  C-return}'' and ``\texttt{C-c u}''.
+  further basic command sequences, in particular ``@{verbatim "C-c C-return"}''
+  and ``@{verbatim "C-c u"}''.
 
   \medskip Proof~General may be also configured manually by giving
   Isabelle settings like this (see also \cite{isabelle-sys}):
@@ -133,8 +134,9 @@ Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/Summation.thy
 ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
 PROOFGENERAL_OPTIONS=""
 \end{ttbox}
-  You may have to change \texttt{\$ISABELLE_HOME/contrib/ProofGeneral}
-  to the actual installation directory of Proof~General.
+  You may have to change @{verbatim
+  "$ISABELLE_HOME/contrib/ProofGeneral"} to the actual installation
+  directory of Proof~General.
 
   \medskip Apart from the Isabelle command line, defaults for
   interface options may be given by the \texttt{PROOFGENERAL_OPTIONS}
@@ -144,13 +146,13 @@ PROOFGENERAL_OPTIONS=""
 PROOFGENERAL_OPTIONS="-p xemacs-mule"  
 \end{ttbox}
 
-  Occasionally, a user's \verb,~/.emacs, file contains code that is
-  incompatible with the (X)Emacs version used by Proof~General,
-  causing the interface startup to fail prematurely.  Here the
-  \texttt{-u false} option helps to get the interface process up and
-  running.  Note that additional Lisp customization code may reside in
-  \texttt{proofgeneral-settings.el} of \texttt{\$ISABELLE_HOME/etc} or
-  \texttt{\$ISABELLE_HOME_USER/etc}.
+  Occasionally, a user's @{verbatim "~/.emacs"} file contains code
+  that is incompatible with the (X)Emacs version used by
+  Proof~General, causing the interface startup to fail prematurely.
+  Here the \texttt{-u false} option helps to get the interface process
+  up and running.  Note that additional Lisp customization code may
+  reside in \texttt{proofgeneral-settings.el} of @{verbatim
+  "$ISABELLE_HOME/etc"} or @{verbatim "$ISABELLE_HOME_USER/etc"}.
 *}
 
 
@@ -167,9 +169,9 @@ text {*
   \medskip Using proper mathematical symbols in Isabelle theories can
   be very convenient for readability of large formulas.  On the other
   hand, the plain ASCII sources easily become somewhat unintelligible.
-  For example, $\Longrightarrow$ would appear as \verb,\<Longrightarrow>, according
+  For example, @{text "\<Longrightarrow>"} would appear as @{verbatim "\<Longrightarrow>"} according
   the default set of Isabelle symbols.  Nevertheless, the Isabelle
-  document preparation system (see \S\ref{sec:document-prep}) will be
+  document preparation system (see \secref{sec:document-prep}) will be
   happy to print non-ASCII symbols properly.  It is even possible to
   invent additional notation beyond the display capabilities of Emacs
   and X-Symbol.
@@ -204,28 +206,11 @@ text {*
 
   The Isar proof language is embedded into the new theory format as a
   proper sub-language.  Proof mode is entered by stating some
-  $\THEOREMNAME$ or $\LEMMANAME$ at the theory level, and left again
-  with the final conclusion (e.g.\ via $\QEDNAME$).  A few theory
-  specification mechanisms also require some proof, such as HOL's
-  $\isarkeyword{typedef}$ which demands non-emptiness of the
+  @{command "theorem"} or @{command "lemma"} at the theory level, and
+  left again with the final conclusion (e.g.\ via @{command "qed"}).
+  A few theory specification mechanisms also require some proof, such
+  as HOL's @{command "typedef"} which demands non-emptiness of the
   representing sets.
-
-  New-style theory files may still be associated with separate ML
-  files consisting of plain old tactic scripts.  There is no longer
-  any ML binding generated for the theory and theorems, though.  ML
-  functions \texttt{theory}, \texttt{thm}, and \texttt{thms} retrieve
-  this information from the context \cite{isabelle-ref}.
-  Nevertheless, migration between classic Isabelle and Isabelle/Isar
-  is relatively easy.  Thus users may start to benefit from
-  interactive theory development and document preparation, even before
-  they have any idea of the Isar proof language at all.
-
-  Manual conversion of existing tactic scripts may be done by running
-  two separate Proof~General sessions, one for replaying the old
-  script and the other for the emerging Isabelle/Isar document.  Also
-  note that Isar supports emulation commands and methods that support
-  traditional tactic scripts within new-style theories, see
-  appendix~\ref{ap:conv} for more information.
 *}
 
 
@@ -243,35 +228,37 @@ text {*
   Isabelle generates {\LaTeX} output as part of the run of a
   \emph{logic session} (see also \cite{isabelle-sys}).  Getting
   started with a working configuration for common situations is quite
-  easy by using the Isabelle \texttt{mkdir} and \texttt{make} tools.
-  First invoke
+  easy by using the Isabelle @{verbatim mkdir} and @{verbatim make}
+  tools.  First invoke
 \begin{ttbox}
   isatool mkdir Foo
 \end{ttbox}
-  to initialize a separate directory for session \texttt{Foo} --- it
-  is safe to experiment, since \texttt{isatool mkdir} never overwrites
-  existing files.  Ensure that \texttt{Foo/ROOT.ML} holds ML commands
-  to load all theories required for this session; furthermore
-  \texttt{Foo/document/root.tex} should include any special {\LaTeX}
-  macro packages required for your document (the default is usually
-  sufficient as a start).
+  to initialize a separate directory for session @{verbatim Foo} ---
+  it is safe to experiment, since \texttt{isatool mkdir} never
+  overwrites existing files.  Ensure that @{verbatim "Foo/ROOT.ML"}
+  holds ML commands to load all theories required for this session;
+  furthermore @{verbatim "Foo/document/root.tex"} should include any
+  special {\LaTeX} macro packages required for your document (the
+  default is usually sufficient as a start).
 
-  The session is controlled by a separate \texttt{IsaMakefile} (with
-  crude source dependencies by default).  This file is located one
-  level up from the \texttt{Foo} directory location.  Now invoke
+  The session is controlled by a separate @{verbatim IsaMakefile}
+  (with crude source dependencies by default).  This file is located
+  one level up from the @{verbatim Foo} directory location.  Now
+  invoke
 \begin{ttbox}
   isatool make Foo
 \end{ttbox}
-  to run the \texttt{Foo} session, with browser information and
+  to run the @{verbatim Foo} session, with browser information and
   document preparation enabled.  Unless any errors are reported by
   Isabelle or {\LaTeX}, the output will appear inside the directory
-  \texttt{ISABELLE_BROWSER_INFO}, as reported by the batch job in
+  @{verbatim ISABELLE_BROWSER_INFO}, as reported by the batch job in
   verbose mode.
 
-  \medskip You may also consider to tune the \texttt{usedir} options
-  in \texttt{IsaMakefile}, for example to change the output format
-  from \texttt{pdf} to \texttt{dvi}, or activate the \texttt{-D}
-  option to retain a second copy of the generated {\LaTeX} sources.
+  \medskip You may also consider to tune the @{verbatim usedir}
+  options in @{verbatim IsaMakefile}, for example to change the output
+  format from @{verbatim pdf} to @{verbatim dvi}, or activate the
+  @{verbatim "-D"} option to retain a second copy of the generated
+  {\LaTeX} sources.
 
   \medskip See \emph{The Isabelle System Manual} \cite{isabelle-sys}
   for further details on Isabelle logic sessions and theory
@@ -299,11 +286,10 @@ text {*
   \medskip The present text really is only a reference manual on
   Isabelle/Isar, not a tutorial.  Nevertheless, we will attempt to
   give some clues of how the concepts introduced here may be put into
-  practice.  Appendix~\ref{ap:refcard} provides a quick reference card
-  of the most common Isabelle/Isar language elements.
-  Appendix~\ref{ap:conv} offers some practical hints on converting
-  existing Isabelle theories and proof scripts to the new format
-  (without restructuring proofs).
+  practice.  \Appref{ap:refcard} provides a quick reference card of
+  the most common Isabelle/Isar language elements.  \Appref{ap:conv}
+  offers some practical hints on converting existing Isabelle theories
+  and proof scripts to the new format (without restructuring proofs).
 
   Further issues concerning the Isar concepts are covered in the
   literature
