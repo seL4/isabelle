@@ -456,6 +456,13 @@ fun pretty_abbrev ctxt s =
     val t' = Term.betapplys (Envir.expand_atom T (U, u), args);
   in pretty_term_abbrev ctxt (Logic.mk_equals (t, t')) end;
 
+fun pretty_fact ctxt (prop, method_text) =
+  let
+    val _ = ctxt
+      |> Proof.theorem_i NONE (K I) [[(prop, [])]]
+      |> Proof.global_terminal_proof (method_text, NONE);
+  in pretty_term ctxt prop end;
+
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 fun pretty_term_style ctxt (name, t) =
@@ -517,6 +524,7 @@ val _ = add_commands
  [("thm", args Attrib.thms (output_list pretty_thm)),
   ("thm_style", args (Scan.lift Args.liberal_name -- Attrib.thm) (output pretty_thm_style)),
   ("prop", args Args.prop (output pretty_term)),
+  ("lemma", args (Args.prop -- Scan.lift Method.simple_text) (output pretty_fact)),
   ("term", args Args.term (output pretty_term)),
   ("term_style", args (Scan.lift Args.liberal_name -- Args.term) (output pretty_term_style)),
   ("term_type", args Args.term (output pretty_term_typ)),

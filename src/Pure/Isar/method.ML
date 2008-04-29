@@ -79,6 +79,7 @@ sig
   val method_setup: bstring -> string * Position.T -> string -> theory -> theory
   val syntax: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list))
     -> src -> Proof.context -> 'a * Proof.context
+  val simple_text: Args.T list -> text * Args.T list
   val simple_args: (Args.T list -> 'a * Args.T list)
     -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
   val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
@@ -466,6 +467,11 @@ fun method_setup name (txt, pos) cmt =
 (* basic *)
 
 fun syntax scan = Args.context_syntax "method" scan;
+
+val simple_text = (Args.$$$ "(" |-- Args.name
+    -- Scan.repeat (Scan.one (fn x => not (Args.string_of x = ")"))) --| Args.$$$ ")"
+  || Args.name -- Scan.succeed [])
+  >> (fn (name, args) => Source (Args.src ((name, args), Position.none)));
 
 fun simple_args scan f src ctxt : method =
   fst (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);

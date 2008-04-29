@@ -98,6 +98,16 @@ background context (locale etc.).  Affects `prop` notation and method
 situations.
 
 
+*** Document preparation ***
+
+* Antiquotation "lemma" takes a proposition and a simple method text as argument
+and asserts that the proposition is provable by the corresponding method
+invocation.  Prints text of proposition, as does antiquotation "prop".  A simple
+method text is either a method name or a method name plus (optional) method
+arguments in parentheses, mimicing the conventions known from Isar proof text.
+Useful for illustration of presented theorems by particular examples.
+
+
 *** HOL ***
 
 * Merged theories Wellfounded_Recursion, Accessible_Part and Wellfounded_Relations
