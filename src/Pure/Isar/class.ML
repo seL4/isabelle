@@ -619,7 +619,7 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
     |> Sign.add_abbrev (#1 prmode) pos (c, map_types Type.strip_sorts rhs'') |> snd
     |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
-    |> register_operation class (c', (rhs', NONE))
+    |> not (#1 prmode = PrintMode.input) ? register_operation class (c', (rhs', NONE))
     |> Sign.restore_naming thy
   end;
 
