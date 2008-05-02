@@ -211,6 +211,52 @@ primrec
   "splice (x#xs) ys = (if ys=[] then x#xs else x # hd ys # splice xs (tl ys))"
     -- {*Warning: simpset does not contain the second eqn but a derived one. *}
 
+text{*
+\begin{figure}[htbp]
+\fbox{
+\begin{tabular}{l}
+@{lemma "[a,b]@[c,d] = [a,b,c,d]" simp}\\
+@{lemma "length [a,b,c] = 3" simp}\\
+@{lemma "set [a,b,c] = {a,b,c}" simp}\\
+@{lemma "map f [a,b,c] = [f a, f b, f c]" simp}\\
+@{lemma "rev [a,b,c] = [c,b,a]" simp}\\
+@{lemma "hd [a,b,c,d] = a" simp}\\
+@{lemma "tl [a,b,c,d] = [b,c,d]" simp}\\
+@{lemma "last [a,b,c,d] = d" simp}\\
+@{lemma "butlast [a,b,c,d] = [a,b,c]" simp}\\
+@{lemma[source] "filter (\<lambda>n::nat. n<2) [0,2,1] = [0,1]" simp}\\
+@{lemma "concat [[a,b],[c,d,e],[],[f]] = [a,b,c,d,e,f]" simp}\\
+@{lemma "foldl f x [a,b,c] = f (f (f x a) b) c" simp}\\
+@{lemma "foldr f [a,b,c] x = f a (f b (f c x))" simp}\\
+@{lemma "zip [a,b,c] [x,y,z] = [(a,x),(b,y),(c,z)]" simp}\\
+@{lemma "zip [a,b] [x,y,z] = [(a,x),(b,y)]" simp}\\
+@{lemma "splice [a,b,c] [x,y,z] = [a,x,b,y,c,z]" simp}\\
+@{lemma "splice [a,b,c,d] [x,y] = [a,x,b,y,c,d]" simp}\\
+@{lemma "take 2 [a,b,c,d] = [a,b]" simp}\\
+@{lemma "take 6 [a,b,c,d] = [a,b,c,d]" simp}\\
+@{lemma "drop 2 [a,b,c,d] = [c,d]" simp}\\
+@{lemma "drop 6 [a,b,c,d] = []" simp}\\
+@{lemma "takeWhile (%n::nat. n<3) [1,2,3,0] = [1,2]" simp}\\
+@{lemma "dropWhile (%n::nat. n<3) [1,2,3,0] = [3,0]" simp}\\
+@{lemma "distinct [2,0,1::nat]" simp}\\
+@{lemma "remdups [2,0,2,1::nat,2] = [0,1,2]" simp}\\
+@{lemma "remove1 2 [2,0,2,1::nat,2] = [0,2,1,2]" simp}\\
+@{lemma "nth [a,b,c,d] 2 = c" simp}\\
+@{lemma "[a,b,c,d][2 := x] = [a,b,x,d]" simp}\\
+@{lemma "sublist [a,b,c,d,e] {0,2,3} = [a,c,d]" (simp add:sublist_def)}\\
+@{lemma "rotate1 [a,b,c,d] = [b,c,d,a]" (simp add:rotate1_def)}\\
+@{lemma "rotate 3 [a,b,c,d] = [d,a,b,c]" (simp add:rotate1_def rotate_def nat_number)}\\
+@{lemma "replicate 4 a = [a,a,a,a]" (simp add:nat_number)}\\
+@{lemma "[2..<5] = [2,3,4]" (simp add:nat_number)}\\
+@{lemma "listsum [1,2,3::nat] = 6" simp}
+\end{tabular}}
+\caption{Characteristic examples}
+\label{fig:Characteristic}
+\end{figure}
+Figure~\ref{fig:Characteristic} shows charachteristic examples
+that should give an intuitive understanding of the above functions.
+*}
+
 text{* The following simple sort functions are intended for proofs,
 not for efficient implementations. *}
 
