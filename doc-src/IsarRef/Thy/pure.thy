@@ -144,8 +144,8 @@ text {*
   commands this is a plain macro with a single argument, e.g.\
   @{verbatim "\\isamarkupchapter{"}@{text "\<dots>"}@{verbatim "}"} for
   @{command "chapter"}.  The @{command "text"} markup results in a
-  {\LaTeX} environment @{verbatim "\\begin{isamarkuptext}"}~@{text
-  "\<dots>"}~@{verbatim "\\end{isamarkuptext}"}, while @{command "text_raw"}
+  {\LaTeX} environment @{verbatim "\\begin{isamarkuptext}"} @{text
+  "\<dots>"} @{verbatim "\\end{isamarkuptext}"}, while @{command "text_raw"}
   causes the text to be inserted directly into the {\LaTeX} source.
 
   \medskip Additional markup commands are available for proofs (see
@@ -338,7 +338,7 @@ text {*
   \item [@{command "constdefs"}] provides a streamlined combination of
   constants declarations and definitions: type-inference takes care of
   the most general typing of the given specification (the optional
-  type constraint may refer to type-inference dummies ``@{verbatim
+  type constraint may refer to type-inference dummies ``@{text
   _}'' as usual).  The resulting type declaration needs to agree with
   that of the specification; overloading is \emph{not} supported here!
   
@@ -652,8 +652,8 @@ text {*
   \end{matharray}
 
   The oracle interface promotes a given ML function @{ML_text
-  "theory -> T -> term"} to @{ML_text "theory -> T -> thm"}, for some type
-  @{ML_text T} given by the user.  This acts like an infinitary
+  "theory -> T -> term"} to @{ML_text "theory -> T -> thm"}, for some
+  type @{ML_text T} given by the user.  This acts like an infinitary
   specification of axioms -- there is no internal check of the
   correctness of the results!  The inference kernel records oracle
   invocations within the internal derivation object of theorems, and
@@ -668,10 +668,11 @@ text {*
   \begin{descr}
 
   \item [@{command "oracle"}~@{text "name (type) = text"}] turns the
-  given ML expression @{text "text"} of type @{ML_text "{theory
-  ->"}~@{text "type"}~@{ML_text "-> term"} into an ML function
-  @{ML_text name} of type @{ML_text "{theory ->"}~@{text
-  "type"}~@{ML_text "-> thm"}.
+  given ML expression @{text "text"} of type
+  @{ML_text "theory ->"}~@{text "type"}~@{ML_text "-> term"} into an
+  ML function of type
+  @{ML_text "theory ->"}~@{text "type"}~@{ML_text "-> thm"}, which is
+  bound to the global identifier @{ML_text name}.
 
   \end{descr}
 *}
@@ -750,7 +751,7 @@ text {*
   assumptions.  The former closely correspond to Skolem constants, or
   meta-level universal quantification as provided by the Isabelle/Pure
   logical framework.  Introducing some \emph{arbitrary, but fixed}
-  variable via ``@{command "fix"}~@{text x} results in a local value
+  variable via ``@{command "fix"}~@{text x}'' results in a local value
   that may be used in the subsequent proof as any other variable or
   constant.  Furthermore, any result @{text "\<turnstile> \<phi>[x]"} exported from
   the context will be universally closed wrt.\ @{text x} at the
@@ -1138,7 +1139,7 @@ text {*
   context.  Thus @{text "qed"} may fail for two reasons: either @{text
   "m\<^sub>2"} fails, or the resulting rule does not fit to any
   pending goal\footnote{This includes any additional ``strong''
-  assumptions as introduced by @{text "assume"}.} of the enclosing
+  assumptions as introduced by @{command "assume"}.} of the enclosing
   context.  Debugging such a situation might involve temporarily
   changing @{command "show"} into @{command "have"}, or weakening the
   local context by replacing occurrences of @{command "assume"} by
@@ -1224,8 +1225,8 @@ text {*
 
   \begin{descr}
   
-  \item [``@{method "-"}''] does nothing but insert the forward
-  chaining facts as premises into the goal.  Note that command
+  \item [``@{method "-"}'' (minus)] does nothing but insert the
+  forward chaining facts as premises into the goal.  Note that command
   @{command_ref "proof"} without any method actually performs a single
   reduction step using the @{method_ref rule} method; thus a plain
   \emph{do-nothing} proof step would be ``@{command "proof"}~@{text
@@ -1274,8 +1275,8 @@ text {*
   means to include the current @{fact prems} as well.
   
   Rules need to be classified as @{attribute intro}, @{attribute
-  elim}, or @{attribute dest}; here the ``@{text "!"} indicator refers
-  to ``safe'' rules, which may be applied aggressively (without
+  elim}, or @{attribute dest}; here the ``@{text "!"}'' indicator
+  refers to ``safe'' rules, which may be applied aggressively (without
   considering back-tracking later).  Rules declared with ``@{text
   "?"}'' are ignored in proof search (the single-step @{method rule}
   method still observes these).  An explicit weight annotation may be
@@ -1299,24 +1300,24 @@ text {*
   theorem to all of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"}
   (in parallel).  This corresponds to the @{ML "op MRS"} operation in
   ML, but note the reversed order.  Positions may be effectively
-  skipped by including ``@{verbatim _}'' (underscore) as argument.
+  skipped by including ``@{text _}'' (underscore) as argument.
   
   \item [@{attribute of}~@{text "t\<^sub>1 \<dots> t\<^sub>n"}] performs
   positional instantiation of term variables.  The terms @{text
   "t\<^sub>1, \<dots>, t\<^sub>n"} are substituted for any schematic
-  variables occurring in a theorem from left to right; ``@{verbatim
+  variables occurring in a theorem from left to right; ``@{text
   _}'' (underscore) indicates to skip a position.  Arguments following
   a ``@{keyword "concl"}@{text ":"}'' specification refer to positions
   of the conclusion of a rule.
   
   \item [@{attribute "where"}~@{text "x\<^sub>1 = t\<^sub>1 \<AND> \<dots>
-  \<AND> x\<^sub>n = t\<^sub>n"}] performs named instantiation of
-  schematic type and term variables occurring in a theorem.  Schematic
-  variables have to be specified on the left-hand side (e.g.\ @{text
-  "?x1.3"}).  The question mark may be omitted if the variable name is
-  a plain identifier without index.  As type instantiations are
-  inferred from term instantiations, explicit type instantiations are
-  seldom necessary.
+  x\<^sub>n = t\<^sub>n"}] performs named instantiation of schematic
+  type and term variables occurring in a theorem.  Schematic variables
+  have to be specified on the left-hand side (e.g.\ @{text "?x1.3"}).
+  The question mark may be omitted if the variable name is a plain
+  identifier without index.  As type instantiations are inferred from
+  term instantiations, explicit type instantiations are seldom
+  necessary.
 
   \end{descr}
 *}
@@ -1330,15 +1331,15 @@ text {*
     @{keyword_def "is"} & : & syntax \\
   \end{matharray}
 
-  Abbreviations may be either bound by explicit @{command "let"}@{text
-  "p \<equiv> t"} statements, or by annotating assumptions or goal statements
-  with a list of patterns ``@{text "\<IS> p\<^sub>1 \<dots> p\<^sub>n"}''.
-  In both cases, higher-order matching is invoked to bind
-  extra-logical term variables, which may be either named schematic
-  variables of the form @{text ?x}, or nameless dummies ``@{variable
-  _}'' (underscore). Note that in the @{command "let"} form the
-  patterns occur on the left-hand side, while the @{keyword "is"}
-  patterns are in postfix position.
+  Abbreviations may be either bound by explicit @{command
+  "let"}~@{text "p \<equiv> t"} statements, or by annotating assumptions or
+  goal statements with a list of patterns ``@{text "(\<IS> p\<^sub>1 \<dots>
+  p\<^sub>n)"}''.  In both cases, higher-order matching is invoked to
+  bind extra-logical term variables, which may be either named
+  schematic variables of the form @{text ?x}, or nameless dummies
+  ``@{variable _}'' (underscore). Note that in the @{command "let"}
+  form the patterns occur on the left-hand side, while the @{keyword
+  "is"} patterns are in postfix position.
 
   Polymorphism of term bindings is handled in Hindley-Milner style,
   similar to ML.  Type variables referring to local assumptions or
@@ -1366,10 +1367,10 @@ text {*
 
   \begin{descr}
 
-  \item [@{command "let"}~@{text "p\<^sub>1 = t\<^sub>1 \<AND>
-  \<dots>p\<^sub>n = t\<^sub>n"}] binds any text variables in patterns
-  @{text "p\<^sub>1, \<dots>, p\<^sub>n"} by simultaneous higher-order
-  matching against terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"}.
+  \item [@{command "let"}~@{text "p\<^sub>1 = t\<^sub>1 \<AND> \<dots>
+  p\<^sub>n = t\<^sub>n"}] binds any text variables in patterns @{text
+  "p\<^sub>1, \<dots>, p\<^sub>n"} by simultaneous higher-order matching
+  against terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"}.
 
   \item [@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}] resembles @{command
   "let"}, but matches @{text "p\<^sub>1, \<dots>, p\<^sub>n"} against the
@@ -1612,8 +1613,8 @@ text {*
 
   \item [@{command "full_prf"}] is like @{command "prf"}, but displays
   the full proof term, i.e.\ also displays information omitted in the
-  compact proof term, which is denoted by ``@{verbatim _}''
-  placeholders there.
+  compact proof term, which is denoted by ``@{text _}'' placeholders
+  there.
 
   \end{descr}
 
@@ -1700,7 +1701,7 @@ text {*
   rules whose left-hand side matches the given term.  The criterion
   term @{text t} selects all theorems that contain the pattern @{text
   t} -- as usual, patterns may contain occurrences of the dummy
-  ``@{verbatim _}'', schematic variables, and type constraints.
+  ``@{text _}'', schematic variables, and type constraints.
   
   Criteria can be preceded by ``@{text "-"}'' to select theorems that
   do \emph{not} match. Note that giving the empty list of criteria

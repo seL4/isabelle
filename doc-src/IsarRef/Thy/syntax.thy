@@ -240,8 +240,8 @@ text {*
   \end{rail}
 
   Positional instantiations are indicated by giving a sequence of
-  terms, or the placeholder ``@{verbatim _}'' (underscore), which
-  means to skip a position.
+  terms, or the placeholder ``@{text _}'' (underscore), which means to
+  skip a position.
 
   \indexoutertoken{inst}\indexoutertoken{insts}
   \begin{rail}
@@ -289,8 +289,8 @@ text {*
 
   Here the \railtok{string} specifications refer to the actual mixfix
   template (see also \cite{isabelle-ref}), which may include literal
-  text, spacing, blocks, and arguments (denoted by ``@{verbatim _}'');
-  the special symbol ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'')
+  text, spacing, blocks, and arguments (denoted by ``@{text _}''); the
+  special symbol ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'')
   represents an index argument that specifies an implicit structure
   reference (see also \secref{sec:locale}).  Infix and binder
   declarations provide common abbreviations for particular mixfix
@@ -606,7 +606,7 @@ text {*
   \item [@{text "@{full_prf a\<^sub>1 \<dots> a\<^sub>n}"}] is like @{text
   "@{prf a\<^sub>1 \<dots> a\<^sub>n}"}, but displays the full proof terms,
   i.e.\ also displays information omitted in the compact proof term,
-  which is denoted by ``@{verbatim _}'' placeholders there.
+  which is denoted by ``@{text _}'' placeholders there.
   
   \item [@{text "@{ML s}"}, @{text "@{ML_type s}"}, and @{text
   "@{ML_struct s}"}] check text @{text s} as ML value, type, and
