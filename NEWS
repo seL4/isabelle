@@ -98,6 +98,12 @@ background context (locale etc.).  Affects `prop` notation and method
 situations.
 
 
+*** Isar ***
+
+* Pure: default proof step now includes 'unfold_locales'; hence
+'proof' without argument may be used to unfold locale predicates.
+
+
 *** Document preparation ***
 
 * Antiquotation "lemma" takes a proposition and a simple method text as argument
