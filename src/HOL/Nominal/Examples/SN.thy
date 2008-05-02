@@ -51,6 +51,20 @@ lemma id_subs:
   by (nominal_induct t avoiding: x rule: lam.induct)
      (simp_all add: fresh_atm)
 
+lemma lookup_fresh:
+  fixes z::"name"
+  assumes "z\<sharp>\<theta>" "z\<sharp>x"
+  shows "z\<sharp> lookup \<theta> x"
+using assms 
+by (induct rule: lookup.induct) (auto simp add: fresh_list_cons)
+
+lemma lookup_fresh':
+  assumes "z\<sharp>\<theta>"
+  shows "lookup \<theta> z = Var z"
+using assms 
+by (induct rule: lookup.induct)
+   (auto simp add: fresh_list_cons fresh_prod fresh_atm)
+
 lemma psubst_subst:
   assumes h:"c\<sharp>\<theta>"
   shows "(\<theta><t>)[c::=s] = ((c,s)#\<theta>)<t>"
