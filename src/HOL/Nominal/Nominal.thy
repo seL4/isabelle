@@ -1327,14 +1327,13 @@ lemma pt_set_bij2a:
   shows "(pi\<bullet>x)\<in>X"
   using a by (simp add: pt_set_bij1[OF pt, OF at])
 
+(* FIXME: is this lemma needed anywhere? *)
 lemma pt_set_bij3:
   fixes pi :: "'x prm"
   and   x  :: "'a"
   and   X  :: "'a set"
   shows "pi\<bullet>(x\<in>X) = (x\<in>X)"
-apply(case_tac "x\<in>X = True")
-apply(auto)
-done
+by (simp add: perm_bool)
 
 lemma pt_subseteq_eqvt:
   fixes pi :: "'x prm"
@@ -1529,6 +1528,35 @@ apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
 apply(simp add: pt_rev_pi[OF ptb, OF at])
 done
 
+lemma pt_fresh_star_bij_ineq:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  and     a :: "'y set"
+  and     b :: "'y list"
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('y) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
+  shows "(pi\<bullet>a)\<sharp>*(pi\<bullet>x) = a\<sharp>*x"
+  and   "(pi\<bullet>b)\<sharp>*(pi\<bullet>x) = b\<sharp>*x"
+apply(unfold fresh_star_def)
+apply(auto)
+apply(drule_tac x="pi\<bullet>xa" in bspec)
+apply(rule pt_set_bij2[OF ptb, OF at])
+apply(assumption)
+apply(simp add: fresh_star_def pt_fresh_bij_ineq[OF pta, OF ptb, OF at, OF cp])
+apply(drule_tac x="(rev pi)\<bullet>xa" in bspec)
+apply(simp add: pt_set_bij1[OF ptb, OF at])
+apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
+apply(drule_tac x="pi\<bullet>xa" in bspec)
+apply(simp add: pt_set_bij1[OF ptb, OF at])
+apply(simp add: set_eqvt pt_rev_pi[OF pt_list_inst[OF ptb], OF at])
+apply(simp add: pt_fresh_bij_ineq[OF pta, OF ptb, OF at, OF cp])
+apply(drule_tac x="(rev pi)\<bullet>xa" in bspec)
+apply(simp add: pt_set_bij1[OF ptb, OF at] set_eqvt)
+apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
+done
+
 lemma pt_fresh_left:  
   fixes  pi :: "'x prm"
   and     x :: "'a"
@@ -1569,6 +1597,31 @@ lemma pt_fresh_bij:
   and     at: "at TYPE('x)"
   shows "(pi\<bullet>a)\<sharp>(pi\<bullet>x) = a\<sharp>x"
 apply(rule pt_fresh_bij_ineq)
+apply(rule pt)
+apply(rule at_pt_inst)
+apply(rule at)+
+apply(rule cp_pt_inst)
+apply(rule pt)
+apply(rule at)
+done
+
+lemma pt_fresh_star_bij:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  and     a :: "'x set"
+  and     b :: "'x list"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "(pi\<bullet>a)\<sharp>*(pi\<bullet>x) = a\<sharp>*x"
+  and   "(pi\<bullet>b)\<sharp>*(pi\<bullet>x) = b\<sharp>*x"
+apply(rule pt_fresh_star_bij_ineq(1))
+apply(rule pt)
+apply(rule at_pt_inst)
+apply(rule at)+
+apply(rule cp_pt_inst)
+apply(rule pt)
+apply(rule at)
+apply(rule pt_fresh_star_bij_ineq(2))
 apply(rule pt)
 apply(rule at_pt_inst)
 apply(rule at)+
@@ -1743,6 +1796,30 @@ next
   from c2 ineq have "[(a,c),(b,c),(a,c)] \<triangleq> [(a,b)]" by (simp add: at_ds3[OF at])
   hence "[(a,c),(b,c),(a,c)]\<bullet>x = [(a,b)]\<bullet>x" by (rule pt3[OF pt])
   thus ?thesis using eq3 by simp
+qed
+
+lemma pt_pi_fresh_fresh:
+  fixes   x :: "'a"
+  and     pi :: "'x prm"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE ('x)"
+  and     a:  "\<forall>(a,b)\<in>set pi. a\<sharp>x \<and> b\<sharp>x" 
+  shows "pi\<bullet>x=x"
+using a
+proof (induct pi)
+  case Nil
+  show "([]::'x prm)\<bullet>x = x" by (rule pt1[OF pt])
+next
+  case (Cons ab pi)
+  have a: "\<forall>(a,b)\<in>set (ab#pi). a\<sharp>x \<and> b\<sharp>x" by fact
+  have ih: "(\<forall>(a,b)\<in>set pi. a\<sharp>x \<and> b\<sharp>x) \<Longrightarrow> pi\<bullet>x=x" by fact
+  obtain a b where e: "ab=(a,b)" by (cases ab) (auto)
+  from a have a': "a\<sharp>x" "b\<sharp>x" using e by auto
+  have "(ab#pi)\<bullet>x = ([(a,b)]@pi)\<bullet>x" using e by simp
+  also have "\<dots> = [(a,b)]\<bullet>(pi\<bullet>x)" by (simp only: pt2[OF pt])
+  also have "\<dots> = [(a,b)]\<bullet>x" using ih a by simp
+  also have "\<dots> = x" using a' by (simp add: pt_fresh_fresh[OF pt, OF at])
+  finally show "(ab#pi)\<bullet>x = x" by simp
 qed
 
 lemma pt_perm_compose:

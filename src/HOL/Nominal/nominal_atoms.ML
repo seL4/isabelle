@@ -746,6 +746,8 @@ fun create_nom_typedecls ak_names thy =
        val fresh_right         = @{thm "Nominal.pt_fresh_right"};
        val fresh_bij_ineq      = @{thm "Nominal.pt_fresh_bij_ineq"};
        val fresh_bij           = @{thm "Nominal.pt_fresh_bij"};
+       val fresh_star_bij_ineq = @{thms "Nominal.pt_fresh_star_bij_ineq"};
+       val fresh_star_bij      = @{thms "Nominal.pt_fresh_star_bij"};
        val fresh_eqvt          = @{thm "Nominal.pt_fresh_eqvt"};
        val fresh_eqvt_ineq     = @{thm "Nominal.pt_fresh_eqvt_ineq"};
        val set_diff_eqvt       = @{thm "Nominal.pt_set_diff_eqvt"};
@@ -774,6 +776,10 @@ fun create_nom_typedecls ak_names thy =
              (* takes a theorem thm and a list of theorems [t1,..,tn]            *)
              (* produces a list of theorems of the form [t1 RS thm,..,tn RS thm] *) 
              fun instR thm thms = map (fn ti => ti RS thm) thms;
+
+	     (* takes a theorem thm and a list of theorems [(t1,m1),..,(tn,mn)]  *)
+             (* produces a list of theorems of the form [[t1,m1] MRS thm,..,[tn,mn] MRS thm] *) 
+             fun instRR thm thms = map (fn (ti,mi) => [ti,mi] MRS thm) thms;
 
              (* takes two theorem lists (hopefully of the same length ;o)                *)
              (* produces a list of theorems of the form                                  *)
@@ -817,7 +823,7 @@ fun create_nom_typedecls ak_names thy =
              fun inst_at thms = maps (fn ti => instR ti ats) thms;
              fun inst_fs thms = maps (fn ti => instR ti fss) thms;
              fun inst_cp thms cps = flat (inst_mult thms cps);
-             fun inst_pt_at thms = inst_zip ats (inst_pt thms);
+             fun inst_pt_at thms = maps (fn ti => instRR ti (pts ~~ ats)) thms;
              fun inst_dj thms = maps (fn ti => instR ti djs) thms;
              fun inst_pt_pt_at_cp thms = inst_cp (inst_zip ats (inst_zip pts (inst_pt thms))) cps;
              fun inst_pt_at_fs thms = inst_zip (inst_fs [fs1]) (inst_zip ats (inst_pt thms));
@@ -896,6 +902,10 @@ fun create_nom_typedecls ak_names thy =
               let val thms1 = inst_pt_at [fresh_bij]
                   and thms2 = inst_pt_pt_at_cp [fresh_bij_ineq]
               in [(("fresh_bij", thms1 @ thms2),[])] end
+            ||>> PureThy.add_thmss
+              let val thms1 = inst_pt_at fresh_star_bij
+                  and thms2 = flat (map (fn ti => inst_pt_pt_at_cp [ti]) fresh_star_bij_ineq);
+              in [(("fresh_star_bij", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
               let val thms1 = inst_pt_at [fresh_eqvt]
                   and thms2 = inst_pt_pt_at_cp_dj [fresh_eqvt_ineq]
