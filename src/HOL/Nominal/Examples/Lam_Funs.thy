@@ -4,7 +4,10 @@ theory Lam_Funs
   imports "../Nominal"
 begin
 
-text {* Defines some functions over lambda-terms *}
+text {* 
+  Provides useful definitions for reasoning
+  with lambda-terms. 
+*}
 
 atom_decl name
 
@@ -13,15 +16,15 @@ nominal_datatype lam =
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-text {* Depth of a lambda-term *}
+text {* The depth of a lambda-term. *}
 
 consts 
   depth :: "lam \<Rightarrow> nat"
 
 nominal_primrec
-  "depth (Var x) = (1::nat)"
+  "depth (Var x) = 1"
   "depth (App t1 t2) = (max (depth t1) (depth t2)) + 1"
-  "depth (Lam [a].t) = (depth t) + (1::nat)"
+  "depth (Lam [a].t) = (depth t) + 1"
   apply(finite_guess)+
   apply(rule TrueI)+
   apply(simp add: fresh_nat)
@@ -29,11 +32,10 @@ nominal_primrec
   done
 
 text {* 
-  Free variables of a lambda-term. The complication of this
-  function is the fact that it returns a name set, which is
-  not automatically a finitely supported type. So we have to
-  prove the invariant that frees always returns a finite set
-  of names. 
+  The free variables of a lambda-term. A complication in this
+  function arises from the fact that it returns a name set, which 
+  is not a finitely supported type. Therefore we have to prove 
+  the invariant that frees always returns a finite set of names. 
 *}
 
 consts 
@@ -48,36 +50,65 @@ apply(simp)+
 apply(simp add: fresh_def)
 apply(simp add: supp_of_fin_sets[OF pt_name_inst, OF at_name_inst, OF fs_at_inst[OF at_name_inst]])
 apply(simp add: supp_atm)
-apply(force)
+apply(blast)
 apply(fresh_guess)+
 done
+
+text {* 
+  We can avoid the definition of frees by
+  using the build in notion of support.
+*}
 
 lemma frees_equals_support:
   shows "frees t = supp t"
 by (nominal_induct t rule: lam.induct)
    (simp_all add: lam.supp supp_atm abs_supp)
 
-text {* Capture-avoiding substitution *}
+text {* Parallel and single capture-avoiding substitution. *}
+
+fun
+  lookup :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam"   
+where
+  "lookup [] x        = Var x"
+| "lookup ((y,e)#\<theta>) x = (if x=y then e else lookup \<theta> x)"
+
+lemma lookup_eqvt[eqvt]:
+  fixes pi::"name prm"
+  and   \<theta>::"(name\<times>lam) list"
+  and   X::"name"
+  shows "pi\<bullet>(lookup \<theta> X) = lookup (pi\<bullet>\<theta>) (pi\<bullet>X)"
+by (induct \<theta>) (auto simp add: eqvts)
 
 consts
-  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
-
+  psubst :: "(name\<times>lam) list \<Rightarrow> lam \<Rightarrow> lam"  ("_<_>" [95,95] 105)
+ 
 nominal_primrec
-  "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
-  "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
-  "x\<sharp>(y,t') \<Longrightarrow> (Lam [x].t)[y::=t'] = Lam [x].(t[y::=t'])"
+  "\<theta><(Var x)> = (lookup \<theta> x)"
+  "\<theta><(App e\<^isub>1 e\<^isub>2)> = App (\<theta><e\<^isub>1>) (\<theta><e\<^isub>2>)"
+  "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].e)> = Lam [x].(\<theta><e>)"
 apply(finite_guess)+
 apply(rule TrueI)+
-apply(simp add: abs_fresh)
+apply(simp add: abs_fresh)+
 apply(fresh_guess)+
 done
 
-lemma subst_eqvt[eqvt]:
-  fixes pi:: "name prm"
-  shows "pi\<bullet>(t1[b::=t2]) = (pi\<bullet>t1)[(pi\<bullet>b)::=(pi\<bullet>t2)]"
-apply(nominal_induct t1 avoiding: b t2 rule: lam.induct)
-apply(auto simp add: perm_bij fresh_prod fresh_atm fresh_bij)
-done
+lemma psubst_eqvt[eqvt]:
+  fixes pi::"name prm" 
+  and   t::"lam"
+  shows "pi\<bullet>(\<theta><t>) = (pi\<bullet>\<theta>)<(pi\<bullet>t)>"
+by (nominal_induct t avoiding: \<theta> rule: lam.induct)
+   (simp_all add: eqvts fresh_bij)
+
+abbreviation 
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam" ("_[_::=_]" [100,100,100] 100)
+where 
+  "t[x::=t']  \<equiv> ([(x,t')])<t>" 
+
+lemma subst[simp]:
+  shows "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
+  and   "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
+  and   "x\<sharp>(y,t') \<Longrightarrow> (Lam [x].t)[y::=t'] = Lam [x].(t[y::=t'])"
+by (simp_all add: fresh_list_cons fresh_list_nil)
 
 lemma subst_supp: 
   shows "supp(t1[a::=t2]) \<subseteq> (((supp(t1)-{a})\<union>supp(t2))::name set)"
@@ -86,44 +117,43 @@ apply(auto simp add: lam.supp supp_atm fresh_prod abs_supp)
 apply(blast)+
 done
 
-text{* Parallel substitution *}
+text {* 
+  Contexts - lambda-terms with a single hole.
+  Note that the lambda case in contexts does not bind a 
+  name, even if we introduce the notation [_]._ for CLam.
+*}
+nominal_datatype clam = 
+    Hole ("\<box>" 1000)  
+  | CAppL "clam" "lam"
+  | CAppR "lam" "clam" 
+  | CLam "name" "clam"  ("CLam [_]._" [100,100] 100) 
 
-consts
- psubst :: "(name\<times>lam) list \<Rightarrow> lam \<Rightarrow> lam" ("_<_>" [100,100] 900)
+text {* Filling a lambda-term into a context. *}
 
-fun
-  lookup :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam"   
-where
-  "lookup [] x        = Var x"
-| "lookup ((y,T)#\<theta>) x = (if x=y then T else lookup \<theta> x)"
-
-lemma lookup_eqvt[eqvt]:
-  fixes pi::"name prm"
-  shows "pi\<bullet>(lookup \<theta> x) = lookup (pi\<bullet>\<theta>) (pi\<bullet>x)"
-by (induct \<theta>) (auto simp add: perm_bij)
-
-lemma lookup_fresh:
-  fixes z::"name"
-  assumes "z\<sharp>\<theta>" "z\<sharp>x"
-  shows "z\<sharp> lookup \<theta> x"
-using assms 
-by (induct rule: lookup.induct) (auto simp add: fresh_list_cons)
-
-lemma lookup_fresh':
-  assumes "z\<sharp>\<theta>"
-  shows "lookup \<theta> z = Var z"
-using assms 
-by (induct rule: lookup.induct)
-   (auto simp add: fresh_list_cons fresh_prod fresh_atm)
+consts 
+  filling :: "clam \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>" [100,100] 100)
 
 nominal_primrec
-  "\<theta><(Var x)> = (lookup \<theta> x)"
-  "\<theta><(App t1 t2)> = App (\<theta><t1>) (\<theta><t2>)"
-  "x\<sharp>\<theta>\<Longrightarrow>\<theta><(Lam [x].t)> = Lam [x].(\<theta><t>)"
-apply(finite_guess)+
-apply(rule TrueI)+
-apply(simp add: abs_fresh)
-apply(fresh_guess)+
-done
+  "\<box>\<lbrakk>t\<rbrakk> = t"
+  "(CAppL E t')\<lbrakk>t\<rbrakk> = App (E\<lbrakk>t\<rbrakk>) t'"
+  "(CAppR t' E)\<lbrakk>t\<rbrakk> = App t' (E\<lbrakk>t\<rbrakk>)"
+  "(CLam [x].E)\<lbrakk>t\<rbrakk> = Lam [x].(E\<lbrakk>t\<rbrakk>)" 
+by (rule TrueI)+
+
+text {* Composition od two contexts *}
+
+consts 
+ clam_compose :: "clam \<Rightarrow> clam \<Rightarrow> clam" ("_ \<circ> _" [100,100] 100)
+
+nominal_primrec
+  "\<box> \<circ> E' = E'"
+  "(CAppL E t') \<circ> E' = CAppL (E \<circ> E') t'"
+  "(CAppR t' E) \<circ> E' = CAppR t' (E \<circ> E')"
+  "(CLam [x].E) \<circ> E' = CLam [x].(E \<circ> E')"
+by (rule TrueI)+
+  
+lemma clam_compose:
+  shows "(E1 \<circ> E2)\<lbrakk>t\<rbrakk> = E1\<lbrakk>E2\<lbrakk>t\<rbrakk>\<rbrakk>"
+by (induct E1 rule: clam.weak_induct) (auto)
 
 end
