@@ -13,8 +13,13 @@ structure O = ThyOutput;
 
 (* misc utils *)
 
-val clean_string =
-  translate_string (fn "_" => "-" | ">" => "$>$" | "#" => "\\#" | c => c);
+val clean_string = translate_string
+  (fn "_" => "-"
+    | ">" => "$>$"
+    | "#" => "\\#"
+    | "{" => "\\{"
+    | "}" => "\\}"
+    | c => c);
 
 val str_of_source = space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
 
