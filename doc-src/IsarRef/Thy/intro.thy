@@ -1,3 +1,4 @@
+(* $Id$ *)
 
 theory intro
 imports CPure

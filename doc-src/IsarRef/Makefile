@@ -13,8 +13,8 @@ include ../Makefile.in
 
 NAME = isar-ref
 
-FILES = isar-ref.tex Thy/document/intro.tex basics.tex Thy/document/syntax.tex pure.tex \
-	generic.tex logics.tex refcard.tex conversion.tex \
+FILES = isar-ref.tex Thy/document/intro.tex basics.tex Thy/document/syntax.tex \
+	Thy/document/pure.tex generic.tex logics.tex refcard.tex conversion.tex \
 	../isar.sty ../rail.sty ../railsetup.sty ../proof.sty \
 	../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
 

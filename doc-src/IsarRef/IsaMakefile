@@ -22,7 +22,7 @@ USEDIR = $(ISATOOL) usedir -v true -i false -d false -C false -D document
 Thy: $(LOG)/HOL-Thy.gz
 
 $(LOG)/HOL-Thy.gz: Thy/ROOT.ML ../antiquote_setup.ML Thy/intro.thy \
-  Thy/syntax.thy
+  Thy/pure.thy Thy/syntax.thy
 	@$(USEDIR) HOL Thy
 
 

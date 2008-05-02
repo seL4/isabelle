@@ -1,3 +1,4 @@
+(* $Id$ *)
 
 theory "syntax"
 imports CPure
