@@ -150,7 +150,7 @@ fun output_entity markup index kind src ctxt (logic, name) =
     |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
     |> (if ! O.quotes then quote else I)
     |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
-        else enclose "\\isa{" "}"));
+        else enclose "\\mbox{\\isa{" "}}"));
 
 fun entity markup index kind =
   O.args (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
