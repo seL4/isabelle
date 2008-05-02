@@ -407,6 +407,13 @@ defs (overloaded)
 
 lemmas fresh_star_def = fresh_star_list fresh_star_set
 
+lemma fresh_star_prod:
+  fixes xs::"'a set"
+  and   ys::"'a list"
+  shows "xs\<sharp>*(a,b) = (xs\<sharp>*a \<and> xs\<sharp>*b)"
+  and   "ys\<sharp>*(a,b) = (ys\<sharp>*a \<and> ys\<sharp>*b)"
+by (auto simp add: fresh_star_def fresh_prod)
+
 section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
 
@@ -581,17 +588,29 @@ lemma at_fresh:
   shows "(a\<sharp>b) = (a\<noteq>b)" 
   by (simp add: at_supp[OF at] fresh_def)
 
+lemma at_prm_fresh1:
+  fixes c :: "'x"
+  and   pi:: "'x prm"
+  assumes at: "at TYPE('x)"
+  and     a: "c\<sharp>pi" 
+  shows "\<forall>(a,b)\<in>set pi. c\<noteq>a \<and> c\<noteq>b"
+using a by (induct pi) (auto simp add: fresh_list_cons fresh_prod at_fresh[OF at])
+
+lemma at_prm_fresh2:
+  fixes c :: "'x"
+  and   pi:: "'x prm"
+  assumes at: "at TYPE('x)"
+  and     a: "\<forall>(a,b)\<in>set pi. c\<noteq>a \<and> c\<noteq>b" 
+  shows "pi\<bullet>c = c"
+using a  by(induct pi) (auto simp add: at1[OF at] at2[OF at] at3[OF at])
+
 lemma at_prm_fresh:
   fixes c :: "'x"
   and   pi:: "'x prm"
   assumes at: "at TYPE('x)"
   and     a: "c\<sharp>pi" 
   shows "pi\<bullet>c = c"
-using a
-apply(induct pi)
-apply(simp add: at1[OF at]) 
-apply(force simp add: fresh_list_cons at2[OF at] fresh_prod at_fresh[OF at] at3[OF at])
-done
+by (rule at_prm_fresh2[OF at], rule at_prm_fresh1[OF at, OF a])
 
 lemma at_prm_rev_eq:
   fixes pi1 :: "'x prm"
