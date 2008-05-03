@@ -1,0 +1,278 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Quick{\isacharunderscore}Reference}%
+%
+\isadelimtheory
+\isanewline
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Quick{\isacharunderscore}Reference\isanewline
+\isakeyword{imports}\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Isabelle/Isar quick reference \label{ap:refcard}%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Proof commands%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Primitives and basic syntax%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{tabular}{ll}
+    \mbox{\isa{\isacommand{fix}}}~\isa{x} & augment context by \isa{{\isasymAnd}x{\isachardot}\ {\isasymbox}} \\
+    \mbox{\isa{\isacommand{assume}}}~\isa{a{\isacharcolon}\ {\isasymphi}} & augment context by \isa{{\isasymphi}\ {\isasymLongrightarrow}\ {\isasymbox}} \\
+    \mbox{\isa{\isacommand{then}}} & indicate forward chaining of facts \\
+    \mbox{\isa{\isacommand{have}}}~\isa{a{\isacharcolon}\ {\isasymphi}} & prove local result \\
+    \mbox{\isa{\isacommand{show}}}~\isa{a{\isacharcolon}\ {\isasymphi}} & prove local result, refining some goal \\
+    \mbox{\isa{\isacommand{using}}}~\isa{a} & indicate use of additional facts \\
+    \mbox{\isa{\isacommand{unfolding}}}~\isa{a} & unfold definitional equations \\
+    \mbox{\isa{\isacommand{proof}}}~\isa{m\isactrlsub {\isadigit{1}}}~\dots~\mbox{\isa{\isacommand{qed}}}~\isa{m\isactrlsub {\isadigit{2}}} & indicate proof structure and refinements \\
+    \mbox{\isa{\isacommand{{\isacharbraceleft}}}}~\dots~\mbox{\isa{\isacommand{{\isacharbraceright}}}} & indicate explicit blocks \\
+    \mbox{\isa{\isacommand{next}}} & switch blocks \\
+    \mbox{\isa{\isacommand{note}}}~\isa{a\ {\isacharequal}\ b} & reconsider facts \\
+    \mbox{\isa{\isacommand{let}}}~\isa{p\ {\isacharequal}\ t} & abbreviate terms by higher-order matching \\
+  \end{tabular}
+
+  \begin{matharray}{rcl}
+    \isa{theory{\isasymdash}stmt} & = & \mbox{\isa{\isacommand{theorem}}}~\isa{name{\isacharcolon}\ prop\ proof} \Or \mbox{\isa{\isacommand{definition}}}~\dots \Or \dots \\[1ex]
+    \isa{proof} & = & \isa{prfx\isactrlsup {\isacharasterisk}}~\mbox{\isa{\isacommand{proof}}}~\isa{method\ stmt\isactrlsup {\isacharasterisk}}~\mbox{\isa{\isacommand{qed}}}~\isa{method} \\
+    & \Or & \isa{prfx\isactrlsup {\isacharasterisk}}~\mbox{\isa{\isacommand{done}}} \\[1ex]
+    \isa{prfx} & = & \mbox{\isa{\isacommand{apply}}}~\isa{method} \\
+    & \Or & \mbox{\isa{\isacommand{using}}}~\isa{name\isactrlsup {\isacharplus}} \\
+    & \Or & \mbox{\isa{\isacommand{unfolding}}}~\isa{name\isactrlsup {\isacharplus}} \\
+    \isa{stmt} & = & \mbox{\isa{\isacommand{{\isacharbraceleft}}}}~\isa{stmt\isactrlsup {\isacharasterisk}}~\mbox{\isa{\isacommand{{\isacharbraceright}}}} \\
+    & \Or & \mbox{\isa{\isacommand{next}}} \\
+    & \Or & \mbox{\isa{\isacommand{note}}}~\isa{name\ {\isacharequal}\ name\isactrlsup {\isacharplus}} \\
+    & \Or & \mbox{\isa{\isacommand{let}}}~\isa{term\ {\isacharequal}\ term} \\
+    & \Or & \mbox{\isa{\isacommand{fix}}}~\isa{var\isactrlsup {\isacharplus}} \\
+    & \Or & \mbox{\isa{\isacommand{assume}}}~\isa{name{\isacharcolon}\ prop\isactrlsup {\isacharplus}} \\
+    & \Or & \mbox{\isa{\isacommand{then}}}\isa{\isactrlsup {\isacharquery}}~\isa{goal} \\
+    \isa{goal} & = & \mbox{\isa{\isacommand{have}}}~\isa{name{\isacharcolon}\ prop\isactrlsup {\isacharplus}\ proof} \\
+    & \Or & \mbox{\isa{\isacommand{show}}}~\isa{name{\isacharcolon}\ prop\isactrlsup {\isacharplus}\ proof} \\
+  \end{matharray}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Abbreviations and synonyms%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \mbox{\isa{\isacommand{by}}}~\isa{m\isactrlsub {\isadigit{1}}\ m\isactrlsub {\isadigit{2}}} & \equiv & \mbox{\isa{\isacommand{proof}}}~\isa{m\isactrlsub {\isadigit{1}}}~\mbox{\isa{\isacommand{qed}}}~\isa{m\isactrlsub {\isadigit{2}}} \\
+    \mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}} & \equiv & \mbox{\isa{\isacommand{by}}}~\isa{rule} \\
+    \mbox{\isa{\isacommand{{\isachardot}}}} & \equiv & \mbox{\isa{\isacommand{by}}}~\isa{this} \\
+    \mbox{\isa{\isacommand{hence}}} & \equiv & \mbox{\isa{\isacommand{then}}}~\mbox{\isa{\isacommand{have}}} \\
+    \mbox{\isa{\isacommand{thus}}} & \equiv & \mbox{\isa{\isacommand{then}}}~\mbox{\isa{\isacommand{show}}} \\
+    \mbox{\isa{\isacommand{from}}}~\isa{a} & \equiv & \mbox{\isa{\isacommand{note}}}~\isa{a}~\mbox{\isa{\isacommand{then}}} \\
+    \mbox{\isa{\isacommand{with}}}~\isa{a} & \equiv & \mbox{\isa{\isacommand{from}}}~\isa{a\ {\isasymAND}\ this} \\[1ex]
+    \mbox{\isa{\isacommand{from}}}~\isa{this} & \equiv & \mbox{\isa{\isacommand{then}}} \\
+    \mbox{\isa{\isacommand{from}}}~\isa{this}~\mbox{\isa{\isacommand{have}}} & \equiv & \mbox{\isa{\isacommand{hence}}} \\
+    \mbox{\isa{\isacommand{from}}}~\isa{this}~\mbox{\isa{\isacommand{show}}} & \equiv & \mbox{\isa{\isacommand{thus}}} \\
+  \end{matharray}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Derived elements%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \mbox{\isa{\isacommand{also}}}\isa{\isactrlsub {\isadigit{0}}} & \approx & \mbox{\isa{\isacommand{note}}}~\isa{calculation\ {\isacharequal}\ this} \\
+    \mbox{\isa{\isacommand{also}}}\isa{\isactrlsub n\isactrlsub {\isacharplus}\isactrlsub {\isadigit{1}}} & \approx & \mbox{\isa{\isacommand{note}}}~\isa{calculation\ {\isacharequal}\ trans\ {\isacharbrackleft}OF\ calculation\ this{\isacharbrackright}} \\
+    \mbox{\isa{\isacommand{finally}}} & \approx & \mbox{\isa{\isacommand{also}}}~\mbox{\isa{\isacommand{from}}}~\isa{calculation} \\[0.5ex]
+    \mbox{\isa{\isacommand{moreover}}} & \approx & \mbox{\isa{\isacommand{note}}}~\isa{calculation\ {\isacharequal}\ calculation\ this} \\
+    \mbox{\isa{\isacommand{ultimately}}} & \approx & \mbox{\isa{\isacommand{moreover}}}~\mbox{\isa{\isacommand{from}}}~\isa{calculation} \\[0.5ex]
+    \mbox{\isa{\isacommand{presume}}}~\isa{a{\isacharcolon}\ {\isasymphi}} & \approx & \mbox{\isa{\isacommand{assume}}}~\isa{a{\isacharcolon}\ {\isasymphi}} \\
+    \mbox{\isa{\isacommand{def}}}~\isa{a{\isacharcolon}\ x\ {\isasymequiv}\ t} & \approx & \mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{a{\isacharcolon}\ x\ {\isasymequiv}\ t} \\
+    \mbox{\isa{\isacommand{obtain}}}~\isa{x\ {\isasymWHERE}\ a{\isacharcolon}\ {\isasymphi}} & \approx & \dots~\mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{a{\isacharcolon}\ {\isasymphi}} \\
+    \mbox{\isa{\isacommand{case}}}~\isa{c} & \approx & \mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{c{\isacharcolon}\ {\isasymphi}} \\
+    \mbox{\isa{\isacommand{sorry}}} & \approx & \mbox{\isa{\isacommand{by}}}~\isa{cheating} \\
+  \end{matharray}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Diagnostic commands%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{tabular}{ll}
+    \mbox{\isa{\isacommand{pr}}} & print current state \\
+    \mbox{\isa{\isacommand{thm}}}~\isa{a} & print fact \\
+    \mbox{\isa{\isacommand{term}}}~\isa{t} & print term \\
+    \mbox{\isa{\isacommand{prop}}}~\isa{{\isasymphi}} & print meta-level proposition \\
+    \mbox{\isa{\isacommand{typ}}}~\isa{{\isasymtau}} & print meta-level type \\
+  \end{tabular}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Proof methods%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{tabular}{ll}
+    \multicolumn{2}{l}{\textbf{Single steps (forward-chaining facts)}} \\[0.5ex]
+    \mbox{\isa{assumption}} & apply some assumption \\
+    \mbox{\isa{this}} & apply current facts \\
+    \mbox{\isa{rule}}~\isa{a} & apply some rule  \\
+    \mbox{\isa{rule}} & apply standard rule (default for \mbox{\isa{\isacommand{proof}}}) \\
+    \mbox{\isa{contradiction}} & apply \isa{{\isasymnot}} elimination rule (any order) \\
+    \mbox{\isa{cases}}~\isa{t} & case analysis (provides cases) \\
+    \mbox{\isa{induct}}~\isa{x} & proof by induction (provides cases) \\[2ex]
+
+    \multicolumn{2}{l}{\textbf{Repeated steps (inserting facts)}} \\[0.5ex]
+    \mbox{\isa{{\isacharminus}}} & no rules \\
+    \mbox{\isa{intro}}~\isa{a} & introduction rules \\
+    \mbox{\isa{intro{\isacharunderscore}classes}} & class introduction rules \\
+    \mbox{\isa{elim}}~\isa{a} & elimination rules \\
+    \mbox{\isa{unfold}}~\isa{a} & definitional rewrite rules \\[2ex]
+
+    \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts)}} \\[0.5ex]
+    \mbox{\isa{iprover}} & intuitionistic proof search \\
+    \mbox{\isa{blast}}, \mbox{\isa{fast}} & Classical Reasoner \\
+    \mbox{\isa{simp}}, \mbox{\isa{simp{\isacharunderscore}all}} & Simplifier (+ Splitter) \\
+    \mbox{\isa{auto}}, \mbox{\isa{force}} & Simplifier + Classical Reasoner \\
+    \mbox{\isa{arith}} & Arithmetic procedures \\
+  \end{tabular}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Attributes%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{tabular}{ll}
+    \multicolumn{2}{l}{\textbf{Operations}} \\[0.5ex]
+    \mbox{\isa{OF}}~\isa{a} & rule resolved with facts (skipping ``\isa{{\isacharunderscore}}'') \\
+    \mbox{\isa{of}}~\isa{t} & rule instantiated with terms (skipping ``\isa{{\isacharunderscore}}'') \\
+    \mbox{\isa{where}}~\isa{x\ {\isacharequal}\ t} & rule instantiated with terms, by variable name \\
+    \mbox{\isa{symmetric}} & resolution with symmetry rule \\
+    \mbox{\isa{THEN}}~\isa{b} & resolution with another rule \\
+    \mbox{\isa{rule{\isacharunderscore}format}} & result put into standard rule format \\
+    \mbox{\isa{elim{\isacharunderscore}format}} & destruct rule turned into elimination rule format \\[1ex]
+
+    \multicolumn{2}{l}{\textbf{Declarations}} \\[0.5ex]
+    \mbox{\isa{simp}} & Simplifier rule \\
+    \mbox{\isa{intro}}, \mbox{\isa{elim}}, \mbox{\isa{dest}} & Pure or Classical Reasoner rule \\
+    \mbox{\isa{iff}} & Simplifier + Classical Reasoner rule \\
+    \mbox{\isa{split}} & case split rule \\
+    \mbox{\isa{trans}} & transitivity rule \\
+    \mbox{\isa{sym}} & symmetry rule \\
+  \end{tabular}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Rule declarations and methods%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{tabular}{l|lllll}
+      & \mbox{\isa{rule}} & \mbox{\isa{iprover}} & \mbox{\isa{blast}} & \mbox{\isa{simp}} & \mbox{\isa{auto}} \\
+      &                &                   & \mbox{\isa{fast}} & \mbox{\isa{simp{\isacharunderscore}all}} & \mbox{\isa{force}} \\
+    \hline
+    \mbox{\isa{Pure{\isachardot}elim}}\isa{{\isacharbang}} \mbox{\isa{Pure{\isachardot}intro}}\isa{{\isacharbang}}
+      & \isa{{\isasymtimes}}    & \isa{{\isasymtimes}} \\
+    \mbox{\isa{Pure{\isachardot}elim}} \mbox{\isa{Pure{\isachardot}intro}}
+      & \isa{{\isasymtimes}}    & \isa{{\isasymtimes}} \\
+    \mbox{\isa{elim}}\isa{{\isacharbang}} \mbox{\isa{intro}}\isa{{\isacharbang}}
+      & \isa{{\isasymtimes}}    &                    & \isa{{\isasymtimes}}          &                     & \isa{{\isasymtimes}} \\
+    \mbox{\isa{elim}} \mbox{\isa{intro}}
+      & \isa{{\isasymtimes}}    &                    & \isa{{\isasymtimes}}          &                     & \isa{{\isasymtimes}} \\
+    \mbox{\isa{iff}}
+      & \isa{{\isasymtimes}}    &                    & \isa{{\isasymtimes}}          & \isa{{\isasymtimes}}         & \isa{{\isasymtimes}} \\
+    \mbox{\isa{iff}}\isa{{\isacharquery}}
+      & \isa{{\isasymtimes}} \\
+    \mbox{\isa{elim}}\isa{{\isacharquery}} \mbox{\isa{intro}}\isa{{\isacharquery}}
+      & \isa{{\isasymtimes}} \\
+    \mbox{\isa{simp}}
+      &                &                    &                      & \isa{{\isasymtimes}}         & \isa{{\isasymtimes}} \\
+    \mbox{\isa{cong}}
+      &                &                    &                      & \isa{{\isasymtimes}}         & \isa{{\isasymtimes}} \\
+    \mbox{\isa{split}}
+      &                &                    &                      & \isa{{\isasymtimes}}         & \isa{{\isasymtimes}} \\
+  \end{tabular}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Emulating tactic scripts%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Commands%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{tabular}{ll}
+    \mbox{\isa{\isacommand{apply}}}~\isa{m} & apply proof method at initial position \\
+    \mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}~\isa{m} & apply proof method near terminal position \\
+    \mbox{\isa{\isacommand{done}}} & complete proof \\
+    \mbox{\isa{\isacommand{defer}}}~\isa{n} & move subgoal to end \\
+    \mbox{\isa{\isacommand{prefer}}}~\isa{n} & move subgoal to beginning \\
+    \mbox{\isa{\isacommand{back}}} & backtrack last command \\
+  \end{tabular}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Methods%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{tabular}{ll}
+    \mbox{\isa{rule{\isacharunderscore}tac}}~\isa{insts} & resolution (with instantiation) \\
+    \mbox{\isa{erule{\isacharunderscore}tac}}~\isa{insts} & elim-resolution (with instantiation) \\
+    \mbox{\isa{drule{\isacharunderscore}tac}}~\isa{insts} & destruct-resolution (with instantiation) \\
+    \mbox{\isa{frule{\isacharunderscore}tac}}~\isa{insts} & forward-resolution (with instantiation) \\
+    \mbox{\isa{cut{\isacharunderscore}tac}}~\isa{insts} & insert facts (with instantiation) \\
+    \mbox{\isa{thin{\isacharunderscore}tac}}~\isa{{\isasymphi}} & delete assumptions \\
+    \mbox{\isa{subgoal{\isacharunderscore}tac}}~\isa{{\isasymphi}} & new claims \\
+    \mbox{\isa{rename{\isacharunderscore}tac}}~\isa{x} & rename innermost goal parameters \\
+    \mbox{\isa{rotate{\isacharunderscore}tac}}~\isa{n} & rotate assumptions of goal \\
+    \mbox{\isa{tactic}}~\isa{text} & arbitrary ML tactic \\
+    \mbox{\isa{case{\isacharunderscore}tac}}~\isa{t} & exhaustion (datatypes) \\
+    \mbox{\isa{induct{\isacharunderscore}tac}}~\isa{x} & induction (datatypes) \\
+    \mbox{\isa{ind{\isacharunderscore}cases}}~\isa{t} & exhaustion + simplification (inductive predicates) \\
+  \end{tabular}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
