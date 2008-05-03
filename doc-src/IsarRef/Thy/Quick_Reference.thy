@@ -27,21 +27,21 @@ text {*
   \end{tabular}
 
   \begin{matharray}{rcl}
-    @{text "theory\<dash>stmt"} & = & @{command "theorem"}~@{text "name: prop proof"} \Or @{command "definition"}~\dots \Or \dots \\[1ex]
+    @{text "theory\<dash>stmt"} & = & @{command "theorem"}~@{text "name: props proof"} \Or @{command "definition"}~\dots \Or \dots \\[1ex]
     @{text "proof"} & = & @{text "prfx\<^sup>*"}~@{command "proof"}~@{text "method stmt\<^sup>*"}~@{command "qed"}~@{text method} \\
     & \Or & @{text "prfx\<^sup>*"}~@{command "done"} \\[1ex]
     @{text prfx} & = & @{command "apply"}~@{text method} \\
-    & \Or & @{command "using"}~@{text "name\<^sup>+"} \\
-    & \Or & @{command "unfolding"}~@{text "name\<^sup>+"} \\
+    & \Or & @{command "using"}~@{text "facts"} \\
+    & \Or & @{command "unfolding"}~@{text "facts"} \\
     @{text stmt} & = & @{command "{"}~@{text "stmt\<^sup>*"}~@{command "}"} \\
     & \Or & @{command "next"} \\
-    & \Or & @{command "note"}~@{text "name = name\<^sup>+"} \\
+    & \Or & @{command "note"}~@{text "name = facts"} \\
     & \Or & @{command "let"}~@{text "term = term"} \\
     & \Or & @{command "fix"}~@{text "var\<^sup>+"} \\
-    & \Or & @{command "assume"}~@{text "name: prop\<^sup>+"} \\
+    & \Or & @{command "assume"}~@{text "name: props"} \\
     & \Or & @{command "then"}@{text "\<^sup>?"}~@{text goal} \\
-    @{text goal} & = & @{command "have"}~@{text "name: prop\<^sup>+ proof"} \\
-    & \Or & @{command "show"}~@{text "name: prop\<^sup>+ proof"} \\
+    @{text goal} & = & @{command "have"}~@{text "name: props proof"} \\
+    & \Or & @{command "show"}~@{text "name: props proof"} \\
   \end{matharray}
 *}
 

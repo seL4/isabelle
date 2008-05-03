@@ -49,21 +49,21 @@
   \end{tabular}
 
   \begin{matharray}{rcl}
-    \isa{theory{\isasymdash}stmt} & = & \mbox{\isa{\isacommand{theorem}}}~\isa{name{\isacharcolon}\ prop\ proof} \Or \mbox{\isa{\isacommand{definition}}}~\dots \Or \dots \\[1ex]
+    \isa{theory{\isasymdash}stmt} & = & \mbox{\isa{\isacommand{theorem}}}~\isa{name{\isacharcolon}\ props\ proof} \Or \mbox{\isa{\isacommand{definition}}}~\dots \Or \dots \\[1ex]
     \isa{proof} & = & \isa{prfx\isactrlsup {\isacharasterisk}}~\mbox{\isa{\isacommand{proof}}}~\isa{method\ stmt\isactrlsup {\isacharasterisk}}~\mbox{\isa{\isacommand{qed}}}~\isa{method} \\
     & \Or & \isa{prfx\isactrlsup {\isacharasterisk}}~\mbox{\isa{\isacommand{done}}} \\[1ex]
     \isa{prfx} & = & \mbox{\isa{\isacommand{apply}}}~\isa{method} \\
-    & \Or & \mbox{\isa{\isacommand{using}}}~\isa{name\isactrlsup {\isacharplus}} \\
-    & \Or & \mbox{\isa{\isacommand{unfolding}}}~\isa{name\isactrlsup {\isacharplus}} \\
+    & \Or & \mbox{\isa{\isacommand{using}}}~\isa{facts} \\
+    & \Or & \mbox{\isa{\isacommand{unfolding}}}~\isa{facts} \\
     \isa{stmt} & = & \mbox{\isa{\isacommand{{\isacharbraceleft}}}}~\isa{stmt\isactrlsup {\isacharasterisk}}~\mbox{\isa{\isacommand{{\isacharbraceright}}}} \\
     & \Or & \mbox{\isa{\isacommand{next}}} \\
-    & \Or & \mbox{\isa{\isacommand{note}}}~\isa{name\ {\isacharequal}\ name\isactrlsup {\isacharplus}} \\
+    & \Or & \mbox{\isa{\isacommand{note}}}~\isa{name\ {\isacharequal}\ facts} \\
     & \Or & \mbox{\isa{\isacommand{let}}}~\isa{term\ {\isacharequal}\ term} \\
     & \Or & \mbox{\isa{\isacommand{fix}}}~\isa{var\isactrlsup {\isacharplus}} \\
-    & \Or & \mbox{\isa{\isacommand{assume}}}~\isa{name{\isacharcolon}\ prop\isactrlsup {\isacharplus}} \\
+    & \Or & \mbox{\isa{\isacommand{assume}}}~\isa{name{\isacharcolon}\ props} \\
     & \Or & \mbox{\isa{\isacommand{then}}}\isa{\isactrlsup {\isacharquery}}~\isa{goal} \\
-    \isa{goal} & = & \mbox{\isa{\isacommand{have}}}~\isa{name{\isacharcolon}\ prop\isactrlsup {\isacharplus}\ proof} \\
-    & \Or & \mbox{\isa{\isacommand{show}}}~\isa{name{\isacharcolon}\ prop\isactrlsup {\isacharplus}\ proof} \\
+    \isa{goal} & = & \mbox{\isa{\isacommand{have}}}~\isa{name{\isacharcolon}\ props\ proof} \\
+    & \Or & \mbox{\isa{\isacommand{show}}}~\isa{name{\isacharcolon}\ props\ proof} \\
   \end{matharray}%
 \end{isamarkuptext}%
 \isamarkuptrue%
