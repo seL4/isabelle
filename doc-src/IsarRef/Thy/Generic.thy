@@ -62,8 +62,8 @@ text {*
   given as @{text eq}, which is then turned into a proven fact.  The
   given proposition may deviate from internal meta-level equality
   according to the rewrite rules declared as @{attribute defn} by the
-  object-logic.  This typically covers object-level equality @{text "x
-  = t"} and equivalence @{text "A \<leftrightarrow> B"}.  End-users normally need not
+  object-logic.  This usually covers object-level equality @{text "x =
+  y"} and equivalence @{text "A \<leftrightarrow> B"}.  End-users normally need not
   change the @{attribute defn} setup.
   
   Definitions may be presented with explicit arguments on the LHS, as
@@ -193,8 +193,9 @@ text {*
   "definition"}~@{text "(\<IN> c) \<dots>"}'' or ``@{command
   "theorem"}~@{text "(\<IN> c) \<dots>"}''.  This works both in a local or
   global theory context; the current target context will be suspended
-  for this command only.  Note that @{text "(\<IN> -)"} will always
-  produce a global result independently of the current target context.
+  for this command only.  Note that ``@{text "(\<IN> -)"}'' will
+  always produce a global result independently of the current target
+  context.
 
   \end{descr}
 
@@ -213,8 +214,8 @@ text {*
 
   Theorems are exported by discharging the assumptions and
   generalizing the parameters of the context.  For example, @{text "a:
-  B[x]"} becomes @{text "c.a: A[?x] \<Longrightarrow> B[?x]"} (again for arbitrary
-  @{text "?x"}).
+  B[x]"} becomes @{text "c.a: A[?x] \<Longrightarrow> B[?x]"}, again for arbitrary
+  @{text "?x"}.
 *}
 
 
@@ -313,7 +314,7 @@ text {*
   proof (cf.\ \secref{sec:proof-context}).
 
   \item [@{element "defines"}~@{text "a: x \<equiv> t"}] defines a previously
-  declared parameter.  This is close to @{command "def"} within a
+  declared parameter.  This is similar to @{command "def"} within a
   proof (cf.\ \secref{sec:proof-context}), but @{element "defines"}
   takes an equational proposition instead of variable-term pair.  The
   left-hand side of the equation may have additional arguments, e.g.\
@@ -398,7 +399,7 @@ text {*
   context.  This requires a proof of the instantiated specification
   and is called \emph{locale interpretation}.  Interpretation is
   possible in theories and locales (command @{command
-  "interpretation"}) and also within a proof body (@{command
+  "interpretation"}) and also within a proof body (command @{command
   "interpret"}).
 
   \begin{matharray}{rcl}
@@ -432,7 +433,6 @@ text {*
   instantiation term --- with the exception of defined parameters.
   These are, if omitted, derived from the defining equation and other
   instantiations.  Use ``@{text _}'' to omit an instantiation term.
-  Free variables are automatically generalized.
 
   The command generates proof obligations for the instantiated
   specifications (assumes and defines elements).  Once these are
@@ -498,8 +498,7 @@ text {*
 
   \item [@{command "interpret"}~@{text "expr insts \<WHERE> eqns"}]
   interprets @{text expr} in the proof context and is otherwise
-  similar to interpretation in theories.  Free variables in
-  instantiations are not generalized, however.
+  similar to interpretation in theories.
 
   \item [@{command "print_interps"}~@{text loc}] prints the
   interpretations of a particular locale @{text loc} that are active
@@ -594,7 +593,7 @@ text {*
   \secref{sec:target}) which allows to specify class operations @{text
   "f\<^sub>1, \<dots>, f\<^sub>n"} corresponding to sort @{text s} at the
   particular type instance @{text "(\<alpha>\<^sub>1 :: s\<^sub>1, \<dots>,
-  \<alpha>\<^sub>n :: s\<^sub>n) t"}.  An plain @{command "instance"} command
+  \<alpha>\<^sub>n :: s\<^sub>n) t"}.  A plain @{command "instance"} command
   in the target body poses a goal stating these type arities.  The
   target is concluded by an @{command_ref "end"} command.
 
@@ -727,7 +726,7 @@ text {*
   \begin{descr}
 
   \item [@{command "overloading"}~@{text "x\<^sub>1 \<equiv> c\<^sub>1 ::
-  \<tau>\<^sub>1 \<AND> \<dots> x\<^sub>n \<equiv> c\<^sub>n :: \<tau>\<^sub>n} \<BEGIN>"}]
+  \<tau>\<^sub>1 \<AND> \<dots> x\<^sub>n \<equiv> c\<^sub>n :: \<tau>\<^sub>n \<BEGIN>"}]
   opens a theory target (cf.\ \secref{sec:target}) which allows to
   specify constants with overloaded definitions.  These are identified
   by an explicitly given mapping from variable names @{text
@@ -819,8 +818,7 @@ text {*
   (where @{text "b\<^sub>1, \<dots>, b\<^sub>k"} shall refer to (optional)
   facts indicated for forward chaining).
   \begin{matharray}{l}
-    @{text "\<langle>facts b\<^sub>1 \<dots> b\<^sub>k\<rangle>"} \\
-    @{command "obtain"}~@{text "x\<^sub>1 \<dots> x\<^sub>m \<WHERE> a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n  \<langle>proof\<rangle> \<equiv>"} \\[1ex]
+    @{text "\<langle>using b\<^sub>1 \<dots> b\<^sub>k\<rangle>"}~~@{command "obtain"}~@{text "x\<^sub>1 \<dots> x\<^sub>m \<WHERE> a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n  \<langle>proof\<rangle> \<equiv>"} \\[1ex]
     \quad @{command "have"}~@{text "\<And>thesis. (\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
     \quad @{command "proof"}~@{text succeed} \\
     \qquad @{command "fix"}~@{text thesis} \\
@@ -1396,7 +1394,7 @@ text {*
     'simplified' opt? thmrefs?
     ;
 
-    opt: '(' (noasm | noasmsimp | noasmuse) ')'
+    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use') ')'
     ;
   \end{rail}
 
@@ -1669,7 +1667,7 @@ text {*
   Non-conditional rules result in a ``safe'' introduction and
   elimination pair; conditional ones are considered ``unsafe''.  Rules
   with negative conclusion are automatically inverted (using @{text
-  "\<not>"} elimination internally).
+  "\<not>"}-elimination internally).
 
   The ``@{text "?"}'' version of @{attribute iff} declares rules to
   the Isabelle/Pure context only, and omits the Simplifier
@@ -1720,11 +1718,11 @@ text {*
   The @{command "case"} command provides a shorthand to refer to a
   local context symbolically: certain proof methods provide an
   environment of named ``cases'' of the form @{text "c: x\<^sub>1, \<dots>,
-  x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>n"}; the effect of
-  ``@{command "case"}@{text c}'' is then equivalent to ``@{command
-  "fix"}~@{text "x\<^sub>1 \<dots> x\<^sub>m"}~@{command "assume"}~@{text
-  "c: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}''.  Term bindings may be
-  covered as well, notably @{variable ?case} for the main conclusion.
+  x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>n"}; the effect of ``@{command
+  "case"}~@{text c}'' is then equivalent to ``@{command "fix"}~@{text
+  "x\<^sub>1 \<dots> x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots>
+  \<phi>\<^sub>n"}''.  Term bindings may be covered as well, notably
+  @{variable ?case} for the main conclusion.
 
   By default, the ``terminology'' @{text "x\<^sub>1, \<dots>, x\<^sub>m"} of
   a case value is marked as hidden, i.e.\ there is no way to refer to
@@ -1885,11 +1883,11 @@ text {*
 
   \medskip
   \begin{tabular}{llll}
-    facts    &                 & arguments & rule \\\hline
-             & @{method cases} &           & classical case split \\
-             & @{method cases} & @{text t} & datatype exhaustion (type of @{text t}) \\
+    facts           &                 & arguments   & rule \\\hline
+                    & @{method cases} &             & classical case split \\
+                    & @{method cases} & @{text t}   & datatype exhaustion (type of @{text t}) \\
     @{text "\<turnstile> A t"} & @{method cases} & @{text "\<dots>"} & inductive predicate/set elimination (of @{text A}) \\
-    @{text "\<dots>"} & @{method cases} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
+    @{text "\<dots>"}     & @{method cases} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
   \end{tabular}
   \medskip
 
@@ -1905,10 +1903,10 @@ text {*
 
   \medskip
   \begin{tabular}{llll}
-    facts    &        & arguments & rule \\\hline
-             & @{method induct} & @{text "P x \<dots>"} & datatype induction (type of @{text x}) \\
-    @{text "\<turnstile> A x"} & @{method induct} & @{text "\<dots>"} & predicate/set induction (of @{text A}) \\
-    @{text "\<dots>"} & @{method induct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
+    facts           &                  & arguments            & rule \\\hline
+                    & @{method induct} & @{text "P x"}        & datatype induction (type of @{text x}) \\
+    @{text "\<turnstile> A x"} & @{method induct} & @{text "\<dots>"}          & predicate/set induction (of @{text A}) \\
+    @{text "\<dots>"}     & @{method induct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
   \end{tabular}
   \medskip
   
@@ -1947,10 +1945,10 @@ text {*
 
   \medskip
   \begin{tabular}{llll}
-    goal     &          & arguments & rule \\\hline
-             & @{method coinduct} & @{text "x \<dots>"} & type coinduction (type of @{text x}) \\
+    goal          &                    & arguments & rule \\\hline
+                  & @{method coinduct} & @{text x} & type coinduction (type of @{text x}) \\
     @{text "A x"} & @{method coinduct} & @{text "\<dots>"} & predicate/set coinduction (of @{text A}) \\
-    @{text "\<dots>"} & @{method coinduct} & @{text "\<dots> R"} & explicit rule @{text R} \\
+    @{text "\<dots>"}   & @{method coinduct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
   \end{tabular}
   
   Coinduction is the dual of induction.  Induction essentially
