@@ -368,15 +368,6 @@ text {*
     @{command_def "no_translations"} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
-  \railalias{rightleftharpoons}{\isasymrightleftharpoons}
-  \railterm{rightleftharpoons}
-
-  \railalias{rightharpoonup}{\isasymrightharpoonup}
-  \railterm{rightharpoonup}
-
-  \railalias{leftharpoondown}{\isasymleftharpoondown}
-  \railterm{leftharpoondown}
-
   \begin{rail}
     ('syntax' | 'no\_syntax') mode? (constdecl +)
     ;
@@ -776,9 +767,6 @@ text {*
   @{text "x \<equiv> t"} to be eliminated by the reflexivity rule.  Thus,
   exporting some result @{text "x \<equiv> t \<turnstile> \<phi>[x]"} yields @{text "\<turnstile>
   \<phi>[t]"}.
-
-  \railalias{equiv}{\isasymequiv}
-  \railterm{equiv}
 
   \begin{rail}
     'fix' (vars + 'and')

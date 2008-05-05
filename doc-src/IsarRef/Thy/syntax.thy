@@ -197,9 +197,6 @@ text {*
   intersection of these classes.  The syntax of type arities is given
   directly at the outer level.
 
-  \railalias{subseteq}{\isasymsubseteq}
-  \railterm{subseteq}
-
   \indexouternonterm{sort}\indexouternonterm{arity}
   \indexouternonterm{classdecl}
   \begin{rail}
