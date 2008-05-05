@@ -382,15 +382,6 @@ Definitions essentially express abbreviations within the logic.  The
     \indexdef{}{command}{no-translations}\mbox{\isa{\isacommand{no{\isacharunderscore}translations}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
-  \railalias{rightleftharpoons}{\isasymrightleftharpoons}
-  \railterm{rightleftharpoons}
-
-  \railalias{rightharpoonup}{\isasymrightharpoonup}
-  \railterm{rightharpoonup}
-
-  \railalias{leftharpoondown}{\isasymleftharpoondown}
-  \railterm{leftharpoondown}
-
   \begin{rail}
     ('syntax' | 'no\_syntax') mode? (constdecl +)
     ;
@@ -793,9 +784,6 @@ Proof commands perform transitions of Isar/VM machine
   \isa{x\ {\isasymequiv}\ t} to be eliminated by the reflexivity rule.  Thus,
   exporting some result \isa{x\ {\isasymequiv}\ t\ {\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}} yields \isa{{\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}t{\isacharbrackright}}.
 
-  \railalias{equiv}{\isasymequiv}
-  \railterm{equiv}
-
   \begin{rail}
     'fix' (vars + 'and')
     ;
@@ -965,9 +953,9 @@ Proof commands perform transitions of Isar/VM machine
   statement is explicitly marked by separate keywords (see also
   \secref{sec:locale}); the local assumptions being introduced here
   are available as \indexref{}{fact}{assms}\mbox{\isa{assms}} in the proof.  Moreover, there
-  are two kinds of conclusions: \indexdef{}{element}{shows}\mbox{\isa{shows}} states several
+  are two kinds of conclusions: \indexdef{}{element}{shows}\mbox{\isa{\isakeyword{shows}}} states several
   simultaneous propositions (essentially a big conjunction), while
-  \indexdef{}{element}{obtains}\mbox{\isa{obtains}} claims several simultaneous simultaneous
+  \indexdef{}{element}{obtains}\mbox{\isa{\isakeyword{obtains}}} claims several simultaneous simultaneous
   contexts of (essentially a big disjunction of eliminated parameters
   and assumptions, cf.\ \secref{sec:obtain}).
 
@@ -1043,7 +1031,7 @@ Proof commands perform transitions of Isar/VM machine
   \secref{sec:term-abbrev}.  Furthermore, the local context of a
   (non-atomic) goal is provided via the \indexref{}{case}{rule-context}\mbox{\isa{rule{\isacharunderscore}context}} case.
 
-  The optional case names of \indexref{}{element}{obtains}\mbox{\isa{obtains}} have a twofold
+  The optional case names of \indexref{}{element}{obtains}\mbox{\isa{\isakeyword{obtains}}} have a twofold
   meaning: (1) during the of this claim they refer to the the local
   context introductions, (2) the resulting rule is annotated
   accordingly to support symbolic case splits when used with the

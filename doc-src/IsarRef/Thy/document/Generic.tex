@@ -82,7 +82,7 @@
   given as \isa{eq}, which is then turned into a proven fact.  The
   given proposition may deviate from internal meta-level equality
   according to the rewrite rules declared as \mbox{\isa{defn}} by the
-  object-logic.  This typically covers object-level equality \isa{x\ {\isacharequal}\ t} and equivalence \isa{A\ {\isasymleftrightarrow}\ B}.  End-users normally need not
+  object-logic.  This usually covers object-level equality \isa{x\ {\isacharequal}\ y} and equivalence \isa{A\ {\isasymleftrightarrow}\ B}.  End-users normally need not
   change the \mbox{\isa{defn}} setup.
   
   Definitions may be presented with explicit arguments on the LHS, as
@@ -213,8 +213,9 @@ A local theory target is a context managed separately within the
   \item [\isa{{\isacharparenleft}{\isasymIN}\ c{\isacharparenright}}] given after any local theory command
   specifies an immediate target, e.g.\ ``\mbox{\isa{\isacommand{definition}}}~\isa{{\isacharparenleft}{\isasymIN}\ c{\isacharparenright}\ {\isasymdots}}'' or ``\mbox{\isa{\isacommand{theorem}}}~\isa{{\isacharparenleft}{\isasymIN}\ c{\isacharparenright}\ {\isasymdots}}''.  This works both in a local or
   global theory context; the current target context will be suspended
-  for this command only.  Note that \isa{{\isacharparenleft}{\isasymIN}\ {\isacharminus}{\isacharparenright}} will always
-  produce a global result independently of the current target context.
+  for this command only.  Note that ``\isa{{\isacharparenleft}{\isasymIN}\ {\isacharminus}{\isacharparenright}}'' will
+  always produce a global result independently of the current target
+  context.
 
   \end{descr}
 
@@ -232,8 +233,8 @@ A local theory target is a context managed separately within the
   fixed parameter \isa{x}).
 
   Theorems are exported by discharging the assumptions and
-  generalizing the parameters of the context.  For example, \isa{a{\isacharcolon}\ B{\isacharbrackleft}x{\isacharbrackright}} becomes \isa{c{\isachardot}a{\isacharcolon}\ A{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}\ {\isasymLongrightarrow}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}} (again for arbitrary
-  \isa{{\isacharquery}x}).%
+  generalizing the parameters of the context.  For example, \isa{a{\isacharcolon}\ B{\isacharbrackleft}x{\isacharbrackright}} becomes \isa{c{\isachardot}a{\isacharcolon}\ A{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}\ {\isasymLongrightarrow}\ B{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}, again for arbitrary
+  \isa{{\isacharquery}x}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -319,31 +320,31 @@ Locales are named local contexts, consisting of a list of
 
   \begin{descr}
 
-  \item [\mbox{\isa{fixes}}~\isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\ {\isacharparenleft}mx{\isacharparenright}}] declares a local
+  \item [\mbox{\isa{\isakeyword{fixes}}}~\isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\ {\isacharparenleft}mx{\isacharparenright}}] declares a local
   parameter of type \isa{{\isasymtau}} and mixfix annotation \isa{mx} (both
   are optional).  The special syntax declaration ``\isa{{\isacharparenleft}{\isasymSTRUCTURE}{\isacharparenright}}'' means that \isa{x} may be referenced
   implicitly in this context.
 
-  \item [\mbox{\isa{constrains}}~\isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}] introduces a type
+  \item [\mbox{\isa{\isakeyword{constrains}}}~\isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}] introduces a type
   constraint \isa{{\isasymtau}} on the local parameter \isa{x}.
 
-  \item [\mbox{\isa{assumes}}~\isa{a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n}]
+  \item [\mbox{\isa{\isakeyword{assumes}}}~\isa{a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n}]
   introduces local premises, similar to \mbox{\isa{\isacommand{assume}}} within a
   proof (cf.\ \secref{sec:proof-context}).
 
-  \item [\mbox{\isa{defines}}~\isa{a{\isacharcolon}\ x\ {\isasymequiv}\ t}] defines a previously
-  declared parameter.  This is close to \mbox{\isa{\isacommand{def}}} within a
-  proof (cf.\ \secref{sec:proof-context}), but \mbox{\isa{defines}}
+  \item [\mbox{\isa{\isakeyword{defines}}}~\isa{a{\isacharcolon}\ x\ {\isasymequiv}\ t}] defines a previously
+  declared parameter.  This is similar to \mbox{\isa{\isacommand{def}}} within a
+  proof (cf.\ \secref{sec:proof-context}), but \mbox{\isa{\isakeyword{defines}}}
   takes an equational proposition instead of variable-term pair.  The
   left-hand side of the equation may have additional arguments, e.g.\
-  ``\mbox{\isa{defines}}~\isa{f\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ t}''.
+  ``\mbox{\isa{\isakeyword{defines}}}~\isa{f\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ t}''.
 
-  \item [\mbox{\isa{notes}}~\isa{a\ {\isacharequal}\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n}]
+  \item [\mbox{\isa{\isakeyword{notes}}}~\isa{a\ {\isacharequal}\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n}]
   reconsiders facts within a local context.  Most notably, this may
   include arbitrary declarations in any attribute specifications
   included here, e.g.\ a local \mbox{\isa{simp}} rule.
 
-  \item [\mbox{\isa{includes}}~\isa{c}] copies the specified context
+  \item [\mbox{\isa{\isakeyword{includes}}}~\isa{c}] copies the specified context
   in a statically scoped manner.  Only available in the long goal
   format of \secref{sec:goals}.
 
@@ -355,7 +356,7 @@ Locales are named local contexts, consisting of a list of
   \end{descr}
   
   Note that ``\isa{{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}}'' patterns given
-  in the syntax of \mbox{\isa{assumes}} and \mbox{\isa{defines}} above
+  in the syntax of \mbox{\isa{\isakeyword{assumes}}} and \mbox{\isa{\isakeyword{defines}}} above
   are illegal in locale definitions.  In the long goal format of
   \secref{sec:goals}, term bindings may be included as expected,
   though.
@@ -386,7 +387,7 @@ Locales are named local contexts, consisting of a list of
   special case \mbox{\isa{\isacommand{print{\isacharunderscore}locale}}}~\isa{loc} just prints the
   contents of the named locale, but keep in mind that type-inference
   will normalize type variables according to the usual alphabetical
-  order.  The command omits \mbox{\isa{notes}} elements by default.
+  order.  The command omits \mbox{\isa{\isakeyword{notes}}} elements by default.
   Use \mbox{\isa{\isacommand{print{\isacharunderscore}locale}}}\isa{{\isacharbang}} to get them included.
 
   \item [\mbox{\isa{\isacommand{print{\isacharunderscore}locales}}}] prints the names of all locales
@@ -398,7 +399,7 @@ Locales are named local contexts, consisting of a list of
   assumptions, \mbox{\isa{unfold{\isacharunderscore}locales}} is more aggressive and applies
   \isa{loc{\isacharunderscore}axioms{\isachardot}intro} as well.  Both methods are aware of locale
   specifications entailed by the context, both from target and
-  \mbox{\isa{includes}} statements, and from interpretations (see
+  \mbox{\isa{\isakeyword{includes}}} statements, and from interpretations (see
   below).  New goals that are entailed by the current context are
   discharged automatically.
 
@@ -415,7 +416,7 @@ Locale expressions (more precisely, \emph{context expressions}) may
   be instantiated, and the instantiated facts added to the current
   context.  This requires a proof of the instantiated specification
   and is called \emph{locale interpretation}.  Interpretation is
-  possible in theories and locales (command \mbox{\isa{\isacommand{interpretation}}}) and also within a proof body (\mbox{\isa{\isacommand{interpret}}}).
+  possible in theories and locales (command \mbox{\isa{\isacommand{interpretation}}}) and also within a proof body (command \mbox{\isa{\isacommand{interpret}}}).
 
   \begin{matharray}{rcl}
     \indexdef{}{command}{interpretation}\mbox{\isa{\isacommand{interpretation}}} & : & \isartrans{theory}{proof(prove)} \\
@@ -447,7 +448,6 @@ Locale expressions (more precisely, \emph{context expressions}) may
   instantiation term --- with the exception of defined parameters.
   These are, if omitted, derived from the defining equation and other
   instantiations.  Use ``\isa{{\isacharunderscore}}'' to omit an instantiation term.
-  Free variables are automatically generalized.
 
   The command generates proof obligations for the instantiated
   specifications (assumes and defines elements).  Once these are
@@ -509,8 +509,7 @@ Locale expressions (more precisely, \emph{context expressions}) may
 
   \item [\mbox{\isa{\isacommand{interpret}}}~\isa{expr\ insts\ {\isasymWHERE}\ eqns}]
   interprets \isa{expr} in the proof context and is otherwise
-  similar to interpretation in theories.  Free variables in
-  instantiations are not generalized, however.
+  similar to interpretation in theories.
 
   \item [\mbox{\isa{\isacommand{print{\isacharunderscore}interps}}}~\isa{loc}] prints the
   interpretations of a particular locale \isa{loc} that are active
@@ -588,11 +587,11 @@ A class is a particular locale with \emph{exactly one} type variable
   a new class \isa{c}, inheriting from \isa{superclasses}.  This
   introduces a locale \isa{c} with import of all locales \isa{superclasses}.
 
-  Any \mbox{\isa{fixes}} in \isa{body} are lifted to the global
+  Any \mbox{\isa{\isakeyword{fixes}}} in \isa{body} are lifted to the global
   theory level (\emph{class operations} \isa{f\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ f\isactrlsub n} of class \isa{c}), mapping the local type parameter
   \isa{{\isasymalpha}} to a schematic type variable \isa{{\isacharquery}{\isasymalpha}\ {\isacharcolon}{\isacharcolon}\ c}.
 
-  Likewise, \mbox{\isa{assumes}} in \isa{body} are also lifted,
+  Likewise, \mbox{\isa{\isakeyword{assumes}}} in \isa{body} are also lifted,
   mapping each local parameter \isa{f\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}{\isacharbrackleft}{\isasymalpha}{\isacharbrackright}} to its
   corresponding global constant \isa{f\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}{\isacharbrackleft}{\isacharquery}{\isasymalpha}\ {\isacharcolon}{\isacharcolon}\ c{\isacharbrackright}}.  The
   corresponding introduction rule is provided as \isa{c{\isacharunderscore}class{\isacharunderscore}axioms{\isachardot}intro}.  This rule should be rarely needed directly
@@ -601,7 +600,7 @@ A class is a particular locale with \emph{exactly one} type variable
 
   \item [\mbox{\isa{\isacommand{instantiation}}}~\isa{t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlsub n{\isacharparenright}\ s\ {\isasymBEGIN}}] opens a theory target (cf.\
   \secref{sec:target}) which allows to specify class operations \isa{f\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ f\isactrlsub n} corresponding to sort \isa{s} at the
-  particular type instance \isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ s\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ s\isactrlsub n{\isacharparenright}\ t}.  An plain \mbox{\isa{\isacommand{instance}}} command
+  particular type instance \isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ s\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ s\isactrlsub n{\isacharparenright}\ t}.  A plain \mbox{\isa{\isacommand{instance}}} command
   in the target body poses a goal stating these type arities.  The
   target is concluded by an \indexref{}{command}{end}\mbox{\isa{\isacommand{end}}} command.
 
@@ -733,7 +732,7 @@ Isabelle/Pure's definitional schemes support certain forms of
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{overloading}}}~\isa{x\isactrlsub {\isadigit{1}}\ {\isasymequiv}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\isactrlsub n{\isacharbraceright}\ {\isasymBEGIN}}]
+  \item [\mbox{\isa{\isacommand{overloading}}}~\isa{x\isactrlsub {\isadigit{1}}\ {\isasymequiv}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\isactrlsub n\ {\isasymBEGIN}}]
   opens a theory target (cf.\ \secref{sec:target}) which allows to
   specify constants with overloaded definitions.  These are identified
   by an explicitly given mapping from variable names \isa{x\isactrlsub i} to constants \isa{c\isactrlsub i} at particular type
@@ -827,8 +826,7 @@ Isabelle/Pure maintains a record of named configuration options
   (where \isa{b\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k} shall refer to (optional)
   facts indicated for forward chaining).
   \begin{matharray}{l}
-    \isa{{\isasymlangle}facts\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub k{\isasymrangle}} \\
-    \mbox{\isa{\isacommand{obtain}}}~\isa{x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m\ {\isasymWHERE}\ a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ \ {\isasymlangle}proof{\isasymrangle}\ {\isasymequiv}} \\[1ex]
+    \isa{{\isasymlangle}using\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub k{\isasymrangle}}~~\mbox{\isa{\isacommand{obtain}}}~\isa{x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m\ {\isasymWHERE}\ a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ \ {\isasymlangle}proof{\isasymrangle}\ {\isasymequiv}} \\[1ex]
     \quad \mbox{\isa{\isacommand{have}}}~\isa{{\isasymAnd}thesis{\isachardot}\ {\isacharparenleft}{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ {\isasymLongrightarrow}\ thesis{\isacharparenright}\ {\isasymLongrightarrow}\ thesis} \\
     \quad \mbox{\isa{\isacommand{proof}}}~\isa{succeed} \\
     \qquad \mbox{\isa{\isacommand{fix}}}~\isa{thesis} \\
@@ -1389,7 +1387,7 @@ val thms  : string -> thm list
     'simplified' opt? thmrefs?
     ;
 
-    opt: '(' (noasm | noasmsimp | noasmuse) ')'
+    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use') ')'
     ;
   \end{rail}
 
@@ -1663,7 +1661,7 @@ val thms  : string -> thm list
   Simplifier and the Classical reasoner at the same time.
   Non-conditional rules result in a ``safe'' introduction and
   elimination pair; conditional ones are considered ``unsafe''.  Rules
-  with negative conclusion are automatically inverted (using \isa{{\isasymnot}} elimination internally).
+  with negative conclusion are automatically inverted (using \isa{{\isasymnot}}-elimination internally).
 
   The ``\isa{{\isacharquery}}'' version of \mbox{\isa{iff}} declares rules to
   the Isabelle/Pure context only, and omits the Simplifier
@@ -1718,9 +1716,8 @@ val thms  : string -> thm list
 
   The \mbox{\isa{\isacommand{case}}} command provides a shorthand to refer to a
   local context symbolically: certain proof methods provide an
-  environment of named ``cases'' of the form \isa{c{\isacharcolon}\ x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isacharcomma}\ {\isasymphi}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymphi}\isactrlsub n}; the effect of
-  ``\mbox{\isa{\isacommand{case}}}\isa{c}'' is then equivalent to ``\mbox{\isa{\isacommand{fix}}}~\isa{x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m}~\mbox{\isa{\isacommand{assume}}}~\isa{c{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n}''.  Term bindings may be
-  covered as well, notably \mbox{\isa{{\isacharquery}case}} for the main conclusion.
+  environment of named ``cases'' of the form \isa{c{\isacharcolon}\ x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isacharcomma}\ {\isasymphi}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymphi}\isactrlsub n}; the effect of ``\mbox{\isa{\isacommand{case}}}~\isa{c}'' is then equivalent to ``\mbox{\isa{\isacommand{fix}}}~\isa{x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m}~\mbox{\isa{\isacommand{assume}}}~\isa{c{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n}''.  Term bindings may be covered as well, notably
+  \mbox{\isa{{\isacharquery}case}} for the main conclusion.
 
   By default, the ``terminology'' \isa{x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m} of
   a case value is marked as hidden, i.e.\ there is no way to refer to
@@ -1873,11 +1870,11 @@ val thms  : string -> thm list
 
   \medskip
   \begin{tabular}{llll}
-    facts    &                 & arguments & rule \\\hline
-             & \mbox{\isa{cases}} &           & classical case split \\
-             & \mbox{\isa{cases}} & \isa{t} & datatype exhaustion (type of \isa{t}) \\
+    facts           &                 & arguments   & rule \\\hline
+                    & \mbox{\isa{cases}} &             & classical case split \\
+                    & \mbox{\isa{cases}} & \isa{t}   & datatype exhaustion (type of \isa{t}) \\
     \isa{{\isasymturnstile}\ A\ t} & \mbox{\isa{cases}} & \isa{{\isasymdots}} & inductive predicate/set elimination (of \isa{A}) \\
-    \isa{{\isasymdots}} & \mbox{\isa{cases}} & \isa{{\isasymdots}\ rule{\isacharcolon}\ R} & explicit rule \isa{R} \\
+    \isa{{\isasymdots}}     & \mbox{\isa{cases}} & \isa{{\isasymdots}\ rule{\isacharcolon}\ R} & explicit rule \isa{R} \\
   \end{tabular}
   \medskip
 
@@ -1893,10 +1890,10 @@ val thms  : string -> thm list
 
   \medskip
   \begin{tabular}{llll}
-    facts    &        & arguments & rule \\\hline
-             & \mbox{\isa{induct}} & \isa{P\ x\ {\isasymdots}} & datatype induction (type of \isa{x}) \\
-    \isa{{\isasymturnstile}\ A\ x} & \mbox{\isa{induct}} & \isa{{\isasymdots}} & predicate/set induction (of \isa{A}) \\
-    \isa{{\isasymdots}} & \mbox{\isa{induct}} & \isa{{\isasymdots}\ rule{\isacharcolon}\ R} & explicit rule \isa{R} \\
+    facts           &                  & arguments            & rule \\\hline
+                    & \mbox{\isa{induct}} & \isa{P\ x}        & datatype induction (type of \isa{x}) \\
+    \isa{{\isasymturnstile}\ A\ x} & \mbox{\isa{induct}} & \isa{{\isasymdots}}          & predicate/set induction (of \isa{A}) \\
+    \isa{{\isasymdots}}     & \mbox{\isa{induct}} & \isa{{\isasymdots}\ rule{\isacharcolon}\ R} & explicit rule \isa{R} \\
   \end{tabular}
   \medskip
   
@@ -1934,10 +1931,10 @@ val thms  : string -> thm list
 
   \medskip
   \begin{tabular}{llll}
-    goal     &          & arguments & rule \\\hline
-             & \mbox{\isa{coinduct}} & \isa{x\ {\isasymdots}} & type coinduction (type of \isa{x}) \\
+    goal          &                    & arguments & rule \\\hline
+                  & \mbox{\isa{coinduct}} & \isa{x} & type coinduction (type of \isa{x}) \\
     \isa{A\ x} & \mbox{\isa{coinduct}} & \isa{{\isasymdots}} & predicate/set coinduction (of \isa{A}) \\
-    \isa{{\isasymdots}} & \mbox{\isa{coinduct}} & \isa{{\isasymdots}\ R} & explicit rule \isa{R} \\
+    \isa{{\isasymdots}}   & \mbox{\isa{coinduct}} & \isa{{\isasymdots}\ rule{\isacharcolon}\ R} & explicit rule \isa{R} \\
   \end{tabular}
   
   Coinduction is the dual of induction.  Induction essentially
