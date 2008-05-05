@@ -167,7 +167,7 @@ val _ = O.add_commands
  (entity_antiqs "" "syntax" @
   entity_antiqs "isacommand" "command" @
   entity_antiqs "isakeyword" "keyword" @
-  entity_antiqs "" "element" @
+  entity_antiqs "isakeyword" "element" @
   entity_antiqs "" "method" @
   entity_antiqs "" "attribute" @
   entity_antiqs "" "fact" @
