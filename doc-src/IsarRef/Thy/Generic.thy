@@ -2057,4 +2057,85 @@ text {*
   \end{descr}
 *}
 
+
+section {* General logic setup \label{sec:object-logic} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "judgment"} & : & \isartrans{theory}{theory} \\
+    @{method_def atomize} & : & \isarmeth \\
+    @{attribute_def atomize} & : & \isaratt \\
+    @{attribute_def rule_format} & : & \isaratt \\
+    @{attribute_def rulify} & : & \isaratt \\
+  \end{matharray}
+
+  The very starting point for any Isabelle object-logic is a ``truth
+  judgment'' that links object-level statements to the meta-logic
+  (with its minimal language of @{text prop} that covers universal
+  quantification @{text "\<And>"} and implication @{text "\<Longrightarrow>"}).
+
+  Common object-logics are sufficiently expressive to internalize rule
+  statements over @{text "\<And>"} and @{text "\<Longrightarrow>"} within their own
+  language.  This is useful in certain situations where a rule needs
+  to be viewed as an atomic statement from the meta-level perspective,
+  e.g.\ @{text "\<And>x. x \<in> A \<Longrightarrow> P x"} versus @{text "\<forall>x \<in> A. P x"}.
+
+  From the following language elements, only the @{method atomize}
+  method and @{attribute rule_format} attribute are occasionally
+  required by end-users, the rest is for those who need to setup their
+  own object-logic.  In the latter case existing formulations of
+  Isabelle/FOL or Isabelle/HOL may be taken as realistic examples.
+
+  Generic tools may refer to the information provided by object-logic
+  declarations internally.
+
+  \begin{rail}
+    'judgment' constdecl
+    ;
+    'atomize' ('(' 'full' ')')?
+    ;
+    'rule\_format' ('(' 'noasm' ')')?
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [@{command "judgment"}~@{text "c :: \<sigma> (mx)"}] declares
+  constant @{text c} as the truth judgment of the current
+  object-logic.  Its type @{text \<sigma>} should specify a coercion of the
+  category of object-level propositions to @{text prop} of the Pure
+  meta-logic; the mixfix annotation @{text "(mx)"} would typically
+  just link the object language (internally of syntactic category
+  @{text logic}) with that of @{text prop}.  Only one @{command
+  "judgment"} declaration may be given in any theory development.
+  
+  \item [@{method atomize} (as a method)] rewrites any non-atomic
+  premises of a sub-goal, using the meta-level equations declared via
+  @{attribute atomize} (as an attribute) beforehand.  As a result,
+  heavily nested goals become amenable to fundamental operations such
+  as resolution (cf.\ the @{method rule} method).  Giving the ``@{text
+  "(full)"}'' option here means to turn the whole subgoal into an
+  object-statement (if possible), including the outermost parameters
+  and assumptions as well.
+
+  A typical collection of @{attribute atomize} rules for a particular
+  object-logic would provide an internalization for each of the
+  connectives of @{text "\<And>"}, @{text "\<Longrightarrow>"}, and @{text "\<equiv>"}.
+  Meta-level conjunction should be covered as well (this is
+  particularly important for locales, see \secref{sec:locale}).
+
+  \item [@{attribute rule_format}] rewrites a theorem by the
+  equalities declared as @{attribute rulify} rules in the current
+  object-logic.  By default, the result is fully normalized, including
+  assumptions and conclusions at any depth.  The @{text "(no_asm)"}
+  option restricts the transformation to the conclusion of a rule.
+
+  In common object-logics (HOL, FOL, ZF), the effect of @{attribute
+  rule_format} is to replace (bounded) universal quantification
+  (@{text "\<forall>"}) and implication (@{text "\<longrightarrow>"}) by the corresponding
+  rule statements over @{text "\<And>"} and @{text "\<Longrightarrow>"}.
+
+  \end{descr}
+*}
+
 end

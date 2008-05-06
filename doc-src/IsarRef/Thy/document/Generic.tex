@@ -2038,6 +2038,86 @@ val thms  : string -> thm list
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{General logic setup \label{sec:object-logic}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{judgment}\mbox{\isa{\isacommand{judgment}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{method}{atomize}\mbox{\isa{atomize}} & : & \isarmeth \\
+    \indexdef{}{attribute}{atomize}\mbox{\isa{atomize}} & : & \isaratt \\
+    \indexdef{}{attribute}{rule-format}\mbox{\isa{rule{\isacharunderscore}format}} & : & \isaratt \\
+    \indexdef{}{attribute}{rulify}\mbox{\isa{rulify}} & : & \isaratt \\
+  \end{matharray}
+
+  The very starting point for any Isabelle object-logic is a ``truth
+  judgment'' that links object-level statements to the meta-logic
+  (with its minimal language of \isa{prop} that covers universal
+  quantification \isa{{\isasymAnd}} and implication \isa{{\isasymLongrightarrow}}).
+
+  Common object-logics are sufficiently expressive to internalize rule
+  statements over \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} within their own
+  language.  This is useful in certain situations where a rule needs
+  to be viewed as an atomic statement from the meta-level perspective,
+  e.g.\ \isa{{\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ A\ {\isasymLongrightarrow}\ P\ x} versus \isa{{\isasymforall}x\ {\isasymin}\ A{\isachardot}\ P\ x}.
+
+  From the following language elements, only the \mbox{\isa{atomize}}
+  method and \mbox{\isa{rule{\isacharunderscore}format}} attribute are occasionally
+  required by end-users, the rest is for those who need to setup their
+  own object-logic.  In the latter case existing formulations of
+  Isabelle/FOL or Isabelle/HOL may be taken as realistic examples.
+
+  Generic tools may refer to the information provided by object-logic
+  declarations internally.
+
+  \begin{rail}
+    'judgment' constdecl
+    ;
+    'atomize' ('(' 'full' ')')?
+    ;
+    'rule\_format' ('(' 'noasm' ')')?
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [\mbox{\isa{\isacommand{judgment}}}~\isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\ {\isacharparenleft}mx{\isacharparenright}}] declares
+  constant \isa{c} as the truth judgment of the current
+  object-logic.  Its type \isa{{\isasymsigma}} should specify a coercion of the
+  category of object-level propositions to \isa{prop} of the Pure
+  meta-logic; the mixfix annotation \isa{{\isacharparenleft}mx{\isacharparenright}} would typically
+  just link the object language (internally of syntactic category
+  \isa{logic}) with that of \isa{prop}.  Only one \mbox{\isa{\isacommand{judgment}}} declaration may be given in any theory development.
+  
+  \item [\mbox{\isa{atomize}} (as a method)] rewrites any non-atomic
+  premises of a sub-goal, using the meta-level equations declared via
+  \mbox{\isa{atomize}} (as an attribute) beforehand.  As a result,
+  heavily nested goals become amenable to fundamental operations such
+  as resolution (cf.\ the \mbox{\isa{rule}} method).  Giving the ``\isa{{\isacharparenleft}full{\isacharparenright}}'' option here means to turn the whole subgoal into an
+  object-statement (if possible), including the outermost parameters
+  and assumptions as well.
+
+  A typical collection of \mbox{\isa{atomize}} rules for a particular
+  object-logic would provide an internalization for each of the
+  connectives of \isa{{\isasymAnd}}, \isa{{\isasymLongrightarrow}}, and \isa{{\isasymequiv}}.
+  Meta-level conjunction should be covered as well (this is
+  particularly important for locales, see \secref{sec:locale}).
+
+  \item [\mbox{\isa{rule{\isacharunderscore}format}}] rewrites a theorem by the
+  equalities declared as \mbox{\isa{rulify}} rules in the current
+  object-logic.  By default, the result is fully normalized, including
+  assumptions and conclusions at any depth.  The \isa{{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}}
+  option restricts the transformation to the conclusion of a rule.
+
+  In common object-logics (HOL, FOL, ZF), the effect of \mbox{\isa{rule{\isacharunderscore}format}} is to replace (bounded) universal quantification
+  (\isa{{\isasymforall}}) and implication (\isa{{\isasymlongrightarrow}}) by the corresponding
+  rule statements over \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isadelimtheory
 %
 \endisadelimtheory
