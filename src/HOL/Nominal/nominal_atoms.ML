@@ -436,7 +436,6 @@ fun create_nom_typedecls ak_names thy =
       val pt2           = @{thm "pt2"};
       val pt3           = @{thm "pt3"};
       val at_pt_inst    = @{thm "at_pt_inst"};
-      val pt_set_inst   = @{thm "pt_set_inst"}; 
       val pt_unit_inst  = @{thm "pt_unit_inst"};
       val pt_prod_inst  = @{thm "pt_prod_inst"}; 
       val pt_nprod_inst = @{thm "pt_nprod_inst"}; 
@@ -497,7 +496,6 @@ fun create_nom_typedecls ak_names thy =
           val pt_thm_prod  = pt_inst RS (pt_inst RS pt_prod_inst);
           val pt_thm_nprod = pt_inst RS (pt_inst RS pt_nprod_inst);
           val pt_thm_unit  = pt_unit_inst;
-          val pt_thm_set   = pt_inst RS pt_set_inst
        in
         thy
         |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
@@ -508,7 +506,6 @@ fun create_nom_typedecls ak_names thy =
         |> AxClass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                     (pt_proof pt_thm_nprod)
         |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (pt_proof pt_thm_unit)
-        |> AxClass.prove_arity ("set",[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
      end) ak_names thy13; 
 
        (********  fs_<ak> class instances  ********)
@@ -584,7 +581,6 @@ fun create_nom_typedecls ak_names thy =
        val cp_fun_inst     = @{thm "cp_fun_inst"};
        val cp_option_inst  = @{thm "cp_option_inst"};
        val cp_noption_inst = @{thm "cp_noption_inst"};
-       val cp_set_inst     = @{thm "cp_set_inst"};
        val pt_perm_compose = @{thm "pt_perm_compose"};
 
        val dj_pp_forget    = @{thm "dj_perm_perm_forget"};
@@ -646,7 +642,6 @@ fun create_nom_typedecls ak_names thy =
             val cp_thm_fun  = at_inst RS (pt_inst RS (cp_inst RS (cp_inst RS cp_fun_inst)));
             val cp_thm_optn = cp_inst RS cp_option_inst;
             val cp_thm_noptn = cp_inst RS cp_noption_inst;
-            val cp_thm_set = cp_inst RS cp_set_inst;
         in
          thy'
          |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
@@ -655,7 +650,6 @@ fun create_nom_typedecls ak_names thy =
          |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
          |> AxClass.prove_arity ("Datatype.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
          |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
-         |> AxClass.prove_arity ("set",[[cls_name]],[cls_name]) (cp_proof cp_thm_set)
         end) ak_names thy) ak_names thy25;
 
      (* show that discrete nominal types are permutation types, finitely     *)
@@ -765,6 +759,9 @@ fun create_nom_typedecls ak_names thy =
        val pt_perm_supp_ineq   = @{thm "Nominal.pt_perm_supp_ineq"};
        val pt_perm_supp        = @{thm "Nominal.pt_perm_supp"};
        val subseteq_eqvt       = @{thm "Nominal.pt_subseteq_eqvt"};
+       val insert_eqvt         = @{thm "Nominal.insert_eqvt"};
+       val set_eqvt            = @{thm "Nominal.set_eqvt"};
+       val perm_set_eq         = @{thm "Nominal.perm_set_eq"};
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)
        (* types; this allows for example to use abs_perm (which is a      *)
@@ -922,6 +919,9 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss
               let val thms1 = inst_pt_at [subseteq_eqvt]
               in [(("subseteq_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
+            ||>> PureThy.add_thmss [(("insert_eqvt", inst_pt_at [insert_eqvt]), [NominalThmDecls.eqvt_add])]
+            ||>> PureThy.add_thmss [(("set_eqvt", inst_pt_at [set_eqvt]), [NominalThmDecls.eqvt_add])]
+            ||>> PureThy.add_thmss [(("perm_set_eq", inst_pt_at [perm_set_eq]), [])]
             ||>> PureThy.add_thmss
               let val thms1 = inst_pt_at [fresh_aux]
                   and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
