@@ -6,7 +6,7 @@
 header {* Admissibility and compactness *}
 
 theory Adm
-imports Cont
+imports Ffun
 begin
 
 defaultsort cpo
