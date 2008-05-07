@@ -1,9 +1,9 @@
 
 ## targets
 
-default: Thy
+default: HOL-IsarRef HOLCF-IsarRef ZF-IsarRef
 images: 
-test: Thy
+test: HOL-IsarRef HOLCF-IsarRef ZF-IsarRef
 
 all: images test
 
@@ -17,16 +17,28 @@ LOG = $(OUT)/log
 USEDIR = $(ISATOOL) usedir -v true -i false -d false -C false -D document
 
 
-## Thy
+## IsarRef sessions
 
-Thy: $(LOG)/HOL-Thy.gz
+HOL-IsarRef: $(LOG)/HOL-IsarRef.gz
 
-$(LOG)/HOL-Thy.gz: Thy/ROOT.ML ../antiquote_setup.ML Thy/intro.thy \
+$(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML Thy/intro.thy \
   Thy/syntax.thy Thy/pure.thy Thy/Generic.thy Thy/Quick_Reference.thy
-	@$(USEDIR) HOL Thy
+	@$(USEDIR) -s IsarRef HOL Thy
+
+
+HOLCF-IsarRef: $(LOG)/HOLCF-IsarRef.gz
+
+$(LOG)/HOLCF-IsarRef.gz: Thy/ROOT-HOLCF.ML ../antiquote_setup.ML Thy/HOLCF_Specific.thy
+	@$(USEDIR) -s IsarRef -f ROOT-HOLCF.ML HOLCF Thy
+
+
+ZF-IsarRef: $(LOG)/ZF-IsarRef.gz
+
+$(LOG)/ZF-IsarRef.gz: Thy/ROOT-ZF.ML ../antiquote_setup.ML Thy/ZF_Specific.thy
+	@$(USEDIR) -s IsarRef -f ROOT-ZF.ML ZF Thy
 
 
 ## clean
 
 clean:
-	@rm -f $(LOG)/HOL-Thy.gz
+	@rm -f $(LOG)/HOL-IsarRef.gz $(LOG)/HOLCF-IsarRef.gz $(LOG)/ZF-IsarRef.gz
