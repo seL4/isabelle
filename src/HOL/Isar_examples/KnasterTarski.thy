@@ -63,7 +63,7 @@ proof
       finally (order_antisym) show ?thesis .
     }
     from mono ge have "f (f ?a) <= f ?a" ..
-    hence "f ?a : ?H" ..
+    hence "f ?a : ?H" by simp
     thus "?a <= f ?a" by (rule Inter_lower)
   qed
 qed
@@ -100,7 +100,7 @@ proof
     show "?a <= f ?a"
     proof (rule Inter_lower)
       from mono ge have "f (f ?a) <= f ?a" ..
-      thus "f ?a : ?H" ..
+      thus "f ?a : ?H" by simp
     qed
   qed
 qed
