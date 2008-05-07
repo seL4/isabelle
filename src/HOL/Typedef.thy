@@ -160,15 +160,6 @@ instance ..
 
 end
 
-instantiation "set" :: ("type") itself
-begin
-
-definition "itself = TYPE('a set)"
-
-instance ..
-
-end
-
 hide (open) const itself
 
 end
