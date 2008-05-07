@@ -476,7 +476,7 @@ end;
 Addsimprocs [split_beta_proc, split_eta_proc];
 *}
 
-lemma split_beta: "(%(x, y). P x y) z = P (fst z) (snd z)"
+lemma split_beta [mono]: "(%(x, y). P x y) z = P (fst z) (snd z)"
   by (subst surjective_pairing, rule split_conv)
 
 lemma split_split [noatp]: "R(split c p) = (ALL x y. p = (x, y) --> R(c x y))"
