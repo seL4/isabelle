@@ -1,0 +1,226 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{ML{\isacharunderscore}Tactic}%
+%
+\isadelimtheory
+\isanewline
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ ML{\isacharunderscore}Tactic\isanewline
+\isakeyword{imports}\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{ML tactic expressions \label{sec:conv-tac}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isar Proof methods closely resemble traditional tactics, when used
+  in unstructured sequences of \mbox{\isa{\isacommand{apply}}} commands.
+  Isabelle/Isar provides emulations for all major ML tactics of
+  classic Isabelle --- mostly for the sake of easy porting of existing
+  developments, as actual Isar proof texts would demand much less
+  diversity of proof methods.
+
+  Unlike tactic expressions in ML, Isar proof methods provide proper
+  concrete syntax for additional arguments, options, modifiers etc.
+  Thus a typical method text is usually more concise than the
+  corresponding ML tactic.  Furthermore, the Isar versions of classic
+  Isabelle tactics often cover several variant forms by a single
+  method with separate options to tune the behavior.  For example,
+  method \mbox{\isa{simp}} replaces all of \verb|simp_tac|~/ \verb|asm_simp_tac|~/ \verb|full_simp_tac|~/ \verb|asm_full_simp_tac|, there
+  is also concrete syntax for augmenting the Simplifier context (the
+  current ``simpset'') in a convenient way.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Resolution tactics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Classic Isabelle provides several variant forms of tactics for
+  single-step rule applications (based on higher-order resolution).
+  The space of resolution tactics has the following main dimensions.
+
+  \begin{enumerate}
+
+  \item The ``mode'' of resolution: intro, elim, destruct, or forward
+  (e.g.\ \verb|resolve_tac|, \verb|eresolve_tac|, \verb|dresolve_tac|,
+  \verb|forward_tac|).
+
+  \item Optional explicit instantiation (e.g.\ \verb|resolve_tac| vs.\
+  \verb|res_inst_tac|).
+
+  \item Abbreviations for singleton arguments (e.g.\ \verb|resolve_tac|
+  vs.\ \verb|rtac|).
+
+  \end{enumerate}
+
+  Basically, the set of Isar tactic emulations \mbox{\isa{rule{\isacharunderscore}tac}},
+  \mbox{\isa{erule{\isacharunderscore}tac}}, \mbox{\isa{drule{\isacharunderscore}tac}}, \mbox{\isa{frule{\isacharunderscore}tac}} (see
+  \secref{sec:tactics}) would be sufficient to cover the four modes,
+  either with or without instantiation, and either with single or
+  multiple arguments.  Although it is more convenient in most cases to
+  use the plain \mbox{\isa{rule}} method (see
+  \secref{sec:pure-meth-att}), or any of its ``improper'' variants
+  \mbox{\isa{erule}}, \mbox{\isa{drule}}, \mbox{\isa{frule}} (see
+  \secref{sec:misc-meth-att}).  Note that explicit goal addressing is
+  only supported by the actual \mbox{\isa{rule{\isacharunderscore}tac}} version.
+
+  With this in mind, plain resolution tactics correspond to Isar
+  methods as follows.
+
+  \medskip
+  \begin{tabular}{lll}
+    \verb|rtac|~\isa{{\isachardoublequote}a\ {\isadigit{1}}{\isachardoublequote}} & & \isa{{\isachardoublequote}rule\ a{\isachardoublequote}} \\
+    \verb|resolve_tac|~\isa{{\isachardoublequote}{\isacharbrackleft}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ {\isadigit{1}}{\isachardoublequote}} & & \isa{{\isachardoublequote}rule\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}{\isachardoublequote}} \\
+    \verb|res_inst_tac|~\isa{{\isachardoublequote}{\isacharbrackleft}{\isacharparenleft}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ t\isactrlsub {\isadigit{1}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ a\ {\isadigit{1}}{\isachardoublequote}} & &
+    \isa{{\isachardoublequote}rule{\isacharunderscore}tac\ x\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ {\isasymIN}\ a{\isachardoublequote}} \\[0.5ex]
+    \verb|rtac|~\isa{{\isachardoublequote}a\ i{\isachardoublequote}} & & \isa{{\isachardoublequote}rule{\isacharunderscore}tac\ {\isacharbrackleft}i{\isacharbrackright}\ a{\isachardoublequote}} \\
+    \verb|resolve_tac|~\isa{{\isachardoublequote}{\isacharbrackleft}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ i{\isachardoublequote}} & & \isa{{\isachardoublequote}rule{\isacharunderscore}tac\ {\isacharbrackleft}i{\isacharbrackright}\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}{\isachardoublequote}} \\
+    \verb|res_inst_tac|~\isa{{\isachardoublequote}{\isacharbrackleft}{\isacharparenleft}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ t\isactrlsub {\isadigit{1}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ a\ i{\isachardoublequote}} & &
+    \isa{{\isachardoublequote}rule{\isacharunderscore}tac\ {\isacharbrackleft}i{\isacharbrackright}\ x\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ {\isasymIN}\ a{\isachardoublequote}} \\
+  \end{tabular}
+  \medskip
+
+  Note that explicit goal addressing may be usually avoided by
+  changing the order of subgoals with \mbox{\isa{\isacommand{defer}}} or \mbox{\isa{\isacommand{prefer}}} (see \secref{sec:tactic-commands}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Simplifier tactics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The main Simplifier tactics \verb|simp_tac| and variants (cf.\
+  \cite{isabelle-ref}) are all covered by the \mbox{\isa{simp}} and
+  \mbox{\isa{simp{\isacharunderscore}all}} methods (see \secref{sec:simplifier}).  Note that
+  there is no individual goal addressing available, simplification
+  acts either on the first goal (\mbox{\isa{simp}}) or all goals
+  (\mbox{\isa{simp{\isacharunderscore}all}}).
+
+  \medskip
+  \begin{tabular}{lll}
+    \verb|asm_full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}} \\
+    \verb|ALLGOALS|~(\verb|asm_full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}{\isachardoublequote}}) & & \mbox{\isa{simp{\isacharunderscore}all}} \\[0.5ex]
+    \verb|simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isachardoublequote}} \\
+    \verb|asm_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}{\isachardoublequote}} \\
+    \verb|full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}{\isachardoublequote}} \\
+    \verb|asm_lr_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}}~\isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharunderscore}lr{\isacharparenright}{\isachardoublequote}} \\
+  \end{tabular}
+  \medskip%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Classical Reasoner tactics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Classical Reasoner provides a rather large number of variations
+  of automated tactics, such as \verb|blast_tac|, \verb|fast_tac|, \verb|clarify_tac| etc.\ (see \cite{isabelle-ref}).  The corresponding
+  Isar methods usually share the same base name, such as \mbox{\isa{blast}}, \mbox{\isa{fast}}, \mbox{\isa{clarify}} etc.\ (see
+  \secref{sec:classical}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Miscellaneous tactics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+There are a few additional tactics defined in various theories of
+  Isabelle/HOL, some of these also in Isabelle/FOL or Isabelle/ZF.
+  The most common ones of these may be ported to Isar as follows.
+
+  \medskip
+  \begin{tabular}{lll}
+    \verb|stac|~\isa{{\isachardoublequote}a\ {\isadigit{1}}{\isachardoublequote}} & & \isa{{\isachardoublequote}subst\ a{\isachardoublequote}} \\
+    \verb|hyp_subst_tac|~\isa{{\isadigit{1}}} & & \isa{hypsubst} \\
+    \verb|strip_tac|~\isa{{\isadigit{1}}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} & \isa{{\isachardoublequote}intro\ strip{\isachardoublequote}} \\
+    \verb|split_all_tac|~\isa{{\isadigit{1}}} & & \isa{{\isachardoublequote}simp\ {\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}\ only{\isacharcolon}\ split{\isacharunderscore}tupled{\isacharunderscore}all{\isachardoublequote}} \\
+      & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} & \isa{{\isachardoublequote}simp\ only{\isacharcolon}\ split{\isacharunderscore}tupled{\isacharunderscore}all{\isachardoublequote}} \\
+      & \isa{{\isachardoublequote}{\isasymlless}{\isachardoublequote}} & \isa{{\isachardoublequote}clarify{\isachardoublequote}} \\
+  \end{tabular}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Tacticals%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Classic Isabelle provides a huge amount of tacticals for combination
+  and modification of existing tactics.  This has been greatly reduced
+  in Isar, providing the bare minimum of combinators only: ``\isa{{\isachardoublequote}{\isacharcomma}{\isachardoublequote}}'' (sequential composition), ``\isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}}'' (alternative
+  choices), ``\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}}'' (try), ``\isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}}'' (repeat at least
+  once).  These are usually sufficient in practice; if all fails,
+  arbitrary ML tactic code may be invoked via the \mbox{\isa{tactic}}
+  method (see \secref{sec:tactics}).
+
+  \medskip Common ML tacticals may be expressed directly in Isar as
+  follows:
+
+  \medskip
+  \begin{tabular}{lll}
+    \isa{{\isachardoublequote}tac\isactrlsub {\isadigit{1}}{\isachardoublequote}}~\verb|THEN|~\isa{{\isachardoublequote}tac\isactrlsub {\isadigit{2}}{\isachardoublequote}} & & \isa{{\isachardoublequote}meth\isactrlsub {\isadigit{1}}{\isacharcomma}\ meth\isactrlsub {\isadigit{2}}{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}tac\isactrlsub {\isadigit{1}}{\isachardoublequote}}~\verb|ORELSE|~\isa{{\isachardoublequote}tac\isactrlsub {\isadigit{2}}{\isachardoublequote}} & & \isa{{\isachardoublequote}meth\isactrlsub {\isadigit{1}}\ {\isacharbar}\ meth\isactrlsub {\isadigit{2}}{\isachardoublequote}} \\
+    \verb|TRY|~\isa{tac} & & \isa{{\isachardoublequote}meth{\isacharquery}{\isachardoublequote}} \\
+    \verb|REPEAT1|~\isa{tac} & & \isa{{\isachardoublequote}meth{\isacharplus}{\isachardoublequote}} \\
+    \verb|REPEAT|~\isa{tac} & & \isa{{\isachardoublequote}{\isacharparenleft}meth{\isacharplus}{\isacharparenright}{\isacharquery}{\isachardoublequote}} \\
+    \verb|EVERY|~\isa{{\isachardoublequote}{\isacharbrackleft}tac\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}{\isachardoublequote}} & & \isa{{\isachardoublequote}meth\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isachardoublequote}} \\
+    \verb|FIRST|~\isa{{\isachardoublequote}{\isacharbrackleft}tac\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}{\isachardoublequote}} & & \isa{{\isachardoublequote}meth\isactrlsub {\isadigit{1}}\ {\isacharbar}\ {\isasymdots}{\isachardoublequote}} \\
+  \end{tabular}
+  \medskip
+
+  \medskip \verb|CHANGED| (see \cite{isabelle-ref}) is usually not
+  required in Isar, since most basic proof methods already fail unless
+  there is an actual change in the goal state.  Nevertheless, ``\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}}''  (try) may be used to accept \emph{unchanged} results as
+  well.
+
+  \medskip \verb|ALLGOALS|, \verb|SOMEGOAL| etc.\ (see
+  \cite{isabelle-ref}) are not available in Isar, since there is no
+  direct goal addressing.  Nevertheless, some basic methods address
+  all goals internally, notably \mbox{\isa{simp{\isacharunderscore}all}} (see
+  \secref{sec:simplifier}).  Also note that \verb|ALLGOALS| can be
+  often replaced by ``\isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}}'' (repeat at least once), although
+  this usually has a different operational behavior, such as solving
+  goals in a different order.
+
+  \medskip Iterated resolution, such as \verb|REPEAT (FIRSTGOAL|\isasep\isanewline%
+\verb|  (resolve_tac \<dots>))|, is usually better expressed using the \mbox{\isa{intro}} and \mbox{\isa{elim}} methods of Isar (see
+  \secref{sec:classical}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
