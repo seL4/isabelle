@@ -163,34 +163,6 @@ instance ..
 
 end
 
-text {* Type @{typ "'a set"} *}
-
-instantiation set :: ("{random, type}") random
-begin
-
-primrec random_set' :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> ('a\<Colon>{random, type} set \<times> (unit \<Rightarrow> term)) \<times> seed" where
-  "random_set' 0 j = undefined"
-  | "random_set' (Suc_index i) j = collapse (select_default i
-       (do (x, t) \<leftarrow> random i;
-           (xs, ts) \<leftarrow> random_set' i j;
-           return (insert x xs, \<lambda>u. Eval.App (Eval.App (Eval.Const (STR ''insert'') RTYPE('a \<Rightarrow> 'a set \<Rightarrow> 'a set)) (t ())) (ts ())) done)
-       (return ({}, \<lambda>u. Eval.Const (STR ''{}'') RTYPE('a set))))"
-
-lemma random_set'_code [code func]:
-  "random_set' i j s = (if i = 0 then undefined else collapse (select_default (i - 1)
-       (do (x \<Colon> 'a\<Colon>{random, type}, t) \<leftarrow> random (i - 1);
-           (xs, ts) \<leftarrow> random_set' (i - 1) j;
-           return (insert x xs, \<lambda>u. Eval.App (Eval.App (Eval.Const (STR ''insert'') RTYPE('a \<Rightarrow> 'a set \<Rightarrow> 'a set)) (t ())) (ts ())) done)
-       (return ({}, \<lambda>u. Eval.Const (STR ''{}'') RTYPE('a set)))) s)"
-  by (rule random'_if random_set'.simps)+
-
-definition
-  "random i = random_set' i i"
-
-instance ..
-
-end
-
 text {* Type @{typ "'a \<Rightarrow> 'b"} *}
 
 ML {*
@@ -371,9 +343,6 @@ ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 88 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-
-ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(A \<Colon> nat set) B. card (A \<union> B) = card A + card B"} [@{typ "nat set"}, @{typ "nat set"}] *}
 
 ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
 ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
