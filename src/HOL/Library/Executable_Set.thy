@@ -15,6 +15,8 @@ lemma [code target: Set]:
   "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
   by blast
 
+declare subset_eq [code]
+
 lemma [code]:
   "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. x = a)"
   unfolding bex_triv_one_point1 ..
@@ -64,7 +66,7 @@ qed
 
 lemma member_nil [simp]:
   "member [] = (\<lambda>x. False)"
-proof
+proof (rule ext)
   fix x
   show "member [] x = False" unfolding member_def by simp
 qed
@@ -239,30 +241,6 @@ nonfix inter;
 nonfix union;
 nonfix subset;
 *}
-
-subsubsection {* type serializations *}
-
-types_code
-  set ("_ list")
-attach (term_of) {*
-fun term_of_set f T [] = Const ("{}", Type ("set", [T]))
-  | term_of_set f T (x :: xs) = Const ("insert",
-      T --> Type ("set", [T]) --> Type ("set", [T])) $ f x $ term_of_set f T xs;
-*}
-attach (test) {*
-fun gen_set' aG aT i j = frequency
-  [(i, fn () =>
-      let
-        val (x, t) = aG j;
-        val (xs, ts) = gen_set' aG aT (i-1) j
-      in
-        (x :: xs, fn () => Const ("insert",
-           aT --> Type ("set", [aT]) --> Type ("set", [aT])) $ t () $ ts ())
-      end),
-   (1, fn () => ([], fn () => Const ("{}", Type ("set", [aT]))))] ()
-and gen_set aG aT i = gen_set' aG aT i i;
-*}
-
 
 subsubsection {* const serializations *}
 
