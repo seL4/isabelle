@@ -271,7 +271,7 @@ apply (blast elim!: allE)
 done
 
 lemmas wfP_SUP = wf_UN [where I=UNIV and r="\<lambda>i. {(x, y). r i x y}",
-  to_pred SUP_UN_eq2 bot_empty_eq, simplified, standard]
+  to_pred SUP_UN_eq2 bot_empty_eq pred_equals_eq, simplified, standard]
 
 lemma wf_Union: 
  "[| ALL r:R. wf r;  
@@ -691,7 +691,7 @@ text {* Smaller relations have bigger accessible parts: *}
 lemma accp_subset:
   assumes sub: "R1 \<le> R2"
   shows "accp R2 \<le> accp R1"
-proof
+proof (rule predicate1I)
   fix x assume "accp R2 x"
   then show "accp R1 x"
   proof (induct x)
@@ -745,9 +745,9 @@ lemmas acc_wfD = accp_wfPD [to_set]
 
 lemmas wf_acc_iff = wfP_accp_iff [to_set]
 
-lemmas acc_subset = accp_subset [to_set]
+lemmas acc_subset = accp_subset [to_set pred_subset_eq]
 
-lemmas acc_subset_induct = accp_subset_induct [to_set]
+lemmas acc_subset_induct = accp_subset_induct [to_set pred_subset_eq]
 
 
 subsection {* Tools for building wellfounded relations *}
@@ -837,7 +837,7 @@ apply (fast elim!: psubset_card_mono)
 done
 
 lemma trans_finite_psubset: "trans finite_psubset"
-by (simp add: finite_psubset_def psubset_def trans_def, blast)
+by (simp add: finite_psubset_def less_le trans_def, blast)
 
 
 
