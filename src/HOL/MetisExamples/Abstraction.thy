@@ -69,7 +69,7 @@ by (meson CollectD SigmaD1 SigmaD2)
 
 (*single-step*)
 lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
-by (metis SigmaD1 SigmaD2 insert_def singleton_conv2 union_empty2 vimage_Collect_eq vimage_def vimage_singleton_eq)
+by (metis SigmaD1 SigmaD2 insert_def singleton_conv2 Un_empty_right vimage_Collect_eq vimage_def vimage_singleton_eq)
 
 
 lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
@@ -88,7 +88,7 @@ have 4: "(b\<Colon>'b\<Colon>type) \<in> Collect (COMBB (op = (a\<Colon>'a\<Colo
 have 5: "(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type) (b\<Colon>'b\<Colon>type) \<noteq> (a\<Colon>'a\<Colon>type)"
   by (metis 1 2)
 have 6: "(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type) (b\<Colon>'b\<Colon>type) = (a\<Colon>'a\<Colon>type)"
-  by (metis 4 vimage_singleton_eq insert_def singleton_conv2 union_empty2 vimage_Collect_eq vimage_def)
+  by (metis 4 vimage_singleton_eq insert_def singleton_conv2 Un_empty_right vimage_Collect_eq vimage_def)
 show "False"
   by (metis 5 6)
 qed
@@ -100,7 +100,7 @@ assume 0: "(a, b) \<in> Sigma A (COMBB Collect (COMBC (COMBB COMBB op =) f))"
 have 1: "b \<in> Collect (COMBB (op = a) f)"
   by (metis 0 SigmaD2)
 have 2: "f b = a"
-  by (metis 1 vimage_Collect_eq singleton_conv2 insert_def union_empty2 vimage_singleton_eq vimage_def)
+  by (metis 1 vimage_Collect_eq singleton_conv2 insert_def Un_empty_right vimage_singleton_eq vimage_def)
 assume 3: "a \<notin> A \<or> a \<noteq> f b"
 have 4: "a \<in> A"
   by (metis 0 SigmaD1)
