@@ -190,11 +190,6 @@ lemma finite_insert [simp]: "finite (insert a A) = finite A"
   apply (simp only: finite_Un, blast)
   done
 
-lemma finite_code [code func]:
-  "finite {} \<longleftrightarrow> True"
-  "finite (insert a A) \<longleftrightarrow> finite A"
-  by auto
-
 lemma finite_Union[simp, intro]:
  "\<lbrakk> finite A; !!M. M \<in> A \<Longrightarrow> finite M \<rbrakk> \<Longrightarrow> finite(\<Union>A)"
 by (induct rule:finite_induct) simp_all
@@ -455,9 +450,6 @@ instance * :: (finite, finite) finite
 instance "+" :: (finite, finite) finite
   by default (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
 
-instance set :: (finite) finite
-  by default (simp only: Pow_UNIV [symmetric] finite_Pow_iff finite)
-
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
   by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
 
@@ -466,7 +458,11 @@ proof
   show "finite (UNIV :: ('a => 'b) set)"
   proof (rule finite_imageD)
     let ?graph = "%f::'a => 'b. {(x, y). y = f x}"
-    show "finite (range ?graph)" by (rule finite)
+    have "range ?graph \<subseteq> Pow UNIV" by simp
+    moreover have "finite (Pow (UNIV :: ('a * 'b) set))"
+      by (simp only: finite_Pow_iff finite)
+    ultimately show "finite (range ?graph)"
+      by (rule finite_subset)
     show "inj ?graph" by (rule inj_graph)
   qed
 qed
@@ -1518,7 +1514,7 @@ But now that we have @{text setsum} things are easy:
 definition
   card :: "'a set \<Rightarrow> nat"
 where
-  [code func del]: "card A = setsum (\<lambda>x. 1) A"
+  "card A = setsum (\<lambda>x. 1) A"
 
 lemma card_empty [simp]: "card {} = 0"
 by (simp add: card_def)
@@ -1570,12 +1566,6 @@ qed
 lemma card_insert: "finite A ==> card (insert x A) = Suc (card (A - {x}))"
 by (simp add: card_insert_if card_Suc_Diff1 del:card_Diff_insert)
 
-lemma card_code [code func]:
-  "card {} = 0"
-  "card (insert a A) =
-    (if finite A then Suc (card (A - {a})) else card (insert a A))"
-  by (auto simp add: card_insert)
-
 lemma card_insert_le: "finite A ==> card A <= card (insert x A)"
 by (simp add: card_insert_if)
 
@@ -1592,7 +1582,7 @@ lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
   done
 
 lemma psubset_card_mono: "finite B ==> A < B ==> card A < card B"
-apply (simp add: psubset_def linorder_not_le [symmetric])
+apply (simp add: psubset_eq linorder_not_le [symmetric])
 apply (blast dest: card_seteq)
 done
 
@@ -2229,7 +2219,7 @@ proof -
   from assms show ?thesis
     by (simp add: Inf_fin_def image_def
       hom_fold1_commute [where h="sup x", OF sup_inf_distrib1])
-        (rule arg_cong, blast)
+        (rule arg_cong [where f="fold1 inf"], blast)
 qed
 
 lemma sup_Inf2_distrib:
@@ -2273,7 +2263,7 @@ proof -
     by (rule ab_semigroup_idem_mult_sup)
   from assms show ?thesis
     by (simp add: Sup_fin_def image_def hom_fold1_commute [where h="inf x", OF inf_sup_distrib1])
-      (rule arg_cong, blast)
+      (rule arg_cong [where f="fold1 sup"], blast)
 qed
 
 lemma inf_Sup2_distrib:
