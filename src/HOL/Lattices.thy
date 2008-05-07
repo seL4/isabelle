@@ -6,7 +6,7 @@
 header {* Abstract lattices *}
 
 theory Lattices
-imports Orderings
+imports Fun
 begin
 
 subsection{* Lattices *}
@@ -506,53 +506,6 @@ lemma bot_bool_eq: "bot = False"
   by (iprover intro!: order_antisym le_boolI bot_least)
 
 
-subsection {* Set as lattice *}
-
-instantiation set :: (type) distrib_lattice
-begin
-
-definition
-  inf_set_eq [code func del]: "A \<sqinter> B = A \<inter> B"
-
-definition
-  sup_set_eq [code func del]: "A \<squnion> B = A \<union> B"
-
-instance
-  by intro_classes (auto simp add: inf_set_eq sup_set_eq)
-
-end
-
-lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
-  apply (fold inf_set_eq sup_set_eq)
-  apply (erule mono_inf)
-  done
-
-lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
-  apply (fold inf_set_eq sup_set_eq)
-  apply (erule mono_sup)
-  done
-
-instantiation set :: (type) complete_lattice
-begin
-
-definition
-  Inf_set_def [code func del]: "\<Sqinter>S \<equiv> \<Inter>S"
-
-definition
-  Sup_set_def [code func del]: "\<Squnion>S \<equiv> \<Union>S"
-
-instance
-  by intro_classes (auto simp add: Inf_set_def Sup_set_def)
-
-end
-
-lemma top_set_eq: "top = UNIV"
-  by (iprover intro!: subset_antisym subset_UNIV top_greatest)
-
-lemma bot_set_eq: "bot = {}"
-  by (iprover intro!: subset_antisym empty_subsetI bot_least)
-
-
 subsection {* Fun as lattice *}
 
 instantiation "fun" :: (type, lattice) lattice
@@ -608,6 +561,61 @@ lemma top_fun_eq: "top = (\<lambda>x. top)"
 
 lemma bot_fun_eq: "bot = (\<lambda>x. bot)"
   by (iprover intro!: order_antisym le_funI bot_least)
+
+
+subsection {* Set as lattice *}
+
+lemma inf_set_eq: "A \<sqinter> B = A \<inter> B"
+  apply (rule subset_antisym)
+  apply (rule Int_greatest)
+  apply (rule inf_le1)
+  apply (rule inf_le2)
+  apply (rule inf_greatest)
+  apply (rule Int_lower1)
+  apply (rule Int_lower2)
+  done
+
+lemma sup_set_eq: "A \<squnion> B = A \<union> B"
+  apply (rule subset_antisym)
+  apply (rule sup_least)
+  apply (rule Un_upper1)
+  apply (rule Un_upper2)
+  apply (rule Un_least)
+  apply (rule sup_ge1)
+  apply (rule sup_ge2)
+  done
+
+lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
+  apply (fold inf_set_eq sup_set_eq)
+  apply (erule mono_inf)
+  done
+
+lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
+  apply (fold inf_set_eq sup_set_eq)
+  apply (erule mono_sup)
+  done
+
+lemma Inf_set_eq: "\<Sqinter>S = \<Inter>S"
+  apply (rule subset_antisym)
+  apply (rule Inter_greatest)
+  apply (erule Inf_lower)
+  apply (rule Inf_greatest)
+  apply (erule Inter_lower)
+  done
+
+lemma Sup_set_eq: "\<Squnion>S = \<Union>S"
+  apply (rule subset_antisym)
+  apply (rule Sup_least)
+  apply (erule Union_upper)
+  apply (rule Union_least)
+  apply (erule Sup_upper)
+  done
+  
+lemma top_set_eq: "top = UNIV"
+  by (iprover intro!: subset_antisym subset_UNIV top_greatest)
+
+lemma bot_set_eq: "bot = {}"
+  by (iprover intro!: subset_antisym empty_subsetI bot_least)
 
 
 text {* redundant bindings *}
