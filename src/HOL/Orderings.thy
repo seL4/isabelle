@@ -6,7 +6,7 @@
 header {* Abstract orderings *}
 
 theory Orderings
-imports Set Fun
+imports Code_Setup
 uses
   "~~/src/Provers/order.ML"
 begin
@@ -537,21 +537,6 @@ end
 *}
 
 
-subsection {* Dense orders *}
-
-class dense_linear_order = linorder + 
-  assumes gt_ex: "\<exists>y. x < y" 
-  and lt_ex: "\<exists>y. y < x"
-  and dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
-  (*see further theory Dense_Linear_Order*)
-begin
-
-lemma interval_empty_iff:
-  "{y. x < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
-  by (auto dest: dense)
-
-end
-
 subsection {* Name duplicates *}
 
 lemmas order_less_le = less_le
@@ -959,16 +944,6 @@ lemma [code func]:
   unfolding le_bool_def less_bool_def by simp_all
 
 
-subsection {* Order on sets *}
-
-instance set :: (type) order
-  by (intro_classes,
-      (assumption | rule subset_refl subset_trans subset_antisym psubset_eq)+)
-
-lemmas basic_trans_rules [trans] =
-  order_trans_rules set_rev_mp set_mp
-
-
 subsection {* Order on functions *}
 
 instantiation "fun" :: (type, ord) ord
@@ -986,8 +961,8 @@ end
 
 instance "fun" :: (type, order) order
   by default
-    (auto simp add: le_fun_def less_fun_def expand_fun_eq
-       intro: order_trans order_antisym)
+    (auto simp add: le_fun_def less_fun_def
+       intro: order_trans order_antisym intro!: ext)
 
 lemma le_funI: "(\<And>x. f x \<le> g x) \<Longrightarrow> f \<le> g"
   unfolding le_fun_def by simp
@@ -1003,7 +978,7 @@ text {*
   on unary and binary predicates
 *}
 
-lemma predicate1I [Pure.intro!, intro!]:
+lemma predicate1I:
   assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
   shows "P \<le> Q"
   apply (rule le_funI)
@@ -1085,23 +1060,6 @@ lemma LeastI2_order:
 apply (unfold Least_def)
 apply (rule theI2)
   apply (blast intro: order_antisym)+
-done
-
-lemma Least_mono:
-  "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
-    ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
-    -- {* Courtesy of Stephan Merz *}
-  apply clarify
-  apply (erule_tac P = "%x. x : S" in LeastI2_order, fast)
-  apply (rule LeastI2_order)
-  apply (auto elim: monoD intro!: order_antisym)
-  done
-
-lemma Least_equality:
-  "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
-apply (simp add: Least_def)
-apply (rule the_equality)
-apply (auto intro!: order_antisym)
 done
 
 lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
