@@ -191,11 +191,11 @@ fun modes_of modes t =
     | _ => default)
   end;
 
-datatype indprem = Prem of term list * term | Sidecond of term;
+datatype indprem = Prem of term list * term * bool | Sidecond of term;
 
 fun select_mode_prem thy modes vs ps =
   find_first (is_some o snd) (ps ~~ map
-    (fn Prem (us, t) => find_first (fn Mode (_, is, _) =>
+    (fn Prem (us, t, is_set) => find_first (fn Mode (_, is, _) =>
           let
             val (in_ts, out_ts) = get_args is 1 us;
             val (out_ts', in_ts') = List.partition (is_constrt thy) out_ts;
@@ -208,7 +208,9 @@ fun select_mode_prem thy modes vs ps =
             term_vs t subset vs andalso
             forall is_eqT dupTs
           end)
-            (modes_of modes t handle Option => [Mode (([], []), [], [])])
+            (if is_set then [Mode (([], []), [], [])]
+             else modes_of modes t handle Option =>
+               error ("Bad predicate: " ^ Sign.string_of_term thy t))
       | Sidecond t => if term_vs t subset vs then SOME (Mode (([], []), [], []))
           else NONE) ps);
 
@@ -221,7 +223,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
       | check_mode_prems vs ps = (case select_mode_prem thy modes' vs ps of
           NONE => NONE
         | SOME (x, _) => check_mode_prems
-            (case x of Prem (us, _) => vs union terms_vs us | _ => vs)
+            (case x of Prem (us, _, _) => vs union terms_vs us | _ => vs)
             (filter_out (equal x) ps));
     val (in_ts, in_ts') = List.partition (is_constrt thy) (fst (get_args is 1 ts));
     val in_vs = terms_vs in_ts;
@@ -390,21 +392,21 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
             val (gr1, eq_ps) = foldl_map compile_eq (gr0, eqs)
           in
             (case p of
-               Prem (us, t) =>
+               Prem (us, t, is_set) =>
                  let
                    val (in_ts, out_ts''') = get_args js 1 us;
                    val (gr2, in_ps) = foldl_map
                      (invoke_codegen thy defs dep module true) (gr1, in_ts);
-                   val (gr3, ps) = (case body_type (fastype_of t) of
-                       Type ("bool", []) =>
+                   val (gr3, ps) =
+                     if not is_set then
                        apsnd (fn ps => ps @
                            (if null in_ps then [] else [Pretty.brk 1]) @
                            separate (Pretty.brk 1) in_ps)
                          (compile_expr thy defs dep module false modes
                            (gr2, (mode, t)))
-                     | _ =>
+                     else
                        apsnd (fn p => [Pretty.str "DSeq.of_list", Pretty.brk 1, p])
-                           (invoke_codegen thy defs dep module true (gr2, t)));
+                           (invoke_codegen thy defs dep module true (gr2, t));
                    val (gr4, rest) = compile_prems out_ts''' vs' (fst nvs) gr3 ps';
                  in
                    (gr4, compile_match (snd nvs) eq_ps out_ps
@@ -504,16 +506,16 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
       fun get_nparms s = if s mem names then SOME nparms else
         Option.map #3 (get_clauses thy s);
 
-      fun dest_prem (_ $ (Const ("op :", _) $ t $ u)) = Prem ([t], u)
-        | dest_prem (_ $ ((eq as Const ("op =", _)) $ t $ u)) = Prem ([t, u], eq)
+      fun dest_prem (_ $ (Const ("op :", _) $ t $ u)) = Prem ([t], Envir.beta_eta_contract u, true)
+        | dest_prem (_ $ ((eq as Const ("op =", _)) $ t $ u)) = Prem ([t, u], eq, false)
         | dest_prem (_ $ t) =
             (case strip_comb t of
-               (v as Var _, ts) => if v mem args then Prem (ts, v) else Sidecond t
+               (v as Var _, ts) => if v mem args then Prem (ts, v, false) else Sidecond t
              | (c as Const (s, _), ts) => (case get_nparms s of
                  NONE => Sidecond t
                | SOME k =>
                    let val (ts1, ts2) = chop k ts
-                   in Prem (ts2, list_comb (c, ts1)) end)
+                   in Prem (ts2, list_comb (c, ts1), false) end)
              | _ => Sidecond t);
 
       fun add_clause intr (clauses, arities) =

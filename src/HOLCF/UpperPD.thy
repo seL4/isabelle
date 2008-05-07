@@ -126,12 +126,12 @@ apply (rule ex_approx_pd_eq)
 apply (rule ideal_Rep_upper_pd)
 apply (rule cont_Rep_upper_pd)
 apply (rule Rep_upper_principal)
-apply (simp only: less_upper_pd_def less_set_def)
+apply (simp only: less_upper_pd_def less_set_eq)
 done
 
 lemma upper_principal_less_iff [simp]:
   "(upper_principal t \<sqsubseteq> upper_principal u) = (t \<le>\<sharp> u)"
-unfolding less_upper_pd_def Rep_upper_principal less_set_def
+unfolding less_upper_pd_def Rep_upper_principal less_set_eq
 by (fast intro: upper_le_refl elim: upper_le_trans)
 
 lemma upper_principal_mono:

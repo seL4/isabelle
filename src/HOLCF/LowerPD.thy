@@ -106,7 +106,7 @@ lemma ideal_Rep_lower_pd: "lower_le.ideal (Rep_lower_pd x)"
 by (rule Rep_lower_pd [simplified])
 
 lemma Rep_lower_pd_mono: "x \<sqsubseteq> y \<Longrightarrow> Rep_lower_pd x \<subseteq> Rep_lower_pd y"
-unfolding less_lower_pd_def less_set_def .
+unfolding less_lower_pd_def less_set_eq .
 
 
 subsection {* Principal ideals *}
@@ -134,12 +134,12 @@ apply (rule ex_approx_pd_eq)
 apply (rule ideal_Rep_lower_pd)
 apply (rule cont_Rep_lower_pd)
 apply (rule Rep_lower_principal)
-apply (simp only: less_lower_pd_def less_set_def)
+apply (simp only: less_lower_pd_def less_set_eq)
 done
 
 lemma lower_principal_less_iff [simp]:
   "(lower_principal t \<sqsubseteq> lower_principal u) = (t \<le>\<flat> u)"
-unfolding less_lower_pd_def Rep_lower_principal less_set_def
+unfolding less_lower_pd_def Rep_lower_principal less_set_eq
 by (fast intro: lower_le_refl elim: lower_le_trans)
 
 lemma lower_principal_mono:
@@ -151,7 +151,7 @@ apply (rule compactI2)
 apply (simp add: less_lower_pd_def)
 apply (simp add: cont2contlubE [OF cont_Rep_lower_pd])
 apply (simp add: Rep_lower_principal set_cpo_simps)
-apply (simp add: subset_def)
+apply (simp add: subset_eq)
 apply (drule spec, drule mp, rule lower_le_refl)
 apply (erule exE, rename_tac i)
 apply (rule_tac x=i in exI)

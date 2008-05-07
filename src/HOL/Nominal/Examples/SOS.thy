@@ -422,7 +422,7 @@ lemma V_eqvt:
   shows "(pi\<bullet>x)\<in>V T"
 using a
 apply(nominal_induct T arbitrary: pi x rule: ty.induct)
-apply(auto simp add: trm.inject perm_set_def)
+apply(auto simp add: trm.inject)
 apply(simp add: eqvts)
 apply(rule_tac x="pi\<bullet>xa" in exI)
 apply(rule_tac x="pi\<bullet>e" in exI)

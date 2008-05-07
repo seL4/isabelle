@@ -44,7 +44,6 @@ inductive_set
   where
     succI:        "x \<in> TFin S ==> succ S x \<in> TFin S"
   | Pow_UnionI:   "Y \<in> Pow(TFin S) ==> Union(Y) \<in> TFin S"
-  monos          Pow_mono
 
 
 subsection{*Mathematical Preamble*}
@@ -57,22 +56,20 @@ lemma Union_lemma0:
 text{*This is theorem @{text increasingD2} of ZF/Zorn.thy*}
 
 lemma Abrial_axiom1: "x \<subseteq> succ S x"
-  apply (unfold succ_def)
-  apply (rule split_if [THEN iffD2])
-  apply (auto simp add: super_def maxchain_def psubset_def)
+  apply (auto simp add: succ_def super_def maxchain_def)
   apply (rule contrapos_np, assumption)
-  apply (rule someI2, blast+)
+  apply (rule_tac Q="\<lambda>S. xa \<in> S" in someI2, blast+)
   done
 
 lemmas TFin_UnionI = TFin.Pow_UnionI [OF PowI]
 
 lemma TFin_induct:
-          "[| n \<in> TFin S;
-             !!x. [| x \<in> TFin S; P(x) |] ==> P(succ S x);
-             !!Y. [| Y \<subseteq> TFin S; Ball Y P |] ==> P(Union Y) |]
-          ==> P(n)"
-  apply (induct set: TFin)
-   apply blast+
+  assumes H: "n \<in> TFin S"
+  and I: "!!x. x \<in> TFin S ==> P x ==> P (succ S x)"
+    "!!Y. Y \<subseteq> TFin S ==> Ball Y P ==> P(Union Y)"
+  shows "P n" using H
+  apply (induct rule: TFin.induct [where P=P])
+   apply (blast intro: I)+
   done
 
 lemma succ_trans: "x \<subseteq> y ==> x \<subseteq> succ S y"
@@ -163,14 +160,14 @@ lemma mem_super_Ex: "c \<in> chain S - maxchain S ==> EX d. d \<in> super S c"
 lemma select_super:
      "c \<in> chain S - maxchain S ==> (\<some>c'. c': super S c): super S c"
   apply (erule mem_super_Ex [THEN exE])
-  apply (rule someI2, auto)
+  apply (rule someI2 [where Q="%X. X : super S c"], auto)
   done
 
 lemma select_not_equals:
      "c \<in> chain S - maxchain S ==> (\<some>c'. c': super S c) \<noteq> c"
   apply (rule notI)
   apply (drule select_super)
-  apply (simp add: super_def psubset_def)
+  apply (simp add: super_def less_le)
   done
 
 lemma succI3: "c \<in> chain S - maxchain S ==> succ S c = (\<some>c'. c': super S c)"
@@ -189,7 +186,7 @@ lemma TFin_chain_lemma4: "c \<in> TFin S ==> (c :: 'a set set): chain S"
   apply (rule CollectI, safe)
    apply (drule bspec, assumption)
    apply (rule_tac [2] m1 = Xa and n1 = X in TFin_subset_linear [THEN disjE],
-     blast+)
+     best+)
   done
 
 theorem Hausdorff: "\<exists>c. (c :: 'a set set): maxchain S"
@@ -223,7 +220,7 @@ apply (simp add: maxchain_def)
 apply (erule conjE)
 apply (subgoal_tac "({u} Un c) \<in> super S c")
  apply simp
-apply (unfold super_def psubset_def)
+apply (unfold super_def less_le)
 apply (blast intro: chain_extend dest: chain_Union_upper)
 done
 
@@ -253,7 +250,7 @@ apply clarify
 apply (rule ccontr)
 apply (frule_tac z = x in chain_extend)
   apply (assumption, blast)
-apply (unfold maxchain_def super_def psubset_def)
+apply (unfold maxchain_def super_def less_le)
 apply (blast elim!: equalityCE)
 done
 

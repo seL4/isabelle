@@ -42,7 +42,7 @@ lemma bigo_LIMSEQ2: "f =o g +o O(h) ==> h ----> 0 ==> f ----> a
   apply (drule set_plus_imp_minus)
   apply (drule bigo_LIMSEQ1)
   apply assumption
-  apply (simp only: func_diff)
+  apply (simp only: fun_diff_def)
   apply (erule LIMSEQ_diff_approach_zero2)
   apply assumption
 done

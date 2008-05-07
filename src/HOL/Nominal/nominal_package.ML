@@ -1183,8 +1183,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val ind_prems' =
       map (fn (_, f as Free (_, T)) => list_all_free ([("x", fsT')],
-        HOLogic.mk_Trueprop (Const ("Finite_Set.finite", body_type T -->
-          HOLogic.boolT) $ (f $ Free ("x", fsT'))))) fresh_fs @
+        HOLogic.mk_Trueprop (Const ("Finite_Set.finite",
+          (snd (split_last (binder_types T)) --> HOLogic.boolT) -->
+            HOLogic.boolT) $ (f $ Free ("x", fsT'))))) fresh_fs @
       List.concat (map (fn (((i, (_, _, constrs)), (_, idxss)), T) =>
         map (make_ind_prem fsT' (fn T => fn t => fn u => HOLogic.Not $
           HOLogic.mk_mem (t, the (AList.lookup op = fresh_fs T) $ u)) i T)

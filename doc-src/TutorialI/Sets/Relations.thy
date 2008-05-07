@@ -151,7 +151,7 @@ done
 text{*Pow, Inter too little used*}
 
 lemma "(A \<subset> B) = (A \<subseteq> B \<and> A \<noteq> B)"
-apply (simp add: psubset_def)
+apply (simp add: psubset_eq)
 done
 
 end

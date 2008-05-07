@@ -151,7 +151,7 @@ lemma ideal_Rep_convex_pd: "convex_le.ideal (Rep_convex_pd xs)"
 by (rule Rep_convex_pd [simplified])
 
 lemma Rep_convex_pd_mono: "xs \<sqsubseteq> ys \<Longrightarrow> Rep_convex_pd xs \<subseteq> Rep_convex_pd ys"
-unfolding less_convex_pd_def less_set_def .
+unfolding less_convex_pd_def less_set_eq .
 
 
 subsection {* Principal ideals *}
@@ -179,12 +179,12 @@ apply (rule ex_approx_pd_eq)
 apply (rule ideal_Rep_convex_pd)
 apply (rule cont_Rep_convex_pd)
 apply (rule Rep_convex_principal)
-apply (simp only: less_convex_pd_def less_set_def)
+apply (simp only: less_convex_pd_def less_set_eq)
 done
 
 lemma convex_principal_less_iff [simp]:
   "(convex_principal t \<sqsubseteq> convex_principal u) = (t \<le>\<natural> u)"
-unfolding less_convex_pd_def Rep_convex_principal less_set_def
+unfolding less_convex_pd_def Rep_convex_principal less_set_eq
 by (fast intro: convex_le_refl elim: convex_le_trans)
 
 lemma convex_principal_mono:

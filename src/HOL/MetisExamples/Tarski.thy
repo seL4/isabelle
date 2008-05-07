@@ -672,7 +672,7 @@ ML{*ResAtp.problem_name:="Tarski__interval_subset"*}
   declare (in CLF) rel_imp_elem[intro] 
   declare interval_def [simp]
 lemma (in CLF) interval_subset: "[| a \<in> A; b \<in> A |] ==> interval r a b \<subseteq> A"
-by (metis CO_refl interval_imp_mem reflD reflD2 rel_imp_elem subset_def)
+by (metis CO_refl interval_imp_mem reflD reflD2 rel_imp_elem subset_eq)
   declare (in CLF) rel_imp_elem[rule del] 
   declare interval_def [simp del]
 
@@ -1013,7 +1013,7 @@ done
 ML_command{*ResAtp.problem_name:="Tarski__fz_in_int_rel"*}  (*ALL THEOREMS*)
 lemma (in Tarski) f'z_in_int_rel: "[| z \<in> P; \<forall>y\<in>Y. (y, z) \<in> induced P r |]
       ==> ((%x: intY1. f x) z, z) \<in> induced intY1 r" 
-apply (metis P_def acc_def fix_imp_eq fix_subset indI reflE restrict_apply subset_def z_in_interval)
+apply (metis P_def acc_def fix_imp_eq fix_subset indI reflE restrict_apply subset_eq z_in_interval)
 done
 
 (*never proved, 2007-01-22*)

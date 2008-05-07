@@ -103,7 +103,7 @@ abbreviation "Well_order r \<equiv> well_order_on (Field r) r"
 lemma subset_Image_Image_iff:
   "\<lbrakk> Preorder r; A \<subseteq> Field r; B \<subseteq> Field r\<rbrakk> \<Longrightarrow>
    r `` A \<subseteq> r `` B \<longleftrightarrow> (\<forall>a\<in>A.\<exists>b\<in>B. (b,a):r)"
-apply(auto simp add:subset_def preorder_on_def refl_def Image_def)
+apply(auto simp add: subset_eq preorder_on_def refl_def Image_def)
 apply metis
 by(metis trans_def)
 

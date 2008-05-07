@@ -375,11 +375,15 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                (map (pair "x") Ts, S $ app_bnds f i)),
              HOLogic.mk_Trueprop (HOLogic.mk_eq (list_abs (map (pair "x") Ts,
                r $ (a $ app_bnds f i)), f))))
-            (fn _ => EVERY [REPEAT (rtac ext 1), REPEAT (etac allE 1), rtac thm 1, atac 1])
+            (fn _ => EVERY [REPEAT_DETERM_N i (rtac ext 1),
+               REPEAT (etac allE 1), rtac thm 1, atac 1])
           end
       in map (fn r => r RS subst) (thm :: map mk_thm arities) end;
 
     (* prove  inj dt_Rep_i  and  dt_Rep_i x : dt_rep_set_i *)
+
+    val fun_congs = map (fn T => make_elim (Drule.instantiate'
+      [SOME (ctyp_of thy5 T)] [] fun_cong)) branchTs;
 
     fun prove_iso_thms (ds, (inj_thms, elem_thms)) =
       let
@@ -422,7 +426,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                         [REPEAT (rtac ext 1),
                          REPEAT (eresolve_tac (mp :: allE ::
                            map make_elim (Suml_inject :: Sumr_inject ::
-                             Lim_inject :: fun_cong :: inj_thms')) 1),
+                             Lim_inject :: inj_thms') @ fun_congs) 1),
                          atac 1]))])])])]);
 
         val inj_thms'' = map (fn r => r RS @{thm datatype_injI})

@@ -290,7 +290,7 @@ fun collect_vars i (Bound j) vs = if j < i then vs else insert (op =) (Bound (j 
 fun finite_guess_tac tactical ss i st =
     let val goal = List.nth(cprems_of st, i-1)
     in
-      case Logic.strip_assums_concl (term_of goal) of
+      case Envir.eta_contract (Logic.strip_assums_concl (term_of goal)) of
           _ $ (Const ("Finite_Set.finite", _) $ (Const ("Nominal.supp", T) $ x)) =>
           let
             val cert = Thm.cterm_of (Thm.theory_of_thm st);
@@ -301,7 +301,8 @@ fun finite_guess_tac tactical ss i st =
                 HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s)
               (vs, HOLogic.unit);
             val s' = list_abs (ps,
-              Const ("Nominal.supp", fastype_of1 (Ts, s) --> body_type T) $ s);
+              Const ("Nominal.supp", fastype_of1 (Ts, s) -->
+                snd (split_last (binder_types T)) --> HOLogic.boolT) $ s);
             val supports_rule' = Thm.lift_rule goal supports_rule;
             val _ $ (_ $ S $ _) =
               Logic.strip_assums_concl (hd (prems_of supports_rule'));

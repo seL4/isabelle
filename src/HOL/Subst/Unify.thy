@@ -117,7 +117,7 @@ apply (simp add: less_eq unifyRel_def lex_prod_def)
 apply blast
 txt{*@{text finite_psubset} case*}
 apply (simp add: unifyRel_def lex_prod_def)
-apply (simp add: finite_psubset_def finite_vars_of psubset_def)
+apply (simp add: finite_psubset_def finite_vars_of psubset_eq)
 apply blast
 txt{*Final case, also @{text finite_psubset}*}
 apply (simp add: finite_vars_of unifyRel_def finite_psubset_def lex_prod_def)

@@ -262,7 +262,7 @@ apply (rule_tac [2] M1_subset_G)
 apply (rule coset_join1 [THEN in_H_imp_eq])
 apply (rule_tac [3] H_is_subgroup)
 prefer 2 apply (blast intro: m_closed M_elem_map_carrier inv_closed)
-apply (simp add: coset_mult_inv2 H_def M_elem_map_carrier subset_def)
+apply (simp add: coset_mult_inv2 H_def M_elem_map_carrier subset_eq)
 done
 
 

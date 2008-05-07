@@ -300,33 +300,33 @@ lemma asig_of_par: "asig_of(A || B) = asig_comp (asig_of A) (asig_of B)"
 lemma externals_of_par: "ext (A1||A2) =     
    (ext A1) Un (ext A2)"
 apply (simp add: externals_def asig_of_par asig_comp_def
-  asig_inputs_def asig_outputs_def Un_def set_diff_def)
+  asig_inputs_def asig_outputs_def Un_def set_diff_eq)
 apply blast
 done
 
 lemma actions_of_par: "act (A1||A2) =     
    (act A1) Un (act A2)"
 apply (simp add: actions_def asig_of_par asig_comp_def
-  asig_inputs_def asig_outputs_def asig_internals_def Un_def set_diff_def)
+  asig_inputs_def asig_outputs_def asig_internals_def Un_def set_diff_eq)
 apply blast
 done
 
 lemma inputs_of_par: "inp (A1||A2) = 
           ((inp A1) Un (inp A2)) - ((out A1) Un (out A2))"
 apply (simp add: actions_def asig_of_par asig_comp_def
-  asig_inputs_def asig_outputs_def Un_def set_diff_def)
+  asig_inputs_def asig_outputs_def Un_def set_diff_eq)
 done
 
 lemma outputs_of_par: "out (A1||A2) = 
           (out A1) Un (out A2)"
 apply (simp add: actions_def asig_of_par asig_comp_def
-  asig_outputs_def Un_def set_diff_def)
+  asig_outputs_def Un_def set_diff_eq)
 done
 
 lemma internals_of_par: "int (A1||A2) = 
           (int A1) Un (int A2)"
 apply (simp add: actions_def asig_of_par asig_comp_def
-  asig_inputs_def asig_outputs_def asig_internals_def Un_def set_diff_def)
+  asig_inputs_def asig_outputs_def asig_internals_def Un_def set_diff_eq)
 done
 
 

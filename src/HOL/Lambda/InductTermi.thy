@@ -34,7 +34,6 @@ lemma double_induction_lemma [rule_format]:
   apply clarify
   apply (rule accp.accI)
   apply (safe elim!: apps_betasE)
-     apply assumption
     apply (blast intro: subst_preserves_beta apps_preserves_beta)
    apply (blast intro: apps_preserves_beta2 subst_preserves_beta2 rtranclp_converseI
      dest: accp_downwards)  (* FIXME: acc_downwards can be replaced by acc(R ^* ) = acc(r) *)
@@ -44,7 +43,7 @@ lemma double_induction_lemma [rule_format]:
 lemma IT_implies_termi: "IT t ==> termip beta t"
   apply (induct set: IT)
     apply (drule rev_predicate1D [OF _ listsp_mono [where B="termip beta"]])
-    apply fast
+    apply (fast intro!: predicate1I)
     apply (drule lists_accD)
     apply (erule accp_induct)
     apply (rule accp.accI)

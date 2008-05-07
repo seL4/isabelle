@@ -202,7 +202,7 @@ done
 
 (* Axiom 'order_less_le' of class 'order': *)
 lemma preal_less_le: "((w::preal) < z) = (w \<le> z & w \<noteq> z)"
-by (simp add: preal_le_def preal_less_def Rep_preal_inject psubset_def)
+by (simp add: preal_le_def preal_less_def Rep_preal_inject less_le)
 
 instance preal :: order
   by intro_classes
@@ -943,7 +943,7 @@ by (insert Rep_preal_sum_not_subset, blast)
 
 text{*at last, Gleason prop. 9-3.5(iii) page 123*}
 lemma preal_self_less_add_left: "(R::preal) < R + S"
-apply (unfold preal_less_def psubset_def)
+apply (unfold preal_less_def less_le)
 apply (simp add: Rep_preal_self_subset Rep_preal_sum_not_eq [THEN not_sym])
 done
 

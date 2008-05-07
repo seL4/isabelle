@@ -227,7 +227,7 @@ by (rule approxesD, simp add: approxes_principal)
 
 lemma lessI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
 unfolding principal_less_iff
-by (simp add: less_def subset_def)
+by (simp add: less_def subset_eq)
 
 lemma lub_principal_approxes: "principal ` approxes x <<| x"
 apply (rule is_lubI)

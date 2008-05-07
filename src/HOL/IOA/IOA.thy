@@ -337,7 +337,7 @@ lemma asig_of_par: "asig_of(A || B) = asig_comp (asig_of A) (asig_of B)"
 lemma externals_of_par: "externals(asig_of(A1||A2)) =
    (externals(asig_of(A1)) Un externals(asig_of(A2)))"
   apply (simp add: externals_def asig_of_par asig_comp_def
-    asig_inputs_def asig_outputs_def Un_def set_diff_def)
+    asig_inputs_def asig_outputs_def Un_def set_diff_eq)
   apply blast
   done
 

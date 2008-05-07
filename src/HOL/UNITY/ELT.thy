@@ -102,7 +102,7 @@ lemma givenBy_DiffI:
 apply (simp (no_asm_use) add: givenBy_eq_Collect)
 apply safe
 apply (rule_tac x = "%z. ?R z & ~ ?Q z" in exI)
-unfolding set_diff_def
+unfolding set_diff_eq
 apply auto
 done
 

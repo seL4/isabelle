@@ -36,7 +36,7 @@ lemma InternalSets_Int:
 by (auto simp add: InternalSets_def starset_n_Int [symmetric])
 
 lemma starset_n_Compl: "*sn* ((%n. - A n)) = -( *sn* A)"
-apply (simp add: starset_n_def star_n_eq_starfun_whn Compl_def)
+apply (simp add: starset_n_def star_n_eq_starfun_whn Compl_eq)
 apply (rule_tac x=whn in spec, transfer, simp)
 done
 
@@ -44,7 +44,7 @@ lemma InternalSets_Compl: "X \<in> InternalSets ==> -X \<in> InternalSets"
 by (auto simp add: InternalSets_def starset_n_Compl [symmetric])
 
 lemma starset_n_diff: "*sn* (%n. (A n) - (B n)) = *sn* A - *sn* B"
-apply (simp add: starset_n_def star_n_eq_starfun_whn set_diff_def)
+apply (simp add: starset_n_def star_n_eq_starfun_whn set_diff_eq)
 apply (rule_tac x=whn in spec, transfer, simp)
 done
 

@@ -85,11 +85,11 @@ done
 
 lemma [pred_set_conv]:
   "((\<lambda>x x' y y'. ((x, x'), (y, y')) \<in> R) <= (\<lambda>x x' y y'. ((x, x'), (y, y')) \<in> S)) = (R <= S)"
-  by (auto simp add: le_fun_def le_bool_def)
+  by (auto simp add: le_fun_def le_bool_def mem_def)
 
 lemma [pred_set_conv]:
   "((\<lambda>x x' y. ((x, x'), y) \<in> R) <= (\<lambda>x x' y. ((x, x'), y) \<in> S)) = (R <= S)"
-  by (auto simp add: le_fun_def le_bool_def)
+  by (auto simp add: le_fun_def le_bool_def mem_def)
 
 declare [[unify_trace_bound = 30, unify_search_bound = 60]]
 

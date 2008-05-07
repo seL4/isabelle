@@ -18,7 +18,7 @@ definition
 
 lemma freeultrafilter_FreeUltrafilterNat: "freeultrafilter \<U>"
 apply (unfold FreeUltrafilterNat_def)
-apply (rule someI_ex)
+apply (rule someI_ex [where P=freeultrafilter])
 apply (rule freeultrafilter_Ex)
 apply (rule nat_infinite)
 done
@@ -401,10 +401,10 @@ lemma starset_Int: "*s* (A \<inter> B) = *s* A \<inter> *s* B"
 by (transfer Int_def, rule refl)
 
 lemma starset_Compl: "*s* -A = -( *s* A)"
-by (transfer Compl_def, rule refl)
+by (transfer Compl_eq, rule refl)
 
 lemma starset_diff: "*s* (A - B) = *s* A - *s* B"
-by (transfer set_diff_def, rule refl)
+by (transfer set_diff_eq, rule refl)
 
 lemma starset_image: "*s* (f ` A) = ( *f* f) ` ( *s* A)"
 by (transfer image_def, rule refl)
@@ -413,7 +413,7 @@ lemma starset_vimage: "*s* (f -` A) = ( *f* f) -` ( *s* A)"
 by (transfer vimage_def, rule refl)
 
 lemma starset_subset: "( *s* A \<subseteq> *s* B) = (A \<subseteq> B)"
-by (transfer subset_def, rule refl)
+by (transfer subset_eq, rule refl)
 
 lemma starset_eq: "( *s* A = *s* B) = (A = B)"
 by (transfer, rule refl)

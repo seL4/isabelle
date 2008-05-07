@@ -87,7 +87,6 @@ setup {*
   #> RType.add_def @{type_name fun}
   #> RType.add_def @{type_name itself}
   #> RType.add_def @{type_name bool}
-  #> RType.add_def @{type_name set}
   #> TypedefPackage.interpretation RType.perhaps_add_def
 *}
 

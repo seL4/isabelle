@@ -237,7 +237,7 @@ fun mk_to_pred_eq p fs optfs' T thm =
         NONE => thm' RS sym
       | SOME fs' =>
           let
-            val U = HOLogic.dest_setT (body_type T);
+            val (_, U) = split_last (binder_types T);
             val Ts = HOLogic.prodT_factors' fs' U;
             (* FIXME: should cterm_instantiate increment indexes? *)
             val arg_cong' = Thm.incr_indexes (Thm.maxidx_of thm + 1) arg_cong;
@@ -413,7 +413,7 @@ fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind
       | infer (t $ u) = infer t #> infer u
       | infer _ = I;
     val new_arities = filter_out
-      (fn (x as Free (_, Type ("fun", _)), _) => x mem params
+      (fn (x as Free (_, T), _) => x mem params andalso length (binder_types T) > 1
         | _ => false) (fold (snd #> infer) intros []);
     val params' = map (fn x => (case AList.lookup op = new_arities x of
         SOME fs =>
@@ -437,7 +437,7 @@ fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind
     val ((cs', cs_info), eqns) = cs |> map (fn c as Free (s, T) =>
       let
         val fs = the_default [] (AList.lookup op = new_arities c);
-        val U = HOLogic.dest_setT (body_type T);
+        val (_, U) = split_last (binder_types T);
         val Ts = HOLogic.prodT_factors' fs U;
         val c' = Free (s ^ "p",
           map fastype_of params1 @ Ts ---> HOLogic.boolT)

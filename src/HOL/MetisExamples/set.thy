@@ -238,7 +238,7 @@ by (metis Set.subsetI Union_upper insertCI set_eq_subset)
 
 lemma (*singleton_example_2:*)
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
-by (metis Un_absorb2 Union_insert insertI1 insert_Diff insert_Diff_single subset_def)
+by (metis Un_absorb2 Union_insert insertI1 insert_Diff insert_Diff_single subset_eq)
 
 lemma singleton_example_2:
      "\<forall>x \<in> S. \<Union>S \<subseteq> x \<Longrightarrow> \<exists>z. S \<subseteq> {z}"
