@@ -140,13 +140,13 @@ local
 
 val arg = enclose "{" "}" o clean_string;
 
-fun output_entity markup index kind src ctxt (logic, name) =
+fun output_entity markup index kind ctxt (logic, name) =
   (case index of
     NONE => ""
   | SOME is_def =>
       "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name)
   ^
-  (Output.output (if ! O.source then str_of_source src else name)
+  (Output.output name
     |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
     |> (if ! O.quotes then quote else I)
     |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
@@ -154,7 +154,7 @@ fun output_entity markup index kind src ctxt (logic, name) =
 
 fun entity markup index kind =
   O.args (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
-    (output_entity markup index kind);
+    (K (output_entity markup index kind));
     
 fun entity_antiqs markup kind =
  [(kind, entity markup NONE kind),
