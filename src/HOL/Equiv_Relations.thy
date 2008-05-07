@@ -316,7 +316,7 @@ lemma finite_equiv_class:
 lemma equiv_imp_dvd_card:
   "finite A ==> equiv A r ==> \<forall>X \<in> A//r. k dvd card X
     ==> k dvd card A"
-  apply (rule Union_quotient [THEN subst])
+  apply (rule Union_quotient [THEN subst [where P="\<lambda>A. k dvd card A"]])
    apply assumption
   apply (rule dvd_partition)
      prefer 3 apply (blast dest: quotient_disj)
