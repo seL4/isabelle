@@ -57,7 +57,7 @@ proof -
       proof
 	assume a: A
 	have "?P = ?Q"
-	proof
+	proof (rule ext)
 	  fix x show "?P x = ?Q x"
 	  proof
 	    assume "?P x"
