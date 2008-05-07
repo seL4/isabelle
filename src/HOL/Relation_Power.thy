@@ -11,8 +11,8 @@ imports Power Transitive_Closure
 begin
 
 instance
-  set :: (type) power ..
-      --{* only type @{typ "('a * 'a) set"} should be in class @{text power}!*}
+  "fun" :: (type, type) power ..
+      --{* only type @{typ "'a => 'a"} should be in class @{text power}!*}
 
 overloading
   relpow \<equiv> "power \<Colon> ('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a \<times> 'a) set"  (unchecked)
@@ -25,10 +25,6 @@ primrec relpow where
   | "(R \<Colon> ('a \<times> 'a) set) ^ Suc n = R O (R ^ n)"
 
 end
-
-instance
-  "fun" :: (type, type) power ..
-      --{* only type @{typ "'a => 'a"} should be in class @{text power}!*}
 
 overloading
   funpow \<equiv> "power \<Colon>  ('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" (unchecked)
