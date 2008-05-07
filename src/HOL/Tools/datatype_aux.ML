@@ -262,13 +262,13 @@ fun get_rec_types descr sorts = map (fn (_ , (s, ds, _)) =>
 (* get all branching types *)
 
 fun get_branching_types descr sorts =
-  map (typ_of_dtyp descr sorts) (Library.foldl (fn (Ts, (_, (_, _, constrs))) =>
-    Library.foldl (fn (Ts', (_, cargs)) => foldr op union Ts' (map (fst o strip_dtyp)
-      cargs)) (Ts, constrs)) ([], descr));
+  map (typ_of_dtyp descr sorts) (fold (fn (_, (_, _, constrs)) =>
+    fold (fn (_, cargs) => fold (strip_dtyp #> fst #> fold (insert op =)) cargs)
+      constrs) descr []);
 
-fun get_arities descr = Library.foldl (fn (is, (_, (_, _, constrs))) =>
-  Library.foldl (fn (is', (_, cargs)) => map (length o fst o strip_dtyp)
-    (List.filter is_rec_type cargs) union is') (is, constrs)) ([], descr);
+fun get_arities descr = fold (fn (_, (_, _, constrs)) =>
+  fold (fn (_, cargs) => fold (insert op =) (map (length o fst o strip_dtyp)
+    (List.filter is_rec_type cargs))) constrs) descr [];
 
 (* nonemptiness check for datatypes *)
 
