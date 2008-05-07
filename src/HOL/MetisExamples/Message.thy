@@ -181,7 +181,7 @@ by simp
 text{*WARNING: loops if H = {Y}, therefore must not be repeated!*}
 lemma parts_singleton: "X\<in> parts H ==> \<exists>Y\<in>H. X\<in> parts {Y}"
 apply (erule parts.induct)
-apply blast+
+apply fast+
 done
 
 

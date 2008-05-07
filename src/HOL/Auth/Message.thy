@@ -181,7 +181,7 @@ by simp
 
 text{*WARNING: loops if H = {Y}, therefore must not be repeated!*}
 lemma parts_singleton: "X\<in> parts H ==> \<exists>Y\<in>H. X\<in> parts {Y}"
-by (erule parts.induct, blast+)
+by (erule parts.induct, fast+)
 
 
 subsubsection{*Unions *}
