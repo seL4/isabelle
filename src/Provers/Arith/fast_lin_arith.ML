@@ -421,6 +421,10 @@ fun trace_term ctxt msg t =
 fun trace_msg msg =
   if !trace then tracing msg else ();
 
+val union_term = curry (gen_union Pattern.aeconv);
+val union_bterm = curry (gen_union
+  (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t')));
+
 (* FIXME OPTIMIZE!!!! (partly done already)
    Addition/Multiplication need i*t representation rather than t+t+...
    Get rid of Mulitplied(2). For Nat LA_Data.number_of should return Suc^n
@@ -440,7 +444,7 @@ fun mkthm ss asms (just: injust) =
     val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset, ...} = get_data ctxt;
     val simpset' = Simplifier.inherit_context ss simpset;
     val atoms = Library.foldl (fn (ats, (lhs,_,_,rhs,_,_)) =>
-                            map fst lhs  union  (map fst rhs  union  ats))
+                            union_term (map fst lhs) (union_term (map fst rhs) ats))
                         ([], List.mapPartial (fn thm => if Thm.no_prems thm
                                               then LA_Data.decomp ctxt (Thm.concl_of thm)
                                               else NONE) asms)
@@ -507,7 +511,7 @@ fun mkthm ss asms (just: injust) =
 end;
 
 fun coeff poly atom =
-  AList.lookup (op aconv) poly atom |> the_default 0;
+  AList.lookup Pattern.aeconv poly atom |> the_default 0;
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s
@@ -656,11 +660,11 @@ in
 end;
 
 fun add_atoms (ats : term list, ((lhs,_,_,rhs,_,_) : LA_Data.decompT, _)) : term list =
-    (map fst lhs) union ((map fst rhs) union ats);
+    union_term (map fst lhs) (union_term (map fst rhs) ats);
 
 fun add_datoms (dats : (bool * term) list, ((lhs,_,_,rhs,_,d) : LA_Data.decompT, _)) :
   (bool * term) list =
-  (map (pair d o fst) lhs) union ((map (pair d o fst) rhs) union dats);
+  union_bterm (map (pair d o fst) lhs) (union_bterm (map (pair d o fst) rhs) dats);
 
 fun discr (initems : (LA_Data.decompT * int) list) : bool list =
   map fst (Library.foldl add_datoms ([],initems));
