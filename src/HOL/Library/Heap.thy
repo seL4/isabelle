@@ -29,8 +29,6 @@ instance option :: (heap) heap ..
 
 instance int :: heap ..
 
-instance set :: ("{heap, finite}") heap ..
-
 instance message_string :: countable
   by (rule countable_classI [of "message_string_case to_nat"])
    (auto split: message_string.splits)
