@@ -11,14 +11,14 @@ begin
 
 subsection {* Equality and Subsets *}
 
-lemma pred_equals_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) = (R = S)"
-  by (auto simp add: expand_fun_eq)
+lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) = (R = S)"
+  by (simp add: mem_def)
 
 lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) = (R = S)"
-  by (auto simp add: expand_fun_eq)
+  by (simp add: expand_fun_eq mem_def)
 
-lemma pred_subset_eq [pred_set_conv]: "((\<lambda>x. x \<in> R) <= (\<lambda>x. x \<in> S)) = (R <= S)"
-  by fast
+lemma pred_subset_eq: "((\<lambda>x. x \<in> R) <= (\<lambda>x. x \<in> S)) = (R <= S)"
+  by (simp add: mem_def)
 
 lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) <= (\<lambda>x y. (x, y) \<in> S)) = (R <= S)"
   by fast
@@ -264,7 +264,7 @@ where
 inductive_cases DomainPE [elim!]: "DomainP r a"
 
 lemma DomainP_Domain_eq [pred_set_conv]: "DomainP (\<lambda>x y. (x, y) \<in> r) = (\<lambda>x. x \<in> Domain r)"
-  by (blast intro!: Orderings.order_antisym)
+  by (blast intro!: Orderings.order_antisym predicate1I)
 
 
 subsection {* Range *}
@@ -278,7 +278,7 @@ where
 inductive_cases RangePE [elim!]: "RangeP r b"
 
 lemma RangeP_Range_eq [pred_set_conv]: "RangeP (\<lambda>x y. (x, y) \<in> r) = (\<lambda>x. x \<in> Range r)"
-  by (blast intro!: Orderings.order_antisym)
+  by (blast intro!: Orderings.order_antisym predicate1I)
 
 
 subsection {* Inverse image *}
@@ -301,6 +301,8 @@ definition Powp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> b
 
 lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. x \<in> Pow A)"
   by (auto simp add: Powp_def expand_fun_eq)
+
+lemmas Powp_mono [mono] = Pow_mono [to_pred pred_subset_eq]
 
 
 subsection {* Properties of relations - predicate versions *}
