@@ -112,8 +112,8 @@ lemma lfp_ordinal_induct_set:
   and P_f: "!!S. P S ==> P(f S)"
   and P_Union: "!!M. !S:M. P S ==> P(Union M)"
   shows "P(lfp f)"
-  using assms unfolding Sup_set_def [symmetric]
-  by (rule lfp_ordinal_induct) 
+  using assms unfolding Sup_set_eq [symmetric]
+  by (rule lfp_ordinal_induct [where P=P])
 
 
 text{*Definition forms of @{text lfp_unfold} and @{text lfp_induct}, 
@@ -215,7 +215,7 @@ apply (erule coinduct3_mono_lemma [THEN lfp_lemma3])
 apply (rule Un_least [THEN Un_least])
 apply (rule subset_refl, assumption)
 apply (rule gfp_unfold [THEN equalityD1, THEN subset_trans], assumption)
-apply (rule monoD, assumption)
+apply (rule monoD [where f=f], assumption)
 apply (subst coinduct3_mono_lemma [THEN lfp_unfold], auto)
 done
 

@@ -566,7 +566,7 @@ apply (simp add: o_def)
 apply (drule imageI)
 apply (erule LList_equalityI, safe)
 apply (erule llist.cases, simp_all)
-apply (rule LListD_Fun_NIL_I imageI UnI1 rangeI [THEN LListD_Fun_CONS_I])+
+apply (rule LListD_Fun_NIL_I imageI UnI1 rangeI [THEN LListD_Fun_CONS_I, of _ _ _ f])+
 apply assumption  
 done
 
@@ -574,7 +574,7 @@ lemma Lmap_ident: "M \<in> llist(A) ==> Lmap (%x. x) M = M"
 apply (drule imageI)
 apply (erule LList_equalityI, safe)
 apply (erule llist.cases, simp_all)
-apply (rule LListD_Fun_NIL_I imageI UnI1 rangeI [THEN LListD_Fun_CONS_I])+
+apply (rule LListD_Fun_NIL_I imageI UnI1 rangeI [THEN LListD_Fun_CONS_I, of _ _ _ "%x. x"])+
 apply assumption 
 done
 
