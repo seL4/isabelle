@@ -36,7 +36,7 @@ lemma flatstream_adm_lemma:
   assumes 3: "(!!Y. [| Porder.chain Y; !i. P (Y i); !k. ? j. Fin k < #((Y j)::'a::flat stream)|]
   ==> P(lub (range Y)))"
   shows "P(lub (range Y))"
-apply (rule increasing_chain_adm_lemma [OF 1 2])
+apply (rule increasing_chain_adm_lemma [of _ P, OF 1 2])
 apply (erule 3, assumption)
 apply (erule thin_rl)
 apply (rule allI)
