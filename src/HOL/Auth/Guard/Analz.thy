@@ -243,13 +243,13 @@ by (erule synth.induct, auto)
 
 lemma kparts_insert_synth: "[| Y:parts (insert X G); X:synth (analz G);
 Nonce n:kparts {Y}; Nonce n ~:analz G |] ==> Y:parts G"
-apply (drule parts_insert_substD, clarify)
+apply (drule parts_insert_substD [where P="%S. Y : S"], clarify)
 apply (drule in_sub, drule_tac X=Y in parts_sub, simp)
 by (auto dest: Nonce_kparts_synth)
 
 lemma Crypt_insert_synth: "[| Crypt K Y:parts (insert X G); X:synth (analz G);
 Nonce n:kparts {Y}; Nonce n ~:analz G |] ==> Crypt K Y:parts G"
-apply (drule parts_insert_substD, clarify)
+apply (drule parts_insert_substD [where P="%S. Crypt K Y : S"], clarify)
 apply (drule in_sub, drule_tac X="Crypt K Y" in parts_sub, simp, clarsimp)
 apply (ind_cases "Crypt K Y:synth (analz G)")
 by (auto dest: Nonce_kparts_synth)
