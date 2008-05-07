@@ -190,6 +190,8 @@ code_modulename SML
   Kleene_Algebras SCT
   Implementation SCT
 
+(* FIXME
 export_code test_SCT in SML
+*)
 
 end
