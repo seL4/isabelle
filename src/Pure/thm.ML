@@ -1241,7 +1241,7 @@ fun eq_assumption i state =
     val Thm {thy_ref, der, maxidx, shyps, hyps, prop, ...} = state;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
   in
-    (case find_index (op aconv) (Logic.assum_pairs (~1, Bi)) of
+    (case find_index Pattern.aeconv (Logic.assum_pairs (~1, Bi)) of
       ~1 => raise THM ("eq_assumption", 0, [state])
     | n =>
         Thm {thy_ref = thy_ref,
