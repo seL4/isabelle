@@ -9,38 +9,40 @@ theory SetPcpo
 imports Adm
 begin
 
-instantiation set :: (type) po
+instantiation bool :: po
 begin
 
 definition
-  less_set_def: "(op \<sqsubseteq>) = (op \<subseteq>)"
+  less_bool_def: "(op \<sqsubseteq>) = (op \<longrightarrow>)"
 
 instance
-by (intro_classes, auto simp add: less_set_def)
+by (intro_classes, auto simp add: less_bool_def)
 
 end
 
-instance set :: (finite) finite_po ..
+lemma less_set_eq: "(op \<sqsubseteq>) = (op \<subseteq>)"
+  by (simp add: less_fun_def less_bool_def le_fun_def le_bool_def expand_fun_eq)
+
+instance bool :: finite_po ..
 
 lemma Union_is_lub: "A <<| Union A"
-unfolding is_lub_def is_ub_def less_set_def by fast
+unfolding is_lub_def is_ub_def less_set_eq by fast
 
-instance set :: (type) cpo
-by (intro_classes, rule exI, rule Union_is_lub)
+instance bool :: cpo ..
 
 lemma lub_eq_Union: "lub = Union"
 by (rule ext, rule thelubI [OF Union_is_lub])
 
-instance set :: (type) pcpo
+instance bool :: pcpo
 proof
-  have "\<forall>y::'a set. {} \<sqsubseteq> y" unfolding less_set_def by simp
-  thus "\<exists>x::'a set. \<forall>y. x \<sqsubseteq> y" ..
+  have "\<forall>y::bool. False \<sqsubseteq> y" unfolding less_bool_def by simp
+  thus "\<exists>x::bool. \<forall>y. x \<sqsubseteq> y" ..
 qed
 
 lemma UU_eq_empty: "\<bottom> = {}"
-by (rule UU_I [symmetric], simp add: less_set_def)
+by (rule UU_I [symmetric], simp add: less_set_eq)
 
-lemmas set_cpo_simps = less_set_def lub_eq_Union UU_eq_empty
+lemmas set_cpo_simps = less_set_eq lub_eq_Union UU_eq_empty
 
 subsection {* Admissibility of set predicates *}
 
