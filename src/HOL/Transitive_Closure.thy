@@ -636,7 +636,7 @@ structure Trancl_Tac = Trancl_Tac_Fun (
         let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
               | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
               | decr r = (r,"r");
-            val (rel,r) = decr rel;
+            val (rel,r) = decr (Envir.beta_eta_contract rel);
         in SOME (a,b,rel,r) end
       | dec _ =  NONE
     in dec t end;
@@ -660,7 +660,7 @@ structure Tranclp_Tac = Trancl_Tac_Fun (
               | decr (Const ("Transitive_Closure.tranclp", _ ) $ r)  = (r,"r+")
               | decr r = (r,"r");
             val (rel,r) = decr rel;
-        in SOME (a, b, Envir.beta_eta_contract rel, r) end
+        in SOME (a, b, rel, r) end
       | dec _ =  NONE
     in dec t end;
 
