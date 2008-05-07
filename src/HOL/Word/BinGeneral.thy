@@ -272,14 +272,14 @@ lemma bin_nth_lem [rule_format]:
     apply safe
     apply (erule rev_mp)
     apply (induct_tac y rule: bin_induct)
-      apply safe
+      apply (safe del: subset_antisym)
       apply (drule_tac x=0 in fun_cong, force)
      apply (erule notE, rule ext, 
             drule_tac x="Suc x" in fun_cong, force)
     apply (drule_tac x=0 in fun_cong, force)
    apply (erule rev_mp)
    apply (induct_tac y rule: bin_induct)
-     apply safe
+     apply (safe del: subset_antisym)
      apply (drule_tac x=0 in fun_cong, force)
     apply (erule notE, rule ext, 
            drule_tac x="Suc x" in fun_cong, force)
