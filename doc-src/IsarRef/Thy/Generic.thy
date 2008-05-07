@@ -1090,8 +1090,8 @@ text {*
   theorem by @{text n} (default 1).
 
   \item [@{attribute Pure.elim_format}] turns a destruction rule into
-  elimination rule format, by resolving with the rule @{prop [source]
-  "PROP A \<Longrightarrow> (PROP A \<Longrightarrow> PROP B) \<Longrightarrow> PROP B"}.
+  elimination rule format, by resolving with the rule @{prop "PROP A \<Longrightarrow>
+  (PROP A \<Longrightarrow> PROP B) \<Longrightarrow> PROP B"}.
   
   Note that the Classical Reasoner (\secref{sec:classical}) provides
   its own version of this operation.
