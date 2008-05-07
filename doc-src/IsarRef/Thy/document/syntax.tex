@@ -141,7 +141,7 @@ The Isabelle/Isar outer syntax provides token classes as presented
   A list of standard Isabelle symbols that work well with these tools
   is given in \cite[appendix~A]{isabelle-sys}.
   
-  Source comments take the form \verb|(*|~\isa{{\isasymdots}}~\verb|*)| and may be nested, although user-interface
+  Source comments take the form \verb|(*|~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\verb|*)| and may be nested, although user-interface
   tools might prevent this.  Note that this form indicates source
   comments only, which are stripped after lexical analysis of the
   input.  The Isar document syntax also provides formal comments that
@@ -194,7 +194,7 @@ Entity \railqtok{name} usually refers to any name of types,
 %
 \begin{isamarkuptext}%
 Large chunks of plain \railqtok{text} are usually given
-  \railtok{verbatim}, i.e.\ enclosed in \verb|{|\verb|*|~\isa{{\isasymdots}}~\verb|*|\verb|}|.  For convenience,
+  \railtok{verbatim}, i.e.\ enclosed in \verb|{|\verb|*|~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\verb|*|\verb|}|.  For convenience,
   any of the smaller text units conforming to \railqtok{nameref} are
   admitted as well.  A marginal \railnonterm{comment} is of the form
   \verb|--| \railqtok{text}.  Any number of these may occur
@@ -217,7 +217,7 @@ Large chunks of plain \railqtok{text} are usually given
 \begin{isamarkuptext}%
 Classes are specified by plain names.  Sorts have a very simple
   inner syntax, which is either a single class name \isa{c} or a
-  list \isa{{\isacharbraceleft}c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n{\isacharbraceright}} referring to the
+  list \isa{{\isachardoublequote}{\isacharbraceleft}c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n{\isacharbraceright}{\isachardoublequote}} referring to the
   intersection of these classes.  The syntax of type arities is given
   directly at the outer level.
 
@@ -247,7 +247,7 @@ The actual inner Isabelle syntax, that of types and terms of the
   liberal convention is adopted: quotes may be omitted for any type or
   term that is already atomic at the outer level.  For example, one
   may just write \verb|x| instead of quoted \verb|"x"|.
-  Note that symbolic identifiers (e.g.\ \verb|++| or \isa{{\isasymforall}} are available as well, provided these have not been superseded
+  Note that symbolic identifiers (e.g.\ \verb|++| or \isa{{\isachardoublequote}{\isasymforall}{\isachardoublequote}} are available as well, provided these have not been superseded
   by commands or other keywords already (such as \verb|=| or
   \verb|+|).
 
@@ -313,13 +313,13 @@ Mixfix annotations specify concrete \emph{inner} syntax of Isabelle
   Here the \railtok{string} specifications refer to the actual mixfix
   template (see also \cite{isabelle-ref}), which may include literal
   text, spacing, blocks, and arguments (denoted by ``\isa{{\isacharunderscore}}''); the
-  special symbol ``\verb|\<index>|'' (printed as ``\isa{{\isasymindex}}'')
+  special symbol ``\verb|\<index>|'' (printed as ``\isa{{\isachardoublequote}{\isasymindex}{\isachardoublequote}}'')
   represents an index argument that specifies an implicit structure
   reference (see also \secref{sec:locale}).  Infix and binder
   declarations provide common abbreviations for particular mixfix
   declarations.  So in practice, mixfix templates mostly degenerate to
   literal text for concrete syntax, such as ``\verb|++|'' for
-  an infix symbol, or ``\verb|++|\isa{{\isasymindex}}'' for an infix of
+  an infix symbol, or ``\verb|++|\isa{{\isachardoublequote}{\isasymindex}{\isachardoublequote}}'' for an infix of
   an implicit structure.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -333,7 +333,7 @@ Proof methods are either basic ones, or expressions composed of
   methods via ``\verb|,|'' (sequential composition),
   ``\verb||\verb,|,\verb||'' (alternative choices), ``\verb|?|'' 
   (try), ``\verb|+|'' (repeat at least once), ``\verb|[|\isa{n}\verb|]|'' (restriction to first \isa{n}
-  sub-goals, with default \isa{n\ {\isacharequal}\ {\isadigit{1}}}).  In practice, proof
+  sub-goals, with default \isa{{\isachardoublequote}n\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequote}}).  In practice, proof
   methods are usually just a comma separated list of
   \railqtok{nameref}~\railnonterm{args} specifications.  Note that
   parentheses may be dropped for single method specifications (with no
@@ -349,18 +349,18 @@ Proof methods are either basic ones, or expressions composed of
 
   Proper Isar proof methods do \emph{not} admit arbitrary goal
   addressing, but refer either to the first sub-goal or all sub-goals
-  uniformly.  The goal restriction operator ``\isa{{\isacharbrackleft}n{\isacharbrackright}}''
+  uniformly.  The goal restriction operator ``\isa{{\isachardoublequote}{\isacharbrackleft}n{\isacharbrackright}{\isachardoublequote}}''
   evaluates a method expression within a sandbox consisting of the
   first \isa{n} sub-goals (which need to exist).  For example, the
-  method ``\isa{simp{\isacharunderscore}all{\isacharbrackleft}{\isadigit{3}}{\isacharbrackright}}'' simplifies the first three
-  sub-goals, while ``\isa{{\isacharparenleft}rule\ foo{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}{\isacharbrackleft}{\isacharbrackright}}'' simplifies all
-  new goals that emerge from applying rule \isa{foo} to the
+  method ``\isa{{\isachardoublequote}simp{\isacharunderscore}all{\isacharbrackleft}{\isadigit{3}}{\isacharbrackright}{\isachardoublequote}}'' simplifies the first three
+  sub-goals, while ``\isa{{\isachardoublequote}{\isacharparenleft}rule\ foo{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}}'' simplifies all
+  new goals that emerge from applying rule \isa{{\isachardoublequote}foo{\isachardoublequote}} to the
   originally first one.
 
   Improper methods, notably tactic emulations, offer a separate
   low-level goal addressing scheme as explicit argument to the
-  individual tactic being involved.  Here ``\isa{{\isacharbrackleft}{\isacharbang}{\isacharbrackright}}'' refers to
-  all goals, and ``\isa{{\isacharbrackleft}n{\isacharminus}{\isacharbrackright}}'' to all goals starting from \isa{n}.
+  individual tactic being involved.  Here ``\isa{{\isachardoublequote}{\isacharbrackleft}{\isacharbang}{\isacharbrackright}{\isachardoublequote}}'' refers to
+  all goals, and ``\isa{{\isachardoublequote}{\isacharbrackleft}n{\isacharminus}{\isacharbrackright}{\isachardoublequote}}'' to all goals starting from \isa{{\isachardoublequote}n{\isachardoublequote}}.
 
   \indexouternonterm{goalspec}
   \begin{rail}
@@ -406,12 +406,12 @@ Attributes (and proof methods, see \secref{sec:syn-meth}) have their
   There are three forms of theorem references:
   \begin{enumerate}
   
-  \item named facts \isa{a},
+  \item named facts \isa{{\isachardoublequote}a{\isachardoublequote}},
 
-  \item selections from named facts \isa{a{\isacharparenleft}i{\isacharparenright}} or \isa{a{\isacharparenleft}j\ {\isacharminus}\ k{\isacharparenright}},
+  \item selections from named facts \isa{{\isachardoublequote}a{\isacharparenleft}i{\isacharparenright}{\isachardoublequote}} or \isa{{\isachardoublequote}a{\isacharparenleft}j\ {\isacharminus}\ k{\isacharparenright}{\isachardoublequote}},
 
   \item literal fact propositions using \indexref{}{syntax}{altstring}\mbox{\isa{altstring}} syntax
-  \verb|`|\isa{{\isasymphi}}\verb|`| (see also method
+  \verb|`|\isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}\verb|`| (see also method
   \indexref{}{method}{fact}\mbox{\isa{fact}} in \secref{sec:pure-meth-att}).
 
   \end{enumerate}
@@ -422,7 +422,7 @@ Attributes (and proof methods, see \secref{sec:syn-meth}) have their
   not stored within the theorem database of the theory or proof
   context, but any given attributes are applied nonetheless.
 
-  An extra pair of brackets around attributes (like ``\isa{{\isacharbrackleft}{\isacharbrackleft}simproc\ a{\isacharbrackright}{\isacharbrackright}}'') abbreviates a theorem reference involving an
+  An extra pair of brackets around attributes (like ``\isa{{\isachardoublequote}{\isacharbrackleft}{\isacharbrackleft}simproc\ a{\isacharbrackright}{\isacharbrackright}{\isachardoublequote}}'') abbreviates a theorem reference involving an
   internal dummy fact, which will be ignored later on.  So only the
   effect of the attribute on the background context will persist.
   This form of in-place declarations is particularly useful with
@@ -458,7 +458,7 @@ Attributes (and proof methods, see \secref{sec:syn-meth}) have their
 \begin{isamarkuptext}%
 Wherever explicit propositions (or term fragments) occur in a proof
   text, casual binding of schematic term variables may be given
-  specified via patterns of the form ``\isa{{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}}''.  This works both for \railqtok{term} and \railqtok{prop}.
+  specified via patterns of the form ``\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}{\isachardoublequote}}''.  This works both for \railqtok{term} and \railqtok{prop}.
 
   \indexouternonterm{termpat}\indexouternonterm{proppat}
   \begin{rail}
@@ -468,8 +468,8 @@ Wherever explicit propositions (or term fragments) occur in a proof
     ;
   \end{rail}
 
-  \medskip Declarations of local variables \isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} and
-  logical propositions \isa{a\ {\isacharcolon}\ {\isasymphi}} represent different views on
+  \medskip Declarations of local variables \isa{{\isachardoublequote}x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}{\isachardoublequote}} and
+  logical propositions \isa{{\isachardoublequote}a\ {\isacharcolon}\ {\isasymphi}{\isachardoublequote}} represent different views on
   the same principle of introducing a local scope.  In practice, one
   may usually omit the typing of \railnonterm{vars} (due to
   type-inference), and the naming of propositions (due to implicit
@@ -486,8 +486,8 @@ Wherever explicit propositions (or term fragments) occur in a proof
 
   The treatment of multiple declarations corresponds to the
   complementary focus of \railnonterm{vars} versus
-  \railnonterm{props}.  In ``\isa{x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}''
-  the typing refers to all variables, while in \isa{a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n} the naming refers to all propositions collectively.
+  \railnonterm{props}.  In ``\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}{\isachardoublequote}}''
+  the typing refers to all variables, while in \isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}} the naming refers to all propositions collectively.
   Isar language elements that refer to \railnonterm{vars} or
   \railnonterm{props} typically admit separate typings or namings via
   another level of iteration, with explicit \indexref{}{keyword}{and}\mbox{\isa{\isakeyword{and}}}
@@ -528,11 +528,11 @@ Wherever explicit propositions (or term fragments) occur in a proof
   produced by the Isabelle document preparation system (see also
   \secref{sec:document-prep}).
 
-  Thus embedding of ``\isa{{\isacharat}{\isacharbraceleft}term\ {\isacharbrackleft}show{\isacharunderscore}types{\isacharbrackright}\ {\isachardoublequote}f\ x\ {\isacharequal}\ a\ {\isacharplus}\ x{\isachardoublequote}{\isacharbraceright}}''
+  Thus embedding of ``\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term\ {\isacharbrackleft}show{\isacharunderscore}types{\isacharbrackright}\ {\isachardoublequote}f\ x\ {\isacharequal}\ a\ {\isacharplus}\ x{\isachardoublequote}{\isacharbraceright}{\isachardoublequote}}''
   within a text block would cause
   \isa{{\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharplus}\ x} to appear in the final {\LaTeX} document.  Also note that theorem
   antiquotations may involve attributes as well.  For example,
-  \isa{{\isacharat}{\isacharbraceleft}thm\ sym\ {\isacharbrackleft}no{\isacharunderscore}vars{\isacharbrackright}{\isacharbraceright}} would print the theorem's
+  \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm\ sym\ {\isacharbrackleft}no{\isacharunderscore}vars{\isacharbrackright}{\isacharbraceright}{\isachardoublequote}} would print the theorem's
   statement where all schematic variables have been replaced by fixed
   ones, which are easier to read.
 
@@ -567,48 +567,48 @@ Wherever explicit propositions (or term fragments) occur in a proof
   \end{rail}
 
   Note that the syntax of antiquotations may \emph{not} include source
-  comments \verb|(*|~\isa{{\isasymdots}}~\verb|*)| or verbatim
-  text \verb|{|\verb|*|~\isa{{\isasymdots}}~\verb|*|\verb|}|.
+  comments \verb|(*|~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\verb|*)| or verbatim
+  text \verb|{|\verb|*|~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\verb|*|\verb|}|.
 
   \begin{descr}
   
-  \item [\isa{{\isacharat}{\isacharbraceleft}theory\ A{\isacharbraceright}}] prints the name \isa{A}, which is
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}theory\ A{\isacharbraceright}{\isachardoublequote}}] prints the name \isa{{\isachardoublequote}A{\isachardoublequote}}, which is
   guaranteed to refer to a valid ancestor theory in the current
   context.
 
-  \item [\isa{{\isacharat}{\isacharbraceleft}thm\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}}] prints theorems
-  \isa{a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n}.  Note that attribute specifications
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}] prints theorems
+  \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}.  Note that attribute specifications
   may be included as well (see also \secref{sec:syn-att}); the
   \indexref{}{attribute}{no-vars}\mbox{\isa{no{\isacharunderscore}vars}} rule (see \secref{sec:misc-meth-att}) would
   be particularly useful to suppress printing of schematic variables.
 
-  \item [\isa{{\isacharat}{\isacharbraceleft}prop\ {\isasymphi}{\isacharbraceright}}] prints a well-typed proposition \isa{{\isasymphi}}.
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prop\ {\isasymphi}{\isacharbraceright}{\isachardoublequote}}] prints a well-typed proposition \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}.
 
-  \item [\isa{{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}}] prints a well-typed term \isa{t}.
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}{\isachardoublequote}}] prints a well-typed term \isa{{\isachardoublequote}t{\isachardoublequote}}.
 
-  \item [\isa{{\isacharat}{\isacharbraceleft}const\ c{\isacharbraceright}}] prints a logical or syntactic constant
-  \isa{c}.
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}const\ c{\isacharbraceright}{\isachardoublequote}}] prints a logical or syntactic constant
+  \isa{{\isachardoublequote}c{\isachardoublequote}}.
   
-  \item [\isa{{\isacharat}{\isacharbraceleft}abbrev\ c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isacharbraceright}}] prints a constant
-  abbreviation \isa{c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ rhs} as defined in
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}abbrev\ c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isacharbraceright}{\isachardoublequote}}] prints a constant
+  abbreviation \isa{{\isachardoublequote}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ rhs{\isachardoublequote}} as defined in
   the current context.
 
-  \item [\isa{{\isacharat}{\isacharbraceleft}typeof\ t{\isacharbraceright}}] prints the type of a well-typed term
-  \isa{t}.
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typeof\ t{\isacharbraceright}{\isachardoublequote}}] prints the type of a well-typed term
+  \isa{{\isachardoublequote}t{\isachardoublequote}}.
 
-  \item [\isa{{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}}] prints a well-formed type \isa{{\isasymtau}}.
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}{\isachardoublequote}}] prints a well-formed type \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}}.
   
-  \item [\isa{{\isacharat}{\isacharbraceleft}thm{\isacharunderscore}style\ s\ a{\isacharbraceright}}] prints theorem \isa{a},
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm{\isacharunderscore}style\ s\ a{\isacharbraceright}{\isachardoublequote}}] prints theorem \isa{a},
   previously applying a style \isa{s} to it (see below).
   
-  \item [\isa{{\isacharat}{\isacharbraceleft}term{\isacharunderscore}style\ s\ t{\isacharbraceright}}] prints a well-typed term \isa{t} after applying a style \isa{s} to it (see below).
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term{\isacharunderscore}style\ s\ t{\isacharbraceright}{\isachardoublequote}}] prints a well-typed term \isa{t} after applying a style \isa{s} to it (see below).
 
-  \item [\isa{{\isacharat}{\isacharbraceleft}text\ s{\isacharbraceright}}] prints uninterpreted source text \isa{s}.  This is particularly useful to print portions of text according
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}text\ s{\isacharbraceright}{\isachardoublequote}}] prints uninterpreted source text \isa{s}.  This is particularly useful to print portions of text according
   to the Isabelle {\LaTeX} output style, without demanding
   well-formedness (e.g.\ small pieces of terms that should not be
   parsed or type-checked yet).
 
-  \item [\isa{{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}}] prints the current \emph{dynamic} goal
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}{\isachardoublequote}}] prints the current \emph{dynamic} goal
   state.  This is mainly for support of tactic-emulation scripts
   within Isar --- presentation of goal states does not conform to
   actual human-readable proof documents.
@@ -616,19 +616,19 @@ Wherever explicit propositions (or term fragments) occur in a proof
   Please do not include goal states into document output unless you
   really know what you are doing!
   
-  \item [\isa{{\isacharat}{\isacharbraceleft}subgoals{\isacharbraceright}}] is similar to \isa{{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}}, but
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}subgoals{\isacharbraceright}{\isachardoublequote}}] is similar to \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}{\isachardoublequote}}, but
   does not print the main goal.
   
-  \item [\isa{{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}}] prints the (compact)
-  proof terms corresponding to the theorems \isa{a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n}. Note that this requires proof terms to be switched on
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}] prints the (compact)
+  proof terms corresponding to the theorems \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}. Note that this requires proof terms to be switched on
   for the current object logic (see the ``Proof terms'' section of the
   Isabelle reference manual for information on how to do this).
   
-  \item [\isa{{\isacharat}{\isacharbraceleft}full{\isacharunderscore}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}}] is like \isa{{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}}, but displays the full proof terms,
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}full{\isacharunderscore}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}] is like \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}, but displays the full proof terms,
   i.e.\ also displays information omitted in the compact proof term,
   which is denoted by ``\isa{{\isacharunderscore}}'' placeholders there.
   
-  \item [\isa{{\isacharat}{\isacharbraceleft}ML\ s{\isacharbraceright}}, \isa{{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}type\ s{\isacharbraceright}}, and \isa{{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}struct\ s{\isacharbraceright}}] check text \isa{s} as ML value, type, and
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}ML\ s{\isacharbraceright}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}type\ s{\isacharbraceright}{\isachardoublequote}}, and \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}struct\ s{\isacharbraceright}{\isachardoublequote}}] check text \isa{s} as ML value, type, and
   structure, respectively.  The source is displayed verbatim.
 
   \end{descr}
@@ -644,12 +644,12 @@ Wherever explicit propositions (or term fragments) occur in a proof
   \item [\isa{rhs}] is like \isa{lhs}, but extracts the second
   argument.
   
-  \item [\isa{concl}] extracts the conclusion \isa{C} from a rule
-  in Horn-clause normal form \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}.
+  \item [\isa{{\isachardoublequote}concl{\isachardoublequote}}] extracts the conclusion \isa{C} from a rule
+  in Horn-clause normal form \isa{{\isachardoublequote}A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C{\isachardoublequote}}.
   
-  \item [\isa{prem{\isadigit{1}}}, \dots, \isa{prem{\isadigit{9}}}] extract premise
-  number \isa{{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isadigit{9}}}, respectively, from from a rule in
-  Horn-clause normal form \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}
+  \item [\isa{{\isachardoublequote}prem{\isadigit{1}}{\isachardoublequote}}, \dots, \isa{{\isachardoublequote}prem{\isadigit{9}}{\isachardoublequote}}] extract premise
+  number \isa{{\isachardoublequote}{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isadigit{9}}{\isachardoublequote}}, respectively, from from a rule in
+  Horn-clause normal form \isa{{\isachardoublequote}A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C{\isachardoublequote}}
 
   \end{descr}
 
@@ -659,59 +659,59 @@ Wherever explicit propositions (or term fragments) occur in a proof
 
   \begin{descr}
 
-  \item[\isa{show{\isacharunderscore}types\ {\isacharequal}\ bool} and \isa{show{\isacharunderscore}sorts\ {\isacharequal}\ bool}]
+  \item[\isa{{\isachardoublequote}show{\isacharunderscore}types\ {\isacharequal}\ bool{\isachardoublequote}} and \isa{{\isachardoublequote}show{\isacharunderscore}sorts\ {\isacharequal}\ bool{\isachardoublequote}}]
   control printing of explicit type and sort constraints.
 
-  \item[\isa{show{\isacharunderscore}structs\ {\isacharequal}\ bool}] controls printing of implicit
+  \item[\isa{{\isachardoublequote}show{\isacharunderscore}structs\ {\isacharequal}\ bool{\isachardoublequote}}] controls printing of implicit
   structures.
 
-  \item[\isa{long{\isacharunderscore}names\ {\isacharequal}\ bool}] forces names of types and
+  \item[\isa{{\isachardoublequote}long{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}}] forces names of types and
   constants etc.\ to be printed in their fully qualified internal
   form.
 
-  \item[\isa{short{\isacharunderscore}names\ {\isacharequal}\ bool}] forces names of types and
+  \item[\isa{{\isachardoublequote}short{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}}] forces names of types and
   constants etc.\ to be printed unqualified.  Note that internalizing
   the output again in the current context may well yield a different
   result.
 
-  \item[\isa{unique{\isacharunderscore}names\ {\isacharequal}\ bool}] determines whether the printed
+  \item[\isa{{\isachardoublequote}unique{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}}] determines whether the printed
   version of qualified names should be made sufficiently long to avoid
   overlap with names declared further back.  Set to \isa{false} for
   more concise output.
 
-  \item[\isa{eta{\isacharunderscore}contract\ {\isacharequal}\ bool}] prints terms in \isa{{\isasymeta}}-contracted form.
+  \item[\isa{{\isachardoublequote}eta{\isacharunderscore}contract\ {\isacharequal}\ bool{\isachardoublequote}}] prints terms in \isa{{\isasymeta}}-contracted form.
 
-  \item[\isa{display\ {\isacharequal}\ bool}] indicates if the text is to be
+  \item[\isa{{\isachardoublequote}display\ {\isacharequal}\ bool{\isachardoublequote}}] indicates if the text is to be
   output as multi-line ``display material'', rather than a small piece
   of text without line breaks (which is the default).
 
-  \item[\isa{break\ {\isacharequal}\ bool}] controls line breaks in non-display
+  \item[\isa{{\isachardoublequote}break\ {\isacharequal}\ bool{\isachardoublequote}}] controls line breaks in non-display
   material.
 
-  \item[\isa{quotes\ {\isacharequal}\ bool}] indicates if the output should be
+  \item[\isa{{\isachardoublequote}quotes\ {\isacharequal}\ bool{\isachardoublequote}}] indicates if the output should be
   enclosed in double quotes.
 
-  \item[\isa{mode\ {\isacharequal}\ name}] adds \isa{name} to the print mode to
+  \item[\isa{{\isachardoublequote}mode\ {\isacharequal}\ name{\isachardoublequote}}] adds \isa{name} to the print mode to
   be used for presentation (see also \cite{isabelle-ref}).  Note that
   the standard setup for {\LaTeX} output is already present by
   default, including the modes \isa{latex} and \isa{xsymbols}.
 
-  \item[\isa{margin\ {\isacharequal}\ nat} and \isa{indent\ {\isacharequal}\ nat}] change the
+  \item[\isa{{\isachardoublequote}margin\ {\isacharequal}\ nat{\isachardoublequote}} and \isa{{\isachardoublequote}indent\ {\isacharequal}\ nat{\isachardoublequote}}] change the
   margin or indentation for pretty printing of display material.
 
-  \item[\isa{source\ {\isacharequal}\ bool}] prints the source text of the
+  \item[\isa{{\isachardoublequote}source\ {\isacharequal}\ bool{\isachardoublequote}}] prints the source text of the
   antiquotation arguments, rather than the actual value.  Note that
   this does not affect well-formedness checks of \mbox{\isa{thm}}, \mbox{\isa{term}}, etc. (only the \mbox{\isa{text}} antiquotation admits arbitrary output).
 
-  \item[\isa{goals{\isacharunderscore}limit\ {\isacharequal}\ nat}] determines the maximum number of
+  \item[\isa{{\isachardoublequote}goals{\isacharunderscore}limit\ {\isacharequal}\ nat{\isachardoublequote}}] determines the maximum number of
   goals to be printed.
 
-  \item[\isa{locale\ {\isacharequal}\ name}] specifies an alternative locale
+  \item[\isa{{\isachardoublequote}locale\ {\isacharequal}\ name{\isachardoublequote}}] specifies an alternative locale
   context used for evaluating and printing the subsequent argument.
 
   \end{descr}
 
-  For boolean flags, ``\isa{name\ {\isacharequal}\ true}'' may be abbreviated as
+  For boolean flags, ``\isa{{\isachardoublequote}name\ {\isacharequal}\ true{\isachardoublequote}}'' may be abbreviated as
   ``\isa{name}''.  All of the above flags are disabled by default,
   unless changed from ML.
 
@@ -737,15 +737,15 @@ Each Isabelle/Isar command may be decorated by presentation tags:
     tag: '\%' (ident | string)
   \end{rail}
 
-  The tags \isa{theory}, \isa{proof}, \isa{ML} are already
+  The tags \isa{{\isachardoublequote}theory{\isachardoublequote}}, \isa{{\isachardoublequote}proof{\isachardoublequote}}, \isa{{\isachardoublequote}ML{\isachardoublequote}} are already
   pre-declared for certain classes of commands:
 
  \medskip
 
   \begin{tabular}{ll}
-    \isa{theory} & theory begin/end \\
-    \isa{proof} & all proof commands \\
-    \isa{ML} & all commands involving ML code \\
+    \isa{{\isachardoublequote}theory{\isachardoublequote}} & theory begin/end \\
+    \isa{{\isachardoublequote}proof{\isachardoublequote}} & all proof commands \\
+    \isa{{\isachardoublequote}ML{\isachardoublequote}} & all commands involving ML code \\
   \end{tabular}
 
   \medskip The Isabelle document preparation system (see also
@@ -753,14 +753,14 @@ Each Isabelle/Isar command may be decorated by presentation tags:
   specifically, e.g.\ to fold proof texts, or drop parts of the text
   completely.
 
-  For example ``\mbox{\isa{\isacommand{by}}}~\isa{{\isacharpercent}invisible\ auto}'' would
+  For example ``\mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}{\isacharpercent}invisible\ auto{\isachardoublequote}}'' would
   cause that piece of proof to be treated as \isa{invisible} instead
-  of \isa{proof} (the default), which may be either show or hidden
-  depending on the document setup.  In contrast, ``\mbox{\isa{\isacommand{by}}}~\isa{{\isacharpercent}visible\ auto}'' would force this text to be shown
+  of \isa{{\isachardoublequote}proof{\isachardoublequote}} (the default), which may be either show or hidden
+  depending on the document setup.  In contrast, ``\mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ auto{\isachardoublequote}}'' would force this text to be shown
   invariably.
 
   Explicit tag specifications within a proof apply to all subsequent
-  commands of the same level of nesting.  For example, ``\mbox{\isa{\isacommand{proof}}}~\isa{{\isacharpercent}visible\ {\isasymdots}}~\mbox{\isa{\isacommand{qed}}}'' would force the
+  commands of the same level of nesting.  For example, ``\mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ {\isasymdots}{\isachardoublequote}}~\mbox{\isa{\isacommand{qed}}}'' would force the
   whole sub-proof to be typeset as \isa{visible} (unless some of its
   parts are tagged differently).%
 \end{isamarkuptext}%

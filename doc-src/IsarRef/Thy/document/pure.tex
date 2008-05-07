@@ -37,7 +37,7 @@ Subsequently, we introduce the main part of Pure theory and proof
   constructors, or \emph{improper commands}.  Some proof methods and
   attributes introduced later are classified as improper as well.
   Improper Isar language elements, which are subsequently marked by
-  ``\isa{\isactrlsup {\isacharasterisk}}'', are often helpful when developing proof
+  ``\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}'', are often helpful when developing proof
   documents, while their use is discouraged for the final
   human-readable outcome.  Typical examples are diagnostic commands
   that print terms or theorems according to the current context; other
@@ -84,14 +84,14 @@ Subsequently, we introduce the main part of Pure theory and proof
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{header}}}~\isa{text}] provides plain text
+  \item [\mbox{\isa{\isacommand{header}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] provides plain text
   markup just preceding the formal beginning of a theory.  In actual
   document preparation the corresponding {\LaTeX} macro \verb|\isamarkupheader| may be redefined to produce chapter or section
   headings.  See also \secref{sec:markup-thy} and
   \secref{sec:markup-prf} for further markup commands.
   
-  \item [\mbox{\isa{\isacommand{theory}}}~\isa{A\ {\isasymIMPORTS}\ B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n\ {\isasymBEGIN}}] starts a new theory \isa{A} based on the
-  merge of existing theories \isa{B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n}.
+  \item [\mbox{\isa{\isacommand{theory}}}~\isa{{\isachardoublequote}A\ {\isasymIMPORTS}\ B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n\ {\isasymBEGIN}{\isachardoublequote}}] starts a new theory \isa{A} based on the
+  merge of existing theories \isa{{\isachardoublequote}B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n{\isachardoublequote}}.
   
   Due to inclusion of several ancestors, the overall theory structure
   emerging in an Isabelle session forms a directed acyclic graph
@@ -153,17 +153,17 @@ Subsequently, we introduce the main part of Pure theory and proof
 
   \end{descr}
 
-  The \isa{text} argument of these markup commands (except for
+  The \isa{{\isachardoublequote}text{\isachardoublequote}} argument of these markup commands (except for
   \mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}) may contain references to formal entities
   (``antiquotations'', see also \secref{sec:antiq}).  These are
-  interpreted in the present theory context, or the named \isa{target}.
+  interpreted in the present theory context, or the named \isa{{\isachardoublequote}target{\isachardoublequote}}.
 
   Any of these markup elements corresponds to a {\LaTeX} command with
   the name prefixed by \verb|\isamarkup|.  For the sectioning
   commands this is a plain macro with a single argument, e.g.\
-  \verb|\isamarkupchapter{|\isa{{\isasymdots}}\verb|}| for
+  \verb|\isamarkupchapter{|\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}\verb|}| for
   \mbox{\isa{\isacommand{chapter}}}.  The \mbox{\isa{\isacommand{text}}} markup results in a
-  {\LaTeX} environment \verb|\begin{isamarkuptext}| \isa{{\isasymdots}} \verb|\end{isamarkuptext}|, while \mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}
+  {\LaTeX} environment \verb|\begin{isamarkuptext}| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|\end{isamarkuptext}|, while \mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}
   causes the text to be inserted directly into the {\LaTeX} source.
 
   \medskip Additional markup commands are available for proofs (see
@@ -195,12 +195,12 @@ Subsequently, we introduce the main part of Pure theory and proof
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{classes}}}~\isa{c\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n}]
-  declares class \isa{c} to be a subclass of existing classes \isa{c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n}.  Cyclic class structures are not permitted.
+  \item [\mbox{\isa{\isacommand{classes}}}~\isa{{\isachardoublequote}c\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n{\isachardoublequote}}]
+  declares class \isa{c} to be a subclass of existing classes \isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n{\isachardoublequote}}.  Cyclic class structures are not permitted.
 
-  \item [\mbox{\isa{\isacommand{classrel}}}~\isa{c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}}] states
-  subclass relations between existing classes \isa{c\isactrlsub {\isadigit{1}}} and
-  \isa{c\isactrlsub {\isadigit{2}}}.  This is done axiomatically!  The \indexref{}{command}{instance}\mbox{\isa{\isacommand{instance}}} command (see \secref{sec:axclass}) provides a way to
+  \item [\mbox{\isa{\isacommand{classrel}}}~\isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}{\isachardoublequote}}] states
+  subclass relations between existing classes \isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}{\isachardoublequote}} and
+  \isa{{\isachardoublequote}c\isactrlsub {\isadigit{2}}{\isachardoublequote}}.  This is done axiomatically!  The \indexref{}{command}{instance}\mbox{\isa{\isacommand{instance}}} command (see \secref{sec:axclass}) provides a way to
   introduce proven class relations.
 
   \item [\mbox{\isa{\isacommand{defaultsort}}}~\isa{s}] makes sort \isa{s} the
@@ -240,14 +240,14 @@ Subsequently, we introduce the main part of Pure theory and proof
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{types}}}~\isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isacharequal}\ {\isasymtau}}]
-  introduces \emph{type synonym} \isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t}
-  for existing type \isa{{\isasymtau}}.  Unlike actual type definitions, as
+  \item [\mbox{\isa{\isacommand{types}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isacharequal}\ {\isasymtau}{\isachardoublequote}}]
+  introduces \emph{type synonym} \isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t{\isachardoublequote}}
+  for existing type \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}}.  Unlike actual type definitions, as
   are available in Isabelle/HOL for example, type synonyms are just
   purely syntactic abbreviations without any logical significance.
   Internally, type synonyms are fully expanded.
   
-  \item [\mbox{\isa{\isacommand{typedecl}}}~\isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t}]
+  \item [\mbox{\isa{\isacommand{typedecl}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t{\isachardoublequote}}]
   declares a new type constructor \isa{t}, intended as an actual
   logical type (of the object-logic, if available).
 
@@ -256,7 +256,7 @@ Subsequently, we introduce the main part of Pure theory and proof
   syntactic types, i.e.\ nonterminal symbols of Isabelle's inner
   syntax of terms or types.
 
-  \item [\mbox{\isa{\isacommand{arities}}}~\isa{t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlsub n{\isacharparenright}\ s}] augments Isabelle's order-sorted signature of types by new type
+  \item [\mbox{\isa{\isacommand{arities}}}~\isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}s\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ s\isactrlsub n{\isacharparenright}\ s{\isachardoublequote}}] augments Isabelle's order-sorted signature of types by new type
   constructor arities.  This is done axiomatically!  The \indexref{}{command}{instance}\mbox{\isa{\isacommand{instance}}} command (see \S\ref{sec:axclass}) provides a way to
   introduce proven type arities.
 
@@ -270,12 +270,12 @@ Subsequently, we introduce the main part of Pure theory and proof
 %
 \begin{isamarkuptext}%
 Definitions essentially express abbreviations within the logic.  The
-  simplest form of a definition is \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\ {\isasymequiv}\ t}, where \isa{c} is a newly declared constant.  Isabelle also allows derived forms
+  simplest form of a definition is \isa{{\isachardoublequote}c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\ {\isasymequiv}\ t{\isachardoublequote}}, where \isa{c} is a newly declared constant.  Isabelle also allows derived forms
   where the arguments of \isa{c} appear on the left, abbreviating a
-  prefix of \isa{{\isasymlambda}}-abstractions, e.g.\ \isa{c\ {\isasymequiv}\ {\isasymlambda}x\ y{\isachardot}\ t} may be
-  written more conveniently as \isa{c\ x\ y\ {\isasymequiv}\ t}.  Moreover,
+  prefix of \isa{{\isasymlambda}}-abstractions, e.g.\ \isa{{\isachardoublequote}c\ {\isasymequiv}\ {\isasymlambda}x\ y{\isachardot}\ t{\isachardoublequote}} may be
+  written more conveniently as \isa{{\isachardoublequote}c\ x\ y\ {\isasymequiv}\ t{\isachardoublequote}}.  Moreover,
   definitions may be weakened by adding arbitrary pre-conditions:
-  \isa{A\ {\isasymLongrightarrow}\ c\ x\ y\ {\isasymequiv}\ t}.
+  \isa{{\isachardoublequote}A\ {\isasymLongrightarrow}\ c\ x\ y\ {\isasymequiv}\ t{\isachardoublequote}}.
 
   \medskip The built-in well-formedness conditions for definitional
   specifications are:
@@ -288,7 +288,7 @@ Definitions essentially express abbreviations within the logic.  The
   left-hand side.
 
   \item All type variables on the right-hand side must also appear on
-  the left-hand side; this prohibits \isa{{\isadigit{0}}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymequiv}\ length\ {\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ list{\isacharparenright}} for example.
+  the left-hand side; this prohibits \isa{{\isachardoublequote}{\isadigit{0}}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymequiv}\ length\ {\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ list{\isacharparenright}{\isachardoublequote}} for example.
 
   \item The definition must not be recursive.  Most object-logics
   provide definitional principles that can be used to express
@@ -296,13 +296,13 @@ Definitions essentially express abbreviations within the logic.  The
 
   \end{itemize}
 
-  Overloading means that a constant being declared as \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ decl} may be defined separately on type instances \isa{c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isasymbeta}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymbeta}\isactrlsub n{\isacharparenright}\ t\ decl} for each type constructor \isa{t}.  The right-hand side may mention overloaded constants
+  Overloading means that a constant being declared as \isa{{\isachardoublequote}c\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ decl{\isachardoublequote}} may be defined separately on type instances \isa{{\isachardoublequote}c\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isasymbeta}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymbeta}\isactrlsub n{\isacharparenright}\ t\ decl{\isachardoublequote}} for each type constructor \isa{t}.  The right-hand side may mention overloaded constants
   recursively at type instances corresponding to the immediate
-  argument types \isa{{\isasymbeta}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymbeta}\isactrlsub n}.  Incomplete
+  argument types \isa{{\isachardoublequote}{\isasymbeta}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymbeta}\isactrlsub n{\isachardoublequote}}.  Incomplete
   specification patterns impose global constraints on all occurrences,
-  e.g.\ \isa{d\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymtimes}\ {\isasymalpha}} on the left-hand side means that all
+  e.g.\ \isa{{\isachardoublequote}d\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymtimes}\ {\isasymalpha}{\isachardoublequote}} on the left-hand side means that all
   corresponding occurrences on some right-hand side need to be an
-  instance of this, general \isa{d\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymtimes}\ {\isasymbeta}} will be disallowed.
+  instance of this, general \isa{{\isachardoublequote}d\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymtimes}\ {\isasymbeta}{\isachardoublequote}} will be disallowed.
 
   \begin{matharray}{rcl}
     \indexdef{}{command}{consts}\mbox{\isa{\isacommand{consts}}} & : & \isartrans{theory}{theory} \\
@@ -331,20 +331,20 @@ Definitions essentially express abbreviations within the logic.  The
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{consts}}}~\isa{c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}}] declares constant
+  \item [\mbox{\isa{\isacommand{consts}}}~\isa{{\isachardoublequote}c\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}{\isachardoublequote}}] declares constant
   \isa{c} to have any instance of type scheme \isa{{\isasymsigma}}.  The
   optional mixfix annotations may attach concrete syntax to the
   constants declared.
   
-  \item [\mbox{\isa{\isacommand{defs}}}~\isa{name{\isacharcolon}\ eqn}] introduces \isa{eqn}
+  \item [\mbox{\isa{\isacommand{defs}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ eqn{\isachardoublequote}}] introduces \isa{eqn}
   as a definitional axiom for some existing constant.
   
-  The \isa{{\isacharparenleft}unchecked{\isacharparenright}} option disables global dependency checks
+  The \isa{{\isachardoublequote}{\isacharparenleft}unchecked{\isacharparenright}{\isachardoublequote}} option disables global dependency checks
   for this definition, which is occasionally useful for exotic
   overloading.  It is at the discretion of the user to avoid malformed
   theory specifications!
   
-  The \isa{{\isacharparenleft}overloaded{\isacharparenright}} option declares definitions to be
+  The \isa{{\isachardoublequote}{\isacharparenleft}overloaded{\isacharparenright}{\isachardoublequote}} option declares definitions to be
   potentially overloaded.  Unless this option is given, a warning
   message would be issued for any definitional equation with a more
   special type than that of the corresponding constant declaration.
@@ -362,8 +362,8 @@ Definitions essentially express abbreviations within the logic.  The
   specifications is processed in a strictly sequential manner, with
   type-checking being performed independently.
   
-  An optional initial context of \isa{{\isacharparenleft}structure{\isacharparenright}} declarations
-  admits use of indexed syntax, using the special symbol \verb|\<index>| (printed as ``\isa{{\isasymindex}}'').  The latter concept is
+  An optional initial context of \isa{{\isachardoublequote}{\isacharparenleft}structure{\isacharparenright}{\isachardoublequote}} declarations
+  admits use of indexed syntax, using the special symbol \verb|\<index>| (printed as ``\isa{{\isachardoublequote}{\isasymindex}{\isachardoublequote}}'').  The latter concept is
   particularly useful with locales (see also \S\ref{sec:locale}).
 
   \end{descr}%
@@ -396,7 +396,7 @@ Definitions essentially express abbreviations within the logic.  The
 
   \begin{descr}
   
-  \item [\mbox{\isa{\isacommand{syntax}}}~\isa{{\isacharparenleft}mode{\isacharparenright}\ decls}] is similar to
+  \item [\mbox{\isa{\isacommand{syntax}}}~\isa{{\isachardoublequote}{\isacharparenleft}mode{\isacharparenright}\ decls{\isachardoublequote}}] is similar to
   \mbox{\isa{\isacommand{consts}}}~\isa{decls}, except that the actual logical
   signature extension is omitted.  Thus the context free grammar of
   Isabelle's inner syntax may be augmented in arbitrary ways,
@@ -404,12 +404,12 @@ Definitions essentially express abbreviations within the logic.  The
   print mode that the grammar rules belong; unless the \indexref{}{keyword}{output}\mbox{\isa{\isakeyword{output}}} indicator is given, all productions are added both to the
   input and output grammar.
   
-  \item [\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}~\isa{{\isacharparenleft}mode{\isacharparenright}\ decls}] removes
+  \item [\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}~\isa{{\isachardoublequote}{\isacharparenleft}mode{\isacharparenright}\ decls{\isachardoublequote}}] removes
   grammar declarations (and translations) resulting from \isa{decls}, which are interpreted in the same manner as for \mbox{\isa{\isacommand{syntax}}} above.
   
   \item [\mbox{\isa{\isacommand{translations}}}~\isa{rules}] specifies syntactic
-  translation rules (i.e.\ macros): parse~/ print rules (\isa{{\isasymrightleftharpoons}}),
-  parse rules (\isa{{\isasymrightharpoonup}}), or print rules (\isa{{\isasymleftharpoondown}}).
+  translation rules (i.e.\ macros): parse~/ print rules (\isa{{\isachardoublequote}{\isasymrightleftharpoons}{\isachardoublequote}}),
+  parse rules (\isa{{\isachardoublequote}{\isasymrightharpoonup}{\isachardoublequote}}), or print rules (\isa{{\isachardoublequote}{\isasymleftharpoondown}{\isachardoublequote}}).
   Translation patterns may be prefixed by the syntactic category to be
   used for parsing; the default is \isa{logic}.
   
@@ -441,7 +441,7 @@ Definitions essentially express abbreviations within the logic.  The
 
   \begin{descr}
   
-  \item [\mbox{\isa{\isacommand{axioms}}}~\isa{a{\isacharcolon}\ {\isasymphi}}] introduces arbitrary
+  \item [\mbox{\isa{\isacommand{axioms}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}}] introduces arbitrary
   statements as axioms of the meta-logic.  In fact, axioms are
   ``axiomatic theorems'', and may be referred later just as any other
   theorem.
@@ -450,7 +450,7 @@ Definitions essentially express abbreviations within the logic.  The
   systems.  Everyday work is typically done the hard way, with proper
   definitions and proven theorems.
   
-  \item [\mbox{\isa{\isacommand{lemmas}}}~\isa{a\ {\isacharequal}\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n}]
+  \item [\mbox{\isa{\isacommand{lemmas}}}~\isa{{\isachardoublequote}a\ {\isacharequal}\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}}]
   retrieves and stores existing facts in the theory context, or the
   specified target context (see also \secref{sec:target}).  Typical
   applications would also involve attributes, to declare Simplifier
@@ -496,15 +496,15 @@ Definitions essentially express abbreviations within the logic.  The
   Note that global names are prone to get hidden accidently later,
   when qualified names of the same base name are introduced.
   
-  \item [\mbox{\isa{\isacommand{hide}}}~\isa{space\ names}] fully removes
-  declarations from a given name space (which may be \isa{class},
-  \isa{type}, \isa{const}, or \isa{fact}); with the \isa{{\isacharparenleft}open{\isacharparenright}} option, only the base name is hidden.  Global
+  \item [\mbox{\isa{\isacommand{hide}}}~\isa{{\isachardoublequote}space\ names{\isachardoublequote}}] fully removes
+  declarations from a given name space (which may be \isa{{\isachardoublequote}class{\isachardoublequote}},
+  \isa{{\isachardoublequote}type{\isachardoublequote}}, \isa{{\isachardoublequote}const{\isachardoublequote}}, or \isa{{\isachardoublequote}fact{\isachardoublequote}}); with the \isa{{\isachardoublequote}{\isacharparenleft}open{\isacharparenright}{\isachardoublequote}} option, only the base name is hidden.  Global
   (unqualified) names may never be hidden.
   
   Note that hiding name space accesses has no impact on logical
   declarations -- they remain valid internally.  Entities that are no
   longer accessible to the user are printed with the special qualifier
-  ``\isa{{\isacharquery}{\isacharquery}}'' prefixed to the full internal name.
+  ``\isa{{\isachardoublequote}{\isacharquery}{\isacharquery}{\isachardoublequote}}'' prefixed to the full internal name.
 
   \end{descr}%
 \end{isamarkuptext}%
@@ -535,28 +535,28 @@ Definitions essentially express abbreviations within the logic.  The
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{use}}}~\isa{file}] reads and executes ML
-  commands from \isa{file}.  The current theory context is passed
-  down to the ML toplevel and may be modified, using \verb|Context.>>| or derived ML commands.  The file name is checked with
+  \item [\mbox{\isa{\isacommand{use}}}~\isa{{\isachardoublequote}file{\isachardoublequote}}] reads and executes ML
+  commands from \isa{{\isachardoublequote}file{\isachardoublequote}}.  The current theory context is passed
+  down to the ML toplevel and may be modified, using \verb|"Context.>>"| or derived ML commands.  The file name is checked with
   the \indexref{}{keyword}{uses}\mbox{\isa{\isakeyword{uses}}} dependency declaration given in the theory
   header (see also \secref{sec:begin-thy}).
   
-  \item [\mbox{\isa{\isacommand{ML}}}~\isa{text}] is similar to \mbox{\isa{\isacommand{use}}}, but executes ML commands directly from the given \isa{text}.
+  \item [\mbox{\isa{\isacommand{ML}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] is similar to \mbox{\isa{\isacommand{use}}}, but executes ML commands directly from the given \isa{{\isachardoublequote}text{\isachardoublequote}}.
 
   \item [\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}} and \mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}] are
   diagnostic versions of \mbox{\isa{\isacommand{ML}}}, which means that the context
   may not be updated.  \mbox{\isa{\isacommand{ML{\isacharunderscore}val}}} echos the bindings produced
   at the ML toplevel, but \mbox{\isa{\isacommand{ML{\isacharunderscore}command}}} is silent.
   
-  \item [\mbox{\isa{\isacommand{setup}}}~\isa{text}] changes the current theory
-  context by applying \isa{text}, which refers to an ML expression
-  of type \verb|theory -> theory|.  This enables to initialize
+  \item [\mbox{\isa{\isacommand{setup}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] changes the current theory
+  context by applying \isa{{\isachardoublequote}text{\isachardoublequote}}, which refers to an ML expression
+  of type \verb|"theory -> theory"|.  This enables to initialize
   any object-logic specific tools and packages written in ML, for
   example.
   
-  \item [\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}~\isa{name\ {\isacharequal}\ text\ description}]
-  defines a proof method in the current theory.  The given \isa{text} has to be an ML expression of type \verb|Args.src ->|\isasep\isanewline%
-\verb|  Proof.context -> Proof.method|.  Parsing concrete method syntax
+  \item [\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ text\ description{\isachardoublequote}}]
+  defines a proof method in the current theory.  The given \isa{{\isachardoublequote}text{\isachardoublequote}} has to be an ML expression of type \verb|"Args.src ->|\isasep\isanewline%
+\verb|  Proof.context -> Proof.method"|.  Parsing concrete method syntax
   from \verb|Args.src| input can be quite tedious in general.  The
   following simple examples are for methods without any explicit
   arguments, or a list of theorems, respectively.
@@ -622,7 +622,7 @@ val token_translation       :
   (string * string * (string -> string * real)) list
 \end{ttbox}
 
-  If the \isa{{\isacharparenleft}advanced{\isacharparenright}} option is given, the corresponding
+  If the \isa{{\isachardoublequote}{\isacharparenleft}advanced{\isacharparenright}{\isachardoublequote}} option is given, the corresponding
   translation functions may depend on the current theory or proof
   context.  This allows to implement advanced syntax mechanisms, as
   translations functions may refer to specific theory declarations or
@@ -661,7 +661,7 @@ val print_ast_translation:
   specification of axioms -- there is no internal check of the
   correctness of the results!  The inference kernel records oracle
   invocations within the internal derivation object of theorems, and
-  the pretty printer attaches ``\isa{{\isacharbrackleft}{\isacharbang}{\isacharbrackright}}'' to indicate results
+  the pretty printer attaches ``\isa{{\isachardoublequote}{\isacharbrackleft}{\isacharbang}{\isacharbrackright}{\isachardoublequote}}'' to indicate results
   that are not fully checked by Isabelle inferences.
 
   \begin{rail}
@@ -671,11 +671,11 @@ val print_ast_translation:
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{oracle}}}~\isa{name\ {\isacharparenleft}type{\isacharparenright}\ {\isacharequal}\ text}] turns the
-  given ML expression \isa{text} of type
-  \verb|theory ->|~\isa{type}~\verb|-> term| into an
+  \item [\mbox{\isa{\isacommand{oracle}}}~\isa{{\isachardoublequote}name\ {\isacharparenleft}type{\isacharparenright}\ {\isacharequal}\ text{\isachardoublequote}}] turns the
+  given ML expression \isa{{\isachardoublequote}text{\isachardoublequote}} of type
+  \verb|theory ->|~\isa{{\isachardoublequote}type{\isachardoublequote}}~\verb|-> term| into an
   ML function of type
-  \verb|theory ->|~\isa{type}~\verb|-> thm|, which is
+  \verb|theory ->|~\isa{{\isachardoublequote}type{\isachardoublequote}}~\verb|-> thm|, which is
   bound to the global identifier \verb|name|.
 
   \end{descr}%
@@ -695,16 +695,16 @@ Proof commands perform transitions of Isar/VM machine
 
   \begin{descr}
 
-  \item [\isa{proof{\isacharparenleft}prove{\isacharparenright}}] means that a new goal has just been
+  \item [\isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}}] means that a new goal has just been
   stated that is now to be \emph{proven}; the next command may refine
   it by some proof method, and enter a sub-proof to establish the
   actual result.
 
-  \item [\isa{proof{\isacharparenleft}state{\isacharparenright}}] is like a nested theory mode: the
+  \item [\isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}}] is like a nested theory mode: the
   context may be augmented by \emph{stating} additional assumptions,
   intermediate results etc.
 
-  \item [\isa{proof{\isacharparenleft}chain{\isacharparenright}}] is intermediate between \isa{proof{\isacharparenleft}state{\isacharparenright}} and \isa{proof{\isacharparenleft}prove{\isacharparenright}}: existing facts (i.e.\
+  \item [\isa{{\isachardoublequote}proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}}] is intermediate between \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}{\isachardoublequote}} and \isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}}: existing facts (i.e.\
   the contents of the special ``\indexref{}{fact}{this}\mbox{\isa{this}}'' register) have been
   just picked up in order to be used when refining the goal claimed
   next.
@@ -762,16 +762,16 @@ Proof commands perform transitions of Isar/VM machine
   logical framework.  Introducing some \emph{arbitrary, but fixed}
   variable via ``\mbox{\isa{\isacommand{fix}}}~\isa{x}'' results in a local value
   that may be used in the subsequent proof as any other variable or
-  constant.  Furthermore, any result \isa{{\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}} exported from
+  constant.  Furthermore, any result \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}{\isachardoublequote}} exported from
   the context will be universally closed wrt.\ \isa{x} at the
-  outermost level: \isa{{\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}} (this is expressed in normal
+  outermost level: \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}{\isachardoublequote}} (this is expressed in normal
   form using Isabelle's meta-variables).
 
   Similarly, introducing some assumption \isa{{\isasymchi}} has two effects.
   On the one hand, a local theorem is created that may be used as a
   fact in subsequent proof steps.  On the other hand, any result
-  \isa{{\isasymchi}\ {\isasymturnstile}\ {\isasymphi}} exported from the context becomes conditional wrt.\
-  the assumption: \isa{{\isasymturnstile}\ {\isasymchi}\ {\isasymLongrightarrow}\ {\isasymphi}}.  Thus, solving an enclosing goal
+  \isa{{\isachardoublequote}{\isasymchi}\ {\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} exported from the context becomes conditional wrt.\
+  the assumption: \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymchi}\ {\isasymLongrightarrow}\ {\isasymphi}{\isachardoublequote}}.  Thus, solving an enclosing goal
   using such a result would basically introduce a new subgoal stemming
   from the assumption.  How this situation is handled depends on the
   version of assumption command used: while \mbox{\isa{\isacommand{assume}}}
@@ -779,10 +779,10 @@ Proof commands perform transitions of Isar/VM machine
   the goal, \mbox{\isa{\isacommand{presume}}} leaves the subgoal unchanged in order
   to be proved later by the user.
 
-  Local definitions, introduced by ``\mbox{\isa{\isacommand{def}}}~\isa{x\ {\isasymequiv}\ t}'', are achieved by combining ``\mbox{\isa{\isacommand{fix}}}~\isa{x}'' with
+  Local definitions, introduced by ``\mbox{\isa{\isacommand{def}}}~\isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}'', are achieved by combining ``\mbox{\isa{\isacommand{fix}}}~\isa{x}'' with
   another version of assumption that causes any hypothetical equation
-  \isa{x\ {\isasymequiv}\ t} to be eliminated by the reflexivity rule.  Thus,
-  exporting some result \isa{x\ {\isasymequiv}\ t\ {\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}} yields \isa{{\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}t{\isacharbrackright}}.
+  \isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}} to be eliminated by the reflexivity rule.  Thus,
+  exporting some result \isa{{\isachardoublequote}x\ {\isasymequiv}\ t\ {\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}{\isachardoublequote}} yields \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isacharbrackleft}t{\isacharbrackright}{\isachardoublequote}}.
 
   \begin{rail}
     'fix' (vars + 'and')
@@ -800,7 +800,7 @@ Proof commands perform transitions of Isar/VM machine
   \item [\mbox{\isa{\isacommand{fix}}}~\isa{x}] introduces a local variable
   \isa{x} that is \emph{arbitrary, but fixed.}
   
-  \item [\mbox{\isa{\isacommand{assume}}}~\isa{a{\isacharcolon}\ {\isasymphi}} and \mbox{\isa{\isacommand{presume}}}~\isa{a{\isacharcolon}\ {\isasymphi}}] introduce a local fact \isa{{\isasymphi}\ {\isasymturnstile}\ {\isasymphi}} by
+  \item [\mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} and \mbox{\isa{\isacommand{presume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}}] introduce a local fact \isa{{\isachardoublequote}{\isasymphi}\ {\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} by
   assumption.  Subsequent results applied to an enclosing goal (e.g.\
   by \indexref{}{command}{show}\mbox{\isa{\isacommand{show}}}) are handled as follows: \mbox{\isa{\isacommand{assume}}} expects to be able to unify with existing premises in the
   goal, while \mbox{\isa{\isacommand{presume}}} leaves \isa{{\isasymphi}} as new subgoals.
@@ -809,9 +809,9 @@ Proof commands perform transitions of Isar/VM machine
   \indexref{}{keyword}{and}\mbox{\isa{\isakeyword{and}}}; the resulting list of current facts consists
   of all of these concatenated.
   
-  \item [\mbox{\isa{\isacommand{def}}}~\isa{x\ {\isasymequiv}\ t}] introduces a local
+  \item [\mbox{\isa{\isacommand{def}}}~\isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}] introduces a local
   (non-polymorphic) definition.  In results exported from the context,
-  \isa{x} is replaced by \isa{t}.  Basically, ``\mbox{\isa{\isacommand{def}}}~\isa{x\ {\isasymequiv}\ t}'' abbreviates ``\mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{x\ {\isasymequiv}\ t}'', with the resulting
+  \isa{x} is replaced by \isa{t}.  Basically, ``\mbox{\isa{\isacommand{def}}}~\isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}'' abbreviates ``\mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}'', with the resulting
   hypothetical equation solved by reflexivity.
   
   The default name for the definitional equation is \isa{x{\isacharunderscore}def}.
@@ -859,8 +859,8 @@ Proof commands perform transitions of Isar/VM machine
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{note}}}~\isa{a\ {\isacharequal}\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n}]
-  recalls existing facts \isa{b\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub n}, binding
+  \item [\mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}a\ {\isacharequal}\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}}]
+  recalls existing facts \isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub n{\isachardoublequote}}, binding
   the result as \isa{a}.  Note that attributes may be involved as
   well, both on the left and right hand sides.
 
@@ -877,31 +877,31 @@ Proof commands perform transitions of Isar/VM machine
   \item [\mbox{\isa{\isacommand{from}}}~\isa{b}] abbreviates ``\mbox{\isa{\isacommand{note}}}~\isa{b}~\mbox{\isa{\isacommand{then}}}''; thus \mbox{\isa{\isacommand{then}}} is
   equivalent to ``\mbox{\isa{\isacommand{from}}}~\isa{this}''.
   
-  \item [\mbox{\isa{\isacommand{with}}}~\isa{b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n}]
-  abbreviates ``\mbox{\isa{\isacommand{from}}}~\isa{b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n\ {\isasymAND}\ this}''; thus the forward chaining is from earlier facts together
+  \item [\mbox{\isa{\isacommand{with}}}~\isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}}]
+  abbreviates ``\mbox{\isa{\isacommand{from}}}~\isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n\ {\isasymAND}\ this{\isachardoublequote}}''; thus the forward chaining is from earlier facts together
   with the current ones.
   
-  \item [\mbox{\isa{\isacommand{using}}}~\isa{b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n}] augments
+  \item [\mbox{\isa{\isacommand{using}}}~\isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}}] augments
   the facts being currently indicated for use by a subsequent
   refinement step (such as \indexref{}{command}{apply}\mbox{\isa{\isacommand{apply}}} or \indexref{}{command}{proof}\mbox{\isa{\isacommand{proof}}}).
   
-  \item [\mbox{\isa{\isacommand{unfolding}}}~\isa{b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n}] is
+  \item [\mbox{\isa{\isacommand{unfolding}}}~\isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}}] is
   structurally similar to \mbox{\isa{\isacommand{using}}}, but unfolds definitional
-  equations \isa{b\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}\ b\isactrlsub n} throughout the goal state
+  equations \isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}\ b\isactrlsub n{\isachardoublequote}} throughout the goal state
   and facts.
 
   \end{descr}
 
   Forward chaining with an empty list of theorems is the same as not
   chaining at all.  Thus ``\mbox{\isa{\isacommand{from}}}~\isa{nothing}'' has no
-  effect apart from entering \isa{prove{\isacharparenleft}chain{\isacharparenright}} mode, since
+  effect apart from entering \isa{{\isachardoublequote}prove{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} mode, since
   \indexref{}{fact}{nothing}\mbox{\isa{nothing}} is bound to the empty list of theorems.
 
   Basic proof methods (such as \indexref{}{method}{rule}\mbox{\isa{rule}}) expect multiple
   facts to be given in their proper order, corresponding to a prefix
   of the premises of the rule involved.  Note that positions may be
-  easily skipped using something like \mbox{\isa{\isacommand{from}}}~\isa{{\isacharunderscore}\ {\isasymAND}\ a\ {\isasymAND}\ b}, for example.  This involves the trivial rule
-  \isa{PROP\ {\isasympsi}\ {\isasymLongrightarrow}\ PROP\ {\isasympsi}}, which is bound in Isabelle/Pure as
+  easily skipped using something like \mbox{\isa{\isacommand{from}}}~\isa{{\isachardoublequote}{\isacharunderscore}\ {\isasymAND}\ a\ {\isasymAND}\ b{\isachardoublequote}}, for example.  This involves the trivial rule
+  \isa{{\isachardoublequote}PROP\ {\isasympsi}\ {\isasymLongrightarrow}\ PROP\ {\isasympsi}{\isachardoublequote}}, which is bound in Isabelle/Pure as
   ``\indexref{}{fact}{-}\mbox{\isa{{\isacharunderscore}}}'' (underscore).
 
   Automated methods (such as \mbox{\isa{simp}} or \mbox{\isa{auto}}) just
@@ -937,7 +937,7 @@ Proof commands perform transitions of Isar/VM machine
 
   Goals may consist of multiple statements, resulting in a list of
   facts eventually.  A pending multi-goal is internally represented as
-  a meta-level conjunction (printed as \isa{{\isacharampersand}{\isacharampersand}}), which is usually
+  a meta-level conjunction (printed as \isa{{\isachardoublequote}{\isacharampersand}{\isacharampersand}{\isachardoublequote}}), which is usually
   split into the corresponding number of sub-goals prior to an initial
   method application, via \indexref{}{command}{proof}\mbox{\isa{\isacommand{proof}}}
   (\secref{sec:proof-steps}) or \indexref{}{command}{apply}\mbox{\isa{\isacommand{apply}}}
@@ -979,25 +979,25 @@ Proof commands perform transitions of Isar/VM machine
 
   \begin{descr}
   
-  \item [\mbox{\isa{\isacommand{lemma}}}~\isa{a{\isacharcolon}\ {\isasymphi}}] enters proof mode with
-  \isa{{\isasymphi}} as main goal, eventually resulting in some fact \isa{{\isasymturnstile}\ {\isasymphi}} to be put back into the target context.  An additional
+  \item [\mbox{\isa{\isacommand{lemma}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}}] enters proof mode with
+  \isa{{\isasymphi}} as main goal, eventually resulting in some fact \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} to be put back into the target context.  An additional
   \railnonterm{context} specification may build up an initial proof
   context for the subsequent claim; this includes local definitions
   and syntax as well, see the definition of \mbox{\isa{contextelem}} in
   \secref{sec:locale}.
   
-  \item [\mbox{\isa{\isacommand{theorem}}}~\isa{a{\isacharcolon}\ {\isasymphi}} and \mbox{\isa{\isacommand{corollary}}}~\isa{a{\isacharcolon}\ {\isasymphi}}] are essentially the same as \mbox{\isa{\isacommand{lemma}}}~\isa{a{\isacharcolon}\ {\isasymphi}}, but the facts are internally marked as
+  \item [\mbox{\isa{\isacommand{theorem}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} and \mbox{\isa{\isacommand{corollary}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}}] are essentially the same as \mbox{\isa{\isacommand{lemma}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}}, but the facts are internally marked as
   being of a different kind.  This discrimination acts like a formal
   comment.
   
-  \item [\mbox{\isa{\isacommand{have}}}~\isa{a{\isacharcolon}\ {\isasymphi}}] claims a local goal,
+  \item [\mbox{\isa{\isacommand{have}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}}] claims a local goal,
   eventually resulting in a fact within the current logical context.
   This operation is completely independent of any pending sub-goals of
   an enclosing goal statements, so \mbox{\isa{\isacommand{have}}} may be freely
   used for experimental exploration of potential results within a
   proof body.
   
-  \item [\mbox{\isa{\isacommand{show}}}~\isa{a{\isacharcolon}\ {\isasymphi}}] is like \mbox{\isa{\isacommand{have}}}~\isa{a{\isacharcolon}\ {\isasymphi}} plus a second stage to refine some pending
+  \item [\mbox{\isa{\isacommand{show}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}}] is like \mbox{\isa{\isacommand{have}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} plus a second stage to refine some pending
   sub-goal for each one of the finished result, after having been
   exported into the corresponding context (at the head of the
   sub-proof of this \mbox{\isa{\isacommand{show}}} command).
@@ -1079,12 +1079,12 @@ Proof commands perform transitions of Isar/VM machine
 
   \begin{enumerate}
 
-  \item An \emph{initial} refinement step \indexref{}{command}{proof}\mbox{\isa{\isacommand{proof}}}~\isa{m\isactrlsub {\isadigit{1}}} reduces a newly stated goal to a number
+  \item An \emph{initial} refinement step \indexref{}{command}{proof}\mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}} reduces a newly stated goal to a number
   of sub-goals that are to be solved later.  Facts are passed to
-  \isa{m\isactrlsub {\isadigit{1}}} for forward chaining, if so indicated by \isa{proof{\isacharparenleft}chain{\isacharparenright}} mode.
+  \isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}} for forward chaining, if so indicated by \isa{{\isachardoublequote}proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} mode.
   
-  \item A \emph{terminal} conclusion step \indexref{}{command}{qed}\mbox{\isa{\isacommand{qed}}}~\isa{m\isactrlsub {\isadigit{2}}} is intended to solve remaining goals.  No facts are
-  passed to \isa{m\isactrlsub {\isadigit{2}}}.
+  \item A \emph{terminal} conclusion step \indexref{}{command}{qed}\mbox{\isa{\isacommand{qed}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} is intended to solve remaining goals.  No facts are
+  passed to \isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}}.
 
   \end{enumerate}
 
@@ -1120,16 +1120,16 @@ Proof commands perform transitions of Isar/VM machine
 
   \begin{descr}
   
-  \item [\mbox{\isa{\isacommand{proof}}}~\isa{m\isactrlsub {\isadigit{1}}}] refines the goal by
-  proof method \isa{m\isactrlsub {\isadigit{1}}}; facts for forward chaining are
-  passed if so indicated by \isa{proof{\isacharparenleft}chain{\isacharparenright}} mode.
+  \item [\mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}] refines the goal by
+  proof method \isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}; facts for forward chaining are
+  passed if so indicated by \isa{{\isachardoublequote}proof{\isacharparenleft}chain{\isacharparenright}{\isachardoublequote}} mode.
   
-  \item [\mbox{\isa{\isacommand{qed}}}~\isa{m\isactrlsub {\isadigit{2}}}] refines any remaining
-  goals by proof method \isa{m\isactrlsub {\isadigit{2}}} and concludes the
-  sub-proof by assumption.  If the goal had been \isa{show} (or
-  \isa{thus}), some pending sub-goal is solved as well by the rule
+  \item [\mbox{\isa{\isacommand{qed}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}}] refines any remaining
+  goals by proof method \isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} and concludes the
+  sub-proof by assumption.  If the goal had been \isa{{\isachardoublequote}show{\isachardoublequote}} (or
+  \isa{{\isachardoublequote}thus{\isachardoublequote}}), some pending sub-goal is solved as well by the rule
   resulting from the result \emph{exported} into the enclosing goal
-  context.  Thus \isa{qed} may fail for two reasons: either \isa{m\isactrlsub {\isadigit{2}}} fails, or the resulting rule does not fit to any
+  context.  Thus \isa{{\isachardoublequote}qed{\isachardoublequote}} may fail for two reasons: either \isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} fails, or the resulting rule does not fit to any
   pending goal\footnote{This includes any additional ``strong''
   assumptions as introduced by \mbox{\isa{\isacommand{assume}}}.} of the enclosing
   context.  Debugging such a situation might involve temporarily
@@ -1137,25 +1137,25 @@ Proof commands perform transitions of Isar/VM machine
   local context by replacing occurrences of \mbox{\isa{\isacommand{assume}}} by
   \mbox{\isa{\isacommand{presume}}}.
   
-  \item [\mbox{\isa{\isacommand{by}}}~\isa{m\isactrlsub {\isadigit{1}}\ m\isactrlsub {\isadigit{2}}}] is a
+  \item [\mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}\ m\isactrlsub {\isadigit{2}}{\isachardoublequote}}] is a
   \emph{terminal proof}\index{proof!terminal}; it abbreviates
-  \mbox{\isa{\isacommand{proof}}}~\isa{m\isactrlsub {\isadigit{1}}}~\isa{qed}~\isa{m\isactrlsub {\isadigit{2}}}, but with backtracking across both methods.  Debugging
-  an unsuccessful \mbox{\isa{\isacommand{by}}}~\isa{m\isactrlsub {\isadigit{1}}\ m\isactrlsub {\isadigit{2}}}
+  \mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}~\isa{{\isachardoublequote}qed{\isachardoublequote}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}}, but with backtracking across both methods.  Debugging
+  an unsuccessful \mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}\ m\isactrlsub {\isadigit{2}}{\isachardoublequote}}
   command can be done by expanding its definition; in many cases
-  \mbox{\isa{\isacommand{proof}}}~\isa{m\isactrlsub {\isadigit{1}}} (or even \isa{apply}~\isa{m\isactrlsub {\isadigit{1}}}) is already sufficient to see the
+  \mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}} (or even \isa{{\isachardoublequote}apply{\isachardoublequote}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}) is already sufficient to see the
   problem.
 
   \item [``\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}''] is a \emph{default
-  proof}\index{proof!default}; it abbreviates \mbox{\isa{\isacommand{by}}}~\isa{rule}.
+  proof}\index{proof!default}; it abbreviates \mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}rule{\isachardoublequote}}.
 
   \item [``\mbox{\isa{\isacommand{{\isachardot}}}}''] is a \emph{trivial
-  proof}\index{proof!trivial}; it abbreviates \mbox{\isa{\isacommand{by}}}~\isa{this}.
+  proof}\index{proof!trivial}; it abbreviates \mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}this{\isachardoublequote}}.
   
   \item [\mbox{\isa{\isacommand{sorry}}}] is a \emph{fake proof}\index{proof!fake}
   pretending to solve the pending claim without further ado.  This
   only works in interactive development, or if the \verb|quick_and_dirty| flag is enabled (in ML).  Facts emerging from fake
   proofs are not the real thing.  Internally, each theorem container
-  is tainted by an oracle invocation, which is indicated as ``\isa{{\isacharbrackleft}{\isacharbang}{\isacharbrackright}}'' in the printed result.
+  is tainted by an oracle invocation, which is indicated as ``\isa{{\isachardoublequote}{\isacharbrackleft}{\isacharbang}{\isacharbrackright}{\isachardoublequote}}'' in the printed result.
   
   The most important application of \mbox{\isa{\isacommand{sorry}}} is to support
   experimentation and top-down proof development.
@@ -1217,17 +1217,17 @@ The following proof methods and attributes refer to basic logical
   forward chaining facts as premises into the goal.  Note that command
   \indexref{}{command}{proof}\mbox{\isa{\isacommand{proof}}} without any method actually performs a single
   reduction step using the \indexref{}{method}{rule}\mbox{\isa{rule}} method; thus a plain
-  \emph{do-nothing} proof step would be ``\mbox{\isa{\isacommand{proof}}}~\isa{{\isacharminus}}'' rather than \mbox{\isa{\isacommand{proof}}} alone.
+  \emph{do-nothing} proof step would be ``\mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' rather than \mbox{\isa{\isacommand{proof}}} alone.
   
-  \item [\mbox{\isa{fact}}~\isa{a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n}] composes
-  some fact from \isa{a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n} (or implicitly from
+  \item [\mbox{\isa{fact}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}] composes
+  some fact from \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n{\isachardoublequote}} (or implicitly from
   the current proof context) modulo unification of schematic type and
   term variables.  The rule structure is not taken into account, i.e.\
   meta-level implication is considered atomic.  This is the same
   principle underlying literal facts (cf.\ \secref{sec:syn-att}):
-  ``\mbox{\isa{\isacommand{have}}}~\isa{{\isasymphi}}~\mbox{\isa{\isacommand{by}}}~\isa{fact}'' is
-  equivalent to ``\mbox{\isa{\isacommand{note}}}~\verb|`|\isa{{\isasymphi}}\verb|`|'' provided that \isa{{\isasymturnstile}\ {\isasymphi}} is an instance of some known
-  \isa{{\isasymturnstile}\ {\isasymphi}} in the proof context.
+  ``\mbox{\isa{\isacommand{have}}}~\isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}~\mbox{\isa{\isacommand{by}}}~\isa{fact}'' is
+  equivalent to ``\mbox{\isa{\isacommand{note}}}~\verb|`|\isa{{\isasymphi}}\verb|`|'' provided that \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} is an instance of some known
+  \isa{{\isachardoublequote}{\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} in the proof context.
   
   \item [\mbox{\isa{assumption}}] solves some goal by a single assumption
   step.  All given facts are guaranteed to participate in the
@@ -1240,7 +1240,7 @@ The following proof methods and attributes refer to basic logical
   \item [\mbox{\isa{this}}] applies all of the current facts directly as
   rules.  Recall that ``\mbox{\isa{\isacommand{{\isachardot}}}}'' (dot) abbreviates ``\mbox{\isa{\isacommand{by}}}~\isa{this}''.
   
-  \item [\mbox{\isa{rule}}~\isa{a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n}] applies some
+  \item [\mbox{\isa{rule}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}] applies some
   rule given as argument in backward manner; facts are used to reduce
   the rule before applying it to the goal.  Thus \mbox{\isa{rule}}
   without facts is plain introduction, while with facts it becomes
@@ -1255,12 +1255,12 @@ The following proof methods and attributes refer to basic logical
   \item [\mbox{\isa{iprover}}] performs intuitionistic proof search,
   depending on specifically declared rules from the context, or given
   as explicit arguments.  Chained facts are inserted into the goal
-  before commencing proof search; ``\mbox{\isa{iprover}}\isa{{\isacharbang}}'' 
+  before commencing proof search; ``\mbox{\isa{iprover}}\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' 
   means to include the current \mbox{\isa{prems}} as well.
   
-  Rules need to be classified as \mbox{\isa{intro}}, \mbox{\isa{elim}}, or \mbox{\isa{dest}}; here the ``\isa{{\isacharbang}}'' indicator
+  Rules need to be classified as \mbox{\isa{intro}}, \mbox{\isa{elim}}, or \mbox{\isa{dest}}; here the ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' indicator
   refers to ``safe'' rules, which may be applied aggressively (without
-  considering back-tracking later).  Rules declared with ``\isa{{\isacharquery}}'' are ignored in proof search (the single-step \mbox{\isa{rule}}
+  considering back-tracking later).  Rules declared with ``\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}}'' are ignored in proof search (the single-step \mbox{\isa{rule}}
   method still observes these).  An explicit weight annotation may be
   given as well; otherwise the number of rule premises will be taken
   into account here.
@@ -1268,8 +1268,8 @@ The following proof methods and attributes refer to basic logical
   \item [\mbox{\isa{intro}}, \mbox{\isa{elim}}, and \mbox{\isa{dest}}]
   declare introduction, elimination, and destruct rules, to be used
   with the \mbox{\isa{rule}} and \mbox{\isa{iprover}} methods.  Note that
-  the latter will ignore rules declared with ``\isa{{\isacharquery}}'', while
-  ``\isa{{\isacharbang}}''  are used most aggressively.
+  the latter will ignore rules declared with ``\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}}'', while
+  ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}''  are used most aggressively.
   
   The classical reasoner (see \secref{sec:classical}) introduces its
   own variants of these attributes; use qualified names to access the
@@ -1278,21 +1278,21 @@ The following proof methods and attributes refer to basic logical
   \item [\mbox{\isa{rule}}~\isa{del}] undeclares introduction,
   elimination, or destruct rules.
   
-  \item [\mbox{\isa{OF}}~\isa{a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n}] applies some
-  theorem to all of the given rules \isa{a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n}
-  (in parallel).  This corresponds to the \verb|op MRS| operation in
+  \item [\mbox{\isa{OF}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}] applies some
+  theorem to all of the given rules \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n{\isachardoublequote}}
+  (in parallel).  This corresponds to the \verb|"op MRS"| operation in
   ML, but note the reversed order.  Positions may be effectively
   skipped by including ``\isa{{\isacharunderscore}}'' (underscore) as argument.
   
-  \item [\mbox{\isa{of}}~\isa{t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n}] performs
-  positional instantiation of term variables.  The terms \isa{t\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ t\isactrlsub n} are substituted for any schematic
+  \item [\mbox{\isa{of}}~\isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n{\isachardoublequote}}] performs
+  positional instantiation of term variables.  The terms \isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ t\isactrlsub n{\isachardoublequote}} are substituted for any schematic
   variables occurring in a theorem from left to right; ``\isa{{\isacharunderscore}}'' (underscore) indicates to skip a position.  Arguments following
-  a ``\mbox{\isa{\isakeyword{concl}}}\isa{{\isacharcolon}}'' specification refer to positions
+  a ``\mbox{\isa{\isakeyword{concl}}}\isa{{\isachardoublequote}{\isacharcolon}{\isachardoublequote}}'' specification refer to positions
   of the conclusion of a rule.
   
-  \item [\mbox{\isa{where}}~\isa{x\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ x\isactrlsub n\ {\isacharequal}\ t\isactrlsub n}] performs named instantiation of schematic
+  \item [\mbox{\isa{where}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ x\isactrlsub n\ {\isacharequal}\ t\isactrlsub n{\isachardoublequote}}] performs named instantiation of schematic
   type and term variables occurring in a theorem.  Schematic variables
-  have to be specified on the left-hand side (e.g.\ \isa{{\isacharquery}x{\isadigit{1}}{\isachardot}{\isadigit{3}}}).
+  have to be specified on the left-hand side (e.g.\ \isa{{\isachardoublequote}{\isacharquery}x{\isadigit{1}}{\isachardot}{\isadigit{3}}{\isachardoublequote}}).
   The question mark may be omitted if the variable name is a plain
   identifier without index.  As type instantiations are inferred from
   term instantiations, explicit type instantiations are seldom
@@ -1312,8 +1312,8 @@ The following proof methods and attributes refer to basic logical
     \indexdef{}{keyword}{is}\mbox{\isa{\isakeyword{is}}} & : & syntax \\
   \end{matharray}
 
-  Abbreviations may be either bound by explicit \mbox{\isa{\isacommand{let}}}~\isa{p\ {\isasymequiv}\ t} statements, or by annotating assumptions or
-  goal statements with a list of patterns ``\isa{{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}}''.  In both cases, higher-order matching is invoked to
+  Abbreviations may be either bound by explicit \mbox{\isa{\isacommand{let}}}~\isa{{\isachardoublequote}p\ {\isasymequiv}\ t{\isachardoublequote}} statements, or by annotating assumptions or
+  goal statements with a list of patterns ``\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}{\isachardoublequote}}''.  In both cases, higher-order matching is invoked to
   bind extra-logical term variables, which may be either named
   schematic variables of the form \isa{{\isacharquery}x}, or nameless dummies
   ``\mbox{\isa{{\isacharunderscore}}}'' (underscore). Note that in the \mbox{\isa{\isacommand{let}}}
@@ -1344,10 +1344,10 @@ The following proof methods and attributes refer to basic logical
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{let}}}~\isa{p\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ p\isactrlsub n\ {\isacharequal}\ t\isactrlsub n}] binds any text variables in patterns \isa{p\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ p\isactrlsub n} by simultaneous higher-order matching
-  against terms \isa{t\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ t\isactrlsub n}.
+  \item [\mbox{\isa{\isacommand{let}}}~\isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ p\isactrlsub n\ {\isacharequal}\ t\isactrlsub n{\isachardoublequote}}] binds any text variables in patterns \isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ p\isactrlsub n{\isachardoublequote}} by simultaneous higher-order matching
+  against terms \isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ t\isactrlsub n{\isachardoublequote}}.
 
-  \item [\isa{{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}}] resembles \mbox{\isa{\isacommand{let}}}, but matches \isa{p\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ p\isactrlsub n} against the
+  \item [\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}{\isachardoublequote}}] resembles \mbox{\isa{\isacommand{let}}}, but matches \isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ p\isactrlsub n{\isachardoublequote}} against the
   preceding statement.  Also note that \mbox{\isa{\isakeyword{is}}} is not a
   separate command, but part of others (such as \mbox{\isa{\isacommand{assume}}},
   \mbox{\isa{\isacommand{have}}} etc.).
@@ -1360,7 +1360,7 @@ The following proof methods and attributes refer to basic logical
   abstracted over any meta-level parameters (if present).  Likewise,
   \indexref{}{variable}{this}\mbox{\isa{this}} is bound for fact statements resulting from
   assumptions or finished goals.  In case \mbox{\isa{this}} refers to
-  an object-logic statement that is an application \isa{f\ t}, then
+  an object-logic statement that is an application \isa{{\isachardoublequote}f\ t{\isachardoublequote}}, then
   \isa{t} is bound to the special text variable ``\mbox{\isa{{\isasymdots}}}''
   (three dots).  The canonical application of this convenience are
   calculational proofs (see \secref{sec:calculation}).%
@@ -1447,7 +1447,7 @@ The Isar provides separate commands to accommodate tactic-style
 
   \item [\mbox{\isa{\isacommand{apply}}}~\isa{m}] applies proof method \isa{m}
   in initial position, but unlike \mbox{\isa{\isacommand{proof}}} it retains
-  ``\isa{proof{\isacharparenleft}prove{\isacharparenright}}'' mode.  Thus consecutive method
+  ``\isa{{\isachardoublequote}proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}}'' mode.  Thus consecutive method
   applications may be given just as in tactic scripts.
   
   Facts are passed to \isa{m} as indicated by the goal's
@@ -1455,7 +1455,7 @@ The Isar provides separate commands to accommodate tactic-style
   further \mbox{\isa{\isacommand{apply}}} command would always work in a purely
   backward manner.
   
-  \item [\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}~\isa{m}] applies proof method
+  \item [\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}~\isa{{\isachardoublequote}m{\isachardoublequote}}] applies proof method
   \isa{m} as if in terminal position.  Basically, this simulates a
   multi-step tactic script for \mbox{\isa{\isacommand{qed}}}, but may be given
   anywhere within the proof body.
@@ -1469,7 +1469,7 @@ The Isar provides separate commands to accommodate tactic-style
   structured proof commands (e.g.\ ``\mbox{\isa{\isacommand{{\isachardot}}}}'' or \mbox{\isa{\isacommand{sorry}}}) may be used to conclude proof scripts as well.
 
   \item [\mbox{\isa{\isacommand{defer}}}~\isa{n} and \mbox{\isa{\isacommand{prefer}}}~\isa{n}] shuffle the list of pending goals: \mbox{\isa{\isacommand{defer}}} puts off
-  sub-goal \isa{n} to the end of the list (\isa{n\ {\isacharequal}\ {\isadigit{1}}} by
+  sub-goal \isa{n} to the end of the list (\isa{{\isachardoublequote}n\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequote}} by
   default), while \mbox{\isa{\isacommand{prefer}}} brings sub-goal \isa{n} to the
   front.
   
@@ -1510,7 +1510,7 @@ The Isar provides separate commands to accommodate tactic-style
   preparation tools of Isabelle described in \cite{isabelle-sys}.
   Thus partial or even wrong proof attempts can be discussed in a
   logically sound manner.  Note that the Isabelle {\LaTeX} macros can
-  be easily adapted to print something like ``\isa{{\isasymdots}}'' instead of
+  be easily adapted to print something like ``\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}'' instead of
   the keyword ``\mbox{\isa{\isacommand{oops}}}''.
 
   \medskip The \mbox{\isa{\isacommand{oops}}} command is undo-able, unlike
@@ -1564,17 +1564,17 @@ The Isar provides separate commands to accommodate tactic-style
 
   \begin{descr}
 
-  \item [\mbox{\isa{\isacommand{pr}}}~\isa{goals{\isacharcomma}\ prems}] prints the current
+  \item [\mbox{\isa{\isacommand{pr}}}~\isa{{\isachardoublequote}goals{\isacharcomma}\ prems{\isachardoublequote}}] prints the current
   proof state (if present), including the proof context, current facts
   and goals.  The optional limit arguments affect the number of goals
   and premises to be displayed, which is initially 10 for both.
   Omitting limit values leaves the current setting unchanged.
 
-  \item [\mbox{\isa{\isacommand{thm}}}~\isa{a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n}] retrieves
+  \item [\mbox{\isa{\isacommand{thm}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}] retrieves
   theorems from the current theory or proof context.  Note that any
   attributes included in the theorem specifications are applied to a
   temporary context derived from the current theory or proof; the
-  result is discarded, i.e.\ attributes involved in \isa{a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n} do not have any permanent effect.
+  result is discarded, i.e.\ attributes involved in \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n{\isachardoublequote}} do not have any permanent effect.
 
   \item [\mbox{\isa{\isacommand{term}}}~\isa{t} and \mbox{\isa{\isacommand{prop}}}~\isa{{\isasymphi}}]
   read, type-check and print terms or propositions according to the
@@ -1601,7 +1601,7 @@ The Isar provides separate commands to accommodate tactic-style
   All of the diagnostic commands above admit a list of \isa{modes}
   to be specified, which is appended to the current print mode (see
   also \cite{isabelle-ref}).  Thus the output behavior may be modified
-  according particular print mode features.  For example, \mbox{\isa{\isacommand{pr}}}~\isa{{\isacharparenleft}latex\ xsymbols\ symbols{\isacharparenright}} would print the current
+  according particular print mode features.  For example, \mbox{\isa{\isacommand{pr}}}~\isa{{\isachardoublequote}{\isacharparenleft}latex\ xsymbols\ symbols{\isacharparenright}{\isachardoublequote}} would print the current
   proof state with mathematical symbols and special characters
   represented in {\LaTeX} source, according to the Isabelle style
   \cite{isabelle-sys}.
@@ -1653,7 +1653,7 @@ The Isar provides separate commands to accommodate tactic-style
   syntax, including keywords and command.
   
   \item [\mbox{\isa{\isacommand{print{\isacharunderscore}theory}}}] prints the main logical content of
-  the theory context; the ``\isa{{\isacharbang}}'' option indicates extra
+  the theory context; the ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' option indicates extra
   verbosity.
 
   \item [\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}] prints the inner syntax of types
@@ -1673,24 +1673,24 @@ The Isar provides separate commands to accommodate tactic-style
   
   \item [\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}~\isa{criteria}] retrieves facts
   from the theory or proof context matching all of given search
-  criteria.  The criterion \isa{name{\isacharcolon}\ p} selects all theorems
+  criteria.  The criterion \isa{{\isachardoublequote}name{\isacharcolon}\ p{\isachardoublequote}} selects all theorems
   whose fully qualified name matches pattern \isa{p}, which may
-  contain ``\isa{{\isacharasterisk}}'' wildcards.  The criteria \isa{intro},
+  contain ``\isa{{\isachardoublequote}{\isacharasterisk}{\isachardoublequote}}'' wildcards.  The criteria \isa{intro},
   \isa{elim}, and \isa{dest} select theorems that match the
   current goal as introduction, elimination or destruction rules,
-  respectively.  The criterion \isa{simp{\isacharcolon}\ t} selects all rewrite
+  respectively.  The criterion \isa{{\isachardoublequote}simp{\isacharcolon}\ t{\isachardoublequote}} selects all rewrite
   rules whose left-hand side matches the given term.  The criterion
   term \isa{t} selects all theorems that contain the pattern \isa{t} -- as usual, patterns may contain occurrences of the dummy
   ``\isa{{\isacharunderscore}}'', schematic variables, and type constraints.
   
-  Criteria can be preceded by ``\isa{{\isacharminus}}'' to select theorems that
+  Criteria can be preceded by ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' to select theorems that
   do \emph{not} match. Note that giving the empty list of criteria
   yields \emph{all} currently known facts.  An optional limit for the
   number of printed facts may be given; the default is 40.  By
   default, duplicates are removed from the search result. Use
   \mbox{\isa{\isakeyword{with{\isacharunderscore}dups}}} to display duplicates.
   
-  \item [\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}~\isa{a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n}]
+  \item [\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}]
   visualizes dependencies of facts, using Isabelle's graph browser
   tool (see also \cite{isabelle-sys}).
   
