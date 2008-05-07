@@ -87,10 +87,14 @@ datatype proof
 
 exception Cannot; (* internal exception: raised if no proof can be found *)
 
+fun decomp t = Option.map (fn (x, y, rel, r) =>
+  (Envir.beta_eta_contract x, Envir.beta_eta_contract y,
+   Envir.beta_eta_contract rel, r)) (Cls.decomp t);
+
 fun prove thy r asms = 
   let
     fun inst thm =
-      let val SOME (_, _, r', _) = Cls.decomp (concl_of thm)
+      let val SOME (_, _, r', _) = decomp (concl_of thm)
       in Drule.cterm_instantiate [(cterm_of thy r', cterm_of thy r)] thm end;
     fun pr (Asm i) = List.nth (asms, i)
       | pr (Thm (prfs, thm)) = map pr prfs MRS inst thm
@@ -124,7 +128,7 @@ fun getprf   (Trans   (_, _, p)) = p
 (* ************************************************************************ *)
 
 fun mkasm_trancl  Rel  (t, n) =
-  case Cls.decomp t of
+  case decomp t of
     SOME (x, y, rel,r) => if rel aconv Rel then  
     
     (case r of
@@ -147,7 +151,7 @@ fun mkasm_trancl  Rel  (t, n) =
 (* ************************************************************************ *)
 
 fun mkasm_rtrancl Rel (t, n) =
-  case Cls.decomp t of
+  case decomp t of
    SOME (x, y, rel, r) => if rel aconv Rel then
     (case r of
       "r"   => [ Trans (x,y, Thm([Asm n], Cls.r_into_trancl))]
@@ -171,14 +175,14 @@ fun mkasm_rtrancl Rel (t, n) =
 (* ************************************************************************ *)
 
 fun mkconcl_trancl  t =
-  case Cls.decomp t of
+  case decomp t of
     SOME (x, y, rel, r) => (case r of
       "r+"  => (rel, Trans (x,y, Asm ~1), Asm 0)
     | _     => raise Cannot)
   | NONE => raise Cannot;
 
 fun mkconcl_rtrancl  t =
-  case Cls.decomp t of
+  case decomp t of
     SOME (x,  y, rel,r ) => (case r of
       "r+"  => (rel, Trans (x,y, Asm ~1),  Asm 0)
     | "r*"  => (rel, RTrans (x,y, Asm ~1), Asm 0)

@@ -411,9 +411,12 @@ fun mkconcl_linear decomp (less_thms : less_arith) sign t =
      where Rel is one of "<", "<=", "~<", "~<=", "=" and "~=",
      other relation symbols cause an error message *)
 
-fun gen_order_tac mkasm mkconcl decomp (less_thms : less_arith) prems =
+fun gen_order_tac mkasm mkconcl decomp' (less_thms : less_arith) prems =
 
 let
+
+fun decomp sign t = Option.map (fn (x, rel, y) =>
+  (Envir.beta_eta_contract x, rel, Envir.beta_eta_contract y)) (decomp' sign t);
 
 (* ******************************************************************* *)
 (*                                                                     *)
