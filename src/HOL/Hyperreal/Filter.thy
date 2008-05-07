@@ -394,10 +394,12 @@ proof -
     fix A assume "A \<in> U"
     with U show "infinite A" by (rule mem_superfrechet_all_infinite)
   qed
-  from fil ultra free have "freeultrafilter U"
-    by (rule freeultrafilter.intro [OF ultrafilter.intro])
-    (* FIXME: unfold_locales should use chained facts *)
-  thus ?thesis ..
+  show ?thesis
+  proof
+    from fil ultra free show "freeultrafilter U"
+      by (rule freeultrafilter.intro [OF ultrafilter.intro])
+      (* FIXME: unfold_locales should use chained facts *)
+  qed
 qed
 
 lemmas freeultrafilter_Ex = UFT.freeultrafilter_ex

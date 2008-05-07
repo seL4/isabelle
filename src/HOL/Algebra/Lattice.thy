@@ -847,18 +847,22 @@ proof (rule partial_order.complete_latticeI)
     by (rule partial_order.intro) auto
 next
   fix B
-  assume "B \<subseteq> carrier ?L"
-  then have "least ?L (\<Union> B) (Upper ?L B)"
-    by (fastsimp intro!: least_UpperI simp: Upper_def)
-  then show "EX s. least ?L s (Upper ?L B)" ..
+  assume B: "B \<subseteq> carrier ?L"
+  show "EX s. least ?L s (Upper ?L B)"
+  proof
+    from B show "least ?L (\<Union> B) (Upper ?L B)"
+      by (fastsimp intro!: least_UpperI simp: Upper_def)
+  qed
 next
   fix B
-  assume "B \<subseteq> carrier ?L"
-  then have "greatest ?L (\<Inter> B \<inter> A) (Lower ?L B)"
-    txt {* @{term "\<Inter> B"} is not the infimum of @{term B}:
-      @{term "\<Inter> {} = UNIV"} which is in general bigger than @{term "A"}! *}
-    by (fastsimp intro!: greatest_LowerI simp: Lower_def)
-  then show "EX i. greatest ?L i (Lower ?L B)" ..
+  assume B: "B \<subseteq> carrier ?L"
+  show "EX i. greatest ?L i (Lower ?L B)"
+  proof
+    from B show "greatest ?L (\<Inter> B \<inter> A) (Lower ?L B)"
+      txt {* @{term "\<Inter> B"} is not the infimum of @{term B}:
+	@{term "\<Inter> {} = UNIV"} which is in general bigger than @{term "A"}! *}
+      by (fastsimp intro!: greatest_LowerI simp: Lower_def)
+  qed
 qed
 
 text {* An other example, that of the lattice of subgroups of a group,
