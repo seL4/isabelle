@@ -64,7 +64,7 @@ fun loose (i,t) = member (op =) (add_loose_bnos (t, i, [])) 0;
 (*Simplifier turns Bound variables to special Free variables:
   change it back (any Bound variable will do)*)
 fun contract t =
-  (case Pattern.eta_contract_atom t of
+  (case Envir.eta_contract t of
     Free (a, T) => if Name.is_bound a then Bound 0 else Free (a, T)
   | t' => t');
 
@@ -143,7 +143,38 @@ end;
 
 val ssubst = standard (Data.sym RS Data.subst);
 
+fun inst_subst_tac b rl = SUBGOAL (fn (Bi, i) => fn st =>
+  case try (Logic.strip_assums_hyp #> hd #>
+      Data.dest_Trueprop #> Data.dest_eq #> pairself contract) Bi of
+    SOME (t, t') =>
+      let
+        val ps = Logic.strip_params Bi;
+        val U = fastype_of1 (rev (map snd ps), t);
+        val Q = Data.dest_Trueprop (Logic.strip_assums_concl Bi);
+        val rl' = Thm.lift_rule (nth (cprems_of st) (i - 1)) rl;
+        val Var (ixn, T) = head_of (Data.dest_Trueprop
+          (Logic.strip_assums_concl (prop_of rl')));
+        val (v1, v2) = Data.dest_eq (Data.dest_Trueprop
+          (Logic.strip_assums_concl (hd (prems_of rl'))));
+        val (Ts, V) = split_last (binder_types T);
+        val u = list_abs (ps @ [("x", U)], case (if b then t else t') of
+            Bound j => subst_bounds (map Bound
+              ((1 upto j) @ 0 :: (j + 2 upto length ps)), Q)
+          | t => abstract_over (t, incr_boundvars 1 Q));
+        val thy = theory_of_thm rl'
+      in compose_tac (true, instantiate ([(ctyp_of thy V, ctyp_of thy U)],
+        map (pairself (cterm_of thy))
+          [(Var (ixn, Ts ---> U --> body_type T), u),
+           (Var (fst (dest_Var (head_of v1)), Ts ---> U), list_abs (ps, t)),
+           (Var (fst (dest_Var (head_of v2)), Ts ---> U), list_abs (ps, t'))]) rl',
+        nprems_of rl) i st
+      end
+  | NONE => Seq.empty);
+
 val imp_intr_tac = rtac Data.imp_intr;
+
+(* FIXME: "etac Data.rev_mp i" will not behave as expected if goal has *)
+(* premises containing meta-implications or quantifiers                *)
 
 (*Old version of the tactic above -- slower but the only way
   to handle equalities containing Vars.*)
@@ -155,7 +186,7 @@ fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
            (EVERY [REPEAT_DETERM_N k (etac Data.rev_mp i),
                    rotate_tac 1 i,
                    REPEAT_DETERM_N (n-k) (etac Data.rev_mp i),
-                   etac (if symopt then ssubst else Data.subst) i,
+                   inst_subst_tac symopt (if symopt then ssubst else Data.subst) i,
                    REPEAT_DETERM_N n (imp_intr_tac i THEN rotate_tac ~1 i)])
       end
       handle THM _ => no_tac | EQ_VAR => no_tac);
@@ -211,7 +242,7 @@ fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>
            (EVERY [REPEAT_DETERM_N k (etac Data.rev_mp i),
                    rotate_tac 1 i,
                    REPEAT_DETERM_N (n-k) (etac Data.rev_mp i),
-                   etac (if symopt then ssubst else Data.subst) i,
+                   inst_subst_tac symopt (if symopt then ssubst else Data.subst) i,
                    all_imp_intr_tac hyps i])
       end
       handle THM _ => no_tac | EQ_VAR => no_tac);
