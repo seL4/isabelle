@@ -261,17 +261,6 @@ proof (rule card_distinct)
     by (simp add: sublists_powset length_sublists)
 qed
 
-instantiation set :: (enum) enum
-begin
-
-definition
-  "enum = map set (sublists enum)"
-
-instance by default
-  (simp_all add: enum_set_def enum_all sublists_powset distinct_set_sublists enum_distinct)
-
-end
-
 instantiation nibble :: enum
 begin
 
