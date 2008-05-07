@@ -135,9 +135,9 @@ val boolT = Type (boolN, []);
 val true_const =  Const ("True", boolT);
 val false_const = Const ("False", boolT);
 
-fun mk_setT T = Type ("set", [T]);
+fun mk_setT T = T --> boolT;
 
-fun dest_setT (Type ("set", [T])) = T
+fun dest_setT (Type ("fun", [T, Type ("bool", [])])) = T
   | dest_setT T = raise TYPE ("dest_setT: set type expected", [T], []);
 
 
