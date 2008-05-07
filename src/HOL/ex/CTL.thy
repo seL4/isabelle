@@ -95,7 +95,7 @@ proof
     proof
       assume "x \<in> gfp (\<lambda>s. - f (- s))"
       then obtain u where "x \<in> u" and "u \<subseteq> - f (- u)"
-	by (auto simp add: gfp_def Sup_set_def)
+	by (auto simp add: gfp_def Sup_set_eq)
       then have "f (- u) \<subseteq> - u" by auto
       then have "lfp f \<subseteq> - u" by (rule lfp_lowerbound)
       from l and this have "x \<notin> u" by auto
@@ -253,8 +253,8 @@ proof
       proof -
 	{
 	  have "\<AG> (p \<rightarrow> \<AX> p) \<subseteq> p \<rightarrow> \<AX> p" by (rule AG_fp_1)
-          also have "p \<inter> p \<rightarrow> \<AX> p \<subseteq> \<AX> p" ..
-          finally have "?lhs \<subseteq> \<AX> p" by auto
+          moreover have "p \<inter> p \<rightarrow> \<AX> p \<subseteq> \<AX> p" ..
+          ultimately have "?lhs \<subseteq> \<AX> p" by auto
 	}  
 	moreover
 	{
@@ -262,7 +262,8 @@ proof
           also have "\<dots> \<subseteq> \<AX> \<dots>" by (rule AG_fp_2)
           finally have "?lhs \<subseteq> \<AX> \<AG> (p \<rightarrow> \<AX> p)" .
 	}  
-	ultimately have "?lhs \<subseteq> \<AX> p \<inter> \<AX> \<AG> (p \<rightarrow> \<AX> p)" ..
+	ultimately have "?lhs \<subseteq> \<AX> p \<inter> \<AX> \<AG> (p \<rightarrow> \<AX> p)"
+	  by (rule Int_greatest)
 	also have "\<dots> = \<AX> ?lhs" by (simp only: AX_int)
 	finally show ?thesis .
       qed

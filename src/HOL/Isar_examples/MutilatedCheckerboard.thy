@@ -134,7 +134,7 @@ next
   let ?a = "{i} <*> {2 * n + 1} Un {i} <*> {2 * n}"
   have "?B (Suc n) = ?a Un ?B n"
     by (auto simp add: Sigma_Suc Un_assoc)
-  also have "... : ?T"
+  moreover have "... : ?T"
   proof (rule tiling.Un)
     have "{(i, 2 * n), (i, 2 * n + 1)} : domino"
       by (rule domino.horiz)
@@ -143,7 +143,7 @@ next
     show "?B n : ?T" by (rule Suc)
     show "?a <= - ?B n" by blast
   qed
-  finally show ?case .
+  ultimately show ?case by simp
 qed
 
 lemma dominoes_tile_matrix:
@@ -156,13 +156,13 @@ next
   case (Suc m)
   let ?t = "{m} <*> below (2 * n)"
   have "?B (Suc m) = ?t Un ?B m" by (simp add: Sigma_Suc)
-  also have "... : ?T"
+  moreover have "... : ?T"
   proof (rule tiling_Un)
     show "?t : ?T" by (rule dominoes_tile_row)
     show "?B m : ?T" by (rule Suc)
     show "?t Int ?B m = {}" by blast
   qed
-  finally show ?case .
+  ultimately show ?case by simp
 qed
 
 lemma domino_singleton:
@@ -224,8 +224,8 @@ next
       have "EX i j. ?e a b = {(i, j)}" by (rule domino_singleton)
       then show ?thesis by (blast intro: that)
     qed
-    also have "... Un ?e t b = insert (i, j) (?e t b)" by simp
-    also have "card ... = Suc (card (?e t b))"
+    moreover have "... Un ?e t b = insert (i, j) (?e t b)" by simp
+    moreover have "card ... = Suc (card (?e t b))"
     proof (rule card_insert_disjoint)
       from `t \<in> tiling domino` have "finite t"
 	by (rule tiling_domino_finite)
@@ -234,7 +234,7 @@ next
       from e have "(i, j) : ?e a b" by simp
       with at show "(i, j) ~: ?e t b" by (blast dest: evnoddD)
     qed
-    finally show "?thesis b" .
+    ultimately show "?thesis b" by simp
   qed
   then have "card (?e (a Un t) 0) = Suc (card (?e t 0))" by simp
   also from hyp have "card (?e t 0) = card (?e t 1)" .
