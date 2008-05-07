@@ -35,7 +35,7 @@ lemma INT_Un_Compl_subset:
      "(\<Inter>i \<in> lessThan n. -A i \<union> A (Suc i))  \<subseteq>  
       (\<Inter>i \<in> lessThan n. -A i) \<union> A n"
 apply (induct_tac "n", simp)
-apply (simp add: lessThan_Suc, blast)
+apply (simp add: lessThan_Suc, fast)
 done
 
 
