@@ -6,7 +6,7 @@
 header {* Set theory for higher-order logic *}
 
 theory Set
-imports Code_Setup
+imports Orderings
 begin
 
 text {* A set in HOL is simply a predicate. *}
@@ -16,7 +16,7 @@ subsection {* Basic syntax *}
 
 global
 
-typedecl 'a set
+types 'a set = "'a => bool"
 
 consts
   "{}"          :: "'a set"                             ("{}")
@@ -142,19 +142,6 @@ text{*
   former does not make the index expression a subscript of the
   union/intersection symbol because this leads to problems with nested
   subscripts in Proof General. *}
-
-instantiation set :: (type) ord
-begin
-
-definition
-  subset_def [code func del]: "A \<le> B \<equiv> \<forall>x\<in>A. x \<in> B"
-
-definition
-  psubset_def [code func del]: "(A\<Colon>'a set) < B \<equiv> A \<le> B \<and> A \<noteq> B"
-
-instance ..
-
-end
 
 abbreviation
   subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
@@ -336,33 +323,50 @@ subsection {* Rules and definitions *}
 
 text {* Isomorphisms between predicates and sets. *}
 
-axioms
-  mem_Collect_eq: "(a : {x. P(x)}) = P(a)"
-  Collect_mem_eq: "{x. x:A} = A"
-finalconsts
-  Collect
-  "op :"
+defs
+  mem_def: "x : S == S x"
+  Collect_def: "Collect P == P"
 
 defs
   Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
   Bex_def:      "Bex A P        == EX x. x:A & P(x)"
   Bex1_def:     "Bex1 A P       == EX! x. x:A & P(x)"
 
-instantiation set :: (type) minus
+instantiation "fun" :: (type, minus) minus
 begin
 
 definition
-  set_diff_def [code func del]: "A - B = {x. x:A & ~x:B}"
+  fun_diff_def: "A - B = (%x. A x - B x)"
 
 instance ..
 
 end
 
-instantiation set :: (type) uminus
+instantiation bool :: minus
 begin
 
 definition
-  Compl_def [code func del]:    "- A   = {x. ~x:A}"
+  bool_diff_def: "A - B = (A & ~ B)"
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, uminus) uminus
+begin
+
+definition
+  fun_Compl_def: "- A = (%x. - A x)"
+
+instance ..
+
+end
+
+instantiation bool :: uminus
+begin
+
+definition
+  bool_Compl_def: "- A = (~ A)"
 
 instance ..
 
@@ -386,7 +390,11 @@ subsection {* Lemmas and proof tool setup *}
 
 subsubsection {* Relating predicates and sets *}
 
-declare mem_Collect_eq [iff]  Collect_mem_eq [simp]
+lemma mem_Collect_eq [iff]: "(a : {x. P(x)}) = P(a)"
+  by (simp add: Collect_def mem_def)
+
+lemma Collect_mem_eq [simp]: "{x. x:A} = A"
+  by (simp add: Collect_def mem_def)
 
 lemma CollectI: "P(a) ==> a : {x. P(x)}"
   by simp
@@ -519,7 +527,7 @@ lemma strong_bex_cong [cong]:
 subsubsection {* Subsets *}
 
 lemma subsetI [atp,intro!]: "(!!x. x:A ==> x:B) ==> A \<subseteq> B"
-  by (simp add: subset_def)
+  by (auto simp add: mem_def intro: predicate1I)
 
 text {*
   \medskip Map the type @{text "'a set => anything"} to just @{typ
@@ -529,7 +537,7 @@ text {*
 
 lemma subsetD [elim]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
   -- {* Rule in Modus Ponens style. *}
-  by (unfold subset_def) blast
+  by (unfold mem_def) blast
 
 declare subsetD [intro?] -- FIXME
 
@@ -550,7 +558,9 @@ ML {*
 
 lemma subsetCE [elim]: "A \<subseteq>  B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
   -- {* Classical elimination rule. *}
-  by (unfold subset_def) blast
+  by (unfold mem_def) blast
+
+lemma subset_eq: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 
 text {*
   \medskip Takes assumptions @{prop "A \<subseteq> B"}; @{prop "c \<in> A"} and
@@ -699,10 +709,10 @@ lemma Pow_top: "A \<in> Pow A"
 subsubsection {* Set complement *}
 
 lemma Compl_iff [simp]: "(c \<in> -A) = (c \<notin> A)"
-  by (unfold Compl_def) blast
+  by (simp add: mem_def fun_Compl_def bool_Compl_def)
 
 lemma ComplI [intro!]: "(c \<in> A ==> False) ==> c \<in> -A"
-  by (unfold Compl_def) blast
+  by (unfold mem_def fun_Compl_def bool_Compl_def) blast
 
 text {*
   \medskip This form, with negated conclusion, works well with the
@@ -710,9 +720,11 @@ text {*
   right side of the notional turnstile ... *}
 
 lemma ComplD [dest!]: "c : -A ==> c~:A"
-  by (unfold Compl_def) blast
+  by (simp add: mem_def fun_Compl_def bool_Compl_def)
 
 lemmas ComplE = ComplD [elim_format]
+
+lemma Compl_eq: "- A = {x. ~ x : A}" by blast
 
 
 subsubsection {* Binary union -- Un *}
@@ -759,7 +771,7 @@ lemma IntE [elim!]: "c : A Int B ==> (c:A ==> c:B ==> P) ==> P"
 subsubsection {* Set difference *}
 
 lemma Diff_iff [simp]: "(c : A - B) = (c:A & c~:B)"
-  by (unfold set_diff_def) blast
+  by (simp add: mem_def fun_diff_def bool_diff_def)
 
 lemma DiffI [intro!]: "c : A ==> c ~: B ==> c : A - B"
   by simp
@@ -772,6 +784,8 @@ lemma DiffD2: "c : A - B ==> c : B ==> P"
 
 lemma DiffE [elim!]: "c : A - B ==> (c:A ==> c~:B ==> P) ==> P"
   by simp
+
+lemma set_diff_eq: "A - B = {x. x : A & ~ x : B}" by blast
 
 
 subsubsection {* Augmenting a set -- insert *}
@@ -1013,7 +1027,7 @@ lemma split_if_mem1: "((if Q then x else y) : b) = ((Q --> x : b) & (~ Q --> y :
   by (rule split_if)
 
 lemma split_if_mem2: "(a : (if Q then x else y)) = ((Q --> a : x) & (~ Q --> a : y))"
-  by (rule split_if)
+  by (rule split_if [where P="%S. a : S"])
 
 lemmas split_ifs = if_bool_eq_conj split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
 
@@ -1042,29 +1056,29 @@ declaration {* fn _ =>
 subsubsection {* The ``proper subset'' relation *}
 
 lemma psubsetI [intro!,noatp]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
-  by (unfold psubset_def) blast
+  by (unfold less_le) blast
 
 lemma psubsetE [elim!,noatp]: 
     "[|A \<subset> B;  [|A \<subseteq> B; ~ (B\<subseteq>A)|] ==> R|] ==> R"
-  by (unfold psubset_def) blast
+  by (unfold less_le) blast
 
 lemma psubset_insert_iff:
   "(A \<subset> insert x B) = (if x \<in> B then A \<subset> B else if x \<in> A then A - {x} \<subset> B else A \<subseteq> B)"
-  by (auto simp add: psubset_def subset_insert_iff)
+  by (auto simp add: less_le subset_insert_iff)
 
 lemma psubset_eq: "(A \<subset> B) = (A \<subseteq> B & A \<noteq> B)"
-  by (simp only: psubset_def)
+  by (simp only: less_le)
 
 lemma psubset_imp_subset: "A \<subset> B ==> A \<subseteq> B"
   by (simp add: psubset_eq)
 
 lemma psubset_trans: "[| A \<subset> B; B \<subset> C |] ==> A \<subset> C"
-apply (unfold psubset_def)
+apply (unfold less_le)
 apply (auto dest: subset_antisym)
 done
 
 lemma psubsetD: "[| A \<subset> B; c \<in> A |] ==> c \<in> B"
-apply (unfold psubset_def)
+apply (unfold less_le)
 apply (auto dest: subsetD)
 done
 
@@ -1075,7 +1089,7 @@ lemma subset_psubset_trans: "A \<subseteq> B ==> B \<subset> C ==> A \<subset> C
   by (auto simp add: psubset_eq)
 
 lemma psubset_imp_ex_mem: "A \<subset> B ==> \<exists>b. b \<in> (B - A)"
-  by (unfold psubset_def) blast
+  by (unfold less_le) blast
 
 lemma atomize_ball:
     "(!!x. x \<in> A ==> P x) == Trueprop (\<forall>x\<in>A. P x)"
@@ -1183,7 +1197,7 @@ lemma subset_empty [simp]: "(A \<subseteq> {}) = (A = {})"
   by blast
 
 lemma not_psubset_empty [iff]: "\<not> (A < {})"
-  by (unfold psubset_def) blast
+  by (unfold less_le) blast
 
 lemma Collect_empty_eq [simp]: "(Collect P = {}) = (\<forall>x. \<not> P x)"
 by blast
@@ -1854,7 +1868,7 @@ lemma subset_iff: "(A \<subseteq> B) = (\<forall>t. t \<in> A --> t \<in> B)"
   by blast
 
 lemma subset_iff_psubset_eq: "(A \<subseteq> B) = ((A \<subset> B) | (A = B))"
-  by (unfold psubset_def) blast
+  by (unfold less_le) blast
 
 lemma all_not_in_conv [simp]: "(\<forall>x. x \<notin> A) = (A = {})"
   by blast
@@ -2142,7 +2156,7 @@ subsection {* Getting the Contents of a Singleton Set *}
 definition
   contents :: "'a set \<Rightarrow> 'a"
 where
-  [code func del]: "contents X = (THE x. X = {x})"
+  "contents X = (THE x. X = {x})"
 
 lemma contents_eq [simp]: "contents {x} = x"
   by (simp add: contents_def)
@@ -2156,156 +2170,45 @@ lemma set_rev_mp: "x:A ==> A \<subseteq> B ==> x:B"
 lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
   by (rule subsetD)
 
-
-subsection {* Code generation for finite sets *}
-
-code_datatype "{}" insert
+lemmas basic_trans_rules [trans] =
+  order_trans_rules set_rev_mp set_mp
 
 
-subsubsection {* Primitive predicates *}
+subsection {* Dense orders *}
 
-definition
-  is_empty :: "'a set \<Rightarrow> bool"
-where
-  [code func del, code post]: "is_empty A \<longleftrightarrow> A = {}"
-lemmas [code inline] = is_empty_def [symmetric]
-
-lemma is_empty_insert [code func]:
-  "is_empty (insert a A) \<longleftrightarrow> False"
-  by (simp add: is_empty_def)
-
-lemma is_empty_empty [code func]:
-  "is_empty {} \<longleftrightarrow> True"
-  by (simp add: is_empty_def)
-
-lemma Ball_insert [code func]:
-  "Ball (insert a A) P \<longleftrightarrow> P a \<and> Ball A P"
-  by simp
-
-lemma Ball_empty [code func]:
-  "Ball {} P \<longleftrightarrow> True"
-  by simp
-
-lemma Bex_insert [code func]:
-  "Bex (insert a A) P \<longleftrightarrow> P a \<or> Bex A P"
-  by simp
-
-lemma Bex_empty [code func]:
-  "Bex {} P \<longleftrightarrow> False"
-  by simp
-
-
-subsubsection {* Primitive operations *}
-
-lemma minus_insert [code func]:
-  "insert (a\<Colon>'a\<Colon>eq) A - B = (let C = A - B in if a \<in> B then C else insert a C)"
-  by (auto simp add: Let_def)
-
-lemma minus_empty1 [code func]:
-  "{} - A = {}"
-  by simp
-
-lemma minus_empty2 [code func]:
-  "A - {} = A"
-  by simp
-
-lemma inter_insert [code func]:
-  "insert a A \<inter> B = (let C = A \<inter> B in if a \<in> B then insert a C else C)"
-  by (auto simp add: Let_def)
-
-lemma inter_empty1 [code func]:
-  "{} \<inter> A = {}"
-  by simp
-
-lemma inter_empty2 [code func]:
-  "A \<inter> {} = {}"
-  by simp
-
-lemma union_insert [code func]:
-  "insert a A \<union> B = (let C = A \<union> B in if a \<in> B then C else insert a C)"
-  by (auto simp add: Let_def)
-
-lemma union_empty1 [code func]:
-  "{} \<union> A = A"
-  by simp
-
-lemma union_empty2 [code func]:
-  "A \<union> {} = A"
-  by simp
-
-lemma INTER_insert [code func]:
-  "INTER (insert a A) f = f a \<inter> INTER A f"
-  by auto
-
-lemma INTER_singleton [code func]:
-  "INTER {a} f = f a"
-  by auto
-
-lemma UNION_insert [code func]:
-  "UNION (insert a A) f = f a \<union> UNION A f"
-  by auto
-
-lemma UNION_empty [code func]:
-  "UNION {} f = {}"
-  by auto
-
-lemma contents_insert [code func]:
-  "contents (insert a A) = contents (insert a (A - {a}))"
-  by auto
-declare contents_eq [code func]
-
-
-subsubsection {* Derived predicates *}
-
-lemma in_code [code func]:
-  "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. a = x)"
-  by simp
-
-lemma subset_eq_code [code func]:
-  fixes A B :: "'a\<Colon>eq set"
-  shows "A \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
-  by auto
-
-lemma subset_code [code func]:
-  fixes A B :: "'a\<Colon>eq set"
-  shows "A \<subset> B \<longleftrightarrow> A \<subseteq> B \<and> \<not> B \<subseteq> A"
-  by auto
-
-instantiation set :: (eq) eq
+class dense_linear_order = linorder + 
+  assumes gt_ex: "\<exists>y. x < y" 
+  and lt_ex: "\<exists>y. y < x"
+  and dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
+  (*see further theory Dense_Linear_Order*)
 begin
 
-definition
-  "eq_class.eq A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
-
-instance by default (auto simp add: eq_set_def)
+lemma interval_empty_iff:
+  "{y. x < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
+  by (auto dest: dense)
 
 end
 
 
-subsubsection {* Derived operations *}
+subsection {* Least value operator *}
 
-lemma image_code [code func]:
-  "image f A = UNION A (\<lambda>x. {f x})" by auto
+lemma Least_mono:
+  "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
+    ==> (LEAST y. y : f ` S) = f (LEAST x. x : S)"
+    -- {* Courtesy of Stephan Merz *}
+  apply clarify
+  apply (erule_tac P = "%x. x : S" in LeastI2_order, fast)
+  apply (rule LeastI2_order)
+  apply (auto elim: monoD intro!: order_antisym)
+  done
 
-definition
-  project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  [code func del, code post]: "project P A = {a\<in>A. P a}"
+lemma Least_equality:
+  "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
+apply (simp add: Least_def)
+apply (rule the_equality)
+apply (auto intro!: order_antisym)
+done
 
-lemmas [symmetric, code inline] = project_def
-
-lemma project_code [code func]:
-  "project P A = UNION A (\<lambda>a. if P a then {a} else {})"
-  by (auto simp add: project_def split: if_splits)
-
-lemma Inter_code [code func]:
-  "Inter A = INTER A (\<lambda>x. x)"
-  by auto
-
-lemma Union_code [code func]:
-  "Union A = UNION A (\<lambda>x. x)"
-  by auto
-
-code_reserved SML union inter -- {* avoid clashes with ML infixes *}
 
 subsection {* Basic ML bindings *}
 
