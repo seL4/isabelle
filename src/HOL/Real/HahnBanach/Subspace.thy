@@ -216,7 +216,7 @@ text {*
   set of all sums of elements from @{text U} and @{text V}.
 *}
 
-instance set :: (plus) plus ..
+instance "fun" :: (type, type) plus ..
 
 defs (overloaded)
   sum_def: "U + V \<equiv> {u + v | u v. u \<in> U \<and> v \<in> V}"
