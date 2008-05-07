@@ -18,7 +18,6 @@ sig
   val trace_unify_fail: bool ref
   val aeconv: term * term -> bool
   val eta_long: typ list -> term -> term
-  val eta_contract_atom: term -> term
   val match: theory -> term * term -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
   val first_order_match: theory -> term * term
     -> Type.tyenv * Envir.tenv -> Type.tyenv * Envir.tenv
@@ -274,19 +273,6 @@ and flexrigid thy (params as (env,binders,F,Fty,is,t)) =
 fun unify thy = unif thy [];
 
 
-(*Eta-contract a term from outside: just enough to reduce it to an atom
-DOESN'T QUITE WORK!
-*)
-fun eta_contract_atom (t0 as Abs(a, T, body)) =
-      (case  eta_contract2 body  of
-        body' as (f $ Bound 0) =>
-            if loose_bvar1(f,0) then Abs(a,T,body')
-            else eta_contract_atom (incr_boundvars ~1 f)
-      | _ => t0)
-  | eta_contract_atom t = t
-and eta_contract2 (f$t) = f $ eta_contract_atom t
-  | eta_contract2 t     = eta_contract_atom t;
-
 (* put a term into eta long beta normal form *)
 fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
   | eta_long Ts t = (case strip_comb t of
@@ -303,14 +289,7 @@ fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
 
 (*Tests whether 2 terms are alpha/eta-convertible and have same type.
   Note that Consts and Vars may have more than one type.*)
-fun t aeconv u = aconv_aux (eta_contract_atom t, eta_contract_atom u)
-and aconv_aux (Const(a,T), Const(b,U)) = a=b  andalso  T=U
-  | aconv_aux (Free(a,T),  Free(b,U))  = a=b  andalso  T=U
-  | aconv_aux (Var(v,T),   Var(w,U))   = eq_ix(v,w) andalso  T=U
-  | aconv_aux (Bound i,    Bound j)    = i=j
-  | aconv_aux (Abs(_,T,t), Abs(_,U,u)) = (t aeconv u)  andalso  T=U
-  | aconv_aux (f$t,        g$u)        = (f aeconv g)  andalso (t aeconv u)
-  | aconv_aux _ =  false;
+fun t aeconv u = Envir.eta_contract t aconv Envir.eta_contract u;
 
 
 (*** Matching ***)
