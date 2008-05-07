@@ -99,8 +99,8 @@ lemma bigo_zero2: "O(%x.0) = {%x.0}"
   done
 
 lemma bigo_plus_self_subset [intro]: 
-  "O(f) + O(f) <= O(f)"
-  apply (auto simp add: bigo_alt_def set_plus)
+  "O(f) \<oplus> O(f) <= O(f)"
+  apply (auto simp add: bigo_alt_def set_plus_def)
   apply (rule_tac x = "c + ca" in exI)
   apply auto
   apply (simp add: ring_distribs func_plus)
@@ -111,16 +111,16 @@ lemma bigo_plus_self_subset [intro]:
   apply force
 done
 
-lemma bigo_plus_idemp [simp]: "O(f) + O(f) = O(f)"
+lemma bigo_plus_idemp [simp]: "O(f) \<oplus> O(f) = O(f)"
   apply (rule equalityI)
   apply (rule bigo_plus_self_subset)
   apply (rule set_zero_plus2) 
   apply (rule bigo_zero)
   done
 
-lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) + O(g)"
+lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) \<oplus> O(g)"
   apply (rule subsetI)
-  apply (auto simp add: bigo_def bigo_pos_const func_plus set_plus)
+  apply (auto simp add: bigo_def bigo_pos_const func_plus set_plus_def)
   apply (subst bigo_pos_const [symmetric])+
   apply (rule_tac x = 
     "%n. if abs (g n) <= (abs (f n)) then x n else 0" in exI)
@@ -170,18 +170,18 @@ lemma bigo_plus_subset [intro]: "O(f + g) <= O(f) + O(g)"
   apply (auto simp add: if_splits linorder_not_le)
   done
 
-lemma bigo_plus_subset2 [intro]: "A <= O(f) ==> B <= O(f) ==> A + B <= O(f)"
-  apply (subgoal_tac "A + B <= O(f) + O(f)")
+lemma bigo_plus_subset2 [intro]: "A <= O(f) ==> B <= O(f) ==> A \<oplus> B <= O(f)"
+  apply (subgoal_tac "A \<oplus> B <= O(f) \<oplus> O(f)")
   apply (erule order_trans)
   apply simp
   apply (auto del: subsetI simp del: bigo_plus_idemp)
   done
 
 lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==> 
-    O(f + g) = O(f) + O(g)"
+    O(f + g) = O(f) \<oplus> O(g)"
   apply (rule equalityI)
   apply (rule bigo_plus_subset)
-  apply (simp add: bigo_alt_def set_plus func_plus)
+  apply (simp add: bigo_alt_def set_plus_def func_plus)
   apply clarify
   apply (rule_tac x = "max c ca" in exI)
   apply (rule conjI)
@@ -232,7 +232,7 @@ lemma bigo_bounded2: "ALL x. lb x <= f x ==> ALL x. f x <= lb x + g x ==>
     f : lb +o O(g)"
   apply (rule set_minus_imp_plus)
   apply (rule bigo_bounded)
-  apply (auto simp add: diff_minus func_minus func_plus)
+  apply (auto simp add: diff_minus fun_Compl_def func_plus)
   apply (drule_tac x = x in spec)+
   apply force
   apply (drule_tac x = x in spec)+
@@ -265,7 +265,7 @@ lemma bigo_abs4: "f =o g +o O(h) ==>
     (%x. abs (f x)) =o (%x. abs (g x)) +o O(h)"
   apply (drule set_plus_imp_minus)
   apply (rule set_minus_imp_plus)
-  apply (subst func_diff)
+  apply (subst fun_diff_def)
 proof -
   assume a: "f - g : O(h)"
   have "(%x. abs (f x) - abs (g x)) =o O(%x. abs(abs (f x) - abs (g x)))"
@@ -279,7 +279,7 @@ proof -
     done
   also have "... <= O(f - g)"
     apply (rule bigo_elt_subset)
-    apply (subst func_diff)
+    apply (subst fun_diff_def)
     apply (rule bigo_abs)
     done
   also from a have "... <= O(h)"
@@ -290,12 +290,12 @@ qed
 lemma bigo_abs5: "f =o O(g) ==> (%x. abs(f x)) =o O(g)" 
   by (unfold bigo_def, auto)
 
-lemma bigo_elt_subset2 [intro]: "f : g +o O(h) ==> O(f) <= O(g) + O(h)"
+lemma bigo_elt_subset2 [intro]: "f : g +o O(h) ==> O(f) <= O(g) \<oplus> O(h)"
 proof -
   assume "f : g +o O(h)"
-  also have "... <= O(g) + O(h)"
+  also have "... <= O(g) \<oplus> O(h)"
     by (auto del: subsetI)
-  also have "... = O(%x. abs(g x)) + O(%x. abs(h x))"
+  also have "... = O(%x. abs(g x)) \<oplus> O(%x. abs(h x))"
     apply (subst bigo_abs3 [symmetric])+
     apply (rule refl)
     done
@@ -304,16 +304,16 @@ proof -
   finally have "f : ...".
   then have "O(f) <= ..."
     by (elim bigo_elt_subset)
-  also have "... = O(%x. abs(g x)) + O(%x. abs(h x))"
+  also have "... = O(%x. abs(g x)) \<oplus> O(%x. abs(h x))"
     by (rule bigo_plus_eq, auto)
   finally show ?thesis
     by (simp add: bigo_abs3 [symmetric])
 qed
 
-lemma bigo_mult [intro]: "O(f)*O(g) <= O(f * g)"
+lemma bigo_mult [intro]: "O(f)\<otimes>O(g) <= O(f * g)"
   apply (rule subsetI)
   apply (subst bigo_def)
-  apply (auto simp add: bigo_alt_def set_times func_times)
+  apply (auto simp add: bigo_alt_def set_times_def func_times)
   apply (rule_tac x = "c * ca" in exI)
   apply(rule allI)
   apply(erule_tac x = x in allE)+
@@ -389,7 +389,7 @@ lemma bigo_mult6: "ALL x. f x ~= 0 ==>
   done
 
 lemma bigo_mult7: "ALL x. f x ~= 0 ==>
-    O(f * g) <= O(f::'a => ('b::ordered_field)) * O(g)"
+    O(f * g) <= O(f::'a => ('b::ordered_field)) \<otimes> O(g)"
   apply (subst bigo_mult6)
   apply assumption
   apply (rule set_times_mono3)
@@ -397,14 +397,14 @@ lemma bigo_mult7: "ALL x. f x ~= 0 ==>
   done
 
 lemma bigo_mult8: "ALL x. f x ~= 0 ==>
-    O(f * g) = O(f::'a => ('b::ordered_field)) * O(g)"
+    O(f * g) = O(f::'a => ('b::ordered_field)) \<otimes> O(g)"
   apply (rule equalityI)
   apply (erule bigo_mult7)
   apply (rule bigo_mult)
   done
 
 lemma bigo_minus [intro]: "f : O(g) ==> - f : O(g)"
-  by (auto simp add: bigo_def func_minus)
+  by (auto simp add: bigo_def fun_Compl_def)
 
 lemma bigo_minus2: "f : g +o O(h) ==> -f : -g +o O(h)"
   apply (rule set_minus_imp_plus)
@@ -414,7 +414,7 @@ lemma bigo_minus2: "f : g +o O(h) ==> -f : -g +o O(h)"
   done
 
 lemma bigo_minus3: "O(-f) = O(f)"
-  by (auto simp add: bigo_def func_minus abs_minus_cancel)
+  by (auto simp add: bigo_def fun_Compl_def abs_minus_cancel)
 
 lemma bigo_plus_absorb_lemma1: "f : O(g) ==> f +o O(g) <= O(g)"
 proof -
@@ -422,9 +422,9 @@ proof -
   show "f +o O(g) <= O(g)"
   proof -
     have "f : O(f)" by auto
-    then have "f +o O(g) <= O(f) + O(g)"
+    then have "f +o O(g) <= O(f) \<oplus> O(g)"
       by (auto del: subsetI)
-    also have "... <= O(g) + O(g)"
+    also have "... <= O(g) \<oplus> O(g)"
     proof -
       from a have "O(f) <= O(g)" by (auto del: subsetI)
       thus ?thesis by (auto del: subsetI)
@@ -566,7 +566,7 @@ by (unfold bigo_def, auto)
 
 lemma bigo_compose2: "f =o g +o O(h) ==> (%x. f(k x)) =o (%x. g(k x)) +o 
     O(%x. h(k x))"
-  apply (simp only: set_minus_plus [symmetric] diff_minus func_minus
+  apply (simp only: set_minus_plus [symmetric] diff_minus fun_Compl_def
       func_plus)
   apply (erule bigo_compose1)
 done
@@ -635,11 +635,11 @@ lemma bigo_setsum4: "f =o g +o O(h) ==>
       (%x. SUM y : A x. l x y * g(k x y)) +o
         O(%x. SUM y : A x. abs(l x y * h(k x y)))"
   apply (rule set_minus_imp_plus)
-  apply (subst func_diff)
+  apply (subst fun_diff_def)
   apply (subst setsum_subtractf [symmetric])
   apply (subst right_diff_distrib [symmetric])
   apply (rule bigo_setsum3)
-  apply (subst func_diff [symmetric])
+  apply (subst fun_diff_def [symmetric])
   apply (erule set_plus_imp_minus)
   done
 
@@ -664,11 +664,11 @@ lemma bigo_setsum6: "f =o g +o O(h) ==> ALL x y. 0 <= l x y ==>
         (%x. SUM y : A x. (l x y) * g(k x y)) +o
           O(%x. SUM y : A x. (l x y) * h(k x y))" 
   apply (rule set_minus_imp_plus)
-  apply (subst func_diff)
+  apply (subst fun_diff_def)
   apply (subst setsum_subtractf [symmetric])
   apply (subst right_diff_distrib [symmetric])
   apply (rule bigo_setsum5)
-  apply (subst func_diff [symmetric])
+  apply (subst fun_diff_def [symmetric])
   apply (drule set_plus_imp_minus)
   apply auto
   done
@@ -677,7 +677,7 @@ lemma bigo_setsum6: "f =o g +o O(h) ==> ALL x y. 0 <= l x y ==>
 subsection {* Misc useful stuff *}
 
 lemma bigo_useful_intro: "A <= O(f) ==> B <= O(f) ==>
-  A + B <= O(f)"
+  A \<oplus> B <= O(f)"
   apply (subst bigo_plus_idemp [symmetric])
   apply (rule set_plus_mono2)
   apply assumption+
@@ -723,11 +723,11 @@ lemma bigo_fix2:
        f 0 = g 0 ==> f =o g +o O(h)"
   apply (rule set_minus_imp_plus)
   apply (rule bigo_fix)
-  apply (subst func_diff)
-  apply (subst func_diff [symmetric])
+  apply (subst fun_diff_def)
+  apply (subst fun_diff_def [symmetric])
   apply (rule set_plus_imp_minus)
   apply simp
-  apply (simp add: func_diff)
+  apply (simp add: fun_diff_def)
   done
 
 
@@ -794,7 +794,7 @@ lemma bigo_lesso2: "f =o g +o O(h) ==>
   apply (rule allI)
   apply (rule le_maxI2)
   apply (rule allI)
-  apply (subst func_diff)
+  apply (subst fun_diff_def)
   apply (case_tac "0 <= k x - g x")
   apply simp
   apply (subst abs_of_nonneg)
@@ -818,7 +818,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
   apply (rule allI)
   apply (rule le_maxI2)
   apply (rule allI)
-  apply (subst func_diff)
+  apply (subst fun_diff_def)
   apply (case_tac "0 <= f x - k x")
   apply simp
   apply (subst abs_of_nonneg)
@@ -839,12 +839,12 @@ lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
   apply (unfold lesso_def)
   apply (drule set_plus_imp_minus)
   apply (drule bigo_abs5) back
-  apply (simp add: func_diff)
+  apply (simp add: fun_diff_def)
   apply (drule bigo_useful_add)
   apply assumption
   apply (erule bigo_lesseq2) back
   apply (rule allI)
-  apply (auto simp add: func_plus func_diff compare_rls 
+  apply (auto simp add: func_plus fun_diff_def compare_rls 
     split: split_max abs_split)
   done
 
