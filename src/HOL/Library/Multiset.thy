@@ -196,7 +196,7 @@ lemma set_of_union [simp]: "set_of (M + N) = set_of M \<union> set_of N"
 by (auto simp add: set_of_def)
 
 lemma set_of_eq_empty_iff [simp]: "(set_of M = {}) = (M = {#})"
-by (auto simp: set_of_def Mempty_def in_multiset count_def expand_fun_eq)
+by (auto simp: set_of_def Mempty_def in_multiset count_def expand_fun_eq [where f="Rep_multiset M"])
 
 lemma mem_set_of_iff [simp]: "(x \<in> set_of M) = (x :# M)"
 by (auto simp add: set_of_def)
