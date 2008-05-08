@@ -164,7 +164,7 @@ PROOFGENERAL_OPTIONS=""
   directory of Proof~General.
 
   \medskip Apart from the Isabelle command line, defaults for
-  interface options may be given by the \texttt{PROOFGENERAL_OPTIONS}
+  interface options may be given by the \verb|PROOFGENERAL_OPTIONS|
   setting.  For example, the Emacs executable to be used may be
   configured in Isabelle's settings like this:
 \begin{ttbox}
@@ -174,9 +174,10 @@ PROOFGENERAL_OPTIONS="-p xemacs-mule"
   Occasionally, a user's \verb|~/.emacs| file contains code
   that is incompatible with the (X)Emacs version used by
   Proof~General, causing the interface startup to fail prematurely.
-  Here the \texttt{-u false} option helps to get the interface process
-  up and running.  Note that additional Lisp customization code may
-  reside in \texttt{proofgeneral-settings.el} of \verb|$ISABELLE_HOME/etc| or \verb|$ISABELLE_HOME_USER/etc|.%
+  Here the \verb|-u false| option helps to get the interface
+  process up and running.  Note that additional Lisp customization
+  code may reside in \verb|proofgeneral-settings.el| of
+  \verb|$ISABELLE_HOME/etc| or \verb|$ISABELLE_HOME_USER/etc|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -187,10 +188,10 @@ PROOFGENERAL_OPTIONS="-p xemacs-mule"
 \begin{isamarkuptext}%
 Proof~General incorporates a version of the Emacs X-Symbol package
   \cite{x-symbol}, which handles proper mathematical symbols displayed
-  on screen.  Pass option \texttt{-x true} to the Isabelle interface
-  script, or check the appropriate Proof~General menu setting by hand.
-  The main challenge of getting X-Symbol to work properly is the
-  underlying (semi-automated) X11 font setup.
+  on screen.  Pass option \verb|-x true| to the Isabelle
+  interface script, or check the appropriate Proof~General menu
+  setting by hand.  The main challenge of getting X-Symbol to work
+  properly is the underlying (semi-automated) X11 font setup.
 
   \medskip Using proper mathematical symbols in Isabelle theories can
   be very convenient for readability of large formulas.  On the other
@@ -264,7 +265,7 @@ Isabelle/Isar provides a simple document preparation system based on
   isatool mkdir Foo
 \end{ttbox}
   to initialize a separate directory for session \verb|Foo| ---
-  it is safe to experiment, since \texttt{isatool mkdir} never
+  it is safe to experiment, since \verb|isatool mkdir| never
   overwrites existing files.  Ensure that \verb|Foo/ROOT.ML|
   holds ML commands to load all theories required for this session;
   furthermore \verb|Foo/document/root.tex| should include any
