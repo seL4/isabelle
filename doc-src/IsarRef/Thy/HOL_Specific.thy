@@ -868,9 +868,9 @@ text {*
   methods (see \secref{sec:cases-induct}).
   
   \item [@{method (HOL) ind_cases} and @{command (HOL)
-  "inductive_cases"}] provide an interface to the internal
-  \texttt{mk_cases} operation.  Rules are simplified in an
-  unrestricted forward manner.
+  "inductive_cases"}] provide an interface to the internal @{ML_text
+  mk_cases} operation.  Rules are simplified in an unrestricted
+  forward manner.
 
   While @{method (HOL) ind_cases} is a proof method to apply the
   result immediately as elimination rules, @{command (HOL)

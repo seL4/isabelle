@@ -140,7 +140,7 @@ PROOFGENERAL_OPTIONS=""
   directory of Proof~General.
 
   \medskip Apart from the Isabelle command line, defaults for
-  interface options may be given by the \texttt{PROOFGENERAL_OPTIONS}
+  interface options may be given by the @{verbatim PROOFGENERAL_OPTIONS}
   setting.  For example, the Emacs executable to be used may be
   configured in Isabelle's settings like this:
 \begin{ttbox}
@@ -150,10 +150,11 @@ PROOFGENERAL_OPTIONS="-p xemacs-mule"
   Occasionally, a user's @{verbatim "~/.emacs"} file contains code
   that is incompatible with the (X)Emacs version used by
   Proof~General, causing the interface startup to fail prematurely.
-  Here the \texttt{-u false} option helps to get the interface process
-  up and running.  Note that additional Lisp customization code may
-  reside in \texttt{proofgeneral-settings.el} of @{verbatim
-  "$ISABELLE_HOME/etc"} or @{verbatim "$ISABELLE_HOME_USER/etc"}.
+  Here the @{verbatim "-u false"} option helps to get the interface
+  process up and running.  Note that additional Lisp customization
+  code may reside in @{verbatim "proofgeneral-settings.el"} of
+  @{verbatim "$ISABELLE_HOME/etc"} or @{verbatim
+  "$ISABELLE_HOME_USER/etc"}.
 *}
 
 
@@ -162,10 +163,10 @@ subsubsection {* The X-Symbol package *}
 text {*
   Proof~General incorporates a version of the Emacs X-Symbol package
   \cite{x-symbol}, which handles proper mathematical symbols displayed
-  on screen.  Pass option \texttt{-x true} to the Isabelle interface
-  script, or check the appropriate Proof~General menu setting by hand.
-  The main challenge of getting X-Symbol to work properly is the
-  underlying (semi-automated) X11 font setup.
+  on screen.  Pass option @{verbatim "-x true"} to the Isabelle
+  interface script, or check the appropriate Proof~General menu
+  setting by hand.  The main challenge of getting X-Symbol to work
+  properly is the underlying (semi-automated) X11 font setup.
 
   \medskip Using proper mathematical symbols in Isabelle theories can
   be very convenient for readability of large formulas.  On the other
@@ -235,7 +236,7 @@ text {*
   isatool mkdir Foo
 \end{ttbox}
   to initialize a separate directory for session @{verbatim Foo} ---
-  it is safe to experiment, since \texttt{isatool mkdir} never
+  it is safe to experiment, since @{verbatim "isatool mkdir"} never
   overwrites existing files.  Ensure that @{verbatim "Foo/ROOT.ML"}
   holds ML commands to load all theories required for this session;
   furthermore @{verbatim "Foo/document/root.tex"} should include any
