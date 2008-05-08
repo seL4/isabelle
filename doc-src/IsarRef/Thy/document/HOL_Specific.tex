@@ -11,18 +11,1153 @@
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
 \ HOL{\isacharunderscore}Specific\isanewline
-\isakeyword{imports}\ HOL\isanewline
-\isakeyword{begin}\isanewline
-\isanewline
+\isakeyword{imports}\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{HOL specific elements \label{ch:logics}%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Primitive types \label{sec:hol-typedef}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{typedecl}\mbox{\isa{\isacommand{typedecl}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{typedef}\mbox{\isa{\isacommand{typedef}}} & : & \isartrans{theory}{proof(prove)} \\
+  \end{matharray}
+
+  \begin{rail}
+    'typedecl' typespec infix?
+    ;
+    'typedef' altname? abstype '=' repset
+    ;
+
+    altname: '(' (name | 'open' | 'open' name) ')'
+    ;
+    abstype: typespec infix?
+    ;
+    repset: term ('morphisms' name name)?
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [\mbox{\isa{\isacommand{typedecl}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t{\isachardoublequote}}] is similar to the original \mbox{\isa{\isacommand{typedecl}}} of
+  Isabelle/Pure (see \secref{sec:types-pure}), but also declares type
+  arity \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}type{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ type{\isacharparenright}\ type{\isachardoublequote}}, making \isa{t} an
+  actual HOL type constructor.   %FIXME check, update
+  
+  \item [\mbox{\isa{\isacommand{typedef}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isacharequal}\ A{\isachardoublequote}}] sets up a goal stating non-emptiness of the set \isa{A}.
+  After finishing the proof, the theory will be augmented by a
+  Gordon/HOL-style type definition, which establishes a bijection
+  between the representing set \isa{A} and the new type \isa{t}.
+  
+  Technically, \mbox{\isa{\isacommand{typedef}}} defines both a type \isa{t} and a set (term constant) of the same name (an alternative base
+  name may be given in parentheses).  The injection from type to set
+  is called \isa{Rep{\isacharunderscore}t}, its inverse \isa{Abs{\isacharunderscore}t} (this may be
+  changed via an explicit \mbox{\isa{\isakeyword{morphisms}}} declaration).
+  
+  Theorems \isa{Rep{\isacharunderscore}t}, \isa{Rep{\isacharunderscore}t{\isacharunderscore}inverse}, and \isa{Abs{\isacharunderscore}t{\isacharunderscore}inverse} provide the most basic characterization as a
+  corresponding injection/surjection pair (in both directions).  Rules
+  \isa{Rep{\isacharunderscore}t{\isacharunderscore}inject} and \isa{Abs{\isacharunderscore}t{\isacharunderscore}inject} provide a slightly
+  more convenient view on the injectivity part, suitable for automated
+  proof tools (e.g.\ in \mbox{\isa{simp}} or \mbox{\isa{iff}} declarations).
+  Rules \isa{Rep{\isacharunderscore}t{\isacharunderscore}cases}/\isa{Rep{\isacharunderscore}t{\isacharunderscore}induct}, and \isa{Abs{\isacharunderscore}t{\isacharunderscore}cases}/\isa{Abs{\isacharunderscore}t{\isacharunderscore}induct} provide alternative views on
+  surjectivity; these are already declared as set or type rules for
+  the generic \mbox{\isa{cases}} and \mbox{\isa{induct}} methods.
+  
+  An alternative name may be specified in parentheses; the default is
+  to use \isa{t} as indicated before.  The ``\isa{{\isachardoublequote}{\isacharparenleft}open{\isacharparenright}{\isachardoublequote}}''
+  declaration suppresses a separate constant definition for the
+  representing set.
+
+  \end{descr}
+
+  Note that raw type declarations are rarely used in practice; the
+  main application is with experimental (or even axiomatic!) theory
+  fragments.  Instead of primitive HOL type definitions, user-level
+  theories usually refer to higher-level packages such as \mbox{\isa{\isacommand{record}}} (see \secref{sec:hol-record}) or \mbox{\isa{\isacommand{datatype}}} (see \secref{sec:hol-datatype}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Adhoc tuples%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \mbox{\isa{split{\isacharunderscore}format}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isaratt \\
+  \end{matharray}
+
+  \begin{rail}
+    'split\_format' (((name *) + 'and') | ('(' 'complete' ')'))
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [\mbox{\isa{split{\isacharunderscore}format}}~\isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub m\ {\isasymAND}\ {\isasymdots}\ {\isasymAND}\ q\isactrlsub {\isadigit{1}}\ {\isasymdots}\ q\isactrlsub n{\isachardoublequote}}] puts expressions of
+  low-level tuple types into canonical form as specified by the
+  arguments given; the \isa{i}-th collection of arguments refers to
+  occurrences in premise \isa{i} of the rule.  The ``\isa{{\isachardoublequote}{\isacharparenleft}complete{\isacharparenright}{\isachardoublequote}}'' option causes \emph{all} arguments in function
+  applications to be represented canonically according to their tuple
+  type structure.
+
+  Note that these operations tend to invent funny names for new local
+  parameters to be introduced.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Records \label{sec:hol-record}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In principle, records merely generalize the concept of tuples, where
+  components may be addressed by labels instead of just position.  The
+  logical infrastructure of records in Isabelle/HOL is slightly more
+  advanced, though, supporting truly extensible record schemes.  This
+  admits operations that are polymorphic with respect to record
+  extension, yielding ``object-oriented'' effects like (single)
+  inheritance.  See also \cite{NaraschewskiW-TPHOLs98} for more
+  details on object-oriented verification and record subtyping in HOL.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Basic concepts%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/HOL supports both \emph{fixed} and \emph{schematic} records
+  at the level of terms and types.  The notation is as follows:
+
+  \begin{center}
+  \begin{tabular}{l|l|l}
+    & record terms & record types \\ \hline
+    fixed & \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharequal}\ a{\isacharcomma}\ y\ {\isacharequal}\ b{\isasymrparr}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharcolon}{\isacharcolon}\ A{\isacharcomma}\ y\ {\isacharcolon}{\isacharcolon}\ B{\isasymrparr}{\isachardoublequote}} \\
+    schematic & \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharequal}\ a{\isacharcomma}\ y\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ m{\isasymrparr}{\isachardoublequote}} &
+      \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharcolon}{\isacharcolon}\ A{\isacharcomma}\ y\ {\isacharcolon}{\isacharcolon}\ B{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ M{\isasymrparr}{\isachardoublequote}} \\
+  \end{tabular}
+  \end{center}
+
+  \noindent The ASCII representation of \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharequal}\ a{\isasymrparr}{\isachardoublequote}} is \isa{{\isachardoublequote}{\isacharparenleft}{\isacharbar}\ x\ {\isacharequal}\ a\ {\isacharbar}{\isacharparenright}{\isachardoublequote}}.
+
+  A fixed record \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharequal}\ a{\isacharcomma}\ y\ {\isacharequal}\ b{\isasymrparr}{\isachardoublequote}} has field \isa{x} of value
+  \isa{a} and field \isa{y} of value \isa{b}.  The corresponding
+  type is \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharcolon}{\isacharcolon}\ A{\isacharcomma}\ y\ {\isacharcolon}{\isacharcolon}\ B{\isasymrparr}{\isachardoublequote}}, assuming that \isa{{\isachardoublequote}a\ {\isacharcolon}{\isacharcolon}\ A{\isachardoublequote}}
+  and \isa{{\isachardoublequote}b\ {\isacharcolon}{\isacharcolon}\ B{\isachardoublequote}}.
+
+  A record scheme like \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharequal}\ a{\isacharcomma}\ y\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ m{\isasymrparr}{\isachardoublequote}} contains fields
+  \isa{x} and \isa{y} as before, but also possibly further fields
+  as indicated by the ``\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}'' notation (which is actually part
+  of the syntax).  The improper field ``\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}'' of a record
+  scheme is called the \emph{more part}.  Logically it is just a free
+  variable, which is occasionally referred to as ``row variable'' in
+  the literature.  The more part of a record scheme may be
+  instantiated by zero or more further components.  For example, the
+  previous scheme may get instantiated to \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharequal}\ a{\isacharcomma}\ y\ {\isacharequal}\ b{\isacharcomma}\ z\ {\isacharequal}\ c{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ m{\isacharprime}{\isachardoublequote}}, where \isa{m{\isacharprime}} refers to a different more part.
+  Fixed records are special instances of record schemes, where
+  ``\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}'' is properly terminated by the \isa{{\isachardoublequote}{\isacharparenleft}{\isacharparenright}\ {\isacharcolon}{\isacharcolon}\ unit{\isachardoublequote}}
+  element.  In fact, \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharequal}\ a{\isacharcomma}\ y\ {\isacharequal}\ b{\isasymrparr}{\isachardoublequote}} is just an abbreviation
+  for \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharequal}\ a{\isacharcomma}\ y\ {\isacharequal}\ b{\isacharcomma}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isacharparenright}{\isasymrparr}{\isachardoublequote}}.
+  
+  \medskip Two key observations make extensible records in a simply
+  typed language like HOL work out:
+
+  \begin{enumerate}
+
+  \item the more part is internalized, as a free term or type
+  variable,
+
+  \item field names are externalized, they cannot be accessed within the logic
+  as first-class values.
+
+  \end{enumerate}
+
+  \medskip In Isabelle/HOL record types have to be defined explicitly,
+  fixing their field names and types, and their (optional) parent
+  record.  Afterwards, records may be formed using above syntax, while
+  obeying the canonical order of fields as given by their declaration.
+  The record package provides several standard operations like
+  selectors and updates.  The common setup for various generic proof
+  tools enable succinct reasoning patterns.  See also the Isabelle/HOL
+  tutorial \cite{isabelle-hol-book} for further instructions on using
+  records in practice.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Record specifications%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{record}\mbox{\isa{\isacommand{record}}} & : & \isartrans{theory}{theory} \\
+  \end{matharray}
+
+  \begin{rail}
+    'record' typespec '=' (type '+')? (constdecl +)
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{\isacommand{record}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub m{\isacharparenright}\ t\ {\isacharequal}\ {\isasymtau}\ {\isacharplus}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isachardoublequote}}] defines
+  extensible record type \isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub m{\isacharparenright}\ t{\isachardoublequote}},
+  derived from the optional parent record \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}} by adding new
+  field components \isa{{\isachardoublequote}c\isactrlsub i\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub i{\isachardoublequote}} etc.
+
+  The type variables of \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}} and \isa{{\isachardoublequote}{\isasymsigma}\isactrlsub i{\isachardoublequote}} need to be
+  covered by the (distinct) parameters \isa{{\isachardoublequote}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub m{\isachardoublequote}}.  Type constructor \isa{t} has to be new, while \isa{{\isasymtau}} needs to specify an instance of an existing record type.  At
+  least one new field \isa{{\isachardoublequote}c\isactrlsub i{\isachardoublequote}} has to be specified.
+  Basically, field names need to belong to a unique record.  This is
+  not a real restriction in practice, since fields are qualified by
+  the record name internally.
+
+  The parent record specification \isa{{\isasymtau}} is optional; if omitted
+  \isa{t} becomes a root record.  The hierarchy of all records
+  declared within a theory context forms a forest structure, i.e.\ a
+  set of trees starting with a root record each.  There is no way to
+  merge multiple parent records!
+
+  For convenience, \isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub m{\isacharparenright}\ t{\isachardoublequote}} is made a
+  type abbreviation for the fixed record type \isa{{\isachardoublequote}{\isasymlparr}c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isasymrparr}{\isachardoublequote}}, likewise is \isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub m{\isacharcomma}\ {\isasymzeta}{\isacharparenright}\ t{\isacharunderscore}scheme{\isachardoublequote}} made an abbreviation for
+  \isa{{\isachardoublequote}{\isasymlparr}c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isasymzeta}{\isasymrparr}{\isachardoublequote}}.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Record operations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Any record definition of the form presented above produces certain
+  standard operations.  Selectors and updates are provided for any
+  field, including the improper one ``\isa{more}''.  There are also
+  cumulative record constructor functions.  To simplify the
+  presentation below, we assume for now that \isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub m{\isacharparenright}\ t{\isachardoublequote}} is a root record with fields \isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isachardoublequote}}.
+
+  \medskip \textbf{Selectors} and \textbf{updates} are available for
+  any field (including ``\isa{more}''):
+
+  \begin{matharray}{lll}
+    \isa{{\isachardoublequote}c\isactrlsub i{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharcolon}{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymlparr}c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isasymzeta}{\isasymrparr}\ {\isasymRightarrow}\ {\isasymsigma}\isactrlsub i{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}c\isactrlsub i{\isacharunderscore}update{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharcolon}{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymsigma}\isactrlsub i\ {\isasymRightarrow}\ {\isasymlparr}c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isasymzeta}{\isasymrparr}\ {\isasymRightarrow}\ {\isasymlparr}c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isasymzeta}{\isasymrparr}{\isachardoublequote}} \\
+  \end{matharray}
+
+  There is special syntax for application of updates: \isa{{\isachardoublequote}r{\isasymlparr}x\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isachardoublequote}} abbreviates term \isa{{\isachardoublequote}x{\isacharunderscore}update\ a\ r{\isachardoublequote}}.  Further notation for
+  repeated updates is also available: \isa{{\isachardoublequote}r{\isasymlparr}x\ {\isacharcolon}{\isacharequal}\ a{\isasymrparr}{\isasymlparr}y\ {\isacharcolon}{\isacharequal}\ b{\isasymrparr}{\isasymlparr}z\ {\isacharcolon}{\isacharequal}\ c{\isasymrparr}{\isachardoublequote}} may be written \isa{{\isachardoublequote}r{\isasymlparr}x\ {\isacharcolon}{\isacharequal}\ a{\isacharcomma}\ y\ {\isacharcolon}{\isacharequal}\ b{\isacharcomma}\ z\ {\isacharcolon}{\isacharequal}\ c{\isasymrparr}{\isachardoublequote}}.  Note that
+  because of postfix notation the order of fields shown here is
+  reverse than in the actual term.  Since repeated updates are just
+  function applications, fields may be freely permuted in \isa{{\isachardoublequote}{\isasymlparr}x\ {\isacharcolon}{\isacharequal}\ a{\isacharcomma}\ y\ {\isacharcolon}{\isacharequal}\ b{\isacharcomma}\ z\ {\isacharcolon}{\isacharequal}\ c{\isasymrparr}{\isachardoublequote}}, as far as logical equality is concerned.
+  Thus commutativity of independent updates can be proven within the
+  logic for any two fields, but not as a general theorem.
+
+  \medskip The \textbf{make} operation provides a cumulative record
+  constructor function:
+
+  \begin{matharray}{lll}
+    \isa{{\isachardoublequote}t{\isachardot}make{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharcolon}{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymsigma}\isactrlsub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymdots}\ {\isasymsigma}\isactrlsub n\ {\isasymRightarrow}\ {\isasymlparr}c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isasymrparr}{\isachardoublequote}} \\
+  \end{matharray}
+
+  \medskip We now reconsider the case of non-root records, which are
+  derived of some parent.  In general, the latter may depend on
+  another parent as well, resulting in a list of \emph{ancestor
+  records}.  Appending the lists of fields of all ancestors results in
+  a certain field prefix.  The record package automatically takes care
+  of this by lifting operations over this context of ancestor fields.
+  Assuming that \isa{{\isachardoublequote}{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub m{\isacharparenright}\ t{\isachardoublequote}} has ancestor
+  fields \isa{{\isachardoublequote}b\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub k{\isachardoublequote}},
+  the above record operations will get the following types:
+
+  \begin{matharray}{lll}
+    \isa{{\isachardoublequote}c\isactrlsub i{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharcolon}{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymlparr}b\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub k{\isacharcomma}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isasymzeta}{\isasymrparr}\ {\isasymRightarrow}\ {\isasymsigma}\isactrlsub i{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}c\isactrlsub i{\isacharunderscore}update{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharcolon}{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymsigma}\isactrlsub i\ {\isasymRightarrow}\ {\isasymlparr}b\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub k{\isacharcomma}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isasymzeta}{\isasymrparr}\ {\isasymRightarrow}\ {\isasymlparr}b\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub k{\isacharcomma}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isasymzeta}{\isasymrparr}{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}t{\isachardot}make{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharcolon}{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymrho}\isactrlsub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymdots}\ {\isasymrho}\isactrlsub k\ {\isasymRightarrow}\ {\isasymsigma}\isactrlsub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymdots}\ {\isasymsigma}\isactrlsub n\ {\isasymRightarrow}\ {\isasymlparr}b\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub k{\isacharcomma}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isachardoublequote}} \\
+  \end{matharray}
+  \noindent
+
+  \medskip Some further operations address the extension aspect of a
+  derived record scheme specifically: \isa{{\isachardoublequote}t{\isachardot}fields{\isachardoublequote}} produces a
+  record fragment consisting of exactly the new fields introduced here
+  (the result may serve as a more part elsewhere); \isa{{\isachardoublequote}t{\isachardot}extend{\isachardoublequote}}
+  takes a fixed record and adds a given more part; \isa{{\isachardoublequote}t{\isachardot}truncate{\isachardoublequote}} restricts a record scheme to a fixed record.
+
+  \begin{matharray}{lll}
+    \isa{{\isachardoublequote}t{\isachardot}fields{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharcolon}{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymsigma}\isactrlsub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymdots}\ {\isasymsigma}\isactrlsub n\ {\isasymRightarrow}\ {\isasymlparr}c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}t{\isachardot}extend{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharcolon}{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymlparr}b\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub k{\isacharcomma}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isasymrparr}\ {\isasymRightarrow}\ {\isasymzeta}\ {\isasymRightarrow}\ {\isasymlparr}b\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub k{\isacharcomma}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isasymzeta}{\isasymrparr}{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}t{\isachardot}truncate{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharcolon}{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymlparr}b\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub k{\isacharcomma}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isacharcomma}\ {\isasymdots}\ {\isacharcolon}{\isacharcolon}\ {\isasymzeta}{\isasymrparr}\ {\isasymRightarrow}\ {\isasymlparr}b\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ b\isactrlsub k\ {\isacharcolon}{\isacharcolon}\ {\isasymrho}\isactrlsub k{\isacharcomma}\ c\isactrlsub {\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub n\ {\isacharcolon}{\isacharcolon}\ {\isasymsigma}\isactrlsub n{\isasymrparr}{\isachardoublequote}} \\
+  \end{matharray}
+
+  \noindent Note that \isa{{\isachardoublequote}t{\isachardot}make{\isachardoublequote}} and \isa{{\isachardoublequote}t{\isachardot}fields{\isachardoublequote}} coincide
+  for root records.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Derived rules and proof tools%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The record package proves several results internally, declaring
+  these facts to appropriate proof tools.  This enables users to
+  reason about record structures quite conveniently.  Assume that
+  \isa{t} is a record type as specified above.
+
+  \begin{enumerate}
+  
+  \item Standard conversions for selectors or updates applied to
+  record constructor terms are made part of the default Simplifier
+  context; thus proofs by reduction of basic operations merely require
+  the \mbox{\isa{simp}} method without further arguments.  These rules
+  are available as \isa{{\isachardoublequote}t{\isachardot}simps{\isachardoublequote}}, too.
+  
+  \item Selectors applied to updated records are automatically reduced
+  by an internal simplification procedure, which is also part of the
+  standard Simplifier setup.
+
+  \item Inject equations of a form analogous to \isa{{\isachardoublequote}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}\ y{\isacharprime}{\isacharparenright}\ {\isasymequiv}\ x\ {\isacharequal}\ x{\isacharprime}\ {\isasymand}\ y\ {\isacharequal}\ y{\isacharprime}{\isachardoublequote}} are declared to the Simplifier and Classical
+  Reasoner as \mbox{\isa{iff}} rules.  These rules are available as
+  \isa{{\isachardoublequote}t{\isachardot}iffs{\isachardoublequote}}.
+
+  \item The introduction rule for record equality analogous to \isa{{\isachardoublequote}x\ r\ {\isacharequal}\ x\ r{\isacharprime}\ {\isasymLongrightarrow}\ y\ r\ {\isacharequal}\ y\ r{\isacharprime}\ {\isasymdots}\ {\isasymLongrightarrow}\ r\ {\isacharequal}\ r{\isacharprime}{\isachardoublequote}} is declared to the Simplifier,
+  and as the basic rule context as ``\mbox{\isa{intro}}\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}}''.
+  The rule is called \isa{{\isachardoublequote}t{\isachardot}equality{\isachardoublequote}}.
+
+  \item Representations of arbitrary record expressions as canonical
+  constructor terms are provided both in \mbox{\isa{cases}} and \mbox{\isa{induct}} format (cf.\ the generic proof methods of the same name,
+  \secref{sec:cases-induct}).  Several variations are available, for
+  fixed records, record schemes, more parts etc.
+  
+  The generic proof methods are sufficiently smart to pick the most
+  sensible rule according to the type of the indicated record
+  expression: users just need to apply something like ``\isa{{\isachardoublequote}{\isacharparenleft}cases\ r{\isacharparenright}{\isachardoublequote}}'' to a certain proof problem.
+
+  \item The derived record operations \isa{{\isachardoublequote}t{\isachardot}make{\isachardoublequote}}, \isa{{\isachardoublequote}t{\isachardot}fields{\isachardoublequote}}, \isa{{\isachardoublequote}t{\isachardot}extend{\isachardoublequote}}, \isa{{\isachardoublequote}t{\isachardot}truncate{\isachardoublequote}} are \emph{not}
+  treated automatically, but usually need to be expanded by hand,
+  using the collective fact \isa{{\isachardoublequote}t{\isachardot}defs{\isachardoublequote}}.
+
+  \end{enumerate}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Datatypes \label{sec:hol-datatype}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{datatype}\mbox{\isa{\isacommand{datatype}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{rep-datatype}\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}} & : & \isartrans{theory}{theory} \\
+  \end{matharray}
+
+  \begin{rail}
+    'datatype' (dtspec + 'and')
+    ;
+    'rep\_datatype' (name *) dtrules
+    ;
+
+    dtspec: parname? typespec infix? '=' (cons + '|')
+    ;
+    cons: name (type *) mixfix?
+    ;
+    dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{\isacommand{datatype}}}] defines inductive datatypes in
+  HOL.
+
+  \item [\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}}] represents existing types as
+  inductive ones, generating the standard infrastructure of derived
+  concepts (primitive recursion etc.).
+
+  \end{descr}
+
+  The induction and exhaustion theorems generated provide case names
+  according to the constructors involved, while parameters are named
+  after the types (see also \secref{sec:cases-induct}).
+
+  See \cite{isabelle-HOL} for more details on datatypes, but beware of
+  the old-style theory syntax being used there!  Apart from proper
+  proof methods for case-analysis and induction, there are also
+  emulations of ML tactics \mbox{\isa{case{\isacharunderscore}tac}} and \mbox{\isa{induct{\isacharunderscore}tac}} available, see \secref{sec:hol-induct-tac}; these admit
+  to refer directly to the internal structure of subgoals (including
+  internally bound parameters).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Recursive functions \label{sec:recursion}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{primrec}\mbox{\isa{\isacommand{primrec}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{command}{fun}\mbox{\isa{\isacommand{fun}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{command}{function}\mbox{\isa{\isacommand{function}}} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    \indexdef{HOL}{command}{termination}\mbox{\isa{\isacommand{termination}}} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+  \end{matharray}
+
+  \railalias{funopts}{function\_opts}  %FIXME ??
+
+  \begin{rail}
+    'primrec' target? fixes 'where' equations
+    ;
+    equations: (thmdecl? prop + '|')
+    ;
+    ('fun' | 'function') (funopts)? fixes 'where' clauses
+    ;
+    clauses: (thmdecl? prop ('(' 'otherwise' ')')? + '|')
+    ;
+    funopts: '(' (('sequential' | 'in' name | 'domintros' | 'tailrec' |
+    'default' term) + ',') ')'
+    ;
+    'termination' ( term )?
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{\isacommand{primrec}}}] defines primitive recursive
+  functions over datatypes, see also \cite{isabelle-HOL}.
+
+  \item [\mbox{\isa{\isacommand{function}}}] defines functions by general
+  wellfounded recursion. A detailed description with examples can be
+  found in \cite{isabelle-function}. The function is specified by a
+  set of (possibly conditional) recursive equations with arbitrary
+  pattern matching. The command generates proof obligations for the
+  completeness and the compatibility of patterns.
+
+  The defined function is considered partial, and the resulting
+  simplification rules (named \isa{{\isachardoublequote}f{\isachardot}psimps{\isachardoublequote}}) and induction rule
+  (named \isa{{\isachardoublequote}f{\isachardot}pinduct{\isachardoublequote}}) are guarded by a generated domain
+  predicate \isa{{\isachardoublequote}f{\isacharunderscore}dom{\isachardoublequote}}. The \mbox{\isa{\isacommand{termination}}}
+  command can then be used to establish that the function is total.
+
+  \item [\mbox{\isa{\isacommand{fun}}}] is a shorthand notation for
+  ``\mbox{\isa{\isacommand{function}}}~\isa{{\isachardoublequote}{\isacharparenleft}sequential{\isacharparenright}{\isachardoublequote}}, followed by
+  automated proof attempts regarding pattern matching and termination.
+  See \cite{isabelle-function} for further details.
+
+  \item [\mbox{\isa{\isacommand{termination}}}~\isa{f}] commences a
+  termination proof for the previously defined function \isa{f}.  If
+  this is omitted, the command refers to the most recent function
+  definition.  After the proof is closed, the recursive equations and
+  the induction principle is established.
+
+  \end{descr}
+
+  %FIXME check
+
+  Recursive definitions introduced by both the \mbox{\isa{\isacommand{primrec}}} and the \mbox{\isa{\isacommand{function}}} command accommodate
+  reasoning by induction (cf.\ \secref{sec:cases-induct}): rule \isa{{\isachardoublequote}c{\isachardot}induct{\isachardoublequote}} (where \isa{c} is the name of the function definition)
+  refers to a specific induction rule, with parameters named according
+  to the user-specified equations.  Case names of \mbox{\isa{\isacommand{primrec}}} are that of the datatypes involved, while those of
+  \mbox{\isa{\isacommand{function}}} are numbered (starting from 1).
+
+  The equations provided by these packages may be referred later as
+  theorem list \isa{{\isachardoublequote}f{\isachardot}simps{\isachardoublequote}}, where \isa{f} is the (collective)
+  name of the functions defined.  Individual equations may be named
+  explicitly as well.
+
+  The \mbox{\isa{\isacommand{function}}} command accepts the following
+  options.
+
+  \begin{descr}
+
+  \item [\isa{sequential}] enables a preprocessor which
+  disambiguates overlapping patterns by making them mutually disjoint.
+  Earlier equations take precedence over later ones.  This allows to
+  give the specification in a format very similar to functional
+  programming.  Note that the resulting simplification and induction
+  rules correspond to the transformed specification, not the one given
+  originally. This usually means that each equation given by the user
+  may result in several theroems.  Also note that this automatic
+  transformation only works for ML-style datatype patterns.
+
+  \item [\isa{{\isachardoublequote}{\isasymIN}\ name{\isachardoublequote}}] gives the target for the definition.
+  %FIXME ?!?
+
+  \item [\isa{domintros}] enables the automated generation of
+  introduction rules for the domain predicate. While mostly not
+  needed, they can be helpful in some proofs about partial functions.
+
+  \item [\isa{tailrec}] generates the unconstrained recursive
+  equations even without a termination proof, provided that the
+  function is tail-recursive. This currently only works
+
+  \item [\isa{{\isachardoublequote}default\ d{\isachardoublequote}}] allows to specify a default value for a
+  (partial) function, which will ensure that \isa{{\isachardoublequote}f\ x\ {\isacharequal}\ d\ x{\isachardoublequote}}
+  whenever \isa{{\isachardoublequote}x\ {\isasymnotin}\ f{\isacharunderscore}dom{\isachardoublequote}}.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Proof methods related to recursive definitions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{method}{pat-completeness}\mbox{\isa{pat{\isacharunderscore}completeness}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{relation}\mbox{\isa{relation}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{lexicographic-order}\mbox{\isa{lexicographic{\isacharunderscore}order}} & : & \isarmeth \\
+  \end{matharray}
+
+  \begin{rail}
+    'relation' term
+    ;
+    'lexicographic\_order' (clasimpmod *)
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{pat{\isacharunderscore}completeness}}] is a specialized method to
+  solve goals regarding the completeness of pattern matching, as
+  required by the \mbox{\isa{\isacommand{function}}} package (cf.\
+  \cite{isabelle-function}).
+
+  \item [\mbox{\isa{relation}}~\isa{R}] introduces a termination
+  proof using the relation \isa{R}.  The resulting proof state will
+  contain goals expressing that \isa{R} is wellfounded, and that the
+  arguments of recursive calls decrease with respect to \isa{R}.
+  Usually, this method is used as the initial proof step of manual
+  termination proofs.
+
+  \item [\mbox{\isa{lexicographic{\isacharunderscore}order}}] attempts a fully
+  automated termination proof by searching for a lexicographic
+  combination of size measures on the arguments of the function. The
+  method accepts the same arguments as the \mbox{\isa{auto}} method,
+  which it uses internally to prove local descents.  The same context
+  modifiers as for \mbox{\isa{auto}} are accepted, see
+  \secref{sec:clasimp}.
+
+  In case of failure, extensive information is printed, which can help
+  to analyse the situation (cf.\ \cite{isabelle-function}).
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Old-style recursive function definitions (TFL)%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The old TFL commands \mbox{\isa{\isacommand{recdef}}} and \mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}} for defining recursive are mostly obsolete; \mbox{\isa{\isacommand{function}}} or \mbox{\isa{\isacommand{fun}}} should be used instead.
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{recdef}\mbox{\isa{\isacommand{recdef}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{recdef-tc}\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{theory}{proof(prove)} \\
+  \end{matharray}
+
+  \begin{rail}
+    'recdef' ('(' 'permissive' ')')? \\ name term (prop +) hints?
+    ;
+    recdeftc thmdecl? tc
+    ;
+    hints: '(' 'hints' (recdefmod *) ')'
+    ;
+    recdefmod: (('recdef\_simp' | 'recdef\_cong' | 'recdef\_wf') (() | 'add' | 'del') ':' thmrefs) | clasimpmod
+    ;
+    tc: nameref ('(' nat ')')?
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [\mbox{\isa{\isacommand{recdef}}}] defines general well-founded
+  recursive functions (using the TFL package), see also
+  \cite{isabelle-HOL}.  The ``\isa{{\isachardoublequote}{\isacharparenleft}permissive{\isacharparenright}{\isachardoublequote}}'' option tells
+  TFL to recover from failed proof attempts, returning unfinished
+  results.  The \isa{recdef{\isacharunderscore}simp}, \isa{recdef{\isacharunderscore}cong}, and \isa{recdef{\isacharunderscore}wf} hints refer to auxiliary rules to be used in the internal
+  automated proof process of TFL.  Additional \mbox{\isa{clasimpmod}}
+  declarations (cf.\ \secref{sec:clasimp}) may be given to tune the
+  context of the Simplifier (cf.\ \secref{sec:simplifier}) and
+  Classical reasoner (cf.\ \secref{sec:classical}).
+  
+  \item [\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}~\isa{{\isachardoublequote}c\ {\isacharparenleft}i{\isacharparenright}{\isachardoublequote}}] recommences the
+  proof for leftover termination condition number \isa{i} (default
+  1) as generated by a \mbox{\isa{\isacommand{recdef}}} definition of
+  constant \isa{c}.
+  
+  Note that in most cases, \mbox{\isa{\isacommand{recdef}}} is able to finish
+  its internal proofs without manual intervention.
+
+  \end{descr}
+
+  \medskip Hints for \mbox{\isa{\isacommand{recdef}}} may be also declared
+  globally, using the following attributes.
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{attribute}{recdef-simp}\mbox{\isa{recdef{\isacharunderscore}simp}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{recdef-cong}\mbox{\isa{recdef{\isacharunderscore}cong}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{recdef-wf}\mbox{\isa{recdef{\isacharunderscore}wf}} & : & \isaratt \\
+  \end{matharray}
+
+  \begin{rail}
+    ('recdef\_simp' | 'recdef\_cong' | 'recdef\_wf') (() | 'add' | 'del')
+    ;
+  \end{rail}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Definition by specification \label{sec:hol-specification}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{specification}\mbox{\isa{\isacommand{specification}}} & : & \isartrans{theory}{proof(prove)} \\
+    \indexdef{HOL}{command}{ax-specification}\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}} & : & \isartrans{theory}{proof(prove)} \\
+  \end{matharray}
+
+  \begin{rail}
+  ('specification' | 'ax\_specification') '(' (decl +) ')' \\ (thmdecl? prop +)
+  ;
+  decl: ((name ':')? term '(' 'overloaded' ')'?)
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{\isacommand{specification}}}~\isa{{\isachardoublequote}decls\ {\isasymphi}{\isachardoublequote}}] sets up a
+  goal stating the existence of terms with the properties specified to
+  hold for the constants given in \isa{decls}.  After finishing the
+  proof, the theory will be augmented with definitions for the given
+  constants, as well as with theorems stating the properties for these
+  constants.
+
+  \item [\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}~\isa{{\isachardoublequote}decls\ {\isasymphi}{\isachardoublequote}}] sets
+  up a goal stating the existence of terms with the properties
+  specified to hold for the constants given in \isa{decls}.  After
+  finishing the proof, the theory will be augmented with axioms
+  expressing the properties given in the first place.
+
+  \item [\isa{decl}] declares a constant to be defined by the
+  specification given.  The definition for the constant \isa{c} is
+  bound to the name \isa{c{\isacharunderscore}def} unless a theorem name is given in
+  the declaration.  Overloaded constants should be declared as such.
+
+  \end{descr}
+
+  Whether to use \mbox{\isa{\isacommand{specification}}} or \mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}} is to some extent a matter of style.  \mbox{\isa{\isacommand{specification}}} introduces no new axioms, and so by
+  construction cannot introduce inconsistencies, whereas \mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}} does introduce axioms, but only after the
+  user has explicitly proven it to be safe.  A practical issue must be
+  considered, though: After introducing two constants with the same
+  properties using \mbox{\isa{\isacommand{specification}}}, one can prove
+  that the two constants are, in fact, equal.  If this might be a
+  problem, one should use \mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Inductive and coinductive definitions \label{sec:hol-inductive}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+An \textbf{inductive definition} specifies the least predicate (or
+  set) \isa{R} closed under given rules: applying a rule to elements
+  of \isa{R} yields a result within \isa{R}.  For example, a
+  structural operational semantics is an inductive definition of an
+  evaluation relation.
+
+  Dually, a \textbf{coinductive definition} specifies the greatest
+  predicate~/ set \isa{R} that is consistent with given rules: every
+  element of \isa{R} can be seen as arising by applying a rule to
+  elements of \isa{R}.  An important example is using bisimulation
+  relations to formalise equivalence of processes and infinite data
+  structures.
+
+  \medskip The HOL package is related to the ZF one, which is
+  described in a separate paper,\footnote{It appeared in CADE
+  \cite{paulson-CADE}; a longer version is distributed with Isabelle.}
+  which you should refer to in case of difficulties.  The package is
+  simpler than that of ZF thanks to implicit type-checking in HOL.
+  The types of the (co)inductive predicates (or sets) determine the
+  domain of the fixedpoint definition, and the package does not have
+  to use inference rules for type-checking.
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{inductive}\mbox{\isa{\isacommand{inductive}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{command}{inductive-set}\mbox{\isa{\isacommand{inductive{\isacharunderscore}set}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{command}{coinductive}\mbox{\isa{\isacommand{coinductive}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{command}{coinductive-set}\mbox{\isa{\isacommand{coinductive{\isacharunderscore}set}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{attribute}{mono}\mbox{\isa{mono}} & : & \isaratt \\
+  \end{matharray}
+
+  \begin{rail}
+    ('inductive' | 'inductive\_set' | 'coinductive' | 'coinductive\_set') target? fixes ('for' fixes)? \\
+    ('where' clauses)? ('monos' thmrefs)?
+    ;
+    clauses: (thmdecl? prop + '|')
+    ;
+    'mono' (() | 'add' | 'del')
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{\isacommand{inductive}}} and \mbox{\isa{\isacommand{coinductive}}}] define (co)inductive predicates from the
+  introduction rules given in the \mbox{\isa{\isakeyword{where}}} part.  The
+  optional \mbox{\isa{\isakeyword{for}}} part contains a list of parameters of the
+  (co)inductive predicates that remain fixed throughout the
+  definition.  The optional \mbox{\isa{\isakeyword{monos}}} section contains
+  \emph{monotonicity theorems}, which are required for each operator
+  applied to a recursive set in the introduction rules.  There
+  \emph{must} be a theorem of the form \isa{{\isachardoublequote}A\ {\isasymle}\ B\ {\isasymLongrightarrow}\ M\ A\ {\isasymle}\ M\ B{\isachardoublequote}},
+  for each premise \isa{{\isachardoublequote}M\ R\isactrlsub i\ t{\isachardoublequote}} in an introduction rule!
+
+  \item [\mbox{\isa{\isacommand{inductive{\isacharunderscore}set}}} and \mbox{\isa{\isacommand{coinductive{\isacharunderscore}set}}}] are wrappers for to the previous commands,
+  allowing the definition of (co)inductive sets.
+
+  \item [\mbox{\isa{mono}}] declares monotonicity rules.  These
+  rule are involved in the automated monotonicity proof of \mbox{\isa{\isacommand{inductive}}}.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Derived rules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Each (co)inductive definition \isa{R} adds definitions to the
+  theory and also proves some theorems:
+
+  \begin{description}
+
+  \item [\isa{R{\isachardot}intros}] is the list of introduction rules as proven
+  theorems, for the recursive predicates (or sets).  The rules are
+  also available individually, using the names given them in the
+  theory file;
+
+  \item [\isa{R{\isachardot}cases}] is the case analysis (or elimination) rule;
+
+  \item [\isa{R{\isachardot}induct} or \isa{R{\isachardot}coinduct}] is the (co)induction
+  rule.
+
+  \end{description}
+
+  When several predicates \isa{{\isachardoublequote}R\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ R\isactrlsub n{\isachardoublequote}} are
+  defined simultaneously, the list of introduction rules is called
+  \isa{{\isachardoublequote}R\isactrlsub {\isadigit{1}}{\isacharunderscore}{\isasymdots}{\isacharunderscore}R\isactrlsub n{\isachardot}intros{\isachardoublequote}}, the case analysis rules are
+  called \isa{{\isachardoublequote}R\isactrlsub {\isadigit{1}}{\isachardot}cases{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ R\isactrlsub n{\isachardot}cases{\isachardoublequote}}, and the list
+  of mutual induction rules is called \isa{{\isachardoublequote}R\isactrlsub {\isadigit{1}}{\isacharunderscore}{\isasymdots}{\isacharunderscore}R\isactrlsub n{\isachardot}inducts{\isachardoublequote}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Monotonicity theorems%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Each theory contains a default set of theorems that are used in
+  monotonicity proofs.  New rules can be added to this set via the
+  \mbox{\isa{mono}} attribute.  The HOL theory \isa{Inductive}
+  shows how this is done.  In general, the following monotonicity
+  theorems may be added:
+
+  \begin{itemize}
+
+  \item Theorems of the form \isa{{\isachardoublequote}A\ {\isasymle}\ B\ {\isasymLongrightarrow}\ M\ A\ {\isasymle}\ M\ B{\isachardoublequote}}, for proving
+  monotonicity of inductive definitions whose introduction rules have
+  premises involving terms such as \isa{{\isachardoublequote}M\ R\isactrlsub i\ t{\isachardoublequote}}.
+
+  \item Monotonicity theorems for logical operators, which are of the
+  general form \isa{{\isachardoublequote}{\isacharparenleft}{\isasymdots}\ {\isasymlongrightarrow}\ {\isasymdots}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isacharparenleft}{\isasymdots}\ {\isasymlongrightarrow}\ {\isasymdots}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymlongrightarrow}\ {\isasymdots}{\isachardoublequote}}.  For example, in
+  the case of the operator \isa{{\isachardoublequote}{\isasymor}{\isachardoublequote}}, the corresponding theorem is
+  \[
+  \infer{\isa{{\isachardoublequote}P\isactrlsub {\isadigit{1}}\ {\isasymor}\ P\isactrlsub {\isadigit{2}}\ {\isasymlongrightarrow}\ Q\isactrlsub {\isadigit{1}}\ {\isasymor}\ Q\isactrlsub {\isadigit{2}}{\isachardoublequote}}}{\isa{{\isachardoublequote}P\isactrlsub {\isadigit{1}}\ {\isasymlongrightarrow}\ Q\isactrlsub {\isadigit{1}}{\isachardoublequote}} & \isa{{\isachardoublequote}P\isactrlsub {\isadigit{2}}\ {\isasymlongrightarrow}\ Q\isactrlsub {\isadigit{2}}{\isachardoublequote}}}
+  \]
+
+  \item De Morgan style equations for reasoning about the ``polarity''
+  of expressions, e.g.
+  \[
+  \isa{{\isachardoublequote}{\isasymnot}\ {\isasymnot}\ P\ {\isasymlongleftrightarrow}\ P{\isachardoublequote}} \qquad\qquad
+  \isa{{\isachardoublequote}{\isasymnot}\ {\isacharparenleft}P\ {\isasymand}\ Q{\isacharparenright}\ {\isasymlongleftrightarrow}\ {\isasymnot}\ P\ {\isasymor}\ {\isasymnot}\ Q{\isachardoublequote}}
+  \]
+
+  \item Equations for reducing complex operators to more primitive
+  ones whose monotonicity can easily be proved, e.g.
+  \[
+  \isa{{\isachardoublequote}{\isacharparenleft}P\ {\isasymlongrightarrow}\ Q{\isacharparenright}\ {\isasymlongleftrightarrow}\ {\isasymnot}\ P\ {\isasymor}\ Q{\isachardoublequote}} \qquad\qquad
+  \isa{{\isachardoublequote}Ball\ A\ P\ {\isasymequiv}\ {\isasymforall}x{\isachardot}\ x\ {\isasymin}\ A\ {\isasymlongrightarrow}\ P\ x{\isachardoublequote}}
+  \]
+
+  \end{itemize}
+
+  %FIXME: Example of an inductive definition%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Arithmetic proof support%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{method}{arith}\mbox{\isa{arith}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{arith-split}\mbox{\isa{arith{\isacharunderscore}split}} & : & \isaratt \\
+  \end{matharray}
+
+  The \mbox{\isa{arith}} method decides linear arithmetic problems
+  (on types \isa{nat}, \isa{int}, \isa{real}).  Any current
+  facts are inserted into the goal before running the procedure.
+
+  The \mbox{\isa{arith{\isacharunderscore}split}} attribute declares case split rules
+  to be expanded before the arithmetic procedure is invoked.
+
+  Note that a simpler (but faster) version of arithmetic reasoning is
+  already performed by the Simplifier.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Cases and induction: emulating tactic scripts \label{sec:hol-induct-tac}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The following important tactical tools of Isabelle/HOL have been
+  ported to Isar.  These should be never used in proper proof texts!
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{method}{case-tac}\mbox{\isa{case{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{induct-tac}\mbox{\isa{induct{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{ind-cases}\mbox{\isa{ind{\isacharunderscore}cases}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{HOL}{command}{inductive-cases}\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}} & : & \isartrans{theory}{theory} \\
+  \end{matharray}
+
+  \begin{rail}
+    'case\_tac' goalspec? term rule?
+    ;
+    'induct\_tac' goalspec? (insts * 'and') rule?
+    ;
+    'ind\_cases' (prop +) ('for' (name +)) ?
+    ;
+    'inductive\_cases' (thmdecl? (prop +) + 'and')
+    ;
+
+    rule: ('rule' ':' thmref)
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{case{\isacharunderscore}tac}} and \mbox{\isa{induct{\isacharunderscore}tac}}]
+  admit to reason about inductive datatypes only (unless an
+  alternative rule is given explicitly).  Furthermore, \mbox{\isa{case{\isacharunderscore}tac}} does a classical case split on booleans; \mbox{\isa{induct{\isacharunderscore}tac}} allows only variables to be given as instantiation.
+  These tactic emulations feature both goal addressing and dynamic
+  instantiation.  Note that named rule cases are \emph{not} provided
+  as would be by the proper \mbox{\isa{induct}} and \mbox{\isa{cases}} proof
+  methods (see \secref{sec:cases-induct}).
+  
+  \item [\mbox{\isa{ind{\isacharunderscore}cases}} and \mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}] provide an interface to the internal
+  \texttt{mk_cases} operation.  Rules are simplified in an
+  unrestricted forward manner.
+
+  While \mbox{\isa{ind{\isacharunderscore}cases}} is a proof method to apply the
+  result immediately as elimination rules, \mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}} provides case split theorems at the theory level
+  for later use.  The \mbox{\isa{\isakeyword{for}}} argument of the \mbox{\isa{ind{\isacharunderscore}cases}} method allows to specify a list of variables that should
+  be generalized before applying the resulting rule.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Executable code%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/Pure provides two generic frameworks to support code
+  generation from executable specifications.  Isabelle/HOL
+  instantiates these mechanisms in a way that is amenable to end-user
+  applications.
+
+  One framework generates code from both functional and relational
+  programs to SML.  See \cite{isabelle-HOL} for further information
+  (this actually covers the new-style theory format as well).
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{value}\mbox{\isa{\isacommand{value}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code-module}\mbox{\isa{\isacommand{code{\isacharunderscore}module}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-library}\mbox{\isa{\isacommand{code{\isacharunderscore}library}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{consts-code}\mbox{\isa{\isacommand{consts{\isacharunderscore}code}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{types-code}\mbox{\isa{\isacommand{types{\isacharunderscore}code}}} & : & \isartrans{theory}{theory} \\  
+    \indexdef{HOL}{attribute}{code}\mbox{\isa{code}} & : & \isaratt \\
+  \end{matharray}
+
+  \begin{rail}
+  'value' term
+  ;
+
+  ( 'code\_module' | 'code\_library' ) modespec ? name ? \\
+    ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\
+    'contains' ( ( name '=' term ) + | term + )
+  ;
+
+  modespec: '(' ( name * ) ')'
+  ;
+
+  'consts\_code' (codespec +)
+  ;
+
+  codespec: const template attachment ?
+  ;
+
+  'types\_code' (tycodespec +)
+  ;
+
+  tycodespec: name template attachment ?
+  ;
+
+  const: term
+  ;
+
+  template: '(' string ')'
+  ;
+
+  attachment: 'attach' modespec ? verblbrace text verbrbrace
+  ;
+
+  'code' (name)?
+  ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{\isacommand{value}}}~\isa{t}] evaluates and prints a
+  term using the code generator.
+
+  \end{descr}
+
+  \medskip The other framework generates code from functional programs
+  (including overloading using type classes) to SML \cite{SML}, OCaml
+  \cite{OCaml} and Haskell \cite{haskell-revised-report}.
+  Conceptually, code generation is split up in three steps:
+  \emph{selection} of code theorems, \emph{translation} into an
+  abstract executable view and \emph{serialization} to a specific
+  \emph{target language}.  See \cite{isabelle-codegen} for an
+  introduction on how to use it.
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{export-code}\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code-thms}\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code-deps}\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code-datatype}\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-const}\mbox{\isa{\isacommand{code{\isacharunderscore}const}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-type}\mbox{\isa{\isacommand{code{\isacharunderscore}type}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-class}\mbox{\isa{\isacommand{code{\isacharunderscore}class}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-instance}\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-monad}\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-reserved}\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-include}\mbox{\isa{\isacommand{code{\isacharunderscore}include}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-modulename}\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code-exception}\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{print-codesetup}\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{attribute}{code}\mbox{\isa{code}} & : & \isaratt \\
+  \end{matharray}
+
+  \begin{rail}
+    'export\_code' ( constexpr + ) ? \\
+      ( ( 'in' target ( 'module\_name' string ) ? \\
+        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
+    ;
+
+    'code\_thms' ( constexpr + ) ?
+    ;
+
+    'code\_deps' ( constexpr + ) ?
+    ;
+
+    const: term
+    ;
+
+    constexpr: ( const | 'name.*' | '*' )
+    ;
+
+    typeconstructor: nameref
+    ;
+
+    class: nameref
+    ;
+
+    target: 'OCaml' | 'SML' | 'Haskell'
+    ;
+
+    'code\_datatype' const +
+    ;
+
+    'code\_const' (const + 'and') \\
+      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_type' (typeconstructor + 'and') \\
+      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_class' (class + 'and') \\
+      ( ( '(' target \\
+        ( ( string ('where' \\
+          ( const ( '==' | equiv ) string ) + ) ? ) ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_instance' (( typeconstructor '::' class ) + 'and') \\
+      ( ( '(' target ( '-' ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_monad' const const target
+    ;
+
+    'code\_reserved' target ( string + )
+    ;
+
+    'code\_include' target ( string ( string | '-') )
+    ;
+
+    'code\_modulename' target ( ( string string ) + )
+    ;
+
+    'code\_exception' ( const + )
+    ;
+
+    syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
+    ;
+
+    'code' ('func' | 'inline') ( 'del' )?
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}] is the canonical interface
+  for generating and serializing code: for a given list of constants,
+  code is generated for the specified target languages.  Abstract code
+  is cached incrementally.  If no constant is given, the currently
+  cached code is serialized.  If no serialization instruction is
+  given, only abstract code is cached.
+
+  Constants may be specified by giving them literally, referring to
+  all executable contants within a certain theory by giving \isa{{\isachardoublequote}name{\isachardot}{\isacharasterisk}{\isachardoublequote}}, or referring to \emph{all} executable constants currently
+  available by giving \isa{{\isachardoublequote}{\isacharasterisk}{\isachardoublequote}}.
+
+  By default, for each involved theory one corresponding name space
+  module is generated.  Alternativly, a module name may be specified
+  after the \mbox{\isa{\isakeyword{module{\isacharunderscore}name}}} keyword; then \emph{all} code is
+  placed in this module.
+
+  For \emph{SML} and \emph{OCaml}, the file specification refers to a
+  single file; for \emph{Haskell}, it refers to a whole directory,
+  where code is generated in multiple files reflecting the module
+  hierarchy.  The file specification ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' denotes standard
+  output.  For \emph{SML}, omitting the file specification compiles
+  code internally in the context of the current ML session.
+
+  Serializers take an optional list of arguments in parentheses.  For
+  \emph{Haskell} a module name prefix may be given using the ``\isa{{\isachardoublequote}root{\isacharcolon}{\isachardoublequote}}'' argument; ``\isa{string{\isacharunderscore}classes}'' adds a ``\verb|deriving (Read, Show)|'' clause to each appropriate datatype
+  declaration.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}] prints a list of theorems
+  representing the corresponding program containing all given
+  constants; if no constants are given, the currently cached code
+  theorems are printed.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}] visualizes dependencies of
+  theorems representing the corresponding program containing all given
+  constants; if no constants are given, the currently cached code
+  theorems are visualized.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}] specifies a constructor set
+  for a logical type.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}] associates a list of constants
+  with target-specific serializations; omitting a serialization
+  deletes an existing serialization.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}] associates a list of type
+  constructors with target-specific serializations; omitting a
+  serialization deletes an existing serialization.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}] associates a list of classes
+  with target-specific class names; in addition, constants associated
+  with this class may be given target-specific names used for instance
+  declarations; omitting a serialization deletes an existing
+  serialization.  This applies only to \emph{Haskell}.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}] declares a list of type
+  constructor / class instance relations as ``already present'' for a
+  given target.  Omitting a ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' deletes an existing
+  ``already present'' declaration.  This applies only to
+  \emph{Haskell}.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}] provides an auxiliary
+  mechanism to generate monadic code.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}] declares a list of names as
+  reserved for a given target, preventing it to be shadowed by any
+  generated code.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}] adds arbitrary named content
+  (``include'') to generated code.  A as last argument ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}''
+  will remove an already added ``include''.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}] declares aliasings from
+  one module name onto another.
+
+  \item [\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}}] declares constants which
+  are not required to have a definition by a defining equations; these
+  are mapped on exceptions instead.
+
+  \item [\mbox{\isa{code}}~\isa{func}] explicitly selects (or
+  with option ``\isa{{\isachardoublequote}del{\isacharcolon}{\isachardoublequote}}'' deselects) a defining equation for
+  code generation.  Usually packages introducing defining equations
+  provide a resonable default setup for selection.
+
+  \item [\mbox{\isa{code}}\isa{inline}] declares (or with
+  option ``\isa{{\isachardoublequote}del{\isacharcolon}{\isachardoublequote}}'' removes) inlining theorems which are
+  applied as rewrite rules to any defining equation during
+  preprocessing.
+
+  \item [\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}] gives an overview on
+  selected defining equations, code generator datatypes and
+  preprocessor setup.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
 \isacommand{end}\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
+\isanewline
+\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
