@@ -2471,6 +2471,96 @@ lemma pt_list_set_fresh:
   and     fs: "fs TYPE('a) TYPE('x)"
   shows "a\<sharp>(set xs) = a\<sharp>xs"
 by (simp add: fresh_def pt_list_set_supp[OF pt, OF at, OF fs])
+
+section {* Infrastructure lemmas for strong rule inductions *}
+(*==========================================================*)
+
+
+text {* 
+  For every set of atoms, there is another set of atoms
+  avoiding a finitely supported c and there is a permutation
+  which make 'translates' between both sets.
+*}
+lemma at_set_avoiding_aux:
+  fixes Xs::"'a set"
+  and   As::"'a set"
+  assumes at: "at TYPE('a)"
+  and     a: "finite Xs"
+  and     b: "Xs \<subseteq> As"
+  and     c: "finite As"
+  and     d: "finite ((supp c)::'a set)"
+  shows "\<exists>(Ys::'a set) (pi::'a prm). Ys\<sharp>*c \<and> Ys \<inter> As = {} \<and> (pi\<bullet>Xs=Ys) \<and> 
+          set pi \<subseteq> Xs \<times> Ys \<and> finite Ys"
+using a b c
+proof (induct)
+  case empty
+  have "({}::'a set)\<sharp>*c" by (simp add: fresh_star_def)
+  moreover
+  have "({}::'a set) \<inter> As = {}" by simp
+  moreover
+  have "([]::'a prm)\<bullet>{} = ({}::'a set)" 
+    by (rule pt1[OF pt_fun_inst, OF at_pt_inst[OF at], OF pt_bool_inst, OF at])
+  moreover
+  have "set ([]::'a prm) \<subseteq> {} \<times> {}" by simp
+  moreover 
+  have "finite ({}::'a set)" by simp
+  ultimately show ?case by blast
+next
+  case (insert x Xs)
+  then have ih: "\<exists>Ys pi. Ys\<sharp>*c \<and> Ys \<inter> As = {} \<and> pi\<bullet>Xs = Ys \<and> set pi \<subseteq> Xs \<times> Ys \<and> finite Ys" by simp
+  then obtain Ys pi where a1: "Ys\<sharp>*c" and a2: "Ys \<inter> As = {}" and a3: "pi\<bullet>Xs = Ys" and 
+                          a4: "set pi \<subseteq> Xs \<times> Ys" and a5: "finite Ys" by blast
+  have b: "x\<notin>Xs" by fact
+  have d1: "finite As" by fact
+  have d2: "finite Xs" by fact
+  have d3: "insert x Xs \<subseteq> As" by fact
+  have "\<exists>y::'a. y\<sharp>(c,x,Ys,As)" using d d1 a5
+    by (rule_tac at_exists_fresh'[OF at])
+       (simp add: supp_prod at_supp[OF at] at_fin_set_supp[OF at])
+  then obtain y::"'a" where  e: "y\<sharp>(c,x,Ys,As)" by blast
+  have "({y}\<union>Ys)\<sharp>*c" using a1 e by (simp add: fresh_star_def)
+  moreover
+  have "({y}\<union>Ys)\<inter>As = {}" using a2 d1 e by (simp add: fresh_prod at_fin_set_fresh[OF at])
+  moreover
+  have "(((pi\<bullet>x,y)#pi)\<bullet>(insert x Xs)) = {y}\<union>Ys"
+  proof -
+    have eq: "[(pi\<bullet>x,y)]\<bullet>Ys = Ys" 
+    proof -
+      have "(pi\<bullet>x)\<sharp>Ys" using a3[symmetric] b d2 
+	by(simp add: pt_fresh_bij[OF pt_fun_inst, OF at_pt_inst[OF at], OF pt_bool_inst, OF at, OF at]
+                     at_fin_set_fresh[OF at])
+      moreover
+      have "y\<sharp>Ys" using e by simp
+      ultimately show "[(pi\<bullet>x,y)]\<bullet>Ys = Ys" 
+	by (simp add: pt_fresh_fresh[OF pt_fun_inst, OF at_pt_inst[OF at], OF pt_bool_inst, OF at, OF at])
+    qed
+    have "(((pi\<bullet>x,y)#pi)\<bullet>({x}\<union>Xs)) = ([(pi\<bullet>x,y)]\<bullet>(pi\<bullet>({x}\<union>Xs)))"
+      by (simp add: pt2[symmetric, OF pt_fun_inst, OF at_pt_inst[OF at], OF pt_bool_inst, OF at])
+    also have "\<dots> = {y}\<union>([(pi\<bullet>x,y)]\<bullet>(pi\<bullet>Xs))" 
+      by (simp only: union_eqvt perm_set_eq[OF at_pt_inst[OF at], OF at] at_calc[OF at])(auto)
+    also have "\<dots> = {y}\<union>([(pi\<bullet>x,y)]\<bullet>Ys)" using a3 by simp
+    also have "\<dots> = {y}\<union>Ys" using eq by simp
+    finally show "(((pi\<bullet>x,y)#pi)\<bullet>(insert x Xs)) = {y}\<union>Ys" by auto
+  qed
+  moreover
+  have "pi\<bullet>x=x" using a4 b a2 a3 d3 by (rule_tac at_prm_fresh2[OF at]) (auto)
+  then have "set ((pi\<bullet>x,y)#pi) \<subseteq> (insert x Xs) \<times> ({y}\<union>Ys)" using a4 by auto
+  moreover 
+  have "finite ({y}\<union>Ys)" using a5 by simp
+  ultimately 
+  show ?case by blast
+qed
+
+lemma at_set_avoiding:
+  fixes Xs::"'a set"
+  assumes at: "at TYPE('a)"
+  and     a: "finite Xs"
+  and     b: "finite ((supp c)::'a set)"
+  shows "\<exists>(Ys::'a set) (pi::'a prm). Ys\<sharp>*c \<and> (pi\<bullet>Xs=Ys) \<and> set pi \<subseteq> Xs \<times> Ys"
+using a b
+apply(frule_tac As="Xs" in at_set_avoiding_aux[OF at])
+apply(auto)
+done
  
 section {* composition instances *}
 (* ============================= *)
