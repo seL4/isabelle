@@ -14,7 +14,7 @@ structure O = ThyOutput;
 (* misc utils *)
 
 val clean_string = translate_string
-  (fn "_" => "-"
+  (fn "_" => "\\_"
     | ">" => "$>$"
     | "#" => "\\#"
     | "{" => "\\{"
