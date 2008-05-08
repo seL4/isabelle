@@ -38,9 +38,9 @@
     \indexdef{}{command}{definition}\mbox{\isa{\isacommand{definition}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{}{attribute}{defn}\mbox{\isa{defn}} & : & \isaratt \\
     \indexdef{}{command}{abbreviation}\mbox{\isa{\isacommand{abbreviation}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{print-abbrevs}\mbox{\isa{\isacommand{print{\isacharunderscore}abbrevs}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_abbrevs}\mbox{\isa{\isacommand{print{\isacharunderscore}abbrevs}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{}{command}{notation}\mbox{\isa{\isacommand{notation}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{no-notation}\mbox{\isa{\isacommand{no{\isacharunderscore}notation}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{}{command}{no\_notation}\mbox{\isa{\isacommand{no{\isacharunderscore}notation}}} & : & \isarkeep{local{\dsh}theory} \\
   \end{matharray}
 
   These specification mechanisms provide a slightly more abstract view
@@ -256,10 +256,10 @@ Locales are named local contexts, consisting of a list of
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{}{command}{locale}\mbox{\isa{\isacommand{locale}}} & : & \isartrans{theory}{local{\dsh}theory} \\
-    \indexdef{}{command}{print-locale}\mbox{\isa{\isacommand{print{\isacharunderscore}locale}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print-locales}\mbox{\isa{\isacommand{print{\isacharunderscore}locales}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{method}{intro-locales}\mbox{\isa{intro{\isacharunderscore}locales}} & : & \isarmeth \\
-    \indexdef{}{method}{unfold-locales}\mbox{\isa{unfold{\isacharunderscore}locales}} & : & \isarmeth \\
+    \indexdef{}{command}{print\_locale}\mbox{\isa{\isacommand{print{\isacharunderscore}locale}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_locales}\mbox{\isa{\isacommand{print{\isacharunderscore}locales}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{method}{intro\_locales}\mbox{\isa{intro{\isacharunderscore}locales}} & : & \isarmeth \\
+    \indexdef{}{method}{unfold\_locales}\mbox{\isa{unfold{\isacharunderscore}locales}} & : & \isarmeth \\
   \end{matharray}
 
   \indexouternonterm{contextexpr}\indexouternonterm{contextelem}
@@ -421,7 +421,7 @@ Locale expressions (more precisely, \emph{context expressions}) may
   \begin{matharray}{rcl}
     \indexdef{}{command}{interpretation}\mbox{\isa{\isacommand{interpretation}}} & : & \isartrans{theory}{proof(prove)} \\
     \indexdef{}{command}{interpret}\mbox{\isa{\isacommand{interpret}}} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
-    \indexdef{}{command}{print-interps}\mbox{\isa{\isacommand{print{\isacharunderscore}interps}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : &  \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_interps}\mbox{\isa{\isacommand{print{\isacharunderscore}interps}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : &  \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   \indexouternonterm{interp}
@@ -560,8 +560,8 @@ A class is a particular locale with \emph{exactly one} type variable
     \indexdef{}{command}{instantiation}\mbox{\isa{\isacommand{instantiation}}} & : & \isartrans{theory}{local{\dsh}theory} \\
     \indexdef{}{command}{instance}\mbox{\isa{\isacommand{instance}}} & : & \isartrans{local{\dsh}theory}{local{\dsh}theory} \\
     \indexdef{}{command}{subclass}\mbox{\isa{\isacommand{subclass}}} & : & \isartrans{local{\dsh}theory}{local{\dsh}theory} \\
-    \indexdef{}{command}{print-classes}\mbox{\isa{\isacommand{print{\isacharunderscore}classes}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{method}{intro-classes}\mbox{\isa{intro{\isacharunderscore}classes}} & : & \isarmeth \\
+    \indexdef{}{command}{print\_classes}\mbox{\isa{\isacommand{print{\isacharunderscore}classes}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{method}{intro\_classes}\mbox{\isa{intro{\isacharunderscore}classes}} & : & \isarmeth \\
   \end{matharray}
 
   \begin{rail}
@@ -769,7 +769,7 @@ Isabelle/Pure maintains a record of named configuration options
   ``global'', which may not be changed within a local context.
 
   \begin{matharray}{rcll}
-    \indexdef{}{command}{print-configs}\mbox{\isa{\isacommand{print{\isacharunderscore}configs}}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_configs}\mbox{\isa{\isacommand{print{\isacharunderscore}configs}}} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   \begin{rail}
@@ -881,7 +881,7 @@ Isabelle/Pure maintains a record of named configuration options
     \indexdef{}{command}{finally}\mbox{\isa{\isacommand{finally}}} & : & \isartrans{proof(state)}{proof(chain)} \\
     \indexdef{}{command}{moreover}\mbox{\isa{\isacommand{moreover}}} & : & \isartrans{proof(state)}{proof(state)} \\
     \indexdef{}{command}{ultimately}\mbox{\isa{\isacommand{ultimately}}} & : & \isartrans{proof(state)}{proof(chain)} \\
-    \indexdef{}{command}{print-trans-rules}\mbox{\isa{\isacommand{print{\isacharunderscore}trans{\isacharunderscore}rules}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_trans\_rules}\mbox{\isa{\isacommand{print{\isacharunderscore}trans{\isacharunderscore}rules}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \mbox{\isa{trans}} & : & \isaratt \\
     \mbox{\isa{sym}} & : & \isaratt \\
     \mbox{\isa{symmetric}} & : & \isaratt \\
@@ -1045,9 +1045,9 @@ Isabelle/Pure maintains a record of named configuration options
     \indexdef{}{attribute}{unfolded}\mbox{\isa{unfolded}} & : & \isaratt \\
     \indexdef{}{attribute}{folded}\mbox{\isa{folded}} & : & \isaratt \\[0.5ex]
     \indexdef{}{attribute}{rotated}\mbox{\isa{rotated}} & : & \isaratt \\
-    \indexdef{Pure}{attribute}{elim-format}\mbox{\isa{elim{\isacharunderscore}format}} & : & \isaratt \\
+    \indexdef{Pure}{attribute}{elim\_format}\mbox{\isa{elim{\isacharunderscore}format}} & : & \isaratt \\
     \indexdef{}{attribute}{standard}\mbox{\isa{standard}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isaratt \\
-    \indexdef{}{attribute}{no-vars}\mbox{\isa{no{\isacharunderscore}vars}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isaratt \\
+    \indexdef{}{attribute}{no\_vars}\mbox{\isa{no{\isacharunderscore}vars}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isaratt \\
   \end{matharray}
 
   \begin{rail}
@@ -1135,15 +1135,15 @@ The following improper proof methods emulate traditional tactics.
   \secref{sec:pure-meth-att}).
 
   \begin{matharray}{rcl}
-    \indexdef{}{method}{rule-tac}\mbox{\isa{rule{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{erule-tac}\mbox{\isa{erule{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{drule-tac}\mbox{\isa{drule{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{frule-tac}\mbox{\isa{frule{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{cut-tac}\mbox{\isa{cut{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{thin-tac}\mbox{\isa{thin{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{subgoal-tac}\mbox{\isa{subgoal{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{rename-tac}\mbox{\isa{rename{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{rotate-tac}\mbox{\isa{rotate{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{rule\_tac}\mbox{\isa{rule{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{erule\_tac}\mbox{\isa{erule{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{drule\_tac}\mbox{\isa{drule{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{frule\_tac}\mbox{\isa{frule{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{cut\_tac}\mbox{\isa{cut{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{thin\_tac}\mbox{\isa{thin{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{subgoal\_tac}\mbox{\isa{subgoal{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{rename\_tac}\mbox{\isa{rename{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{rotate\_tac}\mbox{\isa{rotate{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
     \indexdef{}{method}{tactic}\mbox{\isa{tactic}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
   \end{matharray}
 
@@ -1227,7 +1227,7 @@ val thms  : string -> thm list
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{}{method}{simp}\mbox{\isa{simp}} & : & \isarmeth \\
-    \indexdef{}{method}{simp-all}\mbox{\isa{simp{\isacharunderscore}all}} & : & \isarmeth \\
+    \indexdef{}{method}{simp\_all}\mbox{\isa{simp{\isacharunderscore}all}} & : & \isarmeth \\
   \end{matharray}
 
   \indexouternonterm{simpmod}
@@ -1301,7 +1301,7 @@ val thms  : string -> thm list
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{print-simpset}\mbox{\isa{\isacommand{print{\isacharunderscore}simpset}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_simpset}\mbox{\isa{\isacommand{print{\isacharunderscore}simpset}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{}{attribute}{simp}\mbox{\isa{simp}} & : & \isaratt \\
     \indexdef{}{attribute}{cong}\mbox{\isa{cong}} & : & \isaratt \\
     \indexdef{}{attribute}{split}\mbox{\isa{split}} & : & \isaratt \\
@@ -1334,7 +1334,7 @@ val thms  : string -> thm list
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{simproc-setup}\mbox{\isa{\isacommand{simproc{\isacharunderscore}setup}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{}{command}{simproc\_setup}\mbox{\isa{\isacommand{simproc{\isacharunderscore}setup}}} & : & \isarkeep{local{\dsh}theory} \\
     simproc & : & \isaratt \\
   \end{matharray}
 
@@ -1621,7 +1621,7 @@ val thms  : string -> thm list
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{print-claset}\mbox{\isa{\isacommand{print{\isacharunderscore}claset}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_claset}\mbox{\isa{\isacommand{print{\isacharunderscore}claset}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{}{attribute}{intro}\mbox{\isa{intro}} & : & \isaratt \\
     \indexdef{}{attribute}{elim}\mbox{\isa{elim}} & : & \isaratt \\
     \indexdef{}{attribute}{dest}\mbox{\isa{dest}} & : & \isaratt \\
@@ -1700,9 +1700,9 @@ val thms  : string -> thm list
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{}{command}{case}\mbox{\isa{\isacommand{case}}} & : & \isartrans{proof(state)}{proof(state)} \\
-    \indexdef{}{command}{print-cases}\mbox{\isa{\isacommand{print{\isacharunderscore}cases}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
-    \indexdef{}{attribute}{case-names}\mbox{\isa{case{\isacharunderscore}names}} & : & \isaratt \\
-    \indexdef{}{attribute}{case-conclusion}\mbox{\isa{case{\isacharunderscore}conclusion}} & : & \isaratt \\
+    \indexdef{}{command}{print\_cases}\mbox{\isa{\isacommand{print{\isacharunderscore}cases}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
+    \indexdef{}{attribute}{case\_names}\mbox{\isa{case{\isacharunderscore}names}} & : & \isaratt \\
+    \indexdef{}{attribute}{case\_conclusion}\mbox{\isa{case{\isacharunderscore}conclusion}} & : & \isaratt \\
     \indexdef{}{attribute}{params}\mbox{\isa{params}} & : & \isaratt \\
     \indexdef{}{attribute}{consumes}\mbox{\isa{consumes}} & : & \isaratt \\
   \end{matharray}
@@ -2000,7 +2000,7 @@ val thms  : string -> thm list
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{print-induct-rules}\mbox{\isa{\isacommand{print{\isacharunderscore}induct{\isacharunderscore}rules}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_induct\_rules}\mbox{\isa{\isacommand{print{\isacharunderscore}induct{\isacharunderscore}rules}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{}{attribute}{cases}\mbox{\isa{cases}} & : & \isaratt \\
     \indexdef{}{attribute}{induct}\mbox{\isa{induct}} & : & \isaratt \\
     \indexdef{}{attribute}{coinduct}\mbox{\isa{coinduct}} & : & \isaratt \\
@@ -2047,7 +2047,7 @@ val thms  : string -> thm list
     \indexdef{}{command}{judgment}\mbox{\isa{\isacommand{judgment}}} & : & \isartrans{theory}{theory} \\
     \indexdef{}{method}{atomize}\mbox{\isa{atomize}} & : & \isarmeth \\
     \indexdef{}{attribute}{atomize}\mbox{\isa{atomize}} & : & \isaratt \\
-    \indexdef{}{attribute}{rule-format}\mbox{\isa{rule{\isacharunderscore}format}} & : & \isaratt \\
+    \indexdef{}{attribute}{rule\_format}\mbox{\isa{rule{\isacharunderscore}format}} & : & \isaratt \\
     \indexdef{}{attribute}{rulify}\mbox{\isa{rulify}} & : & \isaratt \\
   \end{matharray}
 

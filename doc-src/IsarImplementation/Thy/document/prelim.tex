@@ -180,9 +180,9 @@ A logical context represents the background that is required for
   \indexml{Theory.copy}\verb|Theory.copy: theory -> theory| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexmltype{theory-ref}\verb|type theory_ref| \\
+  \indexmltype{theory\_ref}\verb|type theory_ref| \\
   \indexml{Theory.deref}\verb|Theory.deref: theory_ref -> theory| \\
-  \indexml{Theory.check-thy}\verb|Theory.check_thy: theory -> theory_ref| \\
+  \indexml{Theory.check\_thy}\verb|Theory.check_thy: theory -> theory_ref| \\
   \end{mldecls}
 
   \begin{description}
@@ -276,7 +276,7 @@ A logical context represents the background that is required for
 \begin{mldecls}
   \indexmltype{Proof.context}\verb|type Proof.context| \\
   \indexml{ProofContext.init}\verb|ProofContext.init: theory -> Proof.context| \\
-  \indexml{ProofContext.theory-of}\verb|ProofContext.theory_of: Proof.context -> theory| \\
+  \indexml{ProofContext.theory\_of}\verb|ProofContext.theory_of: Proof.context -> theory| \\
   \indexml{ProofContext.transfer}\verb|ProofContext.transfer: theory -> Proof.context -> Proof.context| \\
   \end{mldecls}
 
@@ -334,8 +334,8 @@ A generic context is the disjoint sum of either a theory or proof
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexmltype{Context.generic}\verb|type Context.generic| \\
-  \indexml{Context.theory-of}\verb|Context.theory_of: Context.generic -> theory| \\
-  \indexml{Context.proof-of}\verb|Context.proof_of: Context.generic -> Proof.context| \\
+  \indexml{Context.theory\_of}\verb|Context.theory_of: Context.generic -> theory| \\
+  \indexml{Context.proof\_of}\verb|Context.proof_of: Context.generic -> Proof.context| \\
   \end{mldecls}
 
   \begin{description}
@@ -553,10 +553,10 @@ In principle, a name is just a string, but there are various
 \begin{mldecls}
   \indexmltype{Symbol.symbol}\verb|type Symbol.symbol| \\
   \indexml{Symbol.explode}\verb|Symbol.explode: string -> Symbol.symbol list| \\
-  \indexml{Symbol.is-letter}\verb|Symbol.is_letter: Symbol.symbol -> bool| \\
-  \indexml{Symbol.is-digit}\verb|Symbol.is_digit: Symbol.symbol -> bool| \\
-  \indexml{Symbol.is-quasi}\verb|Symbol.is_quasi: Symbol.symbol -> bool| \\
-  \indexml{Symbol.is-blank}\verb|Symbol.is_blank: Symbol.symbol -> bool| \\
+  \indexml{Symbol.is\_letter}\verb|Symbol.is_letter: Symbol.symbol -> bool| \\
+  \indexml{Symbol.is\_digit}\verb|Symbol.is_digit: Symbol.symbol -> bool| \\
+  \indexml{Symbol.is\_quasi}\verb|Symbol.is_quasi: Symbol.symbol -> bool| \\
+  \indexml{Symbol.is\_blank}\verb|Symbol.is_blank: Symbol.symbol -> bool| \\
   \end{mldecls}
   \begin{mldecls}
   \indexmltype{Symbol.sym}\verb|type Symbol.sym| \\
@@ -814,8 +814,8 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \end{mldecls}
   \begin{mldecls}
   \indexmltype{NameSpace.naming}\verb|type NameSpace.naming| \\
-  \indexml{NameSpace.default-naming}\verb|NameSpace.default_naming: NameSpace.naming| \\
-  \indexml{NameSpace.add-path}\verb|NameSpace.add_path: string -> NameSpace.naming -> NameSpace.naming| \\
+  \indexml{NameSpace.default\_naming}\verb|NameSpace.default_naming: NameSpace.naming| \\
+  \indexml{NameSpace.add\_path}\verb|NameSpace.add_path: string -> NameSpace.naming -> NameSpace.naming| \\
   \indexml{NameSpace.full}\verb|NameSpace.full: NameSpace.naming -> string -> string| \\
   \end{mldecls}
   \begin{mldecls}

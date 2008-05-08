@@ -278,7 +278,7 @@ Recent versions of Poly/ML (5.1 or later) support multithreaded
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{NAMED-CRITICAL}\verb|NAMED_CRITICAL: string -> (unit -> 'a) -> 'a| \\
+  \indexml{NAMED\_CRITICAL}\verb|NAMED_CRITICAL: string -> (unit -> 'a) -> 'a| \\
   \indexml{CRITICAL}\verb|CRITICAL: (unit -> 'a) -> 'a| \\
   \indexml{setmp}\verb|setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c| \\
   \end{mldecls}
@@ -487,7 +487,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexml{fold}\verb|fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b| \\
-  \indexml{fold-map}\verb|fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b| \\
+  \indexml{fold\_map}\verb|fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b| \\
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -622,12 +622,12 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{is-some}\verb|is_some: 'a option -> bool| \\
-  \indexml{is-none}\verb|is_none: 'a option -> bool| \\
+  \indexml{is\_some}\verb|is_some: 'a option -> bool| \\
+  \indexml{is\_none}\verb|is_none: 'a option -> bool| \\
   \indexml{the}\verb|the: 'a option -> 'a| \\
   \indexml{these}\verb|these: 'a list option -> 'a list| \\
-  \indexml{the-list}\verb|the_list: 'a option -> 'a list| \\
-  \indexml{the-default}\verb|the_default: 'a -> 'a option -> 'a| \\
+  \indexml{the\_list}\verb|the_list: 'a option -> 'a list| \\
+  \indexml{the\_default}\verb|the_default: 'a -> 'a option -> 'a| \\
   \indexml{try}\verb|try: ('a -> 'b) -> 'a -> 'b option| \\
   \indexml{can}\verb|can: ('a -> 'b) -> 'a -> bool| \\
   \end{mldecls}%
@@ -699,9 +699,9 @@ Lists are often used as set-like data structures -- set-like in
   \indexml{AList.update}\verb|AList.update: ('a * 'a -> bool) -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list| \\
   \indexml{AList.default}\verb|AList.default: ('a * 'a -> bool) -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list| \\
   \indexml{AList.delete}\verb|AList.delete: ('a * 'b -> bool) -> 'a -> ('b * 'c) list -> ('b * 'c) list| \\
-  \indexml{AList.map-entry}\verb|AList.map_entry: ('a * 'b -> bool) -> 'a|\isasep\isanewline%
+  \indexml{AList.map\_entry}\verb|AList.map_entry: ('a * 'b -> bool) -> 'a|\isasep\isanewline%
 \verb|    -> ('c -> 'c) -> ('b * 'c) list -> ('b * 'c) list| \\
-  \indexml{AList.map-default}\verb|AList.map_default: ('a * 'a -> bool) -> 'a * 'b -> ('b -> 'b)|\isasep\isanewline%
+  \indexml{AList.map\_default}\verb|AList.map_default: ('a * 'a -> bool) -> 'a * 'b -> ('b -> 'b)|\isasep\isanewline%
 \verb|    -> ('a * 'b) list -> ('a * 'b) list| \\
   \indexml{AList.join}\verb|AList.join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b) (*exception DUP*)|\isasep\isanewline%
 \verb|    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list (*exception AList.DUP*)| \\
@@ -746,9 +746,9 @@ Association lists can be seens as an extension of set-like lists:
   \indexml{Symtab.default}\verb|Symtab.default: string * 'a -> 'a Symtab.table -> 'a Symtab.table| \\
   \indexml{Symtab.delete}\verb|Symtab.delete: string|\isasep\isanewline%
 \verb|    -> 'a Symtab.table -> 'a Symtab.table (*exception Symtab.UNDEF*)| \\
-  \indexml{Symtab.map-entry}\verb|Symtab.map_entry: string -> ('a -> 'a)|\isasep\isanewline%
+  \indexml{Symtab.map\_entry}\verb|Symtab.map_entry: string -> ('a -> 'a)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table -> 'a Symtab.table| \\
-  \indexml{Symtab.map-default}\verb|Symtab.map_default: (string * 'a) -> ('a -> 'a)|\isasep\isanewline%
+  \indexml{Symtab.map\_default}\verb|Symtab.map_default: (string * 'a) -> ('a -> 'a)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table -> 'a Symtab.table| \\
   \indexml{Symtab.join}\verb|Symtab.join: (string -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table * 'a Symtab.table|\isasep\isanewline%

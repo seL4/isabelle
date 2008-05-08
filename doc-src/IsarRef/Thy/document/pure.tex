@@ -128,7 +128,7 @@ Subsequently, we introduce the main part of Pure theory and proof
     \indexdef{}{command}{subsection}\mbox{\isa{\isacommand{subsection}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{}{command}{subsubsection}\mbox{\isa{\isacommand{subsubsection}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{}{command}{text}\mbox{\isa{\isacommand{text}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{text-raw}\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{}{command}{text\_raw}\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}} & : & \isarkeep{local{\dsh}theory} \\
   \end{matharray}
 
   Apart from formal comments (see \secref{sec:comments}), markup
@@ -184,7 +184,7 @@ Subsequently, we introduce the main part of Pure theory and proof
     \indexdef{}{command}{classes}\mbox{\isa{\isacommand{classes}}} & : & \isartrans{theory}{theory} \\
     \indexdef{}{command}{classrel}\mbox{\isa{\isacommand{classrel}}} & : & \isartrans{theory}{theory} & (axiomatic!) \\
     \indexdef{}{command}{defaultsort}\mbox{\isa{\isacommand{defaultsort}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{class-deps}\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{class\_deps}\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   \begin{rail}
@@ -380,9 +380,9 @@ Definitions essentially express abbreviations within the logic.  The
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{}{command}{syntax}\mbox{\isa{\isacommand{syntax}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{no-syntax}\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{no\_syntax}\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}} & : & \isartrans{theory}{theory} \\
     \indexdef{}{command}{translations}\mbox{\isa{\isacommand{translations}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{no-translations}\mbox{\isa{\isacommand{no{\isacharunderscore}translations}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{no\_translations}\mbox{\isa{\isacommand{no{\isacharunderscore}translations}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -521,10 +521,10 @@ Definitions essentially express abbreviations within the logic.  The
 \begin{matharray}{rcl}
     \indexdef{}{command}{use}\mbox{\isa{\isacommand{use}}} & : & \isarkeep{theory~|~local{\dsh}theory} \\
     \indexdef{}{command}{ML}\mbox{\isa{\isacommand{ML}}} & : & \isarkeep{theory~|~local{\dsh}theory} \\
-    \indexdef{}{command}{ML-val}\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}} & : & \isartrans{\cdot}{\cdot} \\
-    \indexdef{}{command}{ML-command}\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}} & : & \isartrans{\cdot}{\cdot} \\
+    \indexdef{}{command}{ML\_val}\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}} & : & \isartrans{\cdot}{\cdot} \\
+    \indexdef{}{command}{ML\_command}\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}} & : & \isartrans{\cdot}{\cdot} \\
     \indexdef{}{command}{setup}\mbox{\isa{\isacommand{setup}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{method-setup}\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{method\_setup}\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -591,12 +591,12 @@ Definitions essentially express abbreviations within the logic.  The
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{parse-ast-translation}\mbox{\isa{\isacommand{parse{\isacharunderscore}ast{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{parse-translation}\mbox{\isa{\isacommand{parse{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{print-translation}\mbox{\isa{\isacommand{print{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{typed-print-translation}\mbox{\isa{\isacommand{typed{\isacharunderscore}print{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{print-ast-translation}\mbox{\isa{\isacommand{print{\isacharunderscore}ast{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{token-translation}\mbox{\isa{\isacommand{token{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{parse\_ast\_translation}\mbox{\isa{\isacommand{parse{\isacharunderscore}ast{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{parse\_translation}\mbox{\isa{\isacommand{parse{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{print\_translation}\mbox{\isa{\isacommand{print{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{typed\_print\_translation}\mbox{\isa{\isacommand{typed{\isacharunderscore}print{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{print\_ast\_translation}\mbox{\isa{\isacommand{print{\isacharunderscore}ast{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{token\_translation}\mbox{\isa{\isacommand{token{\isacharunderscore}translation}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -734,7 +734,7 @@ Proof commands perform transitions of Isar/VM machine
     \indexdef{}{command}{subsect}\mbox{\isa{\isacommand{subsect}}} & : & \isartrans{proof}{proof} \\
     \indexdef{}{command}{subsubsect}\mbox{\isa{\isacommand{subsubsect}}} & : & \isartrans{proof}{proof} \\
     \indexdef{}{command}{txt}\mbox{\isa{\isacommand{txt}}} & : & \isartrans{proof}{proof} \\
-    \indexdef{}{command}{txt-raw}\mbox{\isa{\isacommand{txt{\isacharunderscore}raw}}} & : & \isartrans{proof}{proof} \\
+    \indexdef{}{command}{txt\_raw}\mbox{\isa{\isacommand{txt{\isacharunderscore}raw}}} & : & \isartrans{proof}{proof} \\
   \end{matharray}
 
   These markup commands for proof mode closely correspond to the ones
@@ -905,7 +905,7 @@ Proof commands perform transitions of Isar/VM machine
   of the premises of the rule involved.  Note that positions may be
   easily skipped using something like \mbox{\isa{\isacommand{from}}}~\isa{{\isachardoublequote}{\isacharunderscore}\ {\isasymAND}\ a\ {\isasymAND}\ b{\isachardoublequote}}, for example.  This involves the trivial rule
   \isa{{\isachardoublequote}PROP\ {\isasympsi}\ {\isasymLongrightarrow}\ PROP\ {\isasympsi}{\isachardoublequote}}, which is bound in Isabelle/Pure as
-  ``\indexref{}{fact}{-}\mbox{\isa{{\isacharunderscore}}}'' (underscore).
+  ``\indexref{}{fact}{\_}\mbox{\isa{{\isacharunderscore}}}'' (underscore).
 
   Automated methods (such as \mbox{\isa{simp}} or \mbox{\isa{auto}}) just
   insert any given facts before their usual operation.  Depending on
@@ -1032,7 +1032,7 @@ Proof commands perform transitions of Isar/VM machine
   Any goal statement causes some term abbreviations (such as
   \indexref{}{variable}{?thesis}\mbox{\isa{{\isacharquery}thesis}}) to be bound automatically, see also
   \secref{sec:term-abbrev}.  Furthermore, the local context of a
-  (non-atomic) goal is provided via the \indexref{}{case}{rule-context}\mbox{\isa{rule{\isacharunderscore}context}} case.
+  (non-atomic) goal is provided via the \indexref{}{case}{rule\_context}\mbox{\isa{rule{\isacharunderscore}context}} case.
 
   The optional case names of \indexref{}{element}{obtains}\mbox{\isa{\isakeyword{obtains}}} have a twofold
   meaning: (1) during the of this claim they refer to the the local
@@ -1430,7 +1430,7 @@ The Isar provides separate commands to accommodate tactic-style
 
   \begin{matharray}{rcl}
     \indexdef{}{command}{apply}\mbox{\isa{\isacommand{apply}}}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
-    \indexdef{}{command}{apply-end}\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}^* & : & \isartrans{proof(state)}{proof(state)} \\
+    \indexdef{}{command}{apply\_end}\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}^* & : & \isartrans{proof(state)}{proof(state)} \\
     \indexdef{}{command}{done}\mbox{\isa{\isacommand{done}}}^* & : & \isartrans{proof(prove)}{proof(state)} \\
     \indexdef{}{command}{defer}\mbox{\isa{\isacommand{defer}}}^* & : & \isartrans{proof}{proof} \\
     \indexdef{}{command}{prefer}\mbox{\isa{\isacommand{prefer}}}^* & : & \isartrans{proof}{proof} \\
@@ -1621,16 +1621,16 @@ The Isar provides separate commands to accommodate tactic-style
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{print-commands}\mbox{\isa{\isacommand{print{\isacharunderscore}commands}}}^* & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{print-theory}\mbox{\isa{\isacommand{print{\isacharunderscore}theory}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print-syntax}\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print-methods}\mbox{\isa{\isacommand{print{\isacharunderscore}methods}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print-attributes}\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print-theorems}\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{find-theorems}\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{thms-deps}\mbox{\isa{\isacommand{thms{\isacharunderscore}deps}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print-facts}\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}^* & : & \isarkeep{proof} \\
-    \indexdef{}{command}{print-binds}\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}^* & : & \isarkeep{proof} \\
+    \indexdef{}{command}{print\_commands}\mbox{\isa{\isacommand{print{\isacharunderscore}commands}}}^* & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{print\_theory}\mbox{\isa{\isacommand{print{\isacharunderscore}theory}}}^* & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_syntax}\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}^* & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_methods}\mbox{\isa{\isacommand{print{\isacharunderscore}methods}}}^* & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_attributes}\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}^* & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_theorems}\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}^* & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{find\_theorems}\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}^* & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{thms\_deps}\mbox{\isa{\isacommand{thms{\isacharunderscore}deps}}}^* & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_facts}\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}^* & : & \isarkeep{proof} \\
+    \indexdef{}{command}{print\_binds}\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}^* & : & \isarkeep{proof} \\
   \end{matharray}
 
   \begin{rail}
@@ -1745,9 +1745,9 @@ The Isar provides separate commands to accommodate tactic-style
 \begin{matharray}{rcl}
     \indexdef{}{command}{cd}\mbox{\isa{\isacommand{cd}}}^* & : & \isarkeep{\cdot} \\
     \indexdef{}{command}{pwd}\mbox{\isa{\isacommand{pwd}}}^* & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{use-thy}\mbox{\isa{\isacommand{use{\isacharunderscore}thy}}}^* & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{display-drafts}\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}^* & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{print-drafts}\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}^* & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{use\_thy}\mbox{\isa{\isacommand{use{\isacharunderscore}thy}}}^* & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{display\_drafts}\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}^* & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{print\_drafts}\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}^* & : & \isarkeep{\cdot} \\
   \end{matharray}
 
   \begin{rail}

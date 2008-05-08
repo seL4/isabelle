@@ -364,7 +364,7 @@ The record package proves several results internally, declaring
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{HOL}{command}{datatype}\mbox{\isa{\isacommand{datatype}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{rep-datatype}\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{rep\_datatype}\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -517,9 +517,9 @@ The record package proves several results internally, declaring
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{HOL}{method}{pat-completeness}\mbox{\isa{pat{\isacharunderscore}completeness}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{pat\_completeness}\mbox{\isa{pat{\isacharunderscore}completeness}} & : & \isarmeth \\
     \indexdef{HOL}{method}{relation}\mbox{\isa{relation}} & : & \isarmeth \\
-    \indexdef{HOL}{method}{lexicographic-order}\mbox{\isa{lexicographic{\isacharunderscore}order}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{lexicographic\_order}\mbox{\isa{lexicographic{\isacharunderscore}order}} & : & \isarmeth \\
   \end{matharray}
 
   \begin{rail}
@@ -567,7 +567,7 @@ The old TFL commands \mbox{\isa{\isacommand{recdef}}} and \mbox{\isa{\isacommand
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{recdef}\mbox{\isa{\isacommand{recdef}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{recdef-tc}\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{theory}{proof(prove)} \\
+    \indexdef{HOL}{command}{recdef\_tc}\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{theory}{proof(prove)} \\
   \end{matharray}
 
   \begin{rail}
@@ -609,9 +609,9 @@ The old TFL commands \mbox{\isa{\isacommand{recdef}}} and \mbox{\isa{\isacommand
   globally, using the following attributes.
 
   \begin{matharray}{rcl}
-    \indexdef{HOL}{attribute}{recdef-simp}\mbox{\isa{recdef{\isacharunderscore}simp}} & : & \isaratt \\
-    \indexdef{HOL}{attribute}{recdef-cong}\mbox{\isa{recdef{\isacharunderscore}cong}} & : & \isaratt \\
-    \indexdef{HOL}{attribute}{recdef-wf}\mbox{\isa{recdef{\isacharunderscore}wf}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{recdef\_simp}\mbox{\isa{recdef{\isacharunderscore}simp}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{recdef\_cong}\mbox{\isa{recdef{\isacharunderscore}cong}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{recdef\_wf}\mbox{\isa{recdef{\isacharunderscore}wf}} & : & \isaratt \\
   \end{matharray}
 
   \begin{rail}
@@ -628,7 +628,7 @@ The old TFL commands \mbox{\isa{\isacommand{recdef}}} and \mbox{\isa{\isacommand
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{HOL}{command}{specification}\mbox{\isa{\isacommand{specification}}} & : & \isartrans{theory}{proof(prove)} \\
-    \indexdef{HOL}{command}{ax-specification}\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}} & : & \isartrans{theory}{proof(prove)} \\
+    \indexdef{HOL}{command}{ax\_specification}\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}} & : & \isartrans{theory}{proof(prove)} \\
   \end{matharray}
 
   \begin{rail}
@@ -698,9 +698,9 @@ An \textbf{inductive definition} specifies the least predicate (or
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{inductive}\mbox{\isa{\isacommand{inductive}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{HOL}{command}{inductive-set}\mbox{\isa{\isacommand{inductive{\isacharunderscore}set}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{command}{inductive\_set}\mbox{\isa{\isacommand{inductive{\isacharunderscore}set}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{HOL}{command}{coinductive}\mbox{\isa{\isacommand{coinductive}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{HOL}{command}{coinductive-set}\mbox{\isa{\isacommand{coinductive{\isacharunderscore}set}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{command}{coinductive\_set}\mbox{\isa{\isacommand{coinductive{\isacharunderscore}set}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{HOL}{attribute}{mono}\mbox{\isa{mono}} & : & \isaratt \\
   \end{matharray}
 
@@ -817,7 +817,7 @@ Each theory contains a default set of theorems that are used in
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{HOL}{method}{arith}\mbox{\isa{arith}} & : & \isarmeth \\
-    \indexdef{HOL}{method}{arith-split}\mbox{\isa{arith{\isacharunderscore}split}} & : & \isaratt \\
+    \indexdef{HOL}{method}{arith\_split}\mbox{\isa{arith{\isacharunderscore}split}} & : & \isaratt \\
   \end{matharray}
 
   The \mbox{\isa{arith}} method decides linear arithmetic problems
@@ -841,10 +841,10 @@ The following important tactical tools of Isabelle/HOL have been
   ported to Isar.  These should be never used in proper proof texts!
 
   \begin{matharray}{rcl}
-    \indexdef{HOL}{method}{case-tac}\mbox{\isa{case{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{HOL}{method}{induct-tac}\mbox{\isa{induct{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{HOL}{method}{ind-cases}\mbox{\isa{ind{\isacharunderscore}cases}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{HOL}{command}{inductive-cases}\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{method}{case\_tac}\mbox{\isa{case{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{induct\_tac}\mbox{\isa{induct{\isacharunderscore}tac}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{ind\_cases}\mbox{\isa{ind{\isacharunderscore}cases}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{HOL}{command}{inductive\_cases}\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -900,10 +900,10 @@ Isabelle/Pure provides two generic frameworks to support code
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{value}\mbox{\isa{\isacommand{value}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{HOL}{command}{code-module}\mbox{\isa{\isacommand{code{\isacharunderscore}module}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-library}\mbox{\isa{\isacommand{code{\isacharunderscore}library}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{consts-code}\mbox{\isa{\isacommand{consts{\isacharunderscore}code}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{types-code}\mbox{\isa{\isacommand{types{\isacharunderscore}code}}} & : & \isartrans{theory}{theory} \\  
+    \indexdef{HOL}{command}{code\_module}\mbox{\isa{\isacommand{code{\isacharunderscore}module}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_library}\mbox{\isa{\isacommand{code{\isacharunderscore}library}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{consts\_code}\mbox{\isa{\isacommand{consts{\isacharunderscore}code}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{types\_code}\mbox{\isa{\isacommand{types{\isacharunderscore}code}}} & : & \isartrans{theory}{theory} \\  
     \indexdef{HOL}{attribute}{code}\mbox{\isa{code}} & : & \isaratt \\
   \end{matharray}
 
@@ -961,20 +961,20 @@ Isabelle/Pure provides two generic frameworks to support code
   introduction on how to use it.
 
   \begin{matharray}{rcl}
-    \indexdef{HOL}{command}{export-code}\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{HOL}{command}{code-thms}\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{HOL}{command}{code-deps}\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{HOL}{command}{code-datatype}\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-const}\mbox{\isa{\isacommand{code{\isacharunderscore}const}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-type}\mbox{\isa{\isacommand{code{\isacharunderscore}type}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-class}\mbox{\isa{\isacommand{code{\isacharunderscore}class}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-instance}\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-monad}\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-reserved}\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-include}\mbox{\isa{\isacommand{code{\isacharunderscore}include}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-modulename}\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code-exception}\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{print-codesetup}\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{export\_code}\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code\_thms}\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code\_deps}\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code\_datatype}\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_const}\mbox{\isa{\isacommand{code{\isacharunderscore}const}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_type}\mbox{\isa{\isacommand{code{\isacharunderscore}type}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_class}\mbox{\isa{\isacommand{code{\isacharunderscore}class}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_instance}\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_monad}\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_reserved}\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_include}\mbox{\isa{\isacommand{code{\isacharunderscore}include}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_modulename}\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_exception}\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{print\_codesetup}\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{HOL}{attribute}{code}\mbox{\isa{code}} & : & \isaratt \\
   \end{matharray}
 
