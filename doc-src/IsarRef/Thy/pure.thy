@@ -12,8 +12,11 @@ text {*
   \Chref{ch:gen-tools} describes further Isar elements provided by
   generic tools and packages (such as the Simplifier) that are either
   part of Pure Isabelle or pre-installed in most object logics.
-  \Chref{ch:logics} refers to object-logic specific elements (mainly
-  for HOL and ZF).
+  Specific language elements introduced by the major object-logics are
+  described in \chref{ch:hol} (Isabelle/HOL), \chref{ch:holcf}
+  (Isabelle/HOLCF), and \chref{ch:zf} (Isabelle/ZF).  Nevertheless,
+  examples given in the generic parts will usually refer to
+  Isabelle/HOL as well.
 
   \medskip Isar commands may be either \emph{proper} document
   constructors, or \emph{improper commands}.  Some proof methods and
@@ -1172,7 +1175,7 @@ text {*
   The following proof methods and attributes refer to basic logical
   operations of Isar.  Further methods and attributes are provided by
   several generic and object-logic specific tools and packages (see
-  \chref{ch:gen-tools} and \chref{ch:logics}).
+  \chref{ch:gen-tools} and \chref{ch:hol}).
 
   \begin{matharray}{rcl}
     @{method_def "-"} & : & \isarmeth \\

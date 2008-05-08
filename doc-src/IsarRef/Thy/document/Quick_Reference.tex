@@ -42,29 +42,31 @@
     \mbox{\isa{\isacommand{using}}}~\isa{a} & indicate use of additional facts \\
     \mbox{\isa{\isacommand{unfolding}}}~\isa{a} & unfold definitional equations \\
     \mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}~\dots~\mbox{\isa{\isacommand{qed}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} & indicate proof structure and refinements \\
-    \mbox{\isa{\isacommand{{\isacharbraceleft}}}}~\dots~\mbox{\isa{\isacommand{{\isacharbraceright}}}} & indicate explicit blocks \\
+    \mbox{\isa{\isacommand{{\isacharbraceleft}}}}~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\mbox{\isa{\isacommand{{\isacharbraceright}}}} & indicate explicit blocks \\
     \mbox{\isa{\isacommand{next}}} & switch blocks \\
     \mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}a\ {\isacharequal}\ b{\isachardoublequote}} & reconsider facts \\
     \mbox{\isa{\isacommand{let}}}~\isa{{\isachardoublequote}p\ {\isacharequal}\ t{\isachardoublequote}} & abbreviate terms by higher-order matching \\
   \end{tabular}
 
-  \begin{matharray}{rcl}
-    \isa{{\isachardoublequote}theory{\isasymdash}stmt{\isachardoublequote}} & = & \mbox{\isa{\isacommand{theorem}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ props\ proof{\isachardoublequote}} \Or \mbox{\isa{\isacommand{definition}}}~\dots \Or \dots \\[1ex]
+  \medskip
+
+  \begin{tabular}{rcl}
+    \isa{{\isachardoublequote}theory{\isasymdash}stmt{\isachardoublequote}} & = & \mbox{\isa{\isacommand{theorem}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ props\ proof\ \ {\isacharbar}{\isachardoublequote}}~~\mbox{\isa{\isacommand{definition}}}~\isa{{\isachardoublequote}{\isasymdots}\ \ {\isacharbar}\ \ {\isasymdots}{\isachardoublequote}} \\[1ex]
     \isa{{\isachardoublequote}proof{\isachardoublequote}} & = & \isa{{\isachardoublequote}prfx\isactrlsup {\isacharasterisk}{\isachardoublequote}}~\mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}method\ stmt\isactrlsup {\isacharasterisk}{\isachardoublequote}}~\mbox{\isa{\isacommand{qed}}}~\isa{method} \\
-    & \Or & \isa{{\isachardoublequote}prfx\isactrlsup {\isacharasterisk}{\isachardoublequote}}~\mbox{\isa{\isacommand{done}}} \\[1ex]
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}prfx\isactrlsup {\isacharasterisk}{\isachardoublequote}}~\mbox{\isa{\isacommand{done}}} \\[1ex]
     \isa{prfx} & = & \mbox{\isa{\isacommand{apply}}}~\isa{method} \\
-    & \Or & \mbox{\isa{\isacommand{using}}}~\isa{{\isachardoublequote}facts{\isachardoublequote}} \\
-    & \Or & \mbox{\isa{\isacommand{unfolding}}}~\isa{{\isachardoublequote}facts{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \mbox{\isa{\isacommand{using}}}~\isa{{\isachardoublequote}facts{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \mbox{\isa{\isacommand{unfolding}}}~\isa{{\isachardoublequote}facts{\isachardoublequote}} \\
     \isa{stmt} & = & \mbox{\isa{\isacommand{{\isacharbraceleft}}}}~\isa{{\isachardoublequote}stmt\isactrlsup {\isacharasterisk}{\isachardoublequote}}~\mbox{\isa{\isacommand{{\isacharbraceright}}}} \\
-    & \Or & \mbox{\isa{\isacommand{next}}} \\
-    & \Or & \mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ facts{\isachardoublequote}} \\
-    & \Or & \mbox{\isa{\isacommand{let}}}~\isa{{\isachardoublequote}term\ {\isacharequal}\ term{\isachardoublequote}} \\
-    & \Or & \mbox{\isa{\isacommand{fix}}}~\isa{{\isachardoublequote}var\isactrlsup {\isacharplus}{\isachardoublequote}} \\
-    & \Or & \mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ props{\isachardoublequote}} \\
-    & \Or & \mbox{\isa{\isacommand{then}}}\isa{{\isachardoublequote}\isactrlsup {\isacharquery}{\isachardoublequote}}~\isa{goal} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \mbox{\isa{\isacommand{next}}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ facts{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \mbox{\isa{\isacommand{let}}}~\isa{{\isachardoublequote}term\ {\isacharequal}\ term{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \mbox{\isa{\isacommand{fix}}}~\isa{{\isachardoublequote}var\isactrlsup {\isacharplus}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ props{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \mbox{\isa{\isacommand{then}}}\isa{{\isachardoublequote}\isactrlsup {\isacharquery}{\isachardoublequote}}~\isa{goal} \\
     \isa{goal} & = & \mbox{\isa{\isacommand{have}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ props\ proof{\isachardoublequote}} \\
-    & \Or & \mbox{\isa{\isacommand{show}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ props\ proof{\isachardoublequote}} \\
-  \end{matharray}%
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \mbox{\isa{\isacommand{show}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ props\ proof{\isachardoublequote}} \\
+  \end{tabular}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -73,18 +75,19 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}\ m\isactrlsub {\isadigit{2}}{\isachardoublequote}} & \equiv & \mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}~\mbox{\isa{\isacommand{qed}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} \\
-    \mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}} & \equiv & \mbox{\isa{\isacommand{by}}}~\isa{rule} \\
-    \mbox{\isa{\isacommand{{\isachardot}}}} & \equiv & \mbox{\isa{\isacommand{by}}}~\isa{this} \\
-    \mbox{\isa{\isacommand{hence}}} & \equiv & \mbox{\isa{\isacommand{then}}}~\mbox{\isa{\isacommand{have}}} \\
-    \mbox{\isa{\isacommand{thus}}} & \equiv & \mbox{\isa{\isacommand{then}}}~\mbox{\isa{\isacommand{show}}} \\
-    \mbox{\isa{\isacommand{from}}}~\isa{a} & \equiv & \mbox{\isa{\isacommand{note}}}~\isa{a}~\mbox{\isa{\isacommand{then}}} \\
-    \mbox{\isa{\isacommand{with}}}~\isa{a} & \equiv & \mbox{\isa{\isacommand{from}}}~\isa{{\isachardoublequote}a\ {\isasymAND}\ this{\isachardoublequote}} \\[1ex]
-    \mbox{\isa{\isacommand{from}}}~\isa{this} & \equiv & \mbox{\isa{\isacommand{then}}} \\
-    \mbox{\isa{\isacommand{from}}}~\isa{this}~\mbox{\isa{\isacommand{have}}} & \equiv & \mbox{\isa{\isacommand{hence}}} \\
-    \mbox{\isa{\isacommand{from}}}~\isa{this}~\mbox{\isa{\isacommand{show}}} & \equiv & \mbox{\isa{\isacommand{thus}}} \\
-  \end{matharray}%
+\begin{tabular}{rcl}
+    \mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}\ m\isactrlsub {\isadigit{2}}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{1}}{\isachardoublequote}}~\mbox{\isa{\isacommand{qed}}}~\isa{{\isachardoublequote}m\isactrlsub {\isadigit{2}}{\isachardoublequote}} \\
+    \mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \mbox{\isa{\isacommand{by}}}~\isa{rule} \\
+    \mbox{\isa{\isacommand{{\isachardot}}}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \mbox{\isa{\isacommand{by}}}~\isa{this} \\
+    \mbox{\isa{\isacommand{hence}}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \mbox{\isa{\isacommand{then}}}~\mbox{\isa{\isacommand{have}}} \\
+    \mbox{\isa{\isacommand{thus}}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \mbox{\isa{\isacommand{then}}}~\mbox{\isa{\isacommand{show}}} \\
+    \mbox{\isa{\isacommand{from}}}~\isa{a} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \mbox{\isa{\isacommand{note}}}~\isa{a}~\mbox{\isa{\isacommand{then}}} \\
+    \mbox{\isa{\isacommand{with}}}~\isa{a} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \mbox{\isa{\isacommand{from}}}~\isa{{\isachardoublequote}a\ {\isasymAND}\ this{\isachardoublequote}} \\[1ex]
+    \mbox{\isa{\isacommand{from}}}~\isa{this} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \mbox{\isa{\isacommand{then}}} \\
+    \mbox{\isa{\isacommand{from}}}~\isa{this}~\mbox{\isa{\isacommand{have}}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \mbox{\isa{\isacommand{hence}}} \\
+    \mbox{\isa{\isacommand{from}}}~\isa{this}~\mbox{\isa{\isacommand{show}}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \mbox{\isa{\isacommand{thus}}} \\
+  \end{tabular}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -93,18 +96,28 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \mbox{\isa{\isacommand{also}}}\isa{{\isachardoublequote}\isactrlsub {\isadigit{0}}{\isachardoublequote}} & \approx & \mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ this{\isachardoublequote}} \\
-    \mbox{\isa{\isacommand{also}}}\isa{{\isachardoublequote}\isactrlsub n\isactrlsub {\isacharplus}\isactrlsub {\isadigit{1}}{\isachardoublequote}} & \approx & \mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ trans\ {\isacharbrackleft}OF\ calculation\ this{\isacharbrackright}{\isachardoublequote}} \\
-    \mbox{\isa{\isacommand{finally}}} & \approx & \mbox{\isa{\isacommand{also}}}~\mbox{\isa{\isacommand{from}}}~\isa{calculation} \\[0.5ex]
-    \mbox{\isa{\isacommand{moreover}}} & \approx & \mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ calculation\ this{\isachardoublequote}} \\
-    \mbox{\isa{\isacommand{ultimately}}} & \approx & \mbox{\isa{\isacommand{moreover}}}~\mbox{\isa{\isacommand{from}}}~\isa{calculation} \\[0.5ex]
-    \mbox{\isa{\isacommand{presume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} & \approx & \mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} \\
-    \mbox{\isa{\isacommand{def}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ x\ {\isasymequiv}\ t{\isachardoublequote}} & \approx & \mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ x\ {\isasymequiv}\ t{\isachardoublequote}} \\
-    \mbox{\isa{\isacommand{obtain}}}~\isa{{\isachardoublequote}x\ {\isasymWHERE}\ a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} & \approx & \dots~\mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} \\
-    \mbox{\isa{\isacommand{case}}}~\isa{c} & \approx & \mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}c{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} \\
-    \mbox{\isa{\isacommand{sorry}}} & \approx & \mbox{\isa{\isacommand{by}}}~\isa{cheating} \\
-  \end{matharray}%
+\begin{tabular}{rcl}
+    \mbox{\isa{\isacommand{also}}}\isa{{\isachardoublequote}\isactrlsub {\isadigit{0}}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ this{\isachardoublequote}} \\
+    \mbox{\isa{\isacommand{also}}}\isa{{\isachardoublequote}\isactrlsub n\isactrlsub {\isacharplus}\isactrlsub {\isadigit{1}}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ trans\ {\isacharbrackleft}OF\ calculation\ this{\isacharbrackright}{\isachardoublequote}} \\
+    \mbox{\isa{\isacommand{finally}}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{also}}}~\mbox{\isa{\isacommand{from}}}~\isa{calculation} \\[0.5ex]
+    \mbox{\isa{\isacommand{moreover}}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{note}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ calculation\ this{\isachardoublequote}} \\
+    \mbox{\isa{\isacommand{ultimately}}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{moreover}}}~\mbox{\isa{\isacommand{from}}}~\isa{calculation} \\[0.5ex]
+    \mbox{\isa{\isacommand{presume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} \\
+    \mbox{\isa{\isacommand{def}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ x\ {\isasymequiv}\ t{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ x\ {\isasymequiv}\ t{\isachardoublequote}} \\
+    \mbox{\isa{\isacommand{obtain}}}~\isa{{\isachardoublequote}x\ {\isasymWHERE}\ a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} \\
+    \mbox{\isa{\isacommand{case}}}~\isa{c} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{fix}}}~\isa{x}~\mbox{\isa{\isacommand{assume}}}~\isa{{\isachardoublequote}c{\isacharcolon}\ {\isasymphi}{\isachardoublequote}} \\
+    \mbox{\isa{\isacommand{sorry}}} & \isa{{\isachardoublequote}{\isasymapprox}{\isachardoublequote}} &
+      \mbox{\isa{\isacommand{by}}}~\isa{cheating} \\
+  \end{tabular}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

@@ -20,65 +20,78 @@ text {*
     @{command "using"}~@{text a} & indicate use of additional facts \\
     @{command "unfolding"}~@{text a} & unfold definitional equations \\
     @{command "proof"}~@{text "m\<^sub>1"}~\dots~@{command "qed"}~@{text "m\<^sub>2"} & indicate proof structure and refinements \\
-    @{command "{"}~\dots~@{command "}"} & indicate explicit blocks \\
+    @{command "{"}~@{text "\<dots>"}~@{command "}"} & indicate explicit blocks \\
     @{command "next"} & switch blocks \\
     @{command "note"}~@{text "a = b"} & reconsider facts \\
     @{command "let"}~@{text "p = t"} & abbreviate terms by higher-order matching \\
   \end{tabular}
 
-  \begin{matharray}{rcl}
-    @{text "theory\<dash>stmt"} & = & @{command "theorem"}~@{text "name: props proof"} \Or @{command "definition"}~\dots \Or \dots \\[1ex]
+  \medskip
+
+  \begin{tabular}{rcl}
+    @{text "theory\<dash>stmt"} & = & @{command "theorem"}~@{text "name: props proof  |"}~~@{command "definition"}~@{text "\<dots>  |  \<dots>"} \\[1ex]
     @{text "proof"} & = & @{text "prfx\<^sup>*"}~@{command "proof"}~@{text "method stmt\<^sup>*"}~@{command "qed"}~@{text method} \\
-    & \Or & @{text "prfx\<^sup>*"}~@{command "done"} \\[1ex]
+    & @{text "|"} & @{text "prfx\<^sup>*"}~@{command "done"} \\[1ex]
     @{text prfx} & = & @{command "apply"}~@{text method} \\
-    & \Or & @{command "using"}~@{text "facts"} \\
-    & \Or & @{command "unfolding"}~@{text "facts"} \\
+    & @{text "|"} & @{command "using"}~@{text "facts"} \\
+    & @{text "|"} & @{command "unfolding"}~@{text "facts"} \\
     @{text stmt} & = & @{command "{"}~@{text "stmt\<^sup>*"}~@{command "}"} \\
-    & \Or & @{command "next"} \\
-    & \Or & @{command "note"}~@{text "name = facts"} \\
-    & \Or & @{command "let"}~@{text "term = term"} \\
-    & \Or & @{command "fix"}~@{text "var\<^sup>+"} \\
-    & \Or & @{command "assume"}~@{text "name: props"} \\
-    & \Or & @{command "then"}@{text "\<^sup>?"}~@{text goal} \\
+    & @{text "|"} & @{command "next"} \\
+    & @{text "|"} & @{command "note"}~@{text "name = facts"} \\
+    & @{text "|"} & @{command "let"}~@{text "term = term"} \\
+    & @{text "|"} & @{command "fix"}~@{text "var\<^sup>+"} \\
+    & @{text "|"} & @{command "assume"}~@{text "name: props"} \\
+    & @{text "|"} & @{command "then"}@{text "\<^sup>?"}~@{text goal} \\
     @{text goal} & = & @{command "have"}~@{text "name: props proof"} \\
-    & \Or & @{command "show"}~@{text "name: props proof"} \\
-  \end{matharray}
+    & @{text "|"} & @{command "show"}~@{text "name: props proof"} \\
+  \end{tabular}
 *}
 
 
 subsection {* Abbreviations and synonyms *}
 
 text {*
-  \begin{matharray}{rcl}
-    @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} & \equiv & @{command "proof"}~@{text "m\<^sub>1"}~@{command "qed"}~@{text "m\<^sub>2"} \\
-    @{command ".."} & \equiv & @{command "by"}~@{text rule} \\
-    @{command "."} & \equiv & @{command "by"}~@{text this} \\
-    @{command "hence"} & \equiv & @{command "then"}~@{command "have"} \\
-    @{command "thus"} & \equiv & @{command "then"}~@{command "show"} \\
-    @{command "from"}~@{text a} & \equiv & @{command "note"}~@{text a}~@{command "then"} \\
-    @{command "with"}~@{text a} & \equiv & @{command "from"}~@{text "a \<AND> this"} \\[1ex]
-    @{command "from"}~@{text this} & \equiv & @{command "then"} \\
-    @{command "from"}~@{text this}~@{command "have"} & \equiv & @{command "hence"} \\
-    @{command "from"}~@{text this}~@{command "show"} & \equiv & @{command "thus"} \\
-  \end{matharray}
+  \begin{tabular}{rcl}
+    @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} & @{text "\<equiv>"} &
+      @{command "proof"}~@{text "m\<^sub>1"}~@{command "qed"}~@{text "m\<^sub>2"} \\
+    @{command ".."} & @{text "\<equiv>"} & @{command "by"}~@{text rule} \\
+    @{command "."} & @{text "\<equiv>"} & @{command "by"}~@{text this} \\
+    @{command "hence"} & @{text "\<equiv>"} & @{command "then"}~@{command "have"} \\
+    @{command "thus"} & @{text "\<equiv>"} & @{command "then"}~@{command "show"} \\
+    @{command "from"}~@{text a} & @{text "\<equiv>"} & @{command "note"}~@{text a}~@{command "then"} \\
+    @{command "with"}~@{text a} & @{text "\<equiv>"} & @{command "from"}~@{text "a \<AND> this"} \\[1ex]
+    @{command "from"}~@{text this} & @{text "\<equiv>"} & @{command "then"} \\
+    @{command "from"}~@{text this}~@{command "have"} & @{text "\<equiv>"} & @{command "hence"} \\
+    @{command "from"}~@{text this}~@{command "show"} & @{text "\<equiv>"} & @{command "thus"} \\
+  \end{tabular}
 *}
 
 
 subsection {* Derived elements *}
 
 text {*
-  \begin{matharray}{rcl}
-    @{command "also"}@{text "\<^sub>0"} & \approx & @{command "note"}~@{text "calculation = this"} \\
-    @{command "also"}@{text "\<^sub>n\<^sub>+\<^sub>1"} & \approx & @{command "note"}~@{text "calculation = trans [OF calculation this]"} \\
-    @{command "finally"} & \approx & @{command "also"}~@{command "from"}~@{text calculation} \\[0.5ex]
-    @{command "moreover"} & \approx & @{command "note"}~@{text "calculation = calculation this"} \\
-    @{command "ultimately"} & \approx & @{command "moreover"}~@{command "from"}~@{text calculation} \\[0.5ex]
-    @{command "presume"}~@{text "a: \<phi>"} & \approx & @{command "assume"}~@{text "a: \<phi>"} \\
-    @{command "def"}~@{text "a: x \<equiv> t"} & \approx & @{command "fix"}~@{text x}~@{command "assume"}~@{text "a: x \<equiv> t"} \\
-    @{command "obtain"}~@{text "x \<WHERE> a: \<phi>"} & \approx & \dots~@{command "fix"}~@{text x}~@{command "assume"}~@{text "a: \<phi>"} \\
-    @{command "case"}~@{text c} & \approx & @{command "fix"}~@{text x}~@{command "assume"}~@{text "c: \<phi>"} \\
-    @{command "sorry"} & \approx & @{command "by"}~@{text cheating} \\
-  \end{matharray}
+  \begin{tabular}{rcl}
+    @{command "also"}@{text "\<^sub>0"} & @{text "\<approx>"} &
+      @{command "note"}~@{text "calculation = this"} \\
+    @{command "also"}@{text "\<^sub>n\<^sub>+\<^sub>1"} & @{text "\<approx>"} &
+      @{command "note"}~@{text "calculation = trans [OF calculation this]"} \\
+    @{command "finally"} & @{text "\<approx>"} &
+      @{command "also"}~@{command "from"}~@{text calculation} \\[0.5ex]
+    @{command "moreover"} & @{text "\<approx>"} &
+      @{command "note"}~@{text "calculation = calculation this"} \\
+    @{command "ultimately"} & @{text "\<approx>"} &
+      @{command "moreover"}~@{command "from"}~@{text calculation} \\[0.5ex]
+    @{command "presume"}~@{text "a: \<phi>"} & @{text "\<approx>"} &
+      @{command "assume"}~@{text "a: \<phi>"} \\
+    @{command "def"}~@{text "a: x \<equiv> t"} & @{text "\<approx>"} &
+      @{command "fix"}~@{text x}~@{command "assume"}~@{text "a: x \<equiv> t"} \\
+    @{command "obtain"}~@{text "x \<WHERE> a: \<phi>"} & @{text "\<approx>"} &
+      @{text "\<dots>"}~@{command "fix"}~@{text x}~@{command "assume"}~@{text "a: \<phi>"} \\
+    @{command "case"}~@{text c} & @{text "\<approx>"} &
+      @{command "fix"}~@{text x}~@{command "assume"}~@{text "c: \<phi>"} \\
+    @{command "sorry"} & @{text "\<approx>"} &
+      @{command "by"}~@{text cheating} \\
+  \end{tabular}
 *}
 
 

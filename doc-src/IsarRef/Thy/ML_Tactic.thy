@@ -4,7 +4,7 @@ theory ML_Tactic
 imports Main
 begin
 
-chapter {* ML tactic expressions \label{sec:conv-tac} *}
+chapter {* ML tactic expressions *}
 
 text {*
   Isar Proof methods closely resemble traditional tactics, when used

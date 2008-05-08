@@ -4,7 +4,7 @@ theory HOL_Specific
 imports Main
 begin
 
-chapter {* HOL specific elements \label{ch:logics} *}
+chapter {* Isabelle/HOL \label{ch:hol} *}
 
 section {* Primitive types \label{sec:hol-typedef} *}
 
@@ -151,7 +151,7 @@ text {*
   the literature.  The more part of a record scheme may be
   instantiated by zero or more further components.  For example, the
   previous scheme may get instantiated to @{text "\<lparr>x = a, y = b, z =
-  c, \<dots> = m'"}, where @{text m'} refers to a different more part.
+  c, \<dots> = m'\<rparr>"}, where @{text m'} refers to a different more part.
   Fixed records are special instances of record schemes, where
   ``@{text "\<dots>"}'' is properly terminated by the @{text "() :: unit"}
   element.  In fact, @{text "\<lparr>x = a, y = b\<rparr>"} is just an abbreviation
@@ -165,8 +165,8 @@ text {*
   \item the more part is internalized, as a free term or type
   variable,
 
-  \item field names are externalized, they cannot be accessed within the logic
-  as first-class values.
+  \item field names are externalized, they cannot be accessed within
+  the logic as first-class values.
 
   \end{enumerate}
 
@@ -243,8 +243,8 @@ text {*
   any field (including ``@{text more}''):
 
   \begin{matharray}{lll}
-    @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
-    @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow> \<lparr>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> :: \<zeta>\<rparr>"} \\
+    @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
+    @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
   \end{matharray}
 
   There is special syntax for application of updates: @{text "r\<lparr>x :=
@@ -262,7 +262,7 @@ text {*
   constructor function:
 
   \begin{matharray}{lll}
-    @{text "t.make"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n\<rparr>"} \\
+    @{text "t.make"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
   \end{matharray}
 
   \medskip We now reconsider the case of non-root records, which are
@@ -275,29 +275,32 @@ text {*
   fields @{text "b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k"},
   the above record operations will get the following types:
 
-  \begin{matharray}{lll}
-    @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k, c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
+  \medskip
+  \begin{tabular}{lll}
+    @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
     @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow> 
-      \<lparr>b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k, c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> :: \<zeta>\<rparr> \<Rightarrow>
-      \<lparr>b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k, c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> :: \<zeta>\<rparr>"} \\
-    @{text "t.make"} & @{text "::"} & @{text "\<rho>\<^sub>1 \<Rightarrow> \<dots> \<rho>\<^sub>k \<Rightarrow> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> 
-      \<lparr>b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k, c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n"} \\
-  \end{matharray}
-  \noindent
+      \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow>
+      \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
+    @{text "t.make"} & @{text "::"} & @{text "\<rho>\<^sub>1 \<Rightarrow> \<dots> \<rho>\<^sub>k \<Rightarrow> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow>
+      \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
+  \end{tabular}
+  \medskip
 
-  \medskip Some further operations address the extension aspect of a
+  \noindent Some further operations address the extension aspect of a
   derived record scheme specifically: @{text "t.fields"} produces a
   record fragment consisting of exactly the new fields introduced here
   (the result may serve as a more part elsewhere); @{text "t.extend"}
   takes a fixed record and adds a given more part; @{text
   "t.truncate"} restricts a record scheme to a fixed record.
 
-  \begin{matharray}{lll}
-    @{text "t.fields"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n"} \\
-    @{text "t.extend"} & @{text "::"} & @{text "\<lparr>b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k, c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n\<rparr> \<Rightarrow>
-      \<zeta> \<Rightarrow> \<lparr>b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k, c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> :: \<zeta>\<rparr>"} \\
-    @{text "t.truncate"} & @{text "::"} & @{text "\<lparr>b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k, c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>b\<^sub>1 :: \<rho>\<^sub>1, \<dots>, b\<^sub>k :: \<rho>\<^sub>k, c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n\<rparr>"} \\
-  \end{matharray}
+  \medskip
+  \begin{tabular}{lll}
+    @{text "t.fields"} & @{text "::"} & @{text "\<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow> \<lparr>\<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
+    @{text "t.extend"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr> \<Rightarrow>
+      \<zeta> \<Rightarrow> \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
+    @{text "t.truncate"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>\<rparr>"} \\
+  \end{tabular}
+  \medskip
 
   \noindent Note that @{text "t.make"} and @{text "t.fields"} coincide
   for root records.

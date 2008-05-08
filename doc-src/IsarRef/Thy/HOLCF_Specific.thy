@@ -4,7 +4,7 @@ theory HOLCF_Specific
 imports HOLCF
 begin
 
-chapter {* HOLCF specific elements *}
+chapter {* Isabelle/HOLCF \label{ch:holcf} *}
 
 section {* Mixfix syntax for continuous operations *}
 

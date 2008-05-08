@@ -4,7 +4,7 @@ theory ZF_Specific
 imports ZF
 begin
 
-chapter {* ZF specific elements *}
+chapter {* Isabelle/ZF \label{ch:zf} *}
 
 section {* Type checking *}
 
