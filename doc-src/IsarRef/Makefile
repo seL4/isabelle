@@ -13,7 +13,7 @@ include ../Makefile.in
 
 NAME = isar-ref
 
-FILES = isar-ref.tex basics.tex Thy/document/Generic.tex \
+FILES = isar-ref.tex style.sty basics.tex Thy/document/Generic.tex \
   Thy/document/HOLCF_Specific.tex Thy/document/HOL_Specific.tex \
   Thy/document/ML_Tactic.tex Thy/document/Quick_Reference.tex \
   Thy/document/ZF_Specific.tex Thy/document/intro.tex \
