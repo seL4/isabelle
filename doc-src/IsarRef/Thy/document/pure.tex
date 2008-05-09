@@ -920,14 +920,14 @@ Proof commands perform transitions of Isar/VM machine
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \isarcmd{lemma} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    \isarcmd{theorem} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    \isarcmd{corollary} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    \isarcmd{have} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
-    \isarcmd{show} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
-    \isarcmd{hence} & : & \isartrans{proof(state)}{proof(prove)} \\
-    \isarcmd{thus} & : & \isartrans{proof(state)}{proof(prove)} \\
-    \isarcmd{print_statement}^* & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{lemma}\mbox{\isa{\isacommand{lemma}}} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    \indexdef{}{command}{theorem}\mbox{\isa{\isacommand{theorem}}} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    \indexdef{}{command}{corollary}\mbox{\isa{\isacommand{corollary}}} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    \indexdef{}{command}{have}\mbox{\isa{\isacommand{have}}} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
+    \indexdef{}{command}{show}\mbox{\isa{\isacommand{show}}} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
+    \indexdef{}{command}{hence}\mbox{\isa{\isacommand{hence}}} & : & \isartrans{proof(state)}{proof(prove)} \\
+    \indexdef{}{command}{thus}\mbox{\isa{\isacommand{thus}}} & : & \isartrans{proof(state)}{proof(prove)} \\
+    \indexdef{}{command}{print\_statement}\mbox{\isa{\isacommand{print{\isacharunderscore}statement}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   From a theory context, proof mode is entered by an initial goal
@@ -1429,12 +1429,12 @@ The Isar provides separate commands to accommodate tactic-style
   be used in scripts, too.
 
   \begin{matharray}{rcl}
-    \indexdef{}{command}{apply}\mbox{\isa{\isacommand{apply}}}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
-    \indexdef{}{command}{apply\_end}\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}^* & : & \isartrans{proof(state)}{proof(state)} \\
-    \indexdef{}{command}{done}\mbox{\isa{\isacommand{done}}}^* & : & \isartrans{proof(prove)}{proof(state)} \\
-    \indexdef{}{command}{defer}\mbox{\isa{\isacommand{defer}}}^* & : & \isartrans{proof}{proof} \\
-    \indexdef{}{command}{prefer}\mbox{\isa{\isacommand{prefer}}}^* & : & \isartrans{proof}{proof} \\
-    \indexdef{}{command}{back}\mbox{\isa{\isacommand{back}}}^* & : & \isartrans{proof}{proof} \\
+    \indexdef{}{command}{apply}\mbox{\isa{\isacommand{apply}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof(prove)}{proof(prove)} \\
+    \indexdef{}{command}{apply\_end}\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof(state)}{proof(state)} \\
+    \indexdef{}{command}{done}\mbox{\isa{\isacommand{done}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof(prove)}{proof(state)} \\
+    \indexdef{}{command}{defer}\mbox{\isa{\isacommand{defer}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof}{proof} \\
+    \indexdef{}{command}{prefer}\mbox{\isa{\isacommand{prefer}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof}{proof} \\
+    \indexdef{}{command}{back}\mbox{\isa{\isacommand{back}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof}{proof} \\
   \end{matharray}
 
   \begin{rail}
@@ -1532,13 +1532,13 @@ The Isar provides separate commands to accommodate tactic-style
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \isarcmd{pr}^* & : & \isarkeep{\cdot} \\
-    \isarcmd{thm}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{term}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{prop}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{typ}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{prf}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{full_prf}^* & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{pr}\mbox{\isa{\isacommand{pr}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{thm}\mbox{\isa{\isacommand{thm}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{term}\mbox{\isa{\isacommand{term}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{prop}\mbox{\isa{\isacommand{prop}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{typ}\mbox{\isa{\isacommand{typ}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{prf}\mbox{\isa{\isacommand{prf}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{full\_prf}\mbox{\isa{\isacommand{full{\isacharunderscore}prf}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   These diagnostic commands assist interactive development.  Note that
@@ -1621,16 +1621,16 @@ The Isar provides separate commands to accommodate tactic-style
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{print\_commands}\mbox{\isa{\isacommand{print{\isacharunderscore}commands}}}^* & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{print\_theory}\mbox{\isa{\isacommand{print{\isacharunderscore}theory}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_syntax}\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_methods}\mbox{\isa{\isacommand{print{\isacharunderscore}methods}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_attributes}\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_theorems}\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{find\_theorems}\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{thms\_deps}\mbox{\isa{\isacommand{thms{\isacharunderscore}deps}}}^* & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_facts}\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}^* & : & \isarkeep{proof} \\
-    \indexdef{}{command}{print\_binds}\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}^* & : & \isarkeep{proof} \\
+    \indexdef{}{command}{print\_commands}\mbox{\isa{\isacommand{print{\isacharunderscore}commands}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{print\_theory}\mbox{\isa{\isacommand{print{\isacharunderscore}theory}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_syntax}\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_methods}\mbox{\isa{\isacommand{print{\isacharunderscore}methods}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_attributes}\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_theorems}\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{find\_theorems}\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{thms\_deps}\mbox{\isa{\isacommand{thms{\isacharunderscore}deps}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_facts}\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
+    \indexdef{}{command}{print\_binds}\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
   \end{matharray}
 
   \begin{rail}
@@ -1743,11 +1743,11 @@ The Isar provides separate commands to accommodate tactic-style
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{cd}\mbox{\isa{\isacommand{cd}}}^* & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{pwd}\mbox{\isa{\isacommand{pwd}}}^* & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{use\_thy}\mbox{\isa{\isacommand{use{\isacharunderscore}thy}}}^* & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{display\_drafts}\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}^* & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{print\_drafts}\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}^* & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{cd}\mbox{\isa{\isacommand{cd}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{pwd}\mbox{\isa{\isacommand{pwd}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{use\_thy}\mbox{\isa{\isacommand{use{\isacharunderscore}thy}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{display\_drafts}\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{print\_drafts}\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
   \end{matharray}
 
   \begin{rail}
