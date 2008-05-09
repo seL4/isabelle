@@ -908,14 +908,14 @@ subsection {* Goal statements \label{sec:goals} *}
 
 text {*
   \begin{matharray}{rcl}
-    \isarcmd{lemma} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    \isarcmd{theorem} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    \isarcmd{corollary} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    \isarcmd{have} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
-    \isarcmd{show} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
-    \isarcmd{hence} & : & \isartrans{proof(state)}{proof(prove)} \\
-    \isarcmd{thus} & : & \isartrans{proof(state)}{proof(prove)} \\
-    \isarcmd{print_statement}^* & : & \isarkeep{theory~|~proof} \\
+    @{command_def "lemma"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    @{command_def "theorem"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    @{command_def "corollary"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    @{command_def "have"} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
+    @{command_def "show"} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
+    @{command_def "hence"} & : & \isartrans{proof(state)}{proof(prove)} \\
+    @{command_def "thus"} & : & \isartrans{proof(state)}{proof(prove)} \\
+    @{command_def "print_statement"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   From a theory context, proof mode is entered by an initial goal
@@ -1439,12 +1439,12 @@ text {*
   be used in scripts, too.
 
   \begin{matharray}{rcl}
-    @{command_def "apply"}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
-    @{command_def "apply_end"}^* & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "done"}^* & : & \isartrans{proof(prove)}{proof(state)} \\
-    @{command_def "defer"}^* & : & \isartrans{proof}{proof} \\
-    @{command_def "prefer"}^* & : & \isartrans{proof}{proof} \\
-    @{command_def "back"}^* & : & \isartrans{proof}{proof} \\
+    @{command_def "apply"}@{text "\<^sup>*"} & : & \isartrans{proof(prove)}{proof(prove)} \\
+    @{command_def "apply_end"}@{text "\<^sup>*"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "done"}@{text "\<^sup>*"} & : & \isartrans{proof(prove)}{proof(state)} \\
+    @{command_def "defer"}@{text "\<^sup>*"} & : & \isartrans{proof}{proof} \\
+    @{command_def "prefer"}@{text "\<^sup>*"} & : & \isartrans{proof}{proof} \\
+    @{command_def "back"}@{text "\<^sup>*"} & : & \isartrans{proof}{proof} \\
   \end{matharray}
 
   \begin{rail}
@@ -1539,13 +1539,13 @@ subsection {* Diagnostics *}
 
 text {*
   \begin{matharray}{rcl}
-    \isarcmd{pr}^* & : & \isarkeep{\cdot} \\
-    \isarcmd{thm}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{term}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{prop}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{typ}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{prf}^* & : & \isarkeep{theory~|~proof} \\
-    \isarcmd{full_prf}^* & : & \isarkeep{theory~|~proof} \\
+    @{command_def "pr"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{command_def "thm"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "term"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "prop"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "typ"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "prf"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "full_prf"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   These diagnostic commands assist interactive development.  Note that
@@ -1628,16 +1628,16 @@ subsection {* Inspecting the context *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "print_commands"}^* & : & \isarkeep{\cdot} \\
-    @{command_def "print_theory"}^* & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_syntax"}^* & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_methods"}^* & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_attributes"}^* & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_theorems"}^* & : & \isarkeep{theory~|~proof} \\
-    @{command_def "find_theorems"}^* & : & \isarkeep{theory~|~proof} \\
-    @{command_def "thms_deps"}^* & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_facts"}^* & : & \isarkeep{proof} \\
-    @{command_def "print_binds"}^* & : & \isarkeep{proof} \\
+    @{command_def "print_commands"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{command_def "print_theory"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "print_syntax"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "print_methods"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "print_attributes"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "print_theorems"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "find_theorems"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "thms_deps"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "print_facts"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
+    @{command_def "print_binds"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
   \end{matharray}
 
   \begin{rail}
@@ -1747,11 +1747,11 @@ subsection {* System operations *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "cd"}^* & : & \isarkeep{\cdot} \\
-    @{command_def "pwd"}^* & : & \isarkeep{\cdot} \\
-    @{command_def "use_thy"}^* & : & \isarkeep{\cdot} \\
-    @{command_def "display_drafts"}^* & : & \isarkeep{\cdot} \\
-    @{command_def "print_drafts"}^* & : & \isarkeep{\cdot} \\
+    @{command_def "cd"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{command_def "pwd"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{command_def "use_thy"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{command_def "display_drafts"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{command_def "print_drafts"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
   \end{matharray}
 
   \begin{rail}
