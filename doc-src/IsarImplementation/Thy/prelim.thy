@@ -122,14 +122,14 @@ text {*
   @{text "Nat"} &    &              &            & @{text "List"} \\
         & $\searrow$ &              & $\swarrow$ \\
         &            & @{text "Length"} \\
-        &            & \multicolumn{3}{l}{~~$\isarkeyword{imports}$} \\
-        &            & \multicolumn{3}{l}{~~$\isarkeyword{begin}$} \\
+        &            & \multicolumn{3}{l}{~~@{keyword "imports"}} \\
+        &            & \multicolumn{3}{l}{~~@{keyword "begin"}} \\
         &            & $\vdots$~~ \\
         &            & @{text "\<bullet>"}~~ \\
         &            & $\vdots$~~ \\
         &            & @{text "\<bullet>"}~~ \\
         &            & $\vdots$~~ \\
-        &            & \multicolumn{3}{l}{~~$\isarkeyword{end}$} \\
+        &            & \multicolumn{3}{l}{~~@{command "end"}} \\
   \end{tabular}
   \caption{A theory definition depending on ancestors}\label{fig:ex-theory}
   \end{center}
