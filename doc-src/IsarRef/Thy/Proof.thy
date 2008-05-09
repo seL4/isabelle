@@ -6,4 +6,1033 @@ begin
 
 chapter {* Proofs *}
 
+text {*
+  Proof commands perform transitions of Isar/VM machine
+  configurations, which are block-structured, consisting of a stack of
+  nodes with three main components: logical proof context, current
+  facts, and open goals.  Isar/VM transitions are \emph{typed}
+  according to the following three different modes of operation:
+
+  \begin{descr}
+
+  \item [@{text "proof(prove)"}] means that a new goal has just been
+  stated that is now to be \emph{proven}; the next command may refine
+  it by some proof method, and enter a sub-proof to establish the
+  actual result.
+
+  \item [@{text "proof(state)"}] is like a nested theory mode: the
+  context may be augmented by \emph{stating} additional assumptions,
+  intermediate results etc.
+
+  \item [@{text "proof(chain)"}] is intermediate between @{text
+  "proof(state)"} and @{text "proof(prove)"}: existing facts (i.e.\
+  the contents of the special ``@{fact_ref this}'' register) have been
+  just picked up in order to be used when refining the goal claimed
+  next.
+
+  \end{descr}
+
+  The proof mode indicator may be read as a verb telling the writer
+  what kind of operation may be performed next.  The corresponding
+  typings of proof commands restricts the shape of well-formed proof
+  texts to particular command sequences.  So dynamic arrangements of
+  commands eventually turn out as static texts of a certain structure.
+  \Appref{ap:refcard} gives a simplified grammar of the overall
+  (extensible) language emerging that way.
+*}
+
+
+section {* Context elements \label{sec:proof-context} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "fix"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "assume"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "presume"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "def"} & : & \isartrans{proof(state)}{proof(state)} \\
+  \end{matharray}
+
+  The logical proof context consists of fixed variables and
+  assumptions.  The former closely correspond to Skolem constants, or
+  meta-level universal quantification as provided by the Isabelle/Pure
+  logical framework.  Introducing some \emph{arbitrary, but fixed}
+  variable via ``@{command "fix"}~@{text x}'' results in a local value
+  that may be used in the subsequent proof as any other variable or
+  constant.  Furthermore, any result @{text "\<turnstile> \<phi>[x]"} exported from
+  the context will be universally closed wrt.\ @{text x} at the
+  outermost level: @{text "\<turnstile> \<And>x. \<phi>[x]"} (this is expressed in normal
+  form using Isabelle's meta-variables).
+
+  Similarly, introducing some assumption @{text \<chi>} has two effects.
+  On the one hand, a local theorem is created that may be used as a
+  fact in subsequent proof steps.  On the other hand, any result
+  @{text "\<chi> \<turnstile> \<phi>"} exported from the context becomes conditional wrt.\
+  the assumption: @{text "\<turnstile> \<chi> \<Longrightarrow> \<phi>"}.  Thus, solving an enclosing goal
+  using such a result would basically introduce a new subgoal stemming
+  from the assumption.  How this situation is handled depends on the
+  version of assumption command used: while @{command "assume"}
+  insists on solving the subgoal by unification with some premise of
+  the goal, @{command "presume"} leaves the subgoal unchanged in order
+  to be proved later by the user.
+
+  Local definitions, introduced by ``@{command "def"}~@{text "x \<equiv>
+  t"}'', are achieved by combining ``@{command "fix"}~@{text x}'' with
+  another version of assumption that causes any hypothetical equation
+  @{text "x \<equiv> t"} to be eliminated by the reflexivity rule.  Thus,
+  exporting some result @{text "x \<equiv> t \<turnstile> \<phi>[x]"} yields @{text "\<turnstile>
+  \<phi>[t]"}.
+
+  \begin{rail}
+    'fix' (vars + 'and')
+    ;
+    ('assume' | 'presume') (props + 'and')
+    ;
+    'def' (def + 'and')
+    ;
+    def: thmdecl? \\ name ('==' | equiv) term termpat?
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [@{command "fix"}~@{text x}] introduces a local variable
+  @{text x} that is \emph{arbitrary, but fixed.}
+  
+  \item [@{command "assume"}~@{text "a: \<phi>"} and @{command
+  "presume"}~@{text "a: \<phi>"}] introduce a local fact @{text "\<phi> \<turnstile> \<phi>"} by
+  assumption.  Subsequent results applied to an enclosing goal (e.g.\
+  by @{command_ref "show"}) are handled as follows: @{command
+  "assume"} expects to be able to unify with existing premises in the
+  goal, while @{command "presume"} leaves @{text \<phi>} as new subgoals.
+  
+  Several lists of assumptions may be given (separated by
+  @{keyword_ref "and"}; the resulting list of current facts consists
+  of all of these concatenated.
+  
+  \item [@{command "def"}~@{text "x \<equiv> t"}] introduces a local
+  (non-polymorphic) definition.  In results exported from the context,
+  @{text x} is replaced by @{text t}.  Basically, ``@{command
+  "def"}~@{text "x \<equiv> t"}'' abbreviates ``@{command "fix"}~@{text
+  x}~@{command "assume"}~@{text "x \<equiv> t"}'', with the resulting
+  hypothetical equation solved by reflexivity.
+  
+  The default name for the definitional equation is @{text x_def}.
+  Several simultaneous definitions may be given at the same time.
+
+  \end{descr}
+
+  The special name @{fact_ref prems} refers to all assumptions of the
+  current context as a list of theorems.  This feature should be used
+  with great care!  It is better avoided in final proof texts.
+*}
+
+
+section {* Facts and forward chaining *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "note"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "then"} & : & \isartrans{proof(state)}{proof(chain)} \\
+    @{command_def "from"} & : & \isartrans{proof(state)}{proof(chain)} \\
+    @{command_def "with"} & : & \isartrans{proof(state)}{proof(chain)} \\
+    @{command_def "using"} & : & \isartrans{proof(prove)}{proof(prove)} \\
+    @{command_def "unfolding"} & : & \isartrans{proof(prove)}{proof(prove)} \\
+  \end{matharray}
+
+  New facts are established either by assumption or proof of local
+  statements.  Any fact will usually be involved in further proofs,
+  either as explicit arguments of proof methods, or when forward
+  chaining towards the next goal via @{command "then"} (and variants);
+  @{command "from"} and @{command "with"} are composite forms
+  involving @{command "note"}.  The @{command "using"} elements
+  augments the collection of used facts \emph{after} a goal has been
+  stated.  Note that the special theorem name @{fact_ref this} refers
+  to the most recently established facts, but only \emph{before}
+  issuing a follow-up claim.
+
+  \begin{rail}
+    'note' (thmdef? thmrefs + 'and')
+    ;
+    ('from' | 'with' | 'using' | 'unfolding') (thmrefs + 'and')
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [@{command "note"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}]
+  recalls existing facts @{text "b\<^sub>1, \<dots>, b\<^sub>n"}, binding
+  the result as @{text a}.  Note that attributes may be involved as
+  well, both on the left and right hand sides.
+
+  \item [@{command "then"}] indicates forward chaining by the current
+  facts in order to establish the goal to be claimed next.  The
+  initial proof method invoked to refine that will be offered the
+  facts to do ``anything appropriate'' (see also
+  \secref{sec:proof-steps}).  For example, method @{method_ref rule}
+  (see \secref{sec:pure-meth-att}) would typically do an elimination
+  rather than an introduction.  Automatic methods usually insert the
+  facts into the goal state before operation.  This provides a simple
+  scheme to control relevance of facts in automated proof search.
+  
+  \item [@{command "from"}~@{text b}] abbreviates ``@{command
+  "note"}~@{text b}~@{command "then"}''; thus @{command "then"} is
+  equivalent to ``@{command "from"}~@{text this}''.
+  
+  \item [@{command "with"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"}]
+  abbreviates ``@{command "from"}~@{text "b\<^sub>1 \<dots> b\<^sub>n \<AND>
+  this"}''; thus the forward chaining is from earlier facts together
+  with the current ones.
+  
+  \item [@{command "using"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"}] augments
+  the facts being currently indicated for use by a subsequent
+  refinement step (such as @{command_ref "apply"} or @{command_ref
+  "proof"}).
+  
+  \item [@{command "unfolding"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"}] is
+  structurally similar to @{command "using"}, but unfolds definitional
+  equations @{text "b\<^sub>1, \<dots> b\<^sub>n"} throughout the goal state
+  and facts.
+
+  \end{descr}
+
+  Forward chaining with an empty list of theorems is the same as not
+  chaining at all.  Thus ``@{command "from"}~@{text nothing}'' has no
+  effect apart from entering @{text "prove(chain)"} mode, since
+  @{fact_ref nothing} is bound to the empty list of theorems.
+
+  Basic proof methods (such as @{method_ref rule}) expect multiple
+  facts to be given in their proper order, corresponding to a prefix
+  of the premises of the rule involved.  Note that positions may be
+  easily skipped using something like @{command "from"}~@{text "_
+  \<AND> a \<AND> b"}, for example.  This involves the trivial rule
+  @{text "PROP \<psi> \<Longrightarrow> PROP \<psi>"}, which is bound in Isabelle/Pure as
+  ``@{fact_ref "_"}'' (underscore).
+
+  Automated methods (such as @{method simp} or @{method auto}) just
+  insert any given facts before their usual operation.  Depending on
+  the kind of procedure involved, the order of facts is less
+  significant here.
+*}
+
+
+section {* Goal statements \label{sec:goals} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "lemma"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    @{command_def "theorem"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    @{command_def "corollary"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    @{command_def "have"} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
+    @{command_def "show"} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
+    @{command_def "hence"} & : & \isartrans{proof(state)}{proof(prove)} \\
+    @{command_def "thus"} & : & \isartrans{proof(state)}{proof(prove)} \\
+    @{command_def "print_statement"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+  \end{matharray}
+
+  From a theory context, proof mode is entered by an initial goal
+  command such as @{command "lemma"}, @{command "theorem"}, or
+  @{command "corollary"}.  Within a proof, new claims may be
+  introduced locally as well; four variants are available here to
+  indicate whether forward chaining of facts should be performed
+  initially (via @{command_ref "then"}), and whether the final result
+  is meant to solve some pending goal.
+
+  Goals may consist of multiple statements, resulting in a list of
+  facts eventually.  A pending multi-goal is internally represented as
+  a meta-level conjunction (printed as @{text "&&"}), which is usually
+  split into the corresponding number of sub-goals prior to an initial
+  method application, via @{command_ref "proof"}
+  (\secref{sec:proof-steps}) or @{command_ref "apply"}
+  (\secref{sec:tactic-commands}).  The @{method_ref induct} method
+  covered in \secref{sec:cases-induct} acts on multiple claims
+  simultaneously.
+
+  Claims at the theory level may be either in short or long form.  A
+  short goal merely consists of several simultaneous propositions
+  (often just one).  A long goal includes an explicit context
+  specification for the subsequent conclusion, involving local
+  parameters and assumptions.  Here the role of each part of the
+  statement is explicitly marked by separate keywords (see also
+  \secref{sec:locale}); the local assumptions being introduced here
+  are available as @{fact_ref assms} in the proof.  Moreover, there
+  are two kinds of conclusions: @{element_def "shows"} states several
+  simultaneous propositions (essentially a big conjunction), while
+  @{element_def "obtains"} claims several simultaneous simultaneous
+  contexts of (essentially a big disjunction of eliminated parameters
+  and assumptions, cf.\ \secref{sec:obtain}).
+
+  \begin{rail}
+    ('lemma' | 'theorem' | 'corollary') target? (goal | longgoal)
+    ;
+    ('have' | 'show' | 'hence' | 'thus') goal
+    ;
+    'print\_statement' modes? thmrefs
+    ;
+  
+    goal: (props + 'and')
+    ;
+    longgoal: thmdecl? (contextelem *) conclusion
+    ;
+    conclusion: 'shows' goal | 'obtains' (parname? case + '|')
+    ;
+    case: (vars + 'and') 'where' (props + 'and')
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [@{command "lemma"}~@{text "a: \<phi>"}] enters proof mode with
+  @{text \<phi>} as main goal, eventually resulting in some fact @{text "\<turnstile>
+  \<phi>"} to be put back into the target context.  An additional
+  \railnonterm{context} specification may build up an initial proof
+  context for the subsequent claim; this includes local definitions
+  and syntax as well, see the definition of @{syntax contextelem} in
+  \secref{sec:locale}.
+  
+  \item [@{command "theorem"}~@{text "a: \<phi>"} and @{command
+  "corollary"}~@{text "a: \<phi>"}] are essentially the same as @{command
+  "lemma"}~@{text "a: \<phi>"}, but the facts are internally marked as
+  being of a different kind.  This discrimination acts like a formal
+  comment.
+  
+  \item [@{command "have"}~@{text "a: \<phi>"}] claims a local goal,
+  eventually resulting in a fact within the current logical context.
+  This operation is completely independent of any pending sub-goals of
+  an enclosing goal statements, so @{command "have"} may be freely
+  used for experimental exploration of potential results within a
+  proof body.
+  
+  \item [@{command "show"}~@{text "a: \<phi>"}] is like @{command
+  "have"}~@{text "a: \<phi>"} plus a second stage to refine some pending
+  sub-goal for each one of the finished result, after having been
+  exported into the corresponding context (at the head of the
+  sub-proof of this @{command "show"} command).
+  
+  To accommodate interactive debugging, resulting rules are printed
+  before being applied internally.  Even more, interactive execution
+  of @{command "show"} predicts potential failure and displays the
+  resulting error as a warning beforehand.  Watch out for the
+  following message:
+
+  %FIXME proper antiquitation
+  \begin{ttbox}
+  Problem! Local statement will fail to solve any pending goal
+  \end{ttbox}
+  
+  \item [@{command "hence"}] abbreviates ``@{command "then"}~@{command
+  "have"}'', i.e.\ claims a local goal to be proven by forward
+  chaining the current facts.  Note that @{command "hence"} is also
+  equivalent to ``@{command "from"}~@{text this}~@{command "have"}''.
+  
+  \item [@{command "thus"}] abbreviates ``@{command "then"}~@{command
+  "show"}''.  Note that @{command "thus"} is also equivalent to
+  ``@{command "from"}~@{text this}~@{command "show"}''.
+  
+  \item [@{command "print_statement"}~@{text a}] prints facts from the
+  current theory or proof context in long statement form, according to
+  the syntax for @{command "lemma"} given above.
+
+  \end{descr}
+
+  Any goal statement causes some term abbreviations (such as
+  @{variable_ref "?thesis"}) to be bound automatically, see also
+  \secref{sec:term-abbrev}.  Furthermore, the local context of a
+  (non-atomic) goal is provided via the @{case_ref rule_context} case.
+
+  The optional case names of @{element_ref "obtains"} have a twofold
+  meaning: (1) during the of this claim they refer to the the local
+  context introductions, (2) the resulting rule is annotated
+  accordingly to support symbolic case splits when used with the
+  @{method_ref cases} method (cf.  \secref{sec:cases-induct}).
+
+  \medskip
+
+  \begin{warn}
+    Isabelle/Isar suffers theory-level goal statements to contain
+    \emph{unbound schematic variables}, although this does not conform
+    to the aim of human-readable proof documents!  The main problem
+    with schematic goals is that the actual outcome is usually hard to
+    predict, depending on the behavior of the proof methods applied
+    during the course of reasoning.  Note that most semi-automated
+    methods heavily depend on several kinds of implicit rule
+    declarations within the current theory context.  As this would
+    also result in non-compositional checking of sub-proofs,
+    \emph{local goals} are not allowed to be schematic at all.
+    Nevertheless, schematic goals do have their use in Prolog-style
+    interactive synthesis of proven results, usually by stepwise
+    refinement via emulation of traditional Isabelle tactic scripts
+    (see also \secref{sec:tactic-commands}).  In any case, users
+    should know what they are doing.
+  \end{warn}
+*}
+
+
+section {* Initial and terminal proof steps \label{sec:proof-steps} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "proof"} & : & \isartrans{proof(prove)}{proof(state)} \\
+    @{command_def "qed"} & : & \isartrans{proof(state)}{proof(state) ~|~ theory} \\
+    @{command_def "by"} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
+    @{command_def ".."} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
+    @{command_def "."} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
+    @{command_def "sorry"} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
+  \end{matharray}
+
+  Arbitrary goal refinement via tactics is considered harmful.
+  Structured proof composition in Isar admits proof methods to be
+  invoked in two places only.
+
+  \begin{enumerate}
+
+  \item An \emph{initial} refinement step @{command_ref
+  "proof"}~@{text "m\<^sub>1"} reduces a newly stated goal to a number
+  of sub-goals that are to be solved later.  Facts are passed to
+  @{text "m\<^sub>1"} for forward chaining, if so indicated by @{text
+  "proof(chain)"} mode.
+  
+  \item A \emph{terminal} conclusion step @{command_ref "qed"}~@{text
+  "m\<^sub>2"} is intended to solve remaining goals.  No facts are
+  passed to @{text "m\<^sub>2"}.
+
+  \end{enumerate}
+
+  The only other (proper) way to affect pending goals in a proof body
+  is by @{command_ref "show"}, which involves an explicit statement of
+  what is to be solved eventually.  Thus we avoid the fundamental
+  problem of unstructured tactic scripts that consist of numerous
+  consecutive goal transformations, with invisible effects.
+
+  \medskip As a general rule of thumb for good proof style, initial
+  proof methods should either solve the goal completely, or constitute
+  some well-understood reduction to new sub-goals.  Arbitrary
+  automatic proof tools that are prone leave a large number of badly
+  structured sub-goals are no help in continuing the proof document in
+  an intelligible manner.
+
+  Unless given explicitly by the user, the default initial method is
+  ``@{method_ref rule}'', which applies a single standard elimination
+  or introduction rule according to the topmost symbol involved.
+  There is no separate default terminal method.  Any remaining goals
+  are always solved by assumption in the very last step.
+
+  \begin{rail}
+    'proof' method?
+    ;
+    'qed' method?
+    ;
+    'by' method method?
+    ;
+    ('.' | '..' | 'sorry')
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [@{command "proof"}~@{text "m\<^sub>1"}] refines the goal by
+  proof method @{text "m\<^sub>1"}; facts for forward chaining are
+  passed if so indicated by @{text "proof(chain)"} mode.
+  
+  \item [@{command "qed"}~@{text "m\<^sub>2"}] refines any remaining
+  goals by proof method @{text "m\<^sub>2"} and concludes the
+  sub-proof by assumption.  If the goal had been @{text "show"} (or
+  @{text "thus"}), some pending sub-goal is solved as well by the rule
+  resulting from the result \emph{exported} into the enclosing goal
+  context.  Thus @{text "qed"} may fail for two reasons: either @{text
+  "m\<^sub>2"} fails, or the resulting rule does not fit to any
+  pending goal\footnote{This includes any additional ``strong''
+  assumptions as introduced by @{command "assume"}.} of the enclosing
+  context.  Debugging such a situation might involve temporarily
+  changing @{command "show"} into @{command "have"}, or weakening the
+  local context by replacing occurrences of @{command "assume"} by
+  @{command "presume"}.
+  
+  \item [@{command "by"}~@{text "m\<^sub>1 m\<^sub>2"}] is a
+  \emph{terminal proof}\index{proof!terminal}; it abbreviates
+  @{command "proof"}~@{text "m\<^sub>1"}~@{text "qed"}~@{text
+  "m\<^sub>2"}, but with backtracking across both methods.  Debugging
+  an unsuccessful @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"}
+  command can be done by expanding its definition; in many cases
+  @{command "proof"}~@{text "m\<^sub>1"} (or even @{text
+  "apply"}~@{text "m\<^sub>1"}) is already sufficient to see the
+  problem.
+
+  \item [``@{command ".."}''] is a \emph{default
+  proof}\index{proof!default}; it abbreviates @{command "by"}~@{text
+  "rule"}.
+
+  \item [``@{command "."}''] is a \emph{trivial
+  proof}\index{proof!trivial}; it abbreviates @{command "by"}~@{text
+  "this"}.
+  
+  \item [@{command "sorry"}] is a \emph{fake proof}\index{proof!fake}
+  pretending to solve the pending claim without further ado.  This
+  only works in interactive development, or if the @{ML
+  quick_and_dirty} flag is enabled (in ML).  Facts emerging from fake
+  proofs are not the real thing.  Internally, each theorem container
+  is tainted by an oracle invocation, which is indicated as ``@{text
+  "[!]"}'' in the printed result.
+  
+  The most important application of @{command "sorry"} is to support
+  experimentation and top-down proof development.
+
+  \end{descr}
+*}
+
+
+section {* Fundamental methods and attributes \label{sec:pure-meth-att} *}
+
+text {*
+  The following proof methods and attributes refer to basic logical
+  operations of Isar.  Further methods and attributes are provided by
+  several generic and object-logic specific tools and packages (see
+  \chref{ch:gen-tools} and \chref{ch:hol}).
+
+  \begin{matharray}{rcl}
+    @{method_def "-"} & : & \isarmeth \\
+    @{method_def "fact"} & : & \isarmeth \\
+    @{method_def "assumption"} & : & \isarmeth \\
+    @{method_def "this"} & : & \isarmeth \\
+    @{method_def "rule"} & : & \isarmeth \\
+    @{method_def "iprover"} & : & \isarmeth \\[0.5ex]
+    @{attribute_def "intro"} & : & \isaratt \\
+    @{attribute_def "elim"} & : & \isaratt \\
+    @{attribute_def "dest"} & : & \isaratt \\
+    @{attribute_def "rule"} & : & \isaratt \\[0.5ex]
+    @{attribute_def "OF"} & : & \isaratt \\
+    @{attribute_def "of"} & : & \isaratt \\
+    @{attribute_def "where"} & : & \isaratt \\
+  \end{matharray}
+
+  \begin{rail}
+    'fact' thmrefs?
+    ;
+    'rule' thmrefs?
+    ;
+    'iprover' ('!' ?) (rulemod *)
+    ;
+    rulemod: ('intro' | 'elim' | 'dest') ((('!' | () | '?') nat?) | 'del') ':' thmrefs
+    ;
+    ('intro' | 'elim' | 'dest') ('!' | () | '?') nat?
+    ;
+    'rule' 'del'
+    ;
+    'OF' thmrefs
+    ;
+    'of' insts ('concl' ':' insts)?
+    ;
+    'where' ((name | var | typefree | typevar) '=' (type | term) * 'and')
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [``@{method "-"}'' (minus)] does nothing but insert the
+  forward chaining facts as premises into the goal.  Note that command
+  @{command_ref "proof"} without any method actually performs a single
+  reduction step using the @{method_ref rule} method; thus a plain
+  \emph{do-nothing} proof step would be ``@{command "proof"}~@{text
+  "-"}'' rather than @{command "proof"} alone.
+  
+  \item [@{method "fact"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] composes
+  some fact from @{text "a\<^sub>1, \<dots>, a\<^sub>n"} (or implicitly from
+  the current proof context) modulo unification of schematic type and
+  term variables.  The rule structure is not taken into account, i.e.\
+  meta-level implication is considered atomic.  This is the same
+  principle underlying literal facts (cf.\ \secref{sec:syn-att}):
+  ``@{command "have"}~@{text "\<phi>"}~@{command "by"}~@{text fact}'' is
+  equivalent to ``@{command "note"}~@{verbatim "`"}@{text \<phi>}@{verbatim
+  "`"}'' provided that @{text "\<turnstile> \<phi>"} is an instance of some known
+  @{text "\<turnstile> \<phi>"} in the proof context.
+  
+  \item [@{method assumption}] solves some goal by a single assumption
+  step.  All given facts are guaranteed to participate in the
+  refinement; this means there may be only 0 or 1 in the first place.
+  Recall that @{command "qed"} (\secref{sec:proof-steps}) already
+  concludes any remaining sub-goals by assumption, so structured
+  proofs usually need not quote the @{method assumption} method at
+  all.
+  
+  \item [@{method this}] applies all of the current facts directly as
+  rules.  Recall that ``@{command "."}'' (dot) abbreviates ``@{command
+  "by"}~@{text this}''.
+  
+  \item [@{method rule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] applies some
+  rule given as argument in backward manner; facts are used to reduce
+  the rule before applying it to the goal.  Thus @{method rule}
+  without facts is plain introduction, while with facts it becomes
+  elimination.
+  
+  When no arguments are given, the @{method rule} method tries to pick
+  appropriate rules automatically, as declared in the current context
+  using the @{attribute intro}, @{attribute elim}, @{attribute dest}
+  attributes (see below).  This is the default behavior of @{command
+  "proof"} and ``@{command ".."}'' (double-dot) steps (see
+  \secref{sec:proof-steps}).
+  
+  \item [@{method iprover}] performs intuitionistic proof search,
+  depending on specifically declared rules from the context, or given
+  as explicit arguments.  Chained facts are inserted into the goal
+  before commencing proof search; ``@{method iprover}@{text "!"}'' 
+  means to include the current @{fact prems} as well.
+  
+  Rules need to be classified as @{attribute intro}, @{attribute
+  elim}, or @{attribute dest}; here the ``@{text "!"}'' indicator
+  refers to ``safe'' rules, which may be applied aggressively (without
+  considering back-tracking later).  Rules declared with ``@{text
+  "?"}'' are ignored in proof search (the single-step @{method rule}
+  method still observes these).  An explicit weight annotation may be
+  given as well; otherwise the number of rule premises will be taken
+  into account here.
+  
+  \item [@{attribute intro}, @{attribute elim}, and @{attribute dest}]
+  declare introduction, elimination, and destruct rules, to be used
+  with the @{method rule} and @{method iprover} methods.  Note that
+  the latter will ignore rules declared with ``@{text "?"}'', while
+  ``@{text "!"}''  are used most aggressively.
+  
+  The classical reasoner (see \secref{sec:classical}) introduces its
+  own variants of these attributes; use qualified names to access the
+  present versions of Isabelle/Pure, i.e.\ @{attribute "Pure.intro"}.
+  
+  \item [@{attribute rule}~@{text del}] undeclares introduction,
+  elimination, or destruct rules.
+  
+  \item [@{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] applies some
+  theorem to all of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"}
+  (in parallel).  This corresponds to the @{ML "op MRS"} operation in
+  ML, but note the reversed order.  Positions may be effectively
+  skipped by including ``@{text _}'' (underscore) as argument.
+  
+  \item [@{attribute of}~@{text "t\<^sub>1 \<dots> t\<^sub>n"}] performs
+  positional instantiation of term variables.  The terms @{text
+  "t\<^sub>1, \<dots>, t\<^sub>n"} are substituted for any schematic
+  variables occurring in a theorem from left to right; ``@{text
+  _}'' (underscore) indicates to skip a position.  Arguments following
+  a ``@{keyword "concl"}@{text ":"}'' specification refer to positions
+  of the conclusion of a rule.
+  
+  \item [@{attribute "where"}~@{text "x\<^sub>1 = t\<^sub>1 \<AND> \<dots>
+  x\<^sub>n = t\<^sub>n"}] performs named instantiation of schematic
+  type and term variables occurring in a theorem.  Schematic variables
+  have to be specified on the left-hand side (e.g.\ @{text "?x1.3"}).
+  The question mark may be omitted if the variable name is a plain
+  identifier without index.  As type instantiations are inferred from
+  term instantiations, explicit type instantiations are seldom
+  necessary.
+
+  \end{descr}
+*}
+
+
+section {* Term abbreviations \label{sec:term-abbrev} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "let"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{keyword_def "is"} & : & syntax \\
+  \end{matharray}
+
+  Abbreviations may be either bound by explicit @{command
+  "let"}~@{text "p \<equiv> t"} statements, or by annotating assumptions or
+  goal statements with a list of patterns ``@{text "(\<IS> p\<^sub>1 \<dots>
+  p\<^sub>n)"}''.  In both cases, higher-order matching is invoked to
+  bind extra-logical term variables, which may be either named
+  schematic variables of the form @{text ?x}, or nameless dummies
+  ``@{variable _}'' (underscore). Note that in the @{command "let"}
+  form the patterns occur on the left-hand side, while the @{keyword
+  "is"} patterns are in postfix position.
+
+  Polymorphism of term bindings is handled in Hindley-Milner style,
+  similar to ML.  Type variables referring to local assumptions or
+  open goal statements are \emph{fixed}, while those of finished
+  results or bound by @{command "let"} may occur in \emph{arbitrary}
+  instances later.  Even though actual polymorphism should be rarely
+  used in practice, this mechanism is essential to achieve proper
+  incremental type-inference, as the user proceeds to build up the
+  Isar proof text from left to right.
+
+  \medskip Term abbreviations are quite different from local
+  definitions as introduced via @{command "def"} (see
+  \secref{sec:proof-context}).  The latter are visible within the
+  logic as actual equations, while abbreviations disappear during the
+  input process just after type checking.  Also note that @{command
+  "def"} does not support polymorphism.
+
+  \begin{rail}
+    'let' ((term + 'and') '=' term + 'and')
+    ;  
+  \end{rail}
+
+  The syntax of @{keyword "is"} patterns follows \railnonterm{termpat}
+  or \railnonterm{proppat} (see \secref{sec:term-decls}).
+
+  \begin{descr}
+
+  \item [@{command "let"}~@{text "p\<^sub>1 = t\<^sub>1 \<AND> \<dots>
+  p\<^sub>n = t\<^sub>n"}] binds any text variables in patterns @{text
+  "p\<^sub>1, \<dots>, p\<^sub>n"} by simultaneous higher-order matching
+  against terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"}.
+
+  \item [@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}] resembles @{command
+  "let"}, but matches @{text "p\<^sub>1, \<dots>, p\<^sub>n"} against the
+  preceding statement.  Also note that @{keyword "is"} is not a
+  separate command, but part of others (such as @{command "assume"},
+  @{command "have"} etc.).
+
+  \end{descr}
+
+  Some \emph{implicit} term abbreviations\index{term abbreviations}
+  for goals and facts are available as well.  For any open goal,
+  @{variable_ref thesis} refers to its object-level statement,
+  abstracted over any meta-level parameters (if present).  Likewise,
+  @{variable_ref this} is bound for fact statements resulting from
+  assumptions or finished goals.  In case @{variable this} refers to
+  an object-logic statement that is an application @{text "f t"}, then
+  @{text t} is bound to the special text variable ``@{variable "\<dots>"}''
+  (three dots).  The canonical application of this convenience are
+  calculational proofs (see \secref{sec:calculation}).
+*}
+
+
+section {* Block structure *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "next"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "{"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "}"} & : & \isartrans{proof(state)}{proof(state)} \\
+  \end{matharray}
+
+  While Isar is inherently block-structured, opening and closing
+  blocks is mostly handled rather casually, with little explicit
+  user-intervention.  Any local goal statement automatically opens
+  \emph{two} internal blocks, which are closed again when concluding
+  the sub-proof (by @{command "qed"} etc.).  Sections of different
+  context within a sub-proof may be switched via @{command "next"},
+  which is just a single block-close followed by block-open again.
+  The effect of @{command "next"} is to reset the local proof context;
+  there is no goal focus involved here!
+
+  For slightly more advanced applications, there are explicit block
+  parentheses as well.  These typically achieve a stronger forward
+  style of reasoning.
+
+  \begin{descr}
+
+  \item [@{command "next"}] switches to a fresh block within a
+  sub-proof, resetting the local context to the initial one.
+
+  \item [@{command "{"} and @{command "}"}] explicitly open and close
+  blocks.  Any current facts pass through ``@{command "{"}''
+  unchanged, while ``@{command "}"}'' causes any result to be
+  \emph{exported} into the enclosing context.  Thus fixed variables
+  are generalized, assumptions discharged, and local definitions
+  unfolded (cf.\ \secref{sec:proof-context}).  There is no difference
+  of @{command "assume"} and @{command "presume"} in this mode of
+  forward reasoning --- in contrast to plain backward reasoning with
+  the result exported at @{command "show"} time.
+
+  \end{descr}
+*}
+
+
+section {* Emulating tactic scripts \label{sec:tactic-commands} *}
+
+text {*
+  The Isar provides separate commands to accommodate tactic-style
+  proof scripts within the same system.  While being outside the
+  orthodox Isar proof language, these might come in handy for
+  interactive exploration and debugging, or even actual tactical proof
+  within new-style theories (to benefit from document preparation, for
+  example).  See also \secref{sec:tactics} for actual tactics, that
+  have been encapsulated as proof methods.  Proper proof methods may
+  be used in scripts, too.
+
+  \begin{matharray}{rcl}
+    @{command_def "apply"}@{text "\<^sup>*"} & : & \isartrans{proof(prove)}{proof(prove)} \\
+    @{command_def "apply_end"}@{text "\<^sup>*"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "done"}@{text "\<^sup>*"} & : & \isartrans{proof(prove)}{proof(state)} \\
+    @{command_def "defer"}@{text "\<^sup>*"} & : & \isartrans{proof}{proof} \\
+    @{command_def "prefer"}@{text "\<^sup>*"} & : & \isartrans{proof}{proof} \\
+    @{command_def "back"}@{text "\<^sup>*"} & : & \isartrans{proof}{proof} \\
+  \end{matharray}
+
+  \begin{rail}
+    ( 'apply' | 'apply\_end' ) method
+    ;
+    'defer' nat?
+    ;
+    'prefer' nat
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [@{command "apply"}~@{text m}] applies proof method @{text m}
+  in initial position, but unlike @{command "proof"} it retains
+  ``@{text "proof(prove)"}'' mode.  Thus consecutive method
+  applications may be given just as in tactic scripts.
+  
+  Facts are passed to @{text m} as indicated by the goal's
+  forward-chain mode, and are \emph{consumed} afterwards.  Thus any
+  further @{command "apply"} command would always work in a purely
+  backward manner.
+  
+  \item [@{command "apply_end"}~@{text "m"}] applies proof method
+  @{text m} as if in terminal position.  Basically, this simulates a
+  multi-step tactic script for @{command "qed"}, but may be given
+  anywhere within the proof body.
+  
+  No facts are passed to @{method m} here.  Furthermore, the static
+  context is that of the enclosing goal (as for actual @{command
+  "qed"}).  Thus the proof method may not refer to any assumptions
+  introduced in the current body, for example.
+  
+  \item [@{command "done"}] completes a proof script, provided that
+  the current goal state is solved completely.  Note that actual
+  structured proof commands (e.g.\ ``@{command "."}'' or @{command
+  "sorry"}) may be used to conclude proof scripts as well.
+
+  \item [@{command "defer"}~@{text n} and @{command "prefer"}~@{text
+  n}] shuffle the list of pending goals: @{command "defer"} puts off
+  sub-goal @{text n} to the end of the list (@{text "n = 1"} by
+  default), while @{command "prefer"} brings sub-goal @{text n} to the
+  front.
+  
+  \item [@{command "back"}] does back-tracking over the result
+  sequence of the latest proof command.  Basically, any proof command
+  may return multiple results.
+  
+  \end{descr}
+
+  Any proper Isar proof method may be used with tactic script commands
+  such as @{command "apply"}.  A few additional emulations of actual
+  tactics are provided as well; these would be never used in actual
+  structured proofs, of course.
+*}
+
+
+section {* Omitting proofs *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "oops"} & : & \isartrans{proof}{theory} \\
+  \end{matharray}
+
+  The @{command "oops"} command discontinues the current proof
+  attempt, while considering the partial proof text as properly
+  processed.  This is conceptually quite different from ``faking''
+  actual proofs via @{command_ref "sorry"} (see
+  \secref{sec:proof-steps}): @{command "oops"} does not observe the
+  proof structure at all, but goes back right to the theory level.
+  Furthermore, @{command "oops"} does not produce any result theorem
+  --- there is no intended claim to be able to complete the proof
+  anyhow.
+
+  A typical application of @{command "oops"} is to explain Isar proofs
+  \emph{within} the system itself, in conjunction with the document
+  preparation tools of Isabelle described in \cite{isabelle-sys}.
+  Thus partial or even wrong proof attempts can be discussed in a
+  logically sound manner.  Note that the Isabelle {\LaTeX} macros can
+  be easily adapted to print something like ``@{text "\<dots>"}'' instead of
+  the keyword ``@{command "oops"}''.
+
+  \medskip The @{command "oops"} command is undo-able, unlike
+  @{command_ref "kill"} (see \secref{sec:history}).  The effect is to
+  get back to the theory just before the opening of the proof.
+*}
+
+
+section {* Generalized elimination \label{sec:obtain} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "obtain"} & : & \isartrans{proof(state)}{proof(prove)} \\
+    @{command_def "guess"}@{text "\<^sup>*"} & : & \isartrans{proof(state)}{proof(prove)} \\
+  \end{matharray}
+
+  Generalized elimination means that additional elements with certain
+  properties may be introduced in the current context, by virtue of a
+  locally proven ``soundness statement''.  Technically speaking, the
+  @{command "obtain"} language element is like a declaration of
+  @{command "fix"} and @{command "assume"} (see also see
+  \secref{sec:proof-context}), together with a soundness proof of its
+  additional claim.  According to the nature of existential reasoning,
+  assumptions get eliminated from any result exported from the context
+  later, provided that the corresponding parameters do \emph{not}
+  occur in the conclusion.
+
+  \begin{rail}
+    'obtain' parname? (vars + 'and') 'where' (props + 'and')
+    ;
+    'guess' (vars + 'and')
+    ;
+  \end{rail}
+
+  The derived Isar command @{command "obtain"} is defined as follows
+  (where @{text "b\<^sub>1, \<dots>, b\<^sub>k"} shall refer to (optional)
+  facts indicated for forward chaining).
+  \begin{matharray}{l}
+    @{text "\<langle>using b\<^sub>1 \<dots> b\<^sub>k\<rangle>"}~~@{command "obtain"}~@{text "x\<^sub>1 \<dots> x\<^sub>m \<WHERE> a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n  \<langle>proof\<rangle> \<equiv>"} \\[1ex]
+    \quad @{command "have"}~@{text "\<And>thesis. (\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
+    \quad @{command "proof"}~@{text succeed} \\
+    \qquad @{command "fix"}~@{text thesis} \\
+    \qquad @{command "assume"}~@{text "that [Pure.intro?]: \<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> thesis"} \\
+    \qquad @{command "then"}~@{command "show"}~@{text thesis} \\
+    \quad\qquad @{command "apply"}~@{text -} \\
+    \quad\qquad @{command "using"}~@{text "b\<^sub>1 \<dots> b\<^sub>k  \<langle>proof\<rangle>"} \\
+    \quad @{command "qed"} \\
+    \quad @{command "fix"}~@{text "x\<^sub>1 \<dots> x\<^sub>m"}~@{command "assume"}@{text "\<^sup>* a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} \\
+  \end{matharray}
+
+  Typically, the soundness proof is relatively straight-forward, often
+  just by canonical automated tools such as ``@{command "by"}~@{text
+  simp}'' or ``@{command "by"}~@{text blast}''.  Accordingly, the
+  ``@{text that}'' reduction above is declared as simplification and
+  introduction rule.
+
+  In a sense, @{command "obtain"} represents at the level of Isar
+  proofs what would be meta-logical existential quantifiers and
+  conjunctions.  This concept has a broad range of useful
+  applications, ranging from plain elimination (or introduction) of
+  object-level existential and conjunctions, to elimination over
+  results of symbolic evaluation of recursive definitions, for
+  example.  Also note that @{command "obtain"} without parameters acts
+  much like @{command "have"}, where the result is treated as a
+  genuine assumption.
+
+  An alternative name to be used instead of ``@{text that}'' above may
+  be given in parentheses.
+
+  \medskip The improper variant @{command "guess"} is similar to
+  @{command "obtain"}, but derives the obtained statement from the
+  course of reasoning!  The proof starts with a fixed goal @{text
+  thesis}.  The subsequent proof may refine this to anything of the
+  form like @{text "\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots>
+  \<phi>\<^sub>n \<Longrightarrow> thesis"}, but must not introduce new subgoals.  The
+  final goal state is then used as reduction rule for the obtain
+  scheme described above.  Obtained parameters @{text "x\<^sub>1, \<dots>,
+  x\<^sub>m"} are marked as internal by default, which prevents the
+  proof context from being polluted by ad-hoc variables.  The variable
+  names and type constraints given as arguments for @{command "guess"}
+  specify a prefix of obtained parameters explicitly in the text.
+
+  It is important to note that the facts introduced by @{command
+  "obtain"} and @{command "guess"} may not be polymorphic: any
+  type-variables occurring here are fixed in the present context!
+*}
+
+
+section {* Calculational reasoning \label{sec:calculation} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "also"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "finally"} & : & \isartrans{proof(state)}{proof(chain)} \\
+    @{command_def "moreover"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "ultimately"} & : & \isartrans{proof(state)}{proof(chain)} \\
+    @{command_def "print_trans_rules"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{attribute trans} & : & \isaratt \\
+    @{attribute sym} & : & \isaratt \\
+    @{attribute symmetric} & : & \isaratt \\
+  \end{matharray}
+
+  Calculational proof is forward reasoning with implicit application
+  of transitivity rules (such those of @{text "="}, @{text "\<le>"},
+  @{text "<"}).  Isabelle/Isar maintains an auxiliary fact register
+  @{fact_ref calculation} for accumulating results obtained by
+  transitivity composed with the current result.  Command @{command
+  "also"} updates @{fact calculation} involving @{fact this}, while
+  @{command "finally"} exhibits the final @{fact calculation} by
+  forward chaining towards the next goal statement.  Both commands
+  require valid current facts, i.e.\ may occur only after commands
+  that produce theorems such as @{command "assume"}, @{command
+  "note"}, or some finished proof of @{command "have"}, @{command
+  "show"} etc.  The @{command "moreover"} and @{command "ultimately"}
+  commands are similar to @{command "also"} and @{command "finally"},
+  but only collect further results in @{fact calculation} without
+  applying any rules yet.
+
+  Also note that the implicit term abbreviation ``@{text "\<dots>"}'' has
+  its canonical application with calculational proofs.  It refers to
+  the argument of the preceding statement. (The argument of a curried
+  infix expression happens to be its right-hand side.)
+
+  Isabelle/Isar calculations are implicitly subject to block structure
+  in the sense that new threads of calculational reasoning are
+  commenced for any new block (as opened by a local goal, for
+  example).  This means that, apart from being able to nest
+  calculations, there is no separate \emph{begin-calculation} command
+  required.
+
+  \medskip The Isar calculation proof commands may be defined as
+  follows:\footnote{We suppress internal bookkeeping such as proper
+  handling of block-structure.}
+
+  \begin{matharray}{rcl}
+    @{command "also"}@{text "\<^sub>0"} & \equiv & @{command "note"}~@{text "calculation = this"} \\
+    @{command "also"}@{text "\<^sub>n\<^sub>+\<^sub>1"} & \equiv & @{command "note"}~@{text "calculation = trans [OF calculation this]"} \\[0.5ex]
+    @{command "finally"} & \equiv & @{command "also"}~@{command "from"}~@{text calculation} \\[0.5ex]
+    @{command "moreover"} & \equiv & @{command "note"}~@{text "calculation = calculation this"} \\
+    @{command "ultimately"} & \equiv & @{command "moreover"}~@{command "from"}~@{text calculation} \\
+  \end{matharray}
+
+  \begin{rail}
+    ('also' | 'finally') ('(' thmrefs ')')?
+    ;
+    'trans' (() | 'add' | 'del')
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [@{command "also"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"}]
+  maintains the auxiliary @{fact calculation} register as follows.
+  The first occurrence of @{command "also"} in some calculational
+  thread initializes @{fact calculation} by @{fact this}. Any
+  subsequent @{command "also"} on the same level of block-structure
+  updates @{fact calculation} by some transitivity rule applied to
+  @{fact calculation} and @{fact this} (in that order).  Transitivity
+  rules are picked from the current context, unless alternative rules
+  are given as explicit arguments.
+
+  \item [@{command "finally"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"}]
+  maintaining @{fact calculation} in the same way as @{command
+  "also"}, and concludes the current calculational thread.  The final
+  result is exhibited as fact for forward chaining towards the next
+  goal. Basically, @{command "finally"} just abbreviates @{command
+  "also"}~@{command "from"}~@{fact calculation}.  Typical idioms for
+  concluding calculational proofs are ``@{command "finally"}~@{command
+  "show"}~@{text ?thesis}~@{command "."}'' and ``@{command
+  "finally"}~@{command "have"}~@{text \<phi>}~@{command "."}''.
+
+  \item [@{command "moreover"} and @{command "ultimately"}] are
+  analogous to @{command "also"} and @{command "finally"}, but collect
+  results only, without applying rules.
+
+  \item [@{command "print_trans_rules"}] prints the list of
+  transitivity rules (for calculational commands @{command "also"} and
+  @{command "finally"}) and symmetry rules (for the @{attribute
+  symmetric} operation and single step elimination patters) of the
+  current context.
+
+  \item [@{attribute trans}] declares theorems as transitivity rules.
+
+  \item [@{attribute sym}] declares symmetry rules, as well as
+  @{attribute "Pure.elim?"} rules.
+
+  \item [@{attribute symmetric}] resolves a theorem with some rule
+  declared as @{attribute sym} in the current context.  For example,
+  ``@{command "assume"}~@{text "[symmetric]: x = y"}'' produces a
+  swapped fact derived from that assumption.
+
+  In structured proof texts it is often more appropriate to use an
+  explicit single-step elimination proof, such as ``@{command
+  "assume"}~@{text "x = y"}~@{command "then"}~@{command "have"}~@{text
+  "y = x"}~@{command ".."}''.
+
+  \end{descr}
+*}
+
 end

@@ -24,6 +24,71 @@
 }
 \isamarkuptrue%
 %
+\isamarkupsection{Defining theories \label{sec:begin-thy}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{header}\mbox{\isa{\isacommand{header}}} & : & \isarkeep{toplevel} \\
+    \indexdef{}{command}{theory}\mbox{\isa{\isacommand{theory}}} & : & \isartrans{toplevel}{theory} \\
+    \indexdef{}{command}{end}\mbox{\isa{\isacommand{end}}} & : & \isartrans{theory}{toplevel} \\
+  \end{matharray}
+
+  Isabelle/Isar theories are defined via theory, which contain both
+  specifications and proofs; occasionally definitional mechanisms also
+  require some explicit proof.
+
+  The first ``real'' command of any theory has to be \mbox{\isa{\isacommand{theory}}}, which starts a new theory based on the merge of existing
+  ones.  Just preceding the \mbox{\isa{\isacommand{theory}}} keyword, there may be
+  an optional \mbox{\isa{\isacommand{header}}} declaration, which is relevant to
+  document preparation only; it acts very much like a special
+  pre-theory markup command (cf.\ \secref{sec:markup-thy} and
+  \secref{sec:markup-thy}).  The \mbox{\isa{\isacommand{end}}} command concludes a
+  theory development; it has to be the very last command of any theory
+  file loaded in batch-mode.
+
+  \begin{rail}
+    'header' text
+    ;
+    'theory' name 'imports' (name +) uses? 'begin'
+    ;
+
+    uses: 'uses' ((name | parname) +);
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\mbox{\isa{\isacommand{header}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] provides plain text
+  markup just preceding the formal beginning of a theory.  In actual
+  document preparation the corresponding {\LaTeX} macro \verb|\isamarkupheader| may be redefined to produce chapter or section
+  headings.  See also \secref{sec:markup-thy} and
+  \secref{sec:markup-prf} for further markup commands.
+  
+  \item [\mbox{\isa{\isacommand{theory}}}~\isa{{\isachardoublequote}A\ {\isasymIMPORTS}\ B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n\ {\isasymBEGIN}{\isachardoublequote}}] starts a new theory \isa{A} based on the
+  merge of existing theories \isa{{\isachardoublequote}B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n{\isachardoublequote}}.
+  
+  Due to inclusion of several ancestors, the overall theory structure
+  emerging in an Isabelle session forms a directed acyclic graph
+  (DAG).  Isabelle's theory loader ensures that the sources
+  contributing to the development graph are always up-to-date.
+  Changed files are automatically reloaded when processing theory
+  headers.
+  
+  The optional \indexdef{}{keyword}{uses}\mbox{\isa{\isakeyword{uses}}} specification declares additional
+  dependencies on extra files (usually ML sources).  Files will be
+  loaded immediately (as ML), unless the name is put in parentheses,
+  which merely documents the dependency to be resolved later in the
+  text (typically via explicit \indexref{}{command}{use}\mbox{\isa{\isacommand{use}}} in the body text,
+  see \secref{sec:ML}).
+  
+  \item [\mbox{\isa{\isacommand{end}}}] concludes the current theory definition or
+  context switch.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isadelimtheory
 %
 \endisadelimtheory
