@@ -327,8 +327,8 @@ From the definition, the \isa{monoid} and \isa{group} classes
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\medskip The $\INSTANCE$ command sets up an appropriate goal that
-  represents the class inclusion (or type arity, see
+\medskip The \isakeyword{instance} command sets up an appropriate
+  goal that represents the class inclusion (or type arity, see
   \secref{sec:inst-arity}) to be proven (see also
   \cite{isabelle-isar-ref}).  The initial proof step causes
   back-chaining of class membership statements wrt.\ the hierarchy of
@@ -344,13 +344,14 @@ From the definition, the \isa{monoid} and \isa{group} classes
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}}, namely \emph{abstract instantiation} ---
-  $c@1$ is more special than \isa{c\isactrlsub {\isadigit{1}}} and thus an instance
-  of \isa{c\isactrlsub {\isadigit{2}}}.  Even more interesting for practical
-  applications are \emph{concrete instantiations} of axiomatic type
-  classes.  That is, certain simple schemes \isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isasymColon}\ c} of class membership may be established at the
-  logical level and then transferred to Isabelle's type signature
-  level.
+So far we have covered the case of the form
+  \isakeyword{instance}~\isa{c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}}, namely
+  \emph{abstract instantiation} --- $c@1$ is more special than \isa{c\isactrlsub {\isadigit{1}}} and thus an instance of \isa{c\isactrlsub {\isadigit{2}}}.  Even more
+  interesting for practical applications are \emph{concrete
+  instantiations} of axiomatic type classes.  That is, certain simple
+  schemes \isa{{\isacharparenleft}{\isasymalpha}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlsub n{\isacharparenright}\ t\ {\isasymColon}\ c} of class
+  membership may be established at the logical level and then
+  transferred to Isabelle's type signature level.
 
   \medskip As a typical example, we show that type \isa{bool} with
   exclusive-or as \isa{{\isasymodot}} operation, identity as \isa{{\isasyminv}}, and
@@ -363,18 +364,18 @@ So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isad
 \ \ inverse{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}x{\isasyminv}\ {\isasymequiv}\ x{\isasymColon}bool{\isachardoublequoteclose}\isanewline
 \ \ unit{\isacharunderscore}bool{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymequiv}\ False{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-\medskip It is important to note that above $\DEFS$ are just
-  overloaded meta-level constant definitions, where type classes are
-  not yet involved at all.  This form of constant definition with
+\medskip It is important to note that above \isakeyword{defs} are
+  just overloaded meta-level constant definitions, where type classes
+  are not yet involved at all.  This form of constant definition with
   overloading (and optional recursion over the syntactic structure of
   simple types) are admissible as definitional extensions of plain HOL
   \cite{Wenzel:1997:TPHOL}.  The Haskell-style type system is not
   required for overloading.  Nevertheless, overloaded definitions are
   best applied in the context of type classes.
 
-  \medskip Since we have chosen above $\DEFS$ of the generic group
-  operations on type \isa{bool} appropriately, the class membership
-  \isa{bool\ {\isasymColon}\ agroup} may be now derived as follows.%
+  \medskip Since we have chosen above \isakeyword{defs} of the generic
+  group operations on type \isa{bool} appropriately, the class
+  membership \isa{bool\ {\isasymColon}\ agroup} may be now derived as follows.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{instance}\isamarkupfalse%
@@ -412,10 +413,10 @@ So far we have covered the case of the form $\INSTANCE$~\isa{c\isactrlsub {\isad
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-The result of an $\INSTANCE$ statement is both expressed as a
-  theorem of Isabelle's meta-logic, and as a type arity of the type
-  signature.  The latter enables type-inference system to take care of
-  this new instance automatically.
+The result of an \isakeyword{instance} statement is both expressed
+  as a theorem of Isabelle's meta-logic, and as a type arity of the
+  type signature.  The latter enables type-inference system to take
+  care of this new instance automatically.
 
   \medskip We could now also instantiate our group theory classes to
   many other concrete types.  For example, \isa{int\ {\isasymColon}\ agroup}

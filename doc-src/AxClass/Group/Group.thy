@@ -200,8 +200,8 @@ proof
 qed
 
 text {*
-  \medskip The $\INSTANCE$ command sets up an appropriate goal that
-  represents the class inclusion (or type arity, see
+  \medskip The \isakeyword{instance} command sets up an appropriate
+  goal that represents the class inclusion (or type arity, see
   \secref{sec:inst-arity}) to be proven (see also
   \cite{isabelle-isar-ref}).  The initial proof step causes
   back-chaining of class membership statements wrt.\ the hierarchy of
@@ -215,15 +215,15 @@ text {*
 subsection {* Concrete instantiation \label{sec:inst-arity} *}
 
 text {*
-  So far we have covered the case of the form $\INSTANCE$~@{text
-  "c\<^sub>1 \<subseteq> c\<^sub>2"}, namely \emph{abstract instantiation} ---
-  $c@1$ is more special than @{text "c\<^sub>1"} and thus an instance
-  of @{text "c\<^sub>2"}.  Even more interesting for practical
-  applications are \emph{concrete instantiations} of axiomatic type
-  classes.  That is, certain simple schemes @{text "(\<alpha>\<^sub>1, \<dots>,
-  \<alpha>\<^sub>n) t \<Colon> c"} of class membership may be established at the
-  logical level and then transferred to Isabelle's type signature
-  level.
+  So far we have covered the case of the form
+  \isakeyword{instance}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"}, namely
+  \emph{abstract instantiation} --- $c@1$ is more special than @{text
+  "c\<^sub>1"} and thus an instance of @{text "c\<^sub>2"}.  Even more
+  interesting for practical applications are \emph{concrete
+  instantiations} of axiomatic type classes.  That is, certain simple
+  schemes @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t \<Colon> c"} of class
+  membership may be established at the logical level and then
+  transferred to Isabelle's type signature level.
 
   \medskip As a typical example, we show that type @{typ bool} with
   exclusive-or as @{text \<odot>} operation, identity as @{text \<inv>}, and
@@ -236,18 +236,18 @@ defs (overloaded)
   unit_bool_def: "\<one> \<equiv> False"
 
 text {*
-  \medskip It is important to note that above $\DEFS$ are just
-  overloaded meta-level constant definitions, where type classes are
-  not yet involved at all.  This form of constant definition with
+  \medskip It is important to note that above \isakeyword{defs} are
+  just overloaded meta-level constant definitions, where type classes
+  are not yet involved at all.  This form of constant definition with
   overloading (and optional recursion over the syntactic structure of
   simple types) are admissible as definitional extensions of plain HOL
   \cite{Wenzel:1997:TPHOL}.  The Haskell-style type system is not
   required for overloading.  Nevertheless, overloaded definitions are
   best applied in the context of type classes.
 
-  \medskip Since we have chosen above $\DEFS$ of the generic group
-  operations on type @{typ bool} appropriately, the class membership
-  @{text "bool \<Colon> agroup"} may be now derived as follows.
+  \medskip Since we have chosen above \isakeyword{defs} of the generic
+  group operations on type @{typ bool} appropriately, the class
+  membership @{text "bool \<Colon> agroup"} may be now derived as follows.
 *}
 
 instance bool :: agroup
@@ -261,10 +261,10 @@ proof (intro_classes,
 qed
 
 text {*
-  The result of an $\INSTANCE$ statement is both expressed as a
-  theorem of Isabelle's meta-logic, and as a type arity of the type
-  signature.  The latter enables type-inference system to take care of
-  this new instance automatically.
+  The result of an \isakeyword{instance} statement is both expressed
+  as a theorem of Isabelle's meta-logic, and as a type arity of the
+  type signature.  The latter enables type-inference system to take
+  care of this new instance automatically.
 
   \medskip We could now also instantiate our group theory classes to
   many other concrete types.  For example, @{text "int \<Colon> agroup"}
