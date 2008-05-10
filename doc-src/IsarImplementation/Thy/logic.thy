@@ -437,7 +437,7 @@ text {*
   notion of equality/equivalence @{text "\<equiv>"}.
 *}
 
-subsection {* Primitive connectives and rules \label{sec:prim_rules} *}
+subsection {* Primitive connectives and rules \label{sec:prim-rules} *}
 
 text {*
   The theory @{text "Pure"} contains constant declarations for the

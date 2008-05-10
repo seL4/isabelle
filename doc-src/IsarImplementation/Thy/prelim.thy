@@ -404,7 +404,7 @@ text %mlref {*
 *}
 
 
-section {* Names *}
+section {* Names \label{sec:names} *}
 
 text {*
   In principle, a name is just a string, but there are various
