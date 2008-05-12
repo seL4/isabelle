@@ -318,7 +318,7 @@ The \cmd{termination} command sets up the termination goal for the
   these are packed together into a tuple, as it happened in the above
   example.
 
-  The predefined function \isa{measure{\isasymColon}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set} constructs a
+  The predefined function \isa{measure{\isasymColon}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a\ {\isasymRightarrow}\ bool} constructs a
   wellfounded relation from a mapping into the natural numbers (a
   \emph{measure function}). 
 
@@ -833,7 +833,7 @@ This kind of matching is again justified by the proof of pattern
 
   This is an arithmetic triviality, but unfortunately the
   \isa{arith} method cannot handle this specific form of an
-  elimination rule. However, we can use the method \isa{elim{\isacharunderscore}to{\isacharunderscore}cases} to do an ad-hoc conversion to a disjunction of
+  elimination rule. However, we can use the method \isa{atomize{\isacharunderscore}elim} to do an ad-hoc conversion to a disjunction of
   existentials, which can then be soved by the arithmetic decision procedure.
   Pattern compatibility and termination are automatic as usual.%
 \end{isamarkuptxt}%
@@ -865,7 +865,7 @@ This kind of matching is again justified by the proof of pattern
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ elim{\isacharunderscore}to{\isacharunderscore}cases\isanewline
+\ atomize{\isacharunderscore}elim\isanewline
 \isacommand{apply}\isamarkupfalse%
 \ arith\isanewline
 \isacommand{apply}\isamarkupfalse%
@@ -913,7 +913,7 @@ We can stretch the notion of pattern matching even more. The
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-\ elim{\isacharunderscore}to{\isacharunderscore}cases\isanewline
+\ atomize{\isacharunderscore}elim\isanewline
 \isacommand{by}\isamarkupfalse%
 \ arith{\isacharplus}%
 \endisatagproof
@@ -978,7 +978,7 @@ The function package also supports conditional equations, which are
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}elim{\isacharunderscore}to{\isacharunderscore}cases{\isacharcomma}\ auto{\isacharcomma}\ arith{\isacharparenright}%
+\ {\isacharparenleft}atomize{\isacharunderscore}elim{\isacharcomma}\ auto{\isacharcomma}\ arith{\isacharparenright}%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1792,8 +1792,11 @@ Higher-order recursion occurs when recursive calls
   list functions \isa{rev} and \isa{map}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ f\ x\ {\isacharless}\ Suc\ {\isacharparenleft}list{\isacharunderscore}size\ f\ l{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isacommand{function}\isamarkupfalse%
+\ mirror\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ tree{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Leaf\ n{\isacharparenright}\ {\isacharequal}\ Leaf\ n{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Branch\ l{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}rev\ {\isacharparenleft}map\ mirror\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -1801,21 +1804,14 @@ Higher-order recursion occurs when recursive calls
 %
 \isatagproof
 \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ l{\isacharparenright}\ auto%
+\ pat{\isacharunderscore}completeness\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
 \isadelimproof
-\isanewline
 %
 \endisadelimproof
-\isanewline
-\isanewline
-\isacommand{fun}\isamarkupfalse%
-\ mirror\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ tree{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Leaf\ n{\isacharparenright}\ {\isacharequal}\ Leaf\ n{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Branch\ l{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}rev\ {\isacharparenleft}map\ mirror\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+%
 \begin{isamarkuptext}%
 \emph{Note: The handling of size functions is currently changing 
   in the developers version of Isabelle. So this documentation is outdated.}%
