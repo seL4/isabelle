@@ -3313,12 +3313,26 @@ setup StringSyntax.setup
 
 subsection {* Size function *}
 
-declare [[measure_function "list_size size"]]
+lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (list_size f)"
+by (rule is_measure_trivial)
 
-lemma list_size_estimation[termination_simp]:
-  "x \<in> set xs \<Longrightarrow> f x < list_size f xs"
+lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (option_size f)"
+by (rule is_measure_trivial)
+
+lemma list_size_estimation[termination_simp]: 
+  "x \<in> set xs \<Longrightarrow> y < f x \<Longrightarrow> y < list_size f xs"
 by (induct xs) auto
 
+lemma list_size_estimation'[termination_simp]: 
+  "x \<in> set xs \<Longrightarrow> y \<le> f x \<Longrightarrow> y \<le> list_size f xs"
+by (induct xs) auto
+
+lemma list_size_map[simp]: "list_size f (map g xs) = list_size (f o g) xs"
+by (induct xs) auto
+
+lemma list_size_pointwise[termination_simp]: 
+  "(\<And>x. x \<in> set xs \<Longrightarrow> f x < g x) \<Longrightarrow> list_size f xs \<le> list_size g xs"
+by (induct xs) force+
 
 subsection {* Code generator *}
 

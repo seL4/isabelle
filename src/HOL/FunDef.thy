@@ -19,6 +19,7 @@ uses
   ("Tools/function_package/fundef_package.ML")
   ("Tools/function_package/auto_term.ML")
   ("Tools/function_package/induction_scheme.ML")
+  ("Tools/function_package/measure_functions.ML")
   ("Tools/function_package/lexicographic_order.ML")
   ("Tools/function_package/fundef_datatype.ML")
 begin
@@ -96,6 +97,8 @@ lemma wf_in_rel:
   "wf R \<Longrightarrow> wfP (in_rel R)"
   by (simp add: wfP_def)
 
+inductive is_measure :: "('a \<Rightarrow> nat) \<Rightarrow> bool"
+where is_measure_trivial: "is_measure f"
 
 use "Tools/function_package/fundef_lib.ML"
 use "Tools/function_package/fundef_common.ML"
@@ -108,12 +111,14 @@ use "Tools/function_package/pattern_split.ML"
 use "Tools/function_package/auto_term.ML"
 use "Tools/function_package/fundef_package.ML"
 use "Tools/function_package/induction_scheme.ML"
+use "Tools/function_package/measure_functions.ML"
 use "Tools/function_package/lexicographic_order.ML"
 use "Tools/function_package/fundef_datatype.ML"
 
 setup {* 
   FundefPackage.setup 
   #> InductionScheme.setup
+  #> MeasureFunctions.setup
   #> LexicographicOrder.setup 
   #> FundefDatatype.setup
 *}
@@ -135,10 +140,31 @@ lemma comp_cong [fundef_cong]:
   "f (g x) = f' (g' x') \<Longrightarrow> (f o g) x = (f' o g') x'"
   unfolding o_apply .
 
+subsection {* Setup for termination proofs *}
+
+text {* Rules for generating measure functions *}
+
+lemma [measure_function]: "is_measure size"
+by (rule is_measure_trivial)
+
+lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (\<lambda>p. f (fst p))"
+by (rule is_measure_trivial)
+lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (\<lambda>p. f (snd p))"
+by (rule is_measure_trivial)
+
 lemma termination_basic_simps[termination_simp]:
-  "x < y \<Longrightarrow> x < Suc y"
   "x < (y::nat) \<Longrightarrow> x < y + z" 
   "x < z \<Longrightarrow> x < y + z"
+  "x \<le> y \<Longrightarrow> x \<le> y + (z::nat)"
+  "x \<le> z \<Longrightarrow> x \<le> y + (z::nat)"
+  "x < y \<Longrightarrow> x \<le> (y::nat)"
 by arith+
+
+declare le_imp_less_Suc[termination_simp]
+
+lemma prod_size_simp[termination_simp]:
+  "prod_size f g p = f (fst p) + g (snd p) + Suc 0"
+by (induct p) auto
+
 
 end

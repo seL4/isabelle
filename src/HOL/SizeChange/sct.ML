@@ -7,7 +7,7 @@ Tactics for size change termination.
 signature SCT =
 sig
   val abs_rel_tac : tactic
-  val mk_call_graph : tactic
+  val mk_call_graph : Proof.context -> tactic
 end
 
 structure Sct : SCT =
@@ -146,10 +146,10 @@ fun abs_rel_tac (st : thm) =
 
 
 (* very primitive *)
-fun measures_of thy RD =
+fun measures_of ctxt RD =
     let
       val domT = range_type (fastype_of (fst (HOLogic.dest_prod (snd (HOLogic.dest_prod RD)))))
-      val measures = LexicographicOrder.mk_base_funs thy domT
+      val measures = MeasureFunctions.get_measure_functions ctxt domT
     in
       measures
     end
@@ -300,7 +300,7 @@ val length_simps = thms "Interpretation.length_simps"
 
 
 
-fun mk_call_graph (st : thm) =
+fun mk_call_graph ctxt (st : thm) =
     let
       val thy = theory_of_thm st
       val _ $ _ $ RDlist $ _ = HOLogic.dest_Trueprop (hd (prems_of st))
@@ -308,7 +308,7 @@ fun mk_call_graph (st : thm) =
       val RDs = HOLogic.dest_list RDlist
       val n = length RDs
 
-      val Mss = map (measures_of thy) RDs
+      val Mss = map (measures_of ctxt) RDs
 
       val domT = domain_type (fastype_of (hd (hd Mss)))
 

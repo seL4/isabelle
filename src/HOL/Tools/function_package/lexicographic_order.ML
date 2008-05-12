@@ -9,38 +9,12 @@ signature LEXICOGRAPHIC_ORDER =
 sig
   val lexicographic_order : thm list -> Proof.context -> Method.method
 
-  (* exported for use by size-change termination prototype.
-     FIXME: provide a common interface later *)
-  val mk_base_funs : theory -> typ -> term list
   (* exported for debugging *)
   val setup: theory -> theory
 end
 
 structure LexicographicOrder : LEXICOGRAPHIC_ORDER =
 struct
-
-(** User-declared size functions **)
-
-structure SizeFunsData = GenericDataFun
-(
-  type T = term NetRules.T;
-  val empty = NetRules.init (op aconv) I
-  val copy = I
-  val extend = I
-  fun merge _ (tab1, tab2) = NetRules.merge (tab1, tab2)
-);
-
-fun add_sfun f ctxt = 
-  SizeFunsData.map (NetRules.insert (singleton (Variable.polymorphic (Context.proof_of ctxt)) f)) ctxt
-val add_sfun_attr = Attrib.syntax (Args.term >> (fn f => Thm.declaration_attribute (K (add_sfun f))))
-
-fun get_sfuns T thy =
-    map_filter (fn f => SOME (Envir.subst_TVars (Type.typ_match (Sign.tsig_of thy)
-                                                                (domain_type (fastype_of f), T)
-                                                                Vartab.empty) 
-                                                f)
-                   handle Type.TYPE_MATCH => NONE)
-               (NetRules.rules (SizeFunsData.get (Context.Theory thy)))
 
 (** General stuff **)
 
@@ -72,60 +46,10 @@ fun is_Less (Less _) = true
 fun is_LessEq (LessEq _) = true
   | is_LessEq _ = false
 
-fun thm_of_cell (Less thm) = thm
-  | thm_of_cell (LessEq (thm, _)) = thm
-  | thm_of_cell (False thm) = thm
-  | thm_of_cell (None (thm, _)) = thm
-
 fun pr_cell (Less _ ) = " < "
   | pr_cell (LessEq _) = " <="
   | pr_cell (None _) = " ? "
   | pr_cell (False _) = " F "
-
-
-(** Generating Measure Functions **)
-
-fun mk_comp g f =
-    let
-      val fT = fastype_of f
-      val gT as (Type ("fun", [xT, _])) = fastype_of g
-      val comp = Abs ("f", fT, Abs ("g", gT, Abs ("x", xT, Bound 2 $ (Bound 1 $ Bound 0))))
-    in
-      Envir.beta_norm (comp $ f $ g)
-    end
-
-fun mk_base_funs thy (T as Type("*", [fT, sT])) = (* products *)
-      map (mk_comp (Const ("fst", T --> fT))) (mk_base_funs thy fT)
-    @ map (mk_comp (Const ("snd", T --> sT))) (mk_base_funs thy sT)
-
-  | mk_base_funs thy T = (* default: size function, if available *)
-    if Sorts.of_sort (Sign.classes_of thy) (T, [HOLogic.class_size])
-    then (HOLogic.size_const T) :: get_sfuns T thy
-    else get_sfuns T thy
-
-fun mk_sum_case f1 f2 =
-    let
-      val Type ("fun", [fT, Q]) = fastype_of f1
-      val Type ("fun", [sT, _]) = fastype_of f2
-    in
-      Const (@{const_name "Sum_Type.sum_case"}, (fT --> Q) --> (sT --> Q) --> Type("+", [fT, sT]) --> Q) $ f1 $ f2
-    end
-
-fun constant_0 T = Abs ("x", T, HOLogic.zero)
-fun constant_1 T = Abs ("x", T, HOLogic.Suc_zero)
-
-fun mk_funorder_funs (Type ("+", [fT, sT])) =
-      map (fn m => mk_sum_case m (constant_0 sT)) (mk_funorder_funs fT)
-    @ map (fn m => mk_sum_case (constant_0 fT) m) (mk_funorder_funs sT)
-  | mk_funorder_funs T = [ constant_1 T ]
-
-fun mk_ext_base_funs thy (Type("+", [fT, sT])) =
-      map_product mk_sum_case (mk_ext_base_funs thy fT) (mk_ext_base_funs thy sT)
-  | mk_ext_base_funs thy T = mk_base_funs thy T
-
-fun mk_all_measure_funs thy (T as Type ("+", _)) =
-    mk_ext_base_funs thy T @ mk_funorder_funs T
-  | mk_all_measure_funs thy T = mk_base_funs thy T
 
 
 (** Proof attempts to build the matrix **)
@@ -260,7 +184,7 @@ fun col_index j = string_of_int (j + 1)
 fun pr_unprovable_cell _ ((i,j), Less _) = ""
   | pr_unprovable_cell ctxt ((i,j), LessEq (_, st)) =
       "(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st
-  | pr_unprovable_cell ctxt ((i,j), None (st_less, st_leq)) =
+  | pr_unprovable_cell ctxt ((i,j), None (st_leq, st_less)) =
       "(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st_less
       ^ "\n(" ^ row_index i ^ ", " ^ col_index j ^ ", <=):\n" ^ pr_goals ctxt st_leq
   | pr_unprovable_cell ctxt ((i,j), False st) =
@@ -303,7 +227,7 @@ fun lexicographic_order_tac ctxt solve_tac (st: thm) =
 
       val (domT, _) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of rel))
 
-      val measure_funs = mk_all_measure_funs thy domT (* 1: generate measures *)
+      val measure_funs = MeasureFunctions.get_measure_functions ctxt domT (* 1: generate measures *)
 
       (* 2: create table *)
       val table = map (fn t => map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
@@ -329,6 +253,5 @@ fun lexicographic_order thms ctxt =
 
 val setup = Method.add_methods [("lexicographic_order", Method.bang_sectioned_args clasimp_modifiers lexicographic_order,
                                  "termination prover for lexicographic orderings")]
-    #> Attrib.add_attributes [("measure_function", add_sfun_attr, "declare custom measure function")]
 
 end
