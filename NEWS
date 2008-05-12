@@ -54,15 +54,15 @@ There are three ways of invoking it:
 
 In order to increase the readability of the list produced by
 unused_thms, theorems that have been created by a particular instance
-of a theory command such as inductive or fun(ction) are considered to
-belong to the same "group", meaning that if at least one theorem in
+of a theory command such as 'inductive' or 'function' are considered
+to belong to the same "group", meaning that if at least one theorem in
 this group is used, the other theorems in the same group are no longer
 reported as unused.  Moreover, if all theorems in the group are
 unused, only one theorem in the group is displayed.
 
 Note that proof objects have to be switched on in order for
 unused_thms to work properly (i.e. !proofs must be >= 1, which is
-usually the case when using ProofGeneral with the default settings).
+usually the case when using Proof General with the default settings).
 
 * Authentic naming of facts disallows ad-hoc overwriting of previous
 theorems within the same name space.  INCOMPATIBILITY, need to remove
@@ -83,7 +83,7 @@ theory/local_theory.  Removed former 'ML_setup' (on theory), use 'ML'
 instead.  Added 'ML_val' as mere diagnostic replacement for 'ML'.
 INCOMPATIBILITY.
 
-* Command 'setup': discontinued implicit version.
+* Command 'setup': discontinued implicit version with ML reference.
 
 * Instantiation target allows for simultaneous specification of class
 instance operations together with an instantiation proof.
@@ -97,42 +97,42 @@ background context (locale etc.).  Affects `prop` notation and method
 "fact".  INCOMPATIBILITY: need to name facts explicitly in rare
 situations.
 
-
-*** Isar ***
-
-* Pure: default proof step now includes 'unfold_locales'; hence
-'proof' without argument may be used to unfold locale predicates.
+* Locale proofs: default proof step now includes 'unfold_locales';
+hence 'proof' without argument may be used to unfold locale
+predicates.
 
 
 *** Document preparation ***
 
-* Antiquotation "lemma" takes a proposition and a simple method text as argument
-and asserts that the proposition is provable by the corresponding method
-invocation.  Prints text of proposition, as does antiquotation "prop".  A simple
-method text is either a method name or a method name plus (optional) method
-arguments in parentheses, mimicing the conventions known from Isar proof text.
-Useful for illustration of presented theorems by particular examples.
+* Antiquotation "lemma" takes a proposition and a simple method text
+as argument and asserts that the proposition is provable by the
+corresponding method invocation.  Prints text of proposition, as does
+antiquotation "prop".  A simple method text is either a method name or
+a method name plus (optional) method arguments in parentheses,
+mimicking the conventions known from Isar proof text.  Useful for
+illustration of presented theorems by particular examples.
 
 
 *** HOL ***
 
-* Merged theories Wellfounded_Recursion, Accessible_Part and Wellfounded_Relations
-  to "Wellfounded.thy"
+* Merged theories Wellfounded_Recursion, Accessible_Part and
+Wellfounded_Relations to "Wellfounded.thy".
 
 * Explicit class "eq" for executable equality.  INCOMPATIBILITY.
 
-* Class finite no longer treats UNIV as class parameter.  Use class enum from
-theory Library/Enum instead to achieve a similar effect.  INCOMPATIBILITY.
-
-* Theory List: rule list_induct2 now has explicitly named cases "Nil" and "Cons".
+* Class finite no longer treats UNIV as class parameter.  Use class
+enum from theory Library/Enum instead to achieve a similar effect.
 INCOMPATIBILITY.
+
+* Theory List: rule list_induct2 now has explicitly named cases "Nil"
+and "Cons".  INCOMPATIBILITY.
 
 * HOL (and FOL): renamed variables in rules imp_elim and swap.
 Potential INCOMPATIBILITY.
 
-* Theory Product_Type: duplicated lemmas split_Pair_apply and injective_fst_snd
-removed, use split_eta and prod_eqI instead.  Renamed upd_fst to apfst and upd_snd
-to apsnd.  INCOMPATIBILITY.
+* Theory Product_Type: duplicated lemmas split_Pair_apply and
+injective_fst_snd removed, use split_eta and prod_eqI instead.
+Renamed upd_fst to apfst and upd_snd to apsnd.  INCOMPATIBILITY.
 
 * Theory Nat: removed redundant lemmas that merely duplicate lemmas of
 the same name in theory Orderings:
@@ -170,7 +170,7 @@ le_def and less_def have disappeared.  Consider lemmas not_less
 
 * Theory Finite_Set: locales ACf, ACe, ACIf, ACIfSL and ACIfSLlin
 (whose purpose mainly is for various fold_set functionals) have been
-abandoned in favour of the existing algebraic classes
+abandoned in favor of the existing algebraic classes
 ab_semigroup_mult, comm_monoid_mult, ab_semigroup_idem_mult,
 lower_semilattice (resp. upper_semilattice) and linorder.
 INCOMPATIBILITY.
@@ -182,7 +182,7 @@ case_names ("base" and "step").  INCOMPATIBILITY.
 lattices.  The form set-specific version is available as
 Inductive.lfp_ordinal_induct_set.
 
-* Theorems "power.simps" renamed to "power_int.simps".
+* Renamed theorems "power.simps" to "power_int.simps".
 
 * Class semiring_div provides basic abstract properties of semirings
 with division and modulo operations.  Subsumes former class dvd_mod.
@@ -208,9 +208,9 @@ primrec specifications have authentic syntax.
 
 * Library/ListVector: new theory of arithmetic vector operations.
 
-* Library/Order_Relation: new theory of various orderings as sets of pairs.
-  Defines preorders, partial orders, linear orders and well-orders
-  on sets and on types.
+* Library/Order_Relation: new theory of various orderings as sets of
+pairs.  Defines preorders, partial orders, linear orders and
+well-orders on sets and on types.
 
 * Constants "card", "internal_split", "option_map" now with authentic
 syntax.  INCOMPATIBILITY.
@@ -223,7 +223,7 @@ Sup_set_def, le_def, less_def, option_map_def now with object
 equality.  INCOMPATIBILITY.
 
 * Method "induction_scheme" derives user-specified induction rules
-from wellfounded induction and completeness of patterns. This factors
+from well-founded induction and completeness of patterns. This factors
 out some operations that are done internally by the function package
 and makes them available separately. See "HOL/ex/Induction_Scheme.thy"
 for examples,
@@ -235,31 +235,32 @@ INCOMPATIBILITY: in cases explicitly referring to K_record.
 * Metis prover is now an order of magnitude faster, and also works
 with multithreading.
 
-* Metis: the maximum number of clauses that can be produced from a theorem is now given by the attribute max_clauses. Theorems that exceed this number are ignored, with a warning printed.
+* Metis: the maximum number of clauses that can be produced from a
+theorem is now given by the attribute max_clauses. Theorems that
+exceed this number are ignored, with a warning printed.
 
-* Sledgehammer no longer produces structured proofs by default. To enable, 
-declare [[sledgehammer_full = true]]. Attributes reconstruction_modulus,  
-reconstruction_sorts renamed sledgehammer_modulus, sledgehammer_sorts. 
-INCOMPATIBILITY.
+* Sledgehammer no longer produces structured proofs by default. To
+enable, declare [[sledgehammer_full = true]]. Attributes
+reconstruction_modulus, reconstruction_sorts renamed
+sledgehammer_modulus, sledgehammer_sorts.  INCOMPATIBILITY.
+
 
 *** ZF ***
 
-* Renamed theories:
+* Renamed some theories to allow to loading both ZF and HOL in the
+same session:
 
-  Datatype.thy  -> Datatype_ZF.thy
-  Inductive.thy -> Inductive_ZF.thy
-  Int.thy       -> Int_ZF.thy
-  IntDiv.thy    -> IntDiv_ZF.thy
-  Nat.thy       -> Nat_ZF.thy
-  List.thy      -> List_ZF.thy
-  Main.thy      -> Main_ZF.thy
+  Datatype  -> Datatype_ZF
+  Inductive -> Inductive_ZF
+  Int       -> Int_ZF
+  IntDiv    -> IntDiv_ZF
+  Nat       -> Nat_ZF
+  List      -> List_ZF
+  Main      -> Main_ZF
 
- This is to allow to load both ZF and HOL in the same session.
-
- INCOMPATIBILITY: ZF theories that import individual theories below
- Main might need to be adapted. For compatibility, a new 
- "theory Main imports Main_ZF begin end" is provided, so if you just
- imported "Main", no changes are needed.
+INCOMPATIBILITY: ZF theories that import individual theories below
+Main might need to be adapted.  Regular theory Main is still
+available, as trivial extension of Main_ZF.
 
 
 *** ML ***
@@ -278,9 +279,9 @@ non-critical.  The global print_mode reference is for session
 management only; user-code should use print_mode_value,
 print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
 
-* system/system_out provides a robust way to invoke external shell
-commands, with propagation of interrupts (after Poly/ML 5.2).  Do not
-use OS.Process.system etc. directly.
+* Functions system/system_out provide a robust way to invoke external
+shell commands, with propagation of interrupts (after Poly/ML 5.2).
+Do not use OS.Process.system etc. from the basis library!
 
 
 *** System ***

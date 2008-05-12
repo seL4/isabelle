@@ -3,6 +3,7 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 who is listed as an author in one of the source files of this Isabelle
 distribution.
 
+
 Contributions to this Isabelle version
 --------------------------------------
 
@@ -12,12 +13,14 @@ Contributions to this Isabelle version
 * December 2007: Florian Haftmann, TUM
   Overloading and Instantiation Target
 
-* February 2008: Alexander Krauss, Florian Haftmann & Lukas Bulwahn, TUM
-  and John Matthews, Galois: HOL/Library/Imperative_HOL: Haskell-style
-  imperative data structures for HOL.
+* February 2008: Alexander Krauss, TUM and Florian Haftmann, TUM and
+  Lukas Bulwahn, TUM and John Matthews, Galois:
+  HOL/Library/Imperative_HOL: Haskell-style imperative data structures
+  for HOL.
 
 * March 2008: Markus Reiter, TUM
   HOL/Library/RBT: red-black trees.
+
 
 Contributions to Isabelle2007
 -----------------------------
