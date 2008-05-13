@@ -26,11 +26,13 @@ fun use_text (tune: string -> string) (line, name) (print, err) verbose txt =
           (in_buffer := cs; if c = #"\n" then current_line := ! current_line + 1 else (); SOME c));
     fun put s = out_buffer := s :: ! out_buffer;
 
+    val parameters =
+     [PolyML.Compiler.CPOutStream put,
+      PolyML.Compiler.CPLineNo (fn () => ! current_line),
+      PolyML.Compiler.CPFileName name];
     val _ =
       (while not (List.null (! in_buffer)) do
-        PolyML.compiler
-          {getChar = get, putString = put, lineNumber = fn () => ! current_line, fileName = name,
-            nameSpace = PolyML.globalNameSpace} ())
+        PolyML.compiler (get, parameters) ())
       handle exn =>
        (put ("Exception- " ^ General.exnMessage exn ^ " raised");
         err (output ()); raise exn);
