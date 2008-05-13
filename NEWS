@@ -244,6 +244,22 @@ enable, declare [[sledgehammer_full = true]]. Attributes
 reconstruction_modulus, reconstruction_sorts renamed
 sledgehammer_modulus, sledgehammer_sorts.  INCOMPATIBILITY.
 
+* More flexible generation of measure functions for termination proofs:
+Measure functions can be declared by proving a rule of the form
+"is_measure f" and giving it the [measure_function] attribute. The
+"is_measure" predicate is logically meaningless (always true), and
+just guides the heuristic.  To find suitable measure functions, the
+termination prover sets up the goal "is_measure ?f" of the appropriate
+type and generates all solutions by prolog-style backwards proof using
+the declared rules.
+
+This setup also deals with rules like 
+
+  "is_measure f ==> is_measure (list_size f)"
+
+which accomodates nested datatypes that recurse through lists. Similar
+rules are predeclared for products and option types.
+
 
 *** ZF ***
 
