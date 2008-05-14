@@ -70,6 +70,8 @@ sig
   val done_text: text
   val sorry_text: bool -> text
   val finish_text: text option * bool -> Position.T -> text
+  val intern: theory -> xstring -> string
+  val defined: theory -> string -> bool
   val method: theory -> src -> Proof.context -> method
   val method_i: theory -> src -> Proof.context -> method
   val add_methods: (bstring * (src -> Proof.context -> method) * string) list
@@ -423,6 +425,9 @@ fun print_methods thy =
 
 
 (* get methods *)
+
+val intern = NameSpace.intern o #1 o Methods.get;
+val defined = Symtab.defined o #2 o Methods.get;
 
 fun method_i thy =
   let
