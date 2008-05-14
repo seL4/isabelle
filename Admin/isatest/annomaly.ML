@@ -44,7 +44,7 @@ local
 
 in
 
-  fun use_text tune (line, name) p v t =
+  fun use_text tune str_of_pos (line, name) p v t =
     let val name = case name of "" => "unnamed" | name => name
         val arcs = rewrite ["use_text"] name
         (* should we have different files for different line numbers? *
@@ -55,7 +55,7 @@ in
 		      andalso name = "ML"
 		   then ["empty_Isabelle", "empty" ] else arcs
         val _    = AnnoMaLy.nameNextStream arcs
-    in  smlnj_use_text tune (line, name) p v t  end;
+    in  smlnj_use_text tune str_of_pos (line, name) p v t  end;
 
   fun use_file tune output verbose name =
       let val arcs = rewrite ["use_file"] name
