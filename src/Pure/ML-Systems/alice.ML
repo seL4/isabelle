@@ -119,8 +119,8 @@ fun install_pp (path, pp) = ();
 
 (* ML command execution *)
 
-fun use_text _ _ _ _ txt = (Compiler.eval txt; ());
-fun use_file _ _ _ name = use name;
+fun use_text _ _ _ _ _ txt = (Compiler.eval txt; ());
+fun use_file _ _ _ _ name = use name;
 
 
 

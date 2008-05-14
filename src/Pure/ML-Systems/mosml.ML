@@ -152,7 +152,7 @@ end;
 (* ML command execution *)
 
 (*Can one redirect 'use' directly to an instream?*)
-fun use_text (tune: string -> string) _ _ _ txt =
+fun use_text (tune: string -> string) _ _ _ _ txt =
   let
     val tmp_name = FileSys.tmpName ();
     val tmp_file = TextIO.openOut tmp_name;
@@ -163,7 +163,7 @@ fun use_text (tune: string -> string) _ _ _ txt =
     FileSys.remove tmp_name
   end;
 
-fun use_file _ _ _ name = use name;
+fun use_file _ _ _ _ name = use name;
 
 
 

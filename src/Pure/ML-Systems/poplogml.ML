@@ -374,5 +374,5 @@ fun use name =
 
 end;
 
-fun use_text _ _ _ txt = use_string txt;
-fun use_file _ _ name = use name;
+fun use_text _ _ _ _ txt = use_string txt;
+fun use_file _ _ _ name = use name;
