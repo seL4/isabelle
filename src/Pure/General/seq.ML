@@ -89,7 +89,7 @@ fun try f x =
 (*the list of the first n elements, paired with rest of sequence;
   if length of list is less than n, then sequence had less than n elements*)
 fun chop n xq =
-  if n <= 0 then ([], xq)
+  if n <= (0: int) then ([], xq)
   else
     (case pull xq of
       NONE => ([], xq)
@@ -174,7 +174,7 @@ fun wrap f xq =
 (*print a sequence, up to "count" elements*)
 fun print print_elem count =
   let
-    fun prnt k xq =
+    fun prnt (k: int) xq =
       if k > count then ()
       else
         (case pull xq of
@@ -229,7 +229,7 @@ fun REPEAT f =
 
 fun REPEAT1 f = THEN (f, REPEAT f);
 
-fun INTERVAL f i j x =
+fun INTERVAL f (i: int) j x =
   if i > j then single x
   else op THEN (f j, INTERVAL f i (j - 1)) x;
 
