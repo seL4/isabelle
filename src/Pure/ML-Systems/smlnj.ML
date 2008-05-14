@@ -129,14 +129,14 @@ fun use_text (tune: string -> string) _ (line: int, name) (print, err) verbose t
     if verbose then print (output ()) else ()
   end;
 
-fun use_file tune _ output verbose name =
+fun use_file tune str_of_pos output verbose name =
   let
     val instream = TextIO.openIn name;
     val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text tune (1, name) output verbose txt end;
+  in use_text tune str_of_pos (1, name) output verbose txt end;
 
 fun forget_structure name =
-  use_text (fn x => x) (1, "ML") (TextIO.print, fn s => raise Fail s) false
+  use_text (fn x => x) (fn _ => "") (1, "ML") (TextIO.print, fn s => raise Fail s) false
     ("structure " ^ name ^ " = struct end");
 
 
