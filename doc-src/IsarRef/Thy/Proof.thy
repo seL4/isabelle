@@ -784,7 +784,7 @@ text {*
   multi-step tactic script for @{command "qed"}, but may be given
   anywhere within the proof body.
   
-  No facts are passed to @{method m} here.  Furthermore, the static
+  No facts are passed to @{text m} here.  Furthermore, the static
   context is that of the enclosing goal (as for actual @{command
   "qed"}).  Thus the proof method may not refer to any assumptions
   introduced in the current body, for example.
@@ -1020,7 +1020,7 @@ text {*
   \item [@{attribute trans}] declares theorems as transitivity rules.
 
   \item [@{attribute sym}] declares symmetry rules, as well as
-  @{attribute "Pure.elim?"} rules.
+  @{attribute "Pure.elim"}@{text "?"} rules.
 
   \item [@{attribute symmetric}] resolves a theorem with some rule
   declared as @{attribute sym} in the current context.  For example,

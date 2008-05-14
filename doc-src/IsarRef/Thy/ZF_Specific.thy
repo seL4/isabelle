@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory ZF_Specific
-imports ZF
+imports Main
 begin
 
 chapter {* Isabelle/ZF \label{ch:zf} *}

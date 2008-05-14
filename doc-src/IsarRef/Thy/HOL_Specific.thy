@@ -53,10 +53,10 @@ text {*
   corresponding injection/surjection pair (in both directions).  Rules
   @{text Rep_t_inject} and @{text Abs_t_inject} provide a slightly
   more convenient view on the injectivity part, suitable for automated
-  proof tools (e.g.\ in @{method simp} or @{method iff} declarations).
-  Rules @{text Rep_t_cases}/@{text Rep_t_induct}, and @{text
-  Abs_t_cases}/@{text Abs_t_induct} provide alternative views on
-  surjectivity; these are already declared as set or type rules for
+  proof tools (e.g.\ in @{attribute simp} or @{attribute iff}
+  declarations).  Rules @{text Rep_t_cases}/@{text Rep_t_induct}, and
+  @{text Abs_t_cases}/@{text Abs_t_induct} provide alternative views
+  on surjectivity; these are already declared as set or type rules for
   the generic @{method cases} and @{method induct} methods.
   
   An alternative name may be specified in parentheses; the default is
@@ -89,7 +89,7 @@ text {*
 
   \begin{descr}
   
-  \item [@{method (HOL) split_format}~@{text "p\<^sub>1 \<dots> p\<^sub>m
+  \item [@{attribute (HOL) split_format}~@{text "p\<^sub>1 \<dots> p\<^sub>m
   \<AND> \<dots> \<AND> q\<^sub>1 \<dots> q\<^sub>n"}] puts expressions of
   low-level tuple types into canonical form as specified by the
   arguments given; the @{text i}-th collection of arguments refers to
@@ -813,15 +813,15 @@ section {* Arithmetic proof support *}
 text {*
   \begin{matharray}{rcl}
     @{method_def (HOL) arith} & : & \isarmeth \\
-    @{method_def (HOL) arith_split} & : & \isaratt \\
+    @{attribute_def (HOL) arith_split} & : & \isaratt \\
   \end{matharray}
 
   The @{method (HOL) arith} method decides linear arithmetic problems
   (on types @{text nat}, @{text int}, @{text real}).  Any current
   facts are inserted into the goal before running the procedure.
 
-  The @{method (HOL) arith_split} attribute declares case split rules
-  to be expanded before the arithmetic procedure is invoked.
+  The @{attribute (HOL) arith_split} attribute declares case split
+  rules to be expanded before the arithmetic procedure is invoked.
 
   Note that a simpler (but faster) version of arithmetic reasoning is
   already performed by the Simplifier.

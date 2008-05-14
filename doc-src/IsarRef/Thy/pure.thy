@@ -731,7 +731,7 @@ text {*
     @{command_def "print_attributes"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
     @{command_def "print_theorems"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
     @{command_def "find_theorems"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "thms_deps"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "thm_deps"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
     @{command_def "print_facts"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
     @{command_def "print_binds"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
   \end{matharray}
@@ -795,7 +795,7 @@ text {*
   yields \emph{all} currently known facts.  An optional limit for the
   number of printed facts may be given; the default is 40.  By
   default, duplicates are removed from the search result. Use
-  @{keyword "with_dups"} to display duplicates.
+  @{text with_dups} to display duplicates.
   
   \item [@{command "thm_deps"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}]
   visualizes dependencies of facts, using Isabelle's graph browser

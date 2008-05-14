@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory Generic
-imports CPure
+imports Main
 begin
 
 chapter {* Generic tools and packages \label{ch:gen-tools} *}

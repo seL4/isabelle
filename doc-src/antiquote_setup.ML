@@ -138,42 +138,50 @@ val _ = O.add_commands
 
 local
 
+fun no_check _ _ = true;
+
+fun thy_check intern defined ctxt =
+  let val thy = ProofContext.theory_of ctxt
+  in defined thy o intern thy end;
+
 val arg = enclose "{" "}" o clean_string;
 
-fun output_entity markup index kind ctxt (logic, name) =
-  (case index of
-    NONE => ""
-  | SOME is_def =>
-      "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name)
-  ^
-  (Output.output name
-    |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
-    |> (if ! O.quotes then quote else I)
-    |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
-        else enclose "\\mbox{\\isa{" "}}"));
+fun output_entity check markup index kind ctxt (logic, name) =
+  if check ctxt name then
+    (case index of
+      NONE => ""
+    | SOME is_def =>
+        "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name)
+    ^
+    (Output.output name
+      |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")                                    
+      |> (if ! O.quotes then quote else I)
+      |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+          else enclose "\\mbox{\\isa{" "}}"))
+  else error ("Undefined " ^ kind ^ " " ^ quote name);
 
-fun entity markup index kind =
+fun entity check markup index kind =
   O.args (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
-    (K (output_entity markup index kind));
+    (K (output_entity check markup index kind));
     
-fun entity_antiqs markup kind =
- [(kind, entity markup NONE kind),
-  (kind ^ "_def", entity markup (SOME true) kind), 
-  (kind ^ "_ref", entity markup (SOME false) kind)];
+fun entity_antiqs check markup kind =
+ [(kind, entity check markup NONE kind),
+  (kind ^ "_def", entity check markup (SOME true) kind), 
+  (kind ^ "_ref", entity check markup (SOME false) kind)];
 
 in
 
 val _ = O.add_commands
- (entity_antiqs "" "syntax" @
-  entity_antiqs "isacommand" "command" @
-  entity_antiqs "isakeyword" "keyword" @
-  entity_antiqs "isakeyword" "element" @
-  entity_antiqs "" "method" @
-  entity_antiqs "" "attribute" @
-  entity_antiqs "" "fact" @
-  entity_antiqs "" "variable" @
-  entity_antiqs "" "case" @
-  entity_antiqs "" "antiquotation");
+ (entity_antiqs no_check "" "syntax" @
+  entity_antiqs (K (is_some o OuterSyntax.command_keyword)) "isacommand" "command" @
+  entity_antiqs (K OuterSyntax.is_keyword) "isakeyword" "keyword" @
+  entity_antiqs (K OuterSyntax.is_keyword) "isakeyword" "element" @
+  entity_antiqs (thy_check Method.intern Method.defined) "" "method" @
+  entity_antiqs (thy_check Attrib.intern Attrib.defined) "" "attribute" @
+  entity_antiqs no_check "" "fact" @
+  entity_antiqs no_check "" "variable" @
+  entity_antiqs no_check "" "case" @
+  entity_antiqs (K ThyOutput.defined_command) "" "antiquotation");
 
 end;
 
