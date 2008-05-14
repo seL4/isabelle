@@ -13,6 +13,8 @@ sig
   val source: bool ref
   val add_commands: (string * (Args.src -> Toplevel.node option -> string)) list -> unit
   val add_options: (string * (string -> (unit -> string) -> unit -> string)) list -> unit
+  val defined_command: string -> bool
+  val defined_option: string -> bool
   val print_antiquotations: unit -> unit
   val boolean: string -> bool
   val integer: string -> int
@@ -65,6 +67,9 @@ in
 
 fun add_commands xs = CRITICAL (fn () => change global_commands (fold (add_item "command") xs));
 fun add_options xs = CRITICAL (fn () => change global_options (fold (add_item "option") xs));
+
+fun defined_command name = Symtab.defined (! global_commands) name;
+fun defined_option name = Symtab.defined (! global_options) name;
 
 fun command src =
   let val ((name, _), pos) = Args.dest_src src in
