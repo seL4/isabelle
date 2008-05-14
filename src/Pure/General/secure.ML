@@ -38,19 +38,19 @@ fun deny_secure msg = if is_secure () then error msg else ();
 
 fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 
-fun orig_use_text x = use_text ML_Parse.fix_ints x;
-fun orig_use_file x = use_file ML_Parse.fix_ints x;
+fun raw_use_text x = use_text ML_Parse.fix_ints (Position.str_of oo Position.line_file) x;
+fun raw_use_file x = use_file ML_Parse.fix_ints (Position.str_of oo Position.line_file) x;
 
 fun use_text pos pr verbose txt =
-  (secure_mltext (); orig_use_text pos pr verbose txt);
+  (secure_mltext (); raw_use_text pos pr verbose txt);
 
 fun use_file pr verbose name =
-  (secure_mltext (); orig_use_file pr verbose name);
+  (secure_mltext (); raw_use_file pr verbose name);
 
 fun use name = use_file Output.ml_output true name;
 
 (*commit is dynamically bound!*)
-fun commit () = orig_use_text (0, "") Output.ml_output false "commit();";
+fun commit () = raw_use_text (0, "") Output.ml_output false "commit();";
 
 
 (* shell commands *)
