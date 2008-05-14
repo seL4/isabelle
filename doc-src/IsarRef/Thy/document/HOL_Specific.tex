@@ -69,9 +69,10 @@
   corresponding injection/surjection pair (in both directions).  Rules
   \isa{Rep{\isacharunderscore}t{\isacharunderscore}inject} and \isa{Abs{\isacharunderscore}t{\isacharunderscore}inject} provide a slightly
   more convenient view on the injectivity part, suitable for automated
-  proof tools (e.g.\ in \mbox{\isa{simp}} or \mbox{\isa{iff}} declarations).
-  Rules \isa{Rep{\isacharunderscore}t{\isacharunderscore}cases}/\isa{Rep{\isacharunderscore}t{\isacharunderscore}induct}, and \isa{Abs{\isacharunderscore}t{\isacharunderscore}cases}/\isa{Abs{\isacharunderscore}t{\isacharunderscore}induct} provide alternative views on
-  surjectivity; these are already declared as set or type rules for
+  proof tools (e.g.\ in \mbox{\isa{simp}} or \mbox{\isa{iff}}
+  declarations).  Rules \isa{Rep{\isacharunderscore}t{\isacharunderscore}cases}/\isa{Rep{\isacharunderscore}t{\isacharunderscore}induct}, and
+  \isa{Abs{\isacharunderscore}t{\isacharunderscore}cases}/\isa{Abs{\isacharunderscore}t{\isacharunderscore}induct} provide alternative views
+  on surjectivity; these are already declared as set or type rules for
   the generic \mbox{\isa{cases}} and \mbox{\isa{induct}} methods.
   
   An alternative name may be specified in parentheses; the default is
@@ -817,15 +818,15 @@ Each theory contains a default set of theorems that are used in
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{HOL}{method}{arith}\mbox{\isa{arith}} & : & \isarmeth \\
-    \indexdef{HOL}{method}{arith\_split}\mbox{\isa{arith{\isacharunderscore}split}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{arith\_split}\mbox{\isa{arith{\isacharunderscore}split}} & : & \isaratt \\
   \end{matharray}
 
   The \mbox{\isa{arith}} method decides linear arithmetic problems
   (on types \isa{nat}, \isa{int}, \isa{real}).  Any current
   facts are inserted into the goal before running the procedure.
 
-  The \mbox{\isa{arith{\isacharunderscore}split}} attribute declares case split rules
-  to be expanded before the arithmetic procedure is invoked.
+  The \mbox{\isa{arith{\isacharunderscore}split}} attribute declares case split
+  rules to be expanded before the arithmetic procedure is invoked.
 
   Note that a simpler (but faster) version of arithmetic reasoning is
   already performed by the Simplifier.%

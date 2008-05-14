@@ -601,9 +601,10 @@ The following proof methods and attributes refer to basic logical
   
   \item [\mbox{\isa{of}}~\isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n{\isachardoublequote}}] performs
   positional instantiation of term variables.  The terms \isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ t\isactrlsub n{\isachardoublequote}} are substituted for any schematic
-  variables occurring in a theorem from left to right; ``\isa{{\isacharunderscore}}'' (underscore) indicates to skip a position.  Arguments following
-  a ``\mbox{\isa{\isakeyword{concl}}}\isa{{\isachardoublequote}{\isacharcolon}{\isachardoublequote}}'' specification refer to positions
-  of the conclusion of a rule.
+  variables occurring in a theorem from left to right; ``\isa{{\isacharunderscore}}''
+  (underscore) indicates to skip a position.  Arguments following a
+  ``\isa{{\isachardoublequote}concl{\isacharcolon}{\isachardoublequote}}'' specification refer to positions of the
+  conclusion of a rule.
   
   \item [\mbox{\isa{where}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ x\isactrlsub n\ {\isacharequal}\ t\isactrlsub n{\isachardoublequote}}] performs named instantiation of schematic
   type and term variables occurring in a theorem.  Schematic variables
@@ -775,7 +776,7 @@ The Isar provides separate commands to accommodate tactic-style
   multi-step tactic script for \mbox{\isa{\isacommand{qed}}}, but may be given
   anywhere within the proof body.
   
-  No facts are passed to \mbox{\isa{m}} here.  Furthermore, the static
+  No facts are passed to \isa{m} here.  Furthermore, the static
   context is that of the enclosing goal (as for actual \mbox{\isa{\isacommand{qed}}}).  Thus the proof method may not refer to any assumptions
   introduced in the current body, for example.
   
@@ -1001,7 +1002,7 @@ The Isar provides separate commands to accommodate tactic-style
   \item [\mbox{\isa{trans}}] declares theorems as transitivity rules.
 
   \item [\mbox{\isa{sym}}] declares symmetry rules, as well as
-  \mbox{\isa{Pure{\isachardot}elim{\isacharquery}}} rules.
+  \mbox{\isa{Pure{\isachardot}elim}}\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}} rules.
 
   \item [\mbox{\isa{symmetric}}] resolves a theorem with some rule
   declared as \mbox{\isa{sym}} in the current context.  For example,

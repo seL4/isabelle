@@ -753,7 +753,7 @@ val print_ast_translation:
     \indexdef{}{command}{print\_attributes}\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{}{command}{print\_theorems}\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{}{command}{find\_theorems}\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{thms\_deps}\mbox{\isa{\isacommand{thms{\isacharunderscore}deps}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{thm\_deps}\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{}{command}{print\_facts}\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
     \indexdef{}{command}{print\_binds}\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
   \end{matharray}
@@ -816,7 +816,7 @@ val print_ast_translation:
   yields \emph{all} currently known facts.  An optional limit for the
   number of printed facts may be given; the default is 40.  By
   default, duplicates are removed from the search result. Use
-  \mbox{\isa{\isakeyword{with{\isacharunderscore}dups}}} to display duplicates.
+  \isa{with{\isacharunderscore}dups} to display duplicates.
   
   \item [\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}]
   visualizes dependencies of facts, using Isabelle's graph browser
