@@ -209,8 +209,8 @@ fun exists_name name (thy as Theory ({id, ids, iids, ...}, _, _, _)) =
   Inttab.exists (equal name o #2) ids orelse
   Inttab.exists (equal name o #2) iids;
 
-fun names_of (Theory ({id, ids, iids, ...}, _, _, _)) =
-  rev (#2 id :: Inttab.fold (cons o #2) iids (Inttab.fold (cons o #2) ids []));
+fun names_of (Theory ({id, ids, ...}, _, _, _)) =
+  rev (#2 id :: Inttab.fold (cons o #2) ids []);
 
 fun pretty_thy thy =
   Pretty.str_list "{" "}" (names_of thy @ (if is_stale thy then ["!"] else []));
