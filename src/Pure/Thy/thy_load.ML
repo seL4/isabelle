@@ -98,7 +98,7 @@ fun deps_thy dir name =
     val master as (path, _) = check_thy dir name;
     val text = explode (File.read path);
     val (name', imports, uses) =
-      ThyHeader.read (Position.path path) (Source.of_list_limited 8000 text);
+      ThyHeader.read (Path.position path) (Source.of_list_limited 8000 text);
     val _ = name = name' orelse
       error ("Filename " ^ quote (Path.implode (Path.base path)) ^
         " does not agree with theory name " ^ quote name');

@@ -116,7 +116,7 @@ end;
 (* HTML presentation -- example *)
 
 fun present_html inpath outpath =
-  Source.exhaust (item_source (Position.path inpath) (Source.of_string (File.read inpath)))
+  Source.exhaust (item_source (Path.position inpath) (Source.of_string (File.read inpath)))
   |> HTML.html_mode (implode o map present_item)
   |> enclose
     (HTML.begin_document (Path.implode (Path.base inpath)) ^ "<div class=\"source\"><pre>")

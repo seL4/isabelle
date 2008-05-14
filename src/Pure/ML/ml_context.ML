@@ -187,7 +187,7 @@ end;
 (* ML evaluation *)
 
 val eval = eval_wrapper Output.ml_output;
-fun eval_file path = eval true (Position.path path) (File.read path);
+fun eval_file path = eval true (Path.position path) (File.read path);
 
 fun eval_in context verbose pos txt =
   Context.setmp_thread_data context (fn () => eval verbose pos txt) ();

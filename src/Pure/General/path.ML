@@ -26,6 +26,7 @@ sig
   val ext: string -> T -> T
   val split_ext: T -> T * string
   val expand: T -> T
+  val position: T -> Position.T
 end;
 
 structure Path: PATH =
@@ -151,6 +152,11 @@ fun eval (Variable s) =
   | eval x = [x];
 
 val expand = rep #> maps eval #> norm #> Path;
+
+
+(* source position *)
+
+val position = Position.file o implode_path o expand;
 
 
 (*final declarations of this structure!*)

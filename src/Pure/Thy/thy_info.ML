@@ -307,7 +307,7 @@ fun load_thy time upd_time initiators dir name =
     val (pos, text, files) =
       (case get_deps name of
         SOME {master = SOME (master_path, _), text as _ :: _, files, ...} =>
-          (Position.path master_path, text, files)
+          (Path.position master_path, text, files)
       | _ => error (loader_msg "corrupted dependency information" [name]));
     val _ = touch_thy name;
     val _ = CRITICAL (fn () =>
