@@ -17,6 +17,7 @@ sig
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
+  val defined: theory -> string -> bool
   val attribute: theory -> src -> attribute
   val attribute_i: theory -> src -> attribute
   val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
@@ -92,6 +93,8 @@ fun pretty_attribs _ [] = []
 
 
 (* get attributes *)
+
+val defined = Symtab.defined o #2 o Attributes.get;
 
 fun attribute_i thy =
   let
