@@ -294,7 +294,7 @@ lemma validE [consumes 5]:
    and    wt: "normal s0 \<Longrightarrow> \<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T"
    and    da: "normal s0 \<Longrightarrow> \<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>dom (locals (store s0))\<guillemotright>t\<guillemotright>C"
    and    elim: "\<lbrakk>Q v s1 Z; s1\<Colon>\<preceq>(G,L)\<rbrakk> \<Longrightarrow> concl" 
-  shows "concl"
+  shows concl
 using prems
 by (simp add: ax_valids2_def triple_valid2_def2) fast
 (* why consumes 5?. If I want to apply this lemma in a context wgere

@@ -20,7 +20,7 @@ val _ = OuterSyntax.keywords
  ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
   "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
   "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
-  "advanced", "and", "assumes", "attach", "begin", "binder", "concl",
+  "advanced", "and", "assumes", "attach", "begin", "binder",
   "constrains", "defines", "fixes", "for", "identifier", "if",
   "imports", "in", "includes", "infix", "infixl", "infixr", "is",
   "notes", "obtains", "open", "output", "overloaded", "shows",

@@ -607,10 +607,10 @@ text {*
   \item [@{attribute of}~@{text "t\<^sub>1 \<dots> t\<^sub>n"}] performs
   positional instantiation of term variables.  The terms @{text
   "t\<^sub>1, \<dots>, t\<^sub>n"} are substituted for any schematic
-  variables occurring in a theorem from left to right; ``@{text
-  _}'' (underscore) indicates to skip a position.  Arguments following
-  a ``@{keyword "concl"}@{text ":"}'' specification refer to positions
-  of the conclusion of a rule.
+  variables occurring in a theorem from left to right; ``@{text _}''
+  (underscore) indicates to skip a position.  Arguments following a
+  ``@{text "concl:"}'' specification refer to positions of the
+  conclusion of a rule.
   
   \item [@{attribute "where"}~@{text "x\<^sub>1 = t\<^sub>1 \<AND> \<dots>
   x\<^sub>n = t\<^sub>n"}] performs named instantiation of schematic
