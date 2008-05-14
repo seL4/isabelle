@@ -12,9 +12,9 @@ sig
   val column_of: T -> int option
   val file_of: T -> string option
   val none: T
+  val line_file: int -> string -> T
   val line: int -> T
   val file: string -> T
-  val path: Path.T -> T
   val advance: Symbol.symbol -> T -> T
   val of_properties: Markup.property list -> T
   val properties_of: T -> Markup.property list
@@ -40,10 +40,13 @@ fun column_of (Pos (SOME (_, n), _)) = SOME n
 
 fun file_of (Pos (_, props)) = AList.lookup (op =) props Markup.fileN;
 
+
 val none = Pos (NONE, []);
-fun line m = Pos (SOME (m, 1), []);
-fun file name = Pos (SOME (1, 1), [(Markup.fileN, name)]);
-val path = file o Path.implode o Path.expand;
+
+fun line_file m name = Pos (SOME (m, 1), if name = "" then [] else [(Markup.fileN, name)]);
+fun line m = line_file m "";
+val file = line_file 1;
+
 
 fun advance "\n" (Pos (SOME (m, _), props)) = Pos (SOME (m + 1, 1), props)
   | advance s (pos as Pos (SOME (m, n), props)) =
