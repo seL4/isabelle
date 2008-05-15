@@ -18,8 +18,7 @@ NAME = locales
 
 FILES = Locales/document/root.tex Locales/document/root.bib \
   Locales/document/session.tex Locales/document/Locales.tex \
-  Locales/document/isabelle.sty Locales/document/isabellesym.sty \
-  Locales/document/pdfsetup.sty 
+  ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty 
 
 dvi: $(NAME).dvi
 
