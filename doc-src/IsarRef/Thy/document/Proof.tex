@@ -217,7 +217,7 @@ Proof commands perform transitions of Isar/VM machine
   of the premises of the rule involved.  Note that positions may be
   easily skipped using something like \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{{\isachardoublequote}{\isacharunderscore}\ {\isasymAND}\ a\ {\isasymAND}\ b{\isachardoublequote}}, for example.  This involves the trivial rule
   \isa{{\isachardoublequote}PROP\ {\isasympsi}\ {\isasymLongrightarrow}\ PROP\ {\isasympsi}{\isachardoublequote}}, which is bound in Isabelle/Pure as
-  ``\indexref{}{fact}{\_}\hyperlink{fact.-}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore).
+  ``\indexref{}{fact}{\_}\hyperlink{fact.underscore}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore).
 
   Automated methods (such as \hyperlink{method.simp}{\mbox{\isa{simp}}} or \hyperlink{method.auto}{\mbox{\isa{auto}}}) just
   insert any given facts before their usual operation.  Depending on
@@ -635,7 +635,7 @@ The following proof methods and attributes refer to basic logical
   goal statements with a list of patterns ``\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}{\isachardoublequote}}''.  In both cases, higher-order matching is invoked to
   bind extra-logical term variables, which may be either named
   schematic variables of the form \isa{{\isacharquery}x}, or nameless dummies
-  ``\hyperlink{variable.-}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore). Note that in the \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}
+  ``\hyperlink{variable.underscore}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore). Note that in the \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}
   form the patterns occur on the left-hand side, while the \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns are in postfix position.
 
   Polymorphism of term bindings is handled in Hindley-Milner style,
