@@ -108,7 +108,8 @@ predicates.
 both pdf and dvi (hyperlinks usually work in xdvi as well); removed
 obsolete thumbpdf setup (contemporary PDF viewers do this on the
 spot); renamed link color from "darkblue" to "linkcolor" (default
-value unchanged, can be redefined via \definecolor).
+value unchanged, can be redefined via \definecolor); no longer sets
+"a4paper" option (unnecessary or even intrusive).
 
 * Antiquotation "lemma" takes a proposition and a simple method text
 as argument and asserts that the proposition is provable by the
