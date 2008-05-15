@@ -1,18 +1,8 @@
 %%
 %% $Id$
 %%
-%% default pdfoutput and hyperref setup
+%% default hyperref setup (both for pdf and dvi output)
 %%
-
-\newif\ifpdfoutput
-\ifx\pdfoutput\undefined
-\else
-  \ifx\pdfoutput\relax
-  \else
-    \ifcase\pdfoutput
-    \else\pdfoutputtrue\fi
-  \fi
-\fi
 
 \usepackage{color}
 \definecolor{linkcolor}{rgb}{0,0,0.5}
