@@ -18,7 +18,7 @@ NAME = implementation
 FILES = implementation.tex intro.tex Thy/document/prelim.tex Thy/document/logic.tex \
   Thy/document/tactic.tex Thy/document/proof.tex Thy/document/locale.tex \
   Thy/document/integration.tex style.sty ../iman.sty ../extra.sty ../isar.sty \
-  ../manual.bib ../proof.sty
+  ../pdfsetup.sty ../manual.bib ../proof.sty
 
 dvi: $(NAME).dvi
 
