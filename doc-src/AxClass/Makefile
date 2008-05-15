@@ -13,8 +13,9 @@ include ../Makefile.in
 
 NAME = axclass
 
-FILES = axclass.tex body.tex ../iman.sty ../extra.sty ../isar.sty \
-  ../pdfsetup.sty Group/document/Group.tex Nat/document/NatClass.tex \
+FILES = axclass.tex body.tex ../iman.sty ../extra.sty ../isar.sty	\
+  ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty			\
+  Group/document/Group.tex Nat/document/NatClass.tex			\
   Group/document/Product.tex Group/document/Semigroups.tex
 
 dvi: $(NAME).dvi

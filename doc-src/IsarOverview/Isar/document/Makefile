@@ -12,7 +12,7 @@ include ../../../Makefile.in
 
 dvi: ../../isar-overview.dvi
 
-../../isar-overview.dvi: *.tex *.sty *.bib
+../../isar-overview.dvi: *.tex *.bib
 	$(LATEX) root
 	$(BIBTEX) root
 	$(LATEX) root
@@ -21,7 +21,7 @@ dvi: ../../isar-overview.dvi
 
 pdf: ../../isar-overview.pdf
 
-../../isar-overview.pdf: *.tex *.sty *.bib
+../../isar-overview.pdf: *.tex *.bib
 	$(PDFLATEX) root
 	$(BIBTEX) root
 	$(PDFLATEX) root

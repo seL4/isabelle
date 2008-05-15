@@ -12,8 +12,9 @@ default: dvi
 include ../Makefile.in
 
 NAME = logics-ZF
-FILES = logics-ZF.tex ../Logics/syntax.tex FOL.tex ZF.tex logics.sty\
-	../rail.sty ../proof.sty ../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
+FILES = logics-ZF.tex ../Logics/syntax.tex FOL.tex ZF.tex logics.sty	\
+  ../rail.sty ../proof.sty ../iman.sty ../extra.sty ../ttbox.sty	\
+  ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty ../manual.bib
 
 dvi: $(NAME).dvi
 
