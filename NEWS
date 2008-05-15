@@ -104,6 +104,12 @@ predicates.
 
 *** Document preparation ***
 
+* Simplified pdfsetup.sty: color/hyperref is used unconditionally for
+both pdf and dvi (hyperlinks usually work in xdvi as well); removed
+obsolete thumbpdf setup (contemporary PDF viewers do this on the
+spot); renamed link color from "darkblue" to "linkcolor" (default
+value unchanged, can be redefined via \definecolor).
+
 * Antiquotation "lemma" takes a proposition and a simple method text
 as argument and asserts that the proposition is provable by the
 corresponding method invocation.  Prints text of proposition, as does
