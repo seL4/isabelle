@@ -15,11 +15,19 @@ structure O = ThyOutput;
 
 val clean_string = translate_string
   (fn "_" => "\\_"
+    | "<" => "$<$"
     | ">" => "$>$"
     | "#" => "\\#"
     | "{" => "\\{"
     | "}" => "\\}"
     | c => c);
+
+fun clean_name "\\<dots>" = "dots"
+  | clean_name ".." = "ddot"
+  | clean_name "." = "dot"
+  | clean_name "{" = "braceleft"
+  | clean_name "}" = "braceright"
+  | clean_name s = s;
 
 val str_of_source = space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
 
@@ -147,26 +155,34 @@ fun thy_check intern defined ctxt =
 val arg = enclose "{" "}" o clean_string;
 
 fun output_entity check markup index kind ctxt (logic, name) =
-  if check ctxt name then
-    (case index of
-      NONE => ""
-    | SOME is_def =>
-        "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name)
-    ^
-    (Output.output name
-      |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")                                    
-      |> (if ! O.quotes then quote else I)
-      |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
-          else enclose "\\mbox{\\isa{" "}}"))
-  else error ("Undefined " ^ kind ^ " " ^ quote name);
+  let
+    val hyper_name = "{" ^ NameSpace.append kind (NameSpace.append logic (clean_name name)) ^ "}";
+    val hyper =
+      enclose ("\\hyperlink" ^ hyper_name ^ "{") "}" #>
+      index = SOME true ? enclose ("\\hypertarget" ^ hyper_name ^ "{") "}";
+    val idx =
+      (case index of
+        NONE => ""
+      | SOME is_def =>
+          "\\index" ^ (if is_def then "def" else "ref") ^ arg logic ^ arg kind ^ arg name);
+  in
+    if check ctxt name then
+      idx ^
+      (Output.output name
+        |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
+        |> (if ! O.quotes then quote else I)
+        |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+            else hyper o enclose "\\mbox{\\isa{" "}}"))
+    else error ("Undefined " ^ kind ^ " " ^ quote name)
+  end;
 
 fun entity check markup index kind =
   O.args (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
     (K (output_entity check markup index kind));
-    
+
 fun entity_antiqs check markup kind =
  [(kind, entity check markup NONE kind),
-  (kind ^ "_def", entity check markup (SOME true) kind), 
+  (kind ^ "_def", entity check markup (SOME true) kind),
   (kind ^ "_ref", entity check markup (SOME false) kind)];
 
 in
