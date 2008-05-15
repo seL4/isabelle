@@ -20,7 +20,7 @@ FILES = isar-ref.tex style.sty basics.tex Thy/document/Generic.tex \
   Thy/document/ZF_Specific.tex Thy/document/intro.tex \
   Thy/document/pure.tex Thy/document/syntax.tex \
   ../isar.sty ../rail.sty ../railsetup.sty ../proof.sty \
-  ../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
+  ../iman.sty ../extra.sty ../ttbox.sty ../pdfsetup.sty ../manual.bib
 
 dvi: $(NAME).dvi
 
