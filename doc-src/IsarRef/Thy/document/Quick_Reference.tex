@@ -154,14 +154,14 @@
     \multicolumn{2}{l}{\textbf{Repeated steps (inserting facts)}} \\[0.5ex]
     \hyperlink{method.-}{\mbox{\isa{{\isacharminus}}}} & no rules \\
     \hyperlink{method.intro}{\mbox{\isa{intro}}}~\isa{a} & introduction rules \\
-    \hyperlink{method.intro_classes}{\mbox{\isa{intro{\isacharunderscore}classes}}} & class introduction rules \\
+    \hyperlink{method.intro-classes}{\mbox{\isa{intro{\isacharunderscore}classes}}} & class introduction rules \\
     \hyperlink{method.elim}{\mbox{\isa{elim}}}~\isa{a} & elimination rules \\
     \hyperlink{method.unfold}{\mbox{\isa{unfold}}}~\isa{a} & definitional rewrite rules \\[2ex]
 
     \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts)}} \\[0.5ex]
     \hyperlink{method.iprover}{\mbox{\isa{iprover}}} & intuitionistic proof search \\
     \hyperlink{method.blast}{\mbox{\isa{blast}}}, \hyperlink{method.fast}{\mbox{\isa{fast}}} & Classical Reasoner \\
-    \hyperlink{method.simp}{\mbox{\isa{simp}}}, \hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}} & Simplifier (+ Splitter) \\
+    \hyperlink{method.simp}{\mbox{\isa{simp}}}, \hyperlink{method.simp-all}{\mbox{\isa{simp{\isacharunderscore}all}}} & Simplifier (+ Splitter) \\
     \hyperlink{method.auto}{\mbox{\isa{auto}}}, \hyperlink{method.force}{\mbox{\isa{force}}} & Simplifier + Classical Reasoner \\
     \hyperlink{method.arith}{\mbox{\isa{arith}}} & Arithmetic procedures \\
   \end{tabular}%
@@ -180,8 +180,8 @@
     \hyperlink{attribute.where}{\mbox{\isa{where}}}~\isa{{\isachardoublequote}x\ {\isacharequal}\ t{\isachardoublequote}} & rule instantiated with terms, by variable name \\
     \hyperlink{attribute.symmetric}{\mbox{\isa{symmetric}}} & resolution with symmetry rule \\
     \hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}~\isa{b} & resolution with another rule \\
-    \hyperlink{attribute.rule_format}{\mbox{\isa{rule{\isacharunderscore}format}}} & result put into standard rule format \\
-    \hyperlink{attribute.elim_format}{\mbox{\isa{elim{\isacharunderscore}format}}} & destruct rule turned into elimination rule format \\[1ex]
+    \hyperlink{attribute.rule-format}{\mbox{\isa{rule{\isacharunderscore}format}}} & result put into standard rule format \\
+    \hyperlink{attribute.elim-format}{\mbox{\isa{elim{\isacharunderscore}format}}} & destruct rule turned into elimination rule format \\[1ex]
 
     \multicolumn{2}{l}{\textbf{Declarations}} \\[0.5ex]
     \hyperlink{attribute.simp}{\mbox{\isa{simp}}} & Simplifier rule \\
@@ -201,7 +201,7 @@
 \begin{isamarkuptext}%
 \begin{tabular}{l|lllll}
       & \hyperlink{method.rule}{\mbox{\isa{rule}}} & \hyperlink{method.iprover}{\mbox{\isa{iprover}}} & \hyperlink{method.blast}{\mbox{\isa{blast}}} & \hyperlink{method.simp}{\mbox{\isa{simp}}} & \hyperlink{method.auto}{\mbox{\isa{auto}}} \\
-      &                &                   & \hyperlink{method.fast}{\mbox{\isa{fast}}} & \hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}} & \hyperlink{method.force}{\mbox{\isa{force}}} \\
+      &                &                   & \hyperlink{method.fast}{\mbox{\isa{fast}}} & \hyperlink{method.simp-all}{\mbox{\isa{simp{\isacharunderscore}all}}} & \hyperlink{method.force}{\mbox{\isa{force}}} \\
     \hline
     \hyperlink{attribute.Pure.elim}{\mbox{\isa{Pure{\isachardot}elim}}}\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}} \hyperlink{attribute.Pure.intro}{\mbox{\isa{Pure{\isachardot}intro}}}\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}
       & \isa{{\isachardoublequote}{\isasymtimes}{\isachardoublequote}}    & \isa{{\isachardoublequote}{\isasymtimes}{\isachardoublequote}} \\
@@ -238,7 +238,7 @@
 \begin{isamarkuptext}%
 \begin{tabular}{ll}
     \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}~\isa{m} & apply proof method at initial position \\
-    \hyperlink{command.apply_end}{\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}}~\isa{m} & apply proof method near terminal position \\
+    \hyperlink{command.apply-end}{\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}}~\isa{m} & apply proof method near terminal position \\
     \hyperlink{command.done}{\mbox{\isa{\isacommand{done}}}} & complete proof \\
     \hyperlink{command.defer}{\mbox{\isa{\isacommand{defer}}}}~\isa{n} & move subgoal to end \\
     \hyperlink{command.prefer}{\mbox{\isa{\isacommand{prefer}}}}~\isa{n} & move subgoal to beginning \\
@@ -253,19 +253,19 @@
 %
 \begin{isamarkuptext}%
 \begin{tabular}{ll}
-    \hyperlink{method.rule_tac}{\mbox{\isa{rule{\isacharunderscore}tac}}}~\isa{insts} & resolution (with instantiation) \\
-    \hyperlink{method.erule_tac}{\mbox{\isa{erule{\isacharunderscore}tac}}}~\isa{insts} & elim-resolution (with instantiation) \\
-    \hyperlink{method.drule_tac}{\mbox{\isa{drule{\isacharunderscore}tac}}}~\isa{insts} & destruct-resolution (with instantiation) \\
-    \hyperlink{method.frule_tac}{\mbox{\isa{frule{\isacharunderscore}tac}}}~\isa{insts} & forward-resolution (with instantiation) \\
-    \hyperlink{method.cut_tac}{\mbox{\isa{cut{\isacharunderscore}tac}}}~\isa{insts} & insert facts (with instantiation) \\
-    \hyperlink{method.thin_tac}{\mbox{\isa{thin{\isacharunderscore}tac}}}~\isa{{\isasymphi}} & delete assumptions \\
-    \hyperlink{method.subgoal_tac}{\mbox{\isa{subgoal{\isacharunderscore}tac}}}~\isa{{\isasymphi}} & new claims \\
-    \hyperlink{method.rename_tac}{\mbox{\isa{rename{\isacharunderscore}tac}}}~\isa{x} & rename innermost goal parameters \\
-    \hyperlink{method.rotate_tac}{\mbox{\isa{rotate{\isacharunderscore}tac}}}~\isa{n} & rotate assumptions of goal \\
+    \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}}~\isa{insts} & resolution (with instantiation) \\
+    \hyperlink{method.erule-tac}{\mbox{\isa{erule{\isacharunderscore}tac}}}~\isa{insts} & elim-resolution (with instantiation) \\
+    \hyperlink{method.drule-tac}{\mbox{\isa{drule{\isacharunderscore}tac}}}~\isa{insts} & destruct-resolution (with instantiation) \\
+    \hyperlink{method.frule-tac}{\mbox{\isa{frule{\isacharunderscore}tac}}}~\isa{insts} & forward-resolution (with instantiation) \\
+    \hyperlink{method.cut-tac}{\mbox{\isa{cut{\isacharunderscore}tac}}}~\isa{insts} & insert facts (with instantiation) \\
+    \hyperlink{method.thin-tac}{\mbox{\isa{thin{\isacharunderscore}tac}}}~\isa{{\isasymphi}} & delete assumptions \\
+    \hyperlink{method.subgoal-tac}{\mbox{\isa{subgoal{\isacharunderscore}tac}}}~\isa{{\isasymphi}} & new claims \\
+    \hyperlink{method.rename-tac}{\mbox{\isa{rename{\isacharunderscore}tac}}}~\isa{x} & rename innermost goal parameters \\
+    \hyperlink{method.rotate-tac}{\mbox{\isa{rotate{\isacharunderscore}tac}}}~\isa{n} & rotate assumptions of goal \\
     \hyperlink{method.tactic}{\mbox{\isa{tactic}}}~\isa{{\isachardoublequote}text{\isachardoublequote}} & arbitrary ML tactic \\
-    \hyperlink{method.case_tac}{\mbox{\isa{case{\isacharunderscore}tac}}}~\isa{t} & exhaustion (datatypes) \\
-    \hyperlink{method.induct_tac}{\mbox{\isa{induct{\isacharunderscore}tac}}}~\isa{x} & induction (datatypes) \\
-    \hyperlink{method.ind_cases}{\mbox{\isa{ind{\isacharunderscore}cases}}}~\isa{t} & exhaustion + simplification (inductive predicates) \\
+    \hyperlink{method.case-tac}{\mbox{\isa{case{\isacharunderscore}tac}}}~\isa{t} & exhaustion (datatypes) \\
+    \hyperlink{method.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}}~\isa{x} & induction (datatypes) \\
+    \hyperlink{method.ind-cases}{\mbox{\isa{ind{\isacharunderscore}cases}}}~\isa{t} & exhaustion + simplification (inductive predicates) \\
   \end{tabular}%
 \end{isamarkuptext}%
 \isamarkuptrue%

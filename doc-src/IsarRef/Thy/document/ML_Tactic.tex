@@ -67,8 +67,8 @@ Classic Isabelle provides several variant forms of tactics for
 
   \end{enumerate}
 
-  Basically, the set of Isar tactic emulations \hyperlink{method.rule_tac}{\mbox{\isa{rule{\isacharunderscore}tac}}},
-  \hyperlink{method.erule_tac}{\mbox{\isa{erule{\isacharunderscore}tac}}}, \hyperlink{method.drule_tac}{\mbox{\isa{drule{\isacharunderscore}tac}}}, \hyperlink{method.frule_tac}{\mbox{\isa{frule{\isacharunderscore}tac}}} (see
+  Basically, the set of Isar tactic emulations \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}},
+  \hyperlink{method.erule-tac}{\mbox{\isa{erule{\isacharunderscore}tac}}}, \hyperlink{method.drule-tac}{\mbox{\isa{drule{\isacharunderscore}tac}}}, \hyperlink{method.frule-tac}{\mbox{\isa{frule{\isacharunderscore}tac}}} (see
   \secref{sec:tactics}) would be sufficient to cover the four modes,
   either with or without instantiation, and either with single or
   multiple arguments.  Although it is more convenient in most cases to
@@ -76,7 +76,7 @@ Classic Isabelle provides several variant forms of tactics for
   \secref{sec:pure-meth-att}), or any of its ``improper'' variants
   \hyperlink{method.erule}{\mbox{\isa{erule}}}, \hyperlink{method.drule}{\mbox{\isa{drule}}}, \hyperlink{method.frule}{\mbox{\isa{frule}}} (see
   \secref{sec:misc-meth-att}).  Note that explicit goal addressing is
-  only supported by the actual \hyperlink{method.rule_tac}{\mbox{\isa{rule{\isacharunderscore}tac}}} version.
+  only supported by the actual \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}} version.
 
   With this in mind, plain resolution tactics correspond to Isar
   methods as follows.
@@ -106,15 +106,15 @@ Classic Isabelle provides several variant forms of tactics for
 \begin{isamarkuptext}%
 The main Simplifier tactics \verb|simp_tac| and variants (cf.\
   \cite{isabelle-ref}) are all covered by the \hyperlink{method.simp}{\mbox{\isa{simp}}} and
-  \hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}} methods (see \secref{sec:simplifier}).  Note that
+  \hyperlink{method.simp-all}{\mbox{\isa{simp{\isacharunderscore}all}}} methods (see \secref{sec:simplifier}).  Note that
   there is no individual goal addressing available, simplification
   acts either on the first goal (\hyperlink{method.simp}{\mbox{\isa{simp}}}) or all goals
-  (\hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}}).
+  (\hyperlink{method.simp-all}{\mbox{\isa{simp{\isacharunderscore}all}}}).
 
   \medskip
   \begin{tabular}{lll}
     \verb|asm_full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \hyperlink{method.simp}{\mbox{\isa{simp}}} \\
-    \verb|ALLGOALS|~(\verb|asm_full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}{\isachardoublequote}}) & & \hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}} \\[0.5ex]
+    \verb|ALLGOALS|~(\verb|asm_full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}{\isachardoublequote}}) & & \hyperlink{method.simp-all}{\mbox{\isa{simp{\isacharunderscore}all}}} \\[0.5ex]
     \verb|simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \hyperlink{method.simp}{\mbox{\isa{simp}}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isachardoublequote}} \\
     \verb|asm_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \hyperlink{method.simp}{\mbox{\isa{simp}}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}{\isachardoublequote}} \\
     \verb|full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \hyperlink{method.simp}{\mbox{\isa{simp}}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}{\isachardoublequote}} \\
@@ -193,7 +193,7 @@ Classic Isabelle provides a huge amount of tacticals for combination
   \medskip \verb|ALLGOALS|, \verb|SOMEGOAL| etc.\ (see
   \cite{isabelle-ref}) are not available in Isar, since there is no
   direct goal addressing.  Nevertheless, some basic methods address
-  all goals internally, notably \hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}} (see
+  all goals internally, notably \hyperlink{method.simp-all}{\mbox{\isa{simp{\isacharunderscore}all}}} (see
   \secref{sec:simplifier}).  Also note that \verb|ALLGOALS| can be
   often replaced by ``\isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}}'' (repeat at least once), although
   this usually has a different operational behavior, such as solving

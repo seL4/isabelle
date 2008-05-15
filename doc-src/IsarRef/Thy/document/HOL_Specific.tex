@@ -95,7 +95,7 @@
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \hyperlink{attribute.HOL.split_format}{\mbox{\isa{split{\isacharunderscore}format}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isaratt \\
+    \hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isacharunderscore}format}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isaratt \\
   \end{matharray}
 
   \begin{rail}
@@ -105,7 +105,7 @@
 
   \begin{descr}
   
-  \item [\hyperlink{attribute.HOL.split_format}{\mbox{\isa{split{\isacharunderscore}format}}}~\isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub m\ {\isasymAND}\ {\isasymdots}\ {\isasymAND}\ q\isactrlsub {\isadigit{1}}\ {\isasymdots}\ q\isactrlsub n{\isachardoublequote}}] puts expressions of
+  \item [\hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isacharunderscore}format}}}~\isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub m\ {\isasymAND}\ {\isasymdots}\ {\isasymAND}\ q\isactrlsub {\isadigit{1}}\ {\isasymdots}\ q\isactrlsub n{\isachardoublequote}}] puts expressions of
   low-level tuple types into canonical form as specified by the
   arguments given; the \isa{i}-th collection of arguments refers to
   occurrences in premise \isa{i} of the rule.  The ``\isa{{\isachardoublequote}{\isacharparenleft}complete{\isacharparenright}{\isachardoublequote}}'' option causes \emph{all} arguments in function
@@ -365,7 +365,7 @@ The record package proves several results internally, declaring
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{HOL}{command}{datatype}\hypertarget{command.HOL.datatype}{\hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{rep\_datatype}\hypertarget{command.HOL.rep_datatype}{\hyperlink{command.HOL.rep_datatype}{\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{rep\_datatype}\hypertarget{command.HOL.rep-datatype}{\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -386,7 +386,7 @@ The record package proves several results internally, declaring
   \item [\hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}}] defines inductive datatypes in
   HOL.
 
-  \item [\hyperlink{command.HOL.rep_datatype}{\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}}}] represents existing types as
+  \item [\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}}}] represents existing types as
   inductive ones, generating the standard infrastructure of derived
   concepts (primitive recursion etc.).
 
@@ -399,7 +399,7 @@ The record package proves several results internally, declaring
   See \cite{isabelle-HOL} for more details on datatypes, but beware of
   the old-style theory syntax being used there!  Apart from proper
   proof methods for case-analysis and induction, there are also
-  emulations of ML tactics \hyperlink{method.HOL.case_tac}{\mbox{\isa{case{\isacharunderscore}tac}}} and \hyperlink{method.HOL.induct_tac}{\mbox{\isa{induct{\isacharunderscore}tac}}} available, see \secref{sec:hol-induct-tac}; these admit
+  emulations of ML tactics \hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isacharunderscore}tac}}} and \hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}} available, see \secref{sec:hol-induct-tac}; these admit
   to refer directly to the internal structure of subgoals (including
   internally bound parameters).%
 \end{isamarkuptext}%
@@ -518,9 +518,9 @@ The record package proves several results internally, declaring
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{HOL}{method}{pat\_completeness}\hypertarget{method.HOL.pat_completeness}{\hyperlink{method.HOL.pat_completeness}{\mbox{\isa{pat{\isacharunderscore}completeness}}}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{pat\_completeness}\hypertarget{method.HOL.pat-completeness}{\hyperlink{method.HOL.pat-completeness}{\mbox{\isa{pat{\isacharunderscore}completeness}}}} & : & \isarmeth \\
     \indexdef{HOL}{method}{relation}\hypertarget{method.HOL.relation}{\hyperlink{method.HOL.relation}{\mbox{\isa{relation}}}} & : & \isarmeth \\
-    \indexdef{HOL}{method}{lexicographic\_order}\hypertarget{method.HOL.lexicographic_order}{\hyperlink{method.HOL.lexicographic_order}{\mbox{\isa{lexicographic{\isacharunderscore}order}}}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{lexicographic\_order}\hypertarget{method.HOL.lexicographic-order}{\hyperlink{method.HOL.lexicographic-order}{\mbox{\isa{lexicographic{\isacharunderscore}order}}}} & : & \isarmeth \\
   \end{matharray}
 
   \begin{rail}
@@ -532,7 +532,7 @@ The record package proves several results internally, declaring
 
   \begin{descr}
 
-  \item [\hyperlink{method.HOL.pat_completeness}{\mbox{\isa{pat{\isacharunderscore}completeness}}}] is a specialized method to
+  \item [\hyperlink{method.HOL.pat-completeness}{\mbox{\isa{pat{\isacharunderscore}completeness}}}] is a specialized method to
   solve goals regarding the completeness of pattern matching, as
   required by the \hyperlink{command.HOL.function}{\mbox{\isa{\isacommand{function}}}} package (cf.\
   \cite{isabelle-function}).
@@ -544,7 +544,7 @@ The record package proves several results internally, declaring
   Usually, this method is used as the initial proof step of manual
   termination proofs.
 
-  \item [\hyperlink{method.HOL.lexicographic_order}{\mbox{\isa{lexicographic{\isacharunderscore}order}}}] attempts a fully
+  \item [\hyperlink{method.HOL.lexicographic-order}{\mbox{\isa{lexicographic{\isacharunderscore}order}}}] attempts a fully
   automated termination proof by searching for a lexicographic
   combination of size measures on the arguments of the function. The
   method accepts the same arguments as the \hyperlink{method.auto}{\mbox{\isa{auto}}} method,
@@ -564,11 +564,11 @@ The record package proves several results internally, declaring
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recdef}}}} and \hyperlink{command.HOL.recdef_tc}{\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}} for defining recursive are mostly obsolete; \hyperlink{command.HOL.function}{\mbox{\isa{\isacommand{function}}}} or \hyperlink{command.HOL.fun}{\mbox{\isa{\isacommand{fun}}}} should be used instead.
+The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recdef}}}} and \hyperlink{command.HOL.recdef-tc}{\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}} for defining recursive are mostly obsolete; \hyperlink{command.HOL.function}{\mbox{\isa{\isacommand{function}}}} or \hyperlink{command.HOL.fun}{\mbox{\isa{\isacommand{fun}}}} should be used instead.
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{recdef}\hypertarget{command.HOL.recdef}{\hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recdef}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{recdef\_tc}\hypertarget{command.HOL.recdef_tc}{\hyperlink{command.HOL.recdef_tc}{\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{theory}{proof(prove)} \\
+    \indexdef{HOL}{command}{recdef\_tc}\hypertarget{command.HOL.recdef-tc}{\hyperlink{command.HOL.recdef-tc}{\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{theory}{proof(prove)} \\
   \end{matharray}
 
   \begin{rail}
@@ -596,7 +596,7 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
   context of the Simplifier (cf.\ \secref{sec:simplifier}) and
   Classical reasoner (cf.\ \secref{sec:classical}).
   
-  \item [\hyperlink{command.HOL.recdef_tc}{\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}}~\isa{{\isachardoublequote}c\ {\isacharparenleft}i{\isacharparenright}{\isachardoublequote}}] recommences the
+  \item [\hyperlink{command.HOL.recdef-tc}{\mbox{\isa{\isacommand{recdef{\isacharunderscore}tc}}}}~\isa{{\isachardoublequote}c\ {\isacharparenleft}i{\isacharparenright}{\isachardoublequote}}] recommences the
   proof for leftover termination condition number \isa{i} (default
   1) as generated by a \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recdef}}}} definition of
   constant \isa{c}.
@@ -610,9 +610,9 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
   globally, using the following attributes.
 
   \begin{matharray}{rcl}
-    \indexdef{HOL}{attribute}{recdef\_simp}\hypertarget{attribute.HOL.recdef_simp}{\hyperlink{attribute.HOL.recdef_simp}{\mbox{\isa{recdef{\isacharunderscore}simp}}}} & : & \isaratt \\
-    \indexdef{HOL}{attribute}{recdef\_cong}\hypertarget{attribute.HOL.recdef_cong}{\hyperlink{attribute.HOL.recdef_cong}{\mbox{\isa{recdef{\isacharunderscore}cong}}}} & : & \isaratt \\
-    \indexdef{HOL}{attribute}{recdef\_wf}\hypertarget{attribute.HOL.recdef_wf}{\hyperlink{attribute.HOL.recdef_wf}{\mbox{\isa{recdef{\isacharunderscore}wf}}}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{recdef\_simp}\hypertarget{attribute.HOL.recdef-simp}{\hyperlink{attribute.HOL.recdef-simp}{\mbox{\isa{recdef{\isacharunderscore}simp}}}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{recdef\_cong}\hypertarget{attribute.HOL.recdef-cong}{\hyperlink{attribute.HOL.recdef-cong}{\mbox{\isa{recdef{\isacharunderscore}cong}}}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{recdef\_wf}\hypertarget{attribute.HOL.recdef-wf}{\hyperlink{attribute.HOL.recdef-wf}{\mbox{\isa{recdef{\isacharunderscore}wf}}}} & : & \isaratt \\
   \end{matharray}
 
   \begin{rail}
@@ -629,7 +629,7 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{HOL}{command}{specification}\hypertarget{command.HOL.specification}{\hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}}} & : & \isartrans{theory}{proof(prove)} \\
-    \indexdef{HOL}{command}{ax\_specification}\hypertarget{command.HOL.ax_specification}{\hyperlink{command.HOL.ax_specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}} & : & \isartrans{theory}{proof(prove)} \\
+    \indexdef{HOL}{command}{ax\_specification}\hypertarget{command.HOL.ax-specification}{\hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}} & : & \isartrans{theory}{proof(prove)} \\
   \end{matharray}
 
   \begin{rail}
@@ -647,7 +647,7 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
   constants, as well as with theorems stating the properties for these
   constants.
 
-  \item [\hyperlink{command.HOL.ax_specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}~\isa{{\isachardoublequote}decls\ {\isasymphi}{\isachardoublequote}}] sets
+  \item [\hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}~\isa{{\isachardoublequote}decls\ {\isasymphi}{\isachardoublequote}}] sets
   up a goal stating the existence of terms with the properties
   specified to hold for the constants given in \isa{decls}.  After
   finishing the proof, the theory will be augmented with axioms
@@ -660,13 +660,13 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
 
   \end{descr}
 
-  Whether to use \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}} or \hyperlink{command.HOL.ax_specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}} is to some extent a matter of style.  \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}} introduces no new axioms, and so by
-  construction cannot introduce inconsistencies, whereas \hyperlink{command.HOL.ax_specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}} does introduce axioms, but only after the
+  Whether to use \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}} or \hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}} is to some extent a matter of style.  \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}} introduces no new axioms, and so by
+  construction cannot introduce inconsistencies, whereas \hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}} does introduce axioms, but only after the
   user has explicitly proven it to be safe.  A practical issue must be
   considered, though: After introducing two constants with the same
   properties using \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}}, one can prove
   that the two constants are, in fact, equal.  If this might be a
-  problem, one should use \hyperlink{command.HOL.ax_specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}.%
+  problem, one should use \hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -699,9 +699,9 @@ An \textbf{inductive definition} specifies the least predicate (or
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{inductive}\hypertarget{command.HOL.inductive}{\hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{HOL}{command}{inductive\_set}\hypertarget{command.HOL.inductive_set}{\hyperlink{command.HOL.inductive_set}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}set}}}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{command}{inductive\_set}\hypertarget{command.HOL.inductive-set}{\hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}set}}}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{HOL}{command}{coinductive}\hypertarget{command.HOL.coinductive}{\hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{HOL}{command}{coinductive\_set}\hypertarget{command.HOL.coinductive_set}{\hyperlink{command.HOL.coinductive_set}{\mbox{\isa{\isacommand{coinductive{\isacharunderscore}set}}}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{HOL}{command}{coinductive\_set}\hypertarget{command.HOL.coinductive-set}{\hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isacharunderscore}set}}}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{HOL}{attribute}{mono}\hypertarget{attribute.HOL.mono}{\hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}}} & : & \isaratt \\
   \end{matharray}
 
@@ -727,7 +727,7 @@ An \textbf{inductive definition} specifies the least predicate (or
   \emph{must} be a theorem of the form \isa{{\isachardoublequote}A\ {\isasymle}\ B\ {\isasymLongrightarrow}\ M\ A\ {\isasymle}\ M\ B{\isachardoublequote}},
   for each premise \isa{{\isachardoublequote}M\ R\isactrlsub i\ t{\isachardoublequote}} in an introduction rule!
 
-  \item [\hyperlink{command.HOL.inductive_set}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}set}}}} and \hyperlink{command.HOL.coinductive_set}{\mbox{\isa{\isacommand{coinductive{\isacharunderscore}set}}}}] are wrappers for to the previous commands,
+  \item [\hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}set}}}} and \hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isacharunderscore}set}}}}] are wrappers for to the previous commands,
   allowing the definition of (co)inductive sets.
 
   \item [\hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}}] declares monotonicity rules.  These
@@ -818,14 +818,14 @@ Each theory contains a default set of theorems that are used in
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{HOL}{method}{arith}\hypertarget{method.HOL.arith}{\hyperlink{method.HOL.arith}{\mbox{\isa{arith}}}} & : & \isarmeth \\
-    \indexdef{HOL}{attribute}{arith\_split}\hypertarget{attribute.HOL.arith_split}{\hyperlink{attribute.HOL.arith_split}{\mbox{\isa{arith{\isacharunderscore}split}}}} & : & \isaratt \\
+    \indexdef{HOL}{attribute}{arith\_split}\hypertarget{attribute.HOL.arith-split}{\hyperlink{attribute.HOL.arith-split}{\mbox{\isa{arith{\isacharunderscore}split}}}} & : & \isaratt \\
   \end{matharray}
 
   The \hyperlink{method.HOL.arith}{\mbox{\isa{arith}}} method decides linear arithmetic problems
   (on types \isa{nat}, \isa{int}, \isa{real}).  Any current
   facts are inserted into the goal before running the procedure.
 
-  The \hyperlink{attribute.HOL.arith_split}{\mbox{\isa{arith{\isacharunderscore}split}}} attribute declares case split
+  The \hyperlink{attribute.HOL.arith-split}{\mbox{\isa{arith{\isacharunderscore}split}}} attribute declares case split
   rules to be expanded before the arithmetic procedure is invoked.
 
   Note that a simpler (but faster) version of arithmetic reasoning is
@@ -842,10 +842,10 @@ The following important tactical tools of Isabelle/HOL have been
   ported to Isar.  These should be never used in proper proof texts!
 
   \begin{matharray}{rcl}
-    \indexdef{HOL}{method}{case\_tac}\hypertarget{method.HOL.case_tac}{\hyperlink{method.HOL.case_tac}{\mbox{\isa{case{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{HOL}{method}{induct\_tac}\hypertarget{method.HOL.induct_tac}{\hyperlink{method.HOL.induct_tac}{\mbox{\isa{induct{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{HOL}{method}{ind\_cases}\hypertarget{method.HOL.ind_cases}{\hyperlink{method.HOL.ind_cases}{\mbox{\isa{ind{\isacharunderscore}cases}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{HOL}{command}{inductive\_cases}\hypertarget{command.HOL.inductive_cases}{\hyperlink{command.HOL.inductive_cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{method}{case\_tac}\hypertarget{method.HOL.case-tac}{\hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{induct\_tac}\hypertarget{method.HOL.induct-tac}{\hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{HOL}{method}{ind\_cases}\hypertarget{method.HOL.ind-cases}{\hyperlink{method.HOL.ind-cases}{\mbox{\isa{ind{\isacharunderscore}cases}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{HOL}{command}{inductive\_cases}\hypertarget{command.HOL.inductive-cases}{\hyperlink{command.HOL.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -864,20 +864,20 @@ The following important tactical tools of Isabelle/HOL have been
 
   \begin{descr}
 
-  \item [\hyperlink{method.HOL.case_tac}{\mbox{\isa{case{\isacharunderscore}tac}}} and \hyperlink{method.HOL.induct_tac}{\mbox{\isa{induct{\isacharunderscore}tac}}}]
+  \item [\hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isacharunderscore}tac}}} and \hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}}]
   admit to reason about inductive datatypes only (unless an
-  alternative rule is given explicitly).  Furthermore, \hyperlink{method.HOL.case_tac}{\mbox{\isa{case{\isacharunderscore}tac}}} does a classical case split on booleans; \hyperlink{method.HOL.induct_tac}{\mbox{\isa{induct{\isacharunderscore}tac}}} allows only variables to be given as instantiation.
+  alternative rule is given explicitly).  Furthermore, \hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isacharunderscore}tac}}} does a classical case split on booleans; \hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}} allows only variables to be given as instantiation.
   These tactic emulations feature both goal addressing and dynamic
   instantiation.  Note that named rule cases are \emph{not} provided
   as would be by the proper \hyperlink{method.induct}{\mbox{\isa{induct}}} and \hyperlink{method.cases}{\mbox{\isa{cases}}} proof
   methods (see \secref{sec:cases-induct}).
   
-  \item [\hyperlink{method.HOL.ind_cases}{\mbox{\isa{ind{\isacharunderscore}cases}}} and \hyperlink{command.HOL.inductive_cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}}] provide an interface to the internal \verb|mk_cases| operation.  Rules are simplified in an unrestricted
+  \item [\hyperlink{method.HOL.ind-cases}{\mbox{\isa{ind{\isacharunderscore}cases}}} and \hyperlink{command.HOL.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}}] provide an interface to the internal \verb|mk_cases| operation.  Rules are simplified in an unrestricted
   forward manner.
 
-  While \hyperlink{method.HOL.ind_cases}{\mbox{\isa{ind{\isacharunderscore}cases}}} is a proof method to apply the
-  result immediately as elimination rules, \hyperlink{command.HOL.inductive_cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}} provides case split theorems at the theory level
-  for later use.  The \hyperlink{keyword.for}{\mbox{\isa{\isakeyword{for}}}} argument of the \hyperlink{method.HOL.ind_cases}{\mbox{\isa{ind{\isacharunderscore}cases}}} method allows to specify a list of variables that should
+  While \hyperlink{method.HOL.ind-cases}{\mbox{\isa{ind{\isacharunderscore}cases}}} is a proof method to apply the
+  result immediately as elimination rules, \hyperlink{command.HOL.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}} provides case split theorems at the theory level
+  for later use.  The \hyperlink{keyword.for}{\mbox{\isa{\isakeyword{for}}}} argument of the \hyperlink{method.HOL.ind-cases}{\mbox{\isa{ind{\isacharunderscore}cases}}} method allows to specify a list of variables that should
   be generalized before applying the resulting rule.
 
   \end{descr}%
@@ -900,10 +900,10 @@ Isabelle/Pure provides two generic frameworks to support code
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{value}\hypertarget{command.HOL.value}{\hyperlink{command.HOL.value}{\mbox{\isa{\isacommand{value}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{HOL}{command}{code\_module}\hypertarget{command.HOL.code_module}{\hyperlink{command.HOL.code_module}{\mbox{\isa{\isacommand{code{\isacharunderscore}module}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_library}\hypertarget{command.HOL.code_library}{\hyperlink{command.HOL.code_library}{\mbox{\isa{\isacommand{code{\isacharunderscore}library}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{consts\_code}\hypertarget{command.HOL.consts_code}{\hyperlink{command.HOL.consts_code}{\mbox{\isa{\isacommand{consts{\isacharunderscore}code}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{types\_code}\hypertarget{command.HOL.types_code}{\hyperlink{command.HOL.types_code}{\mbox{\isa{\isacommand{types{\isacharunderscore}code}}}}} & : & \isartrans{theory}{theory} \\  
+    \indexdef{HOL}{command}{code\_module}\hypertarget{command.HOL.code-module}{\hyperlink{command.HOL.code-module}{\mbox{\isa{\isacommand{code{\isacharunderscore}module}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_library}\hypertarget{command.HOL.code-library}{\hyperlink{command.HOL.code-library}{\mbox{\isa{\isacommand{code{\isacharunderscore}library}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{consts\_code}\hypertarget{command.HOL.consts-code}{\hyperlink{command.HOL.consts-code}{\mbox{\isa{\isacommand{consts{\isacharunderscore}code}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{types\_code}\hypertarget{command.HOL.types-code}{\hyperlink{command.HOL.types-code}{\mbox{\isa{\isacommand{types{\isacharunderscore}code}}}}} & : & \isartrans{theory}{theory} \\  
     \indexdef{HOL}{attribute}{code}\hypertarget{attribute.HOL.code}{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}} & : & \isaratt \\
   \end{matharray}
 
@@ -961,20 +961,20 @@ Isabelle/Pure provides two generic frameworks to support code
   introduction on how to use it.
 
   \begin{matharray}{rcl}
-    \indexdef{HOL}{command}{export\_code}\hypertarget{command.HOL.export_code}{\hyperlink{command.HOL.export_code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{HOL}{command}{code\_thms}\hypertarget{command.HOL.code_thms}{\hyperlink{command.HOL.code_thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{HOL}{command}{code\_deps}\hypertarget{command.HOL.code_deps}{\hyperlink{command.HOL.code_deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{HOL}{command}{code\_datatype}\hypertarget{command.HOL.code_datatype}{\hyperlink{command.HOL.code_datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_const}\hypertarget{command.HOL.code_const}{\hyperlink{command.HOL.code_const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_type}\hypertarget{command.HOL.code_type}{\hyperlink{command.HOL.code_type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_class}\hypertarget{command.HOL.code_class}{\hyperlink{command.HOL.code_class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_instance}\hypertarget{command.HOL.code_instance}{\hyperlink{command.HOL.code_instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_monad}\hypertarget{command.HOL.code_monad}{\hyperlink{command.HOL.code_monad}{\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_reserved}\hypertarget{command.HOL.code_reserved}{\hyperlink{command.HOL.code_reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_include}\hypertarget{command.HOL.code_include}{\hyperlink{command.HOL.code_include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_modulename}\hypertarget{command.HOL.code_modulename}{\hyperlink{command.HOL.code_modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_exception}\hypertarget{command.HOL.code_exception}{\hyperlink{command.HOL.code_exception}{\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{print\_codesetup}\hypertarget{command.HOL.print_codesetup}{\hyperlink{command.HOL.print_codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{export\_code}\hypertarget{command.HOL.export-code}{\hyperlink{command.HOL.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code\_thms}\hypertarget{command.HOL.code-thms}{\hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code\_deps}\hypertarget{command.HOL.code-deps}{\hyperlink{command.HOL.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{code\_datatype}\hypertarget{command.HOL.code-datatype}{\hyperlink{command.HOL.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_const}\hypertarget{command.HOL.code-const}{\hyperlink{command.HOL.code-const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_type}\hypertarget{command.HOL.code-type}{\hyperlink{command.HOL.code-type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_class}\hypertarget{command.HOL.code-class}{\hyperlink{command.HOL.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_instance}\hypertarget{command.HOL.code-instance}{\hyperlink{command.HOL.code-instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_monad}\hypertarget{command.HOL.code-monad}{\hyperlink{command.HOL.code-monad}{\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_reserved}\hypertarget{command.HOL.code-reserved}{\hyperlink{command.HOL.code-reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_include}\hypertarget{command.HOL.code-include}{\hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_modulename}\hypertarget{command.HOL.code-modulename}{\hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_exception}\hypertarget{command.HOL.code-exception}{\hyperlink{command.HOL.code-exception}{\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{print\_codesetup}\hypertarget{command.HOL.print-codesetup}{\hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{HOL}{attribute}{code}\hypertarget{attribute.HOL.code}{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}} & : & \isaratt \\
   \end{matharray}
 
@@ -1050,7 +1050,7 @@ Isabelle/Pure provides two generic frameworks to support code
 
   \begin{descr}
 
-  \item [\hyperlink{command.HOL.export_code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}}] is the canonical interface
+  \item [\hyperlink{command.HOL.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}}] is the canonical interface
   for generating and serializing code: for a given list of constants,
   code is generated for the specified target languages.  Abstract code
   is cached incrementally.  If no constant is given, the currently
@@ -1063,7 +1063,7 @@ Isabelle/Pure provides two generic frameworks to support code
 
   By default, for each involved theory one corresponding name space
   module is generated.  Alternativly, a module name may be specified
-  after the \hyperlink{keyword.module_name}{\mbox{\isa{\isakeyword{module{\isacharunderscore}name}}}} keyword; then \emph{all} code is
+  after the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isacharunderscore}name}}}} keyword; then \emph{all} code is
   placed in this module.
 
   For \emph{SML} and \emph{OCaml}, the file specification refers to a
@@ -1077,54 +1077,54 @@ Isabelle/Pure provides two generic frameworks to support code
   \emph{Haskell} a module name prefix may be given using the ``\isa{{\isachardoublequote}root{\isacharcolon}{\isachardoublequote}}'' argument; ``\isa{string{\isacharunderscore}classes}'' adds a ``\verb|deriving (Read, Show)|'' clause to each appropriate datatype
   declaration.
 
-  \item [\hyperlink{command.HOL.code_thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}] prints a list of theorems
+  \item [\hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}] prints a list of theorems
   representing the corresponding program containing all given
   constants; if no constants are given, the currently cached code
   theorems are printed.
 
-  \item [\hyperlink{command.HOL.code_deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}}] visualizes dependencies of
+  \item [\hyperlink{command.HOL.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}}] visualizes dependencies of
   theorems representing the corresponding program containing all given
   constants; if no constants are given, the currently cached code
   theorems are visualized.
 
-  \item [\hyperlink{command.HOL.code_datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}}] specifies a constructor set
+  \item [\hyperlink{command.HOL.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}}] specifies a constructor set
   for a logical type.
 
-  \item [\hyperlink{command.HOL.code_const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}}] associates a list of constants
+  \item [\hyperlink{command.HOL.code-const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}}] associates a list of constants
   with target-specific serializations; omitting a serialization
   deletes an existing serialization.
 
-  \item [\hyperlink{command.HOL.code_type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}}] associates a list of type
+  \item [\hyperlink{command.HOL.code-type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}}] associates a list of type
   constructors with target-specific serializations; omitting a
   serialization deletes an existing serialization.
 
-  \item [\hyperlink{command.HOL.code_class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}] associates a list of classes
+  \item [\hyperlink{command.HOL.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}] associates a list of classes
   with target-specific class names; in addition, constants associated
   with this class may be given target-specific names used for instance
   declarations; omitting a serialization deletes an existing
   serialization.  This applies only to \emph{Haskell}.
 
-  \item [\hyperlink{command.HOL.code_instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}}] declares a list of type
+  \item [\hyperlink{command.HOL.code-instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}}] declares a list of type
   constructor / class instance relations as ``already present'' for a
   given target.  Omitting a ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' deletes an existing
   ``already present'' declaration.  This applies only to
   \emph{Haskell}.
 
-  \item [\hyperlink{command.HOL.code_monad}{\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}}] provides an auxiliary
+  \item [\hyperlink{command.HOL.code-monad}{\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}}] provides an auxiliary
   mechanism to generate monadic code.
 
-  \item [\hyperlink{command.HOL.code_reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}}] declares a list of names as
+  \item [\hyperlink{command.HOL.code-reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}}] declares a list of names as
   reserved for a given target, preventing it to be shadowed by any
   generated code.
 
-  \item [\hyperlink{command.HOL.code_include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}] adds arbitrary named content
+  \item [\hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}] adds arbitrary named content
   (``include'') to generated code.  A as last argument ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}''
   will remove an already added ``include''.
 
-  \item [\hyperlink{command.HOL.code_modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}}] declares aliasings from
+  \item [\hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}}] declares aliasings from
   one module name onto another.
 
-  \item [\hyperlink{command.HOL.code_exception}{\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}}}] declares constants which
+  \item [\hyperlink{command.HOL.code-exception}{\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}}}] declares constants which
   are not required to have a definition by a defining equations; these
   are mapped on exceptions instead.
 
@@ -1138,7 +1138,7 @@ Isabelle/Pure provides two generic frameworks to support code
   applied as rewrite rules to any defining equation during
   preprocessing.
 
-  \item [\hyperlink{command.HOL.print_codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}}] gives an overview on
+  \item [\hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}}] gives an overview on
   selected defining equations, code generator datatypes and
   preprocessor setup.
 

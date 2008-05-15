@@ -63,7 +63,7 @@ Subsequently, we introduce the main part of Pure theory and proof
     \indexdef{}{command}{subsection}\hypertarget{command.subsection}{\hyperlink{command.subsection}{\mbox{\isa{\isacommand{subsection}}}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{}{command}{subsubsection}\hypertarget{command.subsubsection}{\hyperlink{command.subsubsection}{\mbox{\isa{\isacommand{subsubsection}}}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{}{command}{text}\hypertarget{command.text}{\hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{text\_raw}\hypertarget{command.text_raw}{\hyperlink{command.text_raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}} & : & \isarkeep{local{\dsh}theory} \\
+    \indexdef{}{command}{text\_raw}\hypertarget{command.text-raw}{\hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}} & : & \isarkeep{local{\dsh}theory} \\
   \end{matharray}
 
   Apart from formal comments (see \secref{sec:comments}), markup
@@ -85,14 +85,14 @@ Subsequently, we introduce the main part of Pure theory and proof
 
   \item [\hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}}] specifies paragraphs of plain text.
 
-  \item [\hyperlink{command.text_raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}] inserts {\LaTeX} source into the
+  \item [\hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}] inserts {\LaTeX} source into the
   output, without additional markup.  Thus the full range of document
   manipulations becomes available.
 
   \end{descr}
 
   The \isa{{\isachardoublequote}text{\isachardoublequote}} argument of these markup commands (except for
-  \hyperlink{command.text_raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}) may contain references to formal entities
+  \hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}) may contain references to formal entities
   (``antiquotations'', see also \secref{sec:antiq}).  These are
   interpreted in the present theory context, or the named \isa{{\isachardoublequote}target{\isachardoublequote}}.
 
@@ -101,7 +101,7 @@ Subsequently, we introduce the main part of Pure theory and proof
   commands this is a plain macro with a single argument, e.g.\
   \verb|\isamarkupchapter{|\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}\verb|}| for
   \hyperlink{command.chapter}{\mbox{\isa{\isacommand{chapter}}}}.  The \hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}} markup results in a
-  {\LaTeX} environment \verb|\begin{isamarkuptext}| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|\end{isamarkuptext}|, while \hyperlink{command.text_raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}
+  {\LaTeX} environment \verb|\begin{isamarkuptext}| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|\end{isamarkuptext}|, while \hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}
   causes the text to be inserted directly into the {\LaTeX} source.
 
   \medskip Additional markup commands are available for proofs (see
@@ -119,7 +119,7 @@ Subsequently, we introduce the main part of Pure theory and proof
     \indexdef{}{command}{classes}\hypertarget{command.classes}{\hyperlink{command.classes}{\mbox{\isa{\isacommand{classes}}}}} & : & \isartrans{theory}{theory} \\
     \indexdef{}{command}{classrel}\hypertarget{command.classrel}{\hyperlink{command.classrel}{\mbox{\isa{\isacommand{classrel}}}}} & : & \isartrans{theory}{theory} & (axiomatic!) \\
     \indexdef{}{command}{defaultsort}\hypertarget{command.defaultsort}{\hyperlink{command.defaultsort}{\mbox{\isa{\isacommand{defaultsort}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{class\_deps}\hypertarget{command.class_deps}{\hyperlink{command.class_deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{class\_deps}\hypertarget{command.class-deps}{\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}}} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   \begin{rail}
@@ -146,7 +146,7 @@ Subsequently, we introduce the main part of Pure theory and proof
   constraints.  Usually, the default sort would be only changed when
   defining a new object-logic.
 
-  \item [\hyperlink{command.class_deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}}] visualizes the subclass relation,
+  \item [\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}}] visualizes the subclass relation,
   using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
 
   \end{descr}%
@@ -315,9 +315,9 @@ Definitions essentially express abbreviations within the logic.  The
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{}{command}{syntax}\hypertarget{command.syntax}{\hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{no\_syntax}\hypertarget{command.no_syntax}{\hyperlink{command.no_syntax}{\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{no\_syntax}\hypertarget{command.no-syntax}{\hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}}} & : & \isartrans{theory}{theory} \\
     \indexdef{}{command}{translations}\hypertarget{command.translations}{\hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{no\_translations}\hypertarget{command.no_translations}{\hyperlink{command.no_translations}{\mbox{\isa{\isacommand{no{\isacharunderscore}translations}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{no\_translations}\hypertarget{command.no-translations}{\hyperlink{command.no-translations}{\mbox{\isa{\isacommand{no{\isacharunderscore}translations}}}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -342,7 +342,7 @@ Definitions essentially express abbreviations within the logic.  The
   print mode that the grammar rules belong; unless the \indexref{}{keyword}{output}\hyperlink{keyword.output}{\mbox{\isa{\isakeyword{output}}}} indicator is given, all productions are added both to the
   input and output grammar.
   
-  \item [\hyperlink{command.no_syntax}{\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}}~\isa{{\isachardoublequote}{\isacharparenleft}mode{\isacharparenright}\ decls{\isachardoublequote}}] removes
+  \item [\hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}}~\isa{{\isachardoublequote}{\isacharparenleft}mode{\isacharparenright}\ decls{\isachardoublequote}}] removes
   grammar declarations (and translations) resulting from \isa{decls}, which are interpreted in the same manner as for \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} above.
   
   \item [\hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}~\isa{rules}] specifies syntactic
@@ -351,7 +351,7 @@ Definitions essentially express abbreviations within the logic.  The
   Translation patterns may be prefixed by the syntactic category to be
   used for parsing; the default is \isa{logic}.
   
-  \item [\hyperlink{command.no_translations}{\mbox{\isa{\isacommand{no{\isacharunderscore}translations}}}}~\isa{rules}] removes syntactic
+  \item [\hyperlink{command.no-translations}{\mbox{\isa{\isacommand{no{\isacharunderscore}translations}}}}~\isa{rules}] removes syntactic
   translation rules, which are interpreted in the same manner as for
   \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}} above.
 
@@ -456,10 +456,10 @@ Definitions essentially express abbreviations within the logic.  The
 \begin{matharray}{rcl}
     \indexdef{}{command}{use}\hypertarget{command.use}{\hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}}} & : & \isarkeep{theory~|~local{\dsh}theory} \\
     \indexdef{}{command}{ML}\hypertarget{command.ML}{\hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}} & : & \isarkeep{theory~|~local{\dsh}theory} \\
-    \indexdef{}{command}{ML\_val}\hypertarget{command.ML_val}{\hyperlink{command.ML_val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}}} & : & \isartrans{\cdot}{\cdot} \\
-    \indexdef{}{command}{ML\_command}\hypertarget{command.ML_command}{\hyperlink{command.ML_command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}} & : & \isartrans{\cdot}{\cdot} \\
+    \indexdef{}{command}{ML\_val}\hypertarget{command.ML-val}{\hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}}} & : & \isartrans{\cdot}{\cdot} \\
+    \indexdef{}{command}{ML\_command}\hypertarget{command.ML-command}{\hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}} & : & \isartrans{\cdot}{\cdot} \\
     \indexdef{}{command}{setup}\hypertarget{command.setup}{\hyperlink{command.setup}{\mbox{\isa{\isacommand{setup}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{method\_setup}\hypertarget{command.method_setup}{\hyperlink{command.method_setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{method\_setup}\hypertarget{command.method-setup}{\hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -481,10 +481,10 @@ Definitions essentially express abbreviations within the logic.  The
   
   \item [\hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] is similar to \hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}}, but executes ML commands directly from the given \isa{{\isachardoublequote}text{\isachardoublequote}}.
 
-  \item [\hyperlink{command.ML_val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} and \hyperlink{command.ML_command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}] are
+  \item [\hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} and \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}] are
   diagnostic versions of \hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}, which means that the context
-  may not be updated.  \hyperlink{command.ML_val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} echos the bindings produced
-  at the ML toplevel, but \hyperlink{command.ML_command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}} is silent.
+  may not be updated.  \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} echos the bindings produced
+  at the ML toplevel, but \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}} is silent.
   
   \item [\hyperlink{command.setup}{\mbox{\isa{\isacommand{setup}}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] changes the current theory
   context by applying \isa{{\isachardoublequote}text{\isachardoublequote}}, which refers to an ML expression
@@ -492,7 +492,7 @@ Definitions essentially express abbreviations within the logic.  The
   any object-logic specific tools and packages written in ML, for
   example.
   
-  \item [\hyperlink{command.method_setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ text\ description{\isachardoublequote}}]
+  \item [\hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ text\ description{\isachardoublequote}}]
   defines a proof method in the current theory.  The given \isa{{\isachardoublequote}text{\isachardoublequote}} has to be an ML expression of type \verb|"Args.src ->|\isasep\isanewline%
 \verb|  Proof.context -> Proof.method"|.  Parsing concrete method syntax
   from \verb|Args.src| input can be quite tedious in general.  The
@@ -526,12 +526,12 @@ Definitions essentially express abbreviations within the logic.  The
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{parse\_ast\_translation}\hypertarget{command.parse_ast_translation}{\hyperlink{command.parse_ast_translation}{\mbox{\isa{\isacommand{parse{\isacharunderscore}ast{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{parse\_translation}\hypertarget{command.parse_translation}{\hyperlink{command.parse_translation}{\mbox{\isa{\isacommand{parse{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{print\_translation}\hypertarget{command.print_translation}{\hyperlink{command.print_translation}{\mbox{\isa{\isacommand{print{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{typed\_print\_translation}\hypertarget{command.typed_print_translation}{\hyperlink{command.typed_print_translation}{\mbox{\isa{\isacommand{typed{\isacharunderscore}print{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{print\_ast\_translation}\hypertarget{command.print_ast_translation}{\hyperlink{command.print_ast_translation}{\mbox{\isa{\isacommand{print{\isacharunderscore}ast{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{token\_translation}\hypertarget{command.token_translation}{\hyperlink{command.token_translation}{\mbox{\isa{\isacommand{token{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{parse\_ast\_translation}\hypertarget{command.parse-ast-translation}{\hyperlink{command.parse-ast-translation}{\mbox{\isa{\isacommand{parse{\isacharunderscore}ast{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{parse\_translation}\hypertarget{command.parse-translation}{\hyperlink{command.parse-translation}{\mbox{\isa{\isacommand{parse{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{print\_translation}\hypertarget{command.print-translation}{\hyperlink{command.print-translation}{\mbox{\isa{\isacommand{print{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{typed\_print\_translation}\hypertarget{command.typed-print-translation}{\hyperlink{command.typed-print-translation}{\mbox{\isa{\isacommand{typed{\isacharunderscore}print{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{print\_ast\_translation}\hypertarget{command.print-ast-translation}{\hyperlink{command.print-ast-translation}{\mbox{\isa{\isacommand{print{\isacharunderscore}ast{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{}{command}{token\_translation}\hypertarget{command.token-translation}{\hyperlink{command.token-translation}{\mbox{\isa{\isacommand{token{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -634,7 +634,7 @@ val print_ast_translation:
     \indexdef{}{command}{subsect}\hypertarget{command.subsect}{\hyperlink{command.subsect}{\mbox{\isa{\isacommand{subsect}}}}} & : & \isartrans{proof}{proof} \\
     \indexdef{}{command}{subsubsect}\hypertarget{command.subsubsect}{\hyperlink{command.subsubsect}{\mbox{\isa{\isacommand{subsubsect}}}}} & : & \isartrans{proof}{proof} \\
     \indexdef{}{command}{txt}\hypertarget{command.txt}{\hyperlink{command.txt}{\mbox{\isa{\isacommand{txt}}}}} & : & \isartrans{proof}{proof} \\
-    \indexdef{}{command}{txt\_raw}\hypertarget{command.txt_raw}{\hyperlink{command.txt_raw}{\mbox{\isa{\isacommand{txt{\isacharunderscore}raw}}}}} & : & \isartrans{proof}{proof} \\
+    \indexdef{}{command}{txt\_raw}\hypertarget{command.txt-raw}{\hyperlink{command.txt-raw}{\mbox{\isa{\isacommand{txt{\isacharunderscore}raw}}}}} & : & \isartrans{proof}{proof} \\
   \end{matharray}
 
   These markup commands for proof mode closely correspond to the ones
@@ -663,7 +663,7 @@ val print_ast_translation:
     \indexdef{}{command}{prop}\hypertarget{command.prop}{\hyperlink{command.prop}{\mbox{\isa{\isacommand{prop}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{}{command}{typ}\hypertarget{command.typ}{\hyperlink{command.typ}{\mbox{\isa{\isacommand{typ}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{}{command}{prf}\hypertarget{command.prf}{\hyperlink{command.prf}{\mbox{\isa{\isacommand{prf}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{full\_prf}\hypertarget{command.full_prf}{\hyperlink{command.full_prf}{\mbox{\isa{\isacommand{full{\isacharunderscore}prf}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{full\_prf}\hypertarget{command.full-prf}{\hyperlink{command.full-prf}{\mbox{\isa{\isacommand{full{\isacharunderscore}prf}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   These diagnostic commands assist interactive development.  Note that
@@ -719,7 +719,7 @@ val print_ast_translation:
   object logic (see the ``Proof terms'' section of the Isabelle
   reference manual for information on how to do this).
 
-  \item [\hyperlink{command.full_prf}{\mbox{\isa{\isacommand{full{\isacharunderscore}prf}}}}] is like \hyperlink{command.prf}{\mbox{\isa{\isacommand{prf}}}}, but displays
+  \item [\hyperlink{command.full-prf}{\mbox{\isa{\isacommand{full{\isacharunderscore}prf}}}}] is like \hyperlink{command.prf}{\mbox{\isa{\isacommand{prf}}}}, but displays
   the full proof term, i.e.\ also displays information omitted in the
   compact proof term, which is denoted by ``\isa{{\isacharunderscore}}'' placeholders
   there.
@@ -746,16 +746,16 @@ val print_ast_translation:
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{print\_commands}\hypertarget{command.print_commands}{\hyperlink{command.print_commands}{\mbox{\isa{\isacommand{print{\isacharunderscore}commands}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{print\_theory}\hypertarget{command.print_theory}{\hyperlink{command.print_theory}{\mbox{\isa{\isacommand{print{\isacharunderscore}theory}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_syntax}\hypertarget{command.print_syntax}{\hyperlink{command.print_syntax}{\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_methods}\hypertarget{command.print_methods}{\hyperlink{command.print_methods}{\mbox{\isa{\isacommand{print{\isacharunderscore}methods}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_attributes}\hypertarget{command.print_attributes}{\hyperlink{command.print_attributes}{\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_theorems}\hypertarget{command.print_theorems}{\hyperlink{command.print_theorems}{\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{find\_theorems}\hypertarget{command.find_theorems}{\hyperlink{command.find_theorems}{\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{thm\_deps}\hypertarget{command.thm_deps}{\hyperlink{command.thm_deps}{\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
-    \indexdef{}{command}{print\_facts}\hypertarget{command.print_facts}{\hyperlink{command.print_facts}{\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
-    \indexdef{}{command}{print\_binds}\hypertarget{command.print_binds}{\hyperlink{command.print_binds}{\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
+    \indexdef{}{command}{print\_commands}\hypertarget{command.print-commands}{\hyperlink{command.print-commands}{\mbox{\isa{\isacommand{print{\isacharunderscore}commands}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{print\_theory}\hypertarget{command.print-theory}{\hyperlink{command.print-theory}{\mbox{\isa{\isacommand{print{\isacharunderscore}theory}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_syntax}\hypertarget{command.print-syntax}{\hyperlink{command.print-syntax}{\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_methods}\hypertarget{command.print-methods}{\hyperlink{command.print-methods}{\mbox{\isa{\isacommand{print{\isacharunderscore}methods}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_attributes}\hypertarget{command.print-attributes}{\hyperlink{command.print-attributes}{\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_theorems}\hypertarget{command.print-theorems}{\hyperlink{command.print-theorems}{\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{find\_theorems}\hypertarget{command.find-theorems}{\hyperlink{command.find-theorems}{\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{thm\_deps}\hypertarget{command.thm-deps}{\hyperlink{command.thm-deps}{\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_facts}\hypertarget{command.print-facts}{\hyperlink{command.print-facts}{\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
+    \indexdef{}{command}{print\_binds}\hypertarget{command.print-binds}{\hyperlink{command.print-binds}{\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
   \end{matharray}
 
   \begin{rail}
@@ -777,29 +777,29 @@ val print_ast_translation:
 
   \begin{descr}
   
-  \item [\hyperlink{command.print_commands}{\mbox{\isa{\isacommand{print{\isacharunderscore}commands}}}}] prints Isabelle's outer theory
+  \item [\hyperlink{command.print-commands}{\mbox{\isa{\isacommand{print{\isacharunderscore}commands}}}}] prints Isabelle's outer theory
   syntax, including keywords and command.
   
-  \item [\hyperlink{command.print_theory}{\mbox{\isa{\isacommand{print{\isacharunderscore}theory}}}}] prints the main logical content of
+  \item [\hyperlink{command.print-theory}{\mbox{\isa{\isacommand{print{\isacharunderscore}theory}}}}] prints the main logical content of
   the theory context; the ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' option indicates extra
   verbosity.
 
-  \item [\hyperlink{command.print_syntax}{\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}}] prints the inner syntax of types
+  \item [\hyperlink{command.print-syntax}{\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}}] prints the inner syntax of types
   and terms, depending on the current context.  The output can be very
   verbose, including grammar tables and syntax translation rules.  See
   \cite[\S7, \S8]{isabelle-ref} for further information on Isabelle's
   inner syntax.
   
-  \item [\hyperlink{command.print_methods}{\mbox{\isa{\isacommand{print{\isacharunderscore}methods}}}}] prints all proof methods
+  \item [\hyperlink{command.print-methods}{\mbox{\isa{\isacommand{print{\isacharunderscore}methods}}}}] prints all proof methods
   available in the current theory context.
   
-  \item [\hyperlink{command.print_attributes}{\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}}] prints all attributes
+  \item [\hyperlink{command.print-attributes}{\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}}] prints all attributes
   available in the current theory context.
   
-  \item [\hyperlink{command.print_theorems}{\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}}] prints theorems resulting from
+  \item [\hyperlink{command.print-theorems}{\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}}] prints theorems resulting from
   the last command.
   
-  \item [\hyperlink{command.find_theorems}{\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}}~\isa{criteria}] retrieves facts
+  \item [\hyperlink{command.find-theorems}{\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}}~\isa{criteria}] retrieves facts
   from the theory or proof context matching all of given search
   criteria.  The criterion \isa{{\isachardoublequote}name{\isacharcolon}\ p{\isachardoublequote}} selects all theorems
   whose fully qualified name matches pattern \isa{p}, which may
@@ -818,14 +818,14 @@ val print_ast_translation:
   default, duplicates are removed from the search result. Use
   \isa{with{\isacharunderscore}dups} to display duplicates.
   
-  \item [\hyperlink{command.thm_deps}{\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}]
+  \item [\hyperlink{command.thm-deps}{\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}]
   visualizes dependencies of facts, using Isabelle's graph browser
   tool (see also \cite{isabelle-sys}).
   
-  \item [\hyperlink{command.print_facts}{\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}}] prints all local facts of the
+  \item [\hyperlink{command.print-facts}{\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}}] prints all local facts of the
   current context, both named and unnamed ones.
   
-  \item [\hyperlink{command.print_binds}{\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}}] prints all term abbreviations
+  \item [\hyperlink{command.print-binds}{\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}}] prints all term abbreviations
   present in the context.
 
   \end{descr}%
@@ -870,9 +870,9 @@ val print_ast_translation:
 \begin{matharray}{rcl}
     \indexdef{}{command}{cd}\hypertarget{command.cd}{\hyperlink{command.cd}{\mbox{\isa{\isacommand{cd}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
     \indexdef{}{command}{pwd}\hypertarget{command.pwd}{\hyperlink{command.pwd}{\mbox{\isa{\isacommand{pwd}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{use\_thy}\hypertarget{command.use_thy}{\hyperlink{command.use_thy}{\mbox{\isa{\isacommand{use{\isacharunderscore}thy}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{display\_drafts}\hypertarget{command.display_drafts}{\hyperlink{command.display_drafts}{\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{print\_drafts}\hypertarget{command.print_drafts}{\hyperlink{command.print_drafts}{\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{use\_thy}\hypertarget{command.use-thy}{\hyperlink{command.use-thy}{\mbox{\isa{\isacommand{use{\isacharunderscore}thy}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{display\_drafts}\hypertarget{command.display-drafts}{\hyperlink{command.display-drafts}{\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{print\_drafts}\hypertarget{command.print-drafts}{\hyperlink{command.print-drafts}{\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
   \end{matharray}
 
   \begin{rail}
@@ -889,11 +889,11 @@ val print_ast_translation:
 
   \item [\hyperlink{command.pwd}{\mbox{\isa{\isacommand{pwd}}}}] prints the current working directory.
 
-  \item [\hyperlink{command.use_thy}{\mbox{\isa{\isacommand{use{\isacharunderscore}thy}}}}~\isa{A}] preload theory \isa{A}.
+  \item [\hyperlink{command.use-thy}{\mbox{\isa{\isacommand{use{\isacharunderscore}thy}}}}~\isa{A}] preload theory \isa{A}.
   These system commands are scarcely used when working interactively,
   since loading of theories is done automatically as required.
 
-  \item [\hyperlink{command.display_drafts}{\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}}~\isa{paths} and \hyperlink{command.print_drafts}{\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}}~\isa{paths}] perform simple output of a given list
+  \item [\hyperlink{command.display-drafts}{\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}}~\isa{paths} and \hyperlink{command.print-drafts}{\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}}~\isa{paths}] perform simple output of a given list
   of raw source files.  Only those symbols that do not require
   additional {\LaTeX} packages are displayed properly, everything else
   is left verbatim.

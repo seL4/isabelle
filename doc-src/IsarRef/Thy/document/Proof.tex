@@ -217,7 +217,7 @@ Proof commands perform transitions of Isar/VM machine
   of the premises of the rule involved.  Note that positions may be
   easily skipped using something like \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{{\isachardoublequote}{\isacharunderscore}\ {\isasymAND}\ a\ {\isasymAND}\ b{\isachardoublequote}}, for example.  This involves the trivial rule
   \isa{{\isachardoublequote}PROP\ {\isasympsi}\ {\isasymLongrightarrow}\ PROP\ {\isasympsi}{\isachardoublequote}}, which is bound in Isabelle/Pure as
-  ``\indexref{}{fact}{\_}\hyperlink{fact._}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore).
+  ``\indexref{}{fact}{\_}\hyperlink{fact.-}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore).
 
   Automated methods (such as \hyperlink{method.simp}{\mbox{\isa{simp}}} or \hyperlink{method.auto}{\mbox{\isa{auto}}}) just
   insert any given facts before their usual operation.  Depending on
@@ -239,7 +239,7 @@ Proof commands perform transitions of Isar/VM machine
     \indexdef{}{command}{show}\hypertarget{command.show}{\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
     \indexdef{}{command}{hence}\hypertarget{command.hence}{\hyperlink{command.hence}{\mbox{\isa{\isacommand{hence}}}}} & : & \isartrans{proof(state)}{proof(prove)} \\
     \indexdef{}{command}{thus}\hypertarget{command.thus}{\hyperlink{command.thus}{\mbox{\isa{\isacommand{thus}}}}} & : & \isartrans{proof(state)}{proof(prove)} \\
-    \indexdef{}{command}{print\_statement}\hypertarget{command.print_statement}{\hyperlink{command.print_statement}{\mbox{\isa{\isacommand{print{\isacharunderscore}statement}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_statement}\hypertarget{command.print-statement}{\hyperlink{command.print-statement}{\mbox{\isa{\isacommand{print{\isacharunderscore}statement}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   From a theory context, proof mode is entered by an initial goal
@@ -335,7 +335,7 @@ Proof commands perform transitions of Isar/VM machine
   \item [\hyperlink{command.thus}{\mbox{\isa{\isacommand{thus}}}}] abbreviates ``\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}~\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}''.  Note that \hyperlink{command.thus}{\mbox{\isa{\isacommand{thus}}}} is also equivalent to
   ``\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{this}~\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}''.
   
-  \item [\hyperlink{command.print_statement}{\mbox{\isa{\isacommand{print{\isacharunderscore}statement}}}}~\isa{a}] prints facts from the
+  \item [\hyperlink{command.print-statement}{\mbox{\isa{\isacommand{print{\isacharunderscore}statement}}}}~\isa{a}] prints facts from the
   current theory or proof context in long statement form, according to
   the syntax for \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}} given above.
 
@@ -344,7 +344,7 @@ Proof commands perform transitions of Isar/VM machine
   Any goal statement causes some term abbreviations (such as
   \indexref{}{variable}{?thesis}\hyperlink{variable.?thesis}{\mbox{\isa{{\isacharquery}thesis}}}) to be bound automatically, see also
   \secref{sec:term-abbrev}.  Furthermore, the local context of a
-  (non-atomic) goal is provided via the \indexref{}{case}{rule\_context}\hyperlink{case.rule_context}{\mbox{\isa{rule{\isacharunderscore}context}}} case.
+  (non-atomic) goal is provided via the \indexref{}{case}{rule\_context}\hyperlink{case.rule-context}{\mbox{\isa{rule{\isacharunderscore}context}}} case.
 
   The optional case names of \indexref{}{element}{obtains}\hyperlink{element.obtains}{\mbox{\isa{\isakeyword{obtains}}}} have a twofold
   meaning: (1) during the of this claim they refer to the the local
@@ -635,7 +635,7 @@ The following proof methods and attributes refer to basic logical
   goal statements with a list of patterns ``\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIS}\ p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub n{\isacharparenright}{\isachardoublequote}}''.  In both cases, higher-order matching is invoked to
   bind extra-logical term variables, which may be either named
   schematic variables of the form \isa{{\isacharquery}x}, or nameless dummies
-  ``\hyperlink{variable._}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore). Note that in the \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}
+  ``\hyperlink{variable.-}{\mbox{\isa{{\isacharunderscore}}}}'' (underscore). Note that in the \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}
   form the patterns occur on the left-hand side, while the \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns are in postfix position.
 
   Polymorphism of term bindings is handled in Hindley-Milner style,
@@ -746,7 +746,7 @@ The Isar provides separate commands to accommodate tactic-style
 
   \begin{matharray}{rcl}
     \indexdef{}{command}{apply}\hypertarget{command.apply}{\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof(prove)}{proof(prove)} \\
-    \indexdef{}{command}{apply\_end}\hypertarget{command.apply_end}{\hyperlink{command.apply_end}{\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof(state)}{proof(state)} \\
+    \indexdef{}{command}{apply\_end}\hypertarget{command.apply-end}{\hyperlink{command.apply-end}{\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof(state)}{proof(state)} \\
     \indexdef{}{command}{done}\hypertarget{command.done}{\hyperlink{command.done}{\mbox{\isa{\isacommand{done}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof(prove)}{proof(state)} \\
     \indexdef{}{command}{defer}\hypertarget{command.defer}{\hyperlink{command.defer}{\mbox{\isa{\isacommand{defer}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof}{proof} \\
     \indexdef{}{command}{prefer}\hypertarget{command.prefer}{\hyperlink{command.prefer}{\mbox{\isa{\isacommand{prefer}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{proof}{proof} \\
@@ -774,7 +774,7 @@ The Isar provides separate commands to accommodate tactic-style
   further \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}} command would always work in a purely
   backward manner.
   
-  \item [\hyperlink{command.apply_end}{\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}}~\isa{{\isachardoublequote}m{\isachardoublequote}}] applies proof method
+  \item [\hyperlink{command.apply-end}{\mbox{\isa{\isacommand{apply{\isacharunderscore}end}}}}~\isa{{\isachardoublequote}m{\isachardoublequote}}] applies proof method
   \isa{m} as if in terminal position.  Basically, this simulates a
   multi-step tactic script for \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}, but may be given
   anywhere within the proof body.
@@ -925,7 +925,7 @@ The Isar provides separate commands to accommodate tactic-style
     \indexdef{}{command}{finally}\hypertarget{command.finally}{\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}} & : & \isartrans{proof(state)}{proof(chain)} \\
     \indexdef{}{command}{moreover}\hypertarget{command.moreover}{\hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}}} & : & \isartrans{proof(state)}{proof(state)} \\
     \indexdef{}{command}{ultimately}\hypertarget{command.ultimately}{\hyperlink{command.ultimately}{\mbox{\isa{\isacommand{ultimately}}}}} & : & \isartrans{proof(state)}{proof(chain)} \\
-    \indexdef{}{command}{print\_trans\_rules}\hypertarget{command.print_trans_rules}{\hyperlink{command.print_trans_rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}trans{\isacharunderscore}rules}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{command}{print\_trans\_rules}\hypertarget{command.print-trans-rules}{\hyperlink{command.print-trans-rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}trans{\isacharunderscore}rules}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \hyperlink{attribute.trans}{\mbox{\isa{trans}}} & : & \isaratt \\
     \hyperlink{attribute.sym}{\mbox{\isa{sym}}} & : & \isaratt \\
     \hyperlink{attribute.symmetric}{\mbox{\isa{symmetric}}} & : & \isaratt \\
@@ -997,7 +997,7 @@ The Isar provides separate commands to accommodate tactic-style
   analogous to \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}} and \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}, but collect
   results only, without applying rules.
 
-  \item [\hyperlink{command.print_trans_rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}trans{\isacharunderscore}rules}}}}] prints the list of
+  \item [\hyperlink{command.print-trans-rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}trans{\isacharunderscore}rules}}}}] prints the list of
   transitivity rules (for calculational commands \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}} and
   \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}) and symmetry rules (for the \hyperlink{attribute.symmetric}{\mbox{\isa{symmetric}}} operation and single step elimination patters) of the
   current context.
