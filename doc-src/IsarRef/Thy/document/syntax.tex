@@ -93,16 +93,16 @@ The Isabelle/Isar outer syntax provides token classes as presented
   presented in \cite{isabelle-ref}.
 
   \begin{matharray}{rcl}
-    \indexdef{}{syntax}{ident}\mbox{\isa{ident}} & = & letter\,quasiletter^* \\
-    \indexdef{}{syntax}{longident}\mbox{\isa{longident}} & = & ident (\verb,.,ident)^+ \\
-    \indexdef{}{syntax}{symident}\mbox{\isa{symident}} & = & sym^+ ~|~ \verb,\,\verb,<,ident\verb,>, \\
-    \indexdef{}{syntax}{nat}\mbox{\isa{nat}} & = & digit^+ \\
-    \indexdef{}{syntax}{var}\mbox{\isa{var}} & = & ident ~|~ \verb,?,ident ~|~ \verb,?,ident\verb,.,nat \\
-    \indexdef{}{syntax}{typefree}\mbox{\isa{typefree}} & = & \verb,',ident \\
-    \indexdef{}{syntax}{typevar}\mbox{\isa{typevar}} & = & typefree ~|~ \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
-    \indexdef{}{syntax}{string}\mbox{\isa{string}} & = & \verb,", ~\dots~ \verb,", \\
-    \indexdef{}{syntax}{altstring}\mbox{\isa{altstring}} & = & \backquote ~\dots~ \backquote \\
-    \indexdef{}{syntax}{verbatim}\mbox{\isa{verbatim}} & = & \verb,{*, ~\dots~ \verb,*,\verb,}, \\[1ex]
+    \indexdef{}{syntax}{ident}\hypertarget{syntax.ident}{\hyperlink{syntax.ident}{\mbox{\isa{ident}}}} & = & letter\,quasiletter^* \\
+    \indexdef{}{syntax}{longident}\hypertarget{syntax.longident}{\hyperlink{syntax.longident}{\mbox{\isa{longident}}}} & = & ident (\verb,.,ident)^+ \\
+    \indexdef{}{syntax}{symident}\hypertarget{syntax.symident}{\hyperlink{syntax.symident}{\mbox{\isa{symident}}}} & = & sym^+ ~|~ \verb,\,\verb,<,ident\verb,>, \\
+    \indexdef{}{syntax}{nat}\hypertarget{syntax.nat}{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}} & = & digit^+ \\
+    \indexdef{}{syntax}{var}\hypertarget{syntax.var}{\hyperlink{syntax.var}{\mbox{\isa{var}}}} & = & ident ~|~ \verb,?,ident ~|~ \verb,?,ident\verb,.,nat \\
+    \indexdef{}{syntax}{typefree}\hypertarget{syntax.typefree}{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}} & = & \verb,',ident \\
+    \indexdef{}{syntax}{typevar}\hypertarget{syntax.typevar}{\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}}} & = & typefree ~|~ \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
+    \indexdef{}{syntax}{string}\hypertarget{syntax.string}{\hyperlink{syntax.string}{\mbox{\isa{string}}}} & = & \verb,", ~\dots~ \verb,", \\
+    \indexdef{}{syntax}{altstring}\hypertarget{syntax.altstring}{\hyperlink{syntax.altstring}{\mbox{\isa{altstring}}}} & = & \backquote ~\dots~ \backquote \\
+    \indexdef{}{syntax}{verbatim}\hypertarget{syntax.verbatim}{\hyperlink{syntax.verbatim}{\mbox{\isa{verbatim}}}} & = & \verb,{*, ~\dots~ \verb,*,\verb,}, \\[1ex]
 
     letter & = & latin ~|~ \verb,\,\verb,<,latin\verb,>, ~|~ \verb,\,\verb,<,latin\,latin\verb,>, ~|~ greek ~|~ \\
            &   & \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
@@ -123,12 +123,12 @@ The Isabelle/Isar outer syntax provides token classes as presented
           &   & \verb,\<Upsilon>, ~|~ \verb,\<Phi>, ~|~ \verb,\<Psi>, ~|~ \verb,\<Omega>, \\
   \end{matharray}
 
-  The syntax of \mbox{\isa{string}} admits any characters, including
+  The syntax of \hyperlink{syntax.string}{\mbox{\isa{string}}} admits any characters, including
   newlines; ``\verb|"|'' (double-quote) and ``\verb|\|'' (backslash) need to be escaped by a backslash; arbitrary
   character codes may be specified as ``\verb|\|\isa{ddd}'',
   with three decimal digits.  Alternative strings according to
-  \mbox{\isa{altstring}} are analogous, using single back-quotes instead.
-  The body of \mbox{\isa{verbatim}} may consist of any text not
+  \hyperlink{syntax.altstring}{\mbox{\isa{altstring}}} are analogous, using single back-quotes instead.
+  The body of \hyperlink{syntax.verbatim}{\mbox{\isa{verbatim}}} may consist of any text not
   containing ``\verb|*|\verb|}|''; this allows
   convenient inclusion of quotes without further escapes.  The greek
   letters do \emph{not} include \verb|\<lambda>|, which is already used
@@ -292,8 +292,8 @@ The actual inner Isabelle syntax, that of types and terms of the
 %
 \begin{isamarkuptext}%
 Mixfix annotations specify concrete \emph{inner} syntax of Isabelle
-  types and terms.  Some commands such as \mbox{\isa{\isacommand{types}}} (see
-  \secref{sec:types-pure}) admit infixes only, while \mbox{\isa{\isacommand{consts}}} (see \secref{sec:consts}) and \mbox{\isa{\isacommand{syntax}}} (see
+  types and terms.  Some commands such as \hyperlink{command.types}{\mbox{\isa{\isacommand{types}}}} (see
+  \secref{sec:types-pure}) admit infixes only, while \hyperlink{command.consts}{\mbox{\isa{\isacommand{consts}}}} (see \secref{sec:consts}) and \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} (see
   \secref{sec:syn-trans}) support the full range of general mixfixes
   and binders.
 
@@ -410,9 +410,9 @@ Attributes (and proof methods, see \secref{sec:syn-meth}) have their
 
   \item selections from named facts \isa{{\isachardoublequote}a{\isacharparenleft}i{\isacharparenright}{\isachardoublequote}} or \isa{{\isachardoublequote}a{\isacharparenleft}j\ {\isacharminus}\ k{\isacharparenright}{\isachardoublequote}},
 
-  \item literal fact propositions using \indexref{}{syntax}{altstring}\mbox{\isa{altstring}} syntax
+  \item literal fact propositions using \indexref{}{syntax}{altstring}\hyperlink{syntax.altstring}{\mbox{\isa{altstring}}} syntax
   \verb|`|\isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}\verb|`| (see also method
-  \indexref{}{method}{fact}\mbox{\isa{fact}} in \secref{sec:pure-meth-att}).
+  \indexref{}{method}{fact}\hyperlink{method.fact}{\mbox{\isa{fact}}} in \secref{sec:pure-meth-att}).
 
   \end{enumerate}
 
@@ -426,7 +426,7 @@ Attributes (and proof methods, see \secref{sec:syn-meth}) have their
   internal dummy fact, which will be ignored later on.  So only the
   effect of the attribute on the background context will persist.
   This form of in-place declarations is particularly useful with
-  commands like \mbox{\isa{\isacommand{declare}}} and \mbox{\isa{\isacommand{using}}}.
+  commands like \hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}} and \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}.
 
   \indexouternonterm{axmdecl}\indexouternonterm{thmdecl}
   \indexouternonterm{thmdef}\indexouternonterm{thmref}
@@ -490,8 +490,8 @@ Wherever explicit propositions (or term fragments) occur in a proof
   the typing refers to all variables, while in \isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}} the naming refers to all propositions collectively.
   Isar language elements that refer to \railnonterm{vars} or
   \railnonterm{props} typically admit separate typings or namings via
-  another level of iteration, with explicit \indexref{}{keyword}{and}\mbox{\isa{\isakeyword{and}}}
-  separators; e.g.\ see \mbox{\isa{\isacommand{fix}}} and \mbox{\isa{\isacommand{assume}}} in
+  another level of iteration, with explicit \indexref{}{keyword}{and}\hyperlink{keyword.and}{\mbox{\isa{\isakeyword{and}}}}
+  separators; e.g.\ see \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}} and \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}} in
   \secref{sec:proof-context}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -502,24 +502,24 @@ Wherever explicit propositions (or term fragments) occur in a proof
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{antiquotation}{theory}\mbox{\isa{theory}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{thm}\mbox{\isa{thm}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{prop}\mbox{\isa{prop}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{term}\mbox{\isa{term}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{const}\mbox{\isa{const}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{abbrev}\mbox{\isa{abbrev}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{typeof}\mbox{\isa{typeof}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{typ}\mbox{\isa{typ}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{thm\_style}\mbox{\isa{thm{\isacharunderscore}style}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{term\_style}\mbox{\isa{term{\isacharunderscore}style}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{text}\mbox{\isa{text}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{goals}\mbox{\isa{goals}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{subgoals}\mbox{\isa{subgoals}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{prf}\mbox{\isa{prf}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{full\_prf}\mbox{\isa{full{\isacharunderscore}prf}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{ML}\mbox{\isa{ML}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{ML\_type}\mbox{\isa{ML{\isacharunderscore}type}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{ML\_struct}\mbox{\isa{ML{\isacharunderscore}struct}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{theory}\hypertarget{antiquotation.theory}{\hyperlink{antiquotation.theory}{\mbox{\isa{theory}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{thm}\hypertarget{antiquotation.thm}{\hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{prop}\hypertarget{antiquotation.prop}{\hyperlink{antiquotation.prop}{\mbox{\isa{prop}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{term}\hypertarget{antiquotation.term}{\hyperlink{antiquotation.term}{\mbox{\isa{term}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{const}\hypertarget{antiquotation.const}{\hyperlink{antiquotation.const}{\mbox{\isa{const}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{abbrev}\hypertarget{antiquotation.abbrev}{\hyperlink{antiquotation.abbrev}{\mbox{\isa{abbrev}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{typeof}\hypertarget{antiquotation.typeof}{\hyperlink{antiquotation.typeof}{\mbox{\isa{typeof}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{typ}\hypertarget{antiquotation.typ}{\hyperlink{antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{thm\_style}\hypertarget{antiquotation.thm_style}{\hyperlink{antiquotation.thm_style}{\mbox{\isa{thm{\isacharunderscore}style}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{term\_style}\hypertarget{antiquotation.term_style}{\hyperlink{antiquotation.term_style}{\mbox{\isa{term{\isacharunderscore}style}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{text}\hypertarget{antiquotation.text}{\hyperlink{antiquotation.text}{\mbox{\isa{text}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{goals}\hypertarget{antiquotation.goals}{\hyperlink{antiquotation.goals}{\mbox{\isa{goals}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{subgoals}\hypertarget{antiquotation.subgoals}{\hyperlink{antiquotation.subgoals}{\mbox{\isa{subgoals}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{prf}\hypertarget{antiquotation.prf}{\hyperlink{antiquotation.prf}{\mbox{\isa{prf}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{full\_prf}\hypertarget{antiquotation.full_prf}{\hyperlink{antiquotation.full_prf}{\mbox{\isa{full{\isacharunderscore}prf}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{ML}\hypertarget{antiquotation.ML}{\hyperlink{antiquotation.ML}{\mbox{\isa{ML}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{ML\_type}\hypertarget{antiquotation.ML_type}{\hyperlink{antiquotation.ML_type}{\mbox{\isa{ML{\isacharunderscore}type}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{ML\_struct}\hypertarget{antiquotation.ML_struct}{\hyperlink{antiquotation.ML_struct}{\mbox{\isa{ML{\isacharunderscore}struct}}}} & : & \isarantiq \\
   \end{matharray}
 
   The text body of formal comments (see also \secref{sec:comments})
@@ -579,7 +579,7 @@ Wherever explicit propositions (or term fragments) occur in a proof
   \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}] prints theorems
   \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}.  Note that attribute specifications
   may be included as well (see also \secref{sec:syn-att}); the
-  \indexref{}{attribute}{no\_vars}\mbox{\isa{no{\isacharunderscore}vars}} rule (see \secref{sec:misc-meth-att}) would
+  \indexref{}{attribute}{no\_vars}\hyperlink{attribute.no_vars}{\mbox{\isa{no{\isacharunderscore}vars}}} rule (see \secref{sec:misc-meth-att}) would
   be particularly useful to suppress printing of schematic variables.
 
   \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prop\ {\isasymphi}{\isacharbraceright}{\isachardoublequote}}] prints a well-typed proposition \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}.
@@ -701,7 +701,7 @@ Wherever explicit propositions (or term fragments) occur in a proof
 
   \item[\isa{{\isachardoublequote}source\ {\isacharequal}\ bool{\isachardoublequote}}] prints the source text of the
   antiquotation arguments, rather than the actual value.  Note that
-  this does not affect well-formedness checks of \mbox{\isa{thm}}, \mbox{\isa{term}}, etc. (only the \mbox{\isa{text}} antiquotation admits arbitrary output).
+  this does not affect well-formedness checks of \hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}, \hyperlink{antiquotation.term}{\mbox{\isa{term}}}, etc. (only the \hyperlink{antiquotation.text}{\mbox{\isa{text}}} antiquotation admits arbitrary output).
 
   \item[\isa{{\isachardoublequote}goals{\isacharunderscore}limit\ {\isacharequal}\ nat{\isachardoublequote}}] determines the maximum number of
   goals to be printed.
@@ -753,14 +753,14 @@ Each Isabelle/Isar command may be decorated by presentation tags:
   specifically, e.g.\ to fold proof texts, or drop parts of the text
   completely.
 
-  For example ``\mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}{\isacharpercent}invisible\ auto{\isachardoublequote}}'' would
+  For example ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharpercent}invisible\ auto{\isachardoublequote}}'' would
   cause that piece of proof to be treated as \isa{invisible} instead
   of \isa{{\isachardoublequote}proof{\isachardoublequote}} (the default), which may be either show or hidden
-  depending on the document setup.  In contrast, ``\mbox{\isa{\isacommand{by}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ auto{\isachardoublequote}}'' would force this text to be shown
+  depending on the document setup.  In contrast, ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ auto{\isachardoublequote}}'' would force this text to be shown
   invariably.
 
   Explicit tag specifications within a proof apply to all subsequent
-  commands of the same level of nesting.  For example, ``\mbox{\isa{\isacommand{proof}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ {\isasymdots}{\isachardoublequote}}~\mbox{\isa{\isacommand{qed}}}'' would force the
+  commands of the same level of nesting.  For example, ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ {\isasymdots}{\isachardoublequote}}~\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}'' would force the
   whole sub-proof to be typeset as \isa{visible} (unless some of its
   parts are tagged differently).%
 \end{isamarkuptext}%

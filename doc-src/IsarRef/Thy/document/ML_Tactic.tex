@@ -26,7 +26,7 @@
 %
 \begin{isamarkuptext}%
 Isar Proof methods closely resemble traditional tactics, when used
-  in unstructured sequences of \mbox{\isa{\isacommand{apply}}} commands.
+  in unstructured sequences of \hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}} commands.
   Isabelle/Isar provides emulations for all major ML tactics of
   classic Isabelle --- mostly for the sake of easy porting of existing
   developments, as actual Isar proof texts would demand much less
@@ -38,7 +38,7 @@ Isar Proof methods closely resemble traditional tactics, when used
   corresponding ML tactic.  Furthermore, the Isar versions of classic
   Isabelle tactics often cover several variant forms by a single
   method with separate options to tune the behavior.  For example,
-  method \mbox{\isa{simp}} replaces all of \verb|simp_tac|~/ \verb|asm_simp_tac|~/ \verb|full_simp_tac|~/ \verb|asm_full_simp_tac|, there
+  method \hyperlink{method.simp}{\mbox{\isa{simp}}} replaces all of \verb|simp_tac|~/ \verb|asm_simp_tac|~/ \verb|full_simp_tac|~/ \verb|asm_full_simp_tac|, there
   is also concrete syntax for augmenting the Simplifier context (the
   current ``simpset'') in a convenient way.%
 \end{isamarkuptext}%
@@ -67,16 +67,16 @@ Classic Isabelle provides several variant forms of tactics for
 
   \end{enumerate}
 
-  Basically, the set of Isar tactic emulations \mbox{\isa{rule{\isacharunderscore}tac}},
-  \mbox{\isa{erule{\isacharunderscore}tac}}, \mbox{\isa{drule{\isacharunderscore}tac}}, \mbox{\isa{frule{\isacharunderscore}tac}} (see
+  Basically, the set of Isar tactic emulations \hyperlink{method.rule_tac}{\mbox{\isa{rule{\isacharunderscore}tac}}},
+  \hyperlink{method.erule_tac}{\mbox{\isa{erule{\isacharunderscore}tac}}}, \hyperlink{method.drule_tac}{\mbox{\isa{drule{\isacharunderscore}tac}}}, \hyperlink{method.frule_tac}{\mbox{\isa{frule{\isacharunderscore}tac}}} (see
   \secref{sec:tactics}) would be sufficient to cover the four modes,
   either with or without instantiation, and either with single or
   multiple arguments.  Although it is more convenient in most cases to
-  use the plain \mbox{\isa{rule}} method (see
+  use the plain \hyperlink{method.rule}{\mbox{\isa{rule}}} method (see
   \secref{sec:pure-meth-att}), or any of its ``improper'' variants
-  \mbox{\isa{erule}}, \mbox{\isa{drule}}, \mbox{\isa{frule}} (see
+  \hyperlink{method.erule}{\mbox{\isa{erule}}}, \hyperlink{method.drule}{\mbox{\isa{drule}}}, \hyperlink{method.frule}{\mbox{\isa{frule}}} (see
   \secref{sec:misc-meth-att}).  Note that explicit goal addressing is
-  only supported by the actual \mbox{\isa{rule{\isacharunderscore}tac}} version.
+  only supported by the actual \hyperlink{method.rule_tac}{\mbox{\isa{rule{\isacharunderscore}tac}}} version.
 
   With this in mind, plain resolution tactics correspond to Isar
   methods as follows.
@@ -95,7 +95,7 @@ Classic Isabelle provides several variant forms of tactics for
   \medskip
 
   Note that explicit goal addressing may be usually avoided by
-  changing the order of subgoals with \mbox{\isa{\isacommand{defer}}} or \mbox{\isa{\isacommand{prefer}}} (see \secref{sec:tactic-commands}).%
+  changing the order of subgoals with \hyperlink{command.defer}{\mbox{\isa{\isacommand{defer}}}} or \hyperlink{command.prefer}{\mbox{\isa{\isacommand{prefer}}}} (see \secref{sec:tactic-commands}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -105,20 +105,20 @@ Classic Isabelle provides several variant forms of tactics for
 %
 \begin{isamarkuptext}%
 The main Simplifier tactics \verb|simp_tac| and variants (cf.\
-  \cite{isabelle-ref}) are all covered by the \mbox{\isa{simp}} and
-  \mbox{\isa{simp{\isacharunderscore}all}} methods (see \secref{sec:simplifier}).  Note that
+  \cite{isabelle-ref}) are all covered by the \hyperlink{method.simp}{\mbox{\isa{simp}}} and
+  \hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}} methods (see \secref{sec:simplifier}).  Note that
   there is no individual goal addressing available, simplification
-  acts either on the first goal (\mbox{\isa{simp}}) or all goals
-  (\mbox{\isa{simp{\isacharunderscore}all}}).
+  acts either on the first goal (\hyperlink{method.simp}{\mbox{\isa{simp}}}) or all goals
+  (\hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}}).
 
   \medskip
   \begin{tabular}{lll}
-    \verb|asm_full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}} \\
-    \verb|ALLGOALS|~(\verb|asm_full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}{\isachardoublequote}}) & & \mbox{\isa{simp{\isacharunderscore}all}} \\[0.5ex]
-    \verb|simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isachardoublequote}} \\
-    \verb|asm_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}{\isachardoublequote}} \\
-    \verb|full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}{\isachardoublequote}} \\
-    \verb|asm_lr_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \mbox{\isa{simp}}~\isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharunderscore}lr{\isacharparenright}{\isachardoublequote}} \\
+    \verb|asm_full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \hyperlink{method.simp}{\mbox{\isa{simp}}} \\
+    \verb|ALLGOALS|~(\verb|asm_full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}{\isachardoublequote}}) & & \hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}} \\[0.5ex]
+    \verb|simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \hyperlink{method.simp}{\mbox{\isa{simp}}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isachardoublequote}} \\
+    \verb|asm_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \hyperlink{method.simp}{\mbox{\isa{simp}}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}simp{\isacharparenright}{\isachardoublequote}} \\
+    \verb|full_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \hyperlink{method.simp}{\mbox{\isa{simp}}}~\isa{{\isachardoublequote}{\isacharparenleft}no{\isacharunderscore}asm{\isacharunderscore}use{\isacharparenright}{\isachardoublequote}} \\
+    \verb|asm_lr_simp_tac|~\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}simpset{\isacharbraceright}\ {\isadigit{1}}{\isachardoublequote}} & & \hyperlink{method.simp}{\mbox{\isa{simp}}}~\isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharunderscore}lr{\isacharparenright}{\isachardoublequote}} \\
   \end{tabular}
   \medskip%
 \end{isamarkuptext}%
@@ -131,7 +131,7 @@ The main Simplifier tactics \verb|simp_tac| and variants (cf.\
 \begin{isamarkuptext}%
 The Classical Reasoner provides a rather large number of variations
   of automated tactics, such as \verb|blast_tac|, \verb|fast_tac|, \verb|clarify_tac| etc.\ (see \cite{isabelle-ref}).  The corresponding
-  Isar methods usually share the same base name, such as \mbox{\isa{blast}}, \mbox{\isa{fast}}, \mbox{\isa{clarify}} etc.\ (see
+  Isar methods usually share the same base name, such as \hyperlink{method.blast}{\mbox{\isa{blast}}}, \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.clarify}{\mbox{\isa{clarify}}} etc.\ (see
   \secref{sec:classical}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -167,7 +167,7 @@ Classic Isabelle provides a huge amount of tacticals for combination
   in Isar, providing the bare minimum of combinators only: ``\isa{{\isachardoublequote}{\isacharcomma}{\isachardoublequote}}'' (sequential composition), ``\isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}}'' (alternative
   choices), ``\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}}'' (try), ``\isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}}'' (repeat at least
   once).  These are usually sufficient in practice; if all fails,
-  arbitrary ML tactic code may be invoked via the \mbox{\isa{tactic}}
+  arbitrary ML tactic code may be invoked via the \hyperlink{method.tactic}{\mbox{\isa{tactic}}}
   method (see \secref{sec:tactics}).
 
   \medskip Common ML tacticals may be expressed directly in Isar as
@@ -193,14 +193,14 @@ Classic Isabelle provides a huge amount of tacticals for combination
   \medskip \verb|ALLGOALS|, \verb|SOMEGOAL| etc.\ (see
   \cite{isabelle-ref}) are not available in Isar, since there is no
   direct goal addressing.  Nevertheless, some basic methods address
-  all goals internally, notably \mbox{\isa{simp{\isacharunderscore}all}} (see
+  all goals internally, notably \hyperlink{method.simp_all}{\mbox{\isa{simp{\isacharunderscore}all}}} (see
   \secref{sec:simplifier}).  Also note that \verb|ALLGOALS| can be
   often replaced by ``\isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}}'' (repeat at least once), although
   this usually has a different operational behavior, such as solving
   goals in a different order.
 
   \medskip Iterated resolution, such as \verb|REPEAT (FIRSTGOAL|\isasep\isanewline%
-\verb|  (resolve_tac \<dots>))|, is usually better expressed using the \mbox{\isa{intro}} and \mbox{\isa{elim}} methods of Isar (see
+\verb|  (resolve_tac \<dots>))|, is usually better expressed using the \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} methods of Isar (see
   \secref{sec:classical}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
