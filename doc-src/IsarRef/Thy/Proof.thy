@@ -495,9 +495,9 @@ text {*
     @{method_def "this"} & : & \isarmeth \\
     @{method_def "rule"} & : & \isarmeth \\
     @{method_def "iprover"} & : & \isarmeth \\[0.5ex]
-    @{attribute_def "intro"} & : & \isaratt \\
-    @{attribute_def "elim"} & : & \isaratt \\
-    @{attribute_def "dest"} & : & \isaratt \\
+    @{attribute_def (Pure) "intro"} & : & \isaratt \\
+    @{attribute_def (Pure) "elim"} & : & \isaratt \\
+    @{attribute_def (Pure) "dest"} & : & \isaratt \\
     @{attribute_def "rule"} & : & \isaratt \\[0.5ex]
     @{attribute_def "OF"} & : & \isaratt \\
     @{attribute_def "of"} & : & \isaratt \\
@@ -565,10 +565,10 @@ text {*
   
   When no arguments are given, the @{method rule} method tries to pick
   appropriate rules automatically, as declared in the current context
-  using the @{attribute intro}, @{attribute elim}, @{attribute dest}
-  attributes (see below).  This is the default behavior of @{command
-  "proof"} and ``@{command ".."}'' (double-dot) steps (see
-  \secref{sec:proof-steps}).
+  using the @{attribute (Pure) intro}, @{attribute (Pure) elim},
+  @{attribute (Pure) dest} attributes (see below).  This is the
+  default behavior of @{command "proof"} and ``@{command ".."}'' 
+  (double-dot) steps (see \secref{sec:proof-steps}).
   
   \item [@{method iprover}] performs intuitionistic proof search,
   depending on specifically declared rules from the context, or given
@@ -576,24 +576,26 @@ text {*
   before commencing proof search; ``@{method iprover}@{text "!"}'' 
   means to include the current @{fact prems} as well.
   
-  Rules need to be classified as @{attribute intro}, @{attribute
-  elim}, or @{attribute dest}; here the ``@{text "!"}'' indicator
-  refers to ``safe'' rules, which may be applied aggressively (without
-  considering back-tracking later).  Rules declared with ``@{text
-  "?"}'' are ignored in proof search (the single-step @{method rule}
-  method still observes these).  An explicit weight annotation may be
-  given as well; otherwise the number of rule premises will be taken
-  into account here.
+  Rules need to be classified as @{attribute (Pure) intro},
+  @{attribute (Pure) elim}, or @{attribute (Pure) dest}; here the
+  ``@{text "!"}'' indicator refers to ``safe'' rules, which may be
+  applied aggressively (without considering back-tracking later).
+  Rules declared with ``@{text "?"}'' are ignored in proof search (the
+  single-step @{method rule} method still observes these).  An
+  explicit weight annotation may be given as well; otherwise the
+  number of rule premises will be taken into account here.
   
-  \item [@{attribute intro}, @{attribute elim}, and @{attribute dest}]
-  declare introduction, elimination, and destruct rules, to be used
-  with the @{method rule} and @{method iprover} methods.  Note that
-  the latter will ignore rules declared with ``@{text "?"}'', while
-  ``@{text "!"}''  are used most aggressively.
+  \item [@{attribute (Pure) intro}, @{attribute (Pure) elim}, and
+  @{attribute (Pure) dest}] declare introduction, elimination, and
+  destruct rules, to be used with the @{method rule} and @{method
+  iprover} methods.  Note that the latter will ignore rules declared
+  with ``@{text "?"}'', while ``@{text "!"}''  are used most
+  aggressively.
   
   The classical reasoner (see \secref{sec:classical}) introduces its
   own variants of these attributes; use qualified names to access the
-  present versions of Isabelle/Pure, i.e.\ @{attribute "Pure.intro"}.
+  present versions of Isabelle/Pure, i.e.\ @{attribute (Pure)
+  "Pure.intro"}.
   
   \item [@{attribute rule}~@{text del}] undeclares introduction,
   elimination, or destruct rules.

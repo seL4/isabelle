@@ -1325,11 +1325,11 @@ text {*
   facts, which are guaranteed to participate, may appear in either
   order.
 
-  \item [@{attribute intro} and @{attribute elim}] repeatedly refine
-  some goal by intro- or elim-resolution, after having inserted any
-  chained facts.  Exactly the rules given as arguments are taken into
-  account; this allows fine-tuned decomposition of a proof problem, in
-  contrast to common automated tools.
+  \item [@{method intro} and @{method elim}] repeatedly refine some
+  goal by intro- or elim-resolution, after having inserted any chained
+  facts.  Exactly the rules given as arguments are taken into account;
+  this allows fine-tuned decomposition of a proof problem, in contrast
+  to common automated tools.
 
   \end{descr}
 *}
