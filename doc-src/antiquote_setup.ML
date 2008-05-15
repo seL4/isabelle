@@ -25,6 +25,7 @@ val clean_string = translate_string
 fun clean_name "\\<dots>" = "dots"
   | clean_name ".." = "ddot"
   | clean_name "." = "dot"
+  | clean_name "_" = "underscore"
   | clean_name "{" = "braceleft"
   | clean_name "}" = "braceright"
   | clean_name s = s |> translate_string (fn "_" => "-" | c => c);
