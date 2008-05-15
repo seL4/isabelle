@@ -212,7 +212,6 @@
     "binder"
     "case_eqns"
     "con_defs"
-    "concl"
     "constrains"
     "contains"
     "defines"

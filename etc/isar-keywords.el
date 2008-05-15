@@ -253,7 +253,6 @@
     "begin"
     "binder"
     "compose"
-    "concl"
     "congs"
     "constrains"
     "contains"
