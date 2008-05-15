@@ -116,10 +116,6 @@ ISABELLE_EPSTOPDF="epstopdf"
 # Paranoia setting for strange latex installations ...
 #unset TEXMF
 
-# If ISABELLE_THUMBPDF is set, isatool tries to
-# generate thumbnails for proof documents
-#type -path thumbpdf >/dev/null && ISABELLE_THUMBPDF="thumbpdf"
-
 
 ###
 ### Misc path settings

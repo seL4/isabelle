@@ -139,10 +139,6 @@ function pre_latex ()
   elif [ "$OUTFORMAT" = pdf ]; then
     pre_latex pdf && \
     "$ISATOOL" latex -o pdf && \
-    { if [ -n "$ISABELLE_THUMBPDF" ]; then
-        "$ISATOOL" latex -o png && \
-        "$ISATOOL" latex -o pdf
-      fi; }
     RC="$?"
   else
     pre_latex dvi && \

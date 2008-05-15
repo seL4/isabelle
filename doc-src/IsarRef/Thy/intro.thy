@@ -221,13 +221,10 @@ subsection {* Document preparation \label{sec:document-prep} *}
 text {*
   Isabelle/Isar provides a simple document preparation system based on
   existing {PDF-\LaTeX} technology, with full support of hyper-links
-  (both local references and URLs), bookmarks, and thumbnails.  Thus
-  the results are equally well suited for WWW browsing and as printed
-  copies.
+  (both local references and URLs) and bookmarks.  Thus the results
+  are equally well suited for WWW browsing and as printed copies.
 
-  \medskip
-
-  Isabelle generates {\LaTeX} output as part of the run of a
+  \medskip Isabelle generates {\LaTeX} output as part of the run of a
   \emph{logic session} (see also \cite{isabelle-sys}).  Getting
   started with a working configuration for common situations is quite
   easy by using the Isabelle @{verbatim mkdir} and @{verbatim make}

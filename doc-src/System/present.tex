@@ -579,9 +579,9 @@ symbols).  Users may invent further symbols as well, just by providing
 {\LaTeX} macros in a similar fashion as in \texttt{isabellesym.sty} of the
 distribution.
 
-For proper setup of PDF documents (with hyperlinks, bookmarks, and thumbnail
-images), we recommend to include \verb,pdfsetup.sty, as well.  It is safe to
-do so even without using PDF~\LaTeX.
+For proper setup of PDF documents (with hyperlinks and bookmarks), we
+recommend to include \verb,pdfsetup.sty, as well.  It is safe to do so
+even without using PDF~\LaTeX.
 
 \medskip As a final step of document preparation within Isabelle,
 \texttt{isatool document -c} is run on the resulting \texttt{document}
@@ -604,16 +604,17 @@ Usage: latex [OPTIONS] [FILE]
 
   Options are:
     -o FORMAT    specify output format: dvi (default), dvi.gz, ps,
-                 ps.gz, pdf, bbl, png, sty, syms
+                 ps.gz, pdf, bbl, idx, sty, syms
 
   Run LaTeX (and related tools) on FILE (default root.tex),
   producing the specified output format.
 \end{ttbox}
-Appropriate {\LaTeX}-related programs are run on the input file, according to
-the given output format: \texttt{latex}, \texttt{pdflatex}, \texttt{dvips},
-\texttt{bibtex} (for \texttt{bbl}), and \texttt{thumbpdf} (for \texttt{png}).
-The actual commands are determined from the settings environment
-(\texttt{ISABELLE_LATEX} etc., see \S\ref{sec:settings}).
+Appropriate {\LaTeX}-related programs are run on the input file,
+according to the given output format: \texttt{latex},
+\texttt{pdflatex}, \texttt{dvips}, \texttt{bibtex} (for \texttt{bbl}),
+and \texttt{makeindex} (for \texttt{idx}).  The actual commands are
+determined from the settings environment (\texttt{ISABELLE_LATEX}
+etc., see \S\ref{sec:settings}).
 
 The \texttt{sty} output format causes the Isabelle style files to be updated
 from the distribution.  This is useful in special situations where the
