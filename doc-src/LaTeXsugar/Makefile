@@ -18,7 +18,8 @@ NAME = sugar
 
 FILES = Sugar/document/root.tex Sugar/document/root.bib \
         Sugar/document/mathpartir.sty Sugar/document/LaTeXsugar.tex \
-        Sugar/document/OptionalSugar.tex Sugar/document/Sugar.tex
+        Sugar/document/OptionalSugar.tex Sugar/document/Sugar.tex \
+        ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty
 
 GARBAGE = Sugar/document/*.aux Sugar/document/*.log Sugar/document/*.toc \
           Sugar/document/*.idx Sugar/document/*.bbl Sugar/document/*.blg \

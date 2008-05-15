@@ -15,6 +15,7 @@ NAME = codegen
 
 FILES = $(NAME).tex Thy/document/Codegen.tex \
   style.sty ../../iman.sty ../../extra.sty ../../isar.sty \
+  ../../isabelle.sty ../../isabellesym.sty ../../pdfsetup.sty \
   ../../manual.bib ../../proof.sty
 
 dvi: $(NAME).dvi
