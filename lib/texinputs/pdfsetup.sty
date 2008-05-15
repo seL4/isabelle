@@ -1,7 +1,7 @@
 %%
 %% $Id$
 %%
-%% smart url or hyperref setup
+%% default pdfoutput and hyperref setup
 %%
 
 \newif\ifpdfoutput
@@ -14,12 +14,7 @@
   \fi
 \fi
 
-\ifpdfoutput
-  \message{PDF output}
-  \usepackage{color}\definecolor{darkblue}{rgb}{0,0,0.5}
-  \usepackage[pdftex,a4paper,colorlinks=true,linkcolor=darkblue,citecolor=darkblue,filecolor=darkblue,pagecolor=darkblue,urlcolor=darkblue]{hyperref}
-  \IfFileExists{thumbpdf.sty}{\usepackage{thumbpdf}}{}
-\else
-  \message{No PDF output}
-  \usepackage{url}
-\fi
+\usepackage{color}
+\definecolor{linkcolor}{rgb}{0,0,0.5}
+
+\usepackage[a4paper,colorlinks=true,linkcolor=linkcolor,citecolor=linkcolor,filecolor=linkcolor,pagecolor=linkcolor,urlcolor=linkcolor]{hyperref}
