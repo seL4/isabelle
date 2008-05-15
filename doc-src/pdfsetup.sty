@@ -15,19 +15,12 @@
   \fi
 \fi
 
-\ifpdfoutput
-  \message{PDF output}
-  \usepackage{color}\definecolor{darkblue}{rgb}{0,0,0.5}
-  \usepackage[pdftex,colorlinks=true,linkcolor=darkblue,citecolor=darkblue,filecolor=darkblue,pagecolor=darkblue,urlcolor=darkblue,pdfpagelabels]{hyperref}
-              %no a4paper because overall style sets this (not for Springer!)
-  \newcommand{\hfootref}[2]{\href{#1}{#2}\footnote{\url{#1}}}
-  \gdef\fnote#1{\hyperpage{#1}n}
-  \gdef\bold#1{\textbf{\hyperpage{#1}}}
-\else
-  \message{No PDF output}
-  \def\phantomsection{\relax}
-  \usepackage{../url}
-  \newcommand{\hfootref}[2]{#2\footnote{\url{#1}}}
-\fi
+\usepackage{color}
+\definecolor{linkcolor}{rgb}{0,0,0.5}
+
+\usepackage[colorlinks=true,linkcolor=linkcolor,citecolor=linkcolor,filecolor=linkcolor,pagecolor=linkcolor,urlcolor=linkcolor,pdfpagelabels]{hyperref}
+\newcommand{\hfootref}[2]{\href{#1}{#2}\footnote{\url{#1}}}
+\gdef\fnote#1{\hyperpage{#1}n}
+\gdef\bold#1{\textbf{\hyperpage{#1}}}
 
 \urlstyle{rm}
