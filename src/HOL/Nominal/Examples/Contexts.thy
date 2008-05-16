@@ -141,8 +141,13 @@ proof (induct)
   then show  "App (Lam [x].t) t' \<longrightarrow>x t[x::=t']" by simp
 qed (metis ctx_red_in_ctx filling.simps)+ (* found by SledgeHammer *)
 
+lemma ctx_existence:
+  assumes a: "t \<longrightarrow>o t'"
+  shows "\<exists>C s s'. t = C\<lbrakk>s\<rbrakk> \<and> t' = C\<lbrakk>s'\<rbrakk> \<and> s \<longrightarrow>o s'"
+using a
+by (induct) (metis cong_red.intros filling.simps)+
 
-section {* We now use context in a CBV list machine. *}
+section {* We now use context in a CBV list machine *}
 
 text {* First, a function that composes a list of contexts. *}
 
