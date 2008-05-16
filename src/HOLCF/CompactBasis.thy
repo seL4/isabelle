@@ -52,7 +52,7 @@ done
 lemma ideal_principal: "ideal {x. x \<sqsubseteq> z}"
 apply (rule idealI)
 apply (rule_tac x=z in exI)
-apply (fast intro: refl)
+apply fast
 apply (rule_tac x=z in bexI, fast)
 apply fast
 apply (fast intro: trans_less)
@@ -116,7 +116,7 @@ done
 lemma is_lub_thelub0: "\<lbrakk>\<exists>u. S <<| u; S <| x\<rbrakk> \<Longrightarrow> lub S \<sqsubseteq> x"
 by (erule exE, drule lubI, erule is_lub_lub)
 
-locale plotkin_order = preorder r +
+locale basis_take = preorder r +
   fixes take :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'a"
   assumes take_less: "r (take n a) a"
   assumes take_take: "take n (take n a) = take n a"
@@ -125,28 +125,28 @@ locale plotkin_order = preorder r +
   assumes finite_range_take: "finite (range (take n))"
   assumes take_covers: "\<exists>n. take n a = a"
 
-locale bifinite_basis = plotkin_order r +
+locale ideal_completion = basis_take r +
   fixes principal :: "'a::type \<Rightarrow> 'b::cpo"
-  fixes approxes :: "'b::cpo \<Rightarrow> 'a::type set"
-  assumes ideal_approxes: "\<And>x. preorder.ideal r (approxes x)"
-  assumes cont_approxes: "cont approxes"
-  assumes approxes_principal: "\<And>a. approxes (principal a) = {b. r b a}"
-  assumes subset_approxesD: "\<And>x y. approxes x \<subseteq> approxes y \<Longrightarrow> x \<sqsubseteq> y"
+  fixes rep :: "'b::cpo \<Rightarrow> 'a::type set"
+  assumes ideal_rep: "\<And>x. preorder.ideal r (rep x)"
+  assumes cont_rep: "cont rep"
+  assumes rep_principal: "\<And>a. rep (principal a) = {b. r b a}"
+  assumes subset_repD: "\<And>x y. rep x \<subseteq> rep y \<Longrightarrow> x \<sqsubseteq> y"
 begin
 
-lemma finite_take_approxes: "finite (take n ` approxes x)"
+lemma finite_take_rep: "finite (take n ` rep x)"
 by (rule finite_subset [OF image_mono [OF subset_UNIV] finite_range_take])
 
 lemma basis_fun_lemma0:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "\<exists>u. f ` take i ` approxes x <<| u"
+  shows "\<exists>u. f ` take i ` rep x <<| u"
 apply (rule finite_directed_has_lub)
 apply (rule finite_imageI)
-apply (rule finite_take_approxes)
+apply (rule finite_take_rep)
 apply (subst image_image)
 apply (rule directed_image_ideal)
-apply (rule ideal_approxes)
+apply (rule ideal_rep)
 apply (rule f_mono)
 apply (erule take_mono)
 done
@@ -154,7 +154,7 @@ done
 lemma basis_fun_lemma1:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "chain (\<lambda>i. lub (f ` take i ` approxes x))"
+  shows "chain (\<lambda>i. lub (f ` take i ` rep x))"
  apply (rule chainI)
  apply (rule is_lub_thelub0)
   apply (rule basis_fun_lemma0, erule f_mono)
@@ -168,7 +168,7 @@ done
 lemma basis_fun_lemma2:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "f ` approxes x <<| (\<Squnion>i. lub (f ` take i ` approxes x))"
+  shows "f ` rep x <<| (\<Squnion>i. lub (f ` take i ` rep x))"
  apply (rule is_lubI)
  apply (rule ub_imageI, rename_tac a)
   apply (cut_tac a=a in take_covers, erule exE, rename_tac i)
@@ -191,74 +191,80 @@ done
 lemma basis_fun_lemma:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "\<exists>u. f ` approxes x <<| u"
+  shows "\<exists>u. f ` rep x <<| u"
 by (rule exI, rule basis_fun_lemma2, erule f_mono)
 
-lemma approxes_mono: "x \<sqsubseteq> y \<Longrightarrow> approxes x \<subseteq> approxes y"
-apply (drule cont_approxes [THEN cont2mono, THEN monofunE])
+lemma rep_mono: "x \<sqsubseteq> y \<Longrightarrow> rep x \<subseteq> rep y"
+apply (drule cont_rep [THEN cont2mono, THEN monofunE])
 apply (simp add: set_cpo_simps)
 done
 
-lemma approxes_contlub:
-  "chain Y \<Longrightarrow> approxes (\<Squnion>i. Y i) = (\<Union>i. approxes (Y i))"
-by (simp add: cont2contlubE [OF cont_approxes] set_cpo_simps)
+lemma rep_contlub:
+  "chain Y \<Longrightarrow> rep (\<Squnion>i. Y i) = (\<Union>i. rep (Y i))"
+by (simp add: cont2contlubE [OF cont_rep] set_cpo_simps)
 
-lemma less_def: "(x \<sqsubseteq> y) = (approxes x \<subseteq> approxes y)"
-by (rule iffI [OF approxes_mono subset_approxesD])
+lemma less_def: "x \<sqsubseteq> y \<longleftrightarrow> rep x \<subseteq> rep y"
+by (rule iffI [OF rep_mono subset_repD])
 
-lemma approxes_eq: "approxes x = {a. principal a \<sqsubseteq> x}"
-unfolding less_def approxes_principal
+lemma rep_eq: "rep x = {a. principal a \<sqsubseteq> x}"
+unfolding less_def rep_principal
 apply safe
-apply (erule (1) idealD3 [OF ideal_approxes])
+apply (erule (1) idealD3 [OF ideal_rep])
 apply (erule subsetD, simp add: refl)
 done
 
-lemma mem_approxes_iff: "(a \<in> approxes x) = (principal a \<sqsubseteq> x)"
-by (simp add: approxes_eq)
+lemma mem_rep_iff_principal_less: "a \<in> rep x \<longleftrightarrow> principal a \<sqsubseteq> x"
+by (simp add: rep_eq)
 
-lemma principal_less_iff: "(principal a \<sqsubseteq> x) = (a \<in> approxes x)"
-by (simp add: approxes_eq)
+lemma principal_less_iff_mem_rep: "principal a \<sqsubseteq> x \<longleftrightarrow> a \<in> rep x"
+by (simp add: rep_eq)
 
-lemma approxesD: "a \<in> approxes x \<Longrightarrow> principal a \<sqsubseteq> x"
-by (simp add: approxes_eq)
+lemma principal_less_iff: "principal a \<sqsubseteq> principal b \<longleftrightarrow> r a b"
+by (simp add: principal_less_iff_mem_rep rep_principal)
+
+lemma principal_eq_iff: "principal a = principal b \<longleftrightarrow> r a b \<and> r b a"
+unfolding po_eq_conv [where 'a='b] principal_less_iff ..
+
+lemma repD: "a \<in> rep x \<Longrightarrow> principal a \<sqsubseteq> x"
+by (simp add: rep_eq)
 
 lemma principal_mono: "r a b \<Longrightarrow> principal a \<sqsubseteq> principal b"
-by (rule approxesD, simp add: approxes_principal)
+by (simp add: principal_less_iff)
 
 lemma lessI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
-unfolding principal_less_iff
+unfolding principal_less_iff_mem_rep
 by (simp add: less_def subset_eq)
 
-lemma lub_principal_approxes: "principal ` approxes x <<| x"
+lemma lub_principal_rep: "principal ` rep x <<| x"
 apply (rule is_lubI)
 apply (rule ub_imageI)
-apply (erule approxesD)
+apply (erule repD)
 apply (subst less_def)
 apply (rule subsetI)
 apply (drule (1) ub_imageD)
-apply (simp add: approxes_eq)
+apply (simp add: rep_eq)
 done
 
 definition
   basis_fun :: "('a::type \<Rightarrow> 'c::cpo) \<Rightarrow> 'b \<rightarrow> 'c" where
-  "basis_fun = (\<lambda>f. (\<Lambda> x. lub (f ` approxes x)))"
+  "basis_fun = (\<lambda>f. (\<Lambda> x. lub (f ` rep x)))"
 
 lemma basis_fun_beta:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
-  shows "basis_fun f\<cdot>x = lub (f ` approxes x)"
+  shows "basis_fun f\<cdot>x = lub (f ` rep x)"
 unfolding basis_fun_def
 proof (rule beta_cfun)
-  have lub: "\<And>x. \<exists>u. f ` approxes x <<| u"
+  have lub: "\<And>x. \<exists>u. f ` rep x <<| u"
     using f_mono by (rule basis_fun_lemma)
-  show cont: "cont (\<lambda>x. lub (f ` approxes x))"
+  show cont: "cont (\<lambda>x. lub (f ` rep x))"
     apply (rule contI2)
      apply (rule monofunI)
      apply (rule is_lub_thelub0 [OF lub ub_imageI])
      apply (rule is_ub_thelub0 [OF lub imageI])
-     apply (erule (1) subsetD [OF approxes_mono])
+     apply (erule (1) subsetD [OF rep_mono])
     apply (rule is_lub_thelub0 [OF lub ub_imageI])
-    apply (simp add: approxes_contlub, clarify)
+    apply (simp add: rep_contlub, clarify)
     apply (erule rev_trans_less [OF is_ub_thelub])
     apply (erule is_ub_thelub0 [OF lub imageI])
     done
@@ -269,7 +275,7 @@ lemma basis_fun_principal:
   assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
   shows "basis_fun f\<cdot>(principal a) = f a"
 apply (subst basis_fun_beta, erule f_mono)
-apply (subst approxes_principal)
+apply (subst rep_principal)
 apply (rule lub_image_principal, erule f_mono)
 done
 
@@ -290,10 +296,24 @@ lemma basis_fun_mono:
 done
 
 lemma compact_principal: "compact (principal a)"
-by (rule compactI2, simp add: principal_less_iff approxes_contlub)
+by (rule compactI2, simp add: principal_less_iff_mem_rep rep_contlub)
 
-lemma chain_basis_fun_take:
-  "chain (\<lambda>i. basis_fun (\<lambda>a. principal (take i a)))"
+definition
+  completion_approx :: "nat \<Rightarrow> 'b \<rightarrow> 'b" where
+  "completion_approx = (\<lambda>i. basis_fun (\<lambda>a. principal (take i a)))"
+
+lemma completion_approx_beta:
+  "completion_approx i\<cdot>x = (\<Squnion>a\<in>rep x. principal (take i a))"
+unfolding completion_approx_def
+by (simp add: basis_fun_beta principal_mono take_mono)
+
+lemma completion_approx_principal:
+  "completion_approx i\<cdot>(principal a) = principal (take i a)"
+unfolding completion_approx_def
+by (simp add: basis_fun_principal principal_mono take_mono)
+
+lemma chain_completion_approx: "chain completion_approx"
+unfolding completion_approx_def
 apply (rule chainI)
 apply (rule basis_fun_mono)
 apply (erule principal_mono [OF take_mono])
@@ -301,51 +321,54 @@ apply (erule principal_mono [OF take_mono])
 apply (rule principal_mono [OF take_chain])
 done
 
-lemma lub_basis_fun_take:
-  "(\<Squnion>i. basis_fun (\<lambda>a. principal (take i a))\<cdot>x) = x"
- apply (simp add: basis_fun_beta principal_mono take_mono)
+lemma lub_completion_approx: "(\<Squnion>i. completion_approx i\<cdot>x) = x"
+unfolding completion_approx_beta
  apply (subst image_image [where f=principal, symmetric])
- apply (rule unique_lub [OF _ lub_principal_approxes])
+ apply (rule unique_lub [OF _ lub_principal_rep])
  apply (rule basis_fun_lemma2, erule principal_mono)
 done
 
-lemma basis_fun_take_eq_principal:
-  "\<exists>a\<in>approxes x.
-    basis_fun (\<lambda>a. principal (take i a))\<cdot>x = principal (take i a)"
- apply (simp add: basis_fun_beta principal_mono take_mono)
+lemma completion_approx_eq_principal:
+  "\<exists>a\<in>rep x. completion_approx i\<cdot>x = principal (take i a)"
+unfolding completion_approx_beta
  apply (subst image_image [where f=principal, symmetric])
- apply (subgoal_tac "finite (principal ` take i ` approxes x)")
-  apply (subgoal_tac "directed (principal ` take i ` approxes x)")
+ apply (subgoal_tac "finite (principal ` take i ` rep x)")
+  apply (subgoal_tac "directed (principal ` take i ` rep x)")
    apply (drule (1) lub_finite_directed_in_self, fast)
   apply (subst image_image)
   apply (rule directed_image_ideal)
-   apply (rule ideal_approxes)
+   apply (rule ideal_rep)
   apply (erule principal_mono [OF take_mono])
  apply (rule finite_imageI)
- apply (rule finite_take_approxes)
+ apply (rule finite_take_rep)
+done
+
+lemma completion_approx_idem:
+  "completion_approx i\<cdot>(completion_approx i\<cdot>x) = completion_approx i\<cdot>x"
+using completion_approx_eq_principal [where i=i and x=x]
+by (auto simp add: completion_approx_principal take_take)
+
+lemma finite_fixes_completion_approx:
+  "finite {x. completion_approx i\<cdot>x = x}" (is "finite ?S")
+apply (subgoal_tac "?S \<subseteq> principal ` range (take i)")
+apply (erule finite_subset)
+apply (rule finite_imageI)
+apply (rule finite_range_take)
+apply (clarify, erule subst)
+apply (cut_tac x=x and i=i in completion_approx_eq_principal)
+apply fast
 done
 
 lemma principal_induct:
   assumes adm: "adm P"
   assumes P: "\<And>a. P (principal a)"
   shows "P x"
- apply (subgoal_tac "P (\<Squnion>i. basis_fun (\<lambda>a. principal (take i a))\<cdot>x)")
- apply (simp add: lub_basis_fun_take)
+ apply (subgoal_tac "P (\<Squnion>i. completion_approx i\<cdot>x)")
+ apply (simp add: lub_completion_approx)
  apply (rule admD [OF adm])
-  apply (simp add: chain_basis_fun_take)
- apply (cut_tac x=x and i=i in basis_fun_take_eq_principal)
+  apply (simp add: chain_completion_approx)
+ apply (cut_tac x=x and i=i in completion_approx_eq_principal)
  apply (clarify, simp add: P)
-done
-
-lemma finite_fixes_basis_fun_take:
-  "finite {x. basis_fun (\<lambda>a. principal (take i a))\<cdot>x = x}" (is "finite ?S")
-apply (subgoal_tac "?S \<subseteq> principal ` range (take i)")
-apply (erule finite_subset)
-apply (rule finite_imageI)
-apply (rule finite_range_take)
-apply (clarify, erule subst)
-apply (cut_tac x=x and i=i in basis_fun_take_eq_principal)
-apply fast
 done
 
 end
@@ -359,7 +382,7 @@ typedef (open) 'a compact_basis = "{x::'a::profinite. compact x}"
 by (fast intro: compact_approx)
 
 lemma compact_Rep_compact_basis [simp]: "compact (Rep_compact_basis a)"
-by (rule Rep_compact_basis [simplified])
+by (rule Rep_compact_basis [unfolded mem_Collect_eq])
 
 lemma Rep_Abs_compact_basis_approx [simp]:
   "Rep_compact_basis (Abs_compact_basis (approx n\<cdot>x)) = approx n\<cdot>x"
@@ -520,7 +543,7 @@ apply (simp add: image_def)
 done
 
 interpretation compact_basis:
-  bifinite_basis [sq_le compact_approx Rep_compact_basis compacts]
+  ideal_completion [sq_le compact_approx Rep_compact_basis compacts]
 proof (unfold_locales)
   fix n :: nat and a b :: "'a compact_basis" and x :: "'a"
   show "compact_approx n a \<sqsubseteq> a"
@@ -620,12 +643,14 @@ definition
     "('a compact_basis \<Rightarrow> 'b::type) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a pd_basis \<Rightarrow> 'b"
   where "fold_pd g f t = fold1 f (g ` Rep_pd_basis t)"
 
-lemma (in ab_semigroup_idem_mult) fold_pd_PDUnit:
-  "fold_pd g (op *) (PDUnit x) = g x"
+lemma fold_pd_PDUnit:
+  includes ab_semigroup_idem_mult f
+  shows "fold_pd g f (PDUnit x) = g x"
 unfolding fold_pd_def Rep_PDUnit by simp
 
-lemma (in ab_semigroup_idem_mult) fold_pd_PDPlus:
-  "fold_pd g (op *) (PDPlus t u) = fold_pd g (op *) t * fold_pd g (op *) u"
+lemma fold_pd_PDPlus:
+  includes ab_semigroup_idem_mult f
+  shows "fold_pd g f (PDPlus t u) = f (fold_pd g f t) (fold_pd g f u)"
 unfolding fold_pd_def Rep_PDPlus by (simp add: image_Un fold1_Un2)
 
 text {* approx-pd *}
