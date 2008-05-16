@@ -336,8 +336,7 @@ text {*
 
   Any goal statement causes some term abbreviations (such as
   @{variable_ref "?thesis"}) to be bound automatically, see also
-  \secref{sec:term-abbrev}.  Furthermore, the local context of a
-  (non-atomic) goal is provided via the @{case_ref rule_context} case.
+  \secref{sec:term-abbrev}.
 
   The optional case names of @{element_ref "obtains"} have a twofold
   meaning: (1) during the of this claim they refer to the the local

@@ -808,7 +808,6 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     goal_state
     |> map_context (init_context #> Variable.set_body true)
     |> put_goal (SOME (make_goal (((kind, pos), propss'), [], [], goal, before_qed, after_qed')))
-    |> map_context (ProofContext.add_cases false (AutoBind.cases thy props))
     |> map_context (ProofContext.auto_bind_goal props)
     |> chaining ? (`the_facts #-> using_facts)
     |> put_facts NONE

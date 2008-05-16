@@ -7,12 +7,10 @@ Automatic bindings of Isar text elements.
 
 signature AUTO_BIND =
 sig
-  val rule_contextN: string
   val thesisN: string
   val thisN: string
   val assmsN: string
   val goal: theory -> term list -> (indexname * term option) list
-  val cases: theory -> term list -> (string * RuleCases.T option) list
   val facts: theory -> term list -> (indexname * term option) list
   val no_facts: (indexname * term option) list
 end;
@@ -22,7 +20,6 @@ struct
 
 (** bindings **)
 
-val rule_contextN = "rule_context";
 val thesisN = "thesis";
 val thisN = "this";
 val assmsN = "assms";
@@ -37,9 +34,6 @@ fun statement_binds thy name prop =
 
 fun goal thy [prop] = statement_binds thy thesisN prop
   | goal _ _ = [((thesisN, 0), NONE)];
-
-fun cases thy [prop] = RuleCases.make_simple true (thy, prop) rule_contextN
-  | cases _ _ = [(rule_contextN, NONE)];
 
 
 (* facts *)
