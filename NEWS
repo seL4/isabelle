@@ -97,6 +97,13 @@ background context (locale etc.).  Affects `prop` notation and method
 "fact".  INCOMPATIBILITY: need to name facts explicitly in rare
 situations.
 
+* Method "cases", "induct", "coinduct": removed obsolete/undocumented
+"(open)" option, which used to expose internal bound variables to the
+proof text.
+
+* Isar statements: removed obsolete case "rule_context".
+INCOMPATIBILITY, better use explicit fixes/assumes.
+
 * Locale proofs: default proof step now includes 'unfold_locales';
 hence 'proof' without argument may be used to unfold locale
 predicates.
