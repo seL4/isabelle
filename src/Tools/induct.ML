@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Proof by cases and induction.
+Proof by cases, induction, and coinduction.
 *)
 
 signature INDUCT_DATA =
@@ -57,13 +57,13 @@ sig
   val rulify_tac: int -> tactic
   val internalize: int -> thm -> thm
   val guess_instance: thm -> int -> thm -> thm Seq.seq
-  val cases_tac: Proof.context -> bool -> term option list list -> thm option ->
+  val cases_tac: Proof.context -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
-  val induct_tac: Proof.context -> bool -> (string option * term) option list list ->
-    (string * typ) list list -> term option list -> thm list option -> thm list -> int ->
-    cases_tactic
-  val coinduct_tac: Proof.context -> bool -> term option list -> term option list ->
-    thm option -> thm list -> int -> cases_tactic
+  val induct_tac: Proof.context -> (string option * term) option list list ->
+    (string * typ) list list -> term option list -> thm list option ->
+    thm list -> int -> cases_tactic
+  val coinduct_tac: Proof.context -> term option list -> term option list -> thm option ->
+    thm list -> int -> cases_tactic
   val setup: theory -> theory
 end;
 
@@ -304,16 +304,6 @@ fun trace_rules _ kind [] = error ("Unable to figure out " ^ kind ^ " rule")
   | trace_rules ctxt _ rules = Method.trace ctxt rules;
 
 
-(* make_cases *)
-
-fun make_cases is_open rule =
-  RuleCases.make_common is_open (Thm.theory_of_thm rule, Thm.prop_of rule);
-
-fun warn_open true =
-      legacy_feature ("Open rule cases in proof method" ^ Position.str_of (Position.thread_data ()))
-  | warn_open false = ();
-
-
 
 (** cases method **)
 
@@ -335,9 +325,8 @@ fun get_casesP ctxt (fact :: _) = find_casesP ctxt (Thm.concl_of fact)
 
 in
 
-fun cases_tac ctxt is_open insts opt_rule facts =
+fun cases_tac ctxt insts opt_rule facts =
   let
-    val _ = warn_open is_open;
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
@@ -359,7 +348,7 @@ fun cases_tac ctxt is_open insts opt_rule facts =
       ruleq
       |> Seq.maps (RuleCases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
-        CASES (make_cases is_open rule cases)
+        CASES (RuleCases.make_common false (thy, Thm.prop_of rule) cases)
           (Method.insert_tac more_facts i THEN Tactic.rtac rule i) st)
   end;
 
@@ -575,9 +564,8 @@ fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of f
 
 in
 
-fun induct_tac ctxt is_open def_insts arbitrary taking opt_rule facts =
+fun induct_tac ctxt def_insts arbitrary taking opt_rule facts =
   let
-    val _ = warn_open is_open;
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
@@ -603,7 +591,7 @@ fun induct_tac ctxt is_open def_insts arbitrary taking opt_rule facts =
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
 
     fun rule_cases rule =
-      RuleCases.make_nested is_open (Thm.prop_of rule) (rulified_term rule);
+      RuleCases.make_nested false (Thm.prop_of rule) (rulified_term rule);
   in
     (fn i => fn st =>
       ruleq
@@ -651,9 +639,8 @@ fun main_prop_of th =
 
 in
 
-fun coinduct_tac ctxt is_open inst taking opt_rule facts =
+fun coinduct_tac ctxt inst taking opt_rule facts =
   let
-    val _ = warn_open is_open;
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
@@ -677,7 +664,7 @@ fun coinduct_tac ctxt is_open inst taking opt_rule facts =
         guess_instance rule i st
         |> Seq.map (rule_instance thy (burrow_options (Variable.polymorphic ctxt) taking))
         |> Seq.maps (fn rule' =>
-          CASES (make_cases is_open rule' cases)
+          CASES (RuleCases.make_common false (thy, Thm.prop_of rule') cases)
             (Method.insert_tac more_facts i THEN Tactic.rtac rule' i) st)))
   end;
 
@@ -687,7 +674,6 @@ end;
 
 (** concrete syntax **)
 
-val openN = "open";
 val arbitraryN = "arbitrary";
 val takingN = "taking";
 val ruleN = "rule";
@@ -736,26 +722,23 @@ val taking = Scan.optional (Scan.lift (Args.$$$ takingN -- Args.colon) |--
 in
 
 fun cases_meth src =
-  Method.syntax (Args.mode openN --
-    (Args.and_list (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule)) src
-  #> (fn ((is_open, (insts, opt_rule)), ctxt) =>
+  Method.syntax (Args.and_list (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) src
+  #> (fn ((insts, opt_rule), ctxt) =>
     Method.METHOD_CASES (fn facts =>
-      Seq.DETERM (HEADGOAL (cases_tac ctxt is_open insts opt_rule facts))));
+      Seq.DETERM (HEADGOAL (cases_tac ctxt insts opt_rule facts))));
 
 fun induct_meth src =
-  Method.syntax (Args.mode openN --
-    (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
-    (arbitrary -- taking -- Scan.option induct_rule))) src
-  #> (fn ((is_open, (insts, ((arbitrary, taking), opt_rule))), ctxt) =>
+  Method.syntax (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
+    (arbitrary -- taking -- Scan.option induct_rule)) src
+  #> (fn ((insts, ((arbitrary, taking), opt_rule)), ctxt) =>
     Method.RAW_METHOD_CASES (fn facts =>
-      Seq.DETERM (HEADGOAL (induct_tac ctxt is_open insts arbitrary taking opt_rule facts))));
+      Seq.DETERM (HEADGOAL (induct_tac ctxt insts arbitrary taking opt_rule facts))));
 
 fun coinduct_meth src =
-  Method.syntax (Args.mode openN --
-    (Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule)) src
-  #> (fn ((is_open, ((insts, taking), opt_rule)), ctxt) =>
+  Method.syntax (Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule) src
+  #> (fn (((insts, taking), opt_rule), ctxt) =>
     Method.RAW_METHOD_CASES (fn facts =>
-      Seq.DETERM (HEADGOAL (coinduct_tac ctxt is_open insts taking opt_rule facts))));
+      Seq.DETERM (HEADGOAL (coinduct_tac ctxt insts taking opt_rule facts))));
 
 end;
 
