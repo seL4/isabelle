@@ -16,7 +16,7 @@ definition
   less_bool_def: "(op \<sqsubseteq>) = (op \<longrightarrow>)"
 
 instance
-by (intro_classes, auto simp add: less_bool_def)
+by (intro_classes, unfold less_bool_def, safe)
 
 end
 
