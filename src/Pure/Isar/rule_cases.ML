@@ -28,7 +28,6 @@ sig
   val strip_params: term -> (string * typ) list
   val make_common: bool -> theory * term -> (string * string list) list -> cases
   val make_nested: bool -> term -> theory * term -> (string * string list) list -> cases
-  val make_simple: bool -> theory * term -> string -> cases
   val apply: term list -> T -> T
   val consume: thm list -> thm list -> ('a * int) * thm ->
     (('a * (int * thm list)) * thm) Seq.seq
@@ -150,7 +149,6 @@ in
 
 fun make_common is_open = make is_open NONE;
 fun make_nested is_open rule_struct = make is_open (SOME rule_struct);
-fun make_simple is_open (thy, prop) name = [(name, extract_case is_open thy (NONE, prop) "" [])];
 
 fun apply args =
   let
