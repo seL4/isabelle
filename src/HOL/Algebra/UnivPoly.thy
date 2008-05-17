@@ -483,6 +483,7 @@ proof (rule up_eqI)
   proof (cases "k = Suc n")
     case True show ?thesis
     proof -
+      fix m
       from True have less_add_diff:
         "!!i. [| n < i; i <= n + m |] ==> n + m - i < m" by arith
       from True have "coeff P (monom P \<one> (Suc n)) k = \<one>" by simp

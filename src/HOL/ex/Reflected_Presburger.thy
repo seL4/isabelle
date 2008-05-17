@@ -1224,7 +1224,8 @@ next
     by (auto simp add: dvd1_eq1) (rule_tac x="min z za" in exI,simp)
 next
   case (3 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
-  hence "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<noteq> 0"
+  fix a
+  from 3 have "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<noteq> 0"
   proof(clarsimp)
     fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e = 0"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
@@ -1233,7 +1234,8 @@ next
   thus ?case by auto
 next
   case (4 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
-  hence "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<noteq> 0"
+  fix a
+  from 4 have "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<noteq> 0"
   proof(clarsimp)
     fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e = 0"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
@@ -1242,7 +1244,8 @@ next
   thus ?case by auto
 next
   case (5 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
-  hence "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e < 0"
+  fix a
+  from 5 have "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e < 0"
   proof(clarsimp)
     fix x assume "x < (- Inum (a#bs) e)" 
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
@@ -1251,7 +1254,8 @@ next
   thus ?case by auto
 next
   case (6 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
-  hence "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<le> 0"
+  fix a
+  from 6 have "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<le> 0"
   proof(clarsimp)
     fix x assume "x < (- Inum (a#bs) e)" 
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
@@ -1260,7 +1264,8 @@ next
   thus ?case by auto
 next
   case (7 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
-  hence "\<forall> x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e > 0)"
+  fix a
+  from 7 have "\<forall> x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e > 0)"
   proof(clarsimp)
     fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e > 0"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
@@ -1269,7 +1274,8 @@ next
   thus ?case by auto
 next
   case (8 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
-  hence "\<forall> x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e \<ge> 0)"
+  fix a
+  from 8 have "\<forall> x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e \<ge> 0)"
   proof(clarsimp)
     fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e \<ge> 0"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
@@ -1544,7 +1550,7 @@ next
       by simp
     hence "(\<exists> (k::int). l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) = (\<exists> (k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"  by simp
     also have "\<dots> = (\<exists> (k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)" by (simp add: ring_simps)
-    also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e - j * k = 0)"
+    also fix k have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e - j * k = 0)"
     using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp by simp
   also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e = j * k)" by simp
   finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be  mult_strict_mono[OF ldcp jp ldcp ] by (simp add: dvd_def)
@@ -1561,7 +1567,7 @@ next
       by simp
     hence "(\<exists> (k::int). l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) = (\<exists> (k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"  by simp
     also have "\<dots> = (\<exists> (k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)" by (simp add: ring_simps)
-    also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e - j * k = 0)"
+    also fix k have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e - j * k = 0)"
     using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp by simp
   also have "\<dots> = (\<exists> (k::int). c * x + Inum (x # bs) e = j * k)" by simp
   finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be  mult_strict_mono[OF ldcp jp ldcp ] by (simp add: dvd_def)
@@ -1833,6 +1839,7 @@ proof-
   let ?mq = "minusinf ?q"
   let ?smq = "simpfm ?mq"
   let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
+  fix i
   let ?N = "\<lambda> t. Inum (i#bs) t"
   let ?Bjs = "[(b,j). b\<leftarrow>?B,j\<leftarrow>?js]"
   let ?qd = "evaldjf (\<lambda> (b,j). simpfm (subst0 (Add b (C j)) ?q)) ?Bjs"
