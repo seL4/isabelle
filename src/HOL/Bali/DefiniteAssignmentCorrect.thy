@@ -4469,7 +4469,7 @@ lemma da_good_approxE:
     "\<And> l. \<lbrakk>abrupt s1 = Some (Jump (Break l)); normal s0\<rbrakk>
            \<Longrightarrow> brk A l \<subseteq> dom (locals (store s1))" and
     "\<lbrakk>abrupt s1 = Some (Jump Ret);normal s0\<rbrakk>\<Longrightarrow>Result \<in> dom (locals (store s1))"
-  using prems by - (drule (3) da_good_approx, simp)
+  using assms by - (drule (3) da_good_approx, simp)
 
 
 (* Same as above but with explicit environment; 
