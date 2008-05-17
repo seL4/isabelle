@@ -5270,6 +5270,7 @@ lemma ferrack01:
   shows "((\<exists> x. Ifm (x#bs) (And (And (Ge(CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))) p)) = (Ifm bs (ferrack01 p))) \<and> qfree (ferrack01 p)" (is "(?lhs = ?rhs) \<and> _")
 proof-
   let ?I = "\<lambda> x p. Ifm (x#bs) p"
+  fix x
   let ?N = "\<lambda> t. Inum (x#bs) t"
   let ?q = "rlfm (And (And (Ge(CN 0 1 (C 0))) (Lt (CN 0 1 (C (- 1))))) p)"
   let ?U = "\<Upsilon> ?q"
@@ -5436,6 +5437,7 @@ proof-
   let ?mq = "minusinf ?q"
   let ?smq = "simpfm ?mq"
   let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
+  fix i
   let ?N = "\<lambda> t. Inum (real (i::int)#bs) t"
   let ?bjs = "[(b,j). b\<leftarrow>?B,j\<leftarrow>?js]"
   let ?sbjs = "map (\<lambda> (b,j). simpnum (Add b (C j))) ?bjs"
@@ -5658,6 +5660,7 @@ proof-
   let ?mq = "minusinf ?q"
   let ?smq = "simpfm ?mq"
   let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
+  fix i
   let ?N = "\<lambda> (t,k). (Inum (real (i::int)#bs) t,k)"
   let ?qd = "evaldjf (stage ?q ?d) ?B"
   have qbf:"chooset p = (?q,?B,?d)" by simp
@@ -5789,13 +5792,11 @@ export_code mircfrqe mirlfrqe test1 test2 test3 test4 test5
 (*export_code mircfrqe mirlfrqe
   in SML module_name Mir file "raw_mir.ML"*)
 
-ML "set Toplevel.timing"
 ML "Mir.test1 ()"
 ML "Mir.test2 ()"
 ML "Mir.test3 ()"
 ML "Mir.test4 ()"
 ML "Mir.test5 ()"
-ML "reset Toplevel.timing"
 
 use "mireif.ML"
 oracle mircfr_oracle ("term") = ReflectedMir.mircfr_oracle
@@ -5803,7 +5804,6 @@ oracle mirlfr_oracle ("term") = ReflectedMir.mirlfr_oracle
 use "mirtac.ML"
 setup "MirTac.setup"
 
-ML "set Toplevel.timing"
 
 lemma "ALL (x::real). (\<lfloor>x\<rfloor> = \<lceil>x\<rceil> = (x = real \<lfloor>x\<rfloor>))"
 apply mir
@@ -5825,6 +5825,5 @@ done
 lemma "ALL x y. \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> abs (y - x) \<and> abs (y - x) \<le> 1"
 by mir
 *)
-ML "reset Toplevel.timing"
 
 end
