@@ -364,7 +364,9 @@ local
 fun free_or_skolem ctxt x =
   (if can Name.dest_skolem x then Pretty.mark Markup.skolem (Pretty.str (revert_skolem ctxt x))
    else Pretty.mark Markup.free (Pretty.str x))
-  |> Pretty.mark (if Variable.is_fixed ctxt x then Markup.fixed x else Markup.hilite);
+  |> Pretty.mark
+    (if Variable.is_fixed ctxt x orelse Sign.is_pretty_global ctxt then Markup.fixed x
+     else Markup.hilite);
 
 fun var_or_skolem _ s =
   (case Lexicon.read_variable s of
