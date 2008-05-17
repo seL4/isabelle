@@ -72,7 +72,7 @@ struct
 
  fun proc sg ss old =
    let val _ = if !trace then writeln ("data_free: OLD = " ^ 
-                                       string_of_cterm (cterm_of sg old))
+                                       Display.string_of_cterm (cterm_of sg old))
                else ()
        val (lhs,rhs) = FOLogic.dest_eq old
        val (lhead, largs) = strip_comb lhs
@@ -90,7 +90,7 @@ struct
                else Const("False",FOLogic.oT)
            else raise Match
        val _ = if !trace then 
-                 writeln ("NEW = " ^ string_of_cterm (Thm.cterm_of sg new))
+                 writeln ("NEW = " ^ Display.string_of_cterm (Thm.cterm_of sg new))
                else ();
        val goal = Logic.mk_equals (old, new)
        val thm = Goal.prove (Simplifier.the_context ss) [] [] goal

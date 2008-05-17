@@ -32,7 +32,7 @@ val lhs_of = fst o dest_eqn o prop_of;
 val const_of = dest_Const o head_of o fst o dest_eqn;
 
 fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
-  string_of_thm thm);
+  Display.string_of_thm thm);
 
 fun add_thm opt_module thm =
   (if Pattern.pattern (lhs_of thm) then

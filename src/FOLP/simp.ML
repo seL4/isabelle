@@ -114,7 +114,7 @@ val norms =
   let fun norm thm = 
       case lhs_of(concl_of thm) of
           Const(n,_)$_ => n
-        | _ => (prths normE_thms; error"No constant in lhs of a norm_thm")
+        | _ => (Display.prths normE_thms; error"No constant in lhs of a norm_thm")
   in map norm normE_thms end;
 
 fun lhs_is_NORM(thm,i) = case lhs_of_eq i thm of
@@ -123,7 +123,7 @@ fun lhs_is_NORM(thm,i) = case lhs_of_eq i thm of
 val refl_tac = resolve_tac refl_thms;
 
 fun find_res thms thm =
-    let fun find [] = (prths thms; error"Check Simp_Data")
+    let fun find [] = (Display.prths thms; error"Check Simp_Data")
           | find(th::thms) = thm RS th handle THM _ => find thms
     in find thms end;
 
@@ -250,7 +250,7 @@ val empty_ss = SS{auto_tac= K no_tac, congs=[], cong_net=Net.empty,
 fun insert_thm_warn th net = 
   Net.insert_term Thm.eq_thm_prop (concl_of th, th) net
   handle Net.INSERT => 
-    (writeln"\nDuplicate rewrite or congruence rule:"; print_thm th;
+    (writeln"\nDuplicate rewrite or congruence rule:"; Display.print_thm th;
      net);
 
 val insert_thms = fold_rev insert_thm_warn;
@@ -276,7 +276,7 @@ end;
 fun delete_thm_warn th net = 
   Net.delete_term Thm.eq_thm_prop (concl_of th, th) net
   handle Net.DELETE => 
-    (writeln"\nNo such rewrite or congruence rule:";  print_thm th;
+    (writeln"\nNo such rewrite or congruence rule:";  Display.print_thm th;
      net);
 
 val delete_thms = fold_rev delete_thm_warn;
@@ -292,7 +292,7 @@ fun delrew(SS{auto_tac,congs,cong_net,mk_simps,simps,simp_net}, thm) =
 let fun find((p as (th,ths))::ps',ps) =
           if Thm.eq_thm_prop(thm,th) then (ths,ps@ps') else find(ps',p::ps)
       | find([],simps') = (writeln"\nNo such rewrite or congruence rule:";
-                           print_thm thm;
+                           Display.print_thm thm;
                            ([],simps'))
     val (thms,simps') = find(simps,[])
 in SS{auto_tac=auto_tac, congs=congs, cong_net=cong_net, mk_simps=mk_simps,
@@ -312,8 +312,8 @@ fun op setauto(SS{congs,cong_net,mk_simps,simps,simp_net,...}, auto_tac) =
 fun dest_ss(SS{congs,simps,...}) = (congs, map #1 simps);
 
 fun print_ss(SS{congs,simps,...}) =
-        (writeln"Congruences:"; prths congs;
-         writeln"Rewrite Rules:"; prths (map #1 simps); ());
+        (writeln"Congruences:"; Display.prths congs;
+         writeln"Rewrite Rules:"; Display.prths (map #1 simps); ());
 
 
 (* Rewriting with conditionals *)
@@ -436,7 +436,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
         val rwrls = map mk_trans (List.concat(map mk_rew_rules thms));
         val anet' = foldr lhs_insert_thm anet rwrls
     in  if !tracing andalso not(null new_rws)
-        then (writeln"Adding rewrites:";  prths new_rws;  ())
+        then (writeln"Adding rewrites:";  Display.prths new_rws;  ())
         else ();
         (ss,thm,anet',anet::ats,cs) 
     end;

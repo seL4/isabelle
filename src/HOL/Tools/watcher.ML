@@ -343,10 +343,10 @@ fun reapWatcher(pid, instr, outstr) = ignore
   handle OS.SysErr _ => ()
 
 fun string_of_subgoal th i =
-    string_of_cterm (List.nth(cprems_of th, i-1))
+    Display.string_of_cterm (List.nth(cprems_of th, i-1))
     handle Subscript => "Subgoal number out of range!"
 
-fun prems_string_of th = space_implode "\n" (map string_of_cterm (cprems_of th))
+fun prems_string_of th = space_implode "\n" (map Display.string_of_cterm (cprems_of th))
 
 fun read_proof probfile =
   let val p = ResReconstruct.txt_path probfile

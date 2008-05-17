@@ -498,10 +498,10 @@ fun name_thm_pairs ctxt =
         (foldl add_single_names (foldl add_multi_names [] mults) singles)
   end;
 
-fun check_named ("",th) = (warning ("No name for theorem " ^ string_of_thm th); false)
+fun check_named ("",th) = (warning ("No name for theorem " ^ Display.string_of_thm th); false)
   | check_named (_,th) = true;
 
-fun display_thm (name,th) = Output.debug (fn () => name ^ ": " ^ string_of_thm th);
+fun display_thm (name,th) = Output.debug (fn () => name ^ ": " ^ Display.string_of_thm th);
 
 (* get lemmas from claset, simpset, atpset and extra supplied rules *)
 fun get_clasimp_atp_lemmas ctxt user_thms =
@@ -745,10 +745,10 @@ fun write_problem_files probfile (ctxt, chain_ths, th) =
                 val _ = Output.debug (fn () => "About to write file " ^ fname)
                 val axcls = make_unique axcls
                 val _ = Output.debug (fn () => "Conjecture Clauses (before duplicate removal)")
-                val _ = app (fn th => Output.debug (fn _ => string_of_thm th)) ccls
+                val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm th)) ccls
                 val ccls = subtract_cls ccls axcls
                 val _ = Output.debug (fn () => "Conjecture Clauses (AFTER duplicate removal)")
-                val _ = app (fn th => Output.debug (fn _ => string_of_thm th)) ccls
+                val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm th)) ccls
                 val ccltms = map prop_of ccls
                 and axtms = map (prop_of o #1) axcls
                 val subs = tfree_classes_of_terms ccltms
@@ -825,7 +825,7 @@ fun sledgehammer state =
     Output.debug (fn () => "subgoals in isar_atp:\n" ^
                   Syntax.string_of_term ctxt (Logic.mk_conjunction_list (Thm.prems_of goal)));
     Output.debug (fn () => "current theory: " ^ Context.theory_name thy);
-    app (fn th => Output.debug (fn _ => "chained: " ^ string_of_thm th)) chain_ths;
+    app (fn th => Output.debug (fn _ => "chained: " ^ Display.string_of_thm th)) chain_ths;
     if !time_limit > 0 then isar_atp (ctxt, chain_ths, goal)
     else (warning ("Writing problem file only: " ^ !problem_name);
           isar_atp_writeonly (ctxt, chain_ths, goal))

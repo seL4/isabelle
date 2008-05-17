@@ -201,7 +201,7 @@ fun print_sign_exn_unit thy e =
   case e of
      THM (msg,i,thms) =>
          (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
-          List.app print_thm thms)
+          List.app Display.print_thm thms)
    | THEORY (msg,thys) =>
          (writeln ("Exception THEORY raised:\n" ^ msg);
           List.app (writeln o Context.str_of_thy) thys)

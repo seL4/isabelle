@@ -495,7 +495,7 @@ fun rot_subgoals_tac (rot, rl) =
 end;
 
 
-fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
+fun TRACE rl tac st i = if !trace then (Display.prth rl; tac st i) else tac st i;
 
 (*Resolution/matching tactics: if upd then the proof state may be updated.
   Matching makes the tactics more deterministic in the presence of Vars.*)
@@ -513,11 +513,11 @@ fun fromRule thy vars rl =
         rot_subgoals_tac (rot, #2 trl) i
   in Option.SOME (trl, tac) end
   handle ElimBadPrem => (*reject: prems don't preserve conclusion*)
-            (warning("Ignoring weak elimination rule\n" ^ string_of_thm rl);
+            (warning("Ignoring weak elimination rule\n" ^ Display.string_of_thm rl);
              Option.NONE)
        | ElimBadConcl => (*ignore: conclusion is not just a variable*)
            (if !trace then (warning("Ignoring ill-formed elimination rule:\n" ^
-                       "conclusion should be a variable\n" ^ string_of_thm rl))
+                       "conclusion should be a variable\n" ^ Display.string_of_thm rl))
             else ();
             Option.NONE);
 

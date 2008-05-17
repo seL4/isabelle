@@ -250,7 +250,7 @@ let
     |> ListPair.map (fn (t, tacs) =>
       Goal.prove_global thy1 [] [] t
         (fn _ => EVERY (rewrite_goals_tac part_rec_defs :: tacs)))
-    handle MetaSimplifier.SIMPLIFIER (msg, thm) => (print_thm thm; error msg);
+    handle MetaSimplifier.SIMPLIFIER (msg, thm) => (Display.print_thm thm; error msg);
 
   (********)
   val dummy = writeln "  Proving the elimination rule...";
@@ -325,7 +325,7 @@ let
      val dummy = if !Ind_Syntax.trace then
                  (writeln "ind_prems = ";
                   List.app (writeln o Syntax.string_of_term ctxt1) ind_prems;
-                  writeln "raw_induct = "; print_thm raw_induct)
+                  writeln "raw_induct = "; Display.print_thm raw_induct)
              else ();
 
 
@@ -356,7 +356,7 @@ let
             ind_tac (rev (map (rewrite_rule part_rec_defs) prems)) (length prems)]);
 
      val dummy = if !Ind_Syntax.trace then
-                 (writeln "quant_induct = "; print_thm quant_induct)
+                 (writeln "quant_induct = "; Display.print_thm quant_induct)
              else ();
 
 
@@ -431,7 +431,7 @@ let
        else (writeln "  [ No mutual induction rule needed ]"; @{thm TrueI});
 
      val dummy = if !Ind_Syntax.trace then
-                 (writeln "lemma = "; print_thm lemma)
+                 (writeln "lemma = "; Display.print_thm lemma)
              else ();
 
 

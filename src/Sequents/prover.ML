@@ -28,7 +28,7 @@ val empty_pack = Pack([],[]);
 
 fun warn_duplicates [] = []
   | warn_duplicates dups =
-      (warning (cat_lines ("Ignoring duplicate theorems:" :: map string_of_thm dups));
+      (warning (cat_lines ("Ignoring duplicate theorems:" :: map Display.string_of_thm dups));
        dups);
 
 fun (Pack(safes,unsafes)) add_safes ths   = 
@@ -51,8 +51,8 @@ fun merge_pack (Pack(safes,unsafes), Pack(safes',unsafes')) =
 
 
 fun print_pack (Pack(safes,unsafes)) =
-    (writeln "Safe rules:";  print_thms safes;
-     writeln "Unsafe rules:"; print_thms unsafes);
+    (writeln "Safe rules:";  Display.print_thms safes;
+     writeln "Unsafe rules:"; Display.print_thms unsafes);
 
 (*Returns the list of all formulas in the sequent*)
 fun forms_of_seq (Const("SeqO'",_) $ P $ u) = P :: forms_of_seq u

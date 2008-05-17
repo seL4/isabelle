@@ -11,17 +11,6 @@ sig
   val goals_limit: int ref
   val show_hyps: bool ref
   val show_tags: bool ref
-  val string_of_thm: thm -> string
-  val print_thm: thm -> unit
-  val print_thms: thm list -> unit
-  val prth: thm -> thm
-  val prthq: thm Seq.seq -> thm Seq.seq
-  val prths: thm list -> thm list
-  val string_of_ctyp: ctyp -> string
-  val print_ctyp: ctyp -> unit
-  val string_of_cterm: cterm -> string
-  val print_cterm: cterm -> unit
-  val print_syntax: theory -> unit
   val show_consts: bool ref
 end;
 
@@ -31,11 +20,22 @@ sig
   val pretty_flexpair: Pretty.pp -> term * term -> Pretty.T
   val pretty_thm_aux: Pretty.pp -> bool -> bool -> term list -> thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
+  val string_of_thm: thm -> string
   val pretty_thms: thm list -> Pretty.T
   val pretty_thm_sg: theory -> thm -> Pretty.T
   val pretty_thms_sg: theory -> thm list -> Pretty.T
+  val print_thm: thm -> unit
+  val print_thms: thm list -> unit
+  val prth: thm -> thm
+  val prthq: thm Seq.seq -> thm Seq.seq
+  val prths: thm list -> thm list
   val pretty_ctyp: ctyp -> Pretty.T
+  val string_of_ctyp: ctyp -> string
+  val print_ctyp: ctyp -> unit
   val pretty_cterm: cterm -> Pretty.T
+  val string_of_cterm: cterm -> string
+  val print_cterm: cterm -> unit
+  val print_syntax: theory -> unit
   val pretty_full_theory: bool -> theory -> Pretty.T list
   val pretty_goals_aux: Pretty.pp -> Markup.T -> bool * bool -> int -> thm -> Pretty.T list
   val pretty_goals: int -> thm -> Pretty.T list

@@ -205,7 +205,7 @@ fun simple_smart_string_of_cterm ct =
         Library.setmp show_brackets false (
         Library.setmp show_all_types true (
         Library.setmp Syntax.ambiguity_is_error false (
-        Library.setmp show_sorts true string_of_cterm))))
+        Library.setmp show_sorts true Display.string_of_cterm))))
         ct)
     end
 
@@ -227,7 +227,7 @@ fun smart_string_of_cterm ct =
           | G _ = raise SMART_STRING
         fun F n =
             let
-                val str = Library.setmp show_brackets false (G n string_of_cterm) ct
+                val str = Library.setmp show_brackets false (G n Display.string_of_cterm) ct
                 val u = Syntax.parse_term ctxt str
                   |> TypeInfer.constrain T |> Syntax.check_term ctxt
             in
@@ -236,7 +236,7 @@ fun smart_string_of_cterm ct =
                 else F (n+1)
             end
             handle ERROR mesg => F (n+1)
-                 | SMART_STRING => raise ERROR ("smart_string failed for: "^(G 0 string_of_cterm ct))
+                 | SMART_STRING => raise ERROR ("smart_string failed for: "^(G 0 Display.string_of_cterm ct))
     in
       PrintMode.setmp [] (Library.setmp Syntax.ambiguity_is_error true F) 0
     end
@@ -244,8 +244,8 @@ fun smart_string_of_cterm ct =
 
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
-fun prth th = writeln (PrintMode.setmp [] string_of_thm th)
-fun prc ct = writeln (PrintMode.setmp [] string_of_cterm ct)
+fun prth th = writeln (PrintMode.setmp [] Display.string_of_thm th)
+fun prc ct = writeln (PrintMode.setmp [] Display.string_of_cterm ct)
 fun prin t = writeln (PrintMode.setmp [] (fn () => Sign.string_of_term (the_context ()) t) ());
 fun pth (HOLThm(ren,thm)) =
     let
@@ -1947,14 +1947,14 @@ fun new_definition thyname constname rhs thy =
                     then
                         let
                             val p1 = quotename constname
-                            val p2 = string_of_ctyp (ctyp_of thy'' ctype)
+                            val p2 = Display.string_of_ctyp (ctyp_of thy'' ctype)
                             val p3 = string_of_mixfix csyn
                             val p4 = smart_string_of_cterm crhs
                         in
                             add_dump ("constdefs\n  " ^p1^ " :: \"" ^p2^ "\" "^p3^ "\n  " ^p4) thy''
                         end
                     else
-                        (add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy'' ctype) ^
+                        (add_dump ("consts\n  " ^ (quotename constname) ^ " :: \"" ^ Display.string_of_ctyp (ctyp_of thy'' ctype) ^
                                    "\" " ^ (string_of_mixfix csyn) ^ "\n\ndefs\n  " ^ (quotename thmname) ^ ": " ^ (smart_string_of_cterm crhs))
                                   thy'')
         val hth = case Shuffler.set_prop thy22 (HOLogic.mk_Trueprop tm24) [("",th)] of
@@ -2017,7 +2017,7 @@ fun new_specification thyname thmname names hth thy =
                                                               ((cname,cT,mk_syn thy cname)::cs,p)
                                                           end) (([],HOLogic.dest_Trueprop (concl_of th)),names)
                                val str = Library.foldl (fn (acc,(c,T,csyn)) =>
-                                                   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ string_of_ctyp (ctyp_of thy T) ^ "\" " ^ (string_of_mixfix csyn)) ("consts",consts)
+                                                   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ Display.string_of_ctyp (ctyp_of thy T) ^ "\" " ^ (string_of_mixfix csyn)) ("consts",consts)
                                val thy' = add_dump str thy
                                val _ = ImportRecorder.add_consts consts
                            in
@@ -2143,7 +2143,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 fun add_dump_constdefs thy defname constname rhs ty =
     let
         val n = quotename constname
-        val t = string_of_ctyp (ctyp_of thy ty)
+        val t = Display.string_of_ctyp (ctyp_of thy ty)
         val syn = string_of_mixfix (mk_syn thy constname)
         (*val eq = smart_string_of_cterm (cterm_of thy (Const(rhs, ty)))*)
         val eq = quote (constname ^ " == "^rhs)
@@ -2228,7 +2228,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
               ("  apply (rule light_ex_imp_nonempty[where t="^
               (proc_prop (cterm_of thy4 t))^"])\n"^
               ("  by (import " ^ thyname ^ " " ^ (quotename thmname) ^ ")"))) thy4
-            val str_aty = string_of_ctyp (ctyp_of thy aty)
+            val str_aty = Display.string_of_ctyp (ctyp_of thy aty)
             val thy = add_dump_syntax thy rep_name
             val thy = add_dump_syntax thy abs_name
             val thy = add_dump ("lemmas " ^ (quote (thmname^"_@intern")) ^

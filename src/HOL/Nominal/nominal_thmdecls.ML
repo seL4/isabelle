@@ -159,7 +159,7 @@ fun eqvt_add_del_aux flag orig_thm context =
       fold (fn thm => Data.map (flag thm)) thms_to_be_added context
   end
   handle EQVT_FORM s =>
-      error (string_of_thm orig_thm ^ " does not comply with the form of an equivariance lemma ("^s^").")
+      error (Display.string_of_thm orig_thm ^ " does not comply with the form of an equivariance lemma ("^s^").")
 
 (* in cases of bij- and freshness, we just add the lemmas to the *)
 (* data-slot *)

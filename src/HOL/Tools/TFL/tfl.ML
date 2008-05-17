@@ -298,7 +298,7 @@ fun no_repeat_vars thy pat =
             raise TFL_ERR "no_repeat_vars"
                           (quote (#1 (dest_Free v)) ^
                           " occurs repeatedly in the pattern " ^
-                          quote (string_of_cterm (Thry.typecheck thy pat)))
+                          quote (Display.string_of_cterm (Thry.typecheck thy pat)))
          else check rst
  in check (FV_multiset pat)
  end;
@@ -532,7 +532,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val (extractants,TCl) = ListPair.unzip extracta
      val dummy = if !trace
                  then (writeln "Extractants = ";
-                       prths extractants;
+                       Display.prths extractants;
                        ())
                  else ()
      val TCs = foldr (gen_union (op aconv)) [] TCl
@@ -553,7 +553,7 @@ fun lazyR_def thy fid tflCongs eqns =
        |> PureThy.add_defs_i false
             [Thm.no_attributes (fid ^ "_def", defn)]
      val def = Thm.freezeT def0;
-     val dummy = if !trace then writeln ("DEF = " ^ string_of_thm def)
+     val dummy = if !trace then writeln ("DEF = " ^ Display.string_of_thm def)
                            else ()
      (* val fconst = #lhs(S.dest_eq(concl def))  *)
      val tych = Thry.typecheck theory
@@ -562,7 +562,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val baz = R.DISCH_ALL
                  (fold_rev R.DISCH full_rqt_prop
                   (R.LIST_CONJ extractants))
-     val dum = if !trace then writeln ("baz = " ^ string_of_thm baz)
+     val dum = if !trace then writeln ("baz = " ^ Display.string_of_thm baz)
                            else ()
      val f_free = Free (fid, fastype_of f)  (*'cos f is a Const*)
      val SV' = map tych SV;
@@ -911,11 +911,11 @@ fun elim_tc tcthm (rule,induction) =
 
 
 fun trace_thms s L =
-  if !trace then writeln (cat_lines (s :: map string_of_thm L))
+  if !trace then writeln (cat_lines (s :: map Display.string_of_thm L))
   else ();
 
 fun trace_cterms s L =
-  if !trace then writeln (cat_lines (s :: map string_of_cterm L))
+  if !trace then writeln (cat_lines (s :: map Display.string_of_cterm L))
   else ();;
 
 

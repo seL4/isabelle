@@ -38,7 +38,7 @@ val trace_path = Path.basic "atp_trace";
 fun trace s = if !Output.debugging then File.append (File.tmp_path trace_path) s
               else ();
 
-val string_of_thm = PrintMode.setmp [] string_of_thm;
+val string_of_thm = PrintMode.setmp [] Display.string_of_thm;
 
 (*For generating structured proofs: keep every nth proof line*)
 val (modulus, modulus_setup) = Attrib.config_int "sledgehammer_modulus" 1;

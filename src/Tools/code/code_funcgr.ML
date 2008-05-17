@@ -118,7 +118,7 @@ fun resort_thms algebra tap_typ [] = []
             handle Sorts.CLASS_ERROR e => raise CLASS_ERROR ([c], Sorts.class_error pp e ^ ",\n"
               ^ "for constant " ^ CodeUnit.string_of_const thy c
               ^ "\nin defining equations(s)\n"
-              ^ (cat_lines o map string_of_thm) thms)
+              ^ (cat_lines o map Display.string_of_thm) thms)
             (*handle Sorts.CLASS_ERROR _ => tab (*permissive!*)*)
           end;
         fun match (c, ty) = case tap_typ c
@@ -225,7 +225,7 @@ fun merge_funcss thy algebra raw_funcss funcgr =
                 else raise CLASS_ERROR ([c], "Illegal instantation for class operation "
                   ^ CodeUnit.string_of_const thy c
                   ^ "\nin defining equations\n"
-                  ^ (cat_lines o map (string_of_thm o AxClass.overload thy)) thms)
+                  ^ (cat_lines o map (Display.string_of_thm o AxClass.overload thy)) thms)
               end
           | NONE => (snd o CodeUnit.head_func) thm;
     fun add_funcs (const, thms) =
@@ -304,7 +304,7 @@ fun proto_eval_conv thy =
       in
         Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
           error ("could not construct evaluation proof (probably due to wellsortedness problem):\n"
-          ^ (cat_lines o map string_of_thm) [thm1, thm2, thm3])
+          ^ (cat_lines o map Display.string_of_thm) [thm1, thm2, thm3])
       end;
   in proto_eval thy I evaluator end;
 

@@ -180,7 +180,7 @@ fun mk_mono thm =
       [dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
          (resolve_tac [le_funI, le_boolI'])) thm))]
     | _ => [thm]
-  end handle THM _ => error ("Bad monotonicity theorem:\n" ^ string_of_thm thm);
+  end handle THM _ => error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm thm);
 
 val mono_add = Thm.declaration_attribute (map_monos o fold Thm.add_thm o mk_mono);
 val mono_del = Thm.declaration_attribute (map_monos o fold Thm.del_thm o mk_mono);

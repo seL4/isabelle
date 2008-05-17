@@ -176,7 +176,7 @@ val [f_S,g_S] = map (cterm_of @{theory}) (term_vars (prop_of abs_S));
 
 (*FIXME: requires more use of cterm constructors*)
 fun abstract ct =
-  let val _ = Output.debug (fn()=>"  abstraction: " ^ string_of_cterm ct)
+  let val _ = Output.debug (fn()=>"  abstraction: " ^ Display.string_of_cterm ct)
       val Abs(x,_,body) = term_of ct
       val thy = theory_of_cterm ct
       val Type("fun",[xT,bodyT]) = typ_of (ctyp_of_term ct)
@@ -228,12 +228,12 @@ fun combinators_aux ct =
       Abs _ =>
 	let val (cv,cta) = Thm.dest_abs NONE ct
 	    val (v,Tv) = (dest_Free o term_of) cv
-	    val _ = Output.debug (fn()=>"  recursion: " ^ string_of_cterm cta);
+	    val _ = Output.debug (fn()=>"  recursion: " ^ Display.string_of_cterm cta);
 	    val u_th = combinators_aux cta
-	    val _ = Output.debug (fn()=>"  returned " ^ string_of_thm u_th);
+	    val _ = Output.debug (fn()=>"  returned " ^ Display.string_of_thm u_th);
 	    val cu = Thm.rhs_of u_th
 	    val comb_eq = abstract (Thm.cabs cv cu)
-	in Output.debug (fn()=>"  abstraction result: " ^ string_of_thm comb_eq);
+	in Output.debug (fn()=>"  abstraction result: " ^ Display.string_of_thm comb_eq);
 	   (transitive (abstract_rule v cv u_th) comb_eq) end
     | t1 $ t2 =>
 	let val (ct1,ct2) = Thm.dest_comb ct
@@ -242,13 +242,13 @@ fun combinators_aux ct =
 fun combinators th =
   if lambda_free (prop_of th) then th 
   else
-    let val _ = Output.debug (fn()=>"Conversion to combinators: " ^ string_of_thm th);
+    let val _ = Output.debug (fn()=>"Conversion to combinators: " ^ Display.string_of_thm th);
 	val th = Drule.eta_contraction_rule th
 	val eqth = combinators_aux (cprop_of th)
-	val _ = Output.debug (fn()=>"Conversion result: " ^ string_of_thm eqth);
+	val _ = Output.debug (fn()=>"Conversion result: " ^ Display.string_of_thm eqth);
     in  equal_elim eqth th   end
     handle THM (msg,_,_) => 
-      (warning ("Error in the combinator translation of " ^ string_of_thm th);
+      (warning ("Error in the combinator translation of " ^ Display.string_of_thm th);
        warning ("  Exception message: " ^ msg);
        TrueI);  (*A type variable of sort {} will cause make abstraction fail.*)
 
@@ -311,7 +311,7 @@ fun assume_skolem_of_def s th =
 fun assert_lambda_free ths msg =
   case filter (not o lambda_free o prop_of) ths of
       [] => ()
-    | ths' => error (msg ^ "\n" ^ cat_lines (map string_of_thm ths'));
+    | ths' => error (msg ^ "\n" ^ cat_lines (map Display.string_of_thm ths'));
 
 
 (*** Blacklisting (duplicated in ResAtp? ***)
@@ -367,7 +367,7 @@ fun fake_name th =
 
 fun name_or_string th =
   if PureThy.has_name_hint th then PureThy.get_name_hint th
-  else string_of_thm th;
+  else Display.string_of_thm th;
 
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name.
   It returns a modified theory, unless skolemization fails.*)
@@ -378,7 +378,7 @@ fun skolem thy th =
      Option.map
         (fn (nnfth,ctxt1) =>
           let 
-              val _ = Output.debug (fn () => "  initial nnf: " ^ string_of_thm nnfth)
+              val _ = Output.debug (fn () => "  initial nnf: " ^ Display.string_of_thm nnfth)
               val s = fake_name th
               val (thy',defs) = declare_skofuns s nnfth thy
               val (cnfs,ctxt2) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt1
@@ -531,15 +531,15 @@ fun expand_defs_tac st0 st =
                                       (map Thm.term_of hyps)
       val fixed = term_frees (concl_of st) @
                   foldl (gen_union (op aconv)) [] (map term_frees remaining_hyps)
-  in  Output.debug (fn _ => "expand_defs_tac: " ^ string_of_thm st);
-      Output.debug (fn _ => "  st0: " ^ string_of_thm st0);
-      Output.debug (fn _ => "  defs: " ^ commas (map string_of_cterm defs));
+  in  Output.debug (fn _ => "expand_defs_tac: " ^ Display.string_of_thm st);
+      Output.debug (fn _ => "  st0: " ^ Display.string_of_thm st0);
+      Output.debug (fn _ => "  defs: " ^ commas (map Display.string_of_cterm defs));
       Seq.of_list [LocalDefs.expand (filter (is_okdef fixed o Thm.term_of) defs) st]
   end;
 
 
 fun meson_general_tac ths i st0 =
- let val _ = Output.debug (fn () => "Meson called: " ^ cat_lines (map string_of_thm ths))
+ let val _ = Output.debug (fn () => "Meson called: " ^ cat_lines (map Display.string_of_thm ths))
  in  (Meson.meson_claset_tac (cnf_rules_of_ths ths) HOL_cs i THEN expand_defs_tac st0) st0 end;
 
 val meson_method_setup = Method.add_methods

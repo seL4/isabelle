@@ -116,7 +116,7 @@ val _ =
 (** certificate theorems **)
 
 fun string_of_lthms r = case Susp.peek r
- of SOME thms => (map string_of_thm o rev) thms
+ of SOME thms => (map Display.string_of_thm o rev) thms
   | NONE => ["[...]"];
 
 fun pretty_lthms ctxt r = case Susp.peek r
@@ -147,7 +147,7 @@ fun add_drop_redundant thm (sels, dels) =
       | matches (_ :: _) [] = false
       | matches (x :: xs) (y :: ys) = Pattern.matches thy (x, y) andalso matches xs ys;
     fun drop thm' = not (matches args (args_of thm'))
-      orelse (warning ("code generator: dropping redundant defining equation\n" ^ string_of_thm thm'); false);
+      orelse (warning ("code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm'); false);
     val (keeps, drops) = List.partition drop sels;
   in (thm :: keeps, dels |> remove Thm.eq_thm_prop thm |> fold (insert Thm.eq_thm_prop) drops) end;
 
@@ -537,7 +537,7 @@ fun certify_const thy const thms =
   let
     fun cert thm = if const = const_of_func thy thm
       then thm else error ("Wrong head of defining equation,\nexpected constant "
-        ^ CodeUnit.string_of_const thy const ^ "\n" ^ string_of_thm thm)
+        ^ CodeUnit.string_of_const thy const ^ "\n" ^ Display.string_of_thm thm)
   in map cert thms end;
 
 
@@ -655,13 +655,13 @@ fun assert_func_typ thm =
             then thm
             else (warning ("Constraining type\n" ^ CodeUnit.string_of_typ thy ty
               ^ "\nof defining equation\n"
-              ^ string_of_thm thm
+              ^ Display.string_of_thm thm
               ^ "\nto permitted most general type\n"
               ^ CodeUnit.string_of_typ thy ty_decl);
               constrain thm)
             else CodeUnit.bad_thm ("Type\n" ^ CodeUnit.string_of_typ thy ty
               ^ "\nof defining equation\n"
-              ^ string_of_thm thm
+              ^ Display.string_of_thm thm
               ^ "\nis incompatible with permitted least general type\n"
               ^ CodeUnit.string_of_typ thy ty_strongest)
           end;
@@ -673,7 +673,7 @@ fun assert_func_typ thm =
         then thm
         else CodeUnit.bad_thm ("Type\n" ^ CodeUnit.string_of_typ thy ty
            ^ "\nof defining equation\n"
-           ^ string_of_thm thm
+           ^ Display.string_of_thm thm
            ^ "\nis incompatible with declared function type\n"
            ^ CodeUnit.string_of_typ thy ty_decl)
       end;
@@ -731,11 +731,11 @@ fun add_func thm thy =
     val c = const_of_func thy func;
     val _ = if (is_some o AxClass.class_of_param thy) c
       then error ("Rejected polymorphic equation for overloaded constant:\n"
-        ^ string_of_thm thm)
+        ^ Display.string_of_thm thm)
       else ();
     val _ = if (is_some o get_datatype_of_constr thy) c
       then error ("Rejected equation for datatype constructor:\n"
-        ^ string_of_thm func)
+        ^ Display.string_of_thm func)
       else ();
   in
     (map_exec_purge (SOME [c]) o map_funcs) (Symtab.map_default

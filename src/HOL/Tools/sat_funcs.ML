@@ -164,8 +164,8 @@ fun resolve_raw_clauses [] =
 		fun resolution (c1, hyps1) (c2, hyps2) =
 		let
 			val _ = if !trace_sat then
-					tracing ("Resolving clause: " ^ string_of_thm c1 ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c1)) (#hyps (rep_thm c1))
-						^ ")\nwith clause: " ^ string_of_thm c2 ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
+					tracing ("Resolving clause: " ^ Display.string_of_thm c1 ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c1)) (#hyps (rep_thm c1))
+						^ ")\nwith clause: " ^ Display.string_of_thm c2 ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
 				else ()
 
 			(* the two literals used for resolution *)
@@ -182,7 +182,7 @@ fun resolve_raw_clauses [] =
 				end
 
 			val _ = if !trace_sat then
-					tracing ("Resolution theorem: " ^ string_of_thm res_thm)
+					tracing ("Resolution theorem: " ^ Display.string_of_thm res_thm)
 				else ()
 
 			(* Gamma1, Gamma2 |- False *)
@@ -191,7 +191,7 @@ fun resolve_raw_clauses [] =
 				(if hyp1_is_neg then c1' else c2')
 
 			val _ = if !trace_sat then
-					tracing ("Resulting clause: " ^ string_of_thm c_new ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
+					tracing ("Resulting clause: " ^ Display.string_of_thm c_new ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
 				else ()
 			val _ = inc counter
 		in
@@ -312,7 +312,7 @@ let
 		((cnf.is_clause o HOLogic.dest_Trueprop o Thm.term_of) clause
 			handle TERM ("dest_Trueprop", _) => false)
 		orelse (
-			warning ("Ignoring non-clausal premise " ^ string_of_cterm clause);
+			warning ("Ignoring non-clausal premise " ^ Display.string_of_cterm clause);
 			false)) clauses'
 	(* remove trivial clauses -- this is necessary because zChaff removes *)
 	(* trivial clauses during preprocessing, and otherwise our clause     *)
@@ -325,7 +325,7 @@ let
 	(* sorted in ascending order                                          *)
 	val sorted_clauses = sort (Term.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
 	val _ = if !trace_sat then
-			tracing ("Sorted non-trivial clauses:\n" ^ space_implode "\n" (map string_of_cterm sorted_clauses))
+			tracing ("Sorted non-trivial clauses:\n" ^ space_implode "\n" (map Display.string_of_cterm sorted_clauses))
 		else ()
 	(* translate clauses from HOL terms to PropLogic.prop_formula *)
 	val (fms, atom_table) = fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o Thm.term_of) sorted_clauses Termtab.empty

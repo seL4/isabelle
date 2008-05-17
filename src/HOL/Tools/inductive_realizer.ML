@@ -19,7 +19,7 @@ struct
 fun name_of_thm thm =
   (case Symtab.dest (Proofterm.thms_of_proof' (proof_of thm) Symtab.empty) of
      [(name, _)] => name
-   | _ => error ("name_of_thm: bad proof of theorem\n" ^ string_of_thm thm));
+   | _ => error ("name_of_thm: bad proof of theorem\n" ^ Display.string_of_thm thm));
 
 val all_simps = map (symmetric o mk_meta_eq) (thms "HOL.all_simps");
 
