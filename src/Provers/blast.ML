@@ -587,7 +587,7 @@ fun normBr {pairs, lits, vars, lim} =
 val dummyTVar = Term.TVar(("a",0), []);
 val dummyVar2 = Term.Var(("var",0), dummyT);
 
-(*convert Blast_tac's type representation to real types for tracing*)
+(*convert blast_tac's type representation to real types for tracing*)
 fun showType (Free a)  = Term.TFree (a,[])
   | showType (Var _)   = dummyTVar
   | showType t         =

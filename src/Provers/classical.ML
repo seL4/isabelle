@@ -170,7 +170,7 @@ instance, make_elim of Pure transforms the HOL rule injD into
 
     [| inj f; f x = f y; x = y ==> PROP W |] ==> PROP W
 
-Such rules can cause Fast_tac to fail and Blast_tac to report "PROOF
+Such rules can cause fast_tac to fail and blast_tac to report "PROOF
 FAILED"; classical_rule will strenthen this to
 
     [| inj f; ~ W ==> f x = f y; x = y ==> W |] ==> W
