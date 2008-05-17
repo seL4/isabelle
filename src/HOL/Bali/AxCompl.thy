@@ -970,7 +970,7 @@ proof
   fix l show "abrupt s2 \<noteq> Some (Jump (Break l)) \<and>  
               abrupt s2 \<noteq> Some (Jump (Cont l))"
   proof -
-    from clsD have wt_init: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(Init D)\<Colon>\<surd>"
+    fix accC from clsD have wt_init: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(Init D)\<Colon>\<surd>"
       by auto
     from eval_init wf
     have s1_no_jmp: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"

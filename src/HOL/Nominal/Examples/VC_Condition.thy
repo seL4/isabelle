@@ -129,6 +129,7 @@ text {*
 lemma false1:
   shows "False"
 proof -
+  fix x
   have "Lam [x].Lam [x].(Var x)\<mapsto>[x,x],(Var x)" 
   and  "\<not>(x\<sharp>Var x)" by (simp_all add: unbind_lambda_lambda1 fresh_atm)
   then have "\<not>(x\<sharp>(bind [x] (Var x)))" by (rule faulty1)
@@ -176,6 +177,7 @@ text {* Obviously Lam [x].Var x is a counter example to this lemma. *}
 lemma false2:
   shows "False"
 proof -
+  fix x
   have "Lam [x].(Var x) \<rightarrow> (Var x)" by (auto intro: strip.intros)
   moreover
   have "x\<sharp>Lam [x].(Var x)" by (simp add: abs_fresh)
@@ -189,6 +191,7 @@ text {* A similar effect can be achieved by using naive inversion
 lemma false3: 
   shows "False"
 proof -
+  fix x
   have "Lam [x].(Var x) \<rightarrow> (Var x)" by (auto intro: strip.intros)
   moreover obtain y::"name" where fc: "y\<sharp>x" by (rule exists_fresh) (rule fin_supp)
   then have "Lam [x].(Var x) = Lam [y].(Var y)"

@@ -1119,6 +1119,7 @@ next
   case (3 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1135,6 +1136,7 @@ next
   case (4 c e)   
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1151,6 +1153,7 @@ next
   case (5 c e) 
     from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1166,6 +1169,7 @@ next
   case (6 c e)  
     from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1181,6 +1185,7 @@ next
   case (7 c e)  
     from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1196,6 +1201,7 @@ next
   case (8 c e)  
     from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1221,6 +1227,7 @@ next
   case (3 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1237,6 +1244,7 @@ next
   case (4 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1253,6 +1261,7 @@ next
   case (5 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1268,6 +1277,7 @@ next
   case (6 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1283,6 +1293,7 @@ next
   case (7 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1298,6 +1309,7 @@ next
   case (8 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -1892,6 +1904,7 @@ lemma ferrack:
   (is "_ \<and> (?rhs = ?lhs)")
 proof-
   let ?I = "\<lambda> x p. Ifm (x#bs) p"
+  fix x
   let ?N = "\<lambda> t. Inum (x#bs) t"
   let ?q = "rlfm (simpfm p)" 
   let ?U = "uset ?q"

@@ -374,7 +374,7 @@ next
       then have a: "\<forall>u. u \<in> RED \<tau>1 \<longrightarrow> App t u \<in> RED \<tau>2" by simp
       from ih_CR3_\<tau>1 have "CR4 \<tau>1" by (simp add: CR3_implies_CR4) 
       moreover
-      have "NEUT (Var a)" by (force simp add: NEUT_def)
+      fix a have "NEUT (Var a)" by (force simp add: NEUT_def)
       moreover
       have "NORMAL (Var a)" by (rule NORMAL_Var)
       ultimately have "(Var a)\<in> RED \<tau>1" by (simp add: CR4_def)

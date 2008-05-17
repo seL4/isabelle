@@ -20786,9 +20786,9 @@ theorem ALL_SNa:
   assumes a: "\<Gamma> \<turnstile> M \<turnstile> \<Delta>"
   shows "SNa M"
 proof -
-  have "(idc \<Delta> x) ccloses \<Delta>" by (simp add: ccloses_id)
+  fix x have "(idc \<Delta> x) ccloses \<Delta>" by (simp add: ccloses_id)
   moreover
-  have "(idn \<Gamma> a) ncloses \<Gamma>" by (simp add: ncloses_id)
+  fix a have "(idn \<Gamma> a) ncloses \<Gamma>" by (simp add: ncloses_id)
   ultimately have "SNa ((idn \<Gamma> a),(idc \<Delta> x)<M>)" using a by (simp add: all_CAND)
   moreover
   have "((idn \<Gamma> a),(idc \<Delta> x)<M>) \<longrightarrow>\<^isub>a* M" by (simp add: id_redu)

@@ -582,7 +582,7 @@ next
   then show ?case ..
 next
   case (Jmp s j)
-  have "G\<turnstile>Norm s \<midarrow>Jmp j\<midarrow>n\<rightarrow> (Some (Jump j), s)"
+  fix n have "G\<turnstile>Norm s \<midarrow>Jmp j\<midarrow>n\<rightarrow> (Some (Jump j), s)"
     by (rule evaln.Jmp)
   then show ?case ..
 next
@@ -681,7 +681,7 @@ next
   then show ?case ..
 next
   case (Lit s v)
-  have "G\<turnstile>Norm s \<midarrow>Lit v-\<succ>v\<midarrow>n\<rightarrow> Norm s"
+  fix n have "G\<turnstile>Norm s \<midarrow>Lit v-\<succ>v\<midarrow>n\<rightarrow> Norm s"
     by (rule evaln.Lit)
   then show ?case ..
 next
@@ -705,7 +705,7 @@ next
   then show ?case ..
 next
   case (Super s )
-  have "G\<turnstile>Norm s \<midarrow>Super-\<succ>val_this s\<midarrow>n\<rightarrow> Norm s"
+  fix n have "G\<turnstile>Norm s \<midarrow>Super-\<succ>val_this s\<midarrow>n\<rightarrow> Norm s"
     by (rule evaln.Super)
   then show ?case ..
 next
@@ -830,5 +830,5 @@ next
     by (blast intro!: evaln.Cons dest: evaln_max2)
   then show ?case ..
 qed
-       
+
 end

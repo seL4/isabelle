@@ -1519,7 +1519,7 @@ proof(clarify)
       using partition_set[OF part] by auto
     finally have "Ifm bs p = ((Ifm bs ?cyes) \<and> (Ifm bs ?cno))" using list_conj by simp}
   hence "Ifm bs (E p) = (\<exists>x. (Ifm (x#bs) ?cyes) \<and> (Ifm (x#bs) ?cno))" by simp
-  also have "\<dots> = (\<exists>x. (Ifm (y#bs) ?cyes) \<and> (Ifm (x#bs) ?cno))"
+  also fix y have "\<dots> = (\<exists>x. (Ifm (y#bs) ?cyes) \<and> (Ifm (x#bs) ?cno))"
     using bound0_I[OF yes_nb, where bs="bs" and b'="y"] by blast
   also have "\<dots> = (Ifm bs (decr ?cyes) \<and> Ifm bs (E ?cno))"
     by (auto simp add: decr[OF yes_nb])
@@ -2170,6 +2170,7 @@ next
   case (3 c e) 
   from prems have "c > 0" by simp hence rcpos: "real c > 0" by simp
   from prems have nbe: "numbound0 e" by simp
+  fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Eq (CN 0 c e))) = ?I x (Eq (CN 0 c e))"
   proof (simp add: less_floor_eq , rule allI, rule impI) 
     fix x
@@ -2186,6 +2187,7 @@ next
   case (4 c e) 
   from prems have "c > 0" by simp hence rcpos: "real c > 0" by simp
   from prems have nbe: "numbound0 e" by simp
+  fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (NEq (CN 0 c e))) = ?I x (NEq (CN 0 c e))"
   proof (simp add: less_floor_eq , rule allI, rule impI) 
     fix x
@@ -2202,6 +2204,7 @@ next
   case (5 c e) 
   from prems have "c > 0" by simp hence rcpos: "real c > 0" by simp
   from prems have nbe: "numbound0 e" by simp
+  fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Lt (CN 0 c e))) = ?I x (Lt (CN 0 c e))"
   proof (simp add: less_floor_eq , rule allI, rule impI) 
     fix x
@@ -2217,6 +2220,7 @@ next
   case (6 c e) 
   from prems have "c > 0" by simp hence rcpos: "real c > 0" by simp
   from prems have nbe: "numbound0 e" by simp
+  fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Le (CN 0 c e))) = ?I x (Le (CN 0 c e))"
   proof (simp add: less_floor_eq , rule allI, rule impI) 
     fix x
@@ -2232,6 +2236,7 @@ next
   case (7 c e) 
   from prems have "c > 0" by simp hence rcpos: "real c > 0" by simp
   from prems have nbe: "numbound0 e" by simp
+  fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Gt (CN 0 c e))) = ?I x (Gt (CN 0 c e))"
   proof (simp add: less_floor_eq , rule allI, rule impI) 
     fix x
@@ -2247,6 +2252,7 @@ next
   case (8 c e) 
   from prems have "c > 0" by simp hence rcpos: "real c > 0" by simp
   from prems have nbe: "numbound0 e" by simp
+  fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Ge (CN 0 c e))) = ?I x (Ge (CN 0 c e))"
   proof (simp add: less_floor_eq , rule allI, rule impI) 
     fix x
@@ -2642,7 +2648,7 @@ next
       by simp
     hence "(\<exists> (k::int). real l * real x + real (l div c) * Inum (real x # bs) e = (real (l div c) * real j) * real k) = (\<exists> (k::int). real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e = (real (l div c) * real j) * real k)"  by simp
     also have "\<dots> = (\<exists> (k::int). real (l div c) * (real c * real x + Inum (real x # bs) e - real j * real k) = real (l div c)*0)" by (simp add: ring_simps)
-    also have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e - real j * real k = 0)"
+    also fix k have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e - real j * real k = 0)"
     using zero_le_mult_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e - real j * real k"] ldcp by simp
   also have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e = real j * real k)" by simp
   finally show ?case using numbound0_I[OF be,where b="real (l * x)" and b'="real x" and bs="bs"] rdvd_def  be  isint_Mul[OF ei] mult_strict_mono[OF ldcp jp ldcp ] by simp 
@@ -2659,7 +2665,7 @@ next
       by simp
     hence "(\<exists> (k::int). real l * real x + real (l div c) * Inum (real x # bs) e = (real (l div c) * real j) * real k) = (\<exists> (k::int). real (c * (l div c)) * real x + real (l div c) * Inum (real x # bs) e = (real (l div c) * real j) * real k)"  by simp
     also have "\<dots> = (\<exists> (k::int). real (l div c) * (real c * real x + Inum (real x # bs) e - real j * real k) = real (l div c)*0)" by (simp add: ring_simps)
-    also have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e - real j * real k = 0)"
+    also fix k have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e - real j * real k = 0)"
     using zero_le_mult_iff [where a="real (l div c)" and b="real c * real x + Inum (real x # bs) e - real j * real k"] ldcp by simp
   also have "\<dots> = (\<exists> (k::int). real c * real x + Inum (real x # bs) e = real j * real k)" by simp
   finally show ?case using numbound0_I[OF be,where b="real (l * x)" and b'="real x" and bs="bs"] rdvd_def  be  isint_Mul[OF ei]  mult_strict_mono[OF ldcp jp ldcp ] by simp
@@ -4363,6 +4369,7 @@ next
   case (3 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4379,6 +4386,7 @@ next
   case (4 c e)   
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4395,6 +4403,7 @@ next
   case (5 c e) 
     from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4410,6 +4419,7 @@ next
   case (6 c e)  
     from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4425,6 +4435,7 @@ next
   case (7 c e)  
     from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4440,6 +4451,7 @@ next
   case (8 c e)  
     from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4465,6 +4477,7 @@ next
   case (3 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4481,6 +4494,7 @@ next
   case (4 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4497,6 +4511,7 @@ next
   case (5 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4512,6 +4527,7 @@ next
   case (6 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4527,6 +4543,7 @@ next
   case (7 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x
@@ -4542,6 +4559,7 @@ next
   case (8 c e) 
   from prems have nb: "numbound0 e" by simp
   from prems have cp: "real c > 0" by simp
+  fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
   {fix x

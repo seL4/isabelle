@@ -54,8 +54,9 @@ by pat_completeness auto
 termination by (relation "measure (\<lambda>x. size x)")
   (simp, simp only: in_measure rtype_size)
 
-instance proof (rule countable_classI)
-  fix t t' :: rtype
+instance
+proof (rule countable_classI)
+  fix t t' :: rtype and ts
   have "(\<forall>t'. to_nat_rtype t = to_nat_rtype t' \<longrightarrow> t = t')
     \<and> (\<forall>ts'. map to_nat_rtype ts = map to_nat_rtype ts' \<longrightarrow> ts = ts')"
   proof (induct rule: rtype.induct)

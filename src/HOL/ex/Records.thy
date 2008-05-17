@@ -310,7 +310,7 @@ lemma fixes r shows "P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
 lemma True
 proof -
   {
-    fix r
+    fix P r
     assume pre: "P (xpos r)"
     have "\<exists>x. P x"
       using pre
