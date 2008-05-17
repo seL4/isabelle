@@ -1541,7 +1541,7 @@ lemmas lbl_lbl = trans [OF word_bl.Rep' word_bl.Rep' [symmetric]]
 
 lemmas ths_map2 [OF lbl_lbl] = rotate_map2 rotater_map2
 
-lemmas ths_map [where xs = "to_bl v"] = rotate_map rotater_map
+lemmas ths_map [where xs = "to_bl v", standard] = rotate_map rotater_map
 
 lemmas th1s [simplified word_rot_defs' [symmetric]] = ths_map2 ths_map
 

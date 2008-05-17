@@ -158,7 +158,7 @@ done
 
 (* -------- results about p for case (EX k. b1$(iterate k$g$x)~=TT) ------- *)
 
-thm hoare_lemma8 [THEN hoare_lemma9 [THEN mp], standard, no_vars]
+thm hoare_lemma8 [THEN hoare_lemma9 [THEN mp], standard]
 
 lemma hoare_lemma10:
   "EX k. b1$(iterate k$g$x) ~= TT
