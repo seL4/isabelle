@@ -230,9 +230,9 @@ fun infer_types ctxt =
                        else error ("Constant " ^ c ^ " expects " ^ Int.toString ntyargs ^
                                    " but gets " ^ Int.toString (length tys) ^
                                    " type arguments\n" ^
-                                   space_implode "\n" (map (Syntax.string_of_typ ctxt) tys) ^
+                                   cat_lines (map (Syntax.string_of_typ ctxt) tys) ^
                                    " the terms are \n" ^
-                                   space_implode "\n" (map (Syntax.string_of_term ctxt) (terms_of tts)))
+                                   cat_lines (map (Syntax.string_of_term ctxt) (terms_of tts)))
                        end
                 | NONE => (*Not a constant. Is it a type constructor?*)
               case Recon.strip_prefix ResClause.tconst_prefix a of

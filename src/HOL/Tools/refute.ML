@@ -263,7 +263,7 @@ struct
       if null terms then
         "empty interpretation (no free variables in term)\n"
       else
-        space_implode "\n" (List.mapPartial (fn (t, intr) =>
+        cat_lines (List.mapPartial (fn (t, intr) =>
           (* print constants only if 'show_consts' is true *)
           if (!show_consts) orelse not (is_Const t) then
             SOME (Sign.string_of_term thy t ^ ": " ^

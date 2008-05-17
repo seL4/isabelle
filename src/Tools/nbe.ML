@@ -103,7 +103,7 @@ fun ml_fundefs ([(name, [([], e)])]) =
           in space_implode "\n  | " (map eqn eqs) end;
       in
         (prefix "fun " o fundef) eqs :: map (prefix "and " o fundef) eqss
-        |> space_implode "\n"
+        |> cat_lines
         |> suffix "\n"
       end;
 

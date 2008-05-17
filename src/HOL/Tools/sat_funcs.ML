@@ -325,12 +325,12 @@ let
 	(* sorted in ascending order                                          *)
 	val sorted_clauses = sort (Term.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
 	val _ = if !trace_sat then
-			tracing ("Sorted non-trivial clauses:\n" ^ space_implode "\n" (map Display.string_of_cterm sorted_clauses))
+			tracing ("Sorted non-trivial clauses:\n" ^ cat_lines (map Display.string_of_cterm sorted_clauses))
 		else ()
 	(* translate clauses from HOL terms to PropLogic.prop_formula *)
 	val (fms, atom_table) = fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o Thm.term_of) sorted_clauses Termtab.empty
 	val _ = if !trace_sat then
-			tracing ("Invoking SAT solver on clauses:\n" ^ space_implode "\n" (map string_of_prop_formula fms))
+			tracing ("Invoking SAT solver on clauses:\n" ^ cat_lines (map string_of_prop_formula fms))
 		else ()
 	val fm = PropLogic.all fms
 	(* unit -> Thm.thm *)

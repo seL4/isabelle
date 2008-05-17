@@ -126,7 +126,7 @@ fun string_of_mode (iss, is) = space_implode " -> " (map
        (iss @ [SOME is]));
 
 fun print_modes modes = message ("Inferred modes:\n" ^
-  space_implode "\n" (map (fn (s, ms) => s ^ ": " ^ commas (map
+  cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
     string_of_mode ms)) modes));
 
 val term_vs = map (fst o fst o dest_Var) o term_vars;
@@ -471,7 +471,7 @@ fun lookup_modes gr dep = apfst List.concat (apsnd List.concat (ListPair.unzip
     (Graph.all_preds (fst gr) [dep]))));
 
 fun print_arities arities = message ("Arities:\n" ^
-  space_implode "\n" (map (fn (s, (ks, k)) => s ^ ": " ^
+  cat_lines (map (fn (s, (ks, k)) => s ^ ": " ^
     space_implode " -> " (map
       (fn NONE => "X" | SOME k' => string_of_int k')
         (ks @ [SOME k]))) arities));

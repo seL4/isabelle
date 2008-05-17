@@ -625,9 +625,9 @@ fun iter_deepen_meson_tac ths = MESON make_clauses
              let val horns = make_horns (cls@ths)
                  val _ =
                      Output.debug (fn () => ("meson method called:\n" ^
-                                  space_implode "\n" (map Display.string_of_thm (cls@ths)) ^
+                                  cat_lines (map Display.string_of_thm (cls@ths)) ^
                                   "\nclauses:\n" ^
-                                  space_implode "\n" (map Display.string_of_thm horns)))
+                                  cat_lines (map Display.string_of_thm horns)))
              in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns)
              end
  );

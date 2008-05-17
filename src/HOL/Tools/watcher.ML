@@ -346,7 +346,7 @@ fun string_of_subgoal th i =
     Display.string_of_cterm (List.nth(cprems_of th, i-1))
     handle Subscript => "Subgoal number out of range!"
 
-fun prems_string_of th = space_implode "\n" (map Display.string_of_cterm (cprems_of th))
+fun prems_string_of th = cat_lines (map Display.string_of_cterm (cprems_of th))
 
 fun read_proof probfile =
   let val p = ResReconstruct.txt_path probfile

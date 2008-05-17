@@ -87,7 +87,7 @@ struct
 					val output             = if new_default_params=[] then
 							"none"
 						else
-							space_implode "\n" (map (fn (name, value) => name ^ "=" ^ value)
+							cat_lines (map (fn (name, value) => name ^ "=" ^ value)
 								new_default_params)
 				in
 					writeln ("Default parameters for 'refute':\n" ^ output);

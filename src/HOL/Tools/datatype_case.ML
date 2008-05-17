@@ -291,7 +291,7 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt err used x clauses =
         [] => ()
       | is => (if err then case_error else warning)
           ("The following clauses are redundant (covered by preceding clauses):\n" ^
-           space_implode "\n" (map (string_of_clause o nth clauses) is));
+           cat_lines (map (string_of_clause o nth clauses) is));
   in
     (case_tm, patts2)
   end;

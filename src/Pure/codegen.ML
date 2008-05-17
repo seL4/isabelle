@@ -699,7 +699,7 @@ fun default_codegen thy defs gr dep module brack t =
                    NONE => (case get_aux_code aux of
                        [] => (gr4, p module)
                      | xs => (add_edge (node_id, dep) (new_node
-                         (node_id, (NONE, module', space_implode "\n" xs ^ "\n")) gr4),
+                         (node_id, (NONE, module', cat_lines xs ^ "\n")) gr4),
                            p module'))
                  | SOME (_, module'', _) =>
                      (add_edge (node_id, dep) gr4, p module''))
@@ -780,7 +780,7 @@ fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
                    [] => (gr'', p module')
                  | xs => (fst (mk_type_id module' s
                        (add_edge (node_id, dep) (new_node (node_id,
-                         (NONE, module', space_implode "\n" xs ^ "\n")) gr''))),
+                         (NONE, module', cat_lines xs ^ "\n")) gr''))),
                      p module'))
              | SOME (_, module'', _) =>
                  (add_edge (node_id, dep) gr'', p module''))
@@ -943,7 +943,7 @@ fun test_term thy quiet sz i t =
     val (code, gr) = setmp mode ["term_of", "test"]
       (generate_code_i thy [] "Generated") [("testf", list_abs_free (frees, t))];
     val s = PrintMode.setmp [] (fn () => "structure TestTerm =\nstruct\n\n" ^
-      space_implode "\n" (map snd code) ^
+      cat_lines (map snd code) ^
       "\nopen Generated;\n\n" ^ Pretty.string_of
         (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
           Pretty.brk 1, Pretty.str ("(fn i =>"), Pretty.brk 1,
@@ -1044,7 +1044,7 @@ fun eval_term thy t =
         (generate_code_i thy [] "Generated")
         [("result", Abs ("x", TFree ("'a", []), t))];
       val s = "structure EvalTerm =\nstruct\n\n" ^
-        space_implode "\n" (map snd code) ^
+        cat_lines (map snd code) ^
         "\nopen Generated;\n\n" ^ Pretty.string_of
           (Pretty.block [Pretty.str "val () = Codegen.eval_result := (fn () =>",
             Pretty.brk 1,
@@ -1149,7 +1149,7 @@ fun parse_code lib =
      in ((case opt_fname of
          NONE =>
            ML_Context.eval_in (SOME (Context.Theory thy)) false Position.none
-             (space_implode "\n" (map snd code))
+             (cat_lines (map snd code))
        | SOME fname =>
            if lib then
              app (fn (name, s) => File.write
