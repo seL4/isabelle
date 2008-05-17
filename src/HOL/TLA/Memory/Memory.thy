@@ -161,7 +161,6 @@ lemma NonMemLocInvariant: "|- #l ~: #MemLoc --> [](MemInv mm l)"
 lemma MemoryInvariantAll:
     "|- (ALL l. #l : #MemLoc --> MSpec ch mm rs l) --> (ALL l. [](MemInv mm l))"
   apply clarify
-  apply (case_tac "l : MemLoc")
   apply (auto elim!: MemoryInvariant [temp_use] NonMemLocInvariant [temp_use])
   done
 
