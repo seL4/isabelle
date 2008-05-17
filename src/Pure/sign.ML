@@ -61,6 +61,9 @@ sig
   val intern_term: theory -> term -> term
   val extern_term: (string -> xstring) -> theory -> term -> term
   val intern_tycons: theory -> typ -> typ
+  val is_pretty_global: Proof.context -> bool
+  val set_pretty_global: bool -> Proof.context -> Proof.context
+  val init_pretty_global: theory -> Proof.context
   val pretty_term: theory -> term -> Pretty.T
   val pretty_typ: theory -> typ -> Pretty.T
   val pretty_sort: theory -> sort -> Pretty.T
@@ -328,21 +331,26 @@ end;
 
 (** pretty printing of terms, types etc. **)
 
-val pretty_term = Syntax.pretty_term o ProofContext.init;
-val pretty_typ = Syntax.pretty_typ o ProofContext.init;
-val pretty_sort = Syntax.pretty_sort o ProofContext.init;
+structure PrettyGlobal = ProofDataFun(type T = bool fun init _ = false);
+val is_pretty_global = PrettyGlobal.get;
+val set_pretty_global = PrettyGlobal.put;
+val init_pretty_global = set_pretty_global true o ProofContext.init;
 
-val string_of_term = Syntax.string_of_term o ProofContext.init;
-val string_of_typ = Syntax.string_of_typ o ProofContext.init;
-val string_of_sort = Syntax.string_of_sort o ProofContext.init;
+val pretty_term = Syntax.pretty_term o init_pretty_global;
+val pretty_typ = Syntax.pretty_typ o init_pretty_global;
+val pretty_sort = Syntax.pretty_sort o init_pretty_global;
+
+val string_of_term = Syntax.string_of_term o init_pretty_global;
+val string_of_typ = Syntax.string_of_typ o init_pretty_global;
+val string_of_sort = Syntax.string_of_sort o init_pretty_global;
 
 (*pp operations -- deferred evaluation*)
 fun pp thy = Pretty.pp
  (fn x => pretty_term thy x,
   fn x => pretty_typ thy x,
   fn x => pretty_sort thy x,
-  fn x => Syntax.pretty_classrel (ProofContext.init thy) x,
-  fn x => Syntax.pretty_arity (ProofContext.init thy) x);
+  fn x => Syntax.pretty_classrel (init_pretty_global thy) x,
+  fn x => Syntax.pretty_arity (init_pretty_global thy) x);
 
 
 
