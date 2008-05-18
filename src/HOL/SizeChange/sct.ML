@@ -273,8 +273,7 @@ fun mk_set T [] = Const ("{}", HOLogic.mk_setT T)
 fun dest_set (Const ("{}", _)) = []
   | dest_set (Const ("insert", _) $ x $ xs) = x :: dest_set xs
 
-val pr_graph = Sign.string_of_term
-fun pr_matrix thy = map_matrix (fn Graph (G, _) => pr_graph thy G | _ => "X")
+fun pr_matrix ctxt = map_matrix (fn Graph (G, _) => Syntax.string_of_term ctxt G | _ => "X")
 
 val in_graph_tac =
     simp_tac (HOL_basic_ss addsimps has_edge_simps) 1
@@ -330,9 +329,9 @@ fun mk_call_graph ctxt (st : thm) =
 
 
       val s = fold_index (fn (i, cs) => fold_index (fn (j, Graph (G, _)) => prefix ("(" ^ string_of_int i ^ "," ^ string_of_int j ^ "): " ^
-                                                                            pr_graph thy G ^ ",\n")
+                                                                            pr_graph ctxt G ^ ",\n")
                                                      | _ => I) cs) parts ""
-      val _ = Output.warning s
+      val _ = warning s
 
 
       val ACG = map_filter (fn (Graph (G, _),(m, n)) => SOME (mk_edge (mk_number m) G (mk_number n)) | _ => NONE) (flat parts ~~ flat pairs)
