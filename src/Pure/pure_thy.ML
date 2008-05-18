@@ -67,6 +67,8 @@ sig
     theory -> thm list * theory
   val add_defs_unchecked_i: bool -> ((bstring * term) * attribute list) list ->
     theory -> thm list * theory
+  val old_appl_syntax: theory -> bool
+  val old_appl_syntax_setup: theory -> theory
 end;
 
 structure PureThy: PURE_THY =
@@ -349,8 +351,43 @@ val typ = SimpleSyntax.read_typ;
 val term = SimpleSyntax.read_term;
 val prop = SimpleSyntax.read_prop;
 
+
+(* application syntax variants *)
+
+val appl_syntax =
+ [("_appl", typ "('b => 'a) => args => logic", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000)),
+  ("_appl", typ "('b => 'a) => args => aprop", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000))];
+
+val applC_syntax =
+ [("",       typ "'a => cargs",                  Delimfix "_"),
+  ("_cargs", typ "'a => cargs => cargs",         Mixfix ("_/ _", [1000, 1000], 1000)),
+  ("_applC", typ "('b => 'a) => cargs => logic", Mixfix ("(1_/ _)", [1000, 1000], 999)),
+  ("_applC", typ "('b => 'a) => cargs => aprop", Mixfix ("(1_/ _)", [1000, 1000], 999))];
+
+structure OldApplSyntax = TheoryDataFun
+(
+  type T = bool;
+  val empty = false;
+  val copy = I;
+  val extend = I;
+  fun merge _ (b1, b2) : T =
+    if b1 = b2 then b1
+    else error "Cannot merge theories with different application syntax";
+);
+
+val old_appl_syntax = OldApplSyntax.get;
+
+val old_appl_syntax_setup =
+  OldApplSyntax.put true #>
+  Sign.del_modesyntax_i Syntax.mode_default applC_syntax #>
+  Sign.add_syntax_i appl_syntax;
+
+
+(* main content *)
+
 val _ = Context.>> (Context.map_theory
-  (Sign.add_types
+  (OldApplSyntax.init #>
+   Sign.add_types
    [("fun", 2, NoSyn),
     ("prop", 0, NoSyn),
     ("itself", 1, NoSyn),
@@ -393,9 +430,8 @@ val _ = Context.>> (Context.map_theory
     ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),
     ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
     ("==>",         typ "prop => prop => prop",        Delimfix "op ==>"),
-    (Term.dummy_patternN, typ "aprop",                 Delimfix "'_"),
-    ("_appl",       typ "('b => 'a) => args => logic", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000)),
-    ("_appl",       typ "('b => 'a) => args => aprop", Mixfix ("(1_/(1'(_')))", [1000, 0], 1000))]
+    (Term.dummy_patternN, typ "aprop",                 Delimfix "'_")]
+  #> Sign.add_syntax_i applC_syntax
   #> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
    [("fun",      typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
     ("_bracket", typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
