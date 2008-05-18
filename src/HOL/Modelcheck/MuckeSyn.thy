@@ -164,7 +164,7 @@ end;
 
 (* transforming fun-defs into lambda-defs *)
 
-val [eq] = goal CPure.thy "(!! x. f x == g x) ==> f == g";
+val [eq] = goal Pure.thy "(!! x. f x == g x) ==> f == g";
  by (rtac (extensional eq) 1);
 qed "ext_rl";
 

@@ -34,7 +34,7 @@ fun num_of_term vs t =
       | Const("RealDef.real",_)$ (Const (@{const_name "RComplete.ceiling"},_)$ t') => Neg(Floor (Neg (num_of_term vs t')))
       | Const("RealDef.real",_) $ Const (@{const_name "Int.number_of"},_)$t' => C (HOLogic.dest_numeral t')
       | Const (@{const_name "Int.number_of"},_)$t' => C (HOLogic.dest_numeral t')
-      | _ => error ("num_of_term: unknown term " ^ Syntax.string_of_term_global CPure.thy t);
+      | _ => error ("num_of_term: unknown term " ^ Syntax.string_of_term_global Pure.thy t);
         
 
 (* pseudo reification : term -> fm *)
@@ -58,7 +58,7 @@ fun fm_of_term vs t =
         E (fm_of_term (map (fn (v, n) => (v, Suc n)) vs) p)
       | Const("All",_)$Abs(xn,xT,p) => 
         A (fm_of_term (map (fn(v, n) => (v, Suc n)) vs) p)
-      | _ => error ("fm_of_term : unknown term!" ^ Syntax.string_of_term_global CPure.thy t);
+      | _ => error ("fm_of_term : unknown term!" ^ Syntax.string_of_term_global Pure.thy t);
 
 fun start_vs t =
     let val fs = term_frees t

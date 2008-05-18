@@ -76,17 +76,13 @@ fun show_path path = Path.implode (Path.append (File.pwd ()) path);
 structure BrowserInfoData = TheoryDataFun
 (
   type T = {name: string, session: string list, is_local: bool};
-  val empty = {name = "", session = [], is_local = false}: T;
+  val empty = {name = Context.PureN, session = [], is_local = false}: T;
   val copy = I;
   fun extend _ = empty;
   fun merge _ _ = empty;
 );
 
-fun get_info thy =
-  if member (op =) [Context.PureN, Context.CPureN] (Context.theory_name thy)
-  then {name = Context.PureN, session = [], is_local = false}
-  else BrowserInfoData.get thy;
-
+val get_info = BrowserInfoData.get;
 val session_name = #name o get_info;
 
 

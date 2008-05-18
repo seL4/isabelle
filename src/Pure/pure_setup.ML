@@ -25,9 +25,6 @@ structure Pure = struct val thy = ML_Context.the_global_context () end;
 Context.set_thread_data NONE;
 ThyInfo.register_theory Pure.thy;
 
-use_thy "CPure";
-structure CPure = struct val thy = theory "CPure" end;
-
 
 (* ML toplevel pretty printing *)
 

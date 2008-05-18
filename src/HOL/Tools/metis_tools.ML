@@ -166,9 +166,9 @@ struct
     let val trands = terms_of rands
     in  if length trands = nargs then Term (list_comb(rator, trands))
         else error
-          ("apply_list: wrong number of arguments: " ^ Syntax.string_of_term_global CPure.thy rator ^
+          ("apply_list: wrong number of arguments: " ^ Syntax.string_of_term_global Pure.thy rator ^
             " expected " ^ Int.toString nargs ^
-            " received " ^ commas (map (Syntax.string_of_term_global CPure.thy) trands))
+            " received " ^ commas (map (Syntax.string_of_term_global Pure.thy) trands))
     end;
 
 (*Instantiate constant c with the supplied types, but if they don't match its declared

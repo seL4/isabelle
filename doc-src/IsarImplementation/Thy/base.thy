@@ -2,7 +2,7 @@
 (* $Id$ *)
 
 theory base
-imports CPure
+imports Pure
 uses "../../antiquote_setup.ML"
 begin
 

@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory intro
-imports CPure
+imports Pure
 begin
 
 chapter {* Introduction *}

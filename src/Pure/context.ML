@@ -23,7 +23,6 @@ sig
   val ancestors_of: theory -> theory list
   val is_stale: theory -> bool
   val PureN: string
-  val CPureN: string
   val is_draft: theory -> bool
   val exists_name: string -> theory -> bool
   val names_of: theory -> string list
@@ -197,7 +196,6 @@ fun vitalize (thy as Theory ({self = SOME r, ...}, _, _, _)) = (r := thy; thy)
 (* names *)
 
 val PureN = "Pure";
-val CPureN = "CPure";
 
 val draftN = "#";
 fun draft_id (_, name) = (name = draftN);
@@ -340,18 +338,15 @@ val pre_pure_thy = create_thy draftN NONE (serial (), draftN) Inttab.empty Intta
 (* named theory nodes *)
 
 fun merge_thys pp (thy1, thy2) =
-  if exists_name CPureN thy1 <> exists_name CPureN thy2 then
-    error "Cannot merge Pure and CPure developments"
-  else
-    let
-      val (ids, iids) = check_merge thy1 thy2;
-      val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
-      val ancestry = make_ancestry [] [];
-      val history = make_history "" 0 [];
-      val thy' = NAMED_CRITICAL "theory" (fn () =>
-       (check_thy thy1; check_thy thy2;
-        create_thy draftN NONE (serial (), draftN) ids iids data ancestry history))
-    in thy' end;
+  let
+    val (ids, iids) = check_merge thy1 thy2;
+    val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
+    val ancestry = make_ancestry [] [];
+    val history = make_history "" 0 [];
+    val thy' = NAMED_CRITICAL "theory" (fn () =>
+     (check_thy thy1; check_thy thy2;
+      create_thy draftN NONE (serial (), draftN) ids iids data ancestry history))
+  in thy' end;
 
 fun maximal_thys thys =
   thys |> filter (fn thy => not (exists (fn thy' => proper_subthy (thy, thy')) thys));

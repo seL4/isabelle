@@ -456,7 +456,7 @@ struct
           (* schematic type variable not instantiated *)
           raise REFUTE ("monomorphic_term",
             "no substitution for type variable " ^ fst (fst v) ^
-            " in term " ^ Syntax.string_of_term_global CPure.thy t)
+            " in term " ^ Syntax.string_of_term_global Pure.thy t)
         | SOME typ =>
           typ)) t;
 

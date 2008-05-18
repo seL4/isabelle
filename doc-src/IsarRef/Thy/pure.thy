@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory pure
-imports CPure
+imports Pure
 begin
 
 chapter {* Basic language elements \label{ch:pure-syntax} *}

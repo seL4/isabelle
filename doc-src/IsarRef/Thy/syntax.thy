@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory "syntax"
-imports CPure
+imports Pure
 begin
 
 chapter {* Syntax primitives *}

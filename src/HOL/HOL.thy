@@ -6,7 +6,7 @@
 header {* The basis of Higher-Order Logic *}
 
 theory HOL
-imports CPure
+imports Pure
 uses
   ("hologic.ML")
   "~~/src/Tools/IsaPlanner/zipper.ML"

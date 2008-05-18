@@ -23,7 +23,7 @@ LOG = $(OUT)/log
 
 Pure: $(OUT)/Pure$(ML_SUFFIX)
 
-$(OUT)/Pure$(ML_SUFFIX): CPure.thy General/ROOT.ML General/alist.ML	\
+$(OUT)/Pure$(ML_SUFFIX): General/ROOT.ML General/alist.ML		\
   General/balanced_tree.ML General/basics.ML General/buffer.ML		\
   General/file.ML General/graph.ML General/heap.ML General/history.ML	\
   General/integer.ML General/markup.ML General/name_space.ML		\
