@@ -41,7 +41,7 @@ fun pprint_context ctxt = Pretty.pprint
     Pretty.quote (Pretty.big_list "proof context:" (ProofContext.pretty_context ctxt))
   else Pretty.str "<context>");
 
-fun pprint pretty thy = Pretty.pprint o Pretty.quote o pretty (ProofContext.init thy);
+fun pprint pretty thy = Pretty.pprint o Pretty.quote o pretty (Syntax.init_pretty_global thy);
 
 val pprint_typ = pprint Syntax.pretty_typ;
 val pprint_term = pprint Syntax.pretty_term;
