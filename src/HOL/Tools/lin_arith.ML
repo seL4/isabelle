@@ -140,7 +140,7 @@ val fast_arith_neq_limit = fast_arith_neq_limit;
 (* Decomposition of terms *)
 
 (*internal representation of linear (in-)equations*)
-type decompT =
+type decomp =
   ((term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool);
 
 fun nT (Type ("fun", [N, _])) = (N = HOLogic.natT)
@@ -272,7 +272,7 @@ fun allows_lin_arith sg (discrete : string list) (U as Type (D, [])) : bool * bo
   | allows_lin_arith sg discrete U =
   (of_lin_arith_sort sg U, false);
 
-fun decomp_typecheck (thy, discrete, inj_consts) (T : typ, xxx) : decompT option =
+fun decomp_typecheck (thy, discrete, inj_consts) (T : typ, xxx) : decomp option =
   case T of
     Type ("fun", [U, _]) =>
       (case allows_lin_arith thy discrete U of
@@ -288,7 +288,7 @@ fun negate (SOME (x, i, rel, y, j, d)) = SOME (x, i, "~" ^ rel, y, j, d)
   | negate NONE                        = NONE;
 
 fun decomp_negation data
-  ((Const ("Trueprop", _)) $ (Const (rel, T) $ lhs $ rhs)) : decompT option =
+  ((Const ("Trueprop", _)) $ (Const (rel, T) $ lhs $ rhs)) : decomp option =
       decomp_typecheck data (T, (rel, lhs, rhs))
   | decomp_negation data ((Const ("Trueprop", _)) $
   (Const ("Not", _) $ (Const (rel, T) $ lhs $ rhs))) =
@@ -296,7 +296,7 @@ fun decomp_negation data
   | decomp_negation data _ =
       NONE;
 
-fun decomp ctxt : term -> decompT option =
+fun decomp ctxt : term -> decomp option =
   let
     val thy = ProofContext.theory_of ctxt
     val {discrete, inj_consts, ...} = get_arith_data ctxt
