@@ -26,6 +26,8 @@ begin
 
 subsection {* Syntax and axiomatic basis *}
 
+setup PureThy.old_appl_syntax_setup
+
 global
 
 classes "term"

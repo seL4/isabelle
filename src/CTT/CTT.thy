@@ -11,6 +11,8 @@ imports Pure
 uses "~~/src/Provers/typedsimp.ML" ("rew.ML")
 begin
 
+setup PureThy.old_appl_syntax_setup
+
 typedecl i
 typedecl t
 typedecl o

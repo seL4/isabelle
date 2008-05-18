@@ -11,6 +11,8 @@ imports Pure
 uses ("hypsubst.ML") ("intprover.ML")
 begin
 
+setup PureThy.old_appl_syntax_setup
+
 global
 
 classes "term"
