@@ -386,14 +386,14 @@ fun eval thy t code vs_ty_t deps =
     val type_frees = Term.map_aterms
       (fn (t as Term.Free (s, _)) => the_default t (type_free s) | t => t);
     fun type_infer t = [(t, ty)]
-      |> TypeInfer.infer_types (Sign.pp thy) (Sign.tsig_of thy) I
+      |> TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
            (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE)
            Name.context 0 NONE
       |> fst |> the_single |> fst;
     fun check_tvars t = if null (Term.term_tvars t) then t else
       error ("Illegal schematic type variables in normalized term: "
-        ^ setmp show_types true (Sign.string_of_term thy) t);
-    val string_of_term = setmp show_types true (Sign.string_of_term thy);
+        ^ setmp show_types true (Syntax.string_of_term_global thy) t);
+    val string_of_term = setmp show_types true (Syntax.string_of_term_global thy);
   in
     compile_eval thy code vs_ty_t deps
     |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
@@ -447,9 +447,10 @@ fun norm_print_term ctxt modes t =
     val thy = ProofContext.theory_of ctxt;
     val t' = norm_term thy t;
     val ty' = Term.type_of t';
+    val ctxt' = Variable.auto_fixes t ctxt;
     val p = PrintMode.with_modes modes (fn () =>
-      Pretty.block [Pretty.quote (Syntax.pretty_term ctxt t'), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt ty')]) ();
+      Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
   in Pretty.writeln p end;
 
 
