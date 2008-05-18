@@ -49,19 +49,9 @@ val shell_path = enclose "'" "'" o Path.implode o Path.expand;
 val cd = cd o platform_path;
 val pwd = Path.explode o pwd;
 
-(* FIXME not thread-safe! *)
-fun norm_absolute p =
-  let
-    val p' = pwd ();
-    fun norm p = if can cd p then pwd ()
-      else Path.append (norm (Path.dir p)) (Path.base p);
-    val p'' = norm p;
-  in (cd p'; p'') end;
-
 fun full_path path =
-  (if Path.is_absolute path then path
-   else Path.append (pwd ()) path)
-  |> norm_absolute;
+  if Path.is_absolute path then path
+  else Path.append (pwd ()) path;
 
 
 (* tmp_path *)
@@ -86,18 +76,20 @@ datatype ident = Ident of string;
 fun rep_ident (Ident s) = s;
 
 fun ident path =
-  (case try OS.FileSys.modTime (platform_path path) of
-    NONE => NONE
-  | SOME time => SOME (Ident
-      (case getenv "ISABELLE_FILE_IDENT" of
-        "" => Path.implode (full_path path) ^ ": " ^ Time.toString time
-      | cmd =>
-         let
-           val (id, rc) = system_out ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ shell_path path)
-         in
-           if id <> "" andalso rc = 0 then id
-           else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)
-         end)));
+  let val p = platform_path path in
+    (case try OS.FileSys.modTime p of
+      NONE => NONE
+    | SOME time => SOME (Ident
+        (case getenv "ISABELLE_FILE_IDENT" of
+          "" => OS.FileSys.fullPath p ^ ": " ^ Time.toString time
+        | cmd =>
+           let
+             val (id, rc) = system_out ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ shell_path path)
+           in
+             if id <> "" andalso rc = 0 then id
+             else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)
+           end)))
+  end;
 
 val exists = can OS.FileSys.modTime o platform_path;
 
