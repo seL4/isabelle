@@ -95,9 +95,6 @@ fun varifyT midx =
   let fun varify (a, S) = TVar ((a, midx + 1), S);
   in map_type_tfree varify end;
 
-fun the_plist (SOME (a,b)) = [a,b]
-  | the_plist NONE = raise Option;
-
 fun domain_type' T =
     domain_type T handle Match => T;
 
@@ -113,7 +110,7 @@ fun trace_thms str thms =
     (tracing str; map (trace_thm "") thms);
 
 fun trace_term str t =
-    tracing (str ^ Sign.string_of_term CPure.thy t);
+    tracing (str ^ Syntax.string_of_term_global CPure.thy t);
 
 (* timing *)
 
@@ -309,7 +306,7 @@ structure RecordsData = TheoryDataFun
 fun print_records thy =
   let
     val {records = recs, ...} = RecordsData.get thy;
-    val prt_typ = Sign.pretty_typ thy;
+    val prt_typ = Syntax.pretty_typ_global thy;
 
     fun pretty_parent NONE = []
       | pretty_parent (SOME (Ts, name)) =
