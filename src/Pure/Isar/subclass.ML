@@ -28,8 +28,8 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val sup_params = map fst (Class.these_params thy [sup]);
     val err_params = subtract (op =) sub_params sup_params;
     val _ = if null err_params then [] else
-      error ("Class " ^ Sign.string_of_sort thy [sub] ^ " lacks parameter(s) " ^
-        commas_quote err_params ^ " of " ^ Sign.string_of_sort thy [sup]);
+      error ("Class " ^ Syntax.string_of_sort lthy [sub] ^ " lacks parameter(s) " ^
+        commas_quote err_params ^ " of " ^ Syntax.string_of_sort lthy [sup]);
     val sublocale_prop =
       Locale.global_asms_of thy sup
       |> maps snd
