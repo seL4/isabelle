@@ -76,7 +76,10 @@ PureThy.add_thms_dynamic.
 clasimpset.  Potential INCOMPATIBILITY, really need to observe linear
 update of theories within ML code.
 
-* Eliminated theory ProtoPure.  Potential INCOMPATIBILITY.
+* Eliminated theory ProtoPure and CPure, leaving just one Pure theory.
+INCOMPATIBILITY, object-logics depending on former Pure require
+additional setup PureThy.old_appl_syntax_setup; object-logics
+depending on former CPure need to refer to Pure.
 
 * Commands 'use' and 'ML' are now purely functional, operating on
 theory/local_theory.  Removed former 'ML_setup' (on theory), use 'ML'
