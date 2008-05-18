@@ -273,8 +273,6 @@ fun mk_set T [] = Const ("{}", HOLogic.mk_setT T)
 fun dest_set (Const ("{}", _)) = []
   | dest_set (Const ("insert", _) $ x $ xs) = x :: dest_set xs
 
-fun pr_matrix ctxt = map_matrix (fn Graph (G, _) => Syntax.string_of_term ctxt G | _ => "X")
-
 val in_graph_tac =
     simp_tac (HOL_basic_ss addsimps has_edge_simps) 1
     THEN SIMPSET (fn x => simp_tac x 1) (* FIXME reduce simpset *)
@@ -329,7 +327,7 @@ fun mk_call_graph ctxt (st : thm) =
 
 
       val s = fold_index (fn (i, cs) => fold_index (fn (j, Graph (G, _)) => prefix ("(" ^ string_of_int i ^ "," ^ string_of_int j ^ "): " ^
-                                                                            pr_graph ctxt G ^ ",\n")
+                                                                            Syntax.string_of_term ctxt G ^ ",\n")
                                                      | _ => I) cs) parts ""
       val _ = warning s
 
