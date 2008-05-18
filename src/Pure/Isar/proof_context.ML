@@ -657,7 +657,7 @@ fun unparse_term ctxt t =
     |> Sign.extern_term (Consts.extern_early consts) thy
     |> LocalSyntax.extern_term syntax
     |> Syntax.standard_unparse_term (Consts.extern consts) ctxt (LocalSyntax.syn_of syntax)
-        (Context.exists_name Context.CPureN thy)
+        (not (PureThy.old_appl_syntax thy))
   end;
 
 in
