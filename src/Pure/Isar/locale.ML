@@ -683,7 +683,7 @@ fun unify_parms ctxt fixed_parms raw_parmss =
         let
           val T' = Envir.norm_type (fst envir) T;
           val U' = Envir.norm_type (fst envir) U;
-          val prt = Sign.string_of_typ thy;
+          val prt = Syntax.string_of_typ ctxt;
         in
           raise TYPE ("unify_parms: failed to unify types " ^
             prt U' ^ " and " ^ prt T', [U', T'], [])
