@@ -23,16 +23,40 @@ sig
   include SYN_TRANS1
   include MIXFIX1
   include PRINTER0
-  datatype 'a trrule =
-    ParseRule of 'a * 'a |
-    PrintRule of 'a * 'a |
-    ParsePrintRule of 'a * 'a
   type syntax
   val eq_syntax: syntax * syntax -> bool
   val is_keyword: syntax -> string -> bool
   type mode
   val mode_default: mode
   val mode_input: mode
+  val merge_syntaxes: syntax -> syntax -> syntax
+  val basic_syn: syntax
+  val basic_nonterms: string list
+  val print_gram: syntax -> unit
+  val print_trans: syntax -> unit
+  val print_syntax: syntax -> unit
+  val guess_infix: syntax -> string -> mixfix option
+  val ambiguity_is_error: bool ref
+  val ambiguity_level: int ref
+  val ambiguity_limit: int ref
+  val read: Proof.context -> (string -> bool) -> syntax -> typ -> string -> term list
+  val standard_parse_term: Pretty.pp -> (term -> string option) ->
+    (((string * int) * sort) list -> string * int -> Term.sort) ->
+    (string -> string option) -> (string -> string option) ->
+    (typ -> typ) -> (sort -> sort) -> Proof.context ->
+    (string -> bool) -> syntax -> typ -> string -> term
+  val standard_parse_typ: Proof.context -> syntax ->
+    ((indexname * sort) list -> indexname -> sort) -> (sort -> sort) -> string -> typ
+  val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
+  datatype 'a trrule =
+    ParseRule of 'a * 'a |
+    PrintRule of 'a * 'a |
+    ParsePrintRule of 'a * 'a
+  val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
+  val standard_unparse_term: (string -> xstring) ->
+    Proof.context -> syntax -> bool -> term -> Pretty.T
+  val standard_unparse_typ: Proof.context -> syntax -> typ -> Pretty.T
+  val standard_unparse_sort: Proof.context -> syntax -> sort -> Pretty.T
   val update_type_gram: (string * int * mixfix) list -> syntax -> syntax
   val update_consts: string list -> syntax -> syntax
   val update_trfuns:
@@ -57,29 +81,6 @@ sig
     (string * string) trrule list -> syntax -> syntax
   val update_trrules_i: ast trrule list -> syntax -> syntax
   val remove_trrules_i: ast trrule list -> syntax -> syntax
-  val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
-  val merge_syntaxes: syntax -> syntax -> syntax
-  val basic_syn: syntax
-  val basic_nonterms: string list
-  val print_gram: syntax -> unit
-  val print_trans: syntax -> unit
-  val print_syntax: syntax -> unit
-  val read: Proof.context -> (string -> bool) -> syntax -> typ -> string -> term list
-  val standard_parse_term: Pretty.pp -> (term -> string option) ->
-    (((string * int) * sort) list -> string * int -> Term.sort) ->
-    (string -> string option) -> (string -> string option) ->
-    (typ -> typ) -> (sort -> sort) -> Proof.context ->
-    (string -> bool) -> syntax -> typ -> string -> term
-  val standard_parse_typ: Proof.context -> syntax ->
-    ((indexname * sort) list -> indexname -> sort) -> (sort -> sort) -> string -> typ
-  val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
-  val standard_unparse_term: (string -> xstring) ->
-    Proof.context -> syntax -> bool -> term -> Pretty.T
-  val standard_unparse_typ: Proof.context -> syntax -> typ -> Pretty.T
-  val standard_unparse_sort: Proof.context -> syntax -> sort -> Pretty.T
-  val ambiguity_is_error: bool ref
-  val ambiguity_level: int ref
-  val ambiguity_limit: int ref
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
@@ -142,8 +143,17 @@ sig
   val string_of_sort: Proof.context -> sort -> string
   val string_of_classrel: Proof.context -> class list -> string
   val string_of_arity: Proof.context -> arity -> string
-  val guess_infix: syntax -> string -> mixfix option
+  val is_pretty_global: Proof.context -> bool
+  val set_pretty_global: bool -> Proof.context -> Proof.context
+  val init_pretty_global: theory -> Proof.context
+  val pretty_term_global: theory -> term -> Pretty.T
+  val pretty_typ_global: theory -> typ -> Pretty.T
+  val pretty_sort_global: theory -> sort -> Pretty.T
+  val string_of_term_global: theory -> term -> string
+  val string_of_typ_global: theory -> typ -> string
+  val string_of_sort_global: theory -> sort -> string
   val pp: Proof.context -> Pretty.pp
+  val pp_global: theory -> Pretty.pp
 end;
 
 structure Syntax: SYNTAX =
@@ -428,6 +438,17 @@ fun print_trans syn = Pretty.writeln (Pretty.chunks (pretty_trans syn));
 fun print_syntax syn = Pretty.writeln (Pretty.chunks (pretty_gram syn @ pretty_trans syn));
 
 end;
+
+
+(* reconstructing infixes -- educated guessing *)
+
+fun guess_infix (Syntax ({gram, ...}, _)) c =
+  (case Parser.guess_infix_lr gram c of
+    SOME (s, l, r, j) => SOME
+     (if l then Mixfix.InfixlName (s, j)
+      else if r then Mixfix.InfixrName (s, j)
+      else Mixfix.InfixName (s, j))
+  | NONE => NONE);
 
 
 
@@ -815,19 +836,37 @@ val read_prop_global = read_prop o ProofContext.init;
 
 (* pretty = uncheck + unparse *)
 
+fun pretty_term ctxt = singleton (uncheck_terms ctxt) #> unparse_term ctxt;
+fun pretty_typ ctxt = singleton (uncheck_typs ctxt) #> unparse_typ ctxt;
 fun pretty_sort ctxt = uncheck_sort ctxt #> unparse_sort ctxt;
 fun pretty_classrel ctxt = uncheck_classrel ctxt #> unparse_classrel ctxt;
 fun pretty_arity ctxt = uncheck_arity ctxt #> unparse_arity ctxt;
-fun pretty_typ ctxt = singleton (uncheck_typs ctxt) #> unparse_typ ctxt;
-fun pretty_term ctxt = singleton (uncheck_terms ctxt) #> unparse_term ctxt;
 
+val string_of_term = Pretty.string_of oo pretty_term;
+val string_of_typ = Pretty.string_of oo pretty_typ;
 val string_of_sort = Pretty.string_of oo pretty_sort;
 val string_of_classrel = Pretty.string_of oo pretty_classrel;
 val string_of_arity = Pretty.string_of oo pretty_arity;
-val string_of_typ = Pretty.string_of oo pretty_typ;
-val string_of_term = Pretty.string_of oo pretty_term;
 
-(*pp operations -- deferred evaluation*)
+
+(* global pretty printing *)
+
+structure PrettyGlobal = ProofDataFun(type T = bool fun init _ = false);
+val is_pretty_global = PrettyGlobal.get;
+val set_pretty_global = PrettyGlobal.put;
+val init_pretty_global = set_pretty_global true o ProofContext.init;
+
+val pretty_term_global = pretty_term o init_pretty_global;
+val pretty_typ_global = pretty_typ o init_pretty_global;
+val pretty_sort_global = pretty_sort o init_pretty_global;
+
+val string_of_term_global = string_of_term o init_pretty_global;
+val string_of_typ_global = string_of_typ o init_pretty_global;
+val string_of_sort_global = string_of_sort o init_pretty_global;
+
+
+(* pp operations -- deferred evaluation *)
+
 fun pp ctxt = Pretty.pp
  (fn x => pretty_term ctxt x,
   fn x => pretty_typ ctxt x,
@@ -835,14 +874,13 @@ fun pp ctxt = Pretty.pp
   fn x => pretty_classrel ctxt x,
   fn x => pretty_arity ctxt x);
 
-(*educated guess for reconstructing infixes*)
-fun guess_infix (Syntax ({gram, ...}, _)) c =
-  (case Parser.guess_infix_lr gram c of
-    SOME (s, l, r, j) => SOME
-     (if l then Mixfix.InfixlName (s, j)
-      else if r then Mixfix.InfixrName (s, j)
-      else Mixfix.InfixName (s, j))
-  | NONE => NONE);
+fun pp_global thy = Pretty.pp
+ (fn x => pretty_term_global thy x,
+  fn x => pretty_typ_global thy x,
+  fn x => pretty_sort_global thy x,
+  fn x => pretty_classrel (init_pretty_global thy) x,
+  fn x => pretty_arity (init_pretty_global thy) x);
+
 
 (*export parts of internal Syntax structures*)
 open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
