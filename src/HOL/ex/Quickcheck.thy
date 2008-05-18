@@ -291,91 +291,91 @@ code_module (test) QuickcheckExample
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
   @{term "\<lambda>(n::nat) (m::nat) (q::nat). n = m + q + 1"} [@{typ nat}, @{typ nat}, @{typ nat}] *}
 
-ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 25 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 25 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
   @{term "\<lambda>(n::int) (m::int) (q::int). n = m + q + 1"} [@{typ int}, @{typ int}, @{typ int}] *}
 
-ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 25 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 3 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 25 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 3 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
   @{term "\<lambda>(xs\<Colon>int list) ys. rev (xs @ ys) = rev xs @ rev ys"}
   [@{typ "int list"}, @{typ "int list"}] *}
 
-ML {* f 15 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 25 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 88 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 15 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 25 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 88 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
-ML {* f 1 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 2 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 3 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 5 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 6 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 10 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 10 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 3 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 6 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
   @{term "\<lambda>(s \<Colon> string). s \<noteq> rev s"} [@{typ string}] *}
 
-ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 4 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 10 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 10 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 10 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 10 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 10 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 8 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
   @{term "\<lambda>f k. int (f k) = k"} [@{typ "int \<Rightarrow> nat"}, @{typ int}] *}
 
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
-ML {* f 20 |> (Option.map o map) (Sign.string_of_term @{theory}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
 end
