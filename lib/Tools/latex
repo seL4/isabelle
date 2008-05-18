@@ -111,7 +111,7 @@ case "$OUTFORMAT" in
   ps)
     check_root && \
     run_latex && \
-    run_dvips &&
+    run_dvips
     RC="$?"
     ;;
   ps.gz)
