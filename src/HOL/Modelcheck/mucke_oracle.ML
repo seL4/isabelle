@@ -487,7 +487,7 @@ end;
 fun string_of_terms sign terms =
 let fun make_string sign [] = "" |
  	make_string sign (trm::list) =
-           Sign.string_of_term sign trm ^ "\n" ^ make_string sign list
+           Syntax.string_of_term_global sign trm ^ "\n" ^ make_string sign list
 in
   PrintMode.setmp ["Mucke"] (make_string sign) terms
 end;
@@ -689,7 +689,7 @@ let
  rc_in_term sg tl  _ l x 0 = rc_in_termlist sg tl l x |
  rc_in_term sg tl (a $ b) l x n = rc_in_term sg tl a (b::l) x (n-1) |
  rc_in_term sg _ trm _ _ n =
- error("malformed term for case-replacement: " ^ (Sign.string_of_term sg trm));
+ error("malformed term for case-replacement: " ^ (Syntax.string_of_term_global sg trm));
  val (bv,n) = check_case sg tl (a $ b);
 in
  if (bv) then 
@@ -992,7 +992,7 @@ let
 fun analyze_types sg [] = [] |
 analyze_types sg [Type(a,[])] =
 (let
- val s = (Sign.string_of_typ sg (Type(a,[])))
+ val s = (Syntax.string_of_typ_global sg (Type(a,[])))
 in
  (if (s="bool") then ([]) else ([Type(a,[])]))
 end) |

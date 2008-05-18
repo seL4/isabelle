@@ -24,7 +24,7 @@ val dest_eqn = FOLogic.dest_eq o FOLogic.dest_Trueprop;
 fun primrec_err s = error ("Primrec definition error:\n" ^ s);
 
 fun primrec_eq_err sign s eq =
-  primrec_err (s ^ "\nin equation\n" ^ Sign.string_of_term sign eq);
+  primrec_err (s ^ "\nin equation\n" ^ Syntax.string_of_term_global sign eq);
 
 
 (* preprocessing of equations *)
@@ -125,8 +125,8 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
       in
           if !Ind_Syntax.trace then
               writeln ("recursor_rhs = " ^
-                       Sign.string_of_term thy recursor_rhs ^
-                       "\nabs = " ^ Sign.string_of_term thy abs)
+                       Syntax.string_of_term_global thy recursor_rhs ^
+                       "\nabs = " ^ Syntax.string_of_term_global thy abs)
           else();
           if Logic.occs (fconst, abs) then
               primrec_eq_err thy
@@ -152,7 +152,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
   in
       if !Ind_Syntax.trace then
             writeln ("primrec def:\n" ^
-                     Sign.string_of_term thy def_tm)
+                     Syntax.string_of_term_global thy def_tm)
       else();
       (Sign.base_name fname ^ "_" ^ Sign.base_name big_rec_name ^ "_def",
        def_tm)

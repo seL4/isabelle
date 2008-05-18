@@ -171,7 +171,7 @@ fun proof_of_term thy tab ty =
       | prf_of [] (Const ("Appt", _) $ prf $ t) = prf_of [] prf %
           (case t of Const ("dummy_pattern", _) => NONE | _ => SOME (mk_term t))
       | prf_of _ t = error ("Not a proof term:\n" ^
-          Sign.string_of_term thy t)
+          Syntax.string_of_term_global thy t)
 
   in prf_of [] end;
 
@@ -268,7 +268,7 @@ fun proof_of full thm =
   in if full then Reconstruct.reconstruct_proof thy prop prf' else prf' end;
 
 fun pretty_proof thy prf =
-  Sign.pretty_term (proof_syntax prf thy) (term_of_proof prf);
+  Syntax.pretty_term_global (proof_syntax prf thy) (term_of_proof prf);
 
 fun pretty_proof_of full thm =
   pretty_proof (Thm.theory_of_thm thm) (proof_of full thm);

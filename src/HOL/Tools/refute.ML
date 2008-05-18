@@ -219,7 +219,7 @@ struct
     case get_first (fn (_, f) => f thy model args t)
       (#interpreters (RefuteData.get thy)) of
       NONE   => raise REFUTE ("interpret",
-        "no interpreter for term " ^ quote (Sign.string_of_term thy t))
+        "no interpreter for term " ^ quote (Syntax.string_of_term_global thy t))
     | SOME x => x;
 
 (* ------------------------------------------------------------------------- *)
@@ -234,7 +234,7 @@ struct
     case get_first (fn (_, f) => f thy model T intr assignment)
       (#printers (RefuteData.get thy)) of
       NONE   => raise REFUTE ("print",
-        "no printer for type " ^ quote (Sign.string_of_typ thy T))
+        "no printer for type " ^ quote (Syntax.string_of_typ_global thy T))
     | SOME x => x;
 
 (* ------------------------------------------------------------------------- *)
@@ -253,7 +253,7 @@ struct
         "empty universe (no type variables in term)\n"
       else
         "Size of types: " ^ commas (map (fn (T, i) =>
-          Sign.string_of_typ thy T ^ ": " ^ string_of_int i) typs) ^ "\n"
+          Syntax.string_of_typ_global thy T ^ ": " ^ string_of_int i) typs) ^ "\n"
     val show_consts_msg =
       if not (!show_consts) andalso Library.exists (is_Const o fst) terms then
         "set \"show_consts\" to show the interpretation of constants\n"
@@ -266,8 +266,8 @@ struct
         cat_lines (List.mapPartial (fn (t, intr) =>
           (* print constants only if 'show_consts' is true *)
           if (!show_consts) orelse not (is_Const t) then
-            SOME (Sign.string_of_term thy t ^ ": " ^
-              Sign.string_of_term thy
+            SOME (Syntax.string_of_term_global thy t ^ ": " ^
+              Syntax.string_of_term_global thy
                 (print thy model (Term.type_of t) intr assignment))
           else
             NONE) terms) ^ "\n"
@@ -456,7 +456,7 @@ struct
           (* schematic type variable not instantiated *)
           raise REFUTE ("monomorphic_term",
             "no substitution for type variable " ^ fst (fst v) ^
-            " in term " ^ Sign.string_of_term CPure.thy t)
+            " in term " ^ Syntax.string_of_term_global CPure.thy t)
         | SOME typ =>
           typ)) t;
 
@@ -787,7 +787,7 @@ struct
           TFree (_, sort) => sort
         | TVar (_, sort)  => sort
         | _               => raise REFUTE ("collect_axioms", "type " ^
-          Sign.string_of_typ thy T ^ " is not a variable"))
+          Syntax.string_of_typ_global thy T ^ " is not a variable"))
       (* obtain axioms for all superclasses *)
       val superclasses = sort @ (maps (Sign.super_classes thy) sort)
       (* merely an optimization, because 'collect_this_axiom' disallows *)
@@ -807,7 +807,7 @@ struct
           (axname, monomorphic_term (Vartab.make [(idx, (S, T))]) ax)
         | _ =>
           raise REFUTE ("collect_axioms", "class axiom " ^ axname ^ " (" ^
-            Sign.string_of_term thy ax ^
+            Syntax.string_of_term_global thy ax ^
             ") contains more than one type variable")))
         class_axioms
     in
@@ -912,7 +912,7 @@ struct
               val ax_in   = SOME (specialize_type thy (s, T) inclass)
                 (* type match may fail due to sort constraints *)
                 handle Type.TYPE_MATCH => NONE
-              val ax_1 = Option.map (fn ax => (Sign.string_of_term thy ax, ax))
+              val ax_1 = Option.map (fn ax => (Syntax.string_of_term_global thy ax, ax))
                 ax_in
               val ax_2 = Option.map (apsnd (specialize_type thy (s, T)))
                 (get_classdef thy class)
@@ -975,7 +975,7 @@ struct
             val _ = if Library.exists (fn d =>
               case d of DatatypeAux.DtTFree _ => false | _ => true) typs then
               raise REFUTE ("ground_types", "datatype argument (for type "
-                ^ Sign.string_of_typ thy T ^ ") is not a variable")
+                ^ Syntax.string_of_typ_global thy T ^ ") is not a variable")
             else ()
             (* required for mutually recursive datatypes; those need to   *)
             (* be added even if they are an instance of an otherwise non- *)
@@ -1160,14 +1160,14 @@ struct
     fun wrapper () =
     let
       val u      = unfold_defs thy t
-      val _      = writeln ("Unfolded term: " ^ Sign.string_of_term thy u)
+      val _      = writeln ("Unfolded term: " ^ Syntax.string_of_term_global thy u)
       val axioms = collect_axioms thy u
       (* Term.typ list *)
       val types = Library.foldl (fn (acc, t') =>
         acc union (ground_types thy t')) ([], u :: axioms)
       val _     = writeln ("Ground types: "
         ^ (if null types then "none."
-           else commas (map (Sign.string_of_typ thy) types)))
+           else commas (map (Syntax.string_of_typ_global thy) types)))
       (* we can only consider fragments of recursive IDTs, so we issue a  *)
       (* warning if the formula contains a recursive IDT                  *)
       (* TODO: no warning needed for /positive/ occurrences of IDTs       *)
@@ -1256,7 +1256,7 @@ struct
       (* enter loop with or without time limit *)
       writeln ("Trying to find a model that "
         ^ (if negate then "refutes" else "satisfies") ^ ": "
-        ^ Sign.string_of_term thy t);
+        ^ Syntax.string_of_term_global thy t);
       if maxtime>0 then (
         TimeLimit.timeLimit (Time.fromSeconds maxtime)
           wrapper ()
@@ -2041,7 +2041,7 @@ struct
                 then
                   raise REFUTE ("IDT_interpreter",
                     "datatype argument (for type "
-                    ^ Sign.string_of_typ thy (Type (s, Ts))
+                    ^ Syntax.string_of_typ_global thy (Type (s, Ts))
                     ^ ") is not a variable")
                 else ()
               (* if the model specifies a depth for the current type, *)
@@ -2165,7 +2165,7 @@ struct
                 then
                   raise REFUTE ("IDT_constructor_interpreter",
                     "datatype argument (for type "
-                    ^ Sign.string_of_typ thy T
+                    ^ Syntax.string_of_typ_global thy T
                     ^ ") is not a variable")
                 else ()
               (* decrement depth for the IDT 'T' *)
@@ -2225,7 +2225,7 @@ struct
                 then
                   raise REFUTE ("IDT_constructor_interpreter",
                     "datatype argument (for type "
-                    ^ Sign.string_of_typ thy (Type (s', Ts'))
+                    ^ Syntax.string_of_typ_global thy (Type (s', Ts'))
                     ^ ") is not a variable")
                 else ()
               (* split the constructors into those occuring before/after *)
@@ -3282,7 +3282,7 @@ struct
               case d of DatatypeAux.DtTFree _ => false | _ => true) dtyps
             then
               raise REFUTE ("IDT_printer", "datatype argument (for type " ^
-                Sign.string_of_typ thy (Type (s, Ts)) ^ ") is not a variable")
+                Syntax.string_of_typ_global thy (Type (s, Ts)) ^ ") is not a variable")
             else ()
           (* the index of the element in the datatype *)
           val element = (case intr of

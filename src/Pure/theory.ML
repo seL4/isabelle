@@ -162,7 +162,7 @@ fun at_end f = map_wrappers (apsnd (cons (f, stamp ())));
 
 fun begin_theory name imports =
   let
-    val thy = Context.begin_thy Sign.pp name imports;
+    val thy = Context.begin_thy Syntax.pp_global name imports;
     val wrappers = begin_wrappers thy;
   in thy |> Sign.local_path |> apply_wrappers wrappers end;
 
@@ -185,7 +185,7 @@ fun cert_axm thy (name, raw_tm) =
         | TERM (msg, _) => error msg;
   in
     Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
-    (name, Sign.no_vars (Sign.pp thy) t)
+    (name, Sign.no_vars (Syntax.pp_global thy) t)
   end;
 
 fun read_axm thy (name, str) =
@@ -219,7 +219,7 @@ end;
 
 fun dependencies thy unchecked is_def name lhs rhs =
   let
-    val pp = Sign.pp thy;
+    val pp = Syntax.pp_global thy;
     val consts = Sign.consts_of thy;
     fun prep const =
       let val Const (c, T) = Sign.no_vars pp (Const const)
@@ -256,7 +256,7 @@ fun check_overloading thy overloaded (c, T) =
 
     fun message txt =
       [Pretty.block [Pretty.str "Specification of constant ",
-        Pretty.str c, Pretty.str " ::", Pretty.brk 1, Pretty.quote (Sign.pretty_typ thy T)],
+        Pretty.str c, Pretty.str " ::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ_global thy T)],
         Pretty.str txt] |> Pretty.chunks |> Pretty.string_of;
   in
     if Sign.typ_instance thy (declT, T') then ()
@@ -281,7 +281,7 @@ fun check_def thy unchecked overloaded (bname, tm) defs =
   in defs |> dependencies thy unchecked true name lhs_const rhs_consts end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
-    Pretty.fbrk, Pretty.quote (Sign.pretty_term thy tm)]));
+    Pretty.fbrk, Pretty.quote (Syntax.pretty_term_global thy tm)]));
 
 
 (* add_defs(_i) *)

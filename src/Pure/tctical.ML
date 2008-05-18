@@ -488,7 +488,7 @@ local
 
 fun print_vars_terms thy (n,thm) =
   let
-    fun typed ty = " has type: " ^ Sign.string_of_typ thy ty;
+    fun typed ty = " has type: " ^ Syntax.string_of_typ_global thy ty;
     fun find_vars thy (Const (c, ty)) =
         (case Term.typ_tvars ty
          of [] => I

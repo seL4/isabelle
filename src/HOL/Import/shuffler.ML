@@ -48,11 +48,11 @@ fun print_sign_exn_unit sign e =
           List.app (writeln o Context.str_of_thy) thys)
    | TERM (msg,ts) =>
          (writeln ("Exception TERM raised:\n" ^ msg);
-          List.app (writeln o Sign.string_of_term sign) ts)
+          List.app (writeln o Syntax.string_of_term_global sign) ts)
    | TYPE (msg,Ts,ts) =>
          (writeln ("Exception TYPE raised:\n" ^ msg);
-          List.app (writeln o Sign.string_of_typ sign) Ts;
-          List.app (writeln o Sign.string_of_term sign) ts)
+          List.app (writeln o Syntax.string_of_typ_global sign) Ts;
+          List.app (writeln o Syntax.string_of_term_global sign) ts)
    | e => raise e
 
 (*Prints an exception, then fails*)

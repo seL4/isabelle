@@ -32,7 +32,7 @@ val def_fix_ind = @{thm def_fix_ind};
 
 fun fixrec_err s = error ("fixrec definition error:\n" ^ s);
 fun fixrec_eq_err thy s eq =
-  fixrec_err (s ^ "\nin\n" ^ quote (Sign.string_of_term thy eq));
+  fixrec_err (s ^ "\nin\n" ^ quote (Syntax.string_of_term_global thy eq));
 
 (* ->> is taken from holcf_logic.ML *)
 (* TODO: fix dependencies so we can import HOLCFLogic here *)

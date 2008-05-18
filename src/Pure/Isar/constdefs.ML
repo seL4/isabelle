@@ -25,7 +25,7 @@ struct
 fun gen_constdef prep_vars prep_prop prep_att
     structs (raw_decl, ((raw_name, raw_atts), raw_prop)) thy =
   let
-    fun err msg ts = error (cat_lines (msg :: map (Sign.string_of_term thy) ts));
+    fun err msg ts = error (cat_lines (msg :: map (Syntax.string_of_term_global thy) ts));
 
     val thy_ctxt = ProofContext.init thy;
     val struct_ctxt = #2 (ProofContext.add_fixes_i structs thy_ctxt);

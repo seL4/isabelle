@@ -223,8 +223,9 @@ fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
     val name = the_default (#1 typ) opt_name;
     val (set, goal, _, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
-    val non_empty = Goal.prove_global thy [] [] goal (K tac) handle ERROR msg =>
-      cat_error msg ("Failed to prove non-emptiness of " ^ quote (Sign.string_of_term thy set));
+    val non_empty = Goal.prove_global thy [] [] goal (K tac)
+      handle ERROR msg => cat_error msg
+        ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set));
   in typedef_result non_empty thy end;
 
 in

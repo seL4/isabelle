@@ -62,7 +62,7 @@ fun warning_thm f thm = SOME (f thm) handle BAD_THM msg
   => (warning ("code generator: " ^ msg); NONE);
 fun try_thm f thm = SOME (f thm) handle BAD_THM _ => NONE;
 
-fun string_of_typ thy = setmp show_sorts true (Sign.string_of_typ thy);
+fun string_of_typ thy = setmp show_sorts true (Syntax.string_of_typ_global thy);
 fun string_of_const thy c = case AxClass.inst_of_param thy c
  of SOME (c, tyco) => Sign.extern_const thy c ^ " " ^ enclose "[" "]" (Sign.extern_type thy tyco)
   | NONE => Sign.extern_const thy c;
@@ -269,7 +269,7 @@ val triv_classes = snd o ConstAlias.get;
 
 fun check_bare_const thy t = case try dest_Const t
  of SOME c_ty => c_ty
-  | NONE => error ("Not a constant: " ^ Sign.string_of_term thy t);
+  | NONE => error ("Not a constant: " ^ Syntax.string_of_term_global thy t);
 
 fun check_const thy = subst_alias thy o AxClass.unoverload_const thy o apfst (subst_alias thy)
   o check_bare_const thy;

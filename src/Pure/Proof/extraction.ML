@@ -278,7 +278,7 @@ fun etype_of thy vs Ts t =
   let
     val {typeof_eqns, ...} = ExtractionData.get thy;
     fun err () = error ("Unable to determine type of extracted program for\n" ^
-      Sign.string_of_term thy t)
+      Syntax.string_of_term_global thy t)
   in case strip_abs_body (freeze_thaw (condrew thy (#net typeof_eqns)
     [typeof_proc (Sign.defaultS thy) vs]) (list_abs (map (pair "x") (rev Ts),
       Const ("typeof", fastype_of1 (Ts, t) --> Type ("Type", [])) $ t))) of
@@ -582,7 +582,7 @@ fun extract thms thy =
             | SOME rs => (case find vs' rs of
                 SOME (_, prf') => (defs', prf_subst_TVars tye' prf')
               | NONE => error ("corr: no realizer for instance of theorem " ^
-                  quote name ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
+                  quote name ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                     (Reconstruct.prop_of (proof_combt (prf0, ts))))))
           end
 
@@ -596,7 +596,7 @@ fun extract thms thy =
             else case find vs' (Symtab.lookup_list realizers s) of
               SOME (_, prf) => (defs, prf_subst_TVars tye' prf)
             | NONE => error ("corr: no realizer for instance of axiom " ^
-                quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
+                quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                   (Reconstruct.prop_of (proof_combt (prf0, ts)))))
           end
 
@@ -691,7 +691,7 @@ fun extract thms thy =
             | SOME rs => (case find vs' rs of
                 SOME (t, _) => (defs, subst_TVars tye' t)
               | NONE => error ("extr: no realizer for instance of theorem " ^
-                  quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
+                  quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                     (Reconstruct.prop_of (proof_combt (prf0, ts))))))
           end
 
@@ -703,7 +703,7 @@ fun extract thms thy =
             case find vs' (Symtab.lookup_list realizers s) of
               SOME (t, _) => (defs, subst_TVars tye' t)
             | NONE => error ("extr: no realizer for instance of axiom " ^
-                quote s ^ ":\n" ^ Sign.string_of_term thy' (Envir.beta_norm
+                quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                   (Reconstruct.prop_of (proof_combt (prf0, ts)))))
           end
 

@@ -65,7 +65,7 @@ fun unifyT thy env T U =
     val (iTs', maxidx') = Sign.typ_unify thy (T, U) (iTs, maxidx)
   in Envir.Envir {asol=asol, iTs=iTs', maxidx=maxidx'} end
   handle Type.TUNIFY => error ("Non-unifiable types:\n" ^
-    Sign.string_of_typ thy T ^ "\n\n" ^ Sign.string_of_typ thy U);
+    Syntax.string_of_typ_global thy T ^ "\n\n" ^ Syntax.string_of_typ_global thy U);
 
 fun chaseT (env as Envir.Envir {iTs, ...}) (T as TVar ixnS) =
       (case Type.lookup iTs ixnS of NONE => T | SOME T' => chaseT env T')
@@ -107,7 +107,7 @@ fun infer_type thy (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
       handle Subscript => error ("infer_type: bad variable index " ^ string_of_int i));
 
 fun cantunify thy (t, u) = error ("Non-unifiable terms:\n" ^
-  Sign.string_of_term thy t ^ "\n\n" ^ Sign.string_of_term thy u);
+  Syntax.string_of_term_global thy t ^ "\n\n" ^ Syntax.string_of_term_global thy u);
 
 fun decompose thy Ts (env, p as (t, u)) =
   let fun rigrig (a, T) (b, U) uT ts us = if a <> b then cantunify thy p
@@ -264,7 +264,7 @@ fun solve _ [] bigenv = bigenv
       let
         fun search env [] = error ("Unsolvable constraints:\n" ^
               Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
-                Display.pretty_flexpair (Sign.pp thy) (pairself
+                Display.pretty_flexpair (Syntax.pp_global thy) (pairself
                   (Envir.norm_term bigenv) p)) cs)))
           | search env ((u, p as (t1, t2), vs)::ps) =
               if u then
@@ -367,7 +367,7 @@ fun expand_proof thy thms prf =
                 NONE =>
                   let
                     val _ = message ("Reconstructing proof of " ^ a);
-                    val _ = message (Sign.string_of_term thy prop);
+                    val _ = message (Syntax.string_of_term_global thy prop);
                     val prf' = forall_intr_vfs_prf prop
                       (reconstruct_proof thy prop cprf);
                     val (maxidx', prfs', prf) = expand

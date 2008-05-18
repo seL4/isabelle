@@ -125,7 +125,7 @@ fun eval_ml reff args thy code ((vs, ty), t) deps =
 fun eval evaluate term_of reff thy ct args =
   let
     val _ = if null (term_frees (term_of ct)) then () else error ("Term "
-      ^ quote (Sign.string_of_term thy (term_of ct))
+      ^ quote (Syntax.string_of_term_global thy (term_of ct))
       ^ " to be evaluated contains free variables");
   in evaluate thy (fn t => (t, eval_ml reff args thy)) ct end;
 

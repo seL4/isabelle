@@ -182,7 +182,7 @@ fun prepare_proof atomic rths chorn =
                 (string_of_int ngoals ^ " unsolved goals!")
             else if not (null hyps) then !result_error_fn state
                 ("Additional hypotheses:\n" ^
-                 cat_lines (map (Sign.string_of_term thy) hyps))
+                 cat_lines (map (Syntax.string_of_term_global thy) hyps))
             else if Pattern.matches thy
                                     (Envir.beta_norm (term_of chorn), Envir.beta_norm prop)
                  then final_th
@@ -207,11 +207,11 @@ fun print_sign_exn_unit thy e =
           List.app (writeln o Context.str_of_thy) thys)
    | TERM (msg,ts) =>
          (writeln ("Exception TERM raised:\n" ^ msg);
-          List.app (writeln o Sign.string_of_term thy) ts)
+          List.app (writeln o Syntax.string_of_term_global thy) ts)
    | TYPE (msg,Ts,ts) =>
          (writeln ("Exception TYPE raised:\n" ^ msg);
-          List.app (writeln o Sign.string_of_typ thy) Ts;
-          List.app (writeln o Sign.string_of_term thy) ts)
+          List.app (writeln o Syntax.string_of_typ_global thy) Ts;
+          List.app (writeln o Syntax.string_of_term_global thy) ts)
    | e => raise e;
 
 (*Prints an exception, then fails*)

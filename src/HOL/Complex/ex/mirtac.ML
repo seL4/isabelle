@@ -138,7 +138,7 @@ fun mir_tac ctxt q i =
 	     else mirlfr_oracle sg (Pattern.eta_long [] t1)
     in 
           (trace_msg ("calling procedure with term:\n" ^
-             Sign.string_of_term sg t1);
+             Syntax.string_of_term ctxt t1);
            ((pth RS iffD2) RS pre_thm,
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
     end

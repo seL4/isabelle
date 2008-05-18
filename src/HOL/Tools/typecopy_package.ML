@@ -52,10 +52,10 @@ fun print_typecopies thy =
     val tab = TypecopyData.get thy;
     fun mk (tyco, { vs, constr, typ, proj = (proj, _), ... } : info) =
       (Pretty.block o Pretty.breaks) [
-        Sign.pretty_typ thy (Type (tyco, map TFree vs)),
+        Syntax.pretty_typ_global thy (Type (tyco, map TFree vs)),
         Pretty.str "=",
         (Pretty.str o Sign.extern_const thy) constr,
-        Sign.pretty_typ thy typ,
+        Syntax.pretty_typ_global thy typ,
         Pretty.block [Pretty.str "(", (Pretty.str o Sign.extern_const thy) proj, Pretty.str  ")"]];
     in
       (Pretty.writeln o Pretty.block o Pretty.fbreaks)

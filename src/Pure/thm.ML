@@ -991,13 +991,13 @@ fun generalize ([], []) _ th = th
 
 local
 
-fun pretty_typing thy t T =
-  Pretty.block [Sign.pretty_term thy t, Pretty.str " ::", Pretty.brk 1, Sign.pretty_typ thy T];
+fun pretty_typing thy t T = Pretty.block
+  [Syntax.pretty_term_global thy t, Pretty.str " ::", Pretty.brk 1, Syntax.pretty_typ_global thy T];
 
 fun add_inst (ct, cu) (thy_ref, sorts) =
   let
-    val Cterm {t = t, T = T, ...} = ct
-    and Cterm {t = u, T = U, sorts = sorts_u, maxidx = maxidx_u, ...} = cu;
+    val Cterm {t = t, T = T, ...} = ct;
+    val Cterm {t = u, T = U, sorts = sorts_u, maxidx = maxidx_u, ...} = cu;
     val thy_ref' = Theory.merge_refs (thy_ref, merge_thys0 ct cu);
     val sorts' = Sorts.union sorts_u sorts;
   in
@@ -1009,7 +1009,7 @@ fun add_inst (ct, cu) (thy_ref, sorts) =
         Pretty.fbrk, pretty_typing (Theory.deref thy_ref') u U]), [T, U], [t, u])
     | _ => raise TYPE (Pretty.string_of (Pretty.block
        [Pretty.str "instantiate: not a variable",
-        Pretty.fbrk, Sign.pretty_term (Theory.deref thy_ref') t]), [], [t]))
+        Pretty.fbrk, Syntax.pretty_term_global (Theory.deref thy_ref') t]), [], [t]))
   end;
 
 fun add_instT (cT, cU) (thy_ref, sorts) =
@@ -1021,10 +1021,10 @@ fun add_instT (cT, cU) (thy_ref, sorts) =
   in
     (case T of TVar (v as (_, S)) =>
       if Sign.of_sort thy' (U, S) then ((v, (U, maxidx_U)), (Theory.check_thy thy', sorts'))
-      else raise TYPE ("Type not of sort " ^ Sign.string_of_sort thy' S, [U], [])
+      else raise TYPE ("Type not of sort " ^ Syntax.string_of_sort_global thy' S, [U], [])
     | _ => raise TYPE (Pretty.string_of (Pretty.block
         [Pretty.str "instantiate: not a type variable",
-         Pretty.fbrk, Sign.pretty_typ thy' T]), [T], []))
+         Pretty.fbrk, Syntax.pretty_typ_global thy' T]), [T], []))
   end;
 
 in

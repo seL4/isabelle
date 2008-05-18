@@ -97,7 +97,7 @@ struct
          (fn _ => rtac iff_reflection 1 THEN
            simp_tac (Simplifier.inherit_context ss datatype_ss addsimps #free_iffs lcon_info) 1)
          handle ERROR msg =>
-         (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Sign.string_of_term sg goal);
+         (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Syntax.string_of_term_global sg goal);
           raise Match)
    in SOME thm end
    handle Match => NONE;

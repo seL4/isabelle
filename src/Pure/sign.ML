@@ -61,16 +61,6 @@ sig
   val intern_term: theory -> term -> term
   val extern_term: (string -> xstring) -> theory -> term -> term
   val intern_tycons: theory -> typ -> typ
-  val is_pretty_global: Proof.context -> bool
-  val set_pretty_global: bool -> Proof.context -> Proof.context
-  val init_pretty_global: theory -> Proof.context
-  val pretty_term: theory -> term -> Pretty.T
-  val pretty_typ: theory -> typ -> Pretty.T
-  val pretty_sort: theory -> sort -> Pretty.T
-  val string_of_term: theory -> term -> string
-  val string_of_typ: theory -> typ -> string
-  val string_of_sort: theory -> sort -> string
-  val pp: theory -> Pretty.pp
   val arity_number: theory -> string -> int
   val arity_sorts: theory -> string -> sort -> sort list
   val certify_class: theory -> class -> class
@@ -329,37 +319,12 @@ end;
 
 
 
-(** pretty printing of terms, types etc. **)
-
-structure PrettyGlobal = ProofDataFun(type T = bool fun init _ = false);
-val is_pretty_global = PrettyGlobal.get;
-val set_pretty_global = PrettyGlobal.put;
-val init_pretty_global = set_pretty_global true o ProofContext.init;
-
-val pretty_term = Syntax.pretty_term o init_pretty_global;
-val pretty_typ = Syntax.pretty_typ o init_pretty_global;
-val pretty_sort = Syntax.pretty_sort o init_pretty_global;
-
-val string_of_term = Syntax.string_of_term o init_pretty_global;
-val string_of_typ = Syntax.string_of_typ o init_pretty_global;
-val string_of_sort = Syntax.string_of_sort o init_pretty_global;
-
-(*pp operations -- deferred evaluation*)
-fun pp thy = Pretty.pp
- (fn x => pretty_term thy x,
-  fn x => pretty_typ thy x,
-  fn x => pretty_sort thy x,
-  fn x => Syntax.pretty_classrel (init_pretty_global thy) x,
-  fn x => Syntax.pretty_arity (init_pretty_global thy) x);
-
-
-
 (** certify entities **)    (*exception TYPE*)
 
 (* certify wrt. type signature *)
 
 val arity_number = Type.arity_number o tsig_of;
-fun arity_sorts thy = Type.arity_sorts (pp thy) (tsig_of thy);
+fun arity_sorts thy = Type.arity_sorts (Syntax.pp_global thy) (tsig_of thy);
 
 val certify_class         = Type.cert_class o tsig_of;
 val certify_sort          = Type.cert_sort o tsig_of;
@@ -416,10 +381,10 @@ fun certify' prop pp do_expand consts thy tm =
     val tm'' = Consts.certify pp (tsig_of thy) do_expand consts tm';
   in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
 
-fun certify_term thy = certify' false (pp thy) true (consts_of thy) thy;
-fun certify_prop thy = certify' true (pp thy) true (consts_of thy) thy;
+fun certify_term thy = certify' false (Syntax.pp_global thy) true (consts_of thy) thy;
+fun certify_prop thy = certify' true (Syntax.pp_global thy) true (consts_of thy) thy;
 
-fun cert_term_abbrev thy = #1 o certify' false (pp thy) false (consts_of thy) thy;
+fun cert_term_abbrev thy = #1 o certify' false (Syntax.pp_global thy) false (consts_of thy) thy;
 val cert_term = #1 oo certify_term;
 val cert_prop = #1 oo certify_prop;
 
@@ -460,7 +425,7 @@ fun read_class thy c = certify_class thy (intern_class thy c)
 
 fun prep_arity prep_tycon prep_sort thy (t, Ss, S) =
   let val arity = (prep_tycon thy t, map (prep_sort thy) Ss, prep_sort thy S)
-  in Type.add_arity (pp thy) arity (tsig_of thy); arity end;
+  in Type.add_arity (Syntax.pp_global thy) arity (tsig_of thy); arity end;
 
 val read_arity = prep_arity intern_type Syntax.read_sort_global;
 val cert_arity = prep_arity (K I) certify_sort;
@@ -547,7 +512,7 @@ fun read_def_terms'
 
 fun read_def_terms (thy, types, sorts) used freeze sTs =
   let
-    val pp = pp thy;
+    val pp = Syntax.pp_global thy;
     val consts = consts_of thy;
     val cert_consts = Consts.certify pp (tsig_of thy) true consts;
     fun map_free x = if is_some (types (x, ~1)) then SOME x else NONE;
@@ -678,7 +643,7 @@ end;
 
 fun add_abbrev mode tags (c, raw_t) thy =
   let
-    val pp = pp thy;
+    val pp = Syntax.pp_global thy;
     val prep_tm = no_frees pp o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
@@ -706,12 +671,12 @@ fun primitive_class (bclass, classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val syn' = Syntax.update_consts [bclass] syn;
-      val tsig' = Type.add_class (pp thy) naming (bclass, classes) tsig;
+      val tsig' = Type.add_class (Syntax.pp_global thy) naming (bclass, classes) tsig;
     in (naming, syn', tsig', consts) end)
   |> add_consts_i [(Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 
-fun primitive_classrel arg thy = thy |> map_tsig (Type.add_classrel (pp thy) arg);
-fun primitive_arity arg thy = thy |> map_tsig (Type.add_arity (pp thy) arg);
+fun primitive_classrel arg thy = thy |> map_tsig (Type.add_classrel (Syntax.pp_global thy) arg);
+fun primitive_arity arg thy = thy |> map_tsig (Type.add_arity (Syntax.pp_global thy) arg);
 
 
 (* add translation functions *)

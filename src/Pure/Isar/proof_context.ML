@@ -284,7 +284,7 @@ fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
 fun pretty_thm_legacy th =
   let val thy = Thm.theory_of_thm th
-  in Display.pretty_thm_aux (Syntax.pp (init thy)) true false [] th end;
+  in Display.pretty_thm_aux (Syntax.pp_global thy) true false [] th end;
 
 fun pretty_thm ctxt th =
   let val asms = map Thm.term_of (Assumption.assms_of ctxt)
@@ -365,7 +365,7 @@ fun free_or_skolem ctxt x =
   (if can Name.dest_skolem x then Pretty.mark Markup.skolem (Pretty.str (revert_skolem ctxt x))
    else Pretty.mark Markup.free (Pretty.str x))
   |> Pretty.mark
-    (if Variable.is_fixed ctxt x orelse Sign.is_pretty_global ctxt then Markup.fixed x
+    (if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt then Markup.fixed x
      else Markup.hilite);
 
 fun var_or_skolem _ s =

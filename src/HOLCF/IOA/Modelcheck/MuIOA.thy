@@ -56,7 +56,7 @@ Const("Asig.internals",Type("fun",[sig_typ,int_typ])) $
 end
 |
 IntC sg t =
-error("malformed automaton def for IntC:\n" ^ (Sign.string_of_term sg t));
+error("malformed automaton def for IntC:\n" ^ (Syntax.string_of_term_global sg t));
 
 fun StartC sg (Const("Trueprop",_) $ ((Const("op <=",_) $ (_ $ concreteIOA)) $ _)) =
 let
@@ -67,7 +67,7 @@ Const("Automata.starts_of",Type("fun",[aut_typ,st_typ])) $ concreteIOA
 end
 |
 StartC sg t =
-error("malformed automaton def for StartC:\n" ^ (Sign.string_of_term sg t));
+error("malformed automaton def for StartC:\n" ^ (Syntax.string_of_term_global sg t));
 
 fun TransC sg (Const("Trueprop",_) $ ((Const("op <=",_) $ (_ $ concreteIOA)) $ _)) = 
 let
@@ -78,7 +78,7 @@ Const("Automata.trans_of",Type("fun",[aut_typ,tr_typ])) $ concreteIOA
 end
 |
 TransC sg t =
-error("malformed automaton def for TransC:\n" ^ (Sign.string_of_term sg t));
+error("malformed automaton def for TransC:\n" ^ (Syntax.string_of_term_global sg t));
 
 fun IntA sg (Const("Trueprop",_) $ ((Const("op <=",_) $ _) $ (_ $ abstractIOA))) =
 let
@@ -91,7 +91,7 @@ Const("Asig.internals",Type("fun",[sig_typ,int_typ])) $
 end
 |
 IntA sg t =
-error("malformed automaton def for IntA:\n" ^ (Sign.string_of_term sg t));
+error("malformed automaton def for IntA:\n" ^ (Syntax.string_of_term_global sg t));
 
 fun StartA sg (Const("Trueprop",_) $ ((Const("op <=",_) $ _) $ (_ $ abstractIOA))) =
 let
@@ -102,7 +102,7 @@ Const("Automata.starts_of",Type("fun",[aut_typ,st_typ])) $ abstractIOA
 end
 |
 StartA sg t =
-error("malformed automaton def for StartA:\n" ^ (Sign.string_of_term sg t));
+error("malformed automaton def for StartA:\n" ^ (Syntax.string_of_term_global sg t));
 
 fun TransA sg (Const("Trueprop",_) $ ((Const("op <=",_) $ _) $ (_ $ abstractIOA))) =
 let
@@ -113,7 +113,7 @@ Const("Automata.trans_of",Type("fun",[aut_typ,tr_typ])) $ abstractIOA
 end
 |
 TransA sg t =
-error("malformed automaton def for TransA:\n" ^ (Sign.string_of_term sg t));
+error("malformed automaton def for TransA:\n" ^ (Syntax.string_of_term_global sg t));
 
 fun delete_ul [] = []
 | delete_ul (x::xs) = if (is_prefix (op =) ("\^["::"["::"4"::"m"::[]) (x::xs))
@@ -125,7 +125,7 @@ fun delete_ul [] = []
 fun delete_ul_string s = implode(delete_ul (explode s));
 
 fun type_list_of sign (Type("*",a::b::_)) = (type_list_of sign a) @ (type_list_of sign b) |
-type_list_of sign a = [(Sign.string_of_typ sign a)];
+type_list_of sign a = [(Syntax.string_of_typ_global sign a)];
 
 fun structured_tuple l (Type("*",s::t::_)) =
 let
@@ -182,15 +182,15 @@ fun mk_sim_oracle sign (subgoal, thl) = (
   let
     val weak_case_congs = (map (#weak_case_cong o snd) o Symtab.dest o DatatypePackage.get_datatypes) sign;
     val concl = Logic.strip_imp_concl subgoal;
-    val ic_str = delete_ul_string(Sign.string_of_term sign (IntC sign concl));
-    val ia_str = delete_ul_string(Sign.string_of_term sign (IntA sign concl));
-	val sc_str = delete_ul_string(Sign.string_of_term sign (StartC sign concl));	
-	val sa_str = delete_ul_string(Sign.string_of_term sign (StartA sign concl));
-	val tc_str = delete_ul_string(Sign.string_of_term sign (TransC sign concl));
-	val ta_str = delete_ul_string(Sign.string_of_term sign (TransA sign concl));
+    val ic_str = delete_ul_string(Syntax.string_of_term_global sign (IntC sign concl));
+    val ia_str = delete_ul_string(Syntax.string_of_term_global sign (IntA sign concl));
+	val sc_str = delete_ul_string(Syntax.string_of_term_global sign (StartC sign concl));	
+	val sa_str = delete_ul_string(Syntax.string_of_term_global sign (StartA sign concl));
+	val tc_str = delete_ul_string(Syntax.string_of_term_global sign (TransC sign concl));
+	val ta_str = delete_ul_string(Syntax.string_of_term_global sign (TransA sign concl));
 	
 	val action_type_str =
-	Sign.string_of_typ sign (element_type(#T (rep_cterm(cterm_of sign (IntA sign concl)))));
+	Syntax.string_of_typ_global sign (element_type(#T (rep_cterm(cterm_of sign (IntA sign concl)))));
 
 	val abs_state_type_list =
 	type_list_of sign (element_type(#T (rep_cterm(cterm_of sign (StartA sign concl)))));
@@ -291,7 +291,7 @@ Logic.strip_imp_concl subgoal
 )
 end)
 handle malformed =>
-error("No suitable match to IOA types in " ^ (Sign.string_of_term sign subgoal));
+error("No suitable match to IOA types in " ^ (Syntax.string_of_term_global sign subgoal));
 
 end
 

@@ -430,7 +430,7 @@ and exprgen_typ thy algbr funcgr (TFree vs) =
       #>> (fn (tyco, tys) => tyco `%% tys)
 and exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr (ty_ctxt, sort_decl) =
   let
-    val pp = Sign.pp thy;
+    val pp = Syntax.pp_global thy;
     datatype typarg =
         Global of (class * string) * typarg list list
       | Local of (class * class) list * (string * (int * sort));

@@ -13,7 +13,7 @@ struct
 val trace = ref false;
 
 fun traceIt msg thy t =
-  if !trace then (tracing (msg ^ Sign.string_of_term thy t); t)
+  if !trace then (tracing (msg ^ Syntax.string_of_term_global thy t); t)
   else t;
 
 
@@ -46,7 +46,7 @@ fun rule_concl rl =
 (*As above, but return error message if bad*)
 fun rule_concl_msg sign rl = rule_concl rl
     handle Bind => error ("Ill-formed conclusion of introduction rule: " ^
-                          Sign.string_of_term sign rl);
+                          Syntax.string_of_term_global sign rl);
 
 (*For deriving cases rules.  CollectD2 discards the domain, which is redundant;
   read_instantiate replaces a propositional variable by a formula variable*)

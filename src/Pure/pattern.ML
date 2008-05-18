@@ -41,16 +41,17 @@ exception Pattern;
 
 val trace_unify_fail = ref false;
 
-fun string_of_term thy env binders t = Sign.string_of_term thy
-  (Envir.norm_term env (subst_bounds(map Free binders,t)));
+fun string_of_term thy env binders t =
+  Syntax.string_of_term_global thy
+    (Envir.norm_term env (subst_bounds (map Free binders, t)));
 
 fun bname binders i = fst (nth binders i);
 fun bnames binders is = space_implode " " (map (bname binders) is);
 
 fun typ_clash thy (tye,T,U) =
   if !trace_unify_fail
-  then let val t = Sign.string_of_typ thy (Envir.norm_type tye T)
-           and u = Sign.string_of_typ thy (Envir.norm_type tye U)
+  then let val t = Syntax.string_of_typ_global thy (Envir.norm_type tye T)
+           and u = Syntax.string_of_typ_global thy (Envir.norm_type tye U)
        in tracing("The following types do not unify:\n" ^ t ^ "\n" ^ u) end
   else ()
 

@@ -147,9 +147,9 @@ fun process_spec axiomatic cos alt_props thy =
                 case List.filter (fn t => let val (name,typ) = dest_Const t
                                      in name = cname andalso Sign.typ_equiv thy (typ, ctyp)
                                      end) thawed_prop_consts of
-                    [] => error ("Specification: No suitable instances of constant \"" ^ (Sign.string_of_term thy c) ^ "\" found")
+                    [] => error ("Specification: No suitable instances of constant \"" ^ Syntax.string_of_term_global thy c ^ "\" found")
                   | [cf] => unvarify cf vmap
-                  | _ => error ("Specification: Several variations of \"" ^ (Sign.string_of_term thy c) ^ "\" found (try applying explicit type constraints)")
+                  | _ => error ("Specification: Several variations of \"" ^ Syntax.string_of_term_global thy c ^ "\" found (try applying explicit type constraints)")
             end
         val proc_consts = map proc_const consts
         fun mk_exist (c,prop) =

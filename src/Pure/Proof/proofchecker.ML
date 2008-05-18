@@ -51,8 +51,8 @@ fun thm_of_proof thy prf =
             val {prop, ...} = rep_thm thm;
             val _ = if prop aconv prop' then () else
               error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
-                Sign.string_of_term thy prop ^ "\n\n" ^
-                Sign.string_of_term thy prop');
+                Syntax.string_of_term_global thy prop ^ "\n\n" ^
+                Syntax.string_of_term_global thy prop');
           in thm_of_atom thm Ts end
 
       | thm_of _ _ (PAxm (name, _, SOME Ts)) =

@@ -73,7 +73,7 @@ fun insts_of thy algebra c ty_decl ty =
       | mk_inst ty (TFree (_, sort)) = cons (ty, sort)
       | mk_inst (Type (_, tys1)) (Type (_, tys2)) = fold2 mk_inst tys1 tys2;
     fun of_sort_deriv (ty, sort) =
-      Sorts.of_sort_derivation (Sign.pp thy) algebra
+      Sorts.of_sort_derivation (Syntax.pp_global thy) algebra
         { class_relation = class_relation, type_constructor = type_constructor,
           type_variable = type_variable }
         (ty, sort) handle Sorts.CLASS_ERROR _ => [] (*permissive!*)
@@ -108,7 +108,7 @@ fun resort_thms algebra tap_typ [] = []
   | resort_thms algebra tap_typ (thms as thm :: _) =
       let
         val thy = Thm.theory_of_thm thm;
-        val pp = Sign.pp thy;
+        val pp = Syntax.pp_global thy;
         val cs = fold_consts (insert (op =)) thms [];
         fun match_const c (ty, ty_decl) =
           let
@@ -279,7 +279,7 @@ fun check_consts thy consts funcgr =
 fun proto_eval thy cterm_of evaluator_fr evaluator proto_ct funcgr =
   let
     val ct = cterm_of proto_ct;
-    val _ = Sign.no_vars (Sign.pp thy) (Thm.term_of ct);
+    val _ = Sign.no_vars (Syntax.pp_global thy) (Thm.term_of ct);
     val _ = Term.fold_types (Type.no_tvars #> K I) (Thm.term_of ct) ();
     fun consts_of t = fold_aterms (fn Const c_ty => cons c_ty | _ => I)
       t [];

@@ -614,7 +614,7 @@ fun showTerm d (Const (a,_)) = Term.Const (a,dummyT)
   | showTerm d (f $ u)       = if d=0 then dummyVar
                                else Term.$ (showTerm d f, showTerm (d-1) u);
 
-fun string_of thy d t = Sign.string_of_term thy (showTerm d t);
+fun string_of thy d t = Syntax.string_of_term_global thy (showTerm d t);
 
 (*Convert a Goal to an ordinary Not.  Used also in dup_intr, where a goal like
   Ex(P) is duplicated as the assumption ~Ex(P). *)
@@ -638,7 +638,7 @@ fun traceTerm thy t =
   in
       case topType thy t' of
           NONE   => stm   (*no type to attach*)
-        | SOME T => stm ^ "\t:: " ^ Sign.string_of_typ thy T
+        | SOME T => stm ^ "\t:: " ^ Syntax.string_of_typ_global thy T
   end;
 
 

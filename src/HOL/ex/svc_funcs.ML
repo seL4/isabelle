@@ -239,7 +239,8 @@ struct
 
  (*The oracle proves the given formula t, if possible*)
  fun oracle thy t =
-  (if ! trace then tracing ("SVC oracle: problem is\n" ^ Sign.string_of_term thy t) else ();
+  (if ! trace then tracing ("SVC oracle: problem is\n" ^ Syntax.string_of_term_global thy t)
+   else ();
    if valid (expr_of false t) then t else fail t);
 
 end;

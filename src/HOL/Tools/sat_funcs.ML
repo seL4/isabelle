@@ -164,8 +164,8 @@ fun resolve_raw_clauses [] =
 		fun resolution (c1, hyps1) (c2, hyps2) =
 		let
 			val _ = if !trace_sat then
-					tracing ("Resolving clause: " ^ Display.string_of_thm c1 ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c1)) (#hyps (rep_thm c1))
-						^ ")\nwith clause: " ^ Display.string_of_thm c2 ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
+					tracing ("Resolving clause: " ^ Display.string_of_thm c1 ^ " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c1)) (#hyps (rep_thm c1))
+						^ ")\nwith clause: " ^ Display.string_of_thm c2 ^ " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c2)) (#hyps (rep_thm c2)) ^ ")")
 				else ()
 
 			(* the two literals used for resolution *)
@@ -191,7 +191,7 @@ fun resolve_raw_clauses [] =
 				(if hyp1_is_neg then c1' else c2')
 
 			val _ = if !trace_sat then
-					tracing ("Resulting clause: " ^ Display.string_of_thm c_new ^ " (hyps: " ^ ML_Syntax.print_list (Sign.string_of_term (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
+					tracing ("Resulting clause: " ^ Display.string_of_thm c_new ^ " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term_global (theory_of_thm c_new)) (#hyps (rep_thm c_new)) ^ ")")
 				else ()
 			val _ = inc counter
 		in
@@ -390,7 +390,7 @@ in
 			val msg = "SAT solver found a countermodel:\n"
 				^ (commas
 					o map (fn (term, idx) =>
-						Sign.string_of_term (the_context ()) term ^ ": "
+						Syntax.string_of_term_global (the_context ()) term ^ ": "
 							^ (case assignment idx of NONE => "arbitrary" | SOME true => "true" | SOME false => "false")))
 					(Termtab.dest atom_table)
 		in

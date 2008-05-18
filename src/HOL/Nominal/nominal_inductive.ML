@@ -614,7 +614,7 @@ fun prove_eqvt s xatoms thy =
       let
         fun eqvt_err s = error
           ("Could not prove equivariance for introduction rule\n" ^
-           Sign.string_of_term (theory_of_thm intr)
+           Syntax.string_of_term_global (theory_of_thm intr)
              (Logic.unvarify (prop_of intr)) ^ "\n" ^ s);
         val res = SUBPROOF (fn {prems, params, ...} =>
           let
@@ -630,7 +630,7 @@ fun prove_eqvt s xatoms thy =
       in
         case (Seq.pull res handle THM (s, _, _) => eqvt_err s) of
           NONE => eqvt_err ("Rule does not match goal\n" ^
-            Sign.string_of_term (theory_of_thm st) (hd (prems_of st)))
+            Syntax.string_of_term_global (theory_of_thm st) (hd (prems_of st)))
         | SOME (th, _) => Seq.single th
       end;
     val thss = map (fn atom =>

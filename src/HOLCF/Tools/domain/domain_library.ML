@@ -74,7 +74,7 @@ fun mk_var_names ids : string list = let
 in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
 
 fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, pcpoS);
-fun string_of_typ sg = Sign.string_of_typ sg o Sign.certify_typ sg;
+fun string_of_typ sg = Syntax.string_of_typ_global sg o Sign.certify_typ sg;
 
 (* ----- constructor list handling ----- *)
 

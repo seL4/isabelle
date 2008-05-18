@@ -86,7 +86,7 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
 fun pretty_thm th =
-  pretty_thm_aux (Sign.pp (Thm.theory_of_thm th)) true false [] th;
+  pretty_thm_aux (Syntax.pp_global (Thm.theory_of_thm th)) true false [] th;
 
 val string_of_thm = Pretty.string_of o pretty_thm;
 
@@ -109,12 +109,12 @@ fun prths ths = (prthq (Seq.of_list ths); ths);
 
 (* other printing commands *)
 
-fun pretty_ctyp cT = Sign.pretty_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
-fun string_of_ctyp cT = Sign.string_of_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
+fun pretty_ctyp cT = Syntax.pretty_typ_global (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
+fun string_of_ctyp cT = Syntax.string_of_typ_global (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
 val print_ctyp = writeln o string_of_ctyp;
 
-fun pretty_cterm ct = Sign.pretty_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
-fun string_of_cterm ct = Sign.string_of_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
+fun pretty_cterm ct = Syntax.pretty_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct);
+fun string_of_cterm ct = Syntax.string_of_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct);
 val print_cterm = writeln o string_of_cterm;
 
 
@@ -138,7 +138,7 @@ fun pretty_full_theory verbose thy =
     fun prt_term t = Pretty.quote (Syntax.pretty_term ctxt t);
     val prt_term_no_vars = prt_term o Logic.unvarify;
     fun prt_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
-    val prt_const' = Defs.pretty_const (Sign.pp thy);
+    val prt_const' = Defs.pretty_const (Syntax.pp ctxt);
 
     fun pretty_classrel (c, []) = prt_cls c
       | pretty_classrel (c, cs) = Pretty.block
@@ -326,7 +326,7 @@ fun pretty_goals_aux pp markup (msg, main) maxgoals state =
   end;
 
 fun pretty_goals n th =
-  pretty_goals_aux (Sign.pp (Thm.theory_of_thm th)) Markup.none (true, true) n th;
+  pretty_goals_aux (Syntax.pp_global (Thm.theory_of_thm th)) Markup.none (true, true) n th;
 
 val print_goals = (Pretty.writeln o Pretty.chunks) oo pretty_goals;
 

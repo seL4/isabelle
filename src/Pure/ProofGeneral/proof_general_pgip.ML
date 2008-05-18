@@ -698,7 +698,7 @@ fun showid (Showid vs) =
         fun string_of_thm th = Output.output
                                (Pretty.string_of
                                    (Display.pretty_thm_aux
-                                        (Sign.pp (Thm.theory_of_thm th))
+                                        (Syntax.pp_global (Thm.theory_of_thm th))
                                         false (* quote *)
                                         false (* show hyps *)
                                         [] (* asms *)

@@ -826,12 +826,12 @@ local
         val thy' = Theory.merge(thy, Theory.merge(thyt, thyu))
         val (tye',maxi') = Sign.typ_unify thy' (T, U) (tye, maxi)
           handle Type.TUNIFY => raise TYPE ("Ill-typed instantiation:\nType\n" ^
-            Sign.string_of_typ thy' (Envir.norm_type tye T) ^
+            Syntax.string_of_typ_global thy' (Envir.norm_type tye T) ^
             "\nof variable " ^
-            Sign.string_of_term thy' (Term.map_types (Envir.norm_type tye) t) ^
+            Syntax.string_of_term_global thy' (Term.map_types (Envir.norm_type tye) t) ^
             "\ncannot be unified with type\n" ^
-            Sign.string_of_typ thy' (Envir.norm_type tye U) ^ "\nof term " ^
-            Sign.string_of_term thy' (Term.map_types (Envir.norm_type tye) u),
+            Syntax.string_of_typ_global thy' (Envir.norm_type tye U) ^ "\nof term " ^
+            Syntax.string_of_term_global thy' (Term.map_types (Envir.norm_type tye) u),
             [T, U], [t, u])
     in  (thy', tye', maxi')  end;
 in

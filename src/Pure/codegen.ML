@@ -582,13 +582,13 @@ fun codegen_error (gr, _) dep s =
 fun invoke_codegen thy defs dep module brack (gr, t) = (case get_first
    (fn (_, f) => f thy defs gr dep module brack t) (#codegens (CodegenData.get thy)) of
       NONE => codegen_error gr dep ("Unable to generate code for term:\n" ^
-        Sign.string_of_term thy t)
+        Syntax.string_of_term_global thy t)
     | SOME x => x);
 
 fun invoke_tycodegen thy defs dep module brack (gr, T) = (case get_first
    (fn (_, f) => f thy defs gr dep module brack T) (#tycodegens (CodegenData.get thy)) of
       NONE => codegen_error gr dep ("Unable to generate code for type:\n" ^
-        Sign.string_of_typ thy T)
+        Syntax.string_of_typ_global thy T)
     | SOME x => x);
 
 
@@ -987,10 +987,10 @@ fun test_goal quiet ({size, iterations, default_type}, tvinsts) i assms state =
         let val T = the_default (the_default (TFree p) default_type)
           (AList.lookup (op =) tvinsts s)
         in if Sign.of_sort thy (T, S) then T
-          else error ("Type " ^ Sign.string_of_typ thy T ^
+          else error ("Type " ^ Syntax.string_of_typ_global thy T ^
             " to be substituted for variable " ^
-            Sign.string_of_typ thy (TFree p) ^ "\ndoes not have sort " ^
-            Sign.string_of_sort thy S)
+            Syntax.string_of_typ_global thy (TFree p) ^ "\ndoes not have sort " ^
+            Syntax.string_of_sort_global thy S)
         end))
       (Logic.list_implies (assms, subst_bounds (frees, strip gi))));
   in test_term thy quiet size iterations gi' end;

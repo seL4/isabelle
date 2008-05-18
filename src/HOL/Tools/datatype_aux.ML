@@ -294,7 +294,7 @@ fun check_nonempty descr =
 fun unfold_datatypes sign orig_descr sorts (dt_info : datatype_info Symtab.table) descr i =
   let
     fun typ_error T msg = error ("Non-admissible type expression\n" ^
-      Sign.string_of_typ sign (typ_of_dtyp (orig_descr @ descr) sorts T) ^ "\n" ^ msg);
+      Syntax.string_of_typ_global sign (typ_of_dtyp (orig_descr @ descr) sorts T) ^ "\n" ^ msg);
 
     fun get_dt_descr T i tname dts =
       (case Symtab.lookup dt_info tname of

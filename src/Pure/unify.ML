@@ -194,7 +194,7 @@ fun unify_types thy (T,U, env as Envir.Envir{asol,iTs,maxidx}) =
        handle Type.TUNIFY => raise CANTUNIFY;
 
 fun test_unify_types thy (args as (T,U,_)) =
-let val str_of = Sign.string_of_typ thy;
+let val str_of = Syntax.string_of_typ_global thy;
     fun warn() = tracing ("Potential loss of completeness: " ^ str_of U ^ " = " ^ str_of T);
     val env' = unify_types thy args
 in if is_TVar(T) orelse is_TVar(U) then warn() else ();
@@ -556,7 +556,7 @@ fun add_ffpair thy ((rbinder,t0,u0), (env,tpairs))
     t is always flexible.*)
 fun print_dpairs thy msg (env,dpairs) =
   let fun pdp (rbinder,t,u) =
-        let fun termT t = Sign.pretty_term thy
+        let fun termT t = Syntax.pretty_term_global thy
                               (Envir.norm_term env (Logic.rlist_abs(rbinder,t)))
             val bsymbs = [termT u, Pretty.str" =?=", Pretty.brk 1,
                           termT t];

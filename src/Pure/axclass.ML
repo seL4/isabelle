@@ -224,13 +224,14 @@ fun unoverload_const thy (c_ty as (c, _)) =
 
 fun cert_classrel thy raw_rel =
   let
+    val string_of_sort = Syntax.string_of_sort_global thy;
     val (c1, c2) = pairself (Sign.certify_class thy) raw_rel;
     val _ = Sign.primitive_classrel (c1, c2) (Theory.copy thy);
     val _ =
       (case subtract (op =) (all_params_of thy [c1]) (all_params_of thy [c2]) of
         [] => ()
-      | xs => raise TYPE ("Class " ^ Sign.string_of_sort thy [c1] ^ " lacks parameter(s) " ^
-          commas_quote xs ^ " of " ^ Sign.string_of_sort thy [c2], [], []));
+      | xs => raise TYPE ("Class " ^ string_of_sort [c1] ^ " lacks parameter(s) " ^
+          commas_quote xs ^ " of " ^ string_of_sort [c2], [], []));
   in (c1, c2) end;
 
 fun read_classrel thy raw_rel =
@@ -314,7 +315,7 @@ fun declare_overloaded (c, T) thy =
     val tyco = case inst_tyco_of thy (c, T)
      of SOME tyco => tyco
       | NONE => error ("Illegal type for instantiation of class parameter: "
-        ^ quote (c ^ " :: " ^ Sign.string_of_typ thy T));
+        ^ quote (c ^ " :: " ^ Syntax.string_of_typ_global thy T));
     val name_inst = instance_name (tyco, class) ^ "_inst";
     val c' = NameSpace.base c ^ "_" ^ NameSpace.base tyco;
     val T' = Type.strip_sorts T;
@@ -518,7 +519,8 @@ fun derive_type _ (_, []) = []
               | _ => I) typ [];
         val hyps = vars
           |> map (fn (T, S) => (T, Drule.sort_triv thy (T, S) ~~ S));
-        val ths = (typ, sort) |> Sorts.of_sort_derivation (Sign.pp thy) (Sign.classes_of thy)
+        val ths = (typ, sort)
+          |> Sorts.of_sort_derivation (Syntax.pp_global thy) (Sign.classes_of thy)
            {class_relation =
               fn (th, c1) => fn c2 => th RS the_classrel thy (c1, c2),
             type_constructor =
@@ -536,7 +538,7 @@ fun of_sort thy (typ, sort) cache =
     val sort' = filter (is_none o lookup_type cache typ) sort;
     val ths' = derive_type thy (typ, sort')
       handle ERROR msg => cat_error msg ("The error(s) above occurred for sort derivation: " ^
-        Sign.string_of_typ thy typ ^ " :: " ^ Sign.string_of_sort thy sort');
+        Syntax.string_of_typ_global thy typ ^ " :: " ^ Syntax.string_of_sort_global thy sort');
     val cache' = cache |> fold (insert_type typ) (sort' ~~ ths');
     val ths =
       sort |> map (fn c =>

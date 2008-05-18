@@ -294,7 +294,7 @@ fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
 in
 
 fun print_term ss warn a thy t = prnt ss warn (a ^ "\n" ^
-  Sign.string_of_term thy (if ! debug_simp then t else show_bounds ss t));
+  Syntax.string_of_term_global thy (if ! debug_simp then t else show_bounds ss t));
 
 fun debug warn a ss = if ! debug_simp then prnt ss warn (a ()) else ();
 fun trace warn a ss = if ! trace_simp then prnt ss warn (a ()) else ();

@@ -77,7 +77,7 @@ fun reif_eq thy (eq as Const("op =", Type("fun", [T, _])) $ lhs $ rhs) =
           val crhs = cterm_of thy (reif_polex T fs rhs);
           val ca = ctyp_of thy T;
         in (ca, cvs, clhs, crhs) end
-      else raise CRing ("reif_eq: not an equation over " ^ Sign.string_of_sort thy cr_sort)
+      else raise CRing ("reif_eq: not an equation over " ^ Syntax.string_of_sort_global thy cr_sort)
   | reif_eq _ _ = raise CRing "reif_eq: not an equation";
 
 (* The cring tactic *)

@@ -91,7 +91,7 @@ fun linr_tac ctxt q i =
     let val pth = linr_oracle thy (Pattern.eta_long [] t1)
     in 
           (trace_msg ("calling procedure with term:\n" ^
-             Sign.string_of_term thy t1);
+             Syntax.string_of_term ctxt t1);
            ((pth RS iffD2) RS pre_thm,
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
     end

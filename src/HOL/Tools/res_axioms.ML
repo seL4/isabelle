@@ -79,7 +79,7 @@ fun declare_skofuns s th thy =
                 val extraTs = rhs_extra_types (Ts ---> T) xtp
                 val _ = if null extraTs then () else
                    warning ("Skolemization: extra type vars: " ^
-                            commas_quote (map (Sign.string_of_typ thy) extraTs));
+                            commas_quote (map (Syntax.string_of_typ_global thy) extraTs));
                 val argsx = map (fn T => Free(gensym"vsk", T)) extraTs
                 val args = argsx @ args0
                 val cT = extraTs ---> Ts ---> T

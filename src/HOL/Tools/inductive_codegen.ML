@@ -210,7 +210,7 @@ fun select_mode_prem thy modes vs ps =
           end)
             (if is_set then [Mode (([], []), [], [])]
              else modes_of modes t handle Option =>
-               error ("Bad predicate: " ^ Sign.string_of_term thy t))
+               error ("Bad predicate: " ^ Syntax.string_of_term_global thy t))
       | Sidecond t => if term_vs t subset vs then SOME (Mode (([], []), [], []))
           else NONE) ps);
 

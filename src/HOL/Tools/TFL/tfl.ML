@@ -501,7 +501,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val dummy =
            if !trace then
                writeln ("ORIGINAL PROTO_DEF: " ^
-                          Sign.string_of_term thy proto_def)
+                          Syntax.string_of_term_global thy proto_def)
            else ()
      val R1 = S.rand WFR
      val corollary' = R.UNDISCH(R.UNDISCH WFREC_THM)
@@ -541,7 +541,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val R'abs = S.rand R'
      val proto_def' = subst_free[(R1,R')] proto_def
      val dummy = if !trace then writeln ("proto_def' = " ^
-                                         Sign.string_of_term
+                                         Syntax.string_of_term_global
                                          thy proto_def')
                            else ()
      val {lhs,rhs} = S.dest_eq proto_def'

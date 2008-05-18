@@ -51,7 +51,7 @@ let
   fun check_type T = 
     if Sorts.of_sort (Sign.classes_of thy) (T, ["Eval_Witness.ml_equiv"])
     then T
-    else error ("Type " ^ quote (Sign.string_of_typ thy T) ^ " not allowed for ML witnesses")
+    else error ("Type " ^ quote (Syntax.string_of_typ_global thy T) ^ " not allowed for ML witnesses")
 
   fun dest_exs  0 t = t
     | dest_exs n (Const ("Ex", _) $ Abs (v,T,b)) = 

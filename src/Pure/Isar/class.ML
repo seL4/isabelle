@@ -722,7 +722,7 @@ fun init_instantiation (tycos, vs, sort) thy =
     val inst_params = map_product get_param tycos params |> map_filter I;
     val primary_constraints = map (apsnd
       (map_atyps (K (TVar ((Name.aT, 0), [])))) o snd o snd) params;
-    val pp = Sign.pp thy;
+    val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy
       |> fold (fn tyco => Sorts.add_arities pp
             (tyco, map (fn class => (class, map snd vs)) sort)) tycos;
@@ -793,7 +793,7 @@ fun pretty_instantiation lthy =
     fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
     fun pr_param ((c, _), (v, ty)) =
       (Pretty.block o Pretty.breaks) [Pretty.str v, Pretty.str "==",
-        (Pretty.str o Sign.extern_const thy) c, Pretty.str "::", Sign.pretty_typ thy ty];
+        (Pretty.str o Sign.extern_const thy) c, Pretty.str "::", Syntax.pretty_typ_global thy ty];
   in
     (Pretty.block o Pretty.fbreaks)
       (Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params)

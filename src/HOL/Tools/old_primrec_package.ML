@@ -27,7 +27,7 @@ exception RecError of string;
 
 fun primrec_err s = error ("Primrec definition error:\n" ^ s);
 fun primrec_eq_err thy s eq =
-  primrec_err (s ^ "\nin\n" ^ quote (Sign.string_of_term thy eq));
+  primrec_err (s ^ "\nin\n" ^ quote (Syntax.string_of_term_global thy eq));
 
 
 (*the following code ensures that each recursive set always has the

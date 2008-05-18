@@ -107,7 +107,7 @@ fun prove_internal casms cprop tac =
 fun prove_multi ctxt xs asms props tac =
   let
     val thy = ProofContext.theory_of ctxt;
-    val string_of_term = Sign.string_of_term thy;
+    val string_of_term = Syntax.string_of_term ctxt;
 
     fun err msg = cat_error msg
       ("The error(s) above occurred for the goal statement:\n" ^

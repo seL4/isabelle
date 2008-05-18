@@ -120,7 +120,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
     (*analyze the LHS of a case equation to get a constructor*)
     fun const_of (Const("op =", _) $ (_ $ c) $ _) = c
       | const_of eqn = error ("Ill-formed case equation: " ^
-                              Sign.string_of_term thy eqn);
+                              Syntax.string_of_term_global thy eqn);
 
     val constructors =
         map (head_of o const_of o FOLogic.dest_Trueprop o
