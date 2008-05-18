@@ -109,7 +109,7 @@ fun nominal_induct_tac ctxt def_insts avoiding fixings rules facts =
                 (nth_list fixings (j - 1))))
           THEN' Induct.inner_atomize_tac) j))
         THEN' Induct.atomize_tac) i st |> Seq.maps (fn st' =>
-            Induct.guess_instance
+            Induct.guess_instance ctxt
               (finish_rule (Induct.internalize more_consumes rule)) i st'
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)

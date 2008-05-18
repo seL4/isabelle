@@ -56,7 +56,7 @@ sig
   val rulified_term: thm -> theory * term
   val rulify_tac: int -> tactic
   val internalize: int -> thm -> thm
-  val guess_instance: thm -> int -> thm -> thm Seq.seq
+  val guess_instance: Proof.context -> thm -> int -> thm -> thm Seq.seq
   val cases_tac: Proof.context -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val induct_tac: Proof.context -> (string option * term) option list list ->
@@ -420,16 +420,16 @@ fun dest_env thy (env as Envir.Envir {iTs, ...}) =
 
 in
 
-fun guess_instance rule i st =
+fun guess_instance ctxt rule i st =
   let
-    val thy = Thm.theory_of_thm st;
+    val thy = ProofContext.theory_of ctxt;
     val maxidx = Thm.maxidx_of st;
     val goal = Thm.term_of (Thm.cprem_of st i);  (*exception Subscript*)
     val params = rev (rename_wrt_term goal (Logic.strip_params goal));
   in
     if not (null params) then
       (warning ("Cannot determine rule instantiation due to pending parameter(s): " ^
-        commas_quote (map (Sign.string_of_term thy o Syntax.mark_boundT) params));
+        commas_quote (map (Syntax.string_of_term ctxt o Syntax.mark_boundT) params));
       Seq.single rule)
     else
       let
@@ -605,7 +605,7 @@ fun induct_tac ctxt def_insts arbitrary taking opt_rule facts =
                 (nth_list arbitrary (j - 1))))
           THEN' inner_atomize_tac) j))
         THEN' atomize_tac) i st |> Seq.maps (fn st' =>
-            guess_instance (internalize more_consumes rule) i st'
+            guess_instance ctxt (internalize more_consumes rule) i st'
             |> Seq.map (rule_instance thy (burrow_options (Variable.polymorphic ctxt) taking))
             |> Seq.maps (fn rule' =>
               CASES (rule_cases rule' cases)
@@ -661,7 +661,7 @@ fun coinduct_tac ctxt inst taking opt_rule facts =
       ruleq goal
       |> Seq.maps (RuleCases.consume [] facts)
       |> Seq.maps (fn ((cases, (_, more_facts)), rule) =>
-        guess_instance rule i st
+        guess_instance ctxt rule i st
         |> Seq.map (rule_instance thy (burrow_options (Variable.polymorphic ctxt) taking))
         |> Seq.maps (fn rule' =>
           CASES (RuleCases.make_common false (thy, Thm.prop_of rule') cases)
