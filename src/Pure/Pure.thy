@@ -14,14 +14,14 @@ lemma meta_mp:
 lemmas meta_impE = meta_mp [elim_format]
 
 lemma meta_spec:
-  assumes "!!x. PROP P(x)"
-  shows "PROP P(x)"
-    by (rule `!!x. PROP P(x)`)
+  assumes "!!x. PROP P x"
+  shows "PROP P x"
+    by (rule `!!x. PROP P x`)
 
 lemmas meta_allE = meta_spec [elim_format]
 
 lemma swap_params:
-  "(!!x y. PROP P(x, y)) == (!!y x. PROP P(x, y))" ..
+  "(!!x y. PROP P x y) == (!!y x. PROP P x y)" ..
 
 
 subsection {* Embedded terms *}
@@ -39,22 +39,22 @@ locale (open) meta_conjunction_syntax =
 
 lemma all_conjunction:
   includes meta_conjunction_syntax
-  shows "(!!x. PROP A(x) && PROP B(x)) == ((!!x. PROP A(x)) && (!!x. PROP B(x)))"
+  shows "(!!x. PROP A x && PROP B x) == ((!!x. PROP A x) && (!!x. PROP B x))"
 proof
-  assume conj: "!!x. PROP A(x) && PROP B(x)"
-  show "(!!x. PROP A(x)) && (!!x. PROP B(x))"
+  assume conj: "!!x. PROP A x && PROP B x"
+  show "(!!x. PROP A x) && (!!x. PROP B x)"
   proof -
     fix x
-    from conj show "PROP A(x)" by (rule conjunctionD1)
-    from conj show "PROP B(x)" by (rule conjunctionD2)
+    from conj show "PROP A x" by (rule conjunctionD1)
+    from conj show "PROP B x" by (rule conjunctionD2)
   qed
 next
-  assume conj: "(!!x. PROP A(x)) && (!!x. PROP B(x))"
+  assume conj: "(!!x. PROP A x) && (!!x. PROP B x)"
   fix x
-  show "PROP A(x) && PROP B(x)"
+  show "PROP A x && PROP B x"
   proof -
-    show "PROP A(x)" by (rule conj [THEN conjunctionD1, rule_format])
-    show "PROP B(x)" by (rule conj [THEN conjunctionD2, rule_format])
+    show "PROP A x" by (rule conj [THEN conjunctionD1, rule_format])
+    show "PROP B x" by (rule conj [THEN conjunctionD2, rule_format])
   qed
 qed
 

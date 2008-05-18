@@ -110,7 +110,7 @@ axiomatization
   equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infixl "=" 50)
 where
   refl [intro]: "x = x" and
-  subst: "x = y \<Longrightarrow> P(x) \<Longrightarrow> P(y)"
+  subst: "x = y \<Longrightarrow> P x \<Longrightarrow> P y"
 
 theorem trans [trans]: "x = y \<Longrightarrow> y = z \<Longrightarrow> x = z"
   by (rule subst)
@@ -128,32 +128,32 @@ axiomatization
   All :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<forall>" 10) and
   Ex :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10)
 where
-  allI [intro]: "(\<And>x. P(x)) \<Longrightarrow> \<forall>x. P(x)" and
-  allD [dest]: "\<forall>x. P(x) \<Longrightarrow> P(a)" and
-  exI [intro]: "P(a) \<Longrightarrow> \<exists>x. P(x)" and
-  exE [elim]: "\<exists>x. P(x) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> C) \<Longrightarrow> C"
+  allI [intro]: "(\<And>x. P x) \<Longrightarrow> \<forall>x. P x" and
+  allD [dest]: "\<forall>x. P x \<Longrightarrow> P a" and
+  exI [intro]: "P a \<Longrightarrow> \<exists>x. P x" and
+  exE [elim]: "\<exists>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> C) \<Longrightarrow> C"
 
 
-lemma "(\<exists>x. P(f(x))) \<longrightarrow> (\<exists>y. P(y))"
+lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
-  assume "\<exists>x. P(f(x))"
-  then show "\<exists>y. P(y)"
+  assume "\<exists>x. P (f x)"
+  then show "\<exists>y. P y"
   proof
-    fix x assume "P(f(x))"
+    fix x assume "P (f x)"
     then show ?thesis ..
   qed
 qed
 
-lemma "(\<exists>x. \<forall>y. R(x, y)) \<longrightarrow> (\<forall>y. \<exists>x. R(x, y))"
+lemma "(\<exists>x. \<forall>y. R x y) \<longrightarrow> (\<forall>y. \<exists>x. R x y)"
 proof
-  assume "\<exists>x. \<forall>y. R(x, y)"
-  then show "\<forall>y. \<exists>x. R(x, y)"
+  assume "\<exists>x. \<forall>y. R x y"
+  then show "\<forall>y. \<exists>x. R x y"
   proof
-    fix x assume a: "\<forall>y. R(x, y)"
+    fix x assume a: "\<forall>y. R x y"
     show ?thesis
     proof
-      fix y from a have "R(x, y)" ..
-      then show "\<exists>x. R(x, y)" ..
+      fix y from a have "R x y" ..
+      then show "\<exists>x. R x y" ..
     qed
   qed
 qed
