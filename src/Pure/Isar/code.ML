@@ -147,7 +147,7 @@ fun add_drop_redundant thm (sels, dels) =
       | matches (_ :: _) [] = false
       | matches (x :: xs) (y :: ys) = Pattern.matches thy (x, y) andalso matches xs ys;
     fun drop thm' = not (matches args (args_of thm'))
-      orelse (warning ("code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm'); false);
+      orelse (warning ("Code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm'); false);
     val (keeps, drops) = List.partition drop sels;
   in (thm :: keeps, dels |> remove Thm.eq_thm_prop thm |> fold (insert Thm.eq_thm_prop) drops) end;
 
@@ -454,7 +454,8 @@ fun print_codesetup thy =
                  | (c, tys) =>
                      (Pretty.block o Pretty.breaks)
                         (Pretty.str (CodeUnit.string_of_const thy c)
-                          :: Pretty.str "of" :: map (Pretty.quote o Sign.pretty_typ thy) tys)) cos)
+                          :: Pretty.str "of"
+                          :: map (Pretty.quote o Syntax.pretty_typ_global thy) tys)) cos)
           );
     val inlines = (#inlines o the_thmproc) exec;
     val posts = (#posts o the_thmproc) exec;
@@ -467,7 +468,8 @@ fun print_codesetup thy =
       |> sort (string_ord o pairself fst);
     val dtyps = the_dtyps exec
       |> Symtab.dest
-      |> map (fn (dtco, (vs, cos)) => (Sign.string_of_typ thy (Type (dtco, map TFree vs)), cos))
+      |> map (fn (dtco, (vs, cos)) =>
+          (Syntax.string_of_typ_global thy (Type (dtco, map TFree vs)), cos))
       |> sort (string_ord o pairself fst)
   in
     (Pretty.writeln o Pretty.chunks) [
@@ -600,7 +602,7 @@ fun get_algebra thy (class, tyco) =
         |> the_default (replicate (Sign.arity_number thy tyco) [])
     in
       base_algebra
-      |> Sorts.add_arities (Sign.pp thy) (tyco, [(class, sorts)])
+      |> Sorts.add_arities (Syntax.pp_global thy) (tyco, [(class, sorts)])
     end
   end;
 
@@ -615,7 +617,7 @@ fun gen_classparam_typ constr thy class (c, tyco) =
   in Logic.varifyT (map_type_tfree (K ty_inst) ty) end;
 
 fun retrieve_algebra thy operational =
-  Sorts.subalgebra (Sign.pp thy) operational
+  Sorts.subalgebra (Syntax.pp_global thy) operational
     (weakest_constraints thy (Sign.classes_of thy))
     (Sign.classes_of thy);
 
