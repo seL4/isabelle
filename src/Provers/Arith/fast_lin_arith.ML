@@ -11,8 +11,6 @@ Only take premises and conclusions into account that are already
 the term.
 *)
 
-(* Debugging: set Fast_Arith.trace *)
-
 (*** Data needed for setting up the linear arithmetic package ***)
 
 signature LIN_ARITH_LOGIC =
@@ -49,8 +47,8 @@ mk_nat_thm(t) = "0 <= t"
 signature LIN_ARITH_DATA =
 sig
   (*internal representation of linear (in-)equations:*)
-  type decompT = (term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool
-  val decomp: Proof.context -> term -> decompT option
+  type decomp = (term * Rat.rat) list * Rat.rat * string * (term * Rat.rat) list * Rat.rat * bool
+  val decomp: Proof.context -> term -> decomp option
   val domain_is_nat: term -> bool
 
   (*preprocessing, performed on a representation of subgoals as list of premises:*)
@@ -349,7 +347,7 @@ fun calc_blowup l =
 (* ------------------------------------------------------------------------- *)
 
 fun allpairs f xs ys =
-  List.concat (map (fn x => map (fn y => f x y) ys) xs);
+  maps (fn x => map (fn y => f x y) ys) xs;
 
 fun extract_first p =
   let fun extract xs (y::ys) = if p y then (SOME y,xs@ys)
@@ -606,7 +604,7 @@ For variables n of type nat, a constraint 0 <= n is added.
 (*        failure as soon as a case could not be refuted; i.e. delay further *)
 (*        splitting until after a refutation for other cases has been found. *)
 
-fun split_items ctxt do_pre (Ts, terms) : (typ list * (LA_Data.decompT * int) list) list =
+fun split_items ctxt do_pre (Ts, terms) : (typ list * (LA_Data.decomp * int) list) list =
 let
   (* splits inequalities '~=' into '<' and '>'; this corresponds to *)
   (* 'REPEAT_DETERM (eresolve_tac neqE i)' at the theorem/tactic    *)
@@ -616,11 +614,11 @@ let
   (*        better (i.e. less likely to break when neqE changes)    *)
   (*        implementation should *test* which theorem from neqE    *)
   (*        can be applied, and split the premise accordingly.      *)
-  fun elim_neq (ineqs : (LA_Data.decompT option * bool) list) :
-               (LA_Data.decompT option * bool) list list =
+  fun elim_neq (ineqs : (LA_Data.decomp option * bool) list) :
+               (LA_Data.decomp option * bool) list list =
   let
-    fun elim_neq' nat_only ([] : (LA_Data.decompT option * bool) list) :
-                  (LA_Data.decompT option * bool) list list =
+    fun elim_neq' nat_only ([] : (LA_Data.decomp option * bool) list) :
+                  (LA_Data.decomp option * bool) list list =
           [[]]
       | elim_neq' nat_only ((NONE, is_nat) :: ineqs) =
           map (cons (NONE, is_nat)) (elim_neq' nat_only ineqs)
@@ -633,8 +631,7 @@ let
             map (cons ineq) (elim_neq' nat_only ineqs)
   in
     ineqs |> elim_neq' true
-          |> map (elim_neq' false)
-          |> List.concat
+          |> maps (elim_neq' false)
   end
 
   fun number_hyps _ []             = []
@@ -659,56 +656,53 @@ in
   result
 end;
 
-fun add_atoms (ats : term list, ((lhs,_,_,rhs,_,_) : LA_Data.decompT, _)) : term list =
+fun add_atoms (ats : term list, ((lhs,_,_,rhs,_,_) : LA_Data.decomp, _)) : term list =
     union_term (map fst lhs) (union_term (map fst rhs) ats);
 
-fun add_datoms (dats : (bool * term) list, ((lhs,_,_,rhs,_,d) : LA_Data.decompT, _)) :
+fun add_datoms (dats : (bool * term) list, ((lhs,_,_,rhs,_,d) : LA_Data.decomp, _)) :
   (bool * term) list =
   union_bterm (map (pair d o fst) lhs) (union_bterm (map (pair d o fst) rhs) dats);
 
-fun discr (initems : (LA_Data.decompT * int) list) : bool list =
+fun discr (initems : (LA_Data.decomp * int) list) : bool list =
   map fst (Library.foldl add_datoms ([],initems));
 
 fun refutes ctxt params show_ex :
-  (typ list * (LA_Data.decompT * int) list) list -> injust list -> injust list option =
-let
-  fun refute ((Ts : typ list, initems : (LA_Data.decompT * int) list)::initemss)
-             (js : injust list) : injust list option =
-    let
-      val atoms = Library.foldl add_atoms ([], initems)
-      val n = length atoms
-      val mkleq = mklineq n atoms
-      val ixs = 0 upto (n - 1)
-      val iatoms = atoms ~~ ixs
-      val natlineqs = List.mapPartial (mknat Ts ixs) iatoms
-      val ineqs = map mkleq initems @ natlineqs
-    in case elim (ineqs, []) of
-         Success j =>
-           (trace_msg ("Contradiction! (" ^ string_of_int (length js + 1) ^ ")");
-            refute initemss (js@[j]))
-       | Failure hist =>
-           (if not show_ex then
-              ()
-            else let
-              (* invent names for bound variables that are new, i.e. in Ts,  *)
-              (* but not in params; we assume that Ts still contains (map    *)
-              (* snd params) as a suffix                                     *)
-              val new_count = length Ts - length params - 1
-              val new_names = map Name.bound (0 upto new_count)
-              val params'   = (new_names @ map fst params) ~~ Ts
-            in
-              trace_ex ctxt params' atoms (discr initems) n hist
-            end; NONE)
-    end
-    | refute [] js = SOME js
-in refute end;
+    (typ list * (LA_Data.decomp * int) list) list -> injust list -> injust list option =
+  let
+    fun refute ((Ts, initems : (LA_Data.decomp * int) list) :: initemss) (js: injust list) =
+          let
+            val atoms = Library.foldl add_atoms ([], initems)
+            val n = length atoms
+            val mkleq = mklineq n atoms
+            val ixs = 0 upto (n - 1)
+            val iatoms = atoms ~~ ixs
+            val natlineqs = List.mapPartial (mknat Ts ixs) iatoms
+            val ineqs = map mkleq initems @ natlineqs
+          in case elim (ineqs, []) of
+               Success j =>
+                 (trace_msg ("Contradiction! (" ^ string_of_int (length js + 1) ^ ")");
+                  refute initemss (js @ [j]))
+             | Failure hist =>
+                 (if not show_ex then ()
+                  else
+                    let
+                      val (param_names, ctxt') = ctxt |> Variable.variant_fixes (map fst params)
+                      val (more_names, ctxt'') = ctxt' |> Variable.variant_fixes
+                        (Name.invents (Variable.names_of ctxt') Name.uu (length Ts - length params))
+                      val params' = (more_names @ param_names) ~~ Ts
+                    in
+                      trace_ex ctxt'' params' atoms (discr initems) n hist
+                    end; NONE)
+          end
+      | refute [] js = SOME js
+  in refute end;
 
 fun refute ctxt params show_ex do_pre terms : injust list option =
   refutes ctxt params show_ex (split_items ctxt do_pre (map snd params, terms)) [];
 
 fun count P xs = length (filter P xs);
 
-fun prove ctxt (params : (string * Term.typ) list) show_ex do_pre Hs concl : injust list option =
+fun prove ctxt params show_ex do_pre Hs concl : injust list option =
   let
     val _ = trace_msg "prove:"
     (* append the negated conclusion to 'Hs' -- this corresponds to     *)
@@ -850,7 +844,7 @@ fun prover ss thms Tconcl (js : injust list) pos : thm option =
 fun lin_arith_simproc ss concl =
   let
     val ctxt = Simplifier.the_context ss
-    val thms = List.concat (map LA_Logic.atomize (Simplifier.prems_of_ss ss))
+    val thms = maps LA_Logic.atomize (Simplifier.prems_of_ss ss)
     val Hs = map Thm.prop_of thms
     val Tconcl = LA_Logic.mk_Trueprop concl
   in
