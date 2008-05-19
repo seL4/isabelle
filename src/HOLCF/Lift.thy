@@ -6,7 +6,7 @@
 header {* Lifting types of class type to flat pcpo's *}
 
 theory Lift
-imports Discrete Up Cprod
+imports Discrete Up Cprod Countable
 begin
 
 defaultsort type
@@ -203,5 +203,52 @@ fun cont_tacRs ss i =
   REPEAT (cont_tac i)
 end;
 *}
+
+subsection {* Lifted countable types are bifinite *}
+
+instantiation lift :: (countable) bifinite
+begin
+
+definition
+  approx_lift_def:
+    "approx = (\<lambda>n. FLIFT x. if to_nat x < n then Def x else \<bottom>)"
+
+instance proof
+  fix x :: "'a lift"
+  show "chain (\<lambda>i. approx i\<cdot>x)"
+    unfolding approx_lift_def
+    by (rule chainI, cases x, simp_all)
+next
+  fix x :: "'a lift"
+  show "(\<Squnion>i. approx i\<cdot>x) = x"
+    unfolding approx_lift_def
+    apply (cases x, simp)
+    apply (rule thelubI)
+    apply (rule is_lubI)
+     apply (rule ub_rangeI, simp)
+    apply (drule ub_rangeD)
+    apply (erule rev_trans_less)
+    apply simp
+    apply (rule lessI)
+    done
+next
+  fix i :: nat and x :: "'a lift"
+  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+    unfolding approx_lift_def
+    by (cases x, simp, simp)
+next
+  fix i :: nat
+  show "finite {x::'a lift. approx i\<cdot>x = x}"
+  proof (rule finite_subset)
+    let ?S = "insert (\<bottom>::'a lift) (Def ` to_nat -` {..<i})"
+    show "{x::'a lift. approx i\<cdot>x = x} \<subseteq> ?S"
+      unfolding approx_lift_def
+      by (rule subsetI, case_tac x, simp, simp split: split_if_asm)
+    show "finite ?S"
+      by (simp add: finite_vimageI)
+  qed
+qed
+
+end
 
 end
