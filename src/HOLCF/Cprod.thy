@@ -342,14 +342,14 @@ lemmas Cprod_rews = cfst_cpair csnd_cpair csplit2
 
 subsection {* Product type is a bifinite domain *}
 
-instance "*" :: (profinite, profinite) approx ..
+instantiation "*" :: (profinite, profinite) profinite
+begin
 
-defs (overloaded)
+definition
   approx_cprod_def:
-    "approx \<equiv> \<lambda>n. \<Lambda>\<langle>x, y\<rangle>. \<langle>approx n\<cdot>x, approx n\<cdot>y\<rangle>"
+    "approx = (\<lambda>n. \<Lambda>\<langle>x, y\<rangle>. \<langle>approx n\<cdot>x, approx n\<cdot>y\<rangle>)"
 
-instance "*" :: (profinite, profinite) profinite
-proof
+instance proof
   fix i :: nat and x :: "'a \<times> 'b"
   show "chain (\<lambda>i. approx i\<cdot>x)"
     unfolding approx_cprod_def by simp
@@ -366,6 +366,8 @@ proof
     by (rule finite_subset,
         intro finite_cartesian_product finite_fixes_approx)
 qed
+
+end
 
 instance "*" :: (bifinite, bifinite) bifinite ..
 

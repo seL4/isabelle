@@ -11,17 +11,14 @@ begin
 
 subsection {* Omega-profinite and bifinite domains *}
 
-axclass approx < cpo
+class profinite = cpo +
+  fixes approx :: "nat \<Rightarrow> 'a \<rightarrow> 'a"
+  assumes chain_approx_app: "chain (\<lambda>i. approx i\<cdot>x)"
+  assumes lub_approx_app [simp]: "(\<Squnion>i. approx i\<cdot>x) = x"
+  assumes approx_idem: "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+  assumes finite_fixes_approx: "finite {x. approx i\<cdot>x = x}"
 
-consts approx :: "nat \<Rightarrow> 'a::approx \<rightarrow> 'a"
-
-axclass profinite < approx
-  chain_approx_app: "chain (\<lambda>i. approx i\<cdot>x)"
-  lub_approx_app [simp]: "(\<Squnion>i. approx i\<cdot>x) = x"
-  approx_idem: "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-  finite_fixes_approx: "finite {x. approx i\<cdot>x = x}"
-
-axclass bifinite < profinite, pcpo
+class bifinite = profinite + pcpo
 
 lemma finite_range_imp_finite_fixes:
   "finite {x. \<exists>y. x = f y} \<Longrightarrow> finite {x. f x = x}"
@@ -178,13 +175,14 @@ lemma finite_range_lemma:
  apply clarsimp
 done
 
-instance "->" :: (profinite, profinite) approx ..
+instantiation "->" :: (profinite, profinite) profinite
+begin
 
-defs (overloaded)
+definition
   approx_cfun_def:
-    "approx \<equiv> \<lambda>n. \<Lambda> f x. approx n\<cdot>(f\<cdot>(approx n\<cdot>x))"
+    "approx = (\<lambda>n. \<Lambda> f x. approx n\<cdot>(f\<cdot>(approx n\<cdot>x)))"
 
-instance "->" :: (profinite, profinite) profinite
+instance
  apply (intro_classes, unfold approx_cfun_def)
     apply simp
    apply (simp add: lub_distribs eta_cfun)
@@ -193,6 +191,8 @@ instance "->" :: (profinite, profinite) profinite
  apply (rule finite_range_imp_finite_fixes)
  apply (intro finite_range_lemma finite_approx)
 done
+
+end
 
 instance "->" :: (profinite, bifinite) bifinite ..
 

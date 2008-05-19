@@ -230,14 +230,14 @@ done
 
 subsection {* Strict product is a bifinite domain *}
 
-instance "**" :: (bifinite, bifinite) approx ..
+instantiation "**" :: (bifinite, bifinite) bifinite
+begin
 
-defs (overloaded)
+definition
   approx_sprod_def:
-    "approx \<equiv> \<lambda>n. \<Lambda>(:x, y:). (:approx n\<cdot>x, approx n\<cdot>y:)"
+    "approx = (\<lambda>n. \<Lambda>(:x, y:). (:approx n\<cdot>x, approx n\<cdot>y:))"
 
-instance "**" :: (bifinite, bifinite) bifinite
-proof
+instance proof
   fix i :: nat and x :: "'a \<otimes> 'b"
   show "chain (\<lambda>i. approx i\<cdot>x)"
     unfolding approx_sprod_def by simp
@@ -258,6 +258,8 @@ proof
   thus "finite {x::'a \<otimes> 'b. approx i\<cdot>x = x}"
     by (rule finite_imageD, simp add: inj_on_def Rep_Sprod_inject)
 qed
+
+end
 
 lemma approx_spair [simp]:
   "approx i\<cdot>(:x, y:) = (:approx i\<cdot>x, approx i\<cdot>y:)"

@@ -206,18 +206,21 @@ by (rule convex_pd_minimal [THEN UU_I, symmetric])
 
 subsection {* Approximation *}
 
-instance convex_pd :: (profinite) approx ..
+instantiation convex_pd :: (profinite) profinite
+begin
 
-defs (overloaded)
-  approx_convex_pd_def: "approx \<equiv> convex_pd.completion_approx"
+definition
+  approx_convex_pd_def: "approx = convex_pd.completion_approx"
 
-instance convex_pd :: (profinite) profinite
+instance
 apply (intro_classes, unfold approx_convex_pd_def)
 apply (simp add: convex_pd.chain_completion_approx)
 apply (rule convex_pd.lub_completion_approx)
 apply (rule convex_pd.completion_approx_idem)
 apply (rule convex_pd.finite_fixes_completion_approx)
 done
+
+end
 
 instance convex_pd :: (bifinite) bifinite ..
 

@@ -216,11 +216,12 @@ done
 
 subsection {* Strict sum is a bifinite domain *}
 
-instance "++" :: (bifinite, bifinite) approx ..
+instantiation "++" :: (bifinite, bifinite) bifinite
+begin
 
-defs (overloaded)
+definition
   approx_ssum_def:
-    "approx \<equiv> \<lambda>n. sscase\<cdot>(\<Lambda> x. sinl\<cdot>(approx n\<cdot>x))\<cdot>(\<Lambda> y. sinr\<cdot>(approx n\<cdot>y))"
+    "approx = (\<lambda>n. sscase\<cdot>(\<Lambda> x. sinl\<cdot>(approx n\<cdot>x))\<cdot>(\<Lambda> y. sinr\<cdot>(approx n\<cdot>y)))"
 
 lemma approx_sinl [simp]: "approx i\<cdot>(sinl\<cdot>x) = sinl\<cdot>(approx i\<cdot>x)"
 unfolding approx_ssum_def by (cases "x = \<bottom>") simp_all
@@ -228,8 +229,7 @@ unfolding approx_ssum_def by (cases "x = \<bottom>") simp_all
 lemma approx_sinr [simp]: "approx i\<cdot>(sinr\<cdot>x) = sinr\<cdot>(approx i\<cdot>x)"
 unfolding approx_ssum_def by (cases "x = \<bottom>") simp_all
 
-instance "++" :: (bifinite, bifinite) bifinite
-proof
+instance proof
   fix i :: nat and x :: "'a \<oplus> 'b"
   show "chain (\<lambda>i. approx i\<cdot>x)"
     unfolding approx_ssum_def by simp
@@ -246,5 +246,7 @@ proof
     by (rule finite_subset,
         intro finite_UnI finite_imageI finite_fixes_approx)
 qed
+
+end
 
 end

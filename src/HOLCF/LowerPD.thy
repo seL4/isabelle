@@ -158,18 +158,21 @@ by (rule lower_pd_minimal [THEN UU_I, symmetric])
 
 subsection {* Approximation *}
 
-instance lower_pd :: (profinite) approx ..
+instantiation lower_pd :: (profinite) profinite
+begin
 
-defs (overloaded)
-  approx_lower_pd_def: "approx \<equiv> lower_pd.completion_approx"
+definition
+  approx_lower_pd_def: "approx = lower_pd.completion_approx"
 
-instance lower_pd :: (profinite) profinite
+instance
 apply (intro_classes, unfold approx_lower_pd_def)
 apply (simp add: lower_pd.chain_completion_approx)
 apply (rule lower_pd.lub_completion_approx)
 apply (rule lower_pd.completion_approx_idem)
 apply (rule lower_pd.finite_fixes_completion_approx)
 done
+
+end
 
 instance lower_pd :: (bifinite) bifinite ..
 
