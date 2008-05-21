@@ -132,6 +132,72 @@ illustration of presented theorems by particular examples.
 
 *** HOL ***
 
+* Turned the type of sets "'a set" into an abbreviation for "'a => bool"
+
+  INCOMPATIBILITIES:
+
+  - Definitions of overloaded constants on sets have to be
+    replaced by definitions on => and bool.
+
+  - Some definitions of overloaded operators on sets can now be proved
+    using the definitions of the operators on => and bool.
+    Therefore, the following theorems have been renamed:
+
+      subset_def   -> subset_eq
+      psubset_def  -> psubset_eq
+      set_diff_def -> set_diff_eq
+      Compl_def    -> Compl_eq
+      Sup_set_def  -> Sup_set_eq
+      Inf_set_def  -> Inf_set_eq
+      sup_set_def  -> sup_set_eq
+      inf_set_def  -> inf_set_eq
+
+  - Due to the incompleteness of the HO unification algorithm, some
+    rules such as subst may require manual instantiation, if some of
+    the unknowns in the rule is a set.
+
+  - Higher order unification and forward proofs:
+    The proof pattern
+
+      have "P (S::'a set)" <...>
+      then have "EX S. P S" ..
+
+    no longer works (due to the incompleteness of the HO unification algorithm)
+    and must be replaced by the pattern
+
+      have "EX S. P S"
+      proof
+        show "P S" <...>
+      qed
+
+  - Calculational reasoning with subst (or similar rules):
+    The proof pattern
+
+      have "P (S::'a set)" <...>
+      also have "S = T" <...>
+      finally have "P T" .
+
+    no longer works (for similar reasons as the previous example) and must be
+    replaced by something like
+
+      have "P (S::'a set)" <...>
+      moreover have "S = T" <...>
+      ultimately have "P T" by simp
+
+  - Tactics or packages written in ML code:
+    Code performing pattern matching on types via
+
+      Type ("set", [T]) => ...
+
+    must be rewritten. Moreover, functions like strip_type or binder_types no
+    longer return the right value when applied to a type of the form
+
+      T1 => ... => Tn => U => bool
+
+    rather than
+
+      T1 => ... => Tn => U set
+
 * Merged theories Wellfounded_Recursion, Accessible_Part and
 Wellfounded_Relations to "Wellfounded.thy".
 
