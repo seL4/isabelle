@@ -57,10 +57,10 @@ in
         val _    = AnnoMaLy.nameNextStream arcs
     in  smlnj_use_text tune str_of_pos (line, name) p v t  end;
 
-  fun use_file tune output verbose name =
+  fun use_file tune str_of_pos output verbose name =
       let val arcs = rewrite ["use_file"] name
           val _    = AnnoMaLy.nameNextStream arcs
-      in  smlnj_use_file tune output verbose name  end;
+      in  smlnj_use_file tune str_of_pos output verbose name  end;
 
   fun forget_structure name =
       let val arcs = [ "forget_structure", name ]
