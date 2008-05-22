@@ -137,7 +137,7 @@ lemma Isubst_eqvt[eqvt]:
   and   t2::"trmI"
   and   x::"name"
   shows "pi\<bullet>(t1[x::=t2]) = ((pi\<bullet>t1)[(pi\<bullet>x)::=(pi\<bullet>t2)])"
-  apply (nominal_induct t1 avoiding: x t2 rule: trmI.induct)
+  apply (nominal_induct t1 avoiding: x t2 rule: trmI.strong_induct)
   apply (simp_all add: Isubst.simps eqvts fresh_bij)
   done
 
@@ -146,7 +146,7 @@ lemma Isubst_supp:
   and   t2::"trmI"
   and   x::"name"
   shows "((supp (t1[x::=t2]))::name set) \<subseteq> (supp t2)\<union>((supp t1)-{x})"
-  apply (nominal_induct t1 avoiding: x t2 rule: trmI.induct)
+  apply (nominal_induct t1 avoiding: x t2 rule: trmI.strong_induct)
   apply (auto simp add: Isubst.simps trmI.supp supp_atm abs_supp supp_nat)
   apply blast+
   done

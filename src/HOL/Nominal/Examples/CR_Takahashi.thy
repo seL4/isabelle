@@ -36,31 +36,31 @@ section {* Lemmas about Capture-Avoiding Substitution *}
  
 lemma  subst_eqvt[eqvt]:
   fixes pi::"name prm"
-  shows "pi\<bullet>t1[x::=t2] = (pi\<bullet>t1)[(pi\<bullet>x)::=(pi\<bullet>t2)]"
-by (nominal_induct t1 avoiding: x t2 rule: lam.induct)
+  shows "pi\<bullet>(t1[x::=t2]) = (pi\<bullet>t1)[(pi\<bullet>x)::=(pi\<bullet>t2)]"
+by (nominal_induct t1 avoiding: x t2 rule: lam.strong_induct)
    (auto simp add: perm_bij fresh_atm fresh_bij)
 
 lemma forget:
   shows "x\<sharp>t \<Longrightarrow> t[x::=s] = t"
-by (nominal_induct t avoiding: x s rule: lam.induct)
+by (nominal_induct t avoiding: x s rule: lam.strong_induct)
    (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact:
   fixes z::"name"
-  shows "z\<sharp>s \<and> (z=y \<or> z\<sharp>t) \<Longrightarrow> z\<sharp>t[y::=s]"
-by (nominal_induct t avoiding: z y s rule: lam.induct)
+  shows "\<lbrakk>z\<sharp>s; (z=y \<or> z\<sharp>t)\<rbrakk> \<Longrightarrow> z\<sharp>t[y::=s]"
+by (nominal_induct t avoiding: z y s rule: lam.strong_induct)
    (auto simp add: abs_fresh fresh_prod fresh_atm)
 
 lemma substitution_lemma:  
   assumes a: "x\<noteq>y" "x\<sharp>u"
   shows "t[x::=s][y::=u] = t[y::=u][x::=s[y::=u]]"
-using a by (nominal_induct t avoiding: x y s u rule: lam.induct)
+using a by (nominal_induct t avoiding: x y s u rule: lam.strong_induct)
            (auto simp add: fresh_fact forget)
 
 lemma subst_rename: 
   assumes a: "y\<sharp>t"
   shows "t[x::=s] = ([(y,x)]\<bullet>t)[y::=s]"
-using a by (nominal_induct t avoiding: x y s rule: lam.induct)
+using a by (nominal_induct t avoiding: x y s rule: lam.strong_induct)
            (auto simp add: calc_atm fresh_atm abs_fresh)
 
 section {* Beta-Reduction *}
@@ -98,7 +98,7 @@ nominal_inductive One
 
 lemma One_refl:
   shows "t \<longrightarrow>\<^isub>1 t"
-by (nominal_induct t rule: lam.induct) (auto)
+by (nominal_induct t rule: lam.strong_induct) (auto)
 
 lemma One_subst: 
   assumes a: "t1 \<longrightarrow>\<^isub>1 t2" "s1 \<longrightarrow>\<^isub>1 s2"
@@ -134,12 +134,6 @@ lemma One_App:
   assumes a: "App t s \<longrightarrow>\<^isub>1 r"
   shows "(\<exists>t' s'. r = App t' s' \<and> t \<longrightarrow>\<^isub>1 t' \<and> s \<longrightarrow>\<^isub>1 s') \<or> 
          (\<exists>x p p' s'. r = p'[x::=s'] \<and> t = Lam [x].p \<and> p \<longrightarrow>\<^isub>1 p' \<and> s \<longrightarrow>\<^isub>1 s' \<and> x\<sharp>(s,s'))" 
-using a by (cases rule: One.cases) (auto simp add: lam.inject)
-
-lemma One_App_: 
-  assumes a: "App t s \<longrightarrow>\<^isub>1 r"
-  obtains t' s' where "r = App t' s'" "t \<longrightarrow>\<^isub>1 t'" "s \<longrightarrow>\<^isub>1 s'" 
-        | x p p' s' where "r = p'[x::=s']" "t = Lam [x].p" "p \<longrightarrow>\<^isub>1 p'" "s \<longrightarrow>\<^isub>1 s'" "x\<sharp>(s,s')"
 using a by (cases rule: One.cases) (auto simp add: lam.inject)
 
 lemma One_Redex: 
@@ -205,9 +199,10 @@ qed
 
 lemma Development_existence:
   shows "\<exists>M'. M \<longrightarrow>\<^isub>d M'"
-by (nominal_induct M rule: lam.induct)
+by (nominal_induct M rule: lam.strong_induct)
    (auto dest!: Dev_Lam intro: better_d4_intro)
 
+(* needs fixing *)
 lemma Triangle:
   assumes a: "t \<longrightarrow>\<^isub>d t1" "t \<longrightarrow>\<^isub>1 t2"
   shows "t2 \<longrightarrow>\<^isub>1 t1"
@@ -220,7 +215,7 @@ proof(nominal_induct avoiding: t2 rule: Dev.strong_induct)
   have "App (Lam [x].t1) s1 \<longrightarrow>\<^isub>1 t2" by fact
   then obtain t' s' where "(t2 = App (Lam [x].t') s' \<and> t1 \<longrightarrow>\<^isub>1 t' \<and> s1 \<longrightarrow>\<^isub>1 s') \<or> 
                            (t2 = t'[x::=s'] \<and> t1 \<longrightarrow>\<^isub>1 t' \<and> s1 \<longrightarrow>\<^isub>1 s')"
-    (* MARKUS: How does I do this better *) using fc by (auto dest!: One_Redex)
+  using fc by (auto dest!: One_Redex)
   then show "t2 \<longrightarrow>\<^isub>1 t1'[x::=s2]"
     apply -
     apply(erule disjE)
@@ -282,18 +277,12 @@ lemma One_implies_Beta_star:
   shows "t \<longrightarrow>\<^isub>\<beta>\<^sup>* s"
 using a by (induct) (auto intro!: Beta_congs)
 
-lemma One_star_Lam_cong: 
+lemma One_congs: 
   assumes a: "t1 \<longrightarrow>\<^isub>1\<^sup>* t2" 
   shows "Lam [x].t1 \<longrightarrow>\<^isub>1\<^sup>* Lam [x].t2"
-using a by (induct) (auto)
-
-lemma One_star_App_cong: 
-  assumes a: "t1 \<longrightarrow>\<^isub>1\<^sup>* t2" 
-  shows "App t1 s \<longrightarrow>\<^isub>1\<^sup>* App t2 s"
+  and   "App t1 s \<longrightarrow>\<^isub>1\<^sup>* App t2 s"
   and   "App s t1 \<longrightarrow>\<^isub>1\<^sup>* App s t2"
 using a by (induct) (auto intro: One_refl)
-
-lemmas One_congs = One_star_App_cong One_star_Lam_cong
 
 lemma Beta_implies_One_star: 
   assumes a: "t1 \<longrightarrow>\<^isub>\<beta> t2" 

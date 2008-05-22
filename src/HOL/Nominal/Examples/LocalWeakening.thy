@@ -26,7 +26,7 @@ text {* definition of vsub - at the moment a bit cumbersome *}
 lemma llam_cases:
   "(\<exists>a. t = lPar a) \<or> (\<exists>n. t = lVar n) \<or> (\<exists>t1 t2. t = lApp t1 t2) \<or> 
    (\<exists>t1. t = lLam t1)"
-by (induct t rule: llam.weak_induct)
+by (induct t rule: llam.induct)
    (auto simp add: llam.inject)
 
 consts llam_size :: "llam \<Rightarrow> nat"
@@ -61,7 +61,7 @@ qed (auto)
 lemma vsub_eqvt[eqvt]:
   fixes pi::"name prm" 
   shows "pi\<bullet>(vsub t n s) = vsub (pi\<bullet>t) (pi\<bullet>n) (pi\<bullet>s)"
-by (induct t arbitrary: n rule: llam.weak_induct)
+by (induct t arbitrary: n rule: llam.induct)
    (simp_all add: perm_nat_def)
 
 constdefs
@@ -83,7 +83,7 @@ lemma ty_fresh[simp]:
   fixes x::"name"
   and   T::"ty"
   shows "x\<sharp>T"
-by (induct T rule: ty.weak_induct) 
+by (induct T rule: ty.induct) 
    (simp_all add: fresh_nat)
 
 text {* valid contexts *}

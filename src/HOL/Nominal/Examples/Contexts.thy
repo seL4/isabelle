@@ -93,7 +93,7 @@ by (rule TrueI)+
   
 lemma ctx_compose:
   shows "(E1 \<circ> E2)\<lbrakk>t\<rbrakk> = E1\<lbrakk>E2\<lbrakk>t\<rbrakk>\<rbrakk>"
-by (induct E1 rule: ctx.weak_induct) (auto)
+by (induct E1 rule: ctx.induct) (auto)
 
 text {* Beta-reduction via contexts in the Felleisen-Hieb style. *}
 
@@ -118,7 +118,7 @@ lemma cong_red_in_ctx:
   assumes a: "t \<longrightarrow>o t'"
   shows "E\<lbrakk>t\<rbrakk> \<longrightarrow>o E\<lbrakk>t'\<rbrakk>"
 using a
-by (induct E rule: ctx.weak_induct) (auto)
+by (induct E rule: ctx.induct) (auto)
 
 lemma ctx_red_in_ctx:
   assumes a: "t \<longrightarrow>x t'"

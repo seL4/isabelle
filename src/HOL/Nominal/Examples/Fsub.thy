@@ -156,7 +156,7 @@ lemma ty_vrs_prm_simp:
   fixes pi::"vrs prm"
   and   S::"ty"
   shows "pi\<bullet>S = S"
-by (induct S rule: ty.weak_induct) (auto simp add: calc_atm)
+by (induct S rule: ty.induct) (auto simp add: calc_atm)
 
 lemma ty_context_vrs_prm_simp:
   fixes pi::"vrs prm"
@@ -341,7 +341,7 @@ lemma subtype_reflexivity:
   and b: "T closed_in \<Gamma>"
   shows "\<Gamma> \<turnstile> T <: T"
 using a b
-proof(nominal_induct T avoiding: \<Gamma> rule: ty.induct)
+proof(nominal_induct T avoiding: \<Gamma> rule: ty.strong_induct)
   case (Forall X T\<^isub>1 T\<^isub>2)
   have ih_T\<^isub>1: "\<And>\<Gamma>. \<lbrakk>\<turnstile> \<Gamma> ok; T\<^isub>1 closed_in \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>1 <: T\<^isub>1" by fact 
   have ih_T\<^isub>2: "\<And>\<Gamma>. \<lbrakk>\<turnstile> \<Gamma> ok; T\<^isub>2 closed_in \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> T\<^isub>2 <: T\<^isub>2" by fact
@@ -364,7 +364,7 @@ lemma subtype_reflexivity_semiautomated:
   and     b: "T closed_in \<Gamma>"
   shows "\<Gamma> \<turnstile> T <: T"
 using a b
-apply(nominal_induct T avoiding: \<Gamma> rule: ty.induct)
+apply(nominal_induct T avoiding: \<Gamma> rule: ty.strong_induct)
 apply(auto simp add: ty.supp abs_supp supp_atm closed_in_def)
   --{* Too bad that this instantiation cannot be found automatically by
   \isakeyword{auto}; \isakeyword{blast} would find it if we had not used 

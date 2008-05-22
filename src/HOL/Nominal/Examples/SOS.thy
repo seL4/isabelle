@@ -31,7 +31,7 @@ lemma fresh_ty:
   fixes x::"name" 
   and   T::"ty"
   shows "x\<sharp>T"
-by (induct T rule: ty.weak_induct)
+by (induct T rule: ty.induct)
    (auto simp add: fresh_nat)
 
 text {* Parallel and single substitution. *}
@@ -80,7 +80,7 @@ lemma psubst_eqvt[eqvt]:
   fixes pi::"name prm" 
   and   t::"trm"
   shows "pi\<bullet>(\<theta><t>) = (pi\<bullet>\<theta>)<(pi\<bullet>t)>"
-by (nominal_induct t avoiding: \<theta> rule: trm.induct)
+by (nominal_induct t avoiding: \<theta> rule: trm.strong_induct)
    (perm_simp add: fresh_bij lookup_eqvt)+
 
 lemma fresh_psubst: 
@@ -89,12 +89,12 @@ lemma fresh_psubst:
   assumes "z\<sharp>t" and "z\<sharp>\<theta>"
   shows "z\<sharp>(\<theta><t>)"
 using assms
-by (nominal_induct t avoiding: z \<theta> t rule: trm.induct)
+by (nominal_induct t avoiding: z \<theta> t rule: trm.strong_induct)
    (auto simp add: abs_fresh lookup_fresh)
 
 lemma psubst_empty[simp]:
   shows "[]<t> = t"
-  by (nominal_induct t rule: trm.induct) 
+  by (nominal_induct t rule: trm.strong_induct) 
      (auto simp add: fresh_list_nil)
 
 text {* Single substitution *}
@@ -116,28 +116,28 @@ lemma fresh_subst:
   assumes a: "z\<sharp>t\<^isub>1" "z\<sharp>t\<^isub>2"
   shows "z\<sharp>t\<^isub>1[y::=t\<^isub>2]"
 using a
-by (nominal_induct t\<^isub>1 avoiding: z y t\<^isub>2 rule: trm.induct)
+by (nominal_induct t\<^isub>1 avoiding: z y t\<^isub>2 rule: trm.strong_induct)
    (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_subst':
   assumes "x\<sharp>e'"
   shows "x\<sharp>e[x::=e']"
   using assms 
-by (nominal_induct e avoiding: x e' rule: trm.induct)
+by (nominal_induct e avoiding: x e' rule: trm.strong_induct)
    (auto simp add: fresh_atm abs_fresh fresh_nat) 
 
 lemma forget: 
   assumes a: "x\<sharp>e" 
   shows "e[x::=e'] = e"
 using a
-by (nominal_induct e avoiding: x e' rule: trm.induct)
+by (nominal_induct e avoiding: x e' rule: trm.strong_induct)
    (auto simp add: fresh_atm abs_fresh)
 
 lemma psubst_subst_psubst:
   assumes h: "x\<sharp>\<theta>"
   shows "\<theta><e>[x::=e'] = ((x,e')#\<theta>)<e>"
   using h
-by (nominal_induct e avoiding: \<theta> x e' rule: trm.induct)
+by (nominal_induct e avoiding: \<theta> x e' rule: trm.strong_induct)
    (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh')
 
 text {* Typing Judgements *}
@@ -264,7 +264,7 @@ lemma typing_substitution:
   and     "\<Gamma> \<turnstile> e': T'" 
   shows "\<Gamma> \<turnstile> e[x::=e'] : T"
   using assms
-proof (nominal_induct e avoiding: \<Gamma> e' x arbitrary: T rule: trm.induct)
+proof (nominal_induct e avoiding: \<Gamma> e' x arbitrary: T rule: trm.strong_induct)
   case (Var y \<Gamma> e' x T)
   have h1: "(x,T')#\<Gamma> \<turnstile> Var y : T" by fact
   have h2: "\<Gamma> \<turnstile> e' : T'" by fact
@@ -421,7 +421,7 @@ lemma V_eqvt:
   assumes a: "x\<in>V T"
   shows "(pi\<bullet>x)\<in>V T"
 using a
-apply(nominal_induct T arbitrary: pi x rule: ty.induct)
+apply(nominal_induct T arbitrary: pi x rule: ty.strong_induct)
 apply(auto simp add: trm.inject)
 apply(simp add: eqvts)
 apply(rule_tac x="pi\<bullet>xa" in exI)
@@ -477,7 +477,7 @@ done
 lemma Vs_are_values:
   assumes a: "e \<in> V T"
   shows "val e"
-using a by (nominal_induct T arbitrary: e rule: ty.induct) (auto)
+using a by (nominal_induct T arbitrary: e rule: ty.strong_induct) (auto)
 
 lemma values_reduce_to_themselves:
   assumes a: "val v"
@@ -531,7 +531,7 @@ lemma termination_aux:
   and     h2: "\<theta> Vcloses \<Gamma>"
   shows "\<exists>v. \<theta><e> \<Down> v \<and> v \<in> V T" 
 using h2 h1
-proof(nominal_induct e avoiding: \<Gamma> \<theta> arbitrary: T rule: trm.induct)
+proof(nominal_induct e avoiding: \<Gamma> \<theta> arbitrary: T rule: trm.strong_induct)
   case (App e\<^isub>1 e\<^isub>2 \<Gamma> \<theta> T)
   have ih\<^isub>1:"\<And>\<theta> \<Gamma> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> e\<^isub>1 : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><e\<^isub>1> \<Down> v \<and> v \<in> V T" by fact
   have ih\<^isub>2:"\<And>\<theta> \<Gamma> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> e\<^isub>2 : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><e\<^isub>2> \<Down> v \<and> v \<in> V T" by fact

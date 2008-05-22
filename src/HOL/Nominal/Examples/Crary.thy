@@ -34,7 +34,7 @@ lemma perm_ty[simp]:
   fixes T::"ty"
   and   pi::"name prm"
   shows "pi\<bullet>T = T"
-  by (induct T rule: ty.weak_induct) (simp_all)
+  by (induct T rule: ty.induct) (simp_all)
 
 lemma fresh_ty[simp]:
   fixes x::"name" 
@@ -45,7 +45,7 @@ lemma fresh_ty[simp]:
 lemma ty_cases:
   fixes T::ty
   shows "(\<exists> T\<^isub>1 T\<^isub>2. T=T\<^isub>1\<rightarrow>T\<^isub>2) \<or> T=TUnit \<or> T=TBase"
-by (induct T rule:ty.weak_induct) (auto)
+by (induct T rule:ty.induct) (auto)
 
 instance ty :: size ..
 
@@ -58,7 +58,7 @@ by (rule TrueI)+
 lemma ty_size_greater_zero[simp]:
   fixes T::"ty"
   shows "size T > 0"
-by (nominal_induct rule:ty.induct) (simp_all)
+by (nominal_induct rule: ty.strong_induct) (simp_all)
 
 section {* Substitutions *}
 
@@ -119,7 +119,7 @@ lemma subst[simp]:
 lemma subst_eqvt[eqvt]:
   fixes pi::"name prm" 
   shows "pi\<bullet>(t[x::=t']) = (pi\<bullet>t)[(pi\<bullet>x)::=(pi\<bullet>t')]"
-  by (nominal_induct t avoiding: x t' rule: trm.induct)
+  by (nominal_induct t avoiding: x t' rule: trm.strong_induct)
      (perm_simp add: fresh_bij)+
 
 lemma subst_rename: 
@@ -127,7 +127,7 @@ lemma subst_rename:
   assumes a: "c\<sharp>t\<^isub>1"
   shows "t\<^isub>1[a::=t\<^isub>2] = ([(c,a)]\<bullet>t\<^isub>1)[c::=t\<^isub>2]"
 using a
-apply(nominal_induct t\<^isub>1 avoiding: a c t\<^isub>2 rule: trm.induct)
+apply(nominal_induct t\<^isub>1 avoiding: a c t\<^isub>2 rule: trm.strong_induct)
 apply(simp add: trm.inject calc_atm fresh_atm abs_fresh perm_nat_def)+
 done
 
@@ -136,7 +136,7 @@ lemma fresh_psubst:
   assumes a: "z\<sharp>t" "z\<sharp>\<theta>"
   shows "z\<sharp>(\<theta><t>)"
 using a
-by (nominal_induct t avoiding: z \<theta> t rule: trm.induct)
+by (nominal_induct t avoiding: z \<theta> t rule: trm.strong_induct)
    (auto simp add: abs_fresh lookup_fresh)
 
 lemma fresh_subst'':
@@ -144,7 +144,7 @@ lemma fresh_subst'':
   assumes "z\<sharp>t\<^isub>2"
   shows "z\<sharp>t\<^isub>1[z::=t\<^isub>2]"
 using assms 
-by (nominal_induct t\<^isub>1 avoiding: t\<^isub>2 z rule: trm.induct)
+by (nominal_induct t\<^isub>1 avoiding: t\<^isub>2 z rule: trm.strong_induct)
    (auto simp add: abs_fresh fresh_nat fresh_atm)
 
 lemma fresh_subst':
@@ -152,7 +152,7 @@ lemma fresh_subst':
   assumes "z\<sharp>[y].t\<^isub>1" "z\<sharp>t\<^isub>2"
   shows "z\<sharp>t\<^isub>1[y::=t\<^isub>2]"
 using assms 
-by (nominal_induct t\<^isub>1 avoiding: y t\<^isub>2 z rule: trm.induct)
+by (nominal_induct t\<^isub>1 avoiding: y t\<^isub>2 z rule: trm.strong_induct)
    (auto simp add: abs_fresh fresh_nat fresh_atm)
 
 lemma fresh_subst:
@@ -166,7 +166,7 @@ lemma fresh_psubst_simp:
   assumes "x\<sharp>t"
   shows "((x,u)#\<theta>)<t> = \<theta><t>" 
 using assms
-proof (nominal_induct t avoiding: x u \<theta> rule: trm.induct)
+proof (nominal_induct t avoiding: x u \<theta> rule: trm.strong_induct)
   case (Lam y t x u)
   have fs: "y\<sharp>\<theta>" "y\<sharp>x" "y\<sharp>u" by fact+
   moreover have "x\<sharp> Lam [y].t" by fact 
@@ -184,7 +184,7 @@ lemma forget:
   assumes a: "x\<sharp>t" 
   shows "t[x::=t'] = t"
   using a
-by (nominal_induct t avoiding: x t' rule: trm.induct)
+by (nominal_induct t avoiding: x t' rule: trm.strong_induct)
    (auto simp add: fresh_atm abs_fresh)
 
 lemma subst_fun_eq:
@@ -207,14 +207,14 @@ qed
 
 lemma psubst_empty[simp]:
   shows "[]<t> = t"
-by (nominal_induct t rule: trm.induct) 
+by (nominal_induct t rule: trm.strong_induct) 
    (auto simp add: fresh_list_nil)
 
 lemma psubst_subst_psubst:
   assumes h:"c\<sharp>\<theta>"
   shows "\<theta><t>[c::=s] = ((c,s)#\<theta>)<t>"
   using h
-by (nominal_induct t avoiding: \<theta> c s rule: trm.induct)
+by (nominal_induct t avoiding: \<theta> c s rule: trm.strong_induct)
    (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh' fresh_psubst)
 
 lemma subst_fresh_simp:
@@ -227,7 +227,7 @@ lemma psubst_subst_propagate:
   assumes "x\<sharp>\<theta>" 
   shows "\<theta><t[x::=u]> = \<theta><t>[x::=\<theta><u>]"
 using assms
-proof (nominal_induct t avoiding: x u \<theta> rule: trm.induct)
+proof (nominal_induct t avoiding: x u \<theta> rule: trm.strong_induct)
   case (Var n x u \<theta>)
   { assume "x=n"
     moreover have "x\<sharp>\<theta>" by fact 
@@ -654,7 +654,7 @@ qed (auto)
 lemma main_lemma:
   shows "\<Gamma> \<turnstile> s is t : T \<Longrightarrow> valid \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> s \<Leftrightarrow> t : T" 
     and "\<Gamma> \<turnstile> p \<leftrightarrow> q : T \<Longrightarrow> \<Gamma> \<turnstile> p is q : T"
-proof (nominal_induct T arbitrary: \<Gamma> s t p q rule: ty.induct)
+proof (nominal_induct T arbitrary: \<Gamma> s t p q rule: ty.strong_induct)
   case (Arrow T\<^isub>1 T\<^isub>2)
   { 
     case (1 \<Gamma> s t)
@@ -704,14 +704,14 @@ lemma logical_symmetry:
   assumes a: "\<Gamma> \<turnstile> s is t : T"
   shows "\<Gamma> \<turnstile> t is s : T"
 using a 
-by (nominal_induct arbitrary: \<Gamma> s t rule: ty.induct) 
+by (nominal_induct arbitrary: \<Gamma> s t rule: ty.strong_induct) 
    (auto simp add: algorithmic_symmetry)
 
 lemma logical_transitivity:
   assumes "\<Gamma> \<turnstile> s is t : T" "\<Gamma> \<turnstile> t is u : T" 
   shows "\<Gamma> \<turnstile> s is u : T"
 using assms
-proof (nominal_induct arbitrary: \<Gamma> s t u  rule:ty.induct)
+proof (nominal_induct arbitrary: \<Gamma> s t u  rule:ty.strong_induct)
   case TBase
   then show "\<Gamma> \<turnstile> s is u : TBase" by (auto elim:  algorithmic_transitivity)
 next 
@@ -738,14 +738,14 @@ lemma logical_weak_head_closure:
   and     c: "t' \<leadsto> t"
   shows "\<Gamma> \<turnstile> s' is t' : T"
 using a b c algorithmic_weak_head_closure 
-by (nominal_induct arbitrary: \<Gamma> s t s' t' rule: ty.induct) 
+by (nominal_induct arbitrary: \<Gamma> s t s' t' rule: ty.strong_induct) 
    (auto, blast)
 
 lemma logical_weak_head_closure':
   assumes "\<Gamma> \<turnstile> s is t : T" and "s' \<leadsto> s" 
   shows "\<Gamma> \<turnstile> s' is t : T"
 using assms
-proof (nominal_induct arbitrary: \<Gamma> s t s' rule: ty.induct)
+proof (nominal_induct arbitrary: \<Gamma> s t s' rule: ty.strong_induct)
   case (TBase  \<Gamma> s t s')
   then show ?case by force
 next

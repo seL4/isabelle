@@ -1094,8 +1094,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
  
     val (_, thy9) = thy8 |>
       Sign.add_path big_name |>
-      PureThy.add_thms [(("weak_induct", dt_induct), [case_names_induct])] ||>>
-      PureThy.add_thmss [(("weak_inducts", projections dt_induct), [case_names_induct])] ||>
+      PureThy.add_thms [(("induct", dt_induct), [case_names_induct])] ||>>
+      PureThy.add_thmss [(("inducts", projections dt_induct), [case_names_induct])] ||>
       Sign.parent_path ||>>
       DatatypeAux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
       DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
@@ -1378,9 +1378,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val (_, thy10) = thy9 |>
       Sign.add_path big_name |>
-      PureThy.add_thms [(("induct'", induct_aux), [])] ||>>
-      PureThy.add_thms [(("induct", induct), [case_names_induct])] ||>>
-      PureThy.add_thmss [(("inducts", projections induct), [case_names_induct])];
+      PureThy.add_thms [(("strong_induct'", induct_aux), [])] ||>>
+      PureThy.add_thms [(("strong_induct", induct), [case_names_induct])] ||>>
+      PureThy.add_thmss [(("strong_inducts", projections induct), [case_names_induct])];
 
     (**** recursion combinator ****)
 

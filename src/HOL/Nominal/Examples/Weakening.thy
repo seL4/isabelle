@@ -26,7 +26,7 @@ lemma ty_fresh:
   fixes x::"name"
   and   T::"ty"
   shows "x\<sharp>T"
-by (nominal_induct T rule: ty.induct)
+by (nominal_induct T rule: ty.strong_induct)
    (auto simp add: fresh_string)
 
 text {* 

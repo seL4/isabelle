@@ -12,14 +12,14 @@ lemma subst_rename:
   assumes a: "c\<sharp>t1"
   shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
 using a
-by (nominal_induct t1 avoiding: a c t2 rule: lam.induct)
+by (nominal_induct t1 avoiding: a c t2 rule: lam.strong_induct)
    (auto simp add: calc_atm fresh_atm abs_fresh)
 
 lemma forget: 
   assumes a: "a\<sharp>t1"
   shows "t1[a::=t2] = t1"
   using a
-by (nominal_induct t1 avoiding: a t2 rule: lam.induct)
+by (nominal_induct t1 avoiding: a t2 rule: lam.strong_induct)
    (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact: 
@@ -27,7 +27,7 @@ lemma fresh_fact:
   assumes a: "a\<sharp>t1" "a\<sharp>t2"
   shows "a\<sharp>t1[b::=t2]"
 using a
-by (nominal_induct t1 avoiding: a b t2 rule: lam.induct)
+by (nominal_induct t1 avoiding: a b t2 rule: lam.strong_induct)
    (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact': 
@@ -35,7 +35,7 @@ lemma fresh_fact':
   assumes a: "a\<sharp>t2"
   shows "a\<sharp>t1[a::=t2]"
 using a 
-by (nominal_induct t1 avoiding: a t2 rule: lam.induct)
+by (nominal_induct t1 avoiding: a t2 rule: lam.strong_induct)
    (auto simp add: abs_fresh fresh_atm)
 
 lemma subst_lemma:  
@@ -43,12 +43,12 @@ lemma subst_lemma:
   and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
 using a b
-by (nominal_induct M avoiding: x y N L rule: lam.induct)
+by (nominal_induct M avoiding: x y N L rule: lam.strong_induct)
    (auto simp add: fresh_fact forget)
 
 lemma id_subs: 
   shows "t[x::=Var x] = t"
-  by (nominal_induct t avoiding: x rule: lam.induct)
+  by (nominal_induct t avoiding: x rule: lam.strong_induct)
      (simp_all add: fresh_atm)
 
 lemma lookup_fresh:
@@ -69,7 +69,7 @@ lemma psubst_subst:
   assumes h:"c\<sharp>\<theta>"
   shows "(\<theta><t>)[c::=s] = ((c,s)#\<theta>)<t>"
   using h
-by (nominal_induct t avoiding: \<theta> c s rule: lam.induct)
+by (nominal_induct t avoiding: \<theta> c s rule: lam.strong_induct)
    (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh')
  
 inductive 
@@ -122,7 +122,7 @@ lemma fresh_ty:
   fixes a ::"name"
   and   \<tau>  ::"ty"
   shows "a\<sharp>\<tau>"
-by (nominal_induct \<tau> rule: ty.induct)
+by (nominal_induct \<tau> rule: ty.strong_induct)
    (auto simp add: fresh_nat)
 
 (* valid contexts *)
@@ -354,7 +354,7 @@ qed
 text {* properties of the candiadates *}
 lemma RED_props: 
   shows "CR1 \<tau>" and "CR2 \<tau>" and "CR3 \<tau>"
-proof (nominal_induct \<tau> rule: ty.induct)
+proof (nominal_induct \<tau> rule: ty.strong_induct)
   case (TVar a)
   { case 1 show "CR1 (TVar a)" by (simp add: CR1_def)
   next
@@ -553,7 +553,7 @@ by (induct \<Gamma>)
 
 lemma id_apply:  
   shows "(id \<Gamma>)<t> = t"
-by (nominal_induct t avoiding: \<Gamma> rule: lam.induct)
+by (nominal_induct t avoiding: \<Gamma> rule: lam.strong_induct)
    (auto simp add: id_maps id_fresh)
 
 lemma id_closes:

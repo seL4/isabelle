@@ -30,14 +30,14 @@ by (rule TrueI)+
 lemma ty_cases:
   fixes T::ty
   shows "(\<exists>s. T=PR s) \<or> (\<exists>T'. T=NOT T') \<or> (\<exists>S U. T=S OR U) \<or> (\<exists>S U. T=S AND U) \<or> (\<exists>S U. T=S IMP U)"
-by (induct T rule:ty.weak_induct) (auto)
+by (induct T rule:ty.induct) (auto)
 
 lemma fresh_ty:
   fixes a::"coname"
   and   x::"name"
   and   T::"ty"
   shows "a\<sharp>T" and "x\<sharp>T"
-by (nominal_induct T rule: ty.induct)
+by (nominal_induct T rule: ty.strong_induct)
    (auto simp add: fresh_string)
 
 text {* terms *}
@@ -117,28 +117,28 @@ lemmas eq_bij = pt_bij[OF pt_name_inst, OF at_name_inst] pt_bij[OF pt_coname_ins
 lemma crename_name_eqvt[eqvt]:
   fixes pi::"name prm"
   shows "pi\<bullet>(M[d\<turnstile>c>e]) = (pi\<bullet>M)[(pi\<bullet>d)\<turnstile>c>(pi\<bullet>e)]"
-apply(nominal_induct M avoiding: d e rule: trm.induct)
+apply(nominal_induct M avoiding: d e rule: trm.strong_induct)
 apply(auto simp add: fresh_bij eq_bij)
 done
 
 lemma crename_coname_eqvt[eqvt]:
   fixes pi::"coname prm"
   shows "pi\<bullet>(M[d\<turnstile>c>e]) = (pi\<bullet>M)[(pi\<bullet>d)\<turnstile>c>(pi\<bullet>e)]"
-apply(nominal_induct M avoiding: d e rule: trm.induct)
+apply(nominal_induct M avoiding: d e rule: trm.strong_induct)
 apply(auto simp add: fresh_bij eq_bij)
 done
 
 lemma nrename_name_eqvt[eqvt]:
   fixes pi::"name prm"
   shows "pi\<bullet>(M[x\<turnstile>n>y]) = (pi\<bullet>M)[(pi\<bullet>x)\<turnstile>n>(pi\<bullet>y)]"
-apply(nominal_induct M avoiding: x y rule: trm.induct)
+apply(nominal_induct M avoiding: x y rule: trm.strong_induct)
 apply(auto simp add: fresh_bij eq_bij)
 done
 
 lemma nrename_coname_eqvt[eqvt]:
   fixes pi::"coname prm"
   shows "pi\<bullet>(M[x\<turnstile>n>y]) = (pi\<bullet>M)[(pi\<bullet>x)\<turnstile>n>(pi\<bullet>y)]"
-apply(nominal_induct M avoiding: x y rule: trm.induct)
+apply(nominal_induct M avoiding: x y rule: trm.strong_induct)
 apply(auto simp add: fresh_bij eq_bij)
 done
 
@@ -148,57 +148,57 @@ lemma nrename_fresh:
   assumes a: "x\<sharp>M"
   shows "M[x\<turnstile>n>y] = M"
 using a
-by (nominal_induct M avoiding: x y rule: trm.induct)
+by (nominal_induct M avoiding: x y rule: trm.strong_induct)
    (auto simp add: trm.inject fresh_atm abs_fresh fin_supp abs_supp)
 
 lemma crename_fresh:
   assumes a: "a\<sharp>M"
   shows "M[a\<turnstile>c>b] = M"
 using a
-by (nominal_induct M avoiding: a b rule: trm.induct)
+by (nominal_induct M avoiding: a b rule: trm.strong_induct)
    (auto simp add: trm.inject fresh_atm abs_fresh)
 
 lemma nrename_nfresh:
   fixes x::"name"
   shows "x\<sharp>y\<Longrightarrow>x\<sharp>M[x\<turnstile>n>y]"
-by (nominal_induct M avoiding: x y rule: trm.induct)
+by (nominal_induct M avoiding: x y rule: trm.strong_induct)
    (auto simp add: fresh_atm abs_fresh abs_supp fin_supp)
 
  lemma crename_nfresh:
   fixes x::"name"
   shows "x\<sharp>M\<Longrightarrow>x\<sharp>M[a\<turnstile>c>b]"
-by (nominal_induct M avoiding: a b rule: trm.induct)
+by (nominal_induct M avoiding: a b rule: trm.strong_induct)
    (auto simp add: fresh_atm abs_fresh abs_supp fin_supp)
 
 lemma crename_cfresh:
   fixes a::"coname"
   shows "a\<sharp>b\<Longrightarrow>a\<sharp>M[a\<turnstile>c>b]"
-by (nominal_induct M avoiding: a b rule: trm.induct)
+by (nominal_induct M avoiding: a b rule: trm.strong_induct)
    (auto simp add: fresh_atm abs_fresh abs_supp fin_supp)
 
 lemma nrename_cfresh:
   fixes c::"coname"
   shows "c\<sharp>M\<Longrightarrow>c\<sharp>M[x\<turnstile>n>y]"
-by (nominal_induct M avoiding: x y rule: trm.induct)
+by (nominal_induct M avoiding: x y rule: trm.strong_induct)
    (auto simp add: fresh_atm abs_fresh abs_supp fin_supp)
 
 lemma nrename_nfresh':
   fixes x::"name"
   shows "x\<sharp>(M,z,y)\<Longrightarrow>x\<sharp>M[z\<turnstile>n>y]"
-by (nominal_induct M avoiding: x z y rule: trm.induct)
+by (nominal_induct M avoiding: x z y rule: trm.strong_induct)
    (auto simp add: fresh_prod fresh_atm abs_fresh abs_supp fin_supp)
 
 lemma crename_cfresh':
   fixes a::"coname"
   shows "a\<sharp>(M,b,c)\<Longrightarrow>a\<sharp>M[b\<turnstile>c>c]"
-by (nominal_induct M avoiding: a b c rule: trm.induct)
+by (nominal_induct M avoiding: a b c rule: trm.strong_induct)
    (auto simp add: fresh_prod fresh_atm abs_fresh abs_supp fin_supp)
 
 lemma nrename_rename:
   assumes a: "x'\<sharp>M"
   shows "([(x',x)]\<bullet>M)[x'\<turnstile>n>y]= M[x\<turnstile>n>y]"
 using a
-apply(nominal_induct M avoiding: x x' y rule: trm.induct)
+apply(nominal_induct M avoiding: x x' y rule: trm.strong_induct)
 apply(auto simp add: abs_fresh fresh_bij fresh_atm fresh_prod fresh_right calc_atm abs_supp fin_supp)
 apply(auto simp add: fresh_left calc_atm fresh_prod fresh_atm)
 done
@@ -207,7 +207,7 @@ lemma crename_rename:
   assumes a: "a'\<sharp>M"
   shows "([(a',a)]\<bullet>M)[a'\<turnstile>c>b]= M[a\<turnstile>c>b]"
 using a
-apply(nominal_induct M avoiding: a a' b rule: trm.induct)
+apply(nominal_induct M avoiding: a a' b rule: trm.strong_induct)
 apply(auto simp add: abs_fresh fresh_bij fresh_atm fresh_prod fresh_right calc_atm abs_supp fin_supp)
 apply(auto simp add: fresh_left calc_atm fresh_prod fresh_atm)
 done
@@ -271,27 +271,27 @@ qed
 
 lemma crename_id:
   shows "M[a\<turnstile>c>a] = M"
-by (nominal_induct M avoiding: a rule: trm.induct) (auto)
+by (nominal_induct M avoiding: a rule: trm.strong_induct) (auto)
 
 lemma nrename_id:
   shows "M[x\<turnstile>n>x] = M"
-by (nominal_induct M avoiding: x rule: trm.induct) (auto)
+by (nominal_induct M avoiding: x rule: trm.strong_induct) (auto)
 
 lemma nrename_swap:
   shows "x\<sharp>M \<Longrightarrow> [(x,y)]\<bullet>M = M[y\<turnstile>n>x]"
-by (nominal_induct M avoiding: x y rule: trm.induct) 
+by (nominal_induct M avoiding: x y rule: trm.strong_induct) 
    (simp_all add: calc_atm fresh_atm trm.inject alpha abs_fresh abs_supp fin_supp)
 
 lemma crename_swap:
   shows "a\<sharp>M \<Longrightarrow> [(a,b)]\<bullet>M = M[b\<turnstile>c>a]"
-by (nominal_induct M avoiding: a b rule: trm.induct) 
+by (nominal_induct M avoiding: a b rule: trm.strong_induct) 
    (simp_all add: calc_atm fresh_atm trm.inject alpha abs_fresh abs_supp fin_supp)
 
 lemma crename_ax:
   assumes a: "M[a\<turnstile>c>b] = Ax x c" "c\<noteq>a" "c\<noteq>b"
   shows "M = Ax x c"
 using a
-apply(nominal_induct M avoiding: a b x c rule: trm.induct)
+apply(nominal_induct M avoiding: a b x c rule: trm.strong_induct)
 apply(simp_all add: trm.inject split: if_splits)
 done
 
@@ -299,7 +299,7 @@ lemma nrename_ax:
   assumes a: "M[x\<turnstile>n>y] = Ax z a" "z\<noteq>x" "z\<noteq>y"
   shows "M = Ax z a"
 using a
-apply(nominal_induct M avoiding: x y z a rule: trm.induct)
+apply(nominal_induct M avoiding: x y z a rule: trm.strong_induct)
 apply(simp_all add: trm.inject split: if_splits)
 done
 
@@ -917,7 +917,7 @@ lemma csubst_eqvt[eqvt]:
   and   pi2::"coname prm"
   shows "pi1\<bullet>(M{c:=(x).N}) = (pi1\<bullet>M){(pi1\<bullet>c):=(pi1\<bullet>x).(pi1\<bullet>N)}"
   and   "pi2\<bullet>(M{c:=(x).N}) = (pi2\<bullet>M){(pi2\<bullet>c):=(pi2\<bullet>x).(pi2\<bullet>N)}"
-apply(nominal_induct M avoiding: c x N rule: trm.induct)
+apply(nominal_induct M avoiding: c x N rule: trm.strong_induct)
 apply(auto simp add: eq_bij fresh_bij eqvts)
 apply(perm_simp)+
 done
@@ -927,14 +927,14 @@ lemma nsubst_eqvt[eqvt]:
   and   pi2::"coname prm"
   shows "pi1\<bullet>(M{x:=<c>.N}) = (pi1\<bullet>M){(pi1\<bullet>x):=<(pi1\<bullet>c)>.(pi1\<bullet>N)}"
   and   "pi2\<bullet>(M{x:=<c>.N}) = (pi2\<bullet>M){(pi2\<bullet>x):=<(pi2\<bullet>c)>.(pi2\<bullet>N)}"
-apply(nominal_induct M avoiding: c x N rule: trm.induct)
+apply(nominal_induct M avoiding: c x N rule: trm.strong_induct)
 apply(auto simp add: eq_bij fresh_bij eqvts)
 apply(perm_simp)+
 done
 
 lemma supp_subst1:
   shows "supp (M{y:=<c>.P}) \<subseteq> ((supp M) - {y}) \<union> (supp P)"
-apply(nominal_induct M avoiding: y P c rule: trm.induct)
+apply(nominal_induct M avoiding: y P c rule: trm.strong_induct)
 apply(auto)
 apply(auto simp add: fresh_def abs_supp trm.supp supp_atm fin_supp)
 apply(blast)+
@@ -1063,7 +1063,7 @@ done
 
 lemma supp_subst2:
   shows "supp (M{y:=<c>.P}) \<subseteq> supp (M) \<union> ((supp P) - {c})"
-apply(nominal_induct M avoiding: y P c rule: trm.induct)
+apply(nominal_induct M avoiding: y P c rule: trm.strong_induct)
 apply(auto)
 apply(auto simp add: fresh_def abs_supp trm.supp supp_atm fin_supp)
 apply(blast)+
@@ -1176,7 +1176,7 @@ done
 
 lemma supp_subst3:
   shows "supp (M{c:=(x).P}) \<subseteq> ((supp M) - {c}) \<union> (supp P)"
-apply(nominal_induct M avoiding: x P c rule: trm.induct)
+apply(nominal_induct M avoiding: x P c rule: trm.strong_induct)
 apply(auto)
 apply(auto simp add: fresh_def abs_supp trm.supp supp_atm fin_supp)
 apply(blast)+
@@ -1304,7 +1304,7 @@ done
 
 lemma supp_subst4:
   shows "supp (M{c:=(x).P}) \<subseteq> (supp M) \<union> ((supp P) - {x})"
-apply(nominal_induct M avoiding: x P c rule: trm.induct)
+apply(nominal_induct M avoiding: x P c rule: trm.strong_induct)
 apply(auto)
 apply(auto simp add: fresh_def abs_supp trm.supp supp_atm fin_supp)
 apply(blast)+
@@ -1409,7 +1409,7 @@ done
 
 lemma supp_subst5:
   shows "(supp M - {y}) \<subseteq> supp (M{y:=<c>.P})"
-apply(nominal_induct M avoiding: y P c rule: trm.induct)
+apply(nominal_induct M avoiding: y P c rule: trm.strong_induct)
 apply(auto)
 apply(auto simp add: fresh_def abs_supp trm.supp supp_atm fin_supp)
 apply(blast)+
@@ -1476,7 +1476,7 @@ done
 
 lemma supp_subst6:
   shows "(supp M) \<subseteq> ((supp (M{y:=<c>.P}))::coname set)"
-apply(nominal_induct M avoiding: y P c rule: trm.induct)
+apply(nominal_induct M avoiding: y P c rule: trm.strong_induct)
 apply(auto)
 apply(auto simp add: fresh_def abs_supp trm.supp supp_atm fin_supp)
 apply(blast)+
@@ -1543,7 +1543,7 @@ done
 
 lemma supp_subst7:
   shows "(supp M - {c}) \<subseteq>  supp (M{c:=(x).P})"
-apply(nominal_induct M avoiding: x P c rule: trm.induct)
+apply(nominal_induct M avoiding: x P c rule: trm.strong_induct)
 apply(auto)
 apply(auto simp add: fresh_def abs_supp trm.supp supp_atm fin_supp)
 apply(blast)+
@@ -1602,7 +1602,7 @@ done
 
 lemma supp_subst8:
   shows "(supp M) \<subseteq> ((supp (M{c:=(x).P}))::name set)"
-apply(nominal_induct M avoiding: x P c rule: trm.induct)
+apply(nominal_induct M avoiding: x P c rule: trm.strong_induct)
 apply(auto)
 apply(auto simp add: fresh_def abs_supp trm.supp supp_atm fin_supp)
 apply(blast)+
@@ -1681,7 +1681,7 @@ done
 lemma forget:
   shows "x\<sharp>M \<Longrightarrow> M{x:=<c>.P} = M"
   and   "c\<sharp>M \<Longrightarrow> M{c:=(x).P} = M"
-apply(nominal_induct M avoiding: x c P rule: trm.induct)
+apply(nominal_induct M avoiding: x c P rule: trm.strong_induct)
 apply(auto simp add: fresh_atm abs_fresh abs_supp fin_supp)
 done
 
@@ -1689,7 +1689,7 @@ lemma substc_rename1:
   assumes a: "c\<sharp>(M,a)"
   shows "M{a:=(x).N} = ([(c,a)]\<bullet>M){c:=(x).N}"
 using a
-proof(nominal_induct M avoiding: c a x N rule: trm.induct)
+proof(nominal_induct M avoiding: c a x N rule: trm.strong_induct)
   case (Ax z d)
   then show ?case by (auto simp add: fresh_prod fresh_atm calc_atm trm.inject alpha)
 next
@@ -1784,7 +1784,7 @@ lemma substc_rename2:
   assumes a: "y\<sharp>(N,x)"
   shows "M{a:=(x).N} = M{a:=(y).([(y,x)]\<bullet>N)}"
 using a
-proof(nominal_induct M avoiding: a x y N rule: trm.induct)
+proof(nominal_induct M avoiding: a x y N rule: trm.strong_induct)
   case (Ax z d)
   then show ?case 
     by (auto simp add: fresh_prod fresh_atm calc_atm trm.inject alpha perm_swap fresh_left)
@@ -1872,7 +1872,7 @@ lemma substn_rename3:
   assumes a: "y\<sharp>(M,x)"
   shows "M{x:=<a>.N} = ([(y,x)]\<bullet>M){y:=<a>.N}"
 using a
-proof(nominal_induct M avoiding: a x y N rule: trm.induct)
+proof(nominal_induct M avoiding: a x y N rule: trm.strong_induct)
   case (Ax z d)
   then show ?case by (auto simp add: fresh_prod fresh_atm calc_atm trm.inject alpha)
 next
@@ -1962,7 +1962,7 @@ lemma substn_rename4:
   assumes a: "c\<sharp>(N,a)"
   shows "M{x:=<a>.N} = M{x:=<c>.([(c,a)]\<bullet>N)}"
 using a
-proof(nominal_induct M avoiding: x c a N rule: trm.induct)
+proof(nominal_induct M avoiding: x c a N rule: trm.strong_induct)
   case (Ax z d)
   then show ?case 
     by (auto simp add: fresh_prod fresh_atm calc_atm trm.inject alpha perm_swap fresh_left)
@@ -2425,7 +2425,7 @@ lemma substn_crename_comm:
   assumes a: "c\<noteq>a" "c\<noteq>b"
   shows "M{x:=<c>.P}[a\<turnstile>c>b] = M[a\<turnstile>c>b]{x:=<c>.(P[a\<turnstile>c>b])}"
 using a
-apply(nominal_induct M avoiding: x c P a b rule: trm.induct)
+apply(nominal_induct M avoiding: x c P a b rule: trm.strong_induct)
 apply(auto simp add: subst_fresh rename_fresh trm.inject)
 apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(P,x,c)")
 apply(erule exE)
@@ -2517,7 +2517,7 @@ lemma substc_crename_comm:
   assumes a: "c\<noteq>a" "c\<noteq>b"
   shows "M{c:=(x).P}[a\<turnstile>c>b] = M[a\<turnstile>c>b]{c:=(x).(P[a\<turnstile>c>b])}"
 using a
-apply(nominal_induct M avoiding: x c P a b rule: trm.induct)
+apply(nominal_induct M avoiding: x c P a b rule: trm.strong_induct)
 apply(auto simp add: subst_fresh rename_fresh trm.inject)
 apply(rule trans)
 apply(rule better_crename_Cut)
@@ -2591,7 +2591,7 @@ lemma substn_nrename_comm:
   assumes a: "x\<noteq>y" "x\<noteq>z"
   shows "M{x:=<c>.P}[y\<turnstile>n>z] = M[y\<turnstile>n>z]{x:=<c>.(P[y\<turnstile>n>z])}"
 using a
-apply(nominal_induct M avoiding: x c P y z rule: trm.induct)
+apply(nominal_induct M avoiding: x c P y z rule: trm.strong_induct)
 apply(auto simp add: subst_fresh rename_fresh trm.inject)
 apply(rule trans)
 apply(rule better_nrename_Cut)
@@ -2663,7 +2663,7 @@ lemma substc_nrename_comm:
   assumes a: "x\<noteq>y" "x\<noteq>z"
   shows "M{c:=(x).P}[y\<turnstile>n>z] = M[y\<turnstile>n>z]{c:=(x).(P[y\<turnstile>n>z])}"
 using a
-apply(nominal_induct M avoiding: x c P y z rule: trm.induct)
+apply(nominal_induct M avoiding: x c P y z rule: trm.strong_induct)
 apply(auto simp add: subst_fresh rename_fresh trm.inject)
 apply(rule trans)
 apply(rule better_nrename_Cut)
@@ -3031,7 +3031,7 @@ lemma not_fin_subst1:
   assumes a: "\<not>(fin M x)" 
   shows "\<not>(fin (M{c:=(y).P}) x)"
 using a
-apply(nominal_induct M avoiding: x c y P rule: trm.induct)
+apply(nominal_induct M avoiding: x c y P rule: trm.strong_induct)
 apply(auto)
 apply(drule fin_elims, simp)
 apply(drule fin_elims, simp)
@@ -3116,7 +3116,7 @@ lemma not_fin_subst2:
   assumes a: "\<not>(fin M x)" 
   shows "\<not>(fin (M{y:=<c>.P}) x)"
 using a
-apply(nominal_induct M avoiding: x c y P rule: trm.induct)
+apply(nominal_induct M avoiding: x c y P rule: trm.strong_induct)
 apply(auto)
 apply(erule fin.cases, simp_all add: trm.inject)
 apply(erule fin.cases, simp_all add: trm.inject)
@@ -3204,7 +3204,7 @@ lemma fin_subst1:
   assumes a: "fin M x" "x\<noteq>y" "x\<sharp>P"
   shows "fin (M{y:=<c>.P}) x"
 using a
-apply(nominal_induct M avoiding: x y c P rule: trm.induct)
+apply(nominal_induct M avoiding: x y c P rule: trm.strong_induct)
 apply(auto dest!: fin_elims simp add: subst_fresh abs_fresh)
 apply(rule fin.intros, simp add: subst_fresh abs_fresh)
 apply(rule fin.intros, simp add: subst_fresh abs_fresh)
@@ -3221,7 +3221,7 @@ lemma fin_subst2:
   assumes a: "fin M y" "x\<noteq>y" "y\<sharp>P" "M\<noteq>Ax y c" 
   shows "fin (M{c:=(x).P}) y"
 using a
-apply(nominal_induct M avoiding: x y c P rule: trm.induct)
+apply(nominal_induct M avoiding: x y c P rule: trm.strong_induct)
 apply(drule fin_elims)
 apply(simp add: trm.inject)
 apply(rule fin.intros)
@@ -3268,7 +3268,7 @@ lemma fin_substn_nrename:
   assumes a: "fin M x" "x\<noteq>y" "x\<sharp>P"
   shows "M[x\<turnstile>n>y]{y:=<c>.P} = Cut <c>.P (x).(M{y:=<c>.P})"
 using a
-apply(nominal_induct M avoiding: x y c P rule: trm.induct)
+apply(nominal_induct M avoiding: x y c P rule: trm.strong_induct)
 apply(drule fin_Ax_elim)
 apply(simp)
 apply(simp add: trm.inject)
@@ -3454,7 +3454,7 @@ lemma not_fic_subst1:
   assumes a: "\<not>(fic M a)" 
   shows "\<not>(fic (M{y:=<c>.P}) a)"
 using a
-apply(nominal_induct M avoiding: a c y P rule: trm.induct)
+apply(nominal_induct M avoiding: a c y P rule: trm.strong_induct)
 apply(auto)
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
@@ -3530,7 +3530,7 @@ lemma not_fic_subst2:
   assumes a: "\<not>(fic M a)" 
   shows "\<not>(fic (M{c:=(y).P}) a)"
 using a
-apply(nominal_induct M avoiding: a c y P rule: trm.induct)
+apply(nominal_induct M avoiding: a c y P rule: trm.strong_induct)
 apply(auto)
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
@@ -3612,7 +3612,7 @@ lemma fic_subst1:
   assumes a: "fic M a" "a\<noteq>b" "a\<sharp>P"
   shows "fic (M{b:=(x).P}) a"
 using a
-apply(nominal_induct M avoiding: x b a P rule: trm.induct)
+apply(nominal_induct M avoiding: x b a P rule: trm.strong_induct)
 apply(drule fic_elims)
 apply(simp add: fic.intros)
 apply(drule fic_elims, simp)
@@ -3655,7 +3655,7 @@ lemma fic_subst2:
   assumes a: "fic M a" "c\<noteq>a" "a\<sharp>P" "M\<noteq>Ax x a" 
   shows "fic (M{x:=<c>.P}) a"
 using a
-apply(nominal_induct M avoiding: x a c P rule: trm.induct)
+apply(nominal_induct M avoiding: x a c P rule: trm.strong_induct)
 apply(drule fic_elims)
 apply(simp add: trm.inject)
 apply(rule fic.intros)
@@ -3699,7 +3699,7 @@ lemma fic_substc_crename:
   assumes a: "fic M a" "a\<noteq>b" "a\<sharp>P"
   shows "M[a\<turnstile>c>b]{b:=(y).P} = Cut <a>.(M{b:=(y).P}) (y).P"
 using a
-apply(nominal_induct M avoiding: a b  y P rule: trm.induct)
+apply(nominal_induct M avoiding: a b  y P rule: trm.strong_induct)
 apply(drule fic_Ax_elim)
 apply(simp)
 apply(simp add: trm.inject)
@@ -5455,7 +5455,7 @@ text {* Substitution *}
 
 lemma subst_not_fin1:
   shows "\<not>fin(M{x:=<c>.P}) x"
-apply(nominal_induct M avoiding: x c P rule: trm.induct)
+apply(nominal_induct M avoiding: x c P rule: trm.strong_induct)
 apply(auto)
 apply(drule fin_elims, simp)
 apply(drule fin_elims, simp)
@@ -5512,7 +5512,7 @@ lemma subst_not_fin2:
   assumes a: "\<not>fin M y"
   shows "\<not>fin(M{c:=(x).P}) y" 
 using a
-apply(nominal_induct M avoiding: x c P y rule: trm.induct)
+apply(nominal_induct M avoiding: x c P y rule: trm.strong_induct)
 apply(auto)
 apply(drule fin_elims, simp)
 apply(drule fin_elims, simp)
@@ -5587,7 +5587,7 @@ done
 
 lemma subst_not_fic1:
   shows "\<not>fic (M{a:=(x).P}) a"
-apply(nominal_induct M avoiding: a x P rule: trm.induct)
+apply(nominal_induct M avoiding: a x P rule: trm.strong_induct)
 apply(auto)
 apply(erule fic.cases, simp_all add: trm.inject)
 apply(erule fic.cases, simp_all add: trm.inject)
@@ -5644,7 +5644,7 @@ lemma subst_not_fic2:
   assumes a: "\<not>fic M a"
   shows "\<not>fic(M{x:=<b>.P}) a" 
 using a
-apply(nominal_induct M avoiding: x a P b rule: trm.induct)
+apply(nominal_induct M avoiding: x a P b rule: trm.strong_induct)
 apply(auto)
 apply(drule fic_elims, simp)
 apply(drule fic_elims, simp)
@@ -5858,7 +5858,7 @@ text {* substitution properties *}
 
 lemma subst_with_ax1:
   shows "M{x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* M[x\<turnstile>n>y]"
-proof(nominal_induct M avoiding: x a y rule: trm.induct)
+proof(nominal_induct M avoiding: x a y rule: trm.strong_induct)
   case (Ax z b x a y)
   show "(Ax z b){x:=<a>.Ax y a} \<longrightarrow>\<^isub>a* (Ax z b)[x\<turnstile>n>y]"
   proof (cases "z=x")
@@ -6115,7 +6115,7 @@ qed
 
 lemma subst_with_ax2:
   shows "M{b:=(x).Ax x a} \<longrightarrow>\<^isub>a* M[b\<turnstile>c>a]"
-proof(nominal_induct M avoiding: b a x rule: trm.induct)
+proof(nominal_induct M avoiding: b a x rule: trm.strong_induct)
   case (Ax z c b a x)
   show "(Ax z c){b:=(x).Ax x a} \<longrightarrow>\<^isub>a* (Ax z c)[b\<turnstile>c>a]"
   proof (cases "c=b")
@@ -6371,7 +6371,7 @@ text {* substitution lemmas *}
 
 lemma not_Ax1:
   shows "\<not>(b\<sharp>M) \<Longrightarrow> M{b:=(y).Q} \<noteq> Ax x a"
-apply(nominal_induct M avoiding: b y Q x a rule: trm.induct)
+apply(nominal_induct M avoiding: b y Q x a rule: trm.strong_induct)
 apply(auto simp add: fresh_atm abs_fresh abs_supp fin_supp)
 apply(subgoal_tac "\<exists>x'::coname. x'\<sharp>(trm{coname:=(y).Q},Q)")
 apply(erule exE)
@@ -6443,7 +6443,7 @@ done
 
 lemma not_Ax2:
   shows "\<not>(x\<sharp>M) \<Longrightarrow> M{x:=<b>.Q} \<noteq> Ax y a"
-apply(nominal_induct M avoiding: b y Q x a rule: trm.induct)
+apply(nominal_induct M avoiding: b y Q x a rule: trm.strong_induct)
 apply(auto simp add: fresh_atm abs_fresh abs_supp fin_supp)
 apply(subgoal_tac "\<exists>x'::name. x'\<sharp>(trm{x:=<b>.Q},Q)")
 apply(erule exE)
@@ -6523,7 +6523,7 @@ lemma interesting_subst1:
   assumes a: "x\<noteq>y" "x\<sharp>P" "y\<sharp>P" 
   shows "N{y:=<c>.P}{x:=<c>.P} = N{x:=<c>.Ax y c}{y:=<c>.P}"
 using a
-proof(nominal_induct N avoiding: x y c P rule: trm.induct)
+proof(nominal_induct N avoiding: x y c P rule: trm.strong_induct)
   case Ax
   then show ?case
     by (auto simp add: abs_fresh fresh_atm forget trm.inject)
@@ -6831,7 +6831,7 @@ lemma interesting_subst2:
   assumes a: "a\<noteq>b" "a\<sharp>P" "b\<sharp>P" 
   shows "N{a:=(y).P}{b:=(y).P} = N{b:=(y).Ax y a}{a:=(y).P}"
 using a
-proof(nominal_induct N avoiding: a b y P rule: trm.induct)
+proof(nominal_induct N avoiding: a b y P rule: trm.strong_induct)
   case Ax
   then show ?case
     by (auto simp add: abs_fresh fresh_atm forget trm.inject)
@@ -7118,7 +7118,7 @@ lemma subst_subst1:
   assumes a: "a\<sharp>(Q,b)" "x\<sharp>(y,P,Q)" "b\<sharp>Q" "y\<sharp>P" 
   shows "M{x:=<a>.P}{b:=(y).Q} = M{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}"
 using a
-proof(nominal_induct M avoiding: x a P b y Q rule: trm.induct)
+proof(nominal_induct M avoiding: x a P b y Q rule: trm.strong_induct)
   case (Ax z c)
   have fs: "a\<sharp>(Q,b)" "x\<sharp>(y,P,Q)" "b\<sharp>Q" "y\<sharp>P" by fact+
   { assume asm: "z=x \<and> c=b"
@@ -7407,7 +7407,7 @@ lemma subst_subst2:
   assumes a: "a\<sharp>(b,P,N)" "x\<sharp>(y,P,M)" "b\<sharp>(M,N)" "y\<sharp>P"
   shows "M{a:=(x).N}{y:=<b>.P} = M{y:=<b>.P}{a:=(x).N{y:=<b>.P}}"
 using a
-proof(nominal_induct M avoiding: a x N y b P rule: trm.induct)
+proof(nominal_induct M avoiding: a x N y b P rule: trm.strong_induct)
   case (Ax z c)
   then show ?case
     by (auto simp add: subst_fresh abs_fresh fresh_atm fresh_prod forget trm.inject)
@@ -7691,7 +7691,7 @@ lemma subst_subst3:
   assumes a: "a\<sharp>(P,N,c)" "c\<sharp>(M,N)" "x\<sharp>(y,P,M)" "y\<sharp>(P,x)" "M\<noteq>Ax y a"
   shows "N{x:=<a>.M}{y:=<c>.P} = N{y:=<c>.P}{x:=<a>.(M{y:=<c>.P})}"
 using a
-proof(nominal_induct N avoiding: x y a c M P rule: trm.induct)
+proof(nominal_induct N avoiding: x y a c M P rule: trm.strong_induct)
   case (Ax z c)
   then show ?case
     by(auto simp add: subst_fresh abs_fresh fresh_atm fresh_prod forget)
@@ -7960,7 +7960,7 @@ lemma subst_subst4:
   assumes a: "x\<sharp>(P,N,y)" "y\<sharp>(M,N)" "a\<sharp>(c,P,M)" "c\<sharp>(P,a)" "M\<noteq>Ax x c"
   shows "N{a:=(x).M}{c:=(y).P} = N{c:=(y).P}{a:=(x).(M{c:=(y).P})}"
 using a
-proof(nominal_induct N avoiding: x y a c M P rule: trm.induct)
+proof(nominal_induct N avoiding: x y a c M P rule: trm.strong_induct)
   case (Ax z c)
   then show ?case
     by (auto simp add: subst_fresh abs_fresh fresh_atm fresh_prod forget)
@@ -11177,12 +11177,12 @@ where
 
 lemma NEGn_decreasing:
   shows "X\<subseteq>Y \<Longrightarrow> NEGn B Y \<subseteq> NEGn B X"
-by (nominal_induct B rule: ty.induct)
+by (nominal_induct B rule: ty.strong_induct)
    (auto dest: BINDINGn_decreasing)
 
 lemma NEGc_decreasing:
   shows "X\<subseteq>Y \<Longrightarrow> NEGc B Y \<subseteq> NEGc B X"
-by (nominal_induct B rule: ty.induct)
+by (nominal_induct B rule: ty.strong_induct)
    (auto dest: BINDINGc_decreasing)
 
 lemma mono_NEGn_NEGc:
@@ -11246,11 +11246,11 @@ lemma AXIOMS_in_CANDs:
   and   "AXIOMSc B \<subseteq> (\<parallel><B>\<parallel>)"
 proof -
   have "AXIOMSn B \<subseteq> NEGn B (\<parallel><B>\<parallel>)"
-    by (nominal_induct B rule: ty.induct) (auto)
+    by (nominal_induct B rule: ty.strong_induct) (auto)
   then show "AXIOMSn B \<subseteq> \<parallel>(B)\<parallel>" using NEG_simp by blast
 next
   have "AXIOMSc B \<subseteq> NEGc B (\<parallel>(B)\<parallel>)"
-    by (nominal_induct B rule: ty.induct) (auto)
+    by (nominal_induct B rule: ty.strong_induct) (auto)
   then show "AXIOMSc B \<subseteq> \<parallel><B>\<parallel>" using NEG_simp by blast
 qed
 
@@ -11445,7 +11445,7 @@ lemma CAND_eqvt_name:
   fixes pi::"name prm"
   shows   "(pi\<bullet>(\<parallel>(B)\<parallel>)) = (\<parallel>(B)\<parallel>)"
   and     "(pi\<bullet>(\<parallel><B>\<parallel>)) = (\<parallel><B>\<parallel>)"
-proof (nominal_induct B rule: ty.induct)
+proof (nominal_induct B rule: ty.strong_induct)
   case (PR X)
   { case 1 show ?case 
       apply -
@@ -11555,7 +11555,7 @@ lemma CAND_eqvt_coname:
   fixes pi::"coname prm"
   shows   "(pi\<bullet>(\<parallel>(B)\<parallel>)) = (\<parallel>(B)\<parallel>)"
   and     "(pi\<bullet>(\<parallel><B>\<parallel>)) = (\<parallel><B>\<parallel>)"
-proof (nominal_induct B rule: ty.induct)
+proof (nominal_induct B rule: ty.strong_induct)
   case (PR X)
   { case 1 show ?case 
       apply -
@@ -12739,7 +12739,7 @@ lemma CAND_NotR_elim:
   assumes a: "<a>:NotR (x).M a \<in> (\<parallel><B>\<parallel>)" "<a>:NotR (x).M a \<notin> BINDINGc B (\<parallel>(B)\<parallel>)"
   shows "\<exists>B'. B = NOT B' \<and> (x):M \<in> (\<parallel>(B')\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSc_def ctrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(a,aa)]" in pt_set_bij2[OF pt_coname_inst, OF at_coname_inst])
@@ -12750,7 +12750,7 @@ lemma CAND_NotL_elim_aux:
   assumes a: "(x):NotL <a>.M x \<in> NEGn B (\<parallel><B>\<parallel>)" "(x):NotL <a>.M x \<notin> BINDINGn B (\<parallel><B>\<parallel>)"
   shows "\<exists>B'. B = NOT B' \<and> <a>:M \<in> (\<parallel><B'>\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSn_def ntrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(x,xa)]" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
@@ -12763,7 +12763,7 @@ lemma CAND_AndR_elim:
   assumes a: "<a>:AndR <b>.M <c>.N a \<in> (\<parallel><B>\<parallel>)" "<a>:AndR <b>.M <c>.N a \<notin> BINDINGc B (\<parallel>(B)\<parallel>)"
   shows "\<exists>B1 B2. B = B1 AND B2 \<and> <b>:M \<in> (\<parallel><B1>\<parallel>) \<and> <c>:N \<in> (\<parallel><B2>\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSc_def ctrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(a,ca)]" and x="<a>:Ma" in pt_set_bij2[OF pt_coname_inst, OF at_coname_inst])
@@ -12844,7 +12844,7 @@ lemma CAND_OrR1_elim:
   assumes a: "<a>:OrR1 <b>.M a \<in> (\<parallel><B>\<parallel>)" "<a>:OrR1 <b>.M a \<notin> BINDINGc B (\<parallel>(B)\<parallel>)"
   shows "\<exists>B1 B2. B = B1 OR B2 \<and> <b>:M \<in> (\<parallel><B1>\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSc_def ctrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(a,ba)]" in pt_set_bij2[OF pt_coname_inst, OF at_coname_inst])
@@ -12865,7 +12865,7 @@ lemma CAND_OrR2_elim:
   assumes a: "<a>:OrR2 <b>.M a \<in> (\<parallel><B>\<parallel>)" "<a>:OrR2 <b>.M a \<notin> BINDINGc B (\<parallel>(B)\<parallel>)"
   shows "\<exists>B1 B2. B = B1 OR B2 \<and> <b>:M \<in> (\<parallel><B2>\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSc_def ctrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(a,ba)]" in pt_set_bij2[OF pt_coname_inst, OF at_coname_inst])
@@ -12886,7 +12886,7 @@ lemma CAND_OrL_elim_aux:
   assumes a: "(x):(OrL (y).M (z).N x) \<in> NEGn B (\<parallel><B>\<parallel>)" "(x):(OrL (y).M (z).N x) \<notin> BINDINGn B (\<parallel><B>\<parallel>)"
   shows "\<exists>B1 B2. B = B1 OR B2 \<and> (y):M \<in> (\<parallel>(B1)\<parallel>) \<and> (z):N \<in> (\<parallel>(B2)\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSn_def ntrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(x,za)]" and x="(x):Ma" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
@@ -12969,7 +12969,7 @@ lemma CAND_AndL1_elim_aux:
   assumes a: "(x):(AndL1 (y).M x) \<in> NEGn B (\<parallel><B>\<parallel>)" "(x):(AndL1 (y).M x) \<notin> BINDINGn B (\<parallel><B>\<parallel>)"
   shows "\<exists>B1 B2. B = B1 AND B2 \<and> (y):M \<in> (\<parallel>(B1)\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSn_def ntrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(x,ya)]" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
@@ -12992,7 +12992,7 @@ lemma CAND_AndL2_elim_aux:
   assumes a: "(x):(AndL2 (y).M x) \<in> NEGn B (\<parallel><B>\<parallel>)" "(x):(AndL2 (y).M x) \<notin> BINDINGn B (\<parallel><B>\<parallel>)"
   shows "\<exists>B1 B2. B = B1 AND B2 \<and> (y):M \<in> (\<parallel>(B2)\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSn_def ntrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(x,ya)]" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
@@ -13015,7 +13015,7 @@ lemma CAND_ImpL_elim_aux:
   assumes a: "(x):(ImpL <a>.M (z).N x) \<in> NEGn B (\<parallel><B>\<parallel>)" "(x):(ImpL <a>.M (z).N x) \<notin> BINDINGn B (\<parallel><B>\<parallel>)"
   shows "\<exists>B1 B2. B = B1 IMP B2 \<and> <a>:M \<in> (\<parallel><B1>\<parallel>) \<and> (z):N \<in> (\<parallel>(B2)\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSn_def ntrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(x,y)]" and x="<aa>:Ma" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
@@ -13052,7 +13052,7 @@ lemma CAND_ImpR_elim:
                  (\<forall>z P. x\<sharp>(z,P) \<and> (z):P \<in> \<parallel>(B2)\<parallel> \<longrightarrow> (x):(M{b:=(z).P}) \<in> \<parallel>(B1)\<parallel>) \<and>
                  (\<forall>c Q. b\<sharp>(c,Q) \<and> <c>:Q \<in> \<parallel><B1>\<parallel> \<longrightarrow> <b>:(M{x:=<c>.Q}) \<in> \<parallel><B2>\<parallel>)" 
 using a
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp_all add: ty.inject AXIOMSc_def ctrm.inject alpha)
 apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm fresh_prod fresh_bij)
 apply(generate_fresh "name") 
@@ -13457,7 +13457,7 @@ done
 lemma CANDs_imply_SNa:
   shows "<a>:M \<in> \<parallel><B>\<parallel> \<Longrightarrow> SNa M"
   and   "(x):M \<in> \<parallel>(B)\<parallel> \<Longrightarrow> SNa M"
-proof(induct B arbitrary: a x M rule: ty.weak_induct)
+proof(induct B arbitrary: a x M rule: ty.induct)
   case (PR X)
   { case 1 
     have "<a>:M \<in> \<parallel><PR X>\<parallel>" by fact
@@ -13764,7 +13764,7 @@ qed
 lemma CANDs_preserved:
   shows "<a>:M \<in> \<parallel><B>\<parallel> \<Longrightarrow> M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> <a>:M' \<in> \<parallel><B>\<parallel>"
   and   "(x):M \<in> \<parallel>(B)\<parallel> \<Longrightarrow> M \<longrightarrow>\<^isub>a* M' \<Longrightarrow> (x):M' \<in> \<parallel>(B)\<parallel>" 
-proof(nominal_induct B arbitrary: a x M M' rule: ty.induct) 
+proof(nominal_induct B arbitrary: a x M M' rule: ty.strong_induct) 
   case (PR X)
   { case 1 
     have asm: "M \<longrightarrow>\<^isub>a* M'" by fact
@@ -14135,7 +14135,7 @@ lemma fic_CANDS:
   and     b: "<a>:M \<in> \<parallel><B>\<parallel>"
   shows "<a>:M \<in> AXIOMSc B \<or> <a>:M \<in> BINDINGc B (\<parallel>(B)\<parallel>)"
 using a b
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp)
 apply(simp)
 apply(erule disjE)
@@ -14202,7 +14202,7 @@ lemma fin_CANDS_aux:
   and     b: "(x):M \<in> (NEGn B (\<parallel><B>\<parallel>))"
   shows "(x):M \<in> AXIOMSn B \<or> (x):M \<in> BINDINGn B (\<parallel><B>\<parallel>)"
 using a b
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(simp)
 apply(simp)
 apply(erule disjE)
@@ -14278,10 +14278,10 @@ lemma BINDING_implies_CAND:
   shows "<c>:M \<in> BINDINGc B (\<parallel>(B)\<parallel>) \<Longrightarrow> <c>:M \<in> (\<parallel><B>\<parallel>)"
   and   "(x):N \<in> BINDINGn B (\<parallel><B>\<parallel>) \<Longrightarrow> (x):N \<in> (\<parallel>(B)\<parallel>)"
 apply -
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(auto)
 apply(rule NEG_intro)
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(auto)
 done
 
@@ -14344,7 +14344,7 @@ lemma not_fic_crename_aux:
   assumes a: "fic M c" "c\<sharp>(a,b)"
   shows "fic (M[a\<turnstile>c>b]) c" 
 using a
-apply(nominal_induct M avoiding: c a b rule: trm.induct)
+apply(nominal_induct M avoiding: c a b rule: trm.strong_induct)
 apply(auto dest!: fic_elims intro!: fic.intros simp add: fresh_prod fresh_atm rename_fresh abs_fresh)
 done
 
@@ -14359,7 +14359,7 @@ lemma not_fin_crename_aux:
   assumes a: "fin M y"
   shows "fin (M[a\<turnstile>c>b]) y" 
 using a
-apply(nominal_induct M avoiding: a b rule: trm.induct)
+apply(nominal_induct M avoiding: a b rule: trm.strong_induct)
 apply(auto dest!: fin_elims intro!: fin.intros simp add: fresh_prod fresh_atm rename_fresh abs_fresh)
 done
 
@@ -14375,7 +14375,7 @@ lemma crename_fresh_interesting1:
   assumes a: "c\<sharp>(M[a\<turnstile>c>b])" "c\<sharp>(a,b)"
   shows "c\<sharp>M"
 using a
-apply(nominal_induct M avoiding: c a b rule: trm.induct)
+apply(nominal_induct M avoiding: c a b rule: trm.strong_induct)
 apply(auto split: if_splits simp add: abs_fresh)
 done
 
@@ -14384,7 +14384,7 @@ lemma crename_fresh_interesting2:
   assumes a: "x\<sharp>(M[a\<turnstile>c>b])" 
   shows "x\<sharp>M"
 using a
-apply(nominal_induct M avoiding: x a b rule: trm.induct)
+apply(nominal_induct M avoiding: x a b rule: trm.strong_induct)
 apply(auto split: if_splits simp add: abs_fresh abs_supp fin_supp fresh_atm)
 done
 
@@ -14393,7 +14393,7 @@ lemma fic_crename:
   assumes a: "fic (M[a\<turnstile>c>b]) c" "c\<sharp>(a,b)"
   shows "fic M c" 
 using a
-apply(nominal_induct M avoiding: c a b rule: trm.induct)
+apply(nominal_induct M avoiding: c a b rule: trm.strong_induct)
 apply(auto dest!: fic_elims intro!: fic.intros simp add: fresh_prod fresh_atm rename_fresh abs_fresh
            split: if_splits)
 apply(auto dest: crename_fresh_interesting1 simp add: fresh_prod fresh_atm)
@@ -14403,7 +14403,7 @@ lemma fin_crename:
   assumes a: "fin (M[a\<turnstile>c>b]) x"
   shows "fin M x" 
 using a
-apply(nominal_induct M avoiding: x a b rule: trm.induct)
+apply(nominal_induct M avoiding: x a b rule: trm.strong_induct)
 apply(auto dest!: fin_elims intro!: fin.intros simp add: fresh_prod fresh_atm rename_fresh abs_fresh
            split: if_splits)
 apply(auto dest: crename_fresh_interesting2 simp add: fresh_prod fresh_atm)
@@ -14413,7 +14413,7 @@ lemma crename_Cut:
   assumes a: "R[a\<turnstile>c>b] = Cut <c>.M (x).N" "c\<sharp>(a,b,N,R)" "x\<sharp>(M,R)"
   shows "\<exists>M' N'. R = Cut <c>.M' (x).N' \<and> M'[a\<turnstile>c>b] = M \<and> N'[a\<turnstile>c>b] = N \<and> c\<sharp>N' \<and> x\<sharp>M'"
 using a
-apply(nominal_induct R avoiding: a b c x M N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c x M N rule: trm.strong_induct)
 apply(auto split: if_splits)
 apply(simp add: trm.inject)
 apply(auto simp add: alpha)
@@ -14452,7 +14452,7 @@ lemma crename_NotR:
   assumes a: "R[a\<turnstile>c>b] = NotR (x).N c" "x\<sharp>R" "c\<sharp>(a,b)"
   shows "\<exists>N'. (R = NotR (x).N' c) \<and> N'[a\<turnstile>c>b] = N" 
 using a
-apply(nominal_induct R avoiding: a b c x N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c x N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(name,x)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14466,7 +14466,7 @@ lemma crename_NotR':
   assumes a: "R[a\<turnstile>c>b] = NotR (x).N c" "x\<sharp>R" "c\<sharp>a"
   shows "(\<exists>N'. (R = NotR (x).N' c) \<and> N'[a\<turnstile>c>b] = N) \<or> (\<exists>N'. (R = NotR (x).N' a) \<and> b=c \<and> N'[a\<turnstile>c>b] = N)"
 using a
-apply(nominal_induct R avoiding: a b c x N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c x N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_fresh alpha trm.inject)
 apply(rule_tac x="[(name,x)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14486,7 +14486,7 @@ lemma crename_NotR_aux:
   assumes a: "R[a\<turnstile>c>b] = NotR (x).N c" 
   shows "(a=c \<and> a=b) \<or> (a\<noteq>c)" 
 using a
-apply(nominal_induct R avoiding: a b c x N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c x N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -14494,7 +14494,7 @@ lemma crename_NotL:
   assumes a: "R[a\<turnstile>c>b] = NotL <c>.N y" "c\<sharp>(R,a,b)"
   shows "\<exists>N'. (R = NotL <c>.N' y) \<and> N'[a\<turnstile>c>b] = N" 
 using a
-apply(nominal_induct R avoiding: a b c y N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c y N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(coname,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14508,7 +14508,7 @@ lemma crename_AndL1:
   assumes a: "R[a\<turnstile>c>b] = AndL1 (x).N y" "x\<sharp>R"
   shows "\<exists>N'. (R = AndL1 (x).N' y) \<and> N'[a\<turnstile>c>b] = N" 
 using a
-apply(nominal_induct R avoiding: a b x y N rule: trm.induct)
+apply(nominal_induct R avoiding: a b x y N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(name1,x)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14522,7 +14522,7 @@ lemma crename_AndL2:
   assumes a: "R[a\<turnstile>c>b] = AndL2 (x).N y" "x\<sharp>R"
   shows "\<exists>N'. (R = AndL2 (x).N' y) \<and> N'[a\<turnstile>c>b] = N" 
 using a
-apply(nominal_induct R avoiding: a b x y N rule: trm.induct)
+apply(nominal_induct R avoiding: a b x y N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(name1,x)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14536,7 +14536,7 @@ lemma crename_AndR_aux:
   assumes a: "R[a\<turnstile>c>b] = AndR <c>.M <d>.N e" 
   shows "(a=e \<and> a=b) \<or> (a\<noteq>e)" 
 using a
-apply(nominal_induct R avoiding: a b c d e M N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c d e M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -14544,7 +14544,7 @@ lemma crename_AndR:
   assumes a: "R[a\<turnstile>c>b] = AndR <c>.M <d>.N e" "c\<sharp>(a,b,d,e,N,R)" "d\<sharp>(a,b,c,e,M,R)" "e\<sharp>(a,b)"
   shows "\<exists>M' N'. R = AndR <c>.M' <d>.N' e \<and> M'[a\<turnstile>c>b] = M \<and> N'[a\<turnstile>c>b] = N \<and> c\<sharp>N' \<and> d\<sharp>M'"
 using a
-apply(nominal_induct R avoiding: a b c d e M N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c d e M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: trm.inject alpha)
 apply(simp add: fresh_atm fresh_prod)
 apply(rule_tac x="[(coname2,d)]\<bullet>trm2" in exI)
@@ -14581,7 +14581,7 @@ lemma crename_AndR':
   shows "(\<exists>M' N'. R = AndR <c>.M' <d>.N' e \<and> M'[a\<turnstile>c>b] = M \<and> N'[a\<turnstile>c>b] = N \<and> c\<sharp>N' \<and> d\<sharp>M') \<or>
          (\<exists>M' N'. R = AndR <c>.M' <d>.N' a \<and> b=e \<and> M'[a\<turnstile>c>b] = M \<and> N'[a\<turnstile>c>b] = N \<and> c\<sharp>N' \<and> d\<sharp>M')"
 using a
-apply(nominal_induct R avoiding: a b c d e M N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c d e M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: trm.inject alpha)[1]
 apply(auto split: if_splits simp add: trm.inject alpha)[1]
 apply(auto split: if_splits simp add: trm.inject alpha)[1]
@@ -14621,7 +14621,7 @@ lemma crename_OrR1_aux:
   assumes a: "R[a\<turnstile>c>b] = OrR1 <c>.M e" 
   shows "(a=e \<and> a=b) \<or> (a\<noteq>e)" 
 using a
-apply(nominal_induct R avoiding: a b c e M rule: trm.induct)
+apply(nominal_induct R avoiding: a b c e M rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -14629,7 +14629,7 @@ lemma crename_OrR1:
   assumes a: "R[a\<turnstile>c>b] = OrR1 <c>.N d" "c\<sharp>(R,a,b)" "d\<sharp>(a,b)"
   shows "\<exists>N'. (R = OrR1 <c>.N' d) \<and> N'[a\<turnstile>c>b] = N" 
 using a
-apply(nominal_induct R avoiding: a b c d N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c d N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(coname1,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14644,7 +14644,7 @@ lemma crename_OrR1':
   shows "(\<exists>N'. (R = OrR1 <c>.N' d) \<and> N'[a\<turnstile>c>b] = N) \<or>
          (\<exists>N'. (R = OrR1 <c>.N' a) \<and> b=d \<and> N'[a\<turnstile>c>b] = N)" 
 using a
-apply(nominal_induct R avoiding: a b c d N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c d N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(coname1,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14664,7 +14664,7 @@ lemma crename_OrR2_aux:
   assumes a: "R[a\<turnstile>c>b] = OrR2 <c>.M e" 
   shows "(a=e \<and> a=b) \<or> (a\<noteq>e)" 
 using a
-apply(nominal_induct R avoiding: a b c e M rule: trm.induct)
+apply(nominal_induct R avoiding: a b c e M rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -14672,7 +14672,7 @@ lemma crename_OrR2:
   assumes a: "R[a\<turnstile>c>b] = OrR2 <c>.N d" "c\<sharp>(R,a,b)" "d\<sharp>(a,b)"
   shows "\<exists>N'. (R = OrR2 <c>.N' d) \<and> N'[a\<turnstile>c>b] = N" 
 using a
-apply(nominal_induct R avoiding: a b c d N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c d N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(coname1,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14687,7 +14687,7 @@ lemma crename_OrR2':
   shows "(\<exists>N'. (R = OrR2 <c>.N' d) \<and> N'[a\<turnstile>c>b] = N) \<or>
          (\<exists>N'. (R = OrR2 <c>.N' a) \<and> b=d \<and> N'[a\<turnstile>c>b] = N)" 
 using a
-apply(nominal_induct R avoiding: a b c d N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c d N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(coname1,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14707,7 +14707,7 @@ lemma crename_OrL:
   assumes a: "R[a\<turnstile>c>b] = OrL (x).M (y).N z" "x\<sharp>(y,z,N,R)" "y\<sharp>(x,z,M,R)"
   shows "\<exists>M' N'. R = OrL (x).M' (y).N' z \<and> M'[a\<turnstile>c>b] = M \<and> N'[a\<turnstile>c>b] = N \<and> x\<sharp>N' \<and> y\<sharp>M'"
 using a
-apply(nominal_induct R avoiding: a b x y z M N rule: trm.induct)
+apply(nominal_induct R avoiding: a b x y z M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: trm.inject alpha)
 apply(rule_tac x="[(name2,y)]\<bullet>trm2" in exI)
 apply(perm_simp)
@@ -14733,7 +14733,7 @@ lemma crename_ImpL:
   assumes a: "R[a\<turnstile>c>b] = ImpL <c>.M (y).N z" "c\<sharp>(a,b,N,R)" "y\<sharp>(z,M,R)"
   shows "\<exists>M' N'. R = ImpL <c>.M' (y).N' z \<and> M'[a\<turnstile>c>b] = M \<and> N'[a\<turnstile>c>b] = N \<and> c\<sharp>N' \<and> y\<sharp>M'"
 using a
-apply(nominal_induct R avoiding: a b c y z M N rule: trm.induct)
+apply(nominal_induct R avoiding: a b c y z M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: trm.inject alpha)
 apply(rule_tac x="[(name1,y)]\<bullet>trm2" in exI)
 apply(perm_simp)
@@ -14759,7 +14759,7 @@ lemma crename_ImpR_aux:
   assumes a: "R[a\<turnstile>c>b] = ImpR (x).<c>.M e" 
   shows "(a=e \<and> a=b) \<or> (a\<noteq>e)" 
 using a
-apply(nominal_induct R avoiding: x a b c e M rule: trm.induct)
+apply(nominal_induct R avoiding: x a b c e M rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -14767,7 +14767,7 @@ lemma crename_ImpR:
   assumes a: "R[a\<turnstile>c>b] = ImpR (x).<c>.N d" "c\<sharp>(R,a,b)" "d\<sharp>(a,b)" "x\<sharp>R" 
   shows "\<exists>N'. (R = ImpR (x).<c>.N' d) \<and> N'[a\<turnstile>c>b] = N" 
 using a
-apply(nominal_induct R avoiding: a b x c d N rule: trm.induct)
+apply(nominal_induct R avoiding: a b x c d N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_perm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(name,x)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14787,7 +14787,7 @@ lemma crename_ImpR':
   shows "(\<exists>N'. (R = ImpR (x).<c>.N' d) \<and> N'[a\<turnstile>c>b] = N) \<or>
          (\<exists>N'. (R = ImpR (x).<c>.N' a) \<and> b=d \<and> N'[a\<turnstile>c>b] = N)" 
 using a
-apply(nominal_induct R avoiding: x a b c d N rule: trm.induct)
+apply(nominal_induct R avoiding: x a b c d N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject abs_perm calc_atm)
 apply(rule_tac x="[(name,x)]\<bullet>[(coname1,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -14809,7 +14809,7 @@ lemma crename_ax2:
   assumes a: "N[a\<turnstile>c>b] = Ax x c"
   shows "\<exists>d. N = Ax x d"
 using a
-apply(nominal_induct N avoiding: a b rule: trm.induct)
+apply(nominal_induct N avoiding: a b rule: trm.strong_induct)
 apply(auto split: if_splits)
 apply(simp add: trm.inject)
 done
@@ -14818,7 +14818,7 @@ lemma crename_interesting1:
   assumes a: "distinct [a,b,c]"
   shows "M[a\<turnstile>c>c][c\<turnstile>c>b] = M[c\<turnstile>c>b][a\<turnstile>c>b]"
 using a
-apply(nominal_induct M avoiding: a c b rule: trm.induct)
+apply(nominal_induct M avoiding: a c b rule: trm.strong_induct)
 apply(auto simp add: rename_fresh simp add: trm.inject alpha)
 apply(blast)
 apply(rotate_tac 12)
@@ -14836,13 +14836,13 @@ lemma crename_interesting2:
   assumes a: "a\<noteq>c" "a\<noteq>d" "a\<noteq>b" "c\<noteq>d" "b\<noteq>c"
   shows "M[a\<turnstile>c>b][c\<turnstile>c>d] = M[c\<turnstile>c>d][a\<turnstile>c>b]"
 using a
-apply(nominal_induct M avoiding: a c b d rule: trm.induct)
+apply(nominal_induct M avoiding: a c b d rule: trm.strong_induct)
 apply(auto simp add: rename_fresh simp add: trm.inject alpha)
 done
 
 lemma crename_interesting3:
   shows "M[a\<turnstile>c>c][x\<turnstile>n>y] = M[x\<turnstile>n>y][a\<turnstile>c>c]"
-apply(nominal_induct M avoiding: a c x y rule: trm.induct)
+apply(nominal_induct M avoiding: a c x y rule: trm.strong_induct)
 apply(auto simp add: rename_fresh simp add: trm.inject alpha)
 done
 
@@ -15452,7 +15452,7 @@ lemma nrename_interesting1:
   assumes a: "distinct [x,y,z]"
   shows "M[x\<turnstile>n>z][z\<turnstile>n>y] = M[z\<turnstile>n>y][x\<turnstile>n>y]"
 using a
-apply(nominal_induct M avoiding: x y z rule: trm.induct)
+apply(nominal_induct M avoiding: x y z rule: trm.strong_induct)
 apply(auto simp add: rename_fresh simp add: trm.inject alpha)
 apply(blast)
 apply(blast)
@@ -15476,7 +15476,7 @@ lemma nrename_interesting2:
   assumes a: "x\<noteq>z" "x\<noteq>u" "x\<noteq>y" "z\<noteq>u" "y\<noteq>z"
   shows "M[x\<turnstile>n>y][z\<turnstile>n>u] = M[z\<turnstile>n>u][x\<turnstile>n>y]"
 using a
-apply(nominal_induct M avoiding: x y z u rule: trm.induct)
+apply(nominal_induct M avoiding: x y z u rule: trm.strong_induct)
 apply(auto simp add: rename_fresh simp add: trm.inject alpha)
 done
 
@@ -15484,7 +15484,7 @@ lemma not_fic_nrename_aux:
   assumes a: "fic M c" 
   shows "fic (M[x\<turnstile>n>y]) c" 
 using a
-apply(nominal_induct M avoiding: c x y rule: trm.induct)
+apply(nominal_induct M avoiding: c x y rule: trm.strong_induct)
 apply(auto dest!: fic_elims intro!: fic.intros simp add: fresh_prod fresh_atm rename_fresh abs_fresh)
 done
 
@@ -15499,7 +15499,7 @@ lemma fin_nrename:
   assumes a: "fin M z" "z\<sharp>(x,y)"
   shows "fin (M[x\<turnstile>n>y]) z" 
 using a
-apply(nominal_induct M avoiding: x y z rule: trm.induct)
+apply(nominal_induct M avoiding: x y z rule: trm.strong_induct)
 apply(auto dest!: fin_elims intro!: fin.intros simp add: fresh_prod fresh_atm rename_fresh abs_fresh
            split: if_splits)
 done
@@ -15509,7 +15509,7 @@ lemma nrename_fresh_interesting1:
   assumes a: "z\<sharp>(M[x\<turnstile>n>y])" "z\<sharp>(x,y)"
   shows "z\<sharp>M"
 using a
-apply(nominal_induct M avoiding: x y z rule: trm.induct)
+apply(nominal_induct M avoiding: x y z rule: trm.strong_induct)
 apply(auto split: if_splits simp add: abs_fresh abs_supp fin_supp)
 done
 
@@ -15518,7 +15518,7 @@ lemma nrename_fresh_interesting2:
   assumes a: "c\<sharp>(M[x\<turnstile>n>y])" 
   shows "c\<sharp>M"
 using a
-apply(nominal_induct M avoiding: x y c rule: trm.induct)
+apply(nominal_induct M avoiding: x y c rule: trm.strong_induct)
 apply(auto split: if_splits simp add: abs_fresh abs_supp fin_supp fresh_atm)
 done
 
@@ -15526,7 +15526,7 @@ lemma fin_nrename2:
   assumes a: "fin (M[x\<turnstile>n>y]) z" "z\<sharp>(x,y)"
   shows "fin M z" 
 using a
-apply(nominal_induct M avoiding: x y z rule: trm.induct)
+apply(nominal_induct M avoiding: x y z rule: trm.strong_induct)
 apply(auto dest!: fin_elims intro!: fin.intros simp add: fresh_prod fresh_atm rename_fresh abs_fresh
            split: if_splits)
 apply(auto dest: nrename_fresh_interesting1 simp add: fresh_atm fresh_prod)
@@ -15536,7 +15536,7 @@ lemma nrename_Cut:
   assumes a: "R[x\<turnstile>n>y] = Cut <c>.M (z).N" "c\<sharp>(N,R)" "z\<sharp>(x,y,M,R)"
   shows "\<exists>M' N'. R = Cut <c>.M' (z).N' \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N \<and> c\<sharp>N' \<and> z\<sharp>M'"
 using a
-apply(nominal_induct R avoiding: c y x z M N rule: trm.induct)
+apply(nominal_induct R avoiding: c y x z M N rule: trm.strong_induct)
 apply(auto split: if_splits)
 apply(simp add: trm.inject)
 apply(auto simp add: alpha fresh_atm)
@@ -15561,7 +15561,7 @@ lemma nrename_NotR:
   assumes a: "R[x\<turnstile>n>y] = NotR (z).N c" "z\<sharp>(R,x,y)" 
   shows "\<exists>N'. (R = NotR (z).N' c) \<and> N'[x\<turnstile>n>y] = N" 
 using a
-apply(nominal_induct R avoiding: x y c z N rule: trm.induct)
+apply(nominal_induct R avoiding: x y c z N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(name,z)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15575,7 +15575,7 @@ lemma nrename_NotL:
   assumes a: "R[x\<turnstile>n>y] = NotL <c>.N z" "c\<sharp>R" "z\<sharp>(x,y)"
   shows "\<exists>N'. (R = NotL <c>.N' z) \<and> N'[x\<turnstile>n>y] = N" 
 using a
-apply(nominal_induct R avoiding: x y c z N rule: trm.induct)
+apply(nominal_induct R avoiding: x y c z N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(coname,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15589,7 +15589,7 @@ lemma nrename_NotL':
   assumes a: "R[x\<turnstile>n>y] = NotL <c>.N u" "c\<sharp>R" "x\<noteq>y" 
   shows "(\<exists>N'. (R = NotL <c>.N' u) \<and> N'[x\<turnstile>n>y] = N) \<or> (\<exists>N'. (R = NotL <c>.N' x) \<and> y=u \<and> N'[x\<turnstile>n>y] = N)"
 using a
-apply(nominal_induct R avoiding: y u c x N rule: trm.induct)
+apply(nominal_induct R avoiding: y u c x N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_fresh alpha trm.inject)
 apply(rule_tac x="[(coname,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15609,7 +15609,7 @@ lemma nrename_NotL_aux:
   assumes a: "R[x\<turnstile>n>y] = NotL <c>.N u" 
   shows "(x=u \<and> x=y) \<or> (x\<noteq>u)" 
 using a
-apply(nominal_induct R avoiding: y u c x N rule: trm.induct)
+apply(nominal_induct R avoiding: y u c x N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -15617,7 +15617,7 @@ lemma nrename_AndL1:
   assumes a: "R[x\<turnstile>n>y] = AndL1 (z).N u" "z\<sharp>(R,x,y)" "u\<sharp>(x,y)"
   shows "\<exists>N'. (R = AndL1 (z).N' u) \<and> N'[x\<turnstile>n>y] = N" 
 using a
-apply(nominal_induct R avoiding: z u x y N rule: trm.induct)
+apply(nominal_induct R avoiding: z u x y N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(name1,z)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15631,7 +15631,7 @@ lemma nrename_AndL1':
   assumes a: "R[x\<turnstile>n>y] = AndL1 (v).N u" "v\<sharp>(R,u,x,y)" "x\<noteq>y" 
   shows "(\<exists>N'. (R = AndL1 (v).N' u) \<and> N'[x\<turnstile>n>y] = N) \<or> (\<exists>N'. (R = AndL1 (v).N' x) \<and> y=u \<and> N'[x\<turnstile>n>y] = N)"
 using a
-apply(nominal_induct R avoiding: y u v x N rule: trm.induct)
+apply(nominal_induct R avoiding: y u v x N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_fresh alpha trm.inject)
 apply(rule_tac x="[(name1,v)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15651,7 +15651,7 @@ lemma nrename_AndL1_aux:
   assumes a: "R[x\<turnstile>n>y] = AndL1 (v).N u" 
   shows "(x=u \<and> x=y) \<or> (x\<noteq>u)" 
 using a
-apply(nominal_induct R avoiding: y u v x N rule: trm.induct)
+apply(nominal_induct R avoiding: y u v x N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -15659,7 +15659,7 @@ lemma nrename_AndL2:
   assumes a: "R[x\<turnstile>n>y] = AndL2 (z).N u" "z\<sharp>(R,x,y)" "u\<sharp>(x,y)"
   shows "\<exists>N'. (R = AndL2 (z).N' u) \<and> N'[x\<turnstile>n>y] = N" 
 using a
-apply(nominal_induct R avoiding: z u x y N rule: trm.induct)
+apply(nominal_induct R avoiding: z u x y N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(name1,z)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15673,7 +15673,7 @@ lemma nrename_AndL2':
   assumes a: "R[x\<turnstile>n>y] = AndL2 (v).N u" "v\<sharp>(R,u,x,y)" "x\<noteq>y" 
   shows "(\<exists>N'. (R = AndL2 (v).N' u) \<and> N'[x\<turnstile>n>y] = N) \<or> (\<exists>N'. (R = AndL2 (v).N' x) \<and> y=u \<and> N'[x\<turnstile>n>y] = N)"
 using a
-apply(nominal_induct R avoiding: y u v x N rule: trm.induct)
+apply(nominal_induct R avoiding: y u v x N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_fresh alpha trm.inject)
 apply(rule_tac x="[(name1,v)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15693,7 +15693,7 @@ lemma nrename_AndL2_aux:
   assumes a: "R[x\<turnstile>n>y] = AndL2 (v).N u" 
   shows "(x=u \<and> x=y) \<or> (x\<noteq>u)" 
 using a
-apply(nominal_induct R avoiding: y u v x N rule: trm.induct)
+apply(nominal_induct R avoiding: y u v x N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -15701,7 +15701,7 @@ lemma nrename_AndR:
   assumes a: "R[x\<turnstile>n>y] = AndR <c>.M <d>.N e" "c\<sharp>(d,e,N,R)" "d\<sharp>(c,e,M,R)" 
   shows "\<exists>M' N'. R = AndR <c>.M' <d>.N' e \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N \<and> c\<sharp>N' \<and> d\<sharp>M'"
 using a
-apply(nominal_induct R avoiding: x y c d e M N rule: trm.induct)
+apply(nominal_induct R avoiding: x y c d e M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: trm.inject alpha)
 apply(simp add: fresh_atm fresh_prod)
 apply(rule_tac x="[(coname1,c)]\<bullet>trm1" in exI)
@@ -15725,7 +15725,7 @@ lemma nrename_OrR1:
   assumes a: "R[x\<turnstile>n>y] = OrR1 <c>.N d" "c\<sharp>(R,d)" 
   shows "\<exists>N'. (R = OrR1 <c>.N' d) \<and> N'[x\<turnstile>n>y] = N" 
 using a
-apply(nominal_induct R avoiding: x y c d N rule: trm.induct)
+apply(nominal_induct R avoiding: x y c d N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(coname1,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15739,7 +15739,7 @@ lemma nrename_OrR2:
   assumes a: "R[x\<turnstile>n>y] = OrR2 <c>.N d" "c\<sharp>(R,d)" 
   shows "\<exists>N'. (R = OrR2 <c>.N' d) \<and> N'[x\<turnstile>n>y] = N" 
 using a
-apply(nominal_induct R avoiding: x y c d N rule: trm.induct)
+apply(nominal_induct R avoiding: x y c d N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(coname1,c)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15753,7 +15753,7 @@ lemma nrename_OrL:
   assumes a: "R[u\<turnstile>n>v] = OrL (x).M (y).N z" "x\<sharp>(y,z,u,v,N,R)" "y\<sharp>(x,z,u,v,M,R)" "z\<sharp>(u,v)"
   shows "\<exists>M' N'. R = OrL (x).M' (y).N' z \<and> M'[u\<turnstile>n>v] = M \<and> N'[u\<turnstile>n>v] = N \<and> x\<sharp>N' \<and> y\<sharp>M'"
 using a
-apply(nominal_induct R avoiding: u v x y z M N rule: trm.induct)
+apply(nominal_induct R avoiding: u v x y z M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: trm.inject alpha fresh_prod fresh_atm)
 apply(rule_tac x="[(name1,x)]\<bullet>trm1" in exI)
 apply(perm_simp)
@@ -15774,7 +15774,7 @@ lemma nrename_OrL':
   shows "(\<exists>M' N'. (R = OrL (v).M' (w).N' u) \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N) \<or> 
          (\<exists>M' N'. (R = OrL (v).M' (w).N' x) \<and> y=u \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N)"
 using a
-apply(nominal_induct R avoiding: y x u v w M N rule: trm.induct)
+apply(nominal_induct R avoiding: y x u v w M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_fresh alpha trm.inject)
 apply(rule_tac x="[(name1,v)]\<bullet>trm1" in exI)
 apply(perm_simp)
@@ -15808,7 +15808,7 @@ lemma nrename_OrL_aux:
   assumes a: "R[x\<turnstile>n>y] = OrL (v).M (w).N u" 
   shows "(x=u \<and> x=y) \<or> (x\<noteq>u)" 
 using a
-apply(nominal_induct R avoiding: y x w u v M N rule: trm.induct)
+apply(nominal_induct R avoiding: y x w u v M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -15816,7 +15816,7 @@ lemma nrename_ImpL:
   assumes a: "R[x\<turnstile>n>y] = ImpL <c>.M (u).N z" "c\<sharp>(N,R)" "u\<sharp>(y,x,z,M,R)" "z\<sharp>(x,y)"
   shows "\<exists>M' N'. R = ImpL <c>.M' (u).N' z \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N \<and> c\<sharp>N' \<and> u\<sharp>M'"
 using a
-apply(nominal_induct R avoiding: u x c y z M N rule: trm.induct)
+apply(nominal_induct R avoiding: u x c y z M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: trm.inject alpha fresh_prod fresh_atm)
 apply(rule_tac x="[(coname,c)]\<bullet>trm1" in exI)
 apply(perm_simp)
@@ -15837,7 +15837,7 @@ lemma nrename_ImpL':
   shows "(\<exists>M' N'. (R = ImpL <c>.M' (w).N' u) \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N) \<or> 
          (\<exists>M' N'. (R = ImpL <c>.M' (w).N' x) \<and> y=u \<and> M'[x\<turnstile>n>y] = M \<and> N'[x\<turnstile>n>y] = N)"
 using a
-apply(nominal_induct R avoiding: y x u c w M N rule: trm.induct)
+apply(nominal_induct R avoiding: y x u c w M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_fresh alpha trm.inject)
 apply(rule_tac x="[(coname,c)]\<bullet>trm1" in exI)
 apply(perm_simp)
@@ -15871,7 +15871,7 @@ lemma nrename_ImpL_aux:
   assumes a: "R[x\<turnstile>n>y] = ImpL <c>.M (w).N u" 
   shows "(x=u \<and> x=y) \<or> (x\<noteq>u)" 
 using a
-apply(nominal_induct R avoiding: y x w u c M N rule: trm.induct)
+apply(nominal_induct R avoiding: y x w u c M N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm alpha abs_fresh trm.inject)
 done
 
@@ -15879,7 +15879,7 @@ lemma nrename_ImpR:
   assumes a: "R[u\<turnstile>n>v] = ImpR (x).<c>.N d" "c\<sharp>(R,d)" "x\<sharp>(R,u,v)" 
   shows "\<exists>N'. (R = ImpR (x).<c>.N' d) \<and> N'[u\<turnstile>n>v] = N" 
 using a
-apply(nominal_induct R avoiding: u v x c d N rule: trm.induct)
+apply(nominal_induct R avoiding: u v x c d N rule: trm.strong_induct)
 apply(auto split: if_splits simp add: fresh_prod fresh_atm abs_perm alpha abs_fresh trm.inject)
 apply(rule_tac x="[(name,x)]\<bullet>trm" in exI)
 apply(perm_simp)
@@ -15929,7 +15929,7 @@ lemma nrename_ax2:
   assumes a: "N[x\<turnstile>n>y] = Ax z c"
   shows "\<exists>z. N = Ax z c"
 using a
-apply(nominal_induct N avoiding: x y rule: trm.induct)
+apply(nominal_induct N avoiding: x y rule: trm.strong_induct)
 apply(auto split: if_splits)
 apply(simp add: trm.inject)
 done
@@ -15938,7 +15938,7 @@ lemma fic_nrename:
   assumes a: "fic (M[x\<turnstile>n>y]) c" 
   shows "fic M c" 
 using a
-apply(nominal_induct M avoiding: c x y rule: trm.induct)
+apply(nominal_induct M avoiding: c x y rule: trm.strong_induct)
 apply(auto dest!: fic_elims intro!: fic.intros simp add: fresh_prod fresh_atm rename_fresh abs_fresh
            split: if_splits)
 apply(auto dest: nrename_fresh_interesting2 simp add: fresh_prod fresh_atm)
@@ -17865,9 +17865,9 @@ lemma stn_eqvt[eqvt]:
   shows "(pi1\<bullet>(stn M \<theta>n)) = stn (pi1\<bullet>M) (pi1\<bullet>\<theta>n)"
   and   "(pi2\<bullet>(stn M \<theta>n)) = stn (pi2\<bullet>M) (pi2\<bullet>\<theta>n)"
 apply -
-apply(nominal_induct M avoiding: \<theta>n rule: trm.induct)
+apply(nominal_induct M avoiding: \<theta>n rule: trm.strong_induct)
 apply(auto simp add: eqvts fresh_bij fresh_prod eq_bij fresh_atm)
-apply(nominal_induct M avoiding: \<theta>n rule: trm.induct)
+apply(nominal_induct M avoiding: \<theta>n rule: trm.strong_induct)
 apply(auto simp add: eqvts fresh_bij fresh_prod eq_bij fresh_atm)
 done
 
@@ -17877,9 +17877,9 @@ lemma stc_eqvt[eqvt]:
   shows "(pi1\<bullet>(stc M \<theta>c)) = stc (pi1\<bullet>M) (pi1\<bullet>\<theta>c)"
   and   "(pi2\<bullet>(stc M \<theta>c)) = stc (pi2\<bullet>M) (pi2\<bullet>\<theta>c)"
 apply -
-apply(nominal_induct M avoiding: \<theta>c rule: trm.induct)
+apply(nominal_induct M avoiding: \<theta>c rule: trm.strong_induct)
 apply(auto simp add: eqvts fresh_bij fresh_prod eq_bij fresh_atm)
-apply(nominal_induct M avoiding: \<theta>c rule: trm.induct)
+apply(nominal_induct M avoiding: \<theta>c rule: trm.strong_induct)
 apply(auto simp add: eqvts fresh_bij fresh_prod eq_bij fresh_atm)
 done
 
@@ -17888,7 +17888,7 @@ lemma stn_fresh:
   and   x::"name"
   shows "a\<sharp>(\<theta>n,M) \<Longrightarrow> a\<sharp>stn M \<theta>n"
   and   "x\<sharp>(\<theta>n,M) \<Longrightarrow> x\<sharp>stn M \<theta>n"
-apply(nominal_induct M avoiding: \<theta>n a x rule: trm.induct)
+apply(nominal_induct M avoiding: \<theta>n a x rule: trm.strong_induct)
 apply(auto simp add: abs_fresh fresh_prod fresh_atm)
 apply(rule lookupc_freshness)
 apply(simp add: fresh_atm)
@@ -17901,7 +17901,7 @@ lemma stc_fresh:
   and   x::"name"
   shows "a\<sharp>(\<theta>c,M) \<Longrightarrow> a\<sharp>stc M \<theta>c"
   and   "x\<sharp>(\<theta>c,M) \<Longrightarrow> x\<sharp>stc M \<theta>c"
-apply(nominal_induct M avoiding: \<theta>c a x rule: trm.induct)
+apply(nominal_induct M avoiding: \<theta>c a x rule: trm.strong_induct)
 apply(auto simp add: abs_fresh fresh_prod fresh_atm)
 apply(rule lookupd_freshness)
 apply(simp add: fresh_atm)
@@ -18128,7 +18128,7 @@ lemma psubst_eqvt[eqvt]:
   and   pi2::"coname prm"
   shows "pi1\<bullet>(\<theta>n,\<theta>c<M>) = (pi1\<bullet>\<theta>n),(pi1\<bullet>\<theta>c)<(pi1\<bullet>M)>"
   and   "pi2\<bullet>(\<theta>n,\<theta>c<M>) = (pi2\<bullet>\<theta>n),(pi2\<bullet>\<theta>c)<(pi2\<bullet>M)>"
-apply(nominal_induct M avoiding: \<theta>n \<theta>c rule: trm.induct)
+apply(nominal_induct M avoiding: \<theta>n \<theta>c rule: trm.strong_induct)
 apply(auto simp add: eq_bij fresh_bij eqvts perm_pi_simp)
 apply(rule case_cong)
 apply(rule find_maps)
@@ -18217,7 +18217,7 @@ lemma ax_psubst:
   and     b: "a\<sharp>(\<theta>n,\<theta>c)" "x\<sharp>(\<theta>n,\<theta>c)"
   shows "M = Ax x a"
 using a b
-apply(nominal_induct M avoiding: \<theta>n \<theta>c rule: trm.induct)
+apply(nominal_induct M avoiding: \<theta>n \<theta>c rule: trm.strong_induct)
 apply(auto)
 apply(drule lookup_unicity)
 apply(simp)+
@@ -18408,7 +18408,7 @@ lemma psubst_fresh_name:
   assumes a: "x\<sharp>\<theta>n" "x\<sharp>\<theta>c" "x\<sharp>M"
   shows "x\<sharp>\<theta>n,\<theta>c<M>"
 using a
-apply(nominal_induct M avoiding: x \<theta>n \<theta>c rule: trm.induct)
+apply(nominal_induct M avoiding: x \<theta>n \<theta>c rule: trm.strong_induct)
 apply(simp add: lookup_freshness)
 apply(auto simp add: abs_fresh)[1]
 apply(simp add: lookupc_freshness)
@@ -18494,7 +18494,7 @@ lemma psubst_fresh_coname:
   assumes a: "a\<sharp>\<theta>n" "a\<sharp>\<theta>c" "a\<sharp>M"
   shows "a\<sharp>\<theta>n,\<theta>c<M>"
 using a
-apply(nominal_induct M avoiding: a \<theta>n \<theta>c rule: trm.induct)
+apply(nominal_induct M avoiding: a \<theta>n \<theta>c rule: trm.strong_induct)
 apply(simp add: lookup_freshness)
 apply(auto simp add: abs_fresh)[1]
 apply(simp add: lookupd_freshness)
@@ -18579,7 +18579,7 @@ lemma psubst_csubst:
   assumes a: "a\<sharp>(\<theta>n,\<theta>c)"
   shows "\<theta>n,((a,x,P)#\<theta>c)<M> = ((\<theta>n,\<theta>c<M>){a:=(x).P})"
 using a
-apply(nominal_induct M avoiding: a x \<theta>n \<theta>c P rule: trm.induct)
+apply(nominal_induct M avoiding: a x \<theta>n \<theta>c P rule: trm.strong_induct)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp add: lookup_csubst)
 apply(simp add: fresh_list_cons fresh_prod)
@@ -18866,7 +18866,7 @@ lemma psubst_nsubst:
   assumes a: "x\<sharp>(\<theta>n,\<theta>c)"
   shows "((x,a,P)#\<theta>n),\<theta>c<M> = ((\<theta>n,\<theta>c<M>){x:=<a>.P})"
 using a
-apply(nominal_induct M avoiding: a x \<theta>n \<theta>c P rule: trm.induct)
+apply(nominal_induct M avoiding: a x \<theta>n \<theta>c P rule: trm.strong_induct)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp add: lookup_fresh)
 apply(rule lookupb_lookupa)
@@ -19337,7 +19337,7 @@ lemma ty_perm:
   and   pi2::"coname prm"
   and   B::"ty"
   shows "pi1\<bullet>B=B" and "pi2\<bullet>B=B"
-apply(nominal_induct B rule: ty.induct)
+apply(nominal_induct B rule: ty.strong_induct)
 apply(auto simp add: perm_string)
 done
 
@@ -20394,7 +20394,7 @@ done
 
 lemma id_redu:
   shows "(idn \<Gamma> x),(idc \<Delta> a)<M> \<longrightarrow>\<^isub>a* M"
-apply(nominal_induct M avoiding: \<Gamma> \<Delta> x a rule: trm.induct)
+apply(nominal_induct M avoiding: \<Gamma> \<Delta> x a rule: trm.strong_induct)
 apply(auto)
 (* Ax *)
 apply(case_tac "name\<sharp>(idn \<Gamma> x)")

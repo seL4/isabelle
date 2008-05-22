@@ -10,7 +10,7 @@ lemma forget:
   assumes asm: "x\<sharp>L"
   shows "L[x::=P] = L"
 using asm
-proof (nominal_induct L avoiding: x P rule: lam.induct)
+proof (nominal_induct L avoiding: x P rule: lam.strong_induct)
   case (Var z)
   have "x\<sharp>Var z" by fact
   thus "(Var z)[x::=P] = (Var z)" by (simp add: fresh_atm)
@@ -36,7 +36,7 @@ lemma forget_automatic:
   assumes asm: "x\<sharp>L"
   shows "L[x::=P] = L"
   using asm 
-by (nominal_induct L avoiding: x P rule: lam.induct)
+by (nominal_induct L avoiding: x P rule: lam.strong_induct)
    (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact: 
@@ -44,7 +44,7 @@ lemma fresh_fact:
   assumes asms: "z\<sharp>N" "z\<sharp>L"
   shows "z\<sharp>(N[y::=L])"
 using asms
-proof (nominal_induct N avoiding: z y L rule: lam.induct)
+proof (nominal_induct N avoiding: z y L rule: lam.strong_induct)
   case (Var u)
   have "z\<sharp>(Var u)" "z\<sharp>L" by fact+
   thus "z\<sharp>((Var u)[y::=L])" by simp
@@ -73,7 +73,7 @@ lemma fresh_fact_automatic:
   assumes asms: "z\<sharp>N" "z\<sharp>L"
   shows "z\<sharp>(N[y::=L])"
   using asms 
-by (nominal_induct N avoiding: z y L rule: lam.induct)
+by (nominal_induct N avoiding: z y L rule: lam.strong_induct)
    (auto simp add: abs_fresh fresh_atm)
 
 lemma fresh_fact': 
@@ -81,7 +81,7 @@ lemma fresh_fact':
   assumes a: "a\<sharp>t2"
   shows "a\<sharp>t1[a::=t2]"
 using a 
-by (nominal_induct t1 avoiding: a t2 rule: lam.induct)
+by (nominal_induct t1 avoiding: a t2 rule: lam.strong_induct)
    (auto simp add: abs_fresh fresh_atm)
 
 lemma substitution_lemma:  
@@ -89,7 +89,7 @@ lemma substitution_lemma:
   and     b: "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
 using a b
-proof (nominal_induct M avoiding: x y N L rule: lam.induct)
+proof (nominal_induct M avoiding: x y N L rule: lam.strong_induct)
   case (Var z) (* case 1: Variables*)
   have "x\<noteq>y" by fact
   have "x\<sharp>L" by fact
@@ -142,7 +142,7 @@ lemma substitution_lemma_automatic:
   assumes asm: "x\<noteq>y" "x\<sharp>L"
   shows "M[x::=N][y::=L] = M[y::=L][x::=N[y::=L]]"
   using asm 
-by (nominal_induct M avoiding: x y N L rule: lam.induct)
+by (nominal_induct M avoiding: x y N L rule: lam.strong_induct)
    (auto simp add: fresh_fact forget)
 
 section {* Beta Reduction *}
@@ -261,7 +261,7 @@ lemma subst_rename:
   assumes a: "c\<sharp>t1"
   shows "t1[a::=t2] = ([(c,a)]\<bullet>t1)[c::=t2]"
 using a
-by (nominal_induct t1 avoiding: a c t2 rule: lam.induct)
+by (nominal_induct t1 avoiding: a c t2 rule: lam.strong_induct)
    (auto simp add: calc_atm fresh_atm abs_fresh)
 
 lemma one_abs: 
@@ -295,7 +295,7 @@ lemma one_subst_aux:
   assumes a: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
 using a
-proof (nominal_induct M avoiding: x N N' rule: lam.induct)
+proof (nominal_induct M avoiding: x N N' rule: lam.strong_induct)
   case (Var y) 
   thus "Var y[x::=N] \<longrightarrow>\<^isub>1 Var y[x::=N']" by (cases "x=y") auto
 next
@@ -310,7 +310,7 @@ lemma one_subst_aux_automatic:
   assumes a: "N\<longrightarrow>\<^isub>1N'"
   shows "M[x::=N] \<longrightarrow>\<^isub>1 M[x::=N']"
 using a
-by (nominal_induct M avoiding: x N N' rule: lam.induct)
+by (nominal_induct M avoiding: x N N' rule: lam.strong_induct)
    (auto simp add: fresh_prod fresh_atm)
 
 lemma one_subst: 

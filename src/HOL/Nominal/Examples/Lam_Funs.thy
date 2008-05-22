@@ -61,7 +61,7 @@ text {*
 
 lemma frees_equals_support:
   shows "frees t = supp t"
-by (nominal_induct t rule: lam.induct)
+by (nominal_induct t rule: lam.strong_induct)
    (simp_all add: lam.supp supp_atm abs_supp)
 
 text {* Parallel and single capture-avoiding substitution. *}
@@ -96,7 +96,7 @@ lemma psubst_eqvt[eqvt]:
   fixes pi::"name prm" 
   and   t::"lam"
   shows "pi\<bullet>(\<theta><t>) = (pi\<bullet>\<theta>)<(pi\<bullet>t)>"
-by (nominal_induct t avoiding: \<theta> rule: lam.induct)
+by (nominal_induct t avoiding: \<theta> rule: lam.strong_induct)
    (simp_all add: eqvts fresh_bij)
 
 abbreviation 
@@ -112,7 +112,7 @@ by (simp_all add: fresh_list_cons fresh_list_nil)
 
 lemma subst_supp: 
   shows "supp(t1[a::=t2]) \<subseteq> (((supp(t1)-{a})\<union>supp(t2))::name set)"
-apply(nominal_induct t1 avoiding: a t2 rule: lam.induct)
+apply(nominal_induct t1 avoiding: a t2 rule: lam.strong_induct)
 apply(auto simp add: lam.supp supp_atm fresh_prod abs_supp)
 apply(blast)+
 done
@@ -154,6 +154,6 @@ by (rule TrueI)+
   
 lemma clam_compose:
   shows "(E1 \<circ> E2)\<lbrakk>t\<rbrakk> = E1\<lbrakk>E2\<lbrakk>t\<rbrakk>\<rbrakk>"
-by (induct E1 rule: clam.weak_induct) (auto)
+by (induct E1 rule: clam.induct) (auto)
 
 end

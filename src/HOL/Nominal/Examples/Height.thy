@@ -49,7 +49,7 @@ text{* The next lemma is needed in the Var-case of the theorem below. *}
 
 lemma height_ge_one: 
   shows "1 \<le> (height e)"
-by (nominal_induct e rule: lam.induct) (simp_all)
+by (nominal_induct e rule: lam.strong_induct) (simp_all)
 
 text {* 
   Unlike the proplem suggested by Wang, however, the 
@@ -58,7 +58,7 @@ text {*
 
 theorem height_subst:
   shows "height (e[x::=e']) \<le> ((height e) - 1) + (height e')"
-proof (nominal_induct e avoiding: x e' rule: lam.induct)
+proof (nominal_induct e avoiding: x e' rule: lam.strong_induct)
   case (Var y)
   have "1 \<le> height e'" by (rule height_ge_one)
   then show "height (Var y[x::=e']) \<le> height (Var y) - 1 + height e'" by simp
