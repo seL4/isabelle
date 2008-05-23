@@ -38,7 +38,7 @@ sig
   val get_datatype_of_constr: theory -> string -> string option
   val get_case_data: theory -> string -> (int * string list) option
   val is_undefined: theory -> string -> bool
-  val default_typ: theory -> string -> typ
+  val default_typ: theory -> string -> (string * sort) list * typ
 
   val preprocess_conv: cterm -> thm
   val preprocess_term: theory -> term -> term
@@ -89,7 +89,7 @@ structure CodeAttr = TheoryDataFun (
   val empty = [];
   val copy = I;
   val extend = I;
-  fun merge _ = AList.merge (op =) (K true);
+  fun merge _ = AList.merge (op = : string * string -> bool) (K true);
 );
 
 fun add_attribute (attr as (name, _)) =
@@ -510,9 +510,14 @@ fun print_codesetup thy =
 
 (** theorem transformation and certification **)
 
+fun const_of thy = dest_Const o fst o strip_comb o fst o Logic.dest_equals
+  o ObjectLogic.drop_judgment thy o Thm.plain_prop_of;
+
+fun const_of_func thy = AxClass.unoverload_const thy o const_of thy;
+
 fun common_typ_funcs [] = []
   | common_typ_funcs [thm] = [thm]
-  | common_typ_funcs (thms as thm :: _) =
+  | common_typ_funcs (thms as thm :: _) = (*FIXME is too general*)
       let
         val thy = Thm.theory_of_thm thm;
         fun incr_thm thm max =
@@ -521,7 +526,7 @@ fun common_typ_funcs [] = []
             val max' = Thm.maxidx_of thm' + 1;
           in (thm', max') end;
         val (thms', maxidx) = fold_map incr_thm thms 0;
-        val ty1 :: tys = map (snd o CodeUnit.head_func) thms';
+        val ty1 :: tys = map (snd o const_of thy) thms';
         fun unify ty env = Sign.typ_unify thy (ty1, ty) env
           handle Type.TUNIFY =>
             error ("Type unificaton failed, while unifying defining equations\n"
@@ -532,8 +537,6 @@ fun common_typ_funcs [] = []
         val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
       in map (Thm.instantiate (instT, [])) thms' end;
-
-fun const_of_func thy = AxClass.unoverload_const thy o CodeUnit.head_func;
 
 fun certify_const thy const thms =
   let
@@ -569,7 +572,7 @@ fun specific_constraints thy (class, tyco) =
       |> map (Thm.transfer thy)
     fun sorts_of [Type (_, tys)] = map (snd o dest_TVar) tys
       | sorts_of tys = map (snd o dest_TVar) tys;
-    val sorts = map (sorts_of o Sign.const_typargs thy o CodeUnit.head_func) funcs;
+    val sorts = map (sorts_of o Sign.const_typargs thy o const_of thy) funcs;
   in sorts end;
 
 fun weakest_constraints thy algebra (class, tyco) =
@@ -640,14 +643,14 @@ fun assert_func_typ thm =
     fun check_typ_classparam tyco (c, thm) =
           let
             val SOME class = AxClass.class_of_param thy c;
-            val (_, ty) = CodeUnit.head_func thm;
+            val (_, ty) = const_of thy thm;
             val ty_decl = classparam_weakest_typ thy class (c, tyco);
             val ty_strongest = classparam_strongest_typ thy class (c, tyco);
             fun constrain thm = 
               let
                 val max = Thm.maxidx_of thm + 1;
                 val ty_decl' = Logic.incr_tvar max ty_decl;
-                val (_, ty') = CodeUnit.head_func thm;
+                val (_, ty') = const_of thy thm;
                 val (env, _) = Sign.typ_unify thy (ty_decl', ty') (Vartab.empty, max);
                 val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
                   cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
@@ -669,7 +672,7 @@ fun assert_func_typ thm =
           end;
     fun check_typ_fun (c, thm) =
       let
-        val (_, ty) = CodeUnit.head_func thm;
+        val (_, ty) = const_of thy thm;
         val ty_decl = Sign.the_const_type thy c;
       in if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
         then thm
@@ -926,8 +929,9 @@ fun preprocess thy thms =
   |> map (CodeUnit.rewrite_func ((#inlines o the_thmproc o the_exec) thy))
   |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_thmproc o the_exec) thy)
 (*FIXME - must check: rewrite rule, defining equation, proper constant |> map (snd o check_func false thy) *)
-  |> common_typ_funcs
-  |> map (AxClass.unoverload thy);
+  |> map (AxClass.unoverload thy)
+  |> common_typ_funcs;
+
 
 fun preprocess_conv ct =
   let
@@ -984,10 +988,10 @@ fun these_funcs thy const =
   end;
 
 fun default_typ thy c = case default_typ_proto thy c
- of SOME ty => ty
+ of SOME ty => CodeUnit.typscheme thy (c, ty)
   | NONE => (case get_funcs thy c
      of thm :: _ => snd (CodeUnit.head_func (AxClass.unoverload thy thm))
-      | [] => Sign.the_const_type thy c);
+      | [] => CodeUnit.typscheme thy (c, Sign.the_const_type thy c));
 
 end; (*local*)
 

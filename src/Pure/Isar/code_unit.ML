@@ -14,6 +14,7 @@ sig
   val try_thm: (thm -> thm) -> thm -> thm option
 
   (*typ instantiations*)
+  val typscheme: theory -> string * typ -> (string * sort) list * typ
   val inst_thm: sort Vartab.table -> thm -> thm
   val constrain_thm: sort -> thm -> thm
 
@@ -39,7 +40,7 @@ sig
   val assert_rew: thm -> thm
   val mk_rew: thm -> thm
   val mk_func: thm -> thm
-  val head_func: thm -> string * typ
+  val head_func: thm -> string * ((string * sort) list * typ)
   val expand_eta: int -> thm -> thm
   val rewrite_func: thm list -> thm -> thm
   val norm_args: thm list -> thm list 
@@ -71,6 +72,13 @@ fun no_args thy = length o fst o strip_type o Sign.the_const_type thy;
 
 
 (* utilities *)
+
+fun typscheme thy (c, ty) =
+  let
+    fun dest (TVar ((v, 0), sort)) = (v, sort)
+      | dest ty = error ("Illegal type parameter in type scheme: " ^ Syntax.string_of_typ_global thy ty);
+    val vs = map dest (Sign.const_typargs thy (c, ty));
+  in (vs, ty) end;
 
 fun inst_thm tvars' thm =
   let
@@ -297,7 +305,7 @@ fun constrset_of_consts thy cs =
     fun ty_sorts (c, ty) =
       let
         val ty_decl = (Logic.unvarifyT o Sign.the_const_type thy) c;
-        val (tyco, vs_decl) = last_typ (c, ty) ty_decl;
+        val (tyco, _) = last_typ (c, ty) ty_decl;
         val (_, vs) = last_typ (c, ty) ty;
       in ((tyco, map snd vs), (c, (map fst vs, ty_decl))) end;
     fun add ((tyco', sorts'), c) ((tyco, sorts), cs) =
@@ -399,8 +407,8 @@ fun head_func thm =
   let
     val thy = Thm.theory_of_thm thm;
     val Const (c, ty) = (fst o strip_comb o fst o Logic.dest_equals
-      o ObjectLogic.drop_judgment thy o Thm.plain_prop_of) thm;
-  in (c, ty) end;
+      o (*ObjectLogic.drop_judgment thy o *)Thm.plain_prop_of) thm;
+  in (c, typscheme thy (c, ty)) end;
 
 
 (* case cerificates *)
