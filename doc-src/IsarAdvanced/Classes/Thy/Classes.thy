@@ -279,7 +279,7 @@ text {*
     instance proof
       fix n :: nat
       show "\<one> \<otimes> n = n"
-	unfolding neutral_nat_def mult_nat_def by simp
+	unfolding neutral_nat_def by simp
     next
       fix k :: int
       show "\<one> \<otimes> k = k"
