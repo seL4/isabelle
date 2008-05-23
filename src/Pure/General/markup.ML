@@ -15,6 +15,7 @@ sig
   val properties: (string * string) list -> T -> T
   val nameN: string
   val groupN: string
+  val theory_nameN: string
   val idN: string
   val kindN: string
   val internalK: string
@@ -93,8 +94,12 @@ fun markup_elem elem = (elem, (elem, []): T);
 fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
 fun markup_int elem prop = (elem, fn i => (elem, [(prop, Int.toString i)]): T);
 
+
+(* name *)
+
 val nameN = "name";
 val groupN = "group";
+val theory_nameN = "theory_name";
 
 
 (* kind *)
