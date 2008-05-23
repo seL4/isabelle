@@ -260,12 +260,12 @@ fun infer_modes thy extra_modes arities arg_vs preds = fixp (fn modes =>
 
 fun mk_eq (x::xs) =
   let fun mk_eqs _ [] = []
-        | mk_eqs a (b::cs) = Pretty.str (a ^ " = " ^ b) :: mk_eqs b cs
+        | mk_eqs a (b::cs) = str (a ^ " = " ^ b) :: mk_eqs b cs
   in mk_eqs x xs end;
 
-fun mk_tuple xs = Pretty.block (Pretty.str "(" ::
-  List.concat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
-  [Pretty.str ")"]);
+fun mk_tuple xs = Pretty.block (str "(" ::
+  List.concat (separate [str ",", Pretty.brk 1] (map single xs)) @
+  [str ")"]);
 
 fun mk_v ((names, vs), s) = (case AList.lookup (op =) vs s of
       NONE => ((names, (s, [s])::vs), s)
@@ -287,18 +287,18 @@ fun is_exhaustive (Var _) = true
   | is_exhaustive _ = false;
 
 fun compile_match nvs eq_ps out_ps success_p can_fail =
-  let val eqs = List.concat (separate [Pretty.str " andalso", Pretty.brk 1]
+  let val eqs = List.concat (separate [str " andalso", Pretty.brk 1]
     (map single (List.concat (map (mk_eq o snd) nvs) @ eq_ps)));
   in
     Pretty.block
-     ([Pretty.str "(fn ", mk_tuple out_ps, Pretty.str " =>", Pretty.brk 1] @
-      (Pretty.block ((if eqs=[] then [] else Pretty.str "if " ::
-         [Pretty.block eqs, Pretty.brk 1, Pretty.str "then "]) @
+     ([str "(fn ", mk_tuple out_ps, str " =>", Pretty.brk 1] @
+      (Pretty.block ((if eqs=[] then [] else str "if " ::
+         [Pretty.block eqs, Pretty.brk 1, str "then "]) @
          (success_p ::
-          (if eqs=[] then [] else [Pretty.brk 1, Pretty.str "else DSeq.empty"]))) ::
+          (if eqs=[] then [] else [Pretty.brk 1, str "else DSeq.empty"]))) ::
        (if can_fail then
-          [Pretty.brk 1, Pretty.str "| _ => DSeq.empty)"]
-        else [Pretty.str ")"])))
+          [Pretty.brk 1, str "| _ => DSeq.empty)"]
+        else [str ")"])))
   end;
 
 fun modename module s (iss, is) gr =
@@ -310,14 +310,14 @@ fun modename module s (iss, is) gr =
   end;
 
 fun mk_funcomp brack s k p = (if brack then parens else I)
-  (Pretty.block [Pretty.block ((if k = 0 then [] else [Pretty.str "("]) @
-    separate (Pretty.brk 1) (Pretty.str s :: replicate k (Pretty.str "|> ???")) @
-    (if k = 0 then [] else [Pretty.str ")"])), Pretty.brk 1, p]);
+  (Pretty.block [Pretty.block ((if k = 0 then [] else [str "("]) @
+    separate (Pretty.brk 1) (str s :: replicate k (str "|> ???")) @
+    (if k = 0 then [] else [str ")"])), Pretty.brk 1, p]);
 
 fun compile_expr thy defs dep module brack modes (gr, (NONE, t)) =
       apsnd single (invoke_codegen thy defs dep module brack (gr, t))
   | compile_expr _ _ _ _ _ _ (gr, (SOME _, Var ((name, _), _))) =
-      (gr, [Pretty.str name])
+      (gr, [str name])
   | compile_expr thy defs dep module brack modes (gr, (SOME (Mode (mode, _, ms)), t)) =
       (case strip_comb t of
          (Const (name, _), args) =>
@@ -328,13 +328,13 @@ fun compile_expr thy defs dep module brack modes (gr, (NONE, t)) =
                    (compile_expr thy defs dep module true modes) (gr, ms ~~ args1) |>>>
                  modename module name mode;
                val (gr'', ps') = (case mode of
-                   ([], []) => (gr', [Pretty.str "()"])
+                   ([], []) => (gr', [str "()"])
                  | _ => foldl_map
                      (invoke_codegen thy defs dep module true) (gr', args2))
              in (gr', (if brack andalso not (null ps andalso null ps') then
                single o parens o Pretty.block else I)
                  (List.concat (separate [Pretty.brk 1]
-                   ([Pretty.str mode_id] :: ps @ map single ps'))))
+                   ([str mode_id] :: ps @ map single ps'))))
              end
            else apsnd (single o mk_funcomp brack "??" (length (binder_types (fastype_of t))))
              (invoke_codegen thy defs dep module true (gr, t))
@@ -353,7 +353,7 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
         in ((s::names, (s, t)::eqs), Var ((s, 0), fastype_of t)) end;
 
     fun compile_eq (gr, (s, t)) =
-      apsnd (Pretty.block o cons (Pretty.str (s ^ " = ")) o single)
+      apsnd (Pretty.block o cons (str (s ^ " = ")) o single)
         (invoke_codegen thy defs dep module false (gr, t));
 
     val (in_ts, out_ts) = get_args is 1 ts;
@@ -374,7 +374,7 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
             val (gr5, eq_ps') = foldl_map compile_eq (gr4, eqs')
           in
             (gr5, compile_match (snd nvs) (eq_ps @ eq_ps') out_ps'
-              (Pretty.block [Pretty.str "DSeq.single", Pretty.brk 1, mk_tuple out_ps])
+              (Pretty.block [str "DSeq.single", Pretty.brk 1, mk_tuple out_ps])
               (exists (not o is_exhaustive) out_ts'''))
           end
       | compile_prems out_ts vs names gr ps =
@@ -405,13 +405,13 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
                          (compile_expr thy defs dep module false modes
                            (gr2, (mode, t)))
                      else
-                       apsnd (fn p => [Pretty.str "DSeq.of_list", Pretty.brk 1, p])
+                       apsnd (fn p => [str "DSeq.of_list", Pretty.brk 1, p])
                            (invoke_codegen thy defs dep module true (gr2, t));
                    val (gr4, rest) = compile_prems out_ts''' vs' (fst nvs) gr3 ps';
                  in
                    (gr4, compile_match (snd nvs) eq_ps out_ps
                       (Pretty.block (ps @
-                         [Pretty.str " :->", Pretty.brk 1, rest]))
+                         [str " :->", Pretty.brk 1, rest]))
                       (exists (not o is_exhaustive) out_ts''))
                  end
              | Sidecond t =>
@@ -420,21 +420,21 @@ fun compile_clause thy defs gr dep module all_vs arg_vs modes (iss, is) (ts, ps)
                    val (gr3, rest) = compile_prems [] vs' (fst nvs) gr2 ps';
                  in
                    (gr3, compile_match (snd nvs) eq_ps out_ps
-                      (Pretty.block [Pretty.str "?? ", side_p,
-                        Pretty.str " :->", Pretty.brk 1, rest])
+                      (Pretty.block [str "?? ", side_p,
+                        str " :->", Pretty.brk 1, rest])
                       (exists (not o is_exhaustive) out_ts''))
                  end)
           end;
 
     val (gr', prem_p) = compile_prems in_ts' arg_vs all_vs' gr ps;
   in
-    (gr', Pretty.block [Pretty.str "DSeq.single", Pretty.brk 1, inp,
-       Pretty.str " :->", Pretty.brk 1, prem_p])
+    (gr', Pretty.block [str "DSeq.single", Pretty.brk 1, inp,
+       str " :->", Pretty.brk 1, prem_p])
   end;
 
 fun compile_pred thy defs gr dep module prfx all_vs arg_vs modes s cls mode =
   let
-    val xs = map Pretty.str (Name.variant_list arg_vs
+    val xs = map str (Name.variant_list arg_vs
       (map (fn i => "x" ^ string_of_int i) (snd mode)));
     val (gr', (cl_ps, mode_id)) =
       foldl_map (fn (gr, cl) => compile_clause thy defs
@@ -443,12 +443,12 @@ fun compile_pred thy defs gr dep module prfx all_vs arg_vs modes s cls mode =
   in
     ((gr', "and "), Pretty.block
       ([Pretty.block (separate (Pretty.brk 1)
-         (Pretty.str (prfx ^ mode_id) ::
-           map Pretty.str arg_vs @
-           (case mode of ([], []) => [Pretty.str "()"] | _ => xs)) @
-         [Pretty.str " ="]),
+         (str (prfx ^ mode_id) ::
+           map str arg_vs @
+           (case mode of ([], []) => [str "()"] | _ => xs)) @
+         [str " ="]),
         Pretty.brk 1] @
-       List.concat (separate [Pretty.str " ++", Pretty.brk 1] (map single cl_ps))))
+       List.concat (separate [str " ++", Pretty.brk 1] (map single cl_ps))))
   end;
 
 fun compile_preds thy defs gr dep module all_vs arg_vs modes preds =
@@ -457,7 +457,7 @@ fun compile_preds thy defs gr dep module all_vs arg_vs modes preds =
       dep module prfx' all_vs arg_vs modes s cls mode)
         ((gr, prfx), ((the o AList.lookup (op =) modes) s))) ((gr, "fun "), preds)
   in
-    (gr', space_implode "\n\n" (map Pretty.string_of (List.concat prs)) ^ ";\n\n")
+    (gr', space_implode "\n\n" (map string_of (List.concat prs)) ^ ";\n\n")
   end;
 
 (**** processing of introduction rules ****)
@@ -605,11 +605,11 @@ fun mk_fun thy defs name eqns dep module module' gr =
       val (gr', (fun_id, mode_id)) = gr |>
         mk_const_id module' name |>>>
         modename module' pname ([], mode);
-      val vars = map (fn i => Pretty.str ("x" ^ string_of_int i)) mode;
-      val s = Pretty.string_of (Pretty.block
-        [mk_app false (Pretty.str ("fun " ^ snd fun_id)) vars, Pretty.str " =",
-         Pretty.brk 1, Pretty.str "DSeq.hd", Pretty.brk 1,
-         parens (Pretty.block (separate (Pretty.brk 1) (Pretty.str mode_id ::
+      val vars = map (fn i => str ("x" ^ string_of_int i)) mode;
+      val s = string_of (Pretty.block
+        [mk_app false (str ("fun " ^ snd fun_id)) vars, str " =",
+         Pretty.brk 1, str "DSeq.hd", Pretty.brk 1,
+         parens (Pretty.block (separate (Pretty.brk 1) (str mode_id ::
            vars)))]) ^ ";\n\n";
       val gr'' = mk_ind_def thy defs (add_edge (name, dep)
         (new_node (name, (NONE, module', s)) gr')) name [pname] module'
@@ -626,7 +626,7 @@ fun mk_fun thy defs name eqns dep module module' gr =
 fun conv_ntuple fs ts p =
   let
     val k = length fs;
-    val xs = map (fn i => Pretty.str ("x" ^ string_of_int i)) (0 upto k);
+    val xs = map (fn i => str ("x" ^ string_of_int i)) (0 upto k);
     val xs' = map (fn Bound i => nth xs (k - i)) ts;
     fun conv xs js =
       if js mem fs then
@@ -638,9 +638,9 @@ fun conv_ntuple fs ts p =
   in
     if k > 0 then
       Pretty.block
-        [Pretty.str "DSeq.map (fn", Pretty.brk 1,
-         mk_tuple xs', Pretty.str " =>", Pretty.brk 1, fst (conv xs []),
-         Pretty.str ")", Pretty.brk 1, parens p]
+        [str "DSeq.map (fn", Pretty.brk 1,
+         mk_tuple xs', str " =>", Pretty.brk 1, fst (conv xs []),
+         str ")", Pretty.brk 1, parens p]
     else p
   end;
 
@@ -664,8 +664,8 @@ fun inductive_codegen thy defs gr dep module brack t = (case strip_comb t of
                     let val (gr', call_p) = mk_ind_call thy defs gr dep module true
                       s T (ts1 @ ts2') names thyname k intrs
                     in SOME (gr', (if brack then parens else I) (Pretty.block
-                      [Pretty.str "DSeq.list_of", Pretty.brk 1, Pretty.str "(",
-                       conv_ntuple fs ots call_p, Pretty.str ")"]))
+                      [str "DSeq.list_of", Pretty.brk 1, str "(",
+                       conv_ntuple fs ots call_p, str ")"]))
                     end
                   else NONE
                 end
@@ -690,7 +690,7 @@ fun inductive_codegen thy defs gr dep module brack t = (case strip_comb t of
             dep module (if_library thyname module) gr;
           val (gr'', ps) = foldl_map
             (invoke_codegen thy defs dep module true) (gr', ts);
-        in SOME (gr'', mk_app brack (Pretty.str id) ps)
+        in SOME (gr'', mk_app brack (str id) ps)
         end)
   | _ => NONE);
 

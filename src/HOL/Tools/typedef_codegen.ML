@@ -23,7 +23,7 @@ fun typedef_codegen thy defs gr dep module brack t =
         val (gr'', ps) =
           foldl_map (Codegen.invoke_codegen thy defs dep module true) (gr', ts);
         val id = Codegen.mk_qual_id module (Codegen.get_const_id s gr'')
-      in SOME (gr'', Codegen.mk_app brack (Pretty.str id) ps) end;
+      in SOME (gr'', Codegen.mk_app brack (Codegen.str id) ps) end;
     fun lookup f T =
       (case TypedefPackage.get_info thy (get_name T) of
         NONE => ""
@@ -41,8 +41,8 @@ fun typedef_codegen thy defs gr dep module brack t =
      | _ => NONE)
   end;
 
-fun mk_tyexpr [] s = Pretty.str s
-  | mk_tyexpr [p] s = Pretty.block [p, Pretty.str (" " ^ s)]
+fun mk_tyexpr [] s = Codegen.str s
+  | mk_tyexpr [p] s = Pretty.block [p, Codegen.str (" " ^ s)]
   | mk_tyexpr ps s = Pretty.list "(" (") " ^ s) ps;
 
 fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
@@ -69,31 +69,31 @@ fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
                    (Codegen.add_edge (node_id, dep)
                       (Codegen.new_node (node_id, (NONE, "", "")) gr'), oldT :: Us);
                  val s =
-                   Pretty.string_of (Pretty.block [Pretty.str "datatype ",
+                   Codegen.string_of (Pretty.block [Codegen.str "datatype ",
                      mk_tyexpr ps (snd ty_id),
-                     Pretty.str " =", Pretty.brk 1, Pretty.str (Abs_id ^ " of"),
-                     Pretty.brk 1, p, Pretty.str ";"]) ^ "\n\n" ^
-                   Pretty.string_of (Pretty.block [Pretty.str ("fun " ^ Rep_id),
-                     Pretty.brk 1, Pretty.str ("(" ^ Abs_id), Pretty.brk 1,
-                     Pretty.str "x) = x;"]) ^ "\n\n" ^
+                     Codegen.str " =", Pretty.brk 1, Codegen.str (Abs_id ^ " of"),
+                     Pretty.brk 1, p, Codegen.str ";"]) ^ "\n\n" ^
+                   Codegen.string_of (Pretty.block [Codegen.str ("fun " ^ Rep_id),
+                     Pretty.brk 1, Codegen.str ("(" ^ Abs_id), Pretty.brk 1,
+                     Codegen.str "x) = x;"]) ^ "\n\n" ^
                    (if "term_of" mem !Codegen.mode then
-                      Pretty.string_of (Pretty.block [Pretty.str "fun ",
+                      Codegen.string_of (Pretty.block [Codegen.str "fun ",
                         Codegen.mk_term_of gr'' module' false newT, Pretty.brk 1,
-                        Pretty.str ("(" ^ Abs_id), Pretty.brk 1,
-                        Pretty.str "x) =", Pretty.brk 1,
-                        Pretty.block [Pretty.str ("Const (\"" ^ Abs_name ^ "\","),
+                        Codegen.str ("(" ^ Abs_id), Pretty.brk 1,
+                        Codegen.str "x) =", Pretty.brk 1,
+                        Pretty.block [Codegen.str ("Const (\"" ^ Abs_name ^ "\","),
                           Pretty.brk 1, Codegen.mk_type false (oldT --> newT),
-                          Pretty.str ")"], Pretty.str " $", Pretty.brk 1,
+                          Codegen.str ")"], Codegen.str " $", Pretty.brk 1,
                         Codegen.mk_term_of gr'' module' false oldT, Pretty.brk 1,
-                        Pretty.str "x;"]) ^ "\n\n"
+                        Codegen.str "x;"]) ^ "\n\n"
                     else "") ^
                    (if "test" mem !Codegen.mode then
-                      Pretty.string_of (Pretty.block [Pretty.str "fun ",
+                      Codegen.string_of (Pretty.block [Codegen.str "fun ",
                         Codegen.mk_gen gr'' module' false [] "" newT, Pretty.brk 1,
-                        Pretty.str "i =", Pretty.brk 1,
-                        Pretty.block [Pretty.str (Abs_id ^ " ("),
+                        Codegen.str "i =", Pretty.brk 1,
+                        Pretty.block [Codegen.str (Abs_id ^ " ("),
                           Codegen.mk_gen gr'' module' false [] "" oldT, Pretty.brk 1,
-                          Pretty.str "i);"]]) ^ "\n\n"
+                          Codegen.str "i);"]]) ^ "\n\n"
                     else "")
                in Codegen.map_node node_id (K (NONE, module', s)) gr'' end
              | SOME _ => Codegen.add_edge (node_id, dep) gr', tyexpr)

@@ -1979,7 +1979,7 @@ fun numeral_codegen thy defs gr dep module b t =
   let val i = HOLogic.dest_numeral (strip_number_of t)
   in
     SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, HOLogic.intT)),
-      Pretty.str (string_of_int i))
+      Codegen.str (string_of_int i))
   end handle TERM _ => NONE;
 
 in

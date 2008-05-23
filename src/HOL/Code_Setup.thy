@@ -52,7 +52,7 @@ fun eq_codegen thy defs gr dep thyname b t =
             val (gr''', _) = Codegen.invoke_tycodegen thy defs dep thyname false (gr'', HOLogic.boolT)
           in
             SOME (gr''', Codegen.parens
-              (Pretty.block [pt, Pretty.str " =", Pretty.brk 1, pu]))
+              (Pretty.block [pt, Codegen.str " =", Pretty.brk 1, pu]))
           end
      | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
          thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))

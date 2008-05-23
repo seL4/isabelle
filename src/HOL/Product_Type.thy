@@ -1008,12 +1008,12 @@ fun let_codegen thy defs gr dep thyname brack t = (case strip_comb t of
               (Codegen.invoke_codegen thy defs dep thyname true) (gr2, ts)
           in
             SOME (gr3, Codegen.mk_app brack
-              (Pretty.blk (0, [Pretty.str "let ", Pretty.blk (0, List.concat
-                  (separate [Pretty.str ";", Pretty.brk 1] (map (fn (pl, pr) =>
-                    [Pretty.block [Pretty.str "val ", pl, Pretty.str " =",
+              (Pretty.blk (0, [Codegen.str "let ", Pretty.blk (0, List.concat
+                  (separate [Codegen.str ";", Pretty.brk 1] (map (fn (pl, pr) =>
+                    [Pretty.block [Codegen.str "val ", pl, Codegen.str " =",
                        Pretty.brk 1, pr]]) qs))),
-                Pretty.brk 1, Pretty.str "in ", pu,
-                Pretty.brk 1, Pretty.str "end"])) pargs)
+                Pretty.brk 1, Codegen.str "in ", pu,
+                Pretty.brk 1, Codegen.str "end"])) pargs)
           end
     end
   | _ => NONE);
@@ -1029,8 +1029,8 @@ fun split_codegen thy defs gr dep thyname brack t = (case strip_comb t of
                (Codegen.invoke_codegen thy defs dep thyname true) (gr2, ts)
            in
              SOME (gr2, Codegen.mk_app brack
-               (Pretty.block [Pretty.str "(fn ", q, Pretty.str " =>",
-                 Pretty.brk 1, pu, Pretty.str ")"]) pargs)
+               (Pretty.block [Codegen.str "(fn ", q, Codegen.str " =>",
+                 Pretty.brk 1, pu, Codegen.str ")"]) pargs)
            end
        | _ => NONE)
   | _ => NONE);

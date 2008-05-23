@@ -3410,7 +3410,7 @@ fun char_codegen thy defs gr dep thyname b t =
     val i = HOLogic.dest_char t;
     val (gr', _) = Codegen.invoke_tycodegen thy defs dep thyname false
       (gr, fastype_of t)
-  in SOME (gr', Pretty.str (ML_Syntax.print_string (chr i)))
+  in SOME (gr', Codegen.str (ML_Syntax.print_string (chr i)))
   end handle TERM _ => NONE;
 
 in

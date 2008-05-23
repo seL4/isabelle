@@ -105,13 +105,13 @@ fun add_rec_funs thy defs gr dep eqs module =
         val (gr2, pr) = invoke_codegen thy defs dname module false (gr1, rhs);
         val (gr3, rest) = mk_fundef module fname' false gr2 xs
       in
-        (gr3, Pretty.blk (4, [Pretty.str (if fname = fname' then "  | " else prfx),
-           pl, Pretty.str " =", Pretty.brk 1, pr]) :: rest)
+        (gr3, Pretty.blk (4, [str (if fname = fname' then "  | " else prfx),
+           pl, str " =", Pretty.brk 1, pr]) :: rest)
       end;
 
     fun put_code module fundef = map_node dname
-      (K (SOME (EQN ("", dummyT, dname)), module, Pretty.string_of (Pretty.blk (0,
-      separate Pretty.fbrk fundef @ [Pretty.str ";"])) ^ "\n\n"));
+      (K (SOME (EQN ("", dummyT, dname)), module, string_of (Pretty.blk (0,
+      separate Pretty.fbrk fundef @ [str ";"])) ^ "\n\n"));
 
   in
     (case try (get_node gr) dname of
@@ -162,7 +162,7 @@ fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
             add_rec_funs thy defs gr' dep (map prop_of eqns) module';
           val (gr''', fname) = mk_const_id module'' (s ^ suffix) gr''
         in
-          SOME (gr''', mk_app brack (Pretty.str (mk_qual_id module fname)) ps)
+          SOME (gr''', mk_app brack (str (mk_qual_id module fname)) ps)
         end)
   | _ => NONE);
 
