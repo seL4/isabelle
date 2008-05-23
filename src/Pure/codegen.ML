@@ -11,6 +11,8 @@ sig
   val message : string -> unit
   val mode : string list ref
   val margin : int ref
+  val string_of : Pretty.T -> string
+  val str : string -> Pretty.T
 
   datatype 'a mixfix =
       Arg
@@ -105,6 +107,12 @@ fun message s = if !quiet_mode then () else writeln s;
 val mode = ref ([] : string list);
 
 val margin = ref 80;
+
+fun string_of p = (Pretty.string_of |>
+  PrintMode.setmp [] |>
+  Pretty.setmp_margin (!margin)) p;
+
+val str = PrintMode.setmp [] Pretty.str;
 
 (**** Mixfix syntax ****)
 
@@ -594,10 +602,10 @@ fun invoke_tycodegen thy defs dep module brack (gr, T) = (case get_first
 
 (**** code generator for mixfix expressions ****)
 
-fun parens p = Pretty.block [Pretty.str "(", p, Pretty.str ")"];
+fun parens p = Pretty.block [str "(", p, str ")"];
 
 fun pretty_fn [] p = [p]
-  | pretty_fn (x::xs) p = Pretty.str ("fn " ^ x ^ " =>") ::
+  | pretty_fn (x::xs) p = str ("fn " ^ x ^ " =>") ::
       Pretty.brk 1 :: pretty_fn xs p;
 
 fun pretty_mixfix _ _ [] [] _ = []
@@ -607,7 +615,7 @@ fun pretty_mixfix _ _ [] [] _ = []
       pretty_mixfix module module' ms ps qs
   | pretty_mixfix module module' (Module :: ms) ps qs =
       (if module <> module'
-       then cons (Pretty.str (module' ^ ".")) else I)
+       then cons (str (module' ^ ".")) else I)
       (pretty_mixfix module module' ms ps qs)
   | pretty_mixfix module module' (Pretty p :: ms) ps qs =
       p :: pretty_mixfix module module' ms ps qs
@@ -641,8 +649,8 @@ fun eta_expand t ts i =
 
 fun mk_app _ p [] = p
   | mk_app brack p ps = if brack then
-       Pretty.block (Pretty.str "(" ::
-         separate (Pretty.brk 1) (p :: ps) @ [Pretty.str ")"])
+       Pretty.block (str "(" ::
+         separate (Pretty.brk 1) (p :: ps) @ [str ")"])
      else Pretty.block (separate (Pretty.brk 1) (p :: ps));
 
 fun new_names t xs = Name.variant_list
@@ -662,7 +670,7 @@ fun default_codegen thy defs gr dep module brack t =
         let
           val (gr', ps) = codegens true (gr, ts);
           val (gr'', _) = invoke_tycodegen thy defs dep module false (gr', T)
-        in SOME (gr'', mk_app brack (Pretty.str (s ^
+        in SOME (gr'', mk_app brack (str (s ^
            (if i=0 then "" else string_of_int i))) ps)
         end
 
@@ -670,7 +678,7 @@ fun default_codegen thy defs gr dep module brack t =
         let
           val (gr', ps) = codegens true (gr, ts);
           val (gr'', _) = invoke_tycodegen thy defs dep module false (gr', T)
-        in SOME (gr'', mk_app brack (Pretty.str s) ps) end
+        in SOME (gr'', mk_app brack (str s) ps) end
 
     | Const (s, T) =>
       (case get_assoc_code thy (s, T) of
@@ -714,7 +722,7 @@ fun default_codegen thy defs gr dep module brack t =
                val node_id = s ^ suffix;
                val (gr', (ps, def_id)) = codegens true (gr, ts) |>>>
                  mk_const_id module' (s ^ suffix);
-               val p = mk_app brack (Pretty.str (mk_qual_id module def_id)) ps
+               val p = mk_app brack (str (mk_qual_id module def_id)) ps
              in SOME (case try (get_node gr') node_id of
                  NONE =>
                    let
@@ -730,12 +738,12 @@ fun default_codegen thy defs gr dep module brack t =
                      val (gr2, xs) = codegens false (gr1, args');
                      val (gr3, _) = invoke_tycodegen thy defs dep module false (gr2, T);
                      val (gr4, ty) = invoke_tycodegen thy defs node_id module' false (gr3, U);
-                   in (map_node node_id (K (NONE, module', Pretty.string_of
+                   in (map_node node_id (K (NONE, module', string_of
                        (Pretty.block (separate (Pretty.brk 1)
                          (if null args' then
-                            [Pretty.str ("val " ^ snd def_id ^ " :"), ty]
-                          else Pretty.str ("fun " ^ snd def_id) :: xs) @
-                        [Pretty.str " =", Pretty.brk 1, p', Pretty.str ";"])) ^ "\n\n")) gr4,
+                            [str ("val " ^ snd def_id ^ " :"), ty]
+                          else str ("fun " ^ snd def_id) :: xs) @
+                        [str " =", Pretty.brk 1, p', str ";"])) ^ "\n\n")) gr4,
                      p)
                    end
                | SOME _ => (add_edge (node_id, dep) gr', p))
@@ -750,17 +758,17 @@ fun default_codegen thy defs gr dep module brack t =
         val (gr2, p) = invoke_codegen thy defs dep module false
           (gr1, subst_bounds (map Free (rev (bs' ~~ Ts)), t));
       in
-        SOME (gr2, mk_app brack (Pretty.block (Pretty.str "(" :: pretty_fn bs' p @
-          [Pretty.str ")"])) ps)
+        SOME (gr2, mk_app brack (Pretty.block (str "(" :: pretty_fn bs' p @
+          [str ")"])) ps)
       end
 
     | _ => NONE)
   end;
 
 fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
-      SOME (gr, Pretty.str (s ^ (if i = 0 then "" else string_of_int i)))
+      SOME (gr, str (s ^ (if i = 0 then "" else string_of_int i)))
   | default_tycodegen thy defs gr dep module brack (TFree (s, _)) =
-      SOME (gr, Pretty.str s)
+      SOME (gr, str s)
   | default_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
       (case AList.lookup (op =) ((#types o CodegenData.get) thy) s of
          NONE => NONE
@@ -792,17 +800,17 @@ val _ = Context.>> (Context.map_theory
 
 
 fun mk_tuple [p] = p
-  | mk_tuple ps = Pretty.block (Pretty.str "(" ::
-      List.concat (separate [Pretty.str ",", Pretty.brk 1] (map single ps)) @
-        [Pretty.str ")"]);
+  | mk_tuple ps = Pretty.block (str "(" ::
+      List.concat (separate [str ",", Pretty.brk 1] (map single ps)) @
+        [str ")"]);
 
 fun mk_let bindings body =
-  Pretty.blk (0, [Pretty.str "let", Pretty.brk 1,
+  Pretty.blk (0, [str "let", Pretty.brk 1,
     Pretty.blk (0, separate Pretty.fbrk (map (fn (pat, rhs) =>
-      Pretty.block [Pretty.str "val ", pat, Pretty.str " =", Pretty.brk 1,
-      rhs, Pretty.str ";"]) bindings)),
-    Pretty.brk 1, Pretty.str "in", Pretty.brk 1, body,
-    Pretty.brk 1, Pretty.str "end"]);
+      Pretty.block [str "val ", pat, str " =", Pretty.brk 1,
+      rhs, str ";"]) bindings)),
+    Pretty.brk 1, str "in", Pretty.brk 1, body,
+    Pretty.brk 1, str "end"]);
 
 fun mk_struct name s = "structure " ^ name ^ " =\nstruct\n\n" ^ s ^ "end;\n";
 
@@ -842,8 +850,7 @@ fun output_code gr module xs =
     else [(module, implode (map (#3 o snd) code))]
   end;
 
-fun gen_generate_code prep_term thy modules module =
-  PrintMode.setmp [] (Pretty.setmp_margin (!margin) (fn xs =>
+fun gen_generate_code prep_term thy modules module xs =
   let
     val _ = (module <> "" orelse
         member (op =) (!mode) "library" andalso forall (equal "" o fst) xs)
@@ -867,8 +874,8 @@ fun gen_generate_code prep_term thy modules module =
         (gr, map (apsnd (expand o preprocess_term thy o prep_term thy)) xs);
     val code = map_filter
       (fn ("", _) => NONE
-        | (s', p) => SOME (Pretty.string_of (Pretty.block
-          [Pretty.str ("val " ^ s' ^ " ="), Pretty.brk 1, p, Pretty.str ";"]))) ps;
+        | (s', p) => SOME (string_of (Pretty.block
+          [str ("val " ^ s' ^ " ="), Pretty.brk 1, p, str ";"]))) ps;
     val code' = space_implode "\n\n" code ^ "\n\n";
     val code'' =
       map_filter (fn (name, s) =>
@@ -880,7 +887,7 @@ fun gen_generate_code prep_term thy modules module =
            (output_code (fst gr') (if_library "" module) ["<Top>"]))
   in
     (code'', del_nodes ["<Top>"] gr')
-  end));
+  end;
 
 val generate_code_i = gen_generate_code Sign.cert_term;
 val generate_code = gen_generate_code Sign.read_term;
@@ -890,23 +897,23 @@ val generate_code = gen_generate_code Sign.read_term;
 
 val strip_tname = implode o tl o explode;
 
-fun pretty_list xs = Pretty.block (Pretty.str "[" ::
-  flat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
-  [Pretty.str "]"]);
+fun pretty_list xs = Pretty.block (str "[" ::
+  flat (separate [str ",", Pretty.brk 1] (map single xs)) @
+  [str "]"]);
 
-fun mk_type p (TVar ((s, i), _)) = Pretty.str
+fun mk_type p (TVar ((s, i), _)) = str
       (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "T")
-  | mk_type p (TFree (s, _)) = Pretty.str (strip_tname s ^ "T")
+  | mk_type p (TFree (s, _)) = str (strip_tname s ^ "T")
   | mk_type p (Type (s, Ts)) = (if p then parens else I) (Pretty.block
-      [Pretty.str "Type", Pretty.brk 1, Pretty.str ("(\"" ^ s ^ "\","),
-       Pretty.brk 1, pretty_list (map (mk_type false) Ts), Pretty.str ")"]);
+      [str "Type", Pretty.brk 1, str ("(\"" ^ s ^ "\","),
+       Pretty.brk 1, pretty_list (map (mk_type false) Ts), str ")"]);
 
-fun mk_term_of gr module p (TVar ((s, i), _)) = Pretty.str
+fun mk_term_of gr module p (TVar ((s, i), _)) = str
       (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "F")
-  | mk_term_of gr module p (TFree (s, _)) = Pretty.str (strip_tname s ^ "F")
+  | mk_term_of gr module p (TFree (s, _)) = str (strip_tname s ^ "F")
   | mk_term_of gr module p (Type (s, Ts)) = (if p then parens else I)
       (Pretty.block (separate (Pretty.brk 1)
-        (Pretty.str (mk_qual_id module
+        (str (mk_qual_id module
           (get_type_id' (fn s' => "term_of_" ^ s') s gr)) ::
         maps (fn T =>
           [mk_term_of gr module true T, mk_type true T]) Ts)));
@@ -914,12 +921,12 @@ fun mk_term_of gr module p (TVar ((s, i), _)) = Pretty.str
 
 (**** Test data generators ****)
 
-fun mk_gen gr module p xs a (TVar ((s, i), _)) = Pretty.str
+fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
       (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "G")
-  | mk_gen gr module p xs a (TFree (s, _)) = Pretty.str (strip_tname s ^ "G")
+  | mk_gen gr module p xs a (TFree (s, _)) = str (strip_tname s ^ "G")
   | mk_gen gr module p xs a (Type (tyc as (s, Ts))) = (if p then parens else I)
       (Pretty.block (separate (Pretty.brk 1)
-        (Pretty.str (mk_qual_id module (get_type_id' (fn s' => "gen_" ^ s') s gr) ^
+        (str (mk_qual_id module (get_type_id' (fn s' => "gen_" ^ s') s gr) ^
           (if member (op =) xs s then "'" else "")) ::
          (case tyc of
             ("fun", [T, U]) =>
@@ -927,7 +934,7 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = Pretty.str
                mk_gen gr module true xs a U, mk_type true U]
           | _ => maps (fn T =>
               [mk_gen gr module true xs a T, mk_type true T]) Ts) @
-         (if member (op =) xs s then [Pretty.str a] else []))));
+         (if member (op =) xs s then [str a] else []))));
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
 
@@ -942,27 +949,27 @@ fun test_term thy quiet sz i t =
       map (fn i => "arg" ^ string_of_int i) (1 upto length frees);
     val (code, gr) = setmp mode ["term_of", "test"]
       (generate_code_i thy [] "Generated") [("testf", list_abs_free (frees, t))];
-    val s = PrintMode.setmp [] (fn () => "structure TestTerm =\nstruct\n\n" ^
+    val s = "structure TestTerm =\nstruct\n\n" ^
       cat_lines (map snd code) ^
-      "\nopen Generated;\n\n" ^ Pretty.string_of
-        (Pretty.block [Pretty.str "val () = Codegen.test_fn :=",
-          Pretty.brk 1, Pretty.str ("(fn i =>"), Pretty.brk 1,
+      "\nopen Generated;\n\n" ^ string_of
+        (Pretty.block [str "val () = Codegen.test_fn :=",
+          Pretty.brk 1, str ("(fn i =>"), Pretty.brk 1,
           mk_let (map (fn ((s, T), s') =>
-              (mk_tuple [Pretty.str s', Pretty.str (s' ^ "_t")],
+              (mk_tuple [str s', str (s' ^ "_t")],
                Pretty.block [mk_gen gr "Generated" false [] "" T, Pretty.brk 1,
-                 Pretty.str "i"])) frees')
-            (Pretty.block [Pretty.str "if ",
-              mk_app false (Pretty.str "testf") (map (Pretty.str o snd) frees'),
-              Pretty.brk 1, Pretty.str "then NONE",
-              Pretty.brk 1, Pretty.str "else ",
-              Pretty.block [Pretty.str "SOME ", Pretty.block (Pretty.str "[" ::
-                flat (separate [Pretty.str ",", Pretty.brk 1]
+                 str "i"])) frees')
+            (Pretty.block [str "if ",
+              mk_app false (str "testf") (map (str o snd) frees'),
+              Pretty.brk 1, str "then NONE",
+              Pretty.brk 1, str "else ",
+              Pretty.block [str "SOME ", Pretty.block (str "[" ::
+                flat (separate [str ",", Pretty.brk 1]
                   (map (fn ((s, T), s') => [Pretty.block
-                    [Pretty.str ("(" ^ quote (Symbol.escape s) ^ ","), Pretty.brk 1,
-                     Pretty.str (s' ^ "_t ())")]]) frees')) @
-                  [Pretty.str "]"])]]),
-          Pretty.str ");"]) ^
-      "\n\nend;\n") ();
+                    [str ("(" ^ quote (Symbol.escape s) ^ ","), Pretty.brk 1,
+                     str (s' ^ "_t ())")]]) frees')) @
+                  [str "]"])]]),
+          str ");"]) ^
+      "\n\nend;\n";
     val _ = ML_Context.eval_in (SOME (Context.Theory thy)) false Position.none s;
     fun iter f k = if k > i then NONE
       else (case (f () handle Match =>
@@ -1034,7 +1041,7 @@ val _ = Context.>> (Specification.add_theorem_hook test_goal');
 val eval_result = ref (fn () => Bound 0);
 
 fun eval_term thy t =
-  let val e = PrintMode.setmp [] (fn () =>
+  let val e =
     let
       val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
         error "Term to be evaluated contains type variables";
@@ -1045,15 +1052,15 @@ fun eval_term thy t =
         [("result", Abs ("x", TFree ("'a", []), t))];
       val s = "structure EvalTerm =\nstruct\n\n" ^
         cat_lines (map snd code) ^
-        "\nopen Generated;\n\n" ^ Pretty.string_of
-          (Pretty.block [Pretty.str "val () = Codegen.eval_result := (fn () =>",
+        "\nopen Generated;\n\n" ^ string_of
+          (Pretty.block [str "val () = Codegen.eval_result := (fn () =>",
             Pretty.brk 1,
             mk_app false (mk_term_of gr "Generated" false (fastype_of t))
-              [Pretty.str "(result ())"],
-            Pretty.str ");"]) ^
+              [str "(result ())"],
+            str ");"]) ^
         "\n\nend;\n";
       val _ = ML_Context.eval_in (SOME (Context.Theory thy)) false Position.none s;
-    in !eval_result end) ();
+    in !eval_result end;
   in e () end;
 
 fun print_evaluated_term s = Toplevel.keep (fn state =>
@@ -1082,8 +1089,6 @@ val _ = Context.>> (Context.map_theory
 
 
 (**** Interface ****)
-
-val str = PrintMode.setmp [] Pretty.str;
 
 fun parse_mixfix rd s =
   (case Scan.finite Symbol.stopper (Scan.repeat
