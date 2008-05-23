@@ -12,6 +12,8 @@ imports Finite_Set Nat
 uses ("Tools/function_package/size.ML")
 begin
 
+subsection {* Basic Definitions *}
+
 inductive
   wfrec_rel :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b => bool"
   for R :: "('a * 'a) set"
@@ -88,6 +90,8 @@ lemma wf_not_refl [simp]: "wf r ==> (a, a) ~: r"
 (* [| wf r;  (a,a) ~: r ==> PROP W |] ==> PROP W *)
 lemmas wf_irrefl = wf_not_refl [elim_format]
 
+subsection {* Basic Results *}
+
 text{*transitive closure of a well-founded relation is well-founded! *}
 lemma wf_trancl:
   assumes "wf r"
@@ -128,8 +132,6 @@ lemma wf_converse_trancl: "wf (r^-1) ==> wf ((r^+)^-1)"
   apply (erule wf_trancl)
   done
 
-
-subsubsection {* Other simple well-foundedness results *}
 
 text{*Minimal-element characterization of well-foundedness*}
 lemma wf_eq_minimal: "wf r = (\<forall>Q x. x\<in>Q --> (\<exists>z\<in>Q. \<forall>y. (y,z)\<in>r --> y\<notin>Q))"
@@ -222,7 +224,7 @@ apply (fast dest: inj_onD, blast)
 done
 
 
-subsubsection {* Well-Foundedness Results for Unions *}
+subsection {* Well-Foundedness Results for Unions *}
 
 lemma wf_union_compatible:
   assumes "wf R" "wf S"
