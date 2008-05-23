@@ -993,120 +993,12 @@ Conceptually, any datatype is spanned by a set of
   the \isa{{\isasymPRINTCODESETUP}} command.
 
   In some cases, it may be convenient to alter or
-  extend this table;  as an example, we show
-  how to implement finite sets by lists
-  using the conversion \isa{{\isachardoublequote}set\ {\isasymColon}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isachardoublequote}}
-  as constructor:%
+  extend this table;  as an example FIXME%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ %
-\isadelimML
 %
-\endisadelimML
-%
-\isatagML
-%
-\endisatagML
-{\isafoldML}%
-%
-\isadelimML
-%
-\endisadelimML
-\isanewline
-\isacommand{code{\isacharunderscore}datatype}\isamarkupfalse%
-\ set\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}\ {\isacharequal}\ set\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ simp%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}insert\ x\ {\isacharparenleft}set\ xs{\isacharparenright}\ {\isacharequal}\ set\ {\isacharparenleft}x{\isacharhash}xs{\isacharparenright}{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ simp%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymin}\ set\ xs\ {\isasymlongleftrightarrow}\ x\ mem\ xs{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}xs\ {\isasymunion}\ set\ ys\ {\isacharequal}\ foldr\ insert\ ys\ xs{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ ys{\isacharparenright}\ simp{\isacharunderscore}all%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymUnion}set\ xs\ {\isacharequal}\ foldr\ {\isacharparenleft}op\ {\isasymunion}{\isacharparenright}\ xs\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\isanewline
-\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\ insert\ {\isachardoublequoteopen}op\ {\isasymin}{\isachardoublequoteclose}\ {\isachardoublequoteopen}op\ {\isasymunion}{\isachardoublequoteclose}\ {\isachardoublequoteopen}Union{\isachardoublequoteclose}\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}set{\isacharunderscore}list{\isachardot}ML{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-\lstsml{Thy/examples/set_list.ML}
-
-  \medskip
+\medskip
 
   Changing the representation of existing datatypes requires
   some care with respect to pattern matching and such.%
@@ -1565,7 +1457,7 @@ This Pure module implements the core notions of
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexml{CodeUnit.read\_const}\verb|CodeUnit.read_const: theory -> string -> string| \\
-  \indexml{CodeUnit.head\_func}\verb|CodeUnit.head_func: thm -> string * typ| \\
+  \indexml{CodeUnit.head\_func}\verb|CodeUnit.head_func: thm -> string * ((string * sort) list * typ)| \\
   \indexml{CodeUnit.rewrite\_func}\verb|CodeUnit.rewrite_func: thm list -> thm -> thm| \\
   \end{mldecls}
 

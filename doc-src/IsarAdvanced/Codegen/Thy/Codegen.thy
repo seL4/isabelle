@@ -762,29 +762,16 @@ text {*
   the @{text "\<PRINTCODESETUP>"} command.
 
   In some cases, it may be convenient to alter or
-  extend this table;  as an example, we show
-  how to implement finite sets by lists
-  using the conversion @{term [source] "set \<Colon> 'a list \<Rightarrow> 'a set"}
-  as constructor:
-*} (*<*)ML {* nonfix union *} lemmas [code func del] = in_code union_empty1 union_empty2 union_insert Union_code(*>*)
+  extend this table;  as an example FIXME
+*}
 
-code_datatype set
+(* {* code_datatype ... *}
 
-lemma [code func]: "{} = set []" by simp
+   {* export_code "{}" insert "op \<in>" "op \<union>" "Union" (*<*)in SML(*>*) in SML file "examples/set_list.ML" *}
 
-lemma [code func]: "insert x (set xs) = set (x#xs)" by simp
-
-lemma [code func]: "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
-
-lemma [code func]: "xs \<union> set ys = foldr insert ys xs" by (induct ys) simp_all
-
-lemma [code func]: "\<Union>set xs = foldr (op \<union>) xs {}" by (induct xs) simp_all
-
-export_code "{}" insert "op \<in>" "op \<union>" "Union" (*<*)in SML(*>*) in SML file "examples/set_list.ML"
+  {* \lstsml{Thy/examples/set_list.ML} *} *)
 
 text {*
-  \lstsml{Thy/examples/set_list.ML}
-
   \medskip
 
   Changing the representation of existing datatypes requires
@@ -1105,7 +1092,7 @@ subsection {* Auxiliary *}
 text %mlref {*
   \begin{mldecls}
   @{index_ML CodeUnit.read_const: "theory -> string -> string"} \\
-  @{index_ML CodeUnit.head_func: "thm -> string * typ"} \\
+  @{index_ML CodeUnit.head_func: "thm -> string * ((string * sort) list * typ)"} \\
   @{index_ML CodeUnit.rewrite_func: "thm list -> thm -> thm"} \\
   \end{mldecls}
 
