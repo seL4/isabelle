@@ -9,15 +9,15 @@ with explicit dependencies.
 signature CODE_FUNCGR =
 sig
   type T
-  val timing: bool ref
   val funcs: T -> string -> thm list
-  val typ: T -> string -> typ
+  val typ: T -> string -> (string * sort) list * typ
   val all: T -> string list
   val pretty: theory -> T -> Pretty.T
   val make: theory -> string list -> T
   val make_consts: theory -> string list -> string list * T
   val eval_conv: theory -> (term -> term * (T -> term -> thm)) -> cterm -> thm
   val eval_term: theory -> (term -> term * (T -> term -> 'a)) -> term -> 'a
+  val timing: bool ref
 end
 
 structure CodeFuncgr : CODE_FUNCGR =
@@ -25,7 +25,7 @@ struct
 
 (** the graph type **)
 
-type T = (typ * thm list) Graph.T;
+type T = (((string * sort) list * typ) * thm list) Graph.T;
 
 fun funcs funcgr =
   these o Option.map snd o try (Graph.get_node funcgr);
@@ -60,40 +60,26 @@ fun consts_of (const, []) = []
         fun the_const (c, _) = if c = const then I else insert (op =) c
       in fold_consts the_const thms [] end;
 
-fun insts_of thy algebra c ty_decl ty =
+fun insts_of thy algebra tys sorts =
   let
-    val tys_decl = Sign.const_typargs thy (c, ty_decl);
-    val tys = Sign.const_typargs thy (c, ty);
     fun class_relation (x, _) _ = x;
     fun type_constructor tyco xs class =
-      (tyco, class) :: maps (maps fst) xs;
+      (tyco, class) :: (maps o maps) fst xs;
     fun type_variable (TVar (_, sort)) = map (pair []) sort
       | type_variable (TFree (_, sort)) = map (pair []) sort;
-    fun mk_inst ty (TVar (_, sort)) = cons (ty, sort)
-      | mk_inst ty (TFree (_, sort)) = cons (ty, sort)
-      | mk_inst (Type (_, tys1)) (Type (_, tys2)) = fold2 mk_inst tys1 tys2;
-    fun of_sort_deriv (ty, sort) =
+    fun of_sort_deriv ty sort =
       Sorts.of_sort_derivation (Syntax.pp_global thy) algebra
         { class_relation = class_relation, type_constructor = type_constructor,
           type_variable = type_variable }
         (ty, sort) handle Sorts.CLASS_ERROR _ => [] (*permissive!*)
-  in
-    flat (maps of_sort_deriv (fold2 mk_inst tys tys_decl []))
-  end;
+  in (flat o flat) (map2 of_sort_deriv tys sorts) end;
 
-fun drop_classes thy tfrees thm =
+fun meets_of thy algebra =
   let
-    val (_, thm') = Thm.varifyT' [] thm;
-    val tvars = Term.add_tvars (Thm.prop_of thm') [];
-    val unconstr = map (Thm.ctyp_of thy o TVar) tvars;
-    val instmap = map2 (fn (v_i, _) => fn (v, sort) => pairself (Thm.ctyp_of thy)
-      (TVar (v_i, []), TFree (v, sort))) tvars tfrees;
-  in
-    thm'
-    |> fold Thm.unconstrainT unconstr
-    |> Thm.instantiate (instmap, [])
-    |> Tactic.rule_by_tactic ((REPEAT o CHANGED o ALLGOALS o Tactic.resolve_tac) (AxClass.class_intros thy))
-  end;
+    fun meet_of ty sort tab =
+      Sorts.meet_sort algebra (ty, sort) tab
+        handle Sorts.CLASS_ERROR _ => tab (*permissive!*);
+  in fold2 meet_of end;
 
 
 (** graph algorithm **)
@@ -104,48 +90,33 @@ local
 
 exception CLASS_ERROR of string list * string;
 
-fun resort_thms algebra tap_typ [] = []
-  | resort_thms algebra tap_typ (thms as thm :: _) =
-      let
-        val thy = Thm.theory_of_thm thm;
-        val pp = Syntax.pp_global thy;
-        val cs = fold_consts (insert (op =)) thms [];
-        fun match_const c (ty, ty_decl) =
-          let
-            val tys = Sign.const_typargs thy (c, ty);
-            val sorts = map (snd o dest_TVar) (Sign.const_typargs thy (c, ty_decl));
-          in fn tab => fold2 (curry (Sorts.meet_sort algebra)) tys sorts tab
-            handle Sorts.CLASS_ERROR e => raise CLASS_ERROR ([c], Sorts.class_error pp e ^ ",\n"
-              ^ "for constant " ^ CodeUnit.string_of_const thy c
-              ^ "\nin defining equations(s)\n"
-              ^ (cat_lines o map Display.string_of_thm) thms)
-            (*handle Sorts.CLASS_ERROR _ => tab (*permissive!*)*)
-          end;
-        fun match (c, ty) = case tap_typ c
-           of SOME ty_decl => match_const c (ty, ty_decl)
-            | NONE => I;
-        val tvars = fold match cs Vartab.empty;
-      in map (CodeUnit.inst_thm tvars) thms end;
+fun resort_thms thy algebra typ_of thms =
+  let
+    val cs = fold_consts (insert (op =)) thms [];
+    fun meets (c, ty) = case typ_of c
+       of SOME (vs, _) =>
+            meets_of thy algebra (Sign.const_typargs thy (c, ty)) (map snd vs)
+        | NONE => I;
+    val tab = fold meets cs Vartab.empty;
+  in map (CodeUnit.inst_thm tab) thms end;
 
 fun resort_funcss thy algebra funcgr =
   let
     val typ_funcgr = try (fst o Graph.get_node funcgr);
-    val resort_dep = apsnd (resort_thms algebra typ_funcgr);
-    fun resort_rec tap_typ (const, []) = (true, (const, []))
-      | resort_rec tap_typ (const, thms as thm :: _) =
+    val resort_dep = apsnd (resort_thms thy algebra typ_funcgr);
+    fun resort_rec typ_of (const, []) = (true, (const, []))
+      | resort_rec typ_of (const, thms as thm :: _) =
           let
-            val (_, ty) = CodeUnit.head_func thm;
-            val thms' as thm' :: _ = resort_thms algebra tap_typ thms
-            val (_, ty') = CodeUnit.head_func thm';
+            val (_, (vs, ty)) = CodeUnit.head_func thm;
+            val thms' as thm' :: _ = resort_thms thy algebra typ_of thms
+            val (_, (vs', ty')) = CodeUnit.head_func thm'; (*FIXME simplify check*)
           in (Sign.typ_equiv thy (ty, ty'), (const, thms')) end;
     fun resort_recs funcss =
       let
-        fun tap_typ c =
-          AList.lookup (op =) funcss c
-          |> these
-          |> try hd
-          |> Option.map (snd o CodeUnit.head_func);
-        val (unchangeds, funcss') = split_list (map (resort_rec tap_typ) funcss);
+        fun typ_of c = case these (AList.lookup (op =) funcss c)
+         of thm :: _ => (SOME o snd o CodeUnit.head_func) thm
+          | [] => NONE;
+        val (unchangeds, funcss') = split_list (map (resort_rec typ_of) funcss);
         val unchanged = fold (fn x => fn y => x andalso y) unchangeds true;
       in (unchanged, funcss') end;
     fun resort_rec_until funcss =
@@ -170,8 +141,8 @@ fun instances_of thy algebra insts =
 
 fun instances_of_consts thy algebra funcgr consts =
   let
-    fun inst (cexpr as (c, ty)) = insts_of thy algebra c
-      ((fst o Graph.get_node funcgr) c) ty;
+    fun inst (cexpr as (c, ty)) = insts_of thy algebra
+      (Sign.const_typargs thy (c, ty)) ((map snd o fst) (typ funcgr c));
   in
     []
     |> fold (fold (insert (op =)) o inst) consts
@@ -216,12 +187,10 @@ fun merge_funcss thy algebra raw_funcss funcgr =
       | typ_func c (thms as thm :: _) = case AxClass.inst_of_param thy c
          of SOME (c', tyco) => 
               let
-                val (_, ty) = CodeUnit.head_func thm;
+                val (_, (vs, ty)) = CodeUnit.head_func thm;
                 val SOME class = AxClass.class_of_param thy c';
                 val sorts_decl = Sorts.mg_domain algebra tyco [class];
-                val tys = Sign.const_typargs thy (c, ty);
-                val sorts = map (snd o dest_TVar) tys;
-              in if sorts = sorts_decl then ty
+              in if map snd vs = sorts_decl then (vs, ty)
                 else raise CLASS_ERROR ([c], "Illegal instantation for class operation "
                   ^ CodeUnit.string_of_const thy c
                   ^ "\nin defining equations\n"
@@ -303,7 +272,7 @@ fun proto_eval_conv thy =
         val thm3 = Code.postprocess_conv (Thm.rhs_of thm2);
       in
         Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
-          error ("could not construct evaluation proof (probably due to wellsortedness problem):\n"
+          error ("could not construct evaluation proof:\n"
           ^ (cat_lines o map Display.string_of_thm) [thm1, thm2, thm3])
       end;
   in proto_eval thy I evaluator end;
