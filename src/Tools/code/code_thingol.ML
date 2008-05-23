@@ -82,13 +82,12 @@ sig
   val contr_classparam_typs: code -> string -> itype option list;
 
   type transact;
-  val ensure_const: theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
-    -> CodeFuncgr.T -> string -> transact -> string * transact;
-  val ensure_value: theory -> ((sort -> sort) * Sorts.algebra) * Consts.T
-    -> CodeFuncgr.T -> term
-      -> transact -> (code * ((typscheme * iterm) * string list)) * transact;
+  val ensure_const: theory -> (sort -> sort) * Sorts.algebra -> CodeFuncgr.T
+    -> string -> transact -> string * transact;
+  val ensure_value: theory -> (sort -> sort) * Sorts.algebra -> CodeFuncgr.T
+    -> term -> transact -> (code * ((typscheme * iterm) * string list)) * transact;
   val transact: theory -> CodeFuncgr.T
-    -> (theory -> ((sort -> sort) * Sorts.algebra) * Consts.T -> CodeFuncgr.T
+    -> (theory -> (sort -> sort) * Sorts.algebra -> CodeFuncgr.T
       -> transact -> 'a * transact) -> code -> 'a * code;
   val add_value_stmt: iterm * itype -> code -> code;
 end;
@@ -361,22 +360,23 @@ fun ensure_stmt stmtgen name (dep, code) =
   end;
 
 fun transact thy funcgr f code =
-  let
-    val naming = NameSpace.qualified_names NameSpace.default_naming;
-    val consttab = Consts.empty
-      |> fold (fn c => Consts.declare true naming [] (c, CodeFuncgr.typ funcgr c))
-           (CodeFuncgr.all funcgr);
-    val algbr = (Code.operational_algebra thy, consttab);
-  in
-    (NONE, code)
-    |> f thy algbr funcgr
-    |-> (fn x => fn (_, code) => (x, code))
-  end;
+  (NONE, code)
+  |> f thy (Code.operational_algebra thy) funcgr
+  |-> (fn x => fn (_, code) => (x, code));
 
 
 (* translation kernel *)
 
-fun ensure_class thy (algbr as ((_, algebra), _)) funcgr class =
+fun not_wellsorted thy thm ty sort e =
+  let
+    val err_class = Sorts.class_error (Syntax.pp_global thy) e;
+    val err_thm = case thm
+     of SOME thm => "\n(in defining equation " ^ Display.string_of_thm thm ^ ")" | NONE => "";
+    val err_typ = "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort "
+      ^ Syntax.string_of_sort_global thy sort;
+  in error ("Wellsortedness error" ^ err_thm ^ ":\n" ^ err_typ ^ "\n" ^ err_class) end;
+
+fun ensure_class thy (algbr as (_, algebra)) funcgr class =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
     val cs = #params (AxClass.get_info thy class);
@@ -418,7 +418,7 @@ and ensure_tyco thy algbr funcgr "fun" =
       in
         ensure_stmt stmt_datatype tyco'
       end
-and exprgen_tyvar_sort thy (algbr as ((proj_sort, _), _)) funcgr (v, sort) =
+and exprgen_tyvar_sort thy (algbr as (proj_sort, _)) funcgr (v, sort) =
   fold_map (ensure_class thy algbr funcgr) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
 and exprgen_typ thy algbr funcgr (TFree vs) =
@@ -428,7 +428,7 @@ and exprgen_typ thy algbr funcgr (TFree vs) =
       ensure_tyco thy algbr funcgr tyco
       ##>> fold_map (exprgen_typ thy algbr funcgr) tys
       #>> (fn (tyco, tys) => tyco `%% tys)
-and exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr (ty_ctxt, sort_decl) =
+and exprgen_dicts thy (algbr as (proj_sort, algebra)) funcgr thm (ty, sort) =
   let
     val pp = Syntax.pp_global thy;
     datatype typarg =
@@ -446,8 +446,8 @@ and exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr (ty_ctxt,
       in map_index (fn (n, class) => (Local ([], (v, (n, sort'))), class)) sort' end;
     val typargs = Sorts.of_sort_derivation pp algebra
       {class_relation = class_relation, type_constructor = type_constructor,
-       type_variable = type_variable}
-      (ty_ctxt, proj_sort sort_decl);
+       type_variable = type_variable} (ty, proj_sort sort)
+      handle Sorts.CLASS_ERROR e => not_wellsorted thy thm ty sort e;
     fun mk_dict (Global (inst, yss)) =
           ensure_inst thy algbr funcgr inst
           ##>> (fold_map o fold_map) mk_dict yss
@@ -458,24 +458,16 @@ and exprgen_dicts thy (algbr as ((proj_sort, algebra), consts)) funcgr (ty_ctxt,
   in
     fold_map mk_dict typargs
   end
-and exprgen_dict_parms thy (algbr as (_, consts)) funcgr (c, ty_ctxt) =
-  let
-    val ty_decl = Consts.the_type consts c;
-    val (tys, tys_decl) = pairself (curry (Consts.typargs consts) c) (ty_ctxt, ty_decl);
-    val sorts = map (snd o dest_TVar) tys_decl;
-  in
-    fold_map (exprgen_dicts thy algbr funcgr) (tys ~~ sorts)
-  end
 and exprgen_eq thy algbr funcgr thm =
   let
     val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals
       o Logic.unvarify o prop_of) thm;
   in
-    fold_map (exprgen_term thy algbr funcgr) args
-    ##>> exprgen_term thy algbr funcgr rhs
+    fold_map (exprgen_term thy algbr funcgr (SOME thm)) args
+    ##>> exprgen_term thy algbr funcgr (SOME thm) rhs
     #>> rpair thm
   end
-and ensure_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) =
+and ensure_inst thy (algbr as (_, algebra)) funcgr (class, tyco) =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
     val classparams = these (try (#params o AxClass.get_info thy) class);
@@ -488,7 +480,7 @@ and ensure_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) =
     fun exprgen_superarity superclass =
       ensure_class thy algbr funcgr superclass
       ##>> ensure_classrel thy algbr funcgr (class, superclass)
-      ##>> exprgen_dicts thy algbr funcgr (arity_typ, [superclass])
+      ##>> exprgen_dicts thy algbr funcgr NONE (arity_typ, [superclass])
       #>> (fn ((superclass, classrel), [DictConst (inst, dss)]) =>
             (superclass, (classrel, (inst, dss))));
     fun exprgen_classparam_inst (c, ty) =
@@ -499,7 +491,7 @@ and ensure_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) =
           o Logic.dest_equals o Thm.prop_of) thm;
       in
         ensure_const thy algbr funcgr c
-        ##>> exprgen_const thy algbr funcgr c_ty
+        ##>> exprgen_const thy algbr funcgr (SOME thm) c_ty
         #>> (fn (c, IConst c_inst) => ((c, c_inst), thm))
       end;
     val stmt_inst =
@@ -514,7 +506,7 @@ and ensure_inst thy (algbr as ((_, algebra), _)) funcgr (class, tyco) =
   in
     ensure_stmt stmt_inst inst
   end
-and ensure_const thy (algbr as (_, consts)) funcgr c =
+and ensure_const thy algbr funcgr c =
   let
     val c' = CodeName.const thy c;
     fun stmt_datatypecons tyco =
@@ -526,8 +518,8 @@ and ensure_const thy (algbr as (_, consts)) funcgr c =
     fun stmt_fun trns =
       let
         val raw_thms = CodeFuncgr.funcs funcgr c;
-        val ty = (Logic.unvarifyT o CodeFuncgr.typ funcgr) c;
-        val vs = (map dest_TFree o Consts.typargs consts) (c, ty);
+        val (vs, raw_ty) = CodeFuncgr.typ funcgr c;
+        val ty = Logic.unvarifyT raw_ty;
         val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
           then raw_thms
           else map (CodeUnit.expand_eta 1) raw_thms;
@@ -546,36 +538,42 @@ and ensure_const thy (algbr as (_, consts)) funcgr c =
   in
     ensure_stmt stmtgen c'
   end
-and exprgen_term thy algbr funcgr (Const (c, ty)) =
-      exprgen_app thy algbr funcgr ((c, ty), [])
-  | exprgen_term thy algbr funcgr (Free (v, _)) =
+and exprgen_term thy algbr funcgr thm (Const (c, ty)) =
+      exprgen_app thy algbr funcgr thm ((c, ty), [])
+  | exprgen_term thy algbr funcgr thm (Free (v, _)) =
       pair (IVar v)
-  | exprgen_term thy algbr funcgr (Abs (abs as (_, ty, _))) =
+  | exprgen_term thy algbr funcgr thm (Abs (abs as (_, ty, _))) =
       let
         val (v, t) = Syntax.variant_abs abs;
       in
         exprgen_typ thy algbr funcgr ty
-        ##>> exprgen_term thy algbr funcgr t
+        ##>> exprgen_term thy algbr funcgr thm t
         #>> (fn (ty, t) => (v, ty) `|-> t)
       end
-  | exprgen_term thy algbr funcgr (t as _ $ _) =
+  | exprgen_term thy algbr funcgr thm (t as _ $ _) =
       case strip_comb t
        of (Const (c, ty), ts) =>
-            exprgen_app thy algbr funcgr ((c, ty), ts)
+            exprgen_app thy algbr funcgr thm ((c, ty), ts)
         | (t', ts) =>
-            exprgen_term thy algbr funcgr t'
-            ##>> fold_map (exprgen_term thy algbr funcgr) ts
+            exprgen_term thy algbr funcgr thm t'
+            ##>> fold_map (exprgen_term thy algbr funcgr thm) ts
             #>> (fn (t, ts) => t `$$ ts)
-and exprgen_const thy algbr funcgr (c, ty) =
-  ensure_const thy algbr funcgr c
-  ##>> exprgen_dict_parms thy algbr funcgr (c, ty)
-  ##>> fold_map (exprgen_typ thy algbr funcgr) ((fst o Term.strip_type) ty)
-  #>> (fn ((c, iss), tys) => IConst (c, (iss, tys)))
-and exprgen_app_default thy algbr funcgr (c_ty, ts) =
-  exprgen_const thy algbr funcgr c_ty
-  ##>> fold_map (exprgen_term thy algbr funcgr) ts
+and exprgen_const thy algbr funcgr thm (c, ty) =
+  let
+    val tys = Sign.const_typargs thy (c, ty);
+    val sorts = (map snd o fst o CodeFuncgr.typ funcgr) c;
+    val tys_args = (fst o Term.strip_type) ty;
+  in
+    ensure_const thy algbr funcgr c
+    ##>> fold_map (exprgen_dicts thy algbr funcgr thm) (tys ~~ sorts)
+    ##>> fold_map (exprgen_typ thy algbr funcgr) tys_args
+    #>> (fn ((c, iss), tys) => IConst (c, (iss, tys)))
+  end
+and exprgen_app_default thy algbr funcgr thm (c_ty, ts) =
+  exprgen_const thy algbr funcgr thm c_ty
+  ##>> fold_map (exprgen_term thy algbr funcgr thm) ts
   #>> (fn (t, ts) => t `$$ ts)
-and exprgen_case thy algbr funcgr n cases (app as ((c, ty), ts)) =
+and exprgen_case thy algbr funcgr thm n cases (app as ((c, ty), ts)) =
   let
     val (tys, _) =
       (chop (1 + (if null cases then 1 else length cases)) o fst o strip_type) ty;
@@ -595,14 +593,14 @@ and exprgen_case thy algbr funcgr n cases (app as ((c, ty), ts)) =
       | mk_ds cases = map_filter (uncurry mk_case)
           (AList.make (CodeUnit.no_args thy) cases ~~ nth_drop n ts);
   in
-    exprgen_term thy algbr funcgr dt
+    exprgen_term thy algbr funcgr thm dt
     ##>> exprgen_typ thy algbr funcgr dty
-    ##>> fold_map (fn (pat, body) => exprgen_term thy algbr funcgr pat
-          ##>> exprgen_term thy algbr funcgr body) (mk_ds cases)
-    ##>> exprgen_app_default thy algbr funcgr app
+    ##>> fold_map (fn (pat, body) => exprgen_term thy algbr funcgr thm pat
+          ##>> exprgen_term thy algbr funcgr thm body) (mk_ds cases)
+    ##>> exprgen_app_default thy algbr funcgr thm app
     #>> (fn (((dt, dty), ds), t0) => ICase (((dt, dty), ds), t0))
   end
-and exprgen_app thy algbr funcgr ((c, ty), ts) = case Code.get_case_data thy c
+and exprgen_app thy algbr funcgr thm ((c, ty), ts) = case Code.get_case_data thy c
  of SOME (n, cases) => let val i = 1 + (if null cases then 1 else length cases) in
       if length ts < i then
         let
@@ -613,17 +611,17 @@ and exprgen_app thy algbr funcgr ((c, ty), ts) = case Code.get_case_data thy c
           val vs = Name.names ctxt "a" tys;
         in
           fold_map (exprgen_typ thy algbr funcgr) tys
-          ##>> exprgen_case thy algbr funcgr n cases ((c, ty), ts @ map Free vs)
+          ##>> exprgen_case thy algbr funcgr thm n cases ((c, ty), ts @ map Free vs)
           #>> (fn (tys, t) => map2 (fn (v, _) => pair v) vs tys `|--> t)
         end
       else if length ts > i then
-        exprgen_case thy algbr funcgr n cases ((c, ty), Library.take (i, ts))
-        ##>> fold_map (exprgen_term thy algbr funcgr) (Library.drop (i, ts))
+        exprgen_case thy algbr funcgr thm n cases ((c, ty), Library.take (i, ts))
+        ##>> fold_map (exprgen_term thy algbr funcgr thm) (Library.drop (i, ts))
         #>> (fn (t, ts) => t `$$ ts)
       else
-        exprgen_case thy algbr funcgr n cases ((c, ty), ts)
+        exprgen_case thy algbr funcgr thm n cases ((c, ty), ts)
       end
-  | NONE => exprgen_app_default thy algbr funcgr ((c, ty), ts);
+  | NONE => exprgen_app_default thy algbr funcgr thm ((c, ty), ts);
 
 
 (** evaluation **)
@@ -641,7 +639,7 @@ fun ensure_value thy algbr funcgr t =
     val stmt_value =
       fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
       ##>> exprgen_typ thy algbr funcgr ty
-      ##>> exprgen_term thy algbr funcgr t
+      ##>> exprgen_term thy algbr funcgr NONE t
       #>> (fn ((vs, ty), t) => Fun ((vs, ty), [(([], t), Drule.dummy_thm)]));
     fun term_value (dep, code1) =
       let
