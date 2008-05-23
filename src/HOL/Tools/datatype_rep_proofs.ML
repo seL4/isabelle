@@ -519,17 +519,21 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       dist_lemma::(rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0]))
         (constr_rep_thms ~~ dist_lemmas);
 
-    fun prove_distinct_thms (_, []) = []
-      | prove_distinct_thms (dist_rewrites', t::_::ts) =
-          let
-            val dist_thm = SkipProof.prove_global thy5 [] [] t (fn _ =>
-              EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
-          in dist_thm::(standard (dist_thm RS not_sym))::
-            (prove_distinct_thms (dist_rewrites', ts))
-          end;
+    fun prove_distinct_thms _ _ (_, []) = []
+      | prove_distinct_thms lim dist_rewrites' (k, ts as _ :: _) =
+          if k >= lim then [] else let
+            fun prove [] = []
+              | prove (t :: _ :: ts) =
+                  let
+                    val dist_thm = SkipProof.prove_global thy5 [] [] t (fn _ =>
+                      EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
+                  in dist_thm :: standard (dist_thm RS not_sym) :: prove ts end;
+          in prove ts end;
 
-    val distinct_thms = map prove_distinct_thms (dist_rewrites ~~
-      DatatypeProp.make_distincts new_type_names descr sorts thy5);
+    val distincts = DatatypeProp.make_distincts descr sorts;
+    val distinct_thms = map2 (prove_distinct_thms
+      (Config.get_thy thy5 DatatypeProp.distinctness_limit))
+      dist_rewrites distincts;
 
     val simproc_dists = map (fn ((((_, (_, _, constrs)), rep_thms), congr), dists) =>
       if length constrs < Config.get_thy thy5 DatatypeProp.distinctness_limit
