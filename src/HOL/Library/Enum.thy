@@ -51,9 +51,18 @@ end
 
 lemma order_fun [code func]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
-  shows "f \<le> g \<longleftrightarrow> (\<forall>x \<in> set enum. f x \<le> g x)"
-    and "f < g \<longleftrightarrow> f \<le> g \<and> (\<exists>x \<in> set enum. f x \<noteq> g x)"
-  by (simp_all add: enum_all expand_fun_eq le_fun_def less_fun_def order_less_le)
+  shows "f \<le> g \<longleftrightarrow> list_all (\<lambda>x. f x \<le> g x) enum"
+    and "f < g \<longleftrightarrow> f \<le> g \<and> \<not> list_all (\<lambda>x. f x = g x) enum"
+  by (simp_all add: list_all_iff enum_all expand_fun_eq le_fun_def less_fun_def order_less_le)
+
+
+subsection {* Quantifiers *}
+
+lemma all_code [code func]: "(\<forall>x. P x) \<longleftrightarrow> list_all P enum"
+  by (simp add: list_all_iff enum_all)
+
+lemma exists_code [code func]: "(\<exists>x. P x) \<longleftrightarrow> \<not> list_all (Not o P) enum"
+  by (simp add: list_all_iff enum_all)
 
 
 subsection {* Default instances *}
