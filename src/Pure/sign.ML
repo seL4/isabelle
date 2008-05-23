@@ -622,9 +622,10 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
         val T' = Logic.varifyT T;
       in ((c, T'), (c', T', mx), Const (full_c, T)) end;
     val args = map prep raw_args;
+    val tags' = tags |> AList.update (op =) (Markup.theory_nameN, Context.theory_name thy);
   in
     thy
-    |> map_consts (fold (Consts.declare authentic (naming_of thy) tags o #1) args)
+    |> map_consts (fold (Consts.declare authentic (naming_of thy) tags' o #1) args)
     |> add_syntax_i (map #2 args)
     |> pair (map #3 args)
   end;
