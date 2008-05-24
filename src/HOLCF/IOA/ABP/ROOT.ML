@@ -7,5 +7,5 @@ I/O-Automata.  *)
 
 goals_limit := 1;
 
-use "Check";
+use "Check.ML";
 time_use_thy "Correctness";
