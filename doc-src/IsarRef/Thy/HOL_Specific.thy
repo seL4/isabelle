@@ -413,19 +413,16 @@ text {*
     @{command_def (HOL) "termination"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
   \end{matharray}
 
-  \railalias{funopts}{function\_opts}  %FIXME ??
-
   \begin{rail}
     'primrec' target? fixes 'where' equations
     ;
     equations: (thmdecl? prop + '|')
     ;
-    ('fun' | 'function') (funopts)? fixes 'where' clauses
+    ('fun' | 'function') target? functionopts? fixes 'where' clauses
     ;
     clauses: (thmdecl? prop ('(' 'otherwise' ')')? + '|')
     ;
-    funopts: '(' (('sequential' | 'in' name | 'domintros' | 'tailrec' |
-    'default' term) + ',') ')'
+    functionopts: '(' (('sequential' | 'domintros' | 'tailrec' | 'default' term) + ',') ')'
     ;
     'termination' ( term )?
   \end{rail}
@@ -491,9 +488,6 @@ text {*
   originally. This usually means that each equation given by the user
   may result in several theroems.  Also note that this automatic
   transformation only works for ML-style datatype patterns.
-
-  \item [@{text "\<IN> name"}] gives the target for the definition.
-  %FIXME ?!?
 
   \item [@{text domintros}] enables the automated generation of
   introduction rules for the domain predicate. While mostly not
