@@ -143,33 +143,35 @@ end;
 
 val ssubst = standard (Data.sym RS Data.subst);
 
-fun inst_subst_tac b rl = SUBGOAL (fn (Bi, i) => fn st =>
+fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
   case try (Logic.strip_assums_hyp #> hd #>
-      Data.dest_Trueprop #> Data.dest_eq #> pairself contract) Bi of
+      Data.dest_Trueprop #> Data.dest_eq #> pairself contract) (Thm.term_of cBi) of
     SOME (t, t') =>
       let
+        val Bi = Thm.term_of cBi;
         val ps = Logic.strip_params Bi;
-        val U = fastype_of1 (rev (map snd ps), t);
+        val U = Term.fastype_of1 (rev (map snd ps), t);
         val Q = Data.dest_Trueprop (Logic.strip_assums_concl Bi);
-        val rl' = Thm.lift_rule (nth (cprems_of st) (i - 1)) rl;
-        val Var (ixn, T) = head_of (Data.dest_Trueprop
-          (Logic.strip_assums_concl (prop_of rl')));
+        val rl' = Thm.lift_rule cBi rl;
+        val Var (ixn, T) = Term.head_of (Data.dest_Trueprop
+          (Logic.strip_assums_concl (Thm.prop_of rl')));
         val (v1, v2) = Data.dest_eq (Data.dest_Trueprop
-          (Logic.strip_assums_concl (hd (prems_of rl'))));
-        val (Ts, V) = split_last (binder_types T);
+          (Logic.strip_assums_concl (hd (Thm.prems_of rl'))));
+        val (Ts, V) = split_last (Term.binder_types T);
         val u = list_abs (ps @ [("x", U)], case (if b then t else t') of
             Bound j => subst_bounds (map Bound
               ((1 upto j) @ 0 :: (j + 2 upto length ps)), Q)
-          | t => abstract_over (t, incr_boundvars 1 Q));
-        val thy = theory_of_thm rl'
-      in compose_tac (true, instantiate ([(ctyp_of thy V, ctyp_of thy U)],
+          | t => Term.abstract_over (t, Term.incr_boundvars 1 Q));
+        val thy = Thm.theory_of_thm rl';
+        val (instT, _) = Thm.match (pairself (cterm_of thy o Logic.mk_type) (V, U));
+      in compose_tac (true, Drule.instantiate (instT,
         map (pairself (cterm_of thy))
           [(Var (ixn, Ts ---> U --> body_type T), u),
            (Var (fst (dest_Var (head_of v1)), Ts ---> U), list_abs (ps, t)),
            (Var (fst (dest_Var (head_of v2)), Ts ---> U), list_abs (ps, t'))]) rl',
-        nprems_of rl) i st
+        nprems_of rl) i
       end
-  | NONE => Seq.empty);
+  | NONE => no_tac);
 
 val imp_intr_tac = rtac Data.imp_intr;
 
