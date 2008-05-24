@@ -684,7 +684,7 @@ fun excur [] x = x
   | excur ((tr, pr) :: trs) (st, res) =
       (case transition (! interact) tr st of
         SOME (st', NONE) =>
-          excur trs (st', pr st st' res handle exn =>
+          excur trs (st', setmp_thread_position tr (fn () => pr st st' res) () handle exn =>
             raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
       | SOME (st', SOME exn_info) => raise EXCURSION_FAIL exn_info
       | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
