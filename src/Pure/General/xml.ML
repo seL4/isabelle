@@ -20,9 +20,10 @@ sig
   val output_markup: Markup.T -> output * output
   val string_of: tree -> string
   val output: tree -> TextIO.outstream -> unit
-  val parse_string : string -> string option
   val parse_comments: string list -> unit * string list
+  val parse_string : string -> string option
   val parse_element: string list -> tree * string list
+  val parse_document: string list -> tree * string list
   val parse: string -> tree
 end;
 
@@ -111,6 +112,8 @@ local
 fun err s (xs, _) =
   "XML parsing error: " ^ s ^ "\nfound: " ^ quote (Symbol.beginning 100 xs);
 
+fun ignored _ = [];
+
 val blanks = Scan.many Symbol.is_blank;
 val special = $$ "&" ^^ Symbol.scan_id ^^ $$ ";" >> decode;
 val regular = Scan.one Symbol.is_regular;
@@ -131,17 +134,30 @@ val parse_att =
 val parse_comment =
   Scan.this_string "<!--" --
   Scan.repeat (Scan.unless (Scan.this_string "-->") regular) --
-  Scan.this_string "-->" >> K [];
+  Scan.this_string "-->" >> ignored;
 
 val parse_processing_instruction =
   Scan.this_string "<?" --
   Scan.repeat (Scan.unless (Scan.this_string "?>") regular) --
-  Scan.this_string "?>" >> K [];
+  Scan.this_string "?>" >> ignored;
+
+val parse_doctype =
+  Scan.this_string "<!DOCTYPE" --
+  Scan.repeat (Scan.unless ($$ ">") regular) --
+  $$ ">" >> ignored;
+
+val parse_misc =
+  Scan.one Symbol.is_blank >> ignored ||
+  parse_processing_instruction ||
+  parse_comment;
 
 val parse_optional_text =
   Scan.optional (parse_chars >> (single o Text)) [];
 
 in
+
+val parse_comments =
+  blanks -- Scan.repeat (parse_comment -- blanks >> K ()) >> K ();
 
 val parse_string = Scan.read Symbol.stopper parse_chars o explode;
 
@@ -150,26 +166,27 @@ fun parse_content xs =
     (Scan.repeat
       ((parse_element >> single ||
         parse_cdata >> (single o Text) ||
-        parse_processing_instruction >> K [] ||
-        parse_comment >> K [])
+        parse_processing_instruction ||
+        parse_comment)
       @@@ parse_optional_text) >> flat)) xs
 
 and parse_element xs =
   ($$ "<" |-- Symbol.scan_id --
     Scan.repeat (blanks |-- parse_att) --| blanks :-- (fn (s, _) =>
       !! (err "Expected > or />")
-        (Scan.this_string "/>" >> K []
+        (Scan.this_string "/>" >> ignored
          || $$ ">" |-- parse_content --|
             !! (err ("Expected </" ^ s ^ ">"))
               (Scan.this_string ("</" ^ s) --| blanks --| $$ ">"))) >>
     (fn ((s, atts), ts) => Elem (s, atts, ts))) xs;
 
-val parse_comments =
-  blanks -- Scan.repeat (parse_comment -- blanks >> K ()) >> K ();
+val parse_document =
+  (Scan.repeat parse_misc -- Scan.option parse_doctype -- Scan.repeat parse_misc)
+  |-- parse_element;
 
 fun parse s =
   (case Scan.finite Symbol.stopper (Scan.error (!! (err "Malformed element")
-      (blanks |-- parse_element --| blanks))) (explode s) of
+      (blanks |-- parse_document --| blanks))) (explode s) of
     (x, []) => x
   | (_, ys) => error ("XML parsing error: Unprocessed input\n" ^ Symbol.beginning 100 ys));
 
