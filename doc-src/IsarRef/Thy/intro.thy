@@ -69,8 +69,8 @@ text {*
   isabelle} binary provides option @{verbatim "-I"} to run the
   Isabelle/Isar interaction loop at startup, rather than the raw ML
   top-level.  So the most basic way to do anything with Isabelle/Isar
-  is as follows:
-\begin{ttbox}  % FIXME update
+  is as follows:   % FIXME update
+\begin{ttbox}
 isabelle -I HOL\medskip
 \out{> Welcome to Isabelle/HOL (Isabelle2005)}\medskip
 theory Foo imports Main begin;
