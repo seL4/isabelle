@@ -26,6 +26,7 @@ sig
   val get_theory: string -> theory
   val the_theory: string -> theory -> theory
   val is_finished: string -> bool
+  val master_directory: string -> Path.T
   val loaded_files: string -> Path.T list
   val get_parents: string -> string list
   val touch_child_thys: string -> unit
@@ -153,7 +154,8 @@ val lookup_deps = Option.map #1 o lookup_thy;
 val get_deps = #1 o get_thy;
 fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
 
-fun is_finished name = is_none (get_deps name);
+val is_finished = is_none o get_deps;
+val master_directory = master_dir' o get_deps;
 
 fun loaded_files name =
   (case get_deps name of
@@ -270,10 +272,10 @@ in
 
 fun provide_file path name =
   let
-    val deps = get_deps name;
+    val dir = master_directory name;
     val _ = check_unfinished error name;
   in
-    (case ThyLoad.check_file (master_dir' deps) path of
+    (case ThyLoad.check_file dir path of
       SOME path_info => change_deps name (provide path name path_info)
     | NONE => error ("Could not find file " ^ quote (Path.implode path)))
   end;
