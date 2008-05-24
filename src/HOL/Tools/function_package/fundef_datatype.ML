@@ -298,7 +298,7 @@ val setup =
 
 
 val fun_config = FundefConfig { sequential=true, default="%x. arbitrary" (* FIXME dynamic scoping *), 
-                                target=NONE, domintros=false, tailrec=false }
+                                domintros=false, tailrec=false }
 
 
 local structure P = OuterParse and K = OuterKeyword in
@@ -315,10 +315,9 @@ fun fun_cmd config fixes statements flags lthy =
   end;
 
 val _ =
-  OuterSyntax.command "fun" "define general recursive functions (short version)" K.thy_decl
+  OuterSyntax.local_theory "fun" "define general recursive functions (short version)" K.thy_decl
   (fundef_parser fun_config
-     >> (fn ((config, fixes), (flags, statements)) =>
-            (Toplevel.local_theory (target_of config) (fun_cmd config fixes statements flags))));
+     >> (fn ((config, fixes), (flags, statements)) => fun_cmd config fixes statements flags));
 
 end
 

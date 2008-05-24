@@ -196,18 +196,13 @@ local structure P = OuterParse and K = OuterKeyword in
 val _ = OuterSyntax.keywords ["otherwise"];
 
 val _ =
-  OuterSyntax.command "function" "define general recursive functions" K.thy_goal
+  OuterSyntax.local_theory_to_proof "function" "define general recursive functions" K.thy_goal
   (fundef_parser default_config
-     >> (fn ((config, fixes), (flags, statements)) =>
-            Toplevel.local_theory_to_proof (target_of config) (add_fundef fixes statements config flags)
-            #> Toplevel.print));
+     >> (fn ((config, fixes), (flags, statements)) => add_fundef fixes statements config flags));
 
 val _ =
-  OuterSyntax.command "termination" "prove termination of a recursive function" K.thy_goal
-  (P.opt_target -- Scan.option P.term
-    >> (fn (target, name) =>
-           Toplevel.print o
-           Toplevel.local_theory_to_proof target (termination_cmd name)));
+  OuterSyntax.local_theory_to_proof "termination" "prove termination of a recursive function" K.thy_goal
+  (Scan.option P.term >> termination_cmd);
 
 end;
 

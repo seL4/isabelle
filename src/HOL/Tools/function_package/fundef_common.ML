@@ -119,7 +119,8 @@ fun import_last_fundef ctxt =
 
 val all_fundef_data = NetRules.rules o FundefData.get
 
-structure TerminationSimps = NamedThmsFun(
+structure TerminationSimps = NamedThmsFun
+(
   val name = "termination_simp" 
   val description = "Simplification rule for termination proofs"
 );
@@ -144,7 +145,6 @@ fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
 datatype fundef_opt 
   = Sequential
   | Default of string
-  | Target of xstring
   | DomIntros
   | Tailrec
 
@@ -153,26 +153,21 @@ datatype fundef_config
    {
     sequential: bool,
     default: string,
-    target: xstring option,
     domintros: bool,
     tailrec: bool
    }
 
-fun apply_opt Sequential (FundefConfig {sequential, default, target, domintros,tailrec}) = 
-    FundefConfig {sequential=true, default=default, target=target, domintros=domintros, tailrec=tailrec}
-  | apply_opt (Default d) (FundefConfig {sequential, default, target, domintros,tailrec}) = 
-    FundefConfig {sequential=sequential, default=d, target=target, domintros=domintros, tailrec=tailrec}
-  | apply_opt (Target t) (FundefConfig {sequential, default, target, domintros,tailrec}) =
-    FundefConfig {sequential=sequential, default=default, target=SOME t, domintros=domintros, tailrec=tailrec}
-  | apply_opt DomIntros (FundefConfig {sequential, default, target, domintros,tailrec}) =
-    FundefConfig {sequential=sequential, default=default, target=target, domintros=true,tailrec=tailrec}
-  | apply_opt Tailrec (FundefConfig {sequential, default, target, domintros,tailrec}) =
-    FundefConfig {sequential=sequential, default=default, target=target, domintros=domintros,tailrec=true}
+fun apply_opt Sequential (FundefConfig {sequential, default, domintros,tailrec}) = 
+    FundefConfig {sequential=true, default=default, domintros=domintros, tailrec=tailrec}
+  | apply_opt (Default d) (FundefConfig {sequential, default, domintros,tailrec}) = 
+    FundefConfig {sequential=sequential, default=d, domintros=domintros, tailrec=tailrec}
+  | apply_opt DomIntros (FundefConfig {sequential, default, domintros,tailrec}) =
+    FundefConfig {sequential=sequential, default=default, domintros=true,tailrec=tailrec}
+  | apply_opt Tailrec (FundefConfig {sequential, default, domintros,tailrec}) =
+    FundefConfig {sequential=sequential, default=default, domintros=domintros,tailrec=true}
 
-fun target_of (FundefConfig {target, ...}) = target
-
-val default_config = FundefConfig { sequential=false, default="%x. arbitrary", 
-                                    target=NONE, domintros=false, tailrec=false }
+val default_config =
+  FundefConfig { sequential=false, default="%x. arbitrary", domintros=false, tailrec=false }
 
 
 (* Common operations on equations *)
@@ -311,7 +306,6 @@ local
                    || ((P.reserved "default" |-- P.term) >> Default)
                    || (P.reserved "domintros" >> K DomIntros)
                    || (P.reserved "tailrec" >> K Tailrec)
-                   || ((P.$$$ "in" |-- P.xname) >> Target)
 
   fun config_parser default = (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 (P.group "option" option_parser)) --| P.$$$ ")") [])
                               >> (fn opts => fold apply_opt opts default)
