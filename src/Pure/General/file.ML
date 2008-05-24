@@ -41,7 +41,9 @@ struct
 (* system path representations *)
 
 val platform_path = Path.implode o Path.expand;
-val shell_path = enclose "'" "'" o Path.implode o Path.expand;
+
+val shell_quote = enclose "'" "'";
+val shell_path = shell_quote o platform_path;
 
 
 (* current working directory *)
@@ -69,27 +71,46 @@ fun system_command cmd =
   else ();
 
 
-(* directory entries *)
+(* file identification *)
+
+local
+  val ident_cache = ref (Symtab.empty: {time_stamp: string, id: string} Symtab.table);
+in
+
+fun check_cache (path, time) = CRITICAL (fn () =>
+  (case Symtab.lookup (! ident_cache) path of
+    NONE => NONE
+  | SOME {time_stamp, id} => if time_stamp = time then SOME id else NONE));
+
+fun update_cache (path, (time, id)) = CRITICAL (fn () =>
+  change ident_cache (Symtab.update (path, {time_stamp = time, id = id})));
+
+end;
 
 datatype ident = Ident of string;
-
 fun rep_ident (Ident s) = s;
 
 fun ident path =
-  let val p = platform_path path in
-    (case try OS.FileSys.modTime p of
+  let val physical_path = perhaps (try OS.FileSys.fullPath) (platform_path path) in
+    (case try (Time.toString o OS.FileSys.modTime) physical_path of
       NONE => NONE
-    | SOME time => SOME (Ident
+    | SOME mod_time => SOME (Ident
         (case getenv "ISABELLE_FILE_IDENT" of
-          "" => OS.FileSys.fullPath p ^ ": " ^ Time.toString time
+          "" => physical_path ^ ": " ^ mod_time
         | cmd =>
-           let
-             val (id, rc) = system_out ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ shell_path path)
-           in
-             if id <> "" andalso rc = 0 then id
-             else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)
-           end)))
+            (case check_cache (physical_path, mod_time) of
+              SOME id => id
+            | NONE =>
+                let val (id, rc) =  (*potentially slow*)
+                  system_out ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ shell_quote physical_path)
+                in
+                  if id <> "" andalso rc = 0 then (update_cache (physical_path, (mod_time, id)); id)
+                  else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)
+                end))))
   end;
+
+
+(* directory entries *)
 
 val exists = can OS.FileSys.modTime o platform_path;
 
