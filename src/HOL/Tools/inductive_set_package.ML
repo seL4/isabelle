@@ -545,10 +545,10 @@ local structure P = OuterParse and K = OuterKeyword in
 val ind_set_decl = InductivePackage.gen_ind_decl add_ind_set_def;
 
 val _ =
-  OuterSyntax.command "inductive_set" "define inductive sets" K.thy_decl (ind_set_decl false);
+  OuterSyntax.local_theory "inductive_set" "define inductive sets" K.thy_decl (ind_set_decl false);
 
 val _ =
-  OuterSyntax.command "coinductive_set" "define coinductive sets" K.thy_decl (ind_set_decl true);
+  OuterSyntax.local_theory "coinductive_set" "define coinductive sets" K.thy_decl (ind_set_decl true);
 
 end;
 

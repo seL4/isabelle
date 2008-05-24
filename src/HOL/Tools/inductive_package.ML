@@ -75,9 +75,8 @@ sig
     (string * string option * mixfix) list ->
     ((bstring * Attrib.src list) * string) list -> (Facts.ref * Attrib.src list) list ->
     local_theory -> inductive_result * local_theory
-  val gen_ind_decl: add_ind_def ->
-    bool -> OuterParse.token list ->
-    (Toplevel.transition -> Toplevel.transition) * OuterParse.token list
+  val gen_ind_decl: add_ind_def -> bool ->
+    OuterParse.token list -> (local_theory -> local_theory) * OuterParse.token list
 end;
 
 structure InductivePackage: INDUCTIVE_PACKAGE =
@@ -945,25 +944,21 @@ fun flatten_specification specs = specs |> maps
     | (a, _) => error ("Illegal local specification parameters for " ^ quote a));
 
 fun gen_ind_decl mk_def coind =
-  P.opt_target --
   P.fixes -- P.for_fixes --
   Scan.optional (P.$$$ "where" |-- P.!!! SpecParse.specification) [] --
   Scan.optional (P.$$$ "monos" |-- P.!!! SpecParse.xthms1) []
-  >> (fn ((((loc, preds), params), specs), monos) =>
-    Toplevel.local_theory loc
-      (fn lthy => lthy |> gen_add_inductive mk_def true coind preds params
-         (flatten_specification specs) monos |> snd));
+  >> (fn (((preds, params), specs), monos) =>
+      (snd o gen_add_inductive mk_def true coind preds params (flatten_specification specs) monos));
 
 val ind_decl = gen_ind_decl add_ind_def;
 
-val _ = OuterSyntax.command "inductive" "define inductive predicates" K.thy_decl (ind_decl false);
-val _ = OuterSyntax.command "coinductive" "define coinductive predicates" K.thy_decl (ind_decl true);
+val _ = OuterSyntax.local_theory "inductive" "define inductive predicates" K.thy_decl (ind_decl false);
+val _ = OuterSyntax.local_theory "coinductive" "define coinductive predicates" K.thy_decl (ind_decl true);
 
 val _ =
-  OuterSyntax.command "inductive_cases"
+  OuterSyntax.local_theory "inductive_cases"
     "create simplified instances of elimination rules (improper)" K.thy_script
-    (P.opt_target -- P.and_list1 SpecParse.spec
-      >> (fn (loc, specs) => Toplevel.local_theory loc (snd o inductive_cases specs)));
+    (P.and_list1 SpecParse.spec >> (fn specs => snd o inductive_cases specs));
 
 end;
 

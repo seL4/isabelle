@@ -232,55 +232,49 @@ val constdecl =
 val constdef = Scan.option constdecl -- (SpecParse.opt_thm_name ":" -- P.prop);
 
 val _ =
-  OuterSyntax.command "definition" "constant definition" K.thy_decl
-    (P.opt_target -- constdef
-    >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.definition_cmd args)));
+  OuterSyntax.local_theory "definition" "constant definition" K.thy_decl
+    (constdef >> (fn args => #2 o Specification.definition_cmd args));
 
 val _ =
-  OuterSyntax.command "abbreviation" "constant abbreviation" K.thy_decl
-    (P.opt_target -- opt_mode -- (Scan.option constdecl -- P.prop)
-    >> (fn ((loc, mode), args) =>
-        Toplevel.local_theory loc (Specification.abbreviation_cmd mode args)));
+  OuterSyntax.local_theory "abbreviation" "constant abbreviation" K.thy_decl
+    (opt_mode -- (Scan.option constdecl -- P.prop)
+    >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
 
 val _ =
-  OuterSyntax.command "notation" "add notation for constants / fixed variables" K.thy_decl
-    (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
-    >> (fn ((loc, mode), args) =>
-        Toplevel.local_theory loc (Specification.notation_cmd true mode args)));
+  OuterSyntax.local_theory "notation" "add notation for constants / fixed variables" K.thy_decl
+    (opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
+    >> (fn (mode, args) => Specification.notation_cmd true mode args));
 
 val _ =
-  OuterSyntax.command "no_notation" "delete notation for constants / fixed variables" K.thy_decl
-    (P.opt_target -- opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
-    >> (fn ((loc, mode), args) =>
-        Toplevel.local_theory loc (Specification.notation_cmd false mode args)));
+  OuterSyntax.local_theory "no_notation" "delete notation for constants / fixed variables" K.thy_decl
+    (opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
+    >> (fn (mode, args) => Specification.notation_cmd false mode args));
 
 
 (* constant specifications *)
 
 val _ =
-  OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
-    (P.opt_target --
-     (Scan.optional P.fixes [] --
-      Scan.optional (P.where_ |-- P.!!! (P.and_list1 SpecParse.spec)) [])
-    >> (fn (loc, (x, y)) => Toplevel.local_theory loc (#2 o Specification.axiomatization_cmd x y)));
+  OuterSyntax.local_theory "axiomatization" "axiomatic constant specification" K.thy_decl
+    (Scan.optional P.fixes [] --
+      Scan.optional (P.where_ |-- P.!!! (P.and_list1 SpecParse.spec)) []
+    >> (fn (x, y) => #2 o Specification.axiomatization_cmd x y));
 
 
 (* theorems *)
 
-fun theorems kind = P.opt_target -- SpecParse.name_facts
-  >> (fn (loc, args) => Toplevel.local_theory loc (#2 o Specification.theorems_cmd kind args));
+fun theorems kind =
+  SpecParse.name_facts >> (fn args => #2 o Specification.theorems_cmd kind args);
 
 val _ =
-  OuterSyntax.command "theorems" "define theorems" K.thy_decl (theorems Thm.theoremK);
+  OuterSyntax.local_theory "theorems" "define theorems" K.thy_decl (theorems Thm.theoremK);
 
 val _ =
-  OuterSyntax.command "lemmas" "define lemmas" K.thy_decl (theorems Thm.lemmaK);
+  OuterSyntax.local_theory "lemmas" "define lemmas" K.thy_decl (theorems Thm.lemmaK);
 
 val _ =
-  OuterSyntax.command "declare" "declare theorems (improper)" K.thy_decl
-    (P.opt_target -- (P.and_list1 SpecParse.xthms1 >> flat)
-      >> (fn (loc, args) => Toplevel.local_theory loc
-          (#2 o Specification.theorems_cmd "" [(("", []), args)])));
+  OuterSyntax.local_theory "declare" "declare theorems (improper)" K.thy_decl
+    (P.and_list1 SpecParse.xthms1
+      >> (fn args => #2 o Specification.theorems_cmd "" [(("", []), flat args)]));
 
 
 (* name space entry path *)
@@ -328,16 +322,14 @@ val _ =
     >> (fn (name, (txt, cmt)) => Toplevel.theory (Method.method_setup name txt cmt)));
 
 val _ =
-  OuterSyntax.command "declaration" "generic ML declaration" (K.tag_ml K.thy_decl)
-    (P.opt_target -- P.position P.text
-    >> (fn (loc, txt) => Toplevel.local_theory loc (IsarCmd.declaration txt)));
+  OuterSyntax.local_theory "declaration" "generic ML declaration" (K.tag_ml K.thy_decl)
+    (P.position P.text >> IsarCmd.declaration);
 
 val _ =
-  OuterSyntax.command "simproc_setup" "define simproc in ML" (K.tag_ml K.thy_decl)
-    (P.opt_target --
-      P.name -- (P.$$$ "(" |-- P.enum1 "|" P.term --| P.$$$ ")" --| P.$$$ "=") --
+  OuterSyntax.local_theory "simproc_setup" "define simproc in ML" (K.tag_ml K.thy_decl)
+    (P.name -- (P.$$$ "(" |-- P.enum1 "|" P.term --| P.$$$ ")" --| P.$$$ "=") --
       P.position P.text -- Scan.optional (P.$$$ "identifier" |-- Scan.repeat1 P.xname) []
-    >> (fn ((((loc, a), b), c), d) => Toplevel.local_theory loc (IsarCmd.simproc_setup a b c d)));
+    >> (fn (((a, b), c), d) => IsarCmd.simproc_setup a b c d));
 
 
 (* translation functions *)
@@ -439,9 +431,8 @@ val _ =
           (Class.class_cmd name supclasses elems #-> TheoryTarget.begin)));
 
 val _ =
-  OuterSyntax.command "subclass" "prove a subclass relation" K.thy_goal
-    (P.opt_target -- P.xname >> (fn (loc, class) =>
-      Toplevel.print o Toplevel.local_theory_to_proof loc (Subclass.subclass_cmd class)));
+  OuterSyntax.local_theory_to_proof "subclass" "prove a subclass relation" K.thy_goal
+    (P.xname >> Subclass.subclass_cmd);
 
 val _ =
   OuterSyntax.command "instantiation" "instantiate and prove type arity" K.thy_decl
@@ -482,13 +473,11 @@ val _ =
 (* statements *)
 
 fun gen_theorem kind =
-  OuterSyntax.command kind ("state " ^ kind) K.thy_goal
-    (P.opt_target -- Scan.optional (SpecParse.opt_thm_name ":" --|
+  OuterSyntax.local_theory_to_proof' kind ("state " ^ kind) K.thy_goal
+    (Scan.optional (SpecParse.opt_thm_name ":" --|
       Scan.ahead (SpecParse.locale_keyword || SpecParse.statement_keyword)) ("", []) --
-      SpecParse.general_statement >> (fn ((loc, a), (elems, concl)) =>
-      (Toplevel.print o
-       Toplevel.local_theory_to_proof' loc
-         (Specification.theorem_cmd kind NONE (K I) a elems concl))));
+      SpecParse.general_statement >> (fn (a, (elems, concl)) =>
+        (Specification.theorem_cmd kind NONE (K I) a elems concl)));
 
 val _ = gen_theorem Thm.theoremK;
 val _ = gen_theorem Thm.lemmaK;

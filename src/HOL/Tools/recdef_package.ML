@@ -316,11 +316,10 @@ val _ =
     (defer_recdef_decl >> Toplevel.theory);
 
 val _ =
-  OuterSyntax.command "recdef_tc" "recommence proof of termination condition (TFL)" K.thy_goal
-    (P.opt_target --
-      SpecParse.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
-      >> (fn (((loc, thm_name), name), i) =>
-        Toplevel.print o Toplevel.local_theory_to_proof' loc (recdef_tc thm_name name i)));
+  OuterSyntax.local_theory_to_proof' "recdef_tc" "recommence proof of termination condition (TFL)"
+    K.thy_goal
+    (SpecParse.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
+      >> (fn ((thm_name, name), i) => recdef_tc thm_name name i));
 
 end;
 
