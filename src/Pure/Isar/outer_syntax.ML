@@ -18,6 +18,12 @@ sig
   val command: string -> string -> OuterKeyword.T -> parser_fn -> unit
   val markup_command: ThyOutput.markup -> string -> string -> OuterKeyword.T -> parser_fn -> unit
   val improper_command: string -> string -> OuterKeyword.T -> parser_fn -> unit
+  val local_theory: string -> string -> OuterKeyword.T ->
+    (OuterParse.token list -> (local_theory -> local_theory) * OuterLex.token list) -> unit
+  val local_theory_to_proof': string -> string -> OuterKeyword.T ->
+    (OuterParse.token list -> (bool -> local_theory -> Proof.state) * OuterLex.token list) -> unit
+  val local_theory_to_proof: string -> string -> OuterKeyword.T ->
+    (OuterParse.token list -> (local_theory -> Proof.state) * OuterLex.token list) -> unit
   val dest_keywords: unit -> string list
   val dest_parsers: unit -> (string * string * string * bool) list
   val print_outer_syntax: unit -> unit
@@ -158,6 +164,17 @@ fun improper_command name comment kind parse =
   add_parser (name, make_parser comment kind NONE true parse);
 
 end;
+
+
+(* local_theory commands *)
+
+fun local_theory_command do_print trans name comment kind parse =
+  command name comment kind (P.opt_target -- parse
+    >> (fn (loc, f) => (if do_print then Toplevel.print else I) o trans loc f));
+
+val local_theory           = local_theory_command false Toplevel.local_theory;
+val local_theory_to_proof' = local_theory_command true Toplevel.local_theory_to_proof';
+val local_theory_to_proof  = local_theory_command true Toplevel.local_theory_to_proof;
 
 
 (* inspect syntax *)
