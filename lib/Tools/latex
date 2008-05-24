@@ -117,7 +117,7 @@ case "$OUTFORMAT" in
   ps.gz)
     check_root && \
     run_latex && \
-    run_dvips &&
+    run_dvips && \
     gzip -f "$FILEBASE.ps"
     RC="$?"
     ;;
