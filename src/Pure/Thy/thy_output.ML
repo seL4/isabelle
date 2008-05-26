@@ -468,6 +468,8 @@ fun pretty_fact ctxt (prop, method_text) =
       |> Proof.global_terminal_proof (method_text, NONE);
   in pretty_term ctxt prop end;
 
+val hd_src = Args.src o (apfst o apsnd) (single o hd) o Args.dest_src;
+
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 fun pretty_term_style ctxt (name, t) =
@@ -529,7 +531,7 @@ val _ = add_commands
  [("thm", args Attrib.thms (output_list pretty_thm)),
   ("thm_style", args (Scan.lift Args.liberal_name -- Attrib.thm) (output pretty_thm_style)),
   ("prop", args Args.prop (output pretty_term)),
-  ("lemma", args (Args.prop -- Scan.lift Method.simple_text) (output pretty_fact)),
+  ("lemma", args (Args.prop -- Scan.lift Method.simple_text) (output pretty_fact o hd_src)),
   ("term", args Args.term (output pretty_term)),
   ("term_style", args (Scan.lift Args.liberal_name -- Args.term) (output pretty_term_style)),
   ("term_type", args Args.term (output pretty_term_typ)),
