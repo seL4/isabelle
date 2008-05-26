@@ -314,8 +314,9 @@ fun class_error pp (NoClassrel (c1, c2)) =
       "No class relation " ^ Pretty.string_of_classrel pp [c1, c2]
   | class_error pp (NoArity (a, c)) =
       "No type arity " ^ Pretty.string_of_arity pp (a, [], [c])
-  | class_error pp (NoSubsort (s1, s2)) =
-      Pretty.string_of_sort pp s1 ^ " is not a subsort of " ^ Pretty.string_of_sort pp s2;
+  | class_error pp (NoSubsort (S1, S2)) =
+     "Cannot derive subsort relation " ^ Pretty.string_of_sort pp S1
+       ^ " < " ^ Pretty.string_of_sort pp S2;
 
 exception CLASS_ERROR of class_error;
 
@@ -383,8 +384,7 @@ fun of_sort_derivation pp algebra {class_relation, type_constructor, type_variab
     fun weakens S1 S2 = S2 |> map (fn c2 =>
       (case S1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
         SOME d1 => weaken d1 c2
-      | NONE => error ("Cannot derive subsort relation " ^
-          Pretty.string_of_sort pp (map #2 S1) ^ " < " ^ Pretty.string_of_sort pp S2)));
+      | NONE => raise CLASS_ERROR (NoSubsort (map #2 S1, S2))));
 
     fun derive _ [] = []
       | derive (Type (a, Ts)) S =
