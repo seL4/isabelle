@@ -88,8 +88,6 @@ val timing = ref false;
 
 local
 
-exception CLASS_ERROR of string list * string;
-
 fun resort_thms thy algebra typ_of thms =
   let
     val cs = fold_consts (insert (op =)) thms [];
@@ -104,13 +102,14 @@ fun resort_funcss thy algebra funcgr =
   let
     val typ_funcgr = try (fst o Graph.get_node funcgr);
     val resort_dep = apsnd (resort_thms thy algebra typ_funcgr);
-    fun resort_rec typ_of (const, []) = (true, (const, []))
-      | resort_rec typ_of (const, thms as thm :: _) =
-          let
+    fun resort_rec typ_of (c, []) = (true, (c, []))
+      | resort_rec typ_of (c, thms as thm :: _) = if is_some (AxClass.inst_of_param thy c)
+          then (true, (c, thms))
+          else let
             val (_, (vs, ty)) = CodeUnit.head_func thm;
             val thms' as thm' :: _ = resort_thms thy algebra typ_of thms
             val (_, (vs', ty')) = CodeUnit.head_func thm'; (*FIXME simplify check*)
-          in (Sign.typ_equiv thy (ty, ty'), (const, thms')) end;
+          in (Sign.typ_equiv thy (ty, ty'), (c, thms')) end;
     fun resort_recs funcss =
       let
         fun typ_of c = case these (AList.lookup (op =) funcss c)
@@ -184,19 +183,7 @@ fun merge_funcss thy algebra raw_funcss funcgr =
       |> resort_funcss thy algebra funcgr
       |> filter_out (can (Graph.get_node funcgr) o fst);
     fun typ_func c [] = Code.default_typ thy c
-      | typ_func c (thms as thm :: _) = case AxClass.inst_of_param thy c
-         of SOME (c', tyco) => 
-              let
-                val (_, (vs, ty)) = CodeUnit.head_func thm;
-                val SOME class = AxClass.class_of_param thy c';
-                val sorts_decl = Sorts.mg_domain algebra tyco [class];
-              in if map snd vs = sorts_decl then (vs, ty)
-                else raise CLASS_ERROR ([c], "Illegal instantation for class operation "
-                  ^ CodeUnit.string_of_const thy c
-                  ^ "\nin defining equations\n"
-                  ^ (cat_lines o map (Display.string_of_thm o AxClass.overload thy)) thms)
-              end
-          | NONE => (snd o CodeUnit.head_func) thm;
+      | typ_func c (thms as thm :: _) = (snd o CodeUnit.head_func) thm;
     fun add_funcs (const, thms) =
       Graph.new_node (const, (typ_func const thms, thms));
     fun add_deps (funcs as (const, thms)) funcgr =
@@ -206,7 +193,7 @@ fun merge_funcss thy algebra raw_funcss funcgr =
           (fold_consts (insert (op =)) thms []);
       in
         funcgr
-        |> ensure_consts' thy algebra insts
+        |> ensure_consts thy algebra insts
         |> fold (curry Graph.add_edge const) deps
         |> fold (curry Graph.add_edge const) insts
        end;
@@ -215,7 +202,7 @@ fun merge_funcss thy algebra raw_funcss funcgr =
     |> fold add_funcs funcss
     |> fold add_deps funcss
   end
-and ensure_consts' thy algebra cs funcgr =
+and ensure_consts thy algebra cs funcgr =
   let
     val auxgr = Graph.empty
       |> fold (snd oo ensure_const thy algebra funcgr) cs;
@@ -224,26 +211,19 @@ and ensure_consts' thy algebra cs funcgr =
     |> fold (merge_funcss thy algebra)
          (map (AList.make (Graph.get_node auxgr))
          (rev (Graph.strong_conn auxgr)))
-  end handle CLASS_ERROR (cs', msg)
-    => raise CLASS_ERROR (fold (insert (op =)) cs' cs, msg);
+  end;
 
 in
 
 (** retrieval interfaces **)
 
-fun ensure_consts thy algebra consts funcgr =
-  ensure_consts' thy algebra consts funcgr
-    handle CLASS_ERROR (cs', msg) => error (msg ^ ",\nwhile preprocessing equations for constant(s) "
-    ^ commas (map (CodeUnit.string_of_const thy) cs'));
+val ensure_consts = ensure_consts;
 
 fun check_consts thy consts funcgr =
   let
     val algebra = Code.coregular_algebra thy;
-    fun try_const const funcgr =
-      (SOME const, ensure_consts' thy algebra [const] funcgr)
-      handle CLASS_ERROR (cs', msg) => (NONE, funcgr);
-    val (consts', funcgr') = fold_map try_const consts funcgr;
-  in (map_filter I consts', funcgr') end;
+    fun try_const const funcgr = (const, ensure_consts thy algebra [const] funcgr);
+  in fold_map try_const consts funcgr end;
 
 fun proto_eval thy cterm_of evaluator_fr evaluator proto_ct funcgr =
   let
