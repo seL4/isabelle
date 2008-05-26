@@ -32,13 +32,13 @@ sig
 
   type serializer;
   val add_serializer: string * serializer -> theory -> theory;
+  val assert_serializer: theory -> string -> string;
   val get_serializer: theory -> string -> bool -> string option
     -> string option -> Args.T list
     -> string list option -> CodeThingol.code -> unit;
-  val assert_serializer: theory -> string -> string;
+  val sml_of: theory -> string list -> CodeThingol.code -> string;
   val eval: theory -> (string * (unit -> 'a) option ref)
     -> CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
-  val sml_of: theory -> string list -> CodeThingol.code -> string;
   val code_width: int ref;
 
   val setup: theory -> theory;
@@ -61,6 +61,10 @@ val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun enum_default default sep opn cls [] = str default
   | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
+
+val code_width = ref 80;
+fun code_source p = Pretty.setmp_margin (!code_width) Pretty.string_of p ^ "\n";
+fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
 
 
 (** syntax **)
@@ -910,9 +914,6 @@ fun pr_ocaml_modl name content =
     str ("end;; (*struct " ^ name ^ "*)")
   ]);
 
-val code_width = ref 80;
-fun code_output p = Pretty.setmp_margin (!code_width) Pretty.output p ^ "\n";
-
 fun seri_ml pr_def pr_modl module output labelled_name reserved_syms includes raw_module_alias
   (_ : string -> class_syntax option) tyco_syntax const_syntax cs code =
   let
@@ -1093,9 +1094,9 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms includes ra
 fun isar_seri_sml module file =
   let
     val output = case file
-     of NONE => use_text (1, "generated code") Output.ml_output false o code_output
-      | SOME "-" => PrintMode.setmp [] writeln o code_output
-      | SOME file => File.write (Path.explode file) o code_output;
+     of NONE => use_text (1, "generated code") Output.ml_output false o code_source
+      | SOME "-" => code_writeln
+      | SOME file => File.write (Path.explode file) o code_source;
   in
     parse_args (Scan.succeed ())
     #> (fn () => seri_ml pr_sml pr_sml_modl module (output o snd))
@@ -1103,16 +1104,14 @@ fun isar_seri_sml module file =
 
 fun eval_seri module file args =
   seri_ml pr_sml (K Pretty.chunks) (SOME "Isabelle_Eval")
-    (fn (cs, p) => "let\n" ^ code_output p ^ "\nin fn () => " ^ enclose "(" ")" (commas cs) ^ " end");
+    (fn (cs, p) => "let\n" ^ code_source p ^ "\nin fn () => " ^ enclose "(" ")" (commas cs) ^ " end");
 
 fun isar_seri_ocaml module file =
   let
     val output = case file
      of NONE => error "OCaml: no internal compilation"
-      | SOME "-" => PrintMode.setmp [] writeln o code_output
-      | SOME file => File.write (Path.explode file) o code_output;
-    fun output_file file = File.write (Path.explode file) o code_output;
-    val output_diag = PrintMode.setmp [] writeln o code_output;
+      | SOME "-" => code_writeln
+      | SOME file => File.write (Path.explode file) o code_source;
   in
     parse_args (Scan.succeed ())
     #> (fn () => seri_ml pr_ocaml pr_ocaml_modl module (output o snd))
@@ -1486,8 +1485,8 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
                     o NameSpace.explode) modlname;
             val pathname = Path.append destination filename;
             val _ = File.mkdir (Path.dir pathname);
-          in File.write pathname end
-      | write_modulefile NONE _ = PrintMode.setmp [] writeln;
+          in File.write pathname o code_source end
+      | write_modulefile NONE _ = code_writeln;
     fun write_module destination (modulename, content) =
       Pretty.chunks [
         str ("module " ^ modulename ^ " where {"),
@@ -1496,7 +1495,6 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
         str "",
         str "}"
       ]
-      |> code_output
       |> write_modulefile destination modulename;
     fun seri_module (modlname', (imports, (defs, _))) =
       let
@@ -1564,8 +1562,7 @@ fun seri_diagnosis labelled_name _ _ _ _ _ _ _ code =
     |> Graph.fold (fn (name, (def, _)) =>
           case try pr (name, def) of SOME p => cons p | NONE => I) code
     |> Pretty.chunks2
-    |> code_output
-    |> PrintMode.setmp [] writeln
+    |> code_writeln
   end;
 
 
