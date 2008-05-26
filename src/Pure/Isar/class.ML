@@ -469,6 +469,11 @@ fun gen_class_spec prep_class process_expr thy raw_supclasses raw_elems =
     val supclasses = map (prep_class thy) raw_supclasses;
     val supsort = Sign.minimize_sort thy supclasses;
     val sups = filter (is_class thy) supsort;
+    val supparam_names = map fst (these_params thy sups);
+    val _ = if has_duplicates (op =) supparam_names
+      then error ("Duplicate parameter(s) in superclasses: "
+        ^ (commas o map quote o duplicates (op =)) supparam_names)
+      else ();
     val base_sort = if null sups then supsort else
       foldr1 (Sorts.inter_sort (Sign.classes_of thy))
         (map (#base_sort o the_class_data thy) sups);
