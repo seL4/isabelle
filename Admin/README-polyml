@@ -1,0 +1,20 @@
+
+This distribution of Poly/ML 5.2 has been compiled from the original
+sources as follows:
+
+  cvs -d:pserver:anonymous@polyml.cvs.sourceforge.net:/cvsroot/polyml co polyml
+  cd polyml
+  cvs up -dAP
+  ./configure --prefix=/tmp/polyml --without-x
+  make
+  make install
+
+Now /tmp/polyml/bin/* and /tmp/polyml/lib/* are moved to the
+platform-specific target directory (e.g. polyml-5.2/x86-linux).  Run
+Isabelle/lib/scripts/polyml-platform to identify your platform.
+
+
+	Makarius
+	28-May-2008
+
+$Id$
