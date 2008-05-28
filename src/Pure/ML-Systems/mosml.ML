@@ -53,6 +53,12 @@ struct
   open Int;
 end;
 
+structure Substring =
+struct
+  open Substring;
+  val full = all;
+end;
+
 structure Real =
 struct
   open Real;
