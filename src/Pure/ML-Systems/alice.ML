@@ -6,7 +6,7 @@ Compatibility file for Alice 1.4.
 NOTE: there is no wrapper script; may run it interactively as follows:
 
 $ cd Isabelle/src/Pure
-$ env ALICE_JIT_MODE=0 alice
+$ env ALICE_JIT_MODE=0 ISABELLE_HOME=$(cd ../..; pwd) alice
 - val ml_system = "alice";
 - use "ML-Systems/exn.ML";
 - use "ML-Systems/universal.ML";
@@ -145,6 +145,21 @@ end;
 
 (** OS related **)
 
+structure OS =
+struct
+  open OS;
+  structure FileSys =
+  struct
+    open FileSys;
+    fun tmpName () =
+      let val name = FileSys.tmpName () in
+        if String.isSuffix "\000" name
+        then String.substring (name, 0, size name - 1)
+        else name
+      end;
+  end;
+end;
+
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
@@ -189,7 +204,20 @@ struct
         ("", _) => raise Fail "OS.FileSys.fileId"   (* FIXME IO.Io!? *)
       | (s, _) => (case Int.fromString s of NONE => raise Fail "OS.FileSys.fileId" | SOME i => i));
     val compare = Int.compare;
+    fun fullPath name =
+      (case system_out ("FILE='" ^ name ^
+        "' && cd \"$(dirname \"$FILE\")\" && echo -n \"$(pwd -P)/$(basename \"$FILE\")\"") of
+        ("", _) => raise SysErr ("Bad file", NONE)
+      | (s, _) => s);
     open FileSys;
+  end;
+end;
+
+structure Posix =
+struct
+  structure ProcEnv =
+  struct
+    fun getpid () = raise Fail "Posix.ProcEnv.getpoid undefined";
   end;
 end;
 
