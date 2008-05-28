@@ -1,8 +1,8 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2008 (June 2008)
+-------------------------------
 
 *** General ***
 
@@ -121,13 +121,9 @@ spot); renamed link color from "darkblue" to "linkcolor" (default
 value unchanged, can be redefined via \definecolor); no longer sets
 "a4paper" option (unnecessary or even intrusive).
 
-* Antiquotation "lemma" takes a proposition and a simple method text
-as argument and asserts that the proposition is provable by the
-corresponding method invocation.  Prints text of proposition, as does
-antiquotation "prop".  A simple method text is either a method name or
-a method name plus (optional) method arguments in parentheses,
-mimicking the conventions known from Isar proof text.  Useful for
-illustration of presented theorems by particular examples.
+* Antiquotation @{lemma A method} proves proposition A by the given
+method (either a method name or a method name plus (optional) method
+arguments in parentheses) and prints A just like @{prop A}.
 
 
 *** HOL ***
@@ -136,12 +132,12 @@ illustration of presented theorems by particular examples.
 
   INCOMPATIBILITIES:
 
-  - Definitions of overloaded constants on sets have to be
-    replaced by definitions on => and bool.
+  - Definitions of overloaded constants on sets have to be replaced by
+    definitions on => and bool.
 
   - Some definitions of overloaded operators on sets can now be proved
-    using the definitions of the operators on => and bool.
-    Therefore, the following theorems have been renamed:
+    using the definitions of the operators on => and bool.  Therefore,
+    the following theorems have been renamed:
 
       subset_def   -> subset_eq
       psubset_def  -> psubset_eq
@@ -162,8 +158,8 @@ illustration of presented theorems by particular examples.
       have "P (S::'a set)" <...>
       then have "EX S. P S" ..
 
-    no longer works (due to the incompleteness of the HO unification algorithm)
-    and must be replaced by the pattern
+    no longer works (due to the incompleteness of the HO unification
+    algorithm) and must be replaced by the pattern
 
       have "EX S. P S"
       proof
@@ -177,8 +173,8 @@ illustration of presented theorems by particular examples.
       also have "S = T" <...>
       finally have "P T" .
 
-    no longer works (for similar reasons as the previous example) and must be
-    replaced by something like
+    no longer works (for similar reasons as the previous example) and
+    must be replaced by something like
 
       have "P (S::'a set)" <...>
       moreover have "S = T" <...>
@@ -189,8 +185,9 @@ illustration of presented theorems by particular examples.
 
       Type ("set", [T]) => ...
 
-    must be rewritten. Moreover, functions like strip_type or binder_types no
-    longer return the right value when applied to a type of the form
+    must be rewritten. Moreover, functions like strip_type or
+    binder_types no longer return the right value when applied to a
+    type of the form
 
       T1 => ... => Tn => U => bool
 
@@ -234,8 +231,8 @@ and different variable names.
 
 * Library/Option_ord.thy: Canonical order on option type.
 
-* Library/RBT.thy: New theory of red-black trees, an efficient
-implementation of finite maps.
+* Library/RBT.thy: Red-black trees, an efficient implementation of
+finite maps.
 
 * Library/Countable.thy: Type class for countable types.
 
@@ -327,10 +324,10 @@ enable, declare [[sledgehammer_full = true]]. Attributes
 reconstruction_modulus, reconstruction_sorts renamed
 sledgehammer_modulus, sledgehammer_sorts.  INCOMPATIBILITY.
 
-* More flexible generation of measure functions for termination proofs:
-Measure functions can be declared by proving a rule of the form
-"is_measure f" and giving it the [measure_function] attribute. The
-"is_measure" predicate is logically meaningless (always true), and
+* More flexible generation of measure functions for termination
+proofs: Measure functions can be declared by proving a rule of the
+form "is_measure f" and giving it the [measure_function] attribute.
+The "is_measure" predicate is logically meaningless (always true), and
 just guides the heuristic.  To find suitable measure functions, the
 termination prover sets up the goal "is_measure ?f" of the appropriate
 type and generates all solutions by prolog-style backwards proof using
@@ -379,7 +376,7 @@ management only; user-code should use print_mode_value,
 print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
 
 * Functions system/system_out provide a robust way to invoke external
-shell commands, with propagation of interrupts (after Poly/ML 5.2).
+shell commands, with propagation of interrupts (requires Poly/ML 5.2).
 Do not use OS.Process.system etc. from the basis library!
 
 
