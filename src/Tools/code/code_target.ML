@@ -37,6 +37,7 @@ sig
   val serialize: theory -> string -> bool -> string option -> Args.T list
     -> CodeThingol.code -> string list option -> serialization;
   val compile: serialization -> unit;
+  val write: serialization -> unit;
   val file: Path.T -> serialization -> unit;
   val string: serialization -> string;
   val sml_of: theory -> CodeThingol.code -> string list -> string;
@@ -66,7 +67,8 @@ fun enum_default default sep opn cls [] = str default
   | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
 
 val code_width = ref 80;
-fun code_source p = Pretty.setmp_margin (!code_width) Pretty.string_of p ^ "\n";
+fun code_source p = PrintMode.setmp [] (Pretty.setmp_margin (!code_width) Pretty.string_of) p ^ "\n";
+fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
 
 
 (** generic syntax **)
@@ -140,10 +142,11 @@ fun merge_syntax_expr (SyntaxExpr { class = class1, inst = inst1, tyco = tyco1, 
        Symtab.join (K snd) (const1, const2))
   );
 
-datatype serialization_dest = Compile | File of Path.T | String;
+datatype serialization_dest = Compile | Write | File of Path.T | String;
 type serialization = serialization_dest -> string option;
 
 fun compile f = (f Compile; ());
+fun write f = (f Write; ());
 fun file p f = (f (File p); ());
 fun string f = the (f String);
 
@@ -1195,6 +1198,7 @@ fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_sy
     val deresolv = try (deresolver (if is_some module then the_list module else []));
     val output = case seri_dest
      of Compile => K NONE o internal o code_source
+      | Write => K NONE o code_writeln
       | File file => K NONE o File.write file o code_source
       | String => SOME o code_source;
   in output_cont (map_filter deresolv cs, output p) end;
@@ -1567,13 +1571,13 @@ fun seri_haskell module_prefix module string_classes labelled_name
       contr_classparam_typs
       (if string_classes then deriving_show else K false);
     fun assemble_module (modulename, content) =
-      (modulename, code_source (Pretty.chunks [
+      (modulename, Pretty.chunks [
         str ("module " ^ modulename ^ " where {"),
         str "",
         content,
         str "",
         str "}"
-      ]));
+      ]);
     fun seri_module (modlname', (imports, (defs, _))) =
       let
         val imports' =
@@ -1608,11 +1612,12 @@ fun seri_haskell module_prefix module string_classes labelled_name
                 o NameSpace.explode) modlname;
         val pathname = Path.append destination filename;
         val _ = File.mkdir (Path.dir pathname);
-      in File.write pathname content end
+      in File.write pathname (code_source content) end
     val output = case seri_dest
      of Compile => error ("Haskell: no internal compilation")
+      | Write => K NONE o map (code_writeln o snd)
       | File destination => K NONE o map (write_module destination)
-      | String => SOME o cat_lines o map snd;
+      | String => SOME o cat_lines o map (code_source o snd);
   in output (map assemble_module includes
     @ map seri_module (Symtab.dest code'))
   end;

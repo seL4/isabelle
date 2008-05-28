@@ -99,7 +99,7 @@ fun code thy permissive cs seris =
     val code = Program.get thy;
     fun mk_seri_dest file = case file
      of NONE => CodeTarget.compile
-      | SOME "-" => writeln o CodeTarget.string
+      | SOME "-" => CodeTarget.write
       | SOME f => CodeTarget.file (Path.explode f)
     val _ = map (fn (((target, module), file), args) =>
       (mk_seri_dest file (CodeTarget.serialize thy target permissive module args code cs))) seris;
