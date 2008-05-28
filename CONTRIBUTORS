@@ -7,19 +7,38 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
-* November 2007: Peter Lammich, Uni Muenster
-  HOL-Lattice: some more lemmas.
+* 2007/2008:
+  Alexander Krauss, TUM and Florian Haftmann, TUM and Stefan Berghofer, TUM
+  HOL library improvements.
 
-* December 2007: Florian Haftmann, TUM
-  Overloading and Instantiation Target
+* 2007/2008: Brian Huffman, PSU
+  HOLCF library improvements.
+
+* 2007/2008: Stefan Berghofer, TUM
+  HOL-Nominal package improvements.  
+
+* March 2008: Markus Reiter, TUM
+  HOL/Library/RBT: red-black trees.
 
 * February 2008: Alexander Krauss, TUM and Florian Haftmann, TUM and
   Lukas Bulwahn, TUM and John Matthews, Galois:
   HOL/Library/Imperative_HOL: Haskell-style imperative data structures
   for HOL.
 
-* March 2008: Markus Reiter, TUM
-  HOL/Library/RBT: red-black trees.
+* December 2007: Norbert Schirmer, Uni Saarbruecken
+  Misc improvements of record package in HOL.
+
+* December 2007: Florian Haftmann, TUM
+  Overloading and class instantiation target.
+
+* December 2007: Florian Haftmann, TUM
+  New version of primrec package for local theories.
+
+* December 2007: Alexander Krauss, TUM
+  Method "induction_scheme" in HOL.
+
+* November 2007: Peter Lammich, Uni Muenster
+  HOL-Lattice: some more lemmas.
 
 
 Contributions to Isabelle2007
