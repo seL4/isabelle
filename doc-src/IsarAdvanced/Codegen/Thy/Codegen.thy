@@ -147,7 +147,7 @@ text {*
   \noindent Then we generate code
 *}
 
-export_code example (*<*)in SML(*>*)in SML file "examples/tree.ML"
+export_code example (*<*)in SML (*>*)in SML file "examples/tree.ML"
 
 text {*
   \noindent which looks like:
@@ -762,21 +762,101 @@ text {*
   the @{text "\<PRINTCODESETUP>"} command.
 
   In some cases, it may be convenient to alter or
-  extend this table;  as an example FIXME
+  extend this table;  as an example, we will develope an alternative
+  representation of natural numbers as binary digits, whose
+  size does increase logarithmically with its value, not linear
+  \footnote{Indeed, the @{text "Efficient_Nat"} theory \ref{eff_nat}
+    does something similar}.  First, the digit representation:
 *}
 
-(* {* code_datatype ... *}
+definition Dig0 :: "nat \<Rightarrow> nat" where
+  "Dig0 n = 2 * n"
 
-   {* export_code "{}" insert "op \<in>" "op \<union>" "Union" (*<*)in SML(*>*) in SML file "examples/set_list.ML" *}
+definition Dig1 :: "nat \<Rightarrow> nat" where
+  "Dig1 n = Suc (2 * n)"
 
-  {* \lstsml{Thy/examples/set_list.ML} *} *)
+text {*
+  \noindent We will use these two ">digits"< to represent natural numbers
+  in binary digits, e.g.:
+*}
+
+lemma 42: "42 = Dig0 (Dig1 (Dig0 (Dig1 (Dig0 1))))"
+  by (simp add: Dig0_def Dig1_def)
+
+text {*
+  \noindent Of course we also have to provide proper code equations for
+  the operations, e.g. @{term "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"}:
+*}
+
+lemma plus_Dig [code func]:
+  "0 + n = n"
+  "m + 0 = m"
+  "1 + Dig0 n = Dig1 n"
+  "Dig0 m + 1 = Dig1 m"
+  "1 + Dig1 n = Dig0 (n + 1)"
+  "Dig1 m + 1 = Dig0 (m + 1)"
+  "Dig0 m + Dig0 n = Dig0 (m + n)"
+  "Dig0 m + Dig1 n = Dig1 (m + n)"
+  "Dig1 m + Dig0 n = Dig1 (m + n)"
+  "Dig1 m + Dig1 n = Dig0 (m + n + 1)"
+  by (simp_all add: Dig0_def Dig1_def)
+
+text {*
+  \noindent We then instruct the code generator to view @{term "0\<Colon>nat"},
+  @{term "1\<Colon>nat"}, @{term Dig0} and @{term Dig1} as
+  datatype constructors:
+*}
+
+code_datatype "0\<Colon>nat" "1\<Colon>nat" Dig0 Dig1
+
+text {*
+  \noindent For the former constructor @{term Suc}, we provide a code
+  equation and remove some parts of the default code generator setup
+  which are an obstacle here:
+*}
+
+lemma Suc_Dig [code func]:
+  "Suc n = n + 1"
+  by simp
+
+declare One_nat_def [code inline del]
+declare add_Suc_shift [code func del] 
+
+text {*
+  \noindent This yields the following code:
+*}
+
+export_code "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" (*<*)in SML(*>*) in SML file "examples/nat_binary.ML"
+
+text {* \lstsml{Thy/examples/nat_binary.ML} *}
 
 text {*
   \medskip
 
-  Changing the representation of existing datatypes requires
-  some care with respect to pattern matching and such.
+  From this example, it can be easily glimpsed that using own constructor sets
+  is a little delicate since it changes the set of valid patterns for values
+  of that type.  Without going into much detail, here some practical hints:
+
+  \begin{itemize}
+    \item When changing the constuctor set for datatypes, take care to
+      provide an alternative for the @{text case} combinator (e.g. by replacing
+      it using the preprocessor).
+    \item Values in the target language need not to be normalized -- different
+      values in the target language may represent the same value in the
+      logic (e.g. @{text "Dig1 0 = 1"}).
+    \item Usually, a good methodology to deal with the subleties of pattern
+      matching is to see the type as an abstract type: provide a set
+      of operations which operate on the concrete representation of the type,
+      and derive further operations by combinations of these primitive ones,
+      without relying on a particular representation.
+  \end{itemize}
 *}
+
+code_datatype %invisible "0::nat" Suc
+declare %invisible plus_Dig [code func del]
+declare %invisible One_nat_def [code inline]
+declare %invisible add_Suc_shift [code func] 
+lemma %invisible [code func]: "0 + n = (n \<Colon> nat)" by simp
 
 
 subsection {* Customizing serialization  *}

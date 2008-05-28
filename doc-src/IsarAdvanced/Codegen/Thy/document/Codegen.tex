@@ -993,17 +993,167 @@ Conceptually, any datatype is spanned by a set of
   the \isa{{\isasymPRINTCODESETUP}} command.
 
   In some cases, it may be convenient to alter or
-  extend this table;  as an example FIXME%
+  extend this table;  as an example, we will develope an alternative
+  representation of natural numbers as binary digits, whose
+  size does increase logarithmically with its value, not linear
+  \footnote{Indeed, the \isa{Efficient{\isacharunderscore}Nat} theory \ref{eff_nat}
+    does something similar}.  First, the digit representation:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ Dig{\isadigit{0}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}Dig{\isadigit{0}}\ n\ {\isacharequal}\ {\isadigit{2}}\ {\isacharasterisk}\ n{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ Dig{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}Dig{\isadigit{1}}\ n\ {\isacharequal}\ Suc\ {\isacharparenleft}{\isadigit{2}}\ {\isacharasterisk}\ n{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent We will use these two ">digits"< to represent natural numbers
+  in binary digits, e.g.:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isadigit{4}}{\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{4}}{\isadigit{2}}\ {\isacharequal}\ Dig{\isadigit{0}}\ {\isacharparenleft}Dig{\isadigit{1}}\ {\isacharparenleft}Dig{\isadigit{0}}\ {\isacharparenleft}Dig{\isadigit{1}}\ {\isacharparenleft}Dig{\isadigit{0}}\ {\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ Dig{\isadigit{0}}{\isacharunderscore}def\ Dig{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent Of course we also have to provide proper code equations for
+  the operations, e.g. \isa{op\ {\isacharplus}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ plus{\isacharunderscore}Dig\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isacharplus}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}m\ {\isacharplus}\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharplus}\ Dig{\isadigit{0}}\ n\ {\isacharequal}\ Dig{\isadigit{1}}\ n{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}Dig{\isadigit{0}}\ m\ {\isacharplus}\ {\isadigit{1}}\ {\isacharequal}\ Dig{\isadigit{1}}\ m{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharplus}\ Dig{\isadigit{1}}\ n\ {\isacharequal}\ Dig{\isadigit{0}}\ {\isacharparenleft}n\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}Dig{\isadigit{1}}\ m\ {\isacharplus}\ {\isadigit{1}}\ {\isacharequal}\ Dig{\isadigit{0}}\ {\isacharparenleft}m\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}Dig{\isadigit{0}}\ m\ {\isacharplus}\ Dig{\isadigit{0}}\ n\ {\isacharequal}\ Dig{\isadigit{0}}\ {\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}Dig{\isadigit{0}}\ m\ {\isacharplus}\ Dig{\isadigit{1}}\ n\ {\isacharequal}\ Dig{\isadigit{1}}\ {\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}Dig{\isadigit{1}}\ m\ {\isacharplus}\ Dig{\isadigit{0}}\ n\ {\isacharequal}\ Dig{\isadigit{1}}\ {\isacharparenleft}m\ {\isacharplus}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}Dig{\isadigit{1}}\ m\ {\isacharplus}\ Dig{\isadigit{1}}\ n\ {\isacharequal}\ Dig{\isadigit{0}}\ {\isacharparenleft}m\ {\isacharplus}\ n\ {\isacharplus}\ {\isadigit{1}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ Dig{\isadigit{0}}{\isacharunderscore}def\ Dig{\isadigit{1}}{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent We then instruct the code generator to view \isa{{\isadigit{0}}},
+  \isa{{\isadigit{1}}}, \isa{Dig{\isadigit{0}}} and \isa{Dig{\isadigit{1}}} as
+  datatype constructors:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{code{\isacharunderscore}datatype}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{0}}{\isasymColon}nat{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isadigit{1}}{\isasymColon}nat{\isachardoublequoteclose}\ Dig{\isadigit{0}}\ Dig{\isadigit{1}}%
+\begin{isamarkuptext}%
+\noindent For the former constructor \isa{Suc}, we provide a code
+  equation and remove some parts of the default code generator setup
+  which are an obstacle here:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ Suc{\isacharunderscore}Dig\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}Suc\ n\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{declare}\isamarkupfalse%
+\ One{\isacharunderscore}nat{\isacharunderscore}def\ {\isacharbrackleft}code\ inline\ del{\isacharbrackright}\isanewline
+\isacommand{declare}\isamarkupfalse%
+\ add{\isacharunderscore}Suc{\isacharunderscore}shift\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}%
+\begin{isamarkuptext}%
+\noindent This yields the following code:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
+\ {\isachardoublequoteopen}op\ {\isacharplus}\ {\isasymColon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}nat{\isacharunderscore}binary{\isachardot}ML{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\lstsml{Thy/examples/nat_binary.ML}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \medskip
 
-  Changing the representation of existing datatypes requires
-  some care with respect to pattern matching and such.%
+  From this example, it can be easily glimpsed that using own constructor sets
+  is a little delicate since it changes the set of valid patterns for values
+  of that type.  Without going into much detail, here some practical hints:
+
+  \begin{itemize}
+    \item When changing the constuctor set for datatypes, take care to
+      provide an alternative for the \isa{case} combinator (e.g. by replacing
+      it using the preprocessor).
+    \item Values in the target language need not to be normalized -- different
+      values in the target language may represent the same value in the
+      logic (e.g. \isa{Dig{\isadigit{1}}\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}}).
+    \item Usually, a good methodology to deal with the subleties of pattern
+      matching is to see the type as an abstract type: provide a set
+      of operations which operate on the concrete representation of the type,
+      and derive further operations by combinations of these primitive ones,
+      without relying on a particular representation.
+  \end{itemize}%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
+\isataginvisible
+\isacommand{code{\isacharunderscore}datatype}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isachardoublequoteclose}\ Suc\isanewline
+\isacommand{declare}\isamarkupfalse%
+\ plus{\isacharunderscore}Dig\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}\isanewline
+\isacommand{declare}\isamarkupfalse%
+\ One{\isacharunderscore}nat{\isacharunderscore}def\ {\isacharbrackleft}code\ inline{\isacharbrackright}\isanewline
+\isacommand{declare}\isamarkupfalse%
+\ add{\isacharunderscore}Suc{\isacharunderscore}shift\ {\isacharbrackleft}code\ func{\isacharbrackright}\ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isacharplus}\ n\ {\isacharequal}\ {\isacharparenleft}n\ {\isasymColon}\ nat{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ simp%
+\endisataginvisible
+{\isafoldinvisible}%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
 %
 \isamarkupsubsection{Customizing serialization%
 }
