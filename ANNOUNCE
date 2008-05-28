@@ -3,10 +3,25 @@ To: isabelle-users@cl.cam.ac.uk
 
 Isabelle2008 is now available.
 
-This release mostly consolidates Isabelle2007, see the NEWS file in
-the distribution for more details.  Some notable improvements are:
+This release consolidates Isabelle2007, see the NEWS file in the
+distribution for more details.  Some notable improvements are:
 
-* ...
+* New version of HOL 'primrec' with local theory support.
+
+* New local theory targets for class instantiation and unrestricted
+overloading.
+
+* Support for dynamic lists of named theorems.
+
+* Significant speedup of Metis prover, with proper support for
+multithreading.
+
+* Simple TTY interface with command-line editing.
+
+* Improved support for the Cygwin platform (Windows).
+
+* Support for Poly/ML 5.2 with improved handling of multithreading and
+external processes.
 
 
 You may get Isabelle2008 from the following mirror sites:
