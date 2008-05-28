@@ -7,9 +7,9 @@ Checklist for official releases
 
 - check HTML header of library;
 
-- check CTRL-C, SIGINT in tty;
+- check CTRL-C, SIGINT in tty (also for external processes);
 
-- check persistent sessions with PG and Poly/ML 5.1/5.0;
+- check persistent sessions with PG and Poly/ML 5.x;
 
 - Admin/update-keywords;
 
