@@ -781,7 +781,7 @@ end;
 (* setup theory *)
 
 val setup =
-  DatatypeProp.distinctness_limit_setup #>
+  DatatypeRepProofs.distinctness_limit_setup #>
   Method.add_methods tactic_emulations #>
   simproc_setup #>
   trfun_setup #>

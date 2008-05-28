@@ -13,6 +13,8 @@ Proof of characteristic theorems:
 
 signature DATATYPE_REP_PROOFS =
 sig
+  val distinctness_limit : int Config.T
+  val distinctness_limit_setup : theory -> theory
   val representation_proofs : bool -> DatatypeAux.datatype_info Symtab.table ->
     string list -> DatatypeAux.descr list -> (string * sort) list ->
       (string * mixfix) list -> (string * mixfix) list list -> attribute
@@ -24,6 +26,10 @@ structure DatatypeRepProofs : DATATYPE_REP_PROOFS =
 struct
 
 open DatatypeAux;
+
+(*the kind of distinctiveness axioms depends on number of constructors*)
+val (distinctness_limit, distinctness_limit_setup) =
+  Attrib.config_int "datatype_distinctness_limit" 7;
 
 val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
@@ -522,6 +528,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     fun prove_distinct_thms _ _ (_, []) = []
       | prove_distinct_thms lim dist_rewrites' (k, ts as _ :: _) =
           if k >= lim then [] else let
+            (*number of constructors < distinctness_limit : C_i ... ~= C_j ...*)
             fun prove [] = []
               | prove (t :: _ :: ts) =
                   let
@@ -532,11 +539,10 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val distincts = DatatypeProp.make_distincts descr sorts;
     val distinct_thms = map2 (prove_distinct_thms
-      (Config.get_thy thy5 DatatypeProp.distinctness_limit))
-      dist_rewrites distincts;
+      (Config.get_thy thy5 distinctness_limit)) dist_rewrites distincts;
 
     val simproc_dists = map (fn ((((_, (_, _, constrs)), rep_thms), congr), dists) =>
-      if length constrs < Config.get_thy thy5 DatatypeProp.distinctness_limit
+      if length constrs < Config.get_thy thy5 distinctness_limit
       then FewConstrs dists
       else ManyConstrs (congr, HOL_basic_ss addsimps rep_thms)) (hd descr ~~
         constr_rep_thms ~~ rep_congs ~~ distinct_thms);
