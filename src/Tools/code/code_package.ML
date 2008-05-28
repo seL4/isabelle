@@ -97,9 +97,13 @@ fun generate thy funcgr f x =
 fun code thy permissive cs seris =
   let
     val code = Program.get thy;
-    val seris' = map (fn (((target, module), file), args) =>
-      CodeTarget.get_serializer thy target permissive module file args cs) seris;
-  in (map (fn f => f code) seris' : unit list; ()) end;
+    fun mk_seri_dest file = case file
+     of NONE => CodeTarget.compile
+      | SOME "-" => writeln o CodeTarget.string
+      | SOME f => CodeTarget.file (Path.explode f)
+    val _ = map (fn (((target, module), file), args) =>
+      (mk_seri_dest file (CodeTarget.serialize thy target permissive module args code cs))) seris;
+  in () end;
 
 (* evaluation machinery *)
 
@@ -145,7 +149,7 @@ fun code_antiq (ctxt, args) =
     val cs = map (CodeUnit.check_const thy) ts;
     val (cs', code') = generate thy (CodeFuncgr.make thy cs)
       (fold_map ooo ensure_const) cs;
-    val code'' = CodeTarget.sml_of thy cs' code' ^ " ()";
+    val code'' = CodeTarget.sml_of thy code' cs' ^ " ()";
   in (("codevals", code''), (ctxt', args')) end;
 
 

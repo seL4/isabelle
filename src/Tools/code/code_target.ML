@@ -30,13 +30,16 @@ sig
 
   val allow_exception: string -> theory -> theory;
 
+  type serialization;
   type serializer;
   val add_serializer: string * serializer -> theory -> theory;
   val assert_serializer: theory -> string -> string;
-  val get_serializer: theory -> string -> bool -> string option
-    -> string option -> Args.T list
-    -> string list option -> CodeThingol.code -> unit;
-  val sml_of: theory -> string list -> CodeThingol.code -> string;
+  val serialize: theory -> string -> bool -> string option -> Args.T list
+    -> CodeThingol.code -> string list option -> serialization;
+  val compile: serialization -> unit;
+  val file: Path.T -> serialization -> unit;
+  val string: serialization -> string;
+  val sml_of: theory -> CodeThingol.code -> string list -> string;
   val eval: theory -> (string * (unit -> 'a) option ref)
     -> CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
   val code_width: int ref;
@@ -64,10 +67,9 @@ fun enum_default default sep opn cls [] = str default
 
 val code_width = ref 80;
 fun code_source p = Pretty.setmp_margin (!code_width) Pretty.string_of p ^ "\n";
-fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
 
 
-(** syntax **)
+(** generic syntax **)
 
 datatype lrx = L | R | X;
 
@@ -111,58 +113,158 @@ type term_syntax = int * ((CodeName.var_ctxt -> fixity -> iterm -> Pretty.T)
   -> CodeName.var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
 
-(* user-defined syntax *)
+(** theory data **)
 
-datatype 'a mixfix =
-    Arg of fixity
-  | Pretty of Pretty.T;
+val target_diag = "diag";
+val target_SML = "SML";
+val target_OCaml = "OCaml";
+val target_Haskell = "Haskell";
 
-fun mk_mixfix prep_arg (fixity_this, mfx) =
+datatype syntax_expr = SyntaxExpr of {
+  class: (string * (string -> string option)) Symtab.table,
+  inst: unit Symtab.table,
+  tyco: typ_syntax Symtab.table,
+  const: term_syntax Symtab.table
+};
+
+fun mk_syntax_expr ((class, inst), (tyco, const)) =
+  SyntaxExpr { class = class, inst = inst, tyco = tyco, const = const };
+fun map_syntax_expr f (SyntaxExpr { class, inst, tyco, const }) =
+  mk_syntax_expr (f ((class, inst), (tyco, const)));
+fun merge_syntax_expr (SyntaxExpr { class = class1, inst = inst1, tyco = tyco1, const = const1 },
+    SyntaxExpr { class = class2, inst = inst2, tyco = tyco2, const = const2 }) =
+  mk_syntax_expr (
+    (Symtab.join (K snd) (class1, class2),
+       Symtab.join (K snd) (inst1, inst2)),
+    (Symtab.join (K snd) (tyco1, tyco2),
+       Symtab.join (K snd) (const1, const2))
+  );
+
+datatype serialization_dest = Compile | File of Path.T | String;
+type serialization = serialization_dest -> string option;
+
+fun compile f = (f Compile; ());
+fun file p f = (f (File p); ());
+fun string f = the (f String);
+
+type serializer =
+  string option
+  -> Args.T list
+  -> (string -> string)
+  -> string list
+  -> (string * Pretty.T) list
+  -> (string -> string option)
+  -> (string -> class_syntax option)
+  -> (string -> typ_syntax option)
+  -> (string -> term_syntax option)
+  -> CodeThingol.code -> string list -> serialization;
+
+datatype target = Target of {
+  serial: serial,
+  serializer: serializer,
+  reserved: string list,
+  includes: Pretty.T Symtab.table,
+  syntax_expr: syntax_expr,
+  module_alias: string Symtab.table
+};
+
+fun mk_target ((serial, serializer), ((reserved, includes), (syntax_expr, module_alias))) =
+  Target { serial = serial, serializer = serializer, reserved = reserved, 
+    includes = includes, syntax_expr = syntax_expr, module_alias = module_alias };
+fun map_target f ( Target { serial, serializer, reserved, includes, syntax_expr, module_alias } ) =
+  mk_target (f ((serial, serializer), ((reserved, includes), (syntax_expr, module_alias))));
+fun merge_target target (Target { serial = serial1, serializer = serializer,
+  reserved = reserved1, includes = includes1,
+  syntax_expr = syntax_expr1, module_alias = module_alias1 },
+    Target { serial = serial2, serializer = _,
+      reserved = reserved2, includes = includes2,
+      syntax_expr = syntax_expr2, module_alias = module_alias2 }) =
+  if serial1 = serial2 then
+    mk_target ((serial1, serializer),
+      ((merge (op =) (reserved1, reserved2), Symtab.merge (op =) (includes1, includes2)),
+        (merge_syntax_expr (syntax_expr1, syntax_expr2),
+          Symtab.join (K snd) (module_alias1, module_alias2))
+    ))
+  else
+    error ("Incompatible serializers: " ^ quote target);
+
+structure CodeTargetData = TheoryDataFun
+(
+  type T = target Symtab.table * string list;
+  val empty = (Symtab.empty, []);
+  val copy = I;
+  val extend = I;
+  fun merge _ ((target1, exc1) : T, (target2, exc2)) =
+    (Symtab.join merge_target (target1, target2), Library.merge (op =) (exc1, exc2));
+);
+
+fun the_serializer (Target { serializer, ... }) = serializer;
+fun the_reserved (Target { reserved, ... }) = reserved;
+fun the_includes (Target { includes, ... }) = includes;
+fun the_syntax_expr (Target { syntax_expr = SyntaxExpr x, ... }) = x;
+fun the_module_alias (Target { module_alias , ... }) = module_alias;
+
+fun assert_serializer thy target =
+  case Symtab.lookup (fst (CodeTargetData.get thy)) target
+   of SOME data => target
+    | NONE => error ("Unknown code target language: " ^ quote target);
+
+fun add_serializer (target, seri) thy =
   let
-    fun is_arg (Arg _) = true
-      | is_arg _ = false;
-    val i = (length o filter is_arg) mfx;
-    fun fillin _ [] [] =
-          []
-      | fillin pr (Arg fxy :: mfx) (a :: args) =
-          (pr fxy o prep_arg) a :: fillin pr mfx args
-      | fillin pr (Pretty p :: mfx) args =
-          p :: fillin pr mfx args
-      | fillin _ [] _ =
-          error ("Inconsistent mixfix: too many arguments")
-      | fillin _ _ [] =
-          error ("Inconsistent mixfix: too less arguments");
+    val _ = case Symtab.lookup (fst (CodeTargetData.get thy)) target
+     of SOME _ => warning ("overwriting existing serializer " ^ quote target)
+      | NONE => ();
   in
-    (i, fn pr => fn fixity_ctxt => fn args =>
-      gen_brackify (fixity fixity_this fixity_ctxt) (fillin pr mfx args))
+    thy
+    |> (CodeTargetData.map o apfst oo Symtab.map_default)
+          (target, mk_target ((serial (), seri), (([], Symtab.empty),
+            (mk_syntax_expr ((Symtab.empty, Symtab.empty), (Symtab.empty, Symtab.empty)),
+              Symtab.empty))))
+          ((map_target o apfst o apsnd o K) seri)
   end;
 
-fun parse_infix prep_arg (x, i) s =
+fun map_seri_data target f thy =
   let
-    val l = case x of L => INFX (i, L) | _ => INFX (i, X);
-    val r = case x of R => INFX (i, R) | _ => INFX (i, X);
+    val _ = assert_serializer thy target;
   in
-    mk_mixfix prep_arg (INFX (i, x),
-      [Arg l, (Pretty o Pretty.brk) 1, (Pretty o str) s, (Pretty o Pretty.brk) 1, Arg r])
+    thy
+    |> (CodeTargetData.map o apfst o Symtab.map_entry target o map_target) f
   end;
 
-fun parse_mixfix prep_arg s =
+fun map_adaptions target =
+  map_seri_data target o apsnd o apfst;
+fun map_syntax_exprs target =
+  map_seri_data target o apsnd o apsnd o apfst o map_syntax_expr;
+fun map_module_alias target =
+  map_seri_data target o apsnd o apsnd o apsnd;
+
+fun get_serializer get_seri thy target permissive =
   let
-    val sym_any = Scan.one Symbol.is_regular;
-    val parse = Scan.optional ($$ "!" >> K true) false -- Scan.repeat (
-         ($$ "(" -- $$ "_" -- $$ ")" >> K (Arg NOBR))
-      || ($$ "_" >> K (Arg BR))
-      || ($$ "/" |-- Scan.repeat ($$ " ") >> (Pretty o Pretty.brk o length))
-      || (Scan.repeat1
-           (   $$ "'" |-- sym_any
-            || Scan.unless ($$ "_" || $$ "/" || $$ "(" |-- $$ "_" |-- $$ ")")
-                 sym_any) >> (Pretty o str o implode)));
-  in case Scan.finite Symbol.stopper parse (Symbol.explode s)
-   of ((_, p as [_]), []) => mk_mixfix prep_arg (NOBR, p)
-    | ((b, p as _ :: _ :: _), []) => mk_mixfix prep_arg (if b then NOBR else BR, p)
-    | _ => Scan.!!
-        (the_default ("malformed mixfix annotation: " ^ quote s) o snd) Scan.fail ()
+    val (seris, exc) = CodeTargetData.get thy;
+    val data = case Symtab.lookup seris target
+     of SOME data => data
+      | NONE => error ("Unknown code target language: " ^ quote target);
+    val seri = get_seri data;
+    val reserved = the_reserved data;
+    val includes = Symtab.dest (the_includes data);
+    val alias = the_module_alias data;
+    val { class, inst, tyco, const } = the_syntax_expr data;
+    val project = if target = target_diag then K I
+      else CodeThingol.project_code permissive
+        (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const);
+    fun check_empty_funs code = case filter_out (member (op =) exc)
+        (CodeThingol.empty_funs code)
+     of [] => code
+      | names => error ("No defining equations for "
+          ^ commas (map (CodeName.labelled_name thy) names));
+  in fn module => fn args => fn code => fn cs =>
+    seri module args (CodeName.labelled_name thy) reserved includes
+      (Symtab.lookup alias) (Symtab.lookup class)
+      (Symtab.lookup tyco) (Symtab.lookup const)
+        ((check_empty_funs o project cs) code) (these cs)
   end;
+
+val serialize = get_serializer the_serializer;
 
 fun parse_args f args =
   case Scan.read Args.stopper f args
@@ -170,7 +272,9 @@ fun parse_args f args =
     | NONE => error "Bad serializer arguments";
 
 
-(* generic serializer combinators *)
+(** generic output combinators **)
+
+(* applications and bindings *)
 
 fun gen_pr_app pr_app' pr_term const_syntax labelled_name is_cons
       lhs vars fxy (app as ((c, (_, tys)), ts)) =
@@ -269,7 +373,7 @@ fun implode_monad c_bind t =
   in CodeThingol.unfoldr dest_monad t end;
 
 
-(** name auxiliary **)
+(* name auxiliary *)
 
 val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
 val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
@@ -914,8 +1018,8 @@ fun pr_ocaml_modl name content =
     str ("end;; (*struct " ^ name ^ "*)")
   ]);
 
-fun seri_ml pr_def pr_modl module output labelled_name reserved_syms includes raw_module_alias
-  (_ : string -> class_syntax option) tyco_syntax const_syntax cs code =
+fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_syms includes raw_module_alias
+  (_ : string -> class_syntax option) tyco_syntax const_syntax code cs seri_dest =
   let
     val module_alias = if is_some module then K module else raw_module_alias;
     val is_cons = CodeThingol.is_cons code;
@@ -1089,33 +1193,19 @@ fun seri_ml pr_def pr_modl module output labelled_name reserved_syms includes ra
     val p = Pretty.chunks (separate (str "") (map snd includes @ (map_filter
       (pr_node [] o Graph.get_node nodes) o rev o flat o Graph.strong_conn) nodes));
     val deresolv = try (deresolver (if is_some module then the_list module else []));
-  in output (map_filter deresolv cs, p) end;
+    val output = case seri_dest
+     of Compile => K NONE o internal o code_source
+      | File file => K NONE o File.write file o code_source
+      | String => SOME o code_source;
+  in output_cont (map_filter deresolv cs, output p) end;
 
-fun isar_seri_sml module file =
-  let
-    val output = case file
-     of NONE => use_text (1, "generated code") Output.ml_output false o code_source
-      | SOME "-" => code_writeln
-      | SOME file => File.write (Path.explode file) o code_source;
-  in
-    parse_args (Scan.succeed ())
-    #> (fn () => seri_ml pr_sml pr_sml_modl module (output o snd))
-  end;
+fun isar_seri_sml module =
+  parse_args (Scan.succeed ())
+  #> (fn () => seri_ml (use_text (1, "generated code") Output.ml_output false) snd pr_sml pr_sml_modl module);
 
-fun eval_seri module file args =
-  seri_ml pr_sml (K Pretty.chunks) (SOME "Isabelle_Eval")
-    (fn (cs, p) => "let\n" ^ code_source p ^ "\nin fn () => " ^ enclose "(" ")" (commas cs) ^ " end");
-
-fun isar_seri_ocaml module file =
-  let
-    val output = case file
-     of NONE => error "OCaml: no internal compilation"
-      | SOME "-" => code_writeln
-      | SOME file => File.write (Path.explode file) o code_source;
-  in
-    parse_args (Scan.succeed ())
-    #> (fn () => seri_ml pr_ocaml pr_ocaml_modl module (output o snd))
-  end;
+fun isar_seri_ocaml module =
+  parse_args (Scan.succeed ())
+  #> (fn () => seri_ml (fn _ => error "OCaml: no internal compilation") snd pr_ocaml pr_ocaml_modl module)
 
 
 (** Haskell serializer **)
@@ -1396,11 +1486,10 @@ fun pretty_haskell_monad c_bind =
 
 end; (*local*)
 
-fun seri_haskell module_prefix module destination string_classes labelled_name
+fun seri_haskell module_prefix module string_classes labelled_name
     reserved_syms includes raw_module_alias
-    class_syntax tyco_syntax const_syntax cs code =
+    class_syntax tyco_syntax const_syntax code cs seri_dest =
   let
-    val _ = Option.map File.check destination;
     val is_cons = CodeThingol.is_cons code;
     val contr_classparam_typs = CodeThingol.contr_classparam_typs code;
     val module_alias = if is_some module then K module else raw_module_alias;
@@ -1477,25 +1566,14 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
       deresolv_here (if qualified then deresolv else deresolv_here) is_cons
       contr_classparam_typs
       (if string_classes then deriving_show else K false);
-    fun write_modulefile (SOME destination) modlname =
-          let
-            val filename = case modlname
-             of "" => Path.explode "Main.hs"
-              | _ => (Path.ext "hs" o Path.explode o implode o separate "/"
-                    o NameSpace.explode) modlname;
-            val pathname = Path.append destination filename;
-            val _ = File.mkdir (Path.dir pathname);
-          in File.write pathname o code_source end
-      | write_modulefile NONE _ = code_writeln;
-    fun write_module destination (modulename, content) =
-      Pretty.chunks [
+    fun assemble_module (modulename, content) =
+      (modulename, code_source (Pretty.chunks [
         str ("module " ^ modulename ^ " where {"),
         str "",
         content,
         str "",
         str "}"
-      ]
-      |> write_modulefile destination modulename;
+      ]));
     fun seri_module (modlname', (imports, (defs, _))) =
       let
         val imports' =
@@ -1521,31 +1599,34 @@ fun seri_haskell module_prefix module destination string_classes labelled_name
               (fn (name, (_, SOME def)) => SOME (seri_def qualified (name, def))
                 | (_, (_, NONE)) => NONE) defs)
           )
-      in
-        write_module destination (modlname', content)
-      end;
-  in (
-    map (write_module destination) includes;
-    Symtab.fold (fn modl => fn () => seri_module modl) code' ()
-  ) end;
-
-fun isar_seri_haskell module file =
-  let
-    val destination = case file
-     of NONE => error ("Haskell: no internal compilation")
-      | SOME "-" => NONE
-      | SOME file => SOME (Path.explode file)
-  in
-    parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
-      -- Scan.optional (Args.$$$ "string_classes" >> K true) false
-      >> (fn (module_prefix, string_classes) =>
-        seri_haskell module_prefix module destination string_classes))
+      in assemble_module (modlname', content) end;
+    fun write_module destination (modlname, content) =
+      let
+        val filename = case modlname
+         of "" => Path.explode "Main.hs"
+          | _ => (Path.ext "hs" o Path.explode o implode o separate "/"
+                o NameSpace.explode) modlname;
+        val pathname = Path.append destination filename;
+        val _ = File.mkdir (Path.dir pathname);
+      in File.write pathname content end
+    val output = case seri_dest
+     of Compile => error ("Haskell: no internal compilation")
+      | File destination => K NONE o map (write_module destination)
+      | String => SOME o cat_lines o map snd;
+  in output (map assemble_module includes
+    @ map seri_module (Symtab.dest code'))
   end;
+
+fun isar_seri_haskell module =
+  parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
+    -- Scan.optional (Args.$$$ "string_classes" >> K true) false
+    >> (fn (module_prefix, string_classes) =>
+      seri_haskell module_prefix module string_classes));
 
 
 (** diagnosis serializer **)
 
-fun seri_diagnosis labelled_name _ _ _ _ _ _ _ code =
+fun seri_diagnosis labelled_name _ _ _ _ _ _ code _ _ =
   let
     val init_names = CodeName.make_vars [];
     fun pr_fun "fun" = SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
@@ -1562,172 +1643,10 @@ fun seri_diagnosis labelled_name _ _ _ _ _ _ _ code =
     |> Graph.fold (fn (name, (def, _)) =>
           case try pr (name, def) of SOME p => cons p | NONE => I) code
     |> Pretty.chunks2
-    |> code_writeln
+    |> code_source
+    |> writeln
+    |> K NONE
   end;
-
-
-
-(** theory data **)
-
-datatype syntax_expr = SyntaxExpr of {
-  class: (string * (string -> string option)) Symtab.table,
-  inst: unit Symtab.table,
-  tyco: typ_syntax Symtab.table,
-  const: term_syntax Symtab.table
-};
-
-fun mk_syntax_expr ((class, inst), (tyco, const)) =
-  SyntaxExpr { class = class, inst = inst, tyco = tyco, const = const };
-fun map_syntax_expr f (SyntaxExpr { class, inst, tyco, const }) =
-  mk_syntax_expr (f ((class, inst), (tyco, const)));
-fun merge_syntax_expr (SyntaxExpr { class = class1, inst = inst1, tyco = tyco1, const = const1 },
-    SyntaxExpr { class = class2, inst = inst2, tyco = tyco2, const = const2 }) =
-  mk_syntax_expr (
-    (Symtab.join (K snd) (class1, class2),
-       Symtab.join (K snd) (inst1, inst2)),
-    (Symtab.join (K snd) (tyco1, tyco2),
-       Symtab.join (K snd) (const1, const2))
-  );
-
-type 'a gen_serializer =
-  string option
-  -> string option
-  -> Args.T list
-  -> (string -> string)
-  -> string list
-  -> (string * Pretty.T) list
-  -> (string -> string option)
-  -> (string -> class_syntax option)
-  -> (string -> typ_syntax option)
-  -> (string -> term_syntax option)
-  -> string list -> CodeThingol.code -> 'a;
-
-type serializer = unit gen_serializer;
-
-datatype target = Target of {
-  serial: serial,
-  serializer: serializer,
-  reserved: string list,
-  includes: Pretty.T Symtab.table,
-  syntax_expr: syntax_expr,
-  module_alias: string Symtab.table
-};
-
-fun mk_target ((serial, serializer), ((reserved, includes), (syntax_expr, module_alias))) =
-  Target { serial = serial, serializer = serializer, reserved = reserved, 
-    includes = includes, syntax_expr = syntax_expr, module_alias = module_alias };
-fun map_target f ( Target { serial, serializer, reserved, includes, syntax_expr, module_alias } ) =
-  mk_target (f ((serial, serializer), ((reserved, includes), (syntax_expr, module_alias))));
-fun merge_target target (Target { serial = serial1, serializer = serializer,
-  reserved = reserved1, includes = includes1,
-  syntax_expr = syntax_expr1, module_alias = module_alias1 },
-    Target { serial = serial2, serializer = _,
-      reserved = reserved2, includes = includes2,
-      syntax_expr = syntax_expr2, module_alias = module_alias2 }) =
-  if serial1 = serial2 then
-    mk_target ((serial1, serializer),
-      ((merge (op =) (reserved1, reserved2), Symtab.merge (op =) (includes1, includes2)),
-        (merge_syntax_expr (syntax_expr1, syntax_expr2),
-          Symtab.join (K snd) (module_alias1, module_alias2))
-    ))
-  else
-    error ("Incompatible serializers: " ^ quote target);
-
-structure CodeTargetData = TheoryDataFun
-(
-  type T = target Symtab.table * string list;
-  val empty = (Symtab.empty, []);
-  val copy = I;
-  val extend = I;
-  fun merge _ ((target1, exc1) : T, (target2, exc2)) =
-    (Symtab.join merge_target (target1, target2), Library.merge (op =) (exc1, exc2));
-);
-
-val target_SML = "SML";
-val target_OCaml = "OCaml";
-val target_Haskell = "Haskell";
-val target_diag = "diag";
-
-fun the_serializer (Target { serializer, ... }) = serializer;
-fun the_reserved (Target { reserved, ... }) = reserved;
-fun the_includes (Target { includes, ... }) = includes;
-fun the_syntax_expr (Target { syntax_expr = SyntaxExpr x, ... }) = x;
-fun the_module_alias (Target { module_alias , ... }) = module_alias;
-
-fun assert_serializer thy target =
-  case Symtab.lookup (fst (CodeTargetData.get thy)) target
-   of SOME data => target
-    | NONE => error ("Unknown code target language: " ^ quote target);
-
-fun add_serializer (target, seri) thy =
-  let
-    val _ = case Symtab.lookup (fst (CodeTargetData.get thy)) target
-     of SOME _ => warning ("overwriting existing serializer " ^ quote target)
-      | NONE => ();
-  in
-    thy
-    |> (CodeTargetData.map o apfst oo Symtab.map_default)
-          (target, mk_target ((serial (), seri), (([], Symtab.empty),
-            (mk_syntax_expr ((Symtab.empty, Symtab.empty), (Symtab.empty, Symtab.empty)),
-              Symtab.empty))))
-          ((map_target o apfst o apsnd o K) seri)
-  end;
-
-fun map_seri_data target f thy =
-  let
-    val _ = assert_serializer thy target;
-  in
-    thy
-    |> (CodeTargetData.map o apfst o Symtab.map_entry target o map_target) f
-  end;
-
-fun map_adaptions target =
-  map_seri_data target o apsnd o apfst;
-fun map_syntax_exprs target =
-  map_seri_data target o apsnd o apsnd o apfst o map_syntax_expr;
-fun map_module_alias target =
-  map_seri_data target o apsnd o apsnd o apsnd;
-
-fun gen_get_serializer get_seri thy target permissive =
-  let
-    val (seris, exc) = CodeTargetData.get thy;
-    val data = case Symtab.lookup seris target
-     of SOME data => data
-      | NONE => error ("Unknown code target language: " ^ quote target);
-    val seri = get_seri data;
-    val reserved = the_reserved data;
-    val includes = Symtab.dest (the_includes data);
-    val alias = the_module_alias data;
-    val { class, inst, tyco, const } = the_syntax_expr data;
-    val project = if target = target_diag then K I
-      else CodeThingol.project_code permissive
-        (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const);
-    fun check_empty_funs code = case filter_out (member (op =) exc)
-        (CodeThingol.empty_funs code)
-     of [] => code
-      | names => error ("No defining equations for "
-          ^ commas (map (CodeName.labelled_name thy) names));
-  in fn module => fn file => fn args => fn cs => fn code =>
-    code
-    |> project cs
-    |> check_empty_funs
-    |> seri module file args (CodeName.labelled_name thy) reserved includes
-        (Symtab.lookup alias) (Symtab.lookup class)
-        (Symtab.lookup tyco) (Symtab.lookup const) (these cs)
-  end;
-
-val get_serializer = gen_get_serializer the_serializer;
-fun sml_of thy cs = gen_get_serializer (K eval_seri) thy target_SML false NONE NONE [] (SOME cs);
-
-fun eval thy (ref_name, reff) code (t, ty) args =
-  let
-    val _ = if CodeThingol.contains_dictvar t then
-      error "Term to be evaluated constains free dictionaries" else ();
-    val code' = CodeThingol.add_value_stmt (t, ty) code;
-    val value_code = sml_of thy [CodeName.value_name] code';
-    val sml_code = space_implode " " (value_code :: "()" :: map (enclose "(" ")") args);
-  in ML_Context.evaluate Output.ml_output false (ref_name, reff) sml_code end;
-
 
 
 (** optional pretty serialization **)
@@ -1888,7 +1807,65 @@ fun no_bindings x = (Option.map o apsnd)
 
 end; (*local*)
 
-(** ML and Isar interface **)
+
+(** user interfaces **)
+
+(* evaluation *)
+
+fun eval_seri module args =
+  seri_ml (use_text (1, "generated code") Output.ml_output false)
+    (fn (cs, SOME s) => "let\n" ^ s ^ "\nin fn () => " ^ enclose "(" ")" (commas cs) ^ " end")
+    pr_sml (K Pretty.chunks) (SOME "Isabelle_Eval");
+
+fun sml_of thy code cs = get_serializer (K eval_seri) thy target_SML false NONE [] code (SOME cs) String;
+
+fun eval thy (ref_name, reff) code (t, ty) args =
+  let
+    val _ = if CodeThingol.contains_dictvar t then
+      error "Term to be evaluated constains free dictionaries" else ();
+    val code' = CodeThingol.add_value_stmt (t, ty) code;
+    val value_code = sml_of thy code' [CodeName.value_name] ;
+    val sml_code = space_implode " " (value_code :: "()" :: map (enclose "(" ")") args);
+  in ML_Context.evaluate Output.ml_output false (ref_name, reff) sml_code end;
+
+
+(* infix syntax *)
+
+datatype 'a mixfix =
+    Arg of fixity
+  | Pretty of Pretty.T;
+
+fun mk_mixfix prep_arg (fixity_this, mfx) =
+  let
+    fun is_arg (Arg _) = true
+      | is_arg _ = false;
+    val i = (length o filter is_arg) mfx;
+    fun fillin _ [] [] =
+          []
+      | fillin pr (Arg fxy :: mfx) (a :: args) =
+          (pr fxy o prep_arg) a :: fillin pr mfx args
+      | fillin pr (Pretty p :: mfx) args =
+          p :: fillin pr mfx args
+      | fillin _ [] _ =
+          error ("Inconsistent mixfix: too many arguments")
+      | fillin _ _ [] =
+          error ("Inconsistent mixfix: too less arguments");
+  in
+    (i, fn pr => fn fixity_ctxt => fn args =>
+      gen_brackify (fixity fixity_this fixity_ctxt) (fillin pr mfx args))
+  end;
+
+fun parse_infix prep_arg (x, i) s =
+  let
+    val l = case x of L => INFX (i, L) | _ => INFX (i, X);
+    val r = case x of R => INFX (i, R) | _ => INFX (i, X);
+  in
+    mk_mixfix prep_arg (INFX (i, x),
+      [Arg l, (Pretty o Pretty.brk) 1, (Pretty o str) s, (Pretty o Pretty.brk) 1, Arg r])
+  end;
+
+
+(* data access *)
 
 local
 
@@ -2047,6 +2024,9 @@ fun zip_list (x::xs) f g =
     fold_map (fn x => g |-- f >> pair x) xs
     #-> (fn xys => pair ((x, y) :: xys)));
 
+
+(* conrete syntax *)
+
 structure P = OuterParse
 and K = OuterKeyword
 
@@ -2056,6 +2036,24 @@ fun parse_multi_syntax parse_thing parse_syntax =
         (zip_list things parse_syntax (P.$$$ "and")) --| P.$$$ ")"));
 
 val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");
+
+fun parse_mixfix prep_arg s =
+  let
+    val sym_any = Scan.one Symbol.is_regular;
+    val parse = Scan.optional ($$ "!" >> K true) false -- Scan.repeat (
+         ($$ "(" -- $$ "_" -- $$ ")" >> K (Arg NOBR))
+      || ($$ "_" >> K (Arg BR))
+      || ($$ "/" |-- Scan.repeat ($$ " ") >> (Pretty o Pretty.brk o length))
+      || (Scan.repeat1
+           (   $$ "'" |-- sym_any
+            || Scan.unless ($$ "_" || $$ "/" || $$ "(" |-- $$ "_" |-- $$ ")")
+                 sym_any) >> (Pretty o str o implode)));
+  in case Scan.finite Symbol.stopper parse (Symbol.explode s)
+   of ((_, p as [_]), []) => mk_mixfix prep_arg (NOBR, p)
+    | ((b, p as _ :: _ :: _), []) => mk_mixfix prep_arg (if b then NOBR else BR, p)
+    | _ => Scan.!!
+        (the_default ("malformed mixfix annotation: " ^ quote s) o snd) Scan.fail ()
+  end;
 
 fun parse_syntax prep_arg xs =
   Scan.option ((
@@ -2151,6 +2149,8 @@ fun add_pretty_message target charr nibbles nill cons str thy =
   end;
 
 
+(* Isar commands *)
+
 val _ = OuterSyntax.keywords [infixK, infixlK, infixrK];
 
 val _ =
@@ -2217,12 +2217,13 @@ val _ =
   );
 
 
-(*including serializer defaults*)
+(* serializer setup, including serializer defaults *)
+
 val setup =
   add_serializer (target_SML, isar_seri_sml)
   #> add_serializer (target_OCaml, isar_seri_ocaml)
   #> add_serializer (target_Haskell, isar_seri_haskell)
-  #> add_serializer (target_diag, fn _ => fn _=> fn _ => seri_diagnosis)
+  #> add_serializer (target_diag, fn _ => fn _=> seri_diagnosis)
   #> add_syntax_tyco "SML" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       (gen_brackify (case fxy of NOBR => false | _ => fixity (INFX (1, R)) fxy) o Pretty.breaks) [
         pr_typ (INFX (1, X)) ty1,
