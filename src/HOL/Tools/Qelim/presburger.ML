@@ -164,7 +164,7 @@ fun finish_tac q = SUBGOAL (fn (_, i) =>
   (if q then I else TRY) (rtac TrueI i));
 
 fun cooper_tac elim add_ths del_ths ctxt =
-let val ss = fst (CooperData.get ctxt) delsimps del_ths addsimps add_ths
+let val ss = Simplifier.context ctxt (fst (CooperData.get ctxt)) delsimps del_ths addsimps add_ths
 in
   ObjectLogic.full_atomize_tac
   THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
