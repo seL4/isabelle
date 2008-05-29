@@ -36,6 +36,7 @@ sig
      {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
       lessD: thm list, neqE: thm list, simpset: Simplifier.simpset}) ->
     Context.generic -> Context.generic
+  val warning_count: int ref
   val setup: Context.generic -> Context.generic
 end;
 
@@ -780,14 +781,14 @@ end;  (* LA_Data_Ref *)
 
 val lin_arith_pre_tac = LA_Data_Ref.pre_tac;
 
-structure Fast_Arith =
-  Fast_Lin_Arith(structure LA_Logic=LA_Logic and LA_Data=LA_Data_Ref);
+structure Fast_Arith = Fast_Lin_Arith(structure LA_Logic = LA_Logic and LA_Data = LA_Data_Ref);
 
 val map_data = Fast_Arith.map_data;
 
-fun fast_arith_tac ctxt    = Fast_Arith.lin_arith_tac ctxt false;
-val fast_ex_arith_tac      = Fast_Arith.lin_arith_tac;
-val trace_arith            = Fast_Arith.trace;
+fun fast_arith_tac ctxt = Fast_Arith.lin_arith_tac ctxt false;
+val fast_ex_arith_tac = Fast_Arith.lin_arith_tac;
+val trace_arith = Fast_Arith.trace;
+val warning_count = Fast_Arith.warning_count;
 
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics. *)
