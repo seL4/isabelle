@@ -7,6 +7,7 @@ Code generator interfaces and Isar setup.
 
 signature CODE_PACKAGE =
 sig
+  val source_of: theory -> string -> string -> string list -> string;
   val evaluate_conv: theory
     -> (term -> term * (CodeThingol.code -> CodeThingol.typscheme * CodeThingol.iterm
        -> string list -> thm))
@@ -104,6 +105,18 @@ fun code thy permissive cs seris =
     val _ = map (fn (((target, module), file), args) =>
       (mk_seri_dest file (CodeTarget.serialize thy target permissive module args code cs))) seris;
   in () end;
+
+(* code retrieval *)
+
+fun source_of thy target module_name cs =
+  let
+    val (cs', _) = generate thy (CodeFuncgr.make thy cs)
+      (fold_map ooo ensure_const) cs;
+    val code = Program.get thy;
+  in
+    CodeTarget.string
+      (CodeTarget.serialize thy target false (SOME module_name) [] code (SOME cs'))
+  end;
 
 (* evaluation machinery *)
 

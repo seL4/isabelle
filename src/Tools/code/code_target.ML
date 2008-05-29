@@ -66,9 +66,19 @@ fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun enum_default default sep opn cls [] = str default
   | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
 
+datatype serialization_dest = Compile | Write | File of Path.T | String;
+type serialization = serialization_dest -> string option;
+
 val code_width = ref 80;
-fun code_source p = PrintMode.setmp [] (Pretty.setmp_margin (!code_width) Pretty.string_of) p ^ "\n";
+fun code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin (!code_width) f);
+fun code_source p = code_setmp Pretty.string_of p ^ "\n";
 fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
+
+(*FIXME why another code_setmp?*)
+fun compile f = (code_setmp f Compile; ());
+fun write f = (code_setmp f Write; ());
+fun file p f = (code_setmp f (File p); ());
+fun string f = the (code_setmp f String);
 
 
 (** generic syntax **)
@@ -141,14 +151,6 @@ fun merge_syntax_expr (SyntaxExpr { class = class1, inst = inst1, tyco = tyco1, 
     (Symtab.join (K snd) (tyco1, tyco2),
        Symtab.join (K snd) (const1, const2))
   );
-
-datatype serialization_dest = Compile | Write | File of Path.T | String;
-type serialization = serialization_dest -> string option;
-
-fun compile f = (f Compile; ());
-fun write f = (f Write; ());
-fun file p f = (f (File p); ());
-fun string f = the (f String);
 
 type serializer =
   string option
