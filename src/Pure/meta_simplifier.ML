@@ -381,7 +381,8 @@ val theory_context = context o ProofContext.init;
 fun activate_context thy (ss as Simpset ({context = SOME ctxt, ...}, _)) =
       context (Context.transfer_proof (Theory.merge (thy, ProofContext.theory_of ctxt)) ctxt) ss
   | activate_context thy ss =
-     (warning "Simplifier: no proof context in simpset -- fallback to theory context!";
+     (legacy_feature ("Simplifier: no proof context in simpset -- fallback to theory context!" ^
+       Position.str_of (Position.thread_data ()));
       theory_context thy ss);
 
 
