@@ -334,8 +334,9 @@ fun conv_mode x =
 in
 
 val simplified =
-  Attrib.syntax (conv_mode -- Attrib.thms >> (fn (f, ths) => Thm.rule_attribute (fn x =>
-    f ((if null ths then I else MetaSimplifier.clear_ss) (get_ss x) addsimps ths))));
+  Attrib.syntax (conv_mode -- Attrib.thms >> (fn (f, ths) => Thm.rule_attribute (fn context =>
+    f ((if null ths then I else MetaSimplifier.clear_ss)
+        (local_simpset_of (Context.proof_of context)) addsimps ths))));
 
 end;
 
