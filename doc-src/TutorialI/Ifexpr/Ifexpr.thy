@@ -36,12 +36,11 @@ Hence the function @{text"value"} takes an additional parameter, an
 values:
 *}
 
-consts "value" :: "boolex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool";
-primrec
-"value (Const b) env = b"
-"value (Var x)   env = env x"
-"value (Neg b)   env = (\<not> value b env)"
-"value (And b c) env = (value b env \<and> value c env)";
+primrec "value" :: "boolex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool" where
+"value (Const b) env = b" |
+"value (Var x)   env = env x" |
+"value (Neg b)   env = (\<not> value b env)" |
+"value (And b c) env = (value b env \<and> value c env)"
 
 text{*\noindent
 \subsubsection{If-Expressions}
@@ -58,12 +57,11 @@ text{*\noindent
 The evaluation of If-expressions proceeds as for @{typ"boolex"}:
 *}
 
-consts valif :: "ifex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool";
-primrec
-"valif (CIF b)    env = b"
-"valif (VIF x)    env = env x"
+primrec valif :: "ifex \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool" where
+"valif (CIF b)    env = b" |
+"valif (VIF x)    env = env x" |
 "valif (IF b t e) env = (if valif b env then valif t env
-                                        else valif e env)";
+                                        else valif e env)"
 
 text{*
 \subsubsection{Converting Boolean and If-Expressions}
@@ -73,12 +71,11 @@ formulae, whereas @{typ"ifex"} is designed for efficiency. It is easy to
 translate from @{typ"boolex"} into @{typ"ifex"}:
 *}
 
-consts bool2if :: "boolex \<Rightarrow> ifex";
-primrec
-"bool2if (Const b) = CIF b"
-"bool2if (Var x)   = VIF x"
-"bool2if (Neg b)   = IF (bool2if b) (CIF False) (CIF True)"
-"bool2if (And b c) = IF (bool2if b) (bool2if c) (CIF False)";
+primrec bool2if :: "boolex \<Rightarrow> ifex" where
+"bool2if (Const b) = CIF b" |
+"bool2if (Var x)   = VIF x" |
+"bool2if (Neg b)   = IF (bool2if b) (CIF False) (CIF True)" |
+"bool2if (And b c) = IF (bool2if b) (bool2if c) (CIF False)"
 
 text{*\noindent
 At last, we have something we can verify: that @{term"bool2if"} preserves the
@@ -107,17 +104,15 @@ repeatedly replacing a subterm of the form @{term"IF (IF b x y) z u"} by
 primitive recursive functions perform this task:
 *}
 
-consts normif :: "ifex \<Rightarrow> ifex \<Rightarrow> ifex \<Rightarrow> ifex";
-primrec
-"normif (CIF b)    t e = IF (CIF b) t e"
-"normif (VIF x)    t e = IF (VIF x) t e"
-"normif (IF b t e) u f = normif b (normif t u f) (normif e u f)";
+primrec normif :: "ifex \<Rightarrow> ifex \<Rightarrow> ifex \<Rightarrow> ifex" where
+"normif (CIF b)    t e = IF (CIF b) t e" |
+"normif (VIF x)    t e = IF (VIF x) t e" |
+"normif (IF b t e) u f = normif b (normif t u f) (normif e u f)"
 
-consts norm :: "ifex \<Rightarrow> ifex";
-primrec
-"norm (CIF b)    = CIF b"
-"norm (VIF x)    = VIF x"
-"norm (IF b t e) = normif b (norm t) (norm e)";
+primrec norm :: "ifex \<Rightarrow> ifex" where
+"norm (CIF b)    = CIF b" |
+"norm (VIF x)    = VIF x" |
+"norm (IF b t e) = normif b (norm t) (norm e)"
 
 text{*\noindent
 Their interplay is tricky; we leave it to you to develop an
@@ -150,12 +145,11 @@ But how can we be sure that @{term"norm"} really produces a normal form in
 the above sense? We define a function that tests If-expressions for normality:
 *}
 
-consts normal :: "ifex \<Rightarrow> bool";
-primrec
-"normal(CIF b) = True"
-"normal(VIF x) = True"
+primrec normal :: "ifex \<Rightarrow> bool" where
+"normal(CIF b) = True" |
+"normal(VIF x) = True" |
 "normal(IF b t e) = (normal t \<and> normal e \<and>
-     (case b of CIF b \<Rightarrow> True | VIF x \<Rightarrow> True | IF x y z \<Rightarrow> False))";
+     (case b of CIF b \<Rightarrow> True | VIF x \<Rightarrow> True | IF x y z \<Rightarrow> False))"
 
 text{*\noindent
 Now we prove @{term"normal(norm b)"}. Of course, this requires a lemma about
@@ -190,25 +184,21 @@ can provide the clue.  The necessity of universal quantification
 *}
 (*<*)
 
-consts normif2 :: "ifex => ifex => ifex => ifex"
-primrec
-"normif2 (CIF b)    t e = (if b then t else e)"
-"normif2 (VIF x)    t e = IF (VIF x) t e"
+primrec normif2 :: "ifex => ifex => ifex => ifex" where
+"normif2 (CIF b)    t e = (if b then t else e)" |
+"normif2 (VIF x)    t e = IF (VIF x) t e" |
 "normif2 (IF b t e) u f = normif2 b (normif2 t u f) (normif2 e u f)"
 
-consts norm2 :: "ifex => ifex"
-primrec
-"norm2 (CIF b)    = CIF b"
-"norm2 (VIF x)    = VIF x"
+primrec norm2 :: "ifex => ifex" where
+"norm2 (CIF b)    = CIF b" |
+"norm2 (VIF x)    = VIF x" |
 "norm2 (IF b t e) = normif2 b (norm2 t) (norm2 e)"
 
-consts normal2 :: "ifex => bool"
-primrec
-"normal2(CIF b) = True"
-"normal2(VIF x) = True"
+primrec normal2 :: "ifex => bool" where
+"normal2(CIF b) = True" |
+"normal2(VIF x) = True" |
 "normal2(IF b t e) = (normal2 t & normal2 e &
      (case b of CIF b => False | VIF x => True | IF x y z => False))"
-
 
 lemma [simp]:
   "ALL t e. valif (normif2 b t e) env = valif (IF b t e) env"

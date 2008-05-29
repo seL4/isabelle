@@ -21,23 +21,17 @@ datatype formula = Atom "atom"
 text{*\noindent
 This resembles the boolean expression case study in
 \S\ref{sec:boolex}.
-A validity relation between
-states and formulae specifies the semantics:
+A validity relation between states and formulae specifies the semantics.
+The syntax annotation allows us to write @{text"s \<Turnstile> f"} instead of
+\hbox{@{text"valid s f"}}. The definition is by recursion over the syntax:
 *}
 
-consts valid :: "state \<Rightarrow> formula \<Rightarrow> bool"   ("(_ \<Turnstile> _)" [80,80] 80)
-
-text{*\noindent
-The syntax annotation allows us to write @{term"s \<Turnstile> f"} instead of
-\hbox{@{text"valid s f"}}.
-The definition of @{text"\<Turnstile>"} is by recursion over the syntax:
-*}
-
-primrec
-"s \<Turnstile> Atom a  = (a \<in> L s)"
-"s \<Turnstile> Neg f   = (\<not>(s \<Turnstile> f))"
-"s \<Turnstile> And f g = (s \<Turnstile> f \<and> s \<Turnstile> g)"
-"s \<Turnstile> AX f    = (\<forall>t. (s,t) \<in> M \<longrightarrow> t \<Turnstile> f)"
+primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool"   ("(_ \<Turnstile> _)" [80,80] 80)
+where
+"s \<Turnstile> Atom a  = (a \<in> L s)" |
+"s \<Turnstile> Neg f   = (\<not>(s \<Turnstile> f))" |
+"s \<Turnstile> And f g = (s \<Turnstile> f \<and> s \<Turnstile> g)" |
+"s \<Turnstile> AX f    = (\<forall>t. (s,t) \<in> M \<longrightarrow> t \<Turnstile> f)" |
 "s \<Turnstile> EF f    = (\<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<Turnstile> f)"
 
 text{*\noindent
@@ -47,16 +41,15 @@ The first three equations should be self-explanatory. The temporal formula
 true. The future is expressed via @{text"\<^sup>*"}, the reflexive transitive
 closure. Because of reflexivity, the future includes the present.
 
-Now we come to the model checker itself. It maps a formula into the set of
-states where the formula is true.  It too is defined by recursion over the syntax:
-*}
+Now we come to the model checker itself. It maps a formula into the
+set of states where the formula is true.  It too is defined by
+recursion over the syntax: *}
 
-consts mc :: "formula \<Rightarrow> state set"
-primrec
-"mc(Atom a)  = {s. a \<in> L s}"
-"mc(Neg f)   = -mc f"
-"mc(And f g) = mc f \<inter> mc g"
-"mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}"
+primrec mc :: "formula \<Rightarrow> state set" where
+"mc(Atom a)  = {s. a \<in> L s}" |
+"mc(Neg f)   = -mc f" |
+"mc(And f g) = mc f \<inter> mc g" |
+"mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}" |
 "mc(EF f)    = lfp(\<lambda>T. mc f \<union> (M\<inverse> `` T))"
 
 text{*\noindent

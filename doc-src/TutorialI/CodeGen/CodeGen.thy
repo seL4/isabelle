@@ -28,11 +28,10 @@ The value of an expression with respect to an environment that maps variables to
 values is easily defined:
 *}
 
-consts "value" :: "('a,'v)expr \<Rightarrow> ('a \<Rightarrow> 'v) \<Rightarrow> 'v";
-primrec
-"value (Cex v) env = v"
-"value (Vex a) env = env a"
-"value (Bex f e1 e2) env = f (value e1 env) (value e2 env)";
+primrec "value" :: "('a,'v)expr \<Rightarrow> ('a \<Rightarrow> 'v) \<Rightarrow> 'v" where
+"value (Cex v) env = v" |
+"value (Vex a) env = env a" |
+"value (Bex f e1 e2) env = f (value e1 env) (value e2 env)"
 
 text{*
 The stack machine has three instructions: load a constant value onto the
@@ -54,13 +53,13 @@ and returns the stack at the end of the execution --- the store remains
 unchanged:
 *}
 
-consts exec :: "('a,'v)instr list \<Rightarrow> ('a\<Rightarrow>'v) \<Rightarrow> 'v list \<Rightarrow> 'v list";
-primrec
-"exec [] s vs = vs"
+primrec exec :: "('a,'v)instr list \<Rightarrow> ('a\<Rightarrow>'v) \<Rightarrow> 'v list \<Rightarrow> 'v list"
+where
+"exec [] s vs = vs" |
 "exec (i#is) s vs = (case i of
     Const v  \<Rightarrow> exec is s (v#vs)
   | Load a   \<Rightarrow> exec is s ((s a)#vs)
-  | Apply f  \<Rightarrow> exec is s ((f (hd vs) (hd(tl vs)))#(tl(tl vs))))";
+  | Apply f  \<Rightarrow> exec is s ((f (hd vs) (hd(tl vs)))#(tl(tl vs))))"
 
 text{*\noindent
 Recall that @{term"hd"} and @{term"tl"}
@@ -75,10 +74,9 @@ The compiler is a function from expressions to a list of instructions. Its
 definition is obvious:
 *}
 
-consts compile :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list"
-primrec
-"compile (Cex v)       = [Const v]"
-"compile (Vex a)       = [Load a]"
+primrec compile :: "('a,'v)expr \<Rightarrow> ('a,'v)instr list" where
+"compile (Cex v)       = [Const v]" |
+"compile (Vex a)       = [Load a]" |
 "compile (Bex f e1 e2) = (compile e2) @ (compile e1) @ [Apply f]"
 
 text{*

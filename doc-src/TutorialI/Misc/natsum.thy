@@ -7,9 +7,9 @@ In particular, there are @{text"case"}-expressions, for example
 primitive recursion, for example
 *}
 
-consts sum :: "nat \<Rightarrow> nat"
-primrec "sum 0 = 0"
-        "sum (Suc n) = Suc n + sum n"
+primrec sum :: "nat \<Rightarrow> nat" where
+"sum 0 = 0" |
+"sum (Suc n) = Suc n + sum n"
 
 text{*\noindent
 and induction, for example

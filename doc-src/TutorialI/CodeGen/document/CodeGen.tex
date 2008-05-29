@@ -46,12 +46,10 @@ The value of an expression with respect to an environment that maps variables to
 values is easily defined:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ {\isachardoublequoteopen}value{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}v{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}v{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}value\ {\isacharparenleft}Cex\ v{\isacharparenright}\ env\ {\isacharequal}\ v{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}value\ {\isacharparenleft}Vex\ a{\isacharparenright}\ env\ {\isacharequal}\ env\ a{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}value{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}v{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}v{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}value\ {\isacharparenleft}Cex\ v{\isacharparenright}\ env\ {\isacharequal}\ v{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}value\ {\isacharparenleft}Vex\ a{\isacharparenright}\ env\ {\isacharequal}\ env\ a{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}value\ {\isacharparenleft}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isacharparenright}\ env\ {\isacharequal}\ f\ {\isacharparenleft}value\ e{\isadigit{1}}\ env{\isacharparenright}\ {\isacharparenleft}value\ e{\isadigit{2}}\ env{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The stack machine has three instructions: load a constant value onto the
@@ -73,11 +71,10 @@ and returns the stack at the end of the execution --- the store remains
 unchanged:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ exec\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}instr\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isasymRightarrow}{\isacharprime}v{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}v\ list\ {\isasymRightarrow}\ {\isacharprime}v\ list{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}exec\ {\isacharbrackleft}{\isacharbrackright}\ s\ vs\ {\isacharequal}\ vs{\isachardoublequoteclose}\isanewline
+\ exec\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}instr\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isasymRightarrow}{\isacharprime}v{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}v\ list\ {\isasymRightarrow}\ {\isacharprime}v\ list{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+{\isachardoublequoteopen}exec\ {\isacharbrackleft}{\isacharbrackright}\ s\ vs\ {\isacharequal}\ vs{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}exec\ {\isacharparenleft}i{\isacharhash}is{\isacharparenright}\ s\ vs\ {\isacharequal}\ {\isacharparenleft}case\ i\ of\isanewline
 \ \ \ \ Const\ v\ \ {\isasymRightarrow}\ exec\ is\ s\ {\isacharparenleft}v{\isacharhash}vs{\isacharparenright}\isanewline
 \ \ {\isacharbar}\ Load\ a\ \ \ {\isasymRightarrow}\ exec\ is\ s\ {\isacharparenleft}{\isacharparenleft}s\ a{\isacharparenright}{\isacharhash}vs{\isacharparenright}\isanewline
@@ -96,12 +93,10 @@ The compiler is a function from expressions to a list of instructions. Its
 definition is obvious:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ compile\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}instr\ list{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}compile\ {\isacharparenleft}Cex\ v{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Const\ v{\isacharbrackright}{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}compile\ {\isacharparenleft}Vex\ a{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Load\ a{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ compile\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}expr\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}v{\isacharparenright}instr\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}compile\ {\isacharparenleft}Cex\ v{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Const\ v{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}compile\ {\isacharparenleft}Vex\ a{\isacharparenright}\ \ \ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}Load\ a{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}compile\ {\isacharparenleft}Bex\ f\ e{\isadigit{1}}\ e{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}compile\ e{\isadigit{2}}{\isacharparenright}\ {\isacharat}\ {\isacharparenleft}compile\ e{\isadigit{1}}{\isacharparenright}\ {\isacharat}\ {\isacharbrackleft}Apply\ f{\isacharbrackright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Now we have to prove the correctness of the compiler, i.e.\ that the

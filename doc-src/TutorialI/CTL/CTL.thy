@@ -24,8 +24,8 @@ Formalizing the notion of an infinite path is easy
 in HOL: it is simply a function from @{typ nat} to @{typ state}.
 *};
 
-constdefs Paths :: "state \<Rightarrow> (nat \<Rightarrow> state)set"
-         "Paths s \<equiv> {p. s = p 0 \<and> (\<forall>i. (p i, p(i+1)) \<in> M)}";
+definition Paths :: "state \<Rightarrow> (nat \<Rightarrow> state)set" where
+"Paths s \<equiv> {p. s = p 0 \<and> (\<forall>i. (p i, p(i+1)) \<in> M)}"
 
 text{*\noindent
 This definition allows a succinct statement of the semantics of @{const AF}:
@@ -35,37 +35,34 @@ presentation (see \S\ref{sec:doc-prep-suppress}). In reality one has to define
 a new datatype and a new function.}
 *};
 (*<*)
-consts valid :: "state \<Rightarrow> formula \<Rightarrow> bool" ("(_ \<Turnstile> _)" [80,80] 80);
-
-primrec
-"s \<Turnstile> Atom a  =  (a \<in> L s)"
-"s \<Turnstile> Neg f   = (~(s \<Turnstile> f))"
-"s \<Turnstile> And f g = (s \<Turnstile> f \<and> s \<Turnstile> g)"
-"s \<Turnstile> AX f    = (\<forall>t. (s,t) \<in> M \<longrightarrow> t \<Turnstile> f)"
-"s \<Turnstile> EF f    = (\<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<Turnstile> f)"
+primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool" ("(_ \<Turnstile> _)" [80,80] 80) where
+"s \<Turnstile> Atom a  =  (a \<in> L s)" |
+"s \<Turnstile> Neg f   = (~(s \<Turnstile> f))" |
+"s \<Turnstile> And f g = (s \<Turnstile> f \<and> s \<Turnstile> g)" |
+"s \<Turnstile> AX f    = (\<forall>t. (s,t) \<in> M \<longrightarrow> t \<Turnstile> f)" |
+"s \<Turnstile> EF f    = (\<exists>t. (s,t) \<in> M\<^sup>* \<and> t \<Turnstile> f)" |
 (*>*)
-"s \<Turnstile> AF f    = (\<forall>p \<in> Paths s. \<exists>i. p i \<Turnstile> f)";
+"s \<Turnstile> AF f    = (\<forall>p \<in> Paths s. \<exists>i. p i \<Turnstile> f)"
 
 text{*\noindent
 Model checking @{const AF} involves a function which
 is just complicated enough to warrant a separate definition:
 *};
 
-constdefs af :: "state set \<Rightarrow> state set \<Rightarrow> state set"
-         "af A T \<equiv> A \<union> {s. \<forall>t. (s, t) \<in> M \<longrightarrow> t \<in> T}";
+definition af :: "state set \<Rightarrow> state set \<Rightarrow> state set" where
+"af A T \<equiv> A \<union> {s. \<forall>t. (s, t) \<in> M \<longrightarrow> t \<in> T}"
 
 text{*\noindent
 Now we define @{term "mc(AF f)"} as the least set @{term T} that includes
 @{term"mc f"} and all states all of whose direct successors are in @{term T}:
 *};
 (*<*)
-consts mc :: "formula \<Rightarrow> state set";
-primrec
-"mc(Atom a)  = {s. a \<in> L s}"
-"mc(Neg f)   = -mc f"
-"mc(And f g) = mc f \<inter> mc g"
-"mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}"
-"mc(EF f)    = lfp(\<lambda>T. mc f \<union> M\<inverse> `` T)"(*>*)
+primrec mc :: "formula \<Rightarrow> state set" where
+"mc(Atom a)  = {s. a \<in> L s}" |
+"mc(Neg f)   = -mc f" |
+"mc(And f g) = mc f \<inter> mc g" |
+"mc(AX f)    = {s. \<forall>t. (s,t) \<in> M  \<longrightarrow> t \<in> mc f}" |
+"mc(EF f)    = lfp(\<lambda>T. mc f \<union> M\<inverse> `` T)"|(*>*)
 "mc(AF f)    = lfp(af(mc f))";
 
 text{*\noindent
@@ -106,8 +103,7 @@ This time we prove the two inclusions separately, starting
 with the easy one:
 *};
 
-theorem AF_lemma1:
-  "lfp(af A) \<subseteq> {s. \<forall>p \<in> Paths s. \<exists>i. p i \<in> A}";
+theorem AF_lemma1: "lfp(af A) \<subseteq> {s. \<forall>p \<in> Paths s. \<exists>i. p i \<in> A}"
 
 txt{*\noindent
 In contrast to the analogous proof for @{const EF}, and just
@@ -165,10 +161,9 @@ Now we iterate this process. The following construction of the desired
 path is parameterized by a predicate @{term Q} that should hold along the path:
 *};
 
-consts path :: "state \<Rightarrow> (state \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> state)";
-primrec
-"path s Q 0 = s"
-"path s Q (Suc n) = (SOME t. (path s Q n,t) \<in> M \<and> Q t)";
+primrec path :: "state \<Rightarrow> (state \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> state)" where
+"path s Q 0 = s" |
+"path s Q (Suc n) = (SOME t. (path s Q n,t) \<in> M \<and> Q t)"
 
 text{*\noindent
 Element @{term"n+1::nat"} on this path is some arbitrary successor

@@ -10,9 +10,9 @@ Here is a simple example, the \rmindex{Fibonacci function}:
 *}
 
 fun fib :: "nat \<Rightarrow> nat" where
-  "fib 0 = 0" |
-  "fib (Suc 0) = 1" |
-  "fib (Suc(Suc x)) = fib x + fib (Suc x)"
+"fib 0 = 0" |
+"fib (Suc 0) = 1" |
+"fib (Suc(Suc x)) = fib x + fib (Suc x)"
 
 text{*\noindent
 This resembles ordinary functional programming languages. Note the obligatory
@@ -25,9 +25,9 @@ between any two elements of a list:
 *}
 
 fun sep :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "sep a []     = []" |
-  "sep a [x]    = [x]" |
-  "sep a (x#y#zs) = x # a # sep a (y#zs)";
+"sep a []     = []" |
+"sep a [x]    = [x]" |
+"sep a (x#y#zs) = x # a # sep a (y#zs)";
 
 text{*\noindent
 This time the length of the list decreases with the
@@ -38,8 +38,8 @@ need not be exhaustive and may employ wildcards:
 *}
 
 fun last :: "'a list \<Rightarrow> 'a" where
-  "last [x]      = x" |
-  "last (_#y#zs) = last (y#zs)"
+"last [x]      = x" |
+"last (_#y#zs) = last (y#zs)"
 
 text{*
 Overlapping patterns are disambiguated by taking the order of equations into
@@ -47,8 +47,8 @@ account, just as in functional programming:
 *}
 
 fun sep1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "sep1 a (x#y#zs) = x # a # sep1 a (y#zs)" |
-  "sep1 _ xs       = xs"
+"sep1 a (x#y#zs) = x # a # sep1 a (y#zs)" |
+"sep1 _ xs       = xs"
 
 text{*\noindent
 To guarantee that the second equation can only be applied if the first
@@ -62,8 +62,8 @@ for the definition of non-recursive functions:
 *}
 
 fun swap12 :: "'a list \<Rightarrow> 'a list" where
-  "swap12 (x#y#zs) = y#x#zs" |
-  "swap12 zs       = zs"
+"swap12 (x#y#zs) = y#x#zs" |
+"swap12 zs       = zs"
 
 text{*
 After a function~$f$ has been defined via \isacommand{fun},
@@ -90,9 +90,9 @@ arguments. For example, the following version of \rmindex{Ackermann's
 function} is accepted: *}
 
 fun ack2 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
-  "ack2 n 0 = Suc n" |
-  "ack2 0 (Suc m) = ack2 (Suc 0) m" |
-  "ack2 (Suc n) (Suc m) = ack2 (ack2 n (Suc m)) m"
+"ack2 n 0 = Suc n" |
+"ack2 0 (Suc m) = ack2 (Suc 0) m" |
+"ack2 (Suc n) (Suc m) = ack2 (ack2 n (Suc m)) m"
 
 text{* The order of arguments has no influence on whether
 \isacommand{fun} can prove termination of a function. For more details
@@ -111,7 +111,7 @@ Let us look at an example:
 *}
 
 fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
-  "gcd m n = (if n=0 then m else gcd n (m mod n))"
+"gcd m n = (if n=0 then m else gcd n (m mod n))"
 
 text{*\noindent
 The second argument decreases with each recursive call.
@@ -148,8 +148,8 @@ following alternative definition suggests itself:
 *}
 
 fun gcd1 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
-  "gcd1 m 0 = m" |
-  "gcd1 m n = gcd1 n (m mod n)"
+"gcd1 m 0 = m" |
+"gcd1 m n = gcd1 n (m mod n)"
 
 text{*\noindent
 The order of equations is important: it hides the side condition
@@ -161,7 +161,7 @@ which is also available for @{typ bool} and is not split automatically:
 *}
 
 fun gcd2 :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
-  "gcd2 m n = (case n=0 of True \<Rightarrow> m | False \<Rightarrow> gcd2 n (m mod n))"
+"gcd2 m n = (case n=0 of True \<Rightarrow> m | False \<Rightarrow> gcd2 n (m mod n))"
 
 text{*\noindent
 This is probably the neatest solution next to pattern matching, and it is

@@ -72,7 +72,7 @@ transition system, i.e.\ a relation between states:
 consts M :: "(state \<times> state)set";
 
 text{*\noindent
-Again, we could have made @{term M} a parameter of everything.
+This is Isabelle's way of declaring a constant without defining it.
 Finally we introduce a type of atomic propositions
 *}
 

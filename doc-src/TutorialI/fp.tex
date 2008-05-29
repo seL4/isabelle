@@ -169,10 +169,9 @@ comes equipped with a \isa{size} function from $t$ into the natural numbers
 \isa{size [] = 0} and \isa{size(x \# xs) = size xs + 1}.  In general,
 \cdx{size} returns
 \begin{itemize}
-\item zero for all constructors
-that do not have an argument of type $t$\\
+\item zero for all constructors that do not have an argument of type $t$,
 \item one plus the sum of the sizes of all arguments of type~$t$,
-for all other constructors
+for all other constructors.
 \end{itemize}
 Note that because
 \isa{size} is defined on every datatype, it is overloaded; on lists
@@ -184,11 +183,10 @@ Isabelle will always show \isa{size} on lists as \isa{length}.
 
 \index{recursion!primitive}%
 Functions on datatypes are usually defined by recursion. In fact, most of the
-time they are defined by what is called \textbf{primitive recursion}.
-The keyword \commdx{primrec} is followed by a list of
-equations
+time they are defined by what is called \textbf{primitive recursion} over some
+datatype $t$. This means that the recursion equations must be of the form
 \[ f \, x@1 \, \dots \, (C \, y@1 \, \dots \, y@k)\, \dots \, x@n = r \]
-such that $C$ is a constructor of the datatype $t$ and all recursive calls of
+such that $C$ is a constructor of $t$ and all recursive calls of
 $f$ in $r$ are of the form $f \, \dots \, y@i \, \dots$ for some $i$. Thus
 Isabelle immediately sees that $f$ terminates because one (fixed!) argument
 becomes smaller with every recursive call. There must be at most one equation

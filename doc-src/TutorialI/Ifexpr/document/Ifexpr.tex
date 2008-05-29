@@ -56,13 +56,11 @@ Hence the function \isa{value} takes an additional parameter, an
 values:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ {\isachardoublequoteopen}value{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}boolex\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}value\ {\isacharparenleft}Const\ b{\isacharparenright}\ env\ {\isacharequal}\ b{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}value\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ env\ {\isacharequal}\ env\ x{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}value\ {\isacharparenleft}Neg\ b{\isacharparenright}\ \ \ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ value\ b\ env{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}value{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}boolex\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}value\ {\isacharparenleft}Const\ b{\isacharparenright}\ env\ {\isacharequal}\ b{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}value\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ env\ {\isacharequal}\ env\ x{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}value\ {\isacharparenleft}Neg\ b{\isacharparenright}\ \ \ env\ {\isacharequal}\ {\isacharparenleft}{\isasymnot}\ value\ b\ env{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}value\ {\isacharparenleft}And\ b\ c{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}value\ b\ env\ {\isasymand}\ value\ c\ env{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
@@ -81,12 +79,10 @@ from constants (\isa{CIF}), variables (\isa{VIF}) and conditionals
 The evaluation of If-expressions proceeds as for \isa{boolex}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ valif\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ifex\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}valif\ {\isacharparenleft}CIF\ b{\isacharparenright}\ \ \ \ env\ {\isacharequal}\ b{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}valif\ {\isacharparenleft}VIF\ x{\isacharparenright}\ \ \ \ env\ {\isacharequal}\ env\ x{\isachardoublequoteclose}\isanewline
+\ valif\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ifex\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}valif\ {\isacharparenleft}CIF\ b{\isacharparenright}\ \ \ \ env\ {\isacharequal}\ b{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}valif\ {\isacharparenleft}VIF\ x{\isacharparenright}\ \ \ \ env\ {\isacharequal}\ env\ x{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}valif\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ env\ {\isacharequal}\ {\isacharparenleft}if\ valif\ b\ env\ then\ valif\ t\ env\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ else\ valif\ e\ env{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
@@ -97,13 +93,11 @@ formulae, whereas \isa{ifex} is designed for efficiency. It is easy to
 translate from \isa{boolex} into \isa{ifex}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ bool{\isadigit{2}}if\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}boolex\ {\isasymRightarrow}\ ifex{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}bool{\isadigit{2}}if\ {\isacharparenleft}Const\ b{\isacharparenright}\ {\isacharequal}\ CIF\ b{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}bool{\isadigit{2}}if\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ {\isacharequal}\ VIF\ x{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}bool{\isadigit{2}}if\ {\isacharparenleft}Neg\ b{\isacharparenright}\ \ \ {\isacharequal}\ IF\ {\isacharparenleft}bool{\isadigit{2}}if\ b{\isacharparenright}\ {\isacharparenleft}CIF\ False{\isacharparenright}\ {\isacharparenleft}CIF\ True{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ bool{\isadigit{2}}if\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}boolex\ {\isasymRightarrow}\ ifex{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}bool{\isadigit{2}}if\ {\isacharparenleft}Const\ b{\isacharparenright}\ {\isacharequal}\ CIF\ b{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}bool{\isadigit{2}}if\ {\isacharparenleft}Var\ x{\isacharparenright}\ \ \ {\isacharequal}\ VIF\ x{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}bool{\isadigit{2}}if\ {\isacharparenleft}Neg\ b{\isacharparenright}\ \ \ {\isacharequal}\ IF\ {\isacharparenleft}bool{\isadigit{2}}if\ b{\isacharparenright}\ {\isacharparenleft}CIF\ False{\isacharparenright}\ {\isacharparenleft}CIF\ True{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}bool{\isadigit{2}}if\ {\isacharparenleft}And\ b\ c{\isacharparenright}\ {\isacharequal}\ IF\ {\isacharparenleft}bool{\isadigit{2}}if\ b{\isacharparenright}\ {\isacharparenleft}bool{\isadigit{2}}if\ c{\isacharparenright}\ {\isacharparenleft}CIF\ False{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
@@ -150,20 +144,16 @@ repeatedly replacing a subterm of the form \isa{IF\ {\isacharparenleft}IF\ b\ x\
 primitive recursive functions perform this task:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ normif\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}normif\ {\isacharparenleft}CIF\ b{\isacharparenright}\ \ \ \ t\ e\ {\isacharequal}\ IF\ {\isacharparenleft}CIF\ b{\isacharparenright}\ t\ e{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}normif\ {\isacharparenleft}VIF\ x{\isacharparenright}\ \ \ \ t\ e\ {\isacharequal}\ IF\ {\isacharparenleft}VIF\ x{\isacharparenright}\ t\ e{\isachardoublequoteclose}\isanewline
+\ normif\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex\ {\isasymRightarrow}\ ifex{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}normif\ {\isacharparenleft}CIF\ b{\isacharparenright}\ \ \ \ t\ e\ {\isacharequal}\ IF\ {\isacharparenleft}CIF\ b{\isacharparenright}\ t\ e{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}normif\ {\isacharparenleft}VIF\ x{\isacharparenright}\ \ \ \ t\ e\ {\isacharequal}\ IF\ {\isacharparenleft}VIF\ x{\isacharparenright}\ t\ e{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}normif\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ u\ f\ {\isacharequal}\ normif\ b\ {\isacharparenleft}normif\ t\ u\ f{\isacharparenright}\ {\isacharparenleft}normif\ e\ u\ f{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
-\isacommand{consts}\isamarkupfalse%
-\ norm\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ifex\ {\isasymRightarrow}\ ifex{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}norm\ {\isacharparenleft}CIF\ b{\isacharparenright}\ \ \ \ {\isacharequal}\ CIF\ b{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}norm\ {\isacharparenleft}VIF\ x{\isacharparenright}\ \ \ \ {\isacharequal}\ VIF\ x{\isachardoublequoteclose}\isanewline
+\ norm\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ifex\ {\isasymRightarrow}\ ifex{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}norm\ {\isacharparenleft}CIF\ b{\isacharparenright}\ \ \ \ {\isacharequal}\ CIF\ b{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}norm\ {\isacharparenleft}VIF\ x{\isacharparenright}\ \ \ \ {\isacharequal}\ VIF\ x{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}norm\ {\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ normif\ b\ {\isacharparenleft}norm\ t{\isacharparenright}\ {\isacharparenleft}norm\ e{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
@@ -231,12 +221,10 @@ But how can we be sure that \isa{norm} really produces a normal form in
 the above sense? We define a function that tests If-expressions for normality:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ normal\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ifex\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}normal{\isacharparenleft}CIF\ b{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isachardoublequoteopen}normal{\isacharparenleft}VIF\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+\ normal\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ifex\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}normal{\isacharparenleft}CIF\ b{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}normal{\isacharparenleft}VIF\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}normal{\isacharparenleft}IF\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}normal\ t\ {\isasymand}\ normal\ e\ {\isasymand}\isanewline
 \ \ \ \ \ {\isacharparenleft}case\ b\ of\ CIF\ b\ {\isasymRightarrow}\ True\ {\isacharbar}\ VIF\ x\ {\isasymRightarrow}\ True\ {\isacharbar}\ IF\ x\ y\ z\ {\isasymRightarrow}\ False{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%

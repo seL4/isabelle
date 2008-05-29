@@ -43,7 +43,7 @@ The core concept of Isabelle's framework for concrete syntax is that
 %
 \begin{isamarkuptext}%
 Syntax annotations may be included wherever constants are declared,
-  such as \isacommand{consts} and \isacommand{constdefs} --- and also
+  such as \isacommand{definition} and \isacommand{primrec} --- and also
   \isacommand{datatype}, which declares constructor operations.
   Type-constructors may be annotated as well, although this is less
   frequently encountered in practice (the infix type \isa{{\isasymtimes}} comes
@@ -54,10 +54,9 @@ Syntax annotations may be included wherever constants are declared,
   operation on boolean values illustrates typical infix declarations.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{constdefs}\isamarkupfalse%
-\isanewline
-\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ {\isachardoublequoteopen}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
+\isacommand{definition}\isamarkupfalse%
+\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isakeyword{where}\ {\isachardoublequoteopen}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent Now \isa{xor\ A\ B} and \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B} refer to the
   same expression internally.  Any curried function with at least two
@@ -166,10 +165,9 @@ Concrete syntax based on ASCII characters has inherent limitations.
 \isadelimML
 %
 \endisadelimML
-\isacommand{constdefs}\isamarkupfalse%
-\isanewline
-\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ {\isachardoublequoteopen}A\ {\isasymoplus}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
+\isacommand{definition}\isamarkupfalse%
+\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isakeyword{where}\ {\isachardoublequoteopen}A\ {\isasymoplus}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent The X-Symbol package within Proof~General provides several
   input methods to enter \isa{{\isasymoplus}} in the text.  If all fails one may
@@ -196,17 +194,17 @@ Concrete syntax based on ASCII characters has inherent limitations.
 \isadelimML
 %
 \endisadelimML
-\isacommand{constdefs}\isamarkupfalse%
-\isanewline
-\ \ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ {\isachardoublequoteopen}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isakeyword{where}\ {\isachardoublequoteopen}A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}{\isasymignore}\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}\ B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{notation}\isamarkupfalse%
 \ {\isacharparenleft}xsymbols{\isacharparenright}\ xor\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymoplus}{\isasymignore}{\isachardoublequoteclose}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
+\noindent
 The \commdx{notation} command associates a mixfix
-annotation with a known constant.  The print mode specification of
-\isakeyword{syntax}, here \isa{{\isacharparenleft}xsymbols{\isacharparenright}}, is optional.
+annotation with a known constant.  The print mode specification,
+here \isa{{\isacharparenleft}xsymbols{\isacharparenright}}, is optional.
 
 We may now write \isa{A\ {\isacharbrackleft}{\isacharplus}{\isacharbrackright}\ B} or \isa{A\ {\isasymoplus}\ B} in input, while
 output uses the nicer syntax of $xsymbols$ whenever that print mode is
@@ -243,8 +241,7 @@ Prefix syntax annotations\index{prefix annotation} are another form
   achieves conformance with notational standards of the European
   Commission.
 
-  Prefix syntax works the same way for \isakeyword{consts} or
-  \isakeyword{constdefs}.%
+  Prefix syntax works the same way for other commands that introduce new constants, e.g. \isakeyword{primrec}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -266,12 +263,10 @@ simple mechanism for syntactic macros.
 
 A typical use of abbreviations is to introduce relational notation for
 membership in a set of pairs, replacing \isa{{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ sim} by
-\isa{x\ {\isasymapprox}\ y}.%
+\isa{x\ {\isasymapprox}\ y}. We assume that a constant \isa{sim} of type
+\isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set} has been introduced at this point.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ sim\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set{\isachardoublequoteclose}\isanewline
-\isanewline
 \isacommand{abbreviation}\isamarkupfalse%
 \ sim{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \ \ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isasymapprox}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
 \isakeyword{where}\ {\isachardoublequoteopen}x\ {\isasymapprox}\ y\ \ {\isasymequiv}\ \ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ sim{\isachardoublequoteclose}%
@@ -297,7 +292,7 @@ stems from Isabelle/HOL itself:%
 \noindent The notation \isa{{\isasymnoteq}} is introduced separately to restrict it
 to the \emph{xsymbols} mode.
 
- Abbreviations are appropriate when the defined concept is a
+Abbreviations are appropriate when the defined concept is a
 simple variation on an existing one.  But because of the automatic
 folding and unfolding of abbreviations, they do not scale up well to
 large hierarchies of concepts. Abbreviations do not replace

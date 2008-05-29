@@ -35,56 +35,52 @@ expressions can be arithmetic comparisons, conjunctions and negations.
 The semantics is given by two evaluation functions:
 *}
 
-consts  evala :: "'a aexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"
-        evalb :: "'a bexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> bool";
+primrec evala :: "'a aexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat" and
+         evalb :: "'a bexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> bool" where
+"evala (IF b a1 a2) env =
+   (if evalb b env then evala a1 env else evala a2 env)" |
+"evala (Sum a1 a2) env = evala a1 env + evala a2 env" |
+"evala (Diff a1 a2) env = evala a1 env - evala a2 env" |
+"evala (Var v) env = env v" |
+"evala (Num n) env = n" |
+
+"evalb (Less a1 a2) env = (evala a1 env < evala a2 env)" |
+"evalb (And b1 b2) env = (evalb b1 env \<and> evalb b2 env)" |
+"evalb (Neg b) env = (\<not> evalb b env)"
 
 text{*\noindent
-Both take an expression and an environment (a mapping from variables @{typ"'a"} to values
-@{typ"nat"}) and return its arithmetic/boolean
-value. Since the datatypes are mutually recursive, so are functions that
-operate on them. Hence they need to be defined in a single \isacommand{primrec}
-section:
-*}
 
-primrec
-  "evala (IF b a1 a2) env =
-     (if evalb b env then evala a1 env else evala a2 env)"
-  "evala (Sum a1 a2) env = evala a1 env + evala a2 env"
-  "evala (Diff a1 a2) env = evala a1 env - evala a2 env"
-  "evala (Var v) env = env v"
-  "evala (Num n) env = n"
+Both take an expression and an environment (a mapping from variables
+@{typ"'a"} to values @{typ"nat"}) and return its arithmetic/boolean
+value. Since the datatypes are mutually recursive, so are functions
+that operate on them. Hence they need to be defined in a single
+\isacommand{primrec} section. Notice the \isakeyword{and} separating
+the declarations of @{const evala} and @{const evalb}. Their defining
+equations need not be split into two groups;
+the empty line is purely for readability.
 
-  "evalb (Less a1 a2) env = (evala a1 env < evala a2 env)"
-  "evalb (And b1 b2) env = (evalb b1 env \<and> evalb b2 env)"
-  "evalb (Neg b) env = (\<not> evalb b env)"
-
-text{*\noindent
 In the same fashion we also define two functions that perform substitution:
 *}
 
-consts substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp"
-       substb :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a bexp \<Rightarrow> 'b bexp";
+primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp" and
+         substb :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a bexp \<Rightarrow> 'b bexp" where
+"substa s (IF b a1 a2) =
+   IF (substb s b) (substa s a1) (substa s a2)" |
+"substa s (Sum a1 a2) = Sum (substa s a1) (substa s a2)" |
+"substa s (Diff a1 a2) = Diff (substa s a1) (substa s a2)" |
+"substa s (Var v) = s v" |
+"substa s (Num n) = Num n" |
+
+"substb s (Less a1 a2) = Less (substa s a1) (substa s a2)" |
+"substb s (And b1 b2) = And (substb s b1) (substb s b2)" |
+"substb s (Neg b) = Neg (substb s b)"
 
 text{*\noindent
-The first argument is a function mapping variables to expressions, the
+Their first argument is a function mapping variables to expressions, the
 substitution. It is applied to all variables in the second argument. As a
 result, the type of variables in the expression may change from @{typ"'a"}
 to @{typ"'b"}. Note that there are only arithmetic and no boolean variables.
-*}
 
-primrec
-  "substa s (IF b a1 a2) =
-     IF (substb s b) (substa s a1) (substa s a2)"
-  "substa s (Sum a1 a2) = Sum (substa s a1) (substa s a2)"
-  "substa s (Diff a1 a2) = Diff (substa s a1) (substa s a2)"
-  "substa s (Var v) = s v"
-  "substa s (Num n) = Num n"
-
-  "substb s (Less a1 a2) = Less (substa s a1) (substa s a2)"
-  "substb s (And b1 b2) = And (substb s b1) (substb s b2)"
-  "substb s (Neg b) = Neg (substb s b)";
-
-text{*
 Now we can prove a fundamental theorem about the interaction between
 evaluation and substitution: applying a substitution $s$ to an expression $a$
 and evaluating the result in an environment $env$ yields the same result as
@@ -128,18 +124,16 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \end{exercise}
 *}
 (*<*)
-consts norma :: "'a aexp \<Rightarrow> 'a aexp"
-       normb :: "'a bexp \<Rightarrow> 'a aexp \<Rightarrow> 'a aexp \<Rightarrow> 'a aexp"
-
-primrec
-"norma (IF b t e)   = (normb b (norma t) (norma e))"
-"norma (Sum a1 a2)  = Sum (norma a1) (norma a2)" 
-"norma (Diff a1 a2) = Diff (norma a1) (norma a2)"
-"norma (Var v)      = Var v"
-"norma (Num n)      = Num n"
+primrec norma :: "'a aexp \<Rightarrow> 'a aexp" and
+        normb :: "'a bexp \<Rightarrow> 'a aexp \<Rightarrow> 'a aexp \<Rightarrow> 'a aexp" where
+"norma (IF b t e)   = (normb b (norma t) (norma e))" |
+"norma (Sum a1 a2)  = Sum (norma a1) (norma a2)" |
+"norma (Diff a1 a2) = Diff (norma a1) (norma a2)" |
+"norma (Var v)      = Var v" |
+"norma (Num n)      = Num n" |
             
-"normb (Less a1 a2) t e = IF (Less (norma a1) (norma a2)) t e"
-"normb (And b1 b2)  t e = normb b1 (normb b2 t e) e"
+"normb (Less a1 a2) t e = IF (Less (norma a1) (norma a2)) t e" |
+"normb (And b1 b2)  t e = normb b1 (normb b2 t e) e" |
 "normb (Neg b)      t e = normb b e t"
 
 lemma " evala (norma a) env = evala a env 
@@ -148,18 +142,16 @@ apply (induct_tac a and b)
 apply (simp_all)
 done
 
-consts normala :: "'a aexp \<Rightarrow> bool"
-       normalb :: "'b bexp \<Rightarrow> bool"
+primrec normala :: "'a aexp \<Rightarrow> bool" and
+        normalb :: "'a bexp \<Rightarrow> bool" where
+"normala (IF b t e)   = (normalb b \<and> normala t \<and> normala e)" |
+"normala (Sum a1 a2)  = (normala a1 \<and> normala a2)" |
+"normala (Diff a1 a2) = (normala a1 \<and> normala a2)" |
+"normala (Var v)      = True" |
+"normala (Num n)      = True" |
 
-primrec
-"normala (IF b t e)   = (normalb b \<and> normala t \<and> normala e)"
-"normala (Sum a1 a2)  = (normala a1 \<and> normala a2)"
-"normala (Diff a1 a2) = (normala a1 \<and> normala a2)"
-"normala (Var v)      = True"
-"normala (Num n)      = True"
-
-"normalb (Less a1 a2) = (normala a1 \<and> normala a2)"
-"normalb (And b1 b2)  = False"
+"normalb (Less a1 a2) = (normala a1 \<and> normala a2)" |
+"normalb (And b1 b2)  = False" |
 "normalb (Neg b)      = False"
 
 lemma "normala (norma (a::'a aexp)) \<and>

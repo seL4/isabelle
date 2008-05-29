@@ -38,38 +38,34 @@ The @{text 65} is the priority of the infix @{text"#"}.
   Syntax annotations can be powerful, but they are difficult to master and 
   are never necessary.  You
   could drop them from theory @{text"ToyList"} and go back to the identifiers
-  @{term[source]Nil} and @{term[source]Cons}.
-  Novices should avoid using
+  @{term[source]Nil} and @{term[source]Cons}.  Novices should avoid using
   syntax annotations in their own theories.
 \end{warn}
-Next, two functions @{text"app"} and \cdx{rev} are declared:
+Next, two functions @{text"app"} and \cdx{rev} are defined recursively,
+in this order, because Isabelle insists on definition before use:
 *}
 
-consts app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"   (infixr "@" 65)
-       rev :: "'a list \<Rightarrow> 'a list";
+primrec app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65) where
+"[] @ ys       = ys" |
+"(x # xs) @ ys = x # (xs @ ys)"
 
-text{*
-\noindent
-In contrast to many functional programming languages,
-Isabelle insists on explicit declarations of all functions
-(keyword \commdx{consts}).  Apart from the declaration-before-use
-restriction, the order of items in a theory file is unconstrained. Function
-@{text"app"} is annotated with concrete syntax too. Instead of the
+primrec rev :: "'a list \<Rightarrow> 'a list" where
+"rev []        = []" |
+"rev (x # xs)  = (rev xs) @ (x # [])"
+
+text{*\noindent
+Each function definition is of the form
+\begin{center}
+\isacommand{primrec} \textit{name} @{text"::"} \textit{type} \textit{(optional syntax)} \isakeyword{where} \textit{equations}
+\end{center}
+The equations must be separated by @{text"|"}.
+%
+Function @{text"app"} is annotated with concrete syntax. Instead of the
 prefix syntax @{text"app xs ys"} the infix
 @{term"xs @ ys"}\index{$HOL2list@\isa{\at}|bold} becomes the preferred
-form. Both functions are defined recursively:
-*}
+form.
 
-primrec
-"[] @ ys       = ys"
-"(x # xs) @ ys = x # (xs @ ys)";
-
-primrec
-"rev []        = []"
-"rev (x # xs)  = (rev xs) @ (x # [])";
-
-text{*
-\noindent\index{*rev (constant)|(}\index{append function|(}
+\index{*rev (constant)|(}\index{append function|(}
 The equations for @{text"app"} and @{term"rev"} hardly need comments:
 @{text"app"} appends two lists and @{term"rev"} reverses a list.  The
 keyword \commdx{primrec} indicates that the recursion is
@@ -104,12 +100,8 @@ To distinguish the two levels, everything
 HOL-specific (terms and types) should be enclosed in
 \texttt{"}\dots\texttt{"}. 
 To lessen this burden, quotation marks around a single identifier can be
-dropped, unless the identifier happens to be a keyword, as in
-*}
-
-consts "end" :: "'a list \<Rightarrow> 'a"
-
-text{*\noindent
+dropped, unless the identifier happens to be a keyword, for example
+\isa{"end"}.
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
 the \textbf{inner syntax} and the enclosing theory language as the \textbf{outer syntax}.
 
@@ -141,8 +133,6 @@ try this one:
 normal_form "rev (a # b # c # xs)"
 
 text{*
-\noindent Chances are that the result will at first puzzle you.
-
 \section{An Introductory Proof}
 \label{sec:intro-proof}
 

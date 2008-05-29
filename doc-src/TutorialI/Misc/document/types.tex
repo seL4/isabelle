@@ -23,49 +23,33 @@
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
 output never contains synonyms.  Their main purpose is to improve the
 readability of theories.  Synonyms can be used just like any other
-type.  Here, we declare two constants of type \isa{gate}:%
+type.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ nand\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
-\ \ \ \ \ \ \ xor\ \ {\isacharcolon}{\isacharcolon}\ gate%
+%
 \isamarkupsubsection{Constant Definitions%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \label{sec:ConstDefinitions}\indexbold{definitions}%
-The constants \isa{nand} and \isa{xor} above are non-recursive and can 
-be defined directly:%
+Nonrecursive definitions can be made with the \commdx{definition}
+command, for example \isa{nand} and \isa{xor} gates
+(based on type \isa{gate} above):%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{defs}\isamarkupfalse%
-\ nand{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ xor{\isacharunderscore}def{\isacharcolon}\ \ {\isachardoublequoteopen}xor\ A\ B\ \ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequoteclose}%
+\isacommand{definition}\isamarkupfalse%
+\ nand\ {\isacharcolon}{\isacharcolon}\ gate\ \isakeyword{where}\ {\isachardoublequoteopen}nand\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ xor\ \ {\isacharcolon}{\isacharcolon}\ gate\ \isakeyword{where}\ {\isachardoublequoteopen}xor\ \ A\ B\ {\isasymequiv}\ A\ {\isasymand}\ {\isasymnot}B\ {\isasymor}\ {\isasymnot}A\ {\isasymand}\ B{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent%
-Here \commdx{defs} is a keyword and
-\isa{nand{\isacharunderscore}def} and \isa{xor{\isacharunderscore}def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
 that must be used in constant definitions.
 Pattern-matching is not allowed: each definition must be of
 the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
 Section~\ref{sec:Simp-with-Defs} explains how definitions are used
-in proofs.
-
-A \commdx{constdefs} command combines the effects of \isacommand{consts} and 
-\isacommand{defs}.  For instance, we can introduce \isa{nand} and \isa{xor} by a 
-single command:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{constdefs}\isamarkupfalse%
-\ nor\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequoteopen}nor\ A\ B\ {\isasymequiv}\ {\isasymnot}{\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ \ xor{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ gate\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequoteopen}xor{\isadigit{2}}\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymor}\ B{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}{\isasymnot}A\ {\isasymor}\ {\isasymnot}B{\isacharparenright}{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-\noindent
-The default name of each definition is $f$\isa{{\isacharunderscore}def}, where
+in proofs. The default name of each definition is $f$\isa{{\isacharunderscore}def}, where
 $f$ is the name of the defined constant.%
 \end{isamarkuptext}%
 \isamarkuptrue%

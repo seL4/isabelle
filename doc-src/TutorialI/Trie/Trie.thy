@@ -19,20 +19,20 @@ which is fine because products are datatypes as well.
 We define two selector functions:
 *};
 
-consts "value" :: "('a,'v)trie \<Rightarrow> 'v option"
-       alist :: "('a,'v)trie \<Rightarrow> ('a * ('a,'v)trie)list";
-primrec "value(Trie ov al) = ov";
-primrec "alist(Trie ov al) = al";
+primrec "value" :: "('a,'v)trie \<Rightarrow> 'v option" where
+"value(Trie ov al) = ov"
+primrec alist :: "('a,'v)trie \<Rightarrow> ('a * ('a,'v)trie)list" where
+"alist(Trie ov al) = al"
 
 text{*\noindent
 Association lists come with a generic lookup function.  Its result
 involves type @{text option} because a lookup can fail:
 *};
 
-consts   assoc :: "('key * 'val)list \<Rightarrow> 'key \<Rightarrow> 'val option";
-primrec "assoc [] x = None"
-        "assoc (p#ps) x =
-           (let (a,b) = p in if a=x then Some b else assoc ps x)";
+primrec assoc :: "('key * 'val)list \<Rightarrow> 'key \<Rightarrow> 'val option" where
+"assoc [] x = None" |
+"assoc (p#ps) x =
+   (let (a,b) = p in if a=x then Some b else assoc ps x)"
 
 text{*
 Now we can define the lookup function for tries. It descends into the trie
@@ -41,11 +41,11 @@ recursion on lists is simpler than on tries, let us express this as primitive
 recursion on the search string argument:
 *};
 
-consts   lookup :: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v option";
-primrec "lookup t [] = value t"
-        "lookup t (a#as) = (case assoc (alist t) a of
-                              None \<Rightarrow> None
-                            | Some at \<Rightarrow> lookup at as)";
+primrec lookup :: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v option" where
+"lookup t [] = value t" |
+"lookup t (a#as) = (case assoc (alist t) a of
+                      None \<Rightarrow> None
+                    | Some at \<Rightarrow> lookup at as)"
 
 text{*
 As a first simple property we prove that looking up a string in the empty
@@ -63,13 +63,12 @@ that adds a new (string, value) pair to a trie, overwriting the old value
 associated with that string:
 *};
 
-consts update :: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v \<Rightarrow> ('a,'v)trie";
-primrec
-  "update t []     v = Trie (Some v) (alist t)"
-  "update t (a#as) v =
-     (let tt = (case assoc (alist t) a of
-                  None \<Rightarrow> Trie None [] | Some at \<Rightarrow> at)
-      in Trie (value t) ((a,update tt as v) # alist t))";
+primrec update:: "('a,'v)trie \<Rightarrow> 'a list \<Rightarrow> 'v \<Rightarrow> ('a,'v)trie" where
+"update t []     v = Trie (Some v) (alist t)" |
+"update t (a#as) v =
+   (let tt = (case assoc (alist t) a of
+                None \<Rightarrow> Trie None [] | Some at \<Rightarrow> at)
+    in Trie (value t) ((a,update tt as v) # alist t))"
 
 text{*\noindent
 The base case is obvious. In the recursive case the subtrie
@@ -165,9 +164,9 @@ sense and solves the proof.
 
 (* Exercise 1. Solution by Getrud Bauer *)
 
-consts update1 :: "('a, 'v) trie \<Rightarrow> 'a list \<Rightarrow> 'v option \<Rightarrow> ('a, 'v) trie"
-primrec
-  "update1 t []     vo = Trie vo (alist t)"
+primrec update1 :: "('a, 'v) trie \<Rightarrow> 'a list \<Rightarrow> 'v option \<Rightarrow> ('a, 'v) trie"
+where
+  "update1 t []     vo = Trie vo (alist t)" |
   "update1 t (a#as) vo =
      (let tt = (case assoc (alist t) a of
                   None \<Rightarrow> Trie None [] 
@@ -183,19 +182,18 @@ done
 
 (* Exercise 2. Solution by Getrud Bauer *)
 
-consts overwrite :: "'a \<Rightarrow> 'b \<Rightarrow> ('a * 'b) list \<Rightarrow> ('a * 'b) list"
-primrec
-  "overwrite a v [] = [(a,v)]"
-  "overwrite a v (p#ps) = (if a = fst p then (a,v)#ps else p # overwrite a v ps)"
+primrec overwrite :: "'a \<Rightarrow> 'b \<Rightarrow> ('a * 'b) list \<Rightarrow> ('a * 'b) list" where
+"overwrite a v [] = [(a,v)]" |
+"overwrite a v (p#ps) = (if a = fst p then (a,v)#ps else p # overwrite a v ps)"
 
 lemma [simp]: "\<forall> a v b. assoc (overwrite a v ps) b = assoc ((a,v)#ps) b"
 apply (induct_tac ps, auto)
 apply (case_tac[!] a)
 done
 
-consts update2 :: "('a, 'v) trie \<Rightarrow> 'a list \<Rightarrow> 'v option \<Rightarrow> ('a, 'v) trie";
-primrec
-  "update2 t []     vo = Trie vo (alist t)"
+primrec update2 :: "('a, 'v) trie \<Rightarrow> 'a list \<Rightarrow> 'v option \<Rightarrow> ('a, 'v) trie"
+where
+  "update2 t []     vo = Trie vo (alist t)" |
   "update2 t (a#as) vo =
      (let tt = (case assoc (alist t) a of 
                   None \<Rightarrow> Trie None []  
@@ -212,15 +210,14 @@ done
 (* Exercise 3. Solution by Getrud Bauer *)
 datatype ('a,'v) triem = Triem  "'v option" "'a \<Rightarrow> ('a,'v) triem option";
 
-consts valuem :: "('a, 'v) triem \<Rightarrow> 'v option"
-primrec "valuem (Triem ov m) = ov";
+primrec valuem :: "('a, 'v) triem \<Rightarrow> 'v option" where
+"valuem (Triem ov m) = ov"
 
-consts mapping :: "('a,'v) triem \<Rightarrow> 'a \<Rightarrow> ('a, 'v) triem option";
-primrec "mapping (Triem ov m) = m";
+primrec mapping :: "('a,'v) triem \<Rightarrow> 'a \<Rightarrow> ('a, 'v) triem option" where
+"mapping (Triem ov m) = m"
 
-consts lookupm :: "('a,'v) triem \<Rightarrow> 'a list \<Rightarrow> 'v option"
-primrec
-  "lookupm t [] = valuem t"
+primrec lookupm :: "('a,'v) triem \<Rightarrow> 'a list \<Rightarrow> 'v option" where
+  "lookupm t [] = valuem t" |
   "lookupm t (a#as) = (case mapping t a of
                         None \<Rightarrow> None
                       | Some at \<Rightarrow> lookupm at as)";
@@ -229,9 +226,8 @@ lemma [simp]: "lookupm (Triem None  (\<lambda>c. None)) as = None";
 apply (case_tac as, simp_all);
 done
 
-consts updatem :: "('a,'v)triem \<Rightarrow> 'a list \<Rightarrow> 'v \<Rightarrow> ('a,'v)triem"
-primrec
-  "updatem t []     v = Triem (Some v) (mapping t)"
+primrec updatem :: "('a,'v)triem \<Rightarrow> 'a list \<Rightarrow> 'v \<Rightarrow> ('a,'v)triem" where
+  "updatem t []     v = Triem (Some v) (mapping t)" |
   "updatem t (a#as) v =
      (let tt = (case mapping t a of
                   None \<Rightarrow> Triem None (\<lambda>c. None) 

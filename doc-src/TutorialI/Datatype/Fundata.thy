@@ -19,9 +19,9 @@ has merely @{term"Tip"}s as further subtrees.
 Function @{term"map_bt"} applies a function to all labels in a @{text"bigtree"}:
 *}
 
-consts map_bt :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a,'i)bigtree \<Rightarrow> ('b,'i)bigtree"
-primrec
-"map_bt f Tip      = Tip"
+primrec map_bt :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a,'i)bigtree \<Rightarrow> ('b,'i)bigtree"
+where
+"map_bt f Tip      = Tip" |
 "map_bt f (Br a F) = Br (f a) (\<lambda>i. map_bt f (F i))"
 
 text{*\noindent This is a valid \isacommand{primrec} definition because the

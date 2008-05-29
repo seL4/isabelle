@@ -24,9 +24,9 @@ Here is a simple example, the \rmindex{Fibonacci function}:%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \ fib\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}fib\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc{\isacharparenleft}Suc\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ x\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ x{\isacharparenright}{\isachardoublequoteclose}%
+{\isachardoublequoteopen}fib\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}fib\ {\isacharparenleft}Suc{\isacharparenleft}Suc\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ x\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ x{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 This resembles ordinary functional programming languages. Note the obligatory
@@ -40,9 +40,9 @@ between any two elements of a list:%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \ sep\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}sep\ a\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}sep\ a\ {\isacharbrackleft}x{\isacharbrackright}\ \ \ \ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}sep\ a\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\ a\ {\isacharparenleft}y{\isacharhash}zs{\isacharparenright}{\isachardoublequoteclose}%
+{\isachardoublequoteopen}sep\ a\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ \ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}sep\ a\ {\isacharbrackleft}x{\isacharbrackright}\ \ \ \ {\isacharequal}\ {\isacharbrackleft}x{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}sep\ a\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep\ a\ {\isacharparenleft}y{\isacharhash}zs{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 This time the length of the list decreases with the
@@ -54,8 +54,8 @@ need not be exhaustive and may employ wildcards:%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \ last\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}last\ {\isacharbrackleft}x{\isacharbrackright}\ \ \ \ \ \ {\isacharequal}\ x{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}last\ {\isacharparenleft}{\isacharunderscore}{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ last\ {\isacharparenleft}y{\isacharhash}zs{\isacharparenright}{\isachardoublequoteclose}%
+{\isachardoublequoteopen}last\ {\isacharbrackleft}x{\isacharbrackright}\ \ \ \ \ \ {\isacharequal}\ x{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}last\ {\isacharparenleft}{\isacharunderscore}{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ last\ {\isacharparenleft}y{\isacharhash}zs{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Overlapping patterns are disambiguated by taking the order of equations into
 account, just as in functional programming:%
@@ -63,8 +63,8 @@ account, just as in functional programming:%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \ sep{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}sep{\isadigit{1}}\ a\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep{\isadigit{1}}\ a\ {\isacharparenleft}y{\isacharhash}zs{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}sep{\isadigit{1}}\ {\isacharunderscore}\ xs\ \ \ \ \ \ \ {\isacharequal}\ xs{\isachardoublequoteclose}%
+{\isachardoublequoteopen}sep{\isadigit{1}}\ a\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ x\ {\isacharhash}\ a\ {\isacharhash}\ sep{\isadigit{1}}\ a\ {\isacharparenleft}y{\isacharhash}zs{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}sep{\isadigit{1}}\ {\isacharunderscore}\ xs\ \ \ \ \ \ \ {\isacharequal}\ xs{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 To guarantee that the second equation can only be applied if the first
@@ -79,8 +79,8 @@ for the definition of non-recursive functions:%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \ swap{\isadigit{1}}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}swap{\isadigit{1}}{\isadigit{2}}\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ y{\isacharhash}x{\isacharhash}zs{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}swap{\isadigit{1}}{\isadigit{2}}\ zs\ \ \ \ \ \ \ {\isacharequal}\ zs{\isachardoublequoteclose}%
+{\isachardoublequoteopen}swap{\isadigit{1}}{\isadigit{2}}\ {\isacharparenleft}x{\isacharhash}y{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ y{\isacharhash}x{\isacharhash}zs{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}swap{\isadigit{1}}{\isadigit{2}}\ zs\ \ \ \ \ \ \ {\isacharequal}\ zs{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 After a function~$f$ has been defined via \isacommand{fun},
 its defining equations (or variants derived from them) are available
@@ -108,9 +108,9 @@ function} is accepted:%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \ ack{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}ack{\isadigit{2}}\ n\ {\isadigit{0}}\ {\isacharequal}\ Suc\ n{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}ack{\isadigit{2}}\ {\isadigit{0}}\ {\isacharparenleft}Suc\ m{\isacharparenright}\ {\isacharequal}\ ack{\isadigit{2}}\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ m{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}ack{\isadigit{2}}\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharparenleft}Suc\ m{\isacharparenright}\ {\isacharequal}\ ack{\isadigit{2}}\ {\isacharparenleft}ack{\isadigit{2}}\ n\ {\isacharparenleft}Suc\ m{\isacharparenright}{\isacharparenright}\ m{\isachardoublequoteclose}%
+{\isachardoublequoteopen}ack{\isadigit{2}}\ n\ {\isadigit{0}}\ {\isacharequal}\ Suc\ n{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}ack{\isadigit{2}}\ {\isadigit{0}}\ {\isacharparenleft}Suc\ m{\isacharparenright}\ {\isacharequal}\ ack{\isadigit{2}}\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ m{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}ack{\isadigit{2}}\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharparenleft}Suc\ m{\isacharparenright}\ {\isacharequal}\ ack{\isadigit{2}}\ {\isacharparenleft}ack{\isadigit{2}}\ n\ {\isacharparenleft}Suc\ m{\isacharparenright}{\isacharparenright}\ m{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The order of arguments has no influence on whether
 \isacommand{fun} can prove termination of a function. For more details
@@ -130,7 +130,7 @@ Let us look at an example:%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \ gcd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}gcd\ m\ n\ {\isacharequal}\ {\isacharparenleft}if\ n{\isacharequal}{\isadigit{0}}\ then\ m\ else\ gcd\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+{\isachardoublequoteopen}gcd\ m\ n\ {\isacharequal}\ {\isacharparenleft}if\ n{\isacharequal}{\isadigit{0}}\ then\ m\ else\ gcd\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The second argument decreases with each recursive call.
@@ -176,8 +176,8 @@ following alternative definition suggests itself:%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \ gcd{\isadigit{1}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}gcd{\isadigit{1}}\ m\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-\ \ {\isachardoublequoteopen}gcd{\isadigit{1}}\ m\ n\ {\isacharequal}\ gcd{\isadigit{1}}\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}{\isachardoublequoteclose}%
+{\isachardoublequoteopen}gcd{\isadigit{1}}\ m\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}gcd{\isadigit{1}}\ m\ n\ {\isacharequal}\ gcd{\isadigit{1}}\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 The order of equations is important: it hides the side condition
@@ -190,7 +190,7 @@ which is also available for \isa{bool} and is not split automatically:%
 \isamarkuptrue%
 \isacommand{fun}\isamarkupfalse%
 \ gcd{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}gcd{\isadigit{2}}\ m\ n\ {\isacharequal}\ {\isacharparenleft}case\ n{\isacharequal}{\isadigit{0}}\ of\ True\ {\isasymRightarrow}\ m\ {\isacharbar}\ False\ {\isasymRightarrow}\ gcd{\isadigit{2}}\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+{\isachardoublequoteopen}gcd{\isadigit{2}}\ m\ n\ {\isacharequal}\ {\isacharparenleft}case\ n{\isacharequal}{\isadigit{0}}\ of\ True\ {\isasymRightarrow}\ m\ {\isacharbar}\ False\ {\isasymRightarrow}\ gcd{\isadigit{2}}\ n\ {\isacharparenleft}m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 This is probably the neatest solution next to pattern matching, and it is

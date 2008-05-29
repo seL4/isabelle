@@ -4,9 +4,8 @@ theory Plus imports Main begin
 
 text{*\noindent Define the following addition function *}
 
-consts add :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-primrec
-"add m 0 = m"
+primrec add :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+"add m 0 = m" |
 "add m (Suc n) = add (Suc m) n"
 
 text{*\noindent and prove*}

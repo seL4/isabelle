@@ -45,10 +45,9 @@ because it calls function @{text"@"} for each element of the list and
 gradually, using only~@{text"#"}:
 *}
 
-consts itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list";
-primrec
-"itrev []     ys = ys"
-"itrev (x#xs) ys = itrev xs (x#ys)";
+primrec itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"itrev []     ys = ys" |
+"itrev (x#xs) ys = itrev xs (x#ys)"
 
 text{*\noindent
 The behaviour of \cdx{itrev} is simple: it reverses

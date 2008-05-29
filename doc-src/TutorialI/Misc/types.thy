@@ -7,43 +7,26 @@ text{*\noindent
 Internally all synonyms are fully expanded.  As a consequence Isabelle's
 output never contains synonyms.  Their main purpose is to improve the
 readability of theories.  Synonyms can be used just like any other
-type.  Here, we declare two constants of type \isa{gate}:
+type.
 *}
-
-consts nand :: gate
-       xor  :: gate
 
 subsection{*Constant Definitions*}
 
 text{*\label{sec:ConstDefinitions}\indexbold{definitions}%
-The constants @{term"nand"} and @{term"xor"} above are non-recursive and can 
-be defined directly:
+Nonrecursive definitions can be made with the \commdx{definition}
+command, for example @{text nand} and @{text xor} gates
+(based on type @{typ gate} above):
 *}
 
-defs nand_def: "nand A B \<equiv> \<not>(A \<and> B)"
-     xor_def:  "xor A B  \<equiv> A \<and> \<not>B \<or> \<not>A \<and> B"
+definition nand :: gate where "nand A B \<equiv> \<not>(A \<and> B)"
+definition xor  :: gate where "xor  A B \<equiv> A \<and> \<not>B \<or> \<not>A \<and> B"
 
 text{*\noindent%
-Here \commdx{defs} is a keyword and
-@{thm[source]nand_def} and @{thm[source]xor_def} are user-supplied names.
 The symbol \indexboldpos{\isasymequiv}{$IsaEq} is a special form of equality
 that must be used in constant definitions.
 Pattern-matching is not allowed: each definition must be of
 the form $f\,x@1\,\dots\,x@n~\isasymequiv~t$.
 Section~\ref{sec:Simp-with-Defs} explains how definitions are used
-in proofs.
-
-A \commdx{constdefs} command combines the effects of \isacommand{consts} and 
-\isacommand{defs}.  For instance, we can introduce @{term"nand"} and @{term"xor"} by a 
-single command: 
-*}
-
-constdefs nor :: gate
-         "nor A B \<equiv> \<not>(A \<or> B)"
-          xor2 :: gate
-         "xor2 A B \<equiv> (A \<or> B) \<and> (\<not>A \<or> \<not>B)"
-
-text{*\noindent
-The default name of each definition is $f$@{text"_def"}, where
+in proofs. The default name of each definition is $f$@{text"_def"}, where
 $f$ is the name of the defined constant.*}
 (*<*)end(*>*)

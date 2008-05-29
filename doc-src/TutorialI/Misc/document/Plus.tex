@@ -19,11 +19,9 @@
 \noindent Define the following addition function%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ add\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
-\isanewline
-{\isachardoublequoteopen}add\ m\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequoteclose}\isanewline
+\ add\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}add\ m\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}add\ m\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ add\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent and prove%

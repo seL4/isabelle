@@ -44,26 +44,24 @@ record point =
   Xcoord :: int
   Ycoord :: int
 
-text {*
+text {*\noindent
   Records of type @{typ point} have two fields named @{const Xcoord}
   and @{const Ycoord}, both of type~@{typ int}.  We now define a
   constant of type @{typ point}:
 *}
 
-constdefs
-  pt1 :: point
-  "pt1 \<equiv> (| Xcoord = 999, Ycoord = 23 |)"
+definition pt1 :: point where
+"pt1 \<equiv> (| Xcoord = 999, Ycoord = 23 |)"
 
-text {*
+text {*\noindent
   We see above the ASCII notation for record brackets.  You can also
   use the symbolic brackets @{text \<lparr>} and @{text \<rparr>}.  Record type
   expressions can be also written directly with individual fields.
   The type name above is merely an abbreviation.
 *}
 
-constdefs
-  pt2 :: "\<lparr>Xcoord :: int, Ycoord :: int\<rparr>"
-  "pt2 \<equiv> \<lparr>Xcoord = -45, Ycoord = 97\<rparr>"
+definition pt2 :: "\<lparr>Xcoord :: int, Ycoord :: int\<rparr>" where
+"pt2 \<equiv> \<lparr>Xcoord = -45, Ycoord = 97\<rparr>"
 
 text {*
   For each field, there is a \emph{selector}\index{selector!record}
@@ -84,7 +82,7 @@ text {*
 *}
 
 lemma "\<lparr>Xcoord = a, Ycoord = b\<rparr>\<lparr>Xcoord := 0\<rparr> =
-    \<lparr>Xcoord = 0, Ycoord = b\<rparr>"
+         \<lparr>Xcoord = 0, Ycoord = b\<rparr>"
   by simp
 
 text {*
@@ -110,17 +108,16 @@ datatype colour = Red | Green | Blue
 record cpoint = point +
   col :: colour
 
-text {*
+text {*\noindent
   The fields of this new type are @{const Xcoord}, @{text Ycoord} and
   @{text col}, in that order.
 *}
 
-constdefs
-  cpt1 :: cpoint
-  "cpt1 \<equiv> \<lparr>Xcoord = 999, Ycoord = 23, col = Green\<rparr>"
+definition cpt1 :: cpoint where
+"cpt1 \<equiv> \<lparr>Xcoord = 999, Ycoord = 23, col = Green\<rparr>"
 
 text {*
-  \medskip We can define generic operations that work on arbitrary
+  We can define generic operations that work on arbitrary
   instances of a record scheme, e.g.\ covering @{typ point}, @{typ
   cpoint}, and any further extensions.  Every record structure has an
   implicit pseudo-field, \cdx{more}, that keeps the extension as an
@@ -150,7 +147,7 @@ text {*
 lemma "point.more cpt1 = \<lparr>col = Green\<rparr>"
   by (simp add: cpt1_def)
 
-text {*
+text {*\noindent
   We see that the colour part attached to this @{typ point} is a
   rudimentary record in its own right, namely @{text "\<lparr>col =
   Green\<rparr>"}.  In order to select or update @{text col}, this fragment
@@ -163,11 +160,12 @@ text {*
 
   \medskip
   \begin{tabular}{l}
-  @{typ point}~@{text "="}~@{typ "\<lparr>Xcoord :: int, Ycoord :: int\<rparr>"} \\
-  @{typ "'a point_scheme"}~@{text "="}~@{typ "\<lparr>Xcoord :: int, Ycoord :: int, \<dots> :: 'a\<rparr>"} \\
+  @{typ point}~@{text "="}~@{text "\<lparr>Xcoord :: int, Ycoord :: int\<rparr>"} \\
+  @{typ "'a point_scheme"}~@{text "="}~@{text "\<lparr>Xcoord :: int, Ycoord :: int, \<dots> :: 'a\<rparr>"} \\
   \end{tabular}
   \medskip
-
+  
+\noindent
   Type @{typ point} is for fixed records having exactly the two fields
   @{const Xcoord} and~@{text Ycoord}, while the polymorphic type @{typ
   "'a point_scheme"} comprises all possible extensions to those two
@@ -180,11 +178,10 @@ text {*
   Xcoord} field.
 *}
 
-constdefs
-  getX :: "'a point_scheme \<Rightarrow> int"
-  "getX r \<equiv> Xcoord r"
-  setX :: "'a point_scheme \<Rightarrow> int \<Rightarrow> 'a point_scheme"
-  "setX r a \<equiv> r\<lparr>Xcoord := a\<rparr>"
+definition getX :: "'a point_scheme \<Rightarrow> int" where
+"getX r \<equiv> Xcoord r"
+definition setX :: "'a point_scheme \<Rightarrow> int \<Rightarrow> 'a point_scheme" where
+"setX r a \<equiv> r\<lparr>Xcoord := a\<rparr>"
 
 text {*
   Here is a generic method that modifies a point, incrementing its
@@ -193,10 +190,9 @@ text {*
   @{typ point} (including @{typ cpoint} etc.):
 *}
 
-constdefs
-  incX :: "'a point_scheme \<Rightarrow> 'a point_scheme"
-  "incX r \<equiv>
-    \<lparr>Xcoord = Xcoord r + 1, Ycoord = Ycoord r, \<dots> = point.more r\<rparr>"
+definition incX :: "'a point_scheme \<Rightarrow> 'a point_scheme" where
+"incX r \<equiv>
+  \<lparr>Xcoord = Xcoord r + 1, Ycoord = Ycoord r, \<dots> = point.more r\<rparr>"
 
 text {*
   Generic theorems can be proved about generic methods.  This trivial
@@ -238,12 +234,12 @@ text {*
 lemma "r\<lparr>Xcoord := a, Ycoord := b\<rparr> = r\<lparr>Ycoord := b, Xcoord := a\<rparr>"
   by simp
 
-text {*
+text {*\noindent
   We see above the syntax for iterated updates.  We could equivalently
   have written the left-hand side as @{text "r\<lparr>Xcoord := a\<rparr>\<lparr>Ycoord :=
   b\<rparr>"}.
 
-  \medskip Record equality is \emph{extensional}:
+  Record equality is \emph{extensional}:
   \index{extensionality!for records} a record is determined entirely
   by the values of its fields.
 *}
@@ -251,7 +247,7 @@ text {*
 lemma "r = \<lparr>Xcoord = Xcoord r, Ycoord = Ycoord r\<rparr>"
   by simp
 
-text {*
+text {*\noindent
   The generic version of this equality includes the pseudo-field
   @{text more}:
 *}
@@ -260,7 +256,7 @@ lemma "r = \<lparr>Xcoord = Xcoord r, Ycoord = Ycoord r, \<dots> = point.more r\
   by simp
 
 text {*
-  \medskip The simplifier can prove many record equalities
+  The simplifier can prove many record equalities
   automatically, but general equality reasoning can be tricky.
   Consider proving this obvious fact:
 *}
@@ -269,7 +265,7 @@ lemma "r\<lparr>Xcoord := a\<rparr> = r\<lparr>Xcoord := a'\<rparr> \<Longrighta
   apply simp?
   oops
 
-text {*
+text {*\noindent
   Here the simplifier can do nothing, since general record equality is
   not eliminated automatically.  One way to proceed is by an explicit
   forward step that applies the selector @{const Xcoord} to both sides
@@ -344,23 +340,19 @@ text {*
   any additional fields.
 
   \end{itemize}
-
   These functions provide useful abbreviations for standard
   record expressions involving constructors and selectors.  The
   definitions, which are \emph{not} unfolded by default, are made
   available by the collective name of @{text defs} (@{text
   point.defs}, @{text cpoint.defs}, etc.).
-
   For example, here are the versions of those functions generated for
   record @{typ point}.  We omit @{text point.fields}, which happens to
   be the same as @{text point.make}.
 
   @{thm [display, indent = 0, margin = 65] point.make_def [no_vars]
   point.extend_def [no_vars] point.truncate_def [no_vars]}
-
   Contrast those with the corresponding functions for record @{typ
   cpoint}.  Observe @{text cpoint.fields} in particular.
-
   @{thm [display, indent = 0, margin = 65] cpoint.make_def [no_vars]
   cpoint.fields_def [no_vars] cpoint.extend_def [no_vars]
   cpoint.truncate_def [no_vars]}
@@ -371,9 +363,8 @@ text {*
   appropriate record fragment by @{text cpoint.fields}.
 *}
 
-constdefs
-  cpt2 :: cpoint
-  "cpt2 \<equiv> point.extend pt1 (cpoint.fields Green)"
+definition cpt2 :: cpoint where
+"cpt2 \<equiv> point.extend pt1 (cpoint.fields Green)"
 
 text {*
   The coloured points @{const cpt1} and @{text cpt2} are equal.  The

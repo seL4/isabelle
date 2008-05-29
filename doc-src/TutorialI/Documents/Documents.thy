@@ -26,7 +26,7 @@ subsection {* Infix Annotations *}
 
 text {*
   Syntax annotations may be included wherever constants are declared,
-  such as \isacommand{consts} and \isacommand{constdefs} --- and also
+  such as \isacommand{definition} and \isacommand{primrec} --- and also
   \isacommand{datatype}, which declares constructor operations.
   Type-constructors may be annotated as well, although this is less
   frequently encountered in practice (the infix type @{text "\<times>"} comes
@@ -37,9 +37,8 @@ text {*
   operation on boolean values illustrates typical infix declarations.
 *}
 
-constdefs
-  xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]" 60)
-  "A [+] B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
+definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]" 60)
+where "A [+] B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 
 text {*
   \noindent Now @{text "xor A B"} and @{text "A [+] B"} refer to the
@@ -142,9 +141,8 @@ text {*
 hide const xor
 setup {* Sign.add_path "version1" *}
 (*>*)
-constdefs
-  xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
-  "A \<oplus> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
+definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
+where "A \<oplus> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 (*<*)
 local
 (*>*)
@@ -166,18 +164,18 @@ text {*
 hide const xor
 setup {* Sign.add_path "version2" *}
 (*>*)
-constdefs
-  xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)
-  "A [+]\<ignore> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
+definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)
+where "A [+]\<ignore> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 
 notation (xsymbols) xor (infixl "\<oplus>\<ignore>" 60)
 (*<*)
 local
 (*>*)
 
-text {*The \commdx{notation} command associates a mixfix
-annotation with a known constant.  The print mode specification of
-\isakeyword{syntax}, here @{text "(xsymbols)"}, is optional.
+text {*\noindent
+The \commdx{notation} command associates a mixfix
+annotation with a known constant.  The print mode specification,
+here @{text "(xsymbols)"}, is optional.
 
 We may now write @{text "A [+] B"} or @{text "A \<oplus> B"} in input, while
 output uses the nicer syntax of $xsymbols$ whenever that print mode is
@@ -212,8 +210,7 @@ text {*
   achieves conformance with notational standards of the European
   Commission.
 
-  Prefix syntax works the same way for \isakeyword{consts} or
-  \isakeyword{constdefs}.
+  Prefix syntax works the same way for other commands that introduce new constants, e.g. \isakeyword{primrec}.
 *}
 
 
@@ -232,10 +229,9 @@ simple mechanism for syntactic macros.
 
 A typical use of abbreviations is to introduce relational notation for
 membership in a set of pairs, replacing @{text "(x, y) \<in> sim"} by
-@{text "x \<approx> y"}.  *}
-
-consts sim :: "('a \<times> 'a) set"
-
+@{text "x \<approx> y"}. We assume that a constant @{text sim } of type
+@{typ"('a \<times> 'a) set"} has been introduced at this point. *}
+(*<*)consts sim :: "('a \<times> 'a) set"(*>*)
 abbreviation sim2 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"   (infix "\<approx>" 50)
 where "x \<approx> y  \<equiv>  (x, y) \<in> sim"
 
@@ -259,7 +255,7 @@ notation (xsymbols) not_equal (infix "\<noteq>\<ignore>" 50)
 text {* \noindent The notation @{text \<noteq>} is introduced separately to restrict it
 to the \emph{xsymbols} mode.
 
- Abbreviations are appropriate when the defined concept is a
+Abbreviations are appropriate when the defined concept is a
 simple variation on an existing one.  But because of the automatic
 folding and unfolding of abbreviations, they do not scale up well to
 large hierarchies of concepts. Abbreviations do not replace

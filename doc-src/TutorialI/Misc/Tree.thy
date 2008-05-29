@@ -8,9 +8,8 @@ Define the datatype of \rmindex{binary trees}:
 
 datatype 'a tree = Tip | Node "'a tree" 'a "'a tree";(*<*)
 
-consts mirror :: "'a tree \<Rightarrow> 'a tree";
-primrec
-"mirror Tip = Tip"
+primrec mirror :: "'a tree \<Rightarrow> 'a tree" where
+"mirror Tip = Tip" |
 "mirror (Node l x r) = Node (mirror r) x (mirror l)";(*>*)
 
 text{*\noindent
@@ -23,9 +22,8 @@ lemma mirror_mirror: "mirror(mirror t) = t";
 apply(induct_tac t);
 by(auto);
 
-consts flatten :: "'a tree => 'a list"
-primrec
-"flatten Tip = []"
+primrec flatten :: "'a tree => 'a list" where
+"flatten Tip = []" |
 "flatten (Node l x r) = flatten l @ [x] @ flatten r";
 (*>*)
 

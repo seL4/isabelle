@@ -43,17 +43,16 @@ Let us define a substitution function on terms. Because terms involve term
 lists, we need to define two substitution functions simultaneously:
 *}
 
-consts
-subst :: "('v\<Rightarrow>('v,'f)term) \<Rightarrow> ('v,'f)term      \<Rightarrow> ('v,'f)term"
-substs:: "('v\<Rightarrow>('v,'f)term) \<Rightarrow> ('v,'f)term list \<Rightarrow> ('v,'f)term list";
-
 primrec
-  "subst s (Var x) = s x"
+subst :: "('v\<Rightarrow>('v,'f)term) \<Rightarrow> ('v,'f)term      \<Rightarrow> ('v,'f)term" and
+substs:: "('v\<Rightarrow>('v,'f)term) \<Rightarrow> ('v,'f)term list \<Rightarrow> ('v,'f)term list"
+where
+"subst s (Var x) = s x" |
   subst_App:
-  "subst s (App f ts) = App f (substs s ts)"
+"subst s (App f ts) = App f (substs s ts)" |
 
-  "substs s [] = []"
-  "substs s (t # ts) = subst s t # substs s ts";
+"substs s [] = []" |
+"substs s (t # ts) = subst s t # substs s ts"
 
 text{*\noindent
 Individual equations in a \commdx{primrec} definition may be
