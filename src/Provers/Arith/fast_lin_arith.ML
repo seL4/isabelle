@@ -92,6 +92,7 @@ sig
                      lessD: thm list, neqE: thm list, simpset: Simplifier.simpset})
                 -> Context.generic -> Context.generic
   val trace: bool ref
+  val warning_count: int ref;
   val cut_lin_arith_tac: simpset -> int -> tactic
   val lin_arith_tac: Proof.context -> bool -> int -> tactic
   val lin_arith_simproc: simpset -> term -> thm option
@@ -419,6 +420,9 @@ fun trace_term ctxt msg t =
 fun trace_msg msg =
   if !trace then tracing msg else ();
 
+val warning_count = ref 0;
+val warning_count_max = 10;
+
 val union_term = curry (gen_union Pattern.aeconv);
 val union_bterm = curry (gen_union
   (fn ((b:bool, t), (b', t')) => b = b' andalso Pattern.aeconv (t, t')));
@@ -435,6 +439,7 @@ with 0 <= n.
 local
   exception FalseE of thm
 in
+
 fun mkthm ss asms (just: injust) =
   let
     val ctxt = Simplifier.the_context ss;
@@ -492,20 +497,30 @@ fun mkthm ss asms (just: injust) =
         | mk (Multiplied (n, j))  = (trace_msg ("*" ^ string_of_int n); trace_thm "*" (multn (n, mk j)))
         | mk (Multiplied2 (n, j)) = simp (trace_msg ("**" ^ string_of_int n); trace_thm "**" (multn2 (n, mk j)))
 
-  in trace_msg "mkthm";
-     let val thm = trace_thm "Final thm:" (mk just)
-     in let val fls = simplify simpset' thm
-        in trace_thm "After simplification:" fls;
-           if LA_Logic.is_False fls then fls
-           else
-            (tracing "Assumptions:"; List.app (tracing o Display.string_of_thm) asms;
-             tracing "Proved:"; tracing (Display.string_of_thm fls);
-             warning "Linear arithmetic should have refuted the assumptions.\n\
-                     \Please inform Tobias Nipkow (nipkow@in.tum.de).";
-             fls)
-        end
-     end handle FalseE thm => trace_thm "False reached early:" thm
-  end
+  in
+    let
+      val _ = trace_msg "mkthm";
+      val thm = trace_thm "Final thm:" (mk just);
+      val fls = simplify simpset' thm;
+      val _ = trace_thm "After simplification:" fls;
+      val _ =
+        if LA_Logic.is_False fls then ()
+        else
+          let val count = CRITICAL (fn () => inc warning_count) in
+            if count > warning_count_max then ()
+            else
+              (tracing (cat_lines
+                (["Assumptions:"] @ map Display.string_of_thm asms @ [""] @
+                 ["Proved:", Display.string_of_thm fls, ""] @
+                 (if count <> warning_count_max then []
+                  else ["\n(Reached maximal message count -- disabling future warnings)"])));
+                warning "Linear arithmetic should have refuted the assumptions.\n\
+                  \Please inform Tobias Nipkow (nipkow@in.tum.de).")
+          end;
+    in fls end
+    handle FalseE thm => trace_thm "False reached early:" thm
+  end;
+
 end;
 
 fun coeff poly atom =
