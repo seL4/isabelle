@@ -16,7 +16,8 @@ open Conv;
 open Normalizer;
 
 exception COOPER of string * exn;
-val simp_thms_conv = Simplifier.rewrite (HOL_basic_ss addsimps simp_thms);
+fun simp_thms_conv ctxt =
+  Simplifier.rewrite (Simplifier.context ctxt HOL_basic_ss addsimps simp_thms);
 val FWD = Drule.implies_elim_list;
 
 val true_tm = @{cterm "True"};
@@ -491,7 +492,7 @@ let
    in [dp, inf, nb, pd] MRS cpth
    end
  val cpth' = Thm.transitive uth (cpth RS eq_reflection)
-in Thm.transitive cpth' ((simp_thms_conv then_conv eval_conv) (Thm.rhs_of cpth'))
+in Thm.transitive cpth' ((simp_thms_conv ctxt then_conv eval_conv) (Thm.rhs_of cpth'))
 end;
 
 fun literals_conv bops uops env cv = 
