@@ -39,11 +39,15 @@ AFP_SESSIONS="\
   HOL-Flyspeck-Tame\
   HOL-Group-Ring-Module\
   HOL-Jinja\
+  HOL-JinjaThreads\
   HOL-JiveDataStoreModel\
+  HOL-LinearQuantifierElim\
   HOL-POPLmark-deBruijn\
   HOL-RSAPSS\
   HOL-SumSquares\
-  HOL-Valuation"
+  HOL-Valuation\
+  Simpl\
+  Simpl-BDD"
 
 for PLATFORM in $PLATFORMS
 do
