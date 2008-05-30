@@ -188,7 +188,7 @@ With the \cmd{fun} command, you can define about 80\% of the
 The \cmd{fun} command provides a
   convenient shorthand notation for simple function definitions. In
   this mode, Isabelle tries to solve all the necessary proof obligations
-  automatically. If a proof fails, the definition is
+  automatically. If any proof fails, the definition is
   rejected. This can either mean that the definition is indeed faulty,
   or that the default proof procedures are just not smart enough (or
   rather: not designed) to handle the definition.
@@ -206,7 +206,7 @@ The \cmd{fun} command provides a
 \hspace*{2ex}\vdots\vspace*{6pt}
 \end{minipage}\right]
 \quad\equiv\quad
-\left[\;\begin{minipage}{0.45\textwidth}\vspace{6pt}
+\left[\;\begin{minipage}{0.48\textwidth}\vspace{6pt}
 \cmd{function} \isa{{\isacharparenleft}}\cmd{sequential}\isa{{\isacharparenright}\ f\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}}\\%
 \cmd{where}\\%
 \hspace*{2ex}{\it equations}\\%
@@ -298,7 +298,7 @@ Consider the following function, which sums up natural numbers up to
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{termination}\isamarkupfalse%
-\isanewline
+\ sum\isanewline
 %
 \isadelimproof
 %
@@ -318,7 +318,7 @@ The \cmd{termination} command sets up the termination goal for the
   these are packed together into a tuple, as it happened in the above
   example.
 
-  The predefined function \isa{measure{\isasymColon}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a\ {\isasymRightarrow}\ bool} constructs a
+  The predefined function \isa{{\isachardoublequote}measure\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set{\isachardoublequote}} constructs a
   wellfounded relation from a mapping into the natural numbers (a
   \emph{measure function}). 
 
@@ -593,7 +593,8 @@ We get four subgoals, which correspond to the clauses in the
 In proofs like this, the simultaneous induction is really essential:
   Even if we are just interested in one of the results, the other
   one is necessary to strengthen the induction hypothesis. If we leave
-  out the statement about \isa{odd} (by substituting it with \isa{True}), the same proof fails:%
+  out the statement about \isa{odd} and just write \isa{True} instead,
+  the same proof fails:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
@@ -754,7 +755,7 @@ And\ X\ X\ {\isacharequal}\ X}
   the form of an elimination rule and states that every \isa{x} of
   the function's input type must match at least one of the patterns\footnote{Completeness could
   be equivalently stated as a disjunction of existential statements: 
-\isa{{\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ F{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}F{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ x\ {\isacharequal}\ {\isacharparenleft}X{\isacharcomma}\ X{\isacharparenright}}.}. If the patterns just involve
+\isa{{\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}T{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ T{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}p{\isacharcomma}\ F{\isacharparenright}{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymexists}p{\isachardot}\ x\ {\isacharequal}\ {\isacharparenleft}F{\isacharcomma}\ p{\isacharparenright}{\isacharparenright}\ {\isasymor}\ x\ {\isacharequal}\ {\isacharparenleft}X{\isacharcomma}\ X{\isacharparenright}}, and you can use the method \isa{atomize{\isacharunderscore}elim} to get that form instead.}. If the patterns just involve
   datatypes, we can solve it with the \isa{pat{\isacharunderscore}completeness}
   method:%
 \end{isamarkuptxt}%
@@ -940,8 +941,8 @@ We can stretch the notion of pattern matching even more. The
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-This general notion of pattern matching gives you the full freedom
-  of mathematical specifications. However, as always, freedom should
+This general notion of pattern matching gives you a certain freedom
+  in writing down specifications. However, as always, such freedom should
   be used with care:
 
   If we leave the area of constructor
@@ -1792,29 +1793,13 @@ Higher-order recursion occurs when recursive calls
   list functions \isa{rev} and \isa{map}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{function}\isamarkupfalse%
+\isacommand{fun}\isamarkupfalse%
 \ mirror\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ tree\ {\isasymRightarrow}\ {\isacharprime}a\ tree{\isachardoublequoteclose}\isanewline
 \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Leaf\ n{\isacharparenright}\ {\isacharequal}\ Leaf\ n{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Branch\ l{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}rev\ {\isacharparenleft}map\ mirror\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ pat{\isacharunderscore}completeness\ auto%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
+{\isacharbar}\ {\isachardoublequoteopen}mirror\ {\isacharparenleft}Branch\ l{\isacharparenright}\ {\isacharequal}\ Branch\ {\isacharparenleft}rev\ {\isacharparenleft}map\ mirror\ l{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-\emph{Note: The handling of size functions is currently changing 
-  in the developers version of Isabelle. So this documentation is outdated.}%
+Although the definition is accepted without problems, let us look at the termination proof:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{termination}\isamarkupfalse%
@@ -1829,7 +1814,8 @@ Higher-order recursion occurs when recursive calls
 \begin{isamarkuptxt}%
 As usual, we have to give a wellfounded relation, such that the
   arguments of the recursive calls get smaller. But what exactly are
-  the arguments of the recursive calls? Isabelle gives us the
+  the arguments of the recursive calls when mirror is given as an
+  argument to map? Isabelle gives us the
   subgoals
 
   \begin{isabelle}%
@@ -1837,74 +1823,11 @@ As usual, we have to give a wellfounded relation, such that the
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}l\ x{\isachardot}\ x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ {\isacharparenleft}x{\isacharcomma}\ Branch\ l{\isacharparenright}\ {\isasymin}\ {\isacharquery}R%
 \end{isabelle} 
 
-  So Isabelle seems to know that \isa{map} behaves nicely and only
+  So the system seems to know that \isa{map} only
   applies the recursive call \isa{mirror} to elements
-  of \isa{l}. Before we discuss where this knowledge comes from,
-  let us finish the termination proof:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}wf\ {\isacharparenleft}measure\ size{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
-\isacommand{next}\isamarkupfalse%
-\isanewline
-\ \ \isacommand{fix}\isamarkupfalse%
-\ f\ l\ \isakeyword{and}\ x\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ tree{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{assume}\isamarkupfalse%
-\ {\isachardoublequoteopen}x\ {\isasymin}\ set\ l{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{thus}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharparenleft}x{\isacharcomma}\ Branch\ l{\isacharparenright}\ {\isasymin}\ measure\ size{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{apply}\isamarkupfalse%
-\ simp%
-\begin{isamarkuptxt}%
-Simplification returns the following subgoal: 
+  of \isa{l}, which is essential for the termination proof.
 
-      \begin{isabelle}%
-{\isadigit{1}}{\isachardot}\ x\ {\isasymin}\ set\ l\ {\isasymLongrightarrow}\ size\ x\ {\isacharless}\ Suc\ {\isacharparenleft}list{\isacharunderscore}size\ size\ l{\isacharparenright}%
-\end{isabelle} 
-
-      We are lacking a property about the function \isa{tree{\isacharunderscore}list{\isacharunderscore}size}, which was generated automatically at the
-      definition of the \isa{tree} type. We should go back and prove
-      it, by induction.%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\ \ \ \ %
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
-Now the whole termination proof is automatic:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{termination}\isamarkupfalse%
-\ \isanewline
-%
-\isadelimproof
-\ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ lexicographic{\isacharunderscore}order%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isamarkupsubsection{Congruence Rules%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Let's come back to the question how Isabelle knows about \isa{map}.
-
-  The knowledge about map is encoded in so-called congruence rules,
+  This knowledge about map is encoded in so-called congruence rules,
   which are special theorems known to the \cmd{function} command. The
   rule for map is
 
@@ -1915,7 +1838,7 @@ Let's come back to the question how Isabelle knows about \isa{map}.
   You can read this in the following way: Two applications of \isa{map} are equal, if the list arguments are equal and the functions
   coincide on the elements of the list. This means that for the value 
   \isa{map\ f\ l} we only have to know how \isa{f} behaves on
-  \isa{l}.
+  the elements of \isa{l}.
 
   Usually, one such congruence rule is
   needed for each higher-order construct that is used when defining
@@ -1934,11 +1857,18 @@ Let's come back to the question how Isabelle knows about \isa{map}.
 
   The constructs that are predefined in Isabelle, usually
   come with the respective congruence rules.
-  But if you define your own higher-order functions, you will have to
-  come up with the congruence rules yourself, if you want to use your
+  But if you define your own higher-order functions, you may have to
+  state and prove the required congruence rules yourself, if you want to use your
   functions in recursive definitions.%
-\end{isamarkuptext}%
+\end{isamarkuptxt}%
 \isamarkuptrue%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 %
 \isamarkupsubsection{Congruence Rules and Evaluation Order%
 }
@@ -1976,7 +1906,7 @@ Higher order logic differs from functional programming languages in
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-As given above, the definition fails. The default configuration
+For this definition, the termination proof fails. The default configuration
   specifies no congruence rule for disjunction. We have to add a
   congruence rule that specifies left-to-right evaluation order:
 

@@ -1,6 +1,6 @@
 \section{Introduction}
 
-Since the release of Isabelle 2007, new facilities for recursive
+Starting from Isabelle 2007, new facilities for recursive
 function definitions~\cite{krauss2006} are available. They provide
 better support for general recursive definitions than previous
 packages.  But despite all tool support, function definitions can
@@ -11,7 +11,7 @@ of the package and related tools. It should help you get started with
 defining functions quickly. For the more difficult definitions we will
 discuss what problems can arise, and how they can be solved.
 
-We assume that you have mastered the basics of Isabelle/HOL
+We assume that you have mastered the fundamentals of Isabelle/HOL
 and are able to write basic specifications and proofs. To start out
 with Isabelle in general, consult the Isabelle/HOL tutorial
 \cite{isa-tutorial}.
@@ -21,13 +21,13 @@ with Isabelle in general, consult the Isabelle/HOL tutorial
 \paragraph{Structure of this tutorial.}
 Section 2 introduces the syntax and basic operation of the \cmd{fun}
 command, which provides full automation with reasonable default
-behavior.  The impatient reader might want to stop after that
+behavior.  The impatient reader can stop after that
 section, and consult the remaining sections only when needed.
 Section 3 introduces the more verbose \cmd{function} command which
-gives fine-grained control to the user. This form should be used
+gives fine-grained control. This form should be used
 whenever the short form fails.
-After that we discuss different issues that are more specialized:
-termination, mutual and nested recursion, partiality, pattern matching
+After that we discuss more specialized issues:
+termination, mutual, nested and higher-order recursion, partiality, pattern matching
 and others.
 
 
@@ -45,9 +45,9 @@ to existing principles.
 
 
 
-The new \cmd{function} command, and its short form \cmd{fun} will
-replace the traditional \cmd{recdef} command \cite{slind-tfl} in the future. It solves
-a few of technical issues around \cmd{recdef}, and allows definitions
+The new \cmd{function} command, and its short form \cmd{fun} have mostly
+replaced the traditional \cmd{recdef} command \cite{slind-tfl}. They solve
+a few of technical issues around \cmd{recdef}, and allow definitions
 which were not previously possible.
 
 

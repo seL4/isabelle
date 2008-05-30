@@ -123,7 +123,7 @@ text {*
   The \cmd{fun} command provides a
   convenient shorthand notation for simple function definitions. In
   this mode, Isabelle tries to solve all the necessary proof obligations
-  automatically. If a proof fails, the definition is
+  automatically. If any proof fails, the definition is
   rejected. This can either mean that the definition is indeed faulty,
   or that the default proof procedures are just not smart enough (or
   rather: not designed) to handle the definition.
@@ -141,7 +141,7 @@ text {*
 \hspace*{2ex}\vdots\vspace*{6pt}
 \end{minipage}\right]
 \quad\equiv\quad
-\left[\;\begin{minipage}{0.45\textwidth}\vspace{6pt}
+\left[\;\begin{minipage}{0.48\textwidth}\vspace{6pt}
 \cmd{function} @{text "("}\cmd{sequential}@{text ") f :: \<tau>"}\\%
 \cmd{where}\\%
 \hspace*{2ex}{\it equations}\\%
@@ -211,7 +211,7 @@ text {*
   We can use this expression as a measure function suitable to prove termination.
 *}
 
-termination
+termination sum
 apply (relation "measure (\<lambda>(i,N). N + 1 - i)")
 
 txt {*
@@ -225,7 +225,7 @@ txt {*
   these are packed together into a tuple, as it happened in the above
   example.
 
-  The predefined function @{term_type "measure"} constructs a
+  The predefined function @{term[source] "measure :: ('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set"} constructs a
   wellfounded relation from a mapping into the natural numbers (a
   \emph{measure function}). 
 
@@ -430,8 +430,8 @@ text {*
   In proofs like this, the simultaneous induction is really essential:
   Even if we are just interested in one of the results, the other
   one is necessary to strengthen the induction hypothesis. If we leave
-  out the statement about @{const odd} (by substituting it with @{term
-  "True"}), the same proof fails:
+  out the statement about @{const odd} and just write @{term True} instead,
+  the same proof fails:
 *}
 
 lemma failed_attempt:
@@ -543,7 +543,7 @@ txt {*
   the function's input type must match at least one of the patterns\footnote{Completeness could
   be equivalently stated as a disjunction of existential statements: 
 @{term "(\<exists>p. x = (T, p)) \<or> (\<exists>p. x = (p, T)) \<or> (\<exists>p. x = (p, F)) \<or>
-  (\<exists>p. x = (F, p)) \<or> (x = (X, X))"}.}. If the patterns just involve
+  (\<exists>p. x = (F, p)) \<or> (x = (X, X))"}, and you can use the method @{text atomize_elim} to get that form instead.}. If the patterns just involve
   datatypes, we can solve it with the @{text "pat_completeness"}
   method:
 *}
@@ -605,7 +605,6 @@ apply arith
 apply auto
 done
 termination by lexicographic_order
-
 text {*
   We can stretch the notion of pattern matching even more. The
   following function is not a sensible functional program, but a
@@ -621,8 +620,8 @@ by arith+
 termination by (relation "{}") simp
 
 text {*
-  This general notion of pattern matching gives you the full freedom
-  of mathematical specifications. However, as always, freedom should
+  This general notion of pattern matching gives you a certain freedom
+  in writing down specifications. However, as always, such freedom should
   be used with care:
 
   If we leave the area of constructor
@@ -1152,16 +1151,13 @@ datatype 'a tree =
 text {* \noindent We can define a function which swaps the left and right subtrees recursively, using the 
   list functions @{const rev} and @{const map}: *}
 
-function mirror :: "'a tree \<Rightarrow> 'a tree"
+fun mirror :: "'a tree \<Rightarrow> 'a tree"
 where
   "mirror (Leaf n) = Leaf n"
 | "mirror (Branch l) = Branch (rev (map mirror l))"
-by pat_completeness auto
-
 
 text {*
-  \emph{Note: The handling of size functions is currently changing 
-  in the developers version of Isabelle. So this documentation is outdated.}
+  Although the definition is accepted without problems, let us look at the termination proof:
 *}
 
 termination proof
@@ -1169,49 +1165,17 @@ termination proof
 
   As usual, we have to give a wellfounded relation, such that the
   arguments of the recursive calls get smaller. But what exactly are
-  the arguments of the recursive calls? Isabelle gives us the
+  the arguments of the recursive calls when mirror is given as an
+  argument to map? Isabelle gives us the
   subgoals
 
   @{subgoals[display,indent=0]} 
 
-  So Isabelle seems to know that @{const map} behaves nicely and only
+  So the system seems to know that @{const map} only
   applies the recursive call @{term "mirror"} to elements
-  of @{term "l"}. Before we discuss where this knowledge comes from,
-  let us finish the termination proof:
-  *}
+  of @{term "l"}, which is essential for the termination proof.
 
-  show "wf (measure size)" by simp
-next
-  fix f l and x :: "'a tree"
-  assume "x \<in> set l"
-  thus "(x, Branch l) \<in> measure size"
-    apply simp
-    txt {*
-      Simplification returns the following subgoal: 
-
-      @{text[display] "1. x \<in> set l \<Longrightarrow> size x < Suc (list_size size l)"} 
-
-      We are lacking a property about the function @{term
-      tree_list_size}, which was generated automatically at the
-      definition of the @{text tree} type. We should go back and prove
-      it, by induction.
-      *}
-    (*<*)oops(*>*)
-
-text {* 
-    Now the whole termination proof is automatic:
-  *}
-
-termination 
-  by lexicographic_order
-
-subsection {* Congruence Rules *}
-
-text {*
-  Let's come back to the question how Isabelle knows about @{const
-  map}.
-
-  The knowledge about map is encoded in so-called congruence rules,
+  This knowledge about map is encoded in so-called congruence rules,
   which are special theorems known to the \cmd{function} command. The
   rule for map is
 
@@ -1221,7 +1185,7 @@ text {*
   map} are equal, if the list arguments are equal and the functions
   coincide on the elements of the list. This means that for the value 
   @{term "map f l"} we only have to know how @{term f} behaves on
-  @{term l}.
+  the elements of @{term l}.
 
   Usually, one such congruence rule is
   needed for each higher-order construct that is used when defining
@@ -1238,10 +1202,11 @@ text {*
 
   The constructs that are predefined in Isabelle, usually
   come with the respective congruence rules.
-  But if you define your own higher-order functions, you will have to
-  come up with the congruence rules yourself, if you want to use your
+  But if you define your own higher-order functions, you may have to
+  state and prove the required congruence rules yourself, if you want to use your
   functions in recursive definitions. 
 *}
+(*<*)oops(*>*)
 
 subsection {* Congruence Rules and Evaluation Order *}
 
@@ -1265,7 +1230,7 @@ where
 (*<*)by pat_completeness auto(*>*)
 
 text {*
-  As given above, the definition fails. The default configuration
+  For this definition, the termination proof fails. The default configuration
   specifies no congruence rule for disjunction. We have to add a
   congruence rule that specifies left-to-right evaluation order:
 
