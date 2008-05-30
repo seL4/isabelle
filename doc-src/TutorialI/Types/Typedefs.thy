@@ -132,13 +132,9 @@ In our example it suffices to give the three elements of type @{typ three}
 names:
 *}
 
-constdefs
-  A:: three
- "A \<equiv> Abs_three 0"
-  B:: three
- "B \<equiv> Abs_three 1"
-  C :: three
- "C \<equiv> Abs_three 2"
+definition A :: three where "A \<equiv> Abs_three 0"
+definition B :: three where "B \<equiv> Abs_three 1"
+definition C :: three where "C \<equiv> Abs_three 2"
 
 text{*
 So far, everything was easy. But it is clear that reasoning about @{typ

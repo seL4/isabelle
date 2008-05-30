@@ -161,8 +161,8 @@ only the proofs of the abstract properties will be affected.
 
 For example, given *}
 
-constdefs xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
-         "xor A B \<equiv> (A \<and> \<not>B) \<or> (\<not>A \<and> B)"
+definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
+"xor A B \<equiv> (A \<and> \<not>B) \<or> (\<not>A \<and> B)"
 
 text{*\noindent
 we may want to prove

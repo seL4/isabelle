@@ -143,7 +143,7 @@ apply intro_classes;
 
 txt{*\noindent
 @{subgoals[display,show_sorts]}
-Assuming @{text"'a :: parord"}, the three axioms of class @{text strord}
+Because of @{text"'a :: parord"}, the three axioms of class @{text strord}
 are easily proved:
 *}
 

@@ -225,9 +225,9 @@ only the proofs of the abstract properties will be affected.
 For example, given%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{constdefs}\isamarkupfalse%
-\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ {\isachardoublequoteopen}xor\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
+\isacommand{definition}\isamarkupfalse%
+\ xor\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}bool\ {\isasymRightarrow}\ bool\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}xor\ A\ B\ {\isasymequiv}\ {\isacharparenleft}A\ {\isasymand}\ {\isasymnot}B{\isacharparenright}\ {\isasymor}\ {\isacharparenleft}{\isasymnot}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent
 we may want to prove%

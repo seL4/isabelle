@@ -337,12 +337,12 @@ where @{term f} is true \emph{U}ntil @{term g} becomes true''.  We need
 an auxiliary function:
 *}
 
-consts until:: "state set \<Rightarrow> state set \<Rightarrow> state \<Rightarrow> state list \<Rightarrow> bool"
 primrec
-"until A B s []    = (s \<in> B)"
+until:: "state set \<Rightarrow> state set \<Rightarrow> state \<Rightarrow> state list \<Rightarrow> bool" where
+"until A B s []    = (s \<in> B)" |
 "until A B s (t#p) = (s \<in> A \<and> (s,t) \<in> M \<and> until A B t p)"
-(*<*)constdefs
- eusem :: "state set \<Rightarrow> state set \<Rightarrow> state set"
+(*<*)definition
+ eusem :: "state set \<Rightarrow> state set \<Rightarrow> state set" where
 "eusem A B \<equiv> {s. \<exists>p. until A B s p}"(*>*)
 
 text{*\noindent

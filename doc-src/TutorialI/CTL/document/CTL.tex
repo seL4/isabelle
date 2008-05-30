@@ -470,11 +470,10 @@ where \isa{f} is true \emph{U}ntil \isa{g} becomes true''.  We need
 an auxiliary function:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{consts}\isamarkupfalse%
-\ until{\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ {\isasymRightarrow}\ state\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \isacommand{primrec}\isamarkupfalse%
 \isanewline
-{\isachardoublequoteopen}until\ A\ B\ s\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ B{\isacharparenright}{\isachardoublequoteclose}\isanewline
+until{\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}state\ set\ {\isasymRightarrow}\ state\ set\ {\isasymRightarrow}\ state\ {\isasymRightarrow}\ state\ list\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}until\ A\ B\ s\ {\isacharbrackleft}{\isacharbrackright}\ \ \ \ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ B{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
 {\isachardoublequoteopen}until\ A\ B\ s\ {\isacharparenleft}t{\isacharhash}p{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}s\ {\isasymin}\ A\ {\isasymand}\ {\isacharparenleft}s{\isacharcomma}t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ until\ A\ B\ t\ p{\isacharparenright}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent

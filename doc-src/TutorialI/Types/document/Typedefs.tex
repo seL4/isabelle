@@ -177,14 +177,12 @@ In our example it suffices to give the three elements of type \isa{three}
 names:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\isacommand{constdefs}\isamarkupfalse%
-\isanewline
-\ \ A{\isacharcolon}{\isacharcolon}\ three\isanewline
-\ {\isachardoublequoteopen}A\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
-\ \ B{\isacharcolon}{\isacharcolon}\ three\isanewline
-\ {\isachardoublequoteopen}B\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
-\ \ C\ {\isacharcolon}{\isacharcolon}\ three\isanewline
-\ {\isachardoublequoteopen}C\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{2}}{\isachardoublequoteclose}%
+\isacommand{definition}\isamarkupfalse%
+\ A\ {\isacharcolon}{\isacharcolon}\ three\ \isakeyword{where}\ {\isachardoublequoteopen}A\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ B\ {\isacharcolon}{\isacharcolon}\ three\ \isakeyword{where}\ {\isachardoublequoteopen}B\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ C\ {\isacharcolon}{\isacharcolon}\ three\ \isakeyword{where}\ {\isachardoublequoteopen}C\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{2}}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 So far, everything was easy. But it is clear that reasoning about \isa{three} will be hell if we have to go back to \isa{nat} every time. Thus our
 aim must be to raise our level of abstraction by deriving enough theorems

@@ -474,11 +474,9 @@ text {*
 
   subsection {\ttlbrace}* Basic definitions *{\ttrbrace}
 
-  consts
-    foo :: \dots
-    bar :: \dots
+  definition foo :: \dots
 
-  defs \dots
+  definition bar :: \dots
 
   subsection {\ttlbrace}* Derived rules *{\ttrbrace}
 
