@@ -1,6 +1,6 @@
 
-This distribution of E 0.999 has been compiled according to the README
-included in the official version from
+This distribution of E 0.999-006 has been compiled according to the
+README included in the official version from
 http://www4.informatik.tu-muenchen.de/~schulz/WORK/eprover.html
 
   $ tar xvzf E.tgz
@@ -26,6 +26,6 @@ directory (e.g. E/x86-linux).
 
 
 	Makarius
-	14-Nov-2007
+	31-May-2008
 
 $Id$
