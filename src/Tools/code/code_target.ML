@@ -43,7 +43,7 @@ sig
   val sml_of: theory -> CodeThingol.code -> string list -> string;
   val eval: theory -> (string * (unit -> 'a) option ref)
     -> CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
-  val code_width: int ref;
+  val target_code_width: int ref;
 
   val setup: theory -> theory;
 end;
@@ -66,19 +66,19 @@ fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun enum_default default sep opn cls [] = str default
   | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
 
-datatype serialization_dest = Compile | Write | File of Path.T | String;
-type serialization = serialization_dest -> string option;
+datatype destination = Compile | Write | File of Path.T | String;
+type serialization = destination -> string option;
 
-val code_width = ref 80;
-fun code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin (!code_width) f);
-fun code_source p = code_setmp Pretty.string_of p ^ "\n";
-fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
+val target_code_width = ref 80; (*FIXME after Pretty module no longer depends on print mode*)
+fun target_code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin (!target_code_width) f);
+fun target_code_of_pretty p = target_code_setmp Pretty.string_of p ^ "\n";
+fun target_code_writeln p = Pretty.setmp_margin (!target_code_width) Pretty.writeln p;
 
-(*FIXME why another code_setmp?*)
-fun compile f = (code_setmp f Compile; ());
-fun write f = (code_setmp f Write; ());
-fun file p f = (code_setmp f (File p); ());
-fun string f = the (code_setmp f String);
+(*FIXME why another target_code_setmp?*)
+fun compile f = (target_code_setmp f Compile; ());
+fun write f = (target_code_setmp f Write; ());
+fun file p f = (target_code_setmp f (File p); ());
+fun string f = the (target_code_setmp f String);
 
 
 (** generic syntax **)
@@ -96,27 +96,25 @@ fun fixity_lrx L L = false
   | fixity_lrx R R = false
   | fixity_lrx _ _ = true;
 
-fun fixity NOBR NOBR = false
-  | fixity BR NOBR = false
-  | fixity NOBR BR = false
+fun fixity NOBR _ = false
+  | fixity _ NOBR = false
   | fixity (INFX (pr, lr)) (INFX (pr_ctxt, lr_ctxt)) =
       pr < pr_ctxt
       orelse pr = pr_ctxt
         andalso fixity_lrx lr lr_ctxt
       orelse pr_ctxt = ~1
-  | fixity _ (INFX _) = false
-  | fixity (INFX _) NOBR = false
+  | fixity BR (INFX _) = false
   | fixity _ _ = true;
 
 fun gen_brackify _ [p] = p
   | gen_brackify true (ps as _::_) = Pretty.enclose "(" ")" ps
   | gen_brackify false (ps as _::_) = Pretty.block ps;
 
-fun brackify fxy_ctxt ps =
-  gen_brackify (fixity BR fxy_ctxt) (Pretty.breaks ps);
+fun brackify fxy_ctxt =
+  gen_brackify (fixity BR fxy_ctxt) o Pretty.breaks;
 
-fun brackify_infix infx fxy_ctxt ps =
-  gen_brackify (fixity (INFX infx) fxy_ctxt) (Pretty.breaks ps);
+fun brackify_infix infx fxy_ctxt =
+  gen_brackify (fixity (INFX infx) fxy_ctxt) o Pretty.breaks;
 
 type class_syntax = string * (string -> string option);
 type typ_syntax = int * ((fixity -> itype -> Pretty.T)
@@ -132,62 +130,64 @@ val target_SML = "SML";
 val target_OCaml = "OCaml";
 val target_Haskell = "Haskell";
 
-datatype syntax_expr = SyntaxExpr of {
+datatype name_syntax_table = NameSyntaxTable of {
   class: (string * (string -> string option)) Symtab.table,
   inst: unit Symtab.table,
   tyco: typ_syntax Symtab.table,
   const: term_syntax Symtab.table
 };
 
-fun mk_syntax_expr ((class, inst), (tyco, const)) =
-  SyntaxExpr { class = class, inst = inst, tyco = tyco, const = const };
-fun map_syntax_expr f (SyntaxExpr { class, inst, tyco, const }) =
-  mk_syntax_expr (f ((class, inst), (tyco, const)));
-fun merge_syntax_expr (SyntaxExpr { class = class1, inst = inst1, tyco = tyco1, const = const1 },
-    SyntaxExpr { class = class2, inst = inst2, tyco = tyco2, const = const2 }) =
-  mk_syntax_expr (
+fun mk_name_syntax_table ((class, inst), (tyco, const)) =
+  NameSyntaxTable { class = class, inst = inst, tyco = tyco, const = const };
+fun map_name_syntax_table f (NameSyntaxTable { class, inst, tyco, const }) =
+  mk_name_syntax_table (f ((class, inst), (tyco, const)));
+fun merge_name_syntax_table (NameSyntaxTable { class = class1, inst = inst1, tyco = tyco1, const = const1 },
+    NameSyntaxTable { class = class2, inst = inst2, tyco = tyco2, const = const2 }) =
+  mk_name_syntax_table (
     (Symtab.join (K snd) (class1, class2),
        Symtab.join (K snd) (inst1, inst2)),
     (Symtab.join (K snd) (tyco1, tyco2),
        Symtab.join (K snd) (const1, const2))
   );
 
-type serializer =
-  string option
-  -> Args.T list
-  -> (string -> string)
-  -> string list
-  -> (string * Pretty.T) list
-  -> (string -> string option)
+type serializer = (*FIXME order of arguments*)
+  string option                         (*module name*)
+  -> Args.T list                        (*arguments*)
+  -> (string -> string)                 (*labelled_name*)
+  -> string list                        (*reserved symbols*)
+  -> (string * Pretty.T) list           (*includes*)
+  -> (string -> string option)          (*module aliasses*)
   -> (string -> class_syntax option)
   -> (string -> typ_syntax option)
   -> (string -> term_syntax option)
-  -> CodeThingol.code -> string list -> serialization;
+  -> CodeThingol.code                   (*program*)
+  -> string list                        (*selected statements*)
+  -> serialization;
 
 datatype target = Target of {
   serial: serial,
   serializer: serializer,
   reserved: string list,
   includes: Pretty.T Symtab.table,
-  syntax_expr: syntax_expr,
+  name_syntax_table: name_syntax_table,
   module_alias: string Symtab.table
 };
 
-fun mk_target ((serial, serializer), ((reserved, includes), (syntax_expr, module_alias))) =
+fun mk_target ((serial, serializer), ((reserved, includes), (name_syntax_table, module_alias))) =
   Target { serial = serial, serializer = serializer, reserved = reserved, 
-    includes = includes, syntax_expr = syntax_expr, module_alias = module_alias };
-fun map_target f ( Target { serial, serializer, reserved, includes, syntax_expr, module_alias } ) =
-  mk_target (f ((serial, serializer), ((reserved, includes), (syntax_expr, module_alias))));
+    includes = includes, name_syntax_table = name_syntax_table, module_alias = module_alias };
+fun map_target f ( Target { serial, serializer, reserved, includes, name_syntax_table, module_alias } ) =
+  mk_target (f ((serial, serializer), ((reserved, includes), (name_syntax_table, module_alias))));
 fun merge_target target (Target { serial = serial1, serializer = serializer,
   reserved = reserved1, includes = includes1,
-  syntax_expr = syntax_expr1, module_alias = module_alias1 },
+  name_syntax_table = name_syntax_table1, module_alias = module_alias1 },
     Target { serial = serial2, serializer = _,
       reserved = reserved2, includes = includes2,
-      syntax_expr = syntax_expr2, module_alias = module_alias2 }) =
+      name_syntax_table = name_syntax_table2, module_alias = module_alias2 }) =
   if serial1 = serial2 then
     mk_target ((serial1, serializer),
       ((merge (op =) (reserved1, reserved2), Symtab.merge (op =) (includes1, includes2)),
-        (merge_syntax_expr (syntax_expr1, syntax_expr2),
+        (merge_name_syntax_table (name_syntax_table1, name_syntax_table2),
           Symtab.join (K snd) (module_alias1, module_alias2))
     ))
   else
@@ -206,7 +206,7 @@ structure CodeTargetData = TheoryDataFun
 fun the_serializer (Target { serializer, ... }) = serializer;
 fun the_reserved (Target { reserved, ... }) = reserved;
 fun the_includes (Target { includes, ... }) = includes;
-fun the_syntax_expr (Target { syntax_expr = SyntaxExpr x, ... }) = x;
+fun the_name_syntax (Target { name_syntax_table = NameSyntaxTable x, ... }) = x;
 fun the_module_alias (Target { module_alias , ... }) = module_alias;
 
 fun assert_serializer thy target =
@@ -217,13 +217,13 @@ fun assert_serializer thy target =
 fun add_serializer (target, seri) thy =
   let
     val _ = case Symtab.lookup (fst (CodeTargetData.get thy)) target
-     of SOME _ => warning ("overwriting existing serializer " ^ quote target)
+     of SOME _ => warning ("Overwriting existing serializer " ^ quote target)
       | NONE => ();
   in
     thy
     |> (CodeTargetData.map o apfst oo Symtab.map_default)
           (target, mk_target ((serial (), seri), (([], Symtab.empty),
-            (mk_syntax_expr ((Symtab.empty, Symtab.empty), (Symtab.empty, Symtab.empty)),
+            (mk_name_syntax_table ((Symtab.empty, Symtab.empty), (Symtab.empty, Symtab.empty)),
               Symtab.empty))))
           ((map_target o apfst o apsnd o K) seri)
   end;
@@ -238,8 +238,8 @@ fun map_seri_data target f thy =
 
 fun map_adaptions target =
   map_seri_data target o apsnd o apfst;
-fun map_syntax_exprs target =
-  map_seri_data target o apsnd o apsnd o apfst o map_syntax_expr;
+fun map_name_syntax target =
+  map_seri_data target o apsnd o apsnd o apfst o map_name_syntax_table;
 fun map_module_alias target =
   map_seri_data target o apsnd o apsnd o apsnd;
 
@@ -253,7 +253,7 @@ fun get_serializer get_seri thy target permissive =
     val reserved = the_reserved data;
     val includes = Symtab.dest (the_includes data);
     val alias = the_module_alias data;
-    val { class, inst, tyco, const } = the_syntax_expr data;
+    val { class, inst, tyco, const } = the_name_syntax data;
     val project = if target = target_diag then K I
       else CodeThingol.project_code permissive
         (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const);
@@ -285,7 +285,7 @@ fun gen_pr_app pr_app' pr_term const_syntax labelled_name is_cons
       lhs vars fxy (app as ((c, (_, tys)), ts)) =
   case const_syntax c
    of NONE => if lhs andalso not (is_cons c) then
-          error ("non-constructor on left hand side of equation: " ^ labelled_name c)
+          error ("Non-constructor on left hand side of equation: " ^ labelled_name c)
         else brackify fxy (pr_app' lhs vars app)
     | SOME (i, pr) =>
         let
@@ -1074,7 +1074,7 @@ fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_sy
               map_nsp_fun (name_def false name) >>
                 (fn base => (base, (name, (apsnd o map) fst info)))
           | (name, def) =>
-              error ("Function block containing illegal definition: " ^ labelled_name name)
+              error ("Function block containing illegal statement: " ^ labelled_name name)
         ) defs
       >> (split_list #> apsnd MLFuns);
     fun mk_datatype defs =
@@ -1084,10 +1084,10 @@ fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_sy
           | (name, CodeThingol.Datatypecons _) =>
               map_nsp_fun (name_def true name) >> (fn base => (base, NONE))
           | (name, def) =>
-              error ("Datatype block containing illegal definition: " ^ labelled_name name)
+              error ("Datatype block containing illegal statement: " ^ labelled_name name)
         ) defs
       >> (split_list #> apsnd (map_filter I
-        #> (fn [] => error ("Datatype block without data definition: "
+        #> (fn [] => error ("Datatype block without data statement: "
                   ^ (commas o map (labelled_name o fst)) defs)
              | infos => MLDatas infos)));
     fun mk_class defs =
@@ -1099,10 +1099,10 @@ fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_sy
           | (name, CodeThingol.Classparam _) =>
               map_nsp_fun (name_def false name) >> (fn base => (base, NONE))
           | (name, def) =>
-              error ("Class block containing illegal definition: " ^ labelled_name name)
+              error ("Class block containing illegal statement: " ^ labelled_name name)
         ) defs
       >> (split_list #> apsnd (map_filter I
-        #> (fn [] => error ("Class block without class definition: "
+        #> (fn [] => error ("Class block without class statement: "
                   ^ (commas o map (labelled_name o fst)) defs)
              | [info] => MLClass info)));
     fun mk_inst [(name, CodeThingol.Classinst info)] =
@@ -1149,9 +1149,7 @@ fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_sy
         |> apsnd (fold (fn name => fold (add_dep name) deps) names)
         |> apsnd (fold_product (curry (map_node modl_explode o Graph.add_edge)) names names)
       end;
-    fun group_defs [(_, CodeThingol.Bot)] =
-          I
-      | group_defs ((defs as (_, CodeThingol.Fun _)::_)) =
+    fun group_defs ((defs as (_, CodeThingol.Fun _)::_)) =
           add_group mk_funs defs
       | group_defs ((defs as (_, CodeThingol.Datatypecons _)::_)) =
           add_group mk_datatype defs
@@ -1184,7 +1182,7 @@ fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_sy
       in
         NameSpace.implode (remainder @ [defname'])
       end handle Graph.UNDEF _ =>
-        error ("Unknown definition name: " ^ labelled_name name);
+        error ("Unknown statement name: " ^ labelled_name name);
     fun pr_node prefix (Def (_, NONE)) =
           NONE
       | pr_node prefix (Def (_, SOME def)) =
@@ -1199,10 +1197,10 @@ fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_sy
       (pr_node [] o Graph.get_node nodes) o rev o flat o Graph.strong_conn) nodes));
     val deresolv = try (deresolver (if is_some module then the_list module else []));
     val output = case seri_dest
-     of Compile => K NONE o internal o code_source
-      | Write => K NONE o code_writeln
-      | File file => K NONE o File.write file o code_source
-      | String => SOME o code_source;
+     of Compile => K NONE o internal o target_code_of_pretty
+      | Write => K NONE o target_code_writeln
+      | File file => K NONE o File.write file o target_code_of_pretty
+      | String => SOME o target_code_of_pretty;
   in output_cont (map_filter deresolv cs, output p) end;
 
 fun isar_seri_sml module =
@@ -1516,8 +1514,7 @@ fun seri_haskell module_prefix module string_classes labelled_name
           in (base', (nsp_fun, nsp_typ')) end;
         val add_name =
           case def
-           of CodeThingol.Bot => pair base
-            | CodeThingol.Fun _ => add_fun false
+           of CodeThingol.Fun _ => add_fun false
             | CodeThingol.Datatype _ => add_typ
             | CodeThingol.Datatypecons _ => add_fun true
             | CodeThingol.Class _ => add_typ
@@ -1527,8 +1524,7 @@ fun seri_haskell module_prefix module string_classes labelled_name
         val modlname' = name_modl modl;
         fun add_def base' =
           case def
-           of CodeThingol.Bot => I
-            | CodeThingol.Datatypecons _ =>
+           of CodeThingol.Datatypecons _ =>
                 cons (name, ((NameSpace.append modlname' base', base'), NONE))
             | CodeThingol.Classrel _ => I
             | CodeThingol.Classparam _ =>
@@ -1550,19 +1546,19 @@ fun seri_haskell module_prefix module string_classes labelled_name
     fun deresolv name =
       (fst o fst o the o AList.lookup (op =) ((fst o snd o the
         o Symtab.lookup code') ((name_modl o fst o dest_name) name))) name
-        handle Option => error ("Unknown definition name: " ^ labelled_name name);
+        handle Option => error ("Unknown statement name: " ^ labelled_name name);
     fun deresolv_here name =
       (snd o fst o the o AList.lookup (op =) ((fst o snd o the
         o Symtab.lookup code') ((name_modl o fst o dest_name) name))) name
-        handle Option => error ("Unknown definition name: " ^ labelled_name name);
+        handle Option => error ("Unknown statement name: " ^ labelled_name name);
     fun deriving_show tyco =
       let
         fun deriv _ "fun" = false
           | deriv tycos tyco = member (op =) tycos tyco orelse
-              case the_default CodeThingol.Bot (try (Graph.get_node code) tyco)
-               of CodeThingol.Bot => true
-                | CodeThingol.Datatype (_, cs) => forall (deriv' (tyco :: tycos))
+              case try (Graph.get_node code) tyco
+                of SOME (CodeThingol.Datatype (_, cs)) => forall (deriv' (tyco :: tycos))
                     (maps snd cs)
+                 | NONE => true
         and deriv' tycos (tyco `%% tys) = deriv tycos tyco
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
@@ -1587,7 +1583,7 @@ fun seri_haskell module_prefix module string_classes labelled_name
           |> map (name_modl o fst o dest_name)
           |> distinct (op =)
           |> remove (op =) modlname';
-        val qualified =
+        val qualified = is_none module andalso
           imports @ map fst defs
           |> distinct (op =)
           |> map_filter (try deresolv)
@@ -1614,12 +1610,12 @@ fun seri_haskell module_prefix module string_classes labelled_name
                 o NameSpace.explode) modlname;
         val pathname = Path.append destination filename;
         val _ = File.mkdir (Path.dir pathname);
-      in File.write pathname (code_source content) end
+      in File.write pathname (target_code_of_pretty content) end
     val output = case seri_dest
      of Compile => error ("Haskell: no internal compilation")
-      | Write => K NONE o map (code_writeln o snd)
+      | Write => K NONE o map (target_code_writeln o snd)
       | File destination => K NONE o map (write_module destination)
-      | String => SOME o cat_lines o map (code_source o snd);
+      | String => SOME o cat_lines o map (target_code_of_pretty o snd);
   in output (map assemble_module includes
     @ map seri_module (Symtab.dest code'))
   end;
@@ -1650,7 +1646,7 @@ fun seri_diagnosis labelled_name _ _ _ _ _ _ code _ _ =
     |> Graph.fold (fn (name, (def, _)) =>
           case try pr (name, def) of SOME p => cons p | NONE => I) code
     |> Pretty.chunks2
-    |> code_source
+    |> target_code_of_pretty
     |> writeln
     |> K NONE
   end;
@@ -1913,11 +1909,11 @@ fun gen_add_syntax_class prep_class prep_const target raw_class raw_syn thy =
   in case raw_syn
    of SOME (syntax, raw_params) =>
       thy
-      |> (map_syntax_exprs target o apfst o apfst)
+      |> (map_name_syntax target o apfst o apfst)
            (Symtab.update (class', (syntax, mk_syntax_params raw_params)))
     | NONE =>
       thy
-      |> (map_syntax_exprs target o apfst o apfst)
+      |> (map_name_syntax target o apfst o apfst)
            (Symtab.delete_safe class')
   end;
 
@@ -1926,11 +1922,11 @@ fun gen_add_syntax_inst prep_class prep_tyco target (raw_tyco, raw_class) add_de
     val inst = CodeName.instance thy (prep_class thy raw_class, prep_tyco thy raw_tyco);
   in if add_del then
     thy
-    |> (map_syntax_exprs target o apfst o apsnd)
+    |> (map_name_syntax target o apfst o apsnd)
         (Symtab.update (inst, ()))
   else
     thy
-    |> (map_syntax_exprs target o apfst o apsnd)
+    |> (map_name_syntax target o apfst o apsnd)
         (Symtab.delete_safe inst)
   end;
 
@@ -1944,11 +1940,11 @@ fun gen_add_syntax_tyco prep_tyco target raw_tyco raw_syn thy =
   in case raw_syn
    of SOME syntax =>
       thy
-      |> (map_syntax_exprs target o apsnd o apfst)
+      |> (map_name_syntax target o apsnd o apfst)
            (Symtab.update (tyco', check_args syntax))
    | NONE =>
       thy
-      |> (map_syntax_exprs target o apsnd o apfst)
+      |> (map_name_syntax target o apsnd o apfst)
            (Symtab.delete_safe tyco')
   end;
 
@@ -1962,11 +1958,11 @@ fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
   in case raw_syn
    of SOME syntax =>
       thy
-      |> (map_syntax_exprs target o apsnd o apsnd)
+      |> (map_name_syntax target o apsnd o apsnd)
            (Symtab.update (c', check_args syntax))
    | NONE =>
       thy
-      |> (map_syntax_exprs target o apsnd o apsnd)
+      |> (map_name_syntax target o apsnd o apsnd)
            (Symtab.delete_safe c')
   end;
 
@@ -2232,13 +2228,13 @@ val setup =
   #> add_serializer (target_Haskell, isar_seri_haskell)
   #> add_serializer (target_diag, fn _ => fn _=> seri_diagnosis)
   #> add_syntax_tyco "SML" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
-      (gen_brackify (case fxy of NOBR => false | _ => fixity (INFX (1, R)) fxy) o Pretty.breaks) [
+      brackify_infix (1, R) fxy [
         pr_typ (INFX (1, X)) ty1,
         str "->",
         pr_typ (INFX (1, R)) ty2
       ]))
   #> add_syntax_tyco "OCaml" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
-      (gen_brackify (case fxy of NOBR => false | _ => fixity (INFX (1, R)) fxy) o Pretty.breaks) [
+      brackify_infix (1, R) fxy [
         pr_typ (INFX (1, X)) ty1,
         str "->",
         pr_typ (INFX (1, R)) ty2

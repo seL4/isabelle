@@ -61,7 +61,7 @@ sig
   val fold_unbound_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
 
   datatype stmt =
-      Bot
+      NoStmt
     | Fun of typscheme * ((iterm list * iterm) * thm) list
     | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
@@ -260,7 +260,7 @@ fun locally_monomorphic (IConst _) = false
 
 type typscheme = (vname * sort) list * itype;
 datatype stmt =
-    Bot
+    NoStmt
   | Fun of typscheme * ((iterm list * iterm) * thm) list
   | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
@@ -278,17 +278,17 @@ type code = stmt Graph.T;
 
 val empty_code = Graph.empty : code; (*read: "depends on"*)
 
-fun ensure_bot name = Graph.default_node (name, Bot);
+fun ensure_node name = Graph.default_node (name, NoStmt);
 
-fun add_def_incr (name, Bot) code =
-      (case the_default Bot (try (Graph.get_node code) name)
-       of Bot => error "Attempted to add Bot to code"
+fun add_def_incr (name, NoStmt) code =
+      (case the_default NoStmt (try (Graph.get_node code) name)
+       of NoStmt => error "Attempted to add NoStmt to code"
         | _ => code)
   | add_def_incr (name, def) code =
       (case try (Graph.get_node code) name
        of NONE => Graph.new_node (name, def) code
-        | SOME Bot => Graph.map_node name (K def) code
-        | SOME _ => error ("Tried to overwrite definition " ^ quote name));
+        | SOME NoStmt => Graph.map_node name (K def) code
+        | SOME _ => error ("Tried to overwrite statement " ^ quote name));
 
 fun add_dep (NONE, _) = I
   | add_dep (SOME name1, name2) =
@@ -345,7 +345,7 @@ type transact = Graph.key option * code;
 fun ensure_stmt stmtgen name (dep, code) =
   let
     fun add_def false =
-          ensure_bot name
+          ensure_node name
           #> add_dep (dep, name)
           #> curry stmtgen (SOME name)
           ##> snd
