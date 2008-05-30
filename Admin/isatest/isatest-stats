@@ -34,20 +34,23 @@ ISABELLE_SESSIONS="\
 
 AFP_SESSIONS="\
   CoreC++\
+  HOL-Complex-LinearQuantifierElim\
   HOL-DiskPaxos\
   HOL-Fermat3_4\
   HOL-Flyspeck-Tame\
   HOL-Group-Ring-Module\
-  HOL-Jinja\
   HOL-JinjaThreads\
+  HOL-Jinja\
   HOL-JiveDataStoreModel\
-  HOL-LinearQuantifierElim\
   HOL-POPLmark-deBruijn\
+  HOL-Program-Conflict-Analysis\
   HOL-RSAPSS\
+  HOL-Recursion-Theory-I\
   HOL-SumSquares\
+  HOL-Topology\
   HOL-Valuation\
-  Simpl\
-  Simpl-BDD"
+  Simpl-BDD\
+  Simpl"
 
 for PLATFORM in $PLATFORMS
 do
