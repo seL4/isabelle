@@ -126,7 +126,7 @@ cd "$DISTBASE"
 
 $EXPORT || fail "Export failed!"
 
-if [ -n "$CVS2CL" ]; then
+if [ -n "$CVS2CL" -a -n "$UNOFFICIAL" ]; then
   cd $DISTNAME
   $CVS2CL
   gzip ChangeLog
