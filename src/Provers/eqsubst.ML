@@ -213,8 +213,9 @@ fun clean_match thy (a as (pat, t)) =
   let val (tyenv, tenv) = Pattern.match thy a (Vartab.empty, Vartab.empty)
   in SOME (Vartab.dest tyenv, Vartab.dest tenv)
   end handle Pattern.MATCH => NONE;
+
 (* given theory, max var index, pat, tgt; returns Seq of instantiations *)
-fun clean_unify sgn ix (a as (pat, tgt)) =
+fun clean_unify thry ix (a as (pat, tgt)) =
     let
       (* type info will be re-derived, maybe this can be cached
          for efficiency? *)
@@ -223,7 +224,7 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
       (* is it OK to ignore the type instantiation info?
          or should I be using it? *)
       val typs_unify =
-          SOME (Sign.typ_unify sgn (pat_ty, tgt_ty) (Term.Vartab.empty, ix))
+          SOME (Sign.typ_unify thry (pat_ty, tgt_ty) (Term.Vartab.empty, ix))
             handle Type.TUNIFY => NONE;
     in
       case typs_unify of
@@ -236,15 +237,15 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
              Envir.alist_of env);
           val initenv = Envir.Envir {asol = Vartab.empty,
                                      iTs = typinsttab, maxidx = ix2};
-          val useq = Unify.smash_unifiers sgn [a] initenv
+          val useq = Unify.smash_unifiers thry [a] initenv
 	            handle UnequalLengths => Seq.empty
 		               | Term.TERM _ => Seq.empty;
           fun clean_unify' useq () =
               (case (Seq.pull useq) of
                  NONE => NONE
                | SOME (h,t) => SOME (mk_insts h, Seq.make (clean_unify' t)))
-	      handle UnequalLengths => NONE
-                   | Term.TERM _ => NONE;
+	            handle UnequalLengths => NONE
+                   | Term.TERM _ => NONE
         in
           (Seq.make (clean_unify' useq))
         end
@@ -370,7 +371,7 @@ fun prep_concl_subst i gth =
 
       val conclterm = Logic.strip_imp_concl fixedbody;
       val conclthm = trivify conclterm;
-      val maxidx = Term.maxidx_of_term conclterm;
+      val maxidx = Thm.maxidx_of th;
       val ft = ((Z.move_down_right (* ==> *)
                  o Z.move_down_left (* Trueprop *)
                  o Z.mktop
@@ -487,7 +488,7 @@ fun prep_subst_in_asm i gth j =
       val asm_nprems = length (Logic.strip_imp_prems asmt);
 
       val pth = trivify asmt;
-      val maxidx = Term.maxidx_of_term asmt;
+      val maxidx = Thm.maxidx_of th;
 
       val ft = ((Z.move_down_right (* trueprop *)
                  o Z.mktop
