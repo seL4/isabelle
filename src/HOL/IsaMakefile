@@ -826,6 +826,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/SN.thy \
   Nominal/Examples/SOS.thy \
   Nominal/Examples/Support.thy \
+  Nominal/Examples/Type_Preservation.thy \
   Nominal/Examples/VC_Condition.thy \
   Nominal/Examples/W.thy \
   Nominal/Examples/Weakening.thy
