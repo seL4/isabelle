@@ -4,7 +4,7 @@ theory Spec
 imports Main
 begin
 
-chapter {* Specifications *}
+chapter {* Theory specifications *}
 
 section {* Defining theories \label{sec:begin-thy} *}
 
@@ -1102,7 +1102,7 @@ text {*
   \begin{matharray}{rcll}
     @{command_def "axioms"} & : & \isartrans{theory}{theory} & (axiomatic!) \\
     @{command_def "lemmas"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "theorems"} & : & isarkeep{local{\dsh}theory} \\
+    @{command_def "theorems"} & : & \isarkeep{local{\dsh}theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -1319,15 +1319,15 @@ val token_translation       :
 %FIXME proper antiquotations
 \begin{ttbox}
 val parse_ast_translation:
-  (string * (Context.generic -> ast list -> ast)) list
+  (string * (Proof.context -> ast list -> ast)) list
 val parse_translation:
-  (string * (Context.generic -> term list -> term)) list
+  (string * (Proof.context -> term list -> term)) list
 val print_translation:
-  (string * (Context.generic -> term list -> term)) list
+  (string * (Proof.context -> term list -> term)) list
 val typed_print_translation:
-  (string * (Context.generic -> bool -> typ -> term list -> term)) list
+  (string * (Proof.context -> bool -> typ -> term list -> term)) list
 val print_ast_translation:
-  (string * (Context.generic -> ast list -> ast)) list
+  (string * (Proof.context -> ast list -> ast)) list
 \end{ttbox}
 *}
 
