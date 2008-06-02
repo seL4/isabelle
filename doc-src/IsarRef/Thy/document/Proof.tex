@@ -1018,6 +1018,355 @@ The Isar provides separate commands to accommodate tactic-style
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Proof by cases and induction \label{sec:cases-induct}%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Rule contexts%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{case}\hypertarget{command.case}{\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}} & : & \isartrans{proof(state)}{proof(state)} \\
+    \indexdef{}{command}{print\_cases}\hypertarget{command.print-cases}{\hyperlink{command.print-cases}{\mbox{\isa{\isacommand{print{\isacharunderscore}cases}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
+    \indexdef{}{attribute}{case\_names}\hypertarget{attribute.case-names}{\hyperlink{attribute.case-names}{\mbox{\isa{case{\isacharunderscore}names}}}} & : & \isaratt \\
+    \indexdef{}{attribute}{case\_conclusion}\hypertarget{attribute.case-conclusion}{\hyperlink{attribute.case-conclusion}{\mbox{\isa{case{\isacharunderscore}conclusion}}}} & : & \isaratt \\
+    \indexdef{}{attribute}{params}\hypertarget{attribute.params}{\hyperlink{attribute.params}{\mbox{\isa{params}}}} & : & \isaratt \\
+    \indexdef{}{attribute}{consumes}\hypertarget{attribute.consumes}{\hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}} & : & \isaratt \\
+  \end{matharray}
+
+  The puristic way to build up Isar proof contexts is by explicit
+  language elements like \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}, \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}},
+  \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}} (see \secref{sec:proof-context}).  This is adequate
+  for plain natural deduction, but easily becomes unwieldy in concrete
+  verification tasks, which typically involve big induction rules with
+  several cases.
+
+  The \hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}} command provides a shorthand to refer to a
+  local context symbolically: certain proof methods provide an
+  environment of named ``cases'' of the form \isa{{\isachardoublequote}c{\isacharcolon}\ x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isacharcomma}\ {\isasymphi}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymphi}\isactrlsub n{\isachardoublequote}}; the effect of ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{c}'' is then equivalent to ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardoublequote}}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}c{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}}''.  Term bindings may be covered as well, notably
+  \hyperlink{variable.?case}{\mbox{\isa{{\isacharquery}case}}} for the main conclusion.
+
+  By default, the ``terminology'' \isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isachardoublequote}} of
+  a case value is marked as hidden, i.e.\ there is no way to refer to
+  such parameters in the subsequent proof text.  After all, original
+  rule parameters stem from somewhere outside of the current proof
+  text.  By using the explicit form ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{{\isachardoublequote}{\isacharparenleft}c\ y\isactrlsub {\isadigit{1}}\ {\isasymdots}\ y\isactrlsub m{\isacharparenright}{\isachardoublequote}}'' instead, the proof author is able to
+  chose local names that fit nicely into the current context.
+
+  \medskip It is important to note that proper use of \hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}} does not provide means to peek at the current goal state,
+  which is not directly observable in Isar!  Nonetheless, goal
+  refinement commands do provide named cases \isa{{\isachardoublequote}goal\isactrlsub i{\isachardoublequote}}
+  for each subgoal \isa{{\isachardoublequote}i\ {\isacharequal}\ {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n{\isachardoublequote}} of the resulting goal state.
+  Using this extra feature requires great care, because some bits of
+  the internal tactical machinery intrude the proof text.  In
+  particular, parameter names stemming from the left-over of automated
+  reasoning tools are usually quite unpredictable.
+
+  Under normal circumstances, the text of cases emerge from standard
+  elimination or induction rules, which in turn are derived from
+  previous theory specifications in a canonical way (say from
+  \hyperlink{command.inductive}{\mbox{\isa{\isacommand{inductive}}}} definitions).
+
+  \medskip Proper cases are only available if both the proof method
+  and the rules involved support this.  By using appropriate
+  attributes, case names, conclusions, and parameters may be also
+  declared by hand.  Thus variant versions of rules that have been
+  derived manually become ready to use in advanced case analysis
+  later.
+
+  \begin{rail}
+    'case' (caseref | '(' caseref ((name | underscore) +) ')')
+    ;
+    caseref: nameref attributes?
+    ;
+
+    'case\_names' (name +)
+    ;
+    'case\_conclusion' name (name *)
+    ;
+    'params' ((name *) + 'and')
+    ;
+    'consumes' nat?
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{{\isachardoublequote}{\isacharparenleft}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isacharparenright}{\isachardoublequote}}]
+  invokes a named local context \isa{{\isachardoublequote}c{\isacharcolon}\ x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isacharcomma}\ {\isasymphi}\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymphi}\isactrlsub m{\isachardoublequote}}, as provided by an appropriate
+  proof method (such as \indexref{}{method}{cases}\hyperlink{method.cases}{\mbox{\isa{cases}}} and \indexref{}{method}{induct}\hyperlink{method.induct}{\mbox{\isa{induct}}}).
+  The command ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{{\isachardoublequote}{\isacharparenleft}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isacharparenright}{\isachardoublequote}}'' abbreviates ``\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardoublequote}}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}c{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}}''.
+
+  \item [\hyperlink{command.print-cases}{\mbox{\isa{\isacommand{print{\isacharunderscore}cases}}}}] prints all local contexts of the
+  current state, using Isar proof language notation.
+  
+  \item [\hyperlink{attribute.case-names}{\mbox{\isa{case{\isacharunderscore}names}}}~\isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isasymdots}\ c\isactrlsub k{\isachardoublequote}}]
+  declares names for the local contexts of premises of a theorem;
+  \isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ c\isactrlsub k{\isachardoublequote}} refers to the \emph{suffix} of the
+  list of premises.
+  
+  \item [\hyperlink{attribute.case-conclusion}{\mbox{\isa{case{\isacharunderscore}conclusion}}}~\isa{{\isachardoublequote}c\ d\isactrlsub {\isadigit{1}}\ {\isasymdots}\ d\isactrlsub k{\isachardoublequote}}] declares names for the conclusions of a named premise
+  \isa{c}; here \isa{{\isachardoublequote}d\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ d\isactrlsub k{\isachardoublequote}} refers to the
+  prefix of arguments of a logical formula built by nesting a binary
+  connective (e.g.\ \isa{{\isachardoublequote}{\isasymor}{\isachardoublequote}}).
+  
+  Note that proof methods such as \hyperlink{method.induct}{\mbox{\isa{induct}}} and \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} already provide a default name for the conclusion as a
+  whole.  The need to name subformulas only arises with cases that
+  split into several sub-cases, as in common co-induction rules.
+
+  \item [\hyperlink{attribute.params}{\mbox{\isa{params}}}~\isa{{\isachardoublequote}p\isactrlsub {\isadigit{1}}\ {\isasymdots}\ p\isactrlsub m\ {\isasymAND}\ {\isasymdots}\ q\isactrlsub {\isadigit{1}}\ {\isasymdots}\ q\isactrlsub n{\isachardoublequote}}] renames the innermost parameters of
+  premises \isa{{\isachardoublequote}{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ n{\isachardoublequote}} of some theorem.  An empty list of names
+  may be given to skip positions, leaving the present parameters
+  unchanged.
+  
+  Note that the default usage of case rules does \emph{not} directly
+  expose parameters to the proof context.
+  
+  \item [\hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}~\isa{n}] declares the number of
+  ``major premises'' of a rule, i.e.\ the number of facts to be
+  consumed when it is applied by an appropriate proof method.  The
+  default value of \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}} is \isa{{\isachardoublequote}n\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequote}}, which is
+  appropriate for the usual kind of cases and induction rules for
+  inductive sets (cf.\ \secref{sec:hol-inductive}).  Rules without any
+  \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}} declaration given are treated as if
+  \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}~\isa{{\isadigit{0}}} had been specified.
+  
+  Note that explicit \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}} declarations are only
+  rarely needed; this is already taken care of automatically by the
+  higher-level \hyperlink{attribute.cases}{\mbox{\isa{cases}}}, \hyperlink{attribute.induct}{\mbox{\isa{induct}}}, and
+  \hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}} declarations.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Proof methods%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{method}{cases}\hypertarget{method.cases}{\hyperlink{method.cases}{\mbox{\isa{cases}}}} & : & \isarmeth \\
+    \indexdef{}{method}{induct}\hypertarget{method.induct}{\hyperlink{method.induct}{\mbox{\isa{induct}}}} & : & \isarmeth \\
+    \indexdef{}{method}{coinduct}\hypertarget{method.coinduct}{\hyperlink{method.coinduct}{\mbox{\isa{coinduct}}}} & : & \isarmeth \\
+  \end{matharray}
+
+  The \hyperlink{method.cases}{\mbox{\isa{cases}}}, \hyperlink{method.induct}{\mbox{\isa{induct}}}, and \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}}
+  methods provide a uniform interface to common proof techniques over
+  datatypes, inductive predicates (or sets), recursive functions etc.
+  The corresponding rules may be specified and instantiated in a
+  casual manner.  Furthermore, these methods provide named local
+  contexts that may be invoked via the \hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}} proof command
+  within the subsequent proof text.  This accommodates compact proof
+  texts even when reasoning about large specifications.
+
+  The \hyperlink{method.induct}{\mbox{\isa{induct}}} method also provides some additional
+  infrastructure in order to be applicable to structure statements
+  (either using explicit meta-level connectives, or including facts
+  and parameters separately).  This avoids cumbersome encoding of
+  ``strengthened'' inductive statements within the object-logic.
+
+  \begin{rail}
+    'cases' (insts * 'and') rule?
+    ;
+    'induct' (definsts * 'and') \\ arbitrary? taking? rule?
+    ;
+    'coinduct' insts taking rule?
+    ;
+
+    rule: ('type' | 'pred' | 'set') ':' (nameref +) | 'rule' ':' (thmref +)
+    ;
+    definst: name ('==' | equiv) term | inst
+    ;
+    definsts: ( definst *)
+    ;
+    arbitrary: 'arbitrary' ':' ((term *) 'and' +)
+    ;
+    taking: 'taking' ':' insts
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\hyperlink{method.cases}{\mbox{\isa{cases}}}~\isa{{\isachardoublequote}insts\ R{\isachardoublequote}}] applies method \hyperlink{method.rule}{\mbox{\isa{rule}}} with an appropriate case distinction theorem, instantiated to
+  the subjects \isa{insts}.  Symbolic case names are bound according
+  to the rule's local contexts.
+
+  The rule is determined as follows, according to the facts and
+  arguments passed to the \hyperlink{method.cases}{\mbox{\isa{cases}}} method:
+
+  \medskip
+  \begin{tabular}{llll}
+    facts           &                 & arguments   & rule \\\hline
+                    & \hyperlink{method.cases}{\mbox{\isa{cases}}} &             & classical case split \\
+                    & \hyperlink{method.cases}{\mbox{\isa{cases}}} & \isa{t}   & datatype exhaustion (type of \isa{t}) \\
+    \isa{{\isachardoublequote}{\isasymturnstile}\ A\ t{\isachardoublequote}} & \hyperlink{method.cases}{\mbox{\isa{cases}}} & \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} & inductive predicate/set elimination (of \isa{A}) \\
+    \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}     & \hyperlink{method.cases}{\mbox{\isa{cases}}} & \isa{{\isachardoublequote}{\isasymdots}\ rule{\isacharcolon}\ R{\isachardoublequote}} & explicit rule \isa{R} \\
+  \end{tabular}
+  \medskip
+
+  Several instantiations may be given, referring to the \emph{suffix}
+  of premises of the case rule; within each premise, the \emph{prefix}
+  of variables is instantiated.  In most situations, only a single
+  term needs to be specified; this refers to the first variable of the
+  last premise (it is usually the same for all cases).
+
+  \item [\hyperlink{method.induct}{\mbox{\isa{induct}}}~\isa{{\isachardoublequote}insts\ R{\isachardoublequote}}] is analogous to the
+  \hyperlink{method.cases}{\mbox{\isa{cases}}} method, but refers to induction rules, which are
+  determined as follows:
+
+  \medskip
+  \begin{tabular}{llll}
+    facts           &                  & arguments            & rule \\\hline
+                    & \hyperlink{method.induct}{\mbox{\isa{induct}}} & \isa{{\isachardoublequote}P\ x{\isachardoublequote}}        & datatype induction (type of \isa{x}) \\
+    \isa{{\isachardoublequote}{\isasymturnstile}\ A\ x{\isachardoublequote}} & \hyperlink{method.induct}{\mbox{\isa{induct}}} & \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}          & predicate/set induction (of \isa{A}) \\
+    \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}     & \hyperlink{method.induct}{\mbox{\isa{induct}}} & \isa{{\isachardoublequote}{\isasymdots}\ rule{\isacharcolon}\ R{\isachardoublequote}} & explicit rule \isa{R} \\
+  \end{tabular}
+  \medskip
+  
+  Several instantiations may be given, each referring to some part of
+  a mutual inductive definition or datatype --- only related partial
+  induction rules may be used together, though.  Any of the lists of
+  terms \isa{{\isachardoublequote}P{\isacharcomma}\ x{\isacharcomma}\ {\isasymdots}{\isachardoublequote}} refers to the \emph{suffix} of variables
+  present in the induction rule.  This enables the writer to specify
+  only induction variables, or both predicates and variables, for
+  example.
+  
+  Instantiations may be definitional: equations \isa{{\isachardoublequote}x\ {\isasymequiv}\ t{\isachardoublequote}}
+  introduce local definitions, which are inserted into the claim and
+  discharged after applying the induction rule.  Equalities reappear
+  in the inductive cases, but have been transformed according to the
+  induction principle being involved here.  In order to achieve
+  practically useful induction hypotheses, some variables occurring in
+  \isa{t} need to be fixed (see below).
+  
+  The optional ``\isa{{\isachardoublequote}arbitrary{\isacharcolon}\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardoublequote}}''
+  specification generalizes variables \isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub m{\isachardoublequote}} of the original goal before applying induction.  Thus
+  induction hypotheses may become sufficiently general to get the
+  proof through.  Together with definitional instantiations, one may
+  effectively perform induction over expressions of a certain
+  structure.
+  
+  The optional ``\isa{{\isachardoublequote}taking{\isacharcolon}\ t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n{\isachardoublequote}}''
+  specification provides additional instantiations of a prefix of
+  pending variables in the rule.  Such schematic induction rules
+  rarely occur in practice, though.
+
+  \item [\hyperlink{method.coinduct}{\mbox{\isa{coinduct}}}~\isa{{\isachardoublequote}inst\ R{\isachardoublequote}}] is analogous to the
+  \hyperlink{method.induct}{\mbox{\isa{induct}}} method, but refers to coinduction rules, which are
+  determined as follows:
+
+  \medskip
+  \begin{tabular}{llll}
+    goal          &                    & arguments & rule \\\hline
+                  & \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} & \isa{x} & type coinduction (type of \isa{x}) \\
+    \isa{{\isachardoublequote}A\ x{\isachardoublequote}} & \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} & \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} & predicate/set coinduction (of \isa{A}) \\
+    \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}   & \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} & \isa{{\isachardoublequote}{\isasymdots}\ rule{\isacharcolon}\ R{\isachardoublequote}} & explicit rule \isa{R} \\
+  \end{tabular}
+  
+  Coinduction is the dual of induction.  Induction essentially
+  eliminates \isa{{\isachardoublequote}A\ x{\isachardoublequote}} towards a generic result \isa{{\isachardoublequote}P\ x{\isachardoublequote}},
+  while coinduction introduces \isa{{\isachardoublequote}A\ x{\isachardoublequote}} starting with \isa{{\isachardoublequote}B\ x{\isachardoublequote}}, for a suitable ``bisimulation'' \isa{B}.  The cases of a
+  coinduct rule are typically named after the predicates or sets being
+  covered, while the conclusions consist of several alternatives being
+  named after the individual destructor patterns.
+  
+  The given instantiation refers to the \emph{suffix} of variables
+  occurring in the rule's major premise, or conclusion if unavailable.
+  An additional ``\isa{{\isachardoublequote}taking{\isacharcolon}\ t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n{\isachardoublequote}}''
+  specification may be required in order to specify the bisimulation
+  to be used in the coinduction step.
+
+  \end{descr}
+
+  Above methods produce named local contexts, as determined by the
+  instantiated rule as given in the text.  Beyond that, the \hyperlink{method.induct}{\mbox{\isa{induct}}} and \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} methods guess further instantiations
+  from the goal specification itself.  Any persisting unresolved
+  schematic variables of the resulting rule will render the the
+  corresponding case invalid.  The term binding \hyperlink{variable.?case}{\mbox{\isa{{\isacharquery}case}}} for
+  the conclusion will be provided with each case, provided that term
+  is fully specified.
+
+  The \hyperlink{command.print-cases}{\mbox{\isa{\isacommand{print{\isacharunderscore}cases}}}} command prints all named cases present
+  in the current proof state.
+
+  \medskip Despite the additional infrastructure, both \hyperlink{method.cases}{\mbox{\isa{cases}}}
+  and \hyperlink{method.coinduct}{\mbox{\isa{coinduct}}} merely apply a certain rule, after
+  instantiation, while conforming due to the usual way of monotonic
+  natural deduction: the context of a structured statement \isa{{\isachardoublequote}{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ {\isasymLongrightarrow}\ {\isasymdots}{\isachardoublequote}}
+  reappears unchanged after the case split.
+
+  The \hyperlink{method.induct}{\mbox{\isa{induct}}} method is fundamentally different in this
+  respect: the meta-level structure is passed through the
+  ``recursive'' course involved in the induction.  Thus the original
+  statement is basically replaced by separate copies, corresponding to
+  the induction hypotheses and conclusion; the original goal context
+  is no longer available.  Thus local assumptions, fixed parameters
+  and definitions effectively participate in the inductive rephrasing
+  of the original statement.
+
+  In induction proofs, local assumptions introduced by cases are split
+  into two different kinds: \isa{hyps} stemming from the rule and
+  \isa{prems} from the goal statement.  This is reflected in the
+  extracted cases accordingly, so invoking ``\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}~\isa{c}'' will provide separate facts \isa{c{\isachardot}hyps} and \isa{c{\isachardot}prems},
+  as well as fact \isa{c} to hold the all-inclusive list.
+
+  \medskip Facts presented to either method are consumed according to
+  the number of ``major premises'' of the rule involved, which is
+  usually 0 for plain cases and induction rules of datatypes etc.\ and
+  1 for rules of inductive predicates or sets and the like.  The
+  remaining facts are inserted into the goal verbatim before the
+  actual \isa{cases}, \isa{induct}, or \isa{coinduct} rule is
+  applied.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Declaring rules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{print\_induct\_rules}\hypertarget{command.print-induct-rules}{\hyperlink{command.print-induct-rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}induct{\isacharunderscore}rules}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{}{attribute}{cases}\hypertarget{attribute.cases}{\hyperlink{attribute.cases}{\mbox{\isa{cases}}}} & : & \isaratt \\
+    \indexdef{}{attribute}{induct}\hypertarget{attribute.induct}{\hyperlink{attribute.induct}{\mbox{\isa{induct}}}} & : & \isaratt \\
+    \indexdef{}{attribute}{coinduct}\hypertarget{attribute.coinduct}{\hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}}} & : & \isaratt \\
+  \end{matharray}
+
+  \begin{rail}
+    'cases' spec
+    ;
+    'induct' spec
+    ;
+    'coinduct' spec
+    ;
+
+    spec: ('type' | 'pred' | 'set') ':' nameref
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\hyperlink{command.print-induct-rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}induct{\isacharunderscore}rules}}}}] prints cases and induct
+  rules for predicates (or sets) and types of the current context.
+  
+  \item [\hyperlink{attribute.cases}{\mbox{\isa{cases}}}, \hyperlink{attribute.induct}{\mbox{\isa{induct}}}, and \hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}}] (as attributes) augment the corresponding context of
+  rules for reasoning about (co)inductive predicates (or sets) and
+  types, using the corresponding methods of the same name.  Certain
+  definitional packages of object-logics usually declare emerging
+  cases and induction rules as expected, so users rarely need to
+  intervene.
+  
+  Manual rule declarations usually refer to the \hyperlink{attribute.case-names}{\mbox{\isa{case{\isacharunderscore}names}}} and \hyperlink{attribute.params}{\mbox{\isa{params}}} attributes to adjust names of
+  cases and parameters of a rule; the \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}
+  declaration is taken care of automatically: \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}~\isa{{\isadigit{0}}} is specified for ``type'' rules and \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}~\isa{{\isadigit{1}}} for ``predicate'' / ``set'' rules.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isadelimtheory
 %
 \endisadelimtheory
