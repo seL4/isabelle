@@ -9,7 +9,7 @@ use_thy "Outer_Syntax";
 use_thy "Spec";
 use_thy "Proof";
 use_thy "Document_Preparation";
-use_thy "pure";
+use_thy "Misc";
 use_thy "Generic";
 use_thy "HOL_Specific";
 use_thy "Quick_Reference";
