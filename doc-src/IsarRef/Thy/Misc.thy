@@ -1,14 +1,12 @@
 (* $Id$ *)
 
-theory pure
-imports Pure
+theory Misc
+imports Main
 begin
 
-chapter {* Basic language elements \label{ch:pure-syntax} *}
+chapter {* Other commands \label{ch:pure-syntax} *}
 
-section {* Other commands *}
-
-subsection {* Diagnostics *}
+section {* Diagnostics *}
 
 text {*
   \begin{matharray}{rcl}
@@ -97,7 +95,7 @@ text {*
 *}
 
 
-subsection {* Inspecting the context *}
+section {* Inspecting the context *}
 
 text {*
   \begin{matharray}{rcl}
@@ -188,7 +186,7 @@ text {*
 *}
 
 
-subsection {* History commands \label{sec:history} *}
+section {* History commands \label{sec:history} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -216,7 +214,7 @@ text {*
 *}
 
 
-subsection {* System operations *}
+section {* System commands *}
 
 text {*
   \begin{matharray}{rcl}
