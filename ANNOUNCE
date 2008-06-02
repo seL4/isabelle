@@ -23,6 +23,8 @@ multithreading.
 * Support for Poly/ML 5.2 with improved handling of multithreading and
 external processes.
 
+* Reorganized version of Isabelle/Isar Reference Manual.
+
 
 You may get Isabelle2008 from the following mirror sites:
 
