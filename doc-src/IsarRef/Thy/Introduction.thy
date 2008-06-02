@@ -65,24 +65,22 @@ section {* Quick start *}
 subsection {* Terminal sessions *}
 
 text {*
-  Isar is already part of Isabelle.  The low-level @{verbatim
-  isabelle} binary provides option @{verbatim "-I"} to run the
-  Isabelle/Isar interaction loop at startup, rather than the raw ML
-  top-level.  So the most basic way to do anything with Isabelle/Isar
-  is as follows:   % FIXME update
+  The Isabelle \texttt{tty} tool provides a very interface for running
+  the Isar interaction loop, with some support for command line
+  editing.  For example:
 \begin{ttbox}
-isabelle -I HOL\medskip
-\out{> Welcome to Isabelle/HOL (Isabelle2005)}\medskip
+isatool tty\medskip
+{\out Welcome to Isabelle/HOL (Isabelle2008)}\medskip
 theory Foo imports Main begin;
 definition foo :: nat where "foo == 1";
 lemma "0 < foo" by (simp add: foo_def);
 end;
 \end{ttbox}
 
-  Note that any Isabelle/Isar command may be retracted by @{command
-  "undo"}.  See the Isabelle/Isar Quick Reference
-  (\appref{ap:refcard}) for a comprehensive overview of available
-  commands and other language elements.
+  Any Isabelle/Isar command may be retracted by @{command "undo"}.
+  See the Isabelle/Isar Quick Reference (\appref{ap:refcard}) for a
+  comprehensive overview of available commands and other language
+  elements.
 *}
 
 
