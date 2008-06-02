@@ -616,54 +616,6 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Definition by specification \label{sec:hol-specification}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{HOL}{command}{specification}\hypertarget{command.HOL.specification}{\hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}}} & : & \isartrans{theory}{proof(prove)} \\
-    \indexdef{HOL}{command}{ax\_specification}\hypertarget{command.HOL.ax-specification}{\hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}} & : & \isartrans{theory}{proof(prove)} \\
-  \end{matharray}
-
-  \begin{rail}
-  ('specification' | 'ax\_specification') '(' (decl +) ')' \\ (thmdecl? prop +)
-  ;
-  decl: ((name ':')? term '(' 'overloaded' ')'?)
-  \end{rail}
-
-  \begin{descr}
-
-  \item [\hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}}~\isa{{\isachardoublequote}decls\ {\isasymphi}{\isachardoublequote}}] sets up a
-  goal stating the existence of terms with the properties specified to
-  hold for the constants given in \isa{decls}.  After finishing the
-  proof, the theory will be augmented with definitions for the given
-  constants, as well as with theorems stating the properties for these
-  constants.
-
-  \item [\hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}~\isa{{\isachardoublequote}decls\ {\isasymphi}{\isachardoublequote}}] sets
-  up a goal stating the existence of terms with the properties
-  specified to hold for the constants given in \isa{decls}.  After
-  finishing the proof, the theory will be augmented with axioms
-  expressing the properties given in the first place.
-
-  \item [\isa{decl}] declares a constant to be defined by the
-  specification given.  The definition for the constant \isa{c} is
-  bound to the name \isa{c{\isacharunderscore}def} unless a theorem name is given in
-  the declaration.  Overloaded constants should be declared as such.
-
-  \end{descr}
-
-  Whether to use \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}} or \hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}} is to some extent a matter of style.  \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}} introduces no new axioms, and so by
-  construction cannot introduce inconsistencies, whereas \hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}} does introduce axioms, but only after the
-  user has explicitly proven it to be safe.  A practical issue must be
-  considered, though: After introducing two constants with the same
-  properties using \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}}, one can prove
-  that the two constants are, in fact, equal.  If this might be a
-  problem, one should use \hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isamarkupsection{Inductive and coinductive definitions \label{sec:hol-inductive}%
 }
 \isamarkuptrue%
@@ -1137,6 +1089,54 @@ Isabelle/Pure provides two generic frameworks to support code
   preprocessor setup.
 
   \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Definition by specification \label{sec:hol-specification}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{specification}\hypertarget{command.HOL.specification}{\hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}}} & : & \isartrans{theory}{proof(prove)} \\
+    \indexdef{HOL}{command}{ax\_specification}\hypertarget{command.HOL.ax-specification}{\hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}} & : & \isartrans{theory}{proof(prove)} \\
+  \end{matharray}
+
+  \begin{rail}
+  ('specification' | 'ax\_specification') '(' (decl +) ')' \\ (thmdecl? prop +)
+  ;
+  decl: ((name ':')? term '(' 'overloaded' ')'?)
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}}~\isa{{\isachardoublequote}decls\ {\isasymphi}{\isachardoublequote}}] sets up a
+  goal stating the existence of terms with the properties specified to
+  hold for the constants given in \isa{decls}.  After finishing the
+  proof, the theory will be augmented with definitions for the given
+  constants, as well as with theorems stating the properties for these
+  constants.
+
+  \item [\hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}~\isa{{\isachardoublequote}decls\ {\isasymphi}{\isachardoublequote}}] sets
+  up a goal stating the existence of terms with the properties
+  specified to hold for the constants given in \isa{decls}.  After
+  finishing the proof, the theory will be augmented with axioms
+  expressing the properties given in the first place.
+
+  \item [\isa{decl}] declares a constant to be defined by the
+  specification given.  The definition for the constant \isa{c} is
+  bound to the name \isa{c{\isacharunderscore}def} unless a theorem name is given in
+  the declaration.  Overloaded constants should be declared as such.
+
+  \end{descr}
+
+  Whether to use \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}} or \hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}} is to some extent a matter of style.  \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}} introduces no new axioms, and so by
+  construction cannot introduce inconsistencies, whereas \hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}} does introduce axioms, but only after the
+  user has explicitly proven it to be safe.  A practical issue must be
+  considered, though: After introducing two constants with the same
+  properties using \hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}}, one can prove
+  that the two constants are, in fact, equal.  If this might be a
+  problem, one should use \hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isacharunderscore}specification}}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

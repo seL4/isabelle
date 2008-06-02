@@ -20,7 +20,7 @@
 %
 \endisadelimtheory
 %
-\isamarkupchapter{Specifications%
+\isamarkupchapter{Theory specifications%
 }
 \isamarkuptrue%
 %
@@ -1100,7 +1100,7 @@ Definitions essentially express abbreviations within the logic.  The
 \begin{matharray}{rcll}
     \indexdef{}{command}{axioms}\hypertarget{command.axioms}{\hyperlink{command.axioms}{\mbox{\isa{\isacommand{axioms}}}}} & : & \isartrans{theory}{theory} & (axiomatic!) \\
     \indexdef{}{command}{lemmas}\hypertarget{command.lemmas}{\hyperlink{command.lemmas}{\mbox{\isa{\isacommand{lemmas}}}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{theorems}\hypertarget{command.theorems}{\hyperlink{command.theorems}{\mbox{\isa{\isacommand{theorems}}}}} & : & isarkeep{local{\dsh}theory} \\
+    \indexdef{}{command}{theorems}\hypertarget{command.theorems}{\hyperlink{command.theorems}{\mbox{\isa{\isacommand{theorems}}}}} & : & \isarkeep{local{\dsh}theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -1319,15 +1319,15 @@ val token_translation       :
 %FIXME proper antiquotations
 \begin{ttbox}
 val parse_ast_translation:
-  (string * (Context.generic -> ast list -> ast)) list
+  (string * (Proof.context -> ast list -> ast)) list
 val parse_translation:
-  (string * (Context.generic -> term list -> term)) list
+  (string * (Proof.context -> term list -> term)) list
 val print_translation:
-  (string * (Context.generic -> term list -> term)) list
+  (string * (Proof.context -> term list -> term)) list
 val typed_print_translation:
-  (string * (Context.generic -> bool -> typ -> term list -> term)) list
+  (string * (Proof.context -> bool -> typ -> term list -> term)) list
 val print_ast_translation:
-  (string * (Context.generic -> ast list -> ast)) list
+  (string * (Proof.context -> ast list -> ast)) list
 \end{ttbox}%
 \end{isamarkuptext}%
 \isamarkuptrue%

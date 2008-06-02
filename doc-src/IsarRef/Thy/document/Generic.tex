@@ -173,8 +173,8 @@ Isabelle/Pure maintains a record of named configuration options
   \item [\hyperlink{attribute.rotated}{\mbox{\isa{rotated}}}~\isa{n}] rotate the premises of a
   theorem by \isa{n} (default 1).
 
-  \item [\hyperlink{attribute.Pure.elim-format}{\mbox{\isa{Pure{\isachardot}elim{\isacharunderscore}format}}}] turns a destruction rule into
-  elimination rule format, by resolving with the rule \isa{{\isachardoublequote}PROP\ A\ {\isasymLongrightarrow}\ {\isacharparenleft}PROP\ A\ {\isasymLongrightarrow}\ PROP\ B{\isacharparenright}\ {\isasymLongrightarrow}\ PROP\ B{\isachardoublequote}}.
+  \item [\hyperlink{attribute.Pure.elim-format}{\mbox{\isa{elim{\isacharunderscore}format}}}] turns a destruction rule
+  into elimination rule format, by resolving with the rule \isa{{\isachardoublequote}PROP\ A\ {\isasymLongrightarrow}\ {\isacharparenleft}PROP\ A\ {\isasymLongrightarrow}\ PROP\ B{\isacharparenright}\ {\isasymLongrightarrow}\ PROP\ B{\isachardoublequote}}.
   
   Note that the Classical Reasoner (\secref{sec:classical}) provides
   its own version of this operation.
@@ -186,6 +186,72 @@ Isabelle/Pure maintains a record of named configuration options
 
   \item [\hyperlink{attribute.no-vars}{\mbox{\isa{no{\isacharunderscore}vars}}}] replaces schematic variables by free
   ones; this is mainly for tuning output of pretty printed theorems.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Low-level equational reasoning%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{method}{subst}\hypertarget{method.subst}{\hyperlink{method.subst}{\mbox{\isa{subst}}}} & : & \isarmeth \\
+    \indexdef{}{method}{hypsubst}\hypertarget{method.hypsubst}{\hyperlink{method.hypsubst}{\mbox{\isa{hypsubst}}}} & : & \isarmeth \\
+    \indexdef{}{method}{split}\hypertarget{method.split}{\hyperlink{method.split}{\mbox{\isa{split}}}} & : & \isarmeth \\
+  \end{matharray}
+
+  \begin{rail}
+    'subst' ('(' 'asm' ')')? ('(' (nat+) ')')? thmref
+    ;
+    'split' ('(' 'asm' ')')? thmrefs
+    ;
+  \end{rail}
+
+  These methods provide low-level facilities for equational reasoning
+  that are intended for specialized applications only.  Normally,
+  single step calculations would be performed in a structured text
+  (see also \secref{sec:calculation}), while the Simplifier methods
+  provide the canonical way for automated normalization (see
+  \secref{sec:simplifier}).
+
+  \begin{descr}
+
+  \item [\hyperlink{method.subst}{\mbox{\isa{subst}}}~\isa{eq}] performs a single substitution
+  step using rule \isa{eq}, which may be either a meta or object
+  equality.
+
+  \item [\hyperlink{method.subst}{\mbox{\isa{subst}}}~\isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharparenright}\ eq{\isachardoublequote}}] substitutes in an
+  assumption.
+
+  \item [\hyperlink{method.subst}{\mbox{\isa{subst}}}~\isa{{\isachardoublequote}{\isacharparenleft}i\ {\isasymdots}\ j{\isacharparenright}\ eq{\isachardoublequote}}] performs several
+  substitutions in the conclusion. The numbers \isa{i} to \isa{j}
+  indicate the positions to substitute at.  Positions are ordered from
+  the top of the term tree moving down from left to right. For
+  example, in \isa{{\isachardoublequote}{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isacharplus}\ {\isacharparenleft}c\ {\isacharplus}\ d{\isacharparenright}{\isachardoublequote}} there are three positions
+  where commutativity of \isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}} is applicable: 1 refers to the
+  whole term, 2 to \isa{{\isachardoublequote}a\ {\isacharplus}\ b{\isachardoublequote}} and 3 to \isa{{\isachardoublequote}c\ {\isacharplus}\ d{\isachardoublequote}}.
+
+  If the positions in the list \isa{{\isachardoublequote}{\isacharparenleft}i\ {\isasymdots}\ j{\isacharparenright}{\isachardoublequote}} are non-overlapping
+  (e.g.\ \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{2}}\ {\isadigit{3}}{\isacharparenright}{\isachardoublequote}} in \isa{{\isachardoublequote}{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isacharplus}\ {\isacharparenleft}c\ {\isacharplus}\ d{\isacharparenright}{\isachardoublequote}}) you may
+  assume all substitutions are performed simultaneously.  Otherwise
+  the behaviour of \isa{subst} is not specified.
+
+  \item [\hyperlink{method.subst}{\mbox{\isa{subst}}}~\isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharparenright}\ {\isacharparenleft}i\ {\isasymdots}\ j{\isacharparenright}\ eq{\isachardoublequote}}] performs the
+  substitutions in the assumptions.  Positions \isa{{\isachardoublequote}{\isadigit{1}}\ {\isasymdots}\ i\isactrlsub {\isadigit{1}}{\isachardoublequote}}
+  refer to assumption 1, positions \isa{{\isachardoublequote}i\isactrlsub {\isadigit{1}}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymdots}\ i\isactrlsub {\isadigit{2}}{\isachardoublequote}}
+  to assumption 2, and so on.
+
+  \item [\hyperlink{method.hypsubst}{\mbox{\isa{hypsubst}}}] performs substitution using some
+  assumption; this only works for equations of the form \isa{{\isachardoublequote}x\ {\isacharequal}\ t{\isachardoublequote}} where \isa{x} is a free or bound variable.
+
+  \item [\hyperlink{method.split}{\mbox{\isa{split}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}] performs
+  single-step case splitting using the given rules.  By default,
+  splitting is performed in the conclusion of a goal; the \isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharparenright}{\isachardoublequote}} option indicates to operate on assumptions instead.
+  
+  Note that the \hyperlink{method.simp}{\mbox{\isa{simp}}} method already involves repeated
+  application of split rules as declared in the current context.
 
   \end{descr}%
 \end{isamarkuptext}%
@@ -498,72 +564,6 @@ val thms  : string -> thm list
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Low-level equational reasoning%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{}{method}{subst}\hypertarget{method.subst}{\hyperlink{method.subst}{\mbox{\isa{subst}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{hypsubst}\hypertarget{method.hypsubst}{\hyperlink{method.hypsubst}{\mbox{\isa{hypsubst}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{}{method}{split}\hypertarget{method.split}{\hyperlink{method.split}{\mbox{\isa{split}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-  \end{matharray}
-
-  \begin{rail}
-    'subst' ('(' 'asm' ')')? ('(' (nat+) ')')? thmref
-    ;
-    'split' ('(' 'asm' ')')? thmrefs
-    ;
-  \end{rail}
-
-  These methods provide low-level facilities for equational reasoning
-  that are intended for specialized applications only.  Normally,
-  single step calculations would be performed in a structured text
-  (see also \secref{sec:calculation}), while the Simplifier methods
-  provide the canonical way for automated normalization (see
-  \secref{sec:simplifier}).
-
-  \begin{descr}
-
-  \item [\hyperlink{method.subst}{\mbox{\isa{subst}}}~\isa{eq}] performs a single substitution
-  step using rule \isa{eq}, which may be either a meta or object
-  equality.
-
-  \item [\hyperlink{method.subst}{\mbox{\isa{subst}}}~\isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharparenright}\ eq{\isachardoublequote}}] substitutes in an
-  assumption.
-
-  \item [\hyperlink{method.subst}{\mbox{\isa{subst}}}~\isa{{\isachardoublequote}{\isacharparenleft}i\ {\isasymdots}\ j{\isacharparenright}\ eq{\isachardoublequote}}] performs several
-  substitutions in the conclusion. The numbers \isa{i} to \isa{j}
-  indicate the positions to substitute at.  Positions are ordered from
-  the top of the term tree moving down from left to right. For
-  example, in \isa{{\isachardoublequote}{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isacharplus}\ {\isacharparenleft}c\ {\isacharplus}\ d{\isacharparenright}{\isachardoublequote}} there are three positions
-  where commutativity of \isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}} is applicable: 1 refers to the
-  whole term, 2 to \isa{{\isachardoublequote}a\ {\isacharplus}\ b{\isachardoublequote}} and 3 to \isa{{\isachardoublequote}c\ {\isacharplus}\ d{\isachardoublequote}}.
-
-  If the positions in the list \isa{{\isachardoublequote}{\isacharparenleft}i\ {\isasymdots}\ j{\isacharparenright}{\isachardoublequote}} are non-overlapping
-  (e.g.\ \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{2}}\ {\isadigit{3}}{\isacharparenright}{\isachardoublequote}} in \isa{{\isachardoublequote}{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isacharplus}\ {\isacharparenleft}c\ {\isacharplus}\ d{\isacharparenright}{\isachardoublequote}}) you may
-  assume all substitutions are performed simultaneously.  Otherwise
-  the behaviour of \isa{subst} is not specified.
-
-  \item [\hyperlink{method.subst}{\mbox{\isa{subst}}}~\isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharparenright}\ {\isacharparenleft}i\ {\isasymdots}\ j{\isacharparenright}\ eq{\isachardoublequote}}] performs the
-  substitutions in the assumptions.  Positions \isa{{\isachardoublequote}{\isadigit{1}}\ {\isasymdots}\ i\isactrlsub {\isadigit{1}}{\isachardoublequote}}
-  refer to assumption 1, positions \isa{{\isachardoublequote}i\isactrlsub {\isadigit{1}}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymdots}\ i\isactrlsub {\isadigit{2}}{\isachardoublequote}}
-  to assumption 2, and so on.
-
-  \item [\hyperlink{method.hypsubst}{\mbox{\isa{hypsubst}}}] performs substitution using some
-  assumption; this only works for equations of the form \isa{{\isachardoublequote}x\ {\isacharequal}\ t{\isachardoublequote}} where \isa{x} is a free or bound variable.
-
-  \item [\hyperlink{method.split}{\mbox{\isa{split}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}] performs
-  single-step case splitting using the given rules.  By default,
-  splitting is performed in the conclusion of a goal; the \isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharparenright}{\isachardoublequote}} option indicates to operate on assumptions instead.
-  
-  Note that the \hyperlink{method.simp}{\mbox{\isa{simp}}} method already involves repeated
-  application of split rules as declared in the current context.
-
-  \end{descr}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isamarkupsection{The Classical Reasoner \label{sec:classical}%
 }
 \isamarkuptrue%
@@ -778,7 +778,7 @@ val thms  : string -> thm list
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{General logic setup \label{sec:object-logic}%
+\isamarkupsection{Object-logic setup \label{sec:object-logic}%
 }
 \isamarkuptrue%
 %
