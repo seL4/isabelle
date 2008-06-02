@@ -53,10 +53,23 @@ text {*
 
   \medskip The Isabelle/Isar framework is generic and should work
   reasonably well for any Isabelle object-logic that conforms to the
-  natural deduction view of the Isabelle/Pure framework.  Major
-  Isabelle logics like HOL \cite{isabelle-HOL}, HOLCF
-  \cite{MuellerNvOS99}, FOL \cite{isabelle-logics}, and ZF
-  \cite{isabelle-ZF} have already been set up for end-users.
+  natural deduction view of the Isabelle/Pure framework.  Specific
+  language elements introduced by the major object-logics are
+  described in \chref{ch:hol} (Isabelle/HOL), \chref{ch:holcf}
+  (Isabelle/HOLCF), and \chref{ch:zf} (Isabelle/ZF).  The main
+  language elements are already provided by the Isabelle/Pure
+  framework. Nevertheless, examples given in the generic parts will
+  usually refer to Isabelle/HOL as well.
+
+  \medskip Isar commands may be either \emph{proper} document
+  constructors, or \emph{improper commands}.  Some proof methods and
+  attributes introduced later are classified as improper as well.
+  Improper Isar language elements, which are marked by ``@{text
+  "\<^sup>*"}'' in the subsequent chapters; they are often helpful
+  when developing proof documents, but their use is discouraged for
+  the final human-readable outcome.  Typical examples are diagnostic
+  commands that print terms or theorems according to the current
+  context; other commands emulate old-style tactical theorem proving.
 *}
 
 
@@ -84,7 +97,7 @@ end;
 *}
 
 
-subsection {* Proof General *}
+subsection {* Emacs Proof General *}
 
 text {*
   Plain TTY-based interaction as above used to be quite feasible with
@@ -171,7 +184,7 @@ text {*
   hand, the plain ASCII sources easily become somewhat unintelligible.
   For example, @{text "\<Longrightarrow>"} would appear as @{verbatim "\<Longrightarrow>"} according
   the default set of Isabelle symbols.  Nevertheless, the Isabelle
-  document preparation system (see \secref{sec:document-prep}) will be
+  document preparation system (see \chref{ch:document-prep}) will be
   happy to print non-ASCII symbols properly.  It is even possible to
   invent additional notation beyond the display capabilities of Emacs
   and X-Symbol.
@@ -211,56 +224,6 @@ text {*
   A few theory specification mechanisms also require some proof, such
   as HOL's @{command "typedef"} which demands non-emptiness of the
   representing sets.
-*}
-
-
-subsection {* Document preparation \label{sec:document-prep} *}
-
-text {*
-  Isabelle/Isar provides a simple document preparation system based on
-  existing {PDF-\LaTeX} technology, with full support of hyper-links
-  (both local references and URLs) and bookmarks.  Thus the results
-  are equally well suited for WWW browsing and as printed copies.
-
-  \medskip Isabelle generates {\LaTeX} output as part of the run of a
-  \emph{logic session} (see also \cite{isabelle-sys}).  Getting
-  started with a working configuration for common situations is quite
-  easy by using the Isabelle @{verbatim mkdir} and @{verbatim make}
-  tools.  First invoke
-\begin{ttbox}
-  isatool mkdir Foo
-\end{ttbox}
-  to initialize a separate directory for session @{verbatim Foo} ---
-  it is safe to experiment, since @{verbatim "isatool mkdir"} never
-  overwrites existing files.  Ensure that @{verbatim "Foo/ROOT.ML"}
-  holds ML commands to load all theories required for this session;
-  furthermore @{verbatim "Foo/document/root.tex"} should include any
-  special {\LaTeX} macro packages required for your document (the
-  default is usually sufficient as a start).
-
-  The session is controlled by a separate @{verbatim IsaMakefile}
-  (with crude source dependencies by default).  This file is located
-  one level up from the @{verbatim Foo} directory location.  Now
-  invoke
-\begin{ttbox}
-  isatool make Foo
-\end{ttbox}
-  to run the @{verbatim Foo} session, with browser information and
-  document preparation enabled.  Unless any errors are reported by
-  Isabelle or {\LaTeX}, the output will appear inside the directory
-  @{verbatim ISABELLE_BROWSER_INFO}, as reported by the batch job in
-  verbose mode.
-
-  \medskip You may also consider to tune the @{verbatim usedir}
-  options in @{verbatim IsaMakefile}, for example to change the output
-  format from @{verbatim pdf} to @{verbatim dvi}, or activate the
-  @{verbatim "-D"} option to retain a second copy of the generated
-  {\LaTeX} sources.
-
-  \medskip See \emph{The Isabelle System Manual} \cite{isabelle-sys}
-  for further details on Isabelle logic sessions and theory
-  presentation.  The Isabelle/HOL tutorial \cite{isabelle-hol-book}
-  also covers theory presentation issues.
 *}
 
 

@@ -1036,4 +1036,367 @@ text {*
   \end{descr}
 *}
 
+section {* Proof by cases and induction \label{sec:cases-induct} *}
+
+subsection {* Rule contexts *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "case"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "print_cases"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
+    @{attribute_def case_names} & : & \isaratt \\
+    @{attribute_def case_conclusion} & : & \isaratt \\
+    @{attribute_def params} & : & \isaratt \\
+    @{attribute_def consumes} & : & \isaratt \\
+  \end{matharray}
+
+  The puristic way to build up Isar proof contexts is by explicit
+  language elements like @{command "fix"}, @{command "assume"},
+  @{command "let"} (see \secref{sec:proof-context}).  This is adequate
+  for plain natural deduction, but easily becomes unwieldy in concrete
+  verification tasks, which typically involve big induction rules with
+  several cases.
+
+  The @{command "case"} command provides a shorthand to refer to a
+  local context symbolically: certain proof methods provide an
+  environment of named ``cases'' of the form @{text "c: x\<^sub>1, \<dots>,
+  x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>n"}; the effect of ``@{command
+  "case"}~@{text c}'' is then equivalent to ``@{command "fix"}~@{text
+  "x\<^sub>1 \<dots> x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots>
+  \<phi>\<^sub>n"}''.  Term bindings may be covered as well, notably
+  @{variable ?case} for the main conclusion.
+
+  By default, the ``terminology'' @{text "x\<^sub>1, \<dots>, x\<^sub>m"} of
+  a case value is marked as hidden, i.e.\ there is no way to refer to
+  such parameters in the subsequent proof text.  After all, original
+  rule parameters stem from somewhere outside of the current proof
+  text.  By using the explicit form ``@{command "case"}~@{text "(c
+  y\<^sub>1 \<dots> y\<^sub>m)"}'' instead, the proof author is able to
+  chose local names that fit nicely into the current context.
+
+  \medskip It is important to note that proper use of @{command
+  "case"} does not provide means to peek at the current goal state,
+  which is not directly observable in Isar!  Nonetheless, goal
+  refinement commands do provide named cases @{text "goal\<^sub>i"}
+  for each subgoal @{text "i = 1, \<dots>, n"} of the resulting goal state.
+  Using this extra feature requires great care, because some bits of
+  the internal tactical machinery intrude the proof text.  In
+  particular, parameter names stemming from the left-over of automated
+  reasoning tools are usually quite unpredictable.
+
+  Under normal circumstances, the text of cases emerge from standard
+  elimination or induction rules, which in turn are derived from
+  previous theory specifications in a canonical way (say from
+  @{command "inductive"} definitions).
+
+  \medskip Proper cases are only available if both the proof method
+  and the rules involved support this.  By using appropriate
+  attributes, case names, conclusions, and parameters may be also
+  declared by hand.  Thus variant versions of rules that have been
+  derived manually become ready to use in advanced case analysis
+  later.
+
+  \begin{rail}
+    'case' (caseref | '(' caseref ((name | underscore) +) ')')
+    ;
+    caseref: nameref attributes?
+    ;
+
+    'case\_names' (name +)
+    ;
+    'case\_conclusion' name (name *)
+    ;
+    'params' ((name *) + 'and')
+    ;
+    'consumes' nat?
+    ;
+  \end{rail}
+
+  \begin{descr}
+  
+  \item [@{command "case"}~@{text "(c x\<^sub>1 \<dots> x\<^sub>m)"}]
+  invokes a named local context @{text "c: x\<^sub>1, \<dots>, x\<^sub>m,
+  \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>m"}, as provided by an appropriate
+  proof method (such as @{method_ref cases} and @{method_ref induct}).
+  The command ``@{command "case"}~@{text "(c x\<^sub>1 \<dots>
+  x\<^sub>m)"}'' abbreviates ``@{command "fix"}~@{text "x\<^sub>1 \<dots>
+  x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots>
+  \<phi>\<^sub>n"}''.
+
+  \item [@{command "print_cases"}] prints all local contexts of the
+  current state, using Isar proof language notation.
+  
+  \item [@{attribute case_names}~@{text "c\<^sub>1 \<dots> c\<^sub>k"}]
+  declares names for the local contexts of premises of a theorem;
+  @{text "c\<^sub>1, \<dots>, c\<^sub>k"} refers to the \emph{suffix} of the
+  list of premises.
+  
+  \item [@{attribute case_conclusion}~@{text "c d\<^sub>1 \<dots>
+  d\<^sub>k"}] declares names for the conclusions of a named premise
+  @{text c}; here @{text "d\<^sub>1, \<dots>, d\<^sub>k"} refers to the
+  prefix of arguments of a logical formula built by nesting a binary
+  connective (e.g.\ @{text "\<or>"}).
+  
+  Note that proof methods such as @{method induct} and @{method
+  coinduct} already provide a default name for the conclusion as a
+  whole.  The need to name subformulas only arises with cases that
+  split into several sub-cases, as in common co-induction rules.
+
+  \item [@{attribute params}~@{text "p\<^sub>1 \<dots> p\<^sub>m \<AND> \<dots>
+  q\<^sub>1 \<dots> q\<^sub>n"}] renames the innermost parameters of
+  premises @{text "1, \<dots>, n"} of some theorem.  An empty list of names
+  may be given to skip positions, leaving the present parameters
+  unchanged.
+  
+  Note that the default usage of case rules does \emph{not} directly
+  expose parameters to the proof context.
+  
+  \item [@{attribute consumes}~@{text n}] declares the number of
+  ``major premises'' of a rule, i.e.\ the number of facts to be
+  consumed when it is applied by an appropriate proof method.  The
+  default value of @{attribute consumes} is @{text "n = 1"}, which is
+  appropriate for the usual kind of cases and induction rules for
+  inductive sets (cf.\ \secref{sec:hol-inductive}).  Rules without any
+  @{attribute consumes} declaration given are treated as if
+  @{attribute consumes}~@{text 0} had been specified.
+  
+  Note that explicit @{attribute consumes} declarations are only
+  rarely needed; this is already taken care of automatically by the
+  higher-level @{attribute cases}, @{attribute induct}, and
+  @{attribute coinduct} declarations.
+
+  \end{descr}
+*}
+
+
+subsection {* Proof methods *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def cases} & : & \isarmeth \\
+    @{method_def induct} & : & \isarmeth \\
+    @{method_def coinduct} & : & \isarmeth \\
+  \end{matharray}
+
+  The @{method cases}, @{method induct}, and @{method coinduct}
+  methods provide a uniform interface to common proof techniques over
+  datatypes, inductive predicates (or sets), recursive functions etc.
+  The corresponding rules may be specified and instantiated in a
+  casual manner.  Furthermore, these methods provide named local
+  contexts that may be invoked via the @{command "case"} proof command
+  within the subsequent proof text.  This accommodates compact proof
+  texts even when reasoning about large specifications.
+
+  The @{method induct} method also provides some additional
+  infrastructure in order to be applicable to structure statements
+  (either using explicit meta-level connectives, or including facts
+  and parameters separately).  This avoids cumbersome encoding of
+  ``strengthened'' inductive statements within the object-logic.
+
+  \begin{rail}
+    'cases' (insts * 'and') rule?
+    ;
+    'induct' (definsts * 'and') \\ arbitrary? taking? rule?
+    ;
+    'coinduct' insts taking rule?
+    ;
+
+    rule: ('type' | 'pred' | 'set') ':' (nameref +) | 'rule' ':' (thmref +)
+    ;
+    definst: name ('==' | equiv) term | inst
+    ;
+    definsts: ( definst *)
+    ;
+    arbitrary: 'arbitrary' ':' ((term *) 'and' +)
+    ;
+    taking: 'taking' ':' insts
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [@{method cases}~@{text "insts R"}] applies method @{method
+  rule} with an appropriate case distinction theorem, instantiated to
+  the subjects @{text insts}.  Symbolic case names are bound according
+  to the rule's local contexts.
+
+  The rule is determined as follows, according to the facts and
+  arguments passed to the @{method cases} method:
+
+  \medskip
+  \begin{tabular}{llll}
+    facts           &                 & arguments   & rule \\\hline
+                    & @{method cases} &             & classical case split \\
+                    & @{method cases} & @{text t}   & datatype exhaustion (type of @{text t}) \\
+    @{text "\<turnstile> A t"} & @{method cases} & @{text "\<dots>"} & inductive predicate/set elimination (of @{text A}) \\
+    @{text "\<dots>"}     & @{method cases} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
+  \end{tabular}
+  \medskip
+
+  Several instantiations may be given, referring to the \emph{suffix}
+  of premises of the case rule; within each premise, the \emph{prefix}
+  of variables is instantiated.  In most situations, only a single
+  term needs to be specified; this refers to the first variable of the
+  last premise (it is usually the same for all cases).
+
+  \item [@{method induct}~@{text "insts R"}] is analogous to the
+  @{method cases} method, but refers to induction rules, which are
+  determined as follows:
+
+  \medskip
+  \begin{tabular}{llll}
+    facts           &                  & arguments            & rule \\\hline
+                    & @{method induct} & @{text "P x"}        & datatype induction (type of @{text x}) \\
+    @{text "\<turnstile> A x"} & @{method induct} & @{text "\<dots>"}          & predicate/set induction (of @{text A}) \\
+    @{text "\<dots>"}     & @{method induct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
+  \end{tabular}
+  \medskip
+  
+  Several instantiations may be given, each referring to some part of
+  a mutual inductive definition or datatype --- only related partial
+  induction rules may be used together, though.  Any of the lists of
+  terms @{text "P, x, \<dots>"} refers to the \emph{suffix} of variables
+  present in the induction rule.  This enables the writer to specify
+  only induction variables, or both predicates and variables, for
+  example.
+  
+  Instantiations may be definitional: equations @{text "x \<equiv> t"}
+  introduce local definitions, which are inserted into the claim and
+  discharged after applying the induction rule.  Equalities reappear
+  in the inductive cases, but have been transformed according to the
+  induction principle being involved here.  In order to achieve
+  practically useful induction hypotheses, some variables occurring in
+  @{text t} need to be fixed (see below).
+  
+  The optional ``@{text "arbitrary: x\<^sub>1 \<dots> x\<^sub>m"}''
+  specification generalizes variables @{text "x\<^sub>1, \<dots>,
+  x\<^sub>m"} of the original goal before applying induction.  Thus
+  induction hypotheses may become sufficiently general to get the
+  proof through.  Together with definitional instantiations, one may
+  effectively perform induction over expressions of a certain
+  structure.
+  
+  The optional ``@{text "taking: t\<^sub>1 \<dots> t\<^sub>n"}''
+  specification provides additional instantiations of a prefix of
+  pending variables in the rule.  Such schematic induction rules
+  rarely occur in practice, though.
+
+  \item [@{method coinduct}~@{text "inst R"}] is analogous to the
+  @{method induct} method, but refers to coinduction rules, which are
+  determined as follows:
+
+  \medskip
+  \begin{tabular}{llll}
+    goal          &                    & arguments & rule \\\hline
+                  & @{method coinduct} & @{text x} & type coinduction (type of @{text x}) \\
+    @{text "A x"} & @{method coinduct} & @{text "\<dots>"} & predicate/set coinduction (of @{text A}) \\
+    @{text "\<dots>"}   & @{method coinduct} & @{text "\<dots> rule: R"} & explicit rule @{text R} \\
+  \end{tabular}
+  
+  Coinduction is the dual of induction.  Induction essentially
+  eliminates @{text "A x"} towards a generic result @{text "P x"},
+  while coinduction introduces @{text "A x"} starting with @{text "B
+  x"}, for a suitable ``bisimulation'' @{text B}.  The cases of a
+  coinduct rule are typically named after the predicates or sets being
+  covered, while the conclusions consist of several alternatives being
+  named after the individual destructor patterns.
+  
+  The given instantiation refers to the \emph{suffix} of variables
+  occurring in the rule's major premise, or conclusion if unavailable.
+  An additional ``@{text "taking: t\<^sub>1 \<dots> t\<^sub>n"}''
+  specification may be required in order to specify the bisimulation
+  to be used in the coinduction step.
+
+  \end{descr}
+
+  Above methods produce named local contexts, as determined by the
+  instantiated rule as given in the text.  Beyond that, the @{method
+  induct} and @{method coinduct} methods guess further instantiations
+  from the goal specification itself.  Any persisting unresolved
+  schematic variables of the resulting rule will render the the
+  corresponding case invalid.  The term binding @{variable ?case} for
+  the conclusion will be provided with each case, provided that term
+  is fully specified.
+
+  The @{command "print_cases"} command prints all named cases present
+  in the current proof state.
+
+  \medskip Despite the additional infrastructure, both @{method cases}
+  and @{method coinduct} merely apply a certain rule, after
+  instantiation, while conforming due to the usual way of monotonic
+  natural deduction: the context of a structured statement @{text
+  "\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<dots>"}
+  reappears unchanged after the case split.
+
+  The @{method induct} method is fundamentally different in this
+  respect: the meta-level structure is passed through the
+  ``recursive'' course involved in the induction.  Thus the original
+  statement is basically replaced by separate copies, corresponding to
+  the induction hypotheses and conclusion; the original goal context
+  is no longer available.  Thus local assumptions, fixed parameters
+  and definitions effectively participate in the inductive rephrasing
+  of the original statement.
+
+  In induction proofs, local assumptions introduced by cases are split
+  into two different kinds: @{text hyps} stemming from the rule and
+  @{text prems} from the goal statement.  This is reflected in the
+  extracted cases accordingly, so invoking ``@{command "case"}~@{text
+  c}'' will provide separate facts @{text c.hyps} and @{text c.prems},
+  as well as fact @{text c} to hold the all-inclusive list.
+
+  \medskip Facts presented to either method are consumed according to
+  the number of ``major premises'' of the rule involved, which is
+  usually 0 for plain cases and induction rules of datatypes etc.\ and
+  1 for rules of inductive predicates or sets and the like.  The
+  remaining facts are inserted into the goal verbatim before the
+  actual @{text cases}, @{text induct}, or @{text coinduct} rule is
+  applied.
+*}
+
+
+subsection {* Declaring rules *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "print_induct_rules"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{attribute_def cases} & : & \isaratt \\
+    @{attribute_def induct} & : & \isaratt \\
+    @{attribute_def coinduct} & : & \isaratt \\
+  \end{matharray}
+
+  \begin{rail}
+    'cases' spec
+    ;
+    'induct' spec
+    ;
+    'coinduct' spec
+    ;
+
+    spec: ('type' | 'pred' | 'set') ':' nameref
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [@{command "print_induct_rules"}] prints cases and induct
+  rules for predicates (or sets) and types of the current context.
+  
+  \item [@{attribute cases}, @{attribute induct}, and @{attribute
+  coinduct}] (as attributes) augment the corresponding context of
+  rules for reasoning about (co)inductive predicates (or sets) and
+  types, using the corresponding methods of the same name.  Certain
+  definitional packages of object-logics usually declare emerging
+  cases and induction rules as expected, so users rarely need to
+  intervene.
+  
+  Manual rule declarations usually refer to the @{attribute
+  case_names} and @{attribute params} attributes to adjust names of
+  cases and parameters of a rule; the @{attribute consumes}
+  declaration is taken care of automatically: @{attribute
+  consumes}~@{text 0} is specified for ``type'' rules and @{attribute
+  consumes}~@{text 1} for ``predicate'' / ``set'' rules.
+
+  \end{descr}
+*}
+
 end
