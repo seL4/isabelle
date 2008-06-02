@@ -884,7 +884,7 @@ text {*
     @{command_def "classes"} & : & \isartrans{theory}{theory} \\
     @{command_def "classrel"} & : & \isartrans{theory}{theory} & (axiomatic!) \\
     @{command_def "defaultsort"} & : & \isartrans{theory}{theory} \\
-    @{command_def "class_deps"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "class_deps"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
   \end{matharray}
 
   \begin{rail}
