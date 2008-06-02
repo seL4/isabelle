@@ -109,10 +109,10 @@ Isabelle/Isar provides a simple document preparation system based on
   \item [\hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] provides plain text
   markup just preceding the formal beginning of a theory.  In actual
   document preparation the corresponding {\LaTeX} macro \verb|\isamarkupheader| may be redefined to produce chapter or section
-  headings.  See also \secref{sec:markup} for further markup commands.
+  headings.
   
   \item [\hyperlink{command.chapter}{\mbox{\isa{\isacommand{chapter}}}}, \hyperlink{command.section}{\mbox{\isa{\isacommand{section}}}}, \hyperlink{command.subsection}{\mbox{\isa{\isacommand{subsection}}}}, and \hyperlink{command.subsubsection}{\mbox{\isa{\isacommand{subsubsection}}}}] mark chapter and
-  section headings.
+  section headings.  The corresponding {\LaTeX} macros are \verb|\isamarkupchapter|, \verb|\isamarkupsection| etc.
 
   \item [\hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}} and \hyperlink{command.txt}{\mbox{\isa{\isacommand{txt}}}}] specify paragraphs of
   plain text.
@@ -172,8 +172,7 @@ Isabelle/Isar provides a simple document preparation system based on
   The text body of formal comments (see also \secref{sec:comments})
   may contain antiquotations of logical entities, such as theorems,
   terms and types, which are to be presented in the final output
-  produced by the Isabelle document preparation system (see also
-  \chref{ch:document-prep}).
+  produced by the Isabelle document preparation system.
 
   Thus embedding of ``\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term\ {\isacharbrackleft}show{\isacharunderscore}types{\isacharbrackright}\ {\isachardoublequote}f\ x\ {\isacharequal}\ a\ {\isacharplus}\ x{\isachardoublequote}{\isacharbraceright}{\isachardoublequote}}''
   within a text block would cause
