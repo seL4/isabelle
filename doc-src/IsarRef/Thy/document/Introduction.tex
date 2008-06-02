@@ -1,15 +1,35 @@
-(* $Id$ *)
-
-theory intro
-imports Pure
-begin
-
-chapter {* Introduction *}
-
-section {* Overview *}
-
-text {*
-  The \emph{Isabelle} system essentially provides a generic
+%
+\begin{isabellebody}%
+\def\isabellecontext{Introduction}%
+%
+\isadelimtheory
+\isanewline
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Introduction\isanewline
+\isakeyword{imports}\ Pure\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Introduction%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Overview%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \emph{Isabelle} system essentially provides a generic
   infrastructure for building deductive systems (programmed in
   Standard ML), with a special focus on interactive theorem proving in
   higher-order logics.  In the olden days even end-users would refer
@@ -56,17 +76,20 @@ text {*
   natural deduction view of the Isabelle/Pure framework.  Major
   Isabelle logics like HOL \cite{isabelle-HOL}, HOLCF
   \cite{MuellerNvOS99}, FOL \cite{isabelle-logics}, and ZF
-  \cite{isabelle-ZF} have already been set up for end-users.
-*}
-
-
-section {* Quick start *}
-
-subsection {* Terminal sessions *}
-
-text {*
-  Isar is already part of Isabelle.  The low-level @{verbatim
-  isabelle} binary provides option @{verbatim "-I"} to run the
+  \cite{isabelle-ZF} have already been set up for end-users.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Quick start%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Terminal sessions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isar is already part of Isabelle.  The low-level \verb|isabelle| binary provides option \verb|-I| to run the
   Isabelle/Isar interaction loop at startup, rather than the raw ML
   top-level.  So the most basic way to do anything with Isabelle/Isar
   is as follows:   % FIXME update
@@ -79,17 +102,18 @@ lemma "0 < foo" by (simp add: foo_def);
 end;
 \end{ttbox}
 
-  Note that any Isabelle/Isar command may be retracted by @{command
-  "undo"}.  See the Isabelle/Isar Quick Reference
+  Note that any Isabelle/Isar command may be retracted by \hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}.  See the Isabelle/Isar Quick Reference
   (\appref{ap:refcard}) for a comprehensive overview of available
-  commands and other language elements.
-*}
-
-
-subsection {* Proof General *}
-
-text {*
-  Plain TTY-based interaction as above used to be quite feasible with
+  commands and other language elements.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Proof General%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Plain TTY-based interaction as above used to be quite feasible with
   traditional tactic based theorem proving, but developing Isar
   documents really demands some better user-interface support.  The
   Proof~General environment by David Aspinall
@@ -100,22 +124,23 @@ text {*
   proof document is equally important than the actual proof state.
   Thus Proof~General provides the canonical working environment for
   Isabelle/Isar, both for getting acquainted (e.g.\ by replaying
-  existing Isar documents) and for production work.
-*}
-
-
-subsubsection{* Proof~General as default Isabelle interface *}
-
-text {*
-  The Isabelle interface wrapper script provides an easy way to invoke
+  existing Isar documents) and for production work.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Proof~General as default Isabelle interface%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Isabelle interface wrapper script provides an easy way to invoke
   Proof~General (including XEmacs or GNU Emacs).  The default
   configuration of Isabelle is smart enough to detect the
   Proof~General distribution in several canonical places (e.g.\
-  @{verbatim "$ISABELLE_HOME/contrib/ProofGeneral"}).  Thus the
-  capital @{verbatim Isabelle} executable would already refer to the
-  @{verbatim "ProofGeneral/isar"} interface without further ado.  The
-  Isabelle interface script provides several options; pass @{verbatim
-  "-?"}  to see its usage.
+  \verb|$ISABELLE_HOME/contrib/ProofGeneral|).  Thus the
+  capital \verb|Isabelle| executable would already refer to the
+  \verb|ProofGeneral/isar| interface without further ado.  The
+  Isabelle interface script provides several options; pass \verb|-?|  to see its usage.
 
   With the proper Isabelle interface setup, Isar documents may now be edited by
   visiting appropriate theory files, e.g.\ 
@@ -125,8 +150,8 @@ Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/Summation.thy
   Beginners may note the tool bar for navigating forward and backward
   through the text (this depends on the local Emacs installation).
   Consult the Proof~General documentation \cite{proofgeneral} for
-  further basic command sequences, in particular ``@{verbatim "C-c C-return"}''
-  and ``@{verbatim "C-c u"}''.
+  further basic command sequences, in particular ``\verb|C-c C-return|''
+  and ``\verb|C-c u|''.
 
   \medskip Proof~General may be also configured manually by giving
   Isabelle settings like this (see also \cite{isabelle-sys}):
@@ -135,35 +160,35 @@ Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/Summation.thy
 ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
 PROOFGENERAL_OPTIONS=""
 \end{ttbox}
-  You may have to change @{verbatim
-  "$ISABELLE_HOME/contrib/ProofGeneral"} to the actual installation
+  You may have to change \verb|$ISABELLE_HOME/contrib/ProofGeneral| to the actual installation
   directory of Proof~General.
 
   \medskip Apart from the Isabelle command line, defaults for
-  interface options may be given by the @{verbatim PROOFGENERAL_OPTIONS}
+  interface options may be given by the \verb|PROOFGENERAL_OPTIONS|
   setting.  For example, the Emacs executable to be used may be
   configured in Isabelle's settings like this:
 \begin{ttbox}
 PROOFGENERAL_OPTIONS="-p xemacs-mule"  
 \end{ttbox}
 
-  Occasionally, a user's @{verbatim "~/.emacs"} file contains code
+  Occasionally, a user's \verb|~/.emacs| file contains code
   that is incompatible with the (X)Emacs version used by
   Proof~General, causing the interface startup to fail prematurely.
-  Here the @{verbatim "-u false"} option helps to get the interface
+  Here the \verb|-u false| option helps to get the interface
   process up and running.  Note that additional Lisp customization
-  code may reside in @{verbatim "proofgeneral-settings.el"} of
-  @{verbatim "$ISABELLE_HOME/etc"} or @{verbatim
-  "$ISABELLE_HOME_USER/etc"}.
-*}
-
-
-subsubsection {* The X-Symbol package *}
-
-text {*
-  Proof~General incorporates a version of the Emacs X-Symbol package
+  code may reside in \verb|proofgeneral-settings.el| of
+  \verb|$ISABELLE_HOME/etc| or \verb|$ISABELLE_HOME_USER/etc|.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{The X-Symbol package%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Proof~General incorporates a version of the Emacs X-Symbol package
   \cite{x-symbol}, which handles proper mathematical symbols displayed
-  on screen.  Pass option @{verbatim "-x true"} to the Isabelle
+  on screen.  Pass option \verb|-x true| to the Isabelle
   interface script, or check the appropriate Proof~General menu
   setting by hand.  The main challenge of getting X-Symbol to work
   properly is the underlying (semi-automated) X11 font setup.
@@ -171,19 +196,21 @@ text {*
   \medskip Using proper mathematical symbols in Isabelle theories can
   be very convenient for readability of large formulas.  On the other
   hand, the plain ASCII sources easily become somewhat unintelligible.
-  For example, @{text "\<Longrightarrow>"} would appear as @{verbatim "\<Longrightarrow>"} according
+  For example, \isa{{\isachardoublequote}{\isasymLongrightarrow}{\isachardoublequote}} would appear as \verb|\<Longrightarrow>| according
   the default set of Isabelle symbols.  Nevertheless, the Isabelle
   document preparation system (see \secref{sec:document-prep}) will be
   happy to print non-ASCII symbols properly.  It is even possible to
   invent additional notation beyond the display capabilities of Emacs
-  and X-Symbol.
-*}
-
-
-section {* Isabelle/Isar theories *}
-
-text {*
-  Isabelle/Isar offers the following main improvements over classic
+  and X-Symbol.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Isabelle/Isar theories%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/Isar offers the following main improvements over classic
   Isabelle.
 
   \begin{enumerate}
@@ -208,18 +235,20 @@ text {*
 
   The Isar proof language is embedded into the new theory format as a
   proper sub-language.  Proof mode is entered by stating some
-  @{command "theorem"} or @{command "lemma"} at the theory level, and
-  left again with the final conclusion (e.g.\ via @{command "qed"}).
+  \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}} or \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}} at the theory level, and
+  left again with the final conclusion (e.g.\ via \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}).
   A few theory specification mechanisms also require some proof, such
-  as HOL's @{command "typedef"} which demands non-emptiness of the
-  representing sets.
-*}
-
-
-subsection {* Document preparation \label{sec:document-prep} *}
-
-text {*
-  Isabelle/Isar provides a simple document preparation system based on
+  as HOL's \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}} which demands non-emptiness of the
+  representing sets.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Document preparation \label{sec:document-prep}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/Isar provides a simple document preparation system based on
   existing {PDF-\LaTeX} technology, with full support of hyper-links
   (both local references and URLs) and bookmarks.  Thus the results
   are equally well suited for WWW browsing and as printed copies.
@@ -227,49 +256,51 @@ text {*
   \medskip Isabelle generates {\LaTeX} output as part of the run of a
   \emph{logic session} (see also \cite{isabelle-sys}).  Getting
   started with a working configuration for common situations is quite
-  easy by using the Isabelle @{verbatim mkdir} and @{verbatim make}
+  easy by using the Isabelle \verb|mkdir| and \verb|make|
   tools.  First invoke
 \begin{ttbox}
   isatool mkdir Foo
 \end{ttbox}
-  to initialize a separate directory for session @{verbatim Foo} ---
-  it is safe to experiment, since @{verbatim "isatool mkdir"} never
-  overwrites existing files.  Ensure that @{verbatim "Foo/ROOT.ML"}
+  to initialize a separate directory for session \verb|Foo| ---
+  it is safe to experiment, since \verb|isatool mkdir| never
+  overwrites existing files.  Ensure that \verb|Foo/ROOT.ML|
   holds ML commands to load all theories required for this session;
-  furthermore @{verbatim "Foo/document/root.tex"} should include any
+  furthermore \verb|Foo/document/root.tex| should include any
   special {\LaTeX} macro packages required for your document (the
   default is usually sufficient as a start).
 
-  The session is controlled by a separate @{verbatim IsaMakefile}
+  The session is controlled by a separate \verb|IsaMakefile|
   (with crude source dependencies by default).  This file is located
-  one level up from the @{verbatim Foo} directory location.  Now
+  one level up from the \verb|Foo| directory location.  Now
   invoke
 \begin{ttbox}
   isatool make Foo
 \end{ttbox}
-  to run the @{verbatim Foo} session, with browser information and
+  to run the \verb|Foo| session, with browser information and
   document preparation enabled.  Unless any errors are reported by
   Isabelle or {\LaTeX}, the output will appear inside the directory
-  @{verbatim ISABELLE_BROWSER_INFO}, as reported by the batch job in
+  \verb|ISABELLE_BROWSER_INFO|, as reported by the batch job in
   verbose mode.
 
-  \medskip You may also consider to tune the @{verbatim usedir}
-  options in @{verbatim IsaMakefile}, for example to change the output
-  format from @{verbatim pdf} to @{verbatim dvi}, or activate the
-  @{verbatim "-D"} option to retain a second copy of the generated
+  \medskip You may also consider to tune the \verb|usedir|
+  options in \verb|IsaMakefile|, for example to change the output
+  format from \verb|pdf| to \verb|dvi|, or activate the
+  \verb|-D| option to retain a second copy of the generated
   {\LaTeX} sources.
 
   \medskip See \emph{The Isabelle System Manual} \cite{isabelle-sys}
   for further details on Isabelle logic sessions and theory
   presentation.  The Isabelle/HOL tutorial \cite{isabelle-hol-book}
-  also covers theory presentation issues.
-*}
-
-
-subsection {* How to write Isar proofs anyway? \label{sec:isar-howto} *}
-
-text {*
-  This is one of the key questions, of course.  First of all, the
+  also covers theory presentation issues.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{How to write Isar proofs anyway? \label{sec:isar-howto}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+This is one of the key questions, of course.  First of all, the
   tactic script emulation of Isabelle/Isar essentially provides a
   clarified version of the very same unstructured proof style of
   classic Isabelle.  Old-time users should quickly become acquainted
@@ -298,7 +329,26 @@ text {*
   \url{http://isabelle.in.tum.de/library/}).  The ``Archive of Formal
   Proofs'' \url{http://afp.sourceforge.net/} also provides plenty of
   examples, both in proper Isar proof style and unstructured tactic
-  scripts.
-*}
-
-end
+  scripts.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
