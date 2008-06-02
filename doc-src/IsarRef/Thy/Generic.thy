@@ -156,9 +156,9 @@ text {*
   \item [@{attribute rotated}~@{text n}] rotate the premises of a
   theorem by @{text n} (default 1).
 
-  \item [@{attribute Pure.elim_format}] turns a destruction rule into
-  elimination rule format, by resolving with the rule @{prop "PROP A \<Longrightarrow>
-  (PROP A \<Longrightarrow> PROP B) \<Longrightarrow> PROP B"}.
+  \item [@{attribute (Pure) elim_format}] turns a destruction rule
+  into elimination rule format, by resolving with the rule @{prop
+  "PROP A \<Longrightarrow> (PROP A \<Longrightarrow> PROP B) \<Longrightarrow> PROP B"}.
   
   Note that the Classical Reasoner (\secref{sec:classical}) provides
   its own version of this operation.
@@ -170,6 +170,72 @@ text {*
 
   \item [@{attribute no_vars}] replaces schematic variables by free
   ones; this is mainly for tuning output of pretty printed theorems.
+
+  \end{descr}
+*}
+
+
+subsection {* Low-level equational reasoning *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def subst} & : & \isarmeth \\
+    @{method_def hypsubst} & : & \isarmeth \\
+    @{method_def split} & : & \isarmeth \\
+  \end{matharray}
+
+  \begin{rail}
+    'subst' ('(' 'asm' ')')? ('(' (nat+) ')')? thmref
+    ;
+    'split' ('(' 'asm' ')')? thmrefs
+    ;
+  \end{rail}
+
+  These methods provide low-level facilities for equational reasoning
+  that are intended for specialized applications only.  Normally,
+  single step calculations would be performed in a structured text
+  (see also \secref{sec:calculation}), while the Simplifier methods
+  provide the canonical way for automated normalization (see
+  \secref{sec:simplifier}).
+
+  \begin{descr}
+
+  \item [@{method subst}~@{text eq}] performs a single substitution
+  step using rule @{text eq}, which may be either a meta or object
+  equality.
+
+  \item [@{method subst}~@{text "(asm) eq"}] substitutes in an
+  assumption.
+
+  \item [@{method subst}~@{text "(i \<dots> j) eq"}] performs several
+  substitutions in the conclusion. The numbers @{text i} to @{text j}
+  indicate the positions to substitute at.  Positions are ordered from
+  the top of the term tree moving down from left to right. For
+  example, in @{text "(a + b) + (c + d)"} there are three positions
+  where commutativity of @{text "+"} is applicable: 1 refers to the
+  whole term, 2 to @{text "a + b"} and 3 to @{text "c + d"}.
+
+  If the positions in the list @{text "(i \<dots> j)"} are non-overlapping
+  (e.g.\ @{text "(2 3)"} in @{text "(a + b) + (c + d)"}) you may
+  assume all substitutions are performed simultaneously.  Otherwise
+  the behaviour of @{text subst} is not specified.
+
+  \item [@{method subst}~@{text "(asm) (i \<dots> j) eq"}] performs the
+  substitutions in the assumptions.  Positions @{text "1 \<dots> i\<^sub>1"}
+  refer to assumption 1, positions @{text "i\<^sub>1 + 1 \<dots> i\<^sub>2"}
+  to assumption 2, and so on.
+
+  \item [@{method hypsubst}] performs substitution using some
+  assumption; this only works for equations of the form @{text "x =
+  t"} where @{text x} is a free or bound variable.
+
+  \item [@{method split}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] performs
+  single-step case splitting using the given rules.  By default,
+  splitting is performed in the conclusion of a goal; the @{text
+  "(asm)"} option indicates to operate on assumptions instead.
+  
+  Note that the @{method simp} method already involves repeated
+  application of split rules as declared in the current context.
 
   \end{descr}
 *}
@@ -485,72 +551,6 @@ text {*
 *}
 
 
-subsection {* Low-level equational reasoning *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{method_def subst}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def hypsubst}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def split}@{text "\<^sup>*"} & : & \isarmeth \\
-  \end{matharray}
-
-  \begin{rail}
-    'subst' ('(' 'asm' ')')? ('(' (nat+) ')')? thmref
-    ;
-    'split' ('(' 'asm' ')')? thmrefs
-    ;
-  \end{rail}
-
-  These methods provide low-level facilities for equational reasoning
-  that are intended for specialized applications only.  Normally,
-  single step calculations would be performed in a structured text
-  (see also \secref{sec:calculation}), while the Simplifier methods
-  provide the canonical way for automated normalization (see
-  \secref{sec:simplifier}).
-
-  \begin{descr}
-
-  \item [@{method subst}~@{text eq}] performs a single substitution
-  step using rule @{text eq}, which may be either a meta or object
-  equality.
-
-  \item [@{method subst}~@{text "(asm) eq"}] substitutes in an
-  assumption.
-
-  \item [@{method subst}~@{text "(i \<dots> j) eq"}] performs several
-  substitutions in the conclusion. The numbers @{text i} to @{text j}
-  indicate the positions to substitute at.  Positions are ordered from
-  the top of the term tree moving down from left to right. For
-  example, in @{text "(a + b) + (c + d)"} there are three positions
-  where commutativity of @{text "+"} is applicable: 1 refers to the
-  whole term, 2 to @{text "a + b"} and 3 to @{text "c + d"}.
-
-  If the positions in the list @{text "(i \<dots> j)"} are non-overlapping
-  (e.g.\ @{text "(2 3)"} in @{text "(a + b) + (c + d)"}) you may
-  assume all substitutions are performed simultaneously.  Otherwise
-  the behaviour of @{text subst} is not specified.
-
-  \item [@{method subst}~@{text "(asm) (i \<dots> j) eq"}] performs the
-  substitutions in the assumptions.  Positions @{text "1 \<dots> i\<^sub>1"}
-  refer to assumption 1, positions @{text "i\<^sub>1 + 1 \<dots> i\<^sub>2"}
-  to assumption 2, and so on.
-
-  \item [@{method hypsubst}] performs substitution using some
-  assumption; this only works for equations of the form @{text "x =
-  t"} where @{text x} is a free or bound variable.
-
-  \item [@{method split}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] performs
-  single-step case splitting using the given rules.  By default,
-  splitting is performed in the conclusion of a goal; the @{text
-  "(asm)"} option indicates to operate on assumptions instead.
-  
-  Note that the @{method simp} method already involves repeated
-  application of split rules as declared in the current context.
-
-  \end{descr}
-*}
-
-
 section {* The Classical Reasoner \label{sec:classical} *}
 
 subsection {* Basic methods *}
@@ -761,7 +761,7 @@ text {*
 *}
 
 
-section {* General logic setup \label{sec:object-logic} *}
+section {* Object-logic setup \label{sec:object-logic} *}
 
 text {*
   \begin{matharray}{rcl}
