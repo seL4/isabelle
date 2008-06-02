@@ -10,7 +10,6 @@ section {* Defining theories \label{sec:begin-thy} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "header"} & : & \isarkeep{toplevel} \\
     @{command_def "theory"} & : & \isartrans{toplevel}{theory} \\
     @{command_def (global) "end"} & : & \isartrans{theory}{toplevel} \\
   \end{matharray}
@@ -26,14 +25,11 @@ text {*
   ones.  Just preceding the @{command "theory"} keyword, there may be
   an optional @{command "header"} declaration, which is relevant to
   document preparation only; it acts very much like a special
-  pre-theory markup command (cf.\ \secref{sec:markup} and).  The
-  @{command (global) "end"} command
-  concludes a theory development; it has to be the very last command
-  of any theory file loaded in batch-mode.
+  pre-theory markup command (cf.\ \secref{sec:markup}).  The @{command
+  (global) "end"} command concludes a theory development; it has to be
+  the very last command of any theory file loaded in batch-mode.
 
   \begin{rail}
-    'header' text
-    ;
     'theory' name 'imports' (name +) uses? 'begin'
     ;
 
@@ -42,12 +38,6 @@ text {*
 
   \begin{descr}
 
-  \item [@{command "header"}~@{text "text"}] provides plain text
-  markup just preceding the formal beginning of a theory.  In actual
-  document preparation the corresponding {\LaTeX} macro @{verbatim
-  "\\isamarkupheader"} may be redefined to produce chapter or section
-  headings.  See also \secref{sec:markup} for further markup commands.
-  
   \item [@{command "theory"}~@{text "A \<IMPORTS> B\<^sub>1 \<dots>
   B\<^sub>n \<BEGIN>"}] starts a new theory @{text A} based on the
   merge of existing theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}.
@@ -102,9 +92,9 @@ text {*
   
   \item [@{command "context"}~@{text "c \<BEGIN>"}] recommences an
   existing locale or class context @{text c}.  Note that locale and
-  class definitions allow to include the @{keyword_ref "begin"}
-  keyword as well, in order to continue the local theory immediately
-  after the initial specification.
+  class definitions allow to include the @{keyword "begin"} keyword as
+  well, in order to continue the local theory immediately after the
+  initial specification.
   
   \item [@{command (local) "end"}] concludes the current local theory
   and continues the enclosing global theory.  Note that a global
