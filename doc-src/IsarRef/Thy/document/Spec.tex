@@ -30,7 +30,6 @@
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{header}\hypertarget{command.header}{\hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}}} & : & \isarkeep{toplevel} \\
     \indexdef{}{command}{theory}\hypertarget{command.theory}{\hyperlink{command.theory}{\mbox{\isa{\isacommand{theory}}}}} & : & \isartrans{toplevel}{theory} \\
     \indexdef{global}{command}{end}\hypertarget{command.global.end}{\hyperlink{command.global.end}{\mbox{\isa{\isacommand{end}}}}} & : & \isartrans{theory}{toplevel} \\
   \end{matharray}
@@ -45,14 +44,10 @@
   ones.  Just preceding the \hyperlink{command.theory}{\mbox{\isa{\isacommand{theory}}}} keyword, there may be
   an optional \hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}} declaration, which is relevant to
   document preparation only; it acts very much like a special
-  pre-theory markup command (cf.\ \secref{sec:markup} and).  The
-  \hyperlink{command.global.end}{\mbox{\isa{\isacommand{end}}}} command
-  concludes a theory development; it has to be the very last command
-  of any theory file loaded in batch-mode.
+  pre-theory markup command (cf.\ \secref{sec:markup}).  The \hyperlink{command.global.end}{\mbox{\isa{\isacommand{end}}}} command concludes a theory development; it has to be
+  the very last command of any theory file loaded in batch-mode.
 
   \begin{rail}
-    'header' text
-    ;
     'theory' name 'imports' (name +) uses? 'begin'
     ;
 
@@ -61,11 +56,6 @@
 
   \begin{descr}
 
-  \item [\hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] provides plain text
-  markup just preceding the formal beginning of a theory.  In actual
-  document preparation the corresponding {\LaTeX} macro \verb|\isamarkupheader| may be redefined to produce chapter or section
-  headings.  See also \secref{sec:markup} for further markup commands.
-  
   \item [\hyperlink{command.theory}{\mbox{\isa{\isacommand{theory}}}}~\isa{{\isachardoublequote}A\ {\isasymIMPORTS}\ B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n\ {\isasymBEGIN}{\isachardoublequote}}] starts a new theory \isa{A} based on the
   merge of existing theories \isa{{\isachardoublequote}B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n{\isachardoublequote}}.
   
@@ -121,9 +111,9 @@ A local theory target is a context managed separately within the
   
   \item [\hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}~\isa{{\isachardoublequote}c\ {\isasymBEGIN}{\isachardoublequote}}] recommences an
   existing locale or class context \isa{c}.  Note that locale and
-  class definitions allow to include the \indexref{}{keyword}{begin}\hyperlink{keyword.begin}{\mbox{\isa{\isakeyword{begin}}}}
-  keyword as well, in order to continue the local theory immediately
-  after the initial specification.
+  class definitions allow to include the \hyperlink{keyword.begin}{\mbox{\isa{\isakeyword{begin}}}} keyword as
+  well, in order to continue the local theory immediately after the
+  initial specification.
   
   \item [\hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}}] concludes the current local theory
   and continues the enclosing global theory.  Note that a global
