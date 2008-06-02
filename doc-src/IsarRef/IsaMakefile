@@ -22,7 +22,7 @@ USEDIR = $(ISATOOL) usedir -v true -i false -d false -C false -D document
 HOL-IsarRef: $(LOG)/HOL-IsarRef.gz
 
 $(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML		\
-  Thy/Introduction.thy Thy/syntax.thy Thy/Spec.thy Thy/Proof.thy	\
+  Thy/Introduction.thy Thy/Outer_Syntax.thy Thy/Spec.thy Thy/Proof.thy	\
   Thy/pure.thy Thy/Generic.thy Thy/HOL_Specific.thy			\
   Thy/Quick_Reference.thy Thy/ML_Tactic.thy
 	@$(USEDIR) -s IsarRef HOL Thy

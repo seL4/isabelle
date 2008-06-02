@@ -5,7 +5,7 @@ set ThyOutput.source;
 use "../../antiquote_setup.ML";
 
 use_thy "Introduction";
-use_thy "syntax";
+use_thy "Outer_Syntax";
 use_thy "Spec";
 use_thy "Proof";
 use_thy "pure";

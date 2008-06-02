@@ -1,6 +1,6 @@
 (* $Id$ *)
 
-theory "syntax"
+theory Outer_Syntax
 imports Pure
 begin
 
