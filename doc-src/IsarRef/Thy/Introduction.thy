@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory Introduction
-imports Pure
+imports Main
 begin
 
 chapter {* Introduction *}
@@ -73,7 +73,7 @@ text {*
 *}
 
 
-section {* Quick start *}
+section {* User interfaces *}
 
 subsection {* Terminal sessions *}
 
@@ -227,7 +227,7 @@ text {*
 *}
 
 
-subsection {* How to write Isar proofs anyway? \label{sec:isar-howto} *}
+section {* How to write Isar proofs anyway? \label{sec:isar-howto} *}
 
 text {*
   This is one of the key questions, of course.  First of all, the

@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory Outer_Syntax
-imports Pure
+imports Main
 begin
 
 chapter {* Outer syntax *}
