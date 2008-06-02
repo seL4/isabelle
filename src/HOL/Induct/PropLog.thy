@@ -134,14 +134,13 @@ subsubsection {* Towards the completeness proof *}
 
 lemma false_imp: "H |- p->false ==> H |- p->q"
 apply (rule deduction)
-apply (erule weaken_left_insert [THEN thms_notE])
-apply blast
+apply (metis H insert_iff weaken_left_insert thms_notE)
 done
 
 lemma imp_false:
     "[| H |- p;  H |- q->false |] ==> H |- (p->q)->false"
 apply (rule deduction)
-apply (blast intro: weaken_left_insert thms.MP thms.H)
+apply (metis H MP insert_iff weaken_left_insert)
 done
 
 lemma hyps_thms_if: "hyps p tt |- (if tt[[p]] then p else p->false)"
