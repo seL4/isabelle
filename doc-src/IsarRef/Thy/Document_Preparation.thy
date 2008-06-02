@@ -58,6 +58,7 @@ section {* Markup commands \label{sec:markup} *}
 
 text {*
   \begin{matharray}{rcl}
+    @{command_def "header"} & : & \isarkeep{toplevel} \\[0.5ex]
     @{command_def "chapter"} & : & \isarkeep{local{\dsh}theory} \\
     @{command_def "section"} & : & \isarkeep{local{\dsh}theory} \\
     @{command_def "subsection"} & : & \isarkeep{local{\dsh}theory} \\
@@ -79,12 +80,18 @@ text {*
   \begin{rail}
     ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') target? text
     ;
-    ('text\_raw' | 'sect' | 'subsect' | 'subsubsect' | 'txt' | 'txt\_raw') text
+    ('header' | 'text\_raw' | 'sect' | 'subsect' | 'subsubsect' | 'txt' | 'txt\_raw') text
     ;
   \end{rail}
 
   \begin{descr}
 
+  \item [@{command "header"}~@{text "text"}] provides plain text
+  markup just preceding the formal beginning of a theory.  In actual
+  document preparation the corresponding {\LaTeX} macro @{verbatim
+  "\\isamarkupheader"} may be redefined to produce chapter or section
+  headings.  See also \secref{sec:markup} for further markup commands.
+  
   \item [@{command "chapter"}, @{command "section"}, @{command
   "subsection"}, and @{command "subsubsection"}] mark chapter and
   section headings.
