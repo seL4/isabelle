@@ -13,15 +13,15 @@ include ../Makefile.in
 
 NAME = isar-ref
 
-FILES = isar-ref.tex style.sty basics.tex Thy/document/Generic.tex	\
+FILES = isar-ref.tex style.sty Thy/document/Generic.tex			\
   Thy/document/HOLCF_Specific.tex Thy/document/HOL_Specific.tex		\
   Thy/document/ML_Tactic.tex Thy/document/Proof.tex			\
   Thy/document/Quick_Reference.tex Thy/document/Spec.tex		\
   Thy/document/ZF_Specific.tex Thy/document/Introduction.tex		\
-  Thy/document/pure.tex Thy/document/Outer_Syntax.tex ../isar.sty	\
-  ../rail.sty ../railsetup.sty ../proof.sty ../iman.sty ../extra.sty	\
-  ../ttbox.sty ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty	\
-  ../manual.bib
+  Thy/document/Document_Preparation.tex Thy/document/pure.tex		\
+  Thy/document/Outer_Syntax.tex ../isar.sty ../rail.sty			\
+  ../railsetup.sty ../proof.sty ../iman.sty ../extra.sty ../ttbox.sty	\
+  ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty ../manual.bib
 
 dvi: $(NAME).dvi
 
