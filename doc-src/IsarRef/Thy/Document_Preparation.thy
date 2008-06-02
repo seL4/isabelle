@@ -90,11 +90,12 @@ text {*
   markup just preceding the formal beginning of a theory.  In actual
   document preparation the corresponding {\LaTeX} macro @{verbatim
   "\\isamarkupheader"} may be redefined to produce chapter or section
-  headings.  See also \secref{sec:markup} for further markup commands.
+  headings.
   
   \item [@{command "chapter"}, @{command "section"}, @{command
   "subsection"}, and @{command "subsubsection"}] mark chapter and
-  section headings.
+  section headings.  The corresponding {\LaTeX} macros are @{verbatim
+  "\\isamarkupchapter"}, @{verbatim "\\isamarkupsection"} etc.
 
   \item [@{command "text"} and @{command "txt"}] specify paragraphs of
   plain text.
@@ -155,8 +156,7 @@ text {*
   The text body of formal comments (see also \secref{sec:comments})
   may contain antiquotations of logical entities, such as theorems,
   terms and types, which are to be presented in the final output
-  produced by the Isabelle document preparation system (see also
-  \chref{ch:document-prep}).
+  produced by the Isabelle document preparation system.
 
   Thus embedding of ``@{text "@{term [show_types] \"f x = a + x\"}"}''
   within a text block would cause

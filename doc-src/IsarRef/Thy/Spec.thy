@@ -710,15 +710,9 @@ text {*
 *}
 
 
-section {* Axiomatic type classes \label{sec:axclass} *}
+subsection {* Old-style axiomatic type classes \label{sec:axclass} *}
 
 text {*
-  \begin{warn}
-  This describes the old interface to axiomatic type-classes in
-  Isabelle.  See \secref{sec:class} for a more recent higher-level
-  view on the same ideas.
-  \end{warn}
-
   \begin{matharray}{rcl}
     @{command_def "axclass"} & : & \isartrans{theory}{theory} \\
     @{command_def "instance"} & : & \isartrans{theory}{proof(prove)} \\
