@@ -1,0 +1,150 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Examples{\isadigit{1}}}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupsection{Use of Locales in Theories and Proofs%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Locales enable to prove theorems abstractly, relative to
+  sets of assumptions.  These theorems can then be used in other
+  contexts where the assumptions themselves, or
+  instances of the assumptions, are theorems.  This form of theorem
+  reuse is called \emph{interpretation}.
+
+  The changes of the locale
+  hierarchy from the previous sections are examples of
+  interpretations.  The command \isakeyword{interpretation} $l_1
+  \subseteq l_2$ is said to \emph{interpret} locale $l_2$ in the
+  context of $l_1$.  It causes all theorems of $l_2$ to be made
+  available in $l_1$.  The interpretation is \emph{dynamic}: not only
+  theorems already present in $l_2$ are available in $l_1$.  Theorems
+  that will be added to $l_2$ in future will automatically be
+  propagated to $l_1$.
+
+  Locales can also be interpreted in the contexts of theories and
+  structured proofs.  These interpretations are dynamic, too.
+  Theorems added to locales will be propagated to theories.
+  In this section the interpretation in
+  theories is illustrated; interpretation in proofs is analogous.
+  As an example consider, the type of natural numbers \isa{nat}.  The
+  order relation \isa{{\isasymle}} is a total order over \isa{nat},
+  divisibility \isa{dvd} is a distributive lattice.
+
+  We start with the
+  interpretation that \isa{{\isasymle}} is a partial order.  The facilities of
+  the interpretation command are explored in three versions.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{First Version: Replacement of Parameters Only%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\label{sec:po-first}
+
+  In the most basic form, interpretation just replaces the locale
+  parameters by terms.  The following command interprets the locale
+  \isa{partial{\isacharunderscore}order} in the global context of the theory.  The
+  parameter \isa{le} is replaced by \isa{op\ {\isasymle}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimvisible
+\ \ %
+\endisadelimvisible
+%
+\isatagvisible
+\isacommand{interpretation}\isamarkupfalse%
+\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isacharbrackleft}{\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}%
+\begin{isamarkuptxt}%
+The locale name is succeeded by a \emph{parameter
+  instantiation}.  In general, this is a list of terms, which refer to
+  the parameters in the order of declaration in the locale.  The
+  locale name is preceded by an optional \emph{interpretation prefix},
+  which is used to qualify names from the locale in the global
+  context.
+
+  The command creates the goal \begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ partial{\isacharunderscore}order\ op\ {\isasymle}%
+\end{isabelle} which can be shown
+  easily:%
+\footnote{Note that \isa{op} binds tighter than functions
+  application: parentheses around \isa{op\ {\isasymle}} are not necessary.}%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ unfold{\isacharunderscore}locales\ auto%
+\endisatagvisible
+{\isafoldvisible}%
+%
+\isadelimvisible
+%
+\endisadelimvisible
+%
+\begin{isamarkuptext}%
+Now theorems from the locale are available in the theory,
+  interpreted for natural numbers, for example \isa{nat{\isachardot}trans}: \begin{isabelle}%
+\ \ {\isasymlbrakk}{\isacharquery}x\ {\isasymle}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymle}\ {\isacharquery}z%
+\end{isabelle}
+
+  In order to avoid unwanted hiding of theorems, interpretation
+  accepts a qualifier, \isa{nat} in the example, which is applied to
+  all names processed by the
+  interpretation.  If present the qualifier is mandatory --- that is,
+  the above theorem cannot be referred to simply as \isa{trans}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Second Version: Replacement of Definitions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The above interpretation also creates the theorem
+  \isa{nat{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}: \begin{isabelle}%
+\ \ {\isasymlbrakk}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}z{\isasymrbrakk}\isanewline
+\isaindent{\ \ }{\isasymLongrightarrow}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}z%
+\end{isabelle}
+  Here, \isa{partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}}
+  represents the strict order, although \isa{{\isacharless}} is defined on
+  \isa{nat}.  Interpretation enables to map concepts
+  introduced in locales through definitions to the corresponding
+  concepts of the theory.%
+\footnote{This applies not only to \isakeyword{definition} but also to
+  \isakeyword{inductive}, \isakeyword{fun} and \isakeyword{function}.}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

@@ -1,48 +1,81 @@
-\documentclass[leqno]{article}
-\usepackage{../isabelle,../isabellesym}
-
+\documentclass[11pt,a4paper]{article}
 \usepackage{amsmath}
-\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{subfigure}
+\usepackage{isabelle,isabellesym}
+\usepackage{verbatim}
 \usepackage{array}
 
-% this should be the last package used
-\usepackage{../pdfsetup}
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
 
+\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage[greek,english]{babel}
+  %option greek for \<euro>
+  %option english (default language) for \<guillemotleft>, \<guillemotright>
+
+%\usepackage[latin1]{inputenc}
+  %for \<onesuperior>, \<onequarter>, \<twosuperior>, \<onehalf>,
+  %\<threesuperior>, \<threequarters>, \<degree>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<cent>, \<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+\isafoldtag{proof}
+
+% urls in roman style, theory text in typewriter
 \urlstyle{rm}
 \isabellestyle{tt}
-%\renewcommand{\isacharunderscore}{\_}%
-% the latter is not necessary with \isabellestyle{tt}
+
 
 \begin{document}
 
-\title{Locales and Locale Expressions in Isabelle/Isar}
-\author{Clemens Ballarin \\
-  Fakult\"at f\"ur Informatik \\ Technische Universit\"at M\"unchen \\
-  85748 Garching, Germany \\
-  ballarin@in.tum.de}
+\title{Tutorial to Locales and Locale Interpretation}
+\author{Clemens Ballarin}
 \date{}
 
 \maketitle
 
-\begin{abstract}
-  Locales provide a module system for the Isabelle proof assistant.
-  Recently, locales have been ported to the new Isar format for
-  structured proofs.  At the same time, they have been extended by
-  locale expressions, a language for composing locale specifications,
-  and by structures, which provide syntax for algebraic structures.
-  The present paper presents both and is suitable as a tutorial to
-  locales in Isar, because it covers both basics and recent
-  extensions, and contains many examples.
-\end{abstract}
+\thispagestyle{myheadings}
+\markright{Technical Report TUM-I0723, Technische Universit\"at M\"unchen, 2007}
 
-%\tableofcontents
+\begin{abstract}
+  Locales are Isabelle's mechanism to deal with parametric theories.
+  We present typical examples of locale specifications,
+  along with interpretations between locales to change their
+  hierarchic dependencies and interpretations to reuse locales in
+  theory contexts and proofs.
+
+  This tutorial is intended for locale novices; familiarity with
+  Isabelle and Isar is presumed.
+\end{abstract}
 
 \parindent 0pt\parskip 0.5ex
 
-% include generated text of all theories
+% generated text of all theories
 \input{session}
 
-\bibliographystyle{plain}
+% optional bibliography
+\newpage
+\bibliographystyle{abbrv}
 \bibliography{root}
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
