@@ -212,8 +212,8 @@ text {*
   indicate the positions to substitute at.  Positions are ordered from
   the top of the term tree moving down from left to right. For
   example, in @{text "(a + b) + (c + d)"} there are three positions
-  where commutativity of @{text "+"} is applicable: 1 refers to the
-  whole term, 2 to @{text "a + b"} and 3 to @{text "c + d"}.
+  where commutativity of @{text "+"} is applicable: 1 refers to
+  @{text "a + b"}, 2 to the whole term, and 3 to @{text "c + d"}.
 
   If the positions in the list @{text "(i \<dots> j)"} are non-overlapping
   (e.g.\ @{text "(2 3)"} in @{text "(a + b) + (c + d)"}) you may
@@ -221,9 +221,11 @@ text {*
   the behaviour of @{text subst} is not specified.
 
   \item [@{method subst}~@{text "(asm) (i \<dots> j) eq"}] performs the
-  substitutions in the assumptions.  Positions @{text "1 \<dots> i\<^sub>1"}
-  refer to assumption 1, positions @{text "i\<^sub>1 + 1 \<dots> i\<^sub>2"}
-  to assumption 2, and so on.
+  substitutions in the assumptions. The positions refer to the
+  assumptions in order from left to right.  For example, given in a
+  goal of the form @{text "P (a + b) \<Longrightarrow> P (c + d) \<Longrightarrow> \<dots>"}, position 1 of
+  commutativity of @{text "+"} is the subterm @{text "a + b"} and
+  position 2 is the subterm @{text "c + d"}.
 
   \item [@{method hypsubst}] performs substitution using some
   assumption; this only works for equations of the form @{text "x =
