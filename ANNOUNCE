@@ -6,15 +6,18 @@ Isabelle2008 is now available.
 This release consolidates Isabelle2007, see the NEWS file in the
 distribution for more details.  Some notable improvements are:
 
-* New version of HOL 'primrec' supporting type-inference and local
-theory targets.
+* HOL: significant speedup of Metis prover; proper support for
+multithreading.
+
+* HOL: new version of 'primrec' command supporting type-inference and
+local theory targets.
+
+* HOL: improved support for termination proofs of recursive function
+definitions.
 
 * New local theory targets for class instantiation and overloading.
 
 * Support for named dynamic lists of theorems.
-
-* Significant speedup of Metis prover, with proper support for
-multithreading.
 
 * Simple TTY interface with command-line editing.
 
@@ -23,7 +26,7 @@ multithreading.
 * Support for Poly/ML 5.2 with improved handling of multithreading and
 external processes.
 
-* Reorganized version of Isabelle/Isar Reference Manual.
+* Reorganized and updated version of Isabelle/Isar Reference Manual.
 
 
 You may get Isabelle2008 from the following mirror sites:
