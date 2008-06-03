@@ -28,7 +28,7 @@ Example catalog file:
 Plugin installation
 -------------------
 
-1) Copy or symlink [ISABELLE_HOME]/lib/jedit/isabelle/isabelle.jar to
+1) Copy or symlink [ISABELLE_HOME]/lib/jedit/isabelle.jar to
 [JEDIT_SETTINGS]/jars/
 
 2) Install scala-library.jar likewise (taken from the regular Scala
