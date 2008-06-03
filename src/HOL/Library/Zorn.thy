@@ -305,7 +305,7 @@ proof-
   from Zorn_Lemma2[OF this]
   obtain m B where "m:Field r" "B = r^-1 `` {m}"
     "\<forall>x\<in>Field r. B \<subseteq> r^-1 `` {x} \<longrightarrow> B = r^-1 `` {x}"
-    by(auto simp:image_def) blast
+    by auto
   hence "\<forall>a\<in>Field r. (m, a) \<in> r \<longrightarrow> a = m" using po `Preorder r` `m:Field r`
     by(auto simp:subset_Image1_Image1_iff Partial_order_eq_Image1_Image1_iff)
   thus ?thesis using `m:Field r` by blast
