@@ -230,8 +230,8 @@ Isabelle/Pure maintains a record of named configuration options
   indicate the positions to substitute at.  Positions are ordered from
   the top of the term tree moving down from left to right. For
   example, in \isa{{\isachardoublequote}{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isacharplus}\ {\isacharparenleft}c\ {\isacharplus}\ d{\isacharparenright}{\isachardoublequote}} there are three positions
-  where commutativity of \isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}} is applicable: 1 refers to the
-  whole term, 2 to \isa{{\isachardoublequote}a\ {\isacharplus}\ b{\isachardoublequote}} and 3 to \isa{{\isachardoublequote}c\ {\isacharplus}\ d{\isachardoublequote}}.
+  where commutativity of \isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}} is applicable: 1 refers to
+  \isa{{\isachardoublequote}a\ {\isacharplus}\ b{\isachardoublequote}}, 2 to the whole term, and 3 to \isa{{\isachardoublequote}c\ {\isacharplus}\ d{\isachardoublequote}}.
 
   If the positions in the list \isa{{\isachardoublequote}{\isacharparenleft}i\ {\isasymdots}\ j{\isacharparenright}{\isachardoublequote}} are non-overlapping
   (e.g.\ \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{2}}\ {\isadigit{3}}{\isacharparenright}{\isachardoublequote}} in \isa{{\isachardoublequote}{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isacharplus}\ {\isacharparenleft}c\ {\isacharplus}\ d{\isacharparenright}{\isachardoublequote}}) you may
@@ -239,9 +239,11 @@ Isabelle/Pure maintains a record of named configuration options
   the behaviour of \isa{subst} is not specified.
 
   \item [\hyperlink{method.subst}{\mbox{\isa{subst}}}~\isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharparenright}\ {\isacharparenleft}i\ {\isasymdots}\ j{\isacharparenright}\ eq{\isachardoublequote}}] performs the
-  substitutions in the assumptions.  Positions \isa{{\isachardoublequote}{\isadigit{1}}\ {\isasymdots}\ i\isactrlsub {\isadigit{1}}{\isachardoublequote}}
-  refer to assumption 1, positions \isa{{\isachardoublequote}i\isactrlsub {\isadigit{1}}\ {\isacharplus}\ {\isadigit{1}}\ {\isasymdots}\ i\isactrlsub {\isadigit{2}}{\isachardoublequote}}
-  to assumption 2, and so on.
+  substitutions in the assumptions. The positions refer to the
+  assumptions in order from left to right.  For example, given in a
+  goal of the form \isa{{\isachardoublequote}P\ {\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}c\ {\isacharplus}\ d{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymdots}{\isachardoublequote}}, position 1 of
+  commutativity of \isa{{\isachardoublequote}{\isacharplus}{\isachardoublequote}} is the subterm \isa{{\isachardoublequote}a\ {\isacharplus}\ b{\isachardoublequote}} and
+  position 2 is the subterm \isa{{\isachardoublequote}c\ {\isacharplus}\ d{\isachardoublequote}}.
 
   \item [\hyperlink{method.hypsubst}{\mbox{\isa{hypsubst}}}] performs substitution using some
   assumption; this only works for equations of the form \isa{{\isachardoublequote}x\ {\isacharequal}\ t{\isachardoublequote}} where \isa{x} is a free or bound variable.
