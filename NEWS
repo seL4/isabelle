@@ -9,17 +9,6 @@ New in Isabelle2008 (June 2008)
 * The Isabelle/Isar Reference Manual (isar-ref) has been reorganized
 and updated, with formally checked references as hyperlinks.
 
-* Syntax: symbol \<chi> is now considered a letter.  Potential
-INCOMPATIBILITY in identifier syntax etc.
-
-* Outer syntax: string tokens may contain arbitrary character codes
-specified via 3 decimal digits (as in SML).  E.g. "foo\095bar" for
-"foo_bar".
-
-* Outer syntax: string tokens no longer admit escaped white space,
-which was an accidental (undocumented) feature.  INCOMPATIBILITY, use
-white space directly.
-
 * Theory loader: use_thy (and similar operations) no longer set the
 implicit ML context, which was occasionally hard to predict and in
 conflict with concurrency.  INCOMPATIBILITY, use ML within Isar which
@@ -33,6 +22,17 @@ file are no longer supported.  INCOMPATIBILITY, regular 'uses' and
 is inserted into the first one, while existing entries in the first
 space take precedence.  INCOMPATIBILITY in rare situations, may try to
 swap theory imports.
+
+* Syntax: symbol \<chi> is now considered a letter.  Potential
+INCOMPATIBILITY in identifier syntax etc.
+
+* Outer syntax: string tokens no longer admit escaped white space,
+which was an accidental (undocumented) feature.  INCOMPATIBILITY, use
+white space without escapes.
+
+* Outer syntax: string tokens may contain arbitrary character codes
+specified via 3 decimal digits (as in SML).  E.g. "foo\095bar" for
+"foo_bar".
 
 
 *** Pure ***
@@ -94,8 +94,8 @@ INCOMPATIBILITY.
 * Instantiation target allows for simultaneous specification of class
 instance operations together with an instantiation proof.
 Type-checking phase allows to refer to class operations uniformly.
-See HOL/Complex/Complex.thy for an Isar example and
-HOL/Library/Eval.thy for an ML example.
+See src/HOL/Complex/Complex.thy for an Isar example and
+src/HOL/Library/Eval.thy for an ML example.
 
 * Indexing of literal facts: be more serious about including only
 facts from the visible specification/proof context, but not the
@@ -130,6 +130,47 @@ arguments in parentheses) and prints A just like @{prop A}.
 
 
 *** HOL ***
+
+* New primrec package.  Specification syntax conforms in style to
+definition/function/....  No separate induction rule is provided.  The
+"primrec" command distinguishes old-style and new-style specifications
+by syntax.  The former primrec package is now named OldPrimrecPackage.
+When adjusting theories, beware: constants stemming from new-style
+primrec specifications have authentic syntax.
+
+* Metis prover is now an order of magnitude faster, and also works
+with multithreading.
+
+* Metis: the maximum number of clauses that can be produced from a
+theorem is now given by the attribute max_clauses.  Theorems that
+exceed this number are ignored, with a warning printed.
+
+* Sledgehammer no longer produces structured proofs by default. To
+enable, declare [[sledgehammer_full = true]].  Attributes
+reconstruction_modulus, reconstruction_sorts renamed
+sledgehammer_modulus, sledgehammer_sorts.  INCOMPATIBILITY.
+
+* Method "induction_scheme" derives user-specified induction rules
+from well-founded induction and completeness of patterns. This factors
+out some operations that are done internally by the function package
+and makes them available separately.  See
+src/HOL/ex/Induction_Scheme.thy for examples.
+
+* More flexible generation of measure functions for termination
+proofs: Measure functions can be declared by proving a rule of the
+form "is_measure f" and giving it the [measure_function] attribute.
+The "is_measure" predicate is logically meaningless (always true), and
+just guides the heuristic.  To find suitable measure functions, the
+termination prover sets up the goal "is_measure ?f" of the appropriate
+type and generates all solutions by prolog-style backwards proof using
+the declared rules.
+
+This setup also deals with rules like 
+
+  "is_measure f ==> is_measure (list_size f)"
+
+which accommodates nested datatypes that recurse through lists.
+Similar rules are predeclared for products and option types.
 
 * Turned the type of sets "'a set" into an abbreviation for "'a => bool"
 
@@ -199,7 +240,7 @@ arguments in parentheses) and prints A just like @{prop A}.
       T1 => ... => Tn => U set
 
 * Merged theories Wellfounded_Recursion, Accessible_Part and
-Wellfounded_Relations to "Wellfounded.thy".
+Wellfounded_Relations to theory Wellfounded.
 
 * Explicit class "eq" for executable equality.  INCOMPATIBILITY.
 
@@ -266,6 +307,7 @@ lattices.  The form set-specific version is available as
 Inductive.lfp_ordinal_induct_set.
 
 * Renamed theorems "power.simps" to "power_int.simps".
+INCOMPATIBILITY.
 
 * Class semiring_div provides basic abstract properties of semirings
 with division and modulo operations.  Subsumes former class dvd_mod.
@@ -280,21 +322,6 @@ numbers rather than integers.  INCOMPATIBILITY.
 "minus" which now only has operation "minus", binary).
 INCOMPATIBILITY.
 
-* New primrec package.  Specification syntax conforms in style to
-definition/function/....  No separate induction rule is provided.  The
-"primrec" command distinguishes old-style and new-style specifications
-by syntax.  The former primrec package is now named OldPrimrecPackage.
-When adjusting theories, beware: constants stemming from new-style
-primrec specifications have authentic syntax.
-
-* Library/Multiset: {#a, b, c#} abbreviates {#a#} + {#b#} + {#c#}.
-
-* Library/ListVector: new theory of arithmetic vector operations.
-
-* Library/Order_Relation: new theory of various orderings as sets of
-pairs.  Defines preorders, partial orders, linear orders and
-well-orders on sets and on types.
-
 * Constants "card", "internal_split", "option_map" now with authentic
 syntax.  INCOMPATIBILITY.
 
@@ -305,43 +332,17 @@ Inf_fun_def, Sup_fun_def, inf_set_def, sup_set_def, Inf_set_def,
 Sup_set_def, le_def, less_def, option_map_def now with object
 equality.  INCOMPATIBILITY.
 
-* Method "induction_scheme" derives user-specified induction rules
-from well-founded induction and completeness of patterns. This factors
-out some operations that are done internally by the function package
-and makes them available separately. See "HOL/ex/Induction_Scheme.thy"
-for examples,
-
 * Records. Removed K_record, and replaced it by pure lambda term
 %x. c. The simplifier setup is now more robust against eta expansion.
 INCOMPATIBILITY: in cases explicitly referring to K_record.
 
-* Metis prover is now an order of magnitude faster, and also works
-with multithreading.
+* Library/Multiset: {#a, b, c#} abbreviates {#a#} + {#b#} + {#c#}.
 
-* Metis: the maximum number of clauses that can be produced from a
-theorem is now given by the attribute max_clauses. Theorems that
-exceed this number are ignored, with a warning printed.
+* Library/ListVector: new theory of arithmetic vector operations.
 
-* Sledgehammer no longer produces structured proofs by default. To
-enable, declare [[sledgehammer_full = true]]. Attributes
-reconstruction_modulus, reconstruction_sorts renamed
-sledgehammer_modulus, sledgehammer_sorts.  INCOMPATIBILITY.
-
-* More flexible generation of measure functions for termination
-proofs: Measure functions can be declared by proving a rule of the
-form "is_measure f" and giving it the [measure_function] attribute.
-The "is_measure" predicate is logically meaningless (always true), and
-just guides the heuristic.  To find suitable measure functions, the
-termination prover sets up the goal "is_measure ?f" of the appropriate
-type and generates all solutions by prolog-style backwards proof using
-the declared rules.
-
-This setup also deals with rules like 
-
-  "is_measure f ==> is_measure (list_size f)"
-
-which accomodates nested datatypes that recurse through lists. Similar
-rules are predeclared for products and option types.
+* Library/Order_Relation: new theory of various orderings as sets of
+pairs.  Defines preorders, partial orders, linear orders and
+well-orders on sets and on types.
 
 
 *** ZF ***
@@ -364,13 +365,13 @@ available, as trivial extension of Main_ZF.
 
 *** ML ***
 
+* ML within Isar: antiquotation @{const name} or @{const
+name(typargs)} produces statically-checked Const term.
+
 * Functor NamedThmsFun: data is available to the user as dynamic fact
 (of the same name).  Removed obsolete print command.
 
-* Removed obsolete "use_legacy_bindings" function.  INCOMPATIBILITY.
-
-* ML within Isar: antiquotation @{const name} or @{const
-name(typargs)} produces statically-checked Const term.
+* Removed obsolete "use_legacy_bindings" function.
 
 * The ``print mode'' is now a thread-local value derived from a global
 template (the former print_mode reference), thus access becomes
@@ -385,23 +386,8 @@ Do not use OS.Process.system etc. from the basis library!
 
 *** System ***
 
-* YXML notation provides a simple and efficient alternative to
-standard XML transfer syntax.  See src/Pure/General/yxml.ML and
-isatool yxml as described in the Isabelle system manual.
-
-* Removed obsolete THIS_IS_ISABELLE_BUILD feature.  NB: the documented
-way of changing the user's settings is via
-ISABELLE_HOME_USER/etc/settings, which is a fully featured bash
-script.
-
 * Default settings: PROOFGENERAL_OPTIONS no longer impose xemacs ---
 in accordance with Proof General 3.7, which prefers GNU emacs.
-
-* Multithreading.max_threads := 0 refers to the number of actual CPU
-cores of the underlying machine, which is a good starting point for
-optimal performance tuning.  The corresponding usedir option -M allows
-"max" as an alias for "0".  WARNING: does not work on certain versions
-of Mac OS (with Poly/ML 5.1).
 
 * isatool tty runs Isabelle process with plain tty interaction;
 optional line editor may be specified via ISABELLE_LINE_EDITOR
@@ -410,9 +396,9 @@ setting, the default settings attempt to locate "ledit" and "rlwrap".
 * isatool browser now works with Cygwin as well, using general
 "javapath" function defined in Isabelle process environment.
 
-* isabelle-process: non-ML sessions are run with "nice", to prevent
-Isabelle from flooding interactive front-ends (notably ProofGeneral /
-XEmacs).
+* YXML notation provides a simple and efficient alternative to
+standard XML transfer syntax.  See src/Pure/General/yxml.ML and
+isatool yxml as described in the Isabelle system manual.
 
 * JVM class isabelle.IsabelleProcess (located in Isabelle/lib/classes)
 provides general wrapper for managing an Isabelle process in a robust
@@ -420,6 +406,21 @@ fashion, with ``cooked'' output from stdin/stderr.
 
 * Rudimentary Isabelle plugin for jEdit (see Isabelle/lib/jedit),
 based on Isabelle/JVM process wrapper (see Isabelle/lib/classes).
+
+* Removed obsolete THIS_IS_ISABELLE_BUILD feature.  NB: the documented
+way of changing the user's settings is via
+ISABELLE_HOME_USER/etc/settings, which is a fully featured bash
+script.
+
+* Multithreading.max_threads := 0 refers to the number of actual CPU
+cores of the underlying machine, which is a good starting point for
+optimal performance tuning.  The corresponding usedir option -M allows
+"max" as an alias for "0".  WARNING: does not work on certain versions
+of Mac OS (with Poly/ML 5.1).
+
+* isabelle-process: non-ML sessions are run with "nice", to reduce the
+adverse effect of Isabelle flooding interactive front-ends (notably
+ProofGeneral / XEmacs).
 
 
 
