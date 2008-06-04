@@ -1,5 +1,7 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage{amsmath}
+\usepackage{ifpdf}
+\ifpdf\relax\else\def\pgfsysdriver{pgfsys-dvi.def}\fi
 \usepackage{tikz}
 \usepackage{subfigure}
 \usepackage{../../../isabelle,../../../isabellesym}
