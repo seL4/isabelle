@@ -258,7 +258,7 @@ text {*
   \emph{locale expression}.  Locale expressions enable to combine locales
   and rename parameters.  A locale name is a locale expression.  If
   $e_1$ and $e_2$ are locale expressions then $e_1 + e_2$ is their
-  \emph{merge}.  If $e$ is an expression, then $e\:q_1 \ldots q_n$ is
+  \emph{merge}.  If $e$ is an expression, then $e\colon q_1 \ldots q_n$ is
   a \emph{renamed expression} where the parameters in $e$ are renamed
   to $q_1 \ldots q_n$.  Using a locale expression, a locale for order
   preserving maps can be declared in the following way.  *}
