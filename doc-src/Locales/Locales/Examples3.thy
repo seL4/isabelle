@@ -241,11 +241,9 @@ text {*
   *}
 
 
-section {* Locale Expressions *}
+section {* Locale Expressions \label{sec:expressions} *}
 
 text {*
-\label{sec:expressions}
-
   A map @{term \<phi>} between partial orders @{text \<sqsubseteq>} and @{text \<preceq>}
   is called order preserving if @{text "x \<sqsubseteq> y"} implies @{text "\<phi> x \<preceq>
   \<phi> y"}.  This situation is more complex than those encountered so

@@ -38,11 +38,9 @@ text {* Locales enable to prove theorems abstractly, relative to
   *}
 
 
-subsection {* First Version: Replacement of Parameters Only *}
+subsection {* First Version: Replacement of Parameters Only \label{sec:po-first} *}
 
 text {*
-\label{sec:po-first}
-
   In the most basic form, interpretation just replaces the locale
   parameters by terms.  The following command interprets the locale
   @{text partial_order} in the global context of the theory.  The
