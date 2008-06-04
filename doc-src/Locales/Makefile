@@ -6,9 +6,6 @@
 
 default: dvi
 
-## paths
-
-TEXPATH = Locales/document/:
 
 ## dependencies
 
@@ -25,19 +22,21 @@ FILES = Locales/document/root.tex Locales/document/root.bib \
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES)
-	env TEXINPUTS=$(TEXPATH) $(LATEX) root
-	env BIBINPUTS=$(TEXPATH) $(BIBTEX) root
-	env TEXINPUTS=$(TEXPATH) $(LATEX) root
-	env TEXINPUTS=$(TEXPATH) $(LATEX) root
-	env TEXINPUTS=$(TEXPATH) $(LATEX) root
-	mv root.dvi $(NAME).dvi
+	cd Locales/document && \
+	$(LATEX) root && \
+	$(BIBTEX) root && \
+	$(LATEX) root && \
+	$(LATEX) root && \
+	$(LATEX) root
+	mv Locales/document/root.dvi $(NAME).dvi
 
 pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES)
-	env TEXINPUTS=$(TEXPATH) $(PDFLATEX) root
-	env BIBINPUTS=$(TEXPATH) $(BIBTEX) root
-	env TEXINPUTS=$(TEXPATH) $(PDFLATEX) root
-	env TEXINPUTS=$(TEXPATH) $(PDFLATEX) root
-	env TEXINPUTS=$(TEXPATH) $(PDFLATEX) root
-	mv root.pdf $(NAME).pdf
+	cd Locales/document && \
+	$(PDFLATEX) root && \
+	$(BIBTEX) root && \
+	$(PDFLATEX) root && \
+	$(PDFLATEX) root && \
+	$(PDFLATEX) root
+	mv Locales/document/root.pdf $(NAME).pdf
