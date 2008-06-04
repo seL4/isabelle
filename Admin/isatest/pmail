@@ -94,4 +94,11 @@ shift 3
 
 [ -r "$BODY" ] || fail "could not read $BODY"
 
-print_body "$SUBJECT" "$BODY" $@ | mail -t "$TO"
+case `uname` in
+	Linux)  for F in $@; do ATTACH="$ATTACH -a $F"; done
+		cat "$BODY" | mail -s "$SUBJECT" $ATTACH "$TO"
+		;;
+	SunOS)
+		print_body "$SUBJECT" "$BODY" $@ | mail -t "$TO"
+		;;
+esac
