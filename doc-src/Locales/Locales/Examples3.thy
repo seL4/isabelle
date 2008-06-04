@@ -1,9 +1,8 @@
-(*<*)
+(* $Id$ *)
+
 theory Examples3
 imports Examples
 begin
-
-(*>*)
 
 subsection {* Third Version: Local Interpretation *}
 
@@ -540,6 +539,4 @@ text {* \textbf{Acknowledgements.}  Alexander Krauss, Tobias Nipkow,
   Christian Sternagel and Makarius Wenzel have made useful comments on
   a draft of this document. *}
 
-(*<*)
 end
-(*>*)

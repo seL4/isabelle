@@ -1,9 +1,8 @@
-(*<*)
+(* $Id$ *)
+
 theory Examples1
 imports Examples
 begin
-
-(*>*)
 
 section {* Use of Locales in Theories and Proofs *}
 
@@ -87,6 +86,4 @@ text {* The above interpretation also creates the theorem
   \isakeyword{inductive}, \isakeyword{fun} and \isakeyword{function}.} 
   *}
 
-(*<*)
 end
-(*>*)

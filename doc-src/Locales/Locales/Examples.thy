@@ -1,12 +1,11 @@
-(*<*)
+(* $Id$ *)
+
 theory Examples
 imports GCD
 begin
 
-hide const Lattices.lattice
-pretty_setmargin 65
-
-(*>*)
+hide %invisible const Lattices.lattice
+pretty_setmargin %invisible 65
 
 (*
 text {* The following presentation will use notation of
@@ -678,6 +677,4 @@ text {* Similarly, total orders are distributive lattices. *}
 
 text {* The locale hierarchy is now as shown in Figure~\ref{fig:lattices}(c). *}
 
-(*<*)
 end
-(*>*)

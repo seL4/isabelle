@@ -1,9 +1,8 @@
-(*<*)
+(* $Id$ *)
+
 theory Examples2
 imports Examples
 begin
-
-(*>*)
 
 text {* This is achieved by unfolding suitable equations during
   interpretation.  These equations are given after the keyword
@@ -29,6 +28,4 @@ text {* Note that the above proof is not in the context of a locale.
   "partial_order.less_def"} is obtained manually with @{text OF}.
   *}
 
-(*<*)
 end
-(*>*)
