@@ -3,17 +3,40 @@
 \def\isabellecontext{Examples}%
 %
 \isadelimtheory
+\isanewline
+\isanewline
 %
 \endisadelimtheory
 %
 \isatagtheory
-%
+\isacommand{theory}\isamarkupfalse%
+\ Examples\isanewline
+\isakeyword{imports}\ GCD\isanewline
+\isakeyword{begin}%
 \endisatagtheory
 {\isafoldtheory}%
 %
 \isadelimtheory
+\isanewline
 %
 \endisadelimtheory
+%
+\isadeliminvisible
+\isanewline
+%
+\endisadeliminvisible
+%
+\isataginvisible
+\isacommand{hide}\isamarkupfalse%
+\ const\ Lattices{\isachardot}lattice\isanewline
+\isacommand{pretty{\isacharunderscore}setmargin}\isamarkupfalse%
+\ {\isadigit{6}}{\isadigit{5}}%
+\endisataginvisible
+{\isafoldinvisible}%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
 %
 \isamarkupsection{Introduction%
 }
@@ -1389,6 +1412,7 @@ The locale hierarchy is now as shown in Figure~\ref{fig:lattices}(c).%
 \endisadelimtheory
 %
 \isatagtheory
+\isacommand{end}\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -1396,6 +1420,7 @@ The locale hierarchy is now as shown in Figure~\ref{fig:lattices}(c).%
 \isadelimtheory
 %
 \endisadelimtheory
+\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

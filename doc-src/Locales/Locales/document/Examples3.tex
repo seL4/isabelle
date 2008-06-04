@@ -3,11 +3,16 @@
 \def\isabellecontext{Examples{\isadigit{3}}}%
 %
 \isadelimtheory
+\isanewline
+\isanewline
 %
 \endisadelimtheory
 %
 \isatagtheory
-%
+\isacommand{theory}\isamarkupfalse%
+\ Examples{\isadigit{3}}\isanewline
+\isakeyword{imports}\ Examples\isanewline
+\isakeyword{begin}%
 \endisatagtheory
 {\isafoldtheory}%
 %
@@ -834,6 +839,7 @@ More information on locales and their interpretation is
 \endisadelimtheory
 %
 \isatagtheory
+\isacommand{end}\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -841,6 +847,7 @@ More information on locales and their interpretation is
 \isadelimtheory
 %
 \endisadelimtheory
+\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex

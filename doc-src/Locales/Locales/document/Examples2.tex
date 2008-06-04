@@ -3,11 +3,16 @@
 \def\isabellecontext{Examples{\isadigit{2}}}%
 %
 \isadelimtheory
+\isanewline
+\isanewline
 %
 \endisadelimtheory
 %
 \isatagtheory
-%
+\isacommand{theory}\isamarkupfalse%
+\ Examples{\isadigit{2}}\isanewline
+\isakeyword{imports}\ Examples\isanewline
+\isakeyword{begin}%
 \endisatagtheory
 {\isafoldtheory}%
 %
@@ -76,6 +81,7 @@ Note that the above proof is not in the context of a locale.
 \endisadelimtheory
 %
 \isatagtheory
+\isacommand{end}\isamarkupfalse%
 %
 \endisatagtheory
 {\isafoldtheory}%
@@ -83,6 +89,7 @@ Note that the above proof is not in the context of a locale.
 \isadelimtheory
 %
 \endisadelimtheory
+\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
