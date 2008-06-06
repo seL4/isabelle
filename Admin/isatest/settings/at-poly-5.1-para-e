@@ -1,12 +1,12 @@
 # -*- shell-script -*-
 
-  POLYML_HOME="/home/polyml/polyml-cvs"
-  ML_SYSTEM="polyml-cvs"
+  POLYML_HOME="/home/polyml/polyml-5.2"
+  ML_SYSTEM="polyml-5.2"
   ML_PLATFORM="x86-linux"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 500"
 
-ISABELLE_HOME_USER=~/isabelle-at-poly-5.1-para-e
+ISABELLE_HOME_USER=~/isabelle-at-poly-para-e
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
 ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"

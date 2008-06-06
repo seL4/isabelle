@@ -1,7 +1,7 @@
 # -*- shell-script -*-
 
-  POLYML_HOME="/home/polyml/polyml-cvs"
-  ML_SYSTEM="polyml-cvs"
+  POLYML_HOME="/home/polyml/polyml-5.2"
+  ML_SYSTEM="polyml-5.2"
   ML_PLATFORM="x86-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 2000"
