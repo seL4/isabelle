@@ -22,7 +22,7 @@ DATE=$(date "+%Y-%m-%d")
 
 LOG=$LOGPREFIX/isatest-doc-$DATE.log
 
-SHORT=sun-poly
+SHORT=at-poly
 SETTINGS=~/settings/$SHORT
 
 ISATOOL=$ISABELLE_DEVEL/bin/isatool
