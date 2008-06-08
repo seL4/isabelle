@@ -180,6 +180,7 @@ cp Distribution/lib/html/library_index_content.template ../website/
 MOVE=$($FIND Doc \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
 rm Distribution/doc/Isa-logics.eps
+rm Distribution/doc/codegen_process.pdf
 rm -rf Doc
 
 mkdir src contrib
