@@ -392,7 +392,7 @@ val thms  : string -> thm list
     ('simp' | 'simp\_all') ('!' ?) opt? (simpmod *)
     ;
 
-    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use' | 'asm\_lr' | 'depth\_limit' ':' nat) ')'
+    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use' | 'asm\_lr' ) ')'
     ;
     simpmod: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
       'split' (() | 'add' | 'del')) ':' thmrefs
@@ -442,7 +442,7 @@ val thms  : string -> thm list
   ``\isa{{\isachardoublequote}{\isacharparenleft}asm{\isacharunderscore}lr{\isacharparenright}{\isachardoublequote}}'', which means that an assumption is only used
   for simplifying assumptions which are to the right of it (cf.\ \verb|asm_lr_simp_tac|).
 
-  Giving an option ``\isa{{\isachardoublequote}{\isacharparenleft}depth{\isacharunderscore}limit{\isacharcolon}\ n{\isacharparenright}{\isachardoublequote}}'' limits the number of
+  The configuration option \isa{{\isachardoublequote}depth{\isacharunderscore}limit{\isachardoublequote}} limits the number of
   recursive invocations of the simplifier during conditional
   rewriting.
 
