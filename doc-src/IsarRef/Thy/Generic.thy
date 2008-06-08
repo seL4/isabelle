@@ -375,7 +375,7 @@ text {*
     ('simp' | 'simp\_all') ('!' ?) opt? (simpmod *)
     ;
 
-    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use' | 'asm\_lr' | 'depth\_limit' ':' nat) ')'
+    opt: '(' ('no\_asm' | 'no\_asm\_simp' | 'no\_asm\_use' | 'asm\_lr' ) ')'
     ;
     simpmod: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
       'split' (() | 'add' | 'del')) ':' thmrefs
@@ -429,7 +429,7 @@ text {*
   for simplifying assumptions which are to the right of it (cf.\ @{ML
   asm_lr_simp_tac}).
 
-  Giving an option ``@{text "(depth_limit: n)"}'' limits the number of
+  The configuration option @{text "depth_limit"} limits the number of
   recursive invocations of the simplifier during conditional
   rewriting.
 
