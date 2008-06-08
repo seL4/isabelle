@@ -408,7 +408,7 @@ text {*
   Note the space between \verb!@! and \verb!{! in the tabular argument.
   It prevents Isabelle from interpreting \verb!@ {~~...~~}! 
   as an antiquotation. The styles \verb!lhs! and \verb!rhs!
-  extract the left hand side (or right hand side respectivly) from the
+  extract the left hand side (or right hand side respectively) from the
   conclusion of propositions consisting of a binary operator
   (e.~g.~@{text "="}, @{text "\<equiv>"}, @{text "<"}).
 

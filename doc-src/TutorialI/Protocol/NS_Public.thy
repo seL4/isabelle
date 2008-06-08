@@ -310,7 +310,7 @@ analysis for each encrypted message on whether or not the decryption key
 is compromised.
 @{named_thms [display,indent=0,margin=50] analz_Crypt_if [no_vars] (analz_Crypt_if)}
 The simplifier has also used @{text Spy_see_priK}, proved in
-{\S}\ref{sec:regularity}) above, to yield @{term "Ba \<in> bad"}.
+{\S}\ref{sec:regularity} above, to yield @{term "Ba \<in> bad"}.
 
 Recall that this subgoal concerns the case
 where the last message to be sent was
