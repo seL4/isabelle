@@ -5,38 +5,29 @@
 Datatype package for Isabelle/HOL.
 *)
 
-signature BASIC_DATATYPE_PACKAGE =
+signature DATATYPE_PACKAGE =
 sig
+  val quiet_mode : bool ref
+  val get_datatypes : theory -> DatatypeAux.datatype_info Symtab.table
+  val print_datatypes : theory -> unit
+  val get_datatype : theory -> string -> DatatypeAux.datatype_info option
+  val the_datatype : theory -> string -> DatatypeAux.datatype_info
+  val datatype_of_constr : theory -> string -> DatatypeAux.datatype_info option
+  val datatype_of_case : theory -> string -> DatatypeAux.datatype_info option
+  val the_datatype_spec : theory -> string -> (string * sort) list * (string * typ list) list
+  val get_datatype_constrs : theory -> string -> (string * typ) list option
+  val construction_interpretation : theory
+    -> {atom : typ -> 'a, dtyp : string -> 'a, rtyp : string -> 'a list -> 'a}
+    -> (string * sort) list -> string list
+    -> (string * (string * 'a list) list) list
   val induct_tac : string -> int -> tactic
   val induct_thm_tac : thm -> string -> int -> tactic
   val case_tac : string -> int -> tactic
   val distinct_simproc : simproc
-end;
-
-signature DATATYPE_PACKAGE =
-sig
-  include BASIC_DATATYPE_PACKAGE
-  val quiet_mode : bool ref
-  val add_datatype_i : bool -> bool -> string list -> (string list * bstring * mixfix *
-    (bstring * typ list * mixfix) list) list -> theory ->
-      {distinct : thm list list,
-       inject : thm list list,
-       exhaustion : thm list,
-       rec_thms : thm list,
-       case_thms : thm list list,
-       split_thms : (thm * thm) list,
-       induction : thm,
-       simps : thm list} * theory
-  val add_datatype : bool -> string list -> (string list * bstring * mixfix *
-    (bstring * string list * mixfix) list) list -> theory ->
-      {distinct : thm list list,
-       inject : thm list list,
-       exhaustion : thm list,
-       rec_thms : thm list,
-       case_thms : thm list list,
-       split_thms : (thm * thm) list,
-       induction : thm,
-       simps : thm list} * theory
+  val make_case :  Proof.context -> bool -> string list -> term ->
+    (term * term) list -> term * (term * (int * bool)) list
+  val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
+  val interpretation : (string list -> theory -> theory) -> theory -> theory
   val rep_datatype_i : string list option -> (thm list * attribute list) list list ->
     (thm list * attribute list) list list -> (thm list * attribute list) ->
     theory ->
@@ -58,23 +49,26 @@ sig
        split_thms : (thm * thm) list,
        induction : thm,
        simps : thm list} * theory
-  val get_datatypes : theory -> DatatypeAux.datatype_info Symtab.table
-  val get_datatype : theory -> string -> DatatypeAux.datatype_info option
-  val the_datatype : theory -> string -> DatatypeAux.datatype_info
-  val the_datatype_spec : theory -> string -> (string * sort) list * (string * typ list) list
-  val datatype_of_constr : theory -> string -> DatatypeAux.datatype_info option
-  val datatype_of_case : theory -> string -> DatatypeAux.datatype_info option
-  val get_datatype_constrs : theory -> string -> (string * typ) list option
-  val construction_interpretation: theory
-    -> { atom: typ -> 'a, dtyp: string -> 'a, rtyp: string -> 'a list -> 'a }
-    -> (string * Term.sort) list -> string list
-    -> (string * (string * 'a list) list) list
-  val interpretation: (string list -> theory -> theory) -> theory -> theory
-  val print_datatypes : theory -> unit
-  val make_case :  Proof.context -> bool -> string list -> term ->
-    (term * term) list -> term * (term * (int * bool)) list
-  val strip_case: Proof.context -> bool ->
-    term -> (term * (term * term) list) option
+  val add_datatype_i : bool -> bool -> string list -> (string list * bstring * mixfix *
+    (bstring * typ list * mixfix) list) list -> theory ->
+      {distinct : thm list list,
+       inject : thm list list,
+       exhaustion : thm list,
+       rec_thms : thm list,
+       case_thms : thm list list,
+       split_thms : (thm * thm) list,
+       induction : thm,
+       simps : thm list} * theory
+  val add_datatype : bool -> string list -> (string list * bstring * mixfix *
+    (bstring * string list * mixfix) list) list -> theory ->
+      {distinct : thm list list,
+       inject : thm list list,
+       exhaustion : thm list,
+       rec_thms : thm list,
+       case_thms : thm list list,
+       split_thms : (thm * thm) list,
+       induction : thm,
+       simps : thm list} * theory
   val setup: theory -> theory
 end;
 
@@ -830,7 +824,4 @@ end;
 
 
 end;
-
-structure BasicDatatypePackage: BASIC_DATATYPE_PACKAGE = DatatypePackage;
-open BasicDatatypePackage;
 
