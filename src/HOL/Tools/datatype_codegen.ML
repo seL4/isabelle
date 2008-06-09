@@ -416,7 +416,7 @@ fun get_eq thy dtco =
     val inject2 = (#inject o DatatypePackage.the_datatype thy) dtco;
     val ctxt = ProofContext.init thy;
     val simpset = Simplifier.context ctxt
-      (MetaSimplifier.empty_ss addsimprocs [distinct_simproc]);
+      (MetaSimplifier.empty_ss addsimprocs [DatatypePackage.distinct_simproc]);
     val cos = map (fn (co, tys) =>
         (Const (co, tys ---> Type (dtco, map TFree vs)), tys)) cs;
     val tac = ALLGOALS (simp_tac simpset)
