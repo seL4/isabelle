@@ -764,7 +764,7 @@ lemma Step1_4_7: "|- unchanged (e p, c p, r p, m p, rmhist!p)
 ML {*
 fun split_idle_tac ss simps i =
     EVERY [TRY (rtac @{thm actionI} i),
-           case_tac "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" i,
+           DatatypePackage.case_tac "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" i,
            rewrite_goals_tac @{thms action_rews},
            forward_tac [temp_use @{thm Step1_4_7}] i,
            asm_full_simp_tac (ss addsimps simps) i
