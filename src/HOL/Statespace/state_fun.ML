@@ -75,7 +75,7 @@ val lazy_conj_simproc =
 val string_eq_simp_tac =
      simp_tac (HOL_basic_ss 
                  addsimps (thms "list.inject"@thms "char.inject"@simp_thms)
-                 addsimprocs [distinct_simproc,lazy_conj_simproc]
+                 addsimprocs [DatatypePackage.distinct_simproc,lazy_conj_simproc]
                  addcongs [thm "block_conj_cong"])
 end;
 
@@ -90,7 +90,7 @@ val rules =
 in
 val lookup_ss = (HOL_basic_ss 
                  addsimps (thms "list.inject"@thms "char.inject"@simp_thms@rules)
-                 addsimprocs [distinct_simproc,lazy_conj_simproc]
+                 addsimprocs [DatatypePackage.distinct_simproc,lazy_conj_simproc]
                  addcongs [thm "block_conj_cong"]
                  addSolver StateSpace.distinctNameSolver) 
 end;
@@ -168,7 +168,7 @@ val update_apply = thm "StateFun.update_apply";
 val meta_ext = thm "StateFun.meta_ext";
 val o_apply = thm "Fun.o_apply";
 val ss' = (HOL_ss addsimps (update_apply::o_apply::thms "list.inject"@thms "char.inject")
-                 addsimprocs [distinct_simproc,lazy_conj_simproc,StateSpace.distinct_simproc]
+                 addsimprocs [DatatypePackage.distinct_simproc,lazy_conj_simproc,StateSpace.distinct_simproc]
                  addcongs [thm "block_conj_cong"]);
 in
 val update_simproc =
