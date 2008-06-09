@@ -1207,7 +1207,7 @@ apply(tactic {* TRYALL (etac disjE) *})
 --{* 34 subgoals left *}
 apply(rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
 apply(rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update)
-apply(tactic {* ALLGOALS(case_tac "M x!(T (Muts x ! j))=Black") *})
+apply(case_tac [!] "M x!(T (Muts x ! j))=Black")
 apply(simp_all add:Graph10)
 --{* 47 subgoals left *}
 apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac (thm "subset_psubset_trans"),etac (thm "Graph11"),force_tac @{clasimpset}]) *})

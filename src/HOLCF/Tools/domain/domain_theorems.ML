@@ -96,7 +96,7 @@ fun pg' thy defs t tacsf =
   in pg'' thy defs t tacs end;
 
 fun case_UU_tac rews i v =
-  case_tac (v^"=UU") i THEN
+  DatatypePackage.case_tac (v^"=UU") i THEN
   asm_simp_tac (HOLCF_ss addsimps rews) i;
 
 val chain_tac =
@@ -647,7 +647,7 @@ local
       fun one_eq ((dn, args), _) = strict (dc_take dn $ %:"n");
       val goal = mk_trp (foldr1 mk_conj (map one_eq eqs));
       val tacs = [
-        induct_tac "n" 1,
+        DatatypePackage.induct_tac "n" 1,
         simp_tac iterate_Cprod_ss 1,
         asm_simp_tac (iterate_Cprod_ss addsimps copy_rews) 1];
     in pg copy_take_defs goal tacs end;
@@ -678,7 +678,7 @@ local
       fun eq_tacs ((dn, _), cons) = map con_tac cons;
       val tacs =
         simp_tac iterate_Cprod_ss 1 ::
-        induct_tac "n" 1 ::
+        DatatypePackage.induct_tac "n" 1 ::
         simp_tac (iterate_Cprod_ss addsimps copy_con_rews) 1 ::
         asm_full_simp_tac (HOLCF_ss addsimps simps) 1 ::
         TRY (safe_tac HOL_cs) ::
@@ -750,7 +750,7 @@ in (* local *)
           val tacs1 = [
             quant_tac 1,
             simp_tac HOL_ss 1,
-            induct_tac "n" 1,
+            DatatypePackage.induct_tac "n" 1,
             simp_tac (take_ss addsimps prems) 1,
             TRY (safe_tac HOL_cs)];
           fun arg_tac arg =
@@ -845,7 +845,7 @@ in (* local *)
               maps con_tacs cons;
             val tacs =
               rtac allI 1 ::
-              induct_tac "n" 1 ::
+              DatatypePackage.induct_tac "n" 1 ::
               simp_tac take_ss 1 ::
               TRY (safe_tac (empty_cs addSEs [conjE] addSIs [conjI])) ::
               flat (mapn foo_tacs 1 (conss ~~ cases));
@@ -938,7 +938,7 @@ local
         REPEAT (CHANGED (asm_simp_tac take_ss 1))];
       val tacs = [
         rtac impI 1,
-        induct_tac "n" 1,
+        DatatypePackage.induct_tac "n" 1,
         simp_tac take_ss 1,
         safe_tac HOL_cs] @
         flat (mapn x_tacs 0 xs);

@@ -196,7 +196,7 @@ apply(erule_tac x=i in allE)
 apply fastsimp
 --{* 5 subgoals left *}
 prefer 5
-apply(tactic {* ALLGOALS (case_tac "j=k") *})
+apply(case_tac [!] "j=k")
 --{* 10 subgoals left *}
 apply simp_all
 apply(erule_tac x=k in allE)
@@ -502,8 +502,8 @@ done
 
 lemma Example2_lemma2_aux2: 
   "!!b. j\<le> s \<Longrightarrow> (\<Sum>i::nat=0..<j. (b (s:=t)) i) = (\<Sum>i=0..<j. b i)"
-apply(induct j)
- apply (simp_all cong:setsum_cong)
+apply(induct j) 
+ apply simp_all
 done
 
 lemma Example2_lemma2: 
