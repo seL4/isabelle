@@ -7,7 +7,9 @@ Testing the metis method
 
 header {* Binary trees *}
 
-theory BT imports Main begin
+theory BT
+imports Main
+begin
 
 
 datatype 'a bt =
@@ -100,7 +102,7 @@ ML {*ResAtp.problem_name := "BT__reflect_reflect_ident"*}
 lemma reflect_reflect_ident: "reflect (reflect t) = t"
   apply (induct t)
   apply (metis add_right_cancel reflect.simps(1));
-  apply (metis Suc_Suc_eq reflect.simps(2))
+  apply (metis reflect.simps(2))
   done
 
 ML {*ResAtp.problem_name := "BT__bt_map_ident"*}

@@ -20,36 +20,25 @@ sig
     -> {atom : typ -> 'a, dtyp : string -> 'a, rtyp : string -> 'a list -> 'a}
     -> (string * sort) list -> string list
     -> (string * (string * 'a list) list) list
-  val induct_tac : string -> int -> tactic
-  val induct_thm_tac : thm -> string -> int -> tactic
+  val induct_tac : Proof.context -> string -> int -> tactic
+  val induct_thm_tac : Proof.context -> thm -> string -> int -> tactic
   val case_tac : string -> int -> tactic
   val distinct_simproc : simproc
   val make_case :  Proof.context -> bool -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
   val interpretation : (string list -> theory -> theory) -> theory -> theory
-  val rep_datatype_i : string list option -> (thm list * attribute list) list list ->
-    (thm list * attribute list) list list -> (thm list * attribute list) ->
-    theory ->
-      {distinct : thm list list,
+  val rep_datatype : ({distinct : thm list list,
        inject : thm list list,
        exhaustion : thm list,
        rec_thms : thm list,
        case_thms : thm list list,
        split_thms : (thm * thm) list,
        induction : thm,
-       simps : thm list} * theory
-  val rep_datatype : string list option -> (Facts.ref * Attrib.src list) list list ->
-    (Facts.ref * Attrib.src list) list list -> Facts.ref * Attrib.src list -> theory ->
-      {distinct : thm list list,
-       inject : thm list list,
-       exhaustion : thm list,
-       rec_thms : thm list,
-       case_thms : thm list list,
-       split_thms : (thm * thm) list,
-       induction : thm,
-       simps : thm list} * theory
-  val add_datatype_i : bool -> bool -> string list -> (string list * bstring * mixfix *
+       simps : thm list} -> Proof.context -> Proof.context) -> string list option -> term list
+    -> theory -> Proof.state;
+  val rep_datatype_cmd : string list option -> string list -> theory -> Proof.state;
+  val add_datatype : bool -> bool -> string list -> (string list * bstring * mixfix *
     (bstring * typ list * mixfix) list) list -> theory ->
       {distinct : thm list list,
        inject : thm list list,
@@ -59,7 +48,7 @@ sig
        split_thms : (thm * thm) list,
        induction : thm,
        simps : thm list} * theory
-  val add_datatype : bool -> string list -> (string list * bstring * mixfix *
+  val add_datatype_cmd : bool -> string list -> (string list * bstring * mixfix *
     (bstring * string list * mixfix) list) list -> theory ->
       {distinct : thm list list,
        inject : thm list list,
@@ -221,7 +210,7 @@ fun prep_inst (concl, xs) = (*exception Library.UnequalLengths*)
 
 in
 
-fun gen_induct_tac inst_tac (varss, opt_rule) i state =
+fun gen_induct_tac inst_tac ctxt (varss, opt_rule) i state =
   SUBGOAL (fn (Bi,_) =>
   let
     val (rule, rule_name) =
@@ -230,7 +219,9 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
         | NONE =>
             let val tn = find_tname (hd (map_filter I (flat varss))) Bi
                 val thy = Thm.theory_of_thm state
-            in (#induction (the_datatype thy tn), "Induction rule for type " ^ tn)
+            in case Induct.lookup_inductT ctxt tn of
+                SOME thm => (thm, "Induction rule for type " ^ tn)
+              | NONE => error ("No induction rule for type " ^ tn)
             end
     val concls = HOLogic.dest_concls (Thm.concl_of rule);
     val insts = maps prep_inst (concls ~~ varss) handle Library.UnequalLengths =>
@@ -238,12 +229,12 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
   in occs_in_prems (inst_tac insts rule) (map #2 insts) i end)
   i state;
 
-fun induct_tac s =
-  gen_induct_tac Tactic.res_inst_tac'
+fun induct_tac ctxt s =
+  gen_induct_tac Tactic.res_inst_tac' ctxt
     (map (single o SOME) (Syntax.read_idents s), NONE);
 
-fun induct_thm_tac th s =
-  gen_induct_tac Tactic.res_inst_tac'
+fun induct_thm_tac ctxt th s =
+  gen_induct_tac Tactic.res_inst_tac' ctxt
     ([map SOME (Syntax.read_idents s)], SOME th);
 
 end;
@@ -284,7 +275,7 @@ val varss =
 val inst_tac = RuleInsts.bires_inst_tac false;
 
 fun induct_meth ctxt (varss, opt_rule) =
-  gen_induct_tac (inst_tac ctxt) (varss, opt_rule);
+  gen_induct_tac (inst_tac ctxt) ctxt (varss, opt_rule);
 fun case_meth ctxt (varss, opt_rule) =
   gen_case_tac (inst_tac ctxt) (varss, opt_rule);
 
@@ -545,57 +536,32 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
 (*********************** declare existing type as datatype *********************)
 
-fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induction thy0 =
+fun prove_rep_datatype alt_names new_type_names descr sorts induct inject distinct thy =
   let
-    val (((distinct, inject), [induction]), thy1) =
-      thy0
-      |> fold_map apply_theorems raw_distinct
-      ||>> fold_map apply_theorems raw_inject
-      ||>> apply_theorems [raw_induction];
-
-    val ((_, [induction']), _) =
-      Variable.importT_thms [induction] (Variable.thm_context induction);
+    val ((_, [induct']), _) =
+      Variable.importT_thms [induct] (Variable.thm_context induct);
 
     fun err t = error ("Ill-formed predicate in induction rule: " ^
-      Syntax.string_of_term_global thy1 t);
+      Syntax.string_of_term_global thy t);
 
     fun get_typ (t as _ $ Var (_, Type (tname, Ts))) =
           ((tname, map (fst o dest_TFree) Ts) handle TERM _ => err t)
       | get_typ t = err t;
+    val dtnames = map get_typ (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induct')));
 
-    val dtnames = map get_typ (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induction')));
-    val new_type_names = getOpt (alt_names, map fst dtnames);
-
-    fun get_constr t = (case Logic.strip_assums_concl t of
-        _ $ (_ $ t') => (case head_of t' of
-            Const (cname, cT) => (case strip_type cT of
-                (Ts, Type (tname, _)) => (tname, (cname, map (dtyp_of_typ dtnames) Ts))
-              | _ => err t)
-          | _ => err t)
-      | _ => err t);
-
-    fun make_dt_spec [] _ _ = []
-      | make_dt_spec ((tname, tvs)::dtnames') i constrs =
-          let val (constrs', constrs'') = take_prefix (equal tname o fst) constrs
-          in (i, (tname, map DtTFree tvs, map snd constrs'))::
-            (make_dt_spec dtnames' (i + 1) constrs'')
-          end;
-
-    val descr = make_dt_spec dtnames 0 (map get_constr (prems_of induction'));
-    val sorts = add_term_tfrees (concl_of induction', []);
-    val dt_info = get_datatypes thy1;
+    val dt_info = get_datatypes thy;
 
     val (case_names_induct, case_names_exhausts) =
       (mk_case_names_induct descr, mk_case_names_exhausts descr (map #1 dtnames));
 
     val _ = message ("Proofs for datatype(s) " ^ commas_quote new_type_names);
 
-    val (casedist_thms, thy2) = thy1 |>
-      DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induction
+    val (casedist_thms, thy2) = thy |>
+      DatatypeAbsProofs.prove_casedist_thms new_type_names [descr] sorts induct
         case_names_exhausts;
     val ((reccomb_names, rec_thms), thy3) = DatatypeAbsProofs.prove_primrec_thms
       false new_type_names [descr] sorts dt_info inject distinct
-      (Simplifier.theory_context thy2 dist_ss) induction thy2;
+      (Simplifier.theory_context thy2 dist_ss) induct thy2;
     val ((case_thms, case_names), thy4) = DatatypeAbsProofs.prove_case_thms false
       new_type_names [descr] sorts reccomb_names rec_thms thy3;
     val (split_thms, thy5) = DatatypeAbsProofs.prove_split_thms
@@ -607,14 +573,14 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val (weak_case_congs, thy8) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       [descr] sorts thy7;
 
-    val ((_, [induction']), thy10) =
+    val ((_, [induct']), thy10) =
       thy8
       |> store_thmss "inject" new_type_names inject
       ||>> store_thmss "distinct" new_type_names distinct
       ||> Sign.add_path (space_implode "_" new_type_names)
-      ||>> PureThy.add_thms [(("induct", induction), [case_names_induct])];
+      ||>> PureThy.add_thms [(("induct", induct), [case_names_induct])];
 
-    val dt_infos = map (make_dt_info alt_names descr sorts induction' reccomb_names rec_thms)
+    val dt_infos = map (make_dt_info alt_names descr sorts induct' reccomb_names rec_thms)
       ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~ casedist_thms ~~
         map FewConstrs distinct ~~ inject ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
 
@@ -626,7 +592,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       |> add_rules simps case_thms rec_thms inject distinct
            weak_case_congs (Simplifier.attrib (op addcongs))
       |> put_dt_infos dt_infos
-      |> add_cases_induct dt_infos induction'
+      |> add_cases_induct dt_infos induct'
       |> Sign.parent_path
       |> store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)
       |> snd
@@ -638,12 +604,77 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       rec_thms = rec_thms,
       case_thms = case_thms,
       split_thms = split_thms,
-      induction = induction',
+      induction = induct',
       simps = simps}, thy11)
   end;
 
-val rep_datatype = gen_rep_datatype IsarCmd.apply_theorems;
-val rep_datatype_i = gen_rep_datatype IsarCmd.apply_theorems_i;
+fun gen_rep_datatype prep_term after_qed alt_names raw_ts thy =
+  let
+    fun constr_of_term (Const (c, T)) = (c, T)
+      | constr_of_term t =
+          error ("Not a constant: " ^ Syntax.string_of_term_global thy t);
+    fun no_constr (c, T) = error ("Bad constructor: "
+      ^ Sign.extern_const thy c ^ "::"
+      ^ Syntax.string_of_typ_global thy T);
+    fun type_of_constr (cT as (_, T)) =
+      let
+        val frees = typ_tfrees T;
+        val (tyco, vs) = ((apsnd o map) (dest_TFree) o dest_Type o snd o strip_type) T
+          handle TYPE _ => no_constr cT
+        val _ = if has_duplicates (eq_fst (op =)) vs then no_constr cT else ();
+        val _ = if length frees <> length vs then no_constr cT else ();
+      in (tyco, (vs, cT)) end;
+
+    val raw_cs = AList.group (op =) (map (type_of_constr o constr_of_term o prep_term thy) raw_ts);
+    val _ = case map_filter (fn (tyco, _) =>
+        if Symtab.defined (get_datatypes thy) tyco then SOME tyco else NONE) raw_cs
+     of [] => ()
+      | tycos => error ("Type(s) " ^ commas (map quote tycos)
+          ^ " already represented inductivly");
+    val raw_vss = maps (map (map snd o fst) o snd) raw_cs;
+    val ms = case distinct (op =) (map length raw_vss)
+     of [n] => 0 upto n - 1
+      | _ => error ("Different types in given constructors");
+    fun inter_sort m = map (fn xs => nth xs m) raw_vss
+      |> Library.foldr1 (Sorts.inter_sort (Sign.classes_of thy))
+    val sorts = map inter_sort ms;
+    val vs = Name.names Name.context Name.aT sorts;
+
+    fun norm_constr (raw_vs, (c, T)) = (c, map_atyps
+      (TFree o (the o AList.lookup (op =) (map fst raw_vs ~~ vs)) o fst o dest_TFree) T);
+
+    val cs = map (apsnd (map norm_constr)) raw_cs;
+    val dtyps_of_typ = map (dtyp_of_typ (map (rpair (map fst vs) o fst) cs))
+      o fst o strip_type;
+    val new_type_names = map NameSpace.base (the_default (map fst cs) alt_names);
+
+    fun mk_spec (i, (tyco, constr)) = (i, (tyco,
+      map (DtTFree o fst) vs,
+      (map o apsnd) dtyps_of_typ constr))
+    val descr = map_index mk_spec cs;
+    val injs = DatatypeProp.make_injs [descr] vs;
+    val distincts = map snd (DatatypeProp.make_distincts [descr] vs);
+    val ind = DatatypeProp.make_ind [descr] vs;
+    val rules = (map o map o map) Logic.close_form [[[ind]], injs, distincts];
+
+    fun after_qed' raw_thms =
+      let
+        val [[[induct]], injs, distincts] =
+          unflat rules (map Drule.zero_var_indexes_list raw_thms);
+            (*FIXME somehow dubious*)
+      in
+        ProofContext.theory_result
+          (prove_rep_datatype alt_names new_type_names descr vs induct injs distincts)
+        #-> after_qed
+      end;
+  in
+    thy
+    |> ProofContext.init
+    |> Proof.theorem_i NONE after_qed' ((map o map) (rpair []) (flat rules))
+  end;
+
+val rep_datatype = gen_rep_datatype Sign.cert_term;
+val rep_datatype_cmd = gen_rep_datatype Sign.read_term (K I);
 
 
 
@@ -719,8 +750,8 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
       case_names_induct case_names_exhausts thy
   end;
 
-val add_datatype_i = gen_add_datatype cert_typ;
-val add_datatype = gen_add_datatype read_typ true;
+val add_datatype = gen_add_datatype cert_typ;
+val add_datatype_cmd = gen_add_datatype read_typ true;
 
 
 (** a datatype antiquotation **)
@@ -786,8 +817,6 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["distinct", "inject", "induction"];
-
 val datatype_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_infix --
     (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix));
@@ -797,31 +826,23 @@ fun mk_datatype args =
     val names = map (fn ((((NONE, _), t), _), _) => t | ((((SOME t, _), _), _), _) => t) args;
     val specs = map (fn ((((_, vs), t), mx), cons) =>
       (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
-  in snd o add_datatype false names specs end;
+  in snd o add_datatype_cmd false names specs end;
 
 val _ =
   OuterSyntax.command "datatype" "define inductive datatypes" K.thy_decl
     (P.and_list1 datatype_decl >> (Toplevel.theory o mk_datatype));
 
-
-val rep_datatype_decl =
-  Scan.option (Scan.repeat1 P.name) --
-    Scan.optional (P.$$$ "distinct" |-- P.!!! (P.and_list1 SpecParse.xthms1)) [[]] --
-    Scan.optional (P.$$$ "inject" |-- P.!!! (P.and_list1 SpecParse.xthms1)) [[]] --
-    (P.$$$ "induction" |-- P.!!! SpecParse.xthm);
-
-fun mk_rep_datatype (((opt_ts, dss), iss), ind) = #2 o rep_datatype opt_ts dss iss ind;
-
 val _ =
-  OuterSyntax.command "rep_datatype" "represent existing types inductively" K.thy_decl
-    (rep_datatype_decl >> (Toplevel.theory o mk_rep_datatype));
+  OuterSyntax.command "rep_datatype" "represent existing types inductively" K.thy_goal
+    (Scan.option (P.$$$ "(" |-- Scan.repeat1 P.name --| P.$$$ ")") -- Scan.repeat1 P.term
+      >> (fn (alt_names, ts) => Toplevel.print
+           o Toplevel.theory_to_proof (rep_datatype_cmd alt_names ts)));
 
 val _ =
   ThyOutput.add_commands [("datatype",
     ThyOutput.args args_datatype (ThyOutput.output pretty_datatype))];
 
 end;
-
 
 end;
 

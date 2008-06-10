@@ -1,6 +1,7 @@
 header {* \section{Generation of Verification Conditions} *}
 
-theory OG_Tactics imports OG_Hoare
+theory OG_Tactics
+imports OG_Hoare
 begin
 
 lemmas ann_hoare_intros=AnnBasic AnnSeq AnnCond1 AnnCond2 AnnWhile AnnAwait AnnConseq
@@ -268,7 +269,7 @@ lemma le_Suc_eq_insert: "{i. i <Suc n} = insert n {i. i< n}"
 by auto
 lemmas primrecdef_list = "pre.simps" "assertions.simps" "atomics.simps" "atom_com.simps"
 lemmas my_simp_list = list_lemmas fst_conv snd_conv
-not_less0 refl le_Suc_eq_insert Suc_not_Zero Zero_not_Suc Suc_Suc_eq
+not_less0 refl le_Suc_eq_insert Suc_not_Zero Zero_not_Suc nat.inject
 Collect_mem_eq ball_simps option.simps primrecdef_list
 lemmas ParallelConseq_list = INTER_def Collect_conj_eq length_map length_upt length_append list_length
 

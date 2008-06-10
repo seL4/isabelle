@@ -25,15 +25,6 @@ definition
 
 subsection {* Lift as a datatype *}
 
-lemma lift_distinct1: "\<bottom> \<noteq> Def x"
-by (simp add: Def_def Abs_lift_inject lift_def inst_lift_pcpo)
-
-lemma lift_distinct2: "Def x \<noteq> \<bottom>"
-by (simp add: Def_def Abs_lift_inject lift_def inst_lift_pcpo)
-
-lemma Def_inject: "(Def x = Def y) = (x = y)"
-by (simp add: Def_def Abs_lift_inject lift_def)
-
 lemma lift_induct: "\<lbrakk>P \<bottom>; \<And>x. P (Def x)\<rbrakk> \<Longrightarrow> P y"
 apply (induct y)
 apply (rule_tac p=y in upE)
@@ -42,13 +33,13 @@ apply (case_tac x)
 apply (simp add: Def_def)
 done
 
-rep_datatype lift
-  distinct lift_distinct1 lift_distinct2
-  inject Def_inject
-  induction lift_induct
+rep_datatype "\<bottom>\<Colon>'a lift" Def
+  by (erule lift_induct) (simp_all add: Def_def Abs_lift_inject lift_def inst_lift_pcpo)
 
-lemma Def_not_UU: "Def a \<noteq> UU"
-  by simp
+lemmas lift_distinct1 = lift.distinct(1)
+lemmas lift_distinct2 = lift.distinct(2)
+lemmas Def_not_UU = lift.distinct(2)
+lemmas Def_inject = lift.inject
 
 
 text {* @{term UU} and @{term Def} *}

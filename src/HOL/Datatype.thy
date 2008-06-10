@@ -533,10 +533,13 @@ section {* Datatypes *}
 
 subsection {* Representing sums *}
 
-rep_datatype sum
-  distinct Inl_not_Inr Inr_not_Inl
-  inject Inl_eq Inr_eq
-  induction sum_induct
+rep_datatype (sum) Inl Inr
+proof -
+  fix P
+  fix s :: "'a + 'b"
+  assume x: "\<And>x\<Colon>'a. P (Inl x)" and y: "\<And>y\<Colon>'b. P (Inr y)"
+  then show "P s" by (auto intro: sumE [of s])
+qed simp_all
 
 lemma sum_case_KK[simp]: "sum_case (%x. a) (%x. a) = (%x. a)"
   by (rule ext) (simp split: sum.split)

@@ -43,12 +43,12 @@ where
 global
 
 typedef (open Nat)
-  nat = "Collect Nat"
-  by (rule exI, rule CollectI, rule Nat.Zero_RepI)
+  nat = Nat
+  by (rule exI, unfold mem_def, rule Nat.Zero_RepI)
 
 constdefs
-  Suc :: "nat => nat"
-  Suc_def:      "Suc == (%n. Abs_Nat (Suc_Rep (Rep_Nat n)))"
+  Suc ::   "nat => nat"
+  Suc_def: "Suc == (%n. Abs_Nat (Suc_Rep (Rep_Nat n)))"
 
 local
 
@@ -62,34 +62,32 @@ instance ..
 
 end
 
-lemma nat_induct: "P 0 ==> (!!n. P n ==> P (Suc n)) ==> P n"
-  apply (unfold Zero_nat_def Suc_def)
-  apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
-  apply (erule Rep_Nat [THEN CollectD, THEN Nat.induct])
-  apply (iprover elim: Abs_Nat_inverse [OF CollectI, THEN subst])
-  done
+lemma Suc_not_Zero: "Suc m \<noteq> 0"
+apply (simp add: Zero_nat_def Suc_def Abs_Nat_inject [unfolded mem_def] Rep_Nat [unfolded mem_def] Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def]) 
+done
 
-lemma Suc_not_Zero [iff]: "Suc m \<noteq> 0"
-  by (simp add: Zero_nat_def Suc_def
-    Abs_Nat_inject Rep_Nat [THEN CollectD] Suc_RepI Zero_RepI
-      Suc_Rep_not_Zero_Rep)
-
-lemma Zero_not_Suc [iff]: "0 \<noteq> Suc m"
+lemma Zero_not_Suc: "0 \<noteq> Suc m"
   by (rule not_sym, rule Suc_not_Zero not_sym)
 
-lemma inj_Suc[simp]: "inj_on Suc N"
-  by (simp add: Suc_def inj_on_def Abs_Nat_inject Rep_Nat [THEN CollectD] Suc_RepI
-                inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject)
+rep_datatype "0 \<Colon> nat" Suc
+apply (unfold Zero_nat_def Suc_def)
+apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
+apply (erule Rep_Nat [unfolded mem_def, THEN Nat.induct])
+apply (iprover elim: Abs_Nat_inverse [unfolded mem_def, THEN subst])
+apply (simp_all add: Abs_Nat_inject [unfolded mem_def] Rep_Nat [unfolded mem_def]
+  Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def]
+  Suc_Rep_not_Zero_Rep [unfolded mem_def, symmetric]
+  inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject)
+done
 
-lemma Suc_Suc_eq [iff]: "Suc m = Suc n \<longleftrightarrow> m = n"
-  by (rule inj_Suc [THEN inj_eq])
+lemma nat_induct [case_names 0 Suc, induct type: nat]:
+  -- {* for backward compatibility -- naming of variables differs *}
+  fixes n
+  assumes "P 0"
+    and "\<And>n. P n \<Longrightarrow> P (Suc n)"
+  shows "P n"
+  using assms by (rule nat.induct) 
 
-rep_datatype nat
-  distinct  Suc_not_Zero Zero_not_Suc
-  inject    Suc_Suc_eq
-  induction nat_induct
-
-declare nat.induct [case_names 0 Suc, induct type: nat]
 declare nat.exhaust [case_names 0 Suc, cases type: nat]
 
 lemmas nat_rec_0 = nat.recs(1)
@@ -97,9 +95,12 @@ lemmas nat_rec_0 = nat.recs(1)
 
 lemmas nat_case_0 = nat.cases(1)
   and nat_case_Suc = nat.cases(2)
-
+   
 
 text {* Injectiveness and distinctness lemmas *}
+
+lemma inj_Suc[simp]: "inj_on Suc N"
+  by (simp add: inj_on_def)
 
 lemma Suc_neq_Zero: "Suc m = 0 \<Longrightarrow> R"
 by (rule notE, rule Suc_not_Zero)
@@ -1245,7 +1246,7 @@ begin
 
 definition
   Nats  :: "'a set" where
-  "Nats = range of_nat"
+  [code func del]: "Nats = range of_nat"
 
 notation (xsymbols)
   Nats  ("\<nat>")

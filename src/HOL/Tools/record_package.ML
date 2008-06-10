@@ -57,7 +57,7 @@ struct
 val eq_reflection = thm "eq_reflection";
 val rec_UNIV_I = thm "rec_UNIV_I";
 val rec_True_simp = thm "rec_True_simp";
-val Pair_eq = thm "Product_Type.Pair_eq";
+val Pair_eq = thm "Product_Type.prod.inject";
 val atomize_all = thm "HOL.atomize_all";
 val atomize_imp = thm "HOL.atomize_imp";
 val meta_allE = thm "Pure.meta_allE";
@@ -2057,7 +2057,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       in
         prove_standard [assm] concl (fn {prems, ...} =>
           try_param_tac rN induct_scheme 1
-          THEN try_param_tac "more" @{thm unit_induct} 1
+          THEN try_param_tac "more" @{thm unit.induct} 1
           THEN resolve_tac prems 1)
       end;
     val induct = timeit_msg "record induct proof:" induct_prf;

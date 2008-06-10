@@ -17,9 +17,7 @@ begin
 
 subsection {* @{typ bool} is a datatype *}
 
-rep_datatype bool
-  distinct True_not_False False_not_True
-  induction bool_induct
+rep_datatype True False by (auto intro: bool_induct)
 
 declare case_split [cases type: bool]
   -- "prefer plain propositional version"
@@ -67,11 +65,7 @@ ML {*
   Addsimprocs [unit_eq_proc];
 *}
 
-lemma unit_induct [noatp,induct type: unit]: "P () ==> P x"
-  by simp
-
-rep_datatype unit
-  induction unit_induct
+rep_datatype "()" by simp
 
 lemma unit_all_eq1: "(!!x::unit. PROP P x) == PROP P ()"
   by simp
@@ -252,10 +246,6 @@ lemma PairE [cases type: *]:
   obtains x y where "p = (x, y)"
   using surj_pair [of p] by blast
 
-
-lemma prod_induct [induct type: *]: "(\<And>a b. P (a, b)) \<Longrightarrow> P x"
-  by (cases x) simp
-
 lemma ProdI: "Pair_Rep a b \<in> Prod"
   unfolding Prod_def by rule+
 
@@ -276,18 +266,20 @@ lemma Pair_inject:
   apply (assumption | rule ProdI)+
   done
 
-lemma Pair_eq [iff]: "((a, b) = (a', b')) = (a = a' & b = b')"
-  by (blast elim!: Pair_inject)
+rep_datatype (prod) Pair
+proof -
+  fix P p
+  assume "\<And>x y. P (x, y)"
+  then show "P p" by (cases p) simp
+qed (auto elim: Pair_inject)
+
+lemmas Pair_eq = prod.inject
 
 lemma fst_conv [simp, code]: "fst (a, b) = a"
   unfolding fst_def by blast
 
 lemma snd_conv [simp, code]: "snd (a, b) = b"
   unfolding snd_def by blast
-
-rep_datatype prod
-  inject Pair_eq
-  induction prod_induct
 
 
 subsubsection {* Basic rules and proof tools *}
@@ -1053,7 +1045,7 @@ val Compl_Times_UNIV2 = thm "Compl_Times_UNIV2";
 val PairE = thm "PairE";
 val Pair_Rep_inject = thm "Pair_Rep_inject";
 val Pair_def = thm "Pair_def";
-val Pair_eq = thm "Pair_eq";
+val Pair_eq = @{thm "prod.inject"};
 val Pair_fst_snd_eq = thm "Pair_fst_snd_eq";
 val ProdI = thm "ProdI";
 val SetCompr_Sigma_eq = thm "SetCompr_Sigma_eq";
@@ -1100,7 +1092,7 @@ val prod_fun_def = thm "prod_fun_def";
 val prod_fun_ident = thm "prod_fun_ident";
 val prod_fun_imageE = thm "prod_fun_imageE";
 val prod_fun_imageI = thm "prod_fun_imageI";
-val prod_induct = thm "prod_induct";
+val prod_induct = thm "prod.induct";
 val snd_conv = thm "snd_conv";
 val snd_def = thm "snd_def";
 val snd_eqD = thm "snd_eqD";

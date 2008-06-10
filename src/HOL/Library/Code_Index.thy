@@ -10,7 +10,7 @@ begin
 
 text {*
   Indices are isomorphic to HOL @{typ nat} but
-  mapped to target-language builtin integers
+  mapped to target-language builtin integers.
 *}
 
 subsection {* Datatype of indices *}
@@ -74,35 +74,23 @@ end
 definition [simp]:
   "Suc_index k = index_of_nat (Suc (nat_of_index k))"
 
-lemma index_induct: "P 0 \<Longrightarrow> (\<And>k. P k \<Longrightarrow> P (Suc_index k)) \<Longrightarrow> P k"
+rep_datatype "0 \<Colon> index" Suc_index
 proof -
+  fix P :: "index \<Rightarrow> bool"
+  fix k :: index
   assume "P 0" then have init: "P (index_of_nat 0)" by simp
   assume "\<And>k. P k \<Longrightarrow> P (Suc_index k)"
-    then have "\<And>n. P (index_of_nat n) \<Longrightarrow> P (Suc_index (index_of_nat (n)))" .
+    then have "\<And>n. P (index_of_nat n) \<Longrightarrow> P (Suc_index (index_of_nat n))" .
     then have step: "\<And>n. P (index_of_nat n) \<Longrightarrow> P (index_of_nat (Suc n))" by simp
   from init step have "P (index_of_nat (nat_of_index k))"
     by (induct "nat_of_index k") simp_all
   then show "P k" by simp
-qed
-
-lemma Suc_not_Zero_index: "Suc_index k \<noteq> 0"
-  by simp
-
-lemma Zero_not_Suc_index: "0 \<noteq> Suc_index k"
-  by simp
-
-lemma Suc_Suc_index_eq: "Suc_index k = Suc_index l \<longleftrightarrow> k = l"
-  by simp
-
-rep_datatype index
-  distinct  Suc_not_Zero_index Zero_not_Suc_index
-  inject    Suc_Suc_index_eq
-  induction index_induct
+qed simp_all
 
 lemmas [code func del] = index.recs index.cases
 
 declare index_case [case_names nat, cases type: index]
-declare index_induct [case_names nat, induct type: index]
+declare index.induct [case_names nat, induct type: index]
 
 lemma [code func]:
   "index_size = nat_of_index"

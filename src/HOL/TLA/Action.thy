@@ -80,7 +80,7 @@ axioms
 lemma actionI [intro!]:
   assumes "!!s t. (s,t) |= A"
   shows "|- A"
-  apply (rule assms intI prod_induct)+
+  apply (rule assms intI prod.induct)+
   done
 
 lemma actionD [dest]: "|- A ==> (s,t) |= A"

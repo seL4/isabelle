@@ -171,9 +171,6 @@ apply (rule Abs_Sum_cases [of s])
 apply (auto simp add: Sum_def Inl_def Inr_def)
 done
 
-lemma sum_induct: "[| !!x. P (Inl x); !!x. P (Inr x) |] ==> P x"
-by (rule sumE [of x], auto)
-
 
 lemma UNIV_Plus_UNIV [simp]: "UNIV <+> UNIV = UNIV"
 apply (rule set_ext)
@@ -237,7 +234,6 @@ val InlI = thm "InlI";
 val InrI = thm "InrI";
 val PlusE = thm "PlusE";
 val sumE = thm "sumE";
-val sum_induct = thm "sum_induct";
 val Part_eqI = thm "Part_eqI";
 val PartI = thm "PartI";
 val PartE = thm "PartE";
