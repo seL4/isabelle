@@ -63,22 +63,23 @@ instance ..
 end
 
 lemma Suc_not_Zero: "Suc m \<noteq> 0"
-apply (simp add: Zero_nat_def Suc_def Abs_Nat_inject [unfolded mem_def] Rep_Nat [unfolded mem_def] Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def]) 
-done
+  apply (simp add: Zero_nat_def Suc_def Abs_Nat_inject [unfolded mem_def]
+    Rep_Nat [unfolded mem_def] Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def])
+  done
 
 lemma Zero_not_Suc: "0 \<noteq> Suc m"
   by (rule not_sym, rule Suc_not_Zero not_sym)
 
 rep_datatype "0 \<Colon> nat" Suc
-apply (unfold Zero_nat_def Suc_def)
-apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
-apply (erule Rep_Nat [unfolded mem_def, THEN Nat.induct])
-apply (iprover elim: Abs_Nat_inverse [unfolded mem_def, THEN subst])
-apply (simp_all add: Abs_Nat_inject [unfolded mem_def] Rep_Nat [unfolded mem_def]
-  Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def]
-  Suc_Rep_not_Zero_Rep [unfolded mem_def, symmetric]
-  inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject)
-done
+  apply (unfold Zero_nat_def Suc_def)
+     apply (rule Rep_Nat_inverse [THEN subst]) -- {* types force good instantiation *}
+     apply (erule Rep_Nat [unfolded mem_def, THEN Nat.induct])
+     apply (iprover elim: Abs_Nat_inverse [unfolded mem_def, THEN subst])
+    apply (simp_all add: Abs_Nat_inject [unfolded mem_def] Rep_Nat [unfolded mem_def]
+      Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def]
+      Suc_Rep_not_Zero_Rep [unfolded mem_def, symmetric]
+      inj_Suc_Rep [THEN inj_eq] Rep_Nat_inject)
+  done
 
 lemma nat_induct [case_names 0 Suc, induct type: nat]:
   -- {* for backward compatibility -- naming of variables differs *}
@@ -87,6 +88,10 @@ lemma nat_induct [case_names 0 Suc, induct type: nat]:
     and "\<And>n. P n \<Longrightarrow> P (Suc n)"
   shows "P n"
   using assms by (rule nat.induct) 
+
+ML {*
+  fun nat_induct_tac n = res_inst_tac [("n", n)] @{thm nat_induct}
+*}
 
 declare nat.exhaust [case_names 0 Suc, cases type: nat]
 
