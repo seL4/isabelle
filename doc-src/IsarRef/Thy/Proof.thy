@@ -342,7 +342,7 @@ text {*
   meaning: (1) during the of this claim they refer to the the local
   context introductions, (2) the resulting rule is annotated
   accordingly to support symbolic case splits when used with the
-  @{method_ref cases} method (cf.  \secref{sec:cases-induct}).
+  @{method_ref cases} method (cf.\ \secref{sec:cases-induct}).
 
   \medskip
 
