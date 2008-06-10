@@ -29,7 +29,6 @@ uses
   "~~/src/Tools/code/code_funcgr.ML"
   "~~/src/Tools/code/code_thingol.ML"
   "~~/src/Tools/code/code_target.ML"
-  "~~/src/Tools/code/code_package.ML"
   "~~/src/Tools/nbe.ML"
 begin
 
@@ -278,10 +277,6 @@ notation (input)
 abbreviation (input)
   greater  (infix ">" 50) where
   "x > y \<equiv> y < x"
-
-definition
-  Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "LEAST " 10) where
-  "Least P == (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> less_eq x y))"
 
 end
 

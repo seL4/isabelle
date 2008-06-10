@@ -103,6 +103,28 @@ lemma less_asym': "a < b \<Longrightarrow> b < a \<Longrightarrow> P"
 by (rule less_asym)
 
 
+text {* Least value operator *}
+
+definition
+  Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "LEAST " 10) where
+  "Least P = (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> x \<le> y))"
+
+lemma Least_equality:
+  assumes "P x"
+    and "\<And>y. P y \<Longrightarrow> x \<le> y"
+  shows "Least P = x"
+unfolding Least_def by (rule the_equality)
+  (blast intro: assms antisym)+
+
+lemma LeastI2_order:
+  assumes "P x"
+    and "\<And>y. P y \<Longrightarrow> x \<le> y"
+    and "\<And>x. P x \<Longrightarrow> \<forall>y. P y \<longrightarrow> x \<le> y \<Longrightarrow> Q x"
+  shows "Q (Least P)"
+unfolding Least_def by (rule theI2)
+  (blast intro: assms antisym)+
+
+
 text {* Dual order *}
 
 lemma dual_order:
@@ -1051,16 +1073,6 @@ lemma max_of_mono:
   by (auto simp: mono_def Orderings.max_def max_def intro: Orderings.antisym)
 
 end
-
-lemma LeastI2_order:
-  "[| P (x::'a::order);
-      !!y. P y ==> x <= y;
-      !!x. [| P x; ALL y. P y --> x \<le> y |] ==> Q x |]
-   ==> Q (Least P)"
-apply (unfold Least_def)
-apply (rule theI2)
-  apply (blast intro: order_antisym)+
-done
 
 lemma min_leastL: "(!!x. least <= x) ==> min least x = least"
 by (simp add: min_def)
