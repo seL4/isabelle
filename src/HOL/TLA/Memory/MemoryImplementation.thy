@@ -763,12 +763,11 @@ lemma Step1_4_7: "|- unchanged (e p, c p, r p, m p, rmhist!p)
 *)
 ML {*
 fun split_idle_tac ss simps i =
-    EVERY [TRY (rtac @{thm actionI} i),
-           DatatypePackage.case_tac "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" i,
-           rewrite_goals_tac @{thms action_rews},
-           forward_tac [temp_use @{thm Step1_4_7}] i,
-           asm_full_simp_tac (ss addsimps simps) i
-          ]
+  TRY (rtac @{thm actionI} i) THEN
+  case_split_tac "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" i THEN
+  rewrite_goals_tac @{thms action_rews} THEN
+  forward_tac [temp_use @{thm Step1_4_7}] i THEN
+  asm_full_simp_tac (ss addsimps simps) i
 *}
 (* ----------------------------------------------------------------------
    Combine steps 1.2 and 1.4 to prove that the implementation satisfies

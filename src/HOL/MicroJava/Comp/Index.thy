@@ -54,7 +54,7 @@ lemma select_at_index :
   \<Longrightarrow> (the (loc This) # glvs (gmb G C S) loc) ! (index (gmb G C S) x) = 
      the (loc x)"
 apply (simp only: index_def gjmb_plns_def)
-apply (case_tac "(gmb G C S)")
+apply (case_tac "gmb G C S" rule: prod.exhaust)
 apply (simp add: galldefs del: set_append map_append)
 apply (case_tac b, simp add: gmb_def gjmb_lvs_def del: set_append map_append)
 apply (intro strip)
@@ -74,7 +74,7 @@ lemma update_at_index: "
   locvars_xstate G C S (Norm (h, l))[index (gmb G C S) x := val] =
           locvars_xstate G C S (Norm (h, l(x\<mapsto>val)))"
 apply (simp only: locvars_xstate_def locvars_locals_def index_def)
-apply (case_tac "(gmb G C S)", simp)
+apply (case_tac "gmb G C S" rule: prod.exhaust, simp)
 apply (case_tac b, simp)
 apply (rule conjI)
 apply (simp add: gl_def)

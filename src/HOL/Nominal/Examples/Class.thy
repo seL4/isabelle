@@ -16599,7 +16599,7 @@ lemma my_wf_induct_triple':
              \<Longrightarrow> P (x1,x2,x3)"  
  shows "P (x1,x2,x3)"
 apply(rule_tac my_wf_induct_triple[OF a])
-apply(case_tac x)
+apply(case_tac x rule: prod.exhaust)
 apply(simp)
 apply(case_tac b)
 apply(simp)
