@@ -121,12 +121,12 @@ lemma nth_sshiftr [rule_format] :
        apply arith
       apply arith
      apply (erule thin_rl)
-     apply (case_tac n)
+     apply (case_tac nat)
       apply safe
       apply simp
      apply simp
     apply (erule thin_rl)
-    apply (case_tac n)
+    apply (case_tac nat)
      apply safe
      apply simp
     apply simp
