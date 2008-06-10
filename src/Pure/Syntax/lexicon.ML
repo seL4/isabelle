@@ -30,7 +30,6 @@ sig
   val read_nat: string -> int option
   val read_int: string -> int option
   val read_xnum: string -> {radix: int, leading_zeros: int, value: int}
-  val read_idents: string -> string list
   val fixedN: string
   val constN: string
 end;
@@ -400,20 +399,5 @@ fun read_xnum str =
   in {radix = radix, leading_zeros = leading_zeros digs, value = value} end;
 
 end;
-
-
-(* read_ident(s) *)
-
-fun read_idents str =
-  let
-    val blanks = Scan.many Symbol.is_blank;
-    val junk = Scan.many Symbol.is_regular;
-    val idents = Scan.repeat1 (blanks |-- (scan_id >> implode) --| blanks) -- junk;
-  in
-    (case Scan.read Symbol.stopper idents (Symbol.explode str) of
-      SOME (ids, []) => ids
-    | SOME (_, bad) => error ("Bad identifier: " ^ quote (implode bad))
-    | NONE => error ("No identifier found in: " ^ quote str))
-  end;
 
 end;
