@@ -20,9 +20,6 @@ sig
     -> {atom : typ -> 'a, dtyp : string -> 'a, rtyp : string -> 'a list -> 'a}
     -> (string * sort) list -> string list
     -> (string * (string * 'a list) list) list
-  val induct_tac : Proof.context -> string -> int -> tactic
-  val induct_thm_tac : Proof.context -> thm -> string -> int -> tactic
-  val case_tac : string -> int -> tactic
   val distinct_simproc : simproc
   val make_case :  Proof.context -> bool -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
@@ -161,133 +158,6 @@ fun construction_interpretation thy { atom, dtyp, rtyp } sorts tycos =
     fun interpC (c, Ts) = (c, map interpT Ts);
     fun interpK (_, (tyco, _, cs)) = (tyco, map interpC cs);
   in map interpK (Library.take (k, descr)) end;
-
-fun find_tname var Bi =
-  let val frees = map dest_Free (term_frees Bi)
-      val params = rename_wrt_term Bi (Logic.strip_params Bi);
-  in case AList.lookup (op =) (frees @ params) var of
-       NONE => error ("No such variable in subgoal: " ^ quote var)
-     | SOME(Type (tn, _)) => tn
-     | _ => error ("Cannot determine type of " ^ quote var)
-  end;
-
-fun infer_tname state i aterm =
-  let
-    val sign = Thm.theory_of_thm state;
-    val (_, _, Bi, _) = Thm.dest_state (state, i)
-    val params = Logic.strip_params Bi;   (*params of subgoal i*)
-    val params = rev (rename_wrt_term Bi params);   (*as they are printed*)
-    val (types, sorts) = types_sorts state;
-    fun types' (a, ~1) = (case AList.lookup (op =) params a of NONE => types(a, ~1) | sm => sm)
-      | types' ixn = types ixn;
-    val ([ct], _) = Thm.read_def_cterms (sign, types', sorts) [] false [(aterm, dummyT)];
-  in case #T (rep_cterm ct) of
-       Type (tn, _) => tn
-     | _ => error ("Cannot determine type of " ^ quote aterm)
-  end;
-
-(*Warn if the (induction) variable occurs Free among the premises, which
-  usually signals a mistake.  But calls the tactic either way!*)
-fun occs_in_prems tacf vars =
-  SUBGOAL (fn (Bi, i) =>
-           (if exists (fn (a, _) => member (op =) vars a)
-                      (fold Term.add_frees (#2 (strip_context Bi)) [])
-             then warning "Induction variable occurs also among premises!"
-             else ();
-            tacf i));
-
-
-(* generic induction tactic for datatypes *)
-
-local
-
-fun prep_var (Var (ixn, _), SOME x) = SOME (ixn, x)
-  | prep_var _ = NONE;
-
-fun prep_inst (concl, xs) = (*exception Library.UnequalLengths*)
-  let val vs = Induct.vars_of concl
-  in map_filter prep_var (Library.drop (length vs - length xs, vs) ~~ xs) end;
-
-in
-
-fun gen_induct_tac inst_tac ctxt (varss, opt_rule) i state =
-  SUBGOAL (fn (Bi,_) =>
-  let
-    val (rule, rule_name) =
-      case opt_rule of
-          SOME r => (r, "Induction rule")
-        | NONE =>
-            let val tn = find_tname (hd (map_filter I (flat varss))) Bi
-                val thy = Thm.theory_of_thm state
-            in case Induct.lookup_inductT ctxt tn of
-                SOME thm => (thm, "Induction rule for type " ^ tn)
-              | NONE => error ("No induction rule for type " ^ tn)
-            end
-    val concls = HOLogic.dest_concls (Thm.concl_of rule);
-    val insts = maps prep_inst (concls ~~ varss) handle Library.UnequalLengths =>
-      error (rule_name ^ " has different numbers of variables");
-  in occs_in_prems (inst_tac insts rule) (map #2 insts) i end)
-  i state;
-
-fun induct_tac ctxt s =
-  gen_induct_tac Tactic.res_inst_tac' ctxt
-    (map (single o SOME) (Syntax.read_idents s), NONE);
-
-fun induct_thm_tac ctxt th s =
-  gen_induct_tac Tactic.res_inst_tac' ctxt
-    ([map SOME (Syntax.read_idents s)], SOME th);
-
-end;
-
-
-(* generic case tactic for datatypes *)
-
-fun case_inst_tac inst_tac t rule i state =
-  let
-    val _ $ Var (ixn, _) $ _ = HOLogic.dest_Trueprop
-      (hd (Logic.strip_assums_hyp (hd (Thm.prems_of rule))));
-  in inst_tac [(ixn, t)] rule i state end;
-
-fun gen_case_tac inst_tac (t, SOME rule) i state =
-      case_inst_tac inst_tac t rule i state
-  | gen_case_tac inst_tac (t, NONE) i state =
-      let val tn = infer_tname state i t in
-        if tn = HOLogic.boolN then inst_tac [(("P", 0), t)] case_split_thm i state
-        else case_inst_tac inst_tac t
-               (#exhaustion (the_datatype (Thm.theory_of_thm state) tn))
-               i state
-      end handle THM _ => Seq.empty;
-
-fun case_tac t = gen_case_tac Tactic.res_inst_tac' (t, NONE);
-
-
-
-(** Isar tactic emulations **)
-
-local
-
-val rule_spec = Scan.lift (Args.$$$ "rule" -- Args.$$$ ":");
-val opt_rule = Scan.option (rule_spec |-- Attrib.thm);
-
-val varss =
-  Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift (Args.maybe Args.name))));
-
-val inst_tac = RuleInsts.bires_inst_tac false;
-
-fun induct_meth ctxt (varss, opt_rule) =
-  gen_induct_tac (inst_tac ctxt) ctxt (varss, opt_rule);
-fun case_meth ctxt (varss, opt_rule) =
-  gen_case_tac (inst_tac ctxt) (varss, opt_rule);
-
-in
-
-val tactic_emulations =
- [("induct_tac", Method.goal_args_ctxt' (varss -- opt_rule) induct_meth,
-    "induct_tac emulation (dynamic instantiation)"),
-  ("case_tac", Method.goal_args_ctxt' (Scan.lift Args.name -- opt_rule) case_meth,
-    "case_tac emulation (dynamic instantiation)")];
-
-end;
 
 
 
@@ -807,7 +677,6 @@ end;
 
 val setup =
   DatatypeRepProofs.distinctness_limit_setup #>
-  Method.add_methods tactic_emulations #>
   simproc_setup #>
   trfun_setup #>
   DatatypeInterpretation.init;
