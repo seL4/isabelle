@@ -1372,7 +1372,7 @@ text {*
     'coinduct' spec
     ;
 
-    spec: ('type' | 'pred' | 'set') ':' nameref
+    spec: (('type' | 'pred' | 'set') ':' nameref) | 'del'
     ;
   \end{rail}
 
@@ -1382,12 +1382,17 @@ text {*
   rules for predicates (or sets) and types of the current context.
   
   \item [@{attribute cases}, @{attribute induct}, and @{attribute
-  coinduct}] (as attributes) augment the corresponding context of
-  rules for reasoning about (co)inductive predicates (or sets) and
-  types, using the corresponding methods of the same name.  Certain
-  definitional packages of object-logics usually declare emerging
-  cases and induction rules as expected, so users rarely need to
-  intervene.
+  coinduct}] (as attributes) declare rules for reasoning about
+  (co)inductive predicates (or sets) and types, using the
+  corresponding methods of the same name.  Certain definitional
+  packages of object-logics usually declare emerging cases and
+  induction rules as expected, so users rarely need to intervene.
+
+  Rules may be deleted via the @{text "del"} specification, which
+  covers all of the @{text "type"}/@{text "pred"}/@{text "set"}
+  sub-categories simultaneously.  For example, @{attribute
+  cases}~@{text del} removes any @{attribute cases} rules declared for
+  some type, predicate, or set.
   
   Manual rule declarations usually refer to the @{attribute
   case_names} and @{attribute params} attributes to adjust names of

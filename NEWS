@@ -7,7 +7,7 @@ New in this Isabelle version
 *** Pure ***
 
 * Command 'instance': attached definitions now longer accepted.
-INCOMPATIBILITY.
+INCOMPATIBILITY, use proper 'instantiation' target.
 
 * Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
 
@@ -20,6 +20,8 @@ the corresponding "cases" and "induct" attributes.  INCOMPATIBILITY,
 in rare situations a different rule is selected --- notably nested
 tuple elimination instead of former prod.exhaust: use explicit
 (case_tac t rule: prod.exhaust) here.
+
+* Attributes "cases", "induct", "coinduct" support "del" option.
 
 * Removed fact "case_split_thm", which duplicates "case_split".
 
