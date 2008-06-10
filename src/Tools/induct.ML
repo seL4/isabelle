@@ -36,10 +36,13 @@ sig
   val find_coinductP: Proof.context -> term -> thm list
   val cases_type: string -> attribute
   val cases_pred: string -> attribute
+  val cases_del: attribute
   val induct_type: string -> attribute
   val induct_pred: string -> attribute
+  val induct_del: attribute
   val coinduct_type: string -> attribute
   val coinduct_pred: string -> attribute
+  val coinduct_del: attribute
   val casesN: string
   val inductN: string
   val coinductN: string
@@ -114,6 +117,9 @@ val init_rules =
   NetRules.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2 andalso
     Thm.eq_thm_prop (th1, th2));
 
+fun filter_rules (rs: rules) th =
+  filter (fn (_, th') => Thm.eq_thm_prop (th, th')) (NetRules.rules rs);
+
 fun lookup_rule (rs: rules) = AList.lookup (op =) (NetRules.rules rs);
 
 fun pretty_rules ctxt kind rs =
@@ -123,7 +129,7 @@ fun pretty_rules ctxt kind rs =
 
 (* context data *)
 
-structure Induct = GenericDataFun
+structure InductData = GenericDataFun
 (
   type T = (rules * rules) * (rules * rules) * (rules * rules);
   val empty =
@@ -138,7 +144,7 @@ structure Induct = GenericDataFun
       (NetRules.merge (coinductT1, coinductT2), NetRules.merge (coinductP1, coinductP2)));
 );
 
-val get_local = Induct.get o Context.Proof;
+val get_local = InductData.get o Context.Proof;
 
 fun dest_rules ctxt =
   let val ((casesT, casesP), (inductT, inductP), (coinductT, coinductP)) = get_local ctxt in
@@ -194,7 +200,10 @@ val find_coinductP = find_rules (#2 o #3) I;
 local
 
 fun mk_att f g name arg =
-  let val (x, thm) = g arg in (Induct.map (f (name, thm)) x, thm) end;
+  let val (x, thm) = g arg in (InductData.map (f (name, thm)) x, thm) end;
+
+fun del_att which = Thm.declaration_attribute (fn th => InductData.map (which (pairself (fn rs =>
+  fold NetRules.delete (filter_rules rs th) rs))));
 
 fun map1 f (x, y, z) = (f x, y, z);
 fun map2 f (x, y, z) = (x, f y, z);
@@ -207,17 +216,22 @@ fun add_inductP rule x = map2 (apsnd (NetRules.insert rule)) x;
 fun add_coinductT rule x = map3 (apfst (NetRules.insert rule)) x;
 fun add_coinductP rule x = map3 (apsnd (NetRules.insert rule)) x;
 
-fun consumes0 x = RuleCases.consumes_default 0 x;
-fun consumes1 x = RuleCases.consumes_default 1 x;
+val consumes0 = RuleCases.consumes_default 0;
+val consumes1 = RuleCases.consumes_default 1;
 
 in
 
 val cases_type = mk_att add_casesT consumes0;
 val cases_pred = mk_att add_casesP consumes1;
+val cases_del = del_att map1;
+
 val induct_type = mk_att add_inductT consumes0;
 val induct_pred = mk_att add_inductP consumes1;
+val induct_del = del_att map2;
+
 val coinduct_type = mk_att add_coinductT consumes0;
 val coinduct_pred = mk_att add_coinductP consumes1;
+val coinduct_del = del_att map3;
 
 end;
 
@@ -239,21 +253,22 @@ fun spec k arg =
   Scan.lift (Args.$$$ k -- Args.colon) |-- arg ||
   Scan.lift (Args.$$$ k) >> K "";
 
-fun attrib add_type add_pred = Attrib.syntax
+fun attrib add_type add_pred del = Attrib.syntax
  (spec typeN Args.tyname >> add_type ||
   spec predN Args.const >> add_pred ||
-  spec setN Args.const >> add_pred);
+  spec setN Args.const >> add_pred ||
+  Scan.lift Args.del >> K del);
 
-val cases_att = attrib cases_type cases_pred;
-val induct_att = attrib induct_type induct_pred;
-val coinduct_att = attrib coinduct_type coinduct_pred;
+val cases_att = attrib cases_type cases_pred cases_del;
+val induct_att = attrib induct_type induct_pred induct_del;
+val coinduct_att = attrib coinduct_type coinduct_pred coinduct_del;
 
 in
 
 val attrib_setup = Attrib.add_attributes
- [(casesN, cases_att, "declaration of cases rule for type or predicate/set"),
-  (inductN, induct_att, "declaration of induction rule for type or predicate/set"),
-  (coinductN, coinduct_att, "declaration of coinduction rule for type or predicate/set")];
+ [(casesN, cases_att, "declaration of cases rule"),
+  (inductN, induct_att, "declaration of induction rule"),
+  (coinductN, coinduct_att, "declaration of coinduction rule")];
 
 end;
 
