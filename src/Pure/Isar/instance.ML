@@ -2,24 +2,16 @@
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-A primitive instance command, based on instantiation target.
+Wrapper for instantiation command.
 *)
 
 signature INSTANCE =
 sig
   val instantiation_cmd: xstring list * sort * xstring -> theory -> local_theory
-  val instance_cmd: xstring * sort * xstring -> ((bstring * Attrib.src list) * xstring) list
-    -> theory -> Proof.state
 end;
 
 structure Instance : INSTANCE =
 struct
-
-fun read_single_arity thy (raw_tyco, raw_sorts, raw_sort) =
-  let
-    val (tyco, sorts, sort) = Sign.read_arity thy (raw_tyco, raw_sorts, raw_sort);
-    val vs = Name.names Name.context Name.aT sorts;
-  in (tyco, vs, sort) end;
 
 fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
   let
@@ -32,33 +24,5 @@ fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
 
 fun instantiation_cmd raw_arities thy =
   TheoryTarget.instantiation (read_multi_arity thy raw_arities) thy;
-
-fun instance_cmd raw_arities defs thy =
-  let
-    val (tyco, vs, sort) = read_single_arity thy raw_arities;
-    fun mk_def ctxt ((name, raw_attr), raw_t) =
-      let
-        val attr = map (Attrib.intern_src thy) raw_attr;
-        val t = Syntax.parse_prop ctxt raw_t;
-      in (NONE, ((name, attr), t)) end;
-    fun define def ctxt =
-      let
-        val def' = (apsnd o apsnd) (Syntax.check_prop ctxt) def;
-      in Specification.definition def' ctxt end;
-    val _ = if not (null defs) then Output.legacy_feature
-      "Instance command with attached definitions; use instantiation instead." else ();
-  in if null defs
-  then
-    thy
-    |> Class.instance_arity I (tyco, map snd vs, sort)
-  else
-    thy
-    |> TheoryTarget.instantiation ([tyco], vs, sort)
-    |> `(fn ctxt => map (mk_def ctxt) defs)
-    |-> (fn defs => fold_map Specification.definition defs)
-    |> snd
-    |> LocalTheory.restore
-    |> Class.instantiation_instance Class.conclude_instantiation
-  end;
 
 end;

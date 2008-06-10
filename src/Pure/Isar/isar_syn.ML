@@ -443,8 +443,7 @@ val _ =
 val _ =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
   ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.!!! P.xname) >> Class.classrel_cmd ||
-    P.arity -- Scan.repeat (SpecParse.opt_thm_name ":" -- P.prop)
-      >> (fn (arity, defs) => Instance.instance_cmd arity defs))
+    P.arity >> Class.instance_arity_cmd)
     >> (Toplevel.print oo Toplevel.theory_to_proof)
   || Scan.succeed (Toplevel.print o Toplevel.local_theory_to_proof NONE (Class.instantiation_instance I)));
 
