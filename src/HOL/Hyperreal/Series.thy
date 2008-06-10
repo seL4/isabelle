@@ -541,7 +541,7 @@ apply (auto intro: mult_right_mono simp add: summable_def)
 apply (simp add: mult_ac)
 apply (rule_tac x = "norm (f N) * (1/ (1 - c)) / (c ^ N)" in exI)
 apply (rule sums_divide) 
-apply (rule sums_mult) 
+apply (rule sums_mult)
 apply (auto intro!: geometric_sums)
 done
 

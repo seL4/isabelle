@@ -16,7 +16,9 @@ Cambridge CB3 0FD, United Kingdom
 
 header{*protocol-independent confidentiality theorem on keys*}
 
-theory GuardK imports Analz Extensions begin
+theory GuardK
+imports Analz Extensions
+begin
 
 (******************************************************************************
 messages where all the occurrences of Key n are
