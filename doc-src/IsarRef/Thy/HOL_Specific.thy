@@ -773,17 +773,18 @@ text {*
 *}
 
 
-section {* Cases and induction: emulating tactic scripts \label{sec:hol-induct-tac} *}
+section {* Unstructured cases analysis and induction \label{sec:hol-induct-tac} *}
 
 text {*
-  The following important tactical tools of Isabelle/HOL have been
-  ported to Isar.  These should be never used in proper proof texts!
+  The following tools of Isabelle/HOL support cases analysis and
+  induction in unstructured tactic scripts; see also
+  \secref{sec:cases-induct} for proper Isar versions of similar ideas.
 
   \begin{matharray}{rcl}
     @{method_def (HOL) case_tac}@{text "\<^sup>*"} & : & \isarmeth \\
     @{method_def (HOL) induct_tac}@{text "\<^sup>*"} & : & \isarmeth \\
     @{method_def (HOL) ind_cases}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{command_def (HOL) "inductive_cases"} & : & \isartrans{theory}{theory} \\
+    @{command_def (HOL) "inductive_cases"}@{text "\<^sup>*"} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -803,14 +804,18 @@ text {*
   \begin{descr}
 
   \item [@{method (HOL) case_tac} and @{method (HOL) induct_tac}]
-  admit to reason about inductive datatypes only (unless an
-  alternative rule is given explicitly).  Furthermore, @{method (HOL)
-  case_tac} does a classical case split on booleans; @{method (HOL)
-  induct_tac} allows only variables to be given as instantiation.
-  These tactic emulations feature both goal addressing and dynamic
+  admit to reason about inductive types.  Rules are selected according
+  to the declarations by the @{attribute cases} and @{attribute
+  induct} attributes, cf.\ \secref{sec:cases-induct}.  The @{command
+  (HOL) datatype} package already takes care of this.
+
+  These unstructured tactics feature both goal addressing and dynamic
   instantiation.  Note that named rule cases are \emph{not} provided
-  as would be by the proper @{method induct} and @{method cases} proof
-  methods (see \secref{sec:cases-induct}).
+  as would be by the proper @{method cases} and @{method induct} proof
+  methods (see \secref{sec:cases-induct}).  Unlike the @{method
+  induct} method, @{method induct_tac} does not handle structured rule
+  statements, only the compact object-logic conclusion of the subgoal
+  being addressed.
   
   \item [@{method (HOL) ind_cases} and @{command (HOL)
   "inductive_cases"}] provide an interface to the internal @{ML_text
