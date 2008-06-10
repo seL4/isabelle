@@ -93,9 +93,9 @@ end
 interpretation nat_int: type_definition [int nat "Collect (op <= 0)"]
   by (rule td_nat_int)
 
--- "resetting to the default nat induct and cases rules"
-declare Nat.induct [case_names 0 Suc, induct type]
-declare Nat.exhaust [case_names 0 Suc, cases type]
+text "resetting to the default nat induct and cases rules"
+declare nat_induct [induct type: nat]
+declare nat.exhaust [cases type: nat]
 
 
 subsection "Extended form of type definition predicate"
