@@ -25,6 +25,7 @@ uses
   "~~/src/Tools/random_word.ML"
   "~~/src/Tools/atomize_elim.ML"
   "~~/src/Tools/induct.ML"
+  ("~~/src/HOL/Tools/induct_tacs.ML")
   "~~/src/Tools/code/code_name.ML"
   "~~/src/Tools/code/code_funcgr.ML"
   "~~/src/Tools/code/code_thingol.ML"
@@ -721,7 +722,7 @@ text {*
   case distinction as a natural deduction rule.
   Note that @{term "~P"} is the second case, not the first
 *}
-lemma case_split_thm:
+lemma case_split [case_names True False]:
   assumes prem1: "P ==> Q"
       and prem2: "~P ==> Q"
   shows "Q"
@@ -729,7 +730,10 @@ apply (rule excluded_middle [THEN disjE])
 apply (erule prem2)
 apply (erule prem1)
 done
-lemmas case_split = case_split_thm [case_names True False]
+
+ML {*
+  fun case_split_tac P = res_inst_tac [("P", P)] @{thm case_split}
+*}
 
 (*Classical implies (-->) elimination. *)
 lemma impCE:
@@ -1487,9 +1491,9 @@ text {* Rule projections: *}
 ML {*
 structure ProjectRule = ProjectRuleFun
 (
-  val conjunct1 = @{thm conjunct1};
-  val conjunct2 = @{thm conjunct2};
-  val mp = @{thm mp};
+  val conjunct1 = @{thm conjunct1}
+  val conjunct2 = @{thm conjunct2}
+  val mp = @{thm mp}
 )
 *}
 
@@ -1543,16 +1547,19 @@ hide const induct_forall induct_implies induct_equal induct_conj
 text {* Method setup. *}
 
 ML {*
-  structure Induct = InductFun
-  (
-    val cases_default = @{thm case_split}
-    val atomize = @{thms induct_atomize}
-    val rulify = @{thms induct_rulify}
-    val rulify_fallback = @{thms induct_rulify_fallback}
-  );
+structure Induct = InductFun
+(
+  val cases_default = @{thm case_split}
+  val atomize = @{thms induct_atomize}
+  val rulify = @{thms induct_rulify}
+  val rulify_fallback = @{thms induct_rulify_fallback}
+)
 *}
 
 setup Induct.setup
+
+use "~~/src/HOL/Tools/induct_tacs.ML"
+setup InductTacs.setup
 
 
 subsection {* Other simple lemmas and lemma duplicates *}
@@ -1578,7 +1585,7 @@ lemma choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
   apply (erule_tac x = "%z. if z = x then y else f z" in allE)
   apply (erule impE)
   apply (rule allI)
-  apply (rule_tac P = "xa = x" in case_split_thm)
+  apply (case_tac "xa = x")
   apply (drule_tac [3] x = x in fun_cong, simp_all)
   done
 
@@ -1735,7 +1742,6 @@ val all_conj_distrib = thm "all_conj_distrib";
 val all_simps = thms "all_simps";
 val atomize_not = thm "atomize_not";
 val case_split = thm "case_split";
-val case_split_thm = thm "case_split_thm"
 val cases_simp = thm "cases_simp";
 val choice_eq = thm "choice_eq"
 val cong = thm "cong"
