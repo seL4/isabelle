@@ -2831,7 +2831,7 @@ begin
 
 definition
  sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
-"sorted_list_of_set A == THE xs. set xs = A & sorted xs & distinct xs"
+ [code func del]: "sorted_list_of_set A == THE xs. set xs = A & sorted xs & distinct xs"
 
 lemma sorted_list_of_set[simp]: "finite A \<Longrightarrow>
   set(sorted_list_of_set A) = A &
@@ -2993,6 +2993,7 @@ text{*@{text"set_Cons A Xs"}: the set of lists with head drawn from
 constdefs
   set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set"
   "set_Cons A XS == {z. \<exists>x xs. z = x#xs & x \<in> A & xs \<in> XS}"
+declare set_Cons_def [code func del]
 
 lemma set_Cons_sing_Nil [simp]: "set_Cons A {[]} = (%x. [x])`A"
 by (auto simp add: set_Cons_def)
@@ -3029,6 +3030,8 @@ constdefs
   lenlex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
     "lenlex r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
         --{*Compares lists by their length and then lexicographically*}
+
+declare lex_def [code func del]
 
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
@@ -3104,6 +3107,7 @@ constdefs
   lexord :: "('a * 'a)set \<Rightarrow> ('a list * 'a list) set" 
   "lexord  r == {(x,y). \<exists> a v. y = x @ a # v \<or> 
             (\<exists> u a b v w. (a,b) \<in> r \<and> x = u @ (a # v) \<and> y = u @ (b # w))}"
+declare lexord_def [code func del]
 
 lemma lexord_Nil_left[simp]:  "([],y) \<in> lexord r = (\<exists> a x. y = a # x)"
 by (unfold lexord_def, induct_tac y, auto) 

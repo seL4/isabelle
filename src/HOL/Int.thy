@@ -24,7 +24,7 @@ subsection {* The equivalence relation underlying the integers *}
 definition
   intrel :: "((nat \<times> nat) \<times> (nat \<times> nat)) set"
 where
-  "intrel = {((x, y), (u, v)) | x y u v. x + v = u +y }"
+  [code func del]: "intrel = {((x, y), (u, v)) | x y u v. x + v = u +y }"
 
 typedef (Integ)
   int = "UNIV//intrel"
@@ -1167,7 +1167,7 @@ begin
 definition
   Ints  :: "'a set"
 where
-  "Ints = range of_int"
+  [code func del]: "Ints = range of_int"
 
 end
 
@@ -1688,12 +1688,12 @@ subsection{*Intermediate value theorems*}
 lemma int_val_lemma:
      "(\<forall>i<n::nat. abs(f(i+1) - f i) \<le> 1) -->  
       f 0 \<le> k --> k \<le> f n --> (\<exists>i \<le> n. f i = (k::int))"
-apply (induct_tac "n", simp)
+apply (induct n, simp)
 apply (intro strip)
 apply (erule impE, simp)
 apply (erule_tac x = n in allE, simp)
 apply (case_tac "k = f (n+1) ")
- apply force
+apply force
 apply (erule impE)
  apply (simp add: abs_if split add: split_if_asm)
 apply (blast intro: le_SucI)

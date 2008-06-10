@@ -15,7 +15,7 @@ begin
 
 definition
   realrel   ::  "((preal * preal) * (preal * preal)) set" where
-  "realrel = {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
+  [code func del]: "realrel = {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 typedef (Real)  real = "UNIV//realrel"
   by (auto simp add: quotient_def)

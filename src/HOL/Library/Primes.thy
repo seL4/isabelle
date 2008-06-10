@@ -1,6 +1,6 @@
 (*  Title:      HOL/Library/Primes.thy
     ID:         $Id$
-    Author:     Amine Chaieb Christophe Tabacznyj and Lawrence C Paulson
+    Author:     Amine Chaieb, Christophe Tabacznyj and Lawrence C Paulson
     Copyright   1996  University of Cambridge
 *)
 
@@ -16,7 +16,7 @@ definition
 
 definition
   prime :: "nat \<Rightarrow> bool" where
-  "prime p \<longleftrightarrow> (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
+  [code func del]: "prime p \<longleftrightarrow> (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
 
 
 lemma two_is_prime: "prime 2"

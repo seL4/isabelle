@@ -2042,7 +2042,7 @@ lemma bv_slice_length [simp]: "[| j \<le> i; i < length w |] ==> length (bv_slic
 
 definition
   length_nat :: "nat => nat" where
-  "length_nat x = (LEAST n. x < 2 ^ n)"
+  [code func del]: "length_nat x = (LEAST n. x < 2 ^ n)"
 
 lemma length_nat: "length (nat_to_bv n) = length_nat n"
   apply (simp add: length_nat_def)

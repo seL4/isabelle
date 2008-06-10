@@ -500,7 +500,7 @@ subsubsection {* Well-foundedness *}
 
 definition
   mult1 :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
-  "mult1 r =
+  [code func del]:"mult1 r =
     {(N, M). \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and>
       (\<forall>b. b :# K --> (b, a) \<in> r)}"
 
@@ -716,10 +716,10 @@ instantiation multiset :: (order) order
 begin
 
 definition
-  less_multiset_def: "M' < M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
+  less_multiset_def [code func del]: "M' < M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
 
 definition
-  le_multiset_def: "M' <= M \<longleftrightarrow> M' = M \<or> M' < (M::'a multiset)"
+  le_multiset_def [code func del]: "M' <= M \<longleftrightarrow> M' = M \<or> M' < (M::'a multiset)"
 
 lemma trans_base_order: "trans {(x', x). x' < (x::'a::order)}"
 unfolding trans_def by (blast intro: order_less_trans)
@@ -988,11 +988,11 @@ subsection {* Pointwise ordering induced by count *}
 
 definition
   mset_le :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<le>#" 50) where
-  "(A \<le># B) = (\<forall>a. count A a \<le> count B a)"
+  [code func del]: "(A \<le># B) = (\<forall>a. count A a \<le> count B a)"
 
 definition
   mset_less :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "<#" 50) where
-  "(A <# B) = (A \<le># B \<and> A \<noteq> B)"
+  [code func del]: "(A <# B) = (A \<le># B \<and> A \<noteq> B)"
 
 notation mset_le  (infix "\<subseteq>#" 50)
 notation mset_less  (infix "\<subset>#" 50)

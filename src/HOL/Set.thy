@@ -2156,7 +2156,7 @@ subsection {* Getting the Contents of a Singleton Set *}
 definition
   contents :: "'a set \<Rightarrow> 'a"
 where
-  "contents X = (THE x. X = {x})"
+  [code func del]: "contents X = (THE x. X = {x})"
 
 lemma contents_eq [simp]: "contents {x} = x"
   by (simp add: contents_def)
@@ -2201,13 +2201,6 @@ lemma Least_mono:
   apply (rule LeastI2_order)
   apply (auto elim: monoD intro!: order_antisym)
   done
-
-lemma Least_equality:
-  "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k"
-apply (simp add: Least_def)
-apply (rule the_equality)
-apply (auto intro!: order_antisym)
-done
 
 
 subsection {* Basic ML bindings *}
