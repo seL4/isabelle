@@ -9,7 +9,7 @@
 header {* Definition of Word Type *}
 
 theory WordDefinition
-imports Size BinBoolList TdThs
+imports TdThs Size BinBoolList
 begin
 
 typedef (open word) 'a word
