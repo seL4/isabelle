@@ -779,19 +779,20 @@ Each theory contains a default set of theorems that are used in
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Cases and induction: emulating tactic scripts \label{sec:hol-induct-tac}%
+\isamarkupsection{Unstructured cases analysis and induction \label{sec:hol-induct-tac}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The following important tactical tools of Isabelle/HOL have been
-  ported to Isar.  These should be never used in proper proof texts!
+The following tools of Isabelle/HOL support cases analysis and
+  induction in unstructured tactic scripts; see also
+  \secref{sec:cases-induct} for proper Isar versions of similar ideas.
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{method}{case\_tac}\hypertarget{method.HOL.case-tac}{\hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
     \indexdef{HOL}{method}{induct\_tac}\hypertarget{method.HOL.induct-tac}{\hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
     \indexdef{HOL}{method}{ind\_cases}\hypertarget{method.HOL.ind-cases}{\hyperlink{method.HOL.ind-cases}{\mbox{\isa{ind{\isacharunderscore}cases}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
-    \indexdef{HOL}{command}{inductive\_cases}\hypertarget{command.HOL.inductive-cases}{\hyperlink{command.HOL.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{inductive\_cases}\hypertarget{command.HOL.inductive-cases}{\hyperlink{command.HOL.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
@@ -811,12 +812,15 @@ The following important tactical tools of Isabelle/HOL have been
   \begin{descr}
 
   \item [\hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isacharunderscore}tac}}} and \hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}}]
-  admit to reason about inductive datatypes only (unless an
-  alternative rule is given explicitly).  Furthermore, \hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isacharunderscore}tac}}} does a classical case split on booleans; \hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}} allows only variables to be given as instantiation.
-  These tactic emulations feature both goal addressing and dynamic
+  admit to reason about inductive types.  Rules are selected according
+  to the declarations by the \hyperlink{attribute.cases}{\mbox{\isa{cases}}} and \hyperlink{attribute.induct}{\mbox{\isa{induct}}} attributes, cf.\ \secref{sec:cases-induct}.  The \hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}} package already takes care of this.
+
+  These unstructured tactics feature both goal addressing and dynamic
   instantiation.  Note that named rule cases are \emph{not} provided
-  as would be by the proper \hyperlink{method.induct}{\mbox{\isa{induct}}} and \hyperlink{method.cases}{\mbox{\isa{cases}}} proof
-  methods (see \secref{sec:cases-induct}).
+  as would be by the proper \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} proof
+  methods (see \secref{sec:cases-induct}).  Unlike the \hyperlink{method.induct}{\mbox{\isa{induct}}} method, \hyperlink{method.induct-tac}{\mbox{\isa{induct{\isacharunderscore}tac}}} does not handle structured rule
+  statements, only the compact object-logic conclusion of the subgoal
+  being addressed.
   
   \item [\hyperlink{method.HOL.ind-cases}{\mbox{\isa{ind{\isacharunderscore}cases}}} and \hyperlink{command.HOL.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isacharunderscore}cases}}}}] provide an interface to the internal \verb|mk_cases| operation.  Rules are simplified in an unrestricted
   forward manner.
