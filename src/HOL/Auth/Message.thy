@@ -9,7 +9,9 @@ Inductive relations "parts", "analz" and "synth"
 
 header{*Theory of Agents and Messages for Security Protocols*}
 
-theory Message imports Main begin
+theory Message
+imports Main
+begin
 
 (*Needed occasionally with spy_analz_tac, e.g. in analz_insert_Key_newK*)
 lemma [simp] : "A \<union> (B \<union> A) = B \<union> A"
@@ -321,7 +323,7 @@ done
 
 text{*In any message, there is an upper bound N on its greatest nonce.*}
 lemma msg_Nonce_supply: "\<exists>N. \<forall>n. N\<le>n --> Nonce n \<notin> parts {msg}"
-apply (induct_tac "msg")
+apply (induct msg)
 apply (simp_all (no_asm_simp) add: exI parts_insert2)
  txt{*MPair case: blast works out the necessary sum itself!*}
  prefer 2 apply auto apply (blast elim!: add_leE)

@@ -174,7 +174,7 @@ declare
 lemma bin_to_bl_aux_bintr [rule_format] :
   "ALL m bin bl. bin_to_bl_aux n (bintrunc m bin) bl = 
     replicate (n - m) False @ bin_to_bl_aux (min n m) bin bl"
-  apply (induct_tac "n")
+  apply (induct n)
    apply clarsimp
   apply clarsimp
   apply (case_tac "m")
@@ -259,12 +259,12 @@ lemmas nth_rev_alt = nth_rev [where xs = "rev ys", simplified, standard]
 lemma nth_bin_to_bl_aux [rule_format] : 
   "ALL w n bl. n < m + length bl --> (bin_to_bl_aux m w bl) ! n = 
     (if n < m then bin_nth w (m - 1 - n) else bl ! (n - m))"
-  apply (induct_tac "m")
+  apply (induct m)
    apply clarsimp
   apply clarsimp
   apply (case_tac w rule: bin_exhaust)
   apply clarsimp
-  apply (case_tac "na - n")
+  apply (case_tac "n - m")
    apply arith
   apply simp
   apply (rule_tac f = "%n. bl ! n" in arg_cong) 

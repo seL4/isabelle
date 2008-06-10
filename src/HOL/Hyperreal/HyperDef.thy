@@ -396,7 +396,7 @@ lemma two_hrealpow_ge_one [simp]: "(1::hypreal) \<le> 2 ^ n"
 by (insert power_increasing [of 0 n "2::hypreal"], simp)
 
 lemma two_hrealpow_gt [simp]: "hypreal_of_nat n < 2 ^ n"
-apply (induct_tac "n")
+apply (induct n)
 apply (auto simp add: left_distrib)
 apply (cut_tac n = n in two_hrealpow_ge_one, arith)
 done

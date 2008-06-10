@@ -30,7 +30,7 @@ lemma zero_not_hSuc [iff]: "\<And>m. 0 \<noteq> hSuc m"
 by transfer (rule Zero_not_Suc)
 
 lemma hSuc_hSuc_eq [iff]: "\<And>m n. (hSuc m = hSuc n) = (m = n)"
-by transfer (rule Suc_Suc_eq)
+by transfer (rule nat.inject)
 
 lemma zero_less_hSuc [iff]: "\<And>n. 0 < hSuc n"
 by transfer (rule zero_less_Suc)
@@ -328,11 +328,13 @@ text{* @{term "HNatInfinite = {N. \<forall>n \<in> Nats. n < N}"}*}
 
 (*??delete? similar reasoning in hypnat_omega_gt_SHNat above*)
 lemma HNatInfinite_FreeUltrafilterNat_lemma:
-     "\<forall>N::nat. {n. f n \<noteq> N} \<in> FreeUltrafilterNat
-      ==> {n. N < f n} \<in> FreeUltrafilterNat"
-apply (induct_tac N)
+  assumes "\<forall>N::nat. {n. f n \<noteq> N} \<in> FreeUltrafilterNat"
+  shows "{n. N < f n} \<in> FreeUltrafilterNat"
+apply (induct N)
+using assms
 apply (drule_tac x = 0 in spec, simp)
-apply (drule_tac x = "Suc n" in spec)
+using assms
+apply (drule_tac x = "Suc N" in spec)
 apply (elim ultra, auto)
 done
 

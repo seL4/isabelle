@@ -973,7 +973,7 @@ apply (rule seq.take_lemmas)
 apply (rule mp)
 prefer 2 apply assumption
 apply (rule_tac x="x" in spec)
-apply (rule nat_induct)
+apply (rule nat.induct)
 apply simp
 apply (rule allI)
 apply (case_tac "Forall Q xa")
@@ -1016,7 +1016,7 @@ apply (rule seq.take_lemmas)
 apply (rule mp)
 prefer 2 apply assumption
 apply (rule_tac x="x" in spec)
-apply (rule nat_induct)
+apply (rule nat.induct)
 apply simp
 apply (rule allI)
 apply (rule_tac x="xa" in Seq_cases)

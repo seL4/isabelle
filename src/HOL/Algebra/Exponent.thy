@@ -5,8 +5,9 @@
     exponent p s   yields the greatest power of p that divides s.
 *)
 
-theory Exponent imports Main Primes Binomial begin
-
+theory Exponent
+imports Main Primes Binomial
+begin
 
 section {*The Combinatorial Argument Underlying the First Sylow Theorem*}
 definition exponent :: "nat => nat => nat" where
@@ -56,7 +57,7 @@ done
 lemma prime_power_dvd_cases [rule_format (no_asm)]: "prime p
   ==> \<forall>m n. p^c dvd m*n -->  
         (\<forall>a b. a+b = Suc c --> p^a dvd m | p^b dvd n)"
-apply (induct_tac "c")
+apply (induct c)
  apply clarify
  apply (case_tac "a")
   apply simp
@@ -90,7 +91,7 @@ by (drule_tac a = "Suc r" and b = a in prime_power_dvd_cases, assumption, auto)
 
 (*Lemma for power_dvd_bound*)
 lemma Suc_le_power: "Suc 0 < p ==> Suc n <= p^n"
-apply (induct_tac "n")
+apply (induct n)
 apply (simp (no_asm_simp))
 apply simp
 apply (subgoal_tac "2 * n + 2 <= p * p^n", simp)
@@ -244,17 +245,17 @@ lemmas bad_Sucs = binomial_Suc_Suc mult_Suc mult_Suc_right
 lemma p_not_div_choose_lemma [rule_format]:
   "[| \<forall>i. Suc i < K --> exponent p (Suc i) = exponent p (Suc(j+i))|]  
    ==> k<K --> exponent p ((j+k) choose k) = 0"
-apply (case_tac "prime p")
+apply (cases "prime p")
  prefer 2 apply simp 
-apply (induct_tac "k")
+apply (induct k)
 apply (simp (no_asm))
 (*induction step*)
-apply (subgoal_tac "(Suc (j+n) choose Suc n) > 0")
+apply (subgoal_tac "(Suc (j+k) choose Suc k) > 0")
  prefer 2 apply (simp add: zero_less_binomial_iff, clarify)
-apply (subgoal_tac "exponent p ((Suc (j+n) choose Suc n) * Suc n) = 
-                    exponent p (Suc n)")
+apply (subgoal_tac "exponent p ((Suc (j+k) choose Suc k) * Suc k) = 
+                    exponent p (Suc k)")
  txt{*First, use the assumed equation.  We simplify the LHS to
-  @{term "exponent p (Suc (j + n) choose Suc n) + exponent p (Suc n)"}
+  @{term "exponent p (Suc (j + k) choose Suc k) + exponent p (Suc k)"}
   the common terms cancel, proving the conclusion.*}
  apply (simp del: bad_Sucs add: exponent_mult_add)
 txt{*Establishing the equation requires first applying 
