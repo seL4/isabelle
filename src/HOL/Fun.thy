@@ -465,9 +465,8 @@ qed
 
 lemma surj_imp_surj_swap: "surj f ==> surj (swap a b f)"
 apply (simp add: surj_def swap_def, clarify)
-apply (rule_tac P = "y = f b" in case_split_thm, blast)
-apply (rule_tac P = "y = f a" in case_split_thm, auto)
-  --{*We don't yet have @{text case_tac}*}
+apply (case_tac "y = f b", blast)
+apply (case_tac "y = f a", auto)
 done
 
 lemma surj_swap_iff [simp]: "surj (swap a b f) = surj f"
