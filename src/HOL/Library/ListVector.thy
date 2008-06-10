@@ -29,18 +29,38 @@ where
 "zipwith0 f (x#xs) [] = f x 0 # zipwith0 f xs []" |
 "zipwith0 f [] (y#ys) = f 0 y # zipwith0 f [] ys"
 
-instance list :: ("{zero,plus}")plus
-list_add_def : "op + \<equiv> zipwith0 (op +)" ..
+instantiation list :: ("{zero, plus}") plus
+begin
 
-instance list :: ("{zero,uminus}")uminus
-list_uminus_def: "uminus \<equiv> map uminus" ..
+definition
+  list_add_def: "op + = zipwith0 (op +)"
 
-instance list :: ("{zero,minus}")minus
-list_diff_def: "op - \<equiv> zipwith0 (op -)" ..
+instance ..
+
+end
+
+instantiation list :: ("{zero, uminus}") uminus
+begin
+
+definition
+  list_uminus_def: "uminus = map uminus"
+
+instance ..
+
+end
+
+instantiation list :: ("{zero,minus}") minus
+begin
+
+definition
+  list_diff_def: "op - = zipwith0 (op -)"
+
+instance ..
+
+end
 
 lemma zipwith0_Nil[simp]: "zipwith0 f [] ys = map (f 0) ys"
 by(induct ys) simp_all
-
 
 lemma list_add_Nil[simp]: "[] + xs = (xs::'a::monoid_add list)"
 by (induct xs) (auto simp:list_add_def)
