@@ -25,6 +25,6 @@ types word32 = "32 word"
 types word8 = "8 word"
 types byte = word8
 
-text {* for more see WordExampes.thy *}
+text {* for more see WordExamples.thy *}
 
 end
