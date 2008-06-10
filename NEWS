@@ -45,6 +45,7 @@ instantiations for algebraic structures.  Removed some duplicate
 theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
 
+
 New in Isabelle2008 (June 2008)
 -------------------------------
 
