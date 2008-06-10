@@ -9,6 +9,8 @@ signature RULE_INSTS =
 sig
   val bires_inst_tac: bool -> Proof.context -> (indexname * string) list ->
     thm -> int -> tactic
+  val res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
+  val eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
 end;
 
 structure RuleInsts: RULE_INSTS =
@@ -227,7 +229,7 @@ val _ = Context.>> (Context.map_theory
 
 (** methods **)
 
-(* rule_tac etc. -- refer to dynamic goal state!! *)   (* FIXME cleanup!! *)
+(* rule_tac etc. -- refer to dynamic goal state!! *)   (* FIXME cleanup this mess!!! *)
 
 fun bires_inst_tac bires_flag ctxt insts thm =
   let
@@ -306,6 +308,10 @@ fun bires_inst_tac bires_flag ctxt insts thm =
                 | THM  (msg,_,_) => (warning msg; no_tac st);
   in tac end;
 
+val res_inst_tac = bires_inst_tac false;
+val eres_inst_tac = bires_inst_tac true;
+
+
 local
 
 fun gen_inst _ tac _ (quant, ([], thms)) =
@@ -317,34 +323,29 @@ fun gen_inst _ tac _ (quant, ([], thms)) =
 
 in
 
-val res_inst_meth = gen_inst (bires_inst_tac false) Tactic.resolve_tac;
-
-val eres_inst_meth = gen_inst (bires_inst_tac true) Tactic.eresolve_tac;
+val res_inst_meth = gen_inst res_inst_tac Tactic.resolve_tac;
+val eres_inst_meth = gen_inst eres_inst_tac Tactic.eresolve_tac;
 
 val cut_inst_meth =
   gen_inst
-    (fn ctxt => fn insts => bires_inst_tac false ctxt insts o Tactic.make_elim_preserve)
+    (fn ctxt => fn insts => res_inst_tac ctxt insts o Tactic.make_elim_preserve)
     Tactic.cut_rules_tac;
 
 val dres_inst_meth =
   gen_inst
-    (fn ctxt => fn insts => bires_inst_tac true ctxt insts o Tactic.make_elim_preserve)
+    (fn ctxt => fn insts => eres_inst_tac ctxt insts o Tactic.make_elim_preserve)
     Tactic.dresolve_tac;
 
 val forw_inst_meth =
   gen_inst
     (fn ctxt => fn insts => fn rule =>
-       bires_inst_tac false ctxt insts (Tactic.make_elim_preserve rule) THEN'
-       assume_tac)
+       res_inst_tac ctxt insts (Tactic.make_elim_preserve rule) THEN' assume_tac)
     Tactic.forward_tac;
 
-fun subgoal_tac ctxt sprop =
-  DETERM o bires_inst_tac false ctxt [(("psi", 0), sprop)] cut_rl;
-
+fun subgoal_tac ctxt sprop = DETERM o res_inst_tac ctxt [(("psi", 0), sprop)] cut_rl;
 fun subgoals_tac ctxt sprops = EVERY' (map (subgoal_tac ctxt) sprops);
 
-fun thin_tac ctxt s =
-  bires_inst_tac true ctxt [(("V", 0), s)] thin_rl;
+fun thin_tac ctxt s = eres_inst_tac ctxt [(("V", 0), s)] thin_rl;
 
 
 (* method syntax *)
