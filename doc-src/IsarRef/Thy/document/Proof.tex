@@ -1343,7 +1343,7 @@ The Isar provides separate commands to accommodate tactic-style
     'coinduct' spec
     ;
 
-    spec: ('type' | 'pred' | 'set') ':' nameref
+    spec: (('type' | 'pred' | 'set') ':' nameref) | 'del'
     ;
   \end{rail}
 
@@ -1352,12 +1352,16 @@ The Isar provides separate commands to accommodate tactic-style
   \item [\hyperlink{command.print-induct-rules}{\mbox{\isa{\isacommand{print{\isacharunderscore}induct{\isacharunderscore}rules}}}}] prints cases and induct
   rules for predicates (or sets) and types of the current context.
   
-  \item [\hyperlink{attribute.cases}{\mbox{\isa{cases}}}, \hyperlink{attribute.induct}{\mbox{\isa{induct}}}, and \hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}}] (as attributes) augment the corresponding context of
-  rules for reasoning about (co)inductive predicates (or sets) and
-  types, using the corresponding methods of the same name.  Certain
-  definitional packages of object-logics usually declare emerging
-  cases and induction rules as expected, so users rarely need to
-  intervene.
+  \item [\hyperlink{attribute.cases}{\mbox{\isa{cases}}}, \hyperlink{attribute.induct}{\mbox{\isa{induct}}}, and \hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}}] (as attributes) declare rules for reasoning about
+  (co)inductive predicates (or sets) and types, using the
+  corresponding methods of the same name.  Certain definitional
+  packages of object-logics usually declare emerging cases and
+  induction rules as expected, so users rarely need to intervene.
+
+  Rules may be deleted via the \isa{{\isachardoublequote}del{\isachardoublequote}} specification, which
+  covers all of the \isa{{\isachardoublequote}type{\isachardoublequote}}/\isa{{\isachardoublequote}pred{\isachardoublequote}}/\isa{{\isachardoublequote}set{\isachardoublequote}}
+  sub-categories simultaneously.  For example, \hyperlink{attribute.cases}{\mbox{\isa{cases}}}~\isa{del} removes any \hyperlink{attribute.cases}{\mbox{\isa{cases}}} rules declared for
+  some type, predicate, or set.
   
   Manual rule declarations usually refer to the \hyperlink{attribute.case-names}{\mbox{\isa{case{\isacharunderscore}names}}} and \hyperlink{attribute.params}{\mbox{\isa{params}}} attributes to adjust names of
   cases and parameters of a rule; the \hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}
