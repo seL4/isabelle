@@ -1,6 +1,6 @@
 (*  Title:      HOL/Library/Nat_Infinity.thy
     ID:         $Id$
-    Author:     David von Oheimb, TU Muenchen
+    Author:     David von Oheimb, TU Muenchen;  Florian Haftmann, TU Muenchen
 *)
 
 header {* Natural numbers with infinity *}
@@ -9,12 +9,11 @@ theory Nat_Infinity
 imports ATP_Linkup
 begin
 
-subsection "Definitions"
+subsection {* Type definition *}
 
 text {*
   We extend the standard natural numbers by a special value indicating
-  infinity.  This includes extending the ordering relations @{term "op
-  <"} and @{term "op \<le>"}.
+  infinity.
 *}
 
 datatype inat = Fin nat | Infty
@@ -25,196 +24,267 @@ notation (xsymbols)
 notation (HTML output)
   Infty  ("\<infinity>")
 
-definition
-  iSuc :: "inat => inat" where
-  "iSuc i = (case i of Fin n => Fin (Suc n) | \<infinity> => \<infinity>)"
 
-instantiation inat :: "{ord, zero}"
+subsection {* Constructors and numbers *}
+
+instantiation inat :: "{zero, one, number}"
 begin
 
 definition
-  Zero_inat_def: "0 == Fin 0"
+  "0 = Fin 0"
 
 definition
-  iless_def: "m < n ==
-    case m of Fin m1 => (case n of Fin n1 => m1 < n1 | \<infinity> => True)
-    | \<infinity>  => False"
+  [code inline]: "1 = Fin 1"
 
 definition
-  ile_def: "m \<le> n ==
-    case n of Fin n1 => (case m of Fin m1 => m1 \<le> n1 | \<infinity> => False)
-    | \<infinity>  => True"
+  [code inline, code func del]: "number_of k = Fin (number_of k)"
 
 instance ..
 
 end
 
-lemmas inat_defs = Zero_inat_def iSuc_def iless_def ile_def
-lemmas inat_splits = inat.split inat.split_asm
-
-text {*
-  Below is a not quite complete set of theorems.  Use the method
-  @{text "(simp add: inat_defs split:inat_splits, arith?)"} to prove
-  new theorems or solve arithmetic subgoals involving @{typ inat} on
-  the fly.
-*}
-
-subsection "Constructors"
+definition iSuc :: "inat \<Rightarrow> inat" where
+  "iSuc i = (case i of Fin n \<Rightarrow> Fin (Suc n) | \<infinity> \<Rightarrow> \<infinity>)"
 
 lemma Fin_0: "Fin 0 = 0"
-by (simp add: inat_defs split:inat_splits)
+  by (simp add: zero_inat_def)
+
+lemma Fin_1: "Fin 1 = 1"
+  by (simp add: one_inat_def)
+
+lemma Fin_number: "Fin (number_of k) = number_of k"
+  by (simp add: number_of_inat_def)
+
+lemma one_iSuc: "1 = iSuc 0"
+  by (simp add: zero_inat_def one_inat_def iSuc_def)
 
 lemma Infty_ne_i0 [simp]: "\<infinity> \<noteq> 0"
-by (simp add: inat_defs split:inat_splits)
+  by (simp add: zero_inat_def)
 
 lemma i0_ne_Infty [simp]: "0 \<noteq> \<infinity>"
-by (simp add: inat_defs split:inat_splits)
+  by (simp add: zero_inat_def)
 
-lemma iSuc_Fin [simp]: "iSuc (Fin n) = Fin (Suc n)"
-by (simp add: inat_defs split:inat_splits)
+lemma zero_inat_eq [simp]:
+  "number_of k = (0\<Colon>inat) \<longleftrightarrow> number_of k = (0\<Colon>nat)"
+  "(0\<Colon>inat) = number_of k \<longleftrightarrow> number_of k = (0\<Colon>nat)"
+  unfolding zero_inat_def number_of_inat_def by simp_all
+
+lemma one_inat_eq [simp]:
+  "number_of k = (1\<Colon>inat) \<longleftrightarrow> number_of k = (1\<Colon>nat)"
+  "(1\<Colon>inat) = number_of k \<longleftrightarrow> number_of k = (1\<Colon>nat)"
+  unfolding one_inat_def number_of_inat_def by simp_all
+
+lemma zero_one_inat_neq [simp]:
+  "\<not> 0 = (1\<Colon>inat)"
+  "\<not> 1 = (0\<Colon>inat)"
+  unfolding zero_inat_def one_inat_def by simp_all
+
+lemma Infty_ne_i1 [simp]: "\<infinity> \<noteq> 1"
+  by (simp add: one_inat_def)
+
+lemma i1_ne_Infty [simp]: "1 \<noteq> \<infinity>"
+  by (simp add: one_inat_def)
+
+lemma Infty_ne_number [simp]: "\<infinity> \<noteq> number_of k"
+  by (simp add: number_of_inat_def)
+
+lemma number_ne_Infty [simp]: "number_of k \<noteq> \<infinity>"
+  by (simp add: number_of_inat_def)
+
+lemma iSuc_Fin: "iSuc (Fin n) = Fin (Suc n)"
+  by (simp add: iSuc_def)
+
+lemma iSuc_number_of: "iSuc (number_of k) = Fin (Suc (number_of k))"
+  by (simp add: iSuc_Fin number_of_inat_def)
 
 lemma iSuc_Infty [simp]: "iSuc \<infinity> = \<infinity>"
-by (simp add: inat_defs split:inat_splits)
+  by (simp add: iSuc_def)
 
 lemma iSuc_ne_0 [simp]: "iSuc n \<noteq> 0"
-by (simp add: inat_defs split:inat_splits)
+  by (simp add: iSuc_def zero_inat_def split: inat.splits)
 
-lemma iSuc_inject [simp]: "(iSuc x = iSuc y) = (x = y)"
-by (simp add: inat_defs split:inat_splits)
+lemma zero_ne_iSuc [simp]: "0 \<noteq> iSuc n"
+  by (rule iSuc_ne_0 [symmetric])
+
+lemma iSuc_inject [simp]: "iSuc m = iSuc n \<longleftrightarrow> m = n"
+  by (simp add: iSuc_def split: inat.splits)
+
+lemma number_of_inat_inject [simp]:
+  "(number_of k \<Colon> inat) = number_of l \<longleftrightarrow> (number_of k \<Colon> nat) = number_of l"
+  by (simp add: number_of_inat_def)
 
 
-subsection "Ordering relations"
+subsection {* Addition *}
 
-instance inat :: linorder
-proof
-  fix x :: inat
-  show "x \<le> x"
-    by (simp add: inat_defs split: inat_splits)
-next
-  fix x y :: inat
-  assume "x \<le> y" and "y \<le> x" thus "x = y"
-    by (simp add: inat_defs split: inat_splits)
-next
-  fix x y z :: inat
-  assume "x \<le> y" and "y \<le> z" thus "x \<le> z"
-    by (simp add: inat_defs split: inat_splits)
-next
-  fix x y :: inat
-  show "(x < y) = (x \<le> y \<and> x \<noteq> y)"
-    by (simp add: inat_defs order_less_le split: inat_splits)
-next
-  fix x y :: inat
-  show "x \<le> y \<or> y \<le> x"
-    by (simp add: inat_defs linorder_linear split: inat_splits)
+instantiation inat :: comm_monoid_add
+begin
+
+definition
+  [code del]: "m + n = (case m of \<infinity> \<Rightarrow> \<infinity> | Fin m \<Rightarrow> (case n of \<infinity> \<Rightarrow> \<infinity> | Fin n \<Rightarrow> Fin (m + n)))"
+
+lemma plus_inat_simps [simp, code]:
+  "Fin m + Fin n = Fin (m + n)"
+  "\<infinity> + q = \<infinity>"
+  "q + \<infinity> = \<infinity>"
+  by (simp_all add: plus_inat_def split: inat.splits)
+
+instance proof
+  fix n m q :: inat
+  show "n + m + q = n + (m + q)"
+    by (cases n, auto, cases m, auto, cases q, auto)
+  show "n + m = m + n"
+    by (cases n, auto, cases m, auto)
+  show "0 + n = n"
+    by (cases n) (simp_all add: zero_inat_def)
 qed
 
-lemma Infty_ilessE [elim!]: "\<infinity> < Fin m ==> R"
-by (simp add: inat_defs split:inat_splits)
+end
 
-lemma iless_linear: "m < n \<or> m = n \<or> n < (m::inat)"
-by (rule linorder_less_linear)
+lemma plus_inat_0 [simp]:
+  "0 + (q\<Colon>inat) = q"
+  "(q\<Colon>inat) + 0 = q"
+  by (simp_all add: plus_inat_def zero_inat_def split: inat.splits)
 
-lemma iless_not_refl: "\<not> n < (n::inat)"
-by (rule order_less_irrefl)
+lemma plus_inat_number [simp]:
+  "(number_of k \<Colon> inat) + number_of l = (if neg (number_of k \<Colon> int) then number_of l
+    else if neg (number_of l \<Colon> int) then number_of k else number_of (k + l))"
+  unfolding number_of_inat_def plus_inat_simps nat_arith(1) if_distrib [symmetric, of _ Fin] ..
 
-lemma iless_trans: "i < j ==> j < k ==> i < (k::inat)"
-by (rule order_less_trans)
+lemma iSuc_number [simp]:
+  "iSuc (number_of k) = (if neg (number_of k \<Colon> int) then 1 else number_of (Int.succ k))"
+  unfolding iSuc_number_of
+  unfolding one_inat_def number_of_inat_def Suc_nat_number_of if_distrib [symmetric] ..
 
-lemma iless_not_sym: "n < m ==> \<not> m < (n::inat)"
-by (rule order_less_not_sym)
-
-lemma Fin_iless_mono [simp]: "(Fin n < Fin m) = (n < m)"
-by (simp add: inat_defs split:inat_splits)
-
-lemma Fin_iless_Infty [simp]: "Fin n < \<infinity>"
-by (simp add: inat_defs split:inat_splits)
-
-lemma Infty_eq [simp]: "(n < \<infinity>) = (n \<noteq> \<infinity>)"
-by (simp add: inat_defs split:inat_splits)
-
-lemma i0_eq [simp]: "((0::inat) < n) = (n \<noteq> 0)"
-by (fastsimp simp: inat_defs split:inat_splits)
-
-lemma i0_iless_iSuc [simp]: "0 < iSuc n"
-by (simp add: inat_defs split:inat_splits)
-
-lemma not_ilessi0 [simp]: "\<not> n < (0::inat)"
-by (simp add: inat_defs split:inat_splits)
-
-lemma Fin_iless: "n < Fin m ==> \<exists>k. n = Fin k"
-by (simp add: inat_defs split:inat_splits)
-
-lemma iSuc_mono [simp]: "(iSuc n < iSuc m) = (n < m)"
-by (simp add: inat_defs split:inat_splits)
+lemma iSuc_plus_1:
+  "iSuc n = n + 1"
+  by (cases n) (simp_all add: iSuc_Fin one_inat_def)
+  
+lemma plus_1_iSuc:
+  "1 + q = iSuc q"
+  "q + 1 = iSuc q"
+  unfolding iSuc_plus_1 by (simp_all add: add_ac)
 
 
+subsection {* Ordering *}
 
-lemma ile_def2: "(m \<le> n) = (m < n \<or> m = (n::inat))"
-by (rule order_le_less)
+instantiation inat :: ordered_ab_semigroup_add
+begin
 
-lemma ile_refl [simp]: "n \<le> (n::inat)"
-by (rule order_refl)
+definition
+  [code del]: "m \<le> n = (case n of Fin n1 \<Rightarrow> (case m of Fin m1 \<Rightarrow> m1 \<le> n1 | \<infinity> \<Rightarrow> False)
+    | \<infinity> \<Rightarrow> True)"
 
-lemma ile_trans: "i \<le> j ==> j \<le> k ==> i \<le> (k::inat)"
-by (rule order_trans)
+definition
+  [code del]: "m < n = (case m of Fin m1 \<Rightarrow> (case n of Fin n1 \<Rightarrow> m1 < n1 | \<infinity> \<Rightarrow> True)
+    | \<infinity> \<Rightarrow> False)"
 
-lemma ile_iless_trans: "i \<le> j ==> j < k ==> i < (k::inat)"
-by (rule order_le_less_trans)
+lemma inat_ord_simps [simp]:
+  "Fin m \<le> Fin n \<longleftrightarrow> m \<le> n"
+  "Fin m < Fin n \<longleftrightarrow> m < n"
+  "q \<le> \<infinity>"
+  "q < \<infinity> \<longleftrightarrow> q \<noteq> \<infinity>"
+  "\<infinity> \<le> q \<longleftrightarrow> q = \<infinity>"
+  "\<infinity> < q \<longleftrightarrow> False"
+  by (simp_all add: less_eq_inat_def less_inat_def split: inat.splits)
 
-lemma iless_ile_trans: "i < j ==> j \<le> k ==> i < (k::inat)"
-by (rule order_less_le_trans)
+lemma inat_ord_code [code]:
+  "Fin m \<le> Fin n \<longleftrightarrow> m \<le> n"
+  "Fin m < Fin n \<longleftrightarrow> m < n"
+  "q \<le> \<infinity> \<longleftrightarrow> True"
+  "Fin m < \<infinity> \<longleftrightarrow> True"
+  "\<infinity> \<le> Fin n \<longleftrightarrow> False"
+  "\<infinity> < q \<longleftrightarrow> False"
+  by simp_all
 
-lemma Infty_ub [simp]: "n \<le> \<infinity>"
-by (simp add: inat_defs split:inat_splits)
+instance by default
+  (auto simp add: less_eq_inat_def less_inat_def plus_inat_def split: inat.splits)
 
-lemma i0_lb [simp]: "(0::inat) \<le> n"
-by (simp add: inat_defs split:inat_splits)
+end
 
-lemma Infty_ileE [elim!]: "\<infinity> \<le> Fin m ==> R"
-by (simp add: inat_defs split:inat_splits)
+lemma inat_ord_number [simp]:
+  "(number_of m \<Colon> inat) \<le> number_of n \<longleftrightarrow> (number_of m \<Colon> nat) \<le> number_of n"
+  "(number_of m \<Colon> inat) < number_of n \<longleftrightarrow> (number_of m \<Colon> nat) < number_of n"
+  by (simp_all add: number_of_inat_def)
 
-lemma Fin_ile_mono [simp]: "(Fin n \<le> Fin m) = (n \<le> m)"
-by (simp add: inat_defs split:inat_splits)
+lemma i0_lb [simp]: "(0\<Colon>inat) \<le> n"
+  by (simp add: zero_inat_def less_eq_inat_def split: inat.splits)
 
-lemma ilessI1: "n \<le> m ==> n \<noteq> m ==> n < (m::inat)"
-by (rule order_le_neq_trans)
+lemma i0_neq [simp]: "n \<le> (0\<Colon>inat) \<longleftrightarrow> n = 0"
+  by (simp add: zero_inat_def less_eq_inat_def split: inat.splits)
 
-lemma ileI1: "m < n ==> iSuc m \<le> n"
-by (simp add: inat_defs split:inat_splits)
+lemma Infty_ileE [elim!]: "\<infinity> \<le> Fin m \<Longrightarrow> R"
+  by (simp add: zero_inat_def less_eq_inat_def split: inat.splits)
 
-lemma Suc_ile_eq: "(Fin (Suc m) \<le> n) = (Fin m < n)"
-by (simp add: inat_defs split:inat_splits, arith)
+lemma Infty_ilessE [elim!]: "\<infinity> < Fin m \<Longrightarrow> R"
+  by simp
 
-lemma iSuc_ile_mono [simp]: "(iSuc n \<le> iSuc m) = (n \<le> m)"
-by (simp add: inat_defs split:inat_splits)
+lemma not_ilessi0 [simp]: "\<not> n < (0\<Colon>inat)"
+  by (simp add: zero_inat_def less_inat_def split: inat.splits)
 
-lemma iless_Suc_eq [simp]: "(Fin m < iSuc n) = (Fin m \<le> n)"
-by (simp add: inat_defs split:inat_splits, arith)
+lemma i0_eq [simp]: "(0\<Colon>inat) < n \<longleftrightarrow> n \<noteq> 0"
+  by (simp add: zero_inat_def less_inat_def split: inat.splits)
 
-lemma not_iSuc_ilei0 [simp]: "\<not> iSuc n \<le> 0"
-by (simp add: inat_defs split:inat_splits)
+lemma iSuc_ile_mono [simp]: "iSuc n \<le> iSuc m \<longleftrightarrow> n \<le> m"
+  by (simp add: iSuc_def less_eq_inat_def split: inat.splits)
+ 
+lemma iSuc_mono [simp]: "iSuc n < iSuc m \<longleftrightarrow> n < m"
+  by (simp add: iSuc_def less_inat_def split: inat.splits)
 
 lemma ile_iSuc [simp]: "n \<le> iSuc n"
-by (simp add: inat_defs split:inat_splits)
+  by (simp add: iSuc_def less_eq_inat_def split: inat.splits)
 
-lemma Fin_ile: "n \<le> Fin m ==> \<exists>k. n = Fin k"
-by (simp add: inat_defs split:inat_splits)
+lemma not_iSuc_ilei0 [simp]: "\<not> iSuc n \<le> 0"
+  by (simp add: zero_inat_def iSuc_def less_eq_inat_def split: inat.splits)
+
+lemma i0_iless_iSuc [simp]: "0 < iSuc n"
+  by (simp add: zero_inat_def iSuc_def less_inat_def split: inat.splits)
+
+lemma ileI1: "m < n \<Longrightarrow> iSuc m \<le> n"
+  by (simp add: iSuc_def less_eq_inat_def less_inat_def split: inat.splits)
+
+lemma Suc_ile_eq: "Fin (Suc m) \<le> n \<longleftrightarrow> Fin m < n"
+  by (cases n) auto
+
+lemma iless_Suc_eq [simp]: "Fin m < iSuc n \<longleftrightarrow> Fin m \<le> n"
+  by (auto simp add: iSuc_def less_inat_def split: inat.splits)
+
+lemma min_inat_simps [simp]:
+  "min (Fin m) (Fin n) = Fin (min m n)"
+  "min q 0 = 0"
+  "min 0 q = 0"
+  "min q \<infinity> = q"
+  "min \<infinity> q = q"
+  by (auto simp add: min_def)
+
+lemma max_inat_simps [simp]:
+  "max (Fin m) (Fin n) = Fin (max m n)"
+  "max q 0 = q"
+  "max 0 q = q"
+  "max q \<infinity> = \<infinity>"
+  "max \<infinity> q = \<infinity>"
+  by (simp_all add: max_def)
+
+lemma Fin_ile: "n \<le> Fin m \<Longrightarrow> \<exists>k. n = Fin k"
+  by (cases n) simp_all
+
+lemma Fin_iless: "n < Fin m \<Longrightarrow> \<exists>k. n = Fin k"
+  by (cases n) simp_all
 
 lemma chain_incr: "\<forall>i. \<exists>j. Y i < Y j ==> \<exists>j. Fin k < Y j"
 apply (induct_tac k)
  apply (simp (no_asm) only: Fin_0)
- apply (fast intro: ile_iless_trans [OF i0_lb])
+ apply (fast intro: le_less_trans [OF i0_lb])
 apply (erule exE)
 apply (drule spec)
 apply (erule exE)
 apply (drule ileI1)
 apply (rule iSuc_Fin [THEN subst])
 apply (rule exI)
-apply (erule (1) ile_iless_trans)
+apply (erule (1) le_less_trans)
 done
 
 
-subsection "Well-ordering"
+subsection {* Well-ordering *}
 
 lemma less_FinE:
   "[| n < Fin m; !!k. n = Fin k ==> k < m ==> P |] ==> P"
@@ -255,5 +325,13 @@ proof
     thus "P x" by (rule inat_less_induct)
   qed
 qed
+
+
+subsection {* Traditional theorem names *}
+
+lemmas inat_defs = zero_inat_def one_inat_def number_of_inat_def iSuc_def
+  plus_inat_def less_eq_inat_def less_inat_def
+
+lemmas inat_splits = inat.splits
 
 end
