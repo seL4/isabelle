@@ -318,7 +318,7 @@ lemma word_induct_less:
   apply atomize
   apply (erule rev_mp)+
   apply (rule_tac x=m in spec)
-  apply (induct_tac n rule: nat_induct)
+  apply (induct_tac n)
    apply simp
   apply clarsimp
   apply (erule impE)
