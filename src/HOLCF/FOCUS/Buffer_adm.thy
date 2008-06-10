@@ -68,7 +68,7 @@ apply (rule conjI)
 prefer 2
 apply ( intro strip)
 apply ( drule slen_mono)
-apply ( drule (1) ile_trans)
+apply ( drule (1) order_trans)
 apply (force)+
 done
 

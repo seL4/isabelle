@@ -53,12 +53,9 @@ apply ( assumption)
 apply (drule not_ex [THEN iffD1])
 apply (subst slen_infinite)
 apply (erule thin_rl)
-apply (drule spec)
-apply (unfold linorder_not_less)
-apply (erule ile_iless_trans [THEN Infty_eq [THEN iffD1]])
-apply (simp)
+apply (erule_tac x = j in allE)
+apply auto
 done
-
 
 (* should be without reference to stream length? *)
 lemma flatstream_admI: "[|(!!Y. [| Porder.chain Y; !i. P (Y i); 
@@ -72,11 +69,7 @@ done
 
 (* context (theory "Nat_InFinity");*)
 lemma ile_lemma: "Fin (i + j) <= x ==> Fin i <= x"
-apply (rule ile_trans)
-prefer 2
-apply  (assumption)
-apply (simp)
-done
+  by (rule order_trans) auto
 
 lemma stream_monoP2I:
 "!!X. stream_monoP F ==> !i. ? l. !x y. 
@@ -91,7 +84,7 @@ apply (intro strip)
 apply (erule allE, erule all_dupE, drule mp, erule ile_lemma)
 apply (drule_tac P="%x. x" in subst, assumption)
 apply (erule allE, drule mp, rule ile_lemma) back
-apply ( erule ile_trans)
+apply ( erule order_trans)
 apply ( erule slen_mono)
 apply (erule ssubst)
 apply (safe)
@@ -118,7 +111,7 @@ apply (erule exE)
 apply (erule allE, erule exE)
 apply (erule allE, erule allE, drule mp) (* stream_monoP *)
 apply ( drule ileI1)
-apply ( drule ile_trans)
+apply ( drule order_trans)
 apply (  rule ile_iSuc)
 apply ( drule iSuc_ile_mono [THEN iffD1])
 apply ( assumption)
