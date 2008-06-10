@@ -94,10 +94,11 @@ fun create_nom_typedecls ak_names thy =
               val stmnt2 = HOLogic.mk_Trueprop
                   (HOLogic.mk_exists ("x",@{typ nat},HOLogic.mk_eq (y,Const (ak_sign,inj_type) $ Bound 0)))
 
-              val proof2 = fn _ => EVERY [DatatypePackage.case_tac "y" 1,
-                                          asm_simp_tac (HOL_basic_ss addsimps simp1) 1,
-                                          rtac @{thm exI} 1,
-                                          rtac @{thm refl} 1]
+              val proof2 = fn {prems, context} =>
+                InductTacs.case_tac (context |> Variable.declare_term y) ("y", NONE) 1 THEN
+                asm_simp_tac (HOL_basic_ss addsimps simp1) 1 THEN
+                rtac @{thm exI} 1 THEN
+                rtac @{thm refl} 1
 
               (* third statement *)
               val (inject_thm,thy3) =
