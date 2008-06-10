@@ -60,7 +60,8 @@ lemma slen_fstreams[simp]: "#(<a> ooo s) = iSuc (#s)"
 by (simp add: fsingleton_def2)
 
 lemma slen_fstreams2[simp]: "#(s ooo <a>) = iSuc (#s)"
-apply (case_tac "#s", auto)
+apply (cases "#s")
+apply (auto simp add: iSuc_Fin)
 apply (insert slen_sconc [of _ s "Suc 0" "<a>"], auto)
 by (simp add: sconc_def)
 
