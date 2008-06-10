@@ -103,7 +103,7 @@ val ex1_implies_iff = @{thm FunDef.fundef_ex1_iff};
 
 val acc_downward = @{thm accp_downward};
 val accI = @{thm accp.accI};
-val case_split = @{thm HOL.case_split_thm};
+val case_split = @{thm HOL.case_split};
 val fundef_default_value = @{thm FunDef.fundef_default_value};
 val not_acc_down = @{thm not_accp_down};
 

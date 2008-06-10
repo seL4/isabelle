@@ -66,7 +66,7 @@ ML {*
     res_inst_tac [("Q",sP)] (@{thm excluded_middle} RS @{thm disjE})
 *}
 
-lemma case_split_thm:
+lemma case_split [case_names True False]:
   assumes r1: "P ==> Q"
     and r2: "~P ==> Q"
   shows Q
@@ -75,11 +75,8 @@ lemma case_split_thm:
   apply (erule r1)
   done
 
-lemmas case_split = case_split_thm [case_names True False]
-
-(*HOL's more natural case analysis tactic*)
 ML {*
-  fun case_tac a = res_inst_tac [("P",a)] @{thm case_split_thm}
+  fun case_tac a = res_inst_tac [("P",a)] @{thm case_split}
 *}
 
 

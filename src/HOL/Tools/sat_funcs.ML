@@ -75,7 +75,7 @@ val resolution_thm =  (* "[| ?P ==> False; ~ ?P ==> False |] ==> False" *)
 		val Q     = Var (("Q", 0), HOLogic.boolT)
 		val False = HOLogic.false_const
 	in
-		Thm.instantiate ([], [(cterm Q, cterm False)]) case_split_thm
+		Thm.instantiate ([], [(cterm Q, cterm False)]) @{thm case_split}
 	end;
 
 val cP = cterm_of (theory_of_thm resolution_thm) (Var (("P", 0), HOLogic.boolT));

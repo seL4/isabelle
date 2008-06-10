@@ -24,11 +24,11 @@ next
 qed
 
 text{*\noindent The two cases must come in this order because @{text
-cases} merely abbreviates @{text"(rule case_split_thm)"} where
-@{thm[source] case_split_thm} is @{thm case_split_thm}. If we reverse
+cases} merely abbreviates @{text"(rule case_split)"} where
+@{thm[source] case_split} is @{thm case_split}. If we reverse
 the order of the two cases in the proof, the first case would prove
 @{prop"\<not> A \<Longrightarrow> \<not> A \<or> A"} which would solve the first premise of
-@{thm[source] case_split_thm}, instantiating @{text ?P} with @{term "\<not>
+@{thm[source] case_split}, instantiating @{text ?P} with @{term "\<not>
 A"}, thus making the second premise @{prop"\<not> \<not> A \<Longrightarrow> \<not> A \<or> A"}.
 Therefore the order of subgoals is not always completely arbitrary.
 
