@@ -1,39 +1,46 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New
----
+New in this Isabelle version
+----------------------------
 
 *** Pure ***
 
-* 'instance': attached definitions now longer accepted.  INCOMPATIBILITY.
+* Command 'instance': attached definitions now longer accepted.
+INCOMPATIBILITY.
 
 * Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
 
 
 *** HOL ***
 
-* 'rep_datatype': instead of theorem names the command now takes a list of terms
-denoting the constructors of the type to be represented as datatype.  The
-characteristic theorems have to be proven.  INCOMPATIBILITY.  Also observe that
-the following theorems have disappeared in favour of existing ones:
+* Methods "case_tac" and "induct_tac" now refer to the very same rule
+declarations as the structured Isar versions "cases" and "induct", cf.
+the corresponding "cases" and "induct" attributes.  INCOMPATIBILITY,
+in rare situations a different rule is selected --- notably nested
+tuple elimination instead of former prod.exhaust: use explicit
+(case_tac t rule: prod.exhaust) here.
+
+* Removed fact "case_split_thm", which duplicates "case_split".
+
+* Command 'rep_datatype': instead of theorem names the command now
+takes a list of terms denoting the constructors of the type to be
+represented as datatype.  The characteristic theorems have to be
+proven.  INCOMPATIBILITY.  Also observe that the following theorems
+have disappeared in favour of existing ones:
+
     unit_induct                 ~> unit.induct
     prod_induct                 ~> prod.induct
     sum_induct                  ~> sum.induct
     Suc_Suc_eq                  ~> nat.inject
     Suc_not_Zero Zero_not_Suc   ~> nat.distinct
 
-* Tactics induct_tac and thm_induct_tac now take explicit context as arguments;
-type-specific induction rules are identified by the 'induct' attribute rather
-than querying the datatype package directly.  INCOMPATIBILITY.
-
 * 'Least' operator now restricted to class 'order' (and subclasses).
 INCOMPATIBILITY.
 
-* Library/Nat_Infinity: added addition, numeral syntax and more instantiations
-for algebraic structures.  Removed some duplicate theorems.  Changes in simp
-rules.  INCOMPATIBILITY.
-
+* Library/Nat_Infinity: added addition, numeral syntax and more
+instantiations for algebraic structures.  Removed some duplicate
+theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
 
 New in Isabelle2008 (June 2008)
