@@ -312,7 +312,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val ((dummies, dt_info), thy2) =
       thy1
       |> add_dummies
-           (DatatypePackage.add_datatype_i false false (map #2 dts))
+           (DatatypePackage.add_datatype false false (map #2 dts))
            (map (pair false) dts) []
       ||> Extraction.add_typeof_eqns_i ty_eqs
       ||> Extraction.add_realizes_eqns_i rlz_eqs;

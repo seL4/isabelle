@@ -248,7 +248,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val full_new_type_names' = map (Sign.full_name thy) new_type_names';
 
     val ({induction, ...},thy1) =
-      DatatypePackage.add_datatype_i err flat_names new_type_names' dts'' thy;
+      DatatypePackage.add_datatype err flat_names new_type_names' dts'' thy;
 
     val SOME {descr, ...} = Symtab.lookup
       (DatatypePackage.get_datatypes thy1) (hd full_new_type_names');
