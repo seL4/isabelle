@@ -71,11 +71,11 @@
       <OPERATOR>classes</OPERATOR>
       <OPERATOR>classrel</OPERATOR>
       <OPERATOR>codatatype</OPERATOR>
+      <OPERATOR>code_abort</OPERATOR>
       <OPERATOR>code_class</OPERATOR>
       <OPERATOR>code_const</OPERATOR>
       <OPERATOR>code_datatype</OPERATOR>
       <LABEL>code_deps</LABEL>
-      <OPERATOR>code_exception</OPERATOR>
       <OPERATOR>code_include</OPERATOR>
       <OPERATOR>code_instance</OPERATOR>
       <OPERATOR>code_library</OPERATOR>
@@ -112,7 +112,6 @@
       <OPERATOR>defs</OPERATOR>
       <LABEL>disable_pr</LABEL>
       <LABEL>display_drafts</LABEL>
-      <KEYWORD4>distinct</KEYWORD4>
       <OPERATOR>domain</OPERATOR>
       <KEYWORD4>domains</KEYWORD4>
       <OPERATOR>done</OPERATOR>
@@ -160,7 +159,6 @@
       <KEYWORD4>infixr</KEYWORD4>
       <INVALID>init_toplevel</INVALID>
       <KEYWORD4>initially</KEYWORD4>
-      <KEYWORD4>inject</KEYWORD4>
       <KEYWORD4>inputs</KEYWORD4>
       <OPERATOR>instance</OPERATOR>
       <OPERATOR>instantiation</OPERATOR>
