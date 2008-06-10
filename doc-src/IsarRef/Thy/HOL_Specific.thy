@@ -915,7 +915,7 @@ text {*
     @{command_def (HOL) "code_reserved"} & : & \isartrans{theory}{theory} \\
     @{command_def (HOL) "code_include"} & : & \isartrans{theory}{theory} \\
     @{command_def (HOL) "code_modulename"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_exception"} & : & \isartrans{theory}{theory} \\
+    @{command_def (HOL) "code_abort"} & : & \isartrans{theory}{theory} \\
     @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
     @{attribute_def (HOL) code} & : & \isaratt \\
   \end{matharray}
@@ -1069,9 +1069,9 @@ text {*
   \item [@{command (HOL) "code_modulename"}] declares aliasings from
   one module name onto another.
 
-  \item [@{command (HOL) "code_exception"}] declares constants which
-  are not required to have a definition by a defining equations; these
-  are mapped on exceptions instead.
+  \item [@{command (HOL) "code_abort"}] declares constants which
+  are not required to have a definition by a defining equations;
+  if needed these are implemented by program abort instead.
 
   \item [@{attribute (HOL) code}~@{text func}] explicitly selects (or
   with option ``@{text "del:"}'' deselects) a defining equation for

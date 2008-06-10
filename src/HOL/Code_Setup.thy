@@ -126,8 +126,18 @@ lemmas [code func] = Let_def if_True if_False
 
 subsection {* Evaluation oracle *}
 
+ML {*
+structure Eval_Method =
+struct
+
+val eval_ref : (unit -> bool) option ref = ref NONE;
+
+end;
+*}
+
 oracle eval_oracle ("term") = {* fn thy => fn t => 
-  if CodePackage.satisfies thy (HOLogic.dest_Trueprop t) [] 
+  if CodeTarget.eval_term ("Eval_Method.eval_ref", Eval_Method.eval_ref) thy
+    (HOLogic.dest_Trueprop t) [] 
   then t
   else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
 *}

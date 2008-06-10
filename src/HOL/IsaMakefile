@@ -89,7 +89,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   $(SRC)/Provers/quasi.ML $(SRC)/Provers/splitter.ML			\
   $(SRC)/Provers/trancl.ML $(SRC)/Tools/Metis/metis.ML			\
   $(SRC)/Tools/code/code_funcgr.ML $(SRC)/Tools/code/code_name.ML	\
-  $(SRC)/Tools/code/code_package.ML $(SRC)/Tools/code/code_target.ML	\
+  $(SRC)/Tools/code/code_target.ML	\
   $(SRC)/Tools/code/code_thingol.ML $(SRC)/Tools/nbe.ML $(SRC)/Tools/atomize_elim.ML \
   $(SRC)/Tools/random_word.ML $(SRC)/Tools/rat.ML Tools/TFL/casesplit.ML ATP_Linkup.thy	\
   Arith_Tools.thy Code_Setup.thy Datatype.thy 			\

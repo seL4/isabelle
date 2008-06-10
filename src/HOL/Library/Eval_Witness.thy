@@ -46,6 +46,15 @@ instance nat :: ml_equiv .. (* Attention: This conflicts with the "EfficientNat"
 instance bool :: ml_equiv ..
 instance list :: (ml_equiv) ml_equiv ..
 
+ML {*
+structure Eval_Witness_Method =
+struct
+
+val eval_ref : (unit -> bool) option ref = ref NONE;
+
+end;
+*}
+
 oracle eval_witness_oracle ("term * string list") = {* fn thy => fn (goal, ws) => 
 let
   fun check_type T = 
@@ -59,7 +68,7 @@ let
     | dest_exs _ _ = sys_error "dest_exs";
   val t = dest_exs (length ws) (HOLogic.dest_Trueprop goal);
 in
-  if CodePackage.satisfies thy t ws
+  if CodeTarget.eval_term ("Eval_Witness_Method.eval_ref", Eval_Witness_Method.eval_ref) thy t ws
   then goal
   else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
 end

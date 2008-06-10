@@ -250,7 +250,7 @@ fun mk_generator_expr thy prop tys =
 
 fun compile_generator_expr thy prop tys =
   let
-    val f = CodePackage.eval_term ("Quickcheck.eval_ref", eval_ref) thy
+    val f = CodeTarget.eval_term ("Quickcheck.eval_ref", eval_ref) thy
       (mk_generator_expr thy prop tys) [];
   in f #> Random_Engine.run #> (Option.map o map) (Code.postprocess_term thy) end;
 

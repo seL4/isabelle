@@ -14,7 +14,6 @@ sig
   val all: T -> string list
   val pretty: theory -> T -> Pretty.T
   val make: theory -> string list -> T
-  val make_consts: theory -> string list -> string list * T
   val eval_conv: theory -> (term -> term * (T -> term -> thm)) -> cterm -> thm
   val eval_term: theory -> (term -> term * (T -> term -> 'a)) -> term -> 'a
   val timing: bool ref
@@ -219,12 +218,6 @@ in
 
 val ensure_consts = ensure_consts;
 
-fun check_consts thy consts funcgr =
-  let
-    val algebra = Code.coregular_algebra thy;
-    fun try_const const funcgr = (const, ensure_consts thy algebra [const] funcgr);
-  in fold_map try_const consts funcgr end;
-
 fun proto_eval thy cterm_of evaluator_fr evaluator proto_ct funcgr =
   let
     val ct = cterm_of proto_ct;
@@ -278,13 +271,63 @@ structure Funcgr = CodeDataFun
 fun make thy =
   Funcgr.change thy o ensure_consts thy (Code.coregular_algebra thy);
 
-fun make_consts thy =
-  Funcgr.change_yield thy o check_consts thy;
-
 fun eval_conv thy f =
   fst o Funcgr.change_yield thy o proto_eval_conv thy f;
 
 fun eval_term thy f =
   fst o Funcgr.change_yield thy o proto_eval_term thy f;
+
+
+(** diagnostic commands **)
+
+fun code_depgr thy [] = make thy []
+  | code_depgr thy consts =
+      let
+        val gr = make thy consts;
+        val select = Graph.all_succs gr consts;
+      in
+        gr
+        |> Graph.subgraph (member (op =) select) 
+        |> Graph.map_nodes ((apsnd o map) (AxClass.overload thy))
+      end;
+
+fun code_thms thy = Pretty.writeln o pretty thy o code_depgr thy;
+
+fun code_deps thy consts =
+  let
+    val gr = code_depgr thy consts;
+    fun mk_entry (const, (_, (_, parents))) =
+      let
+        val name = CodeUnit.string_of_const thy const;
+        val nameparents = map (CodeUnit.string_of_const thy) parents;
+      in { name = name, ID = name, dir = "", unfold = true,
+        path = "", parents = nameparents }
+      end;
+    val prgr = Graph.fold ((fn x => fn xs => xs @ [x]) o mk_entry) gr [];
+  in Present.display_graph prgr end;
+
+local
+
+structure P = OuterParse
+and K = OuterKeyword
+
+fun code_thms_cmd thy = code_thms thy o op @ o CodeName.read_const_exprs thy;
+fun code_deps_cmd thy = code_deps thy o op @ o CodeName.read_const_exprs thy;
+
+in
+
+val _ =
+  OuterSyntax.improper_command "code_thms" "print system of defining equations for code" OuterKeyword.diag
+    (Scan.repeat P.term
+      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
+        o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
+
+val _ =
+  OuterSyntax.improper_command "code_deps" "visualize dependencies of defining equations for code" OuterKeyword.diag
+    (Scan.repeat P.term
+      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
+        o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
+
+end;
 
 end; (*struct*)

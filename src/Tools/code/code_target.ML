@@ -28,24 +28,28 @@ sig
   val add_pretty_message: string -> string -> string list -> string
     -> string -> string -> theory -> theory;
 
-  val allow_exception: string -> theory -> theory;
+  val allow_abort: string -> theory -> theory;
 
   type serialization;
   type serializer;
-  val add_serializer: string * serializer -> theory -> theory;
-  val assert_serializer: theory -> string -> string;
-  val serialize: theory -> string -> bool -> string option -> Args.T list
-    -> CodeThingol.code -> string list option -> serialization;
+  val add_target: string * serializer -> theory -> theory;
+  val assert_target: theory -> string -> string;
+  val serialize: theory -> string -> string option -> Args.T list
+    -> CodeThingol.program -> string list -> serialization;
   val compile: serialization -> unit;
   val write: serialization -> unit;
   val file: Path.T -> serialization -> unit;
   val string: serialization -> string;
-  val sml_of: theory -> CodeThingol.code -> string list -> string;
-  val eval: theory -> (string * (unit -> 'a) option ref)
-    -> CodeThingol.code -> CodeThingol.iterm * CodeThingol.itype -> string list -> 'a;
-  val target_code_width: int ref;
+
+  val code_of: theory -> string -> string -> string list -> string;
+  val eval_conv: string * (unit -> thm) option ref
+    -> theory -> cterm -> string list -> thm;
+  val eval_term: string * (unit -> 'a) option ref
+    -> theory -> term -> string list -> 'a;
+  val shell_command: string (*theory name*) -> string (*cg expr*) -> unit;
 
   val setup: theory -> theory;
+  val code_width: int ref;
 end;
 
 structure CodeTarget : CODE_TARGET =
@@ -69,16 +73,16 @@ fun enum_default default sep opn cls [] = str default
 datatype destination = Compile | Write | File of Path.T | String;
 type serialization = destination -> string option;
 
-val target_code_width = ref 80; (*FIXME after Pretty module no longer depends on print mode*)
-fun target_code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin (!target_code_width) f);
-fun target_code_of_pretty p = target_code_setmp Pretty.string_of p ^ "\n";
-fun target_code_writeln p = Pretty.setmp_margin (!target_code_width) Pretty.writeln p;
+val code_width = ref 80; (*FIXME after Pretty module no longer depends on print mode*)
+fun code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin (!code_width) f);
+fun code_of_pretty p = code_setmp Pretty.string_of p ^ "\n";
+fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
 
-(*FIXME why another target_code_setmp?*)
-fun compile f = (target_code_setmp f Compile; ());
-fun write f = (target_code_setmp f Write; ());
-fun file p f = (target_code_setmp f (File p); ());
-fun string f = the (target_code_setmp f String);
+(*FIXME why another code_setmp?*)
+fun compile f = (code_setmp f Compile; ());
+fun write f = (code_setmp f Write; ());
+fun file p f = (code_setmp f (File p); ());
+fun string f = the (code_setmp f String);
 
 
 (** generic syntax **)
@@ -125,13 +129,12 @@ type term_syntax = int * ((CodeName.var_ctxt -> fixity -> iterm -> Pretty.T)
 
 (** theory data **)
 
-val target_diag = "diag";
 val target_SML = "SML";
 val target_OCaml = "OCaml";
 val target_Haskell = "Haskell";
 
 datatype name_syntax_table = NameSyntaxTable of {
-  class: (string * (string -> string option)) Symtab.table,
+  class: class_syntax Symtab.table,
   inst: unit Symtab.table,
   tyco: typ_syntax Symtab.table,
   const: term_syntax Symtab.table
@@ -160,7 +163,7 @@ type serializer = (*FIXME order of arguments*)
   -> (string -> class_syntax option)
   -> (string -> typ_syntax option)
   -> (string -> term_syntax option)
-  -> CodeThingol.code                   (*program*)
+  -> CodeThingol.program
   -> string list                        (*selected statements*)
   -> serialization;
 
@@ -209,12 +212,14 @@ fun the_includes (Target { includes, ... }) = includes;
 fun the_name_syntax (Target { name_syntax_table = NameSyntaxTable x, ... }) = x;
 fun the_module_alias (Target { module_alias , ... }) = module_alias;
 
-fun assert_serializer thy target =
+val abort_allowed = snd o CodeTargetData.get;
+
+fun assert_target thy target =
   case Symtab.lookup (fst (CodeTargetData.get thy)) target
    of SOME data => target
     | NONE => error ("Unknown code target language: " ^ quote target);
 
-fun add_serializer (target, seri) thy =
+fun add_target (target, seri) thy =
   let
     val _ = case Symtab.lookup (fst (CodeTargetData.get thy)) target
      of SOME _ => warning ("Overwriting existing serializer " ^ quote target)
@@ -228,48 +233,59 @@ fun add_serializer (target, seri) thy =
           ((map_target o apfst o apsnd o K) seri)
   end;
 
-fun map_seri_data target f thy =
+fun map_target_data target f thy =
   let
-    val _ = assert_serializer thy target;
+    val _ = assert_target thy target;
   in
     thy
     |> (CodeTargetData.map o apfst o Symtab.map_entry target o map_target) f
   end;
 
-fun map_adaptions target =
-  map_seri_data target o apsnd o apfst;
+fun map_reserved target =
+  map_target_data target o apsnd o apfst o apfst;
+fun map_includes target =
+  map_target_data target o apsnd o apfst o apsnd;
 fun map_name_syntax target =
-  map_seri_data target o apsnd o apsnd o apfst o map_name_syntax_table;
+  map_target_data target o apsnd o apsnd o apfst o map_name_syntax_table;
 fun map_module_alias target =
-  map_seri_data target o apsnd o apsnd o apsnd;
+  map_target_data target o apsnd o apsnd o apsnd;
 
-fun get_serializer get_seri thy target permissive =
+fun invoke_serializer thy abortable serializer reserved includes 
+    module_alias class inst tyco const module args program1 cs1 =
   let
-    val (seris, exc) = CodeTargetData.get thy;
-    val data = case Symtab.lookup seris target
-     of SOME data => data
-      | NONE => error ("Unknown code target language: " ^ quote target);
-    val seri = get_seri data;
-    val reserved = the_reserved data;
-    val includes = Symtab.dest (the_includes data);
-    val alias = the_module_alias data;
-    val { class, inst, tyco, const } = the_name_syntax data;
-    val project = if target = target_diag then K I
-      else CodeThingol.project_code permissive
-        (Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const);
-    fun check_empty_funs code = case filter_out (member (op =) exc)
-        (CodeThingol.empty_funs code)
-     of [] => code
-      | names => error ("No defining equations for "
-          ^ commas (map (CodeName.labelled_name thy) names));
-  in fn module => fn args => fn code => fn cs =>
-    seri module args (CodeName.labelled_name thy) reserved includes
-      (Symtab.lookup alias) (Symtab.lookup class)
+    val hidden = Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const;
+    val cs2 = subtract (op =) hidden cs1;
+    val program2 = Graph.subgraph (not o member (op =) hidden) program1;
+    val all_cs = Graph.all_succs program2 cs2;
+    val program3 = Graph.subgraph (member (op =) all_cs) program2;
+    val empty_funs = filter_out (member (op =) abortable)
+      (CodeThingol.empty_funs program3);
+    val _ = if null empty_funs then () else error ("No defining equations for "
+      ^ commas (map (CodeName.labelled_name thy) empty_funs));
+  in
+    serializer module args (CodeName.labelled_name thy) reserved includes
+      (Symtab.lookup module_alias) (Symtab.lookup class)
       (Symtab.lookup tyco) (Symtab.lookup const)
-        ((check_empty_funs o project cs) code) (these cs)
+      program3 cs2
   end;
 
-val serialize = get_serializer the_serializer;
+fun mount_serializer thy alt_serializer target =
+  let
+    val (targets, abortable) = CodeTargetData.get thy;
+    val data = case Symtab.lookup targets target
+     of SOME data => data
+      | NONE => error ("Unknown code target language: " ^ quote target);
+    val serializer = the_default (the_serializer data) alt_serializer;
+    val reserved = the_reserved data;
+    val includes = Symtab.dest (the_includes data);
+    val module_alias = the_module_alias data;
+    val { class, inst, tyco, const } = the_name_syntax data;
+  in
+    invoke_serializer thy abortable serializer reserved
+      includes module_alias class inst tyco const
+  end;
+
+fun serialize thy = mount_serializer thy NONE;
 
 fun parse_args f args =
   case Scan.read Args.stopper f args
@@ -277,39 +293,7 @@ fun parse_args f args =
     | NONE => error "Bad serializer arguments";
 
 
-(** generic output combinators **)
-
-(* applications and bindings *)
-
-fun gen_pr_app pr_app' pr_term const_syntax labelled_name is_cons
-      lhs vars fxy (app as ((c, (_, tys)), ts)) =
-  case const_syntax c
-   of NONE => if lhs andalso not (is_cons c) then
-          error ("Non-constructor on left hand side of equation: " ^ labelled_name c)
-        else brackify fxy (pr_app' lhs vars app)
-    | SOME (i, pr) =>
-        let
-          val k = if i < 0 then length tys else i;
-          fun pr' fxy ts = pr (pr_term lhs) vars fxy (ts ~~ curry Library.take k tys);
-        in if k = length ts
-          then pr' fxy ts
-        else if k < length ts
-          then case chop k ts of (ts1, ts2) =>
-            brackify fxy (pr' APP ts1 :: map (pr_term lhs vars BR) ts2)
-          else pr_term lhs vars fxy (CodeThingol.eta_expand app k)
-        end;
-
-fun gen_pr_bind pr_bind' pr_term fxy ((v, pat), ty) vars =
-  let
-    val vs = case pat
-     of SOME pat => CodeThingol.fold_varnames (insert (op =)) pat []
-      | NONE => [];
-    val vars' = CodeName.intro_vars (the_list v) vars;
-    val vars'' = CodeName.intro_vars vs vars';
-    val v' = Option.map (CodeName.lookup_var vars') v;
-    val pat' = Option.map (pr_term true vars'' fxy) pat;
-  in (pr_bind' ((v', pat'), ty), vars'') end;
-
+(** generic code combinators **)
 
 (* list, char, string, numeral and monad abstract syntax transformations *)
 
@@ -359,7 +343,7 @@ fun implode_numeral negative c_pls c_min c_bit0 c_bit1 =
       | dest_numeral (t1 `$ t2) =
           let val (n, b) = (dest_numeral t2, dest_bit t1)
           in case n of SOME n => SOME (2 * n + b) | NONE => NONE end
-      | dest_numeral _ = error "Illegal numeral expression: illegal constant";
+      | dest_numeral _ = error "Illegal numeral expression: illegal term";
   in dest_numeral #> the_default 0 end;
 
 fun implode_monad c_bind t =
@@ -378,6 +362,38 @@ fun implode_monad c_bind t =
   in CodeThingol.unfoldr dest_monad t end;
 
 
+(* applications and bindings *)
+
+fun gen_pr_app pr_app pr_term syntax_const labelled_name is_cons
+      lhs vars fxy (app as ((c, (_, tys)), ts)) =
+  case syntax_const c
+   of NONE => if lhs andalso not (is_cons c) then
+          error ("Non-constructor on left hand side of equation: " ^ labelled_name c)
+        else brackify fxy (pr_app lhs vars app)
+    | SOME (i, pr) =>
+        let
+          val k = if i < 0 then length tys else i;
+          fun pr' fxy ts = pr (pr_term lhs) vars fxy (ts ~~ curry Library.take k tys);
+        in if k = length ts
+          then pr' fxy ts
+        else if k < length ts
+          then case chop k ts of (ts1, ts2) =>
+            brackify fxy (pr' APP ts1 :: map (pr_term lhs vars BR) ts2)
+          else pr_term lhs vars fxy (CodeThingol.eta_expand app k)
+        end;
+
+fun gen_pr_bind pr_bind pr_term (fxy : fixity) ((v, pat), ty : itype) vars =
+  let
+    val vs = case pat
+     of SOME pat => CodeThingol.fold_varnames (insert (op =)) pat []
+      | NONE => [];
+    val vars' = CodeName.intro_vars (the_list v) vars;
+    val vars'' = CodeName.intro_vars vs vars';
+    val v' = Option.map (CodeName.lookup_var vars') v;
+    val pat' = Option.map (pr_term true vars'' fxy) pat;
+  in (pr_bind ((v', pat'), ty), vars'') end;
+
+
 (* name auxiliary *)
 
 val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
@@ -386,30 +402,29 @@ val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 val dest_name =
   apfst NameSpace.implode o split_last o fst o split_last o NameSpace.explode;
 
-fun mk_modl_name_tab init_names prefix module_alias code =
+fun mk_name_module reserved_names module_prefix module_alias program =
   let
-    fun nsp_map f = NameSpace.explode #> map f #> NameSpace.implode;
-    fun mk_alias name =
-     case module_alias name
-      of SOME name' => name'
-       | NONE => nsp_map (fn name => (the_single o fst)
-            (Name.variants [name] init_names)) name;
-    fun mk_prefix name =
-      case prefix
-       of SOME prefix => NameSpace.append prefix name
-        | NONE => name;
+    fun mk_alias name = case module_alias name
+     of SOME name' => name'
+      | NONE => name
+          |> NameSpace.explode
+          |> map (fn name => (the_single o fst) (Name.variants [name] reserved_names))
+          |> NameSpace.implode;
+    fun mk_prefix name = case module_prefix
+     of SOME module_prefix => NameSpace.append module_prefix name
+      | NONE => name;
     val tab =
       Symtab.empty
       |> Graph.fold ((fn name => Symtab.default (name, (mk_alias #> mk_prefix) name))
            o fst o dest_name o fst)
-             code
-  in fn name => (the o Symtab.lookup tab) name end;
+             program
+  in the o Symtab.lookup tab end;
 
 
 
 (** SML/OCaml serializer **)
 
-datatype ml_def =
+datatype ml_stmt =
     MLFuns of (string * (typscheme * (iterm list * iterm) list)) list
   | MLDatas of (string * ((vname * sort) list * (string * itype list) list)) list
   | MLClass of string * (vname * ((class * string) list * (string * itype) list))
@@ -417,7 +432,7 @@ datatype ml_def =
         * ((class * (string * (string * dict list list))) list
       * (string * const) list));
 
-fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_def =
+fun pr_sml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve is_cons =
   let
     val pr_label_classrel = translate_string (fn "." => "__" | c => c)
       o NameSpace.qualifier;
@@ -432,30 +447,30 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
               brackets [p', p]
           | pr_proj (ps as _ :: _) p =
               brackets [Pretty.enum " o" "(" ")" ps, p];
-        fun pr_dictc fxy (DictConst (inst, dss)) =
-              brackify fxy ((str o deresolv) inst :: map (pr_dicts BR) dss)
-          | pr_dictc fxy (DictVar (classrels, v)) =
-              pr_proj (map (str o deresolv) classrels) ((str o pr_dictvar) v)
+        fun pr_dict fxy (DictConst (inst, dss)) =
+              brackify fxy ((str o deresolve) inst :: map (pr_dicts BR) dss)
+          | pr_dict fxy (DictVar (classrels, v)) =
+              pr_proj (map (str o deresolve) classrels) ((str o pr_dictvar) v)
       in case ds
        of [] => str "()"
-        | [d] => pr_dictc fxy d
-        | _ :: _ => (Pretty.list "(" ")" o map (pr_dictc NOBR)) ds
+        | [d] => pr_dict fxy d
+        | _ :: _ => (Pretty.list "(" ")" o map (pr_dict NOBR)) ds
       end;
-    fun pr_tyvars vs =
+    fun pr_tyvar_dicts vs =
       vs
       |> map (fn (v, sort) => map_index (fn (i, _) =>
            DictVar ([], (v, (i, length sort)))) sort)
       |> map (pr_dicts BR);
     fun pr_tycoexpr fxy (tyco, tys) =
       let
-        val tyco' = (str o deresolv) tyco
+        val tyco' = (str o deresolve) tyco
       in case map (pr_typ BR) tys
        of [] => tyco'
         | [p] => Pretty.block [p, Pretty.brk 1, tyco']
         | (ps as _::_) => Pretty.block [Pretty.list "(" ")" ps, Pretty.brk 1, tyco']
       end
     and pr_typ fxy (tyco `%% tys) =
-          (case tyco_syntax tyco
+          (case syntax_tyco tyco
            of NONE => pr_tycoexpr fxy (tyco, tys)
             | SOME (i, pr) =>
                 if not (i = length tys)
@@ -484,7 +499,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
           in brackets (ps @ [pr_term lhs vars' NOBR t']) end
       | pr_term lhs vars fxy (ICase (cases as (_, t0))) =
           (case CodeThingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
+           of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
                 then pr_case vars fxy cases
                 else pr_app lhs vars fxy c_ts
             | NONE => pr_case vars fxy cases)
@@ -492,13 +507,13 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
       if is_cons c then let
         val k = length tys
       in if k < 2 then 
-        (str o deresolv) c :: map (pr_term lhs vars BR) ts
+        (str o deresolve) c :: map (pr_term lhs vars BR) ts
       else if k = length ts then
-        [(str o deresolv) c, Pretty.enum "," "(" ")" (map (pr_term lhs vars NOBR) ts)]
+        [(str o deresolve) c, Pretty.enum "," "(" ")" (map (pr_term lhs vars NOBR) ts)]
       else [pr_term lhs vars BR (CodeThingol.eta_expand app k)] end else
-        (str o deresolv) c
+        (str o deresolve) c
           :: (map (pr_dicts BR) o filter_out null) iss @ map (pr_term lhs vars BR) ts
-    and pr_app lhs vars = gen_pr_app pr_app' pr_term const_syntax
+    and pr_app lhs vars = gen_pr_app pr_app' pr_term syntax_const
       labelled_name is_cons lhs vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
@@ -537,7 +552,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
             )
           end
       | pr_case vars fxy ((_, []), _) = str "raise Fail \"empty case\""
-    fun pr_def (MLFuns (funns as (funn :: funns'))) =
+    fun pr_stmt (MLFuns (funns as (funn :: funns'))) =
           let
             val definer =
               let
@@ -553,46 +568,45 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
                       else error ("Mixing simultaneous vals and funs not implemented: "
                         ^ commas (map (labelled_name o fst) funns));
               in the (fold chk funns NONE) end;
-            fun pr_funn definer (name, ((raw_vs, ty), [])) =
+            fun pr_funn definer (name, ((vs, ty), [])) =
                   let
-                    val vs = filter_out (null o snd) raw_vs;
-                    val n = length vs + (length o fst o CodeThingol.unfold_fun) ty;
+                    val vs_dict = filter_out (null o snd) vs;
+                    val n = length vs_dict + (length o fst o CodeThingol.unfold_fun) ty;
                     val exc_str =
                       (ML_Syntax.print_string o NameSpace.base o NameSpace.qualifier) name;
                   in
                     concat (
                       str definer
-                      :: (str o deresolv) name
+                      :: (str o deresolve) name
                       :: map str (replicate n "_")
                       @ str "="
                       :: str "raise"
                       :: str "(Fail"
-                      :: str exc_str
-                      @@ str ")"
+                      @@ str (exc_str ^ ")")
                     )
                   end
-              | pr_funn definer (name, ((raw_vs, ty), eqs as eq :: eqs')) =
+              | pr_funn definer (name, ((vs, ty), eqs as eq :: eqs')) =
                   let
-                    val vs = filter_out (null o snd) raw_vs;
+                    val vs_dict = filter_out (null o snd) vs;
                     val shift = if null eqs' then I else
                       map (Pretty.block o single o Pretty.block o single);
                     fun pr_eq definer (ts, t) =
                       let
                         val consts = map_filter
-                          (fn c => if (is_some o const_syntax) c
-                            then NONE else (SOME o NameSpace.base o deresolv) c)
+                          (fn c => if (is_some o syntax_const) c
+                            then NONE else (SOME o NameSpace.base o deresolve) c)
                             ((fold o CodeThingol.fold_constnames) (insert (op =)) (t :: ts) []);
-                        val vars = init_syms
+                        val vars = reserved_names
                           |> CodeName.intro_vars consts
                           |> CodeName.intro_vars ((fold o CodeThingol.fold_unbound_varnames)
                                (insert (op =)) ts []);
                       in
                         concat (
-                          [str definer, (str o deresolv) name]
-                          @ (if null ts andalso null vs
+                          [str definer, (str o deresolve) name]
+                          @ (if null ts andalso null vs_dict
                              then [str ":", pr_typ NOBR ty]
                              else
-                               pr_tyvars vs
+                               pr_tyvar_dicts vs_dict
                                @ map (pr_term true vars BR) ts)
                        @ [str "=", pr_term false vars NOBR t]
                         )
@@ -605,13 +619,13 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
                   end;
             val (ps, p) = split_last (pr_funn definer funn :: map (pr_funn "and") funns');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";"])]) end
-     | pr_def (MLDatas (datas as (data :: datas'))) =
+     | pr_stmt (MLDatas (datas as (data :: datas'))) =
           let
             fun pr_co (co, []) =
-                  str (deresolv co)
+                  str (deresolve co)
               | pr_co (co, tys) =
                   concat [
-                    str (deresolv co),
+                    str (deresolve co),
                     str "of",
                     Pretty.enum " *" "" "" (map (pr_typ (INFX (2, X))) tys)
                   ];
@@ -632,12 +646,12 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
             val (ps, p) = split_last
               (pr_data "datatype" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";"])]) end
-     | pr_def (MLClass (class, (v, (superclasses, classparams)))) =
+     | pr_stmt (MLClass (class, (v, (superclasses, classparams)))) =
           let
             val w = first_upper v ^ "_";
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
-                pr_label_classrel classrel, ":", "'" ^ v, deresolv class
+                pr_label_classrel classrel, ":", "'" ^ v, deresolve class
               ];
             fun pr_classparam_field (classparam, ty) =
               concat [
@@ -646,8 +660,8 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
             fun pr_classparam_proj (classparam, _) =
               semicolon [
                 str "fun",
-                (str o deresolv) classparam,
-                Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
+                (str o deresolve) classparam,
+                Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolve class)],
                 str "=",
                 str ("#" ^ pr_label_classparam classparam),
                 str w
@@ -655,8 +669,8 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
             fun pr_superclass_proj (_, classrel) =
               semicolon [
                 str "fun",
-                (str o deresolv) classrel,
-                Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolv class)],
+                (str o deresolve) classrel,
+                Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolve class)],
                 str "=",
                 str ("#" ^ pr_label_classrel classrel),
                 str w
@@ -665,7 +679,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
             Pretty.chunks (
               concat [
                 str ("type '" ^ v),
-                (str o deresolv) class,
+                (str o deresolve) class,
                 str "=",
                 Pretty.enum "," "{" "};" (
                   map pr_superclass_field superclasses @ map pr_classparam_field classparams
@@ -675,7 +689,7 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
               @ map pr_classparam_proj classparams
             )
           end
-     | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
+     | pr_stmt (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
           let
             fun pr_superclass (_, (classrel, dss)) =
               concat [
@@ -687,13 +701,13 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
               concat [
                 (str o pr_label_classparam) classparam,
                 str "=",
-                pr_app false init_syms NOBR (c_inst, [])
+                pr_app false reserved_names NOBR (c_inst, [])
               ];
           in
             semicolon ([
               str (if null arity then "val" else "fun"),
-              (str o deresolv) inst ] @
-              pr_tyvars arity @ [
+              (str o deresolve) inst ] @
+              pr_tyvar_dicts arity @ [
               str "=",
               Pretty.enum "," "{" "}"
                 (map pr_superclass superarities @ map pr_classparam classparam_insts),
@@ -701,20 +715,19 @@ fun pr_sml tyco_syntax const_syntax labelled_name init_syms deresolv is_cons ml_
               pr_tycoexpr NOBR (class, [tyco `%% map (ITyVar o fst) arity])
             ])
           end;
-  in pr_def ml_def end;
+  in pr_stmt end;
 
-fun pr_sml_modl name content =
-  Pretty.chunks ([
-    str ("structure " ^ name ^ " = "),
-    str "struct",
-    str ""
-  ] @ content @ [
-    str "",
-    str ("end; (*struct " ^ name ^ "*)")
-  ]);
+fun pr_sml_module name content =
+  Pretty.chunks (
+    str ("structure " ^ name ^ " = ")
+    :: str "struct"
+    :: str ""
+    :: content
+    @ str ""
+    @@ str ("end; (*struct " ^ name ^ "*)")
+  );
 
-fun pr_ocaml tyco_syntax const_syntax labelled_name
-    init_syms deresolv is_cons ml_def =
+fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve is_cons =
   let
     fun pr_dicts fxy ds =
       let
@@ -722,30 +735,30 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
           | pr_dictvar (v, (i, _)) = "_" ^ first_upper v ^ string_of_int (i+1);
         fun pr_proj ps p =
           fold_rev (fn p2 => fn p1 => Pretty.block [p1, str ".", str p2]) ps p
-        fun pr_dictc fxy (DictConst (inst, dss)) =
-              brackify fxy ((str o deresolv) inst :: map (pr_dicts BR) dss)
-          | pr_dictc fxy (DictVar (classrels, v)) =
-              pr_proj (map deresolv classrels) ((str o pr_dictvar) v)
+        fun pr_dict fxy (DictConst (inst, dss)) =
+              brackify fxy ((str o deresolve) inst :: map (pr_dicts BR) dss)
+          | pr_dict fxy (DictVar (classrels, v)) =
+              pr_proj (map deresolve classrels) ((str o pr_dictvar) v)
       in case ds
        of [] => str "()"
-        | [d] => pr_dictc fxy d
-        | _ :: _ => (Pretty.list "(" ")" o map (pr_dictc NOBR)) ds
+        | [d] => pr_dict fxy d
+        | _ :: _ => (Pretty.list "(" ")" o map (pr_dict NOBR)) ds
       end;
-    fun pr_tyvars vs =
+    fun pr_tyvar_dicts vs =
       vs
       |> map (fn (v, sort) => map_index (fn (i, _) =>
            DictVar ([], (v, (i, length sort)))) sort)
       |> map (pr_dicts BR);
     fun pr_tycoexpr fxy (tyco, tys) =
       let
-        val tyco' = (str o deresolv) tyco
+        val tyco' = (str o deresolve) tyco
       in case map (pr_typ BR) tys
        of [] => tyco'
         | [p] => Pretty.block [p, Pretty.brk 1, tyco']
         | (ps as _::_) => Pretty.block [Pretty.list "(" ")" ps, Pretty.brk 1, tyco']
       end
     and pr_typ fxy (tyco `%% tys) =
-          (case tyco_syntax tyco
+          (case syntax_tyco tyco
            of NONE => pr_tycoexpr fxy (tyco, tys)
             | SOME (i, pr) =>
                 if not (i = length tys)
@@ -771,7 +784,7 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
             val (ps, vars') = fold_map pr binds vars;
           in brackets (str "fun" :: ps @ str "->" @@ pr_term lhs vars' NOBR t') end
       | pr_term lhs vars fxy (ICase (cases as (_, t0))) = (case CodeThingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
+           of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
                 then pr_case vars fxy cases
                 else pr_app lhs vars fxy c_ts
             | NONE => pr_case vars fxy cases)
@@ -779,14 +792,14 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
       if is_cons c then
         if length tys = length ts
         then case ts
-         of [] => [(str o deresolv) c]
-          | [t] => [(str o deresolv) c, pr_term lhs vars BR t]
-          | _ => [(str o deresolv) c, Pretty.enum "," "(" ")"
+         of [] => [(str o deresolve) c]
+          | [t] => [(str o deresolve) c, pr_term lhs vars BR t]
+          | _ => [(str o deresolve) c, Pretty.enum "," "(" ")"
                     (map (pr_term lhs vars NOBR) ts)]
         else [pr_term lhs vars BR (CodeThingol.eta_expand app (length tys))]
-      else (str o deresolv) c
+      else (str o deresolve) c
         :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term lhs vars BR) ts)
-    and pr_app lhs vars = gen_pr_app pr_app' pr_term const_syntax
+    and pr_app lhs vars = gen_pr_app pr_app' pr_term syntax_const
       labelled_name is_cons lhs vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
@@ -818,28 +831,28 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
             )
           end
       | pr_case vars fxy ((_, []), _) = str "failwith \"empty case\"";
-    fun pr_def (MLFuns (funns as funn :: funns')) =
+    fun fish_params vars eqs =
+      let
+        fun fish_param _ (w as SOME _) = w
+          | fish_param (IVar v) NONE = SOME v
+          | fish_param _ NONE = NONE;
+        fun fillup_param _ (_, SOME v) = v
+          | fillup_param x (i, NONE) = x ^ string_of_int i;
+        val fished1 = fold (map2 fish_param) eqs (replicate (length (hd eqs)) NONE);
+        val x = Name.variant (map_filter I fished1) "x";
+        val fished2 = map_index (fillup_param x) fished1;
+        val (fished3, _) = Name.variants fished2 Name.context;
+        val vars' = CodeName.intro_vars fished3 vars;
+      in map (CodeName.lookup_var vars') fished3 end;
+    fun pr_stmt (MLFuns (funns as funn :: funns')) =
           let
-            fun fish_parm _ (w as SOME _) = w
-              | fish_parm (IVar v) NONE = SOME v
-              | fish_parm _ NONE = NONE;
-            fun fillup_parm _ (_, SOME v) = v
-              | fillup_parm x (i, NONE) = x ^ string_of_int i;
-            fun fish_parms vars eqs =
-              let
-                val fished1 = fold (map2 fish_parm) eqs (replicate (length (hd eqs)) NONE);
-                val x = Name.variant (map_filter I fished1) "x";
-                val fished2 = map_index (fillup_parm x) fished1;
-                val (fished3, _) = Name.variants fished2 Name.context;
-                val vars' = CodeName.intro_vars fished3 vars;
-              in map (CodeName.lookup_var vars') fished3 end;
             fun pr_eq (ts, t) =
               let
                 val consts = map_filter
-                  (fn c => if (is_some o const_syntax) c
-                    then NONE else (SOME o NameSpace.base o deresolv) c)
+                  (fn c => if (is_some o syntax_const) c
+                    then NONE else (SOME o NameSpace.base o deresolve) c)
                     ((fold o CodeThingol.fold_constnames) (insert (op =)) (t :: ts) []);
-                val vars = init_syms
+                val vars = reserved_names
                   |> CodeName.intro_vars consts
                   |> CodeName.intro_vars ((fold o CodeThingol.fold_unbound_varnames)
                       (insert (op =)) ts []);
@@ -864,10 +877,10 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
               | pr_eqs _ _ [(ts, t)] =
                   let
                     val consts = map_filter
-                      (fn c => if (is_some o const_syntax) c
-                        then NONE else (SOME o NameSpace.base o deresolv) c)
+                      (fn c => if (is_some o syntax_const) c
+                        then NONE else (SOME o NameSpace.base o deresolve) c)
                         ((fold o CodeThingol.fold_constnames) (insert (op =)) (t :: ts) []);
-                    val vars = init_syms
+                    val vars = reserved_names
                       |> CodeName.intro_vars consts
                       |> CodeName.intro_vars ((fold o CodeThingol.fold_unbound_varnames)
                           (insert (op =)) ts []);
@@ -891,13 +904,13 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
               | pr_eqs _ _ (eqs as eq :: eqs') =
                   let
                     val consts = map_filter
-                      (fn c => if (is_some o const_syntax) c
-                        then NONE else (SOME o NameSpace.base o deresolv) c)
+                      (fn c => if (is_some o syntax_const) c
+                        then NONE else (SOME o NameSpace.base o deresolve) c)
                         ((fold o CodeThingol.fold_constnames)
                           (insert (op =)) (map snd eqs) []);
-                    val vars = init_syms
+                    val vars = reserved_names
                       |> CodeName.intro_vars consts;
-                    val dummy_parms = (map str o fish_parms vars o map fst) eqs;
+                    val dummy_parms = (map str o fish_params vars o map fst) eqs;
                   in
                     Pretty.block (
                       Pretty.breaks dummy_parms
@@ -918,20 +931,20 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
             fun pr_funn definer (name, ((vs, ty), eqs)) =
               concat (
                 str definer
-                :: (str o deresolv) name
-                :: pr_tyvars (filter_out (null o snd) vs)
+                :: (str o deresolve) name
+                :: pr_tyvar_dicts (filter_out (null o snd) vs)
                 @| pr_eqs name ty eqs
               );
             val (ps, p) = split_last
               (pr_funn "let rec" funn :: map (pr_funn "and") funns');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";;"])]) end
-     | pr_def (MLDatas (datas as (data :: datas'))) =
+     | pr_stmt (MLDatas (datas as (data :: datas'))) =
           let
             fun pr_co (co, []) =
-                  str (deresolv co)
+                  str (deresolve co)
               | pr_co (co, tys) =
                   concat [
-                    str (deresolv co),
+                    str (deresolve co),
                     str "of",
                     Pretty.enum " *" "" "" (map (pr_typ (INFX (2, X))) tys)
                   ];
@@ -952,29 +965,29 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
             val (ps, p) = split_last
               (pr_data "type" data :: map (pr_data "and") datas');
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";;"])]) end
-     | pr_def (MLClass (class, (v, (superclasses, classparams)))) =
+     | pr_stmt (MLClass (class, (v, (superclasses, classparams)))) =
           let
             val w = "_" ^ first_upper v;
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
-                deresolv classrel, ":", "'" ^ v, deresolv class
+                deresolve classrel, ":", "'" ^ v, deresolve class
               ];
             fun pr_classparam_field (classparam, ty) =
               concat [
-                (str o deresolv) classparam, str ":", pr_typ NOBR ty
+                (str o deresolve) classparam, str ":", pr_typ NOBR ty
               ];
             fun pr_classparam_proj (classparam, _) =
               concat [
                 str "let",
-                (str o deresolv) classparam,
+                (str o deresolve) classparam,
                 str w,
                 str "=",
-                str (w ^ "." ^ deresolv classparam ^ ";;")
+                str (w ^ "." ^ deresolve classparam ^ ";;")
               ];
           in Pretty.chunks (
             concat [
               str ("type '" ^ v),
-              (str o deresolv) class,
+              (str o deresolve) class,
               str "=",
               enum_default "();;" ";" "{" "};;" (
                 map pr_superclass_field superclasses
@@ -983,25 +996,25 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
             ]
             :: map pr_classparam_proj classparams
           ) end
-     | pr_def (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
+     | pr_stmt (MLClassinst (inst, ((class, (tyco, arity)), (superarities, classparam_insts)))) =
           let
             fun pr_superclass (_, (classrel, dss)) =
               concat [
-                (str o deresolv) classrel,
+                (str o deresolve) classrel,
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
             fun pr_classparam_inst (classparam, c_inst) =
               concat [
-                (str o deresolv) classparam,
+                (str o deresolve) classparam,
                 str "=",
-                pr_app false init_syms NOBR (c_inst, [])
+                pr_app false reserved_names NOBR (c_inst, [])
               ];
           in
             concat (
               str "let"
-              :: (str o deresolv) inst
-              :: pr_tyvars arity
+              :: (str o deresolve) inst
+              :: pr_tyvar_dicts arity
               @ str "="
               @@ (Pretty.enclose "(" ");;" o Pretty.breaks) [
                 enum_default "()" ";" "{" "}" (map pr_superclass superarities
@@ -1011,33 +1024,37 @@ fun pr_ocaml tyco_syntax const_syntax labelled_name
               ]
             )
           end;
-  in pr_def ml_def end;
+  in pr_stmt end;
 
-fun pr_ocaml_modl name content =
-  Pretty.chunks ([
-    str ("module " ^ name ^ " = "),
-    str "struct",
-    str ""
-  ] @ content @ [
-    str "",
-    str ("end;; (*struct " ^ name ^ "*)")
-  ]);
+fun pr_ocaml_module name content =
+  Pretty.chunks (
+    str ("module " ^ name ^ " = ")
+    :: str "struct"
+    :: str ""
+    :: content
+    @ str ""
+    @@ str ("end;; (*struct " ^ name ^ "*)")
+  );
 
-fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_syms includes raw_module_alias
-  (_ : string -> class_syntax option) tyco_syntax const_syntax code cs seri_dest =
+local
+
+datatype ml_node =
+    Dummy of string
+  | Stmt of string * ml_stmt
+  | Module of string * ((Name.context * Name.context) * ml_node Graph.T);
+
+in
+
+fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias program =
   let
-    val module_alias = if is_some module then K module else raw_module_alias;
-    val is_cons = CodeThingol.is_cons code;
-    datatype node =
-        Def of string * ml_def option
-      | Module of string * ((Name.context * Name.context) * node Graph.T);
-    val init_names = Name.make_context reserved_syms;
-    val init_module = ((init_names, init_names), Graph.empty);
+    val module_alias = if is_some module_name then K module_name else raw_module_alias;
+    val reserved_names = Name.make_context reserved_names;
+    val empty_module = ((reserved_names, reserved_names), Graph.empty);
     fun map_node [] f = f
       | map_node (m::ms) f =
-          Graph.default_node (m, Module (m, init_module))
-          #> Graph.map_node m (fn (Module (dmodlname, (nsp, nodes))) =>
-               Module (dmodlname, (nsp, map_node ms f nodes)));
+          Graph.default_node (m, Module (m, empty_module))
+          #> Graph.map_node m (fn (Module (module_name, (nsp, nodes))) =>
+               Module (module_name, (nsp, map_node ms f nodes)));
     fun map_nsp_yield [] f (nsp, nodes) =
           let
             val (x, nsp') = f nsp
@@ -1046,193 +1063,202 @@ fun seri_ml internal output_cont pr_def pr_modl module labelled_name reserved_sy
           let
             val (x, nodes') =
               nodes
-              |> Graph.default_node (m, Module (m, init_module))
-              |> Graph.map_node_yield m (fn Module (dmodlname, nsp_nodes) => 
+              |> Graph.default_node (m, Module (m, empty_module))
+              |> Graph.map_node_yield m (fn Module (d_module_name, nsp_nodes) => 
                   let
                     val (x, nsp_nodes') = map_nsp_yield ms f nsp_nodes
-                  in (x, Module (dmodlname, nsp_nodes')) end)
+                  in (x, Module (d_module_name, nsp_nodes')) end)
           in (x, (nsp, nodes')) end;
-    val init_syms = CodeName.make_vars reserved_syms;
-    val name_modl = mk_modl_name_tab init_names NONE module_alias code;
-    fun name_def upper name nsp =
+    fun map_nsp_fun_yield f (nsp_fun, nsp_typ) =
+      let
+        val (x, nsp_fun') = f nsp_fun
+      in (x, (nsp_fun', nsp_typ)) end;
+    fun map_nsp_typ_yield f (nsp_fun, nsp_typ) =
+      let
+        val (x, nsp_typ') = f nsp_typ
+      in (x, (nsp_fun, nsp_typ')) end;
+    val mk_name_module = mk_name_module reserved_names NONE module_alias program;
+    fun mk_name_stmt upper name nsp =
       let
         val (_, base) = dest_name name;
         val base' = if upper then first_upper base else base;
         val ([base''], nsp') = Name.variants [base'] nsp;
       in (base'', nsp') end;
-    fun map_nsp_fun f (nsp_fun, nsp_typ) =
-      let
-        val (x, nsp_fun') = f nsp_fun
-      in (x, (nsp_fun', nsp_typ)) end;
-    fun map_nsp_typ f (nsp_fun, nsp_typ) =
-      let
-        val (x, nsp_typ') = f nsp_typ
-      in (x, (nsp_fun, nsp_typ')) end;
-    fun mk_funs defs =
+    fun add_funs stmts =
       fold_map
-        (fn (name, CodeThingol.Fun info) =>
-              map_nsp_fun (name_def false name) >>
-                (fn base => (base, (name, (apsnd o map) fst info)))
-          | (name, def) =>
+        (fn (name, CodeThingol.Fun stmt) =>
+              map_nsp_fun_yield (mk_name_stmt false name) #>>
+                rpair (name, (apsnd o map) fst stmt)
+          | (name, _) =>
               error ("Function block containing illegal statement: " ^ labelled_name name)
-        ) defs
-      >> (split_list #> apsnd MLFuns);
-    fun mk_datatype defs =
+        ) stmts
+      #>> (split_list #> apsnd MLFuns);
+    fun add_datatypes stmts =
       fold_map
-        (fn (name, CodeThingol.Datatype info) =>
-              map_nsp_typ (name_def false name) >> (fn base => (base, SOME (name, info)))
+        (fn (name, CodeThingol.Datatype stmt) =>
+              map_nsp_typ_yield (mk_name_stmt false name) #>> rpair (SOME (name, stmt))
           | (name, CodeThingol.Datatypecons _) =>
-              map_nsp_fun (name_def true name) >> (fn base => (base, NONE))
-          | (name, def) =>
+              map_nsp_fun_yield (mk_name_stmt true name) #>> rpair NONE
+          | (name, _) =>
               error ("Datatype block containing illegal statement: " ^ labelled_name name)
-        ) defs
-      >> (split_list #> apsnd (map_filter I
+        ) stmts
+      #>> (split_list #> apsnd (map_filter I
         #> (fn [] => error ("Datatype block without data statement: "
-                  ^ (commas o map (labelled_name o fst)) defs)
-             | infos => MLDatas infos)));
-    fun mk_class defs =
+                  ^ (commas o map (labelled_name o fst)) stmts)
+             | stmts => MLDatas stmts)));
+    fun add_class stmts =
       fold_map
         (fn (name, CodeThingol.Class info) =>
-              map_nsp_typ (name_def false name) >> (fn base => (base, SOME (name, info)))
+              map_nsp_typ_yield (mk_name_stmt false name) #>> rpair (SOME (name, info))
           | (name, CodeThingol.Classrel _) =>
-              map_nsp_fun (name_def false name) >> (fn base => (base, NONE))
+              map_nsp_fun_yield (mk_name_stmt false name) #>> rpair NONE
           | (name, CodeThingol.Classparam _) =>
-              map_nsp_fun (name_def false name) >> (fn base => (base, NONE))
-          | (name, def) =>
+              map_nsp_fun_yield (mk_name_stmt false name) #>> rpair NONE
+          | (name, _) =>
               error ("Class block containing illegal statement: " ^ labelled_name name)
-        ) defs
-      >> (split_list #> apsnd (map_filter I
+        ) stmts
+      #>> (split_list #> apsnd (map_filter I
         #> (fn [] => error ("Class block without class statement: "
-                  ^ (commas o map (labelled_name o fst)) defs)
-             | [info] => MLClass info)));
-    fun mk_inst [(name, CodeThingol.Classinst info)] =
-      map_nsp_fun (name_def false name)
-      >> (fn base => ([base], MLClassinst (name, (apsnd o apsnd o map) fst info)));
-    fun add_group mk defs nsp_nodes =
+                  ^ (commas o map (labelled_name o fst)) stmts)
+             | [stmt] => MLClass stmt)));
+    fun add_inst [(name, CodeThingol.Classinst stmt)] =
+      map_nsp_fun_yield (mk_name_stmt false name)
+      #>> (fn base => ([base], MLClassinst (name, (apsnd o apsnd o map) fst stmt)));
+    fun add_stmts ((stmts as (_, CodeThingol.Fun _)::_)) =
+          add_funs stmts
+      | add_stmts ((stmts as (_, CodeThingol.Datatypecons _)::_)) =
+          add_datatypes stmts
+      | add_stmts ((stmts as (_, CodeThingol.Datatype _)::_)) =
+          add_datatypes stmts
+      | add_stmts ((stmts as (_, CodeThingol.Class _)::_)) =
+          add_class stmts
+      | add_stmts ((stmts as (_, CodeThingol.Classrel _)::_)) =
+          add_class stmts
+      | add_stmts ((stmts as (_, CodeThingol.Classparam _)::_)) =
+          add_class stmts
+      | add_stmts ((stmts as [(_, CodeThingol.Classinst _)])) =
+          add_inst stmts
+      | add_stmts stmts = error ("Illegal mutual dependencies: " ^
+          (commas o map (labelled_name o fst)) stmts);
+    fun add_stmts' stmts nsp_nodes =
       let
-        val names as (name :: names') = map fst defs;
+        val names as (name :: names') = map fst stmts;
         val deps =
           []
-          |> fold (fold (insert (op =)) o Graph.imm_succs code) names
+          |> fold (fold (insert (op =)) o Graph.imm_succs program) names
           |> subtract (op =) names;
-        val (modls, _) = (split_list o map dest_name) names;
-        val modl' = (the_single o distinct (op =) o map name_modl) modls
+        val (module_names, _) = (split_list o map dest_name) names;
+        val module_name = (the_single o distinct (op =) o map mk_name_module) module_names
           handle Empty =>
             error ("Different namespace prefixes for mutual dependencies:\n"
               ^ commas (map labelled_name names)
               ^ "\n"
-              ^ commas (map (NameSpace.qualifier o NameSpace.qualifier) names));
-        val modl_explode = NameSpace.explode modl';
-        fun add_dep name name'' =
+              ^ commas module_names);
+        val module_name_path = NameSpace.explode module_name;
+        fun add_dep name name' =
           let
-            val modl'' = (name_modl o fst o dest_name) name'';
-          in if modl' = modl'' then
-            map_node modl_explode
-              (Graph.add_edge (name, name''))
+            val module_name' = (mk_name_module o fst o dest_name) name';
+          in if module_name = module_name' then
+            map_node module_name_path (Graph.add_edge (name, name'))
           else let
             val (common, (diff1::_, diff2::_)) = chop_prefix (op =)
-              (modl_explode, NameSpace.explode modl'');
+              (module_name_path, NameSpace.explode module_name');
           in
             map_node common
-              (fn gr => Graph.add_edge_acyclic (diff1, diff2) gr
+              (fn node => Graph.add_edge_acyclic (diff1, diff2) node
                 handle Graph.CYCLES _ => error ("Dependency "
-                  ^ quote name ^ " -> " ^ quote name''
+                  ^ quote name ^ " -> " ^ quote name'
                   ^ " would result in module dependency cycle"))
           end end;
       in
         nsp_nodes
-        |> map_nsp_yield modl_explode (mk defs)
-        |-> (fn (base' :: bases', def') =>
-           apsnd (map_node modl_explode (Graph.new_node (name, (Def (base', SOME def')))
+        |> map_nsp_yield module_name_path (add_stmts stmts)
+        |-> (fn (base' :: bases', stmt') =>
+           apsnd (map_node module_name_path (Graph.new_node (name, (Stmt (base', stmt')))
               #> fold2 (fn name' => fn base' =>
-                   Graph.new_node (name', (Def (base', NONE)))) names' bases')))
+                   Graph.new_node (name', (Dummy base'))) names' bases')))
         |> apsnd (fold (fn name => fold (add_dep name) deps) names)
-        |> apsnd (fold_product (curry (map_node modl_explode o Graph.add_edge)) names names)
+        |> apsnd (fold_product (curry (map_node module_name_path o Graph.add_edge)) names names)
       end;
-    fun group_defs ((defs as (_, CodeThingol.Fun _)::_)) =
-          add_group mk_funs defs
-      | group_defs ((defs as (_, CodeThingol.Datatypecons _)::_)) =
-          add_group mk_datatype defs
-      | group_defs ((defs as (_, CodeThingol.Datatype _)::_)) =
-          add_group mk_datatype defs
-      | group_defs ((defs as (_, CodeThingol.Class _)::_)) =
-          add_group mk_class defs
-      | group_defs ((defs as (_, CodeThingol.Classrel _)::_)) =
-          add_group mk_class defs
-      | group_defs ((defs as (_, CodeThingol.Classparam _)::_)) =
-          add_group mk_class defs
-      | group_defs ((defs as [(_, CodeThingol.Classinst _)])) =
-          add_group mk_inst defs
-      | group_defs defs = error ("Illegal mutual dependencies: " ^
-          (commas o map (labelled_name o fst)) defs)
-    val (_, nodes) =
-      init_module
-      |> fold group_defs (map (AList.make (Graph.get_node code))
-          (rev (Graph.strong_conn code)))
+    val (_, nodes) = empty_module
+      |> fold add_stmts' (map (AList.make (Graph.get_node program))
+          (rev (Graph.strong_conn program)));
     fun deresolver prefix name = 
       let
-        val modl = (fst o dest_name) name;
-        val modl' = (NameSpace.explode o name_modl) modl;
-        val (_, (_, remainder)) = chop_prefix (op =) (prefix, modl');
-        val defname' =
+        val module_name = (fst o dest_name) name;
+        val module_name' = (NameSpace.explode o mk_name_module) module_name;
+        val (_, (_, remainder)) = chop_prefix (op =) (prefix, module_name');
+        val stmt_name =
           nodes
-          |> fold (fn m => fn g => case Graph.get_node g m
-              of Module (_, (_, g)) => g) modl'
-          |> (fn g => case Graph.get_node g name of Def (defname, _) => defname);
+          |> fold (fn name => fn node => case Graph.get_node node name
+              of Module (_, (_, node)) => node) module_name'
+          |> (fn node => case Graph.get_node node name of Stmt (stmt_name, _) => stmt_name
+               | Dummy stmt_name => stmt_name);
       in
-        NameSpace.implode (remainder @ [defname'])
+        NameSpace.implode (remainder @ [stmt_name])
       end handle Graph.UNDEF _ =>
         error ("Unknown statement name: " ^ labelled_name name);
-    fun pr_node prefix (Def (_, NONE)) =
+  in (deresolver, nodes) end;
+
+fun serialize_ml compile pr_module pr_stmt projection module_name labelled_name reserved_names includes raw_module_alias
+  _ syntax_tyco syntax_const program cs destination =
+  let
+    val is_cons = CodeThingol.is_cons program;
+    val (deresolver, nodes) = ml_node_of_program labelled_name module_name
+      reserved_names raw_module_alias program;
+    val reserved_names = CodeName.make_vars reserved_names;
+    fun pr_node prefix (Dummy _) =
           NONE
-      | pr_node prefix (Def (_, SOME def)) =
-          SOME (pr_def tyco_syntax const_syntax labelled_name init_syms
+      | pr_node prefix (Stmt (_, def)) =
+          SOME (pr_stmt syntax_tyco syntax_const labelled_name reserved_names
             (deresolver prefix) is_cons def)
-      | pr_node prefix (Module (dmodlname, (_, nodes))) =
-          SOME (pr_modl dmodlname (
+      | pr_node prefix (Module (module_name, (_, nodes))) =
+          SOME (pr_module module_name (
             separate (str "")
-                ((map_filter (pr_node (prefix @ [dmodlname]) o Graph.get_node nodes)
+                ((map_filter (pr_node (prefix @ [module_name]) o Graph.get_node nodes)
                 o rev o flat o Graph.strong_conn) nodes)));
+    val cs' = map_filter (try (deresolver (if is_some module_name then the_list module_name else [])))
+      cs;
     val p = Pretty.chunks (separate (str "") (map snd includes @ (map_filter
       (pr_node [] o Graph.get_node nodes) o rev o flat o Graph.strong_conn) nodes));
-    val deresolv = try (deresolver (if is_some module then the_list module else []));
-    val output = case seri_dest
-     of Compile => K NONE o internal o target_code_of_pretty
-      | Write => K NONE o target_code_writeln
-      | File file => K NONE o File.write file o target_code_of_pretty
-      | String => SOME o target_code_of_pretty;
-  in output_cont (map_filter deresolv cs, output p) end;
+    fun output Compile = K NONE o compile o code_of_pretty
+      | output Write = K NONE o code_writeln
+      | output (File file) = K NONE o File.write file o code_of_pretty
+      | output String = SOME o code_of_pretty;
+  in projection (output destination p) cs' end;
 
-fun isar_seri_sml module =
-  parse_args (Scan.succeed ())
-  #> (fn () => seri_ml (use_text (1, "generated code") Output.ml_output false) snd pr_sml pr_sml_modl module);
+end; (*local*)
 
-fun isar_seri_ocaml module =
+fun isar_seri_sml module_name =
   parse_args (Scan.succeed ())
-  #> (fn () => seri_ml (fn _ => error "OCaml: no internal compilation") snd pr_ocaml pr_ocaml_modl module)
+  #> (fn () => serialize_ml (use_text (1, "generated code") Output.ml_output false)
+      pr_sml_module pr_sml_stmt K module_name);
+
+fun isar_seri_ocaml module_name =
+  parse_args (Scan.succeed ())
+  #> (fn () => serialize_ml (fn _ => error "OCaml: no internal compilation")
+      pr_ocaml_module pr_ocaml_stmt K module_name);
 
 
 (** Haskell serializer **)
 
-local
-
-fun pr_bind' ((NONE, NONE), _) = str "_"
-  | pr_bind' ((SOME v, NONE), _) = str v
-  | pr_bind' ((NONE, SOME p), _) = p
-  | pr_bind' ((SOME v, SOME p), _) = brackets [str v, str "@", p]
-
-val pr_bind_haskell = gen_pr_bind pr_bind';
-
-in
-
-fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
-    init_syms deresolv_here deresolv is_cons contr_classparam_typs deriving_show def =
+val pr_haskell_bind =
   let
-    fun class_name class = case class_syntax class
-     of NONE => deresolv class
+    fun pr_bind ((NONE, NONE), _) = str "_"
+      | pr_bind ((SOME v, NONE), _) = str v
+      | pr_bind ((NONE, SOME p), _) = p
+      | pr_bind ((SOME v, SOME p), _) = brackets [str v, str "@", p];
+  in gen_pr_bind pr_bind end;
+
+fun pr_haskell_stmt syntax_class syntax_tyco syntax_const labelled_name
+    init_syms deresolve is_cons contr_classparam_typs deriving_show =
+  let
+    val deresolve_base = NameSpace.base o deresolve;
+    fun class_name class = case syntax_class class
+     of NONE => deresolve class
       | SOME (class, _) => class;
-    fun classparam_name class classparam = case class_syntax class
-     of NONE => deresolv_here classparam
+    fun classparam_name class classparam = case syntax_class class
+     of NONE => deresolve_base classparam
       | SOME (_, classparam_syntax) => case classparam_syntax classparam
          of NONE => (snd o dest_name) classparam
           | SOME classparam => classparam;
@@ -1249,9 +1275,9 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
     fun pr_tycoexpr tyvars fxy (tyco, tys) =
       brackify fxy (str tyco :: map (pr_typ tyvars BR) tys)
     and pr_typ tyvars fxy (tycoexpr as tyco `%% tys) =
-          (case tyco_syntax tyco
+          (case syntax_tyco tyco
            of NONE =>
-                pr_tycoexpr tyvars fxy (deresolv tyco, tys)
+                pr_tycoexpr tyvars fxy (deresolve tyco, tys)
             | SOME (i, pr) =>
                 if not (i = length tys)
                 then error ("Number of argument mismatch in customary serialization: "
@@ -1284,12 +1310,12 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
           in brackets (str "\\" :: ps @ str "->" @@ pr_term tyvars lhs vars' NOBR t') end
       | pr_term tyvars lhs vars fxy (ICase (cases as (_, t0))) =
           (case CodeThingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
+           of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
                 then pr_case tyvars vars fxy cases
                 else pr_app tyvars lhs vars fxy c_ts
             | NONE => pr_case tyvars vars fxy cases)
     and pr_app' tyvars lhs vars ((c, (_, tys)), ts) = case contr_classparam_typs c
-     of [] => (str o deresolv) c :: map (pr_term tyvars lhs vars BR) ts
+     of [] => (str o deresolve) c :: map (pr_term tyvars lhs vars BR) ts
       | fingerprint => let
           val ts_fingerprint = ts ~~ curry Library.take (length ts) fingerprint;
           val needs_annotation = forall (fn (_, NONE) => true | (t, SOME _) =>
@@ -1299,12 +1325,12 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
                 brackets [pr_term tyvars lhs vars NOBR t, str "::", pr_typ tyvars NOBR ty];
         in
           if needs_annotation then
-            (str o deresolv) c :: map2 pr_term_anno ts_fingerprint (curry Library.take (length ts) tys)
-          else (str o deresolv) c :: map (pr_term tyvars lhs vars BR) ts
+            (str o deresolve) c :: map2 pr_term_anno ts_fingerprint (curry Library.take (length ts) tys)
+          else (str o deresolve) c :: map (pr_term tyvars lhs vars BR) ts
         end
-    and pr_app tyvars lhs vars  = gen_pr_app (pr_app' tyvars) (pr_term tyvars) const_syntax
+    and pr_app tyvars lhs vars  = gen_pr_app (pr_app' tyvars) (pr_term tyvars) syntax_const
       labelled_name is_cons lhs vars
-    and pr_bind tyvars = pr_bind_haskell (pr_term tyvars)
+    and pr_bind tyvars = pr_haskell_bind (pr_term tyvars)
     and pr_case tyvars vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, t) = CodeThingol.unfold_let (ICase cases);
@@ -1332,20 +1358,20 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
             ) (map pr bs)
           end
       | pr_case tyvars vars fxy ((_, []), _) = str "error \"empty case\"";
-    fun pr_def (name, CodeThingol.Fun ((vs, ty), [])) =
+    fun pr_stmt (name, CodeThingol.Fun ((vs, ty), [])) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
             val n = (length o fst o CodeThingol.unfold_fun) ty;
           in
             Pretty.chunks [
               Pretty.block [
-                (str o suffix " ::" o deresolv_here) name,
+                (str o suffix " ::" o deresolve_base) name,
                 Pretty.brk 1,
                 pr_typscheme tyvars (vs, ty),
                 str ";"
               ],
               concat (
-                (str o deresolv_here) name
+                (str o deresolve_base) name
                 :: map str (replicate n "_")
                 @ str "="
                 :: str "error"
@@ -1354,14 +1380,14 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
               )
             ]
           end
-      | pr_def (name, CodeThingol.Fun ((vs, ty), eqs)) =
+      | pr_stmt (name, CodeThingol.Fun ((vs, ty), eqs)) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
             fun pr_eq ((ts, t), _) =
               let
                 val consts = map_filter
-                  (fn c => if (is_some o const_syntax) c
-                    then NONE else (SOME o NameSpace.base o deresolv) c)
+                  (fn c => if (is_some o syntax_const) c
+                    then NONE else (SOME o NameSpace.base o deresolve) c)
                     ((fold o CodeThingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = init_syms
                   |> CodeName.intro_vars consts
@@ -1369,7 +1395,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
                        (insert (op =)) ts []);
               in
                 semicolon (
-                  (str o deresolv_here) name
+                  (str o deresolve_base) name
                   :: map (pr_term tyvars true vars BR) ts
                   @ str "="
                   @@ pr_term tyvars false vars NOBR t
@@ -1378,7 +1404,7 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
           in
             Pretty.chunks (
               Pretty.block [
-                (str o suffix " ::" o deresolv_here) name,
+                (str o suffix " ::" o deresolve_base) name,
                 Pretty.brk 1,
                 pr_typscheme tyvars (vs, ty),
                 str ";"
@@ -1386,47 +1412,47 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
               :: map pr_eq eqs
             )
           end
-      | pr_def (name, CodeThingol.Datatype (vs, [])) =
+      | pr_stmt (name, CodeThingol.Datatype (vs, [])) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
           in
             semicolon [
               str "data",
-              pr_typdecl tyvars (vs, (deresolv_here name, map (ITyVar o fst) vs))
+              pr_typdecl tyvars (vs, (deresolve_base name, map (ITyVar o fst) vs))
             ]
           end
-      | pr_def (name, CodeThingol.Datatype (vs, [(co, [ty])])) =
+      | pr_stmt (name, CodeThingol.Datatype (vs, [(co, [ty])])) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
           in
             semicolon (
               str "newtype"
-              :: pr_typdecl tyvars (vs, (deresolv_here name, map (ITyVar o fst) vs))
+              :: pr_typdecl tyvars (vs, (deresolve_base name, map (ITyVar o fst) vs))
               :: str "="
-              :: (str o deresolv_here) co
+              :: (str o deresolve_base) co
               :: pr_typ tyvars BR ty
               :: (if deriving_show name then [str "deriving (Read, Show)"] else [])
             )
           end
-      | pr_def (name, CodeThingol.Datatype (vs, co :: cos)) =
+      | pr_stmt (name, CodeThingol.Datatype (vs, co :: cos)) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
             fun pr_co (co, tys) =
               concat (
-                (str o deresolv_here) co
+                (str o deresolve_base) co
                 :: map (pr_typ tyvars BR) tys
               )
           in
             semicolon (
               str "data"
-              :: pr_typdecl tyvars (vs, (deresolv_here name, map (ITyVar o fst) vs))
+              :: pr_typdecl tyvars (vs, (deresolve_base name, map (ITyVar o fst) vs))
               :: str "="
               :: pr_co co
               :: map ((fn p => Pretty.block [str "| ", p]) o pr_co) cos
               @ (if deriving_show name then [str "deriving (Read, Show)"] else [])
             )
           end
-      | pr_def (name, CodeThingol.Class (v, (superclasses, classparams))) =
+      | pr_stmt (name, CodeThingol.Class (v, (superclasses, classparams))) =
           let
             val tyvars = CodeName.intro_vars [v] init_syms;
             fun pr_classparam (classparam, ty) =
@@ -1440,13 +1466,13 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
               Pretty.block [
                 str "class ",
                 Pretty.block (pr_typcontext tyvars [(v, map fst superclasses)]),
-                str (deresolv_here name ^ " " ^ CodeName.lookup_var tyvars v),
+                str (deresolve_base name ^ " " ^ CodeName.lookup_var tyvars v),
                 str " where {"
               ],
               str "};"
             ) (map pr_classparam classparams)
           end
-      | pr_def (_, CodeThingol.Classinst ((class, (tyco, vs)), (_, classparam_insts))) =
+      | pr_stmt (_, CodeThingol.Classinst ((class, (tyco, vs)), (_, classparam_insts))) =
           let
             val tyvars = CodeName.intro_vars (map fst vs) init_syms;
             fun pr_instdef ((classparam, c_inst), _) =
@@ -1467,13 +1493,13 @@ fun pr_haskell class_syntax tyco_syntax const_syntax labelled_name
               str "};"
             ) (map pr_instdef classparam_insts)
           end;
-  in pr_def def end;
+  in pr_stmt end;
 
 fun pretty_haskell_monad c_bind =
   let
     fun pretty pr vars fxy [(t, _)] =
       let
-        val pr_bind = pr_bind_haskell (K pr);
+        val pr_bind = pr_haskell_bind (K pr);
         fun pr_monad (NONE, t) vars =
               (semicolon [pr vars NOBR t], vars)
           | pr_monad (SOME (bind, true), t) vars = vars
@@ -1488,74 +1514,70 @@ fun pretty_haskell_monad c_bind =
       in (brack o Pretty.block_enclose (str "do {", str "}")) (ps @| pr vars' NOBR t) end;
   in (1, pretty) end;
 
-end; (*local*)
-
-fun seri_haskell module_prefix module string_classes labelled_name
-    reserved_syms includes raw_module_alias
-    class_syntax tyco_syntax const_syntax code cs seri_dest =
+fun haskell_program_of_program labelled_name module_name module_prefix reserved_names raw_module_alias program =
   let
-    val is_cons = CodeThingol.is_cons code;
-    val contr_classparam_typs = CodeThingol.contr_classparam_typs code;
-    val module_alias = if is_some module then K module else raw_module_alias;
-    val init_names = Name.make_context reserved_syms;
-    val name_modl = mk_modl_name_tab init_names module_prefix module_alias code;
-    fun add_def (name, (def, deps)) =
+    val module_alias = if is_some module_name then K module_name else raw_module_alias;
+    val reserved_names = Name.make_context reserved_names;
+    val mk_name_module = mk_name_module reserved_names module_prefix module_alias program;
+    fun add_stmt (name, (stmt, deps)) =
       let
-        val (modl, base) = dest_name name;
-        val name_def = yield_singleton Name.variants;
+        val (module_name, base) = dest_name name;
+        val module_name' = mk_name_module module_name;
+        val mk_name_stmt = yield_singleton Name.variants;
         fun add_fun upper (nsp_fun, nsp_typ) =
           let
             val (base', nsp_fun') =
-              name_def (if upper then first_upper base else base) nsp_fun
+              mk_name_stmt (if upper then first_upper base else base) nsp_fun
           in (base', (nsp_fun', nsp_typ)) end;
         fun add_typ (nsp_fun, nsp_typ) =
           let
-            val (base', nsp_typ') = name_def (first_upper base) nsp_typ
+            val (base', nsp_typ') = mk_name_stmt (first_upper base) nsp_typ
           in (base', (nsp_fun, nsp_typ')) end;
-        val add_name =
-          case def
-           of CodeThingol.Fun _ => add_fun false
-            | CodeThingol.Datatype _ => add_typ
-            | CodeThingol.Datatypecons _ => add_fun true
-            | CodeThingol.Class _ => add_typ
-            | CodeThingol.Classrel _ => pair base
-            | CodeThingol.Classparam _ => add_fun false
-            | CodeThingol.Classinst _ => pair base;
-        val modlname' = name_modl modl;
-        fun add_def base' =
-          case def
-           of CodeThingol.Datatypecons _ =>
-                cons (name, ((NameSpace.append modlname' base', base'), NONE))
-            | CodeThingol.Classrel _ => I
-            | CodeThingol.Classparam _ =>
-                cons (name, ((NameSpace.append modlname' base', base'), NONE))
-            | _ => cons (name, ((NameSpace.append modlname' base', base'), SOME def));
+        val add_name = case stmt
+         of CodeThingol.Fun _ => add_fun false
+          | CodeThingol.Datatype _ => add_typ
+          | CodeThingol.Datatypecons _ => add_fun true
+          | CodeThingol.Class _ => add_typ
+          | CodeThingol.Classrel _ => pair base
+          | CodeThingol.Classparam _ => add_fun false
+          | CodeThingol.Classinst _ => pair base;
+        fun add_stmt' base' = case stmt
+         of CodeThingol.Datatypecons _ =>
+              cons (name, (NameSpace.append module_name' base', NONE))
+          | CodeThingol.Classrel _ => I
+          | CodeThingol.Classparam _ =>
+              cons (name, (NameSpace.append module_name' base', NONE))
+          | _ => cons (name, (NameSpace.append module_name' base', SOME stmt));
       in
-        Symtab.map_default (modlname', ([], ([], (init_names, init_names))))
+        Symtab.map_default (module_name', ([], ([], (reserved_names, reserved_names))))
               (apfst (fold (insert (op = : string * string -> bool)) deps))
-        #> `(fn code => add_name ((snd o snd o the o Symtab.lookup code) modlname'))
+        #> `(fn program => add_name ((snd o snd o the o Symtab.lookup program) module_name'))
         #-> (fn (base', names) =>
-              (Symtab.map_entry modlname' o apsnd) (fn (defs, _) =>
-              (add_def base' defs, names)))
+              (Symtab.map_entry module_name' o apsnd) (fn (stmts, _) =>
+              (add_stmt' base' stmts, names)))
       end;
-    val code' =
-      fold add_def (AList.make (fn name =>
-        (Graph.get_node code name, Graph.imm_succs code name))
-        (Graph.strong_conn code |> flat)) Symtab.empty;
-    val init_syms = CodeName.make_vars reserved_syms;
-    fun deresolv name =
-      (fst o fst o the o AList.lookup (op =) ((fst o snd o the
-        o Symtab.lookup code') ((name_modl o fst o dest_name) name))) name
+    val hs_program = fold add_stmt (AList.make (fn name =>
+      (Graph.get_node program name, Graph.imm_succs program name))
+      (Graph.strong_conn program |> flat)) Symtab.empty;
+    fun deresolver name =
+      (fst o the o AList.lookup (op =) ((fst o snd o the
+        o Symtab.lookup hs_program) ((mk_name_module o fst o dest_name) name))) name
         handle Option => error ("Unknown statement name: " ^ labelled_name name);
-    fun deresolv_here name =
-      (snd o fst o the o AList.lookup (op =) ((fst o snd o the
-        o Symtab.lookup code') ((name_modl o fst o dest_name) name))) name
-        handle Option => error ("Unknown statement name: " ^ labelled_name name);
+  in (deresolver, hs_program) end;
+
+fun serialize_haskell module_prefix module_name string_classes labelled_name
+    reserved_names includes raw_module_alias
+    syntax_class syntax_tyco syntax_const program cs destination =
+  let
+    val (deresolver, hs_program) = haskell_program_of_program labelled_name
+      module_name module_prefix reserved_names raw_module_alias program;
+    val is_cons = CodeThingol.is_cons program;
+    val contr_classparam_typs = CodeThingol.contr_classparam_typs program;
     fun deriving_show tyco =
       let
         fun deriv _ "fun" = false
           | deriv tycos tyco = member (op =) tycos tyco orelse
-              case try (Graph.get_node code) tyco
+              case try (Graph.get_node program) tyco
                 of SOME (CodeThingol.Datatype (_, cs)) => forall (deriv' (tyco :: tycos))
                     (maps snd cs)
                  | NONE => true
@@ -1563,45 +1585,46 @@ fun seri_haskell module_prefix module string_classes labelled_name
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
       in deriv [] tyco end;
-    fun seri_def qualified = pr_haskell class_syntax tyco_syntax
-      const_syntax labelled_name init_syms
-      deresolv_here (if qualified then deresolv else deresolv_here) is_cons
-      contr_classparam_typs
+    val reserved_names = CodeName.make_vars reserved_names;
+    fun pr_stmt qualified = pr_haskell_stmt syntax_class syntax_tyco
+      syntax_const labelled_name reserved_names
+      (if qualified then deresolver else NameSpace.base o deresolver)
+      is_cons contr_classparam_typs
       (if string_classes then deriving_show else K false);
-    fun assemble_module (modulename, content) =
-      (modulename, Pretty.chunks [
-        str ("module " ^ modulename ^ " where {"),
+    fun pr_module name content =
+      (name, Pretty.chunks [
+        str ("module " ^ name ^ " where {"),
         str "",
         content,
         str "",
         str "}"
       ]);
-    fun seri_module (modlname', (imports, (defs, _))) =
+    fun serialize_module (module_name', (deps, (stmts, _))) =
       let
-        val imports' =
-          imports
-          |> map (name_modl o fst o dest_name)
+        val stmt_names = map fst stmts;
+        val deps' = subtract (op =) stmt_names deps
           |> distinct (op =)
-          |> remove (op =) modlname';
-        val qualified = is_none module andalso
-          imports @ map fst defs
-          |> distinct (op =)
-          |> map_filter (try deresolv)
+          |> map_filter (try deresolver);
+        val qualified = is_none module_name andalso
+          map deresolver stmt_names @ deps'
           |> map NameSpace.base
           |> has_duplicates (op =);
-        val mk_import = str o (if qualified
+        val imports = deps'
+          |> map NameSpace.qualifier
+          |> distinct (op =);
+        fun pr_import_include (name, _) = str ("import " ^ name ^ ";");
+        val pr_import_module = str o (if qualified
           then prefix "import qualified "
           else prefix "import ") o suffix ";";
-        fun import_include (name, _) = str ("import " ^ name ^ ";");
         val content = Pretty.chunks (
-            map mk_import imports'
-            @ map import_include includes
+            map pr_import_include includes
+            @ map pr_import_module imports
             @ str ""
             :: separate (str "") (map_filter
-              (fn (name, (_, SOME def)) => SOME (seri_def qualified (name, def))
-                | (_, (_, NONE)) => NONE) defs)
+              (fn (name, (_, SOME stmt)) => SOME (pr_stmt qualified (name, stmt))
+                | (_, (_, NONE)) => NONE) stmts)
           )
-      in assemble_module (modlname', content) end;
+      in pr_module module_name' content end;
     fun write_module destination (modlname, content) =
       let
         val filename = case modlname
@@ -1610,46 +1633,21 @@ fun seri_haskell module_prefix module string_classes labelled_name
                 o NameSpace.explode) modlname;
         val pathname = Path.append destination filename;
         val _ = File.mkdir (Path.dir pathname);
-      in File.write pathname (target_code_of_pretty content) end
-    val output = case seri_dest
-     of Compile => error ("Haskell: no internal compilation")
-      | Write => K NONE o map (target_code_writeln o snd)
-      | File destination => K NONE o map (write_module destination)
-      | String => SOME o cat_lines o map (target_code_of_pretty o snd);
-  in output (map assemble_module includes
-    @ map seri_module (Symtab.dest code'))
+      in File.write pathname (code_of_pretty content) end
+    fun output Compile = error ("Haskell: no internal compilation")
+      | output Write = K NONE o map (code_writeln o snd)
+      | output (File destination) = K NONE o map (write_module destination)
+      | output String = SOME o cat_lines o map (code_of_pretty o snd);
+  in
+    output destination (map (uncurry pr_module) includes
+      @ map serialize_module (Symtab.dest hs_program))
   end;
 
 fun isar_seri_haskell module =
   parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
     -- Scan.optional (Args.$$$ "string_classes" >> K true) false
     >> (fn (module_prefix, string_classes) =>
-      seri_haskell module_prefix module string_classes));
-
-
-(** diagnosis serializer **)
-
-fun seri_diagnosis labelled_name _ _ _ _ _ _ code _ _ =
-  let
-    val init_names = CodeName.make_vars [];
-    fun pr_fun "fun" = SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
-          brackify_infix (1, R) fxy [
-            pr_typ (INFX (1, X)) ty1,
-            str "->",
-            pr_typ (INFX (1, R)) ty2
-          ])
-      | pr_fun _ = NONE
-    val pr = pr_haskell (K NONE) pr_fun (K NONE) labelled_name init_names
-      I I (K false) (K []) (K false);
-  in
-    []
-    |> Graph.fold (fn (name, (def, _)) =>
-          case try pr (name, def) of SOME p => cons p | NONE => I) code
-    |> Pretty.chunks2
-    |> target_code_of_pretty
-    |> writeln
-    |> K NONE
-  end;
+      serialize_haskell module_prefix module string_classes));
 
 
 (** optional pretty serialization **)
@@ -1811,25 +1809,48 @@ fun no_bindings x = (Option.map o apsnd)
 end; (*local*)
 
 
-(** user interfaces **)
+(** serializer interfaces **)
 
 (* evaluation *)
 
-fun eval_seri module args =
-  seri_ml (use_text (1, "generated code") Output.ml_output false)
-    (fn (cs, SOME s) => "let\n" ^ s ^ "\nin fn () => " ^ enclose "(" ")" (commas cs) ^ " end")
-    pr_sml (K Pretty.chunks) (SOME "Isabelle_Eval");
+fun eval_serializer module [] = serialize_ml
+  (use_text (1, "code to be evaluated") Output.ml_output false) 
+  (K Pretty.chunks) pr_sml_stmt
+  (fn SOME s => fn cs => SOME ("let\n" ^ s ^ "\nin fn () => " ^ enclose "(" ")" (commas cs) ^ " end"))
+  (SOME "Isabelle_Eval");
 
-fun sml_of thy code cs = get_serializer (K eval_seri) thy target_SML false NONE [] code (SOME cs) String;
+fun sml_code_of thy program cs = mount_serializer thy (SOME eval_serializer) target_SML NONE [] program cs String
+  |> the;
 
-fun eval thy (ref_name, reff) code (t, ty) args =
+fun eval eval'' term_of reff thy ct args =
   let
-    val _ = if CodeThingol.contains_dictvar t then
-      error "Term to be evaluated constains free dictionaries" else ();
-    val code' = CodeThingol.add_value_stmt (t, ty) code;
-    val value_code = sml_of thy code' [CodeName.value_name] ;
-    val sml_code = space_implode " " (value_code :: "()" :: map (enclose "(" ")") args);
-  in ML_Context.evaluate Output.ml_output false (ref_name, reff) sml_code end;
+    val _ = if null (term_frees (term_of ct)) then () else error ("Term "
+      ^ quote (Syntax.string_of_term_global thy (term_of ct))
+      ^ " to be evaluated contains free variables");
+    fun eval' program ((vs, ty), t) deps =
+      let
+        val _ = if CodeThingol.contains_dictvar t then
+          error "Term to be evaluated constains free dictionaries" else ();
+        val program' = program
+          |> Graph.new_node (CodeName.value_name, CodeThingol.Fun (([], ty), [(([], t), Drule.dummy_thm)]))
+          |> fold (curry Graph.add_edge CodeName.value_name) deps;
+        val value_code = sml_code_of thy program' [CodeName.value_name] ;
+        val sml_code = space_implode " " (value_code :: "()" :: map (enclose "(" ")") args);
+      in ML_Context.evaluate Output.ml_output false reff sml_code end;
+  in eval'' thy (fn t => (t, eval')) ct end;
+
+fun eval_conv reff = eval CodeThingol.eval_conv Thm.term_of reff;
+fun eval_term reff = eval CodeThingol.eval_term I reff;
+
+
+(* presentation *)
+
+fun code_of thy target module_name cs =
+  let
+    val (cs', program) = CodeThingol.consts_program thy cs;
+  in
+    string (serialize thy target (SOME module_name) [] program cs')
+  end;
 
 
 (* infix syntax *)
@@ -1877,11 +1898,7 @@ fun cert_class thy class =
     val _ = AxClass.get_info thy class;
   in class end;
 
-fun read_class thy raw_class =
-  let
-    val class = Sign.intern_class thy raw_class;
-    val _ = AxClass.get_info thy class;
-  in class end;
+fun read_class thy = cert_class thy o Sign.intern_class thy;
 
 fun cert_tyco thy tyco =
   let
@@ -1889,12 +1906,7 @@ fun cert_tyco thy tyco =
       else error ("No such type constructor: " ^ quote tyco);
   in tyco end;
 
-fun read_tyco thy raw_tyco =
-  let
-    val tyco = Sign.intern_type thy raw_tyco;
-    val _ = if Sign.declared_tyname thy tyco then ()
-      else error ("No such type constructor: " ^ quote raw_tyco);
-  in tyco end;
+fun read_tyco thy = cert_tyco thy o Sign.intern_type thy;
 
 fun gen_add_syntax_class prep_class prep_const target raw_class raw_syn thy =
   let
@@ -1971,7 +1983,7 @@ fun add_reserved target =
     fun add sym syms = if member (op =) syms sym
       then error ("Reserved symbol " ^ quote sym ^ " already declared")
       else insert (op =) sym syms
-  in map_adaptions target o apfst o add end;
+  in map_reserved target o add end;
 
 fun add_include target =
   let
@@ -1983,39 +1995,39 @@ fun add_include target =
           in Symtab.update (name, str content) incls end
       | add (name, NONE) incls =
           Symtab.delete name incls;
-  in map_adaptions target o apsnd o add end;
+  in map_includes target o add end;
 
-fun add_modl_alias target =
+fun add_module_alias target =
   map_module_alias target o Symtab.update o apsnd CodeName.check_modulename;
 
-fun add_monad target c_run c_bind c_return_unit thy =
+fun add_monad target raw_c_run raw_c_bind raw_c_return_unit thy =
   let
-    val c_run' = CodeUnit.read_const thy c_run;
-    val c_bind' = CodeUnit.read_const thy c_bind;
-    val c_bind'' = CodeName.const thy c_bind';
-    val c_return_unit'' = (Option.map o pairself)
-      (CodeName.const thy o CodeUnit.read_const thy) c_return_unit;
+    val c_run = CodeUnit.read_const thy raw_c_run;
+    val c_bind = CodeUnit.read_const thy raw_c_bind;
+    val c_bind' = CodeName.const thy c_bind;
+    val c_return_unit' = (Option.map o pairself)
+      (CodeName.const thy o CodeUnit.read_const thy) raw_c_return_unit;
     val is_haskell = target = target_Haskell;
-    val _ = if is_haskell andalso is_some c_return_unit''
+    val _ = if is_haskell andalso is_some c_return_unit'
       then error ("No unit entry may be given for Haskell monad")
       else ();
-    val _ = if not is_haskell andalso is_none c_return_unit''
+    val _ = if not is_haskell andalso is_none c_return_unit'
       then error ("Unit entry must be given for SML/OCaml monad")
       else ();
   in if target = target_Haskell then
     thy
-    |> gen_add_syntax_const (K I) target_Haskell c_run'
-          (SOME (pretty_haskell_monad c_bind''))
-    |> gen_add_syntax_const (K I) target_Haskell c_bind'
+    |> gen_add_syntax_const (K I) target_Haskell c_run
+          (SOME (pretty_haskell_monad c_bind'))
+    |> gen_add_syntax_const (K I) target_Haskell c_bind
           (no_bindings (SOME (parse_infix fst (L, 1) ">>=")))
   else
     thy
-    |> gen_add_syntax_const (K I) target c_bind'
-          (SOME (pretty_imperative_monad_bind c_bind''
-            ((fst o the) c_return_unit'') ((snd o the) c_return_unit'')))
+    |> gen_add_syntax_const (K I) target c_bind
+          (SOME (pretty_imperative_monad_bind c_bind'
+            ((fst o the) c_return_unit') ((snd o the) c_return_unit')))
   end;
 
-fun gen_allow_exception prep_cs raw_c thy =
+fun gen_allow_abort prep_cs raw_c thy =
   let
     val c = prep_cs thy raw_c;
     val c' = CodeName.const thy c;
@@ -2028,7 +2040,7 @@ fun zip_list (x::xs) f g =
     #-> (fn xys => pair ((x, y) :: xys)));
 
 
-(* conrete syntax *)
+(* concrete syntax *)
 
 structure P = OuterParse
 and K = OuterKeyword
@@ -2076,13 +2088,13 @@ val add_syntax_class = gen_add_syntax_class cert_class (K I);
 val add_syntax_inst = gen_add_syntax_inst cert_class cert_tyco;
 val add_syntax_tyco = gen_add_syntax_tyco cert_tyco;
 val add_syntax_const = gen_add_syntax_const (K I);
-val allow_exception = gen_allow_exception (K I);
+val allow_abort = gen_allow_abort (K I);
 
 val add_syntax_class_cmd = gen_add_syntax_class read_class CodeUnit.read_const;
 val add_syntax_inst_cmd = gen_add_syntax_inst read_class read_tyco;
 val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
 val add_syntax_const_cmd = gen_add_syntax_const CodeUnit.read_const;
-val allow_exception_cmd = gen_allow_exception CodeUnit.read_const;
+val allow_abort_cmd = gen_allow_abort CodeUnit.read_const;
 
 fun add_syntax_tycoP target tyco = parse_syntax I >> add_syntax_tyco_cmd target tyco;
 fun add_syntax_constP target c = parse_syntax fst >> (add_syntax_const_cmd target c o no_bindings);
@@ -2152,9 +2164,64 @@ fun add_pretty_message target charr nibbles nill cons str thy =
   end;
 
 
-(* Isar commands *)
+(** code generation at a glance **)
 
-val _ = OuterSyntax.keywords [infixK, infixlK, infixrK];
+fun read_const_exprs thy cs =
+  let
+    val (cs1, cs2) = CodeName.read_const_exprs thy cs;
+    val (cs3, program) = CodeThingol.consts_program thy cs2;
+    val cs4 = CodeThingol.transitivly_non_empty_funs program (abort_allowed thy);
+    val cs5 = map_filter
+      (fn (c, c') => if member (op =) cs4 c' then SOME c else NONE) (cs2 ~~ cs3);
+  in fold (insert (op =)) cs5 cs1 end;
+
+fun cached_program thy = 
+  let
+    val program = CodeThingol.cached_program thy;
+  in (CodeThingol.transitivly_non_empty_funs program (abort_allowed thy), program) end
+
+fun code thy cs seris =
+  let
+    val (cs', program) = if null cs
+      then cached_program thy
+      else CodeThingol.consts_program thy cs;
+    fun mk_seri_dest dest = case dest
+     of NONE => compile
+      | SOME "-" => write
+      | SOME f => file (Path.explode f)
+    val _ = map (fn (((target, module), dest), args) =>
+      (mk_seri_dest dest (serialize thy target module args program cs'))) seris;
+  in () end;
+
+fun sml_of thy cs = 
+  let
+    val (cs', program) = CodeThingol.consts_program thy cs;
+  in sml_code_of thy program cs' ^ " ()" end;
+
+fun code_antiq (ctxt, args) = 
+  let
+    val thy = Context.theory_of ctxt;
+    val (ts, (ctxt', args')) = Scan.repeat1 Args.term (ctxt, args);
+    val cs = map (CodeUnit.check_const thy) ts;
+    val s = sml_of thy cs;
+  in (("codevals", s), (ctxt', args')) end;
+
+fun export_code_cmd raw_cs seris thy = code thy (read_const_exprs thy raw_cs) seris;
+
+val (inK, module_nameK, fileK) = ("in", "module_name", "file");
+
+fun code_exprP cmd =
+  (Scan.repeat P.term
+  -- Scan.repeat (P.$$$ inK |-- P.name
+     -- Scan.option (P.$$$ module_nameK |-- P.name)
+     -- Scan.option (P.$$$ fileK |-- P.name)
+     -- Scan.optional (P.$$$ "(" |-- P.arguments --| P.$$$ ")") []
+  ) >> (fn (raw_cs, seris) => cmd raw_cs seris));
+
+
+(** Isar setup **)
+
+val _ = OuterSyntax.keywords [infixK, infixlK, infixrK, inK, module_nameK, fileK];
 
 val _ =
   OuterSyntax.command "code_class" "define code syntax for class" K.thy_decl (
@@ -2211,22 +2278,33 @@ val _ =
 val _ =
   OuterSyntax.command "code_modulename" "alias module to other name" K.thy_decl (
     P.name -- Scan.repeat1 (P.name -- P.name)
-    >> (fn (target, modlnames) => (Toplevel.theory o fold (add_modl_alias target)) modlnames)
+    >> (fn (target, modlnames) => (Toplevel.theory o fold (add_module_alias target)) modlnames)
   );
 
 val _ =
-  OuterSyntax.command "code_exception" "permit exceptions for constant" K.thy_decl (
-    Scan.repeat1 P.term >> (Toplevel.theory o fold allow_exception_cmd)
+  OuterSyntax.command "code_abort" "permit constant to be implemented as program abort" K.thy_decl (
+    Scan.repeat1 P.term >> (Toplevel.theory o fold allow_abort_cmd)
   );
+
+val _ =
+  OuterSyntax.command "export_code" "generate executable code for constants"
+    K.diag (P.!!! (code_exprP export_code_cmd) >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+
+fun shell_command thyname cmd = Toplevel.program (fn _ =>
+  (use_thy thyname; case Scan.read OuterLex.stopper (P.!!! (code_exprP export_code_cmd)) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
+   of SOME f => (writeln "Now generating code..."; f (theory thyname))
+    | NONE => error ("Bad directive " ^ quote cmd)))
+  handle TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
+
+val _ = ML_Context.value_antiq "code" code_antiq;
 
 
 (* serializer setup, including serializer defaults *)
 
 val setup =
-  add_serializer (target_SML, isar_seri_sml)
-  #> add_serializer (target_OCaml, isar_seri_ocaml)
-  #> add_serializer (target_Haskell, isar_seri_haskell)
-  #> add_serializer (target_diag, fn _ => fn _=> seri_diagnosis)
+  add_target (target_SML, isar_seri_sml)
+  #> add_target (target_OCaml, isar_seri_ocaml)
+  #> add_target (target_Haskell, isar_seri_haskell)
   #> add_syntax_tyco "SML" "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy [
         pr_typ (INFX (1, X)) ty1,

@@ -35,6 +35,6 @@ CMD="$1"
 ## main
 
 CMD=$(echo $CMD | sed -e 's/\\/\\\\"/g; s/"/\\\"/g')
-FULL_CMD="CodePackage.codegen_shell_command \"$THY\" \"$CMD\";"
+FULL_CMD="CodeTarget.shell_command \"$THY\" \"$CMD\";"
 
 "$ISABELLE" -q -e "$FULL_CMD" "$IMAGE" || exit 1

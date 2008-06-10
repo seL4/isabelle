@@ -277,14 +277,14 @@ fun compile_stmts stmts_deps =
       #-> fold (fn (name, univ) => (Graph.map_node name o apfst) (K (SOME univ))))
   end;
 
-fun ensure_stmts code =
+fun ensure_stmts program =
   let
     fun add_stmts names (gr, (maxidx, idx_tab)) = if exists ((can o Graph.get_node) gr) names
       then (gr, (maxidx, idx_tab))
       else (gr, (maxidx, idx_tab))
-        |> compile_stmts (map (fn name => ((name, Graph.get_node code name),
-          Graph.imm_succs code name)) names);
-  in fold_rev add_stmts (Graph.strong_conn code) end;
+        |> compile_stmts (map (fn name => ((name, Graph.get_node program name),
+          Graph.imm_succs program name)) names);
+  in fold_rev add_stmts (Graph.strong_conn program) end;
 
 
 (** evaluation **)
@@ -364,9 +364,9 @@ structure Nbe_Functions = CodeDataFun
 
 (* compilation, evaluation and reification *)
 
-fun compile_eval thy code vs_ty_t deps =
+fun compile_eval thy program vs_ty_t deps =
   let
-    val (gr, (_, idx_tab)) = Nbe_Functions.change thy (ensure_stmts code);
+    val (gr, (_, idx_tab)) = Nbe_Functions.change thy (ensure_stmts program);
   in
     vs_ty_t
     |> eval_term gr deps
@@ -375,7 +375,7 @@ fun compile_eval thy code vs_ty_t deps =
 
 (* evaluation with type reconstruction *)
 
-fun eval thy t code vs_ty_t deps =
+fun eval thy t program vs_ty_t deps =
   let
     fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
       | t => t);
@@ -395,7 +395,7 @@ fun eval thy t code vs_ty_t deps =
         ^ setmp show_types true (Syntax.string_of_term_global thy) t);
     val string_of_term = setmp show_types true (Syntax.string_of_term_global thy);
   in
-    compile_eval thy code vs_ty_t deps
+    compile_eval thy program vs_ty_t deps
     |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
     |> subst_triv_consts
     |> type_frees
@@ -408,14 +408,14 @@ fun eval thy t code vs_ty_t deps =
 
 (* evaluation oracle *)
 
-exception Norm of term * CodeThingol.code
+exception Norm of term * CodeThingol.program
   * (CodeThingol.typscheme * CodeThingol.iterm) * string list;
 
-fun norm_oracle (thy, Norm (t, code, vs_ty_t, deps)) =
-  Logic.mk_equals (t, eval thy t code vs_ty_t deps);
+fun norm_oracle (thy, Norm (t, program, vs_ty_t, deps)) =
+  Logic.mk_equals (t, eval thy t program vs_ty_t deps);
 
-fun norm_invoke thy t code vs_ty_t deps =
-  Thm.invoke_oracle_i thy "HOL.norm" (thy, Norm (t, code, vs_ty_t, deps));
+fun norm_invoke thy t program vs_ty_t deps =
+  Thm.invoke_oracle_i thy "HOL.norm" (thy, Norm (t, program, vs_ty_t, deps));
   (*FIXME get rid of hardwired theory name*)
 
 fun add_triv_classes thy =
@@ -430,15 +430,15 @@ fun add_triv_classes thy =
 fun norm_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    fun evaluator' t code vs_ty_t deps = norm_invoke thy t code vs_ty_t deps;
+    fun evaluator' t program vs_ty_t deps = norm_invoke thy t program vs_ty_t deps;
     fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in CodePackage.evaluate_conv thy evaluator ct end;
+  in CodeThingol.eval_conv thy evaluator ct end;
 
 fun norm_term thy t =
   let
-    fun evaluator' t code vs_ty_t deps = eval thy t code vs_ty_t deps;
+    fun evaluator' t program vs_ty_t deps = eval thy t program vs_ty_t deps;
     fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in (Code.postprocess_term thy o CodePackage.evaluate_term thy evaluator) t end;
+  in (Code.postprocess_term thy o CodeThingol.eval_term thy evaluator) t end;
 
 (* evaluation command *)
 

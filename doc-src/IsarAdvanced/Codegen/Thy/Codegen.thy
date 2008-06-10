@@ -7,9 +7,7 @@ imports Main
 uses "../../../antiquote_setup.ML"
 begin
 
-ML {*
-CodeTarget.target_code_width := 74;
-*}
+ML {* CodeTarget.code_width := 74 *}
 
 (*>*)
 

@@ -10,10 +10,13 @@ inside a single theory.
 
 signature CODE_NAME =
 sig
+  val read_const_exprs: theory -> string list -> string list * string list
+
   val purify_var: string -> string
   val purify_tvar: string -> string
   val purify_sym: string -> string
   val check_modulename: string -> string
+
   type var_ctxt;
   val make_vars: string list -> var_ctxt;
   val intro_vars: string list -> var_ctxt -> var_ctxt;
@@ -37,6 +40,31 @@ end;
 
 structure CodeName: CODE_NAME =
 struct
+
+(** constant expressions **)
+
+fun read_const_exprs thy =
+  let
+    fun consts_of some_thyname =
+      let
+        val thy' = case some_thyname
+         of SOME thyname => ThyInfo.the_theory thyname thy
+          | NONE => thy;
+        val raw_cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
+          ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) thy') [];
+        val cs = map (CodeUnit.subst_alias thy') raw_cs;
+        fun belongs_here c =
+          not (exists (fn thy'' => Sign.declared_const thy'' c) (Theory.parents_of thy'))
+      in case some_thyname
+       of NONE => cs
+        | SOME thyname => filter belongs_here cs
+      end;
+    fun read_const_expr "*" = ([], consts_of NONE)
+      | read_const_expr s = if String.isSuffix ".*" s
+          then ([], consts_of (SOME (unsuffix ".*" s)))
+          else ([CodeUnit.read_const thy s], []);
+  in pairself flat o split_list o map read_const_expr end;
+
 
 (** purification **)
 
@@ -96,7 +124,6 @@ fun intro_vars names (namemap, namectxt) =
 fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
  of SOME name' => name'
   | NONE => error ("Invalid name in context: " ^ quote name);
-
 
 
 (** global names (identifiers) **)

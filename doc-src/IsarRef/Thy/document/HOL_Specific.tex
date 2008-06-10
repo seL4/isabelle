@@ -919,7 +919,7 @@ Isabelle/Pure provides two generic frameworks to support code
     \indexdef{HOL}{command}{code\_reserved}\hypertarget{command.HOL.code-reserved}{\hyperlink{command.HOL.code-reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}}} & : & \isartrans{theory}{theory} \\
     \indexdef{HOL}{command}{code\_include}\hypertarget{command.HOL.code-include}{\hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}} & : & \isartrans{theory}{theory} \\
     \indexdef{HOL}{command}{code\_modulename}\hypertarget{command.HOL.code-modulename}{\hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{code\_exception}\hypertarget{command.HOL.code-exception}{\hyperlink{command.HOL.code-exception}{\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}}}} & : & \isartrans{theory}{theory} \\
+    \indexdef{HOL}{command}{code\_abort}\hypertarget{command.HOL.code-abort}{\hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}} & : & \isartrans{theory}{theory} \\
     \indexdef{HOL}{command}{print\_codesetup}\hypertarget{command.HOL.print-codesetup}{\hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
     \indexdef{HOL}{attribute}{code}\hypertarget{attribute.HOL.code}{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}} & : & \isaratt \\
   \end{matharray}
@@ -1070,9 +1070,9 @@ Isabelle/Pure provides two generic frameworks to support code
   \item [\hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}}] declares aliasings from
   one module name onto another.
 
-  \item [\hyperlink{command.HOL.code-exception}{\mbox{\isa{\isacommand{code{\isacharunderscore}exception}}}}] declares constants which
-  are not required to have a definition by a defining equations; these
-  are mapped on exceptions instead.
+  \item [\hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}] declares constants which
+  are not required to have a definition by a defining equations;
+  if needed these are implemented by program abort instead.
 
   \item [\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}~\isa{func}] explicitly selects (or
   with option ``\isa{{\isachardoublequote}del{\isacharcolon}{\isachardoublequote}}'' deselects) a defining equation for

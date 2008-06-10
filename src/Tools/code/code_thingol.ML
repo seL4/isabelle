@@ -71,25 +71,20 @@ sig
     | Classinst of (class * (string * (vname * sort) list))
           * ((class * (string * (string * dict list list))) list
         * ((string * const) * thm) list);
-  type code = stmt Graph.T;
-  val empty_code: code;
-  val merge_code: code * code -> code;
-  val project_code: bool (*delete empty funs*)
-    -> string list (*hidden*) -> string list option (*selected*)
-    -> code -> code;
-  val empty_funs: code -> string list;
-  val is_cons: code -> string -> bool;
-  val contr_classparam_typs: code -> string -> itype option list;
+  type program = stmt Graph.T;
+  val empty_funs: program -> string list;
+  val transitivly_non_empty_funs: program -> string list -> string list;
+  val is_cons: program -> string -> bool;
+  val contr_classparam_typs: program -> string -> itype option list;
 
-  type transact;
-  val ensure_const: theory -> (sort -> sort) * Sorts.algebra -> CodeFuncgr.T
-    -> string -> transact -> string * transact;
-  val ensure_value: theory -> (sort -> sort) * Sorts.algebra -> CodeFuncgr.T
-    -> term -> transact -> (code * ((typscheme * iterm) * string list)) * transact;
-  val transact: theory -> CodeFuncgr.T
-    -> (theory -> (sort -> sort) * Sorts.algebra -> CodeFuncgr.T
-      -> transact -> 'a * transact) -> code -> 'a * code;
-  val add_value_stmt: iterm * itype -> code -> code;
+  val consts_program: theory -> string list -> string list * program;
+  val cached_program: theory -> program;
+  val eval_conv: theory
+    -> (term -> term * (program -> typscheme * iterm -> string list -> thm))
+    -> cterm -> thm;
+  val eval_term: theory
+    -> (term -> term * (program -> typscheme * iterm -> string list -> 'a))
+    -> term -> 'a;
 end;
 
 structure CodeThingol: CODE_THINGOL =
@@ -256,7 +251,7 @@ fun locally_monomorphic (IConst _) = false
 
 
 
-(** definitions, transactions **)
+(** statements, abstract programs **)
 
 type typscheme = (vname * sort) list * itype;
 datatype stmt =
@@ -271,62 +266,25 @@ datatype stmt =
         * ((class * (string * (string * dict list list))) list
       * ((string * const) * thm) list);
 
-type code = stmt Graph.T;
+type program = stmt Graph.T;
 
-
-(* abstract code *)
-
-val empty_code = Graph.empty : code; (*read: "depends on"*)
-
-fun ensure_node name = Graph.default_node (name, NoStmt);
-
-fun add_def_incr (name, NoStmt) code =
-      (case the_default NoStmt (try (Graph.get_node code) name)
-       of NoStmt => error "Attempted to add NoStmt to code"
-        | _ => code)
-  | add_def_incr (name, def) code =
-      (case try (Graph.get_node code) name
-       of NONE => Graph.new_node (name, def) code
-        | SOME NoStmt => Graph.map_node name (K def) code
-        | SOME _ => error ("Tried to overwrite statement " ^ quote name));
-
-fun add_dep (NONE, _) = I
-  | add_dep (SOME name1, name2) =
-      if name1 = name2 then I else Graph.add_edge (name1, name2);
-
-val merge_code : code * code -> code = Graph.merge (K true);
-
-fun project_code delete_empty_funs hidden raw_selected code =
-  let
-    fun is_empty_fun name = case Graph.get_node code name
-     of Fun (_, []) => true
-      | _ => false;
-    val names = subtract (op =) hidden (Graph.keys code);
-    val deleted = Graph.all_preds code (filter is_empty_fun names);
-    val selected = case raw_selected
-     of NONE => names |> subtract (op =) deleted 
-      | SOME sel => sel
-          |> delete_empty_funs ? subtract (op =) deleted
-          |> subtract (op =) hidden
-          |> Graph.all_succs code
-          |> delete_empty_funs ? subtract (op =) deleted
-          |> subtract (op =) hidden;
-  in
-    code
-    |> Graph.subgraph (member (op =) selected)
-  end;
-
-fun empty_funs code =
+fun empty_funs program =
   Graph.fold (fn (name, (Fun (_, []), _)) => cons name
-               | _ => I) code [];
+               | _ => I) program [];
 
-fun is_cons code name = case Graph.get_node code name
+fun transitivly_non_empty_funs program names_ignored =
+  let
+    val names_empty = empty_funs program;
+    val names_delete = Graph.all_preds program (subtract (op =) names_ignored names_empty)
+  in subtract (op =) names_delete (Graph.keys program) end;
+
+fun is_cons program name = case Graph.get_node program name
  of Datatypecons _ => true
   | _ => false;
 
-fun contr_classparam_typs code name = case Graph.get_node code name
+fun contr_classparam_typs program name = case Graph.get_node program name
  of Classparam class => let
-        val Class (_, (_, params)) = Graph.get_node code class;
+        val Class (_, (_, params)) = Graph.get_node program class;
         val SOME ty = AList.lookup (op =) params name;
         val (tys, res_ty) = unfold_fun ty;
         fun no_tyvar (_ `%% tys) = forall no_tyvar tys
@@ -338,34 +296,27 @@ fun contr_classparam_typs code name = case Graph.get_node code name
   | _ => [];
 
 
-(* transaction protocol *)
+(** translation kernel **)
 
-type transact = Graph.key option * code;
+type transaction = Graph.key option * program;
 
-fun ensure_stmt stmtgen name (dep, code) =
+fun ensure_stmt stmtgen name (dep, program) =
   let
-    fun add_def false =
-          ensure_node name
-          #> add_dep (dep, name)
+    val add_dep = case dep of NONE => I | SOME dep => Graph.add_edge (dep, name);
+    fun add_stmt false =
+          Graph.default_node (name, NoStmt)
+          #> add_dep
           #> curry stmtgen (SOME name)
           ##> snd
-          #-> (fn def => add_def_incr (name, def))
-      | add_def true =
-          add_dep (dep, name);
+          #-> (fn stmt => Graph.map_node name (K stmt))
+      | add_stmt true =
+          add_dep;
   in
-    code
-    |> add_def (can (Graph.get_node code) name)
+    program
+    |> add_stmt (can (Graph.get_node program) name)
     |> pair dep
     |> pair name
   end;
-
-fun transact thy funcgr f code =
-  (NONE, code)
-  |> f thy (Code.operational_algebra thy) funcgr
-  |-> (fn x => fn (_, code) => (x, code));
-
-
-(* translation kernel *)
 
 fun not_wellsorted thy thm ty sort e =
   let
@@ -624,12 +575,56 @@ and exprgen_app thy algbr funcgr thm ((c, ty), ts) = case Code.get_case_data thy
   | NONE => exprgen_app_default thy algbr funcgr thm ((c, ty), ts);
 
 
-(** evaluation **)
+(** generated programs **)
 
-fun add_value_stmt (t, ty) code =
-  code
-  |> Graph.new_node (CodeName.value_name, Fun (([], ty), [(([], t), Drule.dummy_thm)]))
-  |> fold (curry Graph.add_edge CodeName.value_name) (Graph.keys code);
+(* store *)
+
+structure Program = CodeDataFun
+(
+  type T = program;
+  val empty = Graph.empty;
+  fun merge _ = Graph.merge (K true);
+  fun purge _ NONE _ = Graph.empty
+    | purge NONE _ _ = Graph.empty
+    | purge (SOME thy) (SOME cs) program =
+        let
+          val cs_exisiting =
+            map_filter (CodeName.const_rev thy) (Graph.keys program);
+          val dels = (Graph.all_preds program
+              o map (CodeName.const thy)
+              o filter (member (op =) cs_exisiting)
+            ) cs;
+        in Graph.del_nodes dels program end;
+);
+
+val cached_program = Program.get;
+
+fun transact f program =
+  (NONE, program)
+  |> f
+  |-> (fn x => fn (_, program) => (x, program));
+
+fun generate thy funcgr f x =
+  Program.change_yield thy (transact (f thy (Code.operational_algebra thy) funcgr x));
+
+
+(* program generation *)
+
+fun consts_program thy cs =
+  let
+    fun project_consts cs program =
+      let
+        val cs_all = Graph.all_succs program cs;
+      in (cs, Graph.subgraph (member (op =) cs_all) program) end;
+    fun generate_consts thy algebra funcgr =
+      fold_map (ensure_const thy algebra funcgr);
+  in
+    generate thy (CodeFuncgr.make thy cs) generate_consts cs
+    |-> project_consts
+  end;
+
+
+(* value evaluation *)
 
 fun ensure_value thy algbr funcgr t = 
   let
@@ -641,19 +636,35 @@ fun ensure_value thy algbr funcgr t =
       ##>> exprgen_typ thy algbr funcgr ty
       ##>> exprgen_term thy algbr funcgr NONE t
       #>> (fn ((vs, ty), t) => Fun ((vs, ty), [(([], t), Drule.dummy_thm)]));
-    fun term_value (dep, code1) =
+    fun term_value (dep, program1) =
       let
         val Fun ((vs, ty), [(([], t), _)]) =
-          Graph.get_node code1 CodeName.value_name;
-        val deps = Graph.imm_succs code1 CodeName.value_name;
-        val code2 = Graph.del_nodes [CodeName.value_name] code1;
-        val code3 = project_code false [] (SOME deps) code2;
-      in ((code3, (((vs, ty), t), deps)), (dep, code2)) end;
+          Graph.get_node program1 CodeName.value_name;
+        val deps = Graph.imm_succs program1 CodeName.value_name;
+        val program2 = Graph.del_nodes [CodeName.value_name] program1;
+        val deps_all = Graph.all_succs program2 deps;
+        val program3 = Graph.subgraph (member (op =) deps_all) program2;
+      in ((program3, (((vs, ty), t), deps)), (dep, program2)) end;
   in
     ensure_stmt stmt_value CodeName.value_name
     #> snd
     #> term_value
   end;
+
+fun eval eval_kind thy evaluator =
+  let
+    fun evaluator'' evaluator''' funcgr t =
+      let
+        val ((program, (vs_ty_t, deps)), _) = generate thy funcgr ensure_value t;
+      in evaluator''' program vs_ty_t deps end;
+    fun evaluator' t =
+      let
+        val (t', evaluator''') = evaluator t;
+      in (t', evaluator'' evaluator''') end;
+  in eval_kind thy evaluator' end
+
+fun eval_conv thy = eval CodeFuncgr.eval_conv thy;
+fun eval_term thy = eval CodeFuncgr.eval_term thy;
 
 end; (*struct*)
 
