@@ -468,7 +468,8 @@ fun focus goal ctxt =
     val (xs', ctxt') = variant_fixes xs ctxt;
     val ps' = ListPair.map (cert o Free) (xs', Ts);
     val goal' = fold forall_elim_prop ps' goal;
-  in ((ps', goal'), ctxt') end;
+    val ctxt'' = ctxt' |> fold (declare_constraints o Thm.term_of) ps';
+  in ((ps', goal'), ctxt'') end;
 
 fun focus_subgoal i st =
   let
