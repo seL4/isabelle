@@ -51,7 +51,7 @@ in
 val deriv_tac =
   SUBGOAL (fn (prem,i) =>
    (resolve_tac @{thms deriv_rulesI} i) ORELSE
-    ((rtac (read_instantiate [("f",get_fun_name prem)]
+    ((rtac (Drule.read_instantiate [("f",get_fun_name prem)]
                      @{thm DERIV_chain2}) i) handle DERIV_name => no_tac));;
 
 val DERIV_tac = ALLGOALS(fn i => REPEAT(deriv_tac i));

@@ -884,7 +884,7 @@ in (* local *)
     else (* infinite case *)
       let
         fun one_finite n dn =
-          read_instantiate_sg thy
+          Drule.read_instantiate_sg thy
             [("P",dn^"_finite "^x_name n)] excluded_middle;
         val finites = mapn one_finite 1 dnames;
 

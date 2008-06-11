@@ -24,10 +24,10 @@ struct
   (* ------------------------------------------------------------------------- *)
   (* Useful Theorems                                                           *)
   (* ------------------------------------------------------------------------- *)
-  val EXCLUDED_MIDDLE  = rotate_prems 1 (read_instantiate [("R","False")] notE);
+  val EXCLUDED_MIDDLE  = rotate_prems 1 (Drule.read_instantiate [("R","False")] notE);
   val REFL_THM         = incr_indexes 2 (Meson.make_meta_clause refl);  (*Rename from 0,1*)
   val subst_em  = zero_var_indexes (subst RS EXCLUDED_MIDDLE);
-  val ssubst_em  = read_instantiate [("t","?s"),("s","?t")] (sym RS subst_em);
+  val ssubst_em  = Drule.read_instantiate [("t","?s"),("s","?t")] (sym RS subst_em);
 
   (* ------------------------------------------------------------------------- *)
   (* Useful Functions                                                          *)

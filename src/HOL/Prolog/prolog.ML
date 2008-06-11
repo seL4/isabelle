@@ -52,7 +52,7 @@ fun check_HOHH thm  = (if isD (concl_of thm) andalso forall isG (prems_of thm)
 
 fun atomizeD thm = let
     fun at  thm = case concl_of thm of
-      _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (read_instantiate [("x",
+      _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (Drule.read_instantiate [("x",
                                         "?"^(if s="P" then "PP" else s))] spec))
     | _$(Const("op &",_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
     | _$(Const("op -->",_)$_$_)     => at(thm RS mp)

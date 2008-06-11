@@ -229,7 +229,7 @@ translations
 
 ML {*
 fun sum3_instantiate thm = map (fn s => simplify(simpset()delsimps[@{thm not_None_eq}])
- (read_instantiate [("t","In"^s^" ?x")] thm)) ["1l","2","3","1r"]
+ (Drule.read_instantiate [("t","In"^s^" ?x")] thm)) ["1l","2","3","1r"]
 *}
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
 

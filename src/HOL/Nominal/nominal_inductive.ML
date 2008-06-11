@@ -48,7 +48,7 @@ fun mk_perm_bool_simproc names = Simplifier.simproc_i
          then SOME perm_bool else NONE
      | _ => NONE);
 
-val allE_Nil = read_instantiate_sg (the_context()) [("x", "[]")] allE;
+val allE_Nil = Drule.read_instantiate_sg (the_context()) [("x", "[]")] allE;
 
 fun transp ([] :: _) = []
   | transp xs = map hd xs :: transp (map tl xs);
