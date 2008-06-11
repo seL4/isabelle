@@ -19,7 +19,8 @@ declarations as the structured Isar versions "cases" and "induct", cf.
 the corresponding "cases" and "induct" attributes.  INCOMPATIBILITY,
 in rare situations a different rule is selected --- notably nested
 tuple elimination instead of former prod.exhaust: use explicit
-(case_tac t rule: prod.exhaust) here.
+(case_tac t rule: prod.exhaust) here.  Old-style rules for mutual and
+nested datatypes also need to be given explicitly.
 
 * Attributes "cases", "induct", "coinduct" support "del" option.
 
