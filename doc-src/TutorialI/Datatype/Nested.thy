@@ -67,7 +67,7 @@ strengthened and proved as follows:
 
 lemma subst_id(*<*)(*referred to from ABexpr*)(*>*): "subst  Var t  = (t ::('v,'f)term)  \<and>
                   substs Var ts = (ts::('v,'f)term list)";
-apply(induct_tac t and ts, simp_all);
+apply(induct_tac t and ts rule: term.induct, simp_all);
 done
 
 text{*\noindent
@@ -105,7 +105,7 @@ that the suggested equation holds:
 (* Exercise 1: *)
 lemma "subst  ((subst f) \<circ> g) t  = subst  f (subst g t) \<and>
        substs ((subst f) \<circ> g) ts = substs f (substs g ts)"
-apply (induct_tac t and ts)
+apply (induct_tac t and ts rule: term.induct)
 apply (simp_all)
 done
 
@@ -126,7 +126,7 @@ done
 
 lemma "trev (trev t) = (t::('v,'f)term) \<and> 
        trevs (trevs ts) = (ts::('v,'f)term list)"
-apply (induct_tac t and ts, simp_all)
+apply (induct_tac t and ts rule: term.induct, simp_all)
 done
 (*>*)
 

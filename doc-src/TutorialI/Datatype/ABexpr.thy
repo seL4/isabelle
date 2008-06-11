@@ -93,7 +93,7 @@ theorems simultaneously:
 
 lemma "evala (substa s a) env = evala a (\<lambda>x. evala (s x) env) \<and>
         evalb (substb s b) env = evalb b (\<lambda>x. evala (s x) env)";
-apply(induct_tac a and b);
+apply(induct_tac a and b rule: aexp_bexp.induct);
 
 txt{*\noindent
 The resulting 8 goals (one for each constructor) are proved in one fell swoop:
@@ -138,7 +138,7 @@ primrec norma :: "'a aexp \<Rightarrow> 'a aexp" and
 
 lemma " evala (norma a) env = evala a env 
       \<and> (\<forall> t e. evala (normb b t e) env = evala (IF b t e) env)"
-apply (induct_tac a and b)
+apply (induct_tac a and b rule: aexp_bexp.induct)
 apply (simp_all)
 done
 
@@ -156,7 +156,7 @@ primrec normala :: "'a aexp \<Rightarrow> bool" and
 
 lemma "normala (norma (a::'a aexp)) \<and>
        (\<forall> (t::'a aexp) e. (normala t \<and> normala e) \<longrightarrow> normala (normb b t e))"
-apply (induct_tac a and b)
+apply (induct_tac a and b rule: aexp_bexp.induct)
 apply (auto)
 done
 
