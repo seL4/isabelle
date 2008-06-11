@@ -270,53 +270,6 @@ apply (simp add: isNSCont_def)
 apply (auto intro: approx_hrabs simp add: starfun_rabs_hrabs)
 done
 
-(****************************************************************
-(%* Leave as commented until I add topology theory or remove? *%)
-(%*------------------------------------------------------------
-  Elementary topology proof for a characterisation of
-  continuity now: a function f is continuous if and only
-  if the inverse image, {x. f(x) \<in> A}, of any open set A
-  is always an open set
- ------------------------------------------------------------*%)
-Goal "[| isNSopen A; \<forall>x. isNSCont f x |]
-               ==> isNSopen {x. f x \<in> A}"
-by (auto_tac (claset(),simpset() addsimps [isNSopen_iff1]));
-by (dtac (mem_monad_approx RS approx_sym);
-by (dres_inst_tac [("x","a")] spec 1);
-by (dtac isNSContD 1 THEN assume_tac 1)
-by (dtac bspec 1 THEN assume_tac 1)
-by (dres_inst_tac [("x","( *f* f) x")] approx_mem_monad2 1);
-by (blast_tac (claset() addIs [starfun_mem_starset]);
-qed "isNSCont_isNSopen";
-
-Goalw [isNSCont_def]
-          "\<forall>A. isNSopen A --> isNSopen {x. f x \<in> A} \
-\              ==> isNSCont f x";
-by (auto_tac (claset() addSIs [(mem_infmal_iff RS iffD1) RS
-     (approx_minus_iff RS iffD2)],simpset() addsimps
-      [Infinitesimal_def,SReal_iff]));
-by (dres_inst_tac [("x","{z. abs(z + -f(x)) < ya}")] spec 1);
-by (etac (isNSopen_open_interval RSN (2,impE));
-by (auto_tac (claset(),simpset() addsimps [isNSopen_def,isNSnbhd_def]));
-by (dres_inst_tac [("x","x")] spec 1);
-by (auto_tac (claset() addDs [approx_sym RS approx_mem_monad],
-    simpset() addsimps [hypreal_of_real_zero RS sym,STAR_starfun_rabs_add_minus]));
-qed "isNSopen_isNSCont";
-
-Goal "(\<forall>x. isNSCont f x) = \
-\     (\<forall>A. isNSopen A --> isNSopen {x. f(x) \<in> A})";
-by (blast_tac (claset() addIs [isNSCont_isNSopen,
-    isNSopen_isNSCont]);
-qed "isNSCont_isNSopen_iff";
-
-(%*------- Standard version of same theorem --------*%)
-Goal "(\<forall>x. isCont f x) = \
-\         (\<forall>A. isopen A --> isopen {x. f(x) \<in> A})";
-by (auto_tac (claset() addSIs [isNSCont_isNSopen_iff],
-              simpset() addsimps [isNSopen_isopen_iff RS sym,
-              isNSCont_isCont_iff RS sym]));
-qed "isCont_isopen_iff";
-*******************************************************************)
 
 subsection {* Uniform Continuity *}
 

@@ -306,19 +306,6 @@ done
 lemma starfun_exp_gt_one [simp]: "!!x::hypreal. 0 < x ==> 1 < ( *f* exp) x"
 by transfer (rule exp_gt_one)
 
-(* needs derivative of inverse function
-   TRY a NS one today!!!
-
-Goal "x @= 1 ==> ( *f* ln) x @= 1"
-by (res_inst_tac [("z","x")] eq_Abs_star 1);
-by (auto_tac (claset(),simpset() addsimps [hypreal_one_def]));
-
-
-Goalw [nsderiv_def] "0r < x ==> NSDERIV ln x :> inverse x";
-
-*)
-
-
 lemma starfun_ln_exp [simp]: "!!x. ( *f* ln) (( *f* exp) x) = x"
 by transfer (rule ln_exp)
 

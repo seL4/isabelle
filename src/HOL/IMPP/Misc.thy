@@ -85,16 +85,9 @@ done
 lemma classic_Local: "!v. G|-{%Z s. P Z (s[Loc Y::=v]) & s<Y> = a (s[Loc Y::=v])}.  
   c .{%Z s. Q Z (s[Loc Y::=v])} ==> G|-{P}. LOCAL Y:=a IN c .{Q}"
 apply (rule export_s)
-(*variant 1*)
 apply (rule hoare_derivs.Local [THEN conseq1])
 apply (erule spec)
 apply force
-(*variant 2
-by (res_inst_tac [("P'","%Z s. s' = s & P Z (s[Loc Y::=a s][Loc Y::=s'<Y>]) & (s[Loc Y::=a s])<Y> = a (s[Loc Y::=a s][Loc Y::=s'<Y>])")] conseq1 1)
-by  (Clarsimp_tac 2);
-by (rtac hoare_derivs.Local 1);
-by (etac spec 1);
-*)
 done
 
 lemma classic_Local_indep: "[| Y~=Y'; G|-{P}. c .{%Z s. s<Y'> = d} |] ==>  

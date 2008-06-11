@@ -362,28 +362,6 @@ by blast
 
 text{*55*}
 
-(*Original, equational version by Len Schubert, via Pelletier *** NOT PROVED
-Goal "(\<exists>x. lives(x) & killed(x,agatha)) &  
-   lives(agatha) & lives(butler) & lives(charles) &  
-   (\<forall>x. lives(x) --> x=agatha | x=butler | x=charles) &  
-   (\<forall>x y. killed(x,y) --> hates(x,y)) &  
-   (\<forall>x y. killed(x,y) --> ~richer(x,y)) &  
-   (\<forall>x. hates(agatha,x) --> ~hates(charles,x)) &  
-   (\<forall>x. ~ x=butler --> hates(agatha,x)) &  
-   (\<forall>x. ~richer(x,agatha) --> hates(butler,x)) &  
-   (\<forall>x. hates(agatha,x) --> hates(butler,x)) &  
-   (\<forall>x. \<exists>y. ~hates(x,y)) &  
-   ~ agatha=butler -->  
-   killed(?who,agatha)"
-by Safe_tac;
-by (dres_inst_tac [("x1","x")] (spec RS mp) 1);
-by (assume_tac 1);
-by (etac (spec RS exE) 1);
-by (REPEAT (etac allE 1));
-by (Blast_tac 1);
-result();
-****)
-
 text{*Non-equational version, from Manthey and Bry, CADE-9 (Springer, 1988).
   fast DISCOVERS who killed Agatha. *}
 lemma "lives(agatha) & lives(butler) & lives(charles) &  

@@ -81,15 +81,8 @@ done
 text {* tactic for tr-thms with case split *}
 
 lemmas tr_defs = andalso_def orelse_def neg_def ifte_def TT_def FF_def
-(*
-fun prover t =  prove_goal thy t
- (fn prems =>
-        [
-        (res_inst_tac [("p","y")] trE 1),
-	(REPEAT(asm_simp_tac (simpset() addsimps
-		[o_def,flift1_def,flift2_def,inst_lift_po]@tr_defs) 1))
-	])
-*)
+
+
 text {* distinctness for type @{typ tr} *}
 
 lemma dist_less_tr [simp]:

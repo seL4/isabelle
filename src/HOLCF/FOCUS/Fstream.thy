@@ -68,10 +68,7 @@ apply (erule disjE)
 apply fast
 apply fast
 done
-(*
-fun fstream_case_tac s i = res_inst_tac [("x",s)] fstream_cases i
-                          THEN hyp_subst_tac i THEN hyp_subst_tac (i+1);
-*)
+
 lemma fstream_exhaust_eq: "(x ~= UU) = (? a y. x = a~> y)"
 apply (simp add: fscons_def2 stream_exhaust_eq)
 apply (fast dest: not_Undef_is_Def [THEN iffD1] elim: DefE)

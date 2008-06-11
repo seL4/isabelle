@@ -74,13 +74,6 @@ lemma SComplex_hcmod_SReal:
       "z \<in> SComplex ==> hcmod z \<in> Reals"
 by (simp add: Reals_eq_Standard)
 
-(*
-Goalw [SComplex_def,SReal_def] "hcmod z \<in> Reals ==> z \<in> SComplex"
-by (res_inst_tac [("z","z")] eq_Abs_hcomplex 1);
-by (auto_tac (claset(),simpset() addsimps [hcmod,hypreal_of_real_def,
-    hcomplex_of_complex_def,cmod_def]));
-*)
-
 
 subsection{*The Finite Elements form a Subring*}
 
