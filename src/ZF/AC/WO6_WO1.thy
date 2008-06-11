@@ -395,8 +395,6 @@ apply (rule CollectI)
 apply (erule succ_natD)
 apply (rule_tac x = "a++a" in exI)
 apply (rule_tac x = "gg2 (f,a,b,x) " in exI)
-(*Calling fast_tac might get rid of the res_inst_tac calls, but it
-  is just too slow.*)
 apply (simp add: Ord_oadd domain_gg2 UN_gg2_eq gg2_lepoll_m)
 done
 

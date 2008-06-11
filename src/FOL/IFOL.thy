@@ -226,9 +226,7 @@ lemma not_to_imp:
   done
 
 (* For substitution into an assumption P, reduce Q to P-->Q, substitute into
-   this implication, then apply impI to move P back into the assumptions.
-   To specify P use something like
-      eres_inst_tac [ ("P","ALL y. ?S(x,y)") ] rev_mp 1   *)
+   this implication, then apply impI to move P back into the assumptions.*)
 lemma rev_mp: "[| P;  P --> Q |] ==> Q"
   by (erule mp)
 

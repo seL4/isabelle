@@ -90,7 +90,7 @@ apply (simp add: Pi_iff)
 apply (blast intro: function_apply_Pair)
 done
 
-(*Conclusion is flexible -- use res_inst_tac or else apply_funtype below!*)
+(*Conclusion is flexible -- use rule_tac or else apply_funtype below!*)
 lemma apply_type [TC]: "[| f: Pi(A,B);  a:A |] ==> f`a : B(a)"
 by (blast intro: apply_Pair dest: fun_is_rel)
 
