@@ -518,16 +518,6 @@ lemma pred3_cong: "[| a=a';  b=b';  c=c' |] ==> P(a,b,c) <-> P(a',b',c')"
   apply assumption
   done
 
-(*special cases for free variables P, Q, R, S -- up to 3 arguments*)
-
-ML {*
-bind_thms ("pred_congs",
-  List.concat (map (fn c => 
-               map (fn th => read_instantiate [("P",c)] th)
-                   [@{thm pred1_cong}, @{thm pred2_cong}, @{thm pred3_cong}])
-               (explode"PQRS")))
-*}
-
 (*special case for the equality predicate!*)
 lemma eq_cong: "[| a = a'; b = b' |] ==> a = b <-> a' = b'"
   apply (erule (1) pred2_cong)
