@@ -13,7 +13,7 @@ local
 val simprocs = field_cancel_numeral_factors
 
 val simps = [@{thm order_less_irrefl}, @{thm neg_less_iff_less}, @{thm True_implies_equals},
-             inst "a" "(number_of ?v)" @{thm right_distrib},
+             OldGoals.inst "a" "(number_of ?v)" @{thm right_distrib},
              @{thm divide_1}, @{thm divide_zero_left},
              @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
              @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,

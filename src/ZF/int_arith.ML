@@ -11,16 +11,16 @@ Simprocs for linear arithmetic.
     such as -x = #3
 **)
 
-Addsimps [inst "y" "integ_of(?w)" @{thm zminus_equation},
-          inst "x" "integ_of(?w)" @{thm equation_zminus}];
+Addsimps [OldGoals.inst "y" "integ_of(?w)" @{thm zminus_equation},
+          OldGoals.inst "x" "integ_of(?w)" @{thm equation_zminus}];
 
-AddIffs [inst "y" "integ_of(?w)" @{thm zminus_zless},
-         inst "x" "integ_of(?w)" @{thm zless_zminus}];
+AddIffs [OldGoals.inst "y" "integ_of(?w)" @{thm zminus_zless},
+         OldGoals.inst "x" "integ_of(?w)" @{thm zless_zminus}];
 
-AddIffs [inst "y" "integ_of(?w)" @{thm zminus_zle},
-         inst "x" "integ_of(?w)" @{thm zle_zminus}];
+AddIffs [OldGoals.inst "y" "integ_of(?w)" @{thm zminus_zle},
+         OldGoals.inst "x" "integ_of(?w)" @{thm zle_zminus}];
 
-Addsimps [inst "s" "integ_of(?w)" @{thm Let_def}];
+Addsimps [OldGoals.inst "s" "integ_of(?w)" @{thm Let_def}];
 
 (*** Simprocs for numeric literals ***)
 
@@ -48,10 +48,10 @@ qed "left_zadd_zmult_distrib";
 
 (** For cancel_numerals **)
 
-val rel_iff_rel_0_rls = map (inst "y" "?u$+?v")
+val rel_iff_rel_0_rls = map (OldGoals.inst "y" "?u$+?v")
                           [zless_iff_zdiff_zless_0, eq_iff_zdiff_eq_0,
                            zle_iff_zdiff_zle_0] @
-                        map (inst "y" "n")
+                        map (OldGoals.inst "y" "n")
                           [zless_iff_zdiff_zless_0, eq_iff_zdiff_eq_0,
                            zle_iff_zdiff_zle_0];
 

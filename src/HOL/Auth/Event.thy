@@ -281,7 +281,7 @@ by (force
 ML
 {*
 val analz_mono_contra_tac = 
-  let val analz_impI = inst "P" "?Y \<notin> analz (knows Spy ?evs)" impI
+  let val analz_impI = OldGoals.inst "P" "?Y \<notin> analz (knows Spy ?evs)" impI
   in
     rtac analz_impI THEN' 
     REPEAT1 o 
@@ -299,7 +299,7 @@ subsubsection{*Useful for case analysis on whether a hash is a spoof or not*}
 ML
 {*
 val synth_analz_mono_contra_tac = 
-  let val syan_impI = inst "P" "?Y \<notin> synth (analz (knows Spy ?evs))" impI
+  let val syan_impI = OldGoals.inst "P" "?Y \<notin> synth (analz (knows Spy ?evs))" impI
   in
     rtac syan_impI THEN' 
     REPEAT1 o 

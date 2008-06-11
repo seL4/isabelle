@@ -821,7 +821,7 @@ text{*Rewrites to push in Key and Crypt messages, so that other messages can
     be pulled out using the @{text analz_insert} rules*}
 ML
 {*
-fun insComm x y = inst "x" x (inst "y" y insert_commute);
+fun insComm x y = OldGoals.inst "x" x (OldGoals.inst "y" y insert_commute);
 
 bind_thms ("pushKeys",
            map (insComm "Key ?K") 

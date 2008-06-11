@@ -261,7 +261,7 @@ lemmas analz_mono_contra =
 ML
 {*
 val analz_mono_contra_tac = 
-  let val analz_impI = inst "P" "?Y \<notin> analz (knows Spy ?evs)" impI
+  let val analz_impI = OldGoals.inst "P" "?Y \<notin> analz (knows Spy ?evs)" impI
   in
     rtac analz_impI THEN' 
     REPEAT1 o 
@@ -334,7 +334,7 @@ val knows_Spy_subset_knows_Spy_Gets = thm "knows_Spy_subset_knows_Spy_Gets";
 
 
 val synth_analz_mono_contra_tac = 
-  let val syan_impI = inst "P" "?Y \<notin> synth (analz (knows Spy ?evs))" impI
+  let val syan_impI = OldGoals.inst "P" "?Y \<notin> synth (analz (knows Spy ?evs))" impI
   in
     rtac syan_impI THEN' 
     REPEAT1 o 
