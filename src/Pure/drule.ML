@@ -17,10 +17,6 @@ sig
   val cprems_of: thm -> cterm list
   val cterm_fun: (term -> term) -> (cterm -> cterm)
   val ctyp_fun: (typ -> typ) -> (ctyp -> ctyp)
-  val read_insts: theory -> (indexname -> typ option) * (indexname -> sort option) ->
-    (indexname -> typ option) * (indexname -> sort option) -> string list ->
-    (indexname * string) list -> (ctyp * ctyp) list * (cterm * cterm) list
-  val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val forall_intr_list: cterm list -> thm -> thm
   val forall_intr_frees: thm -> thm
   val forall_intr_vars: thm -> thm
@@ -50,8 +46,6 @@ sig
   val COMP: thm * thm -> thm
   val INCR_COMP: thm * thm -> thm
   val COMP_INCR: thm * thm -> thm
-  val read_instantiate_sg: theory -> (string*string)list -> thm -> thm
-  val read_instantiate: (string*string)list -> thm -> thm
   val cterm_instantiate: (cterm*cterm)list -> thm -> thm
   val size_of_thm: thm -> int
   val reflexive_thm: thm
@@ -83,6 +77,10 @@ sig
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
   val beta_conv: cterm -> cterm -> cterm
+  val read_insts: theory -> (indexname -> typ option) * (indexname -> sort option) ->
+    (indexname -> typ option) * (indexname -> sort option) -> string list ->
+    (indexname * string) list -> (ctyp * ctyp) list * (cterm * cterm) list
+  val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val add_used: thm -> string list -> string list
   val flexflex_unique: thm -> thm
   val store_thm: bstring -> thm -> thm
@@ -105,6 +103,10 @@ sig
   val protectI: thm
   val protectD: thm
   val protect_cong: thm
+  val read_instantiate_sg: theory -> (string*string)list -> thm -> thm
+  val read_instantiate: (string*string)list -> thm -> thm
+  val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
+  val read_instantiate': (indexname * string) list -> thm -> thm
   val implies_intr_protected: cterm list -> thm -> thm
   val termI: thm
   val mk_term: cterm -> thm
@@ -124,8 +126,6 @@ sig
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
   val abs_def: thm -> thm
-  val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
-  val read_instantiate': (indexname * string) list -> thm -> thm
 end;
 
 structure Drule: DRULE =
