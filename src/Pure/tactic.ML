@@ -220,11 +220,11 @@ fun params_of_state i st = rev (innermost_params i st);
 fun read_insts_in_state (st, i, sinsts, rule) =
   let val thy = Thm.theory_of_thm st
       and params = params_of_state i st
-      and rts = types_sorts rule and (types,sorts) = types_sorts st
+      and rts = Drule.types_sorts rule and (types,sorts) = Drule.types_sorts st
       fun types'(a, ~1) = (case AList.lookup (op =) params a of NONE => types (a, ~1) | sm => sm)
         | types' ixn = types ixn;
       val used = Drule.add_used rule (Drule.add_used st []);
-  in read_insts thy rts (types',sorts) used sinsts end;
+  in Drule.read_insts thy rts (types',sorts) used sinsts end;
 
 (*Lift and instantiate a rule wrt the given state and subgoal number *)
 fun lift_inst_rule' (st, i, sinsts, rule) =
@@ -340,7 +340,7 @@ fun forw_inst_tac sinsts rule = cut_inst_tac sinsts rule THEN' assume_tac;
 fun dres_inst_tac sinsts rule = eres_inst_tac sinsts (make_elim_preserve rule);
 
 (*instantiate variables in the whole state*)
-val instantiate_tac = PRIMITIVE o read_instantiate;
+val instantiate_tac = PRIMITIVE o Drule.read_instantiate;
 
 val instantiate_tac' = PRIMITIVE o Drule.read_instantiate';
 
