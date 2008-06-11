@@ -155,21 +155,13 @@ lemma exchL: "$H, Q, P, $G |- $E ==> $H, P, Q, $G |- $E"
   by (rule exchLS)
 
 ML {*
-local
-  val thinR = thm "thinR"
-  val thinL = thm "thinL"
-  val cut = thm "cut"
-in
-
 (*Cut and thin, replacing the right-side formula*)
 fun cutR_tac s i =
-  res_inst_tac [ ("P", s) ] cut i  THEN  rtac thinR i
+  res_inst_tac [ ("P", s) ] @{thm cut} i  THEN  rtac @{thm thinR} i
 
 (*Cut and thin, replacing the left-side formula*)
 fun cutL_tac s i =
-  res_inst_tac [("P", s)] cut i  THEN  rtac thinL (i+1)
-
-end
+  res_inst_tac [("P", s)] @{thm cut} i  THEN  rtac @{thm thinL} (i+1)
 *}
 
 

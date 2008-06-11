@@ -414,8 +414,7 @@ lemma po_coinduct: "[|  <t,u> : R;  R <= POgen(R) |] ==> t [= u"
   done
 
 ML {*
-  local val po_coinduct = thm "po_coinduct"
-  in fun po_coinduct_tac s i = res_inst_tac [("R",s)] po_coinduct i end
+  fun po_coinduct_tac s i = res_inst_tac [("R",s)] @{thm po_coinduct} i
 *}
 
 
@@ -460,13 +459,8 @@ lemma eq_coinduct3:
   done
 
 ML {*
-  local
-    val eq_coinduct = thm "eq_coinduct"
-    val eq_coinduct3 = thm "eq_coinduct3"
-  in
-    fun eq_coinduct_tac s i = res_inst_tac [("R",s)] eq_coinduct i
-    fun eq_coinduct3_tac s i = res_inst_tac [("R",s)] eq_coinduct3 i
-  end
+  fun eq_coinduct_tac s i = res_inst_tac [("R",s)] @{thm eq_coinduct} i
+  fun eq_coinduct3_tac s i = res_inst_tac [("R",s)] @{thm eq_coinduct3} i
 *}
 
 

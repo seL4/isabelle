@@ -97,8 +97,7 @@ lemma HTT_coinduct: "[|  t : R;  R <= HTTgen(R) |] ==> t : HTT"
   done
 
 ML {*
-  local val HTT_coinduct = thm "HTT_coinduct"
-  in fun HTT_coinduct_tac s i = res_inst_tac [("R", s)] HTT_coinduct i end
+  fun HTT_coinduct_tac s i = res_inst_tac [("R", s)] @{thm HTT_coinduct} i
 *}
 
 lemma HTT_coinduct3:
@@ -108,17 +107,12 @@ lemma HTT_coinduct3:
   done
 
 ML {*
-local
-  val HTT_coinduct3 = thm "HTT_coinduct3"
-  val HTTgen_def = thm "HTTgen_def"
-in
+val HTT_coinduct3_raw = rewrite_rule [@{thm HTTgen_def}] @{thm HTT_coinduct3}
 
-val HTT_coinduct3_raw = rewrite_rule [HTTgen_def] HTT_coinduct3
-
-fun HTT_coinduct3_tac s i = res_inst_tac [("R",s)] HTT_coinduct3 i
+fun HTT_coinduct3_tac s i = res_inst_tac [("R",s)] @{thm HTT_coinduct3} i
 
 val HTTgenIs =
-  map (mk_genIs (the_context ()) (thms "data_defs") (thm "HTTgenXH") (thm "HTTgen_mono"))
+  map (mk_genIs @{theory} @{thms data_defs} @{thm HTTgenXH} @{thm HTTgen_mono})
   ["true : HTTgen(R)",
    "false : HTTgen(R)",
    "[| a : R;  b : R |] ==> <a,b> : HTTgen(R)",
@@ -130,8 +124,6 @@ val HTTgenIs =
    "n : lfp(%x. HTTgen(x) Un R Un HTT) ==> succ(n) : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
    "[] : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))",
    "[| h : lfp(%x. HTTgen(x) Un R Un HTT); t : lfp(%x. HTTgen(x) Un R Un HTT) |] ==> h$t : HTTgen(lfp(%x. HTTgen(x) Un R Un HTT))"]
-
-end
 *}
 
 ML {* bind_thms ("HTTgenIs", HTTgenIs) *}

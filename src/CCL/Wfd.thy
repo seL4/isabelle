@@ -54,10 +54,8 @@ lemma wfd_strengthen_lemma:
   done
 
 ML {*
-  local val wfd_strengthen_lemma = thm "wfd_strengthen_lemma" in
   fun wfd_strengthen_tac s i =
-    res_inst_tac [("Q",s)] wfd_strengthen_lemma i THEN assume_tac (i+1)
-  end
+    res_inst_tac [("Q",s)] @{thm wfd_strengthen_lemma} i THEN assume_tac (i+1)
 *}
 
 lemma wf_anti_sym: "[| Wfd(r);  <a,x>:r;  <x,a>:r |] ==> P"
