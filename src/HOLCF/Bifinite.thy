@@ -27,18 +27,17 @@ apply (erule (1) finite_subset)
 apply (clarify, erule subst, rule exI, rule refl)
 done
 
-lemma chain_approx [simp]:
-  "chain (approx :: nat \<Rightarrow> 'a::profinite \<rightarrow> 'a)"
+lemma chain_approx [simp]: "chain approx"
 apply (rule chainI)
 apply (rule less_cfun_ext)
 apply (rule chainE)
 apply (rule chain_approx_app)
 done
 
-lemma lub_approx [simp]: "(\<Squnion>i. approx i) = (\<Lambda>(x::'a::profinite). x)"
+lemma lub_approx [simp]: "(\<Squnion>i. approx i) = (\<Lambda> x. x)"
 by (rule ext_cfun, simp add: contlub_cfun_fun)
 
-lemma approx_less: "approx i\<cdot>x \<sqsubseteq> (x::'a::profinite)"
+lemma approx_less: "approx i\<cdot>x \<sqsubseteq> x"
 apply (subgoal_tac "approx i\<cdot>x \<sqsubseteq> (\<Squnion>i. approx i\<cdot>x)", simp)
 apply (rule is_ub_thelub, simp)
 done
@@ -47,7 +46,7 @@ lemma approx_strict [simp]: "approx i\<cdot>(\<bottom>::'a::bifinite) = \<bottom
 by (rule UU_I, rule approx_less)
 
 lemma approx_approx1:
-  "i \<le> j \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx i\<cdot>(x::'a::profinite)"
+  "i \<le> j \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx i\<cdot>x"
 apply (rule antisym_less)
 apply (rule monofun_cfun_arg [OF approx_less])
 apply (rule sq_ord_eq_less_trans [OF approx_idem [symmetric]])
@@ -57,7 +56,7 @@ apply (erule chain_mono [OF chain_approx])
 done
 
 lemma approx_approx2:
-  "j \<le> i \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx j\<cdot>(x::'a::profinite)"
+  "j \<le> i \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx j\<cdot>x"
 apply (rule antisym_less)
 apply (rule approx_less)
 apply (rule sq_ord_eq_less_trans [OF approx_idem [symmetric]])
@@ -66,7 +65,7 @@ apply (erule chain_mono [OF chain_approx])
 done
 
 lemma approx_approx [simp]:
-  "approx i\<cdot>(approx j\<cdot>x) = approx (min i j)\<cdot>(x::'a::profinite)"
+  "approx i\<cdot>(approx j\<cdot>x) = approx (min i j)\<cdot>x"
 apply (rule_tac x=i and y=j in linorder_le_cases)
 apply (simp add: approx_approx1 min_def)
 apply (simp add: approx_approx2 min_def)
@@ -76,16 +75,16 @@ lemma idem_fixes_eq_range:
   "\<forall>x. f (f x) = f x \<Longrightarrow> {x. f x = x} = {y. \<exists>x. y = f x}"
 by (auto simp add: eq_sym_conv)
 
-lemma finite_approx: "finite {y::'a::profinite. \<exists>x. y = approx n\<cdot>x}"
+lemma finite_approx: "finite {y. \<exists>x. y = approx n\<cdot>x}"
 using finite_fixes_approx by (simp add: idem_fixes_eq_range)
 
-lemma finite_range_approx:
-  "finite (range (\<lambda>x::'a::profinite. approx n\<cdot>x))"
-by (simp add: image_def finite_approx)
+lemma finite_image_approx: "finite ((\<lambda>x. approx n\<cdot>x) ` A)"
+by (rule finite_subset [OF _ finite_fixes_approx [where i=n]]) auto
 
-lemma compact_approx [simp]:
-  fixes x :: "'a::profinite"
-  shows "compact (approx n\<cdot>x)"
+lemma finite_range_approx: "finite (range (\<lambda>x. approx n\<cdot>x))"
+by (rule finite_image_approx)
+
+lemma compact_approx [simp]: "compact (approx n\<cdot>x)"
 proof (rule compactI2)
   fix Y::"nat \<Rightarrow> 'a"
   assume Y: "chain Y"
@@ -115,7 +114,6 @@ proof (rule compactI2)
 qed
 
 lemma bifinite_compact_eq_approx:
-  fixes x :: "'a::profinite"
   assumes x: "compact x"
   shows "\<exists>i. approx i\<cdot>x = x"
 proof -
@@ -129,7 +127,7 @@ proof -
 qed
 
 lemma bifinite_compact_iff:
-  "compact (x::'a::profinite) = (\<exists>n. approx n\<cdot>x = x)"
+  "compact x \<longleftrightarrow> (\<exists>n. approx n\<cdot>x = x)"
  apply (rule iffI)
   apply (erule bifinite_compact_eq_approx)
  apply (erule exE)
@@ -139,16 +137,14 @@ done
 
 lemma approx_induct:
   assumes adm: "adm P" and P: "\<And>n x. P (approx n\<cdot>x)"
-  shows "P (x::'a::profinite)"
+  shows "P x"
 proof -
   have "P (\<Squnion>n. approx n\<cdot>x)"
     by (rule admD [OF adm], simp, simp add: P)
   thus "P x" by simp
 qed
 
-lemma bifinite_less_ext:
-  fixes x y :: "'a::profinite"
-  shows "(\<And>i. approx i\<cdot>x \<sqsubseteq> approx i\<cdot>y) \<Longrightarrow> x \<sqsubseteq> y"
+lemma bifinite_less_ext: "(\<And>i. approx i\<cdot>x \<sqsubseteq> approx i\<cdot>y) \<Longrightarrow> x \<sqsubseteq> y"
 apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> (\<Squnion>i. approx i\<cdot>y)", simp)
 apply (rule lub_mono, simp, simp, simp)
 done
