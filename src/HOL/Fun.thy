@@ -460,7 +460,7 @@ proof
   thus "inj_on f A" by simp 
 next
   assume "inj_on f A"
-  with A show "inj_on (swap a b f) A" by (iprover intro: inj_on_imp_inj_on_swap)
+  with A show "inj_on (swap a b f) A" by(iprover intro: inj_on_imp_inj_on_swap)
 qed
 
 lemma surj_imp_surj_swap: "surj f ==> surj (swap a b f)"
@@ -482,6 +482,7 @@ qed
 lemma bij_swap_iff: "bij (swap a b f) = bij f"
 by (simp add: bij_def)
 
+hide const swap
 
 subsection {* Proof tool setup *} 
 

@@ -535,7 +535,7 @@ next
   have nSuc: "n = Suc m" by fact
   have mlessn: "m<n" by (simp add: nSuc)
   from aA obtain k where hkeq: "h k = a" and klessn: "k<n" by (blast elim!: equalityE)
-  let ?hm = "swap k m h"
+  let ?hm = "Fun.swap k m h"
   have inj_hm: "inj_on ?hm {i. i < n}" using klessn mlessn 
     by (simp add: inj_on_swap_iff inj_on)
   show ?thesis
@@ -545,7 +545,7 @@ next
     show "m<n" by (rule mlessn)
     show "A = ?hm ` {i. i < m}" 
     proof (rule insert_image_inj_on_eq)
-      show "inj_on (swap k m h) {i. i < Suc m}" using inj_hm nSuc by simp
+      show "inj_on (Fun.swap k m h) {i. i < Suc m}" using inj_hm nSuc by simp
       show "?hm m \<notin> A" by (simp add: swap_def hkeq anot) 
       show "insert (?hm m) A = ?hm ` {i. i < Suc m}"
 	using aA hkeq nSuc klessn
