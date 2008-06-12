@@ -1,4 +1,4 @@
-(*<*)theory Pairs imports Main begin hide const swap(*>*)
+(*<*)theory Pairs imports Main begin(*>*)
 
 section{*Pairs and Tuples*}
 
