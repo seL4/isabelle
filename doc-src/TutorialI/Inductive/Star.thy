@@ -84,7 +84,7 @@ When looking at the instantiation of @{text"?P"} we see that it does not
 depend on its second parameter at all. The reason is that in our original
 goal, of the pair @{term"(x,y)"} only @{term x} appears also in the
 conclusion, but not @{term y}. Thus our induction statement is too
-weak. Fortunately, it can easily be strengthened:
+general. Fortunately, it can easily be specialized:
 transfer the additional premise @{prop"(y,z):r*"} into the conclusion:*}
 (*<*)oops(*>*)
 lemma rtc_trans[rule_format]:
