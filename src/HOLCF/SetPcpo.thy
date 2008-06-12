@@ -6,7 +6,7 @@
 header {* Set as a pointed cpo *}
 
 theory SetPcpo
-imports Adm
+imports Adm Ffun
 begin
 
 instantiation bool :: po
