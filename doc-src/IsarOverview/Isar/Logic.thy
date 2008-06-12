@@ -314,9 +314,10 @@ frequent idiom is as follows:
 \end{center}
 
 Sometimes it is necessary to suppress the implicit application of rules in a
-\isakeyword{proof}. For example \isakeyword{show}~@{prop"A \<or> B"} would
-trigger $\lor$-introduction, requiring us to prove @{prop A}. A simple
-``@{text"-"}'' prevents this \emph{faux pas}: *}
+\isakeyword{proof}. For example \isakeyword{show(s)}~@{prop[source]"P \<or> Q"}
+would trigger $\lor$-introduction, requiring us to prove @{prop P}, which may
+not be what we had in mind.
+A simple ``@{text"-"}'' prevents this \emph{faux pas}: *}
 
 lemma assumes AB: "A \<or> B" shows "B \<or> A"
 proof -

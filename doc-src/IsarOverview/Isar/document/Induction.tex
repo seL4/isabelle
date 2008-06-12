@@ -66,11 +66,11 @@ binary case splits. Here is another example:%
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\noindent The two cases must come in this order because \isa{cases} merely abbreviates \isa{{\isacharparenleft}rule\ case{\isacharunderscore}split{\isacharunderscore}thm{\isacharparenright}} where
-\isa{case{\isacharunderscore}split{\isacharunderscore}thm} is \isa{{\isasymlbrakk}{\isacharquery}P\ {\isasymLongrightarrow}\ {\isacharquery}Q{\isacharsemicolon}\ {\isasymnot}\ {\isacharquery}P\ {\isasymLongrightarrow}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}Q}. If we reverse
+\noindent The two cases must come in this order because \isa{cases} merely abbreviates \isa{{\isacharparenleft}rule\ case{\isacharunderscore}split{\isacharparenright}} where
+\isa{case{\isacharunderscore}split} is \isa{{\isasymlbrakk}{\isacharquery}P\ {\isasymLongrightarrow}\ {\isacharquery}Q{\isacharsemicolon}\ {\isasymnot}\ {\isacharquery}P\ {\isasymLongrightarrow}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}Q}. If we reverse
 the order of the two cases in the proof, the first case would prove
 \isa{{\isasymnot}\ A\ {\isasymLongrightarrow}\ {\isasymnot}\ A\ {\isasymor}\ A} which would solve the first premise of
-\isa{case{\isacharunderscore}split{\isacharunderscore}thm}, instantiating \isa{{\isacharquery}P} with \isa{{\isasymnot}\ A}, thus making the second premise \isa{{\isasymnot}\ {\isasymnot}\ A\ {\isasymLongrightarrow}\ {\isasymnot}\ A\ {\isasymor}\ A}.
+\isa{case{\isacharunderscore}split}, instantiating \isa{{\isacharquery}P} with \isa{{\isasymnot}\ A}, thus making the second premise \isa{{\isasymnot}\ {\isasymnot}\ A\ {\isasymLongrightarrow}\ {\isasymnot}\ A\ {\isasymor}\ A}.
 Therefore the order of subgoals is not always completely arbitrary.
 
 The above proof is appropriate if \isa{A} is textually small.
