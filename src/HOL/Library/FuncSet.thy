@@ -209,16 +209,4 @@ lemma card_bij:
         g \<in> B\<rightarrow>A; inj_on g B; finite A; finite B|] ==> card(A) = card(B)"
   by (blast intro: card_inj order_antisym)
 
-
-(*The following declarations generate polymorphic Skolem functions for 
-  these theorems. Eventually they should become redundant, once this 
-  is done automatically.*)
-
-declare FuncSet.Pi_I [skolem]
-declare FuncSet.Pi_mono [skolem]
-declare FuncSet.extensionalityI [skolem]
-declare FuncSet.funcsetI [skolem]
-declare FuncSet.restrictI [skolem]
-declare FuncSet.restrict_in_funcset [skolem]
-
 end
