@@ -9,8 +9,7 @@ text {*
   We show here that the Plotkin-style of defining
   beta-reduction (based on congruence rules) is
   equivalent to the Felleisen-Hieb-style representation 
-  (based on contexts). We also define cbv-evaluation 
-  via a CK-machine described by Roshan James.
+  (based on contexts). 
   
   The interesting point in this theory is that contexts 
   do not contain any binders. On the other hand the operation 
@@ -24,6 +23,7 @@ atom_decl name
 text {* 
   Lambda-Terms - the Lam-term constructor binds a name
 *}
+
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
@@ -40,7 +40,7 @@ nominal_datatype ctx =
   | CAppR "lam" "ctx" 
   | CLam "name" "ctx"  ("CLam [_]._" [100,100] 100) 
 
-text {* Capture-avoiding substitution *}
+text {* Capture-Avoiding Substitution *}
 
 consts subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
 
@@ -141,68 +141,11 @@ proof (induct)
   then show  "App (Lam [x].t) t' \<longrightarrow>x t[x::=t']" by simp
 qed (metis ctx_red_in_ctx filling.simps)+ (* found by SledgeHammer *)
 
+
 lemma ctx_existence:
   assumes a: "t \<longrightarrow>o t'"
   shows "\<exists>C s s'. t = C\<lbrakk>s\<rbrakk> \<and> t' = C\<lbrakk>s'\<rbrakk> \<and> s \<longrightarrow>o s'"
 using a
 by (induct) (metis cong_red.intros filling.simps)+
-
-section {* We now use context in a CBV list machine *}
-
-text {* First, a function that composes a list of contexts. *}
-
-primrec
-  ctx_composes :: "ctx list \<Rightarrow> ctx" ("_\<down>" [80] 80)
-where
-    "[]\<down> = \<box>"
-  | "(E#Es)\<down> = (Es\<down>) \<circ> E"    
-
-text {* Values *}
-
-inductive
-  val :: "lam\<Rightarrow>bool" 
-where
-   v_Lam[intro]: "val (Lam [x].e)"
- | v_Var[intro]: "val (Var x)"
-
-text {* CBV-reduction using contexts *}
-
-inductive
-  cbv :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>cbv _" [80,80] 80) 
-where
-  cbv_beta[intro]: "val v \<Longrightarrow> E\<lbrakk>App (Lam [x].e) v\<rbrakk> \<longrightarrow>cbv E\<lbrakk>e[x::=v]\<rbrakk>"
-
-text {* reflexive, transitive closure of CBV reduction *}
-inductive 
-  "cbv_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>cbv* _" [80,80] 80)
-where
-  cbvs1[intro]: "e \<longrightarrow>cbv* e"
-| cbvs2[intro]: "e \<longrightarrow>cbv e' \<Longrightarrow> e \<longrightarrow>cbv* e'"
-| cbvs3[intro,trans]: "\<lbrakk>e1\<longrightarrow>cbv* e2; e2 \<longrightarrow>cbv* e3\<rbrakk> \<Longrightarrow> e1 \<longrightarrow>cbv* e3"
-
-text {* A little CK-machine, which builds up a list of evaluation contexts. *}
-
-inductive
-  machine :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" ("<_,_> \<mapsto> <_,_>" [60,60,60,60] 60)
-where
-  m1[intro]: "<App e1 e2, Es> \<mapsto> <e1,(CAppL \<box> e2)#Es>"
-| m2[intro]: "val v \<Longrightarrow> <v,(CAppL \<box> e2)#Es> \<mapsto> <e2,(CAppR v \<box>)#Es>"
-| m3[intro]: "val v \<Longrightarrow> <v,(CAppR (Lam [x].e) \<box>)#Es> \<mapsto> <e[x::=v],Es>"
-
-lemma machine_red_implies_cbv_reds_aux:
-  assumes a: "<e,Es> \<mapsto> <e',Es'>"
-  shows "(Es\<down>)\<lbrakk>e\<rbrakk> \<longrightarrow>cbv* (Es'\<down>)\<lbrakk>e'\<rbrakk>"
-using a by (induct) (auto simp add: ctx_compose)
-
-lemma machine_execution_implies_cbv_reds:
-  assumes a: "<e,[]> \<mapsto> <e',[]>"
-  shows "e \<longrightarrow>cbv* e'"
-using a by (auto dest: machine_red_implies_cbv_reds_aux)
-
-text {*
-  One would now like to show something about the opposite
-  direction, by according to Amr Sabry this amounts to
-  showing a standardisation lemma, which is hard.
-  *}
 
 end
