@@ -200,7 +200,7 @@ fun make_conjecture_clauses thy = make_conjecture_clauses_aux thy 0;
 
 (*Result of a function type; no need to check that the argument type matches.*)
 fun result_type (RC.Comp ("tc_fun", [_, tp2])) = tp2
-  | result_type _ = raise ERROR "result_type"
+  | result_type _ = error "result_type"
 
 fun type_of_combterm (CombConst(c,tp,_)) = tp
   | type_of_combterm (CombVar(v,tp)) = tp
@@ -235,9 +235,9 @@ fun string_of_applic (CombConst(c,tp,tvars), args) =
       let val c = if c = "equal" then "c_fequal" else c
           val nargs = min_arity_of c
           val args1 = List.take(args, nargs)
-            handle Subscript => raise ERROR ("string_of_applic: " ^ c ^ " has arity " ^
-                                             Int.toString nargs ^ " but is applied to " ^
-                                             space_implode ", " args)
+            handle Subscript => error ("string_of_applic: " ^ c ^ " has arity " ^
+                                         Int.toString nargs ^ " but is applied to " ^
+                                         space_implode ", " args)
           val args2 = List.drop(args, nargs)
           val targs = if !typ_level = T_CONST then map RC.string_of_fol_type tvars
                       else []
@@ -245,7 +245,7 @@ fun string_of_applic (CombConst(c,tp,tvars), args) =
           string_apply (c ^ RC.paren_pack (args1@targs), args2)
       end
   | string_of_applic (CombVar(v,tp), args) = string_apply (v, args)
-  | string_of_applic _ = raise ERROR "string_of_applic";
+  | string_of_applic _ = error "string_of_applic";
 
 fun wrap_type_if (head, s, tp) = if head_needs_hBOOL head then wrap_type (s, tp) else s;
 
@@ -347,7 +347,7 @@ fun add_literal_decls (Literal(_,c), decls) = add_decls (c,decls);
 
 fun add_clause_decls (Clause {literals, ...}, decls) =
     foldl add_literal_decls decls literals
-    handle Symtab.DUP a => raise ERROR ("function " ^ a ^ " has multiple arities")
+    handle Symtab.DUP a => error ("function " ^ a ^ " has multiple arities")
 
 fun decls_of_clauses clauses arity_clauses =
   let val init_functab = Symtab.update (type_wrapper,2) (Symtab.update ("hAPP",2) RC.init_functab)
@@ -360,7 +360,7 @@ fun decls_of_clauses clauses arity_clauses =
 
 fun add_clause_preds (Clause {ctypes_sorts, ...}, preds) =
   foldl RC.add_type_sort_preds preds ctypes_sorts
-  handle Symtab.DUP a => raise ERROR ("predicate " ^ a ^ " has multiple arities")
+  handle Symtab.DUP a => error ("predicate " ^ a ^ " has multiple arities")
 
 (*Higher-order clauses have only the predicates hBOOL and type classes.*)
 fun preds_of_clauses clauses clsrel_clauses arity_clauses =

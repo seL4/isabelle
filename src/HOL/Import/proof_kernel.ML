@@ -236,7 +236,7 @@ fun smart_string_of_cterm ct =
                 else F (n+1)
             end
             handle ERROR mesg => F (n+1)
-                 | SMART_STRING => raise ERROR ("smart_string failed for: "^(G 0 Display.string_of_cterm ct))
+                 | SMART_STRING => error ("smart_string failed for: "^(G 0 Display.string_of_cterm ct))
     in
       PrintMode.setmp [] (Library.setmp Syntax.ambiguity_is_error true F) 0
     end

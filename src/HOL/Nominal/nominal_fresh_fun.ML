@@ -58,7 +58,7 @@ fun cut_inst_tac_term' tinst th =
 
 fun get_dyn_thm thy name atom_name =
   PureThy.get_thm thy name handle ERROR _ =>
-    raise ERROR ("The atom type "^atom_name^" is not defined.");
+    error ("The atom type "^atom_name^" is not defined.");
 
 (* End of function waiting to be in the library :o) *)
 
