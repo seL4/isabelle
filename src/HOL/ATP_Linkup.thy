@@ -8,7 +8,6 @@ header{* The Isabelle-ATP Linkup *}
 
 theory ATP_Linkup
 imports Record Presburger SAT Recdef Extraction Relation_Power Hilbert_Choice
-   (*FIXME It must be a parent or a child of every other theory, to prevent theory-merge errors. FIXME*)
 uses
   "Tools/polyhash.ML"
   "Tools/res_clause.ML"
@@ -89,14 +88,13 @@ apply (rule ext)
 apply (simp add: COMBC_def) 
 done
 
-
 use "Tools/res_axioms.ML"      --{*requires the combinators declared above*}
+setup ResAxioms.setup
+
 use "Tools/res_hol_clause.ML"
 use "Tools/res_reconstruct.ML"
 use "Tools/watcher.ML"
 use "Tools/res_atp.ML"
-
-setup ResAxioms.meson_method_setup
 
 
 subsection {* Setup for Vampire, E prover and SPASS *}
@@ -110,15 +108,11 @@ oracle spass_oracle ("string * int") = {* ResAtpProvers.spass_o *}
 use "Tools/res_atp_methods.ML"
 setup ResAtpMethods.setup      --{*Oracle ATP methods: still useful?*}
 setup ResReconstruct.setup     --{*Config parameters*}
-setup ResAxioms.setup          --{*Sledgehammer*}
+
 
 subsection {* The Metis prover *}
 
 use "Tools/metis_tools.ML"
 setup MetisTools.setup
-
-setup {*
-  Theory.at_end ResAxioms.clause_cache_endtheory
-*}
 
 end
