@@ -68,42 +68,40 @@ fun rhs_extra_types lhsT rhs =
   in fold (#2 #> Term.fold_atyps add_new_TFrees) rhs_consts [] end;
 
 (*Traverse a theorem, declaring Skolem function definitions. String s is the suggested
-  prefix for the Skolem constant. Result is a new theory*)
-fun declare_skofuns s th thy =
-  let val nref = ref 0
-      fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) (thy, axs) =
-            (*Existential: declare a Skolem function, then insert into body and continue*)
-            let val cname = "sko_" ^ s ^ "_" ^ Int.toString (inc nref)
-                val args0 = term_frees xtp  (*get the formal parameter list*)
-                val Ts = map type_of args0
-                val extraTs = rhs_extra_types (Ts ---> T) xtp
-                val _ = if null extraTs then () else
-                   warning ("Skolemization: extra type vars: " ^
-                            commas_quote (map (Syntax.string_of_typ_global thy) extraTs));
-                val argsx = map (fn T => Free(gensym"vsk", T)) extraTs
-                val args = argsx @ args0
-                val cT = extraTs ---> Ts ---> T
-                val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
-                        (*Forms a lambda-abstraction over the formal parameters*)
-                val _ = Output.debug (fn () => "declaring the constant " ^ cname)
-                val (c, thy') =
-                  Sign.declare_const [Markup.property_internal] (cname, cT, NoSyn) thy
-                           (*Theory is augmented with the constant, then its def*)
-                val cdef = cname ^ "_def"
-                val thy'' = Theory.add_defs_i true false [(cdef, equals cT $ c $ rhs)] thy'
-                            handle ERROR _ => raise Clausify_failure thy'
-            in dec_sko (subst_bound (list_comb(c,args), p))
-                               (thy'', Thm.get_axiom_i thy'' (Sign.full_name thy'' cdef) :: axs)
-            end
-        | dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) thx =
-            (*Universal quant: insert a free variable into body and continue*)
-            let val fname = Name.variant (add_term_names (p,[])) a
-            in dec_sko (subst_bound (Free(fname,T), p)) thx end
-        | dec_sko (Const ("op &", _) $ p $ q) thx = dec_sko q (dec_sko p thx)
-        | dec_sko (Const ("op |", _) $ p $ q) thx = dec_sko q (dec_sko p thx)
-        | dec_sko (Const ("Trueprop", _) $ p) thx = dec_sko p thx
-        | dec_sko t thx = thx (*Do nothing otherwise*)
-  in  dec_sko (prop_of th) (thy,[])  end;
+  prefix for the Skolem constant.*)
+fun declare_skofuns s th =
+  let
+    val nref = ref 0
+    fun dec_sko (Const ("Ex",_) $ (xtp as Abs (_, T, p))) (axs, thy) =
+          (*Existential: declare a Skolem function, then insert into body and continue*)
+          let
+            val cname = "sko_" ^ s ^ "_" ^ Int.toString (inc nref)
+            val args0 = term_frees xtp  (*get the formal parameter list*)
+            val Ts = map type_of args0
+            val extraTs = rhs_extra_types (Ts ---> T) xtp
+            val _ = if null extraTs then () else
+              warning ("Skolemization: extra type vars: " ^
+                commas_quote (map (Syntax.string_of_typ_global thy) extraTs))
+            val argsx = map (fn T => Free (gensym "vsk", T)) extraTs
+            val args = argsx @ args0
+            val cT = extraTs ---> Ts ---> T
+            val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
+                    (*Forms a lambda-abstraction over the formal parameters*)
+            val (c, thy') = Sign.declare_const [Markup.property_internal] (cname, cT, NoSyn) thy
+            val cdef = cname ^ "_def"
+            val thy'' = Theory.add_defs_i true false [(cdef, equals cT $ c $ rhs)] thy'
+              handle ERROR _ => raise Clausify_failure thy'
+            val ax = Thm.get_axiom_i thy'' (Sign.full_name thy'' cdef)
+          in dec_sko (subst_bound (list_comb (c, args), p)) (ax :: axs, thy'') end
+      | dec_sko (Const ("All", _) $ (xtp as Abs (a, T, p))) thx =
+          (*Universal quant: insert a free variable into body and continue*)
+          let val fname = Name.variant (add_term_names (p, [])) a
+          in dec_sko (subst_bound (Free (fname, T), p)) thx end
+      | dec_sko (Const ("op &", _) $ p $ q) thx = dec_sko q (dec_sko p thx)
+      | dec_sko (Const ("op |", _) $ p $ q) thx = dec_sko q (dec_sko p thx)
+      | dec_sko (Const ("Trueprop", _) $ p) thx = dec_sko p thx
+      | dec_sko t thx = thx (*Do nothing otherwise*)
+  in fn thy => dec_sko (Thm.prop_of th) ([], thy) end;
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skofuns s th =
@@ -288,7 +286,7 @@ fun skolem_of_def def =
 
 
 (*This will refer to the final version of theory ATP_Linkup.*)
-val atp_linkup_thy_ref = Theory.check_thy @{theory}
+val atp_linkup_thy_ref = @{theory_ref}
 
 (*Transfer a theorem into theory ATP_Linkup.thy if it is not already
   inside that theory -- because it's needed for Skolemization.
@@ -371,7 +369,7 @@ fun name_or_string th =
 
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name.
   It returns a modified theory, unless skolemization fails.*)
-fun skolem thy th =
+fun skolem th thy =
   let val ctxt0 = Variable.thm_context th
       val _ = Output.debug (fn () => "skolemizing " ^ name_or_string th)
   in
@@ -380,7 +378,7 @@ fun skolem thy th =
           let 
               val _ = Output.debug (fn () => "  initial nnf: " ^ Display.string_of_thm nnfth)
               val s = fake_name th
-              val (thy',defs) = declare_skofuns s nnfth thy
+              val (defs,thy') = declare_skofuns s nnfth thy
               val (cnfs,ctxt2) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt1
               val _ = Output.debug (fn () => Int.toString (length cnfs) ^ " clauses yielded")
               val cnfs' = cnfs |> map combinators |> Variable.export ctxt2 ctxt0 
@@ -407,7 +405,7 @@ structure ThmCache = TheoryDataFun
 fun skolem_cache_thm th thy =
   case Thmtab.lookup (ThmCache.get thy) th of
       NONE =>
-        (case skolem thy (Thm.transfer thy th) of
+        (case skolem (Thm.transfer thy th) thy of
              NONE => ([th],thy)
            | SOME (cls,thy') =>
                  (Output.debug (fn () => "skolem_cache_thm: " ^ Int.toString (length cls) ^
