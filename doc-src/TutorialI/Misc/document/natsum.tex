@@ -179,7 +179,7 @@ succeeds because \isa{k\ {\isacharasterisk}\ k} can be treated as atomic. In con
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}n{\isacharasterisk}n\ {\isacharequal}\ n\ {\isasymLongrightarrow}\ n{\isacharequal}{\isadigit{0}}\ {\isasymor}\ n{\isacharequal}{\isadigit{1}}{\isachardoublequoteclose}%
+\ {\isachardoublequoteopen}n{\isacharasterisk}n\ {\isacharequal}\ n{\isacharplus}{\isadigit{1}}\ {\isasymLongrightarrow}\ n{\isacharequal}{\isadigit{0}}{\isachardoublequoteclose}%
 \isadelimproof
 %
 \endisadelimproof
@@ -195,9 +195,9 @@ succeeds because \isa{k\ {\isacharasterisk}\ k} can be treated as atomic. In con
 %
 \begin{isamarkuptext}%
 \noindent
-is not proved even by \isa{arith} because the proof relies 
+is not proved by \isa{arith} because the proof relies 
 on properties of multiplication. Only multiplication by numerals (which is
-the same as iterated addition) is allowed.
+the same as iterated addition) is taken into account.
 
 \begin{warn} The running time of \isa{arith} is exponential in the number
   of occurrences of \ttindexboldpos{-}{$HOL2arithfun}, \cdx{min} and

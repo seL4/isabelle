@@ -103,13 +103,13 @@ text{*\noindent
 succeeds because @{term"k*k"} can be treated as atomic. In contrast,
 *}
 
-lemma "n*n = n \<Longrightarrow> n=0 \<or> n=1"
+lemma "n*n = n+1 \<Longrightarrow> n=0"
 (*<*)oops(*>*)
 
 text{*\noindent
-is not proved even by @{text arith} because the proof relies 
+is not proved by @{text arith} because the proof relies 
 on properties of multiplication. Only multiplication by numerals (which is
-the same as iterated addition) is allowed.
+the same as iterated addition) is taken into account.
 
 \begin{warn} The running time of @{text arith} is exponential in the number
   of occurrences of \ttindexboldpos{-}{$HOL2arithfun}, \cdx{min} and
