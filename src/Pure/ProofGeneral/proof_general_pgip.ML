@@ -563,6 +563,18 @@ fun abortgoal _ = isarcmd "kill" (* was: ProofGeneral.kill_proof *)
 fun addids t  = issue_pgip (Addids {idtables = [t]})
 fun delids t  = issue_pgip (Delids {idtables = [t]})
 
+
+local
+
+fun theory_facts name =
+  let val thy = ThyInfo.get_theory name
+  in (map PureThy.facts_of (Theory.parents_of thy), PureThy.facts_of thy) end;
+
+fun thms_of_thy name = map fst (theory_facts name |-> Facts.extern_static);
+fun qualified_thms_of_thy name = map fst (theory_facts name |-> Facts.dest_static);
+
+in
+
 fun askids (Askids vs) =
     let
         val url = #url vs            (* ask for identifiers within a file *)
@@ -574,8 +586,6 @@ fun askids (Askids vs) =
         fun setids t = issue_pgip (Setids {idtables = [t]})
 
         (* fake one-level nested "subtheories" by picking apart names. *)
-        val thms_of_thy =
-            map fst o NameSpace.extern_table o PureThy.theorems_of o ThyInfo.get_theory
         val immed_thms_of_thy = filter_out NameSpace.is_qualified o thms_of_thy
         fun thy_prefix s = case space_explode NameSpace.separator s of
                                     x::_::_ => SOME x  (* String.find? *)
@@ -588,13 +598,6 @@ fun askids (Askids vs) =
                  NONE => immed_thms_of_thy thy
                | SOME prf => filter (String.isPrefix (unprefix (prf ^ NameSpace.separator) thy))
                                     (thms_of_thy prf))
-       val qualified_thms_of_thy = (* for global query with single response *)
-            (map fst) o NameSpace.dest_table o PureThy.theorems_of o ThyInfo.get_theory;
-(* da: this version is equivalent to my previous, but splits up theorem sets with names
-   that I can't get to access later with get_thm.  Anyway, would rather use sets.
-   Is above right way to get qualified names in that case?  Filtering required again?
-            map PureThy.get_name_hint o filter PureThy.has_name_hint o
-              map snd o PureThy.thms_of o ThyInfo.get_theory; *)
     in
         case (thyname,objtype) of
            (NONE, NONE) =>
@@ -618,6 +621,8 @@ fun askids (Askids vs) =
                            (maps qualified_thms_of_thy (ThyInfo.get_names())))
          | _ => warning ("askids: ignored argument combination")
     end
+
+end;
 
 fun askrefs (Askrefs vs) =
     let
