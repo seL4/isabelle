@@ -110,7 +110,7 @@ txt{*
 @{subgoals[display,indent=0]}
 Again, simplification produces a term suitable for @{thm[source]split_split}
 as above. If you are worried about the strange form of the premise:
-@{term"split (op =)"} is short for @{text"\<lambda>(x,y). x=y"}.
+@{text"split (op =)"} is short for @{term"\<lambda>(x,y). x=y"}.
 The same proof procedure works for
 *}
 

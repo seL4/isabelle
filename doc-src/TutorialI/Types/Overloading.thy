@@ -14,7 +14,8 @@ Of course we should also define the meaning of @{text <<=} and
 
 defs (overloaded)
 prefix_def:
-  "xs <<= (ys::'a::ordrel list)  \<equiv>  \<exists>zs. ys = xs@zs"
+  "xs <<= (ys::'a list)  \<equiv>  \<exists>zs. ys = xs@zs"
 strict_prefix_def:
-  "xs << (ys::'a::ordrel list)   \<equiv>  xs <<= ys \<and> xs \<noteq> ys"
+  "xs << (ys::'a list)   \<equiv>  xs <<= ys \<and> xs \<noteq> ys"
+
 (*<*)end(*>*)
