@@ -1,6 +1,16 @@
+(* $Id$ *)
+
 theory Type_Preservation
   imports Nominal
 begin
+
+text {*
+
+  This theory shows how to prove the type preservation
+  property for the simply-typed lambda-calculus and 
+  beta-reduction.
+ 
+*}
 
 atom_decl name
 
@@ -58,7 +68,7 @@ abbreviation
 where
   "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^isub>1 \<longrightarrow> x \<in> set \<Gamma>\<^isub>2"
 
-text {* Validity of typing contexts *}
+text {* Validity of Typing Contexts *}
 
 inductive
   valid :: "(name\<times>ty) list \<Rightarrow> bool"
@@ -92,7 +102,7 @@ lemma context_unique:
 using a1 a2 a3
 by (induct) (auto simp add: fresh_set fresh_prod fresh_atm)
 
-text {* typing relation *}
+text {* Typing Relation *}
 
 inductive
   typing :: "ctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _") 
@@ -159,7 +169,7 @@ corollary type_substitution:
 using a b
 by (auto intro: type_substitution_aux[where \<Delta>="[]",simplified])
 
-text {* Beta reduction *}
+text {* Beta Reduction *}
 
 inductive 
   "beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^isub>\<beta> _")
