@@ -1184,7 +1184,8 @@ fun pretty_lthms ctxt =
     val local_facts = facts_of ctxt;
     val props = Facts.props local_facts;
     val facts =
-      (if null props then [] else [("unnamed", props)]) @ Facts.extern_static local_facts;
+      (if null props then [] else [("unnamed", props)]) @
+      Facts.extern_static [] local_facts;
   in
     if null facts andalso not (! verbose) then []
     else [Pretty.big_list "facts:" (map (pretty_fact ctxt) facts)]
