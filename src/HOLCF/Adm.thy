@@ -6,7 +6,7 @@
 header {* Admissibility and compactness *}
 
 theory Adm
-imports Ffun
+imports Cont
 begin
 
 defaultsort cpo
@@ -22,6 +22,9 @@ lemma admI:
 unfolding adm_def by fast
 
 lemma admD: "\<lbrakk>adm P; chain Y; \<And>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)"
+unfolding adm_def by fast
+
+lemma admD2: "\<lbrakk>adm (\<lambda>x. \<not> P x); chain Y; P (\<Squnion>i. Y i)\<rbrakk> \<Longrightarrow> \<exists>i. P (Y i)"
 unfolding adm_def by fast
 
 lemma triv_admI: "\<forall>x. P x \<Longrightarrow> adm P"
