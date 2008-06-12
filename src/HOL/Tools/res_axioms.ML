@@ -7,13 +7,12 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature RES_AXIOMS =
 sig
-  val cnf_axiom: thm -> thm list
+  val cnf_axiom: theory -> thm -> thm list
   val pairname: thm -> string * thm
   val multi_base_blacklist: string list 
   val bad_for_atp: thm -> bool
   val type_has_empty_sort: typ -> bool
-  val cnf_rules_pairs: (string * thm) list -> (thm * (string * int)) list
-  val cnf_rules_of_ths: thm list -> thm list
+  val cnf_rules_pairs: theory -> (string * thm) list -> (thm * (string * int)) list
   val neg_clausify: thm list -> thm list
   val expand_defs_tac: thm -> tactic
   val combinators: thm -> thm
@@ -187,33 +186,33 @@ fun abstract ct =
         | Var _ => makeK()  (*though Var isn't expected*)
         | Bound 0 => instantiate' [SOME cxT] [] abs_I (*identity: I*)
         | rator$rand =>
-	    if loose_bvar1 (rator,0) then (*C or S*) 
-	       if loose_bvar1 (rand,0) then (*S*)
-	         let val crator = cterm_of thy (Abs(x,xT,rator))
-	             val crand = cterm_of thy (Abs(x,xT,rand))
-	             val abs_S' = cterm_instantiate [(f_S,crator),(g_S,crand)] abs_S
-	             val (_,rhs) = Thm.dest_equals (cprop_of abs_S') 
-	         in
-	           Thm.transitive abs_S' (Conv.binop_conv abstract rhs)
-	         end
-	       else (*C*)
-	         let val crator = cterm_of thy (Abs(x,xT,rator))
-	             val abs_C' = cterm_instantiate [(f_C,crator),(g_C,cterm_of thy rand)] abs_C
-	             val (_,rhs) = Thm.dest_equals (cprop_of abs_C') 
-	         in
-	           Thm.transitive abs_C' (Conv.fun_conv (Conv.arg_conv abstract) rhs)
-	         end
-	    else if loose_bvar1 (rand,0) then (*B or eta*) 
-	       if rand = Bound 0 then eta_conversion ct
-	       else (*B*)
-	         let val crand = cterm_of thy (Abs(x,xT,rand))
-	             val crator = cterm_of thy rator
-	             val abs_B' = cterm_instantiate [(f_B,crator),(g_B,crand)] abs_B
-	             val (_,rhs) = Thm.dest_equals (cprop_of abs_B') 
-	         in
-	           Thm.transitive abs_B' (Conv.arg_conv abstract rhs)
-	         end
-	    else makeK()
+            if loose_bvar1 (rator,0) then (*C or S*) 
+               if loose_bvar1 (rand,0) then (*S*)
+                 let val crator = cterm_of thy (Abs(x,xT,rator))
+                     val crand = cterm_of thy (Abs(x,xT,rand))
+                     val abs_S' = cterm_instantiate [(f_S,crator),(g_S,crand)] abs_S
+                     val (_,rhs) = Thm.dest_equals (cprop_of abs_S') 
+                 in
+                   Thm.transitive abs_S' (Conv.binop_conv abstract rhs)
+                 end
+               else (*C*)
+                 let val crator = cterm_of thy (Abs(x,xT,rator))
+                     val abs_C' = cterm_instantiate [(f_C,crator),(g_C,cterm_of thy rand)] abs_C
+                     val (_,rhs) = Thm.dest_equals (cprop_of abs_C') 
+                 in
+                   Thm.transitive abs_C' (Conv.fun_conv (Conv.arg_conv abstract) rhs)
+                 end
+            else if loose_bvar1 (rand,0) then (*B or eta*) 
+               if rand = Bound 0 then eta_conversion ct
+               else (*B*)
+                 let val crand = cterm_of thy (Abs(x,xT,rand))
+                     val crator = cterm_of thy rator
+                     val abs_B' = cterm_instantiate [(f_B,crator),(g_B,crand)] abs_B
+                     val (_,rhs) = Thm.dest_equals (cprop_of abs_B') 
+                 in
+                   Thm.transitive abs_B' (Conv.arg_conv abstract rhs)
+                 end
+            else makeK()
         | _ => error "abstract: Bad term"
   end;
 
@@ -224,26 +223,26 @@ fun combinators_aux ct =
   else
   case term_of ct of
       Abs _ =>
-	let val (cv,cta) = Thm.dest_abs NONE ct
-	    val (v,Tv) = (dest_Free o term_of) cv
-	    val _ = Output.debug (fn()=>"  recursion: " ^ Display.string_of_cterm cta);
-	    val u_th = combinators_aux cta
-	    val _ = Output.debug (fn()=>"  returned " ^ Display.string_of_thm u_th);
-	    val cu = Thm.rhs_of u_th
-	    val comb_eq = abstract (Thm.cabs cv cu)
-	in Output.debug (fn()=>"  abstraction result: " ^ Display.string_of_thm comb_eq);
-	   (transitive (abstract_rule v cv u_th) comb_eq) end
+        let val (cv,cta) = Thm.dest_abs NONE ct
+            val (v,Tv) = (dest_Free o term_of) cv
+            val _ = Output.debug (fn()=>"  recursion: " ^ Display.string_of_cterm cta);
+            val u_th = combinators_aux cta
+            val _ = Output.debug (fn()=>"  returned " ^ Display.string_of_thm u_th);
+            val cu = Thm.rhs_of u_th
+            val comb_eq = abstract (Thm.cabs cv cu)
+        in Output.debug (fn()=>"  abstraction result: " ^ Display.string_of_thm comb_eq);
+           (transitive (abstract_rule v cv u_th) comb_eq) end
     | t1 $ t2 =>
-	let val (ct1,ct2) = Thm.dest_comb ct
-	in  combination (combinators_aux ct1) (combinators_aux ct2)  end;
+        let val (ct1,ct2) = Thm.dest_comb ct
+        in  combination (combinators_aux ct1) (combinators_aux ct2)  end;
             
 fun combinators th =
   if lambda_free (prop_of th) then th 
   else
     let val _ = Output.debug (fn()=>"Conversion to combinators: " ^ Display.string_of_thm th);
-	val th = Drule.eta_contraction_rule th
-	val eqth = combinators_aux (cprop_of th)
-	val _ = Output.debug (fn()=>"Conversion result: " ^ Display.string_of_thm eqth);
+        val th = Drule.eta_contraction_rule th
+        val eqth = combinators_aux (cprop_of th)
+        val _ = Output.debug (fn()=>"Conversion result: " ^ Display.string_of_thm eqth);
     in  equal_elim eqth th   end
     handle THM (msg,_,_) => 
       (warning ("Error in the combinator translation of " ^ Display.string_of_thm th);
@@ -285,19 +284,9 @@ fun skolem_of_def def =
   end;
 
 
-(*This will refer to the final version of theory ATP_Linkup.*)
-val atp_linkup_thy_ref = @{theory_ref}
-
-(*Transfer a theorem into theory ATP_Linkup.thy if it is not already
-  inside that theory -- because it's needed for Skolemization.
-  If called while ATP_Linkup is being created, it will transfer to the
-  current version. If called afterward, it will transfer to the final version.*)
-fun transfer_to_ATP_Linkup th =
-    transfer (Theory.deref atp_linkup_thy_ref) th handle THM _ => th;
-
 (*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
 fun to_nnf th ctxt0 =
-  let val th1 = th |> transfer_to_ATP_Linkup |> transform_elim |> zero_var_indexes
+  let val th1 = th |> transform_elim |> zero_var_indexes
       val ((_,[th2]),ctxt) = Variable.import_thms false [th1] ctxt0
       val th3 = th2 |> Conv.fconv_rule ObjectLogic.atomize |> Meson.make_nnf |> strip_lambdas ~1
   in  (th3, ctxt)  end;
@@ -369,9 +358,11 @@ fun name_or_string th =
 
 (*Declare Skolem functions for a theorem, supplied in nnf and with its name.
   It returns a modified theory, unless skolemization fails.*)
-fun skolem th thy =
-  let val ctxt0 = Variable.thm_context th
-      val _ = Output.debug (fn () => "skolemizing " ^ name_or_string th)
+fun skolem th0 thy =
+  let
+    val th = Thm.transfer thy th0
+    val ctxt0 = Variable.thm_context th
+    val _ = Output.debug (fn () => "skolemizing " ^ name_or_string th)
   in
      Option.map
         (fn (nnfth,ctxt1) =>
@@ -405,7 +396,7 @@ structure ThmCache = TheoryDataFun
 fun skolem_cache_thm th thy =
   case Thmtab.lookup (ThmCache.get thy) th of
       NONE =>
-        (case skolem (Thm.transfer thy th) thy of
+        (case skolem th thy of
              NONE => ([th],thy)
            | SOME (cls,thy') =>
                  (Output.debug (fn () => "skolem_cache_thm: " ^ Int.toString (length cls) ^
@@ -418,14 +409,14 @@ fun skolem_thm (s,th) =
   if (Sign.base_name s) mem_string multi_base_blacklist orelse bad_for_atp th then []
   else 
       let val ctxt0 = Variable.thm_context th
-	  val (nnfth,ctxt1) = to_nnf th ctxt0
-	  val (cnfs,ctxt2) = Meson.make_cnf (assume_skolem_of_def s nnfth) nnfth ctxt1
+          val (nnfth,ctxt1) = to_nnf th ctxt0
+          val (cnfs,ctxt2) = Meson.make_cnf (assume_skolem_of_def s nnfth) nnfth ctxt1
       in  cnfs |> map combinators |> Variable.export ctxt2 ctxt0 |> Meson.finish_cnf  end
       handle THM _ => [];
 
 (*Exported function to convert Isabelle theorems into axiom clauses*)
-fun cnf_axiom th =
-  let val thy = Theory.merge (Theory.deref atp_linkup_thy_ref, Thm.theory_of_thm th)
+fun cnf_axiom thy th0 =
+  let val th = Thm.transfer thy th0
   in
       case Thmtab.lookup (ThmCache.get thy) th of
           NONE => (Output.debug (fn () => "cnf_axiom: " ^ name_or_string th);
@@ -466,14 +457,14 @@ fun atpset_rules_of ctxt = map pairname (ResAtpset.get ctxt);
 fun pair_name_cls k (n, []) = []
   | pair_name_cls k (n, cls::clss) = (cls, (n,k)) :: pair_name_cls (k+1) (n, clss)
 
-fun cnf_rules_pairs_aux pairs [] = pairs
-  | cnf_rules_pairs_aux pairs ((name,th)::ths) =
-      let val pairs' = (pair_name_cls 0 (name, cnf_axiom th)) @ pairs
+fun cnf_rules_pairs_aux _ pairs [] = pairs
+  | cnf_rules_pairs_aux thy pairs ((name,th)::ths) =
+      let val pairs' = (pair_name_cls 0 (name, cnf_axiom thy th)) @ pairs
                        handle THM _ => pairs | ResClause.CLAUSE _ => pairs
-      in  cnf_rules_pairs_aux pairs' ths  end;
+      in  cnf_rules_pairs_aux thy pairs' ths  end;
 
 (*The combination of rev and tail recursion preserves the original order*)
-fun cnf_rules_pairs l = cnf_rules_pairs_aux [] (rev l);
+fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
 
 
 (**** Convert all theorems of a claset/simpset into clauses (ResClause.clause, or ResHolClause.clause) ****)
@@ -505,9 +496,8 @@ fun clause_cache_endtheory thy =
    (Output.debug (fn () => "RexAxioms end theory action: " ^ Context.str_of_thy thy);
     Option.map skolem_cache_node (try mark_skolemized thy) );
 
-(*** meson proof methods ***)
 
-fun cnf_rules_of_ths ths = List.concat (map cnf_axiom ths);
+(*** meson proof methods ***)
 
 (*Expand all new*definitions of abstraction or Skolem functions in a proof state.*)
 fun is_absko (Const ("==", _) $ Free (a,_) $ u) = String.isPrefix "sko_" a
@@ -537,22 +527,22 @@ fun expand_defs_tac st0 st =
 
 
 fun meson_general_tac ths i st0 =
- let val _ = Output.debug (fn () => "Meson called: " ^ cat_lines (map Display.string_of_thm ths))
- in  (Meson.meson_claset_tac (cnf_rules_of_ths ths) HOL_cs i THEN expand_defs_tac st0) st0 end;
+  let
+    val thy = Thm.theory_of_thm st0
+    val _ = Output.debug (fn () => "Meson called: " ^ cat_lines (map Display.string_of_thm ths))
+  in  (Meson.meson_claset_tac (maps (cnf_axiom thy) ths) HOL_cs i THEN expand_defs_tac st0) st0 end;
 
 val meson_method_setup = Method.add_methods
   [("meson", Method.thms_args (fn ths =>
       Method.SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ths)),
     "MESON resolution proof procedure")];
 
+
 (** Attribute for converting a theorem into clauses **)
 
-fun meta_cnf_axiom th = map Meson.make_meta_clause (cnf_axiom th);
-
-fun clausify_rule (th,i) = List.nth (meta_cnf_axiom th, i)
-
 val clausify = Attrib.syntax (Scan.lift Args.nat
-  >> (fn i => Thm.rule_attribute (fn _ => fn th => clausify_rule (th, i))));
+  >> (fn i => Thm.rule_attribute (fn context => fn th =>
+      Meson.make_meta_clause (nth (cnf_axiom (Context.theory_of context) th) i))));
 
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
@@ -582,6 +572,7 @@ val neg_clausify_tac =
                 (map forall_intr_vars (neg_clausify hyps)) 1)),
           REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
+
 
 (** The Skolemization attribute **)
 
