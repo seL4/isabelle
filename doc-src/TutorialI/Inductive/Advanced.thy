@@ -234,8 +234,8 @@ apply clarify
 apply (erule well_formed_gterm'.induct)
 (*>*)
 txt {*
-The proof script is identical, but the subgoal after applying induction may
-be surprising:
+The proof script is virtually identical,
+but the subgoal after applying induction may be surprising:
 @{subgoals[display,indent=0,margin=65]}
 The induction hypothesis contains an application of @{term lists}.  Using a
 monotone function in the inductive definition always has this effect.  The

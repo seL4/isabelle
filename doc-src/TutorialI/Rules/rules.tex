@@ -220,7 +220,7 @@ rule \isa{disjI1}.
 The result of this proof is a new inference rule \isa{disj_swap}, which is neither 
 an introduction nor an elimination rule, but which might 
 be useful.  We can use it to replace any goal of the form $Q\disj P$
-by a one of the form $P\disj Q$.%
+by one of the form $P\disj Q$.%
 \index{elimination rules|)}
 
 
@@ -515,16 +515,15 @@ and tableau calculi.
 \begin{isabelle}
 \isacommand{lemma}\ "(P\ \isasymor\ Q)\ \isasymand\ R\
 \isasymLongrightarrow\ P\ \isasymor\ (Q\ \isasymand\ R)"\isanewline
-\isacommand{apply}\ (intro\ disjCI\ conjI)\isanewline
+\isacommand{apply}\ (rule\ disjCI)\isanewline
 \isacommand{apply}\ (elim\ conjE\ disjE)\isanewline
 \ \isacommand{apply}\ assumption
 \isanewline
 \isacommand{by}\ (erule\ contrapos_np,\ rule\ conjI)
 \end{isabelle}
 %
-The first proof step uses \isa{intro} to apply
-the introduction rules \isa{disjCI} and \isa{conjI}.  The resulting
-subgoal has the negative assumption 
+The first proof step to applies the introduction rules \isa{disjCI}.
+The resulting subgoal has the negative assumption 
 \hbox{\isa{\isasymnot(Q\ \isasymand\ R)}}.  
 
 \begin{isabelle}
@@ -901,11 +900,11 @@ occur in the assumptions.  This proviso guarantees that $x$ can be regarded as
 arbitrary, since it has not been assumed to satisfy any special conditions. 
 Isabelle's  underlying formalism, called the
 \bfindex{meta-logic}, eliminates the  need for English.  It provides its own
-universal quantifier (\isasymAnd) to express the notion of an arbitrary value.  We
-have already seen  another symbol of the meta-logic, namely
-\isa\isasymLongrightarrow, which expresses  inference rules and the treatment of
-assumptions. The only other  symbol in the meta-logic is \isa\isasymequiv, which
-can be used to define constants.
+universal quantifier (\isasymAnd) to express the notion of an arbitrary value.
+We have already seen  another operator of the meta-logic, namely
+\isa\isasymLongrightarrow, which expresses  inference rules and the treatment
+of assumptions. The only other operator in the meta-logic is \isa\isasymequiv,
+which can be used to define constants.
 
 \subsection{The Universal Introduction Rule}
 

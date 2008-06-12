@@ -322,7 +322,7 @@ In general, the format of invoking recursion induction is
 \isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $x@1 \dots x@n$ \isa{rule{\isacharcolon}} $f$\isa{{\isachardot}induct{\isacharparenright}}
 \end{quote}\index{*induct_tac (method)}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
-name of a function that takes an $n$ arguments. Usually the subgoal will
+name of a function that takes $n$ arguments. Usually the subgoal will
 contain the term $f x@1 \dots x@n$ but this need not be the case. The
 induction rules do not mention $f$ at all. Here is \isa{sep{\isachardot}induct}:
 \begin{isabelle}

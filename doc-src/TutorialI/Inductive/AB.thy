@@ -60,7 +60,7 @@ First we show that all words in @{term S} contain the same number of @{term
 a}'s and @{term b}'s. Since the definition of @{term S} is by mutual
 induction, so is the proof: we show at the same time that all words in
 @{term A} contain one more @{term a} than @{term b} and all words in @{term
-B} contains one more @{term b} than @{term a}.
+B} contain one more @{term b} than @{term a}.
 *}
 
 lemma correctness:
@@ -199,13 +199,14 @@ of @{term w}, using the induction rule @{thm[source]length_induct}:
 *}
 
 apply(induct_tac w rule: length_induct)
-(*<*)apply(rename_tac w)(*>*)
+apply(rename_tac w)
 
 txt{*\noindent
 The @{text rule} parameter tells @{text induct_tac} explicitly which induction
 rule to use. For details see \S\ref{sec:complete-ind} below.
 In this case the result is that we may assume the lemma already
-holds for all words shorter than @{term w}.
+holds for all words shorter than @{term w}. Because the induction step renames
+the induction variable we rename it back to @{text w}.
 
 The proof continues with a case distinction on @{term w},
 on whether @{term w} is empty or not.

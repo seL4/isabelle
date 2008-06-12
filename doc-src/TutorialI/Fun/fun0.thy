@@ -239,7 +239,7 @@ In general, the format of invoking recursion induction is
 \isacommand{apply}@{text"(induct_tac"} $x@1 \dots x@n$ @{text"rule:"} $f$@{text".induct)"}
 \end{quote}\index{*induct_tac (method)}%
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
-name of a function that takes an $n$ arguments. Usually the subgoal will
+name of a function that takes $n$ arguments. Usually the subgoal will
 contain the term $f x@1 \dots x@n$ but this need not be the case. The
 induction rules do not mention $f$ at all. Here is @{thm[source]sep.induct}:
 \begin{isabelle}
