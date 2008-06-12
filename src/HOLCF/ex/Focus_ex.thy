@@ -224,17 +224,17 @@ apply (erule conjE)+
 apply (subgoal_tac "fix$ (LAM k. csnd$ (f$<x, k>)) = z")
  apply simp
 apply (subgoal_tac "! w y. f$<x, w> = <y, w> --> z << w")
-apply (rule sym)
 apply (rule fix_eqI)
 apply simp
-apply (rule allI)
-apply (tactic "simp_tac HOLCF_ss 1")
-apply (intro strip)
+(*apply (rule allI)*)
+(*apply (tactic "simp_tac HOLCF_ss 1")*)
+(*apply (intro strip)*)
 apply (subgoal_tac "f$<x, za> = <cfst$ (f$<x,za>) ,za>")
 apply fast
 apply (rule trans)
 apply (rule surjective_pairing_Cprod2 [symmetric])
-apply (erule cfun_arg_cong)
+apply (rule cfun_arg_cong)
+apply simp
 apply (intro strip)
 apply (erule allE)+
 apply (erule mp)

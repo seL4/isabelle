@@ -106,10 +106,12 @@ done
 lemma fix_least: "F\<cdot>x = x \<Longrightarrow> fix\<cdot>F \<sqsubseteq> x"
 by (rule fix_least_less, simp)
 
-lemma fix_eqI: "\<lbrakk>F\<cdot>x = x; \<forall>z. F\<cdot>z = z \<longrightarrow> x \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x = fix\<cdot>F"
+lemma fix_eqI:
+  assumes fixed: "F\<cdot>x = x" and least: "\<And>z. F\<cdot>z = z \<Longrightarrow> x \<sqsubseteq> z"
+  shows "fix\<cdot>F = x"
 apply (rule antisym_less)
-apply (simp add: fix_eq [symmetric])
-apply (erule fix_least)
+apply (rule fix_least [OF fixed])
+apply (rule least [OF fix_eq [symmetric]])
 done
 
 lemma fix_eq2: "f \<equiv> fix\<cdot>F \<Longrightarrow> f = F\<cdot>f"
@@ -152,15 +154,31 @@ by (subst fix_eq, simp)
 subsection {* Fixed point induction *}
 
 lemma fix_ind: "\<lbrakk>adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P (fix\<cdot>F)"
-apply (subst fix_def2)
+unfolding fix_def2
 apply (erule admD)
 apply (rule chain_iterate)
-apply (induct_tac "i", simp_all)
+apply (rule nat_induct, simp_all)
 done
 
 lemma def_fix_ind:
   "\<lbrakk>f \<equiv> fix\<cdot>F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P f"
 by (simp add: fix_ind)
+
+lemma fix_ind2:
+  assumes adm: "adm P"
+  assumes 0: "P \<bottom>" and 1: "P (F\<cdot>\<bottom>)"
+  assumes step: "\<And>x. \<lbrakk>P x; P (F\<cdot>x)\<rbrakk> \<Longrightarrow> P (F\<cdot>(F\<cdot>x))"
+  shows "P (fix\<cdot>F)"
+unfolding fix_def2
+apply (rule admD [OF adm chain_iterate])
+apply (rule nat_less_induct)
+apply (case_tac n)
+apply (simp add: 0)
+apply (case_tac nat)
+apply (simp add: 1)
+apply (frule_tac x=nat in spec)
+apply (simp add: step)
+done
 
 subsection {* Recursive let bindings *}
 
@@ -198,7 +216,7 @@ lemma fix_cprod:
    \<langle>\<mu> x. cfst\<cdot>(F\<cdot>\<langle>x, \<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)\<rangle>),
     \<mu> y. csnd\<cdot>(F\<cdot>\<langle>\<mu> x. cfst\<cdot>(F\<cdot>\<langle>x, \<mu> y. csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)\<rangle>), y\<rangle>)\<rangle>"
   (is "fix\<cdot>F = \<langle>?x, ?y\<rangle>")
-proof (rule fix_eqI [rule_format, symmetric])
+proof (rule fix_eqI)
   have 1: "cfst\<cdot>(F\<cdot>\<langle>?x, ?y\<rangle>) = ?x"
     by (rule trans [symmetric, OF fix_eq], simp)
   have 2: "csnd\<cdot>(F\<cdot>\<langle>?x, ?y\<rangle>) = ?y"
