@@ -570,8 +570,10 @@ fun type_consts_of_terms thy ts =
 (***************************************************************)
 
 fun cnf_hyps_thms ctxt =
-    let val ths = Assumption.prems_of ctxt
-    in fold (fold (insert Thm.eq_thm) o ResAxioms.cnf_axiom) ths [] end;
+  let
+    val thy = ProofContext.theory_of ctxt
+    val hyps = Assumption.prems_of ctxt
+  in fold (fold (insert Thm.eq_thm) o ResAxioms.cnf_axiom thy) hyps [] end;
 
 (*Translation mode can be auto-detected, or forced to be first-order or higher-order*)
 datatype mode = Auto | Fol | Hol;
@@ -646,10 +648,10 @@ fun write_subgoal_file dfg mode ctxt conjectures user_thms n =
                           | Hol => false
         val (included_thms,user_rules) = get_clasimp_atp_lemmas ctxt user_thms
         val cla_simp_atp_clauses = included_thms
-                                     |> ResAxioms.cnf_rules_pairs |> make_unique
+                                     |> ResAxioms.cnf_rules_pairs thy |> make_unique
                                      |> restrict_to_logic thy isFO
                                      |> remove_unwanted_clauses
-        val user_cls = ResAxioms.cnf_rules_pairs user_rules
+        val user_cls = ResAxioms.cnf_rules_pairs thy user_rules
         val axclauses = make_unique (user_cls @ relevance_filter thy cla_simp_atp_clauses goal_tms)
         val subs = tfree_classes_of_terms goal_tms
         and axtms = map (prop_of o #1) axclauses
@@ -729,11 +731,11 @@ fun write_problem_files probfile (ctxt, chain_ths, th) =
 			| Fol => true
 			| Hol => false
       val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt chain_ths
-      val included_cls = included_thms |> ResAxioms.cnf_rules_pairs |> make_unique
+      val included_cls = included_thms |> ResAxioms.cnf_rules_pairs thy |> make_unique
                                        |> restrict_to_logic thy isFO
                                        |> remove_unwanted_clauses
       val _ = Output.debug (fn () => "included clauses = " ^ Int.toString(length included_cls))
-      val white_cls = ResAxioms.cnf_rules_pairs white_thms
+      val white_cls = ResAxioms.cnf_rules_pairs thy white_thms
       (*clauses relevant to goal gl*)
       val axcls_list = map (fn ngcls => white_cls @ relevance_filter thy included_cls (map prop_of ngcls)) goal_cls
       val _ = app (fn axcls => Output.debug (fn () => "filtered clauses = " ^ Int.toString(length axcls)))

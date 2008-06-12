@@ -470,16 +470,16 @@ fun infer_types ctxt =
   (* Translation of HO Clauses                                                 *)
   (* ------------------------------------------------------------------------- *)
 
-  fun cnf_th th = hd (ResAxioms.cnf_axiom th);
+  fun cnf_th thy th = hd (ResAxioms.cnf_axiom thy th);
 
-  val equal_imp_fequal' = cnf_th (thm"equal_imp_fequal");
-  val fequal_imp_equal' = cnf_th (thm"fequal_imp_equal");
+  val equal_imp_fequal' = cnf_th @{theory} (thm"equal_imp_fequal");
+  val fequal_imp_equal' = cnf_th @{theory} (thm"fequal_imp_equal");
 
-  val comb_I = cnf_th ResHolClause.comb_I;
-  val comb_K = cnf_th ResHolClause.comb_K;
-  val comb_B = cnf_th ResHolClause.comb_B;
-  val comb_C = cnf_th ResHolClause.comb_C;
-  val comb_S = cnf_th ResHolClause.comb_S;
+  val comb_I = cnf_th @{theory} ResHolClause.comb_I;
+  val comb_K = cnf_th @{theory} ResHolClause.comb_K;
+  val comb_B = cnf_th @{theory} ResHolClause.comb_B;
+  val comb_C = cnf_th @{theory} ResHolClause.comb_C;
+  val comb_S = cnf_th @{theory} ResHolClause.comb_S;
 
   fun type_ext thy tms =
     let val subs = ResAtp.tfree_classes_of_terms tms
@@ -567,7 +567,8 @@ fun infer_types ctxt =
 
   (* Main function to start metis prove and reconstruction *)
   fun FOL_SOLVE mode ctxt cls ths0 =
-    let val th_cls_pairs = map (fn th => (PureThy.get_name_hint th, ResAxioms.cnf_axiom th)) ths0
+    let val thy = ProofContext.theory_of ctxt
+        val th_cls_pairs = map (fn th => (PureThy.get_name_hint th, ResAxioms.cnf_axiom thy th)) ths0
         val ths = List.concat (map #2 th_cls_pairs)
         val _ = if exists(is_false o prop_of) cls then error "problem contains the empty clause"
                 else ();

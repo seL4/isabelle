@@ -395,7 +395,8 @@ fun count_user_clause user_lemmas (Clause{axiom_name,literals,...}, ct) =
   if axiom_name mem_string user_lemmas then foldl count_literal ct literals
   else ct;
 
-val cnf_helper_thms = ResAxioms.cnf_rules_pairs o (map ResAxioms.pairname)
+fun cnf_helper_thms thy =
+  ResAxioms.cnf_rules_pairs thy o map ResAxioms.pairname
 
 fun get_helper_clauses thy isFO (conjectures, axclauses, user_lemmas) =
   if isFO then []  (*first-order*)
@@ -404,15 +405,15 @@ fun get_helper_clauses thy isFO (conjectures, axclauses, user_lemmas) =
         val ct = foldl (count_user_clause user_lemmas) ct0 axclauses
         fun needed c = valOf (Symtab.lookup ct c) > 0
         val IK = if needed "c_COMBI" orelse needed "c_COMBK"
-                 then (Output.debug (fn () => "Include combinator I K"); cnf_helper_thms [comb_I,comb_K])
+                 then (Output.debug (fn () => "Include combinator I K"); cnf_helper_thms thy [comb_I,comb_K])
                  else []
         val BC = if needed "c_COMBB" orelse needed "c_COMBC"
-                 then (Output.debug (fn () => "Include combinator B C"); cnf_helper_thms [comb_B,comb_C])
+                 then (Output.debug (fn () => "Include combinator B C"); cnf_helper_thms thy [comb_B,comb_C])
                  else []
         val S = if needed "c_COMBS"
-                then (Output.debug (fn () => "Include combinator S"); cnf_helper_thms [comb_S])
+                then (Output.debug (fn () => "Include combinator S"); cnf_helper_thms thy [comb_S])
                 else []
-        val other = cnf_helper_thms [ext,fequal_imp_equal,equal_imp_fequal]
+        val other = cnf_helper_thms thy [ext,fequal_imp_equal,equal_imp_fequal]
     in
         map #2 (make_axiom_clauses thy (other @ IK @ BC @ S))
     end;
