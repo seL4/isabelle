@@ -95,7 +95,7 @@ lemma "evala (substa s a) env = evala a (\<lambda>x. evala (s x) env) \<and>
         evalb (substb s b) env = evalb b (\<lambda>x. evala (s x) env)";
 apply(induct_tac a and b rule: aexp_bexp.induct);
 
-txt{*\noindent
+txt{*\noindent Unfortunately, induction needs to be told explicitly which induction rule to use (via @{text"rule:"}).
 The resulting 8 goals (one for each constructor) are proved in one fell swoop:
 *}
 
@@ -108,7 +108,7 @@ an inductive proof expects a goal of the form
 \[ P@1(x@1)\ \land \dots \land P@n(x@n) \]
 where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \begin{isabelle}
-\isacommand{apply}@{text"(induct_tac"} $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$@{text")"}
+\isacommand{apply}@{text"(induct_tac"} $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$ @{text"rule:"} $\tau@1$@{text"_"}\dots@{text"_"}$\tau@n$@{text".induct)"}
 \end{isabelle}
 
 \begin{exercise}
