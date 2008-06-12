@@ -52,19 +52,16 @@ val pprint_thm = Pretty.pprint o ProofContext.pretty_thm_legacy;
 
 (* theorems and theory *)
 
-fun pretty_theorems_diff prev_facts thy =
+fun pretty_theorems_diff prev_thys thy =
   let
-    val ctxt = ProofContext.init thy;
-    val facts = PureThy.facts_of thy;
-    val thmss = Facts.fold_static (fn (name, ths) =>
-      if exists (fn prev => Facts.defined prev name) prev_facts then I
-      else cons (Facts.extern facts name, ths)) facts [];
-  in Pretty.big_list "theorems:" (map (ProofContext.pretty_fact ctxt) (sort_wrt #1 thmss)) end;
+    val pretty_fact = ProofContext.pretty_fact (ProofContext.init thy);
+    val thmss = Facts.extern_static (map PureThy.facts_of prev_thys) (PureThy.facts_of thy);
+  in Pretty.big_list "theorems:" (map pretty_fact thmss) end;
 
 fun print_theorems_diff prev_thy thy =
-  Pretty.writeln (pretty_theorems_diff [PureThy.facts_of prev_thy] thy);
+  Pretty.writeln (pretty_theorems_diff [prev_thy] thy);
 
-fun pretty_theorems thy = pretty_theorems_diff (map PureThy.facts_of (Theory.parents_of thy)) thy;
+fun pretty_theorems thy = pretty_theorems_diff (Theory.parents_of thy) thy;
 val print_theorems = Pretty.writeln o pretty_theorems;
 
 fun pretty_full_theory verbose thy =
