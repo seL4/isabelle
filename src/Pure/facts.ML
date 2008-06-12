@@ -26,8 +26,8 @@ sig
   val lookup: Context.generic -> T -> string -> thm list option
   val defined: T -> string -> bool
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
-  val dest_static: T -> (string * thm list) list
-  val extern_static: T -> (xstring * thm list) list
+  val dest_static: T list -> T -> (string * thm list) list
+  val extern_static: T list -> T -> (xstring * thm list) list
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
@@ -149,9 +149,19 @@ fun lookup context facts name =
 
 fun fold_static f = Symtab.fold (fn (name, (Static ths, _)) => f (name, ths) | _ => I) o table_of;
 
-fun dest_static facts = sort_wrt #1 (fold_static cons facts []);
-fun extern_static facts =
-  sort_wrt #1 (fold_static (fn (name, ths) => cons (extern facts name, ths)) facts []);
+
+(* content difference *)
+
+fun diff_table prev_facts facts =
+  fold_static (fn (name, ths) =>
+    if exists (fn prev => defined prev name) prev_facts then I
+    else cons (name, ths)) facts [];
+
+fun dest_static prev_facts facts =
+  sort_wrt #1 (diff_table prev_facts facts);
+
+fun extern_static prev_facts facts =
+  sort_wrt #1 (diff_table prev_facts facts |> map (apfst (extern facts)));
 
 
 (* indexed props *)
@@ -166,6 +176,7 @@ fun could_unify (Facts {props, ...}) = Net.unify_term props;
 
 fun err_dup_fact name = error ("Duplicate fact " ^ quote name);
 
+(* FIXME stamp identity! *)
 fun eq_entry ((Static ths1, _), (Static ths2, _)) = is_equal (list_ord Thm.thm_ord (ths1, ths2))
   | eq_entry ((_, id1: serial), (_, id2)) = id1 = id2;
 
