@@ -179,6 +179,7 @@ fun map_space f xname (NameSpace (tab, xtab)) =
 in
 
 val del_name = map_space o apfst o remove (op =);
+fun del_name_extra name = map_space (apfst (fn [] => [] | x :: xs => x :: remove (op =) name xs));
 val add_name = map_space o apfst o update (op =);
 val add_name' = map_space o apsnd o update (op =);
 
@@ -197,6 +198,7 @@ fun hide fully name space =
       space
       |> add_name' name name
       |> fold (del_name name) (if fully then names else names inter_string [base name])
+      |> fold (del_name_extra name) (get_accesses space name)
     end;
 
 
