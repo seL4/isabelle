@@ -6,7 +6,7 @@ imports Main Code_Integer
 begin
 
 ML {*
-CodeTarget.target_code_width := 74;
+CodeTarget.code_width := 74;
 *}
 
 syntax
