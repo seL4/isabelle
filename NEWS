@@ -6,6 +6,10 @@ New in this Isabelle version
 
 *** Pure ***
 
+* Recovered hiding of consts, which was accidentally broken in
+Isabelle2007.  Potential INCOMPATIBILITY, ``hide const c'' really
+makes c inaccessible; consider using ``hide (open) const c'' instead.
+
 * Command 'instance': attached definitions now longer accepted.
 INCOMPATIBILITY, use proper 'instantiation' target.
 
