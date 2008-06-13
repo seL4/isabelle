@@ -16,7 +16,7 @@ subsection {* Definitions *}
 text {* Hiding @{text "<+>"} from @{theory Sum_Type} until I come
   up with better syntax here *}
 
-hide const Plus
+no_notation Plus (infixr "<+>" 65)
 
 constdefs (structure G)
   a_r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "+>\<index>" 60)
