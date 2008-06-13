@@ -499,7 +499,8 @@ fun read_def_terms'
       handle TYPE (msg, _, _) => error msg;
 
     fun check T t = (singleton (fst o infer) (t, T); NONE) handle ERROR msg => SOME msg;
-    val map_const = try (#1 o Term.dest_Const o Consts.read_const consts);
+    fun map_const a = (true, #1 (Term.dest_Const (Consts.read_const consts a)))
+      handle ERROR _ => (false, Consts.intern consts a);
     fun read T = Syntax.standard_parse_term pp (check T) (get_sort thy def_sort) map_const map_free
         (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn T;
   in

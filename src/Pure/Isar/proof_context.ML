@@ -542,7 +542,8 @@ in
 fun term_context ctxt =
   let val thy = theory_of ctxt in
    {get_sort = Sign.get_sort thy (Variable.def_sort ctxt),
-    map_const = try (#1 o Term.dest_Const o read_const_proper ctxt),
+    map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt a)))
+      handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
     map_free = intern_skolem ctxt (Variable.def_type ctxt false),
     map_type = Sign.intern_tycons thy,
     map_sort = Sign.intern_sort thy}

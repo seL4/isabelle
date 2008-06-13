@@ -42,7 +42,7 @@ sig
   val read: Proof.context -> (string -> bool) -> syntax -> typ -> string -> term list
   val standard_parse_term: Pretty.pp -> (term -> string option) ->
     (((string * int) * sort) list -> string * int -> Term.sort) ->
-    (string -> string option) -> (string -> string option) ->
+    (string -> bool * string) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> Proof.context ->
     (string -> bool) -> syntax -> typ -> string -> term
   val standard_parse_typ: Proof.context -> syntax ->
