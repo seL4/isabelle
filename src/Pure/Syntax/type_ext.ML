@@ -12,7 +12,7 @@ sig
   val term_sorts: (sort -> sort) -> term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> (sort -> sort) -> term -> typ
   val decode_term: (((string * int) * sort) list -> string * int -> sort) ->
-    (string -> string option) -> (string -> string option) ->
+    (string -> bool * string) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> term -> term
   val term_of_typ: bool -> typ -> term
   val no_brackets: unit -> bool
@@ -119,13 +119,13 @@ fun decode_term get_sort map_const map_free map_type map_sort tm =
       | decode (t $ u) = decode t $ decode u
       | decode (Const (a, T)) =
           let val c =
-            (case try (unprefix Lexicon.constN) a of SOME c => c | NONE => perhaps map_const a)
+            (case try (unprefix Lexicon.constN) a of SOME c => c | NONE => snd (map_const a))
           in Const (c, map_type T) end
       | decode (Free (a, T)) =
           (case (map_free a, map_const a) of
             (SOME x, _) => Free (x, map_type T)
-          | (_, SOME c) => Const (c, map_type T)
-          | _ => (if NameSpace.is_qualified a then Const else Free) (a, map_type T))
+          | (_, (true, c)) => Const (c, map_type T)
+          | (_, (false, c)) => (if NameSpace.is_qualified c then Const else Free) (c, map_type T))
       | decode (Var (xi, T)) = Var (xi, map_type T)
       | decode (t as Bound _) = t;
   in decode tm end;
