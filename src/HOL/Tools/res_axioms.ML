@@ -87,7 +87,6 @@ fun declare_skofuns s th =
             val (c, thy') = Sign.declare_const [Markup.property_internal] (cname, cT, NoSyn) thy
             val cdef = cname ^ "_def"
             val thy'' = Theory.add_defs_i true false [(cdef, equals cT $ c $ rhs)] thy'
-              handle ERROR _ => raise Clausify_failure thy'
             val ax = Thm.get_axiom_i thy'' (Sign.full_name thy'' cdef)
           in dec_sko (subst_bound (list_comb (c, args), p)) (ax :: axs, thy'') end
       | dec_sko (Const ("All", _) $ (xtp as Abs (a, T, p))) thx =
@@ -373,8 +372,7 @@ fun skolem (name, th0) thy =
         val (cnfs, ctxt2) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt1
         val cnfs' = cnfs |> map combinators |> Variable.export ctxt2 ctxt0
                          |> Meson.finish_cnf |> map Thm.close_derivation
-      in (cnfs', thy') end
-      handle Clausify_failure thy_e => ([], thy_e))   (* FIXME !? *)
+      in (cnfs', thy') end)
   end;
 
 (*The cache prevents repeated clausification of a theorem, and also repeated declaration of
@@ -451,20 +449,20 @@ fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
 
 (*Populate the clause cache using the supplied theorem. Return the clausal form
   and modified theory.*)
-fun skolem_cache_thm (name, th) thy =
+fun skolem_cache_thm name (i, th) thy =
   if bad_for_atp th then thy
   else
     (case lookup_cache thy th of
       SOME _ => thy
     | NONE =>
-        (case skolem (name, th) thy of
+        (case skolem (name ^ "_" ^ string_of_int (i + 1), th) thy of
           NONE => thy
         | SOME (cls, thy') => update_cache (th, cls) thy'));
 
 fun skolem_cache_fact (name, ths) (changed, thy) =
   if (Sign.base_name name) mem_string multi_base_blacklist orelse already_seen thy name
   then (changed, thy)
-  else (true, thy |> mark_seen name |> fold skolem_cache_thm (PureThy.name_multi name ths));
+  else (true, thy |> mark_seen name |> fold_index (skolem_cache_thm name) ths);
 
 fun saturate_skolem_cache thy =
   (case Facts.fold_static skolem_cache_fact (PureThy.facts_of thy) (false, thy) of
