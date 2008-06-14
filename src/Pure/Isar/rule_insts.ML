@@ -11,6 +11,9 @@ sig
     thm -> int -> tactic
   val res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
   val eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
+  val subgoal_tac: Proof.context -> string -> int -> tactic
+  val subgoals_tac: Proof.context -> string list -> int -> tactic
+  val thin_tac: Proof.context -> string -> int -> tactic
 end;
 
 structure RuleInsts: RULE_INSTS =
