@@ -361,11 +361,6 @@ val _ =
     (K.tag_ml K.thy_decl)
     (trfun >> (Toplevel.theory o IsarCmd.print_ast_translation));
 
-val _ =
-  OuterSyntax.command "token_translation" "install token translation functions"
-    (K.tag_ml K.thy_decl)
-    (P.position P.text >> (Toplevel.theory o IsarCmd.token_translation));
-
 
 (* oracles *)
 

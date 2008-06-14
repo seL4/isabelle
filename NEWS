@@ -15,6 +15,9 @@ INCOMPATIBILITY, use proper 'instantiation' target.
 
 * Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
 
+* Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
+interface instead.
+
 
 *** HOL ***
 

@@ -13,7 +13,6 @@ sig
   val print_translation: bool * (string * Position.T) -> theory -> theory
   val typed_print_translation: bool * (string * Position.T) -> theory -> theory
   val print_ast_translation: bool * (string * Position.T) -> theory -> theory
-  val token_translation: string * Position.T -> theory -> theory
   val oracle: bstring -> string -> string * Position.T -> theory -> theory
   val add_axioms: ((bstring * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((bstring * string) * Attrib.src list) list -> theory -> theory
@@ -182,12 +181,6 @@ fun typed_print_translation (a, (txt, pos)) =
     ("val typed_print_translation: (string * (" ^ advancedT a ^
       "bool -> typ -> term list -> term)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfunsT typed_print_translation)")
-  |> Context.theory_map;
-
-fun token_translation (txt, pos) =
-  txt |> ML_Context.expression pos
-    "val token_translation: (string * string * (Proof.context -> string -> Pretty.T)) list"
-      "Context.map_theory (Sign.add_tokentrfuns token_translation)"
   |> Context.theory_map;
 
 end;

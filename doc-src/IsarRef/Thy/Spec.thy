@@ -1262,15 +1262,11 @@ text {*
     @{command_def "print_translation"} & : & \isartrans{theory}{theory} \\
     @{command_def "typed_print_translation"} & : & \isartrans{theory}{theory} \\
     @{command_def "print_ast_translation"} & : & \isartrans{theory}{theory} \\
-    @{command_def "token_translation"} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
   ( 'parse\_ast\_translation' | 'parse\_translation' | 'print\_translation' |
     'typed\_print\_translation' | 'print\_ast\_translation' ) ('(advanced)')? text
-  ;
-
-  'token\_translation' text
   ;
   \end{rail}
 
@@ -1287,8 +1283,6 @@ val print_translation       : (string * (term list -> term)) list
 val typed_print_translation :
   (string * (bool -> typ -> term list -> term)) list
 val print_ast_translation   : (string * (ast list -> ast)) list
-val token_translation       :
-  (string * string * (string -> string * real)) list
 \end{ttbox}
 
   If the @{text "(advanced)"} option is given, the corresponding
