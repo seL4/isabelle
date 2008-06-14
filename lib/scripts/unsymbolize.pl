@@ -32,7 +32,9 @@ sub unsymbolize {
     s/\\?\\<midarrow>\\?\\<rightarrow>/-->/g;
     s/\\?\\<rightarrow>/->/g;
     s/\\?\\<not>/~/g;
-    s/\\?\\<epsilon> ?/SOME /g;
+    s/\\?\\<notin>/~:/g;
+    s/\\?\\<noteq>/~=/g;
+    s/\\?\\<some> ?/SOME /g;
     # outer syntax
     s/\\?\\<rightleftharpoons>/==/g;
     s/\\?\\<rightharpoonup>/=>/g;
