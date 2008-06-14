@@ -913,7 +913,7 @@ fun mk_fun_apply_eq (Abs (f, fT, t)) thy =
                  list_all ((fst r,rT)::vars,
                            app_bounds (n - 1) ((Free P)$Bound n)));
     val prove_standard = quick_and_dirty_prove true thy;
-    val thm = prove_standard [] prop (fn prems =>
+    val thm = prove_standard [] prop (fn _ =>
 	 EVERY [rtac equal_intr_rule 1,
                 Goal.norm_hhf_tac 1,REPEAT (etac meta_allE 1), atac 1,
                 Goal.norm_hhf_tac 1,REPEAT (etac meta_allE 1), atac 1]);
@@ -1622,7 +1622,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
         in standard (ObjectLogic.rulify (mp OF [ind, refl])) end;
 
     fun cases_prf_noopt () =
-        prove_standard [] cases_prop (fn prems =>
+        prove_standard [] cases_prop (fn _ =>
          EVERY [asm_full_simp_tac (HOL_basic_ss addsimps [atomize_all, atomize_imp]) 1,
                 try_param_tac rN induct 1,
                 rtac impI 1,
@@ -1676,13 +1676,13 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
          timeit_msg "record extension upd_convs proof:" upd_convs_prf;
 
     fun surjective_prf () =
-      prove_standard [] surjective_prop (fn prems =>
+      prove_standard [] surjective_prop (fn _ =>
           (EVERY [try_param_tac rN induct 1,
                   simp_tac (HOL_basic_ss addsimps dest_convs_standard) 1]));
     val surjective = timeit_msg "record extension surjective proof:" surjective_prf;
 
     fun split_meta_prf () =
-        prove_standard [] split_meta_prop (fn prems =>
+        prove_standard [] split_meta_prop (fn _ =>
          EVERY [rtac equal_intr_rule 1, Goal.norm_hhf_tac 1,
                 etac meta_allE 1, atac 1,
                 rtac (prop_subst OF [surjective]) 1,
@@ -2045,7 +2045,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val parent_induct = if null parents then [] else [#induct (hd (rev parents))];
 
-    fun induct_scheme_prf () = prove_standard [] induct_scheme_prop (fn prems =>
+    fun induct_scheme_prf () = prove_standard [] induct_scheme_prop (fn _ =>
           (EVERY [if null parent_induct
                   then all_tac else try_param_tac rN (hd parent_induct) 1,
                   try_param_tac rN ext_induct 1,
@@ -2078,7 +2078,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         in standard (ObjectLogic.rulify (mp OF [ind, refl])) end;
 
     fun cases_scheme_prf_noopt () =
-        prove_standard [] cases_scheme_prop (fn prems =>
+        prove_standard [] cases_scheme_prop (fn _ =>
          EVERY [asm_full_simp_tac (HOL_basic_ss addsimps [atomize_all, atomize_imp]) 1,
                try_param_tac rN induct_scheme 1,
                rtac impI 1,
@@ -2095,7 +2095,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val cases = timeit_msg "record cases proof:" cases_prf;
 
     fun split_meta_prf () =
-        prove false [] split_meta_prop (fn prems =>
+        prove false [] split_meta_prop (fn _ =>
          EVERY [rtac equal_intr_rule 1, Goal.norm_hhf_tac 1,
                 etac meta_allE 1, atac 1,
                 rtac (prop_subst OF [surjective]) 1,
@@ -2125,7 +2125,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
      in standard (thr COMP (thl COMP iffI)) end;
 
     fun split_object_prf_noopt () =
-        prove_standard [] split_object_prop (fn prems =>
+        prove_standard [] split_object_prop (fn _ =>
          EVERY [rtac iffI 1,
                 REPEAT (rtac allI 1), etac allE 1, atac 1,
                 rtac allI 1, rtac induct_scheme 1,REPEAT (etac allE 1),atac 1]);
@@ -2135,7 +2135,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
 
     fun split_ex_prf () =
-        prove_standard [] split_ex_prop (fn prems =>
+        prove_standard [] split_ex_prop (fn _ =>
           EVERY [rtac iffI 1,
                    etac exE 1,
                    simp_tac (HOL_basic_ss addsimps [split_meta_standard]) 1,
@@ -2153,10 +2153,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           val eqs' = map (simplify ss') eqs;
       in simp_tac (HOL_basic_ss addsimps (s'::s::eqs')) 1 end;
 
-   fun equality_prf () = prove_standard [] equality_prop (fn _ =>
+   fun equality_prf () = prove_standard [] equality_prop (fn {context, ...} =>
       fn st => let val [s, s'] = map #1 (rev (Tactic.innermost_params 1 st)) in
-        st |> (res_inst_tac [(rN, s)] cases_scheme 1
-        THEN res_inst_tac [(rN, s')] cases_scheme 1
+        st |> (RuleInsts.res_inst_tac context [((rN, 0), s)] cases_scheme 1
+        THEN RuleInsts.res_inst_tac context [((rN, 0), s')] cases_scheme 1
         THEN (METAHYPS equality_tac 1))
              (* simp_all_tac ss (sel_convs) would also work but is less efficient *)
       end);
