@@ -7,8 +7,10 @@ Unstructured induction and cases analysis for Isabelle/HOL.
 
 signature INDUCT_TACS =
 sig
-  val case_tac: Proof.context -> string * thm option -> int -> tactic
-  val induct_tac: Proof.context -> string option list list * thm option -> int -> tactic
+  val case_tac: Proof.context -> string -> int -> tactic
+  val case_rule_tac: Proof.context -> string -> thm -> int -> tactic
+  val induct_tac: Proof.context -> string option list list -> int -> tactic
+  val induct_rule_tac: Proof.context -> string option list list -> thm -> int -> tactic
   val setup: theory -> theory
 end
 
@@ -25,7 +27,7 @@ fun check_type ctxt t =
       error ("Cannot determine type of " ^ Syntax.string_of_term ctxt u);
   in U end;
 
-fun case_tac ctxt0 (s, opt_rule) i st =
+fun gen_case_tac ctxt0 (s, opt_rule) i st =
   let
     val ((_, goal), ctxt) = Variable.focus_subgoal i st ctxt0;
     val rule =
@@ -45,6 +47,9 @@ fun case_tac ctxt0 (s, opt_rule) i st =
   in RuleInsts.res_inst_tac ctxt [(xi, s)] rule i st end
   handle THM _ => Seq.empty;
 
+fun case_tac ctxt s = gen_case_tac ctxt (s, NONE);
+fun case_rule_tac ctxt s rule = gen_case_tac ctxt (s, SOME rule);
+
 
 (* induction *)
 
@@ -59,7 +64,7 @@ fun prep_inst (concl, xs) =
 
 in
 
-fun induct_tac ctxt0 (varss, opt_rule) i st =
+fun gen_induct_tac ctxt0 (varss, opt_rule) i st =
   let
     val ((_, goal), ctxt) = Variable.focus_subgoal i st ctxt0;
     val (prems, concl) = Logic.strip_horn (Thm.term_of goal);
@@ -100,6 +105,9 @@ fun induct_tac ctxt0 (varss, opt_rule) i st =
 
 end;
 
+fun induct_tac ctxt args = gen_induct_tac ctxt (args, NONE);
+fun induct_rule_tac ctxt args rule = gen_induct_tac ctxt (args, SOME rule);
+
 
 (* method syntax *)
 
@@ -115,9 +123,9 @@ in
 
 val setup =
   Method.add_methods
-   [("case_tac", Method.goal_args_ctxt' (Scan.lift Args.name -- opt_rule) case_tac,
+   [("case_tac", Method.goal_args_ctxt' (Scan.lift Args.name -- opt_rule) gen_case_tac,
       "unstructured case analysis on types"),
-    ("induct_tac", Method.goal_args_ctxt' (varss -- opt_rule) induct_tac,
+    ("induct_tac", Method.goal_args_ctxt' (varss -- opt_rule) gen_induct_tac,
       "unstructured induction on types")];
 
 end;
