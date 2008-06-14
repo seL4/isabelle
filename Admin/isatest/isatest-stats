@@ -34,7 +34,7 @@ ISABELLE_SESSIONS="\
 
 AFP_SESSIONS="\
   CoreC++\
-  HOL-Complex-LinearQuantifierElim\
+  LinearQuantifierElim\
   HOL-DiskPaxos\
   HOL-Fermat3_4\
   HOL-Flyspeck-Tame\
