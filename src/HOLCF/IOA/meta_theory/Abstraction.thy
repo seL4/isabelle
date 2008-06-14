@@ -104,7 +104,7 @@ lemma exec_frag_abstraction [rule_format]:
   --> is_exec_frag A (cex_abs h (s,xs))"
 apply (unfold cex_abs_def)
 apply simp
-apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def"] 1 *})
+apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}] 1 *})
 txt {* main case *}
 apply (auto dest: reachable.reachable_n simp add: is_abstraction_def)
 done
@@ -204,7 +204,7 @@ lemma traces_coincide_abs:
          ==> mk_trace C$xs = mk_trace A$(snd (cex_abs f (s,xs)))"
 apply (unfold cex_abs_def mk_trace_def filter_act_def)
 apply simp
-apply (tactic {* pair_induct_tac "xs" [] 1 *})
+apply (tactic {* pair_induct_tac @{context} "xs" [] 1 *})
 done
 
 
@@ -220,13 +220,13 @@ apply auto
 apply (rule_tac x = "cex_abs h ex" in exI)
 apply auto
   (* Traces coincide *)
-  apply (tactic {* pair_tac "ex" 1 *})
+  apply (tactic {* pair_tac @{context} "ex" 1 *})
   apply (rule traces_coincide_abs)
   apply (simp (no_asm) add: externals_def)
   apply (auto)[1]
 
   (* cex_abs is execution *)
-  apply (tactic {* pair_tac "ex" 1 *})
+  apply (tactic {* pair_tac @{context} "ex" 1 *})
   apply (simp add: executions_def)
   (* start state *)
   apply (rule conjI)
@@ -237,7 +237,7 @@ apply auto
 
  (* Liveness *)
 apply (simp add: temp_weakening_def2)
- apply (tactic {* pair_tac "ex" 1 *})
+ apply (tactic {* pair_tac @{context} "ex" 1 *})
 done
 
 (* FIX: NAch Traces.ML bringen *)
@@ -354,25 +354,25 @@ subsubsection {* Box *}
 
 (* FIX: should be same as nil_is_Conc2 when all nils are turned to right side !! *)
 lemma UU_is_Conc: "(UU = x @@ y) = (((x::'a Seq)= UU) | (x=nil & y=UU))"
-apply (tactic {* Seq_case_simp_tac "x" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "x" 1 *})
 done
 
 lemma ex2seqConc [rule_format]:
 "Finite s1 -->
   (! ex. (s~=nil & s~=UU & ex2seq ex = s1 @@ s) --> (? ex'. s = ex2seq ex'))"
 apply (rule impI)
-apply (tactic {* Seq_Finite_induct_tac 1 *})
+apply (tactic {* Seq_Finite_induct_tac @{context} 1 *})
 apply blast
 (* main case *)
 apply clarify
-apply (tactic {* pair_tac "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac "y" 1 *})
+apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
 (* UU case *)
 apply (simp add: nil_is_Conc)
 (* nil case *)
 apply (simp add: nil_is_Conc)
 (* cons case *)
-apply (tactic {* pair_tac "aa" 1 *})
+apply (tactic {* pair_tac @{context} "aa" 1 *})
 apply auto
 done
 
@@ -390,11 +390,11 @@ done
 (* FIX: NAch Sequence.ML bringen *)
 
 lemma Mapnil: "(Map f$s = nil) = (s=nil)"
-apply (tactic {* Seq_case_simp_tac "s" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
 done
 
 lemma MapUU: "(Map f$s = UU) = (s=UU)"
-apply (tactic {* Seq_case_simp_tac "s" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
 done
 
 
@@ -432,9 +432,9 @@ lemma strength_Init:
 apply (unfold temp_strengthening_def state_strengthening_def
   temp_sat_def satisfies_def Init_def unlift_def)
 apply auto
-apply (tactic {* pair_tac "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac "y" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
 done
 
 
@@ -442,25 +442,25 @@ subsubsection {* Next *}
 
 lemma TL_ex2seq_UU:
 "(TL$(ex2seq (cex_abs h ex))=UU) = (TL$(ex2seq ex)=UU)"
-apply (tactic {* pair_tac "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac "y" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
-apply (tactic {* Seq_case_simp_tac "s" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
 done
 
 lemma TL_ex2seq_nil:
 "(TL$(ex2seq (cex_abs h ex))=nil) = (TL$(ex2seq ex)=nil)"
-apply (tactic {* pair_tac "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac "y" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
-apply (tactic {* Seq_case_simp_tac "s" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
 done
 
 (* FIX: put to Sequence Lemmas *)
 lemma MapTL: "Map f$(TL$s) = TL$(Map f$s)"
-apply (tactic {* Seq_induct_tac "s" [] 1 *})
+apply (tactic {* Seq_induct_tac @{context} "s" [] 1 *})
 done
 
 (* important property of cex_absSeq: As it is a 1to1 correspondence,
@@ -475,19 +475,19 @@ done
 (* important property of ex2seq: can be shiftet, as defined "pointwise" *)
 
 lemma TLex2seq: "[| (snd ex)~=UU ; (snd ex)~=nil |] ==> (? ex'. TL$(ex2seq ex) = ex2seq ex')"
-apply (tactic {* pair_tac "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac "y" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
 apply auto
 done
 
 
 lemma ex2seqnilTL: "(TL$(ex2seq ex)~=nil) = ((snd ex)~=nil & (snd ex)~=UU)"
-apply (tactic {* pair_tac "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac "y" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
-apply (tactic {* Seq_case_simp_tac "s" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
 done
 
 
@@ -518,9 +518,9 @@ lemma weak_Init:
 apply (simp add: temp_weakening_def2 state_weakening_def2
   temp_sat_def satisfies_def Init_def unlift_def)
 apply auto
-apply (tactic {* pair_tac "ex" 1 *})
-apply (tactic {* Seq_case_simp_tac "y" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* pair_tac @{context} "ex" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
 done
 
 

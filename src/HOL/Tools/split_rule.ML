@@ -15,7 +15,7 @@ signature SPLIT_RULE =
 sig
   include BASIC_SPLIT_RULE
   val split_rule_var: term -> thm -> thm
-  val split_rule_goal: string list list -> thm -> thm
+  val split_rule_goal: Proof.context -> string list list -> thm -> thm
   val setup: theory -> theory
 end;
 
@@ -123,14 +123,16 @@ fun complete_split_rule rl =
   end;
 
 
-fun pair_tac s =
-  EVERY' [res_inst_tac [("p", s)] @{thm PairE}, hyp_subst_tac, K prune_params_tac];
+fun pair_tac ctxt s =
+  RuleInsts.res_inst_tac ctxt [(("p", 0), s)] @{thm PairE}
+  THEN' hyp_subst_tac
+  THEN' K prune_params_tac;
 
 val split_rule_ss = HOL_basic_ss addsimps [split_conv, fst_conv, snd_conv];
 
-fun split_rule_goal xss rl =
+fun split_rule_goal ctxt xss rl =
   let
-    fun one_split i s = Tactic.rule_by_tactic (pair_tac s i);
+    fun one_split i s = Tactic.rule_by_tactic (pair_tac ctxt s i);
     fun one_goal (i, xs) = fold (one_split (i + 1)) xs;
   in
     rl
@@ -148,7 +150,8 @@ val split_format = Attrib.syntax
   (Scan.lift (Args.parens (Args.$$$ "complete"))
     >> K (Thm.rule_attribute (K complete_split_rule)) ||
   Args.and_list1 (Scan.lift (Scan.repeat Args.name))
-    >> (fn xss => Thm.rule_attribute (K (split_rule_goal xss))));
+    >> (fn xss => Thm.rule_attribute (fn context =>
+        split_rule_goal (Context.proof_of context) xss)));
 
 val setup =
   Attrib.add_attributes

@@ -282,7 +282,9 @@ apply           blast
 apply          (blast) (* asm *)
 apply         (blast) (* cut *)
 apply        (blast) (* weaken *)
-apply       (tactic {* ALLGOALS (EVERY'[REPEAT o thin_tac "hoare_derivs ?x ?y", SIMPSET' simp_tac, CLASET' clarify_tac, REPEAT o smp_tac 1]) *})
+apply       (tactic {* ALLGOALS (EVERY'
+  [REPEAT o RuleInsts.thin_tac @{context} "hoare_derivs ?x ?y",
+   simp_tac @{simpset}, clarify_tac @{claset}, REPEAT o smp_tac 1]) *})
 apply       (simp_all (no_asm_use) add: triple_valid_def2)
 apply       (intro strip, tactic "smp_tac 2 1", blast) (* conseq *)
 apply      (tactic {* ALLGOALS (CLASIMPSET' clarsimp_tac) *}) (* Skip, Ass, Local *)

@@ -333,7 +333,7 @@ done
 declare laststate_UU [simp] laststate_nil [simp] laststate_cons [simp]
 
 lemma exists_laststate: "!!ex. Finite ex ==> (! s. ? u. laststate (s,ex)=u)"
-apply (tactic "Seq_Finite_induct_tac 1")
+apply (tactic "Seq_Finite_induct_tac @{context} 1")
 done
 
 
@@ -359,8 +359,8 @@ subsection "signatures and executions, schedules"
 lemma execfrag_in_sig: 
   "!! A. is_trans_of A ==>  
   ! s. is_exec_frag A (s,xs) --> Forall (%a. a:act A) (filter_act$xs)"
-apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def",
-  thm "Forall_def", thm "sforall_def"] 1 *})
+apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def},
+  @{thm Forall_def}, @{thm sforall_def}] 1 *})
 (* main case *)
 apply (auto simp add: is_trans_of_def)
 done
@@ -369,7 +369,7 @@ lemma exec_in_sig:
   "!! A.[|  is_trans_of A; x:executions A |] ==>  
   Forall (%a. a:act A) (filter_act$(snd x))"
 apply (simp add: executions_def)
-apply (tactic {* pair_tac "x" 1 *})
+apply (tactic {* pair_tac @{context} "x" 1 *})
 apply (rule execfrag_in_sig [THEN spec, THEN mp])
 apply auto
 done
@@ -386,10 +386,10 @@ subsection "executions are prefix closed"
 
 (* only admissible in y, not if done in x !! *)
 lemma execfrag_prefixclosed: "!x s. is_exec_frag A (s,x) & y<<x  --> is_exec_frag A (s,y)"
-apply (tactic {* pair_induct_tac "y" [thm "is_exec_frag_def"] 1 *})
+apply (tactic {* pair_induct_tac @{context} "y" [@{thm is_exec_frag_def}] 1 *})
 apply (intro strip)
-apply (tactic {* Seq_case_simp_tac "xa" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "xa" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
 apply auto
 done
 
@@ -401,12 +401,11 @@ lemmas exec_prefixclosed =
 
 lemma exec_prefix2closed [rule_format]:
   "! y s. is_exec_frag A (s,x@@y) --> is_exec_frag A (s,x)"
-apply (tactic {* pair_induct_tac "x" [thm "is_exec_frag_def"] 1 *})
+apply (tactic {* pair_induct_tac @{context} "x" [@{thm is_exec_frag_def}] 1 *})
 apply (intro strip)
-apply (tactic {* Seq_case_simp_tac "s" 1 *})
-apply (tactic {* pair_tac "a" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
+apply (tactic {* pair_tac @{context} "a" 1 *})
 apply auto
 done
-
 
 end

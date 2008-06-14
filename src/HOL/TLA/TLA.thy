@@ -305,17 +305,17 @@ ML {*
 fun merge_box_tac i =
    REPEAT_DETERM (EVERY [etac @{thm box_conjE} i, atac i, etac @{thm box_thin} i])
 
-fun merge_temp_box_tac i =
+fun merge_temp_box_tac ctxt i =
    REPEAT_DETERM (EVERY [etac @{thm box_conjE_temp} i, atac i,
-                         eres_inst_tac [("'a","behavior")] @{thm box_thin} i])
+                         RuleInsts.eres_inst_tac ctxt [(("'a", 0), "behavior")] @{thm box_thin} i])
 
-fun merge_stp_box_tac i =
+fun merge_stp_box_tac ctxt i =
    REPEAT_DETERM (EVERY [etac @{thm box_conjE_stp} i, atac i,
-                         eres_inst_tac [("'a","state")] @{thm box_thin} i])
+                         RuleInsts.eres_inst_tac ctxt [(("'a", 0), "state")] @{thm box_thin} i])
 
-fun merge_act_box_tac i =
+fun merge_act_box_tac ctxt i =
    REPEAT_DETERM (EVERY [etac @{thm box_conjE_act} i, atac i,
-                         eres_inst_tac [("'a","state * state")] @{thm box_thin} i])
+                         RuleInsts.eres_inst_tac ctxt [(("'a", 0), "state * state")] @{thm box_thin} i])
 *}
 
 (* rewrite rule to push universal quantification through box:
@@ -947,7 +947,7 @@ lemma SF1:
   apply (clarsimp dest!: BoxSFI [temp_use])
   apply (erule (2) ensures [temp_use])
   apply (erule_tac F = F in dup_boxE)
-  apply (tactic "merge_temp_box_tac 1")
+  apply (tactic "merge_temp_box_tac @{context} 1")
   apply (erule STL4Edup)
   apply assumption
   apply (clarsimp simp: SF_def)
@@ -966,7 +966,7 @@ lemma WF2:
   apply (clarsimp dest!: BoxWFI [temp_use] BoxDmdBox [temp_use, THEN iffD2]
     simp: WF_def [where A = M])
   apply (erule_tac F = F in dup_boxE)
-  apply (tactic "merge_temp_box_tac 1")
+  apply (tactic "merge_temp_box_tac @{context} 1")
   apply (erule STL4Edup)
    apply assumption
   apply (clarsimp intro!: BoxDmd_simple [temp_use, THEN 1 [THEN DmdImpl, temp_use]])
@@ -975,7 +975,7 @@ lemma WF2:
    apply (force simp: angle_def intro!: 2 [temp_use] elim!: DmdImplE [temp_use])
   apply (rule BoxDmd_simple [THEN DmdImpl, unfolded DmdDmd [temp_rewrite], temp_use])
   apply (simp add: NotDmd [temp_use] not_angle [try_rewrite])
-  apply (tactic "merge_act_box_tac 1")
+  apply (tactic "merge_act_box_tac @{context} 1")
   apply (frule 4 [temp_use])
      apply assumption+
   apply (drule STL6 [temp_use])
@@ -984,7 +984,7 @@ lemma WF2:
   apply (erule_tac V = "sigmaa |= []F" in thin_rl)
   apply (drule BoxWFI [temp_use])
   apply (erule_tac F = "ACT N & [~B]_f" in dup_boxE)
-  apply (tactic "merge_temp_box_tac 1")
+  apply (tactic "merge_temp_box_tac @{context} 1")
   apply (erule DmdImpldup)
    apply assumption
   apply (auto simp: split_box_conj [try_rewrite] STL3 [try_rewrite]
@@ -1004,7 +1004,7 @@ lemma SF2:
   apply (clarsimp dest!: BoxSFI [temp_use] simp: 2 [try_rewrite] SF_def [where A = M])
   apply (erule_tac F = F in dup_boxE)
   apply (erule_tac F = "TEMP <>Enabled (<M>_g) " in dup_boxE)
-  apply (tactic "merge_temp_box_tac 1")
+  apply (tactic "merge_temp_box_tac @{context} 1")
   apply (erule STL4Edup)
    apply assumption
   apply (clarsimp intro!: BoxDmd_simple [temp_use, THEN 1 [THEN DmdImpl, temp_use]])
@@ -1013,14 +1013,14 @@ lemma SF2:
    apply (force simp: angle_def intro!: 2 [temp_use] elim!: DmdImplE [temp_use])
   apply (rule BoxDmd_simple [THEN DmdImpl, unfolded DmdDmd [temp_rewrite], temp_use])
   apply (simp add: NotDmd [temp_use] not_angle [try_rewrite])
-  apply (tactic "merge_act_box_tac 1")
+  apply (tactic "merge_act_box_tac @{context} 1")
   apply (frule 4 [temp_use])
      apply assumption+
   apply (erule_tac V = "sigmaa |= []F" in thin_rl)
   apply (drule BoxSFI [temp_use])
   apply (erule_tac F = "TEMP <>Enabled (<M>_g)" in dup_boxE)
   apply (erule_tac F = "ACT N & [~B]_f" in dup_boxE)
-  apply (tactic "merge_temp_box_tac 1")
+  apply (tactic "merge_temp_box_tac @{context} 1")
   apply (erule DmdImpldup)
    apply assumption
   apply (auto simp: split_box_conj [try_rewrite] STL3 [try_rewrite]

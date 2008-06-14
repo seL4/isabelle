@@ -219,7 +219,7 @@ done
 lemma lemma_2_1b:
    "filter_act$(ProjA2$xs) =filter_act$xs &
     filter_act$(ProjB2$xs) =filter_act$xs"
-apply (tactic {* pair_induct_tac "xs" [] 1 *})
+apply (tactic {* pair_induct_tac @{context} "xs" [] 1 *})
 done
 
 
@@ -234,8 +234,8 @@ done
 lemma sch_actions_in_AorB: "!s. is_exec_frag (A||B) (s,xs)
    --> Forall (%x. x:act (A||B)) (filter_act$xs)"
 
-apply (tactic {* pair_induct_tac "xs" [thm "is_exec_frag_def", thm "Forall_def",
-  thm "sforall_def"] 1 *})
+apply (tactic {* pair_induct_tac @{context} "xs" [@{thm is_exec_frag_def}, @{thm Forall_def},
+  @{thm sforall_def}] 1 *})
 (* main case *)
 apply auto
 apply (simp add: trans_of_defs2 actions_asig_comp asig_of_par)
@@ -255,20 +255,20 @@ lemma Mapfst_mkex_is_sch: "! exA exB s t.
   Filter (%a. a:act B)$sch << filter_act$exB
   --> filter_act$(snd (mkex A B sch (s,exA) (t,exB))) = sch"
 
-apply (tactic {* Seq_induct_tac "sch" [thm "Filter_def", thm "Forall_def",
-  thm "sforall_def", thm "mkex_def"] 1 *})
+apply (tactic {* Seq_induct_tac @{context} "sch" [@{thm Filter_def}, @{thm Forall_def},
+  @{thm sforall_def}, @{thm mkex_def}] 1 *})
 
 (* main case *)
 (* splitting into 4 cases according to a:A, a:B *)
 apply auto
 
 (* Case y:A, y:B *)
-apply (tactic {* Seq_case_simp_tac "exA" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "exA" 1 *})
 (* Case exA=UU, Case exA=nil*)
 (* These UU and nil cases are the only places where the assumption filter A sch<<f_act exA
    is used! --> to generate a contradiction using  ~a>>ss<< UU(nil), using theorems
    Cons_not_less_UU and Cons_not_less_nil  *)
-apply (tactic {* Seq_case_simp_tac "exB" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "exB" 1 *})
 (* Case exA=a>>x, exB=b>>y *)
 (* here it is important that Seq_case_simp_tac uses no !full!_simp_tac for the cons case,
    as otherwise mkex_cons_3 would  not be rewritten without use of rotate_tac: then tactic
@@ -276,11 +276,11 @@ apply (tactic {* Seq_case_simp_tac "exB" 1 *})
 apply simp
 
 (* Case y:A, y~:B *)
-apply (tactic {* Seq_case_simp_tac "exA" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "exA" 1 *})
 apply simp
 
 (* Case y~:A, y:B *)
-apply (tactic {* Seq_case_simp_tac "exB" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "exB" 1 *})
 apply simp
 
 (* Case y~:A, y~:B *)
@@ -298,19 +298,21 @@ local
   val asigs = [thm "asig_of_par", thm "actions_asig_comp"]
 in
 
-fun mkex_induct_tac sch exA exB =
-    EVERY1[Seq_induct_tac sch defs,
-           SIMPSET' asm_full_simp_tac,
+fun mkex_induct_tac ctxt sch exA exB =
+  let val ss = Simplifier.local_simpset_of ctxt in
+    EVERY1[Seq_induct_tac ctxt sch defs,
+           asm_full_simp_tac ss,
            SELECT_GOAL (safe_tac (claset_of @{theory Fun})),
-           Seq_case_simp_tac exA,
-           Seq_case_simp_tac exB,
-           SIMPSET' asm_full_simp_tac,
-           Seq_case_simp_tac exA,
-           SIMPSET' asm_full_simp_tac,
-           Seq_case_simp_tac exB,
-           SIMPSET' asm_full_simp_tac,
-           SIMPSET' (fn ss => asm_full_simp_tac (ss addsimps asigs))
+           Seq_case_simp_tac ctxt exA,
+           Seq_case_simp_tac ctxt exB,
+           asm_full_simp_tac ss,
+           Seq_case_simp_tac ctxt exA,
+           asm_full_simp_tac ss,
+           Seq_case_simp_tac ctxt exB,
+           asm_full_simp_tac ss,
+           asm_full_simp_tac (ss addsimps asigs)
           ]
+  end
 
 end
 *}
@@ -327,7 +329,7 @@ lemma stutterA_mkex: "! exA exB s t.
   Filter (%a. a:act B)$sch << filter_act$exB
   --> stutter (asig_of A) (s,ProjA2$(snd (mkex A B sch (s,exA) (t,exB))))"
 
-apply (tactic {* mkex_induct_tac "sch" "exA" "exB" *})
+apply (tactic {* mkex_induct_tac @{context} "sch" "exA" "exB" *})
 done
 
 
@@ -356,7 +358,7 @@ lemma stutterB_mkex: "! exA exB s t.
   Filter (%a. a:act A)$sch << filter_act$exA &
   Filter (%a. a:act B)$sch << filter_act$exB
   --> stutter (asig_of B) (t,ProjB2$(snd (mkex A B sch (s,exA) (t,exB))))"
-apply (tactic {* mkex_induct_tac "sch" "exA" "exB" *})
+apply (tactic {* mkex_induct_tac @{context} "sch" "exA" "exB" *})
 done
 
 
@@ -387,7 +389,7 @@ lemma filter_mkex_is_exA_tmp: "! exA exB s t.
   Filter (%a. a:act B)$sch << filter_act$exB
   --> Filter_ex2 (asig_of A)$(ProjA2$(snd (mkex A B sch (s,exA) (t,exB)))) =
       Zip$(Filter (%a. a:act A)$sch)$(Map snd$exA)"
-apply (tactic {* mkex_induct_tac "sch" "exB" "exA" *})
+apply (tactic {* mkex_induct_tac @{context} "sch" "exB" "exA" *})
 done
 
 (*---------------------------------------------------------------------------
@@ -396,7 +398,7 @@ done
   --------------------------------------------------------------------------- *)
 
 lemma Zip_Map_fst_snd: "Zip$(Map fst$y)$(Map snd$y) = y"
-apply (tactic {* Seq_induct_tac "y" [] 1 *})
+apply (tactic {* Seq_induct_tac @{context} "y" [] 1 *})
 done
 
 
@@ -424,8 +426,8 @@ lemma filter_mkex_is_exA: "!!sch exA exB.
   Filter (%a. a:act B)$sch = filter_act$(snd exB) |]
   ==> Filter_ex (asig_of A) (ProjA (mkex A B sch exA exB)) = exA"
 apply (simp add: ProjA_def Filter_ex_def)
-apply (tactic {* pair_tac "exA" 1 *})
-apply (tactic {* pair_tac "exB" 1 *})
+apply (tactic {* pair_tac @{context} "exA" 1 *})
+apply (tactic {* pair_tac @{context} "exB" 1 *})
 apply (rule conjI)
 apply (simp (no_asm) add: mkex_def)
 apply (simplesubst trick_against_eq_in_ass)
@@ -450,7 +452,7 @@ lemma filter_mkex_is_exB_tmp: "! exA exB s t.
       Zip$(Filter (%a. a:act B)$sch)$(Map snd$exB)"
 
 (* notice necessary change of arguments exA and exB *)
-apply (tactic {* mkex_induct_tac "sch" "exA" "exB" *})
+apply (tactic {* mkex_induct_tac @{context} "sch" "exA" "exB" *})
 done
 
 
@@ -466,8 +468,8 @@ lemma filter_mkex_is_exB: "!!sch exA exB.
   Filter (%a. a:act B)$sch = filter_act$(snd exB) |]
   ==> Filter_ex (asig_of B) (ProjB (mkex A B sch exA exB)) = exB"
 apply (simp add: ProjB_def Filter_ex_def)
-apply (tactic {* pair_tac "exA" 1 *})
-apply (tactic {* pair_tac "exB" 1 *})
+apply (tactic {* pair_tac @{context} "exA" 1 *})
+apply (tactic {* pair_tac @{context} "exB" 1 *})
 apply (rule conjI)
 apply (simp (no_asm) add: mkex_def)
 apply (simplesubst trick_against_eq_in_ass)
@@ -487,7 +489,7 @@ lemma mkex_actions_in_AorB: "!s t exA exB.
   Filter (%a. a:act B)$sch << filter_act$exB
    --> Forall (%x. fst x : act (A ||B))
          (snd (mkex A B sch (s,exA) (t,exB)))"
-apply (tactic {* mkex_induct_tac "sch" "exA" "exB" *})
+apply (tactic {* mkex_induct_tac @{context} "sch" "exA" "exB" *})
 done
 
 
@@ -513,7 +515,7 @@ prefer 2
 apply (simp add: compositionality_ex)
 apply (simp (no_asm) add: Filter_ex_def ProjB_def lemma_2_1a lemma_2_1b)
 apply (simp add: executions_def)
-apply (tactic {* pair_tac "ex" 1 *})
+apply (tactic {* pair_tac @{context} "ex" 1 *})
 apply (erule conjE)
 apply (simp add: sch_actions_in_AorB)
 
@@ -524,15 +526,15 @@ apply (simp add: sch_actions_in_AorB)
 apply (rename_tac exA exB)
 apply (rule_tac x = "mkex A B sch exA exB" in bexI)
 (* mkex actions are just the oracle *)
-apply (tactic {* pair_tac "exA" 1 *})
-apply (tactic {* pair_tac "exB" 1 *})
+apply (tactic {* pair_tac @{context} "exA" 1 *})
+apply (tactic {* pair_tac @{context} "exB" 1 *})
 apply (simp add: Mapfst_mkex_is_sch)
 
 (* mkex is an execution -- use compositionality on ex-level *)
 apply (simp add: compositionality_ex)
 apply (simp add: stutter_mkex_on_A stutter_mkex_on_B filter_mkex_is_exB filter_mkex_is_exA)
-apply (tactic {* pair_tac "exA" 1 *})
-apply (tactic {* pair_tac "exB" 1 *})
+apply (tactic {* pair_tac @{context} "exA" 1 *})
+apply (tactic {* pair_tac @{context} "exB" 1 *})
 apply (simp add: mkex_actions_in_AorB)
 done
 

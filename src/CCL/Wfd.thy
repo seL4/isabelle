@@ -54,8 +54,8 @@ lemma wfd_strengthen_lemma:
   done
 
 ML {*
-  fun wfd_strengthen_tac s i =
-    res_inst_tac [("Q",s)] @{thm wfd_strengthen_lemma} i THEN assume_tac (i+1)
+  fun wfd_strengthen_tac ctxt s i =
+    RuleInsts.res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac (i+1)
 *}
 
 lemma wf_anti_sym: "[| Wfd(r);  <a,x>:r;  <x,a>:r |] ==> P"
@@ -123,7 +123,7 @@ lemma lex_wf:
   shows "Wfd(R**S)"
   apply (unfold Wfd_def)
   apply safe
-  apply (tactic {* wfd_strengthen_tac "%x. EX a b. x=<a,b>" 1 *})
+  apply (tactic {* wfd_strengthen_tac @{context} "%x. EX a b. x=<a,b>" 1 *})
    apply (blast elim!: lex_pair)
   apply (subgoal_tac "ALL a b.<a,b>:P")
    apply blast
@@ -209,7 +209,7 @@ lemma ListPRI: "[| t : List(A); h : A |] ==> <t,h $ t> : ListPR(A)"
 lemma NatPR_wf: "Wfd(NatPR)"
   apply (unfold Wfd_def)
   apply clarify
-  apply (tactic {* wfd_strengthen_tac "%x. x:Nat" 1 *})
+  apply (tactic {* wfd_strengthen_tac @{context} "%x. x:Nat" 1 *})
    apply (fastsimp iff: NatPRXH)
   apply (erule Nat_ind)
    apply (fastsimp iff: NatPRXH)+
@@ -218,7 +218,7 @@ lemma NatPR_wf: "Wfd(NatPR)"
 lemma ListPR_wf: "Wfd(ListPR(A))"
   apply (unfold Wfd_def)
   apply clarify
-  apply (tactic {* wfd_strengthen_tac "%x. x:List (A)" 1 *})
+  apply (tactic {* wfd_strengthen_tac @{context} "%x. x:List (A)" 1 *})
    apply (fastsimp iff: ListPRXH)
   apply (erule List_ind)
    apply (fastsimp iff: ListPRXH)+
@@ -465,7 +465,7 @@ fun is_rigid_prog t =
        | _ => false
 in
 
-fun rcall_tac i = let fun tac ps rl i = res_inst_tac ps rl i THEN atac i
+fun rcall_tac i = let fun tac ps rl i = Tactic.res_inst_tac ps rl i THEN atac i
                        in IHinst tac rcallTs i end THEN
                   eresolve_tac rcall_lemmas i
 
@@ -487,7 +487,7 @@ val clean_ccs_tac = REPEAT_FIRST (eresolve_tac ([SubtypeE]@rmIHs) ORELSE'
                                  hyp_subst_tac)
 
 val clean_ccs_tac =
-       let fun tac ps rl i = eres_inst_tac ps rl i THEN atac i
+       let fun tac ps rl i = Tactic.eres_inst_tac ps rl i THEN atac i
        in TRY (REPEAT_FIRST (IHinst tac hyprcallTs ORELSE'
                        eresolve_tac ([asm_rl,SubtypeE]@rmIHs) ORELSE'
                        hyp_subst_tac)) end

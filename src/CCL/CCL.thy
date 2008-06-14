@@ -414,7 +414,8 @@ lemma po_coinduct: "[|  <t,u> : R;  R <= POgen(R) |] ==> t [= u"
   done
 
 ML {*
-  fun po_coinduct_tac s i = res_inst_tac [("R",s)] @{thm po_coinduct} i
+  fun po_coinduct_tac ctxt s i =
+    RuleInsts.res_inst_tac ctxt [(("R", 0), s)] @{thm po_coinduct} i
 *}
 
 
@@ -459,8 +460,11 @@ lemma eq_coinduct3:
   done
 
 ML {*
-  fun eq_coinduct_tac s i = res_inst_tac [("R",s)] @{thm eq_coinduct} i
-  fun eq_coinduct3_tac s i = res_inst_tac [("R",s)] @{thm eq_coinduct3} i
+  fun eq_coinduct_tac ctxt s i =
+    RuleInsts.res_inst_tac ctxt [(("R", 0), s)] @{thm eq_coinduct} i
+
+  fun eq_coinduct3_tac ctxt s i =
+    RuleInsts.res_inst_tac ctxt [(("R", 0), s)] @{thm eq_coinduct3} i
 *}
 
 

@@ -97,7 +97,8 @@ lemma HTT_coinduct: "[|  t : R;  R <= HTTgen(R) |] ==> t : HTT"
   done
 
 ML {*
-  fun HTT_coinduct_tac s i = res_inst_tac [("R", s)] @{thm HTT_coinduct} i
+  fun HTT_coinduct_tac ctxt s i =
+    RuleInsts.res_inst_tac ctxt [(("R", 0), s)] @{thm HTT_coinduct} i
 *}
 
 lemma HTT_coinduct3:
@@ -109,7 +110,8 @@ lemma HTT_coinduct3:
 ML {*
 val HTT_coinduct3_raw = rewrite_rule [@{thm HTTgen_def}] @{thm HTT_coinduct3}
 
-fun HTT_coinduct3_tac s i = res_inst_tac [("R",s)] @{thm HTT_coinduct3} i
+fun HTT_coinduct3_tac ctxt s i =
+  RuleInsts.res_inst_tac ctxt [(("R", 0), s)] @{thm HTT_coinduct3} i
 
 val HTTgenIs =
   map (mk_genIs @{theory} @{thms data_defs} @{thm HTTgenXH} @{thm HTTgen_mono})

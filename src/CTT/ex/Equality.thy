@@ -40,7 +40,7 @@ done
 lemma "[| a:N;  b:N;  c:N |]
       ==> rec(rec(a, b, %x y. succ(y)), c, %x y. succ(y)) =
           rec(a, rec(b, c, %x y. succ(y)), %x y. succ(y)) : N"
-apply (tactic {* NE_tac "a" 1 *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
 apply (tactic "hyp_rew_tac []")
 done
 

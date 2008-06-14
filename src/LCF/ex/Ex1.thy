@@ -32,7 +32,7 @@ lemma H_strict [simp]: "H(UU)=UU"
   done
 
 lemma H_idemp_lemma: "ALL x. H(FIX(K,x)) = FIX(K,x)"
-  apply (tactic {* induct_tac "K" 1 *})
+  apply (tactic {* induct_tac @{context} "K" 1 *})
   apply (simp (no_asm))
   apply (simp (no_asm) split: COND_cases_iff)
   apply (intro strip)

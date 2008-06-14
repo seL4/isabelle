@@ -86,17 +86,18 @@ fun pg'' thy defs t tacs =
     val prop = Logic.strip_imp_concl t';
     fun tac {prems, context} =
       rewrite_goals_tac defs THEN
-      EVERY (tacs (map (rewrite_rule defs) prems));
+      EVERY (tacs {prems = map (rewrite_rule defs) prems, context = context})
   in Goal.prove_global thy [] asms prop tac end;
 
 fun pg' thy defs t tacsf =
   let
-    fun tacs [] = tacsf
-      | tacs prems = cut_facts_tac prems 1 :: tacsf;
+    fun tacs {prems, context} =
+      if null prems then tacsf context
+      else cut_facts_tac prems 1 :: tacsf context;
   in pg'' thy defs t tacs end;
 
-fun case_UU_tac rews i v =
-  case_split_tac (v^"=UU") i THEN
+fun case_UU_tac ctxt rews i v =
+  InductTacs.case_tac ctxt (v^"=UU") i THEN
   asm_simp_tac (HOLCF_ss addsimps rews) i;
 
 val chain_tac =
@@ -181,7 +182,7 @@ in
       val appl = bind_fun vars (lhs == rhs);
       val cs = ContProc.cont_thms lam;
       val betas = map (fn c => mk_meta_eq (c RS beta_cfun)) cs;
-    in pg (def::betas) appl [rtac reflexive_thm 1] end;
+    in pg (def::betas) appl (K [rtac reflexive_thm 1]) end;
 end;
 
 val when_appl = appl_of_def ax_when_def;
@@ -234,7 +235,7 @@ local
     rewrite_goals_tac [mk_meta_eq iso_swap],
     rtac thm3 1];
 in
-  val exhaust = pg con_appls (mk_trp exh) tacs;
+  val exhaust = pg con_appls (mk_trp exh) (K tacs);
   val casedist =
     standard (rewrite_rule exh_casedists (exhaust RS exh_casedist0));
 end;
@@ -249,7 +250,7 @@ in
       val axs = [when_appl, mk_meta_eq rep_strict];
       val goal = bind_fun (mk_trp (strict when_app));
       val tacs = [resolve_tac [sscase1, ssplit1, strictify1] 1];
-    in pg axs goal tacs end;
+    in pg axs goal (K tacs) end;
 
   val when_apps =
     let
@@ -260,7 +261,7 @@ in
                 mk_trp (when_app`(con_app con args) ===
                        list_ccomb (bound_fun n 0, map %# args))));
           val tacs = [asm_simp_tac (HOLCF_ss addsimps [ax_abs_iso]) 1];
-        in pg axs goal tacs end;
+        in pg axs goal (K tacs) end;
     in mapn one_when 1 cons end;
 end;
 val when_rews = when_strict :: when_apps;
@@ -271,7 +272,7 @@ local
   fun dis_strict (con, _) =
     let
       val goal = mk_trp (strict (%%:(dis_name con)));
-    in pg axs_dis_def goal [rtac when_strict 1] end;
+    in pg axs_dis_def goal (K [rtac when_strict 1]) end;
 
   fun dis_app c (con, args) =
     let
@@ -279,7 +280,7 @@ local
       val rhs = if con = c then TT else FF;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs_dis_def goal tacs end;
+    in pg axs_dis_def goal (K tacs) end;
 
   val dis_apps = maps (fn (c,_) => map (dis_app c) cons) cons;
 
@@ -291,7 +292,7 @@ local
          contr_tac 1,
          DETERM_UNTIL_SOLVED (CHANGED
           (asm_simp_tac (HOLCF_ss addsimps dis_apps) 1))];
-    in pg [] goal tacs end;
+    in pg [] goal (K tacs) end;
 
   val dis_stricts = map dis_strict cons;
   val dis_defins = map dis_defin cons;
@@ -304,7 +305,7 @@ local
     let
       val goal = mk_trp (strict (%%:(mat_name con)));
       val tacs = [rtac when_strict 1];
-    in pg axs_mat_def goal tacs end;
+    in pg axs_mat_def goal (K tacs) end;
 
   val mat_stricts = map mat_strict cons;
 
@@ -317,7 +318,7 @@ local
         else mk_fail;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs_mat_def goal tacs end;
+    in pg axs_mat_def goal (K tacs) end;
 
   val mat_apps =
     maps (fn (c,_) => map (one_mat c) cons) cons;
@@ -340,7 +341,7 @@ local
       val axs = @{thm branch_def} :: axs_pat_def;
       val goal = mk_trp (strict (pat_lhs c ` (%:"rhs")));
       val tacs = [simp_tac (HOLCF_ss addsimps [when_strict]) 1];
-    in pg axs goal tacs end;
+    in pg axs goal (K tacs) end;
 
   fun pat_app c (con, args) =
     let
@@ -349,7 +350,7 @@ local
       val rhs = if con = fst c then pat_rhs c else mk_fail;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs goal tacs end;
+    in pg axs goal (K tacs) end;
 
   val pat_stricts = map pat_strict cons;
   val pat_apps = maps (fn c => map (pat_app c) cons) cons;
@@ -366,16 +367,16 @@ local
           fun f arg = if vname arg = vn then UU else %# arg;
           val goal = mk_trp (con_app2 con f args === UU);
           val tacs = [asm_simp_tac (HOLCF_ss addsimps [abs_strict]) 1];
-        in pg con_appls goal tacs end;
+        in pg con_appls goal (K tacs) end;
     in map one_strict (nonlazy args) end;
 
   fun con_defin (con, args) =
     let
       val concl = mk_trp (defined (con_app con args));
       val goal = lift_defined %: (nonlazy args, concl);
-      val tacs = [
+      fun tacs ctxt = [
         rtac @{thm rev_contrapos} 1,
-        eres_inst_tac [("f",dis_name con)] cfun_arg_cong 1,
+        RuleInsts.eres_inst_tac ctxt [(("f", 0), dis_name con)] cfun_arg_cong 1,
         asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
     in pg [] goal tacs end;
 in
@@ -394,7 +395,7 @@ local
       val tacs = [
         rtac (iso_locale RS iso_compact_abs) 1,
         REPEAT (resolve_tac rules 1 ORELSE atac 1)];
-    in pg con_appls goal tacs end;
+    in pg con_appls goal (K tacs) end;
 in
   val con_compacts = map con_compact cons;
 end;
@@ -402,7 +403,7 @@ end;
 local
   fun one_sel sel =
     pg axs_sel_def (mk_trp (strict (%%:sel)))
-      [simp_tac (HOLCF_ss addsimps when_rews) 1];
+      (K [simp_tac (HOLCF_ss addsimps when_rews) 1]);
 
   fun sel_strict (_, args) =
     List.mapPartial (Option.map one_sel o sel_of) args;
@@ -419,20 +420,20 @@ local
       val nlas' = List.filter (fn v => v <> vnn) nlas;
       val lhs = (%%:sel)`(con_app con args);
       val goal = lift_defined %: (nlas', mk_trp (lhs === %:vnn));
-      val tacs1 =
+      fun tacs1 ctxt =
         if vnn mem nlas
-        then [case_UU_tac (when_rews @ con_stricts) 1 vnn]
+        then [case_UU_tac ctxt (when_rews @ con_stricts) 1 vnn]
         else [];
       val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs_sel_def goal (tacs1 @ tacs2) end;
+    in pg axs_sel_def goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
 
   fun sel_app_diff c n sel (con, args) =
     let
       val nlas = nonlazy args;
       val goal = mk_trp (%%:sel ` con_app con args === UU);
-      val tacs1 = map (case_UU_tac (when_rews @ con_stricts) 1) nlas;
+      fun tacs1 ctxt = map (case_UU_tac ctxt (when_rews @ con_stricts) 1) nlas;
       val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-    in pg axs_sel_def goal (tacs1 @ tacs2) end;
+    in pg axs_sel_def goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
 
   fun sel_app c n sel (con, args) =
     if con = c
@@ -456,7 +457,7 @@ local
         contr_tac 1,
         DETERM_UNTIL_SOLVED (CHANGED
           (asm_simp_tac (HOLCF_ss addsimps sel_apps) 1))];
-    in pg [] goal tacs end;
+    in pg [] goal (K tacs) end;
 in
   val sel_defins =
     if length cons = 1
@@ -474,10 +475,10 @@ val distincts_le =
       let
         val goal = lift_defined %: (nonlazy args1,
                         mk_trp (con_app con1 args1 ~<< con_app con2 args2));
-        val tacs = [
+        fun tacs ctxt = [
           rtac @{thm rev_contrapos} 1,
-          eres_inst_tac [("f", dis_name con1)] monofun_cfun_arg 1]
-          @ map (case_UU_tac (con_stricts @ dis_rews) 1) (nonlazy args2)
+          RuleInsts.eres_inst_tac ctxt [(("f", 0), dis_name con1)] monofun_cfun_arg 1]
+          @ map (case_UU_tac ctxt (con_stricts @ dis_rews) 1) (nonlazy args2)
           @ [asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
       in pg [] goal tacs end;
 
@@ -527,13 +528,13 @@ in
       val abs_less = ax_abs_iso RS (allI RS injection_less);
       val tacs =
         [asm_full_simp_tac (HOLCF_ss addsimps [abs_less, spair_less]) 1];
-    in map (fn (con, args) => pgterm (op <<) con args tacs) cons' end;
+    in map (fn (con, args) => pgterm (op <<) con args (K tacs)) cons' end;
 
   val injects =
     let
       val abs_eq = ax_abs_iso RS (allI RS injection_eq);
       val tacs = [asm_full_simp_tac (HOLCF_ss addsimps [abs_eq, spair_eq]) 1];
-    in map (fn (con, args) => pgterm (op ===) con args tacs) cons' end;
+    in map (fn (con, args) => pgterm (op ===) con args (K tacs)) cons' end;
 end;
 
 (* ----- theorems concerning one induction step ----------------------------- *)
@@ -542,7 +543,7 @@ val copy_strict =
   let
     val goal = mk_trp (strict (dc_copy `% "f"));
     val tacs = [asm_simp_tac (HOLCF_ss addsimps [abs_strict, when_strict]) 1];
-  in pg [ax_copy_def] goal tacs end;
+  in pg [ax_copy_def] goal (K tacs) end;
 
 local
   fun copy_app (con, args) =
@@ -552,9 +553,9 @@ local
       val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
       val args' = List.filter (fn a => not (is_rec a orelse is_lazy a)) args;
       val stricts = abs_strict::when_strict::con_stricts;
-      val tacs1 = map (case_UU_tac stricts 1 o vname) args';
+      fun tacs1 ctxt = map (case_UU_tac ctxt stricts 1 o vname) args';
       val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_apps) 1];
-    in pg [ax_copy_def] goal (tacs1 @ tacs2) end;
+    in pg [ax_copy_def] goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
 in
   val copy_apps = map copy_app cons;
 end;
@@ -564,7 +565,7 @@ local
     let
       val goal = mk_trp (dc_copy`UU`(con_app con args) === UU);
       val rews = copy_strict :: copy_apps @ con_rews;
-      val tacs = map (case_UU_tac rews 1) (nonlazy args) @
+      fun tacs ctxt = map (case_UU_tac ctxt rews 1) (nonlazy args) @
         [asm_simp_tac (HOLCF_ss addsimps rews) 1];
     in pg [] goal tacs end;
 
@@ -646,8 +647,8 @@ local
     let
       fun one_eq ((dn, args), _) = strict (dc_take dn $ %:"n");
       val goal = mk_trp (foldr1 mk_conj (map one_eq eqs));
-      val tacs = [
-        nat_induct_tac "n" 1,
+      fun tacs ctxt = [
+        InductTacs.induct_tac ctxt [[SOME "n"]] 1,
         simp_tac iterate_Cprod_ss 1,
         asm_simp_tac (iterate_Cprod_ss addsimps copy_rews) 1];
     in pg copy_take_defs goal tacs end;
@@ -656,9 +657,9 @@ local
   fun take_0 n dn =
     let
       val goal = mk_trp ((dc_take dn $ %%:"HOL.zero") `% x_name n === UU);
-    in pg axs_take_def goal [simp_tac iterate_Cprod_ss 1] end;
+    in pg axs_take_def goal (K [simp_tac iterate_Cprod_ss 1]) end;
   val take_0s = mapn take_0 1 dnames;
-  val c_UU_tac = case_UU_tac (take_stricts'::copy_con_rews) 1;
+  fun c_UU_tac ctxt = case_UU_tac ctxt (take_stricts'::copy_con_rews) 1;
   val take_apps =
     let
       fun mk_eqn dn (con, args) =
@@ -670,19 +671,19 @@ local
       fun mk_eqns ((dn, _), cons) = map (mk_eqn dn) cons;
       val goal = mk_trp (foldr1 mk_conj (maps mk_eqns eqs));
       val simps = List.filter (has_fewer_prems 1) copy_rews;
-      fun con_tac (con, args) =
+      fun con_tac ctxt (con, args) =
         if nonlazy_rec args = []
         then all_tac
-        else EVERY (map c_UU_tac (nonlazy_rec args)) THEN
+        else EVERY (map (c_UU_tac ctxt) (nonlazy_rec args)) THEN
           asm_full_simp_tac (HOLCF_ss addsimps copy_rews) 1;
-      fun eq_tacs ((dn, _), cons) = map con_tac cons;
-      val tacs =
+      fun eq_tacs ctxt ((dn, _), cons) = map (con_tac ctxt) cons;
+      fun tacs ctxt =
         simp_tac iterate_Cprod_ss 1 ::
-        nat_induct_tac "n" 1 ::
+        InductTacs.induct_tac ctxt [[SOME "n"]] 1 ::
         simp_tac (iterate_Cprod_ss addsimps copy_con_rews) 1 ::
         asm_full_simp_tac (HOLCF_ss addsimps simps) 1 ::
         TRY (safe_tac HOL_cs) ::
-        maps eq_tacs eqs;
+        maps (eq_tacs ctxt) eqs;
     in pg copy_take_defs goal tacs end;
 in
   val take_rews = map standard
@@ -705,8 +706,8 @@ local
     (mapn (fn n => fn x => (P_name n, x)) 1 conss,
      mk_trp (foldr1 mk_conj (mapn concf 1 dnames)));
   val take_ss = HOL_ss addsimps take_rews;
-  fun quant_tac i = EVERY
-    (mapn (fn n => fn _ => res_inst_tac [("x", x_name n)] spec i) 1 dnames);
+  fun quant_tac ctxt i = EVERY
+    (mapn (fn n => fn _ => RuleInsts.res_inst_tac ctxt [(("x", 0), x_name n)] spec i) 1 dnames);
 
   fun ind_prems_tac prems = EVERY
     (maps (fn cons =>
@@ -745,16 +746,16 @@ in (* local *)
       fun concf n dn = %:(P_name n) $ (dc_take dn $ %:"n" `%(x_name n));
       val goal = ind_term concf;
 
-      fun tacf prems =
+      fun tacf {prems, context} =
         let
           val tacs1 = [
-            quant_tac 1,
+            quant_tac context 1,
             simp_tac HOL_ss 1,
-            nat_induct_tac "n" 1,
+            InductTacs.induct_tac context [[SOME "n"]] 1,
             simp_tac (take_ss addsimps prems) 1,
             TRY (safe_tac HOL_cs)];
           fun arg_tac arg =
-            case_UU_tac (prems @ con_rews) 1
+            case_UU_tac context (prems @ con_rews) 1
               (List.nth (dnames, rec_of arg) ^ "_take n$" ^ vname arg);
           fun con_tacs (con, args) = 
             asm_simp_tac take_ss 1 ::
@@ -763,7 +764,7 @@ in (* local *)
             map (K (atac 1))      (nonlazy args) @
             map (K (etac spec 1)) (List.filter is_rec args);
           fun cases_tacs (cons, cases) =
-            res_inst_tac [("x","x")] cases 1 ::
+            RuleInsts.res_inst_tac context [(("x", 0), "x")] cases 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::
             maps con_tacs cons;
         in
@@ -779,9 +780,9 @@ in (* local *)
           val rhs = dc_take dn $ Bound 0 `%(x_name n^"'");
           val concl = mk_trp (%:(x_name n) === %:(x_name n^"'"));
           val goal = mk_All ("n", mk_trp (lhs === rhs)) ===> concl;
-          fun tacf prems = [
-            res_inst_tac [("t", x_name n    )] (ax_reach RS subst) 1,
-            res_inst_tac [("t", x_name n^"'")] (ax_reach RS subst) 1,
+          fun tacf {prems, context} = [
+            RuleInsts.res_inst_tac context [(("t", 0), x_name n    )] (ax_reach RS subst) 1,
+            RuleInsts.res_inst_tac context [(("t", 0), x_name n^"'")] (ax_reach RS subst) 1,
             stac fix_def2 1,
             REPEAT (CHANGED
               (rtac (contlub_cfun_arg RS ssubst) 1 THEN chain_tac 1)),
@@ -814,7 +815,7 @@ in (* local *)
               resolve_tac take_lemmas 1,
               asm_simp_tac take_ss 1,
               atac 1];
-          in pg [] goal tacs end;
+          in pg [] goal (K tacs) end;
         val finite_lemmas1a = map dname_lemma dnames;
  
         val finite_lemma1b =
@@ -829,33 +830,33 @@ in (* local *)
               end;
             val goal =
               mk_trp (mk_all ("n", foldr1 mk_conj (mapn mk_eqn 1 eqs)));
-            fun arg_tacs vn = [
-              eres_inst_tac [("x", vn)] all_dupE 1,
+            fun arg_tacs ctxt vn = [
+              RuleInsts.eres_inst_tac ctxt [(("x", 0), vn)] all_dupE 1,
               etac disjE 1,
               asm_simp_tac (HOL_ss addsimps con_rews) 1,
               asm_simp_tac take_ss 1];
-            fun con_tacs (con, args) =
+            fun con_tacs ctxt (con, args) =
               asm_simp_tac take_ss 1 ::
-              maps arg_tacs (nonlazy_rec args);
-            fun foo_tacs n (cons, cases) =
+              maps (arg_tacs ctxt) (nonlazy_rec args);
+            fun foo_tacs ctxt n (cons, cases) =
               simp_tac take_ss 1 ::
               rtac allI 1 ::
-              res_inst_tac [("x",x_name n)] cases 1 ::
+              RuleInsts.res_inst_tac ctxt [(("x", 0), x_name n)] cases 1 ::
               asm_simp_tac take_ss 1 ::
-              maps con_tacs cons;
-            val tacs =
+              maps (con_tacs ctxt) cons;
+            fun tacs ctxt =
               rtac allI 1 ::
-              nat_induct_tac "n" 1 ::
+              InductTacs.induct_tac ctxt [[SOME "n"]] 1 ::
               simp_tac take_ss 1 ::
               TRY (safe_tac (empty_cs addSEs [conjE] addSIs [conjI])) ::
-              flat (mapn foo_tacs 1 (conss ~~ cases));
+              flat (mapn (foo_tacs ctxt) 1 (conss ~~ cases));
           in pg [] goal tacs end;
 
         fun one_finite (dn, l1b) =
           let
             val goal = mk_trp (%%:(dn^"_finite") $ %:"x");
-            val tacs = [
-              case_UU_tac take_rews 1 "x",
+            fun tacs ctxt = [
+              case_UU_tac ctxt take_rews 1 "x",
               eresolve_tac finite_lemmas1a 1,
               step_tac HOL_cs 1,
               step_tac HOL_cs 1,
@@ -867,7 +868,7 @@ in (* local *)
         val ind =
           let
             fun concf n dn = %:(P_name n) $ %:(x_name n);
-            fun tacf prems =
+            fun tacf {prems, context} =
               let
                 fun finite_tacs (finite, fin_ind) = [
                   rtac(rewrite_rule axs_finite_def finite RS exE)1,
@@ -893,9 +894,9 @@ in (* local *)
             fun one_adm n _ = mk_trp (mk_adm (%:(P_name n)));
             fun concf n dn = %:(P_name n) $ %:(x_name n);
           in Logic.list_implies (mapn one_adm 1 dnames, ind_term concf) end;
-        fun tacf prems =
+        fun tacf {prems, context} =
           map (fn ax_reach => rtac (ax_reach RS subst) 1) axs_reach @ [
-          quant_tac 1,
+          quant_tac context 1,
           rtac (adm_impl_admw RS wfix_ind) 1,
           REPEAT_DETERM (rtac adm_all 1),
           REPEAT_DETERM (
@@ -930,18 +931,18 @@ local
           Library.foldr mk_all2 (xs,
             Library.foldr mk_imp (mapn mk_prj 0 dnames,
               foldr1 mk_conj (mapn mk_eqn 0 dnames)))));
-      fun x_tacs n x = [
+      fun x_tacs ctxt n x = [
         rotate_tac (n+1) 1,
         etac all2E 1,
-        eres_inst_tac [("P1", sproj "R" eqs n^" "^x^" "^x^"'")] (mp RS disjE) 1,
+        RuleInsts.eres_inst_tac ctxt [(("P", 1), sproj "R" eqs n^" "^x^" "^x^"'")] (mp RS disjE) 1,
         TRY (safe_tac HOL_cs),
         REPEAT (CHANGED (asm_simp_tac take_ss 1))];
-      val tacs = [
+      fun tacs ctxt = [
         rtac impI 1,
-        nat_induct_tac "n" 1,
+        InductTacs.induct_tac ctxt [[SOME "n"]] 1,
         simp_tac take_ss 1,
         safe_tac HOL_cs] @
-        flat (mapn x_tacs 0 xs);
+        flat (mapn (x_tacs ctxt) 0 xs);
     in pg [ax_bisim_def] goal tacs end;
 in
   val coind = 
@@ -959,7 +960,7 @@ in
           cut_facts_tac [coind_lemma] 1,
           fast_tac HOL_cs 1])
         take_lemmas;
-    in pg [] goal tacs end;
+    in pg [] goal (K tacs) end;
 end; (* local *)
 
 in thy |> Sign.add_path comp_dnam

@@ -10,8 +10,8 @@ function to install other sets as if they were datatypes.
 
 signature DATATYPE_TACTICS =
 sig
-  val induct_tac: string -> int -> tactic
-  val exhaust_tac: string -> int -> tactic
+  val induct_tac: Proof.context -> string -> int -> tactic
+  val exhaust_tac: Proof.context -> string -> int -> tactic
   val rep_datatype_i: thm -> thm -> thm list -> thm list -> theory -> theory
   val rep_datatype: Facts.ref * Attrib.src list -> Facts.ref * Attrib.src list ->
     (Facts.ref * Attrib.src list) list -> (Facts.ref * Attrib.src list) list -> theory -> theory
@@ -89,10 +89,10 @@ fun find_tname var Bi =
       (2) exhaustion works for VARIABLES in the premises, not general terms
 **)
 
-fun exhaust_induct_tac exh var i state =
+fun exhaust_induct_tac exh ctxt var i state =
   let
+    val thy = ProofContext.theory_of ctxt
     val (_, _, Bi, _) = dest_state (state, i)
-    val thy = Thm.theory_of_thm state
     val tn = find_tname var Bi
     val rule =
         if exh then #exhaustion (datatype_info thy tn)
@@ -102,11 +102,11 @@ fun exhaust_induct_tac exh var i state =
              [] => error "induction is not available for this datatype"
            | major::_ => FOLogic.dest_Trueprop major)
   in
-    Tactic.eres_inst_tac' [(ixn, var)] rule i state
+    RuleInsts.eres_inst_tac ctxt [(ixn, var)] rule i state
   end
   handle Find_tname msg =>
             if exh then (*try boolean case analysis instead*)
-                case_tac var i state
+                case_tac ctxt var i state
             else error msg;
 
 val exhaust_tac = exhaust_induct_tac true;
@@ -178,9 +178,9 @@ fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
 
 val setup =
   Method.add_methods
-    [("induct_tac", Method.goal_args Args.name induct_tac,
+    [("induct_tac", Method.goal_args_ctxt Args.name induct_tac,
       "induct_tac emulation (dynamic instantiation!)"),
-     ("case_tac", Method.goal_args Args.name exhaust_tac,
+     ("case_tac", Method.goal_args_ctxt Args.name exhaust_tac,
       "datatype case_tac emulation (dynamic instantiation!)")];
 
 

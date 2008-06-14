@@ -18,7 +18,7 @@ axioms
 declare p_strict [simp] p_s [simp]
 
 lemma example: "p(FIX(s),y) = FIX(s)"
-  apply (tactic {* induct_tac "s" 1 *})
+  apply (tactic {* induct_tac @{context} "s" 1 *})
   apply (simp (no_asm))
   apply (simp (no_asm))
   done

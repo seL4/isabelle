@@ -354,29 +354,25 @@ lemmas routine_rls = form_rls formL_rls refl_type element_rls
 
 ML {*
 local
-  val routine_rls = thms "routine_rls";
-  val form_rls = thms "form_rls";
-  val intr_rls = thms "intr_rls";
-  val element_rls = thms "element_rls";
-  val equal_rls = form_rls @ element_rls @ thms "intrL_rls" @
-    thms "elimL_rls" @ thms "refl_elem"
+  val equal_rls = @{thms form_rls} @ @{thms element_rls} @ @{thms intrL_rls} @
+    @{thms elimL_rls} @ @{thms refl_elem}
 in
 
 fun routine_tac rls prems = ASSUME (filt_resolve_tac (prems @ rls) 4);
 
 (*Solve all subgoals "A type" using formation rules. *)
-val form_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac(form_rls) 1));
+val form_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac @{thms form_rls} 1));
 
 (*Type checking: solve a:A (a rigid, A flexible) by intro and elim rules. *)
 fun typechk_tac thms =
-  let val tac = filt_resolve_tac (thms @ form_rls @ element_rls) 3
+  let val tac = filt_resolve_tac (thms @ @{thms form_rls} @ @{thms element_rls}) 3
   in  REPEAT_FIRST (ASSUME tac)  end
 
 (*Solve a:A (a flexible, A rigid) by introduction rules.
   Cannot use stringtrees (filt_resolve_tac) since
   goals like ?a:SUM(A,B) have a trivial head-string *)
 fun intr_tac thms =
-  let val tac = filt_resolve_tac(thms@form_rls@intr_rls) 1
+  let val tac = filt_resolve_tac(thms @ @{thms form_rls} @ @{thms intr_rls}) 1
   in  REPEAT_FIRST (ASSUME tac)  end
 
 (*Equality proving: solve a=b:A (where a is rigid) by long rules. *)
@@ -412,55 +408,40 @@ done
 lemmas reduction_rls = comp_rls [THEN trans_elem]
 
 ML {*
-local
-  val EqI = thm "EqI";
-  val EqE = thm "EqE";
-  val NE = thm "NE";
-  val FE = thm "FE";
-  val ProdI = thm "ProdI";
-  val SumI = thm "SumI";
-  val SumE = thm "SumE";
-  val PlusE = thm "PlusE";
-  val PlusI_inl = thm "PlusI_inl";
-  val PlusI_inr = thm "PlusI_inr";
-  val subst_prodE = thm "subst_prodE";
-  val intr_rls = thms "intr_rls";
-in
-
 (*Converts each goal "e : Eq(A,a,b)" into "a=b:A" for simplification.
   Uses other intro rules to avoid changing flexible goals.*)
-val eqintr_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac(EqI::intr_rls) 1))
+val eqintr_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac (@{thm EqI} :: @{thms intr_rls}) 1))
 
 (** Tactics that instantiate CTT-rules.
     Vars in the given terms will be incremented!
     The (rtac EqE i) lets them apply to equality judgements. **)
 
-fun NE_tac (sp: string) i =
-  TRY (rtac EqE i) THEN res_inst_tac [ ("p",sp) ] NE i
+fun NE_tac ctxt sp i =
+  TRY (rtac @{thm EqE} i) THEN RuleInsts.res_inst_tac ctxt [(("p", 0), sp)] @{thm NE} i
 
-fun SumE_tac (sp: string) i =
-  TRY (rtac EqE i) THEN res_inst_tac [ ("p",sp) ] SumE i
+fun SumE_tac ctxt sp i =
+  TRY (rtac @{thm EqE} i) THEN RuleInsts.res_inst_tac ctxt [(("p", 0), sp)] @{thm SumE} i
 
-fun PlusE_tac (sp: string) i =
-  TRY (rtac EqE i) THEN res_inst_tac [ ("p",sp) ] PlusE i
+fun PlusE_tac ctxt sp i =
+  TRY (rtac @{thm EqE} i) THEN RuleInsts.res_inst_tac ctxt [(("p", 0), sp)] @{thm PlusE} i
 
 (** Predicate logic reasoning, WITH THINNING!!  Procedures adapted from NJ. **)
 
 (*Finds f:Prod(A,B) and a:A in the assumptions, concludes there is z:B(a) *)
 fun add_mp_tac i =
-    rtac subst_prodE i  THEN  assume_tac i  THEN  assume_tac i
+    rtac @{thm subst_prodE} i  THEN  assume_tac i  THEN  assume_tac i
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
-fun mp_tac i = etac subst_prodE i  THEN  assume_tac i
+fun mp_tac i = etac @{thm subst_prodE} i  THEN  assume_tac i
 
 (*"safe" when regarded as predicate calculus rules*)
 val safe_brls = sort (make_ord lessb)
-    [ (true,FE), (true,asm_rl),
-      (false,ProdI), (true,SumE), (true,PlusE) ]
+    [ (true, @{thm FE}), (true,asm_rl),
+      (false, @{thm ProdI}), (true, @{thm SumE}), (true, @{thm PlusE}) ]
 
 val unsafe_brls =
-    [ (false,PlusI_inl), (false,PlusI_inr), (false,SumI),
-      (true,subst_prodE) ]
+    [ (false, @{thm PlusI_inl}), (false, @{thm PlusI_inr}), (false, @{thm SumI}),
+      (true, @{thm subst_prodE}) ]
 
 (*0 subgoals vs 1 or more*)
 val (safe0_brls, safep_brls) =
@@ -478,8 +459,6 @@ fun step_tac thms = safestep_tac thms  ORELSE'  biresolve_tac unsafe_brls
 
 (*Fails unless it solves the goal!*)
 fun pc_tac thms = DEPTH_SOLVE_1 o (step_tac thms)
-
-end
 *}
 
 use "rew.ML"

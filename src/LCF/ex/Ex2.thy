@@ -23,7 +23,7 @@ declare F_strict [simp] K [simp]
 
 lemma example: "ALL x. F(H(x::'a,y::'b)) = H(x,F(y))"
   apply (simplesubst H)
-  apply (tactic {* induct_tac "K:: ('a=>'b=>'b) => ('a=>'b=>'b)" 1 *})
+  apply (tactic {* induct_tac @{context} "K:: ('a=>'b=>'b) => ('a=>'b=>'b)" 1 *})
   apply (simp (no_asm))
   apply (simp (no_asm_simp) split: COND_cases_iff)
   done

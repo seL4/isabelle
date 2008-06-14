@@ -130,7 +130,7 @@ done
 
 lemma diff_0_eq_0: "b:N ==> 0 - b = 0 : N"
 apply (unfold arith_defs)
-apply (tactic {* NE_tac "b" 1 *})
+apply (tactic {* NE_tac @{context} "b" 1 *})
 apply (tactic "hyp_rew_tac []")
 done
 
@@ -140,7 +140,7 @@ done
 lemma diff_succ_succ: "[| a:N;  b:N |] ==> succ(a) - succ(b) = a - b : N"
 apply (unfold arith_defs)
 apply (tactic "hyp_rew_tac []")
-apply (tactic {* NE_tac "b" 1 *})
+apply (tactic {* NE_tac @{context} "b" 1 *})
 apply (tactic "hyp_rew_tac []")
 done
 
@@ -188,7 +188,7 @@ subsection {* Addition *}
 
 (*Associative law for addition*)
 lemma add_assoc: "[| a:N;  b:N;  c:N |] ==> (a #+ b) #+ c = a #+ (b #+ c) : N"
-apply (tactic {* NE_tac "a" 1 *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
 apply (tactic "hyp_arith_rew_tac []")
 done
 
@@ -196,11 +196,11 @@ done
 (*Commutative law for addition.  Can be proved using three inductions.
   Must simplify after first induction!  Orientation of rewrites is delicate*)
 lemma add_commute: "[| a:N;  b:N |] ==> a #+ b = b #+ a : N"
-apply (tactic {* NE_tac "a" 1 *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
 apply (tactic "hyp_arith_rew_tac []")
-apply (tactic {* NE_tac "b" 2 *})
+apply (tactic {* NE_tac @{context} "b" 2 *})
 apply (rule sym_elem)
-apply (tactic {* NE_tac "b" 1 *})
+apply (tactic {* NE_tac @{context} "b" 1 *})
 apply (tactic "hyp_arith_rew_tac []")
 done
 
@@ -209,33 +209,33 @@ subsection {* Multiplication *}
 
 (*right annihilation in product*)
 lemma mult_0_right: "a:N ==> a #* 0 = 0 : N"
-apply (tactic {* NE_tac "a" 1 *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
 apply (tactic "hyp_arith_rew_tac []")
 done
 
 (*right successor law for multiplication*)
 lemma mult_succ_right: "[| a:N;  b:N |] ==> a #* succ(b) = a #+ (a #* b) : N"
-apply (tactic {* NE_tac "a" 1 *})
-apply (tactic {* hyp_arith_rew_tac [thm "add_assoc" RS thm "sym_elem"] *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
+apply (tactic {* hyp_arith_rew_tac [@{thm add_assoc} RS @{thm sym_elem}] *})
 apply (assumption | rule add_commute mult_typingL add_typingL intrL_rls refl_elem)+
 done
 
 (*Commutative law for multiplication*)
 lemma mult_commute: "[| a:N;  b:N |] ==> a #* b = b #* a : N"
-apply (tactic {* NE_tac "a" 1 *})
-apply (tactic {* hyp_arith_rew_tac [thm "mult_0_right", thm "mult_succ_right"] *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
+apply (tactic {* hyp_arith_rew_tac [@{thm mult_0_right}, @{thm mult_succ_right}] *})
 done
 
 (*addition distributes over multiplication*)
 lemma add_mult_distrib: "[| a:N;  b:N;  c:N |] ==> (a #+ b) #* c = (a #* c) #+ (b #* c) : N"
-apply (tactic {* NE_tac "a" 1 *})
-apply (tactic {* hyp_arith_rew_tac [thm "add_assoc" RS thm "sym_elem"] *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
+apply (tactic {* hyp_arith_rew_tac [@{thm add_assoc} RS @{thm sym_elem}] *})
 done
 
 (*Associative law for multiplication*)
 lemma mult_assoc: "[| a:N;  b:N;  c:N |] ==> (a #* b) #* c = a #* (b #* c) : N"
-apply (tactic {* NE_tac "a" 1 *})
-apply (tactic {* hyp_arith_rew_tac [thm "add_mult_distrib"] *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
+apply (tactic {* hyp_arith_rew_tac [@{thm add_mult_distrib}] *})
 done
 
 
@@ -246,7 +246,7 @@ Difference on natural numbers, without negative numbers
   a - b = 0  iff  a<=b    a - b = succ(c) iff a>b   *}
 
 lemma diff_self_eq_0: "a:N ==> a - a = 0 : N"
-apply (tactic {* NE_tac "a" 1 *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
 apply (tactic "hyp_arith_rew_tac []")
 done
 
@@ -258,12 +258,12 @@ lemma add_0_right: "[| c : N; 0 : N; c : N |] ==> c #+ 0 = c : N"
   An example of induction over a quantified formula (a product).
   Uses rewriting with a quantified, implicative inductive hypothesis.*)
 lemma add_diff_inverse_lemma: "b:N ==> ?a : PROD x:N. Eq(N, b-x, 0) --> Eq(N, b #+ (x-b), x)"
-apply (tactic {* NE_tac "b" 1 *})
+apply (tactic {* NE_tac @{context} "b" 1 *})
 (*strip one "universal quantifier" but not the "implication"*)
 apply (rule_tac [3] intr_rls)
 (*case analysis on x in
     (succ(u) <= x) --> (succ(u)#+(x-succ(u)) = x) *)
-apply (tactic {* NE_tac "x" 4 *}, tactic "assume_tac 4")
+apply (tactic {* NE_tac @{context} "x" 4 *}, tactic "assume_tac 4")
 (*Prepare for simplification of types -- the antecedent succ(u)<=x *)
 apply (rule_tac [5] replace_type)
 apply (rule_tac [4] replace_type)
@@ -326,7 +326,7 @@ done
 
 (*If a+b=0 then a=0.   Surprisingly tedious*)
 lemma add_eq0_lemma: "[| a:N;  b:N |] ==> ?c : PROD u: Eq(N,a#+b,0) .  Eq(N,a,0)"
-apply (tactic {* NE_tac "a" 1 *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
 apply (rule_tac [3] replace_type)
 apply (tactic "arith_rew_tac []")
 apply (tactic "intr_tac []") (*strips remaining PRODs*)
@@ -434,14 +434,14 @@ lemma divC_succ2: "[| a:N;  b:N |] ==>
      succ(a) div b =rec(succ(a mod b) |-| b, succ(a div b), %x y. a div b) : N"
 apply (rule divC_succ [THEN trans_elem])
 apply (tactic {* rew_tac (thms "div_typing_rls" @ [thm "modC_succ"]) *})
-apply (tactic {* NE_tac "succ (a mod b) |-|b" 1 *})
+apply (tactic {* NE_tac @{context} "succ (a mod b) |-|b" 1 *})
 apply (tactic {* rew_tac [thm "mod_typing", thm "div_typing", thm "absdiff_typing"] *})
 done
 
 (*for case analysis on whether a number is 0 or a successor*)
 lemma iszero_decidable: "a:N ==> rec(a, inl(eq), %ka kb. inr(<ka, eq>)) :
                       Eq(N,a,0) + (SUM x:N. Eq(N,a, succ(x)))"
-apply (tactic {* NE_tac "a" 1 *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
 apply (rule_tac [3] PlusI_inr)
 apply (rule_tac [2] PlusI_inl)
 apply (tactic eqintr_tac)
@@ -450,7 +450,7 @@ done
 
 (*Main Result.  Holds when b is 0 since   a mod 0 = a     and    a div 0 = 0  *)
 lemma mod_div_equality: "[| a:N;  b:N |] ==> a mod b  #+  (a div b) #* b = a : N"
-apply (tactic {* NE_tac "a" 1 *})
+apply (tactic {* NE_tac @{context} "a" 1 *})
 apply (tactic {* arith_rew_tac (thms "div_typing_rls" @
   [thm "modC0", thm "modC_succ", thm "divC0", thm "divC_succ2"]) *})
 apply (rule EqE)

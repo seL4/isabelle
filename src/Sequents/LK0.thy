@@ -156,12 +156,12 @@ lemma exchL: "$H, Q, P, $G |- $E ==> $H, P, Q, $G |- $E"
 
 ML {*
 (*Cut and thin, replacing the right-side formula*)
-fun cutR_tac s i =
-  res_inst_tac [ ("P", s) ] @{thm cut} i  THEN  rtac @{thm thinR} i
+fun cutR_tac ctxt s i =
+  RuleInsts.res_inst_tac ctxt [(("P", 0), s) ] @{thm cut} i  THEN  rtac @{thm thinR} i
 
 (*Cut and thin, replacing the left-side formula*)
-fun cutL_tac s i =
-  res_inst_tac [("P", s)] @{thm cut} i  THEN  rtac @{thm thinL} (i+1)
+fun cutL_tac ctxt s i =
+  RuleInsts.res_inst_tac ctxt [(("P", 0), s)] @{thm cut} i  THEN  rtac @{thm thinL} (i+1)
 *}
 
 

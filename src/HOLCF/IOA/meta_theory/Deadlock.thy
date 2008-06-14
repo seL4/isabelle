@@ -18,7 +18,7 @@ apply (simp add: schedules_def has_schedule_def)
 apply auto
 apply (frule inp_is_act)
 apply (simp add: executions_def)
-apply (tactic {* pair_tac "ex" 1 *})
+apply (tactic {* pair_tac @{context} "ex" 1 *})
 apply (rename_tac s ex)
 apply (subgoal_tac "Finite ex")
 prefer 2

@@ -23,7 +23,7 @@ typedecl ('a,'b) "*"    (infixl 6)
 typedecl ('a,'b) "+"    (infixl 5)
 
 arities
-  fun :: (cpo, cpo) cpo
+  "fun" :: (cpo, cpo) cpo
   "*" :: (cpo, cpo) cpo
   "+" :: (cpo, cpo) cpo
   tr :: cpo
@@ -316,13 +316,13 @@ lemmas adm_lemmas =
 
 
 ML {*
-  fun induct_tac v i =
-    res_inst_tac[("f",v)] @{thm induct} i THEN
+  fun induct_tac ctxt v i =
+    RuleInsts.res_inst_tac ctxt [(("f", 0), v)] @{thm induct} i THEN
     REPEAT (resolve_tac @{thms adm_lemmas} i)
 *}
 
 lemma least_FIX: "f(p) = p ==> FIX(f) << p"
-  apply (tactic {* induct_tac "f" 1 *})
+  apply (tactic {* induct_tac @{context} "f" 1 *})
   apply (rule minimal)
   apply (intro strip)
   apply (erule subst)
@@ -375,8 +375,8 @@ lemma induct2:
   done
 
 ML {*
-fun induct2_tac (f,g) i =
-  res_inst_tac[("f",f),("g",g)] @{thm induct2} i THEN
+fun induct2_tac ctxt (f, g) i =
+  RuleInsts.res_inst_tac ctxt [(("f", 0), f), (("g", 0), g)] @{thm induct2} i THEN
   REPEAT(resolve_tac @{thms adm_lemmas} i)
 *}
 

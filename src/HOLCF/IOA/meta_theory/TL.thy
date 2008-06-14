@@ -155,7 +155,7 @@ lemma tsuffix_TL [rule_format (no_asm)]:
 "s~=UU & s~=nil --> tsuffix s2 (TL$s) --> tsuffix s2 s"
 apply (unfold tsuffix_def suffix_def)
 apply auto
-apply (tactic {* Seq_case_simp_tac "s" 1 *})
+apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
 apply (rule_tac x = "a>>s1" in exI)
 apply auto
 done
