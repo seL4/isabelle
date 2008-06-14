@@ -82,7 +82,6 @@
       <OPERATOR>code_module</OPERATOR>
       <OPERATOR>code_modulename</OPERATOR>
       <OPERATOR>code_monad</OPERATOR>
-      <OPERATOR>code_props</OPERATOR>
       <OPERATOR>code_reserved</OPERATOR>
       <LABEL>code_thms</LABEL>
       <OPERATOR>code_type</OPERATOR>
@@ -297,7 +296,6 @@
       <KEYWORD2>thus</KEYWORD2>
       <LABEL>thy_deps</LABEL>
       <KEYWORD4>to</KEYWORD4>
-      <OPERATOR>token_translation</OPERATOR>
       <LABEL>touch_child_thys</LABEL>
       <LABEL>touch_thy</LABEL>
       <KEYWORD4>transitions</KEYWORD4>
