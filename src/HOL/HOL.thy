@@ -731,10 +731,6 @@ apply (erule prem2)
 apply (erule prem1)
 done
 
-ML {*
-  fun case_split_tac P = res_inst_tac [("P", P)] @{thm case_split}
-*}
-
 (*Classical implies (-->) elimination. *)
 lemma impCE:
   assumes major: "P-->Q"
