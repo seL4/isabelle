@@ -39,19 +39,9 @@ sig
   val lift_inst_rule: thm * int * (string*string)list * thm -> thm
   val term_lift_inst_rule:
     thm * int * ((indexname * sort) * typ) list * ((indexname * typ) * term) list * thm -> thm
-  val compose_inst_tac: (string * string) list -> (bool * thm * int) -> int -> tactic
-  val res_inst_tac: (string * string) list -> thm -> int -> tactic
-  val eres_inst_tac: (string * string) list -> thm -> int -> tactic
-  val cut_inst_tac: (string * string) list -> thm -> int -> tactic
-  val forw_inst_tac: (string * string) list -> thm -> int -> tactic
-  val dres_inst_tac: (string * string) list -> thm -> int -> tactic
-  val instantiate_tac: (string * string) list -> tactic
-  val thin_tac: string -> int -> tactic
   val metacut_tac: thm -> int -> tactic
   val cut_rules_tac: thm list -> int -> tactic
   val cut_facts_tac: thm list -> int -> tactic
-  val subgoal_tac: string -> int -> tactic
-  val subgoals_tac: string list -> int -> tactic
   val filter_thms: (term * term -> bool) -> int * term * thm list -> thm list
   val biresolution_from_nets_tac: ('a list -> (bool * thm) list) ->
     bool -> 'a Net.net * 'a Net.net -> int -> tactic
@@ -82,11 +72,21 @@ sig
   include BASIC_TACTIC
   val innermost_params: int -> thm -> (string * typ) list
   val lift_inst_rule': thm * int * (indexname * string) list * thm -> thm
+  val compose_inst_tac: (string * string) list -> (bool * thm * int) -> int -> tactic
+  val res_inst_tac: (string * string) list -> thm -> int -> tactic
+  val eres_inst_tac: (string * string) list -> thm -> int -> tactic
+  val cut_inst_tac: (string * string) list -> thm -> int -> tactic
+  val forw_inst_tac: (string * string) list -> thm -> int -> tactic
+  val dres_inst_tac: (string * string) list -> thm -> int -> tactic
+  val instantiate_tac: (string * string) list -> tactic
   val compose_inst_tac': (indexname * string) list -> (bool * thm * int) -> int -> tactic
   val res_inst_tac': (indexname * string) list -> thm -> int -> tactic
   val eres_inst_tac': (indexname * string) list -> thm -> int -> tactic
   val make_elim_preserve: thm -> thm
   val instantiate_tac': (indexname * string) list -> tactic
+  val thin_tac: string -> int -> tactic
+  val subgoal_tac: string -> int -> tactic
+  val subgoals_tac: string list -> int -> tactic
   val untaglist: (int * 'a) list -> 'a list
   val orderlist: (int * 'a) list -> 'a list
   val insert_tagged_brl: 'a * (bool * thm) ->

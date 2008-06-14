@@ -307,26 +307,27 @@ text {*
 
   \item [@{method rule_tac} etc.] do resolution of rules with explicit
   instantiation.  This works the same way as the ML tactics @{ML
-  res_inst_tac} etc. (see \cite[\S3]{isabelle-ref}).
+  Tactic.res_inst_tac} etc. (see \cite[\S3]{isabelle-ref})
 
   Multiple rules may be only given if there is no instantiation; then
   @{method rule_tac} is the same as @{ML resolve_tac} in ML (see
   \cite[\S3]{isabelle-ref}).
 
   \item [@{method cut_tac}] inserts facts into the proof state as
-  assumption of a subgoal, see also @{ML cut_facts_tac} in
+  assumption of a subgoal, see also @{ML Tactic.cut_facts_tac} in
   \cite[\S3]{isabelle-ref}.  Note that the scope of schematic
   variables is spread over the main goal statement.  Instantiations
-  may be given as well, see also ML tactic @{ML cut_inst_tac} in
-  \cite[\S3]{isabelle-ref}.
+  may be given as well, see also ML tactic @{ML Tactic.cut_inst_tac}
+  in \cite[\S3]{isabelle-ref}.
 
   \item [@{method thin_tac}~@{text \<phi>}] deletes the specified
   assumption from a subgoal; note that @{text \<phi>} may contain schematic
-  variables.  See also @{ML thin_tac} in \cite[\S3]{isabelle-ref}.
+  variables.  See also @{ML Tactic.thin_tac} in
+  \cite[\S3]{isabelle-ref}.
 
   \item [@{method subgoal_tac}~@{text \<phi>}] adds @{text \<phi>} as an
-  assumption to a subgoal.  See also @{ML subgoal_tac} and @{ML
-  subgoals_tac} in \cite[\S3]{isabelle-ref}.
+  assumption to a subgoal.  See also @{ML Tactic.subgoal_tac} and @{ML
+  Tactic.subgoals_tac} in \cite[\S3]{isabelle-ref}.
 
   \item [@{method rename_tac}~@{text "x\<^sub>1 \<dots> x\<^sub>n"}] renames
   parameters of a goal according to the list @{text "x\<^sub>1, \<dots>,
