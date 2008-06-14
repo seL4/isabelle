@@ -89,10 +89,6 @@ lemma nat_induct [case_names 0 Suc, induct type: nat]:
   shows "P n"
   using assms by (rule nat.induct) 
 
-ML {*
-  fun nat_induct_tac n = res_inst_tac [("n", n)] @{thm nat_induct}
-*}
-
 declare nat.exhaust [case_names 0 Suc, cases type: nat]
 
 lemmas nat_rec_0 = nat.recs(1)
