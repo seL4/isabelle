@@ -1262,15 +1262,11 @@ Definitions essentially express abbreviations within the logic.  The
     \indexdef{}{command}{print\_translation}\hypertarget{command.print-translation}{\hyperlink{command.print-translation}{\mbox{\isa{\isacommand{print{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
     \indexdef{}{command}{typed\_print\_translation}\hypertarget{command.typed-print-translation}{\hyperlink{command.typed-print-translation}{\mbox{\isa{\isacommand{typed{\isacharunderscore}print{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
     \indexdef{}{command}{print\_ast\_translation}\hypertarget{command.print-ast-translation}{\hyperlink{command.print-ast-translation}{\mbox{\isa{\isacommand{print{\isacharunderscore}ast{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{}{command}{token\_translation}\hypertarget{command.token-translation}{\hyperlink{command.token-translation}{\mbox{\isa{\isacommand{token{\isacharunderscore}translation}}}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
   ( 'parse\_ast\_translation' | 'parse\_translation' | 'print\_translation' |
     'typed\_print\_translation' | 'print\_ast\_translation' ) ('(advanced)')? text
-  ;
-
-  'token\_translation' text
   ;
   \end{rail}
 
@@ -1287,8 +1283,6 @@ val print_translation       : (string * (term list -> term)) list
 val typed_print_translation :
   (string * (bool -> typ -> term list -> term)) list
 val print_ast_translation   : (string * (ast list -> ast)) list
-val token_translation       :
-  (string * string * (string -> string * real)) list
 \end{ttbox}
 
   If the \isa{{\isachardoublequote}{\isacharparenleft}advanced{\isacharparenright}{\isachardoublequote}} option is given, the corresponding
