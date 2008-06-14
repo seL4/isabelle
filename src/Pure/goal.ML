@@ -120,7 +120,7 @@ fun prove_multi ctxt xs asms props tac =
 
     val (prems, ctxt') = ctxt
       |> Variable.add_fixes_direct xs
-      |> fold Variable.declare_internal (asms @ props)
+      |> fold Variable.declare_term (asms @ props)
       |> Assumption.add_assumes casms
       ||> Variable.set_body true;
 
