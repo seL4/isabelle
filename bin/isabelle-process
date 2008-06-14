@@ -164,7 +164,7 @@ case "$INPUT" in
     INFILE=""
     ;;
   */*)
-    INFILE="$INPUT$ML_SUFFIX"
+    INFILE="$INPUT"
     [ ! -f "$INFILE" ] && fail "Bad heap file: \"$INFILE\""
     ;;
   *)
@@ -177,7 +177,7 @@ case "$INPUT" in
     do
       DIR="$DIR/$ML_IDENTIFIER"
       ISA_PATH="$ISA_PATH  $DIR\n"
-      [ -z "$INFILE" -a -f "$DIR/$INPUT$ML_SUFFIX" ] && INFILE="$DIR/$INPUT$ML_SUFFIX"
+      [ -z "$INFILE" -a -f "$DIR/$INPUT" ] && INFILE="$DIR/$INPUT"
     done
     IFS="$ORIG_IFS"
 
@@ -197,11 +197,11 @@ case "$OUTPUT" in
     [ -z "$READONLY" -a -w "$INFILE" ] && OUTFILE="$INFILE"
     ;;
   */*)
-    OUTFILE="$OUTPUT$ML_SUFFIX"
+    OUTFILE="$OUTPUT"
     ;;
   *)
     mkdir -p "$ISABELLE_OUTPUT"
-    OUTFILE="$ISABELLE_OUTPUT/$OUTPUT$ML_SUFFIX"
+    OUTFILE="$ISABELLE_OUTPUT/$OUTPUT"
     ;;
 esac
 
