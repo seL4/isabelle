@@ -60,12 +60,6 @@ lemma excluded_middle: "~P | P"
   apply assumption
   done
 
-(*For disjunctive case analysis*)
-ML {*
-  fun excluded_middle_tac sP =
-    res_inst_tac [("Q",sP)] (@{thm excluded_middle} RS @{thm disjE})
-*}
-
 lemma case_split [case_names True False]:
   assumes r1: "P ==> Q"
     and r2: "~P ==> Q"
@@ -76,8 +70,13 @@ lemma case_split [case_names True False]:
   done
 
 ML {*
-  fun case_tac a = res_inst_tac [("P",a)] @{thm case_split}
+  fun case_tac ctxt a =
+    RuleInsts.res_inst_tac ctxt [(("P", 0), a)] @{thm case_split}
 *}
+
+method_setup case_tac =
+  {* Method.goal_args_ctxt Args.name case_tac *}
+  "case_tac emulation (dynamic instantiation!)"
 
 
 (*** Special elimination rules *)
@@ -169,7 +168,6 @@ lemma swap: "~ P ==> (~ R ==> P) ==> R"
 use "cladata.ML"
 setup Cla.setup
 setup cla_setup
-setup case_setup
 
 use "blastdata.ML"
 setup Blast.setup

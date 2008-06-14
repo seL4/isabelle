@@ -37,8 +37,3 @@ val FOL_cs = prop_cs addSIs [@{thm allI}, @{thm ex_ex1I}] addIs [@{thm exI}]
                      addSEs [@{thm exE}, @{thm alt_ex1E}] addEs [@{thm allE}];
 
 val cla_setup = Cla.map_claset (K FOL_cs);
-
-val case_setup =
- (Method.add_methods
-    [("case_tac", Method.goal_args Args.name case_tac,
-      "case_tac emulation (dynamic instantiation!)")]);
