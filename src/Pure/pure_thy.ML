@@ -24,16 +24,14 @@ sig
   val kind_internal: attribute
   val has_internal: Markup.property list -> bool
   val is_internal: thm -> bool
+  val facts_of: theory -> Facts.T
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
+  val hide_fact: bool -> string -> theory -> theory
   val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
-  val theorems_of: theory -> thm list NameSpace.table
-  val facts_of: theory -> Facts.T
-  val thms_of: theory -> (string * thm) list
   val all_thms_of: theory -> (string * thm) list
-  val hide_fact: bool -> string -> theory -> theory
   val map_facts: ('a -> 'b) -> ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val burrow_facts: ('a list -> 'b list) ->
@@ -121,97 +119,53 @@ val is_internal = has_internal o Thm.get_tags;
 
 
 
-(*** theorem database ***)
+(*** stored facts ***)
 
-(** dataype theorems **)
+(** theory data **)
 
-datatype thms = Thms of
- {theorems: thm list NameSpace.table,   (* FIXME legacy *)
-  all_facts: Facts.T};
-
-fun make_thms (theorems, all_facts) = Thms {theorems = theorems, all_facts = all_facts};
-
-structure TheoremsData = TheoryDataFun
+structure FactsData = TheoryDataFun
 (
-  type T = thms;
-  val empty = make_thms (NameSpace.empty_table, Facts.empty);
+  type T = Facts.T;
+  val empty = Facts.empty;
   val copy = I;
-  fun extend (Thms {theorems = _, all_facts}) = make_thms (NameSpace.empty_table, all_facts);
-  fun merge _
-     (Thms {theorems = _, all_facts = all_facts1},
-      Thms {theorems = _, all_facts = all_facts2}) =
-    make_thms (NameSpace.empty_table, Facts.merge (all_facts1, all_facts2));
+  val extend = I;
+  fun merge _ = Facts.merge;
 );
 
-fun map_theorems f =
-  TheoremsData.map (fn Thms {theorems, all_facts} => make_thms (f (theorems, all_facts)));
-
-val get_theorems = (fn Thms args => args) o TheoremsData.get;
-val theorems_of = #theorems o get_theorems;
-val facts_of = #all_facts o get_theorems;
+val facts_of = FactsData.get;
 
 val intern_fact = Facts.intern o facts_of;
 val defined_fact = Facts.defined o facts_of;
+
+fun hide_fact fully name = FactsData.map (Facts.hide fully name);
 
 
 
 (** retrieve theorems **)
 
-local
-
-fun lookup_thms thy xname =
-  let
-    val (space, thms) = #theorems (get_theorems thy);
-    val name = NameSpace.intern space xname;
-  in Option.map (pair name) (Symtab.lookup thms name) end;
-
-fun lookup_fact context thy xname =
-  let val name = intern_fact thy xname
-  in Option.map (pair name) (Facts.lookup context (facts_of thy) name) end;
-
-in
-
-fun get_fact context theory xthmref =
+fun get_fact context thy xthmref =
   let
     val xname = Facts.name_of_ref xthmref;
     val pos = Facts.pos_of_ref xthmref;
-    val new_res = lookup_fact context theory xname;
-    val old_res = get_first (fn thy => lookup_thms thy xname) (theory :: Theory.ancestors_of theory);
-    val _ = Theory.check_thy theory;
+
+    val name = intern_fact thy xname;
+    val res = Facts.lookup context (facts_of thy) name;
+    val _ = Theory.check_thy thy;
   in
-    (case (new_res, old_res) of
-      (SOME (_, ths1), SOME (_, ths2)) => Thm.eq_thms (ths1, ths2) orelse
-        error ("Fact lookup differs from old-style thm database:\n" ^
-          fst (the new_res) ^ " vs " ^ fst (the old_res) ^ Position.str_of pos)
-    | _ => true);
-    (case new_res of
-      NONE => error ("Unknown fact " ^ quote xname ^ Position.str_of pos)
-    | SOME (_, ths) => Facts.select xthmref (map (Thm.transfer theory) ths))
+    (case res of
+      NONE => error ("Unknown fact " ^ quote name ^ Position.str_of pos)
+    | SOME ths => Facts.select xthmref (map (Thm.transfer thy) ths))
   end;
 
 fun get_thms thy = get_fact (Context.Theory thy) thy o Facts.named;
 fun get_thm thy name = Facts.the_single name (get_thms thy name);
 
-end;
-
-
-(* thms_of etc. *)
-
-fun thms_of thy =
-  let val thms = #2 (theorems_of thy)
-  in map (`(get_name_hint)) (maps snd (Symtab.dest thms)) end;
-
-fun all_thms_of thy = maps thms_of (thy :: Theory.ancestors_of thy);
+fun all_thms_of thy =
+  Facts.fold_static (fn (_, ths) => append (map (`(get_name_hint)) ths)) (facts_of thy) [];
 
 
 
 (** store theorems **)
-
-(* hide names *)
-
-fun hide_fact fully name =
-  map_theorems (fn (theorems, all_facts) => (theorems, Facts.hide fully name all_facts));
-
 
 (* fact specifications *)
 
@@ -247,12 +201,7 @@ fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
         val name = NameSpace.full naming bname;
         val (thy', thms') = apsnd (post_name name) (app_att (thy, pre_name name thms));
         val thms'' = map (Thm.transfer thy') thms';
-        val thy'' = thy' |> map_theorems (fn ((space, theorems), all_facts) =>
-          let
-            val space' = NameSpace.declare naming name space;
-            val theorems' = Symtab.update (name, thms'') theorems;
-            val all_facts' = Facts.add_global naming (name, thms'') all_facts;
-          in ((space', theorems'), all_facts') end);
+        val thy'' = thy' |> FactsData.map (Facts.add_global naming (name, thms''));
       in (thms'', thy'') end;
 
 
@@ -284,11 +233,8 @@ val add_thms = gen_add_thms (name_thms true true);
 (* add_thms_dynamic *)
 
 fun add_thms_dynamic (bname, f) thy =
-  let
-    val name = Sign.full_name thy bname;
-    val thy' = thy |> map_theorems (fn (theorems, all_facts) =>
-      (theorems, Facts.add_dynamic (Sign.naming_of thy) (name, f) all_facts));
-  in thy' end;
+  let val name = Sign.full_name thy bname
+  in thy |> FactsData.map (Facts.add_dynamic (Sign.naming_of thy) (name, f)) end;
 
 
 (* note_thmss(_i) *)
