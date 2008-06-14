@@ -138,18 +138,17 @@ lemma long_div_eucl_size:
   apply simp
   done
 
-ML {* simplify (@{simpset} addsimps [thm "eucl_size_def"]
-    delsimprocs [ring_simproc]) (thm "long_div_eucl_size") *}
-
-thm long_div_eucl_size [simplified]
+ML {*
+ bind_thm ("long_div_ring_aux",
+    simplify (@{simpset} addsimps [@{thm eucl_size_def}]
+    delsimprocs [ring_simproc]) (@{thm long_div_eucl_size}))
+*}
 
 lemma long_div_ring: 
   "!!g::('a::ring up). g ~= 0 ==>  
      Ex (% (q, r, k).  
        (lcoeff g)^k *s f = q * g + r & (r = 0 | deg r < deg g))"
-  apply (tactic {* forw_inst_tac [("f", "f")]
-    (simplify (@{simpset} addsimps [thm "eucl_size_def"]
-      delsimprocs [ring_simproc]) (thm "long_div_eucl_size")) 1 *})
+  apply (frule_tac f = f in long_div_ring_aux)
   apply (tactic {* auto_tac (@{claset}, @{simpset} delsimprocs [ring_simproc]) *})
   apply (case_tac "aa = 0")
    apply blast
