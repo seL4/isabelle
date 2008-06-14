@@ -421,18 +421,8 @@ ML {*
 local
 
 val type_rls =
-  thms "canTs" @ thms "icanTs" @ thms "applyT2" @ thms "ncanTs" @ thms "incanTs" @
-  thms "precTs" @ thms "letrecTs" @ thms "letT" @ thms "Subtype_canTs";
-
-val rcallT = thm "rcallT";
-val rcall2T = thm "rcall2T";
-val rcall3T = thm "rcall3T";
-val rcallTs = thms "rcallTs";
-val rcall_lemmas = thms "rcall_lemmas";
-val SubtypeE = thm "SubtypeE";
-val SubtypeI = thm "SubtypeI";
-val rmIHs = thms "rmIHs";
-val hyprcallTs = thms "hyprcallTs";
+  @{thms canTs} @ @{thms icanTs} @ @{thms applyT2} @ @{thms ncanTs} @ @{thms incanTs} @
+  @{thms precTs} @ @{thms letrecTs} @ @{thms letT} @ @{thms Subtype_canTs};
 
 fun bvars (Const("all",_) $ Abs(s,_,t)) l = bvars t (s::l)
   | bvars _ l = l
@@ -445,9 +435,9 @@ fun get_bno l n (Const("all",_) $ Abs(s,_,t)) = get_bno (s::l) n t
   | get_bno l n (Bound m) = (m-length(l),n)
 
 (* Not a great way of identifying induction hypothesis! *)
-fun could_IH x = could_unify(x,hd (prems_of rcallT)) orelse
-                 could_unify(x,hd (prems_of rcall2T)) orelse
-                 could_unify(x,hd (prems_of rcall3T))
+fun could_IH x = could_unify(x,hd (prems_of @{thm rcallT})) orelse
+                 could_unify(x,hd (prems_of @{thm rcall2T})) orelse
+                 could_unify(x,hd (prems_of @{thm rcall3T}))
 
 fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
   let val bvs = bvars Bi []
@@ -456,7 +446,7 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
                     let val (a,b) = get_bno [] 0 x
                     in (List.nth(bvs,a),b) end) ihs
       fun try_IHs [] = no_tac
-        | try_IHs ((x,y)::xs) = tac [("g",x)] (List.nth(rls,y-1)) i ORELSE (try_IHs xs)
+        | try_IHs ((x,y)::xs) = tac [(("g", 0), x)] (List.nth(rls,y-1)) i ORELSE (try_IHs xs)
   in try_IHs rnames end)
 
 fun is_rigid_prog t =
@@ -465,35 +455,37 @@ fun is_rigid_prog t =
        | _ => false
 in
 
-fun rcall_tac i = let fun tac ps rl i = Tactic.res_inst_tac ps rl i THEN atac i
-                       in IHinst tac rcallTs i end THEN
-                  eresolve_tac rcall_lemmas i
+fun rcall_tac ctxt i =
+  let fun tac ps rl i = RuleInsts.res_inst_tac ctxt ps rl i THEN atac i
+  in IHinst tac @{thms rcallTs} i end
+  THEN eresolve_tac @{thms rcall_lemmas} i
 
-fun raw_step_tac prems i = ares_tac (prems@type_rls) i ORELSE
-                           rcall_tac i ORELSE
-                           ematch_tac [SubtypeE] i ORELSE
-                           match_tac [SubtypeI] i
+fun raw_step_tac ctxt prems i = ares_tac (prems@type_rls) i ORELSE
+                           rcall_tac ctxt i ORELSE
+                           ematch_tac [@{thm SubtypeE}] i ORELSE
+                           match_tac [@{thm SubtypeI}] i
 
-fun tc_step_tac prems = SUBGOAL (fn (Bi,i) =>
-          if is_rigid_prog Bi then raw_step_tac prems i else no_tac)
+fun tc_step_tac ctxt prems = SUBGOAL (fn (Bi,i) =>
+          if is_rigid_prog Bi then raw_step_tac ctxt prems i else no_tac)
 
-fun typechk_tac rls i = SELECT_GOAL (REPEAT_FIRST (tc_step_tac rls)) i
+fun typechk_tac ctxt rls i = SELECT_GOAL (REPEAT_FIRST (tc_step_tac ctxt rls)) i
 
-val tac = typechk_tac [] 1
+fun tac ctxt = typechk_tac ctxt [] 1
 
 (*** Clean up Correctness Condictions ***)
 
-val clean_ccs_tac = REPEAT_FIRST (eresolve_tac ([SubtypeE]@rmIHs) ORELSE'
+val clean_ccs_tac = REPEAT_FIRST (eresolve_tac ([@{thm SubtypeE}] @ @{thms rmIHs}) ORELSE'
                                  hyp_subst_tac)
 
-val clean_ccs_tac =
-       let fun tac ps rl i = Tactic.eres_inst_tac ps rl i THEN atac i
-       in TRY (REPEAT_FIRST (IHinst tac hyprcallTs ORELSE'
-                       eresolve_tac ([asm_rl,SubtypeE]@rmIHs) ORELSE'
-                       hyp_subst_tac)) end
+fun clean_ccs_tac ctxt =
+  let fun tac ps rl i = RuleInsts.eres_inst_tac ctxt ps rl i THEN atac i in
+    TRY (REPEAT_FIRST (IHinst tac @{thms hyprcallTs} ORELSE'
+    eresolve_tac ([asm_rl, @{thm SubtypeE}] @ @{thms rmIHs}) ORELSE'
+    hyp_subst_tac))
+  end
 
-fun gen_ccs_tac rls i = SELECT_GOAL (REPEAT_FIRST (tc_step_tac rls) THEN
-                                     clean_ccs_tac) i
+fun gen_ccs_tac ctxt rls i =
+  SELECT_GOAL (REPEAT_FIRST (tc_step_tac ctxt rls) THEN clean_ccs_tac ctxt) i
 
 end
 *}

@@ -64,15 +64,17 @@ bind_thm ("ccaseT", mk_ncanT_tac @{context}
 
 lemma "flag : List(Colour)->List(Colour)*List(Colour)*List(Colour)"
   apply (unfold flag_def)
-  apply (tactic {* typechk_tac [thm "redT", thm "whiteT", thm "blueT", thm "ccaseT"] 1 *})
-  apply (tactic clean_ccs_tac)
+  apply (tactic {* typechk_tac @{context}
+    [@{thm redT}, @{thm whiteT}, @{thm blueT}, @{thm ccaseT}] 1 *})
+  apply (tactic "clean_ccs_tac @{context}")
   apply (erule ListPRI [THEN ListPR_wf [THEN wfI]])
   apply assumption
   done
 
 lemma "flag : PROD l:List(Colour).{x:List(Colour)*List(Colour)*List(Colour).FLAG(x,l)}"
   apply (unfold flag_def)
-  apply (tactic {* gen_ccs_tac [thm "redT", thm "whiteT", thm "blueT", thm "ccaseT"] 1 *})
+  apply (tactic {* gen_ccs_tac @{context}
+    [@{thm redT}, @{thm whiteT}, @{thm blueT}, @{thm ccaseT}] 1 *})
   oops
 
 end
