@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Tactics.
+Basic tactics.
 *)
 
 signature BASIC_TACTIC =
@@ -36,9 +36,6 @@ sig
   val flexflex_tac: tactic
   val distinct_subgoal_tac: int -> tactic
   val distinct_subgoals_tac: tactic
-  val lift_inst_rule: thm * int * (string*string)list * thm -> thm
-  val term_lift_inst_rule:
-    thm * int * ((indexname * sort) * typ) list * ((indexname * typ) * term) list * thm -> thm
   val metacut_tac: thm -> int -> tactic
   val cut_rules_tac: thm list -> int -> tactic
   val cut_facts_tac: thm list -> int -> tactic
@@ -59,9 +56,7 @@ sig
   val net_match_tac: thm list -> int -> tactic
   val subgoals_of_brl: bool * thm -> int
   val lessb: (bool * thm) * (bool * thm) -> bool
-  val rename_params_tac: string list -> int -> tactic
-  val rename_tac: string -> int -> tactic
-  val rename_last_tac: string -> string list -> int -> tactic
+  val rename_tac: string list -> int -> tactic
   val rotate_tac: int -> int -> tactic
   val defer_tac: int -> tactic
   val filter_prems_tac: (term -> bool) -> int -> tactic
@@ -71,22 +66,8 @@ signature TACTIC =
 sig
   include BASIC_TACTIC
   val innermost_params: int -> thm -> (string * typ) list
-  val lift_inst_rule': thm * int * (indexname * string) list * thm -> thm
-  val compose_inst_tac: (string * string) list -> (bool * thm * int) -> int -> tactic
-  val res_inst_tac: (string * string) list -> thm -> int -> tactic
-  val eres_inst_tac: (string * string) list -> thm -> int -> tactic
-  val cut_inst_tac: (string * string) list -> thm -> int -> tactic
-  val forw_inst_tac: (string * string) list -> thm -> int -> tactic
-  val dres_inst_tac: (string * string) list -> thm -> int -> tactic
-  val instantiate_tac: (string * string) list -> tactic
-  val compose_inst_tac': (indexname * string) list -> (bool * thm * int) -> int -> tactic
-  val res_inst_tac': (indexname * string) list -> thm -> int -> tactic
-  val eres_inst_tac': (indexname * string) list -> thm -> int -> tactic
-  val make_elim_preserve: thm -> thm
-  val instantiate_tac': (indexname * string) list -> tactic
-  val thin_tac: string -> int -> tactic
-  val subgoal_tac: string -> int -> tactic
-  val subgoals_tac: string list -> int -> tactic
+  val term_lift_inst_rule:
+    thm * int * ((indexname * sort) * typ) list * ((indexname * typ) * term) list * thm -> thm
   val untaglist: (int * 'a) list -> 'a list
   val orderlist: (int * 'a) list -> 'a list
   val insert_tagged_brl: 'a * (bool * thm) ->
@@ -216,37 +197,6 @@ fun innermost_params i st =
 (*params of subgoal i as they are printed*)
 fun params_of_state i st = rev (innermost_params i st);
 
-(*read instantiations with respect to subgoal i of proof state st*)
-fun read_insts_in_state (st, i, sinsts, rule) =
-  let val thy = Thm.theory_of_thm st
-      and params = params_of_state i st
-      and rts = Drule.types_sorts rule and (types,sorts) = Drule.types_sorts st
-      fun types'(a, ~1) = (case AList.lookup (op =) params a of NONE => types (a, ~1) | sm => sm)
-        | types' ixn = types ixn;
-      val used = Drule.add_used rule (Drule.add_used st []);
-  in Drule.read_insts thy rts (types',sorts) used sinsts end;
-
-(*Lift and instantiate a rule wrt the given state and subgoal number *)
-fun lift_inst_rule' (st, i, sinsts, rule) =
-let val (Tinsts,insts) = read_insts_in_state (st, i, sinsts, rule)
-    and {maxidx,...} = rep_thm st
-    and params = params_of_state i st
-    val paramTs = map #2 params
-    and inc = maxidx+1
-    fun liftvar (Var ((a,j), T)) = Var((a, j+inc), paramTs---> Logic.incr_tvar inc T)
-      | liftvar t = raise TERM("Variable expected", [t]);
-    fun liftterm t = list_abs_free (params,
-                                    Logic.incr_indexes(paramTs,inc) t)
-    (*Lifts instantiation pair over params*)
-    fun liftpair (cv,ct) = (cterm_fun liftvar cv, cterm_fun liftterm ct)
-    val lifttvar = pairself (ctyp_fun (Logic.incr_tvar inc))
-in Drule.instantiate (map lifttvar Tinsts, map liftpair insts)
-                     (Thm.lift_rule (Thm.cprem_of st i) rule)
-end;
-
-fun lift_inst_rule (st, i, sinsts, rule) = lift_inst_rule'
-  (st, i, map (apfst Lexicon.read_indexname) sinsts, rule);
-
 (*
 Like lift_inst_rule but takes terms, not strings, where the terms may contain
 Bounds referring to parameters of the subgoal.
@@ -280,82 +230,13 @@ in Drule.instantiate (map liftTpair Tinsts, map liftpair insts)
                      (Thm.lift_rule (Thm.cprem_of st i) rule)
 end;
 
-(*** Resolve after lifting and instantation; may refer to parameters of the
-     subgoal.  Fails if "i" is out of range.  ***)
 
-(*compose version: arguments are as for bicompose.*)
-fun gen_compose_inst_tac instf sinsts (bires_flg, rule, nsubgoal) i st =
-  if i > nprems_of st then no_tac st
-  else st |>
-    (compose_tac (bires_flg, instf (st, i, sinsts, rule), nsubgoal) i
-     handle TERM (msg,_)   => (warning msg;  no_tac)
-          | THM  (msg,_,_) => (warning msg;  no_tac));
-
-val compose_inst_tac = gen_compose_inst_tac lift_inst_rule;
-val compose_inst_tac' = gen_compose_inst_tac lift_inst_rule';
-
-(*"Resolve" version.  Note: res_inst_tac cannot behave sensibly if the
-  terms that are substituted contain (term or type) unknowns from the
-  goal, because it is unable to instantiate goal unknowns at the same time.
-
-  The type checker is instructed not to freeze flexible type vars that
-  were introduced during type inference and still remain in the term at the
-  end.  This increases flexibility but can introduce schematic type vars in
-  goals.
-*)
-fun res_inst_tac sinsts rule i =
-    compose_inst_tac sinsts (false, rule, nprems_of rule) i;
-
-fun res_inst_tac' sinsts rule i =
-    compose_inst_tac' sinsts (false, rule, nprems_of rule) i;
-
-(*eresolve elimination version*)
-fun eres_inst_tac sinsts rule i =
-    compose_inst_tac sinsts (true, rule, nprems_of rule) i;
-
-fun eres_inst_tac' sinsts rule i =
-    compose_inst_tac' sinsts (true, rule, nprems_of rule) i;
-
-(*For forw_inst_tac and dres_inst_tac.  Preserve Var indexes of rl;
-  increment revcut_rl instead.*)
-fun make_elim_preserve rl =
-  let val maxidx = Thm.maxidx_of rl
-      val thy = Thm.theory_of_thm rl
-      fun cvar ixn = cterm_of thy (Var(ixn,propT));
-      val revcut_rl' =
-          instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
-                             (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
-      val arg = (false, rl, nprems_of rl)
-      val [th] = Seq.list_of (bicompose false arg 1 revcut_rl')
-  in  th  end
-  handle Bind => raise THM("make_elim_preserve", 1, [rl]);
-
-(*instantiate and cut -- for a FACT, anyway...*)
-fun cut_inst_tac sinsts rule = res_inst_tac sinsts (make_elim_preserve rule);
-
-(*forward tactic applies a RULE to an assumption without deleting it*)
-fun forw_inst_tac sinsts rule = cut_inst_tac sinsts rule THEN' assume_tac;
-
-(*dresolve tactic applies a RULE to replace an assumption*)
-fun dres_inst_tac sinsts rule = eres_inst_tac sinsts (make_elim_preserve rule);
-
-(*instantiate variables in the whole state*)
-val instantiate_tac = PRIMITIVE o Drule.read_instantiate;
-
-val instantiate_tac' = PRIMITIVE o Drule.read_instantiate';
-
-(*Deletion of an assumption*)
-fun thin_tac s = eres_inst_tac [("V",s)] thin_rl;
 
 (*** Applications of cut_rl ***)
 
-(*Used by metacut_tac*)
-fun bires_cut_tac arg i =
-    resolve_tac [cut_rl] i  THEN  biresolve_tac arg (i+1) ;
-
 (*The conclusion of the rule gets assumed in subgoal i,
   while subgoal i+1,... are the premises of the rule.*)
-fun metacut_tac rule = bires_cut_tac [(false,rule)];
+fun metacut_tac rule i = resolve_tac [cut_rl] i  THEN  biresolve_tac [(false, rule)] (i+1);
 
 (*"Cut" a list of rules into the goal.  Their premises will become new
   subgoals.*)
@@ -364,18 +245,6 @@ fun cut_rules_tac ths i = EVERY (map (fn th => metacut_tac th i) ths);
 (*As above, but inserts only facts (unconditional theorems);
   generates no additional subgoals. *)
 fun cut_facts_tac ths = cut_rules_tac (filter Thm.no_prems ths);
-
-(*Introduce the given proposition as a lemma and subgoal*)
-fun subgoal_tac sprop =
-  DETERM o res_inst_tac [("psi", sprop)] cut_rl THEN' SUBGOAL (fn (prop, _) =>
-    let val concl' = Logic.strip_assums_concl prop in
-      if null (term_tvars concl') then ()
-      else warning"Type variables in new subgoal: add a type constraint?";
-      all_tac
-  end);
-
-(*Introduce a list of lemmas and subgoals*)
-fun subgoals_tac sprops = EVERY' (map subgoal_tac sprops);
 
 
 (**** Indexing and filtering of theorems ****)
@@ -504,39 +373,11 @@ fun subgoals_of_brl (true,rule)  = nprems_of rule - 1
 fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 
 
-(*** Renaming of parameters in a subgoal
-     Names may contain letters, digits or primes and must be
-     separated by blanks ***)
-
-fun rename_params_tac xs i =
+(*Renaming of parameters in a subgoal*)
+fun rename_tac xs i =
   case Library.find_first (not o Syntax.is_identifier) xs of
       SOME x => error ("Not an identifier: " ^ x)
     | NONE => PRIMITIVE (rename_params_rule (xs, i));
-
-(*scan a list of characters into "words" composed of "letters" (recognized by
-  is_let) and separated by any number of non-"letters"*)
-fun scanwords is_let cs =
-  let fun scan1 [] = []
-        | scan1 cs =
-            let val (lets, rest) = take_prefix is_let cs
-            in implode lets :: scanwords is_let rest end;
-  in scan1 (#2 (take_prefix (not o is_let) cs)) end;
-
-fun rename_tac str i =
-  let val cs = Symbol.explode str in
-  case #2 (take_prefix (Symbol.is_letdig orf Symbol.is_blank) cs) of
-      [] => rename_params_tac (scanwords Symbol.is_letdig cs) i
-    | c::_ => error ("Illegal character: " ^ c)
-  end;
-
-(*Rename recent parameters using names generated from a and the suffixes,
-  provided the string a, which represents a term, is an identifier. *)
-fun rename_last_tac a sufs i =
-  let val names = map (curry op^ a) sufs
-  in  if Syntax.is_identifier a
-      then PRIMITIVE (rename_params_rule (names,i))
-      else all_tac
-  end;
 
 (*rotate_tac n i: rotate the assumptions of subgoal i by n positions, from
   right to left if n is positive, and from left to right if n is negative.*)
