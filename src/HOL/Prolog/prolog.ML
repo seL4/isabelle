@@ -50,10 +50,10 @@ val check_HOHH_tac2 = PRIMITIVE (fn thm =>
 fun check_HOHH thm  = (if isD (concl_of thm) andalso forall isG (prems_of thm)
                         then thm else raise not_HOHH);
 
-fun atomizeD thm = let
+fun atomizeD ctxt thm = let
     fun at  thm = case concl_of thm of
-      _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (Drule.read_instantiate [("x",
-                                        "?"^(if s="P" then "PP" else s))] spec))
+      _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS
+        (RuleInsts.read_instantiate ctxt [(("x", 0), "?" ^ (if s="P" then "PP" else s))] spec))
     | _$(Const("op &",_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
     | _$(Const("op -->",_)$_$_)     => at(thm RS mp)
     | _                             => [thm]
@@ -106,8 +106,8 @@ fun hyp_resolve_tac i st = let
                           pres_tac (ap (HOLogic.dest_Trueprop t)) n i) 0 prems;
         in Library.foldl (op APPEND) (no_tac, ptacs) st end;
 
-fun ptac prog = let
-  val proga = List.concat (map atomizeD prog)                   (* atomize the prog *)
+fun ptac ctxt prog = let
+  val proga = List.concat (map (atomizeD ctxt) prog)                   (* atomize the prog *)
   in    (REPEAT_DETERM1 o FIRST' [
                 rtac TrueI,                     (* "True" *)
                 rtac conjI,                     (* "[| P; Q |] ==> P & Q" *)
@@ -122,8 +122,9 @@ fun ptac prog = let
                  THEN' (fn _ => check_HOHH_tac2))
 end;
 
-fun prolog_tac prog = check_HOHH_tac1 THEN
-                      DEPTH_SOLVE (ptac (map check_HOHH prog) 1);
+fun prolog_tac ctxt prog =
+  check_HOHH_tac1 THEN
+  DEPTH_SOLVE (ptac ctxt (map check_HOHH prog) 1);
 
 val prog_HOHH = [];
 
