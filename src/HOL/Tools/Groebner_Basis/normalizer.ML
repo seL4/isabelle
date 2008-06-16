@@ -9,6 +9,9 @@ sig
  val semiring_normalize_ord_conv : Proof.context -> (cterm -> cterm -> bool) -> conv
  val semiring_normalize_tac : Proof.context -> int -> tactic
  val semiring_normalize_wrapper :  Proof.context -> NormalizerData.entry -> conv
+ val semiring_normalizers_ord_wrapper :  
+     Proof.context -> NormalizerData.entry -> (cterm -> cterm -> bool) ->
+      {add: conv, mul: conv, neg: conv, main: conv, pow: conv, sub: conv}
  val semiring_normalize_ord_wrapper :  Proof.context -> NormalizerData.entry ->
    (cterm -> cterm -> bool) -> conv
  val semiring_normalizers_conv :
@@ -613,7 +616,8 @@ val nat_exp_ss = HOL_basic_ss addsimps (@{thms nat_number} @ nat_arith @ @{thms 
                               addsimps [Let_def, if_False, if_True, @{thm add_0}, @{thm add_Suc}];
 
 fun simple_cterm_ord t u = Term.term_ord (term_of t, term_of u) = LESS;
-fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, idom, ideal}, 
+
+fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, idom, ideal}, 
                                      {conv, dest_const, mk_const, is_const}) ord =
   let
     val pow_conv =
@@ -622,8 +626,10 @@ fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, idom, ideal},
         (HOL_basic_ss addsimps [nth (snd semiring) 31, nth (snd semiring) 34])
       then_conv conv ctxt
     val dat = (is_const, conv ctxt, conv ctxt, pow_conv)
-    val {main, ...} = semiring_normalizers_conv vars semiring ring dat ord
-  in main end;
+  in semiring_normalizers_conv vars semiring ring dat ord end;
+
+fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, idom, ideal}, {conv, dest_const, mk_const, is_const}) ord =
+ #main (semiring_normalizers_ord_wrapper ctxt ({vars = vars, semiring = semiring, ring = ring, idom = idom, ideal = ideal},{conv = conv, dest_const = dest_const, mk_const = mk_const, is_const = is_const}) ord);
 
 fun semiring_normalize_wrapper ctxt data = 
   semiring_normalize_ord_wrapper ctxt data simple_cterm_ord;
