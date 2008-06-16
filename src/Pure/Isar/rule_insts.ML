@@ -5,16 +5,24 @@
 Rule instantiations -- operations within a rule/subgoal context.
 *)
 
-signature RULE_INSTS =
+signature BASIC_RULE_INSTS =
 sig
   val read_instantiate: Proof.context -> (indexname * string) list -> thm -> thm
-  val bires_inst_tac: bool -> Proof.context -> (indexname * string) list ->
-    thm -> int -> tactic
+  val instantiate_tac: Proof.context -> (indexname * string) list -> tactic
   val res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
   val eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
+  val cut_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
+  val forw_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
+  val dres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
+  val thin_tac: Proof.context -> string -> int -> tactic
   val subgoal_tac: Proof.context -> string -> int -> tactic
   val subgoals_tac: Proof.context -> string list -> int -> tactic
-  val thin_tac: Proof.context -> string -> int -> tactic
+end;
+
+signature RULE_INSTS =
+sig
+  include BASIC_RULE_INSTS
+  val make_elim_preserve: thm -> thm
 end;
 
 structure RuleInsts: RULE_INSTS =
@@ -173,11 +181,16 @@ fun read_instantiate_mixed' ctxt (args, concl_args) thm =
       zip_vars (rev (Term.add_vars (Thm.concl_of thm) [])) concl_args;
   in read_instantiate_mixed ctxt insts thm end;
 
+end;
+
+
+(* instantiation of rule or goal state *)
+
 fun read_instantiate ctxt args thm =
   read_instantiate_mixed (ctxt |> ProofContext.set_mode ProofContext.mode_schematic)  (* FIXME !? *)
     (map (fn (x, y) => (Args.eof, (x, Args.Text y))) args) thm;
 
-end;
+fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
 
 
 
@@ -235,9 +248,11 @@ val _ = Context.>> (Context.map_theory
 
 
 
-(** methods **)
+(** tactics **)
 
-(* rule_tac etc. -- refer to dynamic goal state!! *)   (* FIXME cleanup this mess!!! *)
+(* resolution after lifting and instantation; may refer to parameters of the subgoal *)
+
+(* FIXME cleanup this mess!!! *)
 
 fun bires_inst_tac bires_flag ctxt insts thm =
   let
@@ -320,6 +335,47 @@ val res_inst_tac = bires_inst_tac false;
 val eres_inst_tac = bires_inst_tac true;
 
 
+(* forward resolution *)
+
+fun make_elim_preserve rl =
+  let
+    val cert = Thm.cterm_of (Thm.theory_of_thm rl);
+    val maxidx = Thm.maxidx_of rl;
+    fun cvar xi = cert (Var (xi, propT));
+    val revcut_rl' =
+      instantiate ([], [(cvar ("V", 0), cvar ("V", maxidx + 1)),
+        (cvar ("W", 0), cvar ("W", maxidx + 1))]) Drule.revcut_rl;
+  in
+    (case Seq.list_of (bicompose false (false, rl, Thm.nprems_of rl) 1 revcut_rl') of
+      [th] => th
+    | _ => raise THM ("make_elim_preserve", 1, [rl]))
+  end;
+
+(*instantiate and cut -- for atomic fact*)
+fun cut_inst_tac ctxt insts rule = res_inst_tac ctxt insts (make_elim_preserve rule);
+
+(*forward tactic applies a rule to an assumption without deleting it*)
+fun forw_inst_tac ctxt insts rule = cut_inst_tac ctxt insts rule THEN' assume_tac;
+
+(*dresolve tactic applies a rule to replace an assumption*)
+fun dres_inst_tac ctxt insts rule = eres_inst_tac ctxt insts (make_elim_preserve rule);
+
+
+(* derived tactics *)
+
+(*deletion of an assumption*)
+fun thin_tac ctxt s = eres_inst_tac ctxt [(("V", 0), s)] Drule.thin_rl;
+
+(*Introduce the given proposition as lemma and subgoal*)
+fun subgoal_tac ctxt A = DETERM o res_inst_tac ctxt [(("psi", 0), A)] cut_rl;
+fun subgoals_tac ctxt As = EVERY' (map (subgoal_tac ctxt) As);
+
+
+
+(** methods **)
+
+(* rule_tac etc. -- refer to dynamic goal state! *)
+
 local
 
 fun gen_inst _ tac _ (quant, ([], thms)) =
@@ -333,27 +389,11 @@ in
 
 val res_inst_meth = gen_inst res_inst_tac Tactic.resolve_tac;
 val eres_inst_meth = gen_inst eres_inst_tac Tactic.eresolve_tac;
+val cut_inst_meth = gen_inst cut_inst_tac Tactic.cut_rules_tac;
+val dres_inst_meth = gen_inst dres_inst_tac Tactic.dresolve_tac;
+val forw_inst_meth = gen_inst forw_inst_tac Tactic.forward_tac;
 
-val cut_inst_meth =
-  gen_inst
-    (fn ctxt => fn insts => res_inst_tac ctxt insts o Tactic.make_elim_preserve)
-    Tactic.cut_rules_tac;
-
-val dres_inst_meth =
-  gen_inst
-    (fn ctxt => fn insts => eres_inst_tac ctxt insts o Tactic.make_elim_preserve)
-    Tactic.dresolve_tac;
-
-val forw_inst_meth =
-  gen_inst
-    (fn ctxt => fn insts => fn rule =>
-       res_inst_tac ctxt insts (Tactic.make_elim_preserve rule) THEN' assume_tac)
-    Tactic.forward_tac;
-
-fun subgoal_tac ctxt sprop = DETERM o res_inst_tac ctxt [(("psi", 0), sprop)] cut_rl;
-fun subgoals_tac ctxt sprops = EVERY' (map (subgoal_tac ctxt) sprops);
-
-fun thin_tac ctxt s = eres_inst_tac ctxt [(("V", 0), s)] thin_rl;
+end;
 
 
 (* method syntax *)
@@ -396,4 +436,6 @@ val _ = Context.>> (Context.map_theory
 
 end;
 
-end;
+structure BasicRuleInsts: BASIC_RULE_INSTS = RuleInsts;
+open BasicRuleInsts;
+
