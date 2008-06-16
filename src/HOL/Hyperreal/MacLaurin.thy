@@ -48,13 +48,12 @@ fun get_fun_name (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _
 
 in
 
-val deriv_tac =
-  SUBGOAL (fn (prem,i) =>
-   (resolve_tac @{thms deriv_rulesI} i) ORELSE
-    ((rtac (Drule.read_instantiate [("f",get_fun_name prem)]
-                     @{thm DERIV_chain2}) i) handle DERIV_name => no_tac));;
+fun deriv_tac ctxt = SUBGOAL (fn (prem, i) =>
+  resolve_tac @{thms deriv_rulesI} i ORELSE
+    ((rtac (RuleInsts.read_instantiate ctxt [(("f", 0), get_fun_name prem)]
+                     @{thm DERIV_chain2}) i) handle DERIV_name => no_tac));
 
-val DERIV_tac = ALLGOALS(fn i => REPEAT(deriv_tac i));
+fun DERIV_tac ctxt = ALLGOALS (fn i => REPEAT (deriv_tac ctxt i));
 
 end
 *}
@@ -71,8 +70,8 @@ lemma Maclaurin_lemma2:
 apply clarify
 apply (rule DERIV_diff)
 apply (simp (no_asm_simp))
-apply (tactic DERIV_tac)
-apply (tactic DERIV_tac)
+apply (tactic {* DERIV_tac @{context} *})
+apply (tactic {* DERIV_tac @{context} *})
 apply (rule_tac [2] lemma_DERIV_subst)
 apply (rule_tac [2] DERIV_quotient)
 apply (rule_tac [3] DERIV_const)
