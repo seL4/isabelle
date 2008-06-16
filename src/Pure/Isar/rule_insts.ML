@@ -7,6 +7,7 @@ Rule instantiations -- operations within a rule/subgoal context.
 
 signature RULE_INSTS =
 sig
+  val read_instantiate: Proof.context -> (indexname * string) list -> thm -> thm
   val bires_inst_tac: bool -> Proof.context -> (indexname * string) list ->
     thm -> int -> tactic
   val res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
@@ -143,7 +144,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
       (map (pairself certT) inst_tvars, map (pairself cert) inst_vars))
   end;
 
-fun read_instantiate ctxt mixed_insts thm =
+fun read_instantiate_mixed ctxt mixed_insts thm =
   let
     val ctxt' = ctxt |> Variable.declare_thm thm
       |> fold (fn a => Variable.declare_internal (Logic.mk_type (TFree (a, [])))) (Drule.add_used thm []);  (* FIXME tmp *)
@@ -161,7 +162,7 @@ fun read_instantiate ctxt mixed_insts thm =
     Drule.instantiate insts thm |> RuleCases.save thm
   end;
 
-fun read_instantiate' ctxt (args, concl_args) thm =
+fun read_instantiate_mixed' ctxt (args, concl_args) thm =
   let
     fun zip_vars _ [] = []
       | zip_vars (_ :: xs) ((_, NONE) :: rest) = zip_vars xs rest
@@ -170,7 +171,11 @@ fun read_instantiate' ctxt (args, concl_args) thm =
     val insts =
       zip_vars (rev (Term.add_vars (Thm.full_prop_of thm) [])) args @
       zip_vars (rev (Term.add_vars (Thm.concl_of thm) [])) concl_args;
-  in read_instantiate ctxt insts thm end;
+  in read_instantiate_mixed ctxt insts thm end;
+
+fun read_instantiate ctxt args thm =
+  read_instantiate_mixed (ctxt |> ProofContext.set_mode ProofContext.mode_schematic)  (* FIXME !? *)
+    (map (fn (x, y) => (Args.eof, (x, Args.Text y))) args) thm;
 
 end;
 
@@ -193,7 +198,7 @@ val inst = Args.var -- (Args.$$$ "=" |-- Args.ahead -- value)
 in
 
 val where_att = Attrib.syntax (Args.and_list (Scan.lift inst) >> (fn args =>
-  Thm.rule_attribute (fn context => read_instantiate (Context.proof_of context) args)));
+  Thm.rule_attribute (fn context => read_instantiate_mixed (Context.proof_of context) args)));
 
 end;
 
@@ -216,7 +221,7 @@ val insts =
 in
 
 val of_att = Attrib.syntax (Scan.lift insts >> (fn args =>
-  Thm.rule_attribute (fn context => read_instantiate' (Context.proof_of context) args)));
+  Thm.rule_attribute (fn context => read_instantiate_mixed' (Context.proof_of context) args)));
 
 end;
 
