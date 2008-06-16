@@ -24,10 +24,10 @@ fun upd_first  f (x,y,z) = (f x,   y,   z);
 fun upd_second f (x,y,z) = (  x, f y,   z);
 fun upd_third  f (x,y,z) = (  x,   y, f z);
 
-fun atomize thm = let val r_inst = Drule.read_instantiate;
+fun atomize ctxt thm = let val r_inst = RuleInsts.read_instantiate ctxt;
     fun at  thm = case concl_of thm of
       _$(Const("op &",_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
-    | _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (r_inst [("x","?"^s)] spec))
+    | _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (r_inst [(("x", 0), "?" ^ s)] spec))
     | _				    => [thm];
 in map zero_var_indexes (at thm) end;
 
