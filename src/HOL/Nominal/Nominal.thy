@@ -3528,6 +3528,9 @@ method_setup fresh_fun_simp =
 
 (************************************************)
 (* main file for constructing nominal datatypes *)
+lemma allE_Nil: assumes "\<forall>x. P x" obtains "P []"
+  using assms ..
+
 use "nominal_package.ML"
 
 (******************************************************)

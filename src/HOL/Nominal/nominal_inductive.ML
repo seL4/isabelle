@@ -48,8 +48,6 @@ fun mk_perm_bool_simproc names = Simplifier.simproc_i
          then SOME perm_bool else NONE
      | _ => NONE);
 
-val allE_Nil = Drule.read_instantiate_sg (the_context()) [("x", "[]")] allE;
-
 fun transp ([] :: _) = []
   | transp xs = map hd xs :: transp (map tl xs);
 
@@ -401,7 +399,7 @@ fun prove_strong_ind s avoids thy =
         in
           cut_facts_tac [th] 1 THEN REPEAT (etac conjE 1) THEN
           REPEAT (REPEAT (resolve_tac [conjI, impI] 1) THEN
-            etac impE 1 THEN atac 1 THEN REPEAT (etac allE_Nil 1) THEN
+            etac impE 1 THEN atac 1 THEN REPEAT (etac @{thm allE_Nil} 1) THEN
             asm_full_simp_tac (simpset_of thy) 1)
         end);
 

@@ -155,8 +155,6 @@ fun perm_simproc' thy ss (Const ("Nominal.perm", T) $ t $ (u as Const ("Nominal.
 val perm_simproc =
   Simplifier.simproc (the_context ()) "perm_simp" ["pi1 \<bullet> (pi2 \<bullet> x)"] perm_simproc';
 
-val allE_Nil = Drule.read_instantiate_sg (the_context()) [("x", "[]")] allE;
-
 val meta_spec = thm "meta_spec";
 
 fun projections rule =
@@ -1349,7 +1347,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       in
         EVERY
           [cut_facts_tac [th] 1,
-           REPEAT (eresolve_tac [conjE, allE_Nil] 1),
+           REPEAT (eresolve_tac [conjE, @{thm allE_Nil}] 1),
            REPEAT (etac allE 1),
            REPEAT (TRY (rtac conjI 1) THEN asm_full_simp_tac ind_ss5 1)]
       end);
