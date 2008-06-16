@@ -53,6 +53,15 @@ instantiations for algebraic structures.  Removed some duplicate
 theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
 
+*** ML ***
+
+* Rules and tactics that read instantiations (read_instantiate,
+res_inst_tac, thin_tac, subgoal_tac etc.) now demand a proper proof
+context, which is required for parsing and type-checking.  Moreover,
+the variables are specified as plain indexnames, not string encodings
+thereof.  INCOMPATIBILITY.
+
+
 
 New in Isabelle2008 (June 2008)
 -------------------------------
