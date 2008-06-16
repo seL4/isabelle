@@ -302,6 +302,7 @@ The following improper proof methods emulate traditional tactics.
     \indexdef{}{method}{rename\_tac}\hypertarget{method.rename-tac}{\hyperlink{method.rename-tac}{\mbox{\isa{rename{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
     \indexdef{}{method}{rotate\_tac}\hypertarget{method.rotate-tac}{\hyperlink{method.rotate-tac}{\mbox{\isa{rotate{\isacharunderscore}tac}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
     \indexdef{}{method}{tactic}\hypertarget{method.tactic}{\hyperlink{method.tactic}{\mbox{\isa{tactic}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
+    \indexdef{}{method}{raw\_tactic}\hypertarget{method.raw-tactic}{\hyperlink{method.raw-tactic}{\mbox{\isa{raw{\isacharunderscore}tactic}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarmeth \\
   \end{matharray}
 
   \begin{rail}
@@ -314,7 +315,7 @@ The following improper proof methods emulate traditional tactics.
     ;
     'rotate\_tac' goalspec? int?
     ;
-    'tactic' text
+    ('tactic' | 'raw_tactic') text
     ;
 
     insts: ((name '=' term) + 'and') 'in'
@@ -356,19 +357,16 @@ The following improper proof methods emulate traditional tactics.
 
   \item [\hyperlink{method.tactic}{\mbox{\isa{tactic}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] produces a proof method from
   any ML text of type \verb|tactic|.  Apart from the usual ML
-  environment and the current implicit theory context, the ML code may
-  refer to the following locally bound values:
+  environment and the current proof context, the ML code may refer to
+  the locally bound values \verb|facts|, which indicates any
+  current facts used for forward-chaining.
 
-%FIXME check
-{\footnotesize\begin{verbatim}
-val ctxt  : Proof.context
-val facts : thm list
-val thm   : string -> thm
-val thms  : string -> thm list
-\end{verbatim}}
-
-  Here \verb|ctxt| refers to the current proof context, \verb|facts| indicates any current facts for forward-chaining, and \verb|thm|~/~\verb|thms| retrieve named facts (including global theorems)
-  from the context.
+  \item [\hyperlink{method.raw-tactic}{\mbox{\isa{raw{\isacharunderscore}tactic}}}] is similar to \hyperlink{method.tactic}{\mbox{\isa{tactic}}}, but
+  presents the goal state in its raw internal form, where simultaneous
+  subgoals appear as conjunction of the logical framework instead of
+  the usual split into several subgoals.  While feature this is useful
+  for debugging of complex method definitions, it should not never
+  appear in production theories.
 
   \end{descr}%
 \end{isamarkuptext}%
