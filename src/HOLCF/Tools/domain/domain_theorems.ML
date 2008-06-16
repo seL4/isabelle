@@ -603,6 +603,8 @@ end; (* let *)
 
 fun comp_theorems (comp_dnam, eqs: eq list) thy =
 let
+val global_ctxt = ProofContext.init thy;
+
 val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
 val comp_dname = Sign.full_name thy comp_dnam;
@@ -687,7 +689,7 @@ local
     in pg copy_take_defs goal tacs end;
 in
   val take_rews = map standard
-    (atomize take_stricts @ take_0s @ atomize take_apps);
+    (atomize global_ctxt take_stricts @ take_0s @ atomize global_ctxt take_apps);
 end; (* local *)
 
 local
@@ -864,7 +866,7 @@ in (* local *)
               fast_tac HOL_cs 1];
           in pg axs_finite_def goal tacs end;
 
-        val finites = map one_finite (dnames ~~ atomize finite_lemma1b);
+        val finites = map one_finite (dnames ~~ atomize global_ctxt finite_lemma1b);
         val ind =
           let
             fun concf n dn = %:(P_name n) $ %:(x_name n);
@@ -877,7 +879,7 @@ in (* local *)
                   ind_prems_tac prems];
               in
                 TRY (safe_tac HOL_cs) ::
-                maps finite_tacs (finites ~~ atomize finite_ind)
+                maps finite_tacs (finites ~~ atomize global_ctxt finite_ind)
               end;
           in pg'' thy [] (ind_term concf) tacf end;
       in (finites, ind) end (* let *)
@@ -885,8 +887,8 @@ in (* local *)
     else (* infinite case *)
       let
         fun one_finite n dn =
-          Drule.read_instantiate_sg thy
-            [("P",dn^"_finite "^x_name n)] excluded_middle;
+          RuleInsts.read_instantiate global_ctxt
+            [(("P", 0), dn ^ "_finite " ^ x_name n)] excluded_middle;
         val finites = mapn one_finite 1 dnames;
 
         val goal =
