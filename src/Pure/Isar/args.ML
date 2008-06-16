@@ -22,6 +22,7 @@ sig
   val mk_term: term -> T
   val mk_fact: thm list -> T
   val mk_attribute: (morphism -> attribute) -> T
+  val eof: T
   val stopper: T * (T -> bool)
   val not_eof: T -> bool
   type src
