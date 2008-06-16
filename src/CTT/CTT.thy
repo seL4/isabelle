@@ -417,13 +417,13 @@ val eqintr_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac (@{thm EqI} :: @{thms in
     The (rtac EqE i) lets them apply to equality judgements. **)
 
 fun NE_tac ctxt sp i =
-  TRY (rtac @{thm EqE} i) THEN RuleInsts.res_inst_tac ctxt [(("p", 0), sp)] @{thm NE} i
+  TRY (rtac @{thm EqE} i) THEN res_inst_tac ctxt [(("p", 0), sp)] @{thm NE} i
 
 fun SumE_tac ctxt sp i =
-  TRY (rtac @{thm EqE} i) THEN RuleInsts.res_inst_tac ctxt [(("p", 0), sp)] @{thm SumE} i
+  TRY (rtac @{thm EqE} i) THEN res_inst_tac ctxt [(("p", 0), sp)] @{thm SumE} i
 
 fun PlusE_tac ctxt sp i =
-  TRY (rtac @{thm EqE} i) THEN RuleInsts.res_inst_tac ctxt [(("p", 0), sp)] @{thm PlusE} i
+  TRY (rtac @{thm EqE} i) THEN res_inst_tac ctxt [(("p", 0), sp)] @{thm PlusE} i
 
 (** Predicate logic reasoning, WITH THINNING!!  Procedures adapted from NJ. **)
 

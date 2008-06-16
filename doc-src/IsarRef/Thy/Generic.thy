@@ -308,7 +308,7 @@ text {*
 
   \item [@{method rule_tac} etc.] do resolution of rules with explicit
   instantiation.  This works the same way as the ML tactics @{ML
-  Tactic.res_inst_tac} etc. (see \cite[\S3]{isabelle-ref})
+  res_inst_tac} etc. (see \cite[\S3]{isabelle-ref})
 
   Multiple rules may be only given if there is no instantiation; then
   @{method rule_tac} is the same as @{ML resolve_tac} in ML (see
@@ -323,12 +323,12 @@ text {*
 
   \item [@{method thin_tac}~@{text \<phi>}] deletes the specified
   assumption from a subgoal; note that @{text \<phi>} may contain schematic
-  variables.  See also @{ML Tactic.thin_tac} in
+  variables.  See also @{ML thin_tac} in
   \cite[\S3]{isabelle-ref}.
 
   \item [@{method subgoal_tac}~@{text \<phi>}] adds @{text \<phi>} as an
-  assumption to a subgoal.  See also @{ML Tactic.subgoal_tac} and @{ML
-  Tactic.subgoals_tac} in \cite[\S3]{isabelle-ref}.
+  assumption to a subgoal.  See also @{ML subgoal_tac} and @{ML
+  subgoals_tac} in \cite[\S3]{isabelle-ref}.
 
   \item [@{method rename_tac}~@{text "x\<^sub>1 \<dots> x\<^sub>n"}] renames
   parameters of a goal according to the list @{text "x\<^sub>1, \<dots>,

@@ -108,8 +108,8 @@ apply (tactic "split_all_tac 1", rename_tac P e Q)
 apply (rule hoare_ehoare.induct)
 (*18*)
 apply (tactic {* ALLGOALS (REPEAT o dresolve_tac [@{thm all_conjunct2}, @{thm all3_conjunct2}]) *})
-apply (tactic {* ALLGOALS (REPEAT o RuleInsts.thin_tac @{context} "hoare ?x ?y") *})
-apply (tactic {* ALLGOALS (REPEAT o RuleInsts.thin_tac @{context} "ehoare ?x ?y") *})
+apply (tactic {* ALLGOALS (REPEAT o thin_tac @{context} "hoare ?x ?y") *})
+apply (tactic {* ALLGOALS (REPEAT o thin_tac @{context} "ehoare ?x ?y") *})
 apply (simp_all only: cnvalid1_eq cenvalid_def2)
                  apply fast
                 apply fast

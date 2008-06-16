@@ -376,7 +376,7 @@ local
       val goal = lift_defined %: (nonlazy args, concl);
       fun tacs ctxt = [
         rtac @{thm rev_contrapos} 1,
-        RuleInsts.eres_inst_tac ctxt [(("f", 0), dis_name con)] cfun_arg_cong 1,
+        eres_inst_tac ctxt [(("f", 0), dis_name con)] cfun_arg_cong 1,
         asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
     in pg [] goal tacs end;
 in
@@ -477,7 +477,7 @@ val distincts_le =
                         mk_trp (con_app con1 args1 ~<< con_app con2 args2));
         fun tacs ctxt = [
           rtac @{thm rev_contrapos} 1,
-          RuleInsts.eres_inst_tac ctxt [(("f", 0), dis_name con1)] monofun_cfun_arg 1]
+          eres_inst_tac ctxt [(("f", 0), dis_name con1)] monofun_cfun_arg 1]
           @ map (case_UU_tac ctxt (con_stricts @ dis_rews) 1) (nonlazy args2)
           @ [asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
       in pg [] goal tacs end;
@@ -709,7 +709,7 @@ local
      mk_trp (foldr1 mk_conj (mapn concf 1 dnames)));
   val take_ss = HOL_ss addsimps take_rews;
   fun quant_tac ctxt i = EVERY
-    (mapn (fn n => fn _ => RuleInsts.res_inst_tac ctxt [(("x", 0), x_name n)] spec i) 1 dnames);
+    (mapn (fn n => fn _ => res_inst_tac ctxt [(("x", 0), x_name n)] spec i) 1 dnames);
 
   fun ind_prems_tac prems = EVERY
     (maps (fn cons =>
@@ -766,7 +766,7 @@ in (* local *)
             map (K (atac 1))      (nonlazy args) @
             map (K (etac spec 1)) (List.filter is_rec args);
           fun cases_tacs (cons, cases) =
-            RuleInsts.res_inst_tac context [(("x", 0), "x")] cases 1 ::
+            res_inst_tac context [(("x", 0), "x")] cases 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::
             maps con_tacs cons;
         in
@@ -783,8 +783,8 @@ in (* local *)
           val concl = mk_trp (%:(x_name n) === %:(x_name n^"'"));
           val goal = mk_All ("n", mk_trp (lhs === rhs)) ===> concl;
           fun tacf {prems, context} = [
-            RuleInsts.res_inst_tac context [(("t", 0), x_name n    )] (ax_reach RS subst) 1,
-            RuleInsts.res_inst_tac context [(("t", 0), x_name n^"'")] (ax_reach RS subst) 1,
+            res_inst_tac context [(("t", 0), x_name n    )] (ax_reach RS subst) 1,
+            res_inst_tac context [(("t", 0), x_name n^"'")] (ax_reach RS subst) 1,
             stac fix_def2 1,
             REPEAT (CHANGED
               (rtac (contlub_cfun_arg RS ssubst) 1 THEN chain_tac 1)),
@@ -833,7 +833,7 @@ in (* local *)
             val goal =
               mk_trp (mk_all ("n", foldr1 mk_conj (mapn mk_eqn 1 eqs)));
             fun arg_tacs ctxt vn = [
-              RuleInsts.eres_inst_tac ctxt [(("x", 0), vn)] all_dupE 1,
+              eres_inst_tac ctxt [(("x", 0), vn)] all_dupE 1,
               etac disjE 1,
               asm_simp_tac (HOL_ss addsimps con_rews) 1,
               asm_simp_tac take_ss 1];
@@ -843,7 +843,7 @@ in (* local *)
             fun foo_tacs ctxt n (cons, cases) =
               simp_tac take_ss 1 ::
               rtac allI 1 ::
-              RuleInsts.res_inst_tac ctxt [(("x", 0), x_name n)] cases 1 ::
+              res_inst_tac ctxt [(("x", 0), x_name n)] cases 1 ::
               asm_simp_tac take_ss 1 ::
               maps (con_tacs ctxt) cons;
             fun tacs ctxt =
@@ -887,8 +887,7 @@ in (* local *)
     else (* infinite case *)
       let
         fun one_finite n dn =
-          RuleInsts.read_instantiate global_ctxt
-            [(("P", 0), dn ^ "_finite " ^ x_name n)] excluded_middle;
+          read_instantiate global_ctxt [(("P", 0), dn ^ "_finite " ^ x_name n)] excluded_middle;
         val finites = mapn one_finite 1 dnames;
 
         val goal =
@@ -936,7 +935,7 @@ local
       fun x_tacs ctxt n x = [
         rotate_tac (n+1) 1,
         etac all2E 1,
-        RuleInsts.eres_inst_tac ctxt [(("P", 1), sproj "R" eqs n^" "^x^" "^x^"'")] (mp RS disjE) 1,
+        eres_inst_tac ctxt [(("P", 1), sproj "R" eqs n^" "^x^" "^x^"'")] (mp RS disjE) 1,
         TRY (safe_tac HOL_cs),
         REPEAT (CHANGED (asm_simp_tac take_ss 1))];
       fun tacs ctxt = [

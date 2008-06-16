@@ -1089,7 +1089,7 @@ done
 ML {*
 
 fun Seq_case_tac ctxt s i =
-  RuleInsts.res_inst_tac ctxt [(("x", 0), s)] @{thm Seq_cases} i
+  res_inst_tac ctxt [(("x", 0), s)] @{thm Seq_cases} i
   THEN hyp_subst_tac i THEN hyp_subst_tac (i+1) THEN hyp_subst_tac (i+2);
 
 (* on a>>s only simp_tac, as full_simp_tac is uncomplete and often causes errors *)
@@ -1104,7 +1104,7 @@ fun Seq_case_simp_tac ctxt s i =
 (* rws are definitions to be unfolded for admissibility check *)
 fun Seq_induct_tac ctxt s rws i =
   let val ss = Simplifier.local_simpset_of ctxt in
-    RuleInsts.res_inst_tac ctxt [(("x", 0), s)] @{thm Seq_induct} i
+    res_inst_tac ctxt [(("x", 0), s)] @{thm Seq_induct} i
     THEN (REPEAT_DETERM (CHANGED (asm_simp_tac ss (i+1))))
     THEN simp_tac (ss addsimps rws) i
   end;
@@ -1114,13 +1114,13 @@ fun Seq_Finite_induct_tac ctxt i =
   THEN (REPEAT_DETERM (CHANGED (asm_simp_tac (Simplifier.local_simpset_of ctxt) i)));
 
 fun pair_tac ctxt s =
-  RuleInsts.res_inst_tac ctxt [(("p", 0), s)] PairE
+  res_inst_tac ctxt [(("p", 0), s)] PairE
   THEN' hyp_subst_tac THEN' asm_full_simp_tac (Simplifier.local_simpset_of ctxt);
 
 (* induction on a sequence of pairs with pairsplitting and simplification *)
 fun pair_induct_tac ctxt s rws i =
   let val ss = Simplifier.local_simpset_of ctxt in
-    RuleInsts.res_inst_tac ctxt [(("x", 0), s)] @{thm Seq_induct} i
+    res_inst_tac ctxt [(("x", 0), s)] @{thm Seq_induct} i
     THEN pair_tac ctxt "a" (i+3)
     THEN (REPEAT_DETERM (CHANGED (simp_tac ss (i+1))))
     THEN simp_tac (ss addsimps rws) i

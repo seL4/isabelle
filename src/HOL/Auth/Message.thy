@@ -884,8 +884,7 @@ fun gen_spy_analz_tac (cs,ss) i =
      (EVERY 
       [  (*push in occurrences of X...*)
        (REPEAT o CHANGED)
-           (RuleInsts.res_inst_tac (Simplifier.the_context ss)
-              [(("x", 1), "X")] (insert_commute RS ssubst) 1),
+           (res_inst_tac (Simplifier.the_context ss) [(("x", 1), "X")] (insert_commute RS ssubst) 1),
        (*...allowing further simplifications*)
        simp_tac ss 1,
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),

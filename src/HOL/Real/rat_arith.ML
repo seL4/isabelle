@@ -14,7 +14,7 @@ val simprocs = field_cancel_numeral_factors
 
 val simps =
  [@{thm order_less_irrefl}, @{thm neg_less_iff_less}, @{thm True_implies_equals},
-  RuleInsts.read_instantiate @{context} [(("a", 0), "(number_of ?v)")] @{thm right_distrib},
+  read_instantiate @{context} [(("a", 0), "(number_of ?v)")] @{thm right_distrib},
   @{thm divide_1}, @{thm divide_zero_left},
   @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
   @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,

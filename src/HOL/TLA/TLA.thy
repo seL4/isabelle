@@ -307,15 +307,15 @@ fun merge_box_tac i =
 
 fun merge_temp_box_tac ctxt i =
    REPEAT_DETERM (EVERY [etac @{thm box_conjE_temp} i, atac i,
-                         RuleInsts.eres_inst_tac ctxt [(("'a", 0), "behavior")] @{thm box_thin} i])
+                         eres_inst_tac ctxt [(("'a", 0), "behavior")] @{thm box_thin} i])
 
 fun merge_stp_box_tac ctxt i =
    REPEAT_DETERM (EVERY [etac @{thm box_conjE_stp} i, atac i,
-                         RuleInsts.eres_inst_tac ctxt [(("'a", 0), "state")] @{thm box_thin} i])
+                         eres_inst_tac ctxt [(("'a", 0), "state")] @{thm box_thin} i])
 
 fun merge_act_box_tac ctxt i =
    REPEAT_DETERM (EVERY [etac @{thm box_conjE_act} i, atac i,
-                         RuleInsts.eres_inst_tac ctxt [(("'a", 0), "state * state")] @{thm box_thin} i])
+                         eres_inst_tac ctxt [(("'a", 0), "state * state")] @{thm box_thin} i])
 *}
 
 (* rewrite rule to push universal quantification through box:

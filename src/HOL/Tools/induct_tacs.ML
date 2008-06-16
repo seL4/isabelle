@@ -44,7 +44,7 @@ fun gen_case_tac ctxt0 (s, opt_rule) i st =
       (case Induct.vars_of (Thm.term_of (Thm.cprem_of rule 1)) of
         Var (xi, _) :: _ => xi
       | _ => raise THM ("Malformed cases rule", 0, [rule]));
-  in RuleInsts.res_inst_tac ctxt [(xi, s)] rule i st end
+  in res_inst_tac ctxt [(xi, s)] rule i st end
   handle THM _ => Seq.empty;
 
 fun case_tac ctxt s = gen_case_tac ctxt (s, NONE);
@@ -100,7 +100,7 @@ fun gen_induct_tac ctxt0 (varss, opt_rule) i st =
     val concls = HOLogic.dest_concls (Thm.concl_of rule);
     val insts = maps prep_inst (concls ~~ varss) handle Library.UnequalLengths =>
       error "Induction rule has different numbers of variables";
-  in RuleInsts.res_inst_tac ctxt insts rule i st end
+  in res_inst_tac ctxt insts rule i st end
   handle THM _ => Seq.empty;
 
 end;

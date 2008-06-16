@@ -54,7 +54,7 @@ val res_inst_tac_term' =
   gen_res_inst_tac_term (K Drule.cterm_instantiate) [];
 
 fun cut_inst_tac_term' tinst th =
-  res_inst_tac_term' tinst false (Tactic.make_elim_preserve th);
+  res_inst_tac_term' tinst false (RuleInsts.make_elim_preserve th);
 
 fun get_dyn_thm thy name atom_name =
   PureThy.get_thm thy name handle ERROR _ =>

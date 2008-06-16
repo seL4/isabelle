@@ -50,7 +50,7 @@ in
 
 fun deriv_tac ctxt = SUBGOAL (fn (prem, i) =>
   resolve_tac @{thms deriv_rulesI} i ORELSE
-    ((rtac (RuleInsts.read_instantiate ctxt [(("f", 0), get_fun_name prem)]
+    ((rtac (read_instantiate ctxt [(("f", 0), get_fun_name prem)]
                      @{thm DERIV_chain2}) i) handle DERIV_name => no_tac));
 
 fun DERIV_tac ctxt = ALLGOALS (fn i => REPEAT (deriv_tac ctxt i));

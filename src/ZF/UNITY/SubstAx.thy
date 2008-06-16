@@ -360,7 +360,7 @@ fun ensures_tac ctxt sact =
                                     @{thm EnsuresI}, @{thm ensuresI}] 1),
               (*now there are two subgoals: co & transient*)
               simp_tac (ss addsimps (ProgramDefs.get ctxt)) 2,
-              RuleInsts.res_inst_tac ctxt [(("act", 0), sact)] @{thm transientI} 2,
+              res_inst_tac ctxt [(("act", 0), sact)] @{thm transientI} 2,
                  (*simplify the command's domain*)
               simp_tac (ss addsimps [@{thm domain_def}]) 3, 
               (* proving the domain part *)

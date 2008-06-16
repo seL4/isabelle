@@ -2155,8 +2155,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
    fun equality_prf () = prove_standard [] equality_prop (fn {context, ...} =>
       fn st => let val [s, s'] = map #1 (rev (Tactic.innermost_params 1 st)) in
-        st |> (RuleInsts.res_inst_tac context [((rN, 0), s)] cases_scheme 1
-        THEN RuleInsts.res_inst_tac context [((rN, 0), s')] cases_scheme 1
+        st |> (res_inst_tac context [((rN, 0), s)] cases_scheme 1
+        THEN res_inst_tac context [((rN, 0), s')] cases_scheme 1
         THEN (METAHYPS equality_tac 1))
              (* simp_all_tac ss (sel_convs) would also work but is less efficient *)
       end);

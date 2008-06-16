@@ -317,7 +317,7 @@ lemmas adm_lemmas =
 
 ML {*
   fun induct_tac ctxt v i =
-    RuleInsts.res_inst_tac ctxt [(("f", 0), v)] @{thm induct} i THEN
+    res_inst_tac ctxt [(("f", 0), v)] @{thm induct} i THEN
     REPEAT (resolve_tac @{thms adm_lemmas} i)
 *}
 
@@ -376,7 +376,7 @@ lemma induct2:
 
 ML {*
 fun induct2_tac ctxt (f, g) i =
-  RuleInsts.res_inst_tac ctxt [(("f", 0), f), (("g", 0), g)] @{thm induct2} i THEN
+  res_inst_tac ctxt [(("f", 0), f), (("g", 0), g)] @{thm induct2} i THEN
   REPEAT(resolve_tac @{thms adm_lemmas} i)
 *}
 

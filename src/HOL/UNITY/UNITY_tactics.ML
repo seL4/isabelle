@@ -41,9 +41,9 @@ fun ensures_tac(cs,ss) sact =
                                     @{thm EnsuresI}, @{thm ensuresI}] 1),
               (*now there are two subgoals: co & transient*)
               simp_tac (ss addsimps [@{thm mk_total_program_def}]) 2,
-              RuleInsts.res_inst_tac (Simplifier.the_context ss)
+              res_inst_tac (Simplifier.the_context ss)
                 [(("act", 0), sact)] @{thm totalize_transientI} 2
-              ORELSE RuleInsts.res_inst_tac (Simplifier.the_context ss)
+              ORELSE res_inst_tac (Simplifier.the_context ss)
                 [(("act", 0), sact)] @{thm transientI} 2,
                  (*simplify the command's domain*)
               simp_tac (ss addsimps [@{thm Domain_def}]) 3,

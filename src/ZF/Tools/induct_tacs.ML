@@ -102,7 +102,7 @@ fun exhaust_induct_tac exh ctxt var i state =
              [] => error "induction is not available for this datatype"
            | major::_ => FOLogic.dest_Trueprop major)
   in
-    RuleInsts.eres_inst_tac ctxt [(ixn, var)] rule i state
+    eres_inst_tac ctxt [(ixn, var)] rule i state
   end
   handle Find_tname msg =>
             if exh then (*try boolean case analysis instead*)

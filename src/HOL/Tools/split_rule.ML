@@ -124,7 +124,7 @@ fun complete_split_rule rl =
 
 
 fun pair_tac ctxt s =
-  RuleInsts.res_inst_tac ctxt [(("p", 0), s)] @{thm PairE}
+  res_inst_tac ctxt [(("p", 0), s)] @{thm PairE}
   THEN' hyp_subst_tac
   THEN' K prune_params_tac;
 

@@ -55,7 +55,7 @@ lemma wfd_strengthen_lemma:
 
 ML {*
   fun wfd_strengthen_tac ctxt s i =
-    RuleInsts.res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac (i+1)
+    res_inst_tac ctxt [(("Q", 0), s)] @{thm wfd_strengthen_lemma} i THEN assume_tac (i+1)
 *}
 
 lemma wf_anti_sym: "[| Wfd(r);  <a,x>:r;  <x,a>:r |] ==> P"
@@ -456,7 +456,7 @@ fun is_rigid_prog t =
 in
 
 fun rcall_tac ctxt i =
-  let fun tac ps rl i = RuleInsts.res_inst_tac ctxt ps rl i THEN atac i
+  let fun tac ps rl i = res_inst_tac ctxt ps rl i THEN atac i
   in IHinst tac @{thms rcallTs} i end
   THEN eresolve_tac @{thms rcall_lemmas} i
 
@@ -478,7 +478,7 @@ val clean_ccs_tac = REPEAT_FIRST (eresolve_tac ([@{thm SubtypeE}] @ @{thms rmIHs
                                  hyp_subst_tac)
 
 fun clean_ccs_tac ctxt =
-  let fun tac ps rl i = RuleInsts.eres_inst_tac ctxt ps rl i THEN atac i in
+  let fun tac ps rl i = eres_inst_tac ctxt ps rl i THEN atac i in
     TRY (REPEAT_FIRST (IHinst tac @{thms hyprcallTs} ORELSE'
     eresolve_tac ([asm_rl, @{thm SubtypeE}] @ @{thms rmIHs}) ORELSE'
     hyp_subst_tac))
