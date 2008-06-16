@@ -592,7 +592,7 @@ val _ = Context.>> (Context.map_theory
     ("this", no_args this, "apply current facts as rules"),
     ("fact", thms_ctxt_args fact, "composition by facts from context"),
     ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
-    ("rename_tac", goal_args (Scan.repeat1 Args.name) Tactic.rename_params_tac,
+    ("rename_tac", goal_args (Scan.repeat1 Args.name) Tactic.rename_tac,
       "rename parameters of goal"),
     ("rotate_tac", goal_args (Scan.optional Args.int 1) Tactic.rotate_tac,
       "rotate assumptions of goal"),

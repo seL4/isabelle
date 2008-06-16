@@ -350,7 +350,7 @@ fun set2pred i thm =
               rtac CollectI i,
               dtac CollectD i,
               (TRY(split_all_tac i)) THEN_MAYBE
-              ((rename_params_tac var_names i) THEN
+              ((rename_tac var_names i) THEN
                (full_simp_tac (HOL_basic_ss addsimps [split_conv]) i)) ])) thm
   end;
 
