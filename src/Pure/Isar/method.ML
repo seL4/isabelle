@@ -51,8 +51,9 @@ sig
   val drule: int -> thm list -> method
   val frule: int -> thm list -> method
   val iprover_tac: Proof.context -> int option -> int -> tactic
-  val set_tactic: (Proof.context -> thm list -> tactic) -> Proof.context -> Proof.context
+  val set_tactic: (thm list -> tactic) -> Proof.context -> Proof.context
   val tactic: string * Position.T -> Proof.context -> method
+  val raw_tactic: string * Position.T -> Proof.context -> method
   type src
   datatype text =
     Basic of (Proof.context -> method) * Position.T |
@@ -355,7 +356,7 @@ end;
 
 structure TacticData = ProofDataFun
 (
-  type T = Proof.context -> thm list -> tactic;
+  type T = thm list -> tactic;
   fun init _ = undefined;
 );
 
@@ -364,10 +365,10 @@ val set_tactic = TacticData.put;
 fun ml_tactic (txt, pos) ctxt =
   let
     val ctxt' = ctxt |> Context.proof_map
-      (ML_Context.expression Position.none
-        "fun tactic (ctxt: Proof.context) (facts: thm list) : tactic"
+      (ML_Context.expression pos
+        "fun tactic (facts: thm list) : tactic"
         "Context.map_proof (Method.set_tactic tactic)" txt);
-  in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (TacticData.get ctxt' ctxt) end;
+  in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (TacticData.get ctxt') end;
 
 fun tactic txt ctxt = METHOD (ml_tactic txt ctxt);
 fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);
