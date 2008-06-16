@@ -39,7 +39,6 @@ sig
   val qed_goal_spec_mp: string -> theory -> string -> (thm list -> tactic list) -> unit
   val qed_goalw_spec_mp: string -> theory -> thm list -> string
     -> (thm list -> tactic list) -> unit
-  val no_qed: unit -> unit
 end;
 
 signature OLD_GOALS =
@@ -52,8 +51,6 @@ sig
   val print_sign_exn: theory -> exn -> 'a
   val prove_goalw_cterm: thm list->cterm->(thm list->tactic list)->thm
   val prove_goalw_cterm_nocheck: thm list->cterm->(thm list->tactic list)->thm
-  val quick_and_dirty_prove_goalw_cterm: theory -> thm list -> cterm
-    -> (thm list -> tactic list) -> thm
   val print_exn: exn -> 'a
   val filter_goal: (term*term->bool) -> thm list -> int -> thm list
   val goalw_cterm: thm list -> cterm -> thm list
@@ -64,23 +61,6 @@ sig
   val push_proof: unit -> unit
   val pop_proof: unit -> thm list
   val rotate_proof: unit -> thm list
-  val bws: thm list -> unit
-  val bw: thm -> unit
-  val brs: thm list -> int -> unit
-  val br: thm -> int -> unit
-  val bes: thm list -> int -> unit
-  val be: thm -> int -> unit
-  val bds: thm list -> int -> unit
-  val bd: thm -> int -> unit
-  val ba: int -> unit
-  val ren: string -> int -> unit
-  val frs: thm list -> unit
-  val fr: thm -> unit
-  val fes: thm list -> unit
-  val fe: thm -> unit
-  val fds: thm list -> unit
-  val fd: thm -> unit
-  val fa: unit -> unit
 end;
 
 structure OldGoals: OLD_GOALS =
@@ -252,10 +232,6 @@ fun prove_goalw thy rths agoal tacsf =
 (*String version with no meta-rewrite-rules*)
 fun prove_goal thy = prove_goalw thy [];
 
-(*quick and dirty version (conditional)*)
-fun quick_and_dirty_prove_goalw_cterm thy rews ct tacs =
-  prove_goalw_cterm rews ct
-    (if ! quick_and_dirty then (K [SkipProof.cheat_tac thy]) else tacs);
 
 
 (*** Commands etc ***)
@@ -469,38 +445,6 @@ fun rotate_proof() = let val (p,ps) = top_proof()
                     end;
 
 
-(** Shortcuts for commonly-used tactics **)
-
-fun bws rls = by (rewrite_goals_tac rls);
-fun bw rl = bws [rl];
-
-fun brs rls i = by (resolve_tac rls i);
-fun br rl = brs [rl];
-
-fun bes rls i = by (eresolve_tac rls i);
-fun be rl = bes [rl];
-
-fun bds rls i = by (dresolve_tac rls i);
-fun bd rl = bds [rl];
-
-fun ba i = by (assume_tac i);
-
-fun ren str i = by (rename_tac str i);
-
-(** Shortcuts to work on the first applicable subgoal **)
-
-fun frs rls = by (FIRSTGOAL (trace_goalno_tac (resolve_tac rls)));
-fun fr rl = frs [rl];
-
-fun fes rls = by (FIRSTGOAL (trace_goalno_tac (eresolve_tac rls)));
-fun fe rl = fes [rl];
-
-fun fds rls = by (FIRSTGOAL (trace_goalno_tac (dresolve_tac rls)));
-fun fd rl = fds [rl];
-
-fun fa() = by (FIRSTGOAL (trace_goalno_tac assume_tac));
-
-
 (** theorem bindings **)
 
 fun qed name = ML_Context.ml_store_thm (name, result ());
@@ -513,8 +457,6 @@ fun qed_goal_spec_mp name thy s p =
   bind_thm (name, ObjectLogic.rulify_no_asm (prove_goal thy s p));
 fun qed_goalw_spec_mp name thy defs s p =
   bind_thm (name, ObjectLogic.rulify_no_asm (prove_goalw thy defs s p));
-
-fun no_qed () = ();
 
 end;
 
