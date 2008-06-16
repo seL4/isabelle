@@ -81,7 +81,6 @@ sig
   val fds: thm list -> unit
   val fd: thm -> unit
   val fa: unit -> unit
-  val inst: string -> string -> thm -> thm
 end;
 
 structure OldGoals: OLD_GOALS =
@@ -516,9 +515,6 @@ fun qed_goalw_spec_mp name thy defs s p =
   bind_thm (name, ObjectLogic.rulify_no_asm (prove_goalw thy defs s p));
 
 fun no_qed () = ();
-
-(*shorthand for instantiating just one variable in the current theory*)
-fun inst x t = Drule.read_instantiate_sg (ML_Context.the_global_context()) [(x,t)];
 
 end;
 
