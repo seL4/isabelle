@@ -152,7 +152,7 @@ val meta_outer =
   rule_by_tactic (REPEAT (FIRSTGOAL (resolve_tac [allI, impI, conjI] ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)
-val spec'= Drule.read_instantiate [("x","P::?'b=>bool")] spec;
+val spec'= RuleInsts.read_instantiate @{context} [(("x", 0), "P::?'b=>bool")] spec;
 
 fun tracing true _ = ()
   | tracing false msg = writeln msg;

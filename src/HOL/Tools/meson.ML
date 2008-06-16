@@ -646,7 +646,7 @@ val meson_tac = CLASET' (meson_claset_tac []);
 (*Rules to convert the head literal into a negated assumption. If the head
   literal is already negated, then using notEfalse instead of notEfalse'
   prevents a double negation.*)
-val notEfalse = Drule.read_instantiate [("R","False")] notE;
+val notEfalse = RuleInsts.read_instantiate @{context} [(("R", 0), "False")] notE;
 val notEfalse' = rotate_prems 1 notEfalse;
 
 fun negated_asm_of_head th =
