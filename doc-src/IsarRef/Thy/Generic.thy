@@ -284,6 +284,7 @@ text {*
     @{method_def rename_tac}@{text "\<^sup>*"} & : & \isarmeth \\
     @{method_def rotate_tac}@{text "\<^sup>*"} & : & \isarmeth \\
     @{method_def tactic}@{text "\<^sup>*"} & : & \isarmeth \\
+    @{method_def raw_tactic}@{text "\<^sup>*"} & : & \isarmeth \\
   \end{matharray}
 
   \begin{rail}
@@ -296,7 +297,7 @@ text {*
     ;
     'rotate\_tac' goalspec? int?
     ;
-    'tactic' text
+    ('tactic' | 'raw_tactic') text
     ;
 
     insts: ((name '=' term) + 'and') 'in'
@@ -341,21 +342,16 @@ text {*
 
   \item [@{method tactic}~@{text "text"}] produces a proof method from
   any ML text of type @{ML_type tactic}.  Apart from the usual ML
-  environment and the current implicit theory context, the ML code may
-  refer to the following locally bound values:
+  environment and the current proof context, the ML code may refer to
+  the locally bound values @{ML_text facts}, which indicates any
+  current facts used for forward-chaining.
 
-%FIXME check
-{\footnotesize\begin{verbatim}
-val ctxt  : Proof.context
-val facts : thm list
-val thm   : string -> thm
-val thms  : string -> thm list
-\end{verbatim}}
-
-  Here @{ML_text ctxt} refers to the current proof context, @{ML_text
-  facts} indicates any current facts for forward-chaining, and @{ML
-  thm}~/~@{ML thms} retrieve named facts (including global theorems)
-  from the context.
+  \item [@{method raw_tactic}] is similar to @{method tactic}, but
+  presents the goal state in its raw internal form, where simultaneous
+  subgoals appear as conjunction of the logical framework instead of
+  the usual split into several subgoals.  While feature this is useful
+  for debugging of complex method definitions, it should not never
+  appear in production theories.
 
   \end{descr}
 *}
