@@ -177,14 +177,15 @@ lemmas analz_mono_contra =
        knows_Spy_subset_knows_Spy_Says [THEN analz_mono, THEN contra_subsetD]
        knows_Spy_subset_knows_Spy_Notes [THEN analz_mono, THEN contra_subsetD]
        knows_Spy_subset_knows_Spy_Gets [THEN analz_mono, THEN contra_subsetD]
+
+lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)", standard]
+
 ML
 {*
 val analz_mono_contra_tac = 
-  let val analz_impI = OldGoals.inst "P" "?Y \<notin> analz (knows Spy ?evs)" impI
-  in rtac analz_impI THEN' 
-     REPEAT1 o (dresolve_tac @{thms analz_mono_contra}) THEN'
-     mp_tac
-  end
+  rtac @{thm analz_impI} THEN' 
+  REPEAT1 o (dresolve_tac @{thms analz_mono_contra})
+  THEN' mp_tac
 *}
 
 method_setup analz_mono_contra = {*

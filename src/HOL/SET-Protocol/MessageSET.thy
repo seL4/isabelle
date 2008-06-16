@@ -813,20 +813,23 @@ declare parts.Body [rule del]
 
 text{*Rewrites to push in Key and Crypt messages, so that other messages can
     be pulled out using the @{text analz_insert} rules*}
-ML
-{*
-fun insComm x y = OldGoals.inst "x" x (OldGoals.inst "y" y insert_commute);
 
-bind_thms ("pushKeys",
-           map (insComm "Key ?K")
-                   ["Agent ?C", "Nonce ?N", "Number ?N", "Pan ?PAN",
-		    "Hash ?X", "MPair ?X ?Y", "Crypt ?X ?K'"]);
+lemmas pushKeys [standard] =
+  insert_commute [of "Key K" "Agent C"]
+  insert_commute [of "Key K" "Nonce N"]
+  insert_commute [of "Key K" "Number N"]
+  insert_commute [of "Key K" "Pan PAN"]
+  insert_commute [of "Key K" "Hash X"]
+  insert_commute [of "Key K" "MPair X Y"]
+  insert_commute [of "Key K" "Crypt X K'"]
 
-bind_thms ("pushCrypts",
-           map (insComm "Crypt ?X ?K")
-                     ["Agent ?C", "Nonce ?N", "Number ?N", "Pan ?PAN",
-		      "Hash ?X'", "MPair ?X' ?Y"]);
-*}
+lemmas pushCrypts [standard] =
+  insert_commute [of "Crypt X K" "Agent C"]
+  insert_commute [of "Crypt X K" "Nonce N"]
+  insert_commute [of "Crypt X K" "Number N"]
+  insert_commute [of "Crypt X K" "Pan PAN"]
+  insert_commute [of "Crypt X K" "Hash X'"]
+  insert_commute [of "Crypt X K" "MPair X' Y"]
 
 text{*Cannot be added with @{text "[simp]"} -- messages should not always be
   re-ordered.*}

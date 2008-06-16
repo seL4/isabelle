@@ -278,16 +278,14 @@ by (force
     intro: analz_subset_parts [THEN subsetD] parts_mono [THEN [2] rev_subsetD])
 
 
+lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)", standard]
+
 ML
 {*
 val analz_mono_contra_tac = 
-  let val analz_impI = OldGoals.inst "P" "?Y \<notin> analz (knows Spy ?evs)" impI
-  in
-    rtac analz_impI THEN' 
-    REPEAT1 o 
-      (dresolve_tac @{thms analz_mono_contra})
-    THEN' mp_tac
-  end
+  rtac @{thm analz_impI} THEN' 
+  REPEAT1 o (dresolve_tac @{thms analz_mono_contra})
+  THEN' mp_tac
 *}
 
 method_setup analz_mono_contra = {*
@@ -296,20 +294,19 @@ method_setup analz_mono_contra = {*
 
 subsubsection{*Useful for case analysis on whether a hash is a spoof or not*}
 
+lemmas syan_impI = impI [where P = "Y \<notin> synth (analz (knows Spy evs))", standard]
+
 ML
 {*
 val synth_analz_mono_contra_tac = 
-  let val syan_impI = OldGoals.inst "P" "?Y \<notin> synth (analz (knows Spy ?evs))" impI
-  in
-    rtac syan_impI THEN' 
-    REPEAT1 o 
-      (dresolve_tac 
-       [@{thm knows_Spy_subset_knows_Spy_Says} RS @{thm synth_analz_mono} RS @{thm contra_subsetD},
-       @{thm knows_Spy_subset_knows_Spy_Notes} RS @{thm synth_analz_mono} RS @{thm contra_subsetD},
-       @{thm knows_Spy_subset_knows_Spy_Gets} RS @{thm synth_analz_mono} RS @{thm contra_subsetD}])
-    THEN'
-    mp_tac
-  end;
+  rtac @{thm syan_impI} THEN'
+  REPEAT1 o 
+    (dresolve_tac 
+     [@{thm knows_Spy_subset_knows_Spy_Says} RS @{thm synth_analz_mono} RS @{thm contra_subsetD},
+      @{thm knows_Spy_subset_knows_Spy_Notes} RS @{thm synth_analz_mono} RS @{thm contra_subsetD},
+      @{thm knows_Spy_subset_knows_Spy_Gets} RS @{thm synth_analz_mono} RS @{thm contra_subsetD}])
+  THEN'
+  mp_tac
 *}
 
 method_setup synth_analz_mono_contra = {*
