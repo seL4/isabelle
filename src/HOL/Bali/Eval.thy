@@ -891,7 +891,7 @@ simproc_setup eval_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (
     | _ => SOME (mk_meta_eq @{thm eval_stmt_eq})) *}
 
 ML {*
-bind_thms ("AbruptIs", sum3_instantiate @{thm eval.Abrupt})
+bind_thms ("AbruptIs", sum3_instantiate @{context} @{thm eval.Abrupt})
 *}
 
 declare halloc.Abrupt [intro!] eval.Abrupt [intro!]  AbruptIs [intro!]

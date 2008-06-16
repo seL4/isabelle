@@ -294,7 +294,7 @@ simproc_setup evaln_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<midarrow>n\<
       (_ $ _ $ _ $ _ $ _ $ (Const _ $ _) $ _) => NONE
     | _ => SOME (mk_meta_eq @{thm evaln_stmt_eq})) *}
 
-ML {* bind_thms ("evaln_AbruptIs", sum3_instantiate @{thm evaln.Abrupt}) *}
+ML {* bind_thms ("evaln_AbruptIs", sum3_instantiate @{context} @{thm evaln.Abrupt}) *}
 declare evaln_AbruptIs [intro!]
 
 lemma evaln_Callee: "G\<turnstile>Norm s\<midarrow>In1l (Callee l e)\<succ>\<midarrow>n\<rightarrow> (v,s') = False"

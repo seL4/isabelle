@@ -228,8 +228,9 @@ translations
    "the_In1r" == "the_Inr \<circ> the_In1"
 
 ML {*
-fun sum3_instantiate thm = map (fn s => simplify(simpset()delsimps[@{thm not_None_eq}])
- (Drule.read_instantiate [("t","In"^s^" ?x")] thm)) ["1l","2","3","1r"]
+fun sum3_instantiate ctxt thm = map (fn s =>
+  simplify (Simplifier.local_simpset_of ctxt delsimps[@{thm not_None_eq}])
+    (RuleInsts.read_instantiate ctxt [(("t", 0), "In" ^ s ^ " ?x")] thm)) ["1l","2","3","1r"]
 *}
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
 
