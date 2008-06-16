@@ -77,9 +77,6 @@ sig
   val strip_comb: cterm -> cterm * cterm list
   val strip_type: ctyp -> ctyp list * ctyp
   val beta_conv: cterm -> cterm -> cterm
-  val read_insts: theory -> (indexname -> typ option) * (indexname -> sort option) ->
-    (indexname -> typ option) * (indexname -> sort option) -> string list ->
-    (indexname * string) list -> (ctyp * ctyp) list * (cterm * cterm) list
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val add_used: thm -> string list -> string list
   val flexflex_unique: thm -> thm
@@ -103,10 +100,6 @@ sig
   val protectI: thm
   val protectD: thm
   val protect_cong: thm
-  val read_instantiate_sg: theory -> (string*string)list -> thm -> thm
-  val read_instantiate: (string*string)list -> thm -> thm
-  val read_instantiate_sg': theory -> (indexname * string) list -> thm -> thm
-  val read_instantiate': (indexname * string) list -> thm -> thm
   val implies_intr_protected: cterm list -> thm -> thm
   val termI: thm
   val mk_term: cterm -> thm
@@ -187,44 +180,6 @@ fun strip_type cT = (case Thm.typ_of cT of
 fun beta_conv x y =
   Thm.dest_arg (cprop_of (Thm.beta_conversion false (Thm.capply x y)));
 
-
-
-(** reading of instantiations **)
-
-fun absent ixn =
-  error("No such variable in term: " ^ Term.string_of_vname ixn);
-
-fun inst_failure ixn =
-  error("Instantiation of " ^ Term.string_of_vname ixn ^ " fails");
-
-fun read_insts thy (rtypes,rsorts) (types,sorts) used insts =
-let
-    fun is_tv ((a, _), _) =
-      (case Symbol.explode a of "'" :: _ => true | _ => false);
-    val (tvs, vs) = List.partition is_tv insts;
-    fun sort_of ixn = case rsorts ixn of SOME S => S | NONE => absent ixn;
-    fun readT (ixn, st) =
-        let val S = sort_of ixn;
-            val T = Sign.read_def_typ (thy,sorts) st;
-        in if Sign.typ_instance thy (T, TVar(ixn,S)) then (ixn,T)
-           else inst_failure ixn
-        end
-    val tye = map readT tvs;
-    fun mkty(ixn,st) = (case rtypes ixn of
-                          SOME T => (ixn,(st,typ_subst_TVars tye T))
-                        | NONE => absent ixn);
-    val ixnsTs = map mkty vs;
-    val ixns = map fst ixnsTs
-    and sTs  = map snd ixnsTs
-    val (cts,tye2) = Thm.read_def_cterms(thy,types,sorts) used false sTs;
-    fun mkcVar(ixn,T) =
-        let val U = typ_subst_TVars tye2 T
-        in cterm_of thy (Var(ixn,U)) end
-    val ixnTs = ListPair.zip(ixns, map snd sTs)
-in (map (fn (ixn, T) => (ctyp_of thy (TVar (ixn, sort_of ixn)),
-      ctyp_of thy T)) (tye2 @ tye),
-    ListPair.zip(map mkcVar ixnTs,cts))
-end;
 
 
 (*** Find the type (sort) associated with a (T)Var or (T)Free in a term
@@ -796,22 +751,6 @@ fun th1 COMP_INCR th2 = th1 COMP incr_indexes th1 th2;
 (*Version that normalizes the result: Thm.instantiate no longer does that*)
 fun instantiate instpair th =
   Thm.adjust_maxidx_thm ~1 (Thm.instantiate instpair th COMP_INCR asm_rl);
-
-fun read_instantiate_sg' thy sinsts th =
-    let val ts = types_sorts th;
-        val used = add_used th [];
-    in  instantiate (read_insts thy ts ts used sinsts) th  end;
-
-fun read_instantiate_sg thy sinsts th =
-  read_instantiate_sg' thy (map (apfst Syntax.read_indexname) sinsts) th;
-
-(*Instantiate theorem th, reading instantiations under theory of th*)
-fun read_instantiate sinsts th =
-    read_instantiate_sg (Thm.theory_of_thm th) sinsts th;
-
-fun read_instantiate' sinsts th =
-    read_instantiate_sg' (Thm.theory_of_thm th) sinsts th;
-
 
 (*Left-to-right replacements: tpairs = [...,(vi,ti),...].
   Instantiates distinct Vars by terms, inferring type instantiations. *)
