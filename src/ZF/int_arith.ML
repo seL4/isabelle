@@ -6,101 +6,15 @@
 Simprocs for linear arithmetic.
 *)
 
-
-(** To simplify inequalities involving integer negation and literals,
-    such as -x = #3
-**)
-
-Addsimps [OldGoals.inst "y" "integ_of(?w)" @{thm zminus_equation},
-          OldGoals.inst "x" "integ_of(?w)" @{thm equation_zminus}];
-
-AddIffs [OldGoals.inst "y" "integ_of(?w)" @{thm zminus_zless},
-         OldGoals.inst "x" "integ_of(?w)" @{thm zless_zminus}];
-
-AddIffs [OldGoals.inst "y" "integ_of(?w)" @{thm zminus_zle},
-         OldGoals.inst "x" "integ_of(?w)" @{thm zle_zminus}];
-
-Addsimps [OldGoals.inst "s" "integ_of(?w)" @{thm Let_def}];
-
-(*** Simprocs for numeric literals ***)
-
-(** Combining of literal coefficients in sums of products **)
-
-Goal "(x $< y) <-> (x$-y $< #0)";
-by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
-qed "zless_iff_zdiff_zless_0";
-
-Goal "[| x: int; y: int |] ==> (x = y) <-> (x$-y = #0)";
-by (asm_simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
-qed "eq_iff_zdiff_eq_0";
-
-Goal "(x $<= y) <-> (x$-y $<= #0)";
-by (asm_simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
-qed "zle_iff_zdiff_zle_0";
-
-
-(** For combine_numerals **)
-
-Goal "i$*u $+ (j$*u $+ k) = (i$+j)$*u $+ k";
-by (simp_tac (simpset() addsimps [@{thm zadd_zmult_distrib}]@ @{thms zadd_ac}) 1);
-qed "left_zadd_zmult_distrib";
-
-
-(** For cancel_numerals **)
-
-val rel_iff_rel_0_rls = map (OldGoals.inst "y" "?u$+?v")
-                          [zless_iff_zdiff_zless_0, eq_iff_zdiff_eq_0,
-                           zle_iff_zdiff_zle_0] @
-                        map (OldGoals.inst "y" "n")
-                          [zless_iff_zdiff_zless_0, eq_iff_zdiff_eq_0,
-                           zle_iff_zdiff_zle_0];
-
-Goal "(i$*u $+ m = j$*u $+ n) <-> ((i$-j)$*u $+ m = intify(n))";
-by (simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]) 1);
-by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
-by (simp_tac (simpset() addsimps @{thms zadd_ac}) 1);
-qed "eq_add_iff1";
-
-Goal "(i$*u $+ m = j$*u $+ n) <-> (intify(m) = (j$-i)$*u $+ n)";
-by (simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]) 1);
-by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
-by (simp_tac (simpset() addsimps @{thms zadd_ac}) 1);
-qed "eq_add_iff2";
-
-Goal "(i$*u $+ m $< j$*u $+ n) <-> ((i$-j)$*u $+ m $< n)";
-by (asm_simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]@
-                                     @{thms zadd_ac} @ rel_iff_rel_0_rls) 1);
-qed "less_add_iff1";
-
-Goal "(i$*u $+ m $< j$*u $+ n) <-> (m $< (j$-i)$*u $+ n)";
-by (asm_simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]@
-                                     @{thms zadd_ac} @ rel_iff_rel_0_rls) 1);
-qed "less_add_iff2";
-
-Goal "(i$*u $+ m $<= j$*u $+ n) <-> ((i$-j)$*u $+ m $<= n)";
-by (simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]) 1);
-by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
-by (simp_tac (simpset() addsimps @{thms zadd_ac}) 1);
-qed "le_add_iff1";
-
-Goal "(i$*u $+ m $<= j$*u $+ n) <-> (m $<= (j$-i)$*u $+ n)";
-by (simp_tac (simpset() addsimps [@{thm zdiff_def}, @{thm zadd_zmult_distrib}]) 1);
-by (simp_tac (simpset() addsimps @{thms zcompare_rls}) 1);
-by (simp_tac (simpset() addsimps @{thms zadd_ac}) 1);
-qed "le_add_iff2";
-
-
 structure Int_Numeral_Simprocs =
 struct
 
 (*Utilities*)
 
-val integ_of_const = Const (@{const_name "Bin.integ_of"}, @{typ "i => i"});
-
-fun mk_numeral n = integ_of_const $ NumeralSyntax.mk_bin n;
+fun mk_numeral n = @{const integ_of} $ NumeralSyntax.mk_bin n;
 
 (*Decodes a binary INTEGER*)
-fun dest_numeral (Const(@{const_name "Bin.integ_of"}, _) $ w) =
+fun dest_numeral (Const(@{const_name integ_of}, _) $ w) =
      (NumeralSyntax.dest_bin w
       handle Match => raise TERM("Int_Numeral_Simprocs.dest_numeral:1", [w]))
   | dest_numeral t =  raise TERM("Int_Numeral_Simprocs.dest_numeral:2", [t]);
@@ -112,8 +26,6 @@ fun find_first_numeral past (t::terms) =
 
 val zero = mk_numeral 0;
 val mk_plus = FOLogic.mk_binop @{const_name "zadd"};
-
-val zminus_const = Const (@{const_name "zminus"}, @{typ "i => i"});
 
 (*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -132,7 +44,7 @@ fun dest_summing (pos, Const (@{const_name "zadd"}, _) $ t $ u, ts) =
   | dest_summing (pos, Const (@{const_name "zdiff"}, _) $ t $ u, ts) =
         dest_summing (pos, t, dest_summing (not pos, u, ts))
   | dest_summing (pos, t, ts) =
-        if pos then t::ts else zminus_const$t :: ts;
+        if pos then t::ts else @{const zminus} $ t :: ts;
 
 fun dest_sum t = dest_summing (true, t, []);
 
@@ -245,8 +157,8 @@ structure EqCancelNumerals = CancelNumeralsFun
   val prove_conv = ArithData.prove_conv "inteq_cancel_numerals"
   val mk_bal   = FOLogic.mk_eq
   val dest_bal = FOLogic.dest_eq
-  val bal_add1 = eq_add_iff1 RS iff_trans
-  val bal_add2 = eq_add_iff2 RS iff_trans
+  val bal_add1 = @{thm eq_add_iff1} RS iff_trans
+  val bal_add2 = @{thm eq_add_iff2} RS iff_trans
 );
 
 structure LessCancelNumerals = CancelNumeralsFun
@@ -254,8 +166,8 @@ structure LessCancelNumerals = CancelNumeralsFun
   val prove_conv = ArithData.prove_conv "intless_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel @{const_name "zless"}
   val dest_bal = FOLogic.dest_bin @{const_name "zless"} @{typ i}
-  val bal_add1 = less_add_iff1 RS iff_trans
-  val bal_add2 = less_add_iff2 RS iff_trans
+  val bal_add1 = @{thm less_add_iff1} RS iff_trans
+  val bal_add2 = @{thm less_add_iff2} RS iff_trans
 );
 
 structure LeCancelNumerals = CancelNumeralsFun
@@ -263,8 +175,8 @@ structure LeCancelNumerals = CancelNumeralsFun
   val prove_conv = ArithData.prove_conv "intle_cancel_numerals"
   val mk_bal   = FOLogic.mk_binrel @{const_name "zle"}
   val dest_bal = FOLogic.dest_bin @{const_name "zle"} @{typ i}
-  val bal_add1 = le_add_iff1 RS iff_trans
-  val bal_add2 = le_add_iff2 RS iff_trans
+  val bal_add1 = @{thm le_add_iff1} RS iff_trans
+  val bal_add2 = @{thm le_add_iff2} RS iff_trans
 );
 
 val cancel_numerals =
@@ -298,7 +210,7 @@ structure CombineNumeralsData =
   val dest_sum          = dest_sum
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
-  val left_distrib      = left_zadd_zmult_distrib RS trans
+  val left_distrib      = @{thm left_zadd_zmult_distrib} RS trans
   val prove_conv        = prove_conv_nohyps "int_combine_numerals"
   fun trans_tac _       = ArithData.gen_trans_tac trans
 
