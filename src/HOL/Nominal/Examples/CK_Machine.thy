@@ -9,15 +9,17 @@ text {*
   This theory establishes soundness and completeness for a CK-machine
   with respect to a cbv-big-step semantics. The language includes 
   functions, recursion, booleans and numbers. In the soundness proof 
-  the small-step cbv-reduction relation is used to get the induction
-  through. Type preservation is proved for the machine and also for
-  the small- and big-step semantics.
+  the small-step cbv-reduction relation is used in order to get the 
+  induction through. The type-preservation property is proved for the 
+  machine and  also for the small- and big-step semantics. Finally, 
+  the progress property is proved for the small-step semantics.
 
-  The theory is inspired by notes of Roshan James from Indiana University
-  and the lecture notes by Andy Pitts for his semantics course. See
+  The development is inspired by notes about context machines written
+  by Roshan James (Indiana University) and also by the lecture notes 
+  written by Andy Pitts for his semantics course. See
   
-  http://www.cs.indiana.edu/~rpjames/lm.pdf
-  http://www.cl.cam.ac.uk/teaching/2001/Semantics/
+     http://www.cs.indiana.edu/~rpjames/lm.pdf
+     http://www.cl.cam.ac.uk/teaching/2001/Semantics/
 
 *}
 
@@ -28,12 +30,12 @@ nominal_datatype lam =
 | APP "lam" "lam" 
 | LAM "\<guillemotleft>name\<guillemotright>lam" ("LAM [_]._")
 | NUM "nat"
-| DIFF "lam" "lam" ("_ -- _")
-| PLUS "lam" "lam" ("_ ++ _")
+| DIFF "lam" "lam" ("_ -- _")    (* subtraction *) 
+| PLUS "lam" "lam" ("_ ++ _")    (* addition *)
 | TRUE
 | FALSE
 | IF "lam" "lam" "lam"
-| FIX "\<guillemotleft>name\<guillemotright>lam" ("FIX [_]._")  
+| FIX "\<guillemotleft>name\<guillemotright>lam" ("FIX [_]._")  (* recursion *)
 | ZET "lam"                      (* zero test *)
 | EQI "lam" "lam"                (* equality test on numbers *)
 
@@ -94,6 +96,8 @@ datatype ctx =
   | CEQIL "ctx" "lam"
   | CEQIR "lam" "ctx"
 
+text {* The operation of filling a term into a context: *} 
+
 fun
   filling :: "ctx \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>")
 where
@@ -108,6 +112,8 @@ where
 | "(CZET E)\<lbrakk>t\<rbrakk> = ZET (E\<lbrakk>t\<rbrakk>)"
 | "(CEQIL E t')\<lbrakk>t\<rbrakk> = EQI (E\<lbrakk>t\<rbrakk>) t'"
 | "(CEQIR t' E)\<lbrakk>t\<rbrakk> = EQI t' (E\<lbrakk>t\<rbrakk>)"
+
+text {* The operation of composing two contexts: *}
 
 fun 
  ctx_compose :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _")
@@ -128,13 +134,15 @@ lemma ctx_compose:
   shows "(E1 \<circ> E2)\<lbrakk>t\<rbrakk> = E1\<lbrakk>E2\<lbrakk>t\<rbrakk>\<rbrakk>"
 by (induct E1 rule: ctx.induct) (auto)
 
+text {* Composing a list (stack) of contexts. *}
+
 fun
   ctx_composes :: "ctx list \<Rightarrow> ctx" ("_\<down>")
 where
     "[]\<down> = \<box>"
   | "(E#Es)\<down> = (Es\<down>) \<circ> E"
 
-section {* CK Machine *}
+section {* The CK-Machine *}
 
 inductive
   val :: "lam\<Rightarrow>bool" 
@@ -186,7 +194,7 @@ lemma ms4[intro]:
   shows "<e1,Es1> \<mapsto>* <e2,Es2>"
 using a by (rule ms2) (rule ms1)
 
-section {* Evaluation Relation *}
+section {* The Evaluation Relation (Big-Step Semantics) *}
 
 inductive
   eval :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<Down> _") 
@@ -229,6 +237,8 @@ lemma eval_val:
   shows "t \<Down> t"
 using a by (induct) (auto)
 
+text {* The Completeness Property: *}
+
 theorem eval_implies_machine_star_ctx:
   assumes a: "t \<Down> t'"
   shows "<t,Es> \<mapsto>* <t',Es>"
@@ -236,14 +246,12 @@ using a
 by (induct arbitrary: Es)
    (metis eval_to machine.intros ms1 ms2 ms3 ms4 v_LAM)+
 
-text {* Completeness Property *}
-
 corollary eval_implies_machine_star:
   assumes a: "t \<Down> t'"
   shows "<t,[]> \<mapsto>* <t',[]>"
 using a by (auto dest: eval_implies_machine_star_ctx)
 
-section {* CBV Reduction Relation *}
+section {* The CBV Reduction Relation (Small-Step Semantics) *}
 
 lemma less_eqvt[eqvt]:
   fixes pi::"name prm"
@@ -254,7 +262,7 @@ by (simp add: perm_nat_def perm_bool)
 inductive
   cbv :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>cbv _") 
 where
-  cbv1': "\<lbrakk>val v; x\<sharp>v\<rbrakk> \<Longrightarrow> APP (LAM [x].t) v \<longrightarrow>cbv t[x::=v]"
+  cbv1: "\<lbrakk>val v; x\<sharp>v\<rbrakk> \<Longrightarrow> APP (LAM [x].t) v \<longrightarrow>cbv t[x::=v]"
 | cbv2[intro]: "t \<longrightarrow>cbv t' \<Longrightarrow> APP t t2 \<longrightarrow>cbv APP t' t2"
 | cbv3[intro]: "t \<longrightarrow>cbv t' \<Longrightarrow> APP t2 t \<longrightarrow>cbv APP t2 t'"
 | cbv4[intro]: "t \<longrightarrow>cbv t' \<Longrightarrow> t -- t2 \<longrightarrow>cbv t' -- t2"
@@ -279,14 +287,14 @@ equivariance cbv
 nominal_inductive cbv
  by (simp_all add: abs_fresh fresh_fact)
 
-lemma cbv1[intro]: 
+lemma better_cbv1[intro]: 
   assumes a: "val v" 
   shows "APP (LAM [x].t) v \<longrightarrow>cbv t[x::=v]"
 proof -
   obtain y::"name" where fs: "y\<sharp>(x,t,v)" by (rule exists_fresh, rule fin_supp, blast)
   have "APP (LAM [x].t) v = APP (LAM [y].([(y,x)]\<bullet>t)) v" using fs
     by (auto simp add: lam.inject alpha' fresh_prod fresh_atm)
-  also have "\<dots> \<longrightarrow>cbv  ([(y,x)]\<bullet>t)[y::=v]" using fs a by (auto simp add: cbv.eqvt cbv1')
+  also have "\<dots> \<longrightarrow>cbv  ([(y,x)]\<bullet>t)[y::=v]" using fs a by (auto simp add: cbv.eqvt cbv1)
   also have "\<dots> = t[x::=v]" using fs by (simp add: subst_rename[symmetric])
   finally show "APP (LAM [x].t) v \<longrightarrow>cbv t[x::=v]" by simp
 qed
@@ -342,7 +350,7 @@ using a
 by (induct)
    (auto simp add: eval_val cbv_star_eval dest: cbvs2)
 
-text {* Soundness Property *}
+text {* The Soundness Property *}
 
 theorem machine_star_implies_eval:
   assumes a: "<t1,[]> \<mapsto>* <t2,[]>" 
@@ -354,6 +362,8 @@ proof -
 qed
 
 section {* Typing *}
+
+text {* Types *}
 
 nominal_datatype ty =
   tVAR "string"
@@ -370,12 +380,18 @@ lemma ty_fresh:
 by (induct T rule: ty.induct)
    (auto simp add: fresh_string)
 
+text {* Typing Contexts *}
+
 types tctx = "(name\<times>ty) list"
+
+text {* Sub-Typing Contexts *}
 
 abbreviation
   "sub_tctx" :: "tctx \<Rightarrow> tctx \<Rightarrow> bool" ("_ \<subseteq> _") 
 where
   "\<Gamma>\<^isub>1 \<subseteq> \<Gamma>\<^isub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^isub>1 \<longrightarrow> x \<in> set \<Gamma>\<^isub>2"
+
+text {* Valid Typing Contexts *}
 
 inductive
   valid :: "tctx \<Rightarrow> bool"
@@ -409,7 +425,7 @@ lemma context_unique:
 using a1 a2 a3
 by (induct) (auto simp add: fresh_set fresh_prod fresh_atm)
 
-section {* Typing Relation *}
+section {* The Typing Relation *}
 
 inductive
   typing :: "tctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _") 
@@ -435,6 +451,9 @@ inductive_cases typing_inversion[elim]:
   "\<Gamma> \<turnstile> ZET t : T"
   "\<Gamma> \<turnstile> EQI t1 t2 : T"
   "\<Gamma> \<turnstile> APP t1 t2 : T"
+  "\<Gamma> \<turnstile> TRUE : T"
+  "\<Gamma> \<turnstile> FALSE : T"
+  "\<Gamma> \<turnstile> NUM n : T"
 declare lam.inject[simp del]
 
 equivariance typing
@@ -457,7 +476,7 @@ using ty fc
 by (cases rule: typing.strong_cases) 
    (auto simp add: alpha lam.inject abs_fresh ty_fresh)
 
-section {* Type Preservation for the CBV Reduction Relation *}
+section {* The Type-Preservation Property for the CBV Reduction Relation *}
 
 lemma weakening: 
   fixes \<Gamma>1 \<Gamma>2::"tctx"
@@ -517,7 +536,7 @@ corollary cbv_star_type_preservation:
 using a b
 by (induct) (auto intro: cbv_type_preservation)
 
-section {* Type Preservation for the Machine and Evaluation Relation *}
+section {* The Type-Preservation Property for the Machine and Evaluation Relation *}
 
 theorem machine_type_preservation:
   assumes a: "<t,[]> \<mapsto>* <t',[]>"
@@ -536,6 +555,35 @@ proof -
   from a have "<t,[]> \<mapsto>* <t',[]>" by (simp add: eval_implies_machine_star)
   then show "\<Gamma> \<turnstile> t' : T" using b by (simp add: machine_type_preservation)
 qed
+
+text {* The Progress Property *}
+
+lemma canonical_tARR[dest]:
+  assumes a: "[] \<turnstile> t : T1 \<rightarrow> T2"
+  and     b: "val t"
+  shows "\<exists>x t'. t = LAM [x].t'"
+using b a by (induct) (auto) 
+
+lemma canonical_tINT[dest]:
+  assumes a: "[] \<turnstile> t : tINT"
+  and     b: "val t"
+  shows "\<exists>n. t = NUM n"
+using b a 
+by (induct) (auto simp add: fresh_list_nil)
+
+lemma canonical_tBOOL[dest]:
+  assumes a: "[] \<turnstile> t : tBOOL"
+  and     b: "val t"
+  shows "t = TRUE \<or> t = FALSE"
+using b a 
+by (induct) (auto simp add: fresh_list_nil)
+
+theorem progress:
+  assumes a: "[] \<turnstile> t : T"
+  shows "(\<exists>t'. t \<longrightarrow>cbv t') \<or> (val t)"
+using a
+by (induct \<Gamma>\<equiv>"[]::tctx" t T)
+   (auto dest!: canonical_tINT intro!: cbv.intros gr0I)
 
 end    
    
