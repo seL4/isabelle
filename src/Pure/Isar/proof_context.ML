@@ -579,8 +579,7 @@ fun standard_infer_types ctxt ts =
   let val Mode {pattern, ...} = get_mode ctxt in
     TypeInfer.infer_types (Syntax.pp ctxt) (tsig_of ctxt) (Syntax.check_typs ctxt)
       (try (Consts.the_constraint (consts_of ctxt))) (Variable.def_type ctxt pattern)
-      (Variable.names_of ctxt) (Variable.maxidx_of ctxt) NONE (map (rpair dummyT) ts)
-    |> #1 |> map #1
+      (Variable.names_of ctxt) (Variable.maxidx_of ctxt) ts
     handle TYPE (msg, _, _) => error msg
   end;
 

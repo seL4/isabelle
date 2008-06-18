@@ -385,11 +385,10 @@ fun eval thy t program vs_ty_t deps =
       (map (fn (s, T) => (s, Term.Free (s, T))) (Term.add_frees t []));
     val type_frees = Term.map_aterms
       (fn (t as Term.Free (s, _)) => the_default t (type_free s) | t => t);
-    fun type_infer t = [(t, ty)]
-      |> TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
-           (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE)
-           Name.context 0 NONE
-      |> fst |> the_single |> fst;
+    fun type_infer t =
+      singleton (TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
+        (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE) Name.context 0)
+      (TypeInfer.constrain ty t);
     fun check_tvars t = if null (Term.term_tvars t) then t else
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp show_types true (Syntax.string_of_term_global thy) t);
