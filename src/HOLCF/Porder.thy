@@ -20,11 +20,9 @@ notation
 notation (xsymbols)
   sq_le (infixl "\<sqsubseteq>" 55)
 
-class preorder = sq_ord +
+class po = sq_ord +
   assumes refl_less [iff]: "x \<sqsubseteq> x"
   assumes trans_less: "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
-
-class po = preorder +
   assumes antisym_less: "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> x\<rbrakk> \<Longrightarrow> x = y"
 
 text {* minimal fixes least element *}

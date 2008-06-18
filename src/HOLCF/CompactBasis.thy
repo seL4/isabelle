@@ -11,18 +11,21 @@ begin
 
 subsection {* Ideals over a preorder *}
 
-context preorder
+locale preorder =
+  fixes r :: "'a::type \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
+  assumes r_refl: "x \<preceq> x"
+  assumes r_trans: "\<lbrakk>x \<preceq> y; y \<preceq> z\<rbrakk> \<Longrightarrow> x \<preceq> z"
 begin
 
 definition
   ideal :: "'a set \<Rightarrow> bool" where
-  "ideal A = ((\<exists>x. x \<in> A) \<and> (\<forall>x\<in>A. \<forall>y\<in>A. \<exists>z\<in>A. x \<sqsubseteq> z \<and> y \<sqsubseteq> z) \<and>
-    (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> y \<in> A \<longrightarrow> x \<in> A))"
+  "ideal A = ((\<exists>x. x \<in> A) \<and> (\<forall>x\<in>A. \<forall>y\<in>A. \<exists>z\<in>A. x \<preceq> z \<and> y \<preceq> z) \<and>
+    (\<forall>x y. x \<preceq> y \<longrightarrow> y \<in> A \<longrightarrow> x \<in> A))"
 
 lemma idealI:
   assumes "\<exists>x. x \<in> A"
-  assumes "\<And>x y. \<lbrakk>x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> \<exists>z\<in>A. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
-  assumes "\<And>x y. \<lbrakk>x \<sqsubseteq> y; y \<in> A\<rbrakk> \<Longrightarrow> x \<in> A"
+  assumes "\<And>x y. \<lbrakk>x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> \<exists>z\<in>A. x \<preceq> z \<and> y \<preceq> z"
+  assumes "\<And>x y. \<lbrakk>x \<preceq> y; y \<in> A\<rbrakk> \<Longrightarrow> x \<in> A"
   shows "ideal A"
 unfolding ideal_def using prems by fast
 
@@ -31,36 +34,39 @@ lemma idealD1:
 unfolding ideal_def by fast
 
 lemma idealD2:
-  "\<lbrakk>ideal A; x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> \<exists>z\<in>A. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
+  "\<lbrakk>ideal A; x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> \<exists>z\<in>A. x \<preceq> z \<and> y \<preceq> z"
 unfolding ideal_def by fast
 
 lemma idealD3:
-  "\<lbrakk>ideal A; x \<sqsubseteq> y; y \<in> A\<rbrakk> \<Longrightarrow> x \<in> A"
+  "\<lbrakk>ideal A; x \<preceq> y; y \<in> A\<rbrakk> \<Longrightarrow> x \<in> A"
 unfolding ideal_def by fast
 
 lemma ideal_directed_finite:
   assumes A: "ideal A"
-  shows "\<lbrakk>finite U; U \<subseteq> A\<rbrakk> \<Longrightarrow> \<exists>z\<in>A. \<forall>x\<in>U. x \<sqsubseteq> z"
+  shows "\<lbrakk>finite U; U \<subseteq> A\<rbrakk> \<Longrightarrow> \<exists>z\<in>A. \<forall>x\<in>U. x \<preceq> z"
 apply (induct U set: finite)
 apply (simp add: idealD1 [OF A])
 apply (simp, clarify, rename_tac y)
 apply (drule (1) idealD2 [OF A])
 apply (clarify, erule_tac x=z in rev_bexI)
-apply (fast intro: trans_less)
+apply (fast intro: r_trans)
 done
 
-lemma ideal_principal: "ideal {x. x \<sqsubseteq> z}"
+lemma ideal_principal: "ideal {x. x \<preceq> z}"
 apply (rule idealI)
 apply (rule_tac x=z in exI)
-apply fast
+apply (fast intro: r_refl)
 apply (rule_tac x=z in bexI, fast)
-apply fast
-apply (fast intro: trans_less)
+apply (fast intro: r_refl)
+apply (fast intro: r_trans)
 done
+
+lemma ex_ideal: "\<exists>A. ideal A"
+by (rule exI, rule ideal_principal)
 
 lemma directed_image_ideal:
   assumes A: "ideal A"
-  assumes f: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
+  assumes f: "\<And>x y. x \<preceq> y \<Longrightarrow> f x \<sqsubseteq> f y"
   shows "directed (f ` A)"
 apply (rule directedI)
 apply (cut_tac idealD1 [OF A], fast)
@@ -76,17 +82,23 @@ lemma adm_ideal: "adm (\<lambda>A. ideal A)"
 unfolding ideal_def by (intro adm_lemmas adm_set_lemmas)
 
 lemma lub_image_principal:
-  assumes f: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-  shows "(\<Squnion>x\<in>{x. x \<sqsubseteq> y}. f x) = f y"
+  assumes f: "\<And>x y. x \<preceq> y \<Longrightarrow> f x \<sqsubseteq> f y"
+  shows "(\<Squnion>x\<in>{x. x \<preceq> y}. f x) = f y"
 apply (rule thelubI)
 apply (rule is_lub_maximal)
 apply (rule ub_imageI)
 apply (simp add: f)
 apply (rule imageI)
-apply simp
+apply (simp add: r_refl)
 done
 
 end
+
+interpretation sq_le: preorder ["sq_le :: 'a::po \<Rightarrow> 'a \<Rightarrow> bool"]
+apply unfold_locales
+apply (rule refl_less)
+apply (erule (1) trans_less)
+done
 
 subsection {* Defining functions in terms of basis elements *}
 
@@ -116,21 +128,21 @@ done
 lemma is_lub_thelub0: "\<lbrakk>\<exists>u. S <<| u; S <| x\<rbrakk> \<Longrightarrow> lub S \<sqsubseteq> x"
 by (erule exE, drule lubI, erule is_lub_lub)
 
-locale basis_take = preorder r +
+locale basis_take = preorder +
   fixes take :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'a"
-  assumes take_less: "r (take n a) a"
+  assumes take_less: "take n a \<preceq> a"
   assumes take_take: "take n (take n a) = take n a"
-  assumes take_mono: "r a b \<Longrightarrow> r (take n a) (take n b)"
-  assumes take_chain: "r (take n a) (take (Suc n) a)"
+  assumes take_mono: "a \<preceq> b \<Longrightarrow> take n a \<preceq> take n b"
+  assumes take_chain: "take n a \<preceq> take (Suc n) a"
   assumes finite_range_take: "finite (range (take n))"
   assumes take_covers: "\<exists>n. take n a = a"
 
-locale ideal_completion = basis_take r +
+locale ideal_completion = basis_take +
   fixes principal :: "'a::type \<Rightarrow> 'b::cpo"
   fixes rep :: "'b::cpo \<Rightarrow> 'a::type set"
   assumes ideal_rep: "\<And>x. preorder.ideal r (rep x)"
   assumes cont_rep: "cont rep"
-  assumes rep_principal: "\<And>a. rep (principal a) = {b. r b a}"
+  assumes rep_principal: "\<And>a. rep (principal a) = {b. b \<preceq> a}"
   assumes subset_repD: "\<And>x y. rep x \<subseteq> rep y \<Longrightarrow> x \<sqsubseteq> y"
 begin
 
@@ -139,7 +151,7 @@ by (rule finite_subset [OF image_mono [OF subset_UNIV] finite_range_take])
 
 lemma basis_fun_lemma0:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
-  assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
+  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   shows "\<exists>u. f ` take i ` rep x <<| u"
 apply (rule finite_directed_has_lub)
 apply (rule finite_imageI)
@@ -153,7 +165,7 @@ done
 
 lemma basis_fun_lemma1:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
-  assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
+  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   shows "chain (\<lambda>i. lub (f ` take i ` rep x))"
  apply (rule chainI)
  apply (rule is_lub_thelub0)
@@ -167,7 +179,7 @@ done
 
 lemma basis_fun_lemma2:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
-  assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
+  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   shows "f ` rep x <<| (\<Squnion>i. lub (f ` take i ` rep x))"
  apply (rule is_lubI)
  apply (rule ub_imageI, rename_tac a)
@@ -190,7 +202,7 @@ done
 
 lemma basis_fun_lemma:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
-  assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
+  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   shows "\<exists>u. f ` rep x <<| u"
 by (rule exI, rule basis_fun_lemma2, erule f_mono)
 
@@ -210,7 +222,7 @@ lemma rep_eq: "rep x = {a. principal a \<sqsubseteq> x}"
 unfolding less_def rep_principal
 apply safe
 apply (erule (1) idealD3 [OF ideal_rep])
-apply (erule subsetD, simp add: refl)
+apply (erule subsetD, simp add: r_refl)
 done
 
 lemma mem_rep_iff_principal_less: "a \<in> rep x \<longleftrightarrow> principal a \<sqsubseteq> x"
@@ -219,16 +231,16 @@ by (simp add: rep_eq)
 lemma principal_less_iff_mem_rep: "principal a \<sqsubseteq> x \<longleftrightarrow> a \<in> rep x"
 by (simp add: rep_eq)
 
-lemma principal_less_iff: "principal a \<sqsubseteq> principal b \<longleftrightarrow> r a b"
+lemma principal_less_iff: "principal a \<sqsubseteq> principal b \<longleftrightarrow> a \<preceq> b"
 by (simp add: principal_less_iff_mem_rep rep_principal)
 
-lemma principal_eq_iff: "principal a = principal b \<longleftrightarrow> r a b \<and> r b a"
+lemma principal_eq_iff: "principal a = principal b \<longleftrightarrow> a \<preceq> b \<and> b \<preceq> a"
 unfolding po_eq_conv [where 'a='b] principal_less_iff ..
 
 lemma repD: "a \<in> rep x \<Longrightarrow> principal a \<sqsubseteq> x"
 by (simp add: rep_eq)
 
-lemma principal_mono: "r a b \<Longrightarrow> principal a \<sqsubseteq> principal b"
+lemma principal_mono: "a \<preceq> b \<Longrightarrow> principal a \<sqsubseteq> principal b"
 by (simp add: principal_less_iff)
 
 lemma lessI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
@@ -251,7 +263,7 @@ definition
 
 lemma basis_fun_beta:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
-  assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
+  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   shows "basis_fun f\<cdot>x = lub (f ` rep x)"
 unfolding basis_fun_def
 proof (rule beta_cfun)
@@ -272,7 +284,7 @@ qed
 
 lemma basis_fun_principal:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
-  assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
+  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   shows "basis_fun f\<cdot>(principal a) = f a"
 apply (subst basis_fun_beta, erule f_mono)
 apply (subst rep_principal)
@@ -280,8 +292,8 @@ apply (rule lub_image_principal, erule f_mono)
 done
 
 lemma basis_fun_mono:
-  assumes f_mono: "\<And>a b. r a b \<Longrightarrow> f a \<sqsubseteq> f b"
-  assumes g_mono: "\<And>a b. r a b \<Longrightarrow> g a \<sqsubseteq> g b"
+  assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
+  assumes g_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> g a \<sqsubseteq> g b"
   assumes less: "\<And>a. f a \<sqsubseteq> g a"
   shows "basis_fun f \<sqsubseteq> basis_fun g"
  apply (rule less_cfun_ext)
@@ -435,10 +447,9 @@ definition
   compacts :: "'a \<Rightarrow> 'a compact_basis set" where
   "compacts = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
 
-lemma ideal_compacts: "preorder.ideal sq_le (compacts w)"
+lemma ideal_compacts: "sq_le.ideal (compacts w)"
 unfolding compacts_def
- apply (rule preorder.idealI)
-    apply (rule preorder_class.axioms)
+ apply (rule sq_le.idealI)
    apply (rule_tac x="Abs_compact_basis (approx 0\<cdot>w)" in exI)
    apply (simp add: approx_less)
   apply simp
