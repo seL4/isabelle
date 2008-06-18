@@ -19,9 +19,8 @@ sig
   val read_proof: theory -> bool -> string -> Proofterm.proof
   val proof_syntax: Proofterm.proof -> theory -> theory
   val proof_of: bool -> thm -> Proofterm.proof
-  val pretty_proof: theory -> Proofterm.proof -> Pretty.T
-  val pretty_proof_of: bool -> thm -> Pretty.T
-  val print_proof_of: bool -> thm -> unit
+  val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
+  val pretty_proof_of: Proof.context -> bool -> thm -> Pretty.T
 end;
 
 structure ProofSyntax : PROOF_SYNTAX =
@@ -98,7 +97,7 @@ fun disambiguate_names thy prf =
 
     val tab = Symtab.fold (fn (key, ps) => fn tab =>
       let val prop = the_default (Bound 0) (AList.lookup (op =) thms' key)
-      in fst (fold_rev (fn (prop', prf) => fn x as (tab, i) => 
+      in fst (fold_rev (fn (prop', prf) => fn x as (tab, i) =>
         if prop <> prop' then
           (Symtab.update (key ^ "_" ^ string_of_int i, prf) tab, i+1)
         else x) ps (tab, 1))
@@ -193,7 +192,7 @@ fun term_of _ (PThm (name, _, _, NONE)) =
   | term_of _ (PAxm (name, _, SOME Ts)) =
       mk_tyapp Ts (Const (NameSpace.append "axm" name, proofT))
   | term_of _ (PBound i) = Bound i
-  | term_of Ts (Abst (s, opT, prf)) = 
+  | term_of Ts (Abst (s, opT, prf)) =
       let val T = the_default dummyT opT
       in Const ("Abst", (T --> proofT) --> proofT) $
         Abs (s, T, term_of (T::Ts) (incr_pboundvars 1 0 prf))
@@ -203,7 +202,7 @@ fun term_of _ (PThm (name, _, _, NONE)) =
         Abs (s, proofT, term_of (proofT::Ts) (incr_pboundvars 0 1 prf))
   | term_of Ts (prf1 %% prf2) =
       AppPt $ term_of Ts prf1 $ term_of Ts prf2
-  | term_of Ts (prf % opt) = 
+  | term_of Ts (prf % opt) =
       let val t = the_default (Term.dummy_pattern dummyT) opt
       in Const ("Appt",
         [proofT, fastype_of1 (Ts, t) handle TERM _ => dummyT] ---> proofT) $
@@ -234,17 +233,22 @@ fun read_term thy =
   let
     val thm_names = filter_out (equal "") (map fst (PureThy.all_thms_of thy));
     val axm_names = map fst (Theory.all_axioms_of thy);
-    val thy' = thy
+    val ctxt = thy
       |> add_proof_syntax
       |> add_proof_atom_consts
         (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names)
-  in Sign.simple_read_term thy' end;
+      |> ProofContext.init
+      |> ProofContext.allow_dummies
+      |> ProofContext.set_mode ProofContext.mode_schematic;
+  in
+    fn ty => fn s =>
+      (if ty = propT then Syntax.parse_prop else Syntax.parse_term) ctxt s
+      |> TypeInfer.constrain ty |> Syntax.check_term ctxt
+  end;
 
 fun read_proof thy =
   let val rd = read_term thy proofT
-  in
-    (fn ty => fn s => proof_of_term thy Symtab.empty ty (Logic.varify (rd s)))
-  end;
+  in fn ty => fn s => proof_of_term thy Symtab.empty ty (Logic.varify (rd s)) end;
 
 fun proof_syntax prf =
   let
@@ -267,12 +271,12 @@ fun proof_of full thm =
       | _ => prf)
   in if full then Reconstruct.reconstruct_proof thy prop prf' else prf' end;
 
-fun pretty_proof thy prf =
-  Syntax.pretty_term_global (proof_syntax prf thy) (term_of_proof prf);
+fun pretty_proof ctxt prf =
+  ProofContext.pretty_term_abbrev
+    (ProofContext.transfer_syntax (proof_syntax prf (ProofContext.theory_of ctxt)) ctxt)
+    (term_of_proof prf);
 
-fun pretty_proof_of full thm =
-  pretty_proof (Thm.theory_of_thm thm) (proof_of full thm);
-
-val print_proof_of = Pretty.writeln oo pretty_proof_of;
+fun pretty_proof_of ctxt full th =
+  pretty_proof ctxt (proof_of full th);
 
 end;
