@@ -11,6 +11,7 @@ sig
   val sort_of_term: (sort -> sort) -> term -> sort
   val term_sorts: (sort -> sort) -> term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> (sort -> sort) -> term -> typ
+  val type_constraint: typ -> term -> term
   val decode_term: (((string * int) * sort) list -> string * int -> sort) ->
     (string -> bool * string) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> term -> term
@@ -105,16 +106,20 @@ fun typ_of_term get_sort map_sort t =
 
 (* decode_term -- transform parse tree into raw term *)
 
+fun type_constraint T t =
+  if T = dummyT then t
+  else Const ("_type_constraint_", T --> T) $ t;
+
 fun decode_term get_sort map_const map_free map_type map_sort tm =
   let
     val sort_env = term_sorts map_sort tm;
     val decodeT = map_type o typ_of_term (get_sort sort_env) map_sort;
 
     fun decode (Const ("_constrain", _) $ t $ typ) =
-          TypeInfer.constrain (decodeT typ) (decode t)
+          type_constraint (decodeT typ) (decode t)
       | decode (Const ("_constrainAbs", _) $ (Abs (x, T, t)) $ typ) =
           if T = dummyT then Abs (x, decodeT typ, decode t)
-          else TypeInfer.constrain (decodeT typ --> dummyT) (Abs (x, map_type T, decode t))
+          else type_constraint (decodeT typ --> dummyT) (Abs (x, map_type T, decode t))
       | decode (Abs (x, T, t)) = Abs (x, map_type T, decode t)
       | decode (t $ u) = decode t $ decode u
       | decode (Const (a, T)) =
