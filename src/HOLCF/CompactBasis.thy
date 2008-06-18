@@ -371,6 +371,16 @@ lemma principal_induct:
  apply (clarify, simp add: P)
 done
 
+lemma compact_imp_principal: "compact x \<Longrightarrow> \<exists>a. x = principal a"
+apply (drule adm_compact_neq [OF _ cont_id])
+apply (drule admD2 [where Y="\<lambda>n. completion_approx n\<cdot>x"])
+apply (simp add: chain_completion_approx)
+apply (simp add: lub_completion_approx)
+apply (erule exE, erule ssubst)
+apply (cut_tac i=i and x=x in completion_approx_eq_principal)
+apply (clarify, erule exI)
+done
+
 end
 
 

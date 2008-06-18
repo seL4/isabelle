@@ -188,12 +188,7 @@ by (rule lower_pd.completion_approx_eq_principal)
 
 lemma compact_imp_lower_principal:
   "compact xs \<Longrightarrow> \<exists>t. xs = lower_principal t"
-apply (drule bifinite_compact_eq_approx)
-apply (erule exE)
-apply (erule subst)
-apply (cut_tac n=i and xs=xs in approx_eq_lower_principal)
-apply fast
-done
+by (rule lower_pd.compact_imp_principal)
 
 lemma lower_principal_induct:
   "\<lbrakk>adm P; \<And>t. P (lower_principal t)\<rbrakk> \<Longrightarrow> P xs"

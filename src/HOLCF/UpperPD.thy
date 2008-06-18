@@ -186,12 +186,7 @@ by (rule upper_pd.completion_approx_eq_principal)
 
 lemma compact_imp_upper_principal:
   "compact xs \<Longrightarrow> \<exists>t. xs = upper_principal t"
-apply (drule bifinite_compact_eq_approx)
-apply (erule exE)
-apply (erule subst)
-apply (cut_tac n=i and xs=xs in approx_eq_upper_principal)
-apply fast
-done
+by (rule upper_pd.compact_imp_principal)
 
 lemma upper_principal_induct:
   "\<lbrakk>adm P; \<And>t. P (upper_principal t)\<rbrakk> \<Longrightarrow> P xs"

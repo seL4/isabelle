@@ -236,12 +236,7 @@ by (rule convex_pd.completion_approx_eq_principal)
 
 lemma compact_imp_convex_principal:
   "compact xs \<Longrightarrow> \<exists>t. xs = convex_principal t"
-apply (drule bifinite_compact_eq_approx)
-apply (erule exE)
-apply (erule subst)
-apply (cut_tac n=i and xs=xs in approx_eq_convex_principal)
-apply fast
-done
+by (rule convex_pd.compact_imp_principal)
 
 lemma convex_principal_induct:
   "\<lbrakk>adm P; \<And>t. P (convex_principal t)\<rbrakk> \<Longrightarrow> P xs"
