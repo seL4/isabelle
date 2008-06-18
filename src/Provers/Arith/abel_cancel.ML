@@ -12,10 +12,10 @@ polymorphic types).
 
 signature ABEL_CANCEL =
 sig
-  val cancel_ss       : simpset       (*abelian group cancel simpset*)
-  val thy_ref         : theory_ref    (*signature of the theory of the group*)
-  val T               : typ           (*the type of group elements*)
   val eq_reflection   : thm           (*object-equality to meta-equality*)
+  val T               : typ           (*the type of group elements*)
+  val cancel_ss       : simpset       (*abelian group cancel simpset*)
+  val sum_pats        : cterm list
   val eqI_rules       : thm list
   val dest_eqI        : thm -> term
 end;
@@ -89,9 +89,7 @@ fun sum_proc ss t =
 
 val sum_conv =
   Simplifier.mk_simproc "cancel_sums"
-    (map (Drule.cterm_fun Logic.varify o Thm.read_cterm (Theory.deref thy_ref))
-      [("x + y", Data.T), ("x - y", Data.T)])  (* FIXME depends on concrete syntax *)
-    (K sum_proc);
+    (map (Drule.cterm_fun Logic.varify) Data.sum_pats) (K sum_proc);
 
 
 (*A simproc to cancel like terms on the opposite sides of relations:
@@ -109,6 +107,6 @@ fun rel_proc ss t =
 
 val rel_conv =
   Simplifier.mk_simproc "cancel_relations"
-    (map (Thm.cterm_of (Theory.deref thy_ref) o Data.dest_eqI) eqI_rules) (K rel_proc);
+    (map (fn th => Thm.cterm_of (Thm.theory_of_thm th) (Data.dest_eqI th)) eqI_rules) (K rel_proc);
 
 end;

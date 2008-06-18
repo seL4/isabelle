@@ -1372,8 +1372,8 @@ lemmas diff_eq_0_iff_eq [simp, noatp] = eq_iff_diff_eq_0 [symmetric]
 lemmas diff_le_0_iff_le [simp] = le_iff_diff_le_0 [symmetric]
 
 ML {*
-structure ab_group_add_cancel = Abel_Cancel(
-struct
+structure ab_group_add_cancel = Abel_Cancel
+(
 
 (* term order for abelian groups *)
 
@@ -1400,25 +1400,25 @@ in
     "add_ac_proc" ["x + y::'a::ab_semigroup_add"] solve_add_ac;
 end;
 
+val eq_reflection = @{thm eq_reflection};
+  
+val T = @{typ "'a::ab_group_add"};
+
 val cancel_ss = HOL_basic_ss settermless termless_agrp
   addsimprocs [add_ac_proc] addsimps
   [@{thm add_0_left}, @{thm add_0_right}, @{thm diff_def},
    @{thm minus_add_distrib}, @{thm minus_minus}, @{thm minus_zero},
    @{thm right_minus}, @{thm left_minus}, @{thm add_minus_cancel},
    @{thm minus_add_cancel}];
-  
-val eq_reflection = @{thm eq_reflection};
-  
-val thy_ref = Theory.check_thy @{theory};
 
-val T = @{typ "'a\<Colon>ab_group_add"};
-
+val sum_pats = [@{cterm "x + y::'a::ab_group_add"}, @{cterm "x - y::'a::ab_group_add"}];
+  
 val eqI_rules = [@{thm less_eqI}, @{thm le_eqI}, @{thm eq_eqI}];
 
 val dest_eqI = 
   fst o HOLogic.dest_bin "op =" HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
 
-end);
+);
 *}
 
 ML {*
