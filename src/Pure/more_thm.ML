@@ -46,11 +46,6 @@ sig
   val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
   val no_attributes: 'a -> 'a * 'b list
   val simple_fact: 'a -> ('a * 'b list) list
-  val read_def_cterms:
-    theory * (indexname -> typ option) * (indexname -> sort option) ->
-    string list -> bool -> (string * typ)list
-    -> cterm list * (indexname * typ)list
-  val read_cterm: theory -> string * typ -> cterm
   val elim_implies: thm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
@@ -208,21 +203,6 @@ val proof_attributes = apply_attributes Context.Proof Context.the_proof;
 
 fun no_attributes x = (x, []);
 fun simple_fact x = [(x, [])];
-
-
-(** read/certify terms (obsolete) **)    (*exception ERROR*)
-
-fun read_def_cterms (thy, types, sorts) used freeze sTs =
-  let
-    val (ts', tye) = Sign.read_def_terms (thy, types, sorts) used freeze sTs;
-    val cts = map (Thm.cterm_of thy) ts'
-      handle TYPE (msg, _, _) => error msg
-           | TERM (msg, _) => error msg;
-  in (cts, tye) end;
-
-fun read_cterm thy sT =
-  let val ([ct], _) = read_def_cterms (thy, K NONE, K NONE) [] true [sT]
-  in ct end;
 
 
 
