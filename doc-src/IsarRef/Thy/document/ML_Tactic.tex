@@ -60,7 +60,7 @@ Classic Isabelle provides several variant forms of tactics for
   \verb|forward_tac|).
 
   \item Optional explicit instantiation (e.g.\ \verb|resolve_tac| vs.\
-  \verb|RuleInsts.res_inst_tac|).
+  \verb|res_inst_tac|).
 
   \item Abbreviations for singleton arguments (e.g.\ \verb|resolve_tac|
   vs.\ \verb|rtac|).
@@ -85,11 +85,11 @@ Classic Isabelle provides several variant forms of tactics for
   \begin{tabular}{lll}
     \verb|rtac|~\isa{{\isachardoublequote}a\ {\isadigit{1}}{\isachardoublequote}} & & \isa{{\isachardoublequote}rule\ a{\isachardoublequote}} \\
     \verb|resolve_tac|~\isa{{\isachardoublequote}{\isacharbrackleft}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ {\isadigit{1}}{\isachardoublequote}} & & \isa{{\isachardoublequote}rule\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}{\isachardoublequote}} \\
-    \verb|RuleInsts.res_inst_tac|~\isa{{\isachardoublequote}ctxt\ {\isacharbrackleft}{\isacharparenleft}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ t\isactrlsub {\isadigit{1}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ a\ {\isadigit{1}}{\isachardoublequote}} & &
+    \verb|res_inst_tac|~\isa{{\isachardoublequote}ctxt\ {\isacharbrackleft}{\isacharparenleft}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ t\isactrlsub {\isadigit{1}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ a\ {\isadigit{1}}{\isachardoublequote}} & &
     \isa{{\isachardoublequote}rule{\isacharunderscore}tac\ x\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ {\isasymIN}\ a{\isachardoublequote}} \\[0.5ex]
     \verb|rtac|~\isa{{\isachardoublequote}a\ i{\isachardoublequote}} & & \isa{{\isachardoublequote}rule{\isacharunderscore}tac\ {\isacharbrackleft}i{\isacharbrackright}\ a{\isachardoublequote}} \\
     \verb|resolve_tac|~\isa{{\isachardoublequote}{\isacharbrackleft}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ i{\isachardoublequote}} & & \isa{{\isachardoublequote}rule{\isacharunderscore}tac\ {\isacharbrackleft}i{\isacharbrackright}\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}{\isachardoublequote}} \\
-    \verb|RuleInsts.res_inst_tac|~\isa{{\isachardoublequote}ctxt\ {\isacharbrackleft}{\isacharparenleft}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ t\isactrlsub {\isadigit{1}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ a\ i{\isachardoublequote}} & &
+    \verb|res_inst_tac|~\isa{{\isachardoublequote}ctxt\ {\isacharbrackleft}{\isacharparenleft}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ t\isactrlsub {\isadigit{1}}{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharbrackright}\ a\ i{\isachardoublequote}} & &
     \isa{{\isachardoublequote}rule{\isacharunderscore}tac\ {\isacharbrackleft}i{\isacharbrackright}\ x\isactrlsub {\isadigit{1}}\ {\isacharequal}\ t\isactrlsub {\isadigit{1}}\ {\isasymAND}\ {\isasymdots}\ {\isasymIN}\ a{\isachardoublequote}} \\
   \end{tabular}
   \medskip

@@ -325,7 +325,7 @@ The following improper proof methods emulate traditional tactics.
 \begin{descr}
 
   \item [\hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}} etc.] do resolution of rules with explicit
-  instantiation.  This works the same way as the ML tactics \verb|Tactic.res_inst_tac| etc. (see \cite[\S3]{isabelle-ref})
+  instantiation.  This works the same way as the ML tactics \verb|res_inst_tac| etc. (see \cite[\S3]{isabelle-ref})
 
   Multiple rules may be only given if there is no instantiation; then
   \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}} is the same as \verb|resolve_tac| in ML (see
@@ -335,16 +335,16 @@ The following improper proof methods emulate traditional tactics.
   assumption of a subgoal, see also \verb|Tactic.cut_facts_tac| in
   \cite[\S3]{isabelle-ref}.  Note that the scope of schematic
   variables is spread over the main goal statement.  Instantiations
-  may be given as well, see also ML tactic \verb|Tactic.cut_inst_tac|
+  may be given as well, see also ML tactic \verb|cut_inst_tac|
   in \cite[\S3]{isabelle-ref}.
 
   \item [\hyperlink{method.thin-tac}{\mbox{\isa{thin{\isacharunderscore}tac}}}~\isa{{\isasymphi}}] deletes the specified
   assumption from a subgoal; note that \isa{{\isasymphi}} may contain schematic
-  variables.  See also \verb|Tactic.thin_tac| in
+  variables.  See also \verb|thin_tac| in
   \cite[\S3]{isabelle-ref}.
 
   \item [\hyperlink{method.subgoal-tac}{\mbox{\isa{subgoal{\isacharunderscore}tac}}}~\isa{{\isasymphi}}] adds \isa{{\isasymphi}} as an
-  assumption to a subgoal.  See also \verb|Tactic.subgoal_tac| and \verb|Tactic.subgoals_tac| in \cite[\S3]{isabelle-ref}.
+  assumption to a subgoal.  See also \verb|subgoal_tac| and \verb|subgoals_tac| in \cite[\S3]{isabelle-ref}.
 
   \item [\hyperlink{method.rename-tac}{\mbox{\isa{rename{\isacharunderscore}tac}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isachardoublequote}}] renames
   parameters of a goal according to the list \isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub n{\isachardoublequote}}, which refers to the \emph{suffix} of variables.
