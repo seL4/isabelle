@@ -479,7 +479,7 @@ fun pretty_thm_style ctxt (name, th) =
   pretty_term_style ctxt (name, Thm.full_prop_of th);
 
 fun pretty_prf full ctxt thms =
-  Pretty.chunks (map (ProofContext.pretty_proof_of ctxt full) thms);
+  Pretty.chunks (map (ProofSyntax.pretty_proof_of ctxt full) thms);
 
 fun pretty_theory ctxt name =
   (Theory.requires (ProofContext.theory_of ctxt) name "presentation"; Pretty.str name);
