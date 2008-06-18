@@ -32,7 +32,6 @@ use "Syntax/simple_syntax.ML";
 use "context.ML";
 use "sorts.ML";
 use "type.ML";
-use "type_infer.ML";
 use "config.ML";
 
 (*inner syntax module*)
@@ -45,6 +44,7 @@ use "Syntax/mixfix.ML";
 use "Syntax/printer.ML";
 use "Syntax/syntax.ML";
 
+use "type_infer.ML";
 use "ML/ml_syntax.ML";
 
 (*core of tactical proof system*)
