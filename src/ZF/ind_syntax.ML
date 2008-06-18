@@ -66,8 +66,9 @@ fun dest_mem (Const (@{const_name mem}, _) $ x $ A) = (x, A)
   | dest_mem _ = error "Constructor specifications must have the form x:A";
 
 (*read a constructor specification*)
-fun read_construct sign (id, sprems, syn) =
-    let val prems = map (Sign.simple_read_term sign FOLogic.oT) sprems
+fun read_construct ctxt (id, sprems, syn) =
+    let val prems = map (Syntax.parse_term ctxt #> TypeInfer.constrain FOLogic.oT) sprems
+          |> Syntax.check_terms ctxt
         val args = map (#1 o dest_mem) prems
         val T = (map (#2 o dest_Free) args) ---> iT
                 handle TERM _ => error

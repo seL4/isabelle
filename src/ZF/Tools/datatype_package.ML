@@ -405,12 +405,15 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_type_elims) thy =
   let
     val ctxt = ProofContext.init thy;
-    val read_i = Sign.simple_read_term thy @{typ i};
-    val rec_tms = map read_i srec_tms;
-    val con_ty_lists = Ind_Syntax.read_constructs thy scon_ty_lists;
+    fun read_is strs =
+      map (Syntax.parse_term ctxt #> TypeInfer.constrain @{typ i}) strs
+      |> Syntax.check_terms ctxt;
+
+    val rec_tms = read_is srec_tms;
+    val con_ty_lists = Ind_Syntax.read_constructs ctxt scon_ty_lists;
     val dom_sum =
       if sdom = "" then data_domain coind (rec_tms, con_ty_lists)
-      else read_i sdom;
+      else singleton read_is sdom;
     val monos = Attrib.eval_thms ctxt raw_monos;
     val type_intrs = Attrib.eval_thms ctxt raw_type_intrs;
     val type_elims = Attrib.eval_thms ctxt raw_type_elims;

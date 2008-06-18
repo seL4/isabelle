@@ -544,7 +544,7 @@ fun gen_rep_datatype prep_term after_qed alt_names raw_ts thy =
   end;
 
 val rep_datatype = gen_rep_datatype Sign.cert_term;
-val rep_datatype_cmd = gen_rep_datatype Sign.read_term (K I);
+val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global (K I);
 
 
 
