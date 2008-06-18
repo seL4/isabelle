@@ -13,6 +13,12 @@ use "local_syntax.ML";
 use "proof_context.ML";
 use "local_defs.ML";
 
+(*proof term operations*)
+use "../Proof/reconstruct.ML";
+use "../Proof/proof_syntax.ML";
+use "../Proof/proof_rewrite_rules.ML";
+use "../Proof/proofchecker.ML";
+
 (*outer syntax*)
 use "outer_lex.ML";
 use "args.ML";

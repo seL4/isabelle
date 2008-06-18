@@ -77,12 +77,6 @@ use "assumption.ML";
 use "goal.ML";
 use "axclass.ML";
 
-(*proof term operations*)
-use "Proof/reconstruct.ML";
-use "Proof/proof_syntax.ML";
-use "Proof/proof_rewrite_rules.ML";
-use "Proof/proofchecker.ML";
-
 (*the main Isar system*)
 cd "Isar"; use "ROOT.ML"; cd "..";
 use "subgoal.ML";
