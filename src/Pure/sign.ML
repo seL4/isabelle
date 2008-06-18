@@ -84,12 +84,6 @@ sig
   val read_typ: theory -> string -> typ
   val read_typ_syntax: theory -> string -> typ
   val read_typ_abbrev: theory -> string -> typ
-  val read_def_terms:
-    theory * (indexname -> typ option) * (indexname -> sort option) ->
-    string list -> bool -> (string * typ) list -> term list * (indexname * typ) list
-  val simple_read_term: theory -> typ -> string -> term
-  val read_term: theory -> string -> term
-  val read_prop: theory -> string -> term
   val add_defsort: string -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
   val add_types: (bstring * int * mixfix) list -> theory -> theory
@@ -478,58 +472,6 @@ val read_typ_syntax  = gen_read_typ Type.mode_syntax o no_def_sort;
 val read_typ_abbrev  = gen_read_typ Type.mode_abbrev o no_def_sort;
 
 end;
-
-
-(* read_def_terms -- read terms and infer types *)    (*exception ERROR*)
-
-(*
-  def_type: partial map from indexnames to types (constrains Frees and Vars)
-  def_sort: partial map from indexnames to sorts (constrains TFrees and TVars)
-  used: context of already used type variables
-  freeze: if true then generated parameters are turned into TFrees, else TVars
-*)
-
-fun read_def_terms'
-    pp is_logtype syn consts map_free ctxt (def_type, def_sort) used freeze raw_args =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    fun check_typs Ts = map (certify_typ thy) Ts
-      handle TYPE (msg, _, _) => error msg;
-
-    fun infer args = TypeInfer.infer_types pp (tsig_of thy) check_typs
-        (try (Consts.the_constraint consts)) def_type used ~1 (SOME freeze) args |>> map fst
-      handle TYPE (msg, _, _) => error msg;
-
-    fun check T t = (singleton (fst o infer) (t, T); NONE) handle ERROR msg => SOME msg;
-    fun map_const a = (true, #1 (Term.dest_Const (Consts.read_const consts a)))
-      handle ERROR _ => (false, Consts.intern consts a);
-    fun read T = Syntax.standard_parse_term pp (check T) (get_sort thy def_sort) map_const map_free
-        (intern_tycons thy) (intern_sort thy) ctxt is_logtype syn T;
-  in
-    raw_args
-    |> map (fn (s, raw_T) =>
-      let val T = certify_typ thy raw_T handle TYPE (msg, _, _) => error msg
-      in (read (#1 (TypeInfer.paramify_dummies T 0)) s, T) end)
-    |> infer
-  end;
-
-fun read_def_terms (thy, types, sorts) used freeze sTs =
-  let
-    val pp = Syntax.pp_global thy;
-    val consts = consts_of thy;
-    val cert_consts = Consts.certify pp (tsig_of thy) true consts;
-    fun map_free x = if is_some (types (x, ~1)) then SOME x else NONE;
-    val (ts, inst) =
-      read_def_terms' pp (is_logtype thy) (syn_of thy) consts map_free
-        (ProofContext.init thy) (types, sorts) (Name.make_context used) freeze sTs;
-  in (map cert_consts ts, inst) end;
-
-fun simple_read_term thy T s =
-  let val ([t], _) = read_def_terms (thy, K NONE, K NONE) [] true [(s, T)]
-  in t end handle ERROR msg => cat_error msg ("The error(s) above occurred for term " ^ s);
-
-fun read_term thy = simple_read_term thy dummyT;
-fun read_prop thy = simple_read_term thy propT;
 
 
 
