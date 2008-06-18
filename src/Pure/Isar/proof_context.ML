@@ -31,6 +31,7 @@ sig
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val facts_of: Proof.context -> Facts.T
+  val transfer_syntax: theory -> Proof.context -> Proof.context
   val transfer: theory -> Proof.context -> Proof.context
   val theory: (theory -> theory) -> Proof.context -> Proof.context
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
@@ -39,8 +40,6 @@ sig
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
-  val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
-  val pretty_proof_of: Proof.context -> bool -> thm -> Pretty.T
   val string_of_thm: Proof.context -> thm -> string
   val read_typ: Proof.context -> string -> typ
   val read_typ_syntax: Proof.context -> string -> typ
@@ -56,6 +55,7 @@ sig
   val read_tyname: Proof.context -> string -> typ
   val read_const_proper: Proof.context -> string -> term
   val read_const: Proof.context -> string -> term
+  val allow_dummies: Proof.context -> Proof.context
   val decode_term: Proof.context -> term -> term
   val standard_infer_types: Proof.context -> term list -> term list
   val read_term_pattern: Proof.context -> string -> term
@@ -299,13 +299,6 @@ fun pretty_fact ctxt ("", ths) = pretty_thms ctxt ths
   | pretty_fact ctxt (a, ths) =
       Pretty.block (Pretty.fbreaks (Pretty.str (a ^ ":") :: map (pretty_thm ctxt) ths));
 
-fun pretty_proof ctxt prf =
-  pretty_term_abbrev (ctxt |> transfer_syntax (ProofSyntax.proof_syntax prf (theory_of ctxt)))
-    (ProofSyntax.term_of_proof prf);
-
-fun pretty_proof_of ctxt full th =
-  pretty_proof ctxt (ProofSyntax.proof_of full th);
-
 val string_of_thm = Pretty.string_of oo pretty_thm;
 
 
@@ -502,19 +495,24 @@ fun prepare_patternT ctxt =
 
 local
 
+structure AllowDummies = ProofDataFun(type T = bool fun init _ = false);
+
+fun check_dummies ctxt t =
+  if AllowDummies.get ctxt then t
+  else Term.no_dummy_patterns t handle TERM _ => error "Illegal dummy pattern(s) in term";
+
 fun prepare_dummies ts = #1 (fold_map Term.replace_dummy_patterns ts 1);
 
-fun reject_dummies t = Term.no_dummy_patterns t
-  handle TERM _ => error "Illegal dummy pattern(s) in term";
-
 in
+
+val allow_dummies = AllowDummies.put true;
 
 fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
     TypeInfer.fixate_params (Variable.names_of ctxt) #>
     pattern ? Variable.polymorphic ctxt #>
     (map o Term.map_types) (prepare_patternT ctxt) #>
-    (if pattern then prepare_dummies else map reject_dummies)
+    (if pattern then prepare_dummies else map (check_dummies ctxt))
   end;
 
 end;
