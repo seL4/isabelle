@@ -33,7 +33,11 @@ by simp
 declare iterate.simps [simp del]
 
 lemma iterate_Suc2: "iterate (Suc n)\<cdot>F\<cdot>x = iterate n\<cdot>F\<cdot>(F\<cdot>x)"
-by (induct_tac n, auto)
+by (induct n) simp_all
+
+lemma iterate_iterate:
+  "iterate m\<cdot>F\<cdot>(iterate n\<cdot>F\<cdot>x) = iterate (m + n)\<cdot>F\<cdot>x"
+by (induct m) simp_all
 
 text {*
   The sequence of function iterations is a chain.
