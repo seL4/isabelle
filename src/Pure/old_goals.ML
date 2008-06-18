@@ -44,6 +44,9 @@ end;
 signature OLD_GOALS =
 sig
   include GOALS
+  val simple_read_term: theory -> typ -> string -> term
+  val read_term: theory -> string -> term
+  val read_prop: theory -> string -> term
   type proof
   val chop: unit -> unit
   val reset_goals: unit -> unit
@@ -66,7 +69,24 @@ end;
 structure OldGoals: OLD_GOALS =
 struct
 
+(* global context *)
+
 val the_context = ML_Context.the_global_context;
+
+
+(* old ways of reading terms *)
+
+fun simple_read_term thy T s =
+  let
+    val ctxt = ProofContext.init thy
+      |> ProofContext.allow_dummies
+      |> ProofContext.set_mode ProofContext.mode_schematic;
+    val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
+  in parse ctxt s |> TypeInfer.constrain T |> Syntax.check_term ctxt end;
+
+fun read_term thy = simple_read_term thy dummyT;
+fun read_prop thy = simple_read_term thy propT;
+
 
 
 (*** Goal package ***)
@@ -224,9 +244,9 @@ and prove_goalw_cterm_nocheck rths chorn =
 
 (*Version taking the goal as a string*)
 fun prove_goalw thy rths agoal tacsf =
-  let val chorn = Thm.read_cterm thy (agoal, propT)
+  let val chorn = cterm_of thy (read_prop thy agoal)
   in prove_goalw_cterm_general true rths chorn tacsf end
-  handle ERROR msg => cat_error msg (*from read_cterm?*)
+  handle ERROR msg => cat_error msg (*from read_prop?*)
                 ("The error(s) above occurred for " ^ quote agoal);
 
 (*String version with no meta-rewrite-rules*)
@@ -339,7 +359,7 @@ val goalw_cterm = agoalw_cterm false;
 
 (*Version taking the goal as a string*)
 fun agoalw atomic thy rths agoal =
-    agoalw_cterm atomic rths (Thm.read_cterm thy (agoal, propT))
+    agoalw_cterm atomic rths (cterm_of thy (read_prop thy agoal))
     handle ERROR msg => cat_error msg (*from type_assign, etc via prepare_proof*)
         ("The error(s) above occurred for " ^ quote agoal);
 
