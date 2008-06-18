@@ -319,7 +319,7 @@ fun prep_realizer thy =
       val T = etype_of thy' vs [] prop;
       val (T', thw) = Type.freeze_thaw_type
         (if T = nullT then nullT else map fastype_of vars' ---> T);
-      val t = map_types thw (Sign.simple_read_term thy' T' s1);
+      val t = map_types thw (OldGoals.simple_read_term thy' T' s1);
       val r' = freeze_thaw (condrew thy' eqns
         (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))
           (Const ("realizes", T --> propT --> propT) $

@@ -132,7 +132,7 @@ free_vars_of _ = raise malformed;
 (* making a constructor set from a constructor term (of signature) *)
 fun constr_set_string thy atyp ctstr =
 let
-val trm = Sign.simple_read_term thy atyp ctstr;
+val trm = OldGoals.simple_read_term thy atyp ctstr;
 val l = free_vars_of trm
 in
 if (check_for_constr thy atyp trm) then
@@ -149,7 +149,7 @@ let
 fun hd_of (Const(a,_)) = a |
 hd_of (t $ _) = hd_of t |
 hd_of _ = raise malformed;
-val trm = Sign.simple_read_term thy (Syntax.read_typ_global thy atypstr) s;
+val trm = OldGoals.simple_read_term thy (Syntax.read_typ_global thy atypstr) s;
 in
 hd_of trm handle malformed =>
 error("malformed constructor of datatype " ^ atypstr ^ ": " ^ s)
@@ -177,8 +177,8 @@ poststring ((a,b)::r) l = (pstr a l) ^ " & " ^ (poststring r l);
 (where bool indicates whether there is a precondition *)
 fun extend thy atyp statetupel (actstr,r,[]) =
 let
-val trm = Sign.simple_read_term thy atyp actstr;
-val rtrm = Sign.simple_read_term thy (Type("bool",[])) r;
+val trm = OldGoals.simple_read_term thy atyp actstr;
+val rtrm = OldGoals.simple_read_term thy (Type("bool",[])) r;
 val flag = if (rtrm=Const("True",Type("bool",[]))) then false else true
 in
 if (check_for_constr thy atyp trm)
@@ -191,8 +191,8 @@ let
 fun pseudo_poststring [] = "" |
 pseudo_poststring ((a,b)::[]) = "(" ^ a ^ " = (" ^ b ^ "))" |
 pseudo_poststring ((a,b)::r) = "(" ^ a ^ " = (" ^ b ^ ")) & " ^ (pseudo_poststring r); 
-val trm = Sign.simple_read_term thy atyp actstr;
-val rtrm = Sign.simple_read_term thy (Type("bool",[])) r;
+val trm = OldGoals.simple_read_term thy atyp actstr;
+val rtrm = OldGoals.simple_read_term thy (Type("bool",[])) r;
 val flag = if (rtrm=Const("True",Type("bool",[]))) then false else true
 in
 if (check_for_constr thy atyp trm) then
@@ -364,7 +364,7 @@ automaton_name ^ "_trans == {(" ^
 automaton_name ^ " == (" ^ automaton_name ^ "_asig, " ^ automaton_name ^
 "_initial, " ^ automaton_name ^ "_trans,{},{})")
 ])
-val chk_prime_list = (check_free_primed (Sign.simple_read_term thy2 (Type("bool",[]))
+val chk_prime_list = (check_free_primed (OldGoals.simple_read_term thy2 (Type("bool",[]))
 ( "case act_of_" ^ automaton_name ^ " of " ^ snd(alt_string))))
 in
 (

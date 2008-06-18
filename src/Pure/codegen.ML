@@ -890,7 +890,7 @@ fun gen_generate_code prep_term thy modules module xs =
   end;
 
 val generate_code_i = gen_generate_code Sign.cert_term;
-val generate_code = gen_generate_code Sign.read_term;
+val generate_code = gen_generate_code OldGoals.read_term;
 
 
 (**** Reflection ****)
@@ -1136,7 +1136,7 @@ val _ =
         P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => fold (assoc_const o
        (fn ((const, mfx), aux) =>
-         (const, (parse_mixfix (Sign.read_term thy) mfx, aux)))) xs thy)));
+         (const, (parse_mixfix (OldGoals.read_term thy) mfx, aux)))) xs thy)));
 
 fun parse_code lib =
   Scan.optional (P.$$$ "(" |-- P.enum "," P.xname --| P.$$$ ")") (!mode) --
