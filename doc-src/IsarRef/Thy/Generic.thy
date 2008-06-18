@@ -318,7 +318,7 @@ text {*
   assumption of a subgoal, see also @{ML Tactic.cut_facts_tac} in
   \cite[\S3]{isabelle-ref}.  Note that the scope of schematic
   variables is spread over the main goal statement.  Instantiations
-  may be given as well, see also ML tactic @{ML Tactic.cut_inst_tac}
+  may be given as well, see also ML tactic @{ML cut_inst_tac}
   in \cite[\S3]{isabelle-ref}.
 
   \item [@{method thin_tac}~@{text \<phi>}] deletes the specified
