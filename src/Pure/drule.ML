@@ -78,7 +78,6 @@ sig
   val strip_type: ctyp -> ctyp list * ctyp
   val beta_conv: cterm -> cterm -> cterm
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
-  val add_used: thm -> string list -> string list
   val flexflex_unique: thm -> thm
   val store_thm: bstring -> thm -> thm
   val store_standard_thm: bstring -> thm -> thm
@@ -200,11 +199,6 @@ fun types_sorts thm =
       if i < 0 then AList.lookup (op =) tfrees a else AList.lookup (op =) tvars (a, i);
   in (types, sorts) end;
 
-val add_used =
-  (Thm.fold_terms o fold_types o fold_atyps)
-    (fn TFree (a, _) => insert (op =) a
-      | TVar ((a, _), _) => insert (op =) a
-      | _ => I);
 
 
 
