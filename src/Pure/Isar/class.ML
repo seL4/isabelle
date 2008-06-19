@@ -747,7 +747,7 @@ fun init_instantiation (tycos, vs, sort) thy =
     thy
     |> ProofContext.init
     |> Instantiation.put (mk_instantiation ((tycos, vs, sort), inst_params))
-    |> fold (Variable.declare_term o Logic.mk_type o TFree) vs
+    |> fold (Variable.declare_typ o TFree) vs
     |> fold (Variable.declare_names o Free o snd) inst_params
     |> (Overloading.map_improvable_syntax o apfst)
          (fn ((_, _), ((_, subst), unchecks)) =>
