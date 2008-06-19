@@ -180,12 +180,6 @@ inductive
 where
   SN_intro: "(\<And>t'. t \<longrightarrow>\<^isub>\<beta> t' \<Longrightarrow> SN t') \<Longrightarrow> SN t"
 
-lemma SN_elim:
-  assumes a: "SN M"
-  shows "(\<forall>M. (\<forall>N. M \<longrightarrow>\<^isub>\<beta> N \<longrightarrow> P N)\<longrightarrow> P M) \<longrightarrow> P M"
-using a
-by (induct rule: SN.SN.induct) (blast)
-
 lemma SN_preserved: 
   assumes a: "SN t1" "t1\<longrightarrow>\<^isub>\<beta> t2"
   shows "SN t2"
