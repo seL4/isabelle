@@ -69,6 +69,12 @@ fun make_inst f v =
     val t' = f t;
   in if t aconv t' then NONE else SOME (t, t') end;
 
+val add_used =
+  (Thm.fold_terms o fold_types o fold_atyps)
+    (fn TFree (a, _) => insert (op =) a
+      | TVar ((a, _), _) => insert (op =) a
+      | _ => I);
+
 in
 
 fun read_termTs ctxt schematic ss Ts =
@@ -155,7 +161,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 fun read_instantiate_mixed ctxt mixed_insts thm =
   let
     val ctxt' = ctxt |> Variable.declare_thm thm
-      |> fold (fn a => Variable.declare_internal (Logic.mk_type (TFree (a, [])))) (Drule.add_used thm []);  (* FIXME tmp *)
+      |> fold (fn a => Variable.declare_names (Logic.mk_type (TFree (a, dummyS)))) (add_used thm []);  (* FIXME tmp *)
     val tvars = Thm.fold_terms Term.add_tvars thm [];
     val vars = Thm.fold_terms Term.add_vars thm [];
     val ((type_insts, term_insts), insts) = read_insts ctxt' (map snd mixed_insts) (tvars, vars);
