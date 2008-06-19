@@ -43,6 +43,8 @@ sig
   val get_extinjects: theory -> thm list
   val get_simpset: theory -> simpset
   val print_records: theory -> unit
+  val read_typ: Proof.context -> string -> (string * sort) list -> typ * (string * sort) list
+  val cert_typ: Proof.context -> typ -> (string * sort) list -> typ * (string * sort) list
   val add_record: bool -> string list * string -> string option -> (string * string * mixfix) list
     -> theory -> theory
   val add_record_i: bool -> string list * string -> (typ list * string) option
@@ -1378,22 +1380,25 @@ val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE
 
 (* prepare arguments *)
 
-fun read_raw_parent sign s =
-  (case Sign.read_typ_abbrev sign s handle TYPE (msg, _, _) => error msg of
+fun read_raw_parent ctxt raw_T =
+  (case ProofContext.read_typ_abbrev ctxt raw_T of
     Type (name, Ts) => (Ts, name)
-  | _ => error ("Bad parent record specification: " ^ quote s));
+  | T => error ("Bad parent record specification: " ^ Syntax.string_of_typ ctxt T));
 
-fun read_typ sign (env, s) =
+fun read_typ ctxt raw_T env =
   let
-    fun def_sort (x, ~1) = AList.lookup (op =) env x
-      | def_sort _ = NONE;
-    val T = Type.no_tvars (Sign.read_def_typ (sign, def_sort) s)
-      handle TYPE (msg, _, _) => error msg;
-  in (Term.add_typ_tfrees (T, env), T) end;
+    val ctxt' = fold (Variable.declare_typ o TFree) env ctxt;
+    val T = Syntax.read_typ ctxt' raw_T;
+    val env' = Term.add_typ_tfrees (T, env);
+  in (T, env') end;
 
-fun cert_typ sign (env, raw_T) =
-  let val T = Type.no_tvars (Sign.certify_typ sign raw_T) handle TYPE (msg, _, _) => error msg
-  in (Term.add_typ_tfrees (T, env), T) end;
+fun cert_typ ctxt raw_T env =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val T = Type.no_tvars (Sign.certify_typ thy raw_T) handle TYPE (msg, _, _) => error msg;
+    val env' = Term.add_typ_tfrees (T, env);
+  in (T, env') end;
+
 
 (* attributes *)
 
@@ -2202,6 +2207,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
   in final_thy
   end;
 
+
 (* add_record *)
 
 (*we do all preparations and error checks here, deferring the real
@@ -2211,12 +2217,14 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
     val _ = Theory.requires thy "Record" "record definitions";
     val _ = if quiet_mode then () else writeln ("Defining record " ^ quote bname ^ " ...");
 
+    val ctxt = ProofContext.init thy;
+
 
     (* parents *)
 
-    fun prep_inst T = snd (cert_typ thy ([], T));
+    fun prep_inst T = fst (cert_typ ctxt T []);
 
-    val parent = Option.map (apfst (map prep_inst) o prep_raw_parent thy) raw_parent
+    val parent = Option.map (apfst (map prep_inst) o prep_raw_parent ctxt) raw_parent
       handle ERROR msg => cat_error msg ("The error(s) above in parent record specification");
     val parents = add_parents thy parent [];
 
@@ -2228,12 +2236,12 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
 
     (* fields *)
 
-    fun prep_field (env, (c, raw_T, mx)) =
-      let val (env', T) = prep_typ thy (env, raw_T) handle ERROR msg =>
-        cat_error msg ("The error(s) above occured in field " ^ quote c)
-      in (env', (c, T, mx)) end;
+    fun prep_field (c, raw_T, mx) env =
+      let val (T, env') = prep_typ ctxt raw_T env handle ERROR msg =>
+        cat_error msg ("The error(s) above occured in record field " ^ quote c)
+      in ((c, T, mx), env') end;
 
-    val (envir, bfields) = foldl_map prep_field (init_env, raw_fields);
+    val (bfields, envir) = fold_map prep_field raw_fields init_env;
     val envir_names = map fst envir;
 
 
