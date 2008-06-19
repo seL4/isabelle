@@ -22,10 +22,10 @@ sig
   val default_type: Proof.context -> string -> typ option
   val def_type: Proof.context -> bool -> indexname -> typ option
   val def_sort: Proof.context -> indexname -> sort option
-  val declare_constraints: term -> Proof.context -> Proof.context
   val declare_names: term -> Proof.context -> Proof.context
-  val declare_internal: term -> Proof.context -> Proof.context
+  val declare_constraints: term -> Proof.context -> Proof.context
   val declare_term: term -> Proof.context -> Proof.context
+  val declare_typ: typ -> Proof.context -> Proof.context
   val declare_prf: Proofterm.proof -> Proof.context -> Proof.context
   val declare_thm: thm -> Proof.context -> Proof.context
   val thm_context: thm -> Proof.context
@@ -221,6 +221,8 @@ fun declare_internal t =
 fun declare_term t =
   declare_internal t #>
   declare_constraints t;
+
+val declare_typ = declare_term o Logic.mk_type;
 
 val declare_prf = Proofterm.fold_proof_terms declare_internal (declare_internal o Logic.mk_type);
 
