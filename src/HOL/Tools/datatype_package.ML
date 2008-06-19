@@ -24,6 +24,8 @@ sig
   val make_case :  Proof.context -> bool -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
+  val read_typ: theory ->
+    (typ list * (string * sort) list) * string -> typ list * (string * sort) list
   val interpretation : (string list -> theory -> theory) -> theory -> theory
   val rep_datatype : ({distinct : thm list list,
        inject : thm list list,
@@ -304,17 +306,18 @@ val trfun_setup =
 
 (* prepare types *)
 
-fun read_typ sign ((Ts, sorts), str) =
+fun read_typ thy ((Ts, sorts), str) =
   let
-    val T = Type.no_tvars (Sign.read_def_typ (sign, AList.lookup (op =)
-      (map (apfst (rpair ~1)) sorts)) str) handle TYPE (msg, _, _) => error msg
-  in (Ts @ [T], add_typ_tfrees (T, sorts)) end;
+    val ctxt = ProofContext.init thy
+      |> fold (Variable.declare_typ o TFree) sorts;
+    val T = Syntax.read_typ ctxt str;
+  in (Ts @ [T], Term.add_tfreesT T sorts) end;
 
 fun cert_typ sign ((Ts, sorts), raw_T) =
   let
     val T = Type.no_tvars (Sign.certify_typ sign raw_T) handle
       TYPE (msg, _, _) => error msg;
-    val sorts' = add_typ_tfrees (T, sorts)
+    val sorts' = Term.add_tfreesT T sorts;
   in (Ts @ [T],
       case duplicates (op =) (map fst sorts') of
          [] => sorts'
