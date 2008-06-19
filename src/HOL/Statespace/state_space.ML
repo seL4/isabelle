@@ -40,10 +40,10 @@ signature STATE_SPACE =
 
 
     val neq_x_y : Proof.context -> term -> term -> thm option
-    val distinctNameSolver : MetaSimplifier.solver
+    val distinctNameSolver : Simplifier.solver
     val distinctTree_tac :
        Proof.context -> term * int -> Tactical.tactic
-    val distinct_simproc : MetaSimplifier.simproc
+    val distinct_simproc : Simplifier.simproc
 
 
     val get_comp : Context.generic -> string -> (typ * string) Option.option
@@ -238,9 +238,6 @@ val distinct_simproc =
                        (neq_x_y ctxt x y)
         | NONE => NONE)
       | _ => NONE))
-
-fun read_typ thy s =
-  Sign.read_typ thy s;
 
 local
   val ss = HOL_basic_ss
@@ -477,24 +474,10 @@ fun statespace_definition state_type args name parents parent_comps components t
 
 (* prepare arguments *)
 
-fun read_raw_parent sg s =
-  (case Sign.read_typ_abbrev sg s handle TYPE (msg, _, _) => error msg of
+fun read_raw_parent ctxt raw_T =
+  (case ProofContext.read_typ_abbrev ctxt raw_T of
     Type (name, Ts) => (Ts, name)
-  | _ => error ("Bad parent statespace specification: " ^ quote s));
-
-fun read_typ sg s env  =
-  let
-    fun def_sort (x, ~1) = AList.lookup (op =) env x
-      | def_sort _ = NONE;
-    val T = Type.no_tvars (Sign.read_def_typ (sg, def_sort) s) handle TYPE (msg, _, _) => error msg;
-  in (T, Term.add_typ_tfrees (T, env)) end;
-
-fun cert_typ sg raw_T env =
-  let val T = Type.no_tvars (Sign.certify_typ sg raw_T) handle TYPE (msg, _, _) => error msg
-  in (T, Term.add_typ_tfrees (T, env)) end;
-
-
-
+  | T => error ("Bad parent statespace specification: " ^ Syntax.string_of_typ ctxt T));
 
 fun gen_define_statespace prep_typ state_space args name parents comps thy =
   let (* - args distinct
@@ -505,6 +488,8 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
       *)
     val _ = writeln ("Defining statespace " ^ quote name ^ " ...");
 
+    val ctxt = ProofContext.init thy;
+
     fun add_parent (Ts,pname,rs) env =
       let
         val full_pname = Sign.full_name thy pname;
@@ -514,7 +499,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
                | NONE => error ("Undefined statespace " ^ quote pname));
 
 
-        val (Ts',env') = fold_map (prep_typ thy) Ts env
+        val (Ts',env') = fold_map (prep_typ ctxt) Ts env
             handle ERROR msg => cat_error msg
                     ("The error(s) above occured in parent statespace specification "
                     ^ quote pname);
@@ -554,7 +539,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
           | dups => ["Duplicate state-space components " ^ commas dups]);
 
     fun prep_comp (n,T) env =
-      let val (T', env') = prep_typ thy T env handle ERROR msg =>
+      let val (T', env') = prep_typ ctxt T env handle ERROR msg =>
        cat_error msg ("The error(s) above occured in component " ^ quote n)
       in ((n,T'), env') end;
 
@@ -596,9 +581,8 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
   end
   handle ERROR msg => cat_error msg ("Failed to define statespace " ^ quote name);
 
-
-val define_statespace = gen_define_statespace read_typ NONE;
-val define_statespace_i = gen_define_statespace cert_typ;
+val define_statespace = gen_define_statespace RecordPackage.read_typ NONE;
+val define_statespace_i = gen_define_statespace RecordPackage.cert_typ;
 
 
 (*** parse/print - translations ***)
