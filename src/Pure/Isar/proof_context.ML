@@ -20,7 +20,7 @@ sig
   val set_mode: mode -> Proof.context -> Proof.context
   val get_mode: Proof.context -> mode
   val restore_mode: Proof.context -> Proof.context -> Proof.context
-  val is_abbrev_mode: Proof.context -> bool
+  val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
   val naming_of: Proof.context -> NameSpace.naming
   val full_name: Proof.context -> bstring -> string
@@ -166,8 +166,6 @@ datatype mode =
 fun make_mode (stmt, pattern, schematic, abbrev) =
   Mode {stmt = stmt, pattern = pattern, schematic = schematic, abbrev = abbrev};
 
-fun dest_mode (Mode mode) = mode;
-
 val mode_default   = make_mode (false, false, false, false);
 val mode_stmt      = make_mode (true, false, false, false);
 val mode_pattern   = make_mode (false, true, false, false);
@@ -236,6 +234,7 @@ fun map_cases f =
 
 val get_mode = #mode o rep_context;
 fun restore_mode ctxt = set_mode (get_mode ctxt);
+val abbrev_mode = get_mode #> (fn Mode {abbrev, ...} => abbrev);
 
 fun set_stmt stmt =
   map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
@@ -442,12 +441,10 @@ val read_term_abbrev    = read_term_mode mode_abbrev;
 
 val tsig_of = Sign.tsig_of o ProofContext.theory_of;
 
-val is_abbrev_mode = #abbrev o dest_mode o get_mode;
-
 local
 
 fun certify_consts ctxt = Consts.certify (Syntax.pp ctxt) (tsig_of ctxt)
-  (not (is_abbrev_mode ctxt)) (consts_of ctxt);
+  (not (abbrev_mode ctxt)) (consts_of ctxt);
 
 fun reject_schematic (Var (xi, _)) =
       error ("Unbound schematic variable: " ^ Term.string_of_vname xi)
@@ -520,6 +517,30 @@ end;
 
 (* decoding raw terms (syntax trees) *)
 
+(* types *)
+
+fun get_sort thy def_sort raw_env =
+  let
+    val tsig = Sign.tsig_of thy;
+
+    fun eq ((xi, S), (xi', S')) =
+      Term.eq_ix (xi, xi') andalso Type.eq_sort tsig (S, S');
+    val env = distinct eq raw_env;
+    val _ = (case duplicates (eq_fst (op =)) env of [] => ()
+      | dups => error ("Inconsistent sort constraints for type variable(s) "
+          ^ commas_quote (map (Term.string_of_vname' o fst) dups)));
+
+    fun get xi =
+      (case (AList.lookup (op =) env xi, def_sort xi) of
+        (NONE, NONE) => Type.defaultS tsig
+      | (NONE, SOME S) => S
+      | (SOME S, NONE) => S
+      | (SOME S, SOME S') =>
+          if Type.eq_sort tsig (S, S') then S'
+          else error ("Sort constraint inconsistent with default for type variable " ^
+            quote (Term.string_of_vname' xi)));
+  in get end;
+
 local
 
 fun intern_skolem ctxt def_type x =
@@ -539,7 +560,7 @@ in
 
 fun term_context ctxt =
   let val thy = theory_of ctxt in
-   {get_sort = Sign.get_sort thy (Variable.def_sort ctxt),
+   {get_sort = get_sort thy (Variable.def_sort ctxt),
     map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt a)))
       handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
     map_free = intern_skolem ctxt (Variable.def_type ctxt false),
@@ -621,7 +642,7 @@ fun parse_sort ctxt str =
 fun parse_typ ctxt str =
   let
     val thy = ProofContext.theory_of ctxt;
-    val get_sort = Sign.get_sort thy (Variable.def_sort ctxt);
+    val get_sort = get_sort thy (Variable.def_sort ctxt);
     val T = Sign.intern_tycons thy
       (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) str);
   in T end
