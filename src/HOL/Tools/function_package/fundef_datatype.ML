@@ -8,13 +8,14 @@ A tactic to prove completeness of datatype patterns.
 
 signature FUNDEF_DATATYPE =
 sig
-    val pat_complete_tac: int -> tactic
+    val pat_complete_tac: Proof.context -> int -> tactic
+    val prove_completeness : theory -> term list -> term -> term list list -> term list list -> thm
 
-    val pat_completeness : method
+    val pat_completeness : Proof.context -> method
     val setup : theory -> theory
 end
 
-structure FundefDatatype: FUNDEF_DATATYPE =
+structure FundefDatatype : FUNDEF_DATATYPE =
 struct
 
 open FundefLib
@@ -146,60 +147,60 @@ and o_alg thy P idx [] (([], Pthm) :: _)  = Pthm
   | o_alg _ _ _ _ _ = raise Match
 
 
-fun prove_completeness thy x P qss pats =
+fun prove_completeness thy xs P qss patss =
     let
-        fun mk_assum qs pat = Logic.mk_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (x,pat)),
-                                                HOLogic.mk_Trueprop P)
-                                               |> fold_rev mk_forall qs
-                                               |> cterm_of thy
+        fun mk_assum qs pats = 
+            HOLogic.mk_Trueprop P
+            |> fold_rev (curry Logic.mk_implies o HOLogic.mk_Trueprop o HOLogic.mk_eq) (xs ~~ pats)
+            |> fold_rev mk_forall qs
+            |> cterm_of thy
 
-        val hyps = map2 mk_assum qss pats
+        val hyps = map2 mk_assum qss patss
 
         fun inst_hyps hyp qs = fold (forall_elim o cterm_of thy) qs (assume hyp)
 
         val assums = map2 inst_hyps hyps qss
     in
-        o_alg thy P 2 [x] (map2 (pair o single) pats assums)
+        o_alg thy P 2 xs (patss ~~ assums)
               |> fold_rev implies_intr hyps
     end
 
 
 
-fun pat_complete_tac i thm =
+fun pat_complete_tac ctxt = SUBGOAL (fn (subgoal, i) =>
     let
-      val thy = theory_of_thm thm
+      val thy = ProofContext.theory_of ctxt
+      val (vs, subgf) = dest_all_all subgoal
+      val (cases, _ $ thesis) = Logic.strip_horn subgf
+          handle Bind => raise COMPLETENESS
 
-        val subgoal = nth (prems_of thm) (i - 1)   (* FIXME SUBGOAL tactical *)
-
-        val ([P, x], subgf) = dest_all_all subgoal
-
-        val assums = Logic.strip_imp_prems subgf
-
-        fun pat_of assum =
+      fun pat_of assum =
             let
                 val (qs, imp) = dest_all_all assum
+                val prems = Logic.strip_imp_prems imp
             in
-                case Logic.dest_implies imp of
-                    (_ $ (_ $ _ $ pat), _) => (qs, pat)
-                  | _ => raise COMPLETENESS
+              (qs, map (HOLogic.dest_eq o HOLogic.dest_Trueprop) prems)
             end
 
-        val (qss, pats) = split_list (map pat_of assums)
+        val (qss, x_pats) = split_list (map pat_of cases)
+        val xs = map fst (hd x_pats)
+                 handle Empty => raise COMPLETENESS
+                 
+        val patss = map (map snd) x_pats 
 
-        val complete_thm = prove_completeness thy x P qss pats
-                                              |> forall_intr (cterm_of thy x)
-                                              |> forall_intr (cterm_of thy P)
+        val complete_thm = prove_completeness thy xs thesis qss patss
+             |> fold_rev (forall_intr o cterm_of thy) vs
     in
-        Seq.single (Drule.compose_single(complete_thm, i, thm))
+      PRIMITIVE (fn st => Drule.compose_single(complete_thm, i, st))
     end
-    handle COMPLETENESS => Seq.empty
+    handle COMPLETENESS => no_tac)
 
 
-val pat_completeness = Method.SIMPLE_METHOD' pat_complete_tac
+fun pat_completeness ctxt = Method.SIMPLE_METHOD' (pat_complete_tac ctxt)
 
 val by_pat_completeness_simp =
     Proof.global_terminal_proof
-      (Method.Basic (K pat_completeness, Position.none),
+      (Method.Basic (pat_completeness, Position.none),
        SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
 val termination_by_lexicographic_order =
@@ -292,7 +293,7 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
     end
 
 val setup =
-    Method.add_methods [("pat_completeness", Method.no_args pat_completeness, 
+    Method.add_methods [("pat_completeness", Method.ctxt_args pat_completeness, 
                          "Completeness prover for datatype patterns")]
     #> Context.theory_map (FundefCommon.set_preproc sequential_preproc)
 

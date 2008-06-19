@@ -44,6 +44,6 @@ theorem even_odd_induct:
   assumes "\<And>n. R n \<Longrightarrow> Q (Suc n)"
   shows "R n" "Q n"
   using assms
-by induct_scheme (pat_completeness, lexicographic_order)
+by induct_scheme (pat_completeness+, lexicographic_order)
 
 end
