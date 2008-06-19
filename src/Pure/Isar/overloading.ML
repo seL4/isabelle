@@ -70,7 +70,7 @@ fun improve_term_check ts ctxt =
     val { primary_constraints, secondary_constraints, improve, subst,
       consider_abbrevs, passed, ... } = ImprovableSyntax.get ctxt;
     val tsig = (Sign.tsig_of o ProofContext.theory_of) ctxt;
-    val is_abbrev = consider_abbrevs andalso ProofContext.is_abbrev_mode ctxt;
+    val is_abbrev = consider_abbrevs andalso ProofContext.abbrev_mode ctxt;
     val passed_or_abbrev = passed orelse is_abbrev;
     fun accumulate_improvements (Const (c, ty)) = (case improve (c, ty)
          of SOME ty_ty' => Type.typ_match tsig ty_ty'
