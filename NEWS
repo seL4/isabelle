@@ -61,9 +61,10 @@ context, which is required for parsing and type-checking.  Moreover,
 the variables are specified as plain indexnames, not string encodings
 thereof.  INCOMPATIBILITY.
 
-* Disposed old term read functions (Sign.read_def_terms,
-Sign.read_term, Thm.read_def_cterms, Thm.read_cterm etc.).
-INCOMPATIBILITY, should use regular Syntax.read_term,
+* Disposed old type and term read functions (Sign.read_def_typ,
+Sign.read_typ, Sign.read_def_terms, Sign.read_term,
+Thm.read_def_cterms, Thm.read_cterm etc.).  INCOMPATIBILITY, should
+use regular Syntax.read_typ, Syntax.read_term, Syntax.read_typ_global,
 Syntax.read_term_global etc.; see also OldGoals.read_term as last
 resort for legacy applications.
 
