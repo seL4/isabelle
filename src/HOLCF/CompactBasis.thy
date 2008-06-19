@@ -136,6 +136,15 @@ locale basis_take = preorder +
   assumes take_chain: "take n a \<preceq> take (Suc n) a"
   assumes finite_range_take: "finite (range (take n))"
   assumes take_covers: "\<exists>n. take n a = a"
+begin
+
+lemma take_chain_less: "m < n \<Longrightarrow> take m a \<preceq> take n a"
+by (erule less_Suc_induct, rule take_chain, erule (1) r_trans)
+
+lemma take_chain_le: "m \<le> n \<Longrightarrow> take m a \<preceq> take n a"
+by (cases "m = n", simp add: r_refl, simp add: take_chain_less)
+
+end
 
 locale ideal_completion = basis_take +
   fixes principal :: "'a::type \<Rightarrow> 'b::cpo"
