@@ -16,21 +16,21 @@ signature STATE_SPACE =
 
     val namespace_definition :
        bstring ->
-       Term.typ ->
+       typ ->
        Locale.expr ->
-       string list -> string list -> Context.theory -> Context.theory
+       string list -> string list -> theory -> theory
 
     val define_statespace :
        string list ->
        string ->
        (string list * bstring * (string * string) list) list ->
-       (string * string) list -> Context.theory -> Context.theory
+       (string * string) list -> theory -> theory
     val define_statespace_i :
        string option ->
        string list ->
        string ->
-       (Term.typ list * bstring * (string * string) list) list ->
-       (string * Term.typ) list -> Context.theory -> Context.theory
+       (typ list * bstring * (string * string) list) list ->
+       (string * typ) list -> theory -> theory
 
     val statespace_decl :
        OuterParse.token list ->
@@ -39,31 +39,26 @@ signature STATE_SPACE =
           (bstring * string) list)) * OuterParse.token list
 
 
-    val neq_x_y : Context.proof -> Term.term -> Term.term -> Thm.thm option
+    val neq_x_y : Proof.context -> term -> term -> thm option
     val distinctNameSolver : MetaSimplifier.solver
     val distinctTree_tac :
-       Context.proof -> Term.term * int -> Tactical.tactic
+       Proof.context -> term * int -> Tactical.tactic
     val distinct_simproc : MetaSimplifier.simproc
 
 
-    val get_comp : Context.generic -> string -> (Term.typ * string) Option.option
+    val get_comp : Context.generic -> string -> (typ * string) Option.option
     val get_silent : Context.generic -> bool
     val set_silent : bool -> Context.generic -> Context.generic
 
-    val read_typ :
-       Context.theory ->
-       string ->
-       (string * Term.sort) list -> Term.typ * (string * Term.sort) list
-
-    val gen_lookup_tr : Context.proof -> Term.term -> string -> Term.term
-    val lookup_swap_tr : Context.proof -> Term.term list -> Term.term
-    val lookup_tr : Context.proof -> Term.term list -> Term.term
-    val lookup_tr' : Context.proof -> Term.term list -> Term.term
+    val gen_lookup_tr : Proof.context -> term -> string -> term
+    val lookup_swap_tr : Proof.context -> term list -> term
+    val lookup_tr : Proof.context -> term list -> term
+    val lookup_tr' : Proof.context -> term list -> term
 
     val gen_update_tr :
-       bool -> Context.proof -> string -> Term.term -> Term.term -> Term.term
-    val update_tr : Context.proof -> Term.term list -> Term.term
-    val update_tr' : Context.proof -> Term.term list -> Term.term
+       bool -> Proof.context -> string -> term -> term -> term
+    val update_tr : Proof.context -> term list -> term
+    val update_tr' : Proof.context -> term list -> term
   end;
 
 
@@ -326,8 +321,6 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
      |> #2
   end;
 
-structure Typetab = TableFun(type key=typ val ord = Term.typ_ord);
-
 fun encode_dot x = if x= #"." then #"_" else x;
 
 fun encode_type (TFree (s, _)) = s
@@ -396,8 +389,8 @@ fun statespace_definition state_type args name parents parent_comps components t
     val parents_expr = Locale.Merge (fold (fn p => fn es => parent_expr p::es) parents []);
 
     fun distinct_types Ts =
-      let val tab = fold (fn T => fn tab => Typetab.update (T,()) tab) Ts Typetab.empty;
-      in map fst (Typetab.dest tab) end;
+      let val tab = fold (fn T => fn tab => Typtab.update (T,()) tab) Ts Typtab.empty;
+      in map fst (Typtab.dest tab) end;
 
     val Ts = distinct_types (map snd all_comps);
     val arg_names = map fst args;
