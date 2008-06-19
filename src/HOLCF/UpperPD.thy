@@ -70,23 +70,23 @@ apply (simp add: 2)
 apply (simp add: upper_le_PDPlus_iff 3)
 done
 
-lemma approx_pd_upper_mono1:
-  "i \<le> j \<Longrightarrow> approx_pd i t \<le>\<sharp> approx_pd j t"
+lemma approx_pd_upper_chain:
+  "approx_pd n t \<le>\<sharp> approx_pd (Suc n) t"
 apply (induct t rule: pd_basis_induct)
-apply (simp add: compact_approx_mono1)
+apply (simp add: compact_basis.take_chain)
 apply (simp add: PDPlus_upper_mono)
 done
 
 lemma approx_pd_upper_le: "approx_pd i t \<le>\<sharp> t"
 apply (induct t rule: pd_basis_induct)
-apply (simp add: compact_approx_le)
+apply (simp add: compact_basis.take_less)
 apply (simp add: PDPlus_upper_mono)
 done
 
 lemma approx_pd_upper_mono:
   "t \<le>\<sharp> u \<Longrightarrow> approx_pd n t \<le>\<sharp> approx_pd n u"
 apply (erule upper_le_induct)
-apply (simp add: compact_approx_mono)
+apply (simp add: compact_basis.take_mono)
 apply (simp add: upper_le_PDPlus_PDUnit_iff)
 apply (simp add: upper_le_PDPlus_iff)
 done
@@ -120,29 +120,16 @@ apply unfold_locales
 apply (rule approx_pd_upper_le)
 apply (rule approx_pd_idem)
 apply (erule approx_pd_upper_mono)
-apply (rule approx_pd_upper_mono1, simp)
+apply (rule approx_pd_upper_chain)
 apply (rule finite_range_approx_pd)
-apply (rule ex_approx_pd_eq)
+apply (rule approx_pd_covers)
 apply (rule ideal_Rep_upper_pd)
 apply (rule cont_Rep_upper_pd)
 apply (rule Rep_upper_principal)
 apply (simp only: less_upper_pd_def less_set_eq)
 done
 
-lemma upper_principal_less_iff [simp]:
-  "upper_principal t \<sqsubseteq> upper_principal u \<longleftrightarrow> t \<le>\<sharp> u"
-by (rule upper_pd.principal_less_iff)
-
-lemma upper_principal_eq_iff:
-  "upper_principal t = upper_principal u \<longleftrightarrow> t \<le>\<sharp> u \<and> u \<le>\<sharp> t"
-by (rule upper_pd.principal_eq_iff)
-
-lemma upper_principal_mono:
-  "t \<le>\<sharp> u \<Longrightarrow> upper_principal t \<sqsubseteq> upper_principal u"
-by (rule upper_pd.principal_mono)
-
-lemma compact_upper_principal: "compact (upper_principal t)"
-by (rule upper_pd.compact_principal)
+text {* Upper powerdomain is pointed *}
 
 lemma upper_pd_minimal: "upper_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: upper_pd.principal_induct, simp, simp)
@@ -153,8 +140,7 @@ by intro_classes (fast intro: upper_pd_minimal)
 lemma inst_upper_pd_pcpo: "\<bottom> = upper_principal (PDUnit compact_bot)"
 by (rule upper_pd_minimal [THEN UU_I, symmetric])
 
-
-subsection {* Approximation *}
+text {* Upper powerdomain is profinite *}
 
 instantiation upper_pd :: (profinite) profinite
 begin
@@ -184,24 +170,6 @@ lemma approx_eq_upper_principal:
 unfolding approx_upper_pd_def
 by (rule upper_pd.completion_approx_eq_principal)
 
-lemma compact_imp_upper_principal:
-  "compact xs \<Longrightarrow> \<exists>t. xs = upper_principal t"
-by (rule upper_pd.compact_imp_principal)
-
-lemma upper_principal_induct:
-  "\<lbrakk>adm P; \<And>t. P (upper_principal t)\<rbrakk> \<Longrightarrow> P xs"
-by (rule upper_pd.principal_induct)
-
-lemma upper_principal_induct2:
-  "\<lbrakk>\<And>ys. adm (\<lambda>xs. P xs ys); \<And>xs. adm (\<lambda>ys. P xs ys);
-    \<And>t u. P (upper_principal t) (upper_principal u)\<rbrakk> \<Longrightarrow> P xs ys"
-apply (rule_tac x=ys in spec)
-apply (rule_tac xs=xs in upper_principal_induct, simp)
-apply (rule allI, rename_tac ys)
-apply (rule_tac xs=ys in upper_principal_induct, simp)
-apply simp
-done
-
 
 subsection {* Monadic unit and plus *}
 
@@ -229,8 +197,7 @@ translations
 lemma upper_unit_Rep_compact_basis [simp]:
   "{Rep_compact_basis a}\<sharp> = upper_principal (PDUnit a)"
 unfolding upper_unit_def
-by (simp add: compact_basis.basis_fun_principal
-    upper_principal_mono PDUnit_upper_mono)
+by (simp add: compact_basis.basis_fun_principal PDUnit_upper_mono)
 
 lemma upper_plus_principal [simp]:
   "upper_principal t +\<sharp> upper_principal u = upper_principal (PDPlus t u)"
@@ -240,27 +207,27 @@ by (simp add: upper_pd.basis_fun_principal
 
 lemma approx_upper_unit [simp]:
   "approx n\<cdot>{x}\<sharp> = {approx n\<cdot>x}\<sharp>"
-apply (induct x rule: compact_basis_induct, simp)
+apply (induct x rule: compact_basis.principal_induct, simp)
 apply (simp add: approx_Rep_compact_basis)
 done
 
 lemma approx_upper_plus [simp]:
   "approx n\<cdot>(xs +\<sharp> ys) = (approx n\<cdot>xs) +\<sharp> (approx n\<cdot>ys)"
-by (induct xs ys rule: upper_principal_induct2, simp, simp, simp)
+by (induct xs ys rule: upper_pd.principal_induct2, simp, simp, simp)
 
 lemma upper_plus_assoc: "(xs +\<sharp> ys) +\<sharp> zs = xs +\<sharp> (ys +\<sharp> zs)"
-apply (induct xs ys arbitrary: zs rule: upper_principal_induct2, simp, simp)
-apply (rule_tac xs=zs in upper_principal_induct, simp)
+apply (induct xs ys arbitrary: zs rule: upper_pd.principal_induct2, simp, simp)
+apply (rule_tac x=zs in upper_pd.principal_induct, simp)
 apply (simp add: PDPlus_assoc)
 done
 
 lemma upper_plus_commute: "xs +\<sharp> ys = ys +\<sharp> xs"
-apply (induct xs ys rule: upper_principal_induct2, simp, simp)
+apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_commute)
 done
 
 lemma upper_plus_absorb: "xs +\<sharp> xs = xs"
-apply (induct xs rule: upper_principal_induct, simp)
+apply (induct xs rule: upper_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
@@ -277,7 +244,7 @@ by (rule aci_upper_plus.mult_left_idem)
 lemmas upper_plus_aci = aci_upper_plus.mult_ac_idem
 
 lemma upper_plus_less1: "xs +\<sharp> ys \<sqsubseteq> xs"
-apply (induct xs ys rule: upper_principal_induct2, simp, simp)
+apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_upper_less)
 done
 
@@ -304,9 +271,9 @@ lemma upper_plus_less_unit_iff:
     "adm (\<lambda>f. f\<cdot>xs \<sqsubseteq> f\<cdot>{z}\<sharp> \<or> f\<cdot>ys \<sqsubseteq> f\<cdot>{z}\<sharp>)")
    apply (drule admD, rule chain_approx)
     apply (drule_tac f="approx i" in monofun_cfun_arg)
-    apply (cut_tac xs="approx i\<cdot>xs" in compact_imp_upper_principal, simp)
-    apply (cut_tac xs="approx i\<cdot>ys" in compact_imp_upper_principal, simp)
-    apply (cut_tac x="approx i\<cdot>z" in compact_imp_Rep_compact_basis, simp)
+    apply (cut_tac x="approx i\<cdot>xs" in upper_pd.compact_imp_principal, simp)
+    apply (cut_tac x="approx i\<cdot>ys" in upper_pd.compact_imp_principal, simp)
+    apply (cut_tac x="approx i\<cdot>z" in compact_basis.compact_imp_principal, simp)
     apply (clarify, simp add: upper_le_PDPlus_PDUnit_iff)
    apply simp
   apply simp
@@ -319,9 +286,9 @@ lemma upper_unit_less_iff [simp]: "{x}\<sharp> \<sqsubseteq> {y}\<sharp> \<longl
  apply (rule iffI)
   apply (rule bifinite_less_ext)
   apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
-  apply (cut_tac x="approx i\<cdot>x" in compact_imp_Rep_compact_basis, simp)
-  apply (cut_tac x="approx i\<cdot>y" in compact_imp_Rep_compact_basis, simp)
-  apply (clarify, simp add: compact_le_def)
+  apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
+  apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
+  apply clarsimp
  apply (erule monofun_cfun_arg)
 done
 
@@ -349,8 +316,8 @@ lemma upper_plus_strict_iff [simp]:
   "xs +\<sharp> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<or> ys = \<bottom>"
 apply (rule iffI)
 apply (erule rev_mp)
-apply (rule upper_principal_induct2 [where xs=xs and ys=ys], simp, simp)
-apply (simp add: inst_upper_pd_pcpo upper_principal_eq_iff
+apply (rule upper_pd.principal_induct2 [where x=xs and y=ys], simp, simp)
+apply (simp add: inst_upper_pd_pcpo upper_pd.principal_eq_iff
                  upper_le_PDPlus_PDUnit_iff)
 apply auto
 done
@@ -360,9 +327,7 @@ unfolding bifinite_compact_iff by simp
 
 lemma compact_upper_plus [simp]:
   "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs +\<sharp> ys)"
-apply (drule compact_imp_upper_principal)+
-apply (auto simp add: compact_upper_principal)
-done
+by (auto dest!: upper_pd.compact_imp_principal)
 
 
 subsection {* Induction rules *}
@@ -372,8 +337,8 @@ lemma upper_pd_induct1:
   assumes unit: "\<And>x. P {x}\<sharp>"
   assumes insert: "\<And>x ys. \<lbrakk>P {x}\<sharp>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<sharp> +\<sharp> ys)"
   shows "P (xs::'a upper_pd)"
-apply (induct xs rule: upper_principal_induct, rule P)
-apply (induct_tac t rule: pd_basis_induct1)
+apply (induct xs rule: upper_pd.principal_induct, rule P)
+apply (induct_tac a rule: pd_basis_induct1)
 apply (simp only: upper_unit_Rep_compact_basis [symmetric])
 apply (rule unit)
 apply (simp only: upper_unit_Rep_compact_basis [symmetric]
@@ -386,8 +351,8 @@ lemma upper_pd_induct:
   assumes unit: "\<And>x. P {x}\<sharp>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs +\<sharp> ys)"
   shows "P (xs::'a upper_pd)"
-apply (induct xs rule: upper_principal_induct, rule P)
-apply (induct_tac t rule: pd_basis_induct)
+apply (induct xs rule: upper_pd.principal_induct, rule P)
+apply (induct_tac a rule: pd_basis_induct)
 apply (simp only: upper_unit_Rep_compact_basis [symmetric] unit)
 apply (simp only: upper_plus_principal [symmetric] plus)
 done
@@ -425,7 +390,7 @@ lemma upper_bind_basis_mono:
   "t \<le>\<sharp> u \<Longrightarrow> upper_bind_basis t \<sqsubseteq> upper_bind_basis u"
 unfolding expand_cfun_less
 apply (erule upper_le_induct, safe)
-apply (simp add: compact_le_def monofun_cfun)
+apply (simp add: monofun_cfun)
 apply (simp add: trans_less [OF upper_plus_less1])
 apply (simp add: upper_less_plus_iff)
 done
@@ -443,11 +408,11 @@ done
 
 lemma upper_bind_unit [simp]:
   "upper_bind\<cdot>{x}\<sharp>\<cdot>f = f\<cdot>x"
-by (induct x rule: compact_basis_induct, simp, simp)
+by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma upper_bind_plus [simp]:
   "upper_bind\<cdot>(xs +\<sharp> ys)\<cdot>f = upper_bind\<cdot>xs\<cdot>f +\<sharp> upper_bind\<cdot>ys\<cdot>f"
-by (induct xs ys rule: upper_principal_induct2, simp, simp, simp)
+by (induct xs ys rule: upper_pd.principal_induct2, simp, simp, simp)
 
 lemma upper_bind_strict [simp]: "upper_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
 unfolding upper_unit_strict [symmetric] by (rule upper_bind_unit)

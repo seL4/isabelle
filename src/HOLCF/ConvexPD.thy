@@ -117,16 +117,16 @@ apply (drule convex_le_PDPlus_lemma, clarify)
 apply (simp add: 4)
 done
 
-lemma approx_pd_convex_mono1:
-  "i \<le> j \<Longrightarrow> approx_pd i t \<le>\<natural> approx_pd j t"
+lemma approx_pd_convex_chain:
+  "approx_pd n t \<le>\<natural> approx_pd (Suc n) t"
 apply (induct t rule: pd_basis_induct)
-apply (simp add: compact_approx_mono1)
+apply (simp add: compact_basis.take_chain)
 apply (simp add: PDPlus_convex_mono)
 done
 
 lemma approx_pd_convex_le: "approx_pd i t \<le>\<natural> t"
 apply (induct t rule: pd_basis_induct)
-apply (simp add: compact_approx_le)
+apply (simp add: compact_basis.take_less)
 apply (simp add: PDPlus_convex_mono)
 done
 
@@ -134,7 +134,7 @@ lemma approx_pd_convex_mono:
   "t \<le>\<natural> u \<Longrightarrow> approx_pd n t \<le>\<natural> approx_pd n u"
 apply (erule convex_le_induct)
 apply (erule (1) convex_le_trans)
-apply (simp add: compact_approx_mono)
+apply (simp add: compact_basis.take_mono)
 apply (simp add: PDPlus_convex_mono)
 done
 
@@ -170,29 +170,16 @@ apply unfold_locales
 apply (rule approx_pd_convex_le)
 apply (rule approx_pd_idem)
 apply (erule approx_pd_convex_mono)
-apply (rule approx_pd_convex_mono1, simp)
+apply (rule approx_pd_convex_chain)
 apply (rule finite_range_approx_pd)
-apply (rule ex_approx_pd_eq)
+apply (rule approx_pd_covers)
 apply (rule ideal_Rep_convex_pd)
 apply (rule cont_Rep_convex_pd)
 apply (rule Rep_convex_principal)
 apply (simp only: less_convex_pd_def less_set_eq)
 done
 
-lemma convex_principal_less_iff [simp]:
-  "convex_principal t \<sqsubseteq> convex_principal u \<longleftrightarrow> t \<le>\<natural> u"
-by (rule convex_pd.principal_less_iff)
-
-lemma convex_principal_eq_iff [simp]:
-  "convex_principal t = convex_principal u \<longleftrightarrow> t \<le>\<natural> u \<and> u \<le>\<natural> t"
-by (rule convex_pd.principal_eq_iff)
-
-lemma convex_principal_mono:
-  "t \<le>\<natural> u \<Longrightarrow> convex_principal t \<sqsubseteq> convex_principal u"
-by (rule convex_pd.principal_mono)
-
-lemma compact_convex_principal: "compact (convex_principal t)"
-by (rule convex_pd.compact_principal)
+text {* Convex powerdomain is pointed *}
 
 lemma convex_pd_minimal: "convex_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: convex_pd.principal_induct, simp, simp)
@@ -203,8 +190,7 @@ by intro_classes (fast intro: convex_pd_minimal)
 lemma inst_convex_pd_pcpo: "\<bottom> = convex_principal (PDUnit compact_bot)"
 by (rule convex_pd_minimal [THEN UU_I, symmetric])
 
-
-subsection {* Approximation *}
+text {* Convex powerdomain is profinite *}
 
 instantiation convex_pd :: (profinite) profinite
 begin
@@ -234,24 +220,6 @@ lemma approx_eq_convex_principal:
 unfolding approx_convex_pd_def
 by (rule convex_pd.completion_approx_eq_principal)
 
-lemma compact_imp_convex_principal:
-  "compact xs \<Longrightarrow> \<exists>t. xs = convex_principal t"
-by (rule convex_pd.compact_imp_principal)
-
-lemma convex_principal_induct:
-  "\<lbrakk>adm P; \<And>t. P (convex_principal t)\<rbrakk> \<Longrightarrow> P xs"
-by (rule convex_pd.principal_induct)
-
-lemma convex_principal_induct2:
-  "\<lbrakk>\<And>ys. adm (\<lambda>xs. P xs ys); \<And>xs. adm (\<lambda>ys. P xs ys);
-    \<And>t u. P (convex_principal t) (convex_principal u)\<rbrakk> \<Longrightarrow> P xs ys"
-apply (rule_tac x=ys in spec)
-apply (rule_tac xs=xs in convex_principal_induct, simp)
-apply (rule allI, rename_tac ys)
-apply (rule_tac xs=ys in convex_principal_induct, simp)
-apply simp
-done
-
 
 subsection {* Monadic unit and plus *}
 
@@ -279,8 +247,7 @@ translations
 lemma convex_unit_Rep_compact_basis [simp]:
   "{Rep_compact_basis a}\<natural> = convex_principal (PDUnit a)"
 unfolding convex_unit_def
-by (simp add: compact_basis.basis_fun_principal
-    convex_principal_mono PDUnit_convex_mono)
+by (simp add: compact_basis.basis_fun_principal PDUnit_convex_mono)
 
 lemma convex_plus_principal [simp]:
   "convex_principal t +\<natural> convex_principal u = convex_principal (PDPlus t u)"
@@ -290,28 +257,28 @@ by (simp add: convex_pd.basis_fun_principal
 
 lemma approx_convex_unit [simp]:
   "approx n\<cdot>{x}\<natural> = {approx n\<cdot>x}\<natural>"
-apply (induct x rule: compact_basis_induct, simp)
+apply (induct x rule: compact_basis.principal_induct, simp)
 apply (simp add: approx_Rep_compact_basis)
 done
 
 lemma approx_convex_plus [simp]:
   "approx n\<cdot>(xs +\<natural> ys) = approx n\<cdot>xs +\<natural> approx n\<cdot>ys"
-by (induct xs ys rule: convex_principal_induct2, simp, simp, simp)
+by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 
 lemma convex_plus_assoc:
   "(xs +\<natural> ys) +\<natural> zs = xs +\<natural> (ys +\<natural> zs)"
-apply (induct xs ys arbitrary: zs rule: convex_principal_induct2, simp, simp)
-apply (rule_tac xs=zs in convex_principal_induct, simp)
+apply (induct xs ys arbitrary: zs rule: convex_pd.principal_induct2, simp, simp)
+apply (rule_tac x=zs in convex_pd.principal_induct, simp)
 apply (simp add: PDPlus_assoc)
 done
 
 lemma convex_plus_commute: "xs +\<natural> ys = ys +\<natural> xs"
-apply (induct xs ys rule: convex_principal_induct2, simp, simp)
+apply (induct xs ys rule: convex_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_commute)
 done
 
 lemma convex_plus_absorb: "xs +\<natural> xs = xs"
-apply (induct xs rule: convex_principal_induct, simp)
+apply (induct xs rule: convex_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
@@ -334,9 +301,9 @@ lemma convex_unit_less_plus_iff [simp]:
     "adm (\<lambda>f. f\<cdot>{x}\<natural> \<sqsubseteq> f\<cdot>ys \<and> f\<cdot>{x}\<natural> \<sqsubseteq> f\<cdot>zs)")
    apply (drule admD, rule chain_approx)
     apply (drule_tac f="approx i" in monofun_cfun_arg)
-    apply (cut_tac x="approx i\<cdot>x" in compact_imp_Rep_compact_basis, simp)
-    apply (cut_tac xs="approx i\<cdot>ys" in compact_imp_convex_principal, simp)
-    apply (cut_tac xs="approx i\<cdot>zs" in compact_imp_convex_principal, simp)
+    apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
+    apply (cut_tac x="approx i\<cdot>ys" in convex_pd.compact_imp_principal, simp)
+    apply (cut_tac x="approx i\<cdot>zs" in convex_pd.compact_imp_principal, simp)
     apply (clarify, simp)
    apply simp
   apply simp
@@ -352,9 +319,9 @@ lemma convex_plus_less_unit_iff [simp]:
     "adm (\<lambda>f. f\<cdot>xs \<sqsubseteq> f\<cdot>{z}\<natural> \<and> f\<cdot>ys \<sqsubseteq> f\<cdot>{z}\<natural>)")
    apply (drule admD, rule chain_approx)
     apply (drule_tac f="approx i" in monofun_cfun_arg)
-    apply (cut_tac xs="approx i\<cdot>xs" in compact_imp_convex_principal, simp)
-    apply (cut_tac xs="approx i\<cdot>ys" in compact_imp_convex_principal, simp)
-    apply (cut_tac x="approx i\<cdot>z" in compact_imp_Rep_compact_basis, simp)
+    apply (cut_tac x="approx i\<cdot>xs" in convex_pd.compact_imp_principal, simp)
+    apply (cut_tac x="approx i\<cdot>ys" in convex_pd.compact_imp_principal, simp)
+    apply (cut_tac x="approx i\<cdot>z" in compact_basis.compact_imp_principal, simp)
     apply (clarify, simp)
    apply simp
   apply simp
@@ -367,9 +334,9 @@ lemma convex_unit_less_iff [simp]: "{x}\<natural> \<sqsubseteq> {y}\<natural> \<
  apply (rule iffI)
   apply (rule bifinite_less_ext)
   apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
-  apply (cut_tac x="approx i\<cdot>x" in compact_imp_Rep_compact_basis, simp)
-  apply (cut_tac x="approx i\<cdot>y" in compact_imp_Rep_compact_basis, simp)
-  apply (clarify, simp add: compact_le_def)
+  apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
+  apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
+  apply clarsimp
  apply (erule monofun_cfun_arg)
 done
 
@@ -388,9 +355,7 @@ unfolding bifinite_compact_iff by simp
 
 lemma compact_convex_plus [simp]:
   "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs +\<natural> ys)"
-apply (drule compact_imp_convex_principal)+
-apply (auto simp add: compact_convex_principal)
-done
+by (auto dest!: convex_pd.compact_imp_principal)
 
 
 subsection {* Induction rules *}
@@ -400,8 +365,8 @@ lemma convex_pd_induct1:
   assumes unit: "\<And>x. P {x}\<natural>"
   assumes insert: "\<And>x ys. \<lbrakk>P {x}\<natural>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<natural> +\<natural> ys)"
   shows "P (xs::'a convex_pd)"
-apply (induct xs rule: convex_principal_induct, rule P)
-apply (induct_tac t rule: pd_basis_induct1)
+apply (induct xs rule: convex_pd.principal_induct, rule P)
+apply (induct_tac a rule: pd_basis_induct1)
 apply (simp only: convex_unit_Rep_compact_basis [symmetric])
 apply (rule unit)
 apply (simp only: convex_unit_Rep_compact_basis [symmetric]
@@ -414,8 +379,8 @@ lemma convex_pd_induct:
   assumes unit: "\<And>x. P {x}\<natural>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs +\<natural> ys)"
   shows "P (xs::'a convex_pd)"
-apply (induct xs rule: convex_principal_induct, rule P)
-apply (induct_tac t rule: pd_basis_induct)
+apply (induct xs rule: convex_pd.principal_induct, rule P)
+apply (induct_tac a rule: pd_basis_induct)
 apply (simp only: convex_unit_Rep_compact_basis [symmetric] unit)
 apply (simp only: convex_plus_principal [symmetric] plus)
 done
@@ -457,8 +422,8 @@ lemma convex_bind_basis_mono:
   "t \<le>\<natural> u \<Longrightarrow> convex_bind_basis t \<sqsubseteq> convex_bind_basis u"
 apply (erule convex_le_induct)
 apply (erule (1) trans_less)
-apply (simp add: monofun_LAM compact_le_def monofun_cfun)
-apply (simp add: monofun_LAM compact_le_def monofun_cfun)
+apply (simp add: monofun_LAM monofun_cfun)
+apply (simp add: monofun_LAM monofun_cfun)
 done
 
 definition
@@ -474,11 +439,11 @@ done
 
 lemma convex_bind_unit [simp]:
   "convex_bind\<cdot>{x}\<natural>\<cdot>f = f\<cdot>x"
-by (induct x rule: compact_basis_induct, simp, simp)
+by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma convex_bind_plus [simp]:
   "convex_bind\<cdot>(xs +\<natural> ys)\<cdot>f = convex_bind\<cdot>xs\<cdot>f +\<natural> convex_bind\<cdot>ys\<cdot>f"
-by (induct xs ys rule: convex_principal_induct2, simp, simp, simp)
+by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 
 lemma convex_bind_strict [simp]: "convex_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
 unfolding convex_unit_strict [symmetric] by (rule convex_bind_unit)
@@ -549,21 +514,35 @@ lemma convex_to_upper_principal [simp]:
   "convex_to_upper\<cdot>(convex_principal t) = upper_principal t"
 unfolding convex_to_upper_def
 apply (rule convex_pd.basis_fun_principal)
-apply (rule upper_principal_mono)
+apply (rule upper_pd.principal_mono)
 apply (erule convex_le_imp_upper_le)
 done
 
 lemma convex_to_upper_unit [simp]:
   "convex_to_upper\<cdot>{x}\<natural> = {x}\<sharp>"
-by (induct x rule: compact_basis_induct, simp, simp)
+by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma convex_to_upper_plus [simp]:
   "convex_to_upper\<cdot>(xs +\<natural> ys) = convex_to_upper\<cdot>xs +\<sharp> convex_to_upper\<cdot>ys"
-by (induct xs ys rule: convex_principal_induct2, simp, simp, simp)
+by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 
 lemma approx_convex_to_upper:
   "approx i\<cdot>(convex_to_upper\<cdot>xs) = convex_to_upper\<cdot>(approx i\<cdot>xs)"
 by (induct xs rule: convex_pd_induct, simp, simp, simp)
+
+lemma convex_to_upper_bind [simp]:
+  "convex_to_upper\<cdot>(convex_bind\<cdot>xs\<cdot>f) =
+    upper_bind\<cdot>(convex_to_upper\<cdot>xs)\<cdot>(convex_to_upper oo f)"
+by (induct xs rule: convex_pd_induct, simp, simp, simp)
+
+lemma convex_to_upper_map [simp]:
+  "convex_to_upper\<cdot>(convex_map\<cdot>f\<cdot>xs) = upper_map\<cdot>f\<cdot>(convex_to_upper\<cdot>xs)"
+by (simp add: convex_map_def upper_map_def cfcomp_LAM)
+
+lemma convex_to_upper_join [simp]:
+  "convex_to_upper\<cdot>(convex_join\<cdot>xss) =
+    upper_bind\<cdot>(convex_to_upper\<cdot>xss)\<cdot>convex_to_upper"
+by (simp add: convex_join_def upper_join_def cfcomp_LAM eta_cfun)
 
 text {* Convex to lower *}
 
@@ -578,21 +557,35 @@ lemma convex_to_lower_principal [simp]:
   "convex_to_lower\<cdot>(convex_principal t) = lower_principal t"
 unfolding convex_to_lower_def
 apply (rule convex_pd.basis_fun_principal)
-apply (rule lower_principal_mono)
+apply (rule lower_pd.principal_mono)
 apply (erule convex_le_imp_lower_le)
 done
 
 lemma convex_to_lower_unit [simp]:
   "convex_to_lower\<cdot>{x}\<natural> = {x}\<flat>"
-by (induct x rule: compact_basis_induct, simp, simp)
+by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma convex_to_lower_plus [simp]:
   "convex_to_lower\<cdot>(xs +\<natural> ys) = convex_to_lower\<cdot>xs +\<flat> convex_to_lower\<cdot>ys"
-by (induct xs ys rule: convex_principal_induct2, simp, simp, simp)
+by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 
 lemma approx_convex_to_lower:
   "approx i\<cdot>(convex_to_lower\<cdot>xs) = convex_to_lower\<cdot>(approx i\<cdot>xs)"
 by (induct xs rule: convex_pd_induct, simp, simp, simp)
+
+lemma convex_to_lower_bind [simp]:
+  "convex_to_lower\<cdot>(convex_bind\<cdot>xs\<cdot>f) =
+    lower_bind\<cdot>(convex_to_lower\<cdot>xs)\<cdot>(convex_to_lower oo f)"
+by (induct xs rule: convex_pd_induct, simp, simp, simp)
+
+lemma convex_to_lower_map [simp]:
+  "convex_to_lower\<cdot>(convex_map\<cdot>f\<cdot>xs) = lower_map\<cdot>f\<cdot>(convex_to_lower\<cdot>xs)"
+by (simp add: convex_map_def lower_map_def cfcomp_LAM)
+
+lemma convex_to_lower_join [simp]:
+  "convex_to_lower\<cdot>(convex_join\<cdot>xss) =
+    lower_bind\<cdot>(convex_to_lower\<cdot>xss)\<cdot>convex_to_lower"
+by (simp add: convex_join_def lower_join_def cfcomp_LAM eta_cfun)
 
 text {* Ordering property *}
 
@@ -604,8 +597,8 @@ lemma convex_pd_less_iff:
  apply (rule bifinite_less_ext)
  apply (drule_tac f="approx i" in monofun_cfun_arg)
  apply (drule_tac f="approx i" in monofun_cfun_arg)
- apply (cut_tac xs="approx i\<cdot>xs" in compact_imp_convex_principal, simp)
- apply (cut_tac xs="approx i\<cdot>ys" in compact_imp_convex_principal, simp)
+ apply (cut_tac x="approx i\<cdot>xs" in convex_pd.compact_imp_principal, simp)
+ apply (cut_tac x="approx i\<cdot>ys" in convex_pd.compact_imp_principal, simp)
  apply clarify
  apply (simp add: approx_convex_to_upper approx_convex_to_lower convex_le_def)
 done

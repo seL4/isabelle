@@ -240,7 +240,7 @@ by (simp add: rep_eq)
 lemma principal_less_iff_mem_rep: "principal a \<sqsubseteq> x \<longleftrightarrow> a \<in> rep x"
 by (simp add: rep_eq)
 
-lemma principal_less_iff: "principal a \<sqsubseteq> principal b \<longleftrightarrow> a \<preceq> b"
+lemma principal_less_iff [simp]: "principal a \<sqsubseteq> principal b \<longleftrightarrow> a \<preceq> b"
 by (simp add: principal_less_iff_mem_rep rep_principal)
 
 lemma principal_eq_iff: "principal a = principal b \<longleftrightarrow> a \<preceq> b \<and> b \<preceq> a"
@@ -250,7 +250,7 @@ lemma repD: "a \<in> rep x \<Longrightarrow> principal a \<sqsubseteq> x"
 by (simp add: rep_eq)
 
 lemma principal_mono: "a \<preceq> b \<Longrightarrow> principal a \<sqsubseteq> principal b"
-by (simp add: principal_less_iff)
+by (simp only: principal_less_iff)
 
 lemma lessI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
 unfolding principal_less_iff_mem_rep
@@ -316,7 +316,7 @@ lemma basis_fun_mono:
  apply (erule imageI)
 done
 
-lemma compact_principal: "compact (principal a)"
+lemma compact_principal [simp]: "compact (principal a)"
 by (rule compactI2, simp add: principal_less_iff_mem_rep rep_contlub)
 
 definition
@@ -392,6 +392,16 @@ lemma principal_induct:
  apply (clarify, simp add: P)
 done
 
+lemma principal_induct2:
+  "\<lbrakk>\<And>y. adm (\<lambda>x. P x y); \<And>x. adm (\<lambda>y. P x y);
+    \<And>a b. P (principal a) (principal b)\<rbrakk> \<Longrightarrow> P x y"
+apply (rule_tac x=y in spec)
+apply (rule_tac x=x in principal_induct, simp)
+apply (rule allI, rename_tac y)
+apply (rule_tac x=y in principal_induct, simp)
+apply simp
+done
+
 lemma compact_imp_principal: "compact x \<Longrightarrow> \<exists>a. x = principal a"
 apply (drule adm_compact_neq [OF _ cont_id])
 apply (drule admD2 [where Y="\<lambda>n. completion_approx n\<cdot>x"])
@@ -412,16 +422,8 @@ defaultsort profinite
 typedef (open) 'a compact_basis = "{x::'a::profinite. compact x}"
 by (fast intro: compact_approx)
 
-lemma compact_Rep_compact_basis [simp]: "compact (Rep_compact_basis a)"
+lemma compact_Rep_compact_basis: "compact (Rep_compact_basis a)"
 by (rule Rep_compact_basis [unfolded mem_Collect_eq])
-
-lemma Rep_Abs_compact_basis_approx [simp]:
-  "Rep_compact_basis (Abs_compact_basis (approx n\<cdot>x)) = approx n\<cdot>x"
-by (rule Abs_compact_basis_inverse, simp)
-
-lemma compact_imp_Rep_compact_basis:
-  "compact x \<Longrightarrow> \<exists>y. x = Rep_compact_basis y"
-by (rule exI, rule Abs_compact_basis_inverse [symmetric], simp)
 
 instantiation compact_basis :: (profinite) sq_ord
 begin
@@ -438,81 +440,7 @@ instance compact_basis :: (profinite) po
 by (rule typedef_po
     [OF type_definition_compact_basis compact_le_def])
 
-text {* minimal compact element *}
-
-definition
-  compact_bot :: "'a::bifinite compact_basis" where
-  "compact_bot = Abs_compact_basis \<bottom>"
-
-lemma Rep_compact_bot: "Rep_compact_basis compact_bot = \<bottom>"
-unfolding compact_bot_def by (simp add: Abs_compact_basis_inverse)
-
-lemma compact_minimal [simp]: "compact_bot \<sqsubseteq> a"
-unfolding compact_le_def Rep_compact_bot by simp
-
-text {* compacts *}
-
-definition
-  compacts :: "'a \<Rightarrow> 'a compact_basis set" where
-  "compacts = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
-
-lemma ideal_compacts: "sq_le.ideal (compacts w)"
-unfolding compacts_def
- apply (rule sq_le.idealI)
-   apply (rule_tac x="Abs_compact_basis (approx 0\<cdot>w)" in exI)
-   apply (simp add: approx_less)
-  apply simp
-  apply (cut_tac a=x in compact_Rep_compact_basis)
-  apply (cut_tac a=y in compact_Rep_compact_basis)
-  apply (drule bifinite_compact_eq_approx)
-  apply (drule bifinite_compact_eq_approx)
-  apply (clarify, rename_tac i j)
-  apply (rule_tac x="Abs_compact_basis (approx (max i j)\<cdot>w)" in exI)
-  apply (simp add: approx_less compact_le_def)
-  apply (erule subst, erule subst)
-  apply (simp add: monofun_cfun chain_mono [OF chain_approx])
- apply (simp add: compact_le_def)
- apply (erule (1) trans_less)
-done
-
-lemma compacts_Rep_compact_basis:
-  "compacts (Rep_compact_basis b) = {a. a \<sqsubseteq> b}"
-unfolding compacts_def compact_le_def ..
-
-lemma cont_compacts: "cont compacts"
-unfolding compacts_def
-apply (rule contI2)
-apply (rule monofunI)
-apply (simp add: set_cpo_simps)
-apply (fast intro: trans_less)
-apply (simp add: set_cpo_simps)
-apply clarify
-apply simp
-apply (erule (1) compactD2 [OF compact_Rep_compact_basis])
-done
-
-lemma compacts_lessD: "compacts x \<subseteq> compacts y \<Longrightarrow> x \<sqsubseteq> y"
-apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> y", simp)
-apply (rule admD, simp, simp)
-apply (drule_tac c="Abs_compact_basis (approx i\<cdot>x)" in subsetD)
-apply (simp add: compacts_def Abs_compact_basis_inverse approx_less)
-apply (simp add: compacts_def Abs_compact_basis_inverse)
-done
-
-lemma compacts_mono: "x \<sqsubseteq> y \<Longrightarrow> compacts x \<subseteq> compacts y"
-unfolding compacts_def by (fast intro: trans_less)
-
-lemma less_compact_basis_iff: "(x \<sqsubseteq> y) = (compacts x \<subseteq> compacts y)"
-by (rule iffI [OF compacts_mono compacts_lessD])
-
-lemma compact_basis_induct:
-  "\<lbrakk>adm P; \<And>a. P (Rep_compact_basis a)\<rbrakk> \<Longrightarrow> P x"
-apply (erule approx_induct)
-apply (drule_tac x="Abs_compact_basis (approx n\<cdot>x)" in meta_spec)
-apply (simp add: Abs_compact_basis_inverse)
-done
-
-text {* approximation on compact bases *}
+text {* Take function for compact basis *}
 
 definition
   compact_approx :: "nat \<Rightarrow> 'a compact_basis \<Rightarrow> 'a compact_basis" where
@@ -525,83 +453,127 @@ by (simp add: Abs_compact_basis_inverse)
 
 lemmas approx_Rep_compact_basis = Rep_compact_approx [symmetric]
 
-lemma compact_approx_le: "compact_approx n a \<sqsubseteq> a"
-unfolding compact_le_def
-by (simp add: Rep_compact_approx approx_less)
+interpretation compact_basis:
+  basis_take [sq_le compact_approx]
+proof
+  fix n :: nat and a :: "'a compact_basis"
+  show "compact_approx n a \<sqsubseteq> a"
+    unfolding compact_le_def
+    by (simp add: Rep_compact_approx approx_less)
+next
+  fix n :: nat and a :: "'a compact_basis"
+  show "compact_approx n (compact_approx n a) = compact_approx n a"
+    by (simp add: Rep_compact_basis_inject [symmetric] Rep_compact_approx)
+next
+  fix n :: nat and a b :: "'a compact_basis"
+  assume "a \<sqsubseteq> b" thus "compact_approx n a \<sqsubseteq> compact_approx n b"
+    unfolding compact_le_def Rep_compact_approx
+    by (rule monofun_cfun_arg)
+next
+  fix n :: nat and a :: "'a compact_basis"
+  show "\<And>n a. compact_approx n a \<sqsubseteq> compact_approx (Suc n) a"
+    unfolding compact_le_def Rep_compact_approx
+    by (rule chainE, simp)
+next
+  fix n :: nat
+  show "finite (range (compact_approx n))"
+    apply (rule finite_imageD [where f="Rep_compact_basis"])
+    apply (rule finite_subset [where B="range (\<lambda>x. approx n\<cdot>x)"])
+    apply (clarsimp simp add: Rep_compact_approx)
+    apply (rule finite_range_approx)
+    apply (rule inj_onI, simp add: Rep_compact_basis_inject)
+    done
+next
+  fix a :: "'a compact_basis"
+  show "\<exists>n. compact_approx n a = a"
+    apply (simp add: Rep_compact_basis_inject [symmetric])
+    apply (simp add: Rep_compact_approx)
+    apply (rule bifinite_compact_eq_approx)
+    apply (rule compact_Rep_compact_basis)
+    done
+qed
 
-lemma compact_approx_mono1:
-  "i \<le> j \<Longrightarrow> compact_approx i a \<sqsubseteq> compact_approx j a"
-unfolding compact_le_def
-apply (simp add: Rep_compact_approx)
-apply (rule chain_mono, simp, assumption)
-done
+text {* Ideal completion *}
 
-lemma compact_approx_mono:
-  "a \<sqsubseteq> b \<Longrightarrow> compact_approx n a \<sqsubseteq> compact_approx n b"
-unfolding compact_le_def
-apply (simp add: Rep_compact_approx)
-apply (erule monofun_cfun_arg)
-done
-
-lemma ex_compact_approx_eq: "\<exists>n. compact_approx n a = a"
-apply (simp add: Rep_compact_basis_inject [symmetric])
-apply (simp add: Rep_compact_approx)
-apply (rule bifinite_compact_eq_approx)
-apply (rule compact_Rep_compact_basis)
-done
-
-lemma compact_approx_idem:
-  "compact_approx n (compact_approx n a) = compact_approx n a"
-apply (rule Rep_compact_basis_inject [THEN iffD1])
-apply (simp add: Rep_compact_approx)
-done
-
-lemma finite_fixes_compact_approx: "finite {a. compact_approx n a = a}"
-apply (subgoal_tac "finite (Rep_compact_basis ` {a. compact_approx n a = a})")
-apply (erule finite_imageD)
-apply (rule inj_onI, simp add: Rep_compact_basis_inject)
-apply (rule finite_subset [OF _ finite_fixes_approx [where i=n]])
-apply (rule subsetI, clarify, rename_tac a)
-apply (simp add: Rep_compact_basis_inject [symmetric])
-apply (simp add: Rep_compact_approx)
-done
-
-lemma finite_range_compact_approx: "finite (range (compact_approx n))"
-apply (cut_tac n=n in finite_fixes_compact_approx)
-apply (simp add: idem_fixes_eq_range compact_approx_idem)
-apply (simp add: image_def)
-done
+definition
+  compacts :: "'a \<Rightarrow> 'a compact_basis set" where
+  "compacts = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
 
 interpretation compact_basis:
   ideal_completion [sq_le compact_approx Rep_compact_basis compacts]
-proof (unfold_locales)
-  fix n :: nat and a b :: "'a compact_basis" and x :: "'a"
-  show "compact_approx n a \<sqsubseteq> a"
-    by (rule compact_approx_le)
-  show "compact_approx n (compact_approx n a) = compact_approx n a"
-    by (rule compact_approx_idem)
-  show "compact_approx n a \<sqsubseteq> compact_approx (Suc n) a"
-    by (rule compact_approx_mono1, simp)
-  show "finite (range (compact_approx n))"
-    by (rule finite_range_compact_approx)
-  show "\<exists>n\<Colon>nat. compact_approx n a = a"
-    by (rule ex_compact_approx_eq)
-  show "preorder.ideal sq_le (compacts x)"
-    by (rule ideal_compacts)
-  show "cont compacts"
-    by (rule cont_compacts)
-  show "compacts (Rep_compact_basis a) = {b. b \<sqsubseteq> a}"
-    by (rule compacts_Rep_compact_basis)
+proof
+  fix w :: 'a
+  show "preorder.ideal sq_le (compacts w)"
+  proof (rule sq_le.idealI)
+    show "\<exists>x. x \<in> compacts w"
+      unfolding compacts_def
+      apply (rule_tac x="Abs_compact_basis (approx 0\<cdot>w)" in exI)
+      apply (simp add: Abs_compact_basis_inverse approx_less)
+      done
+  next
+    fix x y :: "'a compact_basis"
+    assume "x \<in> compacts w" "y \<in> compacts w"
+    thus "\<exists>z \<in> compacts w. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
+      unfolding compacts_def
+      apply simp
+      apply (cut_tac a=x in compact_Rep_compact_basis)
+      apply (cut_tac a=y in compact_Rep_compact_basis)
+      apply (drule bifinite_compact_eq_approx)
+      apply (drule bifinite_compact_eq_approx)
+      apply (clarify, rename_tac i j)
+      apply (rule_tac x="Abs_compact_basis (approx (max i j)\<cdot>w)" in exI)
+      apply (simp add: compact_le_def)
+      apply (simp add: Abs_compact_basis_inverse approx_less)
+      apply (erule subst, erule subst)
+      apply (simp add: monofun_cfun chain_mono [OF chain_approx])
+      done
+  next
+    fix x y :: "'a compact_basis"
+    assume "x \<sqsubseteq> y" "y \<in> compacts w" thus "x \<in> compacts w"
+      unfolding compacts_def
+      apply simp
+      apply (simp add: compact_le_def)
+      apply (erule (1) trans_less)
+      done
+  qed
 next
-  fix n :: nat and a b :: "'a compact_basis"
-  assume "a \<sqsubseteq> b"
-  thus "compact_approx n a \<sqsubseteq> compact_approx n b"
-    by (rule compact_approx_mono)
+  show "cont compacts"
+    unfolding compacts_def
+    apply (rule contI2)
+    apply (rule monofunI)
+    apply (simp add: set_cpo_simps)
+    apply (fast intro: trans_less)
+    apply (simp add: set_cpo_simps)
+    apply clarify
+    apply simp
+    apply (erule (1) compactD2 [OF compact_Rep_compact_basis])
+    done
+next
+  fix a :: "'a compact_basis"
+  show "compacts (Rep_compact_basis a) = {b. b \<sqsubseteq> a}"
+    unfolding compacts_def compact_le_def ..
 next
   fix x y :: "'a"
   assume "compacts x \<subseteq> compacts y" thus "x \<sqsubseteq> y"
-    by (rule compacts_lessD)
+    apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> y", simp)
+    apply (rule admD, simp, simp)
+    apply (drule_tac c="Abs_compact_basis (approx i\<cdot>x)" in subsetD)
+    apply (simp add: compacts_def Abs_compact_basis_inverse approx_less)
+    apply (simp add: compacts_def Abs_compact_basis_inverse)
+    done
 qed
+
+text {* minimal compact element *}
+
+definition
+  compact_bot :: "'a::bifinite compact_basis" where
+  "compact_bot = Abs_compact_basis \<bottom>"
+
+lemma Rep_compact_bot: "Rep_compact_basis compact_bot = \<bottom>"
+unfolding compact_bot_def by (simp add: Abs_compact_basis_inverse)
+
+lemma compact_minimal [simp]: "compact_bot \<sqsubseteq> a"
+unfolding compact_le_def Rep_compact_bot by simp
 
 
 subsection {* A compact basis for powerdomains *}
@@ -705,37 +677,27 @@ done
 
 lemma approx_pd_idem: "approx_pd n (approx_pd n t) = approx_pd n t"
 apply (induct t rule: pd_basis_induct)
-apply (simp add: compact_approx_idem)
+apply (simp add: compact_basis.take_take)
 apply simp
 done
 
-lemma range_image_f: "range (image f) = Pow (range f)"
-apply (safe, fast)
-apply (rule_tac x="f -` x" in range_eqI)
-apply (simp, fast)
-done
-
 lemma finite_range_approx_pd: "finite (range (approx_pd n))"
-apply (subgoal_tac "finite (Rep_pd_basis ` range (approx_pd n))")
-apply (erule finite_imageD)
+apply (rule finite_imageD [where f="Rep_pd_basis"])
+apply (rule finite_subset [where B="Pow (range (compact_approx n))"])
+apply (clarsimp simp add: Rep_approx_pd)
+apply (simp add: compact_basis.finite_range_take)
 apply (rule inj_onI, simp add: Rep_pd_basis_inject)
-apply (subst image_image)
-apply (subst Rep_approx_pd)
-apply (simp only: range_composition)
-apply (rule finite_subset [OF image_mono [OF subset_UNIV]])
-apply (simp add: range_image_f)
-apply (rule finite_range_compact_approx)
 done
 
-lemma ex_approx_pd_eq: "\<exists>n. approx_pd n t = t"
+lemma approx_pd_covers: "\<exists>n. approx_pd n t = t"
 apply (subgoal_tac "\<exists>n. \<forall>m\<ge>n. approx_pd m t = t", fast)
 apply (induct t rule: pd_basis_induct)
-apply (cut_tac a=a in ex_compact_approx_eq)
+apply (cut_tac a=a in compact_basis.take_covers)
 apply (clarify, rule_tac x=n in exI)
 apply (clarify, simp)
 apply (rule antisym_less)
-apply (rule compact_approx_le)
-apply (drule_tac a=a in compact_approx_mono1)
+apply (rule compact_basis.take_less)
+apply (drule_tac a=a in compact_basis.take_chain_le)
 apply simp
 apply (clarify, rename_tac i j)
 apply (rule_tac x="max i j" in exI, simp)

@@ -72,23 +72,23 @@ apply (simp add: 2)
 apply (simp add: lower_le_PDPlus_iff 3)
 done
 
-lemma approx_pd_lower_mono1:
-  "i \<le> j \<Longrightarrow> approx_pd i t \<le>\<flat> approx_pd j t"
+lemma approx_pd_lower_chain:
+  "approx_pd n t \<le>\<flat> approx_pd (Suc n) t"
 apply (induct t rule: pd_basis_induct)
-apply (simp add: compact_approx_mono1)
+apply (simp add: compact_basis.take_chain)
 apply (simp add: PDPlus_lower_mono)
 done
 
 lemma approx_pd_lower_le: "approx_pd i t \<le>\<flat> t"
 apply (induct t rule: pd_basis_induct)
-apply (simp add: compact_approx_le)
+apply (simp add: compact_basis.take_less)
 apply (simp add: PDPlus_lower_mono)
 done
 
 lemma approx_pd_lower_mono:
   "t \<le>\<flat> u \<Longrightarrow> approx_pd n t \<le>\<flat> approx_pd n u"
 apply (erule lower_le_induct)
-apply (simp add: compact_approx_mono)
+apply (simp add: compact_basis.take_mono)
 apply (simp add: lower_le_PDUnit_PDPlus_iff)
 apply (simp add: lower_le_PDPlus_iff)
 done
@@ -122,29 +122,16 @@ apply unfold_locales
 apply (rule approx_pd_lower_le)
 apply (rule approx_pd_idem)
 apply (erule approx_pd_lower_mono)
-apply (rule approx_pd_lower_mono1, simp)
+apply (rule approx_pd_lower_chain)
 apply (rule finite_range_approx_pd)
-apply (rule ex_approx_pd_eq)
+apply (rule approx_pd_covers)
 apply (rule ideal_Rep_lower_pd)
 apply (rule cont_Rep_lower_pd)
 apply (rule Rep_lower_principal)
 apply (simp only: less_lower_pd_def less_set_eq)
 done
 
-lemma lower_principal_less_iff [simp]:
-  "lower_principal t \<sqsubseteq> lower_principal u \<longleftrightarrow> t \<le>\<flat> u"
-by (rule lower_pd.principal_less_iff)
-
-lemma lower_principal_eq_iff:
-  "lower_principal t = lower_principal u \<longleftrightarrow> t \<le>\<flat> u \<and> u \<le>\<flat> t"
-by (rule lower_pd.principal_eq_iff)
-
-lemma lower_principal_mono:
-  "t \<le>\<flat> u \<Longrightarrow> lower_principal t \<sqsubseteq> lower_principal u"
-by (rule lower_pd.principal_mono)
-
-lemma compact_lower_principal: "compact (lower_principal t)"
-by (rule lower_pd.compact_principal)
+text {* Lower powerdomain is pointed *}
 
 lemma lower_pd_minimal: "lower_principal (PDUnit compact_bot) \<sqsubseteq> ys"
 by (induct ys rule: lower_pd.principal_induct, simp, simp)
@@ -155,8 +142,7 @@ by intro_classes (fast intro: lower_pd_minimal)
 lemma inst_lower_pd_pcpo: "\<bottom> = lower_principal (PDUnit compact_bot)"
 by (rule lower_pd_minimal [THEN UU_I, symmetric])
 
-
-subsection {* Approximation *}
+text {* Lower powerdomain is profinite *}
 
 instantiation lower_pd :: (profinite) profinite
 begin
@@ -186,24 +172,6 @@ lemma approx_eq_lower_principal:
 unfolding approx_lower_pd_def
 by (rule lower_pd.completion_approx_eq_principal)
 
-lemma compact_imp_lower_principal:
-  "compact xs \<Longrightarrow> \<exists>t. xs = lower_principal t"
-by (rule lower_pd.compact_imp_principal)
-
-lemma lower_principal_induct:
-  "\<lbrakk>adm P; \<And>t. P (lower_principal t)\<rbrakk> \<Longrightarrow> P xs"
-by (rule lower_pd.principal_induct)
-
-lemma lower_principal_induct2:
-  "\<lbrakk>\<And>ys. adm (\<lambda>xs. P xs ys); \<And>xs. adm (\<lambda>ys. P xs ys);
-    \<And>t u. P (lower_principal t) (lower_principal u)\<rbrakk> \<Longrightarrow> P xs ys"
-apply (rule_tac x=ys in spec)
-apply (rule_tac xs=xs in lower_principal_induct, simp)
-apply (rule allI, rename_tac ys)
-apply (rule_tac xs=ys in lower_principal_induct, simp)
-apply simp
-done
-
 
 subsection {* Monadic unit and plus *}
 
@@ -231,8 +199,7 @@ translations
 lemma lower_unit_Rep_compact_basis [simp]:
   "{Rep_compact_basis a}\<flat> = lower_principal (PDUnit a)"
 unfolding lower_unit_def
-by (simp add: compact_basis.basis_fun_principal
-    lower_principal_mono PDUnit_lower_mono)
+by (simp add: compact_basis.basis_fun_principal PDUnit_lower_mono)
 
 lemma lower_plus_principal [simp]:
   "lower_principal t +\<flat> lower_principal u = lower_principal (PDPlus t u)"
@@ -242,27 +209,27 @@ by (simp add: lower_pd.basis_fun_principal
 
 lemma approx_lower_unit [simp]:
   "approx n\<cdot>{x}\<flat> = {approx n\<cdot>x}\<flat>"
-apply (induct x rule: compact_basis_induct, simp)
+apply (induct x rule: compact_basis.principal_induct, simp)
 apply (simp add: approx_Rep_compact_basis)
 done
 
 lemma approx_lower_plus [simp]:
   "approx n\<cdot>(xs +\<flat> ys) = (approx n\<cdot>xs) +\<flat> (approx n\<cdot>ys)"
-by (induct xs ys rule: lower_principal_induct2, simp, simp, simp)
+by (induct xs ys rule: lower_pd.principal_induct2, simp, simp, simp)
 
 lemma lower_plus_assoc: "(xs +\<flat> ys) +\<flat> zs = xs +\<flat> (ys +\<flat> zs)"
-apply (induct xs ys arbitrary: zs rule: lower_principal_induct2, simp, simp)
-apply (rule_tac xs=zs in lower_principal_induct, simp)
+apply (induct xs ys arbitrary: zs rule: lower_pd.principal_induct2, simp, simp)
+apply (rule_tac x=zs in lower_pd.principal_induct, simp)
 apply (simp add: PDPlus_assoc)
 done
 
 lemma lower_plus_commute: "xs +\<flat> ys = ys +\<flat> xs"
-apply (induct xs ys rule: lower_principal_induct2, simp, simp)
+apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_commute)
 done
 
 lemma lower_plus_absorb: "xs +\<flat> xs = xs"
-apply (induct xs rule: lower_principal_induct, simp)
+apply (induct xs rule: lower_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
@@ -279,7 +246,7 @@ by (rule aci_lower_plus.mult_left_idem)
 lemmas lower_plus_aci = aci_lower_plus.mult_ac_idem
 
 lemma lower_plus_less1: "xs \<sqsubseteq> xs +\<flat> ys"
-apply (induct xs ys rule: lower_principal_induct2, simp, simp)
+apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_lower_less)
 done
 
@@ -306,9 +273,9 @@ lemma lower_unit_less_plus_iff:
     "adm (\<lambda>f. f\<cdot>{x}\<flat> \<sqsubseteq> f\<cdot>ys \<or> f\<cdot>{x}\<flat> \<sqsubseteq> f\<cdot>zs)")
    apply (drule admD, rule chain_approx)
     apply (drule_tac f="approx i" in monofun_cfun_arg)
-    apply (cut_tac x="approx i\<cdot>x" in compact_imp_Rep_compact_basis, simp)
-    apply (cut_tac xs="approx i\<cdot>ys" in compact_imp_lower_principal, simp)
-    apply (cut_tac xs="approx i\<cdot>zs" in compact_imp_lower_principal, simp)
+    apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
+    apply (cut_tac x="approx i\<cdot>ys" in lower_pd.compact_imp_principal, simp)
+    apply (cut_tac x="approx i\<cdot>zs" in lower_pd.compact_imp_principal, simp)
     apply (clarify, simp add: lower_le_PDUnit_PDPlus_iff)
    apply simp
   apply simp
@@ -321,9 +288,9 @@ lemma lower_unit_less_iff [simp]: "{x}\<flat> \<sqsubseteq> {y}\<flat> \<longlef
  apply (rule iffI)
   apply (rule bifinite_less_ext)
   apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
-  apply (cut_tac x="approx i\<cdot>x" in compact_imp_Rep_compact_basis, simp)
-  apply (cut_tac x="approx i\<cdot>y" in compact_imp_Rep_compact_basis, simp)
-  apply (clarify, simp add: compact_le_def)
+  apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
+  apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
+  apply clarsimp
  apply (erule monofun_cfun_arg)
 done
 
@@ -332,8 +299,14 @@ lemmas lower_pd_less_simps =
   lower_plus_less_iff
   lower_unit_less_plus_iff
 
+lemma fooble:
+  fixes f :: "'a::po \<Rightarrow> 'b::po"
+  assumes f: "\<And>x y. f x \<sqsubseteq> f y \<longleftrightarrow> x \<sqsubseteq> y"
+  shows "f x = f y \<longleftrightarrow> x = y"
+unfolding po_eq_conv by (simp add: f)
+
 lemma lower_unit_eq_iff [simp]: "{x}\<flat> = {y}\<flat> \<longleftrightarrow> x = y"
-unfolding po_eq_conv by simp
+by (rule lower_unit_less_iff [THEN fooble])
 
 lemma lower_unit_strict [simp]: "{\<bottom>}\<flat> = \<bottom>"
 unfolding inst_lower_pd_pcpo Rep_compact_bot [symmetric] by simp
@@ -364,9 +337,7 @@ unfolding bifinite_compact_iff by simp
 
 lemma compact_lower_plus [simp]:
   "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs +\<flat> ys)"
-apply (drule compact_imp_lower_principal)+
-apply (auto simp add: compact_lower_principal)
-done
+by (auto dest!: lower_pd.compact_imp_principal)
 
 
 subsection {* Induction rules *}
@@ -377,8 +348,8 @@ lemma lower_pd_induct1:
   assumes insert:
     "\<And>x ys. \<lbrakk>P {x}\<flat>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<flat> +\<flat> ys)"
   shows "P (xs::'a lower_pd)"
-apply (induct xs rule: lower_principal_induct, rule P)
-apply (induct_tac t rule: pd_basis_induct1)
+apply (induct xs rule: lower_pd.principal_induct, rule P)
+apply (induct_tac a rule: pd_basis_induct1)
 apply (simp only: lower_unit_Rep_compact_basis [symmetric])
 apply (rule unit)
 apply (simp only: lower_unit_Rep_compact_basis [symmetric]
@@ -391,8 +362,8 @@ lemma lower_pd_induct:
   assumes unit: "\<And>x. P {x}\<flat>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs +\<flat> ys)"
   shows "P (xs::'a lower_pd)"
-apply (induct xs rule: lower_principal_induct, rule P)
-apply (induct_tac t rule: pd_basis_induct)
+apply (induct xs rule: lower_pd.principal_induct, rule P)
+apply (induct_tac a rule: pd_basis_induct)
 apply (simp only: lower_unit_Rep_compact_basis [symmetric] unit)
 apply (simp only: lower_plus_principal [symmetric] plus)
 done
@@ -430,7 +401,7 @@ lemma lower_bind_basis_mono:
   "t \<le>\<flat> u \<Longrightarrow> lower_bind_basis t \<sqsubseteq> lower_bind_basis u"
 unfolding expand_cfun_less
 apply (erule lower_le_induct, safe)
-apply (simp add: compact_le_def monofun_cfun)
+apply (simp add: monofun_cfun)
 apply (simp add: rev_trans_less [OF lower_plus_less1])
 apply (simp add: lower_plus_less_iff)
 done
@@ -448,11 +419,11 @@ done
 
 lemma lower_bind_unit [simp]:
   "lower_bind\<cdot>{x}\<flat>\<cdot>f = f\<cdot>x"
-by (induct x rule: compact_basis_induct, simp, simp)
+by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma lower_bind_plus [simp]:
   "lower_bind\<cdot>(xs +\<flat> ys)\<cdot>f = lower_bind\<cdot>xs\<cdot>f +\<flat> lower_bind\<cdot>ys\<cdot>f"
-by (induct xs ys rule: lower_principal_induct2, simp, simp, simp)
+by (induct xs ys rule: lower_pd.principal_induct2, simp, simp, simp)
 
 lemma lower_bind_strict [simp]: "lower_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
 unfolding lower_unit_strict [symmetric] by (rule lower_bind_unit)
