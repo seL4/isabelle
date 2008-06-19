@@ -116,11 +116,6 @@ fun make_dt_info descr sorts induct reccomb_names rec_thms
 
 val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
-fun read_typ sign ((Ts, sorts), str) =
-  let
-    val T = Type.no_tvars (Sign.read_def_typ (sign, (AList.lookup op =)
-      (map (apfst (rpair ~1)) sorts)) str) handle TYPE (msg, _, _) => error msg
-  in (Ts @ [T], add_typ_tfrees (T, sorts)) end;
 
 (** simplification procedure for sorting permutations **)
 
@@ -2016,7 +2011,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     thy13
   end;
 
-val add_nominal_datatype = gen_add_nominal_datatype read_typ true;
+val add_nominal_datatype = gen_add_nominal_datatype DatatypePackage.read_typ true;
 
 
 (* FIXME: The following stuff should be exported by DatatypePackage *)
