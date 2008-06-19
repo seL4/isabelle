@@ -465,6 +465,9 @@ by (simp add: oo_def)
 lemma cfcomp2 [simp]: "(f oo g)\<cdot>x = f\<cdot>(g\<cdot>x)"
 by (simp add: cfcomp1)
 
+lemma cfcomp_LAM: "cont g \<Longrightarrow> f oo (\<Lambda> x. g x) = (\<Lambda> x. f\<cdot>(g x))"
+by (simp add: cfcomp1)
+
 lemma cfcomp_strict [simp]: "\<bottom> oo f = \<bottom>"
 by (simp add: expand_cfun_eq)
 
