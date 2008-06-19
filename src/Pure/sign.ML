@@ -78,12 +78,6 @@ sig
   val read_class: theory -> xstring -> class
   val read_arity: theory -> xstring * string list * string -> arity
   val cert_arity: theory -> arity -> arity
-  val get_sort: theory ->
-    (indexname -> sort option) -> (indexname * sort) list -> indexname -> sort
-  val read_def_typ: theory * (indexname -> sort option) -> string -> typ
-  val read_typ: theory -> string -> typ
-  val read_typ_syntax: theory -> string -> typ
-  val read_typ_abbrev: theory -> string -> typ
   val add_defsort: string -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
   val add_types: (bstring * int * mixfix) list -> theory -> theory
@@ -425,53 +419,6 @@ fun prep_arity prep_tycon prep_sort thy (t, Ss, S) =
 
 val read_arity = prep_arity intern_type Syntax.read_sort_global;
 val cert_arity = prep_arity (K I) certify_sort;
-
-
-(* types *)
-
-fun get_sort thy def_sort raw_env =
-  let
-    val tsig = tsig_of thy;
-
-    fun eq ((xi, S), (xi', S')) =
-      Term.eq_ix (xi, xi') andalso Type.eq_sort tsig (S, S');
-    val env = distinct eq raw_env;
-    val _ = (case duplicates (eq_fst (op =)) env of [] => ()
-      | dups => error ("Inconsistent sort constraints for type variable(s) "
-          ^ commas_quote (map (Term.string_of_vname' o fst) dups)));
-
-    fun get xi =
-      (case (AList.lookup (op =) env xi, def_sort xi) of
-        (NONE, NONE) => Type.defaultS tsig
-      | (NONE, SOME S) => S
-      | (SOME S, NONE) => S
-      | (SOME S, SOME S') =>
-          if Type.eq_sort tsig (S, S') then S'
-          else error ("Sort constraint inconsistent with default for type variable " ^
-            quote (Term.string_of_vname' xi)));
-  in get end;
-
-local
-
-fun gen_read_typ mode (thy, def_sort) str =
-  let
-    val ctxt = ProofContext.init thy;
-    val syn = syn_of thy;
-    val T = intern_tycons thy
-      (Syntax.standard_parse_typ ctxt syn (get_sort thy def_sort) (intern_sort thy) str);
-  in certify_typ_mode mode thy T handle TYPE (msg, _, _) => error msg end
-  handle ERROR msg => cat_error msg ("The error(s) above occurred in type " ^ quote str);
-
-in
-
-fun no_def_sort thy = (thy: theory, K NONE);
-
-val read_def_typ     = gen_read_typ Type.mode_default;
-val read_typ         = gen_read_typ Type.mode_default o no_def_sort;
-val read_typ_syntax  = gen_read_typ Type.mode_syntax o no_def_sort;
-val read_typ_abbrev  = gen_read_typ Type.mode_abbrev o no_def_sort;
-
-end;
 
 
 
