@@ -90,8 +90,7 @@ proof -
   ultimately show "P x" by simp
 qed
 
-lemma Rep_range:
-  shows "range Rep = A"
+lemma Rep_range: "range Rep = A"
 proof
   show "range Rep <= A" using Rep by (auto simp add: image_def)
   show "A <= range Rep"
@@ -99,6 +98,19 @@ proof
     fix x assume "x : A"
     hence "x = Rep (Abs x)" by (rule Abs_inverse [symmetric])
     thus "x : range Rep" by (rule range_eqI)
+  qed
+qed
+
+lemma Abs_image: "Abs ` A = UNIV"
+proof
+  show "Abs ` A <= UNIV" by (rule subset_UNIV)
+next
+  show "UNIV <= Abs ` A"
+  proof
+    fix x
+    have "x = Abs (Rep x)" by (rule Rep_inverse [symmetric])
+    moreover have "Rep x : A" by (rule Rep)
+    ultimately show "x : Abs ` A" by (rule image_eqI)
   qed
 qed
 
