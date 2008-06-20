@@ -327,7 +327,7 @@ done
 
 lemma convex_unit_less_iff [simp]: "{x}\<natural> \<sqsubseteq> {y}\<natural> \<longleftrightarrow> x \<sqsubseteq> y"
  apply (rule iffI)
-  apply (rule bifinite_less_ext)
+  apply (rule profinite_less_ext)
   apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
   apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
   apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
@@ -346,7 +346,7 @@ unfolding convex_unit_strict [symmetric] by (rule convex_unit_eq_iff)
 
 lemma compact_convex_unit_iff [simp]:
   "compact {x}\<natural> \<longleftrightarrow> compact x"
-unfolding bifinite_compact_iff by simp
+unfolding profinite_compact_iff by simp
 
 lemma compact_convex_plus [simp]:
   "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs +\<natural> ys)"
@@ -589,7 +589,7 @@ lemma convex_pd_less_iff:
     (convex_to_upper\<cdot>xs \<sqsubseteq> convex_to_upper\<cdot>ys \<and>
      convex_to_lower\<cdot>xs \<sqsubseteq> convex_to_lower\<cdot>ys)"
  apply (safe elim!: monofun_cfun_arg)
- apply (rule bifinite_less_ext)
+ apply (rule profinite_less_ext)
  apply (drule_tac f="approx i" in monofun_cfun_arg)
  apply (drule_tac f="approx i" in monofun_cfun_arg)
  apply (cut_tac x="approx i\<cdot>xs" in convex_pd.compact_imp_principal, simp)

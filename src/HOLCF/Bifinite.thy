@@ -42,7 +42,7 @@ apply (subgoal_tac "approx i\<cdot>x \<sqsubseteq> (\<Squnion>i. approx i\<cdot>
 apply (rule is_ub_thelub, simp)
 done
 
-lemma approx_strict [simp]: "approx i\<cdot>(\<bottom>::'a::bifinite) = \<bottom>"
+lemma approx_strict [simp]: "approx i\<cdot>\<bottom> = \<bottom>"
 by (rule UU_I, rule approx_less)
 
 lemma approx_approx1:
@@ -113,23 +113,12 @@ proof (rule compactI2)
   thus "\<exists>j. approx n\<cdot>x \<sqsubseteq> Y j" ..
 qed
 
-lemma bifinite_compact_eq_approx:
-  assumes x: "compact x"
-  shows "\<exists>i. approx i\<cdot>x = x"
-proof -
-  have chain: "chain (\<lambda>i. approx i\<cdot>x)" by simp
-  have less: "x \<sqsubseteq> (\<Squnion>i. approx i\<cdot>x)" by simp
-  obtain i where i: "x \<sqsubseteq> approx i\<cdot>x"
-    using compactD2 [OF x chain less] ..
-  with approx_less have "approx i\<cdot>x = x"
-    by (rule antisym_less)
-  thus "\<exists>i. approx i\<cdot>x = x" ..
-qed
+lemma profinite_compact_eq_approx: "compact x \<Longrightarrow> \<exists>i. approx i\<cdot>x = x"
+by (rule admD2) simp_all
 
-lemma bifinite_compact_iff:
-  "compact x \<longleftrightarrow> (\<exists>n. approx n\<cdot>x = x)"
+lemma profinite_compact_iff: "compact x \<longleftrightarrow> (\<exists>n. approx n\<cdot>x = x)"
  apply (rule iffI)
-  apply (erule bifinite_compact_eq_approx)
+  apply (erule profinite_compact_eq_approx)
  apply (erule exE)
  apply (erule subst)
  apply (rule compact_approx)
@@ -144,7 +133,7 @@ proof -
   thus "P x" by simp
 qed
 
-lemma bifinite_less_ext: "(\<And>i. approx i\<cdot>x \<sqsubseteq> approx i\<cdot>y) \<Longrightarrow> x \<sqsubseteq> y"
+lemma profinite_less_ext: "(\<And>i. approx i\<cdot>x \<sqsubseteq> approx i\<cdot>y) \<Longrightarrow> x \<sqsubseteq> y"
 apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> (\<Squnion>i. approx i\<cdot>y)", simp)
 apply (rule lub_mono, simp, simp, simp)
 done

@@ -282,7 +282,7 @@ done
 
 lemma upper_unit_less_iff [simp]: "{x}\<sharp> \<sqsubseteq> {y}\<sharp> \<longleftrightarrow> x \<sqsubseteq> y"
  apply (rule iffI)
-  apply (rule bifinite_less_ext)
+  apply (rule profinite_less_ext)
   apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
   apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
   apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
@@ -321,7 +321,7 @@ apply auto
 done
 
 lemma compact_upper_unit_iff [simp]: "compact {x}\<sharp> \<longleftrightarrow> compact x"
-unfolding bifinite_compact_iff by simp
+unfolding profinite_compact_iff by simp
 
 lemma compact_upper_plus [simp]:
   "\<lbrakk>compact xs; compact ys\<rbrakk> \<Longrightarrow> compact (xs +\<sharp> ys)"

@@ -493,7 +493,7 @@ next
   show "\<exists>n. compact_approx n a = a"
     apply (simp add: Rep_compact_basis_inject [symmetric])
     apply (simp add: Rep_compact_approx)
-    apply (rule bifinite_compact_eq_approx)
+    apply (rule profinite_compact_eq_approx)
     apply (rule compact_Rep_compact_basis)
     done
 qed
@@ -523,8 +523,8 @@ proof
       apply simp
       apply (cut_tac a=x in compact_Rep_compact_basis)
       apply (cut_tac a=y in compact_Rep_compact_basis)
-      apply (drule bifinite_compact_eq_approx)
-      apply (drule bifinite_compact_eq_approx)
+      apply (drule profinite_compact_eq_approx)
+      apply (drule profinite_compact_eq_approx)
       apply (clarify, rename_tac i j)
       apply (rule_tac x="Abs_compact_basis (approx (max i j)\<cdot>w)" in exI)
       apply (simp add: compact_le_def)
