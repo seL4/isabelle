@@ -166,7 +166,9 @@ end;
 
 (* theory name lookup *)
 
-fun thyname_of thy f errmsg x =
+fun thyname_of thy f x = the (AList.lookup (op =) (f x) Markup.theory_nameN);
+
+fun thyname_of' thy f errmsg x =
   let
     fun thy_of thy =
       if f thy x then case get_first thy_of (Theory.parents_of thy)
@@ -178,25 +180,21 @@ fun thyname_of thy f errmsg x =
     | NONE => error (errmsg x) end;
 
 fun thyname_of_class thy =
-  thyname_of thy (fn thy => member (op =) (Sign.all_classes thy))
+  thyname_of' thy (fn thy => member (op =) (Sign.all_classes thy))
     (fn class => "thyname_of_class: no such class: " ^ quote class);
 
-fun thyname_of_tyco thy =
-  thyname_of thy Sign.declared_tyname
-    (fn tyco => "thyname_of_tyco: no such type constructor: " ^ quote tyco);
+fun thyname_of_tyco thy = thyname_of thy (Type.the_tags (Sign.tsig_of thy));
 
 fun thyname_of_instance thy =
   let
     fun test_instance thy (class, tyco) =
       can (Sorts.mg_domain (Sign.classes_of thy) tyco) [class]
-  in thyname_of thy test_instance
+  in thyname_of' thy test_instance
     (fn (class, tyco) => "thyname_of_instance: no such instance: "
       ^ (quote o string_of_instance) (class, tyco))
   end;
 
-fun thyname_of_const thy =
-  thyname_of thy Sign.declared_const
-    (fn c => "thyname_of_const: no such constant: " ^ quote c);
+fun thyname_of_const thy = thyname_of thy (Consts.the_tags (Sign.consts_of thy));
 
 
 (* naming policies *)
