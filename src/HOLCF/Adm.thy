@@ -55,10 +55,10 @@ by (rule admI, simp)
 lemma adm_conj: "\<lbrakk>adm P; adm Q\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P x \<and> Q x)"
 by (fast intro: admI elim: admD)
 
-lemma adm_all: "(\<And>y. adm (P y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y. P y x)"
+lemma adm_all: "(\<And>y. adm (\<lambda>x. P x y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y. P x y)"
 by (fast intro: admI elim: admD)
 
-lemma adm_ball: "(\<And>y. y \<in> A \<Longrightarrow> adm (P y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y\<in>A. P y x)"
+lemma adm_ball: "(\<And>y. y \<in> A \<Longrightarrow> adm (\<lambda>x. P x y)) \<Longrightarrow> adm (\<lambda>x. \<forall>y\<in>A. P x y)"
 by (fast intro: admI elim: admD)
 
 text {* Admissibility for disjunction is hard to prove. It takes 5 Lemmas *}
