@@ -105,7 +105,7 @@ by (rule less_asym)
 
 text {* Least value operator *}
 
-definition
+definition (in ord)
   Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "LEAST " 10) where
   "Least P = (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> x \<le> y))"
 
@@ -186,7 +186,6 @@ by (blast intro: antisym dest: not_less [THEN iffD1])
 lemma antisym_conv3: "\<not> y < x \<Longrightarrow> \<not> x < y \<longleftrightarrow> x = y"
 by (blast intro: antisym dest: not_less [THEN iffD1])
 
-text{*Replacing the old Nat.leI*}
 lemma leI: "\<not> x < y \<Longrightarrow> y \<le> x"
 unfolding not_less .
 
@@ -208,14 +207,10 @@ by unfold_locales
 
 text {* min/max *}
 
-text {* for historic reasons, definitions are done in context ord *}
-
-definition (in ord)
-  min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition (in ord) min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   [code unfold, code inline del]: "min a b = (if a \<le> b then a else b)"
 
-definition (in ord)
-  max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+definition (in ord) max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   [code unfold, code inline del]: "max a b = (if a \<le> b then b else a)"
 
 lemma min_le_iff_disj:
