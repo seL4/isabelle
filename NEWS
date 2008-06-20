@@ -45,9 +45,6 @@ have disappeared in favour of existing ones:
     Suc_Suc_eq                  ~> nat.inject
     Suc_not_Zero Zero_not_Suc   ~> nat.distinct
 
-* 'Least' operator now restricted to class 'order' (and subclasses).
-INCOMPATIBILITY.
-
 * Library/Nat_Infinity: added addition, numeral syntax and more
 instantiations for algebraic structures.  Removed some duplicate
 theorems.  Changes in simp rules.  INCOMPATIBILITY.
