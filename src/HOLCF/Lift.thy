@@ -73,23 +73,21 @@ lemma DefE: "Def x = \<bottom> \<Longrightarrow> R"
 lemma DefE2: "\<lbrakk>x = Def s; x = \<bottom>\<rbrakk> \<Longrightarrow> R"
   by simp
 
-lemma Def_inject_less_eq: "Def x \<sqsubseteq> Def y = (x = y)"
+lemma Def_inject_less_eq: "Def x \<sqsubseteq> Def y \<longleftrightarrow> x = y"
 by (simp add: less_lift_def Def_def Abs_lift_inverse lift_def)
 
-lemma Def_less_is_eq [simp]: "Def x \<sqsubseteq> y = (Def x = y)"
-apply (induct y)
-apply simp
-apply (simp add: Def_inject_less_eq)
-done
+lemma Def_less_is_eq [simp]: "Def x \<sqsubseteq> y \<longleftrightarrow> Def x = y"
+by (induct y, simp, simp add: Def_inject_less_eq)
 
 
 subsection {* Lift is flat *}
 
-lemma less_lift: "(x::'a lift) \<sqsubseteq> y = (x = y \<or> x = \<bottom>)"
-by (induct x, simp_all)
-
 instance lift :: (type) flat
-by (intro_classes, auto simp add: less_lift)
+proof
+  fix x y :: "'a lift"
+  assume "x \<sqsubseteq> y" thus "x = \<bottom> \<or> x = y"
+    by (induct x) auto
+qed
 
 text {*
   \medskip Two specific lemmas for the combination of LCF and HOL
@@ -133,7 +131,7 @@ apply simp
 done
 
 lemma cont_flift1: "cont flift1"
-apply (unfold flift1_def)
+unfolding flift1_def
 apply (rule cont2cont_LAM)
 apply (rule cont_lift_case2)
 apply (rule cont_lift_case1)

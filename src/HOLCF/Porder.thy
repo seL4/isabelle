@@ -326,7 +326,7 @@ by (rule chainI, simp)
 
 lemma bin_chainmax:
   "x \<sqsubseteq> y \<Longrightarrow> max_in_chain (Suc 0) (\<lambda>i. if i=0 then x else y)"
-by (unfold max_in_chain_def, simp)
+unfolding max_in_chain_def by simp
 
 lemma lub_bin_chain:
   "x \<sqsubseteq> y \<Longrightarrow> range (\<lambda>i::nat. if i=0 then x else y) <<| y"
