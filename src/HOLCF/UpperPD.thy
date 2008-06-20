@@ -95,27 +95,24 @@ done
 subsection {* Type definition *}
 
 cpodef (open) 'a upper_pd =
-  "{S::'a::profinite pd_basis set. upper_le.ideal S}"
-apply (simp add: upper_le.adm_ideal)
-apply (fast intro: upper_le.ideal_principal)
-done
+  "{S::'a pd_basis cset. upper_le.ideal (Rep_cset S)}"
+by (rule upper_le.cpodef_ideal_lemma)
 
-lemma ideal_Rep_upper_pd: "upper_le.ideal (Rep_upper_pd x)"
+lemma ideal_Rep_upper_pd: "upper_le.ideal (Rep_cset (Rep_upper_pd xs))"
 by (rule Rep_upper_pd [unfolded mem_Collect_eq])
 
 definition
   upper_principal :: "'a pd_basis \<Rightarrow> 'a upper_pd" where
-  "upper_principal t = Abs_upper_pd {u. u \<le>\<sharp> t}"
+  "upper_principal t = Abs_upper_pd (Abs_cset {u. u \<le>\<sharp> t})"
 
 lemma Rep_upper_principal:
-  "Rep_upper_pd (upper_principal t) = {u. u \<le>\<sharp> t}"
+  "Rep_cset (Rep_upper_pd (upper_principal t)) = {u. u \<le>\<sharp> t}"
 unfolding upper_principal_def
-apply (rule Abs_upper_pd_inverse [unfolded mem_Collect_eq])
-apply (rule upper_le.ideal_principal)
-done
+by (simp add: Abs_upper_pd_inverse upper_le.ideal_principal)
 
 interpretation upper_pd:
-  ideal_completion [upper_le approx_pd upper_principal Rep_upper_pd]
+  ideal_completion
+    [upper_le approx_pd upper_principal "\<lambda>x. Rep_cset (Rep_upper_pd x)"]
 apply unfold_locales
 apply (rule approx_pd_upper_le)
 apply (rule approx_pd_idem)
@@ -124,9 +121,9 @@ apply (rule approx_pd_upper_chain)
 apply (rule finite_range_approx_pd)
 apply (rule approx_pd_covers)
 apply (rule ideal_Rep_upper_pd)
-apply (rule cont_Rep_upper_pd)
+apply (simp add: cont2contlubE [OF cont_Rep_upper_pd] Rep_cset_lub)
 apply (rule Rep_upper_principal)
-apply (simp only: less_upper_pd_def less_set_eq)
+apply (simp only: less_upper_pd_def sq_le_cset_def)
 done
 
 text {* Upper powerdomain is pointed *}
@@ -166,7 +163,8 @@ unfolding approx_upper_pd_def
 by (rule upper_pd.completion_approx_principal)
 
 lemma approx_eq_upper_principal:
-  "\<exists>t\<in>Rep_upper_pd xs. approx n\<cdot>xs = upper_principal (approx_pd n t)"
+  "\<exists>t\<in>Rep_cset (Rep_upper_pd xs).
+    approx n\<cdot>xs = upper_principal (approx_pd n t)"
 unfolding approx_upper_pd_def
 by (rule upper_pd.completion_approx_eq_principal)
 

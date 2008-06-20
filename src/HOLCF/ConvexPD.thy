@@ -142,30 +142,24 @@ done
 subsection {* Type definition *}
 
 cpodef (open) 'a convex_pd =
-  "{S::'a::profinite pd_basis set. convex_le.ideal S}"
-apply (simp add: convex_le.adm_ideal)
-apply (fast intro: convex_le.ideal_principal)
-done
+  "{S::'a pd_basis cset. convex_le.ideal (Rep_cset S)}"
+by (rule convex_le.cpodef_ideal_lemma)
 
-lemma ideal_Rep_convex_pd: "convex_le.ideal (Rep_convex_pd xs)"
+lemma ideal_Rep_convex_pd: "convex_le.ideal (Rep_cset (Rep_convex_pd xs))"
 by (rule Rep_convex_pd [unfolded mem_Collect_eq])
-
-lemma Rep_convex_pd_mono: "xs \<sqsubseteq> ys \<Longrightarrow> Rep_convex_pd xs \<subseteq> Rep_convex_pd ys"
-unfolding less_convex_pd_def less_set_eq .
 
 definition
   convex_principal :: "'a pd_basis \<Rightarrow> 'a convex_pd" where
-  "convex_principal t = Abs_convex_pd {u. u \<le>\<natural> t}"
+  "convex_principal t = Abs_convex_pd (Abs_cset {u. u \<le>\<natural> t})"
 
 lemma Rep_convex_principal:
-  "Rep_convex_pd (convex_principal t) = {u. u \<le>\<natural> t}"
+  "Rep_cset (Rep_convex_pd (convex_principal t)) = {u. u \<le>\<natural> t}"
 unfolding convex_principal_def
-apply (rule Abs_convex_pd_inverse [simplified])
-apply (rule convex_le.ideal_principal)
-done
+by (simp add: Abs_convex_pd_inverse convex_le.ideal_principal)
 
 interpretation convex_pd:
-  ideal_completion [convex_le approx_pd convex_principal Rep_convex_pd]
+  ideal_completion
+    [convex_le approx_pd convex_principal "\<lambda>x. Rep_cset (Rep_convex_pd x)"]
 apply unfold_locales
 apply (rule approx_pd_convex_le)
 apply (rule approx_pd_idem)
@@ -174,9 +168,9 @@ apply (rule approx_pd_convex_chain)
 apply (rule finite_range_approx_pd)
 apply (rule approx_pd_covers)
 apply (rule ideal_Rep_convex_pd)
-apply (rule cont_Rep_convex_pd)
+apply (simp add: cont2contlubE [OF cont_Rep_convex_pd] Rep_cset_lub)
 apply (rule Rep_convex_principal)
-apply (simp only: less_convex_pd_def less_set_eq)
+apply (simp only: less_convex_pd_def sq_le_cset_def)
 done
 
 text {* Convex powerdomain is pointed *}
@@ -216,7 +210,8 @@ unfolding approx_convex_pd_def
 by (rule convex_pd.completion_approx_principal)
 
 lemma approx_eq_convex_principal:
-  "\<exists>t\<in>Rep_convex_pd xs. approx n\<cdot>xs = convex_principal (approx_pd n t)"
+  "\<exists>t\<in>Rep_cset (Rep_convex_pd xs).
+    approx n\<cdot>xs = convex_principal (approx_pd n t)"
 unfolding approx_convex_pd_def
 by (rule convex_pd.completion_approx_eq_principal)
 

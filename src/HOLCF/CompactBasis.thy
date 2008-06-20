@@ -6,7 +6,7 @@
 header {* Compact bases of domains *}
 
 theory CompactBasis
-imports Bifinite SetPcpo
+imports Bifinite Cset
 begin
 
 subsection {* Ideals over a preorder *}
@@ -78,8 +78,15 @@ apply (erule imageI)
 apply (simp add: f)
 done
 
-lemma adm_ideal: "adm (\<lambda>A. ideal A)"
+lemma adm_ideal: "adm (\<lambda>A. ideal (Rep_cset A))"
 unfolding ideal_def by (intro adm_lemmas adm_set_lemmas)
+
+lemma cpodef_ideal_lemma:
+  "(\<exists>x. x \<in> {S. ideal (Rep_cset S)}) \<and> adm (\<lambda>x. x \<in> {S. ideal (Rep_cset S)})"
+apply (simp add: adm_ideal)
+apply (rule exI [where x="Abs_cset {x. x \<preceq> arbitrary}"])
+apply (simp add: ideal_principal)
+done
 
 lemma lub_image_principal:
   assumes f: "\<And>x y. x \<preceq> y \<Longrightarrow> f x \<sqsubseteq> f y"
@@ -150,7 +157,7 @@ locale ideal_completion = basis_take +
   fixes principal :: "'a::type \<Rightarrow> 'b::cpo"
   fixes rep :: "'b::cpo \<Rightarrow> 'a::type set"
   assumes ideal_rep: "\<And>x. preorder.ideal r (rep x)"
-  assumes cont_rep: "cont rep"
+  assumes rep_contlub: "\<And>Y. chain Y \<Longrightarrow> rep (\<Squnion>i. Y i) = (\<Union>i. rep (Y i))"
   assumes rep_principal: "\<And>a. rep (principal a) = {b. b \<preceq> a}"
   assumes subset_repD: "\<And>x y. rep x \<subseteq> rep y \<Longrightarrow> x \<sqsubseteq> y"
 begin
@@ -216,13 +223,11 @@ lemma basis_fun_lemma:
 by (rule exI, rule basis_fun_lemma2, erule f_mono)
 
 lemma rep_mono: "x \<sqsubseteq> y \<Longrightarrow> rep x \<subseteq> rep y"
-apply (drule cont_rep [THEN cont2mono, THEN monofunE])
-apply (simp add: set_cpo_simps)
+apply (frule bin_chain)
+apply (drule rep_contlub)
+apply (simp only: thelubI [OF lub_bin_chain])
+apply (rule subsetI, rule UN_I [where a=0], simp_all)
 done
-
-lemma rep_contlub:
-  "chain Y \<Longrightarrow> rep (\<Squnion>i. Y i) = (\<Union>i. rep (Y i))"
-by (simp add: cont2contlubE [OF cont_rep] set_cpo_simps)
 
 lemma less_def: "x \<sqsubseteq> y \<longleftrightarrow> rep x \<subseteq> rep y"
 by (rule iffI [OF rep_mono subset_repD])
@@ -537,16 +542,13 @@ proof
       done
   qed
 next
-  show "cont compacts"
+  fix Y :: "nat \<Rightarrow> 'a"
+  assume Y: "chain Y"
+  show "compacts (\<Squnion>i. Y i) = (\<Union>i. compacts (Y i))"
     unfolding compacts_def
-    apply (rule contI2)
-    apply (rule monofunI)
-    apply (simp add: set_cpo_simps)
-    apply (fast intro: trans_less)
-    apply (simp add: set_cpo_simps)
-    apply clarify
-    apply simp
-    apply (erule (1) compactD2 [OF compact_Rep_compact_basis])
+    apply safe
+    apply (simp add: compactD2 [OF compact_Rep_compact_basis Y])
+    apply (erule trans_less, rule is_ub_thelub [OF Y])
     done
 next
   fix a :: "'a compact_basis"
