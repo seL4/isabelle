@@ -6,7 +6,7 @@
 header {* Lifting types of class type to flat pcpo's *}
 
 theory Lift
-imports Discrete Up Cprod Countable
+imports Discrete Up Countable
 begin
 
 defaultsort type
@@ -109,10 +109,6 @@ definition
 definition
   flift2 :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lift \<rightarrow> 'b lift)" where
   "flift2 f = (FLIFT x. Def (f x))"
-
-definition
-  liftpair :: "'a lift \<times> 'b lift \<Rightarrow> ('a \<times> 'b) lift" where
-  "liftpair x = csplit\<cdot>(FLIFT x y. Def (x, y))\<cdot>x"
 
 subsection {* Continuity Proofs for flift1, flift2 *}
 
