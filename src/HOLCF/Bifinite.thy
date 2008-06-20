@@ -13,7 +13,7 @@ subsection {* Omega-profinite and bifinite domains *}
 
 class profinite = cpo +
   fixes approx :: "nat \<Rightarrow> 'a \<rightarrow> 'a"
-  assumes chain_approx_app: "chain (\<lambda>i. approx i\<cdot>x)"
+  assumes chain_approx [simp]: "chain approx"
   assumes lub_approx_app [simp]: "(\<Squnion>i. approx i\<cdot>x) = x"
   assumes approx_idem: "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
   assumes finite_fixes_approx: "finite {x. approx i\<cdot>x = x}"
@@ -25,13 +25,6 @@ lemma finite_range_imp_finite_fixes:
 apply (subgoal_tac "{x. f x = x} \<subseteq> {x. \<exists>y. x = f y}")
 apply (erule (1) finite_subset)
 apply (clarify, erule subst, rule exI, rule refl)
-done
-
-lemma chain_approx [simp]: "chain approx"
-apply (rule chainI)
-apply (rule less_cfun_ext)
-apply (rule chainE)
-apply (rule chain_approx_app)
 done
 
 lemma lub_approx [simp]: "(\<Squnion>i. approx i) = (\<Lambda> x. x)"

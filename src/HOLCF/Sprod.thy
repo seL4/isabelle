@@ -73,7 +73,7 @@ lemmas Rep_Sprod_simps =
   Rep_Sprod_inject [symmetric] less_Sprod_def
   Rep_Sprod_strict Rep_Sprod_spair
 
-lemma Exh_Sprod2:
+lemma Exh_Sprod:
   "z = \<bottom> \<or> (\<exists>a b. z = (:a, b:) \<and> a \<noteq> \<bottom> \<and> b \<noteq> \<bottom>)"
 apply (insert Rep_Sprod [of z])
 apply (simp add: Rep_Sprod_simps eq_cprod)
@@ -85,7 +85,7 @@ done
 
 lemma sprodE [cases type: **]:
   "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x y. \<lbrakk>p = (:x, y:); x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-by (cut_tac z=p in Exh_Sprod2, auto)
+by (cut_tac z=p in Exh_Sprod, auto)
 
 lemma sprod_induct [induct type: **]:
   "\<lbrakk>P \<bottom>; \<And>x y. \<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> P (:x, y:)\<rbrakk> \<Longrightarrow> P x"
@@ -222,11 +222,14 @@ by (cases z, simp_all)
 subsection {* Strict product preserves flatness *}
 
 instance "**" :: (flat, flat) flat
-apply (intro_classes, clarify)
-apply (rule_tac p=x in sprodE, simp)
-apply (rule_tac p=y in sprodE, simp)
-apply (simp add: flat_less_iff spair_less)
-done
+proof
+  fix x y :: "'a \<otimes> 'b"
+  assume "x \<sqsubseteq> y" thus "x = \<bottom> \<or> x = y"
+    apply (induct x, simp)
+    apply (induct y, simp)
+    apply (simp add: spair_less_iff flat_less_iff)
+    done
+qed
 
 subsection {* Strict product is a bifinite domain *}
 
@@ -239,7 +242,7 @@ definition
 
 instance proof
   fix i :: nat and x :: "'a \<otimes> 'b"
-  show "chain (\<lambda>i. approx i\<cdot>x)"
+  show "chain (approx :: nat \<Rightarrow> 'a \<otimes> 'b \<rightarrow> 'a \<otimes> 'b)"
     unfolding approx_sprod_def by simp
   show "(\<Squnion>i. approx i\<cdot>x) = x"
     unfolding approx_sprod_def
@@ -249,7 +252,7 @@ instance proof
     by (simp add: ssplit_def strictify_conv_if)
   have "Rep_Sprod ` {x::'a \<otimes> 'b. approx i\<cdot>x = x} \<subseteq> {x. approx i\<cdot>x = x}"
     unfolding approx_sprod_def
-    apply (clarify, rule_tac p=x in sprodE)
+    apply (clarify, case_tac x)
      apply (simp add: Rep_Sprod_strict)
     apply (simp add: Rep_Sprod_spair spair_eq_iff)
     done

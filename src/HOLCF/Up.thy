@@ -320,7 +320,7 @@ definition
 
 instance proof
   fix i :: nat and x :: "'a u"
-  show "chain (\<lambda>i. approx i\<cdot>x)"
+  show "chain (approx :: nat \<Rightarrow> 'a u \<rightarrow> 'a u)"
     unfolding approx_up_def by simp
   show "(\<Squnion>i. approx i\<cdot>x) = x"
     unfolding approx_up_def
@@ -331,7 +331,7 @@ instance proof
   have "{x::'a u. approx i\<cdot>x = x} \<subseteq>
         insert \<bottom> ((\<lambda>x. up\<cdot>x) ` {x::'a. approx i\<cdot>x = x})"
     unfolding approx_up_def
-    by (rule subsetI, rule_tac p=x in upE, simp_all)
+    by (rule subsetI, case_tac x, simp_all)
   thus "finite {x::'a u. approx i\<cdot>x = x}"
     by (rule finite_subset, simp add: finite_fixes_approx)
 qed

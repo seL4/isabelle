@@ -137,6 +137,13 @@ apply (rule cont_lift_case2)
 apply (rule cont_lift_case1)
 done
 
+lemma FLIFT_mono:
+  "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> (FLIFT x. f x) \<sqsubseteq> (FLIFT x. g x)"
+apply (rule monofunE [where f=flift1])
+apply (rule cont2mono [OF cont_flift1])
+apply (simp add: less_fun_ext)
+done
+
 lemma cont2cont_flift1 [simp]:
   "\<lbrakk>\<And>y. cont (\<lambda>x. f x y)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. FLIFT y. f x y)"
 apply (rule cont_flift1 [THEN cont2cont_app3])
@@ -204,9 +211,9 @@ definition
 
 instance proof
   fix x :: "'a lift"
-  show "chain (\<lambda>i. approx i\<cdot>x)"
+  show "chain (approx :: nat \<Rightarrow> 'a lift \<rightarrow> 'a lift)"
     unfolding approx_lift_def
-    by (rule chainI, cases x, simp_all)
+    by (rule chainI, simp add: FLIFT_mono)
 next
   fix x :: "'a lift"
   show "(\<Squnion>i. approx i\<cdot>x) = x"

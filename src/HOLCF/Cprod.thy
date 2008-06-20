@@ -351,7 +351,7 @@ definition
 
 instance proof
   fix i :: nat and x :: "'a \<times> 'b"
-  show "chain (\<lambda>i. approx i\<cdot>x)"
+  show "chain (approx :: nat \<Rightarrow> 'a \<times> 'b \<rightarrow> 'a \<times> 'b)"
     unfolding approx_cprod_def by simp
   show "(\<Squnion>i. approx i\<cdot>x) = x"
     unfolding approx_cprod_def

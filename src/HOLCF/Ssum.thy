@@ -231,7 +231,7 @@ unfolding approx_ssum_def by (cases "x = \<bottom>") simp_all
 
 instance proof
   fix i :: nat and x :: "'a \<oplus> 'b"
-  show "chain (\<lambda>i. approx i\<cdot>x)"
+  show "chain (approx :: nat \<Rightarrow> 'a \<oplus> 'b \<rightarrow> 'a \<oplus> 'b)"
     unfolding approx_ssum_def by simp
   show "(\<Squnion>i. approx i\<cdot>x) = x"
     unfolding approx_ssum_def
@@ -241,7 +241,7 @@ instance proof
   have "{x::'a \<oplus> 'b. approx i\<cdot>x = x} \<subseteq>
         (\<lambda>x. sinl\<cdot>x) ` {x. approx i\<cdot>x = x} \<union>
         (\<lambda>x. sinr\<cdot>x) ` {x. approx i\<cdot>x = x}"
-    by (rule subsetI, rule_tac p=x in ssumE2, simp, simp)
+    by (rule subsetI, case_tac x rule: ssumE2, simp, simp)
   thus "finite {x::'a \<oplus> 'b. approx i\<cdot>x = x}"
     by (rule finite_subset,
         intro finite_UnI finite_imageI finite_fixes_approx)

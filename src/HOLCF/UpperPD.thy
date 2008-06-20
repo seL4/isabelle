@@ -147,7 +147,7 @@ definition
 
 instance
 apply (intro_classes, unfold approx_upper_pd_def)
-apply (simp add: upper_pd.chain_completion_approx)
+apply (rule upper_pd.chain_completion_approx)
 apply (rule upper_pd.lub_completion_approx)
 apply (rule upper_pd.completion_approx_idem)
 apply (rule upper_pd.finite_fixes_completion_approx)
