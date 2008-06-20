@@ -106,10 +106,12 @@ fun process_fun descr eqns (i, fname) (fnames, fnss) =
               let
                 val (fname', _) = dest_Free f;
                 val (_, rpos, _) = the (AList.lookup (op =) eqns fname');
-                val (ls, x' :: rs) = chop rpos ts
-                  handle Empty => primrec_error ("not enough arguments\
-                   \ in recursive application\nof function " ^ quote fname' ^ " on rhs");
-                val (x, xs) = strip_comb x'
+                val (ls, rs) = chop rpos ts
+                val (x', rs') = case rs
+                 of x' :: rs => (x', rs)
+                  | [] => primrec_error ("not enough arguments in recursive application\n"
+                      ^ "of function " ^ quote fname' ^ " on rhs");
+                val (x, xs) = strip_comb x';
               in case AList.lookup (op =) subs x
                of NONE =>
                     fs
@@ -117,7 +119,7 @@ fun process_fun descr eqns (i, fname) (fnames, fnss) =
                     |-> (fn ts' => pair (list_comb (f, ts')))
                 | SOME (i', y) =>
                     fs
-                    |> fold_map (subst subs) (xs @ ls @ rs)
+                    |> fold_map (subst subs) (xs @ ls @ rs')
                     ||> process_fun descr eqns (i', fname')
                     |-> (fn ts' => pair (list_comb (y, ts')))
               end
@@ -141,8 +143,8 @@ fun process_fun descr eqns (i, fname) (fnames, fnss) =
               val rargs = map fst recs;
               val subs = map (rpair dummyT o fst)
                 (rev (rename_wrt_term rhs rargs));
-              val (rhs', (fnames'', fnss'')) = (subst (map2 (fn (x, y) => fn z =>
-                (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss'))
+              val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
+                (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
                   handle PrimrecError (s, NONE) => primrec_error_eqn s eq
             in (fnames'', fnss'',
                 (list_abs_free (cargs' @ subs @ ls @ rs, rhs'))::fns)
