@@ -3,6 +3,8 @@
     Author:     Steven Obua
 *)
 
-theory FloatSparseMatrix imports Float SparseMatrix begin
+theory FloatSparseMatrix
+imports "../../Real/Float" SparseMatrix
+begin
 
 end

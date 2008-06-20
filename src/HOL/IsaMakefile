@@ -167,9 +167,9 @@ $(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex			\
 
 HOL-Complex: HOL $(OUT)/HOL-Complex
 
-$(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML $(SRC)/Tools/float.ML	\
+$(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML                          \
   Library/Zorn.thy Library/Order_Relation.thy Real/ContNotDenum.thy	\
-  Real/float_arith.ML Real/Float.thy Real/Lubs.thy Real/PReal.thy	\
+  Real/float_arith.ML Real/Lubs.thy Real/PReal.thy                      \
   Real/RComplete.thy Real/Rational.thy Real/Real.thy Real/RealDef.thy	\
   Real/RealPow.thy Real/RealVector.thy Real/rat_arith.ML		\
   Real/real_arith.ML Hyperreal/StarDef.thy Hyperreal/Fact.thy		\
@@ -234,7 +234,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Boolean_Algebra.thy Library/Countable.thy Library/RType.thy	\
   Library/Heap.thy Library/Heap_Monad.thy Library/Array.thy		\
   Library/Ref.thy Library/Imperative_HOL.thy Library/RBT.thy		\
-  Library/Enum.thy
+  Library/Enum.thy Real/Float.thy $(SRC)/Tools/float.ML
 	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library
 
 

@@ -22,6 +22,7 @@ imports
   Eval
   Eval_Witness
   Executable_Set
+  "../Real/Float"
   FuncSet
   GCD
   Imperative_HOL
