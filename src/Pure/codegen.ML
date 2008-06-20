@@ -388,7 +388,7 @@ fun assoc_type (s, syn) thy =
     val tc = Sign.intern_type thy s;
   in
     case Symtab.lookup (snd (#types (Type.rep_tsig (Sign.tsig_of thy)))) tc of
-      SOME (Type.LogicalType i, _) =>
+      SOME ((Type.LogicalType i, _), _) =>
         if num_args_of (fst syn) > i then
           error ("More arguments than corresponding type constructor " ^ s)
         else (case AList.lookup (op =) types tc of

@@ -439,7 +439,8 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
     val syn' = Syntax.update_type_gram types syn;
     val decls = map (fn (a, n, mx) => (Syntax.type_name a mx, n)) types;
-    val tsig' = Type.add_types naming decls tsig;
+    val tags = [(Markup.theory_nameN, Context.theory_name thy)];
+    val tsig' = fold (Type.add_type naming tags) decls tsig;
   in (naming, syn', tsig', consts) end);
 
 
@@ -448,7 +449,7 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
     val syn' = Syntax.update_consts ns syn;
-    val tsig' = Type.add_nonterminals naming ns tsig;
+    val tsig' = fold (Type.add_nonterminal naming []) ns tsig;
   in (naming, syn', tsig', consts) end);
 
 
@@ -462,7 +463,7 @@ fun gen_add_tyabbr parse_typ (a, vs, rhs, mx) thy =
       val a' = Syntax.type_name a mx;
       val abbr = (a', vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote a');
-      val tsig' = Type.add_abbrevs naming [abbr] tsig;
+      val tsig' = Type.add_abbrev naming [] abbr tsig;
     in (naming, syn', tsig', consts) end);
 
 val add_tyabbrs = fold (gen_add_tyabbr Syntax.parse_typ);

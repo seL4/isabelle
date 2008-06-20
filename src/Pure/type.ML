@@ -17,7 +17,7 @@ sig
   val rep_tsig: tsig ->
    {classes: NameSpace.T * Sorts.algebra,
     default: sort,
-    types: (decl * serial) NameSpace.table,
+    types: ((decl * Markup.property list) * serial) NameSpace.table,
     log_types: string list}
   val empty_tsig: tsig
   val defaultS: tsig -> sort
@@ -40,6 +40,7 @@ sig
   val cert_typ: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
   val arity_sorts: Pretty.pp -> tsig -> string -> sort -> sort list
+  val the_tags: tsig -> string -> Markup.property list
 
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
@@ -72,9 +73,9 @@ sig
   val add_class: Pretty.pp -> NameSpace.naming -> bstring * class list -> tsig -> tsig
   val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
-  val add_types: NameSpace.naming -> (bstring * int) list -> tsig -> tsig
-  val add_abbrevs: NameSpace.naming -> (string * string list * typ) list -> tsig -> tsig
-  val add_nonterminals: NameSpace.naming -> string list -> tsig -> tsig
+  val add_type: NameSpace.naming -> Markup.property list -> bstring * int -> tsig -> tsig
+  val add_abbrev: NameSpace.naming -> Markup.property list -> string * string list * typ -> tsig -> tsig
+  val add_nonterminal: NameSpace.naming -> Markup.property list -> string -> tsig -> tsig
   val hide_type: bool -> string -> tsig -> tsig
   val add_arity: Pretty.pp -> arity -> tsig -> tsig
   val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
@@ -104,7 +105,7 @@ datatype tsig =
   TSig of {
     classes: NameSpace.T * Sorts.algebra,   (*order-sorted algebra of type classes*)
     default: sort,                          (*default sort on input*)
-    types: (decl * serial) NameSpace.table, (*declared types*)
+    types: ((decl * Markup.property list) * serial) NameSpace.table, (*declared types*)
     log_types: string list};                (*logical types sorted by number of arguments*)
 
 fun rep_tsig (TSig comps) = comps;
@@ -115,7 +116,7 @@ fun make_tsig (classes, default, types, log_types) =
 fun build_tsig ((space, classes), default, types) =
   let
     val log_types =
-      Symtab.fold (fn (c, (LogicalType n, _)) => cons (c, n) | _ => I) (snd types) []
+      Symtab.fold (fn (c, ((LogicalType n, _), _)) => cons (c, n) | _ => I) (snd types) []
       |> Library.sort (Library.int_ord o pairself snd) |> map fst;
   in make_tsig ((space, classes), default, types, log_types) end;
 
@@ -124,6 +125,10 @@ fun map_tsig f (TSig {classes, default, types, log_types = _}) =
 
 val empty_tsig =
   build_tsig ((NameSpace.empty, Sorts.empty_algebra), [], NameSpace.empty_table);
+
+fun lookup_type (TSig {types, ...}) = Option.map fst o Symtab.lookup (snd types);
+
+fun the_tags tsig = snd o the o lookup_type tsig;
 
 
 (* classes and sorts *)
@@ -177,7 +182,6 @@ in
 
 fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
   let
-    val TSig {types = (_, types), ...} = tsig;
     fun err msg = raise TYPE (msg, [ty], []);
 
     val check_logical =
@@ -189,7 +193,7 @@ fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
             val Ts' = map cert Ts;
             fun nargs n = if length Ts <> n then err (bad_nargs c) else ();
           in
-            (case Symtab.lookup types c of
+            (case lookup_type tsig c of
               SOME (LogicalType n, _) => (nargs n; Type (c, Ts'))
             | SOME (Abbreviation (vs, U, syn), _) =>
                (nargs (length vs);
@@ -215,8 +219,8 @@ end;
 
 (* type arities *)
 
-fun arity_number (TSig {types = (_, types), ...}) a =
-  (case Symtab.lookup types a of
+fun arity_number tsig a =
+  (case lookup_type tsig a of
     SOME (LogicalType n, _) => n
   | _ => error (undecl_type a));
 
@@ -514,7 +518,7 @@ fun hide_class fully c = map_tsig (fn ((space, classes), default, types) =>
 fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), default, types) =>
   let
     val _ =
-      (case Symtab.lookup (#2 types) t of
+      (case lookup_type tsig t of
         SOME (LogicalType n, _) => if length Ss <> n then error (bad_nargs t) else ()
       | SOME (decl, _) => error ("Illegal " ^ str_of_decl decl ^ ": " ^ quote t)
       | NONE => error (undecl_type t));
@@ -554,17 +558,17 @@ fun err_in_decls c decl decl' =
     else error ("Conflict of " ^ s ^ " with " ^ s' ^ ": " ^ quote c)
   end;
 
-fun new_decl naming (c, decl) (space, types) =
+fun new_decl naming tags (c, decl) (space, types) =
   let
     val c' = NameSpace.full naming c;
     val space' = NameSpace.declare naming c' space;
     val types' =
       (case Symtab.lookup types c' of
-        SOME (decl', _) => err_in_decls c' decl decl'
-      | NONE => Symtab.update (c', (decl, serial ())) types);
+        SOME ((decl', _), _) => err_in_decls c' decl decl'
+      | NONE => Symtab.update (c', ((decl, tags), serial ())) types);
   in (space', types') end;
 
-fun the_decl (_, types) = fst o the o Symtab.lookup types;
+fun the_decl (_, types) = fst o fst o the o Symtab.lookup types;
 
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let
@@ -574,11 +578,16 @@ fun map_types f = map_tsig (fn (classes, default, types) =>
   in (classes, default, (space', tab')) end);
 
 fun syntactic types (Type (c, Ts)) =
-      (case Symtab.lookup types c of SOME (Nonterminal, _) => true | _ => false)
+      (case Symtab.lookup types c of SOME ((Nonterminal, _), _) => true | _ => false)
         orelse exists (syntactic types) Ts
   | syntactic _ _ = false;
 
-fun add_abbrev naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
+in
+
+fun add_type naming tags (c, n) = if n < 0 then err_neg_args c else
+  map_types (new_decl naming tags (c, LogicalType n));
+
+fun add_abbrev naming tags (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg = cat_error msg ("The error(s) above occurred in type abbreviation: " ^ quote a);
     val rhs' = strip_sorts (no_tvars (cert_typ_mode mode_syntax tsig rhs))
@@ -590,17 +599,10 @@ fun add_abbrev naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
     (case subtract (op =) vs (map #1 (Term.add_tfreesT rhs' [])) of
       [] => []
     | extras => err ("Extra variables on rhs: " ^ commas_quote extras));
-    types |> new_decl naming (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs'))
+    types |> new_decl naming tags (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs'))
   end);
 
-in
-
-fun add_types naming ps = map_types (fold (new_decl naming) (ps |> map (fn (c, n) =>
-  if n < 0 then err_neg_args c else (c, LogicalType n))));
-
-val add_abbrevs = fold o add_abbrev;
-
-fun add_nonterminals naming = map_types o fold (new_decl naming) o map (rpair Nonterminal);
+fun add_nonterminal naming tags = map_types o new_decl naming tags o rpair Nonterminal;
 
 fun merge_types (types1, types2) =
   NameSpace.merge_tables (Library.eq_snd (op = : serial * serial -> bool)) (types1, types2)
