@@ -844,17 +844,17 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     (* prove distinctness theorems *)
 
     val distinct_props = DatatypeProp.make_distincts descr' sorts';
-    val dist_rewrites = map (fn (rep_thms, dist_lemma) =>
-      dist_lemma::(rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0]))
-        (constr_rep_thmss ~~ dist_lemmas);
+    val dist_rewrites = map2 (fn rep_thms => fn dist_lemma =>
+      dist_lemma :: rep_thms @ [In0_eq, In1_eq, In0_not_In1, In1_not_In0])
+        constr_rep_thmss dist_lemmas;
 
     fun prove_distinct_thms _ (_, []) = []
       | prove_distinct_thms (p as (rep_thms, dist_lemma)) (k, t :: ts) =
           let
             val dist_thm = Goal.prove_global thy8 [] [] t (fn _ =>
               simp_tac (simpset_of thy8 addsimps (dist_lemma :: rep_thms)) 1)
-          in dist_thm :: (standard (dist_thm RS not_sym)) ::
-            (prove_distinct_thms p (k, ts))
+          in dist_thm :: standard (dist_thm RS not_sym) ::
+            prove_distinct_thms p (k, ts)
           end;
 
     val distinct_thms = map2 prove_distinct_thms

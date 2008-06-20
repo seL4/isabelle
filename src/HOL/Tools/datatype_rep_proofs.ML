@@ -530,16 +530,16 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           if k >= lim then [] else let
             (*number of constructors < distinctness_limit : C_i ... ~= C_j ...*)
             fun prove [] = []
-              | prove (t :: _ :: ts) =
+              | prove (t :: ts) =
                   let
                     val dist_thm = SkipProof.prove_global thy5 [] [] t (fn _ =>
                       EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
                   in dist_thm :: standard (dist_thm RS not_sym) :: prove ts end;
           in prove ts end;
 
-    val distincts = DatatypeProp.make_distincts descr sorts;
-    val distinct_thms = map2 (prove_distinct_thms
-      (Config.get_thy thy5 distinctness_limit)) dist_rewrites distincts;
+    val distinct_thms = DatatypeProp.make_distincts descr sorts
+      |> map2 (prove_distinct_thms
+           (Config.get_thy thy5 distinctness_limit)) dist_rewrites;
 
     val simproc_dists = map (fn ((((_, (_, _, constrs)), rep_thms), congr), dists) =>
       if length constrs < Config.get_thy thy5 distinctness_limit

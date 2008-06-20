@@ -409,7 +409,7 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
 (*********************** declare existing type as datatype *********************)
 
-fun prove_rep_datatype alt_names new_type_names descr sorts induct inject distinct thy =
+fun prove_rep_datatype alt_names new_type_names descr sorts induct inject half_distinct thy =
   let
     val ((_, [induct']), _) =
       Variable.importT_thms [induct] (Variable.thm_context induct);
@@ -424,6 +424,7 @@ fun prove_rep_datatype alt_names new_type_names descr sorts induct inject distin
 
     val dt_info = get_datatypes thy;
 
+    val distinct = (map o maps) (fn thm => [thm, thm RS not_sym]) half_distinct;
     val (case_names_induct, case_names_exhausts) =
       (mk_case_names_induct descr, mk_case_names_exhausts descr (map #1 dtnames));
 
@@ -526,18 +527,18 @@ fun gen_rep_datatype prep_term after_qed alt_names raw_ts thy =
       (map o apsnd) dtyps_of_typ constr))
     val descr = map_index mk_spec cs;
     val injs = DatatypeProp.make_injs [descr] vs;
-    val distincts = map snd (DatatypeProp.make_distincts [descr] vs);
+    val half_distincts = map snd (DatatypeProp.make_distincts [descr] vs);
     val ind = DatatypeProp.make_ind [descr] vs;
-    val rules = (map o map o map) Logic.close_form [[[ind]], injs, distincts];
+    val rules = (map o map o map) Logic.close_form [[[ind]], injs, half_distincts];
 
     fun after_qed' raw_thms =
       let
-        val [[[induct]], injs, distincts] =
+        val [[[induct]], injs, half_distincts] =
           unflat rules (map Drule.zero_var_indexes_list raw_thms);
             (*FIXME somehow dubious*)
       in
         ProofContext.theory_result
-          (prove_rep_datatype alt_names new_type_names descr vs induct injs distincts)
+          (prove_rep_datatype alt_names new_type_names descr vs induct injs half_distincts)
         #-> after_qed
       end;
   in

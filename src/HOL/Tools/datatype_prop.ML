@@ -11,7 +11,7 @@ sig
   val make_tnames: typ list -> string list
   val make_injs : DatatypeAux.descr list -> (string * sort) list -> term list list
   val make_distincts : DatatypeAux.descr list ->
-    (string * sort) list -> (int * term list) list
+    (string * sort) list -> (int * term list) list (*no symmetric inequalities*)
   val make_ind : DatatypeAux.descr list -> (string * sort) list -> term
   val make_casedists : DatatypeAux.descr list -> (string * sort) list -> term list
   val make_primrec_Ts : DatatypeAux.descr list -> (string * sort) list ->
@@ -53,41 +53,6 @@ fun make_tnames Ts =
   in indexify_names (map type_name Ts) end;
 
 
-(************************* distinctness of constructors ***********************)
-
-fun make_distincts descr sorts =
-  let
-    val descr' = List.concat descr;
-    val recTs = get_rec_types descr' sorts;
-    val newTs = Library.take (length (hd descr), recTs);
-
-    fun prep_constr (cname, cargs) = (cname, map (typ_of_dtyp descr' sorts) cargs);
-
-    fun make_distincts' _ [] = []
-      | make_distincts' T ((cname, cargs)::constrs) =
-          let
-            val frees = map Free ((make_tnames cargs) ~~ cargs);
-            val t = list_comb (Const (cname, cargs ---> T), frees);
-
-            fun make_distincts'' [] = []
-              | make_distincts'' ((cname', cargs')::constrs') =
-                  let
-                    val frees' = map Free ((map ((op ^) o (rpair "'"))
-                      (make_tnames cargs')) ~~ cargs');
-                    val t' = list_comb (Const (cname', cargs' ---> T), frees')
-                  in
-                    HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.mk_eq (t, t')) ::
-                    HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.mk_eq (t', t)) ::
-                      make_distincts'' constrs'
-                  end
-
-          in make_distincts'' constrs @ make_distincts' T constrs end;
-
-  in
-    map2 (fn ((_, (_, _, constrs))) => fn T =>
-      (length constrs, make_distincts' T (map prep_constr constrs))) (hd descr) newTs
-  end;
-
 (************************* injectivity of constructors ************************)
 
 fun make_injs descr sorts =
@@ -110,6 +75,40 @@ fun make_injs descr sorts =
     map2 (fn d => fn T => fold_rev (make_inj T) (#3 (snd d)) [])
       (hd descr) (Library.take (length (hd descr), get_rec_types descr' sorts))
   end;
+
+
+(************************* distinctness of constructors ***********************)
+
+fun make_distincts descr sorts =
+  let
+    val descr' = flat descr;
+    val recTs = get_rec_types descr' sorts;
+    val newTs = Library.take (length (hd descr), recTs);
+
+    fun prep_constr (cname, cargs) = (cname, map (typ_of_dtyp descr' sorts) cargs);
+
+    fun make_distincts' _ [] = []
+      | make_distincts' T ((cname, cargs)::constrs) =
+          let
+            val frees = map Free ((make_tnames cargs) ~~ cargs);
+            val t = list_comb (Const (cname, cargs ---> T), frees);
+
+            fun make_distincts'' (cname', cargs') =
+              let
+                val frees' = map Free ((map ((op ^) o (rpair "'"))
+                  (make_tnames cargs')) ~~ cargs');
+                val t' = list_comb (Const (cname', cargs' ---> T), frees')
+              in
+                HOLogic.mk_Trueprop (HOLogic.Not $ HOLogic.mk_eq (t, t'))
+              end
+
+          in map make_distincts'' constrs @ make_distincts' T constrs end;
+
+  in
+    map2 (fn ((_, (_, _, constrs))) => fn T =>
+      (length constrs, make_distincts' T (map prep_constr constrs))) (hd descr) newTs
+  end;
+
 
 (********************************* induction **********************************)
 
