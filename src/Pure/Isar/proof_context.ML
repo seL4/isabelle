@@ -145,6 +145,9 @@ sig
   val prems_limit: int ref
   val pretty_ctxt: Proof.context -> Pretty.T list
   val pretty_context: Proof.context -> Pretty.T list
+  val query_type: Proof.context -> string -> Markup.property list
+  val query_const: Proof.context -> string -> Markup.property list
+  val query_class: Proof.context -> string -> Markup.property list
 end;
 
 structure ProofContext: PROOF_CONTEXT =
@@ -1333,5 +1336,15 @@ fun pretty_context ctxt =
     verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts)))
   end;
+
+
+(* query meta data *)
+
+val query_type = Type.the_tags o tsig_of;
+
+fun query_const ctxt name =
+  Consts.the_tags (consts_of ctxt) name handle TYPE (msg, _, _) => error msg;
+
+fun query_class ctxt name = query_const ctxt (Logic.const_of_class name);
 
 end;
