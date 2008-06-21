@@ -117,10 +117,7 @@ fun import_export_proof ctxt (name, raw_th) =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val result = th''
-      |> PureThy.name_thm true true ""
-      |> fold PureThy.tag_rule (Position.properties_of (Position.thread_data ()))
-      |> PureThy.name_thm true true name;
+    val result = PureThy.name_thm true true name th'';
 
     (*import fixes*)
     val (tvars, vars) =
