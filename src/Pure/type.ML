@@ -126,10 +126,6 @@ fun map_tsig f (TSig {classes, default, types, log_types = _}) =
 val empty_tsig =
   build_tsig ((NameSpace.empty, Sorts.empty_algebra), [], NameSpace.empty_table);
 
-fun lookup_type (TSig {types, ...}) = Option.map fst o Symtab.lookup (snd types);
-
-fun the_tags tsig = snd o the o lookup_type tsig;
-
 
 (* classes and sorts *)
 
@@ -167,10 +163,21 @@ fun set_mode mode = Mode.map (K mode);
 fun restore_mode ctxt = set_mode (get_mode ctxt);
 
 
+(* lookup types *)
+
+fun undecl_type c = "Undeclared type constructor: " ^ quote c;
+
+fun lookup_type (TSig {types, ...}) = Option.map fst o Symtab.lookup (snd types);
+
+fun the_tags tsig c =
+  (case lookup_type tsig c of
+    SOME (_, tags) => tags
+  | NONE => error (undecl_type c));
+
+
 (* certified types *)
 
 fun bad_nargs t = "Bad number of arguments for type constructor: " ^ quote t;
-fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
 local
 
@@ -560,12 +567,13 @@ fun err_in_decls c decl decl' =
 
 fun new_decl naming tags (c, decl) (space, types) =
   let
+    val tags' = tags |> Position.default_properties (Position.thread_data ());
     val c' = NameSpace.full naming c;
     val space' = NameSpace.declare naming c' space;
     val types' =
       (case Symtab.lookup types c' of
         SOME ((decl', _), _) => err_in_decls c' decl decl'
-      | NONE => Symtab.update (c', ((decl, tags), serial ())) types);
+      | NONE => Symtab.update (c', ((decl, tags'), serial ())) types);
   in (space', types') end;
 
 fun the_decl (_, types) = fst o fst o the o Symtab.lookup types;
