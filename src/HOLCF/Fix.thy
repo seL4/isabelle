@@ -8,7 +8,7 @@ Definitions for fixed point operator and admissibility.
 header {* Fixed point operator and admissibility *}
 
 theory Fix
-imports Cfun Cprod Adm
+imports Cfun Cprod
 begin
 
 defaultsort pcpo
@@ -59,14 +59,12 @@ definition
 
 text {* Binder syntax for @{term fix} *}
 
-syntax
-  "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3FIX _./ _)" [1000, 10] 10)
+abbreviation
+  fix_syn :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder "FIX " 10) where
+  "fix_syn (\<lambda>x. f x) \<equiv> fix\<cdot>(\<Lambda> x. f x)"
 
-syntax (xsymbols)
-  "_FIX" :: "['a, 'a] \<Rightarrow> 'a" ("(3\<mu> _./ _)" [1000, 10] 10)
-
-translations
-  "\<mu> x. t" == "CONST fix\<cdot>(\<Lambda> x. t)"
+notation (xsymbols)
+  fix_syn  (binder "\<mu> " 10)
 
 text {* Properties of @{term fix} *}
 
