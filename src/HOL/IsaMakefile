@@ -81,26 +81,27 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   $(SRC)/Tools/IsaPlanner/isand.ML $(SRC)/Tools/IsaPlanner/rw_inst.ML	\
   $(SRC)/Tools/IsaPlanner/rw_tools.ML					\
   $(SRC)/Tools/IsaPlanner/zipper.ML $(SRC)/Tools/induct.ML		\
-  $(SRC)/Provers/blast.ML $(SRC)/Provers/clasimp.ML			\
-  $(SRC)/Provers/classical.ML $(SRC)/Provers/eqsubst.ML			\
-  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/order.ML			\
-  $(SRC)/Provers/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
-  $(SRC)/Provers/quasi.ML $(SRC)/Provers/splitter.ML			\
-  $(SRC)/Provers/trancl.ML $(SRC)/Tools/Metis/metis.ML			\
-  $(SRC)/Tools/code/code_funcgr.ML $(SRC)/Tools/code/code_name.ML	\
-  $(SRC)/Tools/code/code_target.ML $(SRC)/Tools/code/code_thingol.ML	\
-  $(SRC)/Tools/nbe.ML $(SRC)/Tools/atomize_elim.ML			\
-  $(SRC)/Tools/random_word.ML $(SRC)/Tools/rat.ML			\
-  Tools/TFL/casesplit.ML ATP_Linkup.thy Arith_Tools.thy Code_Setup.thy	\
-  Datatype.thy Divides.thy Equiv_Relations.thy Extraction.thy		\
-  Finite_Set.thy Fun.thy FunDef.thy HOL.thy Hilbert_Choice.thy		\
-  Inductive.thy Int.thy IntDiv.thy Lattices.thy List.thy Main.thy	\
-  Map.thy Nat.thy NatBin.thy OrderedGroup.thy Orderings.thy Power.thy	\
-  Predicate.thy Product_Type.thy ROOT.ML Recdef.thy Record.thy		\
-  Refute.thy Relation.thy Relation_Power.thy Ring_and_Field.thy		\
-  SAT.thy Set.thy SetInterval.thy Sum_Type.thy Groebner_Basis.thy	\
-  Tools/watcher.ML Tools/Groebner_Basis/groebner.ML			\
-  Tools/Groebner_Basis/misc.ML Tools/Groebner_Basis/normalizer.ML	\
+  $(SRC)/Tools/induct_tacs.ML $(SRC)/Provers/blast.ML			\
+  $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML			\
+  $(SRC)/Provers/eqsubst.ML $(SRC)/Provers/hypsubst.ML			\
+  $(SRC)/Provers/order.ML $(SRC)/Provers/project_rule.ML		\
+  $(SRC)/Provers/quantifier1.ML $(SRC)/Provers/quasi.ML			\
+  $(SRC)/Provers/splitter.ML $(SRC)/Provers/trancl.ML			\
+  $(SRC)/Tools/Metis/metis.ML $(SRC)/Tools/code/code_funcgr.ML		\
+  $(SRC)/Tools/code/code_name.ML $(SRC)/Tools/code/code_target.ML	\
+  $(SRC)/Tools/code/code_thingol.ML $(SRC)/Tools/nbe.ML			\
+  $(SRC)/Tools/atomize_elim.ML $(SRC)/Tools/random_word.ML		\
+  $(SRC)/Tools/rat.ML Tools/TFL/casesplit.ML ATP_Linkup.thy		\
+  Arith_Tools.thy Code_Setup.thy Datatype.thy Divides.thy		\
+  Equiv_Relations.thy Extraction.thy Finite_Set.thy Fun.thy FunDef.thy	\
+  HOL.thy Hilbert_Choice.thy Inductive.thy Int.thy IntDiv.thy		\
+  Lattices.thy List.thy Main.thy Map.thy Nat.thy NatBin.thy		\
+  OrderedGroup.thy Orderings.thy Power.thy Predicate.thy		\
+  Product_Type.thy ROOT.ML Recdef.thy Record.thy Refute.thy		\
+  Relation.thy Relation_Power.thy Ring_and_Field.thy SAT.thy Set.thy	\
+  SetInterval.thy Sum_Type.thy Groebner_Basis.thy Tools/watcher.ML	\
+  Tools/Groebner_Basis/groebner.ML Tools/Groebner_Basis/misc.ML		\
+  Tools/Groebner_Basis/normalizer.ML					\
   Tools/Groebner_Basis/normalizer_data.ML Tools/Qelim/cooper.ML		\
   Tools/Qelim/langford_data.ML Tools/Qelim/langford.ML			\
   Tools/Qelim/cooper_data.ML Tools/Qelim/ferrante_rackoff.ML		\
@@ -125,11 +126,10 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
   Tools/function_package/measure_functions.ML				\
   Tools/function_package/mutual.ML					\
   Tools/function_package/pattern_split.ML				\
-  Tools/function_package/size.ML Tools/induct_tacs.ML			\
-  Tools/inductive_codegen.ML Tools/inductive_package.ML			\
-  Tools/inductive_realizer.ML Tools/inductive_set_package.ML		\
-  Tools/lin_arith.ML Tools/meson.ML Tools/metis_tools.ML		\
-  Tools/numeral.ML Tools/numeral_syntax.ML				\
+  Tools/function_package/size.ML Tools/inductive_codegen.ML		\
+  Tools/inductive_package.ML Tools/inductive_realizer.ML		\
+  Tools/inductive_set_package.ML Tools/lin_arith.ML Tools/meson.ML	\
+  Tools/metis_tools.ML Tools/numeral.ML Tools/numeral_syntax.ML		\
   Tools/old_primrec_package.ML Tools/polyhash.ML			\
   Tools/primrec_package.ML Tools/prop_logic.ML Tools/recdef_package.ML	\
   Tools/recfun_codegen.ML Tools/record_package.ML Tools/refute.ML	\

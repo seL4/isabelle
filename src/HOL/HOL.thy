@@ -25,7 +25,7 @@ uses
   "~~/src/Tools/random_word.ML"
   "~~/src/Tools/atomize_elim.ML"
   "~~/src/Tools/induct.ML"
-  ("~~/src/HOL/Tools/induct_tacs.ML")
+  ("~~/src/Tools/induct_tacs.ML")
   "~~/src/Tools/code/code_name.ML"
   "~~/src/Tools/code/code_funcgr.ML"
   "~~/src/Tools/code/code_thingol.ML"
@@ -1554,7 +1554,7 @@ structure Induct = InductFun
 
 setup Induct.setup
 
-use "~~/src/HOL/Tools/induct_tacs.ML"
+use "~~/src/Tools/induct_tacs.ML"
 setup InductTacs.setup
 
 

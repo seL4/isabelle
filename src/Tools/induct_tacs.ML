@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Unstructured induction and cases analysis for Isabelle/HOL.
+Unstructured induction and cases analysis.
 *)
 
 signature INDUCT_TACS =
