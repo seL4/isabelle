@@ -133,7 +133,7 @@ fun rewr_conv rule ct =
 
 (*rewrite B in !!x1 ... xn. B*)
 fun params_conv n cv ctxt ct =
-  if n <> 0 andalso can Logic.dest_all (Thm.term_of ct)
+  if n <> 0 andalso Logic.is_all (Thm.term_of ct)
   then arg_conv (abs_conv (params_conv (n - 1) cv o #2) ctxt) ct
   else cv ctxt ct;
 

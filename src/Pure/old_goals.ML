@@ -155,7 +155,7 @@ fun prepare_proof atomic rths chorn =
       val _ = Term.no_dummy_patterns horn handle TERM (msg, _) => error msg;
       val (As, B) = Logic.strip_horn horn;
       val atoms = atomic andalso
-            forall (fn t => not (can Logic.dest_implies t orelse can Logic.dest_all t)) As;
+            forall (fn t => not (can Logic.dest_implies t orelse Logic.is_all t)) As;
       val (As,B) = if atoms then ([],horn) else (As,B);
       val cAs = map (cterm_of thy) As;
       val prems = map (rewrite_rule rths o Thm.forall_elim_vars 0 o Thm.assume) cAs;
