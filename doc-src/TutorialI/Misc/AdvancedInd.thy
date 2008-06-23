@@ -227,12 +227,7 @@ format is
 \begin{quote}
 \isacommand{apply}@{text"(induct_tac"} $y@1 \dots y@n$ @{text"rule:"} $r$@{text")"}
 \end{quote}
-where $y@1, \dots, y@n$ are variables in the first subgoal.
-The conclusion of $r$ can even be an (iterated) conjunction of formulae of
-the above form in which case the application is
-\begin{quote}
-\isacommand{apply}@{text"(induct_tac"} $y@1 \dots y@n$ @{text"and"} \dots\ @{text"and"} $z@1 \dots z@m$ @{text"rule:"} $r$@{text")"}
-\end{quote}
+where $y@1, \dots, y@n$ are variables in the conclusion of the first subgoal.
 
 A further useful induction rule is @{thm[source]length_induct},
 induction on the length of a list\indexbold{*length_induct}
