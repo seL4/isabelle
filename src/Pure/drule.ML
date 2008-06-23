@@ -146,7 +146,7 @@ fun ctyp_fun f cT = Thm.ctyp_of (Thm.theory_of_ctyp cT) (f (Thm.typ_of cT));
 
 fun certify t = Thm.cterm_of (Context.the_theory (Context.the_thread_data ())) t;
 
-val implies = certify Term.implies;
+val implies = certify Logic.implies;
 fun mk_implies (A, B) = Thm.capply (Thm.capply implies A) B;
 
 (*cterm version of list_implies: [A1,...,An], B  goes to [|A1;==>;An|]==>B *)
