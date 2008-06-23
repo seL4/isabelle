@@ -34,7 +34,6 @@ sig
   val disjuncts: term -> term list
   val dest_imp: term -> term * term
   val dest_not: term -> term
-  val dest_concls: term -> term list
   val eq_const: typ -> term
   val mk_eq: term * term -> term
   val dest_eq: term -> term * term
@@ -197,9 +196,6 @@ fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
 
 fun dest_not (Const ("Not", _) $ t) = t
   | dest_not t = raise TERM ("dest_not", [t]);
-
-fun imp_concl_of t = imp_concl_of (#2 (dest_imp t)) handle TERM _ => t;
-val dest_concls = map imp_concl_of o dest_conj o dest_Trueprop;
 
 fun eq_const T = Const ("op =", [T, T] ---> boolT);
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
