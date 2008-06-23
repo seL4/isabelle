@@ -82,8 +82,11 @@ structure BrowserInfoData = TheoryDataFun
   fun merge _ _ = empty;
 );
 
+val put_info = BrowserInfoData.put;
 val get_info = BrowserInfoData.get;
 val session_name = #name o get_info;
+
+val _ = Context.>> (Context.map_theory (put_info {name = "", session = [], is_local = false}));
 
 
 
@@ -493,7 +496,7 @@ fun begin_theory update_time dir files thy =
     add_graph_entry (update_time, entry);
     add_html_index (update_time, HTML.theory_entry (Url.File (html_path name), name));
     add_tex_index (update_time, Latex.theory_entry name);
-    BrowserInfoData.put {name = sess_name, session = path, is_local = is_some remote_path} thy
+    put_info {name = sess_name, session = path, is_local = is_some remote_path} thy
   end);
 
 
