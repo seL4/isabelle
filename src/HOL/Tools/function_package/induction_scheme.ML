@@ -146,7 +146,7 @@ fun mk_completeness ctxt (IndScheme {cases, branches, ...}) bidx =
       HOLogic.mk_Trueprop Pbool
        |> fold_rev (curry Logic.mk_implies o mk_case) relevant_cases
        |> fold_rev (curry Logic.mk_implies) Cs'
-       |> fold_rev (mk_forall o Free) ws
+       |> fold_rev (Logic.all o Free) ws
        |> fold_rev mk_forall_rename (map fst xs ~~ xs')
        |> mk_forall_rename ("P", Pbool)
     end
@@ -169,7 +169,7 @@ fun mk_ineqs R (IndScheme {T, cases, branches}) =
             val cse = 
                 HOLogic.mk_Trueprop thesis
                 |> fold_rev (curry Logic.mk_implies) Cs'
-                |> fold_rev (mk_forall o Free) ws
+                |> fold_rev (Logic.all o Free) ws
           in
             Logic.mk_implies (cse, HOLogic.mk_Trueprop thesis)
           end
@@ -180,7 +180,7 @@ fun mk_ineqs R (IndScheme {T, cases, branches}) =
                 let val export = 
                          fold_rev (curry Logic.mk_implies) Gas
                          #> fold_rev (curry Logic.mk_implies) gs
-                         #> fold_rev (mk_forall o Free) Gvs
+                         #> fold_rev (Logic.all o Free) Gvs
                          #> fold_rev mk_forall_rename (oqnames ~~ map Free qs)
                 in
                 (HOLogic.mk_mem (HOLogic.mk_prod (inject bidx' rcarg, inject bidx lhs), R)
@@ -188,7 +188,7 @@ fun mk_ineqs R (IndScheme {T, cases, branches}) =
                  |> export,
                  mk_pres bidx' rcarg
                  |> export
-                 |> mk_forall thesis)
+                 |> Logic.all thesis)
                 end
           in
             map g rs
@@ -205,7 +205,7 @@ fun mk_ind_goal thy branches =
       fun brnch (SchemeBranch { P, xs, ws, Cs, ... }) =
           HOLogic.mk_Trueprop (list_comb (P, map Free xs))
           |> fold_rev (curry Logic.mk_implies) Cs
-          |> fold_rev (mk_forall o Free) ws
+          |> fold_rev (Logic.all o Free) ws
           |> term_conv thy ind_atomize
           |> ObjectLogic.drop_judgment thy
           |> tupled_lambda (foldr1 HOLogic.mk_prod (map Free xs))
@@ -230,13 +230,13 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss (IndScheme {T, cases=sca
       val P_comp = mk_ind_goal thy branches
 
       (* Inductive Hypothesis: !!z. (z,x):R ==> P z *)
-      val ihyp = all T $ Abs ("z", T, 
-               implies $ 
-                  HOLogic.mk_Trueprop (
+      val ihyp = Term.all T $ Abs ("z", T, 
+               Logic.mk_implies
+                 (HOLogic.mk_Trueprop (
                   Const ("op :", HOLogic.mk_prodT (T, T) --> mk_relT T --> HOLogic.boolT) 
                     $ (HOLogic.pair_const T T $ Bound 0 $ x) 
-                    $ R)
-             $ HOLogic.mk_Trueprop (P_comp $ Bound 0))
+                    $ R),
+                   HOLogic.mk_Trueprop (P_comp $ Bound 0)))
            |> cert
 
       val aihyp = assume ihyp
@@ -290,7 +290,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss (IndScheme {T, cases=sca
                   val step = HOLogic.mk_Trueprop (list_comb (P, lhs))
                              |> fold_rev (curry Logic.mk_implies o prop_of) P_recs
                              |> fold_rev (curry Logic.mk_implies) gs
-                             |> fold_rev (mk_forall o Free) qs
+                             |> fold_rev (Logic.all o Free) qs
                              |> cert
                              
                   val Plhs_to_Pxs_conv = 

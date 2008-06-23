@@ -509,7 +509,7 @@ let
       case find_double t of
         (T, NONE) => NONE
       | (T, SOME rhs) =>
-          SOME (Goal.prove ctxt [] [] (Term.equals T $ t $ rhs)
+          SOME (Goal.prove ctxt [] [] (Logic.mk_equals (t, rhs))
             (fn _ =>
               rtac eq_reflection 1 THEN
               rtac ext 1 THEN

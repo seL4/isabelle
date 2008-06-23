@@ -152,7 +152,7 @@ fun prove_completeness thy xs P qss patss =
         fun mk_assum qs pats = 
             HOLogic.mk_Trueprop P
             |> fold_rev (curry Logic.mk_implies o HOLogic.mk_Trueprop o HOLogic.mk_eq) (xs ~~ pats)
-            |> fold_rev mk_forall qs
+            |> fold_rev Logic.all qs
             |> cterm_of thy
 
         val hyps = map2 mk_assum qss patss
@@ -221,7 +221,7 @@ fun mk_catchall fixes arities =
             HOLogic.mk_eq(list_comb (Free (fname, fT), qs),
                           Const ("HOL.undefined", rT))
               |> HOLogic.mk_Trueprop
-              |> fold_rev mk_forall qs
+              |> fold_rev Logic.all qs
           end
     in
       map mk_eqn fixes

@@ -250,12 +250,7 @@ fun clause_of_strees ctxt vt0 ts =
     singleton (Syntax.check_terms ctxt) (TypeInfer.constrain HOLogic.boolT (fix_sorts vt dt))
   end;
 
-(*Quantification over a list of Vars. FIXME: for term.ML??*)
-fun list_all_var ([], t: term) = t
-  | list_all_var ((v as Var(ix,T)) :: vars, t) =
-      (all T) $ Abs(string_of_indexname ix, T, abstract_over (v, list_all_var (vars,t)));
-
-fun gen_all_vars t = list_all_var (term_vars t, t);
+fun gen_all_vars t = fold_rev Logic.all (term_vars t) t;
 
 fun ints_of_stree_aux (Int n, ns) = n::ns
   | ints_of_stree_aux (Br(_,ts), ns) = foldl ints_of_stree_aux ns ts;

@@ -251,7 +251,7 @@ val update_simproc =
                (trm,trm',vars,_,true)
                 => let
                      val eq1 = Goal.prove ctxt [] [] 
-                                      (list_all (vars,equals sT$trm$trm'))
+                                      (list_all (vars, Logic.mk_equals (trm, trm')))
                                       (fn _ => rtac meta_ext 1 THEN 
                                                simp_tac ss1 1);
                      val eq2 = Simplifier.asm_full_rewrite ss2 (Thm.dest_equals_rhs (cprop_of eq1));

@@ -305,8 +305,7 @@ fun Mset thm = let val vars = get_vars(thm);
                          (Free ("P",varsT --> boolT) $ mk_bodyC vars));
                    val small_Collect = mk_CollectC (Abs("x",varsT,
                            Free ("P",varsT --> boolT) $ Bound 0));
-                   val impl = implies $ (Mset_incl big_Collect) $ 
-                                          (Mset_incl small_Collect);
+                   val impl = Logic.mk_implies (Mset_incl big_Collect, Mset_incl small_Collect);
    in Goal.prove (ProofContext.init (Thm.theory_of_thm thm)) ["Mset", "P"] [] impl (K (CLASET' blast_tac 1)) end;
 
 end;

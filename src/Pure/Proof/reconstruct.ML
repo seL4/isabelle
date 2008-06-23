@@ -26,11 +26,7 @@ fun message s = if !quiet_mode then () else writeln s;
 fun vars_of t = rev (fold_aterms
   (fn v as Var _ => insert (op =) v | _ => I) t []);
 
-fun forall_intr t prop =
-  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in all T $ Abs (a, T, abstract_over (t, prop)) end;
-
-fun forall_intr_vfs prop = fold_rev forall_intr
+fun forall_intr_vfs prop = fold_rev Logic.all
   (vars_of prop @ sort Term.term_ord (term_frees prop)) prop;
 
 fun forall_intr_prf t prf =
@@ -317,7 +313,7 @@ val head_norm = Envir.head_norm (Envir.empty 0);
 
 fun prop_of0 Hs (PBound i) = List.nth (Hs, i)
   | prop_of0 Hs (Abst (s, SOME T, prf)) =
-      all T $ (Abs (s, T, prop_of0 Hs prf))
+      Term.all T $ (Abs (s, T, prop_of0 Hs prf))
   | prop_of0 Hs (AbsP (s, SOME t, prf)) =
       Logic.mk_implies (t, prop_of0 (t :: Hs) prf)
   | prop_of0 Hs (prf % SOME t) = (case head_norm (prop_of0 Hs prf) of

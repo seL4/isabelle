@@ -128,10 +128,6 @@ fun msg d s = priority (Symbol.spaces d ^ s);
 fun vars_of t = rev (fold_aterms (fn v as Var _ => insert (op =) v | _ => I) t []);
 fun vfs_of t = vars_of t @ sort Term.term_ord (term_frees t);
 
-fun forall_intr (t, prop) =
-  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in all T $ Abs (a, T, abstract_over (t, prop)) end;
-
 fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in Abst (a, SOME T, prf_abstract_over t prf) end;
@@ -324,7 +320,7 @@ fun prep_realizer thy =
         (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))
           (Const ("realizes", T --> propT --> propT) $
             (if T = nullT then t else list_comb (t, vars')) $ prop);
-      val r = List.foldr forall_intr r' (map (get_var_type r') vars);
+      val r = fold_rev Logic.all (map (get_var_type r') vars) r';
       val prf = Reconstruct.reconstruct_proof thy' r (rd s2);
     in (name, (vs, (t, prf))) end
   end;

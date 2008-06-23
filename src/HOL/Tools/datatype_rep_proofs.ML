@@ -237,8 +237,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val rep_name = Sign.intern_const thy ("Rep_" ^ tname);
         val lhs = list_comb (Const (cname, constrT), l_args);
         val rhs = mk_univ_inj r_args n i;
-        val def = equals T $ lhs $ (Const (abs_name, Univ_elT --> T) $ rhs);
-        val def_name = (Sign.base_name cname) ^ "_def";
+        val def = Logic.mk_equals (lhs, Const (abs_name, Univ_elT --> T) $ rhs);
+        val def_name = Sign.base_name cname ^ "_def";
         val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq
           (Const (rep_name, T --> Univ_elT) $ lhs, rhs));
         val ([def_thm], thy') =
@@ -346,8 +346,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val (fs, eqns, isos) = Library.foldl process_dt (([], [], []), ds);
         val fTs = map fastype_of fs;
         val defs = map (fn (rec_name, (T, iso_name)) => ((Sign.base_name iso_name) ^ "_def",
-          equals (T --> Univ_elT) $ Const (iso_name, T --> Univ_elT) $
-            list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs))) (rec_names ~~ isos);
+          Logic.mk_equals (Const (iso_name, T --> Univ_elT),
+            list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs)))) (rec_names ~~ isos);
         val (def_thms, thy') = (PureThy.add_defs_i false o map Thm.no_attributes) defs thy;
 
         (* prove characteristic equations *)

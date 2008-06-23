@@ -637,8 +637,8 @@ fun cooper_oracle thy t =
   let
     val (vs, ps) = pairself (map_index swap) (term_frees t, term_bools [] t);
   in
-    equals propT $ HOLogic.mk_Trueprop t $
-      HOLogic.mk_Trueprop (term_of_qf ps vs (pa (qf_of_term ps vs t)))
+    Logic.mk_equals (HOLogic.mk_Trueprop t,
+      HOLogic.mk_Trueprop (term_of_qf ps vs (pa (qf_of_term ps vs t))))
   end;
 
 end;

@@ -70,8 +70,7 @@ fun mk_goal (vars, prems, lhs, rhs) rel =
     let
       val concl = HOLogic.mk_binrel rel (lhs, rhs) |> HOLogic.mk_Trueprop
     in
-      Logic.list_implies (prems, concl)
-        |> fold_rev FundefLib.mk_forall vars
+      fold_rev Logic.all vars (Logic.list_implies (prems, concl))
     end
 
 fun prove thy solve_tac t =

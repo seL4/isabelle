@@ -1050,7 +1050,7 @@ val record_simproc =
               (case mk_eq_terms (upd$k$r) of
                  SOME (trm,trm',vars)
                  => SOME (prove_split_simp thy ss domS
-                                 (list_all(vars,(equals rangeS$(sel$trm)$trm'))))
+                                 (list_all(vars, Logic.mk_equals (sel $ trm, trm'))))
                | NONE => NONE)
             end
           | NONE => NONE)
@@ -1187,7 +1187,7 @@ val record_upd_simproc =
                Inter (trm,trm',vars,_,_)
                 => SOME (normalize_rhs 
                           (prove_split_simp thy ss rT
-                            (list_all(vars,(equals rT$trm$trm')))))
+                            (list_all(vars, Logic.mk_equals (trm, trm')))))
              | _ => NONE)
          end
        | _ => NONE))

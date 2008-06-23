@@ -774,13 +774,10 @@ val equality_axms =
    ("transitive", list_implies ([mk_equals (x, y), mk_equals (y, z)], mk_equals (x, z))),
    ("equal_intr", list_implies ([mk_implies (A, B), mk_implies (B, A)], mk_equals (A, B))),
    ("equal_elim", list_implies ([mk_equals (A, B), A], B)),
-   ("abstract_rule", Logic.mk_implies
-      (all aT $ Abs ("x", aT, equals bT $ (f $ Bound 0) $ (g $ Bound 0)),
-       equals (aT --> bT) $
-         Abs ("x", aT, f $ Bound 0) $ Abs ("x", aT, g $ Bound 0))),
-   ("combination", Logic.list_implies
-      ([Logic.mk_equals (f, g), Logic.mk_equals (x, y)],
-       Logic.mk_equals (f $ x, g $ y)))];
+   ("abstract_rule", mk_implies
+      (all x (mk_equals (f $ x, g $ x)), mk_equals (lambda x (f $ x), lambda x (g $ x)))),
+   ("combination", list_implies
+      ([mk_equals (f, g), mk_equals (x, y)], mk_equals (f $ x, g $ y)))];
 
 val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =

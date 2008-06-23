@@ -177,7 +177,7 @@ fun compose (fs1, as1) (fs2, as2) = (fs1 @ fs2, as1 @ as2)
 
 fun export_term (fixes, assumes) =
     fold_rev (curry Logic.mk_implies o prop_of) assumes 
- #> fold_rev (mk_forall o Free) fixes
+ #> fold_rev (Logic.all o Free) fixes
 
 fun export_thm thy (fixes, assumes) =
     fold_rev (implies_intr o cprop_of) assumes

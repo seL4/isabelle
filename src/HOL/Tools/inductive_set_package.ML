@@ -69,7 +69,7 @@ fun strong_ind_simproc tab =
       fun close p t f =
         let val vs = Term.add_vars t []
         in Drule.instantiate' [] (rev (map (SOME o cterm_of thy o Var) vs))
-          (p (fold (fn x as (_, T) => fn u => all T $ lambda (Var x) u) vs t) f)
+          (p (fold (Logic.all o Var) vs t) f)
         end;
       fun mkop "op &" T x = SOME (Const ("op Int", T --> T --> T), x)
         | mkop "op |" T x = SOME (Const ("op Un", T --> T --> T), x)

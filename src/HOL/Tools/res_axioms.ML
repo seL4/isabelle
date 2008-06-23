@@ -86,7 +86,7 @@ fun declare_skofuns s th =
                     (*Forms a lambda-abstraction over the formal parameters*)
             val (c, thy') = Sign.declare_const [Markup.property_internal] (cname, cT, NoSyn) thy
             val cdef = cname ^ "_def"
-            val thy'' = Theory.add_defs_i true false [(cdef, equals cT $ c $ rhs)] thy'
+            val thy'' = Theory.add_defs_i true false [(cdef, Logic.mk_equals (c, rhs))] thy'
             val ax = Thm.get_axiom_i thy'' (Sign.full_name thy'' cdef)
           in dec_sko (subst_bound (list_comb (c, args), p)) (ax :: axs, thy'') end
       | dec_sko (Const ("All", _) $ (xtp as Abs (a, T, p))) thx =
@@ -113,7 +113,7 @@ fun assume_skofuns s th =
                 val rhs = list_abs_free (map dest_Free args,
                                          HOLogic.choice_const T $ xtp)
                       (*Forms a lambda-abstraction over the formal parameters*)
-                val def = equals cT $ c $ rhs
+                val def = Logic.mk_equals (c, rhs)
             in dec_sko (subst_bound (list_comb(c,args), p))
                        (def :: defs)
             end

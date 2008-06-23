@@ -21,9 +21,6 @@ fun fold_map_option f NONE y = (NONE, y)
 fun plural sg pl [x] = sg
   | plural sg pl _ = pl
 
-(* ==> logic.ML? *)
-fun mk_forall v t = all (fastype_of v) $ lambda v t
-
 (* lambda-abstracts over an arbitrarily nested tuple
   ==> hologic.ML? *)
 fun tupled_lambda vars t =
@@ -117,7 +114,7 @@ fun rename_bound n (Q $ Abs(_, T, b)) = (Q $ Abs(n, T, b))
   | rename_bound n _ = raise Match
 
 fun mk_forall_rename (n, v) =
-    rename_bound n o mk_forall v 
+    rename_bound n o Logic.all v 
 
 val dummy_term = Free ("", dummyT)
 

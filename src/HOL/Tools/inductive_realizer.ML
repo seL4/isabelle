@@ -29,13 +29,9 @@ fun prf_of thm =
     val thm' = Reconstruct.reconstruct_proof thy (Thm.prop_of thm) (Thm.proof_of thm);
   in Reconstruct.expand_proof thy [("", NONE)] thm' end; (* FIXME *)
 
-fun forall_intr_prf (t, prf) =
+fun forall_intr_prf t prf =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in Abst (a, SOME T, Proofterm.prf_abstract_over t prf) end;
-
-fun forall_intr_term (t, u) =
-  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in all T $ Abs (a, T, abstract_over (t, u)) end;
 
 fun subsets [] = [[]]
   | subsets (x::xs) =
@@ -264,13 +260,13 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
     val rlzvs = rev (Term.add_vars (prop_of rrule) []);
     val vs2 = map (fn (ixn, _) => Var (ixn, (the o AList.lookup (op =) rlzvs) ixn)) xs;
     val rs = map Var (subtract (op = o pairself fst) xs rlzvs);
-    val rlz' = foldr forall_intr_term (prop_of rrule) (vs2 @ rs);
-    val rlz'' = foldr forall_intr_term rlz vs2
+    val rlz' = fold_rev Logic.all (vs2 @ rs) (prop_of rrule);
+    val rlz'' = fold_rev Logic.all vs2 rlz
   in (name, (vs,
     if rt = Extraction.nullt then rt else
       foldr (uncurry lambda) rt vs1,
     ProofRewriteRules.un_hhf_proof rlz' rlz''
-      (foldr forall_intr_prf (prf_of rrule) (vs2 @ rs))))
+      (fold_rev forall_intr_prf (vs2 @ rs) (prf_of rrule))))
   end;
 
 fun rename tab = map (fn x => the_default x (AList.lookup op = tab x));
@@ -427,7 +423,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
       let
         val (prem :: prems) = prems_of elim;
         fun reorder1 (p, (_, intr)) =
-          Library.foldl (fn (t, ((s, _), T)) => all T $ lambda (Free (s, T)) t)
+          Library.foldl (fn (t, ((s, _), T)) => Logic.all (Free (s, T)) t)
             (strip_all p, Term.add_vars (prop_of intr) [] \\ params');
         fun reorder2 ((ivs, intr), i) =
           let val fs = Term.add_vars (prop_of intr) [] \\ params'

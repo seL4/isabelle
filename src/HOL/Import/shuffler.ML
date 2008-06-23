@@ -159,13 +159,15 @@ val all_comm =
         val cert = cterm_of Pure.thy
         val xT = TFree("'a",[])
         val yT = TFree("'b",[])
+        val x = Free("x",xT)
+        val y = Free("y",yT)
         val P = Free("P",xT-->yT-->propT)
-        val lhs = all xT $ (Abs("x",xT,all yT $ (Abs("y",yT,P $ Bound 1 $ Bound 0))))
-        val rhs = all yT $ (Abs("y",yT,all xT $ (Abs("x",xT,P $ Bound 0 $ Bound 1))))
+        val lhs = Logic.all x (Logic.all y (P $ x $ y))
+        val rhs = Logic.all y (Logic.all x (P $ x $ y))
         val cl = cert lhs
         val cr = cert rhs
-        val cx = cert (Free("x",xT))
-        val cy = cert (Free("y",yT))
+        val cx = cert x
+        val cy = cert y
         val th1 = assume cr
                          |> forall_elim_list [cy,cx]
                          |> forall_intr_list [cx,cy]
@@ -415,6 +417,8 @@ fun mk_tfree s = TFree("'"^s,[])
 fun mk_free s t = Free (s,t)
 val xT = mk_tfree "a"
 val yT = mk_tfree "b"
+val x = Free ("x", xT)
+val y = Free ("y", yT)
 val P  = mk_free "P" (xT-->yT-->propT)
 val Q  = mk_free "Q" (xT-->yT)
 val R  = mk_free "R" (xT-->yT)
@@ -436,7 +440,7 @@ fun equals_simproc thy = Simplifier.simproc_i
 fun quant_simproc thy = Simplifier.simproc_i
                            thy
                            "Ordered rewriting of nested quantifiers"
-                           [all xT $ (Abs("x",xT,all yT $ (Abs("y",yT,P $ Bound 1 $ Bound 0))))]
+                           [Logic.all x (Logic.all y (P $ x $ y))]
                            quant_rewrite
 fun eta_expand_simproc thy = Simplifier.simproc_i
                          thy
@@ -446,7 +450,7 @@ fun eta_expand_simproc thy = Simplifier.simproc_i
 fun eta_contract_simproc thy = Simplifier.simproc_i
                          thy
                          "Smart handling of eta-contractions"
-                         [all xT $ (Abs("x",xT,Logic.mk_equals(Q $ Bound 0,R $ Bound 0)))]
+                         [Logic.all x (Logic.mk_equals (Q $ x, R $ x))]
                          eta_contract
 end
 
@@ -582,8 +586,7 @@ succeeds, SOME theorem is returned, otherwise NONE.  *)
 fun set_prop thy t =
     let
         val vars = add_term_frees (t,add_term_vars (t,[]))
-        val closed_t = Library.foldr (fn (v, body) =>
-      let val vT = type_of v in all vT $ (Abs ("x", vT, abstract_over (v, body))) end) (vars, t)
+        val closed_t = fold_rev Logic.all vars t
         val rew_th = norm_term thy closed_t
         val rhs = Thm.rhs_of rew_th
 
