@@ -10,7 +10,7 @@ sig
   val case_tac: Proof.context -> string -> int -> tactic
   val case_rule_tac: Proof.context -> string -> thm -> int -> tactic
   val induct_tac: Proof.context -> string option list list -> int -> tactic
-  val induct_rule_tac: Proof.context -> string option list list -> thm -> int -> tactic
+  val induct_rules_tac: Proof.context -> string option list list -> thm list -> int -> tactic
   val setup: theory -> theory
 end
 
@@ -25,7 +25,7 @@ fun check_type ctxt t =
     val U = Term.fastype_of u;
     val _ = Term.is_TVar U andalso
       error ("Cannot determine type of " ^ Syntax.string_of_term ctxt u);
-  in U end;
+  in (u, U) end;
 
 fun gen_case_tac ctxt0 (s, opt_rule) i st =
   let
@@ -35,7 +35,7 @@ fun gen_case_tac ctxt0 (s, opt_rule) i st =
         SOME rule => rule
       | NONE =>
           (case Induct.find_casesT ctxt
-              (check_type ctxt (ProofContext.read_term_schematic ctxt s)) of
+              (#2 (check_type ctxt (ProofContext.read_term_schematic ctxt s))) of
             rule :: _ => rule
           | [] => @{thm case_split}));
     val _ = Method.trace ctxt [rule];
@@ -64,7 +64,7 @@ fun prep_inst (concl, xs) =
 
 in
 
-fun gen_induct_tac ctxt0 (varss, opt_rule) i st =
+fun gen_induct_tac ctxt0 (varss, opt_rules) i st =
   let
     val ((_, goal), ctxt) = Variable.focus_subgoal i st ctxt0;
     val (prems, concl) = Logic.strip_horn (Thm.term_of goal);
@@ -82,31 +82,32 @@ fun gen_induct_tac ctxt0 (varss, opt_rule) i st =
           if (exists o Term.exists_subterm) eq_x prems then
             warning ("Induction variable occurs also among premises: " ^ Syntax.string_of_term ctxt t)
           else ();
-      in check_type ctxt t end;
+      in #1 (check_type ctxt t) end;
 
-    val var_types = map_filter (Option.map induct_var) (flat varss);
+    val argss = map (map (Option.map induct_var)) varss;
+    val _ = forall null argss andalso raise THM ("No induction arguments", 0, []);
+
     val rule =
-      (case opt_rule of
-        SOME rule => rule
+      (case opt_rules of
+        SOME rules => #2 (RuleCases.strict_mutual_rule ctxt rules)
       | NONE =>
-          (case var_types of
-            T :: _ =>
-              (case filter_out PureThy.is_internal (Induct.find_inductT ctxt T) of
-                rule :: _ => rule
-              | [] => raise THM ("No induction rules", 0, []))
-          | _ => raise THM ("No induction arguments", 0, [])));
-    val _ = Method.trace ctxt [rule];
+          (case map_filter (RuleCases.mutual_rule ctxt) (Induct.get_inductT ctxt argss) of
+            (_, rule) :: _ => rule
+          | [] => raise THM ("No induction rules", 0, [])));
 
-    val concls = HOLogic.dest_concls (Thm.concl_of rule);
+    val rule' = rule |> Conv.fconv_rule (Conv.concl_conv ~1 ObjectLogic.atomize);
+    val _ = Method.trace ctxt [rule'];
+
+    val concls = Logic.dest_conjunctions (Thm.concl_of rule);
     val insts = maps prep_inst (concls ~~ varss) handle Library.UnequalLengths =>
       error "Induction rule has different numbers of variables";
-  in res_inst_tac ctxt insts rule i st end
+  in res_inst_tac ctxt insts rule' i st end
   handle THM _ => Seq.empty;
 
 end;
 
 fun induct_tac ctxt args = gen_induct_tac ctxt (args, NONE);
-fun induct_rule_tac ctxt args rule = gen_induct_tac ctxt (args, SOME rule);
+fun induct_rules_tac ctxt args rules = gen_induct_tac ctxt (args, SOME rules);
 
 
 (* method syntax *)
@@ -115,6 +116,7 @@ local
 
 val rule_spec = Scan.lift (Args.$$$ "rule" -- Args.$$$ ":");
 val opt_rule = Scan.option (rule_spec |-- Attrib.thm);
+val opt_rules = Scan.option (rule_spec |-- Attrib.thms);
 
 val varss =
   Args.and_list (Scan.repeat (Scan.unless rule_spec (Scan.lift (Args.maybe Args.name))));
@@ -125,7 +127,7 @@ val setup =
   Method.add_methods
    [("case_tac", Method.goal_args_ctxt' (Scan.lift Args.name -- opt_rule) gen_case_tac,
       "unstructured case analysis on types"),
-    ("induct_tac", Method.goal_args_ctxt' (varss -- opt_rule) gen_induct_tac,
+    ("induct_tac", Method.goal_args_ctxt' (varss -- opt_rules) gen_induct_tac,
       "unstructured induction on types")];
 
 end;
