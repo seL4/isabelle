@@ -22,7 +22,8 @@ as a degenerate product with 0 components.
 Products, like type @{typ nat}, are datatypes, which means
 in particular that @{text induct_tac} and @{text case_tac} are applicable to
 terms of product type.
-Both replace the term by a pair of variables.
+Both split the term into a number of variables corresponding to the tuple structure
+(up to 7 components).
 \item
 Tuples with more than two or three components become unwieldy;
 records are preferable.
