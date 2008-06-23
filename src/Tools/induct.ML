@@ -62,6 +62,7 @@ sig
   val guess_instance: Proof.context -> thm -> int -> thm -> thm Seq.seq
   val cases_tac: Proof.context -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
+  val get_inductT: Proof.context -> term option list list -> thm list list
   val induct_tac: Proof.context -> (string option * term) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> cases_tactic
@@ -567,17 +568,15 @@ fun add_defs def_insts =
     ...   induct ... r   - explicit rule
 *)
 
-local
-
 fun get_inductT ctxt insts =
-  fold_rev multiply (insts |> map_filter (fn [] => NONE | ts => List.last ts)
-    |> map (find_inductT ctxt o Term.fastype_of)) [[]]
+  fold_rev multiply (insts |> map
+      ((fn [] => NONE | ts => List.last ts) #>
+        (fn NONE => TVar (("'a", 0), []) | SOME t => Term.fastype_of t) #>
+        find_inductT ctxt)) [[]]
   |> filter_out (forall PureThy.is_internal);
 
 fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of fact))
   | get_inductP _ _ = [];
-
-in
 
 fun induct_tac ctxt def_insts arbitrary taking opt_rule facts =
   let
@@ -628,8 +627,6 @@ fun induct_tac ctxt def_insts arbitrary taking opt_rule facts =
                   PRIMITIVE (singleton (ProofContext.export defs_ctxt ctxt))) st'))))
     THEN_ALL_NEW_CASES rulify_tac
   end;
-
-end;
 
 
 
