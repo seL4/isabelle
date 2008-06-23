@@ -8,9 +8,12 @@ Abstract syntax operations of the Pure meta-logic.
 
 signature LOGIC =
 sig
-  val dest_all: term -> typ * term
+  val all: term -> term -> term
+  val is_all: term -> bool
+  val dest_all: term -> (string * typ) * term
   val mk_equals: term * term -> term
   val dest_equals: term -> term * term
+  val implies: term
   val mk_implies: term * term -> term
   val dest_implies: term -> term * term
   val list_implies: term list * term -> term
@@ -85,19 +88,30 @@ struct
 
 (** all **)
 
-fun dest_all (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ A) = (T, A)
+fun all v t = Const ("all", (Term.fastype_of v --> propT) --> propT) $ lambda v t;
+
+fun is_all (Const ("all", _) $ Abs _) = true
+  | is_all _ = false;
+
+fun dest_all (Const ("all", _) $ Abs (abs as (_, T, _))) =
+      let val (x, b) = Term.dest_abs abs  (*potentially slow*)
+      in ((x, T), b) end
   | dest_all t = raise TERM ("dest_all", [t]);
 
 
 (** equality **)
 
-fun mk_equals (t, u) = Term.equals (Term.fastype_of t) $ t $ u;
+fun mk_equals (t, u) =
+  let val T = Term.fastype_of t
+  in Const ("==", T --> T --> propT) $ t $ u end;
 
 fun dest_equals (Const ("==", _) $ t $ u) = (t, u)
   | dest_equals t = raise TERM ("dest_equals", [t]);
 
 
 (** implies **)
+
+val implies = Const ("==>", propT --> propT --> propT);
 
 fun mk_implies (A, B) = implies $ A $ B;
 
@@ -408,8 +422,8 @@ fun flatten_params n A =
 (*Makes parameters in a goal have the names supplied by the list cs.*)
 fun list_rename_params (cs, Const("==>", _) $ A $ B) =
       implies $ A $ list_rename_params (cs, B)
-  | list_rename_params (c::cs, Const("all",_)$Abs(_,T,t)) =
-      all T $ Abs(c, T, list_rename_params (cs, t))
+  | list_rename_params (c::cs, (a as Const("all",_)) $ Abs(_,T,t)) =
+      a $ Abs(c, T, list_rename_params (cs, t))
   | list_rename_params (cs, B) = B;
 
 (*** Treatment of "assume", "erule", etc. ***)
