@@ -21,13 +21,15 @@ interface instead.
 
 *** HOL ***
 
-* Methods "case_tac" and "induct_tac" now refer to the very same rule
-declarations as the structured Isar versions "cases" and "induct", cf.
-the corresponding "cases" and "induct" attributes.  INCOMPATIBILITY,
-in rare situations a different rule is selected --- notably nested
-tuple elimination instead of former prod.exhaust: use explicit
-(case_tac t rule: prod.exhaust) here.  Old-style rules for mutual and
-nested datatypes also need to be given explicitly.
+* Methods "case_tac" and "induct_tac" now refer to the very same rules
+as the structured Isar versions "cases" and "induct", cf. the
+corresponding "cases" and "induct" attributes.  Mutual induction rules
+are now presented as a list of individual projections
+(e.g. foo_bar.inducts for types foo and bar); the old format with
+explicit HOL conjunction is no longer supported.  INCOMPATIBILITY, in
+rare situations a different rule is selected --- notably nested tuple
+elimination instead of former prod.exhaust: use explicit (case_tac t
+rule: prod.exhaust) here.
 
 * Attributes "cases", "induct", "coinduct" support "del" option.
 
