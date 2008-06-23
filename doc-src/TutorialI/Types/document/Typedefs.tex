@@ -257,11 +257,11 @@ best phrased as a case distinction theorem: if you want to prove \isa{P\ x}
 \isatagproof
 %
 \begin{isamarkuptxt}%
-\noindent Again this follows easily from a pre-proved general theorem:%
+\noindent Again this follows easily using the induction principle stemming from the type definition:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ x\ rule{\isacharcolon}\ Abs{\isacharunderscore}three{\isacharunderscore}induct{\isacharparenright}%
+{\isacharparenleft}induct{\isacharunderscore}tac\ x{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}y{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isacharsemicolon}\ y\ {\isasymin}\ three{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}%

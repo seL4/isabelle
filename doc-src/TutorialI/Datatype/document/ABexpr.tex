@@ -117,10 +117,9 @@ theorems simultaneously:%
 %
 \isatagproof
 \isacommand{apply}\isamarkupfalse%
-{\isacharparenleft}induct{\isacharunderscore}tac\ a\ \isakeyword{and}\ b\ rule{\isacharcolon}\ aexp{\isacharunderscore}bexp{\isachardot}induct{\isacharparenright}%
+{\isacharparenleft}induct{\isacharunderscore}tac\ a\ \isakeyword{and}\ b{\isacharparenright}%
 \begin{isamarkuptxt}%
-\noindent Unfortunately, induction needs to be told explicitly which induction rule to use (via \isa{rule{\isacharcolon}}).
-The resulting 8 goals (one for each constructor) are proved in one fell swoop:%
+\noindent The resulting 8 goals (one for each constructor) are proved in one fell swoop:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \isacommand{apply}\isamarkupfalse%
@@ -138,7 +137,7 @@ an inductive proof expects a goal of the form
 \[ P@1(x@1)\ \land \dots \land P@n(x@n) \]
 where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \begin{isabelle}
-\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$ \isa{rule{\isacharcolon}} $\tau@1$\isa{{\isacharunderscore}}\dots\isa{{\isacharunderscore}}$\tau@n$\isa{{\isachardot}induct{\isacharparenright}}
+\isacommand{apply}\isa{{\isacharparenleft}induct{\isacharunderscore}tac} $x@1$ \isacommand{and} \dots\ \isacommand{and} $x@n$\isa{{\isacharparenright}}
 \end{isabelle}
 
 \begin{exercise}
