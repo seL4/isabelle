@@ -82,9 +82,6 @@ sig
   structure Typtab: TABLE
   structure Termtab: TABLE
   val propT: typ
-  val implies: term
-  val all: typ -> term
-  val equals: typ -> term
   val strip_all_body: term -> term
   val strip_all_vars: term -> (string * typ) list
   val incr_bv: int * int * term -> term
@@ -152,6 +149,7 @@ sig
   val aT: sort -> typ
   val itselfT: typ -> typ
   val a_itselfT: typ
+  val all: typ -> term
   val argument_type_of: term -> int -> typ
   val head_name_of: term -> string
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
@@ -726,11 +724,7 @@ val a_itselfT = itselfT (TFree (Name.aT, []));
 
 val propT : typ = Type("prop",[]);
 
-val implies = Const("==>", propT-->propT-->propT);
-
 fun all T = Const("all", (T-->propT)-->propT);
-
-fun equals T = Const("==", T-->T-->propT);
 
 (* maps  !!x1...xn. t   to   t  *)
 fun strip_all_body (Const("all",_)$Abs(_,_,t))  =  strip_all_body t
@@ -1204,8 +1198,7 @@ fun dest_abs (x, T, body) =
       | name_clash (Abs (_, _, t)) = name_clash t
       | name_clash _ = false;
   in
-    if name_clash body then
-      dest_abs (Name.variant [x] x, T, body)    (*potentially slow, but rarely happens*)
+    if name_clash body then dest_abs (Name.variant [x] x, T, body)    (*potentially slow*)
     else (x, subst_bound (Free (x, T), body))
   end;
 
