@@ -126,10 +126,11 @@ fun mk_compat_proof_obligations domT ranT fvar f glrs =
           let
             val shift = incr_boundvars (length qs')
           in
-            (implies $ HOLogic.mk_Trueprop (HOLogic.eq_const domT $ shift lhs $ lhs')
-                     $ HOLogic.mk_Trueprop (HOLogic.eq_const ranT $ shift rhs $ rhs'))
+            Logic.mk_implies
+              (HOLogic.mk_Trueprop (HOLogic.eq_const domT $ shift lhs $ lhs'),
+                HOLogic.mk_Trueprop (HOLogic.eq_const ranT $ shift rhs $ rhs'))
               |> fold_rev (curry Logic.mk_implies) (map shift gs @ gs')
-              |> fold_rev (fn (n,T) => fn b => all T $ Abs(n,T,b)) (qs @ qs')
+              |> fold_rev (fn (n,T) => fn b => Term.all T $ Abs(n,T,b)) (qs @ qs')
               |> curry abstract_over fvar
               |> curry subst_bound f
           end
@@ -217,7 +218,7 @@ fun mk_clause_info globals G f no cdata qglr tree RCs GIntro_thm RIntro_thms =
                 val h_assum =
                     HOLogic.mk_Trueprop (G $ rcarg $ (h $ rcarg))
                               |> fold_rev (curry Logic.mk_implies o prop_of) rcassm
-                              |> fold_rev (mk_forall o Free) rcfix
+                              |> fold_rev (Logic.all o Free) rcfix
                               |> Pattern.rewrite_term (ProofContext.theory_of ctxt) [(f, h)] []
                               |> abstract_over_list (rev qs)
             in
@@ -410,10 +411,10 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
         val thy = ProofContext.theory_of ctxt
 
         (* Inductive Hypothesis: !!z. (z,x):R ==> EX!y. (z,y):G *)
-        val ihyp = all domT $ Abs ("z", domT,
-                                   implies $ HOLogic.mk_Trueprop (R $ Bound 0 $ x)
-                                           $ HOLogic.mk_Trueprop (Const ("Ex1", (ranT --> boolT) --> boolT) $
-                                                             Abs ("y", ranT, G $ Bound 1 $ Bound 0)))
+        val ihyp = Term.all domT $ Abs ("z", domT,
+                                   Logic.mk_implies (HOLogic.mk_Trueprop (R $ Bound 0 $ x),
+                                     HOLogic.mk_Trueprop (Const ("Ex1", (ranT --> boolT) --> boolT) $
+                                                             Abs ("y", ranT, G $ Bound 1 $ Bound 0))))
                        |> cterm_of thy
 
         val ihyp_thm = assume ihyp |> Thm.forall_elim_vars 0
@@ -458,12 +459,12 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
             fun mk_h_assm (rcfix, rcassm, rcarg) =
                 HOLogic.mk_Trueprop (Gvar $ rcarg $ (fvar $ rcarg))
                           |> fold_rev (curry Logic.mk_implies o prop_of) rcassm
-                          |> fold_rev (mk_forall o Free) rcfix
+                          |> fold_rev (Logic.all o Free) rcfix
           in
             HOLogic.mk_Trueprop (Gvar $ lhs $ rhs)
                       |> fold_rev (curry Logic.mk_implies o mk_h_assm) RCs
                       |> fold_rev (curry Logic.mk_implies) gs
-                      |> fold_rev mk_forall (fvar :: qs)
+                      |> fold_rev Logic.all (fvar :: qs)
           end
           
       val G_intros = map2 mk_GIntro clauses RCss
@@ -500,7 +501,7 @@ fun define_recursion_relation Rname domT ranT fvar f qglrs clauses RCss lthy =
           HOLogic.mk_Trueprop (Rvar $ rcarg $ lhs)
                     |> fold_rev (curry Logic.mk_implies o prop_of) rcassm
                     |> fold_rev (curry Logic.mk_implies) gs
-                    |> fold_rev (mk_forall o Free) rcfix
+                    |> fold_rev (Logic.all o Free) rcfix
                     |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
                     (* "!!qs xs. CS ==> G => (r, lhs) : R" *)
 
@@ -588,20 +589,21 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
       val x_D = assume (cterm_of thy (HOLogic.mk_Trueprop (D $ x)))
       val a_D = cterm_of thy (HOLogic.mk_Trueprop (D $ a))
                 
-      val D_subset = cterm_of thy (mk_forall x (implies $ HOLogic.mk_Trueprop (D $ x) $ HOLogic.mk_Trueprop (acc_R $ x)))
+      val D_subset = cterm_of thy (Logic.all x
+        (Logic.mk_implies (HOLogic.mk_Trueprop (D $ x), HOLogic.mk_Trueprop (acc_R $ x))))
                      
       val D_dcl = (* "!!x z. [| x: D; (z,x):R |] ==> z:D" *)
-                    mk_forall x
-                    (mk_forall z (Logic.mk_implies (HOLogic.mk_Trueprop (D $ x),
+                    Logic.all x
+                    (Logic.all z (Logic.mk_implies (HOLogic.mk_Trueprop (D $ x),
                                                     Logic.mk_implies (HOLogic.mk_Trueprop (R $ z $ x),
                                                                       HOLogic.mk_Trueprop (D $ z)))))
                     |> cterm_of thy
                     
                     
   (* Inductive Hypothesis: !!z. (z,x):R ==> P z *)
-      val ihyp = all domT $ Abs ("z", domT, 
-               implies $ HOLogic.mk_Trueprop (R $ Bound 0 $ x)
-             $ HOLogic.mk_Trueprop (P $ Bound 0))
+      val ihyp = Term.all domT $ Abs ("z", domT, 
+               Logic.mk_implies (HOLogic.mk_Trueprop (R $ Bound 0 $ x),
+                 HOLogic.mk_Trueprop (P $ Bound 0)))
            |> cterm_of thy
 
       val aihyp = assume ihyp
@@ -773,9 +775,9 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
       val wfR' = cterm_of thy (HOLogic.mk_Trueprop (Const (@{const_name "Wellfounded.wfP"}, (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
                           
       (* Inductive Hypothesis: !!z. (z,x):R' ==> z : acc R *)
-      val ihyp = all domT $ Abs ("z", domT, 
-                                 implies $ HOLogic.mk_Trueprop (R' $ Bound 0 $ x)
-                                         $ HOLogic.mk_Trueprop (acc_R $ Bound 0))
+      val ihyp = Term.all domT $ Abs ("z", domT, 
+                                 Logic.mk_implies (HOLogic.mk_Trueprop (R' $ Bound 0 $ x),
+                                   HOLogic.mk_Trueprop (acc_R $ Bound 0)))
                      |> cterm_of thy
 
       val ihyp_a = assume ihyp |> Thm.forall_elim_vars 0

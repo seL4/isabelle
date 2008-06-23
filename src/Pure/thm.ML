@@ -604,7 +604,7 @@ fun implies_intr
       shyps = Sorts.union sorts shyps,
       hyps = OrdList.remove Term.fast_term_ord A hyps,
       tpairs = tpairs,
-      prop = implies $ A $ prop};
+      prop = Logic.mk_implies (A, prop)};
 
 
 (*Implication elimination
@@ -653,7 +653,7 @@ fun forall_intr
         shyps = Sorts.union sorts shyps,
         hyps = hyps,
         tpairs = tpairs,
-        prop = all T $ Abs (a, T, abstract_over (x, prop))};
+        prop = Term.all T $ Abs (a, T, abstract_over (x, prop))};
     fun check_occs a x ts =
       if exists (fn t => Logic.occs (x, t)) ts then
         raise THM ("forall_intr: variable " ^ quote a ^ " free in assumptions", 0, [th])
@@ -1084,7 +1084,7 @@ fun trivial (Cterm {thy_ref, t =A, T, maxidx, sorts}) =
       shyps = sorts,
       hyps = [],
       tpairs = [],
-      prop = implies $ A $ A};
+      prop = Logic.mk_implies (A, A)};
 
 (*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)" *)
 fun class_triv thy c =
@@ -1370,7 +1370,7 @@ fun rename_boundvars pat obj (thm as Thm {thy_ref, der, tags, maxidx, shyps, hyp
    introduced by lifting over B, and applies f to remaining part of A*)
 fun strip_apply f =
   let fun strip(Const("==>",_)$ A1 $ B1,
-                Const("==>",_)$ _  $ B2) = implies $ A1 $ strip(B1,B2)
+                Const("==>",_)$ _  $ B2) = Logic.mk_implies (A1, strip(B1,B2))
         | strip((c as Const("all",_)) $ Abs(a,T,t1),
                       Const("all",_)  $ Abs(_,_,t2)) = c$Abs(a,T,strip(t1,t2))
         | strip(A,_) = f A
@@ -1428,9 +1428,9 @@ fun norm_term_skip env 0 t = Envir.norm_term env t
             val T' = Envir.typ_subst_TVars iTs T
             (*Must instantiate types of parameters because they are flattened;
               this could be a NEW parameter*)
-        in  all T' $ Abs(a, T', norm_term_skip env n t)  end
+        in Term.all T' $ Abs(a, T', norm_term_skip env n t)  end
   | norm_term_skip env n (Const("==>", _) $ A $ B) =
-        implies $ A $ norm_term_skip env (n-1) B
+        Logic.mk_implies (A, norm_term_skip env (n-1) B)
   | norm_term_skip env n t = error"norm_term_skip: too few assumptions??";
 
 
