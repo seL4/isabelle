@@ -189,9 +189,9 @@ best phrased as a case distinction theorem: if you want to prove @{prop"P x"}
 
 lemma three_cases: "\<lbrakk> P A; P B; P C \<rbrakk> \<Longrightarrow> P x"
 
-txt{*\noindent Again this follows easily from a pre-proved general theorem:*}
+txt{*\noindent Again this follows easily using the induction principle stemming from the type definition:*}
 
-apply(induct_tac x rule: Abs_three_induct)
+apply(induct_tac x)
 
 txt{*
 @{subgoals[display,indent=0]}
