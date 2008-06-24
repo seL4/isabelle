@@ -294,8 +294,9 @@ The YXML format is defined as follows.
 
 \item The encoding is always UTF-8.
 
-\item Body text is represented verbatim (no escaping, no named
-  entities, no CDATA chunks, no comments).
+\item Body text is represented verbatim (no escaping, no special
+  treatment of white space, no named entities, no CDATA chunks, no
+  comments).
 
 \item Markup elements are represented via ASCII control characters $X
   = 5$ and $Y = 6$ as follows:
