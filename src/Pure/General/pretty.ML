@@ -322,9 +322,7 @@ fun unformatted prt =
 (*ML toplevel pretty printing*)
 fun pprint prt (put_str, begin_blk, put_brk, put_fbrk, end_blk) =
   let
-    fun pp (Block (m, prts, ind, _)) =
-          let val (bg, en) = Markup.output m
-          in put_str bg; begin_blk ind; pp_lst prts; end_blk (); put_str en end
+    fun pp (Block (_, prts, ind, _)) = (begin_blk ind; pp_lst prts; end_blk ())
       | pp (String (s, _)) = put_str s
       | pp (Break (false, wd)) = put_brk wd
       | pp (Break (true, _)) = put_fbrk ()
