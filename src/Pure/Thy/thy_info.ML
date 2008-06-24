@@ -185,17 +185,6 @@ fun the_theory name thy =
   if Context.theory_name thy = name then thy
   else get_theory name;
 
-val _ = ML_Context.value_antiq "theory"
-  (Scan.lift Args.name
-    >> (fn name => (name ^ "_thy", "ThyInfo.get_theory " ^ ML_Syntax.print_string name))
-  || Scan.succeed ("thy", "ML_Context.the_global_context ()"));
-
-val _ = ML_Context.value_antiq "theory_ref"
-  (Scan.lift Args.name
-    >> (fn name => (name ^ "_thy",
-        "Theory.check_thy (ThyInfo.theory " ^ ML_Syntax.print_string name ^ ")"))
-  || Scan.succeed ("thy", "Theory.check_thy (ML_Context.the_global_context ())"));
-
 
 
 (** thy operations **)
