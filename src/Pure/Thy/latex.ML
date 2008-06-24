@@ -91,7 +91,9 @@ val output_syms = output_symbols o Symbol.explode;
 val output_syms_antiqs =
   Antiquote.scan_antiquotes #> map
   (fn Antiquote.Text s => output_syms s
-    | Antiquote.Antiq (s, _) => enclose "%\n\\isaantiq\n" "%\n\\endisaantiq\n" (output_syms s)) #>
+    | Antiquote.Antiq (s, _) => enclose "%\n\\isaantiq\n" "%\n\\endisaantiq\n" (output_syms s)
+    | Antiquote.Open _ => "{\\isaantiqopen}"
+    | Antiquote.Close _ => "{\\isaantiqclose}") #>
   implode;
 
 end;

@@ -153,11 +153,13 @@ fun eval_antiquote lex node (str, pos) =
             options opts (fn () => command src node) ();  (*preview errors!*)
             PrintMode.with_modes (! modes @ Latex.modes)
               (Output.no_warnings (options opts (fn () => command src node))) ()
-          end;
+          end
+      | expand (Antiquote.Open _) = ""
+      | expand (Antiquote.Close _) = "";
     val ants = Antiquote.scan_antiquotes (str, pos);
   in
     if is_none node andalso exists Antiquote.is_antiq ants then
-      error ("Cannot expand text antiquotations at top-level" ^ Position.str_of pos)
+      error ("Unknown context -- cannot expand text antiquotations" ^ Position.str_of pos)
     else implode (map expand ants)
   end;
 
