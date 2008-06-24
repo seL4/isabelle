@@ -1843,14 +1843,11 @@ fun eval_term reff = eval CodeThingol.eval_term I reff;
 
 (* instrumentalization by antiquotation *)
 
-fun ml_code_antiq (ctxt, args) = 
+val ml_code_antiq = (Scan.state >> Context.theory_of) -- Scan.repeat1 Args.term >> (fn (thy, ts) =>
   let
-    val thy = Context.theory_of ctxt;
-    val (ts, (ctxt', args')) = Scan.repeat1 Args.term (ctxt, args);
     val cs = map (CodeUnit.check_const thy) ts;
     val (cs', program) = CodeThingol.consts_program thy cs;
-    val s = sml_code_of thy program cs' ^ " ()";
-  in (("codevals", s), (ctxt', args')) end;
+  in sml_code_of thy program cs' ^ " ()" end);
 
 
 (* code presentation *)
@@ -2294,7 +2291,7 @@ fun shell_command thyname cmd = Toplevel.program (fn _ =>
     | NONE => error ("Bad directive " ^ quote cmd)))
   handle TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
 
-val _ = ML_Context.value_antiq "code" ml_code_antiq;
+val _ = ML_Antiquote.value "code" ml_code_antiq;
 
 
 (* serializer setup, including serializer defaults *)
