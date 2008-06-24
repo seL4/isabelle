@@ -7,7 +7,9 @@ Text with antiquotations of inner items (terms, types etc.).
 
 signature ANTIQUOTE =
 sig
-  datatype antiquote = Text of string | Antiq of string * Position.T
+  datatype antiquote =
+    Text of string | Antiq of string * Position.T |
+    Open of Position.T | Close of Position.T
   val is_antiq: antiquote -> bool
   val scan_antiquotes: string * Position.T -> antiquote list
   val scan_arguments: Scan.lexicon -> (OuterLex.token list -> 'a * OuterLex.token list) ->
@@ -21,10 +23,28 @@ struct
 
 datatype antiquote =
   Text of string |
-  Antiq of string * Position.T;
+  Antiq of string * Position.T |
+  Open of Position.T |
+  Close of Position.T;
 
 fun is_antiq (Text _) = false
-  | is_antiq (Antiq _) = true;
+  | is_antiq _ = true;
+
+
+(* check_nesting *)
+
+fun err_unbalanced pos =
+  error ("Unbalanced antiquotation block parentheses" ^ Position.str_of pos);
+
+fun check_nesting antiqs =
+  let
+    fun check [] [] = ()
+      | check [] (pos :: _) = err_unbalanced pos
+      | check (Open pos :: ants) ps = check ants (pos :: ps)
+      | check (Close pos :: _) [] = err_unbalanced pos
+      | check (Close _ :: ants) (_ :: ps) = check ants ps
+      | check (_ :: ants) ps = check ants ps;
+  in check antiqs [] end;
 
 
 (* scan_antiquote *)
@@ -35,7 +55,8 @@ local
 
 val scan_txt =
   T.count ($$ "@" --| Scan.ahead (~$$ "{")) ||
-  T.count (Scan.one (fn s => s <> "@" andalso Symbol.is_regular s));
+  T.count (Scan.one (fn s =>
+    s <> "@" andalso s <> "\\<lbrace>" andalso s <> "\\<rbrace>" andalso Symbol.is_regular s));
 
 fun escape "\\" = "\\\\"
   | escape "\"" = "\\\""
@@ -56,7 +77,9 @@ in
 
 fun scan_antiquote (pos, ss) = (pos, ss) |>
   (Scan.repeat1 scan_txt >> (Text o implode) ||
-    scan_antiq >> (fn s => Antiq (s, pos)));
+    scan_antiq >> (fn s => Antiq (s, pos)) ||
+    T.count ($$ "\\<lbrace>") >> K (Open pos) ||
+    T.count ($$ "\\<rbrace>") >> K (Close pos));
 
 end;
 
@@ -66,7 +89,7 @@ end;
 fun scan_antiquotes (s, pos) =
   (case Scan.error (Scan.finite' Symbol.stopper (Scan.repeat scan_antiquote))
       (pos, Symbol.explode s) of
-    (xs, (_, [])) => xs
+    (xs, (_, [])) => (check_nesting xs; xs)
   | (_, (pos', ss)) => error ("Malformed quotation/antiquotation source at: " ^
       quote (Symbol.beginning 10 ss) ^ Position.str_of pos'));
 
