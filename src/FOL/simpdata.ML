@@ -166,7 +166,7 @@ structure Clasimp = ClasimpFun
   val iffD1 = @{thm iffD1} val iffD2 = @{thm iffD2} val notE = @{thm notE});
 open Clasimp;
 
-ML_Context.value_antiq "clasimpset"
-  (Scan.succeed ("clasimpset", "Clasimp.local_clasimpset_of (ML_Context.the_local_context ())"));
+ML_Antiquote.value "clasimpset"
+  (Scan.succeed "Clasimp.local_clasimpset_of (ML_Context.the_local_context ())");
 
 val FOL_css = (FOL_cs, FOL_ss);

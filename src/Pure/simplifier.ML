@@ -133,8 +133,8 @@ fun Delcongs args = change_simpset (fn ss => ss delcongs args);
 
 fun local_simpset_of ctxt = MetaSimplifier.context ctxt (get_ss (Context.Proof ctxt));
 
-val _ = ML_Context.value_antiq "simpset"
-  (Scan.succeed ("simpset", "Simplifier.local_simpset_of (ML_Context.the_local_context ())"));
+val _ = ML_Antiquote.value "simpset"
+  (Scan.succeed "Simplifier.local_simpset_of (ML_Context.the_local_context ())");
 
 
 
@@ -167,9 +167,8 @@ fun get_simproc context xname =
     | NONE => error ("Undefined simplification procedure: " ^ quote name))
   end;
 
-val _ = ML_Context.value_antiq "simproc" (Scan.lift Args.name >> (fn name =>
-  ("simproc",
-    "Simplifier.get_simproc (ML_Context.the_generic_context ()) " ^ ML_Syntax.print_string name)));
+val _ = ML_Antiquote.value "simproc" (Scan.lift Args.name >> (fn name =>
+  "Simplifier.get_simproc (ML_Context.the_generic_context ()) " ^ ML_Syntax.print_string name));
 
 
 (* define simprocs *)

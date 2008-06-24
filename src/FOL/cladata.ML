@@ -22,8 +22,7 @@ end;
 structure Cla = ClassicalFun(Classical_Data);
 structure BasicClassical: BASIC_CLASSICAL = Cla; open BasicClassical;
 
-ML_Context.value_antiq "claset"
-  (Scan.succeed ("claset", "Cla.local_claset_of (ML_Context.the_local_context ())"));
+ML_Antiquote.value "claset" (Scan.succeed "Cla.local_claset_of (ML_Context.the_local_context ())");
 
 
 (*Propositional rules*)

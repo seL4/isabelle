@@ -934,8 +934,8 @@ end);
 structure BasicClassical: BASIC_CLASSICAL = Classical; 
 open BasicClassical;
 
-ML_Context.value_antiq "claset"
-  (Scan.succeed ("claset", "Classical.local_claset_of (ML_Context.the_local_context ())"));
+ML_Antiquote.value "claset"
+  (Scan.succeed "Classical.local_claset_of (ML_Context.the_local_context ())");
 
 structure ResAtpset = NamedThmsFun(val name = "atp" val description = "ATP rules");
 
