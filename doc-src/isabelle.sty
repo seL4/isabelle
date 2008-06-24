@@ -31,8 +31,10 @@
 \DeclareRobustCommand{\isactrlesup}{\egroup\egroup\endmath\egroup}
 \newcommand{\isactrlbold}[1]{{\bfseries\upshape\boldmath#1}}
 \newcommand{\isactrlloc}[1]{{\bfseries\upshape\boldmath#1}}
-\newenvironment{isaantiq}{{\isacharat\isacharbraceleft}}{{\isacharbraceright}}
 
+\newenvironment{isaantiq}{{\isacharat\isacharbraceleft}}{{\isacharbraceright}}
+\newcommand{\isaantiqopen}{\isakeyword{\isacharbraceleft}}
+\newcommand{\isaantiqclose}{\isakeyword{\isacharbraceright}}
 
 \newdimen\isa@parindent\newdimen\isa@parskip
 
