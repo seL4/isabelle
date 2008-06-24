@@ -37,6 +37,7 @@ use "../Thy/present.ML";
 (*basic proof engine*)
 use "proof_display.ML";
 use "attrib.ML";
+use "../ML/ml_antiquote.ML";
 use "context_rules.ML";
 use "skip_proof.ML";
 use "method.ML";

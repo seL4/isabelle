@@ -54,10 +54,10 @@ $(OUT)/Pure: General/ROOT.ML General/alist.ML General/balanced_tree.ML	\
   ML-Systems/polyml_old_compiler5.ML ML-Systems/proper_int.ML		\
   ML-Systems/smlnj.ML ML-Systems/system_shell.ML			\
   ML-Systems/time_limit.ML ML-Systems/universal.ML ML/ml_context.ML	\
-  ML/ml_lex.ML ML/ml_parse.ML ML/ml_syntax.ML Proof/extraction.ML	\
-  Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML			\
-  Proof/proofchecker.ML Proof/reconstruct.ML ProofGeneral/ROOT.ML	\
-  ProofGeneral/pgip.ML ProofGeneral/pgip_input.ML			\
+  ML/ml_antiquote.ML ML/ml_lex.ML ML/ml_parse.ML ML/ml_syntax.ML	\
+  Proof/extraction.ML Proof/proof_rewrite_rules.ML			\
+  Proof/proof_syntax.ML Proof/proofchecker.ML Proof/reconstruct.ML	\
+  ProofGeneral/ROOT.ML ProofGeneral/pgip.ML ProofGeneral/pgip_input.ML	\
   ProofGeneral/pgip_isabelle.ML ProofGeneral/pgip_markup.ML		\
   ProofGeneral/pgip_output.ML ProofGeneral/pgip_parser.ML		\
   ProofGeneral/pgip_tests.ML ProofGeneral/pgip_types.ML			\
