@@ -29,6 +29,7 @@ sig
   val pretty_thy: theory -> Pretty.T
   val string_of_thy: theory -> string
   val pprint_thy: theory -> pprint_args -> unit
+  val pprint_thy_ref: theory_ref -> pprint_args -> unit
   val pretty_abbrev_thy: theory -> Pretty.T
   val str_of_thy: theory -> string
   val deref: theory_ref -> theory
@@ -241,6 +242,8 @@ fun check_thy thy =  (*thread-safe version*)
     if is_stale thy then error ("Stale theory encountered:\n" ^ string_of_thy thy)
     else thy_ref
   end;
+
+val pprint_thy_ref = Pretty.pprint o pretty_thy o deref;
 
 
 (* consistency *)
