@@ -24,12 +24,11 @@ sig
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
   val add_keywords: string list -> unit
-  val inline_antiq: string ->
-    (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
-  val value_antiq: string ->
-    (Context.generic * Args.T list -> (string * string) * (Context.generic * Args.T list)) -> unit
-  val proj_value_antiq: string -> (Context.generic * Args.T list ->
-      (string * string * string) * (Context.generic * Args.T list)) -> unit
+  type antiq =
+    {struct_name: string, background: Proof.context} ->
+      (Proof.context -> string * string) * Proof.context
+  val add_antiq: string ->
+    (Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) -> unit
   val trace: bool ref
   val eval: bool -> Position.T -> string -> unit
   val eval_file: Path.T -> unit
@@ -76,91 +75,100 @@ fun ml_store_thm (name, th) = ml_store "hd" (name, [th]);
 fun bind_thm (name, thm) = ml_store_thm (name, Drule.standard thm);
 fun bind_thms (name, thms) = ml_store_thms (name, map Drule.standard thms);
 
+fun thm name = ProofContext.get_thm (the_local_context ()) name;
+fun thms name = ProofContext.get_thms (the_local_context ()) name;
+
 
 
 (** ML antiquotations **)
 
-(* maintain keywords *)
+(* antiquotation keywords *)
+
+local
 
 val global_lexicon = ref Scan.empty_lexicon;
+
+in
 
 fun add_keywords keywords = CRITICAL (fn () =>
   change global_lexicon (Scan.extend_lexicon (map Symbol.explode keywords)));
 
-
-(* maintain commands *)
-
-datatype antiq = Inline of string | ProjValue of string * string * string;
-val global_parsers = ref (Symtab.empty:
-  (Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) Symtab.table);
-
-local
-
-fun add_item kind name scan = CRITICAL (fn () =>
-  change global_parsers (fn tab =>
-   (if not (Symtab.defined tab name) then ()
-    else warning ("Redefined ML antiquotation: " ^ quote name);
-    Symtab.update (name, scan >> kind) tab)));
-
-in
-
-val inline_antiq = add_item Inline;
-val proj_value_antiq = add_item ProjValue;
-fun value_antiq name scan = proj_value_antiq name (scan >> (fn (a, s) => (a, s, "")));
+fun get_lexicon () = ! global_lexicon;
 
 end;
 
 
-(* command syntax *)
+(* antiquotation commands *)
 
-fun syntax scan src =
-  #1 (Args.context_syntax "ML antiquotation" scan src (the_local_context ()));
+type antiq =
+  {struct_name: string, background: Proof.context} ->
+    (Proof.context -> string * string) * Proof.context;
 
-fun command src =
+local
+
+val global_parsers = ref (Symtab.empty:
+  (Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) Symtab.table);
+
+in
+
+fun add_antiq name scan = CRITICAL (fn () =>
+  change global_parsers (fn tab =>
+   (if not (Symtab.defined tab name) then ()
+    else warning ("Redefined ML antiquotation: " ^ quote name);
+    Symtab.update (name, scan) tab)));
+
+fun antiquotation src ctxt =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_parsers) name of
       NONE => error ("Unknown ML antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | SOME scan => syntax scan src)
+    | SOME scan => Args.context_syntax "ML antiquotation" scan src ctxt)
   end;
 
+end;
 
-(* outer syntax *)
 
-structure T = OuterLex;
+(* parsing and evaluation *)
+
+local
+
 structure P = OuterParse;
 
 val antiq =
   P.!!! (P.position P.xname -- P.arguments --| Scan.ahead P.eof)
   >> (fn ((x, pos), y) => Args.src ((x, y), pos));
 
-
-(* input/output wrappers *)
-
-local
-
-fun eval_antiquotes struct_name txt_pos =
+fun eval_antiquotes struct_name (txt, pos) opt_ctxt =
   let
-    val lex = ! global_lexicon;
-    val ants = Antiquote.scan_antiquotes txt_pos;
+    val ants = Antiquote.scan_antiquotes (txt, pos);
+    val ((ml_env, ml_body), opt_ctxt') =
+      if not (exists Antiquote.is_antiq ants) then (("", Symbol.escape txt), opt_ctxt)
+      else
+        let
+          val ctxt =
+            (case opt_ctxt of
+              NONE => error ("Unknown context -- cannot expand ML antiquotations" ^
+                Position.str_of pos)
+            | SOME context => Context.proof_of context);
+      
+          val lex = get_lexicon ();
+          fun no_decl _ = ("", "");
+      
+          fun expand (Antiquote.Text s) state = (K ("", Symbol.escape s), state)
+            | expand (Antiquote.Antiq x) (scope, background) =
+                let
+                  val context = Stack.top scope;
+                  val (f, context') = antiquotation (Antiquote.scan_arguments lex antiq x) context;
+                  val (decl, background') = f {background = background, struct_name = struct_name};
+                in (decl, (Stack.map_top (K context') scope, background')) end
+            | expand (Antiquote.Open _) (scope, background) =
+                (no_decl, (Stack.push scope, background))
+            | expand (Antiquote.Close _) (scope, background) =
+                (no_decl, (Stack.pop scope, background));
 
-    fun expand (Antiquote.Text s) names = (("", Symbol.escape s), names)
-      | expand (Antiquote.Antiq x) names =
-          (case command (Antiquote.scan_arguments lex antiq x) of
-            Inline s => (("", s), names)
-          | ProjValue (a, s, f) =>
-              let
-                val a' = if ML_Syntax.is_identifier a then a else "val";
-                val ([b], names') = Name.variants [a'] names;
-                val binding = "val " ^ b ^ " = " ^ s ^ ";\n";
-                val value =
-                  if f = "" then struct_name ^ "." ^ b
-                  else "(" ^ f ^ " " ^ struct_name ^ "." ^ b ^ ")";
-              in ((binding, value), names') end);
-
-    val (decls, body) =
-      fold_map expand ants ML_Syntax.reserved
-      |> #1 |> split_list |> pairself implode;
-  in ("structure " ^ struct_name ^ " =\nstruct\n" ^ decls ^ "end;", body) end;
+          val (decls, (_, ctxt')) = fold_map expand ants (Stack.init ctxt, ctxt);
+          val ml = decls |> map (fn decl => decl ctxt') |> split_list |> pairself implode;
+        in (ml, SOME (Context.Proof ctxt')) end;
+  in (("structure " ^ struct_name ^ " =\nstruct\n" ^ ml_env ^ "end;", ml_body), opt_ctxt') end;
 
 in
 
@@ -171,13 +179,13 @@ fun eval_wrapper pr verbose pos txt =
     val struct_name =
       if Multithreading.available then "Isabelle" ^ serial_string ()
       else "Isabelle";
-    val (txt1, txt2) = eval_antiquotes struct_name (txt, pos);
-    val _ = if ! trace then tracing (cat_lines [txt1, txt2]) else ();
-    fun eval p =
+    val ((env, body), env_ctxt) = eval_antiquotes struct_name (txt, pos) (Context.thread_data ());
+    val _ = if ! trace then tracing (cat_lines [env, body]) else ();
+    fun eval_raw p =
       use_text (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p)) pr;
   in
-    eval Position.none false txt1;
-    NAMED_CRITICAL "ML" (fn () => eval pos verbose txt2); (* FIXME non-critical with local ML env *)
+    Context.setmp_thread_data env_ctxt (fn () => eval_raw Position.none false env) ();
+    NAMED_CRITICAL "ML" (fn () => eval_raw pos verbose body); (* FIXME non-critical with local ML env *)
     forget_structure struct_name
   end;
 
@@ -203,98 +211,6 @@ fun expression pos bind body txt =
   exec (fn () => eval false pos
     ("Context.set_thread_data (SOME (let " ^ bind ^ " = " ^ txt ^ " in " ^ body ^
       " end (ML_Context.the_generic_context ())));"));
-
-
-(* basic antiquotations *)
-
-fun context x = (Scan.state >> Context.proof_of) x;
-
-local
-
-val _ = value_antiq "context" (Scan.succeed ("context", "ML_Context.the_local_context ()"));
-
-val _ = inline_antiq "sort" (context -- Scan.lift Args.name >> (fn (ctxt, s) =>
-  ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s))));
-
-val _ = inline_antiq "typ" (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ));
-val _ = inline_antiq "term" (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term));
-val _ = inline_antiq "prop" (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term));
-
-val _ = value_antiq "ctyp" (Args.typ >> (fn T =>
-  ("ctyp",
-    "Thm.ctyp_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_typ T))));
-
-val _ = value_antiq "cterm" (Args.term >> (fn t =>
-  ("cterm",
-    "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
-
-val _ = value_antiq "cprop" (Args.prop >> (fn t =>
-  ("cprop",
-    "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t))));
-
-fun type_ syn = (context -- Scan.lift Args.name >> (fn (ctxt, c) =>
-    #1 (Term.dest_Type (ProofContext.read_tyname ctxt c))
-    |> syn ? Sign.base_name
-    |> ML_Syntax.print_string));
-
-val _ = inline_antiq "type_name" (type_ false);
-val _ = inline_antiq "type_syntax" (type_ true);
-
-fun const syn = context -- Scan.lift Args.name >> (fn (ctxt, c) =>
-  #1 (Term.dest_Const (ProofContext.read_const_proper ctxt c))
-  |> syn ? ProofContext.const_syntax_name ctxt
-  |> ML_Syntax.print_string);
-
-val _ = inline_antiq "const_name" (const false);
-val _ = inline_antiq "const_syntax" (const true);
-
-val _ = inline_antiq "const"
-  (context -- Scan.lift Args.name --
-    Scan.optional (Scan.lift (Args.$$$ "(") |-- Args.enum1 "," Args.typ --| Scan.lift (Args.$$$ ")")) []
-    >> (fn ((ctxt, c), Ts) =>
-      let val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c)
-      in ML_Syntax.atomic (ML_Syntax.print_term (ProofContext.mk_const ctxt (c, Ts))) end));
-
-in val _ = () end;
-
-
-
-(** fact references **)
-
-fun thm name = ProofContext.get_thm (the_local_context ()) name;
-fun thms name = ProofContext.get_thms (the_local_context ()) name;
-
-
-local
-
-fun print_interval (Facts.FromTo arg) =
-      "Facts.FromTo " ^ ML_Syntax.print_pair ML_Syntax.print_int ML_Syntax.print_int arg
-  | print_interval (Facts.From i) = "Facts.From " ^ ML_Syntax.print_int i
-  | print_interval (Facts.Single i) = "Facts.Single " ^ ML_Syntax.print_int i;
-
-fun thm_antiq kind get get_name = value_antiq kind
-  (context -- Scan.lift (Args.position Args.name -- Scan.option Args.thm_sel)
-  >> (fn (ctxt, ((name, pos), sel)) =>
-      let
-        val _ = get ctxt (Facts.Named ((name, pos), sel));
-        val txt =
-          "(Facts.Named ((" ^ ML_Syntax.print_string name ^ ", Position.none), " ^
-            ML_Syntax.print_option (ML_Syntax.print_list print_interval) sel ^ "))";
-      in (name, get_name ^ " (ML_Context.the_local_context ()) " ^ txt) end));
-
-in
-
-val _ = add_keywords ["(", ")", "-", ","];
-val _ = thm_antiq "thm" ProofContext.get_fact_single "ProofContext.get_fact_single";
-val _ = thm_antiq "thms" ProofContext.get_fact "ProofContext.get_fact";
-
-end;
-
-val _ = proj_value_antiq "cpat" (Scan.lift Args.name >>
-    (fn name => ("cpat",
-      "Thm.cterm_of (ML_Context.the_global_context ()) (Syntax.read_term \
-      \(ProofContext.set_mode ProofContext.mode_pattern (ML_Context.the_local_context ()))"
-      ^ ML_Syntax.print_string name ^ ")", "")));
 
 end;
 
