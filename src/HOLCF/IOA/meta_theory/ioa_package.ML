@@ -485,7 +485,7 @@ fun mk_rename_decl (aut, (source_aut, rename_f)) =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["signature", "actions", "inputs",
+val _ = List.app OuterKeyword.keyword ["signature", "actions", "inputs",
   "outputs", "internals", "states", "initially", "transitions", "pre",
   "post", "transrel", ":=", "compose", "hide_action", "in", "restrict", "to",
   "rename"];

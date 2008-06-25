@@ -291,7 +291,7 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["permissive", "congs", "hints"];
+val _ = List.app OuterKeyword.keyword ["permissive", "congs", "hints"];
 
 val hints =
   P.$$$ "(" |-- P.!!! (P.position (P.$$$ "hints" -- P.arguments) --| P.$$$ ")") >> Args.src;

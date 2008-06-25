@@ -932,7 +932,7 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["monos"];
+val _ = OuterKeyword.keyword "monos";
 
 fun flatten_specification specs = specs |> maps
   (fn (a, (concl, [])) => concl |> map

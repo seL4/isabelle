@@ -16,7 +16,7 @@ structure P = OuterParse and K = OuterKeyword;
 (*keep keywords consistent with the parsers, otherwise be prepared for
   unexpected errors*)
 
-val _ = OuterSyntax.keywords
+val _ = List.app OuterKeyword.keyword
  ["!!", "!", "%", "(", ")", "+", ",", "--", ":", "::", ";", "<", "<=",
   "=", "==", "=>", "?", "[", "\\<equiv>", "\\<leftharpoondown>",
   "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",

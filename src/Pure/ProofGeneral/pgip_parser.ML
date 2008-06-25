@@ -83,7 +83,7 @@ val _ = OuterKeyword.kinds subset_string Symtab.keys command_keywords
 
 fun parse_command "sorry" text = [D.Postponegoal {text = text}, D.Closeblock {}]
   | parse_command name text =
-      (case OuterSyntax.command_keyword name of
+      (case OuterKeyword.command_keyword name of
         NONE => [D.Unparseable {text = text}]
       | SOME k =>
           (case Symtab.lookup command_keywords (OuterKeyword.kind_of k) of

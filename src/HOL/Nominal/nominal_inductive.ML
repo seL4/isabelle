@@ -668,7 +668,7 @@ fun prove_eqvt s xatoms thy =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["avoids"];
+val _ = OuterKeyword.keyword "avoids";
 
 val _ =
   OuterSyntax.command "nominal_inductive"

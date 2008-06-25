@@ -146,7 +146,7 @@ val add_domain = gen_add_domain Syntax.read_typ_global;
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["lazy"];
+val _ = OuterKeyword.keyword "lazy";
 
 val dest_decl =
   P.$$$ "(" |-- Scan.optional (P.$$$ "lazy" >> K true) false --

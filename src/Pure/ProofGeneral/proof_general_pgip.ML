@@ -359,16 +359,15 @@ end;
 (** lexicalstructure element with keywords (PGIP version of elisp keywords file) **)
 
 fun lexicalstructure_keywords () =
-    let val commands = OuterSyntax.dest_keywords ()
-        fun category_of k = if k mem commands then "major" else "minor"
-         (* NB: we might filter to only include words like elisp case (OuterSyntax.is_keyword). *)
-        fun keyword_elt (keyword,help,kind,_) =
-            XML.Elem("keyword", [("word", keyword), ("category", category_of kind)],
-                     [XML.Elem("shorthelp", [], [XML.Text help])])
+    let val keywords = OuterKeyword.dest_keywords ()
+        val commands = OuterKeyword.dest_commands ()
+        fun keyword_elt kind keyword =
+            XML.Elem("keyword", [("word", keyword), ("category", kind)], [])
         in
             (* Also, note we don't call init_outer_syntax here to add interface commands,
             but they should never appear in scripts anyway so it shouldn't matter *)
-            Lexicalstructure {content = map keyword_elt (OuterSyntax.dest_parsers()) }
+            Lexicalstructure
+              {content = map (keyword_elt "minor") keywords @ map (keyword_elt "major") commands}
         end
 
 (* TODO: we can issue a lexicalstructure/keyword when the syntax gets extended dynamically;

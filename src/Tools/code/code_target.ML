@@ -2216,7 +2216,7 @@ fun code_exprP cmd =
      -- Scan.optional (P.$$$ "(" |-- P.arguments --| P.$$$ ")") []
   ) >> (fn (raw_cs, seris) => cmd raw_cs seris));
 
-val _ = OuterSyntax.keywords [infixK, infixlK, infixrK, inK, module_nameK, fileK];
+val _ = List.app OuterKeyword.keyword [infixK, infixlK, infixrK, inK, module_nameK, fileK];
 
 val _ =
   OuterSyntax.command "code_class" "define code syntax for class" K.thy_decl (

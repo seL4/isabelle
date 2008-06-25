@@ -2,19 +2,16 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-The global Isabelle/Isar outer syntax. Note: the syntax for files is
-statically determined at the very beginning; for interactive processing
-it may change dynamically.
+The global Isabelle/Isar outer syntax.
+
+Note: the syntax for files is statically determined at the very
+beginning; for interactive processing it may change dynamically.
 *)
 
 signature OUTER_SYNTAX =
 sig
   type parser_fn = OuterLex.token list ->
     (Toplevel.transition -> Toplevel.transition) * OuterLex.token list
-  val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
-  val command_keyword: string -> OuterKeyword.T option
-  val is_keyword: string -> bool
-  val keywords: string list -> unit
   val command: string -> string -> OuterKeyword.T -> parser_fn -> unit
   val markup_command: ThyOutput.markup -> string -> string -> OuterKeyword.T -> parser_fn -> unit
   val improper_command: string -> string -> OuterKeyword.T -> parser_fn -> unit
@@ -24,11 +21,7 @@ sig
     (OuterParse.token list -> (bool -> local_theory -> Proof.state) * OuterLex.token list) -> unit
   val local_theory_to_proof: string -> string -> OuterKeyword.T ->
     (OuterParse.token list -> (local_theory -> Proof.state) * OuterLex.token list) -> unit
-  val dest_keywords: unit -> string list
-  val dest_parsers: unit -> (string * string * string * bool) list
   val print_outer_syntax: unit -> unit
-  val report: unit -> unit
-  val check_text: string * Position.T -> Toplevel.node option -> unit
   val scan: string -> OuterLex.token list
   val parse: Position.T -> string -> Toplevel.transition list
   val process_file: Path.T -> theory -> theory
@@ -46,30 +39,18 @@ structure P = OuterParse;
 
 (** outer syntax **)
 
-(* diagnostics *)
-
-fun report_keyword name =
-  Pretty.mark (Markup.keyword_decl name)
-    (Pretty.str ("Outer syntax keyword: " ^ quote name));
-
-fun report_command name kind =
-  Pretty.mark (Markup.command_decl name kind)
-    (Pretty.str ("Outer syntax command: " ^ quote name ^ " (" ^ kind ^ ")"));
-
-
 (* parsers *)
 
 type parser_fn = T.token list -> (Toplevel.transition -> Toplevel.transition) * T.token list;
 
 datatype parser = Parser of
  {comment: string,
-  kind: OuterKeyword.T,
   markup: ThyOutput.markup option,
   int_only: bool,
   parse: parser_fn};
 
-fun make_parser comment kind markup int_only parse =
-  Parser {comment = comment, kind = kind, markup = markup, int_only = int_only, parse = parse};
+fun make_parser comment markup int_only parse =
+  Parser {comment = comment, markup = markup, int_only = int_only, parse = parse};
 
 
 (* parse command *)
@@ -103,16 +84,8 @@ end;
 
 local
 
-val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
 val global_parsers = ref (Symtab.empty: parser Symtab.table);
 val global_markups = ref ([]: (string * ThyOutput.markup) list);
-
-fun change_lexicons f = CRITICAL (fn () =>
-  let val lexs = f (! global_lexicons) in
-    (case (op inter_string) (pairself Scan.dest_lexicon lexs) of
-      [] => global_lexicons := lexs
-    | bads => error ("Clash of outer syntax commands and keywords: " ^ commas_quote bads))
-  end);
 
 fun change_parsers f = CRITICAL (fn () =>
  (change global_parsers f;
@@ -124,44 +97,30 @@ in
 
 (* access current syntax *)
 
-fun get_lexicons () = CRITICAL (fn () => ! global_lexicons);
 fun get_parsers () = CRITICAL (fn () => ! global_parsers);
 fun get_markups () = CRITICAL (fn () => ! global_markups);
 
 fun get_parser () = Symtab.lookup (get_parsers ());
-
-fun command_keyword name =
-  (case Symtab.lookup (get_parsers ()) name of
-    SOME (Parser {kind, ...}) => SOME kind
-  | NONE => NONE);
-
-fun command_tags name = these (Option.map OuterKeyword.tags_of (command_keyword name));
 
 fun is_markup kind name = AList.lookup (op =) (get_markups ()) name = SOME kind;
 
 
 (* augment syntax *)
 
-fun keywords names =
- (change_lexicons (apfst (Scan.extend_lexicon (map Symbol.explode names)));
-  List.app (Pretty.writeln o report_keyword) names);
-
-
-fun add_parser (name, parser as Parser {kind, ...}) =
- (if not (Symtab.defined (get_parsers ()) name) then ()
+fun add_parser name kind parser = CRITICAL (fn () =>
+ (OuterKeyword.command name kind;
+  if not (Symtab.defined (get_parsers ()) name) then ()
   else warning ("Redefining outer syntax command " ^ quote name);
-  change_parsers (Symtab.update (name, parser));
-  change_lexicons (apsnd (Scan.extend_lexicon [Symbol.explode name]));
-  Pretty.writeln (report_command name (OuterKeyword.kind_of kind)));
+  change_parsers (Symtab.update (name, parser))));
 
 fun command name comment kind parse =
-  add_parser (name, make_parser comment kind NONE false parse);
+  add_parser name kind (make_parser comment NONE false parse);
 
 fun markup_command markup name comment kind parse =
-  add_parser (name, make_parser comment kind (SOME markup) false parse);
+  add_parser name kind (make_parser comment (SOME markup) false parse);
 
 fun improper_command name comment kind parse =
-  add_parser (name, make_parser comment kind NONE true parse);
+  add_parser name kind (make_parser comment NONE true parse);
 
 end;
 
@@ -179,30 +138,21 @@ val local_theory_to_proof  = local_theory_command true Toplevel.local_theory_to_
 
 (* inspect syntax *)
 
-fun is_keyword s = Scan.is_literal (#1 (get_lexicons ())) (Symbol.explode s);
-fun dest_keywords () = Scan.dest_lexicon (#1 (get_lexicons ()));
-
 fun dest_parsers () =
   get_parsers () |> Symtab.dest |> sort_wrt #1
-  |> map (fn (name, Parser {comment, kind, int_only, ...}) =>
-    (name, comment, OuterKeyword.kind_of kind, int_only));
+  |> map (fn (name, Parser {comment, int_only, ...}) => (name, comment, int_only));
 
 fun print_outer_syntax () =
   let
-    fun pretty_cmd (name, comment, _, _) =
+    fun pretty_cmd (name, comment, _) =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
-    val (int_cmds, cmds) = List.partition #4 (dest_parsers ());
+    val (int_cmds, cmds) = List.partition #3 (dest_parsers ());
   in
-    [Pretty.strs ("syntax keywords:" :: map quote (dest_keywords ())),
+    [Pretty.strs ("syntax keywords:" :: map quote (OuterKeyword.dest_keywords ())),
       Pretty.big_list "commands:" (map pretty_cmd cmds),
       Pretty.big_list "interactive-only commands:" (map pretty_cmd int_cmds)]
     |> Pretty.chunks |> Pretty.writeln
   end;
-
-fun report () =
-  (map report_keyword (dest_keywords ()) @
-    map (fn (name, _, kind, _) => report_command name kind) (dest_parsers ()))
-  |> Pretty.chunks |> Pretty.writeln;
 
 
 
@@ -235,13 +185,13 @@ fun toplevel_source term do_recover cmd src =
 fun scan str =
   Source.of_string str
   |> Symbol.source false
-  |> T.source (SOME false) get_lexicons Position.none
+  |> T.source (SOME false) OuterKeyword.get_lexicons Position.none
   |> Source.exhaust;
 
 fun parse pos str =
   Source.of_string str
   |> Symbol.source false
-  |> T.source (SOME false) get_lexicons pos
+  |> T.source (SOME false) OuterKeyword.get_lexicons pos
   |> toplevel_source false NONE get_parser
   |> Source.exhaust;
 
@@ -268,16 +218,8 @@ type isar =
 fun isar term : isar =
   Source.tty
   |> Symbol.source true
-  |> T.source (SOME true) get_lexicons Position.none
+  |> T.source (SOME true) OuterKeyword.get_lexicons Position.none
   |> toplevel_source term (SOME true) get_parser;
-
-
-
-(** read theory **)
-
-(* check_text *)
-
-fun check_text s state = (ThyOutput.eval_antiquote (#1 (get_lexicons ())) state s; ());
 
 
 (* load_thy *)
@@ -285,20 +227,21 @@ fun check_text s state = (ThyOutput.eval_antiquote (#1 (get_lexicons ())) state 
 fun load_thy dir name pos text time =
   let
     val text_src = Source.of_list (Library.untabify text);
+    val (lexs, parser) = CRITICAL (fn () => (OuterKeyword.get_lexicons (), get_parser ()));
 
     val _ = Present.init_theory name;
     val _ = Present.verbatim_source name (fn () => Source.exhaust (Symbol.source false text_src));
     val toks = text_src
       |> Symbol.source false
-      |> T.source NONE (K (get_lexicons ())) pos
+      |> T.source NONE (K lexs) pos
       |> Source.exhausted;
     val trs = toks
-      |> toplevel_source false NONE (K (get_parser ()))
+      |> toplevel_source false NONE (K parser)
       |> Source.exhaust;
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val _ = cond_timeit time "" (fn () =>
-      ThyOutput.process_thy (#1 (get_lexicons ())) command_tags is_markup trs toks
+      ThyOutput.process_thy (#1 lexs) OuterKeyword.command_tags is_markup trs toks
       |> Buffer.content
       |> Present.theory_output name);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();

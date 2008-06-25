@@ -1111,7 +1111,7 @@ fun parse_mixfix rd s =
 
 structure P = OuterParse and K = OuterKeyword;
 
-val _ = OuterSyntax.keywords ["attach", "file", "contains"];
+val _ = List.app OuterKeyword.keyword ["attach", "file", "contains"];
 
 fun strip_whitespace s = implode (fst (take_suffix (equal "\n" orf equal " ")
   (snd (take_prefix (equal "\n" orf equal " ") (explode s))))) ^ "\n";

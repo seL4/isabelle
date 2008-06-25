@@ -35,7 +35,7 @@ structure P = OuterParse;
 
 fun token_source pos src =
   Symbol.source true src
-  |> T.source (SOME false) OuterSyntax.get_lexicons pos;
+  |> T.source (SOME false) OuterKeyword.get_lexicons pos;
 
 fun parse_tokens pos src = Source.exhaust (token_source pos src);
 

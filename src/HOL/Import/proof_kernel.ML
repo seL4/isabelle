@@ -190,7 +190,7 @@ fun mk_syn thy c =
   else Syntax.literal c
 
 fun quotename c =
-  if Syntax.is_identifier c andalso not (OuterSyntax.is_keyword c) then c else quote c
+  if Syntax.is_identifier c andalso not (OuterKeyword.is_keyword c) then c else quote c
 
 fun simple_smart_string_of_cterm ct =
     let

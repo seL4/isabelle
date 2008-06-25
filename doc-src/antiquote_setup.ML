@@ -190,9 +190,9 @@ in
 
 val _ = O.add_commands
  (entity_antiqs no_check "" "syntax" @
-  entity_antiqs (K (is_some o OuterSyntax.command_keyword)) "isacommand" "command" @
-  entity_antiqs (K OuterSyntax.is_keyword) "isakeyword" "keyword" @
-  entity_antiqs (K OuterSyntax.is_keyword) "isakeyword" "element" @
+  entity_antiqs (K (is_some o OuterKeyword.command_keyword)) "isacommand" "command" @
+  entity_antiqs (K OuterKeyword.is_keyword) "isakeyword" "keyword" @
+  entity_antiqs (K OuterKeyword.is_keyword) "isakeyword" "element" @
   entity_antiqs (thy_check Method.intern Method.defined) "" "method" @
   entity_antiqs (thy_check Attrib.intern Attrib.defined) "" "attribute" @
   entity_antiqs no_check "" "fact" @

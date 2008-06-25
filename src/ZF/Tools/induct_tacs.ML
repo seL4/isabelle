@@ -188,7 +188,7 @@ val setup =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["elimination", "induction", "case_eqns", "recursor_eqns"];
+val _ = List.app OuterKeyword.keyword ["elimination", "induction", "case_eqns", "recursor_eqns"];
 
 val rep_datatype_decl =
   (P.$$$ "elimination" |-- P.!!! SpecParse.xthm) --

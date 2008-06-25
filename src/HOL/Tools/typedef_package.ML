@@ -260,7 +260,7 @@ end;
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords ["morphisms"];
+val _ = OuterKeyword.keyword "morphisms";
 
 val typedef_decl =
   Scan.optional (P.$$$ "(" |--
