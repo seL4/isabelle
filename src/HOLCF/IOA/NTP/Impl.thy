@@ -112,7 +112,7 @@ declare split_paired_All [simp del]
 3) renname_ss unfolds transitions and the abstract channel *)
 
 ML {*
-val ss = @{simpset} addsimps @{thms transitions};
+val ss = @{simpset} addsimps @{thms "transitions"};
 val rename_ss = ss addsimps @{thms unfold_renaming};
 
 val tac     = asm_simp_tac (ss addcongs [@{thm conj_cong}] addsplits [@{thm split_if}])
