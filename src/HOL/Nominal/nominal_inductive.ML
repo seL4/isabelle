@@ -136,9 +136,11 @@ fun map_thm ctxt f tac monos opt th =
           REPEAT_DETERM (rtac impI 1 THEN (atac 1 ORELSE tac))])
   in Option.map prove (map_term f prop (the_default prop opt)) end;
 
+val eta_contract_cterm = Thm.dest_arg o Thm.cprop_of o Thm.eta_conversion;
+
 fun first_order_matchs pats objs = Thm.first_order_match
-  (Conjunction.mk_conjunction_balanced pats,
-   Conjunction.mk_conjunction_balanced objs);
+  (eta_contract_cterm (Conjunction.mk_conjunction_balanced pats),
+   eta_contract_cterm (Conjunction.mk_conjunction_balanced objs));
 
 fun first_order_mrs ths th = ths MRS
   Thm.instantiate (first_order_matchs (cprems_of th) (map cprop_of ths)) th;
@@ -274,8 +276,10 @@ fun prove_strong_ind s avoids thy =
     val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp";
     val pt2_atoms = map (fn aT => PureThy.get_thm thy
       ("pt_" ^ Sign.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
-    val eqvt_ss = HOL_basic_ss addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
-      addsimprocs [mk_perm_bool_simproc ["Fun.id"]];
+    val eqvt_ss = Simplifier.theory_context thy HOL_basic_ss
+      addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
+      addsimprocs [mk_perm_bool_simproc ["Fun.id"],
+        NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
     val fresh_bij = PureThy.get_thms thy "fresh_bij";
     val perm_bij = PureThy.get_thms thy "perm_bij";
     val fs_atoms = map (fn aT => PureThy.get_thm thy
@@ -452,7 +456,13 @@ fun prove_strong_ind s avoids thy =
                    concl))
           in map mk_prem prems end) cases_prems;
 
-    val cases_eqvt_ss = HOL_ss addsimps eqvt_thms @ calc_atm delsplits [split_if];
+    val cases_eqvt_ss = Simplifier.theory_context thy HOL_ss
+      addsimps eqvt_thms @ fresh_atm @ perm_pi_simp delsplits [split_if]
+      addsimprocs [NominalPermeq.perm_simproc_app,
+        NominalPermeq.perm_simproc_fun];
+
+    val simp_fresh_atm = map
+      (Simplifier.simplify (HOL_basic_ss addsimps fresh_atm));
 
     fun mk_cases_proof thy ((((name, thss), elim), (prem, args, concl, prems)),
         prems') =
@@ -514,16 +524,20 @@ fun prove_strong_ind s avoids thy =
                        SUBPROOF (fn {prems = fresh_hyps, ...} =>
                          let
                            val fresh_hyps' = NominalPackage.mk_not_sym fresh_hyps;
-                           val case_ss = cases_eqvt_ss addsimps
-                             vc_compat_ths' @ freshs2' @ fresh_hyps'
+                           val case_ss = cases_eqvt_ss addsimps freshs2' @
+                             simp_fresh_atm (vc_compat_ths' @ fresh_hyps');
                            val fresh_fresh_ss = case_ss addsimps perm_fresh_fresh;
+                           val calc_atm_ss = case_ss addsimps calc_atm;
                            val hyps1' = map
                              (mk_pis #> Simplifier.simplify fresh_fresh_ss) hyps1;
                            val hyps2' = map
                              (mk_pis #> Simplifier.simplify case_ss) hyps2;
-                           val case_hyps' = hyps1' @ hyps2'
+                           (* calc_atm must be applied last, since *)
+                           (* it may interfere with other rules    *)
+                           val case_hyps' = map
+                             (Simplifier.simplify calc_atm_ss) (hyps1' @ hyps2')
                          in
-                           simp_tac case_ss 1 THEN
+                           simp_tac calc_atm_ss 1 THEN
                            REPEAT_DETERM (TRY (rtac conjI 1) THEN
                              resolve_tac case_hyps' 1)
                          end) ctxt4 1)
