@@ -17,10 +17,10 @@ consts
   setlocs :: "state => locals => state"
   getlocs :: "state => locals"
   update  :: "state => vname => val => state"     ("_/[_/::=/_]" [900,0,0] 900)
-syntax (* IN Natural.thy *)
-  loc :: "state => locals"    ("_<_>" [75,0] 75)
-translations
-  "s<X>" == "getlocs s X"
+
+abbreviation
+  loc :: "state => locals"  ("_<_>" [75,0] 75) where
+  "s<X> == getlocs s X"
 
 inductive
   evalc :: "[com,state,    state] => bool"  ("<_,_>/ -c-> _" [0,0,  51] 51)

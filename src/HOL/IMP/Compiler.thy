@@ -8,16 +8,16 @@ theory Compiler imports Machines begin
 
 subsection "The compiler"
 
-consts compile :: "com \<Rightarrow> instr list"
-primrec
-"compile \<SKIP> = []"
-"compile (x:==a) = [SET x a]"
-"compile (c1;c2) = compile c1 @ compile c2"
-"compile (\<IF> b \<THEN> c1 \<ELSE> c2) =
- [JMPF b (length(compile c1) + 1)] @ compile c1 @
- [JMPF (\<lambda>x. False) (length(compile c2))] @ compile c2"
-"compile (\<WHILE> b \<DO> c) = [JMPF b (length(compile c) + 1)] @ compile c @
- [JMPB (length(compile c)+1)]"
+primrec compile :: "com \<Rightarrow> instr list"
+where
+  "compile \<SKIP> = []"
+| "compile (x:==a) = [SET x a]"
+| "compile (c1;c2) = compile c1 @ compile c2"
+| "compile (\<IF> b \<THEN> c1 \<ELSE> c2) =
+    [JMPF b (length(compile c1) + 1)] @ compile c1 @
+    [JMPF (\<lambda>x. False) (length(compile c2))] @ compile c2"
+| "compile (\<WHILE> b \<DO> c) = [JMPF b (length(compile c) + 1)] @ compile c @
+    [JMPB (length(compile c)+1)]"
 
 subsection "Compiler correctness"
 
@@ -65,31 +65,33 @@ done
 lemma [simp]: "(\<langle>[],q,s\<rangle> -*\<rightarrow> \<langle>p',q',t\<rangle>) = (p' = [] \<and> q' = q \<and> t = s)"
 by(simp add: rtrancl_is_UN_rel_pow)
 
-constdefs
- forws :: "instr \<Rightarrow> nat set"
-"forws instr == case instr of
- SET x a \<Rightarrow> {0} |
- JMPF b n \<Rightarrow> {0,n} |
- JMPB n \<Rightarrow> {}"
- backws :: "instr \<Rightarrow> nat set"
-"backws instr == case instr of
- SET x a \<Rightarrow> {} |
- JMPF b n \<Rightarrow> {} |
- JMPB n \<Rightarrow> {n}"
+definition
+  forws :: "instr \<Rightarrow> nat set" where
+  "forws instr = (case instr of
+     SET x a \<Rightarrow> {0} |
+     JMPF b n \<Rightarrow> {0,n} |
+     JMPB n \<Rightarrow> {})"
 
-consts closed :: "nat \<Rightarrow> nat \<Rightarrow> instr list \<Rightarrow> bool"
-primrec
-"closed m n [] = True"
-"closed m n (instr#is) = ((\<forall>j \<in> forws instr. j \<le> size is+n) \<and>
-                        (\<forall>j \<in> backws instr. j \<le> m) \<and> closed (Suc m) n is)"
+definition
+  backws :: "instr \<Rightarrow> nat set" where
+  "backws instr = (case instr of
+     SET x a \<Rightarrow> {} |
+     JMPF b n \<Rightarrow> {} |
+     JMPB n \<Rightarrow> {n})"
+
+primrec closed :: "nat \<Rightarrow> nat \<Rightarrow> instr list \<Rightarrow> bool"
+where
+  "closed m n [] = True"
+| "closed m n (instr#is) = ((\<forall>j \<in> forws instr. j \<le> size is+n) \<and>
+                          (\<forall>j \<in> backws instr. j \<le> m) \<and> closed (Suc m) n is)"
 
 lemma [simp]:
  "\<And>m n. closed m n (C1@C2) =
          (closed m (n+size C2) C1 \<and> closed (m+size C1) n C2)"
-by(induct C1, simp, simp add:add_ac)
+by(induct C1) (simp, simp add:add_ac)
 
 theorem [simp]: "\<And>m n. closed m n (compile c)"
-by(induct c, simp_all add:backws_def forws_def)
+by(induct c) (simp_all add:backws_def forws_def)
 
 lemma drop_lem: "n \<le> size(p1@p2)
  \<Longrightarrow> (p1' @ p2 = drop n p1 @ drop (n - size p1) p2) =

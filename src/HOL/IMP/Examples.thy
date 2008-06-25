@@ -8,11 +8,11 @@ header "Examples"
 
 theory Examples imports Natural begin
 
-constdefs
-  factorial :: "loc => loc => com"
-  "factorial a b == b :== (%s. 1);
+definition
+  factorial :: "loc => loc => com" where
+  "factorial a b = (b :== (%s. 1);
                     \<WHILE> (%s. s a ~= 0) \<DO>
-                    (b :== (%s. s b * s a); a :== (%s. s a - 1))"
+                    (b :== (%s. s b * s a); a :== (%s. s a - 1)))"
 
 declare update_def [simp]
 

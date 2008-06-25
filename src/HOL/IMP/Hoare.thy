@@ -10,8 +10,9 @@ theory Hoare imports Denotation begin
 
 types assn = "state => bool"
 
-constdefs hoare_valid :: "[assn,com,assn] => bool" ("|= {(1_)}/ (_)/ {(1_)}" 50)
-          "|= {P}c{Q} == !s t. (s,t) : C(c) --> P s --> Q t"
+definition
+  hoare_valid :: "[assn,com,assn] => bool" ("|= {(1_)}/ (_)/ {(1_)}" 50) where
+  "|= {P}c{Q} = (!s t. (s,t) : C(c) --> P s --> Q t)"
 
 inductive
   hoare :: "assn => com => assn => bool" ("|- ({(1_)}/ (_)/ {(1_)})" 50)
@@ -26,8 +27,9 @@ where
 | conseq: "[| !s. P' s --> P s; |- {P}c{Q}; !s. Q s --> Q' s |] ==>
           |- {P'}c{Q'}"
 
-constdefs wp :: "com => assn => assn"
-          "wp c Q == (%s. !t. (s,t) : C(c) --> Q t)"
+definition
+  wp :: "com => assn => assn" where
+  "wp c Q = (%s. !t. (s,t) : C(c) --> Q t)"
 
 (*
 Soundness (and part of) relative completeness of Hoare rules

@@ -18,12 +18,12 @@ text {*
   @{text "(c,s,s')"} is part of the relation @{text evalc}}:
 *}
 
-constdefs
-  update :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)" ("_/[_ ::= /_]" [900,0,0] 900)
-  "update == fun_upd"
+definition
+  update :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)" ("_/[_ ::= /_]" [900,0,0] 900) where
+  "update = fun_upd"
 
-syntax (xsymbols)
-  update :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)" ("_/[_ \<mapsto> /_]" [900,0,0] 900)
+notation (xsymbols)
+  update  ("_/[_ \<mapsto> /_]" [900,0,0] 900)
 
 text {*
   The big-step execution relation @{text evalc} is defined inductively:
@@ -104,9 +104,9 @@ text {*
   in @{text s'} iff @{text c'} started in the same @{text s} also terminates
   in the same @{text s'}}. Formally:
 *}
-constdefs
-  equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" ("_ \<sim> _")
-  "c \<sim> c' \<equiv> \<forall>s s'. \<langle>c, s\<rangle> \<longrightarrow>\<^sub>c s' = \<langle>c', s\<rangle> \<longrightarrow>\<^sub>c s'"
+definition
+  equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" ("_ \<sim> _") where
+  "c \<sim> c' = (\<forall>s s'. \<langle>c, s\<rangle> \<longrightarrow>\<^sub>c s' = \<langle>c', s\<rangle> \<longrightarrow>\<^sub>c s')"
 
 text {*
   Proof rules telling Isabelle to unfold the definition

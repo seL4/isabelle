@@ -25,21 +25,20 @@ text {*
   Some syntactic sugar that we will use to hide the
   @{text option} part in configurations:
 *}
-syntax
-  "_angle" :: "[com, state] \<Rightarrow> com option \<times> state" ("<_,_>")
-  "_angle2" :: "state \<Rightarrow> com option \<times> state" ("<_>")
+abbreviation
+  angle :: "[com, state] \<Rightarrow> com option \<times> state" ("<_,_>") where
+  "<c,s> == (Some c, s)"
+abbreviation
+  angle2 :: "state \<Rightarrow> com option \<times> state"  ("<_>") where
+  "<s> == (None, s)"
 
-syntax (xsymbols)
-  "_angle" :: "[com, state] \<Rightarrow> com option \<times> state" ("\<langle>_,_\<rangle>")
-  "_angle2" :: "state \<Rightarrow> com option \<times> state" ("\<langle>_\<rangle>")
+notation (xsymbols)
+  angle  ("\<langle>_,_\<rangle>") and
+  angle2  ("\<langle>_\<rangle>")
 
-syntax (HTML output)
-  "_angle" :: "[com, state] \<Rightarrow> com option \<times> state" ("\<langle>_,_\<rangle>")
-  "_angle2" :: "state \<Rightarrow> com option \<times> state" ("\<langle>_\<rangle>")
-
-translations
-  "\<langle>c,s\<rangle>" == "(Some c, s)"
-  "\<langle>s\<rangle>" == "(None, s)"
+notation (HTML output)
+  angle  ("\<langle>_,_\<rangle>") and
+  angle2  ("\<langle>_\<rangle>")
 
 text {*
   Now, finally, we are set to write down the rules for our small step semantics:

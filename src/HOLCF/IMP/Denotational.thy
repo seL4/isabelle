@@ -14,15 +14,14 @@ definition
   dlift :: "(('a::type) discr -> 'b::pcpo) => ('a lift -> 'b)" where
   "dlift f = (LAM x. case x of UU => UU | Def y => f\<cdot>(Discr y))"
 
-consts D :: "com => state discr -> state lift"
-
-primrec
+primrec D :: "com => state discr -> state lift"
+where
   "D(\<SKIP>) = (LAM s. Def(undiscr s))"
-  "D(X :== a) = (LAM s. Def((undiscr s)[X \<mapsto> a(undiscr s)]))"
-  "D(c0 ; c1) = (dlift(D c1) oo (D c0))"
-  "D(\<IF> b \<THEN> c1 \<ELSE> c2) =
+| "D(X :== a) = (LAM s. Def((undiscr s)[X \<mapsto> a(undiscr s)]))"
+| "D(c0 ; c1) = (dlift(D c1) oo (D c0))"
+| "D(\<IF> b \<THEN> c1 \<ELSE> c2) =
         (LAM s. if b (undiscr s) then (D c1)\<cdot>s else (D c2)\<cdot>s)"
-  "D(\<WHILE> b \<DO> c) =
+| "D(\<WHILE> b \<DO> c) =
         fix\<cdot>(LAM w s. if b (undiscr s) then (dlift w)\<cdot>((D c)\<cdot>s)
                       else Def(undiscr s))"
 

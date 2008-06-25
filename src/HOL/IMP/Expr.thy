@@ -68,23 +68,22 @@ where
 lemmas [intro] = tru fls ROp noti andi ori
 
 subsection "Denotational semantics of arithmetic and boolean expressions"
-consts
-  A     :: "aexp => state => nat"
-  B     :: "bexp => state => bool"
 
-primrec
+primrec A :: "aexp => state => nat"
+where
   "A(N(n)) = (%s. n)"
-  "A(X(x)) = (%s. s(x))"
-  "A(Op1 f a) = (%s. f(A a s))"
-  "A(Op2 f a0 a1) = (%s. f (A a0 s) (A a1 s))"
+| "A(X(x)) = (%s. s(x))"
+| "A(Op1 f a) = (%s. f(A a s))"
+| "A(Op2 f a0 a1) = (%s. f (A a0 s) (A a1 s))"
 
-primrec
+primrec B :: "bexp => state => bool"
+where
   "B(true) = (%s. True)"
-  "B(false) = (%s. False)"
-  "B(ROp f a0 a1) = (%s. f (A a0 s) (A a1 s))"
-  "B(noti(b)) = (%s. ~(B b s))"
-  "B(b0 andi b1) = (%s. (B b0 s) & (B b1 s))"
-  "B(b0 ori b1) = (%s. (B b0 s) | (B b1 s))"
+| "B(false) = (%s. False)"
+| "B(ROp f a0 a1) = (%s. f (A a0 s) (A a1 s))"
+| "B(noti(b)) = (%s. ~(B b s))"
+| "B(b0 andi b1) = (%s. (B b0 s) & (B b1 s))"
+| "B(b0 ori b1) = (%s. (B b0 s) | (B b1 s))"
 
 lemma [simp]: "(N(n),s) -a-> n' = (n = n')"
   by (rule,cases set: evala) auto

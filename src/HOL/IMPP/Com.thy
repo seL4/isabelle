@@ -15,8 +15,8 @@ types    val = nat   (* for the meta theory, this may be anything, but with
 typedecl glb
 typedecl loc
 
-consts
-  Arg :: loc
+axiomatization
+  Arg :: loc and
   Res :: loc
 
 datatype vname  = Glb glb | Loc loc
@@ -43,8 +43,9 @@ datatype com
       | Call  vname pname aexp  ("_:=CALL _'(_')"       [65, 65,  0] 60)
 
 consts bodies :: "(pname  *  com) list"(* finitely many procedure definitions *)
-       body   :: " pname ~=> com"
-defs   body_def: "body == map_of bodies"
+definition
+  body :: " pname ~=> com" where
+  "body = map_of bodies"
 
 
 (* Well-typedness: all procedures called must exist *)
@@ -78,9 +79,9 @@ inductive_cases WTs_elim_cases:
   "WT (c1;;c2)"  "WT (IF b THEN c1 ELSE c2)"  "WT (WHILE b DO c)"
   "WT (BODY P)"  "WT (X:=CALL P(a))"
 
-constdefs
-  WT_bodies :: bool
-  "WT_bodies == !(pn,b):set bodies. WT b"
+definition
+  WT_bodies :: bool where
+  "WT_bodies = (!(pn,b):set bodies. WT b)"
 
 
 ML {* val make_imp_tac = EVERY'[rtac mp, fn i => atac (i+1), etac thin_rl] *}

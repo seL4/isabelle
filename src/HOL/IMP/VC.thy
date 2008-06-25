@@ -18,46 +18,44 @@ datatype  acom = Askip
                | Aif    bexp acom acom
                | Awhile bexp assn acom
 
-consts
-  vc :: "acom => assn => assn"
-  awp :: "acom => assn => assn"
-  vcawp :: "acom => assn => assn \<times> assn"
-  astrip :: "acom => com"
-
-primrec
+primrec awp :: "acom => assn => assn"
+where
   "awp Askip Q = Q"
-  "awp (Aass x a) Q = (\<lambda>s. Q(s[x\<mapsto>a s]))"
-  "awp (Asemi c d) Q = awp c (awp d Q)"
-  "awp (Aif b c d) Q = (\<lambda>s. (b s-->awp c Q s) & (~b s-->awp d Q s))"
-  "awp (Awhile b I c) Q = I"
+| "awp (Aass x a) Q = (\<lambda>s. Q(s[x\<mapsto>a s]))"
+| "awp (Asemi c d) Q = awp c (awp d Q)"
+| "awp (Aif b c d) Q = (\<lambda>s. (b s-->awp c Q s) & (~b s-->awp d Q s))"
+| "awp (Awhile b I c) Q = I"
 
-primrec
+primrec vc :: "acom => assn => assn"
+where
   "vc Askip Q = (\<lambda>s. True)"
-  "vc (Aass x a) Q = (\<lambda>s. True)"
-  "vc (Asemi c d) Q = (\<lambda>s. vc c (awp d Q) s & vc d Q s)"
-  "vc (Aif b c d) Q = (\<lambda>s. vc c Q s & vc d Q s)"
-  "vc (Awhile b I c) Q = (\<lambda>s. (I s & ~b s --> Q s) &
+| "vc (Aass x a) Q = (\<lambda>s. True)"
+| "vc (Asemi c d) Q = (\<lambda>s. vc c (awp d Q) s & vc d Q s)"
+| "vc (Aif b c d) Q = (\<lambda>s. vc c Q s & vc d Q s)"
+| "vc (Awhile b I c) Q = (\<lambda>s. (I s & ~b s --> Q s) &
                               (I s & b s --> awp c I s) & vc c I s)"
 
-primrec
+primrec astrip :: "acom => com"
+where
   "astrip Askip = SKIP"
-  "astrip (Aass x a) = (x:==a)"
-  "astrip (Asemi c d) = (astrip c;astrip d)"
-  "astrip (Aif b c d) = (\<IF> b \<THEN> astrip c \<ELSE> astrip d)"
-  "astrip (Awhile b I c) = (\<WHILE> b \<DO> astrip c)"
+| "astrip (Aass x a) = (x:==a)"
+| "astrip (Asemi c d) = (astrip c;astrip d)"
+| "astrip (Aif b c d) = (\<IF> b \<THEN> astrip c \<ELSE> astrip d)"
+| "astrip (Awhile b I c) = (\<WHILE> b \<DO> astrip c)"
 
 (* simultaneous computation of vc and awp: *)
-primrec
+primrec vcawp :: "acom => assn => assn \<times> assn"
+where
   "vcawp Askip Q = (\<lambda>s. True, Q)"
-  "vcawp (Aass x a) Q = (\<lambda>s. True, \<lambda>s. Q(s[x\<mapsto>a s]))"
-  "vcawp (Asemi c d) Q = (let (vcd,wpd) = vcawp d Q;
+| "vcawp (Aass x a) Q = (\<lambda>s. True, \<lambda>s. Q(s[x\<mapsto>a s]))"
+| "vcawp (Asemi c d) Q = (let (vcd,wpd) = vcawp d Q;
                               (vcc,wpc) = vcawp c wpd
                           in (\<lambda>s. vcc s & vcd s, wpc))"
-  "vcawp (Aif b c d) Q = (let (vcd,wpd) = vcawp d Q;
+| "vcawp (Aif b c d) Q = (let (vcd,wpd) = vcawp d Q;
                               (vcc,wpc) = vcawp c Q
                           in (\<lambda>s. vcc s & vcd s,
                               \<lambda>s.(b s --> wpc s) & (~b s --> wpd s)))"
-  "vcawp (Awhile b I c) Q = (let (vcc,wpc) = vcawp c I
+| "vcawp (Awhile b I c) Q = (let (vcc,wpc) = vcawp c I
                              in (\<lambda>s. (I s & ~b s --> Q s) &
                                      (I s & b s --> wpc s) & vcc s, I))"
 

@@ -10,38 +10,41 @@ theory EvenOdd
 imports Misc
 begin
 
-constdefs
-  even :: "nat => bool"
-  "even n == 2 dvd n"
+definition
+  even :: "nat => bool" where
+  "even n = (2 dvd n)"
 
-consts
-  Even :: pname
+axiomatization
+  Even :: pname and
   Odd :: pname
-axioms
-  Even_neq_Odd: "Even ~= Odd"
+where
+  Even_neq_Odd: "Even ~= Odd" and
   Arg_neq_Res:  "Arg  ~= Res"
 
-constdefs
-  evn :: com
- "evn == IF (%s. s<Arg> = 0)
+definition
+  evn :: com where
+ "evn = (IF (%s. s<Arg> = 0)
          THEN Loc Res:==(%s. 0)
          ELSE(Loc Res:=CALL Odd(%s. s<Arg> - 1);;
               Loc Arg:=CALL Odd(%s. s<Arg> - 1);;
-              Loc Res:==(%s. s<Res> * s<Arg>))"
-  odd :: com
- "odd == IF (%s. s<Arg> = 0)
+              Loc Res:==(%s. s<Res> * s<Arg>)))"
+
+definition
+  odd :: com where
+ "odd = (IF (%s. s<Arg> = 0)
          THEN Loc Res:==(%s. 1)
-         ELSE(Loc Res:=CALL Even (%s. s<Arg> - 1))"
+         ELSE(Loc Res:=CALL Even (%s. s<Arg> - 1)))"
 
 defs
   bodies_def: "bodies == [(Even,evn),(Odd,odd)]"
 
-consts
-  Z_eq_Arg_plus   :: "nat => nat assn" ("Z=Arg+_" [50]50)
- "even_Z=(Res=0)" ::        "nat assn" ("Res'_ok")
-defs
-  Z_eq_Arg_plus_def: "Z=Arg+n == %Z s.      Z =  s<Arg>+n"
-  Res_ok_def:       "Res_ok   == %Z s. even Z = (s<Res> = 0)"
+definition
+  Z_eq_Arg_plus :: "nat => nat assn" ("Z=Arg+_" [50]50) where
+  "Z=Arg+n = (%Z s.      Z =  s<Arg>+n)"
+
+definition
+  Res_ok :: "nat assn" where
+  "Res_ok = (%Z s. even Z = (s<Res> = 0))"
 
 
 subsection "even"

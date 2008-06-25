@@ -28,9 +28,9 @@ datatype
       | Cond   bexp com com     ("IF _ THEN _ ELSE _"  60)
       | While  bexp com         ("WHILE _ DO _"  60)
 
-syntax (latex)
-  SKIP :: com   ("\<SKIP>")
-  Cond :: "bexp \<Rightarrow> com \<Rightarrow> com \<Rightarrow> com"  ("\<IF> _ \<THEN> _ \<ELSE> _"  60)
-  While :: "bexp \<Rightarrow> com \<Rightarrow> com" ("\<WHILE> _ \<DO> _"  60)
+notation (latex)
+  SKIP  ("\<SKIP>") and
+  Cond  ("\<IF> _ \<THEN> _ \<ELSE> _"  60) and
+  While  ("\<WHILE> _ \<DO> _"  60)
 
 end
