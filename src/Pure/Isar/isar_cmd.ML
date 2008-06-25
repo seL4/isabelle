@@ -634,13 +634,16 @@ end;
 
 (* markup commands *)
 
+fun check_text s state =
+  (ThyOutput.eval_antiquote (#1 (OuterKeyword.get_lexicons ())) state s; ());
+
 fun add_header s = Toplevel.keep' (fn int => fn state =>
   (if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF;
-   if int then OuterSyntax.check_text s NONE else ()));
+   if int then check_text s NONE else ()));
 
 local
 
-fun present _ txt true node = OuterSyntax.check_text txt (SOME node)
+fun present _ txt true node = check_text txt (SOME node)
   | present f (s, _) false node = Context.setmp_thread_data
       (try (Toplevel.cases_node I (Context.Proof o Proof.context_of)) node) f s;
 
