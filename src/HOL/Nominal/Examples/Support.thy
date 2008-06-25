@@ -84,7 +84,7 @@ qed
 
 text {* 
   A general fact about a set S of atoms that is both infinite and 
-  coinfinite. Then S has all atoms as its support. Steve Zdancewick 
+  coinfinite. Then S has all atoms as its support. Steve Zdancewic 
   helped with proving this fact. *}
 
 lemma supp_infinite_coinfinite:
