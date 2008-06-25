@@ -122,8 +122,6 @@ val _ = inline "const"
 
 (* abstract fact values *)
 
-val _ = ML_Context.add_keywords ["[", "]", "(", ")", "-", ","];   (* FIXME !? *)
-
 structure AuxFacts = ProofDataFun
 (
   type T = thm list Inttab.table;

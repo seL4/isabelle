@@ -23,7 +23,6 @@ sig
   val stored_thms: thm list ref
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
-  val add_keywords: string list -> unit
   type antiq =
     {struct_name: string, background: Proof.context} ->
       (Proof.context -> string * string) * Proof.context
@@ -82,22 +81,6 @@ fun thms name = ProofContext.get_thms (the_local_context ()) name;
 
 (** ML antiquotations **)
 
-(* antiquotation keywords *)
-
-local
-
-val global_lexicon = ref Scan.empty_lexicon;
-
-in
-
-fun add_keywords keywords = CRITICAL (fn () =>
-  change global_lexicon (Scan.extend_lexicon (map Symbol.explode keywords)));
-
-fun get_lexicon () = ! global_lexicon;
-
-end;
-
-
 (* antiquotation commands *)
 
 type antiq =
@@ -150,7 +133,7 @@ fun eval_antiquotes struct_name (txt, pos) opt_ctxt =
                 Position.str_of pos)
             | SOME context => Context.proof_of context);
       
-          val lex = get_lexicon ();
+          val lex = #1 (OuterKeyword.get_lexicons ());
           fun no_decl _ = ("", "");
       
           fun expand (Antiquote.Text s) state = (K ("", Symbol.escape s), state)
