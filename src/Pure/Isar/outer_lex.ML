@@ -312,8 +312,8 @@ fun scan (lex1, lex2) =
         Scan.lift (Scan.one Symbol.is_sync >> sync) ||
         (Scan.max token_leq
           (Scan.max token_leq
-            (counted (Scan.literal lex1) >> token Keyword)
-            (counted (Scan.literal lex2) >> token Command))
+            (counted (Scan.literal lex2) >> token Command)
+            (counted (Scan.literal lex1) >> token Keyword))
           (counted Syntax.scan_longid >> token LongIdent ||
             counted Syntax.scan_id >> token Ident ||
             counted Syntax.scan_var >> token Var ||
