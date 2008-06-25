@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Isar command keyword classification.
+Isar command keyword classification and global keyword tables.
 *)
 
 signature OUTER_KEYWORD =
@@ -38,12 +38,21 @@ sig
   val tag_theory: T -> T
   val tag_proof: T -> T
   val tag_ml: T -> T
+  val get_lexicons: unit -> Scan.lexicon * Scan.lexicon
+  val is_keyword: string -> bool
+  val dest_keywords: unit -> string list
+  val dest_commands: unit -> string list
+  val command_keyword: string -> T option
+  val command_tags: string -> string list
+  val report: unit -> unit
+  val keyword: string -> unit
+  val command: string -> T -> unit
 end;
 
 structure OuterKeyword: OUTER_KEYWORD =
 struct
 
-(* keyword classification *)
+(** keyword classification **)
 
 datatype T = Keyword of string * string list;
 
@@ -91,5 +100,68 @@ fun tags_of (Keyword (_, ts)) = ts;
 val tag_theory = tag "theory";
 val tag_proof = tag "proof";
 val tag_ml = tag "ML";
+
+
+
+(** global keyword tables **)
+
+local
+
+val global_commands = ref (Symtab.empty: T Symtab.table);
+val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
+
+in
+
+fun get_commands () = CRITICAL (fn () => ! global_commands);
+fun get_lexicons () = CRITICAL (fn () => ! global_lexicons);
+
+fun change_commands f = CRITICAL (fn () => change global_commands f);
+
+fun change_lexicons f = CRITICAL (fn () =>
+  (change global_lexicons f;
+    (case (op inter_string) (pairself Scan.dest_lexicon (get_lexicons ())) of
+      [] => ()
+    | clash => warning ("Overlapping outer syntax commands and keywords: " ^ commas_quote clash))));
+
+end;
+
+
+(* lookup *)
+
+fun is_keyword s = Scan.is_literal (#1 (get_lexicons ())) (Symbol.explode s);
+fun dest_keywords () = Scan.dest_lexicon (#1 (get_lexicons ()));
+
+fun dest_commands () = Symtab.keys (get_commands ());
+fun command_keyword name = Symtab.lookup (get_commands ()) name;
+fun command_tags name = these (Option.map tags_of (command_keyword name));
+
+
+(* report *)
+
+fun report_keyword name =
+  Pretty.mark (Markup.keyword_decl name)
+    (Pretty.str ("Outer syntax keyword: " ^ quote name));
+
+fun report_command (name, kind) =
+  Pretty.mark (Markup.command_decl name (kind_of kind))
+    (Pretty.str ("Outer syntax command: " ^ quote name ^ " (" ^ kind_of kind ^ ")"));
+
+fun report () =
+  let val (keywords, commands) = CRITICAL (fn () =>
+    (dest_keywords (), Symtab.dest (get_commands ())))
+  in map report_keyword keywords @ map report_command commands end
+  |> Pretty.chunks |> Pretty.writeln;
+
+
+(* augment tables *)
+
+fun keyword name =
+ (change_lexicons (apfst (Scan.extend_lexicon [Symbol.explode name]));
+  Pretty.writeln (report_keyword name));
+
+fun command name kind =
+ (change_lexicons (apsnd (Scan.extend_lexicon [Symbol.explode name]));
+  change_commands (Symtab.update (name, kind));
+  Pretty.writeln (report_command (name, kind)));
 
 end;
