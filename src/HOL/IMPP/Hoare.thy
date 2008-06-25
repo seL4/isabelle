@@ -21,36 +21,40 @@ types 'a assn = "'a => state => bool"
 translations
   "a assn"   <= (type)"a => state => bool"
 
-constdefs
-  state_not_singleton :: bool
-  "state_not_singleton == \<exists>s t::state. s ~= t" (* at least two elements *)
+definition
+  state_not_singleton :: bool where
+  "state_not_singleton = (\<exists>s t::state. s ~= t)" (* at least two elements *)
 
-  peek_and    :: "'a assn => (state => bool) => 'a assn" (infixr "&>" 35)
-  "peek_and P p == %Z s. P Z s & p s"
+definition
+  peek_and :: "'a assn => (state => bool) => 'a assn" (infixr "&>" 35) where
+  "peek_and P p = (%Z s. P Z s & p s)"
 
 datatype 'a triple =
   triple "'a assn"  com  "'a assn"       ("{(1_)}./ (_)/ .{(1_)}" [3,60,3] 58)
 
-consts
-  triple_valid ::            "nat => 'a triple     => bool" ( "|=_:_" [0 , 58] 57)
-  hoare_valids ::  "'a triple set => 'a triple set => bool" ("_||=_"  [58, 58] 57)
-syntax
-  triples_valid::            "nat => 'a triple set => bool" ("||=_:_" [0 , 58] 57)
-  hoare_valid  ::  "'a triple set => 'a triple     => bool" ("_|=_"   [58, 58] 57)
+definition
+  triple_valid :: "nat => 'a triple     => bool" ( "|=_:_" [0 , 58] 57) where
+  "|=n:t = (case t of {P}.c.{Q} =>
+             !Z s. P Z s --> (!s'. <c,s> -n-> s' --> Q Z s'))"
+abbreviation
+  triples_valid :: "nat => 'a triple set => bool" ("||=_:_" [0 , 58] 57) where
+  "||=n:G == Ball G (triple_valid n)"
 
-defs triple_valid_def: "|=n:t  ==  case t of {P}.c.{Q} =>
-                                !Z s. P Z s --> (!s'. <c,s> -n-> s' --> Q Z s')"
-translations          "||=n:G" == "Ball G (triple_valid n)"
-defs hoare_valids_def: "G||=ts   ==  !n. ||=n:G --> ||=n:ts"
-translations         "G |=t  " == " G||={t}"
+definition
+  hoare_valids :: "'a triple set => 'a triple set => bool" ("_||=_"  [58, 58] 57) where
+  "G||=ts = (!n. ||=n:G --> ||=n:ts)"
+abbreviation
+  hoare_valid :: "'a triple set => 'a triple     => bool" ("_|=_"   [58, 58] 57) where
+  "G |=t == G||={t}"
 
 (* Most General Triples *)
-constdefs MGT    :: "com => state triple"            ("{=}._.{->}" [60] 58)
-         "{=}.c.{->} == {%Z s0. Z = s0}. c .{%Z s1. <c,Z> -c-> s1}"
+definition
+  MGT :: "com => state triple"            ("{=}._.{->}" [60] 58) where
+  "{=}.c.{->} = {%Z s0. Z = s0}. c .{%Z s1. <c,Z> -c-> s1}"
 
 inductive
-  hoare_derivs :: "'a triple set => 'a triple set => bool" ("_||-_"  [58, 58] 57)
-  and hoare_deriv :: "'a triple set => 'a triple     => bool" ("_|-_"   [58, 58] 57)
+  hoare_derivs :: "'a triple set => 'a triple set => bool" ("_||-_"  [58, 58] 57) and
+  hoare_deriv :: "'a triple set => 'a triple     => bool" ("_|-_"   [58, 58] 57)
 where
   "G |-t == G||-{t}"
 
