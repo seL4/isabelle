@@ -41,11 +41,10 @@ definition
                   Fin n \<Rightarrow> (SOME s. (stream_take n$s=s1) & (i_rt n s = s2))
                | \<infinity>     \<Rightarrow> s1)"
 
-consts
-  constr_sconc' :: "nat => 'a stream => 'a stream => 'a stream"
-primrec
+primrec constr_sconc' :: "nat => 'a stream => 'a stream => 'a stream"
+where
   constr_sconc'_0:   "constr_sconc' 0 s1 s2 = s2"
-  constr_sconc'_Suc: "constr_sconc' (Suc n) s1 s2 = ft$s1 &&
+| constr_sconc'_Suc: "constr_sconc' (Suc n) s1 s2 = ft$s1 &&
                                                     constr_sconc' n (rt$s1) s2"
 
 definition

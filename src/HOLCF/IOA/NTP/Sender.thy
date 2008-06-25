@@ -13,31 +13,21 @@ types
 'm sender_state = "'m list * bool multiset * bool multiset * bool * bool"
 (*                messages   #sent           #received      header  mode *)
 
-consts
+definition sq :: "'m sender_state => 'm list" where "sq = fst"
+definition ssent :: "'m sender_state => bool multiset" where "ssent = fst o snd"
+definition srcvd :: "'m sender_state => bool multiset" where "srcvd = fst o snd o snd"
+definition sbit :: "'m sender_state => bool" where "sbit = fst o snd o snd o snd"
+definition ssending :: "'m sender_state => bool" where "ssending = snd o snd o snd o snd"
 
-sender_asig   :: "'m action signature"
-sender_trans  :: "('m action, 'm sender_state)transition set"
-sender_ioa    :: "('m action, 'm sender_state)ioa"
-sq            :: "'m sender_state => 'm list"
-ssent         :: "'m sender_state => bool multiset"
-srcvd         :: "'m sender_state => bool multiset"
-sbit          :: "'m sender_state => bool"
-ssending      :: "'m sender_state => bool"
+definition
+  sender_asig :: "'m action signature" where
+  "sender_asig = ((UN m. {S_msg(m)}) Un (UN b. {R_ack(b)}),
+                   UN pkt. {S_pkt(pkt)},
+                   {C_m_s,C_r_s})"
 
-defs
-
-sq_def:       "sq == fst"
-ssent_def:    "ssent == fst o snd"
-srcvd_def:    "srcvd == fst o snd o snd"
-sbit_def:     "sbit == fst o snd o snd o snd"
-ssending_def: "ssending == snd o snd o snd o snd"
-
-sender_asig_def:
-  "sender_asig == ((UN m. {S_msg(m)}) Un (UN b. {R_ack(b)}),
-                  UN pkt. {S_pkt(pkt)},
-                  {C_m_s,C_r_s})"
-
-sender_trans_def: "sender_trans ==
+definition
+  sender_trans :: "('m action, 'm sender_state)transition set" where
+  "sender_trans =
  {tr. let s = fst(tr);
           t = snd(snd(tr))
       in case fst(snd(tr))
@@ -80,8 +70,10 @@ sender_trans_def: "sender_trans ==
                ssending(t) |
       C_r_r(m) => False}"
 
-sender_ioa_def: "sender_ioa ==
- (sender_asig, {([],{|},{|},False,True)}, sender_trans,{},{})"
+definition
+  sender_ioa :: "('m action, 'm sender_state)ioa" where
+  "sender_ioa =
+   (sender_asig, {([],{|},{|},False,True)}, sender_trans,{},{})"
 
 lemma in_sender_asig: 
   "S_msg(m) : actions(sender_asig)"

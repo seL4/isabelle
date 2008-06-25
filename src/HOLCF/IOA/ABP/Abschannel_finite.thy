@@ -9,10 +9,10 @@ theory Abschannel_finite
 imports Abschannel IOA Action Lemmas
 begin
 
-consts reverse :: "'a list => 'a list"
-primrec
+primrec reverse :: "'a list => 'a list"
+where
   reverse_Nil:  "reverse([]) = []"
-  reverse_Cons: "reverse(x#xs) =  reverse(xs)@[x]"
+| reverse_Cons: "reverse(x#xs) =  reverse(xs)@[x]"
 
 definition
   ch_fin_asig :: "'a abs_action signature" where

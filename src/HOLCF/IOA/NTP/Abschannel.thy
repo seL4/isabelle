@@ -11,65 +11,28 @@ begin
 
 datatype 'a abs_action = S 'a | R 'a
 
-consts
+definition
+  ch_asig :: "'a abs_action signature" where
+  "ch_asig = (UN b. {S(b)}, UN b. {R(b)}, {})"
 
-ch_asig  :: "'a abs_action signature"
+definition
+  ch_trans :: "('a abs_action, 'a multiset)transition set" where
+  "ch_trans =
+    {tr. let s = fst(tr);
+             t = snd(snd(tr))
+         in
+         case fst(snd(tr))
+           of S(b) => t = addm s b |
+              R(b) => count s b ~= 0 & t = delm s b}"
 
-ch_trans :: "('a abs_action, 'a multiset)transition set"
+definition
+  ch_ioa :: "('a abs_action, 'a multiset)ioa" where
+  "ch_ioa = (ch_asig, {{|}}, ch_trans,{},{})"
 
-ch_ioa   :: "('a abs_action, 'a multiset)ioa"
-
-rsch_actions  :: "'m action => bool abs_action option"
-srch_actions  :: "'m action =>(bool * 'm) abs_action option"
-
-srch_asig  :: "'m action signature"
-rsch_asig  :: "'m action signature"
-
-srch_wfair :: "('m action)set set"
-srch_sfair :: "('m action)set set"
-rsch_sfair :: "('m action)set set"
-rsch_wfair :: "('m action)set set"
-
-srch_trans :: "('m action, 'm packet multiset)transition set"
-rsch_trans :: "('m action, bool multiset)transition set"
-
-srch_ioa   :: "('m action, 'm packet multiset)ioa"
-rsch_ioa   :: "('m action, bool multiset)ioa"
-
-
-defs
-
-srch_asig_def: "srch_asig == asig_of(srch_ioa)"
-rsch_asig_def: "rsch_asig == asig_of(rsch_ioa)"
-
-srch_trans_def: "srch_trans == trans_of(srch_ioa)"
-rsch_trans_def: "rsch_trans == trans_of(rsch_ioa)"
-
-srch_wfair_def: "srch_wfair == wfair_of(srch_ioa)"
-rsch_wfair_def: "rsch_wfair == wfair_of(rsch_ioa)"
-
-srch_sfair_def: "srch_sfair == sfair_of(srch_ioa)"
-rsch_sfair_def: "rsch_sfair == sfair_of(rsch_ioa)"
-
-srch_ioa_def: "srch_ioa == rename ch_ioa srch_actions"
-rsch_ioa_def: "rsch_ioa == rename ch_ioa rsch_actions"
-
-
-ch_asig_def: "ch_asig == (UN b. {S(b)}, UN b. {R(b)}, {})"
-
-ch_trans_def: "ch_trans ==
- {tr. let s = fst(tr);
-          t = snd(snd(tr))
-      in
-      case fst(snd(tr))
-        of S(b) => t = addm s b |
-           R(b) => count s b ~= 0 & t = delm s b}"
-
-ch_ioa_def: "ch_ioa == (ch_asig, {{|}}, ch_trans,{},{})"
-
-
-rsch_actions_def: "rsch_actions (akt) ==
-            case akt of
+definition
+  rsch_actions :: "'m action => bool abs_action option" where
+  "rsch_actions (akt) =
+          (case akt of
            S_msg(m) => None |
             R_msg(m) => None |
            S_pkt(packet) => None |
@@ -79,10 +42,12 @@ rsch_actions_def: "rsch_actions (akt) ==
            C_m_s =>  None  |
            C_m_r =>  None |
            C_r_s =>  None  |
-           C_r_r(m) => None"
+           C_r_r(m) => None)"
 
-srch_actions_def: "srch_actions (akt) ==
-            case akt of
+definition
+  srch_actions :: "'m action =>(bool * 'm) abs_action option" where
+  "srch_actions (akt) =
+          (case akt of
            S_msg(m) => None |
             R_msg(m) => None |
            S_pkt(p) => Some(S(p)) |
@@ -92,7 +57,44 @@ srch_actions_def: "srch_actions (akt) ==
            C_m_s => None |
            C_m_r => None |
            C_r_s => None |
-           C_r_r(m) => None"
+           C_r_r(m) => None)"
+
+definition
+  srch_ioa :: "('m action, 'm packet multiset)ioa" where
+  "srch_ioa = rename ch_ioa srch_actions"
+
+definition
+  rsch_ioa :: "('m action, bool multiset)ioa" where
+  "rsch_ioa = rename ch_ioa rsch_actions"
+
+definition
+  srch_asig :: "'m action signature" where
+  "srch_asig = asig_of(srch_ioa)"
+
+definition
+  rsch_asig :: "'m action signature" where
+  "rsch_asig = asig_of(rsch_ioa)"
+
+definition
+  srch_wfair :: "('m action)set set" where
+  "srch_wfair = wfair_of(srch_ioa)"
+definition
+  srch_sfair :: "('m action)set set" where
+  "srch_sfair = sfair_of(srch_ioa)"
+definition
+  rsch_sfair :: "('m action)set set" where
+  "rsch_sfair = sfair_of(rsch_ioa)"
+definition
+  rsch_wfair :: "('m action)set set" where
+  "rsch_wfair = wfair_of(rsch_ioa)"
+
+definition
+  srch_trans :: "('m action, 'm packet multiset)transition set" where
+  "srch_trans = trans_of(srch_ioa)"
+definition
+  rsch_trans :: "('m action, bool multiset)transition set" where
+  "rsch_trans = trans_of(rsch_ioa)"
+
 
 lemmas unfold_renaming =
   srch_asig_def rsch_asig_def rsch_ioa_def srch_ioa_def ch_ioa_def
@@ -110,7 +112,6 @@ lemma in_srch_asig:
        C_m_s ~: actions(srch_asig)           &     
        C_m_r ~: actions(srch_asig)           &     
        C_r_s ~: actions(srch_asig)  & C_r_r(m) ~: actions(srch_asig)"
-
   by (simp add: unfold_renaming)
 
 lemma in_rsch_asig: 

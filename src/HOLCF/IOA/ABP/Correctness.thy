@@ -9,11 +9,10 @@ theory Correctness
 imports IOA Env Impl Impl_finite
 begin
 
-consts
-  reduce         :: "'a list => 'a list"
-primrec
+primrec reduce :: "'a list => 'a list"
+where
   reduce_Nil:  "reduce [] = []"
-  reduce_Cons: "reduce(x#xs) =
+| reduce_Cons: "reduce(x#xs) =
                  (case xs of
                      [] => [x]
                |   y#ys => (if (x=y)

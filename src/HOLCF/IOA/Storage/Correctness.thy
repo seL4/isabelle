@@ -35,30 +35,30 @@ apply (rule conjI)
 txt {* start states *}
 apply (auto)[1]
 apply (rule_tac x = " ({},False) " in exI)
-apply (simp add: sim_relation_def starts_of_def Spec.ioa_def Impl.ioa_def)
+apply (simp add: sim_relation_def starts_of_def spec_ioa_def impl_ioa_def)
 txt {* main-part *}
 apply (rule allI)+
 apply (rule imp_conj_lemma)
 apply (rename_tac k b used c k' b' a)
 apply (induct_tac "a")
-apply (simp_all (no_asm) add: sim_relation_def Impl.ioa_def Impl.trans_def trans_of_def)
+apply (simp_all (no_asm) add: sim_relation_def impl_ioa_def impl_trans_def trans_of_def)
 apply auto
 txt {* NEW *}
 apply (rule_tac x = "(used,True)" in exI)
 apply simp
 apply (rule transition_is_ex)
-apply (simp (no_asm) add: Spec.ioa_def Spec.trans_def trans_of_def)
+apply (simp (no_asm) add: spec_ioa_def spec_trans_def trans_of_def)
 txt {* LOC *}
 apply (rule_tac x = " (used Un {k},False) " in exI)
 apply (simp add: less_SucI)
 apply (rule transition_is_ex)
-apply (simp (no_asm) add: Spec.ioa_def Spec.trans_def trans_of_def)
+apply (simp (no_asm) add: spec_ioa_def spec_trans_def trans_of_def)
 apply fast
 txt {* FREE *}
 apply (rule_tac x = " (used - {nat},c) " in exI)
 apply simp
 apply (rule transition_is_ex)
-apply (simp (no_asm) add: Spec.ioa_def Spec.trans_def trans_of_def)
+apply (simp (no_asm) add: spec_ioa_def spec_trans_def trans_of_def)
 done
 
 
@@ -66,10 +66,10 @@ lemma implementation:
 "impl_ioa =<| spec_ioa"
 apply (unfold ioa_implements_def)
 apply (rule conjI)
-apply (simp (no_asm) add: Impl.sig_def Spec.sig_def Impl.ioa_def Spec.ioa_def
+apply (simp (no_asm) add: impl_sig_def spec_sig_def impl_ioa_def spec_ioa_def
   asig_outputs_def asig_of_def asig_inputs_def)
 apply (rule trace_inclusion_for_simulations)
-apply (simp (no_asm) add: Impl.sig_def Spec.sig_def Impl.ioa_def Spec.ioa_def
+apply (simp (no_asm) add: impl_sig_def spec_sig_def impl_ioa_def spec_ioa_def
   externals_def asig_outputs_def asig_of_def asig_inputs_def)
 apply (rule issimulation)
 done
