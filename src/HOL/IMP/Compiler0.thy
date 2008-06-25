@@ -71,13 +71,13 @@ text {*
 lemma app_right_1:
   assumes "is1 \<turnstile> \<langle>s1,i1\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
   shows "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
-  using prems
+  using assms
   by induct auto
 
 lemma app_left_1:
   assumes "is2 \<turnstile> \<langle>s1,i1\<rangle> -1\<rightarrow> \<langle>s2,i2\<rangle>"
   shows "is1 @ is2 \<turnstile> \<langle>s1,size is1+i1\<rangle> -1\<rightarrow> \<langle>s2,size is1+i2\<rangle>"
-  using prems
+  using assms
   by induct auto
 
 declare rtrancl_induct2 [induct set: rtrancl]
@@ -85,7 +85,7 @@ declare rtrancl_induct2 [induct set: rtrancl]
 lemma app_right:
   assumes "is1 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
   shows "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
-  using prems
+  using assms
 proof induct
   show "is1 @ is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s1,i1\<rangle>" by simp
 next
@@ -99,7 +99,7 @@ qed
 lemma app_left:
   assumes "is2 \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
   shows "is1 @ is2 \<turnstile> \<langle>s1,size is1+i1\<rangle> -*\<rightarrow> \<langle>s2,size is1+i2\<rangle>"
-using prems
+using assms
 proof induct
   show "is1 @ is2 \<turnstile> \<langle>s1,length is1 + i1\<rangle> -*\<rightarrow> \<langle>s1,length is1 + i1\<rangle>" by simp
 next
@@ -119,7 +119,7 @@ lemma app1_left:
   assumes "is \<turnstile> \<langle>s1,i1\<rangle> -*\<rightarrow> \<langle>s2,i2\<rangle>"
   shows "instr # is \<turnstile> \<langle>s1,Suc i1\<rangle> -*\<rightarrow> \<langle>s2,Suc i2\<rangle>"
 proof -
-  from app_left [OF prems, of "[instr]"]
+  from app_left [OF assms, of "[instr]"]
   show ?thesis by simp
 qed
 
@@ -136,7 +136,7 @@ text {*
 theorem
   assumes "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
   shows "compile c \<turnstile> \<langle>s,0\<rangle> -*\<rightarrow> \<langle>t,length(compile c)\<rangle>" (is "?P c s t")
-  using prems
+  using assms
 proof induct
   show "\<And>s. ?P \<SKIP> s s" by simp
 next
