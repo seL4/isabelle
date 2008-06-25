@@ -582,7 +582,7 @@ fun add_inductive (srec_tms, sdom_sum) intr_srcs
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterSyntax.keywords
+val _ = List.app OuterKeyword.keyword
   ["domains", "intros", "monos", "con_defs", "type_intros", "type_elims"];
 
 fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =

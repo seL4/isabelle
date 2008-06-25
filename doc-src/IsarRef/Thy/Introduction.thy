@@ -90,7 +90,7 @@ lemma "0 < foo" by (simp add: foo_def);
 end;
 \end{ttbox}
 
-  Any Isabelle/Isar command may be retracted by @{command "undo"}.
+  Any Isabelle/Isar command may be retracted by @{command undo}.
   See the Isabelle/Isar Quick Reference (\appref{ap:refcard}) for a
   comprehensive overview of available commands and other language
   elements.
@@ -219,10 +219,10 @@ text {*
 
   The Isar proof language is embedded into the new theory format as a
   proper sub-language.  Proof mode is entered by stating some
-  @{command "theorem"} or @{command "lemma"} at the theory level, and
-  left again with the final conclusion (e.g.\ via @{command "qed"}).
+  @{command theorem} or @{command lemma} at the theory level, and
+  left again with the final conclusion (e.g.\ via @{command qed}).
   A few theory specification mechanisms also require some proof, such
-  as HOL's @{command "typedef"} which demands non-emptiness of the
+  as HOL's @{command typedef} which demands non-emptiness of the
   representing sets.
 *}
 
