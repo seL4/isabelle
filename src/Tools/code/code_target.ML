@@ -1843,7 +1843,7 @@ fun eval_term reff = eval CodeThingol.eval_term I reff;
 
 (* instrumentalization by antiquotation *)
 
-val ml_code_antiq = (Scan.state >> Context.theory_of) -- Scan.repeat1 Args.term >> (fn (thy, ts) =>
+val ml_code_antiq = Args.theory -- Scan.repeat1 Args.term >> (fn (thy, ts) =>
   let
     val cs = map (CodeUnit.check_const thy) ts;
     val (cs', program) = CodeThingol.consts_program thy cs;
