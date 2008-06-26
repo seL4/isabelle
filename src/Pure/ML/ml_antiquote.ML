@@ -58,9 +58,6 @@ val value = declaration "val";
 
 (** concrete antiquotations **)
 
-fun context x = (Scan.state >> Context.proof_of) x;
-
-
 (* misc *)
 
 val _ = value "theory"
@@ -74,7 +71,7 @@ val _ = value "theory_ref"
 
 val _ = value "context" (Scan.succeed "ML_Context.the_local_context ()");
 
-val _ = inline "sort" (context -- Scan.lift Args.name >> (fn (ctxt, s) =>
+val _ = inline "sort" (Args.context -- Scan.lift Args.name >> (fn (ctxt, s) =>
   ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s))));
 
 val _ = inline "typ" (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ));
@@ -91,11 +88,11 @@ val _ = value "cprop" (Args.prop >> (fn t =>
   "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t)));
 
 val _ = value "cpat"
-  (context -- Scan.lift Args.name >> uncurry ProofContext.read_term_pattern >> (fn t =>
+  (Args.context -- Scan.lift Args.name >> uncurry ProofContext.read_term_pattern >> (fn t =>
     "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t)));
 
 
-fun type_ syn = (context -- Scan.lift Args.name >> (fn (ctxt, c) =>
+fun type_ syn = (Args.context -- Scan.lift Args.name >> (fn (ctxt, c) =>
     #1 (Term.dest_Type (ProofContext.read_tyname ctxt c))
     |> syn ? Sign.base_name
     |> ML_Syntax.print_string));
@@ -104,7 +101,7 @@ val _ = inline "type_name" (type_ false);
 val _ = inline "type_syntax" (type_ true);
 
 
-fun const syn = context -- Scan.lift Args.name >> (fn (ctxt, c) =>
+fun const syn = Args.context -- Scan.lift Args.name >> (fn (ctxt, c) =>
   #1 (Term.dest_Const (ProofContext.read_const_proper ctxt c))
   |> syn ? ProofContext.const_syntax_name ctxt
   |> ML_Syntax.print_string);
@@ -113,7 +110,7 @@ val _ = inline "const_name" (const false);
 val _ = inline "const_syntax" (const true);
 
 val _ = inline "const"
-  (context -- Scan.lift Args.name --
+  (Args.context -- Scan.lift Args.name --
     Scan.optional (Scan.lift (Args.$$$ "(") |-- Args.enum1 "," Args.typ --| Scan.lift (Args.$$$ ")")) []
     >> (fn ((ctxt, c), Ts) =>
       let val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c)

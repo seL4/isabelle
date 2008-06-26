@@ -718,8 +718,8 @@ val def_inst =
       -- Args.term) >> SOME ||
     inst >> Option.map (pair NONE);
 
-val free = Scan.state -- Args.term >> (fn (_, Free v) => v | (context, t) =>
-  error ("Bad free variable: " ^ Syntax.string_of_term (Context.proof_of context) t));
+val free = Args.context -- Args.term >> (fn (_, Free v) => v | (ctxt, t) =>
+  error ("Bad free variable: " ^ Syntax.string_of_term ctxt t));
 
 fun unless_more_args scan = Scan.unless (Scan.lift
   ((Args.$$$ arbitraryN || Args.$$$ takingN || Args.$$$ typeN ||
