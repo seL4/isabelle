@@ -323,7 +323,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss (IndScheme {T, cases=sca
                      |> (MetaSimplifier.rewrite_goals_tac (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum_cases}))
                          THEN CONVERSION ind_rulify 1)
                      |> Seq.hd
-                     |> Thm.elim_implies bstep
+                     |> Thm.elim_implies (Conv.fconv_rule Drule.beta_eta_conversion bstep)
                      |> Goal.finish
                      |> implies_intr (cprop_of branch_hyp)
                      |> fold_rev (forall_intr o cert) fxs
