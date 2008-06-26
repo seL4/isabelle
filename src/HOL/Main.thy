@@ -5,11 +5,11 @@
 header {* Main HOL *}
 
 theory Main
-imports Map
+imports Plain Map Presburger Recdef
 begin
 
 ML {* val HOL_proofs = ! Proofterm.proofs *}
 
-ML {* path_add "~~/src/HOL/Library" *}
+text {* See further \cite{Nipkow-et-al:2002:tutorial} *}
 
 end
