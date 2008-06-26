@@ -15,7 +15,9 @@ Fibonacci numbers: proofs of laws taken from
 
 header {* Fib and Gcd commute *}
 
-theory Fibonacci imports Primes begin
+theory Fibonacci
+imports Primes
+begin
 
 text_raw {*
  \footnote{Isar version by Gertrud Bauer.  Original tactic script by
@@ -26,11 +28,10 @@ text_raw {*
 
 subsection {* Fibonacci numbers *}
 
-consts fib :: "nat => nat"
-recdef fib less_than
+fun fib :: "nat \<Rightarrow> nat" where
   "fib 0 = 0"
-  "fib (Suc 0) = 1"
-  "fib (Suc (Suc x)) = fib x + fib (Suc x)"
+  | "fib (Suc 0) = 1"
+  | "fib (Suc (Suc x)) = fib x + fib (Suc x)"
 
 lemma [simp]: "0 < fib (Suc n)"
   by (induct n rule: fib.induct) simp_all

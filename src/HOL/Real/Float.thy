@@ -264,9 +264,6 @@ proof -
     by (simp add: a)
 qed
 
-consts
-  norm_float :: "int*int \<Rightarrow> int*int"
-
 lemma int_div_zdiv: "int (a div b) = (int a) div (int b)"
 by (rule zdiv_int)
 
@@ -276,29 +273,25 @@ by (rule zmod_int)
 lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrightarrow> abs((a::int) div 2) < abs a"
 by arith
 
-lemma terminating_norm_float: "\<forall>a. (a::int) \<noteq> 0 \<and> even a \<longrightarrow> a \<noteq> 0 \<and> \<bar>a div 2\<bar> < \<bar>a\<bar>"
-apply (auto)
-apply (rule abs_div_2_less)
-apply (auto)
-done
+function norm_float :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
+  "norm_float a b = (if a \<noteq> 0 \<and> even a then norm_float (a div 2) (b + 1)
+    else if a = 0 then (0, 0) else (a, b))"
+by auto
 
-declare [[simp_depth_limit = 2]]
-recdef norm_float "measure (% (a,b). nat (abs a))"
-  "norm_float (a,b) = (if (a \<noteq> 0) & (even a) then norm_float (a div 2, b+1) else (if a=0 then (0,0) else (a,b)))"
-(hints simp: even_def terminating_norm_float)
-declare [[simp_depth_limit = 100]]
+termination by (relation "measure (nat o abs o fst)")
+  (auto intro: abs_div_2_less)
 
-lemma norm_float: "float x = float (norm_float x)"
+lemma norm_float: "float x = float (split norm_float x)"
 proof -
   {
     fix a b :: int
-    have norm_float_pair: "float (a,b) = float (norm_float (a,b))"
+    have norm_float_pair: "float (a, b) = float (norm_float a b)"
     proof (induct a b rule: norm_float.induct)
       case (1 u v)
       show ?case
       proof cases
         assume u: "u \<noteq> 0 \<and> even u"
-        with prems have ind: "float (u div 2, v + 1) = float (norm_float (u div 2, v + 1))" by auto
+        with prems have ind: "float (u div 2, v + 1) = float (norm_float (u div 2) (v + 1))" by auto
         with u have "float (u,v) = float (u div 2, v+1)" by (simp add: float_transfer_even)
         then show ?thesis
           apply (subst norm_float.simps)
@@ -314,7 +307,7 @@ proof -
   note helper = this
   have "? a b. x = (a,b)" by auto
   then obtain a b where "x = (a, b)" by blast
-  then show ?thesis by (simp only: helper)
+  then show ?thesis by (simp add: helper)
 qed
 
 lemma float_add_l0: "float (0, e) + x = x"
