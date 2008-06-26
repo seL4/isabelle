@@ -35,6 +35,8 @@ sig
   val assignable: src -> src
   val assign: value option -> T -> unit
   val closure: src -> src
+  val context: Context.generic * T list -> Context.proof * (Context.generic * T list)
+  val theory: Context.generic * T list -> Context.theory * (Context.generic * T list)
   val position: (T list -> 'a * 'b) -> T list -> ('a * Position.T) * 'b
   val !!! : (T list -> 'a) -> T list -> 'a
   val $$$ : string -> T list -> string * T list
@@ -223,6 +225,12 @@ val closure =
 
 
 (** scanners **)
+
+(* context *)
+
+fun context x = (Scan.state >> Context.proof_of) x;
+fun theory x = (Scan.state >> Context.theory_of) x;
+
 
 (* position *)
 
