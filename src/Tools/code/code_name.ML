@@ -179,9 +179,7 @@ fun thyname_of' thy f errmsg x =
    of SOME thy => Context.theory_name thy
     | NONE => error (errmsg x) end;
 
-fun thyname_of_class thy =
-  thyname_of' thy (fn thy => member (op =) (Sign.all_classes thy))
-    (fn class => "thyname_of_class: no such class: " ^ quote class);
+fun thyname_of_class thy = thyname_of thy (ProofContext.query_class (ProofContext.init thy));
 
 fun thyname_of_tyco thy = thyname_of thy (Type.the_tags (Sign.tsig_of thy));
 
