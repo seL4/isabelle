@@ -96,25 +96,46 @@ done
 
 subsection {* Type definition *}
 
-cpodef (open) 'a lower_pd =
-  "{S::'a pd_basis cset. lower_le.ideal (Rep_cset S)}"
-by (rule lower_le.cpodef_ideal_lemma)
+typedef (open) 'a lower_pd =
+  "{S::'a pd_basis set. lower_le.ideal S}"
+by (fast intro: lower_le.ideal_principal)
 
-lemma ideal_Rep_lower_pd: "lower_le.ideal (Rep_cset (Rep_lower_pd xs))"
+instantiation lower_pd :: (profinite) sq_ord
+begin
+
+definition
+  "x \<sqsubseteq> y \<longleftrightarrow> Rep_lower_pd x \<subseteq> Rep_lower_pd y"
+
+instance ..
+end
+
+instance lower_pd :: (profinite) po
+by (rule lower_le.typedef_ideal_po
+    [OF type_definition_lower_pd sq_le_lower_pd_def])
+
+instance lower_pd :: (profinite) cpo
+by (rule lower_le.typedef_ideal_cpo
+    [OF type_definition_lower_pd sq_le_lower_pd_def])
+
+lemma Rep_lower_pd_lub:
+  "chain Y \<Longrightarrow> Rep_lower_pd (\<Squnion>i. Y i) = (\<Union>i. Rep_lower_pd (Y i))"
+by (rule lower_le.typedef_ideal_rep_contlub
+    [OF type_definition_lower_pd sq_le_lower_pd_def])
+
+lemma ideal_Rep_lower_pd: "lower_le.ideal (Rep_lower_pd xs)"
 by (rule Rep_lower_pd [unfolded mem_Collect_eq])
 
 definition
   lower_principal :: "'a pd_basis \<Rightarrow> 'a lower_pd" where
-  "lower_principal t = Abs_lower_pd (Abs_cset {u. u \<le>\<flat> t})"
+  "lower_principal t = Abs_lower_pd {u. u \<le>\<flat> t}"
 
 lemma Rep_lower_principal:
-  "Rep_cset (Rep_lower_pd (lower_principal t)) = {u. u \<le>\<flat> t}"
+  "Rep_lower_pd (lower_principal t) = {u. u \<le>\<flat> t}"
 unfolding lower_principal_def
 by (simp add: Abs_lower_pd_inverse lower_le.ideal_principal)
 
 interpretation lower_pd:
-  ideal_completion
-    [lower_le approx_pd lower_principal "\<lambda>x. Rep_cset (Rep_lower_pd x)"]
+  ideal_completion [lower_le approx_pd lower_principal Rep_lower_pd]
 apply unfold_locales
 apply (rule approx_pd_lower_le)
 apply (rule approx_pd_idem)
@@ -123,9 +144,9 @@ apply (rule approx_pd_lower_chain)
 apply (rule finite_range_approx_pd)
 apply (rule approx_pd_covers)
 apply (rule ideal_Rep_lower_pd)
-apply (simp add: cont2contlubE [OF cont_Rep_lower_pd] Rep_cset_lub)
+apply (erule Rep_lower_pd_lub)
 apply (rule Rep_lower_principal)
-apply (simp only: less_lower_pd_def sq_le_cset_def)
+apply (simp only: sq_le_lower_pd_def)
 done
 
 text {* Lower powerdomain is pointed *}
@@ -165,8 +186,7 @@ unfolding approx_lower_pd_def
 by (rule lower_pd.completion_approx_principal)
 
 lemma approx_eq_lower_principal:
-  "\<exists>t\<in>Rep_cset (Rep_lower_pd xs).
-    approx n\<cdot>xs = lower_principal (approx_pd n t)"
+  "\<exists>t\<in>Rep_lower_pd xs. approx n\<cdot>xs = lower_principal (approx_pd n t)"
 unfolding approx_lower_pd_def
 by (rule lower_pd.completion_approx_eq_principal)
 

@@ -6,7 +6,7 @@
 header {* Compact bases of domains *}
 
 theory CompactBasis
-imports Bifinite Cset
+imports Bifinite
 begin
 
 subsection {* Ideals over a preorder *}
@@ -78,16 +78,6 @@ apply (erule imageI)
 apply (simp add: f)
 done
 
-lemma adm_ideal: "adm (\<lambda>A. ideal (Rep_cset A))"
-unfolding ideal_def by (intro adm_lemmas adm_set_lemmas)
-
-lemma cpodef_ideal_lemma:
-  "(\<exists>x. x \<in> {S. ideal (Rep_cset S)}) \<and> adm (\<lambda>x. x \<in> {S. ideal (Rep_cset S)})"
-apply (simp add: adm_ideal)
-apply (rule exI [where x="Abs_cset {x. x \<preceq> arbitrary}"])
-apply (simp add: ideal_principal)
-done
-
 lemma lub_image_principal:
   assumes f: "\<And>x y. x \<preceq> y \<Longrightarrow> f x \<sqsubseteq> f y"
   shows "(\<Squnion>x\<in>{x. x \<preceq> y}. f x) = f y"
@@ -98,6 +88,72 @@ apply (simp add: f)
 apply (rule imageI)
 apply (simp add: r_refl)
 done
+
+text {* The set of ideals is a cpo *}
+
+lemma ideal_UN:
+  fixes A :: "nat \<Rightarrow> 'a set"
+  assumes ideal_A: "\<And>i. ideal (A i)"
+  assumes chain_A: "\<And>i j. i \<le> j \<Longrightarrow> A i \<subseteq> A j"
+  shows "ideal (\<Union>i. A i)"
+ apply (rule idealI)
+   apply (cut_tac idealD1 [OF ideal_A], fast)
+  apply (clarify, rename_tac i j)
+  apply (drule subsetD [OF chain_A [OF le_maxI1]])
+  apply (drule subsetD [OF chain_A [OF le_maxI2]])
+  apply (drule (1) idealD2 [OF ideal_A])
+  apply blast
+ apply clarify
+ apply (drule (1) idealD3 [OF ideal_A])
+ apply fast
+done
+
+lemma typedef_ideal_po:
+  fixes Abs :: "'a set \<Rightarrow> 'b::sq_ord"
+  assumes type: "type_definition Rep Abs {S. ideal S}"
+  assumes less: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
+  shows "OFCLASS('b, po_class)"
+ apply (intro_classes, unfold less)
+   apply (rule subset_refl)
+  apply (erule (1) subset_trans)
+ apply (rule type_definition.Rep_inject [OF type, THEN iffD1])
+ apply (erule (1) subset_antisym)
+done
+
+lemma
+  fixes Abs :: "'a set \<Rightarrow> 'b::po"
+  assumes type: "type_definition Rep Abs {S. ideal S}"
+  assumes less: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
+  assumes S: "chain S"
+  shows typedef_ideal_lub: "range S <<| Abs (\<Union>i. Rep (S i))"
+    and typedef_ideal_rep_contlub: "Rep (\<Squnion>i. S i) = (\<Union>i. Rep (S i))"
+proof -
+  have 1: "ideal (\<Union>i. Rep (S i))"
+    apply (rule ideal_UN)
+     apply (rule type_definition.Rep [OF type, unfolded mem_Collect_eq])
+    apply (subst less [symmetric])
+    apply (erule chain_mono [OF S])
+    done
+  hence 2: "Rep (Abs (\<Union>i. Rep (S i))) = (\<Union>i. Rep (S i))"
+    by (simp add: type_definition.Abs_inverse [OF type])
+  show 3: "range S <<| Abs (\<Union>i. Rep (S i))"
+    apply (rule is_lubI)
+     apply (rule is_ubI)
+     apply (simp add: less 2, fast)
+    apply (simp add: less 2 is_ub_def, fast)
+    done
+  hence 4: "(\<Squnion>i. S i) = Abs (\<Union>i. Rep (S i))"
+    by (rule thelubI)
+  show 5: "Rep (\<Squnion>i. S i) = (\<Union>i. Rep (S i))"
+    by (simp add: 4 2)
+qed
+
+lemma typedef_ideal_cpo:
+  fixes Abs :: "'a set \<Rightarrow> 'b::po"
+  assumes type: "type_definition Rep Abs {S. ideal S}"
+  assumes less: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
+  shows "OFCLASS('b, cpo_class)"
+by (default, rule exI, erule typedef_ideal_lub [OF type less])
 
 end
 
