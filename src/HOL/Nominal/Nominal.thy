@@ -461,6 +461,7 @@ lemma at_swap_simps:
   assumes a: "at TYPE('x)"
   shows "[(a,b)]\<bullet>a = b"
   and   "[(a,b)]\<bullet>b = a"
+  and   "\<lbrakk>a\<noteq>c; b\<noteq>c\<rbrakk> \<Longrightarrow> [(a,b)]\<bullet>c = c"
   using a by (simp_all add: at_calc)
 
 lemma at4: 
