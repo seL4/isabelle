@@ -6,7 +6,7 @@
 header {* Binary Words *}
 
 theory Word
-imports List
+imports Main
 begin
 
 subsection {* Auxilary Lemmas *}
@@ -430,13 +430,13 @@ lemma bv_to_nat_dist_append:
   "bv_to_nat (l1 @ l2) = bv_to_nat l1 * 2 ^ length l2 + bv_to_nat l2"
 proof -
   have "\<forall>l2. bv_to_nat (l1 @ l2) = bv_to_nat l1 * 2 ^ length l2 + bv_to_nat l2"
-  proof (induct l1,simp_all)
+  proof (induct l1, simp_all)
     fix x xs
     assume ind: "\<forall>l2. bv_to_nat (xs @ l2) = bv_to_nat xs * 2 ^ length l2 + bv_to_nat l2"
-    show "\<forall>l2. bv_to_nat xs * 2 ^ length l2 + bitval x * 2 ^ (length xs + length l2) = (bitval x * 2 ^ length xs + bv_to_nat xs) * 2 ^ length l2"
+    show "\<forall>l2::bit list. bitval x * 2 ^ (length xs + length l2) + bv_to_nat xs * 2 ^ length l2 = (bitval x * 2 ^ length xs + bv_to_nat xs) * 2 ^ length l2"
     proof
       fix l2
-      show "bv_to_nat xs * 2 ^ length l2 + bitval x * 2 ^ (length xs + length l2) = (bitval x * 2 ^ length xs + bv_to_nat xs) * 2 ^ length l2"
+      show "bitval x * 2 ^ (length xs + length l2) + bv_to_nat xs * 2 ^ length l2 = (bitval x * 2 ^ length xs + bv_to_nat xs) * 2 ^ length l2"
       proof -
         have "(2::nat) ^ (length xs + length l2) = 2 ^ length xs * 2 ^ length l2"
           by (induct "length xs",simp_all)

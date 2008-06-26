@@ -5,7 +5,7 @@
 header "Lists as vectors"
 
 theory ListVector
-imports Main
+imports Plain List
 begin
 
 text{* \noindent

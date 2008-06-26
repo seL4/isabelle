@@ -8,7 +8,7 @@ header {* Red-Black Trees *}
 
 (*<*)
 theory RBT
-imports Main AssocList
+imports Plain AssocList
 begin
 
 datatype color = R | B

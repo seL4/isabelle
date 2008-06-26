@@ -8,7 +8,7 @@
 header "Numeral Syntax for Types"
 
 theory Numeral_Type
-  imports ATP_Linkup
+imports Plain Presburger
 begin
 
 subsection {* Preliminary lemmas *}

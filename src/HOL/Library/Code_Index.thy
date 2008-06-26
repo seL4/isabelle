@@ -5,7 +5,7 @@
 header {* Type of indices *}
 
 theory Code_Index
-imports ATP_Linkup
+imports Plain Presburger
 begin
 
 text {*

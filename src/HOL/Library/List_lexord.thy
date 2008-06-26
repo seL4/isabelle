@@ -6,7 +6,7 @@
 header {* Lexicographic order on lists *}
 
 theory List_lexord
-imports List
+imports Plain List
 begin
 
 instantiation list :: (ord) ord

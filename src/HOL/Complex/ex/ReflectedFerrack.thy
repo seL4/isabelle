@@ -5,8 +5,8 @@
 header {* Quatifier elimination for R(0,1,+,<) *}
 
 theory ReflectedFerrack
-  imports GCD Real Efficient_Nat
-  uses ("linreif.ML") ("linrtac.ML")
+imports Main GCD Real Efficient_Nat
+uses ("linreif.ML") ("linrtac.ML")
 begin
 
 

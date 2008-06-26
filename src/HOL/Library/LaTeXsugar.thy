@@ -6,7 +6,7 @@
 
 (*<*)
 theory LaTeXsugar
-imports List
+imports Plain List
 begin
 
 (* LOGIC *)

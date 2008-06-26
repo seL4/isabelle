@@ -6,7 +6,7 @@
 header {* Abstract rational numbers *}
 
 theory Abstract_Rat
-imports GCD
+imports Plain GCD
 begin
 
 types Num = "int \<times> int"

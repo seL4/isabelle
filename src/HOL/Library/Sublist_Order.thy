@@ -7,7 +7,7 @@
 header {* Sublist Ordering *}
 
 theory Sublist_Order
-imports Main
+imports Plain List
 begin
 
 text {*

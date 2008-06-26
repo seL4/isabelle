@@ -2,7 +2,6 @@
 (*<*)
 theory Library
 imports
-  Abstract_Rat
   AssocList
   BigO
   Binomial
@@ -24,9 +23,7 @@ imports
   Executable_Set
   "../Real/Float"
   FuncSet
-  GCD
   Imperative_HOL
-  Infinite_Set
   ListVector
   Multiset
   NatPair
@@ -35,8 +32,6 @@ imports
   Numeral_Type
   OptionalSugar
   Option_ord
-  Order_Relation
-  Parity
   Permutation
   Primes
   Quicksort
@@ -44,10 +39,8 @@ imports
   Ramsey
   RBT
   State_Monad
-  Univ_Poly
   While_Combinator
   Word
-  Zorn
 begin
 end
 (*>*)

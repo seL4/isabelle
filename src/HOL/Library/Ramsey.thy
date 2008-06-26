@@ -6,7 +6,7 @@
 header "Ramsey's Theorem"
 
 theory Ramsey
-imports ATP_Linkup Infinite_Set
+imports Plain Presburger Infinite_Set
 begin
 
 subsection {* Preliminaries *}

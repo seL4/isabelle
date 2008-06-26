@@ -6,7 +6,7 @@
 header {* Big O notation *}
 
 theory BigO
-imports Main SetsAndFunctions
+imports Plain Presburger SetsAndFunctions
 begin
 
 text {*

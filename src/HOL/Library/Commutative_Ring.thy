@@ -7,7 +7,7 @@ Proving equalities in commutative rings done "right" in Isabelle/HOL.
 header {* Proving equalities in commutative rings *}
 
 theory Commutative_Ring
-imports List Parity
+imports Plain List Parity
 uses ("comm_ring.ML")
 begin
 

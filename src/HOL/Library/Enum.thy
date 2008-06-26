@@ -6,7 +6,7 @@
 header {* Finite types as explicit enumerations *}
 
 theory Enum
-imports Main
+imports Plain Map
 begin
 
 subsection {* Class @{text enum} *}

@@ -8,7 +8,7 @@
 header {* Boolean Algebras *}
 
 theory Boolean_Algebra
-imports ATP_Linkup
+imports Plain
 begin
 
 locale boolean =

@@ -7,7 +7,7 @@
 header {* Pairs of Natural Numbers *}
 
 theory NatPair
-imports ATP_Linkup
+imports Plain Presburger
 begin
 
 text{*

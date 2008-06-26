@@ -6,7 +6,7 @@
 header {* Code generation of pretty characters with character codes *}
 
 theory Code_Char_chr
-imports Char_nat Code_Char Code_Integer
+imports Plain Char_nat Code_Char Code_Integer
 begin
 
 definition

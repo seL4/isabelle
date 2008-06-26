@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/Pocklington.thy
-    ID:         $Id: 
+    ID:         $Id$
     Author:     Amine Chaieb 
 *)
 
@@ -7,7 +7,7 @@ header {* Pocklington's Theorem for Primes *}
 
 
 theory Pocklington
-imports List Primes
+imports Plain List Primes
 begin
 
 definition modeq:: "nat => nat => nat => bool"    ("(1[_ = _] '(mod _'))")
@@ -596,9 +596,7 @@ lemma (in comm_monoid_mult) fold_related:
   and Rop: "\<forall>x1 y1 x2 y2. R x1 x2 \<and> R y1 y2 \<longrightarrow> R (x1 * y1) (x2 * y2)" 
   and fS: "finite S" and Rfg: "\<forall>x\<in>S. R (h x) (g x)"
   shows "R (fold (op *) h e S) (fold (op *) g e S)"
-  using prems
-  by -(rule finite_subset_induct,auto)
-
+  using fS by (rule finite_subset_induct) (insert assms, auto)
 
 lemma nproduct_mod:
   assumes fS: "finite S" and n0: "n \<noteq> 0"
@@ -621,11 +619,8 @@ unfolding setprod_timesf setprod_constant[OF fS, of c] ..
 lemma coprime_nproduct:
   assumes fS: "finite S" and Sn: "\<forall>x\<in>S. coprime n (a x)"
   shows "coprime n (setprod a S)"
-  using fS Sn
-unfolding setprod_def
-apply -
-apply (rule finite_subset_induct)
-by (auto simp add: coprime_mul)
+  using fS unfolding setprod_def by (rule finite_subset_induct)
+    (insert Sn, auto simp add: coprime_mul)
 
 lemma (in comm_monoid_mult) 
   fold_eq_general:

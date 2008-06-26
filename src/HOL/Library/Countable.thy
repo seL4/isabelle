@@ -6,7 +6,7 @@
 header {* Encoding (almost) everything into natural numbers *}
 
 theory Countable
-imports Finite_Set List Hilbert_Choice
+imports Plain List Hilbert_Choice
 begin
 
 subsection {* The class of countable types *}

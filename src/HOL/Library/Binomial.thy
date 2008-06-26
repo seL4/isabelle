@@ -7,7 +7,7 @@
 header {* Binomial Coefficients *}
 
 theory Binomial
-imports ATP_Linkup
+imports Plain SetInterval
 begin
 
 text {* This development is based on the work of Andy Gordon and

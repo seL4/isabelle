@@ -6,7 +6,7 @@
 header {* Natural numbers with infinity *}
 
 theory Nat_Infinity
-imports ATP_Linkup
+imports Plain Presburger
 begin
 
 subsection {* Type definition *}

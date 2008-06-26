@@ -6,7 +6,7 @@
 header{*Quicksort*}
 
 theory Quicksort
-imports Multiset
+imports Plain Multiset
 begin
 
 context linorder

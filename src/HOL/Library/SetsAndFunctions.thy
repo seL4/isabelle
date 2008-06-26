@@ -6,7 +6,7 @@
 header {* Operations on sets and functions *}
 
 theory SetsAndFunctions
-imports ATP_Linkup
+imports Plain
 begin
 
 text {*

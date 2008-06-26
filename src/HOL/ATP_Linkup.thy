@@ -7,7 +7,7 @@
 header{* The Isabelle-ATP Linkup *}
 
 theory ATP_Linkup
-imports Record Presburger SAT Recdef Extraction Relation_Power Hilbert_Choice
+imports Record Hilbert_Choice
 uses
   "Tools/polyhash.ML"
   "Tools/res_clause.ML"
@@ -88,6 +88,9 @@ apply (rule ext)
 apply (simp add: COMBC_def) 
 done
 
+
+subsection {* Setup of Vampire, E prover and SPASS *}
+
 use "Tools/res_axioms.ML"      --{*requires the combinators declared above*}
 setup ResAxioms.setup
 
@@ -95,9 +98,6 @@ use "Tools/res_hol_clause.ML"
 use "Tools/res_reconstruct.ML"
 use "Tools/watcher.ML"
 use "Tools/res_atp.ML"
-
-
-subsection {* Setup for Vampire, E prover and SPASS *}
 
 use "Tools/res_atp_provers.ML"
 

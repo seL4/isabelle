@@ -7,7 +7,7 @@ header {* Dense linear order without endpoints
   and a quantifier elimination procedure in Ferrante and Rackoff style *}
 
 theory Dense_Linear_Order
-imports Arith_Tools
+imports Plain Presburger
 uses
   "~~/src/HOL/Tools/Qelim/qelim.ML"
   "~~/src/HOL/Tools/Qelim/langford_data.ML"

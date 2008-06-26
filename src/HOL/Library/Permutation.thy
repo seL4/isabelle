@@ -5,7 +5,7 @@
 header {* Permutations *}
 
 theory Permutation
-imports Multiset
+imports Plain Multiset
 begin
 
 inductive

@@ -6,7 +6,7 @@
 header {* Pi and Function Sets *}
 
 theory FuncSet
-imports Main
+imports Plain Hilbert_Choice
 begin
 
 definition

@@ -7,6 +7,7 @@ header {* A simple term evaluation mechanism *}
 
 theory Eval
 imports
+  Plain
   RType
   Code_Index (* this theory is just imported for a term_of setup *)
 begin

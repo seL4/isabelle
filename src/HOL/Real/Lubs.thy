@@ -7,7 +7,7 @@
 header{*Definitions of Upper Bounds and Least Upper Bounds*}
 
 theory Lubs
-imports Main
+imports Plain
 begin
 
 text{*Thanks to suggestions by James Margetson*}

@@ -5,7 +5,7 @@
 header {* Monolithic strings (message strings) for code generation *}
 
 theory Code_Message
-imports List
+imports Plain List
 begin
 
 subsection {* Datatype of messages *}

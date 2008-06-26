@@ -6,7 +6,7 @@
 header {* Combinators syntax for generic, open state monads (single threaded monads) *}
 
 theory State_Monad
-imports List
+imports Plain List
 begin
 
 subsection {* Motivation *}

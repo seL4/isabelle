@@ -5,9 +5,9 @@
 header {* Quatifier elimination for R(0,1,+,floor,<) *}
 
 theory MIR
-  imports Real GCD Code_Integer
-  uses ("mireif.ML") ("mirtac.ML")
-  begin
+imports List Real Code_Integer
+uses ("mireif.ML") ("mirtac.ML")
+begin
 
 declare real_of_int_floor_cancel [simp del]
 

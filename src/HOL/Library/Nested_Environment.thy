@@ -6,7 +6,7 @@
 header {* Nested environments *}
 
 theory Nested_Environment
-imports List
+imports Plain List
 begin
 
 text {*

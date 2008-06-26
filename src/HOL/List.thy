@@ -6,7 +6,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports ATP_Linkup
+imports Plain Relation_Power Presburger Recdef ATP_Linkup
 uses "Tools/string_syntax.ML"
 begin
 

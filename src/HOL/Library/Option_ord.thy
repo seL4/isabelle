@@ -6,7 +6,7 @@
 header {* Canonical order on option type *}
 
 theory Option_ord
-imports ATP_Linkup
+imports Plain
 begin
 
 instantiation option :: (order) order

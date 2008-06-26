@@ -5,7 +5,8 @@
 Testing the metis method
 *)
 
-theory Abstraction imports FuncSet
+theory Abstraction
+imports Main FuncSet
 begin
 
 (*For Christoph Benzmueller*)
@@ -180,9 +181,10 @@ lemma "(cl,f) \<in> CLF ==>
    CLF \<subseteq> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
 by auto
+
 (*??no longer terminates, with combinators
 by (metis Collect_mem_eq Int_def SigmaD2 UnCI Un_absorb1)
-  --{*@{text Int_def} is redundant}
+  --{*@{text Int_def} is redundant*}
 *)
 
 ML{*ResAtp.problem_name := "Abstraction__CLF_eq_Collect_Int"*}

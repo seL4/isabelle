@@ -7,7 +7,9 @@ Testing the metis method
 
 header {* The Full Theorem of Tarski *}
 
-theory Tarski imports FuncSet begin
+theory Tarski
+imports Main FuncSet
+begin
 
 (*Many of these higher-order problems appear to be impossible using the
 current linkup. They often seem to need either higher-order unification
@@ -961,8 +963,10 @@ apply (simp add: intY1_def interval_def  intY1_elem)
 done
 
 ML_command{*ResAtp.problem_name:="Tarski__intY1_func"*}  (*ALL THEOREMS*)
-lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 -> intY1" 
-by (metis intY1_f_closed restrict_in_funcset)
+lemma (in Tarski) intY1_func: "(%x: intY1. f x) \<in> intY1 -> intY1"
+apply (rule restrict_in_funcset)
+apply (metis intY1_f_closed restrict_in_funcset)
+done
 
 ML_command{*ResAtp.problem_name:="Tarski__intY1_mono"*}  (*ALL THEOREMS*)
 lemma (in Tarski) intY1_mono:

@@ -7,7 +7,7 @@
 header {* Divisibility and prime numbers (on integers) *}
 
 theory IntPrimes
-imports Primes
+imports Main Primes
 begin
 
 text {*

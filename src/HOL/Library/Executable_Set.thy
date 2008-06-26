@@ -6,7 +6,7 @@
 header {* Implementation of finite sets by lists *}
 
 theory Executable_Set
-imports List
+imports Plain List
 begin
 
 subsection {* Definitional rewrites *}

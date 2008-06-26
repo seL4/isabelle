@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Complex-Generate-HOL HOL-Complex-Generate-HOLLight
-images: HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix HOL-Nominal \
+images: HOL-Plain HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix HOL-Nominal \
         HOL-Word TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
@@ -64,86 +64,180 @@ LOG = $(OUT)/log
 
 ## HOL
 
-HOL: Pure $(OUT)/HOL
+HOL: HOL-Plain $(OUT)/HOL
+
+HOL-Plain: Pure $(OUT)/HOL-Plain
 
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
-$(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML		\
-  $(SRC)/Provers/Arith/assoc_fold.ML					\
-  $(SRC)/Provers/Arith/cancel_div_mod.ML				\
-  $(SRC)/Provers/Arith/cancel_numeral_factor.ML				\
-  $(SRC)/Provers/Arith/cancel_numerals.ML				\
-  $(SRC)/Provers/Arith/cancel_sums.ML					\
-  $(SRC)/Provers/Arith/combine_numerals.ML				\
-  $(SRC)/Provers/Arith/extract_common_term.ML				\
-  $(SRC)/Provers/Arith/fast_lin_arith.ML				\
-  $(SRC)/Tools/IsaPlanner/isand.ML $(SRC)/Tools/IsaPlanner/rw_inst.ML	\
-  $(SRC)/Tools/IsaPlanner/rw_tools.ML					\
-  $(SRC)/Tools/IsaPlanner/zipper.ML $(SRC)/Tools/induct.ML		\
-  $(SRC)/Tools/induct_tacs.ML $(SRC)/Provers/blast.ML			\
-  $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML			\
-  $(SRC)/Provers/eqsubst.ML $(SRC)/Provers/hypsubst.ML			\
-  $(SRC)/Provers/order.ML $(SRC)/Provers/project_rule.ML		\
-  $(SRC)/Provers/quantifier1.ML $(SRC)/Provers/quasi.ML			\
-  $(SRC)/Provers/splitter.ML $(SRC)/Provers/trancl.ML			\
-  $(SRC)/Tools/Metis/metis.ML $(SRC)/Tools/code/code_funcgr.ML		\
-  $(SRC)/Tools/code/code_name.ML $(SRC)/Tools/code/code_target.ML	\
-  $(SRC)/Tools/code/code_thingol.ML $(SRC)/Tools/nbe.ML			\
-  $(SRC)/Tools/atomize_elim.ML $(SRC)/Tools/random_word.ML		\
-  $(SRC)/Tools/rat.ML Tools/TFL/casesplit.ML ATP_Linkup.thy		\
-  Arith_Tools.thy Code_Setup.thy Datatype.thy Divides.thy		\
-  Equiv_Relations.thy Extraction.thy Finite_Set.thy Fun.thy FunDef.thy	\
-  HOL.thy Hilbert_Choice.thy Inductive.thy Int.thy IntDiv.thy		\
-  Lattices.thy List.thy Main.thy Map.thy Nat.thy NatBin.thy		\
-  OrderedGroup.thy Orderings.thy Power.thy Predicate.thy		\
-  Product_Type.thy ROOT.ML Recdef.thy Record.thy Refute.thy		\
-  Relation.thy Relation_Power.thy Ring_and_Field.thy SAT.thy Set.thy	\
-  SetInterval.thy Sum_Type.thy Groebner_Basis.thy Tools/watcher.ML	\
-  Tools/Groebner_Basis/groebner.ML Tools/Groebner_Basis/misc.ML		\
-  Tools/Groebner_Basis/normalizer.ML					\
-  Tools/Groebner_Basis/normalizer_data.ML Tools/Qelim/cooper.ML		\
-  Tools/Qelim/langford_data.ML Tools/Qelim/langford.ML			\
-  Tools/Qelim/cooper_data.ML Tools/Qelim/ferrante_rackoff.ML		\
-  Tools/Qelim/ferrante_rackoff_data.ML Tools/Qelim/generated_cooper.ML	\
-  Tools/Qelim/presburger.ML Tools/Qelim/qelim.ML Tools/TFL/dcterm.ML	\
-  Tools/TFL/post.ML Tools/TFL/rules.ML Tools/TFL/tfl.ML			\
-  Tools/TFL/thms.ML Tools/TFL/thry.ML Tools/TFL/usyntax.ML		\
-  Tools/TFL/utils.ML Tools/cnf_funcs.ML Tools/datatype_abs_proofs.ML	\
-  Tools/datatype_aux.ML Tools/datatype_case.ML				\
-  Tools/datatype_codegen.ML Tools/datatype_package.ML			\
-  Tools/datatype_prop.ML Tools/datatype_realizer.ML			\
-  Tools/datatype_rep_proofs.ML Tools/dseq.ML				\
-  Tools/function_package/auto_term.ML					\
-  Tools/function_package/context_tree.ML				\
-  Tools/function_package/fundef_common.ML				\
-  Tools/function_package/fundef_core.ML					\
-  Tools/function_package/fundef_datatype.ML				\
-  Tools/function_package/fundef_lib.ML					\
-  Tools/function_package/fundef_package.ML				\
-  Tools/function_package/inductive_wrap.ML				\
-  Tools/function_package/lexicographic_order.ML				\
-  Tools/function_package/measure_functions.ML				\
-  Tools/function_package/mutual.ML					\
-  Tools/function_package/pattern_split.ML				\
-  Tools/function_package/size.ML Tools/inductive_codegen.ML		\
-  Tools/inductive_package.ML Tools/inductive_realizer.ML		\
-  Tools/inductive_set_package.ML Tools/lin_arith.ML Tools/meson.ML	\
-  Tools/metis_tools.ML Tools/numeral.ML Tools/numeral_syntax.ML		\
-  Tools/old_primrec_package.ML Tools/polyhash.ML			\
-  Tools/primrec_package.ML Tools/prop_logic.ML Tools/recdef_package.ML	\
-  Tools/recfun_codegen.ML Tools/record_package.ML Tools/refute.ML	\
-  Tools/refute_isar.ML Tools/res_atp.ML Tools/res_atp_methods.ML	\
-  Tools/res_atp_provers.ML Tools/res_axioms.ML Tools/res_clause.ML	\
-  Tools/res_hol_clause.ML Tools/res_reconstruct.ML			\
-  Tools/rewrite_hol_proof.ML Tools/sat_funcs.ML Tools/sat_solver.ML	\
-  Tools/specification_package.ML Tools/split_rule.ML			\
-  Tools/string_syntax.ML Tools/typecopy_package.ML			\
-  Tools/typedef_codegen.ML Tools/typedef_package.ML			\
-  Transitive_Closure.thy Typedef.thy Wellfounded.thy arith_data.ML	\
-  document/root.tex hologic.ML int_arith1.ML int_factor_simprocs.ML	\
-  nat_simprocs.ML simpdata.ML
-	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/Pure HOL
+$(OUT)/HOL-Plain: $(OUT)/Pure \
+  plain.ML \
+  Code_Setup.thy \
+  Datatype.thy \
+  Divides.thy \
+  Extraction.thy \
+  Finite_Set.thy \
+  Fun.thy \
+  FunDef.thy \
+  HOL.thy \
+  Inductive.thy \
+  Lattices.thy \
+  Nat.thy \
+  OrderedGroup.thy \
+  Orderings.thy \
+  Plain.thy \
+  Power.thy \
+  Predicate.thy \
+  Product_Type.thy \
+  Record.thy \
+  Refute.thy \
+  Relation.thy \
+  Ring_and_Field.thy \
+  SAT.thy \
+  Set.thy \
+  Sum_Type.thy \
+  Tools/cnf_funcs.ML \
+  Tools/datatype_abs_proofs.ML \
+  Tools/datatype_aux.ML \
+  Tools/datatype_case.ML \
+  Tools/datatype_codegen.ML \
+  Tools/datatype_package.ML \
+  Tools/datatype_prop.ML \
+  Tools/datatype_realizer.ML \
+  Tools/datatype_rep_proofs.ML \
+  Tools/dseq.ML \
+  Tools/function_package/auto_term.ML \
+  Tools/function_package/context_tree.ML \
+  Tools/function_package/fundef_common.ML \
+  Tools/function_package/fundef_core.ML \
+  Tools/function_package/fundef_datatype.ML \
+  Tools/function_package/fundef_lib.ML \
+  Tools/function_package/fundef_package.ML \
+  Tools/function_package/induction_scheme.ML \
+  Tools/function_package/inductive_wrap.ML \
+  Tools/function_package/lexicographic_order.ML \
+  Tools/function_package/measure_functions.ML \
+  Tools/function_package/mutual.ML \
+  Tools/function_package/pattern_split.ML \
+  Tools/function_package/size.ML \
+  Tools/function_package/sum_tree.ML \
+  Tools/inductive_codegen.ML \
+  Tools/inductive_package.ML \
+  Tools/inductive_realizer.ML \
+  Tools/inductive_set_package.ML \
+  Tools/lin_arith.ML \
+  Tools/old_primrec_package.ML \
+  Tools/primrec_package.ML \
+  Tools/prop_logic.ML \
+  Tools/recfun_codegen.ML \
+  Tools/record_package.ML \
+  Tools/refute.ML \
+  Tools/refute_isar.ML \
+  Tools/rewrite_hol_proof.ML \
+  Tools/sat_funcs.ML \
+  Tools/sat_solver.ML \
+  Tools/split_rule.ML \
+  Tools/typecopy_package.ML \
+  Tools/typedef_codegen.ML \
+  Tools/typedef_package.ML \
+  Transitive_Closure.thy \
+  Typedef.thy \
+  Wellfounded.thy \
+  arith_data.ML \
+  hologic.ML \
+  simpdata.ML \
+  $(SRC)/Provers/Arith/abel_cancel.ML \
+  $(SRC)/Provers/Arith/cancel_div_mod.ML \
+  $(SRC)/Provers/Arith/cancel_sums.ML \
+  $(SRC)/Provers/Arith/fast_lin_arith.ML \
+  $(SRC)/Provers/blast.ML \
+  $(SRC)/Provers/clasimp.ML \
+  $(SRC)/Provers/classical.ML \
+  $(SRC)/Provers/eqsubst.ML \
+  $(SRC)/Provers/hypsubst.ML \
+  $(SRC)/Provers/order.ML \
+  $(SRC)/Provers/project_rule.ML \
+  $(SRC)/Provers/quantifier1.ML \
+  $(SRC)/Provers/splitter.ML \
+  $(SRC)/Provers/trancl.ML \
+  $(SRC)/Tools/IsaPlanner/isand.ML \
+  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
+  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
+  $(SRC)/Tools/IsaPlanner/zipper.ML \
+  $(SRC)/Tools/atomize_elim.ML \
+  $(SRC)/Tools/code/code_funcgr.ML \
+  $(SRC)/Tools/code/code_name.ML \
+  $(SRC)/Tools/code/code_target.ML \
+  $(SRC)/Tools/code/code_thingol.ML \
+  $(SRC)/Tools/induct.ML \
+  $(SRC)/Tools/induct_tacs.ML \
+  $(SRC)/Tools/nbe.ML \
+  $(SRC)/Tools/random_word.ML \
+  $(SRC)/Tools/rat.ML
+	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
+
+$(OUT)/HOL: $(OUT)/HOL-Plain \
+  ROOT.ML \
+  ATP_Linkup.thy \
+  Arith_Tools.thy \
+  Equiv_Relations.thy \
+  Groebner_Basis.thy \
+  Hilbert_Choice.thy \
+  Int.thy \
+  IntDiv.thy \
+  List.thy \
+  Main.thy \
+  Map.thy \
+  NatBin.thy \
+  Presburger.thy \
+  Recdef.thy \
+  Relation_Power.thy \
+  SetInterval.thy \
+  Tools/Groebner_Basis/groebner.ML \
+  Tools/Groebner_Basis/misc.ML \
+  Tools/Groebner_Basis/normalizer.ML \
+  Tools/Groebner_Basis/normalizer_data.ML \
+  Tools/Qelim/cooper.ML \
+  Tools/Qelim/cooper_data.ML \
+  Tools/Qelim/generated_cooper.ML \
+  Tools/Qelim/presburger.ML \
+  Tools/Qelim/qelim.ML \
+  Tools/TFL/casesplit.ML \
+  Tools/TFL/dcterm.ML \
+  Tools/TFL/post.ML \
+  Tools/TFL/rules.ML \
+  Tools/TFL/tfl.ML \
+  Tools/TFL/thms.ML \
+  Tools/TFL/thry.ML \
+  Tools/TFL/usyntax.ML \
+  Tools/TFL/utils.ML \
+  Tools/meson.ML \
+  Tools/metis_tools.ML \
+  Tools/numeral.ML \
+  Tools/numeral_syntax.ML \
+  Tools/polyhash.ML \
+  Tools/recdef_package.ML \
+  Tools/res_atp.ML \
+  Tools/res_atp_methods.ML \
+  Tools/res_atp_provers.ML \
+  Tools/res_axioms.ML \
+  Tools/res_clause.ML \
+  Tools/res_hol_clause.ML \
+  Tools/res_reconstruct.ML \
+  Tools/specification_package.ML \
+  Tools/string_syntax.ML \
+  Tools/watcher.ML \
+  int_arith1.ML \
+  int_factor_simprocs.ML \
+  nat_simprocs.ML \
+  $(SRC)/Provers/Arith/assoc_fold.ML \
+  $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
+  $(SRC)/Provers/Arith/cancel_numerals.ML \
+  $(SRC)/Provers/Arith/combine_numerals.ML \
+  $(SRC)/Provers/Arith/extract_common_term.ML \
+  $(SRC)/Tools/Metis/metis.ML
+	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/HOL-Plain HOL
 
 
 ## HOL-Complex-HahnBanach
@@ -167,27 +261,66 @@ $(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex			\
 
 HOL-Complex: HOL $(OUT)/HOL-Complex
 
-$(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML                          \
-  Library/Zorn.thy Library/Order_Relation.thy Real/ContNotDenum.thy	\
-  Real/float_arith.ML Real/Lubs.thy Real/PReal.thy                      \
-  Real/RComplete.thy Real/Rational.thy Real/Real.thy Real/RealDef.thy	\
-  Real/RealPow.thy Real/RealVector.thy Real/rat_arith.ML		\
-  Real/real_arith.ML Hyperreal/StarDef.thy Hyperreal/Fact.thy		\
-  Hyperreal/HLog.thy Hyperreal/Filter.thy Hyperreal/HSeries.thy		\
-  Hyperreal/transfer.ML Hyperreal/HLim.thy Hyperreal/HSEQ.thy		\
-  Hyperreal/HTranscendental.thy Hyperreal/HDeriv.thy			\
-  Hyperreal/HyperDef.thy Hyperreal/HyperNat.thy				\
-  Hyperreal/Hyperreal.thy Hyperreal/Integration.thy Hyperreal/Lim.thy	\
-  Hyperreal/Log.thy Hyperreal/Ln.thy Hyperreal/MacLaurin.thy		\
-  Hyperreal/NatStar.thy Hyperreal/NSA.thy Hyperreal/NthRoot.thy		\
-  Library/Univ_Poly.thy Hyperreal/SEQ.thy Hyperreal/Series.thy		\
-  Hyperreal/Star.thy Hyperreal/Taylor.thy Hyperreal/FrechetDeriv.thy	\
-  Hyperreal/Deriv.thy Hyperreal/Transcendental.thy			\
-  Hyperreal/hypreal_arith.ML Complex/Complex_Main.thy			\
-  Complex/Fundamental_Theorem_Algebra.thy Complex/CLim.thy		\
-  Complex/CStar.thy Complex/Complex.thy Complex/NSCA.thy		\
-  Complex/NSComplex.thy Complex/document/root.tex			\
-  Library/Infinite_Set.thy Library/Parity.thy
+$(OUT)/HOL-Complex: $(OUT)/HOL \
+  Complex/ROOT.ML \
+  Complex/CLim.thy \
+  Complex/CStar.thy \
+  Complex/Complex.thy \
+  Complex/Complex_Main.thy \
+  Complex/Fundamental_Theorem_Algebra.thy \
+  Complex/NSCA.thy \
+  Complex/NSComplex.thy \
+  Hyperreal/Deriv.thy \
+  Hyperreal/Fact.thy \
+  Hyperreal/Filter.thy \
+  Hyperreal/HDeriv.thy \
+  Hyperreal/HLim.thy \
+  Hyperreal/HLog.thy \
+  Hyperreal/HSEQ.thy \
+  Hyperreal/HSeries.thy \
+  Hyperreal/HTranscendental.thy \
+  Hyperreal/HyperDef.thy \
+  Hyperreal/HyperNat.thy \
+  Hyperreal/Hyperreal.thy \
+  Hyperreal/Integration.thy \
+  Hyperreal/Lim.thy \
+  Hyperreal/Ln.thy \
+  Hyperreal/Log.thy \
+  Hyperreal/MacLaurin.thy \
+  Hyperreal/NSA.thy \
+  Hyperreal/NatStar.thy \
+  Hyperreal/NthRoot.thy \
+  Hyperreal/SEQ.thy \
+  Hyperreal/Series.thy \
+  Hyperreal/Star.thy \
+  Hyperreal/StarDef.thy \
+  Hyperreal/Taylor.thy \
+  Hyperreal/Transcendental.thy \
+  Hyperreal/hypreal_arith.ML \
+  Hyperreal/transfer.ML \
+  Library/Abstract_Rat.thy \
+  Library/Dense_Linear_Order.thy \
+  Library/GCD.thy \
+  Library/Infinite_Set.thy \
+  Library/Order_Relation.thy \
+  Library/Parity.thy \
+  Library/Univ_Poly.thy \
+  Library/Zorn.thy \
+  Real/ContNotDenum.thy \
+  Real/Lubs.thy \
+  Real/PReal.thy \
+  Real/RComplete.thy \
+  Real/Rational.thy \
+  Real/Real.thy \
+  Real/RealDef.thy \
+  Real/RealPow.thy \
+  Real/RealVector.thy \
+  Real/rat_arith.ML \
+  Real/real_arith.ML \
+  Tools/Qelim/ferrante_rackoff.ML \
+  Tools/Qelim/ferrante_rackoff_data.ML \
+  Tools/Qelim/langford.ML \
+  Tools/Qelim/langford_data.ML
 	@cd Complex; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Complex
 
 
@@ -211,26 +344,26 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/BigO.thy Library/Ramsey.thy Library/Efficient_Nat.thy		\
-  Library/Executable_Set.thy Library/Infinite_Set.thy			\
-  Library/Dense_Linear_Order.thy Library/FuncSet.thy			\
+  Library/Executable_Set.thy 			\
+  Library/FuncSet.thy			\
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
   Library/Multiset.thy Library/NatPair.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
   Library/Quicksort.thy Library/Nat_Infinity.thy Library/Word.thy	\
   Library/README.html Library/Continuity.thy				\
-  Library/Nested_Environment.thy Library/Zorn.thy			\
+  Library/Nested_Environment.thy			\
   Library/Library/ROOT.ML Library/Library/document/root.tex		\
   Library/Library/document/root.bib Library/While_Combinator.thy	\
   Library/Product_ord.thy Library/Char_nat.thy Library/Char_ord.thy	\
   Library/Option_ord.thy Library/Sublist_Order.thy			\
   Library/List_lexord.thy Library/Commutative_Ring.thy			\
   Library/comm_ring.ML Library/Coinductive_List.thy			\
-  Library/AssocList.thy Library/Parity.thy Library/GCD.thy		\
+  Library/AssocList.thy		\
   Library/Binomial.thy Library/Eval.thy Library/Eval_Witness.thy	\
   Library/Code_Index.thy Library/Code_Char.thy				\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
-  Library/Code_Message.thy Library/Abstract_Rat.thy			\
-  Library/Univ_Poly.thy Library/Numeral_Type.thy			\
+  Library/Code_Message.thy			\
+  Library/Numeral_Type.thy			\
   Library/Boolean_Algebra.thy Library/Countable.thy Library/RType.thy	\
   Library/Heap.thy Library/Heap_Monad.thy Library/Array.thy		\
   Library/Ref.thy Library/Imperative_HOL.thy Library/RBT.thy		\
