@@ -1,7 +1,7 @@
 (* $Id$ *)
 
 theory Examples
-imports GCD
+imports Main GCD
 begin
 
 hide %invisible const Lattices.lattice
