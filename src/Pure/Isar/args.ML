@@ -89,6 +89,7 @@ sig
   val bang_facts: Context.generic * T list -> thm list * (Context.generic * T list)
   val goal_spec: ((int -> tactic) -> tactic) -> ('a * T list)
     -> ((int -> tactic) -> tactic) * ('a * T list)
+  val generic_args1: (string -> bool) -> T list -> T list * T list
   val attribs: (string -> string) -> T list -> src list * T list
   val opt_attribs: (string -> string) -> T list -> src list * T list
   val thm_name: (string -> string) -> string -> T list -> (string * src list) * T list
@@ -366,8 +367,6 @@ val bang_facts = Scan.peek (fn context =>
 
 (* goal specification *)
 
-(* range *)
-
 val from_to =
   nat -- ($$$ "-" |-- nat) >> (fn (i, j) => fn tac => Seq.INTERVAL tac i j) ||
   nat --| $$$ "-" >> (fn i => fn tac => fn st => Seq.INTERVAL tac i (Thm.nprems_of st) st) ||
@@ -378,31 +377,34 @@ val goal = $$$ "[" |-- !!! (from_to --| $$$ "]");
 fun goal_spec def = Scan.lift (Scan.optional goal def);
 
 
-
-(* attribs *)
+(* nested args and attribs *)
 
 local
 
-val exclude = member (op =) (explode "()[],");
+fun parse_args is_symid =
+  let
+    fun atom blk = touch (Scan.one (fn Arg ((k, x, _), _) =>
+      k <> Keyword orelse is_symid x orelse blk andalso x = ","));
 
-fun atomic blk = touch (Scan.one (fn Arg ((k, x, _), _) =>
-    k <> Keyword orelse not (exclude x) orelse blk andalso x = ","));
-
-fun args blk x = Scan.optional (args1 blk) [] x
-and args1 blk x =
-  ((Scan.repeat1
-    (Scan.repeat1 (atomic blk) ||
-      argsp "(" ")" ||
-      argsp "[" "]")) >> flat) x
-and argsp l r x =
-  (Scan.trace (&&& l -- !!! (args true -- &&& r)) >> #2) x;
+    fun args blk x = Scan.optional (args1 blk) [] x
+    and args1 blk x =
+      ((Scan.repeat1
+        (Scan.repeat1 (atom blk) ||
+          argsp "(" ")" ||
+          argsp "[" "]")) >> flat) x
+    and argsp l r x =
+      (Scan.trace (&&& l -- !!! (args true -- &&& r)) >> #2) x;
+  in (args, args1) end;
 
 in
+
+fun generic_args1 is_symid = #2 (parse_args is_symid) false;
+val arguments = #1 (parse_args OuterLex.is_sid) false;
 
 fun attribs intern =
   let
     val attrib_name = internal_text || (symbolic || named) >> evaluate Text intern;
-    val attrib = position (attrib_name -- !!! (args false)) >> src;
+    val attrib = position (attrib_name -- !!! arguments) >> src;
   in $$$ "[" |-- !!! (list attrib --| $$$ "]") end;
 
 fun opt_attribs intern = Scan.optional (attribs intern) [];
@@ -417,7 +419,9 @@ fun opt_thm_name intern s =
   Scan.optional ((name -- opt_attribs intern || attribs intern >> pair "") --| $$$ s) ("", []);
 
 
-(* syntax interface *)
+
+
+(** syntax wrapper **)
 
 fun syntax kind scan (src as Src ((s, args), pos)) st =
   (case Scan.error (Scan.finite' stopper (Scan.option scan)) (st, args) of
