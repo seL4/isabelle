@@ -79,8 +79,8 @@ resort for legacy applications.
 
   @{let ?pat = term}                    - term abbreviation (HO matching)
   @{note name = fact}                   - fact abbreviation
-  @{thm fact}                           - singleton fact
-  @{thms fact}                          - general fact
+  @{thm fact}                           - singleton fact (with attributes)
+  @{thms fact}                          - general fact (with attributes)
   @{lemma prop by method}               - singleton goal
   @{lemma prop1 ... propN by method}    - general goal
 
