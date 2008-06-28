@@ -74,12 +74,15 @@ Syntax.read_term_global etc.; see also OldGoals.read_term as last
 resort for legacy applications.
 
 * Antiquotations: block-structured compilation context indicated by
-\<lbrace> ... \<rbrace>, and additional antiquotation forms:
+\<lbrace> ... \<rbrace>; additional antiquotation forms:
 
-  @{let ?pat = term}
-  @{note name = fact}
-  @{thm name [attribs]}
-  @{thms name [attribs]}
+  @{let ?pat = term}			- term abbreviation
+  @{note name = fact}			- fact abbreviation
+  @{thm name [attribs]}			- singleton fact
+  @{thms name [attribs]}		- general fact
+  @{lemma prop by method}		- singleton goal
+  @{lemma prop1 ... propN by method}	- general goal
+
 
 
 
