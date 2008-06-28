@@ -67,6 +67,14 @@ use regular Syntax.read_typ, Syntax.read_term, Syntax.read_typ_global,
 Syntax.read_term_global etc.; see also OldGoals.read_term as last
 resort for legacy applications.
 
+* Antiquotations: block-structured compilation context indicated by
+\<lbrace> ... \<rbrace>, and additional antiquotation forms:
+
+  @{let ?pat = term}
+  @{note name = fact}
+  @{thm name [attribs]}
+  @{thms name [attribs]}
+
 
 
 New in Isabelle2008 (June 2008)
