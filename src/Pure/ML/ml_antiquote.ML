@@ -16,8 +16,6 @@ sig
     (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
   val value: string ->
     (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
-  val the_thms: Proof.context -> int -> thm list
-  val the_thm: Proof.context -> int -> thm
 end;
 
 structure ML_Antiquote: ML_ANTIQUOTE =
@@ -130,35 +128,6 @@ val _ = inline "const"
     >> (fn ((ctxt, c), Ts) =>
       let val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c)
       in ML_Syntax.atomic (ML_Syntax.print_term (ProofContext.mk_const ctxt (c, Ts))) end));
-
-
-(* abstract fact values *)
-
-structure AuxFacts = ProofDataFun
-(
-  type T = thm list Inttab.table;
-  fun init _ = Inttab.empty;
-);
-
-fun the_thms ctxt name = the (Inttab.lookup (AuxFacts.get ctxt) name);
-fun the_thm ctxt name = the_single (the_thms ctxt name);
-
-fun put_thms ths ctxt =
-  let val i = serial ()
-  in (i, AuxFacts.map (Inttab.update (i, ths)) ctxt) end;
-
-
-fun thm_antiq kind scan = ML_Context.add_antiq kind
-  (scan >> (fn ths => fn {struct_name, background} =>
-    let
-      val ((a, i), background') = background |> variant kind ||>> put_thms ths;
-      val env = "val " ^ a ^ " = ML_Antiquote.the_" ^ kind ^
-        " (ML_Context.the_local_context ()) " ^ string_of_int i ^ ";\n";
-      val body = struct_name ^ "." ^ a;
-    in (K (env, body), background') end));
-
-val _ = thm_antiq "thm" (Attrib.thm >> single);
-val _ = thm_antiq "thms" Attrib.thms;
 
 end;
 
