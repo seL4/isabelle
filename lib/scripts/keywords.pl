@@ -16,10 +16,14 @@ my %keywords;
 
 sub set_keyword {
   my ($name, $kind) = @_;
-  if (defined $keywords{$name} and $keywords{$name} ne $kind) {
-    print STDERR "### Inconsistent declaration of keyword \"${name}\": $keywords{$name} vs ${kind}\n";
+  if (defined $keywords{$name} and $keywords{$name} ne $kind and $keywords{$name} ne "minor") {
+    if ($kind ne "minor") {
+      print STDERR "### Inconsistent declaration of keyword \"${name}\": $keywords{$name} vs ${kind}\n";
+      $keywords{$name} = $kind;
+    }
+  } else {
+    $keywords{$name} = $kind;
   }
-  $keywords{$name} = $kind;
 }
 
 sub collect_keywords {
