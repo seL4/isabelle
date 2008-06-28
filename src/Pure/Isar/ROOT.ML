@@ -42,6 +42,7 @@ use "context_rules.ML";
 use "skip_proof.ML";
 use "method.ML";
 use "proof.ML";
+use "../ML/ml_thms.ML";
 use "element.ML";
 use "net_rules.ML";
 
