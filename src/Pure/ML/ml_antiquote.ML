@@ -7,6 +7,8 @@ Common ML antiquotations.
 
 signature ML_ANTIQUOTE =
 sig
+  val macro: string ->
+    (Context.generic * Args.T list -> Proof.context * (Context.generic * Args.T list)) -> unit
   val variant: string -> Proof.context -> string * Proof.context
   val inline: string ->
     (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
@@ -41,8 +43,12 @@ fun variant a ctxt =
 
 (* specific antiquotations *)
 
+fun macro name scan = ML_Context.add_antiq name
+  (scan :|-- (fn ctxt => Scan.depend (fn _ => Scan.succeed
+    (Context.Proof ctxt, fn {background, ...} => (K ("", ""), background)))));
+
 fun inline name scan = ML_Context.add_antiq name
-  (scan >> (fn s => fn {struct_name, background} => ((K ("", s)), background)));
+  (scan >> (fn s => fn {struct_name, background} => (K ("", s), background)));
 
 fun declaration kind name scan = ML_Context.add_antiq name
   (scan >> (fn s => fn {struct_name, background} =>
@@ -77,6 +83,15 @@ val _ = inline "sort" (Args.context -- Scan.lift Args.name >> (fn (ctxt, s) =>
 val _ = inline "typ" (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ));
 val _ = inline "term" (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term));
 val _ = inline "prop" (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term));
+
+val _ = macro "let" (Args.context --
+  Args.and_list1 (Args.and_list1 (Scan.lift Args.name) -- Scan.lift (Args.$$$ "=" |-- Args.name))
+    >> (fn (ctxt, args) => #2 (ProofContext.match_bind true args ctxt)));
+
+val _ = macro "note" (Args.context :|-- (fn ctxt =>
+  Args.and_list1 (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms >> (fn ((a, srcs), ths) =>
+    ((a, map (Attrib.attribute (ProofContext.theory_of ctxt)) srcs), [(ths, [])])))
+  >> (fn args => #2 (ProofContext.note_thmss_i "" args ctxt))));
 
 val _ = value "ctyp" (Args.typ >> (fn T =>
   "Thm.ctyp_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_typ T)));
