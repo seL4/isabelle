@@ -22,7 +22,8 @@ interface instead.
 *** Document preparation ***
 
 * Antiquotation @{lemma} now imitates a regular terminal proof,
-demanding keyword 'by' and supporting the full method expressions.
+demanding keyword 'by' and supporting the full method expression
+syntax.
 
 
 *** HOL ***
@@ -76,12 +77,12 @@ resort for legacy applications.
 * Antiquotations: block-structured compilation context indicated by
 \<lbrace> ... \<rbrace>; additional antiquotation forms:
 
-  @{let ?pat = term}			- term abbreviation
-  @{note name = fact}			- fact abbreviation
-  @{thm name [attribs]}			- singleton fact
-  @{thms name [attribs]}		- general fact
-  @{lemma prop by method}		- singleton goal
-  @{lemma prop1 ... propN by method}	- general goal
+  @{let ?pat = term}                    - term abbreviation (HO matching)
+  @{note name = fact}                   - fact abbreviation
+  @{thm fact}                           - singleton fact
+  @{thms fact}                          - general fact
+  @{lemma prop by method}               - singleton goal
+  @{lemma prop1 ... propN by method}    - general goal
 
 
 
