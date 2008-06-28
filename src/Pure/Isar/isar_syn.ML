@@ -572,7 +572,7 @@ val _ =
 val _ =
   OuterSyntax.command "let" "bind text variables"
     (K.tag_proof K.prf_decl)
-    (P.and_list1 (P.enum1 "and" P.term -- (P.$$$ "=" |-- P.term))
+    (P.and_list1 (P.and_list1 P.term -- (P.$$$ "=" |-- P.term))
       >> (Toplevel.print oo (Toplevel.proof o Proof.let_bind)));
 
 val case_spec =

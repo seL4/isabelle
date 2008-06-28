@@ -406,7 +406,7 @@ end;
 
 val insts =
   Scan.optional
-    (Args.enum1 "and" (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
+    (Args.and_list1 (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
       Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
 
 fun inst_args f src ctxt =
@@ -414,7 +414,7 @@ fun inst_args f src ctxt =
 
 val insts_var =
   Scan.optional
-    (Args.enum1 "and" (Scan.lift (Args.var -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
+    (Args.and_list1 (Scan.lift (Args.var -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
       Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
 
 fun inst_args_var f src ctxt =

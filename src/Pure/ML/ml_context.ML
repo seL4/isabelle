@@ -132,10 +132,10 @@ fun eval_antiquotes struct_name (txt, pos) opt_ctxt =
               NONE => error ("Unknown context -- cannot expand ML antiquotations" ^
                 Position.str_of pos)
             | SOME context => Context.proof_of context);
-      
+
           val lex = #1 (OuterKeyword.get_lexicons ());
           fun no_decl _ = ("", "");
-      
+
           fun expand (Antiquote.Text s) state = (K ("", Symbol.escape s), state)
             | expand (Antiquote.Antiq x) (scope, background) =
                 let
@@ -199,3 +199,4 @@ end;
 
 structure Basic_ML_Context: BASIC_ML_CONTEXT = ML_Context;
 open Basic_ML_Context;
+

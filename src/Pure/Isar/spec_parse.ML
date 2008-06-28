@@ -56,7 +56,7 @@ val opt_attribs = Scan.optional attribs [];
 
 fun thm_name s = P.name -- opt_attribs --| P.$$$ s;
 fun opt_thm_name s =
-  Scan.optional ((P.name -- opt_attribs || (attribs >> pair "")) --| P.$$$ s) ("", []);
+  Scan.optional ((P.name -- opt_attribs || attribs >> pair "") --| P.$$$ s) ("", []);
 
 val spec = opt_thm_name ":" -- Scan.repeat1 P.prop;
 val named_spec = thm_name ":" -- Scan.repeat1 P.prop;
