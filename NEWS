@@ -19,6 +19,12 @@ INCOMPATIBILITY, use proper 'instantiation' target.
 interface instead.
 
 
+*** Document preparation ***
+
+* Antiquotation @{lemma} now imitates a regular terminal proof,
+demanding keyword 'by' and supporting the full method expressions.
+
+
 *** HOL ***
 
 * Methods "case_tac" and "induct_tac" now refer to the very same rules
