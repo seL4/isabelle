@@ -78,8 +78,7 @@ sig
   val propp: token list -> (string * string list) * token list
   val termp: token list -> (string * string list) * token list
   val keyword_sid: token list -> string * token list
-  val args: (string -> bool) -> bool -> token list -> Args.T list * token list
-  val args1: (string -> bool) -> bool -> token list -> Args.T list * token list
+  val generic_args1: (string -> bool) -> token list -> Args.T list * token list
   val arguments: token list -> Args.T list * token list
   val target: token list -> xstring * token list
   val opt_target: token list -> xstring option * token list
@@ -295,26 +294,30 @@ val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 fun keyword_symid is_symid = Scan.one (T.keyword_with is_symid) >> T.val_of;
 val keyword_sid = keyword_symid T.is_sid;
 
-fun atom_arg is_symid blk =
-  group "argument"
-    (position (short_ident || long_ident || sym_ident || term_var ||
-        type_ident || type_var || number) >> Args.mk_ident ||
-      position (keyword_symid is_symid) >> Args.mk_keyword ||
-      position (string || verbatim) >> Args.mk_string ||
-      position alt_string >> Args.mk_alt_string ||
-      position (if blk then $$$ "," else Scan.fail) >> Args.mk_keyword);
+fun parse_args is_symid =
+  let
+    fun atom blk =
+      group "argument"
+        (position (short_ident || long_ident || sym_ident || term_var ||
+            type_ident || type_var || number) >> Args.mk_ident ||
+          position (keyword_symid is_symid) >> Args.mk_keyword ||
+          position (string || verbatim) >> Args.mk_string ||
+          position alt_string >> Args.mk_alt_string ||
+          position (if blk then $$$ "," else Scan.fail) >> Args.mk_keyword);
 
-fun paren_args l r scan = position ($$$ l) -- !!! (scan true -- position ($$$ r))
-  >> (fn (x, (ys, z)) => Args.mk_keyword x :: ys @ [Args.mk_keyword z]);
+    fun args blk x = Scan.optional (args1 blk) [] x
+    and args1 blk x =
+      ((Scan.repeat1
+        (Scan.repeat1 (atom blk) ||
+          argsp "(" ")" ||
+          argsp "[" "]")) >> flat) x
+    and argsp l r x =
+      (position ($$$ l) -- !!! (args true -- position ($$$ r))
+        >> (fn (a, (bs, c)) => Args.mk_keyword a :: bs @ [Args.mk_keyword c])) x;
+  in (args, args1) end;
 
-fun args is_symid blk x = Scan.optional (args1 is_symid blk) [] x
-and args1 is_symid blk x =
-  ((Scan.repeat1
-    (Scan.repeat1 (atom_arg is_symid blk) ||
-      paren_args "(" ")" (args is_symid) ||
-      paren_args "[" "]" (args is_symid))) >> flat) x;
-
-val arguments = args T.is_sid false;
+fun generic_args1 is_symid = #2 (parse_args is_symid) false;
+val arguments = #1 (parse_args T.is_sid) false;
 
 
 (* targets *)
