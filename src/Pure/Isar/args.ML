@@ -91,6 +91,8 @@ sig
     -> ((int -> tactic) -> tactic) * ('a * T list)
   val attribs: (string -> string) -> T list -> src list * T list
   val opt_attribs: (string -> string) -> T list -> src list * T list
+  val thm_name: (string -> string) -> string -> T list -> (string * src list) * T list
+  val opt_thm_name: (string -> string) -> string -> T list -> (string * src list) * T list
   val syntax: string -> ('b * T list -> 'a * ('b * T list)) -> src -> 'b -> 'a * 'b
   val context_syntax: string -> (Context.generic * T list -> 'a * (Context.generic * T list)) ->
     src -> Proof.context -> 'a * Proof.context
@@ -406,6 +408,13 @@ fun attribs intern =
 fun opt_attribs intern = Scan.optional (attribs intern) [];
 
 end;
+
+
+(* theorem specifications *)
+
+fun thm_name intern s = name -- opt_attribs intern --| $$$ s;
+fun opt_thm_name intern s =
+  Scan.optional ((name -- opt_attribs intern || attribs intern >> pair "") --| $$$ s) ("", []);
 
 
 (* syntax interface *)
