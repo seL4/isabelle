@@ -30,7 +30,7 @@ HOL:
 $(OUT)/HOLCF: $(OUT)/HOL Adm.thy Bifinite.thy Cfun.thy			\
   CompactBasis.thy Cont.thy ConvexPD.thy Cprod.thy Discrete.thy		\
   Domain.thy Ffun.thy Fixrec.thy Fix.thy HOLCF.thy Lift.thy		\
-  LowerPD.thy One.thy Pcpodef.thy Pcpo.thy Porder.thy Cset.thy		\
+  LowerPD.thy One.thy Pcpodef.thy Pcpo.thy Porder.thy			\
   Sprod.thy Ssum.thy Tr.thy UpperPD.thy Up.thy ROOT.ML			\
   Tools/adm_tac.ML Tools/cont_consts.ML Tools/cont_proc.ML		\
   Tools/domain/domain_extender.ML Tools/domain/domain_axioms.ML		\
