@@ -73,7 +73,7 @@ fun get_equations thy defs (s, T) =
          else (preprocess thy (map fst thms'),
            case snd (snd (split_last thms')) of
                NONE => (case get_defn thy defs s T of
-                   NONE => thyname_of_const s thy
+                   NONE => Codegen.thyname_of_const thy s
                  | SOME ((_, (thyname, _)), _) => thyname)
              | SOME thyname => thyname)
        end);

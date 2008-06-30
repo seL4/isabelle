@@ -48,7 +48,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
   let
     val {intros, graph, eqns} = CodegenData.get thy;
     fun thyname_of s = (case optmod of
-      NONE => thyname_of_const s thy | SOME s => s);
+      NONE => Codegen.thyname_of_const thy s | SOME s => s);
   in (case Option.map strip_comb (try HOLogic.dest_Trueprop (concl_of thm)) of
       SOME (Const ("op =", _), [t, _]) => (case head_of t of
         Const (s, _) =>
@@ -85,7 +85,7 @@ fun get_clauses thy s =
       NONE => (case try (InductivePackage.the_inductive (ProofContext.init thy)) s of
         NONE => NONE
       | SOME ({names, ...}, {intrs, raw_induct, ...}) =>
-          SOME (names, thyname_of_const s thy,
+          SOME (names, Codegen.thyname_of_const thy s,
             length (InductivePackage.params_of raw_induct),
             preprocess thy intrs))
     | SOME _ =>

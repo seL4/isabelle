@@ -46,7 +46,7 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) sorts =
 
     val (_, (tname, _, _)) :: _ = descr';
     val node_id = tname ^ " (type)";
-    val module' = if_library (thyname_of_type tname thy) module;
+    val module' = if_library (thyname_of_type thy tname) module;
 
     fun mk_dtdef gr prfx [] = (gr, [])
       | mk_dtdef gr prfx ((_, (tname, dts, cs))::xs) =

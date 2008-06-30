@@ -57,8 +57,8 @@ sig
   val get_const_id: string -> codegr -> string * string
   val mk_type_id: string -> string -> codegr -> codegr * (string * string)
   val get_type_id: string -> codegr -> string * string
-  val thyname_of_type: string -> theory -> string
-  val thyname_of_const: string -> theory -> string
+  val thyname_of_type: theory -> string -> string
+  val thyname_of_const: theory -> string -> string
   val rename_terms: term list -> term list
   val rename_term: term -> term
   val new_names: term -> string list -> string list
@@ -496,23 +496,13 @@ fun del_nodes ks (gr, x) = (Graph.del_nodes ks gr, x);
 fun map_node k f (gr, x) = (Graph.map_node k f gr, x);
 fun new_node p (gr, x) = (Graph.new_node p gr, x);
 
-fun theory_of_type s thy =
-  if Sign.declared_tyname thy s
-  then SOME (the_default thy (get_first (theory_of_type s) (Theory.parents_of thy)))
-  else NONE;
+fun thyname_of thy f x = the (AList.lookup (op =) (f x) Markup.theory_nameN);
 
-fun theory_of_const s thy =
-  if Sign.declared_const thy s
-  then SOME (the_default thy (get_first (theory_of_const s) (Theory.parents_of thy)))
-  else NONE;
+fun thyname_of_type thy =
+  thyname_of thy (Type.the_tags (Sign.tsig_of thy));
 
-fun thyname_of_type s thy = (case theory_of_type s thy of
-    NONE => error ("thyname_of_type: no such type: " ^ quote s)
-  | SOME thy' => Context.theory_name thy');
-
-fun thyname_of_const s thy = (case theory_of_const s thy of
-    NONE => error ("thyname_of_const: no such constant: " ^ quote s)
-  | SOME thy' => Context.theory_name thy');
+fun thyname_of_const thy =
+  thyname_of thy (Consts.the_tags (Sign.consts_of thy));
 
 fun rename_terms ts =
   let
@@ -695,7 +685,7 @@ fun default_codegen thy defs gr dep module brack t =
                  val (gr4, _) = invoke_tycodegen thy defs dep module false
                    (gr3, funpow (length ts) (hd o tl o snd o dest_Type) T);
                  val (module', suffix) = (case get_defn thy defs s T of
-                     NONE => (if_library (thyname_of_const s thy) module, "")
+                     NONE => (if_library (thyname_of_const thy s) module, "")
                    | SOME ((U, (module', _)), NONE) =>
                        (if_library module' module, "")
                    | SOME ((U, (module', _)), SOME i) =>
@@ -780,7 +770,7 @@ fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
              val (gr'', qs) = foldl_map
                (invoke_tycodegen thy defs dep module false)
                (gr', quotes_of ms);
-             val module' = if_library (thyname_of_type s thy) module;
+             val module' = if_library (thyname_of_type thy s) module;
              val node_id = s ^ " (type)";
              fun p module' = Pretty.block (pretty_mixfix module module' ms ps qs)
            in SOME (case try (get_node gr'') node_id of

@@ -52,7 +52,7 @@ fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
            if is_some (Codegen.get_assoc_type thy tname) then NONE else
            let
              val module' = Codegen.if_library
-               (Codegen.thyname_of_type tname thy) module;
+               (Codegen.thyname_of_type thy tname) module;
              val node_id = tname ^ " (type)";
              val (gr', (((qs, (_, Abs_id)), (_, Rep_id)), ty_id)) = foldl_map
                  (Codegen.invoke_tycodegen thy defs dep module (length Ts = 1))
