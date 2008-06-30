@@ -1,0 +1,16 @@
+rename Distribution .
+rename CCL src/CCL
+rename CTT src/CTT
+rename Cube src/Cube
+rename FOL src/FOL
+rename FOLP src/FOLP
+rename HOL src/HOL
+rename HOLCF src/HOLCF
+rename LCF src/LCF
+rename LK src/LK
+rename Modal src/Modal
+rename Provers src/Provers
+rename Pure src/Pure
+rename Sequents src/Sequents
+rename Tools src/Tools
+rename ZF src/ZF
