@@ -1924,7 +1924,7 @@ definition
 lemmas int_aux_code = of_nat_aux_code [where ?'a = int, simplified int_aux_def [symmetric], code]
 
 lemma [code, code unfold, code inline del]:
-  "of_nat n = int_aux n 0"
+  "of_nat = (\<lambda>n. int_aux n 0)"
   by (simp add: int_aux_def of_nat_aux_def)
 
 definition
