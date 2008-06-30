@@ -37,6 +37,7 @@ sig
   val unoverload_const: theory -> string * typ -> string
   val param_of_inst: theory -> string * string -> string
   val inst_of_param: theory -> string -> (string * string) option
+  val these_arity_tags: theory -> class * string -> Markup.property list
   type cache
   val of_sort: theory -> typ * sort -> cache -> thm list * cache  (*exception Sorts.CLASS_ERROR*)
   val cache: cache
@@ -79,8 +80,8 @@ datatype axclass = AxClass of
 
 type axclasses = axclass Symtab.table * param list;
 
-fun make_axclass ((def, intro, axioms), params) =
-  AxClass {def = def, intro = intro, axioms = axioms, params = params};
+fun make_axclass ((def, intro, axioms), params) = AxClass
+  {def = def, intro = intro, axioms = axioms, params = params};
 
 fun merge_axclasses pp ((tab1, params1), (tab2, params2)) : axclasses =
   (Symtab.merge (K true) (tab1, tab2), merge_params pp (params1, params2));
@@ -180,8 +181,15 @@ fun the_arity thy a (c, Ss) =
   | NONE => error ("Unproven type arity " ^
       Syntax.string_of_arity (ProofContext.init thy) (a, Ss, [c])));
 
+fun these_arity_tags thy (c, a) = case find_first (fn ((c', _), _) => c = c')
+  (these (Symtab.lookup (snd (get_instances thy)) a)) of
+    SOME ((_, _), th) => Thm.get_tags th
+  | NONE => [];
+
 fun put_arity ((t, Ss, c), th) = map_instances (fn (classrel, arities) =>
   (classrel, arities |> Symtab.insert_list (eq_fst op =) (t, ((c, Ss), th))));
+
+
 
 
 (* maintain instance parameters *)
@@ -263,10 +271,14 @@ fun add_arity th thy =
      of [] => ()
       | cs => Output.legacy_feature
           ("Missing specifications for overloaded parameters " ^ commas_quote cs)
+    val th' = th
+      |> Drule.unconstrainTs
+      |> (Thm.map_tags o AList.default (op =))
+          (Markup.theory_nameN, Context.theory_name thy)
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
-    |> put_arity ((t, Ss, c), Drule.unconstrainTs th)
+    |> put_arity ((t, Ss, c), th')
   end;
 
 
