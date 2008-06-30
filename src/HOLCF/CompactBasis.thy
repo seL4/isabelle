@@ -37,51 +37,51 @@ by (rule typedef_po
 text {* Take function for compact basis *}
 
 definition
-  compact_approx :: "nat \<Rightarrow> 'a compact_basis \<Rightarrow> 'a compact_basis" where
-  "compact_approx = (\<lambda>n a. Abs_compact_basis (approx n\<cdot>(Rep_compact_basis a)))"
+  compact_take :: "nat \<Rightarrow> 'a compact_basis \<Rightarrow> 'a compact_basis" where
+  "compact_take = (\<lambda>n a. Abs_compact_basis (approx n\<cdot>(Rep_compact_basis a)))"
 
-lemma Rep_compact_approx:
-  "Rep_compact_basis (compact_approx n a) = approx n\<cdot>(Rep_compact_basis a)"
-unfolding compact_approx_def
+lemma Rep_compact_take:
+  "Rep_compact_basis (compact_take n a) = approx n\<cdot>(Rep_compact_basis a)"
+unfolding compact_take_def
 by (simp add: Abs_compact_basis_inverse)
 
-lemmas approx_Rep_compact_basis = Rep_compact_approx [symmetric]
+lemmas approx_Rep_compact_basis = Rep_compact_take [symmetric]
 
 interpretation compact_basis:
-  basis_take [sq_le compact_approx]
+  basis_take [sq_le compact_take]
 proof
   fix n :: nat and a :: "'a compact_basis"
-  show "compact_approx n a \<sqsubseteq> a"
+  show "compact_take n a \<sqsubseteq> a"
     unfolding compact_le_def
-    by (simp add: Rep_compact_approx approx_less)
+    by (simp add: Rep_compact_take approx_less)
 next
   fix n :: nat and a :: "'a compact_basis"
-  show "compact_approx n (compact_approx n a) = compact_approx n a"
-    by (simp add: Rep_compact_basis_inject [symmetric] Rep_compact_approx)
+  show "compact_take n (compact_take n a) = compact_take n a"
+    by (simp add: Rep_compact_basis_inject [symmetric] Rep_compact_take)
 next
   fix n :: nat and a b :: "'a compact_basis"
-  assume "a \<sqsubseteq> b" thus "compact_approx n a \<sqsubseteq> compact_approx n b"
-    unfolding compact_le_def Rep_compact_approx
+  assume "a \<sqsubseteq> b" thus "compact_take n a \<sqsubseteq> compact_take n b"
+    unfolding compact_le_def Rep_compact_take
     by (rule monofun_cfun_arg)
 next
   fix n :: nat and a :: "'a compact_basis"
-  show "\<And>n a. compact_approx n a \<sqsubseteq> compact_approx (Suc n) a"
-    unfolding compact_le_def Rep_compact_approx
+  show "\<And>n a. compact_take n a \<sqsubseteq> compact_take (Suc n) a"
+    unfolding compact_le_def Rep_compact_take
     by (rule chainE, simp)
 next
   fix n :: nat
-  show "finite (range (compact_approx n))"
+  show "finite (range (compact_take n))"
     apply (rule finite_imageD [where f="Rep_compact_basis"])
     apply (rule finite_subset [where B="range (\<lambda>x. approx n\<cdot>x)"])
-    apply (clarsimp simp add: Rep_compact_approx)
+    apply (clarsimp simp add: Rep_compact_take)
     apply (rule finite_range_approx)
     apply (rule inj_onI, simp add: Rep_compact_basis_inject)
     done
 next
   fix a :: "'a compact_basis"
-  show "\<exists>n. compact_approx n a = a"
+  show "\<exists>n. compact_take n a = a"
     apply (simp add: Rep_compact_basis_inject [symmetric])
-    apply (simp add: Rep_compact_approx)
+    apply (simp add: Rep_compact_take)
     apply (rule profinite_compact_eq_approx)
     apply (rule compact_Rep_compact_basis)
     done
@@ -94,7 +94,7 @@ definition
   "compacts = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
 
 interpretation compact_basis:
-  ideal_completion [sq_le compact_approx Rep_compact_basis compacts]
+  ideal_completion [sq_le compact_take Rep_compact_basis compacts]
 proof
   fix w :: 'a
   show "preorder.ideal sq_le (compacts w)"
@@ -250,17 +250,17 @@ text {* Take function for powerdomain basis *}
 
 definition
   pd_take :: "nat \<Rightarrow> 'a pd_basis \<Rightarrow> 'a pd_basis" where
-  "pd_take n = (\<lambda>t. Abs_pd_basis (compact_approx n ` Rep_pd_basis t))"
+  "pd_take n = (\<lambda>t. Abs_pd_basis (compact_take n ` Rep_pd_basis t))"
 
 lemma Rep_pd_take:
-  "Rep_pd_basis (pd_take n t) = compact_approx n ` Rep_pd_basis t"
+  "Rep_pd_basis (pd_take n t) = compact_take n ` Rep_pd_basis t"
 unfolding pd_take_def
 apply (rule Abs_pd_basis_inverse)
 apply (simp add: pd_basis_def)
 done
 
 lemma pd_take_simps [simp]:
-  "pd_take n (PDUnit a) = PDUnit (compact_approx n a)"
+  "pd_take n (PDUnit a) = PDUnit (compact_take n a)"
   "pd_take n (PDPlus t u) = PDPlus (pd_take n t) (pd_take n u)"
 apply (simp_all add: Rep_pd_basis_inject [symmetric])
 apply (simp_all add: Rep_pd_take Rep_PDUnit Rep_PDPlus image_Un)
@@ -274,7 +274,7 @@ done
 
 lemma finite_range_pd_take: "finite (range (pd_take n))"
 apply (rule finite_imageD [where f="Rep_pd_basis"])
-apply (rule finite_subset [where B="Pow (range (compact_approx n))"])
+apply (rule finite_subset [where B="Pow (range (compact_take n))"])
 apply (clarsimp simp add: Rep_pd_take)
 apply (simp add: compact_basis.finite_range_take)
 apply (rule inj_onI, simp add: Rep_pd_basis_inject)
