@@ -246,42 +246,42 @@ lemma fold_pd_PDPlus:
   shows "fold_pd g f (PDPlus t u) = f (fold_pd g f t) (fold_pd g f u)"
 unfolding fold_pd_def Rep_PDPlus by (simp add: image_Un fold1_Un2)
 
-text {* approx-pd *}
+text {* Take function for powerdomain basis *}
 
 definition
-  approx_pd :: "nat \<Rightarrow> 'a pd_basis \<Rightarrow> 'a pd_basis" where
-  "approx_pd n = (\<lambda>t. Abs_pd_basis (compact_approx n ` Rep_pd_basis t))"
+  pd_take :: "nat \<Rightarrow> 'a pd_basis \<Rightarrow> 'a pd_basis" where
+  "pd_take n = (\<lambda>t. Abs_pd_basis (compact_approx n ` Rep_pd_basis t))"
 
-lemma Rep_approx_pd:
-  "Rep_pd_basis (approx_pd n t) = compact_approx n ` Rep_pd_basis t"
-unfolding approx_pd_def
+lemma Rep_pd_take:
+  "Rep_pd_basis (pd_take n t) = compact_approx n ` Rep_pd_basis t"
+unfolding pd_take_def
 apply (rule Abs_pd_basis_inverse)
 apply (simp add: pd_basis_def)
 done
 
-lemma approx_pd_simps [simp]:
-  "approx_pd n (PDUnit a) = PDUnit (compact_approx n a)"
-  "approx_pd n (PDPlus t u) = PDPlus (approx_pd n t) (approx_pd n u)"
+lemma pd_take_simps [simp]:
+  "pd_take n (PDUnit a) = PDUnit (compact_approx n a)"
+  "pd_take n (PDPlus t u) = PDPlus (pd_take n t) (pd_take n u)"
 apply (simp_all add: Rep_pd_basis_inject [symmetric])
-apply (simp_all add: Rep_approx_pd Rep_PDUnit Rep_PDPlus image_Un)
+apply (simp_all add: Rep_pd_take Rep_PDUnit Rep_PDPlus image_Un)
 done
 
-lemma approx_pd_idem: "approx_pd n (approx_pd n t) = approx_pd n t"
+lemma pd_take_idem: "pd_take n (pd_take n t) = pd_take n t"
 apply (induct t rule: pd_basis_induct)
 apply (simp add: compact_basis.take_take)
 apply simp
 done
 
-lemma finite_range_approx_pd: "finite (range (approx_pd n))"
+lemma finite_range_pd_take: "finite (range (pd_take n))"
 apply (rule finite_imageD [where f="Rep_pd_basis"])
 apply (rule finite_subset [where B="Pow (range (compact_approx n))"])
-apply (clarsimp simp add: Rep_approx_pd)
+apply (clarsimp simp add: Rep_pd_take)
 apply (simp add: compact_basis.finite_range_take)
 apply (rule inj_onI, simp add: Rep_pd_basis_inject)
 done
 
-lemma approx_pd_covers: "\<exists>n. approx_pd n t = t"
-apply (subgoal_tac "\<exists>n. \<forall>m\<ge>n. approx_pd m t = t", fast)
+lemma pd_take_covers: "\<exists>n. pd_take n t = t"
+apply (subgoal_tac "\<exists>n. \<forall>m\<ge>n. pd_take m t = t", fast)
 apply (induct t rule: pd_basis_induct)
 apply (cut_tac a=a in compact_basis.take_covers)
 apply (clarify, rule_tac x=n in exI)

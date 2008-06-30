@@ -70,21 +70,21 @@ apply (simp add: 2)
 apply (simp add: upper_le_PDPlus_iff 3)
 done
 
-lemma approx_pd_upper_chain:
-  "approx_pd n t \<le>\<sharp> approx_pd (Suc n) t"
+lemma pd_take_upper_chain:
+  "pd_take n t \<le>\<sharp> pd_take (Suc n) t"
 apply (induct t rule: pd_basis_induct)
 apply (simp add: compact_basis.take_chain)
 apply (simp add: PDPlus_upper_mono)
 done
 
-lemma approx_pd_upper_le: "approx_pd i t \<le>\<sharp> t"
+lemma pd_take_upper_le: "pd_take i t \<le>\<sharp> t"
 apply (induct t rule: pd_basis_induct)
 apply (simp add: compact_basis.take_less)
 apply (simp add: PDPlus_upper_mono)
 done
 
-lemma approx_pd_upper_mono:
-  "t \<le>\<sharp> u \<Longrightarrow> approx_pd n t \<le>\<sharp> approx_pd n u"
+lemma pd_take_upper_mono:
+  "t \<le>\<sharp> u \<Longrightarrow> pd_take n t \<le>\<sharp> pd_take n u"
 apply (erule upper_le_induct)
 apply (simp add: compact_basis.take_mono)
 apply (simp add: upper_le_PDPlus_PDUnit_iff)
@@ -133,14 +133,14 @@ unfolding upper_principal_def
 by (simp add: Abs_upper_pd_inverse upper_le.ideal_principal)
 
 interpretation upper_pd:
-  ideal_completion [upper_le approx_pd upper_principal Rep_upper_pd]
+  ideal_completion [upper_le pd_take upper_principal Rep_upper_pd]
 apply unfold_locales
-apply (rule approx_pd_upper_le)
-apply (rule approx_pd_idem)
-apply (erule approx_pd_upper_mono)
-apply (rule approx_pd_upper_chain)
-apply (rule finite_range_approx_pd)
-apply (rule approx_pd_covers)
+apply (rule pd_take_upper_le)
+apply (rule pd_take_idem)
+apply (erule pd_take_upper_mono)
+apply (rule pd_take_upper_chain)
+apply (rule finite_range_pd_take)
+apply (rule pd_take_covers)
 apply (rule ideal_Rep_upper_pd)
 apply (erule Rep_upper_pd_lub)
 apply (rule Rep_upper_principal)
@@ -179,12 +179,12 @@ end
 instance upper_pd :: (bifinite) bifinite ..
 
 lemma approx_upper_principal [simp]:
-  "approx n\<cdot>(upper_principal t) = upper_principal (approx_pd n t)"
+  "approx n\<cdot>(upper_principal t) = upper_principal (pd_take n t)"
 unfolding approx_upper_pd_def
 by (rule upper_pd.completion_approx_principal)
 
 lemma approx_eq_upper_principal:
-  "\<exists>t\<in>Rep_upper_pd xs. approx n\<cdot>xs = upper_principal (approx_pd n t)"
+  "\<exists>t\<in>Rep_upper_pd xs. approx n\<cdot>xs = upper_principal (pd_take n t)"
 unfolding approx_upper_pd_def
 by (rule upper_pd.completion_approx_eq_principal)
 

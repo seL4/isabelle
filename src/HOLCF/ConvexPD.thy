@@ -117,21 +117,21 @@ apply (drule convex_le_PDPlus_lemma, clarify)
 apply (simp add: 4)
 done
 
-lemma approx_pd_convex_chain:
-  "approx_pd n t \<le>\<natural> approx_pd (Suc n) t"
+lemma pd_take_convex_chain:
+  "pd_take n t \<le>\<natural> pd_take (Suc n) t"
 apply (induct t rule: pd_basis_induct)
 apply (simp add: compact_basis.take_chain)
 apply (simp add: PDPlus_convex_mono)
 done
 
-lemma approx_pd_convex_le: "approx_pd i t \<le>\<natural> t"
+lemma pd_take_convex_le: "pd_take i t \<le>\<natural> t"
 apply (induct t rule: pd_basis_induct)
 apply (simp add: compact_basis.take_less)
 apply (simp add: PDPlus_convex_mono)
 done
 
-lemma approx_pd_convex_mono:
-  "t \<le>\<natural> u \<Longrightarrow> approx_pd n t \<le>\<natural> approx_pd n u"
+lemma pd_take_convex_mono:
+  "t \<le>\<natural> u \<Longrightarrow> pd_take n t \<le>\<natural> pd_take n u"
 apply (erule convex_le_induct)
 apply (erule (1) convex_le_trans)
 apply (simp add: compact_basis.take_mono)
@@ -180,14 +180,14 @@ unfolding convex_principal_def
 by (simp add: Abs_convex_pd_inverse convex_le.ideal_principal)
 
 interpretation convex_pd:
-  ideal_completion [convex_le approx_pd convex_principal Rep_convex_pd]
+  ideal_completion [convex_le pd_take convex_principal Rep_convex_pd]
 apply unfold_locales
-apply (rule approx_pd_convex_le)
-apply (rule approx_pd_idem)
-apply (erule approx_pd_convex_mono)
-apply (rule approx_pd_convex_chain)
-apply (rule finite_range_approx_pd)
-apply (rule approx_pd_covers)
+apply (rule pd_take_convex_le)
+apply (rule pd_take_idem)
+apply (erule pd_take_convex_mono)
+apply (rule pd_take_convex_chain)
+apply (rule finite_range_pd_take)
+apply (rule pd_take_covers)
 apply (rule ideal_Rep_convex_pd)
 apply (erule Rep_convex_pd_lub)
 apply (rule Rep_convex_principal)
@@ -226,12 +226,12 @@ end
 instance convex_pd :: (bifinite) bifinite ..
 
 lemma approx_convex_principal [simp]:
-  "approx n\<cdot>(convex_principal t) = convex_principal (approx_pd n t)"
+  "approx n\<cdot>(convex_principal t) = convex_principal (pd_take n t)"
 unfolding approx_convex_pd_def
 by (rule convex_pd.completion_approx_principal)
 
 lemma approx_eq_convex_principal:
-  "\<exists>t\<in>Rep_convex_pd xs. approx n\<cdot>xs = convex_principal (approx_pd n t)"
+  "\<exists>t\<in>Rep_convex_pd xs. approx n\<cdot>xs = convex_principal (pd_take n t)"
 unfolding approx_convex_pd_def
 by (rule convex_pd.completion_approx_eq_principal)
 
