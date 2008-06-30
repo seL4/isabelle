@@ -837,7 +837,10 @@ fun create_nom_typedecls ak_names thy =
             ||>> PureThy.add_thmss [(("alpha_fresh", inst_pt_at [abs_fun_fresh]),[])]
             ||>> PureThy.add_thmss [(("alpha_fresh'", inst_pt_at [abs_fun_fresh']),[])]
             ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij] @ inst_pt_at [pt_swap_bij']),[])]
-            ||>> PureThy.add_thmss [(("swap_simps", inst_at at_swap_simps),[])]  
+            ||>> PureThy.add_thmss 
+	      let val thms1 = inst_at at_swap_simps
+                  and thms2 = inst_dj [dj_perm_forget]
+              in [(("swap_simps", thms1 @ thms2),[])] end 
             ||>> PureThy.add_thmss 
               let val thms1 = inst_pt_at [pt_pi_rev];
                   val thms2 = inst_pt_at [pt_rev_pi];
@@ -866,10 +869,9 @@ fun create_nom_typedecls ak_names thy =
                   val thms2 = inst_dj [at_fresh_ineq]
               in [(("fresh_atm", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
-              let val thms1 = filter
-                (fn th => case prop_of th of _ $ _ $ Var _ => true | _ => false)
-                (List.concat (List.concat perm_defs))
-              in [(("calc_atm", (inst_at at_calc) @ thms1),[])] end
+              let val thms1 = inst_at at_calc
+                  and thms2 = inst_dj [dj_perm_forget]
+              in [(("calc_atm", thms1 @ thms2),[])] end
             ||>> PureThy.add_thmss
               let val thms1 = inst_pt_at [abs_fun_pi]
                   and thms2 = inst_pt_pt_at_cp [abs_fun_pi_ineq]
