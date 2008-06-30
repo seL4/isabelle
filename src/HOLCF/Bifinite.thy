@@ -6,7 +6,7 @@
 header {* Bifinite domains and approximation *}
 
 theory Bifinite
-imports Cfun
+imports Deflation
 begin
 
 subsection {* Omega-profinite and bifinite domains *}
@@ -20,40 +20,45 @@ class profinite = cpo +
 
 class bifinite = profinite + pcpo
 
-lemma finite_range_imp_finite_fixes:
-  "finite {x. \<exists>y. x = f y} \<Longrightarrow> finite {x. f x = x}"
-apply (subgoal_tac "{x. f x = x} \<subseteq> {x. \<exists>y. x = f y}")
-apply (erule (1) finite_subset)
-apply (clarify, erule subst, rule exI, rule refl)
-done
+lemma approx_less: "approx i\<cdot>x \<sqsubseteq> x"
+proof -
+  have "chain (\<lambda>i. approx i\<cdot>x)" by simp
+  hence "approx i\<cdot>x \<sqsubseteq> (\<Squnion>i. approx i\<cdot>x)" by (rule is_ub_thelub)
+  thus "approx i\<cdot>x \<sqsubseteq> x" by simp
+qed
+
+lemma finite_deflation_approx: "finite_deflation (approx i)"
+proof
+  fix x :: 'a
+  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+    by (rule approx_idem)
+  show "approx i\<cdot>x \<sqsubseteq> x"
+    by (rule approx_less)
+  show "finite {x. approx i\<cdot>x = x}"
+    by (rule finite_fixes_approx)
+qed
+
+interpretation approx: finite_deflation ["approx i"]
+by (rule finite_deflation_approx)
+
+lemma deflation_approx: "deflation (approx i)"
+by (rule approx.deflation_axioms)
 
 lemma lub_approx [simp]: "(\<Squnion>i. approx i) = (\<Lambda> x. x)"
 by (rule ext_cfun, simp add: contlub_cfun_fun)
-
-lemma approx_less: "approx i\<cdot>x \<sqsubseteq> x"
-apply (subgoal_tac "approx i\<cdot>x \<sqsubseteq> (\<Squnion>i. approx i\<cdot>x)", simp)
-apply (rule is_ub_thelub, simp)
-done
 
 lemma approx_strict [simp]: "approx i\<cdot>\<bottom> = \<bottom>"
 by (rule UU_I, rule approx_less)
 
 lemma approx_approx1:
   "i \<le> j \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx i\<cdot>x"
-apply (rule antisym_less)
-apply (rule monofun_cfun_arg [OF approx_less])
-apply (rule sq_ord_eq_less_trans [OF approx_idem [symmetric]])
-apply (rule monofun_cfun_arg)
-apply (rule monofun_cfun_fun)
+apply (rule deflation_less_comp1 [OF deflation_approx deflation_approx])
 apply (erule chain_mono [OF chain_approx])
 done
 
 lemma approx_approx2:
   "j \<le> i \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx j\<cdot>x"
-apply (rule antisym_less)
-apply (rule approx_less)
-apply (rule sq_ord_eq_less_trans [OF approx_idem [symmetric]])
-apply (rule monofun_cfun_fun)
+apply (rule deflation_less_comp2 [OF deflation_approx deflation_approx])
 apply (erule chain_mono [OF chain_approx])
 done
 
@@ -64,50 +69,17 @@ apply (simp add: approx_approx1 min_def)
 apply (simp add: approx_approx2 min_def)
 done
 
-lemma idem_fixes_eq_range:
-  "\<forall>x. f (f x) = f x \<Longrightarrow> {x. f x = x} = {y. \<exists>x. y = f x}"
-by (auto simp add: eq_sym_conv)
-
-lemma finite_approx: "finite {y. \<exists>x. y = approx n\<cdot>x}"
-using finite_fixes_approx by (simp add: idem_fixes_eq_range)
-
 lemma finite_image_approx: "finite ((\<lambda>x. approx n\<cdot>x) ` A)"
-by (rule finite_subset [OF _ finite_fixes_approx [where i=n]]) auto
+by (rule approx.finite_image)
 
-lemma finite_range_approx: "finite (range (\<lambda>x. approx n\<cdot>x))"
-by (rule finite_image_approx)
+lemma finite_range_approx: "finite (range (\<lambda>x. approx i\<cdot>x))"
+by (rule approx.finite_range)
 
 lemma compact_approx [simp]: "compact (approx n\<cdot>x)"
-proof (rule compactI2)
-  fix Y::"nat \<Rightarrow> 'a"
-  assume Y: "chain Y"
-  have "finite_chain (\<lambda>i. approx n\<cdot>(Y i))"
-  proof (rule finite_range_imp_finch)
-    show "chain (\<lambda>i. approx n\<cdot>(Y i))"
-      using Y by simp
-    have "range (\<lambda>i. approx n\<cdot>(Y i)) \<subseteq> {x. approx n\<cdot>x = x}"
-      by clarsimp
-    thus "finite (range (\<lambda>i. approx n\<cdot>(Y i)))"
-      using finite_fixes_approx by (rule finite_subset)
-  qed
-  hence "\<exists>j. (\<Squnion>i. approx n\<cdot>(Y i)) = approx n\<cdot>(Y j)"
-    by (simp add: finite_chain_def maxinch_is_thelub Y)
-  then obtain j where j: "(\<Squnion>i. approx n\<cdot>(Y i)) = approx n\<cdot>(Y j)" ..
-
-  assume "approx n\<cdot>x \<sqsubseteq> (\<Squnion>i. Y i)"
-  hence "approx n\<cdot>(approx n\<cdot>x) \<sqsubseteq> approx n\<cdot>(\<Squnion>i. Y i)"
-    by (rule monofun_cfun_arg)
-  hence "approx n\<cdot>x \<sqsubseteq> (\<Squnion>i. approx n\<cdot>(Y i))"
-    by (simp add: contlub_cfun_arg Y)
-  hence "approx n\<cdot>x \<sqsubseteq> approx n\<cdot>(Y j)"
-    using j by simp
-  hence "approx n\<cdot>x \<sqsubseteq> Y j"
-    using approx_less by (rule trans_less)
-  thus "\<exists>j. approx n\<cdot>x \<sqsubseteq> Y j" ..
-qed
+by (rule approx.compact)
 
 lemma profinite_compact_eq_approx: "compact x \<Longrightarrow> \<exists>i. approx i\<cdot>x = x"
-by (rule admD2) simp_all
+by (rule admD2, simp_all)
 
 lemma profinite_compact_iff: "compact x \<longleftrightarrow> (\<exists>n. approx n\<cdot>x = x)"
  apply (rule iffI)
@@ -133,25 +105,34 @@ done
 
 subsection {* Instance for continuous function space *}
 
-lemma finite_range_lemma:
-  fixes h :: "'a::cpo \<rightarrow> 'b::cpo"
-  fixes k :: "'c::cpo \<rightarrow> 'd::cpo"
-  shows "\<lbrakk>finite {y. \<exists>x. y = h\<cdot>x}; finite {y. \<exists>x. y = k\<cdot>x}\<rbrakk>
-    \<Longrightarrow> finite {g. \<exists>f. g = (\<Lambda> x. k\<cdot>(f\<cdot>(h\<cdot>x)))}"
- apply (rule_tac f="\<lambda>g. {(h\<cdot>x, y) |x y. y = g\<cdot>x}" in finite_imageD)
-  apply (rule_tac B="Pow ({y. \<exists>x. y = h\<cdot>x} \<times> {y. \<exists>x. y = k\<cdot>x})"
-           in finite_subset)
-   apply (rule image_subsetI)
-   apply (clarsimp, fast)
-  apply simp
- apply (rule inj_onI)
- apply (clarsimp simp add: expand_set_eq)
- apply (rule ext_cfun, simp)
- apply (drule_tac x="h\<cdot>x" in spec)
- apply (drule_tac x="k\<cdot>(f\<cdot>(h\<cdot>x))" in spec)
- apply (drule iffD1, fast)
- apply clarsimp
-done
+lemma finite_range_cfun_lemma:
+  assumes a: "finite (range (\<lambda>x. a\<cdot>x))"
+  assumes b: "finite (range (\<lambda>y. b\<cdot>y))"
+  shows "finite (range (\<lambda>f. \<Lambda> x. b\<cdot>(f\<cdot>(a\<cdot>x))))"  (is "finite (range ?h)")
+proof (rule finite_imageD)
+  let ?f = "\<lambda>g. range (\<lambda>x. (a\<cdot>x, g\<cdot>x))"
+  show "finite (?f ` range ?h)"
+  proof (rule finite_subset)
+    let ?B = "Pow (range (\<lambda>x. a\<cdot>x) \<times> range (\<lambda>y. b\<cdot>y))"
+    show "?f ` range ?h \<subseteq> ?B"
+      by clarsimp
+    show "finite ?B"
+      by (simp add: a b)
+  qed
+  show "inj_on ?f (range ?h)"
+  proof (rule inj_onI, rule ext_cfun, clarsimp)
+    fix x f g
+    assume "range (\<lambda>x. (a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x)))) = range (\<lambda>x. (a\<cdot>x, b\<cdot>(g\<cdot>(a\<cdot>x))))"
+    hence "range (\<lambda>x. (a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x)))) \<subseteq> range (\<lambda>x. (a\<cdot>x, b\<cdot>(g\<cdot>(a\<cdot>x))))"
+      by (rule equalityD1)
+    hence "(a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x))) \<in> range (\<lambda>x. (a\<cdot>x, b\<cdot>(g\<cdot>(a\<cdot>x))))"
+      by (simp add: subset_eq)
+    then obtain y where "(a\<cdot>x, b\<cdot>(f\<cdot>(a\<cdot>x))) = (a\<cdot>y, b\<cdot>(g\<cdot>(a\<cdot>y)))"
+      by (rule rangeE)
+    thus "b\<cdot>(f\<cdot>(a\<cdot>x)) = b\<cdot>(g\<cdot>(a\<cdot>x))"
+      by clarsimp
+  qed
+qed
 
 instantiation "->" :: (profinite, profinite) profinite
 begin
@@ -160,15 +141,26 @@ definition
   approx_cfun_def:
     "approx = (\<lambda>n. \<Lambda> f x. approx n\<cdot>(f\<cdot>(approx n\<cdot>x)))"
 
-instance
- apply (intro_classes, unfold approx_cfun_def)
-    apply simp
-   apply (simp add: lub_distribs eta_cfun)
-  apply simp
- apply simp
- apply (rule finite_range_imp_finite_fixes)
- apply (intro finite_range_lemma finite_approx)
-done
+instance proof
+  show "chain (approx :: nat \<Rightarrow> ('a \<rightarrow> 'b) \<rightarrow> ('a \<rightarrow> 'b))"
+    unfolding approx_cfun_def by simp
+next
+  fix x :: "'a \<rightarrow> 'b"
+  show "(\<Squnion>i. approx i\<cdot>x) = x"
+    unfolding approx_cfun_def
+    by (simp add: lub_distribs eta_cfun)
+next
+  fix i :: nat and x :: "'a \<rightarrow> 'b"
+  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+    unfolding approx_cfun_def by simp
+next
+  fix i :: nat
+  show "finite {x::'a \<rightarrow> 'b. approx i\<cdot>x = x}"
+    apply (rule finite_range_imp_finite_fixes)
+    apply (simp add: approx_cfun_def)
+    apply (intro finite_range_cfun_lemma finite_range_approx)
+    done
+qed
 
 end
 
