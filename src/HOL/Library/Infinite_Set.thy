@@ -1,4 +1,4 @@
-(*  Title:      HOL/Infnite_Set.thy
+(*  Title:      HOL/Library/Infinite_Set.thy
     ID:         $Id$
     Author:     Stephan Merz
 *)
@@ -209,10 +209,9 @@ text {*
 lemma range_inj_infinite:
   "inj (f::nat \<Rightarrow> 'a) \<Longrightarrow> infinite (range f)"
 proof
-  assume "inj f"
-    and  "finite (range f)"
+  assume "finite (range f)" and "inj f"
   then have "finite (UNIV::nat set)"
-    by (auto intro: finite_imageD simp del: nat_infinite)
+    by (rule finite_imageD)
   then show False by simp
 qed
 
@@ -374,7 +373,7 @@ notation (HTML output)
   Inf_many  (binder "\<exists>\<^sub>\<infinity>" 10) and
   Alm_all  (binder "\<forall>\<^sub>\<infinity>" 10)
 
-lemma INF_EX:
+lemma INFM_EX:
   "(\<exists>\<^sub>\<infinity>x. P x) \<Longrightarrow> (\<exists>x. P x)"
   unfolding Inf_many_def
 proof (rule ccontr)
@@ -390,7 +389,7 @@ lemma MOST_iff_finiteNeg: "(\<forall>\<^sub>\<infinity>x. P x) = finite {x. \<no
 lemma ALL_MOST: "\<forall>x. P x \<Longrightarrow> \<forall>\<^sub>\<infinity>x. P x"
   by (simp add: MOST_iff_finiteNeg)
 
-lemma INF_mono:
+lemma INFM_mono:
   assumes inf: "\<exists>\<^sub>\<infinity>x. P x" and q: "\<And>x. P x \<Longrightarrow> Q x"
   shows "\<exists>\<^sub>\<infinity>x. Q x"
 proof -
@@ -401,19 +400,48 @@ proof -
 qed
 
 lemma MOST_mono: "\<forall>\<^sub>\<infinity>x. P x \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> \<forall>\<^sub>\<infinity>x. Q x"
-  unfolding Alm_all_def by (blast intro: INF_mono)
+  unfolding Alm_all_def by (blast intro: INFM_mono)
 
-lemma INF_nat: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) = (\<forall>m. \<exists>n. m<n \<and> P n)"
+lemma INFM_disj_distrib:
+  "(\<exists>\<^sub>\<infinity>x. P x \<or> Q x) \<longleftrightarrow> (\<exists>\<^sub>\<infinity>x. P x) \<or> (\<exists>\<^sub>\<infinity>x. Q x)"
+  unfolding Inf_many_def by (simp add: Collect_disj_eq)
+
+lemma MOST_conj_distrib:
+  "(\<forall>\<^sub>\<infinity>x. P x \<and> Q x) \<longleftrightarrow> (\<forall>\<^sub>\<infinity>x. P x) \<and> (\<forall>\<^sub>\<infinity>x. Q x)"
+  unfolding Alm_all_def by (simp add: INFM_disj_distrib del: disj_not1)
+
+lemma MOST_rev_mp:
+  assumes "\<forall>\<^sub>\<infinity>x. P x" and "\<forall>\<^sub>\<infinity>x. P x \<longrightarrow> Q x"
+  shows "\<forall>\<^sub>\<infinity>x. Q x"
+proof -
+  have "\<forall>\<^sub>\<infinity>x. P x \<and> (P x \<longrightarrow> Q x)"
+    using prems by (simp add: MOST_conj_distrib)
+  thus ?thesis by (rule MOST_mono) simp
+qed
+
+lemma not_INFM [simp]: "\<not> (INFM x. P x) \<longleftrightarrow> (MOST x. \<not> P x)"
+unfolding Alm_all_def not_not ..
+
+lemma not_MOST [simp]: "\<not> (MOST x. P x) \<longleftrightarrow> (INFM x. \<not> P x)"
+unfolding Alm_all_def not_not ..
+
+lemma INFM_const [simp]: "(INFM x::'a. P) \<longleftrightarrow> P \<and> infinite (UNIV::'a set)"
+  unfolding Inf_many_def by simp
+
+lemma MOST_const [simp]: "(MOST x::'a. P) \<longleftrightarrow> P \<or> finite (UNIV::'a set)"
+  unfolding Alm_all_def by simp
+
+lemma INFM_nat: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) = (\<forall>m. \<exists>n. m<n \<and> P n)"
   by (simp add: Inf_many_def infinite_nat_iff_unbounded)
 
-lemma INF_nat_le: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) = (\<forall>m. \<exists>n. m\<le>n \<and> P n)"
+lemma INFM_nat_le: "(\<exists>\<^sub>\<infinity>n. P (n::nat)) = (\<forall>m. \<exists>n. m\<le>n \<and> P n)"
   by (simp add: Inf_many_def infinite_nat_iff_unbounded_le)
 
 lemma MOST_nat: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) = (\<exists>m. \<forall>n. m<n \<longrightarrow> P n)"
-  by (simp add: Alm_all_def INF_nat)
+  by (simp add: Alm_all_def INFM_nat)
 
 lemma MOST_nat_le: "(\<forall>\<^sub>\<infinity>n. P (n::nat)) = (\<exists>m. \<forall>n. m\<le>n \<longrightarrow> P n)"
-  by (simp add: Alm_all_def INF_nat_le)
+  by (simp add: Alm_all_def INFM_nat_le)
 
 
 subsection "Enumeration of an Infinite Set"
