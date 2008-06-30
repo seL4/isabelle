@@ -321,7 +321,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/langford.ML \
   Tools/Qelim/langford_data.ML
-	@cd Complex; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Complex
+	@cd Complex; $(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/HOL HOL-Complex
 
 
 ## HOL-Complex-ex
