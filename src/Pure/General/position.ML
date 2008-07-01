@@ -16,6 +16,8 @@ sig
   val line: int -> T
   val file: string -> T
   val advance: Symbol.symbol -> T -> T
+  val get_id: T -> string option
+  val put_id: string -> T -> T
   val of_properties: Markup.property list -> T
   val properties_of: T -> Markup.property list
   val default_properties: T -> Markup.property list -> Markup.property list
@@ -56,6 +58,9 @@ fun advance "\n" (Pos (SOME (m, _), props)) = Pos (SOME (m + 1, 1), props)
 
 
 (* markup properties *)
+
+fun get_id (Pos (_, props)) = AList.lookup (op =) props Markup.idN;
+fun put_id id (Pos (count, props)) = Pos (count, AList.update (op =) (Markup.idN, id) props);
 
 fun get_int props (name: string) =
   (case AList.lookup (op =) props name of
