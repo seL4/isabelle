@@ -429,8 +429,13 @@ class finite = itself +
 setup {* Sign.parent_path *}
 hide const finite
 
-lemma finite [simp]: "finite (A \<Colon> 'a\<Colon>finite set)"
+context finite
+begin
+
+lemma finite [simp]: "finite (A \<Colon> 'a set)"
   by (rule subset_UNIV finite_UNIV finite_subset)+
+
+end
 
 lemma UNIV_unit [noatp]:
   "UNIV = {()}" by auto
