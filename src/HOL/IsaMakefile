@@ -186,7 +186,6 @@ $(OUT)/HOL: $(OUT)/HOL-Plain \
   Complex/Fundamental_Theorem_Algebra.thy \
   Complex/NSCA.thy \
   Complex/NSComplex.thy \
-  Complex/ROOT.ML \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
