@@ -967,7 +967,7 @@ $(LOG)/HOL-Statespace.gz: $(OUT)/HOL Statespace/DistinctTreeProver.thy	\
 ## clean
 
 clean:
-	@rm -f  $(OUT)/HOL $(OUT)/HOL-Nominal $(OUT)/TLA \
+	@rm -f  $(OUT)/HOL-Plain $(OUT)/HOL $(OUT)/HOL-Nominal $(OUT)/TLA \
 		$(LOG)/HOL.gz $(LOG)/TLA.gz \
 		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
 		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
