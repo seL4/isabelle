@@ -123,8 +123,6 @@ by (simp add: adm_imp)
 
 text {* admissibility and continuity *}
 
-declare range_composition [simp del]
-
 lemma adm_less: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
 apply (rule admI)
 apply (simp add: cont2contlubE)

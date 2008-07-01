@@ -201,8 +201,6 @@ done
 
 text {* the lub of a chain of continuous functions is continuous *}
 
-declare range_composition [simp del]
-
 lemma contlub_lub_fun:
   "\<lbrakk>chain F; \<forall>i. cont (F i)\<rbrakk> \<Longrightarrow> contlub (\<Squnion>i. F i)"
 apply (rule contlubI)

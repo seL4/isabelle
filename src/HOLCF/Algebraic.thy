@@ -9,8 +9,6 @@ theory Algebraic
 imports Completion Fix Eventual
 begin
 
-declare range_composition [simp del]
-
 subsection {* Constructing finite deflations by iteration *}
 
 lemma finite_deflation_imp_deflation:
