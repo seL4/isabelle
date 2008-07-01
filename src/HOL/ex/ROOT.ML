@@ -87,3 +87,25 @@ no_document time_use_thy "NormalForm";
 
 HTML.with_charset "utf-8" (no_document use_thys) ["Hebrew", "Chinese"];
 
+no_document use_thys [
+  "../NumberTheory/Factorization",
+  "../Library/BigO",
+  "../Library/NatPair"
+];
+
+use_thys [
+  "../Complex/ex/BinEx",
+  "../Complex/ex/Sqrt",
+  "../Complex/ex/Sqrt_Script",
+  "../Complex/ex/NSPrimes",
+  "../Complex/ex/BigO_Complex",
+
+  "../Complex/ex/Arithmetic_Series_Complex",
+  "../Complex/ex/HarmonicSeries",
+
+  "../Complex/ex/DenumRat",
+  
+  "../Complex/ex/MIR",
+  "../Complex/ex/ReflectedFerrack"
+];
+

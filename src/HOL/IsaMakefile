@@ -5,9 +5,8 @@
 ## targets
 
 default: HOL
-generate: HOL-Complex-Generate-HOL HOL-Complex-Generate-HOLLight
-images: HOL-Plain HOL HOL-Algebra HOL-Complex HOL-Complex-Matrix HOL-Nominal \
-        HOL-Word TLA HOL4
+generate: HOL-Generate-HOL HOL-Generate-HOLLight
+images: HOL-Plain HOL HOL-Algebra HOL-Nominal HOL-Word TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \
@@ -16,12 +15,11 @@ test: \
   HOL-Auth \
   HOL-AxClasses \
   HOL-Bali \
-  HOL-Complex-HahnBanach \
-  HOL-Complex-Import \
-  HOL-Complex-ex \
   HOL-Extraction \
+  HOL-HahnBanach \
   HOL-Hoare \
   HOL-HoareParallel \
+  HOL-Import \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
@@ -179,97 +177,19 @@ $(OUT)/HOL-Plain: $(OUT)/Pure \
 
 $(OUT)/HOL: $(OUT)/HOL-Plain \
   ROOT.ML \
-  ATP_Linkup.thy \
   Arith_Tools.thy \
-  Equiv_Relations.thy \
-  Groebner_Basis.thy \
-  Hilbert_Choice.thy \
-  Int.thy \
-  IntDiv.thy \
-  List.thy \
-  Main.thy \
-  Map.thy \
-  NatBin.thy \
-  Presburger.thy \
-  Recdef.thy \
-  Relation_Power.thy \
-  SetInterval.thy \
-  Tools/Groebner_Basis/groebner.ML \
-  Tools/Groebner_Basis/misc.ML \
-  Tools/Groebner_Basis/normalizer.ML \
-  Tools/Groebner_Basis/normalizer_data.ML \
-  Tools/Qelim/cooper.ML \
-  Tools/Qelim/cooper_data.ML \
-  Tools/Qelim/generated_cooper.ML \
-  Tools/Qelim/presburger.ML \
-  Tools/Qelim/qelim.ML \
-  Tools/TFL/casesplit.ML \
-  Tools/TFL/dcterm.ML \
-  Tools/TFL/post.ML \
-  Tools/TFL/rules.ML \
-  Tools/TFL/tfl.ML \
-  Tools/TFL/thms.ML \
-  Tools/TFL/thry.ML \
-  Tools/TFL/usyntax.ML \
-  Tools/TFL/utils.ML \
-  Tools/meson.ML \
-  Tools/metis_tools.ML \
-  Tools/numeral.ML \
-  Tools/numeral_syntax.ML \
-  Tools/polyhash.ML \
-  Tools/recdef_package.ML \
-  Tools/res_atp.ML \
-  Tools/res_atp_methods.ML \
-  Tools/res_atp_provers.ML \
-  Tools/res_axioms.ML \
-  Tools/res_clause.ML \
-  Tools/res_hol_clause.ML \
-  Tools/res_reconstruct.ML \
-  Tools/specification_package.ML \
-  Tools/string_syntax.ML \
-  Tools/watcher.ML \
-  int_arith1.ML \
-  int_factor_simprocs.ML \
-  nat_simprocs.ML \
-  $(SRC)/Provers/Arith/assoc_fold.ML \
-  $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
-  $(SRC)/Provers/Arith/cancel_numerals.ML \
-  $(SRC)/Provers/Arith/combine_numerals.ML \
-  $(SRC)/Provers/Arith/extract_common_term.ML \
-  $(SRC)/Tools/Metis/metis.ML
-	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/HOL-Plain HOL
-
-
-## HOL-Complex-HahnBanach
-
-HOL-Complex-HahnBanach: HOL-Complex $(LOG)/HOL-Complex-HahnBanach.gz
-
-$(LOG)/HOL-Complex-HahnBanach.gz: $(OUT)/HOL-Complex			\
-  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy		\
-  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy	\
-  Real/HahnBanach/HahnBanachExtLemmas.thy				\
-  Real/HahnBanach/HahnBanachSupLemmas.thy				\
-  Real/HahnBanach/Linearform.thy Real/HahnBanach/NormedSpace.thy	\
-  Real/HahnBanach/README.html Real/HahnBanach/ROOT.ML			\
-  Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy		\
-  Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib	\
-  Real/HahnBanach/document/root.tex
-	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL-Complex HahnBanach
-
-
-## HOL-Complex
-
-HOL-Complex: HOL $(OUT)/HOL-Complex
-
-$(OUT)/HOL-Complex: $(OUT)/HOL \
-  Complex/ROOT.ML \
+  ATP_Linkup.thy \
   Complex/CLim.thy \
-  Complex/CStar.thy \
-  Complex/Complex.thy \
   Complex/Complex_Main.thy \
+  Complex/Complex.thy \
+  Complex/CStar.thy \
   Complex/Fundamental_Theorem_Algebra.thy \
   Complex/NSCA.thy \
   Complex/NSComplex.thy \
+  Complex/ROOT.ML \
+  Equiv_Relations.thy \
+  Groebner_Basis.thy \
+  Hilbert_Choice.thy \
   Hyperreal/Deriv.thy \
   Hyperreal/Fact.thy \
   Hyperreal/Filter.thy \
@@ -282,22 +202,26 @@ $(OUT)/HOL-Complex: $(OUT)/HOL \
   Hyperreal/HyperDef.thy \
   Hyperreal/HyperNat.thy \
   Hyperreal/Hyperreal.thy \
+  Hyperreal/hypreal_arith.ML \
   Hyperreal/Integration.thy \
   Hyperreal/Lim.thy \
   Hyperreal/Ln.thy \
   Hyperreal/Log.thy \
   Hyperreal/MacLaurin.thy \
-  Hyperreal/NSA.thy \
   Hyperreal/NatStar.thy \
+  Hyperreal/NSA.thy \
   Hyperreal/NthRoot.thy \
   Hyperreal/SEQ.thy \
   Hyperreal/Series.thy \
-  Hyperreal/Star.thy \
   Hyperreal/StarDef.thy \
+  Hyperreal/Star.thy \
   Hyperreal/Taylor.thy \
   Hyperreal/Transcendental.thy \
-  Hyperreal/hypreal_arith.ML \
   Hyperreal/transfer.ML \
+  int_arith1.ML \
+  IntDiv.thy \
+  int_factor_simprocs.ML \
+  Int.thy \
   Library/Abstract_Rat.thy \
   Library/Dense_Linear_Order.thy \
   Library/GCD.thy \
@@ -306,36 +230,71 @@ $(OUT)/HOL-Complex: $(OUT)/HOL \
   Library/Parity.thy \
   Library/Univ_Poly.thy \
   Library/Zorn.thy \
+  List.thy \
+  Main.thy \
+  Map.thy \
+  NatBin.thy \
+  nat_simprocs.ML \
+  Presburger.thy \
   Real/ContNotDenum.thy \
   Real/Lubs.thy \
   Real/PReal.thy \
-  Real/RComplete.thy \
+  Real/rat_arith.ML \
   Real/Rational.thy \
-  Real/Real.thy \
+  Real/RComplete.thy \
+  Real/real_arith.ML \
   Real/RealDef.thy \
   Real/RealPow.thy \
+  Real/Real.thy \
   Real/RealVector.thy \
-  Real/rat_arith.ML \
-  Real/real_arith.ML \
-  Tools/Qelim/ferrante_rackoff.ML \
+  Recdef.thy \
+  Relation_Power.thy \
+  SetInterval.thy \
+  $(SRC)/Provers/Arith/assoc_fold.ML \
+  $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
+  $(SRC)/Provers/Arith/cancel_numerals.ML \
+  $(SRC)/Provers/Arith/combine_numerals.ML \
+  $(SRC)/Provers/Arith/extract_common_term.ML \
+  $(SRC)/Tools/Metis/metis.ML \
+  Tools/Groebner_Basis/groebner.ML \
+  Tools/Groebner_Basis/misc.ML \
+  Tools/Groebner_Basis/normalizer_data.ML \
+  Tools/Groebner_Basis/normalizer.ML \
+  Tools/meson.ML \
+  Tools/metis_tools.ML \
+  Tools/numeral.ML \
+  Tools/numeral_syntax.ML \
+  Tools/polyhash.ML \
+  Tools/Qelim/cooper_data.ML \
+  Tools/Qelim/cooper.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \
+  Tools/Qelim/ferrante_rackoff.ML \
+  Tools/Qelim/generated_cooper.ML \
+  Tools/Qelim/langford_data.ML \
   Tools/Qelim/langford.ML \
-  Tools/Qelim/langford_data.ML
-	@cd Complex; $(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/HOL HOL-Complex
-
-
-## HOL-Complex-ex
-
-HOL-Complex-ex: HOL-Complex $(LOG)/HOL-Complex-ex.gz
-
-$(LOG)/HOL-Complex-ex.gz: $(OUT)/HOL-Complex Library/Primes.thy		\
-  Complex/ex/ROOT.ML Complex/ex/document/root.tex			\
-  Complex/ex/BigO_Complex.thy Complex/ex/BinEx.thy			\
-  Complex/ex/NSPrimes.thy Complex/ex/Sqrt.thy				\
-  Complex/ex/Sqrt_Script.thy Complex/ex/MIR.thy Complex/ex/mirtac.ML	\
-  Complex/ex/mireif.ML Complex/ex/ReflectedFerrack.thy			\
-  Complex/ex/linreif.ML Complex/ex/linrtac.ML
-	@cd Complex; $(ISATOOL) usedir $(OUT)/HOL-Complex ex
+  Tools/Qelim/presburger.ML \
+  Tools/Qelim/qelim.ML \
+  Tools/recdef_package.ML \
+  Tools/res_atp_methods.ML \
+  Tools/res_atp.ML \
+  Tools/res_atp_provers.ML \
+  Tools/res_axioms.ML \
+  Tools/res_clause.ML \
+  Tools/res_hol_clause.ML \
+  Tools/res_reconstruct.ML \
+  Tools/specification_package.ML \
+  Tools/string_syntax.ML \
+  Tools/TFL/casesplit.ML \
+  Tools/TFL/dcterm.ML \
+  Tools/TFL/post.ML \
+  Tools/TFL/rules.ML \
+  Tools/TFL/tfl.ML \
+  Tools/TFL/thms.ML \
+  Tools/TFL/thry.ML \
+  Tools/TFL/usyntax.ML \
+  Tools/TFL/utils.ML \
+  Tools/watcher.ML
+	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/HOL-Plain HOL
 
 
 ## HOL-Library
@@ -369,6 +328,23 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Ref.thy Library/Imperative_HOL.thy Library/RBT.thy		\
   Library/Enum.thy Real/Float.thy $(SRC)/Tools/float.ML
 	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library
+
+
+## HOL-HahnBanach
+
+HOL-HahnBanach: HOL $(LOG)/HOL-HahnBanach.gz
+
+$(LOG)/HOL-HahnBanach.gz: $(OUT)/HOL			\
+  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy		\
+  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy	\
+  Real/HahnBanach/HahnBanachExtLemmas.thy				\
+  Real/HahnBanach/HahnBanachSupLemmas.thy				\
+  Real/HahnBanach/Linearform.thy Real/HahnBanach/NormedSpace.thy	\
+  Real/HahnBanach/README.html Real/HahnBanach/ROOT.ML			\
+  Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy		\
+  Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib	\
+  Real/HahnBanach/document/root.tex
+	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL HahnBanach
 
 
 ## HOL-Subst
@@ -413,7 +389,7 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
 	@$(ISATOOL) usedir $(OUT)/HOL IMPP
 
 
-## HOL-Complex-Import
+## HOL-Import
 
 IMPORTER_FILES = Import/lazy_seq.ML Import/proof_kernel.ML Import/replay.ML \
   Import/shuffler.ML Import/MakeEqual.thy Import/HOL4Setup.thy \
@@ -425,38 +401,38 @@ IMPORTER_HOLLIGHT_FILES = Import/proof_kernel.ML Import/replay.ML \
   Import/HOL4Syntax.thy Import/HOLLightCompat.thy Import/import_syntax.ML \
   Import/hol4rews.ML Import/import_package.ML Import/ROOT.ML
 
-HOL-Complex-Import: HOL-Complex $(LOG)/HOL-Complex-Import.gz
+HOL-Import: HOL $(LOG)/HOL-Import.gz
 
-$(LOG)/HOL-Complex-Import.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL-Complex Import
+$(LOG)/HOL-Import.gz: $(OUT)/HOL $(IMPORTER_FILES)
+	@$(ISATOOL) usedir $(OUT)/HOL Import
 
 
-## HOL-Complex-Generate-HOL
+## HOL-Generate-HOL
 
-HOL-Complex-Generate-HOL: HOL-Complex $(LOG)/HOL-Complex-Generate-HOL.gz
+HOL-Generate-HOL: HOL $(LOG)/HOL-Generate-HOL.gz
 
-$(LOG)/HOL-Complex-Generate-HOL.gz: $(OUT)/HOL-Complex			\
+$(LOG)/HOL-Generate-HOL.gz: $(OUT)/HOL			\
   $(IMPORTER_FILES) Import/Generate-HOL/GenHOL4Base.thy			\
   Import/Generate-HOL/GenHOL4Prob.thy					\
   Import/Generate-HOL/GenHOL4Real.thy					\
   Import/Generate-HOL/GenHOL4Vec.thy					\
   Import/Generate-HOL/GenHOL4Word32.thy Import/Generate-HOL/ROOT.ML
-	@cd Import; $(ISATOOL) usedir $(OUT)/HOL-Complex Generate-HOL
+	@cd Import; $(ISATOOL) usedir $(OUT)/HOL Generate-HOL
 
 
-## HOL-Complex-Generate-HOLLight
+## HOL-Generate-HOLLight
 
-HOL-Complex-Generate-HOLLight: HOL-Complex $(LOG)/HOL-Complex-Generate-HOLLight.gz
+HOL-Generate-HOLLight: HOL $(LOG)/HOL-Generate-HOLLight.gz
 
-$(LOG)/HOL-Complex-Generate-HOLLight.gz: $(OUT)/HOL-Complex		\
+$(LOG)/HOL-Generate-HOLLight.gz: $(OUT)/HOL		\
   $(IMPORTER_HOLLIGHT_FILES) Import/Generate-HOLLight/GenHOLLight.thy	\
   Import/Generate-HOLLight/ROOT.ML
-	@cd Import; $(ISATOOL) usedir $(OUT)/HOL-Complex Generate-HOLLight
+	@cd Import; $(ISATOOL) usedir $(OUT)/HOL Generate-HOLLight
 
 
 ## HOL-Import-HOL
 
-HOL4: HOL-Complex $(LOG)/HOL4.gz
+HOL4: HOL $(LOG)/HOL4.gz
 
 HOL_IMPORT_FILES = arithmetic.imp bits.imp boolean_sequence.imp bool.imp \
   bword_arith.imp bword_bitop.imp bword_num.imp combin.imp divides.imp \
@@ -469,19 +445,19 @@ HOL_IMPORT_FILES = arithmetic.imp bits.imp boolean_sequence.imp bool.imp \
   seq.imp state_transformer.imp sum.imp topology.imp transc.imp word32.imp \
   word_base.imp word_bitop.imp word_num.imp
 
-$(LOG)/HOL4.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES)			\
+$(LOG)/HOL4.gz: $(OUT)/HOL $(IMPORTER_FILES)			\
   $(HOL_IMPORT_FILES:%=Import/HOL/%) Import/HOL/HOL4Base.thy		\
   Import/HOL/HOL4Prob.thy Import/HOL/HOL4Real.thy			\
   Import/HOL/HOL4Vec.thy Import/HOL/HOL4Word32.thy Import/HOL/HOL4.thy	\
   Import/HOL/ROOT.ML
-	@cd Import/HOL; $(ISATOOL) usedir -b $(OUT)/HOL-Complex HOL4
+	@cd Import/HOL; $(ISATOOL) usedir -b $(OUT)/HOL HOL4
 
-HOLLight: HOL-Complex $(LOG)/HOLLight.gz
+HOLLight: HOL $(LOG)/HOLLight.gz
 
-$(LOG)/HOLLight.gz: $(OUT)/HOL-Complex $(IMPORTER_HOLLIGHT_FILES)	\
+$(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_HOLLIGHT_FILES)	\
   Import/HOLLight/hollight.imp Import/HOLLight/HOLLight.thy		\
   Import/HOLLight/ROOT.ML
-	@cd Import/HOLLight; $(ISATOOL) usedir -b $(OUT)/HOL-Complex HOLLight
+	@cd Import/HOLLight; $(ISATOOL) usedir -b $(OUT)/HOL HOLLight
 
 
 ## HOL-NumberTheory
@@ -790,6 +766,7 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy			\
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
+  Library/Primes.thy							\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/Arith_Examples.thy ex/BT.thy	\
   ex/BinEx.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
   ex/Dense_Linear_Order_Ex.thy ex/Eval_Examples.thy			\
@@ -810,7 +787,12 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
   ex/Sudoku.thy ex/Tarski.thy ex/Unification.thy ex/document/root.bib	\
   ex/document/root.tex ex/Meson_Test.thy ex/reflection.ML ex/set.thy	\
-  ex/svc_funcs.ML ex/svc_test.thy Library/Parity.thy Library/GCD.thy
+  ex/svc_funcs.ML ex/svc_test.thy Library/Parity.thy Library/GCD.thy	\
+  Complex/ex/BigO_Complex.thy Complex/ex/BinEx.thy			\
+  Complex/ex/NSPrimes.thy Complex/ex/Sqrt.thy				\
+  Complex/ex/Sqrt_Script.thy Complex/ex/MIR.thy Complex/ex/mirtac.ML	\
+  Complex/ex/mireif.ML Complex/ex/ReflectedFerrack.thy			\
+  Complex/ex/linreif.ML Complex/ex/linrtac.ML
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 
@@ -844,11 +826,11 @@ $(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML		\
 	@$(ISATOOL) usedir -g true $(OUT)/HOL SET-Protocol
 
 
-## HOL-Complex-Matrix
+## HOL-Matrix
 
-HOL-Complex-Matrix: HOL-Complex $(OUT)/HOL-Complex-Matrix
+HOL-Matrix: HOL $(OUT)/HOL-Matrix
 
-$(OUT)/HOL-Complex-Matrix: $(OUT)/HOL-Complex				\
+$(OUT)/HOL-Matrix: $(OUT)/HOL				\
   $(SRC)/Tools/Compute_Oracle/Compute_Oracle.thy			\
   $(SRC)/Tools/Compute_Oracle/am_compiler.ML				\
   $(SRC)/Tools/Compute_Oracle/am_interpreter.ML				\
@@ -863,7 +845,7 @@ $(OUT)/HOL-Complex-Matrix: $(OUT)/HOL-Complex				\
   Matrix/cplex/FloatSparseMatrix.thy					\
   Matrix/cplex/FloatSparseMatrixBuilder.ML Matrix/cplex/fspmlp.ML	\
   Matrix/cplex/MatrixLP.thy Matrix/cplex/matrixlp.ML
-	@cd Matrix; $(ISATOOL) usedir -b -g true $(OUT)/HOL-Complex HOL-Complex-Matrix
+	@$(ISATOOL) usedir -g true $(OUT)/HOL Matrix
 
 
 ## TLA
@@ -986,7 +968,7 @@ $(LOG)/HOL-Statespace.gz: $(OUT)/HOL Statespace/DistinctTreeProver.thy	\
 ## clean
 
 clean:
-	@rm -f  $(OUT)/HOL $(OUT)/HOL-Complex $(OUT)/HOL-Nominal $(OUT)/TLA \
+	@rm -f  $(OUT)/HOL $(OUT)/HOL-Nominal $(OUT)/TLA \
 		$(LOG)/HOL.gz $(LOG)/TLA.gz \
 		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
 		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
@@ -999,9 +981,7 @@ clean:
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
                 $(LOG)/HOL-Nominal-Examples.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
-		$(LOG)/HOL-Lattice $(LOG)/HOL-Complex-Matrix \
-		$(LOG)/HOL-Complex.gz \
-		$(LOG)/HOL-Complex-ex.gz \
-		$(LOG)/HOL-Complex-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz \
+		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix \
+		$(LOG)/HOL-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz \
                 $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
 		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz 

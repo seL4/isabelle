@@ -4,4 +4,4 @@
 Classical Higher-order Logic -- batteries included.
 *)
 
-use_thy "Main";
+use_thy "Complex/Complex_Main";

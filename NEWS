@@ -28,6 +28,8 @@ syntax.
 
 *** HOL ***
 
+* Integrated image HOL-Complex with HOL.
+
 * Methods "case_tac" and "induct_tac" now refer to the very same rules
 as the structured Isar versions "cases" and "induct", cf. the
 corresponding "cases" and "induct" attributes.  Mutual induction rules
