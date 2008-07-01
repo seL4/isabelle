@@ -22,6 +22,7 @@ end;
 structure Isar: ISAR =
 struct
 
+
 (** individual toplevel commands **)
 
 (* unique identification *)
@@ -46,21 +47,18 @@ datatype status =
 
 (* datatype command *)
 
-datatype kind = Theory | Proof | Other;
-
 datatype command = Command of
  {prev: id,
-  up: id,
-  kind: kind,
+  category: OuterKeyword.category,
   status: status};
 
-fun make_command (prev, up, kind, status) =
-  Command {prev = prev, up = up, kind = kind, status = status};
+fun make_command (prev, category, status) =
+  Command {prev = prev, category = category, status = status};
 
-val empty_command = make_command (no_id, no_id, Other, Final (Toplevel.toplevel, NONE));
+val empty_command = make_command (no_id, OuterKeyword.Other, Final (Toplevel.toplevel, NONE));
 
-fun map_command f (Command {prev, up, kind, status}) = make_command (f (prev, up, kind, status));
-fun map_status f = map_command (fn (prev, up, kind, status) => (prev, up, kind, f status));
+fun map_command f (Command {prev, category, status}) = make_command (f (prev, category, status));
+fun map_status f = map_command (fn (prev, category, status) => (prev, category, f status));
 
 
 (* table of identified commands *)
@@ -76,19 +74,20 @@ fun change_commands f = NAMED_CRITICAL "Isar" (fn () => change global_commands f
 fun init_commands () = change_commands (K empty_commands);
 
 fun the_command id =
-  if id = no_id then empty_command
-  else
-    (case Symtab.lookup (! global_commands) id of
-      SOME cmd => cmd
-    | NONE => sys_error ("Unknown command " ^ quote id));
+  let val Command cmd =
+    if id = no_id then empty_command
+    else
+      (case Symtab.lookup (! global_commands) id of
+        SOME cmd => cmd
+      | NONE => sys_error ("Unknown command " ^ quote id))
+  in cmd end;
 
 fun the_state id =
   (case the_command id of
-    Command {status = Final res, ...} => res
+    {status = Final res, ...} => res
   | _ => sys_error ("Unfinished command " ^ quote id));
 
 end;
-
 
 
 (** TTY interaction **)
@@ -124,9 +123,8 @@ fun >> raw_tr =
   let
     val (id, tr) = identify raw_tr;
     val (prev, (prev_state, _)) = point_state ();
-    val up = no_id;  (* FIXME *)
-    val kind = Other;  (* FIXME *)
-    val _ = change_commands (Symtab.update (id, make_command (prev, up, kind, Initial tr)));
+    val category = OuterKeyword.category_of (Toplevel.name_of tr);
+    val _ = change_commands (Symtab.update (id, make_command (prev, category, Initial tr)));
   in
     (case Toplevel.transition true tr prev_state of
       NONE => (change_commands (Symtab.delete_safe id); false)
