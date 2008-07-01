@@ -298,8 +298,6 @@ fun contr_classparam_typs program name = case Graph.get_node program name
 
 (** translation kernel **)
 
-type transaction = Graph.key option * program;
-
 fun ensure_stmt stmtgen name (dep, program) =
   let
     val add_dep = case dep of NONE => I | SOME dep => Graph.add_edge (dep, name);
@@ -338,9 +336,7 @@ fun ensure_class thy (algbr as (_, algebra)) funcgr class =
       ##>> fold_map (fn (c, ty) => ensure_const thy algbr funcgr c
         ##>> exprgen_typ thy algbr funcgr ty) cs
       #>> (fn info => Class (unprefix "'" Name.aT, info))
-  in
-    ensure_stmt stmt_class class'
-  end
+  in ensure_stmt stmt_class class' end
 and ensure_classrel thy algbr funcgr (subclass, superclass) =
   let
     val classrel' = CodeName.classrel thy (subclass, superclass);
@@ -348,9 +344,7 @@ and ensure_classrel thy algbr funcgr (subclass, superclass) =
       ensure_class thy algbr funcgr subclass
       ##>> ensure_class thy algbr funcgr superclass
       #>> Classrel;
-  in
-    ensure_stmt stmt_classrel classrel'
-  end
+  in ensure_stmt stmt_classrel classrel' end
 and ensure_tyco thy algbr funcgr "fun" =
       pair "fun"
   | ensure_tyco thy algbr funcgr tyco =
@@ -366,14 +360,12 @@ and ensure_tyco thy algbr funcgr "fun" =
             #>> Datatype
           end;
         val tyco' = CodeName.tyco thy tyco;
-      in
-        ensure_stmt stmt_datatype tyco'
-      end
+      in ensure_stmt stmt_datatype tyco' end
 and exprgen_tyvar_sort thy (algbr as (proj_sort, _)) funcgr (v, sort) =
   fold_map (ensure_class thy algbr funcgr) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
-and exprgen_typ thy algbr funcgr (TFree vs) =
-      exprgen_tyvar_sort thy algbr funcgr vs
+and exprgen_typ thy algbr funcgr (TFree v_sort) =
+      exprgen_tyvar_sort thy algbr funcgr v_sort
       #>> (fn (v, sort) => ITyVar v)
   | exprgen_typ thy algbr funcgr (Type (tyco, tys)) =
       ensure_tyco thy algbr funcgr tyco
@@ -406,9 +398,7 @@ and exprgen_dicts thy (algbr as (proj_sort, algebra)) funcgr thm (ty, sort) =
       | mk_dict (Local (classrels, (v, (k, sort)))) =
           fold_map (ensure_classrel thy algbr funcgr) classrels
           #>> (fn classrels => DictVar (classrels, (unprefix "'" v, (k, length sort))))
-  in
-    fold_map mk_dict typargs
-  end
+  in fold_map mk_dict typargs end
 and exprgen_eq thy algbr funcgr thm =
   let
     val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals
@@ -454,9 +444,7 @@ and ensure_inst thy (algbr as (_, algebra)) funcgr (class, tyco) =
       #>> (fn ((((class, tyco), arity), superarities), classparams) =>
              Classinst ((class, (tyco, arity)), (superarities, classparams)));
     val inst = CodeName.instance thy (class, tyco);
-  in
-    ensure_stmt stmt_inst inst
-  end
+  in ensure_stmt stmt_inst inst end
 and ensure_const thy algbr funcgr c =
   let
     val c' = CodeName.const thy c;
@@ -486,9 +474,7 @@ and ensure_const thy algbr funcgr c =
       | NONE => (case AxClass.class_of_param thy c
          of SOME class => stmt_classparam class
           | NONE => stmt_fun)
-  in
-    ensure_stmt stmtgen c'
-  end
+  in ensure_stmt stmtgen c' end
 and exprgen_term thy algbr funcgr thm (Const (c, ty)) =
       exprgen_app thy algbr funcgr thm ((c, ty), [])
   | exprgen_term thy algbr funcgr thm (Free (v, _)) =
