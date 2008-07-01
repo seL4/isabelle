@@ -47,6 +47,8 @@ sig
   val report: unit -> unit
   val keyword: string -> unit
   val command: string -> T -> unit
+  datatype category = Theory | Proof | Other
+  val category_of: string -> category
 end;
 
 structure OuterKeyword: OUTER_KEYWORD =
@@ -88,6 +90,13 @@ val prf_script = kind "proof-script";
 val kinds = [control, diag, thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script,
   thy_goal, qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
   prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script] |> map kind_of;
+
+val thy_kinds =
+  [thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script, thy_goal] |> map kind_of;
+
+val prf_kinds =
+  [qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
+    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script] |> map kind_of;
 
 
 (* tags *)
@@ -163,5 +172,20 @@ fun command name kind =
  (change_lexicons (apsnd (Scan.extend_lexicon [Symbol.explode name]));
   change_commands (Symtab.update (name, kind));
   Pretty.writeln (report_command (name, kind)));
+
+
+(* overall category *)
+
+datatype category = Theory | Proof | Other;
+
+fun category_of name =
+  (case command_keyword name of
+    SOME kind =>
+      let val k = kind_of kind in
+        if member (op =) thy_kinds k then Theory
+        else if member (op =) prf_kinds k then Proof
+        else Other
+      end
+  | NONE => error ("Unknown command " ^ quote name));
 
 end;
