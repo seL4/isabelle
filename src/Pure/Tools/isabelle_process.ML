@@ -75,7 +75,7 @@ fun message_pos ts = get_first get_pos ts
 and get_pos (elem as XML.Elem (name, atts, ts)) =
       if name = Markup.positionN then SOME (Position.of_properties atts)
       else message_pos ts
-  | get_pos _ = NONE
+  | get_pos _ = NONE;
 
 in
 
