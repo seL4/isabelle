@@ -1324,7 +1324,7 @@ text {* \medskip @{text range}. *}
 lemma full_SetCompr_eq [noatp]: "{u. \<exists>x. u = f x} = range f"
   by auto
 
-lemma range_composition [simp]: "range (\<lambda>x. f (g x)) = f`range g"
+lemma range_composition: "range (\<lambda>x. f (g x)) = f`range g"
 by (subst image_image, simp)
 
 

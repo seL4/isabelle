@@ -255,7 +255,7 @@ lemma finite_surj: "finite A ==> B <= f ` A ==> finite B"
 
 lemma finite_range_imageI:
     "finite (range g) ==> finite (range (%x. f (g x)))"
-  apply (drule finite_imageI, simp)
+  apply (drule finite_imageI, simp add: range_composition)
   done
 
 lemma finite_imageD: "finite (f`A) ==> inj_on f A ==> finite A"

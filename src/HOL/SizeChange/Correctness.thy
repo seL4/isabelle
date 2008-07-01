@@ -52,7 +52,7 @@ proof (rule classical)
     neq: "\<And>x i. j x < i \<Longrightarrow> f i \<noteq> x" by blast
 
   from fin have "finite (range (j o f))" 
-    by (auto simp:comp_def)
+    by (auto simp:comp_def range_composition)
   with finite_nat_bounded
   obtain m where "range (j o f) \<subseteq> {..<m}" by blast
   hence "j (f m) < m" unfolding comp_def by auto
