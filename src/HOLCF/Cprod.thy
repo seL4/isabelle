@@ -129,7 +129,7 @@ qed
 
 lemma thelub_cprod:
   "chain (S::nat \<Rightarrow> 'a::cpo \<times> 'b::cpo)
-    \<Longrightarrow> lub (range S) = (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
+    \<Longrightarrow> (\<Squnion>i. S i) = (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
 by (rule lub_cprod [THEN thelubI])
 
 instance "*" :: (cpo, cpo) cpo
@@ -326,7 +326,7 @@ apply (erule lub_cprod)
 done
 
 lemma thelub_cprod2:
-  "chain S \<Longrightarrow> lub (range S) = <\<Squnion>i. cfst\<cdot>(S i), \<Squnion>i. csnd\<cdot>(S i)>"
+  "chain S \<Longrightarrow> (\<Squnion>i. S i) = <\<Squnion>i. cfst\<cdot>(S i), \<Squnion>i. csnd\<cdot>(S i)>"
 by (rule lub_cprod2 [THEN thelubI])
 
 lemma csplit1 [simp]: "csplit\<cdot>f\<cdot>\<bottom> = f\<cdot>\<bottom>\<cdot>\<bottom>"

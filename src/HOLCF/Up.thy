@@ -154,7 +154,7 @@ done
 
 lemma up_chain_lemma:
   "chain Y \<Longrightarrow>
-   (\<exists>A. chain A \<and> lub (range Y) = Iup (lub (range A)) \<and>
+   (\<exists>A. chain A \<and> (\<Squnion>i. Y i) = Iup (\<Squnion>i. A i) \<and>
    (\<exists>j. \<forall>i. Y (i + j) = Iup (A i))) \<or> (Y = (\<lambda>i. Ibottom))"
 apply (rule disjCI)
 apply (simp add: expand_fun_eq)
@@ -168,7 +168,7 @@ done
 
 lemma cpo_up: "chain (Y::nat \<Rightarrow> 'a u) \<Longrightarrow> \<exists>x. range Y <<| x"
 apply (frule up_chain_lemma, safe)
-apply (rule_tac x="Iup (lub (range A))" in exI)
+apply (rule_tac x="Iup (\<Squnion>i. A i)" in exI)
 apply (erule_tac j="j" in is_lub_range_shift [THEN iffD1, standard])
 apply (simp add: is_lub_Iup cpo_lubI)
 apply (rule exI, rule lub_const)

@@ -192,16 +192,16 @@ lemmas contlub_Rep_CFun2 = cont_Rep_CFun2 [THEN cont2contlub, standard]
 
 text {* contlub, cont properties of @{term Rep_CFun} in each argument *}
 
-lemma contlub_cfun_arg: "chain Y \<Longrightarrow> f\<cdot>(lub (range Y)) = (\<Squnion>i. f\<cdot>(Y i))"
+lemma contlub_cfun_arg: "chain Y \<Longrightarrow> f\<cdot>(\<Squnion>i. Y i) = (\<Squnion>i. f\<cdot>(Y i))"
 by (rule contlub_Rep_CFun2 [THEN contlubE])
 
-lemma cont_cfun_arg: "chain Y \<Longrightarrow> range (\<lambda>i. f\<cdot>(Y i)) <<| f\<cdot>(lub (range Y))"
+lemma cont_cfun_arg: "chain Y \<Longrightarrow> range (\<lambda>i. f\<cdot>(Y i)) <<| f\<cdot>(\<Squnion>i. Y i)"
 by (rule cont_Rep_CFun2 [THEN contE])
 
-lemma contlub_cfun_fun: "chain F \<Longrightarrow> lub (range F)\<cdot>x = (\<Squnion>i. F i\<cdot>x)"
+lemma contlub_cfun_fun: "chain F \<Longrightarrow> (\<Squnion>i. F i)\<cdot>x = (\<Squnion>i. F i\<cdot>x)"
 by (rule contlub_Rep_CFun1 [THEN contlubE])
 
-lemma cont_cfun_fun: "chain F \<Longrightarrow> range (\<lambda>i. F i\<cdot>x) <<| lub (range F)\<cdot>x"
+lemma cont_cfun_fun: "chain F \<Longrightarrow> range (\<lambda>i. F i\<cdot>x) <<| (\<Squnion>i. F i)\<cdot>x"
 by (rule cont_Rep_CFun1 [THEN contE])
 
 text {* monotonicity of application *}
@@ -295,7 +295,7 @@ text {* type @{typ "'a -> 'b"} is chain complete *}
 lemma lub_cfun: "chain F \<Longrightarrow> range F <<| (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
 by (simp only: contlub_cfun_fun [symmetric] eta_cfun thelubE)
 
-lemma thelub_cfun: "chain F \<Longrightarrow> lub (range F) = (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
+lemma thelub_cfun: "chain F \<Longrightarrow> (\<Squnion>i. F i) = (\<Lambda> x. \<Squnion>i. F i\<cdot>x)"
 by (rule lub_cfun [THEN thelubI])
 
 subsection {* Continuity simplification procedure *}
@@ -351,7 +351,7 @@ by (simp add: less_CFun_def Abs_CFun_inverse2)
 text {* some lemmata for functions with flat/chfin domain/range types *}
 
 lemma chfin_Rep_CFunR: "chain (Y::nat => 'a::cpo->'b::chfin)  
-      ==> !s. ? n. lub(range(Y))$s = Y n$s"
+      ==> !s. ? n. (LUB i. Y i)$s = Y n$s"
 apply (rule allI)
 apply (subst contlub_cfun_fun)
 apply assumption
@@ -510,7 +510,7 @@ done
 (*FIXME: long proof*)
 lemma contlub_strictify2: "contlub (\<lambda>x. if x = \<bottom> then \<bottom> else f\<cdot>x)"
 apply (rule contlubI)
-apply (case_tac "lub (range Y) = \<bottom>")
+apply (case_tac "(\<Squnion>i. Y i) = \<bottom>")
 apply (drule (1) chain_UU_I)
 apply simp
 apply (simp del: if_image_distrib)

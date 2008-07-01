@@ -153,7 +153,7 @@ lemmas cont2contlubE = cont2contlub [THEN contlubE]
 lemma contI2:
   assumes mono: "monofun f"
   assumes less: "\<And>Y. \<lbrakk>chain Y; chain (\<lambda>i. f (Y i))\<rbrakk>
-     \<Longrightarrow> f (lub (range Y)) \<sqsubseteq> (\<Squnion>i. f (Y i))"
+     \<Longrightarrow> f (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. f (Y i))"
   shows "cont f"
 apply (rule monocontlub2cont)
 apply (rule mono)

@@ -236,15 +236,15 @@ apply (erule_tac x="yb" in allE, auto)
 apply (simp add: flat_less_iff)
 by (simp add: flat_less_iff)
 
-lemma fstreams_lub_lemma1: "[| chain Y; lub (range Y) = <a> ooo s |] ==> EX j t. Y j = <a> ooo t"
-apply (subgoal_tac "lub(range Y) ~= UU")
+lemma fstreams_lub_lemma1: "[| chain Y; (LUB i. Y i) = <a> ooo s |] ==> EX j t. Y j = <a> ooo t"
+apply (subgoal_tac "(LUB i. Y i) ~= UU")
 apply (drule chain_UU_I_inverse2, auto)
 apply (drule_tac x="i" in is_ub_thelub, auto)
 by (drule fstreams_prefix' [THEN iffD1], auto)
 
 lemma fstreams_lub1: 
- "[| chain Y; lub (range Y) = <a> ooo s |]
-     ==> (EX j t. Y j = <a> ooo t) & (EX X. chain X & (ALL i. EX j. <a> ooo X i << Y j) & lub (range X) = s)"
+ "[| chain Y; (LUB i. Y i) = <a> ooo s |]
+     ==> (EX j t. Y j = <a> ooo t) & (EX X. chain X & (ALL i. EX j. <a> ooo X i << Y j) & (LUB i. X i) = s)"
 apply (auto simp add: fstreams_lub_lemma1)
 apply (rule_tac x="%n. stream_take n$s" in exI, auto)
 apply (simp add: chain_stream_take)
@@ -270,7 +270,7 @@ by (rule stream_reach2)
 
 
 lemma lub_Pair_not_UU_lemma: 
-  "[| chain Y; lub (range Y) = ((a::'a::flat), b); a ~= UU; b ~= UU |] 
+  "[| chain Y; (LUB i. Y i) = ((a::'a::flat), b); a ~= UU; b ~= UU |] 
       ==> EX j c d. Y j = (c, d) & c ~= UU & d ~= UU"
 apply (frule thelub_cprod, clarsimp)
 apply (drule chain_UU_I_inverse2, clarsimp)
@@ -289,15 +289,15 @@ apply (case_tac "Y j",auto)
 by (drule chain_mono, auto)
 
 lemma fstreams_lub_lemma2: 
-  "[| chain Y; lub (range Y) = (a, <m> ooo ms); (a::'a::flat) ~= UU |] ==> EX j t. Y j = (a, <m> ooo t)"
+  "[| chain Y; (LUB i. Y i) = (a, <m> ooo ms); (a::'a::flat) ~= UU |] ==> EX j t. Y j = (a, <m> ooo t)"
 apply (frule lub_Pair_not_UU_lemma, auto)
 apply (drule_tac x="j" in is_ub_thelub, auto)
 apply (drule ax_flat, clarsimp)
 by (drule fstreams_prefix' [THEN iffD1], auto)
 
 lemma fstreams_lub2:
-  "[| chain Y; lub (range Y) = (a, <m> ooo ms); (a::'a::flat) ~= UU |] 
-      ==> (EX j t. Y j = (a, <m> ooo t)) & (EX X. chain X & (ALL i. EX j. (a, <m> ooo X i) << Y j) & lub (range X) = ms)"
+  "[| chain Y; (LUB i. Y i) = (a, <m> ooo ms); (a::'a::flat) ~= UU |] 
+      ==> (EX j t. Y j = (a, <m> ooo t)) & (EX X. chain X & (ALL i. EX j. (a, <m> ooo X i) << Y j) & (LUB i. X i) = ms)"
 apply (auto simp add: fstreams_lub_lemma2)
 apply (rule_tac x="%n. stream_take n$ms" in exI, auto)
 apply (simp add: chain_stream_take)

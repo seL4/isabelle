@@ -167,11 +167,11 @@ lemma compactD: "compact k \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubse
 unfolding compact_def .
 
 lemma compactI2:
-  "(\<And>Y. \<lbrakk>chain Y; x \<sqsubseteq> lub (range Y)\<rbrakk> \<Longrightarrow> \<exists>i. x \<sqsubseteq> Y i) \<Longrightarrow> compact x"
+  "(\<And>Y. \<lbrakk>chain Y; x \<sqsubseteq> (\<Squnion>i. Y i)\<rbrakk> \<Longrightarrow> \<exists>i. x \<sqsubseteq> Y i) \<Longrightarrow> compact x"
 unfolding compact_def adm_def by fast
 
 lemma compactD2:
-  "\<lbrakk>compact x; chain Y; x \<sqsubseteq> lub (range Y)\<rbrakk> \<Longrightarrow> \<exists>i. x \<sqsubseteq> Y i"
+  "\<lbrakk>compact x; chain Y; x \<sqsubseteq> (\<Squnion>i. Y i)\<rbrakk> \<Longrightarrow> \<exists>i. x \<sqsubseteq> Y i"
 unfolding compact_def adm_def by fast
 
 lemma compact_chfin [simp]: "compact (x::'a::chfin)"

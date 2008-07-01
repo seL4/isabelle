@@ -230,7 +230,7 @@ lemma fsfilter_single_out: "b ~= a ==> {a}(C)b~> x = ({a}(C)x)"
 by (simp add: fsfilter_fscons)
 
 lemma fstream_lub_lemma1:
-    "\<lbrakk>chain Y; lub (range Y) = a\<leadsto>s\<rbrakk> \<Longrightarrow> \<exists>j t. Y j = a\<leadsto>t"
+    "\<lbrakk>chain Y; (\<Squnion>i. Y i) = a\<leadsto>s\<rbrakk> \<Longrightarrow> \<exists>j t. Y j = a\<leadsto>t"
 apply (case_tac "max_in_chain i Y")
 apply  (drule (1) lub_finch1 [THEN thelubI, THEN sym])
 apply  (force)
@@ -244,7 +244,7 @@ apply (force)
 done
 
 lemma fstream_lub_lemma:
-      "\<lbrakk>chain Y; lub (range Y) = a\<leadsto>s\<rbrakk> \<Longrightarrow> (\<exists>j t. Y j = a\<leadsto>t) & (\<exists>X. chain X & (!i. ? j. Y j = a\<leadsto>X i) & lub (range X) = s)"
+      "\<lbrakk>chain Y; (\<Squnion>i. Y i) = a\<leadsto>s\<rbrakk> \<Longrightarrow> (\<exists>j t. Y j = a\<leadsto>t) & (\<exists>X. chain X & (!i. ? j. Y j = a\<leadsto>X i) & (\<Squnion>i. X i) = s)"
 apply (frule (1) fstream_lub_lemma1)
 apply (clarsimp)
 apply (rule_tac x="%i. rt\<cdot>(Y(i+j))" in exI)

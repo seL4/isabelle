@@ -92,7 +92,7 @@ done
 
 lemma thelub_fun:
   "chain (S::nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo)
-    \<Longrightarrow> lub (range S) = (\<lambda>x. \<Squnion>i. S i x)"
+    \<Longrightarrow> (\<Squnion>i. S i) = (\<lambda>x. \<Squnion>i. S i x)"
 by (rule lub_fun [THEN thelubI])
 
 lemma cpo_fun:

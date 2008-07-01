@@ -15,11 +15,11 @@ text {* The class cpo of chain complete partial orders *}
 
 axclass cpo < po
         -- {* class axiom: *}
-  cpo:   "chain S \<Longrightarrow> \<exists>x. range S <<| x" 
+  cpo:   "chain S \<Longrightarrow> \<exists>x. range S <<| x"
 
 text {* in cpo's everthing equal to THE lub has lub properties for every chain *}
 
-lemma cpo_lubI: "chain (S::nat \<Rightarrow> 'a::cpo) \<Longrightarrow> range S <<| lub (range S)"
+lemma cpo_lubI: "chain (S::nat \<Rightarrow> 'a::cpo) \<Longrightarrow> range S <<| (\<Squnion>i. S i)"
 by (fast dest: cpo elim: lubI)
 
 lemma thelubE: "\<lbrakk>chain S; (\<Squnion>i. S i) = (l::'a::cpo)\<rbrakk> \<Longrightarrow> range S <<| l"
