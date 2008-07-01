@@ -28,7 +28,11 @@ syntax.
 
 *** HOL ***
 
-* Integrated image HOL-Complex with HOL.
+* Integrated image HOL-Complex with HOL.  Entry points Main.thy and
+Complex_Main.thy remain as they are.
+
+* New image HOL-Plain provides a minimal HOL with the most important tools
+available (inductive, datatype, primrec, codegen, ...).
 
 * Methods "case_tac" and "induct_tac" now refer to the very same rules
 as the structured Isar versions "cases" and "induct", cf. the
