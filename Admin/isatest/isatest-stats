@@ -25,6 +25,7 @@ ISABELLE_SESSIONS="\
   HOL-MicroJava \
   HOL-Nominal-Examples \
   HOL-NumberTheory \
+  HOL-Plain \
   HOL-SET-Protocol \
   HOL-UNITY \
   HOL-ex \
