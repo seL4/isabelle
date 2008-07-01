@@ -263,21 +263,13 @@ axclass chfin < po
 axclass flat < pcpo
   ax_flat: "x \<sqsubseteq> y \<Longrightarrow> (x = \<bottom>) \<or> (x = y)"
 
-text {* finite partial orders are chain-finite and directed-complete *}
+text {* finite partial orders are chain-finite *}
 
 instance finite_po < chfin
 apply intro_classes
 apply (drule finite_range_imp_finch)
 apply (rule finite)
 apply (simp add: finite_chain_def)
-done
-
-instance finite_po < cpo
-apply intro_classes
-apply (drule directed_chain)
-apply (drule directed_finiteD [OF _ finite subset_refl])
-apply (erule bexE, rule exI)
-apply (erule (1) is_lub_maximal)
 done
 
 text {* some properties for chfin and flat *}
