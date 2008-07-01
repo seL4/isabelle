@@ -45,7 +45,7 @@ lemma finite_range:
 proof (rule classical)
   assume "\<not>(\<exists>x. \<exists>\<^sub>\<infinity>i. f i = x)"
   hence "\<forall>x. \<exists>j. \<forall>i>j. f i \<noteq> x"
-    unfolding INF_nat by blast
+    unfolding INFM_nat by blast
   with choice
   have "\<exists>j. \<forall>x. \<forall>i>(j x). f i \<noteq> x" .
   then obtain j where 
@@ -854,14 +854,14 @@ proof (intro exI conjI)
     by (fold is_thread_def) simp
 
   show "\<exists>\<^sub>\<infinity>l. descat p \<theta> l"
-    unfolding INF_nat
+    unfolding INFM_nat
   proof
     fix i 
     
     let ?k = "section_of s i"
     from fdths obtain j
       where "?k < j" "is_desc_fthread \<theta> p (s j) (s (Suc j))"
-      unfolding INF_nat by auto
+      unfolding INFM_nat by auto
     then obtain l where "s j \<le> l" and desc: "descat p \<theta> l"
       unfolding is_desc_fthread_def
       by auto
@@ -908,7 +908,7 @@ proof
 
   moreover
   from A have "\<exists>\<^sub>\<infinity>i. (\<exists>x. Q x i)" ..
-  hence "?Qs ?w" by (rule INF_mono) (auto intro:someI)
+  hence "?Qs ?w" by (rule INFM_mono) (auto intro:someI)
   ultimately
   show "?Ps ?w \<and> ?Qs ?w" ..
 qed
@@ -936,7 +936,7 @@ lemma dthreads_join:
 
 lemma INF_drop_prefix:
   "(\<exists>\<^sub>\<infinity>i::nat. i > n \<and> P i) = (\<exists>\<^sub>\<infinity>i. P i)"
-  apply (auto simp:INF_nat)
+  apply (auto simp:INFM_nat)
   apply (drule_tac x = "max m n" in spec)
   apply (elim exE conjE)
   apply (rule_tac x = "na" in exI)
@@ -982,14 +982,14 @@ proof
     qed
 
     show "\<exists>\<^sub>\<infinity>i. descat (contract s p) ?c\<theta> i"
-      unfolding INF_nat 
+      unfolding INFM_nat 
     proof 
       fix i
 
       let ?K = "section_of s (max (s (Suc i)) n)"
       from `\<exists>\<^sub>\<infinity>i. descat p \<theta> i` obtain j
 	  where "s (Suc ?K) < j" "descat p \<theta> j"
-	unfolding INF_nat by blast
+	unfolding INFM_nat by blast
       
       let ?L = "section_of s j"
       {
@@ -1069,7 +1069,7 @@ next
   from fr ths_spec have ths_spec2:
       "\<And>i. i > n \<Longrightarrow> is_fthread (\<theta>s i) p (s i) (s (Suc i))"
       "\<exists>\<^sub>\<infinity>i. is_desc_fthread (\<theta>s i) p (s i) (s (Suc i))"
-    by (auto intro:INF_mono)
+    by (auto intro:INFM_mono)
   
   have p1: "\<And>i. i > n \<Longrightarrow> is_fthread ?j\<theta> p (s i) (s (Suc i))"
     by (rule connect_threads) (auto simp:connected ths_spec2)
@@ -1079,7 +1079,7 @@ next
     unfolding INF_drop_prefix .
   
   hence p2: "\<exists>\<^sub>\<infinity>i. is_desc_fthread ?j\<theta> p (s i) (s (Suc i))"
-    apply (rule INF_mono)
+    apply (rule INFM_mono)
     apply (rule connect_dthreads)
     by (auto simp:connected)
   
@@ -1099,8 +1099,8 @@ proof-
   unfolding is_desc_thread_def 
   apply (auto)
   apply (rule_tac x="Suc n" in exI, auto)
-  apply (rule INF_mono[where P="\<lambda>i. n < i"])
-  apply (simp only:INF_nat)
+  apply (rule INFM_mono[where P="\<lambda>i. n < i"])
+  apply (simp only:INFM_nat)
   by (auto simp add: th)
 qed
 
@@ -1314,16 +1314,16 @@ proof
     obtain p where inf_visit: "\<exists>\<^sub>\<infinity>i. \<theta> i = p" by auto
 
     then obtain i where "n < i" "\<theta> i = p" 
-      by (auto simp:INF_nat)
+      by (auto simp:INFM_nat)
 
     from desc
     have "\<exists>\<^sub>\<infinity>i. descat ?cp \<theta> i"
       unfolding is_desc_thread_def by auto
     then obtain j 
       where "i < j" and "descat ?cp \<theta> j"
-      unfolding INF_nat by auto
+      unfolding INFM_nat by auto
     from inf_visit obtain k where "j < k" "\<theta> k = p"
-      by (auto simp:INF_nat)
+      by (auto simp:INFM_nat)
 
     from `i < j` `j < k` `n < i` thr 
       fin_from_inf[of n \<theta> ?cp]

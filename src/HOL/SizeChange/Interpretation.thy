@@ -172,7 +172,7 @@ proof -
   from less 
   obtain k' where "n + k < k'"
 	and "s (Suc k') < s k'"
-	unfolding INF_nat by auto
+	unfolding INFM_nat by auto
   
   with decr[of "n + k" k'] min
   have "s (Suc k') < ?min" by auto
@@ -388,11 +388,11 @@ proof (rule, rule classical)
 		by (rule ird a)+
 	qed
   qed
-  moreover have "\<exists>\<^sub>\<infinity>i. ?seq (Suc i) < ?seq i" unfolding INF_nat
+  moreover have "\<exists>\<^sub>\<infinity>i. ?seq (Suc i) < ?seq i" unfolding INFM_nat
   proof 
 	fix i 
 	from inf obtain j where "i < j" and d: "descat ?p th j"
-	  unfolding INF_nat by auto
+	  unfolding INFM_nat by auto
 	let ?q1 = "th j" and ?q2 = "th (Suc j)"
 	from d have "dsc (Gs j) ?q1 ?q2" by auto
 	
