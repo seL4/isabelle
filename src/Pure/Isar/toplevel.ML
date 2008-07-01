@@ -46,6 +46,7 @@ sig
   type transition
   val undo_limit: bool -> int option
   val empty: transition
+  val name_of: transition -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val interactive: bool -> transition -> transition
@@ -83,6 +84,8 @@ sig
   val actual_proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val skip_proof: (int History.T -> int History.T) -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
+  val get_id: transition -> string option
+  val put_id: string -> transition -> transition
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
@@ -455,9 +458,10 @@ val empty = make_transition ("<unknown>", Position.none, false, false, false, []
 
 (* diagnostics *)
 
-fun str_of_transition (Transition {name, pos, ...}) = quote name ^ Position.str_of pos;
+fun name_of (Transition {name, ...}) = name;
+fun str_of (Transition {name, pos, ...}) = quote name ^ Position.str_of pos;
 
-fun command_msg msg tr = msg ^ "command " ^ str_of_transition tr;
+fun command_msg msg tr = msg ^ "command " ^ str_of tr;
 fun at_command tr = command_msg "At " tr ^ ".";
 
 fun type_error tr state =
@@ -631,6 +635,12 @@ fun skip_proof_to_theory p = map_current (fn _ =>
 
 
 (** toplevel transactions **)
+
+(* identification *)
+
+fun get_id (Transition {pos, ...}) = Position.get_id pos;
+fun put_id id (tr as Transition {pos, ...}) = position (Position.put_id id pos) tr;
+
 
 (* thread position *)
 
