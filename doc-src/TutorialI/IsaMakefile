@@ -5,7 +5,7 @@
 ## targets
 
 default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Trie HOL-Datatype HOL-Fun HOL-Fun \
-  HOL-Advanced HOL-Rules HOL-Sets HOL-CTL HOL-Inductive  HOL-Complex-Types HOL-Misc \
+  HOL-Advanced HOL-Rules HOL-Sets HOL-CTL HOL-Inductive  HOL-Types HOL-Misc \
   HOL-Protocol HOL-Documents styles
 images:
 test:
@@ -19,16 +19,12 @@ OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 OPTIONS = -m brackets -i true -d "" -D document
 USEDIR = @$(ISATOOL) usedir $(OPTIONS) $(OUT)/HOL
-REALUSEDIR = @$(ISATOOL) usedir $(OPTIONS) $(OUT)/HOL-Complex
 
 
 ## HOL
 
 HOL:
 	@cd $(SRC)/HOL; $(ISATOOL) make HOL
-
-HOL-Complex:
-	@cd $(SRC)/HOL; $(ISATOOL) make HOL-Complex
 
 styles:
 	@rm -f isabelle.sty
@@ -151,13 +147,13 @@ $(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/ROOT.ML \
 
 ## HOL-Types
 
-HOL-Complex-Types: HOL-Complex $(LOG)/HOL-Complex-Types.gz
+HOL-Types: HOL $(LOG)/HOL-Types.gz
 
-$(LOG)/HOL-Complex-Types.gz: $(OUT)/HOL-Complex Types/ROOT.ML \
+$(LOG)/HOL-Types.gz: $(OUT)/HOL Types/ROOT.ML \
   Types/Numbers.thy Types/Pairs.thy Types/Records.thy Types/Typedefs.thy \
   Types/Overloading0.thy Types/Overloading1.thy Types/Overloading2.thy \
   Types/Overloading.thy Types/Axioms.thy
-	$(REALUSEDIR) Types
+	$(USEDIR) Types
 	@rm -f tutorial.dvi
 
 ## HOL-Misc
