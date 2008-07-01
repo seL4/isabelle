@@ -93,22 +93,6 @@ apply (drule_tac i=i in ub_rangeD)
 apply simp
 done
 
-lemma is_lub_Iup': "\<lbrakk>directed S; S <<| x\<rbrakk> \<Longrightarrow> (Iup ` S) <<| Iup x"
-apply (rule is_lubI)
-apply (rule ub_imageI)
-apply (subst Iup_less)
-apply (erule (1) is_ubD [OF is_lubD1])
-apply (case_tac u)
-apply (drule directedD1, erule exE)
-apply (drule (1) ub_imageD)
-apply simp
-apply simp
-apply (erule is_lub_lub)
-apply (rule is_ubI)
-apply (drule (1) ub_imageD)
-apply simp
-done
-
 text {* Now some lemmas about chains of @{typ "'a u"} elements *}
 
 lemma up_lemma1: "z \<noteq> Ibottom \<Longrightarrow> Iup (THE a. Iup a = z) = z"
