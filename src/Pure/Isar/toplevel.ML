@@ -46,13 +46,14 @@ sig
   type transition
   val undo_limit: bool -> int option
   val empty: transition
+  val init_of: transition -> string option
   val name_of: transition -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val interactive: bool -> transition -> transition
   val print: transition -> transition
   val no_timing: transition -> transition
-  val init_theory: (bool -> theory) -> (theory -> unit) -> (theory -> unit) ->
+  val init_theory: string -> (bool -> theory) -> (theory -> unit) -> (theory -> unit) ->
     transition -> transition
   val init_empty: (state -> bool) -> (unit -> unit) -> transition -> transition
   val exit: transition -> transition
@@ -381,8 +382,8 @@ end;
   Transaction.*)
 
 datatype trans =
-  Init of (bool -> theory) * ((theory -> unit) * (theory -> unit)) |
-                                                    (*init node; with exit/kill operation*)
+  Init of string * (bool -> theory) * ((theory -> unit) * (theory -> unit)) |
+                                                    (*name; init node; with exit/kill operation*)
   InitEmpty of (state -> bool) * (unit -> unit) |   (*init empty toplevel*)
   Exit |                                            (*conclude node -- deferred until init*)
   UndoExit |                                        (*continue after conclusion*)
@@ -403,7 +404,7 @@ local
 
 fun keep_state int f = controlled_execution (fn x => tap (f int) x);
 
-fun apply_tr int _ (Init (f, term)) (state as Toplevel _) =
+fun apply_tr int _ (Init (_, f, term)) (state as Toplevel _) =
       let val node = Theory (Context.Theory (Theory.checkpoint (f int)), NONE)
       in safe_exit state; State (History.init (undo_limit int) node, term) end
   | apply_tr int _ (InitEmpty (check, f)) (state as Toplevel _) =
@@ -453,10 +454,13 @@ fun make_transition (name, pos, int_only, print, no_timing, trans) =
 fun map_transition f (Transition {name, pos, int_only, print, no_timing, trans}) =
   make_transition (f (name, pos, int_only, print, no_timing, trans));
 
-val empty = make_transition ("<unknown>", Position.none, false, false, false, []);
+val empty = make_transition ("", Position.none, false, false, false, []);
 
 
 (* diagnostics *)
+
+fun init_of (Transition {trans = [Init (name, _, _)], ...}) = SOME name
+  | init_of _ = NONE;
 
 fun name_of (Transition {name, ...}) = name;
 fun str_of (Transition {name, pos, ...}) = quote name ^ Position.str_of pos;
@@ -491,7 +495,7 @@ val print = map_transition (fn (name, pos, int_only, _, no_timing, trans) =>
 
 (* basic transitions *)
 
-fun init_theory f exit kill = add_trans (Init (f, (exit, kill)));
+fun init_theory name f exit kill = add_trans (Init (name, f, (exit, kill)));
 fun init_empty check f = add_trans (InitEmpty (check, f));
 val exit = add_trans Exit;
 val undo_exit = add_trans UndoExit;
