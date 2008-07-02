@@ -38,27 +38,46 @@ fun identify tr =
       in (id, Toplevel.put_id id tr) end);
 
 
-(* execution status *)
+(* command category *)
 
-datatype status =
-  Initial of Toplevel.transition |
-  Final of Toplevel.state * (exn * string) option;
+datatype category = Empty | BeginTheory of string | Theory | Proof | Other;
+
+fun category_of tr =
+  let val name = Toplevel.name_of tr in
+    if name = "" then Empty
+    else
+      (case Toplevel.init_of tr of
+        SOME thy_name => BeginTheory thy_name
+      | NONE =>
+          if OuterKeyword.is_theory name then Theory
+          else if OuterKeyword.is_proof name then Proof
+          else Other)
+  end;
 
 
 (* datatype command *)
 
+datatype status =
+  Initial |
+  Final of Toplevel.state * (exn * string) option;
+
 datatype command = Command of
  {prev: id,
-  category: OuterKeyword.category,
+  category: category,
+  transition: Toplevel.transition,
   status: status};
 
-fun make_command (prev, category, status) =
-  Command {prev = prev, category = category, status = status};
+fun make_command (prev, category, transition, status) =
+  Command {prev = prev, category = category, transition = transition, status = status};
 
-val empty_command = make_command (no_id, OuterKeyword.Other, Final (Toplevel.toplevel, NONE));
+val empty_command =
+  make_command (no_id, Empty, Toplevel.empty, Final (Toplevel.toplevel, NONE));
 
-fun map_command f (Command {prev, category, status}) = make_command (f (prev, category, status));
-fun map_status f = map_command (fn (prev, category, status) => (prev, category, f status));
+fun map_command f (Command {prev, category, transition, status}) =
+  make_command (f (prev, category, transition, status));
+
+fun map_status f = map_command (fn (prev, category, transition, status) =>
+  (prev, category, transition, f status));
 
 
 (* table of identified commands *)
@@ -123,8 +142,8 @@ fun >> raw_tr =
   let
     val (id, tr) = identify raw_tr;
     val (prev, (prev_state, _)) = point_state ();
-    val category = OuterKeyword.category_of (Toplevel.name_of tr);
-    val _ = change_commands (Symtab.update (id, make_command (prev, category, Initial tr)));
+    val category = category_of tr;
+    val _ = change_commands (Symtab.update (id, make_command (prev, category, tr, Initial)));
   in
     (case Toplevel.transition true tr prev_state of
       NONE => (change_commands (Symtab.delete_safe id); false)
