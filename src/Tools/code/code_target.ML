@@ -50,6 +50,8 @@ sig
 
   val setup: theory -> theory;
   val code_width: int ref;
+
+  val ml_code_of: theory -> CodeThingol.program -> string list -> string * string list;
 end;
 
 structure CodeTarget : CODE_TARGET =
@@ -1850,30 +1852,37 @@ local
 
 structure CodeAntiqData = ProofDataFun
 (
-  type T = string list * (bool * string);
-  fun init _ = ([], (true, ""));
+  type T = string list * (bool * (string * (string * (string * string) list) Susp.T));
+  fun init _ = ([], (true, ("", Susp.value ("", []))));
 );
 
 val is_first_occ = fst o snd o CodeAntiqData.get;
 
-fun register_const const ctxt =
+fun delayed_code thy consts () =
   let
-    val (consts, (_, struct_name)) = CodeAntiqData.get ctxt;
-    val (struct_name', ctxt') = if struct_name = ""
-      then ML_Antiquote.variant "Code" ctxt
-      else (struct_name, ctxt);
-  in CodeAntiqData.put (insert (op =) const consts, (false, struct_name')) ctxt' end;
-
-fun print_code thy struct_name is_first const ctxt =
-  let
-    val (consts, (_, struct_code_name)) = CodeAntiqData.get ctxt;
     val (consts', program) = CodeThingol.consts_program thy consts;
-    val (raw_ml_code, consts'') = ml_code_of thy program consts';
+    val (ml_code, consts'') = ml_code_of thy program consts';
     val _ = if length consts <> length consts'' then
       error ("One of the constants " ^ commas (map (quote o CodeUnit.string_of_const thy) consts)
         ^ "\nhas a user-defined serialization") else ();
+  in (ml_code, consts ~~ consts'') end;
+
+fun register_const const ctxt =
+  let
+    val (consts, (_, (struct_name, _))) = CodeAntiqData.get ctxt;
+    val consts' = insert (op =) const consts;
+    val (struct_name', ctxt') = if struct_name = ""
+      then ML_Antiquote.variant "Code" ctxt
+      else (struct_name, ctxt);
+    val acc_code = Susp.delay (delayed_code (ProofContext.theory_of ctxt) consts');
+  in CodeAntiqData.put (consts', (false, (struct_name', acc_code))) ctxt' end;
+
+fun print_code struct_name is_first const ctxt =
+  let
+    val (consts, (_, (struct_code_name, acc_code))) = CodeAntiqData.get ctxt;
+    val (raw_ml_code, consts_map) = Susp.force acc_code;
     val const'' = NameSpace.append (NameSpace.append struct_name struct_code_name)
-      ((the o AList.lookup (op =) (consts ~~ consts'')) const);
+      ((the o AList.lookup (op =) consts_map) const);
     val ml_code = if is_first then "\nstructure " ^ struct_code_name
         ^ " =\nstruct\n\n" ^ raw_ml_code ^ "\nend;\n\n"
       else "";
@@ -1883,11 +1892,10 @@ in
 
 fun ml_code_antiq raw_const {struct_name, background} =
   let
-    val thy = ProofContext.theory_of background;
-    val const = CodeUnit.check_const thy raw_const;
+    val const = CodeUnit.check_const (ProofContext.theory_of background) raw_const;
     val is_first = is_first_occ background;
     val background' = register_const const background;
-  in (print_code thy struct_name is_first const, background') end;
+  in (print_code struct_name is_first const, background') end;
 
 end; (*local*)
 
