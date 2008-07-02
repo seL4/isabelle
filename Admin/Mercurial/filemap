@@ -1,3 +1,4 @@
+exclude Distribution/bin/Isabelle
 rename Distribution .
 rename CCL src/CCL
 rename CTT src/CTT
