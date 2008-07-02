@@ -1507,7 +1507,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (Goal.prove_global thy11 [] []
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map HOLogic.mk_imp ps)))
             (fn _ => rtac rec_induct 1 THEN REPEAT
-               (NominalPermeq.perm_simp_tac (HOL_basic_ss addsimps flat perm_simps') 1 THEN
+               (simp_tac (Simplifier.theory_context thy11 HOL_basic_ss
+                  addsimps flat perm_simps'
+                  addsimprocs [NominalPermeq.perm_simproc_app]) 1 THEN
                 (resolve_tac rec_intrs THEN_ALL_NEW
                  asm_simp_tac (HOL_ss addsimps (fresh_bij @ perm_bij))) 1))))
         val ths' = map (fn ((P, Q), th) =>
@@ -1927,8 +1929,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                     val pi1_pi2_result = Goal.prove context'' [] []
                       (HOLogic.mk_Trueprop (HOLogic.mk_eq
                         (fold_rev (mk_perm []) pi1 rhs', fold_rev (mk_perm []) pi2 lhs')))
-                      (fn _ => NominalPermeq.perm_simp_tac (HOL_ss addsimps
-                           pi1_pi2_eqs @ rec_eqns) 1 THEN
+                      (fn _ => simp_tac (Simplifier.context context'' HOL_ss
+                           addsimps pi1_pi2_eqs @ rec_eqns
+                           addsimprocs [NominalPermeq.perm_simproc_app]) 1 THEN
                          TRY (simp_tac (HOL_ss addsimps
                            (fresh_prems' @ freshs2' @ calc_atm @ perm_fresh_fresh)) 1));
 
