@@ -9,7 +9,7 @@ theory Fundamental_Theorem_Algebra
 imports Univ_Poly Dense_Linear_Order Complex
 begin
 
-section {* Square root of complex numbers *}
+subsection {* Square root of complex numbers *}
 definition csqrt :: "complex \<Rightarrow> complex" where
 "csqrt z = (if Im z = 0 then
             if 0 \<le> Re z then Complex (sqrt(Re z)) 0
@@ -56,7 +56,7 @@ proof-
 qed
 
 
-section{* More lemmas about module of complex numbers *}
+subsection{* More lemmas about module of complex numbers *}
 
 lemma complex_of_real_power: "complex_of_real x ^ n = complex_of_real (x^n)"
   by (induct n, auto)
@@ -108,7 +108,7 @@ text{* The triangle inequality for cmod *}
 lemma complex_mod_triangle_sub: "cmod w \<le> cmod (w + z) + norm z"
   using complex_mod_triangle_ineq2[of "w + z" "-z"] by auto
 
-section{* Basic lemmas about complex polynomials *}
+subsection{* Basic lemmas about complex polynomials *}
 
 lemma poly_bound_exists:
   shows "\<exists>m. m > 0 \<and> (\<forall>z. cmod z <= r \<longrightarrow> cmod (poly p z) \<le> m)"
@@ -196,7 +196,7 @@ proof-
 qed
 
 
-section{* Some theorems about Sequences*}
+subsection{* Some theorems about Sequences*}
 text{* Given a binary function @{text "f:: nat \<Rightarrow> 'a \<Rightarrow> 'a"}, its values are uniquely determined by a function g *}
 
 lemma num_Axiom: "EX! g. g 0 = e \<and> (\<forall>n. g (Suc n) = f n (g n))"
@@ -360,7 +360,7 @@ next
   thus ?case by arith
 qed
 
-section {* Fundamental theorem of algebra *}
+subsection {* Fundamental theorem of algebra *}
 lemma  unimodular_reduce_norm:
   assumes md: "cmod z = 1"
   shows "cmod (z + 1) < 1 \<or> cmod (z - 1) < 1 \<or> cmod (z + ii) < 1 \<or> cmod (z - ii) < 1"
@@ -984,7 +984,7 @@ proof(induct p)
   ultimately show ?case by blast  
 qed simp
 
-section{* Nullstellenstatz, degrees and divisibility of polynomials *}
+subsection{* Nullstellenstatz, degrees and divisibility of polynomials *}
 
 lemma nullstellensatz_lemma:
   fixes p :: "complex list"
