@@ -10,6 +10,7 @@ THIS=$(cd "$(dirname "$0")"; pwd -P)
 PLATFORMS="at-poly at-sml-dev at64-poly at-poly-5.1-para-e at64-poly-5.1-para at-mac-poly-5.1-para afp"
 
 ISABELLE_SESSIONS="\
+  HOL-Plain \
   HOL \
   HOL-Algebra \
   HOL-Auth \
@@ -25,7 +26,6 @@ ISABELLE_SESSIONS="\
   HOL-MicroJava \
   HOL-Nominal-Examples \
   HOL-NumberTheory \
-  HOL-Plain \
   HOL-SET-Protocol \
   HOL-UNITY \
   HOL-ex \
