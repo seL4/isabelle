@@ -5,7 +5,10 @@
 
 header {* Quotient and remainder *}
 
-theory QuotRem imports Util begin
+theory QuotRem
+imports Util
+begin
+
 text {* Derivation of quotient and remainder using program extraction. *}
 
 theorem division: "\<exists>r q. a = Suc b * q + r \<and> r \<le> b"
@@ -42,6 +45,6 @@ code_module Div
 contains
   test = "division 9 2"
 
-export_code division in SML
+lemma "division 9 2 = (0, 3)" by eval
 
 end

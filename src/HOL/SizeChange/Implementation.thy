@@ -146,7 +146,6 @@ lemma SCT'_empty: "SCT' (Graph {})"
 
 subsection {* Witness checking *}
 
-
 definition test_SCT_witness :: "nat acg \<Rightarrow> nat acg \<Rightarrow> bool"
 where
   "test_SCT_witness A T = 
@@ -155,7 +154,6 @@ where
           n \<noteq> m \<or> G * G \<noteq> G \<or> 
          (\<exists>(p::nat,e,q)\<in>dest_graph G. p = q \<and> e = LESS)))"
 
-
 lemma no_bad_graphs_ucl:
   assumes "A \<le> B"
   assumes "no_bad_graphs B"
@@ -163,8 +161,6 @@ lemma no_bad_graphs_ucl:
   using assms
   unfolding no_bad_graphs_def has_edge_def graph_leq_def 
   by blast
-
-
 
 lemma SCT'_witness:
   assumes a: "test_SCT_witness A T"
@@ -184,14 +180,6 @@ proof -
     by (rule no_bad_graphs_ucl)
 qed
 
-
-code_modulename SML
-  Graphs SCT
-  Kleene_Algebras SCT
-  Implementation SCT
-
-(* FIXME
-export_code test_SCT in SML
-*)
+(* ML {* @{code test_SCT} *} *)
 
 end

@@ -791,7 +791,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   Complex/ex/NSPrimes.thy Complex/ex/Sqrt.thy				\
   Complex/ex/Sqrt_Script.thy Complex/ex/MIR.thy Complex/ex/mirtac.ML	\
   Complex/ex/mireif.ML Complex/ex/ReflectedFerrack.thy			\
-  Complex/ex/linreif.ML Complex/ex/linrtac.ML
+  Complex/ex/linrtac.ML
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 

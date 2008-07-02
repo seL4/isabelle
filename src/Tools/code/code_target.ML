@@ -71,7 +71,7 @@ fun enum_default default sep opn cls [] = str default
   | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
 
 datatype destination = Compile | Export | File of Path.T | String of string list;
-type serialization = destination -> string option;
+type serialization = destination -> (string * string list) option;
 
 val code_width = ref 80; (*FIXME after Pretty module no longer depends on print mode*)
 fun code_setmp f = PrintMode.setmp [] (Pretty.setmp_margin (!code_width) f);
@@ -82,7 +82,7 @@ fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
 fun compile f = (code_setmp f Compile; ());
 fun export f = (code_setmp f Export; ());
 fun file p f = (code_setmp f (File p); ());
-fun string cs f = the (code_setmp f (String cs));
+fun string cs f = fst (the (code_setmp f (String cs)));
 
 fun stmt_names_of_destination (String stmts) = stmts
   | stmt_names_of_destination _ = [];
@@ -1194,7 +1194,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
         error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, nodes) end;
 
-fun serialize_ml compile pr_module pr_stmt projection raw_module_name labelled_name reserved_names includes raw_module_alias
+fun serialize_ml compile pr_module pr_stmt raw_module_name labelled_name reserved_names includes raw_module_alias
   _ syntax_tyco syntax_const program cs destination =
   let
     val is_cons = CodeThingol.is_cons program;
@@ -1225,20 +1225,29 @@ fun serialize_ml compile pr_module pr_stmt projection raw_module_name labelled_n
     fun output Compile = K NONE o compile o code_of_pretty
       | output Export = K NONE o code_writeln
       | output (File file) = K NONE o File.write file o code_of_pretty
-      | output (String _) = SOME o code_of_pretty;
-  in projection (output destination p) cs' end;
+      | output (String _) = SOME o rpair cs' o code_of_pretty;
+  in output destination p end;
 
 end; (*local*)
+
+(* ML (system language) code for evaluation and instrumentalization *)
+
+fun ml_code_of thy program cs = mount_serializer thy
+  (SOME (fn _ => fn [] => serialize_ml (K ()) (K Pretty.chunks) pr_sml_stmt (SOME "")))
+    target_SML NONE [] program cs (String [])
+  |> the;
+
+(* generic entry points for SML/OCaml *)
 
 fun isar_seri_sml module_name =
   parse_args (Scan.succeed ())
   #> (fn () => serialize_ml (use_text (1, "generated code") Output.ml_output false)
-      pr_sml_module pr_sml_stmt K module_name);
+      pr_sml_module pr_sml_stmt module_name);
 
 fun isar_seri_ocaml module_name =
   parse_args (Scan.succeed ())
   #> (fn () => serialize_ml (fn _ => error "OCaml: no internal compilation")
-      pr_ocaml_module pr_ocaml_stmt K module_name);
+      pr_ocaml_module pr_ocaml_stmt module_name);
 
 
 (** Haskell serializer **)
@@ -1640,7 +1649,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
     fun output Compile = error ("Haskell: no internal compilation")
       | output Export = K NONE o map (code_writeln o snd)
       | output (File destination) = K NONE o map (write_module destination)
-      | output (String _) = SOME o cat_lines o map (code_of_pretty o snd);
+      | output (String _) = SOME o rpair [] o cat_lines o map (code_of_pretty o snd);
   in
     output destination (map (uncurry pr_module) includes
       @ map serialize_module (Symtab.dest hs_program))
@@ -1813,13 +1822,6 @@ end; (*local*)
 
 (* evaluation *)
 
-fun code_antiq_serializer module [] = serialize_ml (K ()) (K Pretty.chunks) pr_sml_stmt
-  (fn SOME s => fn cs => SOME ("let\n" ^ s ^ "\nin fn () => " ^ enclose "(" ")" (commas cs) ^ " end"))
-  (SOME "Isabelle_Eval");
-
-fun sml_code_of thy program cs = mount_serializer thy (SOME code_antiq_serializer) target_SML NONE [] program cs (String [])
-  |> the;
-
 fun eval eval'' term_of reff thy ct args =
   let
     val _ = if null (term_frees (term_of ct)) then () else error ("Term "
@@ -1832,8 +1834,9 @@ fun eval eval'' term_of reff thy ct args =
         val program' = program
           |> Graph.new_node (CodeName.value_name, CodeThingol.Fun (([], ty), [(([], t), Drule.dummy_thm)]))
           |> fold (curry Graph.add_edge CodeName.value_name) deps;
-        val value_code = sml_code_of thy program' [CodeName.value_name] ;
-        val sml_code = space_implode " " (value_code :: "()" :: map (enclose "(" ")") args);
+        val (value_code, [value_name']) = ml_code_of thy program' [CodeName.value_name];
+        val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
+          ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate Output.ml_output false reff sml_code end;
   in eval'' thy (fn t => (t, eval')) ct end;
 
@@ -1843,11 +1846,50 @@ fun eval_term reff = eval CodeThingol.eval_term I reff;
 
 (* instrumentalization by antiquotation *)
 
-val ml_code_antiq = Args.theory -- Scan.repeat1 Args.term >> (fn (thy, ts) =>
+local
+
+structure CodeAntiqData = ProofDataFun
+(
+  type T = string list * (bool * string);
+  fun init _ = ([], (true, ""));
+);
+
+val is_first_occ = fst o snd o CodeAntiqData.get;
+
+fun register_const const ctxt =
   let
-    val cs = map (CodeUnit.check_const thy) ts;
-    val (cs', program) = CodeThingol.consts_program thy cs;
-  in sml_code_of thy program cs' ^ " ()" end);
+    val (consts, (_, struct_name)) = CodeAntiqData.get ctxt;
+    val (struct_name', ctxt') = if struct_name = ""
+      then ML_Antiquote.variant "Code" ctxt
+      else (struct_name, ctxt);
+  in CodeAntiqData.put (insert (op =) const consts, (false, struct_name')) ctxt' end;
+
+fun print_code thy struct_name is_first const ctxt =
+  let
+    val (consts, (_, struct_code_name)) = CodeAntiqData.get ctxt;
+    val (consts', program) = CodeThingol.consts_program thy consts;
+    val (raw_ml_code, consts'') = ml_code_of thy program consts';
+    val _ = if length consts <> length consts'' then
+      error ("One of the constants " ^ commas (map (quote o CodeUnit.string_of_const thy) consts)
+        ^ "\nhas a user-defined serialization") else ();
+    val const'' = NameSpace.append (NameSpace.append struct_name struct_code_name)
+      ((the o AList.lookup (op =) (consts ~~ consts'')) const);
+    val ml_code = if is_first then "\nstructure " ^ struct_code_name
+        ^ " =\nstruct\n\n" ^ raw_ml_code ^ "\nend;\n\n"
+      else "";
+  in (ml_code, const'') end;
+
+in
+
+fun ml_code_antiq raw_const {struct_name, background} =
+  let
+    val thy = ProofContext.theory_of background;
+    val const = CodeUnit.check_const thy raw_const;
+    val is_first = is_first_occ background;
+    val background' = register_const const background;
+  in (print_code thy struct_name is_first const, background') end;
+
+end; (*local*)
 
 
 (* code presentation *)
@@ -2291,7 +2333,7 @@ fun shell_command thyname cmd = Toplevel.program (fn _ =>
     | NONE => error ("Bad directive " ^ quote cmd)))
   handle TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
 
-val _ = ML_Antiquote.value "code" ml_code_antiq;
+val _ = ML_Context.add_antiq "code" (Args.term >> ml_code_antiq);
 
 
 (* serializer setup, including serializer defaults *)

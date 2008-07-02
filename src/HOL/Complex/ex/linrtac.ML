@@ -9,12 +9,10 @@ val ferrack_ss = let val ths = [@{thm real_of_int_inject}, @{thm real_of_int_les
 	     in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
 	     end;
 
-val nT = HOLogic.natT;
 val binarith =
   @{thms normalize_bin_simps} @ @{thms pred_bin_simps} @ @{thms succ_bin_simps} @
   @{thms add_bin_simps} @ @{thms minus_bin_simps} @  @{thms mult_bin_simps};
 val comp_arith = binarith @ simp_thms
-
 
 val zdvd_int = @{thm zdvd_int};
 val zdiff_int_split = @{thm zdiff_int_split};
@@ -55,7 +53,7 @@ fun prepare_for_linr sg q fm =
     val np = length ps
     val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
       (foldr HOLogic.mk_imp c rhs, np) ps
-    val (vs, _) = List.partition (fn t => q orelse (type_of t) = nT)
+    val (vs, _) = List.partition (fn t => q orelse (type_of t) = HOLogic.natT)
       (term_frees fm' @ term_vars fm');
     val fm2 = foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
@@ -98,7 +96,7 @@ fun linr_tac ctxt q i =
       | _ => (pre_thm, assm_tac i)
   in (rtac (((mp_step nh) o (spec_step np)) th) i 
       THEN tac) st
-  end handle Subscript => no_tac st | ReflectedFerrack.LINR => no_tac st);
+  end handle Subscript => no_tac st);
 
 fun linr_meth src =
   Method.syntax (Args.mode "no_quantify") src
@@ -107,6 +105,5 @@ fun linr_meth src =
 val setup =
   Method.add_method ("rferrack", linr_meth,
      "decision procedure for linear real arithmetic");
-
 
 end

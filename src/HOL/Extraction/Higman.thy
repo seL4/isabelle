@@ -426,13 +426,7 @@ definition
 code_datatype L0 L1 arbitrary_LT
 code_datatype T0 T1 T2 arbitrary_TT
 
-export_code higman_idx in SML module_name Higman
-
 ML {*
-local
-  open Higman
-in
-
 val a = 16807.0;
 val m = 2147483647.0;
 
@@ -445,36 +439,34 @@ fun mk_word seed l =
     val r = nextRand seed;
     val i = Real.round (r / m * 10.0);
   in if i > 7 andalso l > 2 then (r, []) else
-    apsnd (cons (if i mod 2 = 0 then A else B)) (mk_word r (l+1))
+    apsnd (cons (if i mod 2 = 0 then @{code A} else @{code B})) (mk_word r (l+1))
   end;
 
-fun f s Zero_nat = mk_word s 0
-  | f s (Suc n) = f (fst (mk_word s 0)) n;
+fun f s @{code "0::nat"} = mk_word s 0
+  | f s (@{code Suc} n) = f (fst (mk_word s 0)) n;
 
 val g1 = snd o (f 20000.0);
 
 val g2 = snd o (f 50000.0);
 
-fun f1 Zero_nat = [A,A]
-  | f1 (Suc Zero_nat) = [B]
-  | f1 (Suc (Suc Zero_nat)) = [A,B]
+fun f1 @{code "0::nat"} = [@{code A}, @{code A}]
+  | f1 (@{code Suc} @{code "0::nat"}) = [@{code B}]
+  | f1 (@{code Suc} (@{code Suc} @{code "0::nat"})) = [@{code A}, @{code B}]
   | f1 _ = [];
 
-fun f2 Zero_nat = [A,A]
-  | f2 (Suc Zero_nat) = [B]
-  | f2 (Suc (Suc Zero_nat)) = [B,A]
+fun f2 @{code "0::nat"} = [@{code A}, @{code A}]
+  | f2 (@{code Suc} @{code "0::nat"}) = [@{code B}]
+  | f2 (@{code Suc} (@{code Suc} @{code "0::nat"})) = [@{code B}, @{code A}]
   | f2 _ = [];
 
-val (i1, j1) = higman_idx g1;
+val (i1, j1) = @{code higman_idx} g1;
 val (v1, w1) = (g1 i1, g1 j1);
-val (i2, j2) = higman_idx g2;
+val (i2, j2) = @{code higman_idx} g2;
 val (v2, w2) = (g2 i2, g2 j2);
-val (i3, j3) = higman_idx f1;
+val (i3, j3) = @{code higman_idx} f1;
 val (v3, w3) = (f1 i3, f1 j3);
-val (i4, j4) = higman_idx f2;
+val (i4, j4) = @{code higman_idx} f2;
 val (v4, w4) = (f2 i4, f2 j4);
-
-end;
 *}
 
 end

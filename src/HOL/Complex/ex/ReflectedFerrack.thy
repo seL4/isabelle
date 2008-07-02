@@ -6,7 +6,7 @@ header {* Quatifier elimination for R(0,1,+,<) *}
 
 theory ReflectedFerrack
 imports Main GCD Real Efficient_Nat
-uses ("linreif.ML") ("linrtac.ML")
+uses ("linrtac.ML")
 begin
 
 
@@ -1985,30 +1985,97 @@ proof-
   with lr show ?thesis by blast
 qed
 
-constdefs linrqe:: "fm \<Rightarrow> fm"
-  "linrqe \<equiv> (\<lambda> p. qelim (prep p) ferrack)"
+definition linrqe:: "fm \<Rightarrow> fm" where
+  "linrqe p = qelim (prep p) ferrack"
 
-theorem linrqe: "(Ifm bs (linrqe p) = Ifm bs p) \<and> qfree (linrqe p)"
+theorem linrqe: "Ifm bs (linrqe p) = Ifm bs p \<and> qfree (linrqe p)"
 using ferrack qelim_ci prep
 unfolding linrqe_def by auto
 
-definition
-  ferrack_test :: "unit \<Rightarrow> fm"
-where
+definition ferrack_test :: "unit \<Rightarrow> fm" where
   "ferrack_test u = linrqe (A (A (Imp (Lt (Sub (Bound 1) (Bound 0)))
     (E (Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
 
-export_code linrqe ferrack_test in SML module_name Ferrack
+ML {* @{code ferrack_test} () *}
 
-(*code_module Ferrack
-  contains
-    linrqe = linrqe
-    test = ferrack_test*)
+oracle linr_oracle ("term") = {*
 
-ML {* Ferrack.ferrack_test () *}
+let
 
-use "linreif.ML"
-oracle linr_oracle ("term") = ReflectedFerrack.linrqe_oracle
+fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
+     of NONE => error "Variable not found in the list!"
+      | SOME n => @{code Bound} n)
+  | num_of_term vs @{term "real (0::int)"} = @{code C} 0
+  | num_of_term vs @{term "real (1::int)"} = @{code C} 1
+  | num_of_term vs @{term "0::real"} = @{code C} 0
+  | num_of_term vs @{term "1::real"} = @{code C} 1
+  | num_of_term vs (Term.Bound i) = @{code Bound} i
+  | num_of_term vs (@{term "uminus :: real \<Rightarrow> real"} $ t') = @{code Neg} (num_of_term vs t')
+  | num_of_term vs (@{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = @{code Add} (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (@{term "op - :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = @{code Sub} (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (@{term "op * :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = (case (num_of_term vs t1)
+     of @{code C} i => @{code Mul} (i, num_of_term vs t2)
+      | _ => error "num_of_term: unsupported Multiplication")
+  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "number_of :: int \<Rightarrow> int"} $ t')) = @{code C} (HOLogic.dest_numeral t')
+  | num_of_term vs (@{term "number_of :: int \<Rightarrow> int"} $ t') = @{code C} (HOLogic.dest_numeral t')
+  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term_global @{theory} t);
+
+fun fm_of_term vs @{term True} = @{code T}
+  | fm_of_term vs @{term False} = @{code T}
+  | fm_of_term vs (@{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = @{code Lt} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term vs (@{term "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = @{code Le} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term vs (@{term "op = :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2)) 
+  | fm_of_term vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) = @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term "op &"} $ t1 $ t2) = @{code And} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term "op |"} $ t1 $ t2) = @{code Or} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term "op -->"} $ t1 $ t2) = @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term "Not"} $ t') = @{code NOT} (fm_of_term vs t')
+  | fm_of_term vs (Const("Ex", _) $ Term.Abs (xn, xT, p)) =
+      @{code E} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
+  | fm_of_term vs (Const("All", _) $ Term.Abs(xn, xT, p)) =
+      @{code A} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
+  | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term_global @{theory} t);
+
+fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $ HOLogic.mk_number HOLogic.intT i
+  | term_of_num vs (@{code Bound} n) = fst (the (find_first (fn (_, m) => n = m) vs))
+  | term_of_num vs (@{code Neg} t') = @{term "uminus :: real \<Rightarrow> real"} $ term_of_num vs t'
+  | term_of_num vs (@{code Add} (t1, t2)) = @{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $
+      term_of_num vs t1 $ term_of_num vs t2
+  | term_of_num vs (@{code Sub} (t1, t2)) = @{term "op - :: real \<Rightarrow> real \<Rightarrow> real"} $
+      term_of_num vs t1 $ term_of_num vs t2
+  | term_of_num vs (@{code Mul} (i, t2)) = @{term "op * :: real \<Rightarrow> real \<Rightarrow> real"} $
+      term_of_num vs (@{code C} i) $ term_of_num vs t2
+  | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t));
+
+fun term_of_fm vs @{code T} = HOLogic.true_const 
+  | term_of_fm vs @{code F} = HOLogic.false_const
+  | term_of_fm vs (@{code Lt} t) = @{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $
+      term_of_num vs t $ @{term "0::real"}
+  | term_of_fm vs (@{code Le} t) = @{term "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool"} $
+      term_of_num vs t $ @{term "0::real"}
+  | term_of_fm vs (@{code Gt} t) = @{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $
+      @{term "0::real"} $ term_of_num vs t
+  | term_of_fm vs (@{code Ge} t) = @{term "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool"} $
+      @{term "0::real"} $ term_of_num vs t
+  | term_of_fm vs (@{code Eq} t) = @{term "op = :: real \<Rightarrow> real \<Rightarrow> bool"} $
+      term_of_num vs t $ @{term "0::real"}
+  | term_of_fm vs (@{code NEq} t) = term_of_fm vs (@{code NOT} (@{code Eq} t))
+  | term_of_fm vs (@{code NOT} t') = HOLogic.Not $ term_of_fm vs t'
+  | term_of_fm vs (@{code And} (t1, t2)) = HOLogic.conj $ term_of_fm vs t1 $ term_of_fm vs t2
+  | term_of_fm vs (@{code Or} (t1, t2)) = HOLogic.disj $ term_of_fm vs t1 $ term_of_fm vs t2
+  | term_of_fm vs (@{code Imp}  (t1, t2)) = HOLogic.imp $ term_of_fm vs t1 $ term_of_fm vs t2
+  | term_of_fm vs (@{code Iff} (t1, t2)) = @{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $
+      term_of_fm vs t1 $ term_of_fm vs t2
+  | term_of_fm vs _ = error "If this is raised, Isabelle/HOL or generate_code is inconsistent.";
+
+in fn thy => fn t =>
+  let 
+    val fs = term_frees t;
+    val vs = fs ~~ (0 upto (length fs - 1));
+  in HOLogic.mk_Trueprop (HOLogic.mk_eq (t, term_of_fm vs (@{code linrqe} (fm_of_term vs t)))) end
+end;
+*}
+
 use "linrtac.ML"
 setup LinrTac.setup
 

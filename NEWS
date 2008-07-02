@@ -15,8 +15,20 @@ INCOMPATIBILITY, use proper 'instantiation' target.
 
 * Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
 
+* New ML antiquotation 'code': takes constant as argument, generates
+corresponding code in background and inserts name of the corresponding resulting
+ML value/function/datatype constructor binding in place.  All occurences of 'code'
+with a single ML block are generated simultaneously.
+Provides a generic and safe interface for instrumentalizing code generation.
+See HOL/ex/Code_Antiq for a toy example, or HOL/Complex/ex/ReflectedFerrack
+for a more ambitious application.  In future you ought refrain from
+ad-hoc compiling generated SML code on the ML toplevel.
+Note that (for technical reasons) 'code' cannot refer to constants for which
+user-defined serializations are set.  Refer to the corresponding ML counterpart
+directly in that cases.
+
 * Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
-interface instead.
+interface instead. 
 
 
 *** Document preparation ***
@@ -32,7 +44,10 @@ syntax.
 Complex_Main.thy remain as they are.
 
 * New image HOL-Plain provides a minimal HOL with the most important tools
-available (inductive, datatype, primrec, codegen, ...).
+available (inductive, datatype, primrec, ...).  By convention the corresponding
+theory Plain should be ancestor of every further (library) theory.  Some library
+theories now have ancestor Plain (instead of Main), thus theory Main
+occasionally has to be imported explicitly.
 
 * Methods "case_tac" and "induct_tac" now refer to the very same rules
 as the structured Isar versions "cases" and "induct", cf. the
@@ -66,7 +81,7 @@ theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
 
 *** ML ***
-
+ 
 * Rules and tactics that read instantiations (read_instantiate,
 res_inst_tac, thin_tac, subgoal_tac etc.) now demand a proper proof
 context, which is required for parsing and type-checking.  Moreover,
