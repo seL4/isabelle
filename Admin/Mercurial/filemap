@@ -1,3 +1,4 @@
+rename Doc doc-src
 exclude Distribution/bin/Isabelle
 rename Distribution .
 rename CCL src/CCL
