@@ -20,14 +20,11 @@ by auto
 
 definition
   powhr  :: "[hypreal,hypreal] => hypreal"     (infixr "powhr" 80) where
-  "x powhr a = starfun2 (op powr) x a"
+  [transfer_unfold, code func del]: "x powhr a = starfun2 (op powr) x a"
   
 definition
   hlog :: "[hypreal,hypreal] => hypreal" where
-  "hlog a x = starfun2 log a x"
-
-declare powhr_def [transfer_unfold]
-declare hlog_def [transfer_unfold]
+  [transfer_unfold, code func del]: "hlog a x = starfun2 log a x"
 
 lemma powhr: "(star_n X) powhr (star_n Y) = star_n (%n. (X n) powr (Y n))"
 by (simp add: powhr_def starfun2_star_n)

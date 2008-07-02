@@ -16,18 +16,18 @@ text{*Nonstandard Definitions*}
 definition
   NSLIM :: "['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool"
             ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60) where
-  "f -- a --NS> L =
+  [code func del]: "f -- a --NS> L =
     (\<forall>x. (x \<noteq> star_of a & x @= star_of a --> ( *f* f) x @= star_of L))"
 
 definition
   isNSCont :: "['a::real_normed_vector => 'b::real_normed_vector, 'a] => bool" where
     --{*NS definition dispenses with limit notions*}
-  "isNSCont f a = (\<forall>y. y @= star_of a -->
+  [code func del]: "isNSCont f a = (\<forall>y. y @= star_of a -->
          ( *f* f) y @= star_of (f a))"
 
 definition
   isNSUCont :: "['a::real_normed_vector => 'b::real_normed_vector] => bool" where
-  "isNSUCont f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
+  [code func del]: "isNSUCont f = (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
 
 
 subsection {* Limits of Functions *}

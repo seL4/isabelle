@@ -16,7 +16,7 @@ text{*Standard Definitions*}
 definition
   LIM :: "['a::real_normed_vector => 'b::real_normed_vector, 'a, 'b] => bool"
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
-  "f -- a --> L =
+  [code func del]: "f -- a --> L =
      (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & norm (x - a) < s
         --> norm (f x - L) < r)"
 
@@ -26,7 +26,7 @@ definition
 
 definition
   isUCont :: "['a::real_normed_vector => 'b::real_normed_vector] => bool" where
-  "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. norm (x - y) < s \<longrightarrow> norm (f x - f y) < r)"
+  [code func del]: "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. norm (x - y) < s \<longrightarrow> norm (f x - f y) < r)"
 
 
 subsection {* Limits of Functions *}

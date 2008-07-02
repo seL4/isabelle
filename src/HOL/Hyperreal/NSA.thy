@@ -13,19 +13,19 @@ begin
 
 definition
   hnorm :: "'a::norm star \<Rightarrow> real star" where
-  "hnorm = *f* norm"
+  [transfer_unfold]: "hnorm = *f* norm"
 
 definition
   Infinitesimal  :: "('a::real_normed_vector) star set" where
-  "Infinitesimal = {x. \<forall>r \<in> Reals. 0 < r --> hnorm x < r}"
+  [code func del]: "Infinitesimal = {x. \<forall>r \<in> Reals. 0 < r --> hnorm x < r}"
 
 definition
   HFinite :: "('a::real_normed_vector) star set" where
-  "HFinite = {x. \<exists>r \<in> Reals. hnorm x < r}"
+  [code func del]: "HFinite = {x. \<exists>r \<in> Reals. hnorm x < r}"
 
 definition
   HInfinite :: "('a::real_normed_vector) star set" where
-  "HInfinite = {x. \<forall>r \<in> Reals. r < hnorm x}"
+  [code func del]: "HInfinite = {x. \<forall>r \<in> Reals. r < hnorm x}"
 
 definition
   approx :: "['a::real_normed_vector star, 'a star] => bool"  (infixl "@=" 50) where
@@ -58,10 +58,7 @@ subsection {* Nonstandard Extension of the Norm Function *}
 
 definition
   scaleHR :: "real star \<Rightarrow> 'a star \<Rightarrow> 'a::real_normed_vector star" where
-  "scaleHR = starfun2 scaleR"
-
-declare hnorm_def [transfer_unfold]
-declare scaleHR_def [transfer_unfold]
+  [transfer_unfold, code func del]: "scaleHR = starfun2 scaleR"
 
 lemma Standard_hnorm [simp]: "x \<in> Standard \<Longrightarrow> hnorm x \<in> Standard"
 by (simp add: hnorm_def)

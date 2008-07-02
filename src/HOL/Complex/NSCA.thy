@@ -14,10 +14,9 @@ abbreviation
    SComplex  :: "hcomplex set" where
    "SComplex \<equiv> Standard"
 
-definition
-   stc :: "hcomplex => hcomplex" where
-    --{* standard part map*}
-   "stc x = (SOME r. x \<in> HFinite & r:SComplex & r @= x)"
+definition --{* standard part map*}
+  stc :: "hcomplex => hcomplex" where 
+  [code func del]: "stc x = (SOME r. x \<in> HFinite & r:SComplex & r @= x)"
 
 
 subsection{*Closure Laws for SComplex, the Standard Complex Numbers*}

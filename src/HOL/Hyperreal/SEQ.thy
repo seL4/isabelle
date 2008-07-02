@@ -15,13 +15,13 @@ begin
 definition
   Zseq :: "[nat \<Rightarrow> 'a::real_normed_vector] \<Rightarrow> bool" where
     --{*Standard definition of sequence converging to zero*}
-  "Zseq X = (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. norm (X n) < r)"
+  [code func del]: "Zseq X = (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. norm (X n) < r)"
 
 definition
   LIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
     ("((_)/ ----> (_))" [60, 60] 60) where
     --{*Standard definition of convergence of sequence*}
-  "X ----> L = (\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (X n - L) < r))"
+  [code func del]: "X ----> L = (\<forall>r. 0 < r --> (\<exists>no. \<forall>n. no \<le> n --> norm (X n - L) < r))"
 
 definition
   lim :: "(nat => 'a::real_normed_vector) => 'a" where
@@ -36,22 +36,22 @@ definition
 definition
   Bseq :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Standard definition for bounded sequence*}
-  "Bseq X = (\<exists>K>0.\<forall>n. norm (X n) \<le> K)"
+  [code func del]: "Bseq X = (\<exists>K>0.\<forall>n. norm (X n) \<le> K)"
 
 definition
   monoseq :: "(nat=>real)=>bool" where
     --{*Definition for monotonicity*}
-  "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
+  [code func del]: "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
 
 definition
   subseq :: "(nat => nat) => bool" where
     --{*Definition of subsequence*}
-  "subseq f = (\<forall>m. \<forall>n>m. (f m) < (f n))"
+  [code func del]:   "subseq f = (\<forall>m. \<forall>n>m. (f m) < (f n))"
 
 definition
   Cauchy :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Standard definition of the Cauchy condition*}
-  "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. norm (X m - X n) < e)"
+  [code func del]: "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. norm (X m - X n) < e)"
 
 
 subsection {* Bounded Sequences *}

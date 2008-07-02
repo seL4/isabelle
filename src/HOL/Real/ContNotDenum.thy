@@ -393,16 +393,17 @@ that @{text "(f 0)\<notin>newInt 0 f"}. *}
 
 subsubsection {* Definition *}
 
-consts newInt :: "nat \<Rightarrow> (nat \<Rightarrow> real) \<Rightarrow> (real set)"
-primrec
-"newInt 0 f = closed_int (f 0 + 1) (f 0 + 2)"
-"newInt (Suc n) f =
-  (SOME e. (\<exists>e1 e2.
-   e1 < e2 \<and>
-   e = closed_int e1 e2 \<and>
-   e \<subseteq> (newInt n f) \<and>
-   (f (Suc n)) \<notin> e)
-  )"
+primrec newInt :: "nat \<Rightarrow> (nat \<Rightarrow> real) \<Rightarrow> (real set)" where
+  "newInt 0 f = closed_int (f 0 + 1) (f 0 + 2)"
+  | "newInt (Suc n) f =
+      (SOME e. (\<exists>e1 e2.
+       e1 < e2 \<and>
+       e = closed_int e1 e2 \<and>
+       e \<subseteq> (newInt n f) \<and>
+       (f (Suc n)) \<notin> e)
+      )"
+
+declare newInt.simps [code func del]
 
 subsubsection {* Properties *}
 

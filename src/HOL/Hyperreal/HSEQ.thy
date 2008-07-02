@@ -16,7 +16,7 @@ definition
   NSLIMSEQ :: "[nat => 'a::real_normed_vector, 'a] => bool"
     ("((_)/ ----NS> (_))" [60, 60] 60) where
     --{*Nonstandard definition of convergence of sequence*}
-  "X ----NS> L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
+  [code func del]: "X ----NS> L = (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 
 definition
   nslim :: "(nat => 'a::real_normed_vector) => 'a" where
@@ -31,12 +31,12 @@ definition
 definition
   NSBseq :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Nonstandard definition for bounded sequence*}
-  "NSBseq X = (\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite)"
+  [code func del]: "NSBseq X = (\<forall>N \<in> HNatInfinite. ( *f* X) N : HFinite)"
 
 definition
   NSCauchy :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Nonstandard definition*}
-  "NSCauchy X = (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. ( *f* X) M \<approx> ( *f* X) N)"
+  [code func del]: "NSCauchy X = (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. ( *f* X) M \<approx> ( *f* X) N)"
 
 subsection {* Limits of Sequences *}
 

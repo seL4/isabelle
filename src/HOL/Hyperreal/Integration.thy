@@ -16,29 +16,29 @@ definition
   --{*Partitions and tagged partitions etc.*}
 
   partition :: "[(real*real),nat => real] => bool" where
-  "partition = (%(a,b) D. D 0 = a &
+  [code func del]: "partition = (%(a,b) D. D 0 = a &
                          (\<exists>N. (\<forall>n < N. D(n) < D(Suc n)) &
                               (\<forall>n \<ge> N. D(n) = b)))"
 
 definition
   psize :: "(nat => real) => nat" where
-  "psize D = (SOME N. (\<forall>n < N. D(n) < D(Suc n)) &
+  [code func del]:"psize D = (SOME N. (\<forall>n < N. D(n) < D(Suc n)) &
                       (\<forall>n \<ge> N. D(n) = D(N)))"
 
 definition
   tpart :: "[(real*real),((nat => real)*(nat =>real))] => bool" where
-  "tpart = (%(a,b) (D,p). partition(a,b) D &
+  [code func del]:"tpart = (%(a,b) (D,p). partition(a,b) D &
                           (\<forall>n. D(n) \<le> p(n) & p(n) \<le> D(Suc n)))"
 
   --{*Gauges and gauge-fine divisions*}
 
 definition
   gauge :: "[real => bool, real => real] => bool" where
-  "gauge E g = (\<forall>x. E x --> 0 < g(x))"
+  [code func del]:"gauge E g = (\<forall>x. E x --> 0 < g(x))"
 
 definition
   fine :: "[real => real, ((nat => real)*(nat => real))] => bool" where
-  "fine = (%g (D,p). \<forall>n. n < (psize D) --> D(Suc n) - D(n) < g(p n))"
+  [code func del]:"fine = (%g (D,p). \<forall>n. n < (psize D) --> D(Suc n) - D(n) < g(p n))"
 
   --{*Riemann sum*}
 
@@ -50,7 +50,7 @@ definition
 
 definition
   Integral :: "[(real*real),real=>real,real] => bool" where
-  "Integral = (%(a,b) f k. \<forall>e > 0.
+  [code func del]: "Integral = (%(a,b) f k. \<forall>e > 0.
                                (\<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
                                (\<forall>D p. tpart(a,b) (D,p) & fine(g)(D,p) -->
                                          \<bar>rsum(D,p) f - k\<bar> < e)))"
