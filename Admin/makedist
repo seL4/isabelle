@@ -149,7 +149,7 @@ echo "###"
 cd "$DISTBASE/$DISTNAME/Doc"
 PDFLATEX=$(type -path pdflatex)
 
-for DOC in $(cat Contents)
+for DOC in $(cat Dirs)
 do
   pushd "$DOC" > /dev/null
   make dvi || fail "DVI document for $DOC failed!"
