@@ -324,7 +324,7 @@ fun end_theory thy =
 val kill_theory = ThyInfo.if_known_thy ThyInfo.remove_thy;
 
 fun theory (name, imports, uses) =
-  Toplevel.init_theory (begin_theory name imports uses)
+  Toplevel.init_theory name (begin_theory name imports uses)
     (fn thy => (end_theory thy; ()))
     (kill_theory o Context.theory_name);
 
