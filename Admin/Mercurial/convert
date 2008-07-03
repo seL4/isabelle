@@ -30,3 +30,6 @@ cd "$THIS"
 "$HG" convert --filemap cvs/Admin/Mercurial/filemap cvs hg >> "$LOG" 2>&1 || exit 2
 
 [ -e hg/.hg/hgrc ] || ln -s ../../cvs/Admin/Mercurial/hgrc hg/.hg/hgrc
+
+
+/usr/sbin/logrotate -s "$THIS/log.state" "$THIS/cvs/Admin/Mercurial/logrotate.conf"
