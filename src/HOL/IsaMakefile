@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Generate-HOL HOL-Generate-HOLLight
-images: HOL-Plain HOL HOL-Algebra HOL-Nominal HOL-Word TLA HOL4
+images: HOL-Plain HOL HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \
@@ -179,44 +179,24 @@ $(OUT)/HOL: $(OUT)/HOL-Plain \
   ROOT.ML \
   Arith_Tools.thy \
   ATP_Linkup.thy \
-  Complex/CLim.thy \
   Complex/Complex_Main.thy \
   Complex/Complex.thy \
-  Complex/CStar.thy \
   Complex/Fundamental_Theorem_Algebra.thy \
-  Complex/NSCA.thy \
-  Complex/NSComplex.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
   Hyperreal/Deriv.thy \
   Hyperreal/Fact.thy \
-  Hyperreal/Filter.thy \
-  Hyperreal/HDeriv.thy \
-  Hyperreal/HLim.thy \
-  Hyperreal/HLog.thy \
-  Hyperreal/HSEQ.thy \
-  Hyperreal/HSeries.thy \
-  Hyperreal/HTranscendental.thy \
-  Hyperreal/HyperDef.thy \
-  Hyperreal/HyperNat.thy \
-  Hyperreal/Hyperreal.thy \
-  Hyperreal/hypreal_arith.ML \
   Hyperreal/Integration.thy \
   Hyperreal/Lim.thy \
   Hyperreal/Ln.thy \
   Hyperreal/Log.thy \
   Hyperreal/MacLaurin.thy \
-  Hyperreal/NatStar.thy \
-  Hyperreal/NSA.thy \
   Hyperreal/NthRoot.thy \
   Hyperreal/SEQ.thy \
   Hyperreal/Series.thy \
-  Hyperreal/StarDef.thy \
-  Hyperreal/Star.thy \
   Hyperreal/Taylor.thy \
   Hyperreal/Transcendental.thy \
-  Hyperreal/transfer.ML \
   int_arith1.ML \
   IntDiv.thy \
   int_factor_simprocs.ML \
@@ -224,11 +204,9 @@ $(OUT)/HOL: $(OUT)/HOL-Plain \
   Library/Abstract_Rat.thy \
   Library/Dense_Linear_Order.thy \
   Library/GCD.thy \
-  Library/Infinite_Set.thy \
   Library/Order_Relation.thy \
   Library/Parity.thy \
   Library/Univ_Poly.thy \
-  Library/Zorn.thy \
   List.thy \
   Main.thy \
   Map.thy \
@@ -302,14 +280,14 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/BigO.thy Library/Ramsey.thy Library/Efficient_Nat.thy		\
-  Library/Executable_Set.thy 			\
+  Library/Executable_Set.thy Library/Infinite_Set.thy			\
   Library/FuncSet.thy			\
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
   Library/Multiset.thy Library/NatPair.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
   Library/Quicksort.thy Library/Nat_Infinity.thy Library/Word.thy	\
   Library/README.html Library/Continuity.thy				\
-  Library/Nested_Environment.thy			\
+  Library/Nested_Environment.thy Library/Zorn.thy			\
   Library/Library/ROOT.ML Library/Library/document/root.tex		\
   Library/Library/document/root.bib Library/While_Combinator.thy	\
   Library/Product_ord.thy Library/Char_nat.thy Library/Char_ord.thy	\
@@ -963,6 +941,45 @@ $(LOG)/HOL-Statespace.gz: $(OUT)/HOL Statespace/DistinctTreeProver.thy	\
   Statespace/distinct_tree_prover.ML Statespace/state_space.ML		\
   Statespace/state_fun.ML Statespace/document/root.tex
 	@$(ISATOOL) usedir -g true $(OUT)/HOL Statespace
+
+## HOL-NSA
+
+HOL-NSA: HOL $(LOG)/HOL-NSA.gz
+
+$(LOG)/HOL-NSA.gz: $(OUT)/HOL \
+  NSA/CLim.thy \
+  NSA/CStar.thy \
+  NSA/NSCA.thy \
+  NSA/NSComplex.thy \
+  NSA/HDeriv.thy \
+  NSA/HLim.thy \
+  NSA/HLog.thy \
+  NSA/HSEQ.thy \
+  NSA/HSeries.thy \
+  NSA/HTranscendental.thy \
+  NSA/Hypercomplex.thy \
+  NSA/HyperDef.thy \
+  NSA/HyperNat.thy \
+  NSA/Hyperreal.thy \
+  NSA/hypreal_arith.ML \
+  NSA/Filter.thy \
+  NSA/NatStar.thy \
+  NSA/NSA.thy \
+  NSA/StarDef.thy \
+  NSA/Star.thy \
+  NSA/transfer.ML \
+  Library/Infinite_Set.thy \
+  Library/Zorn.thy \
+  NSA/ROOT.ML
+	@cd NSA; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-NSA
+
+## HOL-NSA-Examples
+
+HOL-NSA-Examples: HOL-NSA $(LOG)/HOL-NSA-Examples.gz
+
+$(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
+  NSA/Examples/NSPrimes.thy
+	@cd NSA; $(ISATOOL) usedir $(OUT)/HOL-NSA Examples
 
 ## clean
 
