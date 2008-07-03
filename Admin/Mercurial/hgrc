@@ -7,4 +7,4 @@ cvsps = cvsps -A -u --cvs-direct --norc -b HEAD
 [web]
 description = "Mercurial snapshot of the Isabelle CVS repository"
 allow_archive = gz
-style = gitweb
+#style = gitweb
