@@ -26,3 +26,5 @@ export HGRCPATH="$THIS/cvs/Admin/Mercurial/hgrc"
 
 cd "$THIS"
 "$HG" convert --filemap cvs/Admin/Mercurial/filemap cvs hg
+
+[ -e hg/.hg/hgrc ] || ln -s ../../cvs/Admin/Mercurial/hgrc hg/.hg/hgrc
