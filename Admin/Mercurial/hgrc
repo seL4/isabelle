@@ -2,7 +2,7 @@
 hgext.convert =
 
 [convert]
-cvsps = /home/isabelle/html-data/isabelle-repos/cvsps-2.1-patched/cvsps -A -u --cvs-direct --norc -v -b HEAD
+cvsps = /home/isabelle/html-data/isabelle-repos/cvsps-2.1-patched/cvsps -A -u --cvs-direct --norc -b HEAD
 
 [web]
 description = "Mercurial snapshot of the Isabelle CVS repository"
