@@ -1,0 +1,9 @@
+[extensions]
+hgext.convert =
+
+[convert]
+cvsps = cvsps -A -u --cvs-direct --norc -b HEAD
+
+[web]
+allow_archive = gz
+style = gitweb
