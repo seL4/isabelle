@@ -106,6 +106,17 @@ end
 class cancel_semigroup_add = semigroup_add +
   assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
   assumes add_right_imp_eq: "b + a = c + a \<Longrightarrow> b = c"
+begin
+
+lemma add_left_cancel [simp]:
+  "a + b = a + c \<longleftrightarrow> b = c"
+  by (blast dest: add_left_imp_eq)
+
+lemma add_right_cancel [simp]:
+  "b + a = c + a \<longleftrightarrow> b = c"
+  by (blast dest: add_right_imp_eq)
+
+end
 
 class cancel_ab_semigroup_add = ab_semigroup_add +
   assumes add_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
@@ -122,19 +133,6 @@ next
   then have "a + b = a + c" by (simp only: add_commute)
   then show "b = c" by (rule add_imp_eq)
 qed
-
-end
-
-context cancel_ab_semigroup_add
-begin
-
-lemma add_left_cancel [simp]:
-  "a + b = a + c \<longleftrightarrow> b = c"
-  by (blast dest: add_left_imp_eq)
-
-lemma add_right_cancel [simp]:
-  "b + a = c + a \<longleftrightarrow> b = c"
-  by (blast dest: add_right_imp_eq)
 
 end
 
