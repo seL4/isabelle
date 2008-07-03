@@ -7,4 +7,4 @@ cvsps = /home/isabelle/html-data/isabelle-repos/cvsps-2.1-patched/cvsps -A -u --
 [web]
 description = "Mercurial snapshot of the Isabelle CVS repository"
 allow_archive = gz
-
+maxfiles = 50
