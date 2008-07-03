@@ -1344,7 +1344,7 @@ apply (subst fact_lemma)
 apply (subst fact_Suc [of "Suc (Suc (Suc (Suc (Suc (Suc (Suc (4 * d)))))))"])
 apply (simp only: real_of_nat_mult)
 apply (rule mult_strict_mono, force)
-  apply (rule_tac [3] real_of_nat_fact_ge_zero)
+  apply (rule_tac [3] real_of_nat_ge_zero)
  prefer 2 apply force
 apply (rule real_of_nat_less_iff [THEN iffD2])
 apply (rule fact_less_mono, auto)

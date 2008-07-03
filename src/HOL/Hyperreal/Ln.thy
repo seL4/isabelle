@@ -85,7 +85,7 @@ next
       apply (rule mult_nonneg_nonneg)
       apply simp
       apply (subst inverse_nonnegative_iff_nonnegative)
-      apply (rule real_of_nat_fact_ge_zero)
+      apply (rule real_of_nat_ge_zero)
       apply (rule zero_le_power)
       apply (rule a)
       done
