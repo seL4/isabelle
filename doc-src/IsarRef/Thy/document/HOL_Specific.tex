@@ -365,20 +365,18 @@ The record package proves several results internally, declaring
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{HOL}{command}{datatype}\hypertarget{command.HOL.datatype}{\hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}}} & : & \isartrans{theory}{theory} \\
-    \indexdef{HOL}{command}{rep\_datatype}\hypertarget{command.HOL.rep-datatype}{\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}}}} & : & \isartrans{theory}{theory} \\
+  \indexdef{HOL}{command}{rep\_datatype}\hypertarget{command.HOL.rep-datatype}{\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isacharunderscore}datatype}}}}} & : & \isartrans{theory}{proof} \\
   \end{matharray}
 
   \begin{rail}
     'datatype' (dtspec + 'and')
     ;
-    'rep\_datatype' (name *) dtrules
+    'rep\_datatype' ('(' (name +) ')')? (term +)
     ;
 
     dtspec: parname? typespec infix? '=' (cons + '|')
     ;
     cons: name (type *) mixfix?
-    ;
-    dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
   \end{rail}
 
   \begin{descr}
@@ -464,10 +462,15 @@ The record package proves several results internally, declaring
 
   %FIXME check
 
-  Recursive definitions introduced by both the \hyperlink{command.HOL.primrec}{\mbox{\isa{\isacommand{primrec}}}} and the \hyperlink{command.HOL.function}{\mbox{\isa{\isacommand{function}}}} command accommodate
+  Recursive definitions introduced by the \hyperlink{command.HOL.function}{\mbox{\isa{\isacommand{function}}}}
+  command accommodate
   reasoning by induction (cf.\ \secref{sec:cases-induct}): rule \isa{{\isachardoublequote}c{\isachardot}induct{\isachardoublequote}} (where \isa{c} is the name of the function definition)
   refers to a specific induction rule, with parameters named according
-  to the user-specified equations.  Case names of \hyperlink{command.HOL.primrec}{\mbox{\isa{\isacommand{primrec}}}} are that of the datatypes involved, while those of
+  to the user-specified equations.
+  For the \hyperlink{command.HOL.primrec}{\mbox{\isa{\isacommand{primrec}}}} the induction principle coincides
+  with structural recursion on the datatype the recursion is carried
+  out.
+  Case names of \hyperlink{command.HOL.primrec}{\mbox{\isa{\isacommand{primrec}}}} are that of the datatypes involved, while those of
   \hyperlink{command.HOL.function}{\mbox{\isa{\isacommand{function}}}} are numbered (starting from 1).
 
   The equations provided by these packages may be referred later as
@@ -988,7 +991,7 @@ Isabelle/Pure provides two generic frameworks to support code
     'code\_modulename' target ( ( string string ) + )
     ;
 
-    'code\_exception' ( const + )
+    'code\_abort' ( const + )
     ;
 
     syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
@@ -1075,13 +1078,13 @@ Isabelle/Pure provides two generic frameworks to support code
   one module name onto another.
 
   \item [\hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}] declares constants which
-  are not required to have a definition by a defining equations;
+  are not required to have a definition by means of defining equations;
   if needed these are implemented by program abort instead.
 
   \item [\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}~\isa{func}] explicitly selects (or
   with option ``\isa{{\isachardoublequote}del{\isacharcolon}{\isachardoublequote}}'' deselects) a defining equation for
   code generation.  Usually packages introducing defining equations
-  provide a resonable default setup for selection.
+  provide a reasonable default setup for selection.
 
   \item [\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}\isa{inline}] declares (or with
   option ``\isa{{\isachardoublequote}del{\isacharcolon}{\isachardoublequote}}'' removes) inlining theorems which are

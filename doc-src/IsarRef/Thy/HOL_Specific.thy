@@ -362,20 +362,18 @@ section {* Datatypes \label{sec:hol-datatype} *}
 text {*
   \begin{matharray}{rcl}
     @{command_def (HOL) "datatype"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "rep_datatype"} & : & \isartrans{theory}{theory} \\
+  @{command_def (HOL) "rep_datatype"} & : & \isartrans{theory}{proof} \\
   \end{matharray}
 
   \begin{rail}
     'datatype' (dtspec + 'and')
     ;
-    'rep\_datatype' (name *) dtrules
+    'rep\_datatype' ('(' (name +) ')')? (term +)
     ;
 
     dtspec: parname? typespec infix? '=' (cons + '|')
     ;
     cons: name (type *) mixfix?
-    ;
-    dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
   \end{rail}
 
   \begin{descr}
@@ -460,12 +458,16 @@ text {*
 
   %FIXME check
 
-  Recursive definitions introduced by both the @{command (HOL)
-  "primrec"} and the @{command (HOL) "function"} command accommodate
+  Recursive definitions introduced by the @{command (HOL) "function"}
+  command accommodate
   reasoning by induction (cf.\ \secref{sec:cases-induct}): rule @{text
   "c.induct"} (where @{text c} is the name of the function definition)
   refers to a specific induction rule, with parameters named according
-  to the user-specified equations.  Case names of @{command (HOL)
+  to the user-specified equations.
+  For the @{command (HOL) "primrec"} the induction principle coincides
+  with structural recursion on the datatype the recursion is carried
+  out.
+  Case names of @{command (HOL)
   "primrec"} are that of the datatypes involved, while those of
   @{command (HOL) "function"} are numbered (starting from 1).
 
@@ -985,7 +987,7 @@ text {*
     'code\_modulename' target ( ( string string ) + )
     ;
 
-    'code\_exception' ( const + )
+    'code\_abort' ( const + )
     ;
 
     syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
@@ -1075,13 +1077,13 @@ text {*
   one module name onto another.
 
   \item [@{command (HOL) "code_abort"}] declares constants which
-  are not required to have a definition by a defining equations;
+  are not required to have a definition by means of defining equations;
   if needed these are implemented by program abort instead.
 
   \item [@{attribute (HOL) code}~@{text func}] explicitly selects (or
   with option ``@{text "del:"}'' deselects) a defining equation for
   code generation.  Usually packages introducing defining equations
-  provide a resonable default setup for selection.
+  provide a reasonable default setup for selection.
 
   \item [@{attribute (HOL) code}@{text inline}] declares (or with
   option ``@{text "del:"}'' removes) inlining theorems which are

@@ -2072,14 +2072,18 @@ For foundational reasons, some basic types such as \texttt{nat}, \texttt{*}, {\t
 but by more primitive means using \texttt{typedef}. To be able to use the
 tactics \texttt{induct_tac} and \texttt{case_tac} and to define functions by
 primitive recursion on these types, such types may be represented as actual
-datatypes.  This is done by specifying an induction rule, as well as theorems
+datatypes.  This is done by specifying the constructors of the desired type,
+plus a proof of the  induction rule, as well as theorems
 stating the distinctness and injectivity of constructors in a {\tt
-  rep_datatype} section.  For type \texttt{nat} this works as follows:
+rep_datatype} section.  For the sum type this works as follows:
 \begin{ttbox}
-rep_datatype nat
-  distinct Suc_not_Zero, Zero_not_Suc
-  inject   Suc_Suc_eq
-  induct   nat_induct
+rep_datatype (sum) Inl Inr
+proof -
+  fix P
+  fix s :: "'a + 'b"
+  assume x: "!!x::'a. P (Inl x)" and y: "!!y::'b. P (Inr y)"
+  then show "P s" by (auto intro: sumE [of s])
+qed simp_all
 \end{ttbox}
 The datatype package automatically derives additional theorems for recursion
 and case combinators from these rules.  Any of the basic HOL types mentioned
