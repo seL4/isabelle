@@ -24,6 +24,7 @@ imports
   "../Real/Float"
   FuncSet
   Imperative_HOL
+  Infinite_Set
   ListVector
   Multiset
   NatPair
@@ -41,6 +42,7 @@ imports
   State_Monad
   While_Combinator
   Word
+  Zorn
 begin
 end
 (*>*)
