@@ -7,7 +7,7 @@ SUPER="$(cd "$THIS/.."; pwd)"
 LOG="$THIS/log"
 
 cd "$THIS/cvs"
-cvs up -dAP >> "$LOG" || exit 2
+cvs up -dAP >> "$LOG" 2>&1 || exit 2
 
 
 case $(hostname) in
@@ -27,6 +27,6 @@ esac
 export HGRCPATH="$THIS/cvs/Admin/Mercurial/hgrc"
 
 cd "$THIS"
-"$HG" convert --filemap cvs/Admin/Mercurial/filemap cvs hg >> "$LOG" || exit 2
+"$HG" convert --filemap cvs/Admin/Mercurial/filemap cvs hg >> "$LOG" 2>&1 || exit 2
 
 [ -e hg/.hg/hgrc ] || ln -s ../../cvs/Admin/Mercurial/hgrc hg/.hg/hgrc
