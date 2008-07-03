@@ -11,16 +11,18 @@ cvs up -dAP || exit 2
 case $(hostname) in
 
 atbroy51)
-MERCURIAL=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy51/bin/hg
+export HG=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy51/bin/hg
 export PYTHONPATH=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy51/lib/python2.4/site-packages
 ;;
 
 atbroy100)
-MERCURIAL=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy100/bin/hg
+export HG=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy100/bin/hg
 export PYTHONPATH=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy100/lib64/python2.4/site-packages
 ;;
 
 esac
 
+export HGRCPATH="$THIS/cvs/Admin/Mercurial/hgrc"
+
 cd "$THIS"
-"$MERCURIAL" convert --filemap cvs/Admin/Mercurial/filemap cvs hg
+"$HG" convert --filemap cvs/Admin/Mercurial/filemap cvs hg
