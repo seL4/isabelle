@@ -98,7 +98,6 @@ use_thys [
   "../Complex/ex/BinEx",
   "../Complex/ex/Sqrt",
   "../Complex/ex/Sqrt_Script",
-  "../Complex/ex/NSPrimes",
   "../Complex/ex/BigO_Complex",
 
   "../Complex/ex/Arithmetic_Series_Complex",
