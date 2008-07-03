@@ -5,10 +5,16 @@ THIS="$(cd "$(dirname "$0")"; pwd)"
 SUPER="$(cd "$THIS/.."; pwd)"
 
 LOG="$THIS/log"
+date >> "$LOG"
+
+
+## cvs update
 
 cd "$THIS/cvs"
 cvs up -dAP >> "$LOG" 2>&1 || exit 2
 
+
+## hg convert
 
 case $(hostname) in
 
@@ -31,5 +37,7 @@ cd "$THIS"
 
 [ -e hg/.hg/hgrc ] || ln -s ../../cvs/Admin/Mercurial/hgrc hg/.hg/hgrc
 
+
+## logrotate
 
 /usr/sbin/logrotate -s "$THIS/log.state" "$THIS/cvs/Admin/Mercurial/logrotate.conf"
