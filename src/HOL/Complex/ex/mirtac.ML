@@ -58,7 +58,7 @@ val int_div_add_eq = @{thm "zdiv_zadd1_eq"} RS sym;
 val ZDIVISION_BY_ZERO_MOD = @{thm "DIVISION_BY_ZERO"} RS conjunct2;
 val ZDIVISION_BY_ZERO_DIV = @{thm "DIVISION_BY_ZERO"} RS conjunct1;
 
-fun prepare_for_mir sg q fm = 
+fun prepare_for_mir thy q fm = 
   let
     val ps = Logic.strip_params fm
     val hs = map HOLogic.dest_Trueprop (Logic.strip_assums_hyp fm)
@@ -92,9 +92,9 @@ fun mir_tac ctxt q i =
 	THEN (fn st =>
   let
     val g = List.nth (prems_of st, i - 1)
-    val sg = ProofContext.theory_of ctxt
+    val thy = ProofContext.theory_of ctxt
     (* Transform the term*)
-    val (t,np,nh) = prepare_for_mir sg q g
+    val (t,np,nh) = prepare_for_mir thy q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset = HOL_basic_ss 
 			addsimps [refl,nat_mod_add_eq, 
@@ -121,7 +121,7 @@ fun mir_tac ctxt q i =
                 @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}]
       addcongs [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
     (* simp rules for elimination of abs *)
-    val ct = cterm_of sg (HOLogic.mk_Trueprop t)
+    val ct = cterm_of thy (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
     val pre_thm = Seq.hd (EVERY
       [simp_tac mod_div_simpset 1, simp_tac simpset0 1,
@@ -134,8 +134,8 @@ fun mir_tac ctxt q i =
     let val pth = 
           (* If quick_and_dirty then run without proof generation as oracle*)
              if !quick_and_dirty 
-             then mircfr_oracle sg (Pattern.eta_long [] t1)
-	     else mirlfr_oracle sg (Pattern.eta_long [] t1)
+             then mirfr_oracle thy (false, Pattern.eta_long [] t1)
+	     else mirfr_oracle thy (true, Pattern.eta_long [] t1)
     in 
           (trace_msg ("calling procedure with term:\n" ^
              Syntax.string_of_term ctxt t1);
@@ -145,7 +145,7 @@ fun mir_tac ctxt q i =
       | _ => (pre_thm, assm_tac i)
   in (rtac (((mp_step nh) o (spec_step np)) th) i 
       THEN tac) st
-  end handle Subscript => no_tac st | ReflectedMir.MIR => no_tac st);
+  end handle Subscript => no_tac st);
 
 fun mir_args meth =
  let val parse_flag = 

@@ -1,6 +1,10 @@
+(*  Title:      HOL/ex/Reflected_Presburger.thy
+    Author:     Amine Chaieb
+*)
+
 theory Reflected_Presburger
 imports Main GCD Efficient_Nat
-uses ("coopereif.ML") ("coopertac.ML")
+uses ("coopertac.ML")
 begin
 
 function
@@ -23,25 +27,23 @@ datatype num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub n
   | Mul int num
 
   (* A size for num to make inductive proofs simpler*)
-consts num_size :: "num \<Rightarrow> nat" 
-primrec 
+primrec num_size :: "num \<Rightarrow> nat" where
   "num_size (C c) = 1"
-  "num_size (Bound n) = 1"
-  "num_size (Neg a) = 1 + num_size a"
-  "num_size (Add a b) = 1 + num_size a + num_size b"
-  "num_size (Sub a b) = 3 + num_size a + num_size b"
-  "num_size (CN n c a) = 4 + num_size a"
-  "num_size (Mul c a) = 1 + num_size a"
+| "num_size (Bound n) = 1"
+| "num_size (Neg a) = 1 + num_size a"
+| "num_size (Add a b) = 1 + num_size a + num_size b"
+| "num_size (Sub a b) = 3 + num_size a + num_size b"
+| "num_size (CN n c a) = 4 + num_size a"
+| "num_size (Mul c a) = 1 + num_size a"
 
-consts Inum :: "int list \<Rightarrow> num \<Rightarrow> int"
-primrec
+primrec Inum :: "int list \<Rightarrow> num \<Rightarrow> int" where
   "Inum bs (C c) = c"
-  "Inum bs (Bound n) = bs!n"
-  "Inum bs (CN n c a) = c * (bs!n) + (Inum bs a)"
-  "Inum bs (Neg a) = -(Inum bs a)"
-  "Inum bs (Add a b) = Inum bs a + Inum bs b"
-  "Inum bs (Sub a b) = Inum bs a - Inum bs b"
-  "Inum bs (Mul c a) = c* Inum bs a"
+| "Inum bs (Bound n) = bs!n"
+| "Inum bs (CN n c a) = c * (bs!n) + (Inum bs a)"
+| "Inum bs (Neg a) = -(Inum bs a)"
+| "Inum bs (Add a b) = Inum bs a + Inum bs b"
+| "Inum bs (Sub a b) = Inum bs a - Inum bs b"
+| "Inum bs (Mul c a) = c* Inum bs a"
 
 datatype fm  = 
   T| F| Lt num| Le num| Gt num| Ge num| Eq num| NEq num| Dvd int num| NDvd int num|
@@ -177,7 +179,7 @@ lemma bound0_I:
 using bp numbound0_I[where b="b" and bs="bs" and b'="b'"]
 by (induct p rule: bound0.induct) (auto simp add: gr0_conv_Suc)
 
-fun   numsubst0:: "num \<Rightarrow> num \<Rightarrow> num" where
+fun numsubst0:: "num \<Rightarrow> num \<Rightarrow> num" where
   "numsubst0 t (C c) = (C c)"
 | "numsubst0 t (Bound n) = (if n=0 then t else Bound n)"
 | "numsubst0 t (CN 0 i a) = Add (Mul i t) (numsubst0 t a)"
@@ -1898,8 +1900,8 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-constdefs pa:: "fm \<Rightarrow> fm"
-  "pa \<equiv> (\<lambda> p. qelim (prep p) cooper)"
+definition pa :: "fm \<Rightarrow> fm" where
+  "pa p = qelim (prep p) cooper"
 
 theorem mirqe: "(Ifm bbs bs (pa p) = Ifm bbs bs p) \<and> qfree (pa p)"
   using qelim_ci cooper prep by (auto simp add: pa_def)
@@ -1911,21 +1913,150 @@ where
     (E (E (Eq (Sub (Add (Mul 3 (Bound 1)) (Mul 5 (Bound 0)))
       (Bound 2))))))))"
 
-code_reserved SML oo
-export_code pa cooper_test in SML module_name GeneratedCooper
-(*export_code pa in SML module_name GeneratedCooper file "~~/src/HOL/Tools/Qelim/raw_generated_cooper.ML"*)
+ML {* @{code cooper_test} () *}
 
-ML {* GeneratedCooper.cooper_test () *}
-use "coopereif.ML"
-oracle linzqe_oracle ("term") = Coopereif.cooper_oracle
+(*
+code_reserved SML oo
+export_code pa in SML module_name GeneratedCooper file "~~/src/HOL/Tools/Qelim/raw_generated_cooper.ML"
+*)
+
+oracle linzqe_oracle ("term") = {*
+let
+
+fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
+     of NONE => error "Variable not found in the list!"
+      | SOME n => @{code Bound} n)
+  | num_of_term vs @{term "0::int"} = @{code C} 0
+  | num_of_term vs @{term "1::int"} = @{code C} 1
+  | num_of_term vs (@{term "number_of :: int \<Rightarrow> int"} $ t) = @{code C} (HOLogic.dest_numeral t)
+  | num_of_term vs (Bound i) = @{code Bound} i
+  | num_of_term vs (@{term "uminus :: int \<Rightarrow> int"} $ t') = @{code Neg} (num_of_term vs t')
+  | num_of_term vs (@{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
+      @{code Add} (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (@{term "op - :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
+      @{code Sub} (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (@{term "op * :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
+      (case try HOLogic.dest_number t1
+       of SOME (_, i) => @{code Mul} (i, num_of_term vs t2)
+        | NONE => (case try HOLogic.dest_number t2
+                of SOME (_, i) => @{code Mul} (i, num_of_term vs t1)
+                 | NONE => error "num_of_term: unsupported multiplication"))
+  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term_global @{theory} t);
+
+fun fm_of_term ps vs @{term True} = @{code T}
+  | fm_of_term ps vs @{term False} = @{code F}
+  | fm_of_term ps vs (@{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Lt} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term ps vs (@{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Le} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term ps vs (@{term "op = :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2)) 
+  | fm_of_term ps vs (@{term "op dvd :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
+      (case try HOLogic.dest_number t1
+       of SOME (_, i) => @{code Dvd} (i, num_of_term vs t2)
+        | NONE => error "num_of_term: unsupported dvd")
+  | fm_of_term ps vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Iff} (fm_of_term ps vs t1, fm_of_term ps vs t2)
+  | fm_of_term ps vs (@{term "op &"} $ t1 $ t2) =
+      @{code And} (fm_of_term ps vs t1, fm_of_term ps vs t2)
+  | fm_of_term ps vs (@{term "op |"} $ t1 $ t2) =
+      @{code Or} (fm_of_term ps vs t1, fm_of_term ps vs t2)
+  | fm_of_term ps vs (@{term "op -->"} $ t1 $ t2) =
+      @{code Imp} (fm_of_term ps vs t1, fm_of_term ps vs t2)
+  | fm_of_term ps vs (@{term "Not"} $ t') =
+      @{code NOT} (fm_of_term ps vs t')
+  | fm_of_term ps vs (Const ("Ex", _) $ Abs (xn, xT, p)) =
+      let
+        val (xn', p') = variant_abs (xn, xT, p);
+        val vs' = (Free (xn', xT), 0) :: map (fn (v, n) => (v, n + 1)) vs;
+      in @{code E} (fm_of_term ps vs' p) end
+  | fm_of_term ps vs (Const ("All", _) $ Abs (xn, xT, p)) =
+      let
+        val (xn', p') = variant_abs (xn, xT, p);
+        val vs' = (Free (xn', xT), 0) :: map (fn (v, n) => (v, n + 1)) vs;
+      in @{code A} (fm_of_term ps vs' p) end
+  | fm_of_term ps vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term_global @{theory} t);
+
+fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT i
+  | term_of_num vs (@{code Bound} n) = fst (the (find_first (fn (_, m) => n = m) vs))
+  | term_of_num vs (@{code Neg} t') = @{term "uminus :: int \<Rightarrow> int"} $ term_of_num vs t'
+  | term_of_num vs (@{code Add} (t1, t2)) = @{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} $
+      term_of_num vs t1 $ term_of_num vs t2
+  | term_of_num vs (@{code Sub} (t1, t2)) = @{term "op - :: int \<Rightarrow> int \<Rightarrow> int"} $
+      term_of_num vs t1 $ term_of_num vs t2
+  | term_of_num vs (@{code Mul} (i, t2)) = @{term "op * :: int \<Rightarrow> int \<Rightarrow> int"} $
+      term_of_num vs (@{code C} i) $ term_of_num vs t2
+  | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t))
+
+fun term_of_fm ps vs @{code T} = HOLogic.true_const 
+  | term_of_fm ps vs @{code F} = HOLogic.false_const
+  | term_of_fm ps vs (@{code Lt} t) =
+      @{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::int"}
+  | term_of_fm ps vs (@{code Le} t) =
+      @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::int"}
+  | term_of_fm ps vs (@{code Gt} t) =
+      @{term "op < :: int \<Rightarrow> int \<Rightarrow> bool"} $ @{term "0::int"} $ term_of_num vs t
+  | term_of_fm ps vs (@{code Ge} t) =
+      @{term "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"} $ @{term "0::int"} $ term_of_num vs t
+  | term_of_fm ps vs (@{code Eq} t) =
+      @{term "op = :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::int"}
+  | term_of_fm ps vs (@{code NEq} t) =
+      term_of_fm ps vs (@{code NOT} (@{code Eq} t))
+  | term_of_fm ps vs (@{code Dvd} (i, t)) =
+      @{term "op dvd :: int \<Rightarrow> int \<Rightarrow> bool"} $ term_of_num vs (@{code C} i) $ term_of_num vs t
+  | term_of_fm ps vs (@{code NDvd} (i, t)) =
+      term_of_fm ps vs (@{code NOT} (@{code Dvd} (i, t)))
+  | term_of_fm ps vs (@{code NOT} t') =
+      HOLogic.Not $ term_of_fm ps vs t'
+  | term_of_fm ps vs (@{code And} (t1, t2)) =
+      HOLogic.conj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (@{code Or} (t1, t2)) =
+      HOLogic.disj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (@{code Imp} (t1, t2)) =
+      HOLogic.imp $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (@{code Iff} (t1, t2)) =
+      @{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (@{code Closed} n) = (fst o the) (find_first (fn (_, m) => m = n) ps)
+  | term_of_fm ps vs (@{code NClosed} n) = term_of_fm ps vs (@{code NOT} (@{code Closed} n))
+
+fun term_bools acc t =
+  let
+    val is_op = member (op =) [@{term "op &"}, @{term "op |"}, @{term "op -->"}, @{term "op = :: bool => _"},
+      @{term "op = :: int => _"}, @{term "op < :: int => _"},
+      @{term "op <= :: int => _"}, @{term "Not"}, @{term "All :: (int => _) => _"},
+      @{term "Ex :: (int => _) => _"}, @{term "True"}, @{term "False"}]
+    fun is_ty t = not (fastype_of t = HOLogic.boolT) 
+  in case t
+   of (l as f $ a) $ b => if is_ty t orelse is_op t then term_bools (term_bools acc l)b 
+        else insert (op aconv) t acc
+    | f $ a => if is_ty t orelse is_op t then term_bools (term_bools acc f) a  
+        else insert (op aconv) t acc
+    | Abs p => term_bools acc (snd (variant_abs p))
+    | _ => if is_ty t orelse is_op t then acc else insert (op aconv) t acc
+  end;
+
+in fn thy => fn t =>
+  let 
+    val fs = term_frees t;
+    val bs = term_bools [] t;
+    val vs = fs ~~ (0 upto (length fs - 1))
+    val ps = bs ~~ (0 upto (length bs - 1))
+    val t' = (term_of_fm ps vs o @{code pa} o fm_of_term ps vs) t;
+  in (HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
+end;
+*}
+
 use "coopertac.ML"
 setup "LinZTac.setup"
 
-  (* Tests *)
-lemma "\<exists> (j::int). \<forall> x\<ge>j. (\<exists> a b. x = 3*a+5*b)"
-by cooper
+text {* Tests *}
 
-lemma "ALL (x::int) >=8. EX i j. 5*i + 3*j = x" by cooper
+lemma "\<exists> (j::int). \<forall> x\<ge>j. (\<exists> a b. x = 3*a+5*b)"
+  by cooper
+
+lemma "ALL (x::int) >=8. EX i j. 5*i + 3*j = x"
+  by cooper
+
 theorem "(\<forall>(y::int). 3 dvd y) ==> \<forall>(x::int). b < x --> a \<le> x"
   by cooper
 
@@ -1940,20 +2071,41 @@ theorem "!! (y::int) (z::int) n. Suc(n::nat) < 6 ==>  3 dvd z ==>
 theorem "\<forall>(x::nat). \<exists>(y::nat). (0::nat) \<le> 5 --> y = 5 + x "
   by cooper
 
-lemma "ALL (x::int) >=8. EX i j. 5*i + 3*j = x" by cooper 
-lemma "ALL (y::int) (z::int) (n::int). 3 dvd z --> 2 dvd (y::int) --> (EX (x::int).  2*x =  y) & (EX (k::int). 3*k = z)" by cooper
-lemma "ALL(x::int) y. x < y --> 2 * x + 1 < 2 * y" by cooper
-lemma "ALL(x::int) y. 2 * x + 1 ~= 2 * y" by cooper
-lemma "EX(x::int) y. 0 < x  & 0 <= y  & 3 * x - 5 * y = 1" by cooper
-lemma "~ (EX(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)" by cooper
-lemma "ALL(x::int). (2 dvd x) --> (EX(y::int). x = 2*y)" by cooper
-lemma "ALL(x::int). (2 dvd x) --> (EX(y::int). x = 2*y)" by cooper
-lemma "ALL(x::int). (2 dvd x) = (EX(y::int). x = 2*y)" by cooper
-lemma "ALL(x::int). ((2 dvd x) = (ALL(y::int). x ~= 2*y + 1))" by cooper
-lemma "~ (ALL(x::int). ((2 dvd x) = (ALL(y::int). x ~= 2*y+1) | (EX(q::int) (u::int) i. 3*i + 2*q - u < 17) --> 0 < x | ((~ 3 dvd x) &(x + 8 = 0))))" by cooper
+lemma "ALL (x::int) >=8. EX i j. 5*i + 3*j = x"
+  by cooper 
+
+lemma "ALL (y::int) (z::int) (n::int). 3 dvd z --> 2 dvd (y::int) --> (EX (x::int).  2*x =  y) & (EX (k::int). 3*k = z)"
+  by cooper
+
+lemma "ALL(x::int) y. x < y --> 2 * x + 1 < 2 * y"
+  by cooper
+
+lemma "ALL(x::int) y. 2 * x + 1 ~= 2 * y"
+  by cooper
+
+lemma "EX(x::int) y. 0 < x  & 0 <= y  & 3 * x - 5 * y = 1"
+  by cooper
+
+lemma "~ (EX(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)"
+  by cooper
+
+lemma "ALL(x::int). (2 dvd x) --> (EX(y::int). x = 2*y)"
+  by cooper
+
+lemma "ALL(x::int). (2 dvd x) = (EX(y::int). x = 2*y)"
+  by cooper
+
+lemma "ALL(x::int). ((2 dvd x) = (ALL(y::int). x ~= 2*y + 1))"
+  by cooper
+
+lemma "~ (ALL(x::int). ((2 dvd x) = (ALL(y::int). x ~= 2*y+1) | (EX(q::int) (u::int) i. 3*i + 2*q - u < 17) --> 0 < x | ((~ 3 dvd x) &(x + 8 = 0))))"
+  by cooper
+
 lemma "~ (ALL(i::int). 4 <= i --> (EX x y. 0 <= x & 0 <= y & 3 * x + 5 * y = i))" 
   by cooper
-lemma "EX j. ALL (x::int) >= j. EX i j. 5*i + 3*j = x" by cooper
+
+lemma "EX j. ALL (x::int) >= j. EX i j. 5*i + 3*j = x"
+  by cooper
 
 theorem "(\<forall>(y::int). 3 dvd y) ==> \<forall>(x::int). b < x --> a \<le> x"
   by cooper

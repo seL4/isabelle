@@ -2,12 +2,12 @@
     Author:     Amine Chaieb
 *)
 
-header {* Quatifier elimination for R(0,1,+,floor,<) *}
-
 theory MIR
-imports List Real Code_Integer
-uses ("mireif.ML") ("mirtac.ML")
+imports List Real Code_Integer Efficient_Nat
+uses ("mirtac.ML")
 begin
+
+section {* Quantifier elimination for @{text "\<real> (0, 1, +, floor, <)"} *}
 
 declare real_of_int_floor_cancel [simp del]
 
@@ -5721,12 +5721,11 @@ lemma exsplit_qf: assumes qf: "qfree p"
   shows "qfree (exsplit p)"
 using qf by (induct p rule: exsplit.induct, auto)
 
-constdefs mircfr :: "fm \<Rightarrow> fm"
-"mircfr \<equiv> (DJ cooper) o ferrack01 o simpfm o exsplit"
+definition mircfr :: "fm \<Rightarrow> fm" where
+  "mircfr = DJ cooper o ferrack01 o simpfm o exsplit"
 
-constdefs mirlfr :: "fm \<Rightarrow> fm"
-"mirlfr \<equiv> (DJ redlove) o ferrack01 o simpfm o exsplit"
-
+definition mirlfr :: "fm \<Rightarrow> fm" where
+  "mirlfr = DJ redlove o ferrack01 o simpfm o exsplit"
 
 lemma mircfr: "\<forall> bs p. qfree p \<longrightarrow> qfree (mircfr p) \<and> Ifm bs (mircfr p) = Ifm bs (E p)"
 proof(clarsimp simp del: Ifm.simps)
@@ -5756,20 +5755,17 @@ proof(clarsimp simp del: Ifm.simps)
   qed
 qed
   
-constdefs mircfrqe:: "fm \<Rightarrow> fm"
-  "mircfrqe \<equiv> (\<lambda> p. qelim (prep p) mircfr)"
+definition mircfrqe:: "fm \<Rightarrow> fm" where
+  "mircfrqe p = qelim (prep p) mircfr"
 
-constdefs mirlfrqe:: "fm \<Rightarrow> fm"
-  "mirlfrqe \<equiv> (\<lambda> p. qelim (prep p) mirlfr)"
+definition mirlfrqe:: "fm \<Rightarrow> fm" where
+  "mirlfrqe p = qelim (prep p) mirlfr"
 
 theorem mircfrqe: "(Ifm bs (mircfrqe p) = Ifm bs p) \<and> qfree (mircfrqe p)"
   using qelim_ci[OF mircfr] prep by (auto simp add: mircfrqe_def)
 
 theorem mirlfrqe: "(Ifm bs (mirlfrqe p) = Ifm bs p) \<and> qfree (mirlfrqe p)"
   using qelim_ci[OF mirlfr] prep by (auto simp add: mirlfrqe_def)
-
-declare zdvd_iff_zmod_eq_0 [code]
-declare max_def [code unfold]
 
 definition
   "test1 (u\<Colon>unit) = mircfrqe (A (And (Le (Sub (Floor (Bound 0)) (Bound 0))) (Le (Add (Bound 0) (Floor (Neg (Bound 0)))))))"
@@ -5786,24 +5782,127 @@ definition
 definition
   "test5 (u\<Colon>unit) = mircfrqe (A(E(And (Ge(Sub (Bound 1) (Bound 0))) (Eq (Add (Floor (Bound 1)) (Floor (Neg(Bound 0))))))))"
 
-export_code mircfrqe mirlfrqe test1 test2 test3 test4 test5
-  in SML module_name Mir
+ML {* @{code test1} () *}
+ML {* @{code test2} () *}
+ML {* @{code test3} () *}
+ML {* @{code test4} () *}
+ML {* @{code test5} () *}
 
 (*export_code mircfrqe mirlfrqe
   in SML module_name Mir file "raw_mir.ML"*)
 
-ML "Mir.test1 ()"
-ML "Mir.test2 ()"
-ML "Mir.test3 ()"
-ML "Mir.test4 ()"
-ML "Mir.test5 ()"
+oracle mirfr_oracle ("bool * term") = {*
+let
 
-use "mireif.ML"
-oracle mircfr_oracle ("term") = ReflectedMir.mircfr_oracle
-oracle mirlfr_oracle ("term") = ReflectedMir.mirlfr_oracle
+fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
+     of NONE => error "Variable not found in the list!"
+      | SOME n => @{code Bound} n)
+  | num_of_term vs @{term "real (0::int)"} = @{code C} 0
+  | num_of_term vs @{term "real (1::int)"} = @{code C} 1
+  | num_of_term vs @{term "0::real"} = @{code C} 0
+  | num_of_term vs @{term "1::real"} = @{code C} 1
+  | num_of_term vs (Bound i) = @{code Bound} i
+  | num_of_term vs (@{term "uminus :: real \<Rightarrow> real"} $ t') = @{code Neg} (num_of_term vs t')
+  | num_of_term vs (@{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
+      @{code Add} (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (@{term "op - :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
+      @{code Sub} (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (@{term "op * :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
+      (case (num_of_term vs t1)
+       of @{code C} i => @{code Mul} (i, num_of_term vs t2)
+        | _ => error "num_of_term: unsupported Multiplication")
+  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "number_of :: int \<Rightarrow> int"} $ t')) =
+      @{code C} (HOLogic.dest_numeral t')
+  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "floor :: real \<Rightarrow> int"} $ t')) =
+      @{code Floor} (num_of_term vs t')
+  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "ceiling :: real \<Rightarrow> int"} $ t')) =
+      @{code Neg} (@{code Floor} (@{code Neg} (num_of_term vs t')))
+  | num_of_term vs (@{term "number_of :: int \<Rightarrow> real"} $ t') =
+      @{code C} (HOLogic.dest_numeral t')
+  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term_global @{theory} t);
+
+fun fm_of_term vs @{term True} = @{code T}
+  | fm_of_term vs @{term False} = @{code F}
+  | fm_of_term vs (@{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Lt} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term vs (@{term "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Le} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term vs (@{term "op = :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2)) 
+  | fm_of_term vs (@{term "op rdvd"} $ (@{term "real :: int \<Rightarrow> real"} $ (@{term "number_of :: int \<Rightarrow> int"} $ t1)) $ t2) =
+      @{code Dvd} (HOLogic.dest_numeral t1, num_of_term vs t2)
+  | fm_of_term vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term "op &"} $ t1 $ t2) =
+      @{code And} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term "op |"} $ t1 $ t2) =
+      @{code Or} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term "op -->"} $ t1 $ t2) =
+      @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term "Not"} $ t') =
+      @{code NOT} (fm_of_term vs t')
+  | fm_of_term vs (Const ("Ex", _) $ Abs (xn, xT, p)) =
+      @{code E} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
+  | fm_of_term vs (Const ("All", _) $ Abs (xn, xT, p)) =
+      @{code A} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
+  | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term_global @{theory} t);
+
+fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $ HOLogic.mk_number HOLogic.intT i
+  | term_of_num vs (@{code Bound} n) = fst (the (find_first (fn (_, m) => n = m) vs))
+  | term_of_num vs (@{code Neg} (@{code Floor} (@{code Neg} t'))) =
+      @{term "real :: int \<Rightarrow> real"} $ (@{term "ceiling :: real \<Rightarrow> int"} $ term_of_num vs t')
+  | term_of_num vs (@{code Neg} t') = @{term "uminus :: real \<Rightarrow> real"} $ term_of_num vs t'
+  | term_of_num vs (@{code Add} (t1, t2)) = @{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $
+      term_of_num vs t1 $ term_of_num vs t2
+  | term_of_num vs (@{code Sub} (t1, t2)) = @{term "op - :: real \<Rightarrow> real \<Rightarrow> real"} $
+      term_of_num vs t1 $ term_of_num vs t2
+  | term_of_num vs (@{code Mul} (i, t2)) = @{term "op * :: real \<Rightarrow> real \<Rightarrow> real"} $
+      term_of_num vs (@{code C} i) $ term_of_num vs t2
+  | term_of_num vs (@{code Floor} t) = @{term "real :: int \<Rightarrow> real"} $ (@{term "floor :: real \<Rightarrow> int"} $ term_of_num vs t)
+  | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t))
+  | term_of_num vs (@{code CF} (c, t, s)) = term_of_num vs (@{code Add} (@{code Mul} (c, @{code Floor} t), s));
+
+fun term_of_fm vs @{code T} = HOLogic.true_const 
+  | term_of_fm vs @{code F} = HOLogic.false_const
+  | term_of_fm vs (@{code Lt} t) =
+      @{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::real"}
+  | term_of_fm vs (@{code Le} t) =
+      @{term "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::real"}
+  | term_of_fm vs (@{code Gt} t) =
+      @{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ @{term "0::real"} $ term_of_num vs t
+  | term_of_fm vs (@{code Ge} t) =
+      @{term "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool"} $ @{term "0::real"} $ term_of_num vs t
+  | term_of_fm vs (@{code Eq} t) =
+      @{term "op = :: real \<Rightarrow> real \<Rightarrow> bool"} $ term_of_num vs t $ @{term "0::real"}
+  | term_of_fm vs (@{code NEq} t) =
+      term_of_fm vs (@{code NOT} (@{code Eq} t))
+  | term_of_fm vs (@{code Dvd} (i, t)) =
+      @{term "op rdvd"} $ term_of_num vs (@{code C} i) $ term_of_num vs t
+  | term_of_fm vs (@{code NDvd} (i, t)) =
+      term_of_fm vs (@{code NOT} (@{code Dvd} (i, t)))
+  | term_of_fm vs (@{code NOT} t') =
+      HOLogic.Not $ term_of_fm vs t'
+  | term_of_fm vs (@{code And} (t1, t2)) =
+      HOLogic.conj $ term_of_fm vs t1 $ term_of_fm vs t2
+  | term_of_fm vs (@{code Or} (t1, t2)) =
+      HOLogic.disj $ term_of_fm vs t1 $ term_of_fm vs t2
+  | term_of_fm vs (@{code Imp}  (t1, t2)) =
+      HOLogic.imp $ term_of_fm vs t1 $ term_of_fm vs t2
+  | term_of_fm vs (@{code Iff} (t1, t2)) =
+      @{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ term_of_fm vs t1 $ term_of_fm vs t2;
+
+in fn thy => fn (proofs, t) =>
+  let 
+    val fs = term_frees t;
+    val vs = fs ~~ (0 upto (length fs - 1));
+    val qe = if proofs then @{code mirlfrqe} else @{code mircfrqe};
+    val t' = (term_of_fm vs o qe o fm_of_term vs) t;
+  in (HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
+end;
+*}
+
 use "mirtac.ML"
 setup "MirTac.setup"
-
 
 lemma "ALL (x::real). (\<lfloor>x\<rfloor> = \<lceil>x\<rceil> = (x = real \<lfloor>x\<rfloor>))"
 apply mir
@@ -5821,9 +5920,8 @@ lemma "ALL (x::real). \<exists>y \<le> x. (\<lfloor>x\<rfloor> = \<lceil>y\<rcei
 apply mir
 done
 
-(*
 lemma "ALL x y. \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> abs (y - x) \<and> abs (y - x) \<le> 1"
-by mir
-*)
+apply mir
+done
 
 end
