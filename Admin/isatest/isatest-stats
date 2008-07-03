@@ -24,10 +24,12 @@ ISABELLE_SESSIONS="\
   HOL-Library \
   HOL-MetisExamples \
   HOL-MicroJava \
+  HOL-NSA \
   HOL-Nominal-Examples \
   HOL-NumberTheory \
   HOL-SET-Protocol \
   HOL-UNITY \
+  HOL-Word \
   HOL-ex \
   ZF \
   ZF-Constructible\
