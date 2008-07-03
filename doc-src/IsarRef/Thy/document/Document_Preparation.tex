@@ -151,6 +151,7 @@ Isabelle/Isar provides a simple document preparation system based on
 \begin{matharray}{rcl}
     \indexdef{}{antiquotation}{theory}\hypertarget{antiquotation.theory}{\hyperlink{antiquotation.theory}{\mbox{\isa{theory}}}} & : & \isarantiq \\
     \indexdef{}{antiquotation}{thm}\hypertarget{antiquotation.thm}{\hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{lemma}\hypertarget{antiquotation.lemma}{\hyperlink{antiquotation.lemma}{\mbox{\isa{lemma}}}} & : & \isarantiq \\
     \indexdef{}{antiquotation}{prop}\hypertarget{antiquotation.prop}{\hyperlink{antiquotation.prop}{\mbox{\isa{prop}}}} & : & \isarantiq \\
     \indexdef{}{antiquotation}{term}\hypertarget{antiquotation.term}{\hyperlink{antiquotation.term}{\mbox{\isa{term}}}} & : & \isarantiq \\
     \indexdef{}{antiquotation}{const}\hypertarget{antiquotation.const}{\hyperlink{antiquotation.const}{\mbox{\isa{const}}}} & : & \isarantiq \\
@@ -189,6 +190,7 @@ Isabelle/Isar provides a simple document preparation system based on
     antiquotation:
       'theory' options name |
       'thm' options thmrefs |
+      'lemma' options prop 'by' method |
       'prop' options prop |
       'term' options term |
       'const' options term |
@@ -229,6 +231,8 @@ Isabelle/Isar provides a simple document preparation system based on
   be particularly useful to suppress printing of schematic variables.
 
   \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prop\ {\isasymphi}{\isacharbraceright}{\isachardoublequote}}] prints a well-typed proposition \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}.
+
+  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}lemma\ {\isasymphi}\ by\ m{\isacharbraceright}{\isachardoublequote}}] asserts a well-typed proposition \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}} to be provable by method \isa{m} and prints \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}.
 
   \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}{\isachardoublequote}}] prints a well-typed term \isa{{\isachardoublequote}t{\isachardoublequote}}.
 

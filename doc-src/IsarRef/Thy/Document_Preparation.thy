@@ -135,6 +135,7 @@ text {*
   \begin{matharray}{rcl}
     @{antiquotation_def "theory"} & : & \isarantiq \\
     @{antiquotation_def "thm"} & : & \isarantiq \\
+    @{antiquotation_def "lemma"} & : & \isarantiq \\
     @{antiquotation_def "prop"} & : & \isarantiq \\
     @{antiquotation_def "term"} & : & \isarantiq \\
     @{antiquotation_def const} & : & \isarantiq \\
@@ -173,6 +174,7 @@ text {*
     antiquotation:
       'theory' options name |
       'thm' options thmrefs |
+      'lemma' options prop 'by' method |
       'prop' options prop |
       'term' options term |
       'const' options term |
@@ -215,6 +217,9 @@ text {*
 
   \item [@{text "@{prop \<phi>}"}] prints a well-typed proposition @{text
   "\<phi>"}.
+
+  \item [@{text "@{lemma \<phi> by m}"}] asserts a well-typed proposition @{text
+  "\<phi>"} to be provable by method @{text m} and prints @{text "\<phi>"}.
 
   \item [@{text "@{term t}"}] prints a well-typed term @{text "t"}.
 
