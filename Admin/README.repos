@@ -1,9 +1,9 @@
-How to install a repository version of Isabelle.
+How to install a CVS repository version of Isabelle.
 
 The following assumes that you have successfully checked out Isabelle
 from CVS into a directory $ISABELLE (by default 'isabelle')
 
-The directory structure of the repository is different from the
+The directory structure of the CVS is different from the
 distribution. The root directory $ISABELLE is the src
 subdirectory in the distribution. The 'normal' distribution
 directories are found in $ISABELLE/Distribution.
@@ -19,20 +19,19 @@ directory "$ISABELLE/Distribution"
 
 This tells the Isabelle binaries where to find the theories.
 
-In $ISABELLE/Distribution/contrib install PolyML and
-ProofGeneral. Download the corresponding packages from
+In $ISABELLE/Distribution/contrib install Poly/ML and
+Proof General. Download the corresponding packages from
 http://isabelle.in.tum.de/dist/ and unpack them in
 $ISABELLE/Distribution/contrib.  If you have already installed them
 elsewhere, it is sufficient to create a symbolic link in contrib to
-the main PolyML and ProofGeneral directories. The links should be
+the main Poly/ML and ProofGeneral directories. The links should be
 called 'polyml' and 'ProofGeneral'.
 
-Before you can build logic images it is necessary to initialise
-generation of browser info.  Change to the directory
-"$ISABELLE/Distribution/lib/browser" and issue
-   make
-
-Java JDK 1.1 or greater needs to be installed for this to work.
+Building logic images with browser info generation (which is the
+default setting) requires a compiled version of the browser JVM
+application.  Change to the directory
+"$ISABELLE/Distribution/lib/browser" and issue make; this requires
+Java JDK 1.4 or greater.
 
 Now you can build images by going to corresponding folders and issuing:
    isatool make
@@ -48,7 +47,7 @@ can be imported by:
 repository since the last update, -P causes directories that have been
 removed from the repository to be pruned).
 
-Internal environment variables
+Default Isabelle settings:
 
   $ISABELLE_HOME is the directory "isabelle/Distribution" from above.
   $ISABELLE_HOME_USER is the directory "~/isabelle".
