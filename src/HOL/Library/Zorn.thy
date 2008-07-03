@@ -392,12 +392,13 @@ proof(simp add:wf_iff_no_infinite_down_chain, rule ccontr, auto)
     by(simp add:wf_iff_no_infinite_down_chain) blast
 qed
 
+lemma initial_segment_of_Diff:
+  "p initial_segment_of q \<Longrightarrow> p - s initial_segment_of q - s"
+unfolding init_seg_of_def by blast
+
 lemma Chain_inits_DiffI:
   "R \<in> Chain init_seg_of \<Longrightarrow> {r - s |r. r \<in> R} \<in> Chain init_seg_of"
-apply(auto simp:Chain_def init_seg_of_def)
-apply (metis subsetD)
-apply (metis subsetD)
-done
+unfolding Chain_def by (blast intro: initial_segment_of_Diff)
 
 theorem well_ordering: "\<exists>r::('a*'a)set. Well_order r \<and> Field r = UNIV"
 proof-
