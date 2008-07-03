@@ -516,6 +516,7 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML Library/Primes.thy	\
   Algebra/poly/UnivPoly2.thy Algebra/ringsimp.ML
 	@cd Algebra; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Algebra
 
+
 ## HOL-Auth
 
 HOL-Auth: HOL $(LOG)/HOL-Auth.gz
@@ -574,6 +575,7 @@ $(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy	\
   Unix/document/root.bib Unix/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL Unix
 
+
 ## HOL-ZF
 
 HOL-ZF: HOL $(LOG)/HOL-ZF.gz
@@ -581,6 +583,7 @@ HOL-ZF: HOL $(LOG)/HOL-ZF.gz
 $(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/Helper.thy ZF/LProd.thy	\
   ZF/HOLZF.thy ZF/MainZF.thy ZF/Games.thy ZF/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL ZF
+
 
 ## HOL-Modelcheck
 
@@ -593,6 +596,7 @@ $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy		\
   Modelcheck/ROOT.ML Modelcheck/mucke_oracle.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Modelcheck
 
+
 ## HOL-SizeChange
 
 HOL-SizeChange: HOL $(LOG)/HOL-SizeChange.gz
@@ -604,6 +608,7 @@ $(LOG)/HOL-SizeChange.gz: $(OUT)/HOL SizeChange/Kleene_Algebras.thy	\
   SizeChange/Size_Change_Termination.thy SizeChange/Examples.thy	\
   SizeChange/sct.ML SizeChange/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL SizeChange
+
 
 ## HOL-Lambda
 
@@ -931,6 +936,7 @@ $(LOG)/HOL-Word-Examples.gz: $(OUT)/HOL-Word Word/Examples/ROOT.ML	\
   Word/Examples/WordExamples.thy
 	@cd Word; $(ISATOOL) usedir $(OUT)/HOL-Word Examples
 
+
 ## HOL-Statespace
 
 HOL-Statespace: HOL $(LOG)/HOL-Statespace.gz
@@ -942,11 +948,12 @@ $(LOG)/HOL-Statespace.gz: $(OUT)/HOL Statespace/DistinctTreeProver.thy	\
   Statespace/state_fun.ML Statespace/document/root.tex
 	@$(ISATOOL) usedir -g true $(OUT)/HOL Statespace
 
+
 ## HOL-NSA
 
-HOL-NSA: HOL $(LOG)/HOL-NSA.gz
+HOL-NSA: HOL $(OUT)/HOL-NSA
 
-$(LOG)/HOL-NSA.gz: $(OUT)/HOL \
+$(OUT)/HOL-NSA: $(OUT)/HOL \
   NSA/CLim.thy \
   NSA/CStar.thy \
   NSA/NSCA.thy \
@@ -973,6 +980,7 @@ $(LOG)/HOL-NSA.gz: $(OUT)/HOL \
   NSA/ROOT.ML
 	@cd NSA; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-NSA
 
+
 ## HOL-NSA-Examples
 
 HOL-NSA-Examples: HOL-NSA $(LOG)/HOL-NSA-Examples.gz
@@ -980,6 +988,7 @@ HOL-NSA-Examples: HOL-NSA $(LOG)/HOL-NSA-Examples.gz
 $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
   NSA/Examples/NSPrimes.thy
 	@cd NSA; $(ISATOOL) usedir $(OUT)/HOL-NSA Examples
+
 
 ## clean
 
@@ -1000,4 +1009,6 @@ clean:
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix \
 		$(LOG)/HOL-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz \
                 $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
-		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz 
+		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz \
+                $(OUT)/HOL-Word $(LOG)/HOL-Word.gz $(LOG)/HOL-Word-Examples.gz \
+                $(OUT)/HOL-NSA $(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz
