@@ -3,25 +3,29 @@
     Author:     Steven Obua
 *)
 
-theory SparseMatrix imports Matrix LP begin
+theory SparseMatrix
+imports Matrix
+begin
 
 types 
   'a spvec = "(nat * 'a) list"
   'a spmat = "('a spvec) spvec"
 
-consts
-  sparse_row_vector :: "('a::lordered_ring) spvec \<Rightarrow> 'a matrix"
-  sparse_row_matrix :: "('a::lordered_ring) spmat \<Rightarrow> 'a matrix"
+definition sparse_row_vector :: "('a::lordered_ring) spvec \<Rightarrow> 'a matrix" where
+  sparse_row_vector_def: "sparse_row_vector arr = foldl (% m x. m + (singleton_matrix 0 (fst x) (snd x))) 0 arr"
 
-defs
-  sparse_row_vector_def : "sparse_row_vector arr == foldl (% m x. m + (singleton_matrix 0 (fst x) (snd x))) 0 arr"
-  sparse_row_matrix_def : "sparse_row_matrix arr == foldl (% m r. m + (move_matrix (sparse_row_vector (snd r)) (int (fst r)) 0)) 0 arr"
+definition sparse_row_matrix :: "('a::lordered_ring) spmat \<Rightarrow> 'a matrix" where
+  sparse_row_matrix_def: "sparse_row_matrix arr = foldl (% m r. m + (move_matrix (sparse_row_vector (snd r)) (int (fst r)) 0)) 0 arr"
 
-lemma sparse_row_vector_empty[simp]: "sparse_row_vector [] = 0"
+code_datatype sparse_row_vector sparse_row_matrix
+
+lemma sparse_row_vector_empty [simp]: "sparse_row_vector [] = 0"
   by (simp add: sparse_row_vector_def)
 
-lemma sparse_row_matrix_empty[simp]: "sparse_row_matrix [] = 0"
+lemma sparse_row_matrix_empty [simp]: "sparse_row_matrix [] = 0"
   by (simp add: sparse_row_matrix_def)
+
+lemmas [code func] = sparse_row_vector_empty [symmetric]
 
 lemma foldl_distrstart[rule_format]: "! a x y. (f (g x y) a = g x (f y a)) \<Longrightarrow> ! x y. (foldl f (g x y) l = g x (foldl f y l))"
   by (induct l, auto)
@@ -99,18 +103,15 @@ lemma sorted_sparse_row_matrix_zero[rule_format]: "m <= n \<longrightarrow> sort
   done
 
 consts
-  abs_spvec :: "('a::lordered_ring) spvec \<Rightarrow> 'a spvec"
-  minus_spvec ::  "('a::lordered_ring) spvec \<Rightarrow> 'a spvec"
   smult_spvec :: "('a::lordered_ring) \<Rightarrow> 'a spvec \<Rightarrow> 'a spvec" 
-  addmult_spvec :: "('a::lordered_ring) * 'a spvec * 'a spvec \<Rightarrow> 'a spvec"
 
-primrec 
+primrec minus_spvec ::  "('a::lordered_ring) spvec \<Rightarrow> 'a spvec" where
   "minus_spvec [] = []"
-  "minus_spvec (a#as) = (fst a, -(snd a))#(minus_spvec as)"
+  | "minus_spvec (a#as) = (fst a, -(snd a))#(minus_spvec as)"
 
-primrec 
+primrec abs_spvec ::  "('a::lordered_ring) spvec \<Rightarrow> 'a spvec" where
   "abs_spvec [] = []"
-  "abs_spvec (a#as) = (fst a, abs (snd a))#(abs_spvec as)"
+  | "abs_spvec (a#as) = (fst a, abs (snd a))#(abs_spvec as)"
 
 lemma sparse_row_vector_minus: 
   "sparse_row_vector (minus_spvec v) = - (sparse_row_vector v)"
@@ -160,6 +161,7 @@ lemma smult_spvec_empty[simp]: "smult_spvec y [] = []"
 lemma smult_spvec_cons: "smult_spvec y (a#arr) = (fst a, y * (snd a)) # (smult_spvec y arr)"
   by (simp add: smult_spvec_def)
 
+consts addmult_spvec :: "('a::lordered_ring) * 'a spvec * 'a spvec \<Rightarrow> 'a spvec"
 recdef addmult_spvec "measure (% (y, a, b). length a + (length b))"
   "addmult_spvec (y, arr, []) = arr"
   "addmult_spvec (y, [], brr) = smult_spvec y brr"
@@ -169,10 +171,10 @@ recdef addmult_spvec "measure (% (y, a, b). length a + (length b))"
     else ((fst a, (snd a)+ y*(snd b))#(addmult_spvec (y, arr,brr)))))"
 
 lemma addmult_spvec_empty1[simp]: "addmult_spvec (y, [], a) = smult_spvec y a"
-  by (induct a, auto)
+  by (induct a) auto
 
 lemma addmult_spvec_empty2[simp]: "addmult_spvec (y, a, []) = a"
-  by (induct a, auto)
+  by (induct a) auto
 
 lemma sparse_row_vector_map: "(! x y. f (x+y) = (f x) + (f y)) \<Longrightarrow> (f::'a\<Rightarrow>('a::lordered_ring)) 0 = 0 \<Longrightarrow> 
   sparse_row_vector (map (% x. (fst x, f (snd x))) a) = apply_matrix f (sparse_row_vector a)"
@@ -243,7 +245,6 @@ lemma sorted_addmult_spvec[rule_format]: "sorted_spvec a \<longrightarrow> sorte
 
 consts 
   mult_spvec_spmat :: "('a::lordered_ring) spvec * 'a spvec * 'a spmat  \<Rightarrow> 'a spvec"
-
 recdef mult_spvec_spmat "measure (% (c, arr, brr). (length arr) + (length brr))"
   "mult_spvec_spmat (c, [], brr) = c"
   "mult_spvec_spmat (c, arr, []) = c"
@@ -416,6 +417,9 @@ lemma sparse_row_add_spmat: "sparse_row_matrix (add_spmat (A, B)) = (sparse_row_
   apply (rule add_spmat.induct)
   apply (auto simp add: sparse_row_matrix_cons sparse_row_vector_add move_matrix_add)
   done
+
+lemmas [code func] = sparse_row_add_spmat [symmetric]
+lemmas [code func] = sparse_row_vector_add [symmetric]
 
 lemma sorted_add_spvec_helper1[rule_format]: "add_spvec ((a,b)#arr, brr) = (ab, bb) # list \<longrightarrow> (ab = a | (brr \<noteq> [] & ab = fst (hd brr)))"
   proof - 
@@ -1113,57 +1117,4 @@ lemmas sparse_row_matrix_arith_simps[simplified zero_eq_Numeral0] =
   by (insert prems, simp add: sparse_row_matrix_op_simps linprog_dual_estimate_1[where A=A])
 *)
 
-lemma spm_mult_le_dual_prts: 
-  assumes
-  "sorted_sparse_matrix A1"
-  "sorted_sparse_matrix A2"
-  "sorted_sparse_matrix c1"
-  "sorted_sparse_matrix c2"
-  "sorted_sparse_matrix y"
-  "sorted_sparse_matrix r1"
-  "sorted_sparse_matrix r2"
-  "sorted_spvec b"
-  "le_spmat ([], y)"
-  "sparse_row_matrix A1 \<le> A"
-  "A \<le> sparse_row_matrix A2"
-  "sparse_row_matrix c1 \<le> c"
-  "c \<le> sparse_row_matrix c2"
-  "sparse_row_matrix r1 \<le> x"
-  "x \<le> sparse_row_matrix r2"
-  "A * x \<le> sparse_row_matrix (b::('a::lordered_ring) spmat)"
-  shows
-  "c * x \<le> sparse_row_matrix (add_spmat (mult_spmat y b,
-  (let s1 = diff_spmat c1 (mult_spmat y A2); s2 = diff_spmat c2 (mult_spmat y A1) in 
-  add_spmat (mult_spmat (pprt_spmat s2) (pprt_spmat r2), add_spmat (mult_spmat (pprt_spmat s1) (nprt_spmat r2), 
-  add_spmat (mult_spmat (nprt_spmat s2) (pprt_spmat r1), mult_spmat (nprt_spmat s1) (nprt_spmat r1)))))))"
-  apply (simp add: Let_def)
-  apply (insert prems)
-  apply (simp add: sparse_row_matrix_op_simps ring_simps)  
-  apply (rule mult_le_dual_prts[where A=A, simplified Let_def ring_simps])
-  apply (auto)
-  done
-
-lemma spm_mult_le_dual_prts_no_let: 
-  assumes
-  "sorted_sparse_matrix A1"
-  "sorted_sparse_matrix A2"
-  "sorted_sparse_matrix c1"
-  "sorted_sparse_matrix c2"
-  "sorted_sparse_matrix y"
-  "sorted_sparse_matrix r1"
-  "sorted_sparse_matrix r2"
-  "sorted_spvec b"
-  "le_spmat ([], y)"
-  "sparse_row_matrix A1 \<le> A"
-  "A \<le> sparse_row_matrix A2"
-  "sparse_row_matrix c1 \<le> c"
-  "c \<le> sparse_row_matrix c2"
-  "sparse_row_matrix r1 \<le> x"
-  "x \<le> sparse_row_matrix r2"
-  "A * x \<le> sparse_row_matrix (b::('a::lordered_ring) spmat)"
-  shows
-  "c * x \<le> sparse_row_matrix (add_spmat (mult_spmat y b,
-  mult_est_spmat r1 r2 (diff_spmat c1 (mult_spmat y A2)) (diff_spmat c2 (mult_spmat y A1))))"
-  by (simp add: prems mult_est_spmat_def spm_mult_le_dual_prts[where A=A, simplified Let_def])
- 
 end

@@ -25,13 +25,13 @@ fun inst_real thm =
 
 local
 
-val cert =  cterm_of @{theory "Cplex"}
+val cert =  cterm_of @{theory}
 
 in
 
 fun lp_dual_estimate_prt_primitive (y, (A1, A2), (c1, c2), b, (r1, r2)) =
   let
-    val th = inst_real @{thm "SparseMatrix.spm_mult_le_dual_prts_no_let"}
+    val th = inst_real @{thm "spm_mult_le_dual_prts_no_let"}
     fun var s x = (cert (Var ((s,0), FloatSparseMatrixBuilder.spmatT)), x)
     val th = Thm.instantiate ([], [var "A1" A1, var "A2" A2, var "y" y, var "c1" c1, var "c2" c2,
                                    var "r1" r1, var "r2" r2, var "b" b]) th
@@ -67,20 +67,12 @@ fun inst_tvars [] thms = thms
   | inst_tvars (ty::tys) thms = inst_tvars tys (map (inst_tvar ty) thms)
 
 local
-    val matrix_lemmas = [
-	"ComputeHOL.compute_list_case",
-	"ComputeHOL.compute_let",
-        "ComputeHOL.compute_if",
-        "Float.arith",
-        "SparseMatrix.sparse_row_matrix_arith_simps",
-        "ComputeHOL.compute_bool",
-        "ComputeHOL.compute_pair", 
-	"SparseMatrix.sorted_sp_simps",
-        "ComputeNumeral.number_norm",
-	"ComputeNumeral.natnorm"]
-    fun get_thms n = ComputeHOL.prep_thms (PureThy.get_thms @{theory "Cplex"} n)
-    val ths = maps get_thms matrix_lemmas
-    val computer = PCompute.make Compute.SML @{theory "Cplex"} ths []
+    val ths = ComputeHOL.prep_thms @{thms "ComputeHOL.compute_list_case" "ComputeHOL.compute_let"
+      "ComputeHOL.compute_if" "Float.arith" "SparseMatrix.sparse_row_matrix_arith_simps"
+      "ComputeHOL.compute_bool" "ComputeHOL.compute_pair"
+      "SparseMatrix.sorted_sp_simps" "ComputeNumeral.number_norm"
+      "ComputeNumeral.natnorm"};
+    val computer = PCompute.make Compute.SML @{theory} ths []
 in
 
 fun matrix_compute c = hd (PCompute.rewrite computer [c])
@@ -98,7 +90,7 @@ fun matrix_simplify th =
 
 fun prove_bound lptfile prec =
     let
-        val th = lp_dual_estimate_prt lptfile prec
+        val th = lp_dual_estimate_llprt lptfile prec
     in
         matrix_simplify th
     end

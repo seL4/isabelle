@@ -820,13 +820,12 @@ $(OUT)/HOL-Matrix: $(OUT)/HOL				\
   $(SRC)/Tools/Compute_Oracle/linker.ML					\
   $(SRC)/Tools/Compute_Oracle/am_ghc.ML					\
   $(SRC)/Tools/Compute_Oracle/am_sml.ML					\
-  $(SRC)/Tools/Compute_Oracle/compute.ML Matrix/MatrixGeneral.thy	\
+  $(SRC)/Tools/Compute_Oracle/compute.ML	\
   Matrix/Matrix.thy Matrix/SparseMatrix.thy Matrix/LP.thy		\
   Matrix/document/root.tex Matrix/ROOT.ML Matrix/cplex/Cplex.thy	\
   Matrix/cplex/CplexMatrixConverter.ML Matrix/cplex/Cplex_tools.ML	\
-  Matrix/cplex/FloatSparseMatrix.thy					\
   Matrix/cplex/FloatSparseMatrixBuilder.ML Matrix/cplex/fspmlp.ML	\
-  Matrix/cplex/MatrixLP.thy Matrix/cplex/matrixlp.ML
+  Matrix/cplex/matrixlp.ML
 	@$(ISATOOL) usedir -g true $(OUT)/HOL Matrix
 
 
