@@ -80,6 +80,14 @@ instantiations for algebraic structures.  Removed some duplicate
 theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
 
+*** HOL-NSA ***
+
+* Created new image HOL-NSA, containing theories of nonstandard
+analysis which were previously part of HOL-Complex.  Entry point
+Hyperreal.thy remains valid, but theories formerly using
+Complex_Main.thy should now use new entry point Hypercomplex.thy.
+
+
 *** ML ***
  
 * Rules and tactics that read instantiations (read_instantiate,
