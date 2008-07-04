@@ -234,16 +234,20 @@ end;
 
 local
 
+val index_ord = option_ord (K EQUAL);
 val hidden_ord = bool_ord o pairself NameSpace.is_hidden;
 val qual_ord = int_ord o pairself (length o NameSpace.explode);
 val txt_ord = int_ord o pairself size;
 
-fun nicer_name x y =
-  (case hidden_ord (x, y) of
-    EQUAL => (case qual_ord (x, y) of EQUAL => txt_ord (x, y) | ord => ord)
+fun nicer_name (x, i) (y, j) =
+  (case hidden_ord (x, y) of EQUAL =>
+    (case index_ord (i, j) of EQUAL =>
+      (case qual_ord (x, y) of EQUAL => txt_ord (x, y) | ord => ord)
+    | ord => ord)
   | ord => ord) <> GREATER;
 
-fun nicer (Facts.Named ((x, _), _)) (Facts.Named ((y, _), _)) = nicer_name x y
+fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
+      nicer_name (x, i) (y, j)
   | nicer (Facts.Fact _) (Facts.Named _) = true
   | nicer (Facts.Named _) (Facts.Fact _) = false;
 
