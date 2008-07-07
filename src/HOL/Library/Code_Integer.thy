@@ -6,7 +6,7 @@
 header {* Pretty integer literals for code generation *}
 
 theory Code_Integer
-imports Plain Presburger
+imports Plain "~~/src/HOL/Presburger"
 begin
 
 text {*

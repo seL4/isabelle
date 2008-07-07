@@ -6,7 +6,7 @@
 header "Ramsey's Theorem"
 
 theory Ramsey
-imports Plain Presburger Infinite_Set
+imports Plain "~~/src/HOL/Presburger" Infinite_Set
 begin
 
 subsection {* Preliminaries *}

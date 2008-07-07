@@ -6,7 +6,7 @@
 header {* Code generation of pretty characters (and strings) *}
 
 theory Code_Char
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 declare char.recs [code func del] char.cases [code func del]

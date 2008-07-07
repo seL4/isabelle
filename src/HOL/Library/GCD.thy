@@ -7,7 +7,7 @@
 header {* The Greatest Common Divisor *}
 
 theory GCD
-imports Plain Presburger
+imports Plain "~~/src/HOL/Presburger"
 begin
 
 text {*

@@ -6,7 +6,7 @@
 header{*Univariate Polynomials*}
 
 theory Univ_Poly
-imports Plain "../List"
+imports Plain "~~/src/HOL/List"
 begin
 
 text{* Application of polynomial as a function. *}

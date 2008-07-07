@@ -7,7 +7,7 @@
 header {* Pairs of Natural Numbers *}
 
 theory NatPair
-imports Plain Presburger
+imports Plain "~~/src/HOL/Presburger"
 begin
 
 text{*

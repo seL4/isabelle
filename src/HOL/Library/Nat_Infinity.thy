@@ -6,7 +6,7 @@
 header {* Natural numbers with infinity *}
 
 theory Nat_Infinity
-imports Plain Presburger
+imports Plain "~~/src/HOL/Presburger"
 begin
 
 subsection {* Type definition *}

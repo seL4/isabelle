@@ -7,7 +7,7 @@ header {* Pocklington's Theorem for Primes *}
 
 
 theory Pocklington
-imports Plain List Primes
+imports Plain "~~/src/HOL/List" "~~/src/HOL/Primes"
 begin
 
 definition modeq:: "nat => nat => nat => bool"    ("(1[_ = _] '(mod _'))")

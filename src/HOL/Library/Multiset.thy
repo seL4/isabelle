@@ -6,7 +6,7 @@
 header {* Multisets *}
 
 theory Multiset
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 subsection {* The type of multisets *}

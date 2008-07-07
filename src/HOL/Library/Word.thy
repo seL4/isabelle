@@ -6,7 +6,7 @@
 header {* Binary Words *}
 
 theory Word
-imports Main
+imports "~~/src/HOL/Main"
 begin
 
 subsection {* Auxilary Lemmas *}

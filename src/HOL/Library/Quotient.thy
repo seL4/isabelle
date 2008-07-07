@@ -6,7 +6,7 @@
 header {* Quotient types *}
 
 theory Quotient
-imports Plain Hilbert_Choice
+imports Plain "~~/src/HOL/Hilbert_Choice"
 begin
 
 text {*

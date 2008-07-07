@@ -5,7 +5,7 @@
 header "Lists as vectors"
 
 theory ListVector
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 text{* \noindent

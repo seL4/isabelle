@@ -6,7 +6,7 @@
 header {* Big O notation *}
 
 theory BigO
-imports Plain Presburger SetsAndFunctions
+imports Plain "~~/src/HOL/Presburger" SetsAndFunctions
 begin
 
 text {*

@@ -5,7 +5,7 @@
 header {* Monolithic strings (message strings) for code generation *}
 
 theory Code_Message
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 subsection {* Datatype of messages *}

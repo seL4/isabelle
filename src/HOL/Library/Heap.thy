@@ -6,7 +6,7 @@
 header {* A polymorphic heap based on cantor encodings *}
 
 theory Heap
-imports Plain List Countable RType
+imports Plain "~~/src/HOL/List" Countable RType
 begin
 
 subsection {* Representable types *}

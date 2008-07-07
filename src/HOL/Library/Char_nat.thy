@@ -6,7 +6,7 @@
 header {* Mapping between characters and natural numbers *}
 
 theory Char_nat
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 text {* Conversions between nibbles and natural numbers in [0..15]. *}

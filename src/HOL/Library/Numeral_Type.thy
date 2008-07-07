@@ -8,7 +8,7 @@
 header "Numeral Syntax for Types"
 
 theory Numeral_Type
-imports Plain Presburger
+imports Plain "~~/src/HOL/Presburger"
 begin
 
 subsection {* Preliminary lemmas *}

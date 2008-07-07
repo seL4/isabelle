@@ -5,7 +5,7 @@
 header {* Orders as Relations *}
 
 theory Order_Relation
-imports Plain Hilbert_Choice ATP_Linkup
+imports Plain "~~/src/HOL/Hilbert_Choice" "~~/src/HOL/ATP_Linkup"
 begin
 
 text{* This prelude could be moved to theory Relation: *}

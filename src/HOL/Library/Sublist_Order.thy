@@ -7,7 +7,7 @@
 header {* Sublist Ordering *}
 
 theory Sublist_Order
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 text {*

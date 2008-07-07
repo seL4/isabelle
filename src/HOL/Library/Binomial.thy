@@ -7,7 +7,7 @@
 header {* Binomial Coefficients *}
 
 theory Binomial
-imports Plain SetInterval
+imports Plain "~~/src/HOL/SetInterval"
 begin
 
 text {* This development is based on the work of Andy Gordon and

@@ -6,7 +6,7 @@
 header {* Potentially infinite lists as greatest fixed-point *}
 
 theory Coinductive_List
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 subsection {* List constructors over the datatype universe *}

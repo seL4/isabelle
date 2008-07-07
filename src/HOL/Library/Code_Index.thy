@@ -5,7 +5,7 @@
 header {* Type of indices *}
 
 theory Code_Index
-imports Plain Presburger
+imports Plain "~~/src/HOL/Presburger"
 begin
 
 text {*

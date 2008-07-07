@@ -6,7 +6,7 @@
 header {* Nested environments *}
 
 theory Nested_Environment
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 text {*

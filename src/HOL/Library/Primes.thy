@@ -7,7 +7,7 @@
 header {* Primality on nat *}
 
 theory Primes
-imports Plain ATP_Linkup GCD Parity
+imports Plain "~~/src/HOL/ATP_Linkup" GCD Parity
 begin
 
 definition

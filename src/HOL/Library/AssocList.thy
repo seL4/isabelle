@@ -6,7 +6,7 @@
 header {* Map operations implemented on association lists*}
 
 theory AssocList 
-imports Plain Map
+imports Plain "~~/src/HOL/Map"
 begin
 
 text {*

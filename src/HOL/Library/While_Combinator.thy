@@ -7,7 +7,7 @@
 header {* A general ``while'' combinator *}
 
 theory While_Combinator
-imports Plain Presburger
+imports Plain "~~/src/HOL/Presburger"
 begin
 
 text {* 

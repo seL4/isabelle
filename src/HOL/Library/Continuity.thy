@@ -6,7 +6,7 @@
 header {* Continuity and iterations (of set transformers) *}
 
 theory Continuity
-imports Plain Relation_Power
+imports Plain "~~/src/HOL/Relation_Power"
 begin
 
 subsection {* Continuity for complete lattices *}

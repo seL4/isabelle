@@ -6,7 +6,7 @@
 header {* List prefixes and postfixes *}
 
 theory List_Prefix
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 subsection {* Prefix order on lists *}

@@ -6,7 +6,7 @@
 header {* Pi and Function Sets *}
 
 theory FuncSet
-imports Plain Hilbert_Choice
+imports Plain "~~/src/HOL/Hilbert_Choice"
 begin
 
 definition

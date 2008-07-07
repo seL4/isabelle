@@ -3,10 +3,10 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Combinators syntax for generic, open state monads (single threaded monads) *}
+header {* Combinator syntax for generic, open state monads (single threaded monads) *}
 
 theory State_Monad
-imports Plain List
+imports Plain "~~/src/HOL/List"
 begin
 
 subsection {* Motivation *}

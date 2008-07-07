@@ -6,7 +6,7 @@
 header {* Even and Odd for int and nat *}
 
 theory Parity
-imports Plain Presburger
+imports Plain "~~/src/HOL/Presburger"
 begin
 
 class even_odd = type + 

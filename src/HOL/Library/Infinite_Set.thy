@@ -6,7 +6,7 @@
 header {* Infinite Sets and Related Concepts *}
 
 theory Infinite_Set
-imports Plain SetInterval Hilbert_Choice
+imports Plain "~~/src/HOL/SetInterval" "~~/src/HOL/Hilbert_Choice"
 begin
 
 
