@@ -48,6 +48,7 @@ sig
   val empty: transition
   val init_of: transition -> string option
   val name_of: transition -> string
+  val str_of: transition -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val interactive: bool -> transition -> transition
