@@ -296,7 +296,6 @@
       <KEYWORD2>thus</KEYWORD2>
       <LABEL>thy_deps</LABEL>
       <KEYWORD4>to</KEYWORD4>
-      <LABEL>touch_child_thys</LABEL>
       <LABEL>touch_thy</LABEL>
       <KEYWORD4>transitions</KEYWORD4>
       <OPERATOR>translations</OPERATOR>
