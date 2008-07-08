@@ -39,17 +39,12 @@ sig
   val skip_proof: Toplevel.transition -> Toplevel.transition
   val begin_theory: string -> string list -> (string * bool) list -> bool -> theory
   val end_theory: theory -> theory
-  val kill_theory: string -> unit
   val theory: string * string list * (string * bool) list
     -> Toplevel.transition -> Toplevel.transition
   val welcome: Toplevel.transition -> Toplevel.transition
   val init_toplevel: Toplevel.transition -> Toplevel.transition
   val exit: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
-  val touch_child_thys: string -> Toplevel.transition -> Toplevel.transition
-  val touch_thy: string -> Toplevel.transition -> Toplevel.transition
-  val remove_thy: string -> Toplevel.transition -> Toplevel.transition
-  val kill_thy: string -> Toplevel.transition -> Toplevel.transition
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
@@ -321,12 +316,10 @@ fun begin_theory name imports uses =
 fun end_theory thy =
   if ThyInfo.check_known_thy (Context.theory_name thy) then ThyInfo.end_theory thy else thy;
 
-val kill_theory = ThyInfo.if_known_thy ThyInfo.remove_thy;
-
 fun theory (name, imports, uses) =
   Toplevel.init_theory name (begin_theory name imports uses)
     (fn thy => (end_theory thy; ()))
-    (kill_theory o Context.theory_name);
+    (ThyInfo.kill_thy o Context.theory_name);
 
 val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
 
@@ -337,14 +330,6 @@ val exit = Toplevel.keep (fn state =>
   raise Toplevel.TERMINATE));
 
 val quit = Toplevel.imperative quit;
-
-
-(* touch theories *)
-
-fun touch_child_thys name = Toplevel.imperative (fn () => ThyInfo.touch_child_thys name);
-fun touch_thy name = Toplevel.imperative (fn () => ThyInfo.touch_thy name);
-fun remove_thy name = Toplevel.imperative (fn () => ThyInfo.remove_thy name);
-fun kill_thy name = Toplevel.imperative (fn () => kill_theory name);
 
 
 (* print state *)
