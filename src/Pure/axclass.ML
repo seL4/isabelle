@@ -37,7 +37,7 @@ sig
   val unoverload_const: theory -> string * typ -> string
   val param_of_inst: theory -> string * string -> string
   val inst_of_param: theory -> string -> (string * string) option
-  val these_arity_tags: theory -> class * string -> Markup.property list
+  val arity_property: theory -> class * string -> string -> string list
   type cache
   val of_sort: theory -> typ * sort -> cache -> thm list * cache  (*exception Sorts.CLASS_ERROR*)
   val cache: cache
@@ -181,10 +181,11 @@ fun the_arity thy a (c, Ss) =
   | NONE => error ("Unproven type arity " ^
       Syntax.string_of_arity (ProofContext.init thy) (a, Ss, [c])));
 
-fun these_arity_tags thy (c, a) = case find_first (fn ((c', _), _) => c = c')
-  (these (Symtab.lookup (snd (get_instances thy)) a)) of
-    SOME ((_, _), th) => Thm.get_tags th
-  | NONE => [];
+fun arity_property thy (c, a) x =
+  these (Symtab.lookup (snd (get_instances thy)) a)
+  |> map_filter (fn ((c', _), th) => if c = c'
+        then AList.lookup (op =) (Thm.get_tags th) x else NONE)
+  |> rev;
 
 fun put_arity ((t, Ss, c), th) = map_instances (fn (classrel, arities) =>
   (classrel, arities |> Symtab.insert_list (eq_fst op =) (t, ((c, Ss), th))));
