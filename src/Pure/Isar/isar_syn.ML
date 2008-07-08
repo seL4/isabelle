@@ -930,19 +930,18 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "touch_thy" "outdate theory, including descendants" K.diag
-    (P.name >> (Toplevel.no_timing oo IsarCmd.touch_thy));
-
-val _ =
-  OuterSyntax.improper_command "touch_child_thys" "outdate child theories" K.diag
-    (P.name >> (Toplevel.no_timing oo IsarCmd.touch_child_thys));
+    (P.name >> (fn name =>
+      Toplevel.no_timing o Toplevel.imperative (fn () => ThyInfo.touch_thy name)));
 
 val _ =
   OuterSyntax.improper_command "remove_thy" "remove theory from loader database" K.diag
-    (P.name >> (Toplevel.no_timing oo IsarCmd.remove_thy));
+    (P.name >> (fn name =>
+      Toplevel.no_timing o Toplevel.imperative (fn () => ThyInfo.remove_thy name)));
 
 val _ =
   OuterSyntax.improper_command "kill_thy" "kill theory -- try to remove from loader database"
-    K.diag (P.name >> (Toplevel.no_timing oo IsarCmd.kill_thy));
+    K.diag (P.name >> (fn name =>
+      Toplevel.no_timing o Toplevel.imperative (fn () => ThyInfo.kill_thy name)));
 
 val _ =
   OuterSyntax.improper_command "display_drafts" "display raw source files with symbols"
