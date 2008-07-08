@@ -356,7 +356,7 @@ text {* The inheritance diagram of the situation we have now is shown
   that two identical copies of each of the locales @{text
   partial_order} and @{text lattice} are imported.  This is not the
   case!  Inheritance paths with identical morphisms are detected and
-  the conclusions of the respecitve locales appear only once.
+  the conclusions of the respective locales appear only once.
 
 \begin{figure}
 \hrule \vspace{2ex}

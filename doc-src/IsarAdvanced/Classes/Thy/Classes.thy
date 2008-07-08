@@ -67,7 +67,7 @@ text {*
   \hspace*{4ex}@{text "less_eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
   \hspace*{4ex}@{text "less \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
-  \medskip\noindent Type variables are annotated with (finitly many) classes;
+  \medskip\noindent Type variables are annotated with (finitely many) classes;
   these annotations are assertions that a particular polymorphic type
   provides definitions for overloaded functions.
 
