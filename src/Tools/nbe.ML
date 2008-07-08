@@ -59,22 +59,22 @@ datatype Univ =
     Const of int * Univ list           (*named (uninterpreted) constants*)
   | Free of string * Univ list         (*free variables*)
   | DFree of string * int              (*free (uninterpreted) dictionary parameters*)
-  | BVar of int * Univ list            (*bound named variables*)
+  | BVar of int * Univ list            (*bound variables, named*)
   | Abs of (int * (Univ list -> Univ)) * Univ list
-                                      (*abstractions as closures*);
+                                       (*abstractions as closures*);
 
 (* constructor functions *)
 
 fun abss n f = Abs ((n, f), []);
 fun apps (Abs ((n, f), xs)) ys = let val k = n - length ys in
-      if k = 0 then f (ys @ xs)
-      else if k < 0 then
-        let val (zs, ws) = chop (~ k) ys
-        in apps (f (ws @ xs)) zs end
-      else Abs ((k, f), ys @ xs) end (*note: reverse convention also for apps!*)
+      case int_ord (k, 0)
+       of EQUAL => f (ys @ xs)
+        | LESS => let val (zs, ws) = chop (~ k) ys in apps (f (ws @ xs)) zs end
+        | GREATER => Abs ((k, f), ys @ xs) (*note: reverse convention also for apps!*)
+      end
   | apps (Const (name, xs)) ys = Const (name, ys @ xs)
   | apps (Free (name, xs)) ys = Free (name, ys @ xs)
-  | apps (BVar (name, xs)) ys = BVar (name, ys @ xs);
+  | apps (BVar (n, xs)) ys = BVar (n, ys @ xs);
 
 
 (** assembling and compiling ML code from terms **)
@@ -332,8 +332,8 @@ fun term_of_univ thy idx_tab t =
           in of_apps bounds (Term.Const (c, T'), ts') typidx' end
       | of_univ bounds (Free (name, ts)) typidx =
           of_apps bounds (Term.Free (name, dummyT), ts) typidx
-      | of_univ bounds (BVar (name, ts)) typidx =
-          of_apps bounds (Bound (bounds - name - 1), ts) typidx
+      | of_univ bounds (BVar (n, ts)) typidx =
+          of_apps bounds (Bound (bounds - n - 1), ts) typidx
       | of_univ bounds (t as Abs _) typidx =
           typidx
           |> of_univ (bounds + 1) (apps t [BVar (bounds, [])])
