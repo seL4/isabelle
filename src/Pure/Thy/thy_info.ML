@@ -6,15 +6,8 @@ Main part of theory loader database, including handling of theory and
 file dependencies.
 *)
 
-signature BASIC_THY_INFO =
-sig
-  val touch_thy: string -> unit
-  val remove_thy: string -> unit
-end;
-
 signature THY_INFO =
 sig
-  include BASIC_THY_INFO
   datatype action = Update | Outdate | Remove
   val str_of_action: action -> string
   val add_hook: (action -> string -> unit) -> unit
@@ -29,6 +22,7 @@ sig
   val master_directory: string -> Path.T
   val loaded_files: string -> Path.T list
   val get_parents: string -> string list
+  val touch_thy: string -> unit
   val touch_child_thys: string -> unit
   val provide_file: Path.T -> string -> unit
   val load_file: bool -> Path.T -> unit
@@ -38,6 +32,8 @@ sig
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val time_use_thy: string -> unit
+  val remove_thy: string -> unit
+  val kill_thy: string -> unit
   val thy_ord: theory * theory -> order
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> theory
@@ -471,7 +467,7 @@ val time_use_thy = gen_use_thy (require_thy true);
 end;
 
 
-(* remove_thy *)
+(* remove theory *)
 
 fun remove_thy name =
   if is_finished name then error (loader_msg "cannot remove finished theory" [name])
@@ -480,6 +476,8 @@ fun remove_thy name =
       priority (loader_msg "removing" succs);
       CRITICAL (fn () => (List.app (perform Remove) succs; change_thys (Graph.del_nodes succs)))
     end;
+
+val kill_thy = if_known_thy remove_thy;
 
 
 (* update_time *)
@@ -581,5 +579,3 @@ fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (NONE, entry)));
 
 end;
 
-structure BasicThyInfo: BASIC_THY_INFO = ThyInfo;
-open BasicThyInfo;
