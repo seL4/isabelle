@@ -183,7 +183,7 @@ fun init_theory_info name info =
 fun change_theory_info name f =
   change_browser_info (fn (info as (theories, files, tex_index, html_index, graph)) =>
     (case Symtab.lookup theories name of
-      NONE => (warning ("Browser info: cannot access theory document " ^ quote name); info)
+      NONE => error ("Browser info: cannot access theory document " ^ quote name)
     | SOME info => (Symtab.update (name, map_theory_info f info) theories, files,
         tex_index, html_index, graph)));
 
@@ -474,15 +474,15 @@ fun begin_theory update_time dir files thy =
             val base_html = html_ext base;
             val _ = add_file (Path.append html_prefix base_html,
               HTML.ml_file (Url.File base) (File.read path));
-          in (SOME (Url.File base_html), Url.File raw_path, loadit) end
-      | NONE =>
-          (warning ("Browser info: expected to find ML file" ^ quote (Path.implode raw_path));
-            (NONE, Url.File raw_path, loadit)));
+            in (Url.File base_html, Url.File raw_path, loadit) end
+      | NONE => error ("Browser info: expected to find ML file" ^ quote (Path.implode raw_path)));
+
+    val files_html = map prep_file files;
 
     fun prep_html_source (tex_source, html_source, html) =
       let
         val txt = HTML.begin_theory (Url.File index_path, session)
-          name parent_specs (map prep_file files) (Buffer.content html_source)
+          name parent_specs files_html (Buffer.content html_source)
       in (tex_source, Buffer.empty, Buffer.add txt html) end;
 
     val entry =
