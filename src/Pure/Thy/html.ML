@@ -17,7 +17,6 @@ sig
   val file_path: Url.T -> text
   val href_name: string -> text -> text
   val href_path: Url.T -> text -> text
-  val href_opt_name: string option -> text -> text
   val href_opt_path: Url.T option -> text -> text
   val para: text -> text
   val preform: text -> text
@@ -32,7 +31,7 @@ sig
   val session_entries: (Url.T * string) list -> text
   val verbatim_source: Symbol.symbol list -> text
   val begin_theory: Url.T * string -> string -> (Url.T option * string) list ->
-    (Url.T option * Url.T * bool) list -> text -> text
+    (Url.T * Url.T * bool) list -> text -> text
   val end_theory: text
   val ml_file: Url.T -> string -> text
   val results: Proof.context -> string -> (string * thm list) list -> text
@@ -267,9 +266,6 @@ val file_path = file_name o Url.implode;
 fun href_name s txt = "<a href=" ^ Library.quote s ^ ">" ^ txt ^ "</a>";
 fun href_path path txt = href_name (Url.implode path) txt;
 
-fun href_opt_name NONE txt = txt
-  | href_opt_name (SOME s) txt = href_name s txt;
-
 fun href_opt_path NONE txt = txt
   | href_opt_path (SOME p) txt = href_path p txt;
 
@@ -362,8 +358,8 @@ fun verbatim_source ss =
 
 
 local
-  fun file (opt_ref, path, loadit) =
-    href_opt_path opt_ref (if loadit then enclose "(" ")" (file_path path) else file_path path);
+  fun file (href, path, loadit) =
+    href_path href (if loadit then file_path path else enclose "(" ")" (file_path path));
 
   fun theory up A =
     begin_document ("Theory " ^ A) ^ "\n" ^ up_link up ^
