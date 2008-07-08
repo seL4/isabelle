@@ -241,7 +241,7 @@ text {*
 *}
 
 code_type nat
-  (SML "int")
+  (SML "IntInf.int")
   (OCaml "Big'_int.big'_int")
 
 types_code
