@@ -368,8 +368,8 @@ text %mlref {*
   @{index_ML theory: "string -> theory"} \\
   @{index_ML use_thy: "string -> unit"} \\
   @{index_ML use_thys: "string list -> unit"} \\
-  @{index_ML touch_thy: "string -> unit"} \\
-  @{index_ML remove_thy: "string -> unit"} \\[1ex]
+  @{index_ML ThyInfo.touch_thy: "string -> unit"} \\
+  @{index_ML ThyInfo.remove_thy: "string -> unit"} \\[1ex]
   @{index_ML ThyInfo.begin_theory}@{verbatim ": ... -> bool -> theory"} \\
   @{index_ML ThyInfo.end_theory: "theory -> theory"} \\
   @{index_ML ThyInfo.register_theory: "theory -> unit"} \\[1ex]
@@ -392,10 +392,10 @@ text %mlref {*
   import header of a theory, without performing the merge of the
   result, though.
 
-  \item @{ML touch_thy}~@{text A} performs and @{text outdate} action
+  \item @{ML ThyInfo.touch_thy}~@{text A} performs and @{text outdate} action
   on theory @{text A} and all descendants.
 
-  \item @{ML remove_thy}~@{text A} deletes theory @{text A} and all
+  \item @{ML ThyInfo.remove_thy}~@{text A} deletes theory @{text A} and all
   descendants from the theory database.
 
   \item @{ML ThyInfo.begin_theory} is the basic operation behind a
