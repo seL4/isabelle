@@ -62,51 +62,59 @@ datatype status =
   Final of Toplevel.state * (exn * string) option;
 
 datatype command = Command of
- {prev: id,
-  category: category,
+ {category: category,
   transition: Toplevel.transition,
   status: status};
 
-fun make_command (prev, category, transition, status) =
-  Command {prev = prev, category = category, transition = transition, status = status};
+fun make_command (category, transition, status) =
+  Command {category = category, transition = transition, status = status};
 
 val empty_command =
-  make_command (no_id, Empty, Toplevel.empty, Final (Toplevel.toplevel, NONE));
+  make_command (Empty, Toplevel.empty, Final (Toplevel.toplevel, NONE));
 
-fun map_command f (Command {prev, category, transition, status}) =
-  make_command (f (prev, category, transition, status));
+fun map_command f (Command {category, transition, status}) =
+  make_command (f (category, transition, status));
 
-fun map_status f = map_command (fn (prev, category, transition, status) =>
-  (prev, category, transition, f status));
+fun map_status f = map_command (fn (category, transition, status) =>
+  (category, transition, f status));
 
 
-(* table of identified commands *)
+(* global collection of identified commands *)
 
 local
 
-val empty_commands = Symtab.empty: command Symtab.table;
+val empty_commands = Graph.empty: command Graph.T;
 val global_commands = ref empty_commands;
 
 in
 
-fun change_commands f = NAMED_CRITICAL "Isar" (fn () => change global_commands f);
+fun change_commands f = NAMED_CRITICAL "Isar" (fn () => change global_commands f)
+  handle Graph.DUP id => sys_error ("Duplicate command id " ^ quote id)
+    | Graph.UNDEF id => sys_error ("Unknown command id " ^ quote id);
+
 fun init_commands () = change_commands (K empty_commands);
 
 fun the_command id =
-  let val Command cmd =
-    if id = no_id then empty_command
-    else
-      (case Symtab.lookup (! global_commands) id of
-        SOME cmd => cmd
-      | NONE => sys_error ("Unknown command " ^ quote id))
-  in cmd end;
-
-fun the_state id =
-  (case the_command id of
-    {status = Final res, ...} => res
-  | _ => sys_error ("Unfinished command " ^ quote id));
+  if id = no_id then empty_command
+  else Graph.get_node (! global_commands) id;
 
 end;
+
+
+fun the_state id =
+  let val Command {transition, status, ...} = the_command id in
+    (case status of
+      Final res => res
+    | _ => error ("Unfinished command " ^ Toplevel.str_of transition))
+  end;
+
+fun new_command prev (id, cmd) =
+  change_commands (Graph.new_node (id, cmd) #> prev <> no_id ? Graph.add_edge (prev, id));
+
+fun dispose_command id = change_commands (Graph.del_nodes [id]);
+
+fun change_command_status id f = change_commands (Graph.map_node id (map_status f));
+
 
 
 (** TTY interaction **)
@@ -120,6 +128,10 @@ fun change_point f = NAMED_CRITICAL "Isar" (fn () => change global_point f);
 fun point_state () = NAMED_CRITICAL "Isar" (fn () =>
   let val id = ! global_point in (id, the_state id) end);
 
+end;
+
+fun init_point () = change_point (K no_id);
+
 fun state () = #1 (#2 (point_state ()));
 fun exn () = #2 (#2 (point_state ()));
 
@@ -131,8 +143,6 @@ fun goal () =
   #2 (#2 (Proof.get_goal (Toplevel.proof_of (state ()))))
     handle Toplevel.UNDEF => error "No goal present";
 
-end;
-
 
 (* interactive state transformations --- NOT THREAD-SAFE! *)
 
@@ -143,12 +153,12 @@ fun >> raw_tr =
     val (id, tr) = identify raw_tr;
     val (prev, (prev_state, _)) = point_state ();
     val category = category_of tr;
-    val _ = change_commands (Symtab.update (id, make_command (prev, category, tr, Initial)));
+    val _ = new_command prev (id, make_command (category, tr, Initial));
   in
     (case Toplevel.transition true tr prev_state of
-      NONE => (change_commands (Symtab.delete_safe id); false)
+      NONE => (dispose_command id; false)
     | SOME result =>
-        (change_commands (Symtab.map_entry id (map_status (K (Final result))));
+        (change_command_status id (K (Final result));
           change_point (K id);
           (case #2 result of
             NONE => ()
@@ -188,7 +198,7 @@ in
 
 fun toplevel_loop {init, welcome, sync, secure} =
  (Context.set_thread_data NONE;
-  if init then init_commands () else ();
+  if init then (init_point (); init_commands ()) else ();
   if welcome then writeln (Session.welcome ()) else ();
   uninterruptible (fn _ => fn () => raw_loop secure (OuterSyntax.isar sync)) ());
 
