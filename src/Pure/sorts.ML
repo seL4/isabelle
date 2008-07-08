@@ -52,6 +52,8 @@ sig
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
   val meet_sort: algebra -> typ * sort -> sort Vartab.table -> sort Vartab.table
   val of_sort: algebra -> typ * sort -> bool
+  
+val weaken: 'b Graph.T -> ('a * class -> class -> 'a) -> 'a * class -> class -> 'a;
   val of_sort_derivation: Pretty.pp -> algebra ->
     {class_relation: 'a * class -> class -> 'a,
      type_constructor: string -> ('a * class) list list -> class -> 'a,
@@ -368,18 +370,21 @@ fun of_sort algebra =
   in ofS end;
 
 
-(* of_sort_derivation *)
+(* animating derivations *)
+
+fun weaken classes class_relation (x, c1) c2 =
+  (case Graph.irreducible_paths classes (c1, c2) of
+    [] => raise CLASS_ERROR (NoClassrel (c1, c2))
+    | cs :: _ => let
+        fun weaken_path (x, c1 :: c2 :: cs) =
+            weaken_path (class_relation (x, c1) c2, c2 :: cs)
+          | weaken_path (x, _) = x;
+      in weaken_path (x, cs) end);
 
 fun of_sort_derivation pp algebra {class_relation, type_constructor, type_variable} =
   let
     val {classes, arities} = rep_algebra algebra;
-    fun weaken_path (x, c1 :: c2 :: cs) =
-          weaken_path (class_relation (x, c1) c2, c2 :: cs)
-      | weaken_path (x, _) = x;
-    fun weaken (x, c1) c2 =
-      (case Graph.irreducible_paths classes (c1, c2) of
-        [] => raise CLASS_ERROR (NoClassrel (c1, c2))
-      | cs :: _ => weaken_path (x, cs));
+    val weaken = weaken classes class_relation;
 
     fun weakens S1 S2 = S2 |> map (fn c2 =>
       (case S1 |> find_first (fn (_, c1) => class_le algebra (c1, c2)) of
