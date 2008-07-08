@@ -75,7 +75,7 @@ text {*
   but form a generic calculus, an instance of order-sorted
   algebra \cite{Nipkow-Prehofer:1993,nipkow-sorts93,Wenzel:1997:TPHOL}.
 
-  From a software enigineering point of view, type classes
+  From a software engineering point of view, type classes
   correspond to interfaces in object-oriented languages like Java;
   so, it is naturally desirable that type classes do not only
   provide functions (class parameters) but also state specifications
