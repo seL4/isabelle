@@ -78,7 +78,7 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
   \hspace*{4ex}\isa{less{\isacharunderscore}eq\ {\isasymColon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ bool} \\
   \hspace*{4ex}\isa{less\ {\isasymColon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ bool}
 
-  \medskip\noindent Type variables are annotated with (finitly many) classes;
+  \medskip\noindent Type variables are annotated with (finitely many) classes;
   these annotations are assertions that a particular polymorphic type
   provides definitions for overloaded functions.
 
@@ -86,7 +86,7 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
   but form a generic calculus, an instance of order-sorted
   algebra \cite{Nipkow-Prehofer:1993,nipkow-sorts93,Wenzel:1997:TPHOL}.
 
-  From a software enigineering point of view, type classes
+  From a software engineering point of view, type classes
   correspond to interfaces in object-oriented languages like Java;
   so, it is naturally desirable that type classes do not only
   provide functions (class parameters) but also state specifications
@@ -102,7 +102,7 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
   \hspace*{4ex}\isa{sym{\isacharcolon}\ eq\ x\ y\ {\isasymlongleftrightarrow}\ eq\ x\ y} \\
   \hspace*{4ex}\isa{trans{\isacharcolon}\ eq\ x\ y\ {\isasymand}\ eq\ y\ z\ {\isasymlongrightarrow}\ eq\ x\ z}
 
-  \medskip\noindent From a theoretic point of view, type classes are leightweight
+  \medskip\noindent From a theoretic point of view, type classes are lightweight
   modules; Haskell type classes may be emulated by
   SML functors \cite{classes_modules}. 
   Isabelle/Isar offers a discipline of type classes which brings
@@ -324,7 +324,7 @@ Overloaded definitions giving on class instantiation
 \noindent Associativity from product semigroups is
   established using
   the definition of \isa{{\isasymotimes}} on products and the hypothetical
-  associativety of the type components;  these hypothesis
+  associativity of the type components;  these hypotheses
   are facts due to the \isa{semigroup} constraints imposed
   on the type components by the \isa{instance} proposition.
   Indeed, this pattern often occurs with parametric types
@@ -350,7 +350,7 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 \begin{isamarkuptext}%
 \noindent Again, we prove some instances, by
   providing suitable parameter definitions and proofs for the
-  additional specifications.  Obverve that instantiations
+  additional specifications.  Observe that instantiations
   for types with the same arity may be simultaneous:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -775,7 +775,7 @@ We introduced Isar classes by analogy to type classes
   For example, also \isa{list}s form a monoid with
   \isa{op\ {\isacharat}} and \isa{{\isacharbrackleft}{\isacharbrackright}} as operations, but it
   seems inappropriate to apply to lists
-  the same operations as for genuinly algebraic types.
+  the same operations as for genuinely algebraic types.
   In such a case, we simply can do a particular interpretation
   of monoids for lists:%
 \end{isamarkuptext}%
@@ -945,7 +945,7 @@ Any \isa{group} is also a \isa{monoid};  this
 %
 \begin{isamarkuptext}%
 As a commodity, class context syntax allows to refer
-  to local class operations and their global conuterparts
+  to local class operations and their global counterparts
   uniformly;  type inference resolves ambiguities.  For example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
