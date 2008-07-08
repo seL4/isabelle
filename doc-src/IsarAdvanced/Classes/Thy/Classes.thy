@@ -91,7 +91,7 @@ text {*
   \hspace*{4ex}@{text "sym: eq x y \<longleftrightarrow> eq x y"} \\
   \hspace*{4ex}@{text "trans: eq x y \<and> eq y z \<longrightarrow> eq x z"}
 
-  \medskip\noindent From a theoretic point of view, type classes are leightweight
+  \medskip\noindent From a theoretic point of view, type classes are lightweight
   modules; Haskell type classes may be emulated by
   SML functors \cite{classes_modules}. 
   Isabelle/Isar offers a discipline of type classes which brings
@@ -239,7 +239,7 @@ text {*
   \noindent Associativity from product semigroups is
   established using
   the definition of @{text \<otimes>} on products and the hypothetical
-  associativety of the type components;  these hypothesis
+  associativity of the type components;  these hypotheses
   are facts due to the @{text semigroup} constraints imposed
   on the type components by the @{text instance} proposition.
   Indeed, this pattern often occurs with parametric types
@@ -263,7 +263,7 @@ text {*
 text {*
   \noindent Again, we prove some instances, by
   providing suitable parameter definitions and proofs for the
-  additional specifications.  Obverve that instantiations
+  additional specifications.  Observe that instantiations
   for types with the same arity may be simultaneous:
 *}
 
@@ -477,7 +477,7 @@ text {*
   For example, also @{text "list"}s form a monoid with
   @{term "op @"} and @{term "[]"} as operations, but it
   seems inappropriate to apply to lists
-  the same operations as for genuinly algebraic types.
+  the same operations as for genuinely algebraic types.
   In such a case, we simply can do a particular interpretation
   of monoids for lists:
 *}
@@ -585,7 +585,7 @@ subsection {* A note on syntax *}
 
 text {*
   As a commodity, class context syntax allows to refer
-  to local class operations and their global conuterparts
+  to local class operations and their global counterparts
   uniformly;  type inference resolves ambiguities.  For example:
 *}
 
