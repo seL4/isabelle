@@ -10,9 +10,7 @@ imports "~~/src/HOL/Library/Abstract_Rat"
 uses ("rat_arith.ML")
 begin
 
-subsection {* Rational numbers *}
-
-subsubsection {* Equivalence of fractions *}
+subsection {* Equivalence of fractions *}
 
 definition
   fraction :: "(int \<times> int) set" where
@@ -65,7 +63,7 @@ lemma equiv_ratrel_iff2:
 by (rule eq_equiv_class_iff [OF equiv_ratrel], simp_all)
 
 
-subsubsection {* The type of rational numbers *}
+subsection {* The type of rational numbers *}
 
 typedef (Rat) rat = "fraction//ratrel"
 proof
@@ -96,7 +94,7 @@ theorem Rat_induct [case_names Fract, induct type: rat]:
   by (cases q) simp
 
 
-subsubsection {* Congruence lemmas *}
+subsection {* Congruence lemmas *}
 
 lemma add_congruent2:
      "(\<lambda>x y. ratrel``{(fst x * snd y + fst y * snd x, snd x * snd y)})
@@ -161,9 +159,9 @@ lemmas UN_ratrel = UN_equiv_class [OF equiv_ratrel]
 lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]
 
 
-subsubsection {* Standard operations on rational numbers *}
+subsection {* Rationals are a field *}
 
-instantiation rat :: "{zero, one, plus, minus, uminus, times, inverse, ord, abs, sgn}"
+instantiation rat :: field
 begin
 
 definition
@@ -200,36 +198,6 @@ definition
 definition
   divide_rat_def [code func del]: "q / r = q * inverse (r::rat)"
 
-definition
-  le_rat_def [code func del]:
-   "q \<le> r \<longleftrightarrow> contents (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
-      {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
-
-definition
-  less_rat_def [code func del]: "z < (w::rat) \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
-
-definition
-  abs_rat_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::rat))"
-
-definition
-  sgn_rat_def: "sgn (q::rat) = (if q=0 then 0 else if 0<q then 1 else - 1)"
-
-instance ..
-
-end
-
-instantiation rat :: power
-begin
-
-primrec power_rat
-where
-  rat_power_0:     "q ^ 0       = (1\<Colon>rat)"
-  | rat_power_Suc: "q ^ (Suc n) = (q\<Colon>rat) * (q ^ n)"
-
-instance ..
-
-end
-
 theorem eq_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
   (Fract a b = Fract c d) = (a * d = c * b)"
 by (simp add: Fract_def)
@@ -257,24 +225,7 @@ theorem divide_rat: "c \<noteq> 0 ==> b \<noteq> 0 ==> d \<noteq> 0 ==>
   Fract a b / Fract c d = Fract (a * d) (b * c)"
 by (simp add: divide_rat_def inverse_rat mult_rat)
 
-theorem le_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
-  (Fract a b \<le> Fract c d) = ((a * d) * (b * d) \<le> (c * b) * (b * d))"
-by (simp add: Fract_def le_rat_def le_congruent2 UN_ratrel2)
-
-theorem less_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
-    (Fract a b < Fract c d) = ((a * d) * (b * d) < (c * b) * (b * d))"
-by (simp add: less_rat_def le_rat eq_rat order_less_le)
-
-theorem abs_rat: "b \<noteq> 0 ==> \<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
-  by (simp add: abs_rat_def minus_rat Zero_rat_def less_rat eq_rat)
-     (auto simp add: mult_less_0_iff zero_less_mult_iff order_le_less
-                split: abs_split)
-
-
-subsubsection {* The ordered field of rational numbers *}
-
-instance rat :: field
-proof
+instance proof
   fix q r s :: rat
   show "(q + r) + s = q + (r + s)"
     by (induct q, induct r, induct s)
@@ -304,8 +255,54 @@ proof
     by (simp add: Zero_rat_def One_rat_def eq_rat)
 qed
 
-instance rat :: linorder
+end
+
+instantiation rat :: recpower
+begin
+
+primrec power_rat
+where
+  rat_power_0:     "q ^ 0       = (1\<Colon>rat)"
+  | rat_power_Suc: "q ^ (Suc n) = (q\<Colon>rat) * (q ^ n)"
+
+instance proof
+  fix q :: rat
+  fix n :: nat
+  show "q ^ 0 = 1" by simp
+  show "q ^ (Suc n) = q * (q ^ n)" by simp
+qed
+
+end
+
+instance rat :: division_by_zero
 proof
+  show "inverse 0 = (0::rat)"
+    by (simp add: Zero_rat_def Fract_def inverse_rat_def
+                  inverse_congruent UN_ratrel)
+qed
+
+subsection {* Rationals are a linear order *}
+
+instantiation rat :: linorder
+begin
+
+definition
+  le_rat_def [code func del]:
+   "q \<le> r \<longleftrightarrow> contents (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
+      {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
+
+definition
+  less_rat_def [code func del]: "z < (w::rat) \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
+
+theorem le_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
+  (Fract a b \<le> Fract c d) = ((a * d) * (b * d) \<le> (c * b) * (b * d))"
+by (simp add: Fract_def le_rat_def le_congruent2 UN_ratrel2)
+
+theorem less_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
+    (Fract a b < Fract c d) = ((a * d) * (b * d) < (c * b) * (b * d))"
+by (simp add: less_rat_def le_rat eq_rat order_less_le)
+
+instance proof
   fix q r s :: rat
   {
     assume "q \<le> r" and "r \<le> s"
@@ -373,6 +370,8 @@ proof
   }
 qed
 
+end
+
 instantiation rat :: distrib_lattice
 begin
 
@@ -387,8 +386,23 @@ instance
 
 end
 
-instance rat :: ordered_field
-proof
+subsection {* Rationals are an ordered field *}
+
+instantiation rat :: ordered_field
+begin
+
+definition
+  abs_rat_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::rat))"
+
+definition
+  sgn_rat_def: "sgn (q::rat) = (if q=0 then 0 else if 0<q then 1 else - 1)"
+
+theorem abs_rat: "b \<noteq> 0 ==> \<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
+  by (simp add: abs_rat_def minus_rat Zero_rat_def less_rat eq_rat)
+     (auto simp add: mult_less_0_iff zero_less_mult_iff order_le_less
+                split: abs_split)
+
+instance proof
   fix q r s :: rat
   show "q \<le> r ==> s + q \<le> s + r"
   proof (induct q, induct r, induct s)
@@ -431,21 +445,7 @@ proof
     by (simp only: abs_rat_def)
 qed (auto simp: sgn_rat_def)
 
-instance rat :: division_by_zero
-proof
-  show "inverse 0 = (0::rat)"
-    by (simp add: Zero_rat_def Fract_def inverse_rat_def
-                  inverse_congruent UN_ratrel)
-qed
-
-instance rat :: recpower
-proof
-  fix q :: rat
-  fix n :: nat
-  show "q ^ 0 = 1" by simp
-  show "q ^ (Suc n) = q * (q ^ n)" by simp
-qed
-
+end
 
 subsection {* Various Other Results *}
 
