@@ -1,0 +1,14 @@
+diff -r gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
+12a13,15
+> <div class="files">
+> #files#
+> </div>
+diff -r gitweb/summary.tmpl isabelle/summary.tmpl
+49,55d48
+< <div><a class="title" href="#">branches</a></div>
+< <table cellspacing="0">
+< {branches%branchentry}
+< <tr class="light">
+<   <td colspan="4"><a class="list"  href="#">...</a></td>
+< </tr>
+< </table>
