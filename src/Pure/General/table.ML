@@ -27,10 +27,11 @@ sig
   val fold_map: (key * 'b -> 'a -> 'c * 'a) -> 'b table -> 'a -> 'c table * 'a
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
-  val min_key: 'a table -> key option
-  val max_key: 'a table -> key option
   val exists: (key * 'a -> bool) -> 'a table -> bool
   val forall: (key * 'a -> bool) -> 'a table -> bool
+  val get_first: (key * 'a -> 'b option) -> 'a table -> 'b option
+  val min_key: 'a table -> key option
+  val max_key: 'a table -> key option
   val defined: 'a table -> key -> bool
   val lookup: 'a table -> key -> 'a option
   val update: (key * 'a) -> 'a table -> 'a table
@@ -125,15 +126,19 @@ fun fold_map_table f =
 fun dest tab = rev (fold_table cons tab []);
 fun keys tab = rev (fold_table (cons o #1) tab []);
 
-local exception TRUE in
+fun get_first f tab =
+  let
+    exception FOUND of 'b option;
+    fun get entry () = (case f entry of NONE => () | some => raise FOUND some);
+  in (fold_table get tab (); NONE) handle FOUND res => res end;
 
-fun exists pred tab =
-  (fold_table (fn p => fn () => if pred p then raise TRUE else ()) tab (); false)
-    handle TRUE => true;
+fun exists pred =
+  is_some o get_first (fn entry => if pred entry then SOME () else NONE);
 
 fun forall pred = not o exists (not o pred);
 
-end;
+
+(* min/max keys *)
 
 fun min_key Empty = NONE
   | min_key (Branch2 (Empty, (k, _), _)) = SOME k
