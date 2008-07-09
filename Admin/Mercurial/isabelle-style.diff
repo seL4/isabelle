@@ -4,7 +4,9 @@ diff -r gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
 > #files#
 > </div>
 diff -r gitweb/summary.tmpl isabelle/summary.tmpl
-49,55d48
+33d32
+< <tr><td>owner</td><td>#owner|obfuscate#</td></tr>
+49,55d47
 < <div><a class="title" href="#">branches</a></div>
 < <table cellspacing="0">
 < {branches%branchentry}
