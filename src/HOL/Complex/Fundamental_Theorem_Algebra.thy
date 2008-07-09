@@ -59,50 +59,10 @@ qed
 subsection{* More lemmas about module of complex numbers *}
 
 lemma complex_of_real_power: "complex_of_real x ^ n = complex_of_real (x^n)"
-  by (induct n, auto)
+  by (rule of_real_power [symmetric])
 
-lemma cmod_pos: "cmod z \<ge> 0" by simp
-lemma complex_mod_triangle_ineq: "cmod (z + w) \<le> cmod z + cmod w"
-  using complex_mod_triangle_ineq2[of z w] by (simp add: ring_simps)
-
-lemma cmod_mult: "cmod (z*w) = cmod z * cmod w"
-proof-
-  from rcis_Ex[of z] rcis_Ex[of w]
-  obtain rz az rw aw where z: "z = rcis rz az" and w: "w = rcis rw aw"  by blast
-  thus ?thesis by (simp add: rcis_mult abs_mult)
-qed
-
-lemma cmod_divide: "cmod (z/w) = cmod z / cmod w"
-proof-
-  from rcis_Ex[of z] rcis_Ex[of w]
-  obtain rz az rw aw where z: "z = rcis rz az" and w: "w = rcis rw aw"  by blast
-  thus ?thesis by (simp add: rcis_divide)
-qed
-
-lemma cmod_inverse: "cmod (inverse z) = inverse (cmod z)"
-  using cmod_divide[of 1 z] by (simp add: inverse_eq_divide)
-
-lemma cmod_uminus: "cmod (- z) = cmod z"
-  unfolding cmod_def by simp
-lemma cmod_abs_norm: "\<bar>cmod w - cmod z\<bar> \<le> cmod (w - z)"
-proof-
-  have ath: "\<And>(a::real) b x. a - b <= x \<Longrightarrow> b - a <= x ==> abs(a - b) <= x"
-    by arith
-  from complex_mod_triangle_ineq2[of "w - z" z]
-  have th1: "cmod w - cmod z \<le> cmod (w - z)" by simp
-  from complex_mod_triangle_ineq2[of "- (w - z)" "w"] 
-  have th2: "cmod z - cmod w \<le> cmod (w - z)" using cmod_uminus [of "w - z"]
-    by simp
-  from ath[OF th1 th2] show ?thesis .
-qed
-
-lemma cmod_power: "cmod (z ^n) = cmod z ^ n" by (induct n, auto simp add: cmod_mult)
 lemma real_down2: "(0::real) < d1 \<Longrightarrow> 0 < d2 ==> EX e. 0 < e & e < d1 & e < d2"
   apply ferrack apply arith done
-
-lemma cmod_complex_of_real: "cmod (complex_of_real x) = \<bar>x\<bar>"
-  unfolding cmod_def by auto
-
 
 text{* The triangle inequality for cmod *}
 lemma complex_mod_triangle_sub: "cmod w \<le> cmod (w + z) + norm z"
@@ -119,14 +79,14 @@ next
   from Cons.hyps obtain m where m: "\<forall>z. cmod z \<le> r \<longrightarrow> cmod (poly cs z) \<le> m"
     by blast
   let ?k = " 1 + cmod c + \<bar>r * m\<bar>"
-  have kp: "?k > 0" using abs_ge_zero[of "r*m"] cmod_pos[of c] by arith
+  have kp: "?k > 0" using abs_ge_zero[of "r*m"] norm_ge_zero[of c] by arith
   {fix z
     assume H: "cmod z \<le> r"
     from m H have th: "cmod (poly cs z) \<le> m" by blast
-    from H have rp: "r \<ge> 0" using cmod_pos[of z] by arith
+    from H have rp: "r \<ge> 0" using norm_ge_zero[of z] by arith
     have "cmod (poly (c # cs) z) \<le> cmod c + cmod (z* poly cs z)"
-      using complex_mod_triangle_ineq[of c "z* poly cs z"] by simp
-    also have "\<dots> \<le> cmod c + r*m" using mult_mono[OF H th rp cmod_pos[of "poly cs z"]] by (simp add: cmod_mult)
+      using norm_triangle_ineq[of c "z* poly cs z"] by simp
+    also have "\<dots> \<le> cmod c + r*m" using mult_mono[OF H th rp norm_ge_zero[of "poly cs z"]] by (simp add: norm_mult)
     also have "\<dots> \<le> ?k" by simp
     finally have "cmod (poly (c # cs) z) \<le> ?k" .}
   with kp show ?case by blast
@@ -408,7 +368,7 @@ proof(induct n rule: nat_less_induct)
     have th0: "Im (inverse b) * (Im (inverse b) * \<bar>Im b * Im b + Re b * Re b\<bar>) +
     Re (inverse b) * (Re (inverse b) * \<bar>Im b * Im b + Re b * Re b\<bar>) =
     1" 
-      apply (simp add: power2_eq_square cmod_mult[symmetric] cmod_inverse[symmetric])
+      apply (simp add: power2_eq_square norm_mult[symmetric] norm_inverse[symmetric])
       using right_inverse[OF b']
       by (simp add: power2_eq_square[symmetric] power_inverse[symmetric] ring_simps)
     have th0: "cmod (complex_of_real (cmod b) / b) = 1"
@@ -431,12 +391,12 @@ proof(induct n rule: nat_less_induct)
     from odd_real_root_pow[OF o, of "cmod b"]
     have th1: "?w ^ n = v^n / complex_of_real (cmod b)" 
       by (simp add: power_divide complex_of_real_power)
-    have th2:"cmod (complex_of_real (cmod b) / b) = 1" using b by (simp add: cmod_divide)
+    have th2:"cmod (complex_of_real (cmod b) / b) = 1" using b by (simp add: norm_divide)
     hence th3: "cmod (complex_of_real (cmod b) / b) \<ge> 0" by simp
     have th4: "cmod (complex_of_real (cmod b) / b) *
    cmod (1 + b * (v ^ n / complex_of_real (cmod b)))
    < cmod (complex_of_real (cmod b) / b) * 1"
-      apply (simp only: cmod_mult[symmetric] right_distrib)
+      apply (simp only: norm_mult[symmetric] right_distrib)
       using b v by (simp add: th2)
 
     from mult_less_imp_less_left[OF th4 th3]
@@ -462,7 +422,7 @@ proof-
   from seq_monosub[of "Im o s o f"] 
   obtain g where g: "subseq g" "monoseq (\<lambda>n. Im (s(f(g n))))" unfolding o_def by blast  
   let ?h = "f o g"
-  from r[rule_format, of 0] have rp: "r \<ge> 0" using cmod_pos[of "s 0"] by arith 
+  from r[rule_format, of 0] have rp: "r \<ge> 0" using norm_ge_zero[of "s 0"] by arith 
   have th:"\<forall>n. r + 1 \<ge> \<bar> Re (s n)\<bar>" 
   proof
     fix n
@@ -535,13 +495,13 @@ proof-
     from d(1,3) m(1) have dm: "d*m > 0" "d*m < e" 
       by (simp_all add: field_simps real_mult_order)
     show ?case 
-      proof(rule ex_forward[OF real_lbound_gt_zero[OF one0 em0]], clarsimp simp add: cmod_mult)
+      proof(rule ex_forward[OF real_lbound_gt_zero[OF one0 em0]], clarsimp simp add: norm_mult)
 	fix d w
 	assume H: "d > 0" "d < 1" "d < e/m" "w\<noteq>z" "cmod (w-z) < d"
 	hence d1: "cmod (w-z) \<le> 1" "d \<ge> 0" by simp_all
 	from H(3) m(1) have dme: "d*m < e" by (simp add: field_simps)
 	from H have th: "cmod (w-z) \<le> d" by simp 
-	from mult_mono[OF th m(2)[OF d1(1)] d1(2) cmod_pos] dme
+	from mult_mono[OF th m(2)[OF d1(1)] d1(2) norm_ge_zero] dme
 	show "cmod (w - z) * cmod (poly cs (w - z)) < e" by simp
       qed  
     qed
@@ -567,7 +527,7 @@ proof-
     {fix x z
       assume H: "cmod z \<le> r" "cmod (poly p z) = - x" "\<not>x < 1"
       hence "- x < 0 " by arith
-      with H(2) cmod_pos[of "poly p z"]  have False by simp }
+      with H(2) norm_ge_zero[of "poly p z"]  have False by simp }
     then have mth2: "\<exists>z. \<forall>x. (\<exists>z. cmod z \<le> r \<and> cmod (poly p z) = - x) \<longrightarrow> x < z" by blast
     from real_sup_exists[OF mth1 mth2] obtain s where 
       s: "\<forall>y. (\<exists>x. (\<exists>z. cmod z \<le> r \<and> cmod (poly p z) = - x) \<and> y < x) \<longleftrightarrow>(y < s)" by blast
@@ -634,7 +594,7 @@ proof-
 	by arith
       have th22: "\<bar>cmod (poly p (g (f (N1 + N2)))) - cmod (poly p z)\<bar>
 \<le> cmod (poly p (g (f (N1 + N2))) - poly p z)" 
-	by (simp add: cmod_abs_norm)
+	by (simp add: norm_triangle_ineq3)
       from ath2[OF th22, of ?m]
       have thc2: "2*(?e/2) \<le> \<bar>cmod(poly p (g (f (N1 + N2)))) - ?m\<bar> + cmod (poly p (g (f (N1 + N2))) - poly p z)" by simp
       from th0[OF th2 thc1 thc2] have False .}
@@ -681,9 +641,9 @@ proof(induct p arbitrary: a d)
       from r[rule_format, OF r0]
       have th0: "d + cmod a \<le> 1 * cmod(poly (c#cs) z)" by arith
       from h have z1: "cmod z \<ge> 1" by arith
-      from order_trans[OF th0 mult_right_mono[OF z1 cmod_pos[of "poly (c#cs) z"]]]
+      from order_trans[OF th0 mult_right_mono[OF z1 norm_ge_zero[of "poly (c#cs) z"]]]
       have th1: "d \<le> cmod(z * poly (c#cs) z) - cmod a"
-	unfolding cmod_mult by (simp add: ring_simps)
+	unfolding norm_mult by (simp add: ring_simps)
       from complex_mod_triangle_sub[of "z * poly (c#cs) z" a]
       have th2: "cmod(z * poly (c#cs) z) - cmod a \<le> cmod (poly (a#c#cs) z)" 
 	by (simp add: diff_le_eq ring_simps) 
@@ -698,7 +658,7 @@ proof(induct p arbitrary: a d)
       assume h: "(\<bar>d\<bar> + cmod a) / cmod c \<le> cmod z"
       from c0 have "cmod c > 0" by simp
       from h c0 have th0: "\<bar>d\<bar> + cmod a \<le> cmod (z*c)" 
-	by (simp add: field_simps cmod_mult)
+	by (simp add: field_simps norm_mult)
       have ath: "\<And>mzh mazh ma. mzh <= mazh + ma ==> abs(d) + ma <= mzh ==> d <= mazh" by arith
       from complex_mod_triangle_sub[of "z*c" a ]
       have th1: "cmod (z * c) \<le> cmod (a + z * c) + cmod a"
@@ -858,7 +818,7 @@ proof(induct n\<equiv> "length p" arbitrary: p rule: nat_less_induct)
       have "cmod (poly ?r w) < 1 \<longleftrightarrow> cmod (poly q w / ?a0) < 1"
 	using qr[rule_format, of w] a00 by simp
       also have "\<dots> \<longleftrightarrow> cmod (poly q w) < cmod ?a0"
-	using a00 unfolding cmod_divide by (simp add: field_simps)
+	using a00 unfolding norm_divide by (simp add: field_simps)
       finally have "cmod (poly ?r w) < 1 \<longleftrightarrow> cmod (poly q w) < cmod ?a0" .}
     note mrmq_eq = this
     from poly_decompose[OF rnc] obtain k a s where 
@@ -892,7 +852,7 @@ proof(induct n\<equiv> "length p" arbitrary: p rule: nat_less_induct)
       from w have "(1 + w ^ k * a) - 1 = 0 - 1" by simp
       then have wm1: "w^k * a = - 1" by simp
       have inv0: "0 < inverse (cmod w ^ (k + 1) * m)" 
-	using cmod_pos[of w] w0 m(1)
+	using norm_ge_zero[of w] w0 m(1)
 	  by (simp add: inverse_eq_divide zero_less_mult_iff)
       with real_down2[OF zero_less_one] obtain t where
 	t: "t > 0" "t < 1" "t < inverse (cmod w ^ (k + 1) * m)" by blast
@@ -906,29 +866,29 @@ proof(induct n\<equiv> "length p" arbitrary: p rule: nat_less_induct)
 	apply (rule cong[OF refl[of cmod]])
 	apply assumption
 	done
-      with complex_mod_triangle_ineq[of "complex_of_real (1 - t^k)" "?w^k * ?w * poly s ?w"] 
-      have th11: "cmod (1 + ?w^k * (a + ?w * poly s ?w)) \<le> \<bar>1 - t^k\<bar> + cmod (?w^k * ?w * poly s ?w)" unfolding cmod_complex_of_real by simp 
+      with norm_triangle_ineq[of "complex_of_real (1 - t^k)" "?w^k * ?w * poly s ?w"] 
+      have th11: "cmod (1 + ?w^k * (a + ?w * poly s ?w)) \<le> \<bar>1 - t^k\<bar> + cmod (?w^k * ?w * poly s ?w)" unfolding norm_of_real by simp 
       have ath: "\<And>x (t::real). 0\<le> x \<Longrightarrow> x < t \<Longrightarrow> t\<le>1 \<Longrightarrow> \<bar>1 - t\<bar> + x < 1" by arith
       have "t *cmod w \<le> 1 * cmod w" apply (rule mult_mono) using t(1,2) by auto
-      then have tw: "cmod ?w \<le> cmod w" using t(1) by (simp add: cmod_mult) 
+      then have tw: "cmod ?w \<le> cmod w" using t(1) by (simp add: norm_mult) 
       from t inv0 have "t* (cmod w ^ (k + 1) * m) < 1"
 	by (simp add: inverse_eq_divide field_simps)
       with zero_less_power[OF t(1), of k] 
       have th30: "t^k * (t* (cmod w ^ (k + 1) * m)) < t^k * 1" 
 	apply - apply (rule mult_strict_left_mono) by simp_all
       have "cmod (?w^k * ?w * poly s ?w) = t^k * (t* (cmod w ^ (k+1) * cmod (poly s ?w)))"  using w0 t(1)
-	by (simp add: ring_simps power_mult_distrib cmod_complex_of_real cmod_power cmod_mult)
+	by (simp add: ring_simps power_mult_distrib norm_of_real norm_power norm_mult)
       then have "cmod (?w^k * ?w * poly s ?w) \<le> t^k * (t* (cmod w ^ (k + 1) * m))"
 	using t(1,2) m(2)[rule_format, OF tw] w0
 	apply (simp only: )
 	apply auto
-	apply (rule mult_mono, simp_all add: cmod_pos)+
+	apply (rule mult_mono, simp_all add: norm_ge_zero)+
 	apply (simp add: zero_le_mult_iff zero_le_power)
 	done
       with th30 have th120: "cmod (?w^k * ?w * poly s ?w) < t^k" by simp 
       from power_strict_mono[OF t(2), of k] t(1) kas(2) have th121: "t^k \<le> 1" 
 	by auto
-      from ath[OF cmod_pos[of "?w^k * ?w * poly s ?w"] th120 th121]
+      from ath[OF norm_ge_zero[of "?w^k * ?w * poly s ?w"] th120 th121]
       have th12: "\<bar>1 - t^k\<bar> + cmod (?w^k * ?w * poly s ?w) < 1" . 
       from th11 th12
       have "cmod (1 + ?w^k * (a + ?w * poly s ?w)) < 1"  by arith 
@@ -972,7 +932,7 @@ proof(induct p)
 	    have cth: "cmod (?x*poly ds ?x) = cmod d" by (simp add: eq_diff_eq[symmetric])
 	    from m(2)[rule_format, OF cx(2)] x(1)
 	    have th0: "cmod (?x*poly ds ?x) \<le> x*m"
-	      by (simp add: cmod_mult)
+	      by (simp add: norm_mult)
 	    from x(2) m(1) have "x*m < cmod d" by (simp add: field_simps)
 	    with th0 have "cmod (?x*poly ds ?x) \<noteq> cmod d" by auto
 	    with cth  have ?case by blast}
