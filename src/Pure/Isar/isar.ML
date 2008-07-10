@@ -12,6 +12,7 @@ sig
   val exn: unit -> (exn * string) option
   val context: unit -> Proof.context
   val goal: unit -> thm
+  val print: unit -> unit
   val >> : Toplevel.transition -> bool
   val >>> : Toplevel.transition list -> unit
   val linear_undo: int -> unit
@@ -161,6 +162,8 @@ fun context () =
 fun goal () =
   #2 (#2 (Proof.get_goal (Toplevel.proof_of (state ()))))
     handle Toplevel.UNDEF => error "No goal present";
+
+fun print () = Toplevel.print_state false (state ());
 
 
 (* interactive state transformations --- NOT THREAD-SAFE! *)
