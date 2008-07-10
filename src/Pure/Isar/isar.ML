@@ -161,9 +161,6 @@ fun goal () =
 
 (* interactive state transformations --- NOT THREAD-SAFE! *)
 
-fun result_error _ NONE = ()
-  | result_error tr (SOME err) = Toplevel.error_msg tr err;
-
 nonfix >> >>>;
 
 fun >> raw_tr =
@@ -175,10 +172,10 @@ fun >> raw_tr =
   in
     (case Toplevel.transition true tr prev_state of
       NONE => (dispose_command id; false)
-    | SOME result =>
-        (change_command_status id (K (Result result));  (* FIXME outdate all_succs (!?) *)
-          result_error tr (#2 result);
-          if category = Control then dispose_command id
+    | SOME (result as (_, err)) =>
+        (change_command_status id (K (Result result));
+          Option.map (Toplevel.error_msg tr) err;
+          if is_some err orelse category = Control then dispose_command id
           else set_point id;
           true))
   end;
