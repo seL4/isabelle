@@ -463,13 +463,6 @@ fun pretty_abbrev ctxt s =
     val t' = Term.betapplys (Envir.expand_atom T (U, u), args);
   in pretty_term_abbrev ctxt (Logic.mk_equals (t, t')) end;
 
-fun pretty_lemma ctxt (prop, method_text) =
-  let
-    val _ = ctxt
-      |> Proof.theorem_i NONE (K I) [[(prop, [])]]
-      |> Proof.global_terminal_proof (method_text, NONE);
-  in pretty_term ctxt prop end;
-
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
 
 fun pretty_term_style ctxt (name, t) =
@@ -525,11 +518,21 @@ fun output_ml ml src ctxt (txt, pos) =
     #> space_implode "\\isasep\\isanewline%\n"));
 
 
-(* commands *)
+(* embedded lemmas *)
+
+fun pretty_lemma ctxt (prop, methods) =
+  let
+    val _ = ctxt
+      |> Proof.theorem_i NONE (K I) [[(prop, [])]]
+      |> Proof.global_terminal_proof methods;
+  in pretty_term ctxt prop end;
 
 val embedded_lemma =
-  args (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse_args))
+  args (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse_args -- Scan.option Method.parse_args))
     (output pretty_lemma o (fn ((a, arg :: _), p) => (Args.src ((a, [arg]), p))) o Args.dest_src);
+
+
+(* commands *)
 
 val _ = OuterKeyword.keyword "by";
 
