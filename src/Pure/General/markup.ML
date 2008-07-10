@@ -62,6 +62,7 @@ sig
   val whitespaceN: string val whitespace: T
   val junkN: string val junk: T
   val commandspanN: string val commandspan: string -> T
+  val promptN: string val prompt: T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
   val sendbackN: string val sendback: T
@@ -186,6 +187,7 @@ val (commandspanN, commandspan) = markup_string "commandspan" nameN;
 
 (* toplevel *)
 
+val (promptN, prompt) = markup_elem "prompt";
 val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
 val (sendbackN, sendback) = markup_elem "sendback";
