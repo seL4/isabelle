@@ -142,7 +142,6 @@ fun point () = NAMED_CRITICAL "Isar" (fn () => ! global_point);
 end;
 
 fun set_point id = change_point (K id);
-fun init_point () = set_point no_id;
 
 fun point_result () = NAMED_CRITICAL "Isar" (fn () =>
   let val id = point () in (id, the_result id) end);
@@ -243,7 +242,7 @@ in
 
 fun toplevel_loop {init, welcome, sync, secure} =
  (Context.set_thread_data NONE;
-  if init then (init_point (); init_commands ()) else ();
+  if init then (set_point no_id; init_commands ()) else ();
   if welcome then writeln (Session.welcome ()) else ();
   uninterruptible (fn _ => fn () => raw_loop secure (OuterSyntax.isar sync)) ());
 
@@ -251,6 +250,7 @@ end;
 
 fun loop () =
   toplevel_loop {init = false, welcome = false, sync = false, secure = Secure.is_secure ()};
+
 fun main () =
   toplevel_loop {init = true, welcome = true, sync = false, secure = Secure.is_secure ()};
 
