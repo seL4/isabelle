@@ -119,12 +119,7 @@ fun get_commands () = CRITICAL (fn () => ! global_commands);
 fun get_lexicons () = CRITICAL (fn () => ! global_lexicons);
 
 fun change_commands f = CRITICAL (fn () => change global_commands f);
-
-fun change_lexicons f = CRITICAL (fn () =>
-  (change global_lexicons f;
-    (case (op inter_string) (pairself Scan.dest_lexicon (get_lexicons ())) of
-      [] => ()
-    | clash => warning ("Overlapping outer syntax commands and keywords: " ^ commas_quote clash))));
+fun change_lexicons f = CRITICAL (fn () => change global_lexicons f);
 
 end;
 
