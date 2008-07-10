@@ -148,6 +148,7 @@ fun proper_inform_file_processed file () =
     val _ = ThyInfo.register_thy name handle ERROR msg =>
       (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
         tell_file_retracted (thy_path file));
+    val _ = Isar.init_point ();
   in () end;
 
 fun vacuous_inform_file_processed file () = tell_file_retracted (thy_path file);
