@@ -101,8 +101,8 @@ $SSH macbroy21 "$MAKEALL $HOME/settings/at-poly"
 sleep 5
 $SSH macbroy20 "$MAKEALL $HOME/settings/at-poly-5.1-para-e"
 sleep 5
-$SSH macbroy24 "$MAKEALL -l HOL proofterms $HOME/settings/at-sml-dev-p"
-sleep 5
+#$SSH macbroy24 "$MAKEALL -l HOL proofterms $HOME/settings/at-sml-dev-p"
+#sleep 5
 $SSH macbroy22 "$MAKEALL $HOME/settings/at64-poly-5.1-para"
 sleep 5
 $SSH macbroy23 "$MAKEALL $HOME/settings/at-sml-dev-e"
