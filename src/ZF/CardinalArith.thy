@@ -688,7 +688,7 @@ done
   might be  InfCard(K) ==> |list(K)| = K.
 *)
 
-subsection{*For Every Cardinal Number There Exists A Greater One}
+subsection{*For Every Cardinal Number There Exists A Greater One*}
 
 text{*This result is Kunen's Theorem 10.16, which would be trivial using AC*}
 
