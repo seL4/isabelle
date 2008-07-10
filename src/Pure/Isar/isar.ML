@@ -7,6 +7,7 @@ The global Isabelle/Isar state and main read-eval-print loop.
 
 signature ISAR =
 sig
+  val init_point: unit -> unit
   val state: unit -> Toplevel.state
   val exn: unit -> (exn * string) option
   val context: unit -> Proof.context
@@ -15,6 +16,8 @@ sig
   val >>> : Toplevel.transition list -> unit
   val linear_undo: int -> unit
   val undo: int -> unit
+  val kill: unit -> unit
+  val kill_proof: unit -> unit
   val crashes: exn list ref
   val toplevel_loop: {init: bool, welcome: bool, sync: bool, secure: bool} -> unit
   val loop: unit -> unit
@@ -143,6 +146,7 @@ fun point () = NAMED_CRITICAL "Isar" (fn () => ! global_point);
 end;
 
 fun set_point id = change_point (K id);
+fun init_point () = set_point no_id;
 
 fun point_result () = NAMED_CRITICAL "Isar" (fn () =>
   let val id = point () in (id, the_result id) end);
@@ -184,7 +188,7 @@ fun >>> [] = ()
   | >>> (tr :: trs) = if >> tr then >>> trs else ();
 
 
-(* old-style navigation *)
+(* implicit navigation wrt. proper commands *)
 
 local
 
@@ -192,26 +196,34 @@ fun err_undo () = error "Undo history exhausted";
 
 fun get_prev id = the_default no_id (prev_command id);
 
-fun find_command pred id =
+fun find_category which id =
   (case #category (the_command id) of
     Empty => err_undo ()
-  | category => if pred category then id else find_command pred (get_prev id));
+  | category => if which category then id else find_category which (get_prev id));
+
+fun find_begin_theory id =
+  if id = no_id then err_undo ()
+  else if is_some (Toplevel.init_of (#transition (the_command id))) then id
+  else find_begin_theory (get_prev id);
 
 fun undo_command id =
-  let val {category, transition, ...} = the_command id in
-    (case Toplevel.init_of transition of
-      SOME name => get_prev id before ThyInfo.kill_thy name
-    | NONE => get_prev id)
-  end;
-
-fun undo_linear id = undo_command (find_command is_proper id);
-fun undo_nested id = undo_command
-  (find_command (if Toplevel.is_proof (the_state id) then is_proper else is_theory) id);
+  (case Toplevel.init_of (#transition (the_command id)) of
+    SOME name => get_prev id before ThyInfo.kill_thy name
+  | NONE => get_prev id);
 
 in
 
-fun linear_undo n = change_point (funpow n undo_linear);
-fun undo n = change_point (funpow n undo_nested);
+fun linear_undo n = change_point (funpow n (fn id => undo_command (find_category is_proper id)));
+
+fun undo n = change_point (funpow n (fn id => undo_command
+  (find_category (if Toplevel.is_proof (the_state id) then is_proper else is_theory) id)));
+
+fun kill () = change_point (fn id => undo_command
+  (if Toplevel.is_proof (the_state id) then find_category is_theory id else find_begin_theory id));
+
+fun kill_proof () = change_point (fn id =>
+  if Toplevel.is_proof (the_state id) then undo_command (find_category is_theory id)
+  else raise Toplevel.UNDEF);
 
 end;
 
@@ -245,7 +257,7 @@ in
 
 fun toplevel_loop {init, welcome, sync, secure} =
  (Context.set_thread_data NONE;
-  if init then (set_point no_id; init_commands ()) else ();
+  if init then (init_point (); init_commands ()) else ();
   if welcome then writeln (Session.welcome ()) else ();
   uninterruptible (fn _ => fn () => raw_loop secure (OuterSyntax.isar sync)) ());
 
