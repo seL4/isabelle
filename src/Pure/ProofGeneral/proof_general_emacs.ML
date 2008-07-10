@@ -214,6 +214,11 @@ fun kill_proofP () =
   OuterSyntax.improper_command "ProofGeneral.kill_proof" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.kill_proof_notify tell_clear_goals));
 
+fun isar_kill_proofP () =
+  OuterSyntax.improper_command "ProofGeneral.isar_kill_proof" "(internal)" K.control
+    (Scan.succeed (Toplevel.no_timing o
+      Toplevel.imperative (fn () => (Isar.kill_proof (); tell_clear_goals ()))));
+
 fun inform_file_processedP () =
   OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
     (P.name >> (fn file => Toplevel.no_timing o
@@ -233,7 +238,8 @@ fun process_pgipP () =
       (fn txt => Toplevel.imperative (fn () => ProofGeneralPgip.process_pgip txt))));
 
 fun init_outer_syntax () = List.app (fn f => f ())
- [undoP, restartP, kill_proofP, inform_file_processedP, inform_file_retractedP, process_pgipP];
+  [undoP, restartP, kill_proofP, isar_kill_proofP, inform_file_processedP,
+    inform_file_retractedP, process_pgipP];
 
 end;
 
