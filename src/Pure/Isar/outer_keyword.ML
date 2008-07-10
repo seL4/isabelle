@@ -49,6 +49,7 @@ sig
   val command: string -> T -> unit
   val is_theory: string -> bool
   val is_proof: string -> bool
+  val is_diag: string -> bool
 end;
 
 structure OuterKeyword: OUTER_KEYWORD =
@@ -180,5 +181,7 @@ val is_theory = command_category
 val is_proof = command_category
   (map kind_of [qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
     prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script]);
+
+val is_diag = command_category [kind_of diag];
 
 end;
