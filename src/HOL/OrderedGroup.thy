@@ -487,8 +487,7 @@ class pordered_ab_group_add =
   ab_group_add + pordered_ab_semigroup_add
 begin
 
-subclass pordered_cancel_ab_semigroup_add
-  by intro_locales
+subclass pordered_cancel_ab_semigroup_add ..
 
 subclass pordered_ab_semigroup_add_imp_le
 proof unfold_locales
@@ -499,8 +498,7 @@ proof unfold_locales
   thus "a \<le> b" by simp
 qed
 
-subclass pordered_comm_monoid_add
-  by intro_locales
+subclass pordered_comm_monoid_add ..
 
 lemma max_diff_distrib_left:
   shows "max x y - z = max (x - z) (y - z)"
@@ -645,8 +643,7 @@ class ordered_cancel_ab_semigroup_add =
   linorder + pordered_cancel_ab_semigroup_add
 begin
 
-subclass ordered_ab_semigroup_add
-  by intro_locales
+subclass ordered_ab_semigroup_add ..
 
 subclass pordered_ab_semigroup_add_imp_le
 proof unfold_locales
@@ -673,8 +670,7 @@ class ordered_ab_group_add =
   linorder + pordered_ab_group_add
 begin
 
-subclass ordered_cancel_ab_semigroup_add 
-  by intro_locales
+subclass ordered_cancel_ab_semigroup_add ..
 
 lemma neg_less_eq_nonneg:
   "- a \<le> a \<longleftrightarrow> 0 \<le> a"
@@ -963,8 +959,8 @@ end
 class lordered_ab_group_add = pordered_ab_group_add + lattice
 begin
 
-subclass lordered_ab_group_add_meet by intro_locales
-subclass lordered_ab_group_add_join by intro_locales
+subclass lordered_ab_group_add_meet ..
+subclass lordered_ab_group_add_join ..
 
 lemmas add_sup_inf_distribs = add_inf_distrib_right add_inf_distrib_left add_sup_distrib_right add_sup_distrib_left
 
