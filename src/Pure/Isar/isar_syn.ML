@@ -715,18 +715,6 @@ val _ =
   OuterSyntax.improper_command "redo" "redo last command" K.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.redo));
 
-val _ =
-  OuterSyntax.improper_command "undos_proof" "undo last proof commands" K.control
-    (P.nat >> ((Toplevel.no_timing o Toplevel.print) oo IsarCmd.undos_proof));
-
-val _ =
-  OuterSyntax.improper_command "undo" "undo last command" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
-
-val _ =
-  OuterSyntax.improper_command "kill" "kill current history node" K.control
-    (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.kill));
-
 
 (* nested command *)
 
@@ -740,21 +728,27 @@ val _ =
 (* global Isar state commands *)
 
 val _ =
-  OuterSyntax.improper_command "Isar.init_point" "init command point-of-interest" K.control
+  OuterSyntax.improper_command "init_toplevel" "init toplevel point-of-interest" K.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Isar.init_point));
 
 val _ =
-  OuterSyntax.improper_command "Isar.linear_undo" "undo commands" K.control
+  OuterSyntax.improper_command "linear_undo" "undo commands" K.control
     (Scan.optional P.nat 1 >>
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.linear_undo n)));
 
 val _ =
-  OuterSyntax.improper_command "Isar.undo" "undo commands (skipping closed proofs)" K.control
+  OuterSyntax.improper_command "undo" "undo commands (skipping closed proofs)" K.control
     (Scan.optional P.nat 1 >>
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo n)));
 
 val _ =
-  OuterSyntax.improper_command "Isar.kill" "kill partial proof or theory development" K.control
+  OuterSyntax.improper_command "undos_proof" "undo commands (skipping closed proofs)" K.control
+    (Scan.optional P.nat 1 >> (fn n => Toplevel.no_timing o
+      Toplevel.keep (fn state =>
+        if Toplevel.is_proof state then (Isar.undo n; Isar.print ()) else raise Toplevel.UNDEF)));
+
+val _ =
+  OuterSyntax.improper_command "kill" "kill partial proof or theory development" K.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Isar.kill));
 
 
@@ -998,10 +992,6 @@ val _ =
 val _ =
   OuterSyntax.improper_command "exit" "exit Isar loop" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.exit));
-
-val _ =
-  OuterSyntax.improper_command "init_toplevel" "restart Isar toplevel loop" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.init_toplevel));
 
 val _ =
   OuterSyntax.improper_command "welcome" "print welcome message" K.diag
