@@ -15,27 +15,28 @@ INCOMPATIBILITY, use proper 'instantiation' target.
 
 * Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
 
-* New ML antiquotation 'code': takes constant as argument, generates
-corresponding code in background and inserts name of the corresponding resulting
-ML value/function/datatype constructor binding in place.  All occurences of 'code'
-with a single ML block are generated simultaneously.
-Provides a generic and safe interface for instrumentalizing code generation.
-See HOL/ex/Code_Antiq for a toy example, or HOL/Complex/ex/ReflectedFerrack
-for a more ambitious application.  In future you ought refrain from
-ad-hoc compiling generated SML code on the ML toplevel.
-Note that (for technical reasons) 'code' cannot refer to constants for which
-user-defined serializations are set.  Refer to the corresponding ML counterpart
+* New ML antiquotation @{code}: takes constant as argument, generates
+corresponding code in background and inserts name of the corresponding
+resulting ML value/function/datatype constructor binding in place.
+All occurrences of @{code} with a single ML block are generated
+simultaneously.  Provides a generic and safe interface for
+instrumentalizing code generation.  See HOL/ex/Code_Antiq for a toy
+example, or HOL/Complex/ex/ReflectedFerrack for a more ambitious
+application.  In future you ought refrain from ad-hoc compiling
+generated SML code on the ML toplevel.  Note that (for technical
+reasons) @{code} cannot refer to constants for which user-defined
+serializations are set.  Refer to the corresponding ML counterpart
 directly in that cases.
 
 * Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
-interface instead. 
+interface instead.
 
 
 *** Document preparation ***
 
 * Antiquotation @{lemma} now imitates a regular terminal proof,
 demanding keyword 'by' and supporting the full method expression
-syntax.
+syntax just like the Isar command 'by'.
 
 
 *** HOL ***
@@ -106,13 +107,15 @@ resort for legacy applications.
 * Antiquotations: block-structured compilation context indicated by
 \<lbrace> ... \<rbrace>; additional antiquotation forms:
 
-  @{let ?pat = term}                    - term abbreviation (HO matching)
-  @{note name = fact}                   - fact abbreviation
-  @{thm fact}                           - singleton fact (with attributes)
-  @{thms fact}                          - general fact (with attributes)
-  @{lemma prop by method}               - singleton goal
-  @{lemma prop1 ... propN by method}    - general goal
-
+  @{let ?pat = term}                      - term abbreviation (HO matching)
+  @{note name = fact}                     - fact abbreviation
+  @{thm fact}                             - singleton fact (with attributes)
+  @{thms fact}                            - general fact (with attributes)
+  @{lemma prop by method}                 - singleton goal
+  @{lemma prop by meth1 meth2}            - singleton goal
+  @{lemma prop1 ... propN by method}      - general goal
+  @{lemma prop1 ... propN by meth1 meth2} - general goal
+  @{lemma (open) ...}                     - open derivation
 
 
 
