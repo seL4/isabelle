@@ -166,6 +166,7 @@ fun restart () =
  (sync_thy_loader ();
   tell_clear_goals ();
   tell_clear_response ();
+  Isar.init_point ();
   welcome ();
   raise Toplevel.RESTART);
 
