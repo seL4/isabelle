@@ -261,6 +261,8 @@ proof
     by (simp only: of_real_of_nat_eq)
 qed
 
+instance real_field < field_char_0 ..
+
 
 subsection {* The Set of Real Numbers *}
 
