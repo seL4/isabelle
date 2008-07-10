@@ -204,7 +204,7 @@ local structure P = OuterParse and K = OuterKeyword in
 
 fun undoP () = (*undo without output -- historical*)
   OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo 1)));
 
 fun restartP () =
   OuterSyntax.improper_command "ProofGeneral.restart" "(internal)" K.control
@@ -212,10 +212,6 @@ fun restartP () =
 
 fun kill_proofP () =
   OuterSyntax.improper_command "ProofGeneral.kill_proof" "(internal)" K.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.kill_proof_notify tell_clear_goals));
-
-fun isar_kill_proofP () =
-  OuterSyntax.improper_command "ProofGeneral.isar_kill_proof" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o
       Toplevel.imperative (fn () => (Isar.kill_proof (); tell_clear_goals ()))));
 
@@ -238,8 +234,7 @@ fun process_pgipP () =
       (fn txt => Toplevel.imperative (fn () => ProofGeneralPgip.process_pgip txt))));
 
 fun init_outer_syntax () = List.app (fn f => f ())
-  [undoP, restartP, kill_proofP, isar_kill_proofP, inform_file_processedP,
-    inform_file_retractedP, process_pgipP];
+  [undoP, restartP, kill_proofP, inform_file_processedP, inform_file_retractedP, process_pgipP];
 
 end;
 
