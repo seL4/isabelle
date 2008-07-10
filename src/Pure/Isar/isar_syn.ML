@@ -740,7 +740,12 @@ val _ =
 (* global Isar state commands *)
 
 val _ =
-  OuterSyntax.improper_command "Isar.undo" "undo tty commands" K.control
+  OuterSyntax.improper_command "Isar.linear_undo" "undo tty commands" K.control
+    (Scan.optional P.nat 1 >>
+      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.linear_undo n)));
+
+val _ =
+  OuterSyntax.improper_command "Isar.undo" "undo tty commands (skipping closed proofs)" K.control
     (Scan.optional P.nat 1 >>
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo n)));
 

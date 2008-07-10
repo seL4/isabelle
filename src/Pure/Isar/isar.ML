@@ -13,6 +13,7 @@ sig
   val goal: unit -> thm
   val >> : Toplevel.transition -> bool
   val >>> : Toplevel.transition list -> unit
+  val linear_undo: int -> unit
   val undo: int -> unit
   val crashes: exn list ref
   val toplevel_loop: {init: bool, welcome: bool, sync: bool, secure: bool} -> unit
@@ -196,19 +197,21 @@ fun find_command pred id =
     Empty => err_undo ()
   | category => if pred category then id else find_command pred (get_prev id));
 
-fun undo_proper id =
-  let
-    val base = find_command (if Toplevel.is_proof (the_state id) then is_proper else is_theory) id;
-    val {category, transition, ...} = the_command base;
-  in
+fun undo_command id =
+  let val {category, transition, ...} = the_command id in
     (case Toplevel.init_of transition of
-      SOME name => get_prev base before ThyInfo.kill_thy name
-    | NONE => get_prev base)
+      SOME name => get_prev id before ThyInfo.kill_thy name
+    | NONE => get_prev id)
   end;
+
+fun undo_linear id = undo_command (find_command is_proper id);
+fun undo_nested id = undo_command
+  (find_command (if Toplevel.is_proof (the_state id) then is_proper else is_theory) id);
 
 in
 
-fun undo n = change_point (funpow n undo_proper);
+fun linear_undo n = change_point (funpow n undo_linear);
+fun undo n = change_point (funpow n undo_nested);
 
 end;
 
