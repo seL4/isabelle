@@ -59,7 +59,7 @@ fun category_of tr =
 
 datatype status =
   Initial |
-  Final of Toplevel.state * (exn * string) option;
+  Result of Toplevel.state * (exn * string) option;
 
 datatype command = Command of
  {category: category,
@@ -70,7 +70,7 @@ fun make_command (category, transition, status) =
   Command {category = category, transition = transition, status = status};
 
 val empty_command =
-  make_command (Empty, Toplevel.empty, Final (Toplevel.toplevel, NONE));
+  make_command (Empty, Toplevel.empty, Result (Toplevel.toplevel, NONE));
 
 fun map_command f (Command {category, transition, status}) =
   make_command (f (category, transition, status));
@@ -81,6 +81,9 @@ fun map_status f = map_command (fn (category, transition, status) =>
 
 (* global collection of identified commands *)
 
+fun err_dup id = sys_error ("Duplicate command " ^ quote id);
+fun err_undef id = sys_error ("Unknown command " ^ quote id);
+
 local
 
 val empty_commands = Graph.empty: command Graph.T;
@@ -89,22 +92,29 @@ val global_commands = ref empty_commands;
 in
 
 fun change_commands f = NAMED_CRITICAL "Isar" (fn () => change global_commands f)
-  handle Graph.DUP id => sys_error ("Duplicate command id " ^ quote id)
-    | Graph.UNDEF id => sys_error ("Unknown command id " ^ quote id);
+  handle Graph.DUP id => err_dup id | Graph.UNDEF id => err_undef id;
 
 fun init_commands () = change_commands (K empty_commands);
 
 fun the_command id =
   if id = no_id then empty_command
-  else Graph.get_node (! global_commands) id;
+  else (Graph.get_node (! global_commands) id handle Graph.UNDEF _ => err_undef id);
+
+fun prev_command id =
+  if id = no_id then NONE
+  else
+    (case Graph.imm_preds (! global_commands) id handle Graph.UNDEF _ => err_undef id of
+      [] => NONE
+    | [prev] => SOME prev
+    | _ => sys_error ("Non-linear command dependency " ^ quote id));
 
 end;
 
 
-fun the_state id =
+fun the_result id =
   let val Command {transition, status, ...} = the_command id in
     (case status of
-      Final res => res
+      Result res => res
     | _ => error ("Unfinished command " ^ Toplevel.str_of transition))
   end;
 
@@ -125,15 +135,15 @@ local val global_point = ref no_id in
 
 fun change_point f = NAMED_CRITICAL "Isar" (fn () => change global_point f);
 
-fun point_state () = NAMED_CRITICAL "Isar" (fn () =>
-  let val id = ! global_point in (id, the_state id) end);
+fun point_result () = NAMED_CRITICAL "Isar" (fn () =>
+  let val id = ! global_point in (id, the_result id) end);
 
 end;
 
 fun init_point () = change_point (K no_id);
 
-fun state () = #1 (#2 (point_state ()));
-fun exn () = #2 (#2 (point_state ()));
+fun state () = #1 (#2 (point_result ()));
+fun exn () = #2 (#2 (point_result ()));
 
 fun context () =
   Toplevel.context_of (state ())
@@ -151,14 +161,13 @@ nonfix >> >>>;
 fun >> raw_tr =
   let
     val (id, tr) = identify raw_tr;
-    val (prev, (prev_state, _)) = point_state ();
-    val category = category_of tr;
-    val _ = new_command prev (id, make_command (category, tr, Initial));
+    val (prev, (prev_state, _)) = point_result ();
+    val _ = new_command prev (id, make_command (category_of tr, tr, Initial));
   in
     (case Toplevel.transition true tr prev_state of
       NONE => (dispose_command id; false)
     | SOME result =>
-        (change_command_status id (K (Final result));
+        (change_command_status id (K (Result result));
           change_point (K id);
           (case #2 result of
             NONE => ()
@@ -180,7 +189,7 @@ fun raw_loop secure src =
   let
     fun check_secure () =
       (if secure then warning "Secure loop -- cannot exit to ML" else (); secure);
-    val prev = #1 (point_state ());
+    val (prev, _) = point_result ();
     val prompt_markup =
       if prev = no_id then I
       else Markup.markup (Markup.properties [(Markup.idN, prev)] Markup.position);
