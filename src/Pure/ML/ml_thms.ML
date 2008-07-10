@@ -53,15 +53,17 @@ fun by x = Scan.lift (Args.$$$ "by") x;
 val goal = Scan.unless by Args.prop;
 
 val _ = ML_Context.add_antiq "lemma"
-  ((Args.context -- Scan.repeat1 goal -- (by |-- Scan.lift Method.parse_args)) >>
-    (fn ((ctxt, props), method_text) => fn {struct_name, background} =>
+  ((Args.context -- Args.mode "open" -- Scan.repeat1 goal --
+      (by |-- Scan.lift Method.parse_args -- Scan.option (Scan.lift Method.parse_args))) >>
+    (fn (((ctxt, is_open), props), methods) => fn {struct_name, background} =>
       let
         val i = serial ();
+        val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
         fun after_qed [res] goal_ctxt =
-          put_thms (i, map Goal.norm_result (ProofContext.export goal_ctxt ctxt res)) goal_ctxt;
+          put_thms (i, map prep_result (ProofContext.export goal_ctxt ctxt res)) goal_ctxt;
         val ctxt' = ctxt
           |> Proof.theorem_i NONE after_qed [map (rpair []) props]
-          |> Proof.global_terminal_proof (method_text, NONE);
+          |> Proof.global_terminal_proof methods;
         val (a, background') = background
           |> ML_Antiquote.variant "lemma" ||> put_thms (i, the_thms ctxt' i);
         val ml = (thm_bind (if length props = 1 then "thm" else "thms") a i, struct_name ^ "." ^ a);
