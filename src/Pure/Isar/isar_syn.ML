@@ -737,6 +737,14 @@ val _ =
         handle ERROR msg => Scan.fail_with (K msg)));
 
 
+(* global Isar state commands *)
+
+val _ =
+  OuterSyntax.improper_command "Isar.undo" "undo tty commands" K.control
+    (Scan.optional P.nat 1 >>
+      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo n)));
+
+
 
 (** diagnostic commands (for interactive mode only) **)
 
