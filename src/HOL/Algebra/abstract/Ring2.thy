@@ -5,71 +5,63 @@
   Copyright: Clemens Ballarin
 *)
 
-header {* The algebraic hierarchy of rings as axiomatic classes *}
+header {* The algebraic hierarchy of rings as type classes *}
 
-theory Ring2 imports Main
+theory Ring2
+imports Main
 begin
-
-section {* Constants *}
-
-text {* Most constants are already declared by HOL. *}
-
-consts
-  assoc         :: "['a::Divides.div, 'a] => bool"              (infixl "assoc" 50)
-  irred         :: "'a::{zero, one, Divides.div} => bool"
-  prime         :: "'a::{zero, one, Divides.div} => bool"
-
-section {* Axioms *}
 
 subsection {* Ring axioms *}
 
-axclass ring < zero, one, plus, minus, uminus, times, inverse, power, Divides.div
+class ring = zero + one + plus + minus + uminus + times + inverse + power + Divides.dvd +
+  assumes a_assoc:      "(a + b) + c = a + (b + c)"
+  and l_zero:           "0 + a = a"
+  and l_neg:            "(-a) + a = 0"
+  and a_comm:           "a + b = b + a"
 
-  a_assoc:      "(a + b) + c = a + (b + c)"
-  l_zero:       "0 + a = a"
-  l_neg:        "(-a) + a = 0"
-  a_comm:       "a + b = b + a"
+  assumes m_assoc:      "(a * b) * c = a * (b * c)"
+  and l_one:            "1 * a = a"
 
-  m_assoc:      "(a * b) * c = a * (b * c)"
-  l_one:        "1 * a = a"
+  assumes l_distr:      "(a + b) * c = a * c + b * c"
 
-  l_distr:      "(a + b) * c = a * c + b * c"
+  assumes m_comm:       "a * b = b * a"
 
-  m_comm:       "a * b = b * a"
+  assumes minus_def:    "a - b = a + (-b)"
+  and inverse_def:      "inverse a = (if a dvd 1 then THE x. a*x = 1 else 0)"
+  and divide_def:       "a / b = a * inverse b"
+  and power_0 [simp]:   "a ^ 0 = 1"
+  and power_Suc [simp]: "a ^ Suc n = a ^ n * a"
+begin
 
-  -- {* Definition of derived operations *}
+definition assoc :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "assoc" 50) where
+  assoc_def: "a assoc b \<longleftrightarrow> a dvd b & b dvd a"
 
-  minus_def:    "a - b = a + (-b)"
-  inverse_def:  "inverse a = (if a dvd 1 then THE x. a*x = 1 else 0)"
-  divide_def:   "a / b = a * inverse b"
-  power_def:    "a ^ n = nat_rec 1 (%u b. b * a) n"
-
-defs
-  assoc_def:    "a assoc b == a dvd b & b dvd a"
-  irred_def:    "irred a == a ~= 0 & ~ a dvd 1
+definition irred :: "'a \<Rightarrow> bool" where
+  irred_def: "irred a \<longleftrightarrow> a ~= 0 & ~ a dvd 1
                           & (ALL d. d dvd a --> d dvd 1 | a dvd d)"
-  prime_def:    "prime p == p ~= 0 & ~ p dvd 1
+
+definition prime :: "'a \<Rightarrow> bool" where
+  prime_def: "prime p \<longleftrightarrow> p ~= 0 & ~ p dvd 1
                           & (ALL a b. p dvd (a*b) --> p dvd a | p dvd b)"
+
+end
+
 
 subsection {* Integral domains *}
 
-axclass
-  "domain" < ring
-
-  one_not_zero: "1 ~= 0"
-  integral:     "a * b = 0 ==> a = 0 | b = 0"
+class "domain" = ring +
+  assumes one_not_zero: "1 ~= 0"
+  and integral: "a * b = 0 ==> a = 0 | b = 0"
 
 subsection {* Factorial domains *}
 
-axclass
-  factorial < "domain"
-
+class factorial = "domain" +
 (*
   Proper definition using divisor chain condition currently not supported.
   factorial_divisor:    "wf {(a, b). a dvd b & ~ (b dvd a)}"
 *)
-  factorial_divisor:	"True"
-  factorial_prime:      "irred a ==> prime a"
+  assumes factorial_divisor: "True"
+  and factorial_prime: "irred a ==> prime a"
 
 subsection {* Euclidean domains *}
 
@@ -94,13 +86,11 @@ axclass
 
 subsection {* Fields *}
 
-axclass
-  field < ring
-
-  field_one_not_zero:    "1 ~= 0"
+class field = ring +
+  assumes field_one_not_zero: "1 ~= 0"
                 (* Avoid a common superclass as the first thing we will
                    prove about fields is that they are domains. *)
-  field_ax:        "a ~= 0 ==> a dvd 1"
+  and field_ax: "a ~= 0 ==> a dvd 1"
 
 
 section {* Basic facts *}
@@ -275,12 +265,12 @@ by (induct n) (simp_all add: add_ac)
 
 (* Facts specific to rings *)
 
-instance ring < comm_monoid_add
+subclass (in ring) comm_monoid_add
 proof
   fix x y z
-  show "(x::'a::ring) + y = y + x" by (rule a_comm)
-  show "((x::'a::ring) + y) + z = x + (y + z)" by (rule a_assoc)
-  show "0 + (x::'a::ring) = x" by (rule l_zero)
+  show "x + y = y + x" by (rule a_comm)
+  show "(x + y) + z = x + (y + z)" by (rule a_assoc)
+  show "0 + x = x" by (rule l_zero)
 qed
 
 ML {*
@@ -358,11 +348,7 @@ lemma m_rcancel:
   "(a::'a::domain) ~= 0 ==> (b * a = c * a) = (b = c)"
 by (simp add: m_lcancel)
 
-lemma power_0 [simp]:
-  "(a::'a::ring) ^ 0 = 1" unfolding power_def by simp
-
-lemma power_Suc [simp]:
-  "(a::'a::ring) ^ Suc n = a ^ n * a" unfolding power_def by simp
+declare power_Suc [simp]
 
 lemma power_one [simp]:
   "1 ^ n = (1::'a::ring)" by (induct n) simp_all
