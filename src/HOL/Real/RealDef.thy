@@ -958,78 +958,93 @@ proof
 qed
 
 
-subsection {* Implementation of rational real numbers as pairs of integers *}
+subsection {* Implementation of rational real numbers *}
 
-definition
-  Ratreal :: "int \<times> int \<Rightarrow> real"
-where
-  "Ratreal = INum"
+definition Ratreal :: "rat \<Rightarrow> real" where
+  [simp]: "Ratreal = of_rat"
 
 code_datatype Ratreal
 
-lemma Ratreal_simp:
-  "Ratreal (k, l) = real_of_int k / real_of_int l"
-  unfolding Ratreal_def INum_def by simp
-
-lemma Ratreal_zero [simp]: "Ratreal 0\<^sub>N = 0"
-  by (simp add: Ratreal_simp)
-
-lemma Ratreal_lit [simp]: "Ratreal i\<^sub>N = real_of_int i"
-  by (simp add: Ratreal_simp)
+lemma Ratreal_number_collapse [code post]:
+  "Ratreal 0 = 0"
+  "Ratreal 1 = 1"
+  "Ratreal (number_of k) = number_of k"
+by simp_all
 
 lemma zero_real_code [code, code unfold]:
-  "0 = Ratreal 0\<^sub>N" by simp
-declare zero_real_code [symmetric, code post]
+  "0 = Ratreal 0"
+by simp
 
 lemma one_real_code [code, code unfold]:
-  "1 = Ratreal 1\<^sub>N" by simp
-declare one_real_code [symmetric, code post]
+  "1 = Ratreal 1"
+by simp
+
+lemma number_of_real_code [code unfold]:
+  "number_of k = Ratreal (number_of k)"
+by simp
+
+lemma Ratreal_number_of_quotient [code post]:
+  "Ratreal (number_of r) / Ratreal (number_of s) = number_of r / number_of s"
+by simp
+
+lemma Ratreal_number_of_quotient2 [code post]:
+  "Ratreal (number_of r / number_of s) = number_of r / number_of s"
+unfolding Ratreal_number_of_quotient [symmetric] Ratreal_def of_rat_divide ..
 
 instantiation real :: eq
 begin
 
-definition "eq_class.eq (x\<Colon>real) y \<longleftrightarrow> x = y"
+definition "eq_class.eq (x\<Colon>real) y \<longleftrightarrow> x - y = 0"
 
 instance by default (simp add: eq_real_def)
 
-lemma real_eq_code [code]: "eq_class.eq (Ratreal x) (Ratreal y) \<longleftrightarrow> eq_class.eq (normNum x) (normNum y)"
-  unfolding Ratreal_def INum_normNum_iff eq ..
+lemma real_eq_code [code]: "eq_class.eq (Ratreal x) (Ratreal y) \<longleftrightarrow> eq_class.eq x y"
+  by (simp add: eq_real_def eq)
 
 end
 
-lemma real_less_eq_code [code]: "Ratreal x \<le> Ratreal y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
+lemma Ratreal_INum: "Ratreal (Fract k l) = INum (k, l)"
+  by (auto simp add: expand_fun_eq INum_def Fract_of_int_quotient of_rat_divide)
+
+lemma real_less_eq_code [code]: "Ratreal x \<le> Ratreal y \<longleftrightarrow> x \<le> y"
 proof -
-  have "normNum x \<le>\<^sub>N normNum y \<longleftrightarrow> Ratreal (normNum x) \<le> Ratreal (normNum y)" 
-    by (simp add: Ratreal_def del: normNum)
-  also have "\<dots> = (Ratreal x \<le> Ratreal y)" by (simp add: Ratreal_def)
-  finally show ?thesis by simp
+  obtain k l r s where x: "x = Fract k l" and y: "y = Fract r s"
+    by (cases x, cases y) simp
+  have "normNum (k, l) \<le>\<^sub>N normNum (r, s) \<longleftrightarrow> INum (normNum (k, l)) \<le> (INum (normNum (r, s)) :: real)" 
+    by (simp del: normNum)
+  then have "Ratreal (Fract k l) \<le> Ratreal (Fract r s) \<longleftrightarrow> Fract k l \<le> Fract r s"
+    by (simp add: Ratreal_INum rat_less_eq_code del: Ratreal_def)
+  with x y show ?thesis by simp
 qed
 
-lemma real_less_code [code]: "Ratreal x < Ratreal y \<longleftrightarrow> normNum x <\<^sub>N normNum y"
+lemma real_less_code [code]: "Ratreal x < Ratreal y \<longleftrightarrow> x < y"
 proof -
-  have "normNum x <\<^sub>N normNum y \<longleftrightarrow> Ratreal (normNum x) < Ratreal (normNum y)" 
-    by (simp add: Ratreal_def del: normNum)
-  also have "\<dots> = (Ratreal x < Ratreal y)" by (simp add: Ratreal_def)
-  finally show ?thesis by simp
+  obtain k l r s where x: "x = Fract k l" and y: "y = Fract r s"
+    by (cases x, cases y) simp
+  have "normNum (k, l) <\<^sub>N normNum (r, s) \<longleftrightarrow> INum (normNum (k, l)) < (INum (normNum (r, s)) :: real)" 
+    by (simp del: normNum)
+  then have "Ratreal (Fract k l) < Ratreal (Fract r s) \<longleftrightarrow> Fract k l < Fract r s"
+    by (simp add: Ratreal_INum rat_less_code del: Ratreal_def)
+  with x y show ?thesis by simp
 qed
 
-lemma real_add_code [code]: "Ratreal x + Ratreal y = Ratreal (x +\<^sub>N y)"
-  unfolding Ratreal_def by simp
+lemma real_plus_code [code]: "Ratreal x + Ratreal y = Ratreal (x + y)"
+  by (simp add: of_rat_add)
 
-lemma real_mul_code [code]: "Ratreal x * Ratreal y = Ratreal (x *\<^sub>N y)"
-  unfolding Ratreal_def by simp
+lemma real_times_code [code]: "Ratreal x * Ratreal y = Ratreal (x * y)"
+  by (simp add: of_rat_mult)
 
-lemma real_neg_code [code]: "- Ratreal x = Ratreal (~\<^sub>N x)"
-  unfolding Ratreal_def by simp
+lemma real_uminus_code [code]: "- Ratreal x = Ratreal (- x)"
+  by (simp add: of_rat_minus)
 
-lemma real_sub_code [code]: "Ratreal x - Ratreal y = Ratreal (x -\<^sub>N y)"
-  unfolding Ratreal_def by simp
+lemma real_minus_code [code]: "Ratreal x - Ratreal y = Ratreal (x - y)"
+  by (simp add: of_rat_diff)
 
-lemma real_inv_code [code]: "inverse (Ratreal x) = Ratreal (Ninv x)"
-  unfolding Ratreal_def Ninv real_divide_def by simp
-
-lemma real_div_code [code]: "Ratreal x / Ratreal y = Ratreal (x \<div>\<^sub>N y)"
-  unfolding Ratreal_def by simp
+lemma real_inverse_code [code]: "inverse (Ratreal x) = Ratreal (inverse x)"
+  by (simp add: of_rat_inverse)
+ 
+lemma real_divide_code [code]: "Ratreal x / Ratreal y = Ratreal (x / y)"
+  by (simp add: of_rat_divide)
 
 text {* Setup for SML code generator *}
 
