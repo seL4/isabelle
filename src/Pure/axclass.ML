@@ -182,15 +182,51 @@ fun the_arity thy a (c, Ss) =
       Syntax.string_of_arity (ProofContext.init thy) (a, Ss, [c])));
 
 fun arity_property thy (c, a) x =
-  these (Symtab.lookup (snd (get_instances thy)) a)
+  Symtab.lookup_list (snd (get_instances thy)) a
   |> map_filter (fn ((c', _), th) => if c = c'
-        then AList.lookup (op =) (Thm.get_tags th) x else NONE)
+      then AList.lookup (op =) (Thm.get_tags th) x else NONE)
   |> rev;
 
-fun put_arity ((t, Ss, c), th) = map_instances (fn (classrel, arities) =>
-  (classrel, arities |> Symtab.insert_list (eq_fst op =) (t, ((c, Ss), th))));
+fun insert_arity_completions thy (t, ((c, Ss), th)) arities =
+  let
+    val algebra = Sign.classes_of thy;
+    val super_class_completions = Sign.super_classes thy c
+      |> filter_out (fn c1 => exists (fn ((c2, Ss2), _) => c1 = c2
+          andalso Sorts.sorts_le algebra (Ss2, Ss)) (Symtab.lookup_list arities t))
+    val tags = Thm.get_tags th;
+    val completions = map (fn c1 => (Sorts.weaken ((#classes o Sorts.rep_algebra) algebra)
+      (fn (th, c2) => fn c3 => th RS the_classrel thy (c2, c3)) (th, c) c1
+        |> Thm.map_tags (K tags) |> Thm.close_derivation, c1)) super_class_completions;
+    val arities' = fold (fn (th1, c1) => Symtab.cons_list (t, ((c1, Ss), th1)))
+      completions arities;
+  in (completions, arities') end;
 
+fun put_arity ((t, Ss, c), th) thy =
+  let
+    val th' = (Thm.map_tags o AList.default (op =))
+      (Markup.theory_nameN, Context.theory_name thy) th;
+    val arity' = (t, ((c, Ss), th'));
+  in
+    thy
+    |> map_instances (fn (classrel, arities) => (classrel,
+      arities
+      |> Symtab.insert_list (eq_fst op =) arity'
+      |> insert_arity_completions thy arity'
+      |> snd))
+  end;
 
+fun complete_arities thy = 
+  let
+    val arities = snd (get_instances thy);
+    val (completions, arities') = arities
+      |> fold_map (insert_arity_completions thy) (Symtab.dest_list arities)
+      |>> flat;
+  in if null completions
+    then NONE
+    else SOME (thy |> map_instances (fn (classrel, _) => (classrel, arities')))
+  end;
+
+val _ = Context.>> (Context.map_theory (Theory.at_begin complete_arities));
 
 
 (* maintain instance parameters *)
@@ -272,10 +308,7 @@ fun add_arity th thy =
      of [] => ()
       | cs => Output.legacy_feature
           ("Missing specifications for overloaded parameters " ^ commas_quote cs)
-    val th' = th
-      |> Drule.unconstrainTs
-      |> (Thm.map_tags o AList.default (op =))
-          (Markup.theory_nameN, Context.theory_name thy)
+    val th' = Drule.unconstrainTs th;
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
