@@ -6,7 +6,9 @@
 
 header {* Ring homomorphism *}
 
-theory RingHomo imports Ring2 begin
+theory RingHomo
+imports Ring2
+begin
 
 definition
   homo :: "('a::ring => 'b::ring) => bool" where
