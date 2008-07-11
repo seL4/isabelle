@@ -52,8 +52,7 @@ sig
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
   val meet_sort: algebra -> typ * sort -> sort Vartab.table -> sort Vartab.table
   val of_sort: algebra -> typ * sort -> bool
-  
-val weaken: 'b Graph.T -> ('a * class -> class -> 'a) -> 'a * class -> class -> 'a;
+  val weaken: 'b Graph.T -> ('a * class -> class -> 'a) -> 'a * class -> class -> 'a;
   val of_sort_derivation: Pretty.pp -> algebra ->
     {class_relation: 'a * class -> class -> 'a,
      type_constructor: string -> ('a * class) list list -> class -> 'a,
