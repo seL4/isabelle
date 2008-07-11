@@ -1,6 +1,6 @@
-(*  Title       : RealVector.thy
+(*  Title:      RealVector.thy
     ID:         $Id$
-    Author      : Brian Huffman
+    Author:     Brian Huffman
 *)
 
 header {* Vector Spaces and Algebras over the Reals *}
@@ -260,8 +260,6 @@ proof
   thus "(of_nat m = (of_nat n::'a)) = (m = n)"
     by (simp only: of_real_of_nat_eq)
 qed
-
-instance real_field < field_char_0 ..
 
 
 subsection {* The Set of Real Numbers *}
