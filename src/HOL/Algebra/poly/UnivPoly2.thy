@@ -140,17 +140,7 @@ instance ..
 
 end
 
-instantiation up :: ("{times, one, comm_monoid_add, uminus, minus}") Divides.div
-begin
-
-definition "a div (b \<Colon> 'a up) = undefined a b"
-
-definition "a mod (b \<Colon> 'a up) = a - (a div b) * b"
-
-instance ..
-
-end
-
+instance up :: ("{times, comm_monoid_add}") Divides.dvd ..
 
 instantiation up :: ("{times, one, comm_monoid_add, uminus, minus}") inverse
 begin
@@ -366,9 +356,9 @@ proof
   show "p / q = p * inverse q"
     by (simp add: up_divide_def)
   fix n
-  show "p ^ n = nat_rec 1 (%u b. b * p) n"
-    by (induct n) simp_all
-  qed
+  show "p ^ 0 = 1" by simp
+  show "p ^ Suc n = p ^ n * p" by simp
+qed
 
 (* Further properties of monom *)
 

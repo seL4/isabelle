@@ -4,7 +4,7 @@
     Copyright   1999  University of Cambridge
 *)
 
-header {* The division operators div,  mod and the divides relation dvd *}
+header {* The division operators div, mod and the divides relation dvd *}
 
 theory Divides
 imports Nat Power Product_Type
@@ -13,9 +13,7 @@ begin
 
 subsection {* Syntactic division operations *}
 
-class div = times +
-  fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "div" 70)
-  fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "mod" 70)
+class dvd = times
 begin
 
 definition
@@ -25,9 +23,14 @@ where
 
 end
 
+class div = times +
+  fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "div" 70)
+  fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "mod" 70)
+
+
 subsection {* Abstract divisibility in commutative semirings. *}
 
-class semiring_div = comm_semiring_1_cancel + div + 
+class semiring_div = comm_semiring_1_cancel + dvd + div + 
   assumes mod_div_equality: "a div b * b + a mod b = a"
     and div_by_0: "a div 0 = 0"
     and mult_div: "b \<noteq> 0 \<Longrightarrow> a * b div b = a"
