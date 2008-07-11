@@ -1,271 +1,200 @@
-(*  Title: HOL/Library/Rational.thy
-    ID:    $Id$
+(*  Title:  HOL/Library/Rational.thy
+    ID:     $Id$
     Author: Markus Wenzel, TU Muenchen
 *)
 
 header {* Rational numbers *}
 
 theory Rational
-imports "~~/src/HOL/Library/Abstract_Rat"
+imports "../Presburger" GCD Abstract_Rat
 uses ("rat_arith.ML")
 begin
 
-subsection {* Equivalence of fractions *}
+subsection {* Rational numbers as quotient *}
 
-definition
-  fraction :: "(int \<times> int) set" where
-  "fraction = {x. snd x \<noteq> 0}"
+subsubsection {* Construction of the type of rational numbers *}
 
 definition
   ratrel :: "((int \<times> int) \<times> (int \<times> int)) set" where
-  "ratrel = {(x,y). snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x}"
-
-lemma fraction_iff [simp]: "(x \<in> fraction) = (snd x \<noteq> 0)"
-by (simp add: fraction_def)
+  "ratrel = {(x, y). snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x}"
 
 lemma ratrel_iff [simp]:
-  "((x,y) \<in> ratrel) =
-   (snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x)"
-by (simp add: ratrel_def)
+  "(x, y) \<in> ratrel \<longleftrightarrow> snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x"
+  by (simp add: ratrel_def)
 
-lemma refl_ratrel: "refl fraction ratrel"
-by (auto simp add: refl_def fraction_def ratrel_def)
+lemma refl_ratrel: "refl {x. snd x \<noteq> 0} ratrel"
+  by (auto simp add: refl_def ratrel_def)
 
 lemma sym_ratrel: "sym ratrel"
-by (simp add: ratrel_def sym_def)
-
-lemma trans_ratrel_lemma:
-  assumes 1: "a * b' = a' * b"
-  assumes 2: "a' * b'' = a'' * b'"
-  assumes 3: "b' \<noteq> (0::int)"
-  shows "a * b'' = a'' * b"
-proof -
-  have "b' * (a * b'') = b'' * (a * b')" by simp
-  also note 1
-  also have "b'' * (a' * b) = b * (a' * b'')" by simp
-  also note 2
-  also have "b * (a'' * b') = b' * (a'' * b)" by simp
-  finally have "b' * (a * b'') = b' * (a'' * b)" .
-  with 3 show "a * b'' = a'' * b" by simp
-qed
+  by (simp add: ratrel_def sym_def)
 
 lemma trans_ratrel: "trans ratrel"
-by (auto simp add: trans_def elim: trans_ratrel_lemma)
-
-lemma equiv_ratrel: "equiv fraction ratrel"
-by (rule equiv.intro [OF refl_ratrel sym_ratrel trans_ratrel])
-
-lemmas equiv_ratrel_iff [iff] = eq_equiv_class_iff [OF equiv_ratrel]
-
-lemma equiv_ratrel_iff2:
-  "\<lbrakk>snd x \<noteq> 0; snd y \<noteq> 0\<rbrakk>
-    \<Longrightarrow> (ratrel `` {x} = ratrel `` {y}) = ((x,y) \<in> ratrel)"
-by (rule eq_equiv_class_iff [OF equiv_ratrel], simp_all)
-
-
-subsection {* The type of rational numbers *}
-
-typedef (Rat) rat = "fraction//ratrel"
-proof
-  have "(0,1) \<in> fraction" by (simp add: fraction_def)
-  thus "ratrel``{(0,1)} \<in> fraction//ratrel" by (rule quotientI)
+proof (rule transI, unfold split_paired_all)
+  fix a b a' b' a'' b'' :: int
+  assume A: "((a, b), (a', b')) \<in> ratrel"
+  assume B: "((a', b'), (a'', b'')) \<in> ratrel"
+  have "b' * (a * b'') = b'' * (a * b')" by simp
+  also from A have "a * b' = a' * b" by auto
+  also have "b'' * (a' * b) = b * (a' * b'')" by simp
+  also from B have "a' * b'' = a'' * b'" by auto
+  also have "b * (a'' * b') = b' * (a'' * b)" by simp
+  finally have "b' * (a * b'') = b' * (a'' * b)" .
+  moreover from B have "b' \<noteq> 0" by auto
+  ultimately have "a * b'' = a'' * b" by simp
+  with A B show "((a, b), (a'', b'')) \<in> ratrel" by auto
 qed
-
-lemma ratrel_in_Rat [simp]: "snd x \<noteq> 0 \<Longrightarrow> ratrel``{x} \<in> Rat"
-by (simp add: Rat_def quotientI)
-
-declare Abs_Rat_inject [simp]  Abs_Rat_inverse [simp]
-
-
-definition
-  Fract :: "int \<Rightarrow> int \<Rightarrow> rat" where
-  [code func del]: "Fract a b = Abs_Rat (ratrel``{(a,b)})"
-
-lemma Fract_zero:
-  "Fract k 0 = Fract l 0"
-  by (simp add: Fract_def ratrel_def)
-
-theorem Rat_cases [case_names Fract, cases type: rat]:
-    "(!!a b. q = Fract a b ==> b \<noteq> 0 ==> C) ==> C"
-  by (cases q) (clarsimp simp add: Fract_def Rat_def fraction_def quotient_def)
-
-theorem Rat_induct [case_names Fract, induct type: rat]:
-    "(!!a b. b \<noteq> 0 ==> P (Fract a b)) ==> P q"
-  by (cases q) simp
-
-
-subsection {* Congruence lemmas *}
-
-lemma add_congruent2:
-     "(\<lambda>x y. ratrel``{(fst x * snd y + fst y * snd x, snd x * snd y)})
-      respects2 ratrel"
-apply (rule equiv_ratrel [THEN congruent2_commuteI])
-apply (simp_all add: left_distrib)
-done
-
-lemma minus_congruent:
-  "(\<lambda>x. ratrel``{(- fst x, snd x)}) respects ratrel"
-by (simp add: congruent_def)
-
-lemma mult_congruent2:
-  "(\<lambda>x y. ratrel``{(fst x * fst y, snd x * snd y)}) respects2 ratrel"
-by (rule equiv_ratrel [THEN congruent2_commuteI], simp_all)
-
-lemma inverse_congruent:
-  "(\<lambda>x. ratrel``{if fst x=0 then (0,1) else (snd x, fst x)}) respects ratrel"
-by (auto simp add: congruent_def mult_commute)
-
-lemma le_congruent2:
-  "(\<lambda>x y. {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})
-   respects2 ratrel"
-proof (clarsimp simp add: congruent2_def)
-  fix a b a' b' c d c' d'::int
-  assume neq: "b \<noteq> 0"  "b' \<noteq> 0"  "d \<noteq> 0"  "d' \<noteq> 0"
-  assume eq1: "a * b' = a' * b"
-  assume eq2: "c * d' = c' * d"
-
-  let ?le = "\<lambda>a b c d. ((a * d) * (b * d) \<le> (c * b) * (b * d))"
-  {
-    fix a b c d x :: int assume x: "x \<noteq> 0"
-    have "?le a b c d = ?le (a * x) (b * x) c d"
-    proof -
-      from x have "0 < x * x" by (auto simp add: zero_less_mult_iff)
-      hence "?le a b c d =
-          ((a * d) * (b * d) * (x * x) \<le> (c * b) * (b * d) * (x * x))"
-        by (simp add: mult_le_cancel_right)
-      also have "... = ?le (a * x) (b * x) c d"
-        by (simp add: mult_ac)
-      finally show ?thesis .
-    qed
-  } note le_factor = this
-
-  let ?D = "b * d" and ?D' = "b' * d'"
-  from neq have D: "?D \<noteq> 0" by simp
-  from neq have "?D' \<noteq> 0" by simp
-  hence "?le a b c d = ?le (a * ?D') (b * ?D') c d"
-    by (rule le_factor)
-  also have "... = ((a * b') * ?D * ?D' * d * d' \<le> (c * d') * ?D * ?D' * b * b')"
-    by (simp add: mult_ac)
-  also have "... = ((a' * b) * ?D * ?D' * d * d' \<le> (c' * d) * ?D * ?D' * b * b')"
-    by (simp only: eq1 eq2)
-  also have "... = ?le (a' * ?D) (b' * ?D) c' d'"
-    by (simp add: mult_ac)
-  also from D have "... = ?le a' b' c' d'"
-    by (rule le_factor [symmetric])
-  finally show "?le a b c d = ?le a' b' c' d'" .
-qed
+  
+lemma equiv_ratrel: "equiv {x. snd x \<noteq> 0} ratrel"
+  by (rule equiv.intro [OF refl_ratrel sym_ratrel trans_ratrel])
 
 lemmas UN_ratrel = UN_equiv_class [OF equiv_ratrel]
 lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]
 
+lemma equiv_ratrel_iff [iff]: 
+  assumes "snd x \<noteq> 0" and "snd y \<noteq> 0"
+  shows "ratrel `` {x} = ratrel `` {y} \<longleftrightarrow> (x, y) \<in> ratrel"
+  by (rule eq_equiv_class_iff, rule equiv_ratrel) (auto simp add: assms)
 
-subsection {* Rationals are a field *}
+typedef (Rat) rat = "{x. snd x \<noteq> 0} // ratrel"
+proof
+  have "(0::int, 1::int) \<in> {x. snd x \<noteq> 0}" by simp
+  then show "ratrel `` {(0, 1)} \<in> {x. snd x \<noteq> 0} // ratrel" by (rule quotientI)
+qed
 
-instantiation rat :: field
+lemma ratrel_in_Rat [simp]: "snd x \<noteq> 0 \<Longrightarrow> ratrel `` {x} \<in> Rat"
+  by (simp add: Rat_def quotientI)
+
+declare Abs_Rat_inject [simp] Abs_Rat_inverse [simp]
+
+
+subsubsection {* Representation and basic operations *}
+
+definition
+  Fract :: "int \<Rightarrow> int \<Rightarrow> rat" where
+  [code func del]: "Fract a b = Abs_Rat (ratrel `` {if b = 0 then (0, 1) else (a, b)})"
+
+code_datatype Fract
+
+lemma Rat_cases [case_names Fract, cases type: rat]:
+  assumes "\<And>a b. q = Fract a b \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> C"
+  shows C
+  using assms by (cases q) (clarsimp simp add: Fract_def Rat_def quotient_def)
+
+lemma Rat_induct [case_names Fract, induct type: rat]:
+  assumes "\<And>a b. b \<noteq> 0 \<Longrightarrow> P (Fract a b)"
+  shows "P q"
+  using assms by (cases q) simp
+
+lemma eq_rat:
+  shows "\<And>a b c d. b \<noteq> 0 \<Longrightarrow> d \<noteq> 0 \<Longrightarrow> Fract a b = Fract c d \<longleftrightarrow> a * d = c * b"
+  and "\<And>a c. Fract a 0 = Fract c 0"
+  by (simp_all add: Fract_def)
+
+instantiation rat :: "{comm_ring_1, recpower}"
 begin
 
 definition
-  Zero_rat_def [code func del]: "0 = Fract 0 1"
+  Zero_rat_def [code, code unfold]: "0 = Fract 0 1"
 
 definition
-  One_rat_def [code func del]: "1 = Fract 1 1"
+  One_rat_def [code, code unfold]: "1 = Fract 1 1"
 
 definition
   add_rat_def [code func del]:
-   "q + r =
-       Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
-           ratrel``{(fst x * snd y + fst y * snd x, snd x * snd y)})"
+  "q + r = Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
+    ratrel `` {(fst x * snd y + fst y * snd x, snd x * snd y)})"
+
+lemma add_rat:
+  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  shows "Fract a b + Fract c d = Fract (a * d + c * b) (b * d)"
+proof -
+  have "(\<lambda>x y. ratrel``{(fst x * snd y + fst y * snd x, snd x * snd y)})
+    respects2 ratrel"
+  by (rule equiv_ratrel [THEN congruent2_commuteI]) (simp_all add: left_distrib)
+  with assms show ?thesis by (simp add: Fract_def add_rat_def UN_ratrel2)
+qed
 
 definition
   minus_rat_def [code func del]:
-    "- q = Abs_Rat (\<Union>x \<in> Rep_Rat q. ratrel``{(- fst x, snd x)})"
+  "- q = Abs_Rat (\<Union>x \<in> Rep_Rat q. ratrel `` {(- fst x, snd x)})"
+
+lemma minus_rat: "- Fract a b = Fract (- a) b"
+proof -
+  have "(\<lambda>x. ratrel `` {(- fst x, snd x)}) respects ratrel"
+    by (simp add: congruent_def)
+  then show ?thesis by (simp add: Fract_def minus_rat_def UN_ratrel)
+qed
+
+lemma minus_rat_cancel [simp]: 
+  "Fract (- a) (- b) = Fract a b"
+  by (cases "b = 0") (simp_all add: eq_rat)
 
 definition
   diff_rat_def [code func del]: "q - r = q + - (r::rat)"
 
+lemma diff_rat:
+  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  shows "Fract a b - Fract c d = Fract (a * d - c * b) (b * d)"
+  using assms by (simp add: diff_rat_def add_rat minus_rat)
+
 definition
   mult_rat_def [code func del]:
-   "q * r =
-       Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
-           ratrel``{(fst x * fst y, snd x * snd y)})"
+  "q * r = Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
+    ratrel``{(fst x * fst y, snd x * snd y)})"
 
-definition
-  inverse_rat_def [code func del]:
-    "inverse q =
-        Abs_Rat (\<Union>x \<in> Rep_Rat q.
-            ratrel``{if fst x=0 then (0,1) else (snd x, fst x)})"
-
-definition
-  divide_rat_def [code func del]: "q / r = q * inverse (r::rat)"
-
-theorem eq_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
-  (Fract a b = Fract c d) = (a * d = c * b)"
-by (simp add: Fract_def)
-
-theorem add_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
-  Fract a b + Fract c d = Fract (a * d + c * b) (b * d)"
-by (simp add: Fract_def add_rat_def add_congruent2 UN_ratrel2)
-
-theorem minus_rat: "b \<noteq> 0 ==> -(Fract a b) = Fract (-a) b"
-by (simp add: Fract_def minus_rat_def minus_congruent UN_ratrel)
-
-theorem diff_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
-    Fract a b - Fract c d = Fract (a * d - c * b) (b * d)"
-by (simp add: diff_rat_def add_rat minus_rat)
-
-theorem mult_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
-  Fract a b * Fract c d = Fract (a * c) (b * d)"
-by (simp add: Fract_def mult_rat_def mult_congruent2 UN_ratrel2)
-
-theorem inverse_rat: "a \<noteq> 0 ==> b \<noteq> 0 ==>
-  inverse (Fract a b) = Fract b a"
-by (simp add: Fract_def inverse_rat_def inverse_congruent UN_ratrel)
-
-theorem divide_rat: "c \<noteq> 0 ==> b \<noteq> 0 ==> d \<noteq> 0 ==>
-  Fract a b / Fract c d = Fract (a * d) (b * c)"
-by (simp add: divide_rat_def inverse_rat mult_rat)
-
-instance proof
-  fix q r s :: rat
-  show "(q + r) + s = q + (r + s)"
-    by (induct q, induct r, induct s)
-       (simp add: add_rat add_ac mult_ac int_distrib)
-  show "q + r = r + q"
-    by (induct q, induct r) (simp add: add_rat add_ac mult_ac)
-  show "0 + q = q"
-    by (induct q) (simp add: Zero_rat_def add_rat)
-  show "(-q) + q = 0"
-    by (induct q) (simp add: Zero_rat_def minus_rat add_rat eq_rat)
-  show "q - r = q + (-r)"
-    by (induct q, induct r) (simp add: add_rat minus_rat diff_rat)
-  show "(q * r) * s = q * (r * s)"
-    by (induct q, induct r, induct s) (simp add: mult_rat mult_ac)
-  show "q * r = r * q"
-    by (induct q, induct r) (simp add: mult_rat mult_ac)
-  show "1 * q = q"
-    by (induct q) (simp add: One_rat_def mult_rat)
-  show "(q + r) * s = q * s + r * s"
-    by (induct q, induct r, induct s)
-       (simp add: add_rat mult_rat eq_rat int_distrib)
-  show "q \<noteq> 0 ==> inverse q * q = 1"
-    by (induct q) (simp add: inverse_rat mult_rat One_rat_def Zero_rat_def eq_rat)
-  show "q / r = q * inverse r"
-    by (simp add: divide_rat_def)
-  show "0 \<noteq> (1::rat)"
-    by (simp add: Zero_rat_def One_rat_def eq_rat)
+lemma mult_rat: "Fract a b * Fract c d = Fract (a * c) (b * d)"
+proof -
+  have "(\<lambda>x y. ratrel `` {(fst x * fst y, snd x * snd y)}) respects2 ratrel"
+    by (rule equiv_ratrel [THEN congruent2_commuteI]) simp_all
+  then show ?thesis by (simp add: Fract_def mult_rat_def UN_ratrel2)
 qed
 
-end
-
-instantiation rat :: recpower
-begin
+lemma mult_rat_cancel [simp]:
+  assumes "c \<noteq> 0"
+  shows "Fract (c * a) (c * b) = Fract a b"
+proof -
+  from assms have "Fract c c = Fract 1 1" by (simp add: Fract_def)
+  then show ?thesis by (simp add: mult_rat [symmetric] mult_rat)
+qed
 
 primrec power_rat
 where
-  rat_power_0:     "q ^ 0       = (1\<Colon>rat)"
-  | rat_power_Suc: "q ^ (Suc n) = (q\<Colon>rat) * (q ^ n)"
+  rat_power_0:     "q ^ 0 = (1\<Colon>rat)"
+  | rat_power_Suc: "q ^ Suc n = (q\<Colon>rat) * (q ^ n)"
 
 instance proof
+  fix q r s :: rat show "(q * r) * s = q * (r * s)"
+    by (cases q, cases r, cases s) (simp add: mult_rat eq_rat)
+next
+  fix q r :: rat show "q * r = r * q"
+    by (cases q, cases r) (simp add: mult_rat eq_rat)
+next
+  fix q :: rat show "1 * q = q"
+    by (cases q) (simp add: One_rat_def mult_rat eq_rat)
+next
+  fix q r s :: rat show "(q + r) + s = q + (r + s)"
+    by (cases q, cases r, cases s) (simp add: add_rat eq_rat ring_simps)
+next
+  fix q r :: rat show "q + r = r + q"
+    by (cases q, cases r) (simp add: add_rat eq_rat)
+next
+  fix q :: rat show "0 + q = q"
+    by (cases q) (simp add: Zero_rat_def add_rat eq_rat)
+next
+  fix q :: rat show "- q + q = 0"
+    by (cases q) (simp add: Zero_rat_def add_rat minus_rat eq_rat)
+next
+  fix q r :: rat show "q - r = q + - r"
+    by (cases q, cases r) (simp add: diff_rat add_rat minus_rat eq_rat)
+next
+  fix q r s :: rat show "(q + r) * s = q * s + r * s"
+    by (cases q, cases r, cases s) (simp add: add_rat mult_rat eq_rat ring_simps)
+next
+  show "(0::rat) \<noteq> 1" by (simp add: Zero_rat_def One_rat_def eq_rat)
+next
+  fix q :: rat show "q * 1 = q"
+    by (cases q) (simp add: One_rat_def mult_rat eq_rat)
+next
   fix q :: rat
   fix n :: nat
   show "q ^ 0 = 1" by simp
@@ -274,14 +203,115 @@ qed
 
 end
 
-instance rat :: division_by_zero
-proof
-  show "inverse 0 = (0::rat)"
-    by (simp add: Zero_rat_def Fract_def inverse_rat_def
-                  inverse_congruent UN_ratrel)
+lemma of_nat_rat: "of_nat k = Fract (of_nat k) 1"
+  by (induct k) (simp_all add: Zero_rat_def One_rat_def add_rat)
+
+lemma of_int_rat: "of_int k = Fract k 1"
+  by (cases k rule: int_diff_cases, simp add: of_nat_rat diff_rat)
+
+lemma Fract_of_nat_eq: "Fract (of_nat k) 1 = of_nat k"
+  by (rule of_nat_rat [symmetric])
+
+lemma Fract_of_int_eq: "Fract k 1 = of_int k"
+  by (rule of_int_rat [symmetric])
+
+instantiation rat :: number_ring
+begin
+
+definition
+  rat_number_of_def [code func del]: "number_of w = Fract w 1"
+
+instance by intro_classes (simp add: rat_number_of_def of_int_rat)
+
+end
+
+lemma rat_number_collapse [code post]:
+  "Fract 0 k = 0"
+  "Fract 1 1 = 1"
+  "Fract (number_of k) 1 = number_of k"
+  "Fract k 0 = 0"
+  by (cases "k = 0")
+    (simp_all add: Zero_rat_def One_rat_def number_of_is_id number_of_eq of_int_rat eq_rat Fract_def)
+
+lemma rat_number_expand [code unfold]:
+  "0 = Fract 0 1"
+  "1 = Fract 1 1"
+  "number_of k = Fract (number_of k) 1"
+  by (simp_all add: rat_number_collapse)
+
+lemma iszero_rat [simp]:
+  "iszero (number_of k :: rat) \<longleftrightarrow> iszero (number_of k :: int)"
+  by (simp add: iszero_def rat_number_expand number_of_is_id eq_rat)
+
+lemma Rat_cases_nonzero [case_names Fract 0]:
+  assumes Fract: "\<And>a b. q = Fract a b \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> C"
+  assumes 0: "q = 0 \<Longrightarrow> C"
+  shows C
+proof (cases "q = 0")
+  case True then show C using 0 by auto
+next
+  case False
+  then obtain a b where "q = Fract a b" and "b \<noteq> 0" by (cases q) auto
+  moreover with False have "0 \<noteq> Fract a b" by simp
+  with `b \<noteq> 0` have "a \<noteq> 0" by (simp add: Zero_rat_def eq_rat)
+  with Fract `q = Fract a b` `b \<noteq> 0` show C by auto
+qed
+  
+
+
+subsubsection {* The field of rational numbers *}
+
+instantiation rat :: "{field, division_by_zero}"
+begin
+
+definition
+  inverse_rat_def [code func del]:
+  "inverse q = Abs_Rat (\<Union>x \<in> Rep_Rat q.
+     ratrel `` {if fst x = 0 then (0, 1) else (snd x, fst x)})"
+
+lemma inverse_rat: "inverse (Fract a b) = Fract b a"
+proof -
+  have "(\<lambda>x. ratrel `` {if fst x = 0 then (0, 1) else (snd x, fst x)}) respects ratrel"
+    by (auto simp add: congruent_def mult_commute)
+  then show ?thesis by (simp add: Fract_def inverse_rat_def UN_ratrel)
 qed
 
-subsection {* Rationals are a linear order *}
+definition
+  divide_rat_def [code func del]: "q / r = q * inverse (r::rat)"
+
+lemma divide_rat: "Fract a b / Fract c d = Fract (a * d) (b * c)"
+  by (simp add: divide_rat_def inverse_rat mult_rat)
+
+instance proof
+  show "inverse 0 = (0::rat)" by (simp add: rat_number_expand inverse_rat)
+    (simp add: rat_number_collapse)
+next
+  fix q :: rat
+  assume "q \<noteq> 0"
+  then show "inverse q * q = 1" by (cases q rule: Rat_cases_nonzero)
+   (simp_all add: mult_rat  inverse_rat rat_number_expand eq_rat)
+next
+  fix q r :: rat
+  show "q / r = q * inverse r" by (simp add: divide_rat_def)
+qed
+
+end
+
+
+subsubsection {* Various *}
+
+lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
+  by (simp add: rat_number_expand add_rat)
+
+lemma Fract_of_int_quotient: "Fract k l = of_int k / of_int l"
+  by (simp add: Fract_of_int_eq [symmetric] divide_rat)
+
+lemma Fract_number_of_quotient [code post]:
+  "Fract (number_of k) (number_of l) = number_of k / number_of l"
+  unfolding Fract_of_int_quotient number_of_is_id number_of_eq ..
+
+
+subsubsection {* The ordered field of rational numbers *}
 
 instantiation rat :: linorder
 begin
@@ -289,18 +319,60 @@ begin
 definition
   le_rat_def [code func del]:
    "q \<le> r \<longleftrightarrow> contents (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
-      {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
+      {(fst x * snd y) * (snd x * snd y) \<le> (fst y * snd x) * (snd x * snd y)})"
+
+lemma le_rat:
+  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  shows "Fract a b \<le> Fract c d \<longleftrightarrow> (a * d) * (b * d) \<le> (c * b) * (b * d)"
+proof -
+  have "(\<lambda>x y. {(fst x * snd y) * (snd x * snd y) \<le> (fst y * snd x) * (snd x * snd y)})
+    respects2 ratrel"
+  proof (clarsimp simp add: congruent2_def)
+    fix a b a' b' c d c' d'::int
+    assume neq: "b \<noteq> 0"  "b' \<noteq> 0"  "d \<noteq> 0"  "d' \<noteq> 0"
+    assume eq1: "a * b' = a' * b"
+    assume eq2: "c * d' = c' * d"
+
+    let ?le = "\<lambda>a b c d. ((a * d) * (b * d) \<le> (c * b) * (b * d))"
+    {
+      fix a b c d x :: int assume x: "x \<noteq> 0"
+      have "?le a b c d = ?le (a * x) (b * x) c d"
+      proof -
+        from x have "0 < x * x" by (auto simp add: zero_less_mult_iff)
+        hence "?le a b c d =
+            ((a * d) * (b * d) * (x * x) \<le> (c * b) * (b * d) * (x * x))"
+          by (simp add: mult_le_cancel_right)
+        also have "... = ?le (a * x) (b * x) c d"
+          by (simp add: mult_ac)
+        finally show ?thesis .
+      qed
+    } note le_factor = this
+
+    let ?D = "b * d" and ?D' = "b' * d'"
+    from neq have D: "?D \<noteq> 0" by simp
+    from neq have "?D' \<noteq> 0" by simp
+    hence "?le a b c d = ?le (a * ?D') (b * ?D') c d"
+      by (rule le_factor)
+    also have "... = ((a * b') * ?D * ?D' * d * d' \<le> (c * d') * ?D * ?D' * b * b')"
+      by (simp add: mult_ac)
+    also have "... = ((a' * b) * ?D * ?D' * d * d' \<le> (c' * d) * ?D * ?D' * b * b')"
+      by (simp only: eq1 eq2)
+    also have "... = ?le (a' * ?D) (b' * ?D) c' d'"
+      by (simp add: mult_ac)
+    also from D have "... = ?le a' b' c' d'"
+      by (rule le_factor [symmetric])
+    finally show "?le a b c d = ?le a' b' c' d'" .
+  qed
+  with assms show ?thesis by (simp add: Fract_def le_rat_def UN_ratrel2)
+qed
 
 definition
   less_rat_def [code func del]: "z < (w::rat) \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
 
-theorem le_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
-  (Fract a b \<le> Fract c d) = ((a * d) * (b * d) \<le> (c * b) * (b * d))"
-by (simp add: Fract_def le_rat_def le_congruent2 UN_ratrel2)
-
-theorem less_rat: "b \<noteq> 0 ==> d \<noteq> 0 ==>
-    (Fract a b < Fract c d) = ((a * d) * (b * d) < (c * b) * (b * d))"
-by (simp add: less_rat_def le_rat eq_rat order_less_le)
+lemma less_rat:
+  assumes "b \<noteq> 0" and "d \<noteq> 0"
+  shows "Fract a b < Fract c d \<longleftrightarrow> (a * d) * (b * d) < (c * b) * (b * d)"
+  using assms by (simp add: less_rat_def le_rat eq_rat order_less_le)
 
 instance proof
   fix q r s :: rat
@@ -372,8 +444,22 @@ qed
 
 end
 
-instantiation rat :: distrib_lattice
+instantiation rat :: "{distrib_lattice, abs_if, sgn_if}"
 begin
+
+definition
+  abs_rat_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::rat))"
+
+lemma abs_rat: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
+  by (auto simp add: abs_rat_def zabs_def Zero_rat_def less_rat not_less le_less minus_rat eq_rat zero_compare_simps)
+
+definition
+  sgn_rat_def: "sgn (q::rat) = (if q = 0 then 0 else if 0 < q then 1 else - 1)"
+
+lemma sgn_rat: "sgn (Fract a b) = Fract (sgn a * sgn b) 1"
+  unfolding Fract_of_int_eq
+  by (auto simp: zsgn_def sgn_rat_def Zero_rat_def eq_rat less_rat)
+    (auto simp: rat_number_collapse not_less le_less zero_less_mult_iff)
 
 definition
   "(inf \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat) = min"
@@ -381,28 +467,13 @@ definition
 definition
   "(sup \<Colon> rat \<Rightarrow> rat \<Rightarrow> rat) = max"
 
-instance
-  by default (auto simp add: min_max.sup_inf_distrib1 inf_rat_def sup_rat_def)
+instance by intro_classes
+  (auto simp add: abs_rat_def sgn_rat_def min_max.sup_inf_distrib1 inf_rat_def sup_rat_def)
 
 end
 
-subsection {* Rationals are an ordered field *}
-
-instantiation rat :: ordered_field
-begin
-
-definition
-  abs_rat_def: "\<bar>q\<bar> = (if q < 0 then -q else (q::rat))"
-
-definition
-  sgn_rat_def: "sgn (q::rat) = (if q=0 then 0 else if 0<q then 1 else - 1)"
-
-theorem abs_rat: "b \<noteq> 0 ==> \<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
-  by (simp add: abs_rat_def minus_rat Zero_rat_def less_rat eq_rat)
-     (auto simp add: mult_less_0_iff zero_less_mult_iff order_le_less
-                split: abs_split)
-
-instance proof
+instance rat :: ordered_field
+proof
   fix q r s :: rat
   show "q \<le> r ==> s + q \<le> s + r"
   proof (induct q, induct r, induct s)
@@ -441,22 +512,13 @@ instance proof
         by (simp add: less_rat mult_rat mult_ac)
     qed
   qed
-  show "\<bar>q\<bar> = (if q < 0 then -q else q)"
-    by (simp only: abs_rat_def)
-qed (auto simp: sgn_rat_def)
+qed auto
 
-end
-
-subsection {* Various Other Results *}
-
-lemma minus_rat_cancel [simp]: "b \<noteq> 0 ==> Fract (-a) (-b) = Fract a b"
-by (simp add: eq_rat)
-
-theorem Rat_induct_pos [case_names Fract, induct type: rat]:
-  assumes step: "!!a b. 0 < b ==> P (Fract a b)"
-    shows "P q"
+lemma Rat_induct_pos [case_names Fract, induct type: rat]:
+  assumes step: "\<And>a b. 0 < b \<Longrightarrow> P (Fract a b)"
+  shows "P q"
 proof (cases q)
-  have step': "!!a b. b < 0 ==> P (Fract a b)"
+  have step': "\<And>a b. b < 0 \<Longrightarrow> P (Fract a b)"
   proof -
     fix a::int and b::int
     assume b: "b < 0"
@@ -472,39 +534,8 @@ lemma zero_less_Fract_iff:
      "0 < b ==> (0 < Fract a b) = (0 < a)"
 by (simp add: Zero_rat_def less_rat order_less_imp_not_eq2 zero_less_mult_iff)
 
-lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
-apply (insert add_rat [of concl: m n 1 1])
-apply (simp add: One_rat_def [symmetric])
-done
 
-lemma of_nat_rat: "of_nat k = Fract (of_nat k) 1"
-by (induct k) (simp_all add: Zero_rat_def One_rat_def add_rat)
-
-lemma of_int_rat: "of_int k = Fract k 1"
-by (cases k rule: int_diff_cases, simp add: of_nat_rat diff_rat)
-
-lemma Fract_of_nat_eq: "Fract (of_nat k) 1 = of_nat k"
-by (rule of_nat_rat [symmetric])
-
-lemma Fract_of_int_eq: "Fract k 1 = of_int k"
-by (rule of_int_rat [symmetric])
-
-lemma Fract_of_int_quotient: "Fract k l = (if l = 0 then Fract 1 0 else of_int k / of_int l)"
-by (auto simp add: Fract_zero Fract_of_int_eq [symmetric] divide_rat)
-
-
-subsection {* Numerals and Arithmetic *}
-
-instantiation rat :: number_ring
-begin
-
-definition
-  rat_number_of_def [code func del]: "number_of w = (of_int w \<Colon> rat)"
-
-instance
-  by default (simp add: rat_number_of_def)
-
-end 
+subsection {* Arithmetic setup *}
 
 use "rat_arith.ML"
 declaration {* K rat_arith_setup *}
@@ -514,24 +545,25 @@ subsection {* Embedding from Rationals to other Fields *}
 
 class field_char_0 = field + ring_char_0
 
-instance ordered_field < field_char_0 .. 
+subclass (in ordered_field) field_char_0 ..
 
-definition
-  of_rat :: "rat \<Rightarrow> 'a::field_char_0"
-where
+context field_char_0
+begin
+
+definition of_rat :: "rat \<Rightarrow> 'a" where
   [code func del]: "of_rat q = contents (\<Union>(a,b) \<in> Rep_Rat q. {of_int a / of_int b})"
 
+end
+
 lemma of_rat_congruent:
-  "(\<lambda>(a, b). {of_int a / of_int b::'a::field_char_0}) respects ratrel"
+  "(\<lambda>(a, b). {of_int a / of_int b :: 'a::field_char_0}) respects ratrel"
 apply (rule congruent.intro)
 apply (clarsimp simp add: nonzero_divide_eq_eq nonzero_eq_divide_eq)
 apply (simp only: of_int_mult [symmetric])
 done
 
-lemma of_rat_rat:
-  "b \<noteq> 0 \<Longrightarrow> of_rat (Fract a b) = of_int a / of_int b"
-unfolding Fract_def of_rat_def
-by (simp add: UN_ratrel of_rat_congruent)
+lemma of_rat_rat: "b \<noteq> 0 \<Longrightarrow> of_rat (Fract a b) = of_int a / of_int b"
+  unfolding Fract_def of_rat_def by (simp add: UN_ratrel of_rat_congruent)
 
 lemma of_rat_0 [simp]: "of_rat 0 = 0"
 by (simp add: Zero_rat_def of_rat_rat)
@@ -621,96 +653,61 @@ where
 
 subsection {* Implementation of rational numbers as pairs of integers *}
 
-definition
-  Rational :: "int \<times> int \<Rightarrow> rat"
-where
-  "Rational = INum"
+lemma INum_Fract [simp]: "INum = split Fract"
+  by (auto simp add: expand_fun_eq INum_def Fract_of_int_quotient)
 
-code_datatype Rational
-
-lemma Rational_simp:
-  "Rational (k, l) = rat_of_int k / rat_of_int l"
-  unfolding Rational_def INum_def by simp
-
-lemma Rational_zero [simp]: "Rational 0\<^sub>N = 0"
-  by (simp add: Rational_simp)
-
-lemma Rational_lit [simp]: "Rational i\<^sub>N = rat_of_int i"
-  by (simp add: Rational_simp)
-
-lemma zero_rat_code [code, code unfold]:
-  "0 = Rational 0\<^sub>N" by simp
-declare zero_rat_code [symmetric, code post]
-
-lemma one_rat_code [code, code unfold]:
-  "1 = Rational 1\<^sub>N" by simp
-declare one_rat_code [symmetric, code post]
-
-lemma [code unfold, symmetric, code post]:
-  "number_of k = rat_of_int (number_of k)"
-  by (simp add: number_of_is_id rat_number_of_def)
-
-definition
-  [code func del]: "Fract' (b\<Colon>bool) k l = Fract k l"
+lemma split_Fract_normNum [simp]: "split Fract (normNum (k, l)) = Fract k l"
+  unfolding INum_Fract [symmetric] normNum by simp
 
 lemma [code]:
-  "Fract k l = Fract' (l \<noteq> 0) k l"
-  unfolding Fract'_def ..
-
-lemma [code]:
-  "Fract' True k l = (if l \<noteq> 0 then Rational (k, l) else Fract 1 0)"
-  by (simp add: Fract'_def Rational_simp Fract_of_int_quotient [of k l])
-
-lemma [code]:
-  "of_rat (Rational (k, l)) = (if l \<noteq> 0 then of_int k / of_int l else 0)"
-  by (cases "l = 0")
-    (auto simp add: Rational_simp of_rat_rat [simplified Fract_of_int_quotient [of k l], symmetric])
+  "of_rat (Fract k l) = (if l \<noteq> 0 then of_int k / of_int l else 0)"
+  by (cases "l = 0") (simp_all add: rat_number_collapse of_rat_rat)
 
 instantiation rat :: eq
 begin
 
-definition [code func del]: "eq_class.eq (r\<Colon>rat) s \<longleftrightarrow> r = s"
+definition [code func del]: "eq_class.eq (r\<Colon>rat) s \<longleftrightarrow> r - s = 0"
 
 instance by default (simp add: eq_rat_def)
 
-lemma rat_eq_code [code]: "eq_class.eq (Rational x) (Rational y) \<longleftrightarrow> eq_class.eq (normNum x) (normNum y)"
-  unfolding Rational_def INum_normNum_iff eq ..
+lemma rat_eq_code [code]: "eq_class.eq (Fract k l) (Fract r s) \<longleftrightarrow> eq_class.eq (normNum (k, l)) (normNum (r, s))"
+  by (simp add: eq INum_normNum_iff [where ?'a = rat, symmetric])
 
 end
 
-lemma rat_less_eq_code [code]: "Rational x \<le> Rational y \<longleftrightarrow> normNum x \<le>\<^sub>N normNum y"
+lemma rat_less_eq_code [code]: "Fract k l \<le> Fract r s \<longleftrightarrow> normNum (k, l) \<le>\<^sub>N normNum (r, s)"
 proof -
-  have "normNum x \<le>\<^sub>N normNum y \<longleftrightarrow> Rational (normNum x) \<le> Rational (normNum y)" 
-    by (simp add: Rational_def del: normNum)
-  also have "\<dots> = (Rational x \<le> Rational y)" by (simp add: Rational_def)
+  have "normNum (k, l) \<le>\<^sub>N normNum (r, s) \<longleftrightarrow> split Fract (normNum (k, l)) \<le> split Fract (normNum (r, s))" 
+    by (simp add: INum_Fract [symmetric] del: INum_Fract normNum)
+  also have "\<dots> = (Fract k l \<le> Fract r s)" by simp
   finally show ?thesis by simp
 qed
 
-lemma rat_less_code [code]: "Rational x < Rational y \<longleftrightarrow> normNum x <\<^sub>N normNum y"
+lemma rat_less_code [code]: "Fract k l < Fract r s \<longleftrightarrow> normNum (k, l) <\<^sub>N normNum (r, s)"
 proof -
-  have "normNum x <\<^sub>N normNum y \<longleftrightarrow> Rational (normNum x) < Rational (normNum y)" 
-    by (simp add: Rational_def del: normNum)
-  also have "\<dots> = (Rational x < Rational y)" by (simp add: Rational_def)
+  have "normNum (k, l) <\<^sub>N normNum (r, s) \<longleftrightarrow> split Fract (normNum (k, l)) < split Fract (normNum (r, s))" 
+    by (simp add: INum_Fract [symmetric] del: INum_Fract normNum)
+  also have "\<dots> = (Fract k l < Fract r s)" by simp
   finally show ?thesis by simp
 qed
 
-lemma rat_add_code [code]: "Rational x + Rational y = Rational (x +\<^sub>N y)"
-  unfolding Rational_def by simp
+lemma rat_add_code [code]: "Fract k l + Fract r s = split Fract ((k, l) +\<^sub>N (r, s))"
+  by (simp add: INum_Fract [symmetric] del: INum_Fract, simp)
 
-lemma rat_mul_code [code]: "Rational x * Rational y = Rational (x *\<^sub>N y)"
-  unfolding Rational_def by simp
+lemma rat_mul_code [code]: "Fract k l * Fract r s = split Fract ((k, l) *\<^sub>N (r, s))"
+  by (simp add: INum_Fract [symmetric] del: INum_Fract, simp)
 
-lemma rat_neg_code [code]: "- Rational x = Rational (~\<^sub>N x)"
-  unfolding Rational_def by simp
+lemma rat_neg_code [code]: "- Fract k l = split Fract (~\<^sub>N (k, l))"
+  by (simp add: INum_Fract [symmetric] del: INum_Fract, simp)
 
-lemma rat_sub_code [code]: "Rational x - Rational y = Rational (x -\<^sub>N y)"
-  unfolding Rational_def by simp
+lemma rat_sub_code [code]: "Fract k l - Fract r s = split Fract ((k, l) -\<^sub>N (r, s))"
+  by (simp add: INum_Fract [symmetric] del: INum_Fract, simp)
 
-lemma rat_inv_code [code]: "inverse (Rational x) = Rational (Ninv x)"
-  unfolding Rational_def Ninv divide_rat_def by simp
+lemma rat_inv_code [code]: "inverse (Fract k l) = split Fract (Ninv (k, l))"
+  by (simp add: INum_Fract [symmetric] del: INum_Fract, simp add: divide_rat_def)
 
-lemma rat_div_code [code]: "Rational x / Rational y = Rational (x \<div>\<^sub>N y)"
-  unfolding Rational_def by simp
+lemma rat_div_code [code]: "Fract k l / Fract r s = split Fract ((k, l) \<div>\<^sub>N (r, s))"
+  by (simp add: INum_Fract [symmetric] del: INum_Fract, simp)
 
 text {* Setup for SML code generator *}
 
@@ -742,7 +739,7 @@ fun gen_rat i =
 *}
 
 consts_code
-  Rational ("(_)")
+  Fract ("(_,/ _)")
 
 consts_code
   "of_int :: int \<Rightarrow> rat" ("\<module>rat'_of'_int")

@@ -41,6 +41,8 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* HOL-Rational: 'Fract k 0' now equals '0'.  INCOMPATIBILITY.
+
 * Integrated image HOL-Complex with HOL.  Entry points Main.thy and
 Complex_Main.thy remain as they are.
 
