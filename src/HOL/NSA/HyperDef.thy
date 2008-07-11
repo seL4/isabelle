@@ -85,6 +85,8 @@ instance star :: (real_algebra_1) real_algebra_1 ..
 
 instance star :: (real_div_algebra) real_div_algebra ..
 
+instance star :: (field_char_0) field_char_0 ..
+
 instance star :: (real_field) real_field ..
 
 lemma star_of_real_def [transfer_unfold]: "of_real r = star_of (of_real r)"
