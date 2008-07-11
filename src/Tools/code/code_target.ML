@@ -33,6 +33,8 @@ sig
   type serialization;
   type serializer;
   val add_target: string * serializer -> theory -> theory;
+  val extend_target: string * (string * (CodeThingol.program -> CodeThingol.program))
+    -> theory -> theory;
   val assert_target: theory -> string -> string;
   val serialize: theory -> string -> string option -> Args.T list
     -> CodeThingol.program -> string list -> serialization;
@@ -131,19 +133,19 @@ type typ_syntax = int * ((fixity -> itype -> Pretty.T)
 type term_syntax = int * ((CodeName.var_ctxt -> fixity -> iterm -> Pretty.T)
   -> thm -> bool -> CodeName.var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
-
-(** theory data **)
-
-val target_SML = "SML";
-val target_OCaml = "OCaml";
-val target_Haskell = "Haskell";
-
 datatype name_syntax_table = NameSyntaxTable of {
   class: class_syntax Symtab.table,
   inst: unit Symtab.table,
   tyco: typ_syntax Symtab.table,
   const: term_syntax Symtab.table
 };
+
+
+(** theory data **)
+
+val target_SML = "SML";
+val target_OCaml = "OCaml";
+val target_Haskell = "Haskell";
 
 fun mk_name_syntax_table ((class, inst), (tyco, const)) =
   NameSyntaxTable { class = class, inst = inst, tyco = tyco, const = const };
@@ -172,9 +174,12 @@ type serializer =
   -> string list                        (*selected statements*)
   -> serialization;
 
+datatype serializer_entry = Serializer of serializer
+  | Extends of string * (CodeThingol.program -> CodeThingol.program);
+
 datatype target = Target of {
   serial: serial,
-  serializer: serializer,
+  serializer: serializer_entry,
   reserved: string list,
   includes: Pretty.T Symtab.table,
   name_syntax_table: name_syntax_table,
@@ -186,13 +191,13 @@ fun mk_target ((serial, serializer), ((reserved, includes), (name_syntax_table, 
     includes = includes, name_syntax_table = name_syntax_table, module_alias = module_alias };
 fun map_target f ( Target { serial, serializer, reserved, includes, name_syntax_table, module_alias } ) =
   mk_target (f ((serial, serializer), ((reserved, includes), (name_syntax_table, module_alias))));
-fun merge_target target (Target { serial = serial1, serializer = serializer,
+fun merge_target strict target (Target { serial = serial1, serializer = serializer,
   reserved = reserved1, includes = includes1,
   name_syntax_table = name_syntax_table1, module_alias = module_alias1 },
     Target { serial = serial2, serializer = _,
       reserved = reserved2, includes = includes2,
       name_syntax_table = name_syntax_table2, module_alias = module_alias2 }) =
-  if serial1 = serial2 then
+  if serial1 = serial2 orelse not strict then
     mk_target ((serial1, serializer),
       ((merge (op =) (reserved1, reserved2), Symtab.merge (op =) (includes1, includes2)),
         (merge_name_syntax_table (name_syntax_table1, name_syntax_table2),
@@ -208,7 +213,7 @@ structure CodeTargetData = TheoryDataFun
   val copy = I;
   val extend = I;
   fun merge _ ((target1, exc1) : T, (target2, exc2)) =
-    (Symtab.join merge_target (target1, target2), Library.merge (op =) (exc1, exc2));
+    (Symtab.join (merge_target true) (target1, target2), Library.merge (op =) (exc1, exc2));
 );
 
 fun the_serializer (Target { serializer, ... }) = serializer;
@@ -224,11 +229,16 @@ fun assert_target thy target =
    of SOME data => target
     | NONE => error ("Unknown code target language: " ^ quote target);
 
-fun add_target (target, seri) thy =
+fun put_target (target, seri) thy =
   let
-    val _ = case Symtab.lookup (fst (CodeTargetData.get thy)) target
-     of SOME _ => warning ("Overwriting existing serializer " ^ quote target)
-      | NONE => ();
+    val defined_target = is_some o Symtab.lookup (fst (CodeTargetData.get thy));
+    val _ = case seri
+     of Extends (super, _) => if defined_target super then ()
+          else error ("No such target: " ^ quote super)
+      | _ => ();
+    val _ = if defined_target target
+      then warning ("Overwriting existing target " ^ quote target)
+      else ();
   in
     thy
     |> (CodeTargetData.map o apfst oo Symtab.map_default)
@@ -237,6 +247,10 @@ fun add_target (target, seri) thy =
               Symtab.empty))))
           ((map_target o apfst o apsnd o K) seri)
   end;
+
+fun add_target (target, seri) = put_target (target, Serializer seri);
+fun extend_target (target, (super, modify)) =
+  put_target (target, Extends (super, modify));
 
 fun map_target_data target f thy =
   let
@@ -255,14 +269,15 @@ fun map_name_syntax target =
 fun map_module_alias target =
   map_target_data target o apsnd o apsnd o apsnd;
 
-fun invoke_serializer thy abortable serializer reserved includes 
+fun invoke_serializer thy modify abortable serializer reserved includes 
     module_alias class inst tyco const module args program1 cs1 =
   let
+    val program2 = modify program1;
     val hidden = Symtab.keys class @ Symtab.keys inst @ Symtab.keys tyco @ Symtab.keys const;
     val cs2 = subtract (op =) hidden cs1;
-    val program2 = Graph.subgraph (not o member (op =) hidden) program1;
+    val program3 = Graph.subgraph (not o member (op =) hidden) program2;
     val all_cs = Graph.all_succs program2 cs2;
-    val program3 = Graph.subgraph (member (op =) all_cs) program2;
+    val program4 = Graph.subgraph (member (op =) all_cs) program3;
     val empty_funs = filter_out (member (op =) abortable)
       (CodeThingol.empty_funs program3);
     val _ = if null empty_funs then () else error ("No defining equations for "
@@ -271,22 +286,32 @@ fun invoke_serializer thy abortable serializer reserved includes
     serializer module args (CodeName.labelled_name thy) reserved includes
       (Symtab.lookup module_alias) (Symtab.lookup class)
       (Symtab.lookup tyco) (Symtab.lookup const)
-      program3 cs2
+      program4 cs2
   end;
 
 fun mount_serializer thy alt_serializer target =
   let
     val (targets, abortable) = CodeTargetData.get thy;
-    val data = case Symtab.lookup targets target
-     of SOME data => data
-      | NONE => error ("Unknown code target language: " ^ quote target);
-    val serializer = the_default (the_serializer data) alt_serializer;
+    fun collapse_hierarchy target =
+      let
+        val data = case Symtab.lookup targets target
+         of SOME data => data
+          | NONE => error ("Unknown code target language: " ^ quote target);
+      in case the_serializer data
+       of Serializer _ => (I, data)
+        | Extends (super, modify) => let
+            val (modify', data') = collapse_hierarchy super
+          in (modify' #> modify, merge_target false target (data', data)) end
+      end;
+    val (modify, data) = collapse_hierarchy target;
+    val serializer = the_default (case the_serializer data
+     of Serializer seri => seri) alt_serializer;
     val reserved = the_reserved data;
     val includes = Symtab.dest (the_includes data);
     val module_alias = the_module_alias data;
     val { class, inst, tyco, const } = the_name_syntax data;
   in
-    invoke_serializer thy abortable serializer reserved
+    invoke_serializer thy modify abortable serializer reserved
       includes module_alias class inst tyco const
   end;
 
