@@ -194,7 +194,7 @@ fun insert_arity_completions thy (t, ((c, Ss), th)) arities =
       |> filter_out (fn c1 => exists (fn ((c2, Ss2), _) => c1 = c2
           andalso Sorts.sorts_le algebra (Ss2, Ss)) (Symtab.lookup_list arities t))
     val tags = Thm.get_tags th;
-    val completions = map (fn c1 => (Sorts.weaken ((#classes o Sorts.rep_algebra) algebra)
+    val completions = map (fn c1 => (Sorts.weaken algebra
       (fn (th, c2) => fn c3 => th RS the_classrel thy (c2, c3)) (th, c) c1
         |> Thm.map_tags (K tags) |> Thm.close_derivation, c1)) super_class_completions;
     val arities' = fold (fn (th1, c1) => Symtab.cons_list (t, ((c1, Ss), th1)))
