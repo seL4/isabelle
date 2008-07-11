@@ -166,33 +166,19 @@ end;
 
 (* theory name lookup *)
 
-fun thyname_of thy f x = the (AList.lookup (op =) (f x) Markup.theory_nameN);
-
-fun thyname_of' thy f errmsg x =
-  let
-    fun thy_of thy =
-      if f thy x then case get_first thy_of (Theory.parents_of thy)
-        of NONE => SOME thy
-         | thy => thy
-      else NONE;
-  in case thy_of thy
-   of SOME thy => Context.theory_name thy
-    | NONE => error (errmsg x) end;
-
-fun thyname_of_class thy = thyname_of thy (ProofContext.query_class (ProofContext.init thy));
-
-fun thyname_of_tyco thy = thyname_of thy (Type.the_tags (Sign.tsig_of thy));
-
-fun thyname_of_instance thy =
-  let
-    fun test_instance thy (class, tyco) =
-      can (Sorts.mg_domain (Sign.classes_of thy) tyco) [class]
-  in thyname_of' thy test_instance
-    (fn (class, tyco) => "thyname_of_instance: no such instance: "
-      ^ (quote o string_of_instance) (class, tyco))
-  end;
-
-fun thyname_of_const thy = thyname_of thy (Consts.the_tags (Sign.consts_of thy));
+local
+  fun thyname_of thy f x = the (AList.lookup (op =) (f x) Markup.theory_nameN);
+in
+  fun thyname_of_class thy =
+    thyname_of thy (ProofContext.query_class (ProofContext.init thy));
+  fun thyname_of_tyco thy =
+    thyname_of thy (Type.the_tags (Sign.tsig_of thy));
+  fun thyname_of_instance thy a = case AxClass.arity_property thy a Markup.theory_nameN
+   of [] => error "no such instance: " ^ (quote o string_of_instance) a
+    | thyname :: _ => thyname;
+  fun thyname_of_const thy =
+    thyname_of thy (Consts.the_tags (Sign.consts_of thy));
+end;
 
 
 (* naming policies *)
