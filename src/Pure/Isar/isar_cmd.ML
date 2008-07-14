@@ -37,12 +37,9 @@ sig
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val done_proof: Toplevel.transition -> Toplevel.transition
   val skip_proof: Toplevel.transition -> Toplevel.transition
-  val begin_theory: string -> string list -> (string * bool) list -> bool -> theory
-  val end_theory: theory -> theory
-  val theory: string * string list * (string * bool) list
-    -> Toplevel.transition -> Toplevel.transition
+  val init_theory: string * string list * (string * bool) list ->
+    Toplevel.transition -> Toplevel.transition
   val welcome: Toplevel.transition -> Toplevel.transition
-  val init_toplevel: Toplevel.transition -> Toplevel.transition
   val exit: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
@@ -300,18 +297,11 @@ val skip_proof = local_skip_proof o global_skip_proof;
 
 (* init and exit *)
 
-fun begin_theory name imports uses =
-  ThyInfo.begin_theory name imports (map (apfst Path.explode) uses);
-
-fun end_theory thy =
-  if ThyInfo.check_known_thy (Context.theory_name thy) then ThyInfo.end_theory thy else thy;
-
-fun theory (name, imports, uses) =
-  Toplevel.init_theory name (begin_theory name imports uses)
-    (fn thy => (end_theory thy; ()))
-    (ThyInfo.kill_thy o Context.theory_name);
-
-val init_toplevel = Toplevel.imperative (fn () => raise Toplevel.RESTART);
+fun init_theory (name, imports, uses) =
+  Toplevel.init_theory name (ThyInfo.begin_theory name imports (map (apfst Path.explode) uses))
+    (fn thy =>
+      if ThyInfo.check_known_thy (Context.theory_name thy)
+      then ThyInfo.end_theory thy else ());
 
 val welcome = Toplevel.imperative (writeln o Session.welcome);
 
@@ -399,7 +389,7 @@ val print_theorems_proof = Toplevel.keep (fn state =>
 
 val print_theorems_theory = Toplevel.keep (fn state =>
   Toplevel.theory_of state |>
-  (case Option.map Toplevel.theory_node (History.previous (Toplevel.node_history_of state)) of
+  (case Option.map Toplevel.theory_node (Toplevel.previous_node_of state) of
     SOME (SOME prev_thy) => ProofDisplay.print_theorems_diff (Context.theory_of prev_thy)
   | _ => ProofDisplay.print_theorems));
 
