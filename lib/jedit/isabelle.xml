@@ -258,7 +258,6 @@
       <OPERATOR>recdef_tc</OPERATOR>
       <OPERATOR>record</OPERATOR>
       <KEYWORD4>recursor_eqns</KEYWORD4>
-      <INVALID>redo</INVALID>
       <LABEL>refute</LABEL>
       <OPERATOR>refute_params</OPERATOR>
       <LABEL>remove_thy</LABEL>

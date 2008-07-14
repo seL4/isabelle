@@ -153,7 +153,6 @@
     "quit"
     "realizability"
     "realizers"
-    "redo"
     "remove_thy"
     "rep_datatype"
     "sect"
@@ -259,7 +258,6 @@
     "kill"
     "linear_undo"
     "quit"
-    "redo"
     "undo"
     "undos_proof"))
 

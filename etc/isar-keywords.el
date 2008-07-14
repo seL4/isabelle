@@ -185,7 +185,6 @@
     "recdef"
     "recdef_tc"
     "record"
-    "redo"
     "refute"
     "refute_params"
     "remove_thy"
@@ -313,7 +312,6 @@
     "kill"
     "linear_undo"
     "quit"
-    "redo"
     "undo"
     "undos_proof"))
 
