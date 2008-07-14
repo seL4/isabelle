@@ -30,7 +30,6 @@ use "path.ML";
 use "url.ML";
 use "file.ML";
 use "buffer.ML";
-use "history.ML";
 use "xml.ML";
 use "yxml.ML";
 
