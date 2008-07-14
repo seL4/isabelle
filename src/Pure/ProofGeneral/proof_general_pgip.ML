@@ -429,7 +429,7 @@ fun setup_preferences_tweak() =
 fun isarcmd s = Isar.>>> (OuterSyntax.parse Position.none s);
 
 (* TODO:
-    - apply a command given a transition function, e.g. IsarCmd.undo.
+    - apply a command given a transition function;
     - fix position from path of currently open file [line numbers risk garbling though].
 *)
 
@@ -549,7 +549,7 @@ fun undostep (Undostep vs) =
         isarcmd ("undos_proof " ^ Int.toString times)
     end
 
-fun redostep _ = isarcmd "redo"
+fun redostep _ = sys_error "redo unavailable"
 
 fun abortgoal _ = isarcmd "kill" (* was: ProofGeneral.kill_proof *)
 
