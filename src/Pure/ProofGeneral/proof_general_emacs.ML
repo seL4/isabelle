@@ -25,7 +25,8 @@ val pgasciiN = "PGASCII";                  (*plain 7-bit ASCII communication*)
 val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
 val test_markupN = "test_markup";          (*XML markup for everything*)
 
-val _ = Markup.add_mode test_markupN XML.output_markup;
+val _ = Markup.add_mode test_markupN (fn (name, props) =>
+  if name = Markup.promptN then ("", "") else XML.output_markup (name, props));
 
 fun special oct =
   if print_mode_active pgasciiN then Symbol.SOH ^ chr (ord (oct_char oct) - 167)
@@ -70,7 +71,7 @@ val _ = Markup.add_mode proof_generalN (fn (name, props) =>
       else if name = Markup.skolemN then (special "357", special "350")
       else ("", "");
     val (bg2, en2) =
-      if print_mode_active test_markupN
+      if name <> Markup.promptN andalso print_mode_active test_markupN
       then XML.output_markup (name, props)
       else ("", "");
   in (bg1 ^ bg2, en2 ^ en1) end);
