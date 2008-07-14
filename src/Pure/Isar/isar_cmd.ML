@@ -48,15 +48,6 @@ sig
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
-  val redo: Toplevel.transition -> Toplevel.transition
-  val undos_proof: int -> Toplevel.transition -> Toplevel.transition
-  val kill_proof_notify: (unit -> unit) -> Toplevel.transition -> Toplevel.transition
-  val kill_proof: Toplevel.transition -> Toplevel.transition
-  val undo_theory: Toplevel.transition -> Toplevel.transition
-  val undo: Toplevel.transition -> Toplevel.transition
-  val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
-  val kill: Toplevel.transition -> Toplevel.transition
-  val back: Toplevel.transition -> Toplevel.transition
   val ml_diag: bool -> string * Position.T -> Toplevel.transition -> Toplevel.transition
   val nested_command: Markup.property list -> string * Position.T -> Toplevel.transition
   val cd: Path.T -> Toplevel.transition -> Toplevel.transition
@@ -282,8 +273,7 @@ val local_immediate_proof = Toplevel.proofs Proof.local_immediate_proof;
 val local_done_proof = Toplevel.proofs Proof.local_done_proof;
 val local_skip_proof = Toplevel.proofs' Proof.local_skip_proof;
 
-val skip_local_qed =
-  Toplevel.skip_proof (History.apply (fn i => if i > 1 then i - 1 else raise Toplevel.UNDEF));
+val skip_local_qed = Toplevel.skip_proof (fn i => if i > 1 then i - 1 else raise Toplevel.UNDEF);
 
 
 (* global endings *)
@@ -343,40 +333,6 @@ fun pr (modes, (lim1, lim2)) = Toplevel.keep (fn state =>
 
 val disable_pr = Toplevel.imperative (fn () => Toplevel.quiet := true);
 val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
-
-
-(* history commands *)
-
-val redo =
-  Toplevel.history History.redo o
-  Toplevel.actual_proof ProofHistory.redo o
-  Toplevel.skip_proof History.redo;
-
-fun undos_proof n =
-  Toplevel.actual_proof (fn prf =>
-    if ProofHistory.is_initial prf then raise Toplevel.UNDEF else funpow n ProofHistory.undo prf) o
-  Toplevel.skip_proof (fn h =>
-    if History.is_initial h then raise Toplevel.UNDEF else funpow n History.undo h);
-
-fun kill_proof_notify (f: unit -> unit) = Toplevel.history (fn hist =>
-  if is_some (Toplevel.theory_node (History.current hist)) then raise Toplevel.UNDEF
-  else (f (); History.undo hist));
-
-val kill_proof = kill_proof_notify (K ());
-
-val undo_theory = Toplevel.history (fn hist =>
-  if History.is_initial hist then raise Toplevel.UNDEF else History.undo hist);
-
-val undo = Toplevel.kill o undo_theory o Toplevel.undo_exit o undos_proof 1;
-
-fun cannot_undo "end" = undo   (*ProofGeneral legacy*)
-  | cannot_undo txt = Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt));
-
-val kill = Toplevel.kill o kill_proof;
-
-val back =
-  Toplevel.actual_proof ProofHistory.back o
-  Toplevel.skip_proof (History.apply I);
 
 
 (* diagnostic ML evaluation *)
