@@ -174,8 +174,8 @@ fun commit_exit () =
     (case (Toplevel.is_toplevel st, prev_command id) of
       (true, SOME prev) =>
         (case Toplevel.transition true Toplevel.commit_exit (#1 (the_result prev)) of
-          SOME (_, SOME (exn, msg)) => raise Exn.EXCEPTIONS ([exn], msg)
-        | _ => ())
+          SOME (_, SOME err) => error (Toplevel.exn_message (Toplevel.EXCURSION_FAIL err))
+        | _ => init_point ())
     | _ => error "Expected to find finished theory")
   end;
 
