@@ -56,6 +56,9 @@ use "overloading.ML";
 use "locale.ML";
 use "class.ML";
 
+(*complex proof machineries*)
+use "../simplifier.ML";
+
 (*executable theory content*)
 use "code_unit.ML";
 use "code.ML";
@@ -84,7 +87,6 @@ use "../Thy/thy_edit.ML";
 
 (*theory and proof operations*)
 use "rule_insts.ML";
-use "../simplifier.ML";
 use "../Thy/thm_deps.ML";
 use "find_theorems.ML";
 use "isar_cmd.ML";
