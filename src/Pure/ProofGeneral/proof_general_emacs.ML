@@ -130,32 +130,25 @@ end;
 
 (* get informed about files *)
 
-local
-
 (*liberal low-level version*)
 val thy_name = perhaps (try (unsuffix ".thy")) o List.last o space_explode "/";
-val thy_path = ThyLoad.thy_path o thy_name;
-
-in
-
-fun check_thy "" = false
-  | check_thy file = ThyInfo.check_known_thy (thy_name file);
-
-fun proper_inform_file_processed file () =
-  let
-    val name = thy_name file;
-    val _ = ThyInfo.touch_child_thys name;
-    val _ = ThyInfo.register_thy name handle ERROR msg =>
-      (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
-        tell_file_retracted (thy_path file));
-    val _ = Isar.init_point ();
-  in () end;
-
-fun vacuous_inform_file_processed file () = tell_file_retracted (thy_path file);
 
 val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
 
-end;
+fun inform_file_processed file =
+  let
+    val name = thy_name file;
+    val _ = name = "" andalso error ("Bad file name: " ^ quote file);
+    val _ =
+      if ThyInfo.check_known_thy name then
+        (Isar.commit_exit ();
+          ThyInfo.touch_child_thys name;
+          ThyInfo.register_thy name handle ERROR msg =>
+            (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
+             tell_file_retracted (ThyLoad.thy_path name)))
+      else ();
+    val _ = Isar.init_point ();
+  in () end;
 
 
 (* restart top-level loop (keeps most state information) *)
@@ -167,8 +160,7 @@ fun restart () =
   tell_clear_goals ();
   tell_clear_response ();
   Isar.init_point ();
-  welcome ();
-  raise Toplevel.RESTART);
+  welcome ());
 
 
 (* theorem dependency output *)
@@ -219,11 +211,8 @@ fun kill_proofP () =
 
 fun inform_file_processedP () =
   OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" K.control
-    (P.name >> (fn file => Toplevel.no_timing o
-      Toplevel.imperative (fn () => error "Bad file name") o
-      Toplevel.init_empty (fn _ => file <> "") (vacuous_inform_file_processed file) o
-      Toplevel.kill o
-      Toplevel.init_empty (fn _ => check_thy file) (proper_inform_file_processed file)));
+    (P.name >> (fn file =>
+      Toplevel.no_timing o Toplevel.imperative (fn () => inform_file_processed file)));
 
 fun inform_file_retractedP () =
   OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" K.control
