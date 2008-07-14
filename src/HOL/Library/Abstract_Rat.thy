@@ -44,7 +44,7 @@ proof -
     let ?g' = "zgcd ?a' ?b'"
     from anz bnz have "?g \<noteq> 0" by simp  with zgcd_pos[of a b] 
     have gpos: "?g > 0"  by arith
-    have gdvd: "?g dvd a" "?g dvd b" by (simp_all add: zgcd_dvd1 zgcd_dvd2)
+    have gdvd: "?g dvd a" "?g dvd b" by (simp_all add: zgcd_zdvd1 zgcd_zdvd2)
     from zdvd_mult_div_cancel[OF gdvd(1)] zdvd_mult_div_cancel[OF gdvd(2)]
     anz bnz
     have nz':"?a' \<noteq> 0" "?b' \<noteq> 0" 
@@ -296,10 +296,8 @@ let ?z = "0:: 'a"
       let ?g = "zgcd (a * b' + b * a') (b*b')"
       have gz: "?g \<noteq> 0" using z by simp
       have ?thesis using aa' bb' z gz
-	of_int_div[where ?'a = 'a, 
-	OF gz zgcd_dvd1[where i="a * b' + b * a'" and j="b*b'"]]
-	of_int_div[where ?'a = 'a,
-	OF gz zgcd_dvd2[where i="a * b' + b * a'" and j="b*b'"]]
+	of_int_div[where ?'a = 'a, OF gz zgcd_zdvd1[where i="a * b' + b * a'" and j="b*b'"]]	of_int_div[where ?'a = 'a,
+	OF gz zgcd_zdvd2[where i="a * b' + b * a'" and j="b*b'"]]
 	by (simp add: x y Nadd_def INum_def normNum_def Let_def add_divide_distrib)}
     ultimately have ?thesis using aa' bb' 
       by (simp add: Nadd_def INum_def normNum_def x y Let_def) }
@@ -320,8 +318,8 @@ proof-
   {assume z: "a \<noteq> 0" "a' \<noteq> 0" "b \<noteq> 0" "b' \<noteq> 0"
     let ?g="zgcd (a*a') (b*b')"
     have gz: "?g \<noteq> 0" using z by simp
-    from z of_int_div[where ?'a = 'a, OF gz zgcd_dvd1[where i="a*a'" and j="b*b'"]] 
-      of_int_div[where ?'a = 'a , OF gz zgcd_dvd2[where i="a*a'" and j="b*b'"]] 
+    from z of_int_div[where ?'a = 'a, OF gz zgcd_zdvd1[where i="a*a'" and j="b*b'"]] 
+      of_int_div[where ?'a = 'a , OF gz zgcd_zdvd2[where i="a*a'" and j="b*b'"]] 
     have ?thesis by (simp add: Nmul_def x y Let_def INum_def)}
   ultimately show ?thesis by blast
 qed

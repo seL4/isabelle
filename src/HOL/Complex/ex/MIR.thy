@@ -761,12 +761,12 @@ proof(induct t rule: numgcdh.induct)
   have "(abs c > 1 \<and> ?g > 1) \<or> (abs c = 0 \<and> ?g > 1) \<or> (abs c > 1 \<and> ?g = 0)" by simp
   moreover {assume "abs c > 1" and gp: "?g > 1" with prems
     have th: "dvdnumcoeff t ?g" by simp
-    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_dvd2)
-    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_dvd1)}
+    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_zdvd2)
+    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_zdvd1)}
   moreover {assume "abs c = 0 \<and> ?g > 1"
     with prems have th: "dvdnumcoeff t ?g" by simp
-    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_dvd2)
-    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_dvd1)
+    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_zdvd2)
+    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_zdvd1)
     hence ?case by simp }
   moreover {assume "abs c > 1" and g0:"?g = 0" 
     from numgcdh0[OF g0] have "m=0". with prems   have ?case by simp }
@@ -779,17 +779,17 @@ next
   have "(abs c > 1 \<and> ?g > 1) \<or> (abs c = 0 \<and> ?g > 1) \<or> (abs c > 1 \<and> ?g = 0)" by simp
   moreover {assume "abs c > 1" and gp: "?g > 1" with prems
     have th: "dvdnumcoeff t ?g" by simp
-    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_dvd2)
-    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_dvd1)}
+    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_zdvd2)
+    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_zdvd1)}
   moreover {assume "abs c = 0 \<and> ?g > 1"
     with prems have th: "dvdnumcoeff t ?g" by simp
-    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_dvd2)
-    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_dvd1)
+    have th': "zgcd c ?g dvd ?g" by (simp add:zgcd_zdvd2)
+    from dvdnumcoeff_trans[OF th' th] have ?case by (simp add: zgcd_zdvd1)
     hence ?case by simp }
   moreover {assume "abs c > 1" and g0:"?g = 0" 
     from numgcdh0[OF g0] have "m=0". with prems   have ?case by simp }
   ultimately show ?case by blast
-qed(auto simp add: zgcd_dvd1)
+qed(auto simp add: zgcd_zdvd1)
 
 lemma dvdnumcoeff_aux2:
   assumes "numgcd t > 1" shows "dvdnumcoeff t (numgcd t) \<and> numgcd t > 0"
@@ -1067,8 +1067,8 @@ proof-
 	from dvdnumcoeff_aux2[OF g1] have th1:"dvdnumcoeff ?t' ?g" ..
 	let ?tt = "reducecoeffh ?t' ?g'"
 	let ?t = "Inum bs ?tt"
-	have gpdg: "?g' dvd ?g" by (simp add: zgcd_dvd2)
-	have gpdd: "?g' dvd n" by (simp add: zgcd_dvd1) 
+	have gpdg: "?g' dvd ?g" by (simp add: zgcd_zdvd2)
+	have gpdd: "?g' dvd n" by (simp add: zgcd_zdvd1) 
 	have gpdgp: "?g' dvd ?g'" by simp
 	from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p] 
 	have th2:"real ?g' * ?t = Inum bs ?t'" by simp
@@ -1101,8 +1101,8 @@ proof-
       moreover {assume "?g'=1" hence ?thesis using prems 
 	  by (auto simp add: Let_def simp_num_pair_def)}
       moreover {assume g'1:"?g'>1"
-	have gpdg: "?g' dvd ?g" by (simp add: zgcd_dvd2)
-	have gpdd: "?g' dvd n" by (simp add: zgcd_dvd1) 
+	have gpdg: "?g' dvd ?g" by (simp add: zgcd_zdvd2)
+	have gpdd: "?g' dvd n" by (simp add: zgcd_zdvd1) 
 	have gpdgp: "?g' dvd ?g'" by simp
 	from zdvd_imp_le[OF gpdd np] have g'n: "?g' \<le> n" .
 	from zdiv_mono1[OF g'n g'p, simplified zdiv_self[OF gp0]]
@@ -1240,8 +1240,8 @@ proof-
       from dvdnumcoeff_aux2[OF g1] have th1:"dvdnumcoeff t ?g" ..
       let ?tt = "reducecoeffh t ?g'"
       let ?t = "Inum bs ?tt"
-      have gpdg: "?g' dvd ?g" by (simp add: zgcd_dvd2)
-      have gpdd: "?g' dvd d" by (simp add: zgcd_dvd1) 
+      have gpdg: "?g' dvd ?g" by (simp add: zgcd_zdvd2)
+      have gpdd: "?g' dvd d" by (simp add: zgcd_zdvd1) 
       have gpdgp: "?g' dvd ?g'" by simp
       from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p] 
       have th2:"real ?g' * ?t = Inum bs t" by simp
@@ -4173,7 +4173,7 @@ lemma bound0at_l : "\<lbrakk>isatom p ; bound0 p\<rbrakk> \<Longrightarrow> isrl
   by (induct p rule: isrlfm.induct, auto)
 lemma zgcd_le1: assumes ip: "0 < i" shows "zgcd i j \<le> i"
 proof-
-  from zgcd_dvd1 have th: "zgcd i j dvd i" by blast
+  from zgcd_zdvd1 have th: "zgcd i j dvd i" by blast
   from zdvd_imp_le[OF th ip] show ?thesis .
 qed
 

@@ -12,7 +12,7 @@ begin
 
 definition
   coprime :: "nat => nat => bool" where
-  "coprime m n \<longleftrightarrow> (gcd m n = 1)"
+  "coprime m n \<longleftrightarrow> gcd m n = 1"
 
 definition
   prime :: "nat \<Rightarrow> bool" where
@@ -314,7 +314,7 @@ proof(auto)
   assume H: "d dvd a" "d dvd b" "\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d"
   from H(3)[rule_format] gcd_dvd1[of a b] gcd_dvd2[of a b] 
   have th: "gcd a b dvd d" by blast
-  from dvd_anti_sym[OF th gcd_greatest[OF H(1,2)]] show "d =gcd a b" by blast 
+  from dvd_anti_sym[OF th gcd_greatest[OF H(1,2)]]  show "d = gcd a b" by blast 
 qed
 
 lemma gcd_eq: assumes H: "\<forall>d. d dvd x \<and> d dvd y \<longleftrightarrow> d dvd u \<and> d dvd v"
@@ -351,7 +351,7 @@ proof-
   thus ?thesis by blast
 qed
 
-lemma gcd_mult_distrib: "gcd (a * c) (b * c) = c * gcd a b"
+lemma gcd_mult_distrib: "gcd(a * c) (b * c) = c * gcd a b"
 by(simp add: gcd_mult_distrib2 mult_commute)
 
 lemma gcd_bezout: "(\<exists>x y. a * x - b * y = d \<or> b * x - a * y = d) \<longleftrightarrow> gcd a b dvd d"
@@ -388,19 +388,20 @@ qed
 lemma gcd_mult': "gcd b (a * b) = b"
 by (simp add: gcd_mult mult_commute[of a b]) 
 
-lemma gcd_add: "gcd (a + b) b = gcd a b" "gcd (b + a) b = gcd a b" "gcd a (a + b) = gcd a b" "gcd a (b + a) = gcd a b"
+lemma gcd_add: "gcd(a + b) b = gcd a b" 
+  "gcd(b + a) b = gcd a b" "gcd a (a + b) = gcd a b" "gcd a (b + a) = gcd a b"
 apply (simp_all add: gcd_add1)
 by (simp add: gcd_commute gcd_add1)
 
-lemma gcd_sub: "b <= a ==> gcd (a - b) b = gcd a b" "a <= b ==> gcd a (b - a) = gcd a b"
+lemma gcd_sub: "b <= a ==> gcd(a - b) b = gcd a b" "a <= b ==> gcd a (b - a) = gcd a b"
 proof-
   {fix a b assume H: "b \<le> (a::nat)"
     hence th: "a - b + b = a" by arith
-    from gcd_add(1)[of "a - b" b] th  have "gcd (a - b) b = gcd a b" by simp}
+    from gcd_add(1)[of "a - b" b] th  have "gcd(a - b) b = gcd a b" by simp}
   note th = this
 {
   assume ab: "b \<le> a"
-  from th[OF ab] show "gcd (a - b) b = gcd a b" by blast
+  from th[OF ab] show "gcd (a - b)  b = gcd a b" by blast
 next
   assume ab: "a \<le> b"
   from th[OF ab] show "gcd a (b - a) = gcd a b" 
@@ -448,7 +449,7 @@ lemma coprime_mul: assumes da: "coprime d a" and db: "coprime d b"
   shows "coprime d (a * b)"
 proof-
   from da have th: "gcd a d = 1" by (simp add: coprime_def gcd_commute)
-  from gcd_mult_cancel[of a d b, OF th] db[unfolded coprime_def] have "gcd d (a * b) = 1"
+  from gcd_mult_cancel[of a d b, OF th] db[unfolded coprime_def] have "gcd d (a*b) = 1"
     by (simp add: gcd_commute)
   thus ?thesis unfolding coprime_def .
 qed
@@ -530,10 +531,11 @@ proof-
     hence  ?thesis by blast }
   ultimately show ?thesis by blast
 qed
-lemma gcd_exp: "gcd (a^n) (b^n) = gcd a b ^ n"
+
+lemma gcd_exp: "gcd (a^n) (b^n) = gcd a b^n"
 proof-
   let ?g = "gcd (a^n) (b^n)"
-  let ?gn = "gcd a b ^ n"
+  let ?gn = "gcd a b^n"
   {fix e assume H: "e dvd a^n" "e dvd b^n"
     from bezout_gcd_pow[of a n b] obtain x y 
       where xy: "a ^ n * x - b ^ n * y = ?gn \<or> b ^ n * x - a ^ n * y = ?gn" by blast
