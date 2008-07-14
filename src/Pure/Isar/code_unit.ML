@@ -42,7 +42,7 @@ sig
   val mk_func: thm -> thm
   val head_func: thm -> string * ((string * sort) list * typ)
   val expand_eta: int -> thm -> thm
-  val rewrite_func: thm list -> thm -> thm
+  val rewrite_func: MetaSimplifier.simpset -> thm -> thm
   val norm_args: thm list -> thm list 
   val norm_varnames: (string -> string) -> (string -> string) -> thm list -> thm list
 
@@ -147,8 +147,8 @@ fun head_conv conv =
       else conv ct;
   in Conv.fun_conv (Conv.arg_conv lhs_conv) end;
 
-val rewrite_func = Conv.fconv_rule o func_conv o MetaSimplifier.rewrite false;
-
+fun rewrite_func ss thm = (Conv.fconv_rule o func_conv o
+  (MetaSimplifier.rewrite' (ProofContext.init (Thm.theory_of_thm thm)) false)) ss thm;
 val rewrite_head = Conv.fconv_rule o head_conv o MetaSimplifier.rewrite false;
 
 fun norm_args thms =

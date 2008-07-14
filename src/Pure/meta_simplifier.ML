@@ -41,9 +41,10 @@ sig
     subgoal_tac: simpset -> int -> tactic,
     loop_tacs: (string * (simpset -> int -> tactic)) list,
     solvers: solver list * solver list}
-  val print_ss: simpset -> unit
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
+  val pretty_ss: simpset -> Pretty.T
+  val print_ss: simpset -> unit
   type simproc
   val eq_simproc: simproc * simproc -> bool
   val morph_simproc: morphism -> simproc -> simproc
@@ -92,6 +93,8 @@ signature META_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
   exception SIMPLIFIER of string * thm
+  val add_simp: thm -> simpset -> simpset
+  val del_simp: thm -> simpset -> simpset
   val solver: simpset -> solver -> int -> tactic
   val simp_depth_limit_value: Config.value Config.T
   val simp_depth_limit: int Config.T
@@ -118,7 +121,9 @@ sig
   val norm_hhf: thm -> thm
   val norm_hhf_protect: thm -> thm
   val rewrite: bool -> thm list -> conv
+  val rewrite': Proof.context -> bool -> simpset -> conv;
   val simplify: bool -> thm list -> thm -> thm
+  val simplify': Proof.context -> bool -> simpset -> thm -> thm;
 end;
 
 structure MetaSimplifier: META_SIMPLIFIER =
@@ -327,7 +332,7 @@ end;
 
 (* print simpsets *)
 
-fun print_ss ss =
+fun pretty_ss ss =
   let
     val pretty_thms = map Display.pretty_thm;
 
@@ -350,8 +355,10 @@ fun print_ss ss =
       Pretty.strs ("loopers:" :: map (quote o fst) loop_tacs),
       Pretty.strs ("unsafe solvers:" :: map (quote o solver_name) (#1 solvers)),
       Pretty.strs ("safe solvers:" :: map (quote o solver_name) (#2 solvers))]
-    |> Pretty.chunks |> Pretty.writeln
+    |> Pretty.chunks
   end;
+  
+val print_ss = Pretty.writeln o pretty_ss;
 
 
 
@@ -545,6 +552,8 @@ fun ss addsimps thms =
 fun ss delsimps thms =
   comb_simps del_rrule (map mk_rrule2 o mk_rrule ss) (ss, thms);
 
+fun add_simp thm ss = ss addsimps [thm];
+fun del_simp thm ss = ss delsimps [thm];
 
 (* congs *)
 
@@ -1254,13 +1263,13 @@ fun rewrite_cterm mode prover raw_ss raw_ct =
 val simple_prover =
   SINGLE o (fn ss => ALLGOALS (resolve_tac (prems_of_ss ss)));
 
-(*Rewrite a cterm*)
-fun rewrite _ [] ct = Thm.reflexive ct
-  | rewrite full thms ct =
-      rewrite_cterm (full, false, false) simple_prover
-        (theory_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
+fun rewrite' ctxt full ss = rewrite_cterm (full, false, false) simple_prover (context ctxt ss);
+fun simplify' ctxt full ss = Conv.fconv_rule (rewrite' ctxt full ss);
 
-(*Rewrite a theorem*)
+fun rewrite _ [] ct = Thm.reflexive ct
+  | rewrite full thms ct = rewrite' (ProofContext.init (Thm.theory_of_cterm ct))
+      full (empty_ss addsimps thms) ct;
+
 fun simplify full thms = Conv.fconv_rule (rewrite full thms);
 val rewrite_rule = simplify true;
 
