@@ -667,8 +667,8 @@ val _ =
   OuterSyntax.command "proof" "backward proof"
     (K.tag_proof K.prf_block)
     (Scan.option Method.parse >> (fn m => Toplevel.print o
-      Toplevel.actual_proof (ProofHistory.applys (Proof.proof m)) o
-      Toplevel.skip_proof (History.apply (fn i => i + 1))));
+      Toplevel.actual_proof (ProofNode.applys (Proof.proof m)) o
+      Toplevel.skip_proof (fn i => i + 1)));
 
 
 (* calculational proof commands *)
@@ -702,18 +702,7 @@ val _ =
 val _ =
   OuterSyntax.command "back" "backtracking of proof command"
     (K.tag_proof K.prf_script)
-    (Scan.succeed (Toplevel.print o IsarCmd.back));
-
-
-(* history *)
-
-val _ =
-  OuterSyntax.improper_command "cannot_undo" "report 'cannot undo' error message" K.control
-    (P.name >> (Toplevel.no_timing oo IsarCmd.cannot_undo));
-
-val _ =
-  OuterSyntax.improper_command "redo" "redo last command" K.control
-    (Scan.succeed (Toplevel.no_timing o Toplevel.print o IsarCmd.redo));
+    (Scan.succeed (Toplevel.print o Toplevel.actual_proof ProofNode.back o Toplevel.skip_proof I));
 
 
 (* nested command *)
@@ -725,7 +714,7 @@ val _ =
         handle ERROR msg => Scan.fail_with (K msg)));
 
 
-(* global Isar state commands *)
+(* global history commands *)
 
 val _ =
   OuterSyntax.improper_command "init_toplevel" "init toplevel point-of-interest" K.control
@@ -746,6 +735,12 @@ val _ =
     (Scan.optional P.nat 1 >> (fn n => Toplevel.no_timing o
       Toplevel.keep (fn state =>
         if Toplevel.is_proof state then (Isar.undo n; Isar.print ()) else raise Toplevel.UNDEF)));
+
+val _ =
+  OuterSyntax.improper_command "cannot_undo" "partial undo -- Proof General legacy" K.control
+    (P.name >>
+      (fn "end" => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo 1)
+        | txt => Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt))));
 
 val _ =
   OuterSyntax.improper_command "kill" "kill partial proof or theory development" K.control
