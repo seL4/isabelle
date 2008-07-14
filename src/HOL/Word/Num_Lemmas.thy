@@ -19,13 +19,9 @@ lemmas "split.splits" = split_split split_split_asm
 lemmas funpow_0 = funpow.simps(1)
 lemmas funpow_Suc = funpow.simps(2)
 
-lemma nonemptyE: "S ~= {} ==> (!!x. x : S ==> R) ==> R"
-  apply (erule contrapos_np)
-  apply (rule equals0I)
-  apply auto
-  done
+lemma nonemptyE: "S ~= {} ==> (!!x. x : S ==> R) ==> R" by auto
 
-lemma gt_or_eq_0: "0 < y \<or> 0 = (y::nat)" by auto
+lemma gt_or_eq_0: "0 < y \<or> 0 = (y::nat)" by arith 
 
 declare iszero_0 [iff]
 
@@ -41,12 +37,11 @@ lemmas xtr8 = xtrans(8)
 lemmas nat_simps = diff_add_inverse2 diff_add_inverse
 lemmas nat_iffs = le_add1 le_add2
 
-lemma sum_imp_diff: "j = k + i ==> j - i = (k :: nat)"
-  by (clarsimp simp add: nat_simps)
+lemma sum_imp_diff: "j = k + i ==> j - i = (k :: nat)" by arith
 
 lemma nobm1:
   "0 < (number_of w :: nat) ==> 
-   number_of w - (1 :: nat) = number_of (Int.pred w)"
+   number_of w - (1 :: nat) = number_of (Int.pred w)" 
   apply (unfold nat_number_of_def One_nat_def nat_1 [symmetric] pred_def)
   apply (simp add: number_of_eq nat_diff_distrib [symmetric])
   done
@@ -55,8 +50,7 @@ lemma of_int_power:
   "of_int (a ^ n) = (of_int a ^ n :: 'a :: {recpower, comm_ring_1})" 
   by (induct n) (auto simp add: power_Suc)
 
-lemma zless2: "0 < (2 :: int)" 
-  by auto
+lemma zless2: "0 < (2 :: int)" by arith
 
 lemmas zless2p [simp] = zless2 [THEN zero_less_power]
 lemmas zle2p [simp] = zless2p [THEN order_less_imp_le]
@@ -65,8 +59,7 @@ lemmas pos_mod_sign2 = zless2 [THEN pos_mod_sign [where b = "2::int"]]
 lemmas pos_mod_bound2 = zless2 [THEN pos_mod_bound [where b = "2::int"]]
 
 -- "the inverse(s) of @{text number_of}"
-lemma nmod2: "n mod (2::int) = 0 | n mod 2 = 1"
-  by (cases "n mod 2 = 0", simp_all)
+lemma nmod2: "n mod (2::int) = 0 | n mod 2 = 1" by arith
 
 lemma emep1:
   "even n ==> even d ==> 0 <= d ==> (n + 1) mod (d :: int) = (n mod d) + 1"
@@ -79,18 +72,13 @@ lemma emep1:
 
 lemmas eme1p = emep1 [simplified add_commute]
 
-lemma le_diff_eq': "(a \<le> c - b) = (b + a \<le> (c::int))"
-  by (simp add: le_diff_eq add_commute)
+lemma le_diff_eq': "(a \<le> c - b) = (b + a \<le> (c::int))" by arith
 
-lemma less_diff_eq': "(a < c - b) = (b + a < (c::int))"
-  by (simp add: less_diff_eq add_commute)
+lemma less_diff_eq': "(a < c - b) = (b + a < (c::int))" by arith
 
-lemma diff_le_eq': "(a - b \<le> c) = (a \<le> b + (c::int))"
-  by (simp add: diff_le_eq add_commute)
+lemma diff_le_eq': "(a - b \<le> c) = (a \<le> b + (c::int))" by arith
 
-lemma diff_less_eq': "(a - b < c) = (a < b + (c::int))"
-  by (simp add: diff_less_eq add_commute)
-
+lemma diff_less_eq': "(a - b < c) = (a < b + (c::int))" by arith
 
 lemmas m1mod2k = zless2p [THEN zmod_minus1]
 lemmas m1mod22k = mult_pos_pos [OF zless2 zless2p, THEN zmod_minus1]
@@ -103,33 +91,23 @@ lemma p1mod22k:
   by (simp add: p1mod22k' add_commute)
 
 lemma z1pmod2:
-  "(2 * b + 1) mod 2 = (1::int)"
-  by (simp add: z1pmod2' add_commute)
+  "(2 * b + 1) mod 2 = (1::int)" by arith
   
 lemma z1pdiv2:
-  "(2 * b + 1) div 2 = (b::int)"
-  by (simp add: z1pdiv2' add_commute)
+  "(2 * b + 1) div 2 = (b::int)" by arith
 
 lemmas zdiv_le_dividend = xtr3 [OF zdiv_1 [symmetric] zdiv_mono2,
   simplified int_one_le_iff_zero_less, simplified, standard]
   
 lemma axxbyy:
   "a + m + m = b + n + n ==> (a = 0 | a = 1) ==> (b = 0 | b = 1) ==>  
-   a = b & m = (n :: int)"
-  apply auto
-   apply (drule_tac f="%n. n mod 2" in arg_cong)
-   apply (clarsimp simp: z1pmod2)
-  apply (drule_tac f="%n. n mod 2" in arg_cong)
-  apply (clarsimp simp: z1pmod2)
-  done
+   a = b & m = (n :: int)" by arith
 
 lemma axxmod2:
-  "(1 + x + x) mod 2 = (1 :: int) & (0 + x + x) mod 2 = (0 :: int)" 
-  by simp (rule z1pmod2)
+  "(1 + x + x) mod 2 = (1 :: int) & (0 + x + x) mod 2 = (0 :: int)" by arith
 
 lemma axxdiv2:
-  "(1 + x + x) div 2 = (x :: int) & (0 + x + x) div 2 = (x :: int)" 
-  by simp (rule z1pdiv2)
+  "(1 + x + x) div 2 = (x :: int) & (0 + x + x) div 2 = (x :: int)"  by arith
 
 lemmas iszero_minus = trans [THEN trans,
   OF iszero_def neg_equal_0_iff_equal iszero_def [symmetric], standard]
@@ -346,43 +324,34 @@ lemma mod_power_lem:
    apply auto
   done
 
-lemma min_pm [simp]: "min a b + (a - b) = (a :: nat)"
-  by arith
+lemma min_pm [simp]: "min a b + (a - b) = (a :: nat)" by arith
   
 lemmas min_pm1 [simp] = trans [OF add_commute min_pm]
 
-lemma rev_min_pm [simp]: "min b a + (a - b) = (a::nat)"
-  by simp
+lemma rev_min_pm [simp]: "min b a + (a - b) = (a::nat)" by arith
 
 lemmas rev_min_pm1 [simp] = trans [OF add_commute rev_min_pm]
 
 lemma pl_pl_rels: 
   "a + b = c + d ==> 
-   a >= c & b <= d | a <= c & b >= (d :: nat)"
-  apply (cut_tac n=a and m=c in nat_le_linear)
-  apply (safe dest!: le_iff_add [THEN iffD1])
-         apply arith+
-  done
+   a >= c & b <= d | a <= c & b >= (d :: nat)" by arith
 
 lemmas pl_pl_rels' = add_commute [THEN [2] trans, THEN pl_pl_rels]
 
-lemma minus_eq: "(m - k = m) = (k = 0 | m = (0 :: nat))"
-  by arith
+lemma minus_eq: "(m - k = m) = (k = 0 | m = (0 :: nat))"  by arith
 
-lemma pl_pl_mm: "(a :: nat) + b = c + d ==> a - c = d - b"
-  by arith
+lemma pl_pl_mm: "(a :: nat) + b = c + d ==> a - c = d - b"  by arith
 
 lemmas pl_pl_mm' = add_commute [THEN [2] trans, THEN pl_pl_mm]
  
-lemma min_minus [simp] : "min m (m - k) = (m - k :: nat)"
-  by arith
+lemma min_minus [simp] : "min m (m - k) = (m - k :: nat)" by arith
   
 lemmas min_minus' [simp] = trans [OF min_max.inf_commute min_minus]
 
 lemma nat_no_eq_iff: 
   "(number_of b :: int) >= 0 ==> (number_of c :: int) >= 0 ==> 
-   (number_of b = (number_of c :: nat)) = (b = c)"
-  apply (unfold nat_number_of_def)
+   (number_of b = (number_of c :: nat)) = (b = c)" 
+  apply (unfold nat_number_of_def) 
   apply safe
   apply (drule (2) eq_nat_nat_iff [THEN iffD1])
   apply (simp add: number_of_eq)
@@ -475,11 +444,7 @@ lemma lrlem: "(0::nat) < sc ==>
 lemma gen_minus: "0 < n ==> f n = f (Suc (n - 1))"
   by auto
 
-lemma mpl_lem: "j <= (i :: nat) ==> k < j ==> i - j + k < i"
-  apply (induct i, clarsimp)
-  apply (cases j, clarsimp)
-  apply arith
-  done
+lemma mpl_lem: "j <= (i :: nat) ==> k < j ==> i - j + k < i" by arith
 
 lemma nonneg_mod_div:
   "0 <= a ==> 0 <= b ==> 0 <= (a mod b :: int) & 0 <= a div b"
