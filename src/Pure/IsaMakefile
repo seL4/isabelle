@@ -41,7 +41,7 @@ $(OUT)/Pure: General/ROOT.ML General/alist.ML General/balanced_tree.ML	\
   Isar/obtain.ML Isar/outer_keyword.ML Isar/outer_lex.ML		\
   Isar/outer_parse.ML Isar/outer_syntax.ML Isar/overloading.ML		\
   Isar/proof.ML Isar/proof_context.ML Isar/proof_display.ML		\
-  Isar/proof_history.ML Isar/rule_cases.ML Isar/rule_insts.ML		\
+  Isar/proof_node.ML Isar/rule_cases.ML Isar/rule_insts.ML		\
   Isar/session.ML Isar/skip_proof.ML Isar/spec_parse.ML			\
   Isar/specification.ML Isar/subclass.ML Isar/theory_target.ML		\
   Isar/toplevel.ML ML-Systems/alice.ML ML-Systems/exn.ML		\

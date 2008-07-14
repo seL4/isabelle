@@ -69,7 +69,7 @@ use "instance.ML";
 use "constdefs.ML";
 
 (*toplevel transactions*)
-use "proof_history.ML";
+use "proof_node.ML";
 use "toplevel.ML";
 
 (*theory syntax*)
