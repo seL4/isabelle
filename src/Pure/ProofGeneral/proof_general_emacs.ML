@@ -137,17 +137,16 @@ val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
 
 fun inform_file_processed file =
   let
+    val _ = Isar.init_point ();
     val name = thy_name file;
     val _ = name = "" andalso error ("Bad file name: " ^ quote file);
     val _ =
       if ThyInfo.check_known_thy name then
-        (Isar.commit_exit ();
-          ThyInfo.touch_child_thys name;
-          ThyInfo.register_thy name handle ERROR msg =>
+        (Isar.commit_exit (); ThyInfo.touch_child_thys name; ThyInfo.register_thy name)
+          handle ERROR msg =>
             (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
-             tell_file_retracted (ThyLoad.thy_path name)))
+              tell_file_retracted (ThyLoad.thy_path name))
       else ();
-    val _ = Isar.init_point ();
   in () end;
 
 
