@@ -316,8 +316,8 @@ fun restart () =
     (sync_thy_loader ();
      tell_clear_goals ();
      tell_clear_response ();
-     welcome ();
-     raise Toplevel.RESTART)
+     Isar.init_point ();
+     welcome ());
 
 
 (* theorem dependency output *)
