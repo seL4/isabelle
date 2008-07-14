@@ -5,7 +5,9 @@
 
 header {* The Fibonacci function *}
 
-theory Fib imports Primes begin
+theory Fib
+imports Primes
+begin
 
 text {*
   Fibonacci numbers: proofs of laws taken from:
@@ -92,14 +94,14 @@ theorem fib_Cassini:
 
 text {* \medskip Toward Law 6.111 of Concrete Mathematics *}
 
-lemma gcd_fib_Suc_eq_1: "gcd (fib n, fib (Suc n)) = Suc 0"
+lemma gcd_fib_Suc_eq_1: "gcd (fib n) (fib (Suc n)) = Suc 0"
   apply (induct n rule: fib.induct)
     prefer 3
     apply (simp add: gcd_commute fib_Suc3)
    apply (simp_all add: fib_2)
   done
 
-lemma gcd_fib_add: "gcd (fib m, fib (n + m)) = gcd (fib m, fib n)"
+lemma gcd_fib_add: "gcd (fib m) (fib (n + m)) = gcd (fib m) (fib n)"
   apply (simp add: gcd_commute [of "fib m"])
   apply (case_tac m)
    apply simp 
@@ -109,31 +111,31 @@ lemma gcd_fib_add: "gcd (fib m, fib (n + m)) = gcd (fib m, fib n)"
   apply (simp add: gcd_fib_Suc_eq_1 gcd_mult_cancel)
   done
 
-lemma gcd_fib_diff: "m \<le> n ==> gcd (fib m, fib (n - m)) = gcd (fib m, fib n)"
+lemma gcd_fib_diff: "m \<le> n ==> gcd (fib m) (fib (n - m)) = gcd (fib m) (fib n)"
   by (simp add: gcd_fib_add [symmetric, of _ "n-m"]) 
 
-lemma gcd_fib_mod: "0 < m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
+lemma gcd_fib_mod: "0 < m ==> gcd (fib m) (fib (n mod m)) = gcd (fib m) (fib n)"
 proof (induct n rule: less_induct)
   case (less n)
   from less.prems have pos_m: "0 < m" .
-  show "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
+  show "gcd (fib m) (fib (n mod m)) = gcd (fib m) (fib n)"
   proof (cases "m < n")
     case True note m_n = True
     then have m_n': "m \<le> n" by auto
     with pos_m have pos_n: "0 < n" by auto
     with pos_m m_n have diff: "n - m < n" by auto
-    have "gcd (fib m, fib (n mod m)) = gcd (fib m, fib ((n - m) mod m))"
+    have "gcd (fib m) (fib (n mod m)) = gcd (fib m) (fib ((n - m) mod m))"
     by (simp add: mod_if [of n]) (insert m_n, auto)
-    also have "\<dots> = gcd (fib m, fib (n - m))" by (simp add: less.hyps diff pos_m)
-    also have "\<dots> = gcd (fib m, fib n)" by (simp add: gcd_fib_diff m_n')
-    finally show "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)" .
+    also have "\<dots> = gcd (fib m) (fib (n - m))" by (simp add: less.hyps diff pos_m)
+    also have "\<dots> = gcd (fib m) (fib n)" by (simp add: gcd_fib_diff m_n')
+    finally show "gcd (fib m) (fib (n mod m)) = gcd (fib m) (fib n)" .
   next
-    case False then show "gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)"
+    case False then show "gcd (fib m) (fib (n mod m)) = gcd (fib m) (fib n)"
     by (cases "m = n") auto
   qed
 qed
 
-lemma fib_gcd: "fib (gcd (m, n)) = gcd (fib m, fib n)"  -- {* Law 6.111 *}
+lemma fib_gcd: "fib (gcd m n) = gcd (fib m) (fib n)"  -- {* Law 6.111 *}
   apply (induct m n rule: gcd_induct)
   apply (simp_all add: gcd_non_0 gcd_commute gcd_fib_mod)
   done

@@ -5,7 +5,9 @@
 
 header {*Integers: Divisibility and Congruences*}
 
-theory Int2 imports Finite2 WilsonRuss begin
+theory Int2
+imports Finite2 WilsonRuss
+begin
 
 definition
   MultInv :: "int => int => int" where
@@ -167,8 +169,8 @@ lemma zcong_zero: "[| 0 \<le> x; x < m; [x = 0](mod m) |] ==> x = 0"
   apply auto
   done
 
-lemma all_relprime_prod_relprime: "[| finite A; \<forall>x \<in> A. (zgcd(x,y) = 1) |]
-    ==> zgcd (setprod id A,y) = 1"
+lemma all_relprime_prod_relprime: "[| finite A; \<forall>x \<in> A. zgcd x y = 1 |]
+    ==> zgcd (setprod id A) y = 1"
   by (induct set: finite) (auto simp add: zgcd_zgcd_zmult)
 
 

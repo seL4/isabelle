@@ -592,26 +592,26 @@ proof -
 qed
 
 interpretation nat_dvd: dlat ["op dvd :: [nat, nat] => bool"]
-  where "dlat.meet (op dvd) (x::nat) y = gcd (x, y)"
-    and "dlat.join (op dvd) (x::nat) y = lcm (x, y)"
+  where "dlat.meet (op dvd) (x::nat) y = gcd x y"
+    and "dlat.join (op dvd) (x::nat) y = lcm x y"
 proof -
   show "dlat (op dvd :: [nat, nat] => bool)"
     apply unfold_locales
     apply (unfold nat_dvd.is_inf_def nat_dvd.is_sup_def)
-    apply (rule_tac x = "gcd (x, y)" in exI)
+    apply (rule_tac x = "gcd x y" in exI)
     apply auto [1]
-    apply (rule_tac x = "lcm (x, y)" in exI)
+    apply (rule_tac x = "lcm x y" in exI)
     apply (auto intro: lcm_dvd1 lcm_dvd2 lcm_least)
     done
   then interpret nat_dvd: dlat ["op dvd :: [nat, nat] => bool"] .
   txt {* Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation. *}
-  show "dlat.meet (op dvd) (x::nat) y = gcd (x, y)"
+  show "dlat.meet (op dvd) (x::nat) y = gcd x y"
     apply (unfold nat_dvd.meet_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_inf_def)
     by auto
-  show "dlat.join (op dvd) (x::nat) y = lcm (x, y)"
+  show "dlat.join (op dvd) (x::nat) y = lcm x y"
     apply (unfold nat_dvd.join_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_sup_def)
@@ -624,7 +624,7 @@ thm nat_dvd.less_def text {* from dpo *}
 lemma "((x::nat) dvd y & x ~= y) = (x dvd y & x ~= y)"
   apply (rule nat_dvd.less_def) done
 thm nat_dvd.meet_left text {* from dlat *}
-lemma "gcd (x, y) dvd x"
+lemma "gcd x y dvd x"
   apply (rule nat_dvd.meet_left) done
 
 print_interps dpo

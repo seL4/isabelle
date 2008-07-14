@@ -34,10 +34,6 @@ recdef xzgcda
 		      t, t' - (r' div r) * t))"
 
 definition
-  zgcd :: "int * int => int" where
-  "zgcd = (\<lambda>(x,y). int (gcd (nat (abs x), nat (abs y))))"
-
-definition
   zprime :: "int \<Rightarrow> bool" where
   "zprime p = (1 < p \<and> (\<forall>m. 0 <= m & m dvd p --> m = 1 \<or> m = p))"
 
@@ -53,10 +49,10 @@ definition
 
 text {* \medskip @{term gcd} lemmas *}
 
-lemma gcd_add1_eq: "gcd (m + k, k) = gcd (m + k, m)"
+lemma gcd_add1_eq: "gcd (m + k) k = gcd (m + k) m"
   by (simp add: gcd_commute)
 
-lemma gcd_diff2: "m \<le> n ==> gcd (n, n - m) = gcd (n, m)"
+lemma gcd_diff2: "m \<le> n ==> gcd n (n - m) = gcd n m"
   apply (subgoal_tac "n = m + (n - m)")
    apply (erule ssubst, rule gcd_add1_eq, simp)
   done
@@ -64,19 +60,19 @@ lemma gcd_diff2: "m \<le> n ==> gcd (n, n - m) = gcd (n, m)"
 
 subsection {* Euclid's Algorithm and GCD *}
 
-lemma zgcd_0 [simp]: "zgcd (m, 0) = abs m"
+lemma zgcd_0 [simp]: "zgcd m 0 = abs m"
   by (simp add: zgcd_def abs_if)
 
-lemma zgcd_0_left [simp]: "zgcd (0, m) = abs m"
+lemma zgcd_0_left [simp]: "zgcd 0 m = abs m"
   by (simp add: zgcd_def abs_if)
 
-lemma zgcd_zminus [simp]: "zgcd (-m, n) = zgcd (m, n)"
+lemma zgcd_zminus [simp]: "zgcd (-m) n = zgcd m n"
   by (simp add: zgcd_def)
 
-lemma zgcd_zminus2 [simp]: "zgcd (m, -n) = zgcd (m, n)"
+lemma zgcd_zminus2 [simp]: "zgcd m (-n) = zgcd m n"
   by (simp add: zgcd_def)
 
-lemma zgcd_non_0: "0 < n ==> zgcd (m, n) = zgcd (n, m mod n)"
+lemma zgcd_non_0: "0 < n ==> zgcd m n = zgcd n (m mod n)"
   apply (frule_tac b = n and a = m in pos_mod_sign)
   apply (simp del: pos_mod_sign add: zgcd_def abs_if nat_mod_distrib)
   apply (auto simp add: gcd_non_0 nat_mod_distrib [symmetric] zmod_zminus1_eq_if)
@@ -84,37 +80,37 @@ lemma zgcd_non_0: "0 < n ==> zgcd (m, n) = zgcd (n, m mod n)"
   apply (simp del: pos_mod_bound add: nat_diff_distrib gcd_diff2 nat_le_eq_zle)
   done
 
-lemma zgcd_eq: "zgcd (m, n) = zgcd (n, m mod n)"
+lemma zgcd_eq: "zgcd m n = zgcd n (m mod n)"
   apply (case_tac "n = 0", simp add: DIVISION_BY_ZERO)
   apply (auto simp add: linorder_neq_iff zgcd_non_0)
   apply (cut_tac m = "-m" and n = "-n" in zgcd_non_0, auto)
   done
 
-lemma zgcd_1 [simp]: "zgcd (m, 1) = 1"
+lemma zgcd_1 [simp]: "zgcd m 1 = 1"
   by (simp add: zgcd_def abs_if)
 
-lemma zgcd_0_1_iff [simp]: "(zgcd (0, m) = 1) = (abs m = 1)"
+lemma zgcd_0_1_iff [simp]: "zgcd 0 m = 1 \<longleftrightarrow> abs m = 1"
   by (simp add: zgcd_def abs_if)
 
-lemma zgcd_zdvd1 [iff]: "zgcd (m, n) dvd m"
+lemma zgcd_zdvd1 [iff]: "zgcd m n dvd m"
   by (simp add: zgcd_def abs_if int_dvd_iff)
 
-lemma zgcd_zdvd2 [iff]: "zgcd (m, n) dvd n"
+lemma zgcd_zdvd2 [iff]: "zgcd m n dvd n"
   by (simp add: zgcd_def abs_if int_dvd_iff)
 
-lemma zgcd_greatest_iff: "k dvd zgcd (m, n) = (k dvd m \<and> k dvd n)"
+lemma zgcd_greatest_iff: "k dvd zgcd m n \<longleftrightarrow> k dvd m \<and> k dvd n"
   by (simp add: zgcd_def abs_if int_dvd_iff dvd_int_iff nat_dvd_iff)
 
-lemma zgcd_commute: "zgcd (m, n) = zgcd (n, m)"
+lemma zgcd_commute: "zgcd m n = zgcd n m"
   by (simp add: zgcd_def gcd_commute)
 
-lemma zgcd_1_left [simp]: "zgcd (1, m) = 1"
+lemma zgcd_1_left [simp]: "zgcd 1 m = 1"
   by (simp add: zgcd_def gcd_1_left)
 
-lemma zgcd_assoc: "zgcd (zgcd (k, m), n) = zgcd (k, zgcd (m, n))"
+lemma zgcd_assoc: "zgcd (zgcd k m) n = zgcd k (zgcd m n)"
   by (simp add: zgcd_def gcd_assoc)
 
-lemma zgcd_left_commute: "zgcd (k, zgcd (m, n)) = zgcd (m, zgcd (k, n))"
+lemma zgcd_left_commute: "zgcd k (zgcd m n) = zgcd m (zgcd k n)"
   apply (rule zgcd_commute [THEN trans])
   apply (rule zgcd_assoc [THEN trans])
   apply (rule zgcd_commute [THEN arg_cong])
@@ -123,35 +119,35 @@ lemma zgcd_left_commute: "zgcd (k, zgcd (m, n)) = zgcd (m, zgcd (k, n))"
 lemmas zgcd_ac = zgcd_assoc zgcd_commute zgcd_left_commute
   -- {* addition is an AC-operator *}
 
-lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd (m, n) = zgcd (k * m, k * n)"
+lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd m n = zgcd (k * m) (k * n)"
   by (simp del: minus_mult_right [symmetric]
       add: minus_mult_right nat_mult_distrib zgcd_def abs_if
           mult_less_0_iff gcd_mult_distrib2 [symmetric] zmult_int [symmetric])
 
-lemma zgcd_zmult_distrib2_abs: "zgcd (k * m, k * n) = abs k * zgcd (m, n)"
+lemma zgcd_zmult_distrib2_abs: "zgcd (k * m) (k * n) = abs k * zgcd m n"
   by (simp add: abs_if zgcd_zmult_distrib2)
 
-lemma zgcd_self [simp]: "0 \<le> m ==> zgcd (m, m) = m"
+lemma zgcd_self [simp]: "0 \<le> m ==> zgcd m m = m"
   by (cut_tac k = m and m = 1 and n = 1 in zgcd_zmult_distrib2, simp_all)
 
-lemma zgcd_zmult_eq_self [simp]: "0 \<le> k ==> zgcd (k, k * n) = k"
+lemma zgcd_zmult_eq_self [simp]: "0 \<le> k ==> zgcd k (k * n) = k"
   by (cut_tac k = k and m = 1 and n = n in zgcd_zmult_distrib2, simp_all)
 
-lemma zgcd_zmult_eq_self2 [simp]: "0 \<le> k ==> zgcd (k * n, k) = k"
+lemma zgcd_zmult_eq_self2 [simp]: "0 \<le> k ==> zgcd (k * n) k = k"
   by (cut_tac k = k and m = n and n = 1 in zgcd_zmult_distrib2, simp_all)
 
 lemma zrelprime_zdvd_zmult_aux:
-     "zgcd (n, k) = 1 ==> k dvd m * n ==> 0 \<le> m ==> k dvd m"
+     "zgcd n k = 1 ==> k dvd m * n ==> 0 \<le> m ==> k dvd m"
   by (metis abs_of_nonneg zdvd_triv_right zgcd_greatest_iff zgcd_zmult_distrib2_abs zmult_1_right)
 
-lemma zrelprime_zdvd_zmult: "zgcd (n, k) = 1 ==> k dvd m * n ==> k dvd m"
+lemma zrelprime_zdvd_zmult: "zgcd n k = 1 ==> k dvd m * n ==> k dvd m"
   apply (case_tac "0 \<le> m")
    apply (blast intro: zrelprime_zdvd_zmult_aux)
   apply (subgoal_tac "k dvd -m")
    apply (rule_tac [2] zrelprime_zdvd_zmult_aux, auto)
   done
 
-lemma zgcd_geq_zero: "0 <= zgcd(x,y)"
+lemma zgcd_geq_zero: "0 <= zgcd x y"
   by (auto simp add: zgcd_def)
 
 text{*This is merely a sanity check on zprime, since the previous version
@@ -163,34 +159,34 @@ lemma "zprime 2"
   done
 
 lemma zprime_imp_zrelprime:
-    "zprime p ==> \<not> p dvd n ==> zgcd (n, p) = 1"
+    "zprime p ==> \<not> p dvd n ==> zgcd n p = 1"
   apply (auto simp add: zprime_def)
   apply (metis zgcd_commute zgcd_geq_zero zgcd_zdvd1 zgcd_zdvd2)
   done
 
 lemma zless_zprime_imp_zrelprime:
-    "zprime p ==> 0 < n ==> n < p ==> zgcd (n, p) = 1"
+    "zprime p ==> 0 < n ==> n < p ==> zgcd n p = 1"
   apply (erule zprime_imp_zrelprime)
   apply (erule zdvd_not_zless, assumption)
   done
 
 lemma zprime_zdvd_zmult:
     "0 \<le> (m::int) ==> zprime p ==> p dvd m * n ==> p dvd m \<or> p dvd n"
-  by (metis igcd_dvd1 igcd_dvd2 igcd_pos zprime_def zrelprime_dvd_mult)
+  by (metis zgcd_dvd1 zgcd_dvd2 zgcd_pos zprime_def zrelprime_dvd_mult)
 
-lemma zgcd_zadd_zmult [simp]: "zgcd (m + n * k, n) = zgcd (m, n)"
+lemma zgcd_zadd_zmult [simp]: "zgcd (m + n * k) n = zgcd m n"
   apply (rule zgcd_eq [THEN trans])
   apply (simp add: zmod_zadd1_eq)
   apply (rule zgcd_eq [symmetric])
   done
 
-lemma zgcd_zdvd_zgcd_zmult: "zgcd (m, n) dvd zgcd (k * m, n)"
+lemma zgcd_zdvd_zgcd_zmult: "zgcd m n dvd zgcd (k * m) n"
   apply (simp add: zgcd_greatest_iff)
   apply (blast intro: zdvd_trans)
   done
 
 lemma zgcd_zmult_zdvd_zgcd:
-    "zgcd (k, n) = 1 ==> zgcd (k * m, n) dvd zgcd (m, n)"
+  "zgcd k n = 1 ==> zgcd (k * m) n dvd zgcd m n"
   apply (simp add: zgcd_greatest_iff)
   apply (rule_tac n = k in zrelprime_zdvd_zmult)
    prefer 2
@@ -198,14 +194,14 @@ lemma zgcd_zmult_zdvd_zgcd:
   apply (metis zgcd_1 zgcd_commute zgcd_left_commute)
   done
 
-lemma zgcd_zmult_cancel: "zgcd (k, n) = 1 ==> zgcd (k * m, n) = zgcd (m, n)"
+lemma zgcd_zmult_cancel: "zgcd k n = 1 ==> zgcd (k * m) n = zgcd m n"
   by (simp add: zgcd_def nat_abs_mult_distrib gcd_mult_cancel)
 
 lemma zgcd_zgcd_zmult:
-    "zgcd (k, m) = 1 ==> zgcd (n, m) = 1 ==> zgcd (k * n, m) = 1"
+  "zgcd k m = 1 ==> zgcd n m = 1 ==> zgcd (k * n) m = 1"
   by (simp add: zgcd_zmult_cancel)
 
-lemma zdvd_iff_zgcd: "0 < m ==> (m dvd n) = (zgcd (n, m) = m)"
+lemma zdvd_iff_zgcd: "0 < m ==> m dvd n \<longleftrightarrow> zgcd n m = m"
   by (metis abs_of_pos zdvd_mult_div_cancel zgcd_0 zgcd_commute zgcd_geq_zero zgcd_zdvd2 zgcd_zmult_eq_self)
 
 
@@ -276,7 +272,7 @@ lemma zcong_square:
 
 lemma zcong_cancel:
   "0 \<le> m ==>
-    zgcd (k, m) = 1 ==> [a * k = b * k] (mod m) = [a = b] (mod m)"
+    zgcd k m = 1 ==> [a * k = b * k] (mod m) = [a = b] (mod m)"
   apply safe
    prefer 2
    apply (blast intro: zcong_scalar)
@@ -293,11 +289,11 @@ lemma zcong_cancel:
 
 lemma zcong_cancel2:
   "0 \<le> m ==>
-    zgcd (k, m) = 1 ==> [k * a = k * b] (mod m) = [a = b] (mod m)"
+    zgcd k m = 1 ==> [k * a = k * b] (mod m) = [a = b] (mod m)"
   by (simp add: zmult_commute zcong_cancel)
 
 lemma zcong_zgcd_zmult_zmod:
-  "[a = b] (mod m) ==> [a = b] (mod n) ==> zgcd (m, n) = 1
+  "[a = b] (mod m) ==> [a = b] (mod n) ==> zgcd m n = 1
     ==> [a = b] (mod m * n)"
   apply (unfold zcong_def dvd_def, auto)
   apply (subgoal_tac "m dvd n * ka")
@@ -353,7 +349,7 @@ lemma zcong_iff_lin: "([a = b] (mod m)) = (\<exists>k. b = a + m * k)"
 
 lemma zgcd_zcong_zgcd:
   "0 < m ==>
-    zgcd (a, m) = 1 ==> [a = b] (mod m) ==> zgcd (b, m) = 1"
+    zgcd a m = 1 ==> [a = b] (mod m) ==> zgcd b m = 1"
   by (auto simp add: zcong_iff_lin)
 
 lemma zcong_zmod_aux:
@@ -412,7 +408,7 @@ subsection {* Extended GCD *}
 declare xzgcda.simps [simp del]
 
 lemma xzgcd_correct_aux1:
-  "zgcd (r', r) = k --> 0 < r -->
+  "zgcd r' r = k --> 0 < r -->
     (\<exists>sn tn. xzgcda (m, n, r', r, s', s, t', t) = (k, sn, tn))"
   apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
     z = s and aa = t' and ab = t in xzgcda.induct)
@@ -428,7 +424,7 @@ lemma xzgcd_correct_aux1:
 
 lemma xzgcd_correct_aux2:
   "(\<exists>sn tn. xzgcda (m, n, r', r, s', s, t', t) = (k, sn, tn)) --> 0 < r -->
-    zgcd (r', r) = k"
+    zgcd r' r = k"
   apply (rule_tac u = m and v = n and w = r' and x = r and y = s' and
     z = s and aa = t' and ab = t in xzgcda.induct)
   apply (subst zgcd_eq)
@@ -441,7 +437,7 @@ lemma xzgcd_correct_aux2:
   done
 
 lemma xzgcd_correct:
-    "0 < n ==> (zgcd (m, n) = k) = (\<exists>s t. xzgcd m n = (k, s, t))"
+    "0 < n ==> zgcd m n = k \<longleftrightarrow> (\<exists>s t. xzgcd m n = (k, s, t))"
   apply (unfold xzgcd_def)
   apply (rule iffI)
    apply (rule_tac [2] xzgcd_correct_aux2 [THEN mp, THEN mp])
@@ -491,14 +487,14 @@ lemma xzgcd_linear:
   done
 
 lemma zgcd_ex_linear:
-    "0 < n ==> zgcd (m, n) = k ==> (\<exists>s t. k = s * m + t * n)"
+    "0 < n ==> zgcd m n = k ==> (\<exists>s t. k = s * m + t * n)"
   apply (simp add: xzgcd_correct, safe)
   apply (rule exI)+
   apply (erule xzgcd_linear, auto)
   done
 
 lemma zcong_lineq_ex:
-    "0 < n ==> zgcd (a, n) = 1 ==> \<exists>x. [a * x = 1] (mod n)"
+    "0 < n ==> zgcd a n = 1 ==> \<exists>x. [a * x = 1] (mod n)"
   apply (cut_tac m = a and n = n and k = 1 in zgcd_ex_linear, safe)
   apply (rule_tac x = s in exI)
   apply (rule_tac b = "s * a + t * n" in zcong_trans)
@@ -510,7 +506,7 @@ lemma zcong_lineq_ex:
 
 lemma zcong_lineq_unique:
   "0 < n ==>
-    zgcd (a, n) = 1 ==> \<exists>!x. 0 \<le> x \<and> x < n \<and> [a * x = b] (mod n)"
+    zgcd a n = 1 ==> \<exists>!x. 0 \<le> x \<and> x < n \<and> [a * x = b] (mod n)"
   apply auto
    apply (rule_tac [2] zcong_zless_imp_eq)
        apply (tactic {* stac (thm "zcong_cancel2" RS sym) 6 *})

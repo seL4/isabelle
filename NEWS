@@ -41,7 +41,20 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* HOL-Rational: 'Fract k 0' now equals '0'.  INCOMPATIBILITY.
+* HOL/Library/GCD:  Curried operations gcd, lcm (for nat) and zgcd, zlcm (for int);
+carried together from various gcd/lcm developements in the HOL Distribution.
+zgcd and zlcm replace former igcd and ilcm;  corresponding theorems renamed
+accordingly.  INCOMPATIBILY.  To recover tupled syntax, use syntax declarations like:
+
+    hide (open) const gcd
+    abbreviation gcd where
+      "gcd == (%(a, b). GCD.gcd a b)"
+    notation (output)
+      GCD.gcd ("gcd '(_, _')")
+
+(analogously for lcm, zgcd, zlcm).
+
+* HOL/Real/Rational: 'Fract k 0' now equals '0'.  INCOMPATIBILITY.
 
 * Integrated image HOL-Complex with HOL.  Entry points Main.thy and
 Complex_Main.thy remain as they are.

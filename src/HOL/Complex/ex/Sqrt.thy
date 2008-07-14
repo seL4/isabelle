@@ -23,16 +23,16 @@ definition
 
 theorem rationals_rep [elim?]:
   assumes "x \<in> \<rat>"
-  obtains m n where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd (m, n) = 1"
+  obtains m n where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd m n = 1"
 proof -
   from `x \<in> \<rat>` obtain m n :: nat where
       n: "n \<noteq> 0" and x_rat: "\<bar>x\<bar> = real m / real n"
     unfolding rationals_def by blast
-  let ?gcd = "gcd (m, n)"
+  let ?gcd = "gcd m n"
   from n have gcd: "?gcd \<noteq> 0" by (simp add: gcd_zero)
   let ?k = "m div ?gcd"
   let ?l = "n div ?gcd"
-  let ?gcd' = "gcd (?k, ?l)"
+  let ?gcd' = "gcd ?k ?l"
   have "?gcd dvd m" .. then have gcd_k: "?gcd * ?k = m"
     by (rule dvd_mult_div_cancel)
   have "?gcd dvd n" .. then have gcd_l: "?gcd * ?l = n"
@@ -52,7 +52,7 @@ proof -
   moreover
   have "?gcd' = 1"
   proof -
-    have "?gcd * ?gcd' = gcd (?gcd * ?k, ?gcd * ?l)"
+    have "?gcd * ?gcd' = gcd (?gcd * ?k) (?gcd * ?l)"
       by (rule gcd_mult_distrib2)
     with gcd_k gcd_l have "?gcd * ?gcd' = ?gcd" by simp
     with gcd show ?thesis by simp
@@ -76,7 +76,7 @@ proof
   assume "sqrt (real p) \<in> \<rat>"
   then obtain m n where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
-    and gcd: "gcd (m, n) = 1" ..
+    and gcd: "gcd m n = 1" ..
   have eq: "m\<twosuperior> = p * n\<twosuperior>"
   proof -
     from n and sqrt_rat have "real m = \<bar>sqrt (real p)\<bar> * real n" by simp
@@ -96,7 +96,7 @@ proof
     then have "p dvd n\<twosuperior>" ..
     with `prime p` show "p dvd n" by (rule prime_dvd_power_two)
   qed
-  then have "p dvd gcd (m, n)" ..
+  then have "p dvd gcd m n" ..
   with gcd have "p dvd 1" by simp
   then have "p \<le> 1" by (simp add: dvd_imp_le)
   with p show False by simp
@@ -122,7 +122,7 @@ proof
   assume "sqrt (real p) \<in> \<rat>"
   then obtain m n where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
-    and gcd: "gcd (m, n) = 1" ..
+    and gcd: "gcd m n = 1" ..
   from n and sqrt_rat have "real m = \<bar>sqrt (real p)\<bar> * real n" by simp
   then have "real (m\<twosuperior>) = (sqrt (real p))\<twosuperior> * real (n\<twosuperior>)"
     by (auto simp add: power2_eq_square)
@@ -136,7 +136,7 @@ proof
   with p have "n\<twosuperior> = p * k\<twosuperior>" by (simp add: power2_eq_square)
   then have "p dvd n\<twosuperior>" ..
   with `prime p` have "p dvd n" by (rule prime_dvd_power_two)
-  with dvd_m have "p dvd gcd (m, n)" by (rule gcd_greatest)
+  with dvd_m have "p dvd gcd m n" by (rule gcd_greatest)
   with gcd have "p dvd 1" by simp
   then have "p \<le> 1" by (simp add: dvd_imp_le)
   with p show False by simp

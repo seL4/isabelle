@@ -6,7 +6,9 @@
 
 header {* The Chinese Remainder Theorem *}
 
-theory Chinese imports IntPrimes begin
+theory Chinese 
+imports IntPrimes
+begin
 
 text {*
   The Chinese Remainder Theorem for an arbitrary finite number of
@@ -35,11 +37,11 @@ definition
   m_cond :: "nat => (nat => int) => bool" where
   "m_cond n mf =
     ((\<forall>i. i \<le> n --> 0 < mf i) \<and>
-      (\<forall>i j. i \<le> n \<and> j \<le> n \<and> i \<noteq> j --> zgcd (mf i, mf j) = 1))"
+      (\<forall>i j. i \<le> n \<and> j \<le> n \<and> i \<noteq> j --> zgcd (mf i) (mf j) = 1))"
 
 definition
   km_cond :: "nat => (nat => int) => (nat => int) => bool" where
-  "km_cond n kf mf = (\<forall>i. i \<le> n --> zgcd (kf i, mf i) = 1)"
+  "km_cond n kf mf = (\<forall>i. i \<le> n --> zgcd (kf i) (mf i) = 1)"
 
 definition
   lincong_sol ::
@@ -75,8 +77,8 @@ lemma funprod_pos: "(\<forall>i. i \<le> n --> 0 < mf i) ==> 0 < funprod mf 0 n"
   done
 
 lemma funprod_zgcd [rule_format (no_asm)]:
-  "(\<forall>i. k \<le> i \<and> i \<le> k + l --> zgcd (mf i, mf m) = 1) -->
-    zgcd (funprod mf k l, mf m) = 1"
+  "(\<forall>i. k \<le> i \<and> i \<le> k + l --> zgcd (mf i) (mf m) = 1) -->
+    zgcd (funprod mf k l) (mf m) = 1"
   apply (induct l)
    apply simp_all
   apply (rule impI)+

@@ -6,7 +6,9 @@
 
 header {* Fermat's Little Theorem extended to Euler's Totient function *}
 
-theory EulerFermat imports BijectionRel IntFact begin
+theory EulerFermat
+imports BijectionRel IntFact
+begin
 
 text {*
   Fermat's Little Theorem extended to Euler's Totient function. More
@@ -22,7 +24,7 @@ inductive_set
   for m :: int
   where
     empty [simp]: "{} \<in> RsetR m"
-  | insert: "A \<in> RsetR m ==> zgcd (a, m) = 1 ==>
+  | insert: "A \<in> RsetR m ==> zgcd a m = 1 ==>
       \<forall>a'. a' \<in> A --> \<not> zcong a a' m ==> insert a A \<in> RsetR m"
 
 consts
@@ -33,7 +35,7 @@ recdef BnorRset
   "BnorRset (a, m) =
    (if 0 < a then
     let na = BnorRset (a - 1, m)
-    in (if zgcd (a, m) = 1 then insert a na else na)
+    in (if zgcd a m = 1 then insert a na else na)
     else {})"
 
 definition
@@ -103,7 +105,7 @@ lemma Bnor_mem_zg [rule_format]: "b \<in> BnorRset (a, m) --> 0 < b"
   done
 
 lemma Bnor_mem_if [rule_format]:
-    "zgcd (b, m) = 1 --> 0 < b --> b \<le> a --> b \<in> BnorRset (a, m)"
+    "zgcd b m = 1 --> 0 < b --> b \<le> a --> b \<in> BnorRset (a, m)"
   apply (induct a m rule: BnorRset.induct, auto)
    apply (subst BnorRset.simps)
    defer
@@ -137,7 +139,7 @@ lemma norR_mem_unique_aux: "a \<le> b - 1 ==> a < (b::int)"
 
 lemma norR_mem_unique:
   "1 < m ==>
-    zgcd (a, m) = 1 ==> \<exists>!b. [a = b] (mod m) \<and> b \<in> norRRset m"
+    zgcd a m = 1 ==> \<exists>!b. [a = b] (mod m) \<and> b \<in> norRRset m"
   apply (unfold norRRset_def)
   apply (cut_tac a = a and m = m in zcong_zless_unique, auto)
    apply (rule_tac [2] m = m in zcong_zless_imp_eq)
@@ -149,7 +151,7 @@ lemma norR_mem_unique:
      apply (auto intro: order_less_le [THEN iffD2])
    prefer 2
    apply (simp only: zcong_def)
-   apply (subgoal_tac "zgcd (a, m) = m")
+   apply (subgoal_tac "zgcd a m = m")
     prefer 2
     apply (subst zdvd_iff_zgcd [symmetric])
      apply (rule_tac [4] zgcd_zcong_zgcd)
@@ -160,14 +162,14 @@ lemma norR_mem_unique:
 text {* \medskip @{term noXRRset} *}
 
 lemma RRset_gcd [rule_format]:
-    "is_RRset A m ==> a \<in> A --> zgcd (a, m) = 1"
+    "is_RRset A m ==> a \<in> A --> zgcd a m = 1"
   apply (unfold is_RRset_def)
-  apply (rule RsetR.induct [where P="%A. a \<in> A --> zgcd (a, m) = 1"], auto)
+  apply (rule RsetR.induct [where P="%A. a \<in> A --> zgcd a m = 1"], auto)
   done
 
 lemma RsetR_zmult_mono:
   "A \<in> RsetR m ==>
-    0 < m ==> zgcd (x, m) = 1 ==> (\<lambda>a. a * x) ` A \<in> RsetR m"
+    0 < m ==> zgcd x m = 1 ==> (\<lambda>a. a * x) ` A \<in> RsetR m"
   apply (erule RsetR.induct, simp_all)
   apply (rule RsetR.insert, auto)
    apply (blast intro: zgcd_zgcd_zmult)
@@ -176,7 +178,7 @@ lemma RsetR_zmult_mono:
 
 lemma card_nor_eq_noX:
   "0 < m ==>
-    zgcd (x, m) = 1 ==> card (noXRRset m x) = card (norRRset m)"
+    zgcd x m = 1 ==> card (noXRRset m x) = card (norRRset m)"
   apply (unfold norRRset_def noXRRset_def)
   apply (rule card_image)
    apply (auto simp add: inj_on_def Bnor_fin)
@@ -184,7 +186,7 @@ lemma card_nor_eq_noX:
   done
 
 lemma noX_is_RRset:
-    "0 < m ==> zgcd (x, m) = 1 ==> is_RRset (noXRRset m x) m"
+    "0 < m ==> zgcd x m = 1 ==> is_RRset (noXRRset m x) m"
   apply (unfold is_RRset_def phi_def)
   apply (auto simp add: card_nor_eq_noX)
   apply (unfold noXRRset_def norRRset_def)
@@ -284,7 +286,7 @@ lemma bijzcong_zcong_prod:
   done
 
 lemma Bnor_prod_zgcd [rule_format]:
-    "a < m --> zgcd (\<Prod>(BnorRset(a, m)), m) = 1"
+    "a < m --> zgcd (\<Prod>(BnorRset(a, m))) m = 1"
   apply (induct a m rule: BnorRset_induct)
    prefer 2
    apply (subst BnorRset.simps)
@@ -294,7 +296,7 @@ lemma Bnor_prod_zgcd [rule_format]:
   done
 
 theorem Euler_Fermat:
-    "0 < m ==> zgcd (x, m) = 1 ==> [x^(phi m) = 1] (mod m)"
+    "0 < m ==> zgcd x m = 1 ==> [x^(phi m) = 1] (mod m)"
   apply (unfold norRRset_def phi_def)
   apply (case_tac "x = 0")
    apply (case_tac [2] "m = 1")

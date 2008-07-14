@@ -5,7 +5,9 @@
 
 header {* Gauss' Lemma *}
 
-theory Gauss imports Euler begin
+theory Gauss
+imports Euler
+begin
 
 locale GAUSS =
   fixes p :: "int"
@@ -284,10 +286,10 @@ proof -
     using zless_add1_eq [of "p - StandardRes p (y * a)" "(p - 1) div 2"] by auto
 qed
 
-lemma all_A_relprime: "\<forall>x \<in> A. zgcd(x, p) = 1"
+lemma all_A_relprime: "\<forall>x \<in> A. zgcd x p = 1"
   using p_prime p_minus_one_l by (auto simp add: A_def zless_zprime_imp_zrelprime)
 
-lemma A_prod_relprime: "zgcd((setprod id A),p) = 1"
+lemma A_prod_relprime: "zgcd (setprod id A) p = 1"
   using all_A_relprime finite_A by (simp add: all_relprime_prod_relprime)
 
 
