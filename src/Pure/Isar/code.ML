@@ -180,11 +180,6 @@ fun melt _ ([], []) = (false, [])
   | melt eq (xs, ys) = fold_rev
       (fn y => fn (t, xs) => (t orelse not (member eq xs y), insert eq y xs)) ys (false, xs);
 
-fun melt_alist eq_key eq (xys as (xs, ys)) =
-  if eq_list (eq_pair eq_key eq) (xs, ys)
-  then (false, xs)
-  else (true, AList.merge eq_key eq xys);
-
 val melt_thms = melt Thm.eq_thm_prop;
 
 fun melt_lthms (r1, r2) =
@@ -214,40 +209,19 @@ fun melt_sdthms ((sels1, dels1), (sels2, dels2)) =
 
 (* specification data *)
 
-fun melt_funcs tabs =
-  let
-    val tab' = Symtab.join (fn _ => fn ((_, a), (_, b)) => melt_sdthms (a, b)) tabs;
-    val touched = Symtab.fold (fn (c, (true, _)) => insert (op =) c | _ => I) tab' [];
-  in (touched, tab') end;
+val merge_funcs = Symtab.join (fn _ => fn ((_, a), (_, b)) => melt_sdthms (a, b));
 
 val eq_string = op = : string * string -> bool;
 fun eq_dtyp ((vs1, cs1), (vs2, cs2)) = 
   gen_eq_set (eq_pair eq_string (gen_eq_set eq_string)) (vs1, vs2)
     andalso gen_eq_set (eq_fst eq_string) (cs1, cs2);
-fun melt_dtyps (tabs as (tab1, tab2)) =
+fun merge_dtyps (tabs as (tab1, tab2)) =
   let
-    val tycos1 = Symtab.keys tab1;
-    val tycos2 = Symtab.keys tab2;
-    val tycos' = filter (member eq_string tycos2) tycos1;
-    val touched = not (gen_eq_set (op =) (tycos1, tycos2)
-      andalso gen_eq_set (eq_pair (op =) eq_dtyp)
-      (AList.make (the o Symtab.lookup tab1) tycos',
-       AList.make (the o Symtab.lookup tab2) tycos'));
-    fun join _ (cos as (_, cos2)) = if eq_dtyp cos
-      then raise Symtab.SAME else cos2;
-  in (touched, Symtab.join join tabs) end;
+    fun join _ (cos as (_, cos2)) = if eq_dtyp cos then raise Symtab.SAME else cos2;
+  in Symtab.join join tabs end;
 
-fun melt_cases ((cases1, undefs1), (cases2, undefs2)) =
-  let
-    val touched1 = subtract (op =) (Symtab.keys cases1) (Symtab.keys cases2)
-      @ subtract (op =) (Symtab.keys cases2) (Symtab.keys cases1);
-    val touched2 = subtract (op =) (Symtab.keys undefs1) (Symtab.keys undefs2)
-      @ subtract (op =) (Symtab.keys undefs2) (Symtab.keys undefs1);
-    val touched = fold (insert (op =)) touched1 touched2;
-  in
-    (touched, (Symtab.merge (K true) (cases1, cases2),
-      Symtab.merge (K true) (undefs1, undefs2)))
-  end;
+fun merge_cases ((cases1, undefs1), (cases2, undefs2)) =
+  (Symtab.merge (K true) (cases1, cases2), Symtab.merge (K true) (undefs1, undefs2));
 
 datatype spec = Spec of {
   funcs: (bool * sdthms) Symtab.table,
@@ -262,9 +236,9 @@ fun map_spec f (Spec { funcs = funcs, dtyps = dtyps, cases = cases }) =
 fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1, cases = cases1 },
   Spec { funcs = funcs2, dtyps = dtyps2, cases = cases2 }) =
   let
-    val (_, funcs) = melt_funcs (funcs1, funcs2);
-    val (_, dtyps) = melt_dtyps (dtyps1, dtyps2);
-    val (_, cases) = melt_cases (cases1, cases2);
+    val funcs = merge_funcs (funcs1, funcs2);
+    val dtyps = merge_dtyps (dtyps1, dtyps2);
+    val cases = merge_cases (cases1, cases2);
   in mk_spec (funcs, (dtyps, cases)) end;
 
 
@@ -889,20 +863,25 @@ fun term_of_conv thy f =
 in
 
 fun preprocess thy thms =
-  thms
-  |> fold (fn (_, (_, f)) => apply_functrans thy f) ((#functrans o the_thmproc o the_exec) thy)
-  |> map (CodeUnit.rewrite_func ((#pre o the_thmproc o the_exec) thy))
-  (*FIXME - must check gere: rewrite rule, defining equation, proper constant *)
-  |> map (AxClass.unoverload thy)
-  |> common_typ_funcs;
+  let
+    val pre = (Simplifier.theory_context thy o #pre o the_thmproc o the_exec) thy;
+  in
+    thms
+    |> fold (fn (_, (_, f)) => apply_functrans thy f) ((#functrans o the_thmproc o the_exec) thy)
+    |> map (CodeUnit.rewrite_func pre)
+    (*FIXME - must check gere: rewrite rule, defining equation, proper constant *)
+    |> map (AxClass.unoverload thy)
+    |> common_typ_funcs
+  end;
 
 
 fun preprocess_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
+    val pre = (Simplifier.theory_context thy o #pre o the_thmproc o the_exec) thy;
   in
     ct
-    |> MetaSimplifier.rewrite' (ProofContext.init thy) false ((#pre o the_thmproc o the_exec) thy)
+    |> Simplifier.rewrite pre
     |> rhs_conv (AxClass.unoverload_conv thy)
   end;
 
@@ -911,11 +890,11 @@ fun preprocess_term thy = term_of_conv thy preprocess_conv;
 fun postprocess_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
+    val post = (Simplifier.theory_context thy o #post o the_thmproc o the_exec) thy;
   in
     ct
     |> AxClass.overload_conv thy
-    |> rhs_conv (MetaSimplifier.rewrite' (ProofContext.init thy) false 
-          ((#post o the_thmproc o the_exec) thy))
+    |> rhs_conv (Simplifier.rewrite post)
   end;
 
 fun postprocess_term thy = term_of_conv thy postprocess_conv;

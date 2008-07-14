@@ -44,7 +44,6 @@ sig
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
   val pretty_ss: simpset -> Pretty.T
-  val print_ss: simpset -> unit
   type simproc
   val eq_simproc: simproc * simproc -> bool
   val morph_simproc: morphism -> simproc -> simproc
@@ -121,9 +120,7 @@ sig
   val norm_hhf: thm -> thm
   val norm_hhf_protect: thm -> thm
   val rewrite: bool -> thm list -> conv
-  val rewrite': Proof.context -> bool -> simpset -> conv;
   val simplify: bool -> thm list -> thm -> thm
-  val simplify': Proof.context -> bool -> simpset -> thm -> thm;
 end;
 
 structure MetaSimplifier: META_SIMPLIFIER =
@@ -357,8 +354,6 @@ fun pretty_ss ss =
       Pretty.strs ("safe solvers:" :: map (quote o solver_name) (#2 solvers))]
     |> Pretty.chunks
   end;
-  
-val print_ss = Pretty.writeln o pretty_ss;
 
 
 
@@ -1263,12 +1258,9 @@ fun rewrite_cterm mode prover raw_ss raw_ct =
 val simple_prover =
   SINGLE o (fn ss => ALLGOALS (resolve_tac (prems_of_ss ss)));
 
-fun rewrite' ctxt full ss = rewrite_cterm (full, false, false) simple_prover (context ctxt ss);
-fun simplify' ctxt full ss = Conv.fconv_rule (rewrite' ctxt full ss);
-
 fun rewrite _ [] ct = Thm.reflexive ct
-  | rewrite full thms ct = rewrite' (ProofContext.init (Thm.theory_of_cterm ct))
-      full (empty_ss addsimps thms) ct;
+  | rewrite full thms ct = rewrite_cterm (full, false, false) simple_prover
+      (theory_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
 
 fun simplify full thms = Conv.fconv_rule (rewrite full thms);
 val rewrite_rule = simplify true;

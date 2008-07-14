@@ -412,7 +412,7 @@ val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
 
 val print_simpset = Toplevel.unknown_context o
-  Toplevel.keep (Simplifier.print_ss o Simplifier.local_simpset_of o Toplevel.context_of);
+  Toplevel.keep (Pretty.writeln o Simplifier.pretty_ss o Simplifier.local_simpset_of o Toplevel.context_of);
 
 val print_rules = Toplevel.unknown_context o
   Toplevel.keep (ContextRules.print_rules o Toplevel.context_of);
