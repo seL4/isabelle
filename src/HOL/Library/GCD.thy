@@ -39,11 +39,10 @@ lemma is_gcd_commute: "is_gcd m n k = is_gcd n m k"
 
 subsection {* GCD on nat by Euclid's algorithm *}
 
-fun gcd  :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+fun
+  gcd  :: "nat => nat => nat"
+where
   "gcd m n = (if n = 0 then m else gcd n (m mod n))"
-
-thm gcd.induct
-
 lemma gcd_induct [case_names "0" rec]:
   fixes m n :: nat
   assumes "\<And>m. P m 0"
@@ -222,11 +221,7 @@ subsection {* LCM defined by GCD *}
 definition
   lcm :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
-  lcm_prim_def: "lcm m n = m * n div gcd m n"
-
-lemma lcm_def:
-  "lcm m n = m * n div gcd m n"
-  unfolding lcm_prim_def by simp
+  lcm_def: "lcm m n = m * n div gcd m n"
 
 lemma prod_gcd_lcm:
   "m * n = gcd m n * lcm m n"
@@ -324,6 +319,14 @@ next
   qed
 qed
 
+lemma gcd_add1_eq: "gcd (m + k) k = gcd (m + k) m"
+  by (simp add: gcd_commute)
+
+lemma gcd_diff2: "m \<le> n ==> gcd n (n - m) = gcd n m"
+  apply (subgoal_tac "n = m + (n - m)")
+   apply (erule ssubst, rule gcd_add1_eq, simp)
+  done
+
 
 subsection {* GCD and LCM on integers *}
 
@@ -331,10 +334,10 @@ definition
   zgcd :: "int \<Rightarrow> int \<Rightarrow> int" where
   "zgcd i j = int (gcd (nat (abs i)) (nat (abs j)))"
 
-lemma zgcd_dvd1 [simp]: "zgcd i j dvd i"
+lemma zgcd_zdvd1 [iff,simp]: "zgcd i j dvd i"
   by (simp add: zgcd_def int_dvd_iff)
 
-lemma zgcd_dvd2 [simp]: "zgcd i j dvd j"
+lemma zgcd_zdvd2 [iff,simp]: "zgcd i j dvd j"
   by (simp add: zgcd_def int_dvd_iff)
 
 lemma zgcd_pos: "zgcd i j \<ge> 0"
@@ -346,10 +349,10 @@ lemma zgcd0 [simp]: "(zgcd i j = 0) = (i = 0 \<and> j = 0)"
 lemma zgcd_commute: "zgcd i j = zgcd j i"
   unfolding zgcd_def by (simp add: gcd_commute)
 
-lemma zgcd_neg1 [simp]: "zgcd (- i) j = zgcd i j"
+lemma zgcd_zminus [simp]: "zgcd (- i) j = zgcd i j"
   unfolding zgcd_def by simp
 
-lemma zgcd_neg2 [simp]: "zgcd i (- j) = zgcd i j"
+lemma zgcd_zminus2 [simp]: "zgcd i (- j) = zgcd i j"
   unfolding zgcd_def by simp
 
 lemma zrelprime_dvd_mult: "zgcd i j = 1 \<Longrightarrow> i dvd k * j \<Longrightarrow> i dvd k"
@@ -399,8 +402,8 @@ proof -
   let ?a' = "a div ?g"
   let ?b' = "b div ?g"
   let ?g' = "zgcd ?a' ?b'"
-  have dvdg: "?g dvd a" "?g dvd b" by (simp_all add: zgcd_dvd1 zgcd_dvd2)
-  have dvdg': "?g' dvd ?a'" "?g' dvd ?b'" by (simp_all add: zgcd_dvd1 zgcd_dvd2)
+  have dvdg: "?g dvd a" "?g dvd b" by (simp_all add: zgcd_zdvd1 zgcd_zdvd2)
+  have dvdg': "?g' dvd ?a'" "?g' dvd ?b'" by (simp_all add: zgcd_zdvd1 zgcd_zdvd2)
   from dvdg dvdg' obtain ka kb ka' kb' where
    kab: "a = ?g*ka" "b = ?g*kb" "?a' = ?g'*ka'" "?b' = ?g' * kb'"
     unfolding dvd_def by blast
@@ -415,8 +418,71 @@ proof -
   with zgcd_pos show "?g' = 1" by simp
 qed
 
-definition zlcm :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "zlcm i j = int (lcm (nat (abs i)) (nat (abs j)))"
+    (* IntPrimes stuff *)
+
+lemma zgcd_0 [simp]: "zgcd m 0 = abs m"
+  by (simp add: zgcd_def abs_if)
+
+lemma zgcd_0_left [simp]: "zgcd 0 m = abs m"
+  by (simp add: zgcd_def abs_if)
+
+lemma zgcd_non_0: "0 < n ==> zgcd m n = zgcd n (m mod n)"
+  apply (frule_tac b = n and a = m in pos_mod_sign)
+  apply (simp del: pos_mod_sign add: zgcd_def abs_if nat_mod_distrib)
+  apply (auto simp add: gcd_non_0 nat_mod_distrib [symmetric] zmod_zminus1_eq_if)
+  apply (frule_tac a = m in pos_mod_bound)
+  apply (simp del: pos_mod_bound add: nat_diff_distrib gcd_diff2 nat_le_eq_zle)
+  done
+
+lemma zgcd_eq: "zgcd m n = zgcd n (m mod n)"
+  apply (case_tac "n = 0", simp add: DIVISION_BY_ZERO)
+  apply (auto simp add: linorder_neq_iff zgcd_non_0)
+  apply (cut_tac m = "-m" and n = "-n" in zgcd_non_0, auto)
+  done
+
+lemma zgcd_1 [simp]: "zgcd m 1 = 1"
+  by (simp add: zgcd_def abs_if)
+
+lemma zgcd_0_1_iff [simp]: "zgcd 0 m = 1 \<longleftrightarrow> \<bar>m\<bar> = 1"
+  by (simp add: zgcd_def abs_if)
+
+lemma zgcd_greatest_iff: "k dvd zgcd m n = (k dvd m \<and> k dvd n)"
+  by (simp add: zgcd_def abs_if int_dvd_iff dvd_int_iff nat_dvd_iff)
+
+lemma zgcd_1_left [simp]: "zgcd 1 m = 1"
+  by (simp add: zgcd_def gcd_1_left)
+
+lemma zgcd_assoc: "zgcd (zgcd k m) n = zgcd k (zgcd m n)"
+  by (simp add: zgcd_def gcd_assoc)
+
+lemma zgcd_left_commute: "zgcd k (zgcd m n) = zgcd m (zgcd k n)"
+  apply (rule zgcd_commute [THEN trans])
+  apply (rule zgcd_assoc [THEN trans])
+  apply (rule zgcd_commute [THEN arg_cong])
+  done
+
+lemmas zgcd_ac = zgcd_assoc zgcd_commute zgcd_left_commute
+  -- {* addition is an AC-operator *}
+
+lemma zgcd_zmult_distrib2: "0 \<le> k ==> k * zgcd m n = zgcd (k * m) (k * n)"
+  by (simp del: minus_mult_right [symmetric]
+      add: minus_mult_right nat_mult_distrib zgcd_def abs_if
+          mult_less_0_iff gcd_mult_distrib2 [symmetric] zmult_int [symmetric])
+
+lemma zgcd_zmult_distrib2_abs: "zgcd (k * m) (k * n) = abs k * zgcd m n"
+  by (simp add: abs_if zgcd_zmult_distrib2)
+
+lemma zgcd_self [simp]: "0 \<le> m ==> zgcd m m = m"
+  by (cut_tac k = m and m = 1 and n = 1 in zgcd_zmult_distrib2, simp_all)
+
+lemma zgcd_zmult_eq_self [simp]: "0 \<le> k ==> zgcd k (k * n) = k"
+  by (cut_tac k = k and m = 1 and n = n in zgcd_zmult_distrib2, simp_all)
+
+lemma zgcd_zmult_eq_self2 [simp]: "0 \<le> k ==> zgcd (k * n) k = k"
+  by (cut_tac k = k and m = n and n = 1 in zgcd_zmult_distrib2, simp_all)
+
+
+definition "zlcm i j = int (lcm(nat(abs i)) (nat(abs j)))"
 
 lemma dvd_zlcm_self1[simp]: "i dvd zlcm i j"
 by(simp add:zlcm_def dvd_int_iff)
@@ -452,10 +518,10 @@ by (case_tac "d<0", simp_all)
 
 lemma lcm_pos: 
   assumes mpos: "m > 0"
-  and npos: "n > 0"
+  and npos: "n>0"
   shows "lcm m n > 0"
 proof(rule ccontr, simp add: lcm_def gcd_zero)
-assume h:"m * n div gcd m n = 0"
+assume h:"m*n div gcd m n = 0"
 from mpos npos have "gcd m n \<noteq> 0" using gcd_zero by simp
 hence gcdp: "gcd m n > 0" by simp
 with h
@@ -464,7 +530,7 @@ have "m*n < gcd m n"
 moreover 
 have "gcd m n dvd m" by simp
  with mpos dvd_imp_le have t1:"gcd m n \<le> m" by simp
- with npos have t1:"gcd m n*n \<le> m*n" by simp
+ with npos have t1:"gcd m n *n \<le> m*n" by simp
  have "gcd m n \<le> gcd m n*n" using npos by simp
  with t1 have "gcd m n \<le> m*n" by arith
 ultimately show "False" by simp
