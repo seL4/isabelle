@@ -497,7 +497,7 @@ fun output pretty src ctxt = output_list pretty src ctxt o single;
 
 fun proof_state node =
   (case Option.map Toplevel.proof_node node of
-    SOME (SOME prf) => ProofHistory.current prf
+    SOME (SOME prf) => ProofNode.current prf
   | _ => error "No proof state");
 
 fun output_goals main_goal src node = args (Scan.succeed ()) (output (fn _ => fn _ =>
