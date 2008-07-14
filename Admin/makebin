@@ -114,6 +114,8 @@ if [ -n "$DRY_RUN" ]; then
   touch "heaps/$COMPILER/log/HOL.gz"
   touch "heaps/$COMPILER/HOL-Complex"
   touch "heaps/$COMPILER/log/HOL-Complex.gz"
+  touch "heaps/$COMPILER/HOL-Nominal"
+  touch "heaps/$COMPILER/log/HOL-Nominal.gz"
   touch "heaps/$COMPILER/ZF"
   touch "heaps/$COMPILER/log/ZF.gz"
   mkdir browser_info
@@ -121,6 +123,7 @@ elif [ -n "$DO_LIBRARY" ]; then
   ./build -bait
 else
   ./build -b -m HOL-Complex HOL
+  ./build -b -m HOL-Nominal HOL
   ./build -b ZF
   rm -f "heaps/$COMPILER/Pure" "heaps/$COMPILER/FOL"
 fi
@@ -138,7 +141,7 @@ if [ -n "$DO_LIBRARY" ]; then
     gzip -f "${ISABELLE_NAME}_library.tar"
     cp -f "${ISABELLE_NAME}_library.tar.gz" "$ARCHIVE_DIR"
 else
-  for IMG in HOL HOL-Complex ZF
+  for IMG in HOL HOL-Complex HOL-Nominal ZF
   do
     "$TAR" cf "${IMG}_$PLATFORM.tar" \
       "$ISABELLE_NAME/heaps/$COMPILER/$IMG" \
