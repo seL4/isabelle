@@ -615,16 +615,16 @@ The \isa{HOL} \isa{Main} theory already provides a code
 \begin{isamarkuptext}%
 Before selected function theorems are turned into abstract
   code, a chain of definitional transformation steps is carried
-  out: \emph{preprocessing}. There are three possibilities
-  to customize preprocessing: \emph{inline theorems},
-  \emph{inline procedures} and \emph{generic preprocessors}.
+  out: \emph{preprocessing}.  In essence, the preprocessort
+  consists of two components: a \emph{simpset} and \emph{function transformators}.
 
-  \emph{Inline theorems} are rewriting rules applied to each
-  defining equation.  Due to the interpretation of theorems
+  The \emph{simpset} allows to employ the full generality of the Isabelle
+  simplifier.  Due to the interpretation of theorems
   of defining equations, rewrites are applied to the right
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
-  Inline theorems may be declared an undeclared using the
+  An important special case are \emph{inline theorems} which may be
+  declared an undeclared using the
   \emph{code inline} or \emph{code inline del} attribute respectively.
   Some common applications:%
 \end{isamarkuptext}%
@@ -698,17 +698,7 @@ Before selected function theorems are turned into abstract
 \end{itemize}
 %
 \begin{isamarkuptext}%
-\noindent The current set of inline theorems may be inspected using
-  the \isa{{\isasymPRINTCODESETUP}} command.
-
-  \emph{Inline procedures} are a generalized version of inline
-  theorems written in ML -- rewrite rules are generated dependent
-  on the function theorems for a certain function.  One
-  application is the implicit expanding of \isa{nat} numerals
-  to \isa{{\isadigit{0}}} / \isa{Suc} representation.  See further
-  \secref{sec:ml}
-
-  \emph{Generic preprocessors} provide a most general interface,
+\emph{Function transformators} provide a most general interface,
   transforming a list of function theorems to another
   list of function theorems, provided that neither the heading
   constant nor its type change.  The \isa{{\isadigit{0}}} / \isa{Suc}
@@ -716,10 +706,11 @@ Before selected function theorems are turned into abstract
   theory \isa{EfficientNat} (\secref{eff_nat}) uses this
   interface.
 
+  \noindent The current setup of the preprocessor may be inspected using
+  the \isa{{\isasymPRINTCODESETUP}} command.
+
   \begin{warn}
-    The order in which single preprocessing steps are carried
-    out currently is not specified; in particular, preprocessing
-    is \emph{no} fix point process.  Keep this in mind when
+    Preprocessing is \emph{no} fix point process.  Keep this in mind when
     setting up the preprocessor.
 
     Further, the attribute \emph{code unfold}
@@ -1523,14 +1514,11 @@ This Pure module implements the core notions of
   \indexml{Code.add\_func}\verb|Code.add_func: thm -> theory -> theory| \\
   \indexml{Code.del\_func}\verb|Code.del_func: thm -> theory -> theory| \\
   \indexml{Code.add\_funcl}\verb|Code.add_funcl: string * thm list Susp.T -> theory -> theory| \\
-  \indexml{Code.add\_inline}\verb|Code.add_inline: thm -> theory -> theory| \\
-  \indexml{Code.del\_inline}\verb|Code.del_inline: thm -> theory -> theory| \\
-  \indexml{Code.add\_inline\_proc}\verb|Code.add_inline_proc: string * (theory -> cterm list -> thm list)|\isasep\isanewline%
+  \indexml{Code.map\_pre}\verb|Code.map_pre: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory| \\
+  \indexml{Code.map\_post}\verb|Code.map_post: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory| \\
+  \indexml{Code.add\_functrans}\verb|Code.add_functrans: string * (theory -> thm list -> thm list)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
-  \indexml{Code.del\_inline\_proc}\verb|Code.del_inline_proc: string -> theory -> theory| \\
-  \indexml{Code.add\_preproc}\verb|Code.add_preproc: string * (theory -> thm list -> thm list)|\isasep\isanewline%
-\verb|    -> theory -> theory| \\
-  \indexml{Code.del\_preproc}\verb|Code.del_preproc: string -> theory -> theory| \\
+  \indexml{Code.del\_functrans}\verb|Code.del_functrans: string -> theory -> theory| \\
   \indexml{Code.add\_datatype}\verb|Code.add_datatype: (string * typ) list -> theory -> theory| \\
   \indexml{Code.get\_datatype}\verb|Code.get_datatype: theory -> string|\isasep\isanewline%
 \verb|    -> (string * sort) list * (string * typ list) list| \\
@@ -1549,30 +1537,17 @@ This Pure module implements the core notions of
      suspended defining equations \isa{lthms} for constant
      \isa{const} to executable content.
 
-  \item \verb|Code.add_inline|~\isa{thm}~\isa{thy} adds
-     inlining theorem \isa{thm} to executable content.
+  \item \verb|Code.map_pre|~\isa{f}~\isa{thy} changes
+     the preprocessor simpset.
 
-  \item \verb|Code.del_inline|~\isa{thm}~\isa{thy} remove
-     inlining theorem \isa{thm} from executable content, if present.
-
-  \item \verb|Code.add_inline_proc|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
-     inline procedure \isa{f} (named \isa{name}) to executable content;
-     \isa{f} is a computation of rewrite rules dependent on
-     the current theory context and the list of all arguments
-     and right hand sides of the defining equations belonging
-     to a certain function definition.
-
-  \item \verb|Code.del_inline_proc|~\isa{name}~\isa{thy} removes
-     inline procedure named \isa{name} from executable content.
-
-  \item \verb|Code.add_preproc|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
-     generic preprocessor \isa{f} (named \isa{name}) to executable content;
+    \item \verb|Code.add_functrans|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
+     function transformator \isa{f} (named \isa{name}) to executable content;
      \isa{f} is a transformation of the defining equations belonging
      to a certain function definition, depending on the
      current theory context.
 
-  \item \verb|Code.del_preproc|~\isa{name}~\isa{thy} removes
-     generic preprcoessor named \isa{name} from executable content.
+  \item \verb|Code.del_functrans|~\isa{name}~\isa{thy} removes
+     function transformator named \isa{name} from executable content.
 
   \item \verb|Code.add_datatype|~\isa{cs}~\isa{thy} adds
      a datatype to executable content, with generation
@@ -1608,7 +1583,7 @@ This Pure module implements the core notions of
 \begin{mldecls}
   \indexml{CodeUnit.read\_const}\verb|CodeUnit.read_const: theory -> string -> string| \\
   \indexml{CodeUnit.head\_func}\verb|CodeUnit.head_func: thm -> string * ((string * sort) list * typ)| \\
-  \indexml{CodeUnit.rewrite\_func}\verb|CodeUnit.rewrite_func: thm list -> thm -> thm| \\
+  \indexml{CodeUnit.rewrite\_func}\verb|CodeUnit.rewrite_func: MetaSimplifier.simpset -> thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
@@ -1619,9 +1594,9 @@ This Pure module implements the core notions of
   \item \verb|CodeUnit.head_func|~\isa{thm}
      extracts the constant and its type from a defining equation \isa{thm}.
 
-  \item \verb|CodeUnit.rewrite_func|~\isa{rews}~\isa{thm}
-     rewrites a defining equation \isa{thm} with a set of rewrite
-     rules \isa{rews}; only arguments and right hand side are rewritten,
+  \item \verb|CodeUnit.rewrite_func|~\isa{ss}~\isa{thm}
+     rewrites a defining equation \isa{thm} with a simpset \isa{ss};
+     only arguments and right hand side are rewritten,
      not the head of the defining equation.
 
   \end{description}%

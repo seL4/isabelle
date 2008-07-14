@@ -228,8 +228,8 @@ fun lift_obj_eq f thy thms =
 setup {*
   Codegen.add_preprocessor eqn_suc_preproc
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> Code.add_preproc ("eqn_Suc", lift_obj_eq eqn_suc_preproc)
-  #> Code.add_preproc ("clause_Suc", lift_obj_eq clause_suc_preproc)
+  #> Code.add_functrans ("eqn_Suc", lift_obj_eq eqn_suc_preproc)
+  #> Code.add_functrans ("clause_Suc", lift_obj_eq clause_suc_preproc)
 *}
 (*>*)
 

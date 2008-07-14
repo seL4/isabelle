@@ -15,14 +15,14 @@ sig
   val del_func: thm -> theory -> theory
   val del_funcs: string -> theory -> theory
   val add_funcl: string * thm list Susp.T -> theory -> theory
+  val map_pre: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
+  val map_post: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
   val add_inline: thm -> theory -> theory
   val del_inline: thm -> theory -> theory
-  val add_inline_proc: string * (theory -> cterm list -> thm list) -> theory -> theory
-  val del_inline_proc: string -> theory -> theory
-  val add_preproc: string * (theory -> thm list -> thm list) -> theory -> theory
-  val del_preproc: string -> theory -> theory
   val add_post: thm -> theory -> theory
   val del_post: thm -> theory -> theory
+  val add_functrans: string * (theory -> thm list -> thm list) -> theory -> theory
+  val del_functrans: string -> theory -> theory
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
   val type_interpretation:
@@ -173,6 +173,7 @@ fun pretty_sdthms ctxt (sels, _) = pretty_lthms ctxt sels;
 
 
 (* fundamental melting operations *)
+(*FIXME delete*)
 
 fun melt _ ([], []) = (false, [])
   | melt _ ([], ys) = (true, ys)
@@ -258,42 +259,34 @@ fun mk_spec (funcs, (dtyps, cases)) =
   Spec { funcs = funcs, dtyps = dtyps, cases = cases };
 fun map_spec f (Spec { funcs = funcs, dtyps = dtyps, cases = cases }) =
   mk_spec (f (funcs, (dtyps, cases)));
-fun melt_spec (Spec { funcs = funcs1, dtyps = dtyps1, cases = cases1 },
+fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1, cases = cases1 },
   Spec { funcs = funcs2, dtyps = dtyps2, cases = cases2 }) =
   let
-    val (touched_funcs, funcs) = melt_funcs (funcs1, funcs2);
-    val (touched_dtyps, dtyps) = melt_dtyps (dtyps1, dtyps2);
-    val (touched_cases, cases) = melt_cases (cases1, cases2);
-    val touched = if touched_dtyps then NONE else
-      SOME (fold (insert (op =)) touched_cases touched_funcs);
-  in (touched, mk_spec (funcs, (dtyps, cases))) end;
+    val (_, funcs) = melt_funcs (funcs1, funcs2);
+    val (_, dtyps) = melt_dtyps (dtyps1, dtyps2);
+    val (_, cases) = melt_cases (cases1, cases2);
+  in mk_spec (funcs, (dtyps, cases)) end;
 
 
 (* pre- and postprocessor *)
 
 datatype thmproc = Thmproc of {
-  inlines: thm list,
-  inline_procs: (string * (serial * (theory -> cterm list -> thm list))) list,
-  preprocs: (string * (serial * (theory -> thm list -> thm list))) list,
-  posts: thm list
+  pre: MetaSimplifier.simpset,
+  post: MetaSimplifier.simpset,
+  functrans: (string * (serial * (theory -> thm list -> thm list))) list
 };
 
-fun mk_thmproc (((inlines, inline_procs), preprocs), posts) =
-  Thmproc { inlines = inlines, inline_procs = inline_procs, preprocs = preprocs,
-    posts = posts };
-fun map_thmproc f (Thmproc { inlines, inline_procs, preprocs, posts }) =
-  mk_thmproc (f (((inlines, inline_procs), preprocs), posts));
-fun melt_thmproc (Thmproc { inlines = inlines1, inline_procs = inline_procs1,
-    preprocs = preprocs1, posts = posts1 },
-  Thmproc { inlines = inlines2, inline_procs = inline_procs2,
-      preprocs = preprocs2, posts= posts2 }) =
+fun mk_thmproc ((pre, post), functrans) =
+  Thmproc { pre = pre, post = post, functrans = functrans };
+fun map_thmproc f (Thmproc { pre, post, functrans }) =
+  mk_thmproc (f ((pre, post), functrans));
+fun merge_thmproc (Thmproc { pre = pre1, post = post1, functrans = functrans1 },
+  Thmproc { pre = pre2, post = post2, functrans = functrans2 }) =
     let
-      val (touched1, inlines) = melt_thms (inlines1, inlines2);
-      val (touched2, inline_procs) = melt_alist (op =) (eq_fst (op =)) (inline_procs1, inline_procs2);
-      val (touched3, preprocs) = melt_alist (op =) (eq_fst (op =)) (preprocs1, preprocs2);
-      val (_, posts) = melt_thms (posts1, posts2);
-    in (touched1 orelse touched2 orelse touched3,
-      mk_thmproc (((inlines, inline_procs), preprocs), posts)) end;
+      val pre = MetaSimplifier.merge_ss (pre1, pre2);
+      val post = MetaSimplifier.merge_ss (post1, post2);
+      val functrans = AList.merge (op =) (eq_fst (op =)) (functrans1, functrans2);
+    in mk_thmproc ((pre, post), functrans) end;
 
 datatype exec = Exec of {
   thmproc: thmproc,
@@ -304,14 +297,13 @@ fun mk_exec (thmproc, spec) =
   Exec { thmproc = thmproc, spec = spec };
 fun map_exec f (Exec { thmproc = thmproc, spec = spec }) =
   mk_exec (f (thmproc, spec));
-fun melt_exec (Exec { thmproc = thmproc1, spec = spec1 },
+fun merge_exec (Exec { thmproc = thmproc1, spec = spec1 },
   Exec { thmproc = thmproc2, spec = spec2 }) =
   let
-    val (touched', thmproc) = melt_thmproc (thmproc1, thmproc2);
-    val (touched_cs, spec) = melt_spec (spec1, spec2);
-    val touched = if touched' then NONE else touched_cs;
-  in (touched, mk_exec (thmproc, spec)) end;
-val empty_exec = mk_exec (mk_thmproc ((([], []), []), []),
+    val thmproc = merge_thmproc (thmproc1, thmproc2);
+    val spec = merge_spec (spec1, spec2);
+  in mk_exec (thmproc, spec) end;
+val empty_exec = mk_exec (mk_thmproc ((MetaSimplifier.empty_ss, MetaSimplifier.empty_ss), []),
   mk_spec (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty))));
 
 fun the_thmproc (Exec { thmproc = Thmproc x, ...}) = x;
@@ -381,9 +373,9 @@ structure CodeData = TheoryDataFun
   val extend = copy;
   fun merge pp ((exec1, data1), (exec2, data2)) =
     let
-      val (touched, exec) = melt_exec (exec1, exec2);
-      val data1' = invoke_purge_all NONE touched (! data1);
-      val data2' = invoke_purge_all NONE touched (! data2);
+      val exec = merge_exec (exec1, exec2);
+      val data1' = invoke_purge_all NONE NONE (! data1);
+      val data2' = invoke_purge_all NONE NONE (! data2);
       val data = invoke_merge_all pp (data1', data2');
     in (exec, ref data) end;
 );
@@ -457,10 +449,9 @@ fun print_codesetup thy =
                           :: Pretty.str "of"
                           :: map (Pretty.quote o Syntax.pretty_typ_global thy) tys)) cos)
           );
-    val inlines = (#inlines o the_thmproc) exec;
-    val posts = (#posts o the_thmproc) exec;
-    val inline_procs = (map fst o #inline_procs o the_thmproc) exec;
-    val preprocs = (map fst o #preprocs o the_thmproc) exec;
+    val pre = (#pre o the_thmproc) exec;
+    val post = (#post o the_thmproc) exec;
+    val functrans = (map fst o #functrans o the_thmproc) exec;
     val funs = the_funcs exec
       |> Symtab.dest
       |> (map o apsnd) snd
@@ -478,25 +469,20 @@ fun print_codesetup thy =
         :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_func) funs
       ),
+      Pretty.block [
+        Pretty.str "preprocessing simpset:",
+        Pretty.fbrk,
+        MetaSimplifier.pretty_ss pre
+      ],
+      Pretty.block [
+        Pretty.str "postprocessing simpset:",
+        Pretty.fbrk,
+        MetaSimplifier.pretty_ss post
+      ],
       Pretty.block (
-        Pretty.str "inlining theorems:"
+        Pretty.str "function transformators:"
         :: Pretty.fbrk
-        :: (Pretty.fbreaks o map (ProofContext.pretty_thm ctxt)) inlines
-      ),
-      Pretty.block (
-        Pretty.str "inlining procedures:"
-        :: Pretty.fbrk
-        :: (Pretty.fbreaks o map Pretty.str) inline_procs
-      ),
-      Pretty.block (
-        Pretty.str "preprocessors:"
-        :: Pretty.fbrk
-        :: (Pretty.fbreaks o map Pretty.str) preprocs
-      ),
-      Pretty.block (
-        Pretty.str "postprocessor theorems:"
-        :: Pretty.fbrk
-        :: (Pretty.fbreaks o map (ProofContext.pretty_thm ctxt)) posts
+        :: (Pretty.fbreaks o map Pretty.str) functrans
       ),
       Pretty.block (
         Pretty.str "datatypes:"
@@ -834,41 +820,32 @@ fun add_case thm thy =
 fun add_undefined c thy =
   (map_exec_purge (SOME [c]) o map_cases o apsnd) (Symtab.update (c, ())) thy;
 
-fun add_inline thm thy =
-  (map_exec_purge NONE o map_thmproc o apfst o apfst o apfst)
-    (insert Thm.eq_thm_prop (CodeUnit.error_thm CodeUnit.mk_rew thm)) thy;
-        (*fully applied in order to get right context for mk_rew!*)
+val map_pre = map_exec_purge NONE o map_thmproc o apfst o apfst;
+val map_post = map_exec_purge NONE o map_thmproc o apfst o apsnd;
 
-fun del_inline thm thy =
-  (map_exec_purge NONE o map_thmproc o apfst o apfst o apfst)
-    (remove Thm.eq_thm_prop (CodeUnit.error_thm CodeUnit.mk_rew thm)) thy;
-        (*fully applied in order to get right context for mk_rew!*)
+fun add_inline thm thy = (map_pre o MetaSimplifier.add_simp)
+  (CodeUnit.error_thm CodeUnit.mk_rew thm) thy;
+    (*fully applied in order to get right context for mk_rew!*)
 
-fun add_inline_proc (name, f) =
-  (map_exec_purge NONE o map_thmproc o apfst o apfst o apsnd)
+fun del_inline thm thy = (map_pre o MetaSimplifier.del_simp)
+  (CodeUnit.error_thm CodeUnit.mk_rew thm) thy;
+    (*fully applied in order to get right context for mk_rew!*)
+
+fun add_post thm thy = (map_post o MetaSimplifier.add_simp)
+  (CodeUnit.error_thm CodeUnit.mk_rew thm) thy;
+    (*fully applied in order to get right context for mk_rew!*)
+
+fun del_post thm thy = (map_post o MetaSimplifier.del_simp)
+  (CodeUnit.error_thm CodeUnit.mk_rew thm) thy;
+    (*fully applied in order to get right context for mk_rew!*)
+  
+fun add_functrans (name, f) =
+  (map_exec_purge NONE o map_thmproc o apsnd)
     (AList.update (op =) (name, (serial (), f)));
 
-fun del_inline_proc name =
-  (map_exec_purge NONE o map_thmproc o apfst o apfst o apsnd)
-    (delete_force "inline procedure" name);
-
-fun add_preproc (name, f) =
-  (map_exec_purge NONE o map_thmproc o apfst o apsnd)
-    (AList.update (op =) (name, (serial (), f)));
-
-fun del_preproc name =
-  (map_exec_purge NONE o map_thmproc o apfst o apsnd)
-    (delete_force "preprocessor" name);
-
-fun add_post thm thy =
+fun del_functrans name =
   (map_exec_purge NONE o map_thmproc o apsnd)
-    (insert Thm.eq_thm_prop (CodeUnit.error_thm CodeUnit.mk_rew thm)) thy;
-        (*fully applied in order to get right context for mk_rew!*)
-
-fun del_post thm thy =
-  (map_exec_purge NONE o map_thmproc o apsnd)
-    (remove Thm.eq_thm_prop (CodeUnit.error_thm CodeUnit.mk_rew thm)) thy;
-        (*fully applied in order to get right context for mk_rew!*)
+    (delete_force "function transformator" name);
 
 val _ = Context.>> (Context.map_theory
   (let
@@ -890,20 +867,8 @@ val _ = Context.>> (Context.map_theory
 
 local
 
-fun gen_apply_inline_proc prep post thy f x =
-  let
-    val cts = prep x;
-    val rews = map CodeUnit.assert_rew (f thy cts);
-  in post rews x end;
-
-val apply_inline_proc = gen_apply_inline_proc (maps
-  ((fn [args, rhs] => rhs :: (snd o Drule.strip_comb) args) o snd o Drule.strip_comb o Thm.cprop_of))
-  (fn rews => map (CodeUnit.rewrite_func rews));
-val apply_inline_proc_cterm = gen_apply_inline_proc single
-  (MetaSimplifier.rewrite false);
-
-fun apply_preproc thy f [] = []
-  | apply_preproc thy f (thms as (thm :: _)) =
+fun apply_functrans thy f [] = []
+  | apply_functrans thy f (thms as (thm :: _)) =
       let
         val const = const_of_func thy thm;
         val thms' = f thy thms;
@@ -925,10 +890,9 @@ in
 
 fun preprocess thy thms =
   thms
-  |> fold (fn (_, (_, f)) => apply_preproc thy f) ((#preprocs o the_thmproc o the_exec) thy)
-  |> map (CodeUnit.rewrite_func ((#inlines o the_thmproc o the_exec) thy))
-  |> fold (fn (_, (_, f)) => apply_inline_proc thy f) ((#inline_procs o the_thmproc o the_exec) thy)
-(*FIXME - must check: rewrite rule, defining equation, proper constant |> map (snd o check_func false thy) *)
+  |> fold (fn (_, (_, f)) => apply_functrans thy f) ((#functrans o the_thmproc o the_exec) thy)
+  |> map (CodeUnit.rewrite_func ((#pre o the_thmproc o the_exec) thy))
+  (*FIXME - must check gere: rewrite rule, defining equation, proper constant *)
   |> map (AxClass.unoverload thy)
   |> common_typ_funcs;
 
@@ -938,9 +902,7 @@ fun preprocess_conv ct =
     val thy = Thm.theory_of_cterm ct;
   in
     ct
-    |> MetaSimplifier.rewrite false ((#inlines o the_thmproc o the_exec) thy)
-    |> fold (fn (_, (_, f)) => rhs_conv (apply_inline_proc_cterm thy f))
-        ((#inline_procs o the_thmproc o the_exec) thy)
+    |> MetaSimplifier.rewrite' (ProofContext.init thy) false ((#pre o the_thmproc o the_exec) thy)
     |> rhs_conv (AxClass.unoverload_conv thy)
   end;
 
@@ -952,7 +914,8 @@ fun postprocess_conv ct =
   in
     ct
     |> AxClass.overload_conv thy
-    |> rhs_conv (MetaSimplifier.rewrite false ((#posts o the_thmproc o the_exec) thy))
+    |> rhs_conv (MetaSimplifier.rewrite' (ProofContext.init thy) false 
+          ((#post o the_thmproc o the_exec) thy))
   end;
 
 fun postprocess_term thy = term_of_conv thy postprocess_conv;

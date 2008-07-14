@@ -501,16 +501,16 @@ subsection {* Preprocessing *}
 text {*
   Before selected function theorems are turned into abstract
   code, a chain of definitional transformation steps is carried
-  out: \emph{preprocessing}. There are three possibilities
-  to customize preprocessing: \emph{inline theorems},
-  \emph{inline procedures} and \emph{generic preprocessors}.
+  out: \emph{preprocessing}.  In essence, the preprocessort
+  consists of two components: a \emph{simpset} and \emph{function transformators}.
 
-  \emph{Inline theorems} are rewriting rules applied to each
-  defining equation.  Due to the interpretation of theorems
+  The \emph{simpset} allows to employ the full generality of the Isabelle
+  simplifier.  Due to the interpretation of theorems
   of defining equations, rewrites are applied to the right
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
-  Inline theorems may be declared an undeclared using the
+  An important special case are \emph{inline theorems} which may be
+  declared an undeclared using the
   \emph{code inline} or \emph{code inline del} attribute respectively.
   Some common applications:
 *}
@@ -545,17 +545,8 @@ text_raw {*
 *}
 
 text {*
-  \noindent The current set of inline theorems may be inspected using
-  the @{text "\<PRINTCODESETUP>"} command.
 
-  \emph{Inline procedures} are a generalized version of inline
-  theorems written in ML -- rewrite rules are generated dependent
-  on the function theorems for a certain function.  One
-  application is the implicit expanding of @{typ nat} numerals
-  to @{term "0\<Colon>nat"} / @{const Suc} representation.  See further
-  \secref{sec:ml}
-
-  \emph{Generic preprocessors} provide a most general interface,
+  \emph{Function transformators} provide a most general interface,
   transforming a list of function theorems to another
   list of function theorems, provided that neither the heading
   constant nor its type change.  The @{term "0\<Colon>nat"} / @{const Suc}
@@ -563,10 +554,11 @@ text {*
   theory @{text "EfficientNat"} (\secref{eff_nat}) uses this
   interface.
 
+  \noindent The current setup of the preprocessor may be inspected using
+  the @{text "\<PRINTCODESETUP>"} command.
+
   \begin{warn}
-    The order in which single preprocessing steps are carried
-    out currently is not specified; in particular, preprocessing
-    is \emph{no} fix point process.  Keep this in mind when
+    Preprocessing is \emph{no} fix point process.  Keep this in mind when
     setting up the preprocessor.
 
     Further, the attribute \emph{code unfold}
@@ -1102,14 +1094,11 @@ text %mlref {*
   @{index_ML Code.add_func: "thm -> theory -> theory"} \\
   @{index_ML Code.del_func: "thm -> theory -> theory"} \\
   @{index_ML Code.add_funcl: "string * thm list Susp.T -> theory -> theory"} \\
-  @{index_ML Code.add_inline: "thm -> theory -> theory"} \\
-  @{index_ML Code.del_inline: "thm -> theory -> theory"} \\
-  @{index_ML Code.add_inline_proc: "string * (theory -> cterm list -> thm list)
+  @{index_ML Code.map_pre: "(MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory"} \\
+  @{index_ML Code.map_post: "(MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory"} \\
+  @{index_ML Code.add_functrans: "string * (theory -> thm list -> thm list)
     -> theory -> theory"} \\
-  @{index_ML Code.del_inline_proc: "string -> theory -> theory"} \\
-  @{index_ML Code.add_preproc: "string * (theory -> thm list -> thm list)
-    -> theory -> theory"} \\
-  @{index_ML Code.del_preproc: "string -> theory -> theory"} \\
+  @{index_ML Code.del_functrans: "string -> theory -> theory"} \\
   @{index_ML Code.add_datatype: "(string * typ) list -> theory -> theory"} \\
   @{index_ML Code.get_datatype: "theory -> string
     -> (string * sort) list * (string * typ list) list"} \\
@@ -1128,30 +1117,17 @@ text %mlref {*
      suspended defining equations @{text lthms} for constant
      @{text const} to executable content.
 
-  \item @{ML Code.add_inline}~@{text "thm"}~@{text "thy"} adds
-     inlining theorem @{text thm} to executable content.
+  \item @{ML Code.map_pre}~@{text "f"}~@{text "thy"} changes
+     the preprocessor simpset.
 
-  \item @{ML Code.del_inline}~@{text "thm"}~@{text "thy"} remove
-     inlining theorem @{text thm} from executable content, if present.
-
-  \item @{ML Code.add_inline_proc}~@{text "(name, f)"}~@{text "thy"} adds
-     inline procedure @{text f} (named @{text name}) to executable content;
-     @{text f} is a computation of rewrite rules dependent on
-     the current theory context and the list of all arguments
-     and right hand sides of the defining equations belonging
-     to a certain function definition.
-
-  \item @{ML Code.del_inline_proc}~@{text "name"}~@{text "thy"} removes
-     inline procedure named @{text name} from executable content.
-
-  \item @{ML Code.add_preproc}~@{text "(name, f)"}~@{text "thy"} adds
-     generic preprocessor @{text f} (named @{text name}) to executable content;
+    \item @{ML Code.add_functrans}~@{text "(name, f)"}~@{text "thy"} adds
+     function transformator @{text f} (named @{text name}) to executable content;
      @{text f} is a transformation of the defining equations belonging
      to a certain function definition, depending on the
      current theory context.
 
-  \item @{ML Code.del_preproc}~@{text "name"}~@{text "thy"} removes
-     generic preprcoessor named @{text name} from executable content.
+  \item @{ML Code.del_functrans}~@{text "name"}~@{text "thy"} removes
+     function transformator named @{text name} from executable content.
 
   \item @{ML Code.add_datatype}~@{text cs}~@{text thy} adds
      a datatype to executable content, with generation
@@ -1171,7 +1147,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML CodeUnit.read_const: "theory -> string -> string"} \\
   @{index_ML CodeUnit.head_func: "thm -> string * ((string * sort) list * typ)"} \\
-  @{index_ML CodeUnit.rewrite_func: "thm list -> thm -> thm"} \\
+  @{index_ML CodeUnit.rewrite_func: "MetaSimplifier.simpset -> thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
@@ -1182,9 +1158,9 @@ text %mlref {*
   \item @{ML CodeUnit.head_func}~@{text thm}
      extracts the constant and its type from a defining equation @{text thm}.
 
-  \item @{ML CodeUnit.rewrite_func}~@{text rews}~@{text thm}
-     rewrites a defining equation @{text thm} with a set of rewrite
-     rules @{text rews}; only arguments and right hand side are rewritten,
+  \item @{ML CodeUnit.rewrite_func}~@{text ss}~@{text thm}
+     rewrites a defining equation @{text thm} with a simpset @{text ss};
+     only arguments and right hand side are rewritten,
      not the head of the defining equation.
 
   \end{description}
