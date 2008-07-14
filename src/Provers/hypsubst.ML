@@ -43,10 +43,13 @@ sig
   val subst            : thm               (* [| a=b;  P(a) |] ==> P(b) *)
   val sym              : thm               (* a=b ==> b=a *)
   val thin_refl        : thm               (* [|x=x; PROP W|] ==> PROP W *)
+  val prop_subst       : thm               (* PROP P t ==> PROP prop (x = t ==> PROP P x) *)
 end;
 
 signature HYPSUBST =
 sig
+  val single_hyp_subst_tac   : int -> int -> tactic
+  val single_hyp_meta_subst_tac : int -> int -> tactic
   val bound_hyp_subst_tac    : int -> tactic
   val hyp_subst_tac          : int -> tactic
   val blast_hyp_subst_tac    : bool -> int -> tactic
@@ -58,6 +61,27 @@ functor HypsubstFun(Data: HYPSUBST_DATA): HYPSUBST =
 struct
 
 exception EQ_VAR;
+
+val meta_subst = @{lemma "PROP P t ==> PROP prop (x == t ==> PROP P x)"
+  by (unfold prop_def)}
+
+(** Simple version: Just subtitute one hypothesis, specified by index k **)
+fun gen_single_hyp_subst_tac subst_rule k = CSUBGOAL (fn (csubg, i) =>
+ let 
+   val pat = fold_rev (Logic.all o Free) (Logic.strip_params (term_of csubg)) (Term.dummy_pattern propT)
+             |> cterm_of (theory_of_cterm csubg)
+
+   val rule =
+       Thm.lift_rule pat subst_rule (* lift just over parameters *)
+       |> Conv.fconv_rule (MetaSimplifier.rewrite true [@{thm prop_def}])
+ in
+   rotate_tac k i
+   THEN Thm.compose_no_flatten false (rule, 1) i
+   THEN rotate_tac (~k) i
+ end)
+
+val single_hyp_meta_subst_tac = gen_single_hyp_subst_tac meta_subst
+val single_hyp_subst_tac = gen_single_hyp_subst_tac Data.prop_subst
 
 fun loose (i,t) = member (op =) (add_loose_bnos (t, i, [])) 0;
 

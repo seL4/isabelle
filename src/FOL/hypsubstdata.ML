@@ -13,6 +13,8 @@ struct
   val subst = thm "subst"
   val sym = thm "sym"
   val thin_refl = thm "thin_refl"
+  val prop_subst = @{lemma "PROP P(t) ==> PROP prop (x = t ==> PROP P(x))"
+                     by (unfold prop_def) (drule eq_reflection, unfold)}
 end;
 
 structure Hypsubst = HypsubstFun(Hypsubst_Data);
