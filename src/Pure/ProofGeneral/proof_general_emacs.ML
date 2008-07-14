@@ -143,7 +143,7 @@ fun inform_file_processed file =
       if ThyInfo.check_known_thy name then
         (Isar.commit_exit (); ThyInfo.touch_child_thys name; ThyInfo.register_thy name)
           handle ERROR msg =>
-            (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
+            (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
               tell_file_retracted (ThyLoad.thy_path name))
       else ();
     val _ = Isar.init_point ();
