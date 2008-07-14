@@ -36,7 +36,7 @@ sig
   val kill_thy: string -> unit
   val thy_ord: theory * theory -> order
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
-  val end_theory: theory -> theory
+  val end_theory: theory -> unit
   val register_thy: string -> unit
   val register_theory: theory -> unit
   val finish: unit -> unit
@@ -526,7 +526,7 @@ fun end_theory theory =
     val _ = check_files name;
     val theory' = Theory.end_theory theory;
     val _ = change_thy name (fn (deps, _) => (deps, SOME theory'));
-  in theory' end;
+  in () end;
 
 
 (* register existing theories *)
