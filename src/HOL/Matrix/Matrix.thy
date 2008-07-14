@@ -1286,7 +1286,7 @@ apply (simp add: Rep_matrix_inject[THEN sym])
 apply (rule ext)+
 by simp
 
-instantiation matrix :: ("{ord, zero}") ord
+instantiation matrix :: ("{zero, ord}") ord
 begin
 
 definition
@@ -1299,7 +1299,7 @@ instance ..
 
 end
 
-instance matrix :: ("{order, zero}") order
+instance matrix :: ("{zero, order}") order
 apply intro_classes
 apply (simp_all add: le_matrix_def less_def)
 apply (auto)
@@ -1437,7 +1437,7 @@ lemma move_matrix_le_move_matrix_iff[simp]: "0 <= j \<Longrightarrow> 0 <= i \<L
   apply (auto)
   done  
 
-instantiation matrix :: ("{zero, lattice}") lattice
+instantiation matrix :: ("{lattice, zero}") lattice
 begin
 
 definition [code func del]: "inf = combine_matrix inf"

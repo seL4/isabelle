@@ -17,13 +17,8 @@ function quicksort :: "'a list \<Rightarrow> 'a list" where
 "quicksort (x#xs) = quicksort([y\<leftarrow>xs. ~ x\<le>y]) @ [x] @ quicksort([y\<leftarrow>xs. x\<le>y])"
 by pat_completeness auto
 
-termination
-by (relation "measure size")
-   (auto simp: length_filter_le[THEN order_class.le_less_trans])
-
-end
-context linorder
-begin
+termination by (relation "measure size")
+  (auto simp: length_filter_le [THEN order_class.le_less_trans])
 
 lemma quicksort_permutes [simp]:
   "multiset_of (quicksort xs) = multiset_of xs"
