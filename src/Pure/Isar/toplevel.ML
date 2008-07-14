@@ -11,7 +11,7 @@ sig
   type generic_theory
   type node
   val theory_node: node -> generic_theory option
-  val proof_node: node -> ProofHistory.T option
+  val proof_node: node -> ProofNode.T option
   val cases_node: (generic_theory -> 'a) -> (Proof.state -> 'a) -> node -> 'a
   val presentation_context: node option -> xstring option -> Proof.context
   type state
@@ -83,8 +83,8 @@ sig
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
-  val actual_proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
-  val skip_proof: (int History.T -> int History.T) -> transition -> transition
+  val actual_proof: (ProofNode.T -> ProofNode.T) -> transition -> transition
+  val skip_proof: (int -> int) -> transition -> transition
   val skip_proof_to_theory: (int -> bool) -> transition -> transition
   val get_id: transition -> string option
   val put_id: string -> transition -> transition
@@ -127,17 +127,17 @@ fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
 
 datatype node =
   Theory of generic_theory * Proof.context option | (*theory with presentation context*)
-  Proof of ProofHistory.T * ((Proof.context -> generic_theory) * generic_theory) |
-    (*history of proof states, finish, original theory*)
-  SkipProof of int History.T * (generic_theory * generic_theory);
-    (*history of proof depths, resulting theory, original theory*)
+  Proof of ProofNode.T * ((Proof.context -> generic_theory) * generic_theory) |
+    (*proof node, finish, original theory*)
+  SkipProof of int * (generic_theory * generic_theory);
+    (*proof depth, resulting theory, original theory*)
 
 val the_global_theory = fn Theory (Context.Theory thy, _) => thy | _ => raise UNDEF;
 val theory_node = fn Theory (gthy, _) => SOME gthy | _ => NONE;
 val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
 
 fun cases_node f _ (Theory (gthy, _)) = f gthy
-  | cases_node _ g (Proof (prf, _)) = g (ProofHistory.current prf)
+  | cases_node _ g (Proof (prf, _)) = g (ProofNode.current prf)
   | cases_node f _ (SkipProof (_, (gthy, _))) = f gthy;
 
 fun presentation_context (SOME (Theory (_, SOME ctxt))) NONE = ctxt
@@ -167,8 +167,8 @@ fun level (Toplevel _) = 0
   | level (State (node, _)) =
       (case History.current node of
         Theory _ => 0
-      | Proof (prf, _) => Proof.level (ProofHistory.current prf)
-      | SkipProof (h, _) => History.current h + 1);   (*different notion of proof depth!*)
+      | Proof (prf, _) => Proof.level (ProofNode.current prf)
+      | SkipProof (d, _) => d + 1);   (*different notion of proof depth!*)
 
 fun str_of_state (Toplevel _) = "at top level"
   | str_of_state (State (node, _)) =
@@ -198,7 +198,7 @@ val proof_of = node_case (fn _ => raise UNDEF) I;
 
 fun proof_position_of state =
   (case node_of state of
-    Proof (prf, _) => ProofHistory.position prf
+    Proof (prf, _) => ProofNode.position prf
   | _ => raise UNDEF);
 
 val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_forward;
@@ -221,9 +221,8 @@ fun print_state prf_only state =
     NONE => []
   | SOME (Theory (gthy, _)) => if prf_only then [] else pretty_context gthy
   | SOME (Proof (prf, _)) =>
-      Proof.pretty_state (ProofHistory.position prf) (ProofHistory.current prf)
-  | SOME (SkipProof (h, _)) =>
-      [Pretty.str ("skipped proof: depth " ^ string_of_int (History.current h))])
+      Proof.pretty_state (ProofNode.position prf) (ProofNode.current prf)
+  | SOME (SkipProof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)])
   |> Pretty.markup_chunks Markup.state |> Pretty.writeln;
 
 
@@ -560,7 +559,7 @@ end;
 
 fun end_proof f = map_current (fn int =>
   (fn Proof (prf, (finish, _)) =>
-        let val state = ProofHistory.current prf in
+        let val state = ProofNode.current prf in
           if can (Proof.assert_bottom true) state then
             let
               val ctxt' = f int state;
@@ -568,8 +567,7 @@ fun end_proof f = map_current (fn int =>
             in Theory (gthy', SOME ctxt') end
           else raise UNDEF
         end
-    | SkipProof (h, (gthy, _)) =>
-        if History.current h = 0 then Theory (gthy, NONE) else raise UNDEF
+    | SkipProof (0, (gthy, _)) => Theory (gthy, NONE)
     | _ => raise UNDEF));
 
 local
@@ -584,9 +582,8 @@ fun begin_proof init finish = app_current (fn int =>
         warning "Cannot skip proof of schematic goal statement"
       else ();
       if ! skip_proofs andalso not schematic then
-        SkipProof
-          (History.init (undo_limit int) 0, (finish gthy (Proof.global_skip_proof int prf), gthy))
-      else Proof (ProofHistory.init (undo_limit int) prf, (finish gthy, gthy))
+        SkipProof (0, (finish gthy (Proof.global_skip_proof int prf), gthy))
+      else Proof (ProofNode.init prf, (finish gthy, gthy))
     end
   | _ => raise UNDEF));
 
@@ -610,13 +607,13 @@ val forget_proof = map_current (fn _ =>
     | _ => raise UNDEF));
 
 fun present_proof f = map_current (fn int =>
-  (fn Proof (prf, x) => Proof (ProofHistory.apply I prf, x)
-    | SkipProof (h, x) => SkipProof (History.apply I h, x)
+  (fn Proof (prf, x) => Proof (ProofNode.apply I prf, x)
+    | skip as SkipProof _ => skip
     | _ => raise UNDEF) #> tap (f int));
 
 fun proofs' f = map_current (fn int =>
-  (fn Proof (prf, x) => Proof (ProofHistory.applys (f int) prf, x)
-    | SkipProof (h, x) => SkipProof (History.apply I h, x)
+  (fn Proof (prf, x) => Proof (ProofNode.applys (f int) prf, x)
+    | skip as SkipProof _ => skip
     | _ => raise UNDEF));
 
 fun proof' f = proofs' (Seq.single oo f);
@@ -631,10 +628,8 @@ fun skip_proof f = map_current (fn _ =>
   (fn SkipProof (h, x) => SkipProof (f h, x)
     | _ => raise UNDEF));
 
-fun skip_proof_to_theory p = map_current (fn _ =>
-  (fn SkipProof (h, (gthy, _)) =>
-    if p (History.current h) then Theory (gthy, NONE)
-    else raise UNDEF
+fun skip_proof_to_theory pred = map_current (fn _ =>
+  (fn SkipProof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
   | _ => raise UNDEF));
 
 
