@@ -20,7 +20,7 @@ sig
   val is_theory: state -> bool
   val is_proof: state -> bool
   val level: state -> int
-  val node_history_of: state -> node History.T
+  val previous_node_of: state -> node option
   val node_of: state -> node
   val node_case: (generic_theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
   val context_of: state -> Proof.context
@@ -38,13 +38,11 @@ sig
   val profiling: int ref
   val skip_proofs: bool ref
   exception TERMINATE
-  exception RESTART
   exception CONTEXT of Proof.context * exn
   exception TOPLEVEL_ERROR
   val exn_message: exn -> string
   val program: (unit -> 'a) -> 'a
   type transition
-  val undo_limit: bool -> int option
   val empty: transition
   val init_of: transition -> string option
   val name_of: transition -> string
@@ -54,13 +52,9 @@ sig
   val interactive: bool -> transition -> transition
   val print: transition -> transition
   val no_timing: transition -> transition
-  val init_theory: string -> (bool -> theory) -> (theory -> unit) -> (theory -> unit) ->
-    transition -> transition
-  val init_empty: (state -> bool) -> (unit -> unit) -> transition -> transition
+  val init_theory: string -> (bool -> theory) -> (theory -> unit) -> transition -> transition
   val exit: transition -> transition
-  val undo_exit: transition -> transition
-  val kill: transition -> transition
-  val history: (node History.T -> node History.T) -> transition -> transition
+  val commit_exit: transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
@@ -100,7 +94,6 @@ end;
 structure Toplevel: TOPLEVEL =
 struct
 
-
 (** toplevel state **)
 
 exception UNDEF;
@@ -126,9 +119,10 @@ fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
 (* datatype node *)
 
 datatype node =
-  Theory of generic_theory * Proof.context option | (*theory with presentation context*)
-  Proof of ProofNode.T * ((Proof.context -> generic_theory) * generic_theory) |
-    (*proof node, finish, original theory*)
+  Theory of generic_theory * Proof.context option
+    (*theory with presentation context*) |
+  Proof of ProofNode.T * ((Proof.context -> generic_theory) * generic_theory)
+    (*proof node, finish, original theory*) |
   SkipProof of int * (generic_theory * generic_theory);
     (*proof depth, resulting theory, original theory*)
 
@@ -152,39 +146,33 @@ fun reset_presentation (Theory (gthy, _)) = Theory (gthy, NONE)
 
 (* datatype state *)
 
-type state_info = node History.T * ((theory -> unit) * (theory -> unit));
+datatype state = State of
+  (node * (theory -> unit)) option *  (*current node with exit operation*)
+  node option;                        (*previous node*)
 
-datatype state =
-  Toplevel of state_info option |  (*outer toplevel, leftover end state*)
-  State of state_info;
+val toplevel = State (NONE, NONE);
 
-val toplevel = Toplevel NONE;
-
-fun is_toplevel (Toplevel _) = true
+fun is_toplevel (State (NONE, _)) = true
   | is_toplevel _ = false;
 
-fun level (Toplevel _) = 0
-  | level (State (node, _)) =
-      (case History.current node of
-        Theory _ => 0
-      | Proof (prf, _) => Proof.level (ProofNode.current prf)
-      | SkipProof (d, _) => d + 1);   (*different notion of proof depth!*)
+fun level (State (NONE, _)) = 0
+  | level (State (SOME (Theory _, _), _)) = 0
+  | level (State (SOME (Proof (prf, _), _), _)) = Proof.level (ProofNode.current prf)
+  | level (State (SOME (SkipProof (d, _), _), _)) = d + 1;   (*different notion of proof depth!*)
 
-fun str_of_state (Toplevel _) = "at top level"
-  | str_of_state (State (node, _)) =
-      (case History.current node of
-        Theory (Context.Theory _, _) => "in theory mode"
-      | Theory (Context.Proof _, _) => "in local theory mode"
-      | Proof _ => "in proof mode"
-      | SkipProof _ => "in skipped proof mode");
+fun str_of_state (State (NONE, _)) = "at top level"
+  | str_of_state (State (SOME (Theory (Context.Theory _, _), _), _)) = "in theory mode"
+  | str_of_state (State (SOME (Theory (Context.Proof _, _), _), _)) = "in local theory mode"
+  | str_of_state (State (SOME (Proof _, _), _)) = "in proof mode"
+  | str_of_state (State (SOME (SkipProof _, _), _)) = "in skipped proof mode";
 
 
-(* top node *)
+(* current node *)
 
-fun node_history_of (Toplevel _) = raise UNDEF
-  | node_history_of (State (node, _)) = node;
+fun previous_node_of (State (_, prev_node)) = prev_node;
 
-val node_of = History.current o node_history_of;
+fun node_of (State (NONE, _)) = raise UNDEF
+  | node_of (State (SOME (node, _), _)) = node;
 
 fun is_theory state = not (is_toplevel state) andalso is_some (theory_node (node_of state));
 fun is_proof state = not (is_toplevel state) andalso is_some (proof_node (node_of state));
@@ -237,7 +225,6 @@ val profiling = ref 0;
 val skip_proofs = ref false;
 
 exception TERMINATE;
-exception RESTART;
 exception EXCURSION_FAIL of exn * string;
 exception FAILURE of state * exn;
 exception TOPLEVEL_ERROR;
@@ -271,7 +258,6 @@ fun exn_message e =
       | exn_msg ctxt (EXCURSION_FAIL (exn, loc)) =
           exn_msg ctxt exn ^ Markup.markup Markup.location ("\n" ^ loc)
       | exn_msg _ TERMINATE = "Exit."
-      | exn_msg _ RESTART = "Restart."
       | exn_msg _ Interrupt = "Interrupt."
       | exn_msg _ TimeLimit.TimeOut = "Timeout."
       | exn_msg _ TOPLEVEL_ERROR = "Error."
@@ -339,25 +325,22 @@ fun is_draft_theory (Theory (gthy, _)) = Context.is_draft (Context.theory_of gth
 fun stale_error NONE = SOME (ERROR "Stale theory encountered after successful execution!")
   | stale_error some = some;
 
-fun map_theory f = History.map_current
-  (fn Theory (gthy, ctxt) => Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, ctxt)
-    | node => node);
+fun map_theory f (Theory (gthy, ctxt)) =
+      Theory (Context.mapping f (LocalTheory.raw_theory f) gthy, ctxt)
+  | map_theory _ node = node;
 
 in
 
-fun transaction hist pos f (node, term) =
+fun transaction pos f (node, exit) =
   let
-    val _ = is_draft_theory (History.current node) andalso
-      error "Illegal draft theory in toplevel state";
-    val cont_node = node |> History.map_current reset_presentation;
-    val back_node = cont_node |> map_theory Theory.copy |> map_theory Theory.checkpoint;
-    fun state_error e nd = (State (nd, term), e);
+    val _ = is_draft_theory node andalso error "Illegal draft theory in toplevel state";
+    val cont_node = reset_presentation node;
+    val back_node = map_theory (Theory.checkpoint o Theory.copy) cont_node;
+    fun state_error e nd = (State (SOME (nd, exit), SOME node), e);
 
     val (result, err) =
       cont_node
-      |> (f
-          |> (if hist then History.apply' (History.current back_node) else History.map_current)
-          |> controlled_execution)
+      |> controlled_execution f
       |> map_theory Theory.checkpoint
       |> state_error NONE
       handle exn => state_error (SOME exn) cont_node;
@@ -382,43 +365,24 @@ end;
   Transaction.*)
 
 datatype trans =
-  Init of string * (bool -> theory) * ((theory -> unit) * (theory -> unit)) |
-                                                    (*name; init node; with exit/kill operation*)
-  InitEmpty of (state -> bool) * (unit -> unit) |   (*init empty toplevel*)
-  Exit |                                            (*conclude node -- deferred until init*)
-  UndoExit |                                        (*continue after conclusion*)
-  Kill |                                            (*abort node*)
-  History of node History.T -> node History.T |     (*history operation (undo etc.)*)
-  Keep of bool -> state -> unit |                   (*peek at state*)
-  Transaction of bool * (bool -> node -> node);     (*node transaction*)
-
-fun undo_limit int = if int then NONE else SOME 0;
-
-fun safe_exit (Toplevel (SOME (node, (exit, _)))) =
-    (case try the_global_theory (History.current node) of
-      SOME thy => controlled_execution exit thy
-    | NONE => ())
-  | safe_exit _ = ();
+  Init of string * (bool -> theory) * (theory -> unit) | (*theory name, init, exit*)
+  Exit |                                         (*formal exit of theory -- without committing*)
+  CommitExit |                                   (*exit and commit final theory*)
+  Keep of bool -> state -> unit |                (*peek at state*)
+  Transaction of bool -> node -> node;           (*node transaction*)
 
 local
 
-fun keep_state int f = controlled_execution (fn x => tap (f int) x);
-
-fun apply_tr int _ (Init (_, f, term)) (state as Toplevel _) =
-      let val node = Theory (Context.Theory (Theory.checkpoint (f int)), NONE)
-      in safe_exit state; State (History.init (undo_limit int) node, term) end
-  | apply_tr int _ (InitEmpty (check, f)) (state as Toplevel _) =
-      if check state then (safe_exit state; keep_state int (fn _ => fn _ => f ()) toplevel)
-      else raise UNDEF
-  | apply_tr _ _ Exit (State (node, term)) =
-      (the_global_theory (History.current node); Toplevel (SOME (node, term)))
-  | apply_tr _ _ UndoExit (Toplevel (SOME state_info)) = State state_info
-  | apply_tr _ _ Kill (State (node, (_, kill))) =
-      (kill (the_global_theory (History.current node)); toplevel)
-  | apply_tr _ _ (History f) (State (node, term)) = State (f node, term)
-  | apply_tr int _ (Keep f) state = keep_state int f state
-  | apply_tr int pos (Transaction (hist, f)) (State state) =
-      transaction hist pos (fn x => f int x) state
+fun apply_tr int _ (Init (_, f, exit)) (State (NONE, _)) =
+      State (SOME (Theory (Context.Theory (Theory.checkpoint (f int)), NONE), exit), NONE)
+  | apply_tr _ _ Exit (State (SOME (node as Theory (Context.Theory _, _), _), _)) =
+      State (NONE, SOME node)
+  | apply_tr _ _ CommitExit (State (SOME (Theory (Context.Theory thy, _), exit), _)) =
+      (controlled_execution exit thy; toplevel)
+  | apply_tr int _ (Keep f) state =
+      controlled_execution (fn x => tap (f int) x) state
+  | apply_tr int pos (Transaction f) (State (SOME state, _)) =
+      transaction pos (fn x => f int x) state
   | apply_tr _ _ _ _ = raise UNDEF;
 
 fun apply_union _ _ [] state = raise FAILURE (state, UNDEF)
@@ -495,15 +459,11 @@ val print = map_transition (fn (name, pos, int_only, _, no_timing, trans) =>
 
 (* basic transitions *)
 
-fun init_theory name f exit kill = add_trans (Init (name, f, (exit, kill)));
-fun init_empty check f = add_trans (InitEmpty (check, f));
+fun init_theory name f exit = add_trans (Init (name, f, exit));
 val exit = add_trans Exit;
-val undo_exit = add_trans UndoExit;
-val kill = add_trans Kill;
-val history = add_trans o History;
+val commit_exit = add_trans CommitExit (name "end" empty);
 val keep' = add_trans o Keep;
-fun map_current f = add_trans (Transaction (false, f));
-fun app_current f = add_trans (Transaction (true, f));
+fun app_current f = add_trans (Transaction f);
 
 fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
@@ -557,7 +517,7 @@ end;
 
 (* proof transitions *)
 
-fun end_proof f = map_current (fn int =>
+fun end_proof f = app_current (fn int =>
   (fn Proof (prf, (finish, _)) =>
         let val state = ProofNode.current prf in
           if can (Proof.assert_bottom true) state then
@@ -601,17 +561,17 @@ fun theory_to_proof f = begin_proof
 
 end;
 
-val forget_proof = map_current (fn _ =>
+val forget_proof = app_current (fn _ =>
   (fn Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | SkipProof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | _ => raise UNDEF));
 
-fun present_proof f = map_current (fn int =>
+fun present_proof f = app_current (fn int =>
   (fn Proof (prf, x) => Proof (ProofNode.apply I prf, x)
     | skip as SkipProof _ => skip
     | _ => raise UNDEF) #> tap (f int));
 
-fun proofs' f = map_current (fn int =>
+fun proofs' f = app_current (fn int =>
   (fn Proof (prf, x) => Proof (ProofNode.applys (f int) prf, x)
     | skip as SkipProof _ => skip
     | _ => raise UNDEF));
@@ -620,15 +580,15 @@ fun proof' f = proofs' (Seq.single oo f);
 val proofs = proofs' o K;
 val proof = proof' o K;
 
-fun actual_proof f = map_current (fn _ =>
+fun actual_proof f = app_current (fn _ =>
   (fn Proof (prf, x) => Proof (f prf, x)
     | _ => raise UNDEF));
 
-fun skip_proof f = map_current (fn _ =>
+fun skip_proof f = app_current (fn _ =>
   (fn SkipProof (h, x) => SkipProof (f h, x)
     | _ => raise UNDEF));
 
-fun skip_proof_to_theory pred = map_current (fn _ =>
+fun skip_proof_to_theory pred = app_current (fn _ =>
   (fn SkipProof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
   | _ => raise UNDEF));
 
@@ -677,7 +637,6 @@ fun transition int tr st =
   let val ctxt = try context_of st in
     (case app int tr st of
       (_, SOME TERMINATE) => NONE
-    | (_, SOME RESTART) => SOME (toplevel, NONE)
     | (state', SOME (EXCURSION_FAIL exn_info)) => SOME (state', SOME exn_info)
     | (state', SOME exn) => SOME (state', SOME (exn_context ctxt exn, at_command tr))
     | (state', NONE) => SOME (state', NONE))
@@ -690,24 +649,25 @@ end;
 
 local
 
-fun excur [] x = x
-  | excur ((tr, pr) :: trs) (st, res) =
-      (case transition (! interact) tr st of
-        SOME (st', NONE) =>
-          excur trs (st', setmp_thread_position tr (fn () => pr st st' res) () handle exn =>
-            raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
-      | SOME (st', SOME exn_info) => raise EXCURSION_FAIL exn_info
-      | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
-
 fun no_pr _ _ _ = ();
+
+fun excur (tr, pr) st res =
+  (case transition (! interact) tr st of
+    SOME (st', NONE) =>
+      (st, st', setmp_thread_position tr (fn () => pr st st' res) () handle exn =>
+        raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
+  | SOME (st', SOME exn_info) => raise EXCURSION_FAIL exn_info
+  | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
+
+fun excurs (tr :: trs) (_, st, res) = excurs trs (excur tr st res)
+  | excurs [] (st, st', res') =
+      if is_toplevel st' then (excur (commit_exit, no_pr) st (); res')
+      else error "Unfinished development at end of input";
 
 in
 
 fun present_excursion trs res =
-  (case excur trs (toplevel, res) of
-    (state as Toplevel _, res') => (safe_exit state; res')
-  | _ => error "Unfinished development at end of input")
-  handle exn => error (exn_message exn);
+  excurs trs (toplevel, toplevel, res) handle exn => error (exn_message exn);
 
 fun excursion trs = present_excursion (map (rpair no_pr) trs) ();
 
