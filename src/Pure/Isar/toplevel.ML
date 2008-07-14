@@ -38,8 +38,9 @@ sig
   val profiling: int ref
   val skip_proofs: bool ref
   exception TERMINATE
-  exception CONTEXT of Proof.context * exn
+  exception EXCURSION_FAIL of exn * string
   exception TOPLEVEL_ERROR
+  exception CONTEXT of Proof.context * exn
   val exn_message: exn -> string
   val program: (unit -> 'a) -> 'a
   type transition
