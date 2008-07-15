@@ -371,7 +371,7 @@ text %mlref {*
   @{index_ML ThyInfo.touch_thy: "string -> unit"} \\
   @{index_ML ThyInfo.remove_thy: "string -> unit"} \\[1ex]
   @{index_ML ThyInfo.begin_theory}@{verbatim ": ... -> bool -> theory"} \\
-  @{index_ML ThyInfo.end_theory: "theory -> theory"} \\
+  @{index_ML ThyInfo.end_theory: "theory -> unit"} \\
   @{index_ML ThyInfo.register_theory: "theory -> unit"} \\[1ex]
   @{verbatim "datatype action = Update | Outdate | Remove"} \\
   @{index_ML ThyInfo.add_hook: "(ThyInfo.action -> string -> unit) -> unit"} \\
@@ -403,8 +403,7 @@ text %mlref {*
   normally not invoked directly.
 
   \item @{ML ThyInfo.end_theory} concludes the loading of a theory
-  proper.  An attached theory {\ML} file may be still loaded later on.
-  This is function is normally not invoked directly.
+  proper and stores the result in the theory database.
 
   \item @{ML ThyInfo.register_theory}~@{text "text thy"} registers an
   existing theory value with the theory loader database.  There is no

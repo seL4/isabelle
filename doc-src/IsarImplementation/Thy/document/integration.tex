@@ -441,7 +441,7 @@ The theory database maintains a collection of theories, together
   \indexml{ThyInfo.touch\_thy}\verb|ThyInfo.touch_thy: string -> unit| \\
   \indexml{ThyInfo.remove\_thy}\verb|ThyInfo.remove_thy: string -> unit| \\[1ex]
   \indexml{ThyInfo.begin\_theory}\verb|ThyInfo.begin_theory|\verb|: ... -> bool -> theory| \\
-  \indexml{ThyInfo.end\_theory}\verb|ThyInfo.end_theory: theory -> theory| \\
+  \indexml{ThyInfo.end\_theory}\verb|ThyInfo.end_theory: theory -> unit| \\
   \indexml{ThyInfo.register\_theory}\verb|ThyInfo.register_theory: theory -> unit| \\[1ex]
   \verb|datatype action = Update |\verb,|,\verb| Outdate |\verb,|,\verb| Remove| \\
   \indexml{ThyInfo.add\_hook}\verb|ThyInfo.add_hook: (ThyInfo.action -> string -> unit) -> unit| \\
@@ -473,8 +473,7 @@ The theory database maintains a collection of theories, together
   normally not invoked directly.
 
   \item \verb|ThyInfo.end_theory| concludes the loading of a theory
-  proper.  An attached theory {\ML} file may be still loaded later on.
-  This is function is normally not invoked directly.
+  proper and stores the result in the theory database.
 
   \item \verb|ThyInfo.register_theory|~\isa{text\ thy} registers an
   existing theory value with the theory loader database.  There is no
