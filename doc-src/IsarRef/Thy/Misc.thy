@@ -191,25 +191,26 @@ section {* History commands \label{sec:history} *}
 text {*
   \begin{matharray}{rcl}
     @{command_def "undo"}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
-    @{command_def "redo"}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
+    @{command_def "linear_undo"}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
     @{command_def "kill"}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
   \end{matharray}
 
   The Isabelle/Isar top-level maintains a two-stage history, for
   theory and proof state transformation.  Basically, any command can
   be undone using @{command "undo"}, excluding mere diagnostic
-  elements.  Its effect may be revoked via @{command "redo"}, unless
-  the corresponding @{command "undo"} step has crossed the beginning
-  of a proof or theory.  The @{command "kill"} command aborts the
-  current history node altogether, discontinuing a proof or even the
-  whole theory.  This operation is \emph{not} undo-able.
+  elements.  Note that a theorem statement with a \emph{finished}
+  proof is treated as a single unit by @{command "undo"}.  In
+  contrast, the variant @{command "linear_undo"} admits to step back
+  into the middle of a proof.  The @{command "kill"} command aborts
+  the current history node altogether, discontinuing a proof or even
+  the whole theory.  This operation is \emph{not} undo-able.
 
   \begin{warn}
     History commands should never be used with user interfaces such as
     Proof~General \cite{proofgeneral,Aspinall:TACAS:2000}, which takes
     care of stepping forth and back itself.  Interfering by manual
-    @{command "undo"}, @{command "redo"}, or even @{command "kill"}
-    commands would quickly result in utter confusion.
+    @{command "undo"}, @{command "linear_undo"}, or even @{command
+    "kill"} commands would quickly result in utter confusion.
   \end{warn}
 *}
 

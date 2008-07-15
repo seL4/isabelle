@@ -212,25 +212,25 @@
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{}{command}{undo}\hypertarget{command.undo}{\hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{redo}\hypertarget{command.redo}{\hyperlink{command.redo}{\mbox{\isa{\isacommand{redo}}}}}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{linear\_undo}\hypertarget{command.linear-undo}{\hyperlink{command.linear-undo}{\mbox{\isa{\isacommand{linear{\isacharunderscore}undo}}}}}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
     \indexdef{}{command}{kill}\hypertarget{command.kill}{\hyperlink{command.kill}{\mbox{\isa{\isacommand{kill}}}}}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
   \end{matharray}
 
   The Isabelle/Isar top-level maintains a two-stage history, for
   theory and proof state transformation.  Basically, any command can
   be undone using \hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}, excluding mere diagnostic
-  elements.  Its effect may be revoked via \hyperlink{command.redo}{\mbox{\isa{\isacommand{redo}}}}, unless
-  the corresponding \hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}} step has crossed the beginning
-  of a proof or theory.  The \hyperlink{command.kill}{\mbox{\isa{\isacommand{kill}}}} command aborts the
-  current history node altogether, discontinuing a proof or even the
-  whole theory.  This operation is \emph{not} undo-able.
+  elements.  Note that a theorem statement with a \emph{finished}
+  proof is treated as a single unit by \hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}.  In
+  contrast, the variant \hyperlink{command.linear-undo}{\mbox{\isa{\isacommand{linear{\isacharunderscore}undo}}}} admits to step back
+  into the middle of a proof.  The \hyperlink{command.kill}{\mbox{\isa{\isacommand{kill}}}} command aborts
+  the current history node altogether, discontinuing a proof or even
+  the whole theory.  This operation is \emph{not} undo-able.
 
   \begin{warn}
     History commands should never be used with user interfaces such as
     Proof~General \cite{proofgeneral,Aspinall:TACAS:2000}, which takes
     care of stepping forth and back itself.  Interfering by manual
-    \hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}, \hyperlink{command.redo}{\mbox{\isa{\isacommand{redo}}}}, or even \hyperlink{command.kill}{\mbox{\isa{\isacommand{kill}}}}
-    commands would quickly result in utter confusion.
+    \hyperlink{command.undo}{\mbox{\isa{\isacommand{undo}}}}, \hyperlink{command.linear-undo}{\mbox{\isa{\isacommand{linear{\isacharunderscore}undo}}}}, or even \hyperlink{command.kill}{\mbox{\isa{\isacommand{kill}}}} commands would quickly result in utter confusion.
   \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
