@@ -615,8 +615,8 @@ The \isa{HOL} \isa{Main} theory already provides a code
 \begin{isamarkuptext}%
 Before selected function theorems are turned into abstract
   code, a chain of definitional transformation steps is carried
-  out: \emph{preprocessing}.  In essence, the preprocessort
-  consists of two components: a \emph{simpset} and \emph{function transformators}.
+  out: \emph{preprocessing}.  In essence, the preprocessor
+  consists of two components: a \emph{simpset} and \emph{function transformers}.
 
   The \emph{simpset} allows to employ the full generality of the Isabelle
   simplifier.  Due to the interpretation of theorems
@@ -698,22 +698,19 @@ Before selected function theorems are turned into abstract
 \end{itemize}
 %
 \begin{isamarkuptext}%
-\emph{Function transformators} provide a most general interface,
+\emph{Function transformers} provide a very general interface,
   transforming a list of function theorems to another
   list of function theorems, provided that neither the heading
   constant nor its type change.  The \isa{{\isadigit{0}}} / \isa{Suc}
   pattern elimination implemented in
-  theory \isa{EfficientNat} (\secref{eff_nat}) uses this
+  theory \isa{Efficient{\isacharunderscore}Nat} (\secref{eff_nat}) uses this
   interface.
 
   \noindent The current setup of the preprocessor may be inspected using
   the \isa{{\isasymPRINTCODESETUP}} command.
 
   \begin{warn}
-    Preprocessing is \emph{no} fix point process.  Keep this in mind when
-    setting up the preprocessor.
-
-    Further, the attribute \emph{code unfold}
+    The attribute \emph{code unfold}
     associated with the existing code generator also applies to
     the new one: \emph{code unfold} implies \emph{code inline}.
   \end{warn}%
@@ -1516,7 +1513,7 @@ This Pure module implements the core notions of
   \indexml{Code.add\_funcl}\verb|Code.add_funcl: string * thm list Susp.T -> theory -> theory| \\
   \indexml{Code.map\_pre}\verb|Code.map_pre: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory| \\
   \indexml{Code.map\_post}\verb|Code.map_post: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory| \\
-  \indexml{Code.add\_functrans}\verb|Code.add_functrans: string * (theory -> thm list -> thm list)|\isasep\isanewline%
+  \indexml{Code.add\_functrans}\verb|Code.add_functrans: string * (theory -> thm list -> thm list option)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
   \indexml{Code.del\_functrans}\verb|Code.del_functrans: string -> theory -> theory| \\
   \indexml{Code.add\_datatype}\verb|Code.add_datatype: (string * typ) list -> theory -> theory| \\
@@ -1541,13 +1538,15 @@ This Pure module implements the core notions of
      the preprocessor simpset.
 
     \item \verb|Code.add_functrans|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
-     function transformator \isa{f} (named \isa{name}) to executable content;
-     \isa{f} is a transformation of the defining equations belonging
+     function transformer \isa{f} (named \isa{name}) to executable content;
+     \isa{f} is a transformer of the defining equations belonging
      to a certain function definition, depending on the
-     current theory context.
+     current theory context.  Returning \isa{NONE} indicates that no
+     transformation took place;  otherwise, the whole process will be iterated
+     with the new defining equations.
 
   \item \verb|Code.del_functrans|~\isa{name}~\isa{thy} removes
-     function transformator named \isa{name} from executable content.
+     function transformer named \isa{name} from executable content.
 
   \item \verb|Code.add_datatype|~\isa{cs}~\isa{thy} adds
      a datatype to executable content, with generation

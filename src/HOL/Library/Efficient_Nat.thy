@@ -119,8 +119,9 @@ text {*
 *}
 
 (*<*)
+setup {*
+let
 
-ML {*
 fun remove_suc thy thms =
   let
     val vname = Name.variant (map fst
@@ -159,8 +160,7 @@ fun remove_suc thy thms =
               let val (ths1, ths2) = split_list thps
               in SOME (subtract Thm.eq_thm (th :: ths1) thms @ ths2) end
       end
-  in
-    case get_first mk_thms eqs of
+  in case get_first mk_thms eqs of
       NONE => thms
     | SOME x => remove_suc thy x
   end;
@@ -215,23 +215,30 @@ fun clause_suc_preproc thy ths =
     then remove_suc_clause thy ths else ths
   end;
 
-fun lift_obj_eq f thy thms =
-  thms
-  |> try (
-    map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
-    #> f thy
-    #> map (fn thm => thm RS @{thm eq_reflection})
-    #> map (Conv.fconv_rule Drule.beta_eta_conversion))
-  |> the_default thms
-*}
+fun lift f thy thms1 =
+  let
+    val thms2 = Drule.zero_var_indexes_list thms1;
+    val thms3 = try (map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
+      #> f thy
+      #> map (fn thm => thm RS @{thm eq_reflection})
+      #> map (Conv.fconv_rule Drule.beta_eta_conversion)) thms2;
+    val thms4 = Option.map Drule.zero_var_indexes_list thms3;
+  in case thms4
+   of NONE => NONE
+    | SOME thms4 => if Thm.eq_thms (thms2, thms4) then NONE else SOME thms4
+  end
 
-setup {*
+in
+
   Codegen.add_preprocessor eqn_suc_preproc
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> Code.add_functrans ("eqn_Suc", lift_obj_eq eqn_suc_preproc)
-  #> Code.add_functrans ("clause_Suc", lift_obj_eq clause_suc_preproc)
+  #> Code.add_functrans ("eqn_Suc", lift eqn_suc_preproc)
+  #> Code.add_functrans ("clause_Suc", lift clause_suc_preproc)
+
+end;
 *}
 (*>*)
+
 
 subsection {* Target language setup *}
 

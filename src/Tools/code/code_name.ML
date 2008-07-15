@@ -303,12 +303,8 @@ structure ConstName = CodeDataFun
 (
   type T = const Symtab.table * string Symtab.table;
   val empty = (Symtab.empty, Symtab.empty);
-  fun merge _ ((const1, constrev1), (const2, constrev2)) : T =
-    (Symtab.merge (op =) (const1, const2),
-      Symtab.merge (op =) (constrev1, constrev2));
-  fun purge _ NONE _ = empty
-    | purge _ (SOME cs) (const, constrev) = (fold Symtab.delete_safe cs const,
-        fold Symtab.delete_safe (map_filter (Symtab.lookup const) cs) constrev);
+  fun purge _ cs (const, constrev) = (fold Symtab.delete_safe cs const,
+    fold Symtab.delete_safe (map_filter (Symtab.lookup const) cs) constrev);
 );
 
 val setup = CodeName.init;

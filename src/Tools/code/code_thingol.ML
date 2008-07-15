@@ -569,18 +569,15 @@ structure Program = CodeDataFun
 (
   type T = program;
   val empty = Graph.empty;
-  fun merge _ = Graph.merge (K true);
-  fun purge _ NONE _ = Graph.empty
-    | purge NONE _ _ = Graph.empty
-    | purge (SOME thy) (SOME cs) program =
-        let
-          val cs_exisiting =
-            map_filter (CodeName.const_rev thy) (Graph.keys program);
-          val dels = (Graph.all_preds program
-              o map (CodeName.const thy)
-              o filter (member (op =) cs_exisiting)
-            ) cs;
-        in Graph.del_nodes dels program end;
+  fun purge thy cs program =
+    let
+      val cs_exisiting =
+        map_filter (CodeName.const_rev thy) (Graph.keys program);
+      val dels = (Graph.all_preds program
+          o map (CodeName.const thy)
+          o filter (member (op =) cs_exisiting)
+        ) cs;
+    in Graph.del_nodes dels program end;
 );
 
 val cached_program = Program.get;

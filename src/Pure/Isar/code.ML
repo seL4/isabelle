@@ -21,7 +21,7 @@ sig
   val del_inline: thm -> theory -> theory
   val add_post: thm -> theory -> theory
   val del_post: thm -> theory -> theory
-  val add_functrans: string * (theory -> thm list -> thm list) -> theory -> theory
+  val add_functrans: string * (theory -> thm list -> thm list option) -> theory -> theory
   val del_functrans: string -> theory -> theory
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
@@ -54,8 +54,7 @@ signature CODE_DATA_ARGS =
 sig
   type T
   val empty: T
-  val merge: Pretty.pp -> T * T -> T
-  val purge: theory option -> string list option -> T -> T
+  val purge: theory -> string list -> T -> T
 end;
 
 signature CODE_DATA =
@@ -69,8 +68,8 @@ end;
 signature PRIVATE_CODE =
 sig
   include CODE
-  val declare_data: Object.T -> (Pretty.pp -> Object.T * Object.T -> Object.T)
-    -> (theory option -> string list option -> Object.T -> Object.T) -> serial
+  val declare_data: Object.T -> (theory -> string list -> Object.T -> Object.T)
+    -> serial
   val get_data: serial * ('a -> Object.T) * (Object.T -> 'a)
     -> theory -> 'a
   val change_data: serial * ('a -> Object.T) * (Object.T -> 'a)
@@ -171,10 +170,6 @@ fun del_thms (sels, dels) =
 
 fun pretty_sdthms ctxt (sels, _) = pretty_lthms ctxt sels;
 
-
-(* fundamental melting operations *)
-(*FIXME delete*)
-
 fun melt _ ([], []) = (false, [])
   | melt _ ([], ys) = (true, ys)
   | melt eq (xs, ys) = fold_rev
@@ -200,16 +195,14 @@ fun melt_sdthms ((sels1, dels1), (sels2, dels2)) =
         (subtract Thm.eq_thm_prop dels2 (Susp.force sels1), Susp.force sels2);
       val (_, dels) = melt_thms
         (subtract Thm.eq_thm_prop (Susp.force sels2) dels1, dels2);
-    in (true, ((Susp.delay o K) sels, dels)) end
+    in ((Susp.delay o K) sels, dels) end
     else let
-      val (sels_t, sels) = melt_lthms (sels1, sels2);
-    in (sels_t, (sels, dels)) end
+      val (_, sels) = melt_lthms (sels1, sels2);
+    in (sels, dels) end
   end;
 
 
 (* specification data *)
-
-val merge_funcs = Symtab.join (fn _ => fn ((_, a), (_, b)) => melt_sdthms (a, b));
 
 val eq_string = op = : string * string -> bool;
 fun eq_dtyp ((vs1, cs1), (vs2, cs2)) = 
@@ -220,11 +213,8 @@ fun merge_dtyps (tabs as (tab1, tab2)) =
     fun join _ (cos as (_, cos2)) = if eq_dtyp cos then raise Symtab.SAME else cos2;
   in Symtab.join join tabs end;
 
-fun merge_cases ((cases1, undefs1), (cases2, undefs2)) =
-  (Symtab.merge (K true) (cases1, cases2), Symtab.merge (K true) (undefs1, undefs2));
-
 datatype spec = Spec of {
-  funcs: (bool * sdthms) Symtab.table,
+  funcs: sdthms Symtab.table,
   dtyps: ((string * sort) list * (string * typ list) list) Symtab.table,
   cases: (int * string list) Symtab.table * unit Symtab.table
 };
@@ -233,12 +223,13 @@ fun mk_spec (funcs, (dtyps, cases)) =
   Spec { funcs = funcs, dtyps = dtyps, cases = cases };
 fun map_spec f (Spec { funcs = funcs, dtyps = dtyps, cases = cases }) =
   mk_spec (f (funcs, (dtyps, cases)));
-fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1, cases = cases1 },
-  Spec { funcs = funcs2, dtyps = dtyps2, cases = cases2 }) =
+fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1, cases = (cases1, undefs1) },
+  Spec { funcs = funcs2, dtyps = dtyps2, cases = (cases2, undefs2) }) =
   let
-    val funcs = merge_funcs (funcs1, funcs2);
+    val funcs = Symtab.join (K melt_sdthms) (funcs1, funcs2);
     val dtyps = merge_dtyps (dtyps1, dtyps2);
-    val cases = merge_cases (cases1, cases2);
+    val cases = (Symtab.merge (K true) (cases1, cases2),
+      Symtab.merge (K true) (undefs1, undefs2));
   in mk_spec (funcs, (dtyps, cases)) end;
 
 
@@ -247,7 +238,7 @@ fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1, cases = cases1 },
 datatype thmproc = Thmproc of {
   pre: MetaSimplifier.simpset,
   post: MetaSimplifier.simpset,
-  functrans: (string * (serial * (theory -> thm list -> thm list))) list
+  functrans: (string * (serial * (theory -> thm list -> thm list option))) list
 };
 
 fun mk_thmproc ((pre, post), functrans) =
@@ -300,8 +291,7 @@ local
 
 type kind = {
   empty: Object.T,
-  merge: Pretty.pp -> Object.T * Object.T -> Object.T,
-  purge: theory option -> string list option -> Object.T -> Object.T
+  purge: theory -> string list -> Object.T -> Object.T
 };
 
 val kinds = ref (Datatab.empty: kind Datatab.table);
@@ -313,22 +303,19 @@ fun invoke f k = case Datatab.lookup (! kinds) k
 
 in
 
-fun declare_data empty merge purge =
+fun declare_data empty purge =
   let
     val k = serial ();
-    val kind = {empty = empty, merge = merge, purge = purge};
+    val kind = {empty = empty, purge = purge};
     val _ = change kinds (Datatab.update (k, kind));
     val _ = change kind_keys (cons k);
   in k end;
 
-fun invoke_empty k = invoke (fn kind => #empty kind) k;
+fun invoke_init k = invoke (fn kind => #empty kind) k;
 
-fun invoke_merge_all pp = Datatab.join
-  (invoke (fn kind => #merge kind pp));
-
-fun invoke_purge_all thy_opt cs =
+fun invoke_purge_all thy cs =
   fold (fn k => Datatab.map_entry k
-    (invoke (fn kind => #purge kind thy_opt cs) k)) (! kind_keys);
+    (invoke (fn kind => #purge kind thy cs) k)) (! kind_keys);
 
 end; (*local*)
 
@@ -338,20 +325,16 @@ end; (*local*)
 local
 
 type data = Object.T Datatab.table;
+val empty_data = Datatab.empty : data;
 
 structure CodeData = TheoryDataFun
 (
   type T = exec * data ref;
-  val empty = (empty_exec, ref Datatab.empty : data ref);
+  val empty = (empty_exec, ref empty_data);
   fun copy (exec, data) = (exec, ref (! data));
   val extend = copy;
   fun merge pp ((exec1, data1), (exec2, data2)) =
-    let
-      val exec = merge_exec (exec1, exec2);
-      val data1' = invoke_purge_all NONE NONE (! data1);
-      val data2' = invoke_purge_all NONE NONE (! data2);
-      val data = invoke_merge_all pp (data1', data2');
-    in (exec, ref data) end;
+    (merge_exec (exec1, exec2), ref empty_data);
 );
 
 val _ = Context.>> (Context.map_theory CodeData.init);
@@ -361,7 +344,7 @@ fun thy_data f thy = f ((snd o CodeData.get) thy);
 fun get_ensure_init kind data_ref =
   case Datatab.lookup (! data_ref) kind
    of SOME x => x
-    | NONE => let val y = invoke_empty kind
+    | NONE => let val y = invoke_init kind
         in (change data_ref (Datatab.update (kind, y)); y) end;
 
 in
@@ -371,8 +354,9 @@ in
 val the_exec = fst o CodeData.get;
 
 fun map_exec_purge touched f thy =
-  CodeData.map (fn (exec, data) => 
-    (f exec, ref (invoke_purge_all (SOME thy) touched (! data)))) thy;
+  CodeData.map (fn (exec, data) => (f exec, ref (case touched
+   of SOME cs => invoke_purge_all thy cs (! data)
+    | NONE => empty_data))) thy;
 
 
 (* access to data dependent on abstract executable content *)
@@ -426,9 +410,8 @@ fun print_codesetup thy =
     val pre = (#pre o the_thmproc) exec;
     val post = (#post o the_thmproc) exec;
     val functrans = (map fst o #functrans o the_thmproc) exec;
-    val funs = the_funcs exec
+    val funcs = the_funcs exec
       |> Symtab.dest
-      |> (map o apsnd) snd
       |> (map o apfst) (CodeUnit.string_of_const thy)
       |> sort (string_ord o pairself fst);
     val dtyps = the_dtyps exec
@@ -441,7 +424,7 @@ fun print_codesetup thy =
       Pretty.block (
         Pretty.str "defining equations:"
         :: Pretty.fbrk
-        :: (Pretty.fbreaks o map pretty_func) funs
+        :: (Pretty.fbreaks o map pretty_func) funcs
       ),
       Pretty.block [
         Pretty.str "preprocessing simpset:",
@@ -454,7 +437,7 @@ fun print_codesetup thy =
         MetaSimplifier.pretty_ss post
       ],
       Pretty.block (
-        Pretty.str "function transformators:"
+        Pretty.str "function transformers:"
         :: Pretty.fbrk
         :: (Pretty.fbreaks o map Pretty.str) functrans
       ),
@@ -527,7 +510,7 @@ fun specific_constraints thy (class, tyco) =
     val funcs = classparams
       |> map_filter (fn c => try (AxClass.param_of_inst thy) (c, tyco))
       |> map (Symtab.lookup ((the_funcs o the_exec) thy))
-      |> (map o Option.map) (Susp.force o fst o snd)
+      |> (map o Option.map) (Susp.force o fst)
       |> maps these
       |> map (Thm.transfer thy)
     fun sorts_of [Type (_, tys)] = map (snd o dest_TVar) tys
@@ -704,7 +687,7 @@ fun add_func thm thy =
       else ();
   in
     (map_exec_purge (SOME [c]) o map_funcs) (Symtab.map_default
-      (c, (false, (Susp.value [], []))) (apsnd (add_thm func))) thy
+      (c, (Susp.value [], [])) (add_thm func)) thy
   end;
 
 fun add_liberal_func thm thy =
@@ -716,7 +699,7 @@ fun add_liberal_func thm thy =
           then thy
           else map_exec_purge (SOME [c]) (map_funcs
             (Symtab.map_default
-              (c, (false, (Susp.value [], []))) (apsnd (add_thm func)))) thy
+              (c, (Susp.value [], [])) (add_thm func))) thy
         end
     | NONE => thy;
 
@@ -729,7 +712,7 @@ fun add_default_func thm thy =
           then thy
           else map_exec_purge (SOME [c]) (map_funcs
           (Symtab.map_default
-            (c, (false, (Susp.value [], []))) (apsnd (add_thm func)))) thy
+            (c, (Susp.value [], [])) (add_thm func))) thy
         end
     | NONE => thy;
 
@@ -738,12 +721,12 @@ fun del_func thm thy =
    of SOME func => let
           val c = const_of_func thy func;
         in map_exec_purge (SOME [c]) (map_funcs
-          (Symtab.map_entry c (apsnd (del_thm func)))) thy
+          (Symtab.map_entry c (del_thm func))) thy
         end
     | NONE => thy;
 
 fun del_funcs const = map_exec_purge (SOME [const])
-  (map_funcs (Symtab.map_entry const (apsnd del_thms)));
+  (map_funcs (Symtab.map_entry const del_thms));
 
 fun add_funcl (const, lthms) thy =
   let
@@ -752,8 +735,8 @@ fun add_funcl (const, lthms) thy =
         alas, naive checking results in non-termination!*)
   in
     map_exec_purge (SOME [const])
-      (map_funcs (Symtab.map_default (const, (false, (Susp.value [], [])))
-      (apsnd (add_lthms lthms')))) thy
+      (map_funcs (Symtab.map_default (const, (Susp.value [], []))
+      (add_lthms lthms'))) thy
   end;
 
 val add_default_func_attr = Attrib.internal (fn _ => Thm.declaration_attribute
@@ -819,7 +802,7 @@ fun add_functrans (name, f) =
 
 fun del_functrans name =
   (map_exec_purge NONE o map_thmproc o apsnd)
-    (delete_force "function transformator" name);
+    (delete_force "function transformer" name);
 
 val _ = Context.>> (Context.map_theory
   (let
@@ -841,11 +824,13 @@ val _ = Context.>> (Context.map_theory
 
 local
 
-fun apply_functrans thy f [] = []
-  | apply_functrans thy f (thms as (thm :: _)) =
+fun apply_functrans thy [] = []
+  | apply_functrans thy (thms as thm :: _) =
       let
         val const = const_of_func thy thm;
-        val thms' = f thy thms;
+        val functrans = (map (fn (_, (_, f)) => f thy) o #functrans
+          o the_thmproc o the_exec) thy;
+        val thms' = perhaps (perhaps_loop (perhaps_apply functrans)) thms;
       in certify_const thy const thms' end;
 
 fun rhs_conv conv thm =
@@ -867,7 +852,7 @@ fun preprocess thy thms =
     val pre = (Simplifier.theory_context thy o #pre o the_thmproc o the_exec) thy;
   in
     thms
-    |> fold (fn (_, (_, f)) => apply_functrans thy f) ((#functrans o the_thmproc o the_exec) thy)
+    |> apply_functrans thy
     |> map (CodeUnit.rewrite_func pre)
     (*FIXME - must check gere: rewrite rule, defining equation, proper constant *)
     |> map (AxClass.unoverload thy)
@@ -913,7 +898,7 @@ local
 
 fun get_funcs thy const =
   Symtab.lookup ((the_funcs o the_exec) thy) const
-  |> Option.map (Susp.force o fst o snd)
+  |> Option.map (Susp.force o fst)
   |> these
   |> map (Thm.transfer thy);
 
@@ -950,8 +935,7 @@ exception Data of T;
 fun dest (Data x) = x
 
 val kind = Code.declare_data (Data Data.empty)
-  (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)))
-  (fn thy_opt => fn cs => fn Data x => Data (Data.purge thy_opt cs x));
+  (fn thy => fn cs => fn Data x => Data (Data.purge thy cs x));
 
 val data_op = (kind, Data, dest);
 

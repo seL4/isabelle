@@ -346,20 +346,15 @@ structure Nbe_Functions = CodeDataFun
 (
   type T = (Univ option * int) Graph.T * (int * string Inttab.table);
   val empty = (Graph.empty, (0, Inttab.empty));
-  fun merge _ ((gr1, (maxidx1, idx_tab1)), (gr2, (maxidx2, idx_tab2))) =
-    (Graph.merge (K true) (gr1, gr2), (IntInf.max (maxidx1, maxidx2),
-      Inttab.merge (K true) (idx_tab1, idx_tab2)));
-  fun purge _ NONE _ = empty
-    | purge NONE _ _ = empty
-    | purge (SOME thy) (SOME cs) (gr, (maxidx, idx_tab)) =
-        let
-          val cs_exisiting =
-            map_filter (CodeName.const_rev thy) (Graph.keys gr);
-          val dels = (Graph.all_preds gr
-              o map (CodeName.const thy)
-              o filter (member (op =) cs_exisiting)
-            ) cs;
-        in (Graph.del_nodes dels gr, (maxidx, idx_tab)) end;
+  fun purge thy cs (gr, (maxidx, idx_tab)) =
+    let
+      val cs_exisiting =
+        map_filter (CodeName.const_rev thy) (Graph.keys gr);
+      val dels = (Graph.all_preds gr
+          o map (CodeName.const thy)
+          o filter (member (op =) cs_exisiting)
+        ) cs;
+    in (Graph.del_nodes dels gr, (maxidx, idx_tab)) end;
 );
 
 (* compilation, evaluation and reification *)

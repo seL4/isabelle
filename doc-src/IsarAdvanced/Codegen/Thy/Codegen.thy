@@ -501,8 +501,8 @@ subsection {* Preprocessing *}
 text {*
   Before selected function theorems are turned into abstract
   code, a chain of definitional transformation steps is carried
-  out: \emph{preprocessing}.  In essence, the preprocessort
-  consists of two components: a \emph{simpset} and \emph{function transformators}.
+  out: \emph{preprocessing}.  In essence, the preprocessor
+  consists of two components: a \emph{simpset} and \emph{function transformers}.
 
   The \emph{simpset} allows to employ the full generality of the Isabelle
   simplifier.  Due to the interpretation of theorems
@@ -546,22 +546,19 @@ text_raw {*
 
 text {*
 
-  \emph{Function transformators} provide a most general interface,
+  \emph{Function transformers} provide a very general interface,
   transforming a list of function theorems to another
   list of function theorems, provided that neither the heading
   constant nor its type change.  The @{term "0\<Colon>nat"} / @{const Suc}
   pattern elimination implemented in
-  theory @{text "EfficientNat"} (\secref{eff_nat}) uses this
+  theory @{text "Efficient_Nat"} (\secref{eff_nat}) uses this
   interface.
 
   \noindent The current setup of the preprocessor may be inspected using
   the @{text "\<PRINTCODESETUP>"} command.
 
   \begin{warn}
-    Preprocessing is \emph{no} fix point process.  Keep this in mind when
-    setting up the preprocessor.
-
-    Further, the attribute \emph{code unfold}
+    The attribute \emph{code unfold}
     associated with the existing code generator also applies to
     the new one: \emph{code unfold} implies \emph{code inline}.
   \end{warn}
@@ -1096,7 +1093,7 @@ text %mlref {*
   @{index_ML Code.add_funcl: "string * thm list Susp.T -> theory -> theory"} \\
   @{index_ML Code.map_pre: "(MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory"} \\
   @{index_ML Code.map_post: "(MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory"} \\
-  @{index_ML Code.add_functrans: "string * (theory -> thm list -> thm list)
+  @{index_ML Code.add_functrans: "string * (theory -> thm list -> thm list option)
     -> theory -> theory"} \\
   @{index_ML Code.del_functrans: "string -> theory -> theory"} \\
   @{index_ML Code.add_datatype: "(string * typ) list -> theory -> theory"} \\
@@ -1120,14 +1117,16 @@ text %mlref {*
   \item @{ML Code.map_pre}~@{text "f"}~@{text "thy"} changes
      the preprocessor simpset.
 
-    \item @{ML Code.add_functrans}~@{text "(name, f)"}~@{text "thy"} adds
-     function transformator @{text f} (named @{text name}) to executable content;
-     @{text f} is a transformation of the defining equations belonging
+  \item @{ML Code.add_functrans}~@{text "(name, f)"}~@{text "thy"} adds
+     function transformer @{text f} (named @{text name}) to executable content;
+     @{text f} is a transformer of the defining equations belonging
      to a certain function definition, depending on the
-     current theory context.
+     current theory context.  Returning @{text NONE} indicates that no
+     transformation took place;  otherwise, the whole process will be iterated
+     with the new defining equations.
 
   \item @{ML Code.del_functrans}~@{text "name"}~@{text "thy"} removes
-     function transformator named @{text name} from executable content.
+     function transformer named @{text name} from executable content.
 
   \item @{ML Code.add_datatype}~@{text cs}~@{text thy} adds
      a datatype to executable content, with generation

@@ -261,11 +261,9 @@ structure Funcgr = CodeDataFun
 (
   type T = T;
   val empty = Graph.empty;
-  fun merge _ _ = Graph.empty;
-  fun purge _ NONE _ = Graph.empty
-    | purge _ (SOME cs) funcgr =
-        Graph.del_nodes ((Graph.all_preds funcgr 
-          o filter (can (Graph.get_node funcgr))) cs) funcgr;
+  fun purge _ cs funcgr =
+    Graph.del_nodes ((Graph.all_preds funcgr 
+      o filter (can (Graph.get_node funcgr))) cs) funcgr;
 );
 
 fun make thy =
