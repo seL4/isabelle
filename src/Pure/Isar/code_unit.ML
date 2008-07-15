@@ -407,7 +407,7 @@ fun head_func thm =
   let
     val thy = Thm.theory_of_thm thm;
     val Const (c, ty) = (fst o strip_comb o fst o Logic.dest_equals
-      o (*ObjectLogic.drop_judgment thy o *)Thm.plain_prop_of) thm;
+      o Thm.plain_prop_of) thm;
   in (c, typscheme thy (c, ty)) end;
 
 
