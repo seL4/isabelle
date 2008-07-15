@@ -168,7 +168,7 @@ fun str_of_state (State (NONE, _)) = "at top level"
 
 (* current node *)
 
-fun previous_node_of (State (_, prev_node)) = Option.map #1 prev_node;
+fun previous_node_of (State (_, prev)) = Option.map #1 prev;
 
 fun node_of (State (NONE, _)) = raise UNDEF
   | node_of (State (SOME (node, _), _)) = node;
@@ -367,8 +367,8 @@ local
 
 fun apply_tr int _ (Init (_, f, exit)) (State (NONE, _)) =
       State (SOME (Theory (Context.Theory (Theory.checkpoint (f int)), NONE), exit), NONE)
-  | apply_tr _ _ Exit (State (SOME (node as Theory (Context.Theory _, _), exit), _)) =
-      State (NONE, SOME (node, exit))
+  | apply_tr _ _ Exit (State (prev as SOME (Theory (Context.Theory _, _), _), _)) =
+      State (NONE, prev)
   | apply_tr _ _ CommitExit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
       (controlled_execution exit thy; toplevel)
   | apply_tr int _ (Keep f) state =
