@@ -287,9 +287,9 @@ Note that there is no symbol for strict divisibility.  Instead,
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isacharbrackleft}{\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\isanewline
 \ \ \isakeyword{where}\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq{\isacharcolon}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ gcd\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharcolon}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ lcm\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ dvd\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -305,11 +305,11 @@ Note that there is no symbol for strict divisibility.  Instead,
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}unfold\ nat{\isacharunderscore}dvd{\isachardot}is{\isacharunderscore}inf{\isacharunderscore}def\ nat{\isacharunderscore}dvd{\isachardot}is{\isacharunderscore}sup{\isacharunderscore}def{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}gcd\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}gcd\ x\ y{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ auto\ {\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}lcm\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}lcm\ x\ y{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}auto\ intro{\isacharcolon}\ lcm{\isacharunderscore}dvd{\isadigit{1}}\ lcm{\isacharunderscore}dvd{\isadigit{2}}\ lcm{\isacharunderscore}least{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{done}\isamarkupfalse%
@@ -319,7 +319,9 @@ Note that there is no symbol for strict divisibility.  Instead,
 \ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isacharbrackleft}{\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ gcd\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ expand{\isacharunderscore}fun{\isacharunderscore}eq{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}unfold\ nat{\isacharunderscore}dvd{\isachardot}meet{\isacharunderscore}def{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
@@ -329,7 +331,9 @@ Note that there is no symbol for strict divisibility.  Instead,
 \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ lcm\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ dvd\ {\isacharequal}\ lcm{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ expand{\isacharunderscore}fun{\isacharunderscore}eq{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
 \ {\isacharparenleft}unfold\ nat{\isacharunderscore}dvd{\isachardot}join{\isacharunderscore}def{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{apply}\isamarkupfalse%
@@ -365,8 +369,7 @@ Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunders
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
 \ gcd{\isacharunderscore}lcm{\isacharunderscore}distr{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}gcd\ {\isacharparenleft}x{\isacharcomma}\ lcm\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ lcm\ {\isacharparenleft}gcd\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isacharcomma}\ gcd\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{sorry}\isamarkupfalse%
+\ \ {\isachardoublequoteopen}gcd\ x\ {\isacharparenleft}lcm\ y\ z{\isacharparenright}\ {\isacharequal}\ lcm\ {\isacharparenleft}gcd\ x\ y{\isacharparenright}\ {\isacharparenleft}gcd\ x\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{sorry}\isamarkupfalse%
 \isanewline
 \isanewline
 \isacommand{ML}\isamarkupfalse%
@@ -403,7 +406,7 @@ Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunders
 \ {\isacharparenleft}unfold\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ y\ z{\isachardot}\ gcd\ {\isacharparenleft}x{\isacharcomma}\ lcm\ {\isacharparenleft}y{\isacharcomma}\ z{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ lcm\ {\isacharparenleft}gcd\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isacharcomma}\ gcd\ {\isacharparenleft}x{\isacharcomma}\ z{\isacharparenright}{\isacharparenright}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ y\ z{\isachardot}\ gcd\ x\ {\isacharparenleft}lcm\ y\ z{\isacharparenright}\ {\isacharequal}\ lcm\ {\isacharparenleft}gcd\ x\ y{\isacharparenright}\ {\isacharparenleft}gcd\ x\ z{\isacharparenright}%
 \end{isabelle}%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -429,9 +432,9 @@ Theorems that are available in the theory after these
   \isa{nat{\isacharunderscore}dvd{\isachardot}less{\isacharunderscore}def} from locale \isa{partial{\isacharunderscore}order}: \\
   \quad \isa{{\isacharparenleft}{\isacharquery}x\ dvd\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}x\ dvd\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}} \\
   \isa{nat{\isacharunderscore}dvd{\isachardot}meet{\isacharunderscore}left} from locale \isa{lattice}: \\
-  \quad \isa{gcd\ {\isacharparenleft}{\isacharquery}x{\isacharcomma}\ {\isacharquery}y{\isacharparenright}\ dvd\ {\isacharquery}x} \\
+  \quad \isa{gcd\ {\isacharquery}x\ {\isacharquery}y\ dvd\ {\isacharquery}x} \\
   \isa{nat{\isacharunderscore}dvd{\isachardot}join{\isacharunderscore}distr} from locale \isa{distrib{\isacharunderscore}lattice}: \\
-  \quad \isa{lcm\ {\isacharparenleft}{\isacharquery}x{\isacharcomma}\ gcd\ {\isacharparenleft}{\isacharquery}y{\isacharcomma}\ {\isacharquery}z{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ gcd\ {\isacharparenleft}lcm\ {\isacharparenleft}{\isacharquery}x{\isacharcomma}\ {\isacharquery}y{\isacharparenright}{\isacharcomma}\ lcm\ {\isacharparenleft}{\isacharquery}x{\isacharcomma}\ {\isacharquery}z{\isacharparenright}{\isacharparenright}} \\
+  \quad \isa{lcm\ {\isacharquery}x\ {\isacharparenleft}gcd\ {\isacharquery}y\ {\isacharquery}z{\isacharparenright}\ {\isacharequal}\ gcd\ {\isacharparenleft}lcm\ {\isacharquery}x\ {\isacharquery}y{\isacharparenright}\ {\isacharparenleft}lcm\ {\isacharquery}x\ {\isacharquery}z{\isacharparenright}} \\
 \end{tabular}
 \end{center}
 \hrule

@@ -147,25 +147,27 @@ text {* Note that there is no symbol for strict divisibility.  Instead,
 
 interpretation nat_dvd: lattice ["op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"]
   where nat_dvd_meet_eq:
-      "lattice.meet op dvd (x::nat) y = gcd (x, y)"
+      "lattice.meet op dvd = gcd"
     and nat_dvd_join_eq:
-      "lattice.join op dvd (x::nat) y = lcm (x, y)"
+      "lattice.join op dvd = lcm"
 proof -
   show "lattice (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     apply unfold_locales
     apply (unfold nat_dvd.is_inf_def nat_dvd.is_sup_def)
-    apply (rule_tac x = "gcd (x, y)" in exI)
+    apply (rule_tac x = "gcd x y" in exI)
     apply auto [1]
-    apply (rule_tac x = "lcm (x, y)" in exI)
+    apply (rule_tac x = "lcm x y" in exI)
     apply (auto intro: lcm_dvd1 lcm_dvd2 lcm_least)
     done
   then interpret nat_dvd: lattice ["op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"] .
-  show "lattice.meet op dvd (x::nat) y = gcd (x, y)"
+  show "lattice.meet op dvd = gcd"
+    apply (auto simp add: expand_fun_eq)
     apply (unfold nat_dvd.meet_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_inf_def)
     by auto
-  show "lattice.join op dvd (x::nat) y = lcm (x, y)"
+  show "lattice.join op dvd = lcm"
+    apply (auto simp add: expand_fun_eq)
     apply (unfold nat_dvd.join_def)
     apply (rule the_equality)
     apply (unfold nat_dvd.is_sup_def)
@@ -196,8 +198,7 @@ thm mult_is_0 [THEN iffD1]
 *)
 
 lemma %invisible gcd_lcm_distr:
-  "gcd (x, lcm (y, z)) = lcm (gcd (x, y), gcd (x, z))"
-  sorry
+  "gcd x (lcm y z) = lcm (gcd x y) (gcd x z)" sorry
 
 ML %invisible {* reset quick_and_dirty *}
   
