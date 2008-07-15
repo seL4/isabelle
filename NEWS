@@ -4,11 +4,20 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
-*** Pure ***
+*** General ***
+
+* Generalized Isar history, with support for linear undo, direct state
+addressing etc.
 
 * Recovered hiding of consts, which was accidentally broken in
 Isabelle2007.  Potential INCOMPATIBILITY, ``hide const c'' really
 makes c inaccessible; consider using ``hide (open) const c'' instead.
+
+* Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
+interface instead.
+
+
+*** Pure ***
 
 * Command 'instance': attached definitions now longer accepted.
 INCOMPATIBILITY, use proper 'instantiation' target.
@@ -28,9 +37,6 @@ reasons) @{code} cannot refer to constants for which user-defined
 serializations are set.  Refer to the corresponding ML counterpart
 directly in that cases.
 
-* Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
-interface instead.
-
 
 *** Document preparation ***
 
@@ -41,10 +47,11 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* HOL/Library/GCD:  Curried operations gcd, lcm (for nat) and zgcd, zlcm (for int);
-carried together from various gcd/lcm developements in the HOL Distribution.
-zgcd and zlcm replace former igcd and ilcm;  corresponding theorems renamed
-accordingly.  INCOMPATIBILY.  To recover tupled syntax, use syntax declarations like:
+* HOL/Library/GCD: Curried operations gcd, lcm (for nat) and zgcd,
+zlcm (for int); carried together from various gcd/lcm developements in
+the HOL Distribution.  zgcd and zlcm replace former igcd and ilcm;
+corresponding theorems renamed accordingly.  INCOMPATIBILY.  To
+recover tupled syntax, use syntax declarations like:
 
     hide (open) const gcd
     abbreviation gcd where
@@ -59,11 +66,12 @@ accordingly.  INCOMPATIBILY.  To recover tupled syntax, use syntax declarations 
 * Integrated image HOL-Complex with HOL.  Entry points Main.thy and
 Complex_Main.thy remain as they are.
 
-* New image HOL-Plain provides a minimal HOL with the most important tools
-available (inductive, datatype, primrec, ...).  By convention the corresponding
-theory Plain should be ancestor of every further (library) theory.  Some library
-theories now have ancestor Plain (instead of Main), thus theory Main
-occasionally has to be imported explicitly.
+* New image HOL-Plain provides a minimal HOL with the most important
+tools available (inductive, datatype, primrec, ...).  By convention
+the corresponding theory Plain should be ancestor of every further
+(library) theory.  Some library theories now have ancestor Plain
+(instead of Main), thus theory Main occasionally has to be imported
+explicitly.
 
 * Methods "case_tac" and "induct_tac" now refer to the very same rules
 as the structured Isar versions "cases" and "induct", cf. the
