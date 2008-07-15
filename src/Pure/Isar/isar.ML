@@ -15,7 +15,6 @@ sig
   val print: unit -> unit
   val >> : Toplevel.transition -> bool
   val >>> : Toplevel.transition list -> unit
-  val commit_exit: unit -> unit
   val linear_undo: int -> unit
   val undo: int -> unit
   val kill: unit -> unit
@@ -165,19 +164,6 @@ fun goal () =
     handle Toplevel.UNDEF => error "No goal present";
 
 fun print () = Toplevel.print_state false (state ());
-
-
-(* commit final exit *)
-
-fun commit_exit () =
-  let val (id, (st, _)) = point_result () in
-    (case (Toplevel.is_toplevel st, prev_command id) of
-      (true, SOME prev) =>
-        (case Toplevel.transition true Toplevel.commit_exit (#1 (the_result prev)) of
-          SOME (_, SOME err) => error (Toplevel.exn_message (Toplevel.EXCURSION_FAIL err))
-        | _ => init_point ())
-    | _ => error "Expected to find finished theory")
-  end;
 
 
 (* interactive state transformations --- NOT THREAD-SAFE! *)
