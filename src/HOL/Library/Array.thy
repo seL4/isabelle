@@ -77,7 +77,7 @@ where
   "swap i x a = (do
      y \<leftarrow> nth a i;
      upd i x a;
-     return x
+     return y
    done)"
 
 definition
@@ -93,15 +93,7 @@ where
      mapM (nth a) [0..<n]
    done)"
 
-definition
-  map :: "('a\<Colon>heap \<Rightarrow> 'a) \<Rightarrow> 'a array \<Rightarrow> 'a array Heap"
-where
-  "map f a = (do
-     n \<leftarrow> length a;
-     foldM (\<lambda>n. map_entry n f) [0..<n] a
-   done)"
-
-hide (open) const new map -- {* avoid clashed with some popular names *}
+hide (open) const new -- {* avoid clashed with some popular names *}
 
 
 subsection {* Properties *}
