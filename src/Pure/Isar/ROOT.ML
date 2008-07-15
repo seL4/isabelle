@@ -81,9 +81,9 @@ use "../Thy/thy_output.ML";
 use "../old_goals.ML";
 use "outer_syntax.ML";
 use "../Thy/thy_info.ML";
+use "../Thy/thy_edit.ML";
 use "session.ML";
 use "isar.ML";
-use "../Thy/thy_edit.ML";
 
 (*theory and proof operations*)
 use "rule_insts.ML";
