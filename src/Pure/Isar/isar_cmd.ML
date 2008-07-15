@@ -46,7 +46,6 @@ sig
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
   val ml_diag: bool -> string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val nested_command: Markup.property list -> string * Position.T -> Toplevel.transition
   val cd: Path.T -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
   val display_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
@@ -329,16 +328,6 @@ val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 
 fun ml_diag verbose (txt, pos) = Toplevel.keep (fn state =>
   (ML_Context.eval_in (try Toplevel.generic_theory_of state) verbose pos txt));
-
-
-(* nested commands *)
-
-fun nested_command props (str, pos) =
-  let val pos' = Position.of_properties (props |> Position.default_properties pos) in
-    (case OuterSyntax.parse pos' str of
-      [transition] => transition
-    | _ => error "exactly one command expected")
-  end;
 
 
 (* current working directory *)

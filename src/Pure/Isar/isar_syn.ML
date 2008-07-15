@@ -705,12 +705,12 @@ val _ =
     (Scan.succeed (Toplevel.print o Toplevel.actual_proof ProofNode.back o Toplevel.skip_proof I));
 
 
-(* nested command *)
+(* nested commands *)
 
 val _ =
   OuterSyntax.improper_command "Isabelle.command" "nested Isabelle command" K.control
-    ((Scan.optional P.properties [] -- P.position P.string) :|-- (fn (props, arg) =>
-      Scan.succeed (K (IsarCmd.nested_command props arg))
+    ((Scan.optional P.properties [] -- P.position P.string) :|-- (fn (props, text) =>
+      Scan.succeed (K (OuterSyntax.prepare_command props text))
         handle ERROR msg => Scan.fail_with (K msg)));
 
 
@@ -993,3 +993,4 @@ val _ =
     (Scan.succeed (Toplevel.no_timing o IsarCmd.welcome));
 
 end;
+
