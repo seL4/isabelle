@@ -5,7 +5,9 @@
 
 header {* An order on functions *}
 
-theory FunctionOrder imports Subspace Linearform begin
+theory FunctionOrder
+imports Subspace Linearform
+begin
 
 subsection {* The graph of a function *}
 
@@ -27,14 +29,14 @@ definition
   "graph F f = {(x, f x) | x. x \<in> F}"
 
 lemma graphI [intro]: "x \<in> F \<Longrightarrow> (x, f x) \<in> graph F f"
-  by (unfold graph_def) blast
+  unfolding graph_def by blast
 
 lemma graphI2 [intro?]: "x \<in> F \<Longrightarrow> \<exists>t \<in> graph F f. t = (x, f x)"
-  by (unfold graph_def) blast
+  unfolding graph_def by blast
 
 lemma graphE [elim?]:
     "(x, y) \<in> graph F f \<Longrightarrow> (x \<in> F \<Longrightarrow> y = f x \<Longrightarrow> C) \<Longrightarrow> C"
-  by (unfold graph_def) blast
+  unfolding graph_def by blast
 
 
 subsection {* Functions ordered by domain extension *}
@@ -47,15 +49,15 @@ text {*
 lemma graph_extI:
   "(\<And>x. x \<in> H \<Longrightarrow> h x = h' x) \<Longrightarrow> H \<subseteq> H'
     \<Longrightarrow> graph H h \<subseteq> graph H' h'"
-  by (unfold graph_def) blast
+  unfolding graph_def by blast
 
 lemma graph_extD1 [dest?]:
   "graph H h \<subseteq> graph H' h' \<Longrightarrow> x \<in> H \<Longrightarrow> h x = h' x"
-  by (unfold graph_def) blast
+  unfolding graph_def by blast
 
 lemma graph_extD2 [dest?]:
   "graph H h \<subseteq> graph H' h' \<Longrightarrow> H \<subseteq> H'"
-  by (unfold graph_def) blast
+  unfolding graph_def by blast
 
 
 subsection {* Domain and function of a graph *}
@@ -81,7 +83,8 @@ text {*
 lemma graph_domain_funct:
   assumes uniq: "\<And>x y z. (x, y) \<in> g \<Longrightarrow> (x, z) \<in> g \<Longrightarrow> z = y"
   shows "graph (domain g) (funct g) = g"
-proof (unfold domain_def funct_def graph_def, auto)  (* FIXME !? *)
+  unfolding domain_def funct_def graph_def
+proof auto  (* FIXME !? *)
   fix a b assume g: "(a, b) \<in> g"
   from g show "(a, SOME y. (a, y) \<in> g) \<in> g" by (rule someI2)
   from g show "\<exists>y. (a, y) \<in> g" ..
@@ -119,13 +122,13 @@ lemma norm_pres_extensionE [elim]:
   \<Longrightarrow> (\<And>H h. g = graph H h \<Longrightarrow> linearform H h
         \<Longrightarrow> H \<unlhd> E \<Longrightarrow> F \<unlhd> H \<Longrightarrow> graph F f \<subseteq> graph H h
         \<Longrightarrow> \<forall>x \<in> H. h x \<le> p x \<Longrightarrow> C) \<Longrightarrow> C"
-  by (unfold norm_pres_extensions_def) blast
+  unfolding norm_pres_extensions_def by blast
 
 lemma norm_pres_extensionI2 [intro]:
   "linearform H h \<Longrightarrow> H \<unlhd> E \<Longrightarrow> F \<unlhd> H
     \<Longrightarrow> graph F f \<subseteq> graph H h \<Longrightarrow> \<forall>x \<in> H. h x \<le> p x
     \<Longrightarrow> graph H h \<in> norm_pres_extensions E p F f"
-  by (unfold norm_pres_extensions_def) blast
+  unfolding norm_pres_extensions_def by blast
 
 lemma norm_pres_extensionI:  (* FIXME ? *)
   "\<exists>H h. g = graph H h
@@ -134,6 +137,6 @@ lemma norm_pres_extensionI:  (* FIXME ? *)
     \<and> F \<unlhd> H
     \<and> graph F f \<subseteq> graph H h
     \<and> (\<forall>x \<in> H. h x \<le> p x) \<Longrightarrow> g \<in> norm_pres_extensions E p F f"
-  by (unfold norm_pres_extensions_def) blast
+  unfolding norm_pres_extensions_def by blast
 
 end

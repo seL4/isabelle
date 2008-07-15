@@ -5,7 +5,9 @@
 
 header {* The Hahn-Banach Theorem *}
 
-theory HahnBanach imports HahnBanachLemmas begin
+theory HahnBanach
+imports HahnBanachLemmas
+begin
 
 text {*
   We present the proof of two different versions of the Hahn-Banach
@@ -66,7 +68,7 @@ proof -
   interpret seminorm [E p] by fact
   interpret linearform [F f] by fact
   def M \<equiv> "norm_pres_extensions E p F f"
-  hence M: "M = \<dots>" by (simp only:)
+  then have M: "M = \<dots>" by (simp only:)
   from E have F: "vectorspace F" ..
   note FE = `F \<unlhd> E`
   {
@@ -74,7 +76,8 @@ proof -
     have "\<Union>c \<in> M"
       -- {* Show that every non-empty chain @{text c} of @{text M} has an upper bound in @{text M}: *}
       -- {* @{text "\<Union>c"} is greater than any element of the chain @{text c}, so it suffices to show @{text "\<Union>c \<in> M"}. *}
-    proof (unfold M_def, rule norm_pres_extensionI)
+      unfolding M_def
+    proof (rule norm_pres_extensionI)
       let ?H = "domain (\<Union>c)"
       let ?h = "funct (\<Union>c)"
 
@@ -101,12 +104,13 @@ proof -
           \<and> (\<forall>x \<in> H. h x \<le> p x)" by blast
     qed
   }
-  hence "\<exists>g \<in> M. \<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x"
+  then have "\<exists>g \<in> M. \<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x"
   -- {* With Zorn's Lemma we can conclude that there is a maximal element in @{text M}. \skp *}
   proof (rule Zorn's_Lemma)
       -- {* We show that @{text M} is non-empty: *}
     show "graph F f \<in> M"
-    proof (unfold M_def, rule norm_pres_extensionI2)
+      unfolding M_def
+    proof (rule norm_pres_extensionI2)
       show "linearform F f" by fact
       show "F \<unlhd> E" by fact
       from F show "F \<unlhd> F" by (rule vectorspace.subspace_refl)
@@ -116,12 +120,12 @@ proof -
   qed
   then obtain g where gM: "g \<in> M" and gx: "\<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x"
     by blast
-  from gM [unfolded M_def] obtain H h where
+  from gM obtain H h where
       g_rep: "g = graph H h"
     and linearform: "linearform H h"
     and HE: "H \<unlhd> E" and FH: "F \<unlhd> H"
     and graphs: "graph F f \<subseteq> graph H h"
-    and hp: "\<forall>x \<in> H. h x \<le> p x" ..
+    and hp: "\<forall>x \<in> H. h x \<le> p x" unfolding M_def ..
       -- {* @{text g} is a norm-preserving extension of @{text f}, in other words: *}
       -- {* @{text g} is the graph of some linear form @{text h} defined on a subspace @{text H} of @{text E}, *}
       -- {* and @{text h} is an extension of @{text f} that is again bounded by @{text p}. \skp *}
@@ -213,14 +217,15 @@ proof -
           proof
             assume eq: "graph H h = graph H' h'"
             have "x' \<in> H'"
-            proof (unfold H'_def, rule)
+	      unfolding H'_def
+            proof
               from H show "0 \<in> H" by (rule vectorspace.zero)
               from x'E show "x' \<in> lin x'" by (rule x_lin_x)
               from x'E show "x' = 0 + x'" by simp
             qed
-            hence "(x', h' x') \<in> graph H' h'" ..
+            then have "(x', h' x') \<in> graph H' h'" ..
             with eq have "(x', h' x') \<in> graph H h" by (simp only:)
-            hence "x' \<in> H" ..
+            then have "x' \<in> H" ..
             with `x' \<notin> H` show False by contradiction
           qed
           with g_rep show ?thesis by simp
@@ -252,7 +257,7 @@ proof -
               by (simp add: Let_def)
             also have "(x, 0) =
                 (SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H)"
-	    using E HE
+	      using E HE
             proof (rule decomp_H'_H [symmetric])
               from FH x show "x \<in> H" ..
               from x' show "x' \<noteq> 0" .
@@ -274,7 +279,7 @@ proof -
       qed
       ultimately show ?thesis ..
     qed
-    hence "\<not> (\<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x)" by simp
+    then have "\<not> (\<forall>x \<in> M. g \<subseteq> x \<longrightarrow> g = x)" by simp
       -- {* So the graph @{text g} of @{text h} cannot be maximal. Contradiction! \skp *}
     with gx show "H = E" by contradiction
   qed
@@ -321,12 +326,8 @@ proof -
   interpret subspace [F E] by fact
   interpret linearform [F f] by fact
   interpret seminorm [E p] by fact
-(*  note E = `vectorspace E`
-  note FE = `subspace F E`
-  note sn = `seminorm E p`
-  note lf = `linearform F f`
-*)  have "\<exists>g. linearform E g \<and> (\<forall>x \<in> F. g x = f x) \<and> (\<forall>x \<in> E. g x \<le> p x)"
-  using E FE sn lf
+  have "\<exists>g. linearform E g \<and> (\<forall>x \<in> F. g x = f x) \<and> (\<forall>x \<in> E. g x \<le> p x)"
+    using E FE sn lf
   proof (rule HahnBanach)
     show "\<forall>x \<in> F. f x \<le> p x"
       using FE E sn lf and fp by (rule abs_ineq_iff [THEN iffD1])
@@ -334,7 +335,7 @@ proof -
   then obtain g where lg: "linearform E g" and *: "\<forall>x \<in> F. g x = f x"
       and **: "\<forall>x \<in> E. g x \<le> p x" by blast
   have "\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x"
-  using _ E sn lg **
+    using _ E sn lg **
   proof (rule abs_ineq_iff [THEN iffD2])
     show "E \<unlhd> E" ..
   qed
@@ -384,10 +385,10 @@ proof -
   have q: "seminorm E p"
   proof
     fix x y a assume x: "x \<in> E" and y: "y \<in> E"
-
+    
     txt {* @{text p} is positive definite: *}
-      have "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
-      moreover from x have "0 \<le> \<parallel>x\<parallel>" ..
+    have "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
+    moreover from x have "0 \<le> \<parallel>x\<parallel>" ..
     ultimately show "0 \<le> p x"  
       by (simp add: p_def zero_le_mult_iff)
 
@@ -422,9 +423,9 @@ proof -
   have "\<forall>x \<in> F. \<bar>f x\<bar> \<le> p x"
   proof
     fix x assume "x \<in> F"
-    from this and `continuous F norm f`
+    with `continuous F norm f` and linearform
     show "\<bar>f x\<bar> \<le> p x"
-      by (unfold p_def) (rule normed_vectorspace_with_fn_norm.fn_norm_le_cong
+      unfolding p_def by (rule normed_vectorspace_with_fn_norm.fn_norm_le_cong
         [OF normed_vectorspace_with_fn_norm.intro,
          OF F_norm, folded B_def fn_norm_def])
   qed
@@ -435,9 +436,9 @@ proof -
     some function @{text g} on the whole vector space @{text E}. *}
 
   with E FE linearform q obtain g where
-        linearformE: "linearform E g"
-      and a: "\<forall>x \<in> F. g x = f x"
-      and b: "\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x"
+      linearformE: "linearform E g"
+    and a: "\<forall>x \<in> F. g x = f x"
+    and b: "\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x"
     by (rule abs_HahnBanach [elim_format]) iprover
 
   txt {* We furthermore have to show that @{text g} is also continuous: *}
@@ -489,7 +490,7 @@ proof -
       proof
 	fix x assume x: "x \<in> F"
 	from a x have "g x = f x" ..
-	hence "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
+	then have "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
 	also from g_cont
 	have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
 	proof (rule fn_norm_le_cong [of g, folded B_def fn_norm_def])
@@ -500,7 +501,6 @@ proof -
       show "0 \<le> \<parallel>g\<parallel>\<hyphen>E"
 	using g_cont
 	by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
-    next
       show "continuous F norm f" by fact
     qed
   qed

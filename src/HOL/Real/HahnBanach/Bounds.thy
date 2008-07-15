@@ -28,7 +28,8 @@ lemma the_lub_equality [elim?]:
   shows "\<Squnion>A = (x::'a::order)"
 proof -
   interpret lub [A x] by fact
-  show ?thesis proof (unfold the_lub_def)
+  show ?thesis
+  proof (unfold the_lub_def)
     from `lub A x` show "The (lub A) = x"
     proof
       fix x' assume lub': "lub A x'"
@@ -73,7 +74,7 @@ lemma real_complete:
   shows "\<exists>x. lub A x"
 proof -
   from ex_upper have "\<exists>y. isUb UNIV A y"
-    by (unfold isUb_def setle_def) blast
+    unfolding isUb_def setle_def by blast
   with nonempty have "\<exists>x. isLub UNIV A x"
     by (rule reals_complete)
   then show ?thesis by (simp only: lub_compat)

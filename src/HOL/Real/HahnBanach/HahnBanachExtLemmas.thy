@@ -5,7 +5,9 @@
 
 header {* Extending non-maximal functions *}
 
-theory HahnBanachExtLemmas imports FunctionNorm begin
+theory HahnBanachExtLemmas
+imports FunctionNorm
+begin
 
 text {*
   In this section the following context is presumed.  Let @{text E} be
@@ -98,7 +100,8 @@ lemma h'_lf:
 proof -
   interpret linearform [H h] by fact
   interpret vectorspace [E] by fact
-  show ?thesis proof
+  show ?thesis
+  proof
     note E = `vectorspace E`
     have H': "vectorspace H'"
     proof (unfold H'_def)
@@ -116,7 +119,7 @@ proof -
           x1x2: "x1 + x2 = y + a \<cdot> x0" and y: "y \<in> H"
           and x1_rep: "x1 = y1 + a1 \<cdot> x0" and y1: "y1 \<in> H"
           and x2_rep: "x2 = y2 + a2 \<cdot> x0" and y2: "y2 \<in> H"
-          by (unfold H'_def sum_def lin_def) blast
+          unfolding H'_def sum_def lin_def by blast
 	
 	have ya: "y1 + y2 = y \<and> a1 + a2 = a" using E HE _ y x0
 	proof (rule decomp_H') txt_raw {* \label{decomp-H-use} *}
@@ -154,9 +157,9 @@ proof -
 	from H' x1 have ax1: "c \<cdot> x1 \<in> H'"
           by (rule vectorspace.mult_closed)
 	with x1 obtain y a y1 a1 where
-          cx1_rep: "c \<cdot> x1 = y + a \<cdot> x0" and y: "y \<in> H"
+            cx1_rep: "c \<cdot> x1 = y + a \<cdot> x0" and y: "y \<in> H"
           and x1_rep: "x1 = y1 + a1 \<cdot> x0" and y1: "y1 \<in> H"
-          by (unfold H'_def sum_def lin_def) blast
+          unfolding H'_def sum_def lin_def by blast
 	
 	have ya: "c \<cdot> y1 = y \<and> c * a1 = a" using E HE _ y x0
 	proof (rule decomp_H')
@@ -204,15 +207,16 @@ proof -
   interpret subspace [H E] by fact
   interpret seminorm [E p] by fact
   interpret linearform [H h] by fact
-  show ?thesis proof
+  show ?thesis
+  proof
     fix x assume x': "x \<in> H'"
     show "h' x \<le> p x"
     proof -
       from a' have a1: "\<forall>ya \<in> H. - p (ya + x0) - h ya \<le> xi"
 	and a2: "\<forall>ya \<in> H. xi \<le> p (ya + x0) - h ya" by auto
       from x' obtain y a where
-        x_rep: "x = y + a \<cdot> x0" and y: "y \<in> H"
-	by (unfold H'_def sum_def lin_def) blast
+          x_rep: "x = y + a \<cdot> x0" and y: "y \<in> H"
+	unfolding H'_def sum_def lin_def by blast
       from y have y': "y \<in> E" ..
       from y have ay: "inverse a \<cdot> y \<in> H" by simp
       
@@ -228,7 +232,7 @@ proof -
       next
 	txt {* In the case @{text "a < 0"}, we use @{text "a\<^sub>1"}
           with @{text ya} taken as @{text "y / a"}: *}
-	assume lz: "a < 0" hence nz: "a \<noteq> 0" by simp
+	assume lz: "a < 0" then have nz: "a \<noteq> 0" by simp
 	from a1 ay
 	have "- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y) \<le> xi" ..
 	with lz have "a * xi \<le>
@@ -250,13 +254,13 @@ proof -
       next
 	txt {* In the case @{text "a > 0"}, we use @{text "a\<^sub>2"}
           with @{text ya} taken as @{text "y / a"}: *}
-	assume gz: "0 < a" hence nz: "a \<noteq> 0" by simp
+	assume gz: "0 < a" then have nz: "a \<noteq> 0" by simp
 	from a2 ay
 	have "xi \<le> p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y)" ..
 	with gz have "a * xi \<le>
           a * (p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y))"
           by simp
-	also have "... = a * p (inverse a \<cdot> y + x0) - a * h (inverse a \<cdot> y)"
+	also have "\<dots> = a * p (inverse a \<cdot> y + x0) - a * h (inverse a \<cdot> y)"
 	  by (simp add: right_diff_distrib)
 	also from gz x0 y'
 	have "a * p (inverse a \<cdot> y + x0) = p (a \<cdot> (inverse a \<cdot> y + x0))"

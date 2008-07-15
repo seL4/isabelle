@@ -5,7 +5,9 @@
 
 header {* Normed vector spaces *}
 
-theory NormedSpace imports  Subspace begin
+theory NormedSpace
+imports Subspace
+begin
 
 subsection {* Quasinorms *}
 
@@ -32,7 +34,7 @@ lemma (in seminorm) diff_subadditive:
 proof -
   interpret vectorspace [V] by fact
   assume x: "x \<in> V" and y: "y \<in> V"
-  hence "x - y = x + - 1 \<cdot> y"
+  then have "x - y = x + - 1 \<cdot> y"
     by (simp add: diff_eq2 negate_eq2a)
   also from x y have "\<parallel>\<dots>\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>- 1 \<cdot> y\<parallel>"
     by (simp add: subadditive)
@@ -48,7 +50,7 @@ lemma (in seminorm) minus:
 proof -
   interpret vectorspace [V] by fact
   assume x: "x \<in> V"
-  hence "- x = - 1 \<cdot> x" by (simp only: negate_eq1)
+  then have "- x = - 1 \<cdot> x" by (simp only: negate_eq1)
   also from x have "\<parallel>\<dots>\<parallel> = \<bar>- 1\<bar> * \<parallel>x\<parallel>"
     by (rule abs_homogenous)
   also have "\<dots> = \<parallel>x\<parallel>" by simp
@@ -103,7 +105,8 @@ lemma subspace_normed_vs [intro?]:
 proof -
   interpret subspace [F E] by fact
   interpret normed_vectorspace [E norm] by fact
-  show ?thesis proof
+  show ?thesis
+  proof
     show "vectorspace F" by (rule vectorspace) unfold_locales
   next
     have "NormedSpace.norm E norm" by unfold_locales

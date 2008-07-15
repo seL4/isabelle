@@ -5,7 +5,9 @@
 
 header {* Vector spaces *}
 
-theory VectorSpace imports Real Bounds Zorn begin
+theory VectorSpace
+imports Real Bounds Zorn
+begin
 
 subsection {* Signature *}
 
@@ -71,10 +73,10 @@ lemma (in vectorspace) add_left_commute:
   "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> z \<in> V \<Longrightarrow> x + (y + z) = y + (x + z)"
 proof -
   assume xyz: "x \<in> V"  "y \<in> V"  "z \<in> V"
-  hence "x + (y + z) = (x + y) + z"
+  then have "x + (y + z) = (x + y) + z"
     by (simp only: add_assoc)
-  also from xyz have "... = (y + x) + z" by (simp only: add_commute)
-  also from xyz have "... = y + (x + z)" by (simp only: add_assoc)
+  also from xyz have "\<dots> = (y + x) + z" by (simp only: add_commute)
+  also from xyz have "\<dots> = y + (x + z)" by (simp only: add_assoc)
   finally show ?thesis .
 qed
 
@@ -89,7 +91,7 @@ lemma (in vectorspace) zero [iff]: "0 \<in> V"
 proof -
   from non_empty obtain x where x: "x \<in> V" by blast
   then have "0 = x - x" by (rule diff_self [symmetric])
-  also from x x have "... \<in> V" by (rule diff_closed)
+  also from x x have "\<dots> \<in> V" by (rule diff_closed)
   finally show ?thesis .
 qed
 
@@ -98,7 +100,7 @@ lemma (in vectorspace) add_zero_right [simp]:
 proof -
   assume x: "x \<in> V"
   from this and zero have "x + 0 = 0 + x" by (rule add_commute)
-  also from x have "... = x" by (rule add_zero_left)
+  also from x have "\<dots> = x" by (rule add_zero_left)
   finally show ?thesis .
 qed
 
@@ -116,11 +118,11 @@ proof -
   assume x: "x \<in> V"
   have " (a - b) \<cdot> x = (a + - b) \<cdot> x"
     by (simp add: real_diff_def)
-  also from x have "... = a \<cdot> x + (- b) \<cdot> x"
+  also from x have "\<dots> = a \<cdot> x + (- b) \<cdot> x"
     by (rule add_mult_distrib2)
-  also from x have "... = a \<cdot> x + - (b \<cdot> x)"
+  also from x have "\<dots> = a \<cdot> x + - (b \<cdot> x)"
     by (simp add: negate_eq1 mult_assoc2)
-  also from x have "... = a \<cdot> x - (b \<cdot> x)"
+  also from x have "\<dots> = a \<cdot> x - (b \<cdot> x)"
     by (simp add: diff_eq1)
   finally show ?thesis .
 qed
@@ -137,13 +139,13 @@ lemma (in vectorspace) mult_zero_left [simp]:
 proof -
   assume x: "x \<in> V"
   have "0 \<cdot> x = (1 - 1) \<cdot> x" by simp
-  also have "... = (1 + - 1) \<cdot> x" by simp
-  also from x have "... =  1 \<cdot> x + (- 1) \<cdot> x"
+  also have "\<dots> = (1 + - 1) \<cdot> x" by simp
+  also from x have "\<dots> =  1 \<cdot> x + (- 1) \<cdot> x"
     by (rule add_mult_distrib2)
-  also from x have "... = x + (- 1) \<cdot> x" by simp
-  also from x have "... = x + - x" by (simp add: negate_eq2a)
-  also from x have "... = x - x" by (simp add: diff_eq2)
-  also from x have "... = 0" by simp
+  also from x have "\<dots> = x + (- 1) \<cdot> x" by simp
+  also from x have "\<dots> = x + - x" by (simp add: negate_eq2a)
+  also from x have "\<dots> = x - x" by (simp add: diff_eq2)
+  also from x have "\<dots> = 0" by simp
   finally show ?thesis .
 qed
 
@@ -151,9 +153,9 @@ lemma (in vectorspace) mult_zero_right [simp]:
   "a \<cdot> 0 = (0::'a)"
 proof -
   have "a \<cdot> 0 = a \<cdot> (0 - (0::'a))" by simp
-  also have "... =  a \<cdot> 0 - a \<cdot> 0"
+  also have "\<dots> =  a \<cdot> 0 - a \<cdot> 0"
     by (rule diff_mult_distrib1) simp_all
-  also have "... = 0" by simp
+  also have "\<dots> = 0" by simp
   finally show ?thesis .
 qed
 
@@ -165,8 +167,8 @@ lemma (in vectorspace) add_minus_left_eq_diff:
   "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> - x + y = y - x"
 proof -
   assume xy: "x \<in> V"  "y \<in> V"
-  hence "- x + y = y + - x" by (simp add: add_commute)
-  also from xy have "... = y - x" by (simp add: diff_eq1)
+  then have "- x + y = y + - x" by (simp add: add_commute)
+  also from xy have "\<dots> = y - x" by (simp add: diff_eq1)
   finally show ?thesis .
 qed
 
@@ -193,7 +195,7 @@ proof
   {
     from x have "x = - (- x)" by (simp add: minus_minus)
     also assume "- x = 0"
-    also have "- ... = 0" by (rule minus_zero)
+    also have "- \<dots> = 0" by (rule minus_zero)
     finally show "x = 0" .
   next
     assume "x = 0"
@@ -227,13 +229,13 @@ proof
   assume x: "x \<in> V" and y: "y \<in> V" and z: "z \<in> V"
   {
     from y have "y = 0 + y" by simp
-    also from x y have "... = (- x + x) + y" by simp
-    also from x y have "... = - x + (x + y)"
+    also from x y have "\<dots> = (- x + x) + y" by simp
+    also from x y have "\<dots> = - x + (x + y)"
       by (simp add: add_assoc neg_closed)
     also assume "x + y = x + z"
     also from x z have "- x + (x + z) = - x + x + z"
       by (simp add: add_assoc [symmetric] neg_closed)
-    also from x z have "... = z" by simp
+    also from x z have "\<dots> = z" by simp
     finally show "y = z" .
   next
     assume "y = z"
@@ -260,9 +262,9 @@ proof (rule classical)
   assume a: "a \<noteq> 0"
   assume x: "x \<in> V"  "x \<noteq> 0" and ax: "a \<cdot> x = 0"
   from x a have "x = (inverse a * a) \<cdot> x" by simp
-  also from `x \<in> V` have "... = inverse a \<cdot> (a \<cdot> x)" by (rule mult_assoc)
-  also from ax have "... = inverse a \<cdot> 0" by simp
-  also have "... = 0" by simp
+  also from `x \<in> V` have "\<dots> = inverse a \<cdot> (a \<cdot> x)" by (rule mult_assoc)
+  also from ax have "\<dots> = inverse a \<cdot> 0" by simp
+  also have "\<dots> = 0" by simp
   finally have "x = 0" .
   with `x \<noteq> 0` show "a = 0" by contradiction
 qed
@@ -272,11 +274,11 @@ lemma (in vectorspace) mult_left_cancel:
 proof
   assume x: "x \<in> V" and y: "y \<in> V" and a: "a \<noteq> 0"
   from x have "x = 1 \<cdot> x" by simp
-  also from a have "... = (inverse a * a) \<cdot> x" by simp
-  also from x have "... = inverse a \<cdot> (a \<cdot> x)"
+  also from a have "\<dots> = (inverse a * a) \<cdot> x" by simp
+  also from x have "\<dots> = inverse a \<cdot> (a \<cdot> x)"
     by (simp only: mult_assoc)
   also assume "a \<cdot> x = a \<cdot> y"
-  also from a y have "inverse a \<cdot> ... = y"
+  also from a y have "inverse a \<cdot> \<dots> = y"
     by (simp add: mult_assoc2)
   finally show "x = y" .
 next
@@ -295,7 +297,7 @@ proof
     with x have "a \<cdot> x - b \<cdot> x = 0" by simp
     finally have "(a - b) \<cdot> x = 0" .
     with x neq have "a - b = 0" by (rule mult_zero_uniq)
-    thus "a = b" by simp
+    then show "a = b" by simp
   next
     assume "a = b"
     then show "a \<cdot> x = b \<cdot> x" by (simp only:)
@@ -308,24 +310,24 @@ proof
   assume x: "x \<in> V" and y: "y \<in> V" and z: "z \<in> V"
   {
     assume "x = z - y"
-    hence "x + y = z - y + y" by simp
-    also from y z have "... = z + - y + y"
+    then have "x + y = z - y + y" by simp
+    also from y z have "\<dots> = z + - y + y"
       by (simp add: diff_eq1)
-    also have "... = z + (- y + y)"
+    also have "\<dots> = z + (- y + y)"
       by (rule add_assoc) (simp_all add: y z)
-    also from y z have "... = z + 0"
+    also from y z have "\<dots> = z + 0"
       by (simp only: add_minus_left)
-    also from z have "... = z"
+    also from z have "\<dots> = z"
       by (simp only: add_zero_right)
     finally show "x + y = z" .
   next
     assume "x + y = z"
-    hence "z - y = (x + y) - y" by simp
-    also from x y have "... = x + y + - y"
+    then have "z - y = (x + y) - y" by simp
+    also from x y have "\<dots> = x + y + - y"
       by (simp add: diff_eq1)
-    also have "... = x + (y + - y)"
+    also have "\<dots> = x + (y + - y)"
       by (rule add_assoc) (simp_all add: x y)
-    also from x y have "... = x" by simp
+    also from x y have "\<dots> = x" by simp
     finally show "x = z - y" ..
   }
 qed
@@ -335,7 +337,7 @@ lemma (in vectorspace) add_minus_eq_minus:
 proof -
   assume x: "x \<in> V" and y: "y \<in> V"
   from x y have "x = (- y + y) + x" by simp
-  also from x y have "... = - y + (x + y)" by (simp add: add_ac)
+  also from x y have "\<dots> = - y + (x + y)" by (simp add: add_ac)
   also assume "x + y = 0"
   also from y have "- y + 0 = - y" by simp
   finally show "x = - y" .
@@ -360,13 +362,13 @@ proof -
     and eq: "a + b = c + d"
   then have "- c + (a + b) = - c + (c + d)"
     by (simp add: add_left_cancel)
-  also have "... = d" using `c \<in> V` `d \<in> V` by (rule minus_add_cancel)
+  also have "\<dots> = d" using `c \<in> V` `d \<in> V` by (rule minus_add_cancel)
   finally have eq: "- c + (a + b) = d" .
   from vs have "a - c = (- c + (a + b)) + - b"
     by (simp add: add_ac diff_eq1)
-  also from vs eq have "...  = d + - b"
+  also from vs eq have "\<dots>  = d + - b"
     by (simp add: add_right_cancel)
-  also from vs have "... = d - b" by (simp add: diff_eq2)
+  also from vs have "\<dots> = d - b" by (simp add: diff_eq2)
   finally show "a - c = d - b" .
 qed
 
@@ -377,7 +379,7 @@ proof
   assume vs: "x \<in> V"  "y \<in> V"  "z \<in> V"  "u \<in> V"
   {
     from vs have "x + z = - y + y + (x + z)" by simp
-    also have "... = - y + (y + (x + z))"
+    also have "\<dots> = - y + (y + (x + z))"
       by (rule add_assoc) (simp_all add: vs)
     also from vs have "y + (x + z) = x + (y + z)"
       by (simp add: add_ac)
@@ -404,10 +406,10 @@ proof
     with vs show "x = - z" by (simp add: add_minus_eq_minus)
   next
     assume eq: "x = - z"
-    hence "x + (y + z) = - z + (y + z)" by simp
-    also have "... = y + (- z + z)"
+    then have "x + (y + z) = - z + (y + z)" by simp
+    also have "\<dots> = y + (- z + z)"
       by (rule add_left_commute) (simp_all add: vs)
-    also from vs have "... = y"  by simp
+    also from vs have "\<dots> = y"  by simp
     finally show "x + (y + z) = y" .
   }
 qed

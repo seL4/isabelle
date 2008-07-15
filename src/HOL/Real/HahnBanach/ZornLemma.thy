@@ -5,7 +5,9 @@
 
 header {* Zorn's Lemma *}
 
-theory ZornLemma imports Zorn begin
+theory ZornLemma
+imports Zorn
+begin
 
 text {*
   Zorn's Lemmas states: if every linear ordered subset of an ordered
@@ -23,8 +25,6 @@ theorem Zorn's_Lemma:
     and aS: "a \<in> S"
   shows "\<exists>y \<in> S. \<forall>z \<in> S. y \<subseteq> z \<longrightarrow> y = z"
 proof (rule Zorn_Lemma2)
-  txt_raw {* \footnote{See
-  \url{http://isabelle.in.tum.de/library/HOL/HOL-Complex/Zorn.html}} \isanewline *}
   show "\<forall>c \<in> chain S. \<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
   proof
     fix c assume "c \<in> chain S"
@@ -32,22 +32,22 @@ proof (rule Zorn_Lemma2)
     proof cases
 
       txt {* If @{text c} is an empty chain, then every element in
-      @{text S} is an upper bound of @{text c}. *}
+	@{text S} is an upper bound of @{text c}. *}
 
       assume "c = {}"
       with aS show ?thesis by fast
 
       txt {* If @{text c} is non-empty, then @{text "\<Union>c"} is an upper
-      bound of @{text c}, lying in @{text S}. *}
+	bound of @{text c}, lying in @{text S}. *}
 
     next
-      assume c: "c \<noteq> {}"
+      assume "c \<noteq> {}"
       show ?thesis
       proof
         show "\<forall>z \<in> c. z \<subseteq> \<Union>c" by fast
         show "\<Union>c \<in> S"
         proof (rule r)
-          from c show "\<exists>x. x \<in> c" by fast
+          from `c \<noteq> {}` show "\<exists>x. x \<in> c" by fast
 	  show "c \<in> chain S" by fact
         qed
       qed

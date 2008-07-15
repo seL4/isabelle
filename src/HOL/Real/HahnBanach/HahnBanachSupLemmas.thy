@@ -5,7 +5,9 @@
 
 header {* The supremum w.r.t.~the function order *}
 
-theory HahnBanachSupLemmas imports FunctionNorm ZornLemma begin
+theory HahnBanachSupLemmas
+imports FunctionNorm ZornLemma
+begin
 
 text {*
   This section contains some lemmas that will be used in the proof of
@@ -132,7 +134,7 @@ proof -
   proof
     assume ?case1
     have "(x, h x) \<in> graph H'' h''" by fact
-    also have "... \<subseteq> graph H' h'" by fact
+    also have "\<dots> \<subseteq> graph H' h'" by fact
     finally have xh:"(x, h x) \<in> graph H' h'" .
     then have "x \<in> H'" ..
     moreover from y_hy have "y \<in> H'" ..
@@ -171,11 +173,11 @@ proof -
 
   from G1 c have "G1 \<in> M" ..
   then obtain H1 h1 where G1_rep: "G1 = graph H1 h1"
-    by (unfold M_def) blast
+    unfolding M_def by blast
 
   from G2 c have "G2 \<in> M" ..
   then obtain H2 h2 where G2_rep: "G2 = graph H2 h2"
-    by (unfold M_def) blast
+    unfolding M_def by blast
 
   txt {* @{text "G\<^sub>1"} is contained in @{text "G\<^sub>2"}
     or vice versa, since both @{text "G\<^sub>1"} and @{text
@@ -186,18 +188,18 @@ proof -
   proof
     assume ?case1
     with xy' G2_rep have "(x, y) \<in> graph H2 h2" by blast
-    hence "y = h2 x" ..
+    then have "y = h2 x" ..
     also
     from xz' G2_rep have "(x, z) \<in> graph H2 h2" by (simp only:)
-    hence "z = h2 x" ..
+    then have "z = h2 x" ..
     finally show ?thesis .
   next
     assume ?case2
     with xz' G1_rep have "(x, z) \<in> graph H1 h1" by blast
-    hence "z = h1 x" ..
+    then have "z = h1 x" ..
     also
     from xy' G1_rep have "(x, y) \<in> graph H1 h1" by (simp only:)
-    hence "y = h1 x" ..
+    then have "y = h1 x" ..
     finally show ?thesis ..
   qed
 qed

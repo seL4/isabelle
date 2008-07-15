@@ -5,7 +5,9 @@
 
 header {* The norm of a function *}
 
-theory FunctionNorm imports NormedSpace FunctionOrder begin
+theory FunctionNorm
+imports NormedSpace FunctionOrder
+begin
 
 subsection {* Continuous linear forms*}
 
@@ -97,7 +99,7 @@ proof -
   proof (rule real_complete)
     txt {* First we have to show that @{text B} is non-empty: *}
     have "0 \<in> B V f" ..
-    thus "\<exists>x. x \<in> B V f" ..
+    then show "\<exists>x. x \<in> B V f" ..
 
     txt {* Then we have to show that @{text B} is bounded: *}
     show "\<exists>c. \<forall>y \<in> B V f. y \<le> c"
@@ -116,7 +118,7 @@ proof -
         show "y \<le> b"
         proof cases
           assume "y = 0"
-          thus ?thesis by (unfold b_def) arith
+          then show ?thesis unfolding b_def by arith
         next
           txt {* The second case is @{text "y = \<bar>f x\<bar> / \<parallel>x\<parallel>"} for some
             @{text "x \<in> V"} with @{text "x \<noteq> 0"}. *}
@@ -135,21 +137,21 @@ proof -
             from c x show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
             from gt have "0 < inverse \<parallel>x\<parallel>" 
               by (rule positive_imp_inverse_positive)
-            thus "0 \<le> inverse \<parallel>x\<parallel>" by (rule order_less_imp_le)
+            then show "0 \<le> inverse \<parallel>x\<parallel>" by (rule order_less_imp_le)
           qed
           also have "\<dots> = c * (\<parallel>x\<parallel> * inverse \<parallel>x\<parallel>)"
             by (rule real_mult_assoc)
           also
           from gt have "\<parallel>x\<parallel> \<noteq> 0" by simp
-          hence "\<parallel>x\<parallel> * inverse \<parallel>x\<parallel> = 1" by simp 
+          then have "\<parallel>x\<parallel> * inverse \<parallel>x\<parallel> = 1" by simp 
           also have "c * 1 \<le> b" by (simp add: b_def le_maxI1)
           finally show "y \<le> b" .
         qed
       qed
-      thus ?thesis ..
+      then show ?thesis ..
     qed
   qed
-  then show ?thesis by (unfold fn_norm_def) (rule the_lubI_ex)
+  then show ?thesis unfolding fn_norm_def by (rule the_lubI_ex)
 qed
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_ub [iff?]:
@@ -185,7 +187,6 @@ proof -
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
     0"}, provided the supremum exists and @{text B} is not empty. *}
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-(*    unfolding B_def fn_norm_def *)
     using `continuous V norm f` by (rule fn_norm_works)
   moreover have "0 \<in> B V f" ..
   ultimately show ?thesis ..
@@ -205,7 +206,8 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_le_cong:
 proof -
   interpret continuous [V norm f] by fact
   interpret linearform [V f] .
-  show ?thesis proof cases
+  show ?thesis
+  proof cases
     assume "x = 0"
     then have "\<bar>f x\<bar> = \<bar>f 0\<bar>" by simp
     also have "f 0 = 0" by rule unfold_locales
@@ -245,7 +247,8 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_least [intro?]:
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> c"
 proof -
   interpret continuous [V norm f] by fact
-  show ?thesis proof (rule fn_norm_leastB [folded B_def fn_norm_def])
+  show ?thesis
+  proof (rule fn_norm_leastB [folded B_def fn_norm_def])
     fix b assume b: "b \<in> B V f"
     show "b \<le> c"
     proof cases
