@@ -1,5 +1,15 @@
 diff -r gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
-12a13,15
+2,8c2
+< <a class="title" href="{url}rev/#node|short#{sessionvars%urlparameter}"><span class="age">#date|age# ago</span>#desc|strip|firstline|escape#<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
+< </div>
+< <div class="title_text">
+< <div class="log_link">
+< <a href="{url}rev/#node|short#{sessionvars%urlparameter}">changeset</a><br/>
+< </div>
+< <i>#author|obfuscate# [#date|rfc822date#] rev #rev#</i><br/>
+---
+> <a class="title" href="{url}rev/#node|short#{sessionvars%urlparameter}"><span class="age">#date|age# ago</span>#author|obfuscate# [#date|rfc822date#] rev #rev#<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
+12a7,9
 > <div class="files">
 > #files#
 > </div>
