@@ -69,8 +69,8 @@ sig
   val hiliteN: string val hilite: T
   val unprocessedN: string val unprocessed: T
   val runningN: string val running: T
-  val finishedN: string val finished: T
   val failedN: string val failed: T
+  val finishedN: string val finished: T
   val disposedN: string val disposed: T
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
@@ -203,8 +203,8 @@ val (hiliteN, hilite) = markup_elem "hilite";
 
 val (unprocessedN, unprocessed) = markup_elem "unprocessed";
 val (runningN, running) = markup_elem "running";
-val (finishedN, finished) = markup_elem "finished";
 val (failedN, failed) = markup_elem "failed";
+val (finishedN, finished) = markup_elem "finished";
 val (disposedN, disposed) = markup_elem "disposed";
 
 
