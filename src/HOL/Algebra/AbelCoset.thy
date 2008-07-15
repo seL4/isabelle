@@ -60,7 +60,7 @@ lemmas a_r_coset_defs =
   a_r_coset_def r_coset_def
 
 lemma a_r_coset_def':
-  includes struct G
+  fixes G (structure)
   shows "H +> a \<equiv> \<Union>h\<in>H. {h \<oplus> a}"
 unfolding a_r_coset_defs
 by simp
@@ -69,7 +69,7 @@ lemmas a_l_coset_defs =
   a_l_coset_def l_coset_def
 
 lemma a_l_coset_def':
-  includes struct G
+  fixes G (structure)
   shows "a <+ H \<equiv> \<Union>h\<in>H. {a \<oplus> h}"
 unfolding a_l_coset_defs
 by simp
@@ -78,7 +78,7 @@ lemmas A_RCOSETS_defs =
   A_RCOSETS_def RCOSETS_def
 
 lemma A_RCOSETS_def':
-  includes struct G
+  fixes G (structure)
   shows "a_rcosets H \<equiv> \<Union>a\<in>carrier G. {H +> a}"
 unfolding A_RCOSETS_defs
 by (fold a_r_coset_def, simp)
@@ -87,7 +87,7 @@ lemmas set_add_defs =
   set_add_def set_mult_def
 
 lemma set_add_def':
-  includes struct G
+  fixes G (structure)
   shows "H <+> K \<equiv> \<Union>h\<in>H. \<Union>k\<in>K. {h \<oplus> k}"
 unfolding set_add_defs
 by simp
@@ -96,7 +96,7 @@ lemmas A_SET_INV_defs =
   A_SET_INV_def SET_INV_def
 
 lemma A_SET_INV_def':
-  includes struct G
+  fixes G (structure)
   shows "a_set_inv H \<equiv> \<Union>h\<in>H. {\<ominus> h}"
 unfolding A_SET_INV_defs
 by (fold a_inv_def)
@@ -188,7 +188,7 @@ lemma (in additive_subgroup) is_additive_subgroup:
 by (rule additive_subgroup_axioms)
 
 lemma additive_subgroupI:
-  includes struct G
+  fixes G (structure)
   assumes a_subgroup: "subgroup H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   shows "additive_subgroup H G"
 by (rule additive_subgroup.intro) (rule a_subgroup)
@@ -240,7 +240,7 @@ proof -
 qed
 
 lemma abelian_subgroupI2:
-  includes struct G
+  fixes G (structure)
   assumes a_comm_group: "comm_group \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
       and a_subgroup: "subgroup H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   shows "abelian_subgroup H G"
@@ -265,7 +265,7 @@ proof -
 qed
 
 lemma abelian_subgroupI3:
-  includes struct G
+  fixes G (structure)
   assumes asg: "additive_subgroup H G"
       and ag: "abelian_group G"
   shows "abelian_subgroup H G"
@@ -451,7 +451,7 @@ subsection {* Factorization *}
 lemmas A_FactGroup_defs = A_FactGroup_def FactGroup_def
 
 lemma A_FactGroup_def':
-  includes struct G
+  fixes G (structure)
   shows "G A_Mod H \<equiv> \<lparr>carrier = a_rcosets\<^bsub>G\<^esub> H, mult = set_add G, one = H\<rparr>"
 unfolding A_FactGroup_defs
 by (fold A_RCOSETS_def set_add_def)
@@ -534,16 +534,20 @@ by (rule a_kernel_def[unfolded kernel_def, simplified ring_record_simps])
 subsection {* Homomorphisms *}
 
 lemma abelian_group_homI:
-  includes abelian_group G
-  includes abelian_group H
+  assumes "abelian_group G"
+  assumes "abelian_group H"
   assumes a_group_hom: "group_hom (| carrier = carrier G, mult = add G, one = zero G |)
                                   (| carrier = carrier H, mult = add H, one = zero H |) h"
   shows "abelian_group_hom G H h"
-apply (intro abelian_group_hom.intro abelian_group_hom_axioms.intro)
-  apply (rule G.abelian_group_axioms)
- apply (rule H.abelian_group_axioms)
-apply (rule a_group_hom)
-done
+proof -
+  interpret G: abelian_group [G] by fact
+  interpret H: abelian_group [H] by fact
+  show ?thesis apply (intro abelian_group_hom.intro abelian_group_hom_axioms.intro)
+    apply fact
+    apply fact
+    apply (rule a_group_hom)
+    done
+qed
 
 lemma (in abelian_group_hom) is_abelian_group_hom:
   "abelian_group_hom G H h"
@@ -688,10 +692,11 @@ by (rule subgroup.rcos_module [OF a_subgroup a_group,
 
 --"variant"
 lemma (in abelian_subgroup) a_rcos_module_minus:
-  includes ring G
+  assumes "ring G"
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
   shows "(x' \<in> H +> x) = (x' \<ominus> x \<in> H)"
 proof -
+  interpret G: ring [G] by fact
   from carr
   have "(x' \<in> H +> x) = (x' \<oplus> \<ominus>x \<in> H)" by (rule a_rcos_module)
   with carr

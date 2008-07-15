@@ -135,19 +135,21 @@ lemma not_Err_less [rule_format, iff]:
   "~(Err <_(le r) x)"
   by (simp add: lesssub_def lesub_def le_def split: err.split)
 
-lemma semilat_errI [intro]: includes semilat
-shows "semilat(err A, Err.le r, lift2(%x y. OK(f x y)))"
-apply(insert semilat)
-apply (unfold semilat_Def closed_def plussub_def lesub_def 
-              lift2_def Err.le_def err_def)
-apply (simp split: err.split)
-done
+lemma semilat_errI [intro]:
+  assumes semilat: "semilat (A, r, f)"
+  shows "semilat(err A, Err.le r, lift2(%x y. OK(f x y)))"
+  apply(insert semilat)
+  apply (unfold semilat_Def closed_def plussub_def lesub_def 
+    lift2_def Err.le_def err_def)
+  apply (simp split: err.split)
+  done
 
 lemma err_semilat_eslI_aux:
-includes semilat shows "err_semilat(esl(A,r,f))"
-apply (unfold sl_def esl_def)
-apply (simp add: semilat_errI[OF semilat])
-done
+  assumes semilat: "semilat (A, r, f)"
+  shows "err_semilat(esl(A,r,f))"
+  apply (unfold sl_def esl_def)
+  apply (simp add: semilat_errI[OF semilat])
+  done
 
 lemma err_semilat_eslI [intro, simp]:
  "\<And>L. semilat L \<Longrightarrow> err_semilat(esl L)"

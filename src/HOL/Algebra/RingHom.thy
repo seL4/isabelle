@@ -31,55 +31,73 @@ apply simp
 done
 
 lemma (in ring_hom_ring) is_ring_hom_ring:
-  includes struct R + struct S
-  shows "ring_hom_ring R S h"
-by (rule ring_hom_ring_axioms)
+  "ring_hom_ring R S h"
+  by (rule ring_hom_ring_axioms)
 
 lemma ring_hom_ringI:
-  includes ring R + ring S
+  fixes R (structure) and S (structure)
+  assumes "ring R" "ring S"
   assumes (* morphism: "h \<in> carrier R \<rightarrow> carrier S" *)
           hom_closed: "!!x. x \<in> carrier R ==> h x \<in> carrier S"
       and compatible_mult: "!!x y. [| x : carrier R; y : carrier R |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
       and compatible_add: "!!x y. [| x : carrier R; y : carrier R |] ==> h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y"
       and compatible_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
   shows "ring_hom_ring R S h"
-apply unfold_locales
+proof -
+  interpret ring [R] by fact
+  interpret ring [S] by fact
+  show ?thesis apply unfold_locales
 apply (unfold ring_hom_def, safe)
    apply (simp add: hom_closed Pi_def)
   apply (erule (1) compatible_mult)
  apply (erule (1) compatible_add)
 apply (rule compatible_one)
 done
+qed
 
 lemma ring_hom_ringI2:
-  includes ring R + ring S
+  assumes "ring R" "ring S"
   assumes h: "h \<in> ring_hom R S"
   shows "ring_hom_ring R S h"
-apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro)
-apply (rule R.is_ring)
-apply (rule S.is_ring)
-apply (rule h)
-done
+proof -
+  interpret R: ring [R] by fact
+  interpret S: ring [S] by fact
+  show ?thesis apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro)
+    apply (rule R.is_ring)
+    apply (rule S.is_ring)
+    apply (rule h)
+    done
+qed
 
 lemma ring_hom_ringI3:
-  includes abelian_group_hom R S + ring R + ring S 
+  fixes R (structure) and S (structure)
+  assumes "abelian_group_hom R S h" "ring R" "ring S" 
   assumes compatible_mult: "!!x y. [| x : carrier R; y : carrier R |] ==> h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
       and compatible_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
   shows "ring_hom_ring R S h"
-apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro, rule R.is_ring, rule S.is_ring)
-apply (insert group_hom.homh[OF a_group_hom])
-apply (unfold hom_def ring_hom_def, simp)
-apply safe
-apply (erule (1) compatible_mult)
-apply (rule compatible_one)
-done
+proof -
+  interpret abelian_group_hom [R S h] by fact
+  interpret R: ring [R] by fact
+  interpret S: ring [S] by fact
+  show ?thesis apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro, rule R.is_ring, rule S.is_ring)
+    apply (insert group_hom.homh[OF a_group_hom])
+    apply (unfold hom_def ring_hom_def, simp)
+    apply safe
+    apply (erule (1) compatible_mult)
+    apply (rule compatible_one)
+    done
+qed
 
 lemma ring_hom_cringI:
-  includes ring_hom_ring R S h + cring R + cring S
+  assumes "ring_hom_ring R S h" "cring R" "cring S"
   shows "ring_hom_cring R S h"
-  by (intro ring_hom_cring.intro ring_hom_cring_axioms.intro)
+proof -
+  interpret ring_hom_ring [R S h] by fact
+  interpret R: cring [R] by fact
+  interpret S: cring [S] by fact
+  show ?thesis by (intro ring_hom_cring.intro ring_hom_cring_axioms.intro)
     (rule R.is_cring, rule S.is_cring, rule homh)
-
+qed
 
 subsection {* The kernel of a ring homomorphism *}
 

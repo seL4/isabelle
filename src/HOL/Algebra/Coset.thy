@@ -109,23 +109,27 @@ done
 
 text (in group) {* Opposite of @{thm [source] "repr_independence"} *}
 lemma (in group) repr_independenceD:
-  includes subgroup H G
+  assumes "subgroup H G"
   assumes ycarr: "y \<in> carrier G"
       and repr:  "H #> x = H #> y"
   shows "y \<in> H #> x"
-  apply (subst repr)
+proof -
+  interpret subgroup [H G] by fact
+  show ?thesis  apply (subst repr)
   apply (intro rcos_self)
    apply (rule ycarr)
    apply (rule is_subgroup)
   done
+qed
 
 text {* Elements of a right coset are in the carrier *}
 lemma (in subgroup) elemrcos_carrier:
-  includes group
+  assumes "group G"
   assumes acarr: "a \<in> carrier G"
     and a': "a' \<in> H #> a"
   shows "a' \<in> carrier G"
 proof -
+  interpret group [G] by fact
   from subset and acarr
   have "H #> a \<subseteq> carrier G" by (rule r_coset_subset_G)
   from this and a'
@@ -134,38 +138,42 @@ proof -
 qed
 
 lemma (in subgroup) rcos_const:
-  includes group
+  assumes "group G"
   assumes hH: "h \<in> H"
   shows "H #> h = H"
-  apply (unfold r_coset_def)
-  apply rule
-   apply rule
-   apply clarsimp
-   apply (intro subgroup.m_closed)
-     apply (rule is_subgroup)
-    apply assumption
-   apply (rule hH)
-  apply rule
-  apply simp
 proof -
-  fix h'
-  assume h'H: "h' \<in> H"
-  note carr = hH[THEN mem_carrier] h'H[THEN mem_carrier]
-  from carr
-  have a: "h' = (h' \<otimes> inv h) \<otimes> h" by (simp add: m_assoc)
-  from h'H hH
-  have "h' \<otimes> inv h \<in> H" by simp
-  from this and a
-  show "\<exists>x\<in>H. h' = x \<otimes> h" by fast
+  interpret group [G] by fact
+  show ?thesis apply (unfold r_coset_def)
+    apply rule
+    apply rule
+    apply clarsimp
+    apply (intro subgroup.m_closed)
+    apply (rule is_subgroup)
+    apply assumption
+    apply (rule hH)
+    apply rule
+    apply simp
+  proof -
+    fix h'
+    assume h'H: "h' \<in> H"
+    note carr = hH[THEN mem_carrier] h'H[THEN mem_carrier]
+    from carr
+    have a: "h' = (h' \<otimes> inv h) \<otimes> h" by (simp add: m_assoc)
+    from h'H hH
+    have "h' \<otimes> inv h \<in> H" by simp
+    from this and a
+    show "\<exists>x\<in>H. h' = x \<otimes> h" by fast
+  qed
 qed
 
 text {* Step one for lemma @{text "rcos_module"} *}
 lemma (in subgroup) rcos_module_imp:
-  includes group
+  assumes "group G"
   assumes xcarr: "x \<in> carrier G"
       and x'cos: "x' \<in> H #> x"
   shows "(x' \<otimes> inv x) \<in> H"
 proof -
+  interpret group [G] by fact
   from xcarr x'cos
       have x'carr: "x' \<in> carrier G"
       by (rule elemrcos_carrier[OF is_group])
@@ -200,11 +208,12 @@ qed
 
 text {* Step two for lemma @{text "rcos_module"} *}
 lemma (in subgroup) rcos_module_rev:
-  includes group
+  assumes "group G"
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
       and xixH: "(x' \<otimes> inv x) \<in> H"
   shows "x' \<in> H #> x"
 proof -
+  interpret group [G] by fact
   from xixH
       have "\<exists>h\<in>H. x' \<otimes> (inv x) = h" by fast
   from this
@@ -231,27 +240,30 @@ qed
 
 text {* Module property of right cosets *}
 lemma (in subgroup) rcos_module:
-  includes group
+  assumes "group G"
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
   shows "(x' \<in> H #> x) = (x' \<otimes> inv x \<in> H)"
-proof
-  assume "x' \<in> H #> x"
-  from this and carr
-      show "x' \<otimes> inv x \<in> H"
+proof -
+  interpret group [G] by fact
+  show ?thesis proof  assume "x' \<in> H #> x"
+    from this and carr
+    show "x' \<otimes> inv x \<in> H"
       by (intro rcos_module_imp[OF is_group])
-next
-  assume "x' \<otimes> inv x \<in> H"
-  from this and carr
-      show "x' \<in> H #> x"
+  next
+    assume "x' \<otimes> inv x \<in> H"
+    from this and carr
+    show "x' \<in> H #> x"
       by (intro rcos_module_rev[OF is_group])
+  qed
 qed
 
 text {* Right cosets are subsets of the carrier. *} 
 lemma (in subgroup) rcosets_carrier:
-  includes group
+  assumes "group G"
   assumes XH: "X \<in> rcosets H"
   shows "X \<subseteq> carrier G"
 proof -
+  interpret group [G] by fact
   from XH have "\<exists>x\<in> carrier G. X = H #> x"
       unfolding RCOSETS_def
       by fast
@@ -331,11 +343,12 @@ next
 qed
 
 lemma (in subgroup) lcos_module_rev:
-  includes group
+  assumes "group G"
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
       and xixH: "(inv x \<otimes> x') \<in> H"
   shows "x' \<in> x <# H"
 proof -
+  interpret group [G] by fact
   from xixH
       have "\<exists>h\<in>H. (inv x) \<otimes> x' = h" by fast
   from this
@@ -584,29 +597,33 @@ constdefs (structure G)
 
 
 lemma (in subgroup) equiv_rcong:
-   includes group G
+   assumes "group G"
    shows "equiv (carrier G) (rcong H)"
-proof (intro equiv.intro)
-  show "refl (carrier G) (rcong H)"
-    by (auto simp add: r_congruent_def refl_def) 
-next
-  show "sym (rcong H)"
-  proof (simp add: r_congruent_def sym_def, clarify)
-    fix x y
-    assume [simp]: "x \<in> carrier G" "y \<in> carrier G" 
-       and "inv x \<otimes> y \<in> H"
-    hence "inv (inv x \<otimes> y) \<in> H" by (simp add: m_inv_closed) 
-    thus "inv y \<otimes> x \<in> H" by (simp add: inv_mult_group)
-  qed
-next
-  show "trans (rcong H)"
-  proof (simp add: r_congruent_def trans_def, clarify)
-    fix x y z
-    assume [simp]: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G"
-       and "inv x \<otimes> y \<in> H" and "inv y \<otimes> z \<in> H"
-    hence "(inv x \<otimes> y) \<otimes> (inv y \<otimes> z) \<in> H" by simp
-    hence "inv x \<otimes> (y \<otimes> inv y) \<otimes> z \<in> H" by (simp add: m_assoc del: r_inv) 
-    thus "inv x \<otimes> z \<in> H" by simp
+proof -
+  interpret group [G] by fact
+  show ?thesis
+  proof (intro equiv.intro)
+    show "refl (carrier G) (rcong H)"
+      by (auto simp add: r_congruent_def refl_def) 
+  next
+    show "sym (rcong H)"
+    proof (simp add: r_congruent_def sym_def, clarify)
+      fix x y
+      assume [simp]: "x \<in> carrier G" "y \<in> carrier G" 
+	 and "inv x \<otimes> y \<in> H"
+      hence "inv (inv x \<otimes> y) \<in> H" by (simp add: m_inv_closed) 
+      thus "inv y \<otimes> x \<in> H" by (simp add: inv_mult_group)
+    qed
+  next
+    show "trans (rcong H)"
+    proof (simp add: r_congruent_def trans_def, clarify)
+      fix x y z
+      assume [simp]: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G"
+	 and "inv x \<otimes> y \<in> H" and "inv y \<otimes> z \<in> H"
+      hence "(inv x \<otimes> y) \<otimes> (inv y \<otimes> z) \<in> H" by simp
+      hence "inv x \<otimes> (y \<otimes> inv y) \<otimes> z \<in> H" by (simp add: m_assoc del: r_inv) 
+      thus "inv x \<otimes> z \<in> H" by simp
+    qed
   qed
 qed
 
@@ -625,31 +642,38 @@ text{*Equivalence classes of @{text rcong} correspond to left cosets.
 *)
 
 lemma (in subgroup) l_coset_eq_rcong:
-  includes group G
+  assumes "group G"
   assumes a: "a \<in> carrier G"
   shows "a <# H = rcong H `` {a}"
-by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a ) 
-
+proof -
+  interpret group [G] by fact
+  show ?thesis by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a ) 
+qed
 
 subsubsection{*Two Distinct Right Cosets are Disjoint*}
 
 lemma (in group) rcos_equation:
-  includes subgroup H G
-  shows
-     "\<lbrakk>ha \<otimes> a = h \<otimes> b; a \<in> carrier G;  b \<in> carrier G;  
-        h \<in> H;  ha \<in> H;  hb \<in> H\<rbrakk>
-      \<Longrightarrow> hb \<otimes> a \<in> (\<Union>h\<in>H. {h \<otimes> b})"
-apply (rule UN_I [of "hb \<otimes> ((inv ha) \<otimes> h)"])
-apply (simp add: ) 
-apply (simp add: m_assoc transpose_inv)
-done
+  assumes "subgroup H G"
+  assumes p: "ha \<otimes> a = h \<otimes> b" "a \<in> carrier G" "b \<in> carrier G" "h \<in> H" "ha \<in> H" "hb \<in> H"
+  shows "hb \<otimes> a \<in> (\<Union>h\<in>H. {h \<otimes> b})"
+proof -
+  interpret subgroup [H G] by fact
+  from p show ?thesis apply (rule_tac UN_I [of "hb \<otimes> ((inv ha) \<otimes> h)"])
+    apply (simp add: )
+    apply (simp add: m_assoc transpose_inv)
+    done
+qed
 
 lemma (in group) rcos_disjoint:
-  includes subgroup H G
-  shows "\<lbrakk>a \<in> rcosets H; b \<in> rcosets H; a\<noteq>b\<rbrakk> \<Longrightarrow> a \<inter> b = {}"
-apply (simp add: RCOSETS_def r_coset_def)
-apply (blast intro: rcos_equation prems sym)
-done
+  assumes "subgroup H G"
+  assumes p: "a \<in> rcosets H" "b \<in> rcosets H" "a\<noteq>b"
+  shows "a \<inter> b = {}"
+proof -
+  interpret subgroup [H G] by fact
+  from p show ?thesis apply (simp add: RCOSETS_def r_coset_def)
+    apply (blast intro: rcos_equation prems sym)
+    done
+qed
 
 subsection {* Further lemmas for @{text "r_congruent"} *}
 
@@ -732,12 +756,16 @@ constdefs
   "order S \<equiv> card (carrier S)"
 
 lemma (in group) rcosets_part_G:
-  includes subgroup
+  assumes "subgroup H G"
   shows "\<Union>(rcosets H) = carrier G"
-apply (rule equalityI)
- apply (force simp add: RCOSETS_def r_coset_def)
-apply (auto simp add: RCOSETS_def intro: rcos_self prems)
-done
+proof -
+  interpret subgroup [H G] by fact
+  show ?thesis
+    apply (rule equalityI)
+    apply (force simp add: RCOSETS_def r_coset_def)
+    apply (auto simp add: RCOSETS_def intro: rcos_self prems)
+    done
+qed
 
 lemma (in group) cosets_finite:
      "\<lbrakk>c \<in> rcosets H;  H \<subseteq> carrier G;  finite (carrier G)\<rbrakk> \<Longrightarrow> finite c"
@@ -815,9 +843,10 @@ lemma (in normal) rcosets_assoc:
 by (auto simp add: RCOSETS_def rcos_sum m_assoc)
 
 lemma (in subgroup) subgroup_in_rcosets:
-  includes group G
+  assumes "group G"
   shows "H \<in> rcosets H"
 proof -
+  interpret group [G] by fact
   from _ subgroup_axioms have "H #> \<one> = H"
     by (rule coset_join2) auto
   then show ?thesis

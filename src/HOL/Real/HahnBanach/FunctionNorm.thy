@@ -26,7 +26,8 @@ locale continuous = var V + norm_syntax + linearform +
 declare continuous.intro [intro?] continuous_axioms.intro [intro?]
 
 lemma continuousI [intro]:
-  includes norm_syntax + linearform
+  fixes norm :: "_ \<Rightarrow> real"  ("\<parallel>_\<parallel>")
+  assumes "linearform V f"
   assumes r: "\<And>x. x \<in> V \<Longrightarrow> \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>"
   shows "continuous V norm f"
 proof
@@ -74,6 +75,8 @@ locale fn_norm = norm_syntax +
   fixes fn_norm ("\<parallel>_\<parallel>\<hyphen>_" [0, 1000] 999)
   defines "\<parallel>f\<parallel>\<hyphen>V \<equiv> \<Squnion>(B V f)"
 
+locale normed_vectorspace_with_fn_norm = normed_vectorspace + fn_norm
+
 lemma (in fn_norm) B_not_empty [intro]: "0 \<in> B V f"
   by (simp add: B_def)
 
@@ -82,20 +85,11 @@ text {*
   normed space @{text "(V, \<parallel>\<cdot>\<parallel>)"} has a function norm.
 *}
 
-(* Alternative statement of the lemma as
-     lemma (in fn_norm)
-       includes normed_vectorspace + continuous
-       shows "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-   is not possible:
-   fn_norm contrains parameter norm to type "'a::zero => real",
-   normed_vectorspace and continuous contrain this parameter to
-   "'a::{minus, plus, zero} => real, which is less general.
-*)
-
-lemma (in normed_vectorspace) fn_norm_works:
-  includes fn_norm + continuous
+lemma (in normed_vectorspace_with_fn_norm) fn_norm_works:
+  assumes "continuous V norm f"
   shows "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
 proof -
+  interpret continuous [V norm f] by fact
   txt {* The existence of the supremum is shown using the
     completeness of the reals. Completeness means, that every
     non-empty bounded set of reals has a supremum. *}
@@ -158,39 +152,40 @@ proof -
   then show ?thesis by (unfold fn_norm_def) (rule the_lubI_ex)
 qed
 
-lemma (in normed_vectorspace) fn_norm_ub [iff?]:
-  includes fn_norm + continuous
+lemma (in normed_vectorspace_with_fn_norm) fn_norm_ub [iff?]:
+  assumes "continuous V norm f"
   assumes b: "b \<in> B V f"
   shows "b \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
+  interpret continuous [V norm f] by fact
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    unfolding B_def fn_norm_def
     using `continuous V norm f` by (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
-lemma (in normed_vectorspace) fn_norm_leastB:
-  includes fn_norm + continuous
+lemma (in normed_vectorspace_with_fn_norm) fn_norm_leastB:
+  assumes "continuous V norm f"
   assumes b: "\<And>b. b \<in> B V f \<Longrightarrow> b \<le> y"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> y"
 proof -
+  interpret continuous [V norm f] by fact
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    unfolding B_def fn_norm_def
     using `continuous V norm f` by (rule fn_norm_works)
   from this and b show ?thesis ..
 qed
 
 text {* The norm of a continuous function is always @{text "\<ge> 0"}. *}
 
-lemma (in normed_vectorspace) fn_norm_ge_zero [iff]:
-  includes fn_norm + continuous
+lemma (in normed_vectorspace_with_fn_norm) fn_norm_ge_zero [iff]:
+  assumes "continuous V norm f"
   shows "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
+  interpret continuous [V norm f] by fact
   txt {* The function norm is defined as the supremum of @{text B}.
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
     0"}, provided the supremum exists and @{text B} is not empty. *}
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    unfolding B_def fn_norm_def
+(*    unfolding B_def fn_norm_def *)
     using `continuous V norm f` by (rule fn_norm_works)
   moreover have "0 \<in> B V f" ..
   ultimately show ?thesis ..
@@ -203,34 +198,37 @@ text {*
   \end{center}
 *}
 
-lemma (in normed_vectorspace) fn_norm_le_cong:
-  includes fn_norm + continuous + linearform
+lemma (in normed_vectorspace_with_fn_norm) fn_norm_le_cong:
+  assumes "continuous V norm f" "linearform V f"
   assumes x: "x \<in> V"
   shows "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
-proof cases
-  assume "x = 0"
-  then have "\<bar>f x\<bar> = \<bar>f 0\<bar>" by simp
-  also have "f 0 = 0" by rule unfold_locales
-  also have "\<bar>\<dots>\<bar> = 0" by simp
-  also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
-    unfolding B_def fn_norm_def
-    using `continuous V norm f` by (rule fn_norm_ge_zero)
-  from x have "0 \<le> norm x" ..
-  with a have "0 \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" by (simp add: zero_le_mult_iff)
-  finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
-next
-  assume "x \<noteq> 0"
-  with x have neq: "\<parallel>x\<parallel> \<noteq> 0" by simp
-  then have "\<bar>f x\<bar> = (\<bar>f x\<bar> * inverse \<parallel>x\<parallel>) * \<parallel>x\<parallel>" by simp
-  also have "\<dots> \<le>  \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
-  proof (rule mult_right_mono)
-    from x show "0 \<le> \<parallel>x\<parallel>" ..
-    from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
-      by (auto simp add: B_def real_divide_def)
-    with `continuous V norm f` show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
-      unfolding B_def fn_norm_def by (rule fn_norm_ub)
+proof -
+  interpret continuous [V norm f] by fact
+  interpret linearform [V f] .
+  show ?thesis proof cases
+    assume "x = 0"
+    then have "\<bar>f x\<bar> = \<bar>f 0\<bar>" by simp
+    also have "f 0 = 0" by rule unfold_locales
+    also have "\<bar>\<dots>\<bar> = 0" by simp
+    also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
+      using `continuous V norm f` by (rule fn_norm_ge_zero)
+    from x have "0 \<le> norm x" ..
+    with a have "0 \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" by (simp add: zero_le_mult_iff)
+    finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
+  next
+    assume "x \<noteq> 0"
+    with x have neq: "\<parallel>x\<parallel> \<noteq> 0" by simp
+    then have "\<bar>f x\<bar> = (\<bar>f x\<bar> * inverse \<parallel>x\<parallel>) * \<parallel>x\<parallel>" by simp
+    also have "\<dots> \<le>  \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
+    proof (rule mult_right_mono)
+      from x show "0 \<le> \<parallel>x\<parallel>" ..
+      from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
+	by (auto simp add: B_def real_divide_def)
+      with `continuous V norm f` show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
+	by (rule fn_norm_ub)
+    qed
+    finally show ?thesis .
   qed
-  finally show ?thesis .
 qed
 
 text {*
@@ -241,35 +239,38 @@ text {*
   \end{center}
 *}
 
-lemma (in normed_vectorspace) fn_norm_least [intro?]:
-  includes fn_norm + continuous
+lemma (in normed_vectorspace_with_fn_norm) fn_norm_least [intro?]:
+  assumes "continuous V norm f"
   assumes ineq: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" and ge: "0 \<le> c"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> c"
-proof (rule fn_norm_leastB [folded B_def fn_norm_def])
-  fix b assume b: "b \<in> B V f"
-  show "b \<le> c"
-  proof cases
-    assume "b = 0"
-    with ge show ?thesis by simp
-  next
-    assume "b \<noteq> 0"
-    with b obtain x where b_rep: "b = \<bar>f x\<bar> * inverse \<parallel>x\<parallel>"
+proof -
+  interpret continuous [V norm f] by fact
+  show ?thesis proof (rule fn_norm_leastB [folded B_def fn_norm_def])
+    fix b assume b: "b \<in> B V f"
+    show "b \<le> c"
+    proof cases
+      assume "b = 0"
+      with ge show ?thesis by simp
+    next
+      assume "b \<noteq> 0"
+      with b obtain x where b_rep: "b = \<bar>f x\<bar> * inverse \<parallel>x\<parallel>"
         and x_neq: "x \<noteq> 0" and x: "x \<in> V"
-      by (auto simp add: B_def real_divide_def)
-    note b_rep
-    also have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> (c * \<parallel>x\<parallel>) * inverse \<parallel>x\<parallel>"
-    proof (rule mult_right_mono)
-      have "0 < \<parallel>x\<parallel>" using x x_neq ..
-      then show "0 \<le> inverse \<parallel>x\<parallel>" by simp
-      from ineq and x show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
+	by (auto simp add: B_def real_divide_def)
+      note b_rep
+      also have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> (c * \<parallel>x\<parallel>) * inverse \<parallel>x\<parallel>"
+      proof (rule mult_right_mono)
+	have "0 < \<parallel>x\<parallel>" using x x_neq ..
+	then show "0 \<le> inverse \<parallel>x\<parallel>" by simp
+	from ineq and x show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
+      qed
+      also have "\<dots> = c"
+      proof -
+	from x_neq and x have "\<parallel>x\<parallel> \<noteq> 0" by simp
+	then show ?thesis by simp
+      qed
+      finally show ?thesis .
     qed
-    also have "\<dots> = c"
-    proof -
-      from x_neq and x have "\<parallel>x\<parallel> \<noteq> 0" by simp
-      then show ?thesis by simp
-    qed
-    finally show ?thesis .
-  qed
-qed (insert `continuous V norm f`, simp_all add: continuous_def)
+  qed (insert `continuous V norm f`, simp_all add: continuous_def)
+qed
 
 end

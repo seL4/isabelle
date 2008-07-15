@@ -378,7 +378,10 @@ done
 
 
 lemma Listn_sl_aux:
-includes semilat shows "semilat (Listn.sl n (A,r,f))"
+assumes "semilat (A, r, f)" shows "semilat (Listn.sl n (A,r,f))"
+proof -
+  interpret semilat [A r f] by fact
+show ?thesis
 apply (unfold Listn.sl_def)
 apply (simp (no_asm) only: semilat_Def split_conv)
 apply (rule conjI)
@@ -388,6 +391,7 @@ apply (rule conjI)
 apply (simp (no_asm) only: list_def)
 apply (simp (no_asm_simp) add: plus_list_ub1 plus_list_ub2 plus_list_lub)
 done
+qed
 
 lemma Listn_sl: "\<And>L. semilat L \<Longrightarrow> semilat (Listn.sl n L)"
  by(simp add: Listn_sl_aux split_tupled_all)

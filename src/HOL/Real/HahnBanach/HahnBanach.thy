@@ -53,17 +53,21 @@ text {*
 *}
 
 theorem HahnBanach:
-  includes vectorspace E + subspace F E + seminorm E p + linearform F f
+  assumes E: "vectorspace E" and "subspace F E"
+    and "seminorm E p" and "linearform F f"
   assumes fp: "\<forall>x \<in> F. f x \<le> p x"
   shows "\<exists>h. linearform E h \<and> (\<forall>x \<in> F. h x = f x) \<and> (\<forall>x \<in> E. h x \<le> p x)"
     -- {* Let @{text E} be a vector space, @{text F} a subspace of @{text E}, @{text p} a seminorm on @{text E}, *}
     -- {* and @{text f} a linear form on @{text F} such that @{text f} is bounded by @{text p}, *}
     -- {* then @{text f} can be extended to a linear form @{text h} on @{text E} in a norm-preserving way. \skp *}
 proof -
+  interpret vectorspace [E] by fact
+  interpret subspace [F E] by fact
+  interpret seminorm [E p] by fact
+  interpret linearform [F f] by fact
   def M \<equiv> "norm_pres_extensions E p F f"
   hence M: "M = \<dots>" by (simp only:)
-  note E = `vectorspace E`
-  then have F: "vectorspace F" ..
+  from E have F: "vectorspace F" ..
   note FE = `F \<unlhd> E`
   {
     fix c assume cM: "c \<in> chain M" and ex: "\<exists>x. x \<in> c"
@@ -306,17 +310,22 @@ text {*
 *}
 
 theorem abs_HahnBanach:
-  includes vectorspace E + subspace F E + linearform F f + seminorm E p
+  assumes E: "vectorspace E" and FE: "subspace F E"
+    and lf: "linearform F f" and sn: "seminorm E p"
   assumes fp: "\<forall>x \<in> F. \<bar>f x\<bar> \<le> p x"
   shows "\<exists>g. linearform E g
     \<and> (\<forall>x \<in> F. g x = f x)
     \<and> (\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x)"
 proof -
-  note E = `vectorspace E`
+  interpret vectorspace [E] by fact
+  interpret subspace [F E] by fact
+  interpret linearform [F f] by fact
+  interpret seminorm [E p] by fact
+(*  note E = `vectorspace E`
   note FE = `subspace F E`
   note sn = `seminorm E p`
   note lf = `linearform F f`
-  have "\<exists>g. linearform E g \<and> (\<forall>x \<in> F. g x = f x) \<and> (\<forall>x \<in> E. g x \<le> p x)"
+*)  have "\<exists>g. linearform E g \<and> (\<forall>x \<in> F. g x = f x) \<and> (\<forall>x \<in> E. g x \<le> p x)"
   using E FE sn lf
   proof (rule HahnBanach)
     show "\<forall>x \<in> F. f x \<le> p x"
@@ -342,22 +351,31 @@ text {*
 *}
 
 theorem norm_HahnBanach:
-  includes normed_vectorspace E + subspace F E + linearform F f + fn_norm + continuous F norm ("\<parallel>_\<parallel>") f
+  fixes V and norm ("\<parallel>_\<parallel>")
+  fixes B defines "\<And>V f. B V f \<equiv> {0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel> | x. x \<noteq> 0 \<and> x \<in> V}"
+  fixes fn_norm ("\<parallel>_\<parallel>\<hyphen>_" [0, 1000] 999)
+  defines "\<And>V f. \<parallel>f\<parallel>\<hyphen>V \<equiv> \<Squnion>(B V f)"
+  assumes E_norm: "normed_vectorspace E norm" and FE: "subspace F E"
+    and linearform: "linearform F f" and "continuous F norm f"
   shows "\<exists>g. linearform E g
      \<and> continuous E norm g
      \<and> (\<forall>x \<in> F. g x = f x)
      \<and> \<parallel>g\<parallel>\<hyphen>E = \<parallel>f\<parallel>\<hyphen>F"
 proof -
+  interpret normed_vectorspace [E norm] by fact
+  interpret normed_vectorspace_with_fn_norm [E norm B fn_norm]
+    by (auto simp: B_def fn_norm_def) intro_locales
+  interpret subspace [F E] by fact
+  interpret linearform [F f] by fact
+  interpret continuous [F norm f] by fact
   have E: "vectorspace E" by unfold_locales
-  have E_norm: "normed_vectorspace E norm" by rule unfold_locales
-  note FE = `F \<unlhd> E`
   have F: "vectorspace F" by rule unfold_locales
-  note linearform = `linearform F f`
   have F_norm: "normed_vectorspace F norm"
     using FE E_norm by (rule subspace_normed_vs)
   have ge_zero: "0 \<le> \<parallel>f\<parallel>\<hyphen>F"
-    by (rule normed_vectorspace.fn_norm_ge_zero
-      [OF F_norm `continuous F norm f`, folded B_def fn_norm_def])
+    by (rule normed_vectorspace_with_fn_norm.fn_norm_ge_zero
+      [OF normed_vectorspace_with_fn_norm.intro,
+       OF F_norm `continuous F norm f` , folded B_def fn_norm_def])
   txt {* We define a function @{text p} on @{text E} as follows:
     @{text "p x = \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"} *}
   def p \<equiv> "\<lambda>x. \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
@@ -406,8 +424,9 @@ proof -
     fix x assume "x \<in> F"
     from this and `continuous F norm f`
     show "\<bar>f x\<bar> \<le> p x"
-      by (unfold p_def) (rule normed_vectorspace.fn_norm_le_cong
-        [OF F_norm, folded B_def fn_norm_def])
+      by (unfold p_def) (rule normed_vectorspace_with_fn_norm.fn_norm_le_cong
+        [OF normed_vectorspace_with_fn_norm.intro,
+         OF F_norm, folded B_def fn_norm_def])
   qed
 
   txt {* Using the fact that @{text p} is a seminorm and @{text f} is bounded
@@ -463,7 +482,9 @@ proof -
     txt {* The other direction is achieved by a similar argument. *}
 
     show "\<parallel>f\<parallel>\<hyphen>F \<le> \<parallel>g\<parallel>\<hyphen>E"
-    proof (rule normed_vectorspace.fn_norm_least [OF F_norm, folded B_def fn_norm_def])
+    proof (rule normed_vectorspace_with_fn_norm.fn_norm_least
+	[OF normed_vectorspace_with_fn_norm.intro,
+	 OF F_norm, folded B_def fn_norm_def])
       show "\<forall>x \<in> F. \<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
       proof
 	fix x assume x: "x \<in> F"

@@ -313,36 +313,44 @@ lemma (in semilat) merges_bounded_lemma:
   apply (blast intro: order_trans)
   done
 
-lemma termination_lemma: includes semilat
-shows "\<lbrakk> ss \<in> list n A; \<forall>(q,t)\<in>set qs. q<n \<and> t\<in>A; p\<in>w \<rbrakk> \<Longrightarrow> 
-      ss <[r] merges f qs ss \<or> 
-  merges f qs ss = ss \<and> {q. \<exists>t. (q,t)\<in>set qs \<and> t +_f ss!q \<noteq> ss!q} Un (w-{p}) < w"
-apply(insert semilat)
-  apply (unfold lesssub_def)
-  apply (simp (no_asm_simp) add: merges_incr)
-  apply (rule impI)
-  apply (rule merges_same_conv [THEN iffD1, elim_format]) 
-  apply assumption+
+lemma termination_lemma:
+  assumes semilat: "semilat (A, r, f)"
+  shows "\<lbrakk> ss \<in> list n A; \<forall>(q,t)\<in>set qs. q<n \<and> t\<in>A; p\<in>w \<rbrakk> \<Longrightarrow> 
+  ss <[r] merges f qs ss \<or> 
+  merges f qs ss = ss \<and> {q. \<exists>t. (q,t)\<in>set qs \<and> t +_f ss!q \<noteq> ss!q} Un (w-{p}) < w" (is "PROP ?P")
+proof -
+  interpret semilat [A r f] by fact
+  show "PROP ?P" apply(insert semilat)
+    apply (unfold lesssub_def)
+    apply (simp (no_asm_simp) add: merges_incr)
+    apply (rule impI)
+    apply (rule merges_same_conv [THEN iffD1, elim_format]) 
+    apply assumption+
     defer
     apply (rule sym, assumption)
-   defer apply simp
-   apply (subgoal_tac "\<forall>q t. \<not>((q, t) \<in> set qs \<and> t +_f ss ! q \<noteq> ss ! q)")
-   apply (blast intro!: psubsetI elim: equalityE)
-   apply clarsimp
-   apply (drule bspec, assumption) 
-   apply (drule bspec, assumption)
-   apply clarsimp
-  done 
+    defer apply simp
+    apply (subgoal_tac "\<forall>q t. \<not>((q, t) \<in> set qs \<and> t +_f ss ! q \<noteq> ss ! q)")
+    apply (blast intro!: psubsetI elim: equalityE)
+    apply clarsimp
+    apply (drule bspec, assumption) 
+    apply (drule bspec, assumption)
+    apply clarsimp
+    done
+qed
 
-lemma iter_properties[rule_format]: includes semilat
-shows "\<lbrakk> acc r ; pres_type step n A; mono r step n A;
+lemma iter_properties[rule_format]:
+  assumes semilat: "semilat (A, r, f)"
+  shows "\<lbrakk> acc r ; pres_type step n A; mono r step n A;
      bounded step n; \<forall>p\<in>w0. p < n; ss0 \<in> list n A;
      \<forall>p<n. p \<notin> w0 \<longrightarrow> stable r step ss0 p \<rbrakk> \<Longrightarrow>
    iter f step ss0 w0 = (ss',w')
    \<longrightarrow>
    ss' \<in> list n A \<and> stables r step ss' \<and> ss0 <=[r] ss' \<and>
    (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step ts \<longrightarrow> ss' <=[r] ts)"
-apply(insert semilat)
+  (is "PROP ?P")
+proof -
+  interpret semilat [A r f] by fact
+  show "PROP ?P" apply(insert semilat)
 apply (unfold iter_def stables_def)
 apply (rule_tac P = "%(ss,w).
  ss \<in> list n A \<and> (\<forall>p<n. p \<notin> w \<longrightarrow> stable r step ss p) \<and> ss0 <=[r] ss \<and>
@@ -434,8 +442,10 @@ apply assumption
 apply clarsimp
 done
 
+qed
 
-lemma kildall_properties: includes semilat
+lemma kildall_properties:
+assumes semilat: "semilat (A, r, f)"
 shows "\<lbrakk> acc r; pres_type step n A; mono r step n A;
      bounded step n; ss0 \<in> list n A \<rbrakk> \<Longrightarrow>
   kildall r f step ss0 \<in> list n A \<and>
@@ -443,6 +453,10 @@ shows "\<lbrakk> acc r; pres_type step n A; mono r step n A;
   ss0 <=[r] kildall r f step ss0 \<and>
   (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step ts \<longrightarrow>
                  kildall r f step ss0 <=[r] ts)"
+  (is "PROP ?P")
+proof -
+  interpret semilat [A r f] by fact
+  show "PROP ?P"
 apply (unfold kildall_def)
 apply(case_tac "iter f step ss0 (unstables r step ss0)")
 apply(simp)
@@ -450,11 +464,16 @@ apply (rule iter_properties)
 apply (simp_all add: unstables_def stable_def)
 apply (rule semilat)
 done
+qed
 
-
-lemma is_bcv_kildall: includes semilat
+lemma is_bcv_kildall:
+assumes semilat: "semilat (A, r, f)"
 shows "\<lbrakk> acc r; top r T; pres_type step n A; bounded step n; mono r step n A \<rbrakk>
   \<Longrightarrow> is_bcv r T step n A (kildall r f step)"
+  (is "PROP ?P")
+proof -
+  interpret semilat [A r f] by fact
+  show "PROP ?P"
 apply(unfold is_bcv_def wt_step_def)
 apply(insert semilat kildall_properties[of A])
 apply(simp add:stables_def)
@@ -472,5 +491,6 @@ apply(subgoal_tac "kildall r f step ss!p <=_r ts!p")
  apply simp
 apply (blast intro!: le_listD less_lengthI)
 done
+qed
 
 end

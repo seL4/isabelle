@@ -753,11 +753,14 @@ text{*
 *}
 
 lemma fold_fusion:
-  includes ab_semigroup_mult g
+  assumes "ab_semigroup_mult g"
   assumes fin: "finite A"
     and hyp: "\<And>x y. h (g x y) = times x (h y)"
   shows "h (fold g j w A) = fold times j (h w) A"
-  using fin hyp by (induct set: finite) simp_all
+proof -
+  interpret ab_semigroup_mult [g] by fact
+  show ?thesis using fin hyp by (induct set: finite) simp_all
+qed
 
 lemma fold_cong:
   "finite A \<Longrightarrow> (!!x. x:A ==> g x = h x) ==> fold times g z A = fold times h z A"

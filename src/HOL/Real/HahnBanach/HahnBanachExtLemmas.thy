@@ -40,10 +40,11 @@ text {*
 *}
 
 lemma ex_xi:
-  includes vectorspace F
+  assumes "vectorspace F"
   assumes r: "\<And>u v. u \<in> F \<Longrightarrow> v \<in> F \<Longrightarrow> a u \<le> b v"
   shows "\<exists>xi::real. \<forall>y \<in> F. a y \<le> xi \<and> xi \<le> b y"
 proof -
+  interpret vectorspace [F] by fact
   txt {* From the completeness of the reals follows:
     The set @{text "S = {a u. u \<in> F}"} has a supremum, if it is
     non-empty and has an upper bound. *}
@@ -86,183 +87,190 @@ text {*
 *}
 
 lemma h'_lf:
-  includes var H + var h + var E
   assumes h'_def: "h' \<equiv> \<lambda>x. let (y, a) =
       SOME (y, a). x = y + a \<cdot> x0 \<and> y \<in> H in h y + a * xi"
     and H'_def: "H' \<equiv> H + lin x0"
     and HE: "H \<unlhd> E"
-  includes linearform H h
+  assumes "linearform H h"
   assumes x0: "x0 \<notin> H"  "x0 \<in> E"  "x0 \<noteq> 0"
-  includes vectorspace E
+  assumes E: "vectorspace E"
   shows "linearform H' h'"
-proof
-  note E = `vectorspace E`
-  have H': "vectorspace H'"
-  proof (unfold H'_def)
-    from `x0 \<in> E`
-    have "lin x0 \<unlhd> E" ..
-    with HE show "vectorspace (H + lin x0)" using E ..
-  qed
-  {
-    fix x1 x2 assume x1: "x1 \<in> H'" and x2: "x2 \<in> H'"
-    show "h' (x1 + x2) = h' x1 + h' x2"
-    proof -
-      from H' x1 x2 have "x1 + x2 \<in> H'"
-        by (rule vectorspace.add_closed)
-      with x1 x2 obtain y y1 y2 a a1 a2 where
-            x1x2: "x1 + x2 = y + a \<cdot> x0" and y: "y \<in> H"
+proof -
+  interpret linearform [H h] by fact
+  interpret vectorspace [E] by fact
+  show ?thesis proof
+    note E = `vectorspace E`
+    have H': "vectorspace H'"
+    proof (unfold H'_def)
+      from `x0 \<in> E`
+      have "lin x0 \<unlhd> E" ..
+      with HE show "vectorspace (H + lin x0)" using E ..
+    qed
+    {
+      fix x1 x2 assume x1: "x1 \<in> H'" and x2: "x2 \<in> H'"
+      show "h' (x1 + x2) = h' x1 + h' x2"
+      proof -
+	from H' x1 x2 have "x1 + x2 \<in> H'"
+          by (rule vectorspace.add_closed)
+	with x1 x2 obtain y y1 y2 a a1 a2 where
+          x1x2: "x1 + x2 = y + a \<cdot> x0" and y: "y \<in> H"
           and x1_rep: "x1 = y1 + a1 \<cdot> x0" and y1: "y1 \<in> H"
           and x2_rep: "x2 = y2 + a2 \<cdot> x0" and y2: "y2 \<in> H"
-        by (unfold H'_def sum_def lin_def) blast
-
-      have ya: "y1 + y2 = y \<and> a1 + a2 = a" using E HE _ y x0
-      proof (rule decomp_H') txt_raw {* \label{decomp-H-use} *}
-        from HE y1 y2 show "y1 + y2 \<in> H"
-          by (rule subspace.add_closed)
-        from x0 and HE y y1 y2
-        have "x0 \<in> E"  "y \<in> E"  "y1 \<in> E"  "y2 \<in> E" by auto
-        with x1_rep x2_rep have "(y1 + y2) + (a1 + a2) \<cdot> x0 = x1 + x2"
-          by (simp add: add_ac add_mult_distrib2)
-        also note x1x2
-        finally show "(y1 + y2) + (a1 + a2) \<cdot> x0 = y + a \<cdot> x0" .
+          by (unfold H'_def sum_def lin_def) blast
+	
+	have ya: "y1 + y2 = y \<and> a1 + a2 = a" using E HE _ y x0
+	proof (rule decomp_H') txt_raw {* \label{decomp-H-use} *}
+          from HE y1 y2 show "y1 + y2 \<in> H"
+            by (rule subspace.add_closed)
+          from x0 and HE y y1 y2
+          have "x0 \<in> E"  "y \<in> E"  "y1 \<in> E"  "y2 \<in> E" by auto
+          with x1_rep x2_rep have "(y1 + y2) + (a1 + a2) \<cdot> x0 = x1 + x2"
+            by (simp add: add_ac add_mult_distrib2)
+          also note x1x2
+          finally show "(y1 + y2) + (a1 + a2) \<cdot> x0 = y + a \<cdot> x0" .
+	qed
+	
+	from h'_def x1x2 E HE y x0
+	have "h' (x1 + x2) = h y + a * xi"
+          by (rule h'_definite)
+	also have "\<dots> = h (y1 + y2) + (a1 + a2) * xi"
+          by (simp only: ya)
+	also from y1 y2 have "h (y1 + y2) = h y1 + h y2"
+          by simp
+	also have "\<dots> + (a1 + a2) * xi = (h y1 + a1 * xi) + (h y2 + a2 * xi)"
+          by (simp add: left_distrib)
+	also from h'_def x1_rep E HE y1 x0
+	have "h y1 + a1 * xi = h' x1"
+          by (rule h'_definite [symmetric])
+	also from h'_def x2_rep E HE y2 x0
+	have "h y2 + a2 * xi = h' x2"
+          by (rule h'_definite [symmetric])
+	finally show ?thesis .
       qed
-
-      from h'_def x1x2 E HE y x0
-      have "h' (x1 + x2) = h y + a * xi"
-        by (rule h'_definite)
-      also have "\<dots> = h (y1 + y2) + (a1 + a2) * xi"
-        by (simp only: ya)
-      also from y1 y2 have "h (y1 + y2) = h y1 + h y2"
-        by simp
-      also have "\<dots> + (a1 + a2) * xi = (h y1 + a1 * xi) + (h y2 + a2 * xi)"
-        by (simp add: left_distrib)
-      also from h'_def x1_rep E HE y1 x0
-      have "h y1 + a1 * xi = h' x1"
-        by (rule h'_definite [symmetric])
-      also from h'_def x2_rep E HE y2 x0
-      have "h y2 + a2 * xi = h' x2"
-        by (rule h'_definite [symmetric])
-      finally show ?thesis .
-    qed
-  next
-    fix x1 c assume x1: "x1 \<in> H'"
-    show "h' (c \<cdot> x1) = c * (h' x1)"
-    proof -
-      from H' x1 have ax1: "c \<cdot> x1 \<in> H'"
-        by (rule vectorspace.mult_closed)
-      with x1 obtain y a y1 a1 where
-            cx1_rep: "c \<cdot> x1 = y + a \<cdot> x0" and y: "y \<in> H"
+    next
+      fix x1 c assume x1: "x1 \<in> H'"
+      show "h' (c \<cdot> x1) = c * (h' x1)"
+      proof -
+	from H' x1 have ax1: "c \<cdot> x1 \<in> H'"
+          by (rule vectorspace.mult_closed)
+	with x1 obtain y a y1 a1 where
+          cx1_rep: "c \<cdot> x1 = y + a \<cdot> x0" and y: "y \<in> H"
           and x1_rep: "x1 = y1 + a1 \<cdot> x0" and y1: "y1 \<in> H"
-        by (unfold H'_def sum_def lin_def) blast
-
-      have ya: "c \<cdot> y1 = y \<and> c * a1 = a" using E HE _ y x0
-      proof (rule decomp_H')
-        from HE y1 show "c \<cdot> y1 \<in> H"
-          by (rule subspace.mult_closed)
-        from x0 and HE y y1
-        have "x0 \<in> E"  "y \<in> E"  "y1 \<in> E" by auto
-        with x1_rep have "c \<cdot> y1 + (c * a1) \<cdot> x0 = c \<cdot> x1"
-          by (simp add: mult_assoc add_mult_distrib1)
-        also note cx1_rep
-        finally show "c \<cdot> y1 + (c * a1) \<cdot> x0 = y + a \<cdot> x0" .
+          by (unfold H'_def sum_def lin_def) blast
+	
+	have ya: "c \<cdot> y1 = y \<and> c * a1 = a" using E HE _ y x0
+	proof (rule decomp_H')
+          from HE y1 show "c \<cdot> y1 \<in> H"
+            by (rule subspace.mult_closed)
+          from x0 and HE y y1
+          have "x0 \<in> E"  "y \<in> E"  "y1 \<in> E" by auto
+          with x1_rep have "c \<cdot> y1 + (c * a1) \<cdot> x0 = c \<cdot> x1"
+            by (simp add: mult_assoc add_mult_distrib1)
+          also note cx1_rep
+          finally show "c \<cdot> y1 + (c * a1) \<cdot> x0 = y + a \<cdot> x0" .
+	qed
+	
+	from h'_def cx1_rep E HE y x0 have "h' (c \<cdot> x1) = h y + a * xi"
+          by (rule h'_definite)
+	also have "\<dots> = h (c \<cdot> y1) + (c * a1) * xi"
+          by (simp only: ya)
+	also from y1 have "h (c \<cdot> y1) = c * h y1"
+          by simp
+	also have "\<dots> + (c * a1) * xi = c * (h y1 + a1 * xi)"
+          by (simp only: right_distrib)
+	also from h'_def x1_rep E HE y1 x0 have "h y1 + a1 * xi = h' x1"
+          by (rule h'_definite [symmetric])
+	finally show ?thesis .
       qed
-
-      from h'_def cx1_rep E HE y x0 have "h' (c \<cdot> x1) = h y + a * xi"
-        by (rule h'_definite)
-      also have "\<dots> = h (c \<cdot> y1) + (c * a1) * xi"
-        by (simp only: ya)
-      also from y1 have "h (c \<cdot> y1) = c * h y1"
-        by simp
-      also have "\<dots> + (c * a1) * xi = c * (h y1 + a1 * xi)"
-        by (simp only: right_distrib)
-      also from h'_def x1_rep E HE y1 x0 have "h y1 + a1 * xi = h' x1"
-        by (rule h'_definite [symmetric])
-      finally show ?thesis .
-    qed
-  }
+    }
+  qed
 qed
 
 text {* \medskip The linear extension @{text h'} of @{text h}
   is bounded by the seminorm @{text p}. *}
 
 lemma h'_norm_pres:
-  includes var H + var h + var E
   assumes h'_def: "h' \<equiv> \<lambda>x. let (y, a) =
       SOME (y, a). x = y + a \<cdot> x0 \<and> y \<in> H in h y + a * xi"
     and H'_def: "H' \<equiv> H + lin x0"
     and x0: "x0 \<notin> H"  "x0 \<in> E"  "x0 \<noteq> 0"
-  includes vectorspace E + subspace H E + seminorm E p + linearform H h
+  assumes E: "vectorspace E" and HE: "subspace H E"
+    and "seminorm E p" and "linearform H h"
   assumes a: "\<forall>y \<in> H. h y \<le> p y"
     and a': "\<forall>y \<in> H. - p (y + x0) - h y \<le> xi \<and> xi \<le> p (y + x0) - h y"
   shows "\<forall>x \<in> H'. h' x \<le> p x"
-proof
-  note E = `vectorspace E`
-  note HE = `subspace H E`
-  fix x assume x': "x \<in> H'"
-  show "h' x \<le> p x"
-  proof -
-    from a' have a1: "\<forall>ya \<in> H. - p (ya + x0) - h ya \<le> xi"
-      and a2: "\<forall>ya \<in> H. xi \<le> p (ya + x0) - h ya" by auto
-    from x' obtain y a where
+proof -
+  interpret vectorspace [E] by fact
+  interpret subspace [H E] by fact
+  interpret seminorm [E p] by fact
+  interpret linearform [H h] by fact
+  show ?thesis proof
+    fix x assume x': "x \<in> H'"
+    show "h' x \<le> p x"
+    proof -
+      from a' have a1: "\<forall>ya \<in> H. - p (ya + x0) - h ya \<le> xi"
+	and a2: "\<forall>ya \<in> H. xi \<le> p (ya + x0) - h ya" by auto
+      from x' obtain y a where
         x_rep: "x = y + a \<cdot> x0" and y: "y \<in> H"
-      by (unfold H'_def sum_def lin_def) blast
-    from y have y': "y \<in> E" ..
-    from y have ay: "inverse a \<cdot> y \<in> H" by simp
-
-    from h'_def x_rep E HE y x0 have "h' x = h y + a * xi"
-      by (rule h'_definite)
-    also have "\<dots> \<le> p (y + a \<cdot> x0)"
-    proof (rule linorder_cases)
-      assume z: "a = 0"
-      then have "h y + a * xi = h y" by simp
-      also from a y have "\<dots> \<le> p y" ..
-      also from x0 y' z have "p y = p (y + a \<cdot> x0)" by simp
-      finally show ?thesis .
-    next
-      txt {* In the case @{text "a < 0"}, we use @{text "a\<^sub>1"}
-        with @{text ya} taken as @{text "y / a"}: *}
-      assume lz: "a < 0" hence nz: "a \<noteq> 0" by simp
-      from a1 ay
-      have "- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y) \<le> xi" ..
-      with lz have "a * xi \<le>
+	by (unfold H'_def sum_def lin_def) blast
+      from y have y': "y \<in> E" ..
+      from y have ay: "inverse a \<cdot> y \<in> H" by simp
+      
+      from h'_def x_rep E HE y x0 have "h' x = h y + a * xi"
+	by (rule h'_definite)
+      also have "\<dots> \<le> p (y + a \<cdot> x0)"
+      proof (rule linorder_cases)
+	assume z: "a = 0"
+	then have "h y + a * xi = h y" by simp
+	also from a y have "\<dots> \<le> p y" ..
+	also from x0 y' z have "p y = p (y + a \<cdot> x0)" by simp
+	finally show ?thesis .
+      next
+	txt {* In the case @{text "a < 0"}, we use @{text "a\<^sub>1"}
+          with @{text ya} taken as @{text "y / a"}: *}
+	assume lz: "a < 0" hence nz: "a \<noteq> 0" by simp
+	from a1 ay
+	have "- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y) \<le> xi" ..
+	with lz have "a * xi \<le>
           a * (- p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y))"
-        by (simp add: mult_left_mono_neg order_less_imp_le)
-
-      also have "\<dots> =
+          by (simp add: mult_left_mono_neg order_less_imp_le)
+	
+	also have "\<dots> =
           - a * (p (inverse a \<cdot> y + x0)) - a * (h (inverse a \<cdot> y))"
-	by (simp add: right_diff_distrib)
-      also from lz x0 y' have "- a * (p (inverse a \<cdot> y + x0)) =
+	  by (simp add: right_diff_distrib)
+	also from lz x0 y' have "- a * (p (inverse a \<cdot> y + x0)) =
           p (a \<cdot> (inverse a \<cdot> y + x0))"
-        by (simp add: abs_homogenous)
-      also from nz x0 y' have "\<dots> = p (y + a \<cdot> x0)"
-        by (simp add: add_mult_distrib1 mult_assoc [symmetric])
-      also from nz y have "a * (h (inverse a \<cdot> y)) =  h y"
-        by simp
-      finally have "a * xi \<le> p (y + a \<cdot> x0) - h y" .
-      then show ?thesis by simp
-    next
-      txt {* In the case @{text "a > 0"}, we use @{text "a\<^sub>2"}
-        with @{text ya} taken as @{text "y / a"}: *}
-      assume gz: "0 < a" hence nz: "a \<noteq> 0" by simp
-      from a2 ay
-      have "xi \<le> p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y)" ..
-      with gz have "a * xi \<le>
+          by (simp add: abs_homogenous)
+	also from nz x0 y' have "\<dots> = p (y + a \<cdot> x0)"
+          by (simp add: add_mult_distrib1 mult_assoc [symmetric])
+	also from nz y have "a * (h (inverse a \<cdot> y)) =  h y"
+          by simp
+	finally have "a * xi \<le> p (y + a \<cdot> x0) - h y" .
+	then show ?thesis by simp
+      next
+	txt {* In the case @{text "a > 0"}, we use @{text "a\<^sub>2"}
+          with @{text ya} taken as @{text "y / a"}: *}
+	assume gz: "0 < a" hence nz: "a \<noteq> 0" by simp
+	from a2 ay
+	have "xi \<le> p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y)" ..
+	with gz have "a * xi \<le>
           a * (p (inverse a \<cdot> y + x0) - h (inverse a \<cdot> y))"
-        by simp
-      also have "... = a * p (inverse a \<cdot> y + x0) - a * h (inverse a \<cdot> y)"
-	by (simp add: right_diff_distrib)
-      also from gz x0 y'
-      have "a * p (inverse a \<cdot> y + x0) = p (a \<cdot> (inverse a \<cdot> y + x0))"
-        by (simp add: abs_homogenous)
-      also from nz x0 y' have "\<dots> = p (y + a \<cdot> x0)"
-        by (simp add: add_mult_distrib1 mult_assoc [symmetric])
-      also from nz y have "a * h (inverse a \<cdot> y) = h y"
-        by simp
-      finally have "a * xi \<le> p (y + a \<cdot> x0) - h y" .
-      then show ?thesis by simp
+          by simp
+	also have "... = a * p (inverse a \<cdot> y + x0) - a * h (inverse a \<cdot> y)"
+	  by (simp add: right_diff_distrib)
+	also from gz x0 y'
+	have "a * p (inverse a \<cdot> y + x0) = p (a \<cdot> (inverse a \<cdot> y + x0))"
+          by (simp add: abs_homogenous)
+	also from nz x0 y' have "\<dots> = p (y + a \<cdot> x0)"
+          by (simp add: add_mult_distrib1 mult_assoc [symmetric])
+	also from nz y have "a * h (inverse a \<cdot> y) = h y"
+          by simp
+	finally have "a * xi \<le> p (y + a \<cdot> x0) - h y" .
+	then show ?thesis by simp
+      qed
+      also from x_rep have "\<dots> = p x" by (simp only:)
+      finally show ?thesis .
     qed
-    also from x_rep have "\<dots> = p x" by (simp only:)
-    finally show ?thesis .
   qed
 qed
 

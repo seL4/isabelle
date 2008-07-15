@@ -1421,9 +1421,12 @@ next
 qed
 
 lemma fold_mset_fusion:
-  includes left_commutative g
-  shows "(\<And>x y. h (g x y) = f x (h y)) \<Longrightarrow> h (fold_mset g w A) = fold_mset f (h w) A"
-by (induct A) auto
+  assumes "left_commutative g"
+  shows "(\<And>x y. h (g x y) = f x (h y)) \<Longrightarrow> h (fold_mset g w A) = fold_mset f (h w) A" (is "PROP ?P")
+proof -
+  interpret left_commutative [g] by fact
+  show "PROP ?P" by (induct A) auto
+qed
 
 lemma fold_mset_rec:
   assumes "a \<in># A" 

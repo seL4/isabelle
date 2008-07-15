@@ -155,27 +155,32 @@ done
 
 text {* The quotient of a cring is also commutative *}
 lemma (in ideal) quotient_is_cring:
-  includes cring
+  assumes "cring R"
   shows "cring (R Quot I)"
-apply (intro cring.intro comm_monoid.intro comm_monoid_axioms.intro)
+proof -
+  interpret cring [R] by fact
+  show ?thesis apply (intro cring.intro comm_monoid.intro comm_monoid_axioms.intro)
   apply (rule quotient_is_ring)
  apply (rule ring.axioms[OF quotient_is_ring])
 apply (simp add: FactRing_def A_RCOSETS_defs a_r_coset_def[symmetric])
 apply clarify
 apply (simp add: rcoset_mult_add m_comm)
 done
+qed
 
 text {* Cosets as a ring homomorphism on crings *}
 lemma (in ideal) rcos_ring_hom_cring:
-  includes cring
+  assumes "cring R"
   shows "ring_hom_cring R (R Quot I) (op +> I)"
-apply (rule ring_hom_cringI)
+proof -
+  interpret cring [R] by fact
+  show ?thesis apply (rule ring_hom_cringI)
   apply (rule rcos_ring_hom_ring)
  apply (rule R.is_cring)
 apply (rule quotient_is_cring)
 apply (rule R.is_cring)
 done
-
+qed
 
 subsection {* Factorization over Prime Ideals *}
 
@@ -236,9 +241,11 @@ text {* In a commutative ring, the quotient ring over a maximal ideal
         The proof follows ``W. Adkins, S. Weintraub: Algebra --
         An Approach via Module Theory'' *}
 lemma (in maximalideal) quotient_is_field:
-  includes cring
+  assumes "cring R"
   shows "field (R Quot I)"
-apply (intro cring.cring_fieldI2)
+proof -
+  interpret cring [R] by fact
+  show ?thesis apply (intro cring.cring_fieldI2)
   apply (rule quotient_is_cring, rule is_cring)
  defer 1
  apply (simp add: FactRing_def A_RCOSETS_defs a_r_coset_def[symmetric], clarsimp)
@@ -337,6 +344,7 @@ next
 
   from rcarr and this[symmetric]
   show "\<exists>r\<in>carrier R. I +> a \<otimes> r = I +> \<one>" by fast
+qed
 qed
 
 end

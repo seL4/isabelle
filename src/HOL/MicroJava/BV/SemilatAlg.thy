@@ -62,17 +62,20 @@ lemma list_update_le_listI [rule_format]:
   done
 
 
-lemma plusplus_closed: includes semilat shows
-  "\<And>y. \<lbrakk> set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> x ++_f y \<in> A"
-proof (induct x)
-  show "\<And>y. y \<in> A \<Longrightarrow> [] ++_f y \<in> A" by simp
-  fix y x xs
-  assume y: "y \<in> A" and xs: "set (x#xs) \<subseteq> A"
-  assume IH: "\<And>y. \<lbrakk> set xs \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> xs ++_f y \<in> A"
-  from xs obtain x: "x \<in> A" and xs': "set xs \<subseteq> A" by simp
-  from x y have "(x +_f y) \<in> A" ..
-  with xs' have "xs ++_f (x +_f y) \<in> A" by (rule IH)
-  thus "(x#xs) ++_f y \<in> A" by simp
+lemma plusplus_closed: assumes "semilat (A, r, f)" shows
+  "\<And>y. \<lbrakk> set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> x ++_f y \<in> A" (is "PROP ?P")
+proof -
+  interpret semilat [A r f] by fact
+  show "PROP ?P" proof (induct x)
+    show "\<And>y. y \<in> A \<Longrightarrow> [] ++_f y \<in> A" by simp
+    fix y x xs
+    assume y: "y \<in> A" and xs: "set (x#xs) \<subseteq> A"
+    assume IH: "\<And>y. \<lbrakk> set xs \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> xs ++_f y \<in> A"
+    from xs obtain x: "x \<in> A" and xs': "set xs \<subseteq> A" by simp
+    from x y have "(x +_f y) \<in> A" ..
+    with xs' have "xs ++_f (x +_f y) \<in> A" by (rule IH)
+    thus "(x#xs) ++_f y \<in> A" by simp
+  qed
 qed
 
 lemma (in semilat) pp_ub2:
@@ -154,10 +157,13 @@ next
 qed
 
 
-lemma ub1': includes semilat
-shows "\<lbrakk>\<forall>(p,s) \<in> set S. s \<in> A; y \<in> A; (a,b) \<in> set S\<rbrakk> 
+lemma ub1':
+  assumes "semilat (A, r, f)"
+  shows "\<lbrakk>\<forall>(p,s) \<in> set S. s \<in> A; y \<in> A; (a,b) \<in> set S\<rbrakk> 
   \<Longrightarrow> b <=_r map snd [(p', t')\<leftarrow>S. p' = a] ++_f y" 
 proof -
+  interpret semilat [A r f] by fact
+
   let "b <=_r ?map ++_f y" = ?thesis
 
   assume "y \<in> A"

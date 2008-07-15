@@ -41,10 +41,12 @@ lemma rev_subspaceD [elim?]: "x \<in> U \<Longrightarrow> U \<unlhd> V \<Longrig
   by (rule subspace.subsetD)
 
 lemma (in subspace) diff_closed [iff]:
-  includes vectorspace
-  shows "x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x - y \<in> U"
-  by (simp add: diff_eq1 negate_eq1)
-
+  assumes "vectorspace V"
+  shows "x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x - y \<in> U" (is "PROP ?P")
+proof -
+  interpret vectorspace [V] by fact
+  show "PROP ?P" by (simp add: diff_eq1 negate_eq1)
+qed
 
 text {*
   \medskip Similar as for linear spaces, the existence of the zero
@@ -53,9 +55,10 @@ text {*
 *}
 
 lemma (in subspace) zero [intro]:
-  includes vectorspace
+  assumes "vectorspace V"
   shows "0 \<in> U"
 proof -
+  interpret vectorspace [V] by fact
   have "U \<noteq> {}" by (rule U_V.non_empty)
   then obtain x where x: "x \<in> U" by blast
   hence "x \<in> V" .. hence "0 = x - x" by simp
@@ -64,32 +67,37 @@ proof -
 qed
 
 lemma (in subspace) neg_closed [iff]:
-  includes vectorspace
-  shows "x \<in> U \<Longrightarrow> - x \<in> U"
-  by (simp add: negate_eq1)
-
+  assumes "vectorspace V"
+  shows "x \<in> U \<Longrightarrow> - x \<in> U" (is "PROP ?P")
+proof -
+  interpret vectorspace [V] by fact
+  show "PROP ?P" by (simp add: negate_eq1)
+qed
 
 text {* \medskip Further derived laws: every subspace is a vector space. *}
 
 lemma (in subspace) vectorspace [iff]:
-  includes vectorspace
+  assumes "vectorspace V"
   shows "vectorspace U"
-proof
-  show "U \<noteq> {}" ..
-  fix x y z assume x: "x \<in> U" and y: "y \<in> U" and z: "z \<in> U"
-  fix a b :: real
-  from x y show "x + y \<in> U" by simp
-  from x show "a \<cdot> x \<in> U" by simp
-  from x y z show "(x + y) + z = x + (y + z)" by (simp add: add_ac)
-  from x y show "x + y = y + x" by (simp add: add_ac)
-  from x show "x - x = 0" by simp
-  from x show "0 + x = x" by simp
-  from x y show "a \<cdot> (x + y) = a \<cdot> x + a \<cdot> y" by (simp add: distrib)
-  from x show "(a + b) \<cdot> x = a \<cdot> x + b \<cdot> x" by (simp add: distrib)
-  from x show "(a * b) \<cdot> x = a \<cdot> b \<cdot> x" by (simp add: mult_assoc)
-  from x show "1 \<cdot> x = x" by simp
-  from x show "- x = - 1 \<cdot> x" by (simp add: negate_eq1)
-  from x y show "x - y = x + - y" by (simp add: diff_eq1)
+proof -
+  interpret vectorspace [V] by fact
+  show ?thesis proof
+    show "U \<noteq> {}" ..
+    fix x y z assume x: "x \<in> U" and y: "y \<in> U" and z: "z \<in> U"
+    fix a b :: real
+    from x y show "x + y \<in> U" by simp
+    from x show "a \<cdot> x \<in> U" by simp
+    from x y z show "(x + y) + z = x + (y + z)" by (simp add: add_ac)
+    from x y show "x + y = y + x" by (simp add: add_ac)
+    from x show "x - x = 0" by simp
+    from x show "0 + x = x" by simp
+    from x y show "a \<cdot> (x + y) = a \<cdot> x + a \<cdot> y" by (simp add: distrib)
+    from x show "(a + b) \<cdot> x = a \<cdot> x + b \<cdot> x" by (simp add: distrib)
+    from x show "(a * b) \<cdot> x = a \<cdot> b \<cdot> x" by (simp add: mult_assoc)
+    from x show "1 \<cdot> x = x" by simp
+    from x show "- x = - 1 \<cdot> x" by (simp add: negate_eq1)
+    from x y show "x - y = x + - y" by (simp add: diff_eq1)
+  qed
 qed
 
 
@@ -236,61 +244,70 @@ lemma sumI' [intro]:
 text {* @{text U} is a subspace of @{text "U + V"}. *}
 
 lemma subspace_sum1 [iff]:
-  includes vectorspace U + vectorspace V
+  assumes "vectorspace U" "vectorspace V"
   shows "U \<unlhd> U + V"
-proof
-  show "U \<noteq> {}" ..
-  show "U \<subseteq> U + V"
-  proof
-    fix x assume x: "x \<in> U"
-    moreover have "0 \<in> V" ..
-    ultimately have "x + 0 \<in> U + V" ..
-    with x show "x \<in> U + V" by simp
+proof -
+  interpret vectorspace [U] by fact
+  interpret vectorspace [V] by fact
+  show ?thesis proof
+    show "U \<noteq> {}" ..
+    show "U \<subseteq> U + V"
+    proof
+      fix x assume x: "x \<in> U"
+      moreover have "0 \<in> V" ..
+      ultimately have "x + 0 \<in> U + V" ..
+      with x show "x \<in> U + V" by simp
+    qed
+    fix x y assume x: "x \<in> U" and "y \<in> U"
+    thus "x + y \<in> U" by simp
+    from x show "\<And>a. a \<cdot> x \<in> U" by simp
   qed
-  fix x y assume x: "x \<in> U" and "y \<in> U"
-  thus "x + y \<in> U" by simp
-  from x show "\<And>a. a \<cdot> x \<in> U" by simp
 qed
 
 text {* The sum of two subspaces is again a subspace. *}
 
 lemma sum_subspace [intro?]:
-  includes subspace U E + vectorspace E + subspace V E
+  assumes "subspace U E" "vectorspace E" "subspace V E"
   shows "U + V \<unlhd> E"
-proof
-  have "0 \<in> U + V"
-  proof
-    show "0 \<in> U" using `vectorspace E` ..
-    show "0 \<in> V" using `vectorspace E` ..
-    show "(0::'a) = 0 + 0" by simp
-  qed
-  thus "U + V \<noteq> {}" by blast
-  show "U + V \<subseteq> E"
-  proof
-    fix x assume "x \<in> U + V"
-    then obtain u v where "x = u + v" and
-      "u \<in> U" and "v \<in> V" ..
-    then show "x \<in> E" by simp
-  qed
-  fix x y assume x: "x \<in> U + V" and y: "y \<in> U + V"
-  show "x + y \<in> U + V"
-  proof -
-    from x obtain ux vx where "x = ux + vx" and "ux \<in> U" and "vx \<in> V" ..
-    moreover
-    from y obtain uy vy where "y = uy + vy" and "uy \<in> U" and "vy \<in> V" ..
-    ultimately
-    have "ux + uy \<in> U"
-      and "vx + vy \<in> V"
-      and "x + y = (ux + uy) + (vx + vy)"
-      using x y by (simp_all add: add_ac)
-    thus ?thesis ..
-  qed
-  fix a show "a \<cdot> x \<in> U + V"
-  proof -
-    from x obtain u v where "x = u + v" and "u \<in> U" and "v \<in> V" ..
-    hence "a \<cdot> u \<in> U" and "a \<cdot> v \<in> V"
-      and "a \<cdot> x = (a \<cdot> u) + (a \<cdot> v)" by (simp_all add: distrib)
-    thus ?thesis ..
+proof -
+  interpret subspace [U E] by fact
+  interpret vectorspace [E] by fact
+  interpret subspace [V E] by fact
+  show ?thesis proof
+    have "0 \<in> U + V"
+    proof
+      show "0 \<in> U" using `vectorspace E` ..
+      show "0 \<in> V" using `vectorspace E` ..
+      show "(0::'a) = 0 + 0" by simp
+    qed
+    thus "U + V \<noteq> {}" by blast
+    show "U + V \<subseteq> E"
+    proof
+      fix x assume "x \<in> U + V"
+      then obtain u v where "x = u + v" and
+	"u \<in> U" and "v \<in> V" ..
+      then show "x \<in> E" by simp
+    qed
+    fix x y assume x: "x \<in> U + V" and y: "y \<in> U + V"
+    show "x + y \<in> U + V"
+    proof -
+      from x obtain ux vx where "x = ux + vx" and "ux \<in> U" and "vx \<in> V" ..
+      moreover
+      from y obtain uy vy where "y = uy + vy" and "uy \<in> U" and "vy \<in> V" ..
+      ultimately
+      have "ux + uy \<in> U"
+	and "vx + vy \<in> V"
+	and "x + y = (ux + uy) + (vx + vy)"
+	using x y by (simp_all add: add_ac)
+      thus ?thesis ..
+    qed
+    fix a show "a \<cdot> x \<in> U + V"
+    proof -
+      from x obtain u v where "x = u + v" and "u \<in> U" and "v \<in> V" ..
+      hence "a \<cdot> u \<in> U" and "a \<cdot> v \<in> V"
+	and "a \<cdot> x = (a \<cdot> u) + (a \<cdot> v)" by (simp_all add: distrib)
+      thus ?thesis ..
+    qed
   qed
 qed
 
@@ -312,37 +329,42 @@ text {*
 *}
 
 lemma decomp:
-  includes vectorspace E + subspace U E + subspace V E
+  assumes "vectorspace E" "subspace U E" "subspace V E"
   assumes direct: "U \<inter> V = {0}"
     and u1: "u1 \<in> U" and u2: "u2 \<in> U"
     and v1: "v1 \<in> V" and v2: "v2 \<in> V"
     and sum: "u1 + v1 = u2 + v2"
   shows "u1 = u2 \<and> v1 = v2"
-proof
-  have U: "vectorspace U"
-    using `subspace U E` `vectorspace E` by (rule subspace.vectorspace)
-  have V: "vectorspace V"
-    using `subspace V E` `vectorspace E` by (rule subspace.vectorspace)
-  from u1 u2 v1 v2 and sum have eq: "u1 - u2 = v2 - v1"
-    by (simp add: add_diff_swap)
-  from u1 u2 have u: "u1 - u2 \<in> U"
-    by (rule vectorspace.diff_closed [OF U])
-  with eq have v': "v2 - v1 \<in> U" by (simp only:)
-  from v2 v1 have v: "v2 - v1 \<in> V"
-    by (rule vectorspace.diff_closed [OF V])
-  with eq have u': " u1 - u2 \<in> V" by (simp only:)
-
-  show "u1 = u2"
-  proof (rule add_minus_eq)
-    from u1 show "u1 \<in> E" ..
-    from u2 show "u2 \<in> E" ..
-    from u u' and direct show "u1 - u2 = 0" by blast
-  qed
-  show "v1 = v2"
-  proof (rule add_minus_eq [symmetric])
-    from v1 show "v1 \<in> E" ..
-    from v2 show "v2 \<in> E" ..
-    from v v' and direct show "v2 - v1 = 0" by blast
+proof -
+  interpret vectorspace [E] by fact
+  interpret subspace [U E] by fact
+  interpret subspace [V E] by fact
+  show ?thesis proof
+    have U: "vectorspace U"  (* FIXME: use interpret *)
+      using `subspace U E` `vectorspace E` by (rule subspace.vectorspace)
+    have V: "vectorspace V"
+      using `subspace V E` `vectorspace E` by (rule subspace.vectorspace)
+    from u1 u2 v1 v2 and sum have eq: "u1 - u2 = v2 - v1"
+      by (simp add: add_diff_swap)
+    from u1 u2 have u: "u1 - u2 \<in> U"
+      by (rule vectorspace.diff_closed [OF U])
+    with eq have v': "v2 - v1 \<in> U" by (simp only:)
+    from v2 v1 have v: "v2 - v1 \<in> V"
+      by (rule vectorspace.diff_closed [OF V])
+    with eq have u': " u1 - u2 \<in> V" by (simp only:)
+    
+    show "u1 = u2"
+    proof (rule add_minus_eq)
+      from u1 show "u1 \<in> E" ..
+      from u2 show "u2 \<in> E" ..
+      from u u' and direct show "u1 - u2 = 0" by blast
+    qed
+    show "v1 = v2"
+    proof (rule add_minus_eq [symmetric])
+      from v1 show "v1 \<in> E" ..
+      from v2 show "v2 \<in> E" ..
+      from v v' and direct show "v2 - v1 = 0" by blast
+    qed
   qed
 qed
 
@@ -356,48 +378,52 @@ text {*
 *}
 
 lemma decomp_H':
-  includes vectorspace E + subspace H E
+  assumes "vectorspace E" "subspace H E"
   assumes y1: "y1 \<in> H" and y2: "y2 \<in> H"
     and x': "x' \<notin> H"  "x' \<in> E"  "x' \<noteq> 0"
     and eq: "y1 + a1 \<cdot> x' = y2 + a2 \<cdot> x'"
   shows "y1 = y2 \<and> a1 = a2"
-proof
-  have c: "y1 = y2 \<and> a1 \<cdot> x' = a2 \<cdot> x'"
-  proof (rule decomp)
-    show "a1 \<cdot> x' \<in> lin x'" ..
-    show "a2 \<cdot> x' \<in> lin x'" ..
-    show "H \<inter> lin x' = {0}"
-    proof
-      show "H \<inter> lin x' \<subseteq> {0}"
+proof -
+  interpret vectorspace [E] by fact
+  interpret subspace [H E] by fact
+  show ?thesis proof
+    have c: "y1 = y2 \<and> a1 \<cdot> x' = a2 \<cdot> x'"
+    proof (rule decomp)
+      show "a1 \<cdot> x' \<in> lin x'" ..
+      show "a2 \<cdot> x' \<in> lin x'" ..
+      show "H \<inter> lin x' = {0}"
       proof
-        fix x assume x: "x \<in> H \<inter> lin x'"
-        then obtain a where xx': "x = a \<cdot> x'"
-          by blast
-        have "x = 0"
-        proof cases
-          assume "a = 0"
-          with xx' and x' show ?thesis by simp
-        next
-          assume a: "a \<noteq> 0"
-          from x have "x \<in> H" ..
-          with xx' have "inverse a \<cdot> a \<cdot> x' \<in> H" by simp
-          with a and x' have "x' \<in> H" by (simp add: mult_assoc2)
-          with `x' \<notin> H` show ?thesis by contradiction
-        qed
-        thus "x \<in> {0}" ..
+	show "H \<inter> lin x' \<subseteq> {0}"
+	proof
+          fix x assume x: "x \<in> H \<inter> lin x'"
+          then obtain a where xx': "x = a \<cdot> x'"
+            by blast
+          have "x = 0"
+          proof cases
+            assume "a = 0"
+            with xx' and x' show ?thesis by simp
+          next
+            assume a: "a \<noteq> 0"
+            from x have "x \<in> H" ..
+            with xx' have "inverse a \<cdot> a \<cdot> x' \<in> H" by simp
+            with a and x' have "x' \<in> H" by (simp add: mult_assoc2)
+            with `x' \<notin> H` show ?thesis by contradiction
+          qed
+          thus "x \<in> {0}" ..
+	qed
+	show "{0} \<subseteq> H \<inter> lin x'"
+	proof -
+          have "0 \<in> H" using `vectorspace E` ..
+          moreover have "0 \<in> lin x'" using `x' \<in> E` ..
+          ultimately show ?thesis by blast
+	qed
       qed
-      show "{0} \<subseteq> H \<inter> lin x'"
-      proof -
-        have "0 \<in> H" using `vectorspace E` ..
-        moreover have "0 \<in> lin x'" using `x' \<in> E` ..
-        ultimately show ?thesis by blast
-      qed
-    qed
-    show "lin x' \<unlhd> E" using `x' \<in> E` ..
-  qed (rule `vectorspace E`, rule `subspace H E`, rule y1, rule y2, rule eq)
-  thus "y1 = y2" ..
-  from c have "a1 \<cdot> x' = a2 \<cdot> x'" ..
-  with x' show "a1 = a2" by (simp add: mult_right_cancel)
+      show "lin x' \<unlhd> E" using `x' \<in> E` ..
+    qed (rule `vectorspace E`, rule `subspace H E`, rule y1, rule y2, rule eq)
+    thus "y1 = y2" ..
+    from c have "a1 \<cdot> x' = a2 \<cdot> x'" ..
+    with x' show "a1 = a2" by (simp add: mult_right_cancel)
+  qed
 qed
 
 text {*
@@ -408,19 +434,23 @@ text {*
 *}
 
 lemma decomp_H'_H:
-  includes vectorspace E + subspace H E
+  assumes "vectorspace E" "subspace H E"
   assumes t: "t \<in> H"
     and x': "x' \<notin> H"  "x' \<in> E"  "x' \<noteq> 0"
   shows "(SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, 0)"
-proof (rule, simp_all only: split_paired_all split_conv)
-  from t x' show "t = t + 0 \<cdot> x' \<and> t \<in> H" by simp
-  fix y and a assume ya: "t = y + a \<cdot> x' \<and> y \<in> H"
-  have "y = t \<and> a = 0"
-  proof (rule decomp_H')
-    from ya x' show "y + a \<cdot> x' = t + 0 \<cdot> x'" by simp
-    from ya show "y \<in> H" ..
-  qed (rule `vectorspace E`, rule `subspace H E`, rule t, (rule x')+)
-  with t x' show "(y, a) = (y + a \<cdot> x', 0)" by simp
+proof -
+  interpret vectorspace [E] by fact
+  interpret subspace [H E] by fact
+  show ?thesis proof (rule, simp_all only: split_paired_all split_conv)
+    from t x' show "t = t + 0 \<cdot> x' \<and> t \<in> H" by simp
+    fix y and a assume ya: "t = y + a \<cdot> x' \<and> y \<in> H"
+    have "y = t \<and> a = 0"
+    proof (rule decomp_H')
+      from ya x' show "y + a \<cdot> x' = t + 0 \<cdot> x'" by simp
+      from ya show "y \<in> H" ..
+    qed (rule `vectorspace E`, rule `subspace H E`, rule t, (rule x')+)
+    with t x' show "(y, a) = (y + a \<cdot> x', 0)" by simp
+  qed
 qed
 
 text {*
@@ -430,16 +460,18 @@ text {*
 *}
 
 lemma h'_definite:
-  includes var H
+  fixes H
   assumes h'_def:
     "h' \<equiv> (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a \<cdot> x' \<and> y \<in> H)
                 in (h y) + a * xi)"
     and x: "x = y + a \<cdot> x'"
-  includes vectorspace E + subspace H E
+  assumes "vectorspace E" "subspace H E"
   assumes y: "y \<in> H"
     and x': "x' \<notin> H"  "x' \<in> E"  "x' \<noteq> 0"
   shows "h' x = h y + a * xi"
 proof -
+  interpret vectorspace [E] by fact
+  interpret subspace [H E] by fact
   from x y x' have "x \<in> H + lin x'" by auto
   have "\<exists>!p. (\<lambda>(y, a). x = y + a \<cdot> x' \<and> y \<in> H) p" (is "\<exists>!p. ?P p")
   proof (rule ex_ex1I)

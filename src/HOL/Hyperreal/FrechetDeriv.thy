@@ -61,19 +61,23 @@ lemma add_diff_add:
 by simp
 
 lemma bounded_linear_add:
-  includes bounded_linear f
-  includes bounded_linear g
+  assumes "bounded_linear f"
+  assumes "bounded_linear g"
   shows "bounded_linear (\<lambda>x. f x + g x)"
-apply (unfold_locales)
-apply (simp only: f.add g.add add_ac)
-apply (simp only: f.scaleR g.scaleR scaleR_right_distrib)
-apply (rule f.pos_bounded [THEN exE], rename_tac Kf)
-apply (rule g.pos_bounded [THEN exE], rename_tac Kg)
-apply (rule_tac x="Kf + Kg" in exI, safe)
-apply (subst right_distrib)
-apply (rule order_trans [OF norm_triangle_ineq])
-apply (rule add_mono, erule spec, erule spec)
-done
+proof -
+  interpret f: bounded_linear [f] by fact
+  interpret g: bounded_linear [g] by fact
+  show ?thesis apply (unfold_locales)
+    apply (simp only: f.add g.add add_ac)
+    apply (simp only: f.scaleR g.scaleR scaleR_right_distrib)
+    apply (rule f.pos_bounded [THEN exE], rename_tac Kf)
+    apply (rule g.pos_bounded [THEN exE], rename_tac Kg)
+    apply (rule_tac x="Kf + Kg" in exI, safe)
+    apply (subst right_distrib)
+    apply (rule order_trans [OF norm_triangle_ineq])
+    apply (rule add_mono, erule spec, erule spec)
+    done
+qed
 
 lemma norm_ratio_ineq:
   fixes x y :: "'a::real_normed_vector"
@@ -117,13 +121,16 @@ qed
 subsection {* Subtraction *}
 
 lemma bounded_linear_minus:
-  includes bounded_linear f
+  assumes "bounded_linear f"
   shows "bounded_linear (\<lambda>x. - f x)"
-apply (unfold_locales)
-apply (simp add: f.add)
-apply (simp add: f.scaleR)
-apply (simp add: f.bounded)
-done
+proof -
+  interpret f: bounded_linear [f] by fact
+  show ?thesis apply (unfold_locales)
+    apply (simp add: f.add)
+    apply (simp add: f.scaleR)
+    apply (simp add: f.bounded)
+    done
+qed
 
 lemma FDERIV_minus:
   "FDERIV f x :> F \<Longrightarrow> FDERIV (\<lambda>x. - f x) x :> (\<lambda>h. - F h)"
@@ -169,30 +176,34 @@ lemma real_divide_cancel_lemma:
 by simp
 
 lemma bounded_linear_compose:
-  includes bounded_linear f
-  includes bounded_linear g
+  assumes "bounded_linear f"
+  assumes "bounded_linear g"
   shows "bounded_linear (\<lambda>x. f (g x))"
-proof (unfold_locales)
-  fix x y show "f (g (x + y)) = f (g x) + f (g y)"
-    by (simp only: f.add g.add)
-next
-  fix r x show "f (g (scaleR r x)) = scaleR r (f (g x))"
-    by (simp only: f.scaleR g.scaleR)
-next
-  from f.pos_bounded
-  obtain Kf where f: "\<And>x. norm (f x) \<le> norm x * Kf" and Kf: "0 < Kf" by fast
-  from g.pos_bounded
-  obtain Kg where g: "\<And>x. norm (g x) \<le> norm x * Kg" by fast
-  show "\<exists>K. \<forall>x. norm (f (g x)) \<le> norm x * K"
-  proof (intro exI allI)
-    fix x
-    have "norm (f (g x)) \<le> norm (g x) * Kf"
-      using f .
-    also have "\<dots> \<le> (norm x * Kg) * Kf"
-      using g Kf [THEN order_less_imp_le] by (rule mult_right_mono)
-    also have "(norm x * Kg) * Kf = norm x * (Kg * Kf)"
-      by (rule mult_assoc)
-    finally show "norm (f (g x)) \<le> norm x * (Kg * Kf)" .
+proof -
+  interpret f: bounded_linear [f] by fact
+  interpret g: bounded_linear [g] by fact
+  show ?thesis proof (unfold_locales)
+    fix x y show "f (g (x + y)) = f (g x) + f (g y)"
+      by (simp only: f.add g.add)
+  next
+    fix r x show "f (g (scaleR r x)) = scaleR r (f (g x))"
+      by (simp only: f.scaleR g.scaleR)
+  next
+    from f.pos_bounded
+    obtain Kf where f: "\<And>x. norm (f x) \<le> norm x * Kf" and Kf: "0 < Kf" by fast
+    from g.pos_bounded
+    obtain Kg where g: "\<And>x. norm (g x) \<le> norm x * Kg" by fast
+    show "\<exists>K. \<forall>x. norm (f (g x)) \<le> norm x * K"
+    proof (intro exI allI)
+      fix x
+      have "norm (f (g x)) \<le> norm (g x) * Kf"
+	using f .
+      also have "\<dots> \<le> (norm x * Kg) * Kf"
+	using g Kf [THEN order_less_imp_le] by (rule mult_right_mono)
+      also have "(norm x * Kg) * Kf = norm x * (Kg * Kf)"
+	by (rule mult_assoc)
+      finally show "norm (f (g x)) \<le> norm x * (Kg * Kf)" .
+    qed
   qed
 qed
 

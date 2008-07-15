@@ -539,16 +539,26 @@ lemma (in ring) one_not_zero:
 text {* Two examples for use of method algebra *}
 
 lemma
-  includes ring R + cring S
-  shows "[| a \<in> carrier R; b \<in> carrier R; c \<in> carrier S; d \<in> carrier S |] ==> 
-  a \<oplus> \<ominus> (a \<oplus> \<ominus> b) = b & c \<otimes>\<^bsub>S\<^esub> d = d \<otimes>\<^bsub>S\<^esub> c"
-  by algebra
+  fixes R (structure) and S (structure)
+  assumes "ring R" "cring S"
+  assumes RS: "a \<in> carrier R" "b \<in> carrier R" "c \<in> carrier S" "d \<in> carrier S"
+  shows "a \<oplus> \<ominus> (a \<oplus> \<ominus> b) = b & c \<otimes>\<^bsub>S\<^esub> d = d \<otimes>\<^bsub>S\<^esub> c"
+proof -
+  interpret ring [R] by fact
+  interpret cring [S] by fact
+ML_val {* Algebra.print_structures @{context} *}
+  from RS show ?thesis by algebra
+qed
 
 lemma
-  includes cring
-  shows "[| a \<in> carrier R; b \<in> carrier R |] ==> a \<ominus> (a \<ominus> b) = b"
-  by algebra
-
+  fixes R (structure)
+  assumes "ring R"
+  assumes R: "a \<in> carrier R" "b \<in> carrier R"
+  shows "a \<ominus> (a \<ominus> b) = b"
+proof -
+  interpret ring [R] by fact
+  from R show ?thesis by algebra
+qed
 
 subsubsection {* Sums over Finite Sets *}
 

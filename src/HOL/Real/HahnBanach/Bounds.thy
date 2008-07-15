@@ -24,23 +24,26 @@ notation (xsymbols)
   the_lub  ("\<Squnion>_" [90] 90)
 
 lemma the_lub_equality [elim?]:
-  includes lub
+  assumes "lub A x"
   shows "\<Squnion>A = (x::'a::order)"
-proof (unfold the_lub_def)
-  from lub_axioms show "The (lub A) = x"
-  proof
-    fix x' assume lub': "lub A x'"
-    show "x' = x"
-    proof (rule order_antisym)
-      from lub' show "x' \<le> x"
-      proof
-        fix a assume "a \<in> A"
-        then show "a \<le> x" ..
-      qed
-      show "x \<le> x'"
-      proof
-        fix a assume "a \<in> A"
-        with lub' show "a \<le> x'" ..
+proof -
+  interpret lub [A x] by fact
+  show ?thesis proof (unfold the_lub_def)
+    from `lub A x` show "The (lub A) = x"
+    proof
+      fix x' assume lub': "lub A x'"
+      show "x' = x"
+      proof (rule order_antisym)
+	from lub' show "x' \<le> x"
+	proof
+          fix a assume "a \<in> A"
+          then show "a \<le> x" ..
+	qed
+	show "x \<le> x'"
+	proof
+          fix a assume "a \<in> A"
+          with lub' show "a \<le> x'" ..
+	qed
       qed
     qed
   qed

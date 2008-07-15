@@ -27,9 +27,10 @@ locale seminorm = var V + norm_syntax +
 declare seminorm.intro [intro?]
 
 lemma (in seminorm) diff_subadditive:
-  includes vectorspace
+  assumes "vectorspace V"
   shows "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x - y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
 proof -
+  interpret vectorspace [V] by fact
   assume x: "x \<in> V" and y: "y \<in> V"
   hence "x - y = x + - 1 \<cdot> y"
     by (simp add: diff_eq2 negate_eq2a)
@@ -42,9 +43,10 @@ proof -
 qed
 
 lemma (in seminorm) minus:
-  includes vectorspace
+  assumes "vectorspace V"
   shows "x \<in> V \<Longrightarrow> \<parallel>- x\<parallel> = \<parallel>x\<parallel>"
 proof -
+  interpret vectorspace [V] by fact
   assume x: "x \<in> V"
   hence "- x = - 1 \<cdot> x" by (simp only: negate_eq1)
   also from x have "\<parallel>\<dots>\<parallel> = \<bar>- 1\<bar> * \<parallel>x\<parallel>"
@@ -95,14 +97,19 @@ text {*
 *}
 
 lemma subspace_normed_vs [intro?]:
-  includes subspace F E + normed_vectorspace E
+  fixes F E norm
+  assumes "subspace F E" "normed_vectorspace E norm"
   shows "normed_vectorspace F norm"
-proof
-  show "vectorspace F" by (rule vectorspace) unfold_locales
-next
-  have "NormedSpace.norm E norm" by unfold_locales
-  with subset show "NormedSpace.norm F norm"
-    by (simp add: norm_def seminorm_def norm_axioms_def)
+proof -
+  interpret subspace [F E] by fact
+  interpret normed_vectorspace [E norm] by fact
+  show ?thesis proof
+    show "vectorspace F" by (rule vectorspace) unfold_locales
+  next
+    have "NormedSpace.norm E norm" by unfold_locales
+    with subset show "NormedSpace.norm F norm"
+      by (simp add: norm_def seminorm_def norm_axioms_def)
+  qed
 qed
 
 end

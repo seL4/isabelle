@@ -396,9 +396,13 @@ lemma subgroup_imp_subset:
   by (rule subgroup.subset)
 
 lemma (in subgroup) subgroup_is_group [intro]:
-  includes group G
-  shows "group (G\<lparr>carrier := H\<rparr>)" 
-  by (rule groupI) (auto intro: m_assoc l_inv mem_carrier)
+  assumes "group G"
+  shows "group (G\<lparr>carrier := H\<rparr>)"
+proof -
+  interpret group [G] by fact
+  show ?thesis
+    by (rule groupI) (auto intro: m_assoc l_inv mem_carrier)
+qed
 
 text {*
   Since @{term H} is nonempty, it contains some element @{term x}.  Since
@@ -453,9 +457,11 @@ constdefs
                 one = (\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>)\<rparr>"
 
 lemma DirProd_monoid:
-  includes monoid G + monoid H
+  assumes "monoid G" and "monoid H"
   shows "monoid (G \<times>\<times> H)"
 proof -
+  interpret G: monoid [G] by fact
+  interpret H: monoid [H] by fact
   from prems
   show ?thesis by (unfold monoid_def DirProd_def, auto) 
 qed
@@ -463,11 +469,15 @@ qed
 
 text{*Does not use the previous result because it's easier just to use auto.*}
 lemma DirProd_group:
-  includes group G + group H
+  assumes "group G" and "group H"
   shows "group (G \<times>\<times> H)"
-  by (rule groupI)
+proof -
+  interpret G: group [G] by fact
+  interpret H: group [H] by fact
+  show ?thesis by (rule groupI)
      (auto intro: G.m_assoc H.m_assoc G.l_inv H.l_inv
            simp add: DirProd_def)
+qed
 
 lemma carrier_DirProd [simp]:
      "carrier (G \<times>\<times> H) = carrier G \<times> carrier H"
@@ -482,23 +492,29 @@ lemma mult_DirProd [simp]:
   by (simp add: DirProd_def)
 
 lemma inv_DirProd [simp]:
-  includes group G + group H
+  assumes "group G" and "group H"
   assumes g: "g \<in> carrier G"
       and h: "h \<in> carrier H"
   shows "m_inv (G \<times>\<times> H) (g, h) = (inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h)"
-  apply (rule group.inv_equality [OF DirProd_group])
+proof -
+  interpret G: group [G] by fact
+  interpret H: group [H] by fact
+  show ?thesis apply (rule group.inv_equality [OF DirProd_group])
   apply (simp_all add: prems group.l_inv)
   done
+qed
 
 text{*This alternative proof of the previous result demonstrates interpret.
    It uses @{text Prod.inv_equality} (available after @{text interpret})
    instead of @{text "group.inv_equality [OF DirProd_group]"}. *}
 lemma
-  includes group G + group H
+  assumes "group G" and "group H"
   assumes g: "g \<in> carrier G"
       and h: "h \<in> carrier H"
   shows "m_inv (G \<times>\<times> H) (g, h) = (inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h)"
 proof -
+  interpret G: group [G] by fact
+  interpret H: group [H] by fact
   interpret Prod: group ["G \<times>\<times> H"]
     by (auto intro: DirProd_group group.intro group.axioms prems)
   show ?thesis by (simp add: Prod.inv_equality g h)

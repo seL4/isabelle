@@ -1254,15 +1254,17 @@ lemma ring_hom_cringI:
     cring.axioms prems)
 
 lemma (in UP_pre_univ_prop) UP_hom_unique:
-  includes ring_hom_cring P S Phi
+  assumes "ring_hom_cring P S Phi"
   assumes Phi: "Phi (monom P \<one> (Suc 0)) = s"
       "!!r. r \<in> carrier R ==> Phi (monom P r 0) = h r"
-  includes ring_hom_cring P S Psi
+  assumes "ring_hom_cring P S Psi"
   assumes Psi: "Psi (monom P \<one> (Suc 0)) = s"
       "!!r. r \<in> carrier R ==> Psi (monom P r 0) = h r"
     and P: "p \<in> carrier P" and S: "s \<in> carrier S"
   shows "Phi p = Psi p"
 proof -
+  interpret ring_hom_cring [P S Phi] by fact
+  interpret ring_hom_cring [P S Psi] by fact
   have "Phi p =
       Phi (\<Oplus>\<^bsub>P \<^esub>i \<in> {..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 (^)\<^bsub>P\<^esub> i)"
     by (simp add: up_repr P monom_mult [THEN sym] monom_pow del: monom_mult)
