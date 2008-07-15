@@ -109,7 +109,8 @@ fun setup_channels () =
   Output.warning_fn  := message "D";
   Output.error_fn    := message "E";
   Output.debug_fn    := message "F";
-  Output.prompt_fn   := message "G");
+  Output.prompt_fn   := message "G";
+  Output.status_fn   := message "I");
 
 
 (* init *)
