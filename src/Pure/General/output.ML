@@ -42,8 +42,10 @@ sig
   val error_fn: (output -> unit) ref
   val debug_fn: (output -> unit) ref
   val prompt_fn: (output -> unit) ref
+  val status_fn: (output -> unit) ref
   val error_msg: string -> unit
   val prompt: string -> unit
+  val status: string -> unit
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
@@ -89,7 +91,9 @@ fun std_error s = NAMED_CRITICAL "IO" (fn () =>
   (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr));
 
 val immediate_output = std_output o output;
-val writeln_default = std_output o suffix "\n";
+
+fun writeln_default "" = ()
+  | writeln_default s = std_output (suffix "\n" s);
 
 
 (* Isabelle output channels *)
@@ -101,6 +105,7 @@ val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
 val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
 val debug_fn = ref (std_output o suffix "\n" o prefix_lines "::: ");
 val prompt_fn = ref std_output;
+val status_fn = ref (fn s => ! writeln_fn s);
 
 fun writeln s = ! writeln_fn (output s);
 fun priority s = ! priority_fn (output s);
@@ -108,6 +113,7 @@ fun tracing s = ! tracing_fn (output s);
 fun warning s = ! warning_fn (output s);
 fun error_msg s = ! error_fn (output s);
 fun prompt s = ! prompt_fn (output s);
+fun status s = ! status_fn (output s);
 
 val tolerate_legacy_features = ref true;
 fun legacy_feature s =
