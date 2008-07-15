@@ -84,6 +84,10 @@ fun map_command f (Command {category, transition, status}) =
 fun map_status f = map_command (fn (category, transition, status) =>
   (category, transition, f status));
 
+fun status_markup Initial = Markup.unprocessed
+  | status_markup (Result (_, NONE)) = Markup.finished
+  | status_markup (Result (_, SOME _)) = Markup.failed;
+
 
 (* global collection of identified commands *)
 
@@ -125,13 +129,18 @@ fun the_result id =
   | {transition, ...} => error ("Unfinished command " ^ Toplevel.str_of transition));
 
 val the_state = #1 o the_result;
+val command_status = Toplevel.status o #transition o the_command;
+
 
 fun new_command prev (id, cmd) =
   change_commands (Graph.new_node (id, cmd) #> prev <> no_id ? Graph.add_edge (prev, id));
 
-fun dispose_command id = change_commands (Graph.del_nodes [id]);
+fun dispose_command id =
+  (command_status id Markup.disposed; change_commands (Graph.del_nodes [id]));
 
-fun change_command_status id f = change_commands (Graph.map_node id (map_status f));
+fun update_command_status id status =
+ (change_commands (Graph.map_node id (map_status (K status)));
+  command_status id (status_markup status));
 
 
 
@@ -180,7 +189,7 @@ fun >> raw_tr =
     (case Toplevel.transition true tr prev_state of
       NONE => (dispose_command id; false)
     | SOME (result as (_, err)) =>
-        (change_command_status id (K (Result result));
+        (update_command_status id (Result result);
           Option.map (Toplevel.error_msg tr) err;
           if is_some err orelse category = Control then dispose_command id
           else set_point id;

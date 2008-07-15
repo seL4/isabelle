@@ -84,6 +84,7 @@ sig
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
+  val status: transition -> Markup.T -> unit
   val error_msg: transition -> exn * string -> unit
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val commit_exit: transition
@@ -597,6 +598,9 @@ fun put_id id (tr as Transition {pos, ...}) = position (Position.put_id id pos) 
 
 fun setmp_thread_position (Transition {pos, ...}) f x =
   Position.setmp_thread_data pos f x;
+
+fun status tr m =
+  setmp_thread_position tr (fn () => Output.status (Markup.markup m "")) ();
 
 fun error_msg tr exn_info =
   setmp_thread_position tr (fn () => Output.error_msg (exn_message (EXCURSION_FAIL exn_info))) ();

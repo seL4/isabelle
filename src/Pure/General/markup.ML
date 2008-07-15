@@ -67,6 +67,11 @@ sig
   val subgoalN: string val subgoal: T
   val sendbackN: string val sendback: T
   val hiliteN: string val hilite: T
+  val unprocessedN: string val unprocessed: T
+  val runningN: string val running: T
+  val finishedN: string val finished: T
+  val failedN: string val failed: T
+  val disposedN: string val disposed: T
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
   val output: T -> output * output
@@ -192,6 +197,15 @@ val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
 val (sendbackN, sendback) = markup_elem "sendback";
 val (hiliteN, hilite) = markup_elem "hilite";
+
+
+(* command status *)
+
+val (unprocessedN, unprocessed) = markup_elem "unprocessed";
+val (runningN, running) = markup_elem "running";
+val (finishedN, finished) = markup_elem "finished";
+val (failedN, failed) = markup_elem "failed";
+val (disposedN, disposed) = markup_elem "disposed";
 
 
 (* print mode operations *)
