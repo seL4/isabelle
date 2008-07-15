@@ -142,7 +142,7 @@ fun inform_file_processed file =
     val _ = name = "" andalso error ("Bad file name: " ^ quote file);
     val _ =
       if ThyInfo.check_known_thy name then
-        (Isar.commit_exit (); ThyInfo.touch_child_thys name; ThyInfo.register_thy name)
+        (Isar.>> Toplevel.commit_exit; ThyInfo.touch_child_thys name; ThyInfo.register_thy name)
           handle ERROR msg =>
             (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
               tell_file_retracted (ThyLoad.thy_path name))
