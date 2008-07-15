@@ -38,7 +38,6 @@ sig
   val profiling: int ref
   val skip_proofs: bool ref
   exception TERMINATE
-  exception EXCURSION_FAIL of exn * string
   exception TOPLEVEL_ERROR
   exception CONTEXT of Proof.context * exn
   val exn_message: exn -> string
@@ -55,7 +54,6 @@ sig
   val no_timing: transition -> transition
   val init_theory: string -> (bool -> theory) -> (theory -> unit) -> transition -> transition
   val exit: transition -> transition
-  val commit_exit: transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
@@ -88,8 +86,9 @@ sig
   val unknown_context: transition -> transition
   val error_msg: transition -> exn * string -> unit
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
-  val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
+  val commit_exit: transition
   val excursion: transition list -> unit
+  val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -147,9 +146,8 @@ fun reset_presentation (Theory (gthy, _)) = Theory (gthy, NONE)
 
 (* datatype state *)
 
-datatype state = State of
-  (node * (theory -> unit)) option *  (*current node with exit operation*)
-  node option;                        (*previous node*)
+type node_info = node * (theory -> unit);  (*node with exit operation*)
+datatype state = State of node_info option * node_info option;  (*current, previous*)
 
 val toplevel = State (NONE, NONE);
 
@@ -170,7 +168,7 @@ fun str_of_state (State (NONE, _)) = "at top level"
 
 (* current node *)
 
-fun previous_node_of (State (_, prev_node)) = prev_node;
+fun previous_node_of (State (_, prev_node)) = Option.map #1 prev_node;
 
 fun node_of (State (NONE, _)) = raise UNDEF
   | node_of (State (SOME (node, _), _)) = node;
@@ -312,16 +310,14 @@ fun program f =
 end;
 
 
-(* node transactions and recovery from stale theories *)
-
-(*NB: proof commands should be non-destructive!*)
+(* node transactions -- maintaining stable checkpoints *)
 
 local
 
-fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
-
 fun is_draft_theory (Theory (gthy, _)) = Context.is_draft (Context.theory_of gthy)
   | is_draft_theory _ = false;
+
+fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
 
 fun stale_error NONE = SOME (ERROR "Stale theory encountered after successful execution!")
   | stale_error some = some;
@@ -332,12 +328,12 @@ fun map_theory f (Theory (gthy, ctxt)) =
 
 in
 
-fun transaction pos f (node, exit) =
+fun apply_transaction pos f (node, exit) =
   let
     val _ = is_draft_theory node andalso error "Illegal draft theory in toplevel state";
     val cont_node = reset_presentation node;
     val back_node = map_theory (Theory.checkpoint o Theory.copy) cont_node;
-    fun state_error e nd = (State (SOME (nd, exit), SOME node), e);
+    fun state_error e nd = (State (SOME (nd, exit), SOME (node, exit)), e);
 
     val (result, err) =
       cont_node
@@ -360,11 +356,6 @@ end;
 
 (* primitive transitions *)
 
-(*Note: Recovery from stale theories is provided only for theory-level
-  operations via Transaction.  Other node or state operations should
-  not touch theories at all.  Interrupts are enabled only for Keep and
-  Transaction.*)
-
 datatype trans =
   Init of string * (bool -> theory) * (theory -> unit) | (*theory name, init, exit*)
   Exit |                                         (*formal exit of theory -- without committing*)
@@ -376,14 +367,14 @@ local
 
 fun apply_tr int _ (Init (_, f, exit)) (State (NONE, _)) =
       State (SOME (Theory (Context.Theory (Theory.checkpoint (f int)), NONE), exit), NONE)
-  | apply_tr _ _ Exit (State (SOME (node as Theory (Context.Theory _, _), _), _)) =
-      State (NONE, SOME node)
-  | apply_tr _ _ CommitExit (State (SOME (Theory (Context.Theory thy, _), exit), _)) =
+  | apply_tr _ _ Exit (State (SOME (node as Theory (Context.Theory _, _), exit), _)) =
+      State (NONE, SOME (node, exit))
+  | apply_tr _ _ CommitExit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
       (controlled_execution exit thy; toplevel)
   | apply_tr int _ (Keep f) state =
       controlled_execution (fn x => tap (f int) x) state
   | apply_tr int pos (Transaction f) (State (SOME state, _)) =
-      transaction pos (fn x => f int x) state
+      apply_transaction pos (fn x => f int x) state
   | apply_tr _ _ _ _ = raise UNDEF;
 
 fun apply_union _ _ [] state = raise FAILURE (state, UNDEF)
@@ -462,9 +453,8 @@ val print = map_transition (fn (name, pos, int_only, _, no_timing, trans) =>
 
 fun init_theory name f exit = add_trans (Init (name, f, exit));
 val exit = add_trans Exit;
-val commit_exit = add_trans CommitExit (name "end" empty);
 val keep' = add_trans o Keep;
-fun app_current f = add_trans (Transaction f);
+fun transaction f = add_trans (Transaction f);
 
 fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
@@ -476,17 +466,17 @@ val unknown_context = imperative (fn () => warning "Unknown context");
 
 (* theory transitions *)
 
-fun generic_theory f = app_current (fn _ =>
+fun generic_theory f = transaction (fn _ =>
   (fn Theory (gthy, _) => Theory (f gthy, NONE)
     | _ => raise UNDEF));
 
-fun theory' f = app_current (fn int =>
+fun theory' f = transaction (fn int =>
   (fn Theory (Context.Theory thy, _) => Theory (Context.Theory (f int thy), NONE)
     | _ => raise UNDEF));
 
 fun theory f = theory' (K f);
 
-fun begin_local_theory begin f = app_current (fn _ =>
+fun begin_local_theory begin f = transaction (fn _ =>
   (fn Theory (Context.Theory thy, _) =>
         let
           val lthy = f thy;
@@ -494,13 +484,13 @@ fun begin_local_theory begin f = app_current (fn _ =>
         in Theory (gthy, SOME lthy) end
     | _ => raise UNDEF));
 
-val end_local_theory = app_current (fn _ =>
+val end_local_theory = transaction (fn _ =>
   (fn Theory (Context.Proof lthy, _) => Theory (Context.Theory (loc_exit lthy), SOME lthy)
     | _ => raise UNDEF));
 
 local
 
-fun local_theory_presentation loc f g = app_current (fn int =>
+fun local_theory_presentation loc f g = transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
           val finish = loc_finish loc gthy;
@@ -518,7 +508,7 @@ end;
 
 (* proof transitions *)
 
-fun end_proof f = app_current (fn int =>
+fun end_proof f = transaction (fn int =>
   (fn Proof (prf, (finish, _)) =>
         let val state = ProofNode.current prf in
           if can (Proof.assert_bottom true) state then
@@ -533,7 +523,7 @@ fun end_proof f = app_current (fn int =>
 
 local
 
-fun begin_proof init finish = app_current (fn int =>
+fun begin_proof init finish = transaction (fn int =>
   (fn Theory (gthy, _) =>
     let
       val prf = init int gthy;
@@ -562,17 +552,17 @@ fun theory_to_proof f = begin_proof
 
 end;
 
-val forget_proof = app_current (fn _ =>
+val forget_proof = transaction (fn _ =>
   (fn Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | SkipProof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | _ => raise UNDEF));
 
-fun present_proof f = app_current (fn int =>
+fun present_proof f = transaction (fn int =>
   (fn Proof (prf, x) => Proof (ProofNode.apply I prf, x)
     | skip as SkipProof _ => skip
     | _ => raise UNDEF) #> tap (f int));
 
-fun proofs' f = app_current (fn int =>
+fun proofs' f = transaction (fn int =>
   (fn Proof (prf, x) => Proof (ProofNode.applys (f int) prf, x)
     | skip as SkipProof _ => skip
     | _ => raise UNDEF));
@@ -581,15 +571,15 @@ fun proof' f = proofs' (Seq.single oo f);
 val proofs = proofs' o K;
 val proof = proof' o K;
 
-fun actual_proof f = app_current (fn _ =>
+fun actual_proof f = transaction (fn _ =>
   (fn Proof (prf, x) => Proof (f prf, x)
     | _ => raise UNDEF));
 
-fun skip_proof f = app_current (fn _ =>
+fun skip_proof f = transaction (fn _ =>
   (fn SkipProof (h, x) => SkipProof (f h, x)
     | _ => raise UNDEF));
 
-fun skip_proof_to_theory pred = app_current (fn _ =>
+fun skip_proof_to_theory pred = transaction (fn _ =>
   (fn SkipProof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
   | _ => raise UNDEF));
 
@@ -646,29 +636,38 @@ fun transition int tr st =
 end;
 
 
+(* commit final exit *)
+
+val commit_exit =
+  name "end" empty
+  |> add_trans CommitExit
+  |> imperative (fn () => warning "Expected to find finished theory");
+
+
 (* excursion: toplevel -- apply transformers/presentation -- toplevel *)
 
 local
 
 fun no_pr _ _ _ = ();
 
-fun excur (tr, pr) st res =
+fun excur (tr, pr) (st, res) =
   (case transition (! interact) tr st of
     SOME (st', NONE) =>
-      (st, st', setmp_thread_position tr (fn () => pr st st' res) () handle exn =>
+      (st', setmp_thread_position tr (fn () => pr st st' res) () handle exn =>
         raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
   | SOME (st', SOME exn_info) => raise EXCURSION_FAIL exn_info
   | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
 
-fun excurs (tr :: trs) (_, st, res) = excurs trs (excur tr st res)
-  | excurs [] (st, st', res') =
-      if is_toplevel st' then (excur (commit_exit, no_pr) st (); res')
-      else error "Unfinished development at end of input";
+fun excurs trs st_res =
+  let val (st', res') = fold excur trs st_res in
+    if is_toplevel st' then (excur (commit_exit, no_pr) (st', ()); res')
+    else error "Unfinished development at end of input"
+  end;
 
 in
 
 fun present_excursion trs res =
-  excurs trs (toplevel, toplevel, res) handle exn => error (exn_message exn);
+  excurs trs (toplevel, res) handle exn => error (exn_message exn);
 
 fun excursion trs = present_excursion (map (rpair no_pr) trs) ();
 
