@@ -346,7 +346,7 @@ fun try_run id =
   (case try the_state (prev_command id) of
     NONE => ()
   | SOME state =>
-      (case run false (#transition (the_command id)) state of
+      (case run true (#transition (the_command id)) state of
         NONE => ()
       | SOME status => update_status status id));
       
