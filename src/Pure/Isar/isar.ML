@@ -45,7 +45,9 @@ fun identify tr =
   (case Toplevel.get_id tr of
     SOME id => (id, tr)
   | NONE =>
-      let val id = "isabelle:" ^ serial_string ()
+      let val id =
+        if ! Toplevel.debug then "isabelle:" ^ Toplevel.name_of tr ^ serial_string ()
+        else "isabelle:" ^ serial_string ()
       in (id, Toplevel.put_id id tr) end);
 
 
@@ -64,6 +66,7 @@ fun category_of tr =
 
 val is_theory = fn Theory => true | _ => false;
 val is_proper = fn Theory => true | Proof => true | _ => false;
+val is_regular = fn Control => false | _ => true;
 
 
 (* command status *)
@@ -78,6 +81,12 @@ fun status_markup Unprocessed = Markup.unprocessed
   | status_markup Running = Markup.running
   | status_markup (Failed _) = Markup.failed
   | status_markup (Finished _) = Markup.finished;
+
+fun run int tr state =
+  (case Toplevel.transition int tr state of
+    NONE => NONE
+  | SOME (_, SOME err) => (Toplevel.error_msg tr err; SOME (Failed err))
+  | SOME (state', NONE) => SOME (Finished state'));
 
 
 (* datatype command *)
@@ -114,6 +123,9 @@ fun get_commands () = NAMED_CRITICAL "Isar" (fn () => ! global_commands);
 
 end;
 
+fun add_edge (id1, id2) =
+  if id1 = no_id orelse id2 = no_id then I else Graph.add_edge (id1, id2);
+
 
 fun init_commands () = change_commands (K Graph.empty);
 
@@ -124,11 +136,11 @@ fun the_command id =
   in cmd end;
 
 fun prev_command id =
-  if id = no_id then NONE
+  if id = no_id then no_id
   else
     (case Graph.imm_preds (get_commands ()) id handle Graph.UNDEF bad => err_undef bad of
-      [] => NONE
-    | [prev] => SOME prev
+      [] => no_id
+    | [prev] => prev
     | _ => sys_error ("Non-linear command dependency " ^ quote id));
 
 fun next_commands id =
@@ -136,7 +148,7 @@ fun next_commands id =
   else Graph.imm_succs (get_commands ()) id handle Graph.UNDEF bad => err_undef bad;
 
 fun descendant_commands ids =
-  Graph.all_succs (get_commands ()) (filter_out (fn id => id = no_id) ids)
+  Graph.all_succs (get_commands ()) (distinct (op =) (filter_out (fn id => id = no_id) ids))
     handle Graph.UNDEF bad => err_undef bad;
 
 
@@ -160,9 +172,9 @@ fun create_command raw_tr =
     val _ = change_commands (Graph.new_node (id, cmd));
   in id end;
 
-fun dispose_command id =
+fun dispose_commands ids =
   let
-    val desc = descendant_commands [id];
+    val desc = descendant_commands ids;
     val _ = List.app (report_status Markup.disposed) desc;
     val _ = change_commands (Graph.del_nodes desc);
   in () end;
@@ -227,16 +239,17 @@ fun >> raw_tr =
     val id = create_command raw_tr;
     val {category, transition = tr, ...} = the_command id;
     val (prev, prev_state) = point_state ();
-    val _ = if prev <> no_id then change_commands (Graph.add_edge (prev, id)) else ();
+    val _ =
+      if is_regular category
+      then (dispose_commands (next_commands prev); change_commands (add_edge (prev, id)))
+      else ();
   in
-    (case Toplevel.transition true tr prev_state of
-      NONE => (dispose_command id; false)
-    | SOME (_, SOME err) =>
-       (Toplevel.error_msg tr err; set_exn (SOME err); dispose_command id; true)
-    | SOME (state, NONE) =>
-       (set_exn NONE;
-        if category = Control then dispose_command id
-        else (update_status (Finished state) id; set_point id);
+    (case run true tr prev_state of
+      NONE => false
+    | SOME (status as Failed err) => (update_status status id; set_exn (SOME err); true)
+    | SOME status =>
+       (update_status status id; set_exn NONE;
+        if is_regular category then set_point id else ();
         true))
   end;
 
@@ -250,22 +263,20 @@ local
 
 fun err_undo () = error "Undo history exhausted";
 
-fun get_prev id = the_default no_id (prev_command id);
-
 fun find_category which id =
   (case #category (the_command id) of
     Empty => err_undo ()
-  | category => if which category then id else find_category which (get_prev id));
+  | category => if which category then id else find_category which (prev_command id));
 
 fun find_begin_theory id =
   if id = no_id then err_undo ()
   else if is_some (Toplevel.init_of (#transition (the_command id))) then id
-  else find_begin_theory (get_prev id);
+  else find_begin_theory (prev_command id);
 
 fun undo_command id =
   (case Toplevel.init_of (#transition (the_command id)) of
-    SOME name => get_prev id before ThyInfo.kill_thy name
-  | NONE => get_prev id);
+    SOME name => prev_command id before ThyInfo.kill_thy name
+  | NONE => prev_command id);
 
 in
 
@@ -329,12 +340,18 @@ fun main () =
 
 (** editor model **)
 
-(* run commands *)  (* FIXME *)
+(* run commands *)
 
-fun run_commands ids =
-  let
-    val _ = List.app (update_status Unprocessed) ids;
-  in () end;
+fun try_run id =
+  (case try the_state (prev_command id) of
+    NONE => ()
+  | SOME state =>
+      (case run false (#transition (the_command id)) state of
+        NONE => ()
+      | SOME status => update_status status id));
+      
+fun rerun_commands ids =
+  (List.app (update_status Unprocessed) ids; List.app try_run ids);
 
 
 (* modify document *)
@@ -343,18 +360,18 @@ fun insert_command prev id = NAMED_CRITICAL "Isar" (fn () =>
   let
     val nexts = next_commands prev;
     val _ = change_commands
-      (fold (fn next => Graph.del_edge (prev, next) #> Graph.add_edge (id, next)) nexts #>
-        Graph.add_edge (prev, id));
-  in descendant_commands [id] end) |> run_commands;
+     (fold (fn next => Graph.del_edge (prev, next)) nexts #> add_edge (prev, id) #>
+      fold (fn next => Graph.add_edge (id, next)) nexts);
+  in descendant_commands [id] end) |> rerun_commands;
 
 fun remove_command id = NAMED_CRITICAL "Isar" (fn () =>
   let
-    val prev_edge =
-      (case prev_command id of NONE => K I
-      | SOME prev => fn next => Graph.add_edge (prev, next));
+    val prev = prev_command id;
     val nexts = next_commands id;
-    val _ = change_commands (fold (fn next => Graph.del_edge (id, next) #> prev_edge next) nexts);
-  in descendant_commands nexts end) |> run_commands;
+    val _ = change_commands
+     (fold (fn next => Graph.del_edge (id, next)) nexts #>
+      fold (fn next => add_edge (prev, next)) nexts);
+  in descendant_commands nexts end) |> rerun_commands;
 
 end;
 
