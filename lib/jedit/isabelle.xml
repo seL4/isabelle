@@ -36,6 +36,9 @@
       <OPERATOR>.</OPERATOR>
       <OPERATOR>..</OPERATOR>
       <INVALID>Isabelle.command</INVALID>
+      <INVALID>Isar.command</INVALID>
+      <INVALID>Isar.insert</INVALID>
+      <INVALID>Isar.remove</INVALID>
       <OPERATOR>ML</OPERATOR>
       <LABEL>ML_command</LABEL>
       <LABEL>ML_val</LABEL>

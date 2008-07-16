@@ -10,6 +10,9 @@
   '("\\."
     "\\.\\."
     "Isabelle\\.command"
+    "Isar\\.command"
+    "Isar\\.insert"
+    "Isar\\.remove"
     "ML"
     "ML_command"
     "ML_val"
@@ -300,6 +303,9 @@
 
 (defconst isar-keywords-control
   '("Isabelle\\.command"
+    "Isar\\.command"
+    "Isar\\.insert"
+    "Isar\\.remove"
     "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
     "ProofGeneral\\.kill_proof"
