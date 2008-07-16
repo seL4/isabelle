@@ -19,7 +19,8 @@ use_thys [
   "SOS",
   "LocalWeakening",
   "Support",
-  "Contexts" 
+  "Contexts",
+  "Standardization"
 ];
 
 setmp quick_and_dirty true use_thy "VC_Condition";
