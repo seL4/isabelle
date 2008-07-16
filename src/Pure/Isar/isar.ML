@@ -7,12 +7,15 @@ The global Isabelle/Isar state and main read-eval-print loop.
 
 signature ISAR =
 sig
+  type id = string
+  val no_id: id
+  val create_command: Toplevel.transition -> id
   val init_point: unit -> unit
   val state: unit -> Toplevel.state
-  val exn: unit -> (exn * string) option
   val context: unit -> Proof.context
   val goal: unit -> thm
   val print: unit -> unit
+  val exn: unit -> (exn * string) option
   val >> : Toplevel.transition -> bool
   val >>> : Toplevel.transition list -> unit
   val linear_undo: int -> unit
@@ -23,6 +26,8 @@ sig
   val toplevel_loop: {init: bool, welcome: bool, sync: bool, secure: bool} -> unit
   val loop: unit -> unit
   val main: unit -> unit
+  val insert_command: id -> id -> unit
+  val remove_command: id -> unit
 end;
 
 structure Isar: ISAR =
@@ -61,11 +66,21 @@ val is_theory = fn Theory => true | _ => false;
 val is_proper = fn Theory => true | Proof => true | _ => false;
 
 
-(* datatype command *)
+(* command status *)
 
 datatype status =
-  Initial |
-  Result of Toplevel.state * (exn * string) option;
+  Unprocessed |
+  Running |
+  Failed of exn * string |
+  Finished of Toplevel.state;
+
+fun status_markup Unprocessed = Markup.unprocessed
+  | status_markup Running = Markup.running
+  | status_markup (Failed _) = Markup.failed
+  | status_markup (Finished _) = Markup.finished;
+
+
+(* datatype command *)
 
 datatype command = Command of
  {category: category,
@@ -76,7 +91,7 @@ fun make_command (category, transition, status) =
   Command {category = category, transition = transition, status = status};
 
 val empty_command =
-  make_command (Empty, Toplevel.empty, Result (Toplevel.toplevel, NONE));
+  make_command (Empty, Toplevel.empty, Finished Toplevel.toplevel);
 
 fun map_command f (Command {category, transition, status}) =
   make_command (f (category, transition, status));
@@ -84,67 +99,85 @@ fun map_command f (Command {category, transition, status}) =
 fun map_status f = map_command (fn (category, transition, status) =>
   (category, transition, f status));
 
-fun status_markup Initial = Markup.unprocessed
-  | status_markup (Result (_, NONE)) = Markup.finished
-  | status_markup (Result (_, SOME _)) = Markup.failed;
-
 
 (* global collection of identified commands *)
 
 fun err_dup id = sys_error ("Duplicate command " ^ quote id);
 fun err_undef id = sys_error ("Unknown command " ^ quote id);
 
-local
-
-val empty_commands = Graph.empty: command Graph.T;
-val global_commands = ref empty_commands;
-
-in
+local val global_commands = ref (Graph.empty: command Graph.T) in
 
 fun change_commands f = NAMED_CRITICAL "Isar" (fn () => change global_commands f)
-  handle Graph.DUP id => err_dup id | Graph.UNDEF id => err_undef id;
+  handle Graph.DUP bad => err_dup bad | Graph.UNDEF bad => err_undef bad;
 
-fun init_commands () = change_commands (K empty_commands);
+fun get_commands () = NAMED_CRITICAL "Isar" (fn () => ! global_commands);
+
+end;
+
+
+fun init_commands () = change_commands (K Graph.empty);
 
 fun the_command id =
   let val Command cmd =
     if id = no_id then empty_command
-    else (Graph.get_node (! global_commands) id handle Graph.UNDEF _ => err_undef id)
+    else (Graph.get_node (get_commands ()) id handle Graph.UNDEF bad => err_undef bad)
   in cmd end;
 
 fun prev_command id =
   if id = no_id then NONE
   else
-    (case Graph.imm_preds (! global_commands) id handle Graph.UNDEF _ => err_undef id of
+    (case Graph.imm_preds (get_commands ()) id handle Graph.UNDEF bad => err_undef bad of
       [] => NONE
     | [prev] => SOME prev
     | _ => sys_error ("Non-linear command dependency " ^ quote id));
 
-end;
+fun next_commands id =
+  if id = no_id then []
+  else Graph.imm_succs (get_commands ()) id handle Graph.UNDEF bad => err_undef bad;
+
+fun descendant_commands ids =
+  Graph.all_succs (get_commands ()) (filter_out (fn id => id = no_id) ids)
+    handle Graph.UNDEF bad => err_undef bad;
 
 
-fun the_result id =
-  (case the_command id of
-    {status = Result res, ...} => res
-  | {transition, ...} => error ("Unfinished command " ^ Toplevel.str_of transition));
+(* maintain status *)
 
-val the_state = #1 o the_result;
-val command_status = Toplevel.status o #transition o the_command;
+fun report_status markup id = Toplevel.status (#transition (the_command id)) markup;
+
+fun update_status status id = change_commands (Graph.map_node id (map_status (fn old_status =>
+  let
+    val markup = status_markup status;
+    val _ = if markup <> status_markup old_status then report_status markup id else ();
+  in status end)));
 
 
-fun new_command prev (id, cmd) =
-  change_commands (Graph.new_node (id, cmd) #> prev <> no_id ? Graph.add_edge (prev, id));
+(* create and dispose commands *)
+
+fun create_command raw_tr =
+  let
+    val (id, tr) = identify raw_tr;
+    val cmd = make_command (category_of tr, tr, Unprocessed);
+    val _ = change_commands (Graph.new_node (id, cmd));
+  in id end;
 
 fun dispose_command id =
-  (command_status id Markup.disposed; change_commands (Graph.del_nodes [id]));
+  let
+    val desc = descendant_commands [id];
+    val _ = List.app (report_status Markup.disposed) desc;
+    val _ = change_commands (Graph.del_nodes desc);
+  in () end;
 
-fun update_command_status id status =
- (change_commands (Graph.map_node id (map_status (K status)));
-  command_status id (status_markup status));
+
+(* final state *)
+
+fun the_state id =
+  (case the_command id of
+    {status = Finished state, ...} => state
+  | {transition, ...} => error ("Unfinished command " ^ Toplevel.str_of transition));
 
 
 
-(** TTY interaction **)
+(** TTY model -- single-threaded **)
 
 (* global point *)
 
@@ -155,14 +188,14 @@ fun point () = NAMED_CRITICAL "Isar" (fn () => ! global_point);
 
 end;
 
+
 fun set_point id = change_point (K id);
 fun init_point () = set_point no_id;
 
-fun point_result () = NAMED_CRITICAL "Isar" (fn () =>
-  let val id = point () in (id, the_result id) end);
+fun point_state () = NAMED_CRITICAL "Isar" (fn () =>
+  let val id = point () in (id, the_state id) end);
 
-fun state () = #1 (#2 (point_result ()));
-fun exn () = #2 (#2 (point_result ()));
+fun state () = #2 (point_state ());
 
 fun context () =
   Toplevel.context_of (state ())
@@ -175,25 +208,36 @@ fun goal () =
 fun print () = Toplevel.print_state false (state ());
 
 
-(* interactive state transformations --- NOT THREAD-SAFE! *)
+(* global failure status *)
+
+local val global_exn = ref (NONE: (exn * string) option) in
+
+fun set_exn err = global_exn := err;
+fun exn () = ! global_exn;
+
+end;
+
+
+(* interactive state transformations *)
 
 nonfix >> >>>;
 
 fun >> raw_tr =
   let
-    val (id, tr) = identify raw_tr;
-    val (prev, (prev_state, _)) = point_result ();
-    val category = category_of tr;
-    val _ = new_command prev (id, make_command (category, tr, Initial));
+    val id = create_command raw_tr;
+    val {category, transition = tr, ...} = the_command id;
+    val (prev, prev_state) = point_state ();
+    val _ = if prev <> no_id then change_commands (Graph.add_edge (prev, id)) else ();
   in
     (case Toplevel.transition true tr prev_state of
       NONE => (dispose_command id; false)
-    | SOME (result as (_, err)) =>
-        (update_command_status id (Result result);
-          Option.map (Toplevel.error_msg tr) err;
-          if is_some err orelse category = Control then dispose_command id
-          else set_point id;
-          true))
+    | SOME (_, SOME err) =>
+       (Toplevel.error_msg tr err; set_exn (SOME err); dispose_command id; true)
+    | SOME (state, NONE) =>
+       (set_exn NONE;
+        if category = Control then dispose_command id
+        else (update_status (Finished state) id; set_point id);
+        true))
   end;
 
 fun >>> [] = ()
@@ -280,6 +324,37 @@ fun loop () =
 
 fun main () =
   toplevel_loop {init = true, welcome = true, sync = false, secure = Secure.is_secure ()};
+
+
+
+(** editor model **)
+
+(* run commands *)  (* FIXME *)
+
+fun run_commands ids =
+  let
+    val _ = List.app (update_status Unprocessed) ids;
+  in () end;
+
+
+(* modify document *)
+
+fun insert_command prev id = NAMED_CRITICAL "Isar" (fn () =>
+  let
+    val nexts = next_commands prev;
+    val _ = change_commands
+      (fold (fn next => Graph.del_edge (prev, next) #> Graph.add_edge (id, next)) nexts #>
+        Graph.add_edge (prev, id));
+  in descendant_commands [id] end) |> run_commands;
+
+fun remove_command id = NAMED_CRITICAL "Isar" (fn () =>
+  let
+    val prev_edge =
+      (case prev_command id of NONE => K I
+      | SOME prev => fn next => Graph.add_edge (prev, next));
+    val nexts = next_commands id;
+    val _ = change_commands (fold (fn next => Graph.del_edge (id, next) #> prev_edge next) nexts);
+  in descendant_commands nexts end) |> run_commands;
 
 end;
 
