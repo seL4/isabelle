@@ -904,6 +904,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/ROOT.ML \
   Nominal/Examples/SN.thy \
   Nominal/Examples/SOS.thy \
+  Nominal/Examples/Standardization.thy \
   Nominal/Examples/Support.thy \
   Nominal/Examples/Type_Preservation.thy \
   Nominal/Examples/VC_Condition.thy \
