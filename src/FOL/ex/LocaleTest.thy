@@ -102,13 +102,6 @@ locale IC = IA + IB + assumes asm_C: "c = c"
 
 locale ID = IA + IB + fixes d defines def_D: "d == (a = b)"
 
-theorem (in IA)
-  includes ID
-  shows True
-  print_interps! IA
-  print_interps! ID
-  ..
-
 theorem (in ID) True ..
 
 typedecl i
@@ -769,12 +762,16 @@ lemma (in Rsemi_rev) r_assoc:
   "(x ++ y) ++ z = x ++ (y ++ z)"
   by (simp add: r_def assoc)
 
+(*
+Test is obsolete.
+
 lemma (in Rpair_semi)
   includes Rsemi_rev prodP (infixl "***" 65) rprodP (infixl "+++" 65)
   constrains prod :: "['a, 'a] => 'a"
     and rprodP :: "[('a, 'a) pair, ('a, 'a) pair] => ('a, 'a) pair"
   shows "(x +++ y) +++ z = x +++ (y +++ z)"
   apply (rule r_assoc) done
+*)
 
 
 subsection {* Import of Locales with Predicates as Interpretation *}

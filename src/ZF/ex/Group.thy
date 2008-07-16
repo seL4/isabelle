@@ -95,7 +95,7 @@ locale group = monoid +
 lemma (in group) is_group [simp]: "group(G)" by (rule group_axioms)
 
 theorem groupI:
-  includes struct G
+  fixes G (structure)
   assumes m_closed [simp]:
       "\<And>x y. \<lbrakk>x \<in> carrier(G); y \<in> carrier(G)\<rbrakk> \<Longrightarrow> x \<cdot> y \<in> carrier(G)"
     and one_closed [simp]: "\<one> \<in> carrier(G)"
@@ -259,14 +259,21 @@ lemma subgroup_imp_subset:
   by (rule subgroup.subset)
 
 lemma (in subgroup) group_axiomsI [intro]:
-  includes group G
+  assumes "group(G)"
   shows "group_axioms (update_carrier(G,H))"
-by (force intro: group_axioms.intro l_inv r_inv) 
+proof -
+  interpret group [G] by fact
+  show ?thesis by (force intro: group_axioms.intro l_inv r_inv)
+qed
 
 lemma (in subgroup) is_group [intro]:
-  includes group G
+  assumes "group(G)"
   shows "group (update_carrier(G,H))"
+proof -
+  interpret group [G] by fact
+  show ?thesis
   by (rule groupI) (auto intro: m_assoc l_inv mem_carrier)
+qed
 
 text {*
   Since @{term H} is nonempty, it contains some element @{term x}.  Since
@@ -306,10 +313,14 @@ definition
               <\<one>\<^bsub>G\<^esub>, \<one>\<^bsub>H\<^esub>>, 0>"
 
 lemma DirProdGroup_group:
-  includes group G + group H
+  assumes "group(G)" and "group(H)"
   shows "group (G \<Otimes> H)"
-  by (force intro!: groupI G.m_assoc H.m_assoc G.l_inv H.l_inv
+proof -
+  interpret G: group [G] by fact
+  interpret H: group [H] by fact
+  show ?thesis by (force intro!: groupI G.m_assoc H.m_assoc G.l_inv H.l_inv
           simp add: DirProdGroup_def)
+qed
 
 lemma carrier_DirProdGroup [simp]:
      "carrier (G \<Otimes> H) = carrier(G) \<times> carrier(H)"
@@ -325,7 +336,7 @@ lemma mult_DirProdGroup [simp]:
   by (simp add: DirProdGroup_def)
 
 lemma inv_DirProdGroup [simp]:
-  includes group G + group H
+  assumes "group(G)" and "group(H)"
   assumes g: "g \<in> carrier(G)"
       and h: "h \<in> carrier(H)"
   shows "inv \<^bsub>G \<Otimes> H\<^esub> <g, h> = <inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h>"
@@ -383,15 +394,25 @@ lemma (in group) iso_trans:
   by (auto simp add: iso_def hom_compose comp_bij)
 
 lemma DirProdGroup_commute_iso:
-  includes group G + group H
+  assumes "group(G)" and "group(H)"
   shows "(\<lambda><x,y> \<in> carrier(G \<Otimes> H). <y,x>) \<in> (G \<Otimes> H) \<cong> (H \<Otimes> G)"
-  by (auto simp add: iso_def hom_def inj_def surj_def bij_def) 
+proof -
+  interpret group [G] by fact
+  interpret group [H] by fact
+  show ?thesis by (auto simp add: iso_def hom_def inj_def surj_def bij_def)
+qed
 
 lemma DirProdGroup_assoc_iso:
-  includes group G + group H + group I
+  assumes "group(G)" and "group(H)" and "group(I)"
   shows "(\<lambda><<x,y>,z> \<in> carrier((G \<Otimes> H) \<Otimes> I). <x,<y,z>>)
           \<in> ((G \<Otimes> H) \<Otimes> I) \<cong> (G \<Otimes> (H \<Otimes> I))"
-  by (auto intro: lam_type simp add: iso_def hom_def inj_def surj_def bij_def) 
+proof -
+  interpret group [G] by fact
+  interpret group [H] by fact
+  interpret group [I] by fact
+  show ?thesis
+    by (auto intro: lam_type simp add: iso_def hom_def inj_def surj_def bij_def) 
+qed
 
 text{*Basis for homomorphism proofs: we assume two groups @{term G} and
   @term{H}, with a homomorphism @{term h} between them*}
@@ -846,32 +867,35 @@ definition
 
 
 lemma (in subgroup) equiv_rcong:
-   includes group G
+   assumes "group(G)"
    shows "equiv (carrier(G), rcong H)"
-proof (simp add: equiv_def, intro conjI)
-  show "rcong H \<subseteq> carrier(G) \<times> carrier(G)"
-    by (auto simp add: r_congruent_def) 
-next
-  show "refl (carrier(G), rcong H)"
-    by (auto simp add: r_congruent_def refl_def) 
-next
-  show "sym (rcong H)"
-  proof (simp add: r_congruent_def sym_def, clarify)
-    fix x y
-    assume [simp]: "x \<in> carrier(G)" "y \<in> carrier(G)" 
-       and "inv x \<cdot> y \<in> H"
-    hence "inv (inv x \<cdot> y) \<in> H" by (simp add: m_inv_closed) 
-    thus "inv y \<cdot> x \<in> H" by (simp add: inv_mult_group)
-  qed
-next
-  show "trans (rcong H)"
-  proof (simp add: r_congruent_def trans_def, clarify)
-    fix x y z
-    assume [simp]: "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
-       and "inv x \<cdot> y \<in> H" and "inv y \<cdot> z \<in> H"
-    hence "(inv x \<cdot> y) \<cdot> (inv y \<cdot> z) \<in> H" by simp
-    hence "inv x \<cdot> (y \<cdot> inv y) \<cdot> z \<in> H" by (simp add: m_assoc del: inv) 
-    thus "inv x \<cdot> z \<in> H" by simp
+proof -
+  interpret group [G] by fact
+  show ?thesis proof (simp add: equiv_def, intro conjI)
+    show "rcong H \<subseteq> carrier(G) \<times> carrier(G)"
+      by (auto simp add: r_congruent_def) 
+  next
+    show "refl (carrier(G), rcong H)"
+      by (auto simp add: r_congruent_def refl_def) 
+  next
+    show "sym (rcong H)"
+    proof (simp add: r_congruent_def sym_def, clarify)
+      fix x y
+      assume [simp]: "x \<in> carrier(G)" "y \<in> carrier(G)" 
+	and "inv x \<cdot> y \<in> H"
+      hence "inv (inv x \<cdot> y) \<in> H" by (simp add: m_inv_closed) 
+      thus "inv y \<cdot> x \<in> H" by (simp add: inv_mult_group)
+    qed
+  next
+    show "trans (rcong H)"
+    proof (simp add: r_congruent_def trans_def, clarify)
+      fix x y z
+      assume [simp]: "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
+	and "inv x \<cdot> y \<in> H" and "inv y \<cdot> z \<in> H"
+      hence "(inv x \<cdot> y) \<cdot> (inv y \<cdot> z) \<in> H" by simp
+      hence "inv x \<cdot> (y \<cdot> inv y) \<cdot> z \<in> H" by (simp add: m_assoc del: inv) 
+      thus "inv x \<cdot> z \<in> H" by simp
+    qed
   qed
 qed
 
@@ -879,30 +903,40 @@ text{*Equivalence classes of @{text rcong} correspond to left cosets.
   Was there a mistake in the definitions? I'd have expected them to
   correspond to right cosets.*}
 lemma (in subgroup) l_coset_eq_rcong:
-  includes group G
+  assumes "group(G)"
   assumes a: "a \<in> carrier(G)"
   shows "a <# H = (rcong H) `` {a}" 
-by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a
-                Collect_image_eq) 
-
+proof -
+  interpret group [G] by fact
+  show ?thesis
+    by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a
+      Collect_image_eq) 
+qed
 
 lemma (in group) rcos_equation:
-  includes subgroup H G
+  assumes "subgroup(H, G)"
   shows
      "\<lbrakk>ha \<cdot> a = h \<cdot> b; a \<in> carrier(G);  b \<in> carrier(G);  
         h \<in> H;  ha \<in> H;  hb \<in> H\<rbrakk>
-      \<Longrightarrow> hb \<cdot> a \<in> (\<Union>h\<in>H. {h \<cdot> b})"
-apply (rule UN_I [of "hb \<cdot> ((inv ha) \<cdot> h)"], simp)
-apply (simp add: m_assoc transpose_inv)
-done
-
+      \<Longrightarrow> hb \<cdot> a \<in> (\<Union>h\<in>H. {h \<cdot> b})" (is "PROP ?P")
+proof -
+  interpret subgroup [H G] by fact
+  show "PROP ?P"
+    apply (rule UN_I [of "hb \<cdot> ((inv ha) \<cdot> h)"], simp)
+    apply (simp add: m_assoc transpose_inv)
+    done
+qed
 
 lemma (in group) rcos_disjoint:
-  includes subgroup H G
-  shows "\<lbrakk>a \<in> rcosets H; b \<in> rcosets H; a\<noteq>b\<rbrakk> \<Longrightarrow> a \<inter> b = 0"
-apply (simp add: RCOSETS_def r_coset_def)
-apply (blast intro: rcos_equation prems sym)
-done
+  assumes "subgroup(H, G)"
+  shows "\<lbrakk>a \<in> rcosets H; b \<in> rcosets H; a\<noteq>b\<rbrakk> \<Longrightarrow> a \<inter> b = 0" (is "PROP ?P")
+proof -
+  interpret subgroup [H G] by fact
+  show "PROP ?P"
+    apply (simp add: RCOSETS_def r_coset_def)
+    apply (blast intro: rcos_equation prems sym)
+    done
+qed
 
 
 subsection {*Order of a Group and Lagrange's Theorem*}
@@ -912,19 +946,27 @@ definition
   "order(S) == |carrier(S)|"
 
 lemma (in group) rcos_self:
-  includes subgroup
-  shows "x \<in> carrier(G) \<Longrightarrow> x \<in> H #> x"
-apply (simp add: r_coset_def)
-apply (rule_tac x="\<one>" in bexI, auto) 
-done
+  assumes "subgroup(H, G)"
+  shows "x \<in> carrier(G) \<Longrightarrow> x \<in> H #> x" (is "PROP ?P")
+proof -
+  interpret subgroup [H G] by fact
+  show "PROP ?P"
+    apply (simp add: r_coset_def)
+    apply (rule_tac x="\<one>" in bexI) apply (auto)
+    done
+qed
 
 lemma (in group) rcosets_part_G:
-  includes subgroup
+  assumes "subgroup(H, G)"
   shows "\<Union>(rcosets H) = carrier(G)"
-apply (rule equalityI)
- apply (force simp add: RCOSETS_def r_coset_def)
-apply (auto simp add: RCOSETS_def intro: rcos_self prems)
-done
+proof -
+  interpret subgroup [H G] by fact
+  show ?thesis
+    apply (rule equalityI)
+    apply (force simp add: RCOSETS_def r_coset_def)
+    apply (auto simp add: RCOSETS_def intro: rcos_self prems)
+    done
+qed
 
 lemma (in group) cosets_finite:
      "\<lbrakk>c \<in> rcosets H;  H \<subseteq> carrier(G);  Finite (carrier(G))\<rbrakk> \<Longrightarrow> Finite(c)"
@@ -999,9 +1041,10 @@ lemma (in normal) rcosets_assoc:
 by (auto simp add: RCOSETS_def rcos_sum m_assoc)
 
 lemma (in subgroup) subgroup_in_rcosets:
-  includes group G
+  assumes "group(G)"
   shows "H \<in> rcosets H"
 proof -
+  interpret group [G] by fact
   have "H #> \<one> = H"
     using _ subgroup_axioms by (rule coset_join2) simp_all
   then show ?thesis
