@@ -13,11 +13,15 @@ diff -r gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
 > <div class="files">
 > #files#
 > </div>
+Only in isabelle: filelog.tmpl~
 diff -r gitweb/map isabelle/map
-57c57
+56,57c56,57
+< shortlogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><i>#author|person#</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|firstline|escape#</b> <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a></td><td class="link" nowrap><a href="{url}rev/#node|short#{sessionvars%urlparameter}">changeset</a> | <a href="{url}file/#node|short#{sessionvars%urlparameter}">files</a></td></tr>'
 < filelogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|firstline|escape#</b></a></td><td class="link"><a href="{url}file/#node|short#/#file|urlescape#{sessionvars%urlparameter}">file</a>&nbsp;|&nbsp;<a href="{url}diff/#node|short#/#file|urlescape#{sessionvars%urlparameter}">diff</a>&nbsp;|&nbsp;<a href="{url}annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}">annotate</a> #rename%filelogrename#</td></tr>'
 ---
-> filelogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><i>#author|person#</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|firstline|escape#</b></a></td><td class="link"><a href="{url}file/#node|short#/#file|urlescape#{sessionvars%urlparameter}">file</a>&nbsp;|&nbsp;<a href="{url}diff/#node|short#/#file|urlescape#{sessionvars%urlparameter}">diff</a>&nbsp;|&nbsp;<a href="{url}annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}">annotate</a> #rename%filelogrename#</td></tr>'
+> shortlogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><i>#date|shortdate#</i></td><td><i>#author|person#</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|escape#</b> <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a></td><td class="link" nowrap><a href="{url}rev/#node|short#{sessionvars%urlparameter}">changeset</a> | <a href="{url}file/#node|short#{sessionvars%urlparameter}">files</a></td></tr>'
+> filelogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><i>#date|shortdate#</i></td><td><i>#author|person#</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|escape#</b></a></td><td class="link"><a href="{url}file/#node|short#/#file|urlescape#{sessionvars%urlparameter}">file</a>&nbsp;|&nbsp;<a href="{url}diff/#node|short#/#file|urlescape#{sessionvars%urlparameter}">diff</a>&nbsp;|&nbsp;<a href="{url}annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}">annotate</a> #rename%filelogrename#</td></tr>'
+Only in isabelle: map~
 diff -r gitweb/summary.tmpl isabelle/summary.tmpl
 33d32
 < <tr><td>owner</td><td>#owner|obfuscate#</td></tr>
