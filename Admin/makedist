@@ -162,7 +162,8 @@ if [ -n "$UNOFFICIAL" ]; then
     echo "This is an unofficial release of Isabelle, created by $LOGNAME $DATE."
     echo
   } >ANNOUNCE
-  perl -pi -e "s/val is_official = true/val is_official = false/" src/Pure/ROOT.ML
+else
+  perl -pi -e "s/val is_official = false/val is_official = true/" src/Pure/ROOT.ML
 fi
 
 perl -pi -e "s/ISABELLE_IDENTIFIER=\"\"/ISABELLE_IDENTIFIER=\"$DISTNAME\"/g;" lib/scripts/getsettings
@@ -195,8 +196,6 @@ chgrp -R isabelle "$DISTNAME" Isabelle
 mkdir -p "pdf/$DISTNAME/doc"
 mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
 
-sync; sleep 3
-
 echo "$DISTNAME.tar.gz"
 tar cf "$DISTNAME.tar" Isabelle "$DISTNAME"
 gzip "$DISTNAME.tar"
@@ -224,8 +223,6 @@ chgrp -R isabelle "$DISTNAME"
 
 rm -rf "${DISTNAME}-old"
 
-
-# final note
 
 echo "###"
 echo "### Finished makedist."
