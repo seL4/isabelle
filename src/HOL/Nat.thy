@@ -1297,6 +1297,56 @@ declaration {* K LinArith.setup *}
 
 lemmas [arith_split] = nat_diff_split split_min split_max
 
+
+context order
+begin
+
+lemma lift_Suc_mono_le:
+  assumes mono: "!!n. f n \<le> f(Suc n)" shows "n\<le>n' \<Longrightarrow> f n \<le> f n'"
+proof(induct k == "n'-n" arbitrary:n')
+  case 0
+  moreover hence "n' <= n" by simp
+  ultimately have "n=n'" by(blast intro:order_antisym)
+  thus ?case by simp
+next
+  case (Suc k)
+  then obtain l where [simp]: "n' = Suc l"
+  proof(cases n')
+    case 0 thus ?thesis using Suc by simp
+  next
+    case Suc thus ?thesis using that by blast
+  qed
+  have "f n \<le> f l" using Suc by auto
+  also have "\<dots> \<le> f n'" using mono by auto
+  finally(order_trans) show ?case by auto
+qed
+
+lemma lift_Suc_mono_less:
+  assumes mono: "!!n. f n < f(Suc n)" shows "n<n' \<Longrightarrow> f n < f n'"
+proof(induct k == "n' - Suc n" arbitrary:n')
+  case 0
+  hence "~ n' <= n \<longrightarrow> n' = Suc n" by(simp add:le_Suc_eq)
+  moreover have "~ n' <= n"
+  proof
+    assume "n' <= n" thus False using `n<n'` by(auto dest: le_less_trans)
+  qed
+  ultimately show ?case by(simp add:mono)
+next
+  case (Suc k)
+  then obtain l where [simp]: "n' = Suc l"
+  proof(cases n')
+    case 0 thus ?thesis using Suc by simp
+  next
+    case Suc thus ?thesis using that by blast
+  qed
+  have "f n < f l" using Suc by auto
+  also have "\<dots> < f n'" using mono by auto
+  finally(less_trans) show ?case by auto
+qed
+
+end
+
+
 text{*Subtraction laws, mostly by Clemens Ballarin*}
 
 lemma diff_less_mono: "[| a < (b::nat); c \<le> a |] ==> a-c < b-c"
@@ -1441,6 +1491,7 @@ declare diff_diff_left [simp]  add_diff_assoc [simp] add_diff_assoc2[simp]
 
 text{*At present we prove no analogue of @{text not_less_Least} or @{text
 Least_Suc}, since there appears to be no need.*}
+
 
 subsection {* size of a datatype value *}
 
