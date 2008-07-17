@@ -37,14 +37,12 @@ fun str_of [] = Context.PureN
 
 fun name () = "Isabelle/" ^ str_of (path ());
 
-val changelog = Path.explode "$ISABELLE_HOME/ChangeLog.gz";
-
 fun welcome () =
   if Distribution.is_official then
     "Welcome to " ^ name () ^ " (" ^ Distribution.version ^ ")"
   else
     "Unofficial version of " ^ name () ^ " (" ^ Distribution.version ^ ")" ^
-    (if File.exists changelog then "\nSee also " ^ Path.implode (Path.expand changelog) else "");
+    (if Distribution.changelog <> "" then "\nSee also " ^ Distribution.changelog else "");
 
 
 (* add_path *)
