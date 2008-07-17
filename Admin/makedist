@@ -159,7 +159,7 @@ if [ -n "$UNOFFICIAL" ]; then
     echo "IMPORTANT NOTE"
     echo "=============="
     echo
-    echo "This is an unofficial release of Isabelle, created by $LOGNAME $DATE."
+    echo "This is an unofficial snapshot of Isabelle, created by $LOGNAME $DATE."
     echo
   } >ANNOUNCE
 else
