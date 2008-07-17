@@ -13,23 +13,9 @@ SRCS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents Tools ZF"
 export CVSROOT=/home/isabelle-repository/archive
 [ ! -d "$CVSROOT" ] && CVSROOT="${ISABELLE_USER:-$USER}@atbroy100.informatik.tu-muenchen.de:$CVSROOT"
 
+[ -z "$CVS2CL" ] && type -path cvs2cl >/dev/null && CVS2CL=cvs2cl
+
 umask 022
-
-
-## executables
-
-TAR=tar
-type -path gtar >/dev/null && TAR=gtar
-
-FIND=find
-type -path gfind >/dev/null && FIND=gfind
-
-[ -z "$CVS2CL" ] && type -path cvs2cl && CVS2CL=cvs2cl
-
-#paranoia setting for sunbroy
-PATH="/usr/local/dist/DIR/j2sdk1.5.0/bin:$PATH"
-
-PATH="/home/scala/bin:$PATH"
 
 
 ## diagnostics
@@ -134,28 +120,15 @@ if [ -n "$CVS2CL" -a -n "$UNOFFICIAL" ]; then
   cd ..
 fi
 
-$FIND . -name CVS -print | xargs rm -rf
-$FIND . -name .cvsignore -print | xargs rm -rf
-$FIND . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -x
-$FIND . -print | xargs chmod u+rw
+find . -name CVS -print | xargs rm -rf
+find . -name .cvsignore -print | xargs rm -rf
+find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -x
+find . -print | xargs chmod u+rw
 
 
-# build docs
+# build components
 
-echo "###"
-echo "### Building docs ..."
-echo "###"
-
-cd "$DISTBASE/$DISTNAME/Doc"
-PDFLATEX=$(type -path pdflatex)
-
-for DOC in $(cat Dirs)
-do
-  pushd "$DOC" > /dev/null
-  make dvi || fail "DVI document for $DOC failed!"
-  { [ -n "$PDFLATEX" ] && make clean pdf; } || fail "PDF document for $DOC failed!"
-  popd
-done
+"$DISTBASE/$DISTNAME/Admin/build" all || fail "Failed to build distribution"
 
 
 # prepare dist dir for release
@@ -177,7 +150,7 @@ EOF
 
 cp Distribution/lib/html/library_index_content.template ../website/
 
-MOVE=$($FIND Doc \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
+MOVE=$(find Doc \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
 rm Distribution/doc/Isa-logics.eps
 rm Distribution/doc/codegen_process.pdf
@@ -188,20 +161,6 @@ mv $SRCS src
 
 mv Distribution/* .
 rmdir Distribution
-
-
-( cd lib/browser; make; ) || fail "Failed to build graph browser!"
-
-( cd lib/classes; ./mk; )
-[ -f lib/classes/isabelle.jar ] || fail "Failed to build Isabelle process wrapper!"
-
-if type -p scalac >/dev/null
-then
-  ( cd lib/jedit/plugin; ./mk; )
-  [ -f lib/jedit/isabelle.jar ] || fail "Failed to build jEdit plugin!"
-else
-  echo "Warning: Scala unavailable -- skipping jEdit plugin"
-fi
 
 
 cp doc/isabelle*.eps lib/logo
@@ -224,10 +183,8 @@ perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/library_index_header.template
 perl -pi -e "s/Isabelle repository version/$DISTVERSION/" src/Pure/ROOT.ML lib/Tools/version
 perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README
 
-( cd src; ../Admin/maketags; )
 
 rm -rf Admin
-rm -f TODO
 
 
 # create archive
@@ -254,11 +211,11 @@ mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
 sync; sleep 3
 
 echo "$DISTNAME.tar.gz"
-"$TAR" cf "$DISTNAME.tar" Isabelle "$DISTNAME"
+tar cf "$DISTNAME.tar" Isabelle "$DISTNAME"
 gzip "$DISTNAME.tar"
 
 echo "${DISTNAME}_pdf.tar.gz"
-( cd pdf; "$TAR" cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
+( cd pdf; tar cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
 gzip "${DISTNAME}_pdf.tar"
 
 mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
