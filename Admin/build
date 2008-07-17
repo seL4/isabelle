@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# Administrative build -- finish Isabelle source distribution.
+# Administrative build for Isabelle source distribution.
 
 ## global environment
 
@@ -98,10 +98,10 @@ function build_doc ()
 
   for DOC in $(cat Dirs)
   do
-    pushd "$DOC" > /dev/null
+    pushd "$DOC" >/dev/null
     make clean dvi || fail "DVI document for $DOC failed!"
     make clean pdf || fail "PDF document for $DOC failed!"
-    popd
+    popd >/dev/null
   done
 }
 
@@ -118,16 +118,16 @@ function build_jars ()
     cd "$ISABELLE_DIR"
   fi
 
-  pushd lib/classes
+  pushd lib/classes >/dev/null
   ./mk
   [ -f isabelle.jar ] || fail "Failed to build Isabelle process wrapper!"
-  popd
+  popd >/dev/null
 
-  type -p scalac || fail "Scala compiler unavailable"
-  pushd lib/jedit/plugin
+  type -p scalac >/dev/null || fail "Scala compiler unavailable"
+  pushd lib/jedit/plugin >/dev/null
   ./mk
   [ -f ../isabelle.jar ] || fail "Failed to build jEdit plugin!"
-  popd
+  popd >/dev/null
 }
 
 
