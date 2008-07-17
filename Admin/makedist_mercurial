@@ -28,14 +28,10 @@ Usage: $PRG [OPTIONS] [VERSION]
   Options are:
     -r NAME         proper release with name"
 
-  FIXME Make Isabelle distribution from the master sources at TUM.
+  Make Isabelle distribution from the Mercurial repository at TUM.
 
-  VERSION may be either a tag like "IsabelleXXXX" that specifies the
-  release to be exported from the repository, or "-" to checkout the
-  current sources as an unofficial release.
-
-  NAME specifies an explicit distribution name, by default it is
-  derived from VERSION.
+  VERSION identifies the snapshot, using usual Mercurial terminology;
+  the default is "tip", or the proper release name if given.
 
 EOF
   exit 1
@@ -71,10 +67,19 @@ shift $(($OPTIND - 1))
 
 # args
 
-VERSION="tip"
+VERSION=""
 [ "$#" -gt 0 ] && { VERSION="$1"; shift; }
 
 [ "$#" -gt 0 ] && usage
+
+
+# defaults
+
+if [ -z "$RELEASE" ]; then
+  [ -z "$VERSION" ] && VERSION=tip
+else
+  [ -z "$VERSION" ] && VERSION="$RELEASE"
+fi
 
 
 ## main
@@ -85,7 +90,7 @@ mkdir "$DISTPREFIX/$TMP" || fail "Failed to create fresh directory"
 cd "$DISTPREFIX/$TMP"
 
 echo "###"
-echo "### Retrieving $REPOS/archive/${VERSION}.tar.gz"
+echo "### Retrieving Mercurial snapshot ${VERSION}.tar.gz"
 echo "###"
 
 { wget -q "$REPOS/archive/${VERSION}.tar.gz" && tar -x -z -f "${VERSION}.tar.gz"; } || \
@@ -94,8 +99,8 @@ echo "###"
 rm "${VERSION}.tar.gz"
 IDENT=$(echo * | sed 's/Isabelle-repository-//')
 
-rm "Isabelle-repository-$IDENT/.hg_archival.txt"
-rm "Isabelle-repository-$IDENT/.hgtags"
+rm -f "Isabelle-repository-$IDENT/.hg_archival.txt"
+rm -f "Isabelle-repository-$IDENT/.hgtags"
 
 
 # dist name
@@ -170,14 +175,14 @@ if [ -z "$RELEASE" ]; then
     echo
   } >ANNOUNCE
 else
-  perl -pi -e "s/val is_official = false/val is_official = true/" src/Pure/ROOT.ML
+  perl -pi -e "s,val is_official = false,val is_official = true,g" src/Pure/ROOT.ML
 fi
 
-perl -pi -e "s/val changelog = \"\"/val changelog = \"$REPOS/log/$IDENT\"/" src/Pure/ROOT.ML
-perl -pi -e "s/ISABELLE_IDENTIFIER=\"\"/ISABELLE_IDENTIFIER=\"$DISTNAME\"/g;" lib/scripts/getsettings
-perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/library_index_header.template
-perl -pi -e "s/Isabelle repository version/$DISTVERSION/" src/Pure/ROOT.ML lib/Tools/version
-perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README
+perl -pi -e "s,val changelog = \"\",val changelog = \"$REPOS/log/$IDENT\",g" src/Pure/ROOT.ML
+perl -pi -e "s,ISABELLE_IDENTIFIER=\"\",ISABELLE_IDENTIFIER=\"$DISTNAME\",g" lib/scripts/getsettings
+perl -pi -e "s,{ISABELLE},$DISTNAME,g" lib/html/library_index_header.template
+perl -pi -e "s,Isabelle repository version,$DISTVERSION,g" src/Pure/ROOT.ML lib/Tools/version
+perl -pi -e "s,the internal repository version of Isabelle,$DISTVERSION,g" README
 
 
 # create archives
