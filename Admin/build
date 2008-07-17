@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+#
+# $Id$
+#
+# Administrative build -- finish Isabelle source distribution.
+
+## global environment
+
+#paranoia setting for sunbroy
+PATH="/usr/local/dist/DIR/j2sdk1.5.0/bin:$PATH"
+
+PATH="/home/scala/bin:$PATH"
+
+
+## directory layout
+
+ISABELLE_DIR="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
+
+if [ -d "$ISABELLE_DIR/Distribution" ]; then
+  OLD_LAYOUT=true
+else
+  OLD_LAYOUT=false
+fi
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  cat <<EOF
+
+Usage: $PRG [MODULES]
+
+  Produce Isabelle distribution modules from current repository sources.
+  The MODULES list may contain any of the following:
+
+    all             all modules below
+    browser         graph browser (requires jdk)
+    doc             documentation (requires latex and rail)
+    jars            JVM components (requires jdk and scala)
+
+EOF
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+[ "$#" -eq 0 ] && usage
+
+MODULES="$@"; shift "$#"
+
+
+## modules
+
+function build_all ()
+{
+  build_browser
+  build_doc
+  build_jars
+}
+
+
+function build_browser ()
+{
+  echo "###"
+  echo "### Building graph browser ..."
+  echo "###"
+
+  if [ "$OLD_LAYOUT" = true ]; then
+    cd "$ISABELLE_DIR/Distribution/lib/browser"
+  else
+    cd "$ISABELLE_DIR/lib/browser"
+  fi
+  make clean all || fail "Failed to build graph browser!"
+}
+
+
+function build_doc ()
+{
+  echo "###"
+  echo "### Building documentation ..."
+  echo "###"
+
+  if [ "$OLD_LAYOUT" = true ]; then
+    cd "$ISABELLE_DIR/Doc"
+  else
+    cd "$ISABELLE_DIR/doc-src"
+  fi
+
+  for DOC in $(cat Dirs)
+  do
+    pushd "$DOC" > /dev/null
+    make clean dvi || fail "DVI document for $DOC failed!"
+    make clean pdf || fail "PDF document for $DOC failed!"
+    popd
+  done
+}
+
+
+function build_jars ()
+{
+  echo "###"
+  echo "### Building JVM components ..."
+  echo "###"
+
+  if [ "$OLD_LAYOUT" = true ]; then
+    cd "$ISABELLE_DIR/Distribution"
+  else
+    cd "$ISABELLE_DIR"
+  fi
+
+  pushd lib/classes
+  ./mk
+  [ -f isabelle.jar ] || fail "Failed to build Isabelle process wrapper!"
+  popd
+
+  type -p scalac || fail "Scala compiler unavailable"
+  pushd lib/jedit/plugin
+  ./mk
+  [ -f ../isabelle.jar ] || fail "Failed to build jEdit plugin!"
+  popd
+}
+
+
+## main
+
+for MODULE in $MODULES
+do
+  case $MODULE in
+    all) build_all;;
+    browser) build_browser;;
+    doc) build_doc;;
+    jars) build_jars;;
+    *) fail "Bad module $MODULE"
+  esac
+done
