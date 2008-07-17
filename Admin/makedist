@@ -37,20 +37,6 @@ Usage: $PRG VERSION [NAME]
 
   NAME specifies an explicit distribution name, by default it is
   derived from VERSION.
-
-  Checklist for official releases (before running this script):
-
-    * Check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS.
-    * Try "isatool makeall all" with Poly/ML, SML/NJ, etc.
-    * Tag the current repository version, e.g.:
-        cvs -d /home/isabelle-repository/archive rtag IsabelleXXXX isabelle
-      PLEASE DO NOT DO THIS UNLESS YOU KNOW WHAT YOU ARE DOING!
-
-   After running this script:
-
-    * Symlink generated files in website/ directory to their appropriate
-      places in the isabelle website sources.
-
 EOF
   exit 1
 }
