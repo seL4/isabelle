@@ -37,6 +37,7 @@ Usage: $PRG VERSION [NAME]
 
   NAME specifies an explicit distribution name, by default it is
   derived from VERSION.
+
 EOF
   exit 1
 }
