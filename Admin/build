@@ -63,8 +63,8 @@ MODULES="$@"; shift "$#"
 
 function build_all ()
 {
-  build_browser
   build_doc
+  build_browser
   build_jars
 }
 
