@@ -16,9 +16,8 @@ Checklist for official releases
 - check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS, ~isabelle/website;
 
 - maintain Docs:
-    Doc/Contents
+    Doc/Dirs
     Distribution/doc/Contents
-    Admin/index.html (? FIXME ?)
 
 - maintain Logics:
     Admin/makedist
