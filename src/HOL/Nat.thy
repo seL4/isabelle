@@ -1302,47 +1302,19 @@ context order
 begin
 
 lemma lift_Suc_mono_le:
-  assumes mono: "!!n. f n \<le> f(Suc n)" shows "n\<le>n' \<Longrightarrow> f n \<le> f n'"
-proof(induct k == "n'-n" arbitrary:n')
-  case 0
-  moreover hence "n' <= n" by simp
-  ultimately have "n=n'" by(blast intro:order_antisym)
-  thus ?case by simp
-next
-  case (Suc k)
-  then obtain l where [simp]: "n' = Suc l"
-  proof(cases n')
-    case 0 thus ?thesis using Suc by simp
-  next
-    case Suc thus ?thesis using that by blast
-  qed
-  have "f n \<le> f l" using Suc by auto
-  also have "\<dots> \<le> f n'" using mono by auto
-  finally(order_trans) show ?case by auto
-qed
+  assumes mono: "!!n. f n \<le> f(Suc n)" and "n\<le>n'"
+  shows "f n \<le> f n'"
+proof (cases "n < n'")
+  case True
+  thus ?thesis
+    by (induct n n' rule: less_Suc_induct[consumes 1]) (auto intro: mono)
+qed (insert `n \<le> n'`, auto) -- {*trivial for @{prop "n = n'"} *}
 
 lemma lift_Suc_mono_less:
-  assumes mono: "!!n. f n < f(Suc n)" shows "n<n' \<Longrightarrow> f n < f n'"
-proof(induct k == "n' - Suc n" arbitrary:n')
-  case 0
-  hence "~ n' <= n \<longrightarrow> n' = Suc n" by(simp add:le_Suc_eq)
-  moreover have "~ n' <= n"
-  proof
-    assume "n' <= n" thus False using `n<n'` by(auto dest: le_less_trans)
-  qed
-  ultimately show ?case by(simp add:mono)
-next
-  case (Suc k)
-  then obtain l where [simp]: "n' = Suc l"
-  proof(cases n')
-    case 0 thus ?thesis using Suc by simp
-  next
-    case Suc thus ?thesis using that by blast
-  qed
-  have "f n < f l" using Suc by auto
-  also have "\<dots> < f n'" using mono by auto
-  finally(less_trans) show ?case by auto
-qed
+  assumes mono: "!!n. f n < f(Suc n)" and "n < n'"
+  shows "f n < f n'"
+using `n < n'`
+by (induct n n' rule: less_Suc_induct[consumes 1]) (auto intro: mono)
 
 end
 
