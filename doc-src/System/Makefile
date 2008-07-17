@@ -17,8 +17,8 @@ FILES = system.tex basics.tex misc.tex present.tex symbols.tex \
 
 OUTPUT = syms.tex
 
-syms.tex: showsymbols ../../Distribution/lib/texinputs/isabellesym.sty
-	@./showsymbols <../../Distribution/lib/texinputs/isabellesym.sty >syms.tex
+syms.tex: showsymbols ../isabellesym.sty
+	@./showsymbols <../isabellesym.sty >syms.tex
 
 dvi: $(NAME).dvi
 
