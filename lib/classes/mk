@@ -3,6 +3,8 @@
 
 rm -rf build/ && mkdir -p build
 
+rm -f isabelle.jar
+
 javac -d build isabelle/IsabelleProcess.java \
 && (
   cd build
@@ -10,4 +12,3 @@ javac -d build isabelle/IsabelleProcess.java \
 )
 
 rm -rf build/
-

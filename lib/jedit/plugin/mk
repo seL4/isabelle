@@ -8,6 +8,8 @@ PLUGINS="$HOME/.jedit/jars"
 rm -rf build/ && mkdir -p build
 ( cd build; jar xf ../../../classes/isabelle.jar )
 
+rm -f ../isabelle.jar
+
 scalac -d build \
   -cp $JEDIT_HOME/jedit.jar:$PLUGINS/SideKick.jar:$PLUGINS/ErrorList.jar:$PLUGINS/Console.jar \
   isabelle/IsabellePlugin.scala \
@@ -20,4 +22,3 @@ scalac -d build \
 )
 
 rm -rf build/
-
