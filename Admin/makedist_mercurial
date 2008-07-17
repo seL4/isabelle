@@ -9,7 +9,6 @@
 REPOS="http://isabelle.in.tum.de/isabelle-bin/mercurial.cgi"
 
 DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
-TMP="tmp-$USER$$"
 
 umask 022
 
@@ -84,6 +83,12 @@ fi
 
 ## main
 
+# tmp
+
+TMP="tmp-$USER$$"
+function purge_tmp () { rm -rf "$DISTPREFIX/$TMP"; }
+
+
 # retrieve archive and resolve version identifier
 
 mkdir "$DISTPREFIX/$TMP" || fail "Failed to create fresh directory"
@@ -117,13 +122,13 @@ else
 fi
 
 DISTBASE="$DISTPREFIX/dist-$DISTNAME"
-mkdir -p "$DISTBASE" || fail "Unable to create distribution base dir $DISTBASE!"
-[ -e "$DISTBASE/$DISTNAME" ] && fail "$DISTBASE/$DISTNAME already exists!"
-[ -e "$DISTBASE/pdf/$DISTNAME" ] && fail "$DISTBASE/pdf/$DISTNAME already exists!"
+mkdir -p "$DISTBASE" || { purge_tmp; fail "Unable to create distribution base dir $DISTBASE!"; }
+[ -e "$DISTBASE/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/$DISTNAME already exists!"; }
+[ -e "$DISTBASE/pdf/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/pdf/$DISTNAME already exists!"; }
 
 cd "$DISTBASE"
 mv "$DISTPREFIX/$TMP/Isabelle-repository-$IDENT" "$DISTNAME"
-rm -rf "$DISTPREFIX/$TMP"
+purge_tmp
 
 cd "$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
 
@@ -147,6 +152,7 @@ echo "###"
 echo "### Preparing distribution $DISTNAME"
 echo "###"
 
+find . -name .cvsignore -print | xargs rm -rf
 find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -x
 find . -print | xargs chmod u+rw
 
