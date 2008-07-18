@@ -4,17 +4,17 @@
 *)
 
 theory SparseMatrix
-imports Matrix
+imports "./Matrix"
 begin
 
 types 
   'a spvec = "(nat * 'a) list"
   'a spmat = "('a spvec) spvec"
 
-definition sparse_row_vector :: "('a::lordered_ring) spvec \<Rightarrow> 'a matrix" where
+definition sparse_row_vector :: "('a::ab_group_add) spvec \<Rightarrow> 'a matrix" where
   sparse_row_vector_def: "sparse_row_vector arr = foldl (% m x. m + (singleton_matrix 0 (fst x) (snd x))) 0 arr"
 
-definition sparse_row_matrix :: "('a::lordered_ring) spmat \<Rightarrow> 'a matrix" where
+definition sparse_row_matrix :: "('a::ab_group_add) spmat \<Rightarrow> 'a matrix" where
   sparse_row_matrix_def: "sparse_row_matrix arr = foldl (% m r. m + (move_matrix (sparse_row_vector (snd r)) (int (fst r)) 0)) 0 arr"
 
 code_datatype sparse_row_vector sparse_row_matrix
@@ -30,14 +30,16 @@ lemmas [code func] = sparse_row_vector_empty [symmetric]
 lemma foldl_distrstart[rule_format]: "! a x y. (f (g x y) a = g x (f y a)) \<Longrightarrow> ! x y. (foldl f (g x y) l = g x (foldl f y l))"
   by (induct l, auto)
 
-lemma sparse_row_vector_cons[simp]: "sparse_row_vector (a#arr) = (singleton_matrix 0 (fst a) (snd a)) + (sparse_row_vector arr)"
+lemma sparse_row_vector_cons[simp]:
+  "sparse_row_vector (a # arr) = (singleton_matrix 0 (fst a) (snd a)) + (sparse_row_vector arr)"
   apply (induct arr)
   apply (auto simp add: sparse_row_vector_def)
-  apply (simp add: foldl_distrstart[of "\<lambda>m x. m + singleton_matrix 0 (fst x) (snd x)" "\<lambda>x m. singleton_matrix 0 (fst x) (snd x) + m"])
+  apply (simp add: foldl_distrstart [of "\<lambda>m x. m + singleton_matrix 0 (fst x) (snd x)" "\<lambda>x m. singleton_matrix 0 (fst x) (snd x) + m"])
   done
 
-lemma sparse_row_vector_append[simp]: "sparse_row_vector (a @ b) = (sparse_row_vector a) + (sparse_row_vector b)"
-  by (induct a, auto)
+lemma sparse_row_vector_append[simp]:
+  "sparse_row_vector (a @ b) = (sparse_row_vector a) + (sparse_row_vector b)"
+  by (induct a) auto
 
 lemma nrows_spvec[simp]: "nrows (sparse_row_vector x) <= (Suc 0)"
   apply (induct x)
@@ -56,17 +58,13 @@ lemma sparse_row_matrix_append: "sparse_row_matrix (arr@brr) = (sparse_row_matri
   apply (auto simp add: sparse_row_matrix_cons)
   done
 
-consts
-  sorted_spvec :: "'a spvec \<Rightarrow> bool"
-  sorted_spmat :: "'a spmat \<Rightarrow> bool"
-
-primrec
-  "sorted_spmat [] = True"
-  "sorted_spmat (a#as) = ((sorted_spvec (snd a)) & (sorted_spmat as))"
-
-primrec
+primrec sorted_spvec :: "'a spvec \<Rightarrow> bool" where
   "sorted_spvec [] = True"
-sorted_spvec_step:  "sorted_spvec (a#as) = (case as of [] \<Rightarrow> True | b#bs \<Rightarrow> ((fst a < fst b) & (sorted_spvec as)))" 
+  | sorted_spvec_step: "sorted_spvec (a#as) = (case as of [] \<Rightarrow> True | b#bs \<Rightarrow> ((fst a < fst b) & (sorted_spvec as)))" 
+
+primrec sorted_spmat :: "'a spmat \<Rightarrow> bool" where
+  "sorted_spmat [] = True"
+  | "sorted_spmat (a#as) = ((sorted_spvec (snd a)) & (sorted_spmat as))"
 
 declare sorted_spvec.simps [simp del]
 
@@ -102,14 +100,11 @@ lemma sorted_sparse_row_matrix_zero[rule_format]: "m <= n \<longrightarrow> sort
   apply (simp add: sparse_row_matrix_cons neg_def)
   done
 
-consts
-  smult_spvec :: "('a::lordered_ring) \<Rightarrow> 'a spvec \<Rightarrow> 'a spvec" 
-
-primrec minus_spvec ::  "('a::lordered_ring) spvec \<Rightarrow> 'a spvec" where
+primrec minus_spvec :: "('a::ab_group_add) spvec \<Rightarrow> 'a spvec" where
   "minus_spvec [] = []"
   | "minus_spvec (a#as) = (fst a, -(snd a))#(minus_spvec as)"
 
-primrec abs_spvec ::  "('a::lordered_ring) spvec \<Rightarrow> 'a spvec" where
+primrec abs_spvec ::  "('a::lordered_ab_group_add_abs) spvec \<Rightarrow> 'a spvec" where
   "abs_spvec [] = []"
   | "abs_spvec (a#as) = (fst a, abs (snd a))#(abs_spvec as)"
 
@@ -122,10 +117,14 @@ lemma sparse_row_vector_minus:
   apply simp
   done
 
+instance matrix :: (lordered_ab_group_add_abs) lordered_ab_group_add_abs
+apply default
+unfolding abs_matrix_def .. (*FIXME move*)
+
 lemma sparse_row_vector_abs:
-  "sorted_spvec v \<Longrightarrow> sparse_row_vector (abs_spvec v) = abs (sparse_row_vector v)"
+  "sorted_spvec (v :: 'a::lordered_ring spvec) \<Longrightarrow> sparse_row_vector (abs_spvec v) = abs (sparse_row_vector v)"
   apply (induct v)
-  apply (simp_all add: sparse_row_vector_cons)
+  apply simp_all
   apply (frule_tac sorted_spvec_cons1, simp)
   apply (simp only: Rep_matrix_inject[symmetric])
   apply (rule ext)+
@@ -152,8 +151,8 @@ lemma sorted_spvec_abs_spvec:
   apply (simp add: sorted_spvec.simps split:list.split_asm)
   done
   
-defs
-  smult_spvec_def: "smult_spvec y arr == map (% a. (fst a, y * snd a)) arr"  
+definition
+  "smult_spvec y = map (% a. (fst a, y * snd a))"  
 
 lemma smult_spvec_empty[simp]: "smult_spvec y [] = []"
   by (simp add: smult_spvec_def)
@@ -161,7 +160,7 @@ lemma smult_spvec_empty[simp]: "smult_spvec y [] = []"
 lemma smult_spvec_cons: "smult_spvec y (a#arr) = (fst a, y * (snd a)) # (smult_spvec y arr)"
   by (simp add: smult_spvec_def)
 
-consts addmult_spvec :: "('a::lordered_ring) * 'a spvec * 'a spvec \<Rightarrow> 'a spvec"
+consts addmult_spvec :: "('a::ring) * 'a spvec * 'a spvec \<Rightarrow> 'a spvec"
 recdef addmult_spvec "measure (% (y, a, b). length a + (length b))"
   "addmult_spvec (y, arr, []) = arr"
   "addmult_spvec (y, [], brr) = smult_spvec y brr"
@@ -951,7 +950,7 @@ lemma nprt_singleton[simp]: "nprt (singleton_matrix j i (x::_::lordered_ring)) =
 
 lemma less_imp_le: "a < b \<Longrightarrow> a <= (b::_::order)" by (simp add: less_def)
 
-lemma sparse_row_vector_pprt: "sorted_spvec v \<Longrightarrow> sparse_row_vector (pprt_spvec v) = pprt (sparse_row_vector v)"
+lemma sparse_row_vector_pprt: "sorted_spvec (v :: 'a::lordered_ring spvec) \<Longrightarrow> sparse_row_vector (pprt_spvec v) = pprt (sparse_row_vector v)"
   apply (induct v)
   apply (simp_all)
   apply (frule sorted_spvec_cons1, auto)
@@ -961,7 +960,7 @@ lemma sparse_row_vector_pprt: "sorted_spvec v \<Longrightarrow> sparse_row_vecto
   apply auto
   done
 
-lemma sparse_row_vector_nprt: "sorted_spvec v \<Longrightarrow> sparse_row_vector (nprt_spvec v) = nprt (sparse_row_vector v)"
+lemma sparse_row_vector_nprt: "sorted_spvec (v :: 'a::lordered_ring spvec) \<Longrightarrow> sparse_row_vector (nprt_spvec v) = nprt (sparse_row_vector v)"
   apply (induct v)
   apply (simp_all)
   apply (frule sorted_spvec_cons1, auto)
@@ -988,7 +987,7 @@ lemma nprt_move_matrix: "nprt (move_matrix (A::('a::lordered_ring) matrix) j i) 
   apply (simp)
   done
 
-lemma sparse_row_matrix_pprt: "sorted_spvec m \<Longrightarrow> sorted_spmat m \<Longrightarrow> sparse_row_matrix (pprt_spmat m) = pprt (sparse_row_matrix m)"
+lemma sparse_row_matrix_pprt: "sorted_spvec (m :: 'a::lordered_ring spmat) \<Longrightarrow> sorted_spmat m \<Longrightarrow> sparse_row_matrix (pprt_spmat m) = pprt (sparse_row_matrix m)"
   apply (induct m)
   apply simp
   apply simp
@@ -1004,7 +1003,7 @@ lemma sparse_row_matrix_pprt: "sorted_spvec m \<Longrightarrow> sorted_spmat m \
   apply (simp add: pprt_move_matrix)
   done
 
-lemma sparse_row_matrix_nprt: "sorted_spvec m \<Longrightarrow> sorted_spmat m \<Longrightarrow> sparse_row_matrix (nprt_spmat m) = nprt (sparse_row_matrix m)"
+lemma sparse_row_matrix_nprt: "sorted_spvec (m :: 'a::lordered_ring spmat) \<Longrightarrow> sorted_spmat m \<Longrightarrow> sparse_row_matrix (nprt_spmat m) = nprt (sparse_row_matrix m)"
   apply (induct m)
   apply simp
   apply simp

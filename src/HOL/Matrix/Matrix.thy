@@ -1489,7 +1489,7 @@ instance ..
 
 end
 
-instantiation matrix :: (lordered_ab_group_add) abs
+instantiation matrix :: ("{lattice, uminus, zero}") abs
 begin
 
 definition
@@ -1499,14 +1499,29 @@ instance ..
 
 end
 
-instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_meet
-proof 
-  fix A B C :: "('a::lordered_ab_group_add) matrix"
+instance matrix :: (monoid_add) monoid_add
+proof
+  fix A B C :: "'a matrix"
   show "A + B + C = A + (B + C)"    
     apply (simp add: plus_matrix_def)
     apply (rule combine_matrix_assoc[simplified associative_def, THEN spec, THEN spec, THEN spec])
     apply (simp_all add: add_assoc)
     done
+  show "0 + A = A"
+    apply (simp add: plus_matrix_def)
+    apply (rule combine_matrix_zero_l_neutral[simplified zero_l_neutral_def, THEN spec])
+    apply (simp)
+    done
+  show "A + 0 = A"
+    apply (simp add: plus_matrix_def)
+    apply (rule combine_matrix_zero_r_neutral [simplified zero_r_neutral_def, THEN spec])
+    apply (simp)
+    done
+qed
+
+instance matrix :: (comm_monoid_add) comm_monoid_add
+proof
+  fix A B :: "'a matrix"
   show "A + B = B + A"
     apply (simp add: plus_matrix_def)
     apply (rule combine_matrix_commute[simplified commutative_def, THEN spec, THEN spec])
@@ -1517,10 +1532,29 @@ proof
     apply (rule combine_matrix_zero_l_neutral[simplified zero_l_neutral_def, THEN spec])
     apply (simp)
     done
+qed
+
+instance matrix :: (group_add) group_add
+proof
+  fix A B :: "'a matrix"
+  show "- A + A = 0" 
+    by (simp add: plus_matrix_def minus_matrix_def Rep_matrix_inject[symmetric] ext)
+  show "A - B = A + - B"
+    by (simp add: plus_matrix_def diff_matrix_def minus_matrix_def Rep_matrix_inject [symmetric] ext diff_minus)
+qed
+
+instance matrix :: (ab_group_add) ab_group_add
+proof
+  fix A B :: "'a matrix"
   show "- A + A = 0" 
     by (simp add: plus_matrix_def minus_matrix_def Rep_matrix_inject[symmetric] ext)
   show "A - B = A + - B" 
     by (simp add: plus_matrix_def diff_matrix_def minus_matrix_def Rep_matrix_inject[symmetric] ext)
+qed
+
+instance matrix :: (pordered_ab_group_add) pordered_ab_group_add
+proof
+  fix A B C :: "'a matrix"
   assume "A <= B"
   then show "C + A <= C + B"
     apply (simp add: plus_matrix_def)
@@ -1528,10 +1562,13 @@ proof
     apply (simp_all)
     done
 qed
+  
+instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_meet ..
+instance matrix :: (lordered_ab_group_add) lordered_ab_group_add_join ..
 
-instance matrix :: (lordered_ring) lordered_ring
+instance matrix :: (ring) ring
 proof
-  fix A B C :: "('a :: lordered_ring) matrix"
+  fix A B C :: "'a matrix"
   show "A * B * C = A * (B * C)"
     apply (simp add: times_matrix_def)
     apply (rule mult_matrix_assoc)
@@ -1546,9 +1583,12 @@ proof
     apply (simp add: times_matrix_def plus_matrix_def)
     apply (rule r_distributive_matrix[simplified r_distributive_def, THEN spec, THEN spec, THEN spec])
     apply (simp_all add: associative_def commutative_def ring_simps)
-    done  
-  show "abs A = sup A (-A)" 
-    by (simp add: abs_matrix_def)
+    done
+qed  
+
+instance matrix :: (pordered_ring) pordered_ring
+proof
+  fix A B C :: "'a matrix"
   assume a: "A \<le> B"
   assume b: "0 \<le> C"
   from a b show "C * A \<le> C * B"
@@ -1561,34 +1601,42 @@ proof
     apply (rule le_right_mult)
     apply (simp_all add: add_mono mult_right_mono)
     done
-qed 
+qed
+
+instance matrix :: (lordered_ring) lordered_ring
+proof
+  fix A B C :: "('a :: lordered_ring) matrix"
+  show "abs A = sup A (-A)" 
+    by (simp add: abs_matrix_def)
+qed
 
 lemma Rep_matrix_add[simp]:
-  "Rep_matrix ((a::('a::lordered_ab_group_add)matrix)+b) j i  = (Rep_matrix a j i) + (Rep_matrix b j i)"
-by (simp add: plus_matrix_def)
+  "Rep_matrix ((a::('a::monoid_add)matrix)+b) j i  = (Rep_matrix a j i) + (Rep_matrix b j i)"
+  by (simp add: plus_matrix_def)
 
-lemma Rep_matrix_mult: "Rep_matrix ((a::('a::lordered_ring) matrix) * b) j i = 
+lemma Rep_matrix_mult: "Rep_matrix ((a::('a::ring) matrix) * b) j i = 
   foldseq (op +) (% k.  (Rep_matrix a j k) * (Rep_matrix b k i)) (max (ncols a) (nrows b))"
 apply (simp add: times_matrix_def)
 apply (simp add: Rep_mult_matrix)
 done
 
-lemma apply_matrix_add: "! x y. f (x+y) = (f x) + (f y) \<Longrightarrow> f 0 = (0::'a) \<Longrightarrow> apply_matrix f ((a::('a::lordered_ab_group_add) matrix) + b) = (apply_matrix f a) + (apply_matrix f b)"
+lemma apply_matrix_add: "! x y. f (x+y) = (f x) + (f y) \<Longrightarrow> f 0 = (0::'a)
+  \<Longrightarrow> apply_matrix f ((a::('a::monoid_add) matrix) + b) = (apply_matrix f a) + (apply_matrix f b)"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (simp)
 done
 
-lemma singleton_matrix_add: "singleton_matrix j i ((a::_::lordered_ab_group_add)+b) = (singleton_matrix j i a) + (singleton_matrix j i b)"
+lemma singleton_matrix_add: "singleton_matrix j i ((a::_::monoid_add)+b) = (singleton_matrix j i a) + (singleton_matrix j i b)"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (simp)
 done
 
-lemma nrows_mult: "nrows ((A::('a::lordered_ring) matrix) * B) <= nrows A"
+lemma nrows_mult: "nrows ((A::('a::ring) matrix) * B) <= nrows A"
 by (simp add: times_matrix_def mult_nrows)
 
-lemma ncols_mult: "ncols ((A::('a::lordered_ring) matrix) * B) <= ncols B"
+lemma ncols_mult: "ncols ((A::('a::ring) matrix) * B) <= ncols B"
 by (simp add: times_matrix_def mult_ncols)
 
 definition
@@ -1615,7 +1663,7 @@ proof -
   ultimately show "?r = n" by simp
 qed
 
-lemma one_matrix_mult_right[simp]: "ncols A <= n \<Longrightarrow> (A::('a::{lordered_ring,ring_1}) matrix) * (one_matrix n) = A"
+lemma one_matrix_mult_right[simp]: "ncols A <= n \<Longrightarrow> (A::('a::{ring_1}) matrix) * (one_matrix n) = A"
 apply (subst Rep_matrix_inject[THEN sym])
 apply (rule ext)+
 apply (simp add: times_matrix_def Rep_mult_matrix)
@@ -1623,7 +1671,7 @@ apply (rule_tac j1="xa" in ssubst[OF foldseq_almostzero])
 apply (simp_all)
 by (simp add: max_def ncols)
 
-lemma one_matrix_mult_left[simp]: "nrows A <= n \<Longrightarrow> (one_matrix n) * A = (A::('a::{lordered_ring, ring_1}) matrix)"
+lemma one_matrix_mult_left[simp]: "nrows A <= n \<Longrightarrow> (one_matrix n) * A = (A::('a::ring_1) matrix)"
 apply (subst Rep_matrix_inject[THEN sym])
 apply (rule ext)+
 apply (simp add: times_matrix_def Rep_mult_matrix)
@@ -1631,27 +1679,27 @@ apply (rule_tac j1="x" in ssubst[OF foldseq_almostzero])
 apply (simp_all)
 by (simp add: max_def nrows)
 
-lemma transpose_matrix_mult: "transpose_matrix ((A::('a::{lordered_ring,comm_ring}) matrix)*B) = (transpose_matrix B) * (transpose_matrix A)"
+lemma transpose_matrix_mult: "transpose_matrix ((A::('a::comm_ring) matrix)*B) = (transpose_matrix B) * (transpose_matrix A)"
 apply (simp add: times_matrix_def)
 apply (subst transpose_mult_matrix)
 apply (simp_all add: mult_commute)
 done
 
-lemma transpose_matrix_add: "transpose_matrix ((A::('a::lordered_ab_group_add) matrix)+B) = transpose_matrix A + transpose_matrix B"
+lemma transpose_matrix_add: "transpose_matrix ((A::('a::monoid_add) matrix)+B) = transpose_matrix A + transpose_matrix B"
 by (simp add: plus_matrix_def transpose_combine_matrix)
 
-lemma transpose_matrix_diff: "transpose_matrix ((A::('a::lordered_ab_group_add) matrix)-B) = transpose_matrix A - transpose_matrix B"
+lemma transpose_matrix_diff: "transpose_matrix ((A::('a::group_add) matrix)-B) = transpose_matrix A - transpose_matrix B"
 by (simp add: diff_matrix_def transpose_combine_matrix)
 
-lemma transpose_matrix_minus: "transpose_matrix (-(A::('a::lordered_ring) matrix)) = - transpose_matrix (A::('a::lordered_ring) matrix)"
+lemma transpose_matrix_minus: "transpose_matrix (-(A::('a::group_add) matrix)) = - transpose_matrix (A::'a matrix)"
 by (simp add: minus_matrix_def transpose_apply_matrix)
 
 constdefs 
-  right_inverse_matrix :: "('a::{lordered_ring, ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
+  right_inverse_matrix :: "('a::{ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
   "right_inverse_matrix A X == (A * X = one_matrix (max (nrows A) (ncols X))) \<and> nrows X \<le> ncols A" 
-  left_inverse_matrix :: "('a::{lordered_ring, ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
+  left_inverse_matrix :: "('a::{ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
   "left_inverse_matrix A X == (X * A = one_matrix (max(nrows X) (ncols A))) \<and> ncols X \<le> nrows A" 
-  inverse_matrix :: "('a::{lordered_ring, ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
+  inverse_matrix :: "('a::{ring_1}) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool"
   "inverse_matrix A X == (right_inverse_matrix A X) \<and> (left_inverse_matrix A X)"
 
 lemma right_inverse_matrix_dim: "right_inverse_matrix A X \<Longrightarrow> nrows A = ncols X"
@@ -1699,13 +1747,13 @@ apply (rule ext)+
 apply (auto simp add: Rep_matrix_mult foldseq_zero zero_imp_mult_zero)
 done
 
-lemma add_nrows: "nrows (A::('a::comm_monoid_add) matrix) <= u \<Longrightarrow> nrows B <= u \<Longrightarrow> nrows (A + B) <= u"
+lemma add_nrows: "nrows (A::('a::monoid_add) matrix) <= u \<Longrightarrow> nrows B <= u \<Longrightarrow> nrows (A + B) <= u"
 apply (simp add: plus_matrix_def)
 apply (rule combine_nrows)
 apply (simp_all)
 done
 
-lemma move_matrix_row_mult: "move_matrix ((A::('a::lordered_ring) matrix) * B) j 0 = (move_matrix A j 0) * B"
+lemma move_matrix_row_mult: "move_matrix ((A::('a::ring) matrix) * B) j 0 = (move_matrix A j 0) * B"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (auto simp add: Rep_matrix_mult foldseq_zero)
@@ -1716,7 +1764,7 @@ apply (rule ncols_move_matrix_le)
 apply (simp add: max1)
 done
 
-lemma move_matrix_col_mult: "move_matrix ((A::('a::lordered_ring) matrix) * B) 0 i = A * (move_matrix B 0 i)"
+lemma move_matrix_col_mult: "move_matrix ((A::('a::ring) matrix) * B) 0 i = A * (move_matrix B 0 i)"
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (auto simp add: Rep_matrix_mult foldseq_zero)
@@ -1727,17 +1775,17 @@ apply (rule nrows_move_matrix_le)
 apply (simp add: max2)
 done
 
-lemma move_matrix_add: "((move_matrix (A + B) j i)::(('a::lordered_ab_group_add) matrix)) = (move_matrix A j i) + (move_matrix B j i)" 
+lemma move_matrix_add: "((move_matrix (A + B) j i)::(('a::monoid_add) matrix)) = (move_matrix A j i) + (move_matrix B j i)" 
 apply (subst Rep_matrix_inject[symmetric])
 apply (rule ext)+
 apply (simp)
 done
 
-lemma move_matrix_mult: "move_matrix ((A::('a::lordered_ring) matrix)*B) j i = (move_matrix A j 0) * (move_matrix B 0 i)"
+lemma move_matrix_mult: "move_matrix ((A::('a::ring) matrix)*B) j i = (move_matrix A j 0) * (move_matrix B 0 i)"
 by (simp add: move_matrix_ortho[of "A*B"] move_matrix_col_mult move_matrix_row_mult)
 
 constdefs
-  scalar_mult :: "('a::lordered_ring) \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix"
+  scalar_mult :: "('a::ring) \<Rightarrow> 'a matrix \<Rightarrow> 'a matrix"
   "scalar_mult a m == apply_matrix (op * a) m"
 
 lemma scalar_mult_zero[simp]: "scalar_mult y 0 = 0" 
@@ -1755,10 +1803,10 @@ apply (rule ext)+
 apply (auto)
 done
 
-lemma Rep_minus[simp]: "Rep_matrix (-(A::_::lordered_ab_group_add)) x y = - (Rep_matrix A x y)"
+lemma Rep_minus[simp]: "Rep_matrix (-(A::_::group_add)) x y = - (Rep_matrix A x y)"
 by (simp add: minus_matrix_def)
 
-lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lordered_ring)) x y = abs (Rep_matrix A x y)"
+lemma Rep_abs[simp]: "Rep_matrix (abs (A::_::lordered_ab_group_add)) x y = abs (Rep_matrix A x y)"
 by (simp add: abs_lattice sup_matrix_def)
 
 end
