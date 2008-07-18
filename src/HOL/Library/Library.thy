@@ -2,6 +2,7 @@
 (*<*)
 theory Library
 imports
+  Abstract_Rat
   AssocList
   BigO
   Binomial

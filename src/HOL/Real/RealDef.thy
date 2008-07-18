@@ -1003,30 +1003,11 @@ lemma real_eq_code [code]: "eq_class.eq (Ratreal x) (Ratreal y) \<longleftrighta
 
 end
 
-lemma Ratreal_INum: "Ratreal (Fract k l) = INum (k, l)"
-  by (auto simp add: expand_fun_eq INum_def Fract_of_int_quotient of_rat_divide)
-
 lemma real_less_eq_code [code]: "Ratreal x \<le> Ratreal y \<longleftrightarrow> x \<le> y"
-proof -
-  obtain k l r s where x: "x = Fract k l" and y: "y = Fract r s"
-    by (cases x, cases y) simp
-  have "normNum (k, l) \<le>\<^sub>N normNum (r, s) \<longleftrightarrow> INum (normNum (k, l)) \<le> (INum (normNum (r, s)) :: real)" 
-    by (simp del: normNum)
-  then have "Ratreal (Fract k l) \<le> Ratreal (Fract r s) \<longleftrightarrow> Fract k l \<le> Fract r s"
-    by (simp add: Ratreal_INum rat_less_eq_code del: Ratreal_def)
-  with x y show ?thesis by simp
-qed
+  by (simp add: of_rat_less_eq)
 
 lemma real_less_code [code]: "Ratreal x < Ratreal y \<longleftrightarrow> x < y"
-proof -
-  obtain k l r s where x: "x = Fract k l" and y: "y = Fract r s"
-    by (cases x, cases y) simp
-  have "normNum (k, l) <\<^sub>N normNum (r, s) \<longleftrightarrow> INum (normNum (k, l)) < (INum (normNum (r, s)) :: real)" 
-    by (simp del: normNum)
-  then have "Ratreal (Fract k l) < Ratreal (Fract r s) \<longleftrightarrow> Fract k l < Fract r s"
-    by (simp add: Ratreal_INum rat_less_code del: Ratreal_def)
-  with x y show ?thesis by simp
-qed
+  by (simp add: of_rat_less)
 
 lemma real_plus_code [code]: "Ratreal x + Ratreal y = Ratreal (x + y)"
   by (simp add: of_rat_add)
