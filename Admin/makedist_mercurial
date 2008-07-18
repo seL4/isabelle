@@ -25,12 +25,12 @@ function usage()
 Usage: $PRG [OPTIONS] [VERSION]
 
   Options are:
-    -r NAME         proper release with name"
+    -r RELEASE         proper release with name"
 
-  Make Isabelle distribution from the Mercurial repository at TUM.
+  Make Isabelle distribution from the main Mercurial repository at TUM.
 
   VERSION identifies the snapshot, using usual Mercurial terminology;
-  the default is "tip", or the proper release name if given.
+  the default is RELEASE if given, otherwise "tip".
 
 EOF
   exit 1
@@ -68,17 +68,10 @@ shift $(($OPTIND - 1))
 
 VERSION=""
 [ "$#" -gt 0 ] && { VERSION="$1"; shift; }
+[ -z "$VERSION" ] && VERSION="$RELEASE"
+[ -z "$VERSION" ] && VERSION="tip"
 
 [ "$#" -gt 0 ] && usage
-
-
-# defaults
-
-if [ -z "$RELEASE" ]; then
-  [ -z "$VERSION" ] && VERSION=tip
-else
-  [ -z "$VERSION" ] && VERSION="$RELEASE"
-fi
 
 
 ## main
@@ -95,13 +88,12 @@ mkdir "$DISTPREFIX/$TMP" || fail "Failed to create fresh directory"
 cd "$DISTPREFIX/$TMP"
 
 echo "###"
-echo "### Retrieving Mercurial snapshot ${VERSION}.tar.gz"
+echo "### Retrieving Mercurial snapshot $VERSION"
 echo "###"
 
-{ wget -q "$REPOS/archive/${VERSION}.tar.gz" && tar -x -z -f "${VERSION}.tar.gz"; } || \
+{ wget -q "$REPOS/archive/${VERSION}.tar.gz" -O- | tar -xzf -; } || \
   fail "Failed to retrieve $VERSION"
 
-rm "${VERSION}.tar.gz"
 IDENT=$(echo * | sed 's/Isabelle-repository-//')
 
 rm -f "Isabelle-repository-$IDENT/.hg_archival.txt"
@@ -138,7 +130,6 @@ cd "$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
 mkdir -p ../website
 cat > ../website/distinfo.mak <<EOF
 # this is a generated file - do not edit unless you know what you are doing!
-
 DISTNAME=$DISTNAME
 DISTBASE=$DISTBASE
 EOF
@@ -214,10 +205,10 @@ mkdir -p "pdf/$DISTNAME/doc"
 mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
 
 echo "$DISTNAME.tar.gz"
-tar -c -z -f "$DISTNAME.tar.gz" Isabelle "$DISTNAME"
+tar -czf "$DISTNAME.tar.gz" Isabelle "$DISTNAME"
 
 echo "${DISTNAME}_pdf.tar.gz"
-tar -C pdf -c -z -f "${DISTNAME}_pdf.tar.gz" "$DISTNAME"
+tar -C pdf -czf "${DISTNAME}_pdf.tar.gz" "$DISTNAME"
 
 mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
 rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
@@ -238,6 +229,3 @@ chgrp -R isabelle "$DISTNAME"
 
 rm -rf "${DISTNAME}-old"
 
-echo "###"
-echo "### Finished makedist."
-echo "###"
