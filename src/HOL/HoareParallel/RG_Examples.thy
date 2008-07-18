@@ -1,6 +1,8 @@
 header {* \section{Examples} *}
 
-theory RG_Examples imports RG_Syntax begin
+theory RG_Examples
+imports RG_Syntax
+begin
 
 lemmas definitions [simp]= stable_def Pre_def Rely_def Guar_def Post_def Com_def 
 
@@ -291,18 +293,14 @@ apply(rule While)
     apply force
    apply force
   apply(rule Basic)
-     apply simp
+     apply (simp add: mod_add_self2)
      apply clarify
      apply simp
-     apply(case_tac "X x (j mod n)\<le> j")
-      apply(drule le_imp_less_or_eq)
-      apply(erule disjE)
-       apply(drule_tac j=j and n=n and i="j mod n" and a="X x (j mod n)" in mod_aux)
-        apply assumption+
-       apply simp+
-    apply clarsimp
-    apply fastsimp
-apply force+
+     apply (case_tac "X x (j mod n) \<le> j")
+     apply (drule le_imp_less_or_eq)
+     apply (erule disjE)
+     apply (drule_tac j=j and n=n and i="j mod n" and a="X x (j mod n)" in mod_aux)
+     apply auto
 done
 
 text {* Same but with a list as auxiliary variable: *}
@@ -348,16 +346,14 @@ apply(rule While)
   apply(rule Basic)
      apply simp
      apply clarify
-     apply simp
+     apply (simp add: mod_add_self2)
      apply(rule allI)
      apply(rule impI)+
      apply(case_tac "X x ! i\<le> j")
       apply(drule le_imp_less_or_eq)
       apply(erule disjE)
        apply(drule_tac j=j and n=n and i=i and a="X x ! i" in mod_aux)
-        apply assumption+
-       apply simp
-apply force+
+     apply auto
 done
 
 end

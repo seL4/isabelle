@@ -49,8 +49,7 @@ apply (subgoal_tac "p dvd m | p dvd n")
 apply (erule disjE)
 apply (rule disjI1)
 apply (rule_tac [2] disjI2)
-apply (erule_tac n = m in dvdE)
-apply (erule_tac [2] n = n in dvdE, auto)
+apply (auto elim!: dvdE)
 done
 
 
@@ -202,7 +201,7 @@ apply (rule notI)
 apply (drule contrapos_nn [OF _ leI, THEN notnotD], assumption)
 apply (drule less_imp_le [of a])
 apply (drule le_imp_power_dvd)
-apply (drule_tac n = "p ^ r" in dvd_trans, assumption)
+apply (drule_tac b = "p ^ r" in dvd_trans, assumption)
 apply(metis dvd_diffD1 dvd_triv_right le_extend_mult linorder_linear linorder_not_less mult_commute nat_dvd_not_less neq0_conv)
 done
 

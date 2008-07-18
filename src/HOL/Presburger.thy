@@ -31,8 +31,8 @@ lemma minf:
   "\<exists>(z ::'a::{linorder}).\<forall>x<z.(x \<le> t) = True"
   "\<exists>(z ::'a::{linorder}).\<forall>x<z.(x > t) = False"
   "\<exists>(z ::'a::{linorder}).\<forall>x<z.(x \<ge> t) = False"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Divides.dvd})<z. (d dvd x + s) = (d dvd x + s)"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Divides.dvd})<z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
+  "\<exists>z.\<forall>(x::'a::{linorder,plus,Ring_and_Field.dvd})<z. (d dvd x + s) = (d dvd x + s)"
+  "\<exists>z.\<forall>(x::'a::{linorder,plus,Ring_and_Field.dvd})<z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x<z. F = F"
   by ((erule exE, erule exE,rule_tac x="min z za" in exI,simp)+, (rule_tac x="t" in exI,fastsimp)+) simp_all
 
@@ -47,8 +47,8 @@ lemma pinf:
   "\<exists>(z ::'a::{linorder}).\<forall>x>z.(x \<le> t) = False"
   "\<exists>(z ::'a::{linorder}).\<forall>x>z.(x > t) = True"
   "\<exists>(z ::'a::{linorder}).\<forall>x>z.(x \<ge> t) = True"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Divides.dvd})>z. (d dvd x + s) = (d dvd x + s)"
-  "\<exists>z.\<forall>(x::'a::{linorder,plus,Divides.dvd})>z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
+  "\<exists>z.\<forall>(x::'a::{linorder,plus,Ring_and_Field.dvd})>z. (d dvd x + s) = (d dvd x + s)"
+  "\<exists>z.\<forall>(x::'a::{linorder,plus,Ring_and_Field.dvd})>z. (\<not> d dvd x + s) = (\<not> d dvd x + s)"
   "\<exists>z.\<forall>x>z. F = F"
   by ((erule exE, erule exE,rule_tac x="max z za" in exI,simp)+,(rule_tac x="t" in exI,fastsimp)+) simp_all
 
@@ -57,12 +57,12 @@ lemma inf_period:
     \<Longrightarrow> \<forall>x k. (P x \<and> Q x) = (P (x - k*D) \<and> Q (x - k*D))"
   "\<lbrakk>\<forall>x k. P x = P (x - k*D); \<forall>x k. Q x = Q (x - k*D)\<rbrakk> 
     \<Longrightarrow> \<forall>x k. (P x \<or> Q x) = (P (x - k*D) \<or> Q (x - k*D))"
-  "(d::'a::{comm_ring,Divides.dvd}) dvd D \<Longrightarrow> \<forall>x k. (d dvd x + t) = (d dvd (x - k*D) + t)"
-  "(d::'a::{comm_ring,Divides.dvd}) dvd D \<Longrightarrow> \<forall>x k. (\<not>d dvd x + t) = (\<not>d dvd (x - k*D) + t)"
+  "(d::'a::{comm_ring,Ring_and_Field.dvd}) dvd D \<Longrightarrow> \<forall>x k. (d dvd x + t) = (d dvd (x - k*D) + t)"
+  "(d::'a::{comm_ring,Ring_and_Field.dvd}) dvd D \<Longrightarrow> \<forall>x k. (\<not>d dvd x + t) = (\<not>d dvd (x - k*D) + t)"
   "\<forall>x k. F = F"
-by simp_all
-  (clarsimp simp add: dvd_def, rule iffI, clarsimp,rule_tac x = "kb - ka*k" in exI,
-    simp add: ring_simps, clarsimp,rule_tac x = "kb + ka*k" in exI,simp add: ring_simps)+
+apply (auto elim!: dvdE simp add: ring_simps)
+unfolding mult_assoc [symmetric] left_distrib [symmetric] left_diff_distrib [symmetric]
+unfolding dvd_def mult_commute [of d] by auto
 
 subsection{* The A and B sets *}
 lemma bset:
@@ -114,11 +114,12 @@ next
 next
   assume d: "d dvd D"
   {fix x assume H: "d dvd x + t" with d have "d dvd (x - D) + t"
-      by (clarsimp simp add: dvd_def,rule_tac x= "ka - k" in exI,simp add: ring_simps)}
+      by (auto elim!: dvdE simp add: ring_simps)
+        (auto simp only: left_diff_distrib [symmetric] dvd_def mult_commute)}
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (d dvd x+t) \<longrightarrow> (d dvd (x - D) + t)" by simp
 next
   assume d: "d dvd D"
-  {fix x assume H: "\<not>(d dvd x + t)" with d have "\<not>d dvd (x - D) + t"
+  {fix x assume H: "\<not>(d dvd x + t)" with d have "\<not> d dvd (x - D) + t"
       by (clarsimp simp add: dvd_def,erule_tac x= "ka + k" in allE,simp add: ring_simps)}
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (\<not>d dvd x+t) \<longrightarrow> (\<not>d dvd (x - D) + t)" by auto
 qed blast
@@ -360,16 +361,17 @@ apply(simp add:atLeastAtMost_def atLeast_def atMost_def)
 apply(fastsimp)
 done
 
-theorem unity_coeff_ex: "(\<exists>(x::'a::{semiring_0,Divides.dvd}). P (l * x)) \<equiv> (\<exists>x. l dvd (x + 0) \<and> P x)"
-  apply (rule eq_reflection[symmetric])
+theorem unity_coeff_ex: "(\<exists>(x::'a::{semiring_0,Ring_and_Field.dvd}). P (l * x)) \<equiv> (\<exists>x. l dvd (x + 0) \<and> P x)"
+  apply (rule eq_reflection [symmetric])
   apply (rule iffI)
   defer
   apply (erule exE)
   apply (rule_tac x = "l * x" in exI)
   apply (simp add: dvd_def)
-  apply (rule_tac x="x" in exI, simp)
+  apply (rule_tac x = x in exI, simp)
   apply (erule exE)
   apply (erule conjE)
+  apply simp
   apply (erule dvdE)
   apply (rule_tac x = k in exI)
   apply simp
@@ -417,13 +419,13 @@ unfolding dvd_eq_mod_eq_0[symmetric] ..
 
 lemma zmod_eq0_zdvd_iff[presburger]: "(m::int) mod n = 0 \<longleftrightarrow> n dvd m"
 unfolding zdvd_iff_zmod_eq_0[symmetric] ..
-declare mod_1[presburger]
+declare mod_1[presburger] 
 declare mod_0[presburger]
 declare zmod_1[presburger]
 declare zmod_zero[presburger]
 declare zmod_self[presburger]
 declare mod_self[presburger]
-declare DIVISION_BY_ZERO_MOD[presburger]
+declare mod_by_0[presburger]
 declare nat_mod_div_trivial[presburger]
 declare div_mod_equality2[presburger]
 declare div_mod_equality[presburger]
@@ -435,7 +437,7 @@ declare zdiv_zmod_equality2[presburger]
 declare zdiv_zmod_equality[presburger]
 declare mod2_Suc_Suc[presburger]
 lemma [presburger]: "(a::int) div 0 = 0" and [presburger]: "a mod 0 = a"
-using IntDiv.DIVISION_BY_ZERO by blast+
+by simp_all
 
 use "Tools/Qelim/cooper.ML"
 oracle linzqe_oracle ("term") = Coopereif.cooper_oracle

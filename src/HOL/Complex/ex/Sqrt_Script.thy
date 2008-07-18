@@ -23,7 +23,7 @@ lemma prime_nonzero:  "prime p \<Longrightarrow> p \<noteq> 0"
 lemma prime_dvd_other_side:
     "n * n = p * (k * k) \<Longrightarrow> prime p \<Longrightarrow> p dvd n"
   apply (subgoal_tac "p dvd n * n", blast dest: prime_dvd_mult)
-  apply (rule_tac j = "k * k" in dvd_mult_left, simp)
+  apply auto
   done
 
 lemma reduction: "prime p \<Longrightarrow>

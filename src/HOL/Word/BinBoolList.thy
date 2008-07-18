@@ -1099,11 +1099,10 @@ lemma bin_rsplit_aux_len [rule_format] :
   apply (subst bin_rsplit_aux.simps)
   apply (clarsimp simp: Let_def split: ls_splits)
   apply (erule thin_rl)
+  apply (case_tac m)
+  apply simp
   apply (case_tac "m <= n")
-   prefer 2
-   apply (simp add: div_add_self2 [symmetric])
-  apply (case_tac m, clarsimp)
-  apply (simp add: div_add_self2)
+  apply (auto simp add: div_add_self2)
   done
 
 lemma bin_rsplit_len: 

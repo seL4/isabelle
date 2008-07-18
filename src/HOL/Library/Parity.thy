@@ -382,13 +382,14 @@ apply (subst mod_Suc, simp)
 done
 
 lemma lemma_odd_mod_4_div_2: "n mod 4 = (3::nat) ==> odd((n - 1) div 2)"
-apply (rule_tac t = n and n1 = 4 in mod_div_equality [THEN subst])
+apply (rule mod_div_equality [of n 4, THEN subst])
 apply (simp add: even_num_iff)
 done
 
 lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
-by (rule_tac t = n and n1 = 4 in mod_div_equality [THEN subst], simp)
-
+apply (rule mod_div_equality [of n 4, THEN subst])
+apply simp
+done
 
 text {* Simplify, when the exponent is a numeral *}
 

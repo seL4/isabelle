@@ -80,9 +80,9 @@ fun whatis x ct =
 | Const (@{const_name HOL.less_eq}, _) $ y $ z => 
    if term_of x aconv y then Le (Thm.dest_arg ct) 
    else if term_of x aconv z then Ge (Thm.dest_arg1 ct) else Nox
-| Const (@{const_name Divides.dvd},_)$_$(Const(@{const_name "HOL.plus"},_)$y$_) =>
+| Const (@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name HOL.plus},_)$y$_) =>
    if term_of x aconv y then Dvd (Thm.dest_binop ct ||> Thm.dest_arg) else Nox 
-| Const (@{const_name Not},_) $ (Const (@{const_name Divides.dvd},_)$_$(Const(@{const_name "HOL.plus"},_)$y$_)) =>
+| Const (@{const_name Not},_) $ (Const (@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name "HOL.plus"},_)$y$_)) =>
    if term_of x aconv y then 
    NDvd (Thm.dest_binop (Thm.dest_arg ct) ||> Thm.dest_arg) else Nox 
 | _ => Nox)
@@ -223,8 +223,8 @@ fun lin (vs as x::_) (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.le
   | lin (vs as x::_) (Const (@{const_name Not},_) $ (Const(@{const_name HOL.less_eq}, T) $ s $ t)) = 
     lin vs (Const (@{const_name HOL.less}, T) $ t $ s)
   | lin vs (Const (@{const_name Not},T)$t) = Const (@{const_name Not},T)$ (lin vs t)
-  | lin (vs as x::_) (Const(@{const_name Divides.dvd},_)$d$t) = 
-    HOLogic.mk_binrel @{const_name Divides.dvd} (numeral1 abs d, lint vs t)
+  | lin (vs as x::_) (Const(@{const_name Ring_and_Field.dvd},_)$d$t) = 
+    HOLogic.mk_binrel @{const_name Ring_and_Field.dvd} (numeral1 abs d, lint vs t)
   | lin (vs as x::_) ((b as Const("op =",_))$s$t) = 
      (case lint vs (subC$t$s) of 
       (t as a$(m$c$y)$r) => 
@@ -252,7 +252,7 @@ fun is_intrel (b$_$_) = domain_type (fastype_of b) = HOLogic.intT
   | is_intrel _ = false;
  
 fun linearize_conv ctxt vs ct = case term_of ct of
-  Const(@{const_name Divides.dvd},_)$d$t => 
+  Const(@{const_name Ring_and_Field.dvd},_)$d$t => 
   let 
     val th = binop_conv (lint_conv ctxt vs) ct
     val (d',t') = Thm.dest_binop (Thm.rhs_of th)
@@ -277,7 +277,7 @@ fun linearize_conv ctxt vs ct = case term_of ct of
       | _ => dth
      end
   end
-| Const (@{const_name Not},_)$(Const(@{const_name Divides.dvd},_)$_$_) => arg_conv (linearize_conv ctxt vs) ct
+| Const (@{const_name Not},_)$(Const(@{const_name Ring_and_Field.dvd},_)$_$_) => arg_conv (linearize_conv ctxt vs) ct
 | t => if is_intrel t 
       then (provelin ctxt ((HOLogic.eq_const bT)$t$(lin vs t) |> HOLogic.mk_Trueprop))
        RS eq_reflection
@@ -300,7 +300,7 @@ fun unify ctxt q =
     if x aconv y andalso member (op =)
        [@{const_name HOL.less}, @{const_name HOL.less_eq}] s 
     then (ins (dest_numeral c) acc, dacc) else (acc,dacc)
-  | Const(@{const_name Divides.dvd},_)$_$(Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$y)$_) => 
+  | Const(@{const_name Ring_and_Field.dvd},_)$_$(Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$y)$_) => 
     if x aconv y then (acc,ins (dest_numeral c) dacc) else (acc,dacc)
   | Const("op &",_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
   | Const("op |",_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
@@ -340,7 +340,7 @@ fun unify ctxt q =
     if x=y andalso member (op =)
       [@{const_name HOL.less}, @{const_name HOL.less_eq}] s
     then cv (l div dest_numeral c) t else Thm.reflexive t
-  | Const(@{const_name Divides.dvd},_)$d$(r as (Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$y)$_)) => 
+  | Const(@{const_name Ring_and_Field.dvd},_)$d$(r as (Const(@{const_name HOL.plus},_)$(Const(@{const_name HOL.times},_)$c$y)$_)) => 
     if x=y then 
       let 
        val k = l div dest_numeral c
@@ -556,7 +556,7 @@ fun qf_of_term ps vs t =  case t
   | Const("False",_) => F
   | Const(@{const_name HOL.less},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
   | Const(@{const_name HOL.less_eq},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
-  | Const(@{const_name Divides.dvd},_)$t1$t2 => 
+  | Const(@{const_name Ring_and_Field.dvd},_)$t1$t2 => 
       (Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")
   | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))
   | @{term "op = :: bool => _ "}$t1$t2 => Iffa(qf_of_term ps vs t1,qf_of_term ps vs t2)

@@ -10,33 +10,28 @@ val nT = HOLogic.natT;
 val binarith = @{thms normalize_bin_simps};
 val comp_arith = binarith @ simp_thms
 
-val zdvd_int = thm "zdvd_int";
-val zdiff_int_split = thm "zdiff_int_split";
-val all_nat = thm "all_nat";
-val ex_nat = thm "ex_nat";
-val number_of1 = thm "number_of1";
-val number_of2 = thm "number_of2";
-val split_zdiv = thm "split_zdiv";
-val split_zmod = thm "split_zmod";
-val mod_div_equality' = thm "mod_div_equality'";
-val split_div' = thm "split_div'";
-val Suc_plus1 = thm "Suc_plus1";
-val imp_le_cong = thm "imp_le_cong";
-val conj_le_cong = thm "conj_le_cong";
+val zdvd_int = @{thm zdvd_int};
+val zdiff_int_split = @{thm zdiff_int_split};
+val all_nat = @{thm all_nat};
+val ex_nat = @{thm ex_nat};
+val number_of1 = @{thm number_of1};
+val number_of2 = @{thm number_of2};
+val split_zdiv = @{thm split_zdiv};
+val split_zmod = @{thm split_zmod};
+val mod_div_equality' = @{thm mod_div_equality'};
+val split_div' = @{thm split_div'};
+val Suc_plus1 = @{thm Suc_plus1};
+val imp_le_cong = @{thm imp_le_cong};
+val conj_le_cong = @{thm conj_le_cong};
 val nat_mod_add_eq = @{thm mod_add1_eq} RS sym;
 val nat_mod_add_left_eq = @{thm mod_add_left_eq} RS sym;
 val nat_mod_add_right_eq = @{thm mod_add_right_eq} RS sym;
-val int_mod_add_eq = @{thm "zmod_zadd1_eq"} RS sym;
-val int_mod_add_left_eq = @{thm "zmod_zadd_left_eq"} RS sym;
-val int_mod_add_right_eq = @{thm "zmod_zadd_right_eq"} RS sym;
-val nat_div_add_eq = @{thm "div_add1_eq"} RS sym;
-val int_div_add_eq = @{thm "zdiv_zadd1_eq"} RS sym;
-val ZDIVISION_BY_ZERO_MOD = @{thm "DIVISION_BY_ZERO"} RS conjunct2;
-val ZDIVISION_BY_ZERO_DIV = @{thm "DIVISION_BY_ZERO"} RS conjunct1;
+val int_mod_add_eq = @{thm zmod_zadd1_eq} RS sym;
+val int_mod_add_left_eq = @{thm zmod_zadd_left_eq} RS sym;
+val int_mod_add_right_eq = @{thm zmod_zadd_right_eq} RS sym;
+val nat_div_add_eq = @{thm div_add1_eq} RS sym;
+val int_div_add_eq = @{thm zdiv_zadd1_eq} RS sym;
 
-(*
-val fn_rews = List.concat (map thms ["allpairs.simps","iupt.simps","decr.simps", "decrnum.simps","disjuncts.simps","simpnum.simps", "simpfm.simps","numadd.simps","nummul.simps","numneg_def","numsub","simp_num_pair_def","not.simps","prep.simps","qelim.simps","minusinf.simps","plusinf.simps","rsplit0.simps","rlfm.simps","\<Upsilon>.simps","\<upsilon>.simps","linrqe_def", "ferrack_def", "Let_def", "numsub_def", "numneg_def","DJ_def", "imp_def", "evaldjf_def", "djf_def", "split_def", "eq_def", "disj_def", "simp_num_pair_def", "conj_def", "lt_def", "neq_def","gt_def"]);
-*)
 fun prepare_for_linz q fm = 
   let
     val ps = Logic.strip_params fm
@@ -47,8 +42,7 @@ fun prepare_for_linz q fm =
         (HOLogic.all_const T $ Abs (s, T, P), n)
       else (incr_boundvars ~1 P, n-1)
     fun mk_all2 (v, t) = HOLogic.all_const (fastype_of v) $ lambda v t;
-      val rhs = hs
-(*    val (rhs,irhs) = List.partition (relevant (rev ps)) hs *)
+    val rhs = hs
     val np = length ps
     val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
       (foldr HOLogic.mk_imp c rhs, np) ps
@@ -77,8 +71,7 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
 				  int_mod_add_right_eq, int_mod_add_left_eq,
 				  nat_div_add_eq, int_div_add_eq,
 				  @{thm mod_self}, @{thm "zmod_self"},
-				  @{thm DIVISION_BY_ZERO_MOD}, @{thm DIVISION_BY_ZERO_DIV},
-				  ZDIVISION_BY_ZERO_MOD,ZDIVISION_BY_ZERO_DIV,
+				  @{thm mod_by_0}, @{thm div_by_0},
 				  @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
 				  @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, @{thm "mod_1"},
 				  Suc_plus1]

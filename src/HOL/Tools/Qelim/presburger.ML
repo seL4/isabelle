@@ -127,8 +127,8 @@ val div_mod_ss = HOL_basic_ss addsimps simp_thms
      @{thm "mod_add_left_eq"}, @{thm "mod_add_right_eq"}, 
      @{thm "zmod_zadd1_eq"}, @{thm "zmod_zadd_left_eq"}, 
      @{thm "zmod_zadd_right_eq"}, @{thm "div_add1_eq"}, @{thm "zdiv_zadd1_eq"}]
-  @ [@{thm "mod_self"}, @{thm "zmod_self"}, @{thm "DIVISION_BY_ZERO_MOD"}, 
-     @{thm "DIVISION_BY_ZERO_DIV"}, @{thm "DIVISION_BY_ZERO"} RS conjunct1, 
+  @ [@{thm "mod_self"}, @{thm "zmod_self"}, @{thm "mod_by_0"}, 
+     @{thm "div_by_0"}, @{thm "DIVISION_BY_ZERO"} RS conjunct1, 
      @{thm "DIVISION_BY_ZERO"} RS conjunct2, @{thm "zdiv_zero"}, @{thm "zmod_zero"}, 
      @{thm "div_0"}, @{thm "mod_0"}, @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, 
      @{thm "mod_1"}, @{thm "Suc_plus1"}]

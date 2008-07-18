@@ -5,7 +5,9 @@
 
 header {*Parity: Even and Odd Integers*}
 
-theory EvenOdd imports Int2 begin
+theory EvenOdd
+imports Int2
+begin
 
 definition
   zOdd    :: "int set" where
@@ -224,7 +226,7 @@ proof -
 qed
 
 lemma even_sum_div_2: "[| x \<in> zEven; y \<in> zEven |] ==> (x + y) div 2 = x div 2 + y div 2"
-  by (auto simp add: zEven_def, auto simp add: zdiv_zadd1_eq)
+  by (auto simp add: zEven_def)
 
 lemma even_prod_div_2: "[| x \<in> zEven |] ==> (x * y) div 2 = (x div 2) * y"
   by (auto simp add: zEven_def)

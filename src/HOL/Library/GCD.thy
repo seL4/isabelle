@@ -148,8 +148,7 @@ lemma relprime_dvd_mult: "gcd k n = 1 ==> k dvd m * n ==> k dvd m"
   done
 
 lemma relprime_dvd_mult_iff: "gcd k n = 1 ==> (k dvd m * n) = (k dvd m)"
-  apply (blast intro: relprime_dvd_mult dvd_trans)
-  done
+  by (auto intro: relprime_dvd_mult dvd_mult2)
 
 lemma gcd_mult_cancel: "gcd k n = 1 ==> gcd (k * m) n = gcd m n"
   apply (rule dvd_anti_sym)
@@ -158,7 +157,7 @@ lemma gcd_mult_cancel: "gcd k n = 1 ==> gcd (k * m) n = gcd m n"
      apply (simp add: gcd_assoc)
      apply (simp add: gcd_commute)
     apply (simp_all add: mult_commute)
-  apply (blast intro: dvd_trans)
+  apply (blast intro: dvd_mult)
   done
 
 
@@ -167,6 +166,7 @@ text {* \medskip Addition laws *}
 lemma gcd_add1 [simp]: "gcd (m + n) n = gcd m n"
   apply (case_tac "n = 0")
    apply (simp_all add: gcd_non_0)
+  apply (simp add: mod_add_self2)
   done
 
 lemma gcd_add2 [simp]: "gcd m (m + n) = gcd m n"
@@ -548,5 +548,9 @@ proof-
   have "0 < lcm ?na ?nb" by (rule lcm_pos[OF nap nbp])
   thus ?thesis by (simp add: zlcm_def)
 qed
+
+lemma zgcd_code [code func]:
+  "zgcd k l = \<bar>if l = 0 then k else zgcd l (\<bar>k\<bar> mod \<bar>l\<bar>)\<bar>"
+  by (simp add: zgcd_def gcd.simps [of "nat \<bar>k\<bar>"] nat_mod_distrib)
 
 end

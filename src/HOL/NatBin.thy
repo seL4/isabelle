@@ -67,8 +67,8 @@ text{*Distributive laws for type @{text nat}.  The others are in theory
 
 lemma nat_div_distrib: "(0::int) <= z ==> nat (z div z') = nat z div nat z'"
 apply (case_tac "0 <= z'")
-apply (auto simp add: div_nonneg_neg_le0 DIVISION_BY_ZERO_DIV)
-apply (case_tac "z' = 0", simp add: DIVISION_BY_ZERO)
+apply (auto simp add: div_nonneg_neg_le0)
+apply (case_tac "z' = 0", simp)
 apply (auto elim!: nonneg_eq_int)
 apply (rename_tac m m')
 apply (subgoal_tac "0 <= int m div int m'")
@@ -145,9 +145,7 @@ lemma add_nat_number_of [simp]:
          (if neg (number_of v :: int) then number_of v'  
           else if neg (number_of v' :: int) then number_of v  
           else number_of (v + v'))"
-by (force dest!: neg_nat
-          simp del: nat_number_of
-          simp add: nat_number_of_def nat_add_distrib [symmetric]) 
+by (simp add: neg_nat nat_number_of_def nat_add_distrib [symmetric] del: nat_number_of)
 
 
 subsubsection{*Subtraction *}
@@ -157,8 +155,8 @@ lemma diff_nat_eq_if:
         (if neg z' then nat z   
          else let d = z-z' in     
               if neg d then 0 else nat d)"
-apply (simp add: Let_def nat_diff_distrib [symmetric] neg_eq_less_0 not_neg_eq_ge_0)
-done
+by (simp add: Let_def nat_diff_distrib [symmetric] neg_eq_less_0 not_neg_eq_ge_0)
+
 
 lemma diff_nat_number_of [simp]: 
      "(number_of v :: nat) - number_of v' =  
@@ -174,10 +172,7 @@ subsubsection{*Multiplication *}
 lemma mult_nat_number_of [simp]:
      "(number_of v :: nat) * number_of v' =  
        (if neg (number_of v :: int) then 0 else number_of (v * v'))"
-by (force dest!: neg_nat
-          simp del: nat_number_of
-          simp add: nat_number_of_def nat_mult_distrib [symmetric]) 
-
+by (simp add: neg_nat nat_number_of_def nat_mult_distrib [symmetric] del: nat_number_of)
 
 
 subsubsection{*Quotient *}
@@ -186,12 +181,10 @@ lemma div_nat_number_of [simp]:
      "(number_of v :: nat)  div  number_of v' =  
           (if neg (number_of v :: int) then 0  
            else nat (number_of v div number_of v'))"
-by (force dest!: neg_nat
-          simp del: nat_number_of
-          simp add: nat_number_of_def nat_div_distrib [symmetric]) 
+by (simp add: neg_nat nat_number_of_def nat_div_distrib [symmetric] del: nat_number_of)
 
 lemma one_div_nat_number_of [simp]:
-     "(Suc 0)  div  number_of v' = (nat (1 div number_of v'))" 
+     "Suc 0 div number_of v' = nat (1 div number_of v')" 
 by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 
 
 
@@ -202,12 +195,10 @@ lemma mod_nat_number_of [simp]:
         (if neg (number_of v :: int) then 0  
          else if neg (number_of v' :: int) then number_of v  
          else nat (number_of v mod number_of v'))"
-by (force dest!: neg_nat
-          simp del: nat_number_of
-          simp add: nat_number_of_def nat_mod_distrib [symmetric]) 
+by (simp add: neg_nat nat_number_of_def nat_mod_distrib [symmetric] del: nat_number_of)
 
 lemma one_mod_nat_number_of [simp]:
-     "(Suc 0)  mod  number_of v' =  
+     "Suc 0 mod number_of v' =  
         (if neg (number_of v' :: int) then Suc 0
          else nat (1 mod number_of v'))"
 by (simp del: nat_numeral_1_eq_1 add: numeral_1_eq_Suc_0 [symmetric]) 

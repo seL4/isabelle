@@ -262,8 +262,8 @@ structure IntModCancelFactor = ExtractCommonTermFun
 structure IntDvdCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
-  val mk_bal   = HOLogic.mk_binrel @{const_name Divides.dvd}
-  val dest_bal = HOLogic.dest_bin @{const_name Divides.dvd} HOLogic.intT
+  val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
+  val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} HOLogic.intT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm zdvd_zmult_cancel_disj}
 );
 

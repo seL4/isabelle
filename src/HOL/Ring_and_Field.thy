@@ -102,11 +102,107 @@ end
 
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
 
-class comm_semiring_1 = zero_neq_one + comm_semiring_0 + comm_monoid_mult
+text {* Abstract divisibility *}
+
+class dvd = times
+begin
+
+definition
+  dvd  :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd" 50)
+where
+  [code func del]: "b dvd a \<longleftrightarrow> (\<exists>k. a = b * k)"
+
+lemma dvdI [intro?]: "a = b * k \<Longrightarrow> b dvd a"
+  unfolding dvd_def ..
+
+lemma dvdE [elim?]: "b dvd a \<Longrightarrow> (\<And>k. a = b * k \<Longrightarrow> P) \<Longrightarrow> P"
+  unfolding dvd_def by blast 
+
+end
+
+class comm_semiring_1 = zero_neq_one + comm_semiring_0 + comm_monoid_mult + dvd
   (*previously almost_semiring*)
 begin
 
 subclass semiring_1 ..
+
+lemma dvd_refl: "a dvd a"
+proof -
+  have "a = a * 1" by simp
+  then show ?thesis unfolding dvd_def ..
+qed
+
+lemma dvd_trans:
+  assumes "a dvd b" and "b dvd c"
+  shows "a dvd c"
+proof -
+  from assms obtain v where "b = a * v" unfolding dvd_def by auto
+  moreover from assms obtain w where "c = b * w" unfolding dvd_def by auto
+  ultimately have "c = a * (v * w)" by (simp add: mult_assoc)
+  then show ?thesis unfolding dvd_def ..
+qed
+
+lemma dvd_0_left_iff [noatp, simp]: "0 dvd a \<longleftrightarrow> a = 0"
+  unfolding dvd_def by simp
+
+lemma dvd_0 [simp]: "a dvd 0"
+unfolding dvd_def proof
+  show "0 = a * 0" by simp
+qed
+
+lemma one_dvd [simp]: "1 dvd a"
+  unfolding dvd_def by simp
+
+lemma dvd_mult: "a dvd c \<Longrightarrow> a dvd (b * c)"
+  unfolding dvd_def by (blast intro: mult_left_commute)
+
+lemma dvd_mult2: "a dvd b \<Longrightarrow> a dvd (b * c)"
+  apply (subst mult_commute)
+  apply (erule dvd_mult)
+  done
+
+lemma dvd_triv_right [simp]: "a dvd b * a"
+  by (rule dvd_mult) (rule dvd_refl)
+
+lemma dvd_triv_left [simp]: "a dvd a * b"
+  by (rule dvd_mult2) (rule dvd_refl)
+
+lemma mult_dvd_mono:
+  assumes ab: "a dvd b"
+    and "cd": "c dvd d"
+  shows "a * c dvd b * d"
+proof -
+  from ab obtain b' where "b = a * b'" ..
+  moreover from "cd" obtain d' where "d = c * d'" ..
+  ultimately have "b * d = (a * c) * (b' * d')" by (simp add: mult_ac)
+  then show ?thesis ..
+qed
+
+lemma dvd_mult_left: "a * b dvd c \<Longrightarrow> a dvd c"
+  by (simp add: dvd_def mult_assoc, blast)
+
+lemma dvd_mult_right: "a * b dvd c \<Longrightarrow> b dvd c"
+  unfolding mult_ac [of a] by (rule dvd_mult_left)
+
+lemma dvd_0_right [iff]: "a dvd 0"
+proof -
+  have "0 = a * 0" by simp
+  then show ?thesis unfolding dvd_def ..
+qed
+
+lemma dvd_0_left: "0 dvd a \<Longrightarrow> a = 0"
+  by simp
+
+lemma dvd_add:
+  assumes ab: "a dvd b"
+    and ac: "a dvd c"
+    shows "a dvd (b + c)"
+proof -
+  from ab obtain b' where "b = a * b'" ..
+  moreover from ac obtain c' where "c = a * c'" ..
+  ultimately have "b + c = a * (b' + c')" by (simp add: right_distrib)
+  then show ?thesis ..
+qed
 
 end
 
@@ -972,6 +1068,26 @@ lemma mult_less_cancel_left1:
 lemma mult_less_cancel_left2:
   "c * a < c \<longleftrightarrow> (0 \<le> c \<longrightarrow> a < 1) \<and> (c \<le> 0 \<longrightarrow> 1 < a)"
   by (insert mult_less_cancel_left [of c a 1], simp)
+
+lemma sgn_sgn [simp]:
+  "sgn (sgn a) = sgn a"
+  unfolding sgn_if by simp
+
+lemma sgn_0_0:
+  "sgn a = 0 \<longleftrightarrow> a = 0"
+  unfolding sgn_if by simp
+
+lemma sgn_1_pos:
+  "sgn a = 1 \<longleftrightarrow> a > 0"
+  unfolding sgn_if by (simp add: neg_equal_zero)
+
+lemma sgn_1_neg:
+  "sgn a = - 1 \<longleftrightarrow> a < 0"
+  unfolding sgn_if by (auto simp add: equal_neg_zero)
+
+lemma sgn_times:
+  "sgn (a * b) = sgn a * sgn b"
+  by (auto simp add: sgn_if zero_less_mult_iff)
 
 end
 

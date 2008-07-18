@@ -4,7 +4,7 @@
     Copyright   1999  University of Cambridge
 *)
 
-header {* The division operators div, mod and the divides relation dvd *}
+header {* The division operators div and mod *}
 
 theory Divides
 imports Nat Power Product_Type
@@ -13,70 +13,21 @@ begin
 
 subsection {* Syntactic division operations *}
 
-class dvd = times
-begin
-
-definition
-  dvd  :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd" 50)
-where
-  [code func del]: "m dvd n \<longleftrightarrow> (\<exists>k. n = m * k)"
-
-end
-
-class div = times +
+class div = dvd +
   fixes div :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "div" 70)
-  fixes mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "mod" 70)
+    and mod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "mod" 70)
 
 
-subsection {* Abstract divisibility in commutative semirings. *}
+subsection {* Abstract division in commutative semirings. *}
 
-class semiring_div = comm_semiring_1_cancel + dvd + div + 
+class semiring_div = comm_semiring_1_cancel + div + 
   assumes mod_div_equality: "a div b * b + a mod b = a"
-    and div_by_0: "a div 0 = 0"
-    and mult_div: "b \<noteq> 0 \<Longrightarrow> a * b div b = a"
+    and div_by_0 [simp]: "a div 0 = 0"
+    and div_0 [simp]: "0 div a = 0"
+    and div_mult_self1 [simp]: "b \<noteq> 0 \<Longrightarrow> (a + c * b) div b = c + a div b"
 begin
 
 text {* @{const div} and @{const mod} *}
-
-lemma div_by_1: "a div 1 = a"
-  using mult_div [of 1 a] zero_neq_one by simp
-
-lemma mod_by_1: "a mod 1 = 0"
-proof -
-  from mod_div_equality [of a one] div_by_1 have "a + a mod 1 = a" by simp
-  then have "a + a mod 1 = a + 0" by simp
-  then show ?thesis by (rule add_left_imp_eq)
-qed
-
-lemma mod_by_0: "a mod 0 = a"
-  using mod_div_equality [of a zero] by simp
-
-lemma mult_mod: "a * b mod b = 0"
-proof (cases "b = 0")
-  case True then show ?thesis by (simp add: mod_by_0)
-next
-  case False with mult_div have abb: "a * b div b = a" .
-  from mod_div_equality have "a * b div b * b + a * b mod b = a * b" .
-  with abb have "a * b + a * b mod b = a * b + 0" by simp
-  then show ?thesis by (rule add_left_imp_eq)
-qed
-
-lemma mod_self: "a mod a = 0"
-  using mult_mod [of one] by simp
-
-lemma div_self: "a \<noteq> 0 \<Longrightarrow> a div a = 1"
-  using mult_div [of _ one] by simp
-
-lemma div_0: "0 div a = 0"
-proof (cases "a = 0")
-  case True then show ?thesis by (simp add: div_by_0)
-next
-  case False with mult_div have "0 * a div a = 0" .
-  then show ?thesis by simp
-qed
-
-lemma mod_0: "0 mod a = 0"
-  using mod_div_equality [of zero a] div_0 by simp 
 
 lemma mod_div_equality2: "b * (a div b) + a mod b = a"
   unfolding mult_commute [of b]
@@ -88,15 +39,95 @@ lemma div_mod_equality: "((a div b) * b + a mod b) + c = a + c"
 lemma div_mod_equality2: "(b * (a div b) + a mod b) + c = a + c"
   by (simp add: mod_div_equality2)
 
-text {* The @{const dvd} relation *}
+lemma mod_by_0 [simp]: "a mod 0 = a"
+  using mod_div_equality [of a zero] by simp
 
-lemma dvdI [intro?]: "a = b * c \<Longrightarrow> b dvd a"
-  unfolding dvd_def ..
+lemma mod_0 [simp]: "0 mod a = 0"
+  using mod_div_equality [of zero a] div_0 by simp 
 
-lemma dvdE [elim?]: "b dvd a \<Longrightarrow> (\<And>c. a = b * c \<Longrightarrow> P) \<Longrightarrow> P"
-  unfolding dvd_def by blast 
+lemma div_mult_self2 [simp]:
+  assumes "b \<noteq> 0"
+  shows "(a + b * c) div b = c + a div b"
+  using assms div_mult_self1 [of b a c] by (simp add: mult_commute)
 
-lemma dvd_def_mod [code func]: "a dvd b \<longleftrightarrow> b mod a = 0"
+lemma mod_mult_self1 [simp]: "(a + c * b) mod b = a mod b"
+proof (cases "b = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  have "a + c * b = (a + c * b) div b * b + (a + c * b) mod b"
+    by (simp add: mod_div_equality)
+  also from False div_mult_self1 [of b a c] have
+    "\<dots> = (c + a div b) * b + (a + c * b) mod b"
+      by (simp add: left_distrib add_ac)
+  finally have "a = a div b * b + (a + c * b) mod b"
+    by (simp add: add_commute [of a] add_assoc left_distrib)
+  then have "a div b * b + (a + c * b) mod b = a div b * b + a mod b"
+    by (simp add: mod_div_equality)
+  then show ?thesis by simp
+qed
+
+lemma mod_mult_self2 [simp]: "(a + b * c) mod b = a mod b"
+  by (simp add: mult_commute [of b])
+
+lemma div_mult_self1_is_id [simp]: "b \<noteq> 0 \<Longrightarrow> b * a div b = a"
+  using div_mult_self2 [of b 0 a] by simp
+
+lemma div_mult_self2_is_id [simp]: "b \<noteq> 0 \<Longrightarrow> a * b div b = a"
+  using div_mult_self1 [of b 0 a] by simp
+
+lemma mod_mult_self1_is_0 [simp]: "b * a mod b = 0"
+  using mod_mult_self2 [of 0 b a] by simp
+
+lemma mod_mult_self2_is_0 [simp]: "a * b mod b = 0"
+  using mod_mult_self1 [of 0 a b] by simp
+
+lemma div_by_1 [simp]: "a div 1 = a"
+  using div_mult_self2_is_id [of 1 a] zero_neq_one by simp
+
+lemma mod_by_1 [simp]: "a mod 1 = 0"
+proof -
+  from mod_div_equality [of a one] div_by_1 have "a + a mod 1 = a" by simp
+  then have "a + a mod 1 = a + 0" by simp
+  then show ?thesis by (rule add_left_imp_eq)
+qed
+
+lemma mod_self [simp]: "a mod a = 0"
+  using mod_mult_self2_is_0 [of 1] by simp
+
+lemma div_self [simp]: "a \<noteq> 0 \<Longrightarrow> a div a = 1"
+  using div_mult_self2_is_id [of _ 1] by simp
+
+lemma div_add_self1:
+  assumes "b \<noteq> 0"
+  shows "(b + a) div b = a div b + 1"
+  using assms div_mult_self1 [of b a 1] by (simp add: add_commute)
+
+lemma div_add_self2:
+  assumes "b \<noteq> 0"
+  shows "(a + b) div b = a div b + 1"
+  using assms div_add_self1 [of b a] by (simp add: add_commute)
+
+lemma mod_add_self1:
+  "(b + a) mod b = a mod b"
+  using mod_mult_self1 [of a 1 b] by (simp add: add_commute)
+
+lemma mod_add_self2:
+  "(a + b) mod b = a mod b"
+  using mod_mult_self1 [of a 1 b] by simp
+
+lemma mod_div_decomp:
+  fixes a b
+  obtains q r where "q = a div b" and "r = a mod b"
+    and "a = q * b + r"
+proof -
+  from mod_div_equality have "a = a div b * b + a mod b" by simp
+  moreover have "a div b = a div b" ..
+  moreover have "a mod b = a mod b" ..
+  note that ultimately show thesis by blast
+qed
+
+lemma dvd_eq_mod_eq_0 [code func]: "a dvd b \<longleftrightarrow> b mod a = 0"
 proof
   assume "b mod a = 0"
   with mod_div_equality [of b a] have "b div a * a = b" by simp
@@ -109,58 +140,8 @@ next
   then obtain c where "b = a * c" ..
   then have "b mod a = a * c mod a" by simp
   then have "b mod a = c * a mod a" by (simp add: mult_commute)
-  then show "b mod a = 0" by (simp add: mult_mod)
+  then show "b mod a = 0" by simp
 qed
-
-lemma dvd_refl: "a dvd a"
-  unfolding dvd_def_mod mod_self ..
-
-lemma dvd_trans:
-  assumes "a dvd b" and "b dvd c"
-  shows "a dvd c"
-proof -
-  from assms obtain v where "b = a * v" unfolding dvd_def by auto
-  moreover from assms obtain w where "c = b * w" unfolding dvd_def by auto
-  ultimately have "c = a * (v * w)" by (simp add: mult_assoc)
-  then show ?thesis unfolding dvd_def ..
-qed
-
-lemma zero_dvd_iff [noatp]: "0 dvd a \<longleftrightarrow> a = 0"
-  unfolding dvd_def by simp
-
-lemma dvd_0: "a dvd 0"
-unfolding dvd_def proof
-  show "0 = a * 0" by simp
-qed
-
-lemma one_dvd: "1 dvd a"
-  unfolding dvd_def by simp
-
-lemma dvd_mult: "a dvd c \<Longrightarrow> a dvd (b * c)"
-  unfolding dvd_def by (blast intro: mult_left_commute)
-
-lemma dvd_mult2: "a dvd b \<Longrightarrow> a dvd (b * c)"
-  apply (subst mult_commute)
-  apply (erule dvd_mult)
-  done
-
-lemma dvd_triv_right: "a dvd b * a"
-  by (rule dvd_mult) (rule dvd_refl)
-
-lemma dvd_triv_left: "a dvd a * b"
-  by (rule dvd_mult2) (rule dvd_refl)
-
-lemma mult_dvd_mono: "a dvd c \<Longrightarrow> b dvd d \<Longrightarrow> a * b dvd c * d"
-  apply (unfold dvd_def, clarify)
-  apply (rule_tac x = "k * ka" in exI)
-  apply (simp add: mult_ac)
-  done
-
-lemma dvd_mult_left: "a * b dvd c \<Longrightarrow> a dvd c"
-  by (simp add: dvd_def mult_assoc, blast)
-
-lemma dvd_mult_right: "a * b dvd c \<Longrightarrow> b dvd c"
-  unfolding mult_ac [of a] by (rule dvd_mult_left)
 
 end
 
@@ -352,7 +333,10 @@ next
   fix n :: nat show "n div 0 = 0"
     using divmod_zero divmod_div_mod [of n 0] by simp
 next
-  fix m n :: nat assume "n \<noteq> 0" then show "m * n div n = m"
+  fix n :: nat show "0 div n = 0"
+    using divmod_rel [of 0 n] by (cases n) (simp_all add: divmod_rel_def)
+next
+  fix m n q :: nat assume "n \<noteq> 0" then show "(q + m * n) div n = m + q div n"
     by (induct m) (simp_all add: le_div_geq)
 qed
 
@@ -360,10 +344,8 @@ end
 
 text {* Simproc for cancelling @{const div} and @{const mod} *}
 
-lemmas mod_div_equality = semiring_div_class.times_div_mod_plus_zero_one.mod_div_equality [of "m\<Colon>nat" n, standard]
-lemmas mod_div_equality2 = mod_div_equality2 [of "n\<Colon>nat" m, standard]
-lemmas div_mod_equality = div_mod_equality [of "m\<Colon>nat" n k, standard]
-lemmas div_mod_equality2 = div_mod_equality2 [of "m\<Colon>nat" n k, standard]
+(*lemmas mod_div_equality_nat = semiring_div_class.times_div_mod_plus_zero_one.mod_div_equality [of "m\<Colon>nat" n, standard]
+lemmas mod_div_equality2_nat = mod_div_equality2 [of "n\<Colon>nat" m, standard*)
 
 ML {*
 structure CancelDivModData =
@@ -414,9 +396,6 @@ code_modulename Haskell
 
 subsubsection {* Quotient *}
 
-lemmas DIVISION_BY_ZERO_DIV [simp] = div_by_0 [of "a\<Colon>nat", standard]
-lemmas div_0 [simp] = semiring_div_class.div_0 [of "n\<Colon>nat", standard]
-
 lemma div_geq: "0 < n \<Longrightarrow>  \<not> m < n \<Longrightarrow> m div n = Suc ((m - n) div n)"
   by (simp add: le_div_geq linorder_not_less)
 
@@ -424,16 +403,13 @@ lemma div_if: "0 < n \<Longrightarrow> m div n = (if m < n then 0 else Suc ((m -
   by (simp add: div_geq)
 
 lemma div_mult_self_is_m [simp]: "0<n ==> (m*n) div n = (m::nat)"
-  by (rule mult_div) simp
+  by simp
 
 lemma div_mult_self1_is_m [simp]: "0<n ==> (n*m) div n = (m::nat)"
-  by (simp add: mult_commute)
+  by simp
 
 
 subsubsection {* Remainder *}
-
-lemmas DIVISION_BY_ZERO_MOD [simp] = mod_by_0 [of "a\<Colon>nat", standard]
-lemmas mod_0 [simp] = semiring_div_class.mod_0 [of "n\<Colon>nat", standard]
 
 lemma mod_less_divisor [simp]:
   fixes m n :: nat
@@ -458,23 +434,6 @@ lemma mod_if: "m mod (n\<Colon>nat) = (if m < n then m else (m - n) mod n)"
 lemma mod_1 [simp]: "m mod Suc 0 = 0"
   by (induct m) (simp_all add: mod_geq)
 
-lemmas mod_self [simp] = semiring_div_class.mod_self [of "n\<Colon>nat", standard]
-
-lemma mod_add_self2 [simp]: "(m+n) mod n = m mod (n::nat)"
-  apply (subgoal_tac "(n + m) mod n = (n+m-n) mod n")
-   apply (simp add: add_commute)
-  apply (subst le_mod_geq [symmetric], simp_all)
-  done
-
-lemma mod_add_self1 [simp]: "(n+m) mod n = m mod (n::nat)"
-  by (simp add: add_commute mod_add_self2)
-
-lemma mod_mult_self1 [simp]: "(m + k*n) mod n = m mod (n::nat)"
-  by (induct k) (simp_all add: add_left_commute [of _ n])
-
-lemma mod_mult_self2 [simp]: "(m + n*k) mod n = m mod (n::nat)"
-  by (simp add: mult_commute mod_mult_self1)
-
 lemma mod_mult_distrib: "(m mod n) * (k\<Colon>nat) = (m * k) mod (n * k)"
   apply (cases "n = 0", simp)
   apply (cases "k = 0", simp)
@@ -486,20 +445,9 @@ lemma mod_mult_distrib: "(m mod n) * (k\<Colon>nat) = (m * k) mod (n * k)"
 lemma mod_mult_distrib2: "(k::nat) * (m mod n) = (k*m) mod (k*n)"
   by (simp add: mult_commute [of k] mod_mult_distrib)
 
-lemma mod_mult_self_is_0 [simp]: "(m*n) mod n = (0::nat)"
-  apply (cases "n = 0", simp)
-  apply (induct m, simp)
-  apply (rename_tac k)
-  apply (cut_tac m = "k * n" and n = n in mod_add_self2)
-  apply (simp add: add_commute)
-  done
-
-lemma mod_mult_self1_is_0 [simp]: "(n*m) mod n = (0::nat)"
-  by (simp add: mult_commute mod_mult_self_is_0)
-
 (* a simple rearrangement of mod_div_equality: *)
 lemma mult_div_cancel: "(n::nat) * (m div n) = m - (m mod n)"
-  by (cut_tac m = m and n = n in mod_div_equality2, arith)
+  by (cut_tac a = m and b = n in mod_div_equality2, arith)
 
 lemma mod_le_divisor[simp]: "0 < n \<Longrightarrow> m mod n \<le> (n::nat)"
   apply (drule mod_less_divisor [where m = m])
@@ -507,17 +455,6 @@ lemma mod_le_divisor[simp]: "0 < n \<Longrightarrow> m mod n \<le> (n::nat)"
   done
 
 subsubsection {* Quotient and Remainder *}
-
-lemma mod_div_decomp:
-  fixes n k :: nat
-  obtains m q where "m = n div k" and "q = n mod k"
-    and "n = m * k + q"
-proof -
-  from mod_div_equality have "n = n div k * k + n mod k" by auto
-  moreover have "n div k = n div k" ..
-  moreover have "n mod k = n mod k" ..
-  note that ultimately show thesis by blast
-qed
 
 lemma divmod_rel_mult1_eq:
   "[| divmod_rel b c q r; c > 0 |]
@@ -610,25 +547,6 @@ subsubsection{*Further Facts about Quotient and Remainder*}
 lemma div_1 [simp]: "m div Suc 0 = m"
   by (induct m) (simp_all add: div_geq)
 
-lemmas div_self [simp] = semiring_div_class.div_self [of "n\<Colon>nat", standard]
-
-lemma div_add_self2: "0<n ==> (m+n) div n = Suc (m div n)"
-  apply (subgoal_tac "(n + m) div n = Suc ((n+m-n) div n) ")
-   apply (simp add: add_commute)
-  apply (subst div_geq [symmetric], simp_all)
-  done
-
-lemma div_add_self1: "0<n ==> (n+m) div n = Suc (m div n)"
-  by (simp add: add_commute div_add_self2)
-
-lemma div_mult_self1 [simp]: "!!n::nat. 0<n ==> (m + k*n) div n = k + m div n"
-  apply (subst div_add1_eq)
-  apply (subst div_mult1_eq, simp)
-  done
-
-lemma div_mult_self2 [simp]: "0<n ==> (m + n*k) div n = k + m div (n::nat)"
-  by (simp add: mult_commute div_mult_self1)
-
 
 (* Monotonicity of div in first argument *)
 lemma div_le_mono [rule_format (no_asm)]:
@@ -707,33 +625,13 @@ lemma nat_mod_mod_trivial [simp]: "m mod n mod n = (m mod n :: nat)"
   by (cases "n = 0") auto
 
 
-subsubsection{*The Divides Relation*}
-
-lemma dvdI [intro?]: "n = m * k ==> m dvd n"
-  unfolding dvd_def by blast
-
-lemma dvdE [elim?]: "!!P. [|m dvd n;  !!k. n = m*k ==> P|] ==> P"
-  unfolding dvd_def by blast
-
-lemma dvd_0_right [iff]: "m dvd (0::nat)"
-  unfolding dvd_def by (blast intro: mult_0_right [symmetric])
-
-lemma dvd_0_left: "0 dvd m ==> m = (0::nat)"
-  by (force simp add: dvd_def)
-
-lemma dvd_0_left_iff [iff]: "(0 dvd (m::nat)) = (m = 0)"
-  by (blast intro: dvd_0_left)
-
-declare dvd_0_left_iff [noatp]
+subsubsection {* The Divides Relation *}
 
 lemma dvd_1_left [iff]: "Suc 0 dvd k"
   unfolding dvd_def by simp
 
 lemma dvd_1_iff_1 [simp]: "(m dvd Suc 0) = (m = Suc 0)"
   by (simp add: dvd_def)
-
-lemmas dvd_refl [simp] = semiring_div_class.dvd_refl [of "m\<Colon>nat", standard]
-lemmas dvd_trans [trans] = semiring_div_class.dvd_trans [of "m\<Colon>nat" n p, standard]
 
 lemma dvd_anti_sym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
   unfolding dvd_def
@@ -742,11 +640,7 @@ lemma dvd_anti_sym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
 text {* @{term "op dvd"} is a partial order *}
 
 interpretation dvd: order ["op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> n \<noteq> m"]
-  by unfold_locales (auto intro: dvd_trans dvd_anti_sym)
-
-lemma dvd_add: "[| k dvd m; k dvd n |] ==> k dvd (m+n :: nat)"
-  unfolding dvd_def
-  by (blast intro: add_mult_distrib2 [symmetric])
+  by unfold_locales (auto intro: dvd_refl dvd_trans dvd_anti_sym)
 
 lemma dvd_diff: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
   unfolding dvd_def
@@ -759,20 +653,6 @@ lemma dvd_diffD: "[| k dvd m-n; k dvd n; n\<le>m |] ==> k dvd (m::nat)"
 
 lemma dvd_diffD1: "[| k dvd m-n; k dvd m; n\<le>m |] ==> k dvd (n::nat)"
   by (drule_tac m = m in dvd_diff, auto)
-
-lemma dvd_mult: "k dvd n ==> k dvd (m*n :: nat)"
-  unfolding dvd_def by (blast intro: mult_left_commute)
-
-lemma dvd_mult2: "k dvd m ==> k dvd (m*n :: nat)"
-  apply (subst mult_commute)
-  apply (erule dvd_mult)
-  done
-
-lemma dvd_triv_right [iff]: "k dvd (m*k :: nat)"
-  by (rule dvd_refl [THEN dvd_mult])
-
-lemma dvd_triv_left [iff]: "k dvd (k*m :: nat)"
-  by (rule dvd_refl [THEN dvd_mult2])
 
 lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
   apply (rule iffI)
@@ -817,21 +697,6 @@ lemma dvd_mult_cancel2: "0<m ==> (n*m dvd m) = (n = (1::nat))"
   apply (erule dvd_mult_cancel1)
   done
 
-lemma mult_dvd_mono: "[| i dvd m; j dvd n|] ==> i*j dvd (m*n :: nat)"
-  apply (unfold dvd_def, clarify)
-  apply (rule_tac x = "k*ka" in exI)
-  apply (simp add: mult_ac)
-  done
-
-lemma dvd_mult_left: "(i*j :: nat) dvd k ==> i dvd k"
-  by (simp add: dvd_def mult_assoc, blast)
-
-lemma dvd_mult_right: "(i*j :: nat) dvd k ==> j dvd k"
-  apply (unfold dvd_def, clarify)
-  apply (rule_tac x = "i*k" in exI)
-  apply (simp add: mult_ac)
-  done
-
 lemma dvd_imp_le: "[| k dvd n; 0 < n |] ==> k \<le> (n::nat)"
   apply (unfold dvd_def, clarify)
   apply (simp_all (no_asm_use) add: zero_less_mult_iff)
@@ -840,8 +705,6 @@ lemma dvd_imp_le: "[| k dvd n; 0 < n |] ==> k \<le> (n::nat)"
    apply (rule_tac [2] le_refl [THEN mult_le_mono])
    apply (erule_tac [2] Suc_leI, simp)
   done
-
-lemmas dvd_eq_mod_eq_0 = dvd_def_mod [of "k\<Colon>nat" n, standard]
 
 lemma dvd_mult_div_cancel: "n dvd m ==> n * (m div n) = (m::nat)"
   apply (subgoal_tac "m mod n = 0")
@@ -888,7 +751,7 @@ lemmas mod_eq_0D [dest!] = mod_eq_0_iff [THEN iffD1]
 
 (*Loses information, namely we also have r<d provided d is nonzero*)
 lemma mod_eqD: "(m mod d = r) ==> \<exists>q::nat. m = r + q*d"
-  apply (cut_tac m = m in mod_div_equality)
+  apply (cut_tac a = m in mod_div_equality)
   apply (simp only: add_ac)
   apply (blast intro: sym)
   done
@@ -902,7 +765,7 @@ proof
   show ?Q
   proof (cases)
     assume "k = 0"
-    with P show ?Q by(simp add:DIVISION_BY_ZERO_DIV)
+    with P show ?Q by simp
   next
     assume not0: "k \<noteq> 0"
     thus ?Q
@@ -924,7 +787,7 @@ next
   show ?P
   proof (cases)
     assume "k = 0"
-    with Q show ?P by(simp add:DIVISION_BY_ZERO_DIV)
+    with Q show ?P by simp
   next
     assume not0: "k \<noteq> 0"
     with Q have R: ?R by simp
@@ -958,7 +821,7 @@ theorem split_div':
    (\<exists>q. (n * q \<le> m \<and> m < n * (Suc q)) \<and> P q))"
   apply (case_tac "0 < n")
   apply (simp only: add: split_div_lemma)
-  apply (simp_all add: DIVISION_BY_ZERO_DIV)
+  apply simp_all
   done
 
 lemma split_mod:
@@ -970,7 +833,7 @@ proof
   show ?Q
   proof (cases)
     assume "k = 0"
-    with P show ?Q by(simp add:DIVISION_BY_ZERO_MOD)
+    with P show ?Q by simp
   next
     assume not0: "k \<noteq> 0"
     thus ?Q
@@ -985,7 +848,7 @@ next
   show ?P
   proof (cases)
     assume "k = 0"
-    with Q show ?P by(simp add:DIVISION_BY_ZERO_MOD)
+    with Q show ?P by simp
   next
     assume not0: "k \<noteq> 0"
     with Q have R: ?R by simp

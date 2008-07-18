@@ -19,23 +19,10 @@ interface instead.
 
 *** Pure ***
 
-* Command 'instance': attached definitions now longer accepted.
+* Command 'instance': attached definitions no longer accepted.
 INCOMPATIBILITY, use proper 'instantiation' target.
 
 * Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
-
-* New ML antiquotation @{code}: takes constant as argument, generates
-corresponding code in background and inserts name of the corresponding
-resulting ML value/function/datatype constructor binding in place.
-All occurrences of @{code} with a single ML block are generated
-simultaneously.  Provides a generic and safe interface for
-instrumentalizing code generation.  See HOL/ex/Code_Antiq for a toy
-example, or HOL/Complex/ex/ReflectedFerrack for a more ambitious
-application.  In future you ought refrain from ad-hoc compiling
-generated SML code on the ML toplevel.  Note that (for technical
-reasons) @{code} cannot refer to constants for which user-defined
-serializations are set.  Refer to the corresponding ML counterpart
-directly in that cases.
 
 
 *** Document preparation ***
@@ -46,6 +33,19 @@ syntax just like the Isar command 'by'.
 
 
 *** HOL ***
+
+* HOL/Ring_and_Field and HOL/Divides: Definition of "op dvd" has been moved
+to separate class dvd in Ring_and_Field;  a couple of lemmas on dvd has been
+generalized to class comm_semiring_1.  Likewise a bunch of lemmas from Divides
+has been generalized from nat to class semiring_div.  INCOMPATIBILITY.
+This involves the following theorem renames resulting from duplicate elimination:
+
+    dvd_def_mod ~>          dvd_eq_mod_eq_0
+    zero_dvd_iff ~>         dvd_0_left_iff
+    DIVISION_BY_ZERO_DIV ~> div_by_0
+    DIVISION_BY_ZERO_MOD ~> mod_by_0
+    mult_div ~>             div_mult_self2_is_id
+    mult_mod ~>             mod_mult_self2_is_0
 
 * HOL/Library/GCD: Curried operations gcd, lcm (for nat) and zgcd,
 zlcm (for int); carried together from various gcd/lcm developements in
@@ -62,6 +62,19 @@ recover tupled syntax, use syntax declarations like:
 (analogously for lcm, zgcd, zlcm).
 
 * HOL/Real/Rational: 'Fract k 0' now equals '0'.  INCOMPATIBILITY.
+
+* New ML antiquotation @{code}: takes constant as argument, generates
+corresponding code in background and inserts name of the corresponding
+resulting ML value/function/datatype constructor binding in place.
+All occurrences of @{code} with a single ML block are generated
+simultaneously.  Provides a generic and safe interface for
+instrumentalizing code generation.  See HOL/ex/Code_Antiq for a toy
+example, or HOL/Complex/ex/ReflectedFerrack for a more ambitious
+application.  In future you ought refrain from ad-hoc compiling
+generated SML code on the ML toplevel.  Note that (for technical
+reasons) @{code} cannot refer to constants for which user-defined
+serializations are set.  Refer to the corresponding ML counterpart
+directly in that cases.
 
 * Integrated image HOL-Complex with HOL.  Entry points Main.thy and
 Complex_Main.thy remain as they are.

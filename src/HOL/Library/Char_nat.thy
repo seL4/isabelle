@@ -156,7 +156,7 @@ proof -
   have l_div_256: "l div 16 * 16 mod 256 = l div 16 * 16"
     using l by auto
   have aux2: "(k * 256 mod 16 + l mod 16) div 16 = 0"
-    unfolding 256 mult_assoc [symmetric] mod_mult_self_is_0 by simp
+    unfolding 256 mult_assoc [symmetric] mod_mult_self2_is_0 by simp
   have aux3: "(k * 256 + l) div 16 = k * 16 + l div 16"
     unfolding div_add1_eq [of "k * 256" l 16] aux2 256
       mult_assoc [symmetric] div_mult_self_is_m [OF 16] by simp

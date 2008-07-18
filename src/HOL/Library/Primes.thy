@@ -789,21 +789,23 @@ proof-
     from coprime_prime_dvd_ex[OF c] obtain p 
       where p: "prime p" "p dvd x*y" "p dvd x^2 + y^2" by blast
     {assume px: "p dvd x"
-      from dvd_mult[OF px, of x] p(3) have "p dvd y^2" 
-	unfolding dvd_def 
-	apply (auto simp add: power2_eq_square)
-	apply (rule_tac x= "ka - k" in exI)
-	by (simp add: diff_mult_distrib2)
+      from dvd_mult[OF px, of x] p(3) 
+        obtain r s where "x * x = p * r" and "x^2 + y^2 = p * s"
+          by (auto elim!: dvdE)
+        then have "y^2 = p * (s - r)" 
+          by (auto simp add: power2_eq_square diff_mult_distrib2)
+        then have "p dvd y^2" ..
       with prime_divexp[OF p(1), of y 2] have py: "p dvd y" .
       from p(1) px py xy[unfolded coprime, rule_format, of p] prime_1  
       have False by simp }
     moreover
     {assume py: "p dvd y"
-      from dvd_mult[OF py, of y] p(3) have "p dvd x^2" 
-	unfolding dvd_def 
-	apply (auto simp add: power2_eq_square)
-	apply (rule_tac x= "ka - k" in exI)
-	by (simp add: diff_mult_distrib2)
+      from dvd_mult[OF py, of y] p(3)
+        obtain r s where "y * y = p * r" and "x^2 + y^2 = p * s"
+          by (auto elim!: dvdE)
+        then have "x^2 = p * (s - r)" 
+          by (auto simp add: power2_eq_square diff_mult_distrib2)
+        then have "p dvd x^2" ..
       with prime_divexp[OF p(1), of x 2] have px: "p dvd x" .
       from p(1) px py xy[unfolded coprime, rule_format, of p] prime_1  
       have False by simp }
@@ -953,7 +955,18 @@ qed
 
 text {* More useful lemmas. *}
 lemma prime_product: 
-  "prime (p*q) \<Longrightarrow> p = 1 \<or> q  = 1" unfolding prime_def by auto
+  assumes "prime (p * q)"
+  shows "p = 1 \<or> q = 1"
+proof -
+  from assms have 
+    "1 < p * q" and P: "\<And>m. m dvd p * q \<Longrightarrow> m = 1 \<or> m = p * q"
+    unfolding prime_def by auto
+  from `1 < p * q` have "p \<noteq> 0" by (cases p) auto
+  then have Q: "p = p * q \<longleftrightarrow> q = 1" by auto
+  have "p dvd p * q" by simp
+  then have "p = 1 \<or> p = p * q" by (rule P)
+  then show ?thesis by (simp add: Q)
+qed
 
 lemma prime_exp: "prime (p^n) \<longleftrightarrow> prime p \<and> n = 1"
 proof(induct n)

@@ -127,9 +127,7 @@ lemma zcong_refl [simp]: "[k = k] (mod m)"
   by (unfold zcong_def, auto)
 
 lemma zcong_sym: "[a = b] (mod m) = [b = a] (mod m)"
-  apply (unfold zcong_def dvd_def, auto)
-   apply (rule_tac [!] x = "-k" in exI, auto)
-  done
+  unfolding zcong_def minus_diff_eq [of a, symmetric] zdvd_zminus_iff ..
 
 lemma zcong_zadd:
     "[a = b] (mod m) ==> [c = d] (mod m) ==> [a + c = b + d] (mod m)"
@@ -147,9 +145,10 @@ lemma zcong_zdiff:
 
 lemma zcong_trans:
     "[a = b] (mod m) ==> [b = c] (mod m) ==> [a = c] (mod m)"
-  apply (unfold zcong_def dvd_def, auto)
-  apply (rule_tac x = "k + ka" in exI)
-  apply (simp add: zadd_ac zadd_zmult_distrib2)
+  unfolding zcong_def
+  apply (auto elim!: dvdE simp add: ring_simps)
+  unfolding left_distrib [symmetric]
+  apply (rule dvd_mult dvd_refl)+
   done
 
 lemma zcong_zmult:
@@ -207,7 +206,7 @@ lemma zcong_cancel2:
 lemma zcong_zgcd_zmult_zmod:
   "[a = b] (mod m) ==> [a = b] (mod n) ==> zgcd m n = 1
     ==> [a = b] (mod m * n)"
-  apply (unfold zcong_def dvd_def, auto)
+  apply (auto simp add: zcong_def dvd_def)
   apply (subgoal_tac "m dvd n * ka")
    apply (subgoal_tac "m dvd ka")
     apply (case_tac [2] "0 \<le> ka")
@@ -255,8 +254,9 @@ lemma zcong_zless_unique:
   done
 
 lemma zcong_iff_lin: "([a = b] (mod m)) = (\<exists>k. b = a + m * k)"
-  apply (unfold zcong_def dvd_def, auto)
-   apply (rule_tac [!] x = "-k" in exI, auto)
+  unfolding zcong_def
+  apply (auto elim!: dvdE simp add: ring_simps)
+  apply (rule_tac x = "-k" in exI) apply simp
   done
 
 lemma zgcd_zcong_zgcd:
@@ -306,13 +306,7 @@ subsection {* Modulo *}
 
 lemma zmod_zdvd_zmod:
     "0 < (m::int) ==> m dvd b ==> (a mod b mod m) = (a mod m)"
-  apply (unfold dvd_def, auto)
-  apply (subst zcong_zmod_eq [symmetric])
-   prefer 2
-   apply (subst zcong_iff_lin)
-   apply (rule_tac x = "k * (a div (m * k))" in exI)
-   apply (simp add:zmult_assoc [symmetric], assumption)
-  done
+  by (rule zmod_zmod_cancel) 
 
 
 subsection {* Extended GCD *}

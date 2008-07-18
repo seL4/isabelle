@@ -256,7 +256,6 @@ lemma zdiv_mult_self: "m ~= (0 :: int) ==> (a + m * n) div m = a div m + n"
    prefer 2
    apply (erule asm_rl)
   apply (simp add: zmde ring_distribs)
-  apply (simp add: push_mods)
   done
 
 (** Rep_Integ **)
