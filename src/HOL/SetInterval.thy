@@ -558,6 +558,54 @@ lemma card_greaterThanAtMost_int [simp]: "card {l<..u} = nat (u - l)"
 lemma card_greaterThanLessThan_int [simp]: "card {l<..<u} = nat (u - (l + 1))"
   by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
 
+lemma finite_M_bounded_by_nat: "finite {k. P k \<and> k < (i::nat)}"
+proof -
+  have "{k. P k \<and> k < i} \<subseteq> {..<i}" by auto
+  with finite_lessThan[of "i"] show ?thesis by (simp add: finite_subset)
+qed
+
+lemma card_less:
+assumes zero_in_M: "0 \<in> M"
+shows "card {k \<in> M. k < Suc i} \<noteq> 0"
+proof -
+  from zero_in_M have "{k \<in> M. k < Suc i} \<noteq> {}" by auto
+  with finite_M_bounded_by_nat show ?thesis by (auto simp add: card_eq_0_iff)
+qed
+
+lemma card_less_Suc2: "0 \<notin> M \<Longrightarrow> card {k. Suc k \<in> M \<and> k < i} = card {k \<in> M. k < Suc i}"
+apply (rule card_bij_eq [of "Suc" _ _ "\<lambda>x. x - 1"])
+apply simp
+apply fastsimp
+apply auto
+apply (rule inj_on_diff_nat)
+apply auto
+apply (case_tac x)
+apply auto
+apply (case_tac xa)
+apply auto
+apply (case_tac xa)
+apply auto
+apply (auto simp add: finite_M_bounded_by_nat)
+done
+
+lemma card_less_Suc:
+  assumes zero_in_M: "0 \<in> M"
+    shows "Suc (card {k. Suc k \<in> M \<and> k < i}) = card {k \<in> M. k < Suc i}"
+proof -
+  from assms have a: "0 \<in> {k \<in> M. k < Suc i}" by simp
+  hence c: "{k \<in> M. k < Suc i} = insert 0 ({k \<in> M. k < Suc i} - {0})"
+    by (auto simp only: insert_Diff)
+  have b: "{k \<in> M. k < Suc i} - {0} = {k \<in> M - {0}. k < Suc i}"  by auto
+  from finite_M_bounded_by_nat[of "\<lambda>x. x \<in> M" "Suc i"] have "Suc (card {k. Suc k \<in> M \<and> k < i}) = card (insert 0 ({k \<in> M. k < Suc i} - {0}))"
+    apply (subst card_insert)
+    apply simp_all
+    apply (subst b)
+    apply (subst card_less_Suc2[symmetric])
+    apply simp_all
+    done
+  with c show ?thesis by simp
+qed
+
 
 subsection {*Lemmas useful with the summation operator setsum*}
 

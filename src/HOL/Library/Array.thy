@@ -93,7 +93,16 @@ where
      mapM (nth a) [0..<n]
    done)"
 
-hide (open) const new -- {* avoid clashed with some popular names *}
+definition
+   map :: "('a\<Colon>heap \<Rightarrow> 'a) \<Rightarrow> 'a array \<Rightarrow> 'a array Heap"
+where
+  "map f a = (do
+     n \<leftarrow> length a;
+     mapM (\<lambda>n. map_entry n f a) [0..<n];
+     return a
+   done)"
+
+hide (open) const new map -- {* avoid clashed with some popular names *}
 
 
 subsection {* Properties *}
