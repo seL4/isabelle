@@ -123,11 +123,15 @@ function build_jars ()
   [ -f isabelle.jar ] || fail "Failed to build Isabelle process wrapper!"
   popd >/dev/null
 
-  type -p scalac >/dev/null || fail "Scala compiler unavailable"
-  pushd lib/jedit/plugin >/dev/null
-  ./mk
-  [ -f ../isabelle.jar ] || fail "Failed to build jEdit plugin!"
-  popd >/dev/null
+  if [ -d "$HOME/lib/jedit/current" ]; then
+    type -p scalac >/dev/null || fail "Scala compiler unavailable"
+    pushd lib/jedit/plugin >/dev/null
+    ./mk
+    [ -f ../isabelle.jar ] || fail "Failed to build jEdit plugin!"
+    popd >/dev/null
+  else
+    echo "Warning: skipping jedit plugin"
+  fi
 }
 
 
