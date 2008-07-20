@@ -8,6 +8,7 @@ Source positions.
 signature POSITION =
 sig
   type T
+  type range = T * T
   val line_of: T -> int option
   val column_of: T -> int option
   val file_of: T -> string option
@@ -33,6 +34,7 @@ struct
 (* datatype position *)
 
 datatype T = Pos of (int * int) option * Markup.property list;
+type range = T * T
 
 fun line_of (Pos (SOME (m, _), _)) = SOME m
   | line_of _ = NONE;
