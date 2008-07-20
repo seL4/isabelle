@@ -59,9 +59,9 @@ sig
   val controlN: string val control: T
   val malformedN: string val malformed: T
   val antiqN: string val antiq: T
-  val whitespaceN: string val whitespace: T
-  val junkN: string val junk: T
-  val commandspanN: string val commandspan: string -> T
+  val command_spanN: string val command_span: string -> T
+  val ignored_spanN: string val ignored_span: T
+  val unknown_spanN: string val unknown_span: T
   val promptN: string val prompt: T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
@@ -185,9 +185,9 @@ val (malformedN, malformed) = markup_elem "malformed";
 
 val (antiqN, antiq) = markup_elem "antiq";
 
-val (whitespaceN, whitespace) = markup_elem "whitespace";
-val (junkN, junk) = markup_elem "junk";
-val (commandspanN, commandspan) = markup_string "commandspan" nameN;
+val (command_spanN, command_span) = markup_string "command_span" nameN;
+val (ignored_spanN, ignored_span) = markup_elem "ignored_span";
+val (unknown_spanN, unknown_span) = markup_elem "unknown_span";
 
 
 (* toplevel *)
