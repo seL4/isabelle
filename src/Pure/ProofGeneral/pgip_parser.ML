@@ -93,13 +93,13 @@ fun parse_command "sorry" text = [D.Postponegoal {text = text}, D.Closeblock {}]
 fun parse_item (kind, toks) =
   let val text = implode (map (PgmlIsabelle.pgml_mode ThyEdit.present_token) toks) in
     (case kind of
-      ThyEdit.Whitespace => [D.Whitespace {text = text}]
-    | ThyEdit.Junk => [D.Unparseable {text = text}]
-    | ThyEdit.Commandspan name => parse_command name text)
+      ThyEdit.Command name => parse_command name text
+    | ThyEdit.Ignored => [D.Whitespace {text = text}]
+    | ThyEdit.Unknown => [D.Unparseable {text = text}])
   end;
 
 
 fun pgip_parser pos str =
-  maps parse_item (ThyEdit.parse_items pos (Source.of_string str));
+  maps parse_item (ThyEdit.parse_spans pos (Source.of_string str));
 
 end;
