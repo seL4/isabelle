@@ -12,13 +12,14 @@ sig
       Source.source
   val parse_tokens: Position.T -> (string, 'a) Source.source -> OuterLex.token list
   val present_token: OuterLex.token -> output
-  datatype item_kind = Whitespace | Junk | Commandspan of string
-  type item = item_kind * OuterLex.token list
-  val item_source: Position.T -> (string, 'a) Source.source ->
-    (item, (OuterLex.token, Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source)
+  datatype span_kind = Command of string | Ignored | Unknown
+  type span = span_kind * OuterLex.token list
+  val span_range: span -> Position.range
+  val span_source: Position.T -> (string, 'a) Source.source ->
+    (span, (OuterLex.token, Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source)
       Source.source) Source.source
-  val parse_items: Position.T -> (string, 'a) Source.source -> item list
-  val present_item: item -> output
+  val parse_spans: Position.T -> (string, 'a) Source.source -> span list
+  val present_span: span -> output
   val present_html: Path.T -> Path.T -> unit
 end;
 
@@ -66,49 +67,56 @@ end;
 
 
 
-(** items **)
+(** spans **)
 
-datatype item_kind = Whitespace | Junk | Commandspan of string;
-type item = item_kind * OuterLex.token list;
+datatype span_kind = Command of string | Ignored | Unknown;
+type span = span_kind * OuterLex.token list;
+
+fun span_range ((_, []): span) = raise Fail "span_range: empty span"
+  | span_range (_, toks) =
+      let
+        val start_pos = T.position_of (hd toks);
+        val end_pos = #2 (T.range_of (List.last toks));
+      in (start_pos, end_pos) end;
 
 
 (* parse *)
 
 local
 
-val whitespace = Scan.many1 (T.is_kind T.Space orf T.is_kind T.Comment);
-val before_command = Scan.optional whitespace [] -- Scan.ahead P.command;
-val body = Scan.repeat1 (Scan.unless before_command P.not_eof);
+val is_whitespace = T.is_kind T.Space orf T.is_kind T.Comment;
 
-val item =
-  whitespace >> pair Whitespace ||
-  body >> pair Junk ||
-  before_command -- P.not_eof -- Scan.optional body []
-    >> (fn (((ws, name), c), bs) => (Commandspan name, ws @ [c] @ bs));
+val body = Scan.unless (Scan.many is_whitespace -- Scan.ahead (P.command || P.eof)) P.not_eof;
+
+val span =
+  Scan.ahead P.command -- P.not_eof -- Scan.repeat body
+    >> (fn ((name, c), bs) => (Command name, c :: bs)) ||
+  Scan.many1 is_whitespace >> pair Ignored ||
+  Scan.repeat1 body >> pair Unknown;
 
 in
 
-fun item_source pos src =
+fun span_source pos src =
   token_source pos src
-  |> Source.source T.stopper (Scan.bulk item) NONE;
+  |> Source.source T.stopper (Scan.bulk span) NONE;
 
 end;
 
-fun parse_items pos src = Source.exhaust (item_source pos src);
+fun parse_spans pos src = Source.exhaust (span_source pos src);
 
 
 (* present *)
 
 local
 
-fun item_kind_markup Whitespace = Markup.whitespace
-  | item_kind_markup Junk = Markup.junk
-  | item_kind_markup (Commandspan name) = Markup.commandspan name;
+fun kind_markup (Command name) = Markup.command_span name
+  | kind_markup Ignored = Markup.ignored_span
+  | kind_markup Unknown = Markup.unknown_span;
 
 in
 
-fun present_item (kind, toks) =
-  Markup.enclose (item_kind_markup kind) (implode (map present_token toks));
+fun present_span (kind, toks) =
+  Markup.enclose (kind_markup kind) (implode (map present_token toks));
 
 end;
 
@@ -116,8 +124,8 @@ end;
 (* HTML presentation -- example *)
 
 fun present_html inpath outpath =
-  Source.exhaust (item_source (Path.position inpath) (Source.of_string (File.read inpath)))
-  |> HTML.html_mode (implode o map present_item)
+  Source.exhaust (span_source (Path.position inpath) (Source.of_string (File.read inpath)))
+  |> HTML.html_mode (implode o map present_span)
   |> enclose
     (HTML.begin_document (Path.implode (Path.base inpath)) ^ "<div class=\"source\"><pre>")
     ("</pre></div>" ^ HTML.end_document)
