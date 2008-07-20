@@ -15,6 +15,7 @@ sig
   val stopper: token * (token -> bool)
   val not_sync: token -> bool
   val not_eof: token -> bool
+  val range_of: token -> Position.range
   val position_of: token -> Position.T
   val pos_of: token -> string
   val kind_of: token -> token_kind
@@ -59,7 +60,7 @@ datatype token_kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar | Nat |
   String | AltString | Verbatim | Space | Comment | Malformed | Error of string | Sync | EOF;
 
-datatype token = Token of Position.T * (token_kind * string);
+datatype token = Token of Position.range * (token_kind * string);
 
 val str_of_kind =
  fn Command => "command"
@@ -84,7 +85,7 @@ val str_of_kind =
 
 (* control tokens *)
 
-val eof = Token (Position.none, (EOF, ""));
+val eof = Token ((Position.none, Position.none), (EOF, ""));
 
 fun is_eof (Token (_, (EOF, _))) = true
   | is_eof _ = false;
@@ -99,7 +100,9 @@ fun not_sync (Token (_, (Sync, _))) = false
 
 (* get position *)
 
-fun position_of (Token (pos, _)) = pos;
+fun range_of (Token (range, _)) = range;
+
+val position_of = #1 o range_of;
 val pos_of = Position.str_of o position_of;
 
 
@@ -144,7 +147,6 @@ fun is_newline (Token (_, (Space, x))) = String.isSuffix "\n" x
 (* token content *)
 
 fun val_of (Token (_, (_, x))) = x;
-fun token_leq (tok1, tok2) = val_of tok1 <= val_of tok2;
 
 fun escape q =
   implode o map (fn s => if s = q orelse s = "\\" then "\\" ^ s else s) o Symbol.explode;
@@ -296,32 +298,31 @@ val scan_malformed =
 
 (* scan token *)
 
+fun token_leq ((_, x1: string), (_, x2)) = x1 <= x2;
+
 fun scan (lex1, lex2) =
   let
-    val scanner = Scan.state :|-- (fn pos =>
-      let
-        fun token k x = Token (pos, (k, x));
-        fun sync _ = token Sync Symbol.sync;
-      in
-        scan_string >> token String ||
-        scan_alt_string >> token AltString ||
-        scan_verbatim >> token Verbatim ||
-        scan_comment >> token Comment ||
-        counted scan_space >> token Space ||
-        counted scan_malformed >> token Malformed ||
-        Scan.lift (Scan.one Symbol.is_sync >> sync) ||
+    val scanner = Scan.state --
+      (scan_string >> pair String ||
+        scan_alt_string >> pair AltString ||
+        scan_verbatim >> pair Verbatim ||
+        scan_comment >> pair Comment ||
+        counted scan_space >> pair Space ||
+        counted scan_malformed >> pair Malformed ||
+        Scan.lift (Scan.one Symbol.is_sync >> K (Sync, Symbol.sync)) ||
         (Scan.max token_leq
           (Scan.max token_leq
-            (counted (Scan.literal lex2) >> token Command)
-            (counted (Scan.literal lex1) >> token Keyword))
-          (counted Syntax.scan_longid >> token LongIdent ||
-            counted Syntax.scan_id >> token Ident ||
-            counted Syntax.scan_var >> token Var ||
-            counted Syntax.scan_tid >> token TypeIdent ||
-            counted Syntax.scan_tvar >> token TypeVar ||
-            counted Syntax.scan_nat >> token Nat ||
-            counted scan_symid >> token SymIdent))
-      end);
+            (counted (Scan.literal lex2) >> pair Command)
+            (counted (Scan.literal lex1) >> pair Keyword))
+          (counted Syntax.scan_longid >> pair LongIdent ||
+            counted Syntax.scan_id >> pair Ident ||
+            counted Syntax.scan_var >> pair Var ||
+            counted Syntax.scan_tid >> pair TypeIdent ||
+            counted Syntax.scan_tvar >> pair TypeVar ||
+            counted Syntax.scan_nat >> pair Nat ||
+            counted scan_symid >> pair SymIdent))) -- Scan.state
+      >> (fn ((pos, (k, x)), pos') => Token ((pos, pos'), (k, x)));
+
   in !! (lex_err (fn cs => "bad input " ^ quote (Symbol.beginning 10 cs))) scanner end;
 
 
@@ -331,8 +332,8 @@ local
 
 val is_junk = (not o Symbol.is_blank) andf Symbol.is_regular;
 
-fun recover msg = Scan.state :|-- (fn pos =>
-  counted (Scan.many is_junk) >> (fn s => [Token (pos, (Error msg, s))]));
+fun recover msg = Scan.state -- counted (Scan.many is_junk) -- Scan.state
+  >> (fn ((pos, s), pos') => [Token ((pos, pos'), (Error msg, s))]);
 
 in
 
