@@ -151,7 +151,7 @@ gcd\ (gcd\ (k,\ m),\ n)\ =\ gcd\ (k,\ gcd\ (m,\ n))\isanewline
 
 
 lemma gcd_dvd_gcd_mult: "gcd m n dvd gcd (k*m) n"
-  apply (blast intro: dvd_trans);
+  apply (auto intro: dvd_trans [of _ m])
   done
 
 (*This is half of the proof (by dvd_anti_sym) of*)
