@@ -192,8 +192,7 @@ lemma div_mult_self_is_m: "0<n \<Longrightarrow> (m*n) div n = (m::nat)"
 *)
 
 lemma relprime_dvd_mult_iff: "gcd k n = 1 \<Longrightarrow> (k dvd m*n) = (k dvd m)";
-by (blast intro: relprime_dvd_mult dvd_trans)
-
+by (auto intro: relprime_dvd_mult elim: dvdE)
 
 lemma relprime_20_81: "gcd 20 81 = 1";
 by (simp add: gcd.simps)

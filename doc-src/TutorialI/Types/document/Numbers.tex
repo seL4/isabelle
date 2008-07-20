@@ -232,7 +232,7 @@ m\ mod\ n\ {\isacharequal}\ {\isacharparenleft}if\ m\ {\isacharless}\ n\ then\ m
 \rulename{mod_if}
 
 \begin{isabelle}%
-m\ div\ n\ {\isacharasterisk}\ n\ {\isacharplus}\ m\ mod\ n\ {\isacharequal}\ m%
+a\ div\ b\ {\isacharasterisk}\ b\ {\isacharplus}\ a\ mod\ b\ {\isacharequal}\ a%
 \end{isabelle}
 \rulename{mod_div_equality}
 
@@ -263,14 +263,14 @@ a\ mod\ {\isacharparenleft}b\ {\isacharasterisk}\ c{\isacharparenright}\ {\isach
 \rulename{div_mult_mult1}
 
 \begin{isabelle}%
-a\ div\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}%
+a\ div\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}%
 \end{isabelle}
-\rulename{DIVISION_BY_ZERO_DIV}
+\rulename{div_by_0}
 
 \begin{isabelle}%
-a\ mod\ {\isadigit{0}}\ {\isacharequal}\ a%
+a\ mod\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ a%
 \end{isabelle}
-\rulename{DIVISION_BY_ZERO_MOD}
+\rulename{mod_by_0}
 
 \begin{isabelle}%
 {\isasymlbrakk}m\ dvd\ n{\isacharsemicolon}\ n\ dvd\ m{\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n%
@@ -278,7 +278,7 @@ a\ mod\ {\isadigit{0}}\ {\isacharequal}\ a%
 \rulename{dvd_anti_sym}
 
 \begin{isabelle}%
-{\isasymlbrakk}k\ dvd\ m{\isacharsemicolon}\ k\ dvd\ n{\isasymrbrakk}\ {\isasymLongrightarrow}\ k\ dvd\ m\ {\isacharplus}\ n%
+{\isasymlbrakk}a\ dvd\ b{\isacharsemicolon}\ a\ dvd\ c{\isasymrbrakk}\ {\isasymLongrightarrow}\ a\ dvd\ b\ {\isacharplus}\ c%
 \end{isabelle}
 \rulename{dvd_add}
 

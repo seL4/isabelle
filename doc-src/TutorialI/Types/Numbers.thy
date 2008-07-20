@@ -113,11 +113,11 @@ text{*
 @{thm[display] div_mult_mult1[no_vars]}
 \rulename{div_mult_mult1}
 
-@{thm[display] DIVISION_BY_ZERO_DIV[no_vars]}
-\rulename{DIVISION_BY_ZERO_DIV}
+@{thm[display] div_by_0 [no_vars]}
+\rulename{div_by_0}
 
-@{thm[display] DIVISION_BY_ZERO_MOD[no_vars]}
-\rulename{DIVISION_BY_ZERO_MOD}
+@{thm[display] mod_by_0 [no_vars]}
+\rulename{mod_by_0}
 
 @{thm[display] dvd_anti_sym[no_vars]}
 \rulename{dvd_anti_sym}
