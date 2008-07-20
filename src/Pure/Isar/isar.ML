@@ -156,11 +156,12 @@ fun descendant_commands ids =
 
 fun report_status markup id = Toplevel.status (#transition (the_command id)) markup;
 
-fun update_status status id = change_commands (Graph.map_node id (map_status (fn old_status =>
-  let
-    val markup = status_markup status;
-    val _ = if markup <> status_markup old_status then report_status markup id else ();
-  in status end)));
+fun update_status status id = change_commands (Graph.map_node id (map_status (K status)));
+
+fun report_update_status status id =
+  change_commands (Graph.map_node id (map_status (fn old_status =>
+    let val markup = status_markup status
+    in if markup <> status_markup old_status then report_status markup id else (); status end)));
 
 
 (* create and dispose commands *)
@@ -348,10 +349,10 @@ fun try_run id =
   | SOME state =>
       (case run true (#transition (the_command id)) state of
         NONE => ()
-      | SOME status => update_status status id));
+      | SOME status => report_update_status status id));
       
 fun rerun_commands ids =
-  (List.app (update_status Unprocessed) ids; List.app try_run ids);
+  (List.app (report_update_status Unprocessed) ids; List.app try_run ids);
 
 
 (* modify document *)
