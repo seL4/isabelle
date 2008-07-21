@@ -163,7 +163,7 @@ where
   | rat_power_Suc: "q ^ Suc n = (q\<Colon>rat) * (q ^ n)"
 
 instance proof
-  fix q r s :: rat show "(q * r) * s = q * (r * s)"
+  fix q r s :: rat show "(q * r) * s = q * (r * s)" 
     by (cases q, cases r, cases s) (simp add: eq_rat)
 next
   fix q r :: rat show "q * r = r * q"
@@ -356,7 +356,7 @@ proof -
     from neq have "?D' \<noteq> 0" by simp
     hence "?le a b c d = ?le (a * ?D') (b * ?D') c d"
       by (rule le_factor)
-    also have "... = ((a * b') * ?D * ?D' * d * d' \<le> (c * d') * ?D * ?D' * b * b')"
+    also have "... = ((a * b') * ?D * ?D' * d * d' \<le> (c * d') * ?D * ?D' * b * b')" 
       by (simp add: mult_ac)
     also have "... = ((a' * b) * ?D * ?D' * d * d' \<le> (c' * d) * ?D * ?D' * b * b')"
       by (simp only: eq1 eq2)
@@ -396,8 +396,7 @@ instance proof
             by simp
           with ff show ?thesis by (simp add: mult_le_cancel_right)
         qed
-        also have "... = (c * f) * (d * f) * (b * b)"
-          by (simp only: mult_ac)
+        also have "... = (c * f) * (d * f) * (b * b)" by algebra
         also have "... \<le> (e * d) * (d * f) * (b * b)"
         proof -
           from neq 2 have "(c * f) * (d * f) \<le> (e * d) * (d * f)"

@@ -376,7 +376,7 @@ done
 lemma real_add_left_mono: 
   assumes le: "x \<le> y" shows "z + x \<le> z + (y::real)"
 proof -
-  have "z + x - (z + y) = (z + -z) + (x - y)"
+  have "z + x - (z + y) = (z + -z) + (x - y)" 
     by (simp add: diff_minus add_ac) 
   with le show ?thesis 
     by (simp add: real_le_eq_diff[of x] real_le_eq_diff[of "z+x"] diff_minus)
@@ -604,28 +604,28 @@ lemma real_of_int_setprod [simp]: "real ((PROD x:A. f x)::int) =
   apply (rule of_int_setprod)
 done
 
-lemma real_of_int_zero_cancel [simp]: "(real x = 0) = (x = (0::int))"
+lemma real_of_int_zero_cancel [simp, algebra, presburger]: "(real x = 0) = (x = (0::int))"
 by (simp add: real_of_int_def) 
 
-lemma real_of_int_inject [iff]: "(real (x::int) = real y) = (x = y)"
+lemma real_of_int_inject [iff, algebra, presburger]: "(real (x::int) = real y) = (x = y)"
 by (simp add: real_of_int_def) 
 
-lemma real_of_int_less_iff [iff]: "(real (x::int) < real y) = (x < y)"
+lemma real_of_int_less_iff [iff, presburger]: "(real (x::int) < real y) = (x < y)"
 by (simp add: real_of_int_def) 
 
-lemma real_of_int_le_iff [simp]: "(real (x::int) \<le> real y) = (x \<le> y)"
+lemma real_of_int_le_iff [simp, presburger]: "(real (x::int) \<le> real y) = (x \<le> y)"
 by (simp add: real_of_int_def) 
 
-lemma real_of_int_gt_zero_cancel_iff [simp]: "(0 < real (n::int)) = (0 < n)"
+lemma real_of_int_gt_zero_cancel_iff [simp, presburger]: "(0 < real (n::int)) = (0 < n)"
 by (simp add: real_of_int_def) 
 
-lemma real_of_int_ge_zero_cancel_iff [simp]: "(0 <= real (n::int)) = (0 <= n)"
+lemma real_of_int_ge_zero_cancel_iff [simp, presburger]: "(0 <= real (n::int)) = (0 <= n)"
 by (simp add: real_of_int_def) 
 
-lemma real_of_int_lt_zero_cancel_iff [simp]: "(real (n::int) < 0) = (n < 0)"
+lemma real_of_int_lt_zero_cancel_iff [simp, presburger]: "(real (n::int) < 0) = (n < 0)" 
 by (simp add: real_of_int_def)
 
-lemma real_of_int_le_zero_cancel_iff [simp]: "(real (n::int) <= 0) = (n <= 0)"
+lemma real_of_int_le_zero_cancel_iff [simp, presburger]: "(real (n::int) <= 0) = (n <= 0)"
 by (simp add: real_of_int_def)
 
 lemma real_of_int_abs [simp]: "real (abs x) = abs(real (x::int))"

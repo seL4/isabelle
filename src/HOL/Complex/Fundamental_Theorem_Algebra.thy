@@ -17,7 +17,7 @@ definition csqrt :: "complex \<Rightarrow> complex" where
            else Complex (sqrt((cmod z + Re z) /2))
                         ((Im z / abs(Im z)) * sqrt((cmod z - Re z) /2)))"
 
-lemma csqrt: "csqrt z ^ 2 = z"
+lemma csqrt[algebra]: "csqrt z ^ 2 = z"
 proof-
   obtain x y where xy: "z = Complex x y" by (cases z, simp_all)
   {assume y0: "y = 0"
@@ -34,10 +34,10 @@ proof-
     {fix x y
       let ?z = "Complex x y"
       from abs_Re_le_cmod[of ?z] have tha: "abs x \<le> cmod ?z" by auto
-      hence "cmod ?z - x \<ge> 0" "cmod ?z + x \<ge> 0" by (cases "x \<ge> 0", arith+)
+      hence "cmod ?z - x \<ge> 0" "cmod ?z + x \<ge> 0" by arith+ 
       hence "(sqrt (x * x + y * y) + x) / 2 \<ge> 0" "(sqrt (x * x + y * y) - x) / 2 \<ge> 0" by (simp_all add: power2_eq_square) }
     note th = this
-    have sq4: "\<And>x::real. x^2 / 4 = (x / 2) ^ 2"
+    have sq4: "\<And>x::real. x^2 / 4 = (x / 2) ^ 2" 
       by (simp add: power2_eq_square) 
     from th[of x y]
     have sq4': "sqrt (((sqrt (x * x + y * y) + x)^2 / 4)) = (sqrt (x * x + y * y) + x) / 2" "sqrt (((sqrt (x * x + y * y) - x)^2 / 4)) = (sqrt (x * x + y * y) - x) / 2" unfolding sq4 by simp_all

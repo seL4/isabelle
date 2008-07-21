@@ -41,14 +41,18 @@ lemma neq_one_mod_two [simp, presburger]:
 
 
 subsection {* Behavior under integer arithmetic operations *}
+declare dvd_def[algebra]
+lemma nat_even_iff_2_dvd[algebra]: "even (x::nat) \<longleftrightarrow> 2 dvd x"
+  by (presburger add: even_nat_def even_def)
+lemma int_even_iff_2_dvd[algebra]: "even (x::int) \<longleftrightarrow> 2 dvd x"
+  by presburger
 
 lemma even_times_anything: "even (x::int) ==> even (x * y)"
-  by (simp add: even_def zmod_zmult1_eq')
+  by algebra
 
-lemma anything_times_even: "even (y::int) ==> even (x * y)"
-  by (simp add: even_def zmod_zmult1_eq)
+lemma anything_times_even: "even (y::int) ==> even (x * y)" by algebra
 
-lemma odd_times_odd: "odd (x::int) ==> odd y ==> odd (x * y)"
+lemma odd_times_odd: "odd (x::int) ==> odd y ==> odd (x * y)" 
   by (simp add: even_def zmod_zmult1_eq)
 
 lemma even_product[presburger]: "even((x::int) * y) = (even x | even y)"
@@ -71,7 +75,7 @@ lemma odd_plus_odd: "odd (x::int) ==> odd y ==> even (x + y)" by presburger
 lemma even_sum[presburger]: "even ((x::int) + y) = ((even x & even y) | (odd x & odd y))"
   by presburger
 
-lemma even_neg[presburger]: "even (-(x::int)) = even x" by presburger
+lemma even_neg[presburger, algebra]: "even (-(x::int)) = even x" by presburger
 
 lemma even_difference:
     "even ((x::int) - y) = ((even x & even y) | (odd x & odd y))" by presburger
@@ -80,7 +84,8 @@ lemma even_pow_gt_zero:
     "even (x::int) ==> 0 < n ==> even (x^n)"
   by (induct n) (auto simp add: even_product)
 
-lemma odd_pow_iff[presburger]: "odd ((x::int) ^ n) \<longleftrightarrow> (n = 0 \<or> odd x)"
+lemma odd_pow_iff[presburger, algebra]: 
+  "odd ((x::int) ^ n) \<longleftrightarrow> (n = 0 \<or> odd x)"
   apply (induct n, simp_all)
   apply presburger
   apply (case_tac n, auto)
@@ -120,19 +125,19 @@ subsection {* even and odd for nats *}
 lemma pos_int_even_equiv_nat_even: "0 \<le> x ==> even x = even (nat x)"
   by (simp add: even_nat_def)
 
-lemma even_nat_product[presburger]: "even((x::nat) * y) = (even x | even y)"
+lemma even_nat_product[presburger, algebra]: "even((x::nat) * y) = (even x | even y)"
   by (simp add: even_nat_def int_mult)
 
-lemma even_nat_sum[presburger]: "even ((x::nat) + y) =
+lemma even_nat_sum[presburger, algebra]: "even ((x::nat) + y) =
     ((even x & even y) | (odd x & odd y))" by presburger
 
-lemma even_nat_difference[presburger]:
+lemma even_nat_difference[presburger, algebra]:
     "even ((x::nat) - y) = (x < y | (even x & even y) | (odd x & odd y))"
 by presburger
 
-lemma even_nat_Suc[presburger]: "even (Suc x) = odd x" by presburger
+lemma even_nat_Suc[presburger, algebra]: "even (Suc x) = odd x" by presburger
 
-lemma even_nat_power[presburger]: "even ((x::nat)^y) = (even x & 0 < y)"
+lemma even_nat_power[presburger, algebra]: "even ((x::nat)^y) = (even x & 0 < y)"
   by (simp add: even_nat_def int_power)
 
 lemma even_nat_zero[presburger]: "even (0::nat)" by presburger
@@ -249,29 +254,11 @@ lemma zero_le_power_eq[presburger]: "(0 <= (x::'a::{recpower,ordered_idom}) ^ n)
 
 lemma zero_less_power_eq[presburger]: "(0 < (x::'a::{recpower,ordered_idom}) ^ n) =
     (n = 0 | (even n & x ~= 0) | (odd n & 0 < x))"
-  apply (rule iffI)
-  apply clarsimp
-  apply (rule conjI)
-  apply clarsimp
-  apply (rule ccontr)
-  apply (subgoal_tac "~ (0 <= x^n)")
-  apply simp
-  apply (subst zero_le_odd_power)
-  apply assumption
-  apply simp
-  apply (rule notI)
-  apply (simp add: power_0_left)
-  apply (rule notI)
-  apply (simp add: power_0_left)
-  apply auto
-  apply (subgoal_tac "0 <= x^n")
-  apply (frule order_le_imp_less_or_eq)
-  apply simp
-  apply (erule zero_le_even_power)
-  done
+
+  unfolding order_less_le zero_le_power_eq by auto
 
 lemma power_less_zero_eq[presburger]: "((x::'a::{recpower,ordered_idom}) ^ n < 0) =
-    (odd n & x < 0)" 
+    (odd n & x < 0)"
   apply (subst linorder_not_le [symmetric])+
   apply (subst zero_le_power_eq)
   apply auto
@@ -324,6 +311,7 @@ by arith
 lemma div_2_gt_zero [simp]: "(1::nat) < n ==> 0 < n div 2" 
 by arith
 
+  (* Potential use of algebra : Equality modulo n*)
 lemma mod_mult_self3 [simp]: "(k*n + m) mod n = m mod (n::nat)"
 by (simp add: mult_ac add_ac)
 
@@ -342,17 +330,11 @@ done
 
 subsection {* More Even/Odd Results *}
  
-lemma even_mult_two_ex: "even(n) = (\<exists>m::nat. n = 2*m)"
-by (simp add: even_nat_equiv_def2 numeral_2_eq_2)
+lemma even_mult_two_ex: "even(n) = (\<exists>m::nat. n = 2*m)" by presburger
+lemma odd_Suc_mult_two_ex: "odd(n) = (\<exists>m. n = Suc (2*m))" by presburger
+lemma even_add [simp]: "even(m + n::nat) = (even m = even n)"  by presburger
 
-lemma odd_Suc_mult_two_ex: "odd(n) = (\<exists>m. n = Suc (2*m))"
-by (simp add: odd_nat_equiv_def2 numeral_2_eq_2)
-
-lemma even_add [simp]: "even(m + n::nat) = (even m = even n)" 
-by auto
-
-lemma odd_add [simp]: "odd(m + n::nat) = (odd m \<noteq> odd n)"
-by auto
+lemma odd_add [simp]: "odd(m + n::nat) = (odd m \<noteq> odd n)" by presburger
 
 lemma div_Suc: "Suc a div c = a div c + Suc 0 div c +
     (a mod c + Suc 0 mod c) div c" 
@@ -361,35 +343,18 @@ lemma div_Suc: "Suc a div c = a div c + Suc 0 div c +
   apply (rule div_add1_eq, simp)
   done
 
-lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2"
-apply (simp add: numeral_2_eq_2) 
-apply (subst div_Suc)  
-apply (simp add: even_nat_mod_two_eq_zero) 
-done
+lemma lemma_even_div2 [simp]: "even (n::nat) ==> (n + 1) div 2 = n div 2" by presburger
 
 lemma lemma_not_even_div2 [simp]: "~even n ==> (n + 1) div 2 = Suc (n div 2)"
-apply (simp add: numeral_2_eq_2) 
-apply (subst div_Suc)  
-apply (simp add: odd_nat_mod_two_eq_one) 
-done
+by presburger
 
-lemma even_num_iff: "0 < n ==> even n = (~ even(n - 1 :: nat))" 
-by (case_tac "n", auto)
+lemma even_num_iff: "0 < n ==> even n = (~ even(n - 1 :: nat))"  by presburger
+lemma even_even_mod_4_iff: "even (n::nat) = even (n mod 4)" by presburger
 
-lemma even_even_mod_4_iff: "even (n::nat) = even (n mod 4)"
-apply (induct n, simp)
-apply (subst mod_Suc, simp) 
-done
-
-lemma lemma_odd_mod_4_div_2: "n mod 4 = (3::nat) ==> odd((n - 1) div 2)"
-apply (rule mod_div_equality [of n 4, THEN subst])
-apply (simp add: even_num_iff)
-done
+lemma lemma_odd_mod_4_div_2: "n mod 4 = (3::nat) ==> odd((n - 1) div 2)" by presburger
 
 lemma lemma_even_mod_4_div_2: "n mod 4 = (1::nat) ==> even ((n - 1) div 2)"
-apply (rule mod_div_equality [of n 4, THEN subst])
-apply simp
-done
+  by presburger
 
 text {* Simplify, when the exponent is a numeral *}
 
@@ -441,8 +406,7 @@ qed
 
 subsection {* Miscellaneous *}
 
-lemma odd_pos: "odd (n::nat) \<Longrightarrow> 0 < n"
-  by (cases n, simp_all)
+lemma odd_pos: "odd (n::nat) \<Longrightarrow> 0 < n" by presburger
 
 lemma [presburger]:"(x + 1) div 2 = x div 2 \<longleftrightarrow> even (x::int)" by presburger
 lemma [presburger]: "(x + 1) div 2 = x div 2 + 1 \<longleftrightarrow> odd (x::int)" by presburger

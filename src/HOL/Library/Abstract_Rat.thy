@@ -31,6 +31,8 @@ where
   (let g = zgcd a b 
    in if b > 0 then (a div g, b div g) else (- (a div g), - (b div g)))))"
 
+declare zgcd_zdvd1[presburger] 
+declare zgcd_zdvd2[presburger]
 lemma normNum_isnormNum [simp]: "isnormNum (normNum x)"
 proof -
   have " \<exists> a b. x = (a,b)" by auto
@@ -44,26 +46,26 @@ proof -
     let ?g' = "zgcd ?a' ?b'"
     from anz bnz have "?g \<noteq> 0" by simp  with zgcd_pos[of a b] 
     have gpos: "?g > 0"  by arith
-    have gdvd: "?g dvd a" "?g dvd b" by (simp_all add: zgcd_zdvd1 zgcd_zdvd2)
+    have gdvd: "?g dvd a" "?g dvd b" by arith+ 
     from zdvd_mult_div_cancel[OF gdvd(1)] zdvd_mult_div_cancel[OF gdvd(2)]
     anz bnz
     have nz':"?a' \<noteq> 0" "?b' \<noteq> 0" 
       by - (rule notI,simp add:zgcd_def)+
-    from anz bnz have stupid: "a \<noteq> 0 \<or> b \<noteq> 0" by blast
+    from anz bnz have stupid: "a \<noteq> 0 \<or> b \<noteq> 0" by arith 
     from div_zgcd_relprime[OF stupid] have gp1: "?g' = 1" .
     from bnz have "b < 0 \<or> b > 0" by arith
     moreover
     {assume b: "b > 0"
-      from pos_imp_zdiv_nonneg_iff[OF gpos] b
-      have "?b' \<ge> 0" by simp
-      with nz' have b': "?b' > 0" by simp
+      from b have "?b' \<ge> 0" 
+	by (presburger add: pos_imp_zdiv_nonneg_iff[OF gpos])  
+      with nz' have b': "?b' > 0" by arith 
       from b b' anz bnz nz' gp1 have ?thesis 
 	by (simp add: isnormNum_def normNum_def Let_def split_def fst_conv snd_conv)}
     moreover {assume b: "b < 0"
       {assume b': "?b' \<ge> 0" 
 	from gpos have th: "?g \<ge> 0" by arith
 	from mult_nonneg_nonneg[OF th b'] zdvd_mult_div_cancel[OF gdvd(2)]
-	have False using b by simp }
+	have False using b by arith }
       hence b': "?b' < 0" by (presburger add: linorder_not_le[symmetric]) 
       from anz bnz nz' b b' gp1 have ?thesis 
 	by (simp add: isnormNum_def normNum_def Let_def split_def fst_conv snd_conv)}
@@ -203,16 +205,16 @@ proof
       by (simp add: INum_def  eq_divide_eq divide_eq_eq of_int_mult[symmetric] del: of_int_mult)
     from prems have gcd1: "zgcd a b = 1" "zgcd b a = 1" "zgcd a' b' = 1" "zgcd b' a' = 1"       
       by (simp_all add: isnormNum_def add: zgcd_commute)
-    from eq have raw_dvd: "a dvd a'*b" "b dvd b'*a" "a' dvd a*b'" "b' dvd b*a'" 
-      apply(unfold dvd_def)
-      apply (rule_tac x="b'" in exI, simp add: mult_ac)
-      apply (rule_tac x="a'" in exI, simp add: mult_ac)
-      apply (rule_tac x="b" in exI, simp add: mult_ac)
-      apply (rule_tac x="a" in exI, simp add: mult_ac)
+    from eq have raw_dvd: "a dvd a'*b" "b dvd b'*a" "a' dvd a*b'" "b' dvd b*a'"
+      apply - 
+      apply algebra
+      apply algebra
+      apply simp
+      apply algebra
       done
     from zdvd_dvd_eq[OF bz zrelprime_dvd_mult[OF gcd1(2) raw_dvd(2)]
       zrelprime_dvd_mult[OF gcd1(4) raw_dvd(4)]]
-      have eq1: "b = b'" using pos by simp_all
+      have eq1: "b = b'" using pos by arith  
       with eq have "a = a'" using pos by simp
       with eq1 have ?rhs by simp}
   ultimately show ?rhs by blast

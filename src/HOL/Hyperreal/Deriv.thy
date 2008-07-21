@@ -846,6 +846,7 @@ text{*Lemma about introducing open ball in open interval*}
 lemma lemma_interval_lt:
      "[| a < x;  x < b |]
       ==> \<exists>d::real. 0 < d & (\<forall>y. \<bar>x-y\<bar> < d --> a < y & y < b)"
+
 apply (simp add: abs_less_iff)
 apply (insert linorder_linear [of "x-a" "b-x"], safe)
 apply (rule_tac x = "x-a" in exI)
@@ -883,7 +884,7 @@ proof -
   proof cases
     assume axb: "a < x & x < b"
         --{*@{term f} attains its maximum within the interval*}
-    hence ax: "a<x" and xb: "x<b" by auto
+    hence ax: "a<x" and xb: "x<b" by arith + 
     from lemma_interval [OF ax xb]
     obtain d where d: "0<d" and bound: "\<forall>y. \<bar>x-y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
       by blast
@@ -902,7 +903,7 @@ proof -
     proof cases
       assume ax'b: "a < x' & x' < b"
         --{*@{term f} attains its minimum within the interval*}
-      hence ax': "a<x'" and x'b: "x'<b" by auto
+      hence ax': "a<x'" and x'b: "x'<b" by arith+ 
       from lemma_interval [OF ax' x'b]
       obtain d where d: "0<d" and bound: "\<forall>y. \<bar>x'-y\<bar> < d \<longrightarrow> a \<le> y \<and> y \<le> b"
   by blast
@@ -1194,7 +1195,7 @@ proof -
       with e have "L \<le> y \<and> y \<le> M" by arith
       from all2 [OF this]
       obtain z where "x - d \<le> z" "z \<le> x + d" "f z = y" by blast
-      thus "\<exists>z. \<bar>z - x\<bar> \<le> d \<and> f z = y"
+      thus "\<exists>z. \<bar>z - x\<bar> \<le> d \<and> f z = y" 
         by (force simp add: abs_le_iff)
     qed
   qed
@@ -1251,11 +1252,11 @@ lemma DERIV_inverse_function:
 unfolding DERIV_iff2
 proof (rule LIM_equal2)
   show "0 < min (x - a) (b - x)"
-    using a b by simp
+    using a b by arith 
 next
   fix y
   assume "norm (y - x) < min (x - a) (b - x)"
-  hence "a < y" and "y < b"
+  hence "a < y" and "y < b" 
     by (simp_all add: abs_less_iff)
   thus "(g y - g x) / (y - x) =
         inverse ((f (g y) - x) / (g y - g x))"

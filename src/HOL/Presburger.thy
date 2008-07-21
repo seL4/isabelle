@@ -62,7 +62,8 @@ lemma inf_period:
   "\<forall>x k. F = F"
 apply (auto elim!: dvdE simp add: ring_simps)
 unfolding mult_assoc [symmetric] left_distrib [symmetric] left_diff_distrib [symmetric]
-unfolding dvd_def mult_commute [of d] by auto
+unfolding dvd_def mult_commute [of d] 
+by auto
 
 subsection{* The A and B sets *}
 lemma bset:
@@ -84,12 +85,13 @@ lemma bset:
 proof (blast, blast)
   assume dp: "D > 0" and tB: "t - 1\<in> B"
   show "(\<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (x = t) \<longrightarrow> (x - D = t))" 
-    apply (rule allI, rule impI,erule ballE[where x="1"],erule ballE[where x="t - 1"])
-    using dp tB by simp_all
+    apply (rule allI, rule impI,erule ballE[where x="1"],erule ballE[where x="t - 1"]) 
+    apply algebra using dp tB by simp_all
 next
   assume dp: "D > 0" and tB: "t \<in> B"
   show "(\<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (x \<noteq> t) \<longrightarrow> (x - D \<noteq> t))" 
     apply (rule allI, rule impI,erule ballE[where x="D"],erule ballE[where x="t"])
+    apply algebra
     using dp tB by simp_all
 next
   assume dp: "D > 0" thus "(\<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (x < t) \<longrightarrow> (x - D < t))" by arith
@@ -113,9 +115,7 @@ next
   thus "\<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (x \<ge> t) \<longrightarrow> (x - D \<ge> t)" by blast
 next
   assume d: "d dvd D"
-  {fix x assume H: "d dvd x + t" with d have "d dvd (x - D) + t"
-      by (auto elim!: dvdE simp add: ring_simps)
-        (auto simp only: left_diff_distrib [symmetric] dvd_def mult_commute)}
+  {fix x assume H: "d dvd x + t" with d have "d dvd (x - D) + t" by algebra}
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (d dvd x+t) \<longrightarrow> (d dvd (x - D) + t)" by simp
 next
   assume d: "d dvd D"
@@ -470,25 +470,20 @@ in
 end
 *} "Cooper's algorithm for Presburger arithmetic"
 
-lemma [presburger]: "m mod 2 = (1::nat) \<longleftrightarrow> \<not> 2 dvd m " by presburger
-lemma [presburger]: "m mod 2 = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
-lemma [presburger]: "m mod (Suc (Suc 0)) = (1::nat) \<longleftrightarrow> \<not> 2 dvd m " by presburger
-lemma [presburger]: "m mod (Suc (Suc 0)) = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
-lemma [presburger]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 dvd m " by presburger
+lemma [presburger, algebra]: "m mod 2 = (1::nat) \<longleftrightarrow> \<not> 2 dvd m " by presburger
+lemma [presburger, algebra]: "m mod 2 = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
+lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = (1::nat) \<longleftrightarrow> \<not> 2 dvd m " by presburger
+lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
+lemma [presburger, algebra]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 
 
 lemma zdvd_period:
   fixes a d :: int
   assumes advdd: "a dvd d"
   shows "a dvd (x + t) \<longleftrightarrow> a dvd ((x + c * d) + t)"
-proof-
-  {
-    fix x k
-    from inf_period(3) [OF advdd, rule_format, where x=x and k="-k"]  
-    have "a dvd (x + t) \<longleftrightarrow> a dvd (x + k * d + t)" by simp
-  }
-  hence "\<forall>x.\<forall>k. ((a::int) dvd (x + t)) = (a dvd (x+k*d + t))"  by simp
-  then show ?thesis by simp
-qed
+  using advdd
+  apply -
+  apply (rule iffI)
+  by algebra+
 
 end
