@@ -30,6 +30,7 @@ sig
       -> theory -> theory) -> theory -> theory
   val add_case: thm -> theory -> theory
   val add_undefined: string -> theory -> theory
+  val purge_data: theory -> theory
 
   val coregular_algebra: theory -> Sorts.algebra
   val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
@@ -357,6 +358,8 @@ fun map_exec_purge touched f thy =
   CodeData.map (fn (exec, data) => (f exec, ref (case touched
    of SOME cs => invoke_purge_all thy cs (! data)
     | NONE => empty_data))) thy;
+
+val purge_data = (CodeData.map o apsnd) (K (ref empty_data));
 
 
 (* access to data dependent on abstract executable content *)
