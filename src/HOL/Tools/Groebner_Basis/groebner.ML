@@ -965,7 +965,7 @@ fun ring_solve ctxt form =
 
 fun ring_tac add_ths del_ths ctxt =
   ObjectLogic.full_atomize_tac
-  THEN' simp_tac (fst (NormalizerData.get ctxt) delsimps del_ths addsimps add_ths)
+  THEN' asm_full_simp_tac (Simplifier.context ctxt (fst (NormalizerData.get ctxt)) delsimps del_ths addsimps add_ths)
   THEN' CSUBGOAL (fn (p, i) =>
     rtac (let val form = (ObjectLogic.dest_judgment p)
           in case get_ring_ideal_convs ctxt form of
@@ -984,6 +984,9 @@ local
    | exitac (SOME y) = rtac (instantiate' [SOME (ctyp_of_term y)] [NONE,SOME y] exI) 1
 in 
 fun ideal_tac add_ths del_ths ctxt = 
+  asm_full_simp_tac 
+   (Simplifier.context ctxt (fst (NormalizerData.get ctxt)) delsimps del_ths addsimps add_ths) 
+ THEN'
  CSUBGOAL (fn (p, i) =>
   case get_ring_ideal_convs ctxt p of
    NONE => no_tac
@@ -1000,8 +1003,11 @@ fun ideal_tac add_ths del_ths ctxt =
     in EVERY (rev ws) THEN Method.insert_tac prems 1 
         THEN ring_tac add_ths del_ths ctxt 1
    end
-  in full_simp_tac (#poly_eq_ss thy) i 
-     THEN clarify_tac HOL_cs i 
+  in  
+     clarify_tac @{claset} i 
+     THEN ObjectLogic.full_atomize_tac i 
+     THEN asm_full_simp_tac (Simplifier.context ctxt (#poly_eq_ss thy)) i 
+     THEN clarify_tac @{claset} i 
      THEN (REPEAT (CONVERSION (#unwind_conv thy) i))
      THEN SUBPROOF poly_exists_tac ctxt i
   end
