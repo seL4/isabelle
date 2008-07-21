@@ -13,7 +13,6 @@ uses
   ("Tools/Groebner_Basis/groebner.ML")
 begin
 
-
 subsection {* Semiring normalization *}
 
 setup NormalizerData.setup
@@ -251,6 +250,7 @@ declaration {* normalizer_funs @{thm class_ring.gb_ring_axioms'} *}
 
 use "Tools/Groebner_Basis/normalizer.ML"
 
+
 method_setup sring_norm = {*
   Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD' (Normalizer.semiring_normalize_tac ctxt))
 *} "semiring normalizer"
@@ -415,7 +415,6 @@ lemma PFalse:
     "P \<equiv> False \<Longrightarrow> \<not> P"
     "\<not> P \<Longrightarrow> (P \<equiv> False)"
   by auto
-
 use "Tools/Groebner_Basis/groebner.ML"
 
 method_setup algebra =
@@ -434,5 +433,32 @@ fn src => Method.syntax
        Method.SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
 end
 *} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
+declare dvd_def[algebra]
+declare dvd_eq_mod_eq_0[symmetric, algebra]
+declare nat_mod_div_trivial[algebra]
+declare nat_mod_mod_trivial[algebra]
+declare conjunct1[OF DIVISION_BY_ZERO, algebra]
+declare conjunct2[OF DIVISION_BY_ZERO, algebra]
+declare zmod_zdiv_equality[symmetric,algebra]
+declare zdiv_zmod_equality[symmetric, algebra]
+declare zdiv_zminus_zminus[algebra]
+declare zmod_zminus_zminus[algebra]
+declare zdiv_zminus2[algebra]
+declare zmod_zminus2[algebra]
+declare zdiv_zero[algebra]
+declare zmod_zero[algebra]
+declare zmod_1[algebra]
+declare zdiv_1[algebra]
+declare zmod_minus1_right[algebra]
+declare zdiv_minus1_right[algebra]
+declare mod_div_trivial[algebra]
+declare mod_mod_trivial[algebra]
+declare zmod_zmult_self1[algebra]
+declare zmod_zmult_self2[algebra]
+declare zmod_eq_0_iff[algebra]
+declare zdvd_0_left[algebra]
+declare zdvd1_eq[algebra]
+declare zmod_eq_dvd_iff[algebra]
+declare nat_mod_eq_iff[algebra]
 
 end
