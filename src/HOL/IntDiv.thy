@@ -1513,6 +1513,51 @@ qed
 
 end
 
+lemma zmod_eq_dvd_iff: "(x::int) mod n = y mod n \<longleftrightarrow> n dvd x - y"
+proof
+  assume H: "x mod n = y mod n"
+  hence "x mod n - y mod n = 0" by simp
+  hence "(x mod n - y mod n) mod n = 0" by simp 
+  hence "(x - y) mod n = 0" by (simp add: zmod_zdiff1_eq[symmetric])
+  thus "n dvd x - y" by (simp add: zdvd_iff_zmod_eq_0)
+next
+  assume H: "n dvd x - y"
+  then obtain k where k: "x-y = n*k" unfolding dvd_def by blast
+  hence "x = n*k + y" by simp
+  hence "x mod n = (n*k + y) mod n" by simp
+  thus "x mod n = y mod n" by (simp add: zmod_zadd_left_eq)
+qed
+
+lemma nat_mod_eq_lemma: assumes xyn: "(x::nat) mod n = y  mod n" and xy:"y \<le> x"
+  shows "\<exists>q. x = y + n * q"
+proof-
+  from xy have th: "int x - int y = int (x - y)" by simp 
+  from xyn have "int x mod int n = int y mod int n" 
+    by (simp add: zmod_int[symmetric])
+  hence "int n dvd int x - int y" by (simp only: zmod_eq_dvd_iff[symmetric]) 
+  hence "n dvd x - y" by (simp add: th zdvd_int)
+  then show ?thesis using xy unfolding dvd_def apply clarsimp apply (rule_tac x="k" in exI) by arith
+qed
+
+lemma nat_mod_eq_iff: "(x::nat) mod n = y mod n \<longleftrightarrow> (\<exists>q1 q2. x + n * q1 = y + n * q2)" 
+  (is "?lhs = ?rhs")
+proof
+  assume H: "x mod n = y mod n"
+  {assume xy: "x \<le> y"
+    from H have th: "y mod n = x mod n" by simp
+    from nat_mod_eq_lemma[OF th xy] have ?rhs 
+      apply clarify  apply (rule_tac x="q" in exI) by (rule exI[where x="0"], simp)}
+  moreover
+  {assume xy: "y \<le> x"
+    from nat_mod_eq_lemma[OF H xy] have ?rhs 
+      apply clarify  apply (rule_tac x="0" in exI) by (rule_tac x="q" in exI, simp)}
+  ultimately  show ?rhs using linear[of x y] by blast  
+next
+  assume ?rhs then obtain q1 q2 where q12: "x + n * q1 = y + n * q2" by blast
+  hence "(x + n * q1) mod n = (y + n * q2) mod n" by simp
+  thus  ?lhs by simp
+qed
+
 code_modulename SML
   IntDiv Integer
 
