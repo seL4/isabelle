@@ -1,5 +1,5 @@
 theory ImperativeQuickSort
-imports Imperative_HOL Subarray Multiset
+imports Imperative_HOL Subarray Multiset Efficient_Nat
 begin
 
 text {* We prove QuickSort correct in the Relational Calculus. *}
@@ -618,5 +618,19 @@ proof (induct a l r arbitrary: h rule: quicksort.induct)
     apply (auto intro!: noError_if noError_return)
     done
 qed
+
+
+subsection {* Example *}
+
+definition "qsort a = do
+    k \<leftarrow> length a;
+    quicksort a 0 (k - 1);
+    return a
+  done"
+
+ML {* @{code qsort} (Array.fromList [42, 2, 3, 5, 0, 1705, 8, 3, 15]) () *}
+
+export_code qsort in OCaml module_name Arr file -
+export_code qsort in Haskell module_name Arr file -
 
 end
