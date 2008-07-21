@@ -1102,7 +1102,7 @@ lemma bin_rsplit_aux_len [rule_format] :
   apply (case_tac m)
   apply simp
   apply (case_tac "m <= n")
-  apply (auto simp add: div_add_self2)
+  apply auto
   done
 
 lemma bin_rsplit_len: 
