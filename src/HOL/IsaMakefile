@@ -201,7 +201,6 @@ $(OUT)/HOL: $(OUT)/HOL-Plain \
   IntDiv.thy \
   int_factor_simprocs.ML \
   Int.thy \
-  Library/Abstract_Rat.thy \
   Library/Dense_Linear_Order.thy \
   Library/GCD.thy \
   Library/Order_Relation.thy \
@@ -279,6 +278,7 @@ $(OUT)/HOL: $(OUT)/HOL-Plain \
 HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
+  Library/Abstract_Rat.thy \
   Library/BigO.thy Library/Ramsey.thy Library/Efficient_Nat.thy		\
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
   Library/FuncSet.thy			\
