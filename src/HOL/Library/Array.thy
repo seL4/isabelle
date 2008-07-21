@@ -186,12 +186,12 @@ subsubsection {* OCaml *}
 
 code_type array (OCaml "_/ array")
 code_const Array (OCaml "failwith/ \"bare Array\"")
-code_const Array.new' (OCaml "(fn/ ()/ =>/ Array.make/ _/ _)")
-code_const Array.of_list (OCaml "(fn/ ()/ =>/ Array.of'_list/ _)")
-code_const Array.make' (OCaml "(fn/ ()/ =>/ Array.init/ _/ _)")
-code_const Array.length' (OCaml "(fn/ ()/ =>/ Array.length/ _)")
-code_const Array.nth' (OCaml "(fn/ ()/ =>/ Array.get/ _/ _)")
-code_const Array.upd' (OCaml "(fn/ ()/ =>/ Array.set/ _/ _/ _)")
+code_const Array.new' (OCaml "(fun/ ()/ ->/ Array.make/ _/ _)")
+code_const Array.of_list (OCaml "(fun/ ()/ ->/ Array.of'_list/ _)")
+code_const Array.make' (OCaml "(fun/ ()/ ->/ Array.init/ _/ _)")
+code_const Array.length' (OCaml "(fun/ ()/ ->/ Array.length/ _)")
+code_const Array.nth' (OCaml "(fun/ ()/ ->/ Array.get/ _/ _)")
+code_const Array.upd' (OCaml "(fun/ ()/ ->/ Array.set/ _/ _/ _)")
 
 code_reserved OCaml Array
 
@@ -202,7 +202,7 @@ code_type array (Haskell "STArray '_s _")
 code_const Array (Haskell "error/ \"bare Array\"")
 code_const Array.new' (Haskell "newArray/ (0,/ _)")
 code_const Array.of_list' (Haskell "newListArray/ (0,/ _)")
-code_const Array.length' (Haskell "length")
+code_const Array.length' (Haskell "lengthArray")
 code_const Array.nth' (Haskell "readArray")
 code_const Array.upd' (Haskell "writeArray")
 

@@ -376,12 +376,12 @@ text {* Conversion from and to indices. *}
 code_const index_of_nat
   (SML "IntInf.toInt")
   (OCaml "Big'_int.int'_of'_big'_int")
-  (Haskell "toEnum")
+  (Haskell "fromEnum")
 
 code_const nat_of_index
   (SML "IntInf.fromInt")
   (OCaml "Big'_int.big'_int'_of'_int")
-  (Haskell "fromEnum")
+  (Haskell "toEnum")
 
 text {* Using target language arithmetic operations whenever appropriate *}
 

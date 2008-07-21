@@ -313,9 +313,9 @@ code_type Heap (OCaml "_")
 code_const Heap (OCaml "failwith/ \"bare Heap\"")
 code_monad run "op \<guillemotright>=" return "()" OCaml
 code_const run (OCaml "_")
-code_const return (OCaml "(fn/ ()/ =>/ _)")
+code_const return (OCaml "(fun/ ()/ ->/ _)")
 code_const "Heap_Monad.Fail" (OCaml "Failure")
-code_const "Heap_Monad.raise_exc" (OCaml "(fn/ ()/ =>/ raise/ _)")
+code_const "Heap_Monad.raise_exc" (OCaml "(fun/ ()/ ->/ raise/ _)")
 
 code_reserved OCaml Failure raise
 
@@ -332,7 +332,7 @@ import qualified Data.Array.ST;
 
 type ST s a = Control.Monad.ST.ST s a;
 type STRef s a = Data.STRef.STRef s a;
-type STArray s a = Data.Array.ST.STArray s Integer a;
+type STArray s a = Data.Array.ST.STArray s Int a;
 
 runST :: (forall s. ST s a) -> a;
 runST s = Control.Monad.ST.runST s;
@@ -341,25 +341,25 @@ newSTRef = Data.STRef.newSTRef;
 readSTRef = Data.STRef.readSTRef;
 writeSTRef = Data.STRef.writeSTRef;
 
-newArray :: (Integer, Integer) -> a -> ST s (STArray s a);
+newArray :: (Int, Int) -> a -> ST s (STArray s a);
 newArray = Data.Array.ST.newArray;
 
-newListArray :: (Integer, Integer) -> [a] -> ST s (STArray s a);
+newListArray :: (Int, Int) -> [a] -> ST s (STArray s a);
 newListArray = Data.Array.ST.newListArray;
 
-length :: STArray s a -> ST s Integer;
-length a = Control.Monad.liftM snd (Data.Array.ST.getBounds a);
+lengthArray :: STArray s a -> ST s Int;
+lengthArray a = Control.Monad.liftM snd (Data.Array.ST.getBounds a);
 
-readArray :: STArray s a -> Integer -> ST s a;
+readArray :: STArray s a -> Int -> ST s a;
 readArray = Data.Array.ST.readArray;
 
-writeArray :: STArray s a -> Integer -> a -> ST s ();
+writeArray :: STArray s a -> Int -> a -> ST s ();
 writeArray = Data.Array.ST.writeArray;*}
 
 code_reserved Haskell ST STRef Array
   runST
   newSTRef reasSTRef writeSTRef
-  newArray newListArray bounds readArray writeArray
+  newArray newListArray lengthArray readArray writeArray
 
 text {* Monad *}
 
