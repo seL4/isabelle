@@ -293,7 +293,7 @@ apply(rule While)
     apply force
    apply force
   apply(rule Basic)
-     apply (simp add: mod_add_self2)
+     apply simp
      apply clarify
      apply simp
      apply (case_tac "X x (j mod n) \<le> j")
@@ -346,7 +346,7 @@ apply(rule While)
   apply(rule Basic)
      apply simp
      apply clarify
-     apply (simp add: mod_add_self2)
+     apply simp
      apply(rule allI)
      apply(rule impI)+
      apply(case_tac "X x ! i\<le> j")

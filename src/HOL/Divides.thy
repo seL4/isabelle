@@ -98,21 +98,21 @@ lemma mod_self [simp]: "a mod a = 0"
 lemma div_self [simp]: "a \<noteq> 0 \<Longrightarrow> a div a = 1"
   using div_mult_self2_is_id [of _ 1] by simp
 
-lemma div_add_self1:
+lemma div_add_self1 [simp]:
   assumes "b \<noteq> 0"
   shows "(b + a) div b = a div b + 1"
   using assms div_mult_self1 [of b a 1] by (simp add: add_commute)
 
-lemma div_add_self2:
+lemma div_add_self2 [simp]:
   assumes "b \<noteq> 0"
   shows "(a + b) div b = a div b + 1"
   using assms div_add_self1 [of b a] by (simp add: add_commute)
 
-lemma mod_add_self1:
+lemma mod_add_self1 [simp]:
   "(b + a) mod b = a mod b"
   using mod_mult_self1 [of a 1 b] by (simp add: add_commute)
 
-lemma mod_add_self2:
+lemma mod_add_self2 [simp]:
   "(a + b) mod b = a mod b"
   using mod_mult_self1 [of a 1 b] by simp
 

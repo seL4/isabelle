@@ -163,11 +163,8 @@ lemma gcd_mult_cancel: "gcd k n = 1 ==> gcd (k * m) n = gcd m n"
 
 text {* \medskip Addition laws *}
 
-lemma gcd_add1 [simp,algebra]: "gcd (m + n) n = gcd m n"
-  apply (case_tac "n = 0")
-   apply (simp_all add: gcd_non_0)
-  apply (simp add: mod_add_self2)
-  done
+lemma gcd_add1 [simp, algebra]: "gcd (m + n) n = gcd m n"
+  by (cases "n = 0") (auto simp add: gcd_non_0)
 
 lemma gcd_add2 [simp, algebra]: "gcd m (m + n) = gcd m n"
 proof -
