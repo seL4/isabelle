@@ -23,23 +23,41 @@ instance ..
 end
 
 instance list :: (order) order
-  apply (intro_classes, unfold list_less_def list_le_def)
-  apply safe
-  apply (rule_tac r1 = "{(a::'a,b). a < b}" in lexord_irreflexive [THEN notE])
-  apply simp
-  apply assumption
-  apply (blast intro: lexord_trans transI order_less_trans)
-  apply (rule_tac r1 = "{(a::'a,b). a < b}" in lexord_irreflexive [THEN notE])
-  apply simp
-  apply (blast intro: lexord_trans transI order_less_trans)
-  done
+proof
+  fix xs :: "'a list"
+  show "xs \<le> xs" by (simp add: list_le_def)
+next
+  fix xs ys zs :: "'a list"
+  assume "xs \<le> ys" and "ys \<le> zs"
+  then show "xs \<le> zs" by (auto simp add: list_le_def list_less_def)
+    (rule lexord_trans, auto intro: transI)
+next
+  fix xs ys :: "'a list"
+  assume "xs \<le> ys" and "ys \<le> xs"
+  then show "xs = ys" apply (auto simp add: list_le_def list_less_def)
+  apply (rule lexord_irreflexive [THEN notE])
+  defer
+  apply (rule lexord_trans) apply (auto intro: transI) done
+next
+  fix xs ys :: "'a list"
+  show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs" 
+  apply (auto simp add: list_less_def list_le_def)
+  defer
+  apply (rule lexord_irreflexive [THEN notE])
+  apply auto
+  apply (rule lexord_irreflexive [THEN notE])
+  defer
+  apply (rule lexord_trans) apply (auto intro: transI) done
+qed
 
 instance list :: (linorder) linorder
-  apply (intro_classes, unfold list_le_def list_less_def, safe)
-  apply (cut_tac x = x and y = y and  r = "{(a,b). a < b}"  in lexord_linear)
-   apply force
-  apply simp
-  done
+proof
+  fix xs ys :: "'a list"
+  have "(xs, ys) \<in> lexord {(u, v). u < v} \<or> xs = ys \<or> (ys, xs) \<in> lexord {(u, v). u < v}"
+    by (rule lexord_linear) auto
+  then show "xs \<le> ys \<or> ys \<le> xs" 
+    by (auto simp add: list_le_def list_less_def)
+qed
 
 instantiation list :: (linorder) distrib_lattice
 begin

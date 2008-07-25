@@ -189,38 +189,37 @@ by (blast intro: rat_subset_imp_le order_antisym)
 
 subsection{*Properties of Ordering*}
 
-lemma preal_le_refl: "w \<le> (w::preal)"
-by (simp add: preal_le_def)
-
-lemma preal_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::preal)"
-by (force simp add: preal_le_def)
-
-lemma preal_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::preal)"
-apply (simp add: preal_le_def)
-apply (rule Rep_preal_inject [THEN iffD1], blast)
-done
-
-(* Axiom 'order_less_le' of class 'order': *)
-lemma preal_less_le: "((w::preal) < z) = (w \<le> z & w \<noteq> z)"
-by (simp add: preal_le_def preal_less_def Rep_preal_inject less_le)
-
 instance preal :: order
-  by intro_classes
-    (assumption |
-      rule preal_le_refl preal_le_trans preal_le_anti_sym preal_less_le)+
+proof
+  fix w :: preal
+  show "w \<le> w" by (simp add: preal_le_def)
+next
+  fix i j k :: preal
+  assume "i \<le> j" and "j \<le> k"
+  then show "i \<le> k" by (simp add: preal_le_def)
+next
+  fix z w :: preal
+  assume "z \<le> w" and "w \<le> z"
+  then show "z = w" by (simp add: preal_le_def Rep_preal_inject)
+next
+  fix z w :: preal
+  show "z < w \<longleftrightarrow> z \<le> w \<and> \<not> w \<le> z"
+  by (auto simp add: preal_le_def preal_less_def Rep_preal_inject)
+qed  
 
 lemma preal_imp_pos: "[|A \<in> preal; r \<in> A|] ==> 0 < r"
 by (insert preal_imp_psubset_positives, blast)
 
-lemma preal_le_linear: "x <= y | y <= (x::preal)"
-apply (auto simp add: preal_le_def)
-apply (rule ccontr)
-apply (blast dest: not_in_Rep_preal_ub intro: preal_imp_pos [OF Rep_preal]
-             elim: order_less_asym)
-done
-
 instance preal :: linorder
-  by intro_classes (rule preal_le_linear)
+proof
+  fix x y :: preal
+  show "x <= y | y <= x"
+    apply (auto simp add: preal_le_def)
+    apply (rule ccontr)
+    apply (blast dest: not_in_Rep_preal_ub intro: preal_imp_pos [OF Rep_preal]
+             elim: order_less_asym)
+    done
+qed
 
 instantiation preal :: distrib_lattice
 begin
@@ -1091,7 +1090,7 @@ apply (blast dest: less_add_left_lemma2)
 done
 
 lemma less_add_left: "R < (S::preal) ==> R + (S-R) = S"
-by (blast intro: preal_le_anti_sym [OF less_add_left_le1 less_add_left_le2])
+by (blast intro: antisym [OF less_add_left_le1 less_add_left_le2])
 
 lemma less_add_left_Ex: "R < (S::preal) ==> \<exists>D. R + D = S"
 by (fast dest: less_add_left)

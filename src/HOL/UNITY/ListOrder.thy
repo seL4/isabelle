@@ -15,7 +15,9 @@ Based on Lex/Prefix
 
 header {*The Prefix Ordering on Lists*}
 
-theory ListOrder imports Main begin
+theory ListOrder
+imports Main
+begin
 
 inductive_set
   genPrefix :: "('a * 'a)set => ('a list * 'a list)set"
@@ -28,15 +30,21 @@ inductive_set
 
  | append:  "(xs,ys) : genPrefix(r) ==> (xs, ys@zs) : genPrefix(r)"
 
-instance list :: (type)ord ..
+instantiation list :: (type) ord 
+begin
 
-defs
-  prefix_def:        "xs <= zs  ==  (xs,zs) : genPrefix Id"
+definition
+  prefix_def:        "xs <= zs \<longleftrightarrow>  (xs, zs) : genPrefix Id"
 
-  strict_prefix_def: "xs < zs  ==  xs <= zs & xs ~= (zs::'a list)"
-  
+definition
+  strict_prefix_def: "xs < zs  \<longleftrightarrow>  xs \<le> zs \<and> \<not> zs \<le> (xs :: 'a list)"
+
+instance ..  
 
 (*Constants for the <= and >= relations, used below in translations*)
+
+end
+
 constdefs
   Le :: "(nat*nat) set"
     "Le == {(x,y). x <= y}"
@@ -268,13 +276,13 @@ apply (unfold prefix_def)
 apply (blast intro: genPrefix_antisym)
 done
 
-lemma prefix_less_le: "!!xs::'a list. (xs < zs) = (xs <= zs & xs ~= zs)"
+lemma prefix_less_le_not_le: "!!xs::'a list. (xs < zs) = (xs <= zs & \<not> zs \<le> xs)"
 by (unfold strict_prefix_def, auto)
 
 instance list :: (type) order
   by (intro_classes,
       (assumption | rule prefix_refl prefix_trans prefix_antisym
-                     prefix_less_le)+)
+                     prefix_less_le_not_le)+)
 
 (*Monotonicity of "set" operator WRT prefix*)
 lemma set_mono: "xs <= ys ==> set xs <= set ys"

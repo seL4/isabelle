@@ -356,7 +356,7 @@ lemmas word_gt_0_no [simp] = word_gt_0 [of "number_of y", standard]
 
 lemma word_sless_alt: "(a <s b) == (sint a < sint b)"
   unfolding word_sle_def word_sless_def
-  by (auto simp add : less_eq_less.less_le)
+  by (auto simp add: less_le)
 
 lemma word_le_nat_alt: "(a <= b) = (unat a <= unat b)"
   unfolding unat_def word_le_def

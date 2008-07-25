@@ -346,21 +346,18 @@ apply (simp add: real_le)
 apply (blast intro: real_trans_lemma)
 done
 
-(* Axiom 'order_less_le' of class 'order': *)
-lemma real_less_le: "((w::real) < z) = (w \<le> z & w \<noteq> z)"
-by (simp add: real_less_def)
-
 instance real :: order
-proof qed
- (assumption |
-  rule real_le_refl real_le_trans real_le_anti_sym real_less_le)+
+proof
+  fix u v :: real
+  show "u < v \<longleftrightarrow> u \<le> v \<and> \<not> v \<le> u" 
+    by (auto simp add: real_less_def intro: real_le_anti_sym)
+qed (assumption | rule real_le_refl real_le_trans real_le_anti_sym)+
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
 lemma real_le_linear: "(z::real) \<le> w | w \<le> z"
 apply (cases z, cases w)
 apply (auto simp add: real_le real_zero_def add_ac)
 done
-
 
 instance real :: linorder
   by (intro_classes, rule real_le_linear)

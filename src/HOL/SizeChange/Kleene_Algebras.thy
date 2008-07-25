@@ -23,40 +23,44 @@ lemma add_idem2[simp]: "(x::'a::idem_add) + (x + y) = x + y"
 
 class order_by_add = idem_add + ord +
   assumes order_def: "a \<le> b \<longleftrightarrow> a + b = b"
-  assumes strict_order_def: "a < b \<longleftrightarrow> a \<le> b \<and> a \<noteq> b"
+  assumes strict_order_def: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> b \<le> a"
+begin
 
-lemma ord_simp1[simp]: "(x::'a::order_by_add) \<le> y \<Longrightarrow> x + y = y"
+lemma ord_simp1[simp]: "x \<le> y \<Longrightarrow> x + y = y"
   unfolding order_def .
-lemma ord_simp2[simp]: "(x::'a::order_by_add) \<le> y \<Longrightarrow> y + x = y"
+
+lemma ord_simp2[simp]: "x \<le> y \<Longrightarrow> y + x = y"
   unfolding order_def add_commute .
-lemma ord_intro: "(x::'a::order_by_add) + y = y \<Longrightarrow> x \<le> y"
+
+lemma ord_intro: "x + y = y \<Longrightarrow> x \<le> y"
   unfolding order_def .
 
-instance order_by_add \<subseteq> order
-proof
+subclass order proof
   fix x y z :: 'a
   show "x \<le> x" unfolding order_def by simp
-
-  show "\<lbrakk>x \<le> y; y \<le> z\<rbrakk> \<Longrightarrow> x \<le> z"
+  show "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
   proof (rule ord_intro)
     assume "x \<le> y" "y \<le> z"
-
     have "x + z = x + y + z" by (simp add:`y \<le> z` add_assoc)
     also have "\<dots> = y + z" by (simp add:`x \<le> y`)
     also have "\<dots> = z" by (simp add:`y \<le> z`)
     finally show "x + z = z" .
   qed
-
-  show "\<lbrakk>x \<le> y; y \<le> x\<rbrakk> \<Longrightarrow> x = y" unfolding order_def
-    by (simp add:add_commute)
-  show "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y" by (fact strict_order_def)
+  show "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y" unfolding order_def
+    by (simp add: add_commute)
+  show "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x" by (fact strict_order_def)
 qed
 
+lemma plus_leI: 
+  "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x + y \<le> z"
+  unfolding order_def by (simp add: add_assoc)
+
+end
 
 class pre_kleene = semiring_1 + order_by_add
+begin
 
-instance pre_kleene \<subseteq> pordered_semiring
-proof
+subclass pordered_semiring proof
   fix x y z :: 'a
 
   assume "x \<le> y"
@@ -81,6 +85,11 @@ proof
   qed
 qed
 
+lemma zero_minimum [simp]: "0 \<le> x"
+  unfolding order_def by simp
+
+end
+
 class kleene = pre_kleene + star +
   assumes star1: "1 + a * star a \<le> star a"
   and star2: "1 + star a * a \<le> star a"
@@ -90,22 +99,16 @@ class kleene = pre_kleene + star +
 class kleene_by_complete_lattice = pre_kleene
   + complete_lattice + recpower + star +
   assumes star_cont: "a * star b * c = SUPR UNIV (\<lambda>n. a * b ^ n * c)"
+begin
 
-lemma plus_leI: 
-  fixes x :: "'a :: order_by_add"
-  shows "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x + y \<le> z"
-  unfolding order_def by (simp add:add_assoc)
-
-lemma le_SUPI':
-  fixes l :: "'a :: complete_lattice"
+lemma (in complete_lattice) le_SUPI':
   assumes "l \<le> M i"
   shows "l \<le> (SUP i. M i)"
   using assms by (rule order_trans) (rule le_SUPI [OF UNIV_I])
 
-lemma zero_minimum[simp]: "(0::'a::pre_kleene) \<le> x"
-  unfolding order_def by simp
+end
 
-instance kleene_by_complete_lattice \<subseteq> kleene
+instance kleene_by_complete_lattice < kleene
 proof
 
   fix a x :: 'a

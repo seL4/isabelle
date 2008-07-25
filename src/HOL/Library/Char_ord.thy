@@ -35,7 +35,7 @@ next
     by (auto simp add: nat_of_nibble_eq)
 next
   fix n m :: nibble
-  show "n < m \<longleftrightarrow> n \<le> m \<and> n \<noteq> m"
+  show "n < m \<longleftrightarrow> n \<le> m \<and> \<not> m \<le> n"
     unfolding nibble_less_eq_def nibble_less_def less_le
     by (auto simp add: nat_of_nibble_eq)
 next

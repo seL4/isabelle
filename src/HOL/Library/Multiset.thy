@@ -778,13 +778,8 @@ unfolding le_multiset_def by (blast intro: mult_less_trans)
 theorem mult_less_le: "(M < N) = (M <= N \<and> M \<noteq> (N::'a::order multiset))"
 unfolding le_multiset_def by auto
 
-instance
-apply intro_classes
-   apply (rule mult_less_le)
-  apply (rule mult_le_refl)
- apply (erule mult_le_trans, assumption)
-apply (erule mult_le_antisym, assumption)
-done
+instance proof
+qed (auto simp add: mult_less_le dest: mult_le_antisym elim: mult_le_trans)
 
 end
 
@@ -1101,16 +1096,16 @@ apply simp
 done
 
 interpretation mset_order: order ["op \<le>#" "op <#"]
-by (auto intro: order.intro mset_le_refl mset_le_antisym
-    mset_le_trans simp: mset_less_def)
+proof qed (auto intro: order.intro mset_le_refl mset_le_antisym
+  mset_le_trans simp: mset_less_def)
 
 interpretation mset_order_cancel_semigroup:
     pordered_cancel_ab_semigroup_add ["op +" "op \<le>#" "op <#"]
-by unfold_locales (erule mset_le_mono_add [OF mset_le_refl])
+proof qed (erule mset_le_mono_add [OF mset_le_refl])
 
 interpretation mset_order_semigroup_cancel:
     pordered_ab_semigroup_add_imp_le ["op +" "op \<le>#" "op <#"]
-by (unfold_locales) simp
+proof qed simp
 
 
 lemma mset_lessD: "A \<subset># B \<Longrightarrow> x \<in># A \<Longrightarrow> x \<in># B"

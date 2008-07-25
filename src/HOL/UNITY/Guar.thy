@@ -18,13 +18,12 @@ Fifth International Conference on Mathematics of Program, 2000.
 
 header{*Guarantees Specifications*}
 
-theory Guar imports Comp begin
+theory Guar
+imports Comp
+begin
 
 instance program :: (type) order
-  by (intro_classes,
-      (assumption | rule component_refl component_trans component_antisym
-                     program_less_le)+)
-
+proof qed (auto simp add: program_less_le dest: component_antisym intro: component_refl component_trans)
 
 text{*Existential and Universal properties.  I formalize the two-program
       case, proving equivalence with Chandy and Sanders's n-ary definitions*}

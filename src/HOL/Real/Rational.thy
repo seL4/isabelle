@@ -436,8 +436,8 @@ instance proof
   next
     show "q \<le> q"
       by (induct q) simp
-    show "(q < r) = (q \<le> r \<and> q \<noteq> r)"
-      by (simp only: less_rat_def)
+    show "(q < r) = (q \<le> r \<and> \<not> r \<le> q)"
+      by (induct q, induct r) (auto simp add: le_less mult_commute)
     show "q \<le> r \<or> r \<le> q"
       by (induct q, induct r)
          (simp add: mult_commute, rule linorder_linear)

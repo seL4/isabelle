@@ -732,7 +732,7 @@ subsection {* Ordering and lattice classes *}
 
 instance star :: (order) order
 apply (intro_classes)
-apply (transfer, rule order_less_le)
+apply (transfer, rule less_le_not_le)
 apply (transfer, rule order_refl)
 apply (transfer, erule (1) order_trans)
 apply (transfer, erule (1) order_antisym)

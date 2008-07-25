@@ -104,7 +104,7 @@ instance proof
   fix x y z :: "('a,'b) graph"
   fix A :: "('a, 'b) graph set"
 
-  show "(x < y) = (x \<le> y \<and> x \<noteq> y)"
+  show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
     unfolding graph_leq_def graph_less_def
     by (cases x, cases y) auto
 
@@ -319,7 +319,7 @@ proof
   show "a \<le> b \<longleftrightarrow> a + b = b" unfolding graph_leq_def graph_plus_def
     by (cases a, cases b) auto
 
-  from order_less_le show "a < b \<longleftrightarrow> a \<le> b \<and> a \<noteq> b" .
+  from less_le_not_le show "a < b \<longleftrightarrow> a \<le> b \<and> \<not> b \<le> a" .
 
   show "a * star b * c = (SUP n. a * b ^ n * c)"
     unfolding graph_star_def

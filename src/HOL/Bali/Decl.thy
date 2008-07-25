@@ -5,9 +5,8 @@
 header {* Field, method, interface, and class declarations, whole Java programs
 *}
 
-(** order is significant, because of clash for "var" **)
 theory Decl
-imports Term Table
+imports Term Table (** order is significant, because of clash for "var" **)
 begin
 
 text {*
@@ -64,10 +63,12 @@ definition
            | Public     \<Rightarrow> False)"
 
 definition
-  le_acc_def: "a \<le> (b::acc_modi) \<longleftrightarrow> (a = b) \<or> (a < b)"
+  le_acc_def: "(a :: acc_modi) \<le> b \<longleftrightarrow> a < b \<or> a = b"
 
 instance proof
   fix x y z::acc_modi
+  show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
+    by (auto simp add: le_acc_def less_acc_def split add: acc_modi.split) 
   {
   show "x \<le> x"               \<spacespace>\<spacespace>    -- reflexivity
     by (auto simp add: le_acc_def)
@@ -85,12 +86,10 @@ instance proof
       by (unfold le_acc_def) iprover
   qed
   next
-  show "(x < y) = (x \<le> y \<and> x \<noteq> y)"
-    by (auto simp add: le_acc_def less_acc_def split add: acc_modi.split) 
-  }
   fix x y:: acc_modi
   show  "x \<le> y \<or> y \<le> x"   
   by (auto simp add: less_acc_def le_acc_def split add: acc_modi.split)
+  }
 qed
   
 end

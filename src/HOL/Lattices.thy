@@ -32,8 +32,8 @@ text {* Dual lattice *}
 
 lemma dual_lattice:
   "lower_semilattice (op \<ge>) (op >) sup"
-by unfold_locales
-  (auto simp add: sup_least)
+by (rule lower_semilattice.intro, rule dual_order)
+  (unfold_locales, simp_all add: sup_least)
 
 end
 

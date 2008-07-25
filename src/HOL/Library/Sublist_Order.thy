@@ -47,7 +47,7 @@ lemma ileq_induct [induct set, case_names empty drop take]:
   using assms by (induct rule: less_eq_list.induct) blast+
 
 definition
-  [code func del]: "(xs \<Colon> 'a list) < ys \<longleftrightarrow> xs \<le> ys \<and> xs \<noteq> ys"
+  [code func del]: "(xs \<Colon> 'a list) < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
 
 lemma ileq_length: "xs \<le> ys \<Longrightarrow> length xs \<le> length ys"
   by (induct rule: ileq_induct) auto
@@ -56,7 +56,7 @@ lemma ileq_below_empty [simp]: "xs \<le> [] \<longleftrightarrow> xs = []"
 
 instance proof
   fix xs ys :: "'a list"
-  show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> xs \<noteq> ys" unfolding less_list_def ..
+  show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs" unfolding less_list_def .. 
 next
   fix xs :: "'a list"
   show "xs \<le> xs" by (induct xs) (auto intro!: ileq_empty ileq_drop ileq_take)
@@ -140,7 +140,7 @@ lemma ilt_length [intro]:
   assumes "xs < ys"
   shows "length xs < length ys"
 proof -
-  from assms have "xs \<le> ys" and "xs \<noteq> ys" by (simp_all add: less_list_def)
+  from assms have "xs \<le> ys" and "xs \<noteq> ys" by (simp_all add: less_le)
   moreover with ileq_length have "length xs \<le> length ys" by auto
   ultimately show ?thesis by (auto intro: ileq_same_length)
 qed
@@ -154,9 +154,9 @@ lemma ilt_emptyD: "[] < xs \<Longrightarrow> xs \<noteq> []"
 lemma ilt_below_empty[simp]: "xs < [] \<Longrightarrow> False"
   by (auto dest: ilt_length)
 lemma ilt_drop: "xs < ys \<Longrightarrow> xs < x # ys"
-  by (unfold less_list_def) (auto intro: ileq_intros)
+  by (unfold less_le) (auto intro: ileq_intros)
 lemma ilt_take: "xs < ys \<Longrightarrow> x # xs < x # ys"
-  by (unfold less_list_def) (auto intro: ileq_intros)
+  by (unfold less_le) (auto intro: ileq_intros)
 lemma ilt_drop_many: "xs < ys \<Longrightarrow> xs < zs @ ys"
   by (induct zs) (auto intro: ilt_drop)
 lemma ilt_take_many: "xs < ys \<Longrightarrow> zs @ xs < zs @ ys"
@@ -168,7 +168,7 @@ subsection {* Appending elements *}
 lemma ileq_rev_take: "xs \<le> ys \<Longrightarrow> xs @ [x] \<le> ys @ [x]"
   by (induct rule: ileq_induct) (auto intro: ileq_intros ileq_drop_many)
 lemma ilt_rev_take: "xs < ys \<Longrightarrow> xs @ [x] < ys @ [x]"
-  by (unfold less_list_def) (auto dest: ileq_rev_take)
+  by (unfold less_le) (auto dest: ileq_rev_take)
 lemma ileq_rev_drop: "xs \<le> ys \<Longrightarrow> xs \<le> ys @ [x]"
   by (induct rule: ileq_induct) (auto intro: ileq_intros)
 lemma ileq_rev_drop_many: "xs \<le> ys \<Longrightarrow> xs \<le> ys @ zs"

@@ -11,13 +11,12 @@ uses
   "~~/src/Provers/order.ML"
 begin
 
-subsection {* Partial orders *}
+subsection {* Quasi orders *}
 
-class order = ord +
-  assumes less_le: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
+class preorder = ord +
+  assumes less_le_not_le: "x < y \<longleftrightarrow> x \<le> y \<and> \<not> (y \<le> x)"
   and order_refl [iff]: "x \<le> x"
   and order_trans: "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
-  assumes antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
 begin
 
 text {* Reflexivity. *}
@@ -27,16 +26,73 @@ lemma eq_refl: "x = y \<Longrightarrow> x \<le> y"
 by (erule ssubst) (rule order_refl)
 
 lemma less_irrefl [iff]: "\<not> x < x"
-by (simp add: less_le)
+by (simp add: less_le_not_le)
+
+lemma less_imp_le: "x < y \<Longrightarrow> x \<le> y"
+unfolding less_le_not_le by blast
+
+
+text {* Asymmetry. *}
+
+lemma less_not_sym: "x < y \<Longrightarrow> \<not> (y < x)"
+by (simp add: less_le_not_le)
+
+lemma less_asym: "x < y \<Longrightarrow> (\<not> P \<Longrightarrow> y < x) \<Longrightarrow> P"
+by (drule less_not_sym, erule contrapos_np) simp
+
+
+text {* Transitivity. *}
+
+lemma less_trans: "x < y \<Longrightarrow> y < z \<Longrightarrow> x < z"
+by (auto simp add: less_le_not_le intro: order_trans) 
+
+lemma le_less_trans: "x \<le> y \<Longrightarrow> y < z \<Longrightarrow> x < z"
+by (auto simp add: less_le_not_le intro: order_trans) 
+
+lemma less_le_trans: "x < y \<Longrightarrow> y \<le> z \<Longrightarrow> x < z"
+by (auto simp add: less_le_not_le intro: order_trans) 
+
+
+text {* Useful for simplification, but too risky to include by default. *}
+
+lemma less_imp_not_less: "x < y \<Longrightarrow> (\<not> y < x) \<longleftrightarrow> True"
+by (blast elim: less_asym)
+
+lemma less_imp_triv: "x < y \<Longrightarrow> (y < x \<longrightarrow> P) \<longleftrightarrow> True"
+by (blast elim: less_asym)
+
+
+text {* Transitivity rules for calculational reasoning *}
+
+lemma less_asym': "a < b \<Longrightarrow> b < a \<Longrightarrow> P"
+by (rule less_asym)
+
+
+text {* Dual order *}
+
+lemma dual_preorder:
+  "preorder (op \<ge>) (op >)"
+by unfold_locales (auto simp add: less_le_not_le intro: order_trans)
+
+end
+
+
+subsection {* Partial orders *}
+
+class order = preorder +
+  assumes antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
+begin
+
+text {* Reflexivity. *}
+
+lemma less_le: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
+by (auto simp add: less_le_not_le intro: antisym)
 
 lemma le_less: "x \<le> y \<longleftrightarrow> x < y \<or> x = y"
     -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
 by (simp add: less_le) blast
 
 lemma le_imp_less_or_eq: "x \<le> y \<Longrightarrow> x < y \<or> x = y"
-unfolding less_le by blast
-
-lemma less_imp_le: "x < y \<Longrightarrow> x \<le> y"
 unfolding less_le by blast
 
 
@@ -60,12 +116,6 @@ by (simp add: less_le)
 
 text {* Asymmetry. *}
 
-lemma less_not_sym: "x < y \<Longrightarrow> \<not> (y < x)"
-by (simp add: less_le antisym)
-
-lemma less_asym: "x < y \<Longrightarrow> (\<not> P \<Longrightarrow> y < x) \<Longrightarrow> P"
-by (drule less_not_sym, erule contrapos_np) simp
-
 lemma eq_iff: "x = y \<longleftrightarrow> x \<le> y \<and> y \<le> x"
 by (blast intro: antisym)
 
@@ -74,33 +124,6 @@ by (blast intro: antisym)
 
 lemma less_imp_neq: "x < y \<Longrightarrow> x \<noteq> y"
 by (erule contrapos_pn, erule subst, rule less_irrefl)
-
-
-text {* Transitivity. *}
-
-lemma less_trans: "x < y \<Longrightarrow> y < z \<Longrightarrow> x < z"
-by (simp add: less_le) (blast intro: order_trans antisym)
-
-lemma le_less_trans: "x \<le> y \<Longrightarrow> y < z \<Longrightarrow> x < z"
-by (simp add: less_le) (blast intro: order_trans antisym)
-
-lemma less_le_trans: "x < y \<Longrightarrow> y \<le> z \<Longrightarrow> x < z"
-by (simp add: less_le) (blast intro: order_trans antisym)
-
-
-text {* Useful for simplification, but too risky to include by default. *}
-
-lemma less_imp_not_less: "x < y \<Longrightarrow> (\<not> y < x) \<longleftrightarrow> True"
-by (blast elim: less_asym)
-
-lemma less_imp_triv: "x < y \<Longrightarrow> (y < x \<longrightarrow> P) \<longleftrightarrow> True"
-by (blast elim: less_asym)
-
-
-text {* Transitivity rules for calculational reasoning *}
-
-lemma less_asym': "a < b \<Longrightarrow> b < a \<Longrightarrow> P"
-by (rule less_asym)
 
 
 text {* Least value operator *}
@@ -129,8 +152,7 @@ text {* Dual order *}
 
 lemma dual_order:
   "order (op \<ge>) (op >)"
-by unfold_locales
-   (simp add: less_le, auto intro: antisym order_trans)
+by (intro_locales, rule dual_preorder) (unfold_locales, rule antisym)
 
 end
 
@@ -201,8 +223,7 @@ text {* Dual order *}
 
 lemma dual_linorder:
   "linorder (op \<ge>) (op >)"
-by unfold_locales
-  (simp add: less_le, auto intro: antisym order_trans simp add: linear)
+by (rule linorder.intro, rule dual_order) (unfold_locales, rule linear)
 
 
 text {* min/max *}
@@ -557,27 +578,27 @@ end
 subsection {* Name duplicates *}
 
 lemmas order_less_le = less_le
-lemmas order_eq_refl = order_class.eq_refl
-lemmas order_less_irrefl = order_class.less_irrefl
+lemmas order_eq_refl = preorder_class.eq_refl
+lemmas order_less_irrefl = preorder_class.less_irrefl
 lemmas order_le_less = order_class.le_less
 lemmas order_le_imp_less_or_eq = order_class.le_imp_less_or_eq
-lemmas order_less_imp_le = order_class.less_imp_le
+lemmas order_less_imp_le = preorder_class.less_imp_le
 lemmas order_less_imp_not_eq = order_class.less_imp_not_eq
 lemmas order_less_imp_not_eq2 = order_class.less_imp_not_eq2
 lemmas order_neq_le_trans = order_class.neq_le_trans
 lemmas order_le_neq_trans = order_class.le_neq_trans
 
 lemmas order_antisym = antisym
-lemmas order_less_not_sym = order_class.less_not_sym
-lemmas order_less_asym = order_class.less_asym
+lemmas order_less_not_sym = preorder_class.less_not_sym
+lemmas order_less_asym = preorder_class.less_asym
 lemmas order_eq_iff = order_class.eq_iff
 lemmas order_antisym_conv = order_class.antisym_conv
-lemmas order_less_trans = order_class.less_trans
-lemmas order_le_less_trans = order_class.le_less_trans
-lemmas order_less_le_trans = order_class.less_le_trans
-lemmas order_less_imp_not_less = order_class.less_imp_not_less
-lemmas order_less_imp_triv = order_class.less_imp_triv
-lemmas order_less_asym' = order_class.less_asym'
+lemmas order_less_trans = preorder_class.less_trans
+lemmas order_le_less_trans = preorder_class.le_less_trans
+lemmas order_less_le_trans = preorder_class.less_le_trans
+lemmas order_less_imp_not_less = preorder_class.less_imp_not_less
+lemmas order_less_imp_triv = preorder_class.less_imp_triv
+lemmas order_less_asym' = preorder_class.less_asym'
 
 lemmas linorder_linear = linear
 lemmas linorder_less_linear = linorder_class.less_linear
@@ -808,7 +829,7 @@ text {*
   Note that this list of rules is in reverse order of priorities.
 *}
 
-lemmas order_trans_rules [trans] =
+lemmas [trans] =
   order_less_subst2
   order_less_subst1
   order_le_less_subst2
@@ -825,20 +846,60 @@ lemmas order_trans_rules [trans] =
   back_subst
   rev_mp
   mp
-  order_neq_le_trans
-  order_le_neq_trans
-  order_less_trans
-  order_less_asym'
-  order_le_less_trans
-  order_less_le_trans
+
+lemmas (in order) [trans] =
+  neq_le_trans
+  le_neq_trans
+
+lemmas (in preorder) [trans] =
+  less_trans
+  less_asym'
+  le_less_trans
+  less_le_trans
   order_trans
-  order_antisym
+
+lemmas (in order) [trans] =
+  antisym
+
+lemmas (in ord) [trans] =
+  ord_le_eq_trans
+  ord_eq_le_trans
+  ord_less_eq_trans
+  ord_eq_less_trans
+
+lemmas [trans] =
+  trans
+
+lemmas order_trans_rules =
+  order_less_subst2
+  order_less_subst1
+  order_le_less_subst2
+  order_le_less_subst1
+  order_less_le_subst2
+  order_less_le_subst1
+  order_subst2
+  order_subst1
+  ord_le_eq_subst
+  ord_eq_le_subst
+  ord_less_eq_subst
+  ord_eq_less_subst
+  forw_subst
+  back_subst
+  rev_mp
+  mp
+  neq_le_trans
+  le_neq_trans
+  less_trans
+  less_asym'
+  le_less_trans
+  less_le_trans
+  order_trans
+  antisym
   ord_le_eq_trans
   ord_eq_le_trans
   ord_less_eq_trans
   ord_eq_less_trans
   trans
-
 
 (* FIXME cleanup *)
 

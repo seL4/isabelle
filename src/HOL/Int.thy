@@ -187,14 +187,14 @@ by (simp add: less_int_def le order_less_le)
 instance int :: linorder
 proof
   fix i j k :: int
-  show "(i < j) = (i \<le> j \<and> i \<noteq> j)"
-    by (simp add: less_int_def)
+  show antisym: "i \<le> j \<Longrightarrow> j \<le> i \<Longrightarrow> i = j"
+    by (cases i, cases j) (simp add: le)
+  show "(i < j) = (i \<le> j \<and> \<not> j \<le> i)"
+    by (auto simp add: less_int_def dest: antisym) 
   show "i \<le> i"
     by (cases i) (simp add: le)
   show "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> i \<le> k"
     by (cases i, cases j, cases k) (simp add: le)
-  show "i \<le> j \<Longrightarrow> j \<le> i \<Longrightarrow> i = j"
-    by (cases i, cases j) (simp add: le)
   show "i \<le> j \<or> j \<le> i"
     by (cases i, cases j) (simp add: le linorder_linear)
 qed
