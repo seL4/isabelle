@@ -6,7 +6,9 @@
 
 header {* \isaheader{BV Type Safety Proof}\label{sec:BVSpecTypeSafe} *}
 
-theory BVSpecTypeSafe imports Correct begin
+theory BVSpecTypeSafe
+imports Correct
+begin
 
 text {*
   This theory contains proof that the specification of the bytecode

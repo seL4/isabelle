@@ -6,7 +6,9 @@
 
 header {* \isaheader{Typing and Dataflow Analysis Framework} *}
 
-theory Typing_Framework imports Listn begin
+theory Typing_Framework
+imports Listn
+begin
 
 text {* 
   The relationship between dataflow analysis and a welltyped-instruction predicate. 

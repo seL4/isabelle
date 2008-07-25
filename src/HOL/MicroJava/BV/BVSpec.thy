@@ -7,7 +7,9 @@
 
 header {* \isaheader{The Bytecode Verifier}\label{sec:BVSpec} *}
 
-theory BVSpec imports Effect begin
+theory BVSpec
+imports Effect
+begin
 
 text {*
   This theory contains a specification of the BV. The specification
