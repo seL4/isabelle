@@ -19,6 +19,8 @@ interface instead.
 
 *** Pure ***
 
+* dropped "locale (open)".  INCOMPATBILITY.
+
 * Command 'instance': attached definitions no longer accepted.
 INCOMPATIBILITY, use proper 'instantiation' target.
 
@@ -33,6 +35,10 @@ syntax just like the Isar command 'by'.
 
 
 *** HOL ***
+
+* HOL/Orderings: added class "preorder" as superclass of "order".  INCOMPATIBILITY:
+Instantiation proofs for order, linorder etc. slightly changed.  Some theorems
+named order_class.* now named preorder_class.*.
 
 * HOL/Ring_and_Field and HOL/Divides: Definition of "op dvd" has been moved
 to separate class dvd in Ring_and_Field;  a couple of lemmas on dvd has been

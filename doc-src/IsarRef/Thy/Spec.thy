@@ -298,7 +298,7 @@ text {*
   \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
   \indexisarelem{defines}\indexisarelem{notes}\indexisarelem{includes}
   \begin{rail}
-    'locale' ('(open)')? name ('=' localeexpr)? 'begin'?
+    'locale' name ('=' localeexpr)? 'begin'?
     ;
     'print\_locale' '!'? localeexpr
     ;
@@ -415,11 +415,6 @@ text {*
   \secref{sec:object-logic}).  Separate introduction rules @{text
   loc_axioms.intro} and @{text loc.intro} are provided as well.
   
-  The @{text "(open)"} option of a locale specification prevents both
-  the current @{text loc_axioms} and cumulative @{text loc} predicate
-  constructions.  Predicates are also omitted for empty specification
-  texts.
-
   \item [@{command "print_locale"}~@{text "import + body"}] prints the
   specified locale expression in a flattened form.  The notable
   special case @{command "print_locale"}~@{text loc} just prints the

@@ -25,7 +25,7 @@ lemma [code]:
 by (force simp: list_ex_iff is_target_def mem_iff)
 
 
-locale (open) lbvc = lbv + 
+locale lbvc = lbv + 
   fixes phi :: "'a list" ("\<phi>")
   fixes c   :: "'a list" 
   defines cert_def: "c \<equiv> make_cert step \<phi> \<bottom>"
@@ -197,7 +197,7 @@ proof -
   have "merge c pc ?step (c!Suc pc) =
     (if \<forall>(pc',s')\<in>set ?step. pc'\<noteq>pc+1 \<longrightarrow> s' <=_r c!pc'
     then map snd [(p',t') \<leftarrow> ?step.p'=pc+1] ++_f c!Suc pc
-    else \<top>)" by (rule merge_def)
+    else \<top>)" unfolding merge_def by (rule lbv.merge_def [OF lbvc.axioms(1), OF lbvc_axioms])
   moreover {
     fix pc' s' assume s': "(pc', s') \<in> set ?step" and suc_pc: "pc' \<noteq> pc+1"
     with less have "s' <=_r \<phi>!pc'" by auto

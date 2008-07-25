@@ -6,7 +6,9 @@
 
 header {* \isaheader{The Lightweight Bytecode Verifier} *}
 
-theory LBVSpec imports SemilatAlg Opt begin
+theory LBVSpec
+imports SemilatAlg Opt
+begin
 
 types
   's certificate = "'s list"   
@@ -51,7 +53,7 @@ constdefs
   "bottom r B \<equiv> \<forall>x. B <=_r x"
 
 
-locale (open) lbv = semilat +
+locale lbv = Semilat +
   fixes T :: "'a" ("\<top>") 
   fixes B :: "'a" ("\<bottom>") 
   fixes step :: "'a step_type" 
@@ -118,7 +120,7 @@ lemma (in lbv) plusplussup_top [simp, elim]:
 
 
 
-lemma (in semilat) pp_ub1':
+lemma (in Semilat) pp_ub1':
   assumes S: "snd`set S \<subseteq> A" 
   assumes y: "y \<in> A" and ab: "(a, b) \<in> set S" 
   shows "b <=_r map snd [(p', t') \<leftarrow> S . p' = a] ++_f y"

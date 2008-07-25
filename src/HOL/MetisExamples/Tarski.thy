@@ -69,10 +69,6 @@ constdefs
                         (\<forall>S. S \<subseteq> pset cl --> (\<exists>L. isLub S cl L)) &
                         (\<forall>S. S \<subseteq> pset cl --> (\<exists>G. isGlb S cl G))}"
 
-  CLF :: "('a potype * ('a => 'a)) set"
-  "CLF == SIGMA cl: CompleteLattice.
-            {f. f: pset cl -> pset cl & monotone f (pset cl) (order cl)}"
-
   induced :: "['a set, ('a * 'a) set] => ('a *'a)set"
   "induced A r == {(a,b). a : A & b: A & (a,b): r}"
 
@@ -93,7 +89,7 @@ constdefs
   dual :: "'a potype => 'a potype"
   "dual po == (| pset = pset po, order = converse (order po) |)"
 
-locale (open) PO =
+locale PO =
   fixes cl :: "'a potype"
     and A  :: "'a set"
     and r  :: "('a * 'a) set"
@@ -101,17 +97,21 @@ locale (open) PO =
   defines A_def: "A == pset cl"
      and  r_def: "r == order cl"
 
-locale (open) CL = PO +
+locale CL = PO +
   assumes cl_co:  "cl : CompleteLattice"
 
-locale (open) CLF = CL +
+definition CLF_set :: "('a potype * ('a => 'a)) set" where
+  "CLF_set = (SIGMA cl: CompleteLattice.
+            {f. f: pset cl -> pset cl & monotone f (pset cl) (order cl)})"
+
+locale CLF = CL +
   fixes f :: "'a => 'a"
     and P :: "'a set"
-  assumes f_cl:  "(cl,f) : CLF" (*was the equivalent "f : CLF``{cl}"*)
+  assumes f_cl:  "(cl,f) : CLF_set" (*was the equivalent "f : CLF``{cl}"*)
   defines P_def: "P == fix f A"
 
 
-locale (open) Tarski = CLF +
+locale Tarski = CLF +
   fixes Y     :: "'a set"
     and intY1 :: "'a set"
     and v     :: "'a"
@@ -230,9 +230,9 @@ by (simp add: PartialOrder_def CompleteLattice_def, fast)
 
 lemmas CL_imp_PO = CL_subset_PO [THEN subsetD]
 
-declare CL_imp_PO [THEN PO.PO_imp_refl, simp]
-declare CL_imp_PO [THEN PO.PO_imp_sym, simp]
-declare CL_imp_PO [THEN PO.PO_imp_trans, simp]
+declare PO.PO_imp_refl  [OF PO.intro [OF CL_imp_PO], simp]
+declare PO.PO_imp_sym   [OF PO.intro [OF CL_imp_PO], simp]
+declare PO.PO_imp_trans [OF PO.intro [OF CL_imp_PO], simp]
 
 lemma (in CL) CO_refl: "refl A r"
 by (rule PO_imp_refl)
@@ -385,7 +385,10 @@ apply (subst glb_dual_lub)
 apply (simp add: A_def)
 apply (rule dualA_iff [THEN subst])
 apply (rule CL.lub_in_lattice)
+apply (rule CL.intro)
+apply (rule PO.intro)
 apply (rule dualPO)
+apply (rule CL_axioms.intro)
 apply (rule CL_dualCL)
 apply (simp add: dualA_iff)
 done
@@ -395,7 +398,10 @@ apply (subst glb_dual_lub)
 apply (simp add: r_def)
 apply (rule dualr_iff [THEN subst])
 apply (rule CL.lub_upper)
+apply (rule CL.intro)
+apply (rule PO.intro)
 apply (rule dualPO)
+apply (rule CL_axioms.intro)
 apply (rule CL_dualCL)
 apply (simp add: dualA_iff A_def, assumption)
 done
@@ -414,10 +420,10 @@ ML_command{*ResAtp.problem_name:="Tarski__CLF_unnamed_lemma"*}
 lemma (in CLF) [simp]:
     "f: pset cl -> pset cl & monotone f (pset cl) (order cl)" 
 apply (insert f_cl)
-apply (unfold CLF_def)
+apply (unfold CLF_set_def)
 apply (erule SigmaE2) 
 apply (erule CollectE) 
-apply assumption; 
+apply assumption
 done
 
 lemma (in CLF) f_in_funcset: "f \<in> A -> A"
@@ -428,12 +434,14 @@ by (simp add: A_def r_def)
 
 (*never proved, 2007-01-22*)
 ML_command{*ResAtp.problem_name:="Tarski__CLF_CLF_dual"*}
-  declare (in CLF) CLF_def[simp] CL_dualCL[simp] monotone_dual[simp] dualA_iff[simp]
-lemma (in CLF) CLF_dual: "(dual cl, f) \<in> CLF" 
+declare (in CLF) CLF_set_def [simp] CL_dualCL [simp] monotone_dual [simp] dualA_iff [simp]
+
+lemma (in CLF) CLF_dual: "(dual cl, f) \<in> CLF_set" 
 apply (simp del: dualA_iff)
 apply (simp)
 done
-  declare  (in CLF) CLF_def[simp del] CL_dualCL[simp del] monotone_dual[simp del]
+
+declare (in CLF) CLF_set_def[simp del] CL_dualCL[simp del] monotone_dual[simp del]
           dualA_iff[simp del]
 
 
@@ -639,8 +647,13 @@ lemma (in CLF) glbH_is_fixp: "H = {x. (f x, x) \<in> r & x \<in> A} ==> glb H cl
 apply (simp add: glb_dual_lub P_def A_def r_def)
 apply (rule dualA_iff [THEN subst])
 apply (rule CLF.lubH_is_fixp)
+apply (rule CLF.intro)
+apply (rule CL.intro)
+apply (rule PO.intro)
 apply (rule dualPO)
+apply (rule CL_axioms.intro)
 apply (rule CL_dualCL)
+apply (rule CLF_axioms.intro)
 apply (rule CLF_dual)
 apply (simp add: dualr_iff dualA_iff)
 done
@@ -657,8 +670,8 @@ apply (rule dualA_iff [THEN subst])
 (*never proved, 2007-01-22*)
 ML_command{*ResAtp.problem_name:="Tarski__T_thm_1_glb_simpler"*}  (*ALL THEOREMS*)
 (*sledgehammer;*)
-apply (simp add: CLF.T_thm_1_lub [of _ f, OF dualPO CL_dualCL]
-                 dualPO CL_dualCL CLF_dual dualr_iff)
+apply (simp add: CLF.T_thm_1_lub [of _ f, OF CLF.intro, OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro,
+  OF dualPO CL_dualCL] dualPO CL_dualCL CLF_dual dualr_iff)
 done
 
 subsection {* interval *}
@@ -729,7 +742,7 @@ lemma (in CLF) G_in_interval:
      "[| a \<in> A; b \<in> A; interval r a b \<noteq> {}; S \<subseteq> interval r a b; isGlb S cl G;
          S \<noteq> {} |] ==> G \<in> interval r a b"
 apply (simp add: interval_dual)
-apply (simp add: CLF.L_in_interval [of _ f]
+apply (simp add: CLF.L_in_interval [of _ f, OF CLF.intro, OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro]
                  dualA_iff A_def dualPO CL_dualCL CLF_dual isGlb_dual_isLub)
 done
 
@@ -851,7 +864,7 @@ apply (simp add: Top_dual_Bot A_def)
 ML_command{*ResAtp.problem_name:="Tarski__Top_in_lattice_simpler"*}  (*ALL THEOREMS*)
 (*sledgehammer*)
 apply (rule dualA_iff [THEN subst])
-apply (blast intro!: CLF.Bot_in_lattice dualPO CL_dualCL CLF_dual)
+apply (blast intro!: CLF.Bot_in_lattice [OF CLF.intro, OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro] dualPO CL_dualCL CLF_dual)
 done
 
 lemma (in CLF) Top_prop: "x \<in> A ==> (x, Top cl) \<in> r"
@@ -868,7 +881,7 @@ lemma (in CLF) Bot_prop: "x \<in> A ==> (Bot cl, x) \<in> r"
 (*sledgehammer*) 
 apply (simp add: Bot_dual_Top r_def)
 apply (rule dualr_iff [THEN subst])
-apply (simp add: CLF.Top_prop [of _ f]
+apply (simp add: CLF.Top_prop [of _ f, OF CLF.intro, OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro]
                  dualA_iff A_def dualPO CL_dualCL CLF_dual)
 done
 
@@ -996,8 +1009,8 @@ lemma (in Tarski) v_in_P: "v \<in> P"
 apply (unfold P_def)
 apply (rule_tac A = "intY1" in fixf_subset)
 apply (rule intY1_subset)
-apply (simp add: CLF.glbH_is_fixp [OF _ intY1_is_cl, simplified]
-                 v_def CL_imp_PO intY1_is_cl CLF_def intY1_func intY1_mono)
+apply (simp add: CLF.glbH_is_fixp [OF CLF.intro, OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro, OF _ intY1_is_cl, simplified]
+                 v_def CL_imp_PO intY1_is_cl CLF_set_def intY1_func intY1_mono)
 done
 
 ML_command{*ResAtp.problem_name:="Tarski__z_in_interval"*}  (*ALL THEOREMS*)
@@ -1042,7 +1055,7 @@ apply (rule Y_subset_A, assumption)
 apply (rule_tac b = "Top cl" in interval_imp_mem)
 apply (simp add: v_def)
 apply (fold intY1_def)
-apply (rule CL.glb_in_lattice [OF _ intY1_is_cl, simplified])
+apply (rule CL.glb_in_lattice [OF CL.intro, OF PO.intro CL_axioms.intro, OF _ intY1_is_cl, simplified])
  apply (simp add: CL_imp_PO intY1_is_cl, force)
 -- {* @{text v} is LEAST ub *}
 apply clarify
@@ -1058,7 +1071,7 @@ apply (rule_tac [2] intY1_subset)
 (*never proved, 2007-01-22*)
 ML_command{*ResAtp.problem_name:="Tarski__tarski_full_lemma_simplest"*} 
 (*sledgehammer*) 
-apply (rule CL.glb_lower [OF _ intY1_is_cl, simplified])
+apply (rule CL.glb_lower [OF CL.intro, OF PO.intro CL_axioms.intro, OF _ intY1_is_cl, simplified])
   apply (simp add: CL_imp_PO intY1_is_cl)
  apply force
 apply (simp add: induced_def intY1_f_closed z_in_interval)
@@ -1087,7 +1100,8 @@ apply (rule fixf_po, clarify)
 ML_command{*ResAtp.problem_name:="Tarski__Tarski_full_simpler"*}
 (*sledgehammer*) 
 apply (simp add: P_def A_def r_def)
-apply (blast intro!: Tarski.tarski_full_lemma cl_po cl_co f_cl)
+apply (blast intro!: Tarski.tarski_full_lemma [OF Tarski.intro, OF CLF.intro Tarski_axioms.intro,
+  OF CL.intro CLF_axioms.intro, OF PO.intro CL_axioms.intro] cl_po cl_co f_cl)
 done
   declare (in CLF) fixf_po[rule del] P_def [simp del] A_def [simp del] r_def [simp del]
          Tarski.tarski_full_lemma [rule del] cl_po [rule del] cl_co [rule del]

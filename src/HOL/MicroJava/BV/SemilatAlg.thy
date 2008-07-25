@@ -6,7 +6,9 @@
 
 header {* \isaheader{More on Semilattices} *}
 
-theory SemilatAlg imports Typing_Framework Product begin
+theory SemilatAlg
+imports Typing_Framework Product
+begin
 
 
 constdefs 
@@ -65,7 +67,7 @@ lemma list_update_le_listI [rule_format]:
 lemma plusplus_closed: assumes "semilat (A, r, f)" shows
   "\<And>y. \<lbrakk> set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> x ++_f y \<in> A" (is "PROP ?P")
 proof -
-  interpret semilat [A r f] by fact
+  interpret Semilat [A r f] using assms by (rule Semilat.intro)
   show "PROP ?P" proof (induct x)
     show "\<And>y. y \<in> A \<Longrightarrow> [] ++_f y \<in> A" by simp
     fix y x xs
@@ -78,7 +80,7 @@ proof -
   qed
 qed
 
-lemma (in semilat) pp_ub2:
+lemma (in Semilat) pp_ub2:
  "\<And>y. \<lbrakk> set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> y <=_r x ++_f y"
 proof (induct x)
   from semilat show "\<And>y. y <=_r [] ++_f y" by simp
@@ -98,7 +100,7 @@ proof (induct x)
 qed
 
 
-lemma (in semilat) pp_ub1:
+lemma (in Semilat) pp_ub1:
 shows "\<And>y. \<lbrakk>set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
 proof (induct ls)
   show "\<And>y. x \<in> set [] \<Longrightarrow> x <=_r [] ++_f y" by simp
@@ -134,7 +136,7 @@ proof (induct ls)
 qed
 
 
-lemma (in semilat) pp_lub:
+lemma (in Semilat) pp_lub:
   assumes z: "z \<in> A"
   shows 
   "\<And>y. y \<in> A \<Longrightarrow> set xs \<subseteq> A \<Longrightarrow> \<forall>x \<in> set xs. x <=_r z \<Longrightarrow> y <=_r z \<Longrightarrow> xs ++_f y <=_r z"
@@ -162,7 +164,7 @@ lemma ub1':
   shows "\<lbrakk>\<forall>(p,s) \<in> set S. s \<in> A; y \<in> A; (a,b) \<in> set S\<rbrakk> 
   \<Longrightarrow> b <=_r map snd [(p', t')\<leftarrow>S. p' = a] ++_f y" 
 proof -
-  interpret semilat [A r f] by fact
+  interpret Semilat [A r f] using assms by (rule Semilat.intro)
 
   let "b <=_r ?map ++_f y" = ?thesis
 

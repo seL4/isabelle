@@ -26,7 +26,7 @@ lemma swap_params:
 
 subsection {* Embedded terms *}
 
-locale (open) meta_term_syntax =
+locale meta_term_syntax =
   fixes meta_term :: "'a => prop"  ("TERM _")
 
 lemmas [intro?] = termI
@@ -34,7 +34,7 @@ lemmas [intro?] = termI
 
 subsection {* Meta-level conjunction *}
 
-locale (open) meta_conjunction_syntax =
+locale meta_conjunction_syntax =
   fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
 
 lemma all_conjunction:

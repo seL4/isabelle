@@ -312,7 +312,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
                       ([]))])];
 
   in thy
-     |> Locale.add_locale_i (SOME "") name vars [assumes]
+     |> Locale.add_locale_i "" name vars [assumes]
      ||> ProofContext.theory_of
      ||> interprete_parent name dist_thm_full_name parent_expr
      |> #2
@@ -459,11 +459,11 @@ fun statespace_definition state_type args name parents parent_comps components t
            (suffix namespaceN name) nameT parents_expr
            (map fst parent_comps) (map fst components)
      |> Context.theory_map (add_statespace full_name args parents components [])
-     |> Locale.add_locale_i (SOME "") (suffix valuetypesN name) (Locale.Merge locs)
+     |> Locale.add_locale_i "" (suffix valuetypesN name) (Locale.Merge locs)
             [Element.Constrains constrains]
      |> ProofContext.theory_of o #2
      |> fold interprete_parent_valuetypes parents
-     |> Locale.add_locale (SOME "") name
+     |> Locale.add_locale "" name
               (Locale.Merge [Locale.Locale (suffix namespaceN full_name)
                             ,Locale.Locale (suffix valuetypesN full_name)]) fixestate
      |> ProofContext.theory_of o #2

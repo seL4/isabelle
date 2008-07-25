@@ -6,9 +6,11 @@
 
 header {* \isaheader{Correctness of the LBV} *}
 
-theory LBVCorrect imports LBVSpec Typing_Framework begin
+theory LBVCorrect
+imports LBVSpec Typing_Framework
+begin
 
-locale (open) lbvs = lbv +
+locale lbvs = lbv +
   fixes s0  :: 'a ("s\<^sub>0")
   fixes c   :: "'a list"
   fixes ins :: "'b list"

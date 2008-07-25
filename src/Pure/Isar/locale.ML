@@ -81,9 +81,9 @@ sig
   val print_locale: theory -> bool -> expr -> Element.context list -> unit
   val print_registrations: bool -> string -> Proof.context -> unit
 
-  val add_locale: string option -> bstring -> expr -> Element.context list -> theory
+  val add_locale: string -> bstring -> expr -> Element.context list -> theory
     -> string * Proof.context
-  val add_locale_i: string option -> bstring -> expr -> Element.context_i list -> theory
+  val add_locale_i: string -> bstring -> expr -> Element.context_i list -> theory
     -> string * Proof.context
 
   (* Tactics *)
@@ -122,27 +122,11 @@ struct
 
 (* legacy operations *)
 
-fun gen_merge_lists _ xs [] = xs
-  | gen_merge_lists _ [] ys = ys
-  | gen_merge_lists eq xs ys = xs @ filter_out (member eq xs) ys;
+fun merge_lists _ xs [] = xs
+  | merge_lists _ [] ys = ys
+  | merge_lists eq xs ys = xs @ filter_out (member eq xs) ys;
 
-fun merge_lists xs ys = gen_merge_lists (op =) xs ys;
-fun merge_alists xs = gen_merge_lists (eq_fst (op =)) xs;
-
-fun legacy_unvarifyT thm =
-  let
-    val cT = Thm.ctyp_of (Thm.theory_of_thm thm);
-    val tvars = rev (Thm.fold_terms Term.add_tvars thm []);
-    val tfrees = map (fn ((x, _), S) => SOME (cT (TFree (x, S)))) tvars;
-  in Drule.instantiate' tfrees [] thm end;
-
-fun legacy_unvarify raw_thm =
-  let
-    val thm = legacy_unvarifyT raw_thm;
-    val ct = Thm.cterm_of (Thm.theory_of_thm thm);
-    val vars = rev (Thm.fold_terms Term.add_vars thm []);
-    val frees = map (fn ((x, _), T) => SOME (ct (Free (x, T)))) vars;
-  in Drule.instantiate' [] frees thm end;
+fun merge_alists eq xs = merge_lists (eq_fst eq) xs;
 
 
 (** locale elements and expressions **)
@@ -370,13 +354,13 @@ structure LocalesData = TheoryDataFun
       {elems = elems', decls = (decls1', decls2'), regs = regs', ...}: locale) =
      {axiom = axiom,
       imports = imports,
-      elems = gen_merge_lists (eq_snd (op =)) elems elems',
+      elems = merge_lists (eq_snd (op =)) elems elems',
       params = params,
       lparams = lparams,
       decls =
        (Library.merge (eq_snd (op =)) (decls1, decls1'),
         Library.merge (eq_snd (op =)) (decls2, decls2')),
-      regs = merge_alists regs regs',
+      regs = merge_alists (op =) regs regs',
       intros = intros,
       dests = dests};
   fun merge _ ((space1, locs1), (space2, locs2)) =
@@ -398,29 +382,18 @@ structure RegistrationsData = GenericDataFun
 
 (** access locales **)
 
-fun print_locales thy =
-  let val (space, locs) = LocalesData.get thy in
-    Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (space, locs)))
-    |> Pretty.writeln
-  end;
-
 val intern = NameSpace.intern o #1 o LocalesData.get;
 val extern = NameSpace.extern o #1 o LocalesData.get;
 
-fun declare_locale name thy =
-  thy |> LocalesData.map (fn (space, locs) =>
-    (Sign.declare_name thy name space, locs));
-
-fun put_locale name loc =
-  LocalesData.map (fn (space, locs) =>
-    (space, Symtab.update (name, loc) locs));
-
 fun get_locale thy name = Symtab.lookup (#2 (LocalesData.get thy)) name;
 
-fun the_locale thy name =
-  (case get_locale thy name of
-    SOME loc => loc
-  | NONE => error ("Unknown locale " ^ quote name));
+fun the_locale thy name = case get_locale thy name
+ of SOME loc => loc
+  | NONE => error ("Unknown locale " ^ quote name);
+
+fun add_locale name loc thy =
+  thy |> LocalesData.map (fn (space, locs) =>
+    (Sign.declare_name thy name space, Symtab.update (name, loc) locs));
 
 fun change_locale name f thy =
   let
@@ -429,9 +402,16 @@ fun change_locale name f thy =
     val (axiom', imports', elems', params', lparams', decls', regs', intros', dests') =
       f (axiom, imports, elems, params, lparams, decls, regs, intros, dests);
   in
-    put_locale name {axiom = axiom', imports = imports', elems = elems',
-      params = params', lparams = lparams', decls = decls', regs = regs',
-      intros = intros', dests = dests'} thy
+    thy
+    |> (LocalesData.map o apsnd) (Symtab.update (name, {axiom = axiom',
+          imports = imports', elems = elems', params = params', lparams = lparams',
+          decls = decls', regs = regs', intros = intros', dests = dests'}))
+  end;
+
+fun print_locales thy =
+  let val (space, locs) = LocalesData.get thy in
+    Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (space, locs)))
+    |> Pretty.writeln
   end;
 
 
@@ -754,7 +734,7 @@ fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
             val {imports, params, ...} = the_locale thy name;
             val parms = map (fst o fst) params;
             val (parms', types', syn') = params_of imports;
-            val all_parms = merge_lists parms' parms;
+            val all_parms = merge_lists (op =) parms' parms;
             val all_types = merge_tenvs [] types' (params |> map fst |> Symtab.make);
             val all_syn = merge_syn expr syn' (params |> map (apfst fst) |> Symtab.make);
           in (all_parms, all_types, all_syn) end
@@ -782,14 +762,14 @@ fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
                    let
                      val (parms', types', syn') = params_of e
                    in
-                     (merge_lists parms parms', merge_tenvs [] types types',
+                     (merge_lists (op =) parms parms', merge_tenvs [] types types',
                       merge_syn e syn syn')
                    end)
             es ([], Symtab.empty, Symtab.empty)
 
       val (parms, types, syn) = params_of expr;
     in
-      (merge_lists prev_parms parms, merge_tenvs fixed_params prev_types types,
+      (merge_lists (op =) prev_parms parms, merge_tenvs fixed_params prev_types types,
        merge_syn expr prev_syn syn)
     end;
 
@@ -901,7 +881,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
 
             val (_, ids'', _) = add_with_regs ((name, map #1 params), Assumed []) ([], ids', ids');
             val ids_ax = if top then fst (fold_map (axiomify ps) ids'' axiom) else ids'';
-            in (ids_ax, merge_lists parms' ps) end
+            in (ids_ax, merge_lists (op =) parms' ps) end
       | identify top (Rename (e, xs)) =
           let
             val (ids', parms') = identify top e;
@@ -916,7 +896,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
                    let
                      val (ids', parms') = identify top e
                    in
-                     (merge_alists ids ids', merge_lists parms parms')
+                     (merge_alists (op =) ids ids', merge_lists (op =) parms parms')
                    end)
             es ([], []);
 
@@ -969,11 +949,11 @@ fun axioms_export axs _ As =
 
 (* NB: derived ids contain only facts at this stage *)
 
-fun activate_elem _ _ ((ctxt, mode), Fixes fixes) =
-      ((ctxt |> ProofContext.add_fixes_i fixes |> snd, mode), [])
-  | activate_elem _ _ ((ctxt, mode), Constrains _) =
-      ((ctxt, mode), [])
-  | activate_elem ax_in_ctxt _ ((ctxt, Assumed axs), Assumes asms) =
+fun activate_elem _ _ (Fixes fixes) (ctxt, mode) =
+      ([], (ctxt |> ProofContext.add_fixes_i fixes |> snd, mode))
+  | activate_elem _ _ (Constrains _) (ctxt, mode) =
+      ([], (ctxt, mode))
+  | activate_elem ax_in_ctxt _ (Assumes asms) (ctxt, Assumed axs) =
       let
         val asms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) asms;
         val ts = maps (map #1 o #2) asms';
@@ -981,10 +961,10 @@ fun activate_elem _ _ ((ctxt, mode), Fixes fixes) =
         val (_, ctxt') =
           ctxt |> fold Variable.auto_fixes ts
           |> ProofContext.add_assms_i (axioms_export (if ax_in_ctxt then ps else [])) asms';
-      in ((ctxt', Assumed qs), []) end
-  | activate_elem _ _ ((ctxt, Derived ths), Assumes asms) =
-      ((ctxt, Derived ths), [])
-  | activate_elem _ _ ((ctxt, Assumed axs), Defines defs) =
+      in ([], (ctxt', Assumed qs)) end
+  | activate_elem _ _ (Assumes asms) (ctxt, Derived ths) =
+      ([], (ctxt, Derived ths))
+  | activate_elem _ _ (Defines defs) (ctxt, Assumed axs) =
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
@@ -993,21 +973,20 @@ fun activate_elem _ _ ((ctxt, mode), Fixes fixes) =
         val (_, ctxt') =
           ctxt |> fold (Variable.auto_fixes o #1) asms
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
-      in ((ctxt', Assumed axs), []) end
-  | activate_elem _ _ ((ctxt, Derived ths), Defines defs) =
-      ((ctxt, Derived ths), [])
-  | activate_elem _ is_ext ((ctxt, mode), Notes (kind, facts)) =
+      in ([], (ctxt', Assumed axs)) end
+  | activate_elem _ _ (Defines defs) (ctxt, Derived ths) =
+      ([], (ctxt, Derived ths))
+  | activate_elem _ is_ext (Notes (kind, facts)) (ctxt, mode) =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
         val (res, ctxt') = ctxt |> ProofContext.note_thmss_i kind facts';
-      in ((ctxt', mode), if is_ext then res else []) end;
+      in (if is_ext then res else [], (ctxt', mode)) end;
 
 fun activate_elems ax_in_ctxt (((name, ps), mode), elems) ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val ((ctxt', _), res) =
-      foldl_map (activate_elem ax_in_ctxt (name = ""))
-        ((ProofContext.qualified_names ctxt, mode), elems)
+    val (res, (ctxt', _)) = fold_map (activate_elem ax_in_ctxt (name = ""))
+        elems (ProofContext.qualified_names ctxt, mode)
       handle ERROR msg => err_in_locale ctxt msg [(name, map fst ps)];
     val ctxt'' = if name = "" then ctxt'
           else let
@@ -1037,10 +1016,10 @@ fun activate_elemss ax_in_ctxt prep_facts =
 
 in
 
-(* CB: activate_facts prep_facts (ctxt, elemss),
+(* CB: activate_facts prep_facts elemss ctxt,
    where elemss is a list of pairs consisting of identifiers and
    context elements, extends ctxt by the context elements yielding
-   ctxt' and returns (ctxt', (elemss', facts)).
+   ctxt' and returns ((elemss', facts), ctxt').
    Identifiers in the argument are of the form ((name, ps), axs) and
    assumptions use the axioms in the identifiers to set up exporters
    in ctxt'.  elemss' does not contain identifiers and is obtained
@@ -1048,9 +1027,9 @@ in
    If read_facts or cert_facts is used for prep_facts, these also remove
    the internal/external markers from elemss. *)
 
-fun activate_facts ax_in_ctxt prep_facts (ctxt, args) =
-  let val ((elemss, factss), ctxt') = activate_elemss ax_in_ctxt prep_facts args ctxt |>> split_list
-  in (ctxt', (elemss, flat factss)) end;
+fun activate_facts ax_in_ctxt prep_facts args =
+  activate_elemss ax_in_ctxt prep_facts args
+  #>> (apsnd flat o split_list);
 
 end;
 
@@ -1107,29 +1086,26 @@ local
 
 local
 
-fun declare_int_elem (ctxt, Fixes fixes) =
-      (ctxt |> ProofContext.add_fixes_i (map (fn (x, T, mx) =>
-        (x, Option.map (Term.map_type_tfree (TypeInfer.param 0)) T, mx)) fixes) |> snd, [])
-  | declare_int_elem (ctxt, _) = (ctxt, []);
+fun declare_int_elem (Fixes fixes) ctxt =
+      ([], ctxt |> ProofContext.add_fixes_i (map (fn (x, T, mx) =>
+        (x, Option.map (Term.map_type_tfree (TypeInfer.param 0)) T, mx)) fixes) |> snd)
+  | declare_int_elem _ ctxt = ([], ctxt);
 
-fun declare_ext_elem prep_vars (ctxt, Fixes fixes) =
+fun declare_ext_elem prep_vars (Fixes fixes) ctxt =
       let val (vars, _) = prep_vars fixes ctxt
-      in (ctxt |> ProofContext.add_fixes_i vars |> snd, []) end
-  | declare_ext_elem prep_vars (ctxt, Constrains csts) =
+      in ([], ctxt |> ProofContext.add_fixes_i vars |> snd) end
+  | declare_ext_elem prep_vars (Constrains csts) ctxt =
       let val (_, ctxt') = prep_vars (map (fn (x, T) => (x, SOME T, NoSyn)) csts) ctxt
-      in (ctxt', []) end
-  | declare_ext_elem _ (ctxt, Assumes asms) = (ctxt, map #2 asms)
-  | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, ps)]) defs)
-  | declare_ext_elem _ (ctxt, Notes _) = (ctxt, []);
+      in ([], ctxt') end
+  | declare_ext_elem _ (Assumes asms) ctxt = (map #2 asms, ctxt)
+  | declare_ext_elem _ (Defines defs) ctxt = (map (fn (_, (t, ps)) => [(t, ps)]) defs, ctxt)
+  | declare_ext_elem _ (Notes _) ctxt = ([], ctxt);
 
-fun declare_elems prep_vars (ctxt, (((name, ps), Assumed _), elems)) =
-    let val (ctxt', propps) =
-      (case elems of
-        Int es => foldl_map declare_int_elem (ctxt, es)
-      | Ext e => foldl_map (declare_ext_elem prep_vars) (ctxt, [e]))
-      handle ERROR msg => err_in_locale ctxt msg [(name, map fst ps)]
-    in (ctxt', propps) end
-  | declare_elems _ (ctxt, ((_, Derived _), elems)) = (ctxt, []);
+fun declare_elems prep_vars (((name, ps), Assumed _), elems) ctxt = ((case elems
+     of Int es => fold_map declare_int_elem es ctxt
+      | Ext e => declare_ext_elem prep_vars e ctxt |>> single)
+          handle ERROR msg => err_in_locale ctxt msg [(name, map fst ps)])
+  | declare_elems _ ((_, Derived _), elems) ctxt = ([], ctxt);
 
 in
 
@@ -1144,10 +1120,10 @@ fun declare_elemss prep_vars fixed_params raw_elemss ctxt =
       raw_elemss
       |> map_filter (fn (id, Int es) => SOME (id, es) | _ => NONE)
       |> unify_elemss ctxt_with_fixed fixed_params;
-    val (_, raw_elemss') =
-      foldl_map (fn ((_, es) :: elemss, (id, Int _)) => (elemss, (id, Int es)) | x => x)
-        (int_elemss, raw_elemss);
-  in foldl_map (declare_elems prep_vars) (ctxt, raw_elemss') end;
+    val (raw_elemss', _) =
+      fold_map (curry (fn ((id, Int _), (_, es) :: elemss) => ((id, Int es), elemss) | x => x))
+        raw_elemss int_elemss;
+  in fold_map (declare_elems prep_vars) raw_elemss' ctxt end;
 
 end;
 
@@ -1325,7 +1301,7 @@ fun prep_elemss prep_vars prepp do_close context fixed_params raw_elemss raw_con
     (* CB: raw_elemss are list of pairs consisting of identifiers and
        context elements, the latter marked as internal or external. *)
     val raw_elemss = rem_dup_defines raw_elemss;
-    val (raw_ctxt, raw_proppss) = declare_elemss prep_vars fixed_params raw_elemss context;
+    val (raw_proppss, raw_ctxt) = declare_elemss prep_vars fixed_params raw_elemss context;
     (* CB: raw_ctxt is context with additional fixed variables derived from
        the fixes elements in raw_elemss,
        raw_proppss contains assumptions and definitions from the
@@ -1512,11 +1488,11 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     (* CB: all_elemss and parms contain the correct parameter types *)
 
     val (ps, qs) = chop (length raw_import_params_elemss + length raw_import_elemss) all_elemss';
-    val (import_ctxt, (import_elemss, _)) =
-      activate_facts false prep_facts (context, ps);
+    val ((import_elemss, _), import_ctxt) =
+      activate_facts false prep_facts ps context;
 
-    val (ctxt, (elemss, _)) =
-      activate_facts false prep_facts (ProofContext.set_stmt true import_ctxt, qs);
+    val ((elemss, _), ctxt) =
+      activate_facts false prep_facts qs (ProofContext.set_stmt true import_ctxt);
   in
     ((((import_ctxt, import_elemss), (ctxt, elemss, syn)),
       (parms, spec, defs)), concl)
@@ -1707,9 +1683,9 @@ fun note_thmss_registrations target (kind, args) thy =
 
 fun add_thmss loc kind args ctxt =
   let
-    val (ctxt', ([(_, [Notes args'])], _)) =
+    val (([(_, [Notes args'])], _), ctxt') =
       activate_facts true cert_facts
-        (ctxt, [((("", []), Assumed []), [Ext (Notes (kind, args))])]);
+        [((("", []), Assumed []), [Ext (Notes (kind, args))])] ctxt;
     val ctxt'' = ctxt' |> ProofContext.theory
       (change_locale loc
         (fn (axiom, imports, elems, params, lparams, decls, regs, intros, dests) =>
@@ -1923,20 +1899,19 @@ fun change_defines_elemss thy elemss defns =
 
 fun gen_add_locale prep_ctxt prep_expr
     predicate_name bname raw_imports raw_body thy =
-    (* predicate_name: NONE - open locale without predicate
-        SOME "" - locale with predicate named as locale
-        SOME "name" - locale with predicate named "name" *)
+    (* predicate_name: "" - locale with predicate named as locale
+        "name" - locale with predicate named "name" *)
   let
+    val thy_ctxt = ProofContext.init thy;
     val name = Sign.full_name thy bname;
     val _ = is_some (get_locale thy name) andalso
       error ("Duplicate definition of locale " ^ quote name);
 
-    val thy_ctxt = ProofContext.init thy;
     val (((import_ctxt, import_elemss), (body_ctxt, body_elemss, syn)),
       text as (parms, ((_, exts'), _), defs)) =
-      prep_ctxt raw_imports raw_body thy_ctxt;
+        prep_ctxt raw_imports raw_body thy_ctxt;
     val elemss = import_elemss @ body_elemss |>
-        map_filter (fn ((id, Assumed axs), elems) => SOME (id, elems) | _ => NONE);
+      map_filter (fn ((id, Assumed axs), elems) => SOME (id, elems) | _ => NONE);
     val imports = prep_expr thy raw_imports;
 
     val extraTs = List.foldr Term.add_term_tfrees [] exts' \\
@@ -1944,27 +1919,18 @@ fun gen_add_locale prep_ctxt prep_expr
     val _ = if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 
-    val ((((elemss', predicate as (predicate_statement, predicate_axioms), stmt'), intros),
-          pred_thy), (imports, regs)) =
-      case predicate_name
-       of SOME predicate_name =>
-            let
-              val predicate_name' = case predicate_name of "" => bname | _ => predicate_name;
-              val (elemss', defns) = change_defines_elemss thy elemss [];
-              val elemss'' = elemss' @ [(("", []), defns)];
-              val (((elemss''', predicate as (_, axioms), stmt'), intros), thy') =
-                define_preds predicate_name' text elemss'' thy;
-              fun mk_regs elemss wits =
-                fold_map (fn (id, elems) => fn wts => let
-                    val ts = List.concat (List.mapPartial (fn (Assumes asms) =>
-                      SOME (List.concat (map (map #1 o #2) asms)) | _ => NONE) elems);
-                    val (wts1, wts2) = chop (length ts) wts
-                  in ((apsnd (map fst) id, wts1), wts2) end) elemss wits |> fst;
-              val regs = mk_regs elemss''' axioms |>
-                    map_filter (fn (("", _), _) => NONE | e => SOME e);
-            in ((((elemss''', predicate, stmt'), intros), thy'), (empty, regs)) end
-        | NONE => ((((elemss, ([], []), []), ([], [])), thy), (imports, []));
-
+    val predicate_name' = case predicate_name of "" => bname | _ => predicate_name;
+    val (elemss'_, defns) = change_defines_elemss thy elemss [];
+    val elemss''_ = elemss'_ @ [(("", []), defns)];
+    val (((elemss', predicate as (pred_statement, pred_axioms), stmt'), intros), thy') =
+      define_preds predicate_name' text elemss''_ thy;
+    fun mk_regs elemss wits = fold_map (fn (id, elems) => fn wts => let
+        val ts = flat (map_filter (fn (Assumes asms) =>
+          SOME (maps (map #1 o #2) asms) | _ => NONE) elems);
+        val (wts1, wts2) = chop (length ts) wts;
+      in ((apsnd (map fst) id, wts1), wts2) end) elemss wits |> fst;
+    val regs = mk_regs elemss' pred_axioms
+      |> map_filter (fn (("", _), _) => NONE | e => SOME e);
     fun axiomify axioms elemss =
       (axioms, elemss) |> foldl_map (fn (axs, (id, elems)) => let
                    val ts = flat (map_filter (fn (Assumes asms) =>
@@ -1972,28 +1938,26 @@ fun gen_add_locale prep_ctxt prep_expr
                    val (axs1, axs2) = chop (length ts) axs;
                  in (axs2, ((id, Assumed axs1), elems)) end)
         |> snd;
-    val (ctxt, (_, facts)) = activate_facts true (K I)
-      (ProofContext.init pred_thy, axiomify predicate_axioms elemss');
-    val view_ctxt = Assumption.add_view thy_ctxt predicate_statement ctxt;
+    val ((_, facts), ctxt) = activate_facts true (K I)
+      (axiomify pred_axioms elemss') (ProofContext.init thy');
+    val view_ctxt = Assumption.add_view thy_ctxt pred_statement ctxt;
     val export = Thm.close_derivation o Goal.norm_result o
       singleton (ProofContext.export view_ctxt thy_ctxt);
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
     val elems' = maps #2 (filter (equal "" o #1 o #1) elemss');
     val elems'' = map_filter (fn (Fixes _) => NONE | e => SOME e) elems';
-    val axs' = map (Element.assume_witness pred_thy) stmt';
-    val loc_ctxt = pred_thy
+    val axs' = map (Element.assume_witness thy') stmt';
+    val loc_ctxt = thy'
       |> PureThy.note_thmss_qualified Thm.assumptionK bname facts' |> snd
-      |> declare_locale name
-      |> put_locale name
-       {axiom = axs',
-        imports = imports,
+      |> add_locale name {axiom = axs',
+        imports = empty,
         elems = map (fn e => (e, stamp ())) elems'',
         params = params_of elemss' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
         lparams = map #1 (params_of' body_elemss),
         decls = ([], []),
         regs = regs,
         intros = intros,
-        dests = map Element.conclude_witness predicate_axioms}
+        dests = map Element.conclude_witness pred_axioms}
       |> init name;
   in (name, loc_ctxt) end;
 
@@ -2005,9 +1969,9 @@ val add_locale_i = gen_add_locale cert_context (K I);
 end;
 
 val _ = Context.>> (Context.map_theory
- (add_locale_i (SOME "") "var" empty [Fixes [(Name.internal "x", NONE, NoSyn)]] #>
+ (add_locale_i "" "var" empty [Fixes [(Name.internal "x", NONE, NoSyn)]] #>
   snd #> ProofContext.theory_of #>
-  add_locale_i (SOME "") "struct" empty [Fixes [(Name.internal "S", NONE, Structure)]] #>
+  add_locale_i "" "struct" empty [Fixes [(Name.internal "S", NONE, Structure)]] #>
   snd #> ProofContext.theory_of));
 
 

@@ -8,7 +8,9 @@ Kildall's algorithm
 
 header {* \isaheader{Kildall's Algorithm}\label{sec:Kildall} *}
 
-theory Kildall imports SemilatAlg While_Combinator begin
+theory Kildall
+imports SemilatAlg While_Combinator
+begin
 
 
 consts
@@ -43,10 +45,10 @@ primrec
 "merges f (p'#ps) ss = (let (p,s) = p' in merges f ps (ss[p := s +_f ss!p]))"
 
 
-lemmas [simp] = Let_def semilat.le_iff_plus_unchanged [symmetric]
+lemmas [simp] = Let_def Semilat.le_iff_plus_unchanged [OF Semilat.intro, symmetric]
 
 
-lemma (in semilat) nth_merges:
+lemma (in Semilat) nth_merges:
  "\<And>ss. \<lbrakk>p < length ss; ss \<in> list n A; \<forall>(p,t)\<in>set ps. p<n \<and> t\<in>A \<rbrakk> \<Longrightarrow>
   (merges f ps ss)!p = map snd [(p',t') \<leftarrow> ps. p'=p] ++_f ss!p"
   (is "\<And>ss. \<lbrakk>_; _; ?steptype ps\<rbrakk> \<Longrightarrow> ?P ss ps")
@@ -82,7 +84,7 @@ lemma length_merges [rule_format, simp]:
   by (induct_tac ps, auto)
 
 
-lemma (in semilat) merges_preserves_type_lemma:
+lemma (in Semilat) merges_preserves_type_lemma:
 shows "\<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A)
           \<longrightarrow> merges f ps xs \<in> list n A"
 apply (insert closedI)
@@ -92,12 +94,12 @@ apply (induct_tac ps)
 apply clarsimp
 done
 
-lemma (in semilat) merges_preserves_type [simp]:
+lemma (in Semilat) merges_preserves_type [simp]:
  "\<lbrakk> xs \<in> list n A; \<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A \<rbrakk>
   \<Longrightarrow> merges f ps xs \<in> list n A"
 by (simp add: merges_preserves_type_lemma)
 
-lemma (in semilat) merges_incr_lemma:
+lemma (in Semilat) merges_incr_lemma:
  "\<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A) \<longrightarrow> xs <=[r] merges f ps xs"
 apply (induct_tac ps)
  apply simp
@@ -111,13 +113,13 @@ apply (rule order_trans)
 apply (blast intro!: listE_set intro: closedD listE_length [THEN nth_in])
 done
 
-lemma (in semilat) merges_incr:
+lemma (in Semilat) merges_incr:
  "\<lbrakk> xs \<in> list n A; \<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A \<rbrakk> 
   \<Longrightarrow> xs <=[r] merges f ps xs"
   by (simp add: merges_incr_lemma)
 
 
-lemma (in semilat) merges_same_conv [rule_format]:
+lemma (in Semilat) merges_same_conv [rule_format]:
  "(\<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x\<in>A) \<longrightarrow> 
      (merges f ps xs = xs) = (\<forall>(p,x)\<in>set ps. x <=_r xs!p))"
   apply (induct_tac ps)
@@ -150,7 +152,7 @@ lemma (in semilat) merges_same_conv [rule_format]:
   done
 
 
-lemma (in semilat) list_update_le_listI [rule_format]:
+lemma (in Semilat) list_update_le_listI [rule_format]:
   "set xs <= A \<longrightarrow> set ys <= A \<longrightarrow> xs <=[r] ys \<longrightarrow> p < size xs \<longrightarrow>  
    x <=_r ys!p \<longrightarrow> x\<in>A \<longrightarrow> xs[p := x +_f xs!p] <=[r] ys"
   apply(insert semilat)
@@ -158,7 +160,7 @@ lemma (in semilat) list_update_le_listI [rule_format]:
   apply (simp add: list_all2_conv_all_nth nth_list_update)
   done
 
-lemma (in semilat) merges_pres_le_ub:
+lemma (in Semilat) merges_pres_le_ub:
   assumes "set ts <= A" and "set ss <= A"
     and "\<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p < size ts" and "ss <=[r] ts"
   shows "merges f ps ss <=[r] ts"
@@ -206,7 +208,7 @@ lemma decomp_propa:
 
 (** iter **)
 
-lemma (in semilat) stable_pres_lemma:
+lemma (in Semilat) stable_pres_lemma:
 shows "\<lbrakk>pres_type step n A; bounded step n; 
      ss \<in> list n A; p \<in> w; \<forall>q\<in>w. q < n; 
      \<forall>q. q < n \<longrightarrow> q \<notin> w \<longrightarrow> stable r step ss q; q < n; 
@@ -284,7 +286,7 @@ apply assumption
  done
 
 
-lemma (in semilat) merges_bounded_lemma:
+lemma (in Semilat) merges_bounded_lemma:
  "\<lbrakk> mono r step n A; bounded step n; 
     \<forall>(p',s') \<in> set (step p (ss!p)). s' \<in> A; ss \<in> list n A; ts \<in> list n A; p < n; 
     ss <=[r] ts; \<forall>p. p < n \<longrightarrow> stable r step ts p \<rbrakk> 
@@ -319,7 +321,7 @@ lemma termination_lemma:
   ss <[r] merges f qs ss \<or> 
   merges f qs ss = ss \<and> {q. \<exists>t. (q,t)\<in>set qs \<and> t +_f ss!q \<noteq> ss!q} Un (w-{p}) < w" (is "PROP ?P")
 proof -
-  interpret semilat [A r f] by fact
+  interpret Semilat [A r f] using assms by (rule Semilat.intro)
   show "PROP ?P" apply(insert semilat)
     apply (unfold lesssub_def)
     apply (simp (no_asm_simp) add: merges_incr)
@@ -349,7 +351,7 @@ lemma iter_properties[rule_format]:
    (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step ts \<longrightarrow> ss' <=[r] ts)"
   (is "PROP ?P")
 proof -
-  interpret semilat [A r f] by fact
+  interpret Semilat [A r f] using assms by (rule Semilat.intro)
   show "PROP ?P" apply(insert semilat)
 apply (unfold iter_def stables_def)
 apply (rule_tac P = "%(ss,w).
@@ -455,7 +457,7 @@ shows "\<lbrakk> acc r; pres_type step n A; mono r step n A;
                  kildall r f step ss0 <=[r] ts)"
   (is "PROP ?P")
 proof -
-  interpret semilat [A r f] by fact
+  interpret Semilat [A r f] using assms by (rule Semilat.intro)
   show "PROP ?P"
 apply (unfold kildall_def)
 apply(case_tac "iter f step ss0 (unstables r step ss0)")
@@ -472,7 +474,7 @@ shows "\<lbrakk> acc r; top r T; pres_type step n A; bounded step n; mono r step
   \<Longrightarrow> is_bcv r T step n A (kildall r f step)"
   (is "PROP ?P")
 proof -
-  interpret semilat [A r f] by fact
+  interpret Semilat [A r f] using assms by (rule Semilat.intro)
   show "PROP ?P"
 apply(unfold is_bcv_def wt_step_def)
 apply(insert semilat kildall_properties[of A])

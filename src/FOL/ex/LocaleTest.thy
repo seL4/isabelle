@@ -37,7 +37,7 @@ text {* Naming convention for global objects: prefixes L and l *}
 
 subsection {* Renaming with Syntax *}
 
-locale (open) LS = var mult +
+locale LS = var mult +
   assumes "mult(x, y) = mult(y, x)"
 
 print_locale LS
@@ -95,7 +95,7 @@ text {* Processing of locale expression *}
 
 locale IA = fixes a assumes asm_A: "a = a"
 
-locale (open) IB = fixes b assumes asm_B [simp]: "b = b"
+locale IB = fixes b assumes asm_B [simp]: "b = b"
 
 locale IC = IA + IB + assumes asm_C: "c = c"
   (* TODO: independent type var in c, prohibit locale declaration *)
@@ -230,10 +230,10 @@ ML {* check_thm "i7'.e_def2" *}
 
 (* Definition involving free variable in assm *)
 
-locale (open) IG = fixes g assumes asm_G: "g --> x"
+locale IG = fixes g assumes asm_G: "g --> x"
   notes asm_G2 = asm_G
 
-interpretation i8: IG ["False"] by fast
+interpretation i8: IG ["False"] by (rule IG.intro) fast
 
 thm i8.asm_G2
 
@@ -346,10 +346,10 @@ section {* Interpretation in Locales *}
 
 text {* Naming convention for global objects: prefixes R and r *}
 
-locale (open) Rsemi = var prod (infixl "**" 65) +
+locale Rsemi = var prod (infixl "**" 65) +
   assumes assoc: "(x ** y) ** z = x ** (y ** z)"
 
-locale (open) Rlgrp = Rsemi + var one + var inv +
+locale Rlgrp = Rsemi + var one + var inv +
   assumes lone: "one ** x = x"
     and linv: "inv(x) ** x = one"
 
@@ -361,7 +361,7 @@ proof
   then show "y = z" by (simp add: lone linv)
 qed simp
 
-locale (open) Rrgrp = Rsemi + var one + var inv +
+locale Rrgrp = Rsemi + var one + var inv +
   assumes rone: "x ** one = x"
     and rinv: "x ** inv(x) = one"
 
@@ -375,7 +375,7 @@ proof
 qed simp
 
 interpretation Rlgrp < Rrgrp
-  proof -
+  proof
     {
       fix x
       have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
@@ -405,7 +405,7 @@ lemma (in Rlgrp)
 (* circular interpretation *)
 
 interpretation Rrgrp < Rlgrp
-  proof -
+  proof
     {
       fix x
       have "one ** (x ** inv(x)) = x ** inv(x)" by (simp add: rinv rone)
@@ -451,35 +451,35 @@ interpretation RA5 < RA5 _ C D B _ .
 
 (* circle of three locales, forward direction *)
 
-locale (open) RA1 = var A + var B + assumes p: "A <-> B"
-locale (open) RA2 = var A + var B + assumes q: "A & B | ~ A & ~ B"
-locale (open) RA3 = var A + var B + assumes r: "(A --> B) & (B --> A)"
+locale RA1 = var A + var B + assumes p: "A <-> B"
+locale RA2 = var A + var B + assumes q: "A & B | ~ A & ~ B"
+locale RA3 = var A + var B + assumes r: "(A --> B) & (B --> A)"
 
 interpretation RA1 < RA2
   print_facts
-  using p apply fast done
+  using p apply unfold_locales apply fast done
 interpretation RA2 < RA3
   print_facts
-  using q apply fast done
+  using q apply unfold_locales apply fast done
 interpretation RA3 < RA1
   print_facts
-  using r apply fast done
+  using r apply unfold_locales apply fast done
 
 (* circle of three locales, backward direction *)
 
-locale (open) RB1 = var A + var B + assumes p: "A <-> B"
-locale (open) RB2 = var A + var B + assumes q: "A & B | ~ A & ~ B"
-locale (open) RB3 = var A + var B + assumes r: "(A --> B) & (B --> A)"
+locale RB1 = var A + var B + assumes p: "A <-> B"
+locale RB2 = var A + var B + assumes q: "A & B | ~ A & ~ B"
+locale RB3 = var A + var B + assumes r: "(A --> B) & (B --> A)"
 
 interpretation RB1 < RB2
   print_facts
-  using p apply fast done
+  using p apply unfold_locales apply fast done
 interpretation RB3 < RB1
   print_facts
-  using r apply fast done
+  using r apply unfold_locales apply fast done
 interpretation RB2 < RB3
   print_facts
-  using q apply fast done
+  using q apply unfold_locales apply fast done
 
 lemma (in RB1) True
   print_facts
@@ -579,7 +579,7 @@ axioms
   r_inv : "rinv(x) # x = rone"
 
 interpretation Rbool: Rlgrp ["op #" "rone" "rinv"]
-proof -
+proof
   fix x y z
   {
     show "(x # y) # z = x # (y # z)" by (rule i_assoc)
@@ -653,6 +653,9 @@ interpretation Rqrgrp < Rprgrp
 interpretation R2: Rqlgrp ["op #" "rone" "rinv"] 
   apply unfold_locales  (* FIXME: unfold_locales is too eager and shouldn't
                           solve this. *)
+  apply (rule i_assoc)
+  apply (rule r_one)
+  apply (rule r_inv)
   done
 
 print_interps Rqsemi

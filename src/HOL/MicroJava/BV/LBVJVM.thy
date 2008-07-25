@@ -122,7 +122,7 @@ proof -
   moreover
   from lbv have "0 < length ins" by (simp add: wt_lbv_def)
   ultimately
-  show ?thesis by (rule lbvs.wtl_sound_strong)
+  show ?thesis by (rule lbvs.wtl_sound_strong [OF lbvs.intro, OF lbv.intro lbvs_axioms.intro, OF Semilat.intro lbv_axioms.intro])
 qed
   
 lemma wt_lbv_wt_method:
@@ -274,7 +274,7 @@ proof -
   note length 
   ultimately
   have "wtl_inst_list ins ?cert ?f ?r Err (OK None) ?step 0 ?start \<noteq> Err"
-    by (rule lbvc.wtl_complete)
+    by (rule lbvc.wtl_complete [OF lbvc.intro, OF lbv.intro lbvc_axioms.intro, OF Semilat.intro lbv_axioms.intro])
   moreover
   from 0 length have "phi \<noteq> []" by auto
   moreover

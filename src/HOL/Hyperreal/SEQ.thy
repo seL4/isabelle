@@ -926,11 +926,16 @@ lemma real_abs_diff_less_iff:
   "(\<bar>x - a\<bar> < (r::real)) = (a - r < x \<and> x < a + r)"
 by auto
 
-locale (open) real_Cauchy =
+locale real_Cauchy =
   fixes X :: "nat \<Rightarrow> real"
   assumes X: "Cauchy X"
   fixes S :: "real set"
   defines S_def: "S \<equiv> {x::real. \<exists>N. \<forall>n\<ge>N. x < X n}"
+
+lemma real_CauchyI:
+  assumes "Cauchy X"
+  shows "real_Cauchy X"
+by unfold_locales (fact assms)
 
 lemma (in real_Cauchy) mem_S: "\<forall>n\<ge>N. x < X n \<Longrightarrow> x \<in> S"
 by (unfold S_def, auto)
@@ -1010,7 +1015,9 @@ qed
 lemma real_Cauchy_convergent:
   fixes X :: "nat \<Rightarrow> real"
   shows "Cauchy X \<Longrightarrow> convergent X"
-unfolding convergent_def by (rule real_Cauchy.LIMSEQ_ex)
+unfolding convergent_def
+by (rule real_Cauchy.LIMSEQ_ex)
+ (rule real_CauchyI)
 
 instance real :: banach
 by intro_classes (rule real_Cauchy_convergent)

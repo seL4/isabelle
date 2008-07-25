@@ -71,7 +71,7 @@ constdefs
  some_lub :: "'a ord \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
 "some_lub r x y == SOME z. is_lub r x y z";
 
-locale (open) semilat =
+locale Semilat =
   fixes A :: "'a set"
     and r :: "'a ord"
     and f :: "'a binop"
@@ -122,11 +122,11 @@ apply (unfold semilat_def split_conv [THEN eq_reflection])
 apply (rule refl [THEN eq_reflection])
 done
 
-lemma (in semilat) orderI [simp, intro]:
+lemma (in Semilat) orderI [simp, intro]:
   "order r"
   by (insert semilat) (simp add: semilat_Def)
 
-lemma (in semilat) closedI [simp, intro]:
+lemma (in Semilat) closedI [simp, intro]:
   "closed A f"
   by (insert semilat) (simp add: semilat_Def)
 
@@ -138,41 +138,41 @@ lemma closed_UNIV [simp]: "closed UNIV f"
   by (simp add: closed_def)
 
 
-lemma (in semilat) closed_f [simp, intro]:
+lemma (in Semilat) closed_f [simp, intro]:
   "\<lbrakk>x:A; y:A\<rbrakk>  \<Longrightarrow> x +_f y : A"
   by (simp add: closedD [OF closedI])
 
-lemma (in semilat) refl_r [intro, simp]:
+lemma (in Semilat) refl_r [intro, simp]:
   "x <=_r x"
   by simp
 
-lemma (in semilat) antisym_r [intro?]:
+lemma (in Semilat) antisym_r [intro?]:
   "\<lbrakk> x <=_r y; y <=_r x \<rbrakk> \<Longrightarrow> x = y"
   by (rule order_antisym) auto
   
-lemma (in semilat) trans_r [trans, intro?]:
+lemma (in Semilat) trans_r [trans, intro?]:
   "\<lbrakk>x <=_r y; y <=_r z\<rbrakk> \<Longrightarrow> x <=_r z"
   by (auto intro: order_trans)    
   
 
-lemma (in semilat) ub1 [simp, intro?]:
+lemma (in Semilat) ub1 [simp, intro?]:
   "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> x <=_r x +_f y"
   by (insert semilat) (unfold semilat_Def, simp)
 
-lemma (in semilat) ub2 [simp, intro?]:
+lemma (in Semilat) ub2 [simp, intro?]:
   "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> y <=_r x +_f y"
   by (insert semilat) (unfold semilat_Def, simp)
 
-lemma (in semilat) lub [simp, intro?]:
+lemma (in Semilat) lub [simp, intro?]:
  "\<lbrakk> x <=_r z; y <=_r z; x:A; y:A; z:A \<rbrakk> \<Longrightarrow> x +_f y <=_r z";
   by (insert semilat) (unfold semilat_Def, simp)
 
 
-lemma (in semilat) plus_le_conv [simp]:
+lemma (in Semilat) plus_le_conv [simp]:
   "\<lbrakk> x:A; y:A; z:A \<rbrakk> \<Longrightarrow> (x +_f y <=_r z) = (x <=_r z & y <=_r z)"
   by (blast intro: ub1 ub2 lub order_trans)
 
-lemma (in semilat) le_iff_plus_unchanged:
+lemma (in Semilat) le_iff_plus_unchanged:
   "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> (x <=_r y) = (x +_f y = y)"
 apply (rule iffI)
  apply (blast intro: antisym_r refl_r lub ub2)
@@ -180,7 +180,7 @@ apply (erule subst)
 apply simp
 done
 
-lemma (in semilat) le_iff_plus_unchanged2:
+lemma (in Semilat) le_iff_plus_unchanged2:
   "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> (x <=_r y) = (y +_f x = y)"
 apply (rule iffI)
  apply (blast intro: order_antisym lub order_refl ub1)
@@ -189,7 +189,7 @@ apply simp
 done 
 
 
-lemma (in semilat) plus_assoc [simp]:
+lemma (in Semilat) plus_assoc [simp]:
   assumes a: "a \<in> A" and b: "b \<in> A" and c: "c \<in> A"
   shows "a +_f (b +_f c) = a +_f b +_f c"
 proof -
@@ -227,7 +227,7 @@ proof -
   qed
 qed
 
-lemma (in semilat) plus_com_lemma:
+lemma (in Semilat) plus_com_lemma:
   "\<lbrakk>a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a +_f b <=_r b +_f a"
 proof -
   assume a: "a \<in> A" and b: "b \<in> A"  
@@ -238,7 +238,7 @@ proof -
   ultimately show ?thesis ..
 qed
 
-lemma (in semilat) plus_commutative:
+lemma (in Semilat) plus_commutative:
   "\<lbrakk>a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a +_f b = b +_f a"
 by(blast intro: order_antisym plus_com_lemma)
 

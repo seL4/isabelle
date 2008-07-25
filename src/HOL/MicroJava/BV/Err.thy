@@ -8,7 +8,9 @@ The error type
 
 header {* \isaheader{The Error Type} *}
 
-theory Err imports Semilat begin
+theory Err
+imports Semilat
+begin
 
 datatype 'a err = Err | OK 'a
 
@@ -228,20 +230,20 @@ section {* semilat (err A) (le r) f *}
 
 lemma semilat_le_err_Err_plus [simp]:
   "\<lbrakk> x: err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> Err +_f x = Err"
-  by (blast intro: semilat.le_iff_plus_unchanged [THEN iffD1]
-                   semilat.le_iff_plus_unchanged2 [THEN iffD1])
+  by (blast intro: Semilat.le_iff_plus_unchanged [OF Semilat.intro, THEN iffD1]
+                   Semilat.le_iff_plus_unchanged2 [OF Semilat.intro, THEN iffD1])
 
 lemma semilat_le_err_plus_Err [simp]:
   "\<lbrakk> x: err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> x +_f Err = Err"
-  by (blast intro: semilat.le_iff_plus_unchanged [THEN iffD1]
-                   semilat.le_iff_plus_unchanged2 [THEN iffD1])
+  by (blast intro: Semilat.le_iff_plus_unchanged [OF Semilat.intro, THEN iffD1]
+                   Semilat.le_iff_plus_unchanged2 [OF Semilat.intro, THEN iffD1])
 
 lemma semilat_le_err_OK1:
   "\<lbrakk> x:A; y:A; semilat(err A, le r, f); OK x +_f OK y = OK z \<rbrakk> 
   \<Longrightarrow> x <=_r z";
 apply (rule OK_le_err_OK [THEN iffD1])
 apply (erule subst)
-apply (simp add:semilat.ub1)
+apply (simp add: Semilat.ub1 [OF Semilat.intro])
 done
 
 lemma semilat_le_err_OK2:
@@ -249,7 +251,7 @@ lemma semilat_le_err_OK2:
   \<Longrightarrow> y <=_r z"
 apply (rule OK_le_err_OK [THEN iffD1])
 apply (erule subst)
-apply (simp add:semilat.ub2)
+apply (simp add: Semilat.ub2 [OF Semilat.intro])
 done
 
 lemma eq_order_le:
@@ -265,13 +267,13 @@ proof -
   have plus_le_conv3: "\<And>A x y z f r. 
     \<lbrakk> semilat (A,r,f); x +_f y <=_r z; x:A; y:A; z:A \<rbrakk> 
     \<Longrightarrow> x <=_r z \<and> y <=_r z"
-    by (rule semilat.plus_le_conv [THEN iffD1])
+    by (rule Semilat.plus_le_conv [OF Semilat.intro, THEN iffD1])
   from prems show ?thesis
   apply (rule_tac iffI)
    apply clarify
    apply (drule OK_le_err_OK [THEN iffD2])
    apply (drule OK_le_err_OK [THEN iffD2])
-   apply (drule semilat.lub[of _ _ _ "OK x" _ "OK y"])
+   apply (drule Semilat.lub [OF Semilat.intro, of _ _ _ "OK x" _ "OK y"])
         apply assumption
        apply assumption
       apply simp
@@ -283,10 +285,10 @@ proof -
   apply (rename_tac z)
   apply (subgoal_tac "OK z: err A")
   apply (drule eq_order_le)
-    apply (erule semilat.orderI)
+    apply (erule Semilat.orderI [OF Semilat.intro])
    apply (blast dest: plus_le_conv3) 
   apply (erule subst)
-  apply (blast intro: semilat.closedI closedD)
+  apply (blast intro: Semilat.closedI [OF Semilat.intro] closedD)
   done 
 qed
 

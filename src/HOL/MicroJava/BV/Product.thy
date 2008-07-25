@@ -8,7 +8,9 @@ Products as semilattices
 
 header {* \isaheader{Products as Semilattices} *}
 
-theory Product imports Err begin
+theory Product
+imports Err
+begin
 
 constdefs
  le :: "'a ord \<Rightarrow> 'b ord \<Rightarrow> ('a * 'b) ord"
@@ -79,13 +81,13 @@ proof -
   have plus_le_conv2:
     "\<And>r f z. \<lbrakk> z : err A; semilat (err A, r, f); OK x : err A; OK y : err A;
                  OK x +_f OK y <=_r z\<rbrakk> \<Longrightarrow> OK x <=_r z \<and> OK y <=_r z"
-    by (rule semilat.plus_le_conv [THEN iffD1])
+    by (rule Semilat.plus_le_conv [OF Semilat.intro, THEN iffD1])
   from prems show ?thesis
   apply (rule_tac iffI)
    apply clarify
    apply (drule OK_le_err_OK [THEN iffD2])
    apply (drule OK_le_err_OK [THEN iffD2])
-   apply (drule semilat.lub[of _ _ _ "OK x" _ "OK y"])
+   apply (drule Semilat.lub [OF Semilat.intro, of _ _ _ "OK x" _ "OK y"])
         apply assumption
        apply assumption
       apply simp
@@ -101,7 +103,7 @@ proof -
       apply simp
       apply blast
      apply simp
-    apply (blast dest: semilat.orderI order_refl)
+    apply (blast dest: Semilat.orderI [OF Semilat.intro] order_refl)
    apply blast
   apply (erule subst)
   apply (unfold semilat_def err_def closed_def)
@@ -115,15 +117,15 @@ apply (unfold esl_def Err.sl_def)
 apply (simp (no_asm_simp) only: split_tupled_all)
 apply simp
 apply (simp (no_asm) only: semilat_Def)
-apply (simp (no_asm_simp) only: semilat.closedI closed_lift2_sup)
+apply (simp (no_asm_simp) only: Semilat.closedI [OF Semilat.intro] closed_lift2_sup)
 apply (simp (no_asm) only: unfold_lesub_err Err.le_def unfold_plussub_lift2 sup_def)
 apply (auto elim: semilat_le_err_OK1 semilat_le_err_OK2
             simp add: lift2_def  split: err.split)
-apply (blast dest: semilat.orderI)
-apply (blast dest: semilat.orderI)
+apply (blast dest: Semilat.orderI [OF Semilat.intro])
+apply (blast dest: Semilat.orderI [OF Semilat.intro])
 
 apply (rule OK_le_err_OK [THEN iffD1])
-apply (erule subst, subst OK_lift2_OK [symmetric], rule semilat.lub)
+apply (erule subst, subst OK_lift2_OK [symmetric], rule Semilat.lub [OF Semilat.intro])
 apply simp
 apply simp
 apply simp
@@ -132,7 +134,7 @@ apply simp
 apply simp
 
 apply (rule OK_le_err_OK [THEN iffD1])
-apply (erule subst, subst OK_lift2_OK [symmetric], rule semilat.lub)
+apply (erule subst, subst OK_lift2_OK [symmetric], rule Semilat.lub [OF Semilat.intro])
 apply simp
 apply simp
 apply simp

@@ -177,7 +177,7 @@ setup {*
 notation (output)
   rterm_of ("\<guillemotleft>_\<guillemotright>")
 
-locale (open) rterm_syntax =
+locale rterm_syntax =
   fixes rterm_of_syntax :: "'a \<Rightarrow> 'b" ("\<guillemotleft>_\<guillemotright>")
 
 parse_translation {*

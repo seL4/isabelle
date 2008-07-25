@@ -323,7 +323,7 @@ lemma ep_pair_comp:
  apply (erule ep_pair.e_p_less)
 done
 
-locale (open) pcpo_ep_pair = ep_pair +
+locale pcpo_ep_pair = ep_pair +
   constrains e :: "'a::pcpo \<rightarrow> 'b::pcpo"
   constrains p :: "'b::pcpo \<rightarrow> 'a::pcpo"
 begin

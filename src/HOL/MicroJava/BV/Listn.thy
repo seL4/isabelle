@@ -283,21 +283,21 @@ apply (force simp add: nth_Cons split: list.split nat.split)
 done
 
 
-lemma (in semilat) plus_list_ub1 [rule_format]:
+lemma (in Semilat) plus_list_ub1 [rule_format]:
  "\<lbrakk> set xs <= A; set ys <= A; size xs = size ys \<rbrakk> 
   \<Longrightarrow> xs <=[r] xs +[f] ys"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done
 
-lemma (in semilat) plus_list_ub2:
+lemma (in Semilat) plus_list_ub2:
  "\<lbrakk>set xs <= A; set ys <= A; size xs = size ys \<rbrakk>
   \<Longrightarrow> ys <=[r] xs +[f] ys"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done
 
-lemma (in semilat) plus_list_lub [rule_format]:
+lemma (in Semilat) plus_list_lub [rule_format]:
 shows "!xs ys zs. set xs <= A \<longrightarrow> set ys <= A \<longrightarrow> set zs <= A 
   \<longrightarrow> size xs = n & size ys = n \<longrightarrow> 
   xs <=[r] zs & ys <=[r] zs \<longrightarrow> xs +[f] ys <=[r] zs"
@@ -305,7 +305,7 @@ apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done
 
-lemma (in semilat) list_update_incr [rule_format]:
+lemma (in Semilat) list_update_incr [rule_format]:
  "x\<in> A \<Longrightarrow> set xs <= A \<longrightarrow> 
   (!i. i<size xs \<longrightarrow> xs <=[r] xs[i := x +_f xs!i])"
 apply (unfold unfold_lesub_list)
@@ -380,7 +380,7 @@ done
 lemma Listn_sl_aux:
 assumes "semilat (A, r, f)" shows "semilat (Listn.sl n (A,r,f))"
 proof -
-  interpret semilat [A r f] by fact
+  interpret Semilat [A r f] using assms by (rule Semilat.intro)
 show ?thesis
 apply (unfold Listn.sl_def)
 apply (simp (no_asm) only: semilat_Def split_conv)
@@ -517,9 +517,9 @@ lemma err_semilat_sup:
 apply (unfold Err.sl_def)
 apply (simp only: split_conv)
 apply (simp (no_asm) only: semilat_Def plussub_def)
-apply (simp (no_asm_simp) only: semilat.closedI closed_lift2_sup)
+apply (simp (no_asm_simp) only: Semilat.closedI [OF Semilat.intro] closed_lift2_sup)
 apply (rule conjI)
- apply (drule semilat.orderI)
+ apply (drule Semilat.orderI [OF Semilat.intro])
  apply simp
 apply (simp (no_asm) only: unfold_lesub_err Err.le_def err_def sup_def lift2_def)
 apply (simp (no_asm_simp) add: coalesce_eq_OK1_D coalesce_eq_OK2_D split: err.split)

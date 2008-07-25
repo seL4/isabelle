@@ -196,7 +196,7 @@ qed
 subsection {* Ultrafilter Theorem *}
 
 text "A locale makes proof of ultrafilter Theorem more modular"
-locale (open) UFT =
+locale UFT =
   fixes   frechet :: "'a set set"
   and     superfrechet :: "'a set set set"
 
@@ -402,7 +402,7 @@ proof -
   qed
 qed
 
-lemmas freeultrafilter_Ex = UFT.freeultrafilter_ex
+lemmas freeultrafilter_Ex = UFT.freeultrafilter_ex [OF UFT.intro]
 
 hide (open) const filter
 
