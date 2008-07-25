@@ -11,7 +11,9 @@ They refer reader to a book by Gödel to see the proof WO1 ==> WO2.
 Fortunately order types made this proof also very easy.
 *)
 
-theory WO6_WO1 imports Cardinal_aux begin
+theory WO6_WO1
+imports Cardinal_aux
+begin
 
 (* Auxiliary definitions used in proof *)
 definition

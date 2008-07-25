@@ -6,7 +6,9 @@ The proofs needed to state that AC7, AC8 and AC9 are equivalent to the previous
 instances of AC.
 *)
 
-theory AC7_AC9 imports AC_Equiv begin
+theory AC7_AC9
+imports AC_Equiv
+begin
 
 (* ********************************************************************** *)
 (* Lemmas used in the proofs AC7 ==> AC6 and AC9 ==> AC1                  *)

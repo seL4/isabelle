@@ -5,7 +5,9 @@
 Hartog's function.
 *)
 
-theory Hartog imports AC_Equiv begin
+theory Hartog
+imports AC_Equiv
+begin
 
 definition
   Hartog :: "i => i"  where

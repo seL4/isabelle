@@ -8,7 +8,9 @@ Some properties of the recursive definition of HH used in the proofs of
   AC15 ==> WO6
 *)
 
-theory HH imports AC_Equiv Hartog begin
+theory HH
+imports AC_Equiv Hartog
+begin
 
 definition
   HH :: "[i, i, i] => i"  where

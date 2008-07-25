@@ -9,7 +9,9 @@ LEMMA is the sentence denoted by (**)
 Also, WO1 <-> WO8
 *)
 
-theory WO1_WO7 imports AC_Equiv begin
+theory WO1_WO7
+imports AC_Equiv
+begin
 
 definition
     "LEMMA ==

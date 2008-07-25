@@ -7,7 +7,9 @@ The proof of AC16(n, k) ==> WO4(n-k)
 Tidied (using locales) by LCP
 *)
 
-theory AC16_WO4 imports AC16_lemmas begin
+theory AC16_WO4
+imports AC16_lemmas
+begin
 
 (* ********************************************************************** *)
 (* The case of finite set                                                 *)
@@ -202,8 +204,7 @@ lemma Int_empty:
 by (blast intro: eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_trans] 
                  succ_lepoll_natE)
 
-
-locale (open) AC16 =
+locale AC16 =
   fixes x and y and k and l and m and t_n and R and MM and LL and GG and s 
   defines k_def:     "k   == succ(l)"
       and MM_def:    "MM  == {v \<in> t_n. succ(k) \<lesssim> v Int y}"
@@ -558,9 +559,11 @@ done
 (* The main theorem AC16(n, k) ==> WO4(n-k)                               *)
 (* ********************************************************************** *)
 
+term AC16
+
 theorem AC16_WO4: 
-     "[| AC16(k #+ m, k); 0 < k; 0 < m; k \<in> nat; m \<in> nat |] ==> WO4(m)"
-apply (unfold AC16_def WO4_def)
+     "[| AC_Equiv.AC16(k #+ m, k); 0 < k; 0 < m; k \<in> nat; m \<in> nat |] ==> WO4(m)"
+apply (unfold AC_Equiv.AC16_def WO4_def)
 apply (rule allI)
 apply (case_tac "Finite (A)")
 apply (rule lemma1, assumption+)
@@ -569,7 +572,7 @@ apply (elim exE conjE)
 apply (erule_tac x = "A Un y" in allE)
 apply (frule infinite_Un, drule mp, assumption)
 apply (erule zero_lt_natE, assumption, clarify)
-apply (blast intro: AC16.conclusion) 
+apply (blast intro: AC16.conclusion [OF AC16.intro])
 done
 
 end

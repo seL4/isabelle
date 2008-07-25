@@ -5,7 +5,9 @@
 The proofs concerning the Axiom of Dependent Choice
 *)
 
-theory DC imports AC_Equiv Hartog Cardinal_aux begin
+theory DC
+imports AC_Equiv Hartog Cardinal_aux
+begin
 
 lemma RepFun_lepoll: "Ord(a) ==> {P(b). b \<in> a} \<lesssim> a"
 apply (unfold lepoll_def)
@@ -95,7 +97,7 @@ definition
 	   transrec(b, %c r. THE x. first(x, {x \<in> X. <r``c, x> \<in> R}, Q))"
 
 
-locale (open) DC0_imp =
+locale DC0_imp =
   fixes XX and RR and X and R
 
   assumes all_ex: "\<forall>Y \<in> Pow(X). Y \<prec> nat --> (\<exists>x \<in> X. <Y, x> \<in> R)"
@@ -237,16 +239,16 @@ apply (unfold DC_def DC0_def, clarify)
 apply (elim allE)
 apply (erule impE)
    (*these three results comprise Lemma 1*)
-apply (blast intro!: DC0_imp.lemma1_1 DC0_imp.lemma1_2 DC0_imp.lemma1_3)
+apply (blast intro!: DC0_imp.lemma1_1 [OF DC0_imp.intro] DC0_imp.lemma1_2 [OF DC0_imp.intro] DC0_imp.lemma1_3 [OF DC0_imp.intro])
 apply (erule bexE)
 apply (rule_tac x = "\<lambda>n \<in> nat. f`succ (n) `n" in rev_bexI)
- apply (rule lam_type, blast dest!: DC0_imp.lemma2 intro: fun_weaken_type)
+ apply (rule lam_type, blast dest!: DC0_imp.lemma2 [OF DC0_imp.intro] intro: fun_weaken_type)
 apply (rule oallI)
-apply (frule DC0_imp.lemma2, assumption)
+apply (frule DC0_imp.lemma2 [OF DC0_imp.intro], assumption)
   apply (blast intro: fun_weaken_type)
  apply (erule ltD) 
 (** LEVEL 11: last subgoal **)
-apply (subst DC0_imp.lemma3, assumption+) 
+apply (subst DC0_imp.lemma3 [OF DC0_imp.intro], assumption+) 
   apply (fast elim!: fun_weaken_type)
  apply (erule ltD) 
 apply (force simp add: lt_def) 
@@ -293,7 +295,7 @@ apply (force simp add: singleton_0 [symmetric]
 done
 
 
-locale (open) imp_DC0 =
+locale imp_DC0 =
   fixes XX and RR and x and R and f and allRR
   defines XX_def: "XX == (\<Union>n \<in> nat.
 		      {f \<in> succ(n)->domain(R). \<forall>k \<in> n. <f`k, f`succ(k)> \<in> R})"
