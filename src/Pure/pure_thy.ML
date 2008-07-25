@@ -43,10 +43,10 @@ sig
   val store_thms: bstring * thm list -> theory -> thm list * theory
   val store_thm: bstring * thm -> theory -> thm * theory
   val store_thm_open: bstring * thm -> theory -> thm * theory
+  val add_thm: (bstring * thm) * attribute list -> theory -> thm * theory
   val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory
   val add_thms_dynamic: bstring * (Context.generic -> thm list) -> theory -> theory
-  val note: string -> string * thm -> theory -> thm * theory
   val note_thmss: string -> ((bstring * attribute list) *
     (Facts.ref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_i: string -> ((bstring * attribute list) *
@@ -228,6 +228,7 @@ fun gen_add_thms pre_name args =
 
 val add_thmss = gen_add_thmss (name_thms true true);
 val add_thms = gen_add_thms (name_thms true true);
+val add_thm = yield_singleton add_thms;
 
 
 (* add_thms_dynamic *)
@@ -256,10 +257,6 @@ fun note_thmss_i k = gen_note_thmss (K I) (kind k);
 fun note_thmss_grouped k g = gen_note_thmss (K I) (kind k #> group g);
 
 end;
-
-fun note kind (name, thm) =
-  note_thmss_i kind [((name, []), [([thm], [])])]
-  #>> (fn [(_, [thm])] => thm);
 
 fun note_thmss_qualified k path facts thy =
   thy
