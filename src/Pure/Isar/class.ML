@@ -22,7 +22,7 @@ sig
 
   val intro_classes_tac: thm list -> tactic
   val default_intro_tac: Proof.context -> thm list -> tactic
-  val prove_subclass: class * class -> thm -> theory -> theory
+  val prove_subclass: class * class -> thm option -> theory -> theory
 
   val class_prefix: string -> string
   val is_class: theory -> class -> bool
@@ -338,7 +338,7 @@ fun calculate sups base_sort assm_axiom param_map class thy =
   in
     thy
     |> Sign.sticky_prefix (class_prefix class ^ "_" ^ AxClass.axiomsN)
-    |> PureThy.note Thm.internalK (AxClass.introN, this_intro)
+    |> PureThy.store_thm (AxClass.introN, this_intro)
     |> snd
     |> Sign.restore_naming thy
     |> pair (morphism, axiom, assm_intro, of_class)
@@ -362,15 +362,19 @@ fun class_interpretation class facts defs thy =
     |> fold2 add_constraint (map snd consts) constraints
   end;
 
-fun prove_subclass (sub, sup) thm thy =
+fun prove_subclass (sub, sup) some_thm thy =
   let
     val of_class = (#of_class o the_class_data thy) sup;
-    val intro = Drule.standard' (of_class OF [Drule.standard' thm]);
-    val classrel = intro OF (the_list o #axiom o the_class_data thy) sub;
+    val intro = case some_thm
+     of SOME thm => Drule.standard' (of_class OF [Drule.standard' thm])
+      | NONE => Thm.instantiate ([pairself (Thm.ctyp_of thy o TVar o pair (Name.aT, 0))
+          ([], [sub])], []) of_class;
+    val classrel = (intro OF (the_list o #axiom o the_class_data thy) sub)
+      |> Thm.close_derivation;
   in
     thy
     |> AxClass.add_classrel classrel
-    |> prove_interpretation_in (ALLGOALS (ProofContext.fact_tac [thm]))
+    |> prove_interpretation_in (ALLGOALS (ProofContext.fact_tac (the_list some_thm)))
          I (sub, Locale.Locale sup)
     |> ClassData.map (Graph.add_edge (sub, sup))
   end;
@@ -557,7 +561,7 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
       prep_spec thy raw_supclasses raw_elems;
   in
     thy
-    |> Locale.add_locale_i (SOME "") bname mergeexpr elems
+    |> Locale.add_locale_i "" bname mergeexpr elems
     |> snd
     |> ProofContext.theory_of
     |> adjungate_axclass bname class base_sort sups supsort supparams global_syntax
@@ -602,7 +606,7 @@ fun declare class pos ((c, mx), dict) thy =
     ||>> get_axiom
     |-> (fn (def, def') => class_interpretation class [def] [Thm.prop_of def]
       #> register_operation class (c', (dict', SOME (Thm.symmetric def')))
-      #> PureThy.note Thm.internalK (c ^ "_raw", def')
+      #> PureThy.store_thm (c ^ "_raw", def')
       #> snd)
     |> Sign.restore_naming thy
     |> Sign.add_const_constraint (c', SOME ty')

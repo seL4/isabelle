@@ -17,6 +17,10 @@ struct
 
 local
 
+fun the_option [x] = SOME x
+  | the_option [] = NONE
+  | the_option _ = raise Empty;
+
 fun gen_subclass prep_class do_proof raw_sup lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -24,6 +28,10 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val sub = case TheoryTarget.peek lthy
      of {is_class = false, ...} => error "No class context"
       | {target, ...} => target;
+    val _ = if Sign.subsort thy ([sup], [sub])
+      then error ("Class " ^ Syntax.string_of_sort lthy [sup]
+        ^ " is subclass of class " ^ Syntax.string_of_sort lthy [sub])
+      else ();
     val sub_params = map fst (Class.these_params thy [sub]);
     val sup_params = map fst (Class.these_params thy [sup]);
     val err_params = subtract (op =) sub_params sup_params;
@@ -33,21 +41,25 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val sublocale_prop =
       Locale.global_asms_of thy sup
       |> maps snd
-      |> the_single
-      |> ObjectLogic.ensure_propT thy;
-    fun after_qed thm =
-      LocalTheory.theory (Class.prove_subclass (sub, sup) thm)
+      |> the_option
+      |> Option.map (ObjectLogic.ensure_propT thy);
+    fun after_qed some_thm =
+      LocalTheory.theory (Class.prove_subclass (sub, sup) some_thm)
       #> (TheoryTarget.init (SOME sub) o ProofContext.theory_of);
   in
     do_proof after_qed sublocale_prop lthy
   end;
 
-fun user_proof after_qed prop =
-  Proof.theorem_i NONE (after_qed o the_single o the_single) [[(prop, [])]];
+fun user_proof after_qed NONE =
+      Proof.theorem_i NONE (K (after_qed NONE)) [[]]
+  | user_proof after_qed (SOME prop) =
+      Proof.theorem_i NONE (after_qed o the_option o the_single) [[(prop, [])]];
 
-fun tactic_proof tac after_qed prop lthy =
-  after_qed (Goal.prove (LocalTheory.target_of lthy) [] [] prop
-    (K tac)) lthy;
+fun tactic_proof tac after_qed NONE lthy =
+      after_qed NONE lthy
+  | tactic_proof tac after_qed (SOME prop) lthy =
+      after_qed (SOME (Goal.prove (LocalTheory.target_of lthy) [] [] prop
+        (K tac))) lthy;
 
 in
 
