@@ -926,7 +926,6 @@ lemma eq_Abs_Pg[rule_format, cases type: Pg]: "(\<forall> g. z = Abs_Pg (eq_game
 instance Pg :: pordered_ab_group_add 
 proof
   fix a b c :: Pg
-  show "(a < b) = (a \<le> b \<and> a \<noteq> b)" by (simp add: Pg_less_def)
   show "a - b = a + (- b)" by (simp add: Pg_diff_def)
   {
     assume ab: "a \<le> b"
@@ -936,6 +935,7 @@ proof
       apply (simp add: eq_game_def)
       done
   }
+  then show "(a < b) = (a \<le> b \<and> \<not> b \<le> a)" by (auto simp add: Pg_less_def)
   show "a + b = b + a"
     apply (cases a, cases b)
     apply (simp add: eq_game_def plus_game_comm)

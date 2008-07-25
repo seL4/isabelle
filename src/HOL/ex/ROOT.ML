@@ -6,7 +6,6 @@ Miscellaneous examples for Higher-Order Logic.
 
 no_document use_thys [
   "Parity",
-  "GCD",
   "Eval",
   "State_Monad",
   "Efficient_Nat_examples",
@@ -21,6 +20,7 @@ no_document use_thy "Codegenerator";
 no_document use_thy "Codegenerator_Pretty";
 
 use_thys [
+  "ImperativeQuicksort",
   "Higher_Order_Logic",
   "Abstract_NAT",
   "Guess",

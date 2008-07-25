@@ -302,6 +302,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Numeral_Type.thy			\
   Library/Boolean_Algebra.thy Library/Countable.thy Library/RType.thy	\
   Library/Heap.thy Library/Heap_Monad.thy Library/Array.thy		\
+  Library/Assert.thy Library/Relational.thy Library/Sublist.thy Library/Subarray.thy	\
   Library/Ref.thy Library/Imperative_HOL.thy Library/RBT.thy		\
   Library/Enum.thy Real/Float.thy $(SRC)/Tools/float.ML
 	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library
@@ -769,7 +770,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
   ex/Sudoku.thy ex/Tarski.thy ex/Unification.thy ex/document/root.bib	\
   ex/document/root.tex ex/Meson_Test.thy ex/reflection.ML ex/set.thy	\
-  ex/svc_funcs.ML ex/svc_test.thy Library/Parity.thy Library/GCD.thy	\
+  ex/svc_funcs.ML ex/svc_test.thy	\
+  ex/ImperativeQuicksort.thy	\
   Complex/ex/BigO_Complex.thy Complex/ex/BinEx.thy			\
   Complex/ex/Sqrt.thy							\
   Complex/ex/Sqrt_Script.thy Complex/ex/MIR.thy Complex/ex/mirtac.ML	\

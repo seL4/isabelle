@@ -391,19 +391,12 @@ lemma Suc_lessD: "Suc m < n \<Longrightarrow> m < n"
 instance
 proof
   fix n m :: nat
-  have less_imp_le: "n < m \<Longrightarrow> n \<le> m"
-    unfolding less_eq_Suc_le by (erule Suc_leD)
-  have irrefl: "\<not> m < m" by (induct m) auto
-  have strict: "n \<le> m \<Longrightarrow> n \<noteq> m \<Longrightarrow> n < m"
+  show "n < m \<longleftrightarrow> n \<le> m \<and> \<not> m \<le> n" 
   proof (induct n arbitrary: m)
-    case 0 then show ?case
-      by (cases m) (simp_all add: less_eq_Suc_le)
+    case 0 then show ?case by (cases m) (simp_all add: less_eq_Suc_le)
   next
-    case (Suc n) then show ?case
-      by (cases m) (simp_all add: less_eq_Suc_le)
+    case (Suc n) then show ?case by (cases m) (simp_all add: less_eq_Suc_le)
   qed
-  show "n < m \<longleftrightarrow> n \<le> m \<and> n \<noteq> m"
-    by (auto simp add: irrefl intro: less_imp_le strict)
 next
   fix n :: nat show "n \<le> n" by (induct n) simp_all
 next

@@ -1,4 +1,4 @@
-theory ImperativeQuickSort
+theory ImperativeQuicksort
 imports Imperative_HOL Subarray Multiset Efficient_Nat
 begin
 
