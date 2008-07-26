@@ -50,11 +50,14 @@ use "net_rules.ML";
 use "calculation.ML";
 use "obtain.ML";
 
-(*local theories and target primitives*)
+(*local theories and targets*)
 use "local_theory.ML";
 use "overloading.ML";
 use "locale.ML";
 use "class.ML";
+use "theory_target.ML";
+use "instance.ML";
+use "subclass.ML";
 
 (*complex proof machineries*)
 use "../simplifier.ML";
@@ -63,12 +66,9 @@ use "../simplifier.ML";
 use "code_unit.ML";
 use "code.ML";
 
-(*local theories and specifications*)
-use "theory_target.ML";
-use "subclass.ML";
+(*specifications*)
 use "spec_parse.ML";
 use "specification.ML";
-use "instance.ML";
 use "constdefs.ML";
 
 (*toplevel transactions*)
