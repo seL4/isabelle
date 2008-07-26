@@ -391,7 +391,7 @@ fun the_locale thy name = case get_locale thy name
  of SOME loc => loc
   | NONE => error ("Unknown locale " ^ quote name);
 
-fun add_locale name loc thy =
+fun register_locale name loc thy =
   thy |> LocalesData.map (fn (space, locs) =>
     (Sign.declare_name thy name space, Symtab.update (name, loc) locs));
 
@@ -1949,7 +1949,7 @@ fun gen_add_locale prep_ctxt prep_expr
     val axs' = map (Element.assume_witness thy') stmt';
     val loc_ctxt = thy'
       |> PureThy.note_thmss_qualified Thm.assumptionK bname facts' |> snd
-      |> add_locale name {axiom = axs',
+      |> register_locale name {axiom = axs',
         imports = empty,
         elems = map (fn e => (e, stamp ())) elems'',
         params = params_of elemss' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
