@@ -1743,29 +1743,17 @@ lemma pt_fresh_eqvt_ineq:
   shows "pi\<bullet>(c\<sharp>x) = (pi\<bullet>c)\<sharp>(pi\<bullet>x)"
 by (simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj] perm_bool)
 
--- "three helper lemmas for the perm_fresh_fresh-lemma"
-lemma comprehension_neg_UNIV: "{b. \<not> P b} = UNIV - {b. P b}"
-  by (auto)
-
-lemma infinite_or_neg_infinite:
-  assumes h:"infinite (UNIV::'a set)"
-  shows "infinite {b::'a. P b} \<or> infinite {b::'a. \<not> P b}"
-proof (subst comprehension_neg_UNIV, case_tac "finite {b. P b}")
-  assume j:"finite {b::'a. P b}"
-  have "infinite ((UNIV::'a set) - {b::'a. P b})"
-    using Diff_infinite_finite[OF j h] by auto
-  thus "infinite {b::'a. P b} \<or> infinite (UNIV - {b::'a. P b})" ..
-next
-  assume j:"infinite {b::'a. P b}"
-  thus "infinite {b::'a. P b} \<or> infinite (UNIV - {b::'a. P b})" by simp
-qed
-
 --"the co-set of a finite set is infinte"
 lemma finite_infinite:
   assumes a: "finite {b::'x. P b}"
   and     b: "infinite (UNIV::'x set)"        
   shows "infinite {b. \<not>P b}"
-  using a and infinite_or_neg_infinite[OF b] by simp
+proof -
+  from a b have "infinite (UNIV - {b::'x. P b})" by (simp add: Diff_infinite_finite)
+  moreover 
+  have "{b::'x. \<not>P b} = UNIV - {b::'x. P b}" by auto
+  ultimately show "infinite {b::'x. \<not>P b}" by simp
+qed 
 
 lemma pt_fresh_fresh:
   fixes   x :: "'a"
