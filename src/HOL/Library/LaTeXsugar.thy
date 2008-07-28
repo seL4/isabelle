@@ -30,17 +30,15 @@ translations
 (* SETS *)
 
 (* empty set *)
-syntax (latex output)
-  "_emptyset" :: "'a set"              ("\<emptyset>")
-translations
-  "_emptyset"      <= "{}"
+notation (latex)
+  "{}" ("\<emptyset>")
 
 (* insert *)
 translations 
   "{x} \<union> A" <= "insert x A"
   "{x,y}" <= "{x} \<union> {y}"
   "{x,y} \<union> A" <= "{x} \<union> ({y} \<union> A)"
-  "{x}" <= "{x} \<union> _emptyset"
+  "{x}" <= "{x} \<union> \<emptyset>"
 
 (* set comprehension *)
 syntax (latex output)

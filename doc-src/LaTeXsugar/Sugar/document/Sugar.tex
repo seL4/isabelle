@@ -95,7 +95,8 @@ Although set syntax in HOL is already close to
 standard, we provide a few further improvements:
 \begin{itemize}
 \item \isa{{\isacharbraceleft}x\ {\isacharbar}\ P{\isacharbraceright}} instead of \isa{{\isacharbraceleft}x{\isachardot}\ P{\isacharbraceright}}.
-\item \isa{{\isasymemptyset}} instead of \isa{{\isacharbraceleft}{\isacharbraceright}}.
+\item \isa{{\isasymemptyset}} instead of \isa{{\isacharbraceleft}{\isacharbraceright}}, where
+ \isa{{\isasymemptyset}} is also input syntax.
 \item \isa{{\isacharbraceleft}a{\isacharcomma}\ b{\isacharcomma}\ c{\isacharbraceright}\ {\isasymunion}\ M} instead of \isa{insert\ a\ {\isacharparenleft}insert\ b\ {\isacharparenleft}insert\ c\ M{\isacharparenright}{\isacharparenright}}.
 \end{itemize}%
 \end{isamarkuptext}%
@@ -108,8 +109,8 @@ standard, we provide a few further improvements:
 \begin{isamarkuptext}%
 If lists are used heavily, the following notations increase readability:
 \begin{itemize}
-\item \isa{x{\isasymcdot}xs} instead of \isa{x\ {\isacharhash}\ xs}.
-      Exceptionally, \isa{x{\isasymcdot}xs} is also input syntax.
+\item \isa{x{\isasymcdot}xs} instead of \isa{x\ {\isacharhash}\ xs},
+      where \isa{x{\isasymcdot}xs} is also input syntax.
 If you prefer more space around the $\cdot$ you have to redefine
 \verb!\isasymcdot! in \LaTeX:
 \verb!\renewcommand{\isasymcdot}{\isamath{\,\cdot\,}}!

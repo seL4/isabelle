@@ -71,7 +71,8 @@ text{* Although set syntax in HOL is already close to
 standard, we provide a few further improvements:
 \begin{itemize}
 \item @{term"{x. P}"} instead of @{text"{x. P}"}.
-\item @{term"{}"} instead of @{text"{}"}.
+\item @{term"{}"} instead of @{text"{}"}, where
+ @{term"{}"} is also input syntax.
 \item @{term"insert a (insert b (insert c M))"} instead of @{text"insert a (insert b (insert c M))"}.
 \end{itemize}
 *}
@@ -80,8 +81,8 @@ subsection{* Lists *}
 
 text{* If lists are used heavily, the following notations increase readability:
 \begin{itemize}
-\item @{term"x # xs"} instead of @{text"x # xs"}.
-      Exceptionally, @{term"x # xs"} is also input syntax.
+\item @{term"x # xs"} instead of @{text"x # xs"},
+      where @{term"x # xs"} is also input syntax.
 If you prefer more space around the $\cdot$ you have to redefine
 \verb!\isasymcdot! in \LaTeX:
 \verb!\renewcommand{\isasymcdot}{\isamath{\,\cdot\,}}!
