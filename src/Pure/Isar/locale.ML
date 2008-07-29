@@ -60,6 +60,7 @@ sig
     ((string * Attrib.src list) * term list) list
   val intros: theory -> string -> thm list * thm list
   val dests: theory -> string -> thm list
+  val elems: theory -> string -> Element.context_i list
 
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
@@ -1420,6 +1421,7 @@ fun intros thy = #intros o the_locale thy;
 
 fun dests thy = #dests o the_locale thy;
 
+fun elems thy = map fst o #elems o the_locale thy;
 
 fun parameters_of_expr thy expr =
   let
@@ -1565,7 +1567,7 @@ fun global_note_prefix_i kind loc (fully_qualified, prfx) args thy =
   |> Sign.qualified_names
   |> Sign.add_path (NameSpace.base loc ^ "_locale")
   |> (if fully_qualified then Sign.sticky_prefix prfx else Sign.add_path prfx)
-  |> PureThy.note_thmss_i kind args
+  |> PureThy.note_thmss kind args
   ||> Sign.restore_naming thy;
 
 fun local_note_prefix_i kind loc (fully_qualified, prfx) args ctxt =
@@ -1778,7 +1780,7 @@ fun def_pred bname parms defs ts norm_ts thy =
       thy
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
       |> Sign.declare_const [] (bname, predT, NoSyn) |> snd
-      |> PureThy.add_defs_i false
+      |> PureThy.add_defs false
         [((Thm.def_name bname, Logic.mk_equals (head, body)), [PureThy.kind_internal])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
@@ -1849,7 +1851,10 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val a_elem = [(("", []), [Assumes [((pname ^ "_" ^ axiomsN, []), [(statement, [])])]])];
           val (_, thy'') =
             thy'
-            |> PureThy.note_thmss_qualified Thm.internalK aname [((introN, []), [([intro], [])])];
+            |> Sign.add_path aname
+            |> Sign.no_base_names
+            |> PureThy.note_thmss Thm.internalK [((introN, []), [([intro], [])])]
+            ||> Sign.restore_naming thy';
         in ((elemss', [statement]), a_elem, [intro], thy'') end;
     val (predicate, stmt', elemss'', b_intro, thy'''') =
       if null ints then (([], []), more_ts, elemss' @ a_elem, [], thy'')
@@ -1864,9 +1869,12 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
                [Assumes [((pname ^ "_" ^ axiomsN, []), [(statement, [])])]])];
           val (_, thy'''') =
             thy'''
-            |> PureThy.note_thmss_qualified Thm.internalK pname
+            |> Sign.add_path pname
+            |> Sign.no_base_names
+            |> PureThy.note_thmss Thm.internalK
                  [((introN, []), [([intro], [])]),
-                  ((axiomsN, []), [(map (Drule.standard o Element.conclude_witness) axioms, [])])];
+                  ((axiomsN, []), [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
+            ||> Sign.restore_naming thy''';
         in (([cstatement], axioms), [statement], elemss'' @ b_elem, [intro], thy'''') end;
   in (((elemss'', predicate, stmt'), (a_intro, b_intro)), thy'''') end;
 
@@ -1920,16 +1928,17 @@ fun gen_add_locale prep_ctxt prep_expr
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 
     val predicate_name' = case predicate_name of "" => bname | _ => predicate_name;
-    val (elemss'_, defns) = change_defines_elemss thy elemss [];
-    val elemss''_ = elemss'_ @ [(("", []), defns)];
-    val (((elemss', predicate as (pred_statement, pred_axioms), stmt'), intros), thy') =
-      define_preds predicate_name' text elemss''_ thy;
-    fun mk_regs elemss wits = fold_map (fn (id, elems) => fn wts => let
-        val ts = flat (map_filter (fn (Assumes asms) =>
-          SOME (maps (map #1 o #2) asms) | _ => NONE) elems);
-        val (wts1, wts2) = chop (length ts) wts;
-      in ((apsnd (map fst) id, wts1), wts2) end) elemss wits |> fst;
-    val regs = mk_regs elemss' pred_axioms
+    val (elemss', defns) = change_defines_elemss thy elemss [];
+    val elemss'' = elemss' @ [(("", []), defns)];
+    val (((elemss''', predicate as (pred_statement, pred_axioms), stmt'), intros), thy') =
+      define_preds predicate_name' text elemss'' thy;
+    val regs = pred_axioms
+      |> fold_map (fn (id, elems) => fn wts => let
+             val ts = flat (map_filter (fn (Assumes asms) =>
+               SOME (maps (map #1 o #2) asms) | _ => NONE) elems);
+             val (wts1, wts2) = chop (length ts) wts;
+           in ((apsnd (map fst) id, wts1), wts2) end) elemss'''
+      |> fst
       |> map_filter (fn (("", _), _) => NONE | e => SOME e);
     fun axiomify axioms elemss =
       (axioms, elemss) |> foldl_map (fn (axs, (id, elems)) => let
@@ -1937,22 +1946,25 @@ fun gen_add_locale prep_ctxt prep_expr
                      SOME (maps (map #1 o #2) asms) | _ => NONE) elems);
                    val (axs1, axs2) = chop (length ts) axs;
                  in (axs2, ((id, Assumed axs1), elems)) end)
-        |> snd;
+      |> snd;
     val ((_, facts), ctxt) = activate_facts true (K I)
-      (axiomify pred_axioms elemss') (ProofContext.init thy');
+      (axiomify pred_axioms elemss''') (ProofContext.init thy');
     val view_ctxt = Assumption.add_view thy_ctxt pred_statement ctxt;
     val export = Thm.close_derivation o Goal.norm_result o
       singleton (ProofContext.export view_ctxt thy_ctxt);
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
-    val elems' = maps #2 (filter (equal "" o #1 o #1) elemss');
+    val elems' = maps #2 (filter (equal "" o #1 o #1) elemss''');
     val elems'' = map_filter (fn (Fixes _) => NONE | e => SOME e) elems';
     val axs' = map (Element.assume_witness thy') stmt';
     val loc_ctxt = thy'
-      |> PureThy.note_thmss_qualified Thm.assumptionK bname facts' |> snd
+      |> Sign.add_path bname
+      |> Sign.no_base_names
+      |> PureThy.note_thmss Thm.assumptionK facts' |> snd
+      |> Sign.restore_naming thy'
       |> register_locale name {axiom = axs',
         imports = empty,
         elems = map (fn e => (e, stamp ())) elems'',
-        params = params_of elemss' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
+        params = params_of elemss''' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
         lparams = map #1 (params_of' body_elemss),
         decls = ([], []),
         regs = regs,
@@ -2103,7 +2115,7 @@ fun gen_activate_facts_elemss mk_ctxt get_reg note note_interp attrib put_reg ad
 fun global_activate_facts_elemss x = gen_activate_facts_elemss
       ProofContext.init
       get_global_registration
-      PureThy.note_thmss_i
+      PureThy.note_thmss
       global_note_prefix_i
       Attrib.attribute_i
       put_global_registration add_global_witness add_global_equation
