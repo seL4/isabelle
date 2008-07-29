@@ -69,6 +69,8 @@ HOL-Plain: Pure $(OUT)/HOL-Plain
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
+$(OUT)/Pure: Pure
+
 $(OUT)/HOL-Plain: $(OUT)/Pure \
   plain.ML \
   Code_Setup.thy \
