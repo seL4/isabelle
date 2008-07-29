@@ -169,14 +169,6 @@ let
 in [(@{const_syntax "run"}, tr')] end;
 *}
 
-subsubsection {* Plain evaluation *}
-
-definition
-  evaluate :: "'a Heap \<Rightarrow> 'a"
-where
-  [code del]: "evaluate f = (case execute f Heap.empty
-    of (Inl x, _) \<Rightarrow> x)"
-
 
 subsection {* Monad properties *}
 
@@ -330,6 +322,7 @@ import qualified Control.Monad.ST;
 import qualified Data.STRef;
 import qualified Data.Array.ST;
 
+type RealWorld = Control.Monad.ST.RealWorld;
 type ST s a = Control.Monad.ST.ST s a;
 type STRef s a = Data.STRef.STRef s a;
 type STArray s a = Data.Array.ST.STArray s Int a;
@@ -356,16 +349,15 @@ readArray = Data.Array.ST.readArray;
 writeArray :: STArray s a -> Int -> a -> ST s ();
 writeArray = Data.Array.ST.writeArray;*}
 
-code_reserved Haskell ST STRef Array
+code_reserved Haskell RealWorld ST STRef Array
   runST
   newSTRef reasSTRef writeSTRef
   newArray newListArray lengthArray readArray writeArray
 
 text {* Monad *}
 
-code_type Heap (Haskell "ST '_s _")
-code_const Heap (Haskell "error \"bare Heap\")")
-code_const evaluate (Haskell "runST")
+code_type Heap (Haskell "ST/ RealWorld/ _")
+code_const Heap (Haskell "error/ \"bare Heap\"")
 code_monad run "op \<guillemotright>=" Haskell
 code_const return (Haskell "return")
 code_const "Heap_Monad.Fail" (Haskell "_")

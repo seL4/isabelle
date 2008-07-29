@@ -198,7 +198,7 @@ code_reserved OCaml Array
 
 subsubsection {* Haskell *}
 
-code_type array (Haskell "STArray '_s _")
+code_type array (Haskell "STArray/ RealWorld/ _")
 code_const Array (Haskell "error/ \"bare Array\"")
 code_const Array.new' (Haskell "newArray/ (0,/ _)")
 code_const Array.of_list' (Haskell "newListArray/ (0,/ _)")

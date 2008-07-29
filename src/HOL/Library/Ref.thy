@@ -82,7 +82,7 @@ code_reserved OCaml ref
 
 subsubsection {* Haskell *}
 
-code_type ref (Haskell "STRef '_s _")
+code_type ref (Haskell "STRef/ RealWorld/ _")
 code_const Ref (Haskell "error/ \"bare Ref\"")
 code_const Ref.new (Haskell "newSTRef")
 code_const Ref.lookup (Haskell "readSTRef")
