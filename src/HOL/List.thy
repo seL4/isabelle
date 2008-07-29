@@ -39,6 +39,7 @@ consts
   upt :: "nat => nat => nat list" ("(1[_..</_'])")
   remdups :: "'a list => 'a list"
   remove1 :: "'a => 'a list => 'a list"
+  removeAll :: "'a => 'a list => 'a list"
   "distinct":: "'a list => bool"
   replicate :: "nat => 'a => 'a list"
   splice :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
@@ -186,6 +187,10 @@ primrec
   "remove1 x (y#xs) = (if x=y then xs else y # remove1 x xs)"
 
 primrec
+  "removeAll x [] = []"
+  "removeAll x (y#xs) = (if x=y then removeAll x xs else y # removeAll x xs)"
+
+primrec
   replicate_0: "replicate 0 x = []"
   replicate_Suc: "replicate (Suc n) x = x # replicate n x"
 
@@ -241,6 +246,7 @@ text{*
 @{lemma "distinct [2,0,1::nat]" by simp}\\
 @{lemma "remdups [2,0,2,1::nat,2] = [0,1,2]" by simp}\\
 @{lemma "remove1 2 [2,0,2,1::nat,2] = [0,2,1,2]" by simp}\\
+@{lemma "removeAll 2 [2,0,2,1::nat,2] = [0,1]" by simp}\\
 @{lemma "nth [a,b,c,d] 2 = c" by simp}\\
 @{lemma "[a,b,c,d][2 := x] = [a,b,x,d]" by simp}\\
 @{lemma "sublist [a,b,c,d,e] {0,2,3} = [a,c,d]" by (simp add:sublist_def)}\\
@@ -2454,6 +2460,41 @@ done
 
 lemma distinct_remove1[simp]: "distinct xs ==> distinct(remove1 x xs)"
 by (induct xs) simp_all
+
+
+subsubsection {* @{text removeAll} *}
+
+lemma removeAll_append[simp]:
+  "removeAll x (xs @ ys) = removeAll x xs @ removeAll x ys"
+by (induct xs) auto
+
+lemma set_removeAll[simp]: "set(removeAll x xs) = set xs - {x}"
+by (induct xs) auto
+
+lemma removeAll_id[simp]: "x \<notin> set xs \<Longrightarrow> removeAll x xs = xs"
+by (induct xs) auto
+
+(* Needs count:: 'a \<Rightarrow> a' list \<Rightarrow> nat
+lemma length_removeAll:
+  "length(removeAll x xs) = length xs - count x xs"
+*)
+
+lemma removeAll_filter_not[simp]:
+  "\<not> P x \<Longrightarrow> removeAll x (filter P xs) = filter P xs"
+by(induct xs) auto
+
+
+lemma distinct_remove1_removeAll:
+  "distinct xs ==> remove1 x xs = removeAll x xs"
+by (induct xs) simp_all
+
+lemma map_removeAll_inj_on: "inj_on f (insert x (set xs)) \<Longrightarrow>
+  map f (removeAll x xs) = removeAll (f x) (map f xs)"
+by (induct xs) (simp_all add:inj_on_def)
+
+lemma map_removeAll_inj: "inj f \<Longrightarrow>
+  map f (removeAll x xs) = removeAll (f x) (map f xs)"
+by(metis map_removeAll_inj_on subset_inj_on subset_UNIV)
 
 
 subsubsection {* @{text replicate} *}
