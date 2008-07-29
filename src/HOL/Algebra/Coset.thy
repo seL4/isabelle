@@ -621,7 +621,8 @@ proof -
       assume [simp]: "x \<in> carrier G" "y \<in> carrier G" "z \<in> carrier G"
 	 and "inv x \<otimes> y \<in> H" and "inv y \<otimes> z \<in> H"
       hence "(inv x \<otimes> y) \<otimes> (inv y \<otimes> z) \<in> H" by simp
-      hence "inv x \<otimes> (y \<otimes> inv y) \<otimes> z \<in> H" by (simp add: m_assoc del: r_inv) 
+      hence "inv x \<otimes> (y \<otimes> inv y) \<otimes> z \<in> H"
+	by (simp add: m_assoc del: r_inv Units_r_inv) 
       thus "inv x \<otimes> z \<in> H" by simp
     qed
   qed

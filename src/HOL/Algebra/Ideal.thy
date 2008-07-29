@@ -950,7 +950,7 @@ proof -
         have aUnit: "a \<in> Units R" by (simp add: field_Units)
     hence a: "a \<otimes> inv a = \<one>" by (rule Units_r_inv)
     from aI and aUnit
-        have "a \<otimes> inv a \<in> I" by (simp add: I_r_closed)
+        have "a \<otimes> inv a \<in> I" by (simp add: I_r_closed del: Units_r_inv)
     hence oneI: "\<one> \<in> I" by (simp add: a[symmetric])
 
     have "carrier R \<subseteq> I"

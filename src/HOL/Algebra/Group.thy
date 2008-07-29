@@ -77,6 +77,27 @@ proof -
   finally show ?thesis .
 qed
 
+lemma (in monoid) Units_m_closed [intro, simp]:
+  assumes x: "x \<in> Units G" and y: "y \<in> Units G"
+  shows "x \<otimes> y \<in> Units G"
+proof -
+  from x obtain x' where x: "x \<in> carrier G" "x' \<in> carrier G" and xinv: "x \<otimes> x' = \<one>" "x' \<otimes> x = \<one>"
+    unfolding Units_def by fast
+  from y obtain y' where y: "y \<in> carrier G" "y' \<in> carrier G" and yinv: "y \<otimes> y' = \<one>" "y' \<otimes> y = \<one>"
+    unfolding Units_def by fast
+  from x y xinv yinv have "y' \<otimes> (x' \<otimes> x) \<otimes> y = \<one>" by simp
+  moreover from x y xinv yinv have "x \<otimes> (y \<otimes> y') \<otimes> x' = \<one>" by simp
+  moreover note x y
+  ultimately show ?thesis unfolding Units_def
+    -- "Must avoid premature use of @{text hyp_subst_tac}."
+    apply (rule_tac CollectI)
+    apply (rule)
+    apply (fast)
+    apply (rule bexI [where x = "y' \<otimes> x'"])
+    apply (auto simp: m_assoc)
+    done
+qed
+
 lemma (in monoid) Units_one_closed [intro, simp]:
   "\<one> \<in> Units G"
   by (unfold Units_def) auto
@@ -96,14 +117,14 @@ lemma (in monoid) Units_r_inv_ex:
   "x \<in> Units G ==> \<exists>y \<in> carrier G. x \<otimes> y = \<one>"
   by (unfold Units_def) auto
 
-lemma (in monoid) Units_l_inv:
+lemma (in monoid) Units_l_inv [simp]:
   "x \<in> Units G ==> inv x \<otimes> x = \<one>"
   apply (unfold Units_def m_inv_def, auto)
   apply (rule theI2, fast)
    apply (fast intro: inv_unique, fast)
   done
 
-lemma (in monoid) Units_r_inv:
+lemma (in monoid) Units_r_inv [simp]:
   "x \<in> Units G ==> x \<otimes> inv x = \<one>"
   apply (unfold Units_def m_inv_def, auto)
   apply (rule theI2, fast)
@@ -126,7 +147,7 @@ proof
   assume eq: "x \<otimes> y = x \<otimes> z"
     and G: "x \<in> Units G"  "y \<in> carrier G"  "z \<in> carrier G"
   then have "(inv x \<otimes> x) \<otimes> y = (inv x \<otimes> x) \<otimes> z"
-    by (simp add: m_assoc Units_closed)
+    by (simp add: m_assoc Units_closed del: Units_l_inv)
   with G show "y = z" by (simp add: Units_l_inv)
 next
   assume eq: "y = z"
@@ -138,9 +159,8 @@ lemma (in monoid) Units_inv_inv [simp]:
   "x \<in> Units G ==> inv (inv x) = x"
 proof -
   assume x: "x \<in> Units G"
-  then have "inv x \<otimes> inv (inv x) = inv x \<otimes> x"
-    by (simp add: Units_l_inv Units_r_inv)
-  with x show ?thesis by (simp add: Units_closed)
+  then have "inv x \<otimes> inv (inv x) = inv x \<otimes> x" by simp
+  with x show ?thesis by (simp add: Units_closed del: Units_l_inv Units_r_inv)
 qed
 
 lemma (in monoid) inv_inj_on_Units:
@@ -187,13 +207,19 @@ lemma (in monoid) nat_pow_pow:
   "x \<in> carrier G ==> (x (^) n) (^) m = x (^) (n * m::nat)"
   by (induct m) (simp, simp add: nat_pow_mult add_commute)
 
+
+(* Jacobson defines submonoid here. *)
+(* Jacobson defines the order of a monoid here. *)
+
+
+subsection {* Groups *}
+
 text {*
   A group is a monoid all of whose elements are invertible.
 *}
 
 locale group = monoid +
   assumes Units: "carrier G <= Units G"
-
 
 lemma (in group) is_group: "group G" by (rule group_axioms)
 
@@ -254,12 +280,10 @@ proof -
   qed
   then have carrier_subset_Units: "carrier G <= Units G"
     by (unfold Units_def) fast
-  show ?thesis
-    by (fast intro!: group.intro monoid.intro group_axioms.intro
-      carrier_subset_Units intro: prems r_one)
+  show ?thesis by unfold_locales (auto simp: r_one m_assoc carrier_subset_Units)
 qed
 
-lemma (in monoid) monoid_groupI:
+lemma (in monoid) group_l_invI:
   assumes l_inv_ex:
     "!!x. x \<in> carrier G ==> \<exists>y \<in> carrier G. y \<otimes> x = \<one>"
   shows "group G"
@@ -313,7 +337,7 @@ proof
   assume eq: "y \<otimes> x = z \<otimes> x"
     and G: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
   then have "y \<otimes> (x \<otimes> inv x) = z \<otimes> (x \<otimes> inv x)"
-    by (simp add: m_assoc [symmetric] del: r_inv)
+    by (simp add: m_assoc [symmetric] del: r_inv Units_r_inv)
   with G show "y = z" by simp
 next
   assume eq: "y = z"
@@ -324,7 +348,7 @@ qed
 lemma (in group) inv_one [simp]:
   "inv \<one> = \<one>"
 proof -
-  have "inv \<one> = \<one> \<otimes> (inv \<one>)" by (simp del: r_inv)
+  have "inv \<one> = \<one> \<otimes> (inv \<one>)" by (simp del: r_inv Units_r_inv)
   moreover have "... = \<one>" by simp
   finally show ?thesis .
 qed
@@ -343,7 +367,7 @@ proof -
   assume G: "x \<in> carrier G"  "y \<in> carrier G"
   then have "inv (x \<otimes> y) \<otimes> (x \<otimes> y) = (inv y \<otimes> inv x) \<otimes> (x \<otimes> y)"
     by (simp add: m_assoc l_inv) (simp add: m_assoc [symmetric])
-  with G show ?thesis by (simp del: l_inv)
+  with G show ?thesis by (simp del: l_inv Units_l_inv)
 qed
 
 lemma (in group) inv_comm:
@@ -401,7 +425,10 @@ lemma (in subgroup) subgroup_is_group [intro]:
 proof -
   interpret group [G] by fact
   show ?thesis
-    by (rule groupI) (auto intro: m_assoc l_inv mem_carrier)
+    apply (rule monoid.group_l_invI)
+    apply (unfold_locales) [1]
+    apply (auto intro: m_assoc l_inv mem_carrier)
+    done
 qed
 
 text {*
@@ -499,27 +526,11 @@ lemma inv_DirProd [simp]:
 proof -
   interpret G: group [G] by fact
   interpret H: group [H] by fact
-  show ?thesis apply (rule group.inv_equality [OF DirProd_group])
-  apply (simp_all add: prems group.l_inv)
-  done
-qed
-
-text{*This alternative proof of the previous result demonstrates interpret.
-   It uses @{text Prod.inv_equality} (available after @{text interpret})
-   instead of @{text "group.inv_equality [OF DirProd_group]"}. *}
-lemma
-  assumes "group G" and "group H"
-  assumes g: "g \<in> carrier G"
-      and h: "h \<in> carrier H"
-  shows "m_inv (G \<times>\<times> H) (g, h) = (inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h)"
-proof -
-  interpret G: group [G] by fact
-  interpret H: group [H] by fact
   interpret Prod: group ["G \<times>\<times> H"]
     by (auto intro: DirProd_group group.intro group.axioms prems)
   show ?thesis by (simp add: Prod.inv_equality g h)
 qed
-  
+
 
 subsection {* Homomorphisms and Isomorphisms *}
 
@@ -604,7 +615,7 @@ proof -
   also from x have "... = h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h x)"
     by (simp add: hom_mult [symmetric] del: hom_mult)
   finally have "h x \<otimes>\<^bsub>H\<^esub> h (inv x) = h x \<otimes>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h x)" .
-  with x show ?thesis by (simp del: H.r_inv)
+  with x show ?thesis by (simp del: H.r_inv H.Units_r_inv)
 qed
 
 
