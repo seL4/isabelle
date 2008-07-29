@@ -392,7 +392,7 @@ fun wfrec_definition0 thy fid R (functional as Abs(x, Ty, _)) =
                           (wfrec $ map_types poly_tvars R)
                       $ functional
      val def_term = mk_const_def thy (x, Ty, wfrec_R_M)
-     val ([def], thy') = PureThy.add_defs_i false [Thm.no_attributes (def_name, def_term)] thy
+     val ([def], thy') = PureThy.add_defs false [Thm.no_attributes (def_name, def_term)] thy
  in (thy', def) end;
 end;
 
@@ -550,7 +550,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val defn = mk_const_def thy (name, Ty, S.list_mk_abs (args,rhs))
      val ([def0], theory) =
        thy
-       |> PureThy.add_defs_i false
+       |> PureThy.add_defs false
             [Thm.no_attributes (fid ^ "_def", defn)]
      val def = Thm.freezeT def0;
      val dummy = if !trace then writeln ("DEF = " ^ Display.string_of_thm def)

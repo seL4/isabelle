@@ -97,7 +97,7 @@ fun add_fixdefs eqs thy =
     
     val fixdefs = map (apsnd (legacy_infer_prop thy)) pre_fixdefs;
     val (fixdef_thms, thy') =
-      PureThy.add_defs_i false (map Thm.no_attributes fixdefs) thy;
+      PureThy.add_defs false (map Thm.no_attributes fixdefs) thy;
     val ctuple_fixdef_thm = foldr1 (fn (x,y) => @{thm cpair_equalI} OF [x,y]) fixdef_thms;
     
     val ctuple_unfold = legacy_infer_term thy' (mk_trp (mk_ctuple lhss === mk_ctuple rhss));

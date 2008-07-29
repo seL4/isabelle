@@ -29,7 +29,7 @@ local
                                else thname
                 val def_eq = Logic.mk_equals (Const(cname_full,ctype),
                                               HOLogic.choice_const ctype $  P)
-                val (thms, thy') = PureThy.add_defs_i covld [((cdefname,def_eq),[])] thy
+                val (thms, thy') = PureThy.add_defs covld [((cdefname,def_eq),[])] thy
                 val thm' = [thm,hd thms] MRS @{thm exE_some}
             in
                 mk_definitional cos (thy',thm')
@@ -40,7 +40,7 @@ local
         let
             fun process [] (thy,tm) =
                 let
-                    val (thms, thy') = PureThy.add_axioms_i [((axname,HOLogic.mk_Trueprop tm),[])] thy
+                    val (thms, thy') = PureThy.add_axioms [((axname,HOLogic.mk_Trueprop tm),[])] thy
                 in
                     (thy',hd thms)
                 end

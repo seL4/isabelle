@@ -239,7 +239,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
       |> Sign.add_consts_i (map (fn ((name, T), T') =>
           (Sign.base_name name, reccomb_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
-      |> (PureThy.add_defs_i false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
+      |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
           ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
@@ -323,7 +323,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
           val ([def_thm], thy') =
             thy
             |> Sign.declare_const [] decl |> snd
-            |> (PureThy.add_defs_i false o map Thm.no_attributes) [def];
+            |> (PureThy.add_defs false o map Thm.no_attributes) [def];
 
         in (defs @ [def_thm], thy')
         end) (([], thy1), (hd descr) ~~ newTs ~~ case_names ~~

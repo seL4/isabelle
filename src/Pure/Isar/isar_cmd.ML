@@ -192,20 +192,20 @@ fun oracle name typ (oracle, pos) =
 fun add_axms f args thy =
   f (map (fn (x, srcs) => (x, map (Attrib.attribute thy) srcs)) args) thy;
 
-val add_axioms = add_axms (snd oo PureThy.add_axioms);
+val add_axioms = add_axms (snd oo PureThy.add_axioms_cmd);
 
 fun add_defs ((unchecked, overloaded), args) =
   add_axms
-    (snd oo (if unchecked then PureThy.add_defs_unchecked else PureThy.add_defs) overloaded) args;
+    (snd oo (if unchecked then PureThy.add_defs_unchecked_cmd else PureThy.add_defs_cmd) overloaded) args;
 
 
 (* facts *)
 
 fun apply_theorems args thy =
   let val facts = Attrib.map_facts (Attrib.attribute thy) [(("", []), args)]
-  in apfst (maps snd) (PureThy.note_thmss "" facts thy) end;
+  in apfst (maps snd) (PureThy.note_thmss_cmd "" facts thy) end;
 
-fun apply_theorems_i args = apfst (maps snd) o PureThy.note_thmss_i "" [(("", []), args)];
+fun apply_theorems_i args = apfst (maps snd) o PureThy.note_thmss "" [(("", []), args)];
 
 
 (* declarations *)

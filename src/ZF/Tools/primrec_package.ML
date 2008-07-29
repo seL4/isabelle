@@ -170,7 +170,7 @@ fun add_primrec_i args thy =
 
     val ([def_thm], thy1) = thy
       |> Sign.add_path (Sign.base_name fname)
-      |> (PureThy.add_defs_i false o map Thm.no_attributes) [def];
+      |> (PureThy.add_defs false o map Thm.no_attributes) [def];
 
     val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)
     val eqn_thms =

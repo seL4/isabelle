@@ -244,7 +244,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val ([def_thm], thy') =
           thy
           |> Sign.add_consts_i [(cname', constrT, mx)]
-          |> (PureThy.add_defs_i false o map Thm.no_attributes) [(def_name, def)];
+          |> (PureThy.add_defs false o map Thm.no_attributes) [(def_name, def)];
 
       in (thy', defs @ [def_thm], eqns @ [eqn], i + 1) end;
 
@@ -348,7 +348,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val defs = map (fn (rec_name, (T, iso_name)) => ((Sign.base_name iso_name) ^ "_def",
           Logic.mk_equals (Const (iso_name, T --> Univ_elT),
             list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs)))) (rec_names ~~ isos);
-        val (def_thms, thy') = (PureThy.add_defs_i false o map Thm.no_attributes) defs thy;
+        val (def_thms, thy') = (PureThy.add_defs false o map Thm.no_attributes) defs thy;
 
         (* prove characteristic equations *)
 

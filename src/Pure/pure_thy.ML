@@ -43,27 +43,25 @@ sig
   val store_thms: bstring * thm list -> theory -> thm list * theory
   val store_thm: bstring * thm -> theory -> thm * theory
   val store_thm_open: bstring * thm -> theory -> thm * theory
-  val add_thm: (bstring * thm) * attribute list -> theory -> thm * theory
   val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
+  val add_thm: (bstring * thm) * attribute list -> theory -> thm * theory
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory
   val add_thms_dynamic: bstring * (Context.generic -> thm list) -> theory -> theory
   val note_thmss: string -> ((bstring * attribute list) *
-    (Facts.ref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
-  val note_thmss_i: string -> ((bstring * attribute list) *
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_grouped: string -> string -> ((bstring * attribute list) *
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
-  val note_thmss_qualified: string -> string -> ((bstring * attribute list) *
-    (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
-  val add_axioms: ((bstring * string) * attribute list) list -> theory -> thm list * theory
-  val add_axioms_i: ((bstring * term) * attribute list) list -> theory -> thm list * theory
-  val add_defs: bool -> ((bstring * string) * attribute list) list ->
+  val note_thmss_cmd: string -> ((bstring * attribute list) *
+    (Facts.ref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
+  val add_axioms: ((bstring * term) * attribute list) list -> theory -> thm list * theory
+  val add_axioms_cmd: ((bstring * string) * attribute list) list -> theory -> thm list * theory
+  val add_defs: bool -> ((bstring * term) * attribute list) list ->
     theory -> thm list * theory
-  val add_defs_i: bool -> ((bstring * term) * attribute list) list ->
+  val add_defs_unchecked: bool -> ((bstring * term) * attribute list) list ->
     theory -> thm list * theory
-  val add_defs_unchecked: bool -> ((bstring * string) * attribute list) list ->
+  val add_defs_unchecked_cmd: bool -> ((bstring * string) * attribute list) list ->
     theory -> thm list * theory
-  val add_defs_unchecked_i: bool -> ((bstring * term) * attribute list) list ->
+  val add_defs_cmd: bool -> ((bstring * string) * attribute list) list ->
     theory -> thm list * theory
   val old_appl_syntax: theory -> bool
   val old_appl_syntax_setup: theory -> theory
@@ -252,18 +250,11 @@ fun gen_note_thmss get tag = fold_map (fn ((bname, more_atts), ths_atts) => fn t
 
 in
 
-fun note_thmss k = gen_note_thmss (fn thy => get_fact (Context.Theory thy) thy) (kind k);
-fun note_thmss_i k = gen_note_thmss (K I) (kind k);
+fun note_thmss k = gen_note_thmss (K I) (kind k);
 fun note_thmss_grouped k g = gen_note_thmss (K I) (kind k #> group g);
+fun note_thmss_cmd k = gen_note_thmss (fn thy => get_fact (Context.Theory thy) thy) (kind k);
 
 end;
-
-fun note_thmss_qualified k path facts thy =
-  thy
-  |> Sign.add_path path
-  |> Sign.no_base_names
-  |> note_thmss_i k facts
-  ||> Sign.restore_naming thy;
 
 
 (* store axioms as theorems *)
@@ -278,12 +269,12 @@ local
       val thm = hd (get_axs thy' named_ax);
     in apfst hd (gen_add_thms (K I) [((name, thm), atts)] thy') end);
 in
-  val add_axioms           = add_axm Theory.add_axioms;
-  val add_axioms_i         = add_axm Theory.add_axioms_i;
-  val add_defs             = add_axm o Theory.add_defs false;
-  val add_defs_i           = add_axm o Theory.add_defs_i false;
-  val add_defs_unchecked   = add_axm o Theory.add_defs true;
-  val add_defs_unchecked_i = add_axm o Theory.add_defs_i true;
+  val add_defs               = add_axm o Theory.add_defs_i false;
+  val add_defs_unchecked     = add_axm o Theory.add_defs_i true;
+  val add_axioms             = add_axm Theory.add_axioms_i;
+  val add_defs_cmd           = add_axm o Theory.add_defs false;
+  val add_defs_unchecked_cmd = add_axm o Theory.add_defs true;
+  val add_axioms_cmd         = add_axm Theory.add_axioms;
 end;
 
 
@@ -414,7 +405,7 @@ val _ = Context.>> (Context.map_theory
   #> Sign.add_consts_i
    [("term", typ "'a => prop", NoSyn),
     ("conjunction", typ "prop => prop => prop", NoSyn)]
-  #> (add_defs_i false o map Thm.no_attributes)
+  #> (add_defs false o map Thm.no_attributes)
    [("prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
     ("term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
     ("conjunction_def", prop "(A && B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd

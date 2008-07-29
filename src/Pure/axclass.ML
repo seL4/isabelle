@@ -468,7 +468,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val ([def], def_thy) =
       thy
       |> Sign.primitive_class (bclass, super)
-      |> PureThy.add_defs_i false [((Thm.def_name bconst, class_eq), [])];
+      |> PureThy.add_defs false [((Thm.def_name bconst, class_eq), [])];
     val (raw_intro, (raw_classrel, raw_axioms)) =
       split_defined (length conjs) def ||> chop (length super);
 
@@ -478,10 +478,13 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val class_triv = Thm.class_triv def_thy class;
     val ([(_, [intro]), (_, classrel), (_, axioms)], facts_thy) =
       def_thy
-      |> PureThy.note_thmss_qualified "" bconst
+      |> Sign.add_path bconst
+      |> Sign.no_base_names
+      |> PureThy.note_thmss ""
         [((introN, []), [([Drule.standard raw_intro], [])]),
          ((superN, []), [(map Drule.standard raw_classrel, [])]),
-         ((axiomsN, []), [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])];
+         ((axiomsN, []), [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])]
+      ||> Sign.restore_naming def_thy;
 
 
     (* result *)
@@ -491,7 +494,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       facts_thy
       |> fold put_classrel (map (pair class) super ~~ classrel)
       |> Sign.add_path bconst
-      |> PureThy.note_thmss_i "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> snd
+      |> PureThy.note_thmss "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> snd
       |> Sign.restore_naming facts_thy
       |> map_axclasses (fn (axclasses, parameters) =>
         (Symtab.update (class, axclass) axclasses,
@@ -510,7 +513,7 @@ fun axiomatize prep mk name add raw_args thy =
     val args = prep thy raw_args;
     val specs = mk args;
     val names = name args;
-  in thy |> PureThy.add_axioms_i (map (rpair []) (names ~~ specs)) |-> fold add end;
+  in thy |> PureThy.add_axioms (map (rpair []) (names ~~ specs)) |-> fold add end;
 
 fun ax_classrel prep =
   axiomatize (map o prep) (map Logic.mk_classrel)

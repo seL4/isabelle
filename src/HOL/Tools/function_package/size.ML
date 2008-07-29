@@ -143,7 +143,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       |> Sign.add_consts_i (map (fn (s, T) =>
            (Sign.base_name s, param_size_fTs @ [T] ---> HOLogic.natT, NoSyn))
            (size_names ~~ recTs1))
-      |> PureThy.add_defs_i false
+      |> PureThy.add_defs false
         (map (Thm.no_attributes o apsnd (Logic.mk_equals o apsnd (app fs)))
            (def_names ~~ (size_fns ~~ rec_combs1)))
       ||> TheoryTarget.instantiation

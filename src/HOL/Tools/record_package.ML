@@ -1540,8 +1540,8 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
       |> extension_typedef name repT (alphas@[zeta])
       ||> Sign.add_consts_i
             (map Syntax.no_syn ((apfst base ext_decl)::dest_decls@upd_decls))
-      ||>> PureThy.add_defs_i false (map Thm.no_attributes (ext_spec::dest_specs))
-      ||>> PureThy.add_defs_i false (map Thm.no_attributes upd_specs)
+      ||>> PureThy.add_defs false (map Thm.no_attributes (ext_spec::dest_specs))
+      ||>> PureThy.add_defs false (map Thm.no_attributes upd_specs)
       |-> (fn args as ((_, dest_defs), upd_defs) =>
           fold Code.add_default_func dest_defs
           #> fold Code.add_default_func upd_defs
@@ -1944,9 +1944,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           (map2 (fn (x, T) => fn mx => (x, T, mx)) sel_decls (field_syntax @ [Syntax.NoSyn]))
       |> (Sign.add_consts_i o map Syntax.no_syn)
           (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
-      |> ((PureThy.add_defs_i false o map Thm.no_attributes) sel_specs)
-      ||>> ((PureThy.add_defs_i false o map Thm.no_attributes) upd_specs)
-      ||>> ((PureThy.add_defs_i false o map Thm.no_attributes)
+      |> ((PureThy.add_defs false o map Thm.no_attributes) sel_specs)
+      ||>> ((PureThy.add_defs false o map Thm.no_attributes) upd_specs)
+      ||>> ((PureThy.add_defs false o map Thm.no_attributes)
              [make_spec, fields_spec, extend_spec, truncate_spec])
       |-> (fn defs as ((sel_defs, upd_defs), derived_defs) =>
           fold Code.add_default_func sel_defs

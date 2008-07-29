@@ -617,7 +617,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           val tvs' = map (fn s => TFree (s, the (AList.lookup op = sorts' s))) tvs;
           val T = Type (Sign.intern_type thy name, tvs');
         in apfst (pair r o hd)
-          (PureThy.add_defs_unchecked_i true [(("prm_" ^ name ^ "_def", Logic.mk_equals
+          (PureThy.add_defs_unchecked true [(("prm_" ^ name ^ "_def", Logic.mk_equals
             (Const ("Nominal.perm", permT --> T --> T) $ pi $ Free ("x", T),
              Const (Sign.intern_const thy ("Abs_" ^ name), U --> T) $
                (Const ("Nominal.perm", permT --> U --> U) $ pi $
@@ -783,7 +783,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val def_name = (Sign.base_name cname) ^ "_def";
         val ([def_thm], thy') = thy |>
           Sign.add_consts_i [(cname', constrT, mx)] |>
-          (PureThy.add_defs_i false o map Thm.no_attributes) [(def_name, def)]
+          (PureThy.add_defs false o map Thm.no_attributes) [(def_name, def)]
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
 
     fun dt_constr_defs ((thy, defs, eqns, dist_lemmas), ((((((_, (_, _, constrs)),
@@ -1965,7 +1965,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       |> Sign.add_consts_i (map (fn ((name, T), T') =>
           (Sign.base_name name, rec_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
-      |> (PureThy.add_defs_i false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
+      |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
           ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))

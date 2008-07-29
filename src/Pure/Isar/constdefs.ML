@@ -50,7 +50,7 @@ fun gen_constdef prep_vars prep_prop prep_att
     val thy' =
       thy
       |> Sign.add_consts_i [(c, T, mx)]
-      |> PureThy.add_defs_i false [((name, def), atts)]
+      |> PureThy.add_defs false [((name, def), atts)]
       |-> (fn [thm] => Code.add_default_func thm);
   in ((c, T), thy') end;
 

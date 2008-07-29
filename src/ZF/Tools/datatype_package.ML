@@ -247,14 +247,14 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       if need_recursor then
            thy |> Sign.add_consts_i
                     [(recursor_base_name, recursor_typ, NoSyn)]
-               |> (snd o PureThy.add_defs_i false [Thm.no_attributes recursor_def])
+               |> (snd o PureThy.add_defs false [Thm.no_attributes recursor_def])
       else thy;
 
   val (con_defs, thy0) = thy_path
              |> Sign.add_consts_i
                  ((case_base_name, case_typ, NoSyn) ::
                   map #1 (List.concat con_ty_lists))
-             |> PureThy.add_defs_i false
+             |> PureThy.add_defs false
                  (map Thm.no_attributes
                   (case_def ::
                    List.concat (ListPair.map mk_con_defs

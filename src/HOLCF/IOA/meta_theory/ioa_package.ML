@@ -350,7 +350,7 @@ val thy2 = (thy
 (automaton_name ^ "_trans",
  "(" ^ action_type ^ "," ^ state_type_string ^ ")transition set" ,NoSyn),
 (automaton_name, "(" ^ action_type ^ "," ^ state_type_string ^ ")ioa" ,NoSyn)]
-|> (snd oo (PureThy.add_defs false o map Thm.no_attributes))
+|> (snd oo (PureThy.add_defs_cmd false o map Thm.no_attributes))
 [(automaton_name ^ "_initial_def",
 automaton_name ^ "_initial == {" ^ state_vars_tupel ^ "." ^ ini ^ "}"),
 (automaton_name ^ "_asig_def",
@@ -391,7 +391,7 @@ Type("*",
   Type("*",[Type("set",[Type("*",[st_typ,Type("*",[acttyp,st_typ])])]),
    Type("*",[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
 ,NoSyn)]
-|> (snd oo (PureThy.add_defs false o map Thm.no_attributes))
+|> (snd oo (PureThy.add_defs_cmd false o map Thm.no_attributes))
 [(automaton_name ^ "_def",
 automaton_name ^ " == " ^ comp_list)]
 end)
@@ -406,7 +406,7 @@ in
 thy
 |> ContConsts.add_consts_i
 [(automaton_name, auttyp,NoSyn)]
-|> (snd oo (PureThy.add_defs false o map Thm.no_attributes))
+|> (snd oo (PureThy.add_defs_cmd false o map Thm.no_attributes))
 [(automaton_name ^ "_def",
 automaton_name ^ " == restrict " ^ aut_source ^ " " ^ rest_set)] 
 end)
@@ -420,7 +420,7 @@ in
 thy
 |> ContConsts.add_consts_i
 [(automaton_name, auttyp,NoSyn)]
-|> (snd oo (PureThy.add_defs false o map Thm.no_attributes))
+|> (snd oo (PureThy.add_defs_cmd false o map Thm.no_attributes))
 [(automaton_name ^ "_def",
 automaton_name ^ " == hide " ^ aut_source ^ " " ^ hid_set)] 
 end)
@@ -446,7 +446,7 @@ Type("*",
   Type("*",[Type("set",[Type("*",[st_typ,Type("*",[acttyp,st_typ])])]),
    Type("*",[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
 ,NoSyn)]
-|> (snd oo (PureThy.add_defs false o map Thm.no_attributes))
+|> (snd oo (PureThy.add_defs_cmd false o map Thm.no_attributes))
 [(automaton_name ^ "_def",
 automaton_name ^ " == rename " ^ aut_source ^ " (" ^ fun_name ^ ")")]
 end)

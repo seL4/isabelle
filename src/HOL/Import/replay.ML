@@ -340,7 +340,7 @@ fun replay_chached_thm int_thms thyname thmname =
 	  | delta (Hol_move (fullname, moved_thmname)) thy = 
 	    add_hol4_move fullname moved_thmname thy
 	  | delta (Defs (thmname, eq)) thy =
-	    snd (PureThy.add_defs_i false [((thmname, eq), [])] thy)
+	    snd (PureThy.add_defs false [((thmname, eq), [])] thy)
 	  | delta (Hol_theorem (thyname, thmname, th)) thy =
 	    add_hol4_theorem thyname thmname ([], th_of thy th) thy
 	  | delta (Typedef (thmname, typ, c, repabs, th)) thy = 

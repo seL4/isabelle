@@ -152,7 +152,7 @@ fun create_nom_typedecls ak_names thy =
         val def2 = Logic.mk_equals (cswap $ ab $ c, cswap_akname $ ab $ c)
       in
         thy |> Sign.add_consts_i [("swap_" ^ ak_name, swapT, NoSyn)] 
-            |> PureThy.add_defs_unchecked_i true [((name, def2),[])]
+            |> PureThy.add_defs_unchecked true [((name, def2),[])]
             |> snd
             |> OldPrimrecPackage.add_primrec_unchecked_i "" [(("", def1),[])]
       end) ak_names_types thy1;
@@ -207,7 +207,7 @@ fun create_nom_typedecls ak_names thy =
           val def = Logic.mk_equals
                     (cperm $ pi $ a, if ak_name = ak_name' then cperm_def $ pi $ a else a)
         in
-          PureThy.add_defs_unchecked_i true [((name, def),[])] thy'
+          PureThy.add_defs_unchecked true [((name, def),[])] thy'
         end) ak_names_types thy) ak_names_types thy4;
     
     (* proves that every atom-kind is an instance of at *)

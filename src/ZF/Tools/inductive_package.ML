@@ -174,7 +174,7 @@ let
   val (_, thy1) =
     thy
     |> Sign.add_path big_rec_base_name
-    |> PureThy.add_defs_i false (map Thm.no_attributes axpairs);
+    |> PureThy.add_defs false (map Thm.no_attributes axpairs);
 
   val ctxt1 = ProofContext.init thy1;
 
