@@ -14,10 +14,14 @@ sig
     -> theory -> string * Proof.context
 
   val init: class -> theory -> Proof.context
-  val declare: string -> Markup.property list
+  val declare: class -> Markup.property list
     -> (string * mixfix) * term -> theory -> theory
-  val abbrev: string -> Syntax.mode -> Markup.property list
+  val abbrev: class -> Syntax.mode -> Markup.property list
     -> (string * mixfix) * term -> theory -> theory
+  val note: class -> string
+    -> ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
+    -> theory -> (bstring * thm list) list * theory
+  val declaration: class -> declaration -> theory -> theory
   val refresh_syntax: class -> Proof.context -> Proof.context
 
   val intro_classes_tac: thm list -> tactic
@@ -57,9 +61,6 @@ structure Class : CLASS =
 struct
 
 (** auxiliary **)
-
-val classN = "class";
-val introN = "intro";
 
 fun prove_interpretation tac prfx_atts expr inst =
   Locale.interpretation_i I prfx_atts expr inst
@@ -283,17 +284,20 @@ fun calculate sups base_sort assm_axiom param_map class thy =
       (base_sort, sort)], map (fn (v, (c, ty)) => pairself (Thm.cterm_of thy)
         (Var ((v, 0), map_atyps (fn _ => TVar ((Name.aT, 0), sort)) ty),
           Const (c, map_atyps (fn _ => TVar ((Name.aT, 0), sort)) ty))) param_map);
-    val instantiate_base_sort = instantiate thy base_sort;
-    val instantiate_class = instantiate thy [class];
+    (*fun inst thy sort thm = (tracing (makestring thm); instantiate thy sort thm);
+    val instantiate = inst;*)
     val (proto_assm_intro, locale_intro) = Locale.intros thy class
       |> pairself (try the_single);
     val axiom_premises = map_filter (#axiom o the_class_data thy) sups
       @ the_list assm_axiom;
     val axiom = locale_intro
-      |> Option.map (Drule.standard o (fn thm => thm OF axiom_premises) o instantiate_class)
+      |> Option.map (Thm.close_derivation o Drule.standard' o (fn thm => thm OF axiom_premises) o instantiate thy [class])
       |> (fn x as SOME _ => x | NONE => assm_axiom);
     val lift_axiom = case axiom
-     of SOME axiom => (fn thm => Thm.implies_elim thm axiom)
+     of SOME axiom => (fn thm => ((*tracing "-(morphism)-";
+          tracing (makestring thm);
+          tracing (makestring axiom);*)
+          Thm.implies_elim thm axiom))
       | NONE => I;
 
     (*dynamic parts of morphism*)
@@ -301,17 +305,17 @@ fun calculate sups base_sort assm_axiom param_map class thy =
       (map (Logic.dest_equals o Thm.prop_of) defs) [];
     fun subst_term thy defs = map_aterms subst_aterm #> rew_term thy defs
       #> map_types subst_typ;
-    fun subst_thm defs = Drule.standard' #> instantiate_class #> lift_axiom
+    fun subst_thm thy defs = Drule.standard' #> instantiate thy [class] #> lift_axiom
       #> MetaSimplifier.rewrite_rule defs;
     fun morphism thy defs =
       Morphism.typ_morphism subst_typ
       $> Morphism.term_morphism (subst_term thy defs)
-      $> Morphism.thm_morphism (subst_thm defs);
+      $> Morphism.thm_morphism (subst_thm thy defs);
 
     (*class rules*)
     val defs = these_defs thy sups;
     val assm_intro = proto_assm_intro
-      |> Option.map instantiate_base_sort
+      |> Option.map (instantiate thy base_sort)
       |> Option.map (MetaSimplifier.rewrite_rule defs)
       |> Option.map Thm.close_derivation;
     val class_intro = (#intro o AxClass.get_info thy) class;
@@ -343,6 +347,8 @@ fun calculate sups base_sort assm_axiom param_map class thy =
     |> Sign.restore_naming thy
     |> pair (morphism, axiom, assm_intro, of_class)
   end;
+
+fun class_interpretation class facts defs thy = thy;
 
 fun class_interpretation class facts defs thy =
   let
@@ -406,7 +412,6 @@ val _ = Context.>> (Context.map_theory
       "apply some intro/elim rule")]));
 
 
-
 (** classes and class target **)
 
 (* class context syntax *)
@@ -462,6 +467,72 @@ fun init class thy =
   thy
   |> Locale.init class
   |> init_ctxt [class] ((#base_sort o the_class_data thy) class);
+
+
+(* class target *)
+
+fun declare class pos ((c, mx), dict) thy =
+  let
+    val prfx = class_prefix class;
+    val thy' = thy |> Sign.add_path prfx;
+    val phi = morphism thy' class;
+
+    val c' = Sign.full_name thy' c;
+    val dict' = Morphism.term phi dict;
+    val dict_def = map_types Logic.unvarifyT dict';
+    val ty' = Term.fastype_of dict_def;
+    val ty'' = Type.strip_sorts ty';
+    val def_eq = Logic.mk_equals (Const (c', ty'), dict_def);
+    fun get_axiom thy = ((Thm.varifyT o Thm.get_axiom_i thy) c', thy);
+  in
+    thy'
+    |> Sign.declare_const pos (c, ty'', mx) |> snd
+    |> Thm.add_def false false (c, def_eq)
+    |>> Thm.symmetric
+    ||>> get_axiom
+    |-> (fn (def, def') => class_interpretation class [def] [Thm.prop_of def]
+      #> register_operation class (c', (dict', SOME (Thm.symmetric def')))
+      #> PureThy.store_thm (c ^ "_raw", def')
+      #> snd)
+    |> Sign.restore_naming thy
+    |> Sign.add_const_constraint (c', SOME ty')
+  end;
+
+fun abbrev class prmode pos ((c, mx), rhs) thy =
+  let
+    val prfx = class_prefix class;
+    val thy' = thy |> Sign.add_path prfx;
+
+    val unchecks = map (fn (c, (_, (ty, t))) => (t, Const (c, ty)))
+      (these_operations thy [class]);
+    val c' = Sign.full_name thy' c;
+    val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
+    val rhs'' = map_types Logic.varifyT rhs';
+    val ty' = Term.fastype_of rhs';
+  in
+    thy'
+    |> Sign.add_abbrev (#1 prmode) pos (c, map_types Type.strip_sorts rhs'') |> snd
+    |> Sign.add_const_constraint (c', SOME ty')
+    |> Sign.notation true prmode [(Const (c', ty'), mx)]
+    |> not (#1 prmode = PrintMode.input) ? register_operation class (c', (rhs', NONE))
+    |> Sign.restore_naming thy
+  end;
+
+fun note class kind facts thy =
+  let
+    val phi = morphism thy class;
+    val facts' = facts
+      |> PureThy.map_facts (Morphism.thm phi) 
+      |> Attrib.map_facts (Attrib.attribute_i thy);
+  in
+    thy
+    |> Sign.add_path (class_prefix class)
+    |> PureThy.note_thmss kind facts'
+    ||> Sign.restore_naming thy
+  end;
+
+fun declaration class decl thy =
+  Context.theory_map (decl (morphism thy class)) thy;
 
 
 (* class definition *)
@@ -559,6 +630,9 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     val class = Sign.full_name thy bname;
     val (((sups, supparams), (supsort, base_sort, mergeexpr)), (elems, global_syntax)) =
       prep_spec thy raw_supclasses raw_elems;
+    fun assms_of thy class =
+      Locale.elems thy class
+      |> map_filter (fn Element.Notes (_, facts) => SOME facts | _ => NONE);
   in
     thy
     |> Locale.add_locale_i "" bname mergeexpr elems
@@ -570,7 +644,10 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     #-> (fn (morphism, axiom, assm_intro, of_class) =>
         add_class_data ((class, sups), (params, base_sort,
           map snd param_map, morphism, axiom, assm_intro, of_class))
-    #> class_interpretation class (the_list axiom) []))
+    (*#> `(fn thy => assms_of thy class)
+    #-> (fn assms => fold_map (note class Thm.assumptionK) assms
+    #> snd*)
+    #> class_interpretation class (the_list axiom) []))(*)*)
     |> init class
     |> pair class
   end;
@@ -582,55 +659,6 @@ val class = gen_class check_class_spec;
 
 end; (*local*)
 
-
-(* class target *)
-
-fun declare class pos ((c, mx), dict) thy =
-  let
-    val prfx = class_prefix class;
-    val thy' = thy |> Sign.add_path prfx;
-    val phi = morphism thy' class;
-
-    val c' = Sign.full_name thy' c;
-    val dict' = Morphism.term phi dict;
-    val dict_def = map_types Logic.unvarifyT dict';
-    val ty' = Term.fastype_of dict_def;
-    val ty'' = Type.strip_sorts ty';
-    val def_eq = Logic.mk_equals (Const (c', ty'), dict_def);
-    fun get_axiom thy = ((Thm.varifyT o Thm.get_axiom_i thy) c', thy);
-  in
-    thy'
-    |> Sign.declare_const pos (c, ty'', mx) |> snd
-    |> Thm.add_def false false (c, def_eq)
-    |>> Thm.symmetric
-    ||>> get_axiom
-    |-> (fn (def, def') => class_interpretation class [def] [Thm.prop_of def]
-      #> register_operation class (c', (dict', SOME (Thm.symmetric def')))
-      #> PureThy.store_thm (c ^ "_raw", def')
-      #> snd)
-    |> Sign.restore_naming thy
-    |> Sign.add_const_constraint (c', SOME ty')
-  end;
-
-fun abbrev class prmode pos ((c, mx), rhs) thy =
-  let
-    val prfx = class_prefix class;
-    val thy' = thy |> Sign.add_path prfx;
-
-    val unchecks = map (fn (c, (_, (ty, t))) => (t, Const (c, ty)))
-      (these_operations thy [class]);
-    val c' = Sign.full_name thy' c;
-    val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
-    val rhs'' = map_types Logic.varifyT rhs';
-    val ty' = Term.fastype_of rhs';
-  in
-    thy'
-    |> Sign.add_abbrev (#1 prmode) pos (c, map_types Type.strip_sorts rhs'') |> snd
-    |> Sign.add_const_constraint (c', SOME ty')
-    |> Sign.notation true prmode [(Const (c', ty'), mx)]
-    |> not (#1 prmode = PrintMode.input) ? register_operation class (c', (rhs', NONE))
-    |> Sign.restore_naming thy
-  end;
 
 
 (** instantiation target **)

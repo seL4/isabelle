@@ -70,7 +70,7 @@ fun pretty (Target {target, is_locale, is_class, instantiation, overloading}) ct
 
 (* target declarations *)
 
-fun target_decl add (Target {target, ...}) d lthy =
+fun target_decl add (Target {target, is_class, ...}) d lthy =
   let
     val d' = Morphism.transform (LocalTheory.target_morphism lthy) d;
     val d0 = Morphism.form d';
@@ -82,6 +82,7 @@ fun target_decl add (Target {target, ...}) d lthy =
     else
       lthy
       |> LocalTheory.target (add target d')
+      (*|> is_class ? LocalTheory.raw_theory (Class.declaration target d')*)
   end;
 
 val type_syntax = target_decl Locale.add_type_syntax;
@@ -147,7 +148,7 @@ fun note_local kind facts ctxt =
   |> ProofContext.note_thmss_i kind facts
   ||> ProofContext.restore_naming ctxt;
 
-fun notes (Target {target, is_locale, ...}) kind facts lthy =
+fun notes (Target {target, is_locale, is_class, ...}) kind facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val full = LocalTheory.full_name lthy;
@@ -166,10 +167,9 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
       (Sign.qualified_names
         #> PureThy.note_thmss_grouped kind (LocalTheory.group_of lthy) global_facts #> snd
         #> Sign.restore_naming thy)
-
     |> not is_locale ? LocalTheory.target (note_local kind global_facts #> snd)
     |> is_locale ? LocalTheory.target (Locale.add_thmss target kind target_facts)
-
+    (*|> is_class ? LocalTheory.raw_theory (Class.note target kind target_facts #> snd)*)
     |> note_local kind local_facts
   end;
 
