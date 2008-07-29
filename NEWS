@@ -147,6 +147,11 @@ Hyperreal.thy remains valid, but theories formerly using
 Complex_Main.thy should now use new entry point Hypercomplex.thy.
 
 
+*** ZF ***
+
+* Proof of Zorn's Lemma for partial orders.
+
+
 *** ML ***
  
 * Rules and tactics that read instantiations (read_instantiate,

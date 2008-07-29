@@ -298,6 +298,26 @@ apply (fast elim: chain_extend)
 apply (fast elim: equalityE)
 done
 
+text {* Alternative version of Zorn's Lemma *}
+
+theorem Zorn2:
+  "\<forall>c \<in> chain(S). \<exists>y \<in> S. \<forall>x \<in> c. x <= y ==> \<exists>y \<in> S. \<forall>z \<in> S. y<=z --> y=z"
+apply (cut_tac Hausdorff maxchain_subset_chain)
+apply (erule exE)
+apply (drule subsetD, assumption)
+apply (drule bspec, assumption, erule bexE)
+apply (rule_tac x = y in bexI)
+  prefer 2 apply assumption
+apply clarify
+apply rule apply assumption
+apply rule
+apply (rule ccontr)
+apply (frule_tac z=z in chain_extend)
+  apply (assumption, blast)
+apply (unfold maxchain_def super_def)
+apply (blast elim!: equalityCE)
+done
+
 
 subsection{*Zermelo's Theorem: Every Set can be Well-Ordered*}
 
@@ -410,5 +430,90 @@ apply (rule well_ord_rvimage)
 apply (erule_tac [2] well_ord_TFin)
 apply (rule choice_imp_injection [THEN inj_weaken_type], blast+)
 done
+
+
+subsection {* Zorn's Lemma for Partial Orders *}
+
+text {* Reimported from HOL by Clemens Ballarin. *}
+
+
+definition Chain :: "i => i" where
+  "Chain(r) = {A : Pow(field(r)). ALL a:A. ALL b:A. <a, b> : r | <b, a> : r}"
+
+lemma mono_Chain:
+  "r \<subseteq> s ==> Chain(r) \<subseteq> Chain(s)"
+  unfolding Chain_def
+  by blast
+
+theorem Zorn_po:
+  assumes po: "Partial_order(r)"
+    and u: "ALL C:Chain(r). EX u:field(r). ALL a:C. <a, u> : r"
+  shows "EX m:field(r). ALL a:field(r). <m, a> : r --> a = m"
+proof -
+  have "Preorder(r)" using po by (simp add: partial_order_on_def)
+  --{* Mirror r in the set of subsets below (wrt r) elements of A (?). *}
+  let ?B = "lam x:field(r). r -`` {x}" let ?S = "?B `` field(r)"
+  have "ALL C:chain(?S). EX U:?S. ALL A:C. A \<subseteq> U"
+  proof (clarsimp simp: chain_def Subset_rel_def bex_image_simp)
+    fix C
+    assume 1: "C \<subseteq> ?S" and 2: "ALL A:C. ALL B:C. A \<subseteq> B | B \<subseteq> A"
+    let ?A = "{x : field(r). EX M:C. M = ?B`x}"
+    have "C = ?B `` ?A" using 1
+      apply (auto simp: image_def)
+      apply rule
+      apply rule
+      apply (drule subsetD) apply assumption
+      apply (erule CollectE)
+      apply rule apply assumption
+      apply (erule bexE)
+      apply rule prefer 2 apply assumption
+      apply rule
+      apply (erule lamE) apply simp
+      apply assumption
+
+      apply (thin_tac "C \<subseteq> ?X")
+      apply (fast elim: lamE)
+      done
+    have "?A : Chain(r)"
+    proof (simp add: Chain_def subsetI, intro conjI ballI impI)
+      fix a b
+      assume "a : field(r)" "r -`` {a} : C" "b : field(r)" "r -`` {b} : C"
+      hence "r -`` {a} \<subseteq> r -`` {b} | r -`` {b} \<subseteq> r -`` {a}" using 2 by auto
+      then show "<a, b> : r | <b, a> : r"
+	using `Preorder(r)` `a : field(r)` `b : field(r)`
+	by (simp add: subset_vimage1_vimage1_iff)
+    qed
+    then obtain u where uA: "u : field(r)" "ALL a:?A. <a, u> : r"
+      using u
+      apply auto
+      apply (drule bspec) apply assumption
+      apply auto
+      done
+    have "ALL A:C. A \<subseteq> r -`` {u}"
+    proof (auto intro!: vimageI)
+      fix a B
+      assume aB: "B : C" "a : B"
+      with 1 obtain x where "x : field(r)" "B = r -`` {x}"
+	apply -
+	apply (drule subsetD) apply assumption
+	apply (erule imageE)
+	apply (erule lamE)
+	apply simp
+	done
+      then show "<a, u> : r" using uA aB `Preorder(r)`
+	by (auto simp: preorder_on_def refl_def) (blast dest: trans_onD)+
+    qed
+    then show "EX U:field(r). ALL A:C. A \<subseteq> r -`` {U}"
+      using `u : field(r)` ..
+  qed
+  from Zorn2 [OF this]
+  obtain m B where "m : field(r)" "B = r -`` {m}"
+    "ALL x:field(r). B \<subseteq> r -`` {x} --> B = r -`` {x}"
+    by (auto elim!: lamE simp: ball_image_simp)
+  then have "ALL a:field(r). <m, a> : r --> a = m"
+    using po `Preorder(r)` `m : field(r)`
+    by (auto simp: subset_vimage1_vimage1_iff Partial_order_eq_vimage1_vimage1_iff)
+  then show ?thesis using `m : field(r)` by blast
+qed
 
 end
