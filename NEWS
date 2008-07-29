@@ -123,6 +123,22 @@ instantiations for algebraic structures.  Removed some duplicate
 theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
 
+*** HOL-Algebra ***
+
+* Units_l_inv and Units_r_inv are now simprules by default.
+INCOMPATIBILITY.  Simplifier proof that require deletion of l_inv
+and/or r_inv will now also require deletion of these lemmas.
+
+* Renamed the following theorems.  INCOMPATIBILITY.
+UpperD ~> Upper_memD
+LowerD ~> Lower_memD
+least_carrier ~> least_closed
+greatest_carrier ~> greatest_closed
+greatest_Lower_above ~> greatest_Lower_below
+
+* New theory of factorial domains.
+
+
 *** HOL-NSA ***
 
 * Created new image HOL-NSA, containing theories of nonstandard
