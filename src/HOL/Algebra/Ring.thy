@@ -315,9 +315,33 @@ text {*Usually, if this rule causes a failed congruence proof error,
    the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
    Adding @{thm [source] Pi_def} to the simpset is often useful. *}
 
+lemma (in abelian_monoid) finsum_reindex:
+  assumes fin: "finite A"
+    shows "f : (h ` A) \<rightarrow> carrier G \<Longrightarrow> 
+        inj_on h A ==> finsum G f (h ` A) = finsum G (%x. f (h x)) A"
+  using fin apply induct
+  apply (auto simp add: finsum_insert Pi_def)
+done
+
+(* The following is wrong.  Needed is the equivalent of (^) for addition,
+  or indeed the canonical embedding from Nat into the monoid.
+
+lemma (in abelian_monoid) finsum_const:
+  assumes fin [simp]: "finite A"
+      and a [simp]: "a : carrier G"
+    shows "finsum G (%x. a) A = a (^) card A"
+  using fin apply induct
+  apply force
+  apply (subst finsum_insert)
+  apply auto
+  apply (force simp add: Pi_def)
+  apply (subst m_comm)
+  apply auto
+done
+*)
+
 
 section {* The Algebraic Hierarchy of Rings *}
-
 
 subsection {* Basic Definitions *}
 
@@ -354,7 +378,7 @@ lemma ringI:
 
 lemma (in ring) is_abelian_group:
   "abelian_group R"
-  by (auto intro!: abelian_groupI a_assoc a_comm l_neg)
+  by unfold_locales
 
 lemma (in ring) is_monoid:
   "monoid R"
@@ -394,9 +418,11 @@ proof (intro cring.intro ring.intro)
 qed (auto intro: cring.intro
   abelian_group.axioms comm_monoid.axioms ring_axioms.intro prems)
 
+(*
 lemma (in cring) is_comm_monoid:
   "comm_monoid R"
   by (auto intro!: comm_monoidI m_assoc m_comm)
+*)
 
 lemma (in cring) is_cring:
   "cring R" by (rule cring_axioms)

@@ -486,5 +486,27 @@ lemma (in comm_monoid) finprod_mult [simp]:
      finprod G f {..n} \<otimes> finprod G g {..n}"
   by (induct n) (simp_all add: m_ac Pi_def)
 
-end
+(* The following two were contributed by Jeremy Avigad. *)
 
+lemma (in comm_monoid) finprod_reindex:
+  assumes fin: "finite A"
+    shows "f : (h ` A) \<rightarrow> carrier G \<Longrightarrow> 
+        inj_on h A ==> finprod G f (h ` A) = finprod G (%x. f (h x)) A"
+  using fin apply induct
+  apply (auto simp add: finprod_insert Pi_def)
+done
+
+lemma (in comm_monoid) finprod_const:
+  assumes fin [simp]: "finite A"
+      and a [simp]: "a : carrier G"
+    shows "finprod G (%x. a) A = a (^) card A"
+  using fin apply induct
+  apply force
+  apply (subst finprod_insert)
+  apply auto
+  apply (force simp add: Pi_def)
+  apply (subst m_comm)
+  apply auto
+done
+
+end
