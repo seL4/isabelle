@@ -592,4 +592,23 @@ by blast
 lemmas basic_monos = subset_refl imp_refl disj_mono conj_mono ex_mono 
                      Collect_mono Part_mono in_mono
 
+(* Useful with simp; contributed by Clemens Ballarin. *)
+
+lemma bex_image_simp:
+  "[| f : Pi(X, Y); A \<subseteq> X |]  ==> (EX x : f``A. P(x)) <-> (EX x:A. P(f`x))"
+  apply safe
+   apply rule
+    prefer 2 apply assumption
+   apply (simp add: apply_equality)
+  apply (blast intro: apply_Pair)
+  done
+
+lemma ball_image_simp:
+  "[| f : Pi(X, Y); A \<subseteq> X |]  ==> (ALL x : f``A. P(x)) <-> (ALL x:A. P(f`x))"
+  apply safe
+   apply (blast intro: apply_Pair)
+  apply (drule bspec) apply assumption
+  apply (simp add: apply_equality)
+  done
+
 end

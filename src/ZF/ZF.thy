@@ -433,6 +433,10 @@ lemma equalityCE:
     "[| A = B;  [| c\<in>A; c\<in>B |] ==> P;  [| c~:A; c~:B |] ==> P |]  ==>  P"
 by (erule equalityE, blast) 
 
+lemma equality_iffD:
+  "A = B ==> (!!x. x : A <-> x : B)"
+  by auto
+
 
 subsection{*Rules for Replace -- the derived form of replacement*}
 
