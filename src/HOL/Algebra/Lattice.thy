@@ -5,16 +5,10 @@
   Copyright: Clemens Ballarin
 *)
 
-theory Lattice imports Main begin
+theory Lattice imports Congruence begin
 
 
 section {* Orders and Lattices *}
-
-text {* Object with a carrier set. *}
-
-record 'a partial_object =
-  carrier :: "'a set"
-
 
 subsection {* Partial Orders *}
 
@@ -71,7 +65,7 @@ lemma Upper_closed [intro, simp]:
   "Upper L A \<subseteq> carrier L"
   by (unfold Upper_def) clarify
 
-lemma UpperD [dest]:
+lemma Upper_memD [dest]:
   fixes L (structure)
   shows "[| u \<in> Upper L A; x \<in> A; A \<subseteq> carrier L |] ==> x \<sqsubseteq> u"
   by (unfold Upper_def) blast
@@ -92,7 +86,7 @@ lemma Lower_closed [intro, simp]:
   "Lower L A \<subseteq> carrier L"
   by (unfold Lower_def) clarify
 
-lemma LowerD [dest]:
+lemma Lower_memD [dest]:
   fixes L (structure)
   shows "[| l \<in> Lower L A; x \<in> A; A \<subseteq> carrier L |] ==> l \<sqsubseteq> x"
   by (unfold Lower_def) blast
@@ -109,7 +103,7 @@ lemma Lower_antimono:
 
 subsubsection {* least *}
 
-lemma least_carrier [intro, simp]:
+lemma least_closed [intro, simp]:
   shows "least L l A ==> l \<in> carrier L"
   by (unfold least_def) fast
 
@@ -142,7 +136,7 @@ qed
 
 subsubsection {* greatest *}
 
-lemma greatest_carrier [intro, simp]:
+lemma greatest_closed [intro, simp]:
   shows "greatest L l A ==> l \<in> carrier L"
   by (unfold greatest_def) fast
 
@@ -186,7 +180,7 @@ lemma least_Upper_above:
   shows "[| least L s (Upper L A); x \<in> A; A \<subseteq> carrier L |] ==> x \<sqsubseteq> s"
   by (unfold least_def) blast
 
-lemma greatest_Lower_above:
+lemma greatest_Lower_below:
   fixes L (structure)
   shows "[| greatest L i (Lower L A); x \<in> A; A \<subseteq> carrier L |] ==> i \<sqsubseteq> x"
   by (unfold greatest_def) blast
@@ -207,7 +201,7 @@ qed
 
 lemma (in lattice) join_closed [simp]:
   "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<squnion> y \<in> carrier L"
-  by (rule joinI) (rule least_carrier)
+  by (rule joinI) (rule least_closed)
 
 lemma (in partial_order) sup_of_singletonI:      (* only reflexivity needed ? *)
   "x \<in> carrier L ==> least L x (Upper L {x})"
@@ -402,7 +396,7 @@ proof (rule finite_sup_insertI)
     from sup L show "s \<sqsubseteq> x \<squnion> (y \<squnion> z)"
     by (erule_tac least_le)
       (blast intro!: Upper_memI intro: trans join_left join_right join_closed)
-  qed (simp_all add: L least_carrier [OF sup])
+  qed (simp_all add: L least_closed [OF sup])
 qed (simp_all add: L)
 
 lemma join_comm:
@@ -438,7 +432,7 @@ qed
 
 lemma (in lattice) meet_closed [simp]:
   "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqinter> y \<in> carrier L"
-  by (rule meetI) (rule greatest_carrier)
+  by (rule meetI) (rule greatest_closed)
 
 lemma (in partial_order) inf_of_singletonI:      (* only reflexivity needed ? *)
   "x \<in> carrier L ==> greatest L x (Lower L {x})"
@@ -470,11 +464,11 @@ proof (unfold inf_def)
       then show "i \<sqsubseteq> z"
       proof
         assume "z = x" then show ?thesis
-          by (simp add: greatest_Lower_above [OF greatest_i] L La)
+          by (simp add: greatest_Lower_below [OF greatest_i] L La)
       next
         assume "z \<in> A"
         with L greatest_i greatest_a show ?thesis
-          by (rule_tac trans [where y = a]) (auto dest: greatest_Lower_above)
+          by (rule_tac trans [where y = a]) (auto dest: greatest_Lower_below)
       qed
     next
       fix y
@@ -514,11 +508,11 @@ proof (unfold inf_def)
         then show "i \<sqsubseteq> z"
 	proof
           assume "z = x" then show ?thesis
-            by (simp add: greatest_Lower_above [OF greatest_i] L La)
+            by (simp add: greatest_Lower_below [OF greatest_i] L La)
 	next
           assume "z \<in> A"
           with L greatest_i greatest_a show ?thesis
-            by (rule_tac trans [where y = a]) (auto dest: greatest_Lower_above)
+            by (rule_tac trans [where y = a]) (auto dest: greatest_Lower_below)
         qed
       next
         fix y
@@ -629,12 +623,12 @@ proof (rule finite_inf_insertI)
   show "x \<sqinter> (y \<sqinter> z) = i"
   proof (rule anti_sym)
     from inf L show "i \<sqsubseteq> x \<sqinter> (y \<sqinter> z)"
-      by (fastsimp intro!: meet_le elim: greatest_Lower_above)
+      by (fastsimp intro!: meet_le elim: greatest_Lower_below)
   next
     from inf L show "x \<sqinter> (y \<sqinter> z) \<sqsubseteq> i"
     by (erule_tac greatest_le)
       (blast intro!: Lower_memI intro: trans meet_left meet_right meet_closed)
-  qed (simp_all add: L greatest_carrier [OF inf])
+  qed (simp_all add: L greatest_closed [OF inf])
 qed (simp_all add: L)
 
 lemma meet_comm:
@@ -809,14 +803,14 @@ apply (rule least_UpperI)
    apply (rule greatest_le [where A = "Lower L ?B"])
     apply (rule b_inf_B)
    apply (rule Lower_memI)
-    apply (erule UpperD)
+    apply (erule Upper_memD)
      apply assumption
     apply (rule L)
    apply (fast intro: L [THEN subsetD])
-  apply (erule greatest_Lower_above [OF b_inf_B])
+  apply (erule greatest_Lower_below [OF b_inf_B])
   apply simp
  apply (rule L)
-apply (rule greatest_carrier [OF b_inf_B]) (* rename rule: _closed *)
+apply (rule greatest_closed [OF b_inf_B])
 done
   then show "EX s. least L s (Upper L A)" ..
 next
