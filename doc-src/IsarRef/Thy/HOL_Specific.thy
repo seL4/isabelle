@@ -1063,14 +1063,14 @@ text {*
   \emph{Haskell}.
 
   \item [@{command (HOL) "code_monad"}] provides an auxiliary
-  mechanism to generate monadic code.
+  mechanism to generate monadic code for Haskell.
 
   \item [@{command (HOL) "code_reserved"}] declares a list of names as
   reserved for a given target, preventing it to be shadowed by any
   generated code.
 
   \item [@{command (HOL) "code_include"}] adds arbitrary named content
-  (``include'') to generated code.  A as last argument ``@{text "-"}''
+  (``include'') to generated code.  A ``@{text "-"}'' as last argument
   will remove an already added ``include''.
 
   \item [@{command (HOL) "code_modulename"}] declares aliasings from
