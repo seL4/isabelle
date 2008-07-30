@@ -234,7 +234,7 @@ fun put_target (target, seri) thy =
     val defined_target = is_some o Symtab.lookup (fst (CodeTargetData.get thy));
     val _ = case seri
      of Extends (super, _) => if defined_target super then ()
-          else error ("No such target: " ^ quote super)
+          else error ("Unknown code target language: " ^ quote super)
       | _ => ();
     val _ = if defined_target target
       then warning ("Overwriting existing target " ^ quote target)
@@ -400,7 +400,7 @@ fun gen_pr_app pr_app pr_term syntax_const is_cons thm pat
     vars fxy (app as ((c, (_, tys)), ts)) =
   case syntax_const c
    of NONE => if pat andalso not (is_cons c) then
-        nerror thm "Non-constructor in pattern "
+        nerror thm "Non-constructor in pattern"
         else brackify fxy (pr_app thm pat vars app)
     | SOME (i, pr) =>
         let
@@ -411,7 +411,7 @@ fun gen_pr_app pr_app pr_term syntax_const is_cons thm pat
         else if k < length ts
           then case chop k ts of (ts1, ts2) =>
             brackify fxy (pr' APP ts1 :: map (pr_term thm pat vars BR) ts2)
-          else pr_term thm pat vars fxy (CodeThingol.eta_expand app k)
+          else pr_term thm pat vars fxy (CodeThingol.eta_expand k app)
         end;
 
 fun gen_pr_bind pr_bind pr_term thm (fxy : fixity) ((v, pat), ty : itype) vars =
@@ -540,7 +540,7 @@ fun pr_sml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve 
         (str o deresolve) c :: map (pr_term thm pat vars BR) ts
       else if k = length ts then
         [(str o deresolve) c, Pretty.enum "," "(" ")" (map (pr_term thm pat vars NOBR) ts)]
-      else [pr_term thm pat vars BR (CodeThingol.eta_expand app k)] end else
+      else [pr_term thm pat vars BR (CodeThingol.eta_expand k app)] end else
         (str o deresolve) c
           :: (map (pr_dicts BR) o filter_out null) iss @ map (pr_term thm pat vars BR) ts
     and pr_app thm pat vars = gen_pr_app pr_app' pr_term syntax_const is_cons thm pat vars
@@ -818,7 +818,7 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
           | [t] => [(str o deresolve) c, pr_term thm pat vars BR t]
           | _ => [(str o deresolve) c, Pretty.enum "," "(" ")"
                     (map (pr_term thm pat vars NOBR) ts)]
-        else [pr_term thm pat vars BR (CodeThingol.eta_expand app (length tys))]
+        else [pr_term thm pat vars BR (CodeThingol.eta_expand (length tys) app)]
       else (str o deresolve) c
         :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term thm pat vars BR) ts)
     and pr_app thm pat vars = gen_pr_app pr_app' pr_term syntax_const is_cons thm pat vars
@@ -1811,37 +1811,6 @@ fun pretty_message c_char c_nibbles c_nil c_cons target =
         | NONE => nerror thm "Illegal message expression";
   in (1, pretty) end;
 
-fun pretty_imperative_monad_bind bind' return' unit' =
-  let
-    val dummy_name = "";
-    val dummy_type = ITyVar dummy_name;
-    val dummy_case_term = IVar dummy_name;
-    (*assumption: dummy values are not relevant for serialization*)
-    val unitt = IConst (unit', ([], []));
-    fun dest_abs ((v, ty) `|-> t, _) = ((v, ty), t)
-      | dest_abs (t, ty) =
-          let
-            val vs = CodeThingol.fold_varnames cons t [];
-            val v = Name.variant vs "x";
-            val ty' = (hd o fst o CodeThingol.unfold_fun) ty;
-          in ((v, ty'), t `$ IVar v) end;
-    fun force (t as IConst (c, _) `$ t') = if c = return'
-          then t' else t `$ unitt
-      | force t = t `$ unitt;
-    fun tr_bind' [(t1, _), (t2, ty2)] =
-      let
-        val ((v, ty), t) = dest_abs (t2, ty2);
-      in ICase (((force t1, ty), [(IVar v, tr_bind'' t)]), dummy_case_term) end
-    and tr_bind'' t = case CodeThingol.unfold_app t
-         of (IConst (c, (_, ty1 :: ty2 :: _)), [x1, x2]) => if c = bind'
-              then tr_bind' [(x1, ty1), (x2, ty2)]
-              else force t
-          | _ => force t;
-    fun tr_bind ts = (dummy_name, dummy_type)
-      `|-> ICase (((IVar dummy_name, dummy_type), [(unitt, tr_bind' ts)]), dummy_case_term);
-    fun pretty pr thm pat vars fxy ts = pr vars fxy (tr_bind ts);
-  in (2, pretty) end;
-
 end; (*local*)
 
 
@@ -2114,32 +2083,18 @@ fun add_include target =
 fun add_module_alias target =
   map_module_alias target o Symtab.update o apsnd CodeName.check_modulename;
 
-fun add_monad target raw_c_run raw_c_bind raw_c_return_unit thy =
+fun add_monad target raw_c_run raw_c_bind thy =
   let
     val c_run = CodeUnit.read_const thy raw_c_run;
     val c_bind = CodeUnit.read_const thy raw_c_bind;
     val c_bind' = CodeName.const thy c_bind;
-    val c_return_unit' = (Option.map o pairself)
-      (CodeName.const thy o CodeUnit.read_const thy) raw_c_return_unit;
-    val is_haskell = target = target_Haskell;
-    val _ = if is_haskell andalso is_some c_return_unit'
-      then error ("No unit entry may be given for Haskell monad")
-      else ();
-    val _ = if not is_haskell andalso is_none c_return_unit'
-      then error ("Unit entry must be given for SML/OCaml monad")
-      else ();
   in if target = target_Haskell then
     thy
     |> gen_add_syntax_const (K I) target_Haskell c_run
           (SOME (pretty_haskell_monad c_bind'))
     |> gen_add_syntax_const (K I) target_Haskell c_bind
           (simple_const_syntax (SOME (parse_infix fst (L, 1) ">>=")))
-  else
-    thy
-    |> gen_add_syntax_const (K I) target c_bind
-          (SOME (pretty_imperative_monad_bind c_bind'
-            ((fst o the) c_return_unit') ((snd o the) c_return_unit')))
-  end;
+  else error "Only Haskell target allows for monad syntax" end;
 
 fun gen_allow_abort prep_cs raw_c thy =
   let
@@ -2326,10 +2281,9 @@ val _ =
 
 val _ =
   OuterSyntax.command "code_monad" "define code syntax for monads" K.thy_decl (
-    P.term -- P.term -- ((P.term -- P.term >> SOME) -- Scan.repeat1 P.name
-      || Scan.succeed NONE -- Scan.repeat1 P.name)
-    >> (fn ((raw_run, raw_bind), (raw_unit_return, targets)) => Toplevel.theory 
-          (fold (fn target => add_monad target raw_run raw_bind raw_unit_return) targets))
+    P.term -- P.term -- P.name
+    >> (fn ((raw_run, raw_bind), target) => Toplevel.theory 
+          (add_monad target raw_run raw_bind))
   );
 
 val _ =
