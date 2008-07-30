@@ -53,7 +53,7 @@ sig
     ((string * (dict list list * itype list)) * iterm list) option;
   val collapse_let: ((vname * itype) * iterm) * iterm
     -> (iterm * itype) * (iterm * iterm) list;
-  val eta_expand: (string * (dict list list * itype list)) * iterm list -> int -> iterm;
+  val eta_expand: int -> (string * (dict list list * itype list)) * iterm list -> iterm;
   val contains_dictvar: iterm -> bool;
   val locally_monomorphic: iterm -> bool;
   val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
@@ -73,6 +73,8 @@ sig
         * ((string * const) * thm) list);
   type program = stmt Graph.T;
   val empty_funs: program -> string list;
+  val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm;
+  val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt;
   val transitivly_non_empty_funs: program -> string list -> string list;
   val is_cons: program -> string -> bool;
   val contr_classparam_typs: program -> string -> itype option list;
@@ -226,7 +228,7 @@ fun collapse_let (((v, ty), se), be as ICase (((IVar w, _), ds), _)) =
   | collapse_let (((v, ty), se), be) =
       ((se, ty), [(IVar v, be)])
 
-fun eta_expand (c as (_, (_, tys)), ts) k =
+fun eta_expand k (c as (_, (_, tys)), ts) =
   let
     val j = length ts;
     val l = k - j;
@@ -271,6 +273,28 @@ type program = stmt Graph.T;
 fun empty_funs program =
   Graph.fold (fn (name, (Fun (_, []), _)) => cons name
                | _ => I) program [];
+
+fun map_terms_bottom_up f (t as IConst _) = f t
+  | map_terms_bottom_up f (t as IVar _) = f t
+  | map_terms_bottom_up f (t1 `$ t2) = f
+      (map_terms_bottom_up f t1 `$ map_terms_bottom_up f t2)
+  | map_terms_bottom_up f ((v, ty) `|-> t) = f
+      ((v, ty) `|-> map_terms_bottom_up f t)
+  | map_terms_bottom_up f (ICase (((t, ty), ps), t0)) = f
+      (ICase (((map_terms_bottom_up f t, ty), (map o pairself)
+        (map_terms_bottom_up f) ps), map_terms_bottom_up f t0));
+
+fun map_terms_stmt f NoStmt = NoStmt
+  | map_terms_stmt f (Fun (tysm, eqs)) = Fun (tysm, (map o apfst)
+      (fn (ts, t) => (map f ts, f t)) eqs)
+  | map_terms_stmt f (stmt as Datatype _) = stmt
+  | map_terms_stmt f (stmt as Datatypecons _) = stmt
+  | map_terms_stmt f (stmt as Class _) = stmt
+  | map_terms_stmt f (stmt as Classrel _) = stmt
+  | map_terms_stmt f (stmt as Classparam _) = stmt
+  | map_terms_stmt f (Classinst (arity, (superarities, classparms))) =
+      Classinst (arity, (superarities, (map o apfst o apsnd) (fn const =>
+        case f (IConst const) of IConst const' => const') classparms));
 
 fun transitivly_non_empty_funs program names_ignored =
   let
