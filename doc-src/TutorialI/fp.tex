@@ -140,6 +140,14 @@ Theory \isa{List} also contains
 more syntactic sugar: \isa{[}$x@1$\isa{,}\dots\isa{,}$x@n$\isa{]} abbreviates
 $x@1$\isa{\#}\dots\isa{\#}$x@n$\isa{\#[]}.  In the rest of the tutorial we
 always use HOL's predefined lists by building on theory \isa{Main}.
+\begin{warn}
+Looking ahead to sets and quanifiers in Part II:
+The best way to express that some element \isa{x} is in a list \isa{xs} is
+\isa{x $\in$ set xs}, where \isa{set} is a function that turns a list into the
+set of its elements.
+By the same device you can also write bounded quantifiers like
+\isa{$\forall$x $\in$ set xs} or embed lists in other set expressions.
+\end{warn}
 
 
 \subsection{The General Format}
