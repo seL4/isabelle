@@ -301,11 +301,20 @@ fun calculate sups base_sort assm_axiom param_map class thy =
       | NONE => I;
 
     (*dynamic parts of morphism*)
+    fun avoid_a thy thm =
+      let
+        val tvars = Term.add_tvars (Thm.prop_of thm) [];
+        val thm' = case AList.lookup (op =) tvars (Name.aT, 0)
+         of SOME sort => Thm.instantiate ([pairself (Thm.ctyp_of thy o TVar o rpair sort o rpair 0)
+              (Name.aT, Name.variant (map (fst o fst) tvars) Name.aT)], []) thm
+          | NONE => thm;
+      in thm' end;
     fun rew_term thy defs = Pattern.rewrite_term thy
       (map (Logic.dest_equals o Thm.prop_of) defs) [];
     fun subst_term thy defs = map_aterms subst_aterm #> rew_term thy defs
       #> map_types subst_typ;
-    fun subst_thm thy defs = Drule.standard' #> instantiate thy [class] #> lift_axiom
+    fun subst_thm thy defs = Drule.zero_var_indexes #> avoid_a thy
+      #> Drule.standard' #> instantiate thy [class] #> lift_axiom
       #> MetaSimplifier.rewrite_rule defs;
     fun morphism thy defs =
       Morphism.typ_morphism subst_typ
@@ -630,9 +639,6 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     val class = Sign.full_name thy bname;
     val (((sups, supparams), (supsort, base_sort, mergeexpr)), (elems, global_syntax)) =
       prep_spec thy raw_supclasses raw_elems;
-    fun assms_of thy class =
-      Locale.elems thy class
-      |> map_filter (fn Element.Notes (_, facts) => SOME facts | _ => NONE);
   in
     thy
     |> Locale.add_locale_i "" bname mergeexpr elems
@@ -644,10 +650,10 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     #-> (fn (morphism, axiom, assm_intro, of_class) =>
         add_class_data ((class, sups), (params, base_sort,
           map snd param_map, morphism, axiom, assm_intro, of_class))
-    (*#> `(fn thy => assms_of thy class)
-    #-> (fn assms => fold_map (note class Thm.assumptionK) assms
+    (*#> `(fn thy => Locale.facts_of thy class)
+    #-> (fn facts => fold_map (note class Thm.assumptionK) facts
     #> snd*)
-    #> class_interpretation class (the_list axiom) []))(*)*)
+    #> class_interpretation class (the_list axiom) []))
     |> init class
     |> pair class
   end;
