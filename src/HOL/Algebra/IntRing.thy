@@ -208,27 +208,27 @@ lemma UNIV:
   by simp_all
 
 interpretation int [unfolded UNIV]:
-  partial_order ["(| carrier = UNIV::int set, le = op \<le> |)"]
-  where "carrier (| carrier = UNIV::int set, le = op \<le> |) = UNIV"
-    and "le (| carrier = UNIV::int set, le = op \<le> |) x y = (x \<le> y)"
-    and "lless (| carrier = UNIV::int set, le = op \<le> |) x y = (x < y)"
+  partial_order ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
+  where "carrier (| carrier = UNIV::int set, eq = op =, le = op \<le> |) = UNIV"
+    and "le (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = (x \<le> y)"
+    and "lless (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = (x < y)"
 proof -
-  show "partial_order (| carrier = UNIV::int set, le = op \<le> |)"
+  show "partial_order (| carrier = UNIV::int set, eq = op =, le = op \<le> |)"
     by unfold_locales simp_all
-  show "carrier (| carrier = UNIV::int set, le = op \<le> |) = UNIV"
+  show "carrier (| carrier = UNIV::int set, eq = op =, le = op \<le> |) = UNIV"
     by simp
-  show "le (| carrier = UNIV::int set, le = op \<le> |) x y = (x \<le> y)"
+  show "le (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = (x \<le> y)"
     by simp
-  show "lless (| carrier = UNIV::int set, le = op \<le> |) x y = (x < y)"
+  show "lless (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = (x < y)"
     by (simp add: lless_def) auto
 qed
 
 interpretation int [unfolded UNIV]:
-  lattice ["(| carrier = UNIV::int set, le = op \<le> |)"]
-  where "join (| carrier = UNIV::int set, le = op \<le> |) x y = max x y"
-    and "meet (| carrier = UNIV::int set, le = op \<le> |) x y = min x y"
+  lattice ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
+  where "join (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = max x y"
+    and "meet (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = min x y"
 proof -
-  let ?Z = "(| carrier = UNIV::int set, le = op \<le> |)"
+  let ?Z = "(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"
   show "lattice ?Z"
     apply unfold_locales
     apply (simp add: least_def Upper_def)
@@ -250,7 +250,7 @@ proof -
 qed
 
 interpretation int [unfolded UNIV]:
-  total_order ["(| carrier = UNIV::int set, le = op \<le> |)"]
+  total_order ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
   by unfold_locales clarsimp
 
 

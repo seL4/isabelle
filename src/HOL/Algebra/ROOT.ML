@@ -5,7 +5,7 @@
 *)
 
 (* Preliminaries from set and number theory *)
-no_document use_thys ["FuncSet", "Primes", "Binomial"];
+no_document use_thys ["FuncSet", "Primes", "Binomial", "Permutation"];
 
 
 (*** New development, based on explicit structures ***)
@@ -17,8 +17,9 @@ use_thys [
   "Bij",                (* Automorphism Groups *)
 
   (* Rings *)
-  "UnivPoly",           (* Rings and polynomials *)
-  "IntRing"             (* Ideals and residue classes *)
+  "Divisibility",       (* Rings *)
+  "IntRing",            (* Ideals and residue classes *)
+  "UnivPoly"            (* Polynomials *)
 ];
 
 

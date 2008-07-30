@@ -712,8 +712,8 @@ subsection {* The Lattice of Subgroups of a Group *}
 text_raw {* \label{sec:subgroup-lattice} *}
 
 theorem (in group) subgroups_partial_order:
-  "partial_order (| carrier = {H. subgroup H G}, le = op \<subseteq> |)"
-  by (rule partial_order.intro) simp_all
+  "partial_order (| carrier = {H. subgroup H G}, eq = op =, le = op \<subseteq> |)"
+  by unfold_locales simp_all
 
 lemma (in group) subgroup_self:
   "subgroup (carrier G) G"
@@ -757,7 +757,7 @@ next
 qed
 
 theorem (in group) subgroups_complete_lattice:
-  "complete_lattice (| carrier = {H. subgroup H G}, le = op \<subseteq> |)"
+  "complete_lattice (| carrier = {H. subgroup H G}, eq = op =, le = op \<subseteq> |)"
     (is "complete_lattice ?L")
 proof (rule partial_order.complete_lattice_criterion1)
   show "partial_order ?L" by (rule subgroups_partial_order)

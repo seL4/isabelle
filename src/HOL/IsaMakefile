@@ -509,7 +509,7 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML			\
   Library/Multiset.thy Library/Permutation.thy Library/Primes.thy	\
   Algebra/AbelCoset.thy Algebra/Bij.thy	Algebra/Congruence.thy		\
   Algebra/Coset.thy Algebra/Divisibility.thy Algebra/Exponent.thy	\
-  Algebra/FiniteProduct.thy Algebra/GLattice.thy			\
+  Algebra/FiniteProduct.thy						\
   Algebra/Group.thy Algebra/Ideal.thy Algebra/IntRing.thy		\
   Algebra/Lattice.thy Algebra/Module.thy Algebra/QuotRing.thy		\
   Algebra/Ring.thy Algebra/RingHom.thy Algebra/Sylow.thy		\

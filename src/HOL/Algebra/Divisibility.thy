@@ -2,11 +2,12 @@
   Title:     Divisibility in monoids and rings
   Id:        $Id$
   Author:    Clemens Ballarin, started 18 July 2008
-  Copyright: Clemens Ballarin
+
+Based on work by Stefan Hohe.
 *)
 
 theory Divisibility
-imports Permutation Coset Group GLattice
+imports Permutation Coset Group
 begin
 
 subsection {* Monoid with cancelation law *}
@@ -490,8 +491,8 @@ proof -
        show "x divides y'" by simp
 qed
 
-lemma (in monoid) division_gpartial_order [simp, intro!]:
-  "gpartial_order (division_rel G)"
+lemma (in monoid) division_weak_partial_order [simp, intro!]:
+  "weak_partial_order (division_rel G)"
   apply unfold_locales
   apply simp_all
   apply (simp add: associated_sym)
@@ -731,12 +732,12 @@ apply (elim properfactorE, intro properfactorI)
  apply (iprover intro: divides_trans)+
 done
 
-lemma properfactor_glless:
+lemma properfactor_lless:
   fixes G (structure)
-  shows "properfactor G = glless (division_rel G)"
+  shows "properfactor G = lless (division_rel G)"
 apply (rule ext) apply (rule ext) apply rule
- apply (fastsimp elim: properfactorE2 intro: gllessI)
-apply (fastsimp elim: gllessE intro: properfactorI2)
+ apply (fastsimp elim: properfactorE2 intro: weak_llessI)
+apply (fastsimp elim: weak_llessE intro: properfactorI2)
 done
 
 lemma (in monoid) properfactor_cong_l [trans]:
@@ -745,9 +746,9 @@ lemma (in monoid) properfactor_cong_l [trans]:
     and carr: "x \<in> carrier G"  "x' \<in> carrier G"  "y \<in> carrier G"
   shows "properfactor G x' y"
 using pf
-unfolding properfactor_glless
+unfolding properfactor_lless
 proof -
-  interpret gpartial_order ["division_rel G"] ..
+  interpret weak_partial_order ["division_rel G"] ..
   from x'x
        have "x' .=\<^bsub>division_rel G\<^esub> x" by simp
   also assume "x \<sqsubset>\<^bsub>division_rel G\<^esub> y"
@@ -761,9 +762,9 @@ lemma (in monoid) properfactor_cong_r [trans]:
     and carr: "x \<in> carrier G"  "y \<in> carrier G"  "y' \<in> carrier G"
   shows "properfactor G x y'"
 using pf
-unfolding properfactor_glless
+unfolding properfactor_lless
 proof -
-  interpret gpartial_order ["division_rel G"] ..
+  interpret weak_partial_order ["division_rel G"] ..
   assume "x \<sqsubset>\<^bsub>division_rel G\<^esub> y"
   also from yy'
        have "y .=\<^bsub>division_rel G\<^esub> y'" by simp
@@ -2630,7 +2631,7 @@ constdefs (structure G)
   "somelcm G a b == SOME x. x \<in> carrier G \<and> x lcmof a b"
 
 constdefs (structure G)
-  "SomeGcd G A == ginf (division_rel G) A"
+  "SomeGcd G A == inf (division_rel G) A"
 
 
 locale gcd_condition_monoid = comm_monoid_cancel +
@@ -2648,12 +2649,12 @@ locale divisor_chain_condition_monoid = comm_monoid_cancel +
 
 subsubsection {* Connections to \texttt{Lattice.thy} *}
 
-lemma gcdof_ggreatestLower:
+lemma gcdof_greatestLower:
   fixes G (structure)
   assumes carr[simp]: "a \<in> carrier G"  "b \<in> carrier G"
   shows "(x \<in> carrier G \<and> x gcdof a b) =
-         ggreatest (division_rel G) x (Lower (division_rel G) {a, b})"
-unfolding isgcd_def ggreatest_def Lower_def elem_def
+         greatest (division_rel G) x (Lower (division_rel G) {a, b})"
+unfolding isgcd_def greatest_def Lower_def elem_def
 proof (simp, safe)
   fix xa
   assume r1[rule_format]: "\<forall>x. (x = a \<or> x = b) \<and> x \<in> carrier G \<longrightarrow> xa divides x"
@@ -2674,12 +2675,12 @@ next
        by (fast intro: r1)
 qed (simp, simp)
 
-lemma lcmof_gleastUpper:
+lemma lcmof_leastUpper:
   fixes G (structure)
   assumes carr[simp]: "a \<in> carrier G"  "b \<in> carrier G"
   shows "(x \<in> carrier G \<and> x lcmof a b) =
-         gleast (division_rel G) x (Upper (division_rel G) {a, b})"
-unfolding islcm_def gleast_def Upper_def elem_def
+         least (division_rel G) x (Upper (division_rel G) {a, b})"
+unfolding islcm_def least_def Upper_def elem_def
 proof (simp, safe)
   fix xa
   assume r1[rule_format]: "\<forall>x. (x = a \<or> x = b) \<and> x \<in> carrier G \<longrightarrow> x divides xa"
@@ -2700,12 +2701,12 @@ next
        by (fast intro: r1)
 qed (simp, simp)
 
-lemma somegcd_gmeet:
+lemma somegcd_meet:
   fixes G (structure)
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
-  shows "somegcd G a b = gmeet (division_rel G) a b"
-unfolding somegcd_def gmeet_def ginf_def
-by (simp add: gcdof_ggreatestLower[OF carr])
+  shows "somegcd G a b = meet (division_rel G) a b"
+unfolding somegcd_def meet_def inf_def
+by (simp add: gcdof_greatestLower[OF carr])
 
 lemma (in monoid) isgcd_divides_l:
   assumes "a divides b"
@@ -2910,10 +2911,10 @@ subsection {* Conditions for factoriality *}
 
 subsubsection {* Gcd condition *}
 
-lemma (in gcd_condition_monoid) division_glower_semilattice [simp]:
-  shows "glower_semilattice (division_rel G)"
+lemma (in gcd_condition_monoid) division_weak_lower_semilattice [simp]:
+  shows "weak_lower_semilattice (division_rel G)"
 proof -
-  interpret gpartial_order ["division_rel G"] ..
+  interpret weak_partial_order ["division_rel G"] ..
   show ?thesis
   apply (unfold_locales, simp_all)
   proof -
@@ -2925,9 +2926,9 @@ proof -
         and isgcd: "z gcdof x y"
         by auto
     with carr
-    have "ggreatest (division_rel G) z (Lower (division_rel G) {x, y})"
-        by (subst gcdof_ggreatestLower[symmetric], simp+)
-    thus "\<exists>z. ggreatest (division_rel G) z (Lower (division_rel G) {x, y})" by fast
+    have "greatest (division_rel G) z (Lower (division_rel G) {x, y})"
+        by (subst gcdof_greatestLower[symmetric], simp+)
+    thus "\<exists>z. greatest (division_rel G) z (Lower (division_rel G) {x, y})" by fast
   qed
 qed
 
@@ -2938,15 +2939,15 @@ lemma (in gcd_condition_monoid) gcdof_cong_l:
   shows "a' gcdof b c"
 proof -
   note carr = a'carr carr'
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   have "a' \<in> carrier G \<and> a' gcdof b c"
-    apply (simp add: gcdof_ggreatestLower carr')
-    apply (subst ggreatest_Lower_cong_l[of _ a])
+    apply (simp add: gcdof_greatestLower carr')
+    apply (subst greatest_Lower_cong_l[of _ a])
        apply (simp add: a'a)
       apply (simp add: carr)
      apply (simp add: carr)
     apply (simp add: carr)
-    apply (simp add: gcdof_ggreatestLower[symmetric] agcd carr)
+    apply (simp add: gcdof_greatestLower[symmetric] agcd carr)
   done
   thus ?thesis ..
 qed
@@ -2955,10 +2956,10 @@ lemma (in gcd_condition_monoid) gcd_closed [simp]:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "somegcd G a b \<in> carrier G"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   show ?thesis
-    apply (simp add: somegcd_gmeet[OF carr])
-    apply (rule gmeet_closed[simplified], fact+)
+    apply (simp add: somegcd_meet[OF carr])
+    apply (rule meet_closed[simplified], fact+)
   done
 qed
 
@@ -2966,12 +2967,12 @@ lemma (in gcd_condition_monoid) gcd_isgcd:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "(somegcd G a b) gcdof a b"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   from carr
   have "somegcd G a b \<in> carrier G \<and> (somegcd G a b) gcdof a b"
-    apply (subst gcdof_ggreatestLower, simp, simp)
-    apply (simp add: somegcd_gmeet[OF carr] gmeet_def)
-    apply (rule ginf_of_two_ggreatest[simplified], assumption+)
+    apply (subst gcdof_greatestLower, simp, simp)
+    apply (simp add: somegcd_meet[OF carr] meet_def)
+    apply (rule inf_of_two_greatest[simplified], assumption+)
   done
   thus "(somegcd G a b) gcdof a b" by simp
 qed
@@ -2980,10 +2981,10 @@ lemma (in gcd_condition_monoid) gcd_exists:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "\<exists>x\<in>carrier G. x = somegcd G a b"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   show ?thesis
-    apply (simp add: somegcd_gmeet[OF carr])
-    apply (rule gmeet_closed[simplified], fact+)
+    apply (simp add: somegcd_meet[OF carr])
+    apply (rule meet_closed[simplified], fact+)
   done
 qed
 
@@ -2991,10 +2992,10 @@ lemma (in gcd_condition_monoid) gcd_divides_l:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "(somegcd G a b) divides a"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   show ?thesis
-    apply (simp add: somegcd_gmeet[OF carr])
-    apply (rule gmeet_left[simplified], fact+)
+    apply (simp add: somegcd_meet[OF carr])
+    apply (rule meet_left[simplified], fact+)
   done
 qed
 
@@ -3002,10 +3003,10 @@ lemma (in gcd_condition_monoid) gcd_divides_r:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "(somegcd G a b) divides b"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   show ?thesis
-    apply (simp add: somegcd_gmeet[OF carr])
-    apply (rule gmeet_right[simplified], fact+)
+    apply (simp add: somegcd_meet[OF carr])
+    apply (rule meet_right[simplified], fact+)
   done
 qed
 
@@ -3014,10 +3015,10 @@ lemma (in gcd_condition_monoid) gcd_divides:
     and L: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
   shows "z divides (somegcd G x y)"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   show ?thesis
-    apply (simp add: somegcd_gmeet L)
-    apply (rule gmeet_le[simplified], fact+)
+    apply (simp add: somegcd_meet L)
+    apply (rule meet_le[simplified], fact+)
   done
 qed
 
@@ -3026,10 +3027,10 @@ lemma (in gcd_condition_monoid) gcd_cong_l:
     and carr: "x \<in> carrier G"  "x' \<in> carrier G"  "y \<in> carrier G"
   shows "somegcd G x y \<sim> somegcd G x' y"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   show ?thesis
-    apply (simp add: somegcd_gmeet carr)
-    apply (rule gmeet_cong_l[simplified], fact+)
+    apply (simp add: somegcd_meet carr)
+    apply (rule meet_cong_l[simplified], fact+)
   done
 qed
 
@@ -3038,10 +3039,10 @@ lemma (in gcd_condition_monoid) gcd_cong_r:
     and yy': "y \<sim> y'"
   shows "somegcd G x y \<sim> somegcd G x y'"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   show ?thesis
-    apply (simp add: somegcd_gmeet carr)
-    apply (rule gmeet_cong_r[simplified], fact+)
+    apply (simp add: somegcd_meet carr)
+    apply (rule meet_cong_r[simplified], fact+)
   done
 qed
 
@@ -3089,10 +3090,10 @@ lemma (in gcd_condition_monoid) SomeGcd_ex:
   assumes "finite A"  "A \<subseteq> carrier G"  "A \<noteq> {}"
   shows "\<exists>x\<in> carrier G. x = SomeGcd G A"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   show ?thesis
     apply (simp add: SomeGcd_def)
-    apply (rule finite_ginf_closed[simplified], fact+)
+    apply (rule finite_inf_closed[simplified], fact+)
   done
 qed
 
@@ -3100,11 +3101,11 @@ lemma (in gcd_condition_monoid) gcd_assoc:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"  "c \<in> carrier G"
   shows "somegcd G (somegcd G a b) c \<sim> somegcd G a (somegcd G b c)"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
   show ?thesis
-    apply (subst (2 3) somegcd_gmeet, (simp add: carr)+)
-    apply (simp add: somegcd_gmeet carr)
-    apply (rule gmeet_assoc[simplified], fact+)
+    apply (subst (2 3) somegcd_meet, (simp add: carr)+)
+    apply (simp add: somegcd_meet carr)
+    apply (rule weak_meet_assoc[simplified], fact+)
   done
 qed
 
@@ -3866,12 +3867,12 @@ by (unfold_locales, rule gcdof_exists)
 interpretation factorial_monoid \<subseteq> gcd_condition_monoid
   by (unfold_locales, rule gcdof_exists)
 
-lemma (in factorial_monoid) division_glattice [simp]:
-  shows "glattice (division_rel G)"
+lemma (in factorial_monoid) division_weak_lattice [simp]:
+  shows "weak_lattice (division_rel G)"
 proof -
-  interpret glower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice ["division_rel G"] by simp
 
-  show "glattice (division_rel G)"
+  show "weak_lattice (division_rel G)"
   apply (unfold_locales, simp_all)
   proof -
     fix x y
@@ -3883,9 +3884,9 @@ proof -
         and isgcd: "z lcmof x y"
         by auto
     with carr
-    have "gleast (division_rel G) z (Upper (division_rel G) {x, y})"
-        by (simp add: lcmof_gleastUpper[symmetric])
-    thus "\<exists>z. gleast (division_rel G) z (Upper (division_rel G) {x, y})" by fast
+    have "least (division_rel G) z (Upper (division_rel G) {x, y})"
+        by (simp add: lcmof_leastUpper[symmetric])
+    thus "\<exists>z. least (division_rel G) z (Upper (division_rel G) {x, y})" by fast
   qed
 qed
 
