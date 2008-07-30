@@ -60,7 +60,8 @@ sig
     ((string * Attrib.src list) * term list) list
   val intros: theory -> string -> thm list * thm list
   val dests: theory -> string -> thm list
-  val elems: theory -> string -> Element.context_i list
+  val facts_of: theory -> string
+    -> ((string * Attrib.src list) * (thm list * Attrib.src list) list) list list
 
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
@@ -1421,7 +1422,8 @@ fun intros thy = #intros o the_locale thy;
 
 fun dests thy = #dests o the_locale thy;
 
-fun elems thy = map fst o #elems o the_locale thy;
+fun facts_of thy = map_filter (fn (Element.Notes (_, facts), _) => SOME facts
+  | _ => NONE) o #elems o the_locale thy;
 
 fun parameters_of_expr thy expr =
   let
