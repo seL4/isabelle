@@ -315,7 +315,7 @@ text {*
   equation, using the \emph{func del} attribute:
 *}
 
-lemmas [code func del] = pick.simps 
+declare pick.simps [code func del]
 
 export_code pick (*<*)in SML(*>*) in SML file "examples/pick2.ML"
 
@@ -506,7 +506,7 @@ text {*
 
   The \emph{simpset} allows to employ the full generality of the Isabelle
   simplifier.  Due to the interpretation of theorems
-  of defining equations, rewrites are applied to the right
+  as defining equations, rewrites are applied to the right
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   An important special case are \emph{inline theorems} which may be
@@ -551,7 +551,7 @@ text {*
   list of function theorems, provided that neither the heading
   constant nor its type change.  The @{term "0\<Colon>nat"} / @{const Suc}
   pattern elimination implemented in
-  theory @{text "Efficient_Nat"} (\secref{eff_nat}) uses this
+  theory @{text "Efficient_Nat"} (see \secref{eff_nat}) uses this
   interface.
 
   \noindent The current setup of the preprocessor may be inspected using
@@ -752,7 +752,7 @@ text {*
   extend this table;  as an example, we will develope an alternative
   representation of natural numbers as binary digits, whose
   size does increase logarithmically with its value, not linear
-  \footnote{Indeed, the @{text "Efficient_Nat"} theory \ref{eff_nat}
+  \footnote{Indeed, the @{text "Efficient_Nat"} theory (see \ref{eff_nat})
     does something similar}.  First, the digit representation:
 *}
 
@@ -1015,7 +1015,7 @@ text {*
   pretty serializations for expressions like lists, numerals
   and characters;  these are
   monolithic stubs and should only be used with the
-  theories introduces in \secref{sec:library}.
+  theories introduced in \secref{sec:library}.
 *}
 
 
