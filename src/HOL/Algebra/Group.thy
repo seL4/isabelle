@@ -60,7 +60,7 @@ lemma monoidI:
     and l_one: "!!x. x \<in> carrier G ==> \<one> \<otimes> x = x"
     and r_one: "!!x. x \<in> carrier G ==> x \<otimes> \<one> = x"
   shows "monoid G"
-  by (fast intro!: monoid.intro intro: prems)
+  by (fast intro!: monoid.intro intro: assms)
 
 lemma (in monoid) Units_closed [dest]:
   "x \<in> Units G ==> x \<in> carrier G"
@@ -449,8 +449,8 @@ lemma (in group) subgroupI:
     and inv: "!!a. a \<in> H \<Longrightarrow> inv a \<in> H"
     and mult: "!!a b. \<lbrakk>a \<in> H; b \<in> H\<rbrakk> \<Longrightarrow> a \<otimes> b \<in> H"
   shows "subgroup H G"
-proof (simp add: subgroup_def prems)
-  show "\<one> \<in> H" by (rule one_in_subset) (auto simp only: prems)
+proof (simp add: subgroup_def assms)
+  show "\<one> \<in> H" by (rule one_in_subset) (auto simp only: assms)
 qed
 
 declare monoid.one_closed [iff] group.inv_closed [simp]
@@ -489,7 +489,7 @@ lemma DirProd_monoid:
 proof -
   interpret G: monoid [G] by fact
   interpret H: monoid [H] by fact
-  from prems
+  from assms
   show ?thesis by (unfold monoid_def DirProd_def, auto) 
 qed
 
@@ -527,7 +527,7 @@ proof -
   interpret G: group [G] by fact
   interpret H: group [H] by fact
   interpret Prod: group ["G \<times>\<times> H"]
-    by (auto intro: DirProd_group group.intro group.axioms prems)
+    by (auto intro: DirProd_group group.intro group.axioms assms)
   show ?thesis by (simp add: Prod.inv_equality g h)
 qed
 
@@ -657,7 +657,7 @@ lemma comm_monoidI:
   shows "comm_monoid G"
   using l_one
     by (auto intro!: comm_monoid.intro comm_monoid_axioms.intro monoid.intro 
-             intro: prems simp: m_closed one_closed m_comm)
+             intro: assms simp: m_closed one_closed m_comm)
 
 lemma (in monoid) monoid_comm_monoidI:
   assumes m_comm:
@@ -700,7 +700,7 @@ lemma comm_groupI:
     and l_one: "!!x. x \<in> carrier G ==> \<one> \<otimes> x = x"
     and l_inv_ex: "!!x. x \<in> carrier G ==> \<exists>y \<in> carrier G. y \<otimes> x = \<one>"
   shows "comm_group G"
-  by (fast intro: group.group_comm_groupI groupI prems)
+  by (fast intro: group.group_comm_groupI groupI assms)
 
 lemma (in comm_group) inv_mult:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> inv (x \<otimes> y) = inv x \<otimes> inv y"

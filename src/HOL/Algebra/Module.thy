@@ -53,7 +53,7 @@ lemma moduleI:
       "!!x. x \<in> carrier M ==> \<one> \<odot>\<^bsub>M\<^esub> x = x"
   shows "module R M"
   by (auto intro: module.intro cring.axioms abelian_group.axioms
-    module_axioms.intro prems)
+    module_axioms.intro assms)
 
 lemma algebraI:
   fixes R (structure) and M (structure)
@@ -77,14 +77,14 @@ lemma algebraI:
       (a \<odot>\<^bsub>M\<^esub> x) \<otimes>\<^bsub>M\<^esub> y = a \<odot>\<^bsub>M\<^esub> (x \<otimes>\<^bsub>M\<^esub> y)"
   shows "algebra R M"
 apply intro_locales
-apply (rule cring.axioms ring.axioms abelian_group.axioms comm_monoid.axioms prems)+
+apply (rule cring.axioms ring.axioms abelian_group.axioms comm_monoid.axioms assms)+
 apply (rule module_axioms.intro)
  apply (simp add: smult_closed)
  apply (simp add: smult_l_distr)
  apply (simp add: smult_r_distr)
  apply (simp add: smult_assoc1)
  apply (simp add: smult_one)
-apply (rule cring.axioms ring.axioms abelian_group.axioms comm_monoid.axioms prems)+
+apply (rule cring.axioms ring.axioms abelian_group.axioms comm_monoid.axioms assms)+
 apply (rule algebra_axioms.intro)
  apply (simp add: smult_assoc2)
 done

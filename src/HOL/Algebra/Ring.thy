@@ -53,7 +53,7 @@ lemma abelian_monoidI:
     and a_comm:
       "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> x \<oplus> y = y \<oplus> x"
   shows "abelian_monoid R"
-  by (auto intro!: abelian_monoid.intro comm_monoidI intro: prems)
+  by (auto intro!: abelian_monoid.intro comm_monoidI intro: assms)
 
 lemma abelian_groupI:
   fixes R (structure)
@@ -70,7 +70,7 @@ lemma abelian_groupI:
   shows "abelian_group R"
   by (auto intro!: abelian_group.intro abelian_monoidI
       abelian_group_axioms.intro comm_monoidI comm_groupI
-    intro: prems)
+    intro: assms)
 
 lemma (in abelian_monoid) a_monoid:
   "monoid (| carrier = carrier G, mult = add G, one = zero G |)"
@@ -374,7 +374,7 @@ lemma ringI:
       ==> z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y"
   shows "ring R"
   by (auto intro: ring.intro
-    abelian_group.axioms ring_axioms.intro prems)
+    abelian_group.axioms ring_axioms.intro assms)
 
 lemma (in ring) is_abelian_group:
   "abelian_group R"
@@ -416,7 +416,7 @@ proof (intro cring.intro ring.intro)
     finally show "z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y" .
   qed (rule l_distr)
 qed (auto intro: cring.intro
-  abelian_group.axioms comm_monoid.axioms ring_axioms.intro prems)
+  abelian_group.axioms comm_monoid.axioms ring_axioms.intro assms)
 
 (*
 lemma (in cring) is_comm_monoid:
@@ -731,7 +731,7 @@ lemma ring_hom_memI:
       h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y"
     and hom_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
   shows "h \<in> ring_hom R S"
-  by (auto simp add: ring_hom_def prems Pi_def)
+  by (auto simp add: ring_hom_def assms Pi_def)
 
 lemma ring_hom_closed:
   "[| h \<in> ring_hom R S; x \<in> carrier R |] ==> h x \<in> carrier S"

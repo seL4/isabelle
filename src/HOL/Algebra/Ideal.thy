@@ -217,9 +217,9 @@ apply (intro idealI subgroup.intro)
    apply simp
   apply (simp add: a_inv_def[symmetric])
  apply (clarsimp, rule)
-  apply (fast intro: ideal.I_l_closed ideal.intro prems)+
+  apply (fast intro: ideal.I_l_closed ideal.intro assms)+
 apply (clarsimp, rule)
- apply (fast intro: ideal.I_r_closed ideal.intro prems)+
+ apply (fast intro: ideal.I_r_closed ideal.intro assms)+
 done
 qed
 

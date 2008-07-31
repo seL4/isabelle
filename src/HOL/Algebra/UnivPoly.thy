@@ -435,7 +435,7 @@ text {*
 
 lemma (in cring) cring:
   "cring R"
-  by (fast intro: cring.intro prems)
+  by unfold_locales
 
 lemma (in UP_cring) UP_algebra:
   "algebra R P"
@@ -898,7 +898,7 @@ lemma domainI:
     and integral: "!!a b. [| mult R a b = zero R; a \<in> carrier R;
       b \<in> carrier R |] ==> a = zero R | b = zero R"
   shows "domain R"
-  by (auto intro!: domain.intro domain_axioms.intro cring.axioms prems
+  by (auto intro!: domain.intro domain_axioms.intro cring.axioms assms
     del: disjCI)
 
 lemma (in UP_domain) UP_one_not_zero:
@@ -1251,7 +1251,7 @@ lemma ring_hom_cringI:
     and "h \<in> ring_hom R S"
   shows "ring_hom_cring R S h"
   by (fast intro: ring_hom_cring.intro ring_hom_cring_axioms.intro
-    cring.axioms prems)
+    cring.axioms assms)
 
 lemma (in UP_pre_univ_prop) UP_hom_unique:
   assumes "ring_hom_cring P S Phi"

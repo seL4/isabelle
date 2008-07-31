@@ -1,8 +1,10 @@
 (*
-  Title:     HOL/Algebra/GLattice.thy
+  Title:     HOL/Algebra/Lattice.thy
   Id:        $Id$
   Author:    Clemens Ballarin, started 7 November 2003
   Copyright: Clemens Ballarin
+
+Most congruence rules by Stefan Hohe.
 *)
 
 theory Lattice imports Congruence begin
@@ -41,7 +43,7 @@ lemma le_cong_r [intro, trans]:
   "\<lbrakk> x \<sqsubseteq> y; y .= z; x \<in> carrier L; y \<in> carrier L; z \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
   by (auto intro: le_cong [THEN iffD1])
 
-lemma gen_refl [intro, simp]: "\<lbrakk> x .= y; x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y"
+lemma weak_refl [intro, simp]: "\<lbrakk> x .= y; x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y"
   by (simp add: le_cong_l)
 
 end
@@ -1150,58 +1152,42 @@ locale lattice = upper_semilattice + lower_semilattice
 
 subsubsection {* Supremum *}
 
-context partial_order begin
+declare (in partial_order) weak_sup_of_singleton [simp del]
 
-declare weak_sup_of_singleton [simp del]
-
-lemma sup_of_singleton [simp]:
+lemma (in partial_order) sup_of_singleton [simp]:
   "x \<in> carrier L ==> \<Squnion>{x} = x"
   using weak_sup_of_singleton unfolding eq_is_equal .
 
-end
-
-context upper_semilattice begin
-
-lemma join_assoc_lemma:
+lemma (in upper_semilattice) join_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<squnion> (y \<squnion> z) = \<Squnion>{x, y, z}"
-  using weak_join_assoc_lemma unfolding eq_is_equal .
-
-end
+  using weak_join_assoc_lemma L unfolding eq_is_equal .
 
 lemma (in upper_semilattice) join_assoc:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
-  using weak_join_assoc unfolding eq_is_equal .
+  using weak_join_assoc L unfolding eq_is_equal .
 
 
 subsubsection {* Infimum *}
 
-context partial_order begin
+declare (in partial_order) weak_inf_of_singleton [simp del]
 
-declare weak_inf_of_singleton [simp del]
-
-lemma inf_of_singleton [simp]:
+lemma (in partial_order) inf_of_singleton [simp]:
   "x \<in> carrier L ==> \<Sqinter>{x} = x"
   using weak_inf_of_singleton unfolding eq_is_equal .
 
-end
-
-context lower_semilattice begin
-
 text {* Condition on @{text A}: infimum exists. *}
 
-lemma meet_assoc_lemma:
+lemma (in lower_semilattice) meet_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<sqinter> (y \<sqinter> z) = \<Sqinter>{x, y, z}"
-  using weak_meet_assoc_lemma unfolding eq_is_equal .
-
-end
+  using weak_meet_assoc_lemma L unfolding eq_is_equal .
 
 lemma (in lower_semilattice) meet_assoc:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
-  using weak_meet_assoc unfolding eq_is_equal .
+  using weak_meet_assoc L unfolding eq_is_equal .
 
 
 subsection {* Total Orders *}
