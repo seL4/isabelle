@@ -2926,8 +2926,28 @@ apply (simp add: sorted_Cons insert_intvl Ball_def)
 apply (metis successor_incr leD less_imp_le order_trans)
 done
 
+lemma sorted_list_of_set_rec2: "i \<le> j \<Longrightarrow>
+  sorted_list_of_set {i..successor j} =
+  sorted_list_of_set {i..j} @ [successor j]"
+apply(simp add:sorted_list_of_set_def upto_def)
+apply (rule the1_equality[OF finite_sorted_distinct_unique])
+ apply (simp add:finite_intvl)
+apply(rule the1I2[OF finite_sorted_distinct_unique])
+ apply (simp add:finite_intvl)
+apply (simp add: sorted_append Ball_def expand_set_eq)
+apply(rule conjI)
+apply (metis eq_iff leD linear not_leE ord_discrete order_trans successor_incr)
+apply (metis leD linear order_trans successor_incr)
+done
+
 lemma upto_rec[code]: "[i..j] = (if i \<le> j then i # [successor i..j] else [])"
 by(simp add: upto_def sorted_list_of_set_rec)
+
+lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
+by(simp add: upto_rec)
+
+lemma upto_rec2: "i \<le> j \<Longrightarrow> [i..successor j] = [i..j] @ [successor j]"
+by(simp add: upto_def sorted_list_of_set_rec2)
 
 end
 
@@ -2937,16 +2957,19 @@ instantiation int:: finite_intvl_succ
 begin
 
 definition
-  successor_int_def: "successor = (%i\<Colon>int. i+1)"
+successor_int_def: "successor = (%i\<Colon>int. i+1)"
 
 instance
-  by intro_classes (simp_all add: successor_int_def)
+by intro_classes (simp_all add: successor_int_def)
 
 end
 
 text{* Now @{term"[i..j::int]"} is defined for integers. *}
 
 hide (open) const successor
+
+lemma upto_rec2_int: "(i::int) \<le> j \<Longrightarrow> [i..j+1] = [i..j] @ [j+1]"
+by(rule upto_rec2[where 'a = int, simplified successor_int_def])
 
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}
@@ -2956,7 +2979,7 @@ inductive_set
   for A :: "'a set"
 where
     Nil [intro!]: "[]: lists A"
-  | Cons [intro!,noatp]: "[| a: A;l: lists A|] ==> a#l : lists A"
+  | Cons [intro!,noatp]: "[| a: A; l: lists A|] ==> a#l : lists A"
 
 inductive_cases listsE [elim!,noatp]: "x#l : lists A"
 inductive_cases listspE [elim!,noatp]: "listsp A (x # l)"
@@ -3619,11 +3642,11 @@ lemma atLeastLessThan_upt [code unfold]:
   "{n..<m} = set [n..<m]"
 by auto
 
-lemma greaterThanAtMost_upto [code unfold]:
+lemma greaterThanAtMost_upt [code unfold]:
   "{n<..m} = set [Suc n..<Suc m]"
 by auto
 
-lemma atLeastAtMost_upto [code unfold]:
+lemma atLeastAtMost_upt [code unfold]:
   "{n..m} = set [n..<Suc m]"
 by auto
 
@@ -3643,9 +3666,35 @@ lemma ex_nat_less [code unfold]:
   "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
 by auto
 
+lemma setsum_set_distinct_conv_listsum:
+  "distinct xs \<Longrightarrow> setsum f (set xs) = listsum (map f xs)"
+by (induct xs) simp_all
+
 lemma setsum_set_upt_conv_listsum [code unfold]:
-  "setsum f (set [k..<n]) = listsum (map f [k..<n])"
-apply(subst atLeastLessThan_upt[symmetric])
-by (induct n) simp_all
+  "setsum f (set [m..<n]) = listsum (map f [m..<n])"
+by (rule setsum_set_distinct_conv_listsum) simp
+
+
+text {* Code for summation over ints. *}
+
+lemma greaterThanLessThan_upto [code unfold]:
+  "{i<..<j::int} = set [i+1..j - 1]"
+by auto
+
+lemma atLeastLessThan_upto [code unfold]:
+  "{i..<j::int} = set [i..j - 1]"
+by auto
+
+lemma greaterThanAtMost_upto [code unfold]:
+  "{i<..j::int} = set [i+1..j]"
+by auto
+
+lemma atLeastAtMost_upto [code unfold]:
+  "{i..j::int} = set [i..j]"
+by auto
+
+lemma setsum_set_upto_conv_listsum [code unfold]:
+  "setsum f (set [i..j::int]) = listsum (map f [i..j])"
+by (rule setsum_set_distinct_conv_listsum) simp
 
 end
