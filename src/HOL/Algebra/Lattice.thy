@@ -4,7 +4,7 @@
   Author:    Clemens Ballarin, started 7 November 2003
   Copyright: Clemens Ballarin
 
-Most congruence rules by Stefan Hohe.
+Most congruence rules by Stephan Hohe.
 *)
 
 theory Lattice imports Congruence begin
@@ -964,7 +964,7 @@ next
 qed
 
 
-subsection {* Complete lattices *}
+subsection {* Complete Lattices *}
 
 locale weak_complete_lattice = weak_lattice +
   assumes sup_exists:
@@ -1115,12 +1115,7 @@ lemma lless_trans [trans]:
 end
 
 
-subsubsection {* Upper and lower bounds of a set *}
-
-(* all relevant lemmas are global and already proved above *)
-
-
-subsubsection {* Least and greatest, as predicate *}
+text {* Least and greatest, as predicate *}
 
 lemma (in partial_order) least_unique:
   "[| least L x A; least L y A |] ==> x = y"
@@ -1131,7 +1126,7 @@ lemma (in partial_order) greatest_unique:
   using weak_greatest_unique unfolding eq_is_equal .
 
 
-subsection {* Lattices *}
+text {* Lattices *}
 
 locale upper_semilattice = partial_order +
   assumes sup_of_two_exists:
@@ -1150,7 +1145,7 @@ interpretation lower_semilattice < weak_lower_semilattice
 locale lattice = upper_semilattice + lower_semilattice
 
 
-subsubsection {* Supremum *}
+text {* Supremum *}
 
 declare (in partial_order) weak_sup_of_singleton [simp del]
 
@@ -1169,7 +1164,7 @@ lemma (in upper_semilattice) join_assoc:
   using weak_join_assoc L unfolding eq_is_equal .
 
 
-subsubsection {* Infimum *}
+text {* Infimum *}
 
 declare (in partial_order) weak_inf_of_singleton [simp del]
 
@@ -1190,7 +1185,7 @@ lemma (in lower_semilattice) meet_assoc:
   using weak_meet_assoc L unfolding eq_is_equal .
 
 
-subsection {* Total Orders *}
+text {* Total Orders *}
 
 locale total_order = partial_order +
   assumes total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
@@ -1211,7 +1206,7 @@ interpretation total_order < lattice
   by unfold_locales (auto intro: sup_of_two_exists inf_of_two_exists)
 
 
-subsection {* Complete lattices *}
+text {* Complete lattices *}
 
 locale complete_lattice = lattice +
   assumes sup_exists:
@@ -1280,7 +1275,7 @@ qed
 
 subsection {* Examples *}
 
-subsubsection {* Powerset of a Set is a Complete Lattice *}
+subsubsection {* The Powerset of a Set is a Complete Lattice *}
 
 theorem powerset_is_complete_lattice:
   "complete_lattice (| carrier = Pow A, eq = op =, le = op \<subseteq> |)"

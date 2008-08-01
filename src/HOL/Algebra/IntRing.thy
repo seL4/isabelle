@@ -5,7 +5,7 @@
 *)
 
 theory IntRing
-imports QuotRing Int
+imports QuotRing Int Primes
 begin
 
 
@@ -62,10 +62,7 @@ apply (rule conjI)
 done
 
 
-
-subsection {* The Set of Integers as Algebraic Structure *}
-
-subsubsection {* Definition of @{text "\<Z>"} *}
+subsection {* @{text "\<Z>"}: The Set of Integers as Algebraic Structure *}
 
 constdefs
   int_ring :: "int ring" ("\<Z>")
@@ -94,7 +91,7 @@ apply (intro domain.intro domain_axioms.intro)
  apply (unfold int_ring_def, simp+)
 done
 *)
-subsubsection {* Interpretations *}
+subsection {* Interpretations *}
 
 text {* Since definitions of derived operations are global, their
   interpretation needs to be done as early as possible --- that is,
@@ -254,7 +251,7 @@ interpretation int [unfolded UNIV]:
   by unfold_locales clarsimp
 
 
-subsubsection {* Generated Ideals of @{text "\<Z>"} *}
+subsection {* Generated Ideals of @{text "\<Z>"} *}
 
 lemma int_Idl:
   "Idl\<^bsub>\<Z>\<^esub> {a} = {x * a | x. True}"
@@ -342,7 +339,7 @@ next
 qed
 
 
-subsubsection {* Ideals and Divisibility *}
+subsection {* Ideals and Divisibility *}
 
 lemma int_Idl_subset_ideal:
   "Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l} = (k \<in> Idl\<^bsub>\<Z>\<^esub> {l})"
@@ -376,7 +373,7 @@ apply (rule dvds_eq_Idl[symmetric])
 done
 
 
-subsubsection {* Ideals and the Modulus *}
+subsection {* Ideals and the Modulus *}
 
 constdefs
    ZMod :: "int => int => int set"
@@ -459,7 +456,7 @@ corollary ZMod_eq_mod:
 by (rule, erule ZMod_imp_zmod, erule zmod_imp_ZMod)
 
 
-subsubsection {* Factorization *}
+subsection {* Factorization *}
 
 constdefs
   ZFact :: "int \<Rightarrow> int set ring"

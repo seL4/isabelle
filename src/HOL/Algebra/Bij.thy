@@ -6,7 +6,7 @@
 theory Bij imports Group begin
 
 
-section {* Bijections of a Set, Permutation Groups and Automorphism Groups *}
+section {* Bijections of a Set, Permutation and Automorphism Groups *}
 
 constdefs
   Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set"

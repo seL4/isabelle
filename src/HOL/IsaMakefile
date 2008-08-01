@@ -520,7 +520,7 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML			\
   Algebra/document/root.tex Algebra/poly/LongDiv.thy			\
   Algebra/poly/PolyHomo.thy Algebra/poly/Polynomial.thy			\
   Algebra/poly/UnivPoly2.thy Algebra/ringsimp.ML
-	@cd Algebra; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Algebra
+	@cd Algebra; $(ISATOOL) usedir -b -g true -V outline=/proof,/ML $(OUT)/HOL HOL-Algebra
 
 
 ## HOL-Auth

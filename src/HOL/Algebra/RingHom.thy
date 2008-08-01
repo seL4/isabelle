@@ -99,7 +99,7 @@ proof -
     (rule R.is_cring, rule S.is_cring, rule homh)
 qed
 
-subsection {* The kernel of a ring homomorphism *}
+subsection {* The Kernel of a Ring Homomorphism *}
 
 --"the kernel of a ring homomorphism is an ideal"
 lemma (in ring_hom_ring) kernel_is_ideal:

@@ -9,7 +9,9 @@ theory Ring imports FiniteProduct
 uses ("ringsimp.ML") begin
 
 
-section {* Abelian Groups *}
+section {* The Algebraic Hierarchy of Rings *}
+
+subsection {* Abelian Groups *}
 
 record 'a ring = "'a monoid" +
   zero :: 'a ("\<zero>\<index>")
@@ -341,9 +343,7 @@ done
 *)
 
 
-section {* The Algebraic Hierarchy of Rings *}
-
-subsection {* Basic Definitions *}
+subsection {* Rings: Basic Definitions *}
 
 locale ring = abelian_group R + monoid R +
   assumes l_distr: "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
@@ -554,13 +554,13 @@ proof -
       show "\<one> = \<zero>" by simp
 qed
 
-lemma (in ring) one_zero:
+lemma (in ring) carrier_one_zero:
   shows "(carrier R = {\<zero>}) = (\<one> = \<zero>)"
   by (rule, erule one_zeroI, erule one_zeroD)
 
-lemma (in ring) one_not_zero:
+lemma (in ring) carrier_one_not_zero:
   shows "(carrier R \<noteq> {\<zero>}) = (\<one> \<noteq> \<zero>)"
-  by (simp add: one_zero)
+  by (simp add: carrier_one_zero)
 
 text {* Two examples for use of method algebra *}
 
@@ -588,7 +588,7 @@ qed
 
 subsubsection {* Sums over Finite Sets *}
 
-lemma (in cring) finsum_ldistr:
+lemma (in ring) finsum_ldistr:
   "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
    finsum R f A \<otimes> a = finsum R (%i. f i \<otimes> a) A"
 proof (induct set: finite)
@@ -597,7 +597,7 @@ next
   case (insert x F) then show ?case by (simp add: Pi_def l_distr)
 qed
 
-lemma (in cring) finsum_rdistr:
+lemma (in ring) finsum_rdistr:
   "[| finite A; a \<in> carrier R; f \<in> A -> carrier R |] ==>
    a \<otimes> finsum R f A = finsum R (%i. a \<otimes> f i) A"
 proof (induct set: finite)

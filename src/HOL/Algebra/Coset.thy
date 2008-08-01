@@ -4,7 +4,7 @@
                 Stephan Hohe
 *)
 
-theory Coset imports Group Exponent begin
+theory Coset imports Group begin
 
 
 section {*Cosets and Quotient Groups*}

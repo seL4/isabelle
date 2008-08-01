@@ -1,4 +1,3 @@
-
 % $Id$
 
 \documentclass[11pt,a4paper]{article}
@@ -7,23 +6,22 @@
 \usepackage{amssymb}
 \usepackage[latin1]{inputenc}
 \usepackage[only,bigsqcap]{stmaryrd}
-%\usepackage{masmath}
+%\usepackage{amsmath}
 
 % this should be the last package used
 \usepackage{pdfsetup}
 
 \urlstyle{rm}
-\isabellestyle{it}
+\isabellestyle{tt}
 \pagestyle{myheadings}
 
 \begin{document}
 
 \title{The Isabelle/HOL Algebra Library}
-\author{
-  Clemens Ballarin \\
-  Florian Kammüller \\
-  Lawrence C Paulson
-}
+\author{Clemens Ballarin (Editor)}
+\date{With contributions by Jesús Aransay, Clemens Ballarin, Stephan Hohe,
+  Florian Kammüller and Lawrence C Paulson \\
+  \today}
 \maketitle
 
 \tableofcontents
@@ -34,8 +32,8 @@
 
 \clearpage
 
-\renewcommand{\isamarkupheader}[1]%
-{\section{\isabellecontext: #1}\markright{THEORY~``\isabellecontext''}}
+%\renewcommand{\isamarkupheader}[1]%
+%{\section{\isabellecontext: #1}\markright{THEORY~``\isabellecontext''}}
 
 \parindent 0pt\parskip 0.5ex
 \input{session}

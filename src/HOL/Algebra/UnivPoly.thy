@@ -3,9 +3,11 @@
   Id:        $Id$
   Author:    Clemens Ballarin, started 9 December 1996
   Copyright: Clemens Ballarin
+
+Contributions by Jesus Aransay.
 *)
 
-theory UnivPoly imports Module begin
+theory UnivPoly imports Module RingHom begin
 
 
 section {* Univariate Polynomials *}
@@ -77,19 +79,16 @@ lemma mem_upD [dest]:
   "f \<in> up R ==> f n \<in> carrier R"
   by (simp add: up_def Pi_def)
 
-lemma (in cring) bound_upD [dest]:
-  "f \<in> up R ==> EX n. bound \<zero> n f"
-  by (simp add: up_def)
+context ring
+begin
 
-lemma (in cring) up_one_closed:
-   "(%n. if n = 0 then \<one> else \<zero>) \<in> up R"
-  using up_def by force
+lemma bound_upD [dest]: "f \<in> up R ==> EX n. bound \<zero> n f" by (simp add: up_def)
 
-lemma (in cring) up_smult_closed:
-  "[| a \<in> carrier R; p \<in> up R |] ==> (%i. a \<otimes> p i) \<in> up R"
-  by force
+lemma up_one_closed: "(%n. if n = 0 then \<one> else \<zero>) \<in> up R" using up_def by force
 
-lemma (in cring) up_add_closed:
+lemma up_smult_closed: "[| a \<in> carrier R; p \<in> up R |] ==> (%i. a \<otimes> p i) \<in> up R" by force
+
+lemma up_add_closed:
   "[| p \<in> up R; q \<in> up R |] ==> (%i. p i \<oplus> q i) \<in> up R"
 proof
   fix n
@@ -112,7 +111,7 @@ next
   qed
 qed
 
-lemma (in cring) up_a_inv_closed:
+lemma up_a_inv_closed:
   "p \<in> up R ==> (%i. \<ominus> (p i)) \<in> up R"
 proof
   assume R: "p \<in> up R"
@@ -121,7 +120,7 @@ proof
   then show "EX n. bound \<zero> n (%i. \<ominus> p i)" by auto
 qed auto
 
-lemma (in cring) up_mult_closed:
+lemma up_mult_closed:
   "[| p \<in> up R; q \<in> up R |] ==>
   (%n. \<Oplus>i \<in> {..n}. p i \<otimes> q (n-i)) \<in> up R"
 proof
@@ -161,6 +160,8 @@ next
   qed
 qed
 
+end
+
 
 subsection {* Effect of Operations on Coefficients *}
 
@@ -168,19 +169,45 @@ locale UP =
   fixes R (structure) and P (structure)
   defines P_def: "P == UP R"
 
+locale UP_ring = UP + ring R
+
 locale UP_cring = UP + cring R
 
-locale UP_domain = UP_cring + "domain" R
+interpretation UP_cring < UP_ring
+  by (rule P_def) intro_locales
 
-text {*
-  Temporarily declare @{thm [locale=UP] P_def} as simp rule.
-*}
+locale UP_domain = UP + "domain" R
 
-declare (in UP) P_def [simp]
+interpretation UP_domain < UP_cring
+  by (rule P_def) intro_locales
 
-lemma (in UP_cring) coeff_monom [simp]:
-  "a \<in> carrier R ==>
-  coeff P (monom P a m) n = (if m=n then a else \<zero>)"
+context UP
+begin
+
+text {*Temporarily declare @{thm [locale=UP] P_def} as simp rule.*}
+
+declare P_def [simp]
+
+lemma up_eqI:
+  assumes prem: "!!n. coeff P p n = coeff P q n" and R: "p \<in> carrier P" "q \<in> carrier P"
+  shows "p = q"
+proof
+  fix x
+  from prem and R show "p x = q x" by (simp add: UP_def)
+qed
+
+lemma coeff_closed [simp]:
+  "p \<in> carrier P ==> coeff P p n \<in> carrier R" by (auto simp add: UP_def)
+
+end
+
+context UP_ring 
+begin
+
+(* Theorems generalised to rings by Jesus Aransay. *)
+
+lemma coeff_monom [simp]:
+  "a \<in> carrier R ==> coeff P (monom P a m) n = (if m=n then a else \<zero>)"
 proof -
   assume R: "a \<in> carrier R"
   then have "(%n. if n = m then a else \<zero>) \<in> up R"
@@ -188,86 +215,69 @@ proof -
   with R show ?thesis by (simp add: UP_def)
 qed
 
-lemma (in UP_cring) coeff_zero [simp]:
-  "coeff P \<zero>\<^bsub>P\<^esub> n = \<zero>"
-  by (auto simp add: UP_def)
+lemma coeff_zero [simp]: "coeff P \<zero>\<^bsub>P\<^esub> n = \<zero>" by (auto simp add: UP_def)
 
-lemma (in UP_cring) coeff_one [simp]:
-  "coeff P \<one>\<^bsub>P\<^esub> n = (if n=0 then \<one> else \<zero>)"
+lemma coeff_one [simp]: "coeff P \<one>\<^bsub>P\<^esub> n = (if n=0 then \<one> else \<zero>)"
   using up_one_closed by (simp add: UP_def)
 
-lemma (in UP_cring) coeff_smult [simp]:
-  "[| a \<in> carrier R; p \<in> carrier P |] ==>
-  coeff P (a \<odot>\<^bsub>P\<^esub> p) n = a \<otimes> coeff P p n"
+lemma coeff_smult [simp]:
+  "[| a \<in> carrier R; p \<in> carrier P |] ==> coeff P (a \<odot>\<^bsub>P\<^esub> p) n = a \<otimes> coeff P p n"
   by (simp add: UP_def up_smult_closed)
 
-lemma (in UP_cring) coeff_add [simp]:
-  "[| p \<in> carrier P; q \<in> carrier P |] ==>
-  coeff P (p \<oplus>\<^bsub>P\<^esub> q) n = coeff P p n \<oplus> coeff P q n"
+lemma coeff_add [simp]:
+  "[| p \<in> carrier P; q \<in> carrier P |] ==> coeff P (p \<oplus>\<^bsub>P\<^esub> q) n = coeff P p n \<oplus> coeff P q n"
   by (simp add: UP_def up_add_closed)
 
-lemma (in UP_cring) coeff_mult [simp]:
-  "[| p \<in> carrier P; q \<in> carrier P |] ==>
-  coeff P (p \<otimes>\<^bsub>P\<^esub> q) n = (\<Oplus>i \<in> {..n}. coeff P p i \<otimes> coeff P q (n-i))"
+lemma coeff_mult [simp]:
+  "[| p \<in> carrier P; q \<in> carrier P |] ==> coeff P (p \<otimes>\<^bsub>P\<^esub> q) n = (\<Oplus>i \<in> {..n}. coeff P p i \<otimes> coeff P q (n-i))"
   by (simp add: UP_def up_mult_closed)
 
-lemma (in UP) up_eqI:
-  assumes prem: "!!n. coeff P p n = coeff P q n"
-    and R: "p \<in> carrier P" "q \<in> carrier P"
-  shows "p = q"
-proof
-  fix x
-  from prem and R show "p x = q x" by (simp add: UP_def)
-qed
+end
 
 
-subsection {* Polynomials Form a Commutative Ring. *}
+subsection {* Polynomials Form a Ring. *}
+
+context UP_ring
+begin
 
 text {* Operations are closed over @{term P}. *}
 
-lemma (in UP_cring) UP_mult_closed [simp]:
-  "[| p \<in> carrier P; q \<in> carrier P |] ==> p \<otimes>\<^bsub>P\<^esub> q \<in> carrier P"
-  by (simp add: UP_def up_mult_closed)
+lemma UP_mult_closed [simp]:
+  "[| p \<in> carrier P; q \<in> carrier P |] ==> p \<otimes>\<^bsub>P\<^esub> q \<in> carrier P" by (simp add: UP_def up_mult_closed)
 
-lemma (in UP_cring) UP_one_closed [simp]:
-  "\<one>\<^bsub>P\<^esub> \<in> carrier P"
-  by (simp add: UP_def up_one_closed)
+lemma UP_one_closed [simp]:
+  "\<one>\<^bsub>P\<^esub> \<in> carrier P" by (simp add: UP_def up_one_closed)
 
-lemma (in UP_cring) UP_zero_closed [intro, simp]:
-  "\<zero>\<^bsub>P\<^esub> \<in> carrier P"
-  by (auto simp add: UP_def)
+lemma UP_zero_closed [intro, simp]:
+  "\<zero>\<^bsub>P\<^esub> \<in> carrier P" by (auto simp add: UP_def)
 
-lemma (in UP_cring) UP_a_closed [intro, simp]:
-  "[| p \<in> carrier P; q \<in> carrier P |] ==> p \<oplus>\<^bsub>P\<^esub> q \<in> carrier P"
-  by (simp add: UP_def up_add_closed)
+lemma UP_a_closed [intro, simp]:
+  "[| p \<in> carrier P; q \<in> carrier P |] ==> p \<oplus>\<^bsub>P\<^esub> q \<in> carrier P" by (simp add: UP_def up_add_closed)
 
-lemma (in UP_cring) monom_closed [simp]:
-  "a \<in> carrier R ==> monom P a n \<in> carrier P"
-  by (auto simp add: UP_def up_def Pi_def)
+lemma monom_closed [simp]:
+  "a \<in> carrier R ==> monom P a n \<in> carrier P" by (auto simp add: UP_def up_def Pi_def)
 
-lemma (in UP_cring) UP_smult_closed [simp]:
-  "[| a \<in> carrier R; p \<in> carrier P |] ==> a \<odot>\<^bsub>P\<^esub> p \<in> carrier P"
-  by (simp add: UP_def up_smult_closed)
+lemma UP_smult_closed [simp]:
+  "[| a \<in> carrier R; p \<in> carrier P |] ==> a \<odot>\<^bsub>P\<^esub> p \<in> carrier P" by (simp add: UP_def up_smult_closed)
 
-lemma (in UP) coeff_closed [simp]:
-  "p \<in> carrier P ==> coeff P p n \<in> carrier R"
-  by (auto simp add: UP_def)
+end
 
 declare (in UP) P_def [simp del]
 
 text {* Algebraic ring properties *}
 
-lemma (in UP_cring) UP_a_assoc:
+context UP_ring
+begin
+
+lemma UP_a_assoc:
   assumes R: "p \<in> carrier P" "q \<in> carrier P" "r \<in> carrier P"
-  shows "(p \<oplus>\<^bsub>P\<^esub> q) \<oplus>\<^bsub>P\<^esub> r = p \<oplus>\<^bsub>P\<^esub> (q \<oplus>\<^bsub>P\<^esub> r)"
-  by (rule up_eqI, simp add: a_assoc R, simp_all add: R)
+  shows "(p \<oplus>\<^bsub>P\<^esub> q) \<oplus>\<^bsub>P\<^esub> r = p \<oplus>\<^bsub>P\<^esub> (q \<oplus>\<^bsub>P\<^esub> r)" by (rule up_eqI, simp add: a_assoc R, simp_all add: R)
 
-lemma (in UP_cring) UP_l_zero [simp]:
+lemma UP_l_zero [simp]:
   assumes R: "p \<in> carrier P"
-  shows "\<zero>\<^bsub>P\<^esub> \<oplus>\<^bsub>P\<^esub> p = p"
-  by (rule up_eqI, simp_all add: R)
+  shows "\<zero>\<^bsub>P\<^esub> \<oplus>\<^bsub>P\<^esub> p = p" by (rule up_eqI, simp_all add: R)
 
-lemma (in UP_cring) UP_l_neg_ex:
+lemma UP_l_neg_ex:
   assumes R: "p \<in> carrier P"
   shows "EX q : carrier P. q \<oplus>\<^bsub>P\<^esub> p = \<zero>\<^bsub>P\<^esub>"
 proof -
@@ -283,12 +293,17 @@ proof -
   qed (rule closed)
 qed
 
-lemma (in UP_cring) UP_a_comm:
+lemma UP_a_comm:
   assumes R: "p \<in> carrier P" "q \<in> carrier P"
-  shows "p \<oplus>\<^bsub>P\<^esub> q = q \<oplus>\<^bsub>P\<^esub> p"
-  by (rule up_eqI, simp add: a_comm R, simp_all add: R)
+  shows "p \<oplus>\<^bsub>P\<^esub> q = q \<oplus>\<^bsub>P\<^esub> p" by (rule up_eqI, simp add: a_comm R, simp_all add: R)
 
-lemma (in UP_cring) UP_m_assoc:
+end
+
+
+context UP_ring
+begin
+
+lemma UP_m_assoc:
   assumes R: "p \<in> carrier P" "q \<in> carrier P" "r \<in> carrier P"
   shows "(p \<otimes>\<^bsub>P\<^esub> q) \<otimes>\<^bsub>P\<^esub> r = p \<otimes>\<^bsub>P\<^esub> (q \<otimes>\<^bsub>P\<^esub> r)"
 proof (rule up_eqI)
@@ -310,14 +325,51 @@ proof (rule up_eqI)
       with R show ?case
         by (simp cong: finsum_cong
              add: Suc_diff_le Pi_def l_distr r_distr m_assoc)
-          (simp cong: finsum_cong add: Pi_def a_ac finsum_ldistr m_assoc)
+           (simp cong: finsum_cong add: Pi_def a_ac finsum_ldistr m_assoc)
     qed
   }
   with R show "coeff P ((p \<otimes>\<^bsub>P\<^esub> q) \<otimes>\<^bsub>P\<^esub> r) n = coeff P (p \<otimes>\<^bsub>P\<^esub> (q \<otimes>\<^bsub>P\<^esub> r)) n"
     by (simp add: Pi_def)
 qed (simp_all add: R)
 
-lemma (in UP_cring) UP_l_one [simp]:
+lemma UP_r_one [simp]:
+  assumes R: "p \<in> carrier P" shows "p \<otimes>\<^bsub>P\<^esub> \<one>\<^bsub>P\<^esub> = p"
+proof (rule up_eqI)
+  fix n
+  show "coeff P (p \<otimes>\<^bsub>P\<^esub> \<one>\<^bsub>P\<^esub>) n = coeff P p n"
+  proof (cases n)
+    case 0 
+    {
+      with R show ?thesis by simp
+    }
+  next
+    case Suc
+    {
+      (*JE: in the locale UP_cring the proof was solved only with "by (simp del: finsum_Suc add: finsum_Suc2 Pi_def)", but I did not
+      get it to work here*)
+      fix nn assume Succ: "n = Suc nn"
+      have "coeff P (p \<otimes>\<^bsub>P\<^esub> \<one>\<^bsub>P\<^esub>) (Suc nn) = coeff P p (Suc nn)"
+      proof -
+	have "coeff P (p \<otimes>\<^bsub>P\<^esub> \<one>\<^bsub>P\<^esub>) (Suc nn) = (\<Oplus>i\<in>{..Suc nn}. coeff P p i \<otimes> (if Suc nn \<le> i then \<one> else \<zero>))" using R by simp
+	also have "\<dots> = coeff P p (Suc nn) \<otimes> (if Suc nn \<le> Suc nn then \<one> else \<zero>) \<oplus> (\<Oplus>i\<in>{..nn}. coeff P p i \<otimes> (if Suc nn \<le> i then \<one> else \<zero>))"
+	  using finsum_Suc [of "(\<lambda>i::nat. coeff P p i \<otimes> (if Suc nn \<le> i then \<one> else \<zero>))" "nn"] unfolding Pi_def using R by simp
+	also have "\<dots> = coeff P p (Suc nn) \<otimes> (if Suc nn \<le> Suc nn then \<one> else \<zero>)"
+	proof -
+	  have "(\<Oplus>i\<in>{..nn}. coeff P p i \<otimes> (if Suc nn \<le> i then \<one> else \<zero>)) = (\<Oplus>i\<in>{..nn}. \<zero>)"
+	    using finsum_cong [of "{..nn}" "{..nn}" "(\<lambda>i::nat. coeff P p i \<otimes> (if Suc nn \<le> i then \<one> else \<zero>))" "(\<lambda>i::nat. \<zero>)"] using R 
+	    unfolding Pi_def by simp
+	  also have "\<dots> = \<zero>" by simp
+	  finally show ?thesis using r_zero R by simp
+	qed
+	also have "\<dots> = coeff P p (Suc nn)" using R by simp
+	finally show ?thesis by simp
+      qed
+      then show ?thesis using Succ by simp
+    }
+  qed
+qed (simp_all add: R)
+  
+lemma UP_l_one [simp]:
   assumes R: "p \<in> carrier P"
   shows "\<one>\<^bsub>P\<^esub> \<otimes>\<^bsub>P\<^esub> p = p"
 proof (rule up_eqI)
@@ -331,22 +383,36 @@ proof (rule up_eqI)
   qed
 qed (simp_all add: R)
 
-lemma (in UP_cring) UP_l_distr:
+lemma UP_l_distr:
   assumes R: "p \<in> carrier P" "q \<in> carrier P" "r \<in> carrier P"
   shows "(p \<oplus>\<^bsub>P\<^esub> q) \<otimes>\<^bsub>P\<^esub> r = (p \<otimes>\<^bsub>P\<^esub> r) \<oplus>\<^bsub>P\<^esub> (q \<otimes>\<^bsub>P\<^esub> r)"
   by (rule up_eqI) (simp add: l_distr R Pi_def, simp_all add: R)
 
-lemma (in UP_cring) UP_m_comm:
-  assumes R: "p \<in> carrier P" "q \<in> carrier P"
-  shows "p \<otimes>\<^bsub>P\<^esub> q = q \<otimes>\<^bsub>P\<^esub> p"
+lemma UP_r_distr:
+  assumes R: "p \<in> carrier P" "q \<in> carrier P" "r \<in> carrier P"
+  shows "r \<otimes>\<^bsub>P\<^esub> (p \<oplus>\<^bsub>P\<^esub> q) = (r \<otimes>\<^bsub>P\<^esub> p) \<oplus>\<^bsub>P\<^esub> (r \<otimes>\<^bsub>P\<^esub> q)"
+  by (rule up_eqI) (simp add: r_distr R Pi_def, simp_all add: R)
+
+theorem UP_ring: "ring P"
+  by (auto intro!: ringI abelian_groupI monoidI UP_a_assoc)
+(auto intro: UP_a_comm UP_l_neg_ex UP_m_assoc UP_l_distr UP_r_distr)
+
+end
+
+subsection {* Polynomials form a commutative Ring. *}
+
+context UP_cring
+begin
+
+lemma UP_m_comm:
+  assumes R1: "p \<in> carrier P" and R2: "q \<in> carrier P" shows "p \<otimes>\<^bsub>P\<^esub> q = q \<otimes>\<^bsub>P\<^esub> p"
 proof (rule up_eqI)
   fix n
   {
     fix k and a b :: "nat=>'a"
     assume R: "a \<in> UNIV -> carrier R" "b \<in> UNIV -> carrier R"
     then have "k <= n ==>
-      (\<Oplus>i \<in> {..k}. a i \<otimes> b (n-i)) =
-      (\<Oplus>i \<in> {..k}. a (k-i) \<otimes> b (i+n-k))"
+      (\<Oplus>i \<in> {..k}. a i \<otimes> b (n-i)) = (\<Oplus>i \<in> {..k}. a (k-i) \<otimes> b (i+n-k))"
       (is "_ \<Longrightarrow> ?eq k")
     proof (induct k)
       case 0 then show ?case by (simp add: Pi_def)
@@ -356,31 +422,27 @@ proof (rule up_eqI)
     qed
   }
   note l = this
-  from R show "coeff P (p \<otimes>\<^bsub>P\<^esub> q) n =  coeff P (q \<otimes>\<^bsub>P\<^esub> p) n"
-    apply (simp add: Pi_def)
-    apply (subst l)
-    apply (auto simp add: Pi_def)
-    apply (simp add: m_comm)
-    done
-qed (simp_all add: R)
+  from R1 R2 show "coeff P (p \<otimes>\<^bsub>P\<^esub> q) n =  coeff P (q \<otimes>\<^bsub>P\<^esub> p) n"
+    unfolding coeff_mult [OF R1 R2, of n] 
+    unfolding coeff_mult [OF R2 R1, of n] 
+    using l [of "(\<lambda>i. coeff P p i)" "(\<lambda>i. coeff P q i)" "n"] by (simp add: Pi_def m_comm)
+qed (simp_all add: R1 R2)
 
-theorem (in UP_cring) UP_cring:
-  "cring P"
-  by (auto intro!: cringI abelian_groupI comm_monoidI UP_a_assoc UP_l_zero
-    UP_l_neg_ex UP_a_comm UP_m_assoc UP_l_one UP_m_comm UP_l_distr)
+subsection{*Polynomials over a commutative ring for a commutative ring*}
 
-lemma (in UP_cring) UP_ring:
-  (* preliminary,
-     we want "UP_ring R P ==> ring P", not "UP_cring R P ==> ring P" *)
-  "ring P"
-  by (auto intro: ring.intro cring.axioms UP_cring)
+theorem UP_cring:
+  "cring P" using UP_ring unfolding cring_def by (auto intro!: comm_monoidI UP_m_assoc UP_m_comm)
 
-lemma (in UP_cring) UP_a_inv_closed [intro, simp]:
+end
+
+context UP_ring
+begin
+
+lemma UP_a_inv_closed [intro, simp]:
   "p \<in> carrier P ==> \<ominus>\<^bsub>P\<^esub> p \<in> carrier P"
-  by (rule abelian_group.a_inv_closed
-    [OF ring.is_abelian_group [OF UP_ring]])
+  by (rule abelian_group.a_inv_closed [OF ring.is_abelian_group [OF UP_ring]])
 
-lemma (in UP_cring) coeff_a_inv [simp]:
+lemma coeff_a_inv [simp]:
   assumes R: "p \<in> carrier P"
   shows "coeff P (\<ominus>\<^bsub>P\<^esub> p) n = \<ominus> (coeff P p n)"
 proof -
@@ -393,41 +455,46 @@ proof -
   finally show ?thesis .
 qed
 
-text {*
-  Interpretation of lemmas from @{term cring}.  Saves lifting 43
-  lemmas manually.
-*}
+end
 
-interpretation UP_cring < cring P
-  by intro_locales
-    (rule cring.axioms ring.axioms abelian_group.axioms comm_monoid.axioms UP_cring)+
+interpretation UP_ring < ring P using UP_ring .
+interpretation UP_cring < cring P using UP_cring .
 
 
 subsection {* Polynomials Form an Algebra *}
 
-lemma (in UP_cring) UP_smult_l_distr:
+context UP_ring
+begin
+
+lemma UP_smult_l_distr:
   "[| a \<in> carrier R; b \<in> carrier R; p \<in> carrier P |] ==>
   (a \<oplus> b) \<odot>\<^bsub>P\<^esub> p = a \<odot>\<^bsub>P\<^esub> p \<oplus>\<^bsub>P\<^esub> b \<odot>\<^bsub>P\<^esub> p"
   by (rule up_eqI) (simp_all add: R.l_distr)
 
-lemma (in UP_cring) UP_smult_r_distr:
+lemma UP_smult_r_distr:
   "[| a \<in> carrier R; p \<in> carrier P; q \<in> carrier P |] ==>
   a \<odot>\<^bsub>P\<^esub> (p \<oplus>\<^bsub>P\<^esub> q) = a \<odot>\<^bsub>P\<^esub> p \<oplus>\<^bsub>P\<^esub> a \<odot>\<^bsub>P\<^esub> q"
   by (rule up_eqI) (simp_all add: R.r_distr)
 
-lemma (in UP_cring) UP_smult_assoc1:
+lemma UP_smult_assoc1:
       "[| a \<in> carrier R; b \<in> carrier R; p \<in> carrier P |] ==>
       (a \<otimes> b) \<odot>\<^bsub>P\<^esub> p = a \<odot>\<^bsub>P\<^esub> (b \<odot>\<^bsub>P\<^esub> p)"
   by (rule up_eqI) (simp_all add: R.m_assoc)
 
-lemma (in UP_cring) UP_smult_one [simp]:
+lemma UP_smult_zero [simp]:
+      "p \<in> carrier P ==> \<zero> \<odot>\<^bsub>P\<^esub> p = \<zero>\<^bsub>P\<^esub>"
+  by (rule up_eqI) simp_all
+
+lemma UP_smult_one [simp]:
       "p \<in> carrier P ==> \<one> \<odot>\<^bsub>P\<^esub> p = p"
   by (rule up_eqI) simp_all
 
-lemma (in UP_cring) UP_smult_assoc2:
+lemma UP_smult_assoc2:
   "[| a \<in> carrier R; p \<in> carrier P; q \<in> carrier P |] ==>
   (a \<odot>\<^bsub>P\<^esub> p) \<otimes>\<^bsub>P\<^esub> q = a \<odot>\<^bsub>P\<^esub> (p \<otimes>\<^bsub>P\<^esub> q)"
   by (rule up_eqI) (simp_all add: R.finsum_rdistr R.m_assoc Pi_def)
+
+end
 
 text {*
   Interpretation of lemmas from @{term algebra}.
@@ -438,44 +505,44 @@ lemma (in cring) cring:
   by unfold_locales
 
 lemma (in UP_cring) UP_algebra:
-  "algebra R P"
-  by (auto intro: algebraI R.cring UP_cring UP_smult_l_distr UP_smult_r_distr
+  "algebra R P" by (auto intro!: algebraI R.cring UP_cring UP_smult_l_distr UP_smult_r_distr
     UP_smult_assoc1 UP_smult_assoc2)
 
-interpretation UP_cring < algebra R P
-  by intro_locales
-    (rule module.axioms algebra.axioms UP_algebra)+
+interpretation UP_cring < algebra R P using UP_algebra .
 
 
 subsection {* Further Lemmas Involving Monomials *}
 
-lemma (in UP_cring) monom_zero [simp]:
-  "monom P \<zero> n = \<zero>\<^bsub>P\<^esub>"
-  by (simp add: UP_def P_def)
+context UP_ring
+begin
 
-lemma (in UP_cring) monom_mult_is_smult:
+lemma monom_zero [simp]:
+  "monom P \<zero> n = \<zero>\<^bsub>P\<^esub>" by (simp add: UP_def P_def)
+
+lemma monom_mult_is_smult:
   assumes R: "a \<in> carrier R" "p \<in> carrier P"
   shows "monom P a 0 \<otimes>\<^bsub>P\<^esub> p = a \<odot>\<^bsub>P\<^esub> p"
 proof (rule up_eqI)
   fix n
-  have "coeff P (p \<otimes>\<^bsub>P\<^esub> monom P a 0) n = coeff P (a \<odot>\<^bsub>P\<^esub> p) n"
+  show "coeff P (monom P a 0 \<otimes>\<^bsub>P\<^esub> p) n = coeff P (a \<odot>\<^bsub>P\<^esub> p) n"
   proof (cases n)
-    case 0 with R show ?thesis by (simp add: R.m_comm)
+    case 0 with R show ?thesis by simp
   next
     case Suc with R show ?thesis
-      by (simp cong: R.finsum_cong add: R.r_null Pi_def)
-        (simp add: R.m_comm)
+      using R.finsum_Suc2 by (simp del: R.finsum_Suc add: R.r_null Pi_def)
   qed
-  with R show "coeff P (monom P a 0 \<otimes>\<^bsub>P\<^esub> p) n = coeff P (a \<odot>\<^bsub>P\<^esub> p) n"
-    by (simp add: UP_m_comm)
 qed (simp_all add: R)
 
-lemma (in UP_cring) monom_add [simp]:
+lemma monom_one [simp]:
+  "monom P \<one> 0 = \<one>\<^bsub>P\<^esub>"
+  by (rule up_eqI) simp_all
+
+lemma monom_add [simp]:
   "[| a \<in> carrier R; b \<in> carrier R |] ==>
   monom P (a \<oplus> b) n = monom P a n \<oplus>\<^bsub>P\<^esub> monom P b n"
   by (rule up_eqI) simp_all
 
-lemma (in UP_cring) monom_one_Suc:
+lemma monom_one_Suc:
   "monom P \<one> (Suc n) = monom P \<one> n \<otimes>\<^bsub>P\<^esub> monom P \<one> 1"
 proof (rule up_eqI)
   fix k
@@ -550,24 +617,59 @@ proof (rule up_eqI)
   qed
 qed (simp_all)
 
-lemma (in UP_cring) monom_mult_smult:
+lemma monom_one_Suc2:
+  "monom P \<one> (Suc n) = monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> n"
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case Suc
+  {
+    fix k:: nat
+    assume hypo: "monom P \<one> (Suc k) = monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> k"
+    then show "monom P \<one> (Suc (Suc k)) = monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> (Suc k)"
+    proof -
+      have lhs: "monom P \<one> (Suc (Suc k)) = monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> k \<otimes>\<^bsub>P\<^esub> monom P \<one> 1"
+	unfolding monom_one_Suc [of "Suc k"] unfolding hypo ..
+      note cl = monom_closed [OF R.one_closed, of 1]
+      note clk = monom_closed [OF R.one_closed, of k]
+      have rhs: "monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> (Suc k) = monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> k \<otimes>\<^bsub>P\<^esub> monom P \<one> 1"
+	unfolding monom_one_Suc [of k] unfolding sym [OF m_assoc  [OF cl clk cl]] ..
+      from lhs rhs show ?thesis by simp
+    qed
+  }
+qed
+
+text{*The following corollary follows from lemmas @{thm [locale=UP_ring] "monom_one_Suc"} 
+  and @{thm [locale=UP_ring] "monom_one_Suc2"}, and is trivial in @{term UP_cring}*}
+
+corollary monom_one_comm: shows "monom P \<one> k \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 = monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> k"
+  unfolding monom_one_Suc [symmetric] monom_one_Suc2 [symmetric] ..
+
+lemma monom_mult_smult:
   "[| a \<in> carrier R; b \<in> carrier R |] ==> monom P (a \<otimes> b) n = a \<odot>\<^bsub>P\<^esub> monom P b n"
   by (rule up_eqI) simp_all
 
-lemma (in UP_cring) monom_one [simp]:
-  "monom P \<one> 0 = \<one>\<^bsub>P\<^esub>"
-  by (rule up_eqI) simp_all
-
-lemma (in UP_cring) monom_one_mult:
+lemma monom_one_mult:
   "monom P \<one> (n + m) = monom P \<one> n \<otimes>\<^bsub>P\<^esub> monom P \<one> m"
 proof (induct n)
   case 0 show ?case by simp
 next
   case Suc then show ?case
-    by (simp only: add_Suc monom_one_Suc) (simp add: P.m_ac)
+    unfolding add_Suc unfolding monom_one_Suc unfolding Suc.hyps
+    using m_assoc monom_one_comm [of m] by simp
 qed
 
-lemma (in UP_cring) monom_mult [simp]:
+lemma monom_one_mult_comm: "monom P \<one> n \<otimes>\<^bsub>P\<^esub> monom P \<one> m = monom P \<one> m \<otimes>\<^bsub>P\<^esub> monom P \<one> n"
+  unfolding monom_one_mult [symmetric] by (rule up_eqI) simp_all
+
+end
+
+context UP_cring
+begin
+
+(* Could got to UP_ring?  *)
+
+lemma monom_mult [simp]:
   assumes R: "a \<in> carrier R" "b \<in> carrier R"
   shows "monom P (a \<otimes> b) (n + m) = monom P a n \<otimes>\<^bsub>P\<^esub> monom P b m"
 proof -
@@ -579,11 +681,11 @@ proof -
   also from R have "... = a \<odot>\<^bsub>P\<^esub> (b \<odot>\<^bsub>P\<^esub> (monom P \<one> n \<otimes>\<^bsub>P\<^esub> monom P \<one> m))"
     by (simp add: UP_smult_assoc1)
   also from R have "... = a \<odot>\<^bsub>P\<^esub> (b \<odot>\<^bsub>P\<^esub> (monom P \<one> m \<otimes>\<^bsub>P\<^esub> monom P \<one> n))"
-    by (simp add: P.m_comm)
+    unfolding monom_one_mult_comm by simp
   also from R have "... = a \<odot>\<^bsub>P\<^esub> ((b \<odot>\<^bsub>P\<^esub> monom P \<one> m) \<otimes>\<^bsub>P\<^esub> monom P \<one> n)"
     by (simp add: UP_smult_assoc2)
   also from R have "... = a \<odot>\<^bsub>P\<^esub> (monom P \<one> n \<otimes>\<^bsub>P\<^esub> (b \<odot>\<^bsub>P\<^esub> monom P \<one> m))"
-    by (simp add: P.m_comm)
+    using monom_one_mult_comm [of n m] by (simp add: P.m_comm)
   also from R have "... = (a \<odot>\<^bsub>P\<^esub> monom P \<one> n) \<otimes>\<^bsub>P\<^esub> (b \<odot>\<^bsub>P\<^esub> monom P \<one> m)"
     by (simp add: UP_smult_assoc2)
   also from R have "... = monom P (a \<otimes> \<one>) n \<otimes>\<^bsub>P\<^esub> monom P (b \<otimes> \<one>) m"
@@ -592,11 +694,16 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in UP_cring) monom_a_inv [simp]:
+end
+
+context UP_ring
+begin
+
+lemma monom_a_inv [simp]:
   "a \<in> carrier R ==> monom P (\<ominus> a) n = \<ominus>\<^bsub>P\<^esub> monom P a n"
   by (rule up_eqI) simp_all
 
-lemma (in UP_cring) monom_inj:
+lemma monom_inj:
   "inj_on (%a. monom P a n) (carrier R)"
 proof (rule inj_onI)
   fix x y
@@ -605,6 +712,8 @@ proof (rule inj_onI)
   with R show "x = y" by simp
 qed
 
+end
+
 
 subsection {* The Degree Function *}
 
@@ -612,7 +721,10 @@ constdefs (structure R)
   deg :: "[('a, 'm) ring_scheme, nat => 'a] => nat"
   "deg R p == LEAST n. bound \<zero> n (coeff (UP R) p)"
 
-lemma (in UP_cring) deg_aboveI:
+context UP_ring
+begin
+
+lemma deg_aboveI:
   "[| (!!m. n < m ==> coeff P p m = \<zero>); p \<in> carrier P |] ==> deg R p <= n"
   by (unfold deg_def P_def) (fast intro: Least_le)
 
@@ -633,7 +745,7 @@ proof -
 qed
 *)
 
-lemma (in UP_cring) deg_aboveD:
+lemma deg_aboveD:
   assumes "deg R p < m" and "p \<in> carrier P"
   shows "coeff P p m = \<zero>"
 proof -
@@ -644,7 +756,7 @@ proof -
   from this and `deg R p < m` show ?thesis ..
 qed
 
-lemma (in UP_cring) deg_belowI:
+lemma deg_belowI:
   assumes non_zero: "n ~= 0 ==> coeff P p n ~= \<zero>"
     and R: "p \<in> carrier P"
   shows "n <= deg R p"
@@ -658,7 +770,7 @@ next
   then show ?thesis by arith
 qed
 
-lemma (in UP_cring) lcoeff_nonzero_deg:
+lemma lcoeff_nonzero_deg:
   assumes deg: "deg R p ~= 0" and R: "p \<in> carrier P"
   shows "coeff P p (deg R p) ~= \<zero>"
 proof -
@@ -666,9 +778,8 @@ proof -
   proof -
     have minus: "!!(n::nat) m. n ~= 0 ==> (n - Suc 0 < m) = (n <= m)"
       by arith
-(* TODO: why does simplification below not work with "1" *)
     from deg have "deg R p - 1 < (LEAST n. bound \<zero> n (coeff P p))"
-      by (unfold deg_def P_def) arith
+      by (unfold deg_def P_def) simp
     then have "~ bound \<zero> (deg R p - 1) (coeff P p)" by (rule not_less_Least)
     then have "EX m. deg R p - 1 < m & coeff P p m ~= \<zero>"
       by (unfold bound_def) fast
@@ -679,7 +790,7 @@ proof -
   with m_coeff show ?thesis by simp
 qed
 
-lemma (in UP_cring) lcoeff_nonzero_nonzero:
+lemma lcoeff_nonzero_nonzero:
   assumes deg: "deg R p = 0" and nonzero: "p ~= \<zero>\<^bsub>P\<^esub>" and R: "p \<in> carrier P"
   shows "coeff P p 0 ~= \<zero>"
 proof -
@@ -695,7 +806,7 @@ proof -
   with coeff show ?thesis by simp
 qed
 
-lemma (in UP_cring) lcoeff_nonzero:
+lemma lcoeff_nonzero:
   assumes neq: "p ~= \<zero>\<^bsub>P\<^esub>" and R: "p \<in> carrier P"
   shows "coeff P p (deg R p) ~= \<zero>"
 proof (cases "deg R p = 0")
@@ -704,14 +815,14 @@ next
   case False with neq R show ?thesis by (simp add: lcoeff_nonzero_deg)
 qed
 
-lemma (in UP_cring) deg_eqI:
+lemma deg_eqI:
   "[| !!m. n < m ==> coeff P p m = \<zero>;
       !!n. n ~= 0 ==> coeff P p n ~= \<zero>; p \<in> carrier P |] ==> deg R p = n"
 by (fast intro: le_anti_sym deg_aboveI deg_belowI)
 
 text {* Degree and polynomial operations *}
 
-lemma (in UP_cring) deg_add [simp]:
+lemma deg_add [simp]:
   assumes R: "p \<in> carrier P" "q \<in> carrier P"
   shows "deg R (p \<oplus>\<^bsub>P\<^esub> q) <= max (deg R p) (deg R q)"
 proof (cases "deg R p <= deg R q")
@@ -722,15 +833,15 @@ next
     by (rule deg_aboveI) (simp_all add: False R deg_aboveD)
 qed
 
-lemma (in UP_cring) deg_monom_le:
+lemma deg_monom_le:
   "a \<in> carrier R ==> deg R (monom P a n) <= n"
   by (intro deg_aboveI) simp_all
 
-lemma (in UP_cring) deg_monom [simp]:
+lemma deg_monom [simp]:
   "[| a ~= \<zero>; a \<in> carrier R |] ==> deg R (monom P a n) = n"
   by (fastsimp intro: le_anti_sym deg_aboveI deg_belowI)
 
-lemma (in UP_cring) deg_const [simp]:
+lemma deg_const [simp]:
   assumes R: "a \<in> carrier R" shows "deg R (monom P a 0) = 0"
 proof (rule le_anti_sym)
   show "deg R (monom P a 0) <= 0" by (rule deg_aboveI) (simp_all add: R)
@@ -738,7 +849,7 @@ next
   show "0 <= deg R (monom P a 0)" by (rule deg_belowI) (simp_all add: R)
 qed
 
-lemma (in UP_cring) deg_zero [simp]:
+lemma deg_zero [simp]:
   "deg R \<zero>\<^bsub>P\<^esub> = 0"
 proof (rule le_anti_sym)
   show "deg R \<zero>\<^bsub>P\<^esub> <= 0" by (rule deg_aboveI) simp_all
@@ -746,7 +857,7 @@ next
   show "0 <= deg R \<zero>\<^bsub>P\<^esub>" by (rule deg_belowI) simp_all
 qed
 
-lemma (in UP_cring) deg_one [simp]:
+lemma deg_one [simp]:
   "deg R \<one>\<^bsub>P\<^esub> = 0"
 proof (rule le_anti_sym)
   show "deg R \<one>\<^bsub>P\<^esub> <= 0" by (rule deg_aboveI) simp_all
@@ -754,7 +865,7 @@ next
   show "0 <= deg R \<one>\<^bsub>P\<^esub>" by (rule deg_belowI) simp_all
 qed
 
-lemma (in UP_cring) deg_uminus [simp]:
+lemma deg_uminus [simp]:
   assumes R: "p \<in> carrier P" shows "deg R (\<ominus>\<^bsub>P\<^esub> p) = deg R p"
 proof (rule le_anti_sym)
   show "deg R (\<ominus>\<^bsub>P\<^esub> p) <= deg R p" by (simp add: deg_aboveI deg_aboveD R)
@@ -764,12 +875,20 @@ next
       inj_on_iff [OF R.a_inv_inj, of _ "\<zero>", simplified] R)
 qed
 
-lemma (in UP_domain) deg_smult_ring:
+text{*The following lemma is later \emph{overwritten} by the most
+  specific one for domains, @{text deg_smult}.*}
+
+lemma deg_smult_ring [simp]:
   "[| a \<in> carrier R; p \<in> carrier P |] ==>
   deg R (a \<odot>\<^bsub>P\<^esub> p) <= (if a = \<zero> then 0 else deg R p)"
   by (cases "a = \<zero>") (simp add: deg_aboveI deg_aboveD)+
 
-lemma (in UP_domain) deg_smult [simp]:
+end
+
+context UP_domain
+begin
+
+lemma deg_smult [simp]:
   assumes R: "a \<in> carrier R" "p \<in> carrier P"
   shows "deg R (a \<odot>\<^bsub>P\<^esub> p) = (if a = \<zero> then 0 else deg R p)"
 proof (rule le_anti_sym)
@@ -781,7 +900,12 @@ next
   qed (simp, simp add: deg_belowI lcoeff_nonzero_deg integral_iff R)
 qed
 
-lemma (in UP_cring) deg_mult_cring:
+end
+
+context UP_ring
+begin
+
+lemma deg_mult_ring:
   assumes R: "p \<in> carrier P" "q \<in> carrier P"
   shows "deg R (p \<otimes>\<^bsub>P\<^esub> q) <= deg R p + deg R q"
 proof (rule deg_aboveI)
@@ -801,12 +925,17 @@ proof (rule deg_aboveI)
   with boundm R show "coeff P (p \<otimes>\<^bsub>P\<^esub> q) m = \<zero>" by simp
 qed (simp add: R)
 
-lemma (in UP_domain) deg_mult [simp]:
+end
+
+context UP_domain
+begin
+
+lemma deg_mult [simp]:
   "[| p ~= \<zero>\<^bsub>P\<^esub>; q ~= \<zero>\<^bsub>P\<^esub>; p \<in> carrier P; q \<in> carrier P |] ==>
   deg R (p \<otimes>\<^bsub>P\<^esub> q) = deg R p + deg R q"
 proof (rule le_anti_sym)
   assume "p \<in> carrier P" " q \<in> carrier P"
-  then show "deg R (p \<otimes>\<^bsub>P\<^esub> q) <= deg R p + deg R q" by (rule deg_mult_cring)
+  then show "deg R (p \<otimes>\<^bsub>P\<^esub> q) <= deg R p + deg R q" by (rule deg_mult_ring)
 next
   let ?s = "(%i. coeff P p i \<otimes> coeff P q (deg R p + deg R q - i))"
   assume R: "p \<in> carrier P" "q \<in> carrier P" and nz: "p ~= \<zero>\<^bsub>P\<^esub>" "q ~= \<zero>\<^bsub>P\<^esub>"
@@ -828,16 +957,23 @@ next
       = coeff P p (deg R p) \<otimes> coeff P q (deg R q)" .
     with nz show "(\<Oplus>i \<in> {.. deg R p + deg R q}. ?s i) ~= \<zero>"
       by (simp add: integral_iff lcoeff_nonzero R)
-    qed (simp add: R)
-  qed
+  qed (simp add: R)
+qed
 
-lemma (in UP_cring) coeff_finsum:
+end
+
+text{*The following lemmas also can be lifted to @{term UP_ring}.*}
+
+context UP_ring
+begin
+
+lemma coeff_finsum:
   assumes fin: "finite A"
   shows "p \<in> A -> carrier P ==>
     coeff P (finsum P p A) k = (\<Oplus>i \<in> A. coeff P (p i) k)"
   using fin by induct (auto simp: Pi_def)
 
-lemma (in UP_cring) up_repr:
+lemma up_repr:
   assumes R: "p \<in> carrier P"
   shows "(\<Oplus>\<^bsub>P\<^esub> i \<in> {..deg R p}. monom P (coeff P p i) i) = p"
 proof (rule up_eqI)
@@ -874,7 +1010,7 @@ proof (rule up_eqI)
   qed
 qed (simp_all add: R Pi_def)
 
-lemma (in UP_cring) up_repr_le:
+lemma up_repr_le:
   "[| deg R p <= n; p \<in> carrier P |] ==>
   (\<Oplus>\<^bsub>P\<^esub> i \<in> {..n}. monom P (coeff P p i) i) = p"
 proof -
@@ -889,6 +1025,8 @@ proof -
   finally show ?thesis .
 qed
 
+end
+
 
 subsection {* Polynomials over Integral Domains *}
 
@@ -901,16 +1039,19 @@ lemma domainI:
   by (auto intro!: domain.intro domain_axioms.intro cring.axioms assms
     del: disjCI)
 
-lemma (in UP_domain) UP_one_not_zero:
+context UP_domain
+begin
+
+lemma UP_one_not_zero:
   "\<one>\<^bsub>P\<^esub> ~= \<zero>\<^bsub>P\<^esub>"
 proof
   assume "\<one>\<^bsub>P\<^esub> = \<zero>\<^bsub>P\<^esub>"
   hence "coeff P \<one>\<^bsub>P\<^esub> 0 = (coeff P \<zero>\<^bsub>P\<^esub> 0)" by simp
   hence "\<one> = \<zero>" by simp
-  with one_not_zero show "False" by contradiction
+  with R.one_not_zero show "False" by contradiction
 qed
 
-lemma (in UP_domain) UP_integral:
+lemma UP_integral:
   "[| p \<otimes>\<^bsub>P\<^esub> q = \<zero>\<^bsub>P\<^esub>; p \<in> carrier P; q \<in> carrier P |] ==> p = \<zero>\<^bsub>P\<^esub> | q = \<zero>\<^bsub>P\<^esub>"
 proof -
   fix p q
@@ -939,9 +1080,11 @@ proof -
   qed
 qed
 
-theorem (in UP_domain) UP_domain:
+theorem UP_domain:
   "domain P"
   by (auto intro!: domainI UP_cring UP_one_not_zero UP_integral del: disjCI)
+
+end
 
 text {*
   Interpretation of theorems from @{term domain}.
@@ -959,7 +1102,14 @@ lemma (in abelian_monoid) finsum_cong2:
   !!i. i \<in> B ==> f i = g i |] ==> finsum G f A = finsum G g B"
   sorry*)
 
-theorem (in cring) diagonal_sum:
+lemma (in abelian_monoid) boundD_carrier:
+  "[| bound \<zero> n f; n < m |] ==> f m \<in> carrier G"
+  by auto
+
+context ring
+begin
+
+theorem diagonal_sum:
   "[| f \<in> {..n + m::nat} -> carrier R; g \<in> {..n + m} -> carrier R |] ==>
   (\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..k}. f i \<otimes> g (k - i)) =
   (\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..n + m - k}. f k \<otimes> g i)"
@@ -992,11 +1142,7 @@ proof -
   then show ?thesis by fast
 qed
 
-lemma (in abelian_monoid) boundD_carrier:
-  "[| bound \<zero> n f; n < m |] ==> f m \<in> carrier G"
-  by auto
-
-theorem (in cring) cauchy_product:
+theorem cauchy_product:
   assumes bf: "bound \<zero> n f" and bg: "bound \<zero> m g"
     and Rf: "f \<in> {..n} -> carrier R" and Rg: "g \<in> {..m} -> carrier R"
   shows "(\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..k}. f i \<otimes> g (k - i)) =
@@ -1034,7 +1180,9 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in UP_cring) const_ring_hom:
+end
+
+lemma (in UP_ring) const_ring_hom:
   "(%a. monom P a 0) \<in> ring_hom R P"
   by (auto intro!: ring_hom_memI intro: up_eqI simp: monom_mult_is_smult)
 
@@ -1044,17 +1192,20 @@ constdefs (structure S)
   "eval R S phi s == \<lambda>p \<in> carrier (UP R).
     \<Oplus>i \<in> {..deg R p}. phi (coeff (UP R) p i) \<otimes> s (^) i"
 
+context UP
+begin
 
-lemma (in UP) eval_on_carrier:
+lemma eval_on_carrier:
   fixes S (structure)
   shows "p \<in> carrier P ==>
   eval R S phi s p = (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. phi (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
   by (unfold eval_def, fold P_def) simp
 
-lemma (in UP) eval_extensional:
+lemma eval_extensional:
   "eval R S phi p \<in> extensional (carrier P)"
   by (unfold eval_def, fold P_def) simp
 
+end
 
 text {* The universal property of the polynomial ring *}
 
@@ -1065,7 +1216,23 @@ locale UP_univ_prop = UP_pre_univ_prop +
   assumes indet_img_carrier [simp, intro]: "s \<in> carrier S"
   defines Eval_def: "Eval == eval R S h s"
 
-theorem (in UP_pre_univ_prop) eval_ring_hom:
+text{*JE: I have moved the following lemma from Ring.thy and lifted then to the locale @{term ring_hom_ring} from @{term ring_hom_cring}.*}
+text{*JE: I was considering using it in @{text eval_ring_hom}, but that property does not hold for non commutative rings, so 
+  maybe it is not that necessary.*}
+
+lemma (in ring_hom_ring) hom_finsum [simp]:
+  "[| finite A; f \<in> A -> carrier R |] ==>
+  h (finsum R f A) = finsum S (h o f) A"
+proof (induct set: finite)
+  case empty then show ?case by simp
+next
+  case insert then show ?case by (simp add: Pi_def)
+qed
+
+context UP_pre_univ_prop
+begin
+
+theorem eval_ring_hom:
   assumes S: "s \<in> carrier S"
   shows "eval R S h s \<in> ring_hom P S"
 proof (rule ring_hom_memI)
@@ -1076,38 +1243,6 @@ proof (rule ring_hom_memI)
 next
   fix p q
   assume R: "p \<in> carrier P" "q \<in> carrier P"
-  then show "eval R S h s (p \<otimes>\<^bsub>P\<^esub> q) = eval R S h s p \<otimes>\<^bsub>S\<^esub> eval R S h s q"
-  proof (simp only: eval_on_carrier UP_mult_closed)
-    from R S have
-      "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)} \<union> {deg R (p \<otimes>\<^bsub>P\<^esub> q)<..deg R p + deg R q}.
-        h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
-      by (simp cong: S.finsum_cong
-        add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def
-        del: coeff_mult)
-    also from R have "... =
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p + deg R q}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
-      by (simp only: ivl_disj_un_one deg_mult_cring)
-    also from R S have "... =
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p + deg R q}.
-         \<Oplus>\<^bsub>S\<^esub> k \<in> {..i}.
-           h (coeff P p k) \<otimes>\<^bsub>S\<^esub> h (coeff P q (i - k)) \<otimes>\<^bsub>S\<^esub>
-           (s (^)\<^bsub>S\<^esub> k \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> (i - k)))"
-      by (simp cong: S.finsum_cong add: S.nat_pow_mult Pi_def
-        S.m_ac S.finsum_rdistr)
-    also from R S have "... =
-      (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<otimes>\<^bsub>S\<^esub>
-      (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
-      by (simp add: S.cauchy_product [THEN sym] bound.intro deg_aboveD S.m_ac
-        Pi_def)
-    finally show
-      "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<otimes>\<^bsub>S\<^esub>
-      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)" .
-  qed
-next
-  fix p q
-  assume R: "p \<in> carrier P" "q \<in> carrier P"
   then show "eval R S h s (p \<oplus>\<^bsub>P\<^esub> q) = eval R S h s p \<oplus>\<^bsub>S\<^esub> eval R S h s q"
   proof (simp only: eval_on_carrier P.a_closed)
     from S R have
@@ -1115,8 +1250,7 @@ next
       (\<Oplus>\<^bsub>S \<^esub>i\<in>{..deg R (p \<oplus>\<^bsub>P\<^esub> q)} \<union> {deg R (p \<oplus>\<^bsub>P\<^esub> q)<..max (deg R p) (deg R q)}.
         h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
       by (simp cong: S.finsum_cong
-        add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def
-        del: coeff_add)
+        add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def del: coeff_add)
     also from R have "... =
         (\<Oplus>\<^bsub>S\<^esub> i \<in> {..max (deg R p) (deg R q)}.
           h (coeff P (p \<oplus>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
@@ -1145,22 +1279,39 @@ next
 next
   show "eval R S h s \<one>\<^bsub>P\<^esub> = \<one>\<^bsub>S\<^esub>"
     by (simp only: eval_on_carrier UP_one_closed) simp
+next
+  fix p q
+  assume R: "p \<in> carrier P" "q \<in> carrier P"
+  then show "eval R S h s (p \<otimes>\<^bsub>P\<^esub> q) = eval R S h s p \<otimes>\<^bsub>S\<^esub> eval R S h s q"
+  proof (simp only: eval_on_carrier UP_mult_closed)
+    from R S have
+      "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)} \<union> {deg R (p \<otimes>\<^bsub>P\<^esub> q)<..deg R p + deg R q}.
+        h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+      by (simp cong: S.finsum_cong
+        add: deg_aboveD S.finsum_Un_disjoint ivl_disj_int_one Pi_def
+        del: coeff_mult)
+    also from R have "... =
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p + deg R q}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+      by (simp only: ivl_disj_un_one deg_mult_ring)
+    also from R S have "... =
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p + deg R q}.
+         \<Oplus>\<^bsub>S\<^esub> k \<in> {..i}.
+           h (coeff P p k) \<otimes>\<^bsub>S\<^esub> h (coeff P q (i - k)) \<otimes>\<^bsub>S\<^esub>
+           (s (^)\<^bsub>S\<^esub> k \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> (i - k)))"
+      by (simp cong: S.finsum_cong add: S.nat_pow_mult Pi_def
+        S.m_ac S.finsum_rdistr)
+    also from R S have "... =
+      (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<otimes>\<^bsub>S\<^esub>
+      (\<Oplus>\<^bsub>S\<^esub> i\<in>{..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
+      by (simp add: S.cauchy_product [THEN sym] bound.intro deg_aboveD S.m_ac
+        Pi_def)
+    finally show
+      "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (p \<otimes>\<^bsub>P\<^esub> q)}. h (coeff P (p \<otimes>\<^bsub>P\<^esub> q) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) =
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<otimes>\<^bsub>S\<^esub>
+      (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)" .
+  qed
 qed
-
-text {* Interpretation of ring homomorphism lemmas. *}
-
-interpretation UP_univ_prop < ring_hom_cring P S Eval
-  apply (unfold Eval_def)
-  apply intro_locales
-  apply (rule ring_hom_cring.axioms)
-  apply (rule ring_hom_cring.intro)
-  apply unfold_locales
-  apply (rule eval_ring_hom)
-  apply rule
-  done
-
-
-text {* Further properties of the evaluation homomorphism. *}
 
 text {*
   The following lemma could be proved in @{text UP_cring} with the additional
@@ -1169,6 +1320,8 @@ text {*
 lemma (in UP_pre_univ_prop) eval_const:
   "[| s \<in> carrier S; r \<in> carrier R |] ==> eval R S h s (monom P r 0) = h r"
   by (simp only: eval_on_carrier monom_closed) simp
+
+text {* Further properties of the evaluation homomorphism. *}
 
 text {* The following proof is complicated by the fact that in arbitrary
   rings one might have @{term "one R = zero R"}. *}
@@ -1197,6 +1350,20 @@ proof (simp only: eval_on_carrier monom_closed R.one_closed)
   finally show "(\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R (monom P \<one> 1)}.
     h (coeff P (monom P \<one> 1) i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) = s" .
 qed
+
+end
+
+text {* Interpretation of ring homomorphism lemmas. *}
+
+interpretation UP_univ_prop < ring_hom_cring P S Eval
+  apply (unfold Eval_def)
+  apply intro_locales
+  apply (rule ring_hom_cring.axioms)
+  apply (rule ring_hom_cring.intro)
+  apply unfold_locales
+  apply (rule eval_ring_hom)
+  apply rule
+  done
 
 lemma (in UP_cring) monom_pow:
   assumes R: "a \<in> carrier R"
@@ -1253,7 +1420,10 @@ lemma ring_hom_cringI:
   by (fast intro: ring_hom_cring.intro ring_hom_cring_axioms.intro
     cring.axioms assms)
 
-lemma (in UP_pre_univ_prop) UP_hom_unique:
+context UP_pre_univ_prop
+begin
+
+lemma UP_hom_unique:
   assumes "ring_hom_cring P S Phi"
   assumes Phi: "Phi (monom P \<one> (Suc 0)) = s"
       "!!r. r \<in> carrier R ==> Phi (monom P r 0) = h r"
@@ -1277,7 +1447,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in UP_pre_univ_prop) ring_homD:
+lemma ring_homD:
   assumes Phi: "Phi \<in> ring_hom P S"
   shows "ring_hom_cring P S Phi"
 proof (rule ring_hom_cring.intro)
@@ -1285,7 +1455,7 @@ proof (rule ring_hom_cring.intro)
   by (rule ring_hom_cring_axioms.intro) (rule Phi)
 qed unfold_locales
 
-theorem (in UP_pre_univ_prop) UP_universal_property:
+theorem UP_universal_property:
   assumes S: "s \<in> carrier S"
   shows "EX! Phi. Phi \<in> ring_hom P S \<inter> extensional (carrier P) &
     Phi (monom P \<one> 1) = s &
@@ -1295,6 +1465,8 @@ theorem (in UP_pre_univ_prop) UP_universal_property:
   apply (rule extensionalityI)
   apply (auto intro: UP_hom_unique ring_homD)
   done
+
+end
 
 
 subsection {* Sample Application of Evaluation Homomorphism *}
@@ -1308,9 +1480,8 @@ lemma UP_pre_univ_propI:
   by (auto intro!: UP_pre_univ_prop.intro ring_hom_cring.intro
     ring_hom_cring_axioms.intro UP_cring.intro)
 
-constdefs
-  INTEG :: "int ring"
-  "INTEG == (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
+definition  INTEG :: "int ring"
+  where INTEG_def: "INTEG == (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
 
 lemma INTEG_cring:
   "cring INTEG"
@@ -1327,11 +1498,7 @@ text {*
   "UP INTEG"} globally.
 *}
 
-interpretation INTEG: UP_pre_univ_prop [INTEG INTEG id]
-  apply simp
-  using INTEG_id_eval
-  apply simp
-  done
+interpretation INTEG: UP_pre_univ_prop [INTEG INTEG id] using INTEG_id_eval by simp_all
 
 lemma INTEG_closed [intro, simp]:
   "z \<in> carrier INTEG"

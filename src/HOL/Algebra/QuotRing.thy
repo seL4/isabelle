@@ -4,11 +4,11 @@
   Author:    Stephan Hohe
 *)
 
-header {* Quotient Rings *}
-
 theory QuotRing
 imports RingHom
 begin
+
+section {* Quotient Rings *}
 
 subsection {* Multiplication on Cosets *}
 

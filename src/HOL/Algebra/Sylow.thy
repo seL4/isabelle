@@ -3,10 +3,7 @@
     Author:     Florian Kammueller, with new proofs by L C Paulson
 *)
 
-theory Sylow imports Coset begin
-
-
-section {* Sylow's Theorem *}
+theory Sylow imports Coset Exponent begin
 
 text {*
   See also \cite{Kammueller-Paulson:1999}.

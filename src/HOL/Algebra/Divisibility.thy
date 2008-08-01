@@ -3,14 +3,16 @@
   Id:        $Id$
   Author:    Clemens Ballarin, started 18 July 2008
 
-Based on work by Stefan Hohe.
+Based on work by Stephan Hohe.
 *)
 
 theory Divisibility
 imports Permutation Coset Group
 begin
 
-subsection {* Monoid with cancelation law *}
+section {* Factorial Monoids *}
+
+subsection {* Monoids with Cancellation Law *}
 
 locale monoid_cancel = monoid +
   assumes l_cancel: 
@@ -56,7 +58,7 @@ interpretation comm_group \<subseteq> comm_monoid_cancel
 by unfold_locales
 
 
-subsection {* Products of units in monoids *}
+subsection {* Products of Units in Monoids *}
 
 lemma (in monoid) Units_m_closed[simp, intro]:
   assumes h1unit: "h1 \<in> Units G" and h2unit: "h2 \<in> Units G"
@@ -150,7 +152,7 @@ proof clarsimp
       show "a \<in> Units G" by (simp add: Units_def, fast)
 qed
 
-subsection {* Divisibility and association *}
+subsection {* Divisibility and Association *}
 
 subsubsection {* Function definitions *}
 
@@ -811,7 +813,7 @@ lemma (in comm_monoid) properfactor_prod_l:
 by (intro properfactor_trans2[OF ab] divides_prod_l, simp+)
 
 
-subsection {* Irreducible elements and primes *}
+subsection {* Irreducible Elements and Primes *}
 
 subsubsection {* Irreducible elements *}
 
@@ -1031,11 +1033,7 @@ next
 qed
 
 
-subsection {* Factorization and factorial monoids *}
-
-(*
-hide (open) const mult     (* Multiset.mult, conflicting with monoid.mult *)
-*)
+subsection {* Factorization and Factorial Monoids *}
 
 subsubsection {* Function definitions *}
 
@@ -1891,7 +1889,7 @@ proof (unfold_locales)
 qed (blast intro: factors_wfactors wfactors_unique)
 
 
-subsection {* Factorizations as multisets *}
+subsection {* Factorizations as Multisets *}
 
 text {* Gives useful operations like intersection *}
 
@@ -2370,7 +2368,7 @@ proof
 qed
 
 
-subsection {* Irreducible elements are prime *}
+subsection {* Irreducible Elements are Prime *}
 
 lemma (in factorial_monoid) irreducible_is_prime:
   assumes pirr: "irreducible G p"
@@ -2610,7 +2608,7 @@ proof -
 qed
 
 
-subsection {* Greatest common divisors and lowest common multiples *}
+subsection {* Greatest Common Divisors and Lowest Common Multiples *}
 
 subsubsection {* Definitions *}
 
@@ -2907,7 +2905,7 @@ proof -
 qed
 
 
-subsection {* Conditions for factoriality *}
+subsection {* Conditions for Factoriality *}
 
 subsubsection {* Gcd condition *}
 
@@ -3891,7 +3889,7 @@ proof -
 qed
 
 
-subsection {* Factoriality theorems *}
+subsection {* Factoriality Theorems *}
 
 theorem factorial_condition_one: (* Jacobson theorem 2.21 *)
   shows "(divisor_chain_condition_monoid G \<and> primeness_condition_monoid G) = 

@@ -142,7 +142,8 @@ LowerD ~> Lower_memD
 least_carrier ~> least_closed
 greatest_carrier ~> greatest_closed
 greatest_Lower_above ~> greatest_Lower_below
-
+one_zero ~> carrier_one_zero
+one_not_zero ~> carrier_one_not_zero  (collision with assumption)
 
 *** HOL-NSA ***
 

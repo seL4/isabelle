@@ -9,12 +9,13 @@ theory Congruence imports Main begin
 
 section {* Objects *}
 
-text {* Structure with a carrier set. *}
+subsection {* Structure with Carrier Set. *}
 
 record 'a partial_object =
   carrier :: "'a set"
 
-text {* Dito with equivalence relation *}
+
+subsection {* Structure with Carrier and Equivalence Relation @{text eq} *}
 
 record 'a eq_object = "'a partial_object" +
   eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".=\<index>" 50)
@@ -45,14 +46,13 @@ translations
   "x .\<notin>\<index> A" == "~(x .\<in>\<index> A)"
   "A {.\<noteq>}\<index> B" == "~(A {.=}\<index> B)"
 
-
-section {* Equivalence Relations *}
-
 locale equivalence =
   fixes S (structure)
   assumes refl [simp, intro]: "x \<in> carrier S \<Longrightarrow> x .= x"
     and sym [sym]: "\<lbrakk> x .= y; x \<in> carrier S; y \<in> carrier S \<rbrakk> \<Longrightarrow> y .= x"
     and trans [trans]: "\<lbrakk> x .= y; y .= z; x \<in> carrier S; y \<in> carrier S; z \<in> carrier S \<rbrakk> \<Longrightarrow> x .= z"
+
+(* Lemmas by Stephan Hohe *)
 
 lemma elemI:
   fixes R (structure)
@@ -205,6 +205,7 @@ unfolding set_eq_def elem_def
 by fast
 
 (* FIXME: the following two required in Isabelle 2008, not Isabelle 2007 *)
+(* alternatively, could declare lemmas [trans] = ssubst [where 'a = "'a set"] *)
 
 lemma (in equivalence) equal_set_eq_trans [trans]:
   assumes AB: "A = B" and BC: "B {.=} C"
@@ -215,6 +216,7 @@ lemma (in equivalence) set_eq_equal_trans [trans]:
   assumes AB: "A {.=} B" and BC: "B = C"
   shows "A {.=} C"
   using AB BC by simp
+
 
 lemma (in equivalence) set_eq_trans [trans]:
   assumes AB: "A {.=} B" and BC: "B {.=} C"

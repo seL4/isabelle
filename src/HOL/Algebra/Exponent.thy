@@ -9,12 +9,15 @@ theory Exponent
 imports Main Primes Binomial
 begin
 
-section {*The Combinatorial Argument Underlying the First Sylow Theorem*}
+section {*Sylow's Theorem*}
+
+subsection {*The Combinatorial Argument Underlying the First Sylow Theorem*}
+
 definition exponent :: "nat => nat => nat" where
 "exponent p s == if prime p then (GREATEST r. p^r dvd s) else 0"
 
 
-subsection{*Prime Theorems*}
+text{*Prime Theorems*}
 
 lemma prime_imp_one_less: "prime p ==> Suc 0 < p"
 by (unfold prime_def, force)
@@ -106,7 +109,7 @@ apply (drule_tac [2] n = n in Suc_le_power, auto)
 done
 
 
-subsection{*Exponent Theorems*}
+text{*Exponent Theorems*}
 
 lemma exponent_ge [rule_format]:
   "[|p^k dvd n;  prime p;  0<n|] ==> k <= exponent p n"
@@ -186,7 +189,7 @@ apply (auto simp add: prime_iff not_divides_exponent_0)
 done
 
 
-subsection{*Main Combinatorial Argument*}
+text{*Main Combinatorial Argument*}
 
 lemma le_extend_mult: "[| c > 0; a <= b |] ==> a <= b * (c::nat)"
 apply (rule_tac P = "%x. x <= b * c" in subst)

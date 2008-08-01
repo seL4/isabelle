@@ -9,9 +9,9 @@ imports Coset Ring
 begin
 
 
-section {* More Lifting from Groups to Abelian Groups *}
+subsection {* More Lifting from Groups to Abelian Groups *}
 
-subsection {* Definitions *}
+subsubsection {* Definitions *}
 
 text {* Hiding @{text "<+>"} from @{theory Sum_Type} until I come
   up with better syntax here *}
@@ -102,7 +102,7 @@ unfolding A_SET_INV_defs
 by (fold a_inv_def)
 
 
-subsection {* Cosets *}
+subsubsection {* Cosets *}
 
 lemma (in abelian_group) a_coset_add_assoc:
      "[| M \<subseteq> carrier G; g \<in> carrier G; h \<in> carrier G |]
@@ -178,7 +178,7 @@ by (rule group.rcos_self [OF a_group,
 *)
 
 
-subsection {* Subgroups *}
+subsubsection {* Subgroups *}
 
 locale additive_subgroup = var H + struct G +
   assumes a_subgroup: "subgroup H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
@@ -214,9 +214,7 @@ by (rule subgroup.m_inv_closed[OF a_subgroup,
     folded a_inv_def, simplified monoid_record_simps])
 
 
-subsection {* Normal additive subgroups *}
-
-subsubsection {* Definition of @{text "abelian_subgroup"} *}
+subsubsection {* Additive subgroups are normal *}
 
 text {* Every subgroup of an @{text "abelian_group"} is normal *}
 
@@ -385,7 +383,7 @@ by (rule normal.rcosets_mult_eq [OF a_normal,
     folded set_add_def A_RCOSETS_def, simplified monoid_record_simps])
 
 
-subsection {* Congruence Relation *}
+subsubsection {* Congruence Relation *}
 
 lemma (in abelian_subgroup) a_equiv_rcong:
    shows "equiv (carrier G) (racong H)"
@@ -446,7 +444,7 @@ by (rule group.lagrange [OF a_group,
     (fast intro!: additive_subgroup.a_subgroup)+
 
 
-subsection {* Factorization *}
+subsubsection {* Factorization *}
 
 lemmas A_FactGroup_defs = A_FactGroup_def FactGroup_def
 
@@ -518,7 +516,7 @@ by (rule normal.r_coset_hom_Mod [OF a_normal,
 text {* The isomorphism theorems have been omitted from lifting, at
   least for now *}
 
-subsection{*The First Isomorphism Theorem*}
+subsubsection{*The First Isomorphism Theorem*}
 
 text{*The quotient by the kernel of a homomorphism is isomorphic to the 
   range of that homomorphism.*}
@@ -531,7 +529,7 @@ lemma a_kernel_def':
 by (rule a_kernel_def[unfolded kernel_def, simplified ring_record_simps])
 
 
-subsection {* Homomorphisms *}
+subsubsection {* Homomorphisms *}
 
 lemma abelian_group_homI:
   assumes "abelian_group G"
@@ -640,11 +638,9 @@ theorem (in abelian_group_hom) A_FactGroup_iso:
 by (rule group_hom.FactGroup_iso[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps])
 
-section {* Lemmas Lifted from CosetExt.thy *}
+subsubsection {* Cosets *}
 
 text {* Not eveything from \texttt{CosetExt.thy} is lifted here. *}
-
-subsection {* General Lemmas from \texttt{AlgebraExt.thy} *}
 
 lemma (in additive_subgroup) a_Hcarr [simp]:
   assumes hH: "h \<in> H"
@@ -652,8 +648,6 @@ lemma (in additive_subgroup) a_Hcarr [simp]:
 by (rule subgroup.mem_carrier [OF a_subgroup,
     simplified monoid_record_simps]) (rule hH)
 
-
-subsection {* Lemmas for Right Cosets *}
 
 lemma (in abelian_subgroup) a_elemrcos_carrier:
   assumes acarr: "a \<in> carrier G"
@@ -722,8 +716,6 @@ by (rule group.repr_independenceD [OF a_group a_subgroup,
     folded a_r_coset_def, simplified monoid_record_simps]) (rule ycarr, rule repr)
 
 
-subsection {* Lemmas for the Set of Right Cosets *}
-
 lemma (in abelian_subgroup) a_rcosets_carrier:
   "X \<in> a_rcosets H \<Longrightarrow> X \<subseteq> carrier G"
 by (rule subgroup.rcosets_carrier [OF a_subgroup a_group,
@@ -731,7 +723,7 @@ by (rule subgroup.rcosets_carrier [OF a_subgroup a_group,
 
 
 
-subsection {* Addition of Subgroups *}
+subsubsection {* Addition of Subgroups *}
 
 lemma (in abelian_monoid) set_add_closed:
   assumes Acarr: "A \<subseteq> carrier G"

@@ -8,10 +8,9 @@ This file is largely based on HOL/Finite_Set.thy.
 theory FiniteProduct imports Group begin
 
 
-section {* Product Operator for Commutative Monoids *}
+subsection {* Product Operator for Commutative Monoids *}
 
-
-subsection {* Inductive Definition of a Relation for Products over Sets *}
+subsubsection {* Inductive Definition of a Relation for Products over Sets *}
 
 text {* Instantiation of locale @{text LC} of theory @{text Finite_Set} is not
   possible, because here we have explicit typing rules like 
@@ -62,7 +61,7 @@ next
 qed
 
 
-subsection {* Left-Commutative Operations *}
+text {* Left-Commutative Operations *}
 
 locale LCD =
   fixes B :: "'b set"
@@ -231,7 +230,7 @@ declare (in LCD)
   foldSetD_closed [rule del]
 
 
-subsection {* Commutative Monoids *}
+text {* Commutative Monoids *}
 
 text {*
   We enter a more restrictive context, with @{text "f :: 'a => 'a => 'a"}
@@ -286,7 +285,7 @@ lemma (in ACeD) foldD_Un_disjoint:
     left_commute LCD.foldD_closed [OF LCD.intro [of D]] Un_subset_iff)
 
 
-subsection {* Products over Finite Sets *}
+subsubsection {* Products over Finite Sets *}
 
 constdefs (structure G)
   finprod :: "[('b, 'm) monoid_scheme, 'a => 'b, 'a set] => 'b"
