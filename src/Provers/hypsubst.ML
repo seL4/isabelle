@@ -62,7 +62,7 @@ struct
 
 exception EQ_VAR;
 
-val meta_subst = @{lemma "PROP P t ==> PROP prop (x == t ==> PROP P x)"
+val meta_subst = @{lemma "PROP P t \<Longrightarrow> PROP prop (x \<equiv> t \<Longrightarrow> PROP P x)"
   by (unfold prop_def)}
 
 (** Simple version: Just subtitute one hypothesis, specified by index k **)
