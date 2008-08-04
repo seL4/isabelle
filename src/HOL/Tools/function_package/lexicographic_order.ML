@@ -123,38 +123,6 @@ fun search_table table =
            end
       end
 
-(* find all positions of elements in a list *)
-fun find_index_list P =
-    let fun find _ [] = []
-          | find n (x :: xs) = if P x then n :: find (n + 1) xs else find (n + 1) xs
-    in find 0 end
-
-(* simple breadth-first search algorithm for the table *)
-fun bfs_search_table nodes =
-    case nodes of
-      [] => sys_error "INTERNAL ERROR IN lexicographic order termination tactic - fun search_table (breadth search finished)"
-    | (node::rnodes) => let
-        val (order, table) = node
-      in
-        case table of
-          [] => SOME (foldr (fn (c, order) => c :: transform_order c order) [] (rev order))
-        | _ => let
-            val cols = find_index_list (check_col) (transpose table)
-          in
-            case cols of
-              [] => NONE
-            | _ => let
-              val newtables = map (transform_table table) cols
-              val neworders = map (fn c => c :: order) cols
-              val newnodes = neworders ~~ newtables
-            in
-              bfs_search_table (rnodes @ newnodes)
-            end
-          end
-      end
-
-fun nsearch_table table = bfs_search_table [([], table)]
-
 (** Proof Reconstruction **)
 
 (* prove row :: cell list -> tactic *)
