@@ -51,8 +51,6 @@ sig
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val note_thmss_grouped: string -> string -> ((bstring * attribute list) *
     (thm list * attribute list) list) list -> theory -> (bstring * thm list) list * theory
-  val note_thmss_cmd: string -> ((bstring * attribute list) *
-    (Facts.ref * attribute list) list) list -> theory -> (bstring * thm list) list * theory
   val add_axioms: ((bstring * term) * attribute list) list -> theory -> thm list * theory
   val add_axioms_cmd: ((bstring * string) * attribute list) list -> theory -> thm list * theory
   val add_defs: bool -> ((bstring * term) * attribute list) list ->
@@ -236,23 +234,22 @@ fun add_thms_dynamic (bname, f) thy =
   in thy |> FactsData.map (Facts.add_dynamic (Sign.naming_of thy) (name, f)) end;
 
 
-(* note_thmss(_i) *)
+(* note_thmss *)
 
 local
 
-fun gen_note_thmss get tag = fold_map (fn ((bname, more_atts), ths_atts) => fn thy =>
+fun gen_note_thmss tag = fold_map (fn ((bname, more_atts), ths_atts) => fn thy =>
   let
     fun app (x, (ths, atts)) = foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
       (name_thmss true) (name_thms false true) (apsnd flat o foldl_map app)
-      (bname, map (fn (ths, atts) => (get thy ths, surround tag (atts @ more_atts))) ths_atts);
+      (bname, map (fn (ths, atts) => (ths, surround tag (atts @ more_atts))) ths_atts);
   in ((bname, thms), thy') end);
 
 in
 
-fun note_thmss k = gen_note_thmss (K I) (kind k);
-fun note_thmss_grouped k g = gen_note_thmss (K I) (kind k #> group g);
-fun note_thmss_cmd k = gen_note_thmss (fn thy => get_fact (Context.Theory thy) thy) (kind k);
+fun note_thmss k = gen_note_thmss (kind k);
+fun note_thmss_grouped k g = gen_note_thmss (kind k #> group g);
 
 end;
 
