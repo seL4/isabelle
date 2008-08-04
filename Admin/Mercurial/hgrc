@@ -6,6 +6,6 @@ cvsps = /home/isabelle/html-data/isabelle-repos/cvsps-2.1-patched/cvsps -A -u --
 
 [web]
 style = isabelle
-description = Mercurial snapshot of the Isabelle CVS repository
+description = Snapshot of the official Isabelle CVS repository
 allow_archive = gz
 maxfiles = 50
