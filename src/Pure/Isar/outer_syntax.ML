@@ -24,7 +24,7 @@ sig
   val print_outer_syntax: unit -> unit
   val scan: string -> OuterLex.token list
   val parse: Position.T -> string -> Toplevel.transition list
-  val prepare_command: Markup.property list -> string * Position.T -> Toplevel.transition
+  val prepare_command: Position.T -> string -> Toplevel.transition
   val process_file: Path.T -> theory -> theory
   type isar
   val isar: bool -> isar
@@ -196,12 +196,10 @@ fun parse pos str =
   |> toplevel_source false NONE get_parser
   |> Source.exhaust;
 
-fun prepare_command props (str, pos) =
-  let val pos' = Position.of_properties (props |> Position.default_properties pos) in
-    (case parse pos' str of
-      [transition] => transition
-    | _ => error "exactly one command expected")
-  end;
+fun prepare_command pos str =
+  (case parse pos str of
+    [transition] => transition
+  | _ => error "exactly one command expected");
 
 
 (* process file *)
