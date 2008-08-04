@@ -136,7 +136,8 @@ fun triple_swap ((x, y), z) = ((x, z), y);
 
 val not_eof = Scan.one T.not_eof;
 
-fun position scan = (Scan.ahead not_eof >> T.position_of) -- scan >> Library.swap;
+fun position scan =
+  (Scan.ahead not_eof >> (Position.encode_range o T.range_of)) -- scan >> Library.swap;
 
 fun kind k =
   group (T.str_of_kind k) (Scan.one (T.is_kind k) >> T.val_of);
