@@ -5,15 +5,10 @@
 Symbolic representation of attributes -- with name and syntax.
 *)
 
-signature BASIC_ATTRIB =
-sig
-  val print_attributes: theory -> unit
-end;
-
 signature ATTRIB =
 sig
-  include BASIC_ATTRIB
-  type src
+  type src = Args.src
+  val print_attributes: theory -> unit
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
@@ -50,6 +45,7 @@ structure Attrib: ATTRIB =
 struct
 
 type src = Args.src;
+
 
 (** named attributes **)
 
@@ -392,6 +388,3 @@ val _ = Context.>> (Context.map_theory
   register_config MetaSimplifier.simp_depth_limit_value));
 
 end;
-
-structure BasicAttrib: BASIC_ATTRIB = Attrib;
-open BasicAttrib;

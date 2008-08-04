@@ -11,7 +11,6 @@ sig
   val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
   type method
   val trace_rules: bool ref
-  val print_methods: theory -> unit
 end;
 
 signature METHOD =
@@ -54,7 +53,7 @@ sig
   val set_tactic: (thm list -> tactic) -> Proof.context -> Proof.context
   val tactic: string * Position.T -> Proof.context -> method
   val raw_tactic: string * Position.T -> Proof.context -> method
-  type src
+  type src = Args.src
   datatype text =
     Basic of (Proof.context -> method) * Position.T |
     Source of src |
@@ -71,6 +70,7 @@ sig
   val done_text: text
   val sorry_text: bool -> text
   val finish_text: text option * bool -> Position.T -> text
+  val print_methods: theory -> unit
   val intern: theory -> xstring -> string
   val defined: theory -> string -> bool
   val method: theory -> src -> Proof.context -> method
@@ -644,7 +644,6 @@ and meth1 x = (enum1 "," meth2 >> (fn [m] => m | ms => Then ms)) x
 and meth0 x = (enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
 
 in val parse_args = meth3 end;
-
 
 
 (*final declarations of this structure!*)
