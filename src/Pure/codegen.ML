@@ -681,7 +681,8 @@ fun default_codegen thy defs gr dep module brack t =
                  val (ts1, ts2) = args_of ms ts;
                  val (gr1, ps1) = codegens false (gr, ts1);
                  val (gr2, ps2) = codegens true (gr1, ts2);
-                 val (gr3, ps3) = codegens false (gr2, quotes_of ms);
+                 val (gr3, ps3) = codegens false (gr2,
+                   map (preprocess_term thy) (quotes_of ms));
                  val (gr4, _) = invoke_tycodegen thy defs dep module false
                    (gr3, funpow (length ts) (hd o tl o snd o dest_Type) T);
                  val (module', suffix) = (case get_defn thy defs s T of
