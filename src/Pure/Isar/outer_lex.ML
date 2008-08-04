@@ -12,12 +12,14 @@ sig
     String | AltString | Verbatim | Space | Comment | Malformed | Error of string | Sync | EOF
   eqtype token
   val str_of_kind: token_kind -> string
-  val stopper: token * (token -> bool)
-  val not_sync: token -> bool
-  val not_eof: token -> bool
   val range_of: token -> Position.range
   val position_of: token -> Position.T
   val pos_of: token -> string
+  val eof: token
+  val is_eof: token -> bool
+  val not_eof: token -> bool
+  val not_sync: token -> bool
+  val stopper: token Scan.stopper
   val kind_of: token -> token_kind
   val is_kind: token_kind -> token -> bool
   val keyword_with: (string -> bool) -> token -> bool
@@ -83,27 +85,28 @@ val str_of_kind =
   | EOF => "end-of-file";
 
 
-(* control tokens *)
-
-val eof = Token ((Position.none, Position.none), (EOF, ""));
-
-fun is_eof (Token (_, (EOF, _))) = true
-  | is_eof _ = false;
-
-val stopper = (eof, is_eof);
-val not_eof = not o is_eof;
-
-
-fun not_sync (Token (_, (Sync, _))) = false
-  | not_sync _ = true;
-
-
-(* get position *)
+(* position *)
 
 fun range_of (Token (range, _)) = range;
 
 val position_of = #1 o range_of;
 val pos_of = Position.str_of o position_of;
+
+
+(* control tokens *)
+
+fun mk_eof pos = Token ((pos, Position.none), (EOF, ""));
+val eof = mk_eof Position.none;
+
+fun is_eof (Token (_, (EOF, _))) = true
+  | is_eof _ = false;
+
+val not_eof = not o is_eof;
+
+fun not_sync (Token (_, (Sync, _))) = false
+  | not_sync _ = true;
+
+val stopper = Scan.stopper (fn [] => eof | toks => mk_eof (#2 (range_of (List.last toks)))) is_eof;
 
 
 (* kind of token *)
