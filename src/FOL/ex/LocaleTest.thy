@@ -233,7 +233,7 @@ ML {* check_thm "i7'.e_def2" *}
 locale IG = fixes g assumes asm_G: "g --> x"
   notes asm_G2 = asm_G
 
-interpretation i8: IG ["False"] by (rule IG.intro) fast
+interpretation i8: IG ["False"] by unfold_locales fast
 
 thm i8.asm_G2
 
@@ -346,85 +346,6 @@ section {* Interpretation in Locales *}
 
 text {* Naming convention for global objects: prefixes R and r *}
 
-locale Rsemi = var prod (infixl "**" 65) +
-  assumes assoc: "(x ** y) ** z = x ** (y ** z)"
-
-locale Rlgrp = Rsemi + var one + var inv +
-  assumes lone: "one ** x = x"
-    and linv: "inv(x) ** x = one"
-
-lemma (in Rlgrp) lcancel:
-  "x ** y = x ** z <-> y = z"
-proof
-  assume "x ** y = x ** z"
-  then have "inv(x) ** x ** y = inv(x) ** x ** z" by (simp add: assoc)
-  then show "y = z" by (simp add: lone linv)
-qed simp
-
-locale Rrgrp = Rsemi + var one + var inv +
-  assumes rone: "x ** one = x"
-    and rinv: "x ** inv(x) = one"
-
-lemma (in Rrgrp) rcancel:
-  "y ** x = z ** x <-> y = z"
-proof
-  assume "y ** x = z ** x"
-  then have "y ** (x ** inv(x)) = z ** (x ** inv(x))"
-    by (simp add: assoc [symmetric])
-  then show "y = z" by (simp add: rone rinv)
-qed simp
-
-interpretation Rlgrp < Rrgrp
-  proof
-    {
-      fix x
-      have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
-      then show "x ** one = x" by (simp add: assoc lcancel)
-    }
-    note rone = this
-    {
-      fix x
-      have "inv(x) ** x ** inv(x) = inv(x) ** one"
-	by (simp add: linv lone rone)
-      then show "x ** inv(x) = one" by (simp add: assoc lcancel)
-    }
-  qed
-
-(* effect on printed locale *)
-
-print_locale! Rlgrp
-
-(* use of derived theorem *)
-
-lemma (in Rlgrp)
-  "y ** x = z ** x <-> y = z"
-  apply (rule rcancel)
-  print_interps Rrgrp thm lcancel rcancel
-  done
-
-(* circular interpretation *)
-
-interpretation Rrgrp < Rlgrp
-  proof
-    {
-      fix x
-      have "one ** (x ** inv(x)) = x ** inv(x)" by (simp add: rinv rone)
-      then show "one ** x = x" by (simp add: assoc [symmetric] rcancel)
-    }
-    note lone = this
-    {
-      fix x
-      have "inv(x) ** (x ** inv(x)) = one ** inv(x)"
-	by (simp add: rinv lone rone)
-      then show "inv(x) ** x = one" by (simp add: assoc [symmetric] rcancel)
-    }
-  qed
-
-(* effect on printed locale *)
-
-print_locale! Rrgrp
-print_locale! Rlgrp
-
 (* locale with many parameters ---
    interpretations generate alternating group A5 *)
 
@@ -486,16 +407,16 @@ lemma (in RB1) True
   ..
 
 
-(* Group example revisited, with predicates *)
+(* Group example *)
 
-locale Rpsemi = var prod (infixl "**" 65) +
+locale Rsemi = var prod (infixl "**" 65) +
   assumes assoc: "(x ** y) ** z = x ** (y ** z)"
 
-locale Rplgrp = Rpsemi + var one + var inv +
+locale Rlgrp = Rsemi + var one + var inv +
   assumes lone: "one ** x = x"
     and linv: "inv(x) ** x = one"
 
-lemma (in Rplgrp) lcancel:
+lemma (in Rlgrp) lcancel:
   "x ** y = x ** z <-> y = z"
 proof
   assume "x ** y = x ** z"
@@ -503,11 +424,11 @@ proof
   then show "y = z" by (simp add: lone linv)
 qed simp
 
-locale Rprgrp = Rpsemi + var one + var inv +
+locale Rrgrp = Rsemi + var one + var inv +
   assumes rone: "x ** one = x"
     and rinv: "x ** inv(x) = one"
 
-lemma (in Rprgrp) rcancel:
+lemma (in Rrgrp) rcancel:
   "y ** x = z ** x <-> y = z"
 proof
   assume "y ** x = z ** x"
@@ -516,7 +437,7 @@ proof
   then show "y = z" by (simp add: rone rinv)
 qed simp
 
-interpretation Rplgrp < Rprgrp
+interpretation Rlgrp < Rrgrp
   proof unfold_locales
     {
       fix x
@@ -534,19 +455,19 @@ interpretation Rplgrp < Rprgrp
 
 (* effect on printed locale *)
 
-print_locale! Rplgrp
+print_locale! Rlgrp
 
 (* use of derived theorem *)
 
-lemma (in Rplgrp)
+lemma (in Rlgrp)
   "y ** x = z ** x <-> y = z"
   apply (rule rcancel)
-  print_interps Rprgrp thm lcancel rcancel
+  print_interps Rrgrp thm lcancel rcancel
   done
 
 (* circular interpretation *)
 
-interpretation Rprgrp < Rplgrp
+interpretation Rrgrp < Rlgrp
   proof unfold_locales
     {
       fix x
@@ -564,8 +485,8 @@ interpretation Rprgrp < Rplgrp
 
 (* effect on printed locale *)
 
-print_locale! Rprgrp
-print_locale! Rplgrp
+print_locale! Rrgrp
+print_locale! Rlgrp
 
 subsection {* Interaction of Interpretation in Theories and Locales:
   in Locale, then in Theory *}
@@ -643,7 +564,7 @@ proof
   then show "y = z" by (simp add: rone rinv)
 qed simp
 
-interpretation Rqrgrp < Rprgrp
+interpretation Rqrgrp < Rrgrp
   apply unfold_locales
   apply (rule assoc)
   apply (rule rone)
@@ -660,7 +581,7 @@ interpretation R2: Rqlgrp ["op #" "rone" "rinv"]
 
 print_interps Rqsemi
 print_interps Rqlgrp
-print_interps Rplgrp  (* no interpretations yet *)
+print_interps Rlgrp  (* no interpretations yet *)
 
 
 interpretation Rqlgrp < Rqrgrp
@@ -680,9 +601,9 @@ interpretation Rqlgrp < Rqrgrp
   qed
 
 print_interps! Rqrgrp
-print_interps! Rpsemi  (* witness must not have meta hyps *)
-print_interps! Rprgrp  (* witness must not have meta hyps *)
-print_interps! Rplgrp  (* witness must not have meta hyps *)
+print_interps! Rsemi  (* witness must not have meta hyps *)
+print_interps! Rrgrp  (* witness must not have meta hyps *)
+print_interps! Rlgrp  (* witness must not have meta hyps *)
 thm R2.rcancel
 thm R2.lcancel
 
@@ -748,25 +669,22 @@ axioms
 locale Rpair = var prod (infixl "**" 65) + var prodP (infixl "***" 65) +
   defines P_def: "x *** y == pair(fst(x) ** fst(y), snd(x) ** snd(y))"
 
-locale Rpair_semi = Rpair + Rpsemi
+locale Rpair_semi = Rpair + Rsemi
 
-interpretation Rpair_semi < Rpsemi prodP (infixl "***" 65)
-proof (rule Rpsemi.intro)
+interpretation Rpair_semi < Rsemi prodP (infixl "***" 65)
+proof unfold_locales
   fix x y z
   show "(x *** y) *** z = x *** (y *** z)"
     apply (simp only: P_def) apply (simp add: assoc) (* FIXME: unfold P_def fails *)
     done
 qed
 
-locale Rsemi_rev = Rpsemi + var rprod (infixl "++" 65) +
+locale Rsemi_rev = Rsemi + var rprod (infixl "++" 65) +
   defines r_def: "x ++ y == y ** x"
 
 lemma (in Rsemi_rev) r_assoc:
   "(x ++ y) ++ z = x ++ (y ++ z)"
   by (simp add: r_def assoc)
-
-(*
-Test is obsolete.
 
 lemma (in Rpair_semi)
   includes Rsemi_rev prodP (infixl "***" 65) rprodP (infixl "+++" 65)
@@ -774,7 +692,6 @@ lemma (in Rpair_semi)
     and rprodP :: "[('a, 'a) pair, ('a, 'a) pair] => ('a, 'a) pair"
   shows "(x +++ y) +++ z = x +++ (y +++ z)"
   apply (rule r_assoc) done
-*)
 
 
 subsection {* Import of Locales with Predicates as Interpretation *}
