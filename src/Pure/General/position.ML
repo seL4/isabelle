@@ -8,7 +8,6 @@ Source positions.
 signature POSITION =
 sig
   type T
-  type range = T * T
   val line_of: T -> int option
   val column_of: T -> int option
   val file_of: T -> string option
@@ -26,6 +25,8 @@ sig
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
   val setmp_thread_data_seq: T -> ('a -> 'b Seq.seq) -> 'a -> 'b Seq.seq
+  type range = T * T
+  val encode_range: range -> T
 end;
 
 structure Position: POSITION =
@@ -34,7 +35,6 @@ struct
 (* datatype position *)
 
 datatype T = Pos of (int * int) option * Markup.property list;
-type range = T * T
 
 fun line_of (Pos (SOME (m, _), _)) = SOME m
   | line_of _ = NONE;
@@ -118,5 +118,17 @@ fun setmp_thread_data_seq pos f seq =
   setmp_thread_data pos f seq |> Seq.wrap (fn pull => setmp_thread_data pos pull ());
 
 end;
+
+
+(* range *)
+
+type range = T * T;
+
+fun encode_range (Pos (count, props), Pos (end_count, _)) =
+  let val props' = props |> fold_rev (AList.update op =)
+    (case end_count of
+      NONE => []
+    | SOME (m, n) => [(Markup.end_lineN, string_of_int m), (Markup.end_columnN, string_of_int n)])
+  in Pos (count, props') end;
 
 end;
