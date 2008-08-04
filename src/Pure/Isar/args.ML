@@ -23,7 +23,7 @@ sig
   val mk_fact: thm list -> T
   val mk_attribute: (morphism -> attribute) -> T
   val eof: T
-  val stopper: T * (T -> bool)
+  val stopper: T Scan.stopper
   val not_eof: T -> bool
   type src
   val src: (string * T list) * Position.T -> src
@@ -161,7 +161,7 @@ val eof = mk_symbol EOF ("", Position.none);
 fun is_eof (Arg ((EOF, _, _), _)) = true
   | is_eof _ = false;
 
-val stopper = (eof, is_eof);
+val stopper = Scan.stopper (K eof) is_eof;
 val not_eof = not o is_eof;
 
 

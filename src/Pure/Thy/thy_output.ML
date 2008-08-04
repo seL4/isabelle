@@ -363,12 +363,11 @@ fun process_thy lex default_tags is_markup trs src =
 
     (* spans *)
 
-    val stopper =
-      ((NONE, (BasicToken (#1 T.stopper), ("", 0))),
-        fn (_, (BasicToken x, _)) => #2 T.stopper x | _ => false);
+    val is_eof = fn (_, (BasicToken x, _)) => T.is_eof x | _ => false;
+    val stopper = Scan.stopper (K (NONE, (BasicToken T.eof, ("", 0)))) is_eof;
 
     val cmd = Scan.one (is_some o fst);
-    val non_cmd = Scan.one (is_none o fst andf not o #2 stopper) >> #2;
+    val non_cmd = Scan.one (is_none o fst andf not o is_eof) >> #2;
 
     val comments = Scan.many (comment_token o fst o snd);
     val blank = Scan.one (blank_token o fst o snd);

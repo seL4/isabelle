@@ -11,7 +11,7 @@ sig
     Keyword | Ident | LongIdent | TypeVar | Word | Int | Real | Char | String |
     Space | Comment | Error of string | EOF
   eqtype token
-  val stopper: token * (token -> bool)
+  val stopper: token Scan.stopper
   val is_regular: token -> bool
   val is_improper: token -> bool
   val pos_of: token -> string
@@ -43,7 +43,7 @@ val eof = Token (0, (EOF, ""));
 fun is_eof (Token (_, (EOF, _))) = true
   | is_eof _ = false;
 
-val stopper = (eof, is_eof);
+val stopper = Scan.stopper (K eof) is_eof;
 
 
 fun is_regular (Token (_, (Error _, _))) = false

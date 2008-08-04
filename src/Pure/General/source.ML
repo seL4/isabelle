@@ -21,10 +21,10 @@ sig
   val of_string: string -> (string, string list) source
   val exhausted: ('a, 'b) source -> ('a, 'a list) source
   val tty: (string, unit) source
-  val source': 'a -> 'b * ('b -> bool) -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
+  val source': 'a -> 'b Scan.stopper -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
     (bool * (string -> 'a * 'b list -> 'c list * ('a * 'b list))) option ->
     ('b, 'e) source -> ('c, 'a * ('b, 'e) source) source
-  val source: 'a * ('a -> bool) -> ('a list -> 'b list * 'a list) ->
+  val source: 'a Scan.stopper -> ('a list -> 'b list * 'a list) ->
     (bool * (string -> 'a list -> 'b list * 'a list)) option ->
     ('a, 'd) source -> ('b, ('a, 'd) source) source
 end;
@@ -148,7 +148,7 @@ fun drain_source' stopper scan opt_recover prompt (state, src) =
         | SOME (interactive, recover) =>
             (drain (Scan.catch scan) inp handle Fail msg =>
               (if interactive then Output.error_msg msg else ();
-                drain (Scan.unless (Scan.lift (Scan.one (#2 stopper))) (recover msg)) inp)));
+                drain (Scan.unless (Scan.lift (Scan.one (Scan.is_stopper stopper))) (recover msg)) inp)));
   in (ys, (state', unget (xs', src'))) end;
 
 fun source' init_state stopper scan recover src =

@@ -21,7 +21,7 @@ sig
   val is_utf8_trailer: symbol -> bool
   val eof: symbol
   val is_eof: symbol -> bool
-  val stopper: symbol * (symbol -> bool)
+  val stopper: symbol Scan.stopper
   val sync: symbol
   val is_sync: symbol -> bool
   val malformed: symbol
@@ -120,7 +120,7 @@ fun is_utf8_trailer s = is_char s andalso 128 <= ord s andalso ord s < 192;
 val eof = "";
 fun is_eof s = s = eof;
 fun not_eof s = s <> eof;
-val stopper = (eof, is_eof);
+val stopper = Scan.stopper (K eof) is_eof;
 
 val sync = "\\<^sync>";
 fun is_sync s = s = sync;

@@ -22,7 +22,7 @@ local
 val eof = Lexicon.EndToken;
 fun is_eof tk = tk = Lexicon.EndToken;
 
-val stopper = (eof, is_eof);
+val stopper = Scan.stopper (K eof) is_eof;
 val not_eof = not o is_eof;
 
 val lexicon = Scan.make_lexicon
