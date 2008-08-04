@@ -16,8 +16,6 @@ sig
   val oracle: bstring -> string -> string * Position.T -> theory -> theory
   val add_axioms: ((bstring * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((bstring * string) * Attrib.src list) list -> theory -> theory
-  val apply_theorems: (Facts.ref * Attrib.src list) list -> theory -> thm list * theory
-  val apply_theorems_i: (thm list * attribute list) list -> theory -> thm list * theory
   val declaration: string * Position.T -> local_theory -> local_theory
   val simproc_setup: string -> string list -> string * Position.T -> string list ->
     local_theory -> local_theory
@@ -197,15 +195,6 @@ val add_axioms = add_axms (snd oo PureThy.add_axioms_cmd);
 fun add_defs ((unchecked, overloaded), args) =
   add_axms
     (snd oo (if unchecked then PureThy.add_defs_unchecked_cmd else PureThy.add_defs_cmd) overloaded) args;
-
-
-(* facts *)
-
-fun apply_theorems args thy =
-  let val facts = Attrib.map_facts (Attrib.attribute thy) [(("", []), args)]
-  in apfst (maps snd) (PureThy.note_thmss_cmd "" facts thy) end;
-
-fun apply_theorems_i args = apfst (maps snd) o PureThy.note_thmss "" [(("", []), args)];
 
 
 (* declarations *)
