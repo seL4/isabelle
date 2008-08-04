@@ -22,6 +22,8 @@ sig
   val property_internal: property
   val lineN: string
   val columnN: string
+  val end_lineN: string
+  val end_columnN: string
   val fileN: string
   val position_properties: string list
   val positionN: string val position: T
@@ -120,10 +122,12 @@ val property_internal = (kindN, internalK);
 
 val lineN = "line";
 val columnN = "column";
+val end_lineN = "end_line";
+val end_columnN = "end_column";
 val fileN = "file";
 val idN = "id";
 
-val position_properties = [lineN, columnN, fileN, idN];
+val position_properties = [lineN, columnN, end_lineN, end_columnN, fileN, idN];
 val (positionN, position) = markup_elem "position";
 
 val (locationN, location) = markup_elem "location";
