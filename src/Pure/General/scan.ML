@@ -67,11 +67,14 @@ sig
   val lift: ('a -> 'b * 'c) -> 'd * 'a -> 'b * ('d * 'c)
   val unlift: (unit * 'a -> 'b * ('c * 'd)) -> 'a -> 'b * 'd
   val trace: ('a list -> 'b * 'c list) -> 'a list -> ('b * 'a list) * 'c list
-  val finite': 'a * ('a -> bool) -> ('b * 'a list -> 'c * ('d * 'a list))
+  type 'a stopper
+  val stopper: ('a list -> 'a) -> ('a -> bool) -> 'a stopper
+  val is_stopper: 'a stopper -> 'a -> bool
+  val finite': 'a stopper -> ('b * 'a list -> 'c * ('d * 'a list))
     -> 'b * 'a list -> 'c * ('d * 'a list)
-  val finite: 'a * ('a -> bool) -> ('a list -> 'b * 'a list) -> 'a list -> 'b * 'a list
-  val read: 'a * ('a -> bool) -> ('a list -> 'b * 'a list) -> 'a list -> 'b option
-  val drain: string -> (string -> 'a -> 'b list * 'a) -> 'b * ('b -> bool) ->
+  val finite: 'a stopper -> ('a list -> 'b * 'a list) -> 'a list -> 'b * 'a list
+  val read: 'a stopper -> ('a list -> 'b * 'a list) -> 'a list -> 'b option
+  val drain: string -> (string -> 'a -> 'b list * 'a) -> 'b stopper ->
     ('c * 'b list -> 'd * ('e * 'b list)) -> ('c * 'b list) * 'a -> ('d * ('e * 'b list)) * 'a
   type lexicon
   val dest_lexicon: lexicon -> string list
@@ -222,9 +225,17 @@ fun trace scan xs =
   in ((y, Library.take (length xs - length xs', xs)), xs') end;
 
 
+(* stopper *)
+
+datatype 'a stopper = Stopper of ('a list -> 'a) * ('a -> bool);
+
+fun stopper mk_stopper is_stopper = Stopper (mk_stopper, is_stopper);
+fun is_stopper (Stopper (_, is_stopper)) = is_stopper;
+
+
 (* finite scans *)
 
-fun finite' (stopper, is_stopper) scan (state, input) =
+fun finite' (Stopper (mk_stopper, is_stopper)) scan (state, input) =
   let
     fun lost () = raise ABORT "Bad scanner: lost stopper of finite scan!";
 
@@ -235,7 +246,7 @@ fun finite' (stopper, is_stopper) scan (state, input) =
   in
     if exists is_stopper input then
       raise ABORT "Stopper may not occur in input of finite scan!"
-    else (strict scan --| lift stop) (state, input @ [stopper])
+    else (strict scan --| lift stop) (state, input @ [mk_stopper input])
   end;
 
 fun finite stopper scan = unlift (finite' stopper (lift scan));
