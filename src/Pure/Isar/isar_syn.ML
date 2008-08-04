@@ -706,10 +706,14 @@ val _ =
 
 (* nested commands *)
 
+val props_text =
+  Scan.optional P.properties [] -- P.position P.string >> (fn (props, (str, pos)) =>
+    (Position.of_properties (Position.default_properties pos props), str));
+
 val _ =
   OuterSyntax.improper_command "Isabelle.command" "nested Isabelle command" K.control
-    ((Scan.optional P.properties [] -- P.position P.string) :|-- (fn (props, text) =>
-      Scan.succeed (K (OuterSyntax.prepare_command props text))
+    (props_text :|-- (fn (pos, str) =>
+      Scan.succeed (K (OuterSyntax.prepare_command pos str))
         handle ERROR msg => Scan.fail_with (K msg)));
 
 
@@ -717,9 +721,9 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "Isar.command" "define command (Isar editor model)" K.control
-    (Scan.optional P.properties [] -- P.position P.string >> (fn (props, text) =>
-      Toplevel.no_timing o Toplevel.imperative (fn () =>
-        ignore (Isar.create_command (OuterSyntax.prepare_command props text)))));
+    (props_text >> (fn (pos, str) =>
+      Toplevel.no_timing o Toplevel.position pos o Toplevel.imperative (fn () =>
+        ignore (Isar.create_command (OuterSyntax.prepare_command pos str)))));
 
 val _ =
   OuterSyntax.improper_command "Isar.insert" "insert command (Isar editor model)" K.control
