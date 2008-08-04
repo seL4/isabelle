@@ -29,6 +29,7 @@ sig
   val add_antiq: string ->
     (Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) -> unit
   val trace: bool ref
+  val eval_wrapper: (string -> unit) * (string -> 'a) -> bool -> Position.T -> string -> unit
   val eval: bool -> Position.T -> string -> unit
   val eval_file: Path.T -> unit
   val eval_in: Context.generic option -> bool -> Position.T -> string -> unit
