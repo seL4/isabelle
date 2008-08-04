@@ -23,10 +23,11 @@ sig
     theory -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val defer_recdef: xstring -> string list -> (Facts.ref * Attrib.src list) list
     -> theory -> theory * {induct_rules: thm}
-  val defer_recdef_i: xstring -> term list -> (thm list * attribute list) list
-    -> theory -> theory * {induct_rules: thm}
-  val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> bool -> local_theory -> Proof.state
-  val recdef_tc_i: bstring * Attrib.src list -> string -> int option -> bool -> local_theory -> Proof.state
+  val defer_recdef_i: xstring -> term list -> thm list -> theory -> theory * {induct_rules: thm}
+  val recdef_tc: bstring * Attrib.src list -> xstring -> int option -> bool ->
+    local_theory -> Proof.state
+  val recdef_tc_i: bstring * Attrib.src list -> string -> int option -> bool ->
+    local_theory -> Proof.state
   val setup: theory -> theory
 end;
 
@@ -229,7 +230,7 @@ fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y
 
 (** defer_recdef(_i) **)
 
-fun gen_defer_recdef tfl_fn app_thms raw_name eqs raw_congs thy =
+fun gen_defer_recdef tfl_fn eval_thms raw_name eqs raw_congs thy =
   let
     val name = Sign.intern_const thy raw_name;
     val bname = Sign.base_name name;
@@ -237,8 +238,8 @@ fun gen_defer_recdef tfl_fn app_thms raw_name eqs raw_congs thy =
     val _ = requires_recdef thy;
     val _ = writeln ("Deferred recursive function " ^ quote name ^ " ...");
 
-    val (congs, thy1) = thy |> app_thms raw_congs;
-    val (thy2, induct_rules) = tfl_fn thy1 congs name eqs;
+    val congs = eval_thms (ProofContext.init thy) raw_congs;
+    val (thy2, induct_rules) = tfl_fn thy congs name eqs;
     val ([induct_rules'], thy3) =
       thy2
       |> Sign.add_path bname
@@ -246,8 +247,8 @@ fun gen_defer_recdef tfl_fn app_thms raw_name eqs raw_congs thy =
       ||> Sign.parent_path;
   in (thy3, {induct_rules = induct_rules'}) end;
 
-val defer_recdef = gen_defer_recdef Tfl.defer IsarCmd.apply_theorems;
-val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarCmd.apply_theorems_i;
+val defer_recdef = gen_defer_recdef Tfl.defer Attrib.eval_thms;
+val defer_recdef_i = gen_defer_recdef Tfl.defer_i (K I);
 
 
 
