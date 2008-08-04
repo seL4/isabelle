@@ -29,8 +29,6 @@ val atomize_intr = Conv.fconv_rule (Conv.prems_conv ~1 atomize_conv);
 fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
   (Conv.params_conv ~1 (K (Conv.prems_conv ~1 atomize_conv)) ctxt));
 
-val finite_Un = thm "finite_Un";
-val supp_prod = thm "supp_prod";
 val fresh_prod = thm "fresh_prod";
 
 val perm_bool = mk_meta_eq (thm "perm_bool");
@@ -83,9 +81,9 @@ fun strip_all [] t = t
 
 (*********************************************************************)
 (* maps  R ... & (ALL pi_1 ... pi_n z. P z (pi_1 o ... o pi_n o t))  *)
-(* or    ALL pi_1 ... pi_n. P (pi_1 o ... o pi_n o t)                *)
-(* to    R ... & id (ALL z. (pi_1 o ... o pi_n o t))                 *)
-(* or    id (ALL z. (pi_1 o ... o pi_n o t))                         *)
+(* or    ALL pi_1 ... pi_n z. P z (pi_1 o ... o pi_n o t)            *)
+(* to    R ... & id (ALL z. P z (pi_1 o ... o pi_n o t))             *)
+(* or    id (ALL z. P z (pi_1 o ... o pi_n o t))                     *)
 (*                                                                   *)
 (* where "id" protects the subformula from simplification            *)
 (*********************************************************************)
@@ -291,7 +289,7 @@ fun prove_strong_ind s avoids thy =
 
     fun obtain_fresh_name ts T (freshs1, freshs2, ctxt) =
       let
-        (** protect terms to avoid that supp_prod interferes with   **)
+        (** protect terms to avoid that fresh_prod interferes with  **)
         (** pairs used in introduction rules of inductive predicate **)
         fun protect t =
           let val T = fastype_of t in Const ("Fun.id", T --> T) $ t end;
@@ -302,7 +300,7 @@ fun prove_strong_ind s avoids thy =
                 Bound 0 $ p)))
           (fn _ => EVERY
             [resolve_tac exists_fresh' 1,
-             simp_tac (HOL_ss addsimps (supp_prod :: finite_Un :: fs_atoms)) 1]);
+             resolve_tac fs_atoms 1]);
         val (([cx], ths), ctxt') = Obtain.result
           (fn _ => EVERY
             [etac exE 1,
