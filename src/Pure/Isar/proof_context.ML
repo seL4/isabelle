@@ -859,7 +859,7 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
           if name = "" then [Thm.transfer thy Drule.dummy_thm]
           else
             (case Facts.lookup (Context.Proof ctxt) local_facts name of
-              SOME ths => map (Thm.transfer thy) (Facts.select thmref ths)
+              SOME (_, ths) => map (Thm.transfer thy) (Facts.select thmref ths)
             | NONE => PureThy.get_fact (Context.Proof ctxt) thy xthmref);
       in pick name thms end;
 

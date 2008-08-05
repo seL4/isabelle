@@ -23,7 +23,7 @@ sig
   val empty: T
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
-  val lookup: Context.generic -> T -> string -> thm list option
+  val lookup: Context.generic -> T -> string -> (bool * thm list) option
   val defined: T -> string -> bool
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
   val dest_static: T list -> T -> (string * thm list) list
@@ -144,8 +144,8 @@ val defined = Symtab.defined o table_of;
 fun lookup context facts name =
   (case Symtab.lookup (table_of facts) name of
     NONE => NONE
-  | SOME (Static ths, _) => SOME ths
-  | SOME (Dynamic f, _) => SOME (f context));
+  | SOME (Static ths, _) => SOME (true, ths)
+  | SOME (Dynamic f, _) => SOME (false, f context));
 
 fun fold_static f = Symtab.fold (fn (name, (Static ths, _)) => f (name, ths) | _ => I) o table_of;
 
