@@ -56,6 +56,7 @@ sig
   val commandN: string val command: string -> T
   val keyword_declN: string val keyword_decl: string -> T
   val command_declN: string val command_decl: string -> string -> T
+  val tokenN: string val token: T
   val stringN: string val string: T
   val altstringN: string val altstring: T
   val verbatimN: string val verbatim: T
@@ -184,6 +185,7 @@ val (keyword_declN, keyword_decl) = markup_string "keyword_decl" nameN;
 val command_declN = "command_decl";
 fun command_decl name kind : T = (command_declN, [(nameN, name), (kindN, kind)]);
 
+val (tokenN, token) = markup_elem "token";
 val (stringN, string) = markup_elem "string";
 val (altstringN, altstring) = markup_elem "altstring";
 val (verbatimN, verbatim) = markup_elem "verbatim";
