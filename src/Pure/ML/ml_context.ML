@@ -138,7 +138,7 @@ fun eval_antiquotes struct_name (txt, pos) opt_ctxt =
           fun no_decl _ = ("", "");
 
           fun expand (Antiquote.Text s) state = (K ("", Symbol.escape s), state)
-            | expand (Antiquote.Antiq x) (scope, background) =
+            | expand (Antiquote.Antiq (x, _)) (scope, background) =
                 let
                   val context = Stack.top scope;
                   val (f, context') = antiquotation (Antiquote.scan_arguments lex antiq x) context;

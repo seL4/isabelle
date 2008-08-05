@@ -148,7 +148,7 @@ val modes = ref ([]: string list);
 fun eval_antiquote lex node (str, pos) =
   let
     fun expand (Antiquote.Text s) = s
-      | expand (Antiquote.Antiq x) =
+      | expand (Antiquote.Antiq (x, _)) =
           let val (opts, src) = Antiquote.scan_arguments lex antiq x in
             options opts (fn () => command src node) ();  (*preview errors!*)
             PrintMode.with_modes (! modes @ Latex.modes)
