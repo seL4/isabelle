@@ -150,7 +150,9 @@ fun get_fact context thy xthmref =
   in
     (case res of
       NONE => error ("Unknown fact " ^ quote name ^ Position.str_of pos)
-    | SOME ths => Facts.select xthmref (map (Thm.transfer thy) ths))
+    | SOME (static, ths) =>
+        (Position.report ((if static then Markup.fact else Markup.dynamic_fact) name) pos;
+         Facts.select xthmref (map (Thm.transfer thy) ths)))
   end;
 
 fun get_thms thy = get_fact (Context.Theory thy) thy o Facts.named;
