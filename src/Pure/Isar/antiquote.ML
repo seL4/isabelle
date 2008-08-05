@@ -53,33 +53,35 @@ structure T = OuterLex;
 
 local
 
+fun count scan = Scan.depend (fn pos => scan >> (fn x => (Position.advance [x] pos, x)));
+
 val scan_txt =
-  T.count ($$ "@" --| Scan.ahead (~$$ "{")) ||
-  T.count (Scan.one (fn s =>
+  count ($$ "@" --| Scan.ahead (~$$ "{")) ||
+  count (Scan.one (fn s =>
     s <> "@" andalso s <> "\\<lbrace>" andalso s <> "\\<rbrace>" andalso Symbol.is_regular s));
 
 fun escape "\\" = "\\\\"
   | escape "\"" = "\\\""
   | escape s = s;
 
-val quote_escape = Library.quote o implode o map escape o Symbol.explode;
+val quote_escape = Library.quote o implode o map escape o T.clean_value;
 
 val scan_ant =
   T.scan_string >> quote_escape ||
-  T.count (Scan.one (fn s => s <> "}" andalso Symbol.is_regular s));
+  count (Scan.one (fn s => s <> "}" andalso Symbol.is_regular s));
 
 val scan_antiq =
-  T.count ($$ "@") |-- T.count ($$ "{") |--
+  count ($$ "@") |-- count ($$ "{") |--
     T.!!! "missing closing brace of antiquotation"
-      (Scan.repeat scan_ant >> implode) --| T.count ($$ "}");
+      (Scan.repeat scan_ant >> implode) --| count ($$ "}");
 
 in
 
 fun scan_antiquote (pos, ss) = (pos, ss) |>
   (Scan.repeat1 scan_txt >> (Text o implode) ||
     scan_antiq >> (fn s => Antiq (s, pos)) ||
-    T.count ($$ "\\<lbrace>") >> K (Open pos) ||
-    T.count ($$ "\\<rbrace>") >> K (Close pos));
+    count ($$ "\\<lbrace>") >> K (Open pos) ||
+    count ($$ "\\<rbrace>") >> K (Close pos));
 
 end;
 
