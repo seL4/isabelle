@@ -2239,7 +2239,7 @@ fun add_pretty_message target charr nibbles nill cons str thy =
 val (inK, module_nameK, fileK) = ("in", "module_name", "file");
 
 fun code_exprP cmd =
-  (Scan.repeat P.term
+  (Scan.repeat P.term_group
   -- Scan.repeat (P.$$$ inK |-- P.name
      -- Scan.option (P.$$$ module_nameK |-- P.name)
      -- Scan.option (P.$$$ fileK |-- P.name)
@@ -2252,7 +2252,7 @@ val _ =
   OuterSyntax.command "code_class" "define code syntax for class" K.thy_decl (
     parse_multi_syntax P.xname
       (Scan.option (P.string -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
-        (P.term --| (P.$$$ "\<equiv>" || P.$$$ "==") -- P.string)) []))
+        (P.term_group --| (P.$$$ "\<equiv>" || P.$$$ "==") -- P.string)) []))
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_class, syn) => add_syntax_class_cmd target raw_class syn) syns)
   );
@@ -2274,14 +2274,14 @@ val _ =
 
 val _ =
   OuterSyntax.command "code_const" "define code syntax for constant" K.thy_decl (
-    parse_multi_syntax P.term (parse_syntax fst)
+    parse_multi_syntax P.term_group (parse_syntax fst)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_const, syn) => add_syntax_const_cmd target raw_const (simple_const_syntax syn)) syns)
   );
 
 val _ =
   OuterSyntax.command "code_monad" "define code syntax for monads" K.thy_decl (
-    P.term -- P.term -- P.name
+    P.term_group -- P.term_group -- P.name
     >> (fn ((raw_run, raw_bind), target) => Toplevel.theory 
           (add_monad target raw_run raw_bind))
   );
@@ -2307,7 +2307,7 @@ val _ =
 
 val _ =
   OuterSyntax.command "code_abort" "permit constant to be implemented as program abort" K.thy_decl (
-    Scan.repeat1 P.term >> (Toplevel.theory o fold allow_abort_cmd)
+    Scan.repeat1 P.term_group >> (Toplevel.theory o fold allow_abort_cmd)
   );
 
 val _ =
