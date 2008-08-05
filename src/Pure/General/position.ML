@@ -81,7 +81,7 @@ fun of_properties props =
         NONE => NONE
       | SOME m => SOME (m, the_default 1 (get_int props Markup.columnN)));
     fun property name = the_list (find_first (fn (x: string, _) => x = name) props);
-  in (Pos (count, property Markup.fileN @ property Markup.idN)) end;
+  in Pos (count, maps property Markup.position_properties') end;
 
 fun properties_of (Pos (count, props)) =
   (case count of
