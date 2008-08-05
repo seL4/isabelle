@@ -1,9 +1,9 @@
 (* Title:       HOL/ex/LexOrds.thy
-   ID:
+   ID:          $Id$
    Author:      Lukas Bulwahn, TU Muenchen
-
-Examples for functions whose termination is proven by lexicographic order.
 *)
+
+header {* Examples and regression tests for method lexicographic order. *}
  
 theory LexOrds
 imports Main
@@ -13,12 +13,12 @@ subsection {* Trivial examples *}
 
 fun identity :: "nat \<Rightarrow> nat"
 where
-"identity n = n"
+  "identity n = n"
 
 fun yaSuc :: "nat \<Rightarrow> nat"
 where 
   "yaSuc 0 = 0"
-  "yaSuc (Suc n) = Suc (yaSuc n)"
+| "yaSuc (Suc n) = Suc (yaSuc n)"
 
 
 subsection {* Examples on natural numbers *}
@@ -26,39 +26,39 @@ subsection {* Examples on natural numbers *}
 fun bin :: "(nat * nat) \<Rightarrow> nat"
 where
   "bin (0, 0) = 1"
-  "bin (Suc n, 0) = 0"
-  "bin (0, Suc m) = 0"
-  "bin (Suc n, Suc m) = bin (n, m) + bin (Suc n, m)"
+| "bin (Suc n, 0) = 0"
+| "bin (0, Suc m) = 0"
+| "bin (Suc n, Suc m) = bin (n, m) + bin (Suc n, m)"
 
 
 fun t :: "(nat * nat) \<Rightarrow> nat"
 where
   "t (0,n) = 0"
-  "t (n,0) = 0"
-  "t (Suc n, Suc m) = (if (n mod 2 = 0) then (t (Suc n, m)) else (t (n, Suc m)))" 
+| "t (n,0) = 0"
+| "t (Suc n, Suc m) = (if (n mod 2 = 0) then (t (Suc n, m)) else (t (n, Suc m)))" 
 
 
 fun k :: "(nat * nat) * (nat * nat) \<Rightarrow> nat"
 where
   "k ((0,0),(0,0)) = 0"
-  "k ((Suc z, y), (u,v)) = k((z, y), (u, v))" (* z is descending *)
-  "k ((0, Suc y), (u,v)) = k((1, y), (u, v))" (* y is descending *)
-  "k ((0,0), (Suc u, v)) = k((1, 1), (u, v))" (* u is descending *)
-  "k ((0,0), (0, Suc v)) = k((1,1), (1,v))"   (* v is descending *)
+| "k ((Suc z, y), (u,v)) = k((z, y), (u, v))" (* z is descending *)
+| "k ((0, Suc y), (u,v)) = k((1, y), (u, v))" (* y is descending *)
+| "k ((0,0), (Suc u, v)) = k((1, 1), (u, v))" (* u is descending *)
+| "k ((0,0), (0, Suc v)) = k((1,1), (1,v))"   (* v is descending *)
 
 
 fun gcd2 :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 where
   "gcd2 x 0 = x"
-  "gcd2 0 y = y"
-  "gcd2 (Suc x) (Suc y) = (if x < y then gcd2 (Suc x) (y - x)
+| "gcd2 0 y = y"
+| "gcd2 (Suc x) (Suc y) = (if x < y then gcd2 (Suc x) (y - x)
                                     else gcd2 (x - y) (Suc y))"
 
 fun ack :: "(nat * nat) \<Rightarrow> nat"
 where
   "ack (0, m) = Suc m"
-  "ack (Suc n, 0) = ack(n, 1)"
-  "ack (Suc n, Suc m) = ack (n, ack (Suc n, m))"
+| "ack (Suc n, 0) = ack(n, 1)"
+| "ack (Suc n, Suc m) = ack (n, ack (Suc n, m))"
 
 
 fun greedy :: "nat * nat * nat * nat * nat => nat"
@@ -74,21 +74,21 @@ where
   (if (a < 80) then greedy (a, Suc b, Suc c, d, Suc e) else
   (if (a < 90) then greedy (Suc a, Suc b, Suc c, d, e) else
   greedy (Suc a, Suc b, Suc c, d, e))))))))))"
-  "greedy (a, b, c, d, e) = 0"
+| "greedy (a, b, c, d, e) = 0"
 
 
 fun blowup :: "nat => nat => nat => nat => nat => nat => nat => nat => nat => nat"
 where
   "blowup 0 0 0 0 0 0 0 0 0 = 0"
-  "blowup 0 0 0 0 0 0 0 0 (Suc i) = Suc (blowup i i i i i i i i i)"
-  "blowup 0 0 0 0 0 0 0 (Suc h) i = Suc (blowup h h h h h h h h i)"
-  "blowup 0 0 0 0 0 0 (Suc g) h i = Suc (blowup g g g g g g g h i)"
-  "blowup 0 0 0 0 0 (Suc f) g h i = Suc (blowup f f f f f f g h i)"
-  "blowup 0 0 0 0 (Suc e) f g h i = Suc (blowup e e e e e f g h i)"
-  "blowup 0 0 0 (Suc d) e f g h i = Suc (blowup d d d d e f g h i)"
-  "blowup 0 0 (Suc c) d e f g h i = Suc (blowup c c c d e f g h i)"
-  "blowup 0 (Suc b) c d e f g h i = Suc (blowup b b c d e f g h i)"
-  "blowup (Suc a) b c d e f g h i = Suc (blowup a b c d e f g h i)"
+| "blowup 0 0 0 0 0 0 0 0 (Suc i) = Suc (blowup i i i i i i i i i)"
+| "blowup 0 0 0 0 0 0 0 (Suc h) i = Suc (blowup h h h h h h h h i)"
+| "blowup 0 0 0 0 0 0 (Suc g) h i = Suc (blowup g g g g g g g h i)"
+| "blowup 0 0 0 0 0 (Suc f) g h i = Suc (blowup f f f f f f g h i)"
+| "blowup 0 0 0 0 (Suc e) f g h i = Suc (blowup e e e e e f g h i)"
+| "blowup 0 0 0 (Suc d) e f g h i = Suc (blowup d d d d e f g h i)"
+| "blowup 0 0 (Suc c) d e f g h i = Suc (blowup c c c d e f g h i)"
+| "blowup 0 (Suc b) c d e f g h i = Suc (blowup b b c d e f g h i)"
+| "blowup (Suc a) b c d e f g h i = Suc (blowup a b c d e f g h i)"
 
   
 subsection {* Simple examples with other datatypes than nat, e.g. trees and lists *}
@@ -98,9 +98,9 @@ datatype tree = Node | Branch tree tree
 fun g_tree :: "tree * tree \<Rightarrow> tree"
 where
   "g_tree (Node, Node) = Node"
-  "g_tree (Node, Branch a b) = Branch Node (g_tree (a,b))"
-  "g_tree (Branch a b, Node) = Branch (g_tree (a,Node)) b"
-  "g_tree (Branch a b, Branch c d) = Branch (g_tree (a,c)) (g_tree (b,d))"
+| "g_tree (Node, Branch a b) = Branch Node (g_tree (a,b))"
+| "g_tree (Branch a b, Node) = Branch (g_tree (a,Node)) b"
+| "g_tree (Branch a b, Branch c d) = Branch (g_tree (a,c)) (g_tree (b,d))"
 
 
 fun acklist :: "'a list * 'a list \<Rightarrow> 'a list"
@@ -123,8 +123,8 @@ where
 fun sizechange_f :: "'a list => 'a list => 'a list" and
 sizechange_g :: "'a list => 'a list => 'a list => 'a list"
 where
-"sizechange_f i x = (if i=[] then x else sizechange_g (tl i) x i)"
-"sizechange_g a b c = sizechange_f a (b @ c)"
+  "sizechange_f i x = (if i=[] then x else sizechange_g (tl i) x i)"
+| "sizechange_g a b c = sizechange_f a (b @ c)"
 
 
 fun
@@ -133,8 +133,8 @@ fun
   oprod :: "nat => nat => nat => nat"
 where
   "prod x y z = (if y mod 2 = 0 then eprod x y z else oprod x y z)"
-  "oprod x y z = eprod x (y - 1) (z+x)"
-  "eprod x y z = (if y=0 then z else prod (2*x) (y div 2) z)"
+| "oprod x y z = eprod x (y - 1) (z+x)"
+| "eprod x y z = (if y=0 then z else prod (2*x) (y div 2) z)"
 
 
 fun
@@ -152,14 +152,6 @@ where
      (if n < m then coast n (m - 1) (c + n)
                else pedal n m (c + n))"
 
-fun ack1 :: "nat => nat => nat"
-  and ack2 :: "nat => nat => nat"
-  where
-  "ack1 0 m = m+1" |
-  "ack1 (Suc n) m = ack2 n m" |
-  "ack2 n 0 = ack1 n 1" |
-  "ack2 n (Suc m) = ack1 n (ack2 n (Suc m))"
-
 
 subsection {*Examples for an unprovable termination *}
 
@@ -174,9 +166,9 @@ by pat_completeness auto
 function term_but_no_prove :: "nat * nat \<Rightarrow> nat"
 where
   "term_but_no_prove (0,0) = 1"
-  "term_but_no_prove (0, Suc b) = 0"
-  "term_but_no_prove (Suc a, 0) = 0"
-  "term_but_no_prove (Suc a, Suc b) = term_but_no_prove (b, a)"
+| "term_but_no_prove (0, Suc b) = 0"
+| "term_but_no_prove (Suc a, 0) = 0"
+| "term_but_no_prove (Suc a, Suc b) = term_but_no_prove (b, a)"
 by pat_completeness auto
 (* termination by lexicographic_order *)
 

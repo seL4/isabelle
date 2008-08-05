@@ -58,7 +58,8 @@ use_thys [
   "Classical",
   "set",
   "Meson_Test",
-  "Code_Antiq"
+  "Code_Antiq",
+  "LexOrds"
 ];
 
 setmp Proofterm.proofs 2 time_use_thy "Hilbert_Classical";
