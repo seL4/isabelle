@@ -37,7 +37,8 @@ sig
   val tyconN: string val tycon: string -> T
   val fixedN: string val fixed: string -> T
   val constN: string val const: string -> T
-  val axiomN: string val axiom: string -> T
+  val factN: string val fact: string -> T
+  val dynamic_factN: string val dynamic_fact: string -> T
   val tfreeN: string val tfree: T
   val tvarN: string val tvar: T
   val freeN: string val free: T
@@ -50,6 +51,7 @@ sig
   val sortN: string val sort: T
   val typN: string val typ: T
   val termN: string val term: T
+  val propN: string val prop: T
   val keywordN: string val keyword: string -> T
   val commandN: string val command: string -> T
   val keyword_declN: string val keyword_decl: string -> T
@@ -150,7 +152,8 @@ val (classN, class) = markup_string "class" nameN;
 val (tyconN, tycon) = markup_string "tycon" nameN;
 val (fixedN, fixed) = markup_string "fixed" nameN;
 val (constN, const) = markup_string "const" nameN;
-val (axiomN, axiom) = markup_string "axiom" nameN;
+val (factN, fact) = markup_string "fact" nameN;
+val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;
 
 
 (* inner syntax *)
@@ -168,6 +171,7 @@ val (xstrN, xstr) = markup_elem "xstr";
 val (sortN, sort) = markup_elem "sort";
 val (typN, typ) = markup_elem "typ";
 val (termN, term) = markup_elem "term";
+val (propN, prop) = markup_elem "prop";
 
 
 (* outer syntax *)
