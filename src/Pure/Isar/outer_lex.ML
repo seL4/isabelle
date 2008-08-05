@@ -12,8 +12,8 @@ sig
     String | AltString | Verbatim | Space | Comment | Malformed | Error of string | Sync | EOF
   eqtype token
   val str_of_kind: token_kind -> string
-  val range_of: token -> Position.range
   val position_of: token -> Position.T
+  val end_position_of: token -> Position.T
   val pos_of: token -> string
   val eof: token
   val is_eof: token -> bool
@@ -32,13 +32,12 @@ sig
   val is_blank: token -> bool
   val is_newline: token -> bool
   val val_of: token -> string
-  val clean_value: Symbol.symbol list -> Symbol.symbol list
   val source_of: token -> string
   val unparse: token -> string
   val text_of: token -> string * string
   val is_sid: string -> bool
   val !!! : string -> (Position.T * 'a -> 'b) -> Position.T * 'a -> 'b
-  val scan_string: Position.T * Symbol.symbol list ->
+  val scan_quoted: Position.T * Symbol.symbol list ->
     Symbol.symbol list * (Position.T * Symbol.symbol list)
   val scan: (Scan.lexicon * Scan.lexicon) ->
     Position.T * Symbol.symbol list -> token * (Position.T * Symbol.symbol list)
@@ -86,9 +85,9 @@ val str_of_kind =
 
 (* position *)
 
-fun range_of (Token ((range, _), _)) = range;
+fun position_of (Token (((pos, _), _), _)) = pos;
+fun end_position_of (Token (((_, pos), _), _)) = pos;
 
-val position_of = #1 o range_of;
 val pos_of = Position.str_of o position_of;
 
 
@@ -105,7 +104,8 @@ val not_eof = not o is_eof;
 fun not_sync (Token (_, (Sync, _))) = false
   | not_sync _ = true;
 
-val stopper = Scan.stopper (fn [] => eof | toks => mk_eof (#2 (range_of (List.last toks)))) is_eof;
+val stopper =
+  Scan.stopper (fn [] => eof | toks => mk_eof (end_position_of (List.last toks))) is_eof;
 
 
 (* kind of token *)
@@ -149,8 +149,6 @@ fun is_newline (Token (_, (Space, x))) = String.isSuffix "\n" x
 (* token content *)
 
 fun val_of (Token (_, (_, x))) = x;
-
-val clean_value = filter_out (fn s => s = Symbol.DEL);
 
 fun source_of (Token ((range, src), _)) =
   XML.Elem (Markup.tokenN, Position.properties_of (Position.encode_range range), [XML.Text src])
@@ -246,6 +244,10 @@ in
 val scan_string = scan_strs "\"";
 val scan_alt_string = scan_strs "`";
 
+val scan_quoted = Scan.depend (fn pos =>
+  Scan.trace (Scan.pass pos (scan_string || scan_alt_string))
+    >> (fn (_, syms) => (Position.advance syms pos, syms)));
+
 end;
 
 
@@ -297,9 +299,16 @@ val scan_malformed =
 
 fun token_leq ((_, syms1), (_, syms2)) = length syms1 <= length syms2;
 
+fun advance_range syms pos =
+  let val pos' = Position.advance syms pos
+  in (Position.encode_range (pos, pos'), pos') end;
+
+val clean_value = implode o filter_out (fn s => s = Symbol.DEL);
+
+
 fun scan (lex1, lex2) =
   let
-    val scanner =
+    val scanner = Scan.depend (fn pos => Scan.pass pos
       (scan_string >> pair String ||
         scan_alt_string >> pair AltString ||
         scan_verbatim >> pair Verbatim ||
@@ -317,12 +326,10 @@ fun scan (lex1, lex2) =
             Syntax.scan_tid >> pair TypeIdent ||
             Syntax.scan_tvar >> pair TypeVar ||
             Syntax.scan_nat >> pair Nat ||
-            scan_symid >> pair SymIdent)))) :|--
-      (fn (k, syms) => Scan.depend (fn pos =>
-        let
-          val pos' = Position.advance syms pos;
-          val x = implode (clean_value syms);
-        in Scan.succeed (pos', Token (((pos, pos'), implode syms), (k, x))) end));
+            scan_symid >> pair SymIdent)))) >>
+      (fn (k, syms) => 
+        let val (range_pos, pos') = advance_range syms pos
+        in (pos', Token (((range_pos, pos'), implode syms), (k, clean_value syms))) end));
 
   in !! (lex_err (fn cs => "bad input " ^ quote (Symbol.beginning 10 cs))) scanner end;
 
@@ -333,11 +340,9 @@ local
 
 val is_junk = (not o Symbol.is_blank) andf Symbol.is_regular;
 
-fun recover msg = Scan.lift (Scan.many is_junk) :|-- (fn syms => Scan.depend (fn pos =>
-  let
-    val pos' = Position.advance syms pos;
-    val x = implode (clean_value syms);
-  in Scan.succeed (pos', [Token (((pos, pos'), implode syms), (Error msg, x))]) end));
+fun recover msg = Scan.depend (fn pos => Scan.many is_junk >> (fn syms =>
+  let val (range_pos, pos') = advance_range syms pos
+  in (pos', [Token (((range_pos, pos'), implode syms), (Error msg, clean_value syms))]) end));
 
 in
 
