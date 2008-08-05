@@ -99,7 +99,7 @@ fun attribute_i thy =
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup attrs name of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
-        | SOME ((att, _), _) => att src)
+        | SOME ((att, _), _) => (Position.report (Markup.attribute name) pos; att src))
       end;
   in attr end;
 
