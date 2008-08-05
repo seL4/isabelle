@@ -439,9 +439,15 @@ val scan =
       (($$ "^" ^^ (scan_raw || scan_id) || scan_id) ^^ $$ ">")) ||
   Scan.one not_eof;
 
+val scan_resync =
+  Scan.one is_ascii_blank || $$ "\"" || $$ "`" || $$ "\\" ||
+  Scan.this_string "(*" || Scan.this_string "*)" ||
+  Scan.this_string "{*" || Scan.this_string "*}";
+
 val recover =
-  Scan.many (fn s => not (is_blank s) andalso s <> "\"" andalso s <> "`" andalso not_eof s)
-    >> (fn ss => malformed :: ss @ [end_malformed]);
+  Scan.this (explode "\\<") @@@
+    Scan.repeat (Scan.unless scan_resync (Scan.one not_eof))
+  >> (fn ss => malformed :: ss @ [end_malformed]);
 
 in
 
