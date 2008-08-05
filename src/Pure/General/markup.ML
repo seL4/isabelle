@@ -25,6 +25,7 @@ sig
   val end_lineN: string
   val end_columnN: string
   val fileN: string
+  val position_properties': string list
   val position_properties: string list
   val positionN: string val position: T
   val locationN: string val location: T
@@ -51,7 +52,9 @@ sig
   val sortN: string val sort: T
   val typN: string val typ: T
   val termN: string val term: T
-  val propN: string val prop: T
+  val propositionN: string val proposition: T
+  val attributeN: string val attribute: string -> T
+  val methodN: string val method: string -> T
   val keywordN: string val keyword: string -> T
   val commandN: string val command: string -> T
   val keyword_declN: string val keyword_decl: string -> T
@@ -130,7 +133,9 @@ val end_columnN = "end_column";
 val fileN = "file";
 val idN = "id";
 
-val position_properties = [lineN, columnN, end_lineN, end_columnN, fileN, idN];
+val position_properties' = [end_lineN, end_columnN, fileN, idN];
+val position_properties = [lineN, columnN] @ position_properties';
+
 val (positionN, position) = markup_elem "position";
 
 val (locationN, location) = markup_elem "location";
@@ -172,7 +177,10 @@ val (xstrN, xstr) = markup_elem "xstr";
 val (sortN, sort) = markup_elem "sort";
 val (typN, typ) = markup_elem "typ";
 val (termN, term) = markup_elem "term";
-val (propN, prop) = markup_elem "prop";
+val (propositionN, proposition) = markup_elem "proposition";
+
+val (attributeN, attribute) = markup_string "attribute" nameN;
+val (methodN, method) = markup_string "method" nameN;
 
 
 (* outer syntax *)
