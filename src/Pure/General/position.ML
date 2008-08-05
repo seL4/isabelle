@@ -27,6 +27,7 @@ sig
   val setmp_thread_data_seq: T -> ('a -> 'b Seq.seq) -> 'a -> 'b Seq.seq
   type range = T * T
   val encode_range: range -> T
+  val report: Markup.T -> T -> unit
 end;
 
 structure Position: POSITION =
@@ -130,5 +131,12 @@ fun encode_range (Pos (count, props), Pos (end_count, _)) =
       NONE => []
     | SOME (m, n) => [(Markup.end_lineN, string_of_int m), (Markup.end_columnN, string_of_int n)])
   in Pos (count, props') end;
+
+
+(* report markup *)
+
+fun report markup pos =
+  if pos = none then ()
+  else Output.status (Markup.markup (Markup.properties (properties_of pos) markup) "");
 
 end;
