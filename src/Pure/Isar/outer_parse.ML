@@ -32,7 +32,7 @@ sig
   val sync: token list -> string * token list
   val eof: token list -> string * token list
   val $$$ : string -> token list -> string * token list
-  val reserved : string -> token list -> string * token list
+  val reserved: string -> token list -> string * token list
   val semicolon: token list -> string * token list
   val underscore: token list -> string * token list
   val maybe: (token list -> 'a * token list) -> token list -> 'a option * token list
@@ -59,6 +59,7 @@ sig
   val arity: token list -> (string * string list * string) * token list
   val multi_arity: token list -> (string list * string list * string) * token list
   val type_args: token list -> string list * token list
+  val typ_group: token list -> string * token list
   val typ: token list -> string * token list
   val mixfix: token list -> mixfix * token list
   val mixfix': token list -> mixfix * token list
@@ -73,6 +74,8 @@ sig
   val fixes: token list -> (string * string option * mixfix) list * token list
   val for_fixes: token list -> (string * string option * mixfix) list * token list
   val for_simple_fixes: token list -> (string * string option) list * token list
+  val term_group: token list -> string * token list
+  val prop_group: token list -> string * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
   val propp: token list -> (string * string list) * token list
@@ -136,8 +139,9 @@ fun triple_swap ((x, y), z) = ((x, z), y);
 
 val not_eof = Scan.one T.not_eof;
 
-fun position scan =
-  (Scan.ahead not_eof >> (Position.encode_range o T.range_of)) -- scan >> Library.swap;
+fun position scan = (Scan.ahead not_eof >> T.position_of) -- scan >> Library.swap;
+
+fun inner_syntax token = Scan.ahead token |-- not_eof >> T.source_of;
 
 fun kind k =
   group (T.str_of_kind k) (Scan.one (T.is_kind k) >> T.val_of);
@@ -162,7 +166,7 @@ fun $$$ x =
     (Scan.one (T.keyword_with (equal x)) >> T.val_of);
 
 fun reserved x =
-  group ("Reserved identifier " ^ quote x)
+  group ("reserved identifier " ^ quote x)
     (Scan.one (T.ident_with (fn y => x = y)) >> T.val_of);
 
 val semicolon = $$$ ";";
@@ -209,7 +213,7 @@ val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
 
 (* sorts and arities *)
 
-val sort = group "sort" xname;
+val sort = group "sort" (inner_syntax xname);
 
 val arity = xname -- ($$$ "::" |-- !!!
   (Scan.optional ($$$ "(" |-- !!! (list1 sort --| $$$ ")")) [] -- sort)) >> triple2;
@@ -220,8 +224,10 @@ val multi_arity = and_list1 xname -- ($$$ "::" |-- !!!
 
 (* types *)
 
-val typ = group "type"
+val typ_group = group "type"
   (short_ident || long_ident || sym_ident || type_ident || type_var || string || number);
+
+val typ = inner_syntax typ_group;
 
 val type_args =
   type_ident >> single ||
@@ -277,8 +283,11 @@ val for_simple_fixes = Scan.optional ($$$ "for" |-- !!! simple_fixes) [];
 
 val trm = short_ident || long_ident || sym_ident || term_var || number || string;
 
-val term = group "term" trm;
-val prop = group "proposition" trm;
+val term_group = group "term" trm;
+val prop_group = group "proposition" trm;
+
+val term = inner_syntax term_group;
+val prop = inner_syntax prop_group;
 
 
 (* patterns *)
