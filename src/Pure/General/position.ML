@@ -15,7 +15,7 @@ sig
   val line_file: int -> string -> T
   val line: int -> T
   val file: string -> T
-  val advance: Symbol.symbol -> T -> T
+  val advance: Symbol.symbol list -> T -> T
   val get_id: T -> string option
   val put_id: string -> T -> T
   val of_properties: Markup.property list -> T
@@ -53,10 +53,14 @@ fun line m = line_file m "";
 val file = line_file 1;
 
 
-fun advance "\n" (Pos (SOME (m, _), props)) = Pos (SOME (m + 1, 1), props)
-  | advance s (pos as Pos (SOME (m, n), props)) =
+(* advance position *)
+
+fun advance_count "\n" (m, _) = (m + 1, 1)
+  | advance_count s (m, n) =
       if Symbol.is_regular s andalso not (Symbol.is_utf8_trailer s)
-      then Pos (SOME (m, n + 1), props) else pos
+      then (m, n + 1) else (m, n);
+
+fun advance syms (Pos (SOME count, props)) = Pos (SOME (fold advance_count syms count), props)
   | advance _ pos = pos;
 
 
