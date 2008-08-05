@@ -8,7 +8,7 @@ Text with antiquotations of inner items (terms, types etc.).
 signature ANTIQUOTE =
 sig
   datatype antiquote =
-    Text of string | Antiq of string * Position.T |
+    Text of string | Antiq of (string * Position.T) * Position.T |
     Open of Position.T | Close of Position.T
   val is_antiq: antiquote -> bool
   val scan_antiquotes: string * Position.T -> antiquote list
@@ -23,7 +23,7 @@ struct
 
 datatype antiquote =
   Text of string |
-  Antiq of string * Position.T |
+  Antiq of (string * Position.T) * Position.T (*text, inner position, outer position*) |
   Open of Position.T |
   Close of Position.T;
 
@@ -60,28 +60,24 @@ val scan_txt =
   count (Scan.one (fn s =>
     s <> "@" andalso s <> "\\<lbrace>" andalso s <> "\\<rbrace>" andalso Symbol.is_regular s));
 
-fun escape "\\" = "\\\\"
-  | escape "\"" = "\\\""
-  | escape s = s;
-
-val quote_escape = Library.quote o implode o map escape o T.clean_value;
-
 val scan_ant =
-  T.scan_string >> quote_escape ||
+  T.scan_quoted >> implode ||
   count (Scan.one (fn s => s <> "}" andalso Symbol.is_regular s));
 
 val scan_antiq =
-  count ($$ "@") |-- count ($$ "{") |--
+  Scan.state -- (count ($$ "@") |-- count ($$ "{") |--
     T.!!! "missing closing brace of antiquotation"
-      (Scan.repeat scan_ant >> implode) --| count ($$ "}");
+      (Scan.state -- Scan.repeat scan_ant -- Scan.state -- (count ($$ "}") |-- Scan.state)))
+  >> (fn (pos1, (((pos2, body), pos3), pos4)) =>
+    Antiq ((implode body, Position.encode_range (pos2, pos3)), Position.encode_range (pos1, pos4)));
 
 in
 
-fun scan_antiquote (pos, ss) = (pos, ss) |>
-  (Scan.repeat1 scan_txt >> (Text o implode) ||
-    scan_antiq >> (fn s => Antiq (s, pos)) ||
-    count ($$ "\\<lbrace>") >> K (Open pos) ||
-    count ($$ "\\<rbrace>") >> K (Close pos));
+val scan_antiquote =
+  Scan.repeat1 scan_txt >> (Text o implode) ||
+  scan_antiq ||
+  Scan.state --| count ($$ "\\<lbrace>") >> Open ||
+  Scan.state --| count ($$ "\\<rbrace>") >> Close;
 
 end;
 
