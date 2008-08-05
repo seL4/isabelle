@@ -76,7 +76,7 @@ fun span_range ((_, []): span) = raise Fail "span_range: empty span"
   | span_range (_, toks) =
       let
         val start_pos = T.position_of (hd toks);
-        val end_pos = #2 (T.range_of (List.last toks));
+        val end_pos = T.end_position_of (List.last toks);
       in (start_pos, end_pos) end;
 
 
@@ -124,7 +124,7 @@ end;
 (* HTML presentation -- example *)
 
 fun present_html inpath outpath =
-  Source.exhaust (span_source (Path.position inpath) (Source.of_string (File.read inpath)))
+  parse_spans (Path.position inpath) (Source.of_string (File.read inpath))
   |> HTML.html_mode (implode o map present_span)
   |> enclose
     (HTML.begin_document (Path.implode (Path.base inpath)) ^ "<div class=\"source\"><pre>")
