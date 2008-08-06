@@ -307,6 +307,11 @@ apply (induct_tac "n", simp_all)
 apply (rule someI2_ex, blast+)
 done
 
+lemma wf_no_infinite_down_chainE:
+  assumes "wf r" obtains k where "(f (Suc k), f k) \<notin> r"
+using `wf r` wf_iff_no_infinite_down_chain[of r] by blast
+
+
 text{*A dynamically-scoped fact for TFL *}
 lemma tfl_some: "\<forall>P x. P x --> P (Eps P)"
   by (blast intro: someI)
