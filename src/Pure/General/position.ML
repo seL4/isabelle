@@ -55,7 +55,7 @@ val file = line_file 1;
 
 (* advance position *)
 
-fun advance_count "\n" (m, _) = (m + 1, 1)
+fun advance_count "\n" (m: int, _: int) = (m + 1, 1)
   | advance_count s (m, n) =
       if Symbol.is_regular s andalso not (Symbol.is_utf8_trailer s)
       then (m, n + 1) else (m, n);
