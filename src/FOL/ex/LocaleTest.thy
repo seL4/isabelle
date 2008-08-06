@@ -120,7 +120,7 @@ ML {* check_thm "i1.a.asm_A" *}
 
 (* without prefix *)
 
-interpretation IC ["W::i" "Z::i"] .  (* subsumed by i1: IC *)
+interpretation IC ["W::i" "Z::i"] by intro_locales  (* subsumed by i1: IC *)
 interpretation IC ["W::'a" "Z::i"] by unfold_locales auto
   (* subsumes i1: IA and i1: IC *)
 
@@ -151,7 +151,7 @@ print_interps IC  (* output: <no prefix, i1 *)
 print_interps ID  (* output: i2, i3 *)
 
 
-interpretation i10: ID + ID a' b' d' [X "Y::i" _ u "v::i" _] .
+interpretation i10: ID + ID a' b' d' [X "Y::i" _ u "v::i" _] by intro_locales
 
 corollary (in ID) th_x: True ..
 
@@ -184,7 +184,7 @@ theorem True
 proof -
   fix alpha::i and beta
   have alpha_A: "IA(alpha)" by unfold_locales
-  interpret i5: IA [alpha] .  (* subsumed *)
+  interpret i5: IA [alpha] by intro_locales  (* subsumed *)
   print_interps IA  (* output: <no prefix>, i1 *)
   interpret i6: IC [alpha beta] by unfold_locales auto
   print_interps IA   (* output: <no prefix>, i1 *)

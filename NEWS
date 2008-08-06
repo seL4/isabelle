@@ -19,7 +19,11 @@ interface instead.
 
 *** Pure ***
 
-* dropped "locale (open)".  INCOMPATBILITY.
+* Dropped "locale (open)".  INCOMPATBILITY.
+
+* Command 'interpretation' no longer attempts to simplify goal.
+INCOMPATIBILITY: in rare situations the generated goal differs.  Use
+methods intro_locales and unfold_locales to clarify.
 
 * Command 'instance': attached definitions no longer accepted.
 INCOMPATIBILITY, use proper 'instantiation' target.

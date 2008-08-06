@@ -167,7 +167,7 @@ type locale =
   intros: thm list * thm list,
     (* Introduction rules: of delta predicate and locale predicate. *)
   dests: thm list}
-    (* Destruction rules relative to canonical order in locale context. *)
+    (* Destruction rules: projections from locale predicate to predicates of fragments. *)
 
 (* CB: an internal (Int) locale element was either imported or included,
    an external (Ext) element appears directly in the locale text. *)
@@ -176,7 +176,7 @@ datatype ('a, 'b) int_ext = Int of 'a | Ext of 'b;
 
 
 
-(** substitutions on Frees and Vars -- clone from element.ML **)
+(** substitutions on Vars -- clone from element.ML **)
 
 (* instantiate types *)
 
@@ -239,7 +239,7 @@ struct
        context, import is its inverse
      - theorems (actually witnesses) instantiating locale assumptions
      - theorems (equations) interpreting derived concepts and indexed by lhs.
-     NB: index is exported while content is internalised.
+     NB: index is exported whereas content is internalised.
   *)
   type T = (((bool * string) * Attrib.src list) *
             (Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))) *
@@ -2040,12 +2040,18 @@ structure Idtab =
   TableFun(type key = string * term list
     val ord = prod_ord string_ord (list_ord Term.fast_term_ord));
 
-fun gen_activate_facts_elemss mk_ctxt get_reg note note_interp attrib put_reg add_wit add_eqn
-        attn all_elemss new_elemss propss eq_attns (exp, imp) thmss thy_ctxt =
+fun gen_activate_facts_elemss mk_ctxt get_reg note note_interp attrib put_reg test_reg add_wit add_eqn
+        attn all_elemss propss eq_attns (exp, imp) thmss thy_ctxt =
   let
     val ctxt = mk_ctxt thy_ctxt;
-    val (propss, eq_props) = chop (length new_elemss) propss;
-    val (thmss, eq_thms) = chop (length new_elemss) thmss;
+    val (propss, eq_props) = chop (length all_elemss) propss;
+    val (thmss, eq_thms) = chop (length all_elemss) thmss;
+
+    (* Filter out fragments already registered. *)
+
+    val (new_elemss, xs) = split_list (filter_out (fn (((id, _), _), _) =>
+          test_reg thy_ctxt id) (all_elemss ~~ (propss ~~ thmss)));
+    val (propss, thmss) = split_list xs;
 
     fun activate_elem prems eqns exp loc ((fully_qualified, prfx), atts) (Notes (kind, facts)) thy_ctxt =
         let
@@ -2077,6 +2083,7 @@ fun gen_activate_facts_elemss mk_ctxt get_reg note note_interp attrib put_reg ad
     val prems = flat (map_filter
           (fn ((id, Assumed _), _) => Option.map #2 (get_reg thy_ctxt' imp id)
             | ((_, Derived _), _) => NONE) all_elemss);
+
     val thy_ctxt'' = thy_ctxt'
       (* add witnesses of Derived elements *)
       |> fold (fn (id, thms) => fold (add_wit id o Element.morph_witness (Element.satisfy_morphism prems)) thms)
@@ -2091,6 +2098,7 @@ fun gen_activate_facts_elemss mk_ctxt get_reg note note_interp attrib put_reg ad
       |> (fn xs => fold Idtab.update xs Idtab.empty)
       (* Idtab.make wouldn't work here: can have conflicting duplicates,
          because instantiation may equate ids and equations are accumulated! *)
+
   in
     thy_ctxt''
     (* add equations *)
@@ -2109,7 +2117,7 @@ fun global_activate_facts_elemss x = gen_activate_facts_elemss
       PureThy.note_thmss
       global_note_prefix_i
       Attrib.attribute_i
-      put_global_registration add_global_witness add_global_equation
+      put_global_registration test_global_registration add_global_witness add_global_equation
       x;
 
 fun local_activate_facts_elemss x = gen_activate_facts_elemss
@@ -2119,6 +2127,7 @@ fun local_activate_facts_elemss x = gen_activate_facts_elemss
       local_note_prefix_i
       (Attrib.attribute_i o ProofContext.theory_of)
       put_local_registration
+      test_local_registration
       add_local_witness
       add_local_equation
       x;
@@ -2239,18 +2248,13 @@ fun gen_prep_registration mk_ctxt test_reg activate
       ((n, map (Morphism.term (inst_morphism $> fst morphs)) ps),
         map (fn Int e => Element.morph_ctxt inst_morphism e) elems)
       |> apfst (fn id => (id, map_mode (map (Element.morph_witness inst_morphism)) mode)));
-
-    (* remove fragments already registered with theory or context *)
-    val new_inst_elemss = filter_out (fn ((id, _), _) =>
-          test_reg thy_ctxt id) inst_elemss;
-
     (* equations *)
     val eqn_elems = if null eqns then []
       else [(Library.last_elem inst_elemss |> fst |> fst, eqns)];
 
-    val propss = map extract_asms_elems new_inst_elemss @ eqn_elems;
+    val propss = map extract_asms_elems inst_elemss @ eqn_elems;
 
-  in (propss, activate attn inst_elemss new_inst_elemss propss eq_attns morphs) end;
+  in (propss, activate attn inst_elemss propss eq_attns morphs) end;
 
 fun gen_prep_global_registration mk_ctxt = gen_prep_registration ProofContext.init
   test_global_registration

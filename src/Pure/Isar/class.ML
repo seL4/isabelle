@@ -65,7 +65,7 @@ struct
 fun prove_interpretation tac prfx_atts expr inst =
   Locale.interpretation_i I prfx_atts expr inst
   #> Proof.global_terminal_proof
-      (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
+      (Method.Basic (fn ctxt => Method.SIMPLE_METHOD (tac ctxt), Position.none), NONE)
   #> ProofContext.theory_of;
 
 fun prove_interpretation_in tac after_qed (name, expr) =
@@ -367,7 +367,8 @@ fun class_interpretation class facts defs thy =
     val no_constraints = map (map_atyps (K (TFree (Name.aT, [])))) constraints;
     fun add_constraint c T = Sign.add_const_constraint (c, SOME T);
     val inst = (#inst o the_class_data thy) class;
-    val tac = ALLGOALS (ProofContext.fact_tac facts);
+    fun tac ctxt = ALLGOALS (ProofContext.fact_tac facts
+      ORELSE' (fn n => SELECT_GOAL (Locale.intro_locales_tac false ctxt []) n));
     val prfx = class_prefix class;
   in
     thy
