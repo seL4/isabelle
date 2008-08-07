@@ -19,15 +19,17 @@ sig
   val is_eof: T -> bool
   val stopper: T Scan.stopper
   val !!! : string -> (T list -> 'a) -> T list -> 'a
-  val scan_position: T list -> Position.T * T list
+  val scan_pos: T list -> Position.T * T list
   val scan_comment: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
     T list -> T list * T list
   val scan_comment_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
     T list -> T list * T list
   val source: Position.T -> (Symbol.symbol, 'a) Source.source ->
     (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
-  val implode: T list -> string * Position.range
-  val explode: string * Position.T -> T list
+  type text = string
+  val implode: T list -> text * Position.range
+  val implode_delim: Position.T -> Position.T -> T list -> text * Position.range
+  val explode: text * Position.T -> T list
 end;
 
 structure SymbolPos: SYMBOL_POS =
@@ -66,7 +68,7 @@ fun !!! text scan =
 fun $$$ s = Scan.one (fn x => symbol x = s) >> single;
 fun ~$$$ s = Scan.one (fn x => symbol x <> s) >> single;
 
-val scan_position = Scan.ahead (Scan.one (K true)) >> (fn (_, pos): T => pos);
+val scan_pos = Scan.ahead (Scan.one (K true)) >> (fn (_, pos): T => pos);
 
 
 (* ML-style comments *)
@@ -101,6 +103,8 @@ fun source pos =
 
 (* compact representation -- with Symbol.DEL padding *)
 
+type text = string;
+
 local
 
 fun pad [] = []
@@ -131,8 +135,11 @@ fun implode (syms as (_, pos) :: _) =
       in (orig_implode (pad syms), Position.range pos pos') end
   | implode [] = ("", (Position.none, Position.none));
 
+fun implode_delim pos1 pos2 syms = implode (("", pos1) :: syms @ [("", pos2)]);
+
 fun explode (str, pos) =
-  fold_map (fn s => fn p => ((s, p), (Position.advance s p))) (Symbol.explode str) pos
+  fold_map (fn s => fn p => ((s, p), (Position.advance s p)))
+    (Symbol.explode str) (Position.reset_range pos)
   |> #1 |> filter_out (fn (s, _) => s = Symbol.DEL);
 
 end;
