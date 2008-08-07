@@ -267,52 +267,44 @@ fun drain def_prompt get stopper scan ((state, xs), src) =
 
 
 
-(** datatype lexicon **)
+(** datatype lexicon -- position tree **)
 
-datatype lexicon =
-  Empty |
-  Branch of string * bool * lexicon * lexicon * lexicon;
+datatype lexicon = Lexicon of (bool * lexicon) Symtab.table;
+
+val empty_lexicon = Lexicon Symtab.empty;
+
+fun is_literal _ [] = false
+  | is_literal (Lexicon tab) (chs as c :: cs) =
+      (case Symtab.lookup tab c of
+        SOME (tip, lex) => tip andalso null cs orelse is_literal lex cs
+      | NONE => false);
 
 
-(* detect entries *)
+(* scan longest match *)
 
-fun is_literal Empty _ = false
-  | is_literal _ [] = false
-  | is_literal (Branch (d, tip, lt, eq, gt)) (chs as c :: cs) =
-      (case fast_string_ord (c, d) of
-        LESS => is_literal lt chs
-      | EQUAL => tip andalso null cs orelse is_literal eq cs
-      | GREATER => is_literal gt chs);
-
-fun literal lex chrs =
+fun literal lexicon =
   let
-    fun lit Empty (SOME (res, rest)) _ _ = (rev res, rest)
-      | lit Empty NONE _ _ = raise FAIL NONE
-      | lit (Branch _) _ _ [] = raise MORE NONE
-      | lit (Branch (d, tip, lt, eq, gt)) res path (chs as c :: cs) =
-          let val path' = c :: path in
-            (case fast_string_ord (fst c, d) of
-              LESS => lit lt res path chs
-            | EQUAL => lit eq (if tip then SOME (path', cs) else res) path' cs
-            | GREATER => lit gt res path chs)
-          end;
-  in lit lex NONE [] chrs end;
+    fun finish (SOME (res, rest)) = (rev res, rest)
+      | finish NONE = raise FAIL NONE;
+    fun scan _ res (Lexicon tab) [] = if Symtab.is_empty tab then finish res else raise MORE NONE
+      | scan path res (Lexicon tab) (chs as c :: cs) =
+          (case Symtab.lookup tab (fst c) of
+            SOME (tip, lex) =>
+              let val path' = c :: path
+              in scan path' (if tip then SOME (path', cs) else res) lex cs end
+          | NONE => finish res)
+  in scan [] NONE lexicon end;
 
 
 (* build lexicons *)
 
-val empty_lexicon = Empty;
-
 fun extend_lexicon chrs lexicon =
   let
-    fun ext (chs as c :: cs) (Branch (d, tip, lt, eq, gt)) =
-          (case fast_string_ord (c, d) of
-            LESS => Branch (d, tip, ext chs lt, eq, gt)
-          | EQUAL => Branch (d, tip orelse null cs, lt, ext cs eq, gt)
-          | GREATER => Branch (d, tip, lt, eq, ext chs gt))
-      | ext [c] Empty = Branch (c, true, Empty, Empty, Empty)
-      | ext (c :: cs) Empty = Branch (c, false, Empty, ext cs Empty, Empty)
-      | ext [] lex = lex;
+    fun ext [] lex = lex
+      | ext (chs as c :: cs) (Lexicon tab) =
+          (case Symtab.lookup tab c of
+            SOME (tip, lex) => Lexicon (Symtab.update (c, (tip orelse null cs, ext cs lex)) tab)
+          | NONE => Lexicon (Symtab.update (c, (null cs, ext cs empty_lexicon)) tab));
   in if is_literal lexicon chrs then lexicon else ext chrs lexicon end;
 
 fun make_lexicon chrss = fold extend_lexicon chrss empty_lexicon;
@@ -320,18 +312,14 @@ fun make_lexicon chrss = fold extend_lexicon chrss empty_lexicon;
 
 (* merge lexicons *)
 
-fun dest_lex lex =
+fun dest path (Lexicon tab) = Symtab.fold (fn (d, (tip, lex)) =>
   let
-    fun dest Empty _ = []
-      | dest (Branch (d, tip, lt, eq, gt)) path =
-          let
-            val path' = d :: path;
-            val content = dest lt path @ dest eq path' @ dest gt path;
-          in if tip then rev path' :: content else content end;
-  in dest lex [] end;
+    val path' = d :: path;
+    val content = dest path' lex;
+  in append (if tip then rev path' :: content else content) end) tab [];
 
-val dest_lexicon = map implode o dest_lex;
-fun merge_lexicons (lex1, lex2) = fold extend_lexicon (dest_lex lex2) lex1;
+val dest_lexicon = map implode o dest [];
+fun merge_lexicons (lex1, lex2) = fold extend_lexicon (dest [] lex2) lex1;
 
 end;
 
