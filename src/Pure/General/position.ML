@@ -8,14 +8,15 @@ Source positions.
 signature POSITION =
 sig
   type T
+  val advance: Symbol.symbol -> T -> T
   val line_of: T -> int option
   val column_of: T -> int option
   val file_of: T -> string option
   val none: T
-  val line_file: int -> string -> T
-  val line: int -> T
+  val start: T
   val file: string -> T
-  val advance: Symbol.symbol -> T -> T
+  val line: int -> T
+  val line_file: int -> string -> T
   val get_id: T -> string option
   val put_id: string -> T -> T
   val of_properties: Markup.property list -> T
@@ -25,6 +26,7 @@ sig
   val str_of: T -> string
   type range = T * T
   val encode_range: range -> T
+  val reset_range: T -> T
   val range: T -> T -> range
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
@@ -36,33 +38,43 @@ struct
 
 (* datatype position *)
 
-datatype T = Pos of (int * int) option * Markup.property list;
+datatype T = Pos of (int * int) * Markup.property list;
 
-fun line_of (Pos (SOME (m, _), _)) = SOME m
-  | line_of _ = NONE;
+fun valid (m: int) = m > 0;
+fun value k m = if valid m then [(k, string_of_int m)] else [];
 
-fun column_of (Pos (SOME (_, n), _)) = SOME n
-  | column_of _ = NONE;
+
+(* advance *)
+
+fun advance_count "\n" (m, n) = (m + 1, if valid n then 1 else n)
+  | advance_count s (m, n) =
+      if valid n andalso Symbol.is_regular s andalso not (Symbol.is_utf8_trailer s)
+      then (m, n + 1) else (m, n);
+
+fun advance sym (pos as (Pos ((m, n), props))) =
+  if valid m then Pos (advance_count sym (m, n), props) else pos;
+
+
+(* fields *)
+
+fun line_of (Pos ((m, _), _)) = if valid m then SOME m else NONE;
+fun column_of (Pos ((_, n), _)) = if valid n then SOME n else NONE;
 
 fun file_of (Pos (_, props)) = AList.lookup (op =) props Markup.fileN;
 
+fun file_name "" = []
+  | file_name name = [(Markup.fileN, name)];
 
-val none = Pos (NONE, []);
 
-fun line_file m name = Pos (SOME (m, 1), if name = "" then [] else [(Markup.fileN, name)]);
+(* make position *)
+
+val none = Pos ((0, 0), []);
+val start = Pos ((1, 1), []);
+
+fun file name = Pos ((1, 1), file_name name);
+
+fun line_file m name = Pos ((m, 0), file_name name);
 fun line m = line_file m "";
-val file = line_file 1;
-
-
-(* advance position *)
-
-fun advance_count "\n" (m: int, _: int) = (m + 1, 1)
-  | advance_count s (m, n) =
-      if Symbol.is_regular s andalso not (Symbol.is_utf8_trailer s)
-      then (m, n + 1) else (m, n);
-
-fun advance sym (Pos (SOME count, props)) = Pos (SOME (advance_count sym count), props)
-  | advance _ pos = pos;
 
 
 (* markup properties *)
@@ -72,29 +84,24 @@ fun put_id id (Pos (count, props)) = Pos (count, AList.update (op =) (Markup.idN
 
 fun get_int props (name: string) =
   (case AList.lookup (op =) props name of
-    NONE => NONE
-  | SOME s => Int.fromString s);
+    NONE => 0
+  | SOME s => the_default 0 (Int.fromString s));
 
 fun of_properties props =
   let
-    val count =
-      (case get_int props Markup.lineN of
-        NONE => NONE
-      | SOME m => SOME (m, the_default 1 (get_int props Markup.columnN)));
+    val count = (get_int props Markup.lineN, get_int props Markup.columnN);
     fun property name = the_list (find_first (fn (x: string, _) => x = name) props);
   in Pos (count, maps property Markup.position_properties') end;
 
-fun properties_of (Pos (count, props)) =
-  (case count of
-    NONE => []
-  | SOME (m, n) => [(Markup.lineN, string_of_int m), (Markup.columnN, string_of_int n)]) @ props;
+fun properties_of (Pos ((m, n), props)) =
+  value Markup.lineN m @ value Markup.columnN n @ props;
 
 fun default_properties default props =
   if exists (member (op =) Markup.position_properties o #1) props then props
   else properties_of default @ props;
 
 fun report markup pos =
-  if pos = none then ()
+  if is_none (line_of pos) then ()
   else Output.status (Markup.markup (Markup.properties (properties_of pos) markup) "");
 
 
@@ -118,12 +125,12 @@ fun str_of pos =
 
 type range = T * T;
 
-fun encode_range (Pos (count, props), Pos (end_count, _)) =
-  let val props' = props |> fold_rev (AList.update op =)
-    (case end_count of
-      NONE => []
-    | SOME (m, n) => [(Markup.end_lineN, string_of_int m), (Markup.end_columnN, string_of_int n)])
-  in Pos (count, props') end;
+fun encode_range (Pos (count, props), Pos ((m, n), _)) =
+  Pos (count,
+    fold_rev (AList.update op =) (value Markup.end_lineN m @ value Markup.end_columnN n) props);
+
+fun reset_range (Pos (count, props)) =
+  Pos (count, filter_out (fn (k, _) => k = Markup.end_lineN orelse k = Markup.end_columnN) props);
 
 fun range pos pos' = (encode_range (pos, pos'), pos');
 
