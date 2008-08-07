@@ -250,7 +250,7 @@ fun update (key, x) tab = modify key (fn _ => x) tab;
 fun update_new (key, x) tab = modify key (fn NONE => x | SOME _ => raise DUP key) tab;
 fun default (key, x) tab = modify key (fn NONE => x | SOME _ => raise SAME) tab;
 fun map_entry key f = modify key (fn NONE => raise SAME | SOME x => f x);
-fun map_default (key, x) f = modify key (fn NONE => f x | SOME x => f x);
+fun map_default (key, x) f = modify key (fn NONE => f x | SOME y => f y);
 
 
 (* delete *)
