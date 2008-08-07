@@ -77,13 +77,13 @@ sig
   val drain: string -> (string -> 'a -> 'b list * 'a) -> 'b stopper ->
     ('c * 'b list -> 'd * ('e * 'b list)) -> ('c * 'b list) * 'a -> ('d * ('e * 'b list)) * 'a
   type lexicon
-  val dest_lexicon: lexicon -> string list
-  val make_lexicon: string list list -> lexicon
-  val empty_lexicon: lexicon
-  val extend_lexicon: string list list -> lexicon -> lexicon
-  val merge_lexicons: lexicon -> lexicon -> lexicon
   val is_literal: lexicon -> string list -> bool
-  val literal: lexicon -> string list -> string list * string list
+  val literal: lexicon -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
+  val empty_lexicon: lexicon
+  val extend_lexicon: string list -> lexicon -> lexicon
+  val make_lexicon: string list list -> lexicon
+  val dest_lexicon: lexicon -> string list
+  val merge_lexicons: lexicon * lexicon -> lexicon
 end;
 
 structure Scan: SCAN =
@@ -271,82 +271,67 @@ fun drain def_prompt get stopper scan ((state, xs), src) =
 
 datatype lexicon =
   Empty |
-  Branch of string * string list * lexicon * lexicon * lexicon;
-
-val no_literal = [];
+  Branch of string * bool * lexicon * lexicon * lexicon;
 
 
-(* dest_lexicon *)
-
-fun dest_lex Empty = []
-  | dest_lex (Branch (_, [], lt, eq, gt)) =
-      dest_lex lt @ dest_lex eq @ dest_lex gt
-  | dest_lex (Branch (_, cs, lt, eq, gt)) =
-      dest_lex lt @ [cs] @ dest_lex eq @ dest_lex gt;
-
-val dest_lexicon = map implode o dest_lex;
-
-
-(* empty, extend, make, merge lexicons *)
-
-val empty_lexicon = Empty;
-
-fun extend_lexicon [] lexicon = lexicon
-  | extend_lexicon chrss lexicon =
-      let
-        fun ext chrs lex =
-          let
-            fun add (chs as c :: cs) (Branch (d, a, lt, eq, gt)) =
-                  (case fast_string_ord (c, d) of
-                    LESS => Branch (d, a, add chs lt, eq, gt)
-                  | EQUAL => Branch (d, if null cs then chrs else a, lt, add cs eq, gt)
-                  | GREATER => Branch (d, a, lt, eq, add chs gt))
-              | add [c] Empty = Branch (c, chrs, Empty, Empty, Empty)
-              | add (c :: cs) Empty = Branch (c, no_literal, Empty, add cs Empty, Empty)
-              | add [] lex = lex;
-          in add chrs lex end;
-      in lexicon |> fold ext (chrss |> subtract (op =) (dest_lex lexicon)) end;
-
-fun make_lexicon chrss = extend_lexicon chrss empty_lexicon;
-
-fun merge_lexicons lex1 lex2 =
-  let
-    val chss1 = dest_lex lex1;
-    val chss2 = dest_lex lex2;
-  in
-    if chss2 subset chss1 then lex1
-    else if chss1 subset chss2 then lex2
-    else extend_lexicon chss2 lex1
-  end;
-
-
-(* is_literal *)
+(* detect entries *)
 
 fun is_literal Empty _ = false
   | is_literal _ [] = false
-  | is_literal (Branch (d, a, lt, eq, gt)) (chs as c :: cs) =
+  | is_literal (Branch (d, tip, lt, eq, gt)) (chs as c :: cs) =
       (case fast_string_ord (c, d) of
         LESS => is_literal lt chs
-      | EQUAL => a <> no_literal andalso null cs orelse is_literal eq cs
+      | EQUAL => tip andalso null cs orelse is_literal eq cs
       | GREATER => is_literal gt chs);
-
-
-(* scan literal *)
 
 fun literal lex chrs =
   let
-    fun lit Empty res _ = res
-      | lit (Branch _) _ [] = raise MORE NONE
-      | lit (Branch (d, a, lt, eq, gt)) res (chs as c :: cs) =
+    fun lit Empty (SOME (res, rest)) _ _ = (rev res, rest)
+      | lit Empty NONE _ _ = raise FAIL NONE
+      | lit (Branch _) _ _ [] = raise MORE NONE
+      | lit (Branch (d, tip, lt, eq, gt)) res path (chs as c :: cs) =
+          let val path' = c :: path in
+            (case fast_string_ord (fst c, d) of
+              LESS => lit lt res path chs
+            | EQUAL => lit eq (if tip then SOME (path', cs) else res) path' cs
+            | GREATER => lit gt res path chs)
+          end;
+  in lit lex NONE [] chrs end;
+
+
+(* build lexicons *)
+
+val empty_lexicon = Empty;
+
+fun extend_lexicon chrs lexicon =
+  let
+    fun ext (chs as c :: cs) (Branch (d, tip, lt, eq, gt)) =
           (case fast_string_ord (c, d) of
-            LESS => lit lt res chs
-          | EQUAL => lit eq (if a = no_literal then res else SOME (a, cs)) cs
-          | GREATER => lit gt res chs);
-  in
-    (case lit lex NONE chrs of
-      NONE => raise FAIL NONE
-    | SOME res => res)
-  end;
+            LESS => Branch (d, tip, ext chs lt, eq, gt)
+          | EQUAL => Branch (d, tip orelse null cs, lt, ext cs eq, gt)
+          | GREATER => Branch (d, tip, lt, eq, ext chs gt))
+      | ext [c] Empty = Branch (c, true, Empty, Empty, Empty)
+      | ext (c :: cs) Empty = Branch (c, false, Empty, ext cs Empty, Empty)
+      | ext [] lex = lex;
+  in if is_literal lexicon chrs then lexicon else ext chrs lexicon end;
+
+fun make_lexicon chrss = fold extend_lexicon chrss empty_lexicon;
+
+
+(* merge lexicons *)
+
+fun dest_lex lex =
+  let
+    fun dest Empty _ = []
+      | dest (Branch (d, tip, lt, eq, gt)) path =
+          let
+            val path' = d :: path;
+            val content = dest lt path @ dest eq path' @ dest gt path;
+          in if tip then rev path' :: content else content end;
+  in dest lex [] end;
+
+val dest_lexicon = map implode o dest_lex;
+fun merge_lexicons (lex1, lex2) = fold extend_lexicon (dest_lex lex2) lex1;
 
 end;
 
