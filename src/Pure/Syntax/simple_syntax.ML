@@ -32,7 +32,7 @@ in
 
 fun read scan s =
   (case
-      Symbol.explode s |>
+      SymbolPos.explode (s, Position.none) |>
       Lexicon.tokenize lexicon false |>
       Scan.read stopper scan of
     SOME x => x
