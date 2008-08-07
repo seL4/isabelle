@@ -154,11 +154,11 @@ fun report () =
 (* augment tables *)
 
 fun keyword name =
- (change_lexicons (apfst (Scan.extend_lexicon [Symbol.explode name]));
+ (change_lexicons (apfst (Scan.extend_lexicon (Symbol.explode name)));
   Pretty.writeln (report_keyword name));
 
 fun command name kind =
- (change_lexicons (apsnd (Scan.extend_lexicon [Symbol.explode name]));
+ (change_lexicons (apsnd (Scan.extend_lexicon (Symbol.explode name)));
   change_commands (Symtab.update (name, kind));
   Pretty.writeln (report_command (name, kind)));
 

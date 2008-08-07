@@ -296,7 +296,8 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   in
     Syntax
     ({input = input',
-      lexicon = if changed then Scan.extend_lexicon (SynExt.delims_of xprods) lexicon else lexicon,
+      lexicon =
+        if changed then fold Scan.extend_lexicon (SynExt.delims_of xprods) lexicon else lexicon,
       gram = if changed then Parser.extend_gram gram xprods else gram,
       consts = Library.merge (op =) (consts1, filter_out NameSpace.is_qualified consts2),
       prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
@@ -361,7 +362,7 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
   in
     Syntax
     ({input = Library.merge (op =) (input1, input2),
-      lexicon = Scan.merge_lexicons lexicon1 lexicon2,
+      lexicon = Scan.merge_lexicons (lexicon1, lexicon2),
       gram = Parser.merge_grams gram1 gram2,
       consts = sort_distinct string_ord (consts1 @ consts2),
       prmodes = Library.merge (op =) (prmodes1, prmodes2),
@@ -464,7 +465,7 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root str =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val root' = if root <> "prop" andalso is_logtype root then SynExt.logic else root;
-    val chars = Symbol.explode str;
+    val chars = SymbolPos.explode (str, Position.none);
     val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
     val len = length pts;
 
