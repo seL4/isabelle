@@ -8,12 +8,12 @@ Text with antiquotations of inner items (terms, types etc.).
 signature ANTIQUOTE =
 sig
   datatype antiquote =
-    Text of string | Antiq of (string * Position.T) * Position.T |
+    Text of string | Antiq of SymbolPos.text * Position.T |
     Open of Position.T | Close of Position.T
   val is_antiq: antiquote -> bool
-  val read: string * Position.T -> antiquote list
-  val read_arguments: Scan.lexicon -> (OuterLex.token list -> 'a * OuterLex.token list) ->
-    string * Position.T -> 'a
+  val read: SymbolPos.text * Position.T -> antiquote list
+  val read_antiq: Scan.lexicon -> (OuterLex.token list -> 'a * OuterLex.token list) ->
+    SymbolPos.text * Position.T -> 'a
 end;
 
 structure Antiquote: ANTIQUOTE =
@@ -23,7 +23,7 @@ struct
 
 datatype antiquote =
   Text of string |
-  Antiq of (string * Position.T) * Position.T (*text, inner position, outer position*) |
+  Antiq of string * Position.T |
   Open of Position.T |
   Close of Position.T;
 
@@ -64,21 +64,20 @@ val scan_ant =
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.is_regular s) >> single;
 
 val scan_antiq =
-  SymbolPos.scan_position -- ($$$ "@" |-- $$$ "{" |--
+  SymbolPos.scan_pos -- ($$$ "@" |-- $$$ "{" |--
     T.!!! "missing closing brace of antiquotation"
-      (SymbolPos.scan_position -- Scan.repeat scan_ant -- SymbolPos.scan_position --
-        ($$$ "}" |-- SymbolPos.scan_position)))
-  >> (fn (pos1, (((pos2, body), pos3), pos4)) =>
-    Antiq ((implode (map symbol (flat body)),
-      Position.encode_range (pos2, pos3)), Position.encode_range (pos1, pos4)));
+      (Scan.repeat scan_ant -- ($$$ "}" |-- SymbolPos.scan_pos)))
+  >> (fn (pos1, (body, pos2)) =>
+      let val (s, (pos, _)) = SymbolPos.implode_delim pos1 pos2 (flat body)
+      in Antiq (s, pos) end);
 
 in
 
-val scan_antiquote = T.!!! "malformed quotation/antiquotation"
+val scan_antiquote =
  (Scan.repeat1 scan_txt >> (Text o implode o map symbol o flat) ||
   scan_antiq ||
-  SymbolPos.scan_position --| $$$ "\\<lbrace>" >> Open ||
-  SymbolPos.scan_position --| $$$ "\\<rbrace>" >> Close);
+  SymbolPos.scan_pos --| $$$ "\\<lbrace>" >> Open ||
+  SymbolPos.scan_pos --| $$$ "\\<rbrace>" >> Close);
 
 end;
 
@@ -87,22 +86,21 @@ end;
 
 fun read ("", _) = []
   | read (s, pos) =
-      (case Scan.read SymbolPos.stopper (Scan.bulk scan_antiquote) (SymbolPos.explode (s, pos)) of
+      (case Scan.read SymbolPos.stopper (Scan.repeat scan_antiquote) (SymbolPos.explode (s, pos)) of
         SOME xs => (check_nesting xs; xs)
       | NONE => error ("Malformed quotation/antiquotation source" ^ Position.str_of pos));
 
 
-(* scan_arguments *)
+(* read_antiq *)
 
-fun read_arguments lex scan (s, pos) =
+fun read_antiq lex scan (s, pos) =
   let
     fun err msg = cat_error msg
       ("Malformed antiquotation: " ^ quote ("@{" ^ s ^ "}") ^ Position.str_of pos);
 
     val res =
-      Source.of_string s
-      |> Symbol.source false
-      |> T.source NONE (K (lex, Scan.empty_lexicon)) pos
+      Source.of_list (SymbolPos.explode (s, pos))
+      |> T.source' NONE (K (lex, Scan.empty_lexicon))
       |> T.source_proper
       |> Source.source T.stopper (Scan.error (Scan.bulk scan)) NONE
       |> Source.exhaust;
