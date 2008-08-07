@@ -8,16 +8,16 @@ Basic editing of theory sources.
 signature THY_EDIT =
 sig
   val token_source: Position.T -> (string, 'a) Source.source ->
-    (OuterLex.token, Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source)
-      Source.source
+    (OuterLex.token, (SymbolPos.T, Position.T * (Symbol.symbol, (string, 'a)
+      Source.source) Source.source) Source.source) Source.source
   val parse_tokens: Position.T -> (string, 'a) Source.source -> OuterLex.token list
   val present_token: OuterLex.token -> output
   datatype span_kind = Command of string | Ignored | Unknown
   type span = span_kind * OuterLex.token list
   val span_range: span -> Position.range
   val span_source: Position.T -> (string, 'a) Source.source ->
-    (span, (OuterLex.token, Position.T * (Symbol.symbol, (string, 'a) Source.source) Source.source)
-      Source.source) Source.source
+    (span, (OuterLex.token, (SymbolPos.T, Position.T * (Symbol.symbol, (string, 'a)
+      Source.source) Source.source) Source.source) Source.source) Source.source
   val parse_spans: Position.T -> (string, 'a) Source.source -> span list
   val present_span: span -> output
   val present_html: Path.T -> Path.T -> unit

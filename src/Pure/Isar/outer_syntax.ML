@@ -218,8 +218,9 @@ fun process_file path thy =
 type isar =
   (Toplevel.transition, (Toplevel.transition option,
     (OuterLex.token, (OuterLex.token option, (OuterLex.token, (OuterLex.token,
-      Position.T * (Symbol.symbol, (string, unit) Source.source) Source.source)
-          Source.source) Source.source) Source.source) Source.source) Source.source) Source.source;
+      (SymbolPos.T, Position.T * (Symbol.symbol, (string, unit) Source.source)
+  Source.source) Source.source) Source.source) Source.source)
+  Source.source) Source.source) Source.source) Source.source;
 
 fun isar term : isar =
   Source.tty
