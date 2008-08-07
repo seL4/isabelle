@@ -292,7 +292,7 @@ fun literal lexicon =
             SOME (tip, lex) =>
               let val path' = c :: path
               in scan path' (if tip then SOME (path', cs) else res) lex cs end
-          | NONE => finish res)
+          | NONE => finish res);
   in scan [] NONE lexicon end;
 
 
