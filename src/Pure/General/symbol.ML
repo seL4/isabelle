@@ -21,6 +21,7 @@ sig
   val is_utf8_trailer: symbol -> bool
   val eof: symbol
   val is_eof: symbol -> bool
+  val not_eof: symbol -> bool
   val stopper: symbol Scan.stopper
   val sync: symbol
   val is_sync: symbol -> bool
