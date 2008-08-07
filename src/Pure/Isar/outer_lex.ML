@@ -39,6 +39,8 @@ sig
   val !!! : string -> (SymbolPos.T list -> 'a) -> SymbolPos.T list -> 'a
   val scan_quoted: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
   val source_proper: (token, 'a) Source.source -> (token, (token, 'a) Source.source) Source.source
+  val source': bool Option.option -> (unit -> Scan.lexicon * Scan.lexicon) ->
+    (SymbolPos.T, 'a) Source.source -> (token, (SymbolPos.T, 'a) Source.source) Source.source
   val source: bool Option.option -> (unit -> Scan.lexicon * Scan.lexicon) ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (token,
       (SymbolPos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
@@ -55,7 +57,7 @@ datatype token_kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar | Nat |
   String | AltString | Verbatim | Space | Comment | Malformed | Error of string | Sync | EOF;
 
-datatype token = Token of (string * Position.range) * (token_kind * string);
+datatype token = Token of (SymbolPos.text * Position.range) * (token_kind * string);
 
 val str_of_kind =
  fn Command => "command"
@@ -144,8 +146,8 @@ fun is_newline (Token (_, (Space, x))) = String.isSuffix "\n" x
 
 fun val_of (Token (_, (_, x))) = x;
 
-fun source_of (Token ((src, (pos, _)), _)) =
-  YXML.string_of (XML.Elem (Markup.tokenN, Position.properties_of pos, [XML.Text src]));
+fun source_of (Token ((source, (pos, _)), _)) =
+  YXML.string_of (XML.Elem (Markup.tokenN, Position.properties_of pos, [XML.Text source]));
 
 
 (* unparse *)
@@ -225,8 +227,8 @@ fun scan_str q =
   Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.is_regular s) >> single;
 
 fun scan_strs q =
-  $$$ q |-- !!! "missing quote at end of string"
-    (change_prompt (Scan.repeat (scan_str q) --| $$$ q)) >> flat;
+  (SymbolPos.scan_pos --| $$$ q) -- !!! "missing quote at end of string"
+    (change_prompt ((Scan.repeat (scan_str q) >> flat) -- ($$$ q |-- SymbolPos.scan_pos)));
 
 in
 
@@ -245,8 +247,8 @@ val scan_verb =
   Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s) >> single;
 
 val scan_verbatim =
-  $$$ "{" |-- $$$ "*" |-- !!! "missing end of verbatim text"
-    (change_prompt (Scan.repeat scan_verb --| $$$ "*" --| $$$ "}")) >> flat;
+  (SymbolPos.scan_pos --| $$$ "{" --| $$$ "*") -- !!! "missing end of verbatim text"
+    (change_prompt ((Scan.repeat scan_verb >> flat) -- ($$$ "*" |-- $$$ "}" |-- SymbolPos.scan_pos)));
 
 
 (* scan space *)
@@ -258,17 +260,10 @@ val scan_space =
   Scan.many (is_space o symbol) @@@ $$$ "\n";
 
 
-(* scan nested comments *)
-
-val scan_cmt =
-  Scan.depend (fn d => $$$ "(" @@@ $$$ "*" >> pair (d + 1)) ||
-  Scan.depend (fn 0 => Scan.fail | d => $$$ "*" @@@ $$$ ")" >> pair (d - 1)) ||
-  Scan.lift ($$$ "*" --| Scan.ahead (~$$$ ")")) ||
-  Scan.lift (Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s) >> single);
+(* scan comment *)
 
 val scan_comment =
-  $$$ "(" |-- $$$ "*" |-- !!! "missing end of comment"
-    (change_prompt (Scan.pass 0 (Scan.repeat scan_cmt >> flat) --| $$$ "*" --| $$$ ")"));
+  SymbolPos.scan_pos -- (SymbolPos.scan_comment_body !!! -- SymbolPos.scan_pos);
 
 
 (* scan malformed symbols *)
@@ -287,17 +282,20 @@ fun source_proper src = src |> Source.filter is_proper;
 local
 
 fun token_leq ((_, syms1), (_, syms2)) = length syms1 <= length syms2;
-fun token (k, ss) = Token (SymbolPos.implode ss, (k, implode (map symbol ss)));
+
+fun token k ss = Token (SymbolPos.implode ss, (k, implode (map symbol ss)));
+fun token_delim k (pos1, (ss, pos2)) =
+  Token (SymbolPos.implode_delim pos1 pos2 ss, (k, implode (map symbol ss)));
 
 fun scan (lex1, lex2) = !!! "bad input"
-  (scan_string >> pair String ||
-    scan_alt_string >> pair AltString ||
-    scan_verbatim >> pair Verbatim ||
-    SymbolPos.scan_comment_body !!! >> pair Comment ||
-    scan_space >> pair Space ||
-    scan_malformed >> pair Malformed ||
-    Scan.one (Symbol.is_sync o symbol) >> (fn s => (Sync, [s])) ||
-    ((Scan.max token_leq
+  (scan_string >> token_delim String ||
+    scan_alt_string >> token_delim AltString ||
+    scan_verbatim >> token_delim Verbatim ||
+    scan_comment >> token_delim Comment ||
+    scan_space >> token Space ||
+    scan_malformed >> token Malformed ||
+    Scan.one (Symbol.is_sync o symbol) >> (token Sync o single) ||
+    (Scan.max token_leq
       (Scan.max token_leq
         (Scan.literal lex2 >> pair Command)
         (Scan.literal lex1 >> pair Keyword))
@@ -307,18 +305,21 @@ fun scan (lex1, lex2) = !!! "bad input"
         Syntax.scan_tid >> pair TypeIdent ||
         Syntax.scan_tvar >> pair TypeVar ||
         Syntax.scan_nat >> pair Nat ||
-        scan_symid >> pair SymIdent)))) >> token;
+        scan_symid >> pair SymIdent) >> uncurry token));
 
 fun recover msg =
   Scan.many ((Symbol.is_regular andf (not o Symbol.is_blank)) o symbol)
-  >> (fn ss => [token (Error msg, ss)]);
+  >> (single o token (Error msg));
 
 in
 
+fun source' do_recover get_lex =
+  Source.source SymbolPos.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
+    (Option.map (rpair recover) do_recover);
+
 fun source do_recover get_lex pos src =
   SymbolPos.source pos src
-  |> Source.source SymbolPos.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
-    (Option.map (rpair recover) do_recover);
+  |> source' do_recover get_lex;
 
 end;
 
