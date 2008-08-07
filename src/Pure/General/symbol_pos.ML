@@ -1,0 +1,143 @@
+(*  Title:      Pure/General/symbol_pos.ML
+    ID:         $Id$
+    Author:     Makarius
+
+Symbols with explicit position information.
+*)
+
+signature BASIC_SYMBOL_POS =
+sig
+  type T = Symbol.symbol * Position.T
+  val symbol: T -> Symbol.symbol
+  val $$$ : Symbol.symbol -> T list -> T list * T list
+  val ~$$$ : Symbol.symbol -> T list -> T list * T list
+end
+
+signature SYMBOL_POS =
+sig
+  include BASIC_SYMBOL_POS
+  val is_eof: T -> bool
+  val stopper: T Scan.stopper
+  val !!! : string -> (T list -> 'a) -> T list -> 'a
+  val scan_position: T list -> Position.T * T list
+  val scan_comment: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
+    T list -> T list * T list
+  val scan_comment_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
+    T list -> T list * T list
+  val source: Position.T -> (Symbol.symbol, 'a) Source.source ->
+    (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
+  val implode: T list -> string * Position.range
+  val explode: string * Position.T -> T list
+end;
+
+structure SymbolPos: SYMBOL_POS =
+struct
+
+(* type T *)
+
+type T = Symbol.symbol * Position.T;
+
+fun symbol ((s, _): T) = s;
+
+
+(* stopper *)
+
+fun mk_eof pos = (Symbol.eof, pos);
+val eof = mk_eof Position.none;
+
+val is_eof = Symbol.is_eof o symbol;
+
+val stopper =
+  Scan.stopper (fn [] => eof | inp => mk_eof (List.last inp |-> Position.advance)) is_eof;
+
+
+(* basic scanners *)
+
+fun !!! text scan =
+  let
+    fun get_pos [] = " (past end-of-text!)"
+      | get_pos ((_, pos) :: _) = Position.str_of pos;
+
+    fun err (syms, msg) =
+      text ^ get_pos syms ^ " at " ^ Symbol.beginning 10 (map symbol syms) ^
+      (case msg of NONE => "" | SOME s => "\n" ^ s);
+  in Scan.!! err scan end;
+
+fun $$$ s = Scan.one (fn x => symbol x = s) >> single;
+fun ~$$$ s = Scan.one (fn x => symbol x <> s) >> single;
+
+val scan_position = Scan.ahead (Scan.one (K true)) >> (fn (_, pos): T => pos);
+
+
+(* ML-style comments *)
+
+local
+
+val scan_cmt =
+  Scan.depend (fn (d: int) => $$$ "(" @@@ $$$ "*" >> pair (d + 1)) ||
+  Scan.depend (fn 0 => Scan.fail | d => $$$ "*" @@@ $$$ ")" >> pair (d - 1)) ||
+  Scan.lift ($$$ "*" --| Scan.ahead (~$$$ ")")) ||
+  Scan.lift (Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s)) >> single;
+
+val scan_body = Scan.pass 0 (Scan.repeat scan_cmt >> flat);
+
+in
+
+fun scan_comment cut =
+  $$$ "(" @@@ $$$ "*" @@@ cut "missing end of comment" (scan_body @@@ $$$ "*" @@@ $$$ ")");
+
+fun scan_comment_body cut =
+  $$$ "(" |-- $$$ "*" |-- cut "missing end of comment" (scan_body --| $$$ "*" --| $$$ ")");
+
+end;
+
+
+(* source *)
+
+fun source pos =
+  Source.source' pos Symbol.stopper (Scan.bulk (Scan.depend (fn pos =>
+    Scan.one Symbol.not_eof >> (fn s => (Position.advance s pos, (s, pos)))))) NONE;
+
+
+(* compact representation -- with Symbol.DEL padding *)
+
+local
+
+fun pad [] = []
+  | pad [(s, _)] = [s]
+  | pad ((s1, pos1) :: (rest as (s2, pos2) :: _)) =
+      let
+        fun err () =
+          raise Fail ("Misaligned symbols: " ^
+            quote s1 ^ Position.str_of pos1 ^ " " ^
+            quote s2 ^ Position.str_of pos2);
+
+        val end_pos1 = Position.advance s1 pos1;
+        val _ = Position.line_of end_pos1 = Position.line_of pos2 orelse err ();
+        val d =
+          (case (Position.column_of end_pos1, Position.column_of pos2) of
+            (NONE, NONE) => 0
+          | (SOME n1, SOME n2) => n2 - n1
+          | _ => err ());
+        val _ = d >= 0 orelse err ();
+      in s1 :: replicate d Symbol.DEL @ pad rest end;
+
+val orig_implode = implode;
+
+in
+
+fun implode (syms as (_, pos) :: _) =
+      let val pos' = List.last syms |-> Position.advance
+      in (orig_implode (pad syms), Position.range pos pos') end
+  | implode [] = ("", (Position.none, Position.none));
+
+fun explode (str, pos) =
+  fold_map (fn s => fn p => ((s, p), (Position.advance s p))) (Symbol.explode str) pos
+  |> #1 |> filter_out (fn (s, _) => s = Symbol.DEL);
+
+end;
+
+end;
+
+structure BasicSymbolPos: BASIC_SYMBOL_POS = SymbolPos;   (*not open by default*)
+
