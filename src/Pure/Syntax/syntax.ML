@@ -36,18 +36,20 @@ sig
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val guess_infix: syntax -> string -> mixfix option
+  val read_token: string -> SymbolPos.T list * Position.T
   val ambiguity_is_error: bool ref
   val ambiguity_level: int ref
   val ambiguity_limit: int ref
-  val read: Proof.context -> (string -> bool) -> syntax -> typ -> string -> term list
   val standard_parse_term: Pretty.pp -> (term -> string option) ->
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> bool * string) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> Proof.context ->
-    (string -> bool) -> syntax -> typ -> string -> term
+    (string -> bool) -> syntax -> typ -> SymbolPos.T list * Position.T -> term
   val standard_parse_typ: Proof.context -> syntax ->
-    ((indexname * sort) list -> indexname -> sort) -> (sort -> sort) -> string -> typ
-  val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) -> string -> sort
+    ((indexname * sort) list -> indexname -> sort) -> (sort -> sort) ->
+    SymbolPos.T list * Position.T -> typ
+  val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) ->
+    SymbolPos.T list * Position.T -> sort
   datatype 'a trrule =
     ParseRule of 'a * 'a |
     PrintRule of 'a * 'a |
@@ -455,18 +457,33 @@ fun guess_infix (Syntax ({gram, ...}, _)) c =
 
 (** read **)
 
+(* read token -- with optional YXML encoding of position *)
+
+fun read_token str =
+  let val (text, pos) =
+    if YXML.detect str then
+      (case YXML.parse str of
+        XML.Elem ("token", props, [XML.Text text]) =>
+          let val pos = Position.of_properties props;
+          in (text, pos) end
+      | _ => (str, Position.none))
+    else (str, Position.none)
+  in (SymbolPos.explode (text, pos), pos) end;
+
+
 (* read_ast *)
 
 val ambiguity_is_error = ref false;
 val ambiguity_level = ref 1;
 val ambiguity_limit = ref 10;
 
-fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root str =
+fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
+
+fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val root' = if root <> "prop" andalso is_logtype root then SynExt.logic else root;
-    val chars = SymbolPos.explode (str, Position.none);
-    val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
+    val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids syms);
     val len = length pts;
 
     val limit = ! ambiguity_limit;
@@ -474,11 +491,11 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root str =
       Pretty.string_of (Ast.pretty_ast (hd (SynTrans.pts_to_asts ctxt (K NONE) [pt])));
   in
     if len <= ! ambiguity_level then ()
-    else if ! ambiguity_is_error then error ("Ambiguous input " ^ quote str)
+    else if ! ambiguity_is_error then error (ambiguity_msg pos)
     else
       (warning (cat_lines
-        (("Ambiguous input " ^ quote str ^ "\n" ^
-          "produces " ^ string_of_int len ^ " parse trees" ^
+        (("Ambiguous input " ^ Position.str_of pos ^
+          "\nproduces " ^ string_of_int len ^ " parse trees" ^
           (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
           map show_pt (Library.take (limit, pts)))));
     SynTrans.pts_to_asts ctxt (lookup_tr parse_ast_trtab) pts
@@ -487,10 +504,10 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root str =
 
 (* read *)
 
-fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty str =
+fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty inp =
   let
     val {parse_ruletab, parse_trtab, ...} = tabs;
-    val asts = read_asts ctxt is_logtype syn false (SynExt.typ_to_nonterm ty) str;
+    val asts = read_asts ctxt is_logtype syn false (SynExt.typ_to_nonterm ty) inp;
   in
     SynTrans.asts_to_terms ctxt (lookup_tr parse_trtab)
       (map (Ast.normalize_ast (Symtab.lookup_list parse_ruletab)) asts)
@@ -530,26 +547,26 @@ fun disambig _ _ [t] = t
       end;
 
 fun standard_parse_term pp check get_sort map_const map_free map_type map_sort
-    ctxt is_logtype syn ty str =
-  read ctxt is_logtype syn ty str
+    ctxt is_logtype syn ty (syms, pos) =
+  read ctxt is_logtype syn ty (syms, pos)
   |> map (TypeExt.decode_term get_sort map_const map_free map_type map_sort)
   |> disambig (Printer.pp_show_brackets pp) check;
 
 
 (* read types *)
 
-fun standard_parse_typ ctxt syn get_sort map_sort str =
-  (case read ctxt (K false) syn SynExt.typeT str of
+fun standard_parse_typ ctxt syn get_sort map_sort (syms, pos) =
+  (case read ctxt (K false) syn SynExt.typeT (syms, pos) of
     [t] => TypeExt.typ_of_term (get_sort (TypeExt.term_sorts map_sort t)) map_sort t
-  | _ => error "read_typ: ambiguous syntax");
+  | _ => error (ambiguity_msg pos));
 
 
 (* read sorts *)
 
-fun standard_parse_sort ctxt syn map_sort str =
-  (case read ctxt (K false) syn TypeExt.sortT str of
+fun standard_parse_sort ctxt syn map_sort (syms, pos) =
+  (case read ctxt (K false) syn TypeExt.sortT (syms, pos) of
     [t] => TypeExt.sort_of_term map_sort t
-  | _ => error "read_sort: ambiguous syntax");
+  | _ => error (ambiguity_msg pos));
 
 
 
@@ -591,13 +608,13 @@ fun read_pattern ctxt is_logtype syn (root, str) =
           if member (op =) consts x orelse NameSpace.is_qualified x then Ast.Constant x
           else ast
       | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
+
+    val (syms, pos) = read_token str;
   in
-    (case read_asts ctxt is_logtype syn true root str of
+    (case read_asts ctxt is_logtype syn true root (syms, pos) of
       [ast] => constify ast
-    | _ => error ("Syntactically ambiguous input: " ^ quote str))
-  end handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in translation pattern " ^
-      quote str);
+    | _ => error (ambiguity_msg pos))
+  end;
 
 fun prep_rules rd_pat raw_rules =
   let val rules = map (map_trrule rd_pat) raw_rules in
