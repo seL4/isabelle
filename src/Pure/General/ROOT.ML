@@ -14,6 +14,7 @@ use "source.ML";
 use "symbol.ML";
 use "seq.ML";
 use "position.ML";
+use "symbol_pos.ML";
 use "../ML/ml_lex.ML";
 use "../ML/ml_parse.ML";
 use "secure.ML";

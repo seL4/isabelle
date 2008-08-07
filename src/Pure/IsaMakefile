@@ -30,22 +30,22 @@ $(OUT)/Pure: General/ROOT.ML General/alist.ML General/balanced_tree.ML	\
   General/path.ML General/position.ML General/pretty.ML			\
   General/print_mode.ML General/scan.ML General/secure.ML		\
   General/seq.ML General/source.ML General/stack.ML General/susp.ML	\
-  General/symbol.ML General/table.ML General/url.ML General/xml.ML	\
-  General/yxml.ML Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML		\
-  Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML Isar/class.ML	\
-  Isar/code.ML Isar/code_unit.ML Isar/constdefs.ML			\
-  Isar/context_rules.ML Isar/element.ML Isar/find_theorems.ML		\
-  Isar/instance.ML Isar/isar.ML Isar/isar_cmd.ML Isar/isar_syn.ML	\
-  Isar/local_defs.ML Isar/local_syntax.ML Isar/local_theory.ML		\
-  Isar/locale.ML Isar/method.ML Isar/net_rules.ML Isar/object_logic.ML	\
-  Isar/obtain.ML Isar/outer_keyword.ML Isar/outer_lex.ML		\
-  Isar/outer_parse.ML Isar/outer_syntax.ML Isar/overloading.ML		\
-  Isar/proof.ML Isar/proof_context.ML Isar/proof_display.ML		\
-  Isar/proof_node.ML Isar/rule_cases.ML Isar/rule_insts.ML		\
-  Isar/session.ML Isar/skip_proof.ML Isar/spec_parse.ML			\
-  Isar/specification.ML Isar/subclass.ML Isar/theory_target.ML		\
-  Isar/toplevel.ML ML-Systems/alice.ML ML-Systems/exn.ML		\
-  ML-Systems/multithreading.ML ML-Systems/mosml.ML			\
+  General/symbol.ML General/symbol_pos.ML General/table.ML		\
+  General/url.ML General/xml.ML General/yxml.ML Isar/ROOT.ML		\
+  Isar/antiquote.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML	\
+  Isar/calculation.ML Isar/class.ML Isar/code.ML Isar/code_unit.ML	\
+  Isar/constdefs.ML Isar/context_rules.ML Isar/element.ML		\
+  Isar/find_theorems.ML Isar/instance.ML Isar/isar.ML Isar/isar_cmd.ML	\
+  Isar/isar_syn.ML Isar/local_defs.ML Isar/local_syntax.ML		\
+  Isar/local_theory.ML Isar/locale.ML Isar/method.ML Isar/net_rules.ML	\
+  Isar/object_logic.ML Isar/obtain.ML Isar/outer_keyword.ML		\
+  Isar/outer_lex.ML Isar/outer_parse.ML Isar/outer_syntax.ML		\
+  Isar/overloading.ML Isar/proof.ML Isar/proof_context.ML		\
+  Isar/proof_display.ML Isar/proof_node.ML Isar/rule_cases.ML		\
+  Isar/rule_insts.ML Isar/session.ML Isar/skip_proof.ML			\
+  Isar/spec_parse.ML Isar/specification.ML Isar/subclass.ML		\
+  Isar/theory_target.ML Isar/toplevel.ML ML-Systems/alice.ML		\
+  ML-Systems/exn.ML ML-Systems/multithreading.ML ML-Systems/mosml.ML	\
   ML-Systems/multithreading_polyml.ML ML-Systems/overloading_smlnj.ML	\
   ML-Systems/polyml-4.1.3.ML ML-Systems/polyml-4.1.4.ML			\
   ML-Systems/polyml-4.2.0.ML ML-Systems/polyml-5.0.ML			\
