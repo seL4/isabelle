@@ -138,10 +138,10 @@ fun eval_antiquotes struct_name (txt, pos) opt_ctxt =
           fun no_decl _ = ("", "");
 
           fun expand (Antiquote.Text s) state = (K ("", Symbol.escape s), state)
-            | expand (Antiquote.Antiq (x, _)) (scope, background) =
+            | expand (Antiquote.Antiq x) (scope, background) =
                 let
                   val context = Stack.top scope;
-                  val (f, context') = antiquotation (Antiquote.read_arguments lex antiq x) context;
+                  val (f, context') = antiquotation (Antiquote.read_antiq lex antiq x) context;
                   val (decl, background') = f {background = background, struct_name = struct_name};
                 in (decl, (Stack.map_top (K context') scope, background')) end
             | expand (Antiquote.Open _) (scope, background) =

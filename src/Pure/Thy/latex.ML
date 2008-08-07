@@ -87,11 +87,12 @@ in
 val output_known_symbols = implode oo (map o output_known_sym);
 val output_symbols = output_known_symbols (K true, K true);
 val output_syms = output_symbols o Symbol.explode;
+val output_syms' = output_symbols o map #1 o SymbolPos.explode;
 
 val output_syms_antiqs =
   Antiquote.read #> map
   (fn Antiquote.Text s => output_syms s
-    | Antiquote.Antiq ((s, _), _) => enclose "%\n\\isaantiq\n" "%\n\\endisaantiq\n" (output_syms s)
+    | Antiquote.Antiq x => enclose "%\n\\isaantiq\n" "%\n\\endisaantiq\n" (output_syms' x)
     | Antiquote.Open _ => "{\\isaantiqopen}"
     | Antiquote.Close _ => "{\\isaantiqclose}") #>
   implode;
