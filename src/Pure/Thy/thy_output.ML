@@ -149,14 +149,14 @@ fun eval_antiquote lex node (str, pos) =
   let
     fun expand (Antiquote.Text s) = s
       | expand (Antiquote.Antiq (x, _)) =
-          let val (opts, src) = Antiquote.scan_arguments lex antiq x in
+          let val (opts, src) = Antiquote.read_arguments lex antiq x in
             options opts (fn () => command src node) ();  (*preview errors!*)
             PrintMode.with_modes (! modes @ Latex.modes)
               (Output.no_warnings (options opts (fn () => command src node))) ()
           end
       | expand (Antiquote.Open _) = ""
       | expand (Antiquote.Close _) = "";
-    val ants = Antiquote.scan_antiquotes (str, pos);
+    val ants = Antiquote.read (str, pos);
   in
     if is_none node andalso exists Antiquote.is_antiq ants then
       error ("Unknown context -- cannot expand text antiquotations" ^ Position.str_of pos)

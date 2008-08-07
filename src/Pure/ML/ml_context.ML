@@ -123,7 +123,7 @@ val antiq =
 
 fun eval_antiquotes struct_name (txt, pos) opt_ctxt =
   let
-    val ants = Antiquote.scan_antiquotes (txt, pos);
+    val ants = Antiquote.read (txt, pos);
     val ((ml_env, ml_body), opt_ctxt') =
       if not (exists Antiquote.is_antiq ants) then (("", Symbol.escape txt), opt_ctxt)
       else
@@ -141,7 +141,7 @@ fun eval_antiquotes struct_name (txt, pos) opt_ctxt =
             | expand (Antiquote.Antiq (x, _)) (scope, background) =
                 let
                   val context = Stack.top scope;
-                  val (f, context') = antiquotation (Antiquote.scan_arguments lex antiq x) context;
+                  val (f, context') = antiquotation (Antiquote.read_arguments lex antiq x) context;
                   val (decl, background') = f {background = background, struct_name = struct_name};
                 in (decl, (Stack.map_top (K context') scope, background')) end
             | expand (Antiquote.Open _) (scope, background) =
