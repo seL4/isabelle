@@ -15,19 +15,20 @@ sig
   val line_file: int -> string -> T
   val line: int -> T
   val file: string -> T
-  val advance: Symbol.symbol list -> T -> T
+  val advance: Symbol.symbol -> T -> T
   val get_id: T -> string option
   val put_id: string -> T -> T
   val of_properties: Markup.property list -> T
   val properties_of: T -> Markup.property list
   val default_properties: T -> Markup.property list -> Markup.property list
+  val report: Markup.T -> T -> unit
   val str_of: T -> string
+  type range = T * T
+  val encode_range: range -> T
+  val range: T -> T -> range
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
   val setmp_thread_data_seq: T -> ('a -> 'b Seq.seq) -> 'a -> 'b Seq.seq
-  type range = T * T
-  val encode_range: range -> T
-  val report: Markup.T -> T -> unit
 end;
 
 structure Position: POSITION =
@@ -60,7 +61,7 @@ fun advance_count "\n" (m: int, _: int) = (m + 1, 1)
       if Symbol.is_regular s andalso not (Symbol.is_utf8_trailer s)
       then (m, n + 1) else (m, n);
 
-fun advance syms (Pos (SOME count, props)) = Pos (SOME (fold advance_count syms count), props)
+fun advance sym (Pos (SOME count, props)) = Pos (SOME (advance_count sym count), props)
   | advance _ pos = pos;
 
 
@@ -92,6 +93,10 @@ fun default_properties default props =
   if exists (member (op =) Markup.position_properties o #1) props then props
   else properties_of default @ props;
 
+fun report markup pos =
+  if pos = none then ()
+  else Output.status (Markup.markup (Markup.properties (properties_of pos) markup) "");
+
 
 (* str_of *)
 
@@ -109,22 +114,6 @@ fun str_of pos =
   end;
 
 
-(* thread data *)
-
-local val tag = Universal.tag () : T Universal.tag in
-
-fun thread_data () = the_default none (Multithreading.get_data tag);
-
-fun setmp_thread_data pos f x =
-  if ! Output.debugging then f x
-  else Library.setmp_thread_data tag (thread_data ()) pos f x;
-
-fun setmp_thread_data_seq pos f seq =
-  setmp_thread_data pos f seq |> Seq.wrap (fn pull => setmp_thread_data pos pull ());
-
-end;
-
-
 (* range *)
 
 type range = T * T;
@@ -136,11 +125,22 @@ fun encode_range (Pos (count, props), Pos (end_count, _)) =
     | SOME (m, n) => [(Markup.end_lineN, string_of_int m), (Markup.end_columnN, string_of_int n)])
   in Pos (count, props') end;
 
+fun range pos pos' = (encode_range (pos, pos'), pos');
 
-(* report markup *)
 
-fun report markup pos =
-  if pos = none then ()
-  else Output.status (Markup.markup (Markup.properties (properties_of pos) markup) "");
+(* thread data *)
+
+local val tag = Universal.tag () : T Universal.tag in
+
+fun thread_data () = the_default none (Multithreading.get_data tag);
+
+fun setmp_thread_data pos f x =
+  if ! Output.debugging then f x
+  else Library.setmp_thread_data tag (thread_data ()) pos f x;
+
+fun setmp_thread_data_seq pos f x =
+  setmp_thread_data pos f x |> Seq.wrap (fn pull => setmp_thread_data pos pull ());
+
+end;
 
 end;
