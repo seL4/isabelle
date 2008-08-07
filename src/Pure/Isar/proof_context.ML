@@ -639,21 +639,17 @@ end;
 
 local
 
-fun parse_token markup text =
-  if YXML.detect text then
-    (case YXML.parse text of
-      XML.Elem ("token", props, [XML.Text str]) =>
-        let
-          val pos = Position.of_properties props;
-          val _ = Position.report markup pos;
-        in (translate_string (fn c => if c = Symbol.DEL then "" else c) str, pos) end
-    | _ => (text, Position.none))
-  else (text, Position.none);
+fun parse_token markup str =
+  let
+    val (syms, pos) = Syntax.read_token str;
+    val _ = Position.report markup pos;
+  in (syms, pos) end;
 
 fun parse_sort ctxt text =
   let
-    val (str, pos) = parse_token Markup.sort text;
-    val S = Syntax.standard_parse_sort ctxt (syn_of ctxt) (Sign.intern_sort (theory_of ctxt)) str
+    val (syms, pos) = parse_token Markup.sort text;
+    val S = Syntax.standard_parse_sort ctxt (syn_of ctxt)
+        (Sign.intern_sort (theory_of ctxt)) (syms, pos)
       handle ERROR msg => cat_error msg  ("Failed to parse sort" ^ Position.str_of pos)
   in S end;
 
@@ -662,9 +658,9 @@ fun parse_typ ctxt text =
     val thy = ProofContext.theory_of ctxt;
     val get_sort = get_sort thy (Variable.def_sort ctxt);
 
-    val (str, pos) = parse_token Markup.typ text;
+    val (syms, pos) = parse_token Markup.typ text;
     val T = Sign.intern_tycons thy
-        (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) str)
+        (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) (syms, pos))
       handle ERROR msg => cat_error msg  ("Failed to parse type" ^ Position.str_of pos);
   in T end;
 
@@ -675,12 +671,12 @@ fun parse_term T ctxt text =
 
     val (T', _) = TypeInfer.paramify_dummies T 0;
     val markup as (kind, _) = if T' = propT then Markup.proposition else Markup.term;
-    val (str, pos) = parse_token markup text;
+    val (syms, pos) = parse_token markup text;
 
     fun check t = (Syntax.check_term ctxt (TypeInfer.constrain T' t); NONE)
       handle ERROR msg => SOME msg;
-    val t = Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort
-        map_const map_free map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) T' str
+    val t = Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort map_const map_free
+        map_type map_sort ctxt (Sign.is_logtype thy) (syn_of ctxt) T' (syms, pos)
       handle ERROR msg => cat_error msg  ("Failed to parse " ^ kind ^ Position.str_of pos);
   in t end;
 
