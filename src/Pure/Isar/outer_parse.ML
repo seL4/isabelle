@@ -141,8 +141,7 @@ val not_eof = Scan.one T.not_eof;
 
 fun position scan = (Scan.ahead not_eof >> T.position_of) -- scan >> Library.swap;
 
-(*fun inner_syntax token = Scan.ahead token |-- not_eof >> T.source_of; FIXME tmp *)
-fun inner_syntax token = token;
+fun inner_syntax token = Scan.ahead token |-- not_eof >> T.source_of;
 
 fun kind k =
   group (T.str_of_kind k) (Scan.one (T.is_kind k) >> T.val_of);
