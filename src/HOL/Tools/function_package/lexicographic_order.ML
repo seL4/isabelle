@@ -16,6 +16,8 @@ end
 structure LexicographicOrder : LEXICOGRAPHIC_ORDER =
 struct
 
+open FundefLib
+
 (** General stuff **)
 
 fun mk_measures domT mfuns =
@@ -79,21 +81,18 @@ fun prove thy solve_tac t =
 
 fun mk_cell (thy : theory) solve_tac (vars, prems, lhs, rhs) mfun =
     let
-      val goals = mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
-      val less_thm = goals @{const_name HOL.less} |> prove thy solve_tac
+      val goals = cterm_of thy o mk_goal (vars, prems, mfun $ lhs, mfun $ rhs)
     in
-      if Thm.no_prems less_thm then
-        Less (Goal.finish less_thm)
-      else
-        let
-          val lesseq_thm = goals @{const_name HOL.less_eq} |> prove thy solve_tac
-        in
-          if Thm.no_prems lesseq_thm then
-            LessEq (Goal.finish lesseq_thm, less_thm)
-          else
-            if prems_of lesseq_thm = [HOLogic.Trueprop $ HOLogic.false_const] then False lesseq_thm
-            else None (lesseq_thm, less_thm)
-        end
+      case try_proof (goals @{const_name HOL.less}) solve_tac of
+        Solved thm => Less thm
+      | Stuck thm => 
+        (case try_proof (goals @{const_name HOL.less_eq}) solve_tac of
+           Solved thm2 => LessEq (thm2, thm)
+         | Stuck thm2 => 
+           if prems_of thm2 = [HOLogic.Trueprop $ HOLogic.false_const] then False thm2
+           else None (thm2, thm)
+         | _ => raise Match) (* FIXME *)
+      | _ => raise Match
     end
 
 

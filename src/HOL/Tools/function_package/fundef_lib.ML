@@ -134,4 +134,12 @@ fun frees_in_term ctxt t =
     |> rev
 
 
+datatype proof_attempt = Solved of thm | Stuck of thm | Fail
+
+fun try_proof cgoal tac = 
+    case SINGLE tac (Goal.init cgoal) of
+      NONE => Fail
+    | SOME st => if Thm.no_prems st then Solved (Goal.finish st) else Stuck st
+
+
 end
