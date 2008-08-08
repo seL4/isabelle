@@ -283,15 +283,17 @@ local
 
 fun token_leq ((_, syms1), (_, syms2)) = length syms1 <= length syms2;
 
-fun token k ss = Token (SymbolPos.implode ss, (k, implode (map symbol ss)));
-fun token_delim k (pos1, (ss, pos2)) =
-  Token (SymbolPos.implode_delim pos1 pos2 ss, (k, implode (map symbol ss)));
+fun token k ss =
+  Token ((SymbolPos.implode ss, SymbolPos.range ss), (k, SymbolPos.content ss));
+
+fun token_range k (pos1, (ss, pos2)) =
+  Token (SymbolPos.implode_range pos1 pos2 ss, (k, SymbolPos.content ss));
 
 fun scan (lex1, lex2) = !!! "bad input"
-  (scan_string >> token_delim String ||
-    scan_alt_string >> token_delim AltString ||
-    scan_verbatim >> token_delim Verbatim ||
-    scan_comment >> token_delim Comment ||
+  (scan_string >> token_range String ||
+    scan_alt_string >> token_range AltString ||
+    scan_verbatim >> token_range Verbatim ||
+    scan_comment >> token_range Comment ||
     scan_space >> token Space ||
     scan_malformed >> token Malformed ||
     Scan.one (Symbol.is_sync o symbol) >> (token Sync o single) ||

@@ -68,13 +68,13 @@ val scan_antiq =
     T.!!! "missing closing brace of antiquotation"
       (Scan.repeat scan_ant -- ($$$ "}" |-- SymbolPos.scan_pos)))
   >> (fn (pos1, (body, pos2)) =>
-      let val (s, (pos, _)) = SymbolPos.implode_delim pos1 pos2 (flat body)
+      let val (s, (pos, _)) = SymbolPos.implode_range pos1 pos2 (flat body)
       in Antiq (s, pos) end);
 
 in
 
 val scan_antiquote =
- (Scan.repeat1 scan_txt >> (Text o implode o map symbol o flat) ||
+ (Scan.repeat1 scan_txt >> (Text o SymbolPos.content o flat) ||
   scan_antiq ||
   SymbolPos.scan_pos --| $$$ "\\<lbrace>" >> Open ||
   SymbolPos.scan_pos --| $$$ "\\<rbrace>" >> Close);

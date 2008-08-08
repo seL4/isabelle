@@ -184,9 +184,7 @@ end;
 
 local
 
-fun token k s =
-  let val (x, range) = SymbolPos.implode s
-  in Token (range, (k, x)) end;
+fun token k ss = Token (SymbolPos.range ss, (k, SymbolPos.implode ss));
 
 val scan = !!! "bad input"
  (scan_char >> token Char ||
