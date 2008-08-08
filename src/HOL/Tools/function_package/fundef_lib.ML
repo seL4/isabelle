@@ -94,17 +94,7 @@ fun unordered_pairs [] = []
   | unordered_pairs (x::xs) = map (pair x) (x::xs) @ unordered_pairs xs
 
 
-(* FIXME cf. Term.exists_subterm *)
-fun forall_aterms P (t $ u) = forall_aterms P t andalso forall_aterms P u
-  | forall_aterms P (Abs (_, _, t)) = forall_aterms P t
-  | forall_aterms P a = P a
-
-(* FIXME cf. Term.exists_subterm *)
-fun exists_aterm P = not o forall_aterms (not o P)
-
-
-
-(* Replaces Frees by name. Probably quicker than Pattern.rewrite_terms, and works with loose Bounds. *)
+(* Replaces Frees by name. Works with loose Bounds. *)
 fun replace_frees assoc =
     map_aterms (fn c as Free (n, _) => the_default c (AList.lookup (op =) assoc n)
                  | t => t)
@@ -116,14 +106,12 @@ fun rename_bound n (Q $ Abs(_, T, b)) = (Q $ Abs(n, T, b))
 fun mk_forall_rename (n, v) =
     rename_bound n o Logic.all v 
 
-val dummy_term = Free ("", dummyT)
-
 fun forall_intr_rename (n, cv) thm =
     let
       val allthm = forall_intr cv thm
       val (_ $ abs) = prop_of allthm
     in
-      Thm.rename_boundvars abs (Abs (n, dummyT, dummy_term)) allthm
+      Thm.rename_boundvars abs (Abs (n, dummyT, Term.dummy_pattern dummyT)) allthm
     end
 
 
