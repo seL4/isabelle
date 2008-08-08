@@ -8,11 +8,12 @@ Source positions: counting Isabelle symbols -- starting from 1.
 signature POSITION =
 sig
   type T
-  val advance: Symbol.symbol -> T -> T
   val line_of: T -> int option
   val column_of: T -> int option
   val offset_of: T -> int option
   val file_of: T -> string option
+  val advance: Symbol.symbol -> T -> T
+  val distance_of: T -> T -> int
   val none: T
   val start: T
   val file: string -> T
@@ -26,6 +27,7 @@ sig
   val report: Markup.T -> T -> unit
   val str_of: T -> string
   type range = T * T
+  val no_range: range
   val encode_range: range -> T
   val reset_range: T -> T
   val range: T -> T -> range
@@ -47,6 +49,15 @@ fun if_valid i i' = if valid i then i' else i;
 fun value k i = if valid i then [(k, string_of_int i)] else [];
 
 
+(* fields *)
+
+fun line_of (Pos ((i, _, _), _)) = if valid i then SOME i else NONE;
+fun column_of (Pos ((_, j, _), _)) = if valid j then SOME j else NONE;
+fun offset_of (Pos ((_, _, k), _)) = if valid k then SOME k else NONE;
+
+fun file_of (Pos (_, props)) = AList.lookup (op =) props Markup.fileN;
+
+
 (* advance *)
 
 fun advance_count "\n" (i: int, j: int, k: int) =
@@ -62,22 +73,21 @@ fun advance sym (pos as (Pos (count, props))) =
   if invalid_count count then pos else Pos (advance_count sym count, props);
 
 
-(* fields *)
+(* distance of adjacent positions *)
 
-fun line_of (Pos ((i, _, _), _)) = if valid i then SOME i else NONE;
-fun column_of (Pos ((_, j, _), _)) = if valid j then SOME j else NONE;
-fun offset_of (Pos ((_, _, k), _)) = if valid k then SOME k else NONE;
-
-fun file_of (Pos (_, props)) = AList.lookup (op =) props Markup.fileN;
-
-fun file_name "" = []
-  | file_name name = [(Markup.fileN, name)];
+fun distance_of (Pos ((_, j, k), _)) (Pos ((_, j', k'), _)) =
+  if valid j andalso valid j' then j' - j
+  else if valid k andalso valid k' then k' - k
+  else 0;
 
 
 (* make position *)
 
 val none = Pos ((0, 0, 0), []);
 val start = Pos ((1, 1, 1), []);
+
+fun file_name "" = []
+  | file_name name = [(Markup.fileN, name)];
 
 fun file name = Pos ((1, 1, 1), file_name name);
 
@@ -131,6 +141,8 @@ fun str_of pos =
 (* range *)
 
 type range = T * T;
+
+val no_range = (none, none);
 
 fun encode_range (Pos (count, props), Pos ((i, j, k), _)) =
   let val props' = props |> fold_rev (AList.update op =)
