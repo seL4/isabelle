@@ -16,6 +16,7 @@ end
 signature SYMBOL_POS =
 sig
   include BASIC_SYMBOL_POS
+  val content: T list -> string
   val is_eof: T -> bool
   val stopper: T Scan.stopper
   val !!! : string -> (T list -> 'a) -> T list -> 'a
@@ -27,8 +28,9 @@ sig
   val source: Position.T -> (Symbol.symbol, 'a) Source.source ->
     (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
   type text = string
-  val implode: T list -> text * Position.range
-  val implode_delim: Position.T -> Position.T -> T list -> text * Position.range
+  val implode: T list -> text
+  val range: T list -> Position.range
+  val implode_range: Position.T -> Position.T -> T list -> text * Position.range
   val explode: text * Position.T -> T list
 end;
 
@@ -40,6 +42,7 @@ struct
 type T = Symbol.symbol * Position.T;
 
 fun symbol ((s, _): T) = s;
+val content = implode o map symbol;
 
 
 (* stopper *)
@@ -105,44 +108,29 @@ fun source pos =
 
 type text = string;
 
-local
-
 fun pad [] = []
   | pad [(s, _)] = [s]
   | pad ((s1, pos1) :: (rest as (s2, pos2) :: _)) =
       let
-        fun err () =
-          raise Fail ("Misaligned symbols: " ^
-            quote s1 ^ Position.str_of pos1 ^ " " ^
-            quote s2 ^ Position.str_of pos2);
-
         val end_pos1 = Position.advance s1 pos1;
-        val _ = Position.line_of end_pos1 = Position.line_of pos2 orelse err ();
-        val d =
-          (case (Position.column_of end_pos1, Position.column_of pos2) of
-            (NONE, NONE) => 0
-          | (SOME n1, SOME n2) => n2 - n1
-          | _ => err ());
-        val _ = d >= 0 orelse err ();
+        val d = Int.max (0, Position.distance_of end_pos1 pos2);
       in s1 :: replicate d Symbol.DEL @ pad rest end;
 
-val orig_implode = implode;
+val implode = implode o pad;
 
-in
-
-fun implode (syms as (_, pos) :: _) =
+fun range (syms as (_, pos) :: _) =
       let val pos' = List.last syms |-> Position.advance
-      in (orig_implode (pad syms), Position.range pos pos') end
-  | implode [] = ("", (Position.none, Position.none));
+      in Position.range pos pos' end
+  | range [] = Position.no_range;
 
-fun implode_delim pos1 pos2 syms = implode (("", pos1) :: syms @ [("", pos2)]);
+fun implode_range pos1 pos2 syms =
+  let val syms' = (("", pos1) :: syms @ [("", pos2)])
+  in (implode syms', range syms') end;
 
 fun explode (str, pos) =
   fold_map (fn s => fn p => ((s, p), (Position.advance s p)))
     (Symbol.explode str) (Position.reset_range pos)
   |> #1 |> filter_out (fn (s, _) => s = Symbol.DEL);
-
-end;
 
 end;
 
