@@ -17,41 +17,33 @@ struct
 
 (* scanning tokens *)
 
-local
-
-val eof = Lexicon.EndToken;
-fun is_eof tk = tk = Lexicon.EndToken;
-
-val stopper = Scan.stopper (K eof) is_eof;
-val not_eof = not o is_eof;
-
 val lexicon = Scan.make_lexicon
   (map Symbol.explode ["!!", "%", "(", ")", ".", "::", "==", "==>", "=?=", "=>", "&&", "CONST"]);
-
-in
 
 fun read scan s =
   (case
       SymbolPos.explode (s, Position.none) |>
       Lexicon.tokenize lexicon false |>
-      Scan.read stopper scan of
+      Scan.read Lexicon.stopper scan of
     SOME x => x
   | NONE => error ("Malformed input: " ^ quote s));
-
-end;
 
 
 (* basic scanners *)
 
-fun $$ s = Scan.some (fn Lexicon.Token s' => if s = s' then SOME s else NONE | _ => NONE);
+fun $$ s = Scan.some (fn Lexicon.Token (Lexicon.Literal, s', _) =>
+  if s = s' then SOME s else NONE | _ => NONE);
+
 fun enum1 s scan = scan ::: Scan.repeat ($$ s |-- scan);
 fun enum2 s scan = scan ::: Scan.repeat1 ($$ s |-- scan);
 
-val tfree = Scan.some (fn Lexicon.TFreeSy s => SOME s | _ => NONE);
-val ident = Scan.some (fn Lexicon.IdentSy s => SOME s | _ => NONE);
-val var =
-  Scan.some (fn Lexicon.VarSy s => SOME (Lexicon.read_indexname (unprefix "?" s)) | _ => NONE);
-val long_ident = Scan.some (fn Lexicon.LongIdentSy s => SOME s | _ => NONE);
+val tfree = Scan.some (fn Lexicon.Token (Lexicon.TFreeSy, s, _) => SOME s | _ => NONE);
+val ident = Scan.some (fn Lexicon.Token (Lexicon.IdentSy, s, _) => SOME s | _ => NONE);
+
+val var = Scan.some (fn Lexicon.Token (Lexicon.VarSy, s, _) =>
+  SOME (Lexicon.read_indexname (unprefix "?" s)) | _ => NONE);
+
+val long_ident = Scan.some (fn Lexicon.Token (Lexicon.LongIdentSy, s, _) => SOME s | _ => NONE);
 val const = long_ident || ident;
 
 
