@@ -38,17 +38,13 @@ signature LEXICON =
 sig
   include LEXICON0
   val is_xid: string -> bool
-  datatype token =
-    Token of string |
-    IdentSy of string |
-    LongIdentSy of string |
-    VarSy of string |
-    TFreeSy of string |
-    TVarSy of string |
-    NumSy of string |
-    XNumSy of string |
-    StrSy of string |
-    EndToken
+  datatype token_kind =
+    Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | XNumSy | StrSy | EOF
+  datatype token = Token of token_kind * string * Position.range
+  val mk_eof: Position.T -> token
+  val eof: token
+  val is_eof: token -> bool
+  val stopper: token Scan.stopper
   val idT: typ
   val longidT: typ
   val varT: typ
@@ -57,6 +53,7 @@ sig
   val terminals: string list
   val is_terminal: string -> bool
   val str_of_token: token -> string
+  val pos_of_token: token -> string
   val display_token: token -> string
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
@@ -110,17 +107,22 @@ val scan_tvar = $$$ "?" @@@ $$$ "'" @@@ scan_id_nat;
 
 (** datatype token **)
 
-datatype token =
-  Token of string |
-  IdentSy of string |
-  LongIdentSy of string |
-  VarSy of string |
-  TFreeSy of string |
-  TVarSy of string |
-  NumSy of string |
-  XNumSy of string |
-  StrSy of string |
-  EndToken;
+datatype token_kind =
+  Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | XNumSy | StrSy | EOF;
+
+datatype token = Token of token_kind * string * Position.range;
+
+
+(* stopper *)
+
+fun mk_eof pos = Token (EOF, "", (pos, Position.none));
+val eof = mk_eof Position.none;
+
+fun is_eof (Token (EOF, _, _)) = true
+  | is_eof _ = false;
+
+val stopper = Scan.stopper (K eof) is_eof;
+
 
 
 (* terminal arguments *)
@@ -137,71 +139,48 @@ val is_terminal = member (op =) terminals;
 
 (* str_of_token *)
 
-fun str_of_token (Token s) = s
-  | str_of_token (IdentSy s) = s
-  | str_of_token (LongIdentSy s) = s
-  | str_of_token (VarSy s) = s
-  | str_of_token (TFreeSy s) = s
-  | str_of_token (TVarSy s) = s
-  | str_of_token (NumSy s) = s
-  | str_of_token (XNumSy s) = s
-  | str_of_token (StrSy s) = s
-  | str_of_token EndToken = "EOF";
+fun str_of_token (Token (_, s, _)) = s;
+
+fun pos_of_token (Token (_, _, (pos, _))) = Position.str_of pos;
 
 
 (* display_token *)
 
-fun display_token (Token s) = quote s
-  | display_token (IdentSy s) = "id(" ^ s ^ ")"
-  | display_token (LongIdentSy s) = "longid(" ^ s ^ ")"
-  | display_token (VarSy s) = "var(" ^ s ^ ")"
-  | display_token (TFreeSy s) = "tid(" ^ s ^ ")"
-  | display_token (TVarSy s) = "tvar(" ^ s ^ ")"
-  | display_token (NumSy s) = "num(" ^ s ^ ")"
-  | display_token (XNumSy s) = "xnum(" ^ s ^ ")"
-  | display_token (StrSy s) = "xstr(" ^ s ^ ")"
-  | display_token EndToken = "";
+fun display_token (Token (Literal, s, _)) = quote s
+  | display_token (Token (IdentSy, s, _)) = "id(" ^ s ^ ")"
+  | display_token (Token (LongIdentSy, s, _)) = "longid(" ^ s ^ ")"
+  | display_token (Token (VarSy, s, _)) = "var(" ^ s ^ ")"
+  | display_token (Token (TFreeSy, s, _)) = "tid(" ^ s ^ ")"
+  | display_token (Token (TVarSy, s, _)) = "tvar(" ^ s ^ ")"
+  | display_token (Token (NumSy, s, _)) = "num(" ^ s ^ ")"
+  | display_token (Token (XNumSy, s, _)) = "xnum(" ^ s ^ ")"
+  | display_token (Token (StrSy, s, _)) = "xstr(" ^ s ^ ")"
+  | display_token (Token (EOF, _, _)) = "";
 
 
 (* matching_tokens *)
 
-fun matching_tokens (Token x, Token y) = (x = y)
-  | matching_tokens (IdentSy _, IdentSy _) = true
-  | matching_tokens (LongIdentSy _, LongIdentSy _) = true
-  | matching_tokens (VarSy _, VarSy _) = true
-  | matching_tokens (TFreeSy _, TFreeSy _) = true
-  | matching_tokens (TVarSy _, TVarSy _) = true
-  | matching_tokens (NumSy _, NumSy _) = true
-  | matching_tokens (XNumSy _, XNumSy _) = true
-  | matching_tokens (StrSy _, StrSy _) = true
-  | matching_tokens (EndToken, EndToken) = true
-  | matching_tokens _ = false;
+fun matching_tokens (Token (Literal, x, _), Token (Literal, y, _)) = x = y
+  | matching_tokens (Token (k, _, _), Token (k', _, _)) = k = k';
 
 
 (* valued_token *)
 
-fun valued_token (Token _) = false
-  | valued_token (IdentSy _) = true
-  | valued_token (LongIdentSy _) = true
-  | valued_token (VarSy _) = true
-  | valued_token (TFreeSy _) = true
-  | valued_token (TVarSy _) = true
-  | valued_token (NumSy _) = true
-  | valued_token (XNumSy _) = true
-  | valued_token (StrSy _) = true
-  | valued_token EndToken = false;
+fun valued_token (Token (Literal, _, _)) = false
+  | valued_token (Token (EOF, _, _)) = false
+  | valued_token _ = true;
 
 
 (* predef_term *)
 
-fun predef_term "id" = SOME (IdentSy "id")
-  | predef_term "longid" = SOME (LongIdentSy "longid")
-  | predef_term "var" = SOME (VarSy "var")
-  | predef_term "tid" = SOME (TFreeSy "tid")
-  | predef_term "tvar" = SOME (TVarSy "tvar")
-  | predef_term "num" = SOME (NumSy "num")
-  | predef_term "xnum" = SOME (XNumSy "xnum")
-  | predef_term "xstr" = SOME (StrSy "xstr")
+fun predef_term "id" = SOME (Token (IdentSy, "id", Position.no_range))
+  | predef_term "longid" = SOME (Token (LongIdentSy, "longid", Position.no_range))
+  | predef_term "var" = SOME (Token (VarSy, "var", Position.no_range))
+  | predef_term "tid" = SOME (Token (TFreeSy, "tid", Position.no_range))
+  | predef_term "tvar" = SOME (Token (TVarSy, "tvar", Position.no_range))
+  | predef_term "num" = SOME (Token (NumSy, "num", Position.no_range))
+  | predef_term "xnum" = SOME (Token (XNumSy, "xnum", Position.no_range))
+  | predef_term "xstr" = SOME (Token (StrSy, "xstr", Position.no_range))
   | predef_term _ = NONE;
 
 
@@ -213,6 +192,10 @@ val scan_chr =
   $$$ "'" --| Scan.ahead (~$$$ "'");
 
 val scan_str =
+  $$$ "'" @@@ $$$ "'" @@@ !!! "missing end of string"
+    ((Scan.repeat scan_chr >> flat) @@@ $$$ "'" @@@ $$$ "'");
+
+val scan_str_body =
   $$$ "'" |-- $$$ "'" |-- !!! "missing end of string"
     ((Scan.repeat scan_chr >> flat) --| $$$ "'" --| $$$ "'");
 
@@ -220,17 +203,18 @@ val scan_str =
 fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
 
 fun explode_xstr str =
-  (case Scan.read SymbolPos.stopper scan_str (SymbolPos.explode (str, Position.none)) of
+  (case Scan.read SymbolPos.stopper scan_str_body (SymbolPos.explode (str, Position.none)) of
     SOME cs => map symbol cs
   | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
 
 
 (** tokenize **)
 
-fun tokenize lex xids inp =
-  let
-    fun token kind ss = (kind, #1 (SymbolPos.implode ss));
+fun token_leq (Token (_, s1, _), Token (_, s2, _)) = s1 <= s2;
+fun token kind ss = Token (kind, SymbolPos.content ss, SymbolPos.range ss);
 
+fun tokenize lex xids syms =
+  let
     val scan_xid =
       if xids then $$$ "_" @@@ scan_id || scan_id
       else scan_id;
@@ -246,20 +230,19 @@ fun tokenize lex xids inp =
       scan_longid >> token LongIdentSy ||
       scan_xid >> token IdentSy;
 
-    val scan_lit = Scan.literal lex >> token Token;
+    val scan_lit = Scan.literal lex >> token Literal;
 
     val scan_token =
       SymbolPos.scan_comment !!! >> K NONE ||
-      Scan.max (op <= o pairself snd) scan_lit scan_val >> (fn (tk, s) => SOME (tk s)) ||
-      scan_str >> (SOME o StrSy o implode_xstr o map symbol) ||
+      Scan.max token_leq scan_lit scan_val >> SOME ||
+      scan_str >> (SOME o token StrSy) ||
       Scan.one (Symbol.is_blank o symbol) >> K NONE;
   in
     (case Scan.error
-        (Scan.finite SymbolPos.stopper (Scan.repeat scan_token)) inp of
+        (Scan.finite SymbolPos.stopper (Scan.repeat scan_token)) syms of
       (toks, []) => map_filter I toks
-    | (_, cs) =>
-        let val (s, (pos, _)) = SymbolPos.implode cs
-        in error ("Inner lexical error at: " ^ quote s ^ Position.str_of pos) end)
+    | (_, ss) => error ("Inner lexical error at: " ^ SymbolPos.content ss ^
+        Position.str_of (#1 (SymbolPos.range ss))))
   end;
 
 
