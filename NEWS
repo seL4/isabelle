@@ -40,15 +40,17 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* HOL/Orderings: added class "preorder" as superclass of "order".  INCOMPATIBILITY:
-Instantiation proofs for order, linorder etc. slightly changed.  Some theorems
-named order_class.* now named preorder_class.*.
+* HOL/Orderings: added class "preorder" as superclass of "order".
+INCOMPATIBILITY: Instantiation proofs for order, linorder
+etc. slightly changed.  Some theorems named order_class.* now named
+preorder_class.*.
 
-* HOL/Ring_and_Field and HOL/Divides: Definition of "op dvd" has been moved
-to separate class dvd in Ring_and_Field;  a couple of lemmas on dvd has been
-generalized to class comm_semiring_1.  Likewise a bunch of lemmas from Divides
-has been generalized from nat to class semiring_div.  INCOMPATIBILITY.
-This involves the following theorem renames resulting from duplicate elimination:
+* HOL/Ring_and_Field and HOL/Divides: Definition of "op dvd" has been
+moved to separate class dvd in Ring_and_Field; a couple of lemmas on
+dvd has been generalized to class comm_semiring_1.  Likewise a bunch
+of lemmas from Divides has been generalized from nat to class
+semiring_div.  INCOMPATIBILITY.  This involves the following theorem
+renames resulting from duplicate elimination:
 
     dvd_def_mod ~>          dvd_eq_mod_eq_0
     zero_dvd_iff ~>         dvd_0_left_iff
@@ -148,6 +150,7 @@ greatest_carrier ~> greatest_closed
 greatest_Lower_above ~> greatest_Lower_below
 one_zero ~> carrier_one_zero
 one_not_zero ~> carrier_one_not_zero  (collision with assumption)
+
 
 *** HOL-NSA ***
 
