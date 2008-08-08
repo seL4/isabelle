@@ -1309,7 +1309,22 @@ lemma lift_Suc_mono_less:
 using `n < n'`
 by (induct n n' rule: less_Suc_induct[consumes 1]) (auto intro: mono)
 
+lemma lift_Suc_mono_less_iff:
+  "(!!n. f n < f(Suc n)) \<Longrightarrow> f(n) < f(m) \<longleftrightarrow> n<m"
+by(blast intro: less_asym' lift_Suc_mono_less[of f]
+         dest: linorder_not_less[THEN iffD1] le_eq_less_or_eq[THEN iffD1])
+
 end
+
+
+lemma mono_nat_linear_lb:
+  "(!!m n::nat. m<n \<Longrightarrow> f m < f n) \<Longrightarrow> f(m)+k \<le> f(m+k)"
+apply(induct_tac k)
+ apply simp
+apply(erule_tac x="m+n" in meta_allE)
+apply(erule_tac x="m+n+1" in meta_allE)
+apply simp
+done
 
 
 text{*Subtraction laws, mostly by Clemens Ballarin*}
