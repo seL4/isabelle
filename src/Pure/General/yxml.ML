@@ -119,8 +119,9 @@ fun parse_body source =
 
 fun parse source =
   (case parse_body source of
-    [result as XML.Elem _] => result
-  | _ => err "no root element");
+    [result] => result
+  | [] => XML.Text ""
+  | _ => err "multiple results");
 
 val parse_element = parse #> (fn XML.Elem elem => elem);
 
