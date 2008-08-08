@@ -54,8 +54,8 @@ datatype gram =
                          lambda productions are stored as normal productions
                          and also as an entry in "lambdas"*)
 
-val UnknownStart = EndToken;       (*productions for which no starting token is
-                                     known yet are associated with this token*)
+val UnknownStart = eof;       (*productions for which no starting token is
+                                known yet are associated with this token*)
 
 (* get all NTs that are connected with a list of NTs
    (used for expanding chain list)*)
@@ -395,7 +395,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
     val nt_name = the o Inttab.lookup (Inttab.make (map swap (Symtab.dest tags)));
 
-    fun pretty_symb (Terminal (Token s)) = Pretty.quote (Pretty.str s)
+    fun pretty_symb (Terminal (Token (Literal, s, _))) = Pretty.quote (Pretty.str s)
       | pretty_symb (Terminal tok) = Pretty.str (str_of_token tok)
       | pretty_symb (Nonterminal (tag, p)) = Pretty.str (nt_name tag ^ "[" ^ string_of_int p ^ "]");
 
@@ -455,7 +455,7 @@ fun extend_gram gram [] = gram
       nonterminals are converted to integer tags*)
     fun symb_of [] nt_count tags result = (nt_count, tags, rev result)
       | symb_of ((Delim s) :: ss) nt_count tags result =
-          symb_of ss nt_count tags ((Terminal (Token s)) :: result)
+          symb_of ss nt_count tags (Terminal (Token (Literal, s, Position.no_range)) :: result)
       | symb_of ((Argument (s, p)) :: ss) nt_count tags result =
           let
             val (nt_count', tags', new_symb) =
@@ -787,17 +787,14 @@ fun produce warned prods tags chains stateset i indata prev_token =
   (case Array.sub (stateset, i) of
     [] =>
       let
-        val toks =
-          if prev_token = EndToken then indata
-          else prev_token :: indata;
-
-        val msg =
-          if null toks then Pretty.str "Inner syntax error: unexpected end of input"
-          else
-            Pretty.block (Pretty.str "Inner syntax error at: \"" ::
-              Pretty.breaks (map (Pretty.str o str_of_token) (#1 (split_last toks))) @
-              [Pretty.str "\""]);
-      in error (Pretty.string_of msg) end
+        val toks = if is_eof prev_token then indata else prev_token :: indata;
+        val pos = pos_of_token prev_token;
+      in
+        if null toks then error ("Inner syntax error: unexpected end of input" ^ pos)
+        else error (Pretty.string_of (Pretty.block
+          (Pretty.str ("Inner syntax error" ^ pos ^ " at: ") ::
+            Pretty.breaks (map (Pretty.str o str_of_token) (#1 (split_last toks))))))
+      end
   | s =>
     (case indata of
        [] => Array.sub (stateset, i)
@@ -818,29 +815,33 @@ fun earley prods tags chains startsymbol indata =
                        SOME tag => tag
                      | NONE   => error ("parse: Unknown startsymbol " ^
                                         quote startsymbol);
-    val S0 = [(~1, 0, [], [Nonterminal (start_tag, 0), Terminal EndToken],
-               "", 0)];
+    val S0 = [(~1, 0, [], [Nonterminal (start_tag, 0), Terminal eof], "", 0)];
     val s = length indata + 1;
     val Estate = Array.array (s, []);
   in
     Array.update (Estate, 0, S0);
-    get_trees (produce (ref false) prods tags chains Estate 0 indata EndToken)
+    get_trees (produce (ref false) prods tags chains Estate 0 indata eof)
   end;
 
 
 fun parse (Gram {tags, prods, chains, ...}) start toks =
-let val r =
-  (case earley prods tags chains start (toks @ [Lexicon.EndToken]) of
-    [] => sys_error "parse: no parse trees"
-  | pts => pts);
-in r end;
+  let
+    val end_pos =
+      (case try List.last toks of
+        NONE => Position.none
+      | SOME (Token (_, _, (_, end_pos))) => end_pos);
+    val r =
+      (case earley prods tags chains start (toks @ [mk_eof end_pos]) of
+        [] => sys_error "parse: no parse trees"
+      | pts => pts);
+  in r end;
 
 
 fun guess_infix_lr (Gram gram) c = (*based on educated guess*)
   let
     fun freeze a = map (curry Array.sub a) (0 upto Array.length a - 1);
-    val prods = (maps snd o maps snd o freeze o #prods) gram;
-    fun guess (SOME ([Nonterminal (_, k), Terminal (Token s), Nonterminal (_, l)], _, j)) =
+    val prods = maps snd (maps snd (freeze (#prods gram)));
+    fun guess (SOME ([Nonterminal (_, k), Terminal (Token (Literal, s, _)), Nonterminal (_, l)], _, j)) =
           if k = j andalso l = j + 1 then SOME (s, true, false, j)
           else if k = j + 1 then if l = j then SOME (s, false, true, j)
             else if l = j + 1 then SOME (s, false, false, j)
