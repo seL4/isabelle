@@ -46,7 +46,7 @@ fun value k m = if valid m then [(k, string_of_int m)] else [];
 
 (* advance *)
 
-fun advance_count "\n" (m, n) = (m + 1, if valid n then 1 else n)
+fun advance_count "\n" (m: int, n: int) = (m + 1, if valid n then 1 else n)
   | advance_count s (m, n) =
       if valid n andalso Symbol.is_regular s andalso not (Symbol.is_utf8_trailer s)
       then (m, n + 1) else (m, n);
