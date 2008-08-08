@@ -461,13 +461,11 @@ fun guess_infix (Syntax ({gram, ...}, _)) c =
 
 fun read_token str =
   let val (text, pos) =
-    if YXML.detect str then
-      (case YXML.parse str of
-        XML.Elem ("token", props, [XML.Text text]) =>
-          let val pos = Position.of_properties props;
-          in (text, pos) end
-      | _ => (str, Position.none))
-    else (str, Position.none)
+    (case YXML.parse str handle Fail msg => error msg of
+      XML.Elem ("token", props, [XML.Text text]) => (text, Position.of_properties props)
+    | XML.Elem ("token", props, []) => ("", Position.of_properties props)
+    | XML.Text text => (text, Position.none)
+    | _ => (str, Position.none))
   in (SymbolPos.explode (text, pos), pos) end;
 
 
