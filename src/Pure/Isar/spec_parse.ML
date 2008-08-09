@@ -50,7 +50,7 @@ type token = P.token;
 
 (* theorem specifications *)
 
-val attrib = P.position ((P.keyword_sid || P.xname) -- P.!!! P.arguments) >> Args.src;
+val attrib = P.position ((P.keyword_ident_or_symbolic || P.xname) -- P.!!! Args.parse) >> Args.src;
 val attribs = P.$$$ "[" |-- P.list attrib --| P.$$$ "]";
 val opt_attribs = Scan.optional attribs [];
 
@@ -64,15 +64,10 @@ val named_spec = thm_name ":" -- Scan.repeat1 P.prop;
 val spec_name = thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y));
 val spec_opt_name = opt_thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y));
 
-val thm_sel = P.$$$ "(" |-- P.list1
- (P.nat --| P.minus -- P.nat >> Facts.FromTo ||
-  P.nat --| P.minus >> Facts.From ||
-  P.nat >> Facts.Single) --| P.$$$ ")";
-
 val xthm =
   P.$$$ "[" |-- attribs --| P.$$$ "]" >> pair (Facts.named "") ||
   (P.alt_string >> Facts.Fact ||
-    P.position P.xname -- Scan.option thm_sel >> Facts.Named) -- opt_attribs;
+    P.position P.xname -- Scan.option Attrib.thm_sel >> Facts.Named) -- opt_attribs;
 
 val xthms1 = Scan.repeat1 xthm;
 
