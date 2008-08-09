@@ -8,9 +8,13 @@ Outer lexical syntax for Isabelle/Isar.
 signature OUTER_LEX =
 sig
   datatype token_kind =
-    Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar | Nat |
-    String | AltString | Verbatim | Space | Comment | Malformed | Error of string | Sync | EOF
-  eqtype token
+    Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
+    Nat | String | AltString | Verbatim | Space | Comment | InternalValue |
+    Malformed | Error of string | Sync | EOF
+  datatype value =
+    Text of string | Typ of typ | Term of term | Fact of thm list |
+    Attribute of morphism -> attribute
+  type token
   val str_of_kind: token_kind -> string
   val position_of: token -> Position.T
   val end_position_of: token -> Position.T
@@ -31,11 +35,21 @@ sig
   val is_end_ignore: token -> bool
   val is_blank: token -> bool
   val is_newline: token -> bool
-  val val_of: token -> string
   val source_of: token -> string
+  val content_of: token -> string
   val unparse: token -> string
   val text_of: token -> string * string
-  val is_sid: string -> bool
+  val get_value: token -> value option
+  val map_value: (value -> value) -> token -> token
+  val mk_text: string -> token
+  val mk_typ: typ -> token
+  val mk_term: term -> token
+  val mk_fact: thm list -> token
+  val mk_attribute: (morphism -> attribute) -> token
+  val assignable: token -> token
+  val assign: value option -> token -> unit
+  val closure: token -> token
+  val ident_or_symbolic: string -> bool
   val !!! : string -> (SymbolPos.T list -> 'a) -> SymbolPos.T list -> 'a
   val scan_quoted: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
   val source_proper: (token, 'a) Source.source -> (token, (token, 'a) Source.source) Source.source
@@ -51,13 +65,34 @@ struct
 
 (** tokens **)
 
+(* token values *)
+
+(*The value slot assigns an (optional) internal value to a token,
+  usually as a side-effect of special scanner setup (see also
+  args.ML).  Note that an assignable ref designates an intermediate
+  state of internalization -- it is NOT meant to persist.*)
+
+datatype value =
+  Text of string |
+  Typ of typ |
+  Term of term |
+  Fact of thm list |
+  Attribute of morphism -> attribute;
+
+datatype slot =
+  Slot |
+  Value of value option |
+  Assignable of value option ref;
+
+
 (* datatype token *)
 
 datatype token_kind =
-  Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar | Nat |
-  String | AltString | Verbatim | Space | Comment | Malformed | Error of string | Sync | EOF;
+  Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
+  Nat | String | AltString | Verbatim | Space | Comment | InternalValue |
+  Malformed | Error of string | Sync | EOF;
 
-datatype token = Token of (SymbolPos.text * Position.range) * (token_kind * string);
+datatype token = Token of (SymbolPos.text * Position.range) * (token_kind * string) * slot;
 
 val str_of_kind =
  fn Command => "command"
@@ -74,6 +109,7 @@ val str_of_kind =
   | Verbatim => "verbatim text"
   | Space => "white space"
   | Comment => "comment text"
+  | InternalValue => "internal value"
   | Malformed => "malformed symbolic character"
   | Error _ => "bad input"
   | Sync => "sync marker"
@@ -82,23 +118,23 @@ val str_of_kind =
 
 (* position *)
 
-fun position_of (Token ((_, (pos, _)), _)) = pos;
-fun end_position_of (Token ((_, (_, pos)), _)) = pos;
+fun position_of (Token ((_, (pos, _)), _, _)) = pos;
+fun end_position_of (Token ((_, (_, pos)), _, _)) = pos;
 
 val pos_of = Position.str_of o position_of;
 
 
 (* control tokens *)
 
-fun mk_eof pos = Token (("", (pos, Position.none)), (EOF, ""));
+fun mk_eof pos = Token (("", (pos, Position.none)), (EOF, ""), Slot);
 val eof = mk_eof Position.none;
 
-fun is_eof (Token (_, (EOF, _))) = true
+fun is_eof (Token (_, (EOF, _), _)) = true
   | is_eof _ = false;
 
 val not_eof = not o is_eof;
 
-fun not_sync (Token (_, (Sync, _))) = false
+fun not_sync (Token (_, (Sync, _), _)) = false
   | not_sync _ = true;
 
 val stopper =
@@ -107,47 +143,47 @@ val stopper =
 
 (* kind of token *)
 
-fun kind_of (Token (_, (k, _))) = k;
-fun is_kind k (Token (_, (k', _))) = k = k';
+fun kind_of (Token (_, (k, _), _)) = k;
+fun is_kind k (Token (_, (k', _), _)) = k = k';
 
-fun keyword_with pred (Token (_, (Keyword, x))) = pred x
+fun keyword_with pred (Token (_, (Keyword, x), _)) = pred x
   | keyword_with _ _ = false;
 
-fun ident_with pred (Token (_, (Ident, x))) = pred x
+fun ident_with pred (Token (_, (Ident, x), _)) = pred x
   | ident_with _ _ = false;
 
-fun is_proper (Token (_, (Space, _))) = false
-  | is_proper (Token (_, (Comment, _))) = false
+fun is_proper (Token (_, (Space, _), _)) = false
+  | is_proper (Token (_, (Comment, _), _)) = false
   | is_proper _ = true;
 
-fun is_semicolon (Token (_, (Keyword, ";"))) = true
+fun is_semicolon (Token (_, (Keyword, ";"), _)) = true
   | is_semicolon _ = false;
 
-fun is_comment (Token (_, (Comment, _))) = true
+fun is_comment (Token (_, (Comment, _), _)) = true
   | is_comment _ = false;
 
-fun is_begin_ignore (Token (_, (Comment, "<"))) = true
+fun is_begin_ignore (Token (_, (Comment, "<"), _)) = true
   | is_begin_ignore _ = false;
 
-fun is_end_ignore (Token (_, (Comment, ">"))) = true
+fun is_end_ignore (Token (_, (Comment, ">"), _)) = true
   | is_end_ignore _ = false;
 
 
 (* blanks and newlines -- space tokens obey lines *)
 
-fun is_blank (Token (_, (Space, x))) = not (String.isSuffix "\n" x)
+fun is_blank (Token (_, (Space, x), _)) = not (String.isSuffix "\n" x)
   | is_blank _ = false;
 
-fun is_newline (Token (_, (Space, x))) = String.isSuffix "\n" x
+fun is_newline (Token (_, (Space, x), _)) = String.isSuffix "\n" x
   | is_newline _ = false;
 
 
 (* token content *)
 
-fun val_of (Token (_, (_, x))) = x;
-
-fun source_of (Token ((source, (pos, _)), _)) =
+fun source_of (Token ((source, (pos, _)), _, _)) =
   YXML.string_of (XML.Elem (Markup.tokenN, Position.properties_of pos, [XML.Text source]));
+
+fun content_of (Token (_, (_, x), _)) = x;
 
 
 (* unparse *)
@@ -155,7 +191,7 @@ fun source_of (Token ((source, (pos, _)), _)) =
 fun escape q =
   implode o map (fn s => if s = q orelse s = "\\" then "\\" ^ s else s) o Symbol.explode;
 
-fun unparse (Token (_, (kind, x))) =
+fun unparse (Token (_, (kind, x), _)) =
   (case kind of
     String => x |> quote o escape "\""
   | AltString => x |> enclose "`" "`" o escape "`"
@@ -172,12 +208,50 @@ fun text_of tok =
     let
       val k = str_of_kind (kind_of tok);
       val s = unparse tok
-        handle ERROR _ => Symbol.separate_chars (val_of tok);
+        handle ERROR _ => Symbol.separate_chars (content_of tok);
     in
       if s = "" then (k, "")
       else if size s < 40 andalso not (exists_string (fn c => c = "\n") s) then (k ^ " " ^ s, "")
       else (k, s)
     end;
+
+
+
+(** associated values **)
+
+(* access values *)
+
+fun get_value (Token (_, _, Value v)) = v
+  | get_value _ = NONE;
+
+fun map_value f (Token (x, y, Value (SOME v))) = Token (x, y, Value (SOME (f v)))
+  | map_value _ tok = tok;
+
+
+(* make values *)
+
+fun mk_value k v = Token ((k, Position.no_range), (InternalValue, k), Value (SOME v));
+
+val mk_text = mk_value "<text>" o Text;
+val mk_typ = mk_value "<typ>" o Typ;
+val mk_term = mk_value "<term>" o Term;
+val mk_fact = mk_value "<fact>" o Fact;
+val mk_attribute = mk_value "<attribute>" o Attribute;
+
+
+(* static binding *)
+
+(*1st stage: make empty slots assignable*)
+fun assignable (Token (x, y, Slot)) = Token (x, y, Assignable (ref NONE))
+  | assignable tok = tok;
+
+(*2nd stage: assign values as side-effect of scanning*)
+fun assign v (Token (_, _, Assignable r)) = r := v
+  | assign _ _ = ();
+
+(*3rd stage: static closure of final values*)
+fun closure (Token (x, y, Assignable (ref v))) = Token (x, y, Value v)
+  | closure tok = tok;
 
 
 
@@ -204,10 +278,10 @@ fun is_symid str =
   | SOME ss => forall is_sym_char ss
   | _ => false);
 
-fun is_sid "begin" = false
-  | is_sid ":" = true
-  | is_sid "::" = true
-  | is_sid s = is_symid s orelse Syntax.is_identifier s;
+fun ident_or_symbolic "begin" = false
+  | ident_or_symbolic ":" = true
+  | ident_or_symbolic "::" = true
+  | ident_or_symbolic s = Syntax.is_identifier s orelse is_symid s;
 
 
 (* scan strings *)
@@ -284,10 +358,10 @@ local
 fun token_leq ((_, syms1), (_, syms2)) = length syms1 <= length syms2;
 
 fun token k ss =
-  Token ((SymbolPos.implode ss, SymbolPos.range ss), (k, SymbolPos.content ss));
+  Token ((SymbolPos.implode ss, SymbolPos.range ss), (k, SymbolPos.content ss), Slot);
 
 fun token_range k (pos1, (ss, pos2)) =
-  Token (SymbolPos.implode_range pos1 pos2 ss, (k, SymbolPos.content ss));
+  Token (SymbolPos.implode_range pos1 pos2 ss, (k, SymbolPos.content ss), Slot);
 
 fun scan (lex1, lex2) = !!! "bad input"
   (scan_string >> token_range String ||
