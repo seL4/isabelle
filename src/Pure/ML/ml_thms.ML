@@ -49,12 +49,12 @@ val _ = thm_antiq "thms" Attrib.thms;
 
 (* ad-hoc goals *)
 
-fun by x = Scan.lift (Args.$$$ "by") x;
-val goal = Scan.unless by Args.prop;
+val by = Args.$$$ "by";
+val goal = Scan.unless (Scan.lift by) Args.prop;
 
 val _ = ML_Context.add_antiq "lemma"
-  ((Args.context -- Args.mode "open" -- Scan.repeat1 goal --
-      (by |-- Scan.lift Method.parse_args -- Scan.option (Scan.lift Method.parse_args))) >>
+  (Args.context -- Args.mode "open" -- Scan.repeat1 goal --
+      Scan.lift (by |-- Method.parse -- Scan.option Method.parse) >>
     (fn (((ctxt, is_open), props), methods) => fn {struct_name, background} =>
       let
         val i = serial ();

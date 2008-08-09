@@ -1307,7 +1307,7 @@ fun tryInThy thy lim s =
 (** method setup **)
 
 val blast_method =
-  Method.bang_sectioned_args' Data.cla_modifiers (Scan.lift (Scan.option Args.nat))
+  Method.bang_sectioned_args' Data.cla_modifiers (Scan.lift (Scan.option OuterParse.nat))
     (fn NONE => Data.cla_meth' blast_tac
       | SOME lim => Data.cla_meth' (fn cs => depth_tac cs lim));
 

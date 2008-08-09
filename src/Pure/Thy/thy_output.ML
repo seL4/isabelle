@@ -135,7 +135,7 @@ val properties = Scan.optional (P.$$$ "[" |-- P.!!! (P.enum "," property --| P.$
 
 in
 
-val antiq = P.!!! (P.position P.xname -- properties -- P.arguments --| Scan.ahead P.eof)
+val antiq = P.!!! (P.position P.xname -- properties -- Args.parse --| Scan.ahead P.eof)
   >> (fn (((x, pos), y), z) => (y, Args.src ((x, z), pos)));
 
 end;
@@ -332,18 +332,18 @@ fun process_thy lex default_tags is_markup trs src =
       >> (fn d => (NONE, (NoToken, ("", d))));
 
     fun markup mark mk flag = Scan.peek (fn d =>
-      improper |-- P.position (Scan.one (T.is_kind T.Command andf is_markup mark o T.val_of)) --
+      improper |-- P.position (Scan.one (T.is_kind T.Command andf is_markup mark o T.content_of)) --
       Scan.repeat tag --
       P.!!!! ((improper -- locale -- improper) |-- P.position P.text --| improper_end)
       >> (fn (((tok, pos), tags), txt) =>
-        let val name = T.val_of tok
+        let val name = T.content_of tok
         in (SOME (name, pos, tags), (mk (name, txt), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
       P.position (Scan.one (T.is_kind T.Command)) --
       Scan.repeat tag
       >> (fn ((tok, pos), tags) =>
-        let val name = T.val_of tok
+        let val name = T.content_of tok
         in (SOME (name, pos, tags), (BasicToken tok, (Latex.markup_false, d))) end));
 
     val cmt = Scan.peek (fn d =>
@@ -428,7 +428,7 @@ val _ = add_options
 
 (* basic pretty printing *)
 
-val str_of_source = space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
+val str_of_source = space_implode " " o map T.unparse o #2 o #1 o Args.dest_src;
 
 fun tweak_line s =
   if ! display then s else Symbol.strip_blanks s;
@@ -527,7 +527,7 @@ fun pretty_lemma ctxt (prop, methods) =
   in pretty_term ctxt prop end;
 
 val embedded_lemma =
-  args (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse_args -- Scan.option Method.parse_args))
+  args (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse -- Scan.option Method.parse))
     (output pretty_lemma o (fn ((a, arg :: _), p) => (Args.src ((a, [arg]), p))) o Args.dest_src);
 
 
@@ -553,8 +553,8 @@ val _ = add_commands
   ("prf", args Attrib.thms (output (pretty_prf false))),
   ("full_prf", args Attrib.thms (output (pretty_prf true))),
   ("theory", args (Scan.lift Args.name) (output pretty_theory)),
-  ("ML", args (Scan.lift (Args.position Args.name)) (output_ml ml_val)),
-  ("ML_type", args (Scan.lift (Args.position Args.name)) (output_ml ml_type)),
-  ("ML_struct", args (Scan.lift (Args.position Args.name)) (output_ml ml_struct))];
+  ("ML", args (Scan.lift (P.position Args.name)) (output_ml ml_val)),
+  ("ML_type", args (Scan.lift (P.position Args.name)) (output_ml ml_type)),
+  ("ML_struct", args (Scan.lift (P.position Args.name)) (output_ml ml_struct))];
 
 end;

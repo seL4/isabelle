@@ -30,7 +30,7 @@ fun clean_name "\\<dots>" = "dots"
   | clean_name "}" = "braceright"
   | clean_name s = s |> translate_string (fn "_" => "-" | c => c);
 
-val str_of_source = space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
+val str_of_source = space_implode " " o map OuterLex.unparse o #2 o #1 o Args.dest_src;
 
 fun tweak_line s =
   if ! O.display then s else Symbol.strip_blanks s;

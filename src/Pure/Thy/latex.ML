@@ -107,7 +107,7 @@ structure T = OuterLex;
 val invisible_token = T.keyword_with (equal ";") orf T.is_kind T.Comment;
 
 fun output_basic tok =
-  let val s = T.val_of tok in
+  let val s = T.content_of tok in
     if invisible_token tok then ""
     else if T.is_kind T.Command tok then
       "\\isacommand{" ^ output_syms s ^ "}"

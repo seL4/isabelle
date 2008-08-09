@@ -295,7 +295,7 @@ local structure P = OuterParse and K = OuterKeyword in
 val _ = List.app OuterKeyword.keyword ["permissive", "congs", "hints"];
 
 val hints =
-  P.$$$ "(" |-- P.!!! (P.position (P.$$$ "hints" -- P.arguments) --| P.$$$ ")") >> Args.src;
+  P.$$$ "(" |-- P.!!! (P.position (P.$$$ "hints" -- Args.parse) --| P.$$$ ")") >> Args.src;
 
 val recdef_decl =
   Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "permissive" -- P.$$$ ")") >> K false) true --

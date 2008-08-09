@@ -697,6 +697,6 @@ fun inductive_codegen thy defs gr dep module brack t = (case strip_comb t of
 val setup =
   add_codegen "inductive" inductive_codegen #>
   Code.add_attribute ("ind", Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) --
-    Scan.option (Args.$$$ "params" |-- Args.colon |-- Args.nat) >> uncurry add);
+    Scan.option (Args.$$$ "params" |-- Args.colon |-- OuterParse.nat) >> uncurry add);
 
 end;

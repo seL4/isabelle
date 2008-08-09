@@ -686,6 +686,8 @@ end;
 
 (** concrete syntax **)
 
+structure P = OuterParse;
+
 val arbitraryN = "arbitrary";
 val takingN = "taking";
 val ruleN = "rule";
@@ -726,7 +728,7 @@ fun unless_more_args scan = Scan.unless (Scan.lift
     Args.$$$ predN || Args.$$$ setN || Args.$$$ ruleN) -- Args.colon)) scan;
 
 val arbitrary = Scan.optional (Scan.lift (Args.$$$ arbitraryN -- Args.colon) |--
-  Args.and_list1 (Scan.repeat (unless_more_args free))) [];
+  P.and_list1' (Scan.repeat (unless_more_args free))) [];
 
 val taking = Scan.optional (Scan.lift (Args.$$$ takingN -- Args.colon) |--
   Scan.repeat1 (unless_more_args inst)) [];
@@ -734,13 +736,13 @@ val taking = Scan.optional (Scan.lift (Args.$$$ takingN -- Args.colon) |--
 in
 
 fun cases_meth src =
-  Method.syntax (Args.and_list (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) src
+  Method.syntax (P.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) src
   #> (fn ((insts, opt_rule), ctxt) =>
     Method.METHOD_CASES (fn facts =>
       Seq.DETERM (HEADGOAL (cases_tac ctxt insts opt_rule facts))));
 
 fun induct_meth src =
-  Method.syntax (Args.and_list (Scan.repeat (unless_more_args def_inst)) --
+  Method.syntax (P.and_list' (Scan.repeat (unless_more_args def_inst)) --
     (arbitrary -- taking -- Scan.option induct_rule)) src
   #> (fn ((insts, ((arbitrary, taking), opt_rule)), ctxt) =>
     Method.RAW_METHOD_CASES (fn facts =>

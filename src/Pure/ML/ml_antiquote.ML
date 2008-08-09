@@ -62,6 +62,9 @@ val value = declaration "val";
 
 (** concrete antiquotations **)
 
+structure P = OuterParse;
+
+
 (* misc *)
 
 val _ = value "theory"
@@ -83,11 +86,11 @@ val _ = inline "term" (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term));
 val _ = inline "prop" (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term));
 
 val _ = macro "let" (Args.context --
-  Args.and_list1 (Args.and_list1 (Scan.lift Args.name) -- Scan.lift (Args.$$$ "=" |-- Args.name))
+  Scan.lift (P.and_list1 (P.and_list1 Args.name -- (Args.$$$ "=" |-- Args.name)))
     >> (fn (ctxt, args) => #2 (ProofContext.match_bind true args ctxt)));
 
 val _ = macro "note" (Args.context :|-- (fn ctxt =>
-  Args.and_list1 (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms >> (fn ((a, srcs), ths) =>
+  P.and_list1' (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms >> (fn ((a, srcs), ths) =>
     ((a, map (Attrib.attribute (ProofContext.theory_of ctxt)) srcs), [(ths, [])])))
   >> (fn args => #2 (ProofContext.note_thmss_i "" args ctxt))));
 
@@ -123,8 +126,8 @@ val _ = inline "const_name" (const false);
 val _ = inline "const_syntax" (const true);
 
 val _ = inline "const"
-  (Args.context -- Scan.lift Args.name --
-    Scan.optional (Scan.lift (Args.$$$ "(") |-- Args.enum1 "," Args.typ --| Scan.lift (Args.$$$ ")")) []
+  (Args.context -- Scan.lift Args.name -- Scan.optional
+      (Scan.lift (Args.$$$ "(") |-- OuterParse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
     >> (fn ((ctxt, c), Ts) =>
       let val (c, _) = Term.dest_Const (ProofContext.read_const_proper ctxt c)
       in ML_Syntax.atomic (ML_Syntax.print_term (ProofContext.mk_const ctxt (c, Ts))) end));

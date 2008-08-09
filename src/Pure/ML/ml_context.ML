@@ -118,7 +118,7 @@ local
 structure P = OuterParse;
 
 val antiq =
-  P.!!! (P.position P.xname -- P.arguments --| Scan.ahead P.eof)
+  P.!!! (P.position P.xname -- Args.parse --| Scan.ahead P.eof)
   >> (fn ((x, pos), y) => Args.src ((x, y), pos));
 
 fun eval_antiquotes struct_name (txt, pos) opt_ctxt =

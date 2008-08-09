@@ -205,8 +205,8 @@ val _ = Context.>> (Context.map_theory
 (* concrete syntax *)
 
 fun add_args a b c = Attrib.syntax
-  (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) -- Scan.option Args.nat)
-    >> (fn (f, n) => f n));
+  (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) --
+    Scan.option OuterParse.nat) >> (fn (f, n) => f n));
 
 val rule_atts =
  [("intro", add_args intro_bang intro intro_query, "declaration of introduction rule"),

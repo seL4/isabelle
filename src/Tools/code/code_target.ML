@@ -318,7 +318,7 @@ fun mount_serializer thy alt_serializer target =
 fun serialize thy = mount_serializer thy NONE;
 
 fun parse_args f args =
-  case Scan.read Args.stopper f args
+  case Scan.read OuterLex.stopper f args
    of SOME x => x
     | NONE => error "Bad serializer arguments";
 
@@ -2243,7 +2243,7 @@ fun code_exprP cmd =
   -- Scan.repeat (P.$$$ inK |-- P.name
      -- Scan.option (P.$$$ module_nameK |-- P.name)
      -- Scan.option (P.$$$ fileK |-- P.name)
-     -- Scan.optional (P.$$$ "(" |-- P.arguments --| P.$$$ ")") []
+     -- Scan.optional (P.$$$ "(" |-- Args.parse --| P.$$$ ")") []
   ) >> (fn (raw_cs, seris) => cmd raw_cs seris));
 
 val _ = List.app OuterKeyword.keyword [infixK, infixlK, infixrK, inK, module_nameK, fileK];

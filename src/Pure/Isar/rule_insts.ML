@@ -28,6 +28,9 @@ end;
 structure RuleInsts: RULE_INSTS =
 struct
 
+structure T = OuterLex;
+structure P = OuterParse;
+
 
 (** reading instantiations **)
 
@@ -97,11 +100,11 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 
     val (type_insts, term_insts) = List.partition (is_tvar o fst) mixed_insts;
     val internal_insts = term_insts |> map_filter
-      (fn (xi, Args.Term t) => SOME (xi, t)
-        | (_, Args.Text _) => NONE
+      (fn (xi, T.Term t) => SOME (xi, t)
+        | (_, T.Text _) => NONE
         | (xi, _) => error_var "Term argument expected for " xi);
     val external_insts = term_insts |> map_filter
-      (fn (xi, Args.Text s) => SOME (xi, s) | _ => NONE);
+      (fn (xi, T.Text s) => SOME (xi, s) | _ => NONE);
 
 
     (* mixed type instantiations *)
@@ -111,8 +114,8 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
         val S = the_sort tvars xi;
         val T =
           (case arg of
-            Args.Text s => Syntax.read_typ ctxt s
-          | Args.Typ T => T
+            T.Text s => Syntax.read_typ ctxt s
+          | T.Typ T => T
           | _ => error_var "Type argument expected for " xi);
       in
         if Sign.of_sort thy (T, S) then ((xi, S), T)
@@ -169,9 +172,9 @@ fun read_instantiate_mixed ctxt mixed_insts thm =
     val _ = (*assign internalized values*)
       mixed_insts |> List.app (fn (arg, (xi, _)) =>
         if is_tvar xi then
-          Args.assign (SOME (Args.Typ (the (AList.lookup (op =) type_insts xi)))) arg
+          T.assign (SOME (T.Typ (the (AList.lookup (op =) type_insts xi)))) arg
         else
-          Args.assign (SOME (Args.Term (the (AList.lookup (op =) term_insts xi)))) arg);
+          T.assign (SOME (T.Term (the (AList.lookup (op =) term_insts xi)))) arg);
   in
     Drule.instantiate insts thm |> RuleCases.save thm
   end;
@@ -194,7 +197,7 @@ end;
 
 fun read_instantiate ctxt args thm =
   read_instantiate_mixed (ctxt |> ProofContext.set_mode ProofContext.mode_schematic)  (* FIXME !? *)
-    (map (fn (x, y) => (Args.eof, (x, Args.Text y))) args) thm;
+    (map (fn (x, y) => (T.eof, (x, T.Text y))) args) thm;
 
 fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
 
@@ -207,16 +210,16 @@ fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
 local
 
 val value =
-  Args.internal_typ >> Args.Typ ||
-  Args.internal_term >> Args.Term ||
-  Args.name >> Args.Text;
+  Args.internal_typ >> T.Typ ||
+  Args.internal_term >> T.Term ||
+  Args.name >> T.Text;
 
-val inst = Args.var -- (Args.$$$ "=" |-- Args.ahead -- value)
+val inst = Args.var -- (Args.$$$ "=" |-- Scan.ahead P.not_eof -- value)
   >> (fn (xi, (a, v)) => (a, (xi, v)));
 
 in
 
-val where_att = Attrib.syntax (Args.and_list (Scan.lift inst) >> (fn args =>
+val where_att = Attrib.syntax (Scan.lift (P.and_list inst) >> (fn args =>
   Thm.rule_attribute (fn context => read_instantiate_mixed (Context.proof_of context) args)));
 
 end;
@@ -227,10 +230,10 @@ end;
 local
 
 val value =
-  Args.internal_term >> Args.Term ||
-  Args.name >> Args.Text;
+  Args.internal_term >> T.Term ||
+  Args.name >> T.Text;
 
-val inst = Args.ahead -- Args.maybe value;
+val inst = Scan.ahead P.not_eof -- Args.maybe value;
 val concl = Args.$$$ "concl" -- Args.colon;
 
 val insts =
@@ -406,16 +409,16 @@ end;
 
 val insts =
   Scan.optional
-    (Args.and_list1 (Scan.lift (Args.name -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
-      Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
+    (Scan.lift (P.and_list1 (Args.name -- (Args.$$$ "=" |-- P.!!! Args.name)) --| Args.$$$ "in")) []
+    -- Attrib.thms;
 
 fun inst_args f src ctxt =
   f ctxt (fst (Method.syntax (Args.goal_spec HEADGOAL -- insts) src ctxt));
 
 val insts_var =
   Scan.optional
-    (Args.and_list1 (Scan.lift (Args.var -- (Args.$$$ "=" |-- Args.!!! Args.name))) --|
-      Scan.lift (Args.$$$ "in")) [] -- Attrib.thms;
+    (Scan.lift (P.and_list1 (Args.var -- (Args.$$$ "=" |-- P.!!! Args.name)) --| Args.$$$ "in")) []
+    -- Attrib.thms;
 
 fun inst_args_var f src ctxt =
   f ctxt (fst (Method.syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
