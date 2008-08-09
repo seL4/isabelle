@@ -21,9 +21,9 @@ use "../Proof/proofchecker.ML";
 
 (*outer syntax*)
 use "outer_lex.ML";
-use "args.ML";
 use "outer_parse.ML";
 use "outer_keyword.ML";
+use "args.ML";
 use "antiquote.ML";
 use "../ML/ml_context.ML";
 
