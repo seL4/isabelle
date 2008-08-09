@@ -31,6 +31,8 @@ sig
   val verbatim: token list -> string * token list
   val sync: token list -> string * token list
   val eof: token list -> string * token list
+  val keyword_with: (string -> bool) -> token list -> string * token list
+  val keyword_ident_or_symbolic: token list -> string * token list
   val $$$ : string -> token list -> string * token list
   val reserved: string -> token list -> string * token list
   val semicolon: token list -> string * token list
@@ -43,12 +45,21 @@ sig
   val begin: token list -> string * token list
   val opt_begin: token list -> bool * token list
   val nat: token list -> int * token list
+  val int: token list -> int * token list
   val enum: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
   val enum1: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
-  val list: (token list -> 'a * token list) -> token list -> 'a list * token list
-  val list1: (token list -> 'a * token list) -> token list -> 'a list * token list
   val and_list: (token list -> 'a * token list) -> token list -> 'a list * token list
   val and_list1: (token list -> 'a * token list) -> token list -> 'a list * token list
+  val enum': string -> ('a * token list -> 'b * ('a * token list)) ->
+    'a * token list -> 'b list * ('a * token list)
+  val enum1': string -> ('a * token list -> 'b * ('a * token list)) ->
+    'a * token list -> 'b list * ('a * token list)
+  val and_list': ('a * token list -> 'b * ('a * token list)) ->
+    'a * token list -> 'b list * ('a * token list)
+  val and_list1': ('a * token list -> 'b * ('a * token list)) ->
+    'a * token list -> 'b list * ('a * token list)
+  val list: (token list -> 'a * token list) -> token list -> 'a list * token list
+  val list1: (token list -> 'a * token list) -> token list -> 'a list * token list
   val properties: token list -> Markup.property list * token list
   val name: token list -> bstring * token list
   val xname: token list -> xstring * token list
@@ -80,9 +91,6 @@ sig
   val prop: token list -> string * token list
   val propp: token list -> (string * string list) * token list
   val termp: token list -> (string * string list) * token list
-  val keyword_sid: token list -> string * token list
-  val generic_args1: (string -> bool) -> token list -> Args.T list * token list
-  val arguments: token list -> Args.T list * token list
   val target: token list -> xstring * token list
   val opt_target: token list -> xstring option * token list
 end;
@@ -137,14 +145,17 @@ fun triple_swap ((x, y), z) = ((x, z), y);
 
 (* tokens *)
 
-val not_eof = Scan.one T.not_eof;
+fun RESET_VALUE atom = (*required for all primitive parsers*)
+  Scan.ahead (Scan.one (K true)) -- atom >> (fn (arg, x) => (T.assign NONE arg; x));
+
+
+val not_eof = RESET_VALUE (Scan.one T.not_eof);
 
 fun position scan = (Scan.ahead not_eof >> T.position_of) -- scan >> Library.swap;
-
-fun inner_syntax token = Scan.ahead token |-- not_eof >> T.source_of;
+fun inner_syntax atom = Scan.ahead atom |-- not_eof >> T.source_of;
 
 fun kind k =
-  group (T.str_of_kind k) (Scan.one (T.is_kind k) >> T.val_of);
+  group (T.str_of_kind k) (RESET_VALUE (Scan.one (T.is_kind k) >> T.content_of));
 
 val command = kind T.Command;
 val keyword = kind T.Keyword;
@@ -161,13 +172,15 @@ val verbatim = kind T.Verbatim;
 val sync = kind T.Sync;
 val eof = kind T.EOF;
 
+fun keyword_with pred = RESET_VALUE (Scan.one (T.keyword_with pred) >> T.content_of);
+val keyword_ident_or_symbolic = keyword_with T.ident_or_symbolic;
+
 fun $$$ x =
-  group (T.str_of_kind T.Keyword ^ " " ^ quote x)
-    (Scan.one (T.keyword_with (equal x)) >> T.val_of);
+  group (T.str_of_kind T.Keyword ^ " " ^ quote x) (keyword_with (fn y => x = y));
 
 fun reserved x =
   group ("reserved identifier " ^ quote x)
-    (Scan.one (T.ident_with (fn y => x = y)) >> T.val_of);
+    (RESET_VALUE (Scan.one (T.ident_with (fn y => x = y)) >> T.content_of));
 
 val semicolon = $$$ ";";
 
@@ -176,6 +189,7 @@ val underscore = sym_ident :-- (fn "_" => Scan.succeed () | _ => Scan.fail) >> #
 fun maybe scan = underscore >> K NONE || scan >> SOME;
 
 val nat = number >> (#1 o Library.read_int o Symbol.explode);
+val int = Scan.optional (minus >> K ~1) 1 -- nat >> op *;
 
 val tag_name = group "tag name" (short_ident || string);
 val tags = Scan.repeat ($$$ "%" |-- !!! tag_name);
@@ -192,11 +206,17 @@ val opt_begin = Scan.optional (begin >> K true) false;
 fun enum1 sep scan = scan ::: Scan.repeat ($$$ sep |-- !!! scan);
 fun enum sep scan = enum1 sep scan || Scan.succeed [];
 
-fun list1 scan = enum1 "," scan;
-fun list scan = enum "," scan;
+fun enum1' sep scan = scan ::: Scan.repeat (Scan.lift ($$$ sep) |-- scan);
+fun enum' sep scan = enum1' sep scan || Scan.succeed [];
 
 fun and_list1 scan = enum1 "and" scan;
 fun and_list scan = enum "and" scan;
+
+fun and_list1' scan = enum1' "and" scan;
+fun and_list' scan = enum' "and" scan;
+
+fun list1 scan = enum1 "," scan;
+fun list scan = enum "," scan;
 
 val properties = $$$ "(" |-- !!! (list1 (string -- ($$$ "=" |-- string)) --| $$$ ")");
 
@@ -297,37 +317,6 @@ val is_props = Scan.repeat1 ($$$ "is" |-- prop);
 
 val propp = prop -- Scan.optional ($$$ "(" |-- !!! (is_props --| $$$ ")")) [];
 val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
-
-
-(* arguments *)
-
-fun keyword_symid is_symid = Scan.one (T.keyword_with is_symid) >> T.val_of;
-val keyword_sid = keyword_symid T.is_sid;
-
-fun parse_args is_symid =
-  let
-    fun atom blk =
-      group "argument"
-        (position (short_ident || long_ident || sym_ident || term_var ||
-            type_ident || type_var || number) >> Args.mk_ident ||
-          position (keyword_symid is_symid) >> Args.mk_keyword ||
-          position (string || verbatim) >> Args.mk_string ||
-          position alt_string >> Args.mk_alt_string ||
-          position (if blk then $$$ "," else Scan.fail) >> Args.mk_keyword);
-
-    fun args blk x = Scan.optional (args1 blk) [] x
-    and args1 blk x =
-      ((Scan.repeat1
-        (Scan.repeat1 (atom blk) ||
-          argsp "(" ")" ||
-          argsp "[" "]")) >> flat) x
-    and argsp l r x =
-      (position ($$$ l) -- !!! (args true -- position ($$$ r))
-        >> (fn (a, (bs, c)) => Args.mk_keyword a :: bs @ [Args.mk_keyword c])) x;
-  in (args, args1) end;
-
-fun generic_args1 is_symid = #2 (parse_args is_symid) false;
-val arguments = #1 (parse_args T.is_sid) false;
 
 
 (* targets *)
