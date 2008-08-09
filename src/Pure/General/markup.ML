@@ -51,6 +51,7 @@ sig
   val numN: string val num: T
   val xnumN: string val xnum: T
   val xstrN: string val xstr: T
+  val literalN: string val literal: T
   val sortN: string val sort: T
   val typN: string val typ: T
   val termN: string val term: T
@@ -177,6 +178,7 @@ val (varN, var) = markup_elem "var";
 val (numN, num) = markup_elem "num";
 val (xnumN, xnum) = markup_elem "xnum";
 val (xstrN, xstr) = markup_elem "xstr";
+val (literalN, literal) = markup_elem "literal";
 
 val (sortN, sort) = markup_elem "sort";
 val (typN, typ) = markup_elem "typ";
