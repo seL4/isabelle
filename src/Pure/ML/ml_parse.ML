@@ -34,11 +34,12 @@ fun bad_input x =
 
 (** basic parsers **)
 
-fun $$$ x = Scan.one (fn tok => T.kind_of tok = T.Keyword andalso T.val_of tok = x) >> T.val_of;
-val int = Scan.one (fn tok => T.kind_of tok = T.Int) >> T.val_of;
+fun $$$ x =
+  Scan.one (fn tok => T.kind_of tok = T.Keyword andalso T.content_of tok = x) >> T.content_of;
+val int = Scan.one (fn tok => T.kind_of tok = T.Int) >> T.content_of;
 
-val regular = Scan.one T.is_regular >> T.val_of;
-val improper = Scan.one T.is_improper >> T.val_of;
+val regular = Scan.one T.is_regular >> T.content_of;
+val improper = Scan.one T.is_improper >> T.content_of;
 
 val blanks = Scan.repeat improper >> implode;
 

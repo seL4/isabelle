@@ -16,7 +16,7 @@ sig
   val is_improper: token -> bool
   val pos_of: token -> string
   val kind_of: token -> token_kind
-  val val_of: token -> string
+  val content_of: token -> string
   val keywords: string list
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (SymbolPos.T, Position.T * (Symbol.symbol, 'a) Source.source)
@@ -59,8 +59,8 @@ val stopper =
 
 (* token content *)
 
-fun val_of (Token (_, (_, x))) = x;
-fun token_leq (tok, tok') = val_of tok <= val_of tok';
+fun content_of (Token (_, (_, x))) = x;
+fun token_leq (tok, tok') = content_of tok <= content_of tok';
 
 fun kind_of (Token (_, (k, _))) = k;
 
