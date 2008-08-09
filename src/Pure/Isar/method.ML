@@ -113,7 +113,6 @@ sig
   val goal_args_ctxt': (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
     (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> method
   val parse: OuterLex.token list -> text * OuterLex.token list
-  val parse_args: Args.T list -> text * Args.T list
 end;
 
 structure Method: METHOD =
@@ -470,6 +469,9 @@ fun method_setup name (txt, pos) cmt =
 
 (** concrete syntax **)
 
+structure P = OuterParse;
+
+
 (* basic *)
 
 fun syntax scan = Args.context_syntax "method" scan;
@@ -525,7 +527,7 @@ val destN = "dest";
 val ruleN = "rule";
 
 fun modifier name kind kind' att =
-  Args.$$$ name |-- (kind >> K NONE || kind' |-- Args.nat --| Args.colon >> SOME)
+  Args.$$$ name |-- (kind >> K NONE || kind' |-- P.nat --| Args.colon >> SOME)
     >> (pair (I: Proof.context -> Proof.context) o att);
 
 val iprover_modifiers =
@@ -540,7 +542,7 @@ val iprover_modifiers =
 in
 
 val iprover_meth =
-  bang_sectioned_args' iprover_modifiers (Scan.lift (Scan.option Args.nat))
+  bang_sectioned_args' iprover_modifiers (Scan.lift (Scan.option P.nat))
     (fn n => fn prems => fn ctxt => METHOD (fn facts =>
       HEADGOAL (insert_tac (prems @ facts) THEN'
       ObjectLogic.atomize_prems_tac THEN' iprover_tac ctxt n)));
@@ -551,7 +553,7 @@ end;
 (* tactic syntax *)
 
 fun nat_thms_args f = uncurry f oo
-  (fst oo syntax (Scan.lift (Scan.optional (Args.parens Args.nat) 0) -- Attrib.thms));
+  (fst oo syntax (Scan.lift (Scan.optional (Args.parens P.nat) 0) -- Attrib.thms));
 
 fun goal_args' args tac src ctxt = fst (syntax (Args.goal_spec HEADGOAL -- args >>
   (fn (quant, s) => SIMPLE_METHOD'' quant (tac s))) src ctxt);
@@ -563,6 +565,30 @@ fun goal_args_ctxt' args tac src ctxt =
   (fn (quant, s) => SIMPLE_METHOD'' quant (tac ctxt s))) src ctxt);
 
 fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
+
+
+(* outer parser *)
+
+fun is_symid_meth s =
+  s <> "|" andalso s <> "?" andalso s <> "+" andalso OuterLex.ident_or_symbolic s;
+
+local
+
+fun meth4 x =
+ (P.position (P.xname >> rpair []) >> (Source o Args.src) ||
+  P.$$$ "(" |-- P.!!! (meth0 --| P.$$$ ")")) x
+and meth3 x =
+ (meth4 --| P.$$$ "?" >> Try ||
+  meth4 --| P.$$$ "+" >> Repeat1 ||
+  meth4 -- (P.$$$ "[" |-- Scan.optional P.nat 1 --| P.$$$ "]") >> (SelectGoals o swap) ||
+  meth4) x
+and meth2 x =
+ (P.position (P.xname -- Args.parse1 is_symid_meth) >> (Source o Args.src) ||
+  meth3) x
+and meth1 x = (P.enum1 "," meth2 >> (fn [m] => m | ms => Then ms)) x
+and meth0 x = (P.enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
+
+in val parse = meth3 end;
 
 
 (* theory setup *)
@@ -589,61 +615,11 @@ val _ = Context.>> (Context.map_theory
     ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
     ("rename_tac", goal_args (Scan.repeat1 Args.name) Tactic.rename_tac,
       "rename parameters of goal"),
-    ("rotate_tac", goal_args (Scan.optional Args.int 1) Tactic.rotate_tac,
+    ("rotate_tac", goal_args (Scan.optional P.int 1) Tactic.rotate_tac,
       "rotate assumptions of goal"),
-    ("tactic", simple_args (Args.position Args.name) tactic, "ML tactic as proof method"),
-    ("raw_tactic", simple_args (Args.position Args.name) raw_tactic,
+    ("tactic", simple_args (P.position Args.name) tactic, "ML tactic as proof method"),
+    ("raw_tactic", simple_args (P.position Args.name) raw_tactic,
       "ML tactic as raw proof method")]));
-
-
-(* outer parser *)
-
-structure T = OuterLex;
-structure P = OuterParse;
-
-fun is_symid_meth s =
-  s <> "|" andalso s <> "?" andalso s <> "+" andalso T.is_sid s;
-
-local
-
-fun meth4 x =
- (P.position (P.xname >> rpair []) >> (Source o Args.src) ||
-  P.$$$ "(" |-- P.!!! (meth0 --| P.$$$ ")")) x
-and meth3 x =
- (meth4 --| P.$$$ "?" >> Try ||
-  meth4 --| P.$$$ "+" >> Repeat1 ||
-  meth4 -- (P.$$$ "[" |-- Scan.optional P.nat 1 --| P.$$$ "]") >> (SelectGoals o swap) ||
-  meth4) x
-and meth2 x =
- (P.position (P.xname -- P.generic_args1 is_symid_meth) >> (Source o Args.src) ||
-  meth3) x
-and meth1 x = (P.enum1 "," meth2 >> (fn [m] => m | ms => Then ms)) x
-and meth0 x = (P.enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
-
-in val parse = meth3 end;
-
-
-(* args parser *)
-
-local
-
-fun enum1 sep scan = scan ::: Scan.repeat (Args.$$$ sep |-- scan);
-
-fun meth4 x =
- (Args.position (Args.name >> rpair []) >> (Source o Args.src) ||
-  Args.$$$ "(" |-- Args.!!! (meth0 --| Args.$$$ ")")) x
-and meth3 x =
- (meth4 --| Args.$$$ "?" >> Try ||
-  meth4 --| Args.$$$ "+" >> Repeat1 ||
-  meth4 -- (Args.$$$ "[" |-- Scan.optional Args.nat 1 --| Args.$$$ "]") >> (SelectGoals o swap) ||
-  meth4) x
-and meth2 x =
- (Args.position (Args.name -- Args.generic_args1 is_symid_meth) >> (Source o Args.src) ||
-  meth3) x
-and meth1 x = (enum1 "," meth2 >> (fn [m] => m | ms => Then ms)) x
-and meth0 x = (enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
-
-in val parse_args = meth3 end;
 
 
 (*final declarations of this structure!*)
