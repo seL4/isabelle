@@ -481,7 +481,10 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val root' = if root <> "prop" andalso is_logtype root then SynExt.logic else root;
-    val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids syms);
+    val toks = Lexicon.tokenize lexicon xids syms;
+    val _ = toks |> List.app (fn Lexicon.Token (Lexicon.Literal, _, (pos, _)) =>
+      Position.report Markup.literal pos | _ => ());
+    val pts = Parser.parse gram root' toks;
     val len = length pts;
 
     val limit = ! ambiguity_limit;
