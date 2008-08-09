@@ -41,6 +41,8 @@ sig
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | XNumSy | StrSy | EOF
   datatype token = Token of token_kind * string * Position.range
+  val str_of_token: token -> string
+  val pos_of_token: token -> Position.T
   val mk_eof: Position.T -> token
   val eof: token
   val is_eof: token -> bool
@@ -52,9 +54,6 @@ sig
   val tvarT: typ
   val terminals: string list
   val is_terminal: string -> bool
-  val str_of_token: token -> string
-  val pos_of_token: token -> string
-  val display_token: token -> string
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
   val predef_term: string -> token option
@@ -112,6 +111,9 @@ datatype token_kind =
 
 datatype token = Token of token_kind * string * Position.range;
 
+fun str_of_token (Token (_, s, _)) = s;
+fun pos_of_token (Token (_, _, (pos, _))) = pos;
+
 
 (* stopper *)
 
@@ -135,27 +137,6 @@ val tvarT = Type ("tvar", []);
 
 val terminals = ["id", "longid", "var", "tid", "tvar", "num", "xnum", "xstr"];
 val is_terminal = member (op =) terminals;
-
-
-(* str_of_token *)
-
-fun str_of_token (Token (_, s, _)) = s;
-
-fun pos_of_token (Token (_, _, (pos, _))) = Position.str_of pos;
-
-
-(* display_token *)
-
-fun display_token (Token (Literal, s, _)) = quote s
-  | display_token (Token (IdentSy, s, _)) = "id(" ^ s ^ ")"
-  | display_token (Token (LongIdentSy, s, _)) = "longid(" ^ s ^ ")"
-  | display_token (Token (VarSy, s, _)) = "var(" ^ s ^ ")"
-  | display_token (Token (TFreeSy, s, _)) = "tid(" ^ s ^ ")"
-  | display_token (Token (TVarSy, s, _)) = "tvar(" ^ s ^ ")"
-  | display_token (Token (NumSy, s, _)) = "num(" ^ s ^ ")"
-  | display_token (Token (XNumSy, s, _)) = "xnum(" ^ s ^ ")"
-  | display_token (Token (StrSy, s, _)) = "xstr(" ^ s ^ ")"
-  | display_token (Token (EOF, _, _)) = "";
 
 
 (* matching_tokens *)
@@ -206,6 +187,7 @@ fun explode_xstr str =
   (case Scan.read SymbolPos.stopper scan_str_body (SymbolPos.explode (str, Position.none)) of
     SOME cs => map symbol cs
   | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
+
 
 
 (** tokenize **)
