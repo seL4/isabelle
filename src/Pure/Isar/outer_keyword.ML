@@ -127,9 +127,9 @@ end;
 (* lookup *)
 
 fun is_keyword s = Scan.is_literal (#1 (get_lexicons ())) (Symbol.explode s);
-fun dest_keywords () = Scan.dest_lexicon (#1 (get_lexicons ()));
+fun dest_keywords () = sort_strings (Scan.dest_lexicon (#1 (get_lexicons ())));
 
-fun dest_commands () = Symtab.keys (get_commands ());
+fun dest_commands () = sort_strings (Symtab.keys (get_commands ()));
 fun command_keyword name = Symtab.lookup (get_commands ()) name;
 fun command_tags name = these (Option.map tags_of (command_keyword name));
 
@@ -146,21 +146,21 @@ fun report_command (name, kind) =
 
 fun report () =
   let val (keywords, commands) = CRITICAL (fn () =>
-    (dest_keywords (), Symtab.dest (get_commands ())))
+    (dest_keywords (), sort_wrt #1 (Symtab.dest (get_commands ()))))
   in map report_keyword keywords @ map report_command commands end
-  |> Pretty.chunks |> Pretty.writeln;
+  |> Pretty.chunks |> Pretty.string_of |> Output.status;
 
 
 (* augment tables *)
 
 fun keyword name =
  (change_lexicons (apfst (Scan.extend_lexicon (Symbol.explode name)));
-  Pretty.writeln (report_keyword name));
+  Output.status (Pretty.string_of (report_keyword name)));
 
 fun command name kind =
  (change_lexicons (apsnd (Scan.extend_lexicon (Symbol.explode name)));
   change_commands (Symtab.update (name, kind));
-  Pretty.writeln (report_command (name, kind)));
+  Output.status (Pretty.string_of (report_command (name, kind))));
 
 
 (* overall category *)
