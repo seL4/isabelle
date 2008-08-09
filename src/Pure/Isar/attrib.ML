@@ -27,6 +27,7 @@ sig
     attribute * (Context.generic * Args.T list)) -> src -> attribute
   val no_args: attribute -> src -> attribute
   val add_del_args: attribute -> attribute -> src -> attribute
+  val thm_sel: Args.T list -> Facts.interval list * Args.T list
   val thm: Context.generic * Args.T list -> thm * (Context.generic * Args.T list)
   val thms: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
   val multi_thm: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
@@ -43,6 +44,9 @@ end;
 
 structure Attrib: ATTRIB =
 struct
+
+structure T = OuterLex;
+structure P = OuterParse;
 
 type src = Args.src;
 
@@ -154,6 +158,11 @@ fun add_del_args add del = syntax
 
 (** parsing attributed theorems **)
 
+val thm_sel = P.$$$ "(" |-- P.list1
+ (P.nat --| P.minus -- P.nat >> Facts.FromTo ||
+  P.nat --| P.minus >> Facts.From ||
+  P.nat >> Facts.Single) --| P.$$$ ")";
+
 local
 
 val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
@@ -173,7 +182,7 @@ fun gen_thm pick = Scan.depend (fn context =>
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
       >> (fn (s, fact) => ("", Facts.Fact s, fact))
-    || Scan.ahead fact_name -- Args.position (Args.named_fact get_named) -- Scan.option Args.thm_sel
+    || Scan.ahead fact_name -- P.position (Args.named_fact get_named) -- Scan.option thm_sel
       >> (fn ((name, (fact, pos)), sel) => (name, Facts.Named ((name, pos), sel), fact)))
     -- Args.opt_attribs (intern thy) >> (fn ((name, thmref, fact), srcs) =>
       let
@@ -197,7 +206,7 @@ end;
 
 (* internal *)
 
-fun internal att = Args.src (("Pure.attribute", [Args.mk_attribute att]), Position.none);
+fun internal att = Args.src (("Pure.attribute", [T.mk_attribute att]), Position.none);
 
 val internal_att =
   syntax (Scan.lift Args.internal_attribute >> Morphism.form);
@@ -214,11 +223,11 @@ val kind = syntax (Scan.lift Args.name >> PureThy.kind);
 (* rule composition *)
 
 val COMP_att =
-  syntax (Scan.lift (Scan.optional (Args.bracks Args.nat) 1) -- thm
+  syntax (Scan.lift (Scan.optional (Args.bracks P.nat) 1) -- thm
     >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => Drule.compose_single (A, i, B))));
 
 val THEN_att =
-  syntax (Scan.lift (Scan.optional (Args.bracks Args.nat) 1) -- thm
+  syntax (Scan.lift (Scan.optional (Args.bracks P.nat) 1) -- thm
     >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B))));
 
 val OF_att =
@@ -243,11 +252,11 @@ val folded = unfolded_syntax LocalDefs.fold;
 
 (* rule cases *)
 
-val consumes = syntax (Scan.lift (Scan.optional Args.nat 1) >> RuleCases.consumes);
+val consumes = syntax (Scan.lift (Scan.optional P.nat 1) >> RuleCases.consumes);
 val case_names = syntax (Scan.lift (Scan.repeat1 Args.name) >> RuleCases.case_names);
 val case_conclusion =
   syntax (Scan.lift (Args.name -- Scan.repeat Args.name) >> RuleCases.case_conclusion);
-val params = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> RuleCases.params);
+val params = syntax (Scan.lift (P.and_list1 (Scan.repeat Args.name)) >> RuleCases.params);
 
 
 (* rule format *)
@@ -272,7 +281,7 @@ val eta_long =
   no_args (Thm.rule_attribute (K (Conv.fconv_rule Drule.eta_long_conversion)));
 
 val rotated = syntax
-  (Scan.lift (Scan.optional Args.int 1) >> (fn n => Thm.rule_attribute (K (rotate_prems n))));
+  (Scan.lift (Scan.optional P.int 1) >> (fn n => Thm.rule_attribute (K (rotate_prems n))));
 
 
 (* theory setup *)
@@ -341,7 +350,7 @@ fun scan_value (Config.Bool _) =
       equals -- Args.$$$ "false" >> K (Config.Bool false) ||
       equals -- Args.$$$ "true" >> K (Config.Bool true) ||
       Scan.succeed (Config.Bool true)
-  | scan_value (Config.Int _) = equals |-- Args.int >> Config.Int
+  | scan_value (Config.Int _) = equals |-- P.int >> Config.Int
   | scan_value (Config.String _) = equals |-- Args.name >> Config.String;
 
 fun scan_config thy config =
