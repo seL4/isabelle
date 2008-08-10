@@ -179,7 +179,7 @@ fun value dest = Scan.some (fn arg =>
   (case T.get_value arg of SOME v => (SOME (dest v) handle Match => NONE) | NONE => NONE));
 
 fun evaluate mk eval arg =
-  let val x = eval (T.content_of arg) in (T.assign (SOME (mk x)) arg; x) end;
+  let val x = eval arg in (T.assign (SOME (mk x)) arg; x) end;
 
 val internal_text = value (fn T.Text s => s);
 val internal_typ = value (fn T.Typ T => T);
@@ -187,11 +187,12 @@ val internal_term = value (fn T.Term t => t);
 val internal_fact = value (fn T.Fact ths => ths);
 val internal_attribute = value (fn T.Attribute att => att);
 
-fun named_text intern = internal_text || named >> evaluate T.Text intern;
-fun named_typ readT = internal_typ || named >> evaluate T.Typ readT;
-fun named_term read = internal_term || named >> evaluate T.Term read;
-fun named_fact get = internal_fact || (alt_string || named) >> evaluate T.Fact get;
-fun named_attribute att = internal_attribute || named >> evaluate T.Attribute att;
+fun named_text intern = internal_text || named >> evaluate T.Text (intern o T.content_of);
+fun named_typ readT = internal_typ || named >> evaluate T.Typ (readT o T.source_of);
+fun named_term read = internal_term || named >> evaluate T.Term (read o T.source_of);
+fun named_fact get = internal_fact || named >> evaluate T.Fact (get o T.content_of) ||
+  alt_string >> evaluate T.Fact (get o T.source_of);
+fun named_attribute att = internal_attribute || named >> evaluate T.Attribute (att o T.content_of);
 
 
 (* terms and types *)
@@ -258,7 +259,8 @@ fun parse1 is_symid = #2 (parse_args is_symid) false;
 
 fun attribs intern =
   let
-    val attrib_name = internal_text || (symbolic || named) >> evaluate T.Text intern;
+    val attrib_name = internal_text || (symbolic || named)
+      >> evaluate T.Text (intern o T.content_of);
     val attrib = P.position (attrib_name -- P.!!! parse) >> src;
   in $$$ "[" |-- P.!!! (P.list attrib --| $$$ "]") end;
 
