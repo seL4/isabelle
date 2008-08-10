@@ -411,24 +411,47 @@ fun inferred_fixes ctxt =
 
 (* type and constant names *)
 
-fun read_tyname ctxt c =
-  if Syntax.is_tid c then
-    TFree (c, the_default (Sign.defaultS (theory_of ctxt)) (Variable.def_sort ctxt (c, ~1)))
-  else
-    let
-      val thy = theory_of ctxt;
-      val d = Sign.intern_type thy c;
-    in Type (d, replicate (Sign.arity_number thy d) dummyT) end;
+local
 
-fun read_const_proper ctxt c =
-  (case Variable.lookup_const ctxt c of
-    SOME d => Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => error msg)
-  | NONE => Consts.read_const (consts_of ctxt) c);
+val token_content = Syntax.read_token #>> SymbolPos.content;
 
-fun read_const ctxt c =
-  (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
-    (SOME x, false) => Free (x, infer_type ctxt x)
-  | _ => read_const_proper ctxt c);
+fun prep_const_proper ctxt (c, pos) =
+  let val t as (Const (d, _)) =
+    (case Variable.lookup_const ctxt c of
+      SOME d => Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => error msg)
+    | NONE => Consts.read_const (consts_of ctxt) c)
+  in Position.report (Markup.const d) pos; t end;
+
+in
+
+fun read_tyname ctxt str =
+  let
+    val thy = theory_of ctxt;
+    val (c, pos) = token_content str;
+  in
+    if Syntax.is_tid c then
+     (Position.report Markup.tfree pos;
+      TFree (c, the_default (Sign.defaultS thy) (Variable.def_sort ctxt (c, ~1))))
+    else
+      let
+        val d = Sign.intern_type thy c;
+        val _ = Position.report (Markup.tycon d) pos;
+      in Type (d, replicate (Sign.arity_number thy d) dummyT) end
+  end;
+
+fun read_const_proper ctxt = prep_const_proper ctxt o token_content;
+
+fun read_const ctxt str =
+  let val (c, pos) = token_content str in
+    (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
+      (SOME x, false) =>
+        (Position.report (Markup.name x
+            (if can Name.dest_skolem x then Markup.skolem else Markup.free)) pos;
+          Free (x, infer_type ctxt x))
+    | _ => prep_const_proper ctxt (c, pos))
+  end;
+
+end;
 
 
 (* read_term *)
@@ -639,15 +662,9 @@ end;
 
 local
 
-fun parse_token markup str =
-  let
-    val (syms, pos) = Syntax.read_token str;
-    val _ = Position.report markup pos;
-  in (syms, pos) end;
-
 fun parse_sort ctxt text =
   let
-    val (syms, pos) = parse_token Markup.sort text;
+    val (syms, pos) = Syntax.parse_token Markup.sort text;
     val S = Syntax.standard_parse_sort ctxt (syn_of ctxt)
         (Sign.intern_sort (theory_of ctxt)) (syms, pos)
       handle ERROR msg => cat_error msg  ("Failed to parse sort" ^ Position.str_of pos)
@@ -658,7 +675,7 @@ fun parse_typ ctxt text =
     val thy = ProofContext.theory_of ctxt;
     val get_sort = get_sort thy (Variable.def_sort ctxt);
 
-    val (syms, pos) = parse_token Markup.typ text;
+    val (syms, pos) = Syntax.parse_token Markup.typ text;
     val T = Sign.intern_tycons thy
         (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) (syms, pos))
       handle ERROR msg => cat_error msg  ("Failed to parse type" ^ Position.str_of pos);
@@ -670,8 +687,8 @@ fun parse_term T ctxt text =
     val {get_sort, map_const, map_free, map_type, map_sort} = term_context ctxt;
 
     val (T', _) = TypeInfer.paramify_dummies T 0;
-    val markup as (kind, _) = if T' = propT then Markup.proposition else Markup.term;
-    val (syms, pos) = parse_token markup text;
+    val (markup, kind) = if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
+    val (syms, pos) = Syntax.parse_token markup text;
 
     fun check t = (Syntax.check_term ctxt (TypeInfer.constrain T' t); NONE)
       handle ERROR msg => SOME msg;
@@ -873,11 +890,13 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
         val local_facts = facts_of ctxt;
         val thmref = Facts.map_name_of_ref (Facts.intern local_facts) xthmref;
         val name = Facts.name_of_ref thmref;
+        val pos = Facts.pos_of_ref xthmref;
         val thms =
           if name = "" then [Thm.transfer thy Drule.dummy_thm]
           else
             (case Facts.lookup (Context.Proof ctxt) local_facts name of
-              SOME (_, ths) => map (Thm.transfer thy) (Facts.select thmref ths)
+              SOME (_, ths) => (Position.report (Markup.local_fact name) pos;
+                map (Thm.transfer thy) (Facts.select thmref ths))
             | NONE => PureThy.get_fact (Context.Proof ctxt) thy xthmref);
       in pick name thms end;
 
