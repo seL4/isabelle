@@ -172,18 +172,19 @@ fun gen_thm pick = Scan.depend (fn context =>
     val thy = Context.theory_of context;
     val get = Context.cases (PureThy.get_fact context) ProofContext.get_fact context;
     val get_fact = get o Facts.Fact;
-    val get_named = get o Facts.named;
+    fun get_named pos name = get (Facts.Named ((name, pos), NONE));
   in
-    Args.$$$ "[" |-- Args.attribs (intern thy) --| Args.$$$ "]" >> (fn srcs =>
+    P.$$$ "[" |-- Args.attribs (intern thy) --| P.$$$ "]" >> (fn srcs =>
       let
         val atts = map (attribute_i thy) srcs;
         val (context', th') = Library.apply atts (context, Drule.dummy_thm);
       in (context', pick "" [th']) end)
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
-      >> (fn (s, fact) => ("", Facts.Fact s, fact))
-    || Scan.ahead fact_name -- P.position (Args.named_fact get_named) -- Scan.option thm_sel
-      >> (fn ((name, (fact, pos)), sel) => (name, Facts.Named ((name, pos), sel), fact)))
+      >> (fn (s, fact) => ("", Facts.Fact s, fact)) ||
+     Scan.ahead (P.position fact_name) :|-- (fn (name, pos) =>
+      Args.named_fact (get_named pos) -- Scan.option thm_sel
+        >> (fn (fact, sel) => (name, Facts.Named ((name, pos), sel), fact))))
     -- Args.opt_attribs (intern thy) >> (fn ((name, thmref, fact), srcs) =>
       let
         val ths = Facts.select thmref fact;
@@ -344,7 +345,7 @@ fun print_configs ctxt =
 
 local
 
-val equals = Args.$$$ "=";
+val equals = P.$$$ "=";
 
 fun scan_value (Config.Bool _) =
       equals -- Args.$$$ "false" >> K (Config.Bool false) ||
