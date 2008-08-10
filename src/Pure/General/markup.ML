@@ -14,6 +14,7 @@ sig
   val none: T
   val properties: (string * string) list -> T -> T
   val nameN: string
+  val name: string -> T -> T
   val groupN: string
   val theory_nameN: string
   val idN: string
@@ -42,6 +43,7 @@ sig
   val constN: string val const: string -> T
   val factN: string val fact: string -> T
   val dynamic_factN: string val dynamic_fact: string -> T
+  val local_factN: string val local_fact: string -> T
   val tfreeN: string val tfree: T
   val tvarN: string val tvar: T
   val freeN: string val free: T
@@ -55,7 +57,7 @@ sig
   val sortN: string val sort: T
   val typN: string val typ: T
   val termN: string val term: T
-  val propositionN: string val proposition: T
+  val propN: string val prop: T
   val attributeN: string val attribute: string -> T
   val methodN: string val method: string -> T
   val keywordN: string val keyword: string -> T
@@ -115,6 +117,8 @@ fun markup_int elem prop = (elem, fn i => (elem, [(prop, Int.toString i)]): T);
 (* name *)
 
 val nameN = "name";
+fun name a = properties [(nameN, a)];
+
 val groupN = "group";
 val theory_nameN = "theory_name";
 
@@ -165,6 +169,7 @@ val (fixedN, fixed) = markup_string "fixed" nameN;
 val (constN, const) = markup_string "const" nameN;
 val (factN, fact) = markup_string "fact" nameN;
 val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;
+val (local_factN, local_fact) = markup_string "local_fact" nameN;
 
 
 (* inner syntax *)
@@ -183,7 +188,7 @@ val (literalN, literal) = markup_elem "literal";
 val (sortN, sort) = markup_elem "sort";
 val (typN, typ) = markup_elem "typ";
 val (termN, term) = markup_elem "term";
-val (propositionN, proposition) = markup_elem "proposition";
+val (propN, prop) = markup_elem "prop";
 
 val (attributeN, attribute) = markup_string "attribute" nameN;
 val (methodN, method) = markup_string "method" nameN;
