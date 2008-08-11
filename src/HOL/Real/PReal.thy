@@ -10,7 +10,7 @@
 header {* Positive real numbers *}
 
 theory PReal
-imports Rational
+imports Rational Dense_Linear_Order
 begin
 
 text{*Could be generalized and moved to @{text Ring_and_Field}*}

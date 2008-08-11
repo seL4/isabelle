@@ -214,6 +214,10 @@ section {* The classical QE after Langford for dense linear orders *}
 context dense_linear_order
 begin
 
+lemma interval_empty_iff:
+  "{y. x < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
+  by (auto dest: dense)
+
 lemma dlo_qe_bnds: 
   assumes ne: "L \<noteq> {}" and neU: "U \<noteq> {}" and fL: "finite L" and fU: "finite U"
   shows "(\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> U. x < y)) \<equiv> (\<forall> l \<in> L. \<forall>u \<in> U. l < u)"
