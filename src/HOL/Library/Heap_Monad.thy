@@ -292,7 +292,7 @@ subsubsection {* SML and OCaml *}
 
 code_type Heap (SML "unit/ ->/ _")
 code_const Heap (SML "raise/ (Fail/ \"bare Heap\")")
-code_const "op \<guillemotright>=" (SML "!(fn/ f/ =>/ fn/ g/ =>/ fn/ ()/ =>/ g/ (f/ ())/ ())")
+code_const "op \<guillemotright>=" (SML "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())")
 code_const run (SML "_")
 code_const return (SML "!(fn/ ()/ =>/ _)")
 code_const "Heap_Monad.Fail" (SML "Fail")
@@ -300,7 +300,7 @@ code_const "Heap_Monad.raise_exc" (SML "!(fn/ ()/ =>/ raise/ _)")
 
 code_type Heap (OCaml "_")
 code_const Heap (OCaml "failwith/ \"bare Heap\"")
-code_const "op \<guillemotright>=" (OCaml "!(fun/ f/ g/ ()/ ->/ g/ (f/ ())/ ())")
+code_const "op \<guillemotright>=" (OCaml "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())")
 code_const run (OCaml "_")
 code_const return (OCaml "!(fun/ ()/ ->/ _)")
 code_const "Heap_Monad.Fail" (OCaml "Failure")
