@@ -333,8 +333,8 @@ fun applet_pages session back =
           "\n</div>\n<hr/>\n<div class=\"graphbrowser\">\n\
           \<applet code=\"GraphBrowser/GraphBrowser.class\" \
           \archive=\"GraphBrowser.jar\" \
-          \width=" ^ width ^ " height=" ^ height ^ ">\n\
-          \<param name=\"graphfile\" value=\"" ^ "session.graph" ^ "\">\n\
+          \width=" ^ quote width ^ " height=" ^ quote height ^ ">\n\
+          \<param name=\"graphfile\" value=\"" ^ "session.graph" ^ "\"/>\n\
           \</applet>\n<hr/>" ^ end_document)
       end;
   in map applet_page sizes end;
