@@ -23,7 +23,7 @@ typedef (Real)  real = "UNIV//realrel"
 definition
   (** these don't use the overloaded "real" function: users don't see them **)
   real_of_preal :: "preal => real" where
-  "real_of_preal m = Abs_Real(realrel``{(m + 1, 1)})"
+  [code func del]: "real_of_preal m = Abs_Real (realrel `` {(m + 1, 1)})"
 
 instantiation real :: "{zero, one, plus, minus, uminus, times, inverse, ord, abs, sgn}"
 begin
