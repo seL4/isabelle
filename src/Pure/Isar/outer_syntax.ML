@@ -25,6 +25,7 @@ sig
   val scan: string -> OuterLex.token list
   val parse: Position.T -> string -> Toplevel.transition list
   val prepare_command: Position.T -> string -> Toplevel.transition
+  val prepare_command_failsafe: Position.T -> string -> Toplevel.transition
   val process_file: Path.T -> theory -> theory
   type isar
   val isar: bool -> isar
@@ -200,6 +201,11 @@ fun prepare_command pos str =
   (case parse pos str of
     [transition] => transition
   | _ => error "exactly one command expected");
+
+fun prepare_command_failsafe pos str = prepare_command pos str
+  handle ERROR msg =>
+    Toplevel.empty |> Toplevel.name "<malformed>" |> Toplevel.position pos
+    |> Toplevel.imperative (fn () => error msg);
 
 
 (* process file *)

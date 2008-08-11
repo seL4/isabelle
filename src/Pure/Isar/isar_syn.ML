@@ -723,7 +723,7 @@ val _ =
   OuterSyntax.improper_command "Isar.command" "define command (Isar editor model)" K.control
     (props_text >> (fn (pos, str) =>
       Toplevel.no_timing o Toplevel.imperative (fn () =>
-        ignore (Isar.create_command (OuterSyntax.prepare_command pos str)))));
+        ignore (Isar.create_command (OuterSyntax.prepare_command_failsafe pos str)))));
 
 val _ =
   OuterSyntax.improper_command "Isar.insert" "insert command (Isar editor model)" K.control
