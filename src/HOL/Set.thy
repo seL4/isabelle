@@ -324,8 +324,8 @@ subsection {* Rules and definitions *}
 text {* Isomorphisms between predicates and sets. *}
 
 defs
-  mem_def: "x : S == S x"
-  Collect_def: "Collect P == P"
+  mem_def [code func]: "x : S == S x"
+  Collect_def [code func]: "Collect P == P"
 
 defs
   Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
@@ -2061,7 +2061,7 @@ subsection {* Inverse image of a function *}
 
 constdefs
   vimage :: "('a => 'b) => 'b set => 'a set"    (infixr "-`" 90)
-  "f -` B == {x. f x : B}"
+  [code func del]: "f -` B == {x. f x : B}"
 
 
 subsubsection {* Basic rules *}
@@ -2174,22 +2174,6 @@ lemmas basic_trans_rules [trans] =
   order_trans_rules set_rev_mp set_mp
 
 
-subsection {* Dense orders *}
-
-class dense_linear_order = linorder + 
-  assumes gt_ex: "\<exists>y. x < y" 
-  and lt_ex: "\<exists>y. y < x"
-  and dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
-  (*see further theory Dense_Linear_Order*)
-begin
-
-lemma interval_empty_iff:
-  "{y. x < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
-  by (auto dest: dense)
-
-end
-
-
 subsection {* Least value operator *}
 
 lemma Least_mono:
@@ -2201,6 +2185,28 @@ lemma Least_mono:
   apply (rule LeastI2_order)
   apply (auto elim: monoD intro!: order_antisym)
   done
+
+
+subsection {* Rudimentary code generation *}
+
+lemma empty_code [code func]: "{} x \<longleftrightarrow> False"
+  unfolding empty_def Collect_def ..
+
+lemma UNIV_code [code func]: "UNIV x \<longleftrightarrow> True"
+  unfolding UNIV_def Collect_def ..
+
+lemma insert_code [code func]: "insert y A x \<longleftrightarrow> y = x \<or> A x"
+  unfolding insert_def Collect_def mem_def Un_def by auto
+
+lemma inter_code [code func]: "(A \<inter> B) x \<longleftrightarrow> A x \<and> B x"
+  unfolding Int_def Collect_def mem_def ..
+
+lemma union_code [code func]: "(A \<union> B) x \<longleftrightarrow> A x \<or> B x"
+  unfolding Un_def Collect_def mem_def ..
+
+lemma vimage_code [code func]: "(f -` A) x = A (f x)"
+  unfolding vimage_def Collect_def mem_def ..
+
 
 
 subsection {* Basic ML bindings *}
