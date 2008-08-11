@@ -248,7 +248,7 @@ val state_markup =
     split_markup (output_pgmltext (pgml PgipTypes.Display pgmlterms_no_text))
 
 val token_markups =
- [Markup.classN, Markup.tfreeN, Markup.tvarN, Markup.freeN,
+ [Markup.tclassN, Markup.tfreeN, Markup.tvarN, Markup.freeN,
   Markup.boundN, Markup.varN, Markup.skolemN];
 
 in

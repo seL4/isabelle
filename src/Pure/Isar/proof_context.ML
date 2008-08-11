@@ -373,7 +373,7 @@ fun var_or_skolem _ s =
   | NONE => Pretty.mark Markup.var (Pretty.str s));
 
 fun class_markup _ c =    (* FIXME authentic name *)
-  Pretty.mark (Markup.classN, []) (Pretty.str c);
+  Pretty.mark (Markup.tclassN, []) (Pretty.str c);
 
 fun plain_markup m _ s = Pretty.mark m (Pretty.str s);
 

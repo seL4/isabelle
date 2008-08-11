@@ -37,7 +37,7 @@ sig
   val widthN: string
   val breakN: string val break: int -> T
   val fbreakN: string val fbreak: T
-  val classN: string val class: string -> T
+  val tclassN: string val tclass: string -> T
   val tyconN: string val tycon: string -> T
   val fixedN: string val fixed: string -> T
   val constN: string val const: string -> T
@@ -163,7 +163,7 @@ val (fbreakN, fbreak) = markup_elem "fbreak";
 
 (* logical entities *)
 
-val (classN, class) = markup_string "class" nameN;
+val (tclassN, tclass) = markup_string "tclass" nameN;
 val (tyconN, tycon) = markup_string "tycon" nameN;
 val (fixedN, fixed) = markup_string "fixed" nameN;
 val (constN, const) = markup_string "const" nameN;

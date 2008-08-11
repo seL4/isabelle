@@ -62,7 +62,7 @@ val _ = Markup.add_mode proof_generalN (fn (name, props) =>
       if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
       else if name = Markup.sendbackN then (special "376", special "377")
       else if name = Markup.hiliteN then (special "327", special "330")
-      else if name = Markup.classN then (special "351", special "350")
+      else if name = Markup.tclassN then (special "351", special "350")
       else if name = Markup.tfreeN then (special "352", special "350")
       else if name = Markup.tvarN then (special "353", special "350")
       else if name = Markup.freeN then (special "354", special "350")
