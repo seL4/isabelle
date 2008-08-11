@@ -40,6 +40,10 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* HOL/Orderings: class "wellorder" moved here, with explicit induction rule
+"less_induct" as assumption.  For instantiation of "wellorder" by means
+of predicate "wf", use rule wf_wellorderI.  INCOMPATIBILITY.
+
 * HOL/Orderings: added class "preorder" as superclass of "order".
 INCOMPATIBILITY: Instantiation proofs for order, linorder
 etc. slightly changed.  Some theorems named order_class.* now named
@@ -5670,5 +5674,6 @@ have been removed;
 types;
 
 :mode=text:wrap=hard:maxLineLen=72:
+
 
 $Id$

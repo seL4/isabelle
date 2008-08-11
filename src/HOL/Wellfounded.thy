@@ -45,10 +45,6 @@ constdefs
 abbreviation acyclicP :: "('a => 'a => bool) => bool" where
   "acyclicP r == acyclic {(x, y). r x y}"
 
-class wellorder = linorder +
-  assumes wf: "wf {(x, y). x < y}"
-
-
 lemma wfP_wf_eq [pred_set_conv]: "wfP (\<lambda>x y. (x, y) \<in> r) = wf r"
   by (simp add: wfP_def)
 
@@ -89,6 +85,18 @@ lemma wf_not_refl [simp]: "wf r ==> (a, a) ~: r"
 
 (* [| wf r;  (a,a) ~: r ==> PROP W |] ==> PROP W *)
 lemmas wf_irrefl = wf_not_refl [elim_format]
+
+lemma wf_wellorderI:
+  assumes wf: "wf {(x::'a::ord, y). x < y}"
+  assumes lin: "OFCLASS('a::ord, linorder_class)"
+  shows "OFCLASS('a::ord, wellorder_class)"
+using lin by (rule wellorder_class.intro)
+  (blast intro: wellorder_axioms.intro wf_induct_rule [OF wf])
+
+lemma (in wellorder) wf:
+  "wf {(x, y). x < y}"
+unfolding wf_def by (blast intro: less_induct)
+
 
 subsection {* Basic Results *}
 
@@ -460,43 +468,6 @@ fun wfrec f x = f (wfrec f) x;
 *}
 
 
-subsection {*LEAST and wellorderings*}
-
-text{* See also @{text wf_linord_ex_has_least} and its consequences in
- @{text Wellfounded_Relations.ML}*}
-
-lemma wellorder_Least_lemma [rule_format]:
-     "P (k::'a::wellorder) --> P (LEAST x. P(x)) & (LEAST x. P(x)) <= k"
-apply (rule_tac a = k in wf [THEN wf_induct])
-apply (rule impI)
-apply (rule classical)
-apply (rule_tac s = x in Least_equality [THEN ssubst], auto)
-apply (auto simp add: linorder_not_less [symmetric])
-done
-
-lemmas LeastI   = wellorder_Least_lemma [THEN conjunct1, standard]
-lemmas Least_le = wellorder_Least_lemma [THEN conjunct2, standard]
-
--- "The following 3 lemmas are due to Brian Huffman"
-lemma LeastI_ex: "EX x::'a::wellorder. P x ==> P (Least P)"
-apply (erule exE)
-apply (erule LeastI)
-done
-
-lemma LeastI2:
-  "[| P (a::'a::wellorder); !!x. P x ==> Q x |] ==> Q (Least P)"
-by (blast intro: LeastI)
-
-lemma LeastI2_ex:
-  "[| EX a::'a::wellorder. P a; !!x. P x ==> Q x |] ==> Q (Least P)"
-by (blast intro: LeastI_ex)
-
-lemma not_less_Least: "[| k < (LEAST x. P x) |] ==> ~P (k::'a::wellorder)"
-apply (simp (no_asm_use) add: linorder_not_le [symmetric])
-apply (erule contrapos_nn)
-apply (erule Least_le)
-done
-
 subsection {* @{typ nat} is well-founded *}
 
 lemma less_nat_rel: "op < = (\<lambda>m n. n = Suc m)^++"
@@ -549,52 +520,6 @@ lemma less_than_iff [iff]: "((x,y): less_than) = (x<y)"
 
 lemma wf_less: "wf {(x, y::nat). x < y}"
   using wf_less_than by (simp add: less_than_def less_eq [symmetric])
-
-text {* Type @{typ nat} is a wellfounded order *}
-
-instance nat :: wellorder
-  by intro_classes
-    (assumption |
-      rule le_refl le_trans le_anti_sym nat_less_le nat_le_linear wf_less)+
-
-text {* @{text LEAST} theorems for type @{typ nat}*}
-
-lemma Least_Suc:
-     "[| P n; ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
-  apply (case_tac "n", auto)
-  apply (frule LeastI)
-  apply (drule_tac P = "%x. P (Suc x) " in LeastI)
-  apply (subgoal_tac " (LEAST x. P x) \<le> Suc (LEAST x. P (Suc x))")
-  apply (erule_tac [2] Least_le)
-  apply (case_tac "LEAST x. P x", auto)
-  apply (drule_tac P = "%x. P (Suc x) " in Least_le)
-  apply (blast intro: order_antisym)
-  done
-
-lemma Least_Suc2:
-   "[|P n; Q m; ~P 0; !k. P (Suc k) = Q k|] ==> Least P = Suc (Least Q)"
-  apply (erule (1) Least_Suc [THEN ssubst])
-  apply simp
-  done
-
-lemma ex_least_nat_le: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow> \<exists>k\<le>n. (\<forall>i<k. \<not>P i) & P(k)"
-  apply (cases n)
-   apply blast
-  apply (rule_tac x="LEAST k. P(k)" in exI)
-  apply (blast intro: Least_le dest: not_less_Least intro: LeastI_ex)
-  done
-
-lemma ex_least_nat_less: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow> \<exists>k<n. (\<forall>i\<le>k. \<not>P i) & P(k+1)"
-  apply (cases n)
-   apply blast
-  apply (frule (1) ex_least_nat_le)
-  apply (erule exE)
-  apply (case_tac k)
-   apply simp
-  apply (rename_tac k1)
-  apply (rule_tac x=k1 in exI)
-  apply fastsimp
-  done
 
 
 subsection {* Accessible Part *}
@@ -914,8 +839,12 @@ use "Tools/function_package/size.ML"
 
 setup Size.setup
 
+lemma size_bool [code func]:
+  "size (b\<Colon>bool) = 0" by (cases b) auto
+
 lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
 
+declare "prod.size" [noatp]
 
 end

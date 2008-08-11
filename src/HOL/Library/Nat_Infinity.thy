@@ -317,13 +317,9 @@ qed
 
 instance inat :: wellorder
 proof
-  show "wf {(x::inat, y::inat). x < y}"
-  proof (rule wfUNIVI)
-    fix P and x :: inat
-    assume "\<forall>x::inat. (\<forall>y. (y, x) \<in> {(x, y). x < y} \<longrightarrow> P y) \<longrightarrow> P x"
-    hence 1: "!!x::inat. ALL y. y < x --> P y ==> P x" by fast
-    thus "P x" by (rule inat_less_induct)
-  qed
+  fix P and n
+  assume hyp: "(\<And>n\<Colon>inat. (\<And>m\<Colon>inat. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
+  show "P n" by (blast intro: inat_less_induct hyp)
 qed
 
 

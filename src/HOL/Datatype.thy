@@ -9,13 +9,8 @@ Could <*> be generalized to a general summation (Sigma)?
 header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
 
 theory Datatype
-imports Finite_Set Wellfounded
+imports Finite_Set
 begin
-
-lemma size_bool [code func]:
-  "size (b\<Colon>bool) = 0" by (cases b) auto
-
-declare "prod.size" [noatp]
 
 typedef (Node)
   ('a,'b) node = "{p. EX f x k. p = (f::nat=>'b+nat, x::'a+nat) & f k = Inr 0}"

@@ -1109,4 +1109,71 @@ apply (simp add: max_def)
 apply (blast intro: order_antisym)
 done
 
+
+subsection {* Dense orders *}
+
+class dense_linear_order = linorder + 
+  assumes gt_ex: "\<exists>y. x < y" 
+  and lt_ex: "\<exists>y. y < x"
+  and dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
+  (*see further theory Dense_Linear_Order*)
+
+
+subsection {* Wellorders *}
+
+class wellorder = linorder +
+  assumes less_induct [case_names less]: "(\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x) \<Longrightarrow> P a"
+begin
+
+lemma wellorder_Least_lemma:
+  fixes k :: 'a
+  assumes "P k"
+  shows "P (LEAST x. P x)" and "(LEAST x. P x) \<le> k"
+proof -
+  have "P (LEAST x. P x) \<and> (LEAST x. P x) \<le> k"
+  using assms proof (induct k rule: less_induct)
+    case (less x) then have "P x" by simp
+    show ?case proof (rule classical)
+      assume assm: "\<not> (P (LEAST a. P a) \<and> (LEAST a. P a) \<le> x)"
+      have "\<And>y. P y \<Longrightarrow> x \<le> y"
+      proof (rule classical)
+        fix y
+        assume "P y" and "\<not> x \<le> y" 
+        with less have "P (LEAST a. P a)" and "(LEAST a. P a) \<le> y"
+          by (auto simp add: not_le)
+        with assm have "x < (LEAST a. P a)" and "(LEAST a. P a) \<le> y"
+          by auto
+        then show "x \<le> y" by auto
+      qed
+      with `P x` have Least: "(LEAST a. P a) = x"
+        by (rule Least_equality)
+      with `P x` show ?thesis by simp
+    qed
+  qed
+  then show "P (LEAST x. P x)" and "(LEAST x. P x) \<le> k" by auto
+qed
+
+lemmas LeastI   = wellorder_Least_lemma(1)
+lemmas Least_le = wellorder_Least_lemma(2)
+
+-- "The following 3 lemmas are due to Brian Huffman"
+lemma LeastI_ex: "\<exists>x. P x \<Longrightarrow> P (Least P)"
+  by (erule exE) (erule LeastI)
+
+lemma LeastI2:
+  "P a \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> Q (Least P)"
+  by (blast intro: LeastI)
+
+lemma LeastI2_ex:
+  "\<exists>a. P a \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> Q (Least P)"
+  by (blast intro: LeastI_ex)
+
+lemma not_less_Least: "k < (LEAST x. P x) \<Longrightarrow> \<not> P k"
+apply (simp (no_asm_use) add: not_le [symmetric])
+apply (erule contrapos_nn)
+apply (erule Least_le)
+done
+
+end  
+
 end

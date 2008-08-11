@@ -733,30 +733,65 @@ subsubsection {* Additional theorems about @{term "op \<le>"} *}
 
 text {* Complete induction, aka course-of-values induction *}
 
-lemma less_induct [case_names less]:
-  fixes P :: "nat \<Rightarrow> bool"
-  assumes step: "\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x"
-  shows "P a"
-proof - 
-  have "\<And>z. z\<le>a \<Longrightarrow> P z"
-  proof (induct a)
-    case (0 z)
+instance nat :: wellorder proof
+  fix P and n :: nat
+  assume step: "\<And>n::nat. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n"
+  have "\<And>q. q \<le> n \<Longrightarrow> P q"
+  proof (induct n)
+    case (0 n)
     have "P 0" by (rule step) auto
     thus ?case using 0 by auto
   next
-    case (Suc x z)
-    then have "z \<le> x \<or> z = Suc x" by (simp add: le_Suc_eq)
+    case (Suc m n)
+    then have "n \<le> m \<or> n = Suc m" by (simp add: le_Suc_eq)
     thus ?case
     proof
-      assume "z \<le> x" thus "P z" by (rule Suc(1))
+      assume "n \<le> m" thus "P n" by (rule Suc(1))
     next
-      assume z: "z = Suc x"
-      show "P z"
-        by (rule step) (rule Suc(1), simp add: z le_simps)
+      assume n: "n = Suc m"
+      show "P n"
+        by (rule step) (rule Suc(1), simp add: n le_simps)
     qed
   qed
-  thus ?thesis by auto
+  then show "P n" by auto
 qed
+
+lemma Least_Suc:
+     "[| P n; ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
+  apply (case_tac "n", auto)
+  apply (frule LeastI)
+  apply (drule_tac P = "%x. P (Suc x) " in LeastI)
+  apply (subgoal_tac " (LEAST x. P x) \<le> Suc (LEAST x. P (Suc x))")
+  apply (erule_tac [2] Least_le)
+  apply (case_tac "LEAST x. P x", auto)
+  apply (drule_tac P = "%x. P (Suc x) " in Least_le)
+  apply (blast intro: order_antisym)
+  done
+
+lemma Least_Suc2:
+   "[|P n; Q m; ~P 0; !k. P (Suc k) = Q k|] ==> Least P = Suc (Least Q)"
+  apply (erule (1) Least_Suc [THEN ssubst])
+  apply simp
+  done
+
+lemma ex_least_nat_le: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow> \<exists>k\<le>n. (\<forall>i<k. \<not>P i) & P(k)"
+  apply (cases n)
+   apply blast
+  apply (rule_tac x="LEAST k. P(k)" in exI)
+  apply (blast intro: Least_le dest: not_less_Least intro: LeastI_ex)
+  done
+
+lemma ex_least_nat_less: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow> \<exists>k<n. (\<forall>i\<le>k. \<not>P i) & P(k+1)"
+  apply (cases n)
+   apply blast
+  apply (frule (1) ex_least_nat_le)
+  apply (erule exE)
+  apply (case_tac k)
+   apply simp
+  apply (rename_tac k1)
+  apply (rule_tac x=k1 in exI)
+  apply (auto simp add: less_eq_Suc_le)
+  done
 
 lemma nat_less_induct:
   assumes "!!n. \<forall>m::nat. m < n --> P m ==> P n" shows "P n"
