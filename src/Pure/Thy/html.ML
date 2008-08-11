@@ -241,8 +241,7 @@ end;
 
 fun span s = ("<span class=" ^ Library.quote (XML.text s) ^ ">", "</span>");
 
-val _ = Markup.add_mode htmlN (fn (name, props) =>
-  if name = Markup.classN then span "tclass" else span name);
+val _ = Markup.add_mode htmlN (fn (name, _) => span name);
 
 
 
@@ -270,29 +269,31 @@ fun href_opt_path NONE txt = txt
   | href_opt_path (SOME p) txt = href_path p txt;
 
 fun para txt = "\n<p>" ^ txt ^ "</p>\n";
-fun preform txt = "<pre>" ^ txt ^ "</pre>";
+fun preform txt = "<pre xml:space=\"preserve\">" ^ txt ^ "</pre>";
 val verbatim = preform o output;
 
 
 (* document *)
 
-val charset = ref "iso-8859-1";
+val charset = ref "ISO-8859-1";
 fun with_charset s = setmp_noncritical charset s;
 
 fun begin_document title =
-  "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \
-  \\"http://www.w3.org/TR/html4/loose.dtd\">\n\
-  \\n\
-  \<html>\n\
-  \<head>\n\
-  \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=" ^ ! charset ^ "\">\n\
-  \<title>" ^ plain (title ^ " (" ^ Distribution.version ^ ")") ^ "</title>\n\
-  \<link rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\">\n\
-  \</head>\n\
-  \\n\
-  \<body>\n\
-  \<div class=\"head\">\
-  \<h1>" ^ plain title ^ "</h1>\n"
+  let val cs = ! charset in
+    "<?xml version=\"1.0\" encoding=\"" ^ cs ^ "\" ?>\n\
+    \<!DOCTYPE HTML PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \
+    \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n\
+    \<html xmlns=\"http://www.w3.org/1999/xhtml\">\n\
+    \<head>\n\
+    \<meta http-equiv=\"Content-Type\" content=\"text/html; charset=" ^ cs ^ "\"/>\n\
+    \<title>" ^ plain (title ^ " (" ^ Distribution.version ^ ")") ^ "</title>\n\
+    \<link media=\"all\" rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\"/>\n\
+    \</head>\n\
+    \\n\
+    \<body>\n\
+    \<div class=\"head\">\
+    \<h1>" ^ plain title ^ "</h1>\n"
+  end;
 
 val end_document = "\n</div>\n</body>\n</html>\n";
 
@@ -306,8 +307,8 @@ val back_link = gen_link "Back";
 fun begin_index up (index_path, session) docs graph =
   begin_document ("Index of " ^ session) ^ up_link up ^
   para ("View " ^ href_path graph "theory dependencies" ^
-    implode (map (fn (p, name) => "<br>\nView " ^ href_path p name) docs)) ^
-  "\n</div>\n<hr>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
+    implode (map (fn (p, name) => "<br/>\nView " ^ href_path p name) docs)) ^
+  "\n</div>\n<hr/>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
 
 val end_index = end_document;
 
@@ -329,32 +330,32 @@ fun applet_pages session back =
         (name, begin_document ("Theory dependencies of " ^ session) ^
           back_link back ^
           para browser_size ^
-          "\n</div>\n<hr>\n<div class=\"graphbrowser\">\n\
+          "\n</div>\n<hr/>\n<div class=\"graphbrowser\">\n\
           \<applet code=\"GraphBrowser/GraphBrowser.class\" \
           \archive=\"GraphBrowser.jar\" \
           \width=" ^ width ^ " height=" ^ height ^ ">\n\
           \<param name=\"graphfile\" value=\"" ^ "session.graph" ^ "\">\n\
-          \</applet>\n<hr>" ^ end_document)
+          \</applet>\n<hr/>" ^ end_document)
       end;
   in map applet_page sizes end;
 
 
-fun entry (p, s) = "<li>" ^ href_path p (plain s) ^ "\n";
+fun entry (p, s) = "<li>" ^ href_path p (plain s) ^ "</li>\n";
 
 val theory_entry = entry;
 
 fun session_entries [] = "</ul>"
   | session_entries es =
-      "</ul>\n</div>\n<hr>\n<div class=\"sessions\">\n\
+      "</ul>\n</div>\n<hr/>\n<div class=\"sessions\">\n\
       \<h2>Sessions</h2>\n<ul>\n" ^ implode (map entry es) ^ "</ul>";
 
 
 (* theory *)
 
 fun verbatim_source ss =
-  "\n</div>\n<hr>\n<div class=\"source\">\n<pre>" ^
+  "\n</div>\n<hr/>\n<div class=\"source\">\n<pre xml:space=\"preserve\">" ^
   implode (output_symbols ss) ^
-  "</pre>\n</div>\n<hr>\n<div class=\"theorems\">\n";
+  "</pre>\n</div>\n<hr/>\n<div class=\"theorems\">\n";
 
 
 local
@@ -368,14 +369,14 @@ local
   fun imports Bs =
     keyword "imports" ^ " " ^ space_implode " " (map (uncurry href_opt_path o apsnd name) Bs);
 
-  fun uses Ps = keyword "uses" ^ " " ^ space_implode " " (map file Ps) ^ "<br>\n";
+  fun uses Ps = keyword "uses" ^ " " ^ space_implode " " (map file Ps) ^ "<br/>\n";
 in
 
 fun begin_theory up A Bs Ps body =
-  theory up A ^ "<br>\n" ^
-  imports Bs ^ "<br>\n" ^
+  theory up A ^ "<br/>\n" ^
+  imports Bs ^ "<br/>\n" ^
   (if null Ps then "" else uses Ps) ^
-  keyword "begin" ^ "<br>\n" ^
+  keyword "begin" ^ "<br/>\n" ^
   body;
 
 end;
@@ -387,9 +388,9 @@ val end_theory = end_document;
 
 fun ml_file path str =
   begin_document ("File " ^ Url.implode path) ^
-  "\n</div>\n<hr><div class=\"mlsource\">\n" ^
+  "\n</div>\n<hr/><div class=\"mlsource\">\n" ^
   verbatim str ^
-  "\n</div>\n<hr>\n<div class=\"mlfooter\">\n" ^
+  "\n</div>\n<hr/>\n<div class=\"mlfooter\">\n" ^
   end_document;
 
 
