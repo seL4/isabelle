@@ -269,7 +269,7 @@ fun href_opt_path NONE txt = txt
   | href_opt_path (SOME p) txt = href_path p txt;
 
 fun para txt = "\n<p>" ^ txt ^ "</p>\n";
-fun preform txt = "<pre xml:space=\"preserve\">" ^ txt ^ "</pre>";
+fun preform txt = "<pre>" ^ txt ^ "</pre>";
 val verbatim = preform o output;
 
 
@@ -353,7 +353,7 @@ fun session_entries [] = "</ul>"
 (* theory *)
 
 fun verbatim_source ss =
-  "\n</div>\n<hr/>\n<div class=\"source\">\n<pre xml:space=\"preserve\">" ^
+  "\n</div>\n<hr/>\n<div class=\"source\">\n<pre>" ^
   implode (output_symbols ss) ^
   "</pre>\n</div>\n<hr/>\n<div class=\"theorems\">\n";
 
@@ -402,14 +402,14 @@ fun string_of_thm ctxt =
   Output.output o Pretty.setmp_margin 80 Pretty.string_of o
     setmp show_question_marks false (ProofContext.pretty_thm ctxt);
 
-fun thm ctxt th = preform (prefix_lines "  " (html_mode (string_of_thm ctxt) th));
+fun thm ctxt th = prefix_lines "  " (html_mode (string_of_thm ctxt) th);
 
 fun thm_name "" = ""
   | thm_name a = " " ^ name (a ^ ":");
 
 in
 
-fun result ctxt k (a, ths) = para (cat_lines ((command k ^ thm_name a) :: map (thm ctxt) ths));
+fun result ctxt k (a, ths) = preform (cat_lines ((command k ^ thm_name a) :: map (thm ctxt) ths));
 
 fun results _ _ [] = ""
   | results ctxt k (res :: ress) = cat_lines (result ctxt k res :: map (result ctxt "and") ress);
