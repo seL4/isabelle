@@ -318,7 +318,7 @@ Locales are named local contexts, consisting of a list of
   \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
   \indexisarelem{defines}\indexisarelem{notes}\indexisarelem{includes}
   \begin{rail}
-    'locale' ('(open)')? name ('=' localeexpr)? 'begin'?
+    'locale' name ('=' localeexpr)? 'begin'?
     ;
     'print\_locale' '!'? localeexpr
     ;
@@ -429,11 +429,6 @@ Locales are named local contexts, consisting of a list of
   \isa{{\isachardoublequote}{\isasymLongrightarrow}{\isachardoublequote}} by \isa{{\isachardoublequote}{\isasymlongrightarrow}{\isachardoublequote}} in HOL; see also
   \secref{sec:object-logic}).  Separate introduction rules \isa{loc{\isacharunderscore}axioms{\isachardot}intro} and \isa{loc{\isachardot}intro} are provided as well.
   
-  The \isa{{\isachardoublequote}{\isacharparenleft}open{\isacharparenright}{\isachardoublequote}} option of a locale specification prevents both
-  the current \isa{loc{\isacharunderscore}axioms} and cumulative \isa{loc} predicate
-  constructions.  Predicates are also omitted for empty specification
-  texts.
-
   \item [\hyperlink{command.print-locale}{\mbox{\isa{\isacommand{print{\isacharunderscore}locale}}}}~\isa{{\isachardoublequote}import\ {\isacharplus}\ body{\isachardoublequote}}] prints the
   specified locale expression in a flattened form.  The notable
   special case \hyperlink{command.print-locale}{\mbox{\isa{\isacommand{print{\isacharunderscore}locale}}}}~\isa{loc} just prints the
