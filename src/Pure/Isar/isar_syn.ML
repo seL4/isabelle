@@ -713,8 +713,10 @@ val props_text =
 val _ =
   OuterSyntax.improper_command "Isabelle.command" "nested Isabelle command" K.control
     (props_text :|-- (fn (pos, str) =>
-      Scan.succeed (K (OuterSyntax.prepare_command pos str))
-        handle ERROR msg => Scan.fail_with (K msg)));
+      (case OuterSyntax.parse pos str of
+        [tr] => Scan.succeed (K tr)
+      | _ => Scan.fail_with (K "exactly one command expected"))
+      handle ERROR msg => Scan.fail_with (K msg)));
 
 
 (* global history commands *)
@@ -723,7 +725,7 @@ val _ =
   OuterSyntax.improper_command "Isar.command" "define command (Isar editor model)" K.control
     (props_text >> (fn (pos, str) =>
       Toplevel.no_timing o Toplevel.imperative (fn () =>
-        ignore (Isar.create_command (OuterSyntax.prepare_command_failsafe pos str)))));
+        ignore (Isar.create_command (OuterSyntax.prepare_command pos str)))));
 
 val _ =
   OuterSyntax.improper_command "Isar.insert" "insert command (Isar editor model)" K.control
