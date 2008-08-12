@@ -60,11 +60,12 @@ sig
   val propN: string val prop: T
   val attributeN: string val attribute: string -> T
   val methodN: string val method: string -> T
-  val keywordN: string val keyword: string -> T
-  val commandN: string val command: string -> T
   val keyword_declN: string val keyword_decl: string -> T
   val command_declN: string val command_decl: string -> string -> T
+  val keywordN: string val keyword: string -> T
+  val commandN: string val command: string -> T
   val tokenN: string val token: T
+  val identN: string val ident: T
   val stringN: string val string: T
   val altstringN: string val altstring: T
   val verbatimN: string val verbatim: T
@@ -74,7 +75,7 @@ sig
   val antiqN: string val antiq: T
   val command_spanN: string val command_span: string -> T
   val ignored_spanN: string val ignored_span: T
-  val unknown_spanN: string val unknown_span: T
+  val malformed_spanN: string val malformed_span: T
   val promptN: string val prompt: T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
@@ -196,15 +197,15 @@ val (methodN, method) = markup_string "method" nameN;
 
 (* outer syntax *)
 
-val (keywordN, keyword) = markup_string "keyword" nameN;
-val (commandN, command) = markup_string "command" nameN;
-
 val (keyword_declN, keyword_decl) = markup_string "keyword_decl" nameN;
 
 val command_declN = "command_decl";
 fun command_decl name kind : T = (command_declN, [(nameN, name), (kindN, kind)]);
 
+val (keywordN, keyword) = markup_string "keyword" nameN;
+val (commandN, command) = markup_string "command" nameN;
 val (tokenN, token) = markup_elem "token";
+val (identN, ident) = markup_elem "ident";
 val (stringN, string) = markup_elem "string";
 val (altstringN, altstring) = markup_elem "altstring";
 val (verbatimN, verbatim) = markup_elem "verbatim";
@@ -216,7 +217,7 @@ val (antiqN, antiq) = markup_elem "antiq";
 
 val (command_spanN, command_span) = markup_string "command_span" nameN;
 val (ignored_spanN, ignored_span) = markup_elem "ignored_span";
-val (unknown_spanN, unknown_span) = markup_elem "unknown_span";
+val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
 
 
 (* toplevel *)
