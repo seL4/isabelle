@@ -57,6 +57,8 @@ sig
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
+  val ignored: Position.T -> transition
+  val malformed: Position.T -> string -> transition
   val theory: (theory -> theory) -> transition -> transition
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
   val theory': (bool -> theory -> theory) -> transition -> transition
@@ -459,6 +461,10 @@ fun transaction f = add_trans (Transaction f);
 
 fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
+
+fun ignored pos = empty |> name "<ignored>" |> position pos |> imperative I;
+fun malformed pos msg =
+  empty |> name "<malformed>" |> position pos |> imperative (fn () => error msg);
 
 val unknown_theory = imperative (fn () => warning "Unknown theory context");
 val unknown_proof = imperative (fn () => warning "Unknown proof context");
