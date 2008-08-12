@@ -52,24 +52,25 @@ fun parse_tokens lexs pos str =
 local
 
 val token_kind_markup =
- fn T.Command   => (Markup.commandN, [])
-  | T.Keyword   => (Markup.keywordN, [])
-  | T.Ident     => Markup.ident
-  | T.LongIdent => Markup.ident
-  | T.SymIdent  => Markup.ident
-  | T.Var       => Markup.ident
-  | T.TypeIdent => Markup.ident
-  | T.TypeVar   => Markup.ident
-  | T.Nat       => Markup.ident
-  | T.String    => Markup.string
-  | T.AltString => Markup.altstring
-  | T.Verbatim  => Markup.verbatim
-  | T.Comment   => Markup.comment
-  | T.Sync      => Markup.control
-  | T.Malformed => Markup.malformed
-  | T.Error _   => Markup.malformed
-  | T.EOF       => Markup.control
-  | _           => Markup.none;
+ fn T.Command       => (Markup.commandN, [])
+  | T.Keyword       => (Markup.keywordN, [])
+  | T.Ident         => Markup.ident
+  | T.LongIdent     => Markup.ident
+  | T.SymIdent      => Markup.ident
+  | T.Var           => Markup.ident
+  | T.TypeIdent     => Markup.ident
+  | T.TypeVar       => Markup.ident
+  | T.Nat           => Markup.ident
+  | T.String        => Markup.string
+  | T.AltString     => Markup.altstring
+  | T.Verbatim      => Markup.verbatim
+  | T.Space         => Markup.none
+  | T.Comment       => Markup.comment
+  | T.InternalValue => Markup.none
+  | T.Malformed     => Markup.malformed
+  | T.Error _       => Markup.malformed
+  | T.Sync          => Markup.control
+  | T.EOF           => Markup.control;
 
 in
 
