@@ -79,16 +79,17 @@ and get_pos (elem as XML.Elem (name, atts, ts)) =
 
 in
 
-fun message ch body =
-  let
-    val (txt, pos) =
-      let val ts = YXML.parse_body body
-      in (message_text ts, the_default Position.none (message_pos ts)) end
-      handle Fail msg => ("*** MALFORMED MESSAGE ***\n" ^ msg, Position.none);
-    val props =
-      Position.properties_of (Position.thread_data ())
-      |> Position.default_properties pos;
-  in Output.writeln_default (special ch ^ message_props props ^ txt ^ special_end) end;
+fun message _ "" = ()
+  | message ch body =
+      let
+        val (txt, pos) =
+          let val ts = YXML.parse_body body
+          in (message_text ts, the_default Position.none (message_pos ts)) end
+          handle Fail msg => ("*** MALFORMED MESSAGE ***\n" ^ msg, Position.none);
+        val props =
+          Position.properties_of (Position.thread_data ())
+          |> Position.default_properties pos;
+      in Output.writeln_default (special ch ^ message_props props ^ txt ^ special_end) end;
 
 fun init_message () =
   let
