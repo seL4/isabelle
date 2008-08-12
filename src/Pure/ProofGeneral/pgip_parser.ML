@@ -90,16 +90,20 @@ fun parse_command "sorry" text = [D.Postponegoal {text = text}, D.Closeblock {}]
             NONE => [D.Unparseable {text = text}]
           | SOME f => f text));
 
-fun parse_item (kind, toks) =
-  let val text = implode (map (PgmlIsabelle.pgml_mode ThyEdit.present_token) toks) in
+fun parse_span span =
+  let
+    val kind = ThyEdit.span_kind span;
+    val toks = ThyEdit.span_content span;
+    val text = implode (map (PgmlIsabelle.pgml_mode ThyEdit.present_token) toks);
+  in
     (case kind of
       ThyEdit.Command name => parse_command name text
     | ThyEdit.Ignored => [D.Whitespace {text = text}]
-    | ThyEdit.Unknown => [D.Unparseable {text = text}])
+    | ThyEdit.Malformed => [D.Unparseable {text = text}])
   end;
 
 
 fun pgip_parser pos str =
-  maps parse_item (ThyEdit.parse_spans pos (Source.of_string str));
+  maps parse_span (ThyEdit.parse_spans (OuterKeyword.get_lexicons ()) pos str);
 
 end;
