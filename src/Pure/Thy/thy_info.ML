@@ -288,7 +288,7 @@ end;
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy time upd_time initiators dir name =
+fun load_thy time upd_time initiators name =
   let
     val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
     val (pos, text, files) =
@@ -300,7 +300,7 @@ fun load_thy time upd_time initiators dir name =
     val _ = CRITICAL (fn () =>
       change_deps name (Option.map (fn {master, text, parents, files, ...} =>
         make_deps upd_time master text parents files)));
-    val _ = OuterSyntax.load_thy dir name pos text (time orelse ! Output.timing);
+    val _ = OuterSyntax.load_thy name pos text (time orelse ! Output.timing);
   in
     CRITICAL (fn () =>
      (change_deps name
@@ -435,7 +435,7 @@ and require_thy time initiators dir str tasks =
           val upd_time = serial ();
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
            (if all_current then Finished
-            else Task (fn () => load_thy time upd_time initiators dir' name));
+            else Task (fn () => load_thy time upd_time initiators name));
           val tasks_len'' = if all_current then tasks_len' else tasks_len' + 1;
         in (all_current, (tasks_graph'', tasks_len'')) end)
   end;
