@@ -56,7 +56,7 @@ sig
   val beginning: int -> symbol list -> string
   val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
   val scan_id: string list -> string * string list
-  val source: bool -> (string, 'a) Source.source ->
+  val source: {do_recover: bool} -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
   val escape: string -> string
@@ -452,7 +452,7 @@ val recover =
 
 in
 
-fun source do_recover src =
+fun source {do_recover} src =
   Source.source stopper (Scan.bulk scan)
     (if do_recover then SOME (false, K recover) else NONE) src;
 
@@ -473,7 +473,7 @@ in
 fun sym_explode str =
   let val chs = explode str in
     if no_explode chs then chs
-    else Source.exhaust (source false (Source.of_list chs))
+    else Source.exhaust (source {do_recover = false} (Source.of_list chs))
   end;
 
 end;

@@ -51,8 +51,8 @@ val header =
 fun read pos src =
   let val res =
     src
-    |> Symbol.source false
-    |> T.source NONE (fn () => (header_lexicon, Scan.empty_lexicon)) pos
+    |> Symbol.source {do_recover = false}
+    |> T.source {do_recover = NONE} (fn () => (header_lexicon, Scan.empty_lexicon)) pos
     |> T.source_proper
     |> Source.source T.stopper (Scan.single (Scan.error (P.!!! header))) NONE
     |> Source.get_single;

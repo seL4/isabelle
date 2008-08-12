@@ -53,9 +53,9 @@ sig
   val !!! : string -> (SymbolPos.T list -> 'a) -> SymbolPos.T list -> 'a
   val scan_quoted: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
   val source_proper: (token, 'a) Source.source -> (token, (token, 'a) Source.source) Source.source
-  val source': bool Option.option -> (unit -> Scan.lexicon * Scan.lexicon) ->
+  val source': {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     (SymbolPos.T, 'a) Source.source -> (token, (SymbolPos.T, 'a) Source.source) Source.source
-  val source: bool Option.option -> (unit -> Scan.lexicon * Scan.lexicon) ->
+  val source: {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (token,
       (SymbolPos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
 end;
@@ -389,7 +389,7 @@ fun recover msg =
 
 in
 
-fun source' do_recover get_lex =
+fun source' {do_recover} get_lex =
   Source.source SymbolPos.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
     (Option.map (rpair recover) do_recover);
 

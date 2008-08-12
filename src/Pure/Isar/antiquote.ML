@@ -100,7 +100,7 @@ fun read_antiq lex scan (s, pos) =
 
     val res =
       Source.of_list (SymbolPos.explode (s, pos))
-      |> T.source' NONE (K (lex, Scan.empty_lexicon))
+      |> T.source' {do_recover = NONE} (K (lex, Scan.empty_lexicon))
       |> T.source_proper
       |> Source.source T.stopper (Scan.error (Scan.bulk scan)) NONE
       |> Source.exhaust;
