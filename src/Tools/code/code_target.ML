@@ -2315,7 +2315,8 @@ val _ =
     K.diag (P.!!! (code_exprP export_code_cmd) >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
 fun shell_command thyname cmd = Toplevel.program (fn _ =>
-  (use_thy thyname; case Scan.read OuterLex.stopper (P.!!! (code_exprP export_code_cmd)) ((filter OuterLex.is_proper o OuterSyntax.scan) cmd)
+  (use_thy thyname; case Scan.read OuterLex.stopper (P.!!! (code_exprP export_code_cmd))
+    ((filter OuterLex.is_proper o OuterSyntax.scan Position.none) cmd)
    of SOME f => (writeln "Now generating code..."; f (theory thyname))
     | NONE => error ("Bad directive " ^ quote cmd)))
   handle TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
