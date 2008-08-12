@@ -22,14 +22,13 @@ sig
   val local_theory_to_proof: string -> string -> OuterKeyword.T ->
     (OuterParse.token list -> (local_theory -> Proof.state) * OuterLex.token list) -> unit
   val print_outer_syntax: unit -> unit
-  val scan: string -> OuterLex.token list
+  val scan: Position.T -> string -> OuterLex.token list
   val parse: Position.T -> string -> Toplevel.transition list
-  val prepare_command: Position.T -> string -> Toplevel.transition
-  val prepare_command_failsafe: Position.T -> string -> Toplevel.transition
   val process_file: Path.T -> theory -> theory
   type isar
   val isar: bool -> isar
-  val load_thy: Path.T -> string -> Position.T -> string list -> bool -> unit
+  val prepare_command: Position.T -> string -> Toplevel.transition
+  val load_thy: string -> Position.T -> string list -> bool -> unit
 end;
 
 structure OuterSyntax: OUTER_SYNTAX =
@@ -103,6 +102,7 @@ fun get_parsers () = CRITICAL (fn () => ! global_parsers);
 fun get_markups () = CRITICAL (fn () => ! global_markups);
 
 fun get_parser () = Symtab.lookup (get_parsers ());
+fun get_syntax () = CRITICAL (fn () => (OuterKeyword.get_lexicons (), get_parser ()));
 
 fun is_markup kind name = AList.lookup (op =) (get_markups ()) name = SOME kind;
 
@@ -184,28 +184,18 @@ fun toplevel_source term do_recover cmd src =
 
 (* off-line scanning/parsing *)
 
-fun scan str =
+fun scan pos str =
   Source.of_string str
-  |> Symbol.source false
-  |> T.source (SOME false) OuterKeyword.get_lexicons Position.none
+  |> Symbol.source {do_recover = false}
+  |> T.source {do_recover = SOME false} OuterKeyword.get_lexicons pos
   |> Source.exhaust;
 
 fun parse pos str =
   Source.of_string str
-  |> Symbol.source false
-  |> T.source (SOME false) OuterKeyword.get_lexicons pos
+  |> Symbol.source {do_recover = false}
+  |> T.source {do_recover = SOME false} OuterKeyword.get_lexicons pos
   |> toplevel_source false NONE get_parser
   |> Source.exhaust;
-
-fun prepare_command pos str =
-  (case parse pos str of
-    [transition] => transition
-  | _ => error "exactly one command expected");
-
-fun prepare_command_failsafe pos str = prepare_command pos str
-  handle ERROR msg =>
-    Toplevel.empty |> Toplevel.name "<malformed>" |> Toplevel.position pos
-    |> Toplevel.imperative (fn () => error msg);
 
 
 (* process file *)
@@ -230,27 +220,51 @@ type isar =
 
 fun isar term : isar =
   Source.tty
-  |> Symbol.source true
-  |> T.source (SOME true) OuterKeyword.get_lexicons Position.none
+  |> Symbol.source {do_recover = true}
+  |> T.source {do_recover = SOME true} OuterKeyword.get_lexicons Position.none
   |> toplevel_source term (SOME true) get_parser;
+
+
+
+(* prepare toplevel commands -- fail-safe *)
+
+val not_singleton = "Exactly one command expected";
+
+fun prepare_span parser span =
+  let
+    val range_pos = Position.encode_range (ThyEdit.span_range span);
+    val toks = ThyEdit.span_content span;
+    val _ = List.app ThyEdit.report_token toks;
+  in
+    (case Source.exhaust (toplevel_source false NONE (K parser) (Source.of_list toks)) of
+      [tr] => (tr, true)
+    | [] => (Toplevel.ignored range_pos, false)
+    | _ => (Toplevel.malformed range_pos not_singleton, true))
+    handle ERROR msg => (Toplevel.malformed range_pos msg, true)
+  end;
+
+fun prepare_command pos str =
+  let val (lexs, parser) = get_syntax () in
+    (case ThyEdit.parse_spans lexs pos str of
+      [span] => #1 (prepare_span parser span)
+    | _ => Toplevel.malformed pos not_singleton)
+  end;
 
 
 (* load_thy *)
 
-fun load_thy dir name pos text time =
+fun load_thy name pos text time =
   let
+    val (lexs, parser) = get_syntax ();
     val text_src = Source.of_list (Library.untabify text);
-    val (lexs, parser) = CRITICAL (fn () => (OuterKeyword.get_lexicons (), get_parser ()));
 
     val _ = Present.init_theory name;
-    val _ = Present.verbatim_source name (fn () => Source.exhaust (Symbol.source false text_src));
-    val toks = text_src
-      |> Symbol.source false
-      |> T.source NONE (K lexs) pos
-      |> Source.exhausted;
-    val trs = toks
-      |> toplevel_source false NONE (K parser)
-      |> Source.exhaust;
+    val _ = Present.verbatim_source name
+      (fn () => Source.exhaust (Symbol.source {do_recover = false} text_src));
+    val toks = Source.exhausted (ThyEdit.token_source lexs pos text_src);
+    val spans = Source.exhaust (ThyEdit.span_source toks);
+    val _ = List.app ThyEdit.report_span spans;
+    val trs = map (prepare_span parser) spans |> filter #2 |> map #1;
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val _ = cond_timeit time "" (fn () =>
@@ -261,4 +275,3 @@ fun load_thy dir name pos text time =
   in () end;
 
 end;
-
