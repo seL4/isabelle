@@ -353,7 +353,7 @@ fun tell_thm_deps ths =
 in
 
 fun setup_present_hook () =
-  Present.add_hook (fn _ => fn res => tell_thm_deps (maps #2 res));
+  ProofDisplay.add_hook (fn res => tell_thm_deps (maps #2 res));
 
 end;
 
