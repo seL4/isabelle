@@ -152,7 +152,6 @@ sig
   val space_explode: string -> string -> string list
   val split_lines: string -> string list
   val prefix_lines: string -> string -> string
-  val untabify: string list -> string list
   val prefix: string -> string -> string
   val suffix: string -> string -> string
   val unprefix: string -> string -> string
@@ -756,21 +755,6 @@ val split_lines = space_explode "\n";
 
 fun prefix_lines "" txt = txt
   | prefix_lines prfx txt = txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;
-
-fun untabify chs =
-  let
-    val tab_width = 8;
-
-    fun untab pos [] ys = rev ys
-      | untab pos ("\n" :: xs) ys = untab 0 xs ("\n" :: ys)
-      | untab pos ("\t" :: xs) ys =
-          let val d = tab_width - (pos mod tab_width)
-          in untab (pos + d) xs (funpow d (cons " ") ys) end
-      | untab pos (c :: xs) ys = untab (pos + 1) xs (c :: ys);
-  in
-    if not (exists (fn c => c = "\t") chs) then chs
-    else untab 0 chs []
-  end;
 
 fun prefix prfx s = prfx ^ s;
 fun suffix sffx s = s ^ sffx;
