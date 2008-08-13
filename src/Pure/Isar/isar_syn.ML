@@ -41,44 +41,44 @@ val _ =
 (** markup commands **)
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "header" "theory header" K.diag
-  (P.position P.text >> IsarCmd.add_header);
+  (P.position P.text >> IsarCmd.header_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "chapter" "chapter heading"
-  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_chapter);
+  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "section" "section heading"
-  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_section);
+  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "subsection" "subsection heading"
-  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_subsection);
+  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
 
 val _ =
   OuterSyntax.markup_command ThyOutput.Markup "subsubsection" "subsubsection heading"
-  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.add_subsubsection);
+  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.MarkupEnv "text" "formal comment (theory)"
-  K.thy_decl (P.opt_target -- P.position P.text >> IsarCmd.add_text);
+  K.thy_decl (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Verbatim "text_raw"
   "raw document preparation text"
-  K.thy_decl (P.position P.text >> IsarCmd.add_text_raw);
+  K.thy_decl (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "sect" "formal comment (proof)"
-  (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.add_sect);
+  (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.proof_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "subsect" "formal comment (proof)"
-  (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.add_subsect);
+  (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.proof_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "subsubsect"
   "formal comment (proof)" (K.tag_proof K.prf_heading)
-  (P.position P.text >> IsarCmd.add_subsubsect);
+  (P.position P.text >> IsarCmd.proof_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.MarkupEnv "txt" "formal comment (proof)"
-  (K.tag_proof K.prf_decl) (P.position P.text >> IsarCmd.add_txt);
+  (K.tag_proof K.prf_decl) (P.position P.text >> IsarCmd.proof_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Verbatim "txt_raw"
   "raw document preparation text (proof)" (K.tag_proof K.prf_decl)
-  (P.position P.text >> IsarCmd.add_txt_raw);
+  (P.position P.text >> IsarCmd.proof_markup);
 
 
 
