@@ -1,25 +1,9 @@
-/* css style file for generated Isabelle HTML output */
+/* css style file for Isabelle XHTML/XML output */
 
 body { background-color: #FFFFFF; }
 
-.tclass { color: red; }
-.tfree  { color: purple; }
-.tvar   { color: purple; }
-.free   { color: blue; }
-.skolem { color: brown; }
-.bound  { color: green; }
-.var    { color: blue; }
-.xstr   { color: brown; }
-.loc    { color: brown; }
-
-.name     { font-style: italic; }
-.keyword  { font-weight: bold; }
-.command  { font-weight: bold; }
-.filename { font-family: fixed; }
-
 .head     { background-color: #FFFFFF; }
 .source   { background-color: #F0F0F0; padding: 10px; }
-.theorems { background-color: #E0E0E0; padding: 10px; }
 
 .mlsource { background-color: #F0F0F0; padding: 10px; }
 .mlfooter { background-color: #FFFFFF; }
@@ -27,13 +11,37 @@ body { background-color: #FFFFFF; }
 .theories { background-color: #F0F0F0; padding: 10px; }
 .sessions { background-color: #F0F0F0; padding: 10px; }
 
-.string         { color: #008B00; }
-.altstring      { color: #8B8B00; }
-.verbatim       { color: #00008B; }
-.comment        { color: #8B0000; }
-.control        { background-color: #FF6A6A; font-weight: }
-.malformed      { background-color: #FF6A6A; font-weight: }
-.junk           { background-color: #FF6A6A; font-weight: }
+.name     { font-style: italic; }
+.filename { font-family: fixed; }
 
 /* hide hr for this style */
 hr { height: 0px; border: 0px; }
+
+
+/* inner and outer syntax markup */
+
+.tfree, tfree          { color: purple; }
+.tvar, tvar            { color: purple; }
+.free, free            { color: blue; }
+.skolem, skolem        { color: brown; }
+.bound, bound          { color: green; }
+.var, var              { color: blue; }
+.num, num              { }
+.xnum, xnum            { }
+.xstr, xstr            { color: brown; }
+.literal, literal      { font-weight: bold; }
+                      
+.loc, loc              { color: brown; }
+.tclass, tclass        { color: red; }
+          
+.keyword, keyword      { font-weight: bold; }
+.command, command      { font-weight: bold; }
+.ident, ident          { }
+.string, string        { color: #008B00; }
+.altstring, altstring  { color: #8B8B00; }
+.verbatim, verbatim    { color: #00008B; }
+.comment, comment      { color: #8B0000; }
+.control, control      { background-color: #FF6A6A; }
+.malformed, malformed  { background-color: #FF6A6A; }
+
+.malformed_span, malformed_span { background-color: #FF6A6A; }
