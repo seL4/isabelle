@@ -164,6 +164,9 @@ lemma imp_elim: "P --> Q ==> (~ R ==> P) ==> (Q ==> R) ==> R"
 lemma swap: "~ P ==> (~ R ==> P) ==> R"
   by (rule classical) iprover
 
+
+section {* Classical Reasoner *}
+
 use "cladata.ML"
 setup Cla.setup
 setup cla_setup

@@ -6,8 +6,6 @@
 Setting up the classical reasoner.
 *)
 
-section "Classical Reasoner";
-
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
 struct
