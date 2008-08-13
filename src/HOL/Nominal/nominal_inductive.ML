@@ -388,9 +388,10 @@ fun prove_strong_ind s avoids thy =
                      REPEAT_DETERM_N (nprems_of ihyp - length gprems)
                        (simp_tac swap_simps_ss 1),
                      REPEAT_DETERM_N (length gprems)
-                       (simp_tac (HOL_ss
-                          addsimps inductive_forall_def' :: gprems2
-                          addsimprocs [NominalPackage.perm_simproc]) 1)]));
+                       (simp_tac (HOL_basic_ss
+                          addsimps [inductive_forall_def']
+                          addsimprocs [NominalPackage.perm_simproc]) 1 THEN
+                        resolve_tac gprems2 1)]));
                  val final = Goal.prove ctxt'' [] [] (term_of concl)
                    (fn _ => cut_facts_tac [th] 1 THEN full_simp_tac (HOL_ss
                      addsimps vc_compat_ths'' @ freshs2' @
