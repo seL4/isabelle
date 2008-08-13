@@ -8,7 +8,6 @@ Theory presentation: HTML, graph files, (PDF)LaTeX documents.
 signature BASIC_PRESENT =
 sig
   val no_document: ('a -> 'b) -> 'a -> 'b
-  val section: string -> unit
 end;
 
 signature PRESENT =
@@ -23,16 +22,9 @@ sig
     string -> (bool * Path.T) option -> Url.T option * bool -> bool -> theory list -> unit
   val finish: unit -> unit
   val init_theory: string -> unit
-  val verbatim_source: string -> (unit -> Symbol.symbol list) -> unit
+  val theory_source: string -> (unit -> HTML.text) -> unit
   val theory_output: string -> string -> unit
   val begin_theory: int -> Path.T -> (Path.T * bool) list -> theory -> theory
-  val add_hook: (string -> (string * thm list) list -> unit) -> unit
-  val results: string -> (string * thm list) list -> unit
-  val theorem: string -> thm -> unit
-  val theorems: string -> thm list -> unit
-  val chapter: string -> unit
-  val subsection: string -> unit
-  val subsubsection: string -> unit
   val drafts: string -> Path.T list -> Path.T
 end;
 
@@ -262,7 +254,7 @@ fun put_entries entries dir =
 
 fun create_index dir =
   File.read (Path.append dir pre_index_path) ^
-    session_entries (get_entries dir) ^ HTML.end_index
+    session_entries (get_entries dir) ^ HTML.end_document
   |> File.write (Path.append dir index_path);
 
 fun update_index dir name = CRITICAL (fn () =>
@@ -383,7 +375,7 @@ fun finish () = CRITICAL (fn () =>
 
     fun finish_tex path (a, {tex_source, ...}: theory_info) = write_tex tex_source a path;
     fun finish_html (a, {html, ...}: theory_info) =
-      Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_theory html);
+      Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_document html);
 
     val sorted_graph = sorted_index graph;
     val opt_graphs =
@@ -440,8 +432,8 @@ fun finish () = CRITICAL (fn () =>
 
 fun init_theory name = with_session () (fn _ => init_theory_info name empty_theory_info);
 
-fun verbatim_source name mk_text =
-  with_session () (fn _ => add_html_source name (HTML.verbatim_source (mk_text ())));
+fun theory_source name mk_text =
+  with_session () (fn _ => add_html_source name (HTML.theory_source (mk_text ())));
 
 fun theory_output name s =
   with_session () (fn _ => add_tex_source name (Latex.isabelle_file name s));
@@ -496,22 +488,6 @@ fun begin_theory update_time dir files thy =
     add_tex_index (update_time, Latex.theory_entry name);
     put_info {name = sess_name, session = path, is_local = is_some remote_path} thy
   end);
-
-
-val hooks = ref ([]: (string -> (string * thm list) list -> unit) list);
-fun add_hook f = CRITICAL (fn () => change hooks (cons f));
-
-fun results k xs =
- (List.app (fn f => (try (fn () => f k xs) (); ())) (! hooks);
-  with_session () (fn _ => with_context add_html
-    (HTML.results (ML_Context.the_local_context ()) k xs)));
-
-fun theorem a th = results Thm.theoremK [(a, [th])];
-fun theorems a ths = results Thm.theoremK [(a, ths)];
-fun chapter s = with_session () (fn _ => with_context add_html (HTML.chapter s));
-fun section s = with_session () (fn _ => with_context add_html (HTML.section s));
-fun subsection s = with_session () (fn _ => with_context add_html (HTML.subsection s));
-fun subsubsection s = with_session () (fn _ => with_context add_html (HTML.subsubsection s));
 
 
 
