@@ -25,20 +25,13 @@ sig
   val begin_document: string -> text
   val end_document: text
   val begin_index: Url.T * string -> Url.T * string -> (Url.T * string) list -> Url.T -> text
-  val end_index: text
   val applet_pages: string -> Url.T * string -> (string * string) list
   val theory_entry: Url.T * string -> text
   val session_entries: (Url.T * string) list -> text
-  val verbatim_source: Symbol.symbol list -> text
+  val theory_source: text -> text
   val begin_theory: Url.T * string -> string -> (Url.T option * string) list ->
     (Url.T * Url.T * bool) list -> text -> text
-  val end_theory: text
   val ml_file: Url.T -> string -> text
-  val results: Proof.context -> string -> (string * thm list) list -> text
-  val chapter: string -> text
-  val section: string -> text
-  val subsection: string -> text
-  val subsubsection: string -> text
 end;
 
 structure HTML: HTML =
@@ -310,8 +303,6 @@ fun begin_index up (index_path, session) docs graph =
     implode (map (fn (p, name) => "<br/>\nView " ^ href_path p name) docs)) ^
   "\n</div>\n<hr/>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
 
-val end_index = end_document;
-
 fun choice chs s = space_implode " " (map (fn (s', lnk) =>
   enclose "[" "]" (if s = s' then keyword s' else href_name lnk s')) chs);
 
@@ -352,10 +343,9 @@ fun session_entries [] = "</ul>"
 
 (* theory *)
 
-fun verbatim_source ss =
-  "\n</div>\n<hr/>\n<div class=\"source\">\n<pre>" ^
-  implode (output_symbols ss) ^
-  "</pre>\n</div>\n<hr/>\n<div class=\"theorems\">\n";
+val theory_source = enclose
+  "\n</div>\n<hr/>\n<div class=\"source\">\n<pre>"
+  "</pre>\n<hr/>\n";
 
 
 local
@@ -376,12 +366,9 @@ fun begin_theory up A Bs Ps body =
   theory up A ^ "<br/>\n" ^
   imports Bs ^ "<br/>\n" ^
   (if null Ps then "" else uses Ps) ^
-  keyword "begin" ^ "<br/>\n" ^
   body;
 
 end;
-
-val end_theory = end_document;
 
 
 (* ML file *)
@@ -390,38 +377,7 @@ fun ml_file path str =
   begin_document ("File " ^ Url.implode path) ^
   "\n</div>\n<hr/><div class=\"mlsource\">\n" ^
   verbatim str ^
-  "\n</div>\n<hr/>\n<div class=\"mlfooter\">\n" ^
+  "\n</div>\n<hr/>\n<div class=\"mlfooter\">" ^
   end_document;
-
-
-(* theorems *)
-
-local
-
-fun string_of_thm ctxt =
-  Output.output o Pretty.setmp_margin 80 Pretty.string_of o
-    setmp show_question_marks false (ProofContext.pretty_thm ctxt);
-
-fun thm ctxt th = prefix_lines "  " (html_mode (string_of_thm ctxt) th);
-
-fun thm_name "" = ""
-  | thm_name a = " " ^ name (a ^ ":");
-
-in
-
-fun result ctxt k (a, ths) = preform (cat_lines ((command k ^ thm_name a) :: map (thm ctxt) ths));
-
-fun results _ _ [] = ""
-  | results ctxt k (res :: ress) = cat_lines (result ctxt k res :: map (result ctxt "and") ress);
-
-end;
-
-
-(* sections *)
-
-fun chapter heading = "\n\n<h1>" ^ plain heading ^ "</h1>\n";
-fun section heading = "\n\n<h2>" ^ plain heading ^ "</h2>\n";
-fun subsection heading = "\n\n<h3>" ^ plain heading ^ "</h3>\n";
-fun subsubsection heading = "\n\n<h4>" ^ plain heading ^ "</h4>\n";
 
 end;
