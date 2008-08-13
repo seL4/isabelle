@@ -23,7 +23,6 @@ sig
   val parse_spans: Scan.lexicon * Scan.lexicon -> Position.T -> string -> span list
   val present_span: span -> output
   val report_span: span -> unit
-  val present_html: Path.T -> Path.T -> unit
 end;
 
 structure ThyEdit: THY_EDIT =
@@ -148,16 +147,5 @@ fun report_span span =
   Position.report (kind_markup (span_kind span)) (Position.encode_range (span_range span));
 
 end;
-
-
-(* HTML presentation -- example *)
-
-fun present_html inpath outpath =
-  parse_spans (OuterKeyword.get_lexicons ()) (Path.position inpath) (File.read inpath)
-  |> HTML.html_mode (implode o map present_span)
-  |> enclose
-    (HTML.begin_document (Path.implode (Path.base inpath)) ^ "<div class=\"source\"><pre>")
-    ("</pre></div>" ^ HTML.end_document)
-  |> File.write outpath;
 
 end;
