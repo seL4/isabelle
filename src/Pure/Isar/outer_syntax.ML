@@ -225,7 +225,6 @@ fun isar term : isar =
   |> toplevel_source term (SOME true) get_parser;
 
 
-
 (* prepare toplevel commands -- fail-safe *)
 
 val not_singleton = "Exactly one command expected";
@@ -256,15 +255,16 @@ fun prepare_command pos str =
 fun load_thy name pos text time =
   let
     val (lexs, parser) = get_syntax ();
-    val text_src = Source.of_list (Library.untabify text);
 
     val _ = Present.init_theory name;
-    val _ = Present.verbatim_source name
-      (fn () => Source.exhaust (Symbol.source {do_recover = false} text_src));
-    val toks = Source.exhausted (ThyEdit.token_source lexs pos text_src);
+
+    val toks = Source.exhausted (ThyEdit.token_source lexs pos (Source.of_list text));
     val spans = Source.exhaust (ThyEdit.span_source toks);
     val _ = List.app ThyEdit.report_span spans;
     val trs = map (prepare_span parser) spans |> filter #2 |> map #1;
+
+    val _ = Present.theory_source name
+      (fn () => HTML.html_mode (implode o map ThyEdit.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val _ = cond_timeit time "" (fn () =>
