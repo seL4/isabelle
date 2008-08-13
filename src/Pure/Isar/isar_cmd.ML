@@ -84,23 +84,10 @@ sig
   val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_type: (string list * string) -> Toplevel.transition -> Toplevel.transition
-  val add_header: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_chapter: xstring option * (string * Position.T) ->
+  val header_markup: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val local_theory_markup: xstring option * (string * Position.T) ->
     Toplevel.transition -> Toplevel.transition
-  val add_section: xstring option * (string * Position.T) ->
-    Toplevel.transition -> Toplevel.transition
-  val add_subsection: xstring option * (string * Position.T) ->
-    Toplevel.transition -> Toplevel.transition
-  val add_subsubsection: xstring option * (string * Position.T) ->
-    Toplevel.transition -> Toplevel.transition
-  val add_text: xstring option * (string * Position.T) ->
-    Toplevel.transition -> Toplevel.transition
-  val add_text_raw: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_sect: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_subsect: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_subsubsect: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_txt: string * Position.T -> Toplevel.transition -> Toplevel.transition
-  val add_txt_raw: string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val proof_markup: string * Position.T -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure IsarCmd: ISAR_CMD =
@@ -543,36 +530,14 @@ end;
 
 (* markup commands *)
 
-fun check_text s state =
-  (ThyOutput.eval_antiquote (#1 (OuterKeyword.get_lexicons ())) state s; ());
+fun check_text txt opt_node =
+  ignore (ThyOutput.eval_antiquote (#1 (OuterKeyword.get_lexicons ())) opt_node txt);
 
-fun add_header s = Toplevel.keep' (fn int => fn state =>
-  (if Toplevel.is_toplevel state then () else raise Toplevel.UNDEF;
-   if int then check_text s NONE else ()));
+fun header_markup txt = Toplevel.keep (fn state =>
+  if Toplevel.is_toplevel state then check_text txt NONE
+  else raise Toplevel.UNDEF);
 
-local
-
-fun present _ txt true node = check_text txt (SOME node)
-  | present f (s, _) false node = Context.setmp_thread_data
-      (try (Toplevel.cases_node I (Context.Proof o Proof.context_of)) node) f s;
-
-fun present_local_theory f (loc, txt) = Toplevel.present_local_theory loc (present f txt);
-fun present_proof f txt = Toplevel.print o Toplevel.present_proof (present f txt);
-
-in
-
-val add_chapter       = present_local_theory Present.section;
-val add_section       = present_local_theory Present.section;
-val add_subsection    = present_local_theory Present.subsection;
-val add_subsubsection = present_local_theory Present.subsubsection;
-val add_text          = present_local_theory (K ());
-fun add_text_raw txt  = present_local_theory (K ()) (NONE, txt);
-val add_txt           = present_proof (K ());
-val add_txt_raw       = add_txt;
-val add_sect          = add_txt;
-val add_subsect       = add_txt;
-val add_subsubsect    = add_txt;
-
-end;
+fun local_theory_markup (loc, txt) = Toplevel.present_local_theory loc (check_text txt o SOME);
+fun proof_markup txt = Toplevel.present_proof (check_text txt o SOME);
 
 end;
