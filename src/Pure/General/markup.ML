@@ -64,7 +64,6 @@ sig
   val command_declN: string val command_decl: string -> string -> T
   val keywordN: string val keyword: string -> T
   val commandN: string val command: string -> T
-  val tokenN: string val token: T
   val identN: string val ident: T
   val stringN: string val string: T
   val altstringN: string val altstring: T
@@ -72,6 +71,7 @@ sig
   val commentN: string val comment: T
   val controlN: string val control: T
   val malformedN: string val malformed: T
+  val tokenN: string val token: T
   val antiqN: string val antiq: T
   val command_spanN: string val command_span: string -> T
   val ignored_spanN: string val ignored_span: T
@@ -204,7 +204,6 @@ fun command_decl name kind : T = (command_declN, [(nameN, name), (kindN, kind)])
 
 val (keywordN, keyword) = markup_string "keyword" nameN;
 val (commandN, command) = markup_string "command" nameN;
-val (tokenN, token) = markup_elem "token";
 val (identN, ident) = markup_elem "ident";
 val (stringN, string) = markup_elem "string";
 val (altstringN, altstring) = markup_elem "altstring";
@@ -212,6 +211,8 @@ val (verbatimN, verbatim) = markup_elem "verbatim";
 val (commentN, comment) = markup_elem "comment";
 val (controlN, control) = markup_elem "control";
 val (malformedN, malformed) = markup_elem "malformed";
+
+val (tokenN, token) = markup_elem "token";
 
 val (antiqN, antiq) = markup_elem "antiq";
 
