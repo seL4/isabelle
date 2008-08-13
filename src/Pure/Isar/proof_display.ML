@@ -23,12 +23,10 @@ sig
   val print_theorems_diff: theory -> theory -> unit
   val pretty_full_theory: bool -> theory -> Pretty.T
   val string_of_rule: Proof.context -> string -> thm -> string
-  val print_results: bool -> Proof.context ->
-    ((string * string) * (string * thm list) list) -> unit
-  val present_results: Proof.context ->
-    ((string * string) * (string * thm list) list) -> unit
-  val pretty_consts: Proof.context ->
-    (string * typ -> bool) -> (string * typ) list -> Pretty.T
+  val print_results: bool -> Proof.context -> ((string * string) * (string * thm list) list) -> unit
+  val add_hook: ((string * thm list) list -> unit) -> unit
+  val theory_results: Proof.context -> ((string * string) * (string * thm list) list) -> unit
+  val pretty_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
 end
 
 structure ProofDisplay: PROOF_DISPLAY =
@@ -95,6 +93,25 @@ fun pretty_results ctxt ((kind, ""), facts) =
       [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk,
         Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]);
 
+in
+
+fun print_results true = Pretty.writeln oo pretty_results
+  | print_results false = K (K ());
+
+end;
+
+
+(* theory results -- subject to hook *)
+
+local val hooks = ref ([]: ((string * thm list) list -> unit) list) in
+
+fun add_hook f = CRITICAL (fn () => change hooks (cons f));
+fun get_hooks () = CRITICAL (fn () => ! hooks);
+
+end;
+
+local
+
 fun name_results "" res = res
   | name_results name res =
       let
@@ -113,14 +130,14 @@ fun name_results "" res = res
 
 in
 
-fun print_results true = Pretty.writeln oo pretty_results
-  | print_results false = K (K ());
-
-fun present_results ctxt ((kind, name), res) =
+fun theory_results ctxt ((kind, name), res) =
   if kind = "" orelse kind = Thm.internalK then ()
-  else (print_results true ctxt ((kind, name), res);
-    Context.setmp_thread_data (SOME (Context.Proof ctxt))
-      (Present.results kind) (name_results name res));
+  else
+    let
+      val _ = print_results true ctxt ((kind, name), res);
+      val res' = name_results name res;
+      val _ = List.app (fn f => f res') (get_hooks ());
+    in () end;
 
 end;
 
