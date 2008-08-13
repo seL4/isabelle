@@ -65,7 +65,7 @@ sig
   val begin_local_theory: bool -> (theory -> local_theory) -> transition -> transition
   val end_local_theory: transition -> transition
   val local_theory: xstring option -> (local_theory -> local_theory) -> transition -> transition
-  val present_local_theory: xstring option -> (bool -> node -> unit) -> transition -> transition
+  val present_local_theory: xstring option -> (node -> unit) -> transition -> transition
   val local_theory_to_proof': xstring option -> (bool -> local_theory -> Proof.state) ->
     transition -> transition
   val local_theory_to_proof: xstring option -> (local_theory -> Proof.state) ->
@@ -73,7 +73,7 @@ sig
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
   val forget_proof: transition -> transition
-  val present_proof: (bool -> node -> unit) -> transition -> transition
+  val present_proof: (node -> unit) -> transition -> transition
   val proofs': (bool -> Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
@@ -503,7 +503,7 @@ fun local_theory_presentation loc f g = transaction (fn int =>
           val finish = loc_finish loc gthy;
           val lthy' = f (loc_begin loc gthy);
         in Theory (finish lthy', SOME lthy') end
-    | _ => raise UNDEF) #> tap (g int));
+    | _ => raise UNDEF) #> tap g);
 
 in
 
@@ -564,10 +564,10 @@ val forget_proof = transaction (fn _ =>
     | SkipProof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | _ => raise UNDEF));
 
-fun present_proof f = transaction (fn int =>
+fun present_proof f = transaction (fn _ =>
   (fn Proof (prf, x) => Proof (ProofNode.apply I prf, x)
     | skip as SkipProof _ => skip
-    | _ => raise UNDEF) #> tap (f int));
+    | _ => raise UNDEF) #> tap f);
 
 fun proofs' f = transaction (fn int =>
   (fn Proof (prf, x) => Proof (ProofNode.applys (f int) prf, x)
