@@ -85,7 +85,7 @@ sig
   val fixes: token list -> (string * string option * mixfix) list * token list
   val for_fixes: token list -> (string * string option * mixfix) list * token list
   val for_simple_fixes: token list -> (string * string option) list * token list
-  val ml_source: token list -> (SymbolPos.text * Position.T) * token list
+  val ML_source: token list -> (SymbolPos.text * Position.T) * token list
   val doc_source: token list -> (SymbolPos.text * Position.T) * token list
   val term_group: token list -> string * token list
   val prop_group: token list -> string * token list
@@ -302,9 +302,9 @@ val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
 val for_simple_fixes = Scan.optional ($$$ "for" |-- !!! simple_fixes) [];
 
 
-(* embedded text *)
+(* embedded source text *)
 
-val ml_source = source_position (group "ML source" text);
+val ML_source = source_position (group "ML source" text);
 val doc_source = source_position (group "document source" text);
 
 
