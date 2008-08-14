@@ -85,6 +85,8 @@ sig
   val fixes: token list -> (string * string option * mixfix) list * token list
   val for_fixes: token list -> (string * string option * mixfix) list * token list
   val for_simple_fixes: token list -> (string * string option) list * token list
+  val ml_source: token list -> (SymbolPos.text * Position.T) * token list
+  val doc_source: token list -> (SymbolPos.text * Position.T) * token list
   val term_group: token list -> string * token list
   val prop_group: token list -> string * token list
   val term: token list -> string * token list
@@ -152,6 +154,7 @@ fun RESET_VALUE atom = (*required for all primitive parsers*)
 val not_eof = RESET_VALUE (Scan.one T.not_eof);
 
 fun position scan = (Scan.ahead not_eof >> T.position_of) -- scan >> Library.swap;
+fun source_position atom = Scan.ahead atom |-- not_eof >> T.source_of';
 fun inner_syntax atom = Scan.ahead atom |-- not_eof >> T.source_of;
 
 fun kind k =
@@ -297,6 +300,12 @@ val fixes =
 
 val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
 val for_simple_fixes = Scan.optional ($$$ "for" |-- !!! simple_fixes) [];
+
+
+(* embedded text *)
+
+val ml_source = source_position (group "ML source" text);
+val doc_source = source_position (group "document source" text);
 
 
 (* terms *)

@@ -41,44 +41,42 @@ val _ =
 (** markup commands **)
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "header" "theory header" K.diag
-  (P.position P.text >> IsarCmd.header_markup);
+  (P.doc_source >> IsarCmd.header_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "chapter" "chapter heading"
-  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
+  K.thy_heading (P.opt_target -- P.doc_source >> IsarCmd.local_theory_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "section" "section heading"
-  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
+  K.thy_heading (P.opt_target -- P.doc_source >> IsarCmd.local_theory_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "subsection" "subsection heading"
-  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
+  K.thy_heading (P.opt_target -- P.doc_source >> IsarCmd.local_theory_markup);
 
 val _ =
   OuterSyntax.markup_command ThyOutput.Markup "subsubsection" "subsubsection heading"
-  K.thy_heading (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
+  K.thy_heading (P.opt_target -- P.doc_source >> IsarCmd.local_theory_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.MarkupEnv "text" "formal comment (theory)"
-  K.thy_decl (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
+  K.thy_decl (P.opt_target -- P.doc_source >> IsarCmd.local_theory_markup);
 
-val _ = OuterSyntax.markup_command ThyOutput.Verbatim "text_raw"
-  "raw document preparation text"
-  K.thy_decl (P.opt_target -- P.position P.text >> IsarCmd.local_theory_markup);
+val _ = OuterSyntax.markup_command ThyOutput.Verbatim "text_raw" "raw document preparation text"
+  K.thy_decl (P.opt_target -- P.doc_source >> IsarCmd.local_theory_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "sect" "formal comment (proof)"
-  (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.proof_markup);
+  (K.tag_proof K.prf_heading) (P.doc_source >> IsarCmd.proof_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Markup "subsect" "formal comment (proof)"
-  (K.tag_proof K.prf_heading) (P.position P.text >> IsarCmd.proof_markup);
+  (K.tag_proof K.prf_heading) (P.doc_source >> IsarCmd.proof_markup);
 
-val _ = OuterSyntax.markup_command ThyOutput.Markup "subsubsect"
-  "formal comment (proof)" (K.tag_proof K.prf_heading)
-  (P.position P.text >> IsarCmd.proof_markup);
+val _ = OuterSyntax.markup_command ThyOutput.Markup "subsubsect" "formal comment (proof)"
+  (K.tag_proof K.prf_heading) (P.doc_source >> IsarCmd.proof_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.MarkupEnv "txt" "formal comment (proof)"
-  (K.tag_proof K.prf_decl) (P.position P.text >> IsarCmd.proof_markup);
+  (K.tag_proof K.prf_decl) (P.doc_source >> IsarCmd.proof_markup);
 
 val _ = OuterSyntax.markup_command ThyOutput.Verbatim "txt_raw"
   "raw document preparation text (proof)" (K.tag_proof K.prf_decl)
-  (P.position P.text >> IsarCmd.proof_markup);
+  (P.doc_source >> IsarCmd.proof_markup);
 
 
 
@@ -301,40 +299,40 @@ val _ =
 
 val _ =
   OuterSyntax.command "ML" "eval ML text (diagnostic)" (K.tag_ml K.thy_decl)
-    (P.position P.text >> (fn (txt, pos) =>
+    (P.ml_source >> (fn (txt, pos) =>
       Toplevel.generic_theory (ML_Context.exec (fn () => ML_Context.eval true pos txt))));
 
 val _ =
   OuterSyntax.command "ML_val" "eval ML text (diagnostic)" (K.tag_ml K.diag)
-    (P.position P.text >> IsarCmd.ml_diag true);
+    (P.ml_source >> IsarCmd.ml_diag true);
 
 val _ =
   OuterSyntax.command "ML_command" "silently eval ML text (diagnostic)" (K.tag_ml K.diag)
-    (P.position P.text >> (Toplevel.no_timing oo IsarCmd.ml_diag false));
+    (P.ml_source >> (Toplevel.no_timing oo IsarCmd.ml_diag false));
 
 val _ =
   OuterSyntax.command "setup" "apply ML theory setup" (K.tag_ml K.thy_decl)
-    (P.position P.text >> (Toplevel.theory o IsarCmd.generic_setup));
+    (P.ml_source >> (Toplevel.theory o IsarCmd.generic_setup));
 
 val _ =
   OuterSyntax.command "method_setup" "define proof method in ML" (K.tag_ml K.thy_decl)
-    (P.name -- P.!!! (P.$$$ "=" |-- P.position P.text -- P.text)
+    (P.name -- P.!!! (P.$$$ "=" |-- P.ml_source -- P.text)
     >> (fn (name, (txt, cmt)) => Toplevel.theory (Method.method_setup name txt cmt)));
 
 val _ =
   OuterSyntax.local_theory "declaration" "generic ML declaration" (K.tag_ml K.thy_decl)
-    (P.position P.text >> IsarCmd.declaration);
+    (P.ml_source >> IsarCmd.declaration);
 
 val _ =
   OuterSyntax.local_theory "simproc_setup" "define simproc in ML" (K.tag_ml K.thy_decl)
     (P.name -- (P.$$$ "(" |-- P.enum1 "|" P.term --| P.$$$ ")" --| P.$$$ "=") --
-      P.position P.text -- Scan.optional (P.$$$ "identifier" |-- Scan.repeat1 P.xname) []
+      P.ml_source -- Scan.optional (P.$$$ "identifier" |-- Scan.repeat1 P.xname) []
     >> (fn (((a, b), c), d) => IsarCmd.simproc_setup a b c d));
 
 
 (* translation functions *)
 
-val trfun = P.opt_keyword "advanced" -- P.position P.text;
+val trfun = P.opt_keyword "advanced" -- P.ml_source;
 
 val _ =
   OuterSyntax.command "parse_ast_translation" "install parse ast translation functions"
@@ -366,8 +364,8 @@ val _ =
 
 val _ =
   OuterSyntax.command "oracle" "declare oracle" (K.tag_ml K.thy_decl)
-    (P.name -- (P.$$$ "(" |-- P.text --| P.$$$ ")" --| P.$$$ "=")
-      -- P.position P.text >> (fn ((x, y), z) => Toplevel.theory (IsarCmd.oracle x y z)));
+    (P.name -- (P.$$$ "(" |-- P.ml_source --| P.$$$ ")" --| P.$$$ "=")
+      -- P.ml_source >> (fn ((x, y), z) => Toplevel.theory (IsarCmd.oracle x y z)));
 
 
 (* local theories *)

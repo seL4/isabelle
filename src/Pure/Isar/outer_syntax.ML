@@ -172,7 +172,7 @@ fun toplevel_source term do_recover cmd src =
     src
     |> T.source_proper
     |> Source.source T.stopper
-      (Scan.bulk (P.$$$ "--" -- P.!!! P.text >> K NONE || P.not_eof >> SOME))
+      (Scan.bulk (P.$$$ "--" -- P.!!! P.doc_source >> K NONE || P.not_eof >> SOME))
         (Option.map recover do_recover)
     |> Source.map_filter I
     |> Source.source T.stopper

@@ -44,7 +44,7 @@ val args =
 (* read header *)
 
 val header =
-  (P.$$$ headerN -- P.tags) |-- (P.!!! (P.text -- Scan.repeat P.semicolon --
+  (P.$$$ headerN -- P.tags) |-- (P.!!! (P.doc_source -- Scan.repeat P.semicolon --
     (P.$$$ theoryN -- P.tags) |-- args)) ||
   (P.$$$ theoryN -- P.tags) |-- P.!!! args;
 
