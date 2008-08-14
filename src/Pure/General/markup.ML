@@ -60,6 +60,8 @@ sig
   val propN: string val prop: T
   val attributeN: string val attribute: string -> T
   val methodN: string val method: string -> T
+  val ML_sourceN: string val ML_source: T
+  val doc_sourceN: string val doc_source: T
   val keyword_declN: string val keyword_decl: string -> T
   val command_declN: string val command_decl: string -> string -> T
   val keywordN: string val keyword: string -> T
@@ -193,6 +195,12 @@ val (propN, prop) = markup_elem "prop";
 
 val (attributeN, attribute) = markup_string "attribute" nameN;
 val (methodN, method) = markup_string "method" nameN;
+
+
+(* embedded source text *)
+
+val (ML_sourceN, ML_source) = markup_elem "ML_source";
+val (doc_sourceN, doc_source) = markup_elem "doc_source";
 
 
 (* outer syntax *)
