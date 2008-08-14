@@ -534,8 +534,9 @@ end;
 
 (* markup commands *)
 
-fun check_text txt opt_node =
-  ignore (ThyOutput.eval_antiquote (#1 (OuterKeyword.get_lexicons ())) opt_node txt);
+fun check_text (txt, pos) opt_node =
+ (Position.report Markup.doc_source pos;
+  ignore (ThyOutput.eval_antiquote (#1 (OuterKeyword.get_lexicons ())) opt_node (txt, pos)));
 
 fun header_markup txt = Toplevel.keep (fn state =>
   if Toplevel.is_toplevel state then check_text txt NONE
