@@ -8,12 +8,12 @@ Text with antiquotations of inner items (terms, types etc.).
 signature ANTIQUOTE =
 sig
   datatype antiquote =
-    Text of string | Antiq of SymbolPos.text * Position.T |
+    Text of string | Antiq of SymbolPos.T list * Position.T |
     Open of Position.T | Close of Position.T
   val is_antiq: antiquote -> bool
-  val read: SymbolPos.text * Position.T -> antiquote list
+  val read: SymbolPos.T list * Position.T -> antiquote list
   val read_antiq: Scan.lexicon -> (OuterLex.token list -> 'a * OuterLex.token list) ->
-    SymbolPos.text * Position.T -> 'a
+    SymbolPos.T list * Position.T -> 'a
 end;
 
 structure Antiquote: ANTIQUOTE =
@@ -23,7 +23,7 @@ struct
 
 datatype antiquote =
   Text of string |
-  Antiq of string * Position.T |
+  Antiq of SymbolPos.T list * Position.T |
   Open of Position.T |
   Close of Position.T;
 
@@ -67,9 +67,7 @@ val scan_antiq =
   SymbolPos.scan_pos -- ($$$ "@" |-- $$$ "{" |--
     T.!!! "missing closing brace of antiquotation"
       (Scan.repeat scan_ant -- ($$$ "}" |-- SymbolPos.scan_pos)))
-  >> (fn (pos1, (body, pos2)) =>
-      let val (s, (pos, _)) = SymbolPos.implode_range pos1 pos2 (flat body)
-      in Antiq (s, pos) end);
+  >> (fn (pos1, (body, pos2)) => Antiq (flat body, Position.encode_range (pos1, pos2)));
 
 in
 
@@ -84,22 +82,22 @@ end;
 
 (* read *)
 
-fun read ("", _) = []
-  | read (s, pos) =
-      (case Scan.read SymbolPos.stopper (Scan.repeat scan_antiquote) (SymbolPos.explode (s, pos)) of
+fun read ([], _) = []
+  | read (syms, pos) =
+      (case Scan.read SymbolPos.stopper (Scan.repeat scan_antiquote) syms of
         SOME xs => (check_nesting xs; xs)
       | NONE => error ("Malformed quotation/antiquotation source" ^ Position.str_of pos));
 
 
 (* read_antiq *)
 
-fun read_antiq lex scan (s, pos) =
+fun read_antiq lex scan (syms, pos) =
   let
-    fun err msg = cat_error msg
-      ("Malformed antiquotation: " ^ quote ("@{" ^ s ^ "}") ^ Position.str_of pos);
+    fun err msg = cat_error msg ("Malformed antiquotation" ^ Position.str_of pos ^ ":\n" ^
+      "@{" ^ SymbolPos.content syms ^ "}");
 
     val res =
-      Source.of_list (SymbolPos.explode (s, pos))
+      Source.of_list syms
       |> T.source' {do_recover = NONE} (K (lex, Scan.empty_lexicon))
       |> T.source_proper
       |> Source.source T.stopper (Scan.error (Scan.bulk scan)) NONE
