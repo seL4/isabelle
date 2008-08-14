@@ -163,6 +163,7 @@ val trace = ref false;
 
 fun eval_wrapper pr verbose pos txt =
   let
+    val _ = Position.report Markup.ML_source pos;
     val struct_name =
       if Multithreading.available then "Isabelle" ^ serial_string ()
       else "Isabelle";
