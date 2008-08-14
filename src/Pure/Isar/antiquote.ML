@@ -82,10 +82,13 @@ end;
 
 (* read *)
 
+fun report_antiq (Antiq (_, pos)) = Position.report Markup.antiq pos
+  | report_antiq _ = ();
+
 fun read ([], _) = []
   | read (syms, pos) =
       (case Scan.read SymbolPos.stopper (Scan.repeat scan_antiquote) syms of
-        SOME xs => (check_nesting xs; xs)
+        SOME xs => (List.app report_antiq xs; check_nesting xs; xs)
       | NONE => error ("Malformed quotation/antiquotation source" ^ Position.str_of pos));
 
 
