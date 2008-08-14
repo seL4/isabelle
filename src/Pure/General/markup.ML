@@ -62,6 +62,7 @@ sig
   val methodN: string val method: string -> T
   val ML_sourceN: string val ML_source: T
   val doc_sourceN: string val doc_source: T
+  val antiqN: string val antiq: T
   val keyword_declN: string val keyword_decl: string -> T
   val command_declN: string val command_decl: string -> string -> T
   val keywordN: string val keyword: string -> T
@@ -74,7 +75,6 @@ sig
   val controlN: string val control: T
   val malformedN: string val malformed: T
   val tokenN: string val token: T
-  val antiqN: string val antiq: T
   val command_spanN: string val command_span: string -> T
   val ignored_spanN: string val ignored_span: T
   val malformed_spanN: string val malformed_span: T
@@ -202,6 +202,8 @@ val (methodN, method) = markup_string "method" nameN;
 val (ML_sourceN, ML_source) = markup_elem "ML_source";
 val (doc_sourceN, doc_source) = markup_elem "doc_source";
 
+val (antiqN, antiq) = markup_elem "antiq";
+
 
 (* outer syntax *)
 
@@ -221,8 +223,6 @@ val (controlN, control) = markup_elem "control";
 val (malformedN, malformed) = markup_elem "malformed";
 
 val (tokenN, token) = markup_elem "token";
-
-val (antiqN, antiq) = markup_elem "antiq";
 
 val (command_spanN, command_span) = markup_string "command_span" nameN;
 val (ignored_spanN, ignored_span) = markup_elem "ignored_span";
