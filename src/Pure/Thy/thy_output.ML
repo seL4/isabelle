@@ -22,7 +22,7 @@ sig
     (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Toplevel.node option -> string
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list ref
-  val eval_antiquote: Scan.lexicon -> Toplevel.node option -> string * Position.T -> string
+  val eval_antiquote: Scan.lexicon -> Toplevel.node option -> SymbolPos.text * Position.T -> string
   val process_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     Toplevel.transition list -> (OuterLex.token, 'a) Source.source -> Buffer.T
   val output_list: (Proof.context -> 'a -> Pretty.T) -> Args.src ->
@@ -145,7 +145,7 @@ end;
 
 val modes = ref ([]: string list);
 
-fun eval_antiquote lex node (str, pos) =
+fun eval_antiquote lex node (txt, pos) =
   let
     fun expand (Antiquote.Text s) = s
       | expand (Antiquote.Antiq x) =
@@ -156,7 +156,7 @@ fun eval_antiquote lex node (str, pos) =
           end
       | expand (Antiquote.Open _) = ""
       | expand (Antiquote.Close _) = "";
-    val ants = Antiquote.read (str, pos);
+    val ants = Antiquote.read (SymbolPos.explode (txt, pos), pos);
   in
     if is_none node andalso exists Antiquote.is_antiq ants then
       error ("Unknown context -- cannot expand text antiquotations" ^ Position.str_of pos)
@@ -334,7 +334,7 @@ fun process_thy lex default_tags is_markup trs src =
     fun markup mark mk flag = Scan.peek (fn d =>
       improper |-- P.position (Scan.one (T.is_kind T.Command andf is_markup mark o T.content_of)) --
       Scan.repeat tag --
-      P.!!!! ((improper -- locale -- improper) |-- P.position P.text --| improper_end)
+      P.!!!! ((improper -- locale -- improper) |-- P.doc_source --| improper_end)
       >> (fn (((tok, pos), tags), txt) =>
         let val name = T.content_of tok
         in (SOME (name, pos, tags), (mk (name, txt), (flag, d))) end));
@@ -347,7 +347,7 @@ fun process_thy lex default_tags is_markup trs src =
         in (SOME (name, pos, tags), (BasicToken tok, (Latex.markup_false, d))) end));
 
     val cmt = Scan.peek (fn d =>
-      P.$$$ "--" |-- P.!!!! (improper |-- P.position P.text)
+      P.$$$ "--" |-- P.!!!! (improper |-- P.doc_source)
       >> (fn txt => (NONE, (MarkupToken ("cmt", txt), ("", d)))));
 
     val other = Scan.peek (fn d =>

@@ -87,15 +87,13 @@ in
 val output_known_symbols = implode oo (map o output_known_sym);
 val output_symbols = output_known_symbols (K true, K true);
 val output_syms = output_symbols o Symbol.explode;
-val output_syms' = output_symbols o map #1 o SymbolPos.explode;
 
-val output_syms_antiqs =
-  Antiquote.read #> map
+val output_syms_antiq =
   (fn Antiquote.Text s => output_syms s
-    | Antiquote.Antiq x => enclose "%\n\\isaantiq\n" "%\n\\endisaantiq\n" (output_syms' x)
+    | Antiquote.Antiq (ss, _) =>
+        enclose "%\n\\isaantiq\n" "%\n\\endisaantiq\n" (output_symbols (map SymbolPos.symbol ss))
     | Antiquote.Open _ => "{\\isaantiqopen}"
-    | Antiquote.Close _ => "{\\isaantiqclose}") #>
-  implode;
+    | Antiquote.Close _ => "{\\isaantiqclose}");
 
 end;
 
@@ -118,8 +116,11 @@ fun output_basic tok =
     else if T.is_kind T.AltString tok then
       enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
     else if T.is_kind T.Verbatim tok then
-      enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}"
-        (output_syms_antiqs (s, T.position_of tok))
+      let
+        val (txt, pos) = T.source_of' tok;
+        val ants = Antiquote.read (SymbolPos.explode (txt, pos), pos);
+        val out = implode (map output_syms_antiq ants);
+      in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
     else output_syms s
   end;
 

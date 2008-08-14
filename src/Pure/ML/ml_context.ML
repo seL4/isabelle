@@ -124,9 +124,11 @@ val antiq =
 
 fun eval_antiquotes struct_name (txt, pos) opt_ctxt =
   let
-    val ants = Antiquote.read (txt, pos);
+    val syms = SymbolPos.explode (txt, pos);
+    val ants = Antiquote.read (syms, pos);
     val ((ml_env, ml_body), opt_ctxt') =
-      if not (exists Antiquote.is_antiq ants) then (("", Symbol.escape txt), opt_ctxt)
+      if not (exists Antiquote.is_antiq ants)
+      then (("", Symbol.escape (SymbolPos.content syms)), opt_ctxt)
       else
         let
           val ctxt =
