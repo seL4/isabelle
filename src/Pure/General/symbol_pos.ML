@@ -50,7 +50,7 @@ fun symbol ((s, _): T) = s;
 val content = implode o map symbol;
 
 
-val tab_width = 8;
+val tab_width = (8: int);
 
 fun untabify ("\t", pos) =
       (case Position.column_of pos of
