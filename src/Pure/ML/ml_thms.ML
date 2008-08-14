@@ -35,7 +35,7 @@ fun thm_bind kind a i =
 (* fact references *)
 
 fun thm_antiq kind scan = ML_Context.add_antiq kind
-  (scan >> (fn ths => fn {struct_name, background} =>
+  (fn _ => scan >> (fn ths => fn {struct_name, background} =>
     let
       val i = serial ();
       val (a, background') = background
@@ -53,12 +53,13 @@ val by = Args.$$$ "by";
 val goal = Scan.unless (Scan.lift by) Args.prop;
 
 val _ = ML_Context.add_antiq "lemma"
-  (Args.context -- Args.mode "open" -- Scan.repeat1 goal --
+  (fn pos => Args.context -- Args.mode "open" -- Scan.repeat1 goal --
       Scan.lift (by |-- Method.parse -- Scan.option Method.parse) >>
     (fn (((ctxt, is_open), props), methods) => fn {struct_name, background} =>
       let
         val i = serial ();
-        val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
+        val prep_result =
+          Goal.norm_result #> Thm.default_position pos #> not is_open ? Thm.close_derivation;
         fun after_qed [res] goal_ctxt =
           put_thms (i, map prep_result (ProofContext.export goal_ctxt ctxt res)) goal_ctxt;
         val ctxt' = ctxt
