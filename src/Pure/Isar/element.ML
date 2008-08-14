@@ -228,9 +228,9 @@ local
 
 fun thm_name kind th prts =
   let val head =
-    if PureThy.has_name_hint th then
+    if Thm.has_name_hint th then
       Pretty.block [Pretty.command kind,
-        Pretty.brk 1, Pretty.str (Sign.base_name (PureThy.get_name_hint th) ^ ":")]
+        Pretty.brk 1, Pretty.str (Sign.base_name (Thm.get_name_hint th) ^ ":")]
     else Pretty.command kind
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 

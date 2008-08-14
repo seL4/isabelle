@@ -327,7 +327,7 @@ fun is_strange_thm th =
     | _ => false;
 
 fun bad_for_atp th =
-  PureThy.is_internal th
+  Thm.is_internal th
   orelse too_complex (prop_of th)
   orelse exists_type type_has_empty_sort (prop_of th)
   orelse is_strange_thm th;
@@ -340,11 +340,11 @@ val multi_base_blacklist =
 fun flatten_name s = space_implode "_X" (NameSpace.explode s);
 
 fun fake_name th =
-  if PureThy.has_name_hint th then flatten_name (PureThy.get_name_hint th)
+  if Thm.has_name_hint th then flatten_name (Thm.get_name_hint th)
   else gensym "unknown_thm_";
 
 fun name_or_string th =
-  if PureThy.has_name_hint th then PureThy.get_name_hint th
+  if Thm.has_name_hint th then Thm.get_name_hint th
   else Display.string_of_thm th;
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
@@ -404,7 +404,7 @@ fun cnf_axiom thy th0 =
 
 (**** Extract and Clausify theorems from a theory's claset and simpset ****)
 
-fun pairname th = (PureThy.get_name_hint th, th);
+fun pairname th = (Thm.get_name_hint th, th);
 
 fun rules_of_claset cs =
   let val {safeIs,safeEs,hazIs,hazEs,...} = rep_cs cs

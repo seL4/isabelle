@@ -121,7 +121,7 @@ let
                 |> singleton (ProofContext.export lthy (ProofContext.init thy))
             in
               lthy
-              |> LocalTheory.theory (PureThy.add_thm ((fst (dest_Free random') ^ "_code", thm), [PureThy.kind_internal])
+              |> LocalTheory.theory (PureThy.add_thm ((fst (dest_Free random') ^ "_code", thm), [Thm.kind_internal])
                    #-> Code.add_func)
             end;
         in

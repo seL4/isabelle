@@ -341,7 +341,7 @@ fun thm_deps_message (thms, deps) =
 fun tell_thm_deps ths =
   if !show_theorem_dependencies then
       let
-        val names = map PureThy.get_name_hint (filter PureThy.has_name_hint ths);
+        val names = map Thm.get_name_hint (filter Thm.has_name_hint ths);
         val deps = (Symtab.keys (fold Proofterm.thms_of_proof'
                                         (map Thm.proof_of ths) Symtab.empty))
       in

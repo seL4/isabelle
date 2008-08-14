@@ -7,23 +7,6 @@ Theorem storage.  Pure theory syntax and logical content.
 
 signature PURE_THY =
 sig
-  val tag_rule: Markup.property -> thm -> thm
-  val untag_rule: string -> thm -> thm
-  val tag: Markup.property -> attribute
-  val untag: string -> attribute
-  val has_name_hint: thm -> bool
-  val get_name_hint: thm -> string
-  val put_name_hint: string -> thm -> thm
-  val get_group: thm -> string option
-  val put_group: string -> thm -> thm
-  val group: string -> attribute
-  val has_kind: thm -> bool
-  val get_kind: thm -> string
-  val kind_rule: string -> thm -> thm
-  val kind: string -> attribute
-  val kind_internal: attribute
-  val has_internal: Markup.property list -> bool
-  val is_internal: thm -> bool
   val facts_of: theory -> Facts.T
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
@@ -67,52 +50,6 @@ end;
 
 structure PureThy: PURE_THY =
 struct
-
-
-(*** theorem tags ***)
-
-(* add / delete tags *)
-
-fun tag_rule tg = Thm.map_tags (insert (op =) tg);
-fun untag_rule s = Thm.map_tags (filter_out (fn (s', _) => s = s'));
-
-fun tag tg x = Thm.rule_attribute (K (tag_rule tg)) x;
-fun untag s x = Thm.rule_attribute (K (untag_rule s)) x;
-
-
-(* unofficial theorem names *)
-
-fun the_name_hint thm = the (AList.lookup (op =) (Thm.get_tags thm) Markup.nameN);
-
-val has_name_hint = can the_name_hint;
-val get_name_hint = the_default "??.unknown" o try the_name_hint;
-
-fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name);
-
-
-(* theorem groups *)
-
-fun get_group thm = AList.lookup (op =) (Thm.get_tags thm) Markup.groupN;
-
-fun put_group name =
-  if name = "" then I else Thm.map_tags (AList.update (op =) (Markup.groupN, name));
-
-fun group name = Thm.rule_attribute (K (put_group name));
-
-
-(* theorem kinds *)
-
-fun the_kind thm = the (AList.lookup (op =) (Thm.get_tags thm) Markup.kindN);
-
-val has_kind = can the_kind;
-val get_kind = the_default "" o try the_kind;
-
-fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
-fun kind k x = if k = "" then x else Thm.rule_attribute (K (kind_rule k)) x;
-fun kind_internal x = kind Thm.internalK x;
-fun has_internal tags = exists (fn tg => tg = (Markup.kindN, Thm.internalK)) tags;
-val is_internal = has_internal o Thm.get_tags;
-
 
 
 (*** stored facts ***)
@@ -159,7 +96,7 @@ fun get_thms thy = get_fact (Context.Theory thy) thy o Facts.named;
 fun get_thm thy name = Facts.the_single name (get_thms thy name);
 
 fun all_thms_of thy =
-  Facts.fold_static (fn (_, ths) => append (map (`(get_name_hint)) ths)) (facts_of thy) [];
+  Facts.fold_static (fn (_, ths) => append (map (`(Thm.get_name_hint)) ths)) (facts_of thy) [];
 
 
 
@@ -180,8 +117,8 @@ fun name_multi name [x] = [(name, x)]
 
 fun name_thm pre official name thm = thm
   |> (if Thm.get_name thm <> "" andalso pre orelse not official then I else Thm.put_name name)
-  |> (if has_name_hint thm andalso pre orelse name = "" then I else put_name_hint name)
-  |> Thm.map_tags (Position.default_properties (Position.thread_data ()));
+  |> (if Thm.has_name_hint thm andalso pre orelse name = "" then I else Thm.put_name_hint name)
+  |> Thm.default_position (Position.thread_data ());
 
 fun name_thms pre official name xs =
   map (uncurry (name_thm pre official)) (name_multi name xs);
@@ -250,8 +187,8 @@ fun gen_note_thmss tag = fold_map (fn ((bname, more_atts), ths_atts) => fn thy =
 
 in
 
-fun note_thmss k = gen_note_thmss (kind k);
-fun note_thmss_grouped k g = gen_note_thmss (kind k #> group g);
+fun note_thmss k = gen_note_thmss (Thm.kind k);
+fun note_thmss_grouped k g = gen_note_thmss (Thm.kind k #> Thm.group g);
 
 end;
 
@@ -414,4 +351,3 @@ val _ = Context.>> (Context.map_theory
   #> Theory.add_axioms_i Proofterm.equality_axms));
 
 end;
-

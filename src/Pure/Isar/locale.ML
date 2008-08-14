@@ -1775,7 +1775,7 @@ fun def_pred bname parms defs ts norm_ts thy =
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
       |> Sign.declare_const [] (bname, predT, NoSyn) |> snd
       |> PureThy.add_defs false
-        [((Thm.def_name bname, Logic.mk_equals (head, body)), [PureThy.kind_internal])];
+        [((Thm.def_name bname, Logic.mk_equals (head, body)), [Thm.kind_internal])];
     val defs_ctxt = ProofContext.init defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;

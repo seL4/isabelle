@@ -215,10 +215,10 @@ val internal_att =
 
 (* tags *)
 
-val tagged = syntax (Scan.lift (Args.name -- Args.name) >> PureThy.tag);
-val untagged = syntax (Scan.lift Args.name >> PureThy.untag);
+val tagged = syntax (Scan.lift (Args.name -- Args.name) >> Thm.tag);
+val untagged = syntax (Scan.lift Args.name >> Thm.untag);
 
-val kind = syntax (Scan.lift Args.name >> PureThy.kind);
+val kind = syntax (Scan.lift Args.name >> Thm.kind);
 
 
 (* rule composition *)

@@ -568,7 +568,7 @@ fun infer_types ctxt =
   (* Main function to start metis prove and reconstruction *)
   fun FOL_SOLVE mode ctxt cls ths0 =
     let val thy = ProofContext.theory_of ctxt
-        val th_cls_pairs = map (fn th => (PureThy.get_name_hint th, ResAxioms.cnf_axiom thy th)) ths0
+        val th_cls_pairs = map (fn th => (Thm.get_name_hint th, ResAxioms.cnf_axiom thy th)) ths0
         val ths = List.concat (map #2 th_cls_pairs)
         val _ = if exists(is_false o prop_of) cls then error "problem contains the empty clause"
                 else ();

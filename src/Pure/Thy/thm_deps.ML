@@ -93,13 +93,13 @@ fun unused_thms (base_thys, thys) =
       | SOME ps => not (member (op aconv) (map fst ps) (Thm.prop_of th));
     (* groups containing at least one used theorem *)
     val grps = fold (fn p as (_, thm) => if is_unused p then I else
-      case PureThy.get_group thm of
+      case Thm.get_group thm of
         NONE => I | SOME grp => Symtab.update (grp, ())) thms Symtab.empty;
     val (thms', _) = fold (fn p as (s, thm) => fn q as (thms, grps') =>
-      if member (op =) [Thm.theoremK, Thm.lemmaK, Thm.corollaryK, Thm.axiomK] (PureThy.get_kind thm)
+      if member (op =) [Thm.theoremK, Thm.lemmaK, Thm.corollaryK, Thm.axiomK] (Thm.get_kind thm)
         andalso is_unused p
       then
-        (case PureThy.get_group thm of
+        (case Thm.get_group thm of
            NONE => (p :: thms, grps')
          | SOME grp =>
              (* do not output theorem if another theorem in group has been used *)

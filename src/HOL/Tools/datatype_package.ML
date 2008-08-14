@@ -217,7 +217,7 @@ fun add_cases_induct infos induction thy =
       [(("", nth inducts index), [Induct.induct_type name]),
        (("", exhaustion), [Induct.cases_type name])];
     fun unnamed_rule i =
-      (("", nth inducts i), [PureThy.kind_internal, Induct.induct_type ""]);
+      (("", nth inducts i), [Thm.kind_internal, Induct.induct_type ""]);
   in
     thy |> PureThy.add_thms
       (maps named_rules infos @

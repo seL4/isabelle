@@ -223,8 +223,8 @@ fun get_consumes th = the_default 0 (lookup_consumes th);
 
 fun put_consumes NONE th = th
   | put_consumes (SOME n) th = th
-      |> PureThy.untag_rule consumes_tagN
-      |> PureThy.tag_rule
+      |> Thm.untag_rule consumes_tagN
+      |> Thm.tag_rule
         (consumes_tagN, Library.string_of_int (if n < 0 then Thm.nprems_of th + n else n));
 
 fun add_consumes k th = put_consumes (SOME (k + get_consumes th)) th;
@@ -247,8 +247,8 @@ val case_names_tagN = "case_names";
 
 fun add_case_names NONE = I
   | add_case_names (SOME names) =
-      PureThy.untag_rule case_names_tagN
-      #> PureThy.tag_rule (case_names_tagN, implode_args names);
+      Thm.untag_rule case_names_tagN
+      #> Thm.tag_rule (case_names_tagN, implode_args names);
 
 fun lookup_case_names th =
   AList.lookup (op =) (Thm.get_tags th) case_names_tagN

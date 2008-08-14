@@ -488,7 +488,7 @@ fun signal_success probfile toParent ppid msg =
 
 (**** retrieve the axioms that were used in the proof ****)
 
-(*PureThy.get_name_hint returns "??.unknown" if no name is available.*)
+(*Thm.get_name_hint returns "??.unknown" if no name is available.*)
 fun goodhint x = (x <> "??.unknown");  
 
 (*Get names of axioms used. Axioms are indexed from 1, while the vector is indexed from 0*)
