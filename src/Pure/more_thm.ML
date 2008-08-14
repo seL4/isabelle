@@ -33,19 +33,6 @@ sig
   val add_thm: thm -> thm list -> thm list
   val del_thm: thm -> thm list -> thm list
   val merge_thms: thm list * thm list -> thm list
-  val axiomK: string
-  val assumptionK: string
-  val definitionK: string
-  val theoremK: string
-  val lemmaK: string
-  val corollaryK: string
-  val internalK: string
-  val rule_attribute: (Context.generic -> thm -> thm) -> attribute
-  val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
-  val theory_attributes: attribute list -> theory * thm -> theory * thm
-  val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
-  val no_attributes: 'a -> 'a * 'b list
-  val simple_fact: 'a -> ('a * 'b list) list
   val elim_implies: thm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
@@ -53,6 +40,39 @@ sig
   val close_derivation: thm -> thm
   val add_axiom: term list -> bstring * term -> theory -> thm * theory
   val add_def: bool -> bool -> bstring * term -> theory -> thm * theory
+  val rule_attribute: (Context.generic -> thm -> thm) -> attribute
+  val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
+  val theory_attributes: attribute list -> theory * thm -> theory * thm
+  val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
+  val no_attributes: 'a -> 'a * 'b list
+  val simple_fact: 'a -> ('a * 'b list) list
+  val tag_rule: Markup.property -> thm -> thm
+  val untag_rule: string -> thm -> thm
+  val tag: Markup.property -> attribute
+  val untag: string -> attribute
+  val position_of: thm -> Position.T
+  val default_position: Position.T -> thm -> thm
+  val default_position_of: thm -> thm -> thm
+  val has_name_hint: thm -> bool
+  val get_name_hint: thm -> string
+  val put_name_hint: string -> thm -> thm
+  val get_group: thm -> string option
+  val put_group: string -> thm -> thm
+  val group: string -> attribute
+  val axiomK: string
+  val assumptionK: string
+  val definitionK: string
+  val theoremK: string
+  val lemmaK: string
+  val corollaryK: string
+  val internalK: string
+  val has_kind: thm -> bool
+  val get_kind: thm -> string
+  val kind_rule: string -> thm -> thm
+  val kind: string -> attribute
+  val kind_internal: attribute
+  val has_internal: Markup.property list -> bool
+  val is_internal: thm -> bool
 end;
 
 structure Thm: THM =
@@ -175,37 +195,6 @@ val merge_thms = merge eq_thm_prop;
 
 
 
-(** theorem kinds **)
-
-val axiomK = "axiom";
-val assumptionK = "assumption";
-val definitionK = "definition";
-val theoremK = "theorem";
-val lemmaK = "lemma";
-val corollaryK = "corollary";
-val internalK = Markup.internalK;
-
-
-
-(** attributes **)
-
-fun rule_attribute f (x, th) = (x, f x th);
-fun declaration_attribute f (x, th) = (f th x, th);
-
-fun apply_attributes mk dest =
-  let
-    fun app [] = I
-      | app ((f: attribute) :: fs) = fn (x, th) => f (mk x, th) |>> dest |> app fs;
-  in app end;
-
-val theory_attributes = apply_attributes Context.Theory Context.the_theory;
-val proof_attributes = apply_attributes Context.Proof Context.the_proof;
-
-fun no_attributes x = (x, []);
-fun simple_fact x = [(x, [])];
-
-
-
 (** basic derived rules **)
 
 (*Elimination of implication
@@ -295,6 +284,88 @@ fun add_def unchecked overloaded (name, prop) thy =
     val axm' = Thm.get_axiom_i thy' (Sign.full_name thy' name);
     val thm = unvarify (Thm.instantiate (recover_sorts, []) axm');
   in (thm, thy') end;
+
+
+
+(** attributes **)
+
+fun rule_attribute f (x, th) = (x, f x th);
+fun declaration_attribute f (x, th) = (f th x, th);
+
+fun apply_attributes mk dest =
+  let
+    fun app [] = I
+      | app ((f: attribute) :: fs) = fn (x, th) => f (mk x, th) |>> dest |> app fs;
+  in app end;
+
+val theory_attributes = apply_attributes Context.Theory Context.the_theory;
+val proof_attributes = apply_attributes Context.Proof Context.the_proof;
+
+fun no_attributes x = (x, []);
+fun simple_fact x = [(x, [])];
+
+
+
+(*** theorem tags ***)
+
+(* add / delete tags *)
+
+fun tag_rule tg = Thm.map_tags (insert (op =) tg);
+fun untag_rule s = Thm.map_tags (filter_out (fn (s', _) => s = s'));
+
+fun tag tg x = rule_attribute (K (tag_rule tg)) x;
+fun untag s x = rule_attribute (K (untag_rule s)) x;
+
+
+(* position *)
+
+val position_of = Position.of_properties o Thm.get_tags;
+
+fun default_position pos = Thm.map_tags (Position.default_properties pos);
+val default_position_of = default_position o position_of;
+
+
+(* unofficial theorem names *)
+
+fun the_name_hint thm = the (AList.lookup (op =) (Thm.get_tags thm) Markup.nameN);
+
+val has_name_hint = can the_name_hint;
+val get_name_hint = the_default "??.unknown" o try the_name_hint;
+
+fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name);
+
+
+(* theorem groups *)
+
+fun get_group thm = AList.lookup (op =) (Thm.get_tags thm) Markup.groupN;
+
+fun put_group name =
+  if name = "" then I else Thm.map_tags (AList.update (op =) (Markup.groupN, name));
+
+fun group name = rule_attribute (K (put_group name));
+
+
+(* theorem kinds *)
+
+val axiomK = "axiom";
+val assumptionK = "assumption";
+val definitionK = "definition";
+val theoremK = "theorem";
+val lemmaK = "lemma";
+val corollaryK = "corollary";
+val internalK = Markup.internalK;
+
+fun the_kind thm = the (AList.lookup (op =) (Thm.get_tags thm) Markup.kindN);
+
+val has_kind = can the_kind;
+val get_kind = the_default "" o try the_kind;
+
+fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
+fun kind k x = if k = "" then x else rule_attribute (K (kind_rule k)) x;
+fun kind_internal x = kind internalK x;
+fun has_internal tags = exists (fn tg => tg = (Markup.kindN, internalK)) tags;
+val is_internal = has_internal o Thm.get_tags;
+
 
 open Thm;
 
