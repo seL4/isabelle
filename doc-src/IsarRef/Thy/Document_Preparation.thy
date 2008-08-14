@@ -159,7 +159,7 @@ text {*
   terms and types, which are to be presented in the final output
   produced by the Isabelle document preparation system.
 
-  Thus embedding of ``@{text "@{term [show_types] \"f x = a + x\"}"}''
+  Thus embedding of ``@{text [source=false] "@{term [show_types] \"f x = a + x\"}"}''
   within a text block would cause
   \isa{{\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharplus}\ x} to appear in the final {\LaTeX} document.  Also note that theorem
   antiquotations may involve attributes as well.  For example,
