@@ -36,6 +36,7 @@ sig
   val is_blank: token -> bool
   val is_newline: token -> bool
   val source_of: token -> string
+  val source_of': token -> SymbolPos.text * Position.T
   val content_of: token -> string
   val unparse: token -> string
   val text_of: token -> string * string
@@ -182,6 +183,8 @@ fun is_newline (Token (_, (Space, x), _)) = String.isSuffix "\n" x
 
 fun source_of (Token ((source, (pos, _)), _, _)) =
   YXML.string_of (XML.Elem (Markup.tokenN, Position.properties_of pos, [XML.Text source]));
+
+fun source_of' (Token ((source, (pos, _)), _, _)) = (source, pos);
 
 fun content_of (Token (_, (_, x), _)) = x;
 
