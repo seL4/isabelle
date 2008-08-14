@@ -2321,7 +2321,7 @@ fun shell_command thyname cmd = Toplevel.program (fn _ =>
     | NONE => error ("Bad directive " ^ quote cmd)))
   handle TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
 
-val _ = ML_Context.add_antiq "code" (Args.term >> ml_code_antiq);
+val _ = ML_Context.add_antiq "code" (fn _ => Args.term >> ml_code_antiq);
 
 
 (* serializer setup, including serializer defaults *)

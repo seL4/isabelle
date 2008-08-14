@@ -27,7 +27,7 @@ sig
     {struct_name: string, background: Proof.context} ->
       (Proof.context -> string * string) * Proof.context
   val add_antiq: string ->
-    (Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) -> unit
+    (Position.T -> Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) -> unit
   val trace: bool ref
   val eval_wrapper: (string -> unit) * (string -> 'a) -> bool -> Position.T -> string -> unit
   val eval: bool -> Position.T -> string -> unit
@@ -91,7 +91,8 @@ type antiq =
 local
 
 val global_parsers = ref (Symtab.empty:
-  (Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) Symtab.table);
+  (Position.T -> Context.generic * Args.T list -> antiq * (Context.generic * Args.T list))
+    Symtab.table);
 
 in
 
@@ -105,7 +106,7 @@ fun antiquotation src ctxt =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_parsers) name of
       NONE => error ("Unknown ML antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | SOME scan => Args.context_syntax "ML antiquotation" scan src ctxt)
+    | SOME scan => Args.context_syntax "ML antiquotation" (scan pos) src ctxt)
   end;
 
 end;

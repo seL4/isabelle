@@ -42,14 +42,14 @@ fun variant a ctxt =
 (* specific antiquotations *)
 
 fun macro name scan = ML_Context.add_antiq name
-  (scan :|-- (fn ctxt => Scan.depend (fn _ => Scan.succeed
+  (fn _ => scan :|-- (fn ctxt => Scan.depend (fn _ => Scan.succeed
     (Context.Proof ctxt, fn {background, ...} => (K ("", ""), background)))));
 
 fun inline name scan = ML_Context.add_antiq name
-  (scan >> (fn s => fn {struct_name, background} => (K ("", s), background)));
+  (fn _ => scan >> (fn s => fn {struct_name, background} => (K ("", s), background)));
 
 fun declaration kind name scan = ML_Context.add_antiq name
-  (scan >> (fn s => fn {struct_name, background} =>
+  (fn _ => scan >> (fn s => fn {struct_name, background} =>
     let
       val (a, background') = variant name background;
       val env = kind ^ " " ^ a ^ " = " ^ s ^ ";\n";
