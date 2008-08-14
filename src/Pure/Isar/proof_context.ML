@@ -863,14 +863,16 @@ end;
 
 (* fact_tac *)
 
-fun comp_incr_tac [] _ st = no_tac st
-  | comp_incr_tac (th :: ths) i st =
-      (Goal.compose_hhf_tac (Drule.incr_indexes st th) i APPEND comp_incr_tac ths i) st;
+fun comp_incr_tac [] _ = no_tac
+  | comp_incr_tac (th :: ths) i =
+      (fn st => Goal.compose_hhf_tac (Drule.incr_indexes st th) i st) APPEND comp_incr_tac ths i;
 
 fun fact_tac facts = Goal.norm_hhf_tac THEN' comp_incr_tac facts;
 
-fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) =>
-  fact_tac (Facts.could_unify (facts_of ctxt) (Term.strip_all_body goal)) i);
+fun potential_facts ctxt prop =
+  Facts.could_unify (facts_of ctxt) (Term.strip_all_body prop);
+
+fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) => fact_tac (potential_facts ctxt goal) i);
 
 
 (* get_thm(s) *)
@@ -879,11 +881,19 @@ local
 
 fun retrieve_thms pick ctxt (Facts.Fact s) =
       let
+        val (_, pos) = Syntax.read_token s;
         val prop = Syntax.read_prop (set_mode mode_default ctxt) s
           |> singleton (Variable.polymorphic ctxt);
-        val th = Goal.prove ctxt [] [] prop (K (ALLGOALS (some_fact_tac ctxt)))
-          handle ERROR msg => cat_error msg "Failed to retrieve literal fact.";
-      in pick "" [th] end
+
+        fun prove_fact th =
+          Goal.prove ctxt [] [] prop (K (ALLGOALS (fact_tac [th])))
+          |> Thm.default_position_of th;
+        val res =
+          (case get_first (try prove_fact) (potential_facts ctxt prop) of
+            SOME res => res
+          | NONE => error ("Failed to retrieve literal fact" ^ Position.str_of pos ^ ":\n" ^
+              Syntax.string_of_term ctxt prop))
+      in pick "" [res] end
   | retrieve_thms pick ctxt xthmref =
       let
         val thy = theory_of ctxt;
@@ -937,7 +947,7 @@ fun gen_note_thmss get k = fold_map (fn ((bname, more_attrs), raw_facts) => fn c
     val name = full_name ctxt bname;
     val facts = PureThy.name_thmss false name (map (apfst (get ctxt)) raw_facts);
     fun app (th, attrs) x =
-      swap (foldl_map (Thm.proof_attributes (attrs @ more_attrs @ [PureThy.kind k])) (x, th));
+      swap (foldl_map (Thm.proof_attributes (attrs @ more_attrs @ [Thm.kind k])) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = PureThy.name_thms false false name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;
