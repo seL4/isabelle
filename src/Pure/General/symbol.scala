@@ -22,7 +22,7 @@ object Symbol {
       \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >"""
 
   private val bad_symbol_src = "(?!" + symbol_src + ")" +
-    """ \\ \\? < (?: (?! \p{Space} | ["`\\] | \(\* | \*\) | \{\* | \*\} ) . )*"""
+    """ \\ \\? < (?: (?! \p{Space} | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*"""
 
   val symbol_pattern = compile(symbol_src)
   val bad_symbol_pattern = compile(bad_symbol_src)
