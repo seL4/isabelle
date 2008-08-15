@@ -117,7 +117,7 @@ fun output_basic tok =
       enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
     else if T.is_kind T.Verbatim tok then
       let
-        val (txt, pos) = T.source_of' tok;
+        val (txt, pos) = T.source_position_of tok;
         val ants = Antiquote.read (SymbolPos.explode (txt, pos), pos);
         val out = implode (map output_syms_antiq ants);
       in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
