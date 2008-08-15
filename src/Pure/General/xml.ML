@@ -81,9 +81,9 @@ fun element name atts body =
     else enclose "<" ">" (elem name atts) ^ b ^ enclose "</" ">" name
   end;
 
-fun output_markup (name, atts) =
- (enclose "<" ">" (elem name atts),
-  enclose "</" ">" name);
+fun output_markup (markup as (name, atts)) =
+  if Markup.is_none markup then ("", "")
+  else (enclose "<" ">" (elem name atts), enclose "</" ">" name);
 
 
 (* output *)
