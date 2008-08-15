@@ -481,11 +481,11 @@ fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
 fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
-    val root' = if root <> "prop" andalso is_logtype root then SynExt.logic else root;
     val toks = Lexicon.tokenize lexicon xids syms;
-    val _ = toks |> List.app (fn Lexicon.Token (Lexicon.Literal, _, (pos, _)) =>
-      Position.report Markup.literal pos | _ => ());
-    val pts = Parser.parse gram root' toks;
+    val _ = List.app Lexicon.report_token toks;
+
+    val root' = if root <> "prop" andalso is_logtype root then SynExt.logic else root;
+    val pts = Parser.parse gram root' (filter Lexicon.is_proper toks);
     val len = length pts;
 
     val limit = ! ambiguity_limit;
