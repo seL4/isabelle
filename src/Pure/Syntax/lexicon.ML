@@ -39,10 +39,12 @@ sig
   include LEXICON0
   val is_xid: string -> bool
   datatype token_kind =
-    Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | XNumSy | StrSy | EOF
+    Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
+    NumSy | XNumSy | StrSy | Space | Comment | EOF
   datatype token = Token of token_kind * string * Position.range
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
+  val is_proper: token -> bool
   val mk_eof: Position.T -> token
   val eof: token
   val is_eof: token -> bool
@@ -54,6 +56,7 @@ sig
   val tvarT: typ
   val terminals: string list
   val is_terminal: string -> bool
+  val report_token: token -> unit
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
   val predef_term: string -> token option
@@ -107,12 +110,17 @@ val scan_tvar = $$$ "?" @@@ $$$ "'" @@@ scan_id_nat;
 (** datatype token **)
 
 datatype token_kind =
-  Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy | XNumSy | StrSy | EOF;
+  Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
+  NumSy | XNumSy | StrSy | Space | Comment | EOF;
 
 datatype token = Token of token_kind * string * Position.range;
 
 fun str_of_token (Token (_, s, _)) = s;
 fun pos_of_token (Token (_, _, (pos, _))) = pos;
+
+fun is_proper (Token (Space, _, _)) = false
+  | is_proper (Token (Comment, _, _)) = false
+  | is_proper _ = true;
 
 
 (* stopper *)
@@ -126,7 +134,6 @@ fun is_eof (Token (EOF, _, _)) = true
 val stopper = Scan.stopper (K eof) is_eof;
 
 
-
 (* terminal arguments *)
 
 val idT = Type ("id", []);
@@ -137,6 +144,26 @@ val tvarT = Type ("tvar", []);
 
 val terminals = ["id", "longid", "var", "tid", "tvar", "num", "xnum", "xstr"];
 val is_terminal = member (op =) terminals;
+
+
+(* markup *)
+
+val token_kind_markup =
+ fn Literal     => Markup.literal
+  | IdentSy     => Markup.ident
+  | LongIdentSy => Markup.ident
+  | VarSy       => Markup.var
+  | TFreeSy     => Markup.tfree
+  | TVarSy      => Markup.tvar
+  | NumSy       => Markup.num
+  | XNumSy      => Markup.xnum
+  | StrSy       => Markup.xstr
+  | Space       => Markup.none
+  | Comment     => Markup.inner_comment
+  | EOF         => Markup.none;
+
+fun report_token (Token (kind, _, (pos, _))) =
+  Position.report (token_kind_markup kind) pos;
 
 
 (* matching_tokens *)
@@ -215,14 +242,14 @@ fun tokenize lex xids syms =
     val scan_lit = Scan.literal lex >> token Literal;
 
     val scan_token =
-      SymbolPos.scan_comment !!! >> K NONE ||
-      Scan.max token_leq scan_lit scan_val >> SOME ||
-      scan_str >> (SOME o token StrSy) ||
-      Scan.one (Symbol.is_blank o symbol) >> K NONE;
+      SymbolPos.scan_comment !!! >> token Comment ||
+      Scan.max token_leq scan_lit scan_val ||
+      scan_str >> token StrSy ||
+      Scan.many1 (Symbol.is_blank o symbol) >> token Space;
   in
     (case Scan.error
         (Scan.finite SymbolPos.stopper (Scan.repeat scan_token)) syms of
-      (toks, []) => map_filter I toks
+      (toks, []) => toks
     | (_, ss) => error ("Inner lexical error at: " ^ SymbolPos.content ss ^
         Position.str_of (#1 (SymbolPos.range ss))))
   end;
