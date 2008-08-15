@@ -48,8 +48,8 @@ function choosefrom ()
 if [ "$OSTYPE" = cygwin ]; then
   CLASSPATH="$(cygpath -u -p "$CLASSPATH")"
   function jvmpath() { cygpath -w -p "$@"; }
-  function javawrapper() { env CLASSPATH="$(javapath "$CLASSPATH")" java "$@"; }
-  function scalawrapper() { env CLASSPATH="$(javapath "$CLASSPATH")" scala "$@"; }
+  function javawrapper() { env CLASSPATH="$(jvmpath "$CLASSPATH")" java "$@"; }
+  function scalawrapper() { env CLASSPATH="$(jvmpath "$CLASSPATH")" scala "$@"; }
 else
   function jvmpath() { echo "$@"; }
   function javawrapper() { java "$@"; }
