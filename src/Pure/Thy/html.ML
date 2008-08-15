@@ -274,7 +274,7 @@ fun with_charset s = setmp_noncritical charset s;
 fun begin_document title =
   let val cs = ! charset in
     "<?xml version=\"1.0\" encoding=\"" ^ cs ^ "\" ?>\n\
-    \<!DOCTYPE HTML PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \
+    \<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \
     \\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n\
     \<html xmlns=\"http://www.w3.org/1999/xhtml\">\n\
     \<head>\n\
