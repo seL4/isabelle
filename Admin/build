@@ -18,8 +18,10 @@ ISABELLE_DIR="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 
 if [ -d "$ISABELLE_DIR/Distribution" ]; then
   OLD_LAYOUT=true
+  ISATOOL="$ISABELLE_DIR/Distribution/bin/isatool"
 else
   OLD_LAYOUT=false
+  ISATOOL="$ISABELLE_DIR/bin/isatool"
 fi
 
 
@@ -117,6 +119,10 @@ function build_jars ()
   else
     cd "$ISABELLE_DIR"
   fi
+
+  pushd src/Pure >/dev/null
+  "$ISATOOL" make jar || fail "Failed to build Pure.jar!"
+  popd >/dev/null
 
   pushd lib/classes >/dev/null
   ./mk
