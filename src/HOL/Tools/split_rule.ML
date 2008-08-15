@@ -144,11 +144,11 @@ fun split_rule_goal ctxt xss rl =
 
 (* attribute syntax *)
 
-(* FIXME dynamically scoped due to Args.name/pair_tac *)
+(* FIXME dynamically scoped due to Args.name_source/pair_tac *)
 
 val split_format = Attrib.syntax (Scan.lift
  (Args.parens (Args.$$$ "complete") >> K (Thm.rule_attribute (K complete_split_rule)) ||
-  OuterParse.and_list1 (Scan.repeat Args.name)
+  OuterParse.and_list1 (Scan.repeat Args.name_source)
     >> (fn xss => Thm.rule_attribute (fn context =>
         split_rule_goal (Context.proof_of context) xss))));
 

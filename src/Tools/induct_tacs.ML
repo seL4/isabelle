@@ -117,13 +117,14 @@ val opt_rule = Scan.option (rule_spec |-- Attrib.thm);
 val opt_rules = Scan.option (rule_spec |-- Attrib.thms);
 
 val varss =
-  OuterParse.and_list' (Scan.repeat (Scan.unless rule_spec (Scan.lift (Args.maybe Args.name))));
+  OuterParse.and_list'
+    (Scan.repeat (Scan.unless rule_spec (Scan.lift (Args.maybe Args.name_source))));
 
 in
 
 val setup =
   Method.add_methods
-   [("case_tac", Method.goal_args_ctxt' (Scan.lift Args.name -- opt_rule) gen_case_tac,
+   [("case_tac", Method.goal_args_ctxt' (Scan.lift Args.name_source -- opt_rule) gen_case_tac,
       "unstructured case analysis on types"),
     ("induct_tac", Method.goal_args_ctxt' (varss -- opt_rules) gen_induct_tac,
       "unstructured induction on types")];

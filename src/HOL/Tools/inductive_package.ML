@@ -458,7 +458,7 @@ val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
 
 
-fun ind_cases src = Method.syntax (Scan.lift (Scan.repeat1 Args.name --
+fun ind_cases src = Method.syntax (Scan.lift (Scan.repeat1 Args.name_source --
     Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.name) [])) src
   #> (fn ((raw_props, fixes), ctxt) =>
     let

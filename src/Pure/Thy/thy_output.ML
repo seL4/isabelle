@@ -508,7 +508,7 @@ fun ml_struct txt = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt 
 
 fun output_ml ml src ctxt (txt, pos) =
  (ML_Context.eval_in (SOME (Context.Proof ctxt)) false pos (ml txt);
-  (if ! source then str_of_source src else txt)
+  (if ! source then str_of_source src else SymbolPos.content (SymbolPos.explode (txt, pos)))
   |> (if ! quotes then quote else I)
   |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
   else
@@ -545,7 +545,7 @@ val _ = add_commands
   ("term_type", args Args.term (output pretty_term_typ)),
   ("typeof", args Args.term (output pretty_term_typeof)),
   ("const", args Args.const_proper (output pretty_const)),
-  ("abbrev", args (Scan.lift Args.name) (output pretty_abbrev)),
+  ("abbrev", args (Scan.lift Args.name_source) (output pretty_abbrev)),
   ("typ", args Args.typ_abbrev (output Syntax.pretty_typ)),
   ("text", args (Scan.lift Args.name) (output (K pretty_text))),
   ("goals", output_goals true),
@@ -553,8 +553,8 @@ val _ = add_commands
   ("prf", args Attrib.thms (output (pretty_prf false))),
   ("full_prf", args Attrib.thms (output (pretty_prf true))),
   ("theory", args (Scan.lift Args.name) (output pretty_theory)),
-  ("ML", args (Scan.lift (P.position Args.name)) (output_ml ml_val)),
-  ("ML_type", args (Scan.lift (P.position Args.name)) (output_ml ml_type)),
-  ("ML_struct", args (Scan.lift (P.position Args.name)) (output_ml ml_struct))];
+  ("ML", args (Scan.lift Args.name_source_position) (output_ml ml_val)),
+  ("ML_type", args (Scan.lift Args.name_source_position) (output_ml ml_type)),
+  ("ML_struct", args (Scan.lift Args.name_source_position) (output_ml ml_struct))];
 
 end;

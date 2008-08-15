@@ -62,7 +62,7 @@ fun mk_cases_meth (props, ctxt) =
   |> map (smart_cases (ProofContext.theory_of ctxt) (local_simpset_of ctxt) (Syntax.read_prop ctxt))
   |> Method.erule 0;
 
-val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name));
+val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name_source));
 
 
 (* package setup *)

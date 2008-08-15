@@ -212,7 +212,7 @@ local
 val value =
   Args.internal_typ >> T.Typ ||
   Args.internal_term >> T.Term ||
-  Args.name >> T.Text;
+  Args.name_source >> T.Text;
 
 val inst = Args.var -- (Args.$$$ "=" |-- Scan.ahead P.not_eof -- value)
   >> (fn (xi, (a, v)) => (a, (xi, v)));
@@ -231,7 +231,7 @@ local
 
 val value =
   Args.internal_term >> T.Term ||
-  Args.name >> T.Text;
+  Args.name_source >> T.Text;
 
 val inst = Scan.ahead P.not_eof -- Args.maybe value;
 val concl = Args.$$$ "concl" -- Args.colon;
@@ -408,16 +408,16 @@ end;
 (* method syntax *)
 
 val insts =
-  Scan.optional
-    (Scan.lift (P.and_list1 (Args.name -- (Args.$$$ "=" |-- P.!!! Args.name)) --| Args.$$$ "in")) []
+  Scan.optional (Scan.lift
+    (P.and_list1 (Args.name -- (Args.$$$ "=" |-- P.!!! Args.name_source)) --| Args.$$$ "in")) []
     -- Attrib.thms;
 
 fun inst_args f src ctxt =
   f ctxt (fst (Method.syntax (Args.goal_spec HEADGOAL -- insts) src ctxt));
 
 val insts_var =
-  Scan.optional
-    (Scan.lift (P.and_list1 (Args.var -- (Args.$$$ "=" |-- P.!!! Args.name)) --| Args.$$$ "in")) []
+  Scan.optional (Scan.lift
+    (P.and_list1 (Args.var -- (Args.$$$ "=" |-- P.!!! Args.name_source)) --| Args.$$$ "in")) []
     -- Attrib.thms;
 
 fun inst_args_var f src ctxt =
@@ -438,13 +438,12 @@ val _ = Context.>> (Context.map_theory
       "apply rule in forward manner (dynamic instantiation)"),
     ("cut_tac", inst_args_var cut_inst_meth,
       "cut rule (dynamic instantiation)"),
-    ("subgoal_tac", Method.goal_args_ctxt (Scan.repeat1 Args.name) subgoals_tac,
+    ("subgoal_tac", Method.goal_args_ctxt (Scan.repeat1 Args.name_source) subgoals_tac,
       "insert subgoal (dynamic instantiation)"),
-    ("thin_tac", Method.goal_args_ctxt Args.name thin_tac,
+    ("thin_tac", Method.goal_args_ctxt Args.name_source thin_tac,
       "remove premise (dynamic instantiation)")]));
 
 end;
 
 structure BasicRuleInsts: BASIC_RULE_INSTS = RuleInsts;
 open BasicRuleInsts;
-

@@ -16,7 +16,7 @@ method_setup safety = {*
 
 method_setup ensures_tac = {*
     fn args => fn ctxt =>
-        Method.goal_args' (Scan.lift Args.name)
+        Method.goal_args' (Scan.lift Args.name_source)
            (ensures_tac (local_clasimpset_of ctxt))
            args ctxt *}
     "for proving progress properties"

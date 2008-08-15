@@ -74,7 +74,7 @@ ML {*
 *}
 
 method_setup case_tac =
-  {* Method.goal_args_ctxt Args.name case_tac *}
+  {* Method.goal_args_ctxt Args.name_source case_tac *}
   "case_tac emulation (dynamic instantiation!)"
 
 

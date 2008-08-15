@@ -32,6 +32,8 @@ sig
   val bracks: (T list -> 'a * T list) -> T list -> 'a * T list
   val mode: string -> 'a * T list -> bool * ('a * T list)
   val maybe: (T list -> 'a * T list) -> T list -> 'a option * T list
+  val name_source: T list -> string * T list
+  val name_source_position: T list -> (SymbolPos.text * Position.T) * T list
   val name: T list -> string * T list
   val alt_name: T list -> string * T list
   val symbol: T list -> string * T list
@@ -163,6 +165,9 @@ fun parens scan = $$$ "(" |-- scan --| $$$ ")";
 fun bracks scan = $$$ "[" |-- scan --| $$$ "]";
 fun mode s = Scan.lift (Scan.optional (parens ($$$ s) >> K true) false);
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
+
+val name_source = named >> T.source_of;
+val name_source_position = named >> T.source_position_of;
 
 val name = named >> T.content_of;
 val alt_name = alt_string >> T.content_of;

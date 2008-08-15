@@ -378,7 +378,7 @@ fun ensures_tac ctxt sact =
 
 method_setup ensures_tac = {*
     fn args => fn ctxt =>
-        Method.goal_args' (Scan.lift Args.name) (ensures_tac ctxt)
+        Method.goal_args' (Scan.lift Args.name_source) (ensures_tac ctxt)
            args ctxt *}
     "for proving progress properties"
 
