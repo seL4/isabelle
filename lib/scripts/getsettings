@@ -55,6 +55,7 @@ else
   function javawrapper() { java "$@"; }
   function scalawrapper() { scala "$@"; }
 fi
+ISABELLE_HOME_JVM="$(jvmpath "$ISABELLE_HOME")"
 
 #CLASSPATH convenience
 function classpath () {
