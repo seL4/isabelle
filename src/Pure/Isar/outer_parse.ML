@@ -7,7 +7,7 @@ Generic parsers for Isabelle/Isar outer syntax.
 
 signature OUTER_PARSE =
 sig
-  type token
+  type token = OuterLex.token
   val group: string -> (token list -> 'a) -> token list -> 'a
   val !!! : (token list -> 'a) -> token list -> 'a
   val !!!! : (token list -> 'a) -> token list -> 'a
@@ -154,7 +154,7 @@ fun RESET_VALUE atom = (*required for all primitive parsers*)
 val not_eof = RESET_VALUE (Scan.one T.not_eof);
 
 fun position scan = (Scan.ahead not_eof >> T.position_of) -- scan >> Library.swap;
-fun source_position atom = Scan.ahead atom |-- not_eof >> T.source_of';
+fun source_position atom = Scan.ahead atom |-- not_eof >> T.source_position_of;
 fun inner_syntax atom = Scan.ahead atom |-- not_eof >> T.source_of;
 
 fun kind k =
