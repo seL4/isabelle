@@ -69,6 +69,13 @@ ML_DBASE=""
 
 
 ###
+### JVM components (Scala or Java)
+###
+
+classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
+
+
+###
 ### Interactive sessions (cf. isatool tty)
 ###
 
