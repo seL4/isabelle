@@ -60,7 +60,7 @@ val global_options =
 
 fun add_item kind (name, x) tab =
  (if not (Symtab.defined tab name) then ()
-  else warning ("Redefined text antiquotation " ^ kind ^ ": " ^ quote name);
+  else warning ("Redefined document antiquotation " ^ kind ^ ": " ^ quote name);
   Symtab.update (name, x) tab);
 
 in
@@ -74,13 +74,13 @@ fun defined_option name = Symtab.defined (! global_options) name;
 fun command src =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_commands) name of
-      NONE => error ("Unknown text antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | SOME f => f src)
+      NONE => error ("Unknown document antiquotation command: " ^ quote name ^ Position.str_of pos)
+    | SOME f => (Position.report (Markup.doc_antiq name) pos; f src))
   end;
 
 fun option (name, s) f () =
   (case Symtab.lookup (! global_options) name of
-    NONE => error ("Unknown text antiquotation option: " ^ quote name)
+    NONE => error ("Unknown document antiquotation option: " ^ quote name)
   | SOME opt => opt s f ());
 
 fun options [] f = f
@@ -88,9 +88,9 @@ fun options [] f = f
 
 
 fun print_antiquotations () =
- [Pretty.big_list "text antiquotation commands:"
+ [Pretty.big_list "document antiquotation commands:"
     (map Pretty.str (sort_strings (Symtab.keys (! global_commands)))),
-  Pretty.big_list "text antiquotation options:"
+  Pretty.big_list "document antiquotation options:"
     (map Pretty.str (sort_strings (Symtab.keys (! global_options))))]
  |> Pretty.chunks |> Pretty.writeln;
 
@@ -117,7 +117,7 @@ fun integer s =
 
 (* args syntax *)
 
-fun syntax scan = Args.context_syntax "text antiquotation" scan;
+fun syntax scan = Args.context_syntax "document antiquotation" scan;
 
 fun args scan f src node : string =
   let
@@ -159,7 +159,7 @@ fun eval_antiquote lex node (txt, pos) =
     val ants = Antiquote.read (SymbolPos.explode (txt, pos), pos);
   in
     if is_none node andalso exists Antiquote.is_antiq ants then
-      error ("Unknown context -- cannot expand text antiquotations" ^ Position.str_of pos)
+      error ("Unknown context -- cannot expand document antiquotations" ^ Position.str_of pos)
     else implode (map expand ants)
   end;
 
