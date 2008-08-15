@@ -110,3 +110,20 @@ $(OUT)/RAW: ML-Systems/alice.ML ML-Systems/exn.ML			\
 clean:
 	@rm -f $(OUT)/Pure $(LOG)/Pure.gz $(LOG)/Pure-ProofGeneral.gz \
           $(OUT)/RAW $(LOG)/RAW.gz
+
+
+## Scala material
+
+SCALA_TARGET = $(ISABELLE_HOME)/lib/classes/Pure.jar
+SCALA_FILES = General/symbol.scala
+
+jar: $(SCALA_TARGET)
+
+$(SCALA_TARGET): $(SCALA_FILES)
+	@rm -rf classes && mkdir classes
+	scalac -d classes -target jvm-1.5 -optimise $(SCALA_FILES)
+	@mkdir -p `dirname $@`
+	cd classes; jar cf $@ isabelle
+
+clean-jar:
+	@rm -f $(SCALA_TARGET)
