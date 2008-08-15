@@ -157,18 +157,18 @@
 \<int>                  code: 0x002124  font: Isabelle
 \<leftarrow>            code: 0x002190  font: Isabelle
 \<longleftarrow>        code: 0x0027f5  font: Isabelle
-\<rightarrow>           code: 0x002192  font: Isabelle
-\<longrightarrow>       code: 0x0027f6  font: Isabelle
+\<rightarrow>           code: 0x002192  font: Isabelle  abbrev: ->
+\<longrightarrow>       code: 0x0027f6  font: Isabelle  abbrev: -->
 \<Leftarrow>            code: 0x0021d0  font: Isabelle
-\<Longleftarrow>        code: 0x0027f8  font: Isabelle
-\<Rightarrow>           code: 0x0021d2  font: Isabelle
-\<Longrightarrow>       code: 0x0027f9  font: Isabelle
-\<leftrightarrow>       code: 0x002194  font: Isabelle
-\<longleftrightarrow>   code: 0x0027f7  font: Isabelle
-\<Leftrightarrow>       code: 0x0021d4  font: Isabelle
-\<Longleftrightarrow>   code: 0x0027fa  font: Isabelle
-\<mapsto>               code: 0x0021a6  font: Isabelle
-\<longmapsto>           code: 0x0027fc  font: Isabelle
+\<Longleftarrow>        code: 0x0027f8  font: Isabelle 
+\<Rightarrow>           code: 0x0021d2  font: Isabelle  abbrev: =>
+\<Longrightarrow>       code: 0x0027f9  font: Isabelle  abbrev: ==>
+\<leftrightarrow>       code: 0x002194  font: Isabelle  abbrev: <->
+\<longleftrightarrow>   code: 0x0027f7  font: Isabelle  abbrev: <-->
+\<Leftrightarrow>       code: 0x0021d4  font: Isabelle  abbrev: <=>
+\<Longleftrightarrow>   code: 0x0027fa  font: Isabelle  abbrev: <==>
+\<mapsto>               code: 0x0021a6  font: Isabelle  abbrev: |->
+\<longmapsto>           code: 0x0027fc  font: Isabelle  abbrev: |-->
 \<midarrow>             code: 0x002500  font: Isabelle
 \<Midarrow>             code: 0x002550  font: Isabelle
 \<hookleftarrow>        code: 0x0021a9  font: Isabelle
@@ -178,7 +178,7 @@
 \<leftharpoonup>        code: 0x0021bc  font: Isabelle
 \<rightharpoonup>       code: 0x0021c0  font: Isabelle
 \<rightleftharpoons>    code: 0x0021cc  font: Isabelle
-\<leadsto>              code: 0x00219d  font: Isabelle
+\<leadsto>              code: 0x00219d  font: Isabelle  abbrev: ~>
 \<downharpoonleft>      code: 0x0021c3  font: Isabelle
 \<downharpoonright>     code: 0x0021c2  font: Isabelle
 \<upharpoonleft>        code: 0x0021bf  font: Isabelle
@@ -191,69 +191,69 @@
 \<Down>                 code: 0x0021d3  font: Isabelle
 \<updown>               code: 0x002195  font: Isabelle
 \<Updown>               code: 0x0021d5  font: Isabelle
-\<langle>               code: 0x0027e8  font: Isabelle
-\<rangle>               code: 0x0027e9  font: Isabelle
+\<langle>               code: 0x0027e8  font: Isabelle  abbrev: <.
+\<rangle>               code: 0x0027e9  font: Isabelle  abbrev: .>
 \<lceil>                code: 0x002308  font: Isabelle
 \<rceil>                code: 0x002309  font: Isabelle
 \<lfloor>               code: 0x00230a  font: Isabelle
 \<rfloor>               code: 0x00230b  font: Isabelle
-\<lparr>                code: 0x002987  font: Isabelle
-\<rparr>                code: 0x002988  font: Isabelle
-\<lbrakk>               code: 0x0027e6  font: Isabelle
-\<rbrakk>               code: 0x0027e7  font: Isabelle
-\<lbrace>               code: 0x002983  font: Isabelle
-\<rbrace>               code: 0x002984  font: Isabelle
-\<guillemotleft>        code: 0x0000ab
-\<guillemotright>       code: 0x0000bb
+\<lparr>                code: 0x002987  font: Isabelle  abbrev: (|
+\<rparr>                code: 0x002988  font: Isabelle  abbrev: |)
+\<lbrakk>               code: 0x0027e6  font: Isabelle  abbrev: [|
+\<rbrakk>               code: 0x0027e7  font: Isabelle  abbrev: |]
+\<lbrace>               code: 0x002983  font: Isabelle  abbrev: {.
+\<rbrace>               code: 0x002984  font: Isabelle  abbrev: .}
+\<guillemotleft>        code: 0x0000ab                  abbrev: <<
+\<guillemotright>       code: 0x0000bb                  abbrev: >>
 \<bottom>               code: 0x0022a5  font: Isabelle
 \<top>                  code: 0x0022a4  font: Isabelle
-\<and>                  code: 0x002227  font: Isabelle
-\<And>                  code: 0x0022c0  font: Isabelle
-\<or>                   code: 0x002228  font: Isabelle
-\<Or>                   code: 0x0022c1  font: Isabelle
-\<forall>               code: 0x002200  font: Isabelle
-\<exists>               code: 0x002203  font: Isabelle
-\<nexists>              code: 0x002204  font: Isabelle
-\<not>                  code: 0x0000ac  font: Isabelle
+\<and>                  code: 0x002227  font: Isabelle  abbrev: /\
+\<And>                  code: 0x0022c0  font: Isabelle  abbreb: !!
+\<or>                   code: 0x002228  font: Isabelle  abbrev: \/
+\<Or>                   code: 0x0022c1  font: Isabelle  abbrev: ??
+\<forall>               code: 0x002200  font: Isabelle  abbrev: !
+\<exists>               code: 0x002203  font: Isabelle  abbrev: ?.
+\<nexists>              code: 0x002204  font: Isabelle  abbrev: ?~
+\<not>                  code: 0x0000ac  font: Isabelle  abbrev: ~
 \<box>                  code: 0x0025a1  font: Isabelle
 \<diamond>              code: 0x0025c7  font: Isabelle
-\<turnstile>            code: 0x0022a2  font: Isabelle
-\<Turnstile>            code: 0x0022a8  font: Isabelle
-\<tturnstile>           code: 0x0022a9  font: Isabelle
-\<TTurnstile>           code: 0x0022ab  font: Isabelle
-\<stileturn>            code: 0x0022a3  font: Isabelle
+\<turnstile>            code: 0x0022a2  font: Isabelle  abbrev: |-
+\<Turnstile>            code: 0x0022a8  font: Isabelle  abbrev: |=
+\<tturnstile>           code: 0x0022a9  font: Isabelle  abbrev: ||-
+\<TTurnstile>           code: 0x0022ab  font: Isabelle  abbrev: ||=
+\<stileturn>            code: 0x0022a3  font: Isabelle  abbrev: -|
 \<surd>                 code: 0x00221a  font: Isabelle
-\<le>                   code: 0x002264  font: Isabelle
-\<ge>                   code: 0x002265  font: Isabelle
+\<le>                   code: 0x002264  font: Isabelle  abbrev: <=
+\<ge>                   code: 0x002265  font: Isabelle  abbrev: >=
 \<lless>                code: 0x00226a  font: Isabelle
 \<ggreater>             code: 0x00226b  font: Isabelle
 \<lesssim>              code: 0x002272  font: Isabelle
 \<greatersim>           code: 0x002273  font: Isabelle
 \<lessapprox>           code: 0x002a85  font: Isabelle
 \<greaterapprox>        code: 0x002a86  font: Isabelle
-\<in>                   code: 0x002208  font: Isabelle
-\<notin>                code: 0x002209  font: Isabelle
+\<in>                   code: 0x002208  font: Isabelle  abbrev: :
+\<notin>                code: 0x002209  font: Isabelle  abbrev: ~:
 \<subset>               code: 0x002282  font: Isabelle
 \<supset>               code: 0x002283  font: Isabelle
-\<subseteq>             code: 0x002286  font: Isabelle
-\<supseteq>             code: 0x002287  font: Isabelle
+\<subseteq>             code: 0x002286  font: Isabelle  abbrev: (=
+\<supseteq>             code: 0x002287  font: Isabelle  abbrev: )=
 \<sqsubset>             code: 0x00228f  font: Isabelle
 \<sqsupset>             code: 0x002290  font: Isabelle
-\<sqsubseteq>           code: 0x002291  font: Isabelle
-\<sqsupseteq>           code: 0x002292  font: Isabelle
-\<inter>                code: 0x002229  font: Isabelle
-\<Inter>                code: 0x0022c2  font: Isabelle
-\<union>                code: 0x00222a  font: Isabelle
-\<Union>                code: 0x0022c3  font: Isabelle
-\<squnion>              code: 0x002294  font: Isabelle
-\<Squnion>              code: 0x002a06  font: Isabelle
-\<sqinter>              code: 0x002293  font: Isabelle
-\<Sqinter>              code: 0x002a05  font: Isabelle
+\<sqsubseteq>           code: 0x002291  font: Isabelle  abbrev: [=
+\<sqsupseteq>           code: 0x002292  font: Isabelle  abbrev: ]=
+\<inter>                code: 0x002229  font: Isabelle  abbrev: Int
+\<Inter>                code: 0x0022c2  font: Isabelle  abbrev: Inter
+\<union>                code: 0x00222a  font: Isabelle  abbrev: Un
+\<Union>                code: 0x0022c3  font: Isabelle  abbrev: Union
+\<squnion>              code: 0x002294  font: Isabelle  abbrev: ||
+\<Squnion>              code: 0x002a06  font: Isabelle  abbrev: |||
+\<sqinter>              code: 0x002293  font: Isabelle  abbrev: &&
+\<Sqinter>              code: 0x002a05  font: Isabelle  abbrev: &&&
 \<setminus>             code: 0x002216  font: Isabelle
 \<propto>               code: 0x00221d  font: Isabelle
 \<uplus>                code: 0x00228e  font: Isabelle
 \<Uplus>                code: 0x002a04  font: Isabelle
-\<noteq>                code: 0x002260  font: Isabelle
+\<noteq>                code: 0x002260  font: Isabelle  abbrev: ~=
 \<sim>                  code: 0x00223c  font: Isabelle
 \<doteq>                code: 0x002250  font: Isabelle
 \<simeq>                code: 0x002243  font: Isabelle
@@ -261,7 +261,7 @@
 \<asymp>                code: 0x00224d  font: Isabelle
 \<cong>                 code: 0x002245  font: Isabelle
 \<smile>                code: 0x002323  font: Isabelle
-\<equiv>                code: 0x002261  font: Isabelle
+\<equiv>                code: 0x002261  font: Isabelle  abbrev: ==
 \<frown>                code: 0x002322  font: Isabelle
 \<Join>                 code: 0x0022c8  font: Isabelle
 \<bowtie>               code: 0x002a1d  font: Isabelle
@@ -269,7 +269,7 @@
 \<succ>                 code: 0x00227b  font: Isabelle
 \<preceq>               code: 0x00227c  font: Isabelle
 \<succeq>               code: 0x00227d  font: Isabelle
-\<parallel>             code: 0x002225  font: Isabelle
+\<parallel>             code: 0x002225  font: Isabelle  abbrev: ||
 \<bar>                  code: 0x0000a6
 \<plusminus>            code: 0x0000b1  font: Isabelle
 \<minusplus>            code: 0x002213  font: Isabelle
@@ -289,20 +289,20 @@
 \<triangleright>        code: 0x0025b9  font: Isabelle
 \<triangle>             code: 0x0025b3  font: Isabelle
 \<triangleq>            code: 0x00225c  font: Isabelle
-\<oplus>                code: 0x002295  font: Isabelle
-\<Oplus>                code: 0x002a01  font: Isabelle
-\<otimes>               code: 0x002297  font: Isabelle
-\<Otimes>               code: 0x002a02  font: Isabelle
-\<odot>                 code: 0x002299  font: Isabelle
-\<Odot>                 code: 0x002a00  font: Isabelle
-\<ominus>               code: 0x002296  font: Isabelle
-\<oslash>               code: 0x002298  font: Isabelle
-\<dots>                 code: 0x002026  font: Isabelle
+\<oplus>                code: 0x002295  font: Isabelle  abbrev: +o
+\<Oplus>                code: 0x002a01  font: Isabelle  abbrev: +O
+\<otimes>               code: 0x002297  font: Isabelle  abbrev: xo
+\<Otimes>               code: 0x002a02  font: Isabelle  abbrev: xO
+\<odot>                 code: 0x002299  font: Isabelle  abbrev: .o
+\<Odot>                 code: 0x002a00  font: Isabelle  abbrev: .O
+\<ominus>               code: 0x002296  font: Isabelle  abbrev: -o
+\<oslash>               code: 0x002298  font: Isabelle  abbrev: /o
+\<dots>                 code: 0x002026  font: Isabelle  abbrev: ...
 \<cdots>                code: 0x0022ef  font: Isabelle
-\<Sum>                  code: 0x002211  font: Isabelle
-\<Prod>                 code: 0x00220f  font: Isabelle
+\<Sum>                  code: 0x002211  font: Isabelle  abbrev: SUM
+\<Prod>                 code: 0x00220f  font: Isabelle  abbrev: PROD
 \<Coprod>               code: 0x002210  font: Isabelle
-\<infinity>             code: 0x00221e  font: Isabelle
+\<infinity>             code: 0x00221e  font: Isabelle  abbrev: oo
 \<integral>             code: 0x00222b  font: Isabelle
 \<ointegral>            code: 0x00222e  font: Isabelle
 \<clubsuit>             code: 0x002663  font: Isabelle
@@ -335,7 +335,7 @@
 \<paragraph>            code: 0x0000b6
 \<exclamdown>           code: 0x0000a1
 \<questiondown>         code: 0x0000bf
-\<euro>                 code: 0x0020ac  font: Isabelle
+\<euro>                 code: 0x0020ac
 \<pounds>               code: 0x0000a3
 \<yen>                  code: 0x0000a5
 \<cent>                 code: 0x0000a2
