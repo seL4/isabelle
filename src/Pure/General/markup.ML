@@ -12,6 +12,7 @@ sig
   val get_string: T -> string -> string option
   val get_int: T -> string -> int option
   val none: T
+  val is_none: T -> bool
   val properties: (string * string) list -> T -> T
   val nameN: string
   val name: string -> T -> T
@@ -54,6 +55,7 @@ sig
   val xnumN: string val xnum: T
   val xstrN: string val xstr: T
   val literalN: string val literal: T
+  val inner_commentN: string val inner_comment: T
   val sortN: string val sort: T
   val typN: string val typ: T
   val termN: string val term: T
@@ -104,6 +106,9 @@ type property = string * string;
 type T = string * property list;
 
 val none = ("", []);
+
+fun is_none ("", _) = true
+  | is_none _ = false;
 
 
 fun properties more_props ((elem, props): T) =
@@ -187,6 +192,7 @@ val (numN, num) = markup_elem "num";
 val (xnumN, xnum) = markup_elem "xnum";
 val (xstrN, xstr) = markup_elem "xstr";
 val (literalN, literal) = markup_elem "literal";
+val (inner_commentN, inner_comment) = markup_elem "inner_comment";
 
 val (sortN, sort) = markup_elem "sort";
 val (typN, typ) = markup_elem "typ";
@@ -261,8 +267,7 @@ in
     the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
 end;
 
-fun output ("", _) = ("", "")
-  | output m = #output (get_mode ()) m;
+fun output m = if is_none m then ("", "") else #output (get_mode ()) m;
 
 val enclose = output #-> Library.enclose;
 
