@@ -446,7 +446,7 @@ val scan_resync =
   Scan.this_string "{*" || Scan.this_string "*}";
 
 val recover =
-  Scan.this (explode "\\<") @@@
+  (Scan.this (explode "\\\\<") || Scan.this (explode "\\<")) @@@
     Scan.repeat (Scan.unless scan_resync (Scan.one not_eof))
   >> (fn ss => malformed :: ss @ [end_malformed]);
 
