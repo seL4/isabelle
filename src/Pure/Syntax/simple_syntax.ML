@@ -24,6 +24,7 @@ fun read scan s =
   (case
       SymbolPos.explode (s, Position.none) |>
       Lexicon.tokenize lexicon false |>
+      filter Lexicon.is_proper |>
       Scan.read Lexicon.stopper scan of
     SOME x => x
   | NONE => error ("Malformed input: " ^ quote s));
