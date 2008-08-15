@@ -44,12 +44,29 @@ function choosefrom ()
   echo "$RESULT"
 }
 
-#Java path wrapper
+#JVM path wrappers
 if [ "$OSTYPE" = cygwin ]; then
-  function javapath() { cygpath -w "$@"; }
+  CLASSPATH="$(cygpath -u -p "$CLASSPATH")"
+  function jvmpath() { cygpath -w -p "$@"; }
+  function javawrapper() { env CLASSPATH="$(javapath "$CLASSPATH")" java "$@"; }
+  function scalawrapper() { env CLASSPATH="$(javapath "$CLASSPATH")" scala "$@"; }
 else
-  function javapath() { echo "$@"; }
+  function jvmpath() { echo "$@"; }
+  function javawrapper() { java "$@"; }
+  function scalawrapper() { scala "$@"; }
 fi
+
+#CLASSPATH convenience
+function classpath () {
+  for X in "$@"
+  do
+    if [ -z "$CLASSPATH" ]; then
+      CLASSPATH="$X"
+    else
+      CLASSPATH="$CLASSPATH:$X"
+    fi
+  done
+}
 
 #get actual settings
 source "$ISABELLE_HOME/etc/settings" || exit 2
