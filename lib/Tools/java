@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: Java wrapper
+
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [ARGS ...]"
+  echo
+  echo "  Invoke Java within the Isabelle environment."
+  echo
+  exit 1
+}
+
+
+## main
+
+CLASSPATH="$(jvmpath "$CLASSPATH")"
+exec "$ISABELLE_JAVA" "$@"

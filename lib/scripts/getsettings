@@ -44,18 +44,13 @@ function choosefrom ()
   echo "$RESULT"
 }
 
-#JVM path wrappers
+#JVM path wrapper
 if [ "$OSTYPE" = cygwin ]; then
   CLASSPATH="$(cygpath -u -p "$CLASSPATH")"
   function jvmpath() { cygpath -w -p "$@"; }
-  function javawrapper() { env CLASSPATH="$(jvmpath "$CLASSPATH")" java "$@"; }
-  function scalawrapper() { env CLASSPATH="$(jvmpath "$CLASSPATH")" scala "$@"; }
 else
   function jvmpath() { echo "$@"; }
-  function javawrapper() { java "$@"; }
-  function scalawrapper() { scala "$@"; }
 fi
-ISABELLE_HOME_JVM="$(jvmpath "$ISABELLE_HOME")"
 
 #CLASSPATH convenience
 function classpath () {
@@ -86,6 +81,10 @@ else
 fi
 
 ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
+
+#JVM settings
+ISABELLE_HOME_JVM="$(jvmpath "$ISABELLE_HOME")"
+ISABELLE_HOME_USER_JVM="$(jvmpath "$ISABELLE_HOME_USER")"
 
 set +o allexport
 
