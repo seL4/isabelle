@@ -33,12 +33,16 @@ object Symbol {
 
 
 
-  /** Recoder tables **/
+  /** Symbol interpretation **/
 
-  class Recoder(list: List[(String, String)]) {
-    private var pattern: Pattern = null
-    private var table = new HashMap[String, String]
+  private class Recoder(list: List[(String, String)]) {
 
+    private val pattern = compile((for ((x, _) <- list) yield Pattern.quote(x)).mkString("|"))
+    private val table = {
+      val table = new HashMap[String, String]
+      for ((x, y) <- list) table + (x -> Matcher.quoteReplacement(y))
+      table
+    }
     def recode(text: String) = {
       val output = new StringBuffer(text.length)
       val matcher = pattern.matcher(text)
@@ -47,22 +51,8 @@ object Symbol {
       output.toString
     }
 
-    /* constructor */
-    {
-      val pat = new StringBuilder(500)
-      val elems = list.elements
-      for ((x, y) <- elems) {
-        pat.append(Pattern.quote(x))
-        if (elems.hasNext) pat.append("|")
-        table + (x -> Matcher.quoteReplacement(y))
-      }
-      pattern = compile(pat.toString)
-    }
   }
 
-
-
-  /** Symbol interpretation **/
 
   class Interpretation {
 
