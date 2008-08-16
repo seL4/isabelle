@@ -72,6 +72,9 @@ ML_DBASE=""
 ### JVM components (Scala or Java)
 ###
 
+ISABELLE_SCALA="scala"
+ISABELLE_JAVA="java"
+
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
 
