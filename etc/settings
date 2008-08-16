@@ -75,6 +75,9 @@ ML_DBASE=""
 ISABELLE_SCALA="scala"
 ISABELLE_JAVA="java"
 
+[ -e "$ISABELLE_HOME/contrib/scala" ] && \
+  classpath "$ISABELLE_HOME/contrib/scala/lib/scala-library.jar"
+
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
 
