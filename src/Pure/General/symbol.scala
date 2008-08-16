@@ -2,12 +2,12 @@
     ID:         $Id$
     Author:     Makarius
 
-Basic support for Isabelle symbols.
+Detecting and recoding Isabelle symbols.
 */
 
 package isabelle
 
-import java.util.regex.Pattern
+import java.util.regex.{Pattern, Matcher}
 import java.io.File
 import scala.io.Source
 import scala.collection.jcl.HashMap
@@ -15,28 +15,50 @@ import scala.collection.jcl.HashMap
 
 object Symbol {
 
-  /** Regexp utils **/
+  /** Symbol regexps **/
 
   private def compile(s: String) =
     Pattern.compile(s, Pattern.COMMENTS | Pattern.DOTALL)
 
+  val char_pattern = compile(""" [^\ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
 
-
-  /** Symbol regexps **/
-
-  private val char_src = """ [^\ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """
-
-  private val symbol_src = """ \\ \\? < (?:
+  val symbol_pattern = compile(""" \\ \\? < (?:
       \^? [A-Za-z][A-Za-z0-9_']* |
-      \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >"""
+      \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
 
-  private val bad_symbol_src = "(?!" + symbol_src + ")" +
-    """ \\ \\? < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*"""
+  val bad_symbol_pattern = compile("(?!" + symbol_pattern + ")" +
+    """ \\ \\? < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
 
-  val char_pattern = compile(char_src)
-  val symbol_pattern = compile(symbol_src)
-  val bad_symbol_pattern = compile(bad_symbol_src)
-  val pattern = compile(char_pattern + "|" + symbol_src + "|" + bad_symbol_src)
+  val pattern = compile(char_pattern + "|" + symbol_pattern + "|" + bad_symbol_pattern)
+
+
+
+  /** Recoder tables **/
+
+  class Recoder(list: List[(String, String)]) {
+    var pattern: Pattern = null
+    var table = new HashMap[String, String]
+
+    def recode(text: String) = {
+      val output = new StringBuffer(text.length)
+      val matcher = pattern.matcher(text)
+      while(matcher.find) matcher.appendReplacement(output, table(matcher.group))
+      matcher.appendTail(output)
+      output.toString
+    }
+
+    /* constructor */
+    {
+      val pat = new StringBuilder(500)
+      val elems = list.elements
+      for ((x, y) <- elems) {
+        pat.append(Pattern.quote(x))
+        if (elems.hasNext) pat.append("|")
+        table + (x -> Matcher.quoteReplacement(y))
+      }
+      pattern = compile(pat.toString)
+    }
+  }
 
 
 
@@ -46,24 +68,12 @@ object Symbol {
 
     class BadSymbol(val msg: String) extends Exception
 
-    var symbols = new HashMap[String, HashMap[String, String]]
+    private var symbols = new HashMap[String, HashMap[String, String]]
+    var decoder: Recoder = null
+    var encoder: Recoder = null
 
-    var decode_pattern: Pattern = null
-    var decode_table = new HashMap[String, String]
-
-    var encode_pattern: Pattern = null
-    var encode_table = new HashMap[String, String]
-
-
-    /* recode */
-
-    private def recode(pattern: Pattern, table: HashMap[String, String], text: String) = {
-      // FIXME
-      text
-    }
-
-    def decode(text: String) = recode(decode_pattern, decode_table, text)
-    def encode(text: String) = recode(encode_pattern, encode_table, text)
+    def decode(text: String) = decoder.recode(text)
+    def encode(text: String) = encoder.recode(text)
 
 
     /* read symbols */
@@ -112,34 +122,21 @@ object Symbol {
 
     /* init tables */
 
-    private def init_tables() = {
-      val decode_pat = new StringBuilder
-      val encode_pat = new StringBuilder
-
-      val syms = symbols.elements
-      for ((symbol, props) <- syms) {
-        val code = {
-          try { Integer.decode(props("code")) }
-          catch {
-            case e: NoSuchElementException => throw new BadSymbol(symbol)
-            case e: NumberFormatException => throw new BadSymbol(symbol)
-          }
+    private def get_code(entry: (String, HashMap[String, String])) = {
+      val (symbol, props) = entry
+      val code =
+        try { Integer.decode(props("code")).intValue }
+        catch {
+          case e: NoSuchElementException => throw new BadSymbol(symbol)
+          case e: NumberFormatException => throw new BadSymbol(symbol)
         }
-        val code_str = new String(Character.toChars(code.intValue))
+      (symbol, new String(Character.toChars(code)))
+    }
 
-        decode_pat.append(Pattern.quote(symbol))
-        encode_pat.append(Pattern.quote(code_str))
-        if (syms.hasNext) {
-          decode_pat.append("|")
-          encode_pat.append("|")
-        }
-
-        decode_table + (symbol -> code_str)
-        encode_table + (code_str -> symbol)
-      }
-
-      decode_pattern = compile(decode_pat.toString)
-      encode_pattern = compile(encode_pat.toString)
+    private def init_recoders() = {
+      val list = symbols.elements.toList.map(get_code)
+      decoder = new Recoder(list)
+      encoder = new Recoder(list.map((p: (String, String)) => (p._2, p._1)))
     }
 
 
@@ -147,7 +144,7 @@ object Symbol {
 
     read_symbols(IsabelleSystem.ISABELLE_HOME)
     read_symbols(IsabelleSystem.ISABELLE_HOME_USER)
-    init_tables()
+    init_recoders()
   }
 
 }
