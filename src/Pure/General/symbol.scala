@@ -36,8 +36,8 @@ object Symbol {
   /** Recoder tables **/
 
   class Recoder(list: List[(String, String)]) {
-    var pattern: Pattern = null
-    var table = new HashMap[String, String]
+    private var pattern: Pattern = null
+    private var table = new HashMap[String, String]
 
     def recode(text: String) = {
       val output = new StringBuffer(text.length)
@@ -69,8 +69,8 @@ object Symbol {
     class BadSymbol(val msg: String) extends Exception
 
     private var symbols = new HashMap[String, HashMap[String, String]]
-    var decoder: Recoder = null
-    var encoder: Recoder = null
+    private var decoder: Recoder = null
+    private var encoder: Recoder = null
 
     def decode(text: String) = decoder.recode(text)
     def encode(text: String) = encoder.recode(text)
