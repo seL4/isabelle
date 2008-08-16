@@ -121,9 +121,9 @@ jar: $(SCALA_TARGET)
 
 $(SCALA_TARGET): $(SCALA_FILES)
 	@rm -rf classes && mkdir classes
-	scalac -d classes -target jvm-1.5 -optimise $(SCALA_FILES)
+	scalac -d classes -target jvm-1.5 $(SCALA_FILES)
 	@mkdir -p `dirname $@`
-	@cd classes; jar cf `jvmpath $@` isabelle
+	@cd classes; jar cf $@ isabelle
 
 clean-jar:
 	@rm -f $(SCALA_TARGET)
