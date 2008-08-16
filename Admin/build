@@ -17,11 +17,15 @@ PATH="/home/scala/scala/bin:$PATH"
 ISABELLE_DIR="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 
 if [ -d "$ISABELLE_DIR/Distribution" ]; then
-  OLD_LAYOUT=true
   ISATOOL="$ISABELLE_DIR/Distribution/bin/isatool"
+  ISABELLE_LIB="$ISABELLE_DIR/Distribution/lib"
+  ISABELLE_SRC="$ISABELLE_DIR"
+  ISABELLE_DOC_SRC="$ISABELLE_DIR/Doc"
 else
-  OLD_LAYOUT=false
   ISATOOL="$ISABELLE_DIR/bin/isatool"
+  ISABELLE_LIB="$ISABELLE_DIR/lib"
+  ISABELLE_SRC="$ISABELLE_DIR/src"
+  ISABELLE_DOC_SRC="$ISABELLE_DIR/doc-src"
 fi
 
 
@@ -77,11 +81,7 @@ function build_browser ()
   echo "### Building graph browser ..."
   echo "###"
 
-  if [ "$OLD_LAYOUT" = true ]; then
-    cd "$ISABELLE_DIR/Distribution/lib/browser"
-  else
-    cd "$ISABELLE_DIR/lib/browser"
-  fi
+  cd "$ISABELLE_LIB/browser"
   make clean all || fail "Failed to build graph browser!"
 }
 
@@ -92,12 +92,7 @@ function build_doc ()
   echo "### Building documentation ..."
   echo "###"
 
-  if [ "$OLD_LAYOUT" = true ]; then
-    cd "$ISABELLE_DIR/Doc"
-  else
-    cd "$ISABELLE_DIR/doc-src"
-  fi
-
+  cd "$ISABELLE_DOC_SRC"
   for DOC in $(cat Dirs)
   do
     pushd "$DOC" >/dev/null
@@ -114,24 +109,18 @@ function build_jars ()
   echo "### Building JVM components ..."
   echo "###"
 
-  if [ "$OLD_LAYOUT" = true ]; then
-    cd "$ISABELLE_DIR/Distribution"
-  else
-    cd "$ISABELLE_DIR"
-  fi
-
-  pushd src/Pure >/dev/null
+  pushd "$ISABELLE_SRC/Pure" >/dev/null
   "$ISATOOL" make jar || fail "Failed to build Pure.jar!"
   popd >/dev/null
 
-  pushd lib/classes >/dev/null
+  pushd "$ISABELLE_LIB/classes" >/dev/null
   ./mk
   [ -f isabelle.jar ] || fail "Failed to build Isabelle process wrapper!"
   popd >/dev/null
 
   if [ -d "$HOME/lib/jedit/current" ]; then
     type -p scalac >/dev/null || fail "Scala compiler unavailable"
-    pushd lib/jedit/plugin >/dev/null
+    pushd "$ISABELLE_LIB/jedit/plugin" >/dev/null
     ./mk
     [ -f ../isabelle.jar ] || fail "Failed to build jEdit plugin!"
     popd >/dev/null
