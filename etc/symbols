@@ -236,11 +236,11 @@
 \<subset>               code: 0x002282  font: Isabelle
 \<supset>               code: 0x002283  font: Isabelle
 \<subseteq>             code: 0x002286  font: Isabelle  abbrev: (=
-\<supseteq>             code: 0x002287  font: Isabelle  abbrev: )=
+\<supseteq>             code: 0x002287  font: Isabelle  abbrev: =)
 \<sqsubset>             code: 0x00228f  font: Isabelle
 \<sqsupset>             code: 0x002290  font: Isabelle
 \<sqsubseteq>           code: 0x002291  font: Isabelle  abbrev: [=
-\<sqsupseteq>           code: 0x002292  font: Isabelle  abbrev: ]=
+\<sqsupseteq>           code: 0x002292  font: Isabelle  abbrev: =]
 \<inter>                code: 0x002229  font: Isabelle  abbrev: Int
 \<Inter>                code: 0x0022c2  font: Isabelle  abbrev: Inter
 \<union>                code: 0x00222a  font: Isabelle  abbrev: Un
@@ -291,8 +291,8 @@
 \<triangleq>            code: 0x00225c  font: Isabelle
 \<oplus>                code: 0x002295  font: Isabelle  abbrev: +o
 \<Oplus>                code: 0x002a01  font: Isabelle  abbrev: +O
-\<otimes>               code: 0x002297  font: Isabelle  abbrev: xo
-\<Otimes>               code: 0x002a02  font: Isabelle  abbrev: xO
+\<otimes>               code: 0x002297  font: Isabelle  abbrev: *o
+\<Otimes>               code: 0x002a02  font: Isabelle  abbrev: *O
 \<odot>                 code: 0x002299  font: Isabelle  abbrev: .o
 \<Odot>                 code: 0x002a00  font: Isabelle  abbrev: .O
 \<ominus>               code: 0x002296  font: Isabelle  abbrev: -o
@@ -302,7 +302,7 @@
 \<Sum>                  code: 0x002211  font: Isabelle  abbrev: SUM
 \<Prod>                 code: 0x00220f  font: Isabelle  abbrev: PROD
 \<Coprod>               code: 0x002210  font: Isabelle
-\<infinity>             code: 0x00221e  font: Isabelle  abbrev: oo
+\<infinity>             code: 0x00221e  font: Isabelle
 \<integral>             code: 0x00222b  font: Isabelle
 \<ointegral>            code: 0x00222e  font: Isabelle
 \<clubsuit>             code: 0x002663  font: Isabelle
