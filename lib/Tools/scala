@@ -3,23 +3,7 @@
 # $Id$
 # Author: Makarius
 #
-# DESCRIPTION: Scala wrapper
-
-
-PRG="$(basename "$0")"
-
-function usage()
-{
-  echo
-  echo "Usage: $PRG [ARGS ...]"
-  echo
-  echo "  Invoke Scala within the Isabelle environment."
-  echo
-  exit 1
-}
-
-
-## main
+# DESCRIPTION: invoke Scala within the Isabelle environment
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
 exec "$ISABELLE_SCALA" "$@"
