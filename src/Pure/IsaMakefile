@@ -122,6 +122,7 @@ jar: $(SCALA_TARGET)
 $(SCALA_TARGET): $(SCALA_FILES)
 	@rm -rf classes && mkdir classes
 	scalac -d classes -target jvm-1.5 $(SCALA_FILES)
+	scaladoc -d classes $(SCALA_FILES)
 	@mkdir -p `dirname $@`
 	@cd classes; jar cf $@ isabelle
 
