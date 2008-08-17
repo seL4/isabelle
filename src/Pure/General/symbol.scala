@@ -43,6 +43,7 @@ object Symbol {
       for ((x, y) <- list) table + (x -> Matcher.quoteReplacement(y))
       table
     }
+
     def recode(text: String) = {
       val output = new StringBuffer(text.length)
       val matcher = pattern.matcher(text)
@@ -50,7 +51,6 @@ object Symbol {
       matcher.appendTail(output)
       output.toString
     }
-
   }
 
 
@@ -125,8 +125,8 @@ object Symbol {
 
     private def init_recoders() = {
       val list = symbols.elements.toList.map(get_code)
-      decoder = new Recoder(list)
-      encoder = new Recoder(list.map((p: (String, String)) => (p._2, p._1)))
+      decoder = new Recoder(list ::: (for ((x, y) <- list) yield ("\\" + x, y)))
+      encoder = new Recoder(for ((x, y) <- list) yield (y, x))
     }
 
 
