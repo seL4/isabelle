@@ -21,7 +21,6 @@ sig
   val element: string -> XML.attributes -> string list -> string
   val string_of: XML.tree -> string
   val parse_body: string -> XML.tree list
-  val parse_element: string -> string * XML.attributes * XML.tree list
   val parse: string -> XML.tree
 end;
 
@@ -123,8 +122,6 @@ fun parse source =
     [result] => result
   | [] => XML.Text ""
   | _ => err "multiple results");
-
-val parse_element = parse #> (fn XML.Elem elem => elem);
 
 end;
 
