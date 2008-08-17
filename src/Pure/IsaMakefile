@@ -115,7 +115,8 @@ clean:
 ## Scala material
 
 SCALA_TARGET = $(ISABELLE_HOME)/lib/classes/Pure.jar
-SCALA_FILES = General/symbol.scala Tools/isabelle_system.scala
+SCALA_FILES = General/symbol.scala Tools/isabelle_system.scala	\
+  General/xml.scala General/yxml.scala
 
 jar: $(SCALA_TARGET)
 
