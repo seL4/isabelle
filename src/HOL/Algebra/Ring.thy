@@ -216,13 +216,15 @@ translations
   "\<Oplus>\<index>i:A. b" == "finsum \<struct>\<index> (%i. b) A"
   -- {* Beware of argument permutation! *}
 
+context abelian_monoid begin
+
 (*
-  lemmas (in abelian_monoid) finsum_empty [simp] =
+  lemmas finsum_empty [simp] =
     comm_monoid.finprod_empty [OF a_comm_monoid, simplified]
   is dangeous, because attributes (like simplified) are applied upon opening
   the locale, simplified refers to the simpset at that time!!!
 
-  lemmas (in abelian_monoid) finsum_empty [simp] =
+  lemmas finsum_empty [simp] =
     abelian_monoid.finprod_empty [OF a_abelian_monoid, folded finsum_def,
       simplified monoid_record_simps]
   makes the locale slow, because proofs are repeated for every
@@ -231,23 +233,23 @@ translations
   from 110 secs to 60 secs.
 *)
 
-lemma (in abelian_monoid) finsum_empty [simp]:
+lemma finsum_empty [simp]:
   "finsum G f {} = \<zero>"
   by (rule comm_monoid.finprod_empty [OF a_comm_monoid,
     folded finsum_def, simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_insert [simp]:
+lemma finsum_insert [simp]:
   "[| finite F; a \<notin> F; f \<in> F -> carrier G; f a \<in> carrier G |]
   ==> finsum G f (insert a F) = f a \<oplus> finsum G f F"
   by (rule comm_monoid.finprod_insert [OF a_comm_monoid,
     folded finsum_def, simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_zero [simp]:
+lemma finsum_zero [simp]:
   "finite A ==> (\<Oplus>i\<in>A. \<zero>) = \<zero>"
   by (rule comm_monoid.finprod_one [OF a_comm_monoid, folded finsum_def,
     simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_closed [simp]:
+lemma finsum_closed [simp]:
   fixes A
   assumes fin: "finite A" and f: "f \<in> A -> carrier G" 
   shows "finsum G f A \<in> carrier G"
@@ -257,57 +259,57 @@ lemma (in abelian_monoid) finsum_closed [simp]:
   apply (rule f)
   done
 
-lemma (in abelian_monoid) finsum_Un_Int:
+lemma finsum_Un_Int:
   "[| finite A; finite B; g \<in> A -> carrier G; g \<in> B -> carrier G |] ==>
      finsum G g (A Un B) \<oplus> finsum G g (A Int B) =
      finsum G g A \<oplus> finsum G g B"
   by (rule comm_monoid.finprod_Un_Int [OF a_comm_monoid,
     folded finsum_def, simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_Un_disjoint:
+lemma finsum_Un_disjoint:
   "[| finite A; finite B; A Int B = {};
       g \<in> A -> carrier G; g \<in> B -> carrier G |]
    ==> finsum G g (A Un B) = finsum G g A \<oplus> finsum G g B"
   by (rule comm_monoid.finprod_Un_disjoint [OF a_comm_monoid,
     folded finsum_def, simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_addf:
+lemma finsum_addf:
   "[| finite A; f \<in> A -> carrier G; g \<in> A -> carrier G |] ==>
    finsum G (%x. f x \<oplus> g x) A = (finsum G f A \<oplus> finsum G g A)"
   by (rule comm_monoid.finprod_multf [OF a_comm_monoid,
     folded finsum_def, simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_cong':
+lemma finsum_cong':
   "[| A = B; g : B -> carrier G;
       !!i. i : B ==> f i = g i |] ==> finsum G f A = finsum G g B"
   by (rule comm_monoid.finprod_cong' [OF a_comm_monoid,
     folded finsum_def, simplified monoid_record_simps]) auto
 
-lemma (in abelian_monoid) finsum_0 [simp]:
+lemma finsum_0 [simp]:
   "f : {0::nat} -> carrier G ==> finsum G f {..0} = f 0"
   by (rule comm_monoid.finprod_0 [OF a_comm_monoid, folded finsum_def,
     simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_Suc [simp]:
+lemma finsum_Suc [simp]:
   "f : {..Suc n} -> carrier G ==>
    finsum G f {..Suc n} = (f (Suc n) \<oplus> finsum G f {..n})"
   by (rule comm_monoid.finprod_Suc [OF a_comm_monoid, folded finsum_def,
     simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_Suc2:
+lemma finsum_Suc2:
   "f : {..Suc n} -> carrier G ==>
    finsum G f {..Suc n} = (finsum G (%i. f (Suc i)) {..n} \<oplus> f 0)"
   by (rule comm_monoid.finprod_Suc2 [OF a_comm_monoid, folded finsum_def,
     simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_add [simp]:
+lemma finsum_add [simp]:
   "[| f : {..n} -> carrier G; g : {..n} -> carrier G |] ==>
      finsum G (%i. f i \<oplus> g i) {..n::nat} =
      finsum G f {..n} \<oplus> finsum G g {..n}"
   by (rule comm_monoid.finprod_mult [OF a_comm_monoid, folded finsum_def,
     simplified monoid_record_simps])
 
-lemma (in abelian_monoid) finsum_cong:
+lemma finsum_cong:
   "[| A = B; f : B -> carrier G;
       !!i. i : B =simp=> f i = g i |] ==> finsum G f A = finsum G g B"
   by (rule comm_monoid.finprod_cong [OF a_comm_monoid, folded finsum_def,
@@ -317,7 +319,7 @@ text {*Usually, if this rule causes a failed congruence proof error,
    the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
    Adding @{thm [source] Pi_def} to the simpset is often useful. *}
 
-lemma (in abelian_monoid) finsum_reindex:
+lemma finsum_reindex:
   assumes fin: "finite A"
     shows "f : (h ` A) \<rightarrow> carrier G \<Longrightarrow> 
         inj_on h A ==> finsum G f (h ` A) = finsum G (%x. f (h x)) A"
@@ -328,7 +330,7 @@ done
 (* The following is wrong.  Needed is the equivalent of (^) for addition,
   or indeed the canonical embedding from Nat into the monoid.
 
-lemma (in abelian_monoid) finsum_const:
+lemma finsum_const:
   assumes fin [simp]: "finite A"
       and a [simp]: "a : carrier G"
     shows "finsum G (%x. a) A = a (^) card A"
@@ -341,6 +343,18 @@ lemma (in abelian_monoid) finsum_const:
   apply auto
 done
 *)
+
+(* By Jesus Aransay. *)
+
+lemma finsum_singleton:
+  assumes i_in_A: "i \<in> A" and fin_A: "finite A" and f_Pi: "f \<in> A \<rightarrow> carrier G"
+  shows "(\<Oplus>j\<in>A. if i = j then f j else \<zero>) = f i"
+  using i_in_A finsum_insert [of "A - {i}" i "(\<lambda>j. if i = j then f j else \<zero>)"]
+    fin_A f_Pi finsum_zero [of "A - {i}"]
+    finsum_cong [of "A - {i}" "A - {i}" "(\<lambda>j. if i = j then f j else \<zero>)" "(\<lambda>i. \<zero>)"] 
+  unfolding Pi_def simp_implies_def by (force simp add: insert_absorb)
+
+end
 
 
 subsection {* Rings: Basic Definitions *}

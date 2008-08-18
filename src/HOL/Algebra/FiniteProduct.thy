@@ -313,7 +313,9 @@ lemma (in comm_monoid) finprod_empty [simp]:
 declare funcsetI [intro]
   funcset_mem [dest]
 
-lemma (in comm_monoid) finprod_insert [simp]:
+context comm_monoid begin
+
+lemma finprod_insert [simp]:
   "[| finite F; a \<notin> F; f \<in> F -> carrier G; f a \<in> carrier G |] ==>
    finprod G f (insert a F) = f a \<otimes> finprod G f F"
   apply (rule trans)
@@ -331,7 +333,7 @@ lemma (in comm_monoid) finprod_insert [simp]:
   apply (auto simp add: finprod_def)
   done
 
-lemma (in comm_monoid) finprod_one [simp]:
+lemma finprod_one [simp]:
   "finite A ==> (\<Otimes>i:A. \<one>) = \<one>"
 proof (induct set: finite)
   case empty show ?case by simp
@@ -341,7 +343,7 @@ next
   with insert show ?case by simp
 qed
 
-lemma (in comm_monoid) finprod_closed [simp]:
+lemma finprod_closed [simp]:
   fixes A
   assumes fin: "finite A" and f: "f \<in> A -> carrier G" 
   shows "finprod G f A \<in> carrier G"
@@ -363,7 +365,7 @@ lemma funcset_Un_left [iff]:
   "(f \<in> A Un B -> C) = (f \<in> A -> C & f \<in> B -> C)"
   by fast
 
-lemma (in comm_monoid) finprod_Un_Int:
+lemma finprod_Un_Int:
   "[| finite A; finite B; g \<in> A -> carrier G; g \<in> B -> carrier G |] ==>
      finprod G g (A Un B) \<otimes> finprod G g (A Int B) =
      finprod G g A \<otimes> finprod G g B"
@@ -379,7 +381,7 @@ next
           Int_mono2 Un_subset_iff) 
 qed
 
-lemma (in comm_monoid) finprod_Un_disjoint:
+lemma finprod_Un_disjoint:
   "[| finite A; finite B; A Int B = {};
       g \<in> A -> carrier G; g \<in> B -> carrier G |]
    ==> finprod G g (A Un B) = finprod G g A \<otimes> finprod G g B"
@@ -387,7 +389,7 @@ lemma (in comm_monoid) finprod_Un_disjoint:
       apply (auto simp add: finprod_closed)
   done
 
-lemma (in comm_monoid) finprod_multf:
+lemma finprod_multf:
   "[| finite A; f \<in> A -> carrier G; g \<in> A -> carrier G |] ==>
    finprod G (%x. f x \<otimes> g x) A = (finprod G f A \<otimes> finprod G g A)"
 proof (induct set: finite)
@@ -404,7 +406,7 @@ next
     by (simp add: insert fA fa gA ga fgA m_ac)
 qed
 
-lemma (in comm_monoid) finprod_cong':
+lemma finprod_cong':
   "[| A = B; g \<in> B -> carrier G;
       !!i. i \<in> B ==> f i = g i |] ==> finprod G f A = finprod G g B"
 proof -
@@ -445,7 +447,7 @@ proof -
   qed
 qed
 
-lemma (in comm_monoid) finprod_cong:
+lemma finprod_cong:
   "[| A = B; f \<in> B -> carrier G = True;
       !!i. i \<in> B ==> f i = g i |] ==> finprod G f A = finprod G g B"
   (* This order of prems is slightly faster (3%) than the last two swapped. *)
@@ -458,19 +460,23 @@ text {*Usually, if this rule causes a failed congruence proof error,
   is not added to the simpset by default.
 *}
 
+end
+
 declare funcsetI [rule del]
   funcset_mem [rule del]
 
-lemma (in comm_monoid) finprod_0 [simp]:
+context comm_monoid begin
+
+lemma finprod_0 [simp]:
   "f \<in> {0::nat} -> carrier G ==> finprod G f {..0} = f 0"
 by (simp add: Pi_def)
 
-lemma (in comm_monoid) finprod_Suc [simp]:
+lemma finprod_Suc [simp]:
   "f \<in> {..Suc n} -> carrier G ==>
    finprod G f {..Suc n} = (f (Suc n) \<otimes> finprod G f {..n})"
 by (simp add: Pi_def atMost_Suc)
 
-lemma (in comm_monoid) finprod_Suc2:
+lemma finprod_Suc2:
   "f \<in> {..Suc n} -> carrier G ==>
    finprod G f {..Suc n} = (finprod G (%i. f (Suc i)) {..n} \<otimes> f 0)"
 proof (induct n)
@@ -479,7 +485,7 @@ next
   case Suc thus ?case by (simp add: m_assoc Pi_def)
 qed
 
-lemma (in comm_monoid) finprod_mult [simp]:
+lemma finprod_mult [simp]:
   "[| f \<in> {..n} -> carrier G; g \<in> {..n} -> carrier G |] ==>
      finprod G (%i. f i \<otimes> g i) {..n::nat} =
      finprod G f {..n} \<otimes> finprod G g {..n}"
@@ -487,7 +493,7 @@ lemma (in comm_monoid) finprod_mult [simp]:
 
 (* The following two were contributed by Jeremy Avigad. *)
 
-lemma (in comm_monoid) finprod_reindex:
+lemma finprod_reindex:
   assumes fin: "finite A"
     shows "f : (h ` A) \<rightarrow> carrier G \<Longrightarrow> 
         inj_on h A ==> finprod G f (h ` A) = finprod G (%x. f (h x)) A"
@@ -495,7 +501,7 @@ lemma (in comm_monoid) finprod_reindex:
   apply (auto simp add: finprod_insert Pi_def)
 done
 
-lemma (in comm_monoid) finprod_const:
+lemma finprod_const:
   assumes fin [simp]: "finite A"
       and a [simp]: "a : carrier G"
     shows "finprod G (%x. a) A = a (^) card A"
@@ -507,5 +513,17 @@ lemma (in comm_monoid) finprod_const:
   apply (subst m_comm)
   apply auto
 done
+
+(* The following lemma was contributed by Jesus Aransay. *)
+
+lemma finprod_singleton:
+  assumes i_in_A: "i \<in> A" and fin_A: "finite A" and f_Pi: "f \<in> A \<rightarrow> carrier G"
+  shows "(\<Otimes>j\<in>A. if i = j then f j else \<one>) = f i"
+  using i_in_A G.finprod_insert [of "A - {i}" i "(\<lambda>j. if i = j then f j else \<one>)"]
+    fin_A f_Pi G.finprod_one [of "A - {i}"]
+    G.finprod_cong [of "A - {i}" "A - {i}" "(\<lambda>j. if i = j then f j else \<one>)" "(\<lambda>i. \<one>)"] 
+  unfolding Pi_def simp_implies_def by (force simp add: insert_absorb)
+
+end
 
 end
