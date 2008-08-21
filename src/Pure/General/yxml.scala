@@ -12,7 +12,7 @@ import java.util.regex.Pattern
 
 object YXML {
 
-  /* markers */
+  /* chunk markers */
 
   private val X = '\5'
   private val Y = '\6'
@@ -21,6 +21,27 @@ object YXML {
     source.length >= 2 &&
     source.charAt(0) == X &&
     source.charAt(1) == Y
+  }
+
+
+  /* iterate over chunks (resembles space_explode in ML) */
+
+  private def chunks(sep: Char, source: CharSequence) = new Iterator[CharSequence] {
+    private val end = source.length
+    private var state = if (end == 0) None else get_chunk(-1)
+    private def get_chunk(i: Int) = {
+      if (i < end) {
+        var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
+        Some((source.subSequence(i + 1, j), j))
+      }
+      else None
+    }
+
+    def hasNext() = state.isDefined
+    def next() = state match {
+      case Some((s, i)) => { state = get_chunk(i); s }
+      case None => throw new NoSuchElementException("next on empty iterator")
+    }
   }
 
 
@@ -35,14 +56,11 @@ object YXML {
     if (name == "") err("unbalanced element")
     else err("unbalanced element \"" + name + "\"")
 
-  private val X_pattern = Pattern.compile(Pattern.quote(X.toString))
-  private val Y_pattern = Pattern.compile(Pattern.quote(Y.toString))
-  private val eq_pattern = Pattern.compile(Pattern.quote("="))
-
-  private def parse_attrib(s: String) =
-    eq_pattern.split(s, 2).toList match {
-      case List(x, y) => if (x != "") (x, y) else err_attribute()
-      case _ => err_attribute()
+  private def parse_attrib(s: CharSequence) =
+    chunks('=', s).toList match {
+      case Nil => err_attribute()
+      case "" :: _ => err_attribute()
+      case a :: xs => (a.toString, xs.mkString("="))
     }
 
 
@@ -70,11 +88,11 @@ object YXML {
     /* parse chunks */
 
     stack = List((("", Nil), Nil))
-    for (chunk <- X_pattern.split(source) if chunk != "") {
-      Y_pattern.split(chunk).toList match {
-        case Nil => pop()
-        case "" :: name :: atts => push(name, atts.map(parse_attrib))
-        case txts => for (txt <- txts) add(XML.Text(txt))
+    for (chunk <- chunks(X, source) if chunk != "") {
+      chunks(Y, chunk).toList match {
+        case List("", "") => pop()
+        case "" :: name :: atts => push(name.toString, atts.map(parse_attrib))
+        case txts => for (txt <- txts) add(XML.Text(txt.toString))
       }
     }
     stack match {
