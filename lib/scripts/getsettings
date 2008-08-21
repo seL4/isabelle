@@ -48,8 +48,10 @@ function choosefrom ()
 if [ "$OSTYPE" = cygwin ]; then
   CLASSPATH="$(cygpath -u -p "$CLASSPATH")"
   function jvmpath() { cygpath -w -p "$@"; }
+  ISABELLE_ROOT_JVM="/"
 else
   function jvmpath() { echo "$@"; }
+  ISABELLE_ROOT_JVM="$(jvmpath "/")"
 fi
 
 #CLASSPATH convenience
@@ -81,10 +83,6 @@ else
 fi
 
 ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_IDENTIFIER"
-
-#JVM settings
-ISABELLE_HOME_JVM="$(jvmpath "$ISABELLE_HOME")"
-ISABELLE_HOME_USER_JVM="$(jvmpath "$ISABELLE_HOME_USER")"
 
 set +o allexport
 
