@@ -15,7 +15,7 @@ object XML {
   case class Text(content: String) extends Tree
 
 
-  /* iterator over content */
+  /* iterate over content */
 
   private type State = Option[(String, List[Tree])]
 
