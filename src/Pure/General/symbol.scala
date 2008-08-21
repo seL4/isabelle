@@ -60,9 +60,10 @@ object Symbol {
         val c = text(i)
         if (min <= c && c <= max) {
           matcher.region(i, len).lookingAt
-          table.get(matcher.group) match {
+          val x = matcher.group
+          table.get(x) match {
             case Some(y) => result.append(y)
-            case None => result.append(c)
+            case None => result.append(x)
           }
           i = matcher.end
         }
