@@ -16,6 +16,7 @@ object YXML {
 
   private val X = '\5'
   private val Y = '\6'
+  private val Y_string = Y.toString
 
   def detect(source: CharSequence) = {
     source.length >= 2 &&
@@ -89,10 +90,12 @@ object YXML {
 
     stack = List((("", Nil), Nil))
     for (chunk <- chunks(X, source) if chunk != "") {
-      chunks(Y, chunk).toList match {
-        case List("", "") => pop()
-        case "" :: name :: atts => push(name.toString, atts.map(parse_attrib))
-        case txts => for (txt <- txts) add(XML.Text(txt.toString))
+      if (chunk == Y_string) pop()
+      else {
+        chunks(Y, chunk).toList match {
+          case "" :: name :: atts => push(name.toString, atts.map(parse_attrib))
+          case txts => for (txt <- txts) add(XML.Text(txt.toString))
+        }
       }
     }
     stack match {
