@@ -61,7 +61,7 @@ object YXML {
     val s = source.toString
     val i = s.indexOf('=')
     if (i <= 0) err_attribute()
-    (s.substring(0, i - 1), s.substring(i + 1))
+    (s.substring(0, i), s.substring(i + 1))
   }
 
 
