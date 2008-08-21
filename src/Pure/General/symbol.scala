@@ -29,7 +29,8 @@ object Symbol {
   private val bad_symbol_pattern = compile("(?!" + symbol_pattern + ")" +
     """ \\ \\? < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
 
-  val pattern = compile(plain_pattern + "|" + symbol_pattern + "|" + bad_symbol_pattern + "| [.]")
+  // total pattern
+  val pattern = compile(plain_pattern + "|" + symbol_pattern + "|" + bad_symbol_pattern + "| .")
 
 
 
@@ -59,7 +60,8 @@ object Symbol {
       while (i < len) {
         val c = text(i)
         if (min <= c && c <= max) {
-          matcher.region(i, len).lookingAt
+          matcher.region(i, len)
+          matcher.lookingAt
           val x = matcher.group
           table.get(x) match {
             case Some(y) => result.append(y)
