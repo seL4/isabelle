@@ -56,12 +56,12 @@ object YXML {
     if (name == "") err("unbalanced element")
     else err("unbalanced element \"" + name + "\"")
 
-  private def parse_attrib(s: CharSequence) =
-    chunks('=', s).toList match {
-      case Nil => err_attribute()
-      case "" :: _ => err_attribute()
-      case a :: xs => (a.toString, xs.mkString("="))
-    }
+  private def parse_attrib(source: CharSequence) = {
+    val s = source.toString
+    val i = s.indexOf('=')
+    if (i <= 0) err_attribute()
+    (s.substring(0, i - 1), s.substring(i + 1))
+  }
 
 
   def parse_body(source: CharSequence) = {
