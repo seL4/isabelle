@@ -48,10 +48,10 @@ function choosefrom ()
 if [ "$OSTYPE" = cygwin ]; then
   CLASSPATH="$(cygpath -u -p "$CLASSPATH")"
   function jvmpath() { cygpath -w -p "$@"; }
-  ISABELLE_ROOT_JVM="/"
+  ISABELLE_ROOT_JVM="$(jvmpath /)"
 else
   function jvmpath() { echo "$@"; }
-  ISABELLE_ROOT_JVM="$(jvmpath "/")"
+  ISABELLE_ROOT_JVM=/
 fi
 
 #CLASSPATH convenience
