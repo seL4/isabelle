@@ -102,8 +102,8 @@ object Symbol {
       }
     }
 
-    private def read_symbols(base: String) = {
-      val file = new File(base + File.separator + "etc" + File.separator + "symbols")
+    private def read_symbols(path: String) = {
+      val file = new File(IsabelleSystem.platform_path(path))
       if (file.canRead) {
         for (line <- Source.fromFile(file).getLines) read_line(line)
       }
@@ -132,8 +132,8 @@ object Symbol {
 
     /* constructor */
 
-    read_symbols(IsabelleSystem.ISABELLE_HOME)
-    read_symbols(IsabelleSystem.ISABELLE_HOME_USER)
+    read_symbols("$ISABELLE_HOME/etc/symbols")
+    read_symbols("$ISABELLE_HOME_USER/etc/symbols")
     init_recoders()
   }
 
