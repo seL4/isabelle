@@ -7,7 +7,7 @@ Detecting and recoding Isabelle symbols.
 
 package isabelle
 
-import java.util.regex.{Pattern, Matcher}
+import java.util.regex.Pattern
 import java.io.File
 import scala.io.Source
 import scala.collection.jcl.HashMap
@@ -20,39 +20,61 @@ object Symbol {
   private def compile(s: String) =
     Pattern.compile(s, Pattern.COMMENTS | Pattern.DOTALL)
 
-  val char_pattern = compile(""" [^\ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
+  private val plain_pattern = compile(""" [^\\ \ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
 
-  val symbol_pattern = compile(""" \\ \\? < (?:
+  private val symbol_pattern = compile(""" \\ \\? < (?:
       \^? [A-Za-z][A-Za-z0-9_']* |
       \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
 
-  val bad_symbol_pattern = compile("(?!" + symbol_pattern + ")" +
+  private val bad_symbol_pattern = compile("(?!" + symbol_pattern + ")" +
     """ \\ \\? < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
 
-  val pattern = compile(char_pattern + "|" + symbol_pattern + "|" + bad_symbol_pattern)
+  val pattern = compile(plain_pattern + "|" + symbol_pattern + "|" + bad_symbol_pattern + "| [.]")
+
+
+
+  /** Recoding **/
+
+  private class Recoder(list: List[(String, String)]) {
+    private val (min, max) = {
+      var min = '\uffff'
+      var max = '\u0000'
+      for ((x, _) <- list) {
+        val c = x(0)
+        if (c < min) min = c
+        if (c > max) max = c
+      }
+      (min, max)
+    }
+    private val table = {
+      val table = new HashMap[String, String]
+      for ((x, y) <- list) table + (x -> y)
+      table
+    }
+    def recode(text: String) = {
+      val len = text.length
+      val matcher = pattern.matcher(text)
+      val result = new StringBuilder(len)
+      var i = 0
+      while (i < len) {
+        val c = text(i)
+        if (min <= c && c <= max) {
+          matcher.region(i, len).lookingAt
+          table.get(matcher.group) match {
+            case Some(y) => result.append(y)
+            case None => result.append(c)
+          }
+          i = matcher.end
+        }
+        else { result.append(c); i += 1 }
+      }
+      result.toString
+    }
+  }
 
 
 
   /** Symbol interpretation **/
-
-  private class Recoder(list: List[(String, String)]) {
-
-    private val pattern = compile((for ((x, _) <- list) yield Pattern.quote(x)).mkString("|"))
-    private val table = {
-      val table = new HashMap[String, String]
-      for ((x, y) <- list) table + (x -> Matcher.quoteReplacement(y))
-      table
-    }
-
-    def recode(text: String) = {
-      val output = new StringBuffer(text.length)
-      val matcher = pattern.matcher(text)
-      while(matcher.find) matcher.appendReplacement(output, table(matcher.group))
-      matcher.appendTail(output)
-      output.toString
-    }
-  }
-
 
   class Interpretation {
 
