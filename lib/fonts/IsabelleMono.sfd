@@ -1,24 +1,23 @@
 SplineFontDB: 2.0
-FontName: BitstreamVeraSansMono-Roman
-FullName: Bitstream Vera Sans Mono
-FamilyName: Bitstream Vera Sans Mono
+FontName: IsabelleMono
+FullName: IsabelleMono
+FamilyName: IsabelleMono
 Weight: Book
-Copyright: Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved.
-Version: Release 1.10
+Copyright: 
+Version: IsabelleMono
 ItalicAngle: 0
 UnderlinePosition: -283
 UnderlineWidth: 141
 Ascent: 1556
 Descent: 492
 Order2: 1
-NeedsXUIDChange: 1
-XUID: [1021 906 1711068302 2286989]
+XUID: [1021 906 1711068302 1934665]
 FSType: 4
 OS2Version: 1
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1050361371
-ModificationTime: 1219420013
+ModificationTime: 1219422889
 PfmFamily: 17
 TTFWeight: 400
 TTFWidth: 5
@@ -106,7 +105,7 @@ EndTtf
 TtfTable: maxp 32
 !!*'"!=]$'!!`Kn!!E9'!"],q!!`K("]kpJ!!<3%
 EndTtf
-LangName: 1033 "" "" "" "Bitstream Vera Sans Mono" "" "Release 1.10" "" "Bitstream Vera is a trademark of Bitstream, Inc." "Bitstream Inc." "" "" "http://www.bitstream.com" "" "Copyright (c) 2003 by Bitstream, Inc.+AA0ACgAA-All Rights Reserved.+AA0ACgAA-Bitstream Vera is a trademark of Bitstream, Inc.+AA0ACgANAAoA-Permission is hereby granted, free of charge, to any person obtaining a copy of the fonts accompanying this license (+ACIA-Fonts+ACIA) and associated documentation files (the +ACIA-Font Software+ACIA), to reproduce and distribute the Font Software, including without limitation the rights to use, copy, merge, publish, distribute, and/or sell copies of the Font Software, and to permit persons to whom the Font Software is furnished to do so, subject to the following conditions:+AA0ACgANAAoA-The above copyright and trademark notices and this permission notice shall be included in all copies of one or more of the Font Software typefaces.+AA0ACgANAAoA-The Font Software may be modified, altered, or added to, and in particular the designs of glyphs or characters in the Fonts may be modified and additional glyphs or characters may be added to the Fonts, only if the fonts are renamed to names not containing either the words +ACIA-Bitstream+ACIA or the word +ACIA-Vera+ACIA.+AA0ACgANAAoA-This License becomes null and void to the extent applicable to Fonts or Font Software that has been modified and is distributed under the +ACIA-Bitstream Vera+ACIA names.+AA0ACgANAAoA-The Font Software may be sold as part of a larger software package but no copy of one or more of the Font Software typefaces may be sold by itself.+AA0ACgANAAoA-THE FONT SOFTWARE IS PROVIDED +ACIA-AS IS+ACIA, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL BITSTREAM OR THE GNOME FOUNDATION BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.+AA0ACgANAAoA-Except as contained in this notice, the names of Gnome, the Gnome Foundation, and Bitstream Inc., shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Font Software without prior written authorization from the Gnome Foundation or Bitstream Inc., respectively. For further information, contact: fonts at gnome dot org." 
+LangName: 1033 "" "" "" "" "" "Release 1.10" "" "Bitstream Vera is a trademark of Bitstream, Inc." "Bitstream Inc." "" "" "http://www.bitstream.com" "" "Copyright (c) 2003 by Bitstream, Inc.+AA0ACgAA-All Rights Reserved.+AA0ACgAA-Bitstream Vera is a trademark of Bitstream, Inc.+AA0ACgANAAoA-Permission is hereby granted, free of charge, to any person obtaining a copy of the fonts accompanying this license (+ACIA-Fonts+ACIA) and associated documentation files (the +ACIA-Font Software+ACIA), to reproduce and distribute the Font Software, including without limitation the rights to use, copy, merge, publish, distribute, and/or sell copies of the Font Software, and to permit persons to whom the Font Software is furnished to do so, subject to the following conditions:+AA0ACgANAAoA-The above copyright and trademark notices and this permission notice shall be included in all copies of one or more of the Font Software typefaces.+AA0ACgANAAoA-The Font Software may be modified, altered, or added to, and in particular the designs of glyphs or characters in the Fonts may be modified and additional glyphs or characters may be added to the Fonts, only if the fonts are renamed to names not containing either the words +ACIA-Bitstream+ACIA or the word +ACIA-Vera+ACIA.+AA0ACgANAAoA-This License becomes null and void to the extent applicable to Fonts or Font Software that has been modified and is distributed under the +ACIA-Bitstream Vera+ACIA names.+AA0ACgANAAoA-The Font Software may be sold as part of a larger software package but no copy of one or more of the Font Software typefaces may be sold by itself.+AA0ACgANAAoA-THE FONT SOFTWARE IS PROVIDED +ACIA-AS IS+ACIA, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL BITSTREAM OR THE GNOME FOUNDATION BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.+AA0ACgANAAoA-Except as contained in this notice, the names of Gnome, the Gnome Foundation, and Bitstream Inc., shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Font Software without prior written authorization from the Gnome Foundation or Bitstream Inc., respectively. For further information, contact: fonts at gnome dot org." 
 GaspTable: 2 8 2 65535 3
 Encoding: UnicodeFull
 UnicodeInterp: none
@@ -114,7 +113,7 @@ NameList: Adobe Glyph List
 DisplaySize: -48
 AntiAlias: 1
 FitToEm: 1
-WinInfo: 10160 16 14
+WinInfo: 0 16 14
 BeginChars: 1114112 537
 StartChar: u10000
 Encoding: 65536 65536 0
@@ -19901,24 +19900,24 @@ StartChar: uni27E9
 Encoding: 10217 10217 478
 Width: 861
 VWidth: 2220
-Flags: HW
+Flags: W
 HStem: -555 46.62<156.51 183.15> 1620.6 44.4<156.51 184.26>
 VStem: 124.32 492.84
 Fore
 606.06 515.04 m 2,0,0
  215.34 -510.6 l 2,0,0
  199.8 -555 199.8 -555 168.72 -555 c 0,0,0
- 150.96 -555 150.96 -555 137.64 -541.68 c 128
+ 150.96 -555 150.96 -555 137.64 -541.68 c 128,-1,1
  124.32 -528.36 124.32 -528.36 124.32 -510.6 c 0,0,0
  124.32 -497.28 124.32 -497.28 135.42 -470.64 c 2,0,0
  526.14 555 l 1,0,0
  135.42 1580.64 l 2,0,0
  124.32 1607.28 124.32 1607.28 124.32 1620.6 c 0,0,0
- 124.32 1638.36 124.32 1638.36 137.64 1651.68 c 128
+ 124.32 1638.36 124.32 1638.36 137.64 1651.68 c 128,-1,1
  150.96 1665 150.96 1665 168.72 1665 c 0,0,0
- 179.82 1665 179.82 1665 187.59 1662.78 c 128
- 195.36 1660.56 195.36 1660.56 202.02 1649.46 c 128
- 208.68 1638.36 208.68 1638.36 209.79 1636.14 c 128
+ 179.82 1665 179.82 1665 187.59 1662.78 c 128,-1,1
+ 195.36 1660.56 195.36 1660.56 202.02 1649.46 c 128,-1,2
+ 208.68 1638.36 208.68 1638.36 209.79 1636.14 c 128,-1,3
  210.9 1633.92 210.9 1633.92 217.56 1616.16 c 2,0,0
  606.06 594.96 l 2,0,0
  617.16 568.32 617.16 568.32 617.16 555 c 128,-1,0
