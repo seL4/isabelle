@@ -2,12 +2,18 @@
     ID:         $Id$
     Author:     Makarius
 
-Minimalistic XML tree values.
+Simple XML tree values.
 */
 
 package isabelle
 
+import org.w3c.dom.{Node, Document}
+import javax.xml.parsers.DocumentBuilderFactory
+
+
 object XML {
+  /* datatype representation */
+
   type Attributes = List[(String, String)]
 
   abstract class Tree
@@ -38,6 +44,28 @@ object XML {
       case Some((s, rest)) => { state = get_nexts(rest); s }
       case None => throw new NoSuchElementException("next on empty iterator")
     }
+  }
+
+
+  /* document object model (DOM) */
+
+  def DOM(tree: Tree) = {
+    val doc = DocumentBuilderFactory.newInstance.newDocumentBuilder.newDocument
+    def dom_tree(tr: Tree): Node = tr match {
+      case Elem(name, atts, ts) => {
+        val node = doc.createElement(name)
+        for ((name, value) <- atts) node.setAttribute(name, value)
+        for (t <- ts) node.appendChild(dom_tree(t))
+        node
+      }
+      case Text(txt) => doc.createTextNode(txt)
+    }
+    val root_elem = tree match {
+      case Elem(_, _, _) => dom_tree(tree)
+      case Text(_) => dom_tree(Elem("root", Nil, List(tree)))
+    }
+    doc.appendChild(root_elem)
+    doc
   }
 
 }
