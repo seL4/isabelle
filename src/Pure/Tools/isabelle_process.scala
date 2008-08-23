@@ -1,6 +1,7 @@
-/*  Title:      Pure/Tools/isabelle_process.ML   :folding=explicit:collapseFolds=1:
+/*  Title:      Pure/Tools/isabelle_process.ML
     ID:         $Id$
     Author:     Makarius
+    Options:    :folding=explicit:collapseFolds=1:
 
 Isabelle process management -- always reactive due to multi-threaded I/O.
 */
@@ -12,7 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter, IOException}
 
 import scala.collection.mutable.ArrayBuffer
-import isabelle.{Symbol, XML, YXML}
+import isabelle.{Symbol, XML}
 
 
 class IsabelleProcess(args: String*) {
@@ -25,8 +26,8 @@ class IsabelleProcess(args: String*) {
   /* process information */
 
   private var proc: Process = null
-  private var pid: String = null
   private var closing = false
+  private var pid: String = null
   private var session: String = null
 
 
@@ -74,7 +75,7 @@ class IsabelleProcess(args: String*) {
   class Result(kind: Kind.Value, props: Properties, result: String) {
     //{{{
     override def toString = {
-      val res = XML.content(YXML.parse(result)).mkString
+      val res = XML.content(YXML.parse_failsafe(result)).mkString("")
       if (props == null) kind.toString + " [[" + res + "]]"
       else kind.toString + " " + props.toString + " [[" + res + "]]"
     }
@@ -82,8 +83,8 @@ class IsabelleProcess(args: String*) {
     private var the_tree: XML.Tree = null
     def tree() = synchronized {
       if (the_tree == null) {
-        val t = YXML.parse(symbols.decode(result))
-        the_tree = if (Kind.is_raw(kind)) XML.Elem("raw", Nil, List(t)) else t
+        val t = YXML.parse_failsafe(symbols.decode(result))
+        the_tree = if (Kind.is_raw(kind)) XML.Elem(Markup.RAW, Nil, List(t)) else t
       }
       the_tree
     }
@@ -93,6 +94,10 @@ class IsabelleProcess(args: String*) {
   val results = new LinkedBlockingQueue[Result]
 
   private def put_result(kind: Kind.Value, props: Properties, result: String) {
+    if (kind == Kind.INIT && props != null) {
+      pid = props.getProperty("pid")
+      session = props.getProperty("session")
+    }
     Console.println(new Result(kind, props, result))
     results.put(new Result(kind, props, result))
   }
@@ -110,14 +115,15 @@ class IsabelleProcess(args: String*) {
 
   def output_sync(text: String) = output_raw(" \\<^sync>\n; " + text + " \\<^sync>;\n")
 
-  def output_command(text: String) =
+
+  def command(text: String) =
     output_sync("Isabelle.command " + IsabelleSyntax.encode_string(text))
 
-  def output_command(props: Properties, text: String) =
+  def command(props: Properties, text: String) =
     output_sync("Isabelle.command " + IsabelleSyntax.encode_properties(props) + " " +
       IsabelleSyntax.encode_string(text))
 
-  def output_ML(text: String) =
+  def ML(text: String) =
     output_sync("ML_val " + IsabelleSyntax.encode_string(text))
 
   def close() = synchronized {    // FIXME watchdog/timeout
@@ -225,17 +231,11 @@ class IsabelleProcess(args: String*) {
                   val name = line.substring(0, i)
                   val value = line.substring(i + 1, len - 2)
                   if (props == null) props = new Properties
-                  if (!props.containsKey(name)) {
-                    props.setProperty(name, value)
-                  }
+                  if (!props.containsKey(name)) props.setProperty(name, value)
                 }
               }
               // last text line
               else if (line.endsWith("\u0002.")) {
-                if (kind == Kind.INIT && props != null) {
-                  pid = props.getProperty("pid")
-                  session = props.getProperty("session")
-                }
                 result.append(line.substring(0, len - 2))
                 put_result(kind, props, result.toString)
                 result.length = 0
@@ -249,7 +249,8 @@ class IsabelleProcess(args: String*) {
             }
             //}}}
           }
-        } catch {
+        }
+        catch {
           case e: IOException => put_result(Kind.SYSTEM, null, "Stdout thread: " + e.getMessage)
         }
       }
@@ -285,7 +286,8 @@ class IsabelleProcess(args: String*) {
             try_close()
           }
           //}}}
-        } catch {
+        }
+        catch {
           case e: IOException => put_result(Kind.SYSTEM, null, "Stderr thread: " + e.getMessage)
         }
       }
@@ -315,15 +317,13 @@ class IsabelleProcess(args: String*) {
 
     val cmdline = {
       val cmdline = new ArrayBuffer[String]
-  
+
       IsabelleSystem.shell_prefix match {
         case None => ()
         case Some(prefix) => cmdline + prefix
       }
       cmdline + (IsabelleSystem.getenv_strict("ISABELLE_HOME") + "/bin/isabelle-process")
       cmdline + "-W"
-      cmdline + "-m"; cmdline + "full_markup"  // FIXME default
-      cmdline + "-m"; cmdline + "YXML"  // FIXME default
       for (arg <- args) cmdline + arg
       cmdline.toArray
     }
