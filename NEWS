@@ -198,6 +198,21 @@ resort for legacy applications.
   @{lemma (open) ...}                     - open derivation
 
 
+*** System ***
+
+* Isabelle/lib/classes/Pure.jar provides basic support to integrate
+the Isabelle process into a JVM/Scala application.  See
+Isabelle/lib/jedit/plugin for a minimal example.  (The obsolete Java
+process wrapper has been discontinued.)
+
+* Status messages (with exact source position information) are
+emitted, if proper markup print mode is enabled.  This allows
+user-interface components to provide detailed feedback on internal
+prover operations.
+
+* Homegrown Isabelle font with unicode layout, see Isabelle/lib/fonts.
+
+
 
 New in Isabelle2008 (June 2008)
 -------------------------------
