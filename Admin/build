@@ -109,17 +109,13 @@ function build_jars ()
   echo "### Building JVM components ..."
   echo "###"
 
+  type -p scalac >/dev/null || fail "Scala compiler unavailable"
+
   pushd "$ISABELLE_SRC/Pure" >/dev/null
   "$ISATOOL" make jar || fail "Failed to build Pure.jar!"
   popd >/dev/null
 
-  pushd "$ISABELLE_LIB/classes" >/dev/null
-  ./mk
-  [ -f isabelle.jar ] || fail "Failed to build Isabelle process wrapper!"
-  popd >/dev/null
-
   if [ -d "$HOME/lib/jedit/current" ]; then
-    type -p scalac >/dev/null || fail "Scala compiler unavailable"
     pushd "$ISABELLE_LIB/jedit/plugin" >/dev/null
     ./mk
     [ -f ../isabelle.jar ] || fail "Failed to build jEdit plugin!"
