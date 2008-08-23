@@ -77,7 +77,7 @@ object IsabelleSystem {
 
   def shell_prefix() = {
     if (Pattern.matches(".*-cygwin", getenv_strict("ML_PLATFORM")))
-      Some(platform_path("/usr/bin/env"))
+      Some(platform_path("/bin/env"))
     else None
   }
 
