@@ -49,8 +49,16 @@ object XML {
 
   /* document object model (DOM) */
 
-  def DOM(tree: Tree) = {
+  def document(tree: Tree, styles: String*) = {
     val doc = DocumentBuilderFactory.newInstance.newDocumentBuilder.newDocument
+    doc.appendChild(doc.createProcessingInstruction("xml", "version=\"1.0\""))
+
+    for (style <- styles) {
+      doc.appendChild(doc.createProcessingInstruction("xml-stylesheet",
+        "href=\"" + style + "\" type=\"text/css\""))
+    }
+
+    // main body
     def dom_tree(tr: Tree): Node = tr match {
       case Elem(name, atts, ts) => {
         val node = doc.createElement(name)
@@ -67,5 +75,4 @@ object XML {
     doc.appendChild(root_elem)
     doc
   }
-
 }
