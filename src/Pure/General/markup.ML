@@ -82,7 +82,6 @@ sig
   val command_spanN: string val command_span: string -> T
   val ignored_spanN: string val ignored_span: T
   val malformed_spanN: string val malformed_span: T
-  val promptN: string val prompt: T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
   val sendbackN: string val sendback: T
@@ -92,6 +91,19 @@ sig
   val failedN: string val failed: T
   val finishedN: string val finished: T
   val disposedN: string val disposed: T
+  val pidN: string
+  val sessionN: string
+  val classN: string
+  val messageN: string val message: string -> T
+  val promptN: string val prompt: T
+  val writelnN: string
+  val priorityN: string
+  val tracingN: string
+  val warningN: string
+  val errorN: string
+  val debugN: string
+  val initN: string
+  val statusN: string
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
   val output: T -> output * output
@@ -156,7 +168,6 @@ val position_properties' = [end_lineN, end_columnN, end_offsetN, fileN, idN];
 val position_properties = [lineN, columnN, offsetN] @ position_properties';
 
 val (positionN, position) = markup_elem "position";
-
 val (locationN, location) = markup_elem "location";
 
 
@@ -241,7 +252,6 @@ val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
 
 (* toplevel *)
 
-val (promptN, prompt) = markup_elem "prompt";
 val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
 val (sendbackN, sendback) = markup_elem "sendback";
@@ -255,6 +265,26 @@ val (runningN, running) = markup_elem "running";
 val (failedN, failed) = markup_elem "failed";
 val (finishedN, finished) = markup_elem "finished";
 val (disposedN, disposed) = markup_elem "disposed";
+
+
+(* messages *)
+
+val pidN = "pid";
+val sessionN = "session";
+
+val classN = "class";
+val (messageN, message) = markup_string "message" classN;
+
+val (promptN, prompt) = markup_elem "prompt";
+
+val writelnN = "writeln";
+val priorityN = "priority";
+val tracingN = "tracing";
+val warningN = "warning";
+val errorN = "error";
+val debugN = "debug";
+val initN = "init";
+val statusN = "status";
 
 
 (* print mode operations *)
