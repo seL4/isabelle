@@ -114,8 +114,8 @@ clean:
 
 ## Scala material
 
-SCALA_FILES = General/symbol.scala General/xml.scala		\
-  General/yxml.scala Tools/isabelle_process.scala		\
+SCALA_FILES = General/markup.scala General/symbol.scala			\
+  General/xml.scala General/yxml.scala Tools/isabelle_process.scala	\
   Tools/isabelle_syntax.scala Tools/isabelle_system.scala
 
 
