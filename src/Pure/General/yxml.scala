@@ -115,7 +115,7 @@ object YXML {
   def parse_failsafe(source: CharSequence) = {
     try { parse(source) }
     catch {
-      case e: BadYXML => XML.Elem (Markup.MALFORMED, Nil,
+      case e: BadYXML => XML.Elem (Markup.BAD, Nil,
         List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
     }
   }
