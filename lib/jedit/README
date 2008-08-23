@@ -2,8 +2,8 @@ Isabelle support for jEdit -- http://www.jedit.org/
 ===================================================
 
 This provides both a basic editing "mode" (with some degree of syntax
-highlighting), and a proper "plugin" with some support for interaction
-with the Isabelle process.
+highlighting), and a minimal "plugin" with some support for
+interaction with the Isabelle process.
 
 
 Mode installation
@@ -28,8 +28,8 @@ Example catalog file:
 Plugin installation
 -------------------
 
-1) Copy or symlink [ISABELLE_HOME]/lib/jedit/isabelle.jar to
-[JEDIT_SETTINGS]/jars/
+1) Copy or symlink [ISABELLE_HOME]/lib/classes/Pure.jar and
+[ISABELLE_HOME]/lib/jedit/isabelle.jar to [JEDIT_SETTINGS]/jars/
 
 2) Install scala-library.jar likewise (taken from the regular Scala
 distribution, cf. the http://www.scala-lang.org/downloads/index.html)
