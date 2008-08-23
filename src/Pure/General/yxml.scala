@@ -16,6 +16,7 @@ object YXML {
 
   private val X = '\5'
   private val Y = '\6'
+  private val X_string = X.toString
   private val Y_string = Y.toString
 
   def detect(source: CharSequence) = {
@@ -110,4 +111,13 @@ object YXML {
       case Nil => XML.Text("")
       case _ => err("multiple results")
     }
+
+  def parse_failsafe(source: CharSequence) = {
+    try { parse(source) }
+    catch {
+      case e: BadYXML => XML.Elem (Markup.MALFORMED, Nil,
+        List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
+    }
+  }
+
 }
