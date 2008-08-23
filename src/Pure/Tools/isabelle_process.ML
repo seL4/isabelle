@@ -58,7 +58,7 @@ fun message_props props =
 
 fun message_text class ts =
   let
-    val doc = XML.Elem ("message", [("class", class)], ts);
+    val doc = XML.Elem (Markup.messageN, [(Markup.classN, class)], ts);
     val msg =
       if print_mode_active xmlN then XML.header ^ XML.string_of doc
       else YXML.string_of doc;
@@ -85,10 +85,11 @@ fun message _ _ "" = ()
 
 fun init_message () =
   let
-    val pid = ("pid", string_of_pid (Posix.ProcEnv.getpid ()));
-    val session = ("session", List.last (Session.id ()) handle List.Empty => "unknown");
-    val welcome = Session.welcome ();
-  in Output.writeln_default (special "H" ^ message_props [pid, session] ^ welcome ^ special_end) end;
+    val class = (Markup.classN, Markup.initN);
+    val pid = (Markup.pidN, string_of_pid (Posix.ProcEnv.getpid ()));
+    val session = (Markup.sessionN, List.last (Session.id ()) handle List.Empty => "unknown");
+    val props = message_props [class, pid, session];
+  in Output.writeln_default (special "H" ^ props ^ Session.welcome () ^ special_end) end;
 
 end;
 
@@ -96,14 +97,14 @@ end;
 (* channels *)
 
 fun setup_channels () =
- (Output.writeln_fn  := message "A" "writeln";
-  Output.priority_fn := message "B" "priority";
-  Output.tracing_fn  := message "C" "tracing";
-  Output.warning_fn  := message "D" "warning";
-  Output.error_fn    := message "E" "error";
-  Output.debug_fn    := message "F" "debug";
-  Output.prompt_fn   := message "G" "prompt";
-  Output.status_fn   := message "I" "status");
+ (Output.writeln_fn  := message "A" Markup.writelnN;
+  Output.priority_fn := message "B" Markup.priorityN;
+  Output.tracing_fn  := message "C" Markup.tracingN;
+  Output.warning_fn  := message "D" Markup.warningN;
+  Output.error_fn    := message "E" Markup.errorN;
+  Output.debug_fn    := message "F" Markup.debugN;
+  Output.prompt_fn   := message "G" Markup.promptN;
+  Output.status_fn   := message "I" Markup.statusN);
 
 
 (* init *)
@@ -115,4 +116,3 @@ fun init () =
   Isar.toplevel_loop {init = true, welcome = false, sync = true, secure = true});
 
 end;
-
