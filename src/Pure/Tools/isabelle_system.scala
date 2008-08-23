@@ -15,12 +15,16 @@ object IsabelleSystem {
 
   /* Isabelle settings */
 
-  class BadSetting(val name: String) extends Exception
-
-  def get_setting(name: String) = {
+  def getenv(name: String) = {
     val value = System.getenv(name)
-    if (value == null || value == "") throw new BadSetting(name)
-    else value
+    if (value != null) value else ""
+  }
+
+  class BadVariable(val name: String) extends Exception
+
+  def getenv_strict(name: String) = {
+    val value = getenv(name)
+    if (value != "") value else throw new BadVariable(name)
   }
 
 
@@ -34,15 +38,15 @@ object IsabelleSystem {
     def init(path: String) = {
       val cygdrive = cygdrive_pattern.matcher(path)
       if (cygdrive.matches) {
-        result_path.setLength(0)
+        result_path.length = 0
         result_path.append(cygdrive.group(1))
         result_path.append(":")
         result_path.append(File.separator)
         cygdrive.group(2)
       }
       else if (path.startsWith("/")) {
-        result_path.setLength(0)
-        result_path.append(get_setting("ISABELLE_ROOT_JVM"))
+        result_path.length = 0
+        result_path.append(getenv_strict("ISABELLE_ROOT_JVM"))
         path.substring(1)
       }
       else path
@@ -58,11 +62,21 @@ object IsabelleSystem {
       }
     }
     for (p <- init(source_path).split("/")) {
-      if (p.startsWith("$")) append(get_setting(p.substring(1)))
-      else if (p == "~") append(get_setting("HOME"))
-      else if (p == "~~") append(get_setting("ISABELLE_HOME"))
+      if (p.startsWith("$")) append(getenv_strict(p.substring(1)))
+      else if (p == "~") append(getenv_strict("HOME"))
+      else if (p == "~~") append(getenv_strict("ISABELLE_HOME"))
       else append(p)
     }
     result_path.toString
   }
+
+
+  /* Cygwin shell prefix */
+
+  def shell_prefix() = {
+    if (Pattern.matches(".*-cygwin", getenv_strict("ML_PLATFORM")))
+      Some(platform_path("/usr/bin/env"))
+    else None
+  }
+
 }
