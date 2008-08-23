@@ -16,25 +16,13 @@ import scala.collection.mutable.ArrayBuffer
 import isabelle.{Symbol, XML}
 
 
-class IsabelleProcess(args: String*) {
+object IsabelleProcess {
+
+  /* exception */
 
   class IsabelleProcessException(msg: String) extends Exception {
     override def toString = "IsabelleProcess: " + msg
   }
-
-
-  /* process information */
-
-  private var proc: Process = null
-  private var closing = false
-  private var pid: String = null
-  private var session: String = null
-
-
-  /* encoding */
-
-  private val charset = "UTF-8"
-  private val symbols = new Symbol.Interpretation
 
 
   /* results */
@@ -72,34 +60,73 @@ class IsabelleProcess(args: String*) {
       kind == SYSTEM
   }
 
-  class Result(kind: Kind.Value, props: Properties, result: String) {
-    //{{{
+  class Result(val kind: Kind.Value, val props: Properties, val result: String) {
     override def toString = {
       val res = XML.content(YXML.parse_failsafe(result)).mkString("")
       if (props == null) kind.toString + " [[" + res + "]]"
       else kind.toString + " " + props.toString + " [[" + res + "]]"
     }
-
-    private var the_tree: XML.Tree = null
-    def tree() = synchronized {
-      if (the_tree == null) {
-        val t = YXML.parse_failsafe(symbols.decode(result))
-        the_tree = if (Kind.is_raw(kind)) XML.Elem(Markup.RAW, Nil, List(t)) else t
-      }
-      the_tree
-    }
-    //}}}
+    def is_raw() = Kind.is_raw(kind)
+    def is_system() = Kind.is_system(kind)
   }
+
+}
+
+
+class IsabelleProcess(args: String*) {
+
+  import IsabelleProcess._
+
+
+  /* process information */
+
+  private var proc: Process = null
+  private var closing = false
+  private var pid: String = null
+  private var the_session: String = null
+  def session() = the_session
+
+
+  /* results */
 
   val results = new LinkedBlockingQueue[Result]
 
   private def put_result(kind: Kind.Value, props: Properties, result: String) {
     if (kind == Kind.INIT && props != null) {
-      pid = props.getProperty("pid")
-      session = props.getProperty("session")
+      pid = props.getProperty(Markup.PID)
+      the_session = props.getProperty(Markup.SESSION)
     }
-    Console.println(new Result(kind, props, result))
     results.put(new Result(kind, props, result))
+  }
+
+  val symbols = new Symbol.Interpretation
+  def result_tree(result: Result) = YXML.parse_failsafe(symbols.decode(result.result))
+
+
+  /* signals */
+
+  def interrupt() = synchronized {
+    if (proc == null) throw new IsabelleProcessException("Cannot interrupt: no process")
+    if (pid == null) put_result(Kind.SYSTEM, null, "Cannot interrupt: unknown pid")
+    else {
+      put_result(Kind.SIGNAL, null, "INT")
+      try {
+        if (IsabelleSystem.exec(List("kill", "-INT", pid)).waitFor != 0)
+          put_result(Kind.SYSTEM, null, "Cannot interrupt: kill command failed")
+      }
+      catch { case e: IOException => throw new IsabelleProcessException(e.getMessage) }
+    }
+  }
+
+  def kill() = synchronized {
+    if (proc == 0) throw new IsabelleProcessException("Cannot kill: no process")
+    else {
+      try_close()
+      Thread.sleep(300)
+      put_result(Kind.SIGNAL, null, "KILL")
+      proc.destroy
+      proc = null
+    }
   }
 
 
@@ -313,29 +340,18 @@ class IsabelleProcess(args: String*) {
   /** main **/
 
   {
-    /* command line */
+    /* exec process */
 
-    val cmdline = {
-      val cmdline = new ArrayBuffer[String]
-
-      IsabelleSystem.shell_prefix match {
-        case None => ()
-        case Some(prefix) => cmdline + prefix
-      }
-      cmdline + (IsabelleSystem.getenv_strict("ISABELLE_HOME") + "/bin/isabelle-process")
-      cmdline + "-W"
-      for (arg <- args) cmdline + arg
-      cmdline.toArray
+    try {
+      proc = IsabelleSystem.exec(List(
+        IsabelleSystem.getenv_strict("ISABELLE_HOME") + "/bin/isabelle-process", "-W") ++ args)
     }
-
-    try { proc = Runtime.getRuntime.exec(cmdline) }
-    catch {
-      case e: IOException => throw new IsabelleProcessException(e.getMessage)
-    }
+    catch { case e: IOException => throw new IsabelleProcessException(e.getMessage) }
 
 
-    /* process control via threads */
+    /* control process via threads */
 
+    val charset = "UTF-8"
     new StdinThread(new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, charset))).start
     new StdoutThread(new BufferedReader(new InputStreamReader(proc.getInputStream, charset))).start
     new StderrThread(new BufferedReader(new InputStreamReader(proc.getErrorStream, charset))).start
@@ -343,4 +359,3 @@ class IsabelleProcess(args: String*) {
   }
 
 }
-
