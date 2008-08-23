@@ -70,7 +70,7 @@ object XML {
     }
     val root_elem = tree match {
       case Elem(_, _, _) => DOM(tree)
-      case Text(_) => DOM(Elem("root", Nil, List(tree)))
+      case Text(_) => DOM(Elem(Markup.ROOT, Nil, List(tree)))
     }
     doc.appendChild(root_elem)
     doc
