@@ -23,8 +23,7 @@ General format of process output:
 signature ISABELLE_PROCESS =
 sig
   val isabelle_processN: string
-  val full_markupN: string
-  val yxmlN: string
+  val xmlN: string
   val init: unit -> unit
 end;
 
@@ -34,14 +33,10 @@ struct
 (* print modes *)
 
 val isabelle_processN = "isabelle_process";
-val full_markupN = "full_markup";
-val yxmlN = "YXML";
+val xmlN = "XML";
 
 val _ = Output.add_mode isabelle_processN Output.default_output Output.default_escape;
-
-val _ = Markup.add_mode isabelle_processN (fn (name, props) =>
-  if print_mode_active full_markupN orelse name = Markup.positionN
-  then YXML.output_markup (name, props) else ("", ""));
+val _ = Markup.add_mode isabelle_processN (YXML.output_markup);
 
 
 (* message markup *)
@@ -61,14 +56,12 @@ fun message_props props =
   let val clean = clean_string [Symbol.STX, "\n", "\r"]
   in implode (map (fn (x, y) => clean x ^ "=" ^ clean y ^ special_sep ^ "\n") props) end;
 
-fun message_text ts =
+fun message_text class ts =
   let
-    val doc = XML.Elem ("message", [], ts);
+    val doc = XML.Elem ("message", [("class", class)], ts);
     val msg =
-      if not (print_mode_active full_markupN) then
-        Buffer.content (fold XML.add_content ts Buffer.empty)
-      else if print_mode_active yxmlN then YXML.string_of doc
-      else XML.header ^ XML.string_of doc;
+      if print_mode_active xmlN then XML.header ^ XML.string_of doc
+      else YXML.string_of doc;
   in clean_string [Symbol.STX] msg end;
 
 fun message_pos ts = get_first get_pos ts
@@ -79,13 +72,12 @@ and get_pos (elem as XML.Elem (name, atts, ts)) =
 
 in
 
-fun message _ "" = ()
-  | message ch body =
+fun message _ _ "" = ()
+  | message ch class body =
       let
         val (txt, pos) =
           let val ts = YXML.parse_body body
-          in (message_text ts, the_default Position.none (message_pos ts)) end
-          handle Fail msg => ("*** MALFORMED MESSAGE ***\n" ^ msg, Position.none);
+          in (message_text class ts, the_default Position.none (message_pos ts)) end;
         val props =
           Position.properties_of (Position.thread_data ())
           |> Position.default_properties pos;
@@ -104,14 +96,14 @@ end;
 (* channels *)
 
 fun setup_channels () =
- (Output.writeln_fn  := message "A";
-  Output.priority_fn := message "B";
-  Output.tracing_fn  := message "C";
-  Output.warning_fn  := message "D";
-  Output.error_fn    := message "E";
-  Output.debug_fn    := message "F";
-  Output.prompt_fn   := message "G";
-  Output.status_fn   := message "I");
+ (Output.writeln_fn  := message "A" "writeln";
+  Output.priority_fn := message "B" "priority";
+  Output.tracing_fn  := message "C" "tracing";
+  Output.warning_fn  := message "D" "warning";
+  Output.error_fn    := message "E" "error";
+  Output.debug_fn    := message "F" "debug";
+  Output.prompt_fn   := message "G" "prompt";
+  Output.status_fn   := message "I" "status");
 
 
 (* init *)
