@@ -37,7 +37,7 @@ definition
 definition
   real_add_def [code func del]: "z + w =
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
-		 { Abs_Real(realrel``{(x+u, y+v)}) })"
+                 { Abs_Real(realrel``{(x+u, y+v)}) })"
 
 definition
   real_minus_def [code func del]: "- r =  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
@@ -49,7 +49,7 @@ definition
   real_mult_def [code func del]:
     "z * w =
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
-		 { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })"
+                 { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })"
 
 definition
   real_inverse_def [code func del]: "inverse (R::real) = (THE S. (R = 0 & S = 0) | S * R = 1)"
@@ -558,6 +558,8 @@ abbreviation
 where
   "real_of_rat \<equiv> of_rat"
 
+definition [code func del]: "Rational = range of_rat"
+
 consts
   (*overloaded constant for injecting other types into "real"*)
   real :: "'a => real"
@@ -700,7 +702,54 @@ lemma real_of_int_div3:
 done
 
 lemma real_of_int_div4: "real (n div x) <= real (n::int) / real x" 
-  by (insert real_of_int_div2 [of n x], simp)
+by (insert real_of_int_div2 [of n x], simp)
+
+
+lemma Rational_eq_int_div_int:
+  "Rational = { real(i::int)/real(j::int) |i j. j \<noteq> 0}" (is "_ = ?S")
+proof
+  show "Rational \<subseteq> ?S"
+  proof
+    fix x::real assume "x : Rational"
+    then obtain r where "x = of_rat r" unfolding Rational_def ..
+    have "of_rat r : ?S"
+      by (cases r)(auto simp add:of_rat_rat real_eq_of_int)
+    thus "x : ?S" using `x = of_rat r` by simp
+  qed
+next
+  show "?S \<subseteq> Rational"
+  proof(auto simp:Rational_def)
+    fix i j :: int assume "j \<noteq> 0"
+    hence "real i / real j = of_rat(Fract i j)"
+      by (simp add:of_rat_rat real_eq_of_int)
+    thus "real i / real j \<in> range of_rat" by blast
+  qed
+qed
+
+lemma Rational_eq_int_div_nat:
+  "Rational = { real(i::int)/real(n::nat) |i n. n \<noteq> 0}"
+proof(auto simp:Rational_eq_int_div_int)
+  fix i j::int assume "j \<noteq> 0"
+  show "EX (i'::int) (n::nat). real i/real j = real i'/real n \<and> 0<n"
+  proof cases
+    assume "j>0"
+    hence "real i/real j = real i/real(nat j) \<and> 0<nat j"
+      by (simp add: real_eq_of_int real_eq_of_nat of_nat_nat)
+    thus ?thesis by blast
+  next
+    assume "~ j>0"
+    hence "real i/real j = real(-i)/real(nat(-j)) \<and> 0<nat(-j)" using `j\<noteq>0`
+      by (simp add: real_eq_of_int real_eq_of_nat of_nat_nat)
+    thus ?thesis by blast
+  qed
+next
+  fix i::int and n::nat assume "0 < n"
+  moreover have "real n = real(int n)"
+    by (simp add: real_eq_of_int real_eq_of_nat)
+  ultimately show "\<exists>(i'::int) j::int. real i/real n = real i'/real j \<and> j \<noteq> 0"
+    by (fastsimp)
+qed
+
 
 subsection{*Embedding the Naturals into the Reals*}
 

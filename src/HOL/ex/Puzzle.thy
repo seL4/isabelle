@@ -5,7 +5,7 @@
 
 header {* Fun with Functions *}
 
-theory Puzzle imports Main begin
+theory Puzzle imports Complex begin
 
 text{* From \emph{Solving Mathematical Problems} by Terence Tao. He quotes
 Greitzer's \emph{Interational Mathematical Olympiads 1959--1977} as the
@@ -101,6 +101,72 @@ proof -
       qed
     qed
   qed
+qed
+
+
+text{* One more from Tao's booklet. If @{text f} is also assumed to be
+continuous, @{term"f(x::real) = x+1"} holds for all reals, not only
+rationals. Extend the proof!
+
+The definition of @{text Rats} should go somewhere else. *}
+
+definition "Rats = { real(i::int)/real(n::nat) |i n. n \<noteq> 0}"
+
+theorem plus1:
+fixes f :: "real \<Rightarrow> real"
+assumes 0: "f 0 = 1" and f_add: "!!x y. f(x+y+1) = f x + f y"
+
+assumes "r : Rats"
+shows "f(r) = r + 1"
+proof -
+  { fix i :: int have "f(real i) = real i + 1"
+    proof (induct i rule: Presburger.int_induct[where k=0])
+      case base show ?case using 0 by simp
+    next
+      case (step1 i)
+      have "f(real(i+1)) = f(real i + 0 + 1)" by simp
+      also have "\<dots> = f(real i) + f 0" by(rule f_add)
+      also have "\<dots> = real(i+1) + 1" using step1 0 by simp
+      finally show ?case .
+    next
+      case (step2 i)
+      have "f(real i) = f(real(i - 1) + 0 + 1)" by simp
+      also have "\<dots> = f(real(i - 1)) + f 0" by(rule f_add)
+      also have "\<dots> = f(real(i - 1)) + 1 " using 0 by simp
+      finally show ?case using step2 by simp
+    qed }
+  note f_int = this
+  { fix n r have "f(real(Suc n)*r + real n) = real(Suc n) * f r"
+    proof(induct n)
+      case 0 show ?case by simp
+    next
+      case (Suc n)
+      have "real(Suc(Suc n))*r + real(Suc n) =
+            r + (real(Suc n)*r + real n) + 1" (is "?a = ?b")
+	by(simp add:real_of_nat_Suc ring_simps)
+      hence "f ?a = f ?b" by simp
+      also have "\<dots> = f r + f(real(Suc n)*r + real n)" by(rule f_add)
+      also have "\<dots> = f r + real(Suc n) * f r" by(simp only:Suc)
+      finally show ?case by(simp add:real_of_nat_Suc ring_simps)
+    qed }
+  note 1 = this
+  { fix n::nat and r assume "n>0"
+    have "f(real(n)*r + real(n - 1)) = real(n) * f r"
+    proof(cases n)
+      case 0 thus ?thesis using `n>0` by simp
+    next
+      case Suc thus ?thesis using `n>0` by (simp add:1)
+    qed }
+  note f_mult = this
+  from `r:Rats` obtain i::int and n::nat where r: "r = real i/real n" and "n>0"
+    by(fastsimp simp:Rats_def)
+  have "real(n)*f(real i/real n) = f(real i + real(n - 1))"
+    using `n>0` by(simp add:f_mult[symmetric])
+  also have "\<dots> = f(real(i + int n - 1))" using `n>0`
+    by (metis One_nat_def Suc_leI int_1 real_of_int_add real_of_int_of_nat_eq ring_class.ring_simps(4) zdiff_int)
+  also have "\<dots> = real(i + int n - 1) + 1" by(rule f_int)
+  also have "\<dots> = real i + real n" by arith
+  finally show ?thesis using `n>0` unfolding r by (simp add:field_simps)
 qed
 
 
