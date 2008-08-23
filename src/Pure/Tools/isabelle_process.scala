@@ -8,15 +8,18 @@ Isabelle process management -- always reactive due to multi-threaded I/O.
 package isabelle
 
 import java.util.Properties
+import java.util.concurrent.LinkedBlockingQueue
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter, IOException}
 
-import scala.collection.mutable.{SynchronizedQueue, ArrayBuffer}
+import scala.collection.mutable.ArrayBuffer
 import isabelle.{Symbol, XML, YXML}
 
 
 class IsabelleProcess(args: String*) {
 
-  class IsabelleProcessException(msg: String) extends Exception
+  class IsabelleProcessException(msg: String) extends Exception {
+    override def toString = "IsabelleProcess: " + msg
+  }
 
 
   /* process information */
@@ -71,33 +74,38 @@ class IsabelleProcess(args: String*) {
   class Result(kind: Kind.Value, props: Properties, result: String) {
     //{{{
     override def toString = {
-      if (props == null) kind.toString + " [[" + result + "]]"
-      else kind.toString + " " + props.toString + " [[" + result + "]]"
+      val res = XML.content(YXML.parse(result)).mkString
+      if (props == null) kind.toString + " [[" + res + "]]"
+      else kind.toString + " " + props.toString + " [[" + res + "]]"
     }
 
     private var the_tree: XML.Tree = null
     def tree() = synchronized {
-      if (the_tree == null) the_tree = YXML.parse(symbols.decode(result));
+      if (the_tree == null) {
+        val t = YXML.parse(symbols.decode(result))
+        the_tree = if (Kind.is_raw(kind)) XML.Elem("raw", Nil, List(t)) else t
+      }
       the_tree
     }
     //}}}
   }
 
-  val results = new SynchronizedQueue[Result]
+  val results = new LinkedBlockingQueue[Result]
 
   private def put_result(kind: Kind.Value, props: Properties, result: String) {
-    results += new Result(kind, props, result)
+    Console.println(new Result(kind, props, result))
+    results.put(new Result(kind, props, result))
   }
 
 
   /* output being piped into the process */
 
-  val output = new SynchronizedQueue[String]
+  val output = new LinkedBlockingQueue[String]
 
   def output_raw(text: String) = synchronized {
     if (proc == null) throw new IsabelleProcessException("Cannot output: no process")
     if (closing) throw new IsabelleProcessException("Cannot output: already closing")
-    output.enqueue(text)
+    output.put(text)
   }
 
   def output_sync(text: String) = output_raw(" \\<^sync>\n; " + text + " \\<^sync>;\n")
@@ -133,7 +141,7 @@ class IsabelleProcess(args: String*) {
       while (!finished) {
         try {
           //{{{
-          val s = output.dequeue
+          val s = output.take
           if (s == "\u0000") {
             writer.close
             finished = true
@@ -312,9 +320,10 @@ class IsabelleProcess(args: String*) {
         case None => ()
         case Some(prefix) => cmdline + prefix
       }
-      cmdline + IsabelleSystem.getenv_strict("ISABELLE_HOME") + "/bin/isabelle-process"
+      cmdline + (IsabelleSystem.getenv_strict("ISABELLE_HOME") + "/bin/isabelle-process")
       cmdline + "-W"
-      cmdline + "-m"; cmdline + "full_markup"  // FIXME
+      cmdline + "-m"; cmdline + "full_markup"  // FIXME default
+      cmdline + "-m"; cmdline + "YXML"  // FIXME default
       for (arg <- args) cmdline + arg
       cmdline.toArray
     }
