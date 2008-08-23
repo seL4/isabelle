@@ -20,7 +20,9 @@ object IsabelleSystem {
     if (value != null) value else ""
   }
 
-  class BadVariable(val name: String) extends Exception
+  class BadVariable(val name: String) extends Exception {
+    override def toString = "BadVariable: " + name
+  }
 
   def getenv_strict(name: String) = {
     val value = getenv(name)
