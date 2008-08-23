@@ -61,7 +61,7 @@ class IsabelleDock(view: View, position: String)
     val errorStyle = makeStyle("error", true, new Color(255, 160, 160))
 
     IsabellePlugin.addPermanentConsumer (result =>
-      if (result != null && !result.isSystem) {
+      if (result != null && !result.is_system) {
         SwingUtilities.invokeLater(new Runnable {
           def run = {
             val logic = IsabellePlugin.isabelle.session
@@ -70,13 +70,13 @@ class IsabelleDock(view: View, position: String)
 
             val doc = pane.getDocument.asInstanceOf[StyledDocument]
             val style = result.kind match {
-              case IsabelleProcess.Result.Kind.WARNING => warningStyle
-              case IsabelleProcess.Result.Kind.ERROR => errorStyle
-              case IsabelleProcess.Result.Kind.TRACING => infoStyle
-              case _ => if (result.isRaw) rawStyle else null
+              case IsabelleProcess.Kind.WARNING => warningStyle
+              case IsabelleProcess.Kind.ERROR => errorStyle
+              case IsabelleProcess.Kind.TRACING => infoStyle
+              case _ => if (result.is_raw) rawStyle else null
             }
-            doc.insertString(doc.getLength, result.result, style)
-            if (!result.isRaw) doc.insertString(doc.getLength, "\n", style)
+            doc.insertString(doc.getLength, IsabellePlugin.result_content(result), style)
+            if (!result.is_raw) doc.insertString(doc.getLength, "\n", style)
             pane.setCaretPosition(doc.getLength)
           }
         })

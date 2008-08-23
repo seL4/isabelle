@@ -7,17 +7,17 @@ Isabelle/jEdit plugin -- main setup.
 
 package isabelle
 
-import isabelle.IsabelleProcess
-
 import org.gjt.sp.jedit.EditPlugin
 import org.gjt.sp.util.Log
 
 import errorlist.DefaultErrorSource
 import errorlist.ErrorSource
 
-import scala.collection.mutable.ListBuffer
 import java.util.Properties
 import java.lang.NumberFormatException
+
+import scala.collection.mutable.ListBuffer
+import scala.io.Source
 
 
 /* Global state */
@@ -31,7 +31,7 @@ object IsabellePlugin {
 
   def idProperties(value: String) : Properties = {
      val props = new Properties
-     props.setProperty("id", value)
+     props.setProperty(Markup.ID, value)
      props
   }
 
@@ -45,6 +45,11 @@ object IsabellePlugin {
   // the Isabelle process
   @volatile
   var isabelle: IsabelleProcess = null
+
+
+  // result content
+  def result_content(result: IsabelleProcess.Result) =
+    XML.content(isabelle.result_tree(result)).mkString("")
 
 
   // result consumers
@@ -84,32 +89,37 @@ class IsabellePlugin extends EditPlugin {
 
     IsabellePlugin.addPermanentConsumer (result =>
       if (result != null && result.props != null &&
-          (result.kind == IsabelleProcess.Result.Kind.WARNING ||
-           result.kind == IsabelleProcess.Result.Kind.ERROR)) {
+          (result.kind == IsabelleProcess.Kind.WARNING ||
+           result.kind == IsabelleProcess.Kind.ERROR)) {
         val typ =
-          if (result.kind == IsabelleProcess.Result.Kind.WARNING) ErrorSource.WARNING
+          if (result.kind == IsabelleProcess.Kind.WARNING) ErrorSource.WARNING
           else ErrorSource.ERROR
-        val line = result.props.getProperty(IsabelleProcess.Property.LINE)
-        val file = result.props.getProperty(IsabelleProcess.Property.FILE)
-        if (line != null && file != null && result.result.length > 0) {
-          val msg = result.result.split("\n")
-          val err = new DefaultErrorSource.DefaultError(IsabellePlugin.errors,
-              typ, file, Integer.parseInt(line) - 1, 0, 0, msg(0))
-          for (i <- 1 to msg.length - 1)
-            err.addExtraMessage(msg(i))
-          IsabellePlugin.errors.addError(err)
+        (Position.line_of(result.props), Position.file_of(result.props)) match {
+          case (Some(line), Some(file)) =>
+            val content = IsabellePlugin.result_content(result)
+            if (content.length > 0) {
+              val lines = Source.fromString(content).getLines
+              val err = new DefaultErrorSource.DefaultError(IsabellePlugin.errors,
+                  typ, file, line - 1, 0, 0, lines.next)
+              for (msg <- lines) err.addExtraMessage(msg)
+              IsabellePlugin.errors.addError(err)
+            }
+          case _ =>
         }
       })
 
+
     // Isabelle process
-    IsabellePlugin.isabelle = new IsabelleProcess(Array("-m", "builtin_browser"), null)
+    IsabellePlugin.isabelle =
+      new IsabelleProcess("-mno_brackets", "-mno_type_brackets", "-mxsymbols")
     thread = new Thread (new Runnable {
       def run = {
         var result: IsabelleProcess.Result = null
         do {
           try {
-            result = IsabellePlugin.isabelle.results.take.asInstanceOf[IsabelleProcess.Result]
-          } catch {
+            result = IsabellePlugin.isabelle.results.take
+          }
+          catch {
             case _: NullPointerException => result = null
             case _: InterruptedException => result = null
           }
@@ -117,7 +127,7 @@ class IsabellePlugin extends EditPlugin {
             System.err.println(result)   // FIXME
             IsabellePlugin.consume(result)
           }
-          if (result.kind == IsabelleProcess.Result.Kind.EXIT) {
+          if (result.kind == IsabelleProcess.Kind.EXIT) {
             result = null
             IsabellePlugin.consume(null)
           }
@@ -136,4 +146,3 @@ class IsabellePlugin extends EditPlugin {
     IsabellePlugin.errors = null
   }
 }
-
