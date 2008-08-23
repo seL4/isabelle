@@ -59,18 +59,18 @@ object XML {
     }
 
     // main body
-    def dom_tree(tr: Tree): Node = tr match {
+    def DOM(tr: Tree): Node = tr match {
       case Elem(name, atts, ts) => {
         val node = doc.createElement(name)
         for ((name, value) <- atts) node.setAttribute(name, value)
-        for (t <- ts) node.appendChild(dom_tree(t))
+        for (t <- ts) node.appendChild(DOM(t))
         node
       }
       case Text(txt) => doc.createTextNode(txt)
     }
     val root_elem = tree match {
-      case Elem(_, _, _) => dom_tree(tree)
-      case Text(_) => dom_tree(Elem("root", Nil, List(tree)))
+      case Elem(_, _, _) => DOM(tree)
+      case Text(_) => DOM(Elem("root", Nil, List(tree)))
     }
     doc.appendChild(root_elem)
     doc
