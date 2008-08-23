@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Isabelle system support: settings and path specifications.
+Isabelle system support -- basic Cygwin/Posix compatibility.
 */
 
 package isabelle
@@ -30,7 +30,7 @@ object IsabelleSystem {
   }
 
 
-  /* File path specifications */
+  /* file path specifications */
 
   private val cygdrive_pattern = Pattern.compile("/cygdrive/([a-zA-Z])($|/.*)")
 
@@ -73,12 +73,14 @@ object IsabelleSystem {
   }
 
 
-  /* Cygwin shell prefix */
+  /* processes */
 
-  def shell_prefix() = {
+  private def posix_prefix() = {
     if (Pattern.matches(".*-cygwin", getenv_strict("ML_PLATFORM")))
-      Some(platform_path("/bin/env"))
-    else None
+      List(platform_path("/bin/env"))
+    else Nil
   }
+
+  def exec(args: List[String]) = Runtime.getRuntime.exec((posix_prefix() ++ args).toArray)
 
 }
