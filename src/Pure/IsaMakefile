@@ -114,15 +114,18 @@ clean:
 
 ## Scala material
 
+SCALA_FILES = General/symbol.scala General/xml.scala		\
+  General/yxml.scala Tools/isabelle_process.scala		\
+  Tools/isabelle_syntax.scala Tools/isabelle_system.scala
+
+
 SCALA_TARGET = $(ISABELLE_HOME)/lib/classes/Pure.jar
-SCALA_FILES = General/symbol.scala Tools/isabelle_system.scala	\
-  General/xml.scala General/yxml.scala
 
 jar: $(SCALA_TARGET)
 
 $(SCALA_TARGET): $(SCALA_FILES)
 	@rm -rf classes && mkdir classes
-	scalac -d classes -target jvm-1.5 $(SCALA_FILES)
+	scalac -deprecation -d classes -target jvm-1.5 $(SCALA_FILES)
 	scaladoc -d classes $(SCALA_FILES)
 	@mkdir -p `dirname $@`
 	@cd classes; jar cf $@ isabelle
