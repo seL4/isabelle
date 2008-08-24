@@ -12,7 +12,6 @@ import java.util.Properties
 import java.util.concurrent.LinkedBlockingQueue
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter, IOException}
 
-import scala.collection.mutable.ArrayBuffer
 import isabelle.{Symbol, XML}
 
 
@@ -51,6 +50,10 @@ object IsabelleProcess {
     def is_raw(kind: Value) =
       kind == STDOUT ||
       kind == STDERR
+    def is_control(kind: Value) =
+      kind == SIGNAL ||
+      kind == EXIT ||
+      kind == SYSTEM
     def is_system(kind: Value) =
       kind == STDIN ||
       kind == SIGNAL ||
@@ -67,6 +70,7 @@ object IsabelleProcess {
       else kind.toString + " " + props.toString + " [[" + res + "]]"
     }
     def is_raw() = Kind.is_raw(kind)
+    def is_control() = Kind.is_control(kind)
     def is_system() = Kind.is_system(kind)
   }
 
@@ -87,9 +91,15 @@ class IsabelleProcess(args: String*) {
   def session() = the_session
 
 
+  /* symbols */
+
+  val symbols = new Symbol.Interpretation
+  def decode_result(result: Result) = YXML.parse_failsafe(symbols.decode(result.result))
+
+
   /* results */
 
-  val results = new LinkedBlockingQueue[Result]
+  private val results = new LinkedBlockingQueue[Result]
 
   private def put_result(kind: Kind.Value, props: Properties, result: String) {
     if (kind == Kind.INIT && props != null) {
@@ -99,8 +109,7 @@ class IsabelleProcess(args: String*) {
     results.put(new Result(kind, props, result))
   }
 
-  val symbols = new Symbol.Interpretation
-  def result_tree(result: Result) = YXML.parse_failsafe(symbols.decode(result.result))
+  def get_result() = results.take
 
 
   /* signals */
@@ -109,9 +118,10 @@ class IsabelleProcess(args: String*) {
     if (proc == null) throw new IsabelleProcessException("Cannot interrupt: no process")
     if (pid == null) put_result(Kind.SYSTEM, null, "Cannot interrupt: unknown pid")
     else {
-      put_result(Kind.SIGNAL, null, "INT")
       try {
-        if (IsabelleSystem.exec(List("kill", "-INT", pid)).waitFor != 0)
+        if (IsabelleSystem.exec(List("kill", "-INT", pid)).waitFor == 0)
+          put_result(Kind.SIGNAL, null, "INT")
+        else
           put_result(Kind.SYSTEM, null, "Cannot interrupt: kill command failed")
       }
       catch { case e: IOException => throw new IsabelleProcessException(e.getMessage) }
@@ -122,17 +132,18 @@ class IsabelleProcess(args: String*) {
     if (proc == 0) throw new IsabelleProcessException("Cannot kill: no process")
     else {
       try_close()
-      Thread.sleep(300)
+      Thread.sleep(500)
       put_result(Kind.SIGNAL, null, "KILL")
       proc.destroy
       proc = null
+      pid = null
     }
   }
 
 
   /* output being piped into the process */
 
-  val output = new LinkedBlockingQueue[String]
+  private val output = new LinkedBlockingQueue[String]
 
   def output_raw(text: String) = synchronized {
     if (proc == null) throw new IsabelleProcessException("Cannot output: no process")
@@ -327,11 +338,10 @@ class IsabelleProcess(args: String*) {
 
   private class ExitThread extends Thread {
     override def run() = {
-      val rc = proc.waitFor
+      val rc = proc.waitFor()
       Thread.sleep(300)
       put_result(Kind.SYSTEM, null, "Exit thread terminated")
       put_result(Kind.EXIT, null, Integer.toString(rc))
-      proc = null   // FIXME race!?
     }
   }
 
