@@ -44,7 +44,7 @@ in
           ProofRewriteRules.rprocs true) o
       Proofterm.rewrite_proof thy
         (RewriteHOLProof.rews, ProofRewriteRules.rprocs true) o
-      ProofRewriteRules.elim_vars (curry Const "arbitrary"))
+      ProofRewriteRules.elim_vars (curry Const @{const_name default}))
 end
 *}
 
@@ -221,6 +221,10 @@ theorem exE_realizer: "P (snd p) (fst p) \<Longrightarrow>
 theorem exE_realizer': "P (snd p) (fst p) \<Longrightarrow>
   (\<And>x y. P y x \<Longrightarrow> Q) \<Longrightarrow> Q" by (cases p) simp
 
+setup {*
+  Sign.add_const_constraint (@{const_name "default"}, SOME @{typ "'a::type"})
+*}
+
 realizers
   impI (P, Q): "\<lambda>pq. pq"
     "\<Lambda> P Q pq (h: _). allI \<cdot> _ \<bullet> (\<Lambda> x. impI \<cdot> _ \<cdot> _ \<bullet> (h \<cdot> x))"
@@ -356,7 +360,7 @@ realizers
   disjE: "Null"
     "\<Lambda> P Q R pq. disjE_realizer3 \<cdot> _ \<cdot> _ \<cdot> pq \<cdot> (\<lambda>x. R) \<cdot> _ \<cdot> _"
 
-  FalseE (P): "arbitrary"
+  FalseE (P): "default"
     "\<Lambda> P. FalseE \<cdot> _"
 
   FalseE: "Null" "FalseE"
@@ -366,13 +370,13 @@ realizers
 
   notI: "Null" "notI"
 
-  notE (P, R): "\<lambda>p. arbitrary"
+  notE (P, R): "\<lambda>p. default"
     "\<Lambda> P R (h: _) p. notE \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
 
   notE (P): "Null"
     "\<Lambda> P R (h: _) p. notE \<cdot> _ \<cdot> _ \<bullet> (spec \<cdot> _ \<cdot> p \<bullet> h)"
 
-  notE (R): "arbitrary"
+  notE (R): "default"
     "\<Lambda> P R. notE \<cdot> _ \<cdot> _"
 
   notE: "Null" "notE"
@@ -431,5 +435,9 @@ realizers
   classical: "Null"
     "\<Lambda> P. classical \<cdot> _"
 *)
+
+setup {*
+  Sign.add_const_constraint (@{const_name "default"}, SOME @{typ "'a::default"})
+*}
 
 end

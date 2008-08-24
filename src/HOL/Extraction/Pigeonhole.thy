@@ -219,31 +219,34 @@ In order to analyze the speed of the above programs,
 we generate ML code from them.
 *}
 
+instantiation nat :: default
+begin
+
+definition "default = (0::nat)"
+
+instance ..
+
+end
+
+instantiation * :: (default, default) default
+begin
+
+definition "default = (default, default)"
+
+instance ..
+
+end
+
+consts_code
+  "default :: nat" ("{* 0::nat *}")
+  "default :: nat \<times> nat" ("{* (0::nat, 0::nat) *}")
+
 definition
   "test n u = pigeonhole n (\<lambda>m. m - 1)"
 definition
   "test' n u = pigeonhole_slow n (\<lambda>m. m - 1)"
 definition
   "test'' u = pigeonhole 8 (op ! [0, 1, 2, 3, 4, 5, 6, 3, 7, 8])"
-
-
-consts_code
-  "arbitrary :: nat" ("{* 0::nat *}")
-  "arbitrary :: nat \<times> nat" ("{* (0::nat, 0::nat) *}")
-
-definition
-  arbitrary_nat_pair :: "nat \<times> nat" where
-  [symmetric, code inline]: "arbitrary_nat_pair = arbitrary"
-
-definition
-  arbitrary_nat :: nat where
-  [symmetric, code inline]: "arbitrary_nat = arbitrary"
-
-code_const arbitrary_nat_pair (SML "(~1, ~1)")
-  (* this is justified since for valid inputs this "arbitrary" will be dropped
-     in the next recursion step in pigeonhole_def *)
-
-code_const  arbitrary_nat (SML "~1")
 
 code_module PH
 contains

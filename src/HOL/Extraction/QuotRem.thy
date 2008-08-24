@@ -41,10 +41,7 @@ text {*
   @{thm [display] division_correctness [no_vars]}
 *}
 
-code_module Div
-contains
-  test = "division 9 2"
-
+lemma "division 9 2 = (0, 3)" by evaluation
 lemma "division 9 2 = (0, 3)" by eval
 
 end

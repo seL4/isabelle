@@ -265,7 +265,6 @@ declare rtyping.induct [ind_realizer]
 lemmas [extraction_expand] = conj_assoc listall_cons_eq
 
 extract type_NF
-
 lemma rtranclR_rtrancl_eq: "rtranclpR r a b = r\<^sup>*\<^sup>* a b"
   apply (rule iffI)
   apply (erule rtranclpR.induct)
@@ -332,20 +331,123 @@ defined by the rules
 
 subsection {* Generating executable code *}
 
+instantiation NFT :: default
+begin
+
+definition "default = Dummy ()"
+
+instance ..
+
+end
+
+instantiation dB :: default
+begin
+
+definition "default = dB.Var 0"
+
+instance ..
+
+end
+
+instantiation * :: (default, default) default
+begin
+
+definition "default = (default, default)"
+
+instance ..
+
+end
+
+instantiation list :: (type) default
+begin
+
+definition "default = []"
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, default) default
+begin
+
+definition "default = (\<lambda>x. default)"
+
+instance ..
+
+end
+
+definition int_of_nat :: "nat \<Rightarrow> int" where
+  "int_of_nat = of_nat"
+
+text {*
+  The following functions convert between Isabelle's built-in {\tt term}
+  datatype and the generated {\tt dB} datatype. This allows to
+  generate example terms using Isabelle's parser and inspect
+  normalized terms using Isabelle's pretty printer.
+*}
+
+ML {*
+fun dBtype_of_typ (Type ("fun", [T, U])) =
+      @{code Fun} (dBtype_of_typ T, dBtype_of_typ U)
+  | dBtype_of_typ (TFree (s, _)) = (case explode s of
+        ["'", a] => @{code Atom} (@{code nat} (ord a - 97))
+      | _ => error "dBtype_of_typ: variable name")
+  | dBtype_of_typ _ = error "dBtype_of_typ: bad type";
+
+fun dB_of_term (Bound i) = @{code dB.Var} (@{code nat} i)
+  | dB_of_term (t $ u) = @{code dB.App} (dB_of_term t, dB_of_term u)
+  | dB_of_term (Abs (_, _, t)) = @{code dB.Abs} (dB_of_term t)
+  | dB_of_term _ = error "dB_of_term: bad term";
+
+fun term_of_dB Ts (Type ("fun", [T, U])) (@{code dB.Abs} dBt) =
+      Abs ("x", T, term_of_dB (T :: Ts) U dBt)
+  | term_of_dB Ts _ dBt = term_of_dB' Ts dBt
+and term_of_dB' Ts (@{code dB.Var} n) = Bound (@{code int_of_nat} n)
+  | term_of_dB' Ts (@{code dB.App} (dBt, dBu)) =
+      let val t = term_of_dB' Ts dBt
+      in case fastype_of1 (Ts, t) of
+          Type ("fun", [T, U]) => t $ term_of_dB Ts T dBu
+        | _ => error "term_of_dB: function type expected"
+      end
+  | term_of_dB' _ _ = error "term_of_dB: term not in normal form";
+
+fun typing_of_term Ts e (Bound i) =
+      @{code Var} (e, @{code nat} i, dBtype_of_typ (nth Ts i))
+  | typing_of_term Ts e (t $ u) = (case fastype_of1 (Ts, t) of
+        Type ("fun", [T, U]) => @{code App} (e, dB_of_term t,
+          dBtype_of_typ T, dBtype_of_typ U, dB_of_term u,
+          typing_of_term Ts e t, typing_of_term Ts e u)
+      | _ => error "typing_of_term: function type expected")
+  | typing_of_term Ts e (Abs (s, T, t)) =
+      let val dBT = dBtype_of_typ T
+      in @{code Abs} (e, dBT, dB_of_term t,
+        dBtype_of_typ (fastype_of1 (T :: Ts, t)),
+        typing_of_term (T :: Ts) (@{code shift} e @{code "0::nat"} dBT) t)
+      end
+  | typing_of_term _ _ _ = error "typing_of_term: bad term";
+
+fun dummyf _ = error "dummy";
+
+val ct1 = @{cterm "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))"};
+val (dB1, _) = @{code type_NF} (typing_of_term [] dummyf (term_of ct1));
+val ct1' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct1)) dB1);
+
+val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
+val (dB2, _) = @{code type_NF} (typing_of_term [] dummyf (term_of ct2));
+val ct2' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct2)) dB2);
+*}
+
+text {*
+The same story again for the SML code generator.
+*}
+
 consts_code
-  "arbitrary :: 'a"       ("(error \"arbitrary\")")
-  "arbitrary :: 'a \<Rightarrow> 'b" ("(fn '_ => error \"arbitrary\")")
+  "default" ("(error \"default\")")
+  "default :: 'a \<Rightarrow> 'b::default" ("(fn '_ => error \"default\")")
 
 code_module Norm
 contains
   test = "type_NF"
-
-text {*
-The following functions convert between Isabelle's built-in {\tt term}
-datatype and the generated {\tt dB} datatype. This allows to
-generate example terms using Isabelle's parser and inspect
-normalized terms using Isabelle's pretty printer.
-*}
 
 ML {*
 fun nat_of_int 0 = Norm.zero
@@ -407,68 +509,6 @@ val ct1' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct1)) dB1);
 
 val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
 val (dB2, _) = Norm.type_NF (typing_of_term [] dummyf (term_of ct2));
-val ct2' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct2)) dB2);
-*}
-
-text {*
-The same story again for code next generation.
-*}
-
-setup {*
-  CodeTarget.add_undefined "SML" "arbitrary" "(raise Fail \"arbitrary\")"
-*}
-
-definition int_of_nat :: "nat \<Rightarrow> int" where
-  "int_of_nat = of_nat"
-
-ML {*
-fun dBtype_of_typ (Type ("fun", [T, U])) =
-      @{code Fun} (dBtype_of_typ T, dBtype_of_typ U)
-  | dBtype_of_typ (TFree (s, _)) = (case explode s of
-        ["'", a] => @{code Atom} (@{code nat} (ord a - 97))
-      | _ => error "dBtype_of_typ: variable name")
-  | dBtype_of_typ _ = error "dBtype_of_typ: bad type";
-
-fun dB_of_term (Bound i) = @{code dB.Var} (@{code nat} i)
-  | dB_of_term (t $ u) = @{code dB.App} (dB_of_term t, dB_of_term u)
-  | dB_of_term (Abs (_, _, t)) = @{code dB.Abs} (dB_of_term t)
-  | dB_of_term _ = error "dB_of_term: bad term";
-
-fun term_of_dB Ts (Type ("fun", [T, U])) (@{code dB.Abs} dBt) =
-      Abs ("x", T, term_of_dB (T :: Ts) U dBt)
-  | term_of_dB Ts _ dBt = term_of_dB' Ts dBt
-and term_of_dB' Ts (@{code dB.Var} n) = Bound (@{code int_of_nat} n)
-  | term_of_dB' Ts (@{code dB.App} (dBt, dBu)) =
-      let val t = term_of_dB' Ts dBt
-      in case fastype_of1 (Ts, t) of
-          Type ("fun", [T, U]) => t $ term_of_dB Ts T dBu
-        | _ => error "term_of_dB: function type expected"
-      end
-  | term_of_dB' _ _ = error "term_of_dB: term not in normal form";
-
-fun typing_of_term Ts e (Bound i) =
-      @{code Var} (e, @{code nat} i, dBtype_of_typ (nth Ts i))
-  | typing_of_term Ts e (t $ u) = (case fastype_of1 (Ts, t) of
-        Type ("fun", [T, U]) => @{code App} (e, dB_of_term t,
-          dBtype_of_typ T, dBtype_of_typ U, dB_of_term u,
-          typing_of_term Ts e t, typing_of_term Ts e u)
-      | _ => error "typing_of_term: function type expected")
-  | typing_of_term Ts e (Abs (s, T, t)) =
-      let val dBT = dBtype_of_typ T
-      in @{code Abs} (e, dBT, dB_of_term t,
-        dBtype_of_typ (fastype_of1 (T :: Ts, t)),
-        typing_of_term (T :: Ts) (@{code shift} e @{code "0::nat"} dBT) t)
-      end
-  | typing_of_term _ _ _ = error "typing_of_term: bad term";
-
-fun dummyf _ = error "dummy";
-
-val ct1 = @{cterm "%f. ((%f x. f (f (f x))) ((%f x. f (f (f (f x)))) f))"};
-val (dB1, _) = @{code type_NF} (typing_of_term [] dummyf (term_of ct1));
-val ct1' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct1)) dB1);
-
-val ct2 = @{cterm "%f x. (%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) ((%x. f x x) x)))))"};
-val (dB2, _) = @{code type_NF} (typing_of_term [] dummyf (term_of ct2));
 val ct2' = cterm_of @{theory} (term_of_dB [] (#T (rep_cterm ct2)) dB2);
 *}
 

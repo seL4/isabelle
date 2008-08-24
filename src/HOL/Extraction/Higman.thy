@@ -339,6 +339,17 @@ text {*
 
 subsection {* Some examples *}
 
+instantiation LT and TT :: default
+begin
+
+definition "default = L0 [] []"
+
+definition "default = T0 A [] [] [] R0"
+
+instance ..
+
+end
+
 (* an attempt to express examples in HOL -- function
   mk_word :: "nat \<Rightarrow> randseed \<Rightarrow> letter list \<times> randseed"
 where
@@ -354,15 +365,11 @@ where
 by pat_completeness auto
 termination by (relation "measure ((op -) 1001)") auto
 
-fun
+primrec
   mk_word' :: "nat \<Rightarrow> randseed \<Rightarrow> letter list \<times> randseed"
 where
   "mk_word' 0 = mk_word 0"
   | "mk_word' (Suc n) = (do _ \<leftarrow> mk_word 0; mk_word' n done)"*)
-
-consts_code
-  "arbitrary :: LT"  ("({* L0 [] [] *})")
-  "arbitrary :: TT"  ("({* T0 A [] [] [] R0 *})")
 
 code_module Higman
 contains
@@ -414,17 +421,6 @@ val (v4, w4) = (f2 i4, f2 j4);
 
 end;
 *}
-
-definition
-  arbitrary_LT :: LT where
-  [symmetric, code inline]: "arbitrary_LT = arbitrary"
-
-definition
-  arbitrary_TT :: TT where
-  [symmetric, code inline]: "arbitrary_TT = arbitrary"
-
-code_datatype L0 L1 arbitrary_LT
-code_datatype T0 T1 T2 arbitrary_TT
 
 ML {*
 val a = 16807.0;

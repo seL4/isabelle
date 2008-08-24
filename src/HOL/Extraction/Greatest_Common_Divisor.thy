@@ -61,13 +61,37 @@ The extracted program for computing the greatest common divisor is
 @{thm [display] greatest_common_divisor_def}
 *}
 
+instantiation nat :: default
+begin
+
+definition "default = (0::nat)"
+
+instance ..
+
+end
+
+instantiation * :: (default, default) default
+begin
+
+definition "default = (default, default)"
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, default) default
+begin
+
+definition "default = (\<lambda>x. default)"
+
+instance ..
+
+end
+
 consts_code
-  arbitrary ("(error \"arbitrary\")")
+  default ("(error \"default\")")
 
-code_module GCD
-contains
-  test = "greatest_common_divisor 7 12"
-
-ML GCD.test
+lemma "greatest_common_divisor 7 12 = (4, 3, 2)" by evaluation
+lemma "greatest_common_divisor 7 12 = (4, 3, 2)" by eval
 
 end

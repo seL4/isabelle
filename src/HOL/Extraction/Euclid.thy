@@ -8,7 +8,7 @@
 header {* Euclid's theorem *}
 
 theory Euclid
-imports "~~/src/HOL/NumberTheory/Factorization" Efficient_Nat Util
+imports "~~/src/HOL/NumberTheory/Factorization" Util Efficient_Nat
 begin
 
 text {*
@@ -207,21 +207,47 @@ The program corresponding to the proof of the factorization theorem is
 @{thm [display] factor_exists_def}
 *}
 
+instantiation nat :: default
+begin
+
+definition "default = (0::nat)"
+
+instance ..
+
+end
+
+instantiation list :: (type) default
+begin
+
+definition "default = []"
+
+instance ..
+
+end
+
 consts_code
-  arbitrary ("(error \"arbitrary\")")
+  default ("(error \"default\")")
 
-code_module Prime
-contains Euclid
+lemma "factor_exists 1007 = [53, 19]" by evaluation
+lemma "factor_exists 1007 = [53, 19]" by eval
 
-ML "Prime.factor_exists 1007"
-ML "Prime.factor_exists 567"
-ML "Prime.factor_exists 345"
-ML "Prime.factor_exists 999"
-ML "Prime.factor_exists 876"
+lemma "factor_exists 567 = [7, 3, 3, 3, 3]" by evaluation
+lemma "factor_exists 567 = [7, 3, 3, 3, 3]" by eval
 
-ML "Prime.Euclid 0"
-ML "Prime.Euclid it"
-ML "Prime.Euclid it"
-ML "Prime.Euclid it"
- 
+lemma "factor_exists 345 = [23, 5, 3]" by evaluation
+lemma "factor_exists 345 = [23, 5, 3]" by eval
+
+lemma "factor_exists 999 = [37, 3, 3, 3]" by evaluation
+lemma "factor_exists 999 = [37, 3, 3, 3]" by eval
+
+lemma "factor_exists 876 = [73, 3, 2, 2]" by evaluation
+lemma "factor_exists 876 = [73, 3, 2, 2]" by eval
+
+primrec iterate :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list" where
+  "iterate 0 f x = []"
+  | "iterate (Suc n) f x = (let y = f x in y # iterate n f y)"
+
+lemma "iterate 4 Euclid 0 = [2, 3, 7, 71]" by evaluation
+lemma "iterate 4 Euclid 0 = [2, 3, 7, 71]" by eval
+
 end

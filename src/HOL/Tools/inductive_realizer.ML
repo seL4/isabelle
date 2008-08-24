@@ -211,7 +211,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
       let
         val fs = map (fn (rule, (ivs, intr)) =>
           fun_of_prem thy rsets vs params rule ivs intr) (prems ~~ intrs)
-      in if dummy then Const ("arbitrary",
+      in if dummy then Const ("HOL.default_class.default",
           HOLogic.unitT --> body_type (fastype_of (hd fs))) :: fs
         else fs
       end) (premss ~~ dummies);
@@ -438,7 +438,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         val r = if null Ps then Extraction.nullt
           else list_abs (map (pair "x") Ts, list_comb (Const (case_name, T),
             (if dummy then
-               [Abs ("x", HOLogic.unitT, Const ("arbitrary", body_type T))]
+               [Abs ("x", HOLogic.unitT, Const ("HOL.default_class.default", body_type T))]
              else []) @
             map reorder2 (intrs ~~ (length prems - 1 downto 0)) @
             [Bound (length prems)]));
