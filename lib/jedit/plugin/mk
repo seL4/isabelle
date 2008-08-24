@@ -10,9 +10,9 @@ rm -f ../isabelle.jar
 
 scalac -d build \
   -cp $JEDIT_HOME/jedit.jar:$PLUGINS/SideKick.jar:$PLUGINS/ErrorList.jar:$PLUGINS/Console.jar:../../classes/Pure.jar \
-  isabelle/IsabellePlugin.scala \
-  isabelle/IsabelleDock.scala \
-  isabelle/IsabelleParser.scala \
+  isabelle_plugin.scala \
+  isabelle_dock.scala \
+  isabelle_parser.scala \
 && (
   cp *.xml *.props build/
   cd build

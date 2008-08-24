@@ -1,4 +1,4 @@
-/*  Title:      jedit/plugin/IsabelleParser.scala
+/*  Title:      lib/jedit/plugin/isabelle_parser.scala
     ID:         $Id$
     Author:     Makarius
 
