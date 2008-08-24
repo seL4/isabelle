@@ -7,7 +7,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Divides Transitive_Closure
+imports Datatype Divides Transitive_Closure
 begin
 
 subsection {* Definition and basic properties *}
@@ -452,9 +452,6 @@ instance bool :: finite
 instance * :: (finite, finite) finite
   by default (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product finite)
 
-instance "+" :: (finite, finite) finite
-  by default (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
-
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
   by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
 
@@ -471,6 +468,12 @@ proof
     show "inj ?graph" by (rule inj_graph)
   qed
 qed
+
+instance "+" :: (finite, finite) finite
+  by default (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
+
+instance option :: (finite) finite
+  by default (simp add: insert_None_conv_UNIV [symmetric])
 
 
 subsection {* A fold functional for finite sets *}

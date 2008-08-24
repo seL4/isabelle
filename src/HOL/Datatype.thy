@@ -9,7 +9,7 @@ Could <*> be generalized to a general summation (Sigma)?
 header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
 
 theory Datatype
-imports Finite_Set
+imports Nat Relation
 begin
 
 typedef (Node)
@@ -604,9 +604,6 @@ lemma option_caseE:
 
 lemma insert_None_conv_UNIV: "insert None (range Some) = UNIV"
   by (rule set_ext, case_tac x) auto
-
-instance option :: (finite) finite
-  by default (simp add: insert_None_conv_UNIV [symmetric])
 
 
 subsubsection {* Operations *}
