@@ -11,110 +11,110 @@
 \<seven>                code: 0x01d7f3  font: Isabelle
 \<eight>                code: 0x01d7f4  font: Isabelle
 \<nine>                 code: 0x01d7f5  font: Isabelle
-#\<A>                    code: 0x01d49c
-#\<B>                    code: 0x00212c
-#\<C>                    code: 0x01d49e
-#\<D>                    code: 0x01d49f
-#\<E>                    code: 0x002130
-#\<F>                    code: 0x002131
-#\<G>                    code: 0x01d4a2
-#\<H>                    code: 0x00210b
-#\<I>                    code: 0x002110
-#\<J>                    code: 0x01d4a5
-#\<K>                    code: 0x01d4a6
-#\<L>                    code: 0x002112
-#\<M>                    code: 0x002133
-#\<N>                    code: 0x01d4a9
-#\<O>                    code: 0x01d4aa
-#\<P>                    code: 0x01d4ab
-#\<Q>                    code: 0x01d4ac
-#\<R>                    code: 0x00211b
-#\<S>                    code: 0x01d4ae
-#\<T>                    code: 0x01d4af
-#\<U>                    code: 0x01d4b0
-#\<V>                    code: 0x01d4b1
-#\<W>                    code: 0x01d4b2
-#\<X>                    code: 0x01d4b3
-#\<Y>                    code: 0x01d4b4
-#\<Z>                    code: 0x01d4b5
-#\<a>                    code: 0x01d5ba
-#\<b>                    code: 0x01d5bb
-#\<c>                    code: 0x01d5bc
-#\<d>                    code: 0x01d5bd
-#\<e>                    code: 0x01d5be
-#\<f>                    code: 0x01d5bf
-#\<g>                    code: 0x01d5c0
-#\<h>                    code: 0x01d5c1
-#\<i>                    code: 0x01d5c2
-#\<j>                    code: 0x01d5c3
-#\<k>                    code: 0x01d5c4
-#\<l>                    code: 0x01d5c5
-#\<m>                    code: 0x01d5c6
-#\<n>                    code: 0x01d5c7
-#\<o>                    code: 0x01d5c8
-#\<p>                    code: 0x01d5c9
-#\<q>                    code: 0x01d5ca
-#\<r>                    code: 0x01d5cb
-#\<s>                    code: 0x01d5cc
-#\<t>                    code: 0x01d5cd
-#\<u>                    code: 0x01d5ce
-#\<v>                    code: 0x01d5cf
-#\<w>                    code: 0x01d5d0
-#\<x>                    code: 0x01d5d1
-#\<y>                    code: 0x01d5d2
-#\<z>                    code: 0x01d5d3
-#\<AA>                   code: 0x01d504
-#\<BB>                   code: 0x01d505
-#\<CC>                   code: 0x00212d
-#\<DD>                   code: 0x01d507
-#\<EE>                   code: 0x01d508
-#\<FF>                   code: 0x01d509
-#\<GG>                   code: 0x01d50a
-#\<HH>                   code: 0x00210c
-#\<II>                   code: 0x002111
-#\<JJ>                   code: 0x01d50d
-#\<KK>                   code: 0x01d50e
-#\<LL>                   code: 0x01d50f
-#\<MM>                   code: 0x01d510
-#\<NN>                   code: 0x01d511
-#\<OO>                   code: 0x01d512
-#\<PP>                   code: 0x01d513
-#\<QQ>                   code: 0x01d514
-#\<RR>                   code: 0x00211c
-#\<SS>                   code: 0x01d516
-#\<TT>                   code: 0x01d517
-#\<UU>                   code: 0x01d518
-#\<VV>                   code: 0x01d519
-#\<WW>                   code: 0x01d51a
-#\<XX>                   code: 0x01d51b
-#\<YY>                   code: 0x01d51c
-#\<ZZ>                   code: 0x002128
-#\<aa>                   code: 0x01d51e
-#\<bb>                   code: 0x01d51f
-#\<cc>                   code: 0x01d520
-#\<dd>                   code: 0x01d521
-#\<ee>                   code: 0x01d522
-#\<ff>                   code: 0x01d523
-#\<gg>                   code: 0x01d524
-#\<hh>                   code: 0x01d525
-#\<ii>                   code: 0x01d526
-#\<jj>                   code: 0x01d527
-#\<kk>                   code: 0x01d528
-#\<ll>                   code: 0x01d529
-#\<mm>                   code: 0x01d52a
-#\<nn>                   code: 0x01d52b
-#\<oo>                   code: 0x01d52c
-#\<pp>                   code: 0x01d52d
-#\<qq>                   code: 0x01d52e
-#\<rr>                   code: 0x01d52f
-#\<ss>                   code: 0x01d530
-#\<tt>                   code: 0x01d531
-#\<uu>                   code: 0x01d532
-#\<vv>                   code: 0x01d533
-#\<ww>                   code: 0x01d534
-#\<xx>                   code: 0x01d535
-#\<yy>                   code: 0x01d536
-#\<zz>                   code: 0x01d537
+\<A>                    code: 0x01d49c  font: Isabelle
+\<B>                    code: 0x00212c  font: Isabelle
+\<C>                    code: 0x01d49e  font: Isabelle
+\<D>                    code: 0x01d49f  font: Isabelle
+\<E>                    code: 0x002130  font: Isabelle
+\<F>                    code: 0x002131  font: Isabelle
+\<G>                    code: 0x01d4a2  font: Isabelle
+\<H>                    code: 0x00210b  font: Isabelle
+\<I>                    code: 0x002110  font: Isabelle
+\<J>                    code: 0x01d4a5  font: Isabelle
+\<K>                    code: 0x01d4a6  font: Isabelle
+\<L>                    code: 0x002112  font: Isabelle
+\<M>                    code: 0x002133  font: Isabelle
+\<N>                    code: 0x01d4a9  font: Isabelle
+\<O>                    code: 0x01d4aa  font: Isabelle
+\<P>                    code: 0x01d4ab  font: Isabelle
+\<Q>                    code: 0x01d4ac  font: Isabelle
+\<R>                    code: 0x00211b  font: Isabelle
+\<S>                    code: 0x01d4ae  font: Isabelle
+\<T>                    code: 0x01d4af  font: Isabelle
+\<U>                    code: 0x01d4b0  font: Isabelle
+\<V>                    code: 0x01d4b1  font: Isabelle
+\<W>                    code: 0x01d4b2  font: Isabelle
+\<X>                    code: 0x01d4b3  font: Isabelle
+\<Y>                    code: 0x01d4b4  font: Isabelle
+\<Z>                    code: 0x01d4b5  font: Isabelle
+\<a>                    code: 0x01d5ba  font: Isabelle
+\<b>                    code: 0x01d5bb  font: Isabelle
+\<c>                    code: 0x01d5bc  font: Isabelle
+\<d>                    code: 0x01d5bd  font: Isabelle
+\<e>                    code: 0x01d5be  font: Isabelle
+\<f>                    code: 0x01d5bf  font: Isabelle
+\<g>                    code: 0x01d5c0  font: Isabelle
+\<h>                    code: 0x01d5c1  font: Isabelle
+\<i>                    code: 0x01d5c2  font: Isabelle
+\<j>                    code: 0x01d5c3  font: Isabelle
+\<k>                    code: 0x01d5c4  font: Isabelle
+\<l>                    code: 0x01d5c5  font: Isabelle
+\<m>                    code: 0x01d5c6  font: Isabelle
+\<n>                    code: 0x01d5c7  font: Isabelle
+\<o>                    code: 0x01d5c8  font: Isabelle
+\<p>                    code: 0x01d5c9  font: Isabelle
+\<q>                    code: 0x01d5ca  font: Isabelle
+\<r>                    code: 0x01d5cb  font: Isabelle
+\<s>                    code: 0x01d5cc  font: Isabelle
+\<t>                    code: 0x01d5cd  font: Isabelle
+\<u>                    code: 0x01d5ce  font: Isabelle
+\<v>                    code: 0x01d5cf  font: Isabelle
+\<w>                    code: 0x01d5d0  font: Isabelle
+\<x>                    code: 0x01d5d1  font: Isabelle
+\<y>                    code: 0x01d5d2  font: Isabelle
+\<z>                    code: 0x01d5d3  font: Isabelle
+\<AA>                   code: 0x01d504  font: Isabelle
+\<BB>                   code: 0x01d505  font: Isabelle
+\<CC>                   code: 0x00212d  font: Isabelle
+\<DD>                   code: 0x01d507  font: Isabelle
+\<EE>                   code: 0x01d508  font: Isabelle
+\<FF>                   code: 0x01d509  font: Isabelle
+\<GG>                   code: 0x01d50a  font: Isabelle
+\<HH>                   code: 0x00210c  font: Isabelle
+#\<II>                   code: 0x01d50c  font: Isabelle
+\<JJ>                   code: 0x01d50d  font: Isabelle
+\<KK>                   code: 0x01d50e  font: Isabelle
+\<LL>                   code: 0x01d50f  font: Isabelle
+\<MM>                   code: 0x01d510  font: Isabelle
+\<NN>                   code: 0x01d511  font: Isabelle
+\<OO>                   code: 0x01d512  font: Isabelle
+\<PP>                   code: 0x01d513  font: Isabelle
+\<QQ>                   code: 0x01d514  font: Isabelle
+#\<RR>                   code: 0x01d515  font: Isabelle
+\<SS>                   code: 0x01d516  font: Isabelle
+\<TT>                   code: 0x01d517  font: Isabelle
+\<UU>                   code: 0x01d518  font: Isabelle
+\<VV>                   code: 0x01d519  font: Isabelle
+\<WW>                   code: 0x01d51a  font: Isabelle
+\<XX>                   code: 0x01d51b  font: Isabelle
+\<YY>                   code: 0x01d51c  font: Isabelle
+\<ZZ>                   code: 0x002128  font: Isabelle
+\<aa>                   code: 0x01d51e  font: Isabelle
+\<bb>                   code: 0x01d51f  font: Isabelle
+\<cc>                   code: 0x01d520  font: Isabelle
+\<dd>                   code: 0x01d521  font: Isabelle
+\<ee>                   code: 0x01d522  font: Isabelle
+\<ff>                   code: 0x01d523  font: Isabelle
+\<gg>                   code: 0x01d524  font: Isabelle
+\<hh>                   code: 0x01d525  font: Isabelle
+\<ii>                   code: 0x01d526  font: Isabelle
+\<jj>                   code: 0x01d527  font: Isabelle
+\<kk>                   code: 0x01d528  font: Isabelle
+\<ll>                   code: 0x01d529  font: Isabelle
+\<mm>                   code: 0x01d52a  font: Isabelle
+\<nn>                   code: 0x01d52b  font: Isabelle
+\<oo>                   code: 0x01d52c  font: Isabelle
+\<pp>                   code: 0x01d52d  font: Isabelle
+\<qq>                   code: 0x01d52e  font: Isabelle
+\<rr>                   code: 0x01d52f  font: Isabelle
+\<ss>                   code: 0x01d530  font: Isabelle
+\<tt>                   code: 0x01d531  font: Isabelle
+\<uu>                   code: 0x01d532  font: Isabelle
+\<vv>                   code: 0x01d533  font: Isabelle
+\<ww>                   code: 0x01d534  font: Isabelle
+\<xx>                   code: 0x01d535  font: Isabelle
+\<yy>                   code: 0x01d536  font: Isabelle
+\<zz>                   code: 0x01d537  font: Isabelle
 \<alpha>                code: 0x0003b1  font: Isabelle
 \<beta>                 code: 0x0003b2  font: Isabelle
 \<gamma>                code: 0x0003b3  font: Isabelle
