@@ -4,7 +4,7 @@
 
 <SERVICES>
   <SERVICE CLASS="sidekick.SideKickParser" NAME="isabelle">
-    new isabelle.IsabelleParser();
+    new isabelle.jedit.IsabelleParser();
   </SERVICE>
 </SERVICES>
 

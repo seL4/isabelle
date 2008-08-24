@@ -5,7 +5,7 @@
 Isabelle/jEdit plugin -- main setup.
 */
 
-package isabelle
+package isabelle.jedit
 
 import org.gjt.sp.jedit.EditPlugin
 import org.gjt.sp.util.Log

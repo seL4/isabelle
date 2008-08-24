@@ -16,7 +16,7 @@ scalac -d build \
 && (
   cp *.xml *.props build/
   cd build
-  jar cf ../../isabelle.jar isabelle/*.class *.xml *.props
+  jar cf ../../isabelle.jar .
 )
 
 rm -rf build/

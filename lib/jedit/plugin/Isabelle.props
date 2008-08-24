@@ -2,21 +2,21 @@
 ## $Id$
 
 #identification
-plugin.isabelle.IsabellePlugin.name = Isabelle
-plugin.isabelle.IsabellePlugin.author = Makarius
-plugin.isabelle.IsabellePlugin.version = 0.0.1
-plugin.isabelle.IsabellePlugin.description = Basic Isabelle support
+plugin.isabelle.jedit.IsabellePlugin.name = Isabelle
+plugin.isabelle.jedit.IsabellePlugin.author = Makarius
+plugin.isabelle.jedit.IsabellePlugin.version = 0.0.1
+plugin.isabelle.jedit.IsabellePlugin.description = Basic Isabelle support
 
 #system parameters
-plugin.isabelle.IsabellePlugin.activate = defer
-plugin.isabelle.IsabellePlugin.usePluginHome = false
+plugin.isabelle.jedit.IsabellePlugin.activate = defer
+plugin.isabelle.jedit.IsabellePlugin.usePluginHome = false
 
 #dependencies
-plugin.isabelle.IsabellePlugin.depend.0 = jdk 1.5
-plugin.isabelle.IsabellePlugin.depend.1 = jedit 04.03.00.00
-plugin.isabelle.IsabellePlugin.depend.2 = plugin errorlist.ErrorListPlugin 1.7
-plugin.isabelle.IsabellePlugin.depend.3 = plugin sidekick.SideKickPlugin 0.7.4
-plugin.isabelle.IsabellePlugin.depend.4 = plugin console.ConsolePlugin 4.3.4
+plugin.isabelle.jedit.IsabellePlugin.depend.0 = jdk 1.5
+plugin.isabelle.jedit.IsabellePlugin.depend.1 = jedit 04.03.00.00
+plugin.isabelle.jedit.IsabellePlugin.depend.2 = plugin errorlist.ErrorListPlugin 1.7
+plugin.isabelle.jedit.IsabellePlugin.depend.3 = plugin sidekick.SideKickPlugin 0.7.4
+plugin.isabelle.jedit.IsabellePlugin.depend.4 = plugin console.ConsolePlugin 4.3.4
 
 #dockable component
 isabelle.label = Isabelle

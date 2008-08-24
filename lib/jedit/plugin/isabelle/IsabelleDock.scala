@@ -5,7 +5,7 @@
 Dockable window for Isabelle process control.
 */
 
-package isabelle
+package isabelle.jedit
 
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.DefaultFocusComponent

@@ -5,7 +5,7 @@
 Isabelle parser setup for Sidekick plugin.
 */
 
-package isabelle
+package isabelle.jedit
 
 import javax.swing.text.Position
 import javax.swing.tree.DefaultMutableTreeNode
