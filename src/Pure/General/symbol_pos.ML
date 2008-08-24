@@ -55,7 +55,7 @@ val tab_width = (8: int);
 fun untabify ("\t", pos) =
       (case Position.column_of pos of
         SOME n => Symbol.spaces (tab_width - ((n - 1) mod tab_width))
-      | NONE => error "No column information -- cannot interpret tabulators")
+      | NONE => Symbol.space)
   | untabify (s, _) = s;
 
 val untabify_content = implode o map untabify;
