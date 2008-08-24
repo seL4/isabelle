@@ -20,11 +20,22 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 
-/* Global state */
+
+/** global state **/
 
 object IsabellePlugin {
-  // unique ids
-  private var id_count = 0
+
+  /* Isabelle process */
+
+  var isabelle: IsabelleProcess = null
+
+  def result_content(result: IsabelleProcess.Result) =
+    XML.content(isabelle.decode_result(result)).mkString("")
+
+
+  /* unique ids */
+
+  private var id_count: BigInt = 0
 
   def id() : String = synchronized { id_count += 1; "jedit:" + id_count }
 
@@ -37,109 +48,103 @@ object IsabellePlugin {
   def id_properties() : Properties = { id_properties(id()) }
 
 
-  // the error source
-  var errors: DefaultErrorSource = null
+  /* result consumers */
 
-  // the Isabelle process
-  var isabelle: IsabelleProcess = null
+  type Consumer = IsabelleProcess.Result => Boolean
+  private var consumers = new ListBuffer[Consumer]
 
-
-  // result content
-  def result_content(result: IsabelleProcess.Result) =
-    XML.content(isabelle.result_tree(result)).mkString("")
-
-
-  // result consumers
-  type consumer = IsabelleProcess.Result => Boolean
-  private var consumers = new ListBuffer[consumer]
-
-  def add_consumer(consumer: consumer) = synchronized { consumers += consumer }
+  def add_consumer(consumer: Consumer) = synchronized { consumers += consumer }
 
   def add_permanent_consumer(consumer: IsabelleProcess.Result => Unit) = {
     add_consumer(result => { consumer(result); false })
   }
 
-  def del_consumer(consumer: consumer) = synchronized { consumers -= consumer }
+  def del_consumer(consumer: Consumer) = synchronized { consumers -= consumer }
 
-  def consume(result: IsabelleProcess.Result) : Unit = {
+  private def consume(result: IsabelleProcess.Result) = {
     synchronized { consumers.elements.toList } foreach (consumer =>
       {
+        if (result != null && result.is_control) Log.log(Log.DEBUG, result, null)
         val finished =
           try { consumer(result) }
-          catch { case e: Throwable => Log.log(Log.ERROR, this, e); true }
-        if (finished || result == null)
-          del_consumer(consumer)
+          catch { case e: Throwable => Log.log(Log.ERROR, result, e); true }
+        if (finished || result == null) del_consumer(consumer)
       })
   }
+
+  class ConsumerThread extends Thread {
+    override def run = {
+      var finished = false
+      while (!finished) {
+        val result =
+          try { IsabellePlugin.isabelle.get_result() }
+          catch { case _: NullPointerException => null }
+
+        if (result != null) {
+          consume(result)
+          if (result.kind == IsabelleProcess.Kind.EXIT) {
+            consume(null)
+            finished = true
+          }
+        }
+        else finished = true
+      }
+    }
+  }
+
 }
 
 
 /* Main plugin setup */
 
 class IsabellePlugin extends EditPlugin {
-  private var thread: Thread = null
+
+  import IsabellePlugin._
+
+  val errors = new DefaultErrorSource("isabelle")
+  val consumer_thread = new ConsumerThread
+
 
   override def start = {
-    // error source
-    IsabellePlugin.errors = new DefaultErrorSource("isabelle")
-    ErrorSource.registerErrorSource(IsabellePlugin.errors)
 
-    IsabellePlugin.add_permanent_consumer (result =>
-      if (result != null && result.props != null &&
+    /* error source */
+
+    ErrorSource.registerErrorSource(errors)
+
+    add_permanent_consumer (result =>
+      if (result != null &&
           (result.kind == IsabelleProcess.Kind.WARNING ||
            result.kind == IsabelleProcess.Kind.ERROR)) {
-        val typ =
-          if (result.kind == IsabelleProcess.Kind.WARNING) ErrorSource.WARNING
-          else ErrorSource.ERROR
         (Position.line_of(result.props), Position.file_of(result.props)) match {
           case (Some(line), Some(file)) =>
-            val content = IsabellePlugin.result_content(result)
+            val typ =
+              if (result.kind == IsabelleProcess.Kind.WARNING) ErrorSource.WARNING
+              else ErrorSource.ERROR
+            val content = result_content(result)
             if (content.length > 0) {
               val lines = Source.fromString(content).getLines
-              val err = new DefaultErrorSource.DefaultError(IsabellePlugin.errors,
+              val err = new DefaultErrorSource.DefaultError(errors,
                   typ, file, line - 1, 0, 0, lines.next)
               for (msg <- lines) err.addExtraMessage(msg)
-              IsabellePlugin.errors.addError(err)
+              errors.addError(err)
             }
           case _ =>
         }
       })
 
 
-    // Isabelle process
-    IsabellePlugin.isabelle =
-      new IsabelleProcess("-mno_brackets", "-mno_type_brackets", "-mxsymbols")
-    thread = new Thread (new Runnable {
-      def run = {
-        var result: IsabelleProcess.Result = null
-        do {
-          try {
-            result = IsabellePlugin.isabelle.results.take
-          }
-          catch {
-            case _: NullPointerException => result = null
-            case _: InterruptedException => result = null
-          }
-          if (result != null) {
-            System.err.println(result)   // FIXME
-            IsabellePlugin.consume(result)
-          }
-          if (result.kind == IsabelleProcess.Kind.EXIT) {
-            result = null
-            IsabellePlugin.consume(null)
-          }
-        } while (result != null)
-      }
-    })
-    thread.start
+    /* Isabelle process */
+
+    isabelle = new IsabelleProcess("-mno_brackets", "-mno_type_brackets", "-mxsymbols")
+    consumer_thread.start
+
   }
+
 
   override def stop = {
-    IsabellePlugin.isabelle.kill
-    thread.interrupt; thread.join; thread = null
-    IsabellePlugin.isabelle = null
-
-    ErrorSource.unregisterErrorSource(IsabellePlugin.errors)
-    IsabellePlugin.errors = null
+    isabelle.kill
+    consumer_thread.join
+    ErrorSource.unregisterErrorSource(errors)
   }
+
 }
