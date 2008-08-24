@@ -13,7 +13,7 @@ import java.util.Properties
 object Position {
 
   private def get_string(name: String, props: Properties) = {
-    val value = props.getProperty(name)
+    val value = if (props != null) props.getProperty(name) else null
     if (value != null) Some(value) else None
   }
 
