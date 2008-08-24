@@ -354,9 +354,14 @@ in
 
 val the_exec = fst o CodeData.get;
 
+fun complete_class_params thy cs =
+  fold (fn c => case AxClass.inst_of_param thy c
+   of NONE => insert (op =) c
+    | SOME (c', _) => insert (op =) c' #> insert (op =) c) cs [];
+
 fun map_exec_purge touched f thy =
   CodeData.map (fn (exec, data) => (f exec, ref (case touched
-   of SOME cs => invoke_purge_all thy cs (! data)
+   of SOME cs => invoke_purge_all thy (complete_class_params thy cs) (! data)
     | NONE => empty_data))) thy;
 
 val purge_data = (CodeData.map o apsnd) (K (ref empty_data));
