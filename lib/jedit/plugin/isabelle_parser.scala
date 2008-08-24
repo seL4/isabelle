@@ -41,17 +41,18 @@ class IsabelleParser extends SideKickParser("isabelle") {
 
     try {
       buffer.readLock()
-      text = buffer.getText(0, buffer.getLength())
-      data = new SideKickParsedData(buffer.getName())
+      text = buffer.getText(0, buffer.getLength)
+      data = new SideKickParsedData(buffer.getName)
 
       val asset = new IsabelleAsset("theory", null)
       asset.setStart(buffer.createPosition(0))
-      asset.setEnd(buffer.createPosition(buffer.getLength()))
+      asset.setEnd(buffer.createPosition(buffer.getLength))
 
       val node = new DefaultMutableTreeNode(asset)
-      data.root.insert(node, node.getChildCount())
+      data.root.insert(node, node.getChildCount)
 
-    } finally {
+    }
+    finally {
       buffer.readUnlock()
     }
 

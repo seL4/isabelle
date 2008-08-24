@@ -24,26 +24,23 @@ import scala.io.Source
 
 object IsabellePlugin {
   // unique ids
-  @volatile
-  private var idCount = 0
+  private var id_count = 0
 
-  def id() : String = synchronized { idCount += 1; "jedit:" + idCount }
+  def id() : String = synchronized { id_count += 1; "jedit:" + id_count }
 
-  def idProperties(value: String) : Properties = {
+  def id_properties(value: String) : Properties = {
      val props = new Properties
      props.setProperty(Markup.ID, value)
      props
   }
 
-  def idProperties() : Properties = { idProperties(id()) }
+  def id_properties() : Properties = { id_properties(id()) }
 
 
   // the error source
-  @volatile
   var errors: DefaultErrorSource = null
 
   // the Isabelle process
-  @volatile
   var isabelle: IsabelleProcess = null
 
 
@@ -56,13 +53,13 @@ object IsabellePlugin {
   type consumer = IsabelleProcess.Result => Boolean
   private var consumers = new ListBuffer[consumer]
 
-  def addConsumer(consumer: consumer) = synchronized { consumers += consumer }
+  def add_consumer(consumer: consumer) = synchronized { consumers += consumer }
 
-  def addPermanentConsumer(consumer: IsabelleProcess.Result => Unit) = {
-    addConsumer(result => { consumer(result); false })
+  def add_permanent_consumer(consumer: IsabelleProcess.Result => Unit) = {
+    add_consumer(result => { consumer(result); false })
   }
 
-  def delConsumer(consumer: consumer) = synchronized { consumers -= consumer }
+  def del_consumer(consumer: consumer) = synchronized { consumers -= consumer }
 
   def consume(result: IsabelleProcess.Result) : Unit = {
     synchronized { consumers.elements.toList } foreach (consumer =>
@@ -71,7 +68,7 @@ object IsabellePlugin {
           try { consumer(result) }
           catch { case e: Throwable => Log.log(Log.ERROR, this, e); true }
         if (finished || result == null)
-          delConsumer(consumer)
+          del_consumer(consumer)
       })
   }
 }
@@ -87,7 +84,7 @@ class IsabellePlugin extends EditPlugin {
     IsabellePlugin.errors = new DefaultErrorSource("isabelle")
     ErrorSource.registerErrorSource(IsabellePlugin.errors)
 
-    IsabellePlugin.addPermanentConsumer (result =>
+    IsabellePlugin.add_permanent_consumer (result =>
       if (result != null && result.props != null &&
           (result.kind == IsabelleProcess.Kind.WARNING ||
            result.kind == IsabelleProcess.Kind.ERROR)) {

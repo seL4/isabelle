@@ -37,7 +37,7 @@ class IsabelleDock(view: View, position: String)
     extends JPanel(new BorderLayout) with DefaultFocusComponent
 {
   private val text = new HistoryTextField("isabelle", false, true)
-  private val logicCombo = new JComboBox
+  private val logic_combo = new JComboBox
 
   {
     // output pane
@@ -49,31 +49,31 @@ class IsabelleDock(view: View, position: String)
 
     val doc = pane.getDocument.asInstanceOf[StyledDocument]
 
-    def makeStyle(name: String, bg: Boolean, color: Color) = {
+    def make_style(name: String, bg: Boolean, color: Color) = {
       val style = doc.addStyle(name, null)
       if (bg) StyleConstants.setBackground(style, color)
       else StyleConstants.setForeground(style, color)
       style
     }
-    val rawStyle = makeStyle("raw", false, Color.GRAY)
-    val infoStyle = makeStyle("info", true, new Color(160, 255, 160))
-    val warningStyle = makeStyle("warning", true, new Color(255, 255, 160))
-    val errorStyle = makeStyle("error", true, new Color(255, 160, 160))
+    val raw_style = make_style("raw", false, Color.GRAY)
+    val info_style = make_style("info", true, new Color(160, 255, 160))
+    val warning_style = make_style("warning", true, new Color(255, 255, 160))
+    val error_style = make_style("error", true, new Color(255, 160, 160))
 
-    IsabellePlugin.addPermanentConsumer (result =>
+    IsabellePlugin.add_permanent_consumer (result =>
       if (result != null && !result.is_system) {
         SwingUtilities.invokeLater(new Runnable {
           def run = {
             val logic = IsabellePlugin.isabelle.session
-            logicCombo.setModel(new DefaultComboBoxModel(Array(logic).asInstanceOf[Array[AnyRef]]))
-            logicCombo.setPrototypeDisplayValue("AAAA")  // FIXME ??
+            logic_combo.setModel(new DefaultComboBoxModel(Array(logic).asInstanceOf[Array[AnyRef]]))
+            logic_combo.setPrototypeDisplayValue("AAAA")  // FIXME ??
 
             val doc = pane.getDocument.asInstanceOf[StyledDocument]
             val style = result.kind match {
-              case IsabelleProcess.Kind.WARNING => warningStyle
-              case IsabelleProcess.Kind.ERROR => errorStyle
-              case IsabelleProcess.Kind.TRACING => infoStyle
-              case _ => if (result.is_raw) rawStyle else null
+              case IsabelleProcess.Kind.WARNING => warning_style
+              case IsabelleProcess.Kind.ERROR => error_style
+              case IsabelleProcess.Kind.TRACING => info_style
+              case _ => if (result.is_raw) raw_style else null
             }
             doc.insertString(doc.getLength, IsabellePlugin.result_content(result), style)
             if (!result.is_raw) doc.insertString(doc.getLength, "\n", style)
@@ -89,29 +89,29 @@ class IsabelleDock(view: View, position: String)
 
 
     // logic combo
-    logicCombo.setToolTipText("Isabelle logics")
-    logicCombo.setRequestFocusEnabled(false)
-    logicCombo.setModel(new DefaultComboBoxModel(Array("default").asInstanceOf[Array[AnyRef]]))
-    box.add(logicCombo)
+    logic_combo.setToolTipText("Isabelle logics")
+    logic_combo.setRequestFocusEnabled(false)
+    logic_combo.setModel(new DefaultComboBoxModel(Array("default").asInstanceOf[Array[AnyRef]]))
+    box.add(logic_combo)
 
 
     // mode combo
-    val modeIsar = "Isar"
-    val modeML = "ML"
-    val modes = Array(modeIsar, modeML)
-    var mode = modeIsar
+    val mode_Isar = "Isar"
+    val mode_ML = "ML"
+    val modes = Array(mode_Isar, mode_ML)
+    var mode = mode_Isar
 
-    val modeCombo = new JComboBox
-    modeCombo.setToolTipText("Toplevel mode")
-    modeCombo.setRequestFocusEnabled(false)
-    modeCombo.setModel(new DefaultComboBoxModel(modes.asInstanceOf[Array[AnyRef]]))
-    modeCombo.setPrototypeDisplayValue("AAAA")
-    modeCombo.addActionListener(new ActionListener {
+    val mode_combo = new JComboBox
+    mode_combo.setToolTipText("Toplevel mode")
+    mode_combo.setRequestFocusEnabled(false)
+    mode_combo.setModel(new DefaultComboBoxModel(modes.asInstanceOf[Array[AnyRef]]))
+    mode_combo.setPrototypeDisplayValue("AAAA")
+    mode_combo.addActionListener(new ActionListener {
       def actionPerformed(evt: ActionEvent): Unit = {
-        mode = modeCombo.getSelectedItem.asInstanceOf[String]
+        mode = mode_combo.getSelectedItem.asInstanceOf[String]
       }
     })
-    box.add(modeCombo)
+    box.add(mode_combo)
 
 
     // input field
@@ -120,9 +120,9 @@ class IsabelleDock(view: View, position: String)
       def actionPerformed(evt: ActionEvent): Unit = {
         val command = text.getText
         if (command.length > 0) {
-          if (mode == modeIsar)
+          if (mode == mode_Isar)
             IsabellePlugin.isabelle.command(command)
-          else if (mode == modeML)
+          else if (mode == mode_ML)
             IsabellePlugin.isabelle.ML(command)
           text.setText("")
         }
@@ -149,4 +149,3 @@ class IsabelleDock(view: View, position: String)
 
   def focusOnDefaultComponent: Unit = text.requestFocus
 }
-
