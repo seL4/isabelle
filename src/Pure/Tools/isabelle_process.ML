@@ -85,11 +85,10 @@ fun message _ _ "" = ()
 
 fun init_message () =
   let
-    val class = (Markup.classN, Markup.initN);
     val pid = (Markup.pidN, string_of_pid (Posix.ProcEnv.getpid ()));
     val session = (Markup.sessionN, List.last (Session.id ()) handle List.Empty => "unknown");
-    val props = message_props [class, pid, session];
-  in Output.writeln_default (special "H" ^ props ^ Session.welcome () ^ special_end) end;
+    val text = message_text Markup.initN [XML.Text (Session.welcome ())];
+  in Output.writeln_default (special "H" ^ message_props [pid, session] ^ text ^ special_end) end;
 
 end;
 
