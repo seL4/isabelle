@@ -7,6 +7,7 @@ Isabelle/jEdit plugin -- main setup.
 
 package isabelle.jedit
 
+import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.EditPlugin
 import org.gjt.sp.util.Log
 
@@ -135,7 +136,15 @@ class IsabellePlugin extends EditPlugin {
 
     /* Isabelle process */
 
-    isabelle = new IsabelleProcess("-mno_brackets", "-mno_type_brackets", "-mxsymbols")
+    val options =
+      (for (mode <- jEdit.getProperty("isabelle.print-modes").split("\\s+") if mode != "")
+        yield "-m" + mode)
+    val args = {
+      val logic = jEdit.getProperty("isabelle.logic")
+      if (logic != "") List(logic) else Nil
+    }
+    isabelle = new IsabelleProcess((options ++ args): _*)
+
     consumer_thread.start
 
   }
