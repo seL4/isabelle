@@ -10,6 +10,7 @@ plugin.isabelle.jedit.IsabellePlugin.description = Basic Isabelle support
 #system parameters
 plugin.isabelle.jedit.IsabellePlugin.activate = defer
 plugin.isabelle.jedit.IsabellePlugin.usePluginHome = false
+plugin.isabelle.jedit.IsabellePlugin.jars = isabelle-Pure.jar isabelle-scala-library.jar
 
 #dependencies
 plugin.isabelle.jedit.IsabellePlugin.depend.0 = jdk 1.5

@@ -28,11 +28,15 @@ Example catalog file:
 Plugin installation
 -------------------
 
-1) Copy or symlink [ISABELLE_HOME]/lib/classes/Pure.jar and
-[ISABELLE_HOME]/lib/jedit/isabelle.jar to [JEDIT_SETTINGS]/jars/
+1) Install copies of the Isabelle jars:
 
-2) Install scala-library.jar likewise (taken from the regular Scala
-distribution, cf. the http://www.scala-lang.org/downloads/index.html)
+  [ISABELLE_HOME]/lib/classes/Pure.jar   ->  [JEDIT_SETTINGS]/jars/isabelle-Pure.jar
+  [ISABELLE_HOME]/lib/jedit/isabelle.jar ->  [JEDIT_SETTINGS]/jars/isabelle.jar
+
+2) Install scala-library.jar from the regular Scala distribution,
+cf. the http://www.scala-lang.org/downloads/index.html as
+
+  [JEDIT_SETTINGS]/jars/isabelle-scala-library.jar
 
 3) Enable the plugin using the manager of jEdit; invoke the "isabelle"
 editor action.  The resulting window may be docked, e.g. at bottom.
