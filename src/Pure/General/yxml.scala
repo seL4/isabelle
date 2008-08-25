@@ -49,9 +49,7 @@ object YXML {
 
   /* parsing */
 
-  class BadYXML(msg: String) extends Exception
-
-  private def err(msg: String) = throw new BadYXML(msg)
+  private def err(msg: String) = error("Malformed YXML: " + msg)
   private def err_attribute() = err("bad attribute")
   private def err_element() = err("bad element")
   private def err_unbalanced(name: String) =
@@ -115,7 +113,7 @@ object YXML {
   def parse_failsafe(source: CharSequence) = {
     try { parse(source) }
     catch {
-      case e: BadYXML => XML.Elem (Markup.BAD, Nil,
+      case _: RuntimeException => XML.Elem (Markup.BAD, Nil,
         List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
     }
   }

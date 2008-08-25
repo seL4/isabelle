@@ -17,13 +17,6 @@ import isabelle.{Symbol, XML}
 
 object IsabelleProcess {
 
-  /* exception */
-
-  class IsabelleProcessException(msg: String) extends Exception {
-    override def toString = "IsabelleProcess: " + msg
-  }
-
-
   /* results */
 
   object Kind extends Enumeration {
@@ -120,7 +113,7 @@ class IsabelleProcess(args: String*) {
   /* signals */
 
   def interrupt() = synchronized {
-    if (proc == null) throw new IsabelleProcessException("Cannot interrupt: no process")
+    if (proc == null) error("Cannot interrupt Isabelle: no process")
     if (pid == null) put_result(Kind.SYSTEM, null, "Cannot interrupt: unknown pid")
     else {
       try {
@@ -129,12 +122,12 @@ class IsabelleProcess(args: String*) {
         else
           put_result(Kind.SYSTEM, null, "Cannot interrupt: kill command failed")
       }
-      catch { case e: IOException => throw new IsabelleProcessException(e.getMessage) }
+      catch { case e: IOException => error("Cannot interrupt Isabelle: " + e.getMessage) }
     }
   }
 
   def kill() = synchronized {
-    if (proc == 0) throw new IsabelleProcessException("Cannot kill: no process")
+    if (proc == 0) error("Cannot kill Isabelle: no process")
     else {
       try_close()
       Thread.sleep(500)
@@ -151,8 +144,8 @@ class IsabelleProcess(args: String*) {
   private val output = new LinkedBlockingQueue[String]
 
   def output_raw(text: String) = synchronized {
-    if (proc == null) throw new IsabelleProcessException("Cannot output: no process")
-    if (closing) throw new IsabelleProcessException("Cannot output: already closing")
+    if (proc == null) error("Cannot output to Isabelle: no process")
+    if (closing) error("Cannot output to Isabelle: already closing")
     output.put(text)
   }
 
@@ -177,7 +170,7 @@ class IsabelleProcess(args: String*) {
   def try_close() = synchronized {
     if (proc != null && !closing) {
       try { close() }
-      catch { case _: IsabelleProcessException => () }
+      catch { case _: RuntimeException => }
     }
   }
 
@@ -361,7 +354,9 @@ class IsabelleProcess(args: String*) {
       proc = IsabelleSystem.exec(List(
         IsabelleSystem.getenv_strict("ISABELLE_HOME") + "/bin/isabelle-process", "-W") ++ args)
     }
-    catch { case e: IOException => throw new IsabelleProcessException(e.getMessage) }
+    catch {
+      case e: IOException => error("Failed to execute Isabelle process: " + e.getMessage)
+    }
 
 
     /* control process via threads */

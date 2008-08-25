@@ -81,8 +81,6 @@ object Symbol {
 
   class Interpretation {
 
-    class BadSymbol(val msg: String) extends Exception
-
     private var symbols = new HashMap[String, HashMap[String, String]]
     private var decoder: Recoder = null
     private var encoder: Recoder = null
@@ -98,7 +96,7 @@ object Symbol {
     private val key_pattern = compile(""" (.+): """)
 
     private def read_line(line: String) = {
-      def err() = throw new BadSymbol(line)
+      def err() = error("Bad symbol specification (line " + line + ")")
 
       def read_props(props: List[String], tab: HashMap[String, String]): Unit = {
         props match {
@@ -142,8 +140,8 @@ object Symbol {
       val code =
         try { Integer.decode(props("code")).intValue }
         catch {
-          case e: NoSuchElementException => throw new BadSymbol(symbol)
-          case e: NumberFormatException => throw new BadSymbol(symbol)
+          case _: NoSuchElementException => error("Missing code for symbol " + symbol)
+          case _: NumberFormatException => error("Bad code for symbol " + symbol)
         }
       (symbol, new String(Character.toChars(code)))
     }

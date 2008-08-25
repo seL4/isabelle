@@ -22,7 +22,7 @@ object Position {
       case None => None
       case Some(value) =>
         try { Some(Integer.parseInt(value)) }
-        catch { case e: NumberFormatException => None }
+        catch { case _: NumberFormatException => None }
     }
   }
 
