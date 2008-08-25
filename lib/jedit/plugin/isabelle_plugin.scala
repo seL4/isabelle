@@ -26,12 +26,17 @@ import errorlist.ErrorSource
 
 object IsabellePlugin {
 
+  /* Isabelle symbols */
+
+  val symbols = new Symbol.Interpretation
+
+  def result_content(result: IsabelleProcess.Result) =
+    XML.content(YXML.parse_failsafe(symbols.decode(result.result))).mkString("")
+
+
   /* Isabelle process */
 
   var isabelle: IsabelleProcess = null
-
-  def result_content(result: IsabelleProcess.Result) =
-    XML.content(isabelle.decode_result(result)).mkString("")
 
 
   /* unique ids */
@@ -148,6 +153,7 @@ class IsabellePlugin extends EBPlugin {
     consumer_thread.start
 
   }
+
 
   override def stop = {
     isabelle.kill

@@ -84,12 +84,6 @@ class IsabelleProcess(args: String*) {
   def session() = the_session
 
 
-  /* symbols */
-
-  val symbols = new Symbol.Interpretation
-  def decode_result(result: Result) = YXML.parse_failsafe(symbols.decode(result.result))
-
-
   /* results */
 
   private val results = new LinkedBlockingQueue[Result]
