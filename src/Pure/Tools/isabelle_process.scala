@@ -111,6 +111,11 @@ class IsabelleProcess(args: String*) {
 
   def get_result() = results.take
 
+  def try_result() = {
+    val res = results.poll
+    if (res != null) Some(res) else None
+  }
+
 
   /* signals */
 
