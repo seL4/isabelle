@@ -132,7 +132,7 @@ class IsabelleDock(view: View, position: String)
 
 
     // buttons
-    def iconButton(icon: String, tip: String, action: => Unit) = {
+    def icon_button(icon: String, tip: String, action: => Unit) = {
       val button = new RolloverButton(GUIUtilities.loadIcon(icon))
       button.setToolTipText(tip)
       button.setMargin(new Insets(0,0,0,0))
@@ -143,8 +143,8 @@ class IsabelleDock(view: View, position: String)
       box.add(button)
     }
 
-    iconButton("Cancel.png", "Stop", IsabellePlugin.isabelle.interrupt)
-    iconButton("Clear.png", "Clear", pane.setText(""))
+    icon_button("Cancel.png", "Stop", IsabellePlugin.isabelle.interrupt)
+    icon_button("Clear.png", "Clear", pane.setText(""))
   }
 
   def focusOnDefaultComponent: Unit = text.requestFocus
