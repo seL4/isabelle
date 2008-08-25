@@ -16,10 +16,16 @@ plugin.isabelle.jedit.IsabellePlugin.depend.0 = jdk 1.5
 plugin.isabelle.jedit.IsabellePlugin.depend.1 = jedit 04.03.00.00
 plugin.isabelle.jedit.IsabellePlugin.depend.2 = plugin errorlist.ErrorListPlugin 1.7
 plugin.isabelle.jedit.IsabellePlugin.depend.3 = plugin sidekick.SideKickPlugin 0.7.4
-plugin.isabelle.jedit.IsabellePlugin.depend.4 = plugin console.ConsolePlugin 4.3.4
 
 #dockable component
 isabelle.label = Isabelle
 isabelle.title = Isabelle
 isabelle.longtitle = Basic Isabelle process
 
+#menu
+plugin.isabelle.jedit.IsabellePlugin.menu-item = isabelle
+
+
+#Isabelle options
+isabelle.print-modes = no_brackets no_type_brackets xsymbols
+isabelle.logic =
