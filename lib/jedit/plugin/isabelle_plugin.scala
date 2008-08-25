@@ -7,18 +7,18 @@ Isabelle/jEdit plugin -- main setup.
 
 package isabelle.jedit
 
-import org.gjt.sp.jedit.jEdit
-import org.gjt.sp.jedit.EditPlugin
-import org.gjt.sp.util.Log
-
-import errorlist.DefaultErrorSource
-import errorlist.ErrorSource
-
 import java.util.Properties
 import java.lang.NumberFormatException
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
+
+import org.gjt.sp.util.Log
+import org.gjt.sp.jedit.{jEdit, EBPlugin, EBMessage}
+import org.gjt.sp.jedit.msg.DockableWindowUpdate
+
+import errorlist.DefaultErrorSource
+import errorlist.ErrorSource
 
 
 
@@ -98,7 +98,7 @@ object IsabellePlugin {
 
 /* Main plugin setup */
 
-class IsabellePlugin extends EditPlugin {
+class IsabellePlugin extends EBPlugin {
 
   import IsabellePlugin._
 
@@ -149,11 +149,16 @@ class IsabellePlugin extends EditPlugin {
 
   }
 
-
   override def stop = {
     isabelle.kill
     consumer_thread.join
     ErrorSource.unregisterErrorSource(errors)
+  }
+
+
+  override def handleMessage(message: EBMessage) = message match {
+    case _: DockableWindowUpdate =>   // FIXME check isabelle process
+    case _ =>
   }
 
 }
