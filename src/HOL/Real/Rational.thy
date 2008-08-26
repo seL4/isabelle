@@ -673,6 +673,7 @@ abbreviation
 where
   "rat_of_int \<equiv> of_int"
 
+subsection {* The Set of Rational Numbers *}
 
 context field_char_0
 begin
@@ -685,6 +686,109 @@ notation (xsymbols)
   Rats  ("\<rat>")
 
 end
+
+lemma Rats_of_rat [simp]: "of_rat r \<in> Rats"
+by (simp add: Rats_def)
+
+lemma Rats_of_int [simp]: "of_int z \<in> Rats"
+by (subst of_rat_of_int_eq [symmetric], rule Rats_of_rat)
+
+lemma Rats_of_nat [simp]: "of_nat n \<in> Rats"
+by (subst of_rat_of_nat_eq [symmetric], rule Rats_of_rat)
+
+lemma Rats_number_of [simp]:
+  "(number_of w::'a::{number_ring,field_char_0}) \<in> Rats"
+by (subst of_rat_number_of_eq [symmetric], rule Rats_of_rat)
+
+lemma Rats_0 [simp]: "0 \<in> Rats"
+apply (unfold Rats_def)
+apply (rule range_eqI)
+apply (rule of_rat_0 [symmetric])
+done
+
+lemma Rats_1 [simp]: "1 \<in> Rats"
+apply (unfold Rats_def)
+apply (rule range_eqI)
+apply (rule of_rat_1 [symmetric])
+done
+
+lemma Rats_add [simp]: "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a + b \<in> Rats"
+apply (auto simp add: Rats_def)
+apply (rule range_eqI)
+apply (rule of_rat_add [symmetric])
+done
+
+lemma Rats_minus [simp]: "a \<in> Rats \<Longrightarrow> - a \<in> Rats"
+apply (auto simp add: Rats_def)
+apply (rule range_eqI)
+apply (rule of_rat_minus [symmetric])
+done
+
+lemma Rats_diff [simp]: "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a - b \<in> Rats"
+apply (auto simp add: Rats_def)
+apply (rule range_eqI)
+apply (rule of_rat_diff [symmetric])
+done
+
+lemma Rats_mult [simp]: "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a * b \<in> Rats"
+apply (auto simp add: Rats_def)
+apply (rule range_eqI)
+apply (rule of_rat_mult [symmetric])
+done
+
+lemma nonzero_Rats_inverse:
+  fixes a :: "'a::field_char_0"
+  shows "\<lbrakk>a \<in> Rats; a \<noteq> 0\<rbrakk> \<Longrightarrow> inverse a \<in> Rats"
+apply (auto simp add: Rats_def)
+apply (rule range_eqI)
+apply (erule nonzero_of_rat_inverse [symmetric])
+done
+
+lemma Rats_inverse [simp]:
+  fixes a :: "'a::{field_char_0,division_by_zero}"
+  shows "a \<in> Rats \<Longrightarrow> inverse a \<in> Rats"
+apply (auto simp add: Rats_def)
+apply (rule range_eqI)
+apply (rule of_rat_inverse [symmetric])
+done
+
+lemma nonzero_Rats_divide:
+  fixes a b :: "'a::field_char_0"
+  shows "\<lbrakk>a \<in> Rats; b \<in> Rats; b \<noteq> 0\<rbrakk> \<Longrightarrow> a / b \<in> Rats"
+apply (auto simp add: Rats_def)
+apply (rule range_eqI)
+apply (erule nonzero_of_rat_divide [symmetric])
+done
+
+lemma Rats_divide [simp]:
+  fixes a b :: "'a::{field_char_0,division_by_zero}"
+  shows "\<lbrakk>a \<in> Rats; b \<in> Rats\<rbrakk> \<Longrightarrow> a / b \<in> Rats"
+apply (auto simp add: Rats_def)
+apply (rule range_eqI)
+apply (rule of_rat_divide [symmetric])
+done
+
+lemma Rats_power [simp]:
+  fixes a :: "'a::{field_char_0,recpower}"
+  shows "a \<in> Rats \<Longrightarrow> a ^ n \<in> Rats"
+apply (auto simp add: Rats_def)
+apply (rule range_eqI)
+apply (rule of_rat_power [symmetric])
+done
+
+lemma Rats_cases [cases set: Rats]:
+  assumes "q \<in> \<rat>"
+  obtains (of_rat) r where "q = of_rat r"
+  unfolding Rats_def
+proof -
+  from `q \<in> \<rat>` have "q \<in> range of_rat" unfolding Rats_def .
+  then obtain r where "q = of_rat r" ..
+  then show thesis ..
+qed
+
+lemma Rats_induct [case_names of_rat, induct set: Rats]:
+  "q \<in> \<rat> \<Longrightarrow> (\<And>r. P (of_rat r)) \<Longrightarrow> P q"
+  by (rule Rats_cases) auto
 
 
 subsection {* Implementation of rational numbers as pairs of integers *}
