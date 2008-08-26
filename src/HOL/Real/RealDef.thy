@@ -558,8 +558,6 @@ abbreviation
 where
   "real_of_rat \<equiv> of_rat"
 
-definition [code func del]: "Rational = range of_rat"
-
 consts
   (*overloaded constant for injecting other types into "real"*)
   real :: "'a => real"
@@ -705,52 +703,6 @@ lemma real_of_int_div4: "real (n div x) <= real (n::int) / real x"
 by (insert real_of_int_div2 [of n x], simp)
 
 
-lemma Rational_eq_int_div_int:
-  "Rational = { real(i::int)/real(j::int) |i j. j \<noteq> 0}" (is "_ = ?S")
-proof
-  show "Rational \<subseteq> ?S"
-  proof
-    fix x::real assume "x : Rational"
-    then obtain r where "x = of_rat r" unfolding Rational_def ..
-    have "of_rat r : ?S"
-      by (cases r)(auto simp add:of_rat_rat real_eq_of_int)
-    thus "x : ?S" using `x = of_rat r` by simp
-  qed
-next
-  show "?S \<subseteq> Rational"
-  proof(auto simp:Rational_def)
-    fix i j :: int assume "j \<noteq> 0"
-    hence "real i / real j = of_rat(Fract i j)"
-      by (simp add:of_rat_rat real_eq_of_int)
-    thus "real i / real j \<in> range of_rat" by blast
-  qed
-qed
-
-lemma Rational_eq_int_div_nat:
-  "Rational = { real(i::int)/real(n::nat) |i n. n \<noteq> 0}"
-proof(auto simp:Rational_eq_int_div_int)
-  fix i j::int assume "j \<noteq> 0"
-  show "EX (i'::int) (n::nat). real i/real j = real i'/real n \<and> 0<n"
-  proof cases
-    assume "j>0"
-    hence "real i/real j = real i/real(nat j) \<and> 0<nat j"
-      by (simp add: real_eq_of_int real_eq_of_nat of_nat_nat)
-    thus ?thesis by blast
-  next
-    assume "~ j>0"
-    hence "real i/real j = real(-i)/real(nat(-j)) \<and> 0<nat(-j)" using `j\<noteq>0`
-      by (simp add: real_eq_of_int real_eq_of_nat of_nat_nat)
-    thus ?thesis by blast
-  qed
-next
-  fix i::int and n::nat assume "0 < n"
-  moreover have "real n = real(int n)"
-    by (simp add: real_eq_of_int real_eq_of_nat)
-  ultimately show "\<exists>(i'::int) j::int. real i/real n = real i'/real j \<and> j \<noteq> 0"
-    by (fastsimp)
-qed
-
-
 subsection{*Embedding the Naturals into the Reals*}
 
 lemma real_of_nat_zero [simp]: "real (0::nat) = 0"
@@ -891,6 +843,91 @@ lemma real_nat_eq_real [simp]: "0 <= x ==> real(nat x) = real x"
   apply force
   apply (simp only: real_of_int_real_of_nat)
 done
+
+
+subsection{* Rationals *}
+
+lemma Rats_eq_int_div_int:
+  "Rats = { real(i::int)/real(j::int) |i j. j \<noteq> 0}" (is "_ = ?S")
+proof
+  show "Rats \<subseteq> ?S"
+  proof
+    fix x::real assume "x : Rats"
+    then obtain r where "x = of_rat r" unfolding Rats_def ..
+    have "of_rat r : ?S"
+      by (cases r)(auto simp add:of_rat_rat real_eq_of_int)
+    thus "x : ?S" using `x = of_rat r` by simp
+  qed
+next
+  show "?S \<subseteq> Rats"
+  proof(auto simp:Rats_def)
+    fix i j :: int assume "j \<noteq> 0"
+    hence "real i / real j = of_rat(Fract i j)"
+      by (simp add:of_rat_rat real_eq_of_int)
+    thus "real i / real j \<in> range of_rat" by blast
+  qed
+qed
+
+lemma Rats_eq_int_div_nat:
+  "Rats = { real(i::int)/real(n::nat) |i n. n \<noteq> 0}"
+proof(auto simp:Rats_eq_int_div_int)
+  fix i j::int assume "j \<noteq> 0"
+  show "EX (i'::int) (n::nat). real i/real j = real i'/real n \<and> 0<n"
+  proof cases
+    assume "j>0"
+    hence "real i/real j = real i/real(nat j) \<and> 0<nat j"
+      by (simp add: real_eq_of_int real_eq_of_nat of_nat_nat)
+    thus ?thesis by blast
+  next
+    assume "~ j>0"
+    hence "real i/real j = real(-i)/real(nat(-j)) \<and> 0<nat(-j)" using `j\<noteq>0`
+      by (simp add: real_eq_of_int real_eq_of_nat of_nat_nat)
+    thus ?thesis by blast
+  qed
+next
+  fix i::int and n::nat assume "0 < n"
+  hence "real i/real n = real i/real(int n) \<and> int n \<noteq> 0" by simp
+  thus "\<exists>(i'::int) j::int. real i/real n = real i'/real j \<and> j \<noteq> 0" by blast
+qed
+
+lemma Rats_abs_nat_div_natE:
+  assumes "x \<in> \<rat>"
+  obtains m n where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd m n = 1"
+proof -
+  from `x \<in> \<rat>` obtain i::int and n::nat where "n \<noteq> 0" and "x = real i / real n"
+    by(auto simp add: Rats_eq_int_div_nat)
+  hence "\<bar>x\<bar> = real(nat(abs i)) / real n" by simp
+  then obtain m :: nat where x_rat: "\<bar>x\<bar> = real m / real n" by blast
+  let ?gcd = "gcd m n"
+  from `n\<noteq>0` have gcd: "?gcd \<noteq> 0" by (simp add: gcd_zero)
+  let ?k = "m div ?gcd"
+  let ?l = "n div ?gcd"
+  let ?gcd' = "gcd ?k ?l"
+  have "?gcd dvd m" .. then have gcd_k: "?gcd * ?k = m"
+    by (rule dvd_mult_div_cancel)
+  have "?gcd dvd n" .. then have gcd_l: "?gcd * ?l = n"
+    by (rule dvd_mult_div_cancel)
+  from `n\<noteq>0` and gcd_l have "?l \<noteq> 0" by (auto iff del: neq0_conv)
+  moreover
+  have "\<bar>x\<bar> = real ?k / real ?l"
+  proof -
+    from gcd have "real ?k / real ?l =
+        real (?gcd * ?k) / real (?gcd * ?l)" by simp
+    also from gcd_k and gcd_l have "\<dots> = real m / real n" by simp
+    also from x_rat have "\<dots> = \<bar>x\<bar>" ..
+    finally show ?thesis ..
+  qed
+  moreover
+  have "?gcd' = 1"
+  proof -
+    have "?gcd * ?gcd' = gcd (?gcd * ?k) (?gcd * ?l)"
+      by (rule gcd_mult_distrib2)
+    with gcd_k gcd_l have "?gcd * ?gcd' = ?gcd" by simp
+    with gcd show ?thesis by simp
+  qed
+  ultimately show ?thesis ..
+qed
+
 
 subsection{*Numerals and Arithmetic*}
 

@@ -674,6 +674,19 @@ where
   "rat_of_int \<equiv> of_int"
 
 
+context field_char_0
+begin
+
+definition
+  Rats  :: "'a set" where
+  [code func del]: "Rats = range of_rat"
+
+notation (xsymbols)
+  Rats  ("\<rat>")
+
+end
+
+
 subsection {* Implementation of rational numbers as pairs of integers *}
 
 lemma Fract_norm: "Fract (a div zgcd a b) (b div zgcd a b) = Fract a b"

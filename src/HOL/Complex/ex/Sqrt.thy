@@ -10,56 +10,10 @@ theory Sqrt
 imports Primes Complex_Main
 begin
 
-subsection {* Preliminaries *}
+text {* The definition and the key representation theorem for the set of
+rational numbers has been moved to a core theory.  *}
 
-text {*
-  The set of rational numbers, including the key representation
-  theorem.
-*}
-
-definition
-  rationals  ("\<rat>") where
-  "\<rat> = {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
-
-theorem rationals_rep [elim?]:
-  assumes "x \<in> \<rat>"
-  obtains m n where "n \<noteq> 0" and "\<bar>x\<bar> = real m / real n" and "gcd m n = 1"
-proof -
-  from `x \<in> \<rat>` obtain m n :: nat where
-      n: "n \<noteq> 0" and x_rat: "\<bar>x\<bar> = real m / real n"
-    unfolding rationals_def by blast
-  let ?gcd = "gcd m n"
-  from n have gcd: "?gcd \<noteq> 0" by (simp add: gcd_zero)
-  let ?k = "m div ?gcd"
-  let ?l = "n div ?gcd"
-  let ?gcd' = "gcd ?k ?l"
-  have "?gcd dvd m" .. then have gcd_k: "?gcd * ?k = m"
-    by (rule dvd_mult_div_cancel)
-  have "?gcd dvd n" .. then have gcd_l: "?gcd * ?l = n"
-    by (rule dvd_mult_div_cancel)
-
-  from n and gcd_l have "?l \<noteq> 0"
-    by (auto iff del: neq0_conv)
-  moreover
-  have "\<bar>x\<bar> = real ?k / real ?l"
-  proof -
-    from gcd have "real ?k / real ?l =
-        real (?gcd * ?k) / real (?gcd * ?l)" by simp
-    also from gcd_k and gcd_l have "\<dots> = real m / real n" by simp
-    also from x_rat have "\<dots> = \<bar>x\<bar>" ..
-    finally show ?thesis ..
-  qed
-  moreover
-  have "?gcd' = 1"
-  proof -
-    have "?gcd * ?gcd' = gcd (?gcd * ?k) (?gcd * ?l)"
-      by (rule gcd_mult_distrib2)
-    with gcd_k gcd_l have "?gcd * ?gcd' = ?gcd" by simp
-    with gcd show ?thesis by simp
-  qed
-  ultimately show ?thesis ..
-qed
-
+declare Rats_abs_nat_div_natE[elim?]
 
 subsection {* Main theorem *}
 

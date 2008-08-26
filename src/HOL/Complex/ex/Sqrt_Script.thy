@@ -50,13 +50,6 @@ lemma prime_not_square:
   done
 
 
-subsection {* The set of rational numbers *}
-
-definition
-  rationals :: "real set"    ("\<rat>") where
-  "\<rat> = {x. \<exists>m n. n \<noteq> 0 \<and> \<bar>x\<bar> = real (m::nat) / real (n::nat)}"
-
-
 subsection {* Main theorem *}
 
 text {*
@@ -66,11 +59,10 @@ text {*
 
 theorem prime_sqrt_irrational:
     "prime p \<Longrightarrow> x * x = real p \<Longrightarrow> 0 \<le> x \<Longrightarrow> x \<notin> \<rat>"
-  apply (simp add: rationals_def real_abs_def)
-  apply clarify
-  apply (erule_tac P = "real m / real n * ?x = ?y" in rev_mp)
+  apply (rule notI)
+  apply (erule Rats_abs_nat_div_natE)
   apply (simp del: real_of_nat_mult
-              add: divide_eq_eq prime_not_square real_of_nat_mult [symmetric])
+              add: real_abs_def divide_eq_eq prime_not_square real_of_nat_mult [symmetric])
   done
 
 lemmas two_sqrt_irrational =

@@ -106,11 +106,9 @@ qed
 
 text{* One more from Tao's booklet. If @{text f} is also assumed to be
 continuous, @{term"f(x::real) = x+1"} holds for all reals, not only
-rationals. Extend the proof!
+rationals. Extend the proof! *}
 
-The definition of @{text Rats} should go somewhere else. *}
-
-definition "Rats = { real(i::int)/real(n::nat) |i n. n \<noteq> 0}"
+ML{*ResAtp.set_prover "vampire"*}
 
 theorem plus1:
 fixes f :: "real \<Rightarrow> real"
@@ -150,23 +148,23 @@ proof -
       finally show ?case by(simp add:real_of_nat_Suc ring_simps)
     qed }
   note 1 = this
-  { fix n::nat and r assume "n>0"
+  { fix n::nat and r assume "n\<noteq>0"
     have "f(real(n)*r + real(n - 1)) = real(n) * f r"
     proof(cases n)
-      case 0 thus ?thesis using `n>0` by simp
+      case 0 thus ?thesis using `n\<noteq>0` by simp
     next
-      case Suc thus ?thesis using `n>0` by (simp add:1)
+      case Suc thus ?thesis using `n\<noteq>0` by (simp add:1)
     qed }
   note f_mult = this
-  from `r:Rats` obtain i::int and n::nat where r: "r = real i/real n" and "n>0"
-    by(fastsimp simp:Rats_def)
+  from `r:Rats` obtain i::int and n::nat where r: "r = real i/real n" and "n\<noteq>0"
+    by(fastsimp simp:Rats_eq_int_div_nat)
   have "real(n)*f(real i/real n) = f(real i + real(n - 1))"
-    using `n>0` by(simp add:f_mult[symmetric])
-  also have "\<dots> = f(real(i + int n - 1))" using `n>0`
+    using `n\<noteq>0` by(simp add:f_mult[symmetric])
+  also have "\<dots> = f(real(i + int n - 1))" using `n\<noteq>0`[simplified]
     by (metis One_nat_def Suc_leI int_1 real_of_int_add real_of_int_of_nat_eq ring_class.ring_simps(4) zdiff_int)
   also have "\<dots> = real(i + int n - 1) + 1" by(rule f_int)
   also have "\<dots> = real i + real n" by arith
-  finally show ?thesis using `n>0` unfolding r by (simp add:field_simps)
+  finally show ?thesis using `n\<noteq>0` unfolding r by (simp add:field_simps)
 qed
 
 
