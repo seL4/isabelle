@@ -118,7 +118,7 @@ class IsabelleDock(view: View, position: String)
     text.setToolTipText("Command line")
     text.addActionListener(new ActionListener {
       def actionPerformed(evt: ActionEvent): Unit = {
-        val command = text.getText
+        val command = IsabellePlugin.symbols.encode(text.getText)
         if (command.length > 0) {
           if (mode == mode_Isar)
             IsabellePlugin.isabelle.command(command)
