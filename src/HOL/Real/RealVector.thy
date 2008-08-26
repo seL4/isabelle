@@ -9,6 +9,142 @@ theory RealVector
 imports RealPow
 begin
 
+subsection {* Group homomorphisms *}
+
+locale group_hom =
+  ab_group_add
+    mA (infixl "-\<^sub>A" 65)
+    uA ("-\<^sub>A _" [81] 80)
+    zA ("0\<^sub>A")
+    pA (infixl "+\<^sub>A" 65) +
+  ab_group_add
+    mB (infixl "-\<^sub>B" 65)
+    uB ("-\<^sub>B _" [81] 80)
+    zB ("0\<^sub>B")
+    pB (infixl "+\<^sub>B" 65) +
+  fixes f :: "'a \<Rightarrow> 'b"
+  assumes plus: "f (x +\<^sub>A y) = f x +\<^sub>B f y"
+begin
+
+lemma zero: "f 0\<^sub>A = 0\<^sub>B"
+proof -
+  have "f 0\<^sub>A +\<^sub>B f 0\<^sub>A = f (0\<^sub>A +\<^sub>A 0\<^sub>A)" by (rule plus [symmetric])
+  also have "f (0\<^sub>A +\<^sub>A 0\<^sub>A) = 0\<^sub>B +\<^sub>B f 0\<^sub>A" by simp
+  finally show "f 0\<^sub>A = 0\<^sub>B" by (rule pB.add_right_imp_eq)
+qed
+
+lemma uminus: "f (-\<^sub>A x) = -\<^sub>B f x"
+proof -
+  have "f (-\<^sub>A x) +\<^sub>B f x = f (-\<^sub>A x +\<^sub>A x)" by (rule plus [symmetric])
+  also have "\<dots> = -\<^sub>B f x +\<^sub>B f x" by (simp add: zero)
+  finally show "f (-\<^sub>A x) = -\<^sub>B f x" by (rule pB.add_right_imp_eq)
+qed
+
+lemma diff: "f (x -\<^sub>A y) = f x -\<^sub>B f y"
+by (simp add: mA_uA_zA_pA.diff_minus mB_uB_zB_pB.diff_minus plus uminus)
+
+text {* TODO:
+Locale-ize definition of setsum, so we can prove a lemma for it *}
+
+end
+
+subsection {* Vector spaces *}
+
+locale vector_space =
+  field
+    inverse
+    divide (infixl "'/\<^sub>F" 70)
+    one ("1\<^sub>F")
+    times (infixl "*\<^sub>F" 70)
+    mF (infixl "-\<^sub>F" 65)
+    uF ("-\<^sub>F _" [81] 80)
+    zF ("0\<^sub>F")
+    pF (infixl "+\<^sub>F" 65) +
+  ab_group_add
+    mV (infixl "-\<^sub>V" 65)
+    uV ("-\<^sub>V _" [81] 80)
+    zV ("0\<^sub>V")
+    pV (infixl "+\<^sub>V" 65) +
+  fixes scale :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" (infixr "%*" 75)
+  assumes scale_right_distrib: "scale a (x +\<^sub>V y) = scale a x +\<^sub>V scale a y"
+  and scale_left_distrib: "scale (a +\<^sub>F b) x = scale a x +\<^sub>V scale b x"
+  and scale_scale [simp]: "scale a (scale b x) = scale (a *\<^sub>F b) x"
+  and scale_one [simp]: "scale 1\<^sub>F x = x"
+begin
+
+lemma scale_left_commute:
+  "scale a (scale b x) = scale b (scale a x)"
+by (simp add: mult_commute)
+
+lemma scale_zero_left [simp]: "scale 0\<^sub>F x = 0\<^sub>V"
+  and scale_minus_left [simp]: "scale (-\<^sub>F a) x = -\<^sub>V (scale a x)"
+  and scale_left_diff_distrib: "scale (a -\<^sub>F b) x = scale a x -\<^sub>V scale b x"
+proof -
+  interpret s: group_hom
+    [mF uF zF pF mV uV zV pV "\<lambda>a. scale a x"]
+    by unfold_locales (rule scale_left_distrib)
+  show "scale 0\<^sub>F x = 0\<^sub>V" by (rule s.zero)
+  show "scale (-\<^sub>F a) x = -\<^sub>V (scale a x)" by (rule s.uminus)
+  show "scale (a -\<^sub>F b) x = scale a x -\<^sub>V scale b x" by (rule s.diff)
+qed
+
+lemma scale_zero_right [simp]: "scale a 0\<^sub>V = 0\<^sub>V"
+  and scale_minus_right [simp]: "scale a (-\<^sub>V x) = -\<^sub>V (scale a x)"
+  and scale_right_diff_distrib: "scale a (x -\<^sub>V y) = scale a x -\<^sub>V scale a y"
+proof -
+  interpret s: group_hom
+    [mV uV zV pV mV uV zV pV "\<lambda>x. scale a x"]
+    by unfold_locales (rule scale_right_distrib)
+  show "scale a 0\<^sub>V = 0\<^sub>V" by (rule s.zero)
+  show "scale a (-\<^sub>V x) = -\<^sub>V (scale a x)" by (rule s.uminus)
+  show "scale a (x -\<^sub>V y) = scale a x -\<^sub>V scale a y" by (rule s.diff)
+qed
+
+lemma scale_eq_0_iff [simp]:
+  "scale a x = 0\<^sub>V \<longleftrightarrow> a = 0\<^sub>F \<or> x = 0\<^sub>V"
+proof cases
+  assume "a = 0\<^sub>F" thus ?thesis by simp
+next
+  assume anz [simp]: "a \<noteq> 0\<^sub>F"
+  { assume "scale a x = 0\<^sub>V"
+    hence "scale (inverse a) (scale a x) = 0\<^sub>V" by simp
+    hence "x = 0\<^sub>V" by simp }
+  thus ?thesis by force
+qed
+
+lemma scale_left_imp_eq:
+  "\<lbrakk>a \<noteq> 0\<^sub>F; scale a x = scale a y\<rbrakk> \<Longrightarrow> x = y"
+proof -
+  assume nonzero: "a \<noteq> 0\<^sub>F"
+  assume "scale a x = scale a y"
+  hence "scale a (x -\<^sub>V y) = 0\<^sub>V"
+     by (simp add: scale_right_diff_distrib)
+  hence "x -\<^sub>V y = 0\<^sub>V" by (simp add: nonzero)
+  thus "x = y" by (simp only: mV_uV_zV_pV.right_minus_eq)
+qed
+
+lemma scale_right_imp_eq:
+  "\<lbrakk>x \<noteq> 0\<^sub>V; scale a x = scale b x\<rbrakk> \<Longrightarrow> a = b"
+proof -
+  assume nonzero: "x \<noteq> 0\<^sub>V"
+  assume "scale a x = scale b x"
+  hence "scale (a -\<^sub>F b) x = 0\<^sub>V"
+     by (simp add: scale_left_diff_distrib)
+  hence "a -\<^sub>F b = 0\<^sub>F" by (simp add: nonzero)
+  thus "a = b" by (simp only: mF_uF_zF_pF.right_minus_eq)
+qed
+
+lemma scale_cancel_left:
+  "scale a x = scale a y \<longleftrightarrow> x = y \<or> a = 0\<^sub>F"
+by (auto intro: scale_left_imp_eq)
+
+lemma scale_cancel_right:
+  "scale a x = scale b x \<longleftrightarrow> a = b \<or> x = 0\<^sub>V"
+by (auto intro: scale_right_imp_eq)
+
+end
+
+(* TODO: locale additive is superseded by group_hom; remove *)
 subsection {* Locale for additive functions *}
 
 locale additive =
@@ -72,6 +208,31 @@ class real_vector = scaleR + ab_group_add +
   and scaleR_scaleR [simp]: "scaleR a (scaleR b x) = scaleR (a * b) x"
   and scaleR_one [simp]: "scaleR 1 x = x"
 
+interpretation real_vector: vector_space
+  [inverse divide "1" times minus uminus "0" plus
+   minus uminus "0" plus "scaleR::real \<Rightarrow> 'a \<Rightarrow> 'a::real_vector"]
+apply unfold_locales
+apply (rule scaleR_right_distrib)
+apply (rule scaleR_left_distrib)
+apply (rule scaleR_scaleR)
+apply (rule scaleR_one)
+done
+
+text {* Recover original theorem names *}
+
+lemmas scaleR_left_commute = real_vector.scale_left_commute
+lemmas scaleR_zero_left = real_vector.scale_zero_left
+lemmas scaleR_minus_left = real_vector.scale_minus_left
+lemmas scaleR_left_diff_distrib = real_vector.scale_left_diff_distrib
+lemmas scaleR_zero_right = real_vector.scale_zero_right
+lemmas scaleR_minus_right = real_vector.scale_minus_right
+lemmas scaleR_right_diff_distrib = real_vector.scale_right_diff_distrib
+lemmas scaleR_eq_0_iff = real_vector.scale_eq_0_iff
+lemmas scaleR_left_imp_eq = real_vector.scale_left_imp_eq
+lemmas scaleR_right_imp_eq = real_vector.scale_right_imp_eq
+lemmas scaleR_cancel_left = real_vector.scale_cancel_left
+lemmas scaleR_cancel_right = real_vector.scale_cancel_right
+
 class real_algebra = real_vector + ring +
   assumes mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
   and mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"
@@ -92,75 +253,11 @@ apply (rule mult_assoc)
 apply (rule mult_left_commute)
 done
 
-lemma scaleR_left_commute:
-  fixes x :: "'a::real_vector"
-  shows "scaleR a (scaleR b x) = scaleR b (scaleR a x)"
-by (simp add: mult_commute)
-
 interpretation scaleR_left: additive ["(\<lambda>a. scaleR a x::'a::real_vector)"]
 by unfold_locales (rule scaleR_left_distrib)
 
 interpretation scaleR_right: additive ["(\<lambda>x. scaleR a x::'a::real_vector)"]
 by unfold_locales (rule scaleR_right_distrib)
-
-lemmas scaleR_zero_left [simp] = scaleR_left.zero
-
-lemmas scaleR_zero_right [simp] = scaleR_right.zero
-
-lemmas scaleR_minus_left [simp] = scaleR_left.minus
-
-lemmas scaleR_minus_right [simp] = scaleR_right.minus
-
-lemmas scaleR_left_diff_distrib = scaleR_left.diff
-
-lemmas scaleR_right_diff_distrib = scaleR_right.diff
-
-lemma scaleR_eq_0_iff [simp]:
-  fixes x :: "'a::real_vector"
-  shows "(scaleR a x = 0) = (a = 0 \<or> x = 0)"
-proof cases
-  assume "a = 0" thus ?thesis by simp
-next
-  assume anz [simp]: "a \<noteq> 0"
-  { assume "scaleR a x = 0"
-    hence "scaleR (inverse a) (scaleR a x) = 0" by simp
-    hence "x = 0" by simp }
-  thus ?thesis by force
-qed
-
-lemma scaleR_left_imp_eq:
-  fixes x y :: "'a::real_vector"
-  shows "\<lbrakk>a \<noteq> 0; scaleR a x = scaleR a y\<rbrakk> \<Longrightarrow> x = y"
-proof -
-  assume nonzero: "a \<noteq> 0"
-  assume "scaleR a x = scaleR a y"
-  hence "scaleR a (x - y) = 0"
-     by (simp add: scaleR_right_diff_distrib)
-  hence "x - y = 0" by (simp add: nonzero)
-  thus "x = y" by simp
-qed
-
-lemma scaleR_right_imp_eq:
-  fixes x y :: "'a::real_vector"
-  shows "\<lbrakk>x \<noteq> 0; scaleR a x = scaleR b x\<rbrakk> \<Longrightarrow> a = b"
-proof -
-  assume nonzero: "x \<noteq> 0"
-  assume "scaleR a x = scaleR b x"
-  hence "scaleR (a - b) x = 0"
-     by (simp add: scaleR_left_diff_distrib)
-  hence "a - b = 0" by (simp add: nonzero)
-  thus "a = b" by simp
-qed
-
-lemma scaleR_cancel_left:
-  fixes x y :: "'a::real_vector"
-  shows "(scaleR a x = scaleR a y) = (x = y \<or> a = 0)"
-by (auto intro: scaleR_left_imp_eq)
-
-lemma scaleR_cancel_right:
-  fixes x y :: "'a::real_vector"
-  shows "(scaleR a x = scaleR b x) = (a = b \<or> x = 0)"
-by (auto intro: scaleR_right_imp_eq)
 
 lemma nonzero_inverse_scaleR_distrib:
   fixes x :: "'a::real_div_algebra" shows
