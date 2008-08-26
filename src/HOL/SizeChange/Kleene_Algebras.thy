@@ -452,7 +452,7 @@ lemma graph_implies_dom: "mk_tcl_graph x y \<Longrightarrow> mk_tcl_dom x"
 
 lemma mk_tcl_default: "\<not> mk_tcl_dom (a,x) \<Longrightarrow> mk_tcl a x = 0"
   unfolding mk_tcl_def
-  by (rule fundef_default_value[OF mk_tcl_sum_def graph_implies_dom])
+  by (rule fundef_default_value[OF mk_tcl_sumC_def graph_implies_dom])
 
 
 text {* We can replace the dom-Condition of the correctness theorem 

@@ -889,7 +889,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
           PROFILE "def_graph" (define_graph (graph_name defname) fvar domT ranT clauses RCss) lthy
 
       val ((f, f_defthm), lthy) = 
-          PROFILE "def_fun" (define_function (defname ^ "_sum_def") (fname, mixfix) domT ranT G default) lthy
+          PROFILE "def_fun" (define_function (defname ^ "_sumC_def") (fname, mixfix) domT ranT G default) lthy
 
       val RCss = map (map (inst_RC (ProofContext.theory_of lthy) fvar f)) RCss
       val trees = map (FundefCtxTree.inst_tree (ProofContext.theory_of lthy) fvar f) trees
