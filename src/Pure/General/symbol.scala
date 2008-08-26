@@ -148,7 +148,7 @@ object Symbol {
 
     private def init_recoders() = {
       val list = symbols.elements.toList.map(get_code)
-      decoder = new Recoder(list ::: (for ((x, y) <- list) yield ("\\" + x, y)))
+      decoder = new Recoder(list ++ (for ((x, y) <- list) yield ("\\" + x, y)))
       encoder = new Recoder(for ((x, y) <- list) yield (y, x))
     }
 

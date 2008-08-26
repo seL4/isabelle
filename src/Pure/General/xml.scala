@@ -33,7 +33,7 @@ object XML {
     case Nil => None
     case t :: ts => get_next(t) match {
       case None => get_nexts(ts)
-      case Some((s, r)) => Some((s, r ::: ts))
+      case Some((s, r)) => Some((s, r ++ ts))
     }
   }
 
