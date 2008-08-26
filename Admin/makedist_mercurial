@@ -94,10 +94,10 @@ echo "###"
 { wget -q "$REPOS/archive/${VERSION}.tar.gz" -O- | tar -xzf -; } || \
   fail "Failed to retrieve $VERSION"
 
-IDENT=$(echo * | sed 's/Isabelle-repository-//')
+IDENT=$(echo * | sed 's/isabelle-//')
 
-rm -f "Isabelle-repository-$IDENT/.hg_archival.txt"
-rm -f "Isabelle-repository-$IDENT/.hgtags"
+rm -f "isabelle-$IDENT/.hg_archival.txt"
+rm -f "isabelle-$IDENT/.hgtags"
 
 
 # dist name
@@ -119,7 +119,7 @@ mkdir -p "$DISTBASE" || { purge_tmp; fail "Unable to create distribution base di
 [ -e "$DISTBASE/pdf/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/pdf/$DISTNAME already exists!"; }
 
 cd "$DISTBASE"
-mv "$DISTPREFIX/$TMP/Isabelle-repository-$IDENT" "$DISTNAME"
+mv "$DISTPREFIX/$TMP/isabelle-$IDENT" "$DISTNAME"
 purge_tmp
 
 cd "$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
