@@ -166,6 +166,12 @@ lemma rel_comp_subset_Sigma:
     "s \<subseteq> A \<times> B ==> r \<subseteq> B \<times> C ==> (r O s) \<subseteq> A \<times> C"
 by blast
 
+lemma rel_comp_distrib[simp]: "R O (S \<union> T) = (R O S) \<union> (R O T)" 
+by auto
+
+lemma rel_comp_distrib2[simp]: "(S \<union> T) O R = (S O R) \<union> (T O R)"
+by auto
+
 
 subsection {* Reflexivity *}
 
