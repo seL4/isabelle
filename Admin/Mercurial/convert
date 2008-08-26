@@ -19,13 +19,13 @@ cvs up -dAP >> "$LOG" 2>&1 || exit 2
 case $(hostname) in
 
 atbroy51)
-export HG=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy51/bin/hg
-export PYTHONPATH=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy51/lib/python2.4/site-packages
+export HG=/home/isabelle-repository/repos/mercurial-atbroy51/bin/hg
+export PYTHONPATH=/home/isabelle-repository/repos/mercurial-atbroy51/lib/python2.4/site-packages
 ;;
 
 atbroy100)
-export HG=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy100/bin/hg
-export PYTHONPATH=/home/isabelle/html-data/isabelle-repos/mercurial-atbroy100/lib64/python2.4/site-packages
+export HG=/home/isabelle-repository/repos/mercurial-atbroy100/bin/hg
+export PYTHONPATH=/home/isabelle-repository/repos/mercurial-atbroy100/lib64/python2.4/site-packages
 ;;
 
 esac
