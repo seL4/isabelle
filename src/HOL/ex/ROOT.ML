@@ -20,6 +20,7 @@ no_document use_thy "Codegenerator";
 no_document use_thy "Codegenerator_Pretty";
 
 use_thys [
+  "Numeral",
   "ImperativeQuicksort",
   "Higher_Order_Logic",
   "Abstract_NAT",
