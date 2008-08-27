@@ -36,7 +36,7 @@ val isabelle_processN = "isabelle_process";
 val xmlN = "XML";
 
 val _ = Output.add_mode isabelle_processN Output.default_output Output.default_escape;
-val _ = Markup.add_mode isabelle_processN (YXML.output_markup);
+val _ = Markup.add_mode isabelle_processN YXML.output_markup;
 
 
 (* message markup *)
