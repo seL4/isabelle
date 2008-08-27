@@ -307,7 +307,7 @@ fun constrset_of_consts thy cs =
         val ty_decl = (Logic.unvarifyT o Sign.the_const_type thy) c;
         val (tyco, _) = last_typ (c, ty) ty_decl;
         val (_, vs) = last_typ (c, ty) ty;
-      in ((tyco, map snd vs), (c, (map fst vs, ty_decl))) end;
+      in ((tyco, map snd vs), (c, (map fst vs, ty))) end;
     fun add ((tyco', sorts'), c) ((tyco, sorts), cs) =
       let
         val _ = if tyco' <> tyco
