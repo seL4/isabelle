@@ -110,7 +110,7 @@ struct
 
     (* NOTE: we assume strings are already XML escaped here, for convenience in Isabelle;
        would be better not to *)  (* FIXME !??? *)
-    fun atom_to_xml (Sym {name, content}) = XML.Elem ("sym", attr name name, [XML.Text content])
+    fun atom_to_xml (Sym {name, content}) = XML.Elem ("sym", attr "name" name, [XML.Text content])
       | atom_to_xml (Str content) = XML.Text content;
 
     fun pgmlterm_to_xml (Atoms {kind, content}) =
