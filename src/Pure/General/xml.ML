@@ -11,7 +11,6 @@ sig
   datatype tree =
       Elem of string * attributes * tree list
     | Text of string
-    | Output of output
   val add_content: tree -> Buffer.T -> Buffer.T
   val detect: string -> bool
   val header: string
@@ -36,12 +35,10 @@ type attributes = Properties.T;
 
 datatype tree =
     Elem of string * attributes * tree list
-  | Text of string
-  | Output of output;   (* FIXME !? *)
+  | Text of string;
 
 fun add_content (Elem (_, _, ts)) = fold add_content ts
-  | add_content (Text s) = Buffer.add s
-  | add_content (Output _) = I;    (* FIXME !? *)
+  | add_content (Text s) = Buffer.add s;
 
 
 
@@ -96,8 +93,7 @@ fun buffer_of tree =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add ">" #>
           fold traverse ts #>
           Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
-      | traverse (Text s) = Buffer.add (text s)
-      | traverse (Output s) = Buffer.add s;
+      | traverse (Text s) = Buffer.add (text s);
   in Buffer.empty |> traverse tree end;
 
 val string_of = Buffer.content o buffer_of;

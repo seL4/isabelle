@@ -58,8 +58,7 @@ fun string_of t =
           Buffer.add XY #> Buffer.add name #> fold attrib atts #> Buffer.add X #>
           fold tree ts #>
           Buffer.add XYX
-      | tree (XML.Text s) = Buffer.add s
-      | tree (XML.Output s) = Buffer.add s;
+      | tree (XML.Text s) = Buffer.add s;
   in Buffer.empty |> tree t |> Buffer.content end;
 
 
