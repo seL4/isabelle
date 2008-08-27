@@ -174,7 +174,7 @@ in
   fun thyname_of_tyco thy =
     thyname_of thy (Type.the_tags (Sign.tsig_of thy));
   fun thyname_of_instance thy a = case AxClass.arity_property thy a Markup.theory_nameN
-   of [] => error "no such instance: " ^ (quote o string_of_instance) a
+   of [] => error ("no such instance: " ^ (quote o string_of_instance) a)
     | thyname :: _ => thyname;
   fun thyname_of_const thy =
     thyname_of thy (Consts.the_tags (Sign.consts_of thy));
