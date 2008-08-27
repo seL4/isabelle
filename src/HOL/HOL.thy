@@ -1659,9 +1659,16 @@ val trans = @{thm trans}
 
 subsection {* Code generator basic setup -- see further @{text Code_Setup.thy} *}
 
-code_datatype Trueprop "prop"
+setup {*
+  Code.map_pre (K HOL_basic_ss)
+  #> Code.map_post (K HOL_basic_ss)
+*}
+
+code_datatype True False
 
 code_datatype "TYPE('a\<Colon>{})"
+
+code_datatype Trueprop "prop"
 
 lemma Let_case_cert:
   assumes "CASE \<equiv> (\<lambda>x. Let x f)"
@@ -1718,6 +1725,9 @@ lemma [code func]:
   shows "\<not> True \<longleftrightarrow> False"
     and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
 
+lemmas [code func] = Let_def if_True if_False
+
+lemmas [code func, code unfold, symmetric, code post] = imp_conv_disj
 
 
 subsection {* Legacy tactics and ML bindings *}

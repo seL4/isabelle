@@ -74,7 +74,6 @@ method_setup evaluation = {*
 
 subsection {* Generic code generator setup *}
 
-
 text {* using built-in Haskell equality *}
 
 code_class eq
@@ -85,8 +84,6 @@ code_const "op ="
 
 
 text {* type bool *}
-
-lemmas [code func, code unfold, symmetric, code post] = imp_conv_disj
 
 code_type bool
   (SML "bool")
@@ -113,15 +110,12 @@ code_reserved OCaml
 
 text {* code generation for undefined as exception *}
 
+code_abort undefined
+
 code_const undefined
   (SML "raise/ Fail/ \"undefined\"")
   (OCaml "failwith/ \"undefined\"")
   (Haskell "error/ \"undefined\"")
-
-
-text {* Let and If *}
-
-lemmas [code func] = Let_def if_True if_False
 
 
 subsection {* Evaluation oracle *}
