@@ -8,8 +8,6 @@ Common markup elements.
 signature MARKUP =
 sig
   type T = string * Properties.T
-  val get_string: T -> string -> string option
-  val get_int: T -> string -> int option
   val none: T
   val is_none: T -> bool
   val properties: (string * string) list -> T -> T
@@ -125,9 +123,6 @@ fun is_none ("", _) = true
 
 fun properties more_props ((elem, props): T) =
   (elem, fold_rev Properties.put more_props props);
-
-fun get_string (_, props) = Properties.get props;
-fun get_int m prop = (case get_string m prop of NONE => NONE | SOME s => Int.fromString s);
 
 fun markup_elem elem = (elem, (elem, []): T);
 fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
