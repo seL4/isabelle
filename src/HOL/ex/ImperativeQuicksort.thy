@@ -151,7 +151,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         unfolding part1.simps[of a l r p] run_drop
         by (elim crelE crel_nth crel_if crel_return) auto
       from swp rec_condition have
-	"\<forall>i. i < l \<or> r < i \<longrightarrow> get_array a h ! i = get_array a h1 ! i"
+        "\<forall>i. i < l \<or> r < i \<longrightarrow> get_array a h ! i = get_array a h1 ! i"
 	unfolding swap_def run_drop
 	by (elim crelE crel_nth crel_upd crel_return) auto
       with 1(2) [OF rec_condition False rec2] show ?thesis by fastsimp
@@ -501,7 +501,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
      note length_remains = length_remains[OF qs2] length_remains[OF qs1] partition_length_remains[OF part]
       from quicksort_outer_remains [OF qs2] quicksort_outer_remains [OF qs1] pivot quicksort_is_skip[OF qs1]
       have pivot_unchanged: "get_array a h1 ! p = get_array a h' ! p" by (cases p, auto)
-	(*-- First of all, by induction hypothesis both sublists are sorted. *)
+        (*-- First of all, by induction hypothesis both sublists are sorted. *)
       from 1(1)[OF True pivot qs1] length_remains pivot 1(5) 
       have IH1: "sorted (subarray l p a h2)"  by (cases p, auto simp add: subarray_Nil)
       from quicksort_outer_remains [OF qs2] length_remains
@@ -510,32 +510,32 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       with IH1 have IH1': "sorted (subarray l p a h')" by simp
       from 1(2)[OF True pivot qs2] pivot 1(5) length_remains
       have IH2: "sorted (subarray (p + 1) (r + 1) a h')"
-	by (cases "Suc p \<le> r", auto simp add: subarray_Nil)
-	  (* -- Secondly, both sublists remain partitioned. *)
+        by (cases "Suc p \<le> r", auto simp add: subarray_Nil)
+           (* -- Secondly, both sublists remain partitioned. *)
       from partition_partitions[OF part True]
       have part_conds1: "\<forall>j. j \<in> set (subarray l p a h1) \<longrightarrow> j \<le> get_array a h1 ! p "
-	and part_conds2: "\<forall>j. j \<in> set (subarray (p + 1) (r + 1) a h1) \<longrightarrow> get_array a h1 ! p \<le> j"
-	by (auto simp add: all_in_set_subarray_conv)
+        and part_conds2: "\<forall>j. j \<in> set (subarray (p + 1) (r + 1) a h1) \<longrightarrow> get_array a h1 ! p \<le> j"
+        by (auto simp add: all_in_set_subarray_conv)
       from quicksort_outer_remains [OF qs1] quicksort_permutes [OF qs1] True
-	length_remains 1(5) pivot multiset_of_sublist [of l p "get_array a h1" "get_array a h2"]
+        length_remains 1(5) pivot multiset_of_sublist [of l p "get_array a h1" "get_array a h2"]
       have multiset_partconds1: "multiset_of (subarray l p a h2) = multiset_of (subarray l p a h1)"
 	unfolding Heap.length_def subarray_def by (cases p, auto)
       with left_subarray_remains part_conds1 pivot_unchanged
       have part_conds2': "\<forall>j. j \<in> set (subarray l p a h') \<longrightarrow> j \<le> get_array a h' ! p"
-	by (simp, subst set_of_multiset_of[symmetric], simp)
-	  (* -- These steps are the analogous for the right sublist \<dots> *)
+        by (simp, subst set_of_multiset_of[symmetric], simp)
+          (* -- These steps are the analogous for the right sublist \<dots> *)
       from quicksort_outer_remains [OF qs1] length_remains
       have right_subarray_remains: "subarray (p + 1) (r + 1) a h1 = subarray (p + 1) (r + 1) a h2"
 	by (auto simp add: subarray_eq_samelength_iff)
       from quicksort_outer_remains [OF qs2] quicksort_permutes [OF qs2] True
-	length_remains 1(5) pivot multiset_of_sublist [of "p + 1" "r + 1" "get_array a h2" "get_array a h'"]
+        length_remains 1(5) pivot multiset_of_sublist [of "p + 1" "r + 1" "get_array a h2" "get_array a h'"]
       have multiset_partconds2: "multiset_of (subarray (p + 1) (r + 1) a h') = multiset_of (subarray (p + 1) (r + 1) a h2)"
-	unfolding Heap.length_def subarray_def by auto
+        unfolding Heap.length_def subarray_def by auto
       with right_subarray_remains part_conds2 pivot_unchanged
       have part_conds1': "\<forall>j. j \<in> set (subarray (p + 1) (r + 1) a h') \<longrightarrow> get_array a h' ! p \<le> j"
-	by (simp, subst set_of_multiset_of[symmetric], simp)
-	  (* -- Thirdly and finally, we show that the array is sorted
-	  following from the facts above. *)
+        by (simp, subst set_of_multiset_of[symmetric], simp)
+          (* -- Thirdly and finally, we show that the array is sorted
+          following from the facts above. *)
       from True pivot 1(5) length_remains have "subarray l (r + 1) a h' = subarray l p a h' @ [get_array a h' ! p] @ subarray (p + 1) (r + 1) a h'"
 	by (simp add: subarray_nth_array_Cons, cases "l < p") (auto simp add: subarray_append subarray_Nil)
       with IH1' IH2 part_conds1' part_conds2' pivot have ?thesis
