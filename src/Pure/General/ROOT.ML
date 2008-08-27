@@ -8,6 +8,7 @@ use "print_mode.ML";
 use "alist.ML";
 use "table.ML";
 use "output.ML";
+use "properties.ML";
 use "markup.ML";
 use "scan.ML";
 use "source.ML";
