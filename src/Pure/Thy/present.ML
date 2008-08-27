@@ -359,7 +359,7 @@ fun sorted_index index = map snd (sort (int_ord o pairself fst) (rev index));
 fun index_buffer index = Buffer.add (implode (sorted_index index)) Buffer.empty;
 
 fun write_tex src name path =
-  Buffer.write (Path.append path (tex_path name)) src;
+  File.write_buffer (Path.append path (tex_path name)) src;
 
 fun write_tex_index tex_index path =
   write_tex (index_buffer tex_index |> Buffer.add Latex.tex_trailer) doc_indexN path;
@@ -375,7 +375,7 @@ fun finish () = CRITICAL (fn () =>
 
     fun finish_tex path (a, {tex_source, ...}: theory_info) = write_tex tex_source a path;
     fun finish_html (a, {html, ...}: theory_info) =
-      Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_document html);
+      File.write_buffer (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_document html);
 
     val sorted_graph = sorted_index graph;
     val opt_graphs =
@@ -395,7 +395,7 @@ fun finish () = CRITICAL (fn () =>
   in
     if info then
      (File.mkdir (Path.append html_prefix session_path);
-      Buffer.write (Path.append html_prefix pre_index_path) (index_buffer html_index);
+      File.write_buffer (Path.append html_prefix pre_index_path) (index_buffer html_index);
       File.write (Path.append html_prefix session_entries_path) "";
       create_index html_prefix;
       if length path > 1 then update_index parent_html_prefix name else ();

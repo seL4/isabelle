@@ -14,7 +14,6 @@ sig
   val markup: Markup.T -> (T -> T) -> T -> T
   val content: T -> string
   val output: T -> TextIO.outstream -> unit
-  val write: Path.T -> T -> unit
 end;
 
 structure Buffer: BUFFER =
@@ -61,7 +60,5 @@ fun output buffer stream =
       | rev_output (String (s, buf)) = (TextIO.output (stream, s); rev_output buf)
       | rev_output (Substring (s, buf)) = (TextIO.outputSubstr (stream, s); rev_output buf);
   in rev_output (rev_buffer buffer empty) end;
-
-fun write path buf = File.open_output (output buf) path;
 
 end;
