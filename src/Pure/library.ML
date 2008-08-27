@@ -142,7 +142,7 @@ sig
   val fold_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
   val exists_string: (string -> bool) -> string -> bool
   val forall_string: (string -> bool) -> string -> bool
-  val find_substring: string -> string -> int option
+  val first_field: string -> string -> (string * string) option
   val enclose: string -> string -> string -> string
   val unenclose: string -> string
   val quote: string -> string
@@ -732,15 +732,19 @@ fun exists_string pred str =
 
 fun forall_string pred = not o exists_string (not o pred);
 
-fun find_substring s str =
+fun first_field sep str =
   let
-    val n = size s;
+    val n = size sep;
     val len = size str;
     fun find i =
       if i + n > len then NONE
-      else if String.substring (str, i, n) = s then SOME i
+      else if String.substring (str, i, n) = sep then SOME i
       else find (i + 1);
-  in find 0 end;
+  in
+    (case find 0 of
+      NONE => NONE
+    | SOME i => SOME (String.substring (str, 0, i), String.extract (str, i + n, NONE)))
+  end;
 
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;

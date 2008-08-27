@@ -101,10 +101,10 @@ fun pop ((("", _), _) :: _) = err_unbalanced ""
 (* parsing *)
 
 fun parse_attrib s =
-  (case find_substring "=" s of
+  (case first_field "=" s of
     NONE => err_attribute ()
-  | SOME 0 => err_attribute ()
-  | SOME i => (String.substring (s, 0, i), String.extract (s, i + 1, NONE)));
+  | SOME ("", _) => err_attribute ()
+  | SOME att => att);
 
 fun parse_chunk ["", ""] = pop
   | parse_chunk ("" :: name :: atts) = push name (map parse_attrib atts)
