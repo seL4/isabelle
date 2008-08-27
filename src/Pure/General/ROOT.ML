@@ -30,8 +30,8 @@ use "name_space.ML";
 use "susp.ML";
 use "path.ML";
 use "url.ML";
-use "file.ML";
 use "buffer.ML";
+use "file.ML";
 use "xml.ML";
 use "yxml.ML";
 
