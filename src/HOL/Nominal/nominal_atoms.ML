@@ -750,6 +750,8 @@ fun create_nom_typedecls ak_names thy =
        val eq_eqvt             = @{thm "Nominal.pt_eq_eqvt"};
        val all_eqvt            = @{thm "Nominal.pt_all_eqvt"};
        val ex_eqvt             = @{thm "Nominal.pt_ex_eqvt"};
+       val ex1_eqvt            = @{thm "Nominal.pt_ex1_eqvt"};
+       val the_eqvt            = @{thm "Nominal.pt_the_eqvt"};
        val pt_pi_rev           = @{thm "Nominal.pt_pi_rev"};
        val pt_rev_pi           = @{thm "Nominal.pt_rev_pi"};
        val at_exists_fresh     = @{thm "Nominal.at_exists_fresh"};
@@ -864,6 +866,8 @@ fun create_nom_typedecls ak_names thy =
                 [(("all_eqvt", thms1 @ thms2), [NominalThmDecls.eqvt_force_add])]
               end
             ||>> PureThy.add_thmss [(("ex_eqvt", inst_pt_at [ex_eqvt]),[NominalThmDecls.eqvt_force_add])]
+            ||>> PureThy.add_thmss [(("ex1_eqvt", inst_pt_at [ex1_eqvt]),[NominalThmDecls.eqvt_force_add])]
+            ||>> PureThy.add_thmss [(("the_eqvt", inst_pt_at [the_eqvt]),[NominalThmDecls.eqvt_force_add])]
             ||>> PureThy.add_thmss 
               let val thms1 = inst_at [at_fresh]
                   val thms2 = inst_dj [at_fresh_ineq]

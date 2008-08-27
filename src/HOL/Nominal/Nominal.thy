@@ -1882,6 +1882,31 @@ apply(rule_tac x="pi\<bullet>x" in exI)
 apply(simp add: pt_rev_pi[OF pt, OF at])
 done
 
+lemma pt_ex1_eqvt:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows  "(pi\<bullet>(\<exists>!x. P (x::'a))) = (\<exists>!x. pi\<bullet>(P (rev pi\<bullet>x)))"
+unfolding Ex1_def
+by (simp add: pt_ex_eqvt[OF pt at] conj_eqvt pt_all_eqvt[OF pt at] 
+              imp_eqvt pt_eq_eqvt[OF pt at] pt_pi_rev[OF pt at])
+
+lemma pt_the_eqvt:
+  fixes  pi :: "'x prm"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     unique: "\<exists>!x. P x"
+  shows "pi\<bullet>(THE(x::'a). P x) = (THE(x::'a). pi\<bullet>(P ((rev pi)\<bullet>x)))"
+  apply(rule the1_equality [symmetric])
+  apply(simp add: pt_ex1_eqvt[OF pt at,symmetric])
+  apply(simp add: perm_bool unique)
+  apply(simp add: perm_bool pt_rev_pi [OF pt at])
+  apply(rule theI'[OF unique])
+  done
+
+
+
 section {* facts about supports *}
 (*==============================*)
 
