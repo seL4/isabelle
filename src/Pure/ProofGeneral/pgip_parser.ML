@@ -94,7 +94,7 @@ fun parse_span span =
   let
     val kind = ThyEdit.span_kind span;
     val toks = ThyEdit.span_content span;
-    val text = implode (map (PgmlIsabelle.pgml_mode ThyEdit.present_token) toks);
+    val text = implode (map (PrintMode.setmp [] ThyEdit.present_token) toks);
   in
     (case kind of
       ThyEdit.Command name => parse_command name text
