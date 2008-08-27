@@ -22,7 +22,7 @@ sig
   val get_currently_open_file : unit -> Path.T option  (* interface focus *)
 end
 
-structure ProofGeneralPgip : PROOF_GENERAL_PGIP  =
+structure ProofGeneralPgip : PROOF_GENERAL_PGIP =
 struct
 
 open Pgip;
@@ -34,38 +34,9 @@ val proof_generalN = "ProofGeneral";
 val pgmlsymbols_flag = ref true;
 
 
-(* symbol output *)
-
-local
-
-fun xsym_output "\\" = "\\\\"
-  | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
-
-fun pgml_sym s =
-  (case Symbol.decode s of
-    Symbol.Char s => XML.text s
-  | Symbol.Sym sn =>
-    let val ascii = implode (map xsym_output (Symbol.explode s))
-    in if !pgmlsymbols_flag then XML.element "sym" [("name", sn)] [XML.text ascii]
-       else  ascii end
-  | Symbol.Ctrl sn => XML.element "ctrl" [("name", sn)] [XML.text sn] (* FIXME: no such PGML *)
-  | Symbol.Raw raw => raw);
-
-fun pgml_output str =
-  let val syms = Symbol.explode str
-  in (implode (map pgml_sym syms), Symbol.length syms) end;
-
-in
-
-fun setup_proofgeneral_output () =
-  Output.add_mode proof_generalN pgml_output Symbol.encode_raw;
-
-end;
-
-
 (* assembling and issuing PGIP packets *)
 
-val pgip_refid  = ref NONE: string option ref;
+val pgip_refid = ref NONE: string option ref;
 val pgip_refseq = ref NONE: int option ref;
 
 local
@@ -78,12 +49,12 @@ local
   fun assemble_pgips pgips =
     Pgip { tag = SOME pgip_tag,
            class = pgip_class,
-           seq = pgip_serial(),
-           id = !pgip_id,
-           destid = !pgip_refid,
+           seq = pgip_serial (),
+           id = ! pgip_id,
+           destid = ! pgip_refid,
            (* destid=refid since Isabelle only communicates back to sender *)
-           refid  = !pgip_refid,
-           refseq = !pgip_refseq,
+           refid = ! pgip_refid,
+           refseq = ! pgip_refseq,
            content = pgips }
 in
 
@@ -91,107 +62,111 @@ fun init_pgip_session_id () =
     pgip_id := getenv "HOSTNAME" ^ "/" ^ getenv "USER" ^ "/" ^
                getenv "ISABELLE_PID" ^ "/" ^ Time.toString (Time.now ())
 
-fun matching_pgip_id id = (id = !pgip_id)
+fun matching_pgip_id id = (id = ! pgip_id)
 
 val output_xml_fn = ref Output.writeln_default
-fun output_xml s = (!output_xml_fn) (XML.string_of s);  (* TODO: string buffer *)
+fun output_xml s = ! output_xml_fn (XML.string_of s);
 
-val output_pgips =
-  XML.string_of o PgipOutput.output o assemble_pgips o map PgipOutput.output;
+val output_pgips = XML.string_of o PgipOutput.output o assemble_pgips o map PgipOutput.output;
 
-val output_pgmlterm =
-  XML.string_of o Pgml.pgmlterm_to_xml;
-
-val output_pgmltext =
-  XML.string_of o Pgml.pgml_to_xml;
+val output_pgmlterm = XML.string_of o Pgml.pgmlterm_to_xml;
+val output_pgmltext = XML.string_of o Pgml.pgml_to_xml;
 
 
 fun issue_pgip_rawtext str =
-    output_xml (PgipOutput.output (assemble_pgips [XML.Output str]))
-
-fun issue_pgips pgipops =
-    output_xml (PgipOutput.output (assemble_pgips (map PgipOutput.output pgipops)));
+  output_xml (PgipOutput.output (assemble_pgips (YXML.parse_body str)));
 
 fun issue_pgip pgipop =
-    output_xml (PgipOutput.output (assemble_pgips [PgipOutput.output pgipop]));
+  output_xml (PgipOutput.output (assemble_pgips [PgipOutput.output pgipop]));
 
 end;
 
 
-fun pgml area terms = Pgml.Pgml { version=NONE,systemid=NONE,
-                                  area=SOME area, content=terms }
 
 (** messages and notification **)
 
+(* PGML terms *)
+
 local
-    val delay_msgs = ref false   (*true: accumulate messages*)
-    val delayed_msgs = ref []
 
-    fun queue_or_issue pgip =
-        if ! delay_msgs then
-            delayed_msgs := pgip :: ! delayed_msgs
-        else issue_pgip pgip
+fun pgml_sym s =
+  if ! pgmlsymbols_flag then
+    (case Symbol.decode s of
+      Symbol.Sym name => Pgml.Sym {name = name, content = s}
+    | _ => Pgml.Str s)
+  else Pgml.Str s;
 
-    fun wrap_pgml area s =
-        if String.isPrefix "<pgml" s then
-            XML.Output s  (* already pgml outermost *)
-        else
-            Pgml.pgml_to_xml (pgml area [Pgml.Raw (XML.Output s)]) (* mixed *)
+val pgml_syms = map pgml_sym o Symbol.explode;
+
+val token_markups =
+ [Markup.tclassN, Markup.tfreeN, Markup.tvarN, Markup.freeN,
+  Markup.boundN, Markup.varN, Markup.skolemN];
 
 in
-    fun normalmsg area s =
-        let
-            val content = wrap_pgml area s
-            val pgip = Normalresponse { content=[content] }
-        in
-            queue_or_issue pgip
-        end
 
-    fun errormsg area fatality s =
-        let
-            val content = wrap_pgml area s
-            val pgip = Errorresponse { fatality=fatality,
-                                       location=NONE,
-                                       content=[content] }
-        in
-            queue_or_issue pgip
+fun pgml_terms (XML.Elem (name, atts, body)) =
+      if member (op =) token_markups name then
+        let val content = pgml_syms (Buffer.content (fold XML.add_content body Buffer.empty))
+        in [Pgml.Atoms {kind = SOME name, content = content}] end
+      else
+        let val content = maps pgml_terms body in
+          if name = Markup.blockN then
+            [Pgml.Box {orient = NONE, indent = Properties.get_int atts Markup.indentN, content = content}]
+          else if name = Markup.breakN then
+            [Pgml.Break {mandatory = NONE, indent = Properties.get_int atts Markup.widthN}]
+          else if name = Markup.fbreakN then
+            [Pgml.Break {mandatory = SOME true, indent = NONE}]
+          else content
         end
+  | pgml_terms (XML.Text text) = map (Pgml.Raw o Pgml.atom_to_xml) (pgml_syms text);
 
-    (* Error responses with useful locations *)
-    fun error_with_pos area fatality pos s =
-        let
-              val content = wrap_pgml area s
-              val pgip = Errorresponse { fatality=fatality,
-                                         location=SOME (PgipIsabelle.location_of_position pos),
-                                         content=[content] }
-        in
-            queue_or_issue pgip
-        end
-
-    fun start_delay_msgs () = (set delay_msgs; delayed_msgs := [])
-    fun end_delayed_msgs () = (reset delay_msgs; ! delayed_msgs)
 end;
 
-(* NB: all of the standard error/message functions now expect already-escaped text.
-   FIXME: this may cause us problems now we're generating trees; on the other
-   hand the output functions were tuned some time ago, so it ought to be
-   enough to use XML.Output always above. *)
-(* NB 2: all of standard functions print strings terminated with new lines, but we don't
-   add new lines explicitly in PGIP: they are left implicit.  It means that PGIP messages
-   can't be written without newlines. *)
 
-fun setup_messages () =
- (Output.writeln_fn := (fn s => normalmsg Message s);
-  Output.status_fn := (fn _ => ());
-  Output.priority_fn := (fn s => normalmsg Status s);
-  Output.tracing_fn := (fn s => normalmsg  Tracing s);
-  Output.warning_fn := (fn s => errormsg Message Warning s);
-  Output.error_fn := (fn s => errormsg Message Fatal s);
-  Output.debug_fn := (fn s => errormsg Message Debug s));
+(* messages *)
+
+fun pgml area content =
+  Pgml.Pgml {version = NONE, systemid = NONE, area = SOME area, content = content};
+
+fun message_content default_area s =
+  let
+    val body = YXML.parse_body s;
+    val area =
+      (case body of
+        [XML.Elem (name, _, _)] =>
+          if name = Markup.stateN then PgipTypes.Display else default_area
+      | _ => default_area);
+  in Pgml.pgml_to_xml (pgml area (maps pgml_terms body)) end;
+
+
+fun normalmsg area s = issue_pgip
+  (Normalresponse {content = [message_content area s]});
+
+fun errormsg area fatality s = issue_pgip
+  (Errorresponse {fatality = fatality, location = NONE, content = [message_content area s]});
+
+(*error responses with useful locations*)
+fun error_with_pos area fatality pos s = issue_pgip
+  (Errorresponse {
+    fatality = fatality,
+    location = SOME (PgipIsabelle.location_of_position pos),
+    content = [message_content area s]});
 
 fun panic s = (errormsg Message Panic ("## SYSTEM EXIT ##\n" ^ s); exit 1);
 fun nonfatal_error s = errormsg Message Nonfatal s;
 fun log_msg s = errormsg Message Log s;
+
+(* NB: all of standard functions print strings terminated with new lines, but we don't
+   add new lines explicitly in PGIP: they are left implicit.  It means that PGIP messages
+   can't be written without newlines. *)
+fun setup_messages () =
+ (Output.writeln_fn := (fn s => normalmsg Message s);
+  Output.status_fn := (fn _ => ());
+  Output.priority_fn := (fn s => normalmsg Status s);
+  Output.tracing_fn := (fn s => normalmsg Tracing s);
+  Output.warning_fn := (fn s => errormsg Message Warning s);
+  Output.error_fn := (fn s => errormsg Message Fatal s);
+  Output.debug_fn := (fn s => errormsg Message Debug s));
 
 
 (* immediate messages *)
@@ -210,58 +185,6 @@ fun tell_file_outdated completed path   =
 fun tell_file_retracted completed path =
     issue_pgip (Informfileretracted {url=PgipTypes.pgipurl_of_path path,
                                      completed=completed})
-
-
-(* common markup *)
-
-local
-
-val no_text = chr 0;
-
-val pgmlterms_no_text= [Pgml.Raw (XML.Output no_text)]
-
-fun split_markup text =
-  (case space_explode no_text text of
-    [bg, en] => (bg, en)
-  | _ => (error ("Internal error: failed to split XML markup:\n" ^ text); ("", "")));
-
-
-fun block_markup markup =
-    let
-      val pgml = Pgml.Box { orient = NONE,
-                            indent = Markup.get_int markup Markup.indentN,
-                            content = pgmlterms_no_text }
-    in split_markup (output_pgmlterm pgml) end;
-
-fun break_markup markup =
-    let
-      val pgml = Pgml.Break { mandatory = NONE,
-                              indent = Markup.get_int markup Markup.widthN }
-    in (output_pgmlterm pgml, "") end;
-
-fun fbreak_markup markup =
-    let
-      val pgml = Pgml.Break { mandatory = SOME true, indent = NONE }
-    in (output_pgmlterm pgml, "") end;
-
-val state_markup =
-    split_markup (output_pgmltext (pgml PgipTypes.Display pgmlterms_no_text))
-
-val token_markups =
- [Markup.tclassN, Markup.tfreeN, Markup.tvarN, Markup.freeN,
-  Markup.boundN, Markup.varN, Markup.skolemN];
-
-in
-
-val _ = Markup.add_mode proof_generalN (fn (markup as (name, _)) =>
-   if name = Markup.blockN then block_markup markup
-   else if name = Markup.breakN then break_markup markup
-   else if name = Markup.fbreakN then fbreak_markup markup
-   else if name = Markup.stateN then state_markup
-   else if member (op =) token_markups name then XML.output_markup ("atom", [("kind", name)])
-   else ("", ""));
-
-end;
 
 
 (* theory loader actions *)
@@ -698,24 +621,22 @@ fun showid (Showid vs) =
         fun idvalue strings =
             issue_pgip (Idvalue { thyname=thyname, objtype=objtype, name=name,
                                   text=[XML.Elem("pgml",[],
-                                                 map XML.Output strings)] })
+                                                 maps YXML.parse_body strings)] })
 
-        fun string_of_thm th = Output.output
-                               (Pretty.string_of
+        fun string_of_thm th = Pretty.string_of
                                    (Display.pretty_thm_aux
                                         (Syntax.pp_global (Thm.theory_of_thm th))
                                         false (* quote *)
                                         false (* show hyps *)
                                         [] (* asms *)
-                                        th))
+                                        th)
 
         fun strings_of_thm (thy, name) = map string_of_thm (PureThy.get_thms thy name)
 
-        val string_of_thy = Output.output o
-                                Pretty.string_of o (ProofDisplay.pretty_full_theory false)
+        val string_of_thy = Pretty.string_of o ProofDisplay.pretty_full_theory false
     in
         case (thyname, objtype) of
-            (_,ObjTheory) => idvalue [string_of_thy (ThyInfo.get_theory name)]
+            (_, ObjTheory) => idvalue [string_of_thy (ThyInfo.get_theory name)]
           | (SOME thy, ObjTheorem) => idvalue (strings_of_thm (ThyInfo.get_theory thy, name))
           | (NONE, ObjTheorem) => idvalue (strings_of_thm (splitthy name))
           | (_, ot) => error ("Cannot show objects of type "^(PgipTypes.name_of_objtype ot))
@@ -762,16 +683,14 @@ fun parsescript (Parsescript vs) =
         val systemdata = #systemdata vs
         val location = #location vs   (* TODO: extract position *)
 
-        val _ = start_delay_msgs ()   (* gather parsing errs/warns *)
         val doc = PgipParser.pgip_parser Position.none text
-        val errs = end_delayed_msgs ()
 
         val sysattrs = PgipTypes.opt_attr "systemdata" systemdata
         val locattrs = PgipTypes.attrs_of_location location
      in
         issue_pgip (Parseresult { attrs= sysattrs@locattrs,
                                   doc = doc,
-                                  errs = map PgipOutput.output errs })
+                                  errs = [] })
     end
 
 fun showproofstate _ = isarcmd "pr"
@@ -979,7 +898,6 @@ fun process_pgip_element pgipxml =
                               (XML.string_of xml))
            | SOME inp => (process_input inp)) (* errors later; packet discarded *)
       | XML.Text t => ignored_text_warning t
-      | XML.Output t => ignored_text_warning t
 and ignored_text_warning t =
     if size (Symbol.strip_blanks t) > 0 then
            warning ("Ignored text in PGIP packet: \n" ^ t)
@@ -1084,7 +1002,8 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
   | init_pgip true =
       (! initialized orelse
         (setup_preferences_tweak ();
-         setup_proofgeneral_output ();
+         Output.add_mode proof_generalN Output.default_output Output.default_escape;
+         Markup.add_mode proof_generalN YXML.output_markup;
          setup_messages ();
          Output.no_warnings init_outer_syntax ();
          setup_thy_loader ();
@@ -1093,7 +1012,7 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
          welcome ();
          set initialized);
         sync_thy_loader ();
-       change print_mode (cons proof_generalN o remove (op =) proof_generalN);
+       change print_mode (update (op =) proof_generalN);
        pgip_toplevel tty_src);
 
 
