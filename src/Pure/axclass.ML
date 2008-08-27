@@ -296,6 +296,7 @@ fun add_classrel th thy =
     thy
     |> Sign.primitive_classrel (c1, c2)
     |> put_classrel ((c1, c2), Drule.unconstrainTs th)
+    |> perhaps complete_arities
   end;
 
 fun add_arity th thy =
