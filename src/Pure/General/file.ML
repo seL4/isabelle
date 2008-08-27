@@ -25,11 +25,13 @@ sig
   val open_input: (TextIO.instream -> 'a) -> Path.T -> 'a
   val open_output: (TextIO.outstream -> 'a) -> Path.T -> 'a
   val open_append: (TextIO.outstream -> 'a) -> Path.T -> 'a
+  val fold_lines: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val read: Path.T -> string
   val write: Path.T -> string -> unit
   val append: Path.T -> string -> unit
   val write_list: Path.T -> string list -> unit
   val append_list: Path.T -> string list -> unit
+  val write_buffer: Path.T -> Buffer.T -> unit
   val eq: Path.T * Path.T -> bool
   val copy: Path.T -> Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
@@ -126,7 +128,7 @@ fun is_dir path =
   the_default false (try OS.FileSys.isDir (platform_path path));
 
 
-(* read / write files *)
+(* open files *)
 
 local
 
@@ -134,15 +136,41 @@ fun with_file open_file close_file f path =
   let val file = open_file path
   in Exn.release (Exn.capture f file before close_file file) end;
 
-fun output txts file = List.app (fn txt => TextIO.output (file, txt)) txts;
-
 in
 
 fun open_input f = with_file TextIO.openIn TextIO.closeIn f o platform_path;
 fun open_output f = with_file TextIO.openOut TextIO.closeOut f o platform_path;
 fun open_append f = with_file TextIO.openAppend TextIO.closeOut f o platform_path;
 
+end;
+
+
+(* input *)
+
+(*scalable iterator -- avoid size limit of TextIO.inputAll, and overhead of many TextIO.inputLine*)
+fun fold_lines f path a = open_input (fn file =>
+  let
+    val first_line = first_field "\n";
+    fun split str x =
+      (case first_line str of
+        SOME (line, rest) => split rest (f line x)
+      | NONE => read (Buffer.add str Buffer.empty) x)
+    and read buf x =
+      let val str = TextIO.input file in
+        (case first_line str of
+          SOME (line, rest) => split rest (f (Buffer.content (Buffer.add line buf)) x)
+        | NONE =>
+            if str = "" then (case Buffer.content buf of "" => x | line => f line x)
+            else read (Buffer.add str buf) x)
+      end;
+  in read Buffer.empty a end) path;
+
 val read = open_input TextIO.inputAll;
+
+
+(* output *)
+
+fun output txts file = List.app (fn txt => TextIO.output (file, txt)) txts;
 
 fun write_list path txts = open_output (output txts) path;
 fun append_list path txts = open_append (output txts) path;
@@ -150,7 +178,10 @@ fun append_list path txts = open_append (output txts) path;
 fun write path txt = write_list path [txt];
 fun append path txt = append_list path [txt];
 
-end;
+fun write_buffer path buf = open_output (Buffer.output buf) path;
+
+
+(* copy *)
 
 fun eq paths =
   (case try (pairself (OS.FileSys.fileId o platform_path)) paths of
