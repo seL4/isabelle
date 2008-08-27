@@ -17,7 +17,7 @@ sig
   val rep_tsig: tsig ->
    {classes: NameSpace.T * Sorts.algebra,
     default: sort,
-    types: ((decl * Markup.property list) * serial) NameSpace.table,
+    types: ((decl * Properties.T) * serial) NameSpace.table,
     log_types: string list}
   val empty_tsig: tsig
   val defaultS: tsig -> sort
@@ -40,7 +40,7 @@ sig
   val cert_typ: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
   val arity_sorts: Pretty.pp -> tsig -> string -> sort -> sort list
-  val the_tags: tsig -> string -> Markup.property list
+  val the_tags: tsig -> string -> Properties.T
 
   (*special treatment of type vars*)
   val strip_sorts: typ -> typ
@@ -73,9 +73,9 @@ sig
   val add_class: Pretty.pp -> NameSpace.naming -> bstring * class list -> tsig -> tsig
   val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
-  val add_type: NameSpace.naming -> Markup.property list -> bstring * int -> tsig -> tsig
-  val add_abbrev: NameSpace.naming -> Markup.property list -> string * string list * typ -> tsig -> tsig
-  val add_nonterminal: NameSpace.naming -> Markup.property list -> string -> tsig -> tsig
+  val add_type: NameSpace.naming -> Properties.T -> bstring * int -> tsig -> tsig
+  val add_abbrev: NameSpace.naming -> Properties.T -> string * string list * typ -> tsig -> tsig
+  val add_nonterminal: NameSpace.naming -> Properties.T -> string -> tsig -> tsig
   val hide_type: bool -> string -> tsig -> tsig
   val add_arity: Pretty.pp -> arity -> tsig -> tsig
   val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
@@ -105,7 +105,7 @@ datatype tsig =
   TSig of {
     classes: NameSpace.T * Sorts.algebra,   (*order-sorted algebra of type classes*)
     default: sort,                          (*default sort on input*)
-    types: ((decl * Markup.property list) * serial) NameSpace.table, (*declared types*)
+    types: ((decl * Properties.T) * serial) NameSpace.table, (*declared types*)
     log_types: string list};                (*logical types sorted by number of arguments*)
 
 fun rep_tsig (TSig comps) = comps;

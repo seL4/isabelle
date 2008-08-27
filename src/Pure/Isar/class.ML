@@ -14,9 +14,9 @@ sig
     -> theory -> string * Proof.context
 
   val init: class -> theory -> Proof.context
-  val declare: class -> Markup.property list
+  val declare: class -> Properties.T
     -> (string * mixfix) * term -> theory -> theory
-  val abbrev: class -> Syntax.mode -> Markup.property list
+  val abbrev: class -> Syntax.mode -> Properties.T
     -> (string * mixfix) * term -> theory -> theory
   val note: class -> string
     -> ((string * Attrib.src list) * (thm list * Attrib.src list) list) list

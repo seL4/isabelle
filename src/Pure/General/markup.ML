@@ -7,8 +7,7 @@ Common markup elements.
 
 signature MARKUP =
 sig
-  type property = string * string
-  type T = string * property list
+  type T = string * Properties.T
   val get_string: T -> string -> string option
   val get_int: T -> string -> int option
   val none: T
@@ -21,7 +20,7 @@ sig
   val idN: string
   val kindN: string
   val internalK: string
-  val property_internal: property
+  val property_internal: Properties.property
   val lineN: string
   val columnN: string
   val offsetN: string
@@ -116,8 +115,7 @@ struct
 
 (* basic markup *)
 
-type property = string * string;
-type T = string * property list;
+type T = string * Properties.T;
 
 val none = ("", []);
 
@@ -126,9 +124,9 @@ fun is_none ("", _) = true
 
 
 fun properties more_props ((elem, props): T) =
-  (elem, fold_rev (AList.update (op =)) more_props props);
+  (elem, fold_rev Properties.put more_props props);
 
-fun get_string ((_, props): T) prop = AList.lookup (op =) props prop;
+fun get_string (_, props) = Properties.get props;
 fun get_int m prop = (case get_string m prop of NONE => NONE | SOME s => Int.fromString s);
 
 fun markup_elem elem = (elem, (elem, []): T);

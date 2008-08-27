@@ -112,9 +112,9 @@ exception PGIP of string
 
 (** XML utils **)
 
-fun has_attr (attr : string) attrs = AList.defined (op =) attrs attr
+fun has_attr attr attrs = Properties.defined attrs attr
 
-fun get_attr_opt (attr : string) attrs = AList.lookup (op =) attrs attr
+fun get_attr_opt attr attrs = Properties.get attrs attr
 
 fun get_attr attr attrs =
     (case get_attr_opt attr attrs of

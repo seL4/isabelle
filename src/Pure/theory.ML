@@ -38,7 +38,7 @@ sig
   val add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory
   val add_finals: bool -> string list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
-  val specify_const: Markup.property list -> bstring * typ * mixfix -> (string * typ) list ->
+  val specify_const: Properties.T -> bstring * typ * mixfix -> (string * typ) list ->
    theory -> term * theory
   val add_oracle: bstring * (theory * Object.T -> term) -> theory -> theory
 end

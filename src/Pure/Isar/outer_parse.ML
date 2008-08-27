@@ -60,7 +60,7 @@ sig
     'a * token list -> 'b list * ('a * token list)
   val list: (token list -> 'a * token list) -> token list -> 'a list * token list
   val list1: (token list -> 'a * token list) -> token list -> 'a list * token list
-  val properties: token list -> Markup.property list * token list
+  val properties: token list -> Properties.T * token list
   val name: token list -> bstring * token list
   val xname: token list -> xstring * token list
   val text: token list -> string * token list

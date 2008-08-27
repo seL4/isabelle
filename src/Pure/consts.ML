@@ -17,7 +17,7 @@ sig
   val the_type: T -> string -> typ                             (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
   val type_scheme: T -> string -> typ                          (*exception TYPE*)
-  val the_tags: T -> string -> Markup.property list            (*exception TYPE*)
+  val the_tags: T -> string -> Properties.T                    (*exception TYPE*)
   val is_monomorphic: T -> string -> bool                      (*exception TYPE*)
   val the_constraint: T -> string -> typ                       (*exception TYPE*)
   val space_of: T -> NameSpace.T
@@ -30,9 +30,9 @@ sig
   val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
-  val declare: bool -> NameSpace.naming -> Markup.property list -> (bstring * typ) -> T -> T
+  val declare: bool -> NameSpace.naming -> Properties.T -> (bstring * typ) -> T -> T
   val constrain: string * typ option -> T -> T
-  val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> string -> Markup.property list ->
+  val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> string -> Properties.T ->
     bstring * term -> T -> (term * term) * T
   val revert_abbrev: string -> string -> T -> T
   val hide: bool -> string -> T -> T
@@ -47,7 +47,7 @@ struct
 
 (* datatype T *)
 
-type decl = {T: typ, typargs: int list list, tags: Markup.property list, authentic: bool};
+type decl = {T: typ, typargs: int list list, tags: Properties.T, authentic: bool};
 type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
 
 datatype T = Consts of

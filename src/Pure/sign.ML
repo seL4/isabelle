@@ -93,9 +93,8 @@ sig
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val declare_const: Markup.property list -> bstring * typ * mixfix -> theory -> term * theory
-  val add_abbrev: string -> Markup.property list ->
-    bstring * term -> theory -> (term * term) * theory
+  val declare_const: Properties.T -> bstring * typ * mixfix -> theory -> term * theory
+  val add_abbrev: string -> Properties.T -> bstring * term -> theory -> (term * term) * theory
   val revert_abbrev: string -> string -> theory -> theory
   val add_const_constraint: string * typ option -> theory -> theory
   val primitive_class: string * class list -> theory -> theory
@@ -515,7 +514,7 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
         val T' = Logic.varifyT T;
       in ((c, T'), (c', T', mx), Const (full_c, T)) end;
     val args = map prep raw_args;
-    val tags' = tags |> AList.update (op =) (Markup.theory_nameN, Context.theory_name thy);
+    val tags' = tags |> Properties.put (Markup.theory_nameN, Context.theory_name thy);
   in
     thy
     |> map_consts (fold (Consts.declare authentic (naming_of thy) tags' o #1) args)

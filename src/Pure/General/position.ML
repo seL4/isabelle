@@ -21,9 +21,9 @@ sig
   val line_file: int -> string -> T
   val get_id: T -> string option
   val put_id: string -> T -> T
-  val of_properties: Markup.property list -> T
-  val properties_of: T -> Markup.property list
-  val default_properties: T -> Markup.property list -> Markup.property list
+  val of_properties: Properties.T -> T
+  val properties_of: T -> Properties.T
+  val default_properties: T -> Properties.T -> Properties.T
   val report: Markup.T -> T -> unit
   val str_of: T -> string
   type range = T * T
@@ -41,7 +41,7 @@ struct
 
 (* datatype position *)
 
-datatype T = Pos of (int * int * int) * Markup.property list;
+datatype T = Pos of (int * int * int) * Properties.T;
 
 fun valid (i: int) = i > 0;
 fun if_valid i i' = if valid i then i' else i;
@@ -55,7 +55,7 @@ fun line_of (Pos ((i, _, _), _)) = if valid i then SOME i else NONE;
 fun column_of (Pos ((_, j, _), _)) = if valid j then SOME j else NONE;
 fun offset_of (Pos ((_, _, k), _)) = if valid k then SOME k else NONE;
 
-fun file_of (Pos (_, props)) = AList.lookup (op =) props Markup.fileN;
+fun file_of (Pos (_, props)) = Properties.get props Markup.fileN;
 
 
 (* advance *)
@@ -97,13 +97,13 @@ fun line i = line_file i "";
 
 (* markup properties *)
 
-fun get_id (Pos (_, props)) = AList.lookup (op =) props Markup.idN;
-fun put_id id (Pos (count, props)) = Pos (count, AList.update (op =) (Markup.idN, id) props);
+fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
+fun put_id id (Pos (count, props)) = Pos (count, Properties.put (Markup.idN, id) props);
 
 fun of_properties props =
   let
     fun get name =
-      (case AList.lookup (op =) props name of
+      (case Properties.get props name of
         NONE => 0
       | SOME s => the_default 0 (Int.fromString s));
     val count = (get Markup.lineN, get Markup.columnN, get Markup.offsetN);
@@ -145,12 +145,12 @@ type range = T * T;
 val no_range = (none, none);
 
 fun encode_range (Pos (count, props), Pos ((i, j, k), _)) =
-  let val props' = props |> fold_rev (AList.update op =)
+  let val props' = props |> fold_rev Properties.put
     (value Markup.end_lineN i @ value Markup.end_columnN j @ value Markup.end_offsetN k)
   in Pos (count, props') end;
 
 fun reset_range (Pos (count, props)) =
-  let val props' = props |> fold (AList.delete op =)
+  let val props' = props |> fold Properties.remove
     [Markup.end_lineN, Markup.end_columnN, Markup.end_offsetN]
   in Pos (count, props') end;
 

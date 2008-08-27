@@ -102,11 +102,11 @@ fun index_of_string s tree idx = (case Int.fromString idx of
   NONE => raise XML (s ^ ": bad index", tree) | SOME i => i);
 
 fun type_of_xml (tree as XML.Elem ("TVar", atts, classes)) = TVar
-      ((case AList.lookup op = atts "name" of
+      ((case Properties.get atts "name" of
           NONE => raise XML ("type_of_xml: name of TVar missing", tree)
         | SOME name => name,
         the_default 0 (Option.map (index_of_string "type_of_xml" tree)
-          (AList.lookup op = atts "index"))),
+          (Properties.get atts "index"))),
        map class_of_xml classes)
   | type_of_xml (XML.Elem ("TFree", [("name", s)], classes)) =
       TFree (s, map class_of_xml classes)
@@ -119,11 +119,11 @@ fun term_of_xml (tree as XML.Elem ("Bound", [("index", idx)], [])) =
   | term_of_xml (XML.Elem ("Free", [("name", s)], [typ])) =
       Free (s, type_of_xml typ)
   | term_of_xml (tree as XML.Elem ("Var", atts, [typ])) = Var
-      ((case AList.lookup op = atts "name" of
+      ((case Properties.get atts "name" of
           NONE => raise XML ("type_of_xml: name of Var missing", tree)
         | SOME name => name,
         the_default 0 (Option.map (index_of_string "term_of_xml" tree)
-          (AList.lookup op = atts "index"))),
+          (Properties.get atts "index"))),
        type_of_xml typ)
   | term_of_xml (XML.Elem ("Const", [("name", s)], [typ])) =
       Const (s, type_of_xml typ)

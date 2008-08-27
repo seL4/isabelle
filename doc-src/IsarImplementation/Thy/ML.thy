@@ -317,7 +317,7 @@ text {*
   a theory by constant declararion and primitive definitions:
 
   \smallskip\begin{mldecls}
-  @{ML "Sign.declare_const: Markup.property list -> bstring * typ * mixfix
+  @{ML "Sign.declare_const: Properties.T -> bstring * typ * mixfix
   -> theory -> term * theory"} \\
   @{ML "Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory"}
   \end{mldecls}

@@ -131,7 +131,7 @@ sig
   val target_notation: bool -> Syntax.mode -> (term * mixfix) list -> morphism ->
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
-  val add_abbrev: string -> Markup.property list ->
+  val add_abbrev: string -> Properties.T ->
     bstring * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
   val verbose: bool ref
@@ -145,9 +145,9 @@ sig
   val prems_limit: int ref
   val pretty_ctxt: Proof.context -> Pretty.T list
   val pretty_context: Proof.context -> Pretty.T list
-  val query_type: Proof.context -> string -> Markup.property list
-  val query_const: Proof.context -> string -> Markup.property list
-  val query_class: Proof.context -> string -> Markup.property list
+  val query_type: Proof.context -> string -> Properties.T
+  val query_const: Proof.context -> string -> Properties.T
+  val query_class: Proof.context -> string -> Properties.T
 end;
 
 structure ProofContext: PROOF_CONTEXT =

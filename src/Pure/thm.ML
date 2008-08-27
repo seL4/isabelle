@@ -42,7 +42,7 @@ signature BASIC_THM =
   val rep_thm: thm ->
    {thy_ref: theory_ref,
     der: bool * Proofterm.proof,
-    tags: Markup.property list,
+    tags: Properties.T,
     maxidx: int,
     shyps: sort list,
     hyps: term list,
@@ -51,7 +51,7 @@ signature BASIC_THM =
   val crep_thm: thm ->
    {thy_ref: theory_ref,
     der: bool * Proofterm.proof,
-    tags: Markup.property list,
+    tags: Properties.T,
     maxidx: int,
     shyps: sort list,
     hyps: cterm list,
@@ -138,8 +138,8 @@ sig
   val full_prop_of: thm -> term
   val get_name: thm -> string
   val put_name: string -> thm -> thm
-  val get_tags: thm -> Markup.property list
-  val map_tags: (Markup.property list -> Markup.property list) -> thm -> thm
+  val get_tags: thm -> Properties.T
+  val map_tags: (Properties.T -> Properties.T) -> thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
   val rename_boundvars: term -> term -> thm -> thm
@@ -338,7 +338,7 @@ end;
 abstype thm = Thm of
  {thy_ref: theory_ref,         (*dynamic reference to theory*)
   der: bool * Pt.proof,        (*derivation*)
-  tags: Markup.property list,  (*additional annotations/comments*)
+  tags: Properties.T,          (*additional annotations/comments*)
   maxidx: int,                 (*maximum index of any Var or TVar*)
   shyps: sort list,            (*sort hypotheses as ordered list*)
   hyps: term list,             (*hypotheses as ordered list*)

@@ -11,8 +11,8 @@ signature LOCAL_THEORY =
 sig
   type operations
   val group_of: local_theory -> string
-  val group_properties_of: local_theory -> Markup.property list
-  val group_position_of: local_theory -> Markup.property list
+  val group_properties_of: local_theory -> Properties.T
+  val group_position_of: local_theory -> Properties.T
   val set_group: string -> local_theory -> local_theory
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory

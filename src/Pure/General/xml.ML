@@ -7,7 +7,7 @@ Basic support for XML.
 
 signature XML =
 sig
-  type attributes = Markup.property list
+  type attributes = Properties.T
   datatype tree =
       Elem of string * attributes * tree list
     | Text of string
@@ -32,7 +32,7 @@ struct
 
 (** XML trees **)
 
-type attributes = Markup.property list;
+type attributes = Properties.T;
 
 datatype tree =
     Elem of string * attributes * tree list

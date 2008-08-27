@@ -46,9 +46,9 @@ sig
   val proof_attributes: attribute list -> Proof.context * thm -> Proof.context * thm
   val no_attributes: 'a -> 'a * 'b list
   val simple_fact: 'a -> ('a * 'b list) list
-  val tag_rule: Markup.property -> thm -> thm
+  val tag_rule: Properties.property -> thm -> thm
   val untag_rule: string -> thm -> thm
-  val tag: Markup.property -> attribute
+  val tag: Properties.property -> attribute
   val untag: string -> attribute
   val position_of: thm -> Position.T
   val default_position: Position.T -> thm -> thm
@@ -71,7 +71,7 @@ sig
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
   val kind_internal: attribute
-  val has_internal: Markup.property list -> bool
+  val has_internal: Properties.property list -> bool
   val is_internal: thm -> bool
 end;
 
@@ -337,10 +337,9 @@ fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name
 
 (* theorem groups *)
 
-fun get_group thm = AList.lookup (op =) (Thm.get_tags thm) Markup.groupN;
+fun get_group thm = Properties.get (Thm.get_tags thm) Markup.groupN;
 
-fun put_group name =
-  if name = "" then I else Thm.map_tags (AList.update (op =) (Markup.groupN, name));
+fun put_group name = if name = "" then I else Thm.map_tags (Properties.put (Markup.groupN, name));
 
 fun group name = rule_attribute (K (put_group name));
 
@@ -355,7 +354,7 @@ val lemmaK = "lemma";
 val corollaryK = "corollary";
 val internalK = Markup.internalK;
 
-fun the_kind thm = the (AList.lookup (op =) (Thm.get_tags thm) Markup.kindN);
+fun the_kind thm = the (Properties.get (Thm.get_tags thm) Markup.kindN);
 
 val has_kind = can the_kind;
 val get_kind = the_default "" o try the_kind;
