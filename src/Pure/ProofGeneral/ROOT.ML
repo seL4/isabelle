@@ -14,7 +14,6 @@ use "pgip_output.ML";
 use "pgip.ML";
 
 use "pgip_isabelle.ML";
-use "pgml_isabelle.ML";
 
 (use
   |> setmp Proofterm.proofs 1
