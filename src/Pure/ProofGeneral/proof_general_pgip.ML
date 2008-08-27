@@ -763,7 +763,7 @@ fun parsescript (Parsescript vs) =
         val location = #location vs   (* TODO: extract position *)
 
         val _ = start_delay_msgs ()   (* gather parsing errs/warns *)
-		    val doc = PgipParser.pgip_parser Position.none text
+        val doc = PgipParser.pgip_parser Position.none text
         val errs = end_delayed_msgs ()
 
         val sysattrs = PgipTypes.opt_attr "systemdata" systemdata

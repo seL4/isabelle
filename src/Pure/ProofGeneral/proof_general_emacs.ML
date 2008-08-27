@@ -178,7 +178,7 @@ fun tell_thm_deps ths =
     let
       val names = map Thm.get_name_hint (filter Thm.has_name_hint ths);
       val deps = Symtab.keys (fold Proofterm.thms_of_proof'
-				   (map Thm.proof_of ths) Symtab.empty);
+                                   (map Thm.proof_of ths) Symtab.empty);
     in
       if null names orelse null deps then ()
       else thm_deps_message (spaces_quote names, spaces_quote deps)

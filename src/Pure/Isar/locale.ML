@@ -1595,10 +1595,10 @@ fun join_eqns get_reg prep_id ctxt id eqns =
     val id' = prep_id id
     val eqns' = case get_reg id'
       of NONE => eqns
-	| SOME (_, _, eqns') => Termtab.join (fn t => fn (_, e) => e) (eqns, eqns')
+        | SOME (_, _, eqns') => Termtab.join (fn t => fn (_, e) => e) (eqns, eqns')
             handle Termtab.DUP t =>
-	      error ("Conflicting interpreting equations for term " ^
-		quote (Syntax.string_of_term ctxt t))
+              error ("Conflicting interpreting equations for term " ^
+                quote (Syntax.string_of_term ctxt t))
   in ((id', eqns'), eqns') end;
 
 

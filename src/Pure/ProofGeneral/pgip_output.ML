@@ -32,21 +32,21 @@ sig
                                prefs: PgipTypes.preference list }
     | Prefval             of { name: string, value: string }
     | Setrefs             of { url: PgipTypes.pgipurl option,
-			       thyname: PgipTypes.objname option,
-			       objtype: PgipTypes.objtype option,
-			       name: PgipTypes.objname option,
-			       idtables: PgipTypes.idtable list,
-			       fileurls : PgipTypes.pgipurl list }
+                               thyname: PgipTypes.objname option,
+                               objtype: PgipTypes.objtype option,
+                               name: PgipTypes.objname option,
+                               idtables: PgipTypes.idtable list,
+                               fileurls : PgipTypes.pgipurl list }
     | Idvalue             of { thyname: PgipTypes.objname option,
-			       objtype: PgipTypes.objtype, 
-			       name: PgipTypes.objname, 
-			       text: XML.tree list }
+                               objtype: PgipTypes.objtype, 
+                               name: PgipTypes.objname, 
+                               text: XML.tree list }
     | Informguise         of { file : PgipTypes.pgipurl option,  
                                theory: PgipTypes.objname option, 
                                theorem: PgipTypes.objname option, 
                                proofpos: int option }
     | Parseresult         of { attrs: XML.attributes, doc:PgipMarkup.pgipdocument, 
-			       errs: XML.tree list } (* errs to become PGML *)
+                               errs: XML.tree list } (* errs to become PGML *)
     | Usespgip            of { version: string, 
                                pgipelems: (string * bool * string list) list }
     | Usespgml            of { version: string }
@@ -67,10 +67,10 @@ struct
 open PgipTypes
 
 datatype pgipoutput = 
-	 Normalresponse      of { content: XML.tree list }
+         Normalresponse      of { content: XML.tree list }
        | Errorresponse       of { fatality: fatality, 
                                   location: location option, 
-				  content: XML.tree list }
+                                  content: XML.tree list }
        | Informfileloaded    of { url: Path.T, completed: bool }
        | Informfileoutdated  of { url: Path.T, completed: bool }
        | Informfileretracted of { url: Path.T, completed: bool }
@@ -84,21 +84,21 @@ datatype pgipoutput =
        | Hasprefs            of { prefcategory: string option, prefs: preference list }
        | Prefval             of { name: string, value: string }
        | Idvalue             of { thyname: PgipTypes.objname option,
-				  objtype: PgipTypes.objtype, 
-				  name: PgipTypes.objname, 
-				  text: XML.tree list }
+                                  objtype: PgipTypes.objtype, 
+                                  name: PgipTypes.objname, 
+                                  text: XML.tree list }
        | Setrefs             of { url: PgipTypes.pgipurl option,
-				  thyname: PgipTypes.objname option,
-				  objtype: PgipTypes.objtype option,
-				  name: PgipTypes.objname option,
-				  idtables: PgipTypes.idtable list,
-				  fileurls : PgipTypes.pgipurl list }
+                                  thyname: PgipTypes.objname option,
+                                  objtype: PgipTypes.objtype option,
+                                  name: PgipTypes.objname option,
+                                  idtables: PgipTypes.idtable list,
+                                  fileurls : PgipTypes.pgipurl list }
        | Informguise         of { file : PgipTypes.pgipurl option,  
-				  theory: PgipTypes.objname option, 
-				  theorem: PgipTypes.objname option, 
-				  proofpos: int option }
+                                  theory: PgipTypes.objname option, 
+                                  theorem: PgipTypes.objname option, 
+                                  proofpos: int option }
        | Parseresult         of { attrs: XML.attributes, doc: PgipMarkup.pgipdocument,
-				  errs: XML.tree list } (* errs to become PGML *)
+                                  errs: XML.tree list } (* errs to become PGML *)
        | Usespgip            of { version: string, 
                                   pgipelems: (string * bool * string list) list }
        | Usespgml            of { version: string }
@@ -119,7 +119,7 @@ fun normalresponse (Normalresponse vs) =
         val content = #content vs
     in
         XML.Elem ("normalresponse", 
-		  [],
+                  [],
                   content)
     end
 
@@ -141,9 +141,9 @@ fun informfileloaded (Informfileloaded vs) =
         val completed = #completed vs
     in
         XML.Elem ("informfileloaded", 
-		  attrs_of_pgipurl url @ 
-		  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
-		  [])
+                  attrs_of_pgipurl url @ 
+                  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
+                  [])
     end
 
 fun informfileoutdated (Informfileoutdated vs) =
@@ -152,9 +152,9 @@ fun informfileoutdated (Informfileoutdated vs) =
         val completed = #completed vs
     in
         XML.Elem ("informfileoutdated", 
-		  attrs_of_pgipurl url @ 
-		  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
-		  [])
+                  attrs_of_pgipurl url @ 
+                  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
+                  [])
     end
 
 fun informfileretracted (Informfileretracted vs) =
@@ -163,9 +163,9 @@ fun informfileretracted (Informfileretracted vs) =
         val completed = #completed vs
     in
         XML.Elem ("informfileretracted", 
-		  attrs_of_pgipurl url @ 
-		  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
-		  [])
+                  attrs_of_pgipurl url @ 
+                  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
+                  [])
     end
 
 fun metainforesponse (Metainforesponse vs) =
@@ -211,21 +211,21 @@ fun setids (Setids vs) =
 
 fun setrefs (Setrefs vs) =
     let
-	val url = #url vs
-	val thyname = #thyname vs
-	val objtype = #objtype vs
-	val name = #name vs
+        val url = #url vs
+        val thyname = #thyname vs
+        val objtype = #objtype vs
+        val name = #name vs
         val idtables = #idtables vs
         val fileurls = #fileurls vs
-	fun fileurl_to_xml url = XML.Elem ("fileurl", attrs_of_pgipurl url, [])
+        fun fileurl_to_xml url = XML.Elem ("fileurl", attrs_of_pgipurl url, [])
     in
         XML.Elem ("setrefs",
-		  (Option.getOpt (Option.map attrs_of_pgipurl url,[])) @ 
-		  (Option.getOpt (Option.map attrs_of_objtype objtype,[])) @
-		  (opt_attr "thyname" thyname) @
-		  (opt_attr "name" name),
-		  (map idtable_to_xml idtables) @ 
-		  (map fileurl_to_xml fileurls))
+                  (Option.getOpt (Option.map attrs_of_pgipurl url,[])) @ 
+                  (Option.getOpt (Option.map attrs_of_objtype objtype,[])) @
+                  (opt_attr "thyname" thyname) @
+                  (opt_attr "name" name),
+                  (map idtable_to_xml idtables) @ 
+                  (map fileurl_to_xml fileurls))
     end
 
 fun addids (Addids vs) =
@@ -260,16 +260,16 @@ fun prefval (Prefval vs) =
 
 fun idvalue (Idvalue vs) =
     let 
-	val objtype_attrs = attrs_of_objtype (#objtype vs)
-	val thyname = #thyname vs
+        val objtype_attrs = attrs_of_objtype (#objtype vs)
+        val thyname = #thyname vs
         val name = #name vs
         val text = #text vs
     in
         XML.Elem("idvalue", 
-		 objtype_attrs @
-		 (opt_attr "thyname" thyname) @
-		 (attr "name" name),
-		 text)
+                 objtype_attrs @
+                 (opt_attr "thyname" thyname) @
+                 (attr "name" name),
+                 text)
     end
 
 fun informguise (Informguise vs) =
@@ -295,7 +295,7 @@ fun parseresult (Parseresult vs) =
         val attrs = #attrs vs
         val doc = #doc vs
         val errs = #errs vs
-	val xmldoc = PgipMarkup.output_doc doc
+        val xmldoc = PgipMarkup.output_doc doc
     in 
         XML.Elem("parseresult", attrs, errs @ xmldoc)
     end

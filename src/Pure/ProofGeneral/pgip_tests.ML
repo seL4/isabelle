@@ -12,7 +12,7 @@ local
 fun asseq_p toS a b =
     if a=b then ()
     else error("PGIP test: expected these two values to be equal:\n" ^
-	       (toS a) ^"\n and: \n" ^ (toS b))
+               (toS a) ^"\n and: \n" ^ (toS b))
 
 val asseqx = asseq_p XML.string_of
 val asseqs = asseq_p I
@@ -40,18 +40,18 @@ val _ = asseqs (pgval_to_string (read_pgval Pgipstring "stringvalue")) "stringva
 
 local
     val choices = Pgipchoice [Pgipdtype (NONE,Pgipbool), Pgipdtype (NONE,Pgipnat), 
-			      Pgipdtype (NONE,Pgipnull), Pgipdtype (NONE,Pgipconst "foo")]
+                              Pgipdtype (NONE,Pgipnull), Pgipdtype (NONE,Pgipconst "foo")]
 in
 val _ = asseqs (pgval_to_string (read_pgval choices "45")) "45";
 val _ = asseqs (pgval_to_string (read_pgval choices "foo")) "foo";
 val _ = asseqs (pgval_to_string (read_pgval choices "true")) "true";
 val _ = asseqs (pgval_to_string (read_pgval choices "")) "";
 val _ = (asseqs (pgval_to_string (read_pgval choices "-37")) "-37"; 
-	 error "pgip_tests: should fail") handle PGIP _ => ()
+         error "pgip_tests: should fail") handle PGIP _ => ()
 end
 
 val _ = asseqx (haspref {name="provewithgusto",descr=SOME "use energetic proofs",
-		 default=SOME "true", pgiptype=Pgipbool})
+                 default=SOME "true", pgiptype=Pgipbool})
        (XML.parse "<haspref name='provewithgusto' descr='use energetic proofs' default='true'><pgipbool/></haspref>");
 end
 
@@ -60,8 +60,8 @@ end
 local
 
 fun e str = case XML.parse str of 
-		(XML.Elem args) => args
-	      | _ => error("Expected to get an XML Element")
+                (XML.Elem args) => args
+              | _ => error("Expected to get an XML Element")
 
 open PgipInput;
 open PgipTypes;
@@ -83,7 +83,7 @@ val _ = asseqi "<startquiet/>" (SOME (Startquiet()));
 val _ = asseqi "<stopquiet/>" (SOME (Stopquiet()));
 *)
 val _ = asseqi "<askrefs thyname='foo' objtype='theory'/>" (SOME (Askrefs {url=NONE, thyname=SOME "foo",
-									  objtype=SOME ObjTheory,name=NONE}));
+                                                                          objtype=SOME ObjTheory,name=NONE}));
 val _ = asseqi "<otherelt/>" NONE;
 
 end
