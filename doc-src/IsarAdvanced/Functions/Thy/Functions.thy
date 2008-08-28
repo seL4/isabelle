@@ -313,9 +313,7 @@ text {*
 
 
 text {*
-
-
-  The the key to this error message is the matrix at the bottom. The rows
+  The key to this error message is the matrix at the bottom. The rows
   of that matrix correspond to the different recursive calls (In our
   case, there is just one). The columns are the function's arguments 
   (expressed through different measure functions, which map the
@@ -484,7 +482,7 @@ where
 
 text {* 
   This definition is useful, because the equations can directly be used
-  as simplification rules rules. But the patterns overlap: For example,
+  as simplification rules. But the patterns overlap: For example,
   the expression @{term "And T T"} is matched by both the first and
   the second equation. By default, Isabelle makes the patterns disjoint by
   splitting them up, producing instances:
@@ -596,7 +594,7 @@ txt {*
   @{text arith} method cannot handle this specific form of an
   elimination rule. However, we can use the method @{text
   "atomize_elim"} to do an ad-hoc conversion to a disjunction of
-  existentials, which can then be soved by the arithmetic decision procedure.
+  existentials, which can then be solved by the arithmetic decision procedure.
   Pattern compatibility and termination are automatic as usual.
 *}
 (*<*)ML_val "goals_limit := 10"(*>*)
