@@ -243,7 +243,7 @@ lemma basis_fun_lemma1:
  apply (rule is_lub_thelub0)
   apply (rule basis_fun_lemma0, erule f_mono)
  apply (rule is_ubI, clarsimp, rename_tac a)
- apply (rule sq_le.trans_less [OF f_mono [OF take_chain]])
+ apply (rule trans_less [OF f_mono [OF take_chain]])
  apply (rule is_ub_thelub0)
   apply (rule basis_fun_lemma0, erule f_mono)
  apply simp
@@ -268,7 +268,7 @@ lemma basis_fun_lemma2:
  apply (rule is_lub_thelub0)
   apply (rule basis_fun_lemma0, erule f_mono)
  apply (rule is_ubI, clarsimp, rename_tac a)
- apply (rule sq_le.trans_less [OF f_mono [OF take_less]])
+ apply (rule trans_less [OF f_mono [OF take_less]])
  apply (erule (1) ub_imageD)
 done
 
@@ -371,7 +371,7 @@ lemma basis_fun_mono:
  apply (rule is_lub_thelub0)
   apply (rule basis_fun_lemma, erule f_mono)
  apply (rule ub_imageI, rename_tac a)
- apply (rule sq_le.trans_less [OF less])
+ apply (rule trans_less [OF less])
  apply (rule is_ub_thelub0)
   apply (rule basis_fun_lemma, erule g_mono)
  apply (erule imageI)

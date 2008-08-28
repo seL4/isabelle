@@ -803,8 +803,8 @@ val init_arith_data =
     neqE = [@{thm linorder_neqE_nat}, @{thm linorder_neqE_ordered_idom}],
     simpset = HOL_basic_ss
       addsimps
-       [@{thm "monoid_add_class.zero_plus.add_0_left"},
-        @{thm "monoid_add_class.zero_plus.add_0_right"},
+       [@{thm "monoid_add_class.add_0_left"},
+        @{thm "monoid_add_class.add_0_right"},
         @{thm "Zero_not_Suc"}, @{thm "Suc_not_Zero"}, @{thm "le_0_eq"}, @{thm "One_nat_def"},
         @{thm "order_less_irrefl"}, @{thm "zero_neq_one"}, @{thm "zero_less_one"},
         @{thm "zero_le_one"}, @{thm "zero_neq_one"} RS not_sym, @{thm "not_one_le_zero"},

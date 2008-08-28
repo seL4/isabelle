@@ -1571,22 +1571,25 @@ fun print_locale thy show_facts imports body =
 
 (* naming of interpreted theorems *)
 
-fun global_note_prefix_i kind loc (fully_qualified, prfx) params args thy =
+fun add_param_prefixss s =
+  (map o apfst o apfst) (NameSpace.qualified s);
+fun drop_param_prefixss args = (map o apfst o apfst)
+  (fn "" => "" | s => (NameSpace.implode o tl o NameSpace.explode) s) args;
+
+fun global_note_prefix_i kind loc (fully_qualified, prfx) args thy =
   thy
   |> Sign.qualified_names
   |> Sign.add_path (NameSpace.base loc ^ "_locale")
   |> (if fully_qualified then Sign.sticky_prefix prfx else Sign.add_path prfx)
-  |> (if fully_qualified then Sign.add_path (space_implode "_" params) else I)
-  |> PureThy.note_thmss kind args
+  |> PureThy.note_thmss kind (if fully_qualified then args else drop_param_prefixss args)
   ||> Sign.restore_naming thy;
 
-fun local_note_prefix_i kind loc (fully_qualified, prfx) params args ctxt =
+fun local_note_prefix_i kind loc (fully_qualified, prfx) args ctxt =
   ctxt
   |> ProofContext.qualified_names
   |> ProofContext.add_path (NameSpace.base loc ^ "_locale")
   |> (if fully_qualified then ProofContext.sticky_prefix prfx else ProofContext.add_path prfx)
-  |> (if fully_qualified then ProofContext.add_path (space_implode "_" params) else I)
-  |> ProofContext.note_thmss_i kind args
+  |> ProofContext.note_thmss_i kind (if fully_qualified then args else drop_param_prefixss args)
   ||> ProofContext.restore_naming ctxt;
 
 
@@ -1687,8 +1690,10 @@ fun note_thmss_registrations target (kind, args) thy =
       let
         val (insts, prems, eqns) = collect_global_witnesses thy imp parms ids vts;
         val attrib = Attrib.attribute_i thy;
-        val args' = interpret_args thy prfx insts prems eqns atts2 exp attrib args;
-      in global_note_prefix_i kind target (fully_qualified, prfx) (map fst parms) args' thy |> snd end;
+        val args' = args
+          |> interpret_args thy prfx insts prems eqns atts2 exp attrib
+          |> add_param_prefixss (space_implode "_" (map fst parms));
+      in global_note_prefix_i kind target (fully_qualified, prfx) args' thy |> snd end;
   in fold activate regs thy end;
 
 
@@ -2091,7 +2096,7 @@ fun gen_activate_facts_elemss mk_ctxt get_reg note note_interp attrib put_reg te
           val facts' = interpret_args (ProofContext.theory_of ctxt) prfx
               (Symtab.empty, Symtab.empty) prems eqns atts
               exp (attrib thy_ctxt) facts;
-        in snd (note_interp kind loc (fully_qualified, prfx) [] facts' thy_ctxt) end
+        in snd (note_interp kind loc (fully_qualified, prfx) facts' thy_ctxt) end
       | activate_elem _ _ _ _ thy_ctxt = thy_ctxt;
 
     fun activate_elems all_eqns ((id, _), elems) thy_ctxt =
@@ -2266,6 +2271,7 @@ fun gen_prep_registration mk_ctxt test_reg activate
       ((n, map (Morphism.term (inst_morphism $> fst morphs)) ps),
         map (fn Int e => Element.morph_ctxt inst_morphism e) elems)
       |> apfst (fn id => (id, map_mode (map (Element.morph_witness inst_morphism)) mode)));
+
     (* equations *)
     val eqn_elems = if null eqns then []
       else [(Library.last_elem inst_elemss |> fst |> fst, eqns)];
@@ -2378,7 +2384,7 @@ fun prep_registration_in_locale target expr thy =
                     |> map (apsnd (map (apfst (map (disch o Element.inst_thm thy insts o satisfy)))))
                 in
                   thy
-                  |> global_note_prefix_i kind loc (fully_qualified, prfx) [] facts'
+                  |> global_note_prefix_i kind loc (fully_qualified, prfx) facts'
                   |> snd
                 end
               | activate_elem _ _ thy = thy;

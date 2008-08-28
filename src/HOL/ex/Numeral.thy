@@ -397,7 +397,7 @@ lemma of_num_one_plus [numeral]:
 lemma of_num_plus [numeral]:
   "of_num m + of_num n = of_num (m + n)"
   by (induct n rule: num_induct)
-    (simp_all add: Dig_plus of_num_one semigroup_add_class.plus.add_assoc [symmetric, of m]
+    (simp_all add: Dig_plus of_num_one semigroup_add_class.add_assoc [symmetric, of m]
     add_ac of_num_plus_one [symmetric])
 
 lemma of_num_times_one [numeral]:
@@ -412,7 +412,7 @@ lemma of_num_times [numeral]:
   "of_num m * of_num n = of_num (m * n)"
   by (induct n rule: num_induct)
     (simp_all add: of_num_plus [symmetric]
-    semiring_class.plus_times.right_distrib right_distrib of_num_one)
+    semiring_class.right_distrib right_distrib of_num_one)
 
 end
 
