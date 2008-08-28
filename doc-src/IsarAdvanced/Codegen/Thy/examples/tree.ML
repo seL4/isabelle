@@ -15,8 +15,11 @@ end; (*struct HOL*)
 structure Orderings = 
 struct
 
-type 'a order = {Orderings__ord_order : 'a HOL.ord};
-fun ord_order (A_:'a order) = #Orderings__ord_order A_;
+type 'a preorder = {Orderings__ord_preorder : 'a HOL.ord};
+fun ord_preorder (A_:'a preorder) = #Orderings__ord_preorder A_;
+
+type 'a order = {Orderings__preorder_order : 'a preorder};
+fun preorder_order (A_:'a order) = #Orderings__preorder_order A_;
 
 type 'a linorder = {Orderings__order_linorder : 'a order};
 fun order_linorder (A_:'a linorder) = #Orderings__order_linorder A_;
@@ -42,7 +45,11 @@ and less_eq_nat (Suc m) n = less_nat m n
 
 val ord_nat = {less_eq = less_eq_nat, less = less_nat} : nat HOL.ord;
 
-val order_nat = {Orderings__ord_order = ord_nat} : nat Orderings.order;
+val preorder_nat = {Orderings__ord_preorder = ord_nat} :
+  nat Orderings.preorder;
+
+val order_nat = {Orderings__preorder_order = preorder_nat} :
+  nat Orderings.order;
 
 val linorder_nat = {Orderings__order_linorder = order_nat} :
   nat Orderings.linorder;
@@ -57,15 +64,20 @@ datatype ('a, 'b) searchtree =
   Leaf of 'a * 'b;
 
 fun update (A1_, A2_) (it, entry) (Branch (t1, key, t2)) =
-  (if HOL.less_eq ((Orderings.ord_order o Orderings.order_linorder) A2_)
+  (if HOL.less_eq
+        ((Orderings.ord_preorder o Orderings.preorder_order o
+           Orderings.order_linorder)
+          A2_)
         it key
     then Branch (update (A1_, A2_) (it, entry) t1, key, t2)
     else Branch (t1, key, update (A1_, A2_) (it, entry) t2))
   | update (A1_, A2_) (it, entry) (Leaf (key, vala)) =
     (if HOL.eqop A1_ it key then Leaf (key, entry)
       else (if HOL.less_eq
-                 ((Orderings.ord_order o Orderings.order_linorder) A2_) it
-                 key
+                 ((Orderings.ord_preorder o Orderings.preorder_order o
+                    Orderings.order_linorder)
+                   A2_)
+                 it key
              then Branch (Leaf (it, entry), it, Leaf (key, vala))
              else Branch (Leaf (key, vala), it, Leaf (it, entry))));
 
