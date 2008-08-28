@@ -24,7 +24,7 @@ signature ISABELLE_PROCESS =
 sig
   val isabelle_processN: string
   val xmlN: string
-  val init: unit -> unit
+  val init: string -> unit
 end;
 
 structure IsabelleProcess: ISABELLE_PROCESS =
@@ -70,10 +70,13 @@ and get_pos (elem as XML.Elem (name, atts, ts)) =
       else message_pos ts
   | get_pos _ = NONE;
 
+fun output out_stream s = NAMED_CRITICAL "IO" (fn () =>
+  (TextIO.output (out_stream, s); TextIO.output (out_stream, "\n"); TextIO.flushOut out_stream));
+
 in
 
-fun message _ _ "" = ()
-  | message ch class body =
+fun message _ _ _ "" = ()
+  | message out_stream ch class body =
       let
         val (txt, pos) =
           let val ts = YXML.parse_body body
@@ -81,37 +84,44 @@ fun message _ _ "" = ()
         val props =
           Position.properties_of (Position.thread_data ())
           |> Position.default_properties pos;
-      in Output.writeln_default (special ch ^ message_props props ^ txt ^ special_end) end;
+      in output out_stream (special ch ^ message_props props ^ txt ^ special_end) end;
 
-fun init_message () =
+fun init_message out_stream =
   let
     val pid = (Markup.pidN, string_of_pid (Posix.ProcEnv.getpid ()));
     val session = (Markup.sessionN, List.last (Session.id ()) handle List.Empty => "unknown");
     val text = message_text Markup.initN [XML.Text (Session.welcome ())];
-  in Output.writeln_default (special "H" ^ message_props [pid, session] ^ text ^ special_end) end;
+  in output out_stream (special "H" ^ message_props [pid, session] ^ text ^ special_end) end;
 
 end;
 
 
 (* channels *)
 
-fun setup_channels () =
- (Output.writeln_fn  := message "A" Markup.writelnN;
-  Output.priority_fn := message "B" Markup.priorityN;
-  Output.tracing_fn  := message "C" Markup.tracingN;
-  Output.warning_fn  := message "D" Markup.warningN;
-  Output.error_fn    := message "E" Markup.errorN;
-  Output.debug_fn    := message "F" Markup.debugN;
-  Output.prompt_fn   := message "G" Markup.promptN;
-  Output.status_fn   := message "I" Markup.statusN);
+fun setup_channels out =
+  let val out_stream =
+    if out = "" orelse out = "-" then TextIO.stdOut
+    else
+      let val path = File.platform_path (Path.explode out)
+      in TextIO.openOut path (* before OS.FileSys.remove path *) end;
+  in
+    Output.writeln_fn  := message out_stream "A" Markup.writelnN;
+    Output.priority_fn := message out_stream "B" Markup.priorityN;
+    Output.tracing_fn  := message out_stream "C" Markup.tracingN;
+    Output.warning_fn  := message out_stream "D" Markup.warningN;
+    Output.error_fn    := message out_stream "E" Markup.errorN;
+    Output.debug_fn    := message out_stream "F" Markup.debugN;
+    Output.prompt_fn   := message out_stream "G" Markup.promptN;
+    Output.status_fn   := message out_stream "I" Markup.statusN;
+    out_stream
+  end;
 
 
 (* init *)
 
-fun init () =
+fun init out =
  (change print_mode (update (op =) isabelle_processN);
-  setup_channels ();
-  init_message ();
+  setup_channels out |> init_message;
   Isar.toplevel_loop {init = true, welcome = false, sync = true, secure = true});
 
 end;
