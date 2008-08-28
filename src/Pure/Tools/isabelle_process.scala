@@ -11,15 +11,12 @@ package isabelle
 import java.util.Properties
 import java.util.concurrent.LinkedBlockingQueue
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
-  InputStream, OutputStream, FileInputStream, IOException}
+  InputStream, OutputStream, IOException}
 
 import isabelle.{Symbol, XML}
 
 
 object IsabelleProcess {
-
-  private val charset = "UTF-8"
-
 
   /* results */
 
@@ -176,7 +173,7 @@ class IsabelleProcess(args: String*) {
 
   private class StdinThread(out_stream: OutputStream) extends Thread("isabelle: stdin") {
     override def run() = {
-      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, charset))
+      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, IsabelleSystem.charset))
       var finished = false
       while (!finished) {
         try {
@@ -206,7 +203,7 @@ class IsabelleProcess(args: String*) {
 
   private class StdoutThread(in_stream: InputStream) extends Thread("isabelle: stdout") {
     override def run() = {
-      val reader = new BufferedReader(new InputStreamReader(in_stream, charset))
+      val reader = new BufferedReader(new InputStreamReader(in_stream, IsabelleSystem.charset))
       var result = new StringBuilder(100)
 
       var finished = false
@@ -244,7 +241,7 @@ class IsabelleProcess(args: String*) {
 
   private class MessageThread(fifo: String) extends Thread("isabelle: messages") {
     override def run() = {
-      val reader = new BufferedReader(new InputStreamReader(new FileInputStream(fifo), charset))
+      val reader = IsabelleSystem.fifo_reader(fifo)
       var kind: Kind.Value = null
       var props: Properties = null
       var result = new StringBuilder
@@ -344,7 +341,8 @@ class IsabelleProcess(args: String*) {
     val fifo =
       try {
         val mkfifo = IsabelleSystem.exec(List(IsabelleSystem.getenv_strict("ISATOOL"), "mkfifo"))
-        val fifo = new BufferedReader(new InputStreamReader(mkfifo.getInputStream, charset)).readLine
+        val fifo = new BufferedReader(new
+          InputStreamReader(mkfifo.getInputStream, IsabelleSystem.charset)).readLine
         if (mkfifo.waitFor == 0) fifo
         else error("Failed to create message fifo")
       }
