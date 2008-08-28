@@ -150,19 +150,14 @@ end;
 (*scalable iterator -- avoid size limit of TextIO.inputAll, and overhead of many TextIO.inputLine*)
 fun fold_lines f path a = open_input (fn file =>
   let
-    val first_line = first_field "\n";
-    fun split str x =
-      (case first_line str of
-        SOME (line, rest) => split rest (f line x)
-      | NONE => read (Buffer.add str Buffer.empty) x)
-    and read buf x =
-      let val str = TextIO.input file in
-        (case first_line str of
-          SOME (line, rest) => split rest (f (Buffer.content (Buffer.add line buf)) x)
-        | NONE =>
-            if str = "" then (case Buffer.content buf of "" => x | line => f line x)
-            else read (Buffer.add str buf) x)
-      end;
+    val split = split_last o String.fields (fn c => str c = "\n");
+    fun read buf x =
+      (case split (TextIO.input file) of
+        ([], "") => (case Buffer.content buf of "" => x | line => f line x)
+      | ([], rest) => read (Buffer.add rest buf) x
+      | (line :: lines, rest) =>
+          read_rest (lines, rest) (f (Buffer.content (Buffer.add line buf)) x))
+    and read_rest (lines, rest) x = read (Buffer.add rest Buffer.empty) (fold f lines x);
   in read Buffer.empty a end) path;
 
 val read = open_input TextIO.inputAll;
