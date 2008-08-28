@@ -8,15 +8,18 @@ Isabelle system support -- basic Cygwin/Posix compatibility.
 package isabelle
 
 import java.util.regex.{Pattern, Matcher}
-import java.io.File
+import java.io.{BufferedReader, InputStreamReader, FileInputStream, File}
 
 
 object IsabelleSystem {
 
+  val charset = "UTF-8"
+
+
   /* Isabelle environment settings */
 
   def getenv(name: String) = {
-    val value = System.getenv(name)
+    val value = System.getenv(if (name == "HOME") "HOME_JVM" else name)
     if (value != null) value else ""
   }
 
@@ -69,6 +72,14 @@ object IsabelleSystem {
     }
     result_path.toString
   }
+
+
+  /* named pipes */
+
+  def fifo_reader(fifo: String) =
+    if (is_cygwin()) new BufferedReader(new InputStreamReader(Runtime.getRuntime.exec(
+      Array(platform_path("/bin/cat"), fifo)).getInputStream, charset))
+    else new BufferedReader(new InputStreamReader(new FileInputStream(fifo), charset))
 
 
   /* processes */
