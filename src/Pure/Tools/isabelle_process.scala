@@ -10,12 +10,16 @@ package isabelle
 
 import java.util.Properties
 import java.util.concurrent.LinkedBlockingQueue
-import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter, IOException}
+import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
+  InputStream, OutputStream, FileInputStream, IOException}
 
 import isabelle.{Symbol, XML}
 
 
 object IsabelleProcess {
+
+  private val charset = "UTF-8"
+
 
   /* results */
 
@@ -24,7 +28,6 @@ object IsabelleProcess {
     // Posix channels/events
     val STDIN = Value("STDIN")
     val STDOUT = Value("STDOUT")
-    val STDERR = Value("STDERR")
     val SIGNAL = Value("SIGNAL")
     val EXIT = Value("EXIT")
     // Isabelle messages
@@ -41,8 +44,7 @@ object IsabelleProcess {
     val SYSTEM = Value("SYSTEM")
     //}}}
     def is_raw(kind: Value) =
-      kind == STDOUT ||
-      kind == STDERR
+      kind == STDOUT
     def is_control(kind: Value) =
       kind == SIGNAL ||
       kind == EXIT ||
@@ -137,13 +139,14 @@ class IsabelleProcess(args: String*) {
 
   private val output = new LinkedBlockingQueue[String]
 
-  def output_raw(text: String) = synchronized {
+  private def output_raw(text: String) = synchronized {
     if (proc == null) error("Cannot output to Isabelle: no process")
     if (closing) error("Cannot output to Isabelle: already closing")
     output.put(text)
   }
 
-  def output_sync(text: String) = output_raw(" \\<^sync>\n; " + text + " \\<^sync>;\n")
+  private def output_sync(text: String) =
+    output_raw(" \\<^sync>\n; " + text + " \\<^sync>;\n")
 
 
   def command(text: String) =
@@ -171,8 +174,9 @@ class IsabelleProcess(args: String*) {
 
   /* stdin */
 
-  private class StdinThread(writer: BufferedWriter) extends Thread {
+  private class StdinThread(out_stream: OutputStream) extends Thread("isabelle: stdin") {
     override def run() = {
+      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, charset))
       var finished = false
       while (!finished) {
         try {
@@ -200,99 +204,9 @@ class IsabelleProcess(args: String*) {
 
   /* stdout */
 
-  private class StdoutThread(reader: BufferedReader) extends Thread {
+  private class StdoutThread(in_stream: InputStream) extends Thread("isabelle: stdout") {
     override def run() = {
-      var kind = Kind.STDOUT
-      var props: Properties = null
-      var result = new StringBuilder
-
-      var finished = false
-      while (!finished) {
-        try {
-          if (kind == Kind.STDOUT) {
-            //{{{ Char mode
-            var c = -1
-            var done = false
-            while (!done && (result.length == 0 || reader.ready)) {
-              c = reader.read
-              if (c > 0 && c != 2) result.append(c.asInstanceOf[Char])
-              else done = true
-            }
-            if (result.length > 0) {
-              put_result(kind, null, result.toString)
-              result.length = 0
-            }
-            if (c == -1) {
-              reader.close
-              finished = true
-              try_close()
-            }
-            else if (c == 2) {
-              reader.read match {
-                case 'A' => kind = Kind.WRITELN
-                case 'B' => kind = Kind.PRIORITY
-                case 'C' => kind = Kind.TRACING
-                case 'D' => kind = Kind.WARNING
-                case 'E' => kind = Kind.ERROR
-                case 'F' => kind = Kind.DEBUG
-                case 'G' => kind = Kind.PROMPT
-                case 'H' => kind = Kind.INIT
-                case 'I' => kind = Kind.STATUS
-                case _ => kind = Kind.STDOUT
-              }
-              props = null
-            }
-            //}}}
-          }
-          else {
-            //{{{ Line mode
-            val line = reader.readLine
-            if (line == null) {
-              reader.close
-              finished = true
-              try_close()
-            }
-            else {
-              val len = line.length
-              // property
-              if (line.endsWith("\u0002,")) {
-                val i = line.indexOf('=')
-                if (i > 0) {
-                  val name = line.substring(0, i)
-                  val value = line.substring(i + 1, len - 2)
-                  if (props == null) props = new Properties
-                  if (!props.containsKey(name)) props.setProperty(name, value)
-                }
-              }
-              // last text line
-              else if (line.endsWith("\u0002.")) {
-                result.append(line.substring(0, len - 2))
-                put_result(kind, props, result.toString)
-                result.length = 0
-                kind = Kind.STDOUT
-              }
-              // text line
-              else {
-                result.append(line)
-                result.append('\n')
-              }
-            }
-            //}}}
-          }
-        }
-        catch {
-          case e: IOException => put_result(Kind.SYSTEM, null, "Stdout thread: " + e.getMessage)
-        }
-      }
-      put_result(Kind.SYSTEM, null, "Stdout thread terminated")
-    }
-  }
-
-
-  /* stderr */
-
-  private class StderrThread(reader: BufferedReader) extends Thread {
-    override def run() = {
+      val reader = new BufferedReader(new InputStreamReader(in_stream, charset))
       var result = new StringBuilder(100)
 
       var finished = false
@@ -303,11 +217,11 @@ class IsabelleProcess(args: String*) {
           var done = false
           while (!done && (result.length == 0 || reader.ready)) {
             c = reader.read
-            if (c > 0) result.append(c.asInstanceOf[Char])
+            if (c >= 0) result.append(c.asInstanceOf[Char])
             else done = true
           }
           if (result.length > 0) {
-            put_result(Kind.STDERR, null, result.toString)
+            put_result(Kind.STDOUT, null, result.toString)
             result.length = 0
           }
           else {
@@ -318,47 +232,158 @@ class IsabelleProcess(args: String*) {
           //}}}
         }
         catch {
-          case e: IOException => put_result(Kind.SYSTEM, null, "Stderr thread: " + e.getMessage)
+          case e: IOException => put_result(Kind.SYSTEM, null, "Stdout thread: " + e.getMessage)
         }
       }
-      put_result(Kind.SYSTEM, null, "Stderr thread terminated")
+      put_result(Kind.SYSTEM, null, "Stdout thread terminated")
     }
   }
 
 
-  /* exit */
+  /* messages */
 
-  private class ExitThread extends Thread {
+  private class MessageThread(fifo: String) extends Thread("isabelle: messages") {
     override def run() = {
-      val rc = proc.waitFor()
-      Thread.sleep(300)
-      put_result(Kind.SYSTEM, null, "Exit thread terminated")
-      put_result(Kind.EXIT, null, Integer.toString(rc))
+      val reader = new BufferedReader(new InputStreamReader(new FileInputStream(fifo), charset))
+      var kind: Kind.Value = null
+      var props: Properties = null
+      var result = new StringBuilder
+
+      var finished = false
+      while (!finished) {
+        try {
+          try {
+            if (kind == null) {
+              //{{{ Char mode -- resync
+              var c = -1
+              do {
+                c = reader.read
+                if (c >= 0 && c != 2) result.append(c.asInstanceOf[Char])
+              } while (c >= 0 && c != 2)
+  
+              if (result.length > 0) {
+                put_result(Kind.SYSTEM, null, "Malformed message:\n" + result.toString)
+                result.length = 0
+              }
+              if (c < 0) {
+                reader.close
+                finished = true
+                try_close()
+              }
+              else {
+                reader.read match {
+                  case 'A' => kind = Kind.WRITELN
+                  case 'B' => kind = Kind.PRIORITY
+                  case 'C' => kind = Kind.TRACING
+                  case 'D' => kind = Kind.WARNING
+                  case 'E' => kind = Kind.ERROR
+                  case 'F' => kind = Kind.DEBUG
+                  case 'G' => kind = Kind.PROMPT
+                  case 'H' => kind = Kind.INIT
+                  case 'I' => kind = Kind.STATUS
+                  case _ => kind = null
+                }
+                props = null
+              }
+              //}}}
+            }
+            else {
+              //{{{ Line mode
+              val line = reader.readLine
+              if (line == null) {
+                reader.close
+                finished = true
+                try_close()
+              }
+              else {
+                val len = line.length
+                // property
+                if (line.endsWith("\u0002,")) {
+                  val i = line.indexOf('=')
+                  if (i > 0) {
+                    val name = line.substring(0, i)
+                    val value = line.substring(i + 1, len - 2)
+                    if (props == null) props = new Properties
+                    if (!props.containsKey(name)) props.setProperty(name, value)
+                  }
+                }
+                // last text line
+                else if (line.endsWith("\u0002.")) {
+                  result.append(line.substring(0, len - 2))
+                  put_result(kind, props, result.toString)
+                  result.length = 0
+                  kind = null
+                }
+                // text line
+                else {
+                  result.append(line)
+                  result.append('\n')
+                }
+              }
+              //}}}
+            }
+          }
+          catch {
+            case e: IOException => put_result(Kind.SYSTEM, null, "Message thread: " + e.getMessage)
+          }
+        }
+        catch { case _: InterruptedException => finished = true }
+      }
+      try { put_result(Kind.SYSTEM, null, "Message thread terminated") }
+      catch { case _ : InterruptedException => }
     }
   }
-
 
 
   /** main **/
 
   {
+
+    /* message fifo */
+
+    val fifo =
+      try {
+        val mkfifo = IsabelleSystem.exec(List(IsabelleSystem.getenv_strict("ISATOOL"), "mkfifo"))
+        val fifo = new BufferedReader(new InputStreamReader(mkfifo.getInputStream, charset)).readLine
+        if (mkfifo.waitFor == 0) fifo
+        else error("Failed to create message fifo")
+      }
+      catch {
+        case e: IOException => error("Failed to create message fifo: " + e.getMessage)
+      }
+
+    val message_thread = new MessageThread(fifo)
+
+
     /* exec process */
 
     try {
-      proc = IsabelleSystem.exec(List(
-        IsabelleSystem.getenv_strict("ISABELLE_HOME") + "/bin/isabelle-process", "-W") ++ args)
+      proc = IsabelleSystem.exec2(List(
+        IsabelleSystem.getenv_strict("ISABELLE_HOME") + "/bin/isabelle-process", "-W", fifo) ++ args)
     }
     catch {
       case e: IOException => error("Failed to execute Isabelle process: " + e.getMessage)
     }
 
 
-    /* control process via threads */
+    /* stdin/stdout */
 
-    val charset = "UTF-8"
-    new StdinThread(new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, charset))).start
-    new StdoutThread(new BufferedReader(new InputStreamReader(proc.getInputStream, charset))).start
-    new StderrThread(new BufferedReader(new InputStreamReader(proc.getErrorStream, charset))).start
+    new StdinThread(proc.getOutputStream).start
+    new StdoutThread(proc.getInputStream).start
+
+
+    /* exit */
+
+    class ExitThread extends Thread("isabelle: exit") {
+      override def run() = {
+        val rc = proc.waitFor()
+        Thread.sleep(300)
+        put_result(Kind.SYSTEM, null, "Exit thread terminated")
+        put_result(Kind.EXIT, null, Integer.toString(rc))
+        message_thread.interrupt
+      }
+    }
+    message_thread.start
     new ExitThread().start
   }
 
