@@ -151,13 +151,14 @@ end;
 fun fold_lines f path a = open_input (fn file =>
   let
     val split = split_last o String.fields (fn c => str c = "\n");
-    fun read buf x =
+    fun read buf =
       (case split (TextIO.input file) of
-        ([], "") => (case Buffer.content buf of "" => x | line => f line x)
-      | ([], rest) => read (Buffer.add rest buf) x
+        ([], "") => (case Buffer.content buf of "" => I | line => f line)
+      | ([], rest) => read (Buffer.add rest buf)
       | (line :: lines, rest) =>
-          read_rest (lines, rest) (f (Buffer.content (Buffer.add line buf)) x))
-    and read_rest (lines, rest) x = read (Buffer.add rest Buffer.empty) (fold f lines x);
+          f (Buffer.content (Buffer.add line buf))
+          #> fold f lines
+          #> read (Buffer.add rest Buffer.empty));
   in read Buffer.empty a end) path;
 
 val read = open_input TextIO.inputAll;
