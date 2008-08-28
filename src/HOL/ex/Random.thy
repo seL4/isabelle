@@ -20,15 +20,10 @@ definition
 where
   "minus_shift r k l = (if k < l then r + k - l else k - l)"
 
-function
+fun
   log :: "index \<Rightarrow> index \<Rightarrow> index"
 where
   "log b i = (if b \<le> 1 \<or> i < b then 1 else 1 + log b (i div b))"
-by pat_completeness auto
-termination
-  by (relation "measure (nat_of_index o snd)")
-    (auto simp add: index)
-
 
 subsection {* Random seeds *}
 

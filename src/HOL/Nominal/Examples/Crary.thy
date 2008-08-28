@@ -627,11 +627,7 @@ apply (subgoal_tac "(\<exists>T\<^isub>1 T\<^isub>2. b=T\<^isub>1 \<rightarrow> 
 apply (force)
 apply (rule ty_cases)
 done
-
-termination
-apply(relation "measure (\<lambda>(_,_,_,T). size T)")
-apply(auto)
-done
+termination by lexicographic_order
 
 lemma logical_monotonicity:
  fixes \<Gamma> \<Gamma>' :: Ctxt

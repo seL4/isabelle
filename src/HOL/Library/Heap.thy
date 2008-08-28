@@ -40,19 +40,8 @@ text {* Reflected types themselves are heap-representable *}
 instantiation rtype :: countable
 begin
 
-lemma list_size_size_append:
-  "list_size size (xs @ ys) = list_size size xs + list_size size ys"
-  by (induct xs, auto)
-
-lemma rtype_size: "t = RType.RType c ts \<Longrightarrow> t' \<in> set ts \<Longrightarrow> size t' < size t"
-  by (frule split_list) (auto simp add: list_size_size_append)
-
-function to_nat_rtype :: "rtype \<Rightarrow> nat" where
+fun to_nat_rtype :: "rtype \<Rightarrow> nat" where
   "to_nat_rtype (RType.RType c ts) = to_nat (to_nat c, to_nat (map to_nat_rtype ts))"
-by pat_completeness auto
-
-termination by (relation "measure (\<lambda>x. size x)")
-  (simp, simp only: in_measure rtype_size)
 
 instance
 proof (rule countable_classI)

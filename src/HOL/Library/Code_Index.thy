@@ -232,6 +232,10 @@ lemma nat_of_index_code [code]:
   by (simp add: nat_of_index_aux_def)
 
 
+text {* Measure function (for termination proofs) *}
+
+lemma [measure_function]: "is_measure nat_of_index" by (rule is_measure_trivial)
+
 subsection {* ML interface *}
 
 ML {*

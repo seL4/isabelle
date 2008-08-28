@@ -52,11 +52,7 @@ apply(rotate_tac 4)
 apply(drule_tac x="a" in meta_spec)
 apply(blast)
 done
-
-termination vsub
-proof
-  show "wf (measure (llam_size \<circ> fst))" by simp
-qed (auto)
+termination by (relation "measure (llam_size \<circ> fst)") auto
 
 lemma vsub_eqvt[eqvt]:
   fixes pi::"name prm" 
