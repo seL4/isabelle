@@ -13,7 +13,7 @@ import java.io.File
 
 object IsabelleSystem {
 
-  /* Isabelle settings */
+  /* Isabelle environment settings */
 
   def getenv(name: String) = {
     val value = System.getenv(name)
@@ -24,6 +24,8 @@ object IsabelleSystem {
     val value = getenv(name)
     if (value != "") value else error("Undefined environment variable: " + name)
   }
+
+  def is_cygwin() = Pattern.matches(".*-cygwin", getenv_strict("ML_PLATFORM"))
 
 
   /* file path specifications */
@@ -71,12 +73,14 @@ object IsabelleSystem {
 
   /* processes */
 
-  private def posix_prefix() = {
-    if (Pattern.matches(".*-cygwin", getenv_strict("ML_PLATFORM")))
-      List(platform_path("/bin/env"))
-    else Nil
-  }
+  private def posix_prefix() = if (is_cygwin()) List(platform_path("/bin/env")) else Nil
 
   def exec(args: List[String]) = Runtime.getRuntime.exec((posix_prefix() ++ args).toArray)
+
+  def exec2(args: List[String]) = {
+    val cmdline = new java.util.LinkedList[String]
+    for (s <- posix_prefix() ++ args) cmdline.add(s)
+    new ProcessBuilder(cmdline).redirectErrorStream(true).start
+  }
 
 }
