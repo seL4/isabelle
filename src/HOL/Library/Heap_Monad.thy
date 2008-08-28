@@ -309,11 +309,11 @@ code_const "Heap_Monad.raise_exc" (OCaml "!(fun/ ()/ ->/ raise/ _)")
 ML {*
 local
 
-open CodeThingol;
+open Code_Thingol;
 
-val bind' = CodeName.const @{theory} @{const_name bindM};
-val return' = CodeName.const @{theory} @{const_name return};
-val unit' = CodeName.const @{theory} @{const_name Unity};
+val bind' = Code_Name.const @{theory} @{const_name bindM};
+val return' = Code_Name.const @{theory} @{const_name return};
+val unit' = Code_Name.const @{theory} @{const_name Unity};
 
 fun imp_monad_bind'' ts =
   let
@@ -325,9 +325,9 @@ fun imp_monad_bind'' ts =
     fun dest_abs ((v, ty) `|-> t, _) = ((v, ty), t)
       | dest_abs (t, ty) =
           let
-            val vs = CodeThingol.fold_varnames cons t [];
+            val vs = Code_Thingol.fold_varnames cons t [];
             val v = Name.variant vs "x";
-            val ty' = (hd o fst o CodeThingol.unfold_fun) ty;
+            val ty' = (hd o fst o Code_Thingol.unfold_fun) ty;
           in ((v, ty'), t `$ IVar v) end;
     fun force (t as IConst (c, _) `$ t') = if c = return'
           then t' else t `$ unitt
@@ -336,7 +336,7 @@ fun imp_monad_bind'' ts =
       let
         val ((v, ty), t) = dest_abs (t2, ty2);
       in ICase (((force t1, ty), [(IVar v, tr_bind'' t)]), dummy_case_term) end
-    and tr_bind'' t = case CodeThingol.unfold_app t
+    and tr_bind'' t = case Code_Thingol.unfold_app t
          of (IConst (c, (_, ty1 :: ty2 :: _)), [x1, x2]) => if c = bind'
               then tr_bind' [(x1, ty1), (x2, ty2)]
               else force t
@@ -364,8 +364,8 @@ val imp_program = (Graph.map_nodes o map_terms_stmt) imp_monad_bind;
 end
 *}
 
-setup {* CodeTarget.extend_target ("SML_imp", ("SML", imp_program)) *}
-setup {* CodeTarget.extend_target ("OCaml_imp", ("OCaml", imp_program)) *}
+setup {* Code_Target.extend_target ("SML_imp", ("SML", imp_program)) *}
+setup {* Code_Target.extend_target ("OCaml_imp", ("OCaml", imp_program)) *}
 
 code_reserved OCaml Failure raise
 

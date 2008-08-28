@@ -138,7 +138,7 @@ fun nbe_abss 0 f = f `$` ml_list []
 
 end;
 
-open BasicCodeThingol;
+open Basic_Code_Thingol;
 
 (* code generation *)
 
@@ -172,7 +172,7 @@ fun assemble_eqnss idx_of deps eqnss =
       let
         fun of_iterm t =
           let
-            val (t', ts) = CodeThingol.unfold_app t
+            val (t', ts) = Code_Thingol.unfold_app t
           in of_iapp t' (fold_rev (cons o of_iterm) ts []) end
         and of_iapp (IConst (c, (dss, _))) ts = constapp c dss ts
           | of_iapp (IVar v) ts = nbe_apps (nbe_bound v) ts
@@ -229,15 +229,15 @@ fun compile_eqnss gr raw_deps [] = []
 
 (* preparing function equations *)
 
-fun eqns_of_stmt (_, CodeThingol.Fun (_, [])) =
+fun eqns_of_stmt (_, Code_Thingol.Fun (_, [])) =
       []
-  | eqns_of_stmt (const, CodeThingol.Fun ((vs, _), eqns)) =
+  | eqns_of_stmt (const, Code_Thingol.Fun ((vs, _), eqns)) =
       [(const, (vs, map fst eqns))]
-  | eqns_of_stmt (_, CodeThingol.Datatypecons _) =
+  | eqns_of_stmt (_, Code_Thingol.Datatypecons _) =
       []
-  | eqns_of_stmt (_, CodeThingol.Datatype _) =
+  | eqns_of_stmt (_, Code_Thingol.Datatype _) =
       []
-  | eqns_of_stmt (class, CodeThingol.Class (v, (superclasses, classops))) =
+  | eqns_of_stmt (class, Code_Thingol.Class (v, (superclasses, classops))) =
       let
         val names = map snd superclasses @ map fst classops;
         val params = Name.invent_list [] "d" (length names);
@@ -245,11 +245,11 @@ fun eqns_of_stmt (_, CodeThingol.Fun (_, [])) =
           (name, ([(v, [])],
             [([IConst (class, ([], [])) `$$ map IVar params], IVar (nth params k))]));
       in map_index mk names end
-  | eqns_of_stmt (_, CodeThingol.Classrel _) =
+  | eqns_of_stmt (_, Code_Thingol.Classrel _) =
       []
-  | eqns_of_stmt (_, CodeThingol.Classparam _) =
+  | eqns_of_stmt (_, Code_Thingol.Classparam _) =
       []
-  | eqns_of_stmt (inst, CodeThingol.Classinst ((class, (_, arities)), (superinsts, instops))) =
+  | eqns_of_stmt (inst, Code_Thingol.Classinst ((class, (_, arities)), (superinsts, instops))) =
       [(inst, (arities, [([], IConst (class, ([], [])) `$$
         map (fn (_, (_, (inst, dicts))) => IConst (inst, (dicts, []))) superinsts
         @ map (IConst o snd o fst) instops)]))];
@@ -293,7 +293,7 @@ fun ensure_stmts program =
 
 fun eval_term gr deps ((vs, ty), t) =
   let 
-    val frees = CodeThingol.fold_unbound_varnames (insert (op =)) t []
+    val frees = Code_Thingol.fold_unbound_varnames (insert (op =)) t []
     val frees' = map (fn v => Free (v, [])) frees;
     val dict_frees = maps (fn (v, sort) => map_index (curry DFree v o fst) sort) vs;
   in
@@ -313,9 +313,9 @@ fun term_of_univ thy idx_tab t =
           let
             val c = the (Inttab.lookup idx_tab idx);
           in
-            (is_some o CodeName.class_rev thy) c
-            orelse (is_some o CodeName.classrel_rev thy) c
-            orelse (is_some o CodeName.instance_rev thy) c
+            (is_some o Code_Name.class_rev thy) c
+            orelse (is_some o Code_Name.classrel_rev thy) c
+            orelse (is_some o Code_Name.instance_rev thy) c
           end
       | is_dict (DFree _) = true
       | is_dict _ = false;
@@ -325,7 +325,7 @@ fun term_of_univ thy idx_tab t =
     and of_univ bounds (Const (idx, ts)) typidx =
           let
             val ts' = take_until is_dict ts;
-            val c = (the o CodeName.const_rev thy o the o Inttab.lookup idx_tab) idx;
+            val c = (the o Code_Name.const_rev thy o the o Inttab.lookup idx_tab) idx;
             val (_, T) = Code.default_typ thy c;
             val T' = map_type_tvar (fn ((v, i), S) => TypeInfer.param (typidx + i) (v, [])) T;
             val typidx' = typidx + maxidx_of_typ T' + 1;
@@ -349,9 +349,9 @@ structure Nbe_Functions = CodeDataFun
   fun purge thy cs (gr, (maxidx, idx_tab)) =
     let
       val cs_exisiting =
-        map_filter (CodeName.const_rev thy) (Graph.keys gr);
+        map_filter (Code_Name.const_rev thy) (Graph.keys gr);
       val dels = (Graph.all_preds gr
-          o map (CodeName.const thy)
+          o map (Code_Name.const thy)
           o filter (member (op =) cs_exisiting)
         ) cs;
     in (Graph.del_nodes dels gr, (maxidx, idx_tab)) end;
@@ -374,7 +374,7 @@ fun eval thy t program vs_ty_t deps =
   let
     fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
       | t => t);
-    val subst_triv_consts = subst_const (CodeUnit.resubst_alias thy);
+    val subst_triv_consts = subst_const (Code_Unit.resubst_alias thy);
     val ty = type_of t;
     val type_free = AList.lookup (op =)
       (map (fn (s, T) => (s, Term.Free (s, T))) (Term.add_frees t []));
@@ -402,8 +402,8 @@ fun eval thy t program vs_ty_t deps =
 
 (* evaluation oracle *)
 
-exception Norm of term * CodeThingol.program
-  * (CodeThingol.typscheme * CodeThingol.iterm) * string list;
+exception Norm of term * Code_Thingol.program
+  * (Code_Thingol.typscheme * Code_Thingol.iterm) * string list;
 
 fun norm_oracle (thy, Norm (t, program, vs_ty_t, deps)) =
   Logic.mk_equals (t, eval thy t program vs_ty_t deps);
@@ -415,7 +415,7 @@ fun norm_invoke thy t program vs_ty_t deps =
 fun add_triv_classes thy =
   let
     val inters = curry (Sorts.inter_sort (Sign.classes_of thy))
-      (CodeUnit.triv_classes thy);
+      (Code_Unit.triv_classes thy);
     fun map_sorts f = (map_types o map_atyps)
       (fn TVar (v, sort) => TVar (v, f sort)
         | TFree (v, sort) => TFree (v, f sort));
@@ -426,13 +426,13 @@ fun norm_conv ct =
     val thy = Thm.theory_of_cterm ct;
     fun evaluator' t program vs_ty_t deps = norm_invoke thy t program vs_ty_t deps;
     fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in CodeThingol.eval_conv thy evaluator ct end;
+  in Code_Thingol.eval_conv thy evaluator ct end;
 
 fun norm_term thy t =
   let
     fun evaluator' t program vs_ty_t deps = eval thy t program vs_ty_t deps;
     fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in (Code.postprocess_term thy o CodeThingol.eval_term thy evaluator) t end;
+  in (Code.postprocess_term thy o Code_Thingol.eval_term thy evaluator) t end;
 
 (* evaluation command *)
 

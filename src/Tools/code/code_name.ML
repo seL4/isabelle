@@ -17,11 +17,6 @@ sig
   val purify_sym: string -> string
   val check_modulename: string -> string
 
-  type var_ctxt;
-  val make_vars: string list -> var_ctxt;
-  val intro_vars: string list -> var_ctxt -> var_ctxt;
-  val lookup_var: var_ctxt -> string -> string;
-
   val class: theory -> class -> class
   val class_rev: theory -> class -> class option
   val classrel: theory -> class * class -> string
@@ -38,7 +33,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure CodeName: CODE_NAME =
+structure Code_Name: CODE_NAME =
 struct
 
 (** constant expressions **)
@@ -52,7 +47,7 @@ fun read_const_exprs thy =
           | NONE => thy;
         val raw_cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
           ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) thy') [];
-        val cs = map (CodeUnit.subst_alias thy') raw_cs;
+        val cs = map (Code_Unit.subst_alias thy') raw_cs;
         fun belongs_here c =
           not (exists (fn thy'' => Sign.declared_const thy'' c) (Theory.parents_of thy'))
       in case some_thyname
@@ -62,7 +57,7 @@ fun read_const_exprs thy =
     fun read_const_expr "*" = ([], consts_of NONE)
       | read_const_expr s = if String.isSuffix ".*" s
           then ([], consts_of (SOME (unsuffix ".*" s)))
-          else ([CodeUnit.read_const thy s], []);
+          else ([Code_Unit.read_const thy s], []);
   in pairself flat o split_list o map read_const_expr end;
 
 
@@ -106,24 +101,6 @@ fun check_modulename mn =
     if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
       ^ "perhaps try " ^ quote (NameSpace.implode mns'))
   end;
-
-
-(** variable name contexts **)
-
-type var_ctxt = string Symtab.table * Name.context;
-
-fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
-  Name.make_context names);
-
-fun intro_vars names (namemap, namectxt) =
-  let
-    val (names', namectxt') = Name.variants names namectxt;
-    val namemap' = fold2 (curry Symtab.update) names names' namemap;
-  in (namemap', namectxt') end;
-
-fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
- of SOME name' => name'
-  | NONE => error ("Invalid name in context: " ^ quote name);
 
 
 (** global names (identifiers) **)
@@ -290,7 +267,7 @@ in
     (fn (class, classrel, tyco, inst) => (class, classrel, tyco, f inst));
 end; (*local*)
 
-structure CodeName = TheoryDataFun
+structure Code_Name = TheoryDataFun
 (
   type T = names ref;
   val empty = ref empty_names;
@@ -307,14 +284,14 @@ structure ConstName = CodeDataFun
     fold Symtab.delete_safe (map_filter (Symtab.lookup const) cs) constrev);
 );
 
-val setup = CodeName.init;
+val setup = Code_Name.init;
 
 
 (* forward lookup with cache update *)
 
 fun get thy get_tabs get upd_names upd policy x =
   let
-    val names_ref = CodeName.get thy;
+    val names_ref = Code_Name.get thy;
     val (Names names) = ! names_ref;
     val tabs = get_tabs names;
     fun declare name =
@@ -353,7 +330,7 @@ fun get_const thy const =
 
 fun rev thy get_tabs name =
   let
-    val names_ref = CodeName.get thy
+    val names_ref = Code_Name.get thy
     val (Names names) = ! names_ref;
     val tab = (snd o get_tabs) names;
   in case Symtab.lookup tab name
@@ -411,7 +388,7 @@ val f_mapping = [
   (suffix_classrel,    Option.map string_of_classrel oo classrel_rev),
   (suffix_tyco,        tyco_rev),
   (suffix_instance,    Option.map string_of_instance oo instance_rev),
-  (suffix_const,       fn thy => Option.map (CodeUnit.string_of_const thy) o const_rev thy)
+  (suffix_const,       fn thy => Option.map (Code_Unit.string_of_const thy) o const_rev thy)
 ];
 
 in

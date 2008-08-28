@@ -19,7 +19,7 @@ sig
   val timing: bool ref
 end
 
-structure CodeFuncgr : CODE_FUNCGR =
+structure Code_Funcgr : CODE_FUNCGR =
 struct
 
 (** the graph type **)
@@ -36,7 +36,7 @@ fun all funcgr = Graph.keys funcgr;
 
 fun pretty thy funcgr =
   AList.make (snd o Graph.get_node funcgr) (Graph.keys funcgr)
-  |> (map o apfst) (CodeUnit.string_of_const thy)
+  |> (map o apfst) (Code_Unit.string_of_const thy)
   |> sort (string_ord o pairself fst)
   |> map (fn (s, thms) =>
        (Pretty.block o Pretty.fbreaks) (
@@ -95,7 +95,7 @@ fun resort_thms thy algebra typ_of thms =
             meets_of thy algebra (Sign.const_typargs thy (c, ty)) (map snd vs)
         | NONE => I;
     val tab = fold meets cs Vartab.empty;
-  in map (CodeUnit.inst_thm tab) thms end;
+  in map (Code_Unit.inst_thm tab) thms end;
 
 fun resort_funcss thy algebra funcgr =
   let
@@ -105,14 +105,14 @@ fun resort_funcss thy algebra funcgr =
       | resort_rec typ_of (c, thms as thm :: _) = if is_some (AxClass.inst_of_param thy c)
           then (true, (c, thms))
           else let
-            val (_, (vs, ty)) = CodeUnit.head_func thm;
+            val (_, (vs, ty)) = Code_Unit.head_func thm;
             val thms' as thm' :: _ = resort_thms thy algebra typ_of thms
-            val (_, (vs', ty')) = CodeUnit.head_func thm'; (*FIXME simplify check*)
+            val (_, (vs', ty')) = Code_Unit.head_func thm'; (*FIXME simplify check*)
           in (Sign.typ_equiv thy (ty, ty'), (c, thms')) end;
     fun resort_recs funcss =
       let
         fun typ_of c = case these (AList.lookup (op =) funcss c)
-         of thm :: _ => (SOME o snd o CodeUnit.head_func) thm
+         of thm :: _ => (SOME o snd o Code_Unit.head_func) thm
           | [] => NONE;
         val (unchangeds, funcss') = split_list (map (resort_rec typ_of) funcss);
         val unchanged = fold (fn x => fn y => x andalso y) unchangeds true;
@@ -158,8 +158,8 @@ fun ensure_const' thy algebra funcgr const auxgr =
     |> pair (SOME const)
   else let
     val thms = Code.these_funcs thy const
-      |> CodeUnit.norm_args
-      |> CodeUnit.norm_varnames CodeName.purify_tvar CodeName.purify_var;
+      |> Code_Unit.norm_args
+      |> Code_Unit.norm_varnames Code_Name.purify_tvar Code_Name.purify_var;
     val rhs = consts_of (const, thms);
   in
     auxgr
@@ -172,7 +172,7 @@ fun ensure_const' thy algebra funcgr const auxgr =
 and ensure_const thy algebra funcgr const =
   let
     val timeap = if !timing
-      then Output.timeap_msg ("time for " ^ CodeUnit.string_of_const thy const)
+      then Output.timeap_msg ("time for " ^ Code_Unit.string_of_const thy const)
       else I;
   in timeap (ensure_const' thy algebra funcgr const) end;
 
@@ -182,7 +182,7 @@ fun merge_funcss thy algebra raw_funcss funcgr =
       |> resort_funcss thy algebra funcgr
       |> filter_out (can (Graph.get_node funcgr) o fst);
     fun typ_func c [] = Code.default_typ thy c
-      | typ_func c (thms as thm :: _) = (snd o CodeUnit.head_func) thm;
+      | typ_func c (thms as thm :: _) = (snd o Code_Unit.head_func) thm;
     fun add_funcs (const, thms) =
       Graph.new_node (const, (typ_func const thms, thms));
     fun add_deps (funcs as (const, thms)) funcgr =
@@ -296,8 +296,8 @@ fun code_deps thy consts =
     val gr = code_depgr thy consts;
     fun mk_entry (const, (_, (_, parents))) =
       let
-        val name = CodeUnit.string_of_const thy const;
-        val nameparents = map (CodeUnit.string_of_const thy) parents;
+        val name = Code_Unit.string_of_const thy const;
+        val nameparents = map (Code_Unit.string_of_const thy) parents;
       in { name = name, ID = name, dir = "", unfold = true,
         path = "", parents = nameparents }
       end;
@@ -309,8 +309,8 @@ local
 structure P = OuterParse
 and K = OuterKeyword
 
-fun code_thms_cmd thy = code_thms thy o op @ o CodeName.read_const_exprs thy;
-fun code_deps_cmd thy = code_deps thy o op @ o CodeName.read_const_exprs thy;
+fun code_thms_cmd thy = code_thms thy o op @ o Code_Name.read_const_exprs thy;
+fun code_deps_cmd thy = code_deps thy o op @ o Code_Name.read_const_exprs thy;
 
 in
 

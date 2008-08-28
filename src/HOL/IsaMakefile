@@ -168,7 +168,10 @@ $(OUT)/HOL-Plain: $(OUT)/Pure \
   $(SRC)/Tools/atomize_elim.ML \
   $(SRC)/Tools/code/code_funcgr.ML \
   $(SRC)/Tools/code/code_name.ML \
+  $(SRC)/Tools/code/code_printer.ML \
   $(SRC)/Tools/code/code_target.ML \
+  $(SRC)/Tools/code/code_ml.ML \
+  $(SRC)/Tools/code/code_haskell.ML \
   $(SRC)/Tools/code/code_thingol.ML \
   $(SRC)/Tools/induct.ML \
   $(SRC)/Tools/induct_tacs.ML \

@@ -411,7 +411,7 @@ fun print_codesetup thy =
             :: separate (Pretty.str "|") (map (fn (c, []) => Pretty.str c
                  | (c, tys) =>
                      (Pretty.block o Pretty.breaks)
-                        (Pretty.str (CodeUnit.string_of_const thy c)
+                        (Pretty.str (Code_Unit.string_of_const thy c)
                           :: Pretty.str "of"
                           :: map (Pretty.quote o Syntax.pretty_typ_global thy) tys)) cos)
           );
@@ -420,7 +420,7 @@ fun print_codesetup thy =
     val functrans = (map fst o #functrans o the_thmproc) exec;
     val funcs = the_funcs exec
       |> Symtab.dest
-      |> (map o apfst) (CodeUnit.string_of_const thy)
+      |> (map o apfst) (Code_Unit.string_of_const thy)
       |> sort (string_ord o pairself fst);
     val dtyps = the_dtyps exec
       |> Symtab.dest
@@ -483,7 +483,7 @@ fun common_typ_funcs [] = []
             error ("Type unificaton failed, while unifying defining equations\n"
             ^ (cat_lines o map Display.string_of_thm) thms
             ^ "\nwith types\n"
-            ^ (cat_lines o map (CodeUnit.string_of_typ thy)) (ty1 :: tys));
+            ^ (cat_lines o map (Code_Unit.string_of_typ thy)) (ty1 :: tys));
         val (env, _) = fold unify tys (Vartab.empty, maxidx)
         val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
@@ -493,7 +493,7 @@ fun certify_const thy const thms =
   let
     fun cert thm = if const = const_of_func thy thm
       then thm else error ("Wrong head of defining equation,\nexpected constant "
-        ^ CodeUnit.string_of_const thy const ^ "\n" ^ Display.string_of_thm thm)
+        ^ Code_Unit.string_of_const thy const ^ "\n" ^ Display.string_of_thm thm)
   in map cert thms end;
 
 
@@ -609,17 +609,17 @@ fun assert_func_typ thm =
           in if Sign.typ_instance thy (ty_strongest, ty)
             then if Sign.typ_instance thy (ty, ty_decl)
             then thm
-            else (warning ("Constraining type\n" ^ CodeUnit.string_of_typ thy ty
+            else (warning ("Constraining type\n" ^ Code_Unit.string_of_typ thy ty
               ^ "\nof defining equation\n"
               ^ Display.string_of_thm thm
               ^ "\nto permitted most general type\n"
-              ^ CodeUnit.string_of_typ thy ty_decl);
+              ^ Code_Unit.string_of_typ thy ty_decl);
               constrain thm)
-            else CodeUnit.bad_thm ("Type\n" ^ CodeUnit.string_of_typ thy ty
+            else Code_Unit.bad_thm ("Type\n" ^ Code_Unit.string_of_typ thy ty
               ^ "\nof defining equation\n"
               ^ Display.string_of_thm thm
               ^ "\nis incompatible with permitted least general type\n"
-              ^ CodeUnit.string_of_typ thy ty_strongest)
+              ^ Code_Unit.string_of_typ thy ty_strongest)
           end;
     fun check_typ_fun (c, thm) =
       let
@@ -627,11 +627,11 @@ fun assert_func_typ thm =
         val ty_decl = Sign.the_const_type thy c;
       in if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
         then thm
-        else CodeUnit.bad_thm ("Type\n" ^ CodeUnit.string_of_typ thy ty
+        else Code_Unit.bad_thm ("Type\n" ^ Code_Unit.string_of_typ thy ty
            ^ "\nof defining equation\n"
            ^ Display.string_of_thm thm
            ^ "\nis incompatible with declared function type\n"
-           ^ CodeUnit.string_of_typ thy ty_decl)
+           ^ Code_Unit.string_of_typ thy ty_decl)
       end;
     fun check_typ (c, thm) =
       case AxClass.inst_of_param thy c
@@ -639,9 +639,9 @@ fun assert_func_typ thm =
         | NONE => check_typ_fun (c, thm);
   in check_typ (const_of_func thy thm, thm) end;
 
-val mk_func = CodeUnit.error_thm (assert_func_typ o CodeUnit.mk_func);
-val mk_liberal_func = CodeUnit.warning_thm (assert_func_typ o CodeUnit.mk_func);
-val mk_default_func = CodeUnit.try_thm (assert_func_typ o CodeUnit.mk_func);
+val mk_func = Code_Unit.error_thm (assert_func_typ o Code_Unit.mk_func);
+val mk_liberal_func = Code_Unit.warning_thm (assert_func_typ o Code_Unit.mk_func);
+val mk_default_func = Code_Unit.try_thm (assert_func_typ o Code_Unit.mk_func);
 
 end;
 
@@ -755,7 +755,7 @@ structure TypeInterpretation = InterpretationFun(type T = string * serial val eq
 fun add_datatype raw_cs thy =
   let
     val cs = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) raw_cs;
-    val (tyco, vs_cos) = CodeUnit.constrset_of_consts thy cs;
+    val (tyco, vs_cos) = Code_Unit.constrset_of_consts thy cs;
     val cs' = map fst (snd vs_cos);
     val purge_cs = case Symtab.lookup ((the_dtyps o the_exec) thy) tyco
      of SOME (vs, cos) => if null cos then NONE else SOME (cs' @ map fst cos)
@@ -772,12 +772,12 @@ fun type_interpretation f =  TypeInterpretation.interpretation
 
 fun add_datatype_cmd raw_cs thy =
   let
-    val cs = map (CodeUnit.read_bare_const thy) raw_cs;
+    val cs = map (Code_Unit.read_bare_const thy) raw_cs;
   in add_datatype cs thy end;
 
 fun add_case thm thy =
   let
-    val entry as (c, _) = CodeUnit.case_cert thm;
+    val entry as (c, _) = Code_Unit.case_cert thm;
   in
     (map_exec_purge (SOME [c]) o map_cases o apfst) (Symtab.update entry) thy
   end;
@@ -789,19 +789,19 @@ val map_pre = map_exec_purge NONE o map_thmproc o apfst o apfst;
 val map_post = map_exec_purge NONE o map_thmproc o apfst o apsnd;
 
 fun add_inline thm thy = (map_pre o MetaSimplifier.add_simp)
-  (CodeUnit.error_thm CodeUnit.mk_rew thm) thy;
+  (Code_Unit.error_thm Code_Unit.mk_rew thm) thy;
     (*fully applied in order to get right context for mk_rew!*)
 
 fun del_inline thm thy = (map_pre o MetaSimplifier.del_simp)
-  (CodeUnit.error_thm CodeUnit.mk_rew thm) thy;
+  (Code_Unit.error_thm Code_Unit.mk_rew thm) thy;
     (*fully applied in order to get right context for mk_rew!*)
 
 fun add_post thm thy = (map_post o MetaSimplifier.add_simp)
-  (CodeUnit.error_thm CodeUnit.mk_rew thm) thy;
+  (Code_Unit.error_thm Code_Unit.mk_rew thm) thy;
     (*fully applied in order to get right context for mk_rew!*)
 
 fun del_post thm thy = (map_post o MetaSimplifier.del_simp)
-  (CodeUnit.error_thm CodeUnit.mk_rew thm) thy;
+  (Code_Unit.error_thm Code_Unit.mk_rew thm) thy;
     (*fully applied in order to get right context for mk_rew!*)
   
 fun add_functrans (name, f) =
@@ -861,7 +861,7 @@ fun preprocess thy thms =
   in
     thms
     |> apply_functrans thy
-    |> map (CodeUnit.rewrite_func pre)
+    |> map (Code_Unit.rewrite_func pre)
     (*FIXME - must check gere: rewrite rule, defining equation, proper constant *)
     |> map (AxClass.unoverload thy)
     |> common_typ_funcs
@@ -923,10 +923,10 @@ fun these_funcs thy const =
   end;
 
 fun default_typ thy c = case default_typ_proto thy c
- of SOME ty => CodeUnit.typscheme thy (c, ty)
+ of SOME ty => Code_Unit.typscheme thy (c, ty)
   | NONE => (case get_funcs thy c
-     of thm :: _ => snd (CodeUnit.head_func (AxClass.unoverload thy thm))
-      | [] => CodeUnit.typscheme thy (c, Sign.the_const_type thy c));
+     of thm :: _ => snd (Code_Unit.head_func (AxClass.unoverload thy thm))
+      | [] => Code_Unit.typscheme thy (c, Sign.the_const_type thy c));
 
 end; (*local*)
 

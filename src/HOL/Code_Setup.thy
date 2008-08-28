@@ -130,7 +130,7 @@ end;
 *}
 
 oracle eval_oracle ("term") = {* fn thy => fn t => 
-  if CodeTarget.eval_term ("Eval_Method.eval_ref", Eval_Method.eval_ref) thy
+  if Code_ML.eval_term ("Eval_Method.eval_ref", Eval_Method.eval_ref) thy
     (HOLogic.dest_Trueprop t) [] 
   then t
   else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)

@@ -143,7 +143,7 @@ fun add_typecopy_spec tyco thy =
     fun add_eq_thm thy = 
       let
         val eq = inject
-          |> CodeUnit.constrain_thm [HOLogic.class_eq]
+          |> Code_Unit.constrain_thm [HOLogic.class_eq]
           |> Simpdata.mk_eq
           |> MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}];
       in Code.add_func eq thy end;

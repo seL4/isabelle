@@ -29,7 +29,10 @@ uses
   "~~/src/Tools/code/code_name.ML"
   "~~/src/Tools/code/code_funcgr.ML"
   "~~/src/Tools/code/code_thingol.ML"
+  "~~/src/Tools/code/code_printer.ML"
   "~~/src/Tools/code/code_target.ML"
+  "~~/src/Tools/code/code_ml.ML"
+  "~~/src/Tools/code/code_haskell.ML"
   "~~/src/Tools/nbe.ML"
 begin
 
@@ -1703,9 +1706,10 @@ hide (open) const eq
 hide const eq
 
 setup {*
-  CodeUnit.add_const_alias @{thm equals_eq}
-  #> CodeName.setup
-  #> CodeTarget.setup
+  Code_Unit.add_const_alias @{thm equals_eq}
+  #> Code_Name.setup
+  #> Code_ML.setup
+  #> Code_Haskell.setup
   #> Nbe.setup
 *}
 

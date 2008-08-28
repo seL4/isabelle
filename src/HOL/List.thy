@@ -3450,7 +3450,7 @@ code_const Nil
   (Haskell "[]")
 
 setup {*
-  fold (fn target => CodeTarget.add_pretty_list target
+  fold (fn target => Code_Target.add_pretty_list target
     @{const_name Nil} @{const_name Cons}
   ) ["SML", "OCaml", "Haskell"]
 *}

@@ -51,7 +51,7 @@ sig
   val case_cert: thm -> string * (int * string list)
 end;
 
-structure CodeUnit: CODE_UNIT =
+structure Code_Unit: CODE_UNIT =
 struct
 
 

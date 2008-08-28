@@ -89,7 +89,7 @@ sig
     -> term -> 'a;
 end;
 
-structure CodeThingol: CODE_THINGOL =
+structure Code_Thingol: CODE_THINGOL =
 struct
 
 (** auxiliary **)
@@ -353,7 +353,7 @@ fun ensure_class thy (algbr as (_, algebra)) funcgr class =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
     val cs = #params (AxClass.get_info thy class);
-    val class' = CodeName.class thy class;
+    val class' = Code_Name.class thy class;
     val stmt_class =
       fold_map (fn superclass => ensure_class thy algbr funcgr superclass
         ##>> ensure_classrel thy algbr funcgr (class, superclass)) superclasses
@@ -363,7 +363,7 @@ fun ensure_class thy (algbr as (_, algebra)) funcgr class =
   in ensure_stmt stmt_class class' end
 and ensure_classrel thy algbr funcgr (subclass, superclass) =
   let
-    val classrel' = CodeName.classrel thy (subclass, superclass);
+    val classrel' = Code_Name.classrel thy (subclass, superclass);
     val stmt_classrel =
       ensure_class thy algbr funcgr subclass
       ##>> ensure_class thy algbr funcgr superclass
@@ -383,7 +383,7 @@ and ensure_tyco thy algbr funcgr "fun" =
               ##>> fold_map (exprgen_typ thy algbr funcgr) tys) cos
             #>> Datatype
           end;
-        val tyco' = CodeName.tyco thy tyco;
+        val tyco' = Code_Name.tyco thy tyco;
       in ensure_stmt stmt_datatype tyco' end
 and exprgen_tyvar_sort thy (algbr as (proj_sort, _)) funcgr (v, sort) =
   fold_map (ensure_class thy algbr funcgr) (proj_sort sort)
@@ -467,11 +467,11 @@ and ensure_inst thy (algbr as (_, algebra)) funcgr (class, tyco) =
       ##>> fold_map exprgen_classparam_inst classparams
       #>> (fn ((((class, tyco), arity), superarities), classparams) =>
              Classinst ((class, (tyco, arity)), (superarities, classparams)));
-    val inst = CodeName.instance thy (class, tyco);
+    val inst = Code_Name.instance thy (class, tyco);
   in ensure_stmt stmt_inst inst end
 and ensure_const thy algbr funcgr c =
   let
-    val c' = CodeName.const thy c;
+    val c' = Code_Name.const thy c;
     fun stmt_datatypecons tyco =
       ensure_tyco thy algbr funcgr tyco
       #>> Datatypecons;
@@ -480,12 +480,12 @@ and ensure_const thy algbr funcgr c =
       #>> Classparam;
     fun stmt_fun trns =
       let
-        val raw_thms = CodeFuncgr.funcs funcgr c;
-        val (vs, raw_ty) = CodeFuncgr.typ funcgr c;
+        val raw_thms = Code_Funcgr.funcs funcgr c;
+        val (vs, raw_ty) = Code_Funcgr.typ funcgr c;
         val ty = Logic.unvarifyT raw_ty;
         val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
           then raw_thms
-          else map (CodeUnit.expand_eta 1) raw_thms;
+          else map (Code_Unit.expand_eta 1) raw_thms;
       in
         trns
         |> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
@@ -522,7 +522,7 @@ and exprgen_term thy algbr funcgr thm (Const (c, ty)) =
 and exprgen_const thy algbr funcgr thm (c, ty) =
   let
     val tys = Sign.const_typargs thy (c, ty);
-    val sorts = (map snd o fst o CodeFuncgr.typ funcgr) c;
+    val sorts = (map snd o fst o Code_Funcgr.typ funcgr) c;
     val tys_args = (fst o Term.strip_type) ty;
   in
     ensure_const thy algbr funcgr c
@@ -552,7 +552,7 @@ and exprgen_case thy algbr funcgr thm n cases (app as ((c, ty), ts)) =
             val ([v_ty], body) = Term.strip_abs_eta 1 (the_single (nth_drop n ts))
           in [(Free v_ty, body)] end
       | mk_ds cases = map_filter (uncurry mk_case)
-          (AList.make (CodeUnit.no_args thy) cases ~~ nth_drop n ts);
+          (AList.make (Code_Unit.no_args thy) cases ~~ nth_drop n ts);
   in
     exprgen_term thy algbr funcgr thm dt
     ##>> exprgen_typ thy algbr funcgr dty
@@ -596,9 +596,9 @@ structure Program = CodeDataFun
   fun purge thy cs program =
     let
       val cs_exisiting =
-        map_filter (CodeName.const_rev thy) (Graph.keys program);
+        map_filter (Code_Name.const_rev thy) (Graph.keys program);
       val dels = (Graph.all_preds program
-          o map (CodeName.const thy)
+          o map (Code_Name.const thy)
           o filter (member (op =) cs_exisiting)
         ) cs;
     in Graph.del_nodes dels program end;
@@ -626,7 +626,7 @@ fun consts_program thy cs =
     fun generate_consts thy algebra funcgr =
       fold_map (ensure_const thy algebra funcgr);
   in
-    generate thy (CodeFuncgr.make thy cs) generate_consts cs
+    generate thy (Code_Funcgr.make thy cs) generate_consts cs
     |-> project_consts
   end;
 
@@ -646,14 +646,14 @@ fun ensure_value thy algbr funcgr t =
     fun term_value (dep, program1) =
       let
         val Fun ((vs, ty), [(([], t), _)]) =
-          Graph.get_node program1 CodeName.value_name;
-        val deps = Graph.imm_succs program1 CodeName.value_name;
-        val program2 = Graph.del_nodes [CodeName.value_name] program1;
+          Graph.get_node program1 Code_Name.value_name;
+        val deps = Graph.imm_succs program1 Code_Name.value_name;
+        val program2 = Graph.del_nodes [Code_Name.value_name] program1;
         val deps_all = Graph.all_succs program2 deps;
         val program3 = Graph.subgraph (member (op =) deps_all) program2;
       in ((program3, (((vs, ty), t), deps)), (dep, program2)) end;
   in
-    ensure_stmt stmt_value CodeName.value_name
+    ensure_stmt stmt_value Code_Name.value_name
     #> snd
     #> term_value
   end;
@@ -670,10 +670,10 @@ fun eval eval_kind thy evaluator =
       in (t', evaluator'' evaluator''') end;
   in eval_kind thy evaluator' end
 
-fun eval_conv thy = eval CodeFuncgr.eval_conv thy;
-fun eval_term thy = eval CodeFuncgr.eval_term thy;
+fun eval_conv thy = eval Code_Funcgr.eval_conv thy;
+fun eval_term thy = eval Code_Funcgr.eval_term thy;
 
 end; (*struct*)
 
 
-structure BasicCodeThingol: BASIC_CODE_THINGOL = CodeThingol;
+structure Basic_Code_Thingol: BASIC_CODE_THINGOL = Code_Thingol;

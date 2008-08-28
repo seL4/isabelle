@@ -7,8 +7,7 @@ imports Main
 uses "../../../antiquote_setup.ML"
 begin
 
-ML {* CodeTarget.code_width := 74 *}
-
+ML {* Code_Target.code_width := 74 *}
 (*>*)
 
 chapter {* Code generation from Isabelle theories *}
@@ -1144,20 +1143,20 @@ subsection {* Auxiliary *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML CodeUnit.read_const: "theory -> string -> string"} \\
-  @{index_ML CodeUnit.head_func: "thm -> string * ((string * sort) list * typ)"} \\
-  @{index_ML CodeUnit.rewrite_func: "MetaSimplifier.simpset -> thm -> thm"} \\
+  @{index_ML Code_Unit.read_const: "theory -> string -> string"} \\
+  @{index_ML Code_Unit.head_func: "thm -> string * ((string * sort) list * typ)"} \\
+  @{index_ML Code_Unit.rewrite_func: "MetaSimplifier.simpset -> thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML CodeUnit.read_const}~@{text thy}~@{text s}
+  \item @{ML Code_Unit.read_const}~@{text thy}~@{text s}
      reads a constant as a concrete term expression @{text s}.
 
-  \item @{ML CodeUnit.head_func}~@{text thm}
+  \item @{ML Code_Unit.head_func}~@{text thm}
      extracts the constant and its type from a defining equation @{text thm}.
 
-  \item @{ML CodeUnit.rewrite_func}~@{text ss}~@{text thm}
+  \item @{ML Code_Unit.rewrite_func}~@{text ss}~@{text thm}
      rewrites a defining equation @{text thm} with a simpset @{text ss};
      only arguments and right hand side are rewritten,
      not the head of the defining equation.

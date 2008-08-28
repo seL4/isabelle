@@ -449,7 +449,7 @@ fun add_datatypes_equality vs dtcos thy =
     fun tac thms = Class.intro_classes_tac []
       THEN ALLGOALS (ProofContext.fact_tac thms);
     fun get_eq' thy dtco = get_eq thy dtco
-      |> map (CodeUnit.constrain_thm [HOLogic.class_eq])
+      |> map (Code_Unit.constrain_thm [HOLogic.class_eq])
       |> map Simpdata.mk_eq
       |> map (MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}]);
     fun add_eq_thms dtco thy =
