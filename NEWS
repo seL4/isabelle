@@ -19,6 +19,9 @@ interface instead.
 
 *** Pure ***
 
+* Global versions of theorems stemming from classes do not carry
+a parameter prefix any longer.  INCOMPATIBILITY.
+
 * Dropped "locale (open)".  INCOMPATBILITY.
 
 * Command 'interpretation' no longer attempts to simplify goal.
