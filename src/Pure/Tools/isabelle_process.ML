@@ -102,8 +102,11 @@ fun setup_channels out =
   let val out_stream =
     if out = "" orelse out = "-" then TextIO.stdOut
     else
-      let val path = File.platform_path (Path.explode out)
-      in TextIO.openOut path before OS.FileSys.remove path end;
+      let
+        val path = File.platform_path (Path.explode out);
+        val out_stream = TextIO.openOut path;  (*fifo blocks until reader is ready*)
+        val _ = OS.FileSys.remove path;  (*prevent alien access, indicate writer is ready*)
+      in out_stream end;
   in
     Output.writeln_fn  := message out_stream "A" Markup.writelnN;
     Output.priority_fn := message out_stream "B" Markup.priorityN;
