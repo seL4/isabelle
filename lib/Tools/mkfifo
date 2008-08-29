@@ -29,6 +29,6 @@ function fail()
 
 [ "$#" != 0 ] && usage
 
-FIFO="${ISABELLE_TMP_PREFIX}-fifo$$"
+FIFO="/tmp/isabelle-fifo$$"
 mkfifo -m 600 "$FIFO" || fail "Failed to create named pipe $FIFO"
 echo "$FIFO"
