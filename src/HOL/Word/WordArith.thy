@@ -301,7 +301,7 @@ lemma word_arith_eqs:
   by (auto simp: word_of_int_hom_syms [symmetric]
                  zadd_0_right add_commute add_assoc add_left_commute
                  mult_commute mult_assoc mult_left_commute
-                 plus_times.left_distrib plus_times.right_distrib)
+                 left_distrib right_distrib)
   
 lemmas word_add_ac = word_add_commute word_add_assoc word_add_left_commute
 lemmas word_mult_ac = word_mult_commute word_mult_assoc word_mult_left_commute

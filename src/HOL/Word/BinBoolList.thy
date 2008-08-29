@@ -298,7 +298,7 @@ lemma bl_to_bin_ge2p_aux [rule_format] :
    apply clarsimp
   apply clarsimp
   apply safe
-   apply (erule allE, erule less_eq_less.order_trans [rotated],
+   apply (erule allE, erule preorder_class.order_trans [rotated],
           simp add: numeral_simps ring_simps cong add : number_of_False_cong)+
   done
 
