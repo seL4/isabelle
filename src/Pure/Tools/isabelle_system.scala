@@ -8,7 +8,9 @@ Isabelle system support -- basic Cygwin/Posix compatibility.
 package isabelle
 
 import java.util.regex.{Pattern, Matcher}
-import java.io.{BufferedReader, InputStreamReader, FileInputStream, File}
+import java.io.{BufferedReader, InputStreamReader, FileInputStream, File, IOException}
+
+import scala.io.Source
 
 
 object IsabelleSystem {
@@ -74,24 +76,48 @@ object IsabelleSystem {
   }
 
 
-  /* named pipes */
-
-  def fifo_reader(fifo: String) =
-    if (is_cygwin()) new BufferedReader(new InputStreamReader(Runtime.getRuntime.exec(
-      Array(platform_path("/bin/cat"), fifo)).getInputStream, charset))
-    else new BufferedReader(new InputStreamReader(new FileInputStream(fifo), charset))
-
-
   /* processes */
 
   private def posix_prefix() = if (is_cygwin()) List(platform_path("/bin/env")) else Nil
 
-  def exec(args: List[String]) = Runtime.getRuntime.exec((posix_prefix() ++ args).toArray)
+  def exec(args: String*): Process = Runtime.getRuntime.exec((posix_prefix() ++ args).toArray)
 
-  def exec2(args: List[String]) = {
+  def exec2(args: String*): Process = {
     val cmdline = new java.util.LinkedList[String]
     for (s <- posix_prefix() ++ args) cmdline.add(s)
     new ProcessBuilder(cmdline).redirectErrorStream(true).start
   }
+
+
+  /* Isabelle tools (non-interactive) */
+
+  def isatool(args: String*) = {
+    val proc =
+      try { exec2((List(getenv_strict("ISATOOL")) ++ args): _*) }
+      catch { case e: IOException => error(e.getMessage) }
+    proc.getOutputStream.close
+    val output = Source.fromInputStream(proc.getInputStream, charset).mkString("")
+    val rc = proc.waitFor
+    (output, rc)
+  }
+
+
+  /* named pipes */
+
+  def mk_fifo() = {
+    val (result, rc) = isatool("mkfifo")
+    if (rc == 0) result.trim
+    else error(result)
+  }
+
+  def rm_fifo(fifo: String) = {
+    val (result, rc) = isatool("rmfifo", fifo)
+    if (rc != 0) error(result)
+  }
+
+  def fifo_reader(fifo: String) =  // blocks until writer is ready
+    if (is_cygwin()) new BufferedReader(new InputStreamReader(Runtime.getRuntime.exec(
+      Array(platform_path("/bin/cat"), fifo)).getInputStream, charset))
+    else new BufferedReader(new InputStreamReader(new FileInputStream(fifo), charset))
 
 }

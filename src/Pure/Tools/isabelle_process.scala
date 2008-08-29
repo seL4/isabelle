@@ -110,7 +110,7 @@ class IsabelleProcess(args: String*) {
     if (pid == null) put_result(Kind.SYSTEM, null, "Cannot interrupt: unknown pid")
     else {
       try {
-        if (IsabelleSystem.exec(List("kill", "-INT", pid)).waitFor == 0)
+        if (IsabelleSystem.exec("kill", "-INT", pid).waitFor == 0)
           put_result(Kind.SIGNAL, null, "INT")
         else
           put_result(Kind.SYSTEM, null, "Cannot interrupt: kill command failed")
@@ -249,85 +249,81 @@ class IsabelleProcess(args: String*) {
       var finished = false
       while (!finished) {
         try {
-          try {
-            if (kind == null) {
-              //{{{ Char mode -- resync
-              var c = -1
-              do {
-                c = reader.read
-                if (c >= 0 && c != 2) result.append(c.asInstanceOf[Char])
-              } while (c >= 0 && c != 2)
-  
-              if (result.length > 0) {
-                put_result(Kind.SYSTEM, null, "Malformed message:\n" + result.toString)
-                result.length = 0
-              }
-              if (c < 0) {
-                reader.close
-                finished = true
-                try_close()
-              }
-              else {
-                reader.read match {
-                  case 'A' => kind = Kind.WRITELN
-                  case 'B' => kind = Kind.PRIORITY
-                  case 'C' => kind = Kind.TRACING
-                  case 'D' => kind = Kind.WARNING
-                  case 'E' => kind = Kind.ERROR
-                  case 'F' => kind = Kind.DEBUG
-                  case 'G' => kind = Kind.PROMPT
-                  case 'H' => kind = Kind.INIT
-                  case 'I' => kind = Kind.STATUS
-                  case _ => kind = null
-                }
-                props = null
-              }
-              //}}}
+          if (kind == null) {
+            //{{{ Char mode -- resync
+            var c = -1
+            do {
+              c = reader.read
+              if (c >= 0 && c != 2) result.append(c.asInstanceOf[Char])
+            } while (c >= 0 && c != 2)
+
+            if (result.length > 0) {
+              put_result(Kind.SYSTEM, null, "Malformed message:\n" + result.toString)
+              result.length = 0
+            }
+            if (c < 0) {
+              reader.close
+              finished = true
+              try_close()
             }
             else {
-              //{{{ Line mode
-              val line = reader.readLine
-              if (line == null) {
-                reader.close
-                finished = true
-                try_close()
+              reader.read match {
+                case 'A' => kind = Kind.WRITELN
+                case 'B' => kind = Kind.PRIORITY
+                case 'C' => kind = Kind.TRACING
+                case 'D' => kind = Kind.WARNING
+                case 'E' => kind = Kind.ERROR
+                case 'F' => kind = Kind.DEBUG
+                case 'G' => kind = Kind.PROMPT
+                case 'H' => kind = Kind.INIT
+                case 'I' => kind = Kind.STATUS
+                case _ => kind = null
               }
-              else {
-                val len = line.length
-                // property
-                if (line.endsWith("\u0002,")) {
-                  val i = line.indexOf('=')
-                  if (i > 0) {
-                    val name = line.substring(0, i)
-                    val value = line.substring(i + 1, len - 2)
-                    if (props == null) props = new Properties
-                    if (!props.containsKey(name)) props.setProperty(name, value)
-                  }
-                }
-                // last text line
-                else if (line.endsWith("\u0002.")) {
-                  result.append(line.substring(0, len - 2))
-                  put_result(kind, props, result.toString)
-                  result.length = 0
-                  kind = null
-                }
-                // text line
-                else {
-                  result.append(line)
-                  result.append('\n')
-                }
-              }
-              //}}}
+              props = null
             }
+            //}}}
           }
-          catch {
-            case e: IOException => put_result(Kind.SYSTEM, null, "Message thread: " + e.getMessage)
+          else {
+            //{{{ Line mode
+            val line = reader.readLine
+            if (line == null) {
+              reader.close
+              finished = true
+              try_close()
+            }
+            else {
+              val len = line.length
+              // property
+              if (line.endsWith("\u0002,")) {
+                val i = line.indexOf('=')
+                if (i > 0) {
+                  val name = line.substring(0, i)
+                  val value = line.substring(i + 1, len - 2)
+                  if (props == null) props = new Properties
+                  if (!props.containsKey(name)) props.setProperty(name, value)
+                }
+              }
+              // last text line
+              else if (line.endsWith("\u0002.")) {
+                result.append(line.substring(0, len - 2))
+                put_result(kind, props, result.toString)
+                result.length = 0
+                kind = null
+              }
+              // text line
+              else {
+                result.append(line)
+                result.append('\n')
+              }
+            }
+            //}}}
           }
         }
-        catch { case _: InterruptedException => finished = true }
+        catch {
+          case e: IOException => put_result(Kind.SYSTEM, null, "Message thread: " + e.getMessage)
+        }
       }
-      try { put_result(Kind.SYSTEM, null, "Message thread terminated") }
-      catch { case _ : InterruptedException => }
+      put_result(Kind.SYSTEM, null, "Message thread terminated")
     }
   }
 
@@ -338,29 +334,24 @@ class IsabelleProcess(args: String*) {
 
     /* message fifo */
 
-    val fifo =
-      try {
-        val mkfifo = IsabelleSystem.exec(List(IsabelleSystem.getenv_strict("ISATOOL"), "mkfifo"))
-        val fifo = new BufferedReader(new
-          InputStreamReader(mkfifo.getInputStream, IsabelleSystem.charset)).readLine
-        if (mkfifo.waitFor == 0) fifo
-        else error("Failed to create message fifo")
-      }
-      catch {
-        case e: IOException => error("Failed to create message fifo: " + e.getMessage)
-      }
+    val message_fifo = IsabelleSystem.mk_fifo()
+    def rm_fifo() = IsabelleSystem.rm_fifo(message_fifo)
 
-    val message_thread = new MessageThread(fifo)
+    val message_thread = new MessageThread(message_fifo)
+    message_thread.start
 
 
     /* exec process */
 
     try {
-      proc = IsabelleSystem.exec2(List(
-        IsabelleSystem.getenv_strict("ISABELLE_HOME") + "/bin/isabelle-process", "-W", fifo) ++ args)
+      val cmdline = List(IsabelleSystem.getenv_strict("ISABELLE_HOME") +
+          "/bin/isabelle-process", "-W", message_fifo) ++ args
+      proc = IsabelleSystem.exec2(cmdline: _*)
     }
     catch {
-      case e: IOException => error("Failed to execute Isabelle process: " + e.getMessage)
+      case e: IOException =>
+        rm_fifo()
+        error("Failed to execute Isabelle process: " + e.getMessage)
     }
 
 
@@ -372,17 +363,16 @@ class IsabelleProcess(args: String*) {
 
     /* exit */
 
-    class ExitThread extends Thread("isabelle: exit") {
+    new Thread("isabelle: exit") {
       override def run() = {
         val rc = proc.waitFor()
         Thread.sleep(300)
         put_result(Kind.SYSTEM, null, "Exit thread terminated")
         put_result(Kind.EXIT, null, Integer.toString(rc))
-        message_thread.interrupt
+        rm_fifo()
       }
-    }
-    message_thread.start
-    new ExitThread().start
+    }.start
+
   }
 
 }

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: remove named pipe
+
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG NAME"
+  echo
+  echo "  Remove an unused named pipe, after producing dummy output"
+  echo "  to unblock the reader (blocks if no reader present)."
+  echo
+  exit 1
+}
+
+
+## main
+
+[ "$#" != 1 ] && usage
+FIFO="$1"; shift
+
+if [ -p "$FIFO" ]; then
+  echo -n "" >"$FIFO" && rm -f "$FIFO"
+fi
