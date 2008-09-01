@@ -669,13 +669,9 @@ qed
 lemma exp_zero [simp]: "exp 0 = 1"
 unfolding exp_def by (simp add: scaleR_conv_of_real powser_zero)
 
-lemma setsum_head2:
-  "m \<le> n \<Longrightarrow> setsum f {m..n} = f m + setsum f {Suc m..n}"
-by (simp add: setsum_head atLeastSucAtMost_greaterThanAtMost)
-
 lemma setsum_cl_ivl_Suc2:
   "(\<Sum>i=m..Suc n. f i) = (if Suc n < m then 0 else f m + (\<Sum>i=m..n. f (Suc i)))"
-by (simp add: setsum_head2 setsum_shift_bounds_cl_Suc_ivl
+by (simp add: setsum_head_Suc setsum_shift_bounds_cl_Suc_ivl
          del: setsum_cl_ivl_Suc)
 
 lemma exp_series_add:
