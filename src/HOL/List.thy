@@ -3626,14 +3626,6 @@ by (induct xs) auto
 
 text {* Code for bounded quantification and summation over nats. *}
 
-lemma atMost_upto [code unfold]:
-  "{..n} = set [0..<Suc n]"
-by auto
-
-lemma atLeast_upt [code unfold]:
-  "{..<n} = set [0..<n]"
-by auto
-
 lemma greaterThanLessThan_upt [code unfold]:
   "{n<..<m} = set [Suc n..<m]"
 by auto

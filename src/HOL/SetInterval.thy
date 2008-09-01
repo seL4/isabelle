@@ -48,32 +48,7 @@ definition
   "{l..u} == {l..} Int {..u}"
 
 end
-(*
-constdefs
-  lessThan    :: "('a::ord) => 'a set"	("(1{..<_})")
-  "{..<u} == {x. x<u}"
 
-  atMost      :: "('a::ord) => 'a set"	("(1{.._})")
-  "{..u} == {x. x<=u}"
-
-  greaterThan :: "('a::ord) => 'a set"	("(1{_<..})")
-  "{l<..} == {x. l<x}"
-
-  atLeast     :: "('a::ord) => 'a set"	("(1{_..})")
-  "{l..} == {x. l<=x}"
-
-  greaterThanLessThan :: "['a::ord, 'a] => 'a set"  ("(1{_<..<_})")
-  "{l<..<u} == {l<..} Int {..<u}"
-
-  atLeastLessThan :: "['a::ord, 'a] => 'a set"      ("(1{_..<_})")
-  "{l..<u} == {l..} Int {..<u}"
-
-  greaterThanAtMost :: "['a::ord, 'a] => 'a set"    ("(1{_<.._})")
-  "{l<..u} == {l<..} Int {..u}"
-
-  atLeastAtMost :: "['a::ord, 'a] => 'a set"        ("(1{_.._})")
-  "{l..u} == {l..} Int {..u}"
-*)
 
 text{* A note of warning when using @{term"{..<n}"} on type @{typ
 nat}: it is equivalent to @{term"{0::nat..<n}"} but some lemmas involving
@@ -297,16 +272,21 @@ by blast
 
 subsubsection {* The Constant @{term atLeastLessThan} *}
 
-text{*The orientation of the following rule is tricky. The lhs is
+text{*The orientation of the following 2 rules is tricky. The lhs is
 defined in terms of the rhs.  Hence the chosen orientation makes sense
 in this theory --- the reverse orientation complicates proofs (eg
 nontermination). But outside, when the definition of the lhs is rarely
 used, the opposite orientation seems preferable because it reduces a
 specific concept to a more general one. *}
+
 lemma atLeast0LessThan: "{0::nat..<n} = {..<n}"
 by(simp add:lessThan_def atLeastLessThan_def)
 
+lemma atLeast0AtMost: "{0..n::nat} = {..n}"
+by(simp add:atMost_def atLeastAtMost_def)
+
 declare atLeast0LessThan[symmetric, code unfold]
+        atLeast0AtMost[symmetric, code unfold]
 
 lemma atLeastLessThan0: "{m..<0::nat} = {}"
 by (simp add: atLeastLessThan_def)
@@ -411,12 +391,16 @@ lemma finite_atLeastAtMost [iff]:
   fixes l :: nat shows "finite {l..u}"
 by (simp add: atLeastAtMost_def)
 
+text {* A bounded set of natural numbers is finite. *}
 lemma bounded_nat_set_is_finite:
   "(ALL i:N. i < (n::nat)) ==> finite N"
-  -- {* A bounded set of natural numbers is finite. *}
-  apply (rule finite_subset)
-   apply (rule_tac [2] finite_lessThan, auto)
-  done
+apply (rule finite_subset)
+ apply (rule_tac [2] finite_lessThan, auto)
+done
+
+lemma finite_less_ub:
+     "!!f::nat=>nat. (!!n. n \<le> f n) ==> finite {n. f n \<le> u}"
+by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
 
 text{* Any subset of an interval of natural numbers the size of the
 subset is exactly that interval. *}
@@ -800,6 +784,32 @@ lemma setsum_cl_ivl_add_one_nat: "(n::nat) <= m + 1 ==>
     (\<Sum>i=n..m+1. f i) = (\<Sum>i=n..m. f i) + f(m + 1)"
 by (auto simp:add_ac atLeastAtMostSuc_conv)
 *)
+
+lemma setsum_head:
+  fixes n :: nat
+  assumes mn: "m <= n" 
+  shows "(\<Sum>x\<in>{m..n}. P x) = P m + (\<Sum>x\<in>{m<..n}. P x)" (is "?lhs = ?rhs")
+proof -
+  from mn
+  have "{m..n} = {m} \<union> {m<..n}"
+    by (auto intro: ivl_disj_un_singleton)
+  hence "?lhs = (\<Sum>x\<in>{m} \<union> {m<..n}. P x)"
+    by (simp add: atLeast0LessThan)
+  also have "\<dots> = ?rhs" by simp
+  finally show ?thesis .
+qed
+
+lemma setsum_head_Suc:
+  "m \<le> n \<Longrightarrow> setsum f {m..n} = f m + setsum f {Suc m..n}"
+by (simp add: setsum_head atLeastSucAtMost_greaterThanAtMost)
+
+lemma setsum_head_upt_Suc:
+  "m < n \<Longrightarrow> setsum f {m..<n} = f m + setsum f {Suc m..<n}"
+apply(insert setsum_head_Suc[of m "n - 1" f])
+apply (simp add: atLeastLessThanSuc_atLeastAtMost[symmetric] ring_simps)
+done
+
+
 lemma setsum_add_nat_ivl: "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
   setsum f {m..<n} + setsum f {n..<p} = setsum f {m..<p::nat}"
 by (simp add:setsum_Un_disjoint[symmetric] ivl_disj_int ivl_disj_un)
@@ -811,6 +821,7 @@ shows "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
 using setsum_add_nat_ivl [of m n p f,symmetric]
 apply (simp add: add_ac)
 done
+
 
 subsection{* Shifting bounds *}
 
@@ -832,40 +843,15 @@ corollary setsum_shift_bounds_Suc_ivl:
   "setsum f {Suc m..<Suc n} = setsum (%i. f(Suc i)){m..<n}"
 by (simp add:setsum_shift_bounds_nat_ivl[where k=1,simplified])
 
-lemma setsum_head:
-  fixes n :: nat
-  assumes mn: "m <= n" 
-  shows "(\<Sum>x\<in>{m..n}. P x) = P m + (\<Sum>x\<in>{m<..n}. P x)" (is "?lhs = ?rhs")
-proof -
-  from mn
-  have "{m..n} = {m} \<union> {m<..n}"
-    by (auto intro: ivl_disj_un_singleton)
-  hence "?lhs = (\<Sum>x\<in>{m} \<union> {m<..n}. P x)"
-    by (simp add: atLeast0LessThan)
-  also have "\<dots> = ?rhs" by simp
-  finally show ?thesis .
-qed
+lemma setsum_shift_lb_Suc0_0:
+  "f(0::nat) = (0::nat) \<Longrightarrow> setsum f {Suc 0..k} = setsum f {0..k}"
+by(simp add:setsum_head_Suc)
 
-lemma setsum_head_upt:
-  fixes m::nat
-  assumes m: "0 < m"
-  shows "(\<Sum>x<m. P x) = P 0 + (\<Sum>x\<in>{1..<m}. P x)"
-proof -
-  have "(\<Sum>x<m. P x) = (\<Sum>x\<in>{0..<m}. P x)" 
-    by (simp add: atLeast0LessThan)
-  also 
-  from m 
-  have "\<dots> = (\<Sum>x\<in>{0..m - 1}. P x)"
-    by (cases m) (auto simp add: atLeastLessThanSuc_atLeastAtMost)
-  also
-  have "\<dots> = P 0 + (\<Sum>x\<in>{0<..m - 1}. P x)"
-    by (simp add: setsum_head)
-  also 
-  from m 
-  have "{0<..m - 1} = {1..<m}" 
-    by (cases m) (auto simp add: atLeastLessThanSuc_atLeastAtMost)
-  finally show ?thesis .
-qed
+lemma setsum_shift_lb_Suc0_0_upt:
+  "f(0::nat) = 0 \<Longrightarrow> setsum f {Suc 0..<k} = setsum f {0..<k}"
+apply(cases k)apply simp
+apply(simp add:setsum_head_upt_Suc)
+done
 
 subsection {* The formula for geometric sums *}
 
@@ -899,12 +885,12 @@ proof cases
     by (rule setsum_addf)
   also from ngt1 have "\<dots> = ?n*a + (\<Sum>i\<in>{..<n}. ?I i*d)" by simp
   also from ngt1 have "\<dots> = (?n*a + d*(\<Sum>i\<in>{1..<n}. ?I i))"
-    by (simp add: setsum_right_distrib setsum_head_upt mult_ac)
+    by (simp add: setsum_right_distrib atLeast0LessThan[symmetric] setsum_shift_lb_Suc0_0_upt mult_ac)
   also have "(1+1)*\<dots> = (1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..<n}. ?I i)"
     by (simp add: left_distrib right_distrib)
   also from ngt1 have "{1..<n} = {1..n - 1}"
-    by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost)    
-  also from ngt1 
+    by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost)
+  also from ngt1
   have "(1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..n - 1}. ?I i) = ((1+1)*?n*a + d*?I (n - 1)*?I n)"
     by (simp only: mult_ac gauss_sum [of "n - 1"])
        (simp add:  mult_ac trans [OF add_commute of_nat_Suc [symmetric]])
