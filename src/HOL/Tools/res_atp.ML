@@ -69,8 +69,11 @@ val convergence = ref 3.2;    (*Higher numbers allow longer inference chains*)
 val max_new = ref 60;         (*Limits how many clauses can be picked up per stage*)
 val follow_defs = ref false;  (*Follow definitions. Makes problems bigger.*)
 
+(* could both be hidden: *)
+val atp_ref = ref "E";
+
 fun set_prover atp =
-  case String.map Char.toLower atp of
+  (case String.map Char.toLower atp of
       "e" =>
           (max_new := 100;
            theory_const := false;
@@ -84,8 +87,16 @@ fun set_prover atp =
            theory_const := false;
            prover := Recon.Vampire)
     | _ => error ("No such prover: " ^ atp);
+   atp_ref := atp);
 
-val _ = set_prover "E"; (* use E as the default prover *)
+val _ = ProofGeneralPgip.add_preference "Proof"
+    {name = "ATP (e/vampire/spass)",
+     descr = "Which external automatic prover",
+     default = !atp_ref,
+     pgiptype = PgipTypes.Pgipstring,
+     get = fn () => !atp_ref,
+     set = set_prover};
+
 
 val destdir = ref "";   (*Empty means write files to /tmp*)
 val problem_name = ref "prob";
