@@ -22,6 +22,8 @@ sig
   val preferences : isa_preference_table
 
   val remove      : string -> isa_preference_table -> isa_preference_table
+  val add         : string -> isa_preference
+                    -> isa_preference_table -> isa_preference_table
   val set_default : string * string -> isa_preference_table -> isa_preference_table
 end
 
@@ -184,5 +186,12 @@ fun set_default (setname,newdefault) (preftable : isa_preference_table)  =
                              else pref)
                   prefs))
         preftable;
+
+fun add cname (pref: isa_preference) (preftable : isa_preference_table) =
+    map (fn (cat,prefs:isa_preference list) =>
+      if cat <> cname then (cat,prefs)
+      else if (#name pref) mem (map #name prefs)
+           then error ("Preference already exists: " ^ quote(#name pref))
+           else (cat, pref::prefs))  preftable;
 
 end

@@ -20,6 +20,7 @@ sig
   val error_with_pos : PgipTypes.displayarea -> PgipTypes.fatality -> Position.T -> string -> unit
 
   val get_currently_open_file : unit -> Path.T option  (* interface focus *)
+  val add_preference: string -> Preferences.isa_preference -> unit
 end
 
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP =
@@ -338,6 +339,9 @@ end
 (* Preferences: tweak for PGIP interfaces *)
 
 val preferences = ref Preferences.preferences;
+
+fun add_preference cat pref =
+    preferences := Preferences.add cat pref (!preferences);
 
 fun setup_preferences_tweak() =
     preferences :=
