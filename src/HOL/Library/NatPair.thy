@@ -7,17 +7,18 @@
 header {* Pairs of Natural Numbers *}
 
 theory NatPair
-imports Plain "~~/src/HOL/Presburger"
+imports Main
 begin
 
 text{*
-  An injective function from @{text "\<nat>\<twosuperior>"} to @{text \<nat>}.  Definition
+  A bijection between @{text "\<nat>\<twosuperior>"} and @{text \<nat>}.  Definition
   and proofs are from \cite[page 85]{Oberschelp:1993}.
 *}
 
-definition
-  nat2_to_nat:: "(nat * nat) \<Rightarrow> nat" where
-  "nat2_to_nat pair = (let (n,m) = pair in (n+m) * Suc (n+m) div 2 + n)"
+definition nat2_to_nat:: "(nat * nat) \<Rightarrow> nat" where
+"nat2_to_nat pair = (let (n,m) = pair in (n+m) * Suc (n+m) div 2 + n)"
+definition nat_to_nat2::  "nat \<Rightarrow> (nat * nat)" where
+"nat_to_nat2 = inv nat2_to_nat"
 
 lemma dvd2_a_x_suc_a: "2 dvd a * (Suc a)"
 proof (cases "2 dvd a")
@@ -86,6 +87,48 @@ proof -
   }
   then have "\<And>x y. nat2_to_nat x = nat2_to_nat y \<Longrightarrow> x=y" by fast
   then show ?thesis unfolding inj_on_def by simp
+qed
+
+lemma nat_to_nat2_surj: "surj nat_to_nat2"
+by (simp only: nat_to_nat2_def nat2_to_nat_inj inj_imp_surj_inv)
+
+
+lemma gauss_sum_nat_upto: "2 * (\<Sum>i\<le>n::nat. i) = n * (n + 1)"
+using gauss_sum[where 'a = nat]
+by (simp add:atLeast0AtMost setsum_shift_lb_Suc0_0 numeral_2_eq_2)
+
+lemma nat2_to_nat_surj: "surj nat2_to_nat"
+proof (unfold surj_def)
+  {
+    fix z::nat 
+    def r \<equiv> "Max {r. (\<Sum>i\<le>r. i) \<le> z}" 
+    def x \<equiv> "z - (\<Sum>i\<le>r. i)"
+
+    hence "finite  {r. (\<Sum>i\<le>r. i) \<le> z}"
+      by (simp add: lessThan_Suc_atMost[symmetric] lessThan_Suc finite_less_ub)
+    also have "0 \<in> {r. (\<Sum>i\<le>r. i) \<le> z}"  by simp
+    hence "{r::nat. (\<Sum>i\<le>r. i) \<le> z} \<noteq> {}"  by fast
+    ultimately have a: "r \<in> {r. (\<Sum>i\<le>r. i) \<le> z} \<and> (\<forall>s \<in> {r. (\<Sum>i\<le>r. i) \<le> z}. s \<le> r)"
+      by (simp add: r_def del:mem_Collect_eq)
+    {
+      assume "r<x"
+      hence "r+1\<le>x"  by simp
+      hence "(\<Sum>i\<le>r. i)+(r+1)\<le>z"  using x_def by arith
+      hence "(r+1) \<in>  {r. (\<Sum>i\<le>r. i) \<le> z}"  by simp
+      with a have "(r+1)\<le>r"  by simp
+    }
+    hence b: "x\<le>r"  by force
+    
+    def y \<equiv> "r-x"
+    have "2*z=2*(\<Sum>i\<le>r. i)+2*x"  using x_def a by simp arith
+    also have "\<dots> = r * (r+1) + 2*x"   using gauss_sum_nat_upto by simp
+    also have "\<dots> = (x+y)*(x+y+1)+2*x" using y_def b by simp
+    also { have "2 dvd ((x+y)*(x+y+1))"	using dvd2_a_x_suc_a by simp }
+    hence "\<dots> = 2 * nat2_to_nat(x,y)"
+      using nat2_to_nat_def by (simp add: Let_def dvd_mult_div_cancel)
+    finally have "z=nat2_to_nat (x, y)"  by simp
+  }
+  thus "\<forall>y. \<exists>x. y = nat2_to_nat x"  by fast
 qed
 
 end
