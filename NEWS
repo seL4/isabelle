@@ -135,6 +135,8 @@ have disappeared in favour of existing ones:
 instantiations for algebraic structures.  Removed some duplicate
 theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
+* ATP selection (E/Vampire/Spass) is now via PG's settings menu.
+
 
 *** HOL-Algebra ***
 
