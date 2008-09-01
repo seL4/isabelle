@@ -59,6 +59,16 @@ sig
     -> (thm -> bool -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm -> fixity -> (string option * iterm option) * itype -> var_ctxt -> Pretty.T * var_ctxt
 
+  type literals
+  val Literals: { literal_char: string -> string, literal_string: string -> string,
+        literal_numeral: bool -> int -> string, literal_list: Pretty.T list -> Pretty.T, infix_cons: int * string }
+    -> literals
+  val literal_char: literals -> string -> string
+  val literal_string: literals -> string -> string
+  val literal_numeral: literals -> bool -> int -> string
+  val literal_list: literals -> Pretty.T list -> Pretty.T
+  val infix_cons: literals -> int * string
+
   val nerror: thm -> string -> 'a
 end;
 
@@ -275,5 +285,24 @@ fun parse_syntax prep_arg xs =
       >> (fn (parse, s) => parse s)) xs;
 
 val _ = List.app OuterKeyword.keyword [infixK, infixlK, infixrK];
+
+
+(** pretty literals **)
+
+datatype literals = Literals of {
+  literal_char: string -> string,
+  literal_string: string -> string,
+  literal_numeral: bool -> int -> string,
+  literal_list: Pretty.T list -> Pretty.T,
+  infix_cons: int * string
+};
+
+fun dest_Literals (Literals lits) = lits;
+
+val literal_char = #literal_char o dest_Literals;
+val literal_string = #literal_string o dest_Literals;
+val literal_numeral = #literal_numeral o dest_Literals;
+val literal_list = #literal_list o dest_Literals;
+val infix_cons = #infix_cons o dest_Literals;
 
 end; (*struct*)

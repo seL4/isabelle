@@ -10,7 +10,7 @@ sig
   include CODE_PRINTER
 
   type serializer
-  val add_target: string * serializer -> theory -> theory
+  val add_target: string * (serializer * literals) -> theory -> theory
   val extend_target: string * (string * (Code_Thingol.program -> Code_Thingol.program))
     -> theory -> theory
   val assert_target: theory -> string -> string
@@ -28,7 +28,7 @@ sig
     -> 'a -> serialization
   val serialize: theory -> string -> string option -> Args.T list
     -> Code_Thingol.program -> string list -> serialization
-  val serialize_custom: theory -> string * serializer
+  val serialize_custom: theory -> string * (serializer * literals)
     -> Code_Thingol.program -> string list -> string * string list
   val compile: serialization -> unit
   val export: serialization -> unit
@@ -51,13 +51,13 @@ sig
     -> (theory -> theory) * OuterParse.token list
   val add_reserved: string -> string -> theory -> theory
 
-  val add_pretty_list: string -> string -> string -> theory -> theory
-  val add_pretty_list_string: string -> string -> string
+  val add_literal_list: string -> string -> string -> theory -> theory
+  val add_literal_list_string: string -> string -> string
     -> string -> string list -> theory -> theory
-  val add_pretty_char: string -> string -> string list -> theory -> theory
-  val add_pretty_numeral: string -> bool -> bool -> string -> string -> string
+  val add_literal_char: string -> string -> string list -> theory -> theory
+  val add_literal_numeral: string -> bool -> bool -> string -> string -> string
     -> string -> string -> theory -> theory
-  val add_pretty_message: string -> string -> string list -> string
+  val add_literal_message: string -> string -> string list -> string
     -> string -> string -> theory -> theory
 end;
 
@@ -147,67 +147,7 @@ fun implode_numeral thm negative c_pls c_min c_bit0 c_bit1 =
   in dest_numeral #> the_default 0 end;
 
 
-(* pretty syntax printing *)
-
-local
-
-fun ocaml_char c =
-  let
-    fun chr i =
-      let
-        val xs = string_of_int i;
-        val ys = replicate_string (3 - length (explode xs)) "0";
-      in "\\" ^ ys ^ xs end;
-    val i = ord c;
-    val s = if i < 32 orelse i = 34 orelse i = 39 orelse i = 92 orelse i > 126
-      then chr i else c
-  in s end;
-
-fun haskell_char c =
-  let
-    val s = ML_Syntax.print_char c;
-  in if s = "'" then "\\'" else s end;
-
-val pretty : (string * {
-    pretty_char: string -> string,
-    pretty_string: string -> string,
-    pretty_numeral: bool -> int -> string,
-    pretty_list: Pretty.T list -> Pretty.T,
-    infix_cons: int * string
-  }) list = [
-  ("SML", { pretty_char = prefix "#" o quote o ML_Syntax.print_char,
-      pretty_string = quote o translate_string ML_Syntax.print_char,
-      pretty_numeral = fn unbounded => fn k =>
-        if unbounded then "(" ^ string_of_int k ^ " : IntInf.int)"
-        else string_of_int k,
-      pretty_list = Pretty.enum "," "[" "]",
-      infix_cons = (7, "::")}),
-  ("OCaml", { pretty_char = enclose "'" "'" o ocaml_char,
-      pretty_string = quote o translate_string ocaml_char,
-      pretty_numeral = fn unbounded => fn k => if k >= 0 then
-            if unbounded then
-              "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
-            else string_of_int k
-          else
-            if unbounded then
-              "(Big_int.big_int_of_int " ^ (enclose "(" ")" o prefix "-"
-                o string_of_int o op ~) k ^ ")"
-            else (enclose "(" ")" o prefix "-" o string_of_int o op ~) k,
-      pretty_list = Pretty.enum ";" "[" "]",
-      infix_cons = (6, "::")}),
-  ("Haskell", { pretty_char = enclose "'" "'" o haskell_char,
-      pretty_string = quote o translate_string haskell_char,
-      pretty_numeral = fn unbounded => fn k => if k >= 0 then string_of_int k
-          else enclose "(" ")" (signed_string_of_int k),
-      pretty_list = Pretty.enum "," "[" "]",
-      infix_cons = (5, ":")})
-];
-
-in
-
-fun pr_pretty target = case AList.lookup (op =) pretty target
- of SOME x => x
-  | NONE => error ("Unknown code target language: " ^ quote target);
+(* literal syntax printing *)
 
 fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
   brackify_infix (target_fxy, R) fxy [
@@ -216,51 +156,48 @@ fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
     pr (INFX (target_fxy, R)) t2
   ];
 
-fun pretty_list c_nil c_cons target =
+fun pretty_list c_nil c_cons literals =
   let
-    val pretty_ops = pr_pretty target;
-    val mk_list = #pretty_list pretty_ops;
+    val mk_list = literal_list literals;
     fun pretty pr thm pat vars fxy [(t1, _), (t2, _)] =
       case Option.map (cons t1) (implode_list c_nil c_cons t2)
        of SOME ts => mk_list (map (pr vars NOBR) ts)
-        | NONE => default_list (#infix_cons pretty_ops) (pr vars) fxy t1 t2;
+        | NONE => default_list (infix_cons literals) (pr vars) fxy t1 t2;
   in (2, pretty) end;
 
-fun pretty_list_string c_nil c_cons c_char c_nibbles target =
+fun pretty_list_string c_nil c_cons c_char c_nibbles literals =
   let
-    val pretty_ops = pr_pretty target;
-    val mk_list = #pretty_list pretty_ops;
-    val mk_char = #pretty_char pretty_ops;
-    val mk_string = #pretty_string pretty_ops;
+    val mk_list = literal_list literals;
+    val mk_char = literal_char literals;
+    val mk_string = literal_string literals;
     fun pretty pr thm pat vars fxy [(t1, _), (t2, _)] =
       case Option.map (cons t1) (implode_list c_nil c_cons t2)
        of SOME ts => (case implode_string c_char c_nibbles mk_char mk_string ts
            of SOME p => p
             | NONE => mk_list (map (pr vars NOBR) ts))
-        | NONE => default_list (#infix_cons pretty_ops) (pr vars) fxy t1 t2;
+        | NONE => default_list (infix_cons literals) (pr vars) fxy t1 t2;
   in (2, pretty) end;
 
-fun pretty_char c_char c_nibbles target =
+fun pretty_char c_char c_nibbles literals =
   let
-    val mk_char = #pretty_char (pr_pretty target);
+    val mk_char = literal_char literals;
     fun pretty _ thm _ _ _ [(t1, _), (t2, _)] =
       case decode_char c_nibbles (t1, t2)
        of SOME c => (str o mk_char) c
         | NONE => nerror thm "Illegal character expression";
   in (2, pretty) end;
 
-fun pretty_numeral unbounded negative c_pls c_min c_bit0 c_bit1 target =
+fun pretty_numeral unbounded negative c_pls c_min c_bit0 c_bit1 literals =
   let
-    val mk_numeral = #pretty_numeral (pr_pretty target);
+    val mk_numeral = literal_numeral literals;
     fun pretty _ thm _ _ _ [(t, _)] =
       (str o mk_numeral unbounded o implode_numeral thm negative c_pls c_min c_bit0 c_bit1) t;
   in (1, pretty) end;
 
-fun pretty_message c_char c_nibbles c_nil c_cons target =
+fun pretty_message c_char c_nibbles c_nil c_cons literals =
   let
-    val pretty_ops = pr_pretty target;
-    val mk_char = #pretty_char pretty_ops;
-    val mk_string = #pretty_string pretty_ops;
+    val mk_char = literal_char literals;
+    val mk_string = literal_string literals;
     fun pretty _ thm _ _ _ [(t, _)] =
       case implode_list c_nil c_cons t
        of SOME ts => (case implode_string c_char c_nibbles mk_char mk_string ts
@@ -268,8 +205,6 @@ fun pretty_message c_char c_nibbles c_nil c_cons target =
             | NONE => nerror thm "Illegal message expression")
         | NONE => nerror thm "Illegal message expression";
   in (1, pretty) end;
-
-end; (*local*)
 
 
 (** theory data **)
@@ -308,7 +243,7 @@ type serializer =
   -> string list                        (*selected statements*)
   -> serialization;
 
-datatype serializer_entry = Serializer of serializer
+datatype serializer_entry = Serializer of serializer * literals
   | Extends of string * (Code_Thingol.program -> Code_Thingol.program);
 
 datatype target = Target of {
@@ -562,57 +497,67 @@ fun add_syntax_tycoP target tyco = parse_syntax I
 fun add_syntax_constP target c = parse_syntax fst
   >> (add_syntax_const_cmd target c o Code_Printer.simple_const_syntax);
 
-fun add_pretty_list target nill cons thy =
+fun the_literals thy =
+  let
+    val (targets, _) = CodeTargetData.get thy;
+    fun literals target = case Symtab.lookup targets target
+     of SOME data => (case the_serializer data
+         of Serializer (_, literals) => literals
+          | Extends (super, _) => literals super)
+      | NONE => error ("Unknown code target language: " ^ quote target);
+  in literals end;
+
+fun add_literal_list target nill cons thy =
   let
     val nil' = Code_Name.const thy nill;
     val cons' = Code_Name.const thy cons;
-    val pr = pretty_list nil' cons' target;
+    val pr = pretty_list nil' cons' (the_literals thy target);
   in
     thy
     |> add_syntax_const target cons (SOME pr)
   end;
 
-fun add_pretty_list_string target nill cons charr nibbles thy =
+fun add_literal_list_string target nill cons charr nibbles thy =
   let
     val nil' = Code_Name.const thy nill;
     val cons' = Code_Name.const thy cons;
     val charr' = Code_Name.const thy charr;
     val nibbles' = map (Code_Name.const thy) nibbles;
-    val pr = pretty_list_string nil' cons' charr' nibbles' target;
+    val pr = pretty_list_string nil' cons' charr' nibbles' (the_literals thy target);
   in
     thy
     |> add_syntax_const target cons (SOME pr)
   end;
 
-fun add_pretty_char target charr nibbles thy =
+fun add_literal_char target charr nibbles thy =
   let
     val charr' = Code_Name.const thy charr;
     val nibbles' = map (Code_Name.const thy) nibbles;
-    val pr = pretty_char charr' nibbles' target;
+    val pr = pretty_char charr' nibbles' (the_literals thy target);
   in
     thy
     |> add_syntax_const target charr (SOME pr)
   end;
 
-fun add_pretty_numeral target unbounded negative number_of pls min bit0 bit1 thy =
+fun add_literal_numeral target unbounded negative number_of pls min bit0 bit1 thy =
   let
     val pls' = Code_Name.const thy pls;
     val min' = Code_Name.const thy min;
     val bit0' = Code_Name.const thy bit0;
     val bit1' = Code_Name.const thy bit1;
-    val pr = pretty_numeral unbounded negative pls' min' bit0' bit1' target;
+    val pr = pretty_numeral unbounded negative pls' min' bit0' bit1' (the_literals thy target);
   in
     thy
     |> add_syntax_const target number_of (SOME pr)
   end;
 
-fun add_pretty_message target charr nibbles nill cons str thy =
+fun add_literal_message target charr nibbles nill cons str thy =
   let
     val charr' = Code_Name.const thy charr;
     val nibbles' = map (Code_Name.const thy) nibbles;
     val nil' = Code_Name.const thy nill;
     val cons' = Code_Name.const thy cons;
-    val pr = pretty_message charr' nibbles' nil' cons' target;
+    val pr = pretty_message charr' nibbles' nil' cons' (the_literals thy target);
   in
     thy
     |> add_syntax_const target str (SOME pr)
@@ -658,7 +603,7 @@ fun mount_serializer thy alt_serializer target =
           in (modify' #> modify, merge_target false target (data', data)) end
       end;
     val (modify, data) = collapse_hierarchy target;
-    val serializer = the_default (case the_serializer data
+    val (serializer, _) = the_default (case the_serializer data
      of Serializer seri => seri) alt_serializer;
     val reserved = the_reserved data;
     val includes = Symtab.dest (the_includes data);

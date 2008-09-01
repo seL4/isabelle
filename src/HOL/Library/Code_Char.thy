@@ -36,9 +36,9 @@ let
     @{const_name NibbleC}, @{const_name NibbleD},
     @{const_name NibbleE}, @{const_name NibbleF}];
 in
-  fold (fn target => Code_Target.add_pretty_char target charr nibbles)
+  fold (fn target => Code_Target.add_literal_char target charr nibbles)
     ["SML", "OCaml", "Haskell"]
-  #> Code_Target.add_pretty_list_string "Haskell"
+  #> Code_Target.add_literal_list_string "Haskell"
     @{const_name Nil} @{const_name Cons} charr nibbles
 end
 *}

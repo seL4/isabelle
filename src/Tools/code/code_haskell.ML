@@ -408,6 +408,20 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
       destination
   end;
 
+val literals = let
+  fun char_haskell c =
+    let
+      val s = ML_Syntax.print_char c;
+    in if s = "'" then "\\'" else s end;
+in Literals {
+  literal_char = enclose "'" "'" o char_haskell,
+  literal_string = quote o translate_string char_haskell,
+  literal_numeral = fn unbounded => fn k => if k >= 0 then string_of_int k
+    else enclose "(" ")" (signed_string_of_int k),
+  literal_list = Pretty.enum "," "[" "]",
+  infix_cons = (5, ":")
+} end;
+
 
 (** optional monad syntax **)
 
@@ -474,7 +488,7 @@ val _ =
   );
 
 val setup =
-  Code_Target.add_target (target, isar_seri_haskell)
+  Code_Target.add_target (target, (isar_seri_haskell, literals))
   #> Code_Target.add_syntax_tyco target "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy [
         pr_typ (INFX (1, X)) ty1,

@@ -329,6 +329,16 @@ fun pr_sml_module name content =
     @@ str ("end; (*struct " ^ name ^ "*)")
   );
 
+val literals_sml = Literals {
+  literal_char = prefix "#" o quote o ML_Syntax.print_char,
+  literal_string = quote o translate_string ML_Syntax.print_char,
+  literal_numeral = fn unbounded => fn k =>
+    if unbounded then "(" ^ string_of_int k ^ " : IntInf.int)"
+    else string_of_int k,
+  literal_list = Pretty.enum "," "[" "]",
+  infix_cons = (7, "::")
+};
+
 
 (** OCaml serializer **)
 
@@ -633,6 +643,35 @@ fun pr_ocaml_module name content =
     @@ str ("end;; (*struct " ^ name ^ "*)")
   );
 
+val literals_ocaml = let
+  fun chr i =
+    let
+      val xs = string_of_int i;
+      val ys = replicate_string (3 - length (explode xs)) "0";
+    in "\\" ^ ys ^ xs end;
+  fun char_ocaml c =
+    let
+      val i = ord c;
+      val s = if i < 32 orelse i = 34 orelse i = 39 orelse i = 92 orelse i > 126
+        then chr i else c
+    in s end;
+in Literals {
+  literal_char = enclose "'" "'" o char_ocaml,
+  literal_string = quote o translate_string char_ocaml,
+  literal_numeral = fn unbounded => fn k => if k >= 0 then
+      if unbounded then
+        "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
+      else string_of_int k
+    else
+      if unbounded then
+        "(Big_int.big_int_of_int " ^ (enclose "(" ")" o prefix "-"
+          o string_of_int o op ~) k ^ ")"
+      else (enclose "(" ")" o prefix "-" o string_of_int o op ~) k,
+  literal_list = Pretty.enum ";" "[" "]",
+  infix_cons = (6, "::")
+} end;
+
+
 
 (** SML/OCaml generic part **)
 
@@ -839,7 +878,8 @@ end; (*local*)
 (** ML (system language) code for evaluation and instrumentalization **)
 
 fun ml_code_of thy = Code_Target.serialize_custom thy
-  (target_SML, (fn _ => fn [] => serialize_ml target_SML (SOME (K ())) (K Pretty.chunks) pr_sml_stmt (SOME "")));
+  (target_SML, (fn _ => fn [] => serialize_ml target_SML (SOME (K ())) (K Pretty.chunks) pr_sml_stmt (SOME ""),
+  literals_sml));
 
 
 (* evaluation *)
@@ -935,8 +975,8 @@ fun isar_seri_ocaml module_name =
       pr_ocaml_module pr_ocaml_stmt module_name);
 
 val setup =
-  Code_Target.add_target (target_SML, isar_seri_sml)
-  #> Code_Target.add_target (target_OCaml, isar_seri_ocaml)
+  Code_Target.add_target (target_SML, (isar_seri_sml, literals_sml))
+  #> Code_Target.add_target (target_OCaml, (isar_seri_ocaml, literals_ocaml))
   #> Code_Target.add_syntax_tyco target_SML "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy [
         pr_typ (INFX (1, X)) ty1,

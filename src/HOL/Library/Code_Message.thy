@@ -51,7 +51,7 @@ let
     @{const_name NibbleC}, @{const_name NibbleD},
     @{const_name NibbleE}, @{const_name NibbleF}];
 in
-  fold (fn target => Code_Target.add_pretty_message target
+  fold (fn target => Code_Target.add_literal_message target
     charr nibbles @{const_name Nil} @{const_name Cons} @{const_name STR})
   ["SML", "OCaml", "Haskell"]
 end
