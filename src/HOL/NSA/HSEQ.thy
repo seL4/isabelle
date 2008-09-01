@@ -202,11 +202,6 @@ qed
 theorem LIMSEQ_NSLIMSEQ_iff: "(f ----> L) = (f ----NS> L)"
 by (blast intro: LIMSEQ_NSLIMSEQ NSLIMSEQ_LIMSEQ)
 
-(* Used once by Integration/Rats.thy in AFP *)
-lemma NSLIMSEQ_finite_set:
-     "!!(f::nat=>nat). \<forall>n. n \<le> f n ==> finite {n. f n \<le> u}"
-by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
-
 subsubsection {* Derived theorems about @{term NSLIMSEQ} *}
 
 text{*We prove the NS version from the standard one, since the NS proof
