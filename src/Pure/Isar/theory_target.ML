@@ -48,8 +48,10 @@ fun pretty_thy ctxt target is_locale is_class =
   let
     val thy = ProofContext.theory_of ctxt;
     val target_name = (if is_class then "class " else "locale ") ^ Locale.extern thy target;
-    val fixes = map (fn (x, T) => (x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
-    val assumes = map (fn A => (("", []), [(A, [])])) (map Thm.term_of (Assumption.assms_of ctxt));
+    val fixes = map (fn (x, T) =>
+      (Name.binding x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
+    val assumes = map (fn A =>
+      ((Name.no_binding, []), [(A, [])])) (map Thm.term_of (Assumption.assms_of ctxt));
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
@@ -118,7 +120,7 @@ fun import_export_proof ctxt (name, raw_th) =
       |> Drule.zero_var_indexes_list;
 
     (*thm definition*)
-    val result = PureThy.name_thm true true name th'';
+    val result = PureThy.name_thm true true Position.none name th'';
 
     (*import fixes*)
     val (tvars, vars) =
@@ -138,7 +140,7 @@ fun import_export_proof ctxt (name, raw_th) =
         NONE => raise THM ("Failed to re-import result", 0, [result'])
       | SOME res => LocalDefs.trans_props ctxt [res, Thm.symmetric concl_conv])
       |> Goal.norm_result
-      |> PureThy.name_thm false false name;
+      |> PureThy.name_thm false false Position.none name;
 
   in (result'', result) end;
 
@@ -154,7 +156,8 @@ fun notes (Target {target, is_locale, is_class, ...}) kind facts lthy =
     val full = LocalTheory.full_name lthy;
 
     val facts' = facts
-      |> map (fn (a, bs) => (a, PureThy.burrow_fact (PureThy.name_multi (full (fst a))) bs))
+      |> map (fn (a, bs) =>
+        (a, PureThy.burrow_fact (PureThy.name_multi (full (Name.name_of (fst a)))) bs))
       |> PureThy.map_facts (import_export_proof lthy);
     val local_facts = PureThy.map_facts #1 facts'
       |> Attrib.map_facts (Attrib.attribute_i thy);
@@ -185,11 +188,13 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((c
   let
     val c' = Morphism.name phi c;
     val rhs' = Morphism.term phi rhs;
-    val legacy_arg = (c', Term.close_schematic_term (Logic.legacy_varify rhs'));
-    val arg = (c', Term.close_schematic_term rhs');
+    val name = Name.name_of c;
+    val name' = Name.name_of c'
+    val legacy_arg = (name', Term.close_schematic_term (Logic.legacy_varify rhs'));
+    val arg = (name', Term.close_schematic_term rhs');
     val similar_body = Type.similar_types (rhs, rhs');
     (* FIXME workaround based on educated guess *)
-    val class_global = c' = NameSpace.qualified (Class.class_prefix target) c;
+    val class_global = name' = NameSpace.qualified (Class.class_prefix target) name;
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
@@ -201,8 +206,9 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((c
              Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
   end;
 
-fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c, T), mx) lthy =
+fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b, T), mx) lthy =
   let
+    val c = Name.name_of b;
     val tags = LocalTheory.group_position_of lthy;
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
@@ -225,16 +231,17 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((c,
     val t = Term.list_comb (const, map Free xs);
   in
     lthy'
-    |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default tags ((c, mx2), t))
+    |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default tags ((b, mx2), t))
     |> is_class ? class_target ta (Class.declare target tags ((c, mx1), t))
-    |> LocalDefs.add_def ((c, NoSyn), t)
+    |> LocalDefs.add_def ((b, NoSyn), t)
   end;
 
 
 (* abbrev *)
 
-fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t) lthy =
+fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t) lthy =
   let
+    val c = Name.name_of b;
     val tags = LocalTheory.group_position_of lthy;
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val target_ctxt = LocalTheory.target_of lthy;
@@ -251,7 +258,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t)
         LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal tags (c, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
-            term_syntax ta (locale_const ta prmode tags ((c, mx2), lhs')) #>
+            term_syntax ta (locale_const ta prmode tags ((b, mx2), lhs')) #>
             is_class ? class_target ta (Class.abbrev target prmode tags ((c, mx1), t'))
           end)
       else
@@ -259,26 +266,27 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((c, mx), t)
           (Sign.add_abbrev (#1 prmode) tags (c, global_rhs) #-> (fn (lhs, _) =>
            Sign.notation true prmode [(lhs, mx3)])))
     |> ProofContext.add_abbrev PrintMode.internal tags (c, t) |> snd
-    |> LocalDefs.fixed_abbrev ((c, NoSyn), t)
+    |> LocalDefs.fixed_abbrev ((b, NoSyn), t)
   end;
 
 
 (* define *)
 
 fun define (ta as Target {target, is_locale, is_class, ...})
-    kind ((c, mx), ((name, atts), rhs)) lthy =
+    kind ((b, mx), ((name, atts), rhs)) lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init thy;
 
-    val name' = Thm.def_name_optional c name;
+    val c = Name.name_of b;
+    val name' = Name.map_name (Thm.def_name_optional c) name;
     val (rhs', rhs_conv) =
       LocalDefs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
     val xs = Variable.add_fixed (LocalTheory.target_of lthy) rhs' [];
     val T = Term.fastype_of rhs;
 
     (*const*)
-    val ((lhs, local_def), lthy2) = lthy |> declare_const ta (member (op =) xs) ((c, T), mx);
+    val ((lhs, local_def), lthy2) = lthy |> declare_const ta (member (op =) xs) ((b, T), mx);
     val (_, lhs') = Logic.dest_equals (Thm.prop_of local_def);
 
     (*def*)
@@ -291,7 +299,7 @@ fun define (ta as Target {target, is_locale, is_class, ...})
           then (fn name => fn eq => Thm.add_def false false (name, Logic.mk_equals eq))
           else (fn name => fn (Const (c, _), rhs) => AxClass.define_overloaded name (c, rhs)));
     val (global_def, lthy3) = lthy2
-      |> LocalTheory.theory_result (define_const name' (lhs', rhs'));
+      |> LocalTheory.theory_result (define_const (Name.name_of name') (lhs', rhs'));
     val def = LocalDefs.trans_terms lthy3
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,
@@ -318,7 +326,7 @@ fun axioms ta kind (vars, specs) lthy =
     (*axioms*)
     val hyps = map Thm.term_of (Assumption.assms_of lthy');
     fun axiom ((name, atts), props) thy = thy
-      |> fold_map (Thm.add_axiom hyps) (PureThy.name_multi name props)
+      |> fold_map (Thm.add_axiom hyps) (PureThy.name_multi (Name.name_of name) props)
       |-> (fn ths => pair ((name, atts), [(ths, [])]));
   in
     lthy'

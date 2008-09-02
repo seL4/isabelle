@@ -265,9 +265,9 @@ fun create_nom_typedecls ak_names thy =
                         HOLogic.mk_Trueprop (HOLogic.mk_eq (cperm $ pi1 $ x, cperm $ pi2 $ x)));
       in
           AxClass.define_class (cl_name, ["HOL.type"]) []
-                [((cl_name ^ "1", [Simplifier.simp_add]), [axiom1]),
-                 ((cl_name ^ "2", []), [axiom2]),                           
-                 ((cl_name ^ "3", []), [axiom3])] thy                          
+                [((Name.binding (cl_name ^ "1"), [Simplifier.simp_add]), [axiom1]),
+                 ((Name.binding (cl_name ^ "2"), []), [axiom2]),                           
+                 ((Name.binding (cl_name ^ "3"), []), [axiom3])] thy
       end) ak_names_types thy6;
 
     (* proves that every pt_<ak>-type together with <ak>-type *)
@@ -313,7 +313,7 @@ fun create_nom_typedecls ak_names thy =
           val axiom1   = HOLogic.mk_Trueprop (cfinite $ (csupp $ x));
 
        in  
-        AxClass.define_class (cl_name, [pt_name]) [] [((cl_name ^ "1", []), [axiom1])] thy            
+        AxClass.define_class (cl_name, [pt_name]) [] [((Name.binding (cl_name ^ "1"), []), [axiom1])] thy            
        end) ak_names_types thy8; 
          
      (* proves that every fs_<ak>-type together with <ak>-type   *)
@@ -362,7 +362,8 @@ fun create_nom_typedecls ak_names thy =
                            (HOLogic.mk_eq (cperm1 $ pi1 $ (cperm2 $ pi2 $ x), 
                                            cperm2 $ (cperm3 $ pi1 $ pi2) $ (cperm1 $ pi1 $ x)));
                in  
-                 AxClass.define_class (cl_name, ["HOL.type"]) [] [((cl_name ^ "1", []), [ax1])] thy'  
+                 AxClass.define_class (cl_name, ["HOL.type"]) []
+                   [((Name.binding (cl_name ^ "1"), []), [ax1])] thy'  
                end) ak_names_types thy) ak_names_types thy12;
 
         (* proves for every <ak>-combination a cp_<ak1>_<ak2>_inst theorem;     *)

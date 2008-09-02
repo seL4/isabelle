@@ -184,10 +184,10 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
-           alt_name = big_rec_name, coind = false, no_elim = true, no_ind = false,
+           alt_name = Name.binding big_rec_name, coind = false, no_elim = true, no_ind = false,
            skip_mono = true}
-          (map (fn s => ((s, UnivT'), NoSyn)) rep_set_names') []
-          (map (fn x => (("", []), x)) intr_ts) [] thy1;
+          (map (fn s => ((Name.binding s, UnivT'), NoSyn)) rep_set_names') []
+          (map (fn x => ((Name.no_binding, []), x)) intr_ts) [] thy1;
 
     (********************************* typedef ********************************)
 

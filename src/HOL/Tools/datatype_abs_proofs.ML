@@ -156,11 +156,11 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
-            alt_name = big_rec_name', coind = false, no_elim = false, no_ind = true,
+            alt_name = Name.binding big_rec_name', coind = false, no_elim = false, no_ind = true,
             skip_mono = true}
-          (map (fn (s, T) => ((s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
+          (map (fn (s, T) => ((Name.binding s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => (("", []), x)) rec_intr_ts) [] thy0;
+          (map (fn x => ((Name.no_binding, []), x)) rec_intr_ts) [] thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 

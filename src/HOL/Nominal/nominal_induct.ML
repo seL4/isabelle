@@ -6,7 +6,7 @@ The nominal induct proof method.
 
 structure NominalInduct:
 sig
-  val nominal_induct_tac: Proof.context -> (string option * term) option list list ->
+  val nominal_induct_tac: Proof.context -> (Name.binding option * term) option list list ->
     (string * typ) list -> (string * typ) list list -> thm list ->
     thm list -> int -> RuleCases.cases_tactic
   val nominal_induct_method: Method.src -> Proof.context -> Method.method
@@ -31,7 +31,6 @@ val split_all_tuples =
 
 fun inst_mutual_rule ctxt insts avoiding rules =
   let
-
     val (nconcls, joined_rule) = RuleCases.strict_mutual_rule ctxt rules;
     val concls = Logic.dest_conjunctions (Thm.concl_of joined_rule);
     val (cases, consumes) = RuleCases.get joined_rule;
@@ -132,7 +131,7 @@ val ruleN = "rule";
 val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.term >> SOME;
 
 val def_inst =
-  ((Scan.lift (Args.name --| (Args.$$$ "\<equiv>" || Args.$$$ "==")) >> SOME)
+  ((Scan.lift (Args.binding --| (Args.$$$ "\<equiv>" || Args.$$$ "==")) >> SOME)
       -- Args.term) >> SOME ||
     inst >> Option.map (pair NONE);
 

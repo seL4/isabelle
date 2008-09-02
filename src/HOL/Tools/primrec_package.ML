@@ -8,13 +8,13 @@ Package for defining functions on datatypes by primitive recursion.
 
 signature PRIMREC_PACKAGE =
 sig
-  val add_primrec: (string * typ option * mixfix) list ->
-    ((bstring * Attrib.src list) * term) list -> local_theory -> thm list * local_theory
-  val add_primrec_global: (string * typ option * mixfix) list ->
-    ((bstring * Attrib.src list) * term) list -> theory -> thm list * theory
+  val add_primrec: (Name.binding * typ option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * term) list -> local_theory -> thm list * local_theory
+  val add_primrec_global: (Name.binding * typ option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * term) list -> theory -> thm list * theory
   val add_primrec_overloaded: (string * (string * typ) * bool) list ->
-    (string * typ option * mixfix) list ->
-    ((bstring * Attrib.src list) * term) list -> theory -> thm list * theory
+    (Name.binding * typ option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * term) list -> theory -> thm list * theory
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -189,14 +189,14 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
 fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
   let
     val raw_rhs = fold_rev (fn T => fn t => Abs ("", T, t))
-                    ((map snd ls) @ [dummyT])
+                    (map snd ls @ [dummyT])
                     (list_comb (Const (rec_name, dummyT),
-                                fs @ map Bound (0 ::(length ls downto 1))))
+                                fs @ map Bound (0 :: (length ls downto 1))))
     val def_name = Thm.def_name (Sign.base_name fname);
     val rhs = singleton (Syntax.check_terms ctxt) raw_rhs;
-    val SOME mfx = get_first
-      (fn ((v, _), mfx) => if v = fname then SOME mfx else NONE) fixes;
-  in ((fname, mfx), ((def_name, []), rhs)) end;
+    val SOME var = get_first (fn ((b, _), mx) =>
+      if Name.name_of b = fname then SOME (b, mx) else NONE) fixes;
+  in (var, ((Name.binding def_name, []), rhs)) end;
 
 
 (* find datatypes which contain all datatypes in tnames' *)
@@ -226,16 +226,15 @@ fun prove_spec ctxt names rec_rewrites defs =
     val rewrites = map mk_meta_eq rec_rewrites @ map (snd o snd) defs;
     fun tac _ = EVERY [rewrite_goals_tac rewrites, rtac refl 1];
     val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names);
-  in map (fn (name_attr, t) => (name_attr, [Goal.prove ctxt [] [] t tac])) end;
+  in map (fn (a, t) => (a, [Goal.prove ctxt [] [] t tac])) end;
 
 fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = prepare_spec prep_spec lthy raw_fixes raw_spec;
     val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
-      orelse exists (fn ((w, _), _) => v = w) fixes) o snd) spec [];
+      orelse exists (fn ((w, _), _) => v = Name.name_of w) fixes) o snd) spec [];
     val tnames = distinct (op =) (map (#1 o snd) eqns);
-    val dts = find_dts (DatatypePackage.get_datatypes
-      (ProofContext.theory_of lthy)) tnames tnames;
+    val dts = find_dts (DatatypePackage.get_datatypes (ProofContext.theory_of lthy)) tnames tnames;
     val main_fns = map (fn (tname, {index, ...}) =>
       (index, (fst o the o find_first (fn (_, x) => #1 x = tname)) eqns)) dts;
     val {descr, rec_names, rec_rewrites, ...} =
@@ -251,7 +250,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
         "\nare not mutually recursive");
     val qualify = NameSpace.qualified
       (space_implode "_" (map (Sign.base_name o #1) defs));
-    val spec' = (map o apfst o apfst) qualify spec;
+    val spec' = (map o apfst o apfst o Name.map_name) qualify spec;
     val simp_atts = map (Attrib.internal o K)
       [Simplifier.simp_add, RecfunCodegen.add NONE];
   in
@@ -261,7 +260,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec'))
     |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
     |-> (fn simps' => LocalTheory.note Thm.theoremK
-          ((qualify "simps", simp_atts), maps snd simps'))
+          ((Name.binding (qualify "simps"), simp_atts), maps snd simps'))
     |>> snd
   end handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^ (case some_eqn
@@ -300,7 +299,7 @@ val opt_unchecked_name =
       P.name >> pair false) --| P.$$$ ")")) (false, "");
 
 val old_primrec_decl =
-  opt_unchecked_name -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop);
+  opt_unchecked_name -- Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Name.name_of) -- P.prop);
 
 fun pipe_error t = P.!!! (Scan.fail_with (K
   (cat_lines ["Equations must be separated by " ^ quote "|", quote t])));

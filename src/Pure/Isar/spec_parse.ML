@@ -11,34 +11,34 @@ sig
   val attrib: OuterLex.token list -> Attrib.src * token list
   val attribs: token list -> Attrib.src list * token list
   val opt_attribs: token list -> Attrib.src list * token list
-  val thm_name: string -> token list -> (bstring * Attrib.src list) * token list
-  val opt_thm_name: string -> token list -> (bstring * Attrib.src list) * token list
-  val spec: token list -> ((bstring * Attrib.src list) * string list) * token list
-  val named_spec: token list -> ((bstring * Attrib.src list) * string list) * token list
-  val spec_name: token list -> ((bstring * string) * Attrib.src list) * token list
-  val spec_opt_name: token list -> ((bstring * string) * Attrib.src list) * token list
+  val thm_name: string -> token list -> (Name.binding * Attrib.src list) * token list
+  val opt_thm_name: string -> token list -> (Name.binding * Attrib.src list) * token list
+  val spec: token list -> ((Name.binding * Attrib.src list) * string list) * token list
+  val named_spec: token list -> ((Name.binding * Attrib.src list) * string list) * token list
+  val spec_name: token list -> ((Name.binding * string) * Attrib.src list) * token list
+  val spec_opt_name: token list -> ((Name.binding * string) * Attrib.src list) * token list
   val xthm: token list -> (Facts.ref * Attrib.src list) * token list
   val xthms1: token list -> (Facts.ref * Attrib.src list) list * token list
   val name_facts: token list ->
-    ((bstring * Attrib.src list) * (Facts.ref * Attrib.src list) list) list * token list
+    ((Name.binding * Attrib.src list) * (Facts.ref * Attrib.src list) list) list * token list
   val locale_mixfix: token list -> mixfix * token list
-  val locale_fixes: token list -> (string * string option * mixfix) list * token list
+  val locale_fixes: token list -> (Name.binding * string option * mixfix) list * token list
   val locale_insts: token list ->
-    (string option list * ((bstring * Attrib.src list) * string) list) * token list
+    (string option list * ((Name.binding * Attrib.src list) * string) list) * token list
   val class_expr: token list -> string list * token list
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
   val locale_element: token list -> Element.context Locale.element * token list
   val context_element: token list -> Element.context * token list
   val statement: token list ->
-    ((bstring * Attrib.src list) * (string * string list) list) list * token list
+    ((Name.binding * Attrib.src list) * (string * string list) list) list * token list
   val general_statement: token list ->
     (Element.context Locale.element list * Element.statement) * OuterLex.token list
   val statement_keyword: token list -> string * token list
   val specification: token list ->
-    (string *
-      (((bstring * Attrib.src list) * string list) list * (string * string option) list)) list *
-    token list
+    (Name.binding *
+      (((Name.binding * Attrib.src list) * string list) list *
+        (Name.binding * string option) list)) list * token list
 end;
 
 structure SpecParse: SPEC_PARSE =
@@ -54,9 +54,11 @@ val attrib = P.position ((P.keyword_ident_or_symbolic || P.xname) -- P.!!! Args.
 val attribs = P.$$$ "[" |-- P.list attrib --| P.$$$ "]";
 val opt_attribs = Scan.optional attribs [];
 
-fun thm_name s = P.name -- opt_attribs --| P.$$$ s;
+fun thm_name s = P.binding -- opt_attribs --| P.$$$ s;
+
 fun opt_thm_name s =
-  Scan.optional ((P.name -- opt_attribs || attribs >> pair "") --| P.$$$ s) ("", []);
+  Scan.optional ((P.binding -- opt_attribs || attribs >> pair Name.no_binding) --| P.$$$ s)
+    (Name.no_binding, []);
 
 val spec = opt_thm_name ":" -- Scan.repeat1 P.prop;
 val named_spec = thm_name ":" -- Scan.repeat1 P.prop;
@@ -79,7 +81,7 @@ val name_facts = P.and_list1 (opt_thm_name "=" -- xthms1);
 val locale_mixfix = P.$$$ "(" -- P.$$$ "structure" -- P.!!! (P.$$$ ")") >> K Structure || P.mixfix;
 
 val locale_fixes =
-  P.and_list1 (P.name -- Scan.option (P.$$$ "::" |-- P.typ) -- locale_mixfix
+  P.and_list1 (P.binding -- Scan.option (P.$$$ "::" |-- P.typ) -- locale_mixfix
     >> (single o P.triple1) ||
   P.params >> map Syntax.no_syn) >> flat;
 
@@ -134,7 +136,7 @@ end;
 val statement = P.and_list1 (opt_thm_name ":" -- Scan.repeat1 P.propp);
 
 val obtain_case =
-  P.parname -- (Scan.optional (P.simple_fixes --| P.$$$ "where") [] --
+  P.parbinding -- (Scan.optional (P.simple_fixes --| P.$$$ "where") [] --
     (P.and_list1 (Scan.repeat1 P.prop) >> flat));
 
 val general_statement =
@@ -148,6 +150,6 @@ val statement_keyword = P.$$$ "obtains" || P.$$$ "shows";
 
 (* specifications *)
 
-val specification = P.enum1 "|" (P.parname -- (P.and_list1 spec -- P.for_simple_fixes));
+val specification = P.enum1 "|" (P.parbinding -- (P.and_list1 spec -- P.for_simple_fixes));
 
 end;

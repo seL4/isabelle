@@ -9,12 +9,12 @@ dependencies; no support for overloading.
 
 signature CONSTDEFS =
 sig
-  val add_constdefs: (string * string option) list *
-    ((bstring * string option * mixfix) option * ((bstring * Attrib.src list) * string)) list ->
-    theory -> theory
-  val add_constdefs_i: (string * typ option) list *
-    ((bstring * typ option * mixfix) option * ((bstring * attribute list) * term)) list ->
-    theory -> theory
+  val add_constdefs: (Name.binding * string option) list *
+    ((Name.binding * string option * mixfix) option *
+      ((Name.binding * Attrib.src list) * string)) list -> theory -> theory
+  val add_constdefs_i: (Name.binding * typ option) list *
+    ((Name.binding * typ option * mixfix) option *
+      ((Name.binding * attribute list) * term)) list -> theory -> theory
 end;
 
 structure Constdefs: CONSTDEFS =
@@ -38,13 +38,16 @@ fun gen_constdef prep_vars prep_prop prep_att
 
     val prop = prep_prop var_ctxt raw_prop;
     val (c, T) = #1 (LocalDefs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
-    val _ = (case d of NONE => () | SOME c' =>
-      if c <> c' then
-        err ("Head of definition " ^ quote c ^ " differs from declaration " ^ quote c') []
-      else ());
+    val _ =
+      (case Option.map Name.name_of d of
+        NONE => ()
+      | SOME c' =>
+          if c <> c' then
+            err ("Head of definition " ^ quote c ^ " differs from declaration " ^ quote c') []
+          else ());
 
     val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_name thy c, T))] prop;
-    val name = Thm.def_name_optional c raw_name;
+    val name = Thm.def_name_optional c (Name.name_of raw_name);
     val atts = map (prep_att thy) raw_atts;
 
     val thy' =

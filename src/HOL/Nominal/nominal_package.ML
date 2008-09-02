@@ -286,7 +286,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               else Const ("Nominal.perm", permT --> T --> T) $ pi $ x
             end;
         in
-          (("", []), HOLogic.mk_Trueprop (HOLogic.mk_eq
+          ((Name.no_binding, []), HOLogic.mk_Trueprop (HOLogic.mk_eq
             (Free (nth perm_names_types' i) $
                Free ("pi", mk_permT (TFree ("'x", HOLogic.typeS))) $
                list_comb (c, args),
@@ -298,7 +298,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       PrimrecPackage.add_primrec_overloaded
         (map (fn (s, sT) => (s, sT, false))
            (List.take (perm_names' ~~ perm_names_types, length new_type_names)))
-        (map (fn s => (s, NONE, NoSyn)) perm_names') perm_eqs thy1;
+        (map (fn s => (Name.binding s, NONE, NoSyn)) perm_names') perm_eqs thy1;
 
     (**** prove that permutation functions introduced by unfolding are ****)
     (**** equivalent to already existing permutation functions         ****)
@@ -559,11 +559,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = false, verbose = false, kind = Thm.internalK,
-           alt_name = big_rep_name, coind = false, no_elim = true, no_ind = false,
+           alt_name = Name.binding big_rep_name, coind = false, no_elim = true, no_ind = false,
            skip_mono = true}
-          (map (fn (s, T) => ((s, T --> HOLogic.boolT), NoSyn))
+          (map (fn (s, T) => ((Name.binding s, T --> HOLogic.boolT), NoSyn))
              (rep_set_names' ~~ recTs'))
-          [] (map (fn x => (("", []), x)) intr_ts) [] thy3;
+          [] (map (fn x => ((Name.no_binding, []), x)) intr_ts) [] thy3;
 
     (**** Prove that representing set is closed under permutation ****)
 
@@ -1476,11 +1476,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       thy10 |>
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
-           alt_name = big_rec_name, coind = false, no_elim = false, no_ind = false,
+           alt_name = Name.binding big_rec_name, coind = false, no_elim = false, no_ind = false,
            skip_mono = true}
-          (map (fn (s, T) => ((s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
+          (map (fn (s, T) => ((Name.binding s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => (("", []), x)) rec_intr_ts) [] ||>
+          (map (fn x => ((Name.no_binding, []), x)) rec_intr_ts) [] ||>
       PureThy.hide_fact true (NameSpace.append (Sign.full_name thy10 big_rec_name) "induct");
 
     (** equivariance **)

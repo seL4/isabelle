@@ -61,7 +61,6 @@ signature STATE_SPACE =
     val update_tr' : Proof.context -> term list -> term
   end;
 
-
 structure StateSpace: STATE_SPACE =
 struct
 
@@ -303,7 +302,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
 
     val attr = Attrib.internal type_attr;
 
-    val assumes = Element.Assumes [((dist_thm_name,[attr]),
+    val assumes = Element.Assumes [((Name.binding dist_thm_name,[attr]),
                     [(HOLogic.Trueprop $
                       (Const ("DistinctTreeProver.all_distinct",
                                  Type ("DistinctTreeProver.tree",[nameT]) --> HOLogic.boolT) $
@@ -445,7 +444,7 @@ fun statespace_definition state_type args name parents parent_comps components t
          NONE => []
        | SOME s =>
           let
-	    val fx = Element.Fixes [(s,SOME (string_of_typ stateT),NoSyn)];
+	    val fx = Element.Fixes [(Name.binding s,SOME (string_of_typ stateT),NoSyn)];
             val cs = Element.Constrains
                        (map (fn (n,T) =>  (n,string_of_typ T))
                          ((map (fn (n,_) => (n,nameT)) all_comps) @

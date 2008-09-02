@@ -12,10 +12,11 @@ sig
   val mk_def: Proof.context -> (string * term) list -> term list
   val expand: cterm list -> thm -> thm
   val def_export: Assumption.export
-  val add_defs: ((string * mixfix) * ((bstring * attribute list) * term)) list -> Proof.context ->
-    (term * (bstring * thm)) list * Proof.context
-  val add_def: (string * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
-  val fixed_abbrev: (string * mixfix) * term -> Proof.context -> (term * term) * Proof.context
+  val add_defs: ((Name.binding * mixfix) * ((Name.binding * attribute list) * term)) list ->
+    Proof.context -> (term * (string * thm)) list * Proof.context
+  val add_def: (Name.binding * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
+  val fixed_abbrev: (Name.binding * mixfix) * term -> Proof.context ->
+    (term * term) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> thm list * thm
   val export_cterm: Proof.context -> Proof.context -> cterm -> cterm * thm
   val trans_terms: Proof.context -> thm list -> thm
@@ -88,22 +89,23 @@ fun def_export _ defs = (expand defs, expand_term defs);
 
 fun add_defs defs ctxt =
   let
-    val ((xs, mxs), specs) = defs |> split_list |>> split_list;
-    val ((names, atts), rhss) = specs |> split_list |>> split_list;
-    val names' = map2 Thm.def_name_optional xs names;
+    val ((bvars, mxs), specs) = defs |> split_list |>> split_list;
+    val ((bfacts, atts), rhss) = specs |> split_list |>> split_list;
+    val xs = map Name.name_of bvars;
+    val names = map2 (Name.map_name o Thm.def_name_optional) xs bfacts;
     val eqs = mk_def ctxt (xs ~~ rhss);
     val lhss = map (fst o Logic.dest_equals) eqs;
   in
     ctxt
-    |> ProofContext.add_fixes_i (map2 (fn x => fn mx => (x, NONE, mx)) xs mxs) |> #2
+    |> ProofContext.add_fixes_i (map2 (fn x => fn mx => (x, NONE, mx)) bvars mxs) |> #2
     |> fold Variable.declare_term eqs
     |> ProofContext.add_assms_i def_export
-      (map2 (fn a => fn eq => (a, [(eq, [])])) (names' ~~ atts) eqs)
+      (map2 (fn a => fn eq => (a, [(eq, [])])) (names ~~ atts) eqs)
     |>> map2 (fn lhs => fn (name, [th]) => (lhs, (name, th))) lhss
   end;
 
 fun add_def (var, rhs) ctxt =
-  let val ([(lhs, (_, th))], ctxt') = add_defs [(var, (("", []), rhs))] ctxt
+  let val ([(lhs, (_, th))], ctxt') = add_defs [(var, ((Name.no_binding, []), rhs))] ctxt
   in ((lhs, th), ctxt') end;
 
 

@@ -29,10 +29,10 @@ sig
   (*Insert definitions for the recursive sets, which
      must *already* be declared as constants in parent theory!*)
   val add_inductive_i: bool -> term list * term ->
-    ((bstring * term) * attribute list) list ->
+    ((Name.binding * term) * attribute list) list ->
     thm list * thm list * thm list * thm list -> theory -> theory * inductive_result
   val add_inductive: string list * string ->
-    ((bstring * string) * Attrib.src list) list ->
+    ((Name.binding * string) * Attrib.src list) list ->
     (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list *
     (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list ->
     theory -> theory * inductive_result
@@ -62,11 +62,12 @@ fun mk_frees a [] = []
 
 (*internal version, accepting terms*)
 fun add_inductive_i verbose (rec_tms, dom_sum)
-  intr_specs (monos, con_defs, type_intrs, type_elims) thy =
+  raw_intr_specs (monos, con_defs, type_intrs, type_elims) thy =
 let
   val _ = Theory.requires thy "Inductive_ZF" "(co)inductive definitions";
   val ctxt = ProofContext.init thy;
 
+  val intr_specs = map (apfst (apfst Name.name_of)) raw_intr_specs;
   val (intr_names, intr_tms) = split_list (map fst intr_specs);
   val case_names = RuleCases.case_names intr_names;
 

@@ -203,10 +203,10 @@ val _ =
 (* old constdefs *)
 
 val old_constdecl =
-  P.name --| P.where_ >> (fn x => (x, NONE, NoSyn)) ||
-  P.name -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix'
+  P.binding --| P.where_ >> (fn x => (x, NONE, NoSyn)) ||
+  P.binding -- (P.$$$ "::" |-- P.!!! P.typ >> SOME) -- P.opt_mixfix'
     --| Scan.option P.where_ >> P.triple1 ||
-  P.name -- (P.mixfix >> pair NONE) --| Scan.option P.where_ >> P.triple2;
+  P.binding -- (P.mixfix >> pair NONE) --| Scan.option P.where_ >> P.triple2;
 
 val old_constdef = Scan.option old_constdecl -- (SpecParse.opt_thm_name ":" -- P.prop);
 
@@ -221,7 +221,7 @@ val _ =
 (* constant definitions and abbreviations *)
 
 val constdecl =
-  P.name --
+  P.binding --
     (P.where_ >> K (NONE, NoSyn) ||
       P.$$$ "::" |-- P.!!! ((P.typ >> SOME) -- P.opt_mixfix' --| P.where_) ||
       Scan.ahead (P.$$$ "(") |-- P.!!! (P.mixfix' --| P.where_ >> pair NONE))
@@ -272,7 +272,7 @@ val _ =
 val _ =
   OuterSyntax.local_theory "declare" "declare theorems (improper)" K.thy_decl
     (P.and_list1 SpecParse.xthms1
-      >> (fn args => #2 o Specification.theorems_cmd "" [(("", []), flat args)]));
+      >> (fn args => #2 o Specification.theorems_cmd "" [((Name.no_binding, []), flat args)]));
 
 
 (* name space entry path *)
@@ -396,16 +396,18 @@ val _ =
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expr
       >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale I)) ||
       SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts
-        >> (fn ((x, y), z) => Toplevel.print o
-            Toplevel.theory_to_proof (Locale.interpretation I (apfst (pair true) x) y z)));
+        >> (fn (((name, atts), expr), insts) => Toplevel.print o
+            Toplevel.theory_to_proof
+              (Locale.interpretation I ((true, Name.name_of name), atts) expr insts)));
 
 val _ =
   OuterSyntax.command "interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
     (SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts
-      >> (fn ((x, y), z) => Toplevel.print o
-          Toplevel.proof' (Locale.interpret Seq.single (apfst (pair true) x) y z)));
+      >> (fn (((name, atts), expr), insts) => Toplevel.print o
+          Toplevel.proof'
+            (Locale.interpret Seq.single ((true, Name.name_of name), atts) expr insts)));
 
 
 (* classes *)
@@ -466,7 +468,7 @@ val _ =
 fun gen_theorem kind =
   OuterSyntax.local_theory_to_proof' kind ("state " ^ kind) K.thy_goal
     (Scan.optional (SpecParse.opt_thm_name ":" --|
-      Scan.ahead (SpecParse.locale_keyword || SpecParse.statement_keyword)) ("", []) --
+      Scan.ahead (SpecParse.locale_keyword || SpecParse.statement_keyword)) (Name.no_binding, []) --
       SpecParse.general_statement >> (fn (a, (elems, concl)) =>
         (Specification.theorem_cmd kind NONE (K I) a elems concl)));
 
@@ -552,7 +554,7 @@ val _ =
     (K.tag_proof K.prf_asm)
     (P.and_list1
       (SpecParse.opt_thm_name ":" --
-        ((P.name -- P.opt_mixfix) -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp)))
+        ((P.binding -- P.opt_mixfix) -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp)))
     >> (Toplevel.print oo (Toplevel.proof o Proof.def)));
 
 val _ =

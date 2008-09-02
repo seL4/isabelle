@@ -56,7 +56,7 @@ fun dest_all_all (t as (Const ("all",_) $ _)) =
 fun dest_all_all_ctx ctx (Const ("all", _) $ Abs (a as (n,T,b))) =
     let
       val [(n', _)] = Variable.variant_frees ctx [] [(n,T)]
-      val (_, ctx') = ProofContext.add_fixes_i [(n', SOME T, NoSyn)] ctx
+      val (_, ctx') = ProofContext.add_fixes_i [(Name.binding n', SOME T, NoSyn)] ctx
 
       val (n'', body) = Term.dest_abs (n', T, b) 
       val _ = (n' = n'') orelse error "dest_all_ctx"

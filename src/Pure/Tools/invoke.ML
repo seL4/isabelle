@@ -8,9 +8,9 @@ Schematic invocation of locale expression in proof context.
 signature INVOKE =
 sig
   val invoke: string * Attrib.src list -> Locale.expr -> string option list ->
-    (string * string option * mixfix) list -> bool -> Proof.state -> Proof.state
+    (Name.binding * string option * mixfix) list -> bool -> Proof.state -> Proof.state
   val invoke_i: string * attribute list -> Locale.expr -> term option list ->
-    (string * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
+    (Name.binding * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
 end;
 
 structure Invoke: INVOKE =
@@ -60,9 +60,9 @@ fun gen_invoke prep_att prep_expr parse_term add_fixes
         | NONE => Drule.termI)) params';
 
     val propp =
-      [(("", []), map (rpair [] o Logic.mk_term o Logic.mk_type) types'),
-       (("", []), map (rpair [] o Logic.mk_term) params'),
-       (("", []), map (rpair [] o Element.mark_witness) prems')];
+      [((Name.no_binding, []), map (rpair [] o Logic.mk_term o Logic.mk_type) types'),
+       ((Name.no_binding, []), map (rpair [] o Logic.mk_term) params'),
+       ((Name.no_binding, []), map (rpair [] o Element.mark_witness) prems')];
     fun after_qed results =
       Proof.end_block #>
       Proof.map_context (fn ctxt =>
@@ -120,8 +120,8 @@ val _ =
     "schematic invocation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
     (SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts -- P.for_fixes
-      >> (fn (((name, expr), (insts, _)), fixes) =>
-          Toplevel.print o Toplevel.proof' (invoke name expr insts fixes)));
+      >> (fn ((((name, atts), expr), (insts, _)), fixes) =>
+          Toplevel.print o Toplevel.proof' (invoke (Name.name_of name, atts) expr insts fixes)));
 
 end;
 

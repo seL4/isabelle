@@ -9,15 +9,15 @@ Isar commands.
 
 signature FUNDEF_PACKAGE =
 sig
-    val add_fundef :  (string * string option * mixfix) list
-                      -> ((bstring * Attrib.src list) * string) list 
+    val add_fundef :  (Name.binding * string option * mixfix) list
+                      -> ((Name.binding * Attrib.src list) * string) list 
                       -> FundefCommon.fundef_config
                       -> bool list
                       -> local_theory
                       -> Proof.state
 
-    val add_fundef_i:  (string * typ option * mixfix) list
-                       -> ((bstring * Attrib.src list) * term) list
+    val add_fundef_i:  (Name.binding * typ option * mixfix) list
+                       -> ((Name.binding * Attrib.src list) * term) list
                        -> FundefCommon.fundef_config
                        -> bool list
                        -> local_theory
@@ -36,7 +36,7 @@ struct
 open FundefLib
 open FundefCommon
 
-val note_theorem = LocalTheory.note Thm.theoremK
+fun note_theorem ((name, atts), ths) = LocalTheory.note Thm.theoremK ((Name.binding name, atts), ths)
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_" 
 
@@ -95,7 +95,9 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
 
 fun gen_add_fundef is_external prep fixspec eqnss config flags lthy =
     let
-      val ((fixes, spec), ctxt') = prep fixspec (map (fn (n_a, eq) => [(n_a, [eq])]) eqnss) lthy
+      val ((fixes0, spec0), ctxt') = prep fixspec (map (fn (n_a, eq) => [(n_a, [eq])]) eqnss) lthy
+      val fixes = map (apfst (apfst Name.name_of)) fixes0;
+      val spec = map (apfst (apfst Name.name_of)) spec0;
       val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
 
       val defname = mk_defname fixes
@@ -145,10 +147,10 @@ fun setup_termination_proof term_opt lthy =
         val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
     in
       lthy
-        |> ProofContext.note_thmss_i "" [(("", [ContextRules.rule_del]), [([allI], [])])] |> snd
-        |> ProofContext.note_thmss_i "" [(("", [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
+        |> ProofContext.note_thmss_i "" [((Name.no_binding, [ContextRules.rule_del]), [([allI], [])])] |> snd
+        |> ProofContext.note_thmss_i "" [((Name.no_binding, [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
         |> ProofContext.note_thmss_i ""
-          [(("termination", [ContextRules.intro_bang (SOME 0)]),
+          [((Name.binding "termination", [ContextRules.intro_bang (SOME 0)]),
             [([Goal.norm_result termination], [])])] |> snd
         |> Proof.theorem_i NONE (total_termination_afterqed data) [[(goal, [])]]
     end

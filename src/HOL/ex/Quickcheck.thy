@@ -128,11 +128,11 @@ let
           thy
           |> TheoryTarget.instantiation ([tyco], vs, @{sort random})
           |> PrimrecPackage.add_primrec
-               [(fst (dest_Free random'), SOME (snd (dest_Free random')), NoSyn)]
-                 (map (fn eq => (("", [del_func]), eq)) eqs')
+               [(Name.binding (fst (dest_Free random')), SOME (snd (dest_Free random')), NoSyn)]
+                 (map (fn eq => ((Name.no_binding, [del_func]), eq)) eqs')
           |-> add_code
           |> `(fn lthy => Syntax.check_term lthy eq)
-          |-> (fn eq => Specification.definition (NONE, (("", []), eq)))
+          |-> (fn eq => Specification.definition (NONE, ((Name.no_binding, []), eq)))
           |> snd
           |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
           |> LocalTheory.exit
@@ -261,7 +261,7 @@ fun VALUE prop tys thy =
   in
     thy
     |> TheoryTarget.init NONE
-    |> Specification.definition (NONE, (("", []), eq))
+    |> Specification.definition (NONE, ((Name.no_binding, []), eq))
     |> snd
     |> LocalTheory.exit
     |> ProofContext.theory_of

@@ -9,10 +9,10 @@ signature FIXREC_PACKAGE =
 sig
   val legacy_infer_term: theory -> term -> term
   val legacy_infer_prop: theory -> term -> term
-  val add_fixrec: bool -> ((string * Attrib.src list) * string) list list -> theory -> theory
-  val add_fixrec_i: bool -> ((string * attribute list) * term) list list -> theory -> theory
-  val add_fixpat: (string * Attrib.src list) * string list -> theory -> theory
-  val add_fixpat_i: (string * attribute list) * term list -> theory -> theory
+  val add_fixrec: bool -> ((Name.binding * Attrib.src list) * string) list list -> theory -> theory
+  val add_fixrec_i: bool -> ((Name.binding * attribute list) * term) list list -> theory -> theory
+  val add_fixpat: (Name.binding * Attrib.src list) * string list -> theory -> theory
+  val add_fixpat_i: (Name.binding * attribute list) * term list -> theory -> theory
 end;
 
 structure FixrecPackage: FIXREC_PACKAGE =
@@ -226,7 +226,8 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
     val eqns = List.concat blocks;
     val lengths = map length blocks;
     
-    val ((names, srcss), strings) = apfst split_list (split_list eqns);
+    val ((bindings, srcss), strings) = apfst split_list (split_list eqns);
+    val names = map Name.name_of bindings;
     val atts = map (map (prep_attrib thy)) srcss;
     val eqn_ts = map (prep_prop thy) strings;
     val rec_ts = map (fn eq => chead_of (fst (dest_eqs (Logic.strip_imp_concl eq)))
@@ -278,7 +279,7 @@ fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
     val ts = map (prep_term thy) strings;
     val simps = map (fix_pat thy) ts;
   in
-    (snd o PureThy.add_thmss [((name, simps), atts)]) thy
+    (snd o PureThy.add_thmss [((Name.name_of name, simps), atts)]) thy
   end;
 
 val add_fixpat = gen_add_fixpat Syntax.read_term_global Attrib.attribute;

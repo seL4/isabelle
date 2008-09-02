@@ -26,16 +26,16 @@ sig
   val affirm: local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
   val axioms: string ->
-    ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
-    -> (term list * (bstring * thm list) list) * local_theory
-  val abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory ->
+    ((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list -> local_theory
+    -> (term list * (string * thm list) list) * local_theory
+  val abbrev: Syntax.mode -> (Name.binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val define: string -> (bstring * mixfix) * ((bstring * Attrib.src list) * term) -> local_theory ->
-    (term * (bstring * thm)) * local_theory
-  val note: string -> (bstring * Attrib.src list) * thm list ->
-    local_theory -> (bstring * thm list) * local_theory
-  val notes: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    local_theory -> (bstring * thm list) list * local_theory
+  val define: string -> (Name.binding * mixfix) * ((Name.binding * Attrib.src list) * term) -> local_theory ->
+    (term * (string * thm)) * local_theory
+  val note: string -> (Name.binding * Attrib.src list) * thm list ->
+    local_theory -> (string * thm list) * local_theory
+  val notes: string -> ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    local_theory -> (string * thm list) list * local_theory
   val type_syntax: declaration -> local_theory -> local_theory
   val term_syntax: declaration -> local_theory -> local_theory
   val declaration: declaration -> local_theory -> local_theory
@@ -57,15 +57,15 @@ struct
 type operations =
  {pretty: local_theory -> Pretty.T list,
   axioms: string ->
-    ((bstring * typ) * mixfix) list * ((bstring * Attrib.src list) * term list) list -> local_theory
-    -> (term list * (bstring * thm list) list) * local_theory,
-  abbrev: Syntax.mode -> (bstring * mixfix) * term -> local_theory -> (term * term) * local_theory,
+    ((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list -> local_theory
+    -> (term list * (string * thm list) list) * local_theory,
+  abbrev: Syntax.mode -> (Name.binding * mixfix) * term -> local_theory -> (term * term) * local_theory,
   define: string ->
-    (bstring * mixfix) * ((bstring * Attrib.src list) * term) -> local_theory ->
-    (term * (bstring * thm)) * local_theory,
+    (Name.binding * mixfix) * ((Name.binding * Attrib.src list) * term) -> local_theory ->
+    (term * (string * thm)) * local_theory,
   notes: string ->
-    ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    local_theory -> (bstring * thm list) list * local_theory,
+    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    local_theory -> (string * thm list) list * local_theory,
   type_syntax: declaration -> local_theory -> local_theory,
   term_syntax: declaration -> local_theory -> local_theory,
   declaration: declaration -> local_theory -> local_theory,

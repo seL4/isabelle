@@ -51,7 +51,7 @@ sig
   val setN: string
   (*proof methods*)
   val fix_tac: Proof.context -> int -> (string * typ) list -> int -> tactic
-  val add_defs: (string option * term) option list -> Proof.context ->
+  val add_defs: (Name.binding option * term) option list -> Proof.context ->
     (term option list * thm list) * Proof.context
   val atomize_term: theory -> term -> term
   val atomize_tac: int -> tactic
@@ -63,7 +63,7 @@ sig
   val cases_tac: Proof.context -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val get_inductT: Proof.context -> term option list list -> thm list list
-  val induct_tac: Proof.context -> (string option * term) option list list ->
+  val induct_tac: Proof.context -> (Name.binding option * term) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> cases_tactic
   val coinduct_tac: Proof.context -> term option list -> term option list -> thm option ->
@@ -552,7 +552,8 @@ end;
 fun add_defs def_insts =
   let
     fun add (SOME (SOME x, t)) ctxt =
-          let val ([(lhs, (_, th))], ctxt') = LocalDefs.add_defs [((x, NoSyn), (("", []), t))] ctxt
+          let val ([(lhs, (_, th))], ctxt') =
+            LocalDefs.add_defs [((x, NoSyn), ((Name.no_binding, []), t))] ctxt
           in ((SOME lhs, [th]), ctxt') end
       | add (SOME (NONE, t)) ctxt = ((SOME t, []), ctxt)
       | add NONE ctxt = ((NONE, []), ctxt);
@@ -716,7 +717,7 @@ val coinduct_rule = rule lookup_coinductT lookup_coinductP >> single_rule;
 val inst = Scan.lift (Args.$$$ "_") >> K NONE || Args.term >> SOME;
 
 val def_inst =
-  ((Scan.lift (Args.name --| (Args.$$$ "\<equiv>" || Args.$$$ "==")) >> SOME)
+  ((Scan.lift (Args.binding --| (Args.$$$ "\<equiv>" || Args.$$$ "==")) >> SOME)
       -- Args.term) >> SOME ||
     inst >> Option.map (pair NONE);
 

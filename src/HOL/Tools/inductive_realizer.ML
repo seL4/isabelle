@@ -337,9 +337,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
             (Logic.strip_assums_concl rintr));
           val s' = Sign.base_name s;
           val T' = Logic.unvarifyT T
-        in (((s', T'), NoSyn),
-          (Const (s, T'), Free (s', T')))
-        end) rintrs));
+        in (((Name.binding s', T'), NoSyn), (Const (s, T'), Free (s', T'))) end) rintrs));
     val rlzparams = map (fn Var ((s, _), T) => (s, Logic.unvarifyT T))
       (List.take (snd (strip_comb
         (HOLogic.dest_Trueprop (Logic.strip_assums_concl (hd rintrs)))), nparms));
@@ -348,10 +346,10 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     val (ind_info, thy3') = thy2 |>
       InductivePackage.add_inductive_global (serial_string ())
-        {quiet_mode = false, verbose = false, kind = Thm.theoremK, alt_name = "",
+        {quiet_mode = false, verbose = false, kind = Thm.theoremK, alt_name = Name.no_binding,
           coind = false, no_elim = false, no_ind = false, skip_mono = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
-          ((Sign.base_name (name_of_thm intr), []),
+          ((Name.binding (Sign.base_name (name_of_thm intr)), []),
            subst_atomic rlzpreds' (Logic.unvarify rintr)))
              (rintrs ~~ maps snd rss)) [] ||>
       Sign.absolute_path;

@@ -19,7 +19,7 @@ sig
   val abbrev: class -> Syntax.mode -> Properties.T
     -> (string * mixfix) * term -> theory -> theory
   val note: class -> string
-    -> ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
+    -> ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list
     -> theory -> (bstring * thm list) list * theory
   val declaration: class -> declaration -> theory -> theory
   val refresh_syntax: class -> Proof.context -> Proof.context
@@ -48,7 +48,7 @@ sig
 
   (*old axclass layer*)
   val axclass_cmd: bstring * xstring list
-    -> ((bstring * Attrib.src list) * string list) list
+    -> ((Name.binding * Attrib.src list) * string list) list
     -> theory -> class * theory
   val classrel_cmd: xstring * xstring -> theory -> Proof.state
 
@@ -374,7 +374,7 @@ fun class_interpretation class facts defs thy =
     thy
     |> fold2 add_constraint (map snd consts) no_constraints
     |> prove_interpretation tac ((false, prfx), []) (Locale.Locale class)
-          (inst, map (fn def => (("", []), def)) defs)
+          (inst, map (fn def => ((Name.no_binding, []), def)) defs)
     |> fold2 add_constraint (map snd consts) constraints
   end;
 
@@ -569,7 +569,7 @@ fun gen_class_spec prep_class process_expr thy raw_supclasses raw_elems =
     val constrain = Element.Constrains ((map o apsnd o map_atyps)
       (K (TFree (Name.aT, base_sort))) supparams);
     fun fork_syn (Element.Fixes xs) =
-          fold_map (fn (c, ty, syn) => cons (c, syn) #> pair (c, ty, NoSyn)) xs
+          fold_map (fn (c, ty, syn) => cons (Name.name_of c, syn) #> pair (c, ty, NoSyn)) xs
           #>> Element.Fixes
       | fork_syn x = pair x;
     fun fork_syntax elems =
@@ -628,7 +628,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
     |> add_consts ((snd o chop (length supparams)) all_params)
     |-> (fn (param_map, params) => AxClass.define_class (bname, supsort)
           (map (fst o snd) params)
-          [((bname ^ "_" ^ AxClass.axiomsN, []), map (globalize param_map) raw_pred)]
+          [((Name.binding (bname ^ "_" ^ AxClass.axiomsN), []), map (globalize param_map) raw_pred)]
     #> snd
     #> `get_axiom
     #-> (fn assm_axiom => fold (Sign.add_const_constraint o apsnd SOME o snd) params

@@ -55,16 +55,16 @@ sig
   val parameters_of_expr: theory -> expr ->
     ((string * typ) * mixfix) list
   val local_asms_of: theory -> string ->
-    ((string * Attrib.src list) * term list) list
+    ((Name.binding * Attrib.src list) * term list) list
   val global_asms_of: theory -> string ->
-    ((string * Attrib.src list) * term list) list
+    ((Name.binding * Attrib.src list) * term list) list
 
   (* Theorems *)
   val intros: theory -> string -> thm list * thm list
   val dests: theory -> string -> thm list
   (* Not part of the official interface.  DO NOT USE *)
   val facts_of: theory -> string
-    -> ((string * Attrib.src list) * (thm list * Attrib.src list) list) list list
+    -> ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list list
 
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
@@ -96,7 +96,7 @@ sig
 
   (* Storing results *)
   val add_thmss: string -> string ->
-    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
     Proof.context -> Proof.context
   val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
@@ -104,21 +104,21 @@ sig
 
   val interpretation_i: (Proof.context -> Proof.context) ->
     (bool * string) * Attrib.src list -> expr ->
-    term option list * ((bstring * Attrib.src list) * term) list ->
+    term option list * ((Name.binding * Attrib.src list) * term) list ->
     theory -> Proof.state
   val interpretation: (Proof.context -> Proof.context) ->
     (bool * string) * Attrib.src list -> expr ->
-    string option list * ((bstring * Attrib.src list) * string) list ->
+    string option list * ((Name.binding * Attrib.src list) * string) list ->
     theory -> Proof.state
   val interpretation_in_locale: (Proof.context -> Proof.context) ->
     xstring * expr -> theory -> Proof.state
   val interpret_i: (Proof.state -> Proof.state Seq.seq) ->
     (bool * string) * Attrib.src list -> expr ->
-    term option list * ((bstring * Attrib.src list) * term) list ->
+    term option list * ((Name.binding * Attrib.src list) * term) list ->
     bool -> Proof.state -> Proof.state
   val interpret: (Proof.state -> Proof.state Seq.seq) ->
     (bool * string) * Attrib.src list -> expr ->
-    string option list * ((bstring * Attrib.src list) * string) list ->
+    string option list * ((Name.binding * Attrib.src list) * string) list ->
     bool -> Proof.state -> Proof.state
 end;
 
@@ -756,7 +756,7 @@ fun params_of_expr ctxt fixed_params expr (prev_parms, prev_types, prev_syn) =
             val ren = renaming xs parms';
             (* renaming may reduce number of parameters *)
             val new_parms = map (Element.rename ren) parms' |> distinct (op =);
-            val ren_syn = syn' |> Symtab.dest |> map (Element.rename_var ren);
+            val ren_syn = syn' |> Symtab.dest |> map (Element.rename_var_name ren);
             val new_syn = fold (Symtab.insert (op =)) ren_syn Symtab.empty
                 handle Symtab.DUP x =>
                   err_in_expr ctxt ("Conflicting syntax for parameter: " ^ quote x) expr;
@@ -789,7 +789,7 @@ fun make_params_ids params = [(("", params), ([], Assumed []))];
 fun make_raw_params_elemss (params, tenv, syn) =
     [((("", map (fn p => (p, Symtab.lookup tenv p)) params), Assumed []),
       Int [Fixes (map (fn p =>
-        (p, Symtab.lookup tenv p, Symtab.lookup syn p |> the)) params)])];
+        (Name.binding p, Symtab.lookup tenv p, Symtab.lookup syn p |> the)) params)])];
 
 
 (* flatten_expr:
@@ -929,7 +929,7 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         val [env] = unify_parms ctxt all_params [map (apfst (Element.rename ren) o apsnd SOME) ps];
         val elem_morphism =
           Element.rename_morphism ren $>
-          Morphism.name_morphism (params_qualified params) $>
+          Morphism.name_morphism (Name.map_name (params_qualified params)) $>
           Element.instT_morphism thy env;
         val elems' = map (Element.morph_ctxt elem_morphism) elems;
       in (((name, map (apsnd SOME) locale_params'), mode'), elems') end;
@@ -978,7 +978,7 @@ fun activate_elem _ _ (Fixes fixes) (ctxt, mode) =
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = LocalDefs.cert_def ctxt t
-            in (t', ((Thm.def_name_optional c name, atts), [(t', ps)])) end);
+            in (t', ((Name.map_name (Thm.def_name_optional c) name, atts), [(t', ps)])) end);
         val (_, ctxt') =
           ctxt |> fold (Variable.auto_fixes o #1) asms
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
@@ -989,7 +989,7 @@ fun activate_elem _ _ (Fixes fixes) (ctxt, mode) =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
         val (res, ctxt') = ctxt |> ProofContext.note_thmss_i kind facts';
-      in (if is_ext then res else [], (ctxt', mode)) end;
+      in (if is_ext then (map (#1 o #1) facts' ~~ map #2 res) else [], (ctxt', mode)) end;
 
 fun activate_elems ax_in_ctxt (((name, ps), mode), elems) ctxt =
   let
@@ -1076,15 +1076,15 @@ fun intern_expr thy (Locale xname) = Locale (intern thy xname)
 *)
 
 fun flatten (ctxt, _) ((ids, syn), Elem (Fixes fixes)) = let
-        val ids' = ids @ [(("", map #1 fixes), ([], Assumed []))]
+        val ids' = ids @ [(("", map (Name.name_of o #1) fixes), ([], Assumed []))]
       in
         ((ids',
          merge_syntax ctxt ids'
-           (syn, Symtab.make (map (fn fx => (#1 fx, #3 fx)) fixes))
+           (syn, Symtab.make (map (fn fx => (Name.name_of (#1 fx), #3 fx)) fixes))
            handle Symtab.DUP x => err_in_locale ctxt
              ("Conflicting syntax for parameter: " ^ quote x)
              (map #1 ids')),
-         [((("", map (rpair NONE o #1) fixes), Assumed []), Ext (Fixes fixes))])
+         [((("", map (rpair NONE o Name.name_of o #1) fixes), Assumed []), Ext (Fixes fixes))])
       end
   | flatten _ ((ids, syn), Elem elem) =
       ((ids @ [(("", []), ([], Assumed []))], syn), [((("", []), Assumed []), Ext elem)])
@@ -1104,7 +1104,7 @@ fun declare_ext_elem prep_vars (Fixes fixes) ctxt =
       let val (vars, _) = prep_vars fixes ctxt
       in ([], ctxt |> ProofContext.add_fixes_i vars |> snd) end
   | declare_ext_elem prep_vars (Constrains csts) ctxt =
-      let val (_, ctxt') = prep_vars (map (fn (x, T) => (x, SOME T, NoSyn)) csts) ctxt
+      let val (_, ctxt') = prep_vars (map (fn (x, T) => (Name.binding x, SOME T, NoSyn)) csts) ctxt
       in ([], ctxt') end
   | declare_ext_elem _ (Assumes asms) ctxt = (map #2 asms, ctxt)
   | declare_ext_elem _ (Defines defs) ctxt = (map (fn (_, (t, ps)) => [(t, ps)]) defs, ctxt)
@@ -1227,8 +1227,9 @@ fun closeup _ false elem = elem
       end;
 
 
-fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (x, _, mx) =>
-      (x, AList.lookup (op =) parms x, mx)) fixes)
+fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (binding, _, mx) =>
+      let val x = Name.name_of binding
+      in (binding, AList.lookup (op =) parms x, mx) end) fixes)
   | finish_ext_elem parms _ (Constrains _, _) = Constrains []
   | finish_ext_elem _ close (Assumes asms, propp) =
       close (Assumes (map #1 asms ~~ propp))
@@ -1274,7 +1275,7 @@ fun defs_ord (defs1, defs2) =
     list_ord (fn ((_, (d1, _)), (_, (d2, _))) =>
       Term.fast_term_ord (d1, d2)) (defs1, defs2);
 structure Defstab =
-    TableFun(type key = ((string * Attrib.src list) * (term * term list)) list
+    TableFun(type key = ((Name.binding * Attrib.src list) * (term * term list)) list
         val ord = defs_ord);
 
 fun rem_dup_defs es ds =
@@ -1387,7 +1388,7 @@ fun prep_facts _ _ _ ctxt (Int elem) = elem
       |> Element.morph_ctxt (Morphism.thm_morphism (Thm.transfer (ProofContext.theory_of ctxt)))
   | prep_facts prep_name get intern ctxt (Ext elem) = elem |> Element.map_ctxt
      {var = I, typ = I, term = I,
-      name = prep_name,
+      name = Name.map_name prep_name,
       fact = get ctxt,
       attrib = Args.assignable o intern (ProofContext.theory_of ctxt)};
 
@@ -1572,8 +1573,8 @@ fun print_locale thy show_facts imports body =
 (* naming of interpreted theorems *)
 
 fun add_param_prefixss s =
-  (map o apfst o apfst) (NameSpace.qualified s);
-fun drop_param_prefixss args = (map o apfst o apfst)
+  (map o apfst o apfst o Name.map_name) (NameSpace.qualified s);
+fun drop_param_prefixss args = (map o apfst o apfst o Name.map_name)
   (fn "" => "" | s => (NameSpace.implode o tl o NameSpace.explode) s) args;
 
 fun global_note_prefix_i kind loc (fully_qualified, prfx) args thy =
@@ -1660,7 +1661,7 @@ fun morph_ctxt' phi = Element.map_ctxt
 
 fun interpret_args thy prfx insts prems eqns atts2 exp attrib args =
   let
-    val inst = Morphism.name_morphism (NameSpace.qualified prfx) $>
+    val inst = Morphism.name_morphism (Name.map_name (NameSpace.qualified prfx)) $>
 (* need to add parameter prefix *) (* FIXME *)
       Element.inst_morphism thy insts $> Element.satisfy_morphism prems $>
       Morphism.term_morphism (MetaSimplifier.rewrite_term thy eqns []) $>
@@ -1724,7 +1725,7 @@ fun add_decls add loc decl =
     (fn (axiom, elems, params, decls, regs, intros, dests) =>
       (axiom, elems, params, add (decl, stamp ()) decls, regs, intros, dests))) #>
   add_thmss loc Thm.internalK
-    [(("", [Attrib.internal (decl_attrib decl)]), [([Drule.dummy_thm], [])])];
+    [((Name.no_binding, [Attrib.internal (decl_attrib decl)]), [([Drule.dummy_thm], [])])];
 
 in
 
@@ -1864,12 +1865,13 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
             thy
             |> def_pred aname parms defs exts exts';
           val elemss' = change_assumes_elemss axioms elemss;
-          val a_elem = [(("", []), [Assumes [((pname ^ "_" ^ axiomsN, []), [(statement, [])])]])];
+          val a_elem = [(("", []),
+            [Assumes [((Name.binding (pname ^ "_" ^ axiomsN), []), [(statement, [])])]])];
           val (_, thy'') =
             thy'
             |> Sign.add_path aname
             |> Sign.no_base_names
-            |> PureThy.note_thmss Thm.internalK [((introN, []), [([intro], [])])]
+            |> PureThy.note_thmss Thm.internalK [((Name.binding introN, []), [([intro], [])])]
             ||> Sign.restore_naming thy';
         in ((elemss', [statement]), a_elem, [intro], thy'') end;
     val (predicate, stmt', elemss'', b_intro, thy'''') =
@@ -1882,14 +1884,15 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) elemss thy 
           val cstatement = Thm.cterm_of thy''' statement;
           val elemss'' = change_elemss_hyps axioms elemss';
           val b_elem = [(("", []),
-               [Assumes [((pname ^ "_" ^ axiomsN, []), [(statement, [])])]])];
+               [Assumes [((Name.binding (pname ^ "_" ^ axiomsN), []), [(statement, [])])]])];
           val (_, thy'''') =
             thy'''
             |> Sign.add_path pname
             |> Sign.no_base_names
             |> PureThy.note_thmss Thm.internalK
-                 [((introN, []), [([intro], [])]),
-                  ((axiomsN, []), [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
+                 [((Name.binding introN, []), [([intro], [])]),
+                  ((Name.binding axiomsN, []),
+                    [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
             ||> Sign.restore_naming thy''';
         in (([cstatement], axioms), [statement], elemss'' @ b_elem, [intro], thy'''') end;
   in (((elemss'', predicate, stmt'), (a_intro, b_intro)), thy'''') end;
@@ -1905,7 +1908,7 @@ local
 
 fun defines_to_notes is_ext thy (Defines defs) defns =
     let
-      val defs' = map (fn (_, (def, _)) => (("", []), (def, []))) defs
+      val defs' = map (fn (_, (def, _)) => ((Name.no_binding, []), (def, []))) defs
       val notes = map (fn (a, (def, _)) =>
         (a, [([assume (cterm_of thy def)], [])])) defs
     in
@@ -1994,9 +1997,9 @@ val add_locale_i = gen_add_locale cert_context (K I);
 end;
 
 val _ = Context.>> (Context.map_theory
- (add_locale_i "" "var" empty [Fixes [(Name.internal "x", NONE, NoSyn)]] #>
+ (add_locale_i "" "var" empty [Fixes [(Name.binding (Name.internal "x"), NONE, NoSyn)]] #>
   snd #> ProofContext.theory_of #>
-  add_locale_i "" "struct" empty [Fixes [(Name.internal "S", NONE, Structure)]] #>
+  add_locale_i "" "struct" empty [Fixes [(Name.binding (Name.internal "S"), NONE, Structure)]] #>
   snd #> ProofContext.theory_of));
 
 
@@ -2374,7 +2377,7 @@ fun prep_registration_in_locale target expr thy =
             fun activate_elem (loc, ps) (Notes (kind, facts)) thy =
                 let
                   val att_morphism =
-                    Morphism.name_morphism (NameSpace.qualified prfx) $>
+                    Morphism.name_morphism (Name.map_name (NameSpace.qualified prfx)) $>
                     Morphism.thm_morphism satisfy $>
                     Element.inst_morphism thy insts $>
                     Morphism.thm_morphism disch;
@@ -2435,7 +2438,7 @@ fun gen_interpret prep_registration after_qed (prfx, atts) expr insts int state 
   in
     state
     |> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
-      "interpret" NONE after_qed' (map (pair ("", [])) (prep_propp propss))
+      "interpret" NONE after_qed' (map (pair (Name.no_binding, [])) (prep_propp propss))
     |> Element.refine_witness |> Seq.hd
   end;
 

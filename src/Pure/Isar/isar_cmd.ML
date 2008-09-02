@@ -15,19 +15,19 @@ sig
   val print_ast_translation: bool * (string * Position.T) -> theory -> theory
   val oracle: bstring -> SymbolPos.text * Position.T -> SymbolPos.text * Position.T ->
     theory -> theory
-  val add_axioms: ((bstring * string) * Attrib.src list) list -> theory -> theory
-  val add_defs: (bool * bool) * ((bstring * string) * Attrib.src list) list -> theory -> theory
+  val add_axioms: ((Name.binding * string) * Attrib.src list) list -> theory -> theory
+  val add_defs: (bool * bool) * ((Name.binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: string * Position.T -> local_theory -> local_theory
   val simproc_setup: string -> string list -> string * Position.T -> string list ->
     local_theory -> local_theory
   val hide_names: bool -> string * xstring list -> theory -> theory
-  val have: ((string * Attrib.src list) * (string * string list) list) list ->
+  val have: ((Name.binding * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
-  val hence: ((string * Attrib.src list) * (string * string list) list) list ->
+  val hence: ((Name.binding * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
-  val show: ((string * Attrib.src list) * (string * string list) list) list ->
+  val show: ((Name.binding * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
-  val thus: ((string * Attrib.src list) * (string * string list) list) list ->
+  val thus: ((Name.binding * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
   val qed: Method.text option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: Method.text * Method.text option ->
@@ -179,7 +179,7 @@ fun oracle name typ_pos (oracle_txt, pos) =
 (* axioms *)
 
 fun add_axms f args thy =
-  f (map (fn (x, srcs) => (x, map (Attrib.attribute thy) srcs)) args) thy;
+  f (map (fn ((b, ax), srcs) => ((Name.name_of b, ax), map (Attrib.attribute thy) srcs)) args) thy;
 
 val add_axioms = add_axms (snd oo PureThy.add_axioms_cmd);
 

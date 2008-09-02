@@ -13,12 +13,12 @@ sig
   val pred_set_conv_att: attribute
   val add_inductive_i:
     InductivePackage.inductive_flags ->
-    ((string * typ) * mixfix) list ->
-    (string * typ) list -> ((bstring * Attrib.src list) * term) list -> thm list ->
+    ((Name.binding * typ) * mixfix) list ->
+    (string * typ) list -> ((Name.binding * Attrib.src list) * term) list -> thm list ->
       local_theory -> InductivePackage.inductive_result * local_theory
-  val add_inductive: bool -> bool -> (string * string option * mixfix) list ->
-    (string * string option * mixfix) list ->
-    ((bstring * Attrib.src list) * string) list -> (Facts.ref * Attrib.src list) list ->
+  val add_inductive: bool -> bool -> (Name.binding * string option * mixfix) list ->
+    (Name.binding * string option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * string) list -> (Facts.ref * Attrib.src list) list ->
     local_theory -> InductivePackage.inductive_result * local_theory
   val setup: theory -> theory
 end;
@@ -461,16 +461,17 @@ fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind
            | NONE => u)) |>
         Pattern.rewrite_term thy [] [to_pred_proc thy eqns'] |>
         eta_contract (member op = cs' orf is_pred pred_arities))) intros;
-    val cnames_syn' = map (fn (s, _) => (s ^ "p", NoSyn)) cnames_syn;
+    val cnames_syn' = map (fn (b, _) => (Name.map_name (suffix "p") b, NoSyn)) cnames_syn;
     val monos' = map (to_pred [] (Context.Proof ctxt)) monos;
     val ({preds, intrs, elims, raw_induct, ...}, ctxt1) =
-      InductivePackage.add_ind_def {quiet_mode = quiet_mode, verbose = verbose, kind = kind,
-          alt_name = "", coind = coind, no_elim = no_elim, no_ind = no_ind, skip_mono = skip_mono}
+      InductivePackage.add_ind_def
+        {quiet_mode = quiet_mode, verbose = verbose, kind = kind, alt_name = Name.no_binding,
+          coind = coind, no_elim = no_elim, no_ind = no_ind, skip_mono = skip_mono}
         cs' intros' monos' params1 cnames_syn' ctxt;
 
     (* define inductive sets using previously defined predicates *)
     val (defs, ctxt2) = fold_map (LocalTheory.define Thm.internalK)
-      (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (("", []),
+      (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, ((Name.no_binding, []),
          fold_rev lambda params (HOLogic.Collect_const U $
            HOLogic.ap_split' fs U HOLogic.boolT (list_comb (p, params3))))))
          (cnames_syn ~~ cs_info ~~ preds)) ctxt1;
@@ -488,15 +489,17 @@ fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind
             (K (REPEAT (rtac ext 1) THEN simp_tac (HOL_basic_ss addsimps
               [def, mem_Collect_eq, split_conv]) 1))
         in
-          ctxt |> LocalTheory.note kind ((s ^ "p_" ^ s ^ "_eq",
+          ctxt |> LocalTheory.note kind ((Name.binding (s ^ "p_" ^ s ^ "_eq"),
             [Attrib.internal (K pred_set_conv_att)]),
               [conv_thm]) |> snd
         end) (preds ~~ cs ~~ cs_info ~~ defs) ctxt2;
 
     (* convert theorems to set notation *)
-    val rec_name = if alt_name = "" then
-      space_implode "_" (map fst cnames_syn) else alt_name;
-    val cnames = map (Sign.full_name (ProofContext.theory_of ctxt3) o #1) cnames_syn;  (* FIXME *)
+    val rec_name =
+      if Name.name_of alt_name = "" then
+        Name.binding (space_implode "_" (map (Name.name_of o fst) cnames_syn))
+      else alt_name;
+    val cnames = map (Sign.full_name (ProofContext.theory_of ctxt3) o Name.name_of o #1) cnames_syn;  (* FIXME *)
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof ctxt3) raw_induct;
     val (intrs', elims', induct, ctxt4) =

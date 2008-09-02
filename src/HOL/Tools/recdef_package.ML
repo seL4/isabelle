@@ -268,8 +268,8 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
   in
-    Specification.theorem Thm.internalK NONE (K I) (bname, atts)
-      [] (Element.Shows [(("", []), [(HOLogic.mk_Trueprop tc, [])])]) int lthy
+    Specification.theorem Thm.internalK NONE (K I) (Name.binding bname, atts)
+      [] (Element.Shows [((Name.no_binding, []), [(HOLogic.mk_Trueprop tc, [])])]) int lthy
   end;
 
 val recdef_tc = gen_recdef_tc Attrib.intern_src Sign.intern_const;
@@ -299,7 +299,8 @@ val hints =
 
 val recdef_decl =
   Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "permissive" -- P.$$$ ")") >> K false) true --
-  P.name -- P.term -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop) -- Scan.option hints
+  P.name -- P.term -- Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Name.name_of) -- P.prop)
+    -- Scan.option hints
   >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map P.triple_swap eqs) src);
 
 val _ =
@@ -319,7 +320,8 @@ val _ =
 val _ =
   OuterSyntax.local_theory_to_proof' "recdef_tc" "recommence proof of termination condition (TFL)"
     K.thy_goal
-    (SpecParse.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
+    ((SpecParse.opt_thm_name ":" >> apfst Name.name_of) -- P.xname --
+        Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
       >> (fn ((thm_name, name), i) => recdef_tc thm_name name i));
 
 end;

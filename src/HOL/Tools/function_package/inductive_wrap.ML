@@ -14,7 +14,7 @@ sig
                        -> thm list * (term * thm * thm * local_theory)
 end
 
-structure FundefInductiveWrap =
+structure FundefInductiveWrap: FUNDEF_INDUCTIVE_WRAP =
 struct
 
 open FundefLib
@@ -44,14 +44,14 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
             {quiet_mode = false,
               verbose = ! Toplevel.debug,
               kind = Thm.internalK,
-              alt_name = "",
+              alt_name = Name.no_binding,
               coind = false,
               no_elim = false,
               no_ind = false,
               skip_mono = true}
-            [((R, T), NoSyn)] (* the relation *)
+            [((Name.binding R, T), NoSyn)] (* the relation *)
             [] (* no parameters *)
-            (map (fn t => (("", []), t)) defs) (* the intros *)
+            (map (fn t => ((Name.no_binding, []), t)) defs) (* the intros *)
             [] (* no special monos *)
             lthy
 

@@ -67,7 +67,7 @@ fun add_def tyco thy =
     thy
     |> TheoryTarget.instantiation ([tyco], vs, @{sort rtype})
     |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition (NONE, (("", []), eq)))
+    |-> (fn eq => Specification.definition (NONE, ((Name.no_binding, []), eq)))
     |> snd
     |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
     |> LocalTheory.exit

@@ -10,8 +10,8 @@ signature FUNDEF_CORE =
 sig
     val prepare_fundef : FundefCommon.fundef_config
                          -> string (* defname *)
-                         -> ((string * typ) * mixfix) list (* defined symbol *)
-                         -> ((string * typ) list * term list * term * term) list (* specification *)
+                         -> ((bstring * typ) * mixfix) list (* defined symbol *)
+                         -> ((bstring * typ) list * term list * term * term) list (* specification *)
                          -> local_theory
 
                          -> (term   (* f *)
@@ -31,22 +31,22 @@ open FundefLib
 open FundefCommon
 
 datatype globals =
-   Globals of { 
-         fvar: term, 
-         domT: typ, 
+   Globals of {
+         fvar: term,
+         domT: typ,
          ranT: typ,
-         h: term, 
-         y: term, 
-         x: term, 
-         z: term, 
-         a: term, 
-         P: term, 
-         D: term, 
+         h: term,
+         y: term,
+         x: term,
+         z: term,
+         a: term,
+         P: term,
+         D: term,
          Pbool:term
 }
 
 
-datatype rec_call_info = 
+datatype rec_call_info =
   RCInfo of
   {
    RIvs: (string * typ) list,  (* Call context: fixes and assumes *)
@@ -55,7 +55,7 @@ datatype rec_call_info =
 
    llRI: thm,
    h_assum: term
-  } 
+  }
 
 
 datatype clause_context =
@@ -69,7 +69,7 @@ datatype clause_context =
     rhs: term,
 
     cqs: cterm list,
-    ags: thm list,     
+    ags: thm list,
     case_hyp : thm
   }
 
@@ -80,7 +80,7 @@ fun transfer_clause_ctx thy (ClauseContext { ctxt, qs, gs, lhs, rhs, cqs, ags, c
 
 
 datatype clause_info =
-  ClauseInfo of 
+  ClauseInfo of
      {
       no: int,
       qglr : ((string * typ) list * term list * term * term),
@@ -166,16 +166,16 @@ fun mk_clause_context x ctxt (pre_qs,pre_gs,pre_lhs,pre_rhs) =
       val gs = map inst pre_gs
       val lhs = inst pre_lhs
       val rhs = inst pre_rhs
-                
+
       val cqs = map (cterm_of thy) qs
       val ags = map (assume o cterm_of thy) gs
-                  
+
       val case_hyp = assume (cterm_of thy (HOLogic.mk_Trueprop (mk_eq (x, lhs))))
     in
-      ClauseContext { ctxt = ctxt', qs = qs, gs = gs, lhs = lhs, rhs = rhs, 
+      ClauseContext { ctxt = ctxt', qs = qs, gs = gs, lhs = lhs, rhs = rhs,
                       cqs = cqs, ags = ags, case_hyp = case_hyp }
     end
-      
+
 
 (* lowlevel term function *)
 fun abstract_over_list vs body =
@@ -188,7 +188,7 @@ fun abstract_over_list vs body =
           Abs (a, T, t) => Abs (a, T, abs (lev + 1) v t)
         | t $ u => (abs lev v t $ (abs lev v u handle SAME => u) handle SAME => t $ abs lev v u)
         | _ => raise SAME);
-  in 
+  in
     fold_index (fn (i,v) => fn t => abs i v t handle SAME => t) vs body
   end
 
@@ -233,7 +233,7 @@ fun mk_clause_info globals G f no cdata qglr tree RCs GIntro_thm RIntro_thms =
              cdata=cdata,
              qglr=qglr,
 
-             lGI=lGI, 
+             lGI=lGI,
              RCs=RC_infos,
              tree=tree
             }
@@ -260,11 +260,11 @@ fun lookup_compat_thm i j cts =
 
 (* Returns "Gsi, Gsj, lhs_i = lhs_j |-- rhs_j_f = rhs_i_f" *)
 (* if j < i, then turn around *)
-fun get_compat_thm thy cts i j ctxi ctxj = 
+fun get_compat_thm thy cts i j ctxi ctxj =
     let
       val ClauseContext {cqs=cqsi,ags=agsi,lhs=lhsi,...} = ctxi
       val ClauseContext {cqs=cqsj,ags=agsj,lhs=lhsj,...} = ctxj
-          
+
       val lhsi_eq_lhsj = cterm_of thy (HOLogic.mk_Trueprop (mk_eq (lhsi, lhsj)))
     in if j < i then
          let
@@ -324,14 +324,14 @@ fun mk_uniqueness_clause thy globals f compat_store clausei clausej RLj =
         val ClauseInfo {no=i, cdata=cctxi as ClauseContext {ctxt=ctxti, lhs=lhsi, case_hyp, ...}, ...} = clausei
         val ClauseInfo {no=j, qglr=cdescj, RCs=RCsj, ...} = clausej
 
-        val cctxj as ClauseContext {ags = agsj', lhs = lhsj', rhs = rhsj', qs = qsj', cqs = cqsj', ...} 
+        val cctxj as ClauseContext {ags = agsj', lhs = lhsj', rhs = rhsj', qs = qsj', cqs = cqsj', ...}
             = mk_clause_context x ctxti cdescj
 
         val rhsj'h = Pattern.rewrite_term thy [(fvar,h)] [] rhsj'
         val compat = get_compat_thm thy compat_store i j cctxi cctxj
         val Ghsj' = map (fn RCInfo {h_assum, ...} => assume (cterm_of thy (subst_bounds (rev qsj', h_assum)))) RCsj
 
-        val RLj_import = 
+        val RLj_import =
             RLj |> fold forall_elim cqsj'
                 |> fold Thm.elim_implies agsj'
                 |> fold Thm.elim_implies Ghsj'
@@ -426,7 +426,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
         val repLemmas = map (mk_replacement_lemma thy h ih_elim) clauses
 
         val _ = Output.debug (K "Proving cases for unique existence...")
-        val (ex1s, values) = 
+        val (ex1s, values) =
             split_list (map (mk_uniqueness_case ctxt thy globals G f ihyp ih_intro G_elim compat_store clauses repLemmas) clauses)
 
         val _ = Output.debug (K "Proving: Graph is a function")
@@ -466,10 +466,10 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
                       |> fold_rev (curry Logic.mk_implies) gs
                       |> fold_rev Logic.all (fvar :: qs)
           end
-          
+
       val G_intros = map2 mk_GIntro clauses RCss
-                     
-      val (GIntro_thms, (G, G_elim, G_induct, lthy)) = 
+
+      val (GIntro_thms, (G, G_elim, G_induct, lthy)) =
           FundefInductiveWrap.inductive_def G_intros ((dest_Free Gvar, NoSyn), lthy)
     in
       ((G, GIntro_thms, G_elim, G_induct), lthy)
@@ -479,13 +479,13 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
 
 fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
     let
-      val f_def = 
+      val f_def =
           Abs ("x", domT, Const ("FunDef.THE_default", ranT --> (ranT --> boolT) --> ranT) $ (default $ Bound 0) $
                                 Abs ("y", ranT, G $ Bound 1 $ Bound 0))
               |> Syntax.check_term lthy
 
       val ((f, (_, f_defthm)), lthy) =
-        LocalTheory.define Thm.internalK ((function_name fname, mixfix), ((fdefname, []), f_def)) lthy
+        LocalTheory.define Thm.internalK ((Name.binding (function_name fname), mixfix), ((Name.binding fdefname, []), f_def)) lthy
     in
       ((f, f_defthm), lthy)
     end
@@ -507,7 +507,7 @@ fun define_recursion_relation Rname domT ranT fvar f qglrs clauses RCss lthy =
 
       val R_intross = map2 (map o mk_RIntro) (clauses ~~ qglrs) RCss
 
-      val (RIntro_thmss, (R, R_elim, _, lthy)) = 
+      val (RIntro_thmss, (R, R_elim, _, lthy)) =
           fold_burrow FundefInductiveWrap.inductive_def R_intross ((dest_Free Rvar, NoSyn), lthy)
     in
       ((R, RIntro_thmss, R_elim), lthy)
@@ -516,7 +516,7 @@ fun define_recursion_relation Rname domT ranT fvar f qglrs clauses RCss lthy =
 
 fun fix_globals domT ranT fvar ctxt =
     let
-      val ([h, y, x, z, a, D, P, Pbool],ctxt') = 
+      val ([h, y, x, z, a, D, P, Pbool],ctxt') =
           Variable.variant_fixes ["h_fd", "y_fd", "x_fd", "z_fd", "a_fd", "D_fd", "P_fd", "Pb_fd"] ctxt
     in
       (Globals {h = Free (h, domT --> ranT),
@@ -546,13 +546,13 @@ fun inst_RC thy fvar f (rcfix, rcassm, rcarg) =
 
 
 (**********************************************************
- *                   PROVING THE RULES 
+ *                   PROVING THE RULES
  **********************************************************)
 
 fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
     let
       val Globals {domT, z, ...} = globals
-  
+
       fun mk_psimp (ClauseInfo {qglr = (oqs, _, _, _), cdata = ClauseContext {cqs, lhs, ags, ...}, ...}) valthm =
           let
             val lhs_acc = cterm_of thy (HOLogic.mk_Trueprop (mk_acc domT R $ lhs)) (* "acc R lhs" *)
@@ -563,7 +563,7 @@ fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
               |> implies_intr z_smaller
               |> forall_intr (cterm_of thy z)
               |> (fn it => it COMP valthm)
-              |> implies_intr lhs_acc 
+              |> implies_intr lhs_acc
               |> asm_simplify (HOL_basic_ss addsimps [f_iff])
               |> fold_rev (implies_intr o cprop_of) ags
               |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
@@ -585,23 +585,23 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
     let
       val Globals {domT, x, z, a, P, D, ...} = globals
       val acc_R = mk_acc domT R
-                  
+
       val x_D = assume (cterm_of thy (HOLogic.mk_Trueprop (D $ x)))
       val a_D = cterm_of thy (HOLogic.mk_Trueprop (D $ a))
-                
+
       val D_subset = cterm_of thy (Logic.all x
         (Logic.mk_implies (HOLogic.mk_Trueprop (D $ x), HOLogic.mk_Trueprop (acc_R $ x))))
-                     
+
       val D_dcl = (* "!!x z. [| x: D; (z,x):R |] ==> z:D" *)
                     Logic.all x
                     (Logic.all z (Logic.mk_implies (HOLogic.mk_Trueprop (D $ x),
                                                     Logic.mk_implies (HOLogic.mk_Trueprop (R $ z $ x),
                                                                       HOLogic.mk_Trueprop (D $ z)))))
                     |> cterm_of thy
-                    
-                    
+
+
   (* Inductive Hypothesis: !!z. (z,x):R ==> P z *)
-      val ihyp = Term.all domT $ Abs ("z", domT, 
+      val ihyp = Term.all domT $ Abs ("z", domT,
                Logic.mk_implies (HOLogic.mk_Trueprop (R $ Bound 0 $ x),
                  HOLogic.mk_Trueprop (P $ Bound 0)))
            |> cterm_of thy
@@ -610,36 +610,36 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
 
   fun prove_case clause =
       let
-    val ClauseInfo {cdata = ClauseContext {ctxt, qs, cqs, ags, gs, lhs, case_hyp, ...}, RCs, 
+    val ClauseInfo {cdata = ClauseContext {ctxt, qs, cqs, ags, gs, lhs, case_hyp, ...}, RCs,
                     qglr = (oqs, _, _, _), ...} = clause
-                       
+
     val case_hyp_conv = K (case_hyp RS eq_reflection)
-    local open Conv in 
+    local open Conv in
     val lhs_D = fconv_rule (arg_conv (arg_conv (case_hyp_conv))) x_D
     val sih = fconv_rule (binder_conv (arg1_conv (arg_conv (arg_conv case_hyp_conv))) ctxt) aihyp
     end
-          
+
     fun mk_Prec (RCInfo {llRI, RIvs, CCas, rcarg, ...}) =
         sih |> forall_elim (cterm_of thy rcarg)
             |> Thm.elim_implies llRI
             |> fold_rev (implies_intr o cprop_of) CCas
             |> fold_rev (forall_intr o cterm_of thy o Free) RIvs
-        
+
     val P_recs = map mk_Prec RCs   (*  [P rec1, P rec2, ... ]  *)
-                 
+
     val step = HOLogic.mk_Trueprop (P $ lhs)
             |> fold_rev (curry Logic.mk_implies o prop_of) P_recs
             |> fold_rev (curry Logic.mk_implies) gs
             |> curry Logic.mk_implies (HOLogic.mk_Trueprop (D $ lhs))
             |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
             |> cterm_of thy
-         
+
     val P_lhs = assume step
            |> fold forall_elim cqs
-           |> Thm.elim_implies lhs_D 
+           |> Thm.elim_implies lhs_D
            |> fold Thm.elim_implies ags
            |> fold Thm.elim_implies P_recs
-          
+
     val res = cterm_of thy (HOLogic.mk_Trueprop (P $ x))
            |> Conv.arg_conv (Conv.arg_conv case_hyp_conv)
            |> symmetric (* P lhs == P x *)
@@ -650,17 +650,17 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
       in
         (res, step)
       end
-      
+
   val (cases, steps) = split_list (map prove_case clauses)
-                       
+
   val istep = complete_thm
                 |> Thm.forall_elim_vars 0
                 |> fold (curry op COMP) cases (*  P x  *)
                 |> implies_intr ihyp
                 |> implies_intr (cprop_of x_D)
                 |> forall_intr (cterm_of thy x)
-         
-  val subset_induct_rule = 
+
+  val subset_induct_rule =
       acc_subset_induct
         |> (curry op COMP) (assume D_subset)
         |> (curry op COMP) (assume D_dcl)
@@ -694,13 +694,13 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
 (* FIXME: This should probably use fixed goals, to be more reliable and faster *)
 fun mk_domain_intro thy (Globals {domT, ...}) R R_cases clause =
     let
-      val ClauseInfo {cdata = ClauseContext {qs, gs, lhs, rhs, cqs, ...}, 
+      val ClauseInfo {cdata = ClauseContext {qs, gs, lhs, rhs, cqs, ...},
                       qglr = (oqs, _, _, _), ...} = clause
       val goal = HOLogic.mk_Trueprop (mk_acc domT R $ lhs)
                           |> fold_rev (curry Logic.mk_implies) gs
                           |> cterm_of thy
     in
-      Goal.init goal 
+      Goal.init goal
       |> (SINGLE (resolve_tac [accI] 1)) |> the
       |> (SINGLE (eresolve_tac [Thm.forall_elim_vars 0 R_cases] 1))  |> the
       |> (SINGLE (CLASIMPSET auto_tac)) |> the
@@ -721,26 +721,26 @@ fun mk_nest_term_case thy globals R' ihyp clause =
       val Globals {x, z, ...} = globals
       val ClauseInfo {cdata = ClauseContext {qs,cqs,ags,lhs,rhs,case_hyp,...},tree,
                       qglr=(oqs, _, _, _), ...} = clause
-          
+
       val ih_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ihyp
-                    
-      fun step (fixes, assumes) (_ $ arg) u (sub,(hyps,thms)) = 
+
+      fun step (fixes, assumes) (_ $ arg) u (sub,(hyps,thms)) =
           let
             val used = map (fn (ctx,thm) => FundefCtxTree.export_thm thy ctx thm) (u @ sub)
-                       
+
             val hyp = HOLogic.mk_Trueprop (R' $ arg $ lhs)
                       |> fold_rev (curry Logic.mk_implies o prop_of) used (* additional hyps *)
-                      |> FundefCtxTree.export_term (fixes, assumes) 
+                      |> FundefCtxTree.export_term (fixes, assumes)
                       |> fold_rev (curry Logic.mk_implies o prop_of) ags
                       |> fold_rev mk_forall_rename (map fst oqs ~~ qs)
                       |> cterm_of thy
-                      
+
             val thm = assume hyp
                       |> fold forall_elim cqs
                       |> fold Thm.elim_implies ags
                       |> FundefCtxTree.import_thm thy (fixes, assumes)
                       |> fold Thm.elim_implies used (*  "(arg, lhs) : R'"  *)
-                      
+
             val z_eq_arg = assume (cterm_of thy (HOLogic.mk_Trueprop (mk_eq (z, arg))))
 
             val acc = thm COMP ih_case
@@ -748,7 +748,7 @@ fun mk_nest_term_case thy globals R' ihyp clause =
             |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (K (symmetric (z_eq_arg RS eq_reflection)))))
 
             val ethm = z_acc_local
-                         |> FundefCtxTree.export_thm thy (fixes, 
+                         |> FundefCtxTree.export_thm thy (fixes,
                                                           z_eq_arg :: case_hyp :: ags @ assumes)
                          |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
 
@@ -766,24 +766,24 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
     let
       val Globals { domT, x, z, ... } = globals
       val acc_R = mk_acc domT R
-                  
+
       val R' = Free ("R", fastype_of R)
-               
+
       val Rrel = Free ("R", HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)))
       val inrel_R = Const ("FunDef.in_rel", HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)) --> fastype_of R) $ Rrel
-                    
+
       val wfR' = cterm_of thy (HOLogic.mk_Trueprop (Const (@{const_name "Wellfounded.wfP"}, (domT --> domT --> boolT) --> boolT) $ R')) (* "wf R'" *)
-                          
+
       (* Inductive Hypothesis: !!z. (z,x):R' ==> z : acc R *)
-      val ihyp = Term.all domT $ Abs ("z", domT, 
+      val ihyp = Term.all domT $ Abs ("z", domT,
                                  Logic.mk_implies (HOLogic.mk_Trueprop (R' $ Bound 0 $ x),
                                    HOLogic.mk_Trueprop (acc_R $ Bound 0)))
                      |> cterm_of thy
 
       val ihyp_a = assume ihyp |> Thm.forall_elim_vars 0
-                   
-      val R_z_x = cterm_of thy (HOLogic.mk_Trueprop (R $ z $ x)) 
-                  
+
+      val R_z_x = cterm_of thy (HOLogic.mk_Trueprop (R $ z $ x))
+
       val (hyps,cases) = fold (mk_nest_term_case thy globals R' ihyp_a) clauses ([],[])
     in
       R_cases
@@ -809,7 +809,7 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
         |> full_simplify (HOL_basic_ss addsimps [in_rel_def])
         |> forall_intr (cterm_of thy Rrel)
     end
-    
+
 
 
 (* Tail recursion (probably very fragile)
@@ -828,7 +828,7 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
       val graph_implies_dom = (* "G ?x ?y ==> dom ?x"  *)
           Goal.prove octxt ["x", "y"] [HOLogic.mk_Trueprop (G $ Free ("x", domT) $ Free ("y", ranT))]
                      (HOLogic.mk_Trueprop (mk_acc domT R $ Free ("x", domT)))
-                     (fn {prems=[a], ...} => 
+                     (fn {prems=[a], ...} =>
                          ((rtac (G_induct OF [a]))
                             THEN_ALL_NEW (rtac accI)
                             THEN_ALL_NEW (etac R_cases)
@@ -841,13 +841,13 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
             val ClauseInfo {qglr = (oqs, _, _, _), cdata = ClauseContext {ctxt, cqs, qs, gs, lhs, rhs, ...}, ...} = clause
             val thy = ProofContext.theory_of ctxt
             val rhs_f = Pattern.rewrite_term thy [(fvar, f)] [] rhs
-                        
+
             val trsimp = Logic.list_implies(gs, HOLogic.mk_Trueprop (HOLogic.mk_eq(f $ lhs, rhs_f))) (* "f lhs = rhs" *)
             val lhs_acc = (mk_acc domT R $ lhs) (* "acc R lhs" *)
             fun simp_default_tac ss = asm_full_simp_tac (ss addsimps [default_thm, Let_def])
           in
             Goal.prove ctxt [] [] trsimp
-                       (fn _ =>  
+                       (fn _ =>
                            rtac (instantiate' [] [SOME (cterm_of thy lhs_acc)] case_split) 1
                                 THEN (rtac (Thm.forall_elim_vars 0 psimp) THEN_ALL_NEW assume_tac) 1
                                 THEN (SIMPSET' simp_default_tac 1)
@@ -862,12 +862,12 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
 
 fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
     let
-      val FundefConfig {domintros, tailrec, default=default_str, ...} = config 
-                                                         
+      val FundefConfig {domintros, tailrec, default=default_str, ...} = config
+
       val fvar = Free (fname, fT)
       val domT = domain_type fT
       val ranT = range_type fT
-                            
+
       val default = Syntax.parse_term lthy default_str
         |> TypeInfer.constrain fT |> Syntax.check_term lthy
 
@@ -875,30 +875,30 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
 
       val Globals { x, h, ... } = globals
 
-      val clauses = map (mk_clause_context x ctxt') abstract_qglrs 
+      val clauses = map (mk_clause_context x ctxt') abstract_qglrs
 
       val n = length abstract_qglrs
 
-      fun build_tree (ClauseContext { ctxt, rhs, ...}) = 
+      fun build_tree (ClauseContext { ctxt, rhs, ...}) =
             FundefCtxTree.mk_tree (fname, fT) h ctxt rhs
 
       val trees = map build_tree clauses
       val RCss = map find_calls trees
 
-      val ((G, GIntro_thms, G_elim, G_induct), lthy) = 
+      val ((G, GIntro_thms, G_elim, G_induct), lthy) =
           PROFILE "def_graph" (define_graph (graph_name defname) fvar domT ranT clauses RCss) lthy
 
-      val ((f, f_defthm), lthy) = 
+      val ((f, f_defthm), lthy) =
           PROFILE "def_fun" (define_function (defname ^ "_sumC_def") (fname, mixfix) domT ranT G default) lthy
 
       val RCss = map (map (inst_RC (ProofContext.theory_of lthy) fvar f)) RCss
       val trees = map (FundefCtxTree.inst_tree (ProofContext.theory_of lthy) fvar f) trees
 
-      val ((R, RIntro_thmss, R_elim), lthy) = 
+      val ((R, RIntro_thmss, R_elim), lthy) =
           PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT ranT fvar f abstract_qglrs clauses RCss) lthy
 
-      val (_, lthy) = 
-          LocalTheory.abbrev Syntax.mode_default ((dom_name defname, NoSyn), mk_acc domT R) lthy
+      val (_, lthy) =
+          LocalTheory.abbrev Syntax.mode_default ((Name.binding (dom_name defname), NoSyn), mk_acc domT R) lthy
 
       val newthy = ProofContext.theory_of lthy
       val clauses = map (transfer_clause_ctx newthy) clauses
@@ -918,39 +918,37 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
 
       fun mk_partial_rules provedgoal =
           let
-            val newthy = theory_of_thm provedgoal (*FIXME*) 
+            val newthy = theory_of_thm provedgoal (*FIXME*)
 
-            val (graph_is_function, complete_thm) = 
+            val (graph_is_function, complete_thm) =
                 provedgoal
                   |> Conjunction.elim
                   |> apfst (Thm.forall_elim_vars 0)
-                
+
             val f_iff = graph_is_function RS (f_defthm RS ex1_implies_iff)
-                        
+
             val psimps = PROFILE "Proving simplification rules" (mk_psimps newthy globals R xclauses values f_iff) graph_is_function
-                         
-            val simple_pinduct = PROFILE "Proving partial induction rule" 
+
+            val simple_pinduct = PROFILE "Proving partial induction rule"
                                                            (mk_partial_induct_rule newthy globals R complete_thm) xclauses
-                                                   
-                                                   
+
+
             val total_intro = PROFILE "Proving nested termination rule" (mk_nest_term_rule newthy globals R R_elim) xclauses
-                              
-            val dom_intros = if domintros 
+
+            val dom_intros = if domintros
                              then SOME (PROFILE "Proving domain introduction rules" (map (mk_domain_intro newthy globals R R_elim)) xclauses)
                              else NONE
             val trsimps = if tailrec then SOME (mk_trsimps psimps) else NONE
-                                                                        
-          in 
-            FundefResult {fs=[f], G=G, R=R, cases=complete_thm, 
-                          psimps=psimps, simple_pinducts=[simple_pinduct], 
+
+          in
+            FundefResult {fs=[f], G=G, R=R, cases=complete_thm,
+                          psimps=psimps, simple_pinducts=[simple_pinduct],
                           termination=total_intro, trsimps=trsimps,
                           domintros=dom_intros}
           end
     in
       ((f, goalstate, mk_partial_rules), lthy)
     end
-
-
 
 
 end

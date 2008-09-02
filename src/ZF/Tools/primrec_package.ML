@@ -9,8 +9,8 @@ Package for defining functions on datatypes by primitive recursion
 
 signature PRIMREC_PACKAGE =
 sig
-  val add_primrec: ((bstring * string) * Attrib.src list) list -> theory -> theory * thm list
-  val add_primrec_i: ((bstring * term) * attribute list) list -> theory -> theory * thm list
+  val add_primrec: ((Name.binding * string) * Attrib.src list) list -> theory -> theory * thm list
+  val add_primrec_i: ((Name.binding * term) * attribute list) list -> theory -> theory * thm list
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -180,7 +180,7 @@ fun add_primrec_i args thy =
 
     val (eqn_thms', thy2) =
       thy1
-      |> PureThy.add_thms ((eqn_names ~~ eqn_thms) ~~ eqn_atts);
+      |> PureThy.add_thms ((map Name.name_of eqn_names ~~ eqn_thms) ~~ eqn_atts);
     val (_, thy3) =
       thy2
       |> PureThy.add_thmss [(("simps", eqn_thms'), [Simplifier.simp_add])]

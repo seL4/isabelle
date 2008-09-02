@@ -9,13 +9,13 @@ Taken from HOL/Tools/primrec_package.ML
 signature NOMINAL_PRIMREC =
 sig
   val add_primrec: string -> string list option -> string option ->
-    ((bstring * string) * Attrib.src list) list -> theory -> Proof.state
+    ((Name.binding * string) * Attrib.src list) list -> theory -> Proof.state
   val add_primrec_unchecked: string -> string list option -> string option ->
-    ((bstring * string) * Attrib.src list) list -> theory -> Proof.state
+    ((Name.binding * string) * Attrib.src list) list -> theory -> Proof.state
   val add_primrec_i: string -> term list option -> term option ->
-    ((bstring * term) * attribute list) list -> theory -> Proof.state
+    ((Name.binding * term) * attribute list) list -> theory -> Proof.state
   val add_primrec_unchecked_i: string -> term list option -> term option ->
-    ((bstring * term) * attribute list) list -> theory -> Proof.state
+    ((Name.binding * term) * attribute list) list -> theory -> Proof.state
 end;
 
 structure NominalPrimrec : NOMINAL_PRIMREC =
@@ -229,7 +229,8 @@ local
 
 fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
   let
-    val (eqns, atts) = split_list eqns_atts;
+    val (raw_eqns, atts) = split_list eqns_atts;
+    val eqns = map (apfst Name.name_of) raw_eqns;
     val dt_info = NominalPackage.get_nominal_datatypes thy;
     val rec_eqns = fold_rev (process_eqn thy o snd) eqns [];
     val lsrs :: lsrss = maps (fn (_, (_, _, eqns)) =>

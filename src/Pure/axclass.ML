@@ -9,7 +9,7 @@ parameters.
 signature AX_CLASS =
 sig
   val define_class: bstring * class list -> string list ->
-    ((bstring * attribute list) * term list) list -> theory -> class * theory
+    ((Name.binding * attribute list) * term list) list -> theory -> class * theory
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
@@ -482,9 +482,10 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       |> Sign.add_path bconst
       |> Sign.no_base_names
       |> PureThy.note_thmss ""
-        [((introN, []), [([Drule.standard raw_intro], [])]),
-         ((superN, []), [(map Drule.standard raw_classrel, [])]),
-         ((axiomsN, []), [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])]
+        [((Name.binding introN, []), [([Drule.standard raw_intro], [])]),
+         ((Name.binding superN, []), [(map Drule.standard raw_classrel, [])]),
+         ((Name.binding axiomsN, []),
+           [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])]
       ||> Sign.restore_naming def_thy;
 
 
