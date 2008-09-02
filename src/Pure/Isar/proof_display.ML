@@ -5,15 +5,8 @@
 Printing of theorems, goals, results etc.
 *)
 
-signature BASIC_PROOF_DISPLAY =
-sig
-  val print_theorems: theory -> unit
-  val print_theory: theory -> unit
-end
-
 signature PROOF_DISPLAY =
 sig
-  include BASIC_PROOF_DISPLAY
   val pprint_context: Proof.context -> pprint_args -> unit
   val pprint_typ: theory -> typ -> pprint_args -> unit
   val pprint_term: theory -> term -> pprint_args -> unit
@@ -21,11 +14,11 @@ sig
   val pprint_cterm: cterm -> pprint_args -> unit
   val pprint_thm: thm -> pprint_args -> unit
   val print_theorems_diff: theory -> theory -> unit
+  val print_theorems: theory -> unit
   val pretty_full_theory: bool -> theory -> Pretty.T
+  val print_theory: theory -> unit
   val string_of_rule: Proof.context -> string -> thm -> string
   val print_results: bool -> Proof.context -> ((string * string) * (string * thm list) list) -> unit
-  val add_hook: ((string * thm list) list -> unit) -> unit
-  val theory_results: Proof.context -> ((string * string) * (string * thm list) list) -> unit
   val pretty_consts: Proof.context -> (string * typ -> bool) -> (string * typ) list -> Pretty.T
 end
 
@@ -79,69 +72,28 @@ val string_of_rule = Pretty.string_of ooo pretty_rule;
 
 (* results *)
 
+local
+
 fun pretty_fact_name (kind, "") = Pretty.str kind
   | pretty_fact_name (kind, name) = Pretty.block [Pretty.str kind, Pretty.brk 1,
       Pretty.str (NameSpace.base name), Pretty.str ":"];
-
-local
 
 fun pretty_facts ctxt =
   flat o (separate [Pretty.fbrk, Pretty.str "and "]) o
     map (single o ProofContext.pretty_fact ctxt);
 
-fun pretty_results ctxt ((kind, ""), facts) =
-      Pretty.block (Pretty.str kind :: Pretty.brk 1 :: pretty_facts ctxt facts)
-  | pretty_results ctxt (kind_name, [fact]) = Pretty.blk (1,
-      [pretty_fact_name kind_name, Pretty.fbrk, ProofContext.pretty_fact ctxt fact])
-  | pretty_results ctxt (kind_name, facts) = Pretty.blk (1,
-      [pretty_fact_name kind_name, Pretty.fbrk, Pretty.blk (1,
-        Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]);
-
 in
 
-fun print_results true = Pretty.writeln oo pretty_results
-  | print_results false = K (K ());
-
-end;
-
-
-(* theory results -- subject to hook *)
-
-local val hooks = ref ([]: ((string * thm list) list -> unit) list) in
-
-fun add_hook f = CRITICAL (fn () => change hooks (cons f));
-fun get_hooks () = CRITICAL (fn () => ! hooks);
-
-end;
-
-local
-
-fun name_results "" res = res
-  | name_results name res =
-      let
-        val n = length (maps snd res);
-        fun name_res (a, ths) i =
-          let
-            val m = length ths;
-            val j = i + m;
-          in
-            if a <> "" then ((a, ths), j)
-            else if m = n then ((name, ths), j)
-            else ((Facts.string_of_ref (Facts.Named ((name, Position.none),
-              SOME ([if m = 1 then Facts.Single i else Facts.FromTo (i, j - 1)]))), ths), j)
-          end;
-      in fst (fold_map name_res res 1) end;
-
-in
-
-fun theory_results ctxt ((kind, name), res) =
-  if kind = "" orelse kind = Thm.internalK then ()
-  else
-    let
-      val _ = print_results true ctxt ((kind, name), res);
-      val res' = name_results name res;
-      val _ = List.app (fn f => f res') (get_hooks ());
-    in () end;
+fun print_results do_print ctxt ((kind, name), facts) =
+  if not do_print orelse kind = "" orelse kind = Thm.internalK then ()
+  else if name = "" then
+    Pretty.writeln (Pretty.block (Pretty.str kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
+  else Pretty.writeln
+    (case facts of
+      [fact] => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
+        ProofContext.pretty_fact ctxt fact])
+    | _ => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
+        Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]));
 
 end;
 
@@ -166,6 +118,3 @@ fun pretty_consts ctxt pred cs =
 end;
 
 end;
-
-structure BasicProofDisplay: BASIC_PROOF_DISPLAY = ProofDisplay;
-open BasicProofDisplay;
