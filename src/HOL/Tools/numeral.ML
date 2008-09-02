@@ -55,9 +55,34 @@ end;
 
 (* code generator *)
 
-fun add_code number_of negative unbounded target =
-  Code_Target.add_literal_numeral target negative unbounded number_of
-  @{const_name Int.Pls} @{const_name Int.Min}
-  @{const_name Int.Bit0} @{const_name Int.Bit1};
+local open Basic_Code_Thingol in
+
+fun add_code number_of negative unbounded target thy =
+  let
+    val pls' = Code_Name.const thy @{const_name Int.Pls};
+    val min' = Code_Name.const thy @{const_name Int.Min};
+    val bit0' = Code_Name.const thy @{const_name Int.Bit0};
+    val bit1' = Code_Name.const thy @{const_name Int.Bit1};
+    val pr_numeral = (Code_Printer.literal_numeral o Code_Target.the_literals thy) target;
+    fun dest_bit thm (IConst (c, _)) = if c = bit0' then 0
+          else if c = bit1' then 1
+          else Code_Printer.nerror thm "Illegal numeral expression: illegal bit"
+      | dest_bit thm _ = Code_Printer.nerror thm "Illegal numeral expression: illegal bit";
+    fun dest_numeral thm (IConst (c, _)) = if c = pls' then SOME 0
+          else if c = min' then
+            if negative then SOME ~1 else NONE
+          else Code_Printer.nerror thm "Illegal numeral expression: illegal leading digit"
+      | dest_numeral thm (t1 `$ t2) =
+          let val (n, b) = (dest_numeral thm t2, dest_bit thm t1)
+          in case n of SOME n => SOME (2 * n + b) | NONE => NONE end
+      | dest_numeral thm _ = Code_Printer.nerror thm "Illegal numeral expression: illegal term";
+    fun pretty _ thm _ _ _ [(t, _)] =
+      (Code_Printer.str o pr_numeral unbounded o the_default 0 o dest_numeral thm) t;
+  in
+    thy
+    |> Code_Target.add_syntax_const target number_of (SOME (1, pretty))
+  end;
+
+end; (*local*)
 
 end;

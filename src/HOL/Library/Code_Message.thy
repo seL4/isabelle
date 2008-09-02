@@ -40,21 +40,8 @@ code_type message_string
   (Haskell "String")
 
 setup {*
-let
-  val charr = @{const_name Char}
-  val nibbles = [@{const_name Nibble0}, @{const_name Nibble1},
-    @{const_name Nibble2}, @{const_name Nibble3},
-    @{const_name Nibble4}, @{const_name Nibble5},
-    @{const_name Nibble6}, @{const_name Nibble7},
-    @{const_name Nibble8}, @{const_name Nibble9},
-    @{const_name NibbleA}, @{const_name NibbleB},
-    @{const_name NibbleC}, @{const_name NibbleD},
-    @{const_name NibbleE}, @{const_name NibbleF}];
-in
-  fold (fn target => Code_Target.add_literal_message target
-    charr nibbles @{const_name Nil} @{const_name Cons} @{const_name STR})
-  ["SML", "OCaml", "Haskell"]
-end
+  fold (fn target => add_literal_message @{const_name STR} target)
+    ["SML", "OCaml", "Haskell"]
 *}
 
 code_reserved SML string

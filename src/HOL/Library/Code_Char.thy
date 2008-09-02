@@ -25,22 +25,8 @@ code_type char
   (Haskell "Char")
 
 setup {*
-let
-  val charr = @{const_name Char}
-  val nibbles = [@{const_name Nibble0}, @{const_name Nibble1},
-    @{const_name Nibble2}, @{const_name Nibble3},
-    @{const_name Nibble4}, @{const_name Nibble5},
-    @{const_name Nibble6}, @{const_name Nibble7},
-    @{const_name Nibble8}, @{const_name Nibble9},
-    @{const_name NibbleA}, @{const_name NibbleB},
-    @{const_name NibbleC}, @{const_name NibbleD},
-    @{const_name NibbleE}, @{const_name NibbleF}];
-in
-  fold (fn target => Code_Target.add_literal_char target charr nibbles)
-    ["SML", "OCaml", "Haskell"]
-  #> Code_Target.add_literal_list_string "Haskell"
-    @{const_name Nil} @{const_name Cons} charr nibbles
-end
+  fold (fn target => add_literal_char target) ["SML", "OCaml", "Haskell"] 
+  #> add_literal_list_string "Haskell"
 *}
 
 code_instance char :: eq

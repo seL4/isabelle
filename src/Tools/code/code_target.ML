@@ -30,6 +30,7 @@ sig
     -> Code_Thingol.program -> string list -> serialization
   val serialize_custom: theory -> string * (serializer * literals)
     -> Code_Thingol.program -> string list -> string * string list
+  val the_literals: theory -> string -> literals
   val compile: serialization -> unit
   val export: serialization -> unit
   val file: Path.T -> serialization -> unit
@@ -50,15 +51,6 @@ sig
   val add_syntax_constP: string -> string -> OuterParse.token list
     -> (theory -> theory) * OuterParse.token list
   val add_reserved: string -> string -> theory -> theory
-
-  val add_literal_list: string -> string -> string -> theory -> theory
-  val add_literal_list_string: string -> string -> string
-    -> string -> string list -> theory -> theory
-  val add_literal_char: string -> string -> string list -> theory -> theory
-  val add_literal_numeral: string -> bool -> bool -> string -> string -> string
-    -> string -> string -> theory -> theory
-  val add_literal_message: string -> string -> string list -> string
-    -> string -> string -> theory -> theory
 end;
 
 structure Code_Target : CODE_TARGET =
@@ -91,120 +83,6 @@ fun mk_serialization target (SOME comp) _ _ code Compile = (comp code; NONE)
   | mk_serialization target _ output _ code Export = (output NONE code ; NONE)
   | mk_serialization target _ output _ code (File file) = (output (SOME file) code; NONE)
   | mk_serialization target _ _ string code (String _) = SOME (string code);
-
-
-(** pretty syntax **)
-
-(* list, char, string, numeral and monad abstract syntax transformations *)
-
-fun implode_list c_nil c_cons t =
-  let
-    fun dest_cons (IConst (c, _) `$ t1 `$ t2) =
-          if c = c_cons
-          then SOME (t1, t2)
-          else NONE
-      | dest_cons _ = NONE;
-    val (ts, t') = Code_Thingol.unfoldr dest_cons t;
-  in case t'
-   of IConst (c, _) => if c = c_nil then SOME ts else NONE
-    | _ => NONE
-  end;
-
-fun decode_char c_nibbles (IConst (c1, _), IConst (c2, _)) =
-      let
-        fun idx c = find_index (curry (op =) c) c_nibbles;
-        fun decode ~1 _ = NONE
-          | decode _ ~1 = NONE
-          | decode n m = SOME (chr (n * 16 + m));
-      in decode (idx c1) (idx c2) end
-  | decode_char _ _ = NONE;
-
-fun implode_string c_char c_nibbles mk_char mk_string ts =
-  let
-    fun implode_char (IConst (c, _) `$ t1 `$ t2) =
-          if c = c_char then decode_char c_nibbles (t1, t2) else NONE
-      | implode_char _ = NONE;
-    val ts' = map implode_char ts;
-  in if forall is_some ts'
-    then (SOME o str o mk_string o implode o map_filter I) ts'
-    else NONE
-  end;
-
-fun implode_numeral thm negative c_pls c_min c_bit0 c_bit1 =
-  let
-    fun dest_bit (IConst (c, _)) = if c = c_bit0 then 0
-          else if c = c_bit1 then 1
-          else nerror thm "Illegal numeral expression: illegal bit"
-      | dest_bit _ = nerror thm "Illegal numeral expression: illegal bit";
-    fun dest_numeral (IConst (c, _)) = if c = c_pls then SOME 0
-          else if c = c_min then
-            if negative then SOME ~1 else NONE
-          else nerror thm "Illegal numeral expression: illegal leading digit"
-      | dest_numeral (t1 `$ t2) =
-          let val (n, b) = (dest_numeral t2, dest_bit t1)
-          in case n of SOME n => SOME (2 * n + b) | NONE => NONE end
-      | dest_numeral _ = nerror thm "Illegal numeral expression: illegal term";
-  in dest_numeral #> the_default 0 end;
-
-
-(* literal syntax printing *)
-
-fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
-  brackify_infix (target_fxy, R) fxy [
-    pr (INFX (target_fxy, X)) t1,
-    str target_cons,
-    pr (INFX (target_fxy, R)) t2
-  ];
-
-fun pretty_list c_nil c_cons literals =
-  let
-    val mk_list = literal_list literals;
-    fun pretty pr thm pat vars fxy [(t1, _), (t2, _)] =
-      case Option.map (cons t1) (implode_list c_nil c_cons t2)
-       of SOME ts => mk_list (map (pr vars NOBR) ts)
-        | NONE => default_list (infix_cons literals) (pr vars) fxy t1 t2;
-  in (2, pretty) end;
-
-fun pretty_list_string c_nil c_cons c_char c_nibbles literals =
-  let
-    val mk_list = literal_list literals;
-    val mk_char = literal_char literals;
-    val mk_string = literal_string literals;
-    fun pretty pr thm pat vars fxy [(t1, _), (t2, _)] =
-      case Option.map (cons t1) (implode_list c_nil c_cons t2)
-       of SOME ts => (case implode_string c_char c_nibbles mk_char mk_string ts
-           of SOME p => p
-            | NONE => mk_list (map (pr vars NOBR) ts))
-        | NONE => default_list (infix_cons literals) (pr vars) fxy t1 t2;
-  in (2, pretty) end;
-
-fun pretty_char c_char c_nibbles literals =
-  let
-    val mk_char = literal_char literals;
-    fun pretty _ thm _ _ _ [(t1, _), (t2, _)] =
-      case decode_char c_nibbles (t1, t2)
-       of SOME c => (str o mk_char) c
-        | NONE => nerror thm "Illegal character expression";
-  in (2, pretty) end;
-
-fun pretty_numeral unbounded negative c_pls c_min c_bit0 c_bit1 literals =
-  let
-    val mk_numeral = literal_numeral literals;
-    fun pretty _ thm _ _ _ [(t, _)] =
-      (str o mk_numeral unbounded o implode_numeral thm negative c_pls c_min c_bit0 c_bit1) t;
-  in (1, pretty) end;
-
-fun pretty_message c_char c_nibbles c_nil c_cons literals =
-  let
-    val mk_char = literal_char literals;
-    val mk_string = literal_string literals;
-    fun pretty _ thm _ _ _ [(t, _)] =
-      case implode_list c_nil c_cons t
-       of SOME ts => (case implode_string c_char c_nibbles mk_char mk_string ts
-           of SOME p => p
-            | NONE => nerror thm "Illegal message expression")
-        | NONE => nerror thm "Illegal message expression";
-  in (1, pretty) end;
 
 
 (** theory data **)
@@ -506,62 +384,6 @@ fun the_literals thy =
           | Extends (super, _) => literals super)
       | NONE => error ("Unknown code target language: " ^ quote target);
   in literals end;
-
-fun add_literal_list target nill cons thy =
-  let
-    val nil' = Code_Name.const thy nill;
-    val cons' = Code_Name.const thy cons;
-    val pr = pretty_list nil' cons' (the_literals thy target);
-  in
-    thy
-    |> add_syntax_const target cons (SOME pr)
-  end;
-
-fun add_literal_list_string target nill cons charr nibbles thy =
-  let
-    val nil' = Code_Name.const thy nill;
-    val cons' = Code_Name.const thy cons;
-    val charr' = Code_Name.const thy charr;
-    val nibbles' = map (Code_Name.const thy) nibbles;
-    val pr = pretty_list_string nil' cons' charr' nibbles' (the_literals thy target);
-  in
-    thy
-    |> add_syntax_const target cons (SOME pr)
-  end;
-
-fun add_literal_char target charr nibbles thy =
-  let
-    val charr' = Code_Name.const thy charr;
-    val nibbles' = map (Code_Name.const thy) nibbles;
-    val pr = pretty_char charr' nibbles' (the_literals thy target);
-  in
-    thy
-    |> add_syntax_const target charr (SOME pr)
-  end;
-
-fun add_literal_numeral target unbounded negative number_of pls min bit0 bit1 thy =
-  let
-    val pls' = Code_Name.const thy pls;
-    val min' = Code_Name.const thy min;
-    val bit0' = Code_Name.const thy bit0;
-    val bit1' = Code_Name.const thy bit1;
-    val pr = pretty_numeral unbounded negative pls' min' bit0' bit1' (the_literals thy target);
-  in
-    thy
-    |> add_syntax_const target number_of (SOME pr)
-  end;
-
-fun add_literal_message target charr nibbles nill cons str thy =
-  let
-    val charr' = Code_Name.const thy charr;
-    val nibbles' = map (Code_Name.const thy) nibbles;
-    val nil' = Code_Name.const thy nill;
-    val cons' = Code_Name.const thy cons;
-    val pr = pretty_message charr' nibbles' nil' cons' (the_literals thy target);
-  in
-    thy
-    |> add_syntax_const target str (SOME pr)
-  end;
 
 
 (** serializer usage **)
