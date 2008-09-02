@@ -9,23 +9,23 @@ logical operations.
 signature ELEMENT =
 sig
   datatype ('typ, 'term) stmt =
-    Shows of ((string * Attrib.src list) * ('term * 'term list) list) list |
-    Obtains of (string * ((string * 'typ option) list * 'term list)) list
+    Shows of ((Name.binding * Attrib.src list) * ('term * 'term list) list) list |
+    Obtains of (Name.binding * ((Name.binding * 'typ option) list * 'term list)) list
   type statement = (string, string) stmt
   type statement_i = (typ, term) stmt
   datatype ('typ, 'term, 'fact) ctxt =
-    Fixes of (string * 'typ option * mixfix) list |
+    Fixes of (Name.binding * 'typ option * mixfix) list |
     Constrains of (string * 'typ) list |
-    Assumes of ((string * Attrib.src list) * ('term * 'term list) list) list |
-    Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
-    Notes of string * ((string * Attrib.src list) * ('fact * Attrib.src list) list) list
+    Assumes of ((Name.binding * Attrib.src list) * ('term * 'term list) list) list |
+    Defines of ((Name.binding * Attrib.src list) * ('term * 'term list)) list |
+    Notes of string * ((Name.binding * Attrib.src list) * ('fact * Attrib.src list) list) list
   type context = (string, string, Facts.ref) ctxt
   type context_i = (typ, term, thm list) ctxt
   val facts_map: (('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt) ->
-   ((string * Attrib.src list) * ('fact * Attrib.src list) list) list ->
-   ((string * Attrib.src list) * ('c * Attrib.src list) list) list
-  val map_ctxt: {name: string -> string,
-    var: string * mixfix -> string * mixfix,
+   ((Name.binding * Attrib.src list) * ('fact * Attrib.src list) list) list ->
+   ((Name.binding * Attrib.src list) * ('c * Attrib.src list) list) list
+  val map_ctxt: {name: Name.binding -> Name.binding,
+    var: Name.binding * mixfix -> Name.binding * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
     attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_attrib: (Attrib.src -> Attrib.src) ->
@@ -34,7 +34,7 @@ sig
   val params_of: context_i -> (string * typ) list
   val prems_of: context_i -> term list
   val facts_of: theory -> context_i ->
-    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
+    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
@@ -54,7 +54,10 @@ sig
   val refine_witness: Proof.state -> Proof.state Seq.seq
   val pretty_witness: Proof.context -> witness -> Pretty.T
   val rename: (string * (string * mixfix option)) list -> string -> string
-  val rename_var: (string * (string * mixfix option)) list -> string * mixfix -> string * mixfix
+  val rename_var_name: (string * (string * mixfix option)) list ->
+    string * mixfix -> string * mixfix
+  val rename_var: (string * (string * mixfix option)) list ->
+    Name.binding * mixfix -> Name.binding * mixfix
   val rename_term: (string * (string * mixfix option)) list -> term -> term
   val rename_thm: (string * (string * mixfix option)) list -> thm -> thm
   val rename_morphism: (string * (string * mixfix option)) list -> morphism
@@ -68,11 +71,11 @@ sig
   val satisfy_thm: witness list -> thm -> thm
   val satisfy_morphism: witness list -> morphism
   val satisfy_facts: witness list ->
-    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
+    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list
   val generalize_facts: Proof.context -> Proof.context ->
-    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    ((string * Attrib.src list) * (thm list * Attrib.src list) list) list
+    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list
 end;
 
 structure Element: ELEMENT =
@@ -83,8 +86,8 @@ struct
 (* statement *)
 
 datatype ('typ, 'term) stmt =
-  Shows of ((string * Attrib.src list) * ('term * 'term list) list) list |
-  Obtains of (string * ((string * 'typ option) list * 'term list)) list;
+  Shows of ((Name.binding * Attrib.src list) * ('term * 'term list) list) list |
+  Obtains of (Name.binding * ((Name.binding * 'typ option) list * 'term list)) list;
 
 type statement = (string, string) stmt;
 type statement_i = (typ, term) stmt;
@@ -93,11 +96,11 @@ type statement_i = (typ, term) stmt;
 (* context *)
 
 datatype ('typ, 'term, 'fact) ctxt =
-  Fixes of (string * 'typ option * mixfix) list |
+  Fixes of (Name.binding * 'typ option * mixfix) list |
   Constrains of (string * 'typ) list |
-  Assumes of ((string * Attrib.src list) * ('term * 'term list) list) list |
-  Defines of ((string * Attrib.src list) * ('term * 'term list)) list |
-  Notes of string * ((string * Attrib.src list) * ('fact * Attrib.src list) list) list;
+  Assumes of ((Name.binding * Attrib.src list) * ('term * 'term list) list) list |
+  Defines of ((Name.binding * Attrib.src list) * ('term * 'term list)) list |
+  Notes of string * ((Name.binding * Attrib.src list) * ('fact * Attrib.src list) list) list;
 
 type context = (string, string, Facts.ref) ctxt;
 type context_i = (typ, term, thm list) ctxt;
@@ -107,7 +110,8 @@ fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts
 fun map_ctxt {name, var, typ, term, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) =>
        let val (x', mx') = var (x, mx) in (x', Option.map typ T, mx') end))
-   | Constrains xs => Constrains (xs |> map (fn (x, T) => (#1 (var (x, NoSyn)), typ T)))
+   | Constrains xs => Constrains (xs |> map (fn (x, T) =>
+       let val x' = Name.name_of (#1 (var (Name.binding x, NoSyn))) in (x', typ T) end))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
       ((name a, map attrib atts), propps |> map (fn (t, ps) => (term t, map term ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
@@ -130,8 +134,8 @@ fun morph_ctxt phi = map_ctxt
 (* logical content *)
 
 fun params_of (Fixes fixes) = fixes |> map
-    (fn (x, SOME T, _) => (x, T)
-      | (x, _, _) => raise TERM ("Untyped context element parameter " ^ quote x, []))
+    (fn (x, SOME T, _) => (Name.name_of x, T)
+      | (x, _, _) => raise TERM ("Untyped context element parameter " ^ quote (Name.name_of x), []))
   | params_of _ = [];
 
 fun prems_of (Assumes asms) = maps (map fst o snd) asms
@@ -154,10 +158,12 @@ fun pretty_items _ _ [] = []
       Pretty.block [Pretty.keyword keyword, Pretty.brk 1, x] ::
         map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword sep, Pretty.brk 1, y]) ys;
 
-fun pretty_name_atts ctxt (name, atts) sep =
-  if name = "" andalso null atts then []
-  else [Pretty.block
-    (Pretty.breaks (Pretty.str name :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))];
+fun pretty_name_atts ctxt (binding, atts) sep =
+  let val name = Name.name_of binding in
+    if name = "" andalso null atts then []
+    else [Pretty.block
+      (Pretty.breaks (Pretty.str name :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))]
+  end;
 
 
 (* pretty_stmt *)
@@ -172,8 +178,9 @@ fun pretty_stmt ctxt =
     fun prt_show (a, ts) =
       Pretty.block (Pretty.breaks (prt_name_atts a ":" @ prt_terms (map fst ts)));
 
-    fun prt_var (x, SOME T) = Pretty.block [Pretty.str (x ^ " ::"), Pretty.brk 1, prt_typ T]
-      | prt_var (x, NONE) = Pretty.str x;
+    fun prt_var (x, SOME T) = Pretty.block
+          [Pretty.str (Name.name_of x ^ " ::"), Pretty.brk 1, prt_typ T]
+      | prt_var (x, NONE) = Pretty.str (Name.name_of x);
     val prt_vars = separate (Pretty.keyword "and") o map prt_var;
 
     fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (prt_terms ts))
@@ -197,10 +204,11 @@ fun pretty_ctxt ctxt =
     fun prt_mixfix NoSyn = []
       | prt_mixfix mx = [Pretty.brk 2, Syntax.pretty_mixfix mx];
 
-    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
-          prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
-      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_mixfix mx);
-    fun prt_constrain (x, T) = prt_fix (x, SOME T, NoSyn);
+    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (Name.name_of x ^ " ::") ::
+          Pretty.brk 1 :: prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
+      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str (Name.name_of x) ::
+          Pretty.brk 1 :: prt_mixfix mx);
+    fun prt_constrain (x, T) = prt_fix (Name.binding x, SOME T, NoSyn);
 
     fun prt_asm (a, ts) =
       Pretty.block (Pretty.breaks (prt_name_atts a ":" @ map (prt_term o fst) ts));
@@ -234,11 +242,13 @@ fun thm_name kind th prts =
     else Pretty.command kind
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 
+fun fix (x, T) = (Name.binding x, SOME T);
+
 fun obtain prop ctxt =
   let
     val ((xs, prop'), ctxt') = Variable.focus prop ctxt;
     val As = Logic.strip_imp_prems (Thm.term_of prop');
-  in (("", (map (apsnd SOME o Term.dest_Free o Thm.term_of) xs, As)), ctxt') end;
+  in ((Name.no_binding, (map (fix o Term.dest_Free o Thm.term_of) xs, As)), ctxt') end;
 
 in
 
@@ -261,9 +271,9 @@ fun pretty_statement ctxt kind raw_th =
     val (assumes, cases) = take_suffix (fn prem =>
       is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
   in
-    pretty_ctxt ctxt' (Fixes (map (fn (x, T) => (x, SOME T, NoSyn)) fixes)) @
-    pretty_ctxt ctxt' (Assumes (map (fn t => (("", []), [(t, [])])) assumes)) @
-     (if null cases then pretty_stmt ctxt' (Shows [(("", []), [(concl, [])])])
+    pretty_ctxt ctxt' (Fixes (map (fn (x, T) => (Name.binding x, SOME T, NoSyn)) fixes)) @
+    pretty_ctxt ctxt' (Assumes (map (fn t => ((Name.no_binding, []), [(t, [])])) assumes)) @
+     (if null cases then pretty_stmt ctxt' (Shows [((Name.no_binding, []), [(concl, [])])])
       else
         let val (clauses, ctxt'') = fold_map (obtain o cert) cases ctxt'
         in pretty_stmt ctxt'' (Obtains clauses) end)
@@ -371,14 +381,20 @@ fun rename ren x =
     NONE => x
   | SOME (x', _) => x');
 
-fun rename_var ren (x, mx) =
-  (case (AList.lookup (op =) ren (x: string), mx) of
+fun rename_var_name ren (x, mx) =
+  (case (AList.lookup (op =) ren x, mx) of
     (NONE, _) => (x, mx)
   | (SOME (x', NONE), Structure) => (x', mx)
   | (SOME (x', SOME _), Structure) =>
       error ("Attempt to change syntax of structure parameter " ^ quote x)
   | (SOME (x', NONE), _) => (x', NoSyn)
   | (SOME (x', SOME mx'), _) => (x', mx'));
+
+fun rename_var ren (binding, mx) =
+  let
+    val x = Name.name_of binding;
+    val (x', mx') = rename_var_name ren (x, mx);
+  in (Name.binding x', mx') end;
 
 fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
   | rename_term ren (t $ u) = rename_term ren t $ rename_term ren u
