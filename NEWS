@@ -46,9 +46,9 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* HOL/Orderings: class "wellorder" moved here, with explicit induction rule
-"less_induct" as assumption.  For instantiation of "wellorder" by means
-of predicate "wf", use rule wf_wellorderI.  INCOMPATIBILITY.
+* HOL/Orderings: class "wellorder" moved here, with explicit induction
+rule "less_induct" as assumption.  For instantiation of "wellorder" by
+means of predicate "wf", use rule wf_wellorderI.  INCOMPATIBILITY.
 
 * HOL/Orderings: added class "preorder" as superclass of "order".
 INCOMPATIBILITY: Instantiation proofs for order, linorder
@@ -138,7 +138,8 @@ have disappeared in favour of existing ones:
 instantiations for algebraic structures.  Removed some duplicate
 theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
-* ATP selection (E/Vampire/Spass) is now via PG's settings menu.
+* ATP selection (E/Vampire/Spass) is now via Proof General's settings
+menu.
 
 
 *** HOL-Algebra ***
@@ -178,7 +179,15 @@ Complex_Main.thy should now use new entry point Hypercomplex.thy.
 
 
 *** ML ***
- 
+
+* Name bindings in higher specification mechanisms (notably
+LocalTheory.define, LocalTheory.note, and derived packages) are now
+formalized as type Name.binding, replacing old bstring.
+INCOMPATIBILITY, need to wrap strings via Name.binding function, see
+also Name.name_of.  Packages should pass name bindings given by the
+user to underlying specification mechanisms; this enables precise
+tracking of source positions, for example.
+
 * Rules and tactics that read instantiations (read_instantiate,
 res_inst_tac, thin_tac, subgoal_tac etc.) now demand a proper proof
 context, which is required for parsing and type-checking.  Moreover,
