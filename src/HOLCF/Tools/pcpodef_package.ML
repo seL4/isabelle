@@ -83,18 +83,26 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
     val (Rep_name, Abs_name) = the_default ("Rep_" ^ name, "Abs_" ^ name) opt_morphs;
     val RepC = Const (full Rep_name, newT --> oldT);
     fun lessC T = Const (@{const_name Porder.sq_le}, T --> T --> HOLogic.boolT);
-    val less_def = ("less_" ^ name ^ "_def", Logic.mk_equals (lessC newT,
-      Abs ("x", newT, Abs ("y", newT, lessC oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0)))));
+    val less_def = Logic.mk_equals (lessC newT,
+      Abs ("x", newT, Abs ("y", newT, lessC oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0))));
 
-    fun make_po tac theory = theory
-      |> TypedefPackage.add_typedef_i def (SOME name) (t, vs, mx) set opt_morphs tac
-      ||> AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.sq_ord"])
-           (Class.intro_classes_tac [])
-      ||>> PureThy.add_defs true [Thm.no_attributes less_def]
-      |-> (fn ((_, {type_definition, set_def, ...}), [less_definition]) =>
-          AxClass.prove_arity (full_tname, lhs_sorts, ["Porder.po"])
-             (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1)
-           #> pair (type_definition, less_definition, set_def));
+    fun make_po tac thy1 =
+      let
+        val ((_, {type_definition, set_def, ...}), thy2) = thy1
+          |> TypedefPackage.add_typedef_i def (SOME name) (t, vs, mx) set opt_morphs tac;
+        val lthy3 = thy2
+          |> TheoryTarget.instantiation ([full_tname], lhs_tfrees, @{sort "Porder.po"});
+        val less_def' = Syntax.check_term lthy3 less_def;
+        val ((_, (_, less_definition')), lthy4) = lthy3
+          |> Specification.definition (NONE, (("less_" ^ name ^ "_def", []), less_def'));
+        val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy4);
+        val less_definition = singleton (ProofContext.export lthy4 ctxt_thy) less_definition';
+        val thy5 = lthy4
+          |> Class.prove_instantiation_instance
+              (K (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1))
+          |> LocalTheory.exit
+          |> ProofContext.theory_of;
+      in ((type_definition, less_definition, set_def), thy5) end;
 
     fun make_cpo admissible (type_def, less_def, set_def) theory =
       let

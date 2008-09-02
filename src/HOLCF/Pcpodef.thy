@@ -17,8 +17,10 @@ text {*
   if the ordering is defined in the standard way.
 *}
 
+setup {* Sign.add_const_constraint (@{const_name Porder.sq_le}, NONE) *}
+
 theorem typedef_po:
-  fixes Abs :: "'a::po \<Rightarrow> 'b::sq_ord"
+  fixes Abs :: "'a::po \<Rightarrow> 'b::type"
   assumes type: "type_definition Rep Abs A"
     and less: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
   shows "OFCLASS('b, po_class)"
@@ -28,6 +30,9 @@ theorem typedef_po:
  apply (rule type_definition.Rep_inject [OF type, THEN iffD1])
  apply (erule (1) antisym_less)
 done
+
+setup {* Sign.add_const_constraint (@{const_name Porder.sq_le},
+  SOME @{typ "'a::sq_ord \<Rightarrow> 'a::sq_ord \<Rightarrow> bool"}) *}
 
 subsection {* Proving a subtype is finite *}
 
