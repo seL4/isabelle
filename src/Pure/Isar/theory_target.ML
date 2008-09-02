@@ -48,10 +48,10 @@ fun pretty_thy ctxt target is_locale is_class =
   let
     val thy = ProofContext.theory_of ctxt;
     val target_name = (if is_class then "class " else "locale ") ^ Locale.extern thy target;
-    val fixes = map (fn (x, T) =>
-      (Name.binding x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
-    val assumes = map (fn A =>
-      (Attrib.no_binding, [(A, [])])) (map Thm.term_of (Assumption.assms_of ctxt));
+    val fixes = map (fn (x, T) => (Name.binding x, SOME T, NoSyn))
+      (#1 (ProofContext.inferred_fixes ctxt));
+    val assumes = map (fn A => (Attrib.no_binding, [(Thm.term_of A, [])]))
+      (Assumption.assms_of ctxt);
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
