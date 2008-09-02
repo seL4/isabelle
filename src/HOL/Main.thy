@@ -5,7 +5,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Plain Map Presburger Recdef
+imports Plain Map Nat_Int_Bij Recdef
 begin
 
 ML {* val HOL_proofs = ! Proofterm.proofs *}

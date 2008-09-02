@@ -847,19 +847,23 @@ done
 
 subsection{* Rationals *}
 
+lemma Rats_real_nat[simp]: "real(n::nat) \<in> \<rat>"
+by (simp add: real_eq_of_nat)
+
+
 lemma Rats_eq_int_div_int:
-  "Rats = { real(i::int)/real(j::int) |i j. j \<noteq> 0}" (is "_ = ?S")
+  "\<rat> = { real(i::int)/real(j::int) |i j. j \<noteq> 0}" (is "_ = ?S")
 proof
-  show "Rats \<subseteq> ?S"
+  show "\<rat> \<subseteq> ?S"
   proof
-    fix x::real assume "x : Rats"
+    fix x::real assume "x : \<rat>"
     then obtain r where "x = of_rat r" unfolding Rats_def ..
     have "of_rat r : ?S"
       by (cases r)(auto simp add:of_rat_rat real_eq_of_int)
     thus "x : ?S" using `x = of_rat r` by simp
   qed
 next
-  show "?S \<subseteq> Rats"
+  show "?S \<subseteq> \<rat>"
   proof(auto simp:Rats_def)
     fix i j :: int assume "j \<noteq> 0"
     hence "real i / real j = of_rat(Fract i j)"
@@ -869,7 +873,7 @@ next
 qed
 
 lemma Rats_eq_int_div_nat:
-  "Rats = { real(i::int)/real(n::nat) |i n. n \<noteq> 0}"
+  "\<rat> = { real(i::int)/real(n::nat) |i n. n \<noteq> 0}"
 proof(auto simp:Rats_eq_int_div_int)
   fix i j::int assume "j \<noteq> 0"
   show "EX (i'::int) (n::nat). real i/real j = real i'/real n \<and> 0<n"
