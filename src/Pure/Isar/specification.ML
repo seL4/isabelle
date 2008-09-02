@@ -235,7 +235,7 @@ fun gen_theorems prep_fact prep_att kind raw_facts lthy =
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
     val (res, lthy') = lthy |> LocalTheory.notes kind facts;
-    val _ = ProofDisplay.theory_results lthy' ((kind, ""), res);
+    val _ = ProofDisplay.print_results true lthy' ((kind, ""), res);
   in (res, lthy') end;
 
 val theorems = gen_theorems (K I) (K I);
@@ -337,12 +337,12 @@ fun gen_theorem prep_att prep_stmt
         |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
           if Name.name_of name = "" andalso null atts then
-            (ProofDisplay.theory_results lthy' ((kind, ""), res); lthy')
+            (ProofDisplay.print_results true lthy' ((kind, ""), res); lthy')
           else
             let
               val ([(res_name, _)], lthy'') = lthy'
                 |> LocalTheory.notes kind [((name, atts), [(maps #2 res, [])])];
-              val _ = ProofDisplay.theory_results lthy' ((kind, res_name), res);
+              val _ = ProofDisplay.print_results true lthy' ((kind, res_name), res);
             in lthy'' end)
         |> after_qed results'
       end;
