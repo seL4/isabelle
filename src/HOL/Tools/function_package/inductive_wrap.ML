@@ -51,7 +51,7 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
               skip_mono = true}
             [((Name.binding R, T), NoSyn)] (* the relation *)
             [] (* no parameters *)
-            (map (fn t => ((Name.no_binding, []), t)) defs) (* the intros *)
+            (map (fn t => (Attrib.no_binding, t)) defs) (* the intros *)
             [] (* no special monos *)
             lthy
 

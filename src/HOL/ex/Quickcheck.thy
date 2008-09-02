@@ -132,7 +132,7 @@ let
                  (map (fn eq => ((Name.no_binding, [del_func]), eq)) eqs')
           |-> add_code
           |> `(fn lthy => Syntax.check_term lthy eq)
-          |-> (fn eq => Specification.definition (NONE, ((Name.no_binding, []), eq)))
+          |-> (fn eq => Specification.definition (NONE, (Attrib.no_binding, eq)))
           |> snd
           |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
           |> LocalTheory.exit
@@ -261,7 +261,7 @@ fun VALUE prop tys thy =
   in
     thy
     |> TheoryTarget.init NONE
-    |> Specification.definition (NONE, ((Name.no_binding, []), eq))
+    |> Specification.definition (NONE, (Attrib.no_binding, eq))
     |> snd
     |> LocalTheory.exit
     |> ProofContext.theory_of

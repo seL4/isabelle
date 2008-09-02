@@ -51,7 +51,7 @@ fun pretty_thy ctxt target is_locale is_class =
     val fixes = map (fn (x, T) =>
       (Name.binding x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
     val assumes = map (fn A =>
-      ((Name.no_binding, []), [(A, [])])) (map Thm.term_of (Assumption.assms_of ctxt));
+      (Attrib.no_binding, [(A, [])])) (map Thm.term_of (Assumption.assms_of ctxt));
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);

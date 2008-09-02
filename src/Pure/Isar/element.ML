@@ -9,21 +9,21 @@ logical operations.
 signature ELEMENT =
 sig
   datatype ('typ, 'term) stmt =
-    Shows of ((Name.binding * Attrib.src list) * ('term * 'term list) list) list |
+    Shows of (Attrib.binding * ('term * 'term list) list) list |
     Obtains of (Name.binding * ((Name.binding * 'typ option) list * 'term list)) list
   type statement = (string, string) stmt
   type statement_i = (typ, term) stmt
   datatype ('typ, 'term, 'fact) ctxt =
     Fixes of (Name.binding * 'typ option * mixfix) list |
     Constrains of (string * 'typ) list |
-    Assumes of ((Name.binding * Attrib.src list) * ('term * 'term list) list) list |
-    Defines of ((Name.binding * Attrib.src list) * ('term * 'term list)) list |
-    Notes of string * ((Name.binding * Attrib.src list) * ('fact * Attrib.src list) list) list
+    Assumes of (Attrib.binding * ('term * 'term list) list) list |
+    Defines of (Attrib.binding * ('term * 'term list)) list |
+    Notes of string * (Attrib.binding * ('fact * Attrib.src list) list) list
   type context = (string, string, Facts.ref) ctxt
   type context_i = (typ, term, thm list) ctxt
   val facts_map: (('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt) ->
-   ((Name.binding * Attrib.src list) * ('fact * Attrib.src list) list) list ->
-   ((Name.binding * Attrib.src list) * ('c * Attrib.src list) list) list
+   (Attrib.binding * ('fact * Attrib.src list) list) list ->
+   (Attrib.binding * ('c * Attrib.src list) list) list
   val map_ctxt: {name: Name.binding -> Name.binding,
     var: Name.binding * mixfix -> Name.binding * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
@@ -33,8 +33,7 @@ sig
   val morph_ctxt: morphism -> context_i -> context_i
   val params_of: context_i -> (string * typ) list
   val prems_of: context_i -> term list
-  val facts_of: theory -> context_i ->
-    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list
+  val facts_of: theory -> context_i -> (Attrib.binding * (thm list * Attrib.src list) list) list
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
@@ -71,11 +70,11 @@ sig
   val satisfy_thm: witness list -> thm -> thm
   val satisfy_morphism: witness list -> morphism
   val satisfy_facts: witness list ->
-    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list
+    (Attrib.binding * (thm list * Attrib.src list) list) list ->
+    (Attrib.binding * (thm list * Attrib.src list) list) list
   val generalize_facts: Proof.context -> Proof.context ->
-    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list
+    (Attrib.binding * (thm list * Attrib.src list) list) list ->
+    (Attrib.binding * (thm list * Attrib.src list) list) list
 end;
 
 structure Element: ELEMENT =
@@ -86,7 +85,7 @@ struct
 (* statement *)
 
 datatype ('typ, 'term) stmt =
-  Shows of ((Name.binding * Attrib.src list) * ('term * 'term list) list) list |
+  Shows of (Attrib.binding * ('term * 'term list) list) list |
   Obtains of (Name.binding * ((Name.binding * 'typ option) list * 'term list)) list;
 
 type statement = (string, string) stmt;
@@ -98,9 +97,9 @@ type statement_i = (typ, term) stmt;
 datatype ('typ, 'term, 'fact) ctxt =
   Fixes of (Name.binding * 'typ option * mixfix) list |
   Constrains of (string * 'typ) list |
-  Assumes of ((Name.binding * Attrib.src list) * ('term * 'term list) list) list |
-  Defines of ((Name.binding * Attrib.src list) * ('term * 'term list)) list |
-  Notes of string * ((Name.binding * Attrib.src list) * ('fact * Attrib.src list) list) list;
+  Assumes of (Attrib.binding * ('term * 'term list) list) list |
+  Defines of (Attrib.binding * ('term * 'term list)) list |
+  Notes of string * (Attrib.binding * ('fact * Attrib.src list) list) list;
 
 type context = (string, string, Facts.ref) ctxt;
 type context_i = (typ, term, thm list) ctxt;
@@ -272,8 +271,8 @@ fun pretty_statement ctxt kind raw_th =
       is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
   in
     pretty_ctxt ctxt' (Fixes (map (fn (x, T) => (Name.binding x, SOME T, NoSyn)) fixes)) @
-    pretty_ctxt ctxt' (Assumes (map (fn t => ((Name.no_binding, []), [(t, [])])) assumes)) @
-     (if null cases then pretty_stmt ctxt' (Shows [((Name.no_binding, []), [(concl, [])])])
+    pretty_ctxt ctxt' (Assumes (map (fn t => (Attrib.no_binding, [(t, [])])) assumes)) @
+     (if null cases then pretty_stmt ctxt' (Shows [(Attrib.no_binding, [(concl, [])])])
       else
         let val (clauses, ctxt'') = fold_map (obtain o cert) cases ctxt'
         in pretty_stmt ctxt'' (Obtains clauses) end)

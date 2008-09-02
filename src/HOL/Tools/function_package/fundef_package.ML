@@ -10,14 +10,14 @@ Isar commands.
 signature FUNDEF_PACKAGE =
 sig
     val add_fundef :  (Name.binding * string option * mixfix) list
-                      -> ((Name.binding * Attrib.src list) * string) list 
+                      -> (Attrib.binding * string) list 
                       -> FundefCommon.fundef_config
                       -> bool list
                       -> local_theory
                       -> Proof.state
 
     val add_fundef_i:  (Name.binding * typ option * mixfix) list
-                       -> ((Name.binding * Attrib.src list) * term) list
+                       -> (Attrib.binding * term) list
                        -> FundefCommon.fundef_config
                        -> bool list
                        -> local_theory

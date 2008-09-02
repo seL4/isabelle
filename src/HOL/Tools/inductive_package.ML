@@ -33,25 +33,24 @@ sig
   val inductive_forall_name: string
   val inductive_forall_def: thm
   val rulify: thm -> thm
-  val inductive_cases: ((Name.binding * Attrib.src list) * string list) list ->
-    Proof.context -> thm list list * local_theory
-  val inductive_cases_i: ((Name.binding * Attrib.src list) * term list) list ->
-    Proof.context -> thm list list * local_theory
+  val inductive_cases: (Attrib.binding * string list) list -> Proof.context ->
+    thm list list * local_theory
+  val inductive_cases_i: (Attrib.binding * term list) list -> Proof.context ->
+    thm list list * local_theory
   type inductive_flags
   val add_inductive_i:
     inductive_flags -> ((Name.binding * typ) * mixfix) list ->
-    (string * typ) list -> ((Name.binding * Attrib.src list) * term) list -> thm list ->
-      local_theory -> inductive_result * local_theory
+    (string * typ) list -> (Attrib.binding * term) list -> thm list -> local_theory ->
+    inductive_result * local_theory
   val add_inductive: bool -> bool ->
     (Name.binding * string option * mixfix) list ->
     (Name.binding * string option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * string) list ->
+    (Attrib.binding * string) list ->
     (Facts.ref * Attrib.src list) list ->
     local_theory -> inductive_result * local_theory
   val add_inductive_global: string -> inductive_flags ->
-    ((Name.binding * typ) * mixfix) list ->
-    (string * typ) list ->
-    ((Name.binding * Attrib.src list) * term) list -> thm list -> theory -> inductive_result * theory
+    ((Name.binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
+    thm list -> theory -> inductive_result * theory
   val arities_of: thm -> (string * int) list
   val params_of: thm -> term list
   val partition_rules: thm -> thm list -> (string * thm list) list
@@ -70,14 +69,12 @@ sig
     thm -> local_theory -> thm list * thm list * thm * local_theory
   val add_ind_def: add_ind_def
   val gen_add_inductive_i: add_ind_def -> inductive_flags ->
-    ((Name.binding * typ) * mixfix) list ->
-    (string * typ) list ->
-    ((Name.binding * Attrib.src list) * term) list -> thm list ->
-    local_theory -> inductive_result * local_theory
+    ((Name.binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
+    thm list -> local_theory -> inductive_result * local_theory
   val gen_add_inductive: add_ind_def -> bool -> bool ->
     (Name.binding * string option * mixfix) list ->
     (Name.binding * string option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * string) list -> (Facts.ref * Attrib.src list) list ->
+    (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
     local_theory -> inductive_result * local_theory
   val gen_ind_decl: add_ind_def -> bool ->
     OuterParse.token list -> (local_theory -> local_theory) * OuterParse.token list
@@ -648,7 +645,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
     val ((rec_const, (_, fp_def)), ctxt') = ctxt |>
       LocalTheory.define Thm.internalK
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
-         ((Name.no_binding, []), fold_rev lambda params
+         (Attrib.no_binding, fold_rev lambda params
            (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)));
     val fp_def' = Simplifier.rewrite (HOL_basic_ss addsimps [fp_def])
       (cterm_of (ProofContext.theory_of ctxt') (list_comb (rec_const, params)));
@@ -659,7 +656,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
           val xs = map Free (Variable.variant_frees ctxt intr_ts
             (mk_names "x" (length Ts) ~~ Ts))
         in
-          (name_mx, ((Name.no_binding, []), fold_rev lambda (params @ xs)
+          (name_mx, (Attrib.no_binding, fold_rev lambda (params @ xs)
             (list_comb (rec_const, params @ make_bool_args' bs i @
               make_args argTs (xs ~~ Ts)))))
         end) (cnames_syn ~~ cs);
@@ -726,7 +723,7 @@ type inductive_flags =
 
 type add_ind_def =
   inductive_flags ->
-  term list -> ((Name.binding * Attrib.src list) * term) list -> thm list ->
+  term list -> (Attrib.binding * term) list -> thm list ->
   term list -> (Name.binding * mixfix) list ->
   local_theory -> inductive_result * local_theory
 

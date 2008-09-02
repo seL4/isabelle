@@ -11,7 +11,7 @@ signature CONSTDEFS =
 sig
   val add_constdefs: (Name.binding * string option) list *
     ((Name.binding * string option * mixfix) option *
-      ((Name.binding * Attrib.src list) * string)) list -> theory -> theory
+      (Attrib.binding * string)) list -> theory -> theory
   val add_constdefs_i: (Name.binding * typ option) list *
     ((Name.binding * typ option * mixfix) option *
       ((Name.binding * attribute list) * term)) list -> theory -> theory

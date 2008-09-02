@@ -14,11 +14,13 @@ sig
   val add_inductive_i:
     InductivePackage.inductive_flags ->
     ((Name.binding * typ) * mixfix) list ->
-    (string * typ) list -> ((Name.binding * Attrib.src list) * term) list -> thm list ->
-      local_theory -> InductivePackage.inductive_result * local_theory
-  val add_inductive: bool -> bool -> (Name.binding * string option * mixfix) list ->
+    (string * typ) list ->
+    (Attrib.binding * term) list -> thm list ->
+    local_theory -> InductivePackage.inductive_result * local_theory
+  val add_inductive: bool -> bool ->
     (Name.binding * string option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * string) list -> (Facts.ref * Attrib.src list) list ->
+    (Name.binding * string option * mixfix) list ->
+    (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
     local_theory -> InductivePackage.inductive_result * local_theory
   val setup: theory -> theory
 end;
@@ -471,7 +473,7 @@ fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind
 
     (* define inductive sets using previously defined predicates *)
     val (defs, ctxt2) = fold_map (LocalTheory.define Thm.internalK)
-      (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, ((Name.no_binding, []),
+      (map (fn ((c_syn, (fs, U, _)), p) => (c_syn, (Attrib.no_binding,
          fold_rev lambda params (HOLogic.Collect_const U $
            HOLogic.ap_split' fs U HOLogic.boolT (list_comb (p, params3))))))
          (cnames_syn ~~ cs_info ~~ preds)) ctxt1;

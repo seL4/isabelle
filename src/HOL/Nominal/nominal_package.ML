@@ -286,7 +286,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               else Const ("Nominal.perm", permT --> T --> T) $ pi $ x
             end;
         in
-          ((Name.no_binding, []), HOLogic.mk_Trueprop (HOLogic.mk_eq
+          (Attrib.no_binding, HOLogic.mk_Trueprop (HOLogic.mk_eq
             (Free (nth perm_names_types' i) $
                Free ("pi", mk_permT (TFree ("'x", HOLogic.typeS))) $
                list_comb (c, args),
@@ -563,7 +563,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            skip_mono = true}
           (map (fn (s, T) => ((Name.binding s, T --> HOLogic.boolT), NoSyn))
              (rep_set_names' ~~ recTs'))
-          [] (map (fn x => ((Name.no_binding, []), x)) intr_ts) [] thy3;
+          [] (map (fn x => (Attrib.no_binding, x)) intr_ts) [] thy3;
 
     (**** Prove that representing set is closed under permutation ****)
 
@@ -1480,7 +1480,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            skip_mono = true}
           (map (fn (s, T) => ((Name.binding s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => ((Name.no_binding, []), x)) rec_intr_ts) [] ||>
+          (map (fn x => (Attrib.no_binding, x)) rec_intr_ts) [] ||>
       PureThy.hide_fact true (NameSpace.append (Sign.full_name thy10 big_rec_name) "induct");
 
     (** equivariance **)

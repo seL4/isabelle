@@ -269,7 +269,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
         " in recdef definition of " ^ quote name);
   in
     Specification.theorem Thm.internalK NONE (K I) (Name.binding bname, atts)
-      [] (Element.Shows [((Name.no_binding, []), [(HOLogic.mk_Trueprop tc, [])])]) int lthy
+      [] (Element.Shows [(Attrib.no_binding, [(HOLogic.mk_Trueprop tc, [])])]) int lthy
   end;
 
 val recdef_tc = gen_recdef_tc Attrib.intern_src Sign.intern_const;

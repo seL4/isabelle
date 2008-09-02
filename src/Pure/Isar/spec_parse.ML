@@ -11,34 +11,31 @@ sig
   val attrib: OuterLex.token list -> Attrib.src * token list
   val attribs: token list -> Attrib.src list * token list
   val opt_attribs: token list -> Attrib.src list * token list
-  val thm_name: string -> token list -> (Name.binding * Attrib.src list) * token list
-  val opt_thm_name: string -> token list -> (Name.binding * Attrib.src list) * token list
-  val spec: token list -> ((Name.binding * Attrib.src list) * string list) * token list
-  val named_spec: token list -> ((Name.binding * Attrib.src list) * string list) * token list
+  val thm_name: string -> token list -> Attrib.binding * token list
+  val opt_thm_name: string -> token list -> Attrib.binding * token list
+  val spec: token list -> (Attrib.binding * string list) * token list
+  val named_spec: token list -> (Attrib.binding * string list) * token list
   val spec_name: token list -> ((Name.binding * string) * Attrib.src list) * token list
   val spec_opt_name: token list -> ((Name.binding * string) * Attrib.src list) * token list
   val xthm: token list -> (Facts.ref * Attrib.src list) * token list
   val xthms1: token list -> (Facts.ref * Attrib.src list) list * token list
   val name_facts: token list ->
-    ((Name.binding * Attrib.src list) * (Facts.ref * Attrib.src list) list) list * token list
+    (Attrib.binding * (Facts.ref * Attrib.src list) list) list * token list
   val locale_mixfix: token list -> mixfix * token list
   val locale_fixes: token list -> (Name.binding * string option * mixfix) list * token list
-  val locale_insts: token list ->
-    (string option list * ((Name.binding * Attrib.src list) * string) list) * token list
+  val locale_insts: token list -> (string option list * (Attrib.binding * string) list) * token list
   val class_expr: token list -> string list * token list
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
   val locale_element: token list -> Element.context Locale.element * token list
   val context_element: token list -> Element.context * token list
-  val statement: token list ->
-    ((Name.binding * Attrib.src list) * (string * string list) list) list * token list
+  val statement: token list -> (Attrib.binding * (string * string list) list) list * token list
   val general_statement: token list ->
     (Element.context Locale.element list * Element.statement) * OuterLex.token list
   val statement_keyword: token list -> string * token list
   val specification: token list ->
     (Name.binding *
-      (((Name.binding * Attrib.src list) * string list) list *
-        (Name.binding * string option) list)) list * token list
+      ((Attrib.binding * string list) list * (Name.binding * string option) list)) list * token list
 end;
 
 structure SpecParse: SPEC_PARSE =
@@ -58,7 +55,7 @@ fun thm_name s = P.binding -- opt_attribs --| P.$$$ s;
 
 fun opt_thm_name s =
   Scan.optional ((P.binding -- opt_attribs || attribs >> pair Name.no_binding) --| P.$$$ s)
-    (Name.no_binding, []);
+    Attrib.no_binding;
 
 val spec = opt_thm_name ":" -- Scan.repeat1 P.prop;
 val named_spec = thm_name ":" -- Scan.repeat1 P.prop;

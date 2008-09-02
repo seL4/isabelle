@@ -8,6 +8,8 @@ Symbolic representation of attributes -- with name and syntax.
 signature ATTRIB =
 sig
   type src = Args.src
+  type binding = Name.binding * src list
+  val no_binding: binding
   val print_attributes: theory -> unit
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
@@ -48,7 +50,14 @@ struct
 structure T = OuterLex;
 structure P = OuterParse;
 
+
+(* source and bindings *)
+
 type src = Args.src;
+
+type binding = Name.binding * src list;
+val no_binding: binding = (Name.no_binding, []);
+
 
 
 (** named attributes **)

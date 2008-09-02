@@ -19,7 +19,7 @@ sig
   val abbrev: class -> Syntax.mode -> Properties.T
     -> (string * mixfix) * term -> theory -> theory
   val note: class -> string
-    -> ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list
+    -> (Attrib.binding * (thm list * Attrib.src list) list) list
     -> theory -> (bstring * thm list) list * theory
   val declaration: class -> declaration -> theory -> theory
   val refresh_syntax: class -> Proof.context -> Proof.context
@@ -48,7 +48,7 @@ sig
 
   (*old axclass layer*)
   val axclass_cmd: bstring * xstring list
-    -> ((Name.binding * Attrib.src list) * string list) list
+    -> (Attrib.binding * string list) list
     -> theory -> class * theory
   val classrel_cmd: xstring * xstring -> theory -> Proof.state
 
@@ -374,7 +374,7 @@ fun class_interpretation class facts defs thy =
     thy
     |> fold2 add_constraint (map snd consts) no_constraints
     |> prove_interpretation tac ((false, prfx), []) (Locale.Locale class)
-          (inst, map (fn def => ((Name.no_binding, []), def)) defs)
+          (inst, map (fn def => (Attrib.no_binding, def)) defs)
     |> fold2 add_constraint (map snd consts) constraints
   end;
 

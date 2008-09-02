@@ -41,7 +41,7 @@ signature OBTAIN =
 sig
   val thatN: string
   val obtain: string -> (Name.binding * string option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * (string * string list) list) list ->
+    (Attrib.binding * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
   val obtain_i: string -> (Name.binding * typ option * mixfix) list ->
     ((Name.binding * attribute list) * (term * term list) list) list ->

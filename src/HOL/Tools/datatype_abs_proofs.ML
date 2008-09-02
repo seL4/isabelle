@@ -160,7 +160,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
             skip_mono = true}
           (map (fn (s, T) => ((Name.binding s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => ((Name.no_binding, []), x)) rec_intr_ts) [] thy0;
+          (map (fn x => (Attrib.no_binding, x)) rec_intr_ts) [] thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 

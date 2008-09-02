@@ -187,7 +187,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
            alt_name = Name.binding big_rec_name, coind = false, no_elim = true, no_ind = false,
            skip_mono = true}
           (map (fn s => ((Name.binding s, UnivT'), NoSyn)) rep_set_names') []
-          (map (fn x => ((Name.no_binding, []), x)) intr_ts) [] thy1;
+          (map (fn x => (Attrib.no_binding, x)) intr_ts) [] thy1;
 
     (********************************* typedef ********************************)
 

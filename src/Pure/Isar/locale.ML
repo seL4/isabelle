@@ -50,21 +50,16 @@ sig
   val init: string -> theory -> Proof.context
 
   (* The specification of a locale *)
-  val parameters_of: theory -> string ->
-    ((string * typ) * mixfix) list
-  val parameters_of_expr: theory -> expr ->
-    ((string * typ) * mixfix) list
-  val local_asms_of: theory -> string ->
-    ((Name.binding * Attrib.src list) * term list) list
-  val global_asms_of: theory -> string ->
-    ((Name.binding * Attrib.src list) * term list) list
+  val parameters_of: theory -> string -> ((string * typ) * mixfix) list
+  val parameters_of_expr: theory -> expr -> ((string * typ) * mixfix) list
+  val local_asms_of: theory -> string -> (Attrib.binding * term list) list
+  val global_asms_of: theory -> string -> (Attrib.binding * term list) list
 
   (* Theorems *)
   val intros: theory -> string -> thm list * thm list
   val dests: theory -> string -> thm list
   (* Not part of the official interface.  DO NOT USE *)
-  val facts_of: theory -> string
-    -> ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list list
+  val facts_of: theory -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list list
 
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
@@ -95,8 +90,7 @@ sig
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Storing results *)
-  val add_thmss: string -> string ->
-    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+  val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     Proof.context -> Proof.context
   val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
@@ -104,21 +98,21 @@ sig
 
   val interpretation_i: (Proof.context -> Proof.context) ->
     (bool * string) * Attrib.src list -> expr ->
-    term option list * ((Name.binding * Attrib.src list) * term) list ->
+    term option list * (Attrib.binding * term) list ->
     theory -> Proof.state
   val interpretation: (Proof.context -> Proof.context) ->
     (bool * string) * Attrib.src list -> expr ->
-    string option list * ((Name.binding * Attrib.src list) * string) list ->
+    string option list * (Attrib.binding * string) list ->
     theory -> Proof.state
   val interpretation_in_locale: (Proof.context -> Proof.context) ->
     xstring * expr -> theory -> Proof.state
   val interpret_i: (Proof.state -> Proof.state Seq.seq) ->
     (bool * string) * Attrib.src list -> expr ->
-    term option list * ((Name.binding * Attrib.src list) * term) list ->
+    term option list * (Attrib.binding * term) list ->
     bool -> Proof.state -> Proof.state
   val interpret: (Proof.state -> Proof.state Seq.seq) ->
     (bool * string) * Attrib.src list -> expr ->
-    string option list * ((Name.binding * Attrib.src list) * string) list ->
+    string option list * (Attrib.binding * string) list ->
     bool -> Proof.state -> Proof.state
 end;
 
@@ -1275,8 +1269,7 @@ fun defs_ord (defs1, defs2) =
     list_ord (fn ((_, (d1, _)), (_, (d2, _))) =>
       Term.fast_term_ord (d1, d2)) (defs1, defs2);
 structure Defstab =
-    TableFun(type key = ((Name.binding * Attrib.src list) * (term * term list)) list
-        val ord = defs_ord);
+    TableFun(type key = (Attrib.binding * (term * term list)) list val ord = defs_ord);
 
 fun rem_dup_defs es ds =
     fold_map (fn e as (Defines defs) => (fn ds =>
@@ -1908,7 +1901,7 @@ local
 
 fun defines_to_notes is_ext thy (Defines defs) defns =
     let
-      val defs' = map (fn (_, (def, _)) => ((Name.no_binding, []), (def, []))) defs
+      val defs' = map (fn (_, (def, _)) => (Attrib.no_binding, (def, []))) defs
       val notes = map (fn (a, (def, _)) =>
         (a, [([assume (cterm_of thy def)], [])])) defs
     in

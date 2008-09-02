@@ -9,12 +9,12 @@ Package for defining functions on datatypes by primitive recursion.
 signature PRIMREC_PACKAGE =
 sig
   val add_primrec: (Name.binding * typ option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * term) list -> local_theory -> thm list * local_theory
+    (Attrib.binding * term) list -> local_theory -> thm list * local_theory
   val add_primrec_global: (Name.binding * typ option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * term) list -> theory -> thm list * theory
+    (Attrib.binding * term) list -> theory -> thm list * theory
   val add_primrec_overloaded: (string * (string * typ) * bool) list ->
     (Name.binding * typ option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * term) list -> theory -> thm list * theory
+    (Attrib.binding * term) list -> theory -> thm list * theory
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =

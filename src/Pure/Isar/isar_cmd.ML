@@ -21,14 +21,10 @@ sig
   val simproc_setup: string -> string list -> string * Position.T -> string list ->
     local_theory -> local_theory
   val hide_names: bool -> string * xstring list -> theory -> theory
-  val have: ((Name.binding * Attrib.src list) * (string * string list) list) list ->
-    bool -> Proof.state -> Proof.state
-  val hence: ((Name.binding * Attrib.src list) * (string * string list) list) list ->
-    bool -> Proof.state -> Proof.state
-  val show: ((Name.binding * Attrib.src list) * (string * string list) list) list ->
-    bool -> Proof.state -> Proof.state
-  val thus: ((Name.binding * Attrib.src list) * (string * string list) list) list ->
-    bool -> Proof.state -> Proof.state
+  val have: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
+  val hence: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
+  val show: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
+  val thus: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val qed: Method.text option -> Toplevel.transition -> Toplevel.transition
   val terminal_proof: Method.text * Method.text option ->
     Toplevel.transition -> Toplevel.transition

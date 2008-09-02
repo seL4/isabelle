@@ -10,32 +10,28 @@ signature SPECIFICATION =
 sig
   val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
   val check_specification: (Name.binding * typ option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * term list) list list -> Proof.context ->
-    (((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list) *
-    Proof.context
+    (Attrib.binding * term list) list list -> Proof.context ->
+    (((Name.binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
   val read_specification: (Name.binding * string option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * string list) list list -> Proof.context ->
-    (((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list) *
-    Proof.context
+    (Attrib.binding * string list) list list -> Proof.context ->
+    (((Name.binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
   val check_free_specification: (Name.binding * typ option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * term list) list -> Proof.context ->
-    (((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list) *
-    Proof.context
+    (Attrib.binding * term list) list -> Proof.context ->
+    (((Name.binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
   val read_free_specification: (Name.binding * string option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * string list) list -> Proof.context ->
-    (((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list) *
-    Proof.context
+    (Attrib.binding * string list) list -> Proof.context ->
+    (((Name.binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
   val axiomatization: (Name.binding * typ option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * term list) list -> local_theory ->
+    (Attrib.binding * term list) list -> local_theory ->
     (term list * (string * thm list) list) * local_theory
   val axiomatization_cmd: (Name.binding * string option * mixfix) list ->
-    ((Name.binding * Attrib.src list) * string list) list -> local_theory ->
+    (Attrib.binding * string list) list -> local_theory ->
     (term list * (string * thm list) list) * local_theory
   val definition:
-    (Name.binding * typ option * mixfix) option * ((Name.binding * Attrib.src list) * term) ->
+    (Name.binding * typ option * mixfix) option * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory
   val definition_cmd:
-    (Name.binding * string option * mixfix) option * ((Name.binding * Attrib.src list) * string) ->
+    (Name.binding * string option * mixfix) option * (Attrib.binding * string) ->
     local_theory -> (term * (string * thm)) * local_theory
   val abbreviation: Syntax.mode -> (Name.binding * typ option * mixfix) option * term ->
     local_theory -> local_theory
@@ -44,17 +40,17 @@ sig
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val theorems: string ->
-    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
   val theorems_cmd: string ->
-    ((Name.binding * Attrib.src list) * (Facts.ref * Attrib.src list) list) list ->
+    (Attrib.binding * (Facts.ref * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
   val theorem: string -> Method.text option ->
-    (thm list list -> local_theory -> local_theory) -> Name.binding * Attrib.src list ->
+    (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Element.context_i Locale.element list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
   val theorem_cmd: string -> Method.text option ->
-    (thm list list -> local_theory -> local_theory) -> Name.binding * Attrib.src list ->
+    (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Element.context Locale.element list -> Element.statement ->
     bool -> local_theory -> Proof.state
   val add_theorem_hook: (bool -> Proof.state -> Proof.state) -> Context.generic -> Context.generic

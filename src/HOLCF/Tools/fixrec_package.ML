@@ -9,9 +9,9 @@ signature FIXREC_PACKAGE =
 sig
   val legacy_infer_term: theory -> term -> term
   val legacy_infer_prop: theory -> term -> term
-  val add_fixrec: bool -> ((Name.binding * Attrib.src list) * string) list list -> theory -> theory
+  val add_fixrec: bool -> (Attrib.binding * string) list list -> theory -> theory
   val add_fixrec_i: bool -> ((Name.binding * attribute list) * term) list list -> theory -> theory
-  val add_fixpat: (Name.binding * Attrib.src list) * string list -> theory -> theory
+  val add_fixpat: Attrib.binding * string list -> theory -> theory
   val add_fixpat_i: (Name.binding * attribute list) * term list -> theory -> theory
 end;
 
