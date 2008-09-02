@@ -173,22 +173,15 @@ val spaces_quote = space_implode " " o map quote;
 fun thm_deps_message (thms, deps) =
   emacs_notify ("Proof General, theorem dependencies of " ^ thms ^ " are " ^ deps);
 
-fun tell_thm_deps ths =
-  if print_mode_active thm_depsN then
-    let
-      val names = map Thm.get_name_hint (filter Thm.has_name_hint ths);
-      val deps = Symtab.keys (fold Proofterm.thms_of_proof'
-                                   (map Thm.proof_of ths) Symtab.empty);
-    in
+in
+
+fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn (state', opt_err) =>
+  if print_mode_active thm_depsN andalso Toplevel.is_theory state' andalso is_none opt_err then
+    let val (names, deps) = ProofGeneralPgip.new_thms_deps state state' in
       if null names orelse null deps then ()
       else thm_deps_message (spaces_quote names, spaces_quote deps)
     end
-  else ();
-
-in
-
-fun setup_present_hook () =
-  ProofDisplay.add_hook (fn res => tell_thm_deps (maps #2 res));
+  else ());
 
 end;
 
