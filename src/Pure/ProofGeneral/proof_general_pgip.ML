@@ -8,7 +8,7 @@ See http://proofgeneral.inf.ed.ac.uk/kit
 
 signature PROOF_GENERAL_PGIP =
 sig
-  val new_thms_deps: Toplevel.state -> Toplevel.state -> string list * string list
+  val new_thms_deps: theory -> theory -> string list * string list
   val init_pgip: bool -> unit             (* main PGIP loop with true; fail with false *)
 
   (* These two are just to support the semi-PGIP Emacs mode *)
@@ -267,12 +267,11 @@ fun thms_deps ths =
 
 in
 
-fun new_thms_deps state state' =
+fun new_thms_deps thy thy' =
   let
-    val prev_facts =
-      (case try Toplevel.theory_of state of NONE => [] | SOME thy => [PureThy.facts_of thy]);
-    val facts = PureThy.facts_of (Toplevel.theory_of state');
-  in thms_deps (maps #2 (Facts.dest_static prev_facts facts)) end;
+    val prev_facts = PureThy.facts_of thy;
+    val facts = PureThy.facts_of thy';
+  in thms_deps (maps #2 (Facts.dest_static [prev_facts] facts)) end;
 
 end;
 
@@ -298,8 +297,11 @@ fun thm_deps_message (thms, deps) =
 in
 
 fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn (state', opt_err) =>
-  if ! show_theorem_dependencies andalso Toplevel.is_theory state' andalso is_none opt_err then
-    let val (names, deps) = new_thms_deps state state' in
+  if ! show_theorem_dependencies andalso
+    can Toplevel.theory_of state andalso
+    Toplevel.is_theory state' andalso is_none opt_err
+  then
+    let val (names, deps) = new_thms_deps (Toplevel.theory_of state) (Toplevel.theory_of state') in
       if null names orelse null deps then ()
       else thm_deps_message (spaces_quote names, spaces_quote deps)
     end

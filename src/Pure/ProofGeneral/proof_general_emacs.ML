@@ -177,7 +177,9 @@ in
 
 fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn (state', opt_err) =>
   if print_mode_active thm_depsN andalso Toplevel.is_theory state' andalso is_none opt_err then
-    let val (names, deps) = ProofGeneralPgip.new_thms_deps state state' in
+    let val (names, deps) =
+      ProofGeneralPgip.new_thms_deps (Toplevel.theory_of state) (Toplevel.theory_of state')
+    in
       if null names orelse null deps then ()
       else thm_deps_message (spaces_quote names, spaces_quote deps)
     end
