@@ -79,6 +79,10 @@ val string_of_rule = Pretty.string_of ooo pretty_rule;
 
 (* results *)
 
+fun pretty_fact_name (kind, "") = Pretty.str kind
+  | pretty_fact_name (kind, name) = Pretty.block [Pretty.str kind, Pretty.brk 1,
+      Pretty.str (NameSpace.base name), Pretty.str ":"];
+
 local
 
 fun pretty_facts ctxt =
@@ -87,11 +91,11 @@ fun pretty_facts ctxt =
 
 fun pretty_results ctxt ((kind, ""), facts) =
       Pretty.block (Pretty.str kind :: Pretty.brk 1 :: pretty_facts ctxt facts)
-  | pretty_results ctxt ((kind, name), [fact]) = Pretty.blk (1,
-      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, ProofContext.pretty_fact ctxt fact])
-  | pretty_results ctxt ((kind, name), facts) = Pretty.blk (1,
-      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk,
-        Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]);
+  | pretty_results ctxt (kind_name, [fact]) = Pretty.blk (1,
+      [pretty_fact_name kind_name, Pretty.fbrk, ProofContext.pretty_fact ctxt fact])
+  | pretty_results ctxt (kind_name, facts) = Pretty.blk (1,
+      [pretty_fact_name kind_name, Pretty.fbrk, Pretty.blk (1,
+        Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]);
 
 in
 
