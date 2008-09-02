@@ -40,16 +40,16 @@ similar, but derives these elements from the course of reasoning!
 signature OBTAIN =
 sig
   val thatN: string
-  val obtain: string -> (string * string option * mixfix) list ->
-    ((string * Attrib.src list) * (string * string list) list) list ->
+  val obtain: string -> (Name.binding * string option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
-  val obtain_i: string -> (string * typ option * mixfix) list ->
-    ((string * attribute list) * (term * term list) list) list ->
+  val obtain_i: string -> (Name.binding * typ option * mixfix) list ->
+    ((Name.binding * attribute list) * (term * term list) list) list ->
     bool -> Proof.state -> Proof.state
   val result: (Proof.context -> tactic) -> thm list -> Proof.context ->
     (cterm list * thm list) * Proof.context
-  val guess: (string * string option * mixfix) list -> bool -> Proof.state -> Proof.state
-  val guess_i: (string * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
+  val guess: (Name.binding * string option * mixfix) list -> bool -> Proof.state -> Proof.state
+  val guess_i: (Name.binding * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
 end;
 
 structure Obtain: OBTAIN =
@@ -122,7 +122,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     (*obtain vars*)
     val (vars, vars_ctxt) = prep_vars raw_vars ctxt;
     val (_, fix_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
-    val xs = map #1 vars;
+    val xs = map (Name.name_of o #1) vars;
 
     (*obtain asms*)
     val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
@@ -151,18 +151,19 @@ fun gen_obtain prep_att prep_vars prep_propp
     fun after_qed _ =
       Proof.local_qed (NONE, false)
       #> Seq.map (`Proof.the_fact #-> (fn rule =>
-        Proof.fix_i (map2 (fn x => fn (_, T, mx) => (x, T, mx)) xs vars)
+        Proof.fix_i vars
         #> Proof.assm_i (obtain_export fix_ctxt rule (map (cert o Free) parms)) asms));
   in
     state
     |> Proof.enter_forward
-    |> Proof.have_i NONE (K Seq.single) [(("", []), [(obtain_prop, [])])] int
+    |> Proof.have_i NONE (K Seq.single) [((Name.no_binding, []), [(obtain_prop, [])])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
-    |> Proof.fix_i [(thesisN, NONE, NoSyn)]
-    |> Proof.assume_i [((that_name, [ContextRules.intro_query NONE]), [(that_prop, [])])]
+    |> Proof.fix_i [(Name.binding thesisN, NONE, NoSyn)]
+    |> Proof.assume_i
+      [((Name.binding that_name, [ContextRules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
-    ||> Proof.show_i NONE after_qed [(("", []), [(thesis, [])])] false
+    ||> Proof.show_i NONE after_qed [((Name.no_binding, []), [(thesis, [])])] false
     |-> Proof.refine_insert
   end;
 
@@ -258,8 +259,10 @@ fun unify_params vars thesis_var raw_rule ctxt =
     val rule'' = Thm.forall_elim (cert (Logic.varify (Free thesis_var))) rule';
   in ((vars', rule''), ctxt') end;
 
-fun inferred_type (x, _, mx) ctxt =
-  let val ((_, T), ctxt') = ProofContext.inferred_param x ctxt
+fun inferred_type (binding, _, mx) ctxt =
+  let
+    val x = Name.name_of binding;
+    val (T, ctxt') = ProofContext.inferred_param x ctxt
   in ((x, T, mx), ctxt') end;
 
 fun polymorphic ctxt vars =
@@ -291,9 +294,9 @@ fun gen_guess prep_vars raw_vars int state =
       in
         state'
         |> Proof.map_context (K ctxt')
-        |> Proof.fix_i (map (fn ((x, T), mx) => (x, SOME T, mx)) parms)
-        |> `Proof.context_of |-> (fn fix_ctxt =>
-            Proof.assm_i (obtain_export fix_ctxt rule (map cert ts)) [(("", []), asms)])
+        |> Proof.fix_i (map (fn ((x, T), mx) => (Name.binding x, SOME T, mx)) parms)
+        |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm_i
+          (obtain_export fix_ctxt rule (map cert ts)) [((Name.no_binding, []), asms)])
         |> Proof.add_binds_i AutoBind.no_facts
       end;
 
@@ -308,10 +311,10 @@ fun gen_guess prep_vars raw_vars int state =
     state
     |> Proof.enter_forward
     |> Proof.begin_block
-    |> Proof.fix_i [(AutoBind.thesisN, NONE, NoSyn)]
+    |> Proof.fix_i [(Name.binding AutoBind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
     |> Proof.local_goal print_result (K I) (apsnd (rpair I))
-      "guess" before_qed after_qed [(("", []), [Logic.mk_term goal, goal])]
+      "guess" before_qed after_qed [((Name.no_binding, []), [Logic.mk_term goal, goal])]
     |> Proof.refine (Method.primitive_text (K (Goal.init (cert thesis)))) |> Seq.hd
   end;
 

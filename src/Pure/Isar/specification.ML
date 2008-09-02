@@ -9,52 +9,53 @@ toplevel polymorphism.
 signature SPECIFICATION =
 sig
   val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
-  val check_specification: (string * typ option * mixfix) list ->
-    ((string * Attrib.src list) * term list) list list -> Proof.context ->
-    (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
+  val check_specification: (Name.binding * typ option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * term list) list list -> Proof.context ->
+    (((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list) *
     Proof.context
-  val read_specification: (string * string option * mixfix) list ->
-    ((string * Attrib.src list) * string list) list list -> Proof.context ->
-    (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
+  val read_specification: (Name.binding * string option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * string list) list list -> Proof.context ->
+    (((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list) *
     Proof.context
-  val check_free_specification: (string * typ option * mixfix) list ->
-    ((string * Attrib.src list) * term list) list -> Proof.context ->
-    (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
+  val check_free_specification: (Name.binding * typ option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * term list) list -> Proof.context ->
+    (((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list) *
     Proof.context
-  val read_free_specification: (string * string option * mixfix) list ->
-    ((string * Attrib.src list) * string list) list -> Proof.context ->
-    (((string * typ) * mixfix) list * ((string * Attrib.src list) * term list) list) *
+  val read_free_specification: (Name.binding * string option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * string list) list -> Proof.context ->
+    (((Name.binding * typ) * mixfix) list * ((Name.binding * Attrib.src list) * term list) list) *
     Proof.context
-  val axiomatization: (string * typ option * mixfix) list ->
-    ((bstring * Attrib.src list) * term list) list -> local_theory ->
-    (term list * (bstring * thm list) list) * local_theory
-  val axiomatization_cmd: (string * string option * mixfix) list ->
-    ((bstring * Attrib.src list) * string list) list -> local_theory ->
-    (term list * (bstring * thm list) list) * local_theory
+  val axiomatization: (Name.binding * typ option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * term list) list -> local_theory ->
+    (term list * (string * thm list) list) * local_theory
+  val axiomatization_cmd: (Name.binding * string option * mixfix) list ->
+    ((Name.binding * Attrib.src list) * string list) list -> local_theory ->
+    (term list * (string * thm list) list) * local_theory
   val definition:
-    (string * typ option * mixfix) option * ((string * Attrib.src list) * term) ->
-    local_theory -> (term * (bstring * thm)) * local_theory
+    (Name.binding * typ option * mixfix) option * ((Name.binding * Attrib.src list) * term) ->
+    local_theory -> (term * (string * thm)) * local_theory
   val definition_cmd:
-    (string * string option * mixfix) option * ((string * Attrib.src list) * string) ->
-    local_theory -> (term * (bstring * thm)) * local_theory
-  val abbreviation: Syntax.mode -> (string * typ option * mixfix) option * term ->
+    (Name.binding * string option * mixfix) option * ((Name.binding * Attrib.src list) * string) ->
+    local_theory -> (term * (string * thm)) * local_theory
+  val abbreviation: Syntax.mode -> (Name.binding * typ option * mixfix) option * term ->
     local_theory -> local_theory
-  val abbreviation_cmd: Syntax.mode -> (string * string option * mixfix) option * string ->
+  val abbreviation_cmd: Syntax.mode -> (Name.binding * string option * mixfix) option * string ->
     local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
-  val theorems: string -> ((bstring * Attrib.src list) * (thm list * Attrib.src list) list) list ->
-    local_theory -> (bstring * thm list) list * local_theory
+  val theorems: string ->
+    ((Name.binding * Attrib.src list) * (thm list * Attrib.src list) list) list ->
+    local_theory -> (string * thm list) list * local_theory
   val theorems_cmd: string ->
-    ((bstring * Attrib.src list) * (Facts.ref * Attrib.src list) list) list ->
-    local_theory -> (bstring * thm list) list * local_theory
+    ((Name.binding * Attrib.src list) * (Facts.ref * Attrib.src list) list) list ->
+    local_theory -> (string * thm list) list * local_theory
   val theorem: string -> Method.text option ->
-    (thm list list -> local_theory -> local_theory) ->
-    string * Attrib.src list -> Element.context_i Locale.element list -> Element.statement_i ->
+    (thm list list -> local_theory -> local_theory) -> Name.binding * Attrib.src list ->
+    Element.context_i Locale.element list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
   val theorem_cmd: string -> Method.text option ->
-    (thm list list -> local_theory -> local_theory) ->
-    string * Attrib.src list -> Element.context Locale.element list -> Element.statement ->
+    (thm list list -> local_theory -> local_theory) -> Name.binding * Attrib.src list ->
+    Element.context Locale.element list -> Element.statement ->
     bool -> local_theory -> Proof.state
   val add_theorem_hook: (bool -> Proof.state -> Proof.state) -> Context.generic -> Context.generic
 end;
@@ -122,8 +123,8 @@ fun prep_spec prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
       |> flat |> burrow (Syntax.check_props params_ctxt);
     val specs_ctxt = params_ctxt |> (fold o fold) Variable.declare_term specs;
 
-    val vs = specs_ctxt |> fold_map ProofContext.inferred_param xs |> fst;
-    val params = vs ~~ map #3 vars;
+    val Ts = specs_ctxt |> fold_map ProofContext.inferred_param xs |> fst;
+    val params = map2 (fn (b, _, mx) => fn T => ((b, T), mx)) vars Ts;
     val name_atts = map (fn ((name, atts), _) => (name, map (prep_att thy) atts)) (flat raw_specss);
   in ((params, name_atts ~~ specs), specs_ctxt) end;
 
@@ -149,7 +150,8 @@ fun gen_axioms do_print prep raw_vars raw_specs lthy =
     val consts' = map (Morphism.term (LocalTheory.target_morphism lthy')) consts;
     val _ =
       if not do_print then ()
-      else print_consts lthy' (member (op =) (fold Term.add_frees consts' [])) (map fst vars);
+      else print_consts lthy' (member (op =) (fold Term.add_frees consts' []))
+        (map (fn ((b, T), _) => (Name.name_of b, T)) vars);
   in ((consts, axioms), lthy') end;
 
 val axiomatization = gen_axioms false check_specification;
@@ -163,21 +165,27 @@ fun gen_def do_print prep (raw_var, (raw_a, raw_prop)) lthy =
     val (vars, [((raw_name, atts), [prop])]) =
       fst (prep (the_list raw_var) [(raw_a, [raw_prop])] lthy);
     val (((x, T), rhs), prove) = LocalDefs.derived_def lthy true prop;
-    val name = Thm.def_name_optional x raw_name;
-    val mx = (case vars of [] => NoSyn | [((x', _), mx)] =>
-      if x = x' then mx
-      else error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote x'));
-    val ((lhs, (_, th)), lthy2) = lthy
-      |> LocalTheory.define Thm.definitionK ((x, mx), ((name ^ "_raw", []), rhs));
-    val ((b, [th']), lthy3) = lthy2
-      |> LocalTheory.note Thm.definitionK
-          ((name, Code.add_default_func_attr :: atts), [prove lthy2 th]);
+    val name = Name.map_name (Thm.def_name_optional x) raw_name;
+    val var =
+      (case vars of
+        [] => (Name.binding x, NoSyn)
+      | [((b, _), mx)] =>
+          let
+            val y = Name.name_of b;
+            val _ = x = y orelse
+              error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
+                Position.str_of (Name.pos_of b));
+          in (b, mx) end);
+    val ((lhs, (_, th)), lthy2) = lthy |> LocalTheory.define Thm.definitionK
+        (var, ((Name.map_name (suffix "_raw") name, []), rhs));
+    val ((def_name, [th']), lthy3) = lthy2 |> LocalTheory.note Thm.definitionK
+        ((name, Code.add_default_func_attr :: atts), [prove lthy2 th]);
 
     val lhs' = Morphism.term (LocalTheory.target_morphism lthy3) lhs;
     val _ =
       if not do_print then ()
       else print_consts lthy3 (member (op =) (Term.add_frees lhs' [])) [(x, T)];
-  in ((lhs, (b, th')), lthy3) end;
+  in ((lhs, (def_name, th')), lthy3) end;
 
 val definition = gen_def false check_free_specification;
 val definition_cmd = gen_def true read_free_specification;
@@ -191,12 +199,19 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
       prep (the_list raw_var) [(("", []), [raw_prop])]
         (lthy |> ProofContext.set_mode ProofContext.mode_abbrev);
     val ((x, T), rhs) = LocalDefs.abs_def (#2 (LocalDefs.cert_def lthy prop));
-    val mx = (case vars of [] => NoSyn | [((y, _), mx)] =>
-      if x = y then mx
-      else error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y));
+    val var =
+      (case vars of
+        [] => (Name.binding x, NoSyn)
+      | [((b, _), mx)] =>
+          let
+            val y = Name.name_of b;
+            val _ = x = y orelse
+              error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y ^
+                Position.str_of (Name.pos_of b));
+          in (b, mx) end);
     val lthy' = lthy
       |> ProofContext.set_syntax_mode mode    (* FIXME ?!? *)
-      |> LocalTheory.abbrev mode ((x, mx), rhs) |> snd
+      |> LocalTheory.abbrev mode (var, rhs) |> snd
       |> ProofContext.restore_syntax_mode lthy;
 
     val _ = if not do_print then () else print_consts lthy' (K false) [(x, T)];
@@ -249,11 +264,12 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
       in ((prems, stmt, []), goal_ctxt) end
   | Element.Obtains obtains =>
       let
-        val case_names = obtains |> map_index
-          (fn (i, ("", _)) => string_of_int (i + 1) | (_, (name, _)) => name);
+        val case_names = obtains |> map_index (fn (i, (binding, _)) =>
+          let val name = Name.name_of binding
+          in if name = "" then string_of_int (i + 1) else name end);
         val constraints = obtains |> map (fn (_, (vars, _)) =>
           Locale.Elem (Element.Constrains
-            (vars |> map_filter (fn (x, SOME T) => SOME (x, T) | _ => NONE))));
+            (vars |> map_filter (fn (x, SOME T) => SOME (Name.name_of x, T) | _ => NONE))));
 
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (_, loc_ctxt, elems_ctxt, propp) = prep_stmt (elems @ constraints) raw_propp ctxt;
@@ -262,14 +278,15 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
 
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let
-            val xs = map fst vars;
+            val bs = map fst vars;
+            val xs = map Name.name_of bs;
             val props = map fst asms;
-            val (parms, _) = ctxt'
+            val (Ts, _) = ctxt'
               |> fold Variable.declare_term props
               |> fold_map ProofContext.inferred_param xs;
-            val asm = Term.list_all_free (parms, Logic.list_implies (props, thesis));
+            val asm = Term.list_all_free (xs ~~ Ts, Logic.list_implies (props, thesis));
           in
-            ctxt' |> (snd o ProofContext.add_fixes_i (map (fn x => (x, NONE, NoSyn)) xs));
+            ctxt' |> (snd o ProofContext.add_fixes_i (map (fn b => (b, NONE, NoSyn)) bs));
             ctxt' |> Variable.auto_fixes asm
             |> ProofContext.add_assms_i Assumption.assume_export
               [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
@@ -279,13 +296,13 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val atts = map (Attrib.internal o K)
           [RuleCases.consumes (~ (length obtains)), RuleCases.case_names case_names];
         val prems = subtract_prems loc_ctxt elems_ctxt;
-        val stmt = [(("", atts), [(thesis, [])])];
+        val stmt = [((Name.no_binding, atts), [(thesis, [])])];
 
         val (facts, goal_ctxt) = elems_ctxt
-          |> (snd o ProofContext.add_fixes_i [(AutoBind.thesisN, NONE, NoSyn)])
+          |> (snd o ProofContext.add_fixes_i [(Name.binding AutoBind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
           |-> (fn ths => ProofContext.note_thmss_i Thm.assumptionK
-                [((Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
+                [((Name.binding Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
       in ((prems, stmt, facts), goal_ctxt) end);
 
 structure TheoremHook = GenericDataFun
@@ -323,14 +340,20 @@ fun gen_theorem prep_att prep_stmt
         lthy
         |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
-          (ProofDisplay.theory_results lthy' ((kind, name), res);
-            if name = "" andalso null atts then lthy'
-            else #2 (LocalTheory.notes kind [((name, atts), [(maps #2 res, [])])] lthy')))
+          if Name.name_of name = "" andalso null atts then
+            (ProofDisplay.theory_results lthy' ((kind, ""), res); lthy')
+          else
+            let
+              val ([(res_name, _)], lthy'') = lthy'
+                |> LocalTheory.notes kind [((name, atts), [(maps #2 res, [])])];
+              val _ = ProofDisplay.theory_results lthy' ((kind, res_name), res);
+            in lthy'' end)
         |> after_qed results'
       end;
   in
     goal_ctxt
-    |> ProofContext.note_thmss_i Thm.assumptionK [((AutoBind.assmsN, []), [(prems, [])])]
+    |> ProofContext.note_thmss_i Thm.assumptionK
+      [((Name.binding AutoBind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)
     |> Proof.refine_insert facts
