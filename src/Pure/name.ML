@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Names of basic logical entities (variables etc.).
+Names of basic logical entities (variables etc.).  Generic name bindings.
 *)
 
 signature NAME =
@@ -28,6 +28,13 @@ sig
   val variants: string list -> context -> string list * context
   val variant_list: string list -> string list -> string list
   val variant: string list -> string -> string
+  type binding
+  val binding_pos: string * Position.T -> binding
+  val binding: string -> binding
+  val no_binding: binding
+  val name_of: binding -> string
+  val pos_of: binding -> Position.T
+  val map_name: (string -> string) -> binding -> binding
 end;
 
 structure Name: NAME =
@@ -138,5 +145,20 @@ val variants = fold_map (fn name => fn ctxt =>
 
 fun variant_list used names = #1 (make_context used |> variants names);
 fun variant used = singleton (variant_list used);
+
+
+
+(** generic name bindings **)
+
+datatype binding = Binding of string * Position.T;
+
+val binding_pos = Binding;
+fun binding name = binding_pos (name, Position.none);
+val no_binding = binding "";
+
+fun name_of (Binding (name, _)) = name;
+fun pos_of (Binding (_, pos)) = pos;
+
+fun map_name f (Binding (name, pos)) = Binding (f name, pos);
 
 end;
