@@ -188,6 +188,10 @@ also Name.name_of.  Packages should pass name bindings given by the
 user to underlying specification mechanisms; this enables precise
 tracking of source positions, for example.
 
+* Result facts (from PureThy.note_thms, ProofContext.note_thms,
+LocalTheory.note etc.) now refer to the *full* internal name, not the
+bstring as before.  INCOMPATIBILITY, not detected by ML type-checking!
+
 * Rules and tactics that read instantiations (read_instantiate,
 res_inst_tac, thin_tac, subgoal_tac etc.) now demand a proper proof
 context, which is required for parsing and type-checking.  Moreover,
