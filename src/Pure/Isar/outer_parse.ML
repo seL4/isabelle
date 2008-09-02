@@ -62,10 +62,12 @@ sig
   val list1: (token list -> 'a * token list) -> token list -> 'a list * token list
   val properties: token list -> Properties.T * token list
   val name: token list -> bstring * token list
+  val binding: token list -> Name.binding * token list
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
   val path: token list -> Path.T * token list
   val parname: token list -> string * token list
+  val parbinding: token list -> Name.binding * token list
   val sort: token list -> string * token list
   val arity: token list -> (string * string list * string) * token list
   val multi_arity: token list -> (string list * string list * string) * token list
@@ -80,11 +82,11 @@ sig
   val opt_mixfix': token list -> mixfix * token list
   val where_: token list -> string * token list
   val const: token list -> (string * string * mixfix) * token list
-  val params: token list -> (string * string option) list * token list
-  val simple_fixes: token list -> (string * string option) list * token list
-  val fixes: token list -> (string * string option * mixfix) list * token list
-  val for_fixes: token list -> (string * string option * mixfix) list * token list
-  val for_simple_fixes: token list -> (string * string option) list * token list
+  val params: token list -> (Name.binding * string option) list * token list
+  val simple_fixes: token list -> (Name.binding * string option) list * token list
+  val fixes: token list -> (Name.binding * string option * mixfix) list * token list
+  val for_fixes: token list -> (Name.binding * string option * mixfix) list * token list
+  val for_simple_fixes: token list -> (Name.binding * string option) list * token list
   val ML_source: token list -> (SymbolPos.text * Position.T) * token list
   val doc_source: token list -> (SymbolPos.text * Position.T) * token list
   val term_group: token list -> string * token list
@@ -227,11 +229,13 @@ val properties = $$$ "(" |-- !!! (list1 (string -- ($$$ "=" |-- string)) --| $$$
 (* names and text *)
 
 val name = group "name declaration" (short_ident || sym_ident || string || number);
+val binding = position name >> Name.binding_pos;
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 val path = group "file name/path specification" name >> Path.explode;
 
 val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
+val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Name.no_binding;
 
 
 (* sorts and arities *)
@@ -289,13 +293,13 @@ val where_ = $$$ "where";
 
 val const = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 
-val params = Scan.repeat1 name -- Scan.option ($$$ "::" |-- !!! typ)
+val params = Scan.repeat1 binding -- Scan.option ($$$ "::" |-- !!! typ)
   >> (fn (xs, T) => map (rpair T) xs);
 
 val simple_fixes = and_list1 params >> flat;
 
 val fixes =
-  and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- mixfix >> (single o triple1) ||
+  and_list1 (binding -- Scan.option ($$$ "::" |-- typ) -- mixfix >> (single o triple1) ||
     params >> map Syntax.no_syn) >> flat;
 
 val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
