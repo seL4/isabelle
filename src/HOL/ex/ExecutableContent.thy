@@ -14,7 +14,6 @@ imports
   Eval
   List_Prefix
   Nat_Infinity
-  NatPair
   Nested_Environment
   Option_ord
   Permutation

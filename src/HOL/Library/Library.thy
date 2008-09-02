@@ -28,7 +28,6 @@ imports
   Infinite_Set
   ListVector
   Multiset
-  NatPair
   Nat_Infinity
   Nested_Environment
   Numeral_Type

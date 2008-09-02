@@ -6,5 +6,4 @@
 Root file for the SET protocol proofs.
 *)
 
-no_document use_thy "NatPair";
 use_thys ["Cardholder_Registration", "Merchant_Registration", "Purchase"];

@@ -6,8 +6,7 @@
 header "Denumerability of the Rationals"
 
 theory DenumRat
-imports
-  Complex_Main NatPair
+imports Complex_Main
 begin
 
 lemma nat_to_int_surj: "\<exists>f::nat\<Rightarrow>int. surj f"

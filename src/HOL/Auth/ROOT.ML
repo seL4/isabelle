@@ -6,8 +6,6 @@
 Root file for protocol proofs.
 *)
 
-no_document use_thy "NatPair";
-
 use_thys [
 
 (* Conventional protocols: rely on 

@@ -41,7 +41,7 @@ about that message (which B receives) and the stronger event
 
 header{*The TLS Protocol: Transport Layer Security*}
 
-theory TLS imports Public NatPair begin
+theory TLS imports Public begin
 
 constdefs
   certificate      :: "[agent,key] => msg"

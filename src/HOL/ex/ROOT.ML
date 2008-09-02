@@ -92,8 +92,7 @@ HTML.with_charset "utf-8" (no_document use_thys) ["Hebrew", "Chinese"];
 
 no_document use_thys [
   "../NumberTheory/Factorization",
-  "../Library/BigO",
-  "../Library/NatPair"
+  "../Library/BigO"
 ];
 
 use_thys [

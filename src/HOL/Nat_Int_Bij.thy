@@ -1,19 +1,17 @@
-(*  Title:      HOL/Library/NatPair.thy
+(*  Title:      HOL/Nat_Int_Bij.thy
     ID:         $Id$
-    Author:     Stefan Richter
-    Copyright   2003 Technische Universitaet Muenchen
+    Author:     Stefan Richter, Tobias Nipkow
 *)
 
-header {* Pairs of Natural Numbers *}
+header{* Bijections $\mathbb{N}\to\mathbb{N}^2$ and $\mathbb{N}\to\mathbb{Z}$*}
 
-theory NatPair
-imports Main
+theory Nat_Int_Bij
+imports Hilbert_Choice Presburger
 begin
 
-text{*
-  A bijection between @{text "\<nat>\<twosuperior>"} and @{text \<nat>}.  Definition
-  and proofs are from \cite[page 85]{Oberschelp:1993}.
-*}
+subsection{*  A bijection between @{text "\<nat>"} and @{text "\<nat>\<twosuperior>"} *}
+
+text{* Definition and proofs are from \cite[page 85]{Oberschelp:1993}. *}
 
 definition nat2_to_nat:: "(nat * nat) \<Rightarrow> nat" where
 "nat2_to_nat pair = (let (n,m) = pair in (n+m) * Suc (n+m) div 2 + n)"
@@ -130,5 +128,43 @@ proof (unfold surj_def)
   }
   thus "\<forall>y. \<exists>x. y = nat2_to_nat x"  by fast
 qed
+
+
+subsection{*  A bijection between @{text "\<nat>"} and @{text "\<int>"} *}
+
+definition nat_to_int_bij :: "nat \<Rightarrow> int" where
+"nat_to_int_bij n = (if 2 dvd n then int(n div 2) else -int(Suc n div 2))"
+
+definition int_to_nat_bij :: "int \<Rightarrow> nat" where
+"int_to_nat_bij i = (if 0<=i then 2*nat(i) else 2*nat(-i) - 1)"
+
+lemma  i2n_n2i_id: "int_to_nat_bij (nat_to_int_bij n) = n"
+by (simp add: int_to_nat_bij_def nat_to_int_bij_def) presburger
+
+lemma n2i_i2n_id: "nat_to_int_bij(int_to_nat_bij i) = i"
+proof -
+  have "ALL m n::nat. m>0 \<longrightarrow> 2 * m - Suc 0 \<noteq> 2 * n" by presburger
+  thus ?thesis
+    by(simp add: nat_to_int_bij_def int_to_nat_bij_def, simp add:dvd_def)
+qed
+
+lemma inv_nat_to_int_bij: "inv nat_to_int_bij = int_to_nat_bij"
+by (simp add: i2n_n2i_id inv_equality n2i_i2n_id)
+
+lemma inv_int_to_nat_bij: "inv int_to_nat_bij = nat_to_int_bij"
+by (simp add: i2n_n2i_id inv_equality n2i_i2n_id)
+
+lemma surj_nat_to_int_bij: "surj nat_to_int_bij"
+by (blast intro: n2i_i2n_id surjI)
+
+lemma surj_int_to_nat_bij: "surj int_to_nat_bij"
+by (blast intro: i2n_n2i_id surjI)
+
+lemma inj_nat_to_int_bij: "inj nat_to_int_bij"
+by(simp add:inv_int_to_nat_bij[symmetric] surj_int_to_nat_bij surj_imp_inj_inv)
+
+lemma inj_int_to_nat_bij: "inj int_to_nat_bij"
+by(simp add:inv_nat_to_int_bij[symmetric] surj_nat_to_int_bij surj_imp_inj_inv)
+
 
 end

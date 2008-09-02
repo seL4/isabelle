@@ -215,6 +215,7 @@ $(OUT)/HOL: $(OUT)/HOL-Plain \
   Main.thy \
   Map.thy \
   NatBin.thy \
+  Nat_Int_Bij.thy \
   nat_simprocs.ML \
   Presburger.thy \
   Real/ContNotDenum.thy \
@@ -288,7 +289,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
   Library/FuncSet.thy			\
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
-  Library/Multiset.thy Library/NatPair.thy Library/Permutation.thy	\
+  Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
   Library/Quicksort.thy Library/Nat_Infinity.thy Library/Word.thy	\
   Library/README.html Library/Continuity.thy				\
@@ -530,7 +531,7 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML			\
 
 HOL-Auth: HOL $(LOG)/HOL-Auth.gz
 
-$(LOG)/HOL-Auth.gz: $(OUT)/HOL Library/NatPair.thy			\
+$(LOG)/HOL-Auth.gz: $(OUT)/HOL 						\
   Auth/CertifiedEmail.thy Auth/Event.thy Auth/Message.thy		\
   Auth/NS_Public.thy Auth/NS_Public_Bad.thy Auth/NS_Shared.thy		\
   Auth/OtwayRees.thy Auth/OtwayReesBella.thy Auth/OtwayRees_AN.thy	\
