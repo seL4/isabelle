@@ -373,7 +373,7 @@ fun class_interpretation class facts defs thy =
   in
     thy
     |> fold2 add_constraint (map snd consts) no_constraints
-    |> prove_interpretation tac ((false, prfx), []) (Locale.Locale class)
+    |> prove_interpretation tac (false, prfx) (Locale.Locale class)
           (inst, map (fn def => (Attrib.no_binding, def)) defs)
     |> fold2 add_constraint (map snd consts) constraints
   end;

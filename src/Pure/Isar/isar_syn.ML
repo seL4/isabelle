@@ -390,24 +390,26 @@ val _ =
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
             (Locale.add_locale "" name expr elems #-> TheoryTarget.begin)));
 
+val opt_prefix = Scan.optional (P.binding --| P.$$$ ":") Name.no_binding;
+
 val _ =
   OuterSyntax.command "interpretation"
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expr
       >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale I)) ||
-      SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts
-        >> (fn (((name, atts), expr), insts) => Toplevel.print o
+      opt_prefix  -- SpecParse.locale_expr -- SpecParse.locale_insts
+        >> (fn ((name, expr), insts) => Toplevel.print o
             Toplevel.theory_to_proof
-              (Locale.interpretation I ((true, Name.name_of name), atts) expr insts)));
+              (Locale.interpretation I (true, Name.name_of name) expr insts)));
 
 val _ =
   OuterSyntax.command "interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
-    (SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts
-      >> (fn (((name, atts), expr), insts) => Toplevel.print o
+    (opt_prefix -- SpecParse.locale_expr -- SpecParse.locale_insts
+      >> (fn ((name, expr), insts) => Toplevel.print o
           Toplevel.proof'
-            (Locale.interpret Seq.single ((true, Name.name_of name), atts) expr insts)));
+            (Locale.interpret Seq.single (true, Name.name_of name) expr insts)));
 
 
 (* classes *)

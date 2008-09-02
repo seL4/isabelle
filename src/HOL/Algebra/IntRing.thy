@@ -204,7 +204,7 @@ lemma UNIV:
   "(True ==> PROP R) == PROP R"
   by simp_all
 
-interpretation int [unfolded UNIV]:
+interpretation int (* FIXME [unfolded UNIV] *) :
   partial_order ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
   where "carrier (| carrier = UNIV::int set, eq = op =, le = op \<le> |) = UNIV"
     and "le (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = (x \<le> y)"
@@ -220,7 +220,7 @@ proof -
     by (simp add: lless_def) auto
 qed
 
-interpretation int [unfolded UNIV]:
+interpretation int (* FIXME [unfolded UNIV] *) :
   lattice ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
   where "join (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = max x y"
     and "meet (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = min x y"
@@ -246,7 +246,7 @@ proof -
     done
 qed
 
-interpretation int [unfolded UNIV]:
+interpretation int (* [unfolded UNIV] *) :
   total_order ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
   by unfold_locales clarsimp
 

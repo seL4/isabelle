@@ -481,7 +481,7 @@ Locale expressions (more precisely, \emph{context expressions}) may
     ;
     instantiation: ('[' (inst+) ']')?
     ;
-    interp: thmdecl? \\ (contextexpr instantiation |
+    interp: (name ':')? \\ (contextexpr instantiation |
       name instantiation 'where' (thmdecl? prop + 'and'))
     ;
   \end{rail}
@@ -509,18 +509,18 @@ Locale expressions (more precisely, \emph{context expressions}) may
   restricted to a locale name.
 
   The command is aware of interpretations already active in the
-  theory.  No proof obligations are generated for those, neither is
-  post-processing applied to their facts.  This avoids duplication of
-  interpreted facts, in particular.  Note that, in the case of a
-  locale with import, parts of the interpretation may already be
-  active.  The command will only generate proof obligations and
-  process facts for new parts.
+  theory, but does not simplify the goal automatically.  In order to
+  simplify the proof obligations use methods \hyperlink{method.intro-locales}{\mbox{\isa{intro{\isacharunderscore}locales}}}
+  or \hyperlink{method.unfold-locales}{\mbox{\isa{unfold{\isacharunderscore}locales}}}.  Post-processing is not applied to
+  facts of interpretations that are already active.  This avoids
+  duplication of interpreted facts, in particular.  Note that, in the
+  case of a locale with import, parts of the interpretation may
+  already be active.  The command will only process facts for new
+  parts.
 
-  The context expression may be preceded by a name and/or attributes.
-  These take effect in the post-processing of facts.  The name is used
-  to prefix fact names, for example to avoid accidental hiding of
-  other facts.  Attributes are applied after attributes of the
-  interpreted facts.
+  The context expression may be preceded by a name, which takes effect
+  in the post-processing of facts.  It is used to prefix fact names,
+  for example to avoid accidental hiding of other facts.
 
   Adding facts to locales has the effect of adding interpreted facts
   to the theory for all active interpretations also.  That is,

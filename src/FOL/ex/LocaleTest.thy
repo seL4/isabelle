@@ -82,12 +82,12 @@ text {* interpretation input syntax *}
 locale IL
 locale IM = fixes a and b and c
 
-interpretation test [simp]: IL + IM a b c [x y z] .
+interpretation test: IL + IM a b c [x y z] .
 
 print_interps IL    (* output: test *)
 print_interps IM    (* output: test *)
 
-interpretation test [simp]: IL print_interps IM .
+interpretation test: IL print_interps IM .
 
 interpretation IL .
 
@@ -252,12 +252,6 @@ qed
 
 locale IL11 = notes rev_conjI = conjI [THEN iffD1 [OF conj_commute]]
 
-lemma "[| P; Q |] ==> P & Q"
-proof -
-  interpret [intro]: IL11 .     txt {* Attribute supplied at instantiation. *}
-  assume Q and P
-  then show "P & Q" ..
-qed
 
 subsection {* Simple locale with assumptions *}
 
