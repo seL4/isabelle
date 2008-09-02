@@ -727,8 +727,7 @@ type add_ind_def =
   term list -> (Name.binding * mixfix) list ->
   local_theory -> inductive_result * local_theory
 
-fun (add_ind_def: add_ind_def)
-    {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, skip_mono}
+fun add_ind_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, skip_mono}
     cs intros monos params cnames_syn ctxt =
   let
     val _ = null cnames_syn andalso error "No inductive predicates given";
