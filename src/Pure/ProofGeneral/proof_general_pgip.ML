@@ -8,6 +8,7 @@ See http://proofgeneral.inf.ed.ac.uk/kit
 
 signature PROOF_GENERAL_PGIP =
 sig
+  val new_thms_deps: Toplevel.state -> Toplevel.state -> string list * string list
   val init_pgip: bool -> unit             (* main PGIP loop with true; fail with false *)
 
   (* These two are just to support the semi-PGIP Emacs mode *)
@@ -245,7 +246,38 @@ fun restart () =
      welcome ());
 
 
-(* theorem dependency output *)
+(* theorem dependencies *)
+
+local
+
+fun thm_deps th =
+  (case Thm.proof_of th of
+    PThm (name, prf, _, _) =>
+      if Thm.has_name_hint th andalso Thm.get_name_hint th = name then
+        Proofterm.thms_of_proof' prf
+      else I
+  | prf => Proofterm.thms_of_proof' prf);
+
+fun thms_deps ths =
+  let
+    (* FIXME proper derivation names!? *)
+    val names = map Thm.get_name_hint (filter Thm.has_name_hint ths);
+    val deps = Symtab.keys (fold thm_deps ths Symtab.empty);
+  in (names, deps) end;
+
+in
+
+fun new_thms_deps state state' =
+  let
+    val prev_facts =
+      (case try Toplevel.theory_of state of NONE => [] | SOME thy => [PureThy.facts_of thy]);
+    val facts = PureThy.facts_of (Toplevel.theory_of state');
+  in thms_deps (maps #2 (Facts.dest_static prev_facts facts)) end;
+
+end;
+
+
+(* theorem dependeny output *)
 
 val show_theorem_dependencies = ref false;
 
@@ -254,32 +286,27 @@ local
 val spaces_quote = space_implode " " o map quote;
 
 fun thm_deps_message (thms, deps) =
-    let
-        val valuethms = XML.Elem("value",[("name", "thms")],[XML.Text thms])
-        val valuedeps = XML.Elem("value",[("name", "deps")],[XML.Text deps])
-    in
-        issue_pgip (Metainforesponse {attrs=[("infotype", "isabelle_theorem_dependencies")],
-                                      content=[valuethms,valuedeps]})
-    end
-
-fun tell_thm_deps ths =
-  if !show_theorem_dependencies then
-      let
-        val names = map Thm.get_name_hint (filter Thm.has_name_hint ths);
-        val deps = (Symtab.keys (fold Proofterm.thms_of_proof'
-                                        (map Thm.proof_of ths) Symtab.empty))
-      in
-          if null names orelse null deps then ()
-          else thm_deps_message (spaces_quote names, spaces_quote deps)
-      end
-  else ()
+  let
+    val valuethms = XML.Elem ("value", [("name", "thms")], [XML.Text thms]);
+    val valuedeps = XML.Elem ("value", [("name", "deps")], [XML.Text deps]);
+  in
+    issue_pgip (Metainforesponse
+      {attrs = [("infotype", "isabelle_theorem_dependencies")],
+       content = [valuethms, valuedeps]})
+  end;
 
 in
 
-fun setup_present_hook () =
-  ProofDisplay.add_hook (fn res => tell_thm_deps (maps #2 res));
+fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn (state', opt_err) =>
+  if ! show_theorem_dependencies andalso Toplevel.is_theory state' andalso is_none opt_err then
+    let val (names, deps) = new_thms_deps state state' in
+      if null names orelse null deps then ()
+      else thm_deps_message (spaces_quote names, spaces_quote deps)
+    end
+  else ());
 
 end;
+
 
 (** lexicalstructure element with keywords (PGIP version of elisp keywords file) **)
 
@@ -1041,4 +1068,3 @@ fun process_pgip str =
 end
 
 end;
-
