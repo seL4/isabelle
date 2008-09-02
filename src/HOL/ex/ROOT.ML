@@ -104,8 +104,6 @@ use_thys [
   "../Complex/ex/Arithmetic_Series_Complex",
   "../Complex/ex/HarmonicSeries",
 
-  "../Complex/ex/DenumRat",
-  
   "../Complex/ex/MIR",
   "../Complex/ex/ReflectedFerrack"
 ];
