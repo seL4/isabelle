@@ -25,9 +25,6 @@ sig
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val affirm: local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
-  val axioms: string ->
-    ((Name.binding * typ) * mixfix) list * (Attrib.binding * term list) list -> local_theory
-    -> (term list * (string * thm list) list) * local_theory
   val abbrev: Syntax.mode -> (Name.binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
   val define: string -> (Name.binding * mixfix) * (Attrib.binding * term) -> local_theory ->
@@ -55,9 +52,6 @@ struct
 
 type operations =
  {pretty: local_theory -> Pretty.T list,
-  axioms: string ->
-    ((Name.binding * typ) * mixfix) list * (Attrib.binding * term list) list -> local_theory ->
-    (term list * (string * thm list) list) * local_theory,
   abbrev: Syntax.mode -> (Name.binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
   define: string ->
@@ -171,7 +165,6 @@ fun operation1 f x = operation (fn ops => f ops x);
 fun operation2 f x y lthy = operation (fn ops => f ops x y) lthy;
 
 val pretty = operation #pretty;
-val axioms = operation2 #axioms;
 val abbrev = operation2 #abbrev;
 val define = operation2 #define;
 val notes = operation2 #notes;

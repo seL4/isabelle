@@ -226,7 +226,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
                 if mx3 <> NoSyn then syntax_error c'
                 else LocalTheory.theory_result (Overloading.declare (c', U))
                   ##> Overloading.confirm c
-            | NONE => LocalTheory.theory_result (Sign.declare_const tags (c, U, mx3))));
+            | NONE => LocalTheory.theory_result (Sign.declare_const tags ((b, U), mx3))));
     val (const, lthy') = lthy |> declare_const;
     val t = Term.list_comb (const, map Free xs);
   in
@@ -311,33 +311,6 @@ fun define (ta as Target {target, is_locale, is_class, ...})
   in ((lhs, (res_name, res)), lthy4) end;
 
 
-(* axioms *)
-
-fun axioms ta kind (vars, specs) lthy =
-  let
-    val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
-    val expanded_props = map (Assumption.export_term lthy thy_ctxt) (maps snd specs);
-    val xs = fold Term.add_frees expanded_props [];
-
-    (*consts*)
-    val (consts, lthy') = fold_map (declare_const ta (member (op =) xs)) vars lthy;
-    val global_consts = map (Term.dest_Const o Term.head_of o Thm.term_of o Thm.rhs_of o #2) consts;
-
-    (*axioms*)
-    val hyps = map Thm.term_of (Assumption.assms_of lthy');
-    fun axiom ((name, atts), props) thy = thy
-      |> fold_map (Thm.add_axiom hyps) (PureThy.name_multi (Name.name_of name) props)
-      |-> (fn ths => pair ((name, atts), [(ths, [])]));
-  in
-    lthy'
-    |> fold Variable.declare_term expanded_props
-    |> LocalTheory.theory (fold (fn c => Theory.add_deps "" c []) global_consts)
-    |> LocalTheory.theory_result (fold_map axiom specs)
-    |-> notes ta kind
-    |>> pair (map #1 consts)
-  end;
-
-
 (* init *)
 
 local
@@ -357,7 +330,6 @@ fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
   Data.put ta #>
   LocalTheory.init (NameSpace.base target)
    {pretty = pretty ta,
-    axioms = axioms ta,
     abbrev = abbrev ta,
     define = define ta,
     notes = notes ta,
