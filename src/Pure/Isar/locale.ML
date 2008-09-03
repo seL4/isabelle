@@ -1560,8 +1560,7 @@ fun print_locale thy show_facts imports body =
 
 (* naming of interpreted theorems *)
 
-fun add_param_prefixss s =
-  (map o apfst o apfst o Name.map_name) (NameSpace.qualified s);
+fun add_param_prefixss s = (map o apfst o apfst) (Name.qualified s);
 fun drop_param_prefixss args = (map o apfst o apfst o Name.map_name)
   (fn "" => "" | s => (NameSpace.implode o tl o NameSpace.explode) s) args;
 
@@ -1649,7 +1648,7 @@ fun morph_ctxt' phi = Element.map_ctxt
 
 fun interpret_args thy prfx insts prems eqns exp attrib args =
   let
-    val inst = Morphism.name_morphism (Name.map_name (NameSpace.qualified prfx)) $>
+    val inst = Morphism.name_morphism (Name.qualified prfx) $>
 (* need to add parameter prefix *) (* FIXME *)
       Element.inst_morphism thy insts $> Element.satisfy_morphism prems $>
       Morphism.term_morphism (MetaSimplifier.rewrite_term thy eqns []) $>
@@ -2361,7 +2360,7 @@ fun prep_registration_in_locale target expr thy =
             fun activate_elem (loc, ps) (Notes (kind, facts)) thy =
                 let
                   val att_morphism =
-                    Morphism.name_morphism (Name.map_name (NameSpace.qualified prfx)) $>
+                    Morphism.name_morphism (Name.qualified prfx) $>
                     Morphism.thm_morphism satisfy $>
                     Element.inst_morphism thy insts $>
                     Morphism.thm_morphism disch;

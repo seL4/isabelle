@@ -673,7 +673,7 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
       elims raw_induct ctxt =
   let
     val rec_name = Name.name_of rec_binding;
-    val rec_qualified = NameSpace.qualified rec_name;
+    val rec_qualified = Name.qualified rec_name;
     val intr_names = map Name.name_of intr_bindings;
     val ind_case_names = RuleCases.case_names intr_names;
     val induct =
@@ -688,13 +688,12 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
     val (intrs', ctxt1) =
       ctxt |>
       LocalTheory.notes kind
-        (map (Name.map_name rec_qualified) intr_bindings ~~
-         intr_atts ~~ map (fn th => [([th],
+        (map rec_qualified intr_bindings ~~ intr_atts ~~ map (fn th => [([th],
            [Attrib.internal (K (ContextRules.intro_query NONE))])]) intrs) |>>
       map (hd o snd);
     val (((_, elims'), (_, [induct'])), ctxt2) =
       ctxt1 |>
-      LocalTheory.note kind ((Name.binding (rec_qualified "intros"), []), intrs') ||>>
+      LocalTheory.note kind ((rec_qualified (Name.binding "intros"), []), intrs') ||>>
       fold_map (fn (name, (elim, cases)) =>
         LocalTheory.note kind ((Name.binding (NameSpace.qualified (Sign.base_name name) "cases"),
           [Attrib.internal (K (RuleCases.case_names cases)),
@@ -702,14 +701,15 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
            Attrib.internal (K (Induct.cases_pred name)),
            Attrib.internal (K (ContextRules.elim_query NONE))]), [elim]) #>
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
-      LocalTheory.note kind ((Name.binding (rec_qualified (coind_prefix coind ^ "induct")),
-        map (Attrib.internal o K) (#2 induct)), [rulify (#1 induct)]);
+      LocalTheory.note kind
+        ((rec_qualified (Name.binding (coind_prefix coind ^ "induct")),
+          map (Attrib.internal o K) (#2 induct)), [rulify (#1 induct)]);
 
     val ctxt3 = if no_ind orelse coind then ctxt2 else
       let val inducts = cnames ~~ ProjectRule.projects ctxt2 (1 upto length cnames) induct'
       in
         ctxt2 |>
-        LocalTheory.notes kind [((Name.binding (rec_qualified "inducts"), []),
+        LocalTheory.notes kind [((rec_qualified (Name.binding "inducts"), []),
           inducts |> map (fn (name, th) => ([th],
             [Attrib.internal (K ind_case_names),
              Attrib.internal (K (RuleCases.consumes 1)),

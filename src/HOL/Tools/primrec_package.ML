@@ -248,9 +248,9 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     val _ = if gen_eq_set (op =) (names1, names2) then ()
       else primrec_error ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
-    val qualify = NameSpace.qualified
+    val qualify = Name.qualified
       (space_implode "_" (map (Sign.base_name o #1) defs));
-    val spec' = (map o apfst o apfst o Name.map_name) qualify spec;
+    val spec' = (map o apfst o apfst) qualify spec;
     val simp_atts = map (Attrib.internal o K)
       [Simplifier.simp_add, RecfunCodegen.add NONE];
   in
@@ -260,7 +260,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec'))
     |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
     |-> (fn simps' => LocalTheory.note Thm.theoremK
-          ((Name.binding (qualify "simps"), simp_atts), maps snd simps'))
+          ((qualify (Name.binding "simps"), simp_atts), maps snd simps'))
     |>> snd
   end handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^ (case some_eqn
