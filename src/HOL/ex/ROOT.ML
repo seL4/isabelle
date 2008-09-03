@@ -46,7 +46,6 @@ use_thys [
   "Arith_Examples",
   "BT",
   "MergeSort",
-  "Puzzle",
   "Lagrange",
   "Groebner_Examples",
   "MT",

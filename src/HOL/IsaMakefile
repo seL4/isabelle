@@ -772,7 +772,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/InductiveInvariant_examples.thy ex/Intuitionistic.thy		\
   ex/Lagrange.thy ex/LexOrds.thy ex/Locales.thy ex/LocaleTest2.thy ex/MT.thy		\
   ex/MergeSort.thy ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.thy	\
-  ex/Numeral.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy ex/Puzzle.thy		\
+  ex/Numeral.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy		\
   ex/Quickcheck_Examples.thy ex/Reflection.thy ex/reflection_data.ML	\
   ex/ReflectionEx.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy		\
   ex/Reflected_Presburger.thy ex/coopertac.ML				\
