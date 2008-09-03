@@ -39,6 +39,7 @@ sig
   val tyconN: string val tycon: string -> T
   val fixed_declN: string val fixed_decl: string -> T
   val fixedN: string val fixed: string -> T
+  val const_declN: string val const_decl: string -> T
   val constN: string val const: string -> T
   val fact_declN: string val fact_decl: string -> T
   val factN: string val fact: string -> T
@@ -184,6 +185,7 @@ val (tclassN, tclass) = markup_string "tclass" nameN;
 val (tyconN, tycon) = markup_string "tycon" nameN;
 val (fixed_declN, fixed_decl) = markup_string "fixed_decl" nameN;
 val (fixedN, fixed) = markup_string "fixed" nameN;
+val (const_declN, const_decl) = markup_string "const_decl" nameN;
 val (constN, const) = markup_string "const" nameN;
 val (fact_declN, fact_decl) = markup_string "fact_decl" nameN;
 val (factN, fact) = markup_string "fact" nameN;
