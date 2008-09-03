@@ -46,6 +46,7 @@ sig
   val empty: transition
   val init_of: transition -> string option
   val name_of: transition -> string
+  val pos_of: transition -> Position.T
   val str_of: transition -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
@@ -423,7 +424,8 @@ fun init_of (Transition {trans = [Init (name, _, _)], ...}) = SOME name
   | init_of _ = NONE;
 
 fun name_of (Transition {name, ...}) = name;
-fun str_of (Transition {name, pos, ...}) = quote name ^ Position.str_of pos;
+fun pos_of (Transition {pos, ...}) = pos;
+fun str_of tr = quote (name_of tr) ^ Position.str_of (pos_of tr);
 
 fun command_msg msg tr = msg ^ "command " ^ str_of tr;
 fun at_command tr = command_msg "At " tr ^ ".";
