@@ -136,7 +136,7 @@ section {* Basic specification elements *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "axiomatization"} & : & \isarkeep{local{\dsh}theory} & (axiomatic!)\\
+    @{command_def "axiomatization"} & : & \isarkeep{theory} & (axiomatic!)\\
     @{command_def "definition"} & : & \isarkeep{local{\dsh}theory} \\
     @{attribute_def "defn"} & : & \isaratt \\
     @{command_def "abbreviation"} & : & \isarkeep{local{\dsh}theory} \\
@@ -178,8 +178,9 @@ text {*
   prevents additional specifications being issued later on.
   
   Note that axiomatic specifications are only appropriate when
-  declaring a new logical system.  Normal applications should only use
-  definitional mechanisms!
+  declaring a new logical system; axiomatic specifications are
+  restricted to global theory contexts.  Normal applications should
+  only use definitional mechanisms!
 
   \item [@{command "definition"}~@{text "c \<WHERE> eq"}] produces an
   internal definition @{text "c \<equiv> t"} according to the specification

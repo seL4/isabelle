@@ -22,11 +22,11 @@ sig
     (Attrib.binding * string list) list -> Proof.context ->
     (((Name.binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
   val axiomatization: (Name.binding * typ option * mixfix) list ->
-    (Attrib.binding * term list) list -> local_theory ->
-    (term list * (string * thm list) list) * local_theory
+    (Attrib.binding * term list) list -> theory ->
+    (term list * (string * thm list) list) * theory
   val axiomatization_cmd: (Name.binding * string option * mixfix) list ->
-    (Attrib.binding * string list) list -> local_theory ->
-    (term list * (string * thm list) list) * local_theory
+    (Attrib.binding * string list) list -> theory ->
+    (term list * (string * thm list) list) * theory
   val definition:
     (Name.binding * typ option * mixfix) option * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory
@@ -137,18 +137,27 @@ fun check_free_specification vars specs = check_spec false vars [specs];
 end;
 
 
-(* axiomatization *)
+(* axiomatization -- within global theory *)
 
-fun gen_axioms do_print prep raw_vars raw_specs lthy =
+fun gen_axioms do_print prep raw_vars raw_specs thy =
   let
-    val ((vars, specs), _) = prep raw_vars [raw_specs] lthy;
-    val ((consts, axioms), lthy') = LocalTheory.axioms Thm.axiomK (vars, specs) lthy;
-    val consts' = map (Morphism.term (LocalTheory.target_morphism lthy')) consts;
+    val ((vars, specs), _) = prep raw_vars [raw_specs] (ProofContext.init thy);
+    val xs = map (fn ((b, T), _) => (Name.name_of b, T)) vars;
+
+    (*consts*)
+    val (consts, consts_thy) = thy |> fold_map (Theory.specify_const []) vars;
+    val subst = Term.subst_atomic (map Free xs ~~ consts);
+
+    (*axioms*)
+    val (axioms, axioms_thy) = consts_thy |> fold_map (fn ((b, atts), props) =>
+        fold_map Thm.add_axiom (PureThy.name_multi (Name.name_of b) (map subst props))
+        #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])]))) specs;
+    val (facts, thy') = axioms_thy |> PureThy.note_thmss Thm.axiomK
+      (Attrib.map_facts (Attrib.attribute_i axioms_thy) axioms);
     val _ =
       if not do_print then ()
-      else print_consts lthy' (member (op =) (fold Term.add_frees consts' []))
-        (map (fn ((b, T), _) => (Name.name_of b, T)) vars);
-  in ((consts, axioms), lthy') end;
+      else print_consts (ProofContext.init thy') (K false) xs;
+  in ((consts, facts), thy') end;
 
 val axiomatization = gen_axioms false check_specification;
 val axiomatization_cmd = gen_axioms true read_specification;

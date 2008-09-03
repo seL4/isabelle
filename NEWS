@@ -36,6 +36,9 @@ INCOMPATIBILITY, use proper 'instantiation' target.
 
 * Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
 
+* The 'axiomatization' command now only works within a global theory
+context.  INCOMPATIBILITY.
+
 
 *** Document preparation ***
 

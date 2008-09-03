@@ -252,10 +252,10 @@ val _ =
 (* constant specifications *)
 
 val _ =
-  OuterSyntax.local_theory "axiomatization" "axiomatic constant specification" K.thy_decl
+  OuterSyntax.command "axiomatization" "axiomatic constant specification" K.thy_decl
     (Scan.optional P.fixes [] --
       Scan.optional (P.where_ |-- P.!!! (P.and_list1 SpecParse.spec)) []
-    >> (fn (x, y) => #2 o Specification.axiomatization_cmd x y));
+    >> (fn (x, y) => Toplevel.theory (#2 o Specification.axiomatization_cmd x y)));
 
 
 (* theorems *)
