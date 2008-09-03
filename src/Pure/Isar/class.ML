@@ -496,7 +496,7 @@ fun declare class pos ((c, mx), dict) thy =
     fun get_axiom thy = ((Thm.varifyT o Thm.get_axiom_i thy) c', thy);
   in
     thy'
-    |> Sign.declare_const pos (c, ty'', mx) |> snd
+    |> Sign.declare_const pos ((Name.binding c, ty''), mx) |> snd
     |> Thm.add_def false false (c, def_eq)
     |>> Thm.symmetric
     ||>> get_axiom
@@ -604,7 +604,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
         val syn = (the_default NoSyn o AList.lookup (op =) global_syntax) v;
       in
         thy
-        |> Sign.declare_const [] (v, ty0, syn)
+        |> Sign.declare_const [] ((Name.binding v, ty0), syn)
         |> snd
         |> pair ((v, ty), (c, ty'))
       end;

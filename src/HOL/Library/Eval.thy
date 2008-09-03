@@ -170,7 +170,7 @@ in
 end
 *}
 setup {*
-  Sign.declare_const [] ("rterm_of", @{typ "'a \<Rightarrow> 'b"}, NoSyn)
+  Sign.declare_const [] ((Name.binding "rterm_of", @{typ "'a \<Rightarrow> 'b"}), NoSyn)
   #> snd
 *}
 

@@ -326,7 +326,7 @@ text %mlref {*
   @{index_ML fastype_of: "term -> typ"} \\
   @{index_ML lambda: "term -> term -> term"} \\
   @{index_ML betapply: "term * term -> term"} \\
-  @{index_ML Sign.declare_const: "Properties.T -> bstring * typ * mixfix ->
+  @{index_ML Sign.declare_const: "Properties.T -> (Name.binding * typ) * mixfix ->
   theory -> term * theory"} \\
   @{index_ML Sign.add_abbrev: "string -> Properties.T -> bstring * term ->
   theory -> (term * term) * theory"} \\
@@ -374,7 +374,7 @@ text %mlref {*
   "t u"}, with topmost @{text "\<beta>"}-conversion if @{text "t"} is an
   abstraction.
 
-  \item @{ML Sign.declare_const}~@{text "properties (c, \<sigma>, mx)"}
+  \item @{ML Sign.declare_const}~@{text "properties ((c, \<sigma>), mx)"}
   declares a new constant @{text "c :: \<sigma>"} with optional mixfix
   syntax.
 

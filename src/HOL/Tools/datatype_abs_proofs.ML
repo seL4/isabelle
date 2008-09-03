@@ -315,7 +315,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
           val fns = (List.concat (Library.take (i, case_dummy_fns))) @
             fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns)));
           val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
-          val decl = (Sign.base_name name, caseT, NoSyn);
+          val decl = ((Name.binding (Sign.base_name name), caseT), NoSyn);
           val def = ((Sign.base_name name) ^ "_def",
             Logic.mk_equals (list_comb (Const (name, caseT), fns1),
               list_comb (reccomb, (List.concat (Library.take (i, case_dummy_fns))) @

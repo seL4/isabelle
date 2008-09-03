@@ -370,7 +370,7 @@ fun declare_overloaded (c, T) thy =
     thy
     |> Sign.sticky_prefix name_inst
     |> Sign.no_base_names
-    |> Sign.declare_const [] (c', T', NoSyn)
+    |> Sign.declare_const [] ((Name.binding c', T'), NoSyn)
     |-> (fn const' as Const (c'', _) => Thm.add_def false true
           (Thm.def_name c', Logic.mk_equals (Const (c, T'), const'))
     #>> Thm.varifyT

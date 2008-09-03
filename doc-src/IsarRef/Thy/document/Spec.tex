@@ -154,7 +154,7 @@ A local theory target is a context managed separately within the
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcll}
-    \indexdef{}{command}{axiomatization}\hypertarget{command.axiomatization}{\hyperlink{command.axiomatization}{\mbox{\isa{\isacommand{axiomatization}}}}} & : & \isarkeep{local{\dsh}theory} & (axiomatic!)\\
+    \indexdef{}{command}{axiomatization}\hypertarget{command.axiomatization}{\hyperlink{command.axiomatization}{\mbox{\isa{\isacommand{axiomatization}}}}} & : & \isarkeep{theory} & (axiomatic!)\\
     \indexdef{}{command}{definition}\hypertarget{command.definition}{\hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}} & : & \isarkeep{local{\dsh}theory} \\
     \indexdef{}{attribute}{defn}\hypertarget{attribute.defn}{\hyperlink{attribute.defn}{\mbox{\isa{defn}}}} & : & \isaratt \\
     \indexdef{}{command}{abbreviation}\hypertarget{command.abbreviation}{\hyperlink{command.abbreviation}{\mbox{\isa{\isacommand{abbreviation}}}}} & : & \isarkeep{local{\dsh}theory} \\
@@ -194,8 +194,9 @@ A local theory target is a context managed separately within the
   prevents additional specifications being issued later on.
   
   Note that axiomatic specifications are only appropriate when
-  declaring a new logical system.  Normal applications should only use
-  definitional mechanisms!
+  declaring a new logical system; axiomatic specifications are
+  restricted to global theory contexts.  Normal applications should
+  only use definitional mechanisms!
 
   \item [\hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}~\isa{{\isachardoublequote}c\ {\isasymWHERE}\ eq{\isachardoublequote}}] produces an
   internal definition \isa{{\isachardoublequote}c\ {\isasymequiv}\ t{\isachardoublequote}} according to the specification
