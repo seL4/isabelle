@@ -88,7 +88,7 @@ sig
   val unknown_context: transition -> transition
   val status: transition -> Markup.T -> unit
   val error_msg: transition -> exn * string -> unit
-  val add_hook: (transition -> state -> state * (exn * string) option -> unit) -> unit
+  val add_hook: (transition -> state -> state -> unit) -> unit
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val commit_exit: transition
   val excursion: transition list -> unit
@@ -615,7 +615,7 @@ fun error_msg tr exn_info =
 
 (* post-transition hooks *)
 
-local val hooks = ref ([]: (transition -> state -> state * (exn * string) option -> unit) list) in
+local val hooks = ref ([]: (transition -> state -> state -> unit) list) in
 
 fun add_hook f = CRITICAL (fn () => change hooks (cons f));
 fun get_hooks () = CRITICAL (fn () => ! hooks);
@@ -648,16 +648,16 @@ in
 fun transition int tr st =
   let
     val hooks = get_hooks ();
-    fun apply_hooks st_err = hooks |> List.app (fn f => (try (fn () => f tr st st_err) (); ()));
+    fun apply_hooks st' = hooks |> List.app (fn f => (try (fn () => f tr st st') (); ()));
 
     val ctxt = try context_of st;
     val res =
       (case app int tr st of
         (_, SOME TERMINATE) => NONE
-      | (state', SOME (EXCURSION_FAIL exn_info)) => SOME (state', SOME exn_info)
-      | (state', SOME exn) => SOME (state', SOME (exn_context ctxt exn, at_command tr))
-      | (state', NONE) => SOME (state', NONE));
-    val _ = Option.map apply_hooks res;
+      | (st', SOME (EXCURSION_FAIL exn_info)) => SOME (st', SOME exn_info)
+      | (st', SOME exn) => SOME (st', SOME (exn_context ctxt exn, at_command tr))
+      | (st', NONE) => SOME (st', NONE));
+    val _ = (case res of SOME (st', NONE) => apply_hooks st' | _ => ());
   in res end;
 
 end;

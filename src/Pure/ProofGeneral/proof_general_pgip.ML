@@ -296,10 +296,9 @@ fun thm_deps_message (thms, deps) =
 
 in
 
-fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn (state', opt_err) =>
+fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn state' =>
   if ! show_theorem_dependencies andalso
-    can Toplevel.theory_of state andalso
-    Toplevel.is_theory state' andalso is_none opt_err
+    can Toplevel.theory_of state andalso Toplevel.is_theory state'
   then
     let val (names, deps) = new_thms_deps (Toplevel.theory_of state) (Toplevel.theory_of state') in
       if null names orelse null deps then ()

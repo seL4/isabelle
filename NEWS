@@ -181,9 +181,9 @@ Complex_Main.thy should now use new entry point Hypercomplex.thy.
 *** ML ***
 
 * Generic Toplevel.add_hook interface allows to analyze the result of
-transactions (including failed ones).  For example, see
-src/Pure/ProofGeneral/proof_general_pgip.ML for theorem dependency
-output of transactions resulting in a new theory state.
+transactions.  E.g. see src/Pure/ProofGeneral/proof_general_pgip.ML
+for theorem dependency output of transactions resulting in a new
+theory state.
 
 * Name bindings in higher specification mechanisms (notably
 LocalTheory.define, LocalTheory.note, and derived packages) are now

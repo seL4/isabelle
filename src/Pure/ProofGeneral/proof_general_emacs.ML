@@ -175,8 +175,8 @@ fun thm_deps_message (thms, deps) =
 
 in
 
-fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn (state', opt_err) =>
-  if print_mode_active thm_depsN andalso Toplevel.is_theory state' andalso is_none opt_err then
+fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn state' =>
+  if print_mode_active thm_depsN andalso Toplevel.is_theory state' then
     let val (names, deps) =
       ProofGeneralPgip.new_thms_deps (Toplevel.theory_of state) (Toplevel.theory_of state')
     in
