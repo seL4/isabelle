@@ -1,5 +1,7 @@
 rename Doc doc-src
 exclude Distribution/bin/Isabelle
+exclude Admin/page/main-content/PG-preview.mov
+exclude Admin/website/media/pg_preview.mov
 rename Distribution .
 rename CCL src/CCL
 rename CTT src/CTT
