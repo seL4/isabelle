@@ -38,7 +38,7 @@ sig
   val forall_elim_vars: int -> thm -> thm
   val unvarify: thm -> thm
   val close_derivation: thm -> thm
-  val add_axiom: term list -> bstring * term -> theory -> thm * theory
+  val add_axiom: bstring * term -> theory -> thm * theory
   val add_def: bool -> bool -> bstring * term -> theory -> thm * theory
   val rule_attribute: (Context.generic -> thm -> thm) -> attribute
   val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
@@ -262,15 +262,12 @@ fun close_derivation thm =
 
 (** specification primitives **)
 
-fun add_axiom hyps (name, prop) thy =
+fun add_axiom (name, prop) thy =
   let
     val name' = if name = "" then "axiom_" ^ serial_string () else name;
-    val prop' = Logic.list_implies (hyps, prop);
-    val thy' = thy |> Theory.add_axioms_i [(name', prop')];
+    val thy' = thy |> Theory.add_axioms_i [(name', prop)];
     val axm = unvarify (Thm.get_axiom_i thy' (Sign.full_name thy' name'));
-    val prems = map (Thm.assume o Thm.cterm_of thy') hyps;
-    val thm = fold elim_implies prems axm;
-  in (thm, thy') end;
+  in (axm, thy') end;
 
 fun add_def unchecked overloaded (name, prop) thy =
   let
