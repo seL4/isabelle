@@ -16,24 +16,10 @@ cvs up -dAP >> "$LOG" 2>&1 || exit 2
 
 ## hg convert
 
-case $(hostname) in
-
-atbroy51)
-export HG=/home/isabelle-repository/repos/mercurial-atbroy51/bin/hg
-export PYTHONPATH=/home/isabelle-repository/repos/mercurial-atbroy51/lib/python2.4/site-packages
-;;
-
-atbroy100)
-export HG=/home/isabelle-repository/repos/mercurial-atbroy100/bin/hg
-export PYTHONPATH=/home/isabelle-repository/repos/mercurial-atbroy100/lib64/python2.4/site-packages
-;;
-
-esac
-
 export HGRCPATH="$THIS/cvs/Admin/Mercurial/hgrc"
 
 cd "$THIS"
-"$HG" convert --filemap cvs/Admin/Mercurial/filemap cvs hg >> "$LOG" 2>&1 || exit 2
+/home/isabelle/mercurial/bin/hg convert --filemap cvs/Admin/Mercurial/filemap cvs hg >> "$LOG" 2>&1 || exit 2
 
 [ -e hg/.hg/hgrc ] || ln -s ../../cvs/Admin/Mercurial/hgrc hg/.hg/hgrc
 
