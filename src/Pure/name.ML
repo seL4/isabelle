@@ -35,6 +35,7 @@ sig
   val name_of: binding -> string
   val pos_of: binding -> Position.T
   val map_name: (string -> string) -> binding -> binding
+  val qualified: string -> binding -> binding
 end;
 
 structure Name: NAME =
@@ -160,5 +161,6 @@ fun name_of (Binding (name, _)) = name;
 fun pos_of (Binding (_, pos)) = pos;
 
 fun map_name f (Binding (name, pos)) = Binding (f name, pos);
+val qualified = map_name o NameSpace.qualified;
 
 end;
