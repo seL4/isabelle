@@ -93,7 +93,7 @@ sig
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val declare_const: Properties.T -> bstring * typ * mixfix -> theory -> term * theory
+  val declare_const: Properties.T -> (Name.binding * typ) * mixfix -> theory -> term * theory
   val add_abbrev: string -> Properties.T -> bstring * term -> theory -> (term * term) * theory
   val revert_abbrev: string -> string -> theory -> theory
   val add_const_constraint: string * typ option -> theory -> theory
@@ -527,7 +527,14 @@ in
 val add_consts = snd oo gen_add_consts Syntax.parse_typ false [];
 val add_consts_i = snd oo gen_add_consts (K I) false [];
 
-fun declare_const tags arg = gen_add_consts (K I) true tags [arg] #>> the_single;
+fun declare_const tags ((b, T), mx) thy =
+  let
+    val c = Name.name_of b;
+    val pos = Name.pos_of b;
+    val tags' = Position.default_properties pos tags;
+    val ([const as Const (full_c, _)], thy') = gen_add_consts (K I) true tags' [(c, T, mx)] thy;
+    val _ = Position.report (Markup.const_decl full_c) pos;
+  in (const, thy') end;
 
 end;
 
