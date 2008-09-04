@@ -1,5 +1,6 @@
 (*  Title:      Pure/Concurrent/schedule.ML
     ID:         $Id$
+    Author:     Makarius
 
 Scheduling -- multiple threads working on a queue of tasks.
 *)

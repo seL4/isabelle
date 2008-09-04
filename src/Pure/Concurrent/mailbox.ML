@@ -1,5 +1,6 @@
 (*  Title:      Pure/Concurrent/mailbox.ML
     ID:         $Id$
+    Author:     Makarius
 
 Concurrent message exchange via mailbox -- with unbounded queueing.
 *)
