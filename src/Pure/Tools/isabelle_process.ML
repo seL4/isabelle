@@ -100,7 +100,7 @@ end;
 
 fun setup_channels out =
   let val out_stream =
-    if out = "" orelse out = "-" then TextIO.stdOut
+    if out = "-" then TextIO.stdOut
     else
       let
         val path = File.platform_path (Path.explode out);
