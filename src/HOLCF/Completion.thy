@@ -163,7 +163,7 @@ apply (rule refl_less)
 apply (erule (1) trans_less)
 done
 
-subsection {* Defining functions in terms of basis elements *}
+subsection {* Lemmas about least upper bounds *}
 
 lemma finite_directed_contains_lub:
   "\<lbrakk>finite S; directed S\<rbrakk> \<Longrightarrow> \<exists>u\<in>S. S <<| u"
@@ -190,6 +190,8 @@ done
 
 lemma is_lub_thelub0: "\<lbrakk>\<exists>u. S <<| u; S <| x\<rbrakk> \<Longrightarrow> lub S \<sqsubseteq> x"
 by (erule exE, drule lubI, erule is_lub_lub)
+
+subsection {* Locale for ideal completion *}
 
 locale basis_take = preorder +
   fixes take :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'a"
@@ -220,6 +222,61 @@ begin
 
 lemma finite_take_rep: "finite (take n ` rep x)"
 by (rule finite_subset [OF image_mono [OF subset_UNIV] finite_range_take])
+
+lemma rep_mono: "x \<sqsubseteq> y \<Longrightarrow> rep x \<subseteq> rep y"
+apply (frule bin_chain)
+apply (drule rep_contlub)
+apply (simp only: thelubI [OF lub_bin_chain])
+apply (rule subsetI, rule UN_I [where a=0], simp_all)
+done
+
+lemma less_def: "x \<sqsubseteq> y \<longleftrightarrow> rep x \<subseteq> rep y"
+by (rule iffI [OF rep_mono subset_repD])
+
+lemma rep_eq: "rep x = {a. principal a \<sqsubseteq> x}"
+unfolding less_def rep_principal
+apply safe
+apply (erule (1) idealD3 [OF ideal_rep])
+apply (erule subsetD, simp add: r_refl)
+done
+
+lemma mem_rep_iff_principal_less: "a \<in> rep x \<longleftrightarrow> principal a \<sqsubseteq> x"
+by (simp add: rep_eq)
+
+lemma principal_less_iff_mem_rep: "principal a \<sqsubseteq> x \<longleftrightarrow> a \<in> rep x"
+by (simp add: rep_eq)
+
+lemma principal_less_iff [simp]: "principal a \<sqsubseteq> principal b \<longleftrightarrow> a \<preceq> b"
+by (simp add: principal_less_iff_mem_rep rep_principal)
+
+lemma principal_eq_iff: "principal a = principal b \<longleftrightarrow> a \<preceq> b \<and> b \<preceq> a"
+unfolding po_eq_conv [where 'a='b] principal_less_iff ..
+
+lemma repD: "a \<in> rep x \<Longrightarrow> principal a \<sqsubseteq> x"
+by (simp add: rep_eq)
+
+lemma principal_mono: "a \<preceq> b \<Longrightarrow> principal a \<sqsubseteq> principal b"
+by (simp only: principal_less_iff)
+
+lemma lessI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
+unfolding principal_less_iff_mem_rep
+by (simp add: less_def subset_eq)
+
+lemma lub_principal_rep: "principal ` rep x <<| x"
+apply (rule is_lubI)
+apply (rule ub_imageI)
+apply (erule repD)
+apply (subst less_def)
+apply (rule subsetI)
+apply (drule (1) ub_imageD)
+apply (simp add: rep_eq)
+done
+
+subsection {* Defining functions in terms of basis elements *}
+
+definition
+  basis_fun :: "('a::type \<Rightarrow> 'c::cpo) \<Rightarrow> 'b \<rightarrow> 'c" where
+  "basis_fun = (\<lambda>f. (\<Lambda> x. lub (f ` rep x)))"
 
 lemma basis_fun_lemma0:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
@@ -278,59 +335,6 @@ lemma basis_fun_lemma:
   shows "\<exists>u. f ` rep x <<| u"
 by (rule exI, rule basis_fun_lemma2, erule f_mono)
 
-lemma rep_mono: "x \<sqsubseteq> y \<Longrightarrow> rep x \<subseteq> rep y"
-apply (frule bin_chain)
-apply (drule rep_contlub)
-apply (simp only: thelubI [OF lub_bin_chain])
-apply (rule subsetI, rule UN_I [where a=0], simp_all)
-done
-
-lemma less_def: "x \<sqsubseteq> y \<longleftrightarrow> rep x \<subseteq> rep y"
-by (rule iffI [OF rep_mono subset_repD])
-
-lemma rep_eq: "rep x = {a. principal a \<sqsubseteq> x}"
-unfolding less_def rep_principal
-apply safe
-apply (erule (1) idealD3 [OF ideal_rep])
-apply (erule subsetD, simp add: r_refl)
-done
-
-lemma mem_rep_iff_principal_less: "a \<in> rep x \<longleftrightarrow> principal a \<sqsubseteq> x"
-by (simp add: rep_eq)
-
-lemma principal_less_iff_mem_rep: "principal a \<sqsubseteq> x \<longleftrightarrow> a \<in> rep x"
-by (simp add: rep_eq)
-
-lemma principal_less_iff [simp]: "principal a \<sqsubseteq> principal b \<longleftrightarrow> a \<preceq> b"
-by (simp add: principal_less_iff_mem_rep rep_principal)
-
-lemma principal_eq_iff: "principal a = principal b \<longleftrightarrow> a \<preceq> b \<and> b \<preceq> a"
-unfolding po_eq_conv [where 'a='b] principal_less_iff ..
-
-lemma repD: "a \<in> rep x \<Longrightarrow> principal a \<sqsubseteq> x"
-by (simp add: rep_eq)
-
-lemma principal_mono: "a \<preceq> b \<Longrightarrow> principal a \<sqsubseteq> principal b"
-by (simp only: principal_less_iff)
-
-lemma lessI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
-unfolding principal_less_iff_mem_rep
-by (simp add: less_def subset_eq)
-
-lemma lub_principal_rep: "principal ` rep x <<| x"
-apply (rule is_lubI)
-apply (rule ub_imageI)
-apply (erule repD)
-apply (subst less_def)
-apply (rule subsetI)
-apply (drule (1) ub_imageD)
-apply (simp add: rep_eq)
-done
-
-definition
-  basis_fun :: "('a::type \<Rightarrow> 'c::cpo) \<Rightarrow> 'b \<rightarrow> 'c" where
-  "basis_fun = (\<lambda>f. (\<Lambda> x. lub (f ` rep x)))"
-
 lemma basis_fun_beta:
   fixes f :: "'a::type \<Rightarrow> 'c::cpo"
   assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
@@ -379,6 +383,8 @@ done
 
 lemma compact_principal [simp]: "compact (principal a)"
 by (rule compactI2, simp add: principal_less_iff_mem_rep rep_contlub)
+
+subsection {* Bifiniteness of ideal completions *}
 
 definition
   completion_approx :: "nat \<Rightarrow> 'b \<rightarrow> 'b" where
