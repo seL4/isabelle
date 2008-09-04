@@ -36,6 +36,9 @@ lemma power_one_right [simp]: "(a::'a::recpower) ^ 1 = a"
 lemma power_commutes: "(a::'a::recpower) ^ n * a = a * a ^ n"
   by (induct n) (simp_all add: power_Suc mult_assoc)
 
+lemma power_Suc2: "(a::'a::recpower) ^ Suc n = a ^ n * a"
+  by (simp add: power_Suc power_commutes)
+
 lemma power_add: "(a::'a::recpower) ^ (m+n) = (a^m) * (a^n)"
   by (induct m) (simp_all add: power_Suc mult_ac)
 
@@ -202,10 +205,12 @@ lemma zero_le_power_abs [simp]:
      "(0::'a::{ordered_idom,recpower}) \<le> (abs a)^n"
 by (rule zero_le_power [OF abs_ge_zero])
 
-lemma power_minus: "(-a) ^ n = (- 1)^n * (a::'a::{comm_ring_1,recpower}) ^ n"
-proof -
-  have "-a = (- 1) * a"  by (simp add: minus_mult_left [symmetric])
-  thus ?thesis by (simp only: power_mult_distrib)
+lemma power_minus: "(-a) ^ n = (- 1)^n * (a::'a::{ring_1,recpower}) ^ n"
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n) then show ?case
+    by (simp add: power_Suc2 mult_assoc)
 qed
 
 text{*Lemma for @{text power_strict_decreasing}*}
