@@ -22,6 +22,9 @@ use "library.ML";
 
 cd "General"; use "ROOT.ML"; cd "..";
 
+(*concurrency within the ML runtime*)
+use "Concurrent/schedule.ML";
+
 (*fundamental structures*)
 use "name.ML";
 use "term.ML";
