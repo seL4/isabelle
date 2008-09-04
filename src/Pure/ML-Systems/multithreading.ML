@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Makarius
 
-Dummy implementation of multithreading interface.
+Default implementation of multithreading interface -- mostly dummies.
 *)
 
 signature BASIC_MULTITHREADING =
@@ -20,12 +20,7 @@ sig
   val max_threads: int ref
   val max_threads_value: unit -> int
   val self_critical: unit -> bool
-  datatype 'a task =
-    Task of {body: unit -> unit, cont: 'a -> 'a, fail: 'a -> 'a} | Wait | Terminate;
-  val schedule: int -> ('a -> 'a task * 'a) -> 'a -> exn list
   val serial: unit -> int
-  val get_data: 'a Universal.tag -> 'a option
-  val put_data: 'a Universal.tag * 'a -> unit
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -48,19 +43,67 @@ fun NAMED_CRITICAL _ e = e ();
 fun CRITICAL e = e ();
 
 
-(* scheduling *)
-
-datatype 'a task =
-  Task of {body: unit -> unit, cont: 'a -> 'a, fail: 'a -> 'a} | Wait | Terminate;
-
-fun schedule _ _ _ =
-  raise Fail "No multithreading support -- cannot schedule tasks";
-
-
 (* serial numbers *)
 
 local val count = ref (0: int)
 in fun serial () = (count := ! count + 1; ! count) end;
+
+end;
+
+structure BasicMultithreading: BASIC_MULTITHREADING = Multithreading;
+open BasicMultithreading;
+
+
+
+(** dummy thread structures (cf. polyml/basis/Thread.sml) **)
+
+exception Thread of string;
+
+local fun fail _ = raise Thread "No multithreading support on this ML platform" in
+
+structure Mutex =
+struct
+  type mutex = unit;
+  fun mutex _ = fail ();
+  fun lock _ = fail ();
+  fun unlock _ = fail ();
+  fun trylock _ = fail ();
+end;
+
+structure ConditionVar =
+struct
+  type conditionVar = unit;
+  fun conditionVar _ = fail ();
+  fun wait _ = fail ();
+  fun waitUntil _ = fail ();
+  fun signal _ = fail ();
+  fun broadcast _ = fail ();
+end;
+
+structure Thread =
+struct
+  type thread = unit;
+
+  datatype threadAttribute = EnableBroadcastInterrupt of bool | InterruptState of interruptState
+    and interruptState = InterruptDefer | InterruptSynch | InterruptAsynch | InterruptAsynchOnce;
+
+  fun fork _ = fail ();
+  fun exit _ = fail ();
+  fun isActive _ = fail ();
+
+  fun equal _ = fail ();
+  fun self _ = fail ();
+
+  fun interrupt _ = fail ();
+  fun broadcastInterrupt _ = fail ();
+  fun testInterrupt _ = fail ();
+
+  fun kill _ = fail ();
+
+  fun setAttributes _ = fail ();
+  fun getAttributes _ = fail ();
+
+  fun numProcessors _ = fail ();
 
 
 (* thread data *)
@@ -77,17 +120,13 @@ fun find_data tag =
 
 in
 
-fun get_data tag = Option.map (Universal.tagProject tag o !) (find_data tag);
+fun getLocal tag = Option.map (Universal.tagProject tag o !) (find_data tag);
 
-fun put_data (tag, x) =
+fun setLocal (tag, x) =
   (case find_data tag of
     SOME r => r := Universal.tagInject tag x
   | NONE => data := ref (Universal.tagInject tag x) :: ! data);
 
 end;
-
 end;
-
-structure BasicMultithreading: BASIC_MULTITHREADING = Multithreading;
-open BasicMultithreading;
-
+end;
