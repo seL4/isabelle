@@ -23,7 +23,8 @@ LOG = $(OUT)/log
 
 Pure: $(OUT)/Pure
 
-$(OUT)/Pure: Concurrent/schedule.ML General/ROOT.ML General/alist.ML	\
+$(OUT)/Pure: Concurrent/mailbox.ML Concurrent/receiver.ML		\
+  Concurrent/schedule.ML General/ROOT.ML General/alist.ML		\
   General/balanced_tree.ML General/basics.ML General/buffer.ML		\
   General/file.ML General/graph.ML General/heap.ML General/integer.ML	\
   General/markup.ML General/name_space.ML General/ord_list.ML		\
