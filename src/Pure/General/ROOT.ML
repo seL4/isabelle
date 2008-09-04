@@ -22,6 +22,7 @@ use "secure.ML";
 
 use "integer.ML";
 use "stack.ML";
+use "queue.ML";
 use "heap.ML";
 use "ord_list.ML";
 use "balanced_tree.ML";
