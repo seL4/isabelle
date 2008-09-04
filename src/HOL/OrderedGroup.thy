@@ -234,6 +234,12 @@ proof -
   thus ?thesis by (simp add: eq_commute)
 qed
 
+lemma diff_add_cancel: "a - b + b = a"
+  by (simp add: diff_minus add_assoc)
+
+lemma add_diff_cancel: "a + b - b = a"
+  by (simp add: diff_minus add_assoc)
+
 end
 
 class ab_group_add = minus + uminus + comm_monoid_add +
@@ -281,12 +287,6 @@ lemma diff_diff_eq: "(a - b) - c = a - (b + c)"
   by (simp add: diff_minus add_ac)
 
 lemma diff_diff_eq2: "a - (b - c) = (a + c) - b"
-  by (simp add: diff_minus add_ac)
-
-lemma diff_add_cancel: "a - b + b = a"
-  by (simp add: diff_minus add_ac)
-
-lemma add_diff_cancel: "a + b - b = a"
   by (simp add: diff_minus add_ac)
 
 lemmas compare_rls =
