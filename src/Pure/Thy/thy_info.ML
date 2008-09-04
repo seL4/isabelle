@@ -329,12 +329,12 @@ fun next_task G =
     val finished = filter (task_finished o fst o snd) tasks;
   in
     if not (null finished) then next_task (Graph.del_nodes (map fst finished) G)
-    else if null tasks then (Multithreading.Terminate, G)
+    else if null tasks then (Schedule.Terminate, G)
     else
       (case fold max_task tasks NONE of
-        NONE => (Multithreading.Wait, G)
+        NONE => (Schedule.Wait, G)
       | SOME (name, (body, _)) =>
-         (Multithreading.Task {body = PrintMode.closure body,
+         (Schedule.Task {body = PrintMode.closure body,
            cont = Graph.del_nodes [name], fail = K Graph.empty},
           Graph.map_node name (K Running) G))
   end;
@@ -352,7 +352,7 @@ fun schedule_tasks tasks n =
      (warning (loader_msg "no multithreading within critical section" []);
       schedule_seq tasks)
     else
-      (case Multithreading.schedule (Int.min (m, n)) next_task tasks of
+      (case Schedule.schedule (Int.min (m, n)) next_task tasks of
         [] => ()
       | exns => raise Exn.EXCEPTIONS (exns, ""))
   end;
