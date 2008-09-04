@@ -34,7 +34,7 @@ val tag = Universal.tag () : string list option Universal.tag;
 
 fun print_mode_value () =
   let val modes =
-    (case Multithreading.get_data tag of
+    (case Thread.getLocal tag of
       SOME (SOME modes) => modes
     | _ => NAMED_CRITICAL "print_mode" (fn () => ! print_mode))
   in subtract (op =) [input, internal] modes end;
@@ -42,7 +42,7 @@ fun print_mode_value () =
 fun print_mode_active mode = member (op =) (print_mode_value ()) mode;
 
 fun setmp modes f x =
-  let val orig_modes = (case Multithreading.get_data tag of SOME (SOME ms) => SOME ms | _ => NONE)
+  let val orig_modes = (case Thread.getLocal tag of SOME (SOME ms) => SOME ms | _ => NONE)
   in setmp_thread_data tag orig_modes (SOME modes) f x end;
 
 fun with_modes modes f x = setmp (modes @ print_mode_value ()) f x;

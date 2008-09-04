@@ -512,7 +512,7 @@ val proof_of = cases init_proof I;
 local val tag = Universal.tag () : generic option Universal.tag in
 
 fun thread_data () =
-  (case Multithreading.get_data tag of
+  (case Thread.getLocal tag of
     SOME (SOME context) => SOME context
   | _ => NONE);
 
@@ -521,7 +521,7 @@ fun the_thread_data () =
     SOME context => context
   | _ => error "Unknown context");
 
-fun set_thread_data context = Multithreading.put_data (tag, context);
+fun set_thread_data context = Thread.setLocal (tag, context);
 fun setmp_thread_data context = Library.setmp_thread_data tag (thread_data ()) context;
 
 end;

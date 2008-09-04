@@ -346,9 +346,9 @@ fun setmp flag value f x =
 fun setmp_thread_data tag orig_data data f x =
   uninterruptible (fn restore_attributes => fn () =>
     let
-      val _ = Multithreading.put_data (tag, data);
+      val _ = Thread.setLocal (tag, data);
       val result = Exn.capture (restore_attributes f) x;
-      val _ = Multithreading.put_data (tag, orig_data);
+      val _ = Thread.setLocal (tag, orig_data);
     in Exn.release result end) ();
 
 

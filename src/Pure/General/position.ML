@@ -161,7 +161,7 @@ fun range pos pos' = (encode_range (pos, pos'), pos');
 
 local val tag = Universal.tag () : T Universal.tag in
 
-fun thread_data () = the_default none (Multithreading.get_data tag);
+fun thread_data () = the_default none (Thread.getLocal tag);
 
 fun setmp_thread_data pos f x =
   if ! Output.debugging then f x
