@@ -23,15 +23,15 @@ LOG = $(OUT)/log
 
 Pure: $(OUT)/Pure
 
-$(OUT)/Pure: Concurrent/mailbox.ML Concurrent/receiver.ML		\
-  Concurrent/schedule.ML General/ROOT.ML General/alist.ML		\
-  General/balanced_tree.ML General/basics.ML General/buffer.ML		\
-  General/file.ML General/graph.ML General/heap.ML General/integer.ML	\
-  General/markup.ML General/name_space.ML General/ord_list.ML		\
-  General/output.ML General/path.ML General/position.ML			\
-  General/pretty.ML General/print_mode.ML General/properties.ML		\
-  General/queue.ML General/scan.ML General/secure.ML General/seq.ML	\
-  General/source.ML General/stack.ML General/susp.ML General/symbol.ML	\
+$(OUT)/Pure: Concurrent/mailbox.ML Concurrent/schedule.ML		\
+  General/ROOT.ML General/alist.ML General/balanced_tree.ML		\
+  General/basics.ML General/buffer.ML General/file.ML General/graph.ML	\
+  General/heap.ML General/integer.ML General/markup.ML			\
+  General/name_space.ML General/ord_list.ML General/output.ML		\
+  General/path.ML General/position.ML General/pretty.ML			\
+  General/print_mode.ML General/properties.ML General/queue.ML		\
+  General/scan.ML General/secure.ML General/seq.ML General/source.ML	\
+  General/stack.ML General/susp.ML General/symbol.ML			\
   General/symbol_pos.ML General/table.ML General/url.ML General/xml.ML	\
   General/yxml.ML Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML		\
   Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML Isar/class.ML	\
