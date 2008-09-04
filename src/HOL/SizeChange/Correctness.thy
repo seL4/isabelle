@@ -934,7 +934,7 @@ lemma dthreads_join:
 
 
 
-lemma INF_drop_prefix:
+lemma INFM_drop_prefix:
   "(\<exists>\<^sub>\<infinity>i::nat. i > n \<and> P i) = (\<exists>\<^sub>\<infinity>i. P i)"
   apply (auto simp:INFM_nat)
   apply (drule_tac x = "max m n" in spec)
@@ -1076,7 +1076,7 @@ next
   
   from ths_spec2(2)
   have "\<exists>\<^sub>\<infinity>i. n < i \<and> is_desc_fthread (\<theta>s i) p (s i) (s (Suc i))"
-    unfolding INF_drop_prefix .
+    unfolding INFM_drop_prefix .
   
   hence p2: "\<exists>\<^sub>\<infinity>i. is_desc_fthread ?j\<theta> p (s i) (s (Suc i))"
     apply (rule INFM_mono)
