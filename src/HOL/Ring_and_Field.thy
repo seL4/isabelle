@@ -89,6 +89,8 @@ begin
 
 subclass semiring_0_cancel ..
 
+subclass comm_semiring_0 ..
+
 end
 
 class zero_neq_one = zero + one +
@@ -282,7 +284,7 @@ class comm_ring = comm_semiring + ab_group_add
 begin
 
 subclass ring ..
-subclass comm_semiring_0 ..
+subclass comm_semiring_0_cancel ..
 
 end
 
