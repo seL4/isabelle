@@ -32,8 +32,9 @@ primrec
   "add2 Z n = n"
   "add2 (S m) n = S(add2 m n)"
 
+declare add2.simps [code]
 lemma [code]: "add2 (add2 n m) k = add2 n (add2 m k)"
-  by(induct n) auto
+  by (induct n) auto
 lemma [code]: "add2 n (S m) =  S (add2 n m)"
   by(induct n) auto
 lemma [code]: "add2 n Z = n"

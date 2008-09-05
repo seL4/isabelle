@@ -113,11 +113,9 @@ val _ =
   end;
 
 
-(** certificate theorems **)
+(** logical and syntactical specification of executable code **)
 
-fun string_of_lthms r = case Susp.peek r
- of SOME thms => (map Display.string_of_thm o rev) thms
-  | NONE => ["[...]"];
+(* defining equations with default flag and lazy theorems *)
 
 fun pretty_lthms ctxt r = case Susp.peek r
  of SOME thms => map (ProofContext.pretty_thm ctxt) thms
@@ -130,15 +128,11 @@ fun certificate thy f r =
         val thy_ref = Theory.check_thy thy;
       in Susp.delay (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
 
-
-(** logical and syntactical specification of executable code **)
-
-(* pairs of (selected, deleted) defining equations *)
-
-type sdthms = thm list Susp.T * thm list;
-
-fun add_drop_redundant thm (sels, dels) =
+fun add_drop_redundant verbose thm thms =
   let
+    fun warn thm' = (if verbose
+      then warning ("Code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm')
+      else (); true);
     val thy = Thm.theory_of_thm thm;
     val args_of = snd o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
     val args = args_of thm;
@@ -146,76 +140,40 @@ fun add_drop_redundant thm (sels, dels) =
       | matches (Var _ :: xs) [] = matches xs []
       | matches (_ :: _) [] = false
       | matches (x :: xs) (y :: ys) = Pattern.matches thy (x, y) andalso matches xs ys;
-    fun drop thm' = not (matches args (args_of thm'))
-      orelse (warning ("Code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm'); false);
-    val (keeps, drops) = List.partition drop sels;
-  in (thm :: keeps, dels |> remove Thm.eq_thm_prop thm |> fold (insert Thm.eq_thm_prop) drops) end;
+    fun drop thm' = matches args (args_of thm') andalso warn thm';
+  in thm :: filter_out drop thms end;
 
-fun add_thm thm (sels, dels) =
-  apfst Susp.value (add_drop_redundant thm (Susp.force sels, dels));
+fun add_thm _ thm (false, thms) = (false, Susp.value (add_drop_redundant true thm (Susp.force thms)))
+  | add_thm true thm (true, thms) = (true, Susp.value (Susp.force thms @ [thm]))
+  | add_thm false thm (true, thms) = (false, Susp.value [thm]);
 
-fun add_lthms lthms (sels, []) =
-      (Susp.delay (fn () => fold add_drop_redundant
-        (Susp.force lthms) (Susp.force sels, []) |> fst), [])
-        (*FIXME*)
-  | add_lthms lthms (sels, dels) =
-      fold add_thm (Susp.force lthms) (sels, dels);
+fun add_lthms lthms _ = (false, lthms);
 
-fun del_thm thm (sels, dels) =
-  (Susp.value (remove Thm.eq_thm_prop thm (Susp.force sels)), thm :: dels);
+fun del_thm thm = apsnd (Susp.value o remove Thm.eq_thm_prop thm o Susp.force);
 
-fun del_thms (sels, dels) =
-  let
-    val all_sels = Susp.force sels;
-  in (Susp.value [], rev all_sels @ dels) end;
-
-fun pretty_sdthms ctxt (sels, _) = pretty_lthms ctxt sels;
-
-fun melt _ ([], []) = (false, [])
-  | melt _ ([], ys) = (true, ys)
-  | melt eq (xs, ys) = fold_rev
-      (fn y => fn (t, xs) => (t orelse not (member eq xs y), insert eq y xs)) ys (false, xs);
-
-val melt_thms = melt Thm.eq_thm_prop;
-
-fun melt_lthms (r1, r2) =
-  if Susp.same (r1, r2)
-    then (false, r1)
-  else case Susp.peek r1
-   of SOME [] => (true, r2)
-    | _ => case Susp.peek r2
-       of SOME [] => (true, r1)
-        | _ => (apsnd (Susp.delay o K)) (melt_thms (Susp.force r1, Susp.force r2));
-
-fun melt_sdthms ((sels1, dels1), (sels2, dels2)) =
-  let
-    val (dels_t, dels) = melt_thms (dels1, dels2);
-  in if dels_t
-    then let
-      val (_, sels) = melt_thms
-        (subtract Thm.eq_thm_prop dels2 (Susp.force sels1), Susp.force sels2);
-      val (_, dels) = melt_thms
-        (subtract Thm.eq_thm_prop (Susp.force sels2) dels1, dels2);
-    in ((Susp.delay o K) sels, dels) end
-    else let
-      val (_, sels) = melt_lthms (sels1, sels2);
-    in (sels, dels) end
-  end;
+fun merge_defthms ((true, _), defthms2) = defthms2
+  | merge_defthms (defthms1 as (false, _), (true, _)) = defthms1
+  | merge_defthms ((false, _), defthms2 as (false, _)) = defthms2;
 
 
-(* specification data *)
+(* syntactic datatypes *)
 
 val eq_string = op = : string * string -> bool;
+
 fun eq_dtyp ((vs1, cs1), (vs2, cs2)) = 
   gen_eq_set (eq_pair eq_string (gen_eq_set eq_string)) (vs1, vs2)
     andalso gen_eq_set (eq_fst eq_string) (cs1, cs2);
+
 fun merge_dtyps (tabs as (tab1, tab2)) =
   let
     fun join _ (cos as (_, cos2)) = if eq_dtyp cos then raise Symtab.SAME else cos2;
   in Symtab.join join tabs end;
 
+
+(* specification data *)
+
 datatype spec = Spec of {
-  funcs: sdthms Symtab.table,
+  funcs: (bool * thm list Susp.T) Symtab.table,
   dtyps: ((string * sort) list * (string * typ list) list) Symtab.table,
   cases: (int * string list) Symtab.table * unit Symtab.table
 };
@@ -227,7 +185,7 @@ fun map_spec f (Spec { funcs = funcs, dtyps = dtyps, cases = cases }) =
 fun merge_spec (Spec { funcs = funcs1, dtyps = dtyps1, cases = (cases1, undefs1) },
   Spec { funcs = funcs2, dtyps = dtyps2, cases = (cases2, undefs2) }) =
   let
-    val funcs = Symtab.join (K melt_sdthms) (funcs1, funcs2);
+    val funcs = Symtab.join (K merge_defthms) (funcs1, funcs2);
     val dtyps = merge_dtyps (dtyps1, dtyps2);
     val cases = (Symtab.merge (K true) (cases1, cases2),
       Symtab.merge (K true) (undefs1, undefs2));
@@ -258,6 +216,9 @@ datatype exec = Exec of {
   thmproc: thmproc,
   spec: spec
 };
+
+
+(* code setup data *)
 
 fun mk_exec (thmproc, spec) =
   Exec { thmproc = thmproc, spec = spec };
@@ -398,9 +359,9 @@ fun print_codesetup thy =
   let
     val ctxt = ProofContext.init thy;
     val exec = the_exec thy;
-    fun pretty_func (s, lthms) =
+    fun pretty_func (s, (_, lthms)) =
       (Pretty.block o Pretty.fbreaks) (
-        Pretty.str s :: pretty_sdthms ctxt lthms
+        Pretty.str s :: pretty_lthms ctxt lthms
       );
     fun pretty_dtyp (s, []) =
           Pretty.str s
@@ -518,9 +479,9 @@ fun specific_constraints thy (class, tyco) =
     val funcs = classparams
       |> map_filter (fn c => try (AxClass.param_of_inst thy) (c, tyco))
       |> map (Symtab.lookup ((the_funcs o the_exec) thy))
-      |> (map o Option.map) (Susp.force o fst)
+      |> (map o Option.map) (Susp.force o snd)
       |> maps these
-      |> map (Thm.transfer thy)
+      |> map (Thm.transfer thy);
     fun sorts_of [Type (_, tys)] = map (snd o dest_TVar) tys
       | sorts_of tys = map (snd o dest_TVar) tys;
     val sorts = map (sorts_of o Sign.const_typargs thy o const_of thy) funcs;
@@ -643,8 +604,7 @@ val mk_func = Code_Unit.error_thm (assert_func_typ o Code_Unit.mk_func);
 val mk_liberal_func = Code_Unit.warning_thm (assert_func_typ o Code_Unit.mk_func);
 val mk_default_func = Code_Unit.try_thm (assert_func_typ o Code_Unit.mk_func);
 
-end;
-
+end; (*local*)
 
 
 (** interfaces and attributes **)
@@ -681,70 +641,49 @@ val get_case_data = Symtab.lookup o fst o the_cases o the_exec;
 
 val is_undefined = Symtab.defined o snd o the_cases o the_exec;
 
-fun add_func thm thy =
-  let
-    val func = mk_func thm;
-    val c = const_of_func thy func;
-    val _ = if (is_some o AxClass.class_of_param thy) c
-      then error ("Rejected polymorphic equation for overloaded constant:\n"
-        ^ Display.string_of_thm thm)
-      else ();
-    val _ = if (is_some o get_datatype_of_constr thy) c
-      then error ("Rejected equation for datatype constructor:\n"
-        ^ Display.string_of_thm func)
-      else ();
-  in
-    (map_exec_purge (SOME [c]) o map_funcs) (Symtab.map_default
-      (c, (Susp.value [], [])) (add_thm func)) thy
-  end;
-
-fun add_liberal_func thm thy =
-  case mk_liberal_func thm
-   of SOME func => let
-          val c = const_of_func thy func
-        in if (is_some o AxClass.class_of_param thy) c
-          orelse (is_some o get_datatype_of_constr thy) c
-          then thy
-          else map_exec_purge (SOME [c]) (map_funcs
-            (Symtab.map_default
-              (c, (Susp.value [], [])) (add_thm func))) thy
-        end
-    | NONE => thy;
-
-fun add_default_func thm thy =
-  case mk_default_func thm
-   of SOME func => let
-          val c = const_of_func thy func
-        in if (is_some o AxClass.class_of_param thy) c
-          orelse (is_some o get_datatype_of_constr thy) c
-          then thy
-          else map_exec_purge (SOME [c]) (map_funcs
-          (Symtab.map_default
-            (c, (Susp.value [], [])) (add_thm func))) thy
-        end
-    | NONE => thy;
-
-fun del_func thm thy =
-  case mk_liberal_func thm
-   of SOME func => let
+fun gen_add_func strict default thm thy =
+  case (if strict then SOME o mk_func else mk_liberal_func) thm
+   of SOME func =>
+        let
           val c = const_of_func thy func;
-        in map_exec_purge (SOME [c]) (map_funcs
-          (Symtab.map_entry c (del_thm func))) thy
+          val _ = if strict andalso (is_some o AxClass.class_of_param thy) c
+            then error ("Rejected polymorphic equation for overloaded constant:\n"
+              ^ Display.string_of_thm thm)
+            else ();
+          val _ = if strict andalso (is_some o get_datatype_of_constr thy) c
+            then error ("Rejected equation for datatype constructor:\n"
+              ^ Display.string_of_thm func)
+            else ();
+        in
+          (map_exec_purge (SOME [c]) o map_funcs) (Symtab.map_default
+            (c, (true, Susp.value [])) (add_thm default func)) thy
         end
     | NONE => thy;
 
-fun del_funcs const = map_exec_purge (SOME [const])
-  (map_funcs (Symtab.map_entry const del_thms));
+val add_func = gen_add_func true false;
+val add_liberal_func = gen_add_func false false;
+val add_default_func = gen_add_func false true;
 
-fun add_funcl (const, lthms) thy =
+fun del_func thm thy = case mk_liberal_func thm
+ of SOME func => let
+        val c = const_of_func thy func;
+      in map_exec_purge (SOME [c]) (map_funcs
+        (Symtab.map_entry c (del_thm func))) thy
+      end
+  | NONE => thy;
+
+fun del_funcs c = map_exec_purge (SOME [c])
+  (map_funcs (Symtab.map_entry c (K (false, Susp.value []))));
+
+fun add_funcl (c, lthms) thy =
   let
-    val lthms' = certificate thy (fn thy => certify_const thy const) lthms;
+    val lthms' = certificate thy (fn thy => certify_const thy c) lthms;
       (*FIXME must check compatibility with sort algebra;
         alas, naive checking results in non-termination!*)
   in
-    map_exec_purge (SOME [const])
-      (map_funcs (Symtab.map_default (const, (Susp.value [], []))
-      (add_lthms lthms'))) thy
+    map_exec_purge (SOME [c])
+      (map_funcs (Symtab.map_default (c, (true, Susp.value []))
+        (add_lthms lthms'))) thy
   end;
 
 val add_default_func_attr = Attrib.internal (fn _ => Thm.declaration_attribute
@@ -906,7 +845,7 @@ local
 
 fun get_funcs thy const =
   Symtab.lookup ((the_funcs o the_exec) thy) const
-  |> Option.map (Susp.force o fst)
+  |> Option.map (Susp.force o snd)
   |> these
   |> map (Thm.transfer thy);
 
@@ -953,9 +892,4 @@ fun change_yield thy = Code.change_yield_data data_op thy;
 
 end;
 
-structure Code : CODE =
-struct
-
-open Code;
-
-end;
+structure Code : CODE = struct open Code; end;

@@ -381,48 +381,18 @@ The list of all defining equations in a theory may be inspected
 
   \lstsml{Thy/examples/pick1.ML}
 
-  \noindent It might be convenient to remove the pointless original
-  equation, using the \emph{func del} attribute:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemmas}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}\ {\isacharequal}\ pick{\isachardot}simps\ \isanewline
-\isanewline
-\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
-\ pick\ \ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}pick{\isadigit{2}}{\isachardot}ML{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-\lstsml{Thy/examples/pick2.ML}
-
-  \noindent Syntactic redundancies are implicitly dropped. For example,
+  \noindent The policy is that \emph{default equations} stemming from
+  \isa{{\isasymDEFINITION}},
+  \isa{{\isasymPRIMREC}}, \isa{{\isasymFUN}},
+  \isa{{\isasymFUNCTION}}, \isa{{\isasymCONSTDEFS}},
+  \isa{{\isasymRECDEF}} statements are discarded as soon as an
+  equation is explicitly selected by means of \emph{code func}.
+  Further applications of \emph{code func} add theorems incrementally,
+  but syntactic redundancies are implicitly dropped.  For example,
   using a modified version of the \isa{fac} function
   as defining equation, the then redundant (since
   syntactically subsumed) original defining equations
-  are dropped, resulting in a warning:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}fac\ n\ {\isacharequal}\ {\isacharparenleft}case\ n\ of\ {\isadigit{0}}\ {\isasymRightarrow}\ {\isadigit{1}}\ {\isacharbar}\ Suc\ m\ {\isasymRightarrow}\ n\ {\isacharasterisk}\ fac\ m{\isacharparenright}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-\ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}cases\ n{\isacharparenright}\ simp{\isacharunderscore}all%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\isacommand{export{\isacharunderscore}code}\isamarkupfalse%
-\ fac\ \isakeyword{in}\ SML\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}fac{\isacharunderscore}case{\isachardot}ML{\isachardoublequoteclose}%
-\begin{isamarkuptext}%
-\lstsml{Thy/examples/fac_case.ML}
+  are dropped.
 
   \begin{warn}
     The attributes \emph{code} and \emph{code del}
@@ -620,7 +590,7 @@ Before selected function theorems are turned into abstract
 
   The \emph{simpset} allows to employ the full generality of the Isabelle
   simplifier.  Due to the interpretation of theorems
-  of defining equations, rewrites are applied to the right
+  as defining equations, rewrites are applied to the right
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   An important special case are \emph{inline theorems} which may be
@@ -703,7 +673,7 @@ Before selected function theorems are turned into abstract
   list of function theorems, provided that neither the heading
   constant nor its type change.  The \isa{{\isadigit{0}}} / \isa{Suc}
   pattern elimination implemented in
-  theory \isa{Efficient{\isacharunderscore}Nat} (\secref{eff_nat}) uses this
+  theory \isa{Efficient{\isacharunderscore}Nat} (see \secref{eff_nat}) uses this
   interface.
 
   \noindent The current setup of the preprocessor may be inspected using
@@ -984,7 +954,7 @@ Conceptually, any datatype is spanned by a set of
   extend this table;  as an example, we will develope an alternative
   representation of natural numbers as binary digits, whose
   size does increase logarithmically with its value, not linear
-  \footnote{Indeed, the \isa{Efficient{\isacharunderscore}Nat} theory \ref{eff_nat}
+  \footnote{Indeed, the \isa{Efficient{\isacharunderscore}Nat} theory (see \ref{eff_nat})
     does something similar}.  First, the digit representation:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1422,7 +1392,7 @@ The serializer provides ML interfaces to set up
   pretty serializations for expressions like lists, numerals
   and characters;  these are
   monolithic stubs and should only be used with the
-  theories introduces in \secref{sec:library}.%
+  theories introduced in \secref{sec:library}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1537,7 +1507,7 @@ This Pure module implements the core notions of
   \item \verb|Code.map_pre|~\isa{f}~\isa{thy} changes
      the preprocessor simpset.
 
-    \item \verb|Code.add_functrans|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
+  \item \verb|Code.add_functrans|~\isa{{\isacharparenleft}name{\isacharcomma}\ f{\isacharparenright}}~\isa{thy} adds
      function transformer \isa{f} (named \isa{name}) to executable content;
      \isa{f} is a transformer of the defining equations belonging
      to a certain function definition, depending on the
@@ -1580,20 +1550,20 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{CodeUnit.read\_const}\verb|CodeUnit.read_const: theory -> string -> string| \\
-  \indexml{CodeUnit.head\_func}\verb|CodeUnit.head_func: thm -> string * ((string * sort) list * typ)| \\
-  \indexml{CodeUnit.rewrite\_func}\verb|CodeUnit.rewrite_func: MetaSimplifier.simpset -> thm -> thm| \\
+  \indexml{Code\_Unit.read\_const}\verb|Code_Unit.read_const: theory -> string -> string| \\
+  \indexml{Code\_Unit.head\_func}\verb|Code_Unit.head_func: thm -> string * ((string * sort) list * typ)| \\
+  \indexml{Code\_Unit.rewrite\_func}\verb|Code_Unit.rewrite_func: MetaSimplifier.simpset -> thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|CodeUnit.read_const|~\isa{thy}~\isa{s}
+  \item \verb|Code_Unit.read_const|~\isa{thy}~\isa{s}
      reads a constant as a concrete term expression \isa{s}.
 
-  \item \verb|CodeUnit.head_func|~\isa{thm}
+  \item \verb|Code_Unit.head_func|~\isa{thm}
      extracts the constant and its type from a defining equation \isa{thm}.
 
-  \item \verb|CodeUnit.rewrite_func|~\isa{ss}~\isa{thm}
+  \item \verb|Code_Unit.rewrite_func|~\isa{ss}~\isa{thm}
      rewrites a defining equation \isa{thm} with a simpset \isa{ss};
      only arguments and right hand side are rewritten,
      not the head of the defining equation.

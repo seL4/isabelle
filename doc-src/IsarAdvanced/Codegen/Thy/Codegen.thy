@@ -310,32 +310,18 @@ text {*
 
   \lstsml{Thy/examples/pick1.ML}
 
-  \noindent It might be convenient to remove the pointless original
-  equation, using the \emph{func del} attribute:
-*}
-
-declare pick.simps [code func del]
-
-export_code pick (*<*)in SML(*>*) in SML file "examples/pick2.ML"
-
-text {*
-  \lstsml{Thy/examples/pick2.ML}
-
-  \noindent Syntactic redundancies are implicitly dropped. For example,
+  \noindent The policy is that \emph{default equations} stemming from
+  @{text "\<DEFINITION>"},
+  @{text "\<PRIMREC>"}, @{text "\<FUN>"},
+  @{text "\<FUNCTION>"}, @{text "\<CONSTDEFS>"},
+  @{text "\<RECDEF>"} statements are discarded as soon as an
+  equation is explicitly selected by means of \emph{code func}.
+  Further applications of \emph{code func} add theorems incrementally,
+  but syntactic redundancies are implicitly dropped.  For example,
   using a modified version of the @{const fac} function
   as defining equation, the then redundant (since
   syntactically subsumed) original defining equations
-  are dropped, resulting in a warning:
-*}
-
-lemma [code func]:
-  "fac n = (case n of 0 \<Rightarrow> 1 | Suc m \<Rightarrow> n * fac m)"
-  by (cases n) simp_all
-
-export_code fac (*<*)in SML(*>*)in SML file "examples/fac_case.ML"
-
-text {*
-  \lstsml{Thy/examples/fac_case.ML}
+  are dropped.
 
   \begin{warn}
     The attributes \emph{code} and \emph{code del}

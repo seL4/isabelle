@@ -19,6 +19,15 @@ interface instead.
 
 *** Pure ***
 
+* Different bookkeeping for code equations:
+  a) On theory merge, the last set of code equations for a particular constant
+     is taken (in accordance with the policy applied by other parts of the
+     code generator framework).
+  b) Code equations stemming from explicit declarations (e.g. code attribute)
+     gain priority over default code equations stemming from definition, primrec,
+     fun etc.
+  INCOMPATIBILITY.
+
 * Global versions of theorems stemming from classes do not carry
 a parameter prefix any longer.  INCOMPATIBILITY.
 
