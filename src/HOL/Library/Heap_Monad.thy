@@ -56,10 +56,6 @@ lemma execute_heap [simp]:
   by (simp add: heap_def)
 
 definition
-  run :: "'a Heap \<Rightarrow> 'a Heap" where
-  run_drop [code del]: "run f = f"
-
-definition
   bindM :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" (infixl ">>=" 54) where
   [code del]: "f >>= g = Heap (\<lambda>h. case execute f h of
                   (Inl x, h') \<Rightarrow> execute (g x) h'
@@ -129,7 +125,7 @@ notation (latex output)
   "return" ("\<^raw:{\textsf{return}}>")
 
 translations
-  "_do f" => "CONST run f"
+  "_do f" => "f"
   "_bindM x f g" => "f \<guillemotright>= (\<lambda>x. g)"
   "_chainM f g" => "f \<guillemotright> g"
   "_let x t f" => "CONST Let t (\<lambda>x. f)"
@@ -140,18 +136,19 @@ let
   fun dest_abs_eta (Abs (abs as (_, ty, _))) =
         let
           val (v, t) = Syntax.variant_abs abs;
-        in ((v, ty), t) end
+        in (Free (v, ty), t) end
     | dest_abs_eta t =
         let
           val (v, t) = Syntax.variant_abs ("", dummyT, t $ Bound 0);
-        in ((v, dummyT), t) end
+        in (Free (v, dummyT), t) end;
   fun unfold_monad (Const (@{const_syntax bindM}, _) $ f $ g) =
         let
-          val ((v, ty), g') = dest_abs_eta g;
+          val (v, g') = dest_abs_eta g;
+          val vs = fold_aterms (fn Free (v, _) => insert (op =) v | _ => I) v [];
           val v_used = fold_aterms
-            (fn Free (w, _) => (fn s => s orelse v = w) | _ => I) g' false;
+            (fn Free (w, _) => (fn s => s orelse member (op =) vs w) | _ => I) g' false;
         in if v_used then
-          Const ("_bindM", dummyT) $ Free (v, ty) $ f $ unfold_monad g'
+          Const ("_bindM", dummyT) $ v $ f $ unfold_monad g'
         else
           Const ("_chainM", dummyT) $ f $ unfold_monad g'
         end
@@ -159,32 +156,27 @@ let
         Const ("_chainM", dummyT) $ f $ unfold_monad g
     | unfold_monad (Const (@{const_syntax Let}, _) $ f $ g) =
         let
-          val ((v, ty), g') = dest_abs_eta g;
-        in Const ("_let", dummyT) $ Free (v, ty) $ f $ unfold_monad g' end
+          val (v, g') = dest_abs_eta g;
+        in Const ("_let", dummyT) $ v $ f $ unfold_monad g' end
     | unfold_monad (Const (@{const_syntax Pair}, _) $ f) =
-        Const ("return", dummyT) $ f
+        Const (@{const_syntax return}, dummyT) $ f
     | unfold_monad f = f;
-  fun tr' (f::ts) =
-    list_comb (Const ("_do", dummyT) $ unfold_monad f, ts)
-in [(@{const_syntax "run"}, tr')] end;
+  fun contains_bindM (Const (@{const_syntax bindM}, _) $ _ $ _) = true
+    | contains_bindM (Const (@{const_syntax Let}, _) $ _ $ Abs (_, _, t)) =
+        contains_bindM t;
+  fun bindM_monad_tr' (f::g::ts) = list_comb
+    (Const ("_do", dummyT) $ unfold_monad (Const (@{const_syntax bindM}, dummyT) $ f $ g), ts);
+  fun Let_monad_tr' (f :: (g as Abs (_, _, g')) :: ts) = if contains_bindM g' then list_comb
+      (Const ("_do", dummyT) $ unfold_monad (Const (@{const_syntax Let}, dummyT) $ f $ g), ts)
+    else raise Match;
+in [
+  (@{const_syntax bindM}, bindM_monad_tr'),
+  (@{const_syntax Let}, Let_monad_tr')
+] end;
 *}
 
 
 subsection {* Monad properties *}
-
-subsubsection {* Superfluous runs *}
-
-text {* @{term run} is just a doodle *}
-
-lemma run_simp [simp]:
-  "\<And>f. run (run f) = run f"
-  "\<And>f g. run f \<guillemotright>= g = f \<guillemotright>= g"
-  "\<And>f g. run f \<guillemotright> g = f \<guillemotright> g"
-  "\<And>f g. f \<guillemotright>= (\<lambda>x. run g) = f \<guillemotright>= (\<lambda>x. g)"
-  "\<And>f g. f \<guillemotright> run g = f \<guillemotright> g"
-  "\<And>f. f = run g \<longleftrightarrow> f = g"
-  "\<And>f. run f = g \<longleftrightarrow> f = g"
-  unfolding run_drop by rule+
 
 subsubsection {* Monad laws *}
 
@@ -293,7 +285,6 @@ subsubsection {* SML and OCaml *}
 code_type Heap (SML "unit/ ->/ _")
 code_const Heap (SML "raise/ (Fail/ \"bare Heap\")")
 code_const "op \<guillemotright>=" (SML "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())")
-code_const run (SML "_")
 code_const return (SML "!(fn/ ()/ =>/ _)")
 code_const "Heap_Monad.Fail" (SML "Fail")
 code_const "Heap_Monad.raise_exc" (SML "!(fn/ ()/ =>/ raise/ _)")
@@ -301,7 +292,6 @@ code_const "Heap_Monad.raise_exc" (SML "!(fn/ ()/ =>/ raise/ _)")
 code_type Heap (OCaml "_")
 code_const Heap (OCaml "failwith/ \"bare Heap\"")
 code_const "op \<guillemotright>=" (OCaml "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())")
-code_const run (OCaml "_")
 code_const return (OCaml "!(fun/ ()/ ->/ _)")
 code_const "Heap_Monad.Fail" (OCaml "Failure")
 code_const "Heap_Monad.raise_exc" (OCaml "!(fun/ ()/ ->/ raise/ _)")
@@ -416,7 +406,7 @@ text {* Monad *}
 
 code_type Heap (Haskell "ST/ RealWorld/ _")
 code_const Heap (Haskell "error/ \"bare Heap\"")
-code_monad run "op \<guillemotright>=" Haskell
+code_monad "op \<guillemotright>=" Haskell
 code_const return (Haskell "return")
 code_const "Heap_Monad.Fail" (Haskell "_")
 code_const "Heap_Monad.raise_exc" (Haskell "error")

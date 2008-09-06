@@ -4,7 +4,6 @@ begin
 
 text {* We prove QuickSort correct in the Relational Calculus. *}
 
-
 definition swap :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap"
 where
   "swap arr i j = (
@@ -21,7 +20,7 @@ lemma swap_permutes:
   shows "multiset_of (get_array a h') 
   = multiset_of (get_array a h)"
   using assms
-  unfolding swap_def run_drop
+  unfolding swap_def
   by (auto simp add: Heap.length_def multiset_of_swap dest: sym [of _ "h'"] elim!: crelE crel_nth crel_return crel_upd)
 
 function part1 :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat Heap"
@@ -49,7 +48,7 @@ lemma part_permutes:
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
   thus ?case
-    unfolding part1.simps [of a l r p] run_drop
+    unfolding part1.simps [of a l r p]
     by (elim crelE crel_if crel_return crel_nth) (auto simp add: swap_permutes)
 qed
 
@@ -65,7 +64,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   proof (cases "r \<le> l")
     case True (* Terminating case *)
     with cr `l \<le> r` show ?thesis
-      unfolding part1.simps[of a l r p] run_drop
+      unfolding part1.simps[of a l r p]
       by (elim crelE crel_if crel_return crel_nth) auto
   next
     case False (* recursive case *)
@@ -76,7 +75,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
       case True
       with cr False
       have rec1: "crel (part1 a (l + 1) r p) h h' rs"
-        unfolding part1.simps[of a l r p] run_drop
+        unfolding part1.simps[of a l r p]
         by (elim crelE crel_nth crel_if crel_return) auto
       from rec_condition have "l + 1 \<le> r" by arith
       from 1(1)[OF rec_condition True rec1 `l + 1 \<le> r`]
@@ -86,7 +85,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
       with rec_condition cr
       obtain h1 where swp: "crel (swap a l r) h h1 ()"
         and rec2: "crel (part1 a l (r - 1) p) h1 h' rs"
-        unfolding part1.simps[of a l r p] run_drop
+        unfolding part1.simps[of a l r p]
         by (elim crelE crel_nth crel_if crel_return) auto
       from rec_condition have "l \<le> r - 1" by arith
       from 1(2) [OF rec_condition False rec2 `l \<le> r - 1`] show ?thesis by fastsimp
@@ -106,12 +105,12 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   proof (cases "r \<le> l")
     case True (* Terminating case *)
     with cr show ?thesis
-      unfolding part1.simps[of a l r p] run_drop
+      unfolding part1.simps[of a l r p]
       by (elim crelE crel_if crel_return crel_nth) auto
   next
     case False (* recursive case *)
     with cr 1 show ?thesis
-      unfolding part1.simps [of a l r p] swap_def run_drop
+      unfolding part1.simps [of a l r p] swap_def
       by (auto elim!: crelE crel_if crel_nth crel_return crel_upd) fastsimp
   qed
 qed
@@ -128,7 +127,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   proof (cases "r \<le> l")
     case True (* Terminating case *)
     with cr show ?thesis
-      unfolding part1.simps[of a l r p] run_drop
+      unfolding part1.simps[of a l r p]
       by (elim crelE crel_if crel_return crel_nth) auto
   next
     case False (* recursive case *)
@@ -139,7 +138,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
       case True
       with cr False
       have rec1: "crel (part1 a (l + 1) r p) h h' rs"
-        unfolding part1.simps[of a l r p] run_drop
+        unfolding part1.simps[of a l r p]
         by (elim crelE crel_nth crel_if crel_return) auto
       from 1(1)[OF rec_condition True rec1]
       show ?thesis by fastsimp
@@ -148,11 +147,11 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
       with rec_condition cr
       obtain h1 where swp: "crel (swap a l r) h h1 ()"
         and rec2: "crel (part1 a l (r - 1) p) h1 h' rs"
-        unfolding part1.simps[of a l r p] run_drop
+        unfolding part1.simps[of a l r p]
         by (elim crelE crel_nth crel_if crel_return) auto
       from swp rec_condition have
         "\<forall>i. i < l \<or> r < i \<longrightarrow> get_array a h ! i = get_array a h1 ! i"
-	unfolding swap_def run_drop
+	unfolding swap_def
 	by (elim crelE crel_nth crel_upd crel_return) auto
       with 1(2) [OF rec_condition False rec2] show ?thesis by fastsimp
     qed
@@ -173,7 +172,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   proof (cases "r \<le> l")
     case True (* Terminating case *)
     with cr have "rs = r"
-      unfolding part1.simps[of a l r p] run_drop
+      unfolding part1.simps[of a l r p]
       by (elim crelE crel_if crel_return crel_nth) auto
     with True
     show ?thesis by auto
@@ -186,7 +185,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
       case True
       with lr cr
       have rec1: "crel (part1 a (l + 1) r p) h h' rs"
-        unfolding part1.simps[of a l r p] run_drop
+        unfolding part1.simps[of a l r p]
         by (elim crelE crel_nth crel_if crel_return) auto
       from True part_outer_remains[OF rec1] have a_l: "get_array a h' ! l \<le> p"
 	by fastsimp
@@ -198,10 +197,10 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
       with lr cr
       obtain h1 where swp: "crel (swap a l r) h h1 ()"
         and rec2: "crel (part1 a l (r - 1) p) h1 h' rs"
-        unfolding part1.simps[of a l r p] run_drop
+        unfolding part1.simps[of a l r p]
         by (elim crelE crel_nth crel_if crel_return) auto
       from swp False have "get_array a h1 ! r \<ge> p"
-	unfolding swap_def run_drop
+	unfolding swap_def
 	by (auto simp add: Heap.length_def elim!: crelE crel_nth crel_upd crel_return)
       with part_outer_remains [OF rec2] lr have a_r: "get_array a h' ! r \<ge> p"
 	by fastsimp
@@ -232,7 +231,7 @@ lemma partition_permutes:
   = multiset_of (get_array a h)"
 proof -
     from assms part_permutes swap_permutes show ?thesis
-      unfolding partition.simps run_drop
+      unfolding partition.simps
       by (elim crelE crel_return crel_nth crel_if crel_upd) auto
 qed
 
@@ -241,7 +240,7 @@ lemma partition_length_remains:
   shows "Heap.length a h = Heap.length a h'"
 proof -
   from assms part_length_remains show ?thesis
-    unfolding partition.simps run_drop swap_def
+    unfolding partition.simps swap_def
     by (elim crelE crel_return crel_nth crel_if crel_upd) auto
 qed
 
@@ -251,7 +250,7 @@ lemma partition_outer_remains:
   shows "\<forall>i. i < l \<or> r < i \<longrightarrow> get_array (a::nat array) h ! i = get_array a h' ! i"
 proof -
   from assms part_outer_remains part_returns_index_in_bounds show ?thesis
-    unfolding partition.simps swap_def run_drop
+    unfolding partition.simps swap_def
     by (elim crelE crel_return crel_nth crel_if crel_upd) fastsimp
 qed
 
@@ -263,7 +262,7 @@ proof -
   from crel obtain middle h'' p where part: "crel (part1 a l (r - 1) p) h h'' middle"
     and rs_equals: "rs = (if get_array a h'' ! middle \<le> get_array a h ! r then middle + 1
          else middle)"
-    unfolding partition.simps run_drop
+    unfolding partition.simps
     by (elim crelE crel_return crel_nth crel_if crel_upd) simp
   from `l < r` have "l \<le> r - 1" by arith
   from part_returns_index_in_bounds[OF part this] rs_equals `l < r` show ?thesis by auto
@@ -280,17 +279,17 @@ proof -
     and swap: "crel (swap a rs r) h1 h' ()"
     and rs_equals: "rs = (if get_array a h1 ! middle \<le> ?pivot then middle + 1
          else middle)"
-    unfolding partition.simps run_drop
+    unfolding partition.simps
     by (elim crelE crel_return crel_nth crel_if crel_upd) simp
   from swap have h'_def: "h' = Heap.upd a r (get_array a h1 ! rs)
     (Heap.upd a rs (get_array a h1 ! r) h1)"
-    unfolding swap_def run_drop
+    unfolding swap_def
     by (elim crelE crel_return crel_nth crel_upd) simp
   from swap have in_bounds: "r < Heap.length a h1 \<and> rs < Heap.length a h1"
-    unfolding swap_def run_drop
+    unfolding swap_def
     by (elim crelE crel_return crel_nth crel_upd) simp
   from swap have swap_length_remains: "Heap.length a h1 = Heap.length a h'"
-    unfolding swap_def run_drop by (elim crelE crel_return crel_nth crel_upd) auto
+    unfolding swap_def by (elim crelE crel_return crel_nth crel_upd) auto
   from `l < r` have "l \<le> r - 1" by simp 
   note middle_in_bounds = part_returns_index_in_bounds[OF part this]
   from part_outer_remains[OF part] `l < r`
@@ -298,7 +297,7 @@ proof -
     by fastsimp
   with swap
   have right_remains: "get_array a h ! r = get_array a h' ! rs"
-    unfolding swap_def run_drop
+    unfolding swap_def
     by (auto simp add: Heap.length_def elim!: crelE crel_return crel_nth crel_upd) (cases "r = rs", auto)
   from part_partitions [OF part]
   show ?thesis
@@ -414,7 +413,7 @@ lemma quicksort_permutes:
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
   with partition_permutes show ?case
-    unfolding quicksort.simps [of a l r] run_drop
+    unfolding quicksort.simps [of a l r]
     by (elim crel_if crelE crel_assert crel_return) auto
 qed
 
@@ -425,7 +424,7 @@ using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
   with partition_length_remains show ?case
-    unfolding quicksort.simps [of a l r] run_drop
+    unfolding quicksort.simps [of a l r]
     by (elim crel_if crelE crel_assert crel_return) auto
 qed
 
@@ -463,7 +462,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       ultimately have "get_array a h ! i= get_array a h' ! i" by simp
     }
     with cr show ?thesis
-      unfolding quicksort.simps [of a l r] run_drop
+      unfolding quicksort.simps [of a l r]
       by (elim crel_if crelE crel_assert crel_return) auto
   qed
 qed
@@ -472,7 +471,7 @@ lemma quicksort_is_skip:
   assumes "crel (quicksort a l r) h h' rs"
   shows "r \<le> l \<longrightarrow> h = h'"
   using assms
-  unfolding quicksort.simps [of a l r] run_drop
+  unfolding quicksort.simps [of a l r]
   by (elim crel_if crel_return) auto
  
 lemma quicksort_sorts:
@@ -544,7 +543,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
 	by (auto simp add: set_sublist' dest: le_trans [of _ "get_array a h' ! p"])
     }
     with True cr show ?thesis
-      unfolding quicksort.simps [of a l r] run_drop
+      unfolding quicksort.simps [of a l r]
       by (elim crel_if crel_return crelE crel_assert) auto
   qed
 qed
@@ -577,7 +576,7 @@ lemma noError_part1:
 proof (induct a l r p arbitrary: h rule: part1.induct)
   case (1 a l r p)
   thus ?case
-    unfolding part1.simps [of a l r] swap_def run_drop
+    unfolding part1.simps [of a l r] swap_def
     by (auto intro!: noError_if noErrorI noError_return noError_nth noError_upd elim!: crelE crel_upd crel_nth crel_return)
 qed
 
@@ -585,7 +584,7 @@ lemma noError_partition:
   assumes "l < r" "l < Heap.length a h" "r < Heap.length a h"
   shows "noError (partition a l r) h"
 using assms
-unfolding partition.simps swap_def run_drop
+unfolding partition.simps swap_def
 apply (auto intro!: noError_if noErrorI noError_return noError_nth noError_upd noError_part1 elim!: crelE crel_upd crel_nth crel_return)
 apply (frule part_length_remains)
 apply (frule part_returns_index_in_bounds)
@@ -604,7 +603,7 @@ using assms
 proof (induct a l r arbitrary: h rule: quicksort.induct)
   case (1 a l ri h)
   thus ?case
-    unfolding quicksort.simps [of a l ri] run_drop
+    unfolding quicksort.simps [of a l ri]
     apply (auto intro!: noError_if noErrorI noError_return noError_nth noError_upd noError_assert noError_partition)
     apply (frule partition_returns_index_in_bounds)
     apply auto
@@ -614,7 +613,7 @@ proof (induct a l r arbitrary: h rule: quicksort.induct)
     apply (subgoal_tac "Suc r \<le> ri \<or> r = ri") 
     apply (erule disjE)
     apply auto
-    unfolding quicksort.simps [of a "Suc ri" ri] run_drop
+    unfolding quicksort.simps [of a "Suc ri" ri]
     apply (auto intro!: noError_if noError_return)
     done
 qed

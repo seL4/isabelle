@@ -57,7 +57,7 @@ proof (rule Heap_eqI)
   obtain len h' where "Heap_Monad.execute (Array.length a) h = (len, h')"
     by (cases "Heap_Monad.execute (Array.length a) h")
   then show "Heap_Monad.execute (upd i x a \<guillemotright> return a) h = Heap_Monad.execute (upd i x a) h"
-    by (auto simp add: upd_def bindM_def run_drop split: sum.split)
+    by (auto simp add: upd_def bindM_def split: sum.split)
 qed
 
 

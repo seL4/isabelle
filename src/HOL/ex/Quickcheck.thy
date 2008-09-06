@@ -27,6 +27,25 @@ end
 
 text {* Datatypes *}
 
+definition
+  collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
+  "collapse f = (do g \<leftarrow> f; g done)"
+
+ML {*
+structure StateMonad =
+struct
+
+fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
+fun liftT' sT = sT --> sT;
+
+fun return T sT x = Const (@{const_name return}, T --> liftT T sT) $ x;
+
+fun scomp T1 T2 sT f g = Const (@{const_name scomp},
+  liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
+
+end;
+*}
+
 lemma random'_if:
   fixes random' :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> seed"
   assumes "random' 0 j = undefined"
@@ -62,7 +81,7 @@ let
         mk_scomp_split thy ty this_ty random)
           args return;
       val is_rec = exists (snd o fst) args;
-    in (is_rec, StateMonad.run (term_ty this_ty) @{typ seed} t) end;
+    in (is_rec, t) end;
   fun mk_conss thy ty [] = NONE
     | mk_conss thy ty [(_, t)] = SOME t
     | mk_conss thy ty ts = SOME (mk_collapse thy (term_ty ty) $

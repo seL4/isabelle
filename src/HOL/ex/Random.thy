@@ -55,18 +55,6 @@ lemma if_same:
   "(if b then f x else f y) = f (if b then x else y)"
   by (cases b) simp_all
 
-(*lemma seed_invariant:
-  assumes "seed_invariant (index_of_nat v, index_of_nat w)"
-    and "(index_of_nat z, (index_of_nat v', index_of_nat w')) = next (index_of_nat v, index_of_nat w)"
-  shows "seed_invariant (index_of_nat v', index_of_nat w')"
-using assms
-apply (auto simp add: seed_invariant_def)
-apply (auto simp add: minus_shift_def Let_def)
-apply (simp_all add: if_same cong del: if_cong)
-apply safe
-unfolding not_less
-oops*)
-
 definition
   split_seed :: "seed \<Rightarrow> seed \<times> seed"
 where
@@ -109,7 +97,7 @@ proof -
     "range_aux (log 2147483561 k) 1 s = (v, w)"
     by (cases "range_aux (log 2147483561 k) 1 s")
   with assms show ?thesis
-    by (simp add: range_def run_def scomp_def split_def del: range_aux.simps log.simps)
+    by (simp add: monad_collapse range_def del: range_aux.simps log.simps)
 qed
 
 definition
@@ -130,7 +118,7 @@ proof -
   then have
     "nat_of_index (fst (range (index_of_nat (length xs)) s)) < length xs" by simp
   then show ?thesis
-    by (auto simp add: select_def run_def scomp_def split_def)
+    by (auto simp add: monad_collapse select_def)
 qed
 
 definition
@@ -143,7 +131,7 @@ where
 
 lemma select_default_zero:
   "fst (select_default 0 x y s) = y"
-  by (simp add: run_def scomp_def split_def select_default_def)
+  by (simp add: monad_collapse select_default_def)
 
 lemma select_default_code [code]:
   "select_default k x y = (if k = 0 then do
@@ -157,7 +145,7 @@ proof (cases "k = 0")
   case False then show ?thesis by (simp add: select_default_def)
 next
   case True then show ?thesis
-    by (simp add: run_def scomp_def split_def select_default_def expand_fun_eq range_def)
+    by (simp add: monad_collapse select_default_def range_def)
 qed
 
 
@@ -192,3 +180,4 @@ end;
 *}
 
 end
+

@@ -425,50 +425,45 @@ in Literals {
 
 (** optional monad syntax **)
 
-fun implode_monad c_bind t =
-  let
-    fun dest_monad (IConst (c, _) `$ t1 `$ t2) =
-          if c = c_bind
-            then case Code_Thingol.split_abs t2
-             of SOME (((v, pat), ty), t') =>
-                  SOME ((SOME (((SOME v, pat), ty), true), t1), t')
-              | NONE => NONE
-            else NONE
-      | dest_monad t = case Code_Thingol.split_let t
-           of SOME (((pat, ty), tbind), t') =>
-                SOME ((SOME (((NONE, SOME pat), ty), false), tbind), t')
-            | NONE => NONE;
-  in Code_Thingol.unfoldr dest_monad t end;
-
 fun pretty_haskell_monad c_bind =
   let
-    fun pretty pr thm pat vars fxy [(t, _)] =
-      let
-        val pr_bind = pr_haskell_bind (K (K pr)) thm;
-        fun pr_monad (NONE, t) vars =
-              (semicolon [pr vars NOBR t], vars)
-          | pr_monad (SOME (bind, true), t) vars = vars
-              |> pr_bind NOBR bind
-              |>> (fn p => semicolon [p, str "<-", pr vars NOBR t])
-          | pr_monad (SOME (bind, false), t) vars = vars
-              |> pr_bind NOBR bind
-              |>> (fn p => semicolon [str "let", p, str "=", pr vars NOBR t]);
-        val (binds, t) = implode_monad c_bind t;
-        val (ps, vars') = fold_map pr_monad binds vars;
-      in (brackify fxy o single o Pretty.enclose "do {" "}") (ps @| pr vars' NOBR t) end;
-  in (1, pretty) end;
+    fun dest_bind t1 t2 = case Code_Thingol.split_abs t2
+     of SOME (((v, pat), ty), t') =>
+          SOME ((SOME (((SOME v, pat), ty), true), t1), t')
+      | NONE => NONE;
+    fun dest_monad (IConst (c, _) `$ t1 `$ t2) =
+          if c = c_bind then dest_bind t1 t2
+          else NONE
+      | dest_monad t = case Code_Thingol.split_let t
+         of SOME (((pat, ty), tbind), t') =>
+              SOME ((SOME (((NONE, SOME pat), ty), false), tbind), t')
+          | NONE => NONE;
+    val implode_monad = Code_Thingol.unfoldr dest_monad;
+    fun pr_monad pr_bind pr (NONE, t) vars =
+          (semicolon [pr vars NOBR t], vars)
+      | pr_monad pr_bind pr (SOME (bind, true), t) vars = vars
+          |> pr_bind NOBR bind
+          |>> (fn p => semicolon [p, str "<-", pr vars NOBR t])
+      | pr_monad pr_bind pr (SOME (bind, false), t) vars = vars
+          |> pr_bind NOBR bind
+          |>> (fn p => semicolon [str "let", p, str "=", pr vars NOBR t]);
+    fun pretty pr thm pat vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
+     of SOME (bind, t') => let
+          val (binds, t'') = implode_monad t'
+          val (ps, vars') = fold_map (pr_monad (pr_haskell_bind (K (K pr)) thm) pr) (bind :: binds) vars;
+        in (brackify fxy o single o Pretty.enclose "do {" "}" o Pretty.breaks) (ps @| pr vars' NOBR t'') end
+      | NONE => brackify_infix (1, L) fxy
+          [pr vars (INFX (1, L)) t1, str ">>=", pr vars (INFX (1, X)) t2]
+  in (2, pretty) end;
 
-fun add_monad target' raw_c_run raw_c_bind thy =
+fun add_monad target' raw_c_bind thy =
   let
-    val c_run = Code_Unit.read_const thy raw_c_run;
     val c_bind = Code_Unit.read_const thy raw_c_bind;
     val c_bind' = Code_Name.const thy c_bind;
   in if target = target' then
     thy
-    |> Code_Target.add_syntax_const target c_run
-        (SOME (pretty_haskell_monad c_bind'))
     |> Code_Target.add_syntax_const target c_bind
-        (Code_Printer.simple_const_syntax (SOME (Code_Printer.parse_infix fst (L, 1) ">>=")))
+        (SOME (pretty_haskell_monad c_bind'))
   else error "Only Haskell target allows for monad syntax" end;
 
 
@@ -482,9 +477,8 @@ fun isar_seri_haskell module =
 
 val _ =
   OuterSyntax.command "code_monad" "define code syntax for monads" OuterKeyword.thy_decl (
-    OuterParse.term_group -- OuterParse.term_group -- OuterParse.name
-    >> (fn ((raw_run, raw_bind), target) => Toplevel.theory 
-          (add_monad target raw_run raw_bind))
+    OuterParse.term_group -- OuterParse.name >> (fn (raw_bind, target) =>
+      Toplevel.theory  (add_monad target raw_bind))
   );
 
 val setup =
