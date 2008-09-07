@@ -42,24 +42,20 @@ fun schedule n next_task = uninterruptible (fn restore_attributes => fn tasks =>
     fun trace_active () = Multithreading.tracing 1 (fn () =>
       "SCHEDULE: " ^ string_of_int (! active) ^ " active");
     fun dequeue () =
-      let
-        val (next, tasks') = next_task (! queue);
-        val _ = queue := tasks';
-      in
-        (case next of Wait =>
+      (case change_result queue next_task of
+        Wait =>
           (dec active; trace_active ();
             wait ();
             inc active; trace_active ();
             dequeue ())
-        | _ => next)
-      end;
+      | next => next);
 
     (*pool of running threads*)
     val status = ref ([]: exn list);
     val running = ref ([]: Thread.thread list);
     fun start f =
       (inc active;
-       change running (cons (Thread.fork (f, [Thread.InterruptState Thread.InterruptDefer]))));
+       change running (cons (Thread.fork (f, Multithreading.no_interrupts))));
     fun stop () =
       (dec active;
        change running (filter (fn t => not (Thread.equal (t, Thread.self ())))));
