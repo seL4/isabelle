@@ -43,7 +43,7 @@ val max_threads = ref 1;
 
 fun max_threads_value () =
   let val m = ! max_threads
-  in if m <= 0 then Thread.numProcessors () else m end;
+  in if m <= 0 then Int.max (Thread.numProcessors (), 1) else m end;
 
 
 (* misc utils *)
@@ -62,6 +62,15 @@ fun write_file name txt =
 
 (* thread attributes *)
 
+val no_interrupts =
+  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
+
+val sync_interrupts =
+  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptSynch];
+
+val regular_interrupts =
+  [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce];
+
 fun with_attributes new_atts f x =
   let
     val orig_atts = Thread.getAttributes ();
@@ -77,13 +86,7 @@ fun with_attributes new_atts f x =
       handle Interrupt => (restore (); Exn.Exn Interrupt))
   end;
 
-fun interruptible f =
-  with_attributes
-    [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce]
-    (fn _ => f);
-
-val no_interrupts =
-  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
+fun interruptible f = with_attributes regular_interrupts (fn _ => f);
 
 fun uninterruptible f =
   with_attributes no_interrupts (fn atts => f (fn g => with_attributes atts (fn _ => g)));
