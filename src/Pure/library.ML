@@ -63,6 +63,7 @@ sig
   val reset: bool ref -> bool
   val toggle: bool ref -> bool
   val change: 'a ref -> ('a -> 'a) -> unit
+  val change_result: 'a ref -> ('a -> 'b * 'a) -> 'b
   val setmp_noncritical: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
   val setmp_thread_data: 'a Universal.tag -> 'a -> 'a -> ('b -> 'c) -> 'b -> 'c
@@ -329,6 +330,7 @@ fun reset flag = (flag := false; false);
 fun toggle flag = (flag := not (! flag); ! flag);
 
 fun change r f = r := f (! r);
+fun change_result r f = let val (x, y) = f (! r) in r := y; x end;
 
 (*temporarily set flag during execution*)
 fun setmp_noncritical flag value f x =
