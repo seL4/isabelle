@@ -82,10 +82,11 @@ fun interruptible f =
     [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce]
     (fn _ => f);
 
+val no_interrupts =
+  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
+
 fun uninterruptible f =
-  with_attributes
-    [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer]
-    (fn atts => f (fn g => with_attributes atts (fn _ => g)));
+  with_attributes no_interrupts (fn atts => f (fn g => with_attributes atts (fn _ => g)));
 
 
 (* execution with time limit *)
@@ -193,7 +194,7 @@ in
 fun self_critical () =
   (case ! critical_thread of
     NONE => false
-  | SOME id => Thread.equal (id, Thread.self ()));
+  | SOME t => Thread.equal (t, Thread.self ()));
 
 fun NAMED_CRITICAL name e =
   if self_critical () then e ()
