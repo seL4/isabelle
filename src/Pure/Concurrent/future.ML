@@ -190,7 +190,7 @@ fun await (Future (_, r)) =
 
     fun loop () =
       (case SYNCHRONIZED (fn () => ! r) of
-        NONE => (wait (); loop ())
+        NONE => (SYNCHRONIZED (fn () => wait ()); loop ())
       | SOME res => Exn.release res);
   in loop () end;
 
