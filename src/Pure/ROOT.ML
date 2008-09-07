@@ -25,6 +25,7 @@ cd "General"; use "ROOT.ML"; cd "..";
 (*concurrency within the ML runtime*)
 use "Concurrent/mailbox.ML";
 use "Concurrent/schedule.ML";
+use "Concurrent/future.ML";
 
 (*fundamental structures*)
 use "name.ML";
