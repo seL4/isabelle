@@ -5,8 +5,6 @@ Compatibility file for Poly/ML -- common part for 4.x and 5.x.
 *)
 
 use "ML-Systems/exn.ML";
-if List.exists (fn s => s = "Universal") (PolyML.Compiler.structureNames ()) then ()
-else use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 use "ML-Systems/system_shell.ML";

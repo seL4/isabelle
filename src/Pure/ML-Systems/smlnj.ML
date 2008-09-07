@@ -8,6 +8,7 @@ use "ML-Systems/proper_int.ML";
 use "ML-Systems/overloading_smlnj.ML";
 use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";
+use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/system_shell.ML";
 
