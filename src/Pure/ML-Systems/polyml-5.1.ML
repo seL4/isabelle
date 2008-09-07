@@ -10,4 +10,3 @@ use "ML-Systems/multithreading_polyml.ML";
 use "ML-Systems/polyml_old_compiler5.ML";
 
 val pointer_eq = PolyML.pointerEq;
-
