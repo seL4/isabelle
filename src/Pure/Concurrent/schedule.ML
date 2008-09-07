@@ -20,9 +20,9 @@ datatype 'a task =
 
 fun schedule n next_task = uninterruptible (fn restore_attributes => fn tasks =>
   let
-    (*protected execution*)
+    (*synchronized execution*)
     val lock = Mutex.mutex ();
-    fun PROTECTED e =
+    fun SYNCHRONIZED e =
       let
         val _ = Mutex.lock lock;
         val res = Exn.capture e ();
@@ -66,20 +66,20 @@ fun schedule n next_task = uninterruptible (fn restore_attributes => fn tasks =>
 
     (*worker thread*)
     fun worker () =
-      (case PROTECTED dequeue of
+      (case SYNCHRONIZED dequeue of
         Task {body, cont, fail} =>
           (case Exn.capture (restore_attributes body) () of
             Exn.Result () =>
-              (PROTECTED (fn () => (change queue cont; wakeup_all ())); worker ())
+              (SYNCHRONIZED (fn () => (change queue cont; wakeup_all ())); worker ())
           | Exn.Exn exn =>
-              PROTECTED (fn () =>
+              SYNCHRONIZED (fn () =>
                 (change status (cons exn); change queue fail; stop (); wakeup_all ())))
-      | Terminate => PROTECTED (fn () => (stop (); wakeup_all ())));
+      | Terminate => SYNCHRONIZED (fn () => (stop (); wakeup_all ())));
 
     (*main control: fork and wait*)
     fun fork 0 = ()
       | fork k = (start worker; fork (k - 1));
-    val _ = PROTECTED (fn () =>
+    val _ = SYNCHRONIZED (fn () =>
      (fork (Int.max (n, 1));
       while not (null (! running)) do
       (trace_active ();
