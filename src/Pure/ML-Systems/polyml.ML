@@ -4,10 +4,8 @@
 Compatibility wrapper for Poly/ML (after 5.1).
 *)
 
-structure PolyML_Thread = Thread;
+open Thread;
 use "ML-Systems/polyml_common.ML";
-
-open PolyML_Thread;
 use "ML-Systems/multithreading_polyml.ML";
 
 val pointer_eq = PolyML.pointerEq;
