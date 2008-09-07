@@ -15,7 +15,7 @@ sig
   val same: 'a T * 'a T -> bool
 end
 
-structure Susp : SUSP =
+structure Susp :> SUSP =
 struct
 
 datatype 'a susp =
