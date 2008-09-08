@@ -9,7 +9,7 @@ signature MAILBOX =
 sig
   type 'a T
   val create: unit -> 'a T
-  val send: 'a -> 'a T -> unit
+  val send: 'a T -> 'a -> unit
   val receive_timeout: Time.time -> 'a T -> 'a option
   val receive: 'a T -> 'a
 end;
@@ -32,7 +32,7 @@ fun create () = Mailbox
 
 (* send -- non-blocking *)
 
-fun send msg (Mailbox {lock, cond, messages}) = uninterruptible (fn _ => fn () =>
+fun send (Mailbox {lock, cond, messages}) msg = uninterruptible (fn _ => fn () =>
   let
     val _ = Mutex.lock lock;
     val _ = change messages (Queue.enqueue msg);

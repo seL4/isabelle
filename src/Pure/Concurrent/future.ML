@@ -97,7 +97,7 @@ fun interrupt_task_group x = SYNCHRONIZED (fn () => TaskQueue.interrupt_task_gro
 
 fun interrupt (Future {task, ...}) = interrupt_task_group task;
 
-fun shutdown () = Mailbox.send Shutdown requests;
+fun shutdown () = Mailbox.send requests Shutdown;
 
 
 (* execute *)
@@ -112,7 +112,7 @@ fun execute name (task, group, run) =
     val _ = set_task NONE;
     val _ = set_group NONE;
     val _ = SYNCHRONIZED (fn () => (change queue (TaskQueue.finished task); notify_all ()));
-    val _ = (case (ok, group) of (false, SOME g) => Mailbox.send (CancelGroup g) requests | _ => ());
+    val _ = (case (ok, group) of (false, SOME g) => Mailbox.send requests (CancelGroup g) | _ => ());
   in () end;
 
 
