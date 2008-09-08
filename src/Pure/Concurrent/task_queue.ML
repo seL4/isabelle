@@ -20,7 +20,7 @@ sig
   val interrupt_task_group: queue -> task -> unit
 end;
 
-structure TaskQueue (* : TASK_QUEUE *) =
+structure TaskQueue: TASK_QUEUE =
 struct
 
 (* identifiers *)
