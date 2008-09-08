@@ -20,7 +20,6 @@ sig
   val max_threads: int ref
   val max_threads_value: unit -> int
   val no_interrupts: Thread.threadAttribute list
-  val sync_interrupts: Thread.threadAttribute list
   val regular_interrupts: Thread.threadAttribute list
   val with_attributes: Thread.threadAttribute list ->
     (Thread.threadAttribute list -> 'a -> 'b) -> 'a -> 'b
@@ -41,7 +40,6 @@ val max_threads = ref (1: int);
 fun max_threads_value () = Int.max (! max_threads, 1);
 
 val no_interrupts = [];
-val sync_interrupts = [];
 val regular_interrupts = [];
 
 fun with_attributes _ f x = f [] x;

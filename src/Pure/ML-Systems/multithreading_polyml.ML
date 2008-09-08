@@ -65,9 +65,6 @@ fun write_file name txt =
 val no_interrupts =
   [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
 
-val sync_interrupts =
-  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptSynch];
-
 val regular_interrupts =
   [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce];
 
