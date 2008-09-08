@@ -36,8 +36,8 @@ fun send (Mailbox {lock, cond, messages}) msg = uninterruptible (fn _ => fn () =
   let
     val _ = Mutex.lock lock;
     val _ = change messages (Queue.enqueue msg);
-    val _ = Mutex.unlock lock;
     val _ = ConditionVar.broadcast cond;
+    val _ = Mutex.unlock lock;
   in () end) ();
 
 
