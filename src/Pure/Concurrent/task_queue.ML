@@ -10,6 +10,8 @@ sig
   eqtype task
   eqtype group
   val new_group: unit -> group
+  val str_of_task: task -> string
+  val str_of_group: group -> string
   type queue
   val empty: queue
   val enqueue: group -> task list -> (bool -> bool) -> queue -> task * queue
@@ -27,6 +29,9 @@ datatype task = Task of serial;
 
 datatype group = Group of serial;
 fun new_group () = Group (serial ());
+
+fun str_of_task (Task i) = string_of_int i;
+fun str_of_group (Group i) = string_of_int i;
 
 
 (* jobs *)

@@ -28,6 +28,8 @@ ThyInfo.register_theory Pure.thy;
 
 (* ML toplevel pretty printing *)
 
+install_pp (make_pp ["TaskQueue", "task"] (Pretty.pprint o Pretty.str o TaskQueue.str_of_task));
+install_pp (make_pp ["TaskQueue", "group"] (Pretty.pprint o Pretty.str o TaskQueue.str_of_group));
 install_pp (make_pp ["Position", "T"] (Pretty.pprint o Pretty.enum "," "{" "}" o
   map (fn (x, y) => Pretty.str (x ^ "=" ^ y)) o Position.properties_of));
 install_pp (make_pp ["Thm", "thm"] ProofDisplay.pprint_thm);
