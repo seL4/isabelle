@@ -123,7 +123,7 @@ fun forward_res nf st =
             error ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:\n" ^
                    Display.string_of_thm st ^
                    "\nPremises:\n" ^
-                   cat_lines (map Display.string_of_thm prems))
+                   ML_Syntax.print_list Display.string_of_thm prems)
   in
     case Seq.pull (ALLGOALS (METAHYPS forward_tacf) st)
     of SOME(th,_) => th
@@ -495,10 +495,10 @@ fun ok4nnf (Const ("Trueprop",_) $ (Const ("Not", _) $ t)) = rigid t
 fun make_nnf1 th =
   if ok4nnf (concl_of th)
   then make_nnf1 (tryres(th, nnf_rls))
-    handle THM _ =>
+    handle THM ("tryres", _, _) =>
         forward_res make_nnf1
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
-    handle THM _ => th
+    handle THM ("tryres", _, _) => th
   else th;
 
 (*The simplification removes defined quantifiers and occurrences of True and False.
@@ -526,10 +526,11 @@ fun skolemize th =
   if not (has_conns ["Ex"] (prop_of th)) then th
   else (skolemize (tryres(th, [choice, conj_exD1, conj_exD2,
                               disj_exD, disj_exD1, disj_exD2])))
-    handle THM _ =>
+    handle THM ("tryres", _, _) =>
         skolemize (forward_res skolemize
                    (tryres (th, [conj_forward, disj_forward, all_forward])))
-    handle THM _ => forward_res skolemize (rename_bvs_RS th ex_forward);
+    handle THM ("tryres", _, _) => 
+        forward_res skolemize (rename_bvs_RS th ex_forward);
 
 fun skolemize_nnf_list [] = []
   | skolemize_nnf_list (th::ths) = 
@@ -625,9 +626,9 @@ fun iter_deepen_meson_tac ths = MESON make_clauses
              let val horns = make_horns (cls@ths)
                  val _ =
                      Output.debug (fn () => ("meson method called:\n" ^
-                                  cat_lines (map Display.string_of_thm (cls@ths)) ^
+                                  ML_Syntax.print_list Display.string_of_thm (cls@ths) ^
                                   "\nclauses:\n" ^
-                                  cat_lines (map Display.string_of_thm horns)))
+                                  ML_Syntax.print_list Display.string_of_thm horns))
              in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns)
              end
  );
