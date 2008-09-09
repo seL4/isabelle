@@ -98,6 +98,16 @@ end;
 
 (* channels *)
 
+local
+
+fun auto_flush stream =
+  let
+    fun loop () =
+      (OS.Process.sleep (Time.fromMilliseconds 50); try TextIO.flushOut stream; loop ());
+  in loop end;
+
+in
+
 fun setup_channels out =
   let val out_stream =
     if out = "-" then TextIO.stdOut
@@ -107,12 +117,10 @@ fun setup_channels out =
         val out_stream = TextIO.openOut path;  (*fifo blocks until reader is ready*)
         val _ = OS.FileSys.remove path;  (*prevent alien access, indicate writer is ready*)
         val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream out_stream, IO.BLOCK_BUF);
-        fun auto_flush () =
-         (OS.Process.sleep (Time.fromMilliseconds 50);
-          CRITICAL (fn () => TextIO.flushOut out_stream);
-          auto_flush ());
-        val _ = Thread.fork (auto_flush, Multithreading.no_interrupts);
+        val _ = Thread.fork (auto_flush TextIO.stdOut, Multithreading.no_interrupts);
       in out_stream end;
+    val _ = Thread.fork (auto_flush TextIO.stdErr, Multithreading.no_interrupts);
+    val _ = Thread.fork (auto_flush out_stream, Multithreading.no_interrupts);
   in
     Output.writeln_fn  := message out_stream "A" Markup.writelnN;
     Output.priority_fn := message out_stream "B" Markup.priorityN;
@@ -124,6 +132,8 @@ fun setup_channels out =
     Output.status_fn   := message out_stream "I" Markup.statusN;
     out_stream
   end;
+
+end;
 
 
 (* init *)
