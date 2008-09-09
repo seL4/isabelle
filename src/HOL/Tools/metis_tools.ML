@@ -590,7 +590,7 @@ fun infer_types ctxt =
     in
         case refute thms of
             Metis.Resolution.Contradiction mth =>
-              let val _ = Output.debug (fn () => "METIS RECONSTRUCTION START: " ^
+             (let val _ = Output.debug (fn () => "METIS RECONSTRUCTION START: " ^
                             Metis.Thm.toString mth)
                   val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                                (*add constraints arising from converting goal to clause form*)
@@ -605,8 +605,9 @@ fun infer_types ctxt =
                   else warning ("Unused theorems: " ^ commas (map #1 unused));
                   case result of
                       (_,ith)::_ => (Output.debug (fn () => "success: " ^ Display.string_of_thm ith); ith)
-                    | _ => error "METIS: no result"
+                    | _ => error "Metis: no result"
               end
+              handle e => error "Metis: Exception raised during proof reconstruction")
           | Metis.Resolution.Satisfiable _ => error "Metis: No first-order proof with the lemmas supplied"
     end;
 
