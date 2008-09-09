@@ -39,8 +39,11 @@ val available = false;
 val max_threads = ref (1: int);
 fun max_threads_value () = Int.max (! max_threads, 1);
 
-val no_interrupts = [];
-val regular_interrupts = [];
+val no_interrupts =
+  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
+
+val regular_interrupts =
+  [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce];
 
 fun with_attributes _ f x = f [] x;
 
