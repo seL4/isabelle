@@ -242,6 +242,9 @@ else
 \urlstyle{rm}
 \isabellestyle{it}
 
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
 
 \begin{document}
 
