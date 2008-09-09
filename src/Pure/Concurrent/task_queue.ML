@@ -50,19 +50,16 @@ fun map_job (Task id) f (jobs: jobs) = IntGraph.map_node id (apsnd f) jobs;
 (* queue of grouped jobs *)
 
 datatype queue = Queue of
- {groups: task list Inttab.table,                         (*groups with presently active members*)
-  jobs: jobs,                                             (*job dependency graph*)
-  cache: (task * group * (unit -> bool)) Queue.T option}; (*cache of ready tasks*)
+ {groups: task list Inttab.table,   (*groups with presently active members*)
+  jobs: jobs};                      (*job dependency graph*)
 
-fun make_queue groups jobs cache =
-  Queue {groups = groups, jobs = jobs, cache = cache};
-
-val empty = make_queue Inttab.empty IntGraph.empty NONE;
+fun make_queue groups jobs = Queue {groups = groups, jobs = jobs};
+val empty = make_queue Inttab.empty IntGraph.empty;
 
 
 (* queue operations *)
 
-fun enqueue (group as Group gid) deps job (Queue {groups, jobs, ...}) =
+fun enqueue (group as Group gid) deps job (Queue {groups, jobs}) =
   let
     val id = serial ();
     val task = Task id;
@@ -71,29 +68,24 @@ fun enqueue (group as Group gid) deps job (Queue {groups, jobs, ...}) =
     fun add_dep (Task dep) G = IntGraph.add_edge_acyclic (dep, id) G
       handle IntGraph.UNDEF _ => G;
     val jobs' = jobs |> IntGraph.new_node (id, (group, Job (true, job))) |> fold add_dep deps;
-  in (task, make_queue groups' jobs' NONE) end;
+  in (task, make_queue groups' jobs') end;
 
-fun dequeue thread (queue as Queue {groups, jobs, cache}) =
+fun dequeue thread (queue as Queue {groups, jobs}) =
   let
-    fun add_ready (id, ((group, Job (ok, job)), ([], _))) =
-          Queue.enqueue (Task id, group, (fn () => job ok))
-      | add_ready _ = I;
-    val ready =
-      (case cache of
-        SOME ready => ready
-      | NONE => IntGraph.fold add_ready jobs Queue.empty);
+    fun ready (id, ((group, Job (ok, job)), ([], _))) = SOME (Task id, group, (fn () => job ok))
+      | ready _ = NONE;
   in
-    (case try Queue.dequeue ready of
-      NONE => (NONE, make_queue groups jobs (SOME ready))
-    | SOME (result, ready') =>
+    (case IntGraph.get_first ready jobs of
+      NONE => (NONE, queue)
+    | SOME result =>
         let val jobs' = map_job (#1 result) (K (Running thread)) jobs
-        in (SOME result, make_queue groups jobs' (SOME ready')) end)
+        in (SOME result, make_queue groups jobs') end)
   end;
 
 
 (* termination *)
 
-fun cancel (group as Group gid) (Queue {groups, jobs, ...}) =
+fun cancel (group as Group gid) (Queue {groups, jobs}) =
   let
     val tasks = Inttab.lookup_list groups gid;
     val running = fold (get_job jobs #> (fn Running thread => cons thread | _ => I)) tasks [];
@@ -101,13 +93,13 @@ fun cancel (group as Group gid) (Queue {groups, jobs, ...}) =
         (case get_job jobs task of
           Job (true, job) => map_job task (K (Job (false, job)))
         | _ => I)) tasks jobs;
-  in (running, make_queue groups jobs' NONE) end;
+  in (running, make_queue groups jobs') end;
 
-fun finish (task as Task id) (Queue {groups, jobs, ...}) =
+fun finish (task as Task id) (Queue {groups, jobs}) =
   let
     val Group gid = get_group jobs task;
     val groups' = Inttab.remove_list (op =) (gid, task) groups;
     val jobs' = IntGraph.del_nodes [id] jobs;
-  in make_queue groups' jobs' NONE end;
+  in make_queue groups' jobs' end;
 
 end;
