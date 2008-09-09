@@ -71,7 +71,7 @@ and get_pos (elem as XML.Elem (name, atts, ts)) =
   | get_pos _ = NONE;
 
 fun output out_stream s = NAMED_CRITICAL "IO" (fn () =>
-  (TextIO.output (out_stream, s); TextIO.output (out_stream, "\n"); TextIO.flushOut out_stream));
+  (TextIO.output (out_stream, s); TextIO.output (out_stream, "\n")));
 
 in
 
@@ -106,6 +106,12 @@ fun setup_channels out =
         val path = File.platform_path (Path.explode out);
         val out_stream = TextIO.openOut path;  (*fifo blocks until reader is ready*)
         val _ = OS.FileSys.remove path;  (*prevent alien access, indicate writer is ready*)
+        val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream out_stream, IO.BLOCK_BUF);
+        fun auto_flush () =
+         (OS.Process.sleep (Time.fromMilliseconds 50);
+          CRITICAL (fn () => TextIO.flushOut out_stream);
+          auto_flush ());
+        val _ = Thread.fork (auto_flush, Multithreading.no_interrupts);
       in out_stream end;
   in
     Output.writeln_fn  := message out_stream "A" Markup.writelnN;
