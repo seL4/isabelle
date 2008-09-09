@@ -19,6 +19,11 @@ interface instead.
 
 *** Pure ***
 
+* Changed defaults for unify configuration options:
+
+  unify_trace_bound = 50 (formerly 25)
+  unify_search_bound = 60 (formerly 30)
+
 * Different bookkeeping for code equations:
   a) On theory merge, the last set of code equations for a particular constant
      is taken (in accordance with the policy applied by other parts of the
