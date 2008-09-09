@@ -33,11 +33,11 @@ struct
 (*Unification options*)
 
 (*tracing starts above this depth, 0 for full*)
-val trace_bound_value = Config.declare true "unify_trace_bound" (Config.Int 25);
+val trace_bound_value = Config.declare true "unify_trace_bound" (Config.Int 50);
 val trace_bound = Config.int trace_bound_value;
 
 (*unification quits above this depth*)
-val search_bound_value = Config.declare true "unify_search_bound" (Config.Int 30);
+val search_bound_value = Config.declare true "unify_search_bound" (Config.Int 60);
 val search_bound = Config.int search_bound_value;
 
 (*print dpairs before calling SIMPL*)
