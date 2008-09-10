@@ -29,6 +29,7 @@ sig
   val exec_file: bool -> Path.T -> Context.generic -> Context.generic
   val use: string -> unit
   val time_use: string -> unit
+  val future_scheduler: bool ref
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val time_use_thy: string -> unit
@@ -315,6 +316,28 @@ fun load_thy time upd_time initiators name =
 datatype task = Task of (unit -> unit) | Finished | Running;
 fun task_finished Finished = true | task_finished _ = false;
 
+val future_scheduler = ref false;
+
+fun future_schedule task_graph =
+  let
+    val tasks = Graph.topological_order task_graph |> map_filter (fn name =>
+      (case Graph.get_node task_graph name of Task body => SOME (name, body) | _ => NONE));
+
+    val group = TaskQueue.new_group ();
+    fun future (name, body) tab =
+      let
+        val deps = map_filter (Symtab.lookup tab) (Graph.imm_preds task_graph name);
+        val x = Future.future (SOME group) deps body;
+      in (x, Symtab.update (name, Future.task_of x) tab) end;
+
+    val exns = #1 (fold_map future tasks Symtab.empty)
+      |> Future.join_results
+      |> map_filter Exn.get_exn;
+  in
+    if null exns then ()
+    else raise Exn.EXCEPTIONS (exns, "")
+  end;
+
 local
 
 fun max_task (name, (Task body, m)) NONE = SOME (name: string, (body, m))
@@ -351,6 +374,7 @@ fun schedule_tasks tasks n =
     else if Multithreading.self_critical () then
      (warning (loader_msg "no multithreading within critical section" []);
       schedule_seq tasks)
+    else if ! future_scheduler then future_schedule tasks
     else
       (case Schedule.schedule (Int.min (m, n)) next_task tasks of
         [] => ()
@@ -578,4 +602,3 @@ fun register_theory theory =
 fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (NONE, entry)));
 
 end;
-
