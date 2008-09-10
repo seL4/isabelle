@@ -8,9 +8,9 @@ Ordered queue of grouped tasks.
 signature TASK_QUEUE =
 sig
   eqtype task
+  val str_of_task: task -> string
   eqtype group
   val new_group: unit -> group
-  val str_of_task: task -> string
   val str_of_group: group -> string
   type queue
   val empty: queue
@@ -116,7 +116,7 @@ fun interrupt_external queue str =
 
 (* termination *)
 
-fun cancel (Queue {groups, jobs}) (group as Group (gid, ok)) =
+fun cancel (Queue {groups, jobs}) (Group (gid, ok)) =
   let
     val _ = ok := false;  (*invalidate any future group members*)
     val tasks = Inttab.lookup_list groups gid;
