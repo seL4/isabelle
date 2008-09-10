@@ -15,9 +15,10 @@ sig
   val shutdown_request: unit -> unit
   val future: group option -> task list -> (unit -> 'a) -> 'a T
   val fork: (unit -> 'a) -> 'a T
-  val cancel: 'a T -> unit
   val join_results: 'a T list -> 'a Exn.result list
   val join: 'a T -> 'a
+  val cancel: 'a T -> unit
+  val interrupt_task: string -> unit
 end;
 
 structure Future: FUTURE =
@@ -251,6 +252,7 @@ fun join x = Exn.release (singleton join_results x);
 fun cancel x = (scheduler_check (); cancel_request (group_of x));
 
 (*interrupt: adhoc signal, permissive, may get ignored*)
-fun interrupt_task id = SYNCHRONIZED "interrupt" (fn () => TaskQueue.interrupt (! queue) id);
+fun interrupt_task id = SYNCHRONIZED "interrupt"
+  (fn () => TaskQueue.interrupt_external (! queue) id);
 
 end;
