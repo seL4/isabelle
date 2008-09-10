@@ -331,7 +331,7 @@ fun future_schedule task_graph =
       in (x, Symtab.update (name, Future.task_of x) tab) end;
 
     val exns = #1 (fold_map future tasks Symtab.empty)
-      |> Future.join_results
+      |> uninterruptible (fn _ => Future.join_results)
       |> map_filter Exn.get_exn;
   in
     if null exns then ()
