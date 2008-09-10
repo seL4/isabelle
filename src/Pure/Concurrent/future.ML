@@ -16,7 +16,7 @@ sig
   val future: group option -> task list -> (unit -> 'a) -> 'a T
   val fork: (unit -> 'a) -> 'a T
   val cancel: 'a T -> unit
-  val join_all: 'a T list -> 'a list
+  val join_results: 'a T list -> 'a Exn.result list
   val join: 'a T -> 'a
 end;
 
@@ -212,8 +212,10 @@ fun fork e = future (Option.map #2 (thread_data ())) [] e;
 
 (* join: retrieve results *)
 
-fun join_all xs =
+fun join_results xs =
   let
+    val _ = Multithreading.self_critical () andalso
+      error "Cannot join future values within critical section";
     val _ = scheduler_check ();
 
     fun unfinished () =
@@ -238,14 +240,9 @@ fun join_all xs =
       | SOME (task, _) => SYNCHRONIZED "join" (fn () =>
          (change queue (TaskQueue.depend (unfinished ()) task); active_join ())));
 
-    val res = xs |> map (fn Future {result = ref (SOME res), ...} => res);
-  in
-    (case get_first (fn Exn.Exn Interrupt => NONE | Exn.Exn e => SOME e | _ => NONE) res of
-      NONE => map Exn.release res
-    | SOME e => raise e)
-  end;
+  in xs |> map (fn Future {result = ref (SOME res), ...} => res) end;
 
-fun join x = singleton join_all x;
+fun join x = Exn.release (singleton join_results x);
 
 
 (* termination *)
