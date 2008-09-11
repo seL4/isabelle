@@ -21,12 +21,7 @@ use "General/basics.ML";
 use "library.ML";
 
 cd "General"; use "ROOT.ML"; cd "..";
-
-(*concurrency within the ML runtime*)
-use "Concurrent/mailbox.ML";
-use "Concurrent/schedule.ML";
-use "Concurrent/task_queue.ML";
-use "Concurrent/future.ML";
+cd "Concurrent"; use "ROOT.ML"; cd "..";
 
 (*fundamental structures*)
 use "name.ML";
