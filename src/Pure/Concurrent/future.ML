@@ -37,6 +37,7 @@ sig
   val fork: (unit -> 'a) -> 'a T
   val join_results: 'a T list -> 'a Exn.result list
   val join: 'a T -> 'a
+  val focus: task list -> unit
   val cancel: 'a T -> unit
   val interrupt_task: string -> unit
 end;
@@ -266,12 +267,16 @@ fun join_results xs =
 fun join x = Exn.release (singleton join_results x);
 
 
-(* termination *)
+(* misc operations *)
+
+(*focus: collection of high-priority task*)
+fun focus tasks = SYNCHRONIZED "interrupt" (fn () =>
+  change queue (TaskQueue.focus tasks));
 
 (*cancel: present and future group members will be interrupted eventually*)
 fun cancel x = (scheduler_check (); cancel_request (group_of x));
 
-(*interrupt: adhoc signal, permissive, may get ignored*)
+(*interrupt: permissive signal, may get ignored*)
 fun interrupt_task id = SYNCHRONIZED "interrupt"
   (fn () => TaskQueue.interrupt_external (! queue) id);
 
