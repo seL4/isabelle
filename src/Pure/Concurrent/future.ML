@@ -277,7 +277,8 @@ fun interrupt_task id = SYNCHRONIZED "interrupt"
 
 (*cancel: present and future group members will be interrupted eventually*)
 fun cancel x =
- (scheduler_check (); SYNCHRONIZED "cancel" (fn () => change canceled (cons (group_of x))));
+ (scheduler_check ();
+  SYNCHRONIZED "cancel" (fn () => (change canceled (cons (group_of x)); notify_all ())));
 
 
 (*global join and shutdown*)
@@ -287,6 +288,7 @@ fun shutdown () =
    (while not (scheduler_active ()) do wait "shutdown: scheduler inactive";
     while not (TaskQueue.is_empty (! queue)) do wait "shutdown: join";
     do_shutdown := true;
+    notify_all ();
     while not (null (! workers)) do wait "shutdown: workers";
     while scheduler_active () do wait "shutdown: scheduler still active")));
 
