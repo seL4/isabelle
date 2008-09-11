@@ -2,7 +2,27 @@
     ID:         $Id$
     Author:     Makarius
 
-Functional threads as future values.
+Future values.
+
+Notes:
+
+  * Futures are similar to delayed evaluation, i.e. delay/force is
+    generalized to fork/join (and variants).  The idea is to model
+    parallel value-oriented computations, but *not* communicating
+    processes.
+
+  * Futures are grouped; failure of one group member causes the whole
+    group to be interrupted eventually.
+
+  * Forked futures are evaluated spontaneously by a farm of worker
+    threads in the background; join resynchronizes the computation and
+    delivers results (values or exceptions).
+
+  * The pool of worker threads is limited, usually in correlation with
+    the number of physical cores on the machine.  Note that allocation
+    of runtime resources is distorted either if workers yield CPU time
+    (e.g. via system sleep or wait operations), or if non-worker
+    threads contend for significant runtime resources independently.
 *)
 
 signature FUTURE =
