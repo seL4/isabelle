@@ -14,6 +14,7 @@ sig
   val str_of_group: group -> string
   type queue
   val empty: queue
+  val is_empty: queue -> bool
   val enqueue: group -> task list -> (bool -> bool) -> queue -> task * queue
   val depend: task list -> task -> queue -> queue
   val focus: task list -> queue -> queue
@@ -67,7 +68,9 @@ datatype queue = Queue of
   focus: task list};                (*particular collection of high-priority tasks*)
 
 fun make_queue groups jobs focus = Queue {groups = groups, jobs = jobs, focus = focus};
+
 val empty = make_queue Inttab.empty IntGraph.empty [];
+fun is_empty (Queue {jobs, ...}) = IntGraph.is_empty jobs;
 
 
 (* enqueue *)

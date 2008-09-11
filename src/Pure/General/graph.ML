@@ -13,6 +13,7 @@ sig
   exception SAME
   exception UNDEF of key
   val empty: 'a T
+  val is_empty: 'a T -> bool
   val keys: 'a T -> key list
   val dest: 'a T -> (key * key list) list
   val get_first: (key * ('a * (key list * key list)) -> 'b option) -> 'a T -> 'b option
@@ -83,6 +84,7 @@ exception UNDEF = Table.UNDEF;
 exception SAME = Table.SAME;
 
 val empty = Graph Table.empty;
+fun is_empty (Graph tab) = Table.is_empty tab;
 fun keys (Graph tab) = Table.keys tab;
 fun dest (Graph tab) = map (fn (x, (_, (_, succs))) => (x, succs)) (Table.dest tab);
 
