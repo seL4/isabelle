@@ -295,11 +295,13 @@ fun pretty_thm ctxt th =
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
   | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
 
+val extern_fact = Facts.extern o facts_of;
+
 fun pretty_fact ctxt ("", ths) = pretty_thms ctxt ths
   | pretty_fact ctxt (a, [th]) = Pretty.block
-      [Pretty.str (NameSpace.base a ^ ":"), Pretty.brk 1, pretty_thm ctxt th]
+      [Pretty.str (extern_fact ctxt a ^ ":"), Pretty.brk 1, pretty_thm ctxt th]
   | pretty_fact ctxt (a, ths) = Pretty.block
-      (Pretty.fbreaks (Pretty.str (NameSpace.base a ^ ":") :: map (pretty_thm ctxt) ths));
+      (Pretty.fbreaks (Pretty.str (extern_fact ctxt a ^ ":") :: map (pretty_thm ctxt) ths));
 
 val string_of_thm = Pretty.string_of oo pretty_thm;
 
