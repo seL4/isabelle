@@ -297,8 +297,9 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     val lim = the_default (! limit) opt_limit;
     val thms = Library.drop (len - lim, matches);
 
-    fun prt_fact (thmref, thm) =
-      ProofContext.pretty_fact ctxt (Facts.string_of_ref thmref, [thm]);
+    fun prt_fact (thmref, thm) = Pretty.block
+      [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
+        ProofContext.pretty_thm ctxt thm];
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) :: Pretty.str "" ::
      (if null thms then [Pretty.str "nothing found"]
