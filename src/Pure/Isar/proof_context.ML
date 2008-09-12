@@ -35,6 +35,7 @@ sig
   val transfer: theory -> Proof.context -> Proof.context
   val theory: (theory -> theory) -> Proof.context -> Proof.context
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
+  val extern_fact: Proof.context -> string -> xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_thm_legacy: thm -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
@@ -282,6 +283,21 @@ fun theory_result f ctxt =
 
 (** pretty printing **)
 
+(* extern *)
+
+fun extern_fact ctxt name =
+  let
+    val local_facts = facts_of ctxt;
+    val global_facts = PureThy.facts_of (theory_of ctxt);
+  in
+    if is_some (Facts.lookup (Context.Proof ctxt) local_facts name)
+    then Facts.extern local_facts name
+    else Facts.extern global_facts name
+  end;
+
+
+(* pretty *)
+
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
 fun pretty_thm_legacy th =
@@ -295,13 +311,14 @@ fun pretty_thm ctxt th =
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
   | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
 
-val extern_fact = Facts.extern o facts_of;
+fun pretty_fact_name ctxt a = Pretty.block
+  [Pretty.markup (Markup.fact a) [Pretty.str (extern_fact ctxt a)], Pretty.str ":"];
 
 fun pretty_fact ctxt ("", ths) = pretty_thms ctxt ths
   | pretty_fact ctxt (a, [th]) = Pretty.block
-      [Pretty.str (extern_fact ctxt a ^ ":"), Pretty.brk 1, pretty_thm ctxt th]
+      [pretty_fact_name ctxt a, Pretty.brk 1, pretty_thm ctxt th]
   | pretty_fact ctxt (a, ths) = Pretty.block
-      (Pretty.fbreaks (Pretty.str (extern_fact ctxt a ^ ":") :: map (pretty_thm ctxt) ths));
+      (Pretty.fbreaks (pretty_fact_name ctxt a :: map (pretty_thm ctxt) ths));
 
 val string_of_thm = Pretty.string_of oo pretty_thm;
 
@@ -1265,10 +1282,10 @@ fun pretty_lthms ctxt =
     val props = Facts.props local_facts;
     val facts =
       (if null props then [] else [("unnamed", props)]) @
-      Facts.extern_static [] local_facts;
+      Facts.dest_static [] local_facts;
   in
     if null facts andalso not (! verbose) then []
-    else [Pretty.big_list "facts:" (map (pretty_fact ctxt) facts)]
+    else [Pretty.big_list "facts:" (map #1 (sort_wrt (#1 o #2) (map (`(pretty_fact ctxt)) facts)))]
   end;
 
 val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
