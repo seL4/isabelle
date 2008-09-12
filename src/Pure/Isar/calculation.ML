@@ -114,8 +114,8 @@ fun maintain_calculation false calc = put_calculation (SOME calc)
   | maintain_calculation true calc = put_calculation NONE #> Proof.chain_facts calc;
 
 fun print_calculation false _ _ = ()
-  | print_calculation true ctxt calc =
-      Pretty.writeln (ProofContext.pretty_fact ctxt (calculationN, calc));
+  | print_calculation true ctxt calc = Pretty.writeln
+      (ProofContext.pretty_fact ctxt (ProofContext.full_name ctxt calculationN, calc));
 
 
 (* also and finally *)

@@ -46,8 +46,8 @@ val pprint_thm = Pretty.pprint o ProofContext.pretty_thm_legacy;
 fun pretty_theorems_diff prev_thys thy =
   let
     val pretty_fact = ProofContext.pretty_fact (ProofContext.init thy);
-    val thmss = Facts.extern_static (map PureThy.facts_of prev_thys) (PureThy.facts_of thy);
-  in Pretty.big_list "theorems:" (map pretty_fact thmss) end;
+    val thmss = Facts.dest_static (map PureThy.facts_of prev_thys) (PureThy.facts_of thy);
+  in Pretty.big_list "theorems:" (map #1 (sort_wrt (#1 o #2) (map (`pretty_fact) thmss))) end;
 
 fun print_theorems_diff prev_thy thy =
   Pretty.writeln (pretty_theorems_diff [prev_thy] thy);
