@@ -38,8 +38,7 @@ text {*
       @{verbatim "isatool usedir"} & part of the standard @{verbatim
       IsaMakefile} entry of a session; \\
 
-      @{verbatim "isabelle-process"} & run through @{verbatim "isatool
-      usedir"}; \\
+      @{verbatim "isabelle-process"} & run through @{verbatim "isatool usedir"}; \\
 
       @{verbatim "isatool document"} & run by the Isabelle process if
       document preparation is enabled; \\
@@ -105,7 +104,7 @@ ISABELLE_USEDIR_OPTIONS="-i true"
 ISABELLE_USEDIR_OPTIONS="-i true -d dvi"
 \end{ttbox}
   Enabling options @{verbatim "-i"} and @{verbatim "-d"}
-  simultaneausly as shown above causes an appropriate ``document''
+  simultaneously as shown above causes an appropriate ``document''
   link to be included in the HTML index.  Documents (or raw document
   sources) may be generated independently of browser information as
   well, see \secref{sec:tool-document} for further details.
@@ -115,12 +114,13 @@ ISABELLE_USEDIR_OPTIONS="-i true -d dvi"
   ISABELLE_BROWSER_INFO} setting plus a prefix corresponding to the
   session identifier (according to the tree structure of sub-sessions
   by default).  A complete WWW view of all standard object-logics and
-  examples of the Isabelle distribution is available at the Cambridge
-  or Munich Isabelle sites:
+  examples of the Isabelle distribution is available at the usual
+  Isabelle sites:
   \begin{center}\small
   \begin{tabular}{l}
-    \url{http://www.cl.cam.ac.uk/Research/HVG/Isabelle/library/} \\
-    \url{http://isabelle.in.tum.de/library/} \\
+    \url{http://isabelle.in.tum.de/dist/library/} \\
+    \url{http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/library/} \\
+    \url{http://mirror.cse.unsw.edu.au/pub/isabelle/dist/library/} \\
   \end{tabular}
   \end{center}
   
@@ -296,10 +296,12 @@ subsection {* Syntax of graph definition files *}
 text {*
   A graph definition file has the following syntax:
 
+  \begin{center}\small
   \begin{tabular}{rcl}
     @{text graph} & @{text "="} & @{text "{ vertex"}~@{verbatim ";"}~@{text "}\<^sup>+"} \\
     @{text vertex} & @{text "="} & @{text "vertex_name vertex_ID dir_name ["}~@{verbatim "+"}~@{text "] path ["}~@{verbatim "<"}~@{text "|"}~@{verbatim ">"}~@{text "] { vertex_ID }\<^sup>*"}
   \end{tabular}
+  \end{center}
 
   The meaning of the items in a vertex description is as follows:
 
@@ -418,9 +420,9 @@ isatool mkdir Foo && isatool make
   manual editing of the generated @{verbatim IsaMakefile}, which is
   meant to cover all of the sub-session directories at the same time
   (this is the deeper reasong why @{verbatim IsaMakefile} is not made
-  part of the initial session directory created by @{verbatim "isatool
-  mkdir"}).  See @{verbatim "src/HOL/IsaMakefile"} of the Isabelle
-  distribution for a full-blown example.
+  part of the initial session directory created by
+  @{verbatim "isatool mkdir"}).  See @{verbatim "src/HOL/IsaMakefile"}
+  of the Isabelle distribution for a full-blown example.
 *}
 
 
