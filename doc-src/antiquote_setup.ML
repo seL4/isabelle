@@ -198,7 +198,10 @@ val _ = O.add_commands
   entity_antiqs no_check "" "fact" @
   entity_antiqs no_check "" "variable" @
   entity_antiqs no_check "" "case" @
-  entity_antiqs (K ThyOutput.defined_command) "" "antiquotation");
+  entity_antiqs (K ThyOutput.defined_command) "" "antiquotation" @
+  entity_antiqs no_check "isatt" "setting" @
+  entity_antiqs no_check "isatt" "executable" @
+  entity_antiqs no_check "isatt" "tool");
 
 end;
 
