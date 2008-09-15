@@ -1,0 +1,32 @@
+
+## targets
+
+default: Pure-System
+images: 
+test: Pure-System
+
+all: images test
+
+
+## global settings
+
+SRC = $(ISABELLE_HOME)/src
+OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
+USEDIR = $(ISATOOL) usedir -v true -i false -d false -C false -D document
+
+
+## IsarRef sessions
+
+Pure-System: $(LOG)/Pure-System.gz
+
+$(LOG)/Pure-System.gz: Thy/ROOT.ML ../antiquote_setup.ML	\
+  Thy/Basics.thy
+	@$(USEDIR) -s System Pure Thy
+
+
+## clean
+
+clean:
+	@rm -f $(LOG)/Pure-System.gz
