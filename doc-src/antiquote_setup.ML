@@ -143,7 +143,7 @@ val _ = O.add_commands
       (ThyLoad.check_thy Path.current name; Pretty.str name))))];
 
 
-(* Isar entities (with index) *)
+(* Isabelle entities (with index) *)
 
 local
 
