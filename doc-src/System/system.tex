@@ -9,37 +9,40 @@
 \usepackage{textcomp}
 \usepackage{supertabular}
 \let\intorig=\int  %iman.sty redefines \int
-\usepackage{graphicx,../iman,../extra,../ttbox,../isabelle,../isabellesym,../pdfsetup}
+\usepackage[nohyphen,strings]{../underscore}
+\usepackage{graphicx}
+\usepackage{../iman,../extra,../isar,../ttbox}
+\usepackage{../isabelle,../isabellesym}
+\usepackage{../IsarRef/style}
+\usepackage{../pdfsetup}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+
+\isadroptag{theory}
 
 \isabellestyle{it}
 
 \title{\includegraphics[scale=0.5]{isabelle} \\[4ex] The Isabelle System Manual}
 
-\author{\emph{Markus Wenzel} and \emph{Stefan Berghofer} \\
+\author{\emph{Makarius Wenzel} and \emph{Stefan Berghofer} \\
   TU M\"unchen}
 
 \makeindex
 
-\setcounter{secnumdepth}{1} \setcounter{tocdepth}{2}
-
-\pagestyle{headings}
-\sloppy
-\binperiod     %%%treat . like a binary operator
 
 \begin{document}
-
-\underscoreoff
 
 \maketitle 
 \pagenumbering{roman} \tableofcontents \clearfirst
 
-\include{basics}
-\include{present}
-\include{misc}
+\input{Thy/document/Basics}
+\input{present}
+\input{misc}
 
 \appendix
 \let\int\intorig
-\include{symbols}
+\input{symbols}
 
 \begingroup
   \bibliographystyle{plain} \small\raggedright\frenchspacing
