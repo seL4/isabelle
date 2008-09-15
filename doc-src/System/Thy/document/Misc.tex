@@ -1,0 +1,411 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Misc}%
+%
+\isadelimtheory
+\isanewline
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Misc\isanewline
+\isakeyword{imports}\ Pure\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Miscellaneous tools \label{ch:tools}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Subsequently we describe various Isabelle related utilities, given
+  in alphabetical order.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Displaying documents%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{display}\hypertarget{tool.display}{\hyperlink{tool.display}{\mbox{\isa{\isatt{display}}}}} utility displays documents in DVI or PDF
+  format:
+\begin{ttbox}
+Usage: display [OPTIONS] FILE
+
+  Options are:
+    -c           cleanup -- remove FILE after use
+
+  Display document FILE (in DVI format).
+\end{ttbox}
+
+  \medskip The \verb|-c| option causes the input file to be
+  removed after use.  The program for viewing \verb|dvi| files is
+  determined by the \hyperlink{setting.DVI-VIEWER}{\mbox{\isa{\isatt{DVI{\isacharunderscore}VIEWER}}}} setting.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Viewing documentation \label{sec:tool-doc}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{doc}\hypertarget{tool.doc}{\hyperlink{tool.doc}{\mbox{\isa{\isatt{doc}}}}} utility displays online documentation:
+\begin{ttbox}
+Usage: doc [DOC]
+
+  View Isabelle documentation DOC, or show list of available documents.
+\end{ttbox}
+  If called without arguments, it lists all available documents. Each
+  line starts with an identifier, followed by a short description. Any
+  of these identifiers may be specified as the first argument in order
+  to have the corresponding document displayed.
+
+  \medskip The \hyperlink{setting.ISABELLE-DOCS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}DOCS}}}} setting specifies the list of
+  directories (separated by colons) to be scanned for documentations.
+  The program for viewing \verb|dvi| files is determined by the
+  \hyperlink{setting.DVI-VIEWER}{\mbox{\isa{\isatt{DVI{\isacharunderscore}VIEWER}}}} setting.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Getting logic images%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{findlogics}\hypertarget{tool.findlogics}{\hyperlink{tool.findlogics}{\mbox{\isa{\isatt{findlogics}}}}} utility traverses all directories
+  specified in \hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PATH}}}}, looking for Isabelle logic
+  images. Its usage is:
+\begin{ttbox}
+Usage: findlogics
+
+  Collect heap file names from ISABELLE_PATH.
+\end{ttbox}
+
+  The base names of all files found on the path are printed --- sorted
+  and with duplicates removed. Also note that lookup in \hyperlink{setting.ISABELLE-PATH}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PATH}}}} includes the current values of \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isacharunderscore}SYSTEM}}}}
+  and \hyperlink{setting.ML-PLATFORM}{\mbox{\isa{\isatt{ML{\isacharunderscore}PLATFORM}}}}. Thus switching to another ML compiler
+  may change the set of logic images available.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Inspecting the settings environment \label{sec:tool-getenv}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Isabelle settings environment --- as provided by the
+  site-default and user-specific settings files --- can be inspected
+  with the \indexdef{}{tool}{getenv}\hypertarget{tool.getenv}{\hyperlink{tool.getenv}{\mbox{\isa{\isatt{getenv}}}}} utility:
+\begin{ttbox}
+Usage: getenv [OPTIONS] [VARNAMES ...]
+
+  Options are:
+    -a           display complete environment
+    -b           print values only (doesn't work for -a)
+
+  Get value of VARNAMES from the Isabelle settings.
+\end{ttbox}
+
+  With the \verb|-a| option, one may inspect the full process
+  environment that Isabelle related programs are run in. This usually
+  contains much more variables than are actually Isabelle settings.
+  Normally, output is a list of lines of the form \isa{name}\verb|=|\isa{value}. The \verb|-b| option
+  causes only the values to be printed.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Examples%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Get the ML system name and the location where the compiler binaries
+  are supposed to reside as follows:
+\begin{ttbox}
+isatool getenv ML_SYSTEM ML_HOME
+{\out ML_SYSTEM=polyml}
+{\out ML_HOME=/usr/share/polyml/x86-linux}
+\end{ttbox}
+
+  The next one peeks at the output directory for Isabelle logic
+  images:
+\begin{ttbox}
+isatool getenv -b ISABELLE_OUTPUT
+{\out /home/me/isabelle/heaps/polyml_x86-linux}
+\end{ttbox}
+  Here we have used the \verb|-b| option to suppress the
+  \verb|ISABELLE_OUTPUT=| prefix.  The value above is what
+  became of the following assignment in the default settings file:
+\begin{ttbox}
+ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
+\end{ttbox}
+
+  Note how the \hyperlink{setting.ML-IDENTIFIER}{\mbox{\isa{\isatt{ML{\isacharunderscore}IDENTIFIER}}}} value got appended
+  automatically to each path component. This is a special feature of
+  \hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}OUTPUT}}}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Installing standalone Isabelle executables \label{sec:tool-install}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+By default, the Isabelle binaries (\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}},
+  \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}} etc.) are just run from their location within
+  the distribution directory, probably indirectly by the shell through
+  its \verb|PATH|.  Other schemes of installation are supported
+  by the \indexdef{}{tool}{install}\hypertarget{tool.install}{\hyperlink{tool.install}{\mbox{\isa{\isatt{install}}}}} utility:
+\begin{ttbox}
+Usage: install [OPTIONS]
+
+  Options are:
+    -d DISTDIR   use DISTDIR as Isabelle distribution
+                 (default ISABELLE_HOME)
+    -p DIR       install standalone binaries in DIR
+
+  Install Isabelle executables with absolute references to the current
+  distribution directory.
+\end{ttbox}
+
+  The \verb|-d| option overrides the current Isabelle
+  distribution directory as determined by \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}.
+
+  The \verb|-p| option installs executable wrapper scripts for
+  \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}, \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}}, \hyperlink{executable.Isabelle}{\mbox{\isa{\isatt{Isabelle}}}}, containing proper absolute references to the Isabelle
+  distribution directory.  A typical \verb|DIR| specification
+  would be some directory expected to be in the shell's \verb|PATH|, such as \verb|/usr/local/bin|.  It is important to
+  note that a plain manual copy of the original Isabelle executables
+  does not work, since it disrupts the integrity of the Isabelle
+  distribution.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Creating instances of the Isabelle logo%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{logo}\hypertarget{tool.logo}{\hyperlink{tool.logo}{\mbox{\isa{\isatt{logo}}}}} utility creates any instance of the generic
+  Isabelle logo as an Encapsuled Postscript file (EPS):
+\begin{ttbox}
+Usage: logo [OPTIONS] NAME
+
+  Create instance NAME of the Isabelle logo (as EPS).
+
+  Options are:
+    -o OUTFILE   set output file (default determined from NAME)
+    -q           quiet mode
+\end{ttbox}
+  You are encouraged to use this to create a derived logo for your
+  Isabelle project.  For example, \verb|isatool logo Bali|
+  creates \verb|isabelle_bali.eps|.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Isabelle's version of make \label{sec:tool-make}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Isabelle \indexdef{}{tool}{make}\hypertarget{tool.make}{\hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}}} utility is a very simple wrapper for
+  ordinary Unix \hyperlink{executable.make}{\mbox{\isa{\isatt{make}}}}:
+\begin{ttbox}
+Usage: make [ARGS ...]
+
+  Compile the logic in current directory using IsaMakefile.
+  ARGS are directly passed to the system make program.
+\end{ttbox}
+
+  Note that the Isabelle settings environment is also active. Thus one
+  may refer to its values within the \verb|IsaMakefile|, e.g.\
+  \verb|$(ISABELLE_OUTPUT)|. Furthermore, programs started from
+  the make file also inherit this environment.  Typically, \verb|IsaMakefile|s defer the real work to the \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} utility.
+
+  \medskip The basic \verb|IsaMakefile| convention is that the
+  default target builds the actual logic, including its parents if
+  appropriate.  The \verb|images| target is intended to build all
+  local logic images, while the \verb|test| target shall build
+  all related examples.  The \verb|all| target shall do
+  \verb|images| and \verb|test|.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Examples%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Refer to the \verb|IsaMakefile|s of the Isabelle distribution's
+  object-logics as a model for your own developments.  For example,
+  see \verb|src/FOL/IsaMakefile|.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Make all logics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{makeall}\hypertarget{tool.makeall}{\hyperlink{tool.makeall}{\mbox{\isa{\isatt{makeall}}}}} utility applies Isabelle make to all logic
+  directories of the distribution:
+\begin{ttbox}
+Usage: makeall [ARGS ...]
+
+  Apply isatool make to all logics (passing ARGS).
+\end{ttbox}
+
+  The arguments \verb|ARGS| are just passed verbatim to each
+  \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}} invocation.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Printing documents%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{print}\hypertarget{tool.print}{\hyperlink{tool.print}{\mbox{\isa{\isatt{print}}}}} utility prints documents:
+\begin{ttbox}
+Usage: print [OPTIONS] FILE
+
+  Options are:
+    -c           cleanup -- remove FILE after use
+
+  Print document FILE.
+\end{ttbox}
+
+  The \verb|-c| option causes the input file to be removed
+  after use.  The printer spool command is determined by the \hyperlink{setting.PRINT-COMMAND}{\mbox{\isa{\isatt{PRINT{\isacharunderscore}COMMAND}}}} setting.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Run Isabelle with plain tty interaction \label{sec:tool-tty}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{tty}\hypertarget{tool.tty}{\hyperlink{tool.tty}{\mbox{\isa{\isatt{tty}}}}} utility runs the Isabelle process interactively
+  within a plain terminal session:
+\begin{ttbox}
+Usage: tty [OPTIONS]
+
+  Options are:
+    -l NAME      logic image name (default ISABELLE_LOGIC)
+    -m MODE      add print mode for output
+    -p NAME      line editor program name (default ISABELLE_LINE_EDITOR)
+
+  Run Isabelle process with plain tty interaction, and optional line editor.
+\end{ttbox}
+
+  The \verb|-l| option specifies the logic image.  The
+  \verb|-m| option specifies additional print modes.  The The
+  \verb|-p| option specifies an alternative line editor (such
+  as the \hyperlink{executable.rlwrap}{\mbox{\isa{\isatt{rlwrap}}}} wrapper for GNU readline); the fall-back
+  is to use raw standard input.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Remove awkward symbol names from theory sources%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{unsymbolize}\hypertarget{tool.unsymbolize}{\hyperlink{tool.unsymbolize}{\mbox{\isa{\isatt{unsymbolize}}}}} utility tunes Isabelle theory sources to
+  improve readability for plain ASCII output (e.g.\ in email
+  communication).  Most notably, \hyperlink{tool.unsymbolize}{\mbox{\isa{\isatt{unsymbolize}}}} replaces awkward
+  arrow symbols such as \verb|\|\verb|<Longrightarrow>|
+  by \verb|==>|.
+\begin{ttbox}
+Usage: unsymbolize [FILES|DIRS...]
+
+  Recursively find .thy/.ML files, removing unreadable symbol names.
+  Note: this is an ad-hoc script; there is no systematic way to replace
+  symbols independently of the inner syntax of a theory!
+
+  Renames old versions of FILES by appending "~~".
+\end{ttbox}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Output the version identifier of the Isabelle distribution%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{version}\hypertarget{tool.version}{\hyperlink{tool.version}{\mbox{\isa{\isatt{version}}}}} utility outputs the full version string of
+  the Isabelle distribution being used, e.g.\ ``\verb|Isabelle2008: June 2008|.  There are no options nor arguments.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Convert XML to YXML%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{yxml}\hypertarget{tool.yxml}{\hyperlink{tool.yxml}{\mbox{\isa{\isatt{yxml}}}}} tool converts a standard XML document (stdin)
+  to the much simpler and more efficient YXML format of Isabelle
+  (stdout).  The YXML format is defined as follows.
+
+  \begin{enumerate}
+
+  \item The encoding is always UTF-8.
+
+  \item Body text is represented verbatim (no escaping, no special
+  treatment of white space, no named entities, no CDATA chunks, no
+  comments).
+
+  \item Markup elements are represented via ASCII control characters
+  \isa{{\isachardoublequote}\isactrlbold X\ {\isacharequal}\ {\isadigit{5}}{\isachardoublequote}} and \isa{{\isachardoublequote}\isactrlbold Y\ {\isacharequal}\ {\isadigit{6}}{\isachardoublequote}} as follows:
+
+  \begin{tabular}{ll}
+    XML & YXML \\\hline
+    \verb|<|\isa{{\isachardoublequote}name\ attribute{\isachardoublequote}}\verb|=|\isa{{\isachardoublequote}value\ {\isasymdots}{\isachardoublequote}}\verb|>| &
+    \isa{{\isachardoublequote}\isactrlbold X\isactrlbold Yname\isactrlbold Yattribute{\isachardoublequote}}\verb|=|\isa{{\isachardoublequote}value{\isasymdots}\isactrlbold X{\isachardoublequote}} \\
+    \verb|</|\isa{name}\verb|>| & \isa{{\isachardoublequote}\isactrlbold X\isactrlbold Y\isactrlbold X{\isachardoublequote}} \\
+  \end{tabular}
+
+  There is no special case for empty body text, i.e.\ \verb|<foo/>| is treated like \verb|<foo></foo>|.  Also note that
+  \isa{{\isachardoublequote}\isactrlbold X{\isachardoublequote}} and \isa{{\isachardoublequote}\isactrlbold Y{\isachardoublequote}} may never occur in
+  well-formed XML documents.
+
+  \end{enumerate}
+
+  Parsing YXML is pretty straight-forward: split the text into chunks
+  separated by \isa{{\isachardoublequote}\isactrlbold X{\isachardoublequote}}, then split each chunk into
+  sub-chunks separated by \isa{{\isachardoublequote}\isactrlbold Y{\isachardoublequote}}.  Markup chunks start
+  with an empty sub-chunk, and a second empty sub-chunk indicates
+  close of an element.  Any other non-empty chunk consists of plain
+  text.
+
+  YXML documents may be detected quickly by checking that the first
+  two characters are \isa{{\isachardoublequote}\isactrlbold X\isactrlbold Y{\isachardoublequote}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

@@ -22,7 +22,7 @@ USEDIR = $(ISATOOL) usedir -v true -i false -d false -C false -D document
 Pure-System: $(LOG)/Pure-System.gz
 
 $(LOG)/Pure-System.gz: Thy/ROOT.ML ../antiquote_setup.ML	\
-  Thy/Basics.thy Thy/Presentation.thy
+  Thy/Basics.thy Thy/Misc.thy Thy/Presentation.thy
 	@$(USEDIR) -s System Pure Thy
 
 
