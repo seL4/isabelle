@@ -18,8 +18,9 @@ text {*
 
   \begin{itemize}
 
-  \item The \emph{Isabelle settings mechanism} provides environment variables to
-  all Isabelle programs (including tools and user interfaces).
+  \item The \emph{Isabelle settings mechanism} provides environment
+  variables to all Isabelle programs (including tools and user
+  interfaces).
 
   \item The \emph{Isabelle tools wrapper} (@{executable_def isatool})
   provides a generic startup platform for Isabelle related utilities.
@@ -276,7 +277,7 @@ section {* The Isabelle tools wrapper \label{sec:isatool} *}
 
 text {*
   All Isabelle related utilities are called via a common wrapper ---
-  \ttindex{isatool}:
+  @{executable isatool}:
 
 \begin{ttbox}
 Usage: isatool TOOL [ARGS ...]
@@ -372,7 +373,7 @@ Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
 *}
 
 
-subsection {* Options *}
+subsubsection {* Options *}
 
 text {*
   If the input heap file does not have write permission bits set, or
@@ -411,8 +412,9 @@ text {*
 
   \medskip The @{verbatim "-u"} option is a shortcut for @{verbatim
   "-e"} passing ``@{verbatim "use \"ROOT.ML\";"}'' to the ML session.
-  The @{verbatim "-f"} option passes ``@{verbatim "Session.finish ();"}'',
-  which is intended mainly for administrative purposes.
+  The @{verbatim "-f"} option passes ``@{verbatim
+  "Session.finish();"}'', which is intended mainly for administrative
+  purposes.
 
   \medskip The @{verbatim "-m"} option adds identifiers of print modes
   to be made active for this session. Typically, this is used by some
@@ -439,7 +441,7 @@ text {*
 *}
 
 
-subsection {* Examples *}
+subsubsection {* Examples *}
 
 text {*
   Run an interactive session of the default object-logic (as specified
