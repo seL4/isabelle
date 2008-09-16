@@ -779,7 +779,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/ReflectionEx.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy		\
   ex/Reflected_Presburger.thy ex/coopertac.ML				\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
-  ex/Sudoku.thy ex/Tarski.thy ex/Unification.thy ex/document/root.bib	\
+  ex/Sudoku.thy ex/Tarski.thy ex/Term_Of_Syntax.thy			\
+  ex/Unification.thy ex/document/root.bib			\
   ex/document/root.tex ex/Meson_Test.thy ex/reflection.ML ex/set.thy	\
   ex/svc_funcs.ML ex/svc_test.thy	\
   ex/ImperativeQuicksort.thy	\

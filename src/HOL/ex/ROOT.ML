@@ -13,7 +13,8 @@ no_document use_thys [
   "FuncSet",
   "Word",
   "Eval_Examples",
-  "Quickcheck"
+  "Quickcheck",
+  "Term_Of_Syntax"
 ];
 
 no_document use_thy "Codegenerator";

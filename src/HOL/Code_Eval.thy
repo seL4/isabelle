@@ -61,11 +61,13 @@ let
         $ Free ("x", ty);
       val rhs = @{term "undefined \<Colon> term"};
       val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
+      fun triv_name_of t = (fst o dest_Free o fst o strip_comb o fst
+        o HOLogic.dest_eq o HOLogic.dest_Trueprop) t ^ "_triv";
     in
       thy
       |> TheoryTarget.instantiation ([tyco], vs, @{sort term_of})
       |> `(fn lthy => Syntax.check_term lthy eq)
-      |-> (fn eq => Specification.definition (NONE, (Attrib.no_binding, eq)))
+      |-> (fn eq => Specification.definition (NONE, ((Name.binding (triv_name_of eq), []), eq)))
       |> snd
       |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
       |> LocalTheory.exit
@@ -139,6 +141,12 @@ lemma [code func, code func del]: "(term_of \<Colon> rtype \<Rightarrow> term) =
 lemma [code func, code func del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
 lemma [code func, code func del]: "(term_of \<Colon> message_string \<Rightarrow> term) = term_of" ..
 
+lemma term_of_char [unfolded rtype_fun_def rtype_char_def rtype_nibble_def, code func]: "Code_Eval.term_of c =
+    (let (n, m) = nibble_pair_of_char c
+  in Code_Eval.App (Code_Eval.App (Code_Eval.Const (STR ''Pair'') (RTYPE(nibble \<Rightarrow> nibble \<Rightarrow> char)))
+    (Code_Eval.term_of n)) (Code_Eval.term_of m))"
+  by (subst term_of_anything) rule 
+
 code_type "term"
   (SML "Term.term")
 
@@ -147,72 +155,6 @@ code_const Const and App
 
 code_const "term_of \<Colon> message_string \<Rightarrow> term"
   (SML "Message'_String.mk")
-
-
-subsubsection {* Syntax *}
-
-print_translation {*
-let
-  val term = Const ("<TERM>", dummyT);
-  fun tr1' [_, _] = term;
-  fun tr2' [] = term;
-in
-  [(@{const_syntax Const}, tr1'),
-    (@{const_syntax App}, tr1'),
-    (@{const_syntax dummy_term}, tr2')]
-end
-*}
-setup {*
-  Sign.declare_const [] ((Name.binding "rterm_of", @{typ "'a \<Rightarrow> 'b"}), NoSyn)
-  #> snd
-*}
-
-notation (output)
-  rterm_of ("\<guillemotleft>_\<guillemotright>")
-
-locale rterm_syntax =
-  fixes rterm_of_syntax :: "'a \<Rightarrow> 'b" ("\<guillemotleft>_\<guillemotright>")
-
-parse_translation {*
-let
-  fun rterm_of_tr [t] = Lexicon.const @{const_name rterm_of} $ t
-    | rterm_of_tr ts = raise TERM ("rterm_of_tr", ts);
-in
-  [(Syntax.fixedN ^ "rterm_of_syntax", rterm_of_tr)]
-end
-*}
-
-setup {*
-let
-  val subst_rterm_of = Eval.mk_term
-    (fn (v, _) => error ("illegal free variable in term quotation: " ^ quote v))
-    (RType.mk (fn (v, sort) => RType.rtype (TFree (v, sort))));
-  fun subst_rterm_of' (Const (@{const_name rterm_of}, _), [t]) = subst_rterm_of t
-    | subst_rterm_of' (Const (@{const_name rterm_of}, _), _) =
-        error ("illegal number of arguments for " ^ quote @{const_name rterm_of})
-    | subst_rterm_of' (t, ts) = list_comb (t, map (subst_rterm_of' o strip_comb) ts);
-  fun subst_rterm_of'' t = 
-    let
-      val t' = subst_rterm_of' (strip_comb t);
-    in if t aconv t'
-      then NONE
-      else SOME t'
-    end;
-  fun check_rterm_of ts ctxt =
-    let
-      val ts' = map subst_rterm_of'' ts;
-    in if exists is_some ts'
-      then SOME (map2 the_default ts ts', ctxt)
-      else NONE
-    end;
-in
-  Context.theory_map (Syntax.add_term_check 0 "rterm_of" check_rterm_of)
-end;
-*}
-
-hide const dummy_term
-hide (open) const Const App
-hide (open) const term_of
 
 
 subsection {* Evaluation setup *}
@@ -244,5 +186,24 @@ end;
 setup {*
   Value.add_evaluator ("code", Eval.eval_term o ProofContext.theory_of)
 *}
+
+
+subsubsection {* Syntax *}
+
+print_translation {*
+let
+  val term = Const ("<TERM>", dummyT);
+  fun tr1' [_, _] = term;
+  fun tr2' [] = term;
+in
+  [(@{const_syntax Const}, tr1'),
+    (@{const_syntax App}, tr1'),
+    (@{const_syntax dummy_term}, tr2')]
+end
+*}
+
+hide const dummy_term
+hide (open) const Const App
+hide (open) const term_of
 
 end
