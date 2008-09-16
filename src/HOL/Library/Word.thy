@@ -2267,6 +2267,8 @@ primrec
   fast_bv_to_nat_Cons: "fast_bv_to_nat_helper (b#bs) k =
     fast_bv_to_nat_helper bs ((bit_case Int.Bit0 Int.Bit1 b) k)"
 
+declare fast_bv_to_nat_helper.simps [code func del]
+
 lemma fast_bv_to_nat_Cons0: "fast_bv_to_nat_helper (\<zero>#bs) bin =
     fast_bv_to_nat_helper bs (Int.Bit0 bin)"
   by simp

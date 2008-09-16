@@ -93,9 +93,8 @@ theorem eq_equiv_class_iff:
 
 subsection {* Quotients *}
 
-constdefs
-  quotient :: "['a set, ('a*'a) set] => 'a set set"  (infixl "'/'/" 90)
-  "A//r == \<Union>x \<in> A. {r``{x}}"  -- {* set of equiv classes *}
+definition quotient :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set set"  (infixl "'/'/" 90) where
+  [code func del]: "A//r = (\<Union>x \<in> A. {r``{x}})"  -- {* set of equiv classes *}
 
 lemma quotientI: "x \<in> A ==> r``{x} \<in> A//r"
   by (unfold quotient_def) blast

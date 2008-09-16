@@ -18,7 +18,7 @@ instantiation nat :: number
 begin
 
 definition
-  nat_number_of_def [code inline]: "number_of v = nat (number_of v)"
+  nat_number_of_def [code inline, code func del]: "number_of v = nat (number_of v)"
 
 instance ..
 
