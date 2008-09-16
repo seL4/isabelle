@@ -565,12 +565,15 @@ fun infer_types ctxt =
 
   fun common_thm ths1 ths2 = exists (member Thm.eq_thm ths1) (map Meson.make_meta_clause ths2);
 
+  exception METIS of string;
+
   (* Main function to start metis prove and reconstruction *)
   fun FOL_SOLVE mode ctxt cls ths0 =
     let val thy = ProofContext.theory_of ctxt
         val th_cls_pairs = map (fn th => (Thm.get_name_hint th, ResAxioms.cnf_axiom thy th)) ths0
         val ths = List.concat (map #2 th_cls_pairs)
-        val _ = if exists(is_false o prop_of) cls then error "problem contains the empty clause"
+        val _ = if exists(is_false o prop_of) cls 
+                then raise METIS "problem contains the empty clause"
                 else ();
         val _ = Output.debug (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
         val _ = app (fn th => Output.debug (fn () => Display.string_of_thm th)) cls
@@ -590,7 +593,7 @@ fun infer_types ctxt =
     in
         case refute thms of
             Metis.Resolution.Contradiction mth =>
-             (let val _ = Output.debug (fn () => "METIS RECONSTRUCTION START: " ^
+              let val _ = Output.debug (fn () => "METIS RECONSTRUCTION START: " ^
                             Metis.Thm.toString mth)
                   val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                                (*add constraints arising from converting goal to clause form*)
@@ -604,11 +607,15 @@ fun infer_types ctxt =
                   if null unused then ()
                   else warning ("Unused theorems: " ^ commas (map #1 unused));
                   case result of
-                      (_,ith)::_ => (Output.debug (fn () => "success: " ^ Display.string_of_thm ith); ith)
-                    | _ => error "Metis: no result"
+                      (_,ith)::_ => 
+                          (Output.debug (fn () => "success: " ^ Display.string_of_thm ith); 
+                           [ith])
+                    | _ => (Output.debug (fn () => "Metis: no result"); 
+                            [])
               end
-              handle e => error "Metis: Exception raised during proof reconstruction")
-          | Metis.Resolution.Satisfiable _ => error "Metis: No first-order proof with the lemmas supplied"
+          | Metis.Resolution.Satisfiable _ => 
+	      (Output.debug (fn () => "Metis: No first-order proof with the lemmas supplied"); 
+	       [])
     end;
 
   fun metis_general_tac mode ctxt ths i st0 =
@@ -616,10 +623,12 @@ fun infer_types ctxt =
           "Metis called with theorems " ^ cat_lines (map Display.string_of_thm ths))
     in
        if exists_type ResAxioms.type_has_empty_sort (prop_of st0)  
-       then error "Proof state contains the empty sort" else ();
-       (Meson.MESON ResAxioms.neg_clausify (fn cls => rtac (FOL_SOLVE mode ctxt cls ths) 1) i
-        THEN ResAxioms.expand_defs_tac st0) st0
-    end;
+       then (warning "Proof state contains the empty sort"; Seq.empty)
+       else 
+	 (Meson.MESON ResAxioms.neg_clausify (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1) i
+	  THEN ResAxioms.expand_defs_tac st0) st0
+    end
+    handle METIS s => (warning ("Metis: " ^ s); Seq.empty);
 
   val metis_tac = metis_general_tac ResAtp.Auto;
   val metisF_tac = metis_general_tac ResAtp.Fol;
