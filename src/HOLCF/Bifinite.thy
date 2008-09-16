@@ -41,8 +41,10 @@ qed
 interpretation approx: finite_deflation ["approx i"]
 by (rule finite_deflation_approx)
 
+lemma (in deflation) deflation: "deflation d" ..
+
 lemma deflation_approx: "deflation (approx i)"
-by (rule approx.deflation_axioms)
+by (rule approx.deflation)
 
 lemma lub_approx [simp]: "(\<Squnion>i. approx i) = (\<Lambda> x. x)"
 by (rule ext_cfun, simp add: contlub_cfun_fun)
