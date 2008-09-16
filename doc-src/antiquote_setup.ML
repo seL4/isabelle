@@ -153,6 +153,9 @@ fun thy_check intern defined ctxt =
   let val thy = ProofContext.theory_of ctxt
   in defined thy o intern thy end;
 
+fun check_tool name =
+  File.exists (Path.append (Path.explode "~~/lib/Tools") (Path.basic name));
+
 val arg = enclose "{" "}" o clean_string;
 
 fun output_entity check markup index kind ctxt (logic, name) =
@@ -174,7 +177,7 @@ fun output_entity check markup index kind ctxt (logic, name) =
         |> (if ! O.quotes then quote else I)
         |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
             else hyper o enclose "\\mbox{\\isa{" "}}"))
-    else error ("Undefined " ^ kind ^ " " ^ quote name)
+    else error ("Bad " ^ kind ^ " " ^ quote name)
   end;
 
 fun entity check markup index kind =
@@ -199,9 +202,10 @@ val _ = O.add_commands
   entity_antiqs no_check "" "variable" @
   entity_antiqs no_check "" "case" @
   entity_antiqs (K ThyOutput.defined_command) "" "antiquotation" @
-  entity_antiqs no_check "isatt" "setting" @
+  entity_antiqs (fn _ => fn name => is_some (OS.Process.getEnv name)) "isatt" "setting" @
   entity_antiqs no_check "isatt" "executable" @
-  entity_antiqs no_check "isatt" "tool");
+  entity_antiqs (K check_tool) "isatt" "tool" @
+  entity_antiqs (K (File.exists o Path.explode)) "isatt" "file");
 
 end;
 
