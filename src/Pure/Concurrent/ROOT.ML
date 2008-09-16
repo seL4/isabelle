@@ -4,6 +4,7 @@
 Concurrency within the ML runtime.
 *)
 
+use "simple_thread.ML";
 use "mailbox.ML";
 use "schedule.ML";
 use "task_queue.ML";
