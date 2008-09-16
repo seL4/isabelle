@@ -6,6 +6,9 @@ New in this Isabelle version
 
 *** General ***
 
+* The Isabelle System Manual (system) has been updated, with formally
+checked references as hyperlinks.
+
 * Generalized Isar history, with support for linear undo, direct state
 addressing etc.
 
