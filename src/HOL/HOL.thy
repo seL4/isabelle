@@ -1711,6 +1711,7 @@ setup {*
   #> Code_ML.setup
   #> Code_Haskell.setup
   #> Nbe.setup
+  #> Codegen.setup
 *}
 
 lemma [code func]:

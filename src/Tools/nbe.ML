@@ -454,7 +454,8 @@ fun norm_print_term_cmd (modes, s) state =
   let val ctxt = Toplevel.context_of state
   in norm_print_term ctxt modes (Syntax.read_term ctxt s) end;
 
-val setup = Theory.add_oracle ("norm", norm_oracle);
+val setup = Theory.add_oracle ("norm", norm_oracle)
+  #> Value.add_evaluator ("nbe", norm_term o ProofContext.theory_of);
 
 local structure P = OuterParse and K = OuterKeyword in
 
@@ -462,7 +463,7 @@ val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$
 
 val _ =
   OuterSyntax.improper_command "normal_form" "normalize term by evaluation" K.diag
-    (opt_modes -- P.typ >> (Toplevel.keep o norm_print_term_cmd));
+    (opt_modes -- P.term >> (Toplevel.keep o norm_print_term_cmd));
 
 end;
 

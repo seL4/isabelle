@@ -4,6 +4,7 @@
 Miscellaneous tools and packages for Pure Isabelle.
 *)
 
+use "value.ML";
 use "named_thms.ML";
 use "isabelle_process.ML";
 
@@ -12,4 +13,3 @@ use "xml_syntax.ML";
 
 (*derived theory and proof elements*)
 use "invoke.ML";
-

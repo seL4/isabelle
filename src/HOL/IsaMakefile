@@ -184,6 +184,7 @@ $(OUT)/HOL: $(OUT)/HOL-Plain \
   ROOT.ML \
   Arith_Tools.thy \
   ATP_Linkup.thy \
+  Code_Eval.thy \
   Complex/Complex_Main.thy \
   Complex/Complex.thy \
   Complex/Fundamental_Theorem_Algebra.thy \
@@ -210,6 +211,7 @@ $(OUT)/HOL: $(OUT)/HOL-Plain \
   Library/GCD.thy \
   Library/Order_Relation.thy \
   Library/Parity.thy \
+  Library/RType.thy \
   Library/Univ_Poly.thy \
   List.thy \
   Main.thy \
@@ -301,7 +303,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/List_lexord.thy Library/Commutative_Ring.thy			\
   Library/comm_ring.ML Library/Coinductive_List.thy			\
   Library/AssocList.thy		\
-  Library/Binomial.thy Library/Eval.thy Library/Eval_Witness.thy	\
+  Library/Binomial.thy Library/Eval_Witness.thy	\
   Library/Code_Index.thy Library/Code_Char.thy				\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
   Library/Code_Message.thy			\

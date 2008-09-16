@@ -96,6 +96,8 @@ sig
   val del_nodes: string list -> codegr -> codegr
   val map_node: string -> (node -> node) -> codegr -> codegr
   val new_node: string * node -> codegr -> codegr
+
+  val setup: theory -> theory
 end;
 
 structure Codegen : CODEGEN =
@@ -154,7 +156,7 @@ type deftab =
 
 type nametab = (string * string) Symtab.table * unit Symtab.table;
 
-fun merge_nametabs ((tab, used), (tab', used')) =
+fun merge_nametabs ((tab, used) : nametab, (tab', used')) =
   (Symtab.merge op = (tab, tab'), Symtab.merge op = (used, used'));
 
 type node =
@@ -232,7 +234,7 @@ structure CodegenData = TheoryDataFun
   fun merge _
     ({codegens = codegens1, tycodegens = tycodegens1,
       consts = consts1, types = types1,
-      preprocs = preprocs1, modules = modules1, test_params = test_params1},
+      preprocs = preprocs1, modules = modules1, test_params = test_params1} : T,
      {codegens = codegens2, tycodegens = tycodegens2,
       consts = consts2, types = types2,
       preprocs = preprocs2, modules = modules2, test_params = test_params2}) =
@@ -346,14 +348,6 @@ fun add_unfold eqn =
         else th
       end)
   in add_preprocessor prep end;
-
-val _ = Context.>>
-  (let
-    fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
-  in
-    Context.map_theory (Code.add_attribute ("unfold", Scan.succeed (mk_attribute
-      (fn thm => add_unfold thm #> Code.add_inline thm))))
-  end);
 
 
 (**** associate constants with target language code ****)
@@ -784,11 +778,6 @@ fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
                  (add_edge (node_id, dep) gr'', p module''))
            end);
 
-val _ = Context.>> (Context.map_theory
- (add_codegen "default" default_codegen #>
-  add_tycodegen "default" default_tycodegen));
-
-
 fun mk_tuple [p] = p
   | mk_tuple ps = Pretty.block (str "(" ::
       List.concat (separate [str ",", Pretty.brk 1] (map single ps)) @
@@ -804,7 +793,7 @@ fun mk_let bindings body =
 
 fun mk_struct name s = "structure " ^ name ^ " =\nstruct\n\n" ^ s ^ "end;\n";
 
-fun add_to_module name s = AList.map_entry (op =) name (suffix s);
+fun add_to_module name s = AList.map_entry (op =) (name : string) (suffix s);
 
 fun output_code gr module xs =
   let
@@ -1023,8 +1012,6 @@ fun test_goal' int state =
     else state
   end;
 
-val _ = Context.>> (Specification.add_theorem_hook test_goal');
-
 
 (**** Evaluator for terms ****)
 
@@ -1053,18 +1040,6 @@ fun eval_term thy t =
     in !eval_result end;
   in e () end;
 
-fun print_evaluated_term s = Toplevel.keep (fn state =>
-  let
-    val ctxt = Toplevel.context_of state;
-    val thy = ProofContext.theory_of ctxt;
-    val t = eval_term thy (Syntax.read_term ctxt s);
-    val T = Term.type_of t;
-  in
-    Pretty.writeln
-      (Pretty.block [Pretty.quote (Syntax.pretty_term ctxt t), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt T)])
-  end);
-
 exception Evaluation of term;
 
 fun evaluation_oracle (thy, Evaluation t) =
@@ -1072,10 +1047,7 @@ fun evaluation_oracle (thy, Evaluation t) =
 
 fun evaluation_conv ct =
   let val thy = Thm.theory_of_cterm ct
-  in Thm.invoke_oracle_i thy "Pure.evaluation" (thy, Evaluation (Thm.term_of ct)) end;
-
-val _ = Context.>> (Context.map_theory
-  (Theory.add_oracle ("evaluation", evaluation_oracle)));
+  in Thm.invoke_oracle_i thy "HOL.evaluation" (thy, Evaluation (Thm.term_of ct)) end;
 
 
 (**** Interface ****)
@@ -1156,6 +1128,15 @@ fun parse_code lib =
            else map_modules (Symtab.update (module, gr)) thy)
      end));
 
+val setup = add_codegen "default" default_codegen
+  #> add_tycodegen "default" default_tycodegen
+  #> Theory.add_oracle ("evaluation", evaluation_oracle)
+  #> Value.add_evaluator ("SML", eval_term o ProofContext.theory_of)
+  #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
+       (fn thm => Context.mapping (add_unfold thm #> Code.add_inline thm) I)));
+
+val _ = Context.>> (Specification.add_theorem_hook test_goal');
+
 val _ =
   OuterSyntax.command "code_library"
     "generates code for terms (one structure for each theory)" K.thy_decl
@@ -1194,10 +1175,6 @@ val _ =
           (Option.map (map (fn f => f (Toplevel.theory_of st))) ps))
         (get_test_params (Toplevel.theory_of st), [])) g [] |>
       pretty_counterex (Toplevel.context_of st) |> Pretty.writeln)));
-
-val _ =
-  OuterSyntax.improper_command "value" "read, evaluate and print term" K.diag
-    (P.term >> (Toplevel.no_timing oo print_evaluated_term));
 
 end;
 

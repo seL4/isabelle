@@ -63,6 +63,11 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* HOL/Main: command "value" now integrates different evaluation mechanisms.
+The result of the first successful evaluation mechanism is printed.
+In square brackets a particular named evaluation mechanisms may be specified
+(currently, [SML], [code] or [nbe]).  See further HOL/ex/Eval_Examples.thy.
+
 * HOL/Orderings: class "wellorder" moved here, with explicit induction
 rule "less_induct" as assumption.  For instantiation of "wellorder" by
 means of predicate "wf", use rule wf_wellorderI.  INCOMPATIBILITY.
