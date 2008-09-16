@@ -12,6 +12,48 @@ text {*
 *}
 
 
+section {* The Proof General / Emacs interface *}
+
+text {*
+  The @{tool_def emacs} tool invokes a version of Emacs with Proof
+  General within the regular Isabelle settings environment
+  (\secref{sec:settings}).  This is more robust than starting Emacs
+  separately, loading the Proof General lisp files, and then
+  attempting to start Isabelle with dynamic @{setting PATH} lookup
+  etc.
+
+  The actual interface script is part of the Proof General
+  distribution~\cite{proofgeneral}; its usage depends on the
+  particular version.  There are some options available, such as
+  @{verbatim "-l"} for passing the logic image to be used by default,
+  or @{verbatim "-m"} to tune the standard print mode.
+
+  The following Isabelle settings are particularly important for Proof
+  General:
+
+  \begin{description}
+
+  \item[@{setting_def PROOFGENERAL_HOME}] points to the main
+  installation directory of the Proof General distribution.  The
+  default settings try to locate this in a number of standard places,
+  notably @{verbatim "$ISABELLE_HOME/contrib/ProofGeneral"}.
+
+  \item[@{setting_def PROOFGENERAL_OPTIONS}] is implicitly prefixed to
+  the command line of any invocation of the Proof General @{verbatim
+  interface} script.
+
+  \item[@{setting_def XSYMBOL_INSTALLFONTS}] may contain a small shell
+  script to install the X11 fonts required for the X-Symbols mode of
+  Proof General.  This is only required if the X11 display server runs
+  on a different machine than the Emacs application, with a different
+  file-system view on the Proof General installation.  Under most
+  circumstances Proof General is able to refer to the font files that
+  are part of its distribution.
+
+  \end{description}
+*}
+
+
 section {* Displaying documents *}
 
 text {*

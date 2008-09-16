@@ -63,10 +63,11 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* HOL/Main: command "value" now integrates different evaluation mechanisms.
-The result of the first successful evaluation mechanism is printed.
-In square brackets a particular named evaluation mechanisms may be specified
-(currently, [SML], [code] or [nbe]).  See further HOL/ex/Eval_Examples.thy.
+* HOL/Main: command "value" now integrates different evaluation
+mechanisms.  The result of the first successful evaluation mechanism
+is printed.  In square brackets a particular named evaluation
+mechanisms may be specified (currently, [SML], [code] or [nbe]).  See
+further src/HOL/ex/Eval_Examples.thy.
 
 * HOL/Orderings: class "wellorder" moved here, with explicit induction
 rule "less_induct" as assumption.  For instantiation of "wellorder" by
@@ -130,8 +131,8 @@ the corresponding theory Plain should be ancestor of every further
 (instead of Main), thus theory Main occasionally has to be imported
 explicitly.
 
-* The metis method now fails in the usual manner, rather than raising an exception,
-if it determines that it cannot prove the theorem.
+* The metis method now fails in the usual manner, rather than raising
+an exception, if it determines that it cannot prove the theorem.
 
 * Methods "case_tac" and "induct_tac" now refer to the very same rules
 as the structured Isar versions "cases" and "induct", cf. the
@@ -250,6 +251,12 @@ resort for legacy applications.
 
 
 *** System ***
+
+* The Isabelle "emacs" tool provides a specific interface to invoke
+Proof General / Emacs, with more explicit failure if that is not
+installed (the old isabelle-interface script silently falls back on
+isabelle-process).  The PROOFGENERAL_HOME setting determines the
+installation location of the Proof General distribution.
 
 * Isabelle/lib/classes/Pure.jar provides basic support to integrate
 the Isabelle process into a JVM/Scala application.  See
