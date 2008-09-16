@@ -193,7 +193,6 @@ PRINT_COMMAND=lp
 # Fallback: the null interface (pass-through to raw isabelle process).
 ISABELLE_INTERFACE=none
 
-# Proof General path, look in a variety of places
 ISABELLE_INTERFACE=$(choosefrom \
   "$ISABELLE_HOME/contrib/ProofGeneral/isar/interface" \
   "$ISABELLE_HOME/../ProofGeneral/isar/interface" \
@@ -203,12 +202,21 @@ ISABELLE_INTERFACE=$(choosefrom \
   "/usr/share/emacs/ProofGeneral/isar/interface" \
   "$ISABELLE_INTERFACE")
 
+# Proof General home, look in a variety of places
+PROOFGENERAL_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/ProofGeneral" \
+  "$ISABELLE_HOME/../ProofGeneral" \
+  "/usr/local/ProofGeneral" \
+  "/usr/share/ProofGeneral" \
+  "/opt/ProofGeneral" \
+  "")
+
 PROOFGENERAL_OPTIONS=""
 #PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true -p emacs22"
 
 # Automatic setup of remote fonts
 #XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
-
+XSYMBOL_INSTALLFONTS=""
 
 ###
 ### External reasoning tools
