@@ -97,8 +97,10 @@ locale IA = fixes a assumes asm_A: "a = a"
 
 locale IB = fixes b assumes asm_B [simp]: "b = b"
 
-locale IC = IA + IB + assumes asm_C: "c = c"
-  (* TODO: independent type var in c, prohibit locale declaration *)
+locale IC = IA + IB + assumes asm_C: "b = b"
+
+locale IC' = IA + IB + assumes asm_C: "c = c"
+  (* independent type var in c *)
 
 locale ID = IA + IB + fixes d defines def_D: "d == (a = b)"
 
