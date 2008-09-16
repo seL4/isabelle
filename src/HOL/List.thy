@@ -3370,6 +3370,12 @@ qed
 instance char :: finite
   by default (simp add: UNIV_char)
 
+lemma size_char [code, simp]:
+  "size (c::char) = 0" by (cases c) simp
+
+lemma char_size [code, simp]:
+  "char_size (c::char) = 0" by (cases c) simp
+
 types string = "char list"
 
 syntax
