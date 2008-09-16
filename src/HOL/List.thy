@@ -3376,6 +3376,32 @@ lemma size_char [code, simp]:
 lemma char_size [code, simp]:
   "char_size (c::char) = 0" by (cases c) simp
 
+primrec nibble_pair_of_char :: "char \<Rightarrow> nibble \<times> nibble" where
+  "nibble_pair_of_char (Char n m) = (n, m)"
+
+declare nibble_pair_of_char.simps [code func del]
+
+setup {*
+let
+  val nibbles = map (Thm.cterm_of @{theory} o HOLogic.mk_nibble) (0 upto 15);
+  val thms = map_product
+   (fn n => fn m => Drule.instantiate' [] [SOME n, SOME m] @{thm nibble_pair_of_char.simps})
+      nibbles nibbles;
+in
+  PureThy.note_thmss Thm.lemmaK [((Name.binding "nibble_pair_of_char_simps", []), [(thms, [])])]
+  #-> (fn [(_, thms)] => fold_rev Code.add_func thms)
+end
+*}
+
+lemma char_case_nibble_pair [code func, code inline]:
+  "char_case f = split f o nibble_pair_of_char"
+  by (simp add: expand_fun_eq split: char.split)
+
+lemma char_rec_nibble_pair [code func, code inline]:
+  "char_rec f = split f o nibble_pair_of_char"
+  unfolding char_case_nibble_pair [symmetric]
+  by (simp add: expand_fun_eq split: char.split)
+
 types string = "char list"
 
 syntax

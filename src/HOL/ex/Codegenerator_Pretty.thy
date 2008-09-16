@@ -11,12 +11,6 @@ begin
 
 declare isnorm.simps [code func del]
 
-lemma [code func, code func del]:
-  "(Code_Eval.term_of :: char \<Rightarrow> term) = Code_Eval.term_of" ..
-
-declare char.recs [code func del]
-  char.cases [code func del]
-
 ML {* (*FIXME get rid of this*)
 nonfix union;
 nonfix inter;

@@ -9,8 +9,6 @@ theory Code_Char
 imports Plain "~~/src/HOL/List" "~~/src/HOL/Code_Eval"
 begin
 
-declare char.recs [code func del] char.cases [code func del]
-
 code_type char
   (SML "char")
   (OCaml "char")
@@ -34,9 +32,6 @@ code_const "op = \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (SML "!((_ : char) = _)")
   (OCaml "!((_ : char) = _)")
   (Haskell infixl 4 "==")
-
-lemma [code func, code func del]:
-  "(Code_Eval.term_of :: char \<Rightarrow> term) = Code_Eval.term_of" ..
 
 code_const "Code_Eval.term_of \<Colon> char \<Rightarrow> term"
   (SML "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))")
