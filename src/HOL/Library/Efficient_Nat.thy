@@ -6,7 +6,7 @@
 header {* Implementation of natural numbers by target-language integers *}
 
 theory Efficient_Nat
-imports Plain Code_Integer Code_Index
+imports Plain Code_Index Code_Integer
 begin
 
 text {*
@@ -422,6 +422,15 @@ consts_code
   "op * \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat"   ("(_ */ _)")
   "op \<le> \<Colon>  nat \<Rightarrow> nat \<Rightarrow> bool"  ("(_ <=/ _)")
   "op < \<Colon>  nat \<Rightarrow> nat \<Rightarrow> bool"  ("(_ </ _)")
+
+
+text {* Evaluation *}
+
+lemma [code func, code func del]:
+  "(Code_Eval.term_of \<Colon> nat \<Rightarrow> term) = Code_Eval.term_of" ..
+
+code_const "Code_Eval.term_of \<Colon> nat \<Rightarrow> term"
+  (SML "HOLogic.mk'_number/ HOLogic.natT")
 
 
 text {* Module names *}

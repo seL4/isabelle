@@ -6,7 +6,7 @@
 header {* Pretty integer literals for code generation *}
 
 theory Code_Integer
-imports Plain "~~/src/HOL/Presburger"
+imports Plain "~~/src/HOL/Code_Eval" "~~/src/HOL/Presburger"
 begin
 
 text {*
@@ -89,5 +89,13 @@ code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
 
 code_reserved SML IntInf
 code_reserved OCaml Big_int
+
+text {* Evaluation *}
+
+lemma [code func, code func del]:
+  "(Code_Eval.term_of \<Colon> int \<Rightarrow> term) = Code_Eval.term_of" ..
+
+code_const "Code_Eval.term_of \<Colon> int \<Rightarrow> term"
+  (SML "HOLogic.mk'_number/ HOLogic.intT")
 
 end

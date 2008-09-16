@@ -6,18 +6,10 @@
 header {* Code generation of pretty characters (and strings) *}
 
 theory Code_Char
-imports Plain "~~/src/HOL/List"
+imports Plain "~~/src/HOL/List" "~~/src/HOL/Code_Eval"
 begin
 
 declare char.recs [code func del] char.cases [code func del]
-
-lemma [code func]:
-  "size (c\<Colon>char) = 0"
-  by (cases c) simp
-
-lemma [code func]:
-  "char_size (c\<Colon>char) = 0"
-  by (cases c) simp
 
 code_type char
   (SML "char")
@@ -42,5 +34,11 @@ code_const "op = \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (SML "!((_ : char) = _)")
   (OCaml "!((_ : char) = _)")
   (Haskell infixl 4 "==")
+
+lemma [code func, code func del]:
+  "(Code_Eval.term_of :: char \<Rightarrow> term) = Code_Eval.term_of" ..
+
+code_const "Code_Eval.term_of \<Colon> char \<Rightarrow> term"
+  (SML "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))")
 
 end

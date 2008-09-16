@@ -6,7 +6,7 @@
 header {* Reflecting Pure types into HOL *}
 
 theory RType
-imports Plain "~~/src/HOL/List" "~~/src/HOL/Code_Message" "~~/src/HOL/Code_Index" (* import all 'special code' types *)
+imports Plain "~~/src/HOL/List" "~~/src/HOL/Library/Code_Message"
 begin
 
 datatype "rtype" = RType message_string "rtype list"

@@ -6,7 +6,7 @@ Miscellaneous examples for Higher-Order Logic.
 
 no_document use_thys [
   "Parity",
-  "Eval",
+  "Code_Eval",
   "State_Monad",
   "Efficient_Nat_examples",
   "ExecutableContent",

@@ -5,7 +5,7 @@
 header {* A simple counterexample generator *}
 
 theory Quickcheck
-imports Random Eval
+imports Random Code_Eval
 begin
 
 subsection {* The @{text random} class *}
@@ -19,7 +19,7 @@ instantiation itself :: ("{type, rtype}") random
 begin
 
 definition
-  "random _ = return (TYPE('a), \<lambda>u. Eval.Const (STR ''TYPE'') RTYPE('a))"
+  "random _ = return (TYPE('a), \<lambda>u. Code_Eval.Const (STR ''TYPE'') RTYPE('a))"
 
 instance ..
 
@@ -173,9 +173,9 @@ definition
   "random n = (do
      (b, _) \<leftarrow> random n;
      (m, t) \<leftarrow> random n;
-     return (if b then (int m, \<lambda>u. Eval.App (Eval.Const (STR ''Int.int'') RTYPE(nat \<Rightarrow> int)) (t ()))
-       else (- int m, \<lambda>u. Eval.App (Eval.Const (STR ''HOL.uminus_class.uminus'') RTYPE(int \<Rightarrow> int))
-         (Eval.App (Eval.Const (STR ''Int.int'') RTYPE(nat \<Rightarrow> int)) (t ()))))
+     return (if b then (int m, \<lambda>u. Code_Eval.App (Code_Eval.Const (STR ''Int.int'') RTYPE(nat \<Rightarrow> int)) (t ()))
+       else (- int m, \<lambda>u. Code_Eval.App (Code_Eval.Const (STR ''HOL.uminus_class.uminus'') RTYPE(int \<Rightarrow> int))
+         (Code_Eval.App (Code_Eval.Const (STR ''Int.int'') RTYPE(nat \<Rightarrow> int)) (t ()))))
    done)"
 
 instance ..
@@ -229,7 +229,7 @@ instantiation "fun" :: ("{eq, term_of}", "{type, random}") random
 begin
 
 definition random_fun :: "index \<Rightarrow> seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> seed" where
-  "random n = random_fun_aux RTYPE('a) RTYPE('b) (op =) Eval.term_of (random n) split_seed"
+  "random n = random_fun_aux RTYPE('a) RTYPE('b) (op =) Code_Eval.term_of (random n) split_seed"
 
 instance ..
 

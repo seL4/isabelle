@@ -6,7 +6,7 @@
 header {* Nested environments *}
 
 theory Nested_Environment
-imports Plain "~~/src/HOL/List"
+imports Plain "~~/src/HOL/List" "~~/src/HOL/Code_Eval"
 begin
 
 text {*
@@ -523,7 +523,7 @@ next
   qed
 qed
 
-text {* Equality of environments for code generation *}
+text {* Environments and code generation *}
 
 lemma [code func, code func del]:
   fixes e1 e2 :: "('b\<Colon>eq, 'a\<Colon>eq, 'c\<Colon>eq) env"
@@ -566,5 +566,8 @@ proof (unfold eq)
       | Some a \<Rightarrow> (case g z
           of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" by simp
 qed simp_all
+
+lemma [code func, code func del]:
+  "(Code_Eval.term_of :: ('a::{term_of, type}, 'b::{term_of, type}, 'c::{term_of, type}) env \<Rightarrow> term) = Code_Eval.term_of" ..
 
 end

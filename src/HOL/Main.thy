@@ -5,7 +5,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Plain Map Nat_Int_Bij Recdef
+imports Plain Code_Eval Map Nat_Int_Bij Recdef
 begin
 
 ML {* val HOL_proofs = ! Proofterm.proofs *}

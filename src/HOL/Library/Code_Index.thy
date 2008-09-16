@@ -5,7 +5,7 @@
 header {* Type of indices *}
 
 theory Code_Index
-imports Plain "~~/src/HOL/Presburger"
+imports Plain "~~/src/HOL/Code_Eval" "~~/src/HOL/Presburger"
 begin
 
 text {*
@@ -234,7 +234,8 @@ lemma nat_of_index_code [code]:
 
 text {* Measure function (for termination proofs) *}
 
-lemma [measure_function]: "is_measure nat_of_index" by (rule is_measure_trivial)
+lemma [measure_function]:
+  "is_measure nat_of_index" by (rule is_measure_trivial)
 
 subsection {* ML interface *}
 
@@ -278,7 +279,7 @@ lemma [code func]:
   unfolding div_mod_index_def by simp
 
 
-subsection {* Code serialization *}
+subsection {* Code generator setup *}
 
 text {* Implementation of indices by bounded integers *}
 
@@ -332,5 +333,13 @@ code_const "op < \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
   (SML "Int.</ ((_),/ (_))")
   (OCaml "!((_ : int) < _)")
   (Haskell infix 4 "<")
+
+text {* Evaluation *}
+
+lemma [code func, code func del]:
+  "(Code_Eval.term_of \<Colon> index \<Rightarrow> term) = Code_Eval.term_of" ..
+
+code_const "Code_Eval.term_of \<Colon> index \<Rightarrow> term"
+  (SML "HOLogic.mk'_number/ HOLogic.indexT/ (IntInf.fromInt/ _)")
 
 end
