@@ -159,11 +159,11 @@ ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-By default, the Isabelle binaries (\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}},
+By default, the Isabelle binaries (\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}},
   \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}} etc.) are just run from their location within
   the distribution directory, probably indirectly by the shell through
-  its \verb|PATH|.  Other schemes of installation are supported
-  by the \indexdef{}{tool}{install}\hypertarget{tool.install}{\hyperlink{tool.install}{\mbox{\isa{\isatt{install}}}}} utility:
+  its \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}}.  Other schemes of installation are supported by
+  the \indexdef{}{tool}{install}\hypertarget{tool.install}{\hyperlink{tool.install}{\mbox{\isa{\isatt{install}}}}} utility:
 \begin{ttbox}
 Usage: install [OPTIONS]
 
@@ -180,12 +180,14 @@ Usage: install [OPTIONS]
   distribution directory as determined by \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}.
 
   The \verb|-p| option installs executable wrapper scripts for
-  \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}, \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}}, \hyperlink{executable.Isabelle}{\mbox{\isa{\isatt{Isabelle}}}}, containing proper absolute references to the Isabelle
-  distribution directory.  A typical \verb|DIR| specification
-  would be some directory expected to be in the shell's \verb|PATH|, such as \verb|/usr/local/bin|.  It is important to
-  note that a plain manual copy of the original Isabelle executables
-  does not work, since it disrupts the integrity of the Isabelle
-  distribution.%
+  \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}, \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}},
+  \hyperlink{executable.Isabelle}{\mbox{\isa{\isatt{Isabelle}}}}, containing proper absolute references to the
+  Isabelle distribution directory.  A typical \verb|DIR|
+  specification would be some directory expected to be in the shell's
+  \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}}, such as \verb|/usr/local/bin|.  It is
+  important to note that a plain manual copy of the original Isabelle
+  executables does not work, since it disrupts the integrity of the
+  Isabelle distribution.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -206,8 +208,7 @@ Usage: logo [OPTIONS] NAME
     -q           quiet mode
 \end{ttbox}
   You are encouraged to use this to create a derived logo for your
-  Isabelle project.  For example, \verb|isatool logo Bali|
-  creates \verb|isabelle_bali.eps|.%
+  Isabelle project.  For example, \verb|isatool| \hyperlink{tool.logo}{\mbox{\isa{\isatt{logo}}}}~\verb|Bali| creates \verb|isabelle_bali.eps|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -246,7 +247,7 @@ Usage: make [ARGS ...]
 \begin{isamarkuptext}%
 Refer to the \verb|IsaMakefile|s of the Isabelle distribution's
   object-logics as a model for your own developments.  For example,
-  see \verb|src/FOL/IsaMakefile|.%
+  see \hyperlink{file.~~/src/FOL/IsaMakefile}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL{\isacharslash}IsaMakefile}}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -309,8 +310,8 @@ Usage: tty [OPTIONS]
   The \verb|-l| option specifies the logic image.  The
   \verb|-m| option specifies additional print modes.  The The
   \verb|-p| option specifies an alternative line editor (such
-  as the \hyperlink{executable.rlwrap}{\mbox{\isa{\isatt{rlwrap}}}} wrapper for GNU readline); the fall-back
-  is to use raw standard input.%
+  as the \indexdef{}{executable}{rlwrap}\hypertarget{executable.rlwrap}{\hyperlink{executable.rlwrap}{\mbox{\isa{\isatt{rlwrap}}}}} wrapper for GNU readline); the
+  fall-back is to use raw standard input.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -384,7 +385,8 @@ The \indexdef{}{tool}{yxml}\hypertarget{tool.yxml}{\hyperlink{tool.yxml}{\mbox{\
   sub-chunks separated by \isa{{\isachardoublequote}\isactrlbold Y{\isachardoublequote}}.  Markup chunks start
   with an empty sub-chunk, and a second empty sub-chunk indicates
   close of an element.  Any other non-empty chunk consists of plain
-  text.
+  text.  For example, see \hyperlink{file.~~/src/Pure/General/yxml.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}yxml{\isachardot}ML}}}} or
+  \hyperlink{file.~~/src/Pure/General/yxml.scala}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}yxml{\isachardot}scala}}}}.
 
   YXML documents may be detected quickly by checking that the first
   two characters are \isa{{\isachardoublequote}\isactrlbold X\isactrlbold Y{\isachardoublequote}}.%

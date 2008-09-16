@@ -16,35 +16,30 @@ text {*
   \medskip The Isabelle system environment emerges from a few general
   concepts.
 
-  \begin{itemize}
+  \begin{enumerate}
 
-  \item The \emph{Isabelle settings mechanism} provides environment
+  \item The \emph{Isabelle settings} mechanism provides environment
   variables to all Isabelle programs (including tools and user
   interfaces).
 
-  \item The \emph{Isabelle tools wrapper} (@{executable_def isatool})
-  provides a generic startup platform for Isabelle related utilities.
-  Thus tools automatically benefit from the settings mechanism.
-
-  \item The raw \emph{Isabelle process} (@{executable_def isabelle} or
-  @{executable_def "isabelle-process"}) runs logic sessions either
+  \item The \emph{raw Isabelle process} (@{executable_ref isabelle} or
+  @{executable_ref "isabelle-process"}) runs logic sessions either
   interactively or in batch mode.  In particular, this view abstracts
-  over the invocation of the actual ML system to be used.
+  over the invocation of the actual ML system to be used.  Regular
+  users rarely need to care about the low-level process.
 
-  \item The \emph{Isabelle interface wrapper} (@{executable_def
-  Isabelle} or @{executable_def "isabelle-interface"}) provides some
+  \item The \emph{Isabelle tools wrapper} (@{executable_ref isatool})
+  provides a generic startup environment Isabelle related utilities,
+  user interfaces etc.  Such tools automatically benefit from the
+  settings mechanism.
+
+  \item The \emph{Isabelle interface wrapper} (@{executable_ref
+  Isabelle} or @{executable_ref "isabelle-interface"}) provides some
   abstraction over the actual user interface to be used.  The de-facto
   standard interface for Isabelle is Proof~General
   \cite{proofgeneral}.
 
-  \end{itemize}
-
-  \medskip The beginning user would probably just run the default user
-  interface (by invoking the capital @{executable Isabelle}).  This
-  assumes that the system has already been installed, of course.  In
-  case you have to do this yourself, see the @{verbatim INSTALL} file
-  in the top-level directory of the distribution of how to proceed;
-  binary packages for various system components are available as well.
+  \end{enumerate}
 *}
 
 
@@ -67,9 +62,9 @@ text {*
   their shell startup scripts, before being able to actually run the
   program. Isabelle requires none such administrative chores of its
   end-users --- the executables can be invoked straight away.
-  Occasionally, users would still want to put the Isabelle @{verbatim
-  bin} directory into their shell's search path, but this is not
-  required.
+  Occasionally, users would still want to put the @{"file"
+  "$ISABELLE_HOME/bin"} directory into their shell's search path, but
+  this is not required.
 *}
 
 
@@ -88,12 +83,13 @@ text {*
   You should not try to set @{setting ISABELLE_HOME} manually. Also
   note that the Isabelle executables either have to be run from their
   original location in the distribution directory, or via the
-  executable objects created by the @{tool install} utility (see
-  \secref{sec:tool-install}).  Just doing a plain copy of the
-  @{verbatim bin} files will not work!
-  
-  \item The file @{verbatim "$ISABELLE_HOME/etc/settings"} ist run as
-  a shell script with the auto-export option for variables enabled.
+  executable objects created by the @{tool install} utility.  Symbolic
+  links are admissible, but a plain copy of the @{"file"
+  "$ISABELLE_HOME/bin"} files will not work!
+
+  \item The file @{"file" "$ISABELLE_HOME/etc/settings"} ist run as a
+  @{executable_ref bash} shell script with the auto-export option for
+  variables enabled.
   
   This file holds a rather long list of shell variable assigments,
   thus providing the site-wide default settings.  The Isabelle
@@ -102,24 +98,24 @@ text {*
   of these may have to be adapted (probably @{setting ML_SYSTEM}
   etc.).
   
-  \item The file @{verbatim "$ISABELLE_HOME_USER/etc/settings"} (if it
+  \item The file @{"file" "$ISABELLE_HOME_USER/etc/settings"} (if it
   exists) is run in the same way as the site default settings. Note
   that the variable @{setting ISABELLE_HOME_USER} has already been set
   before --- usually to @{verbatim "~/isabelle"}.
   
   Thus individual users may override the site-wide defaults.  See also
-  file @{verbatim "etc/user-settings.sample"} in the distribution.
-  Typically, a user settings file would contain only a few lines, just
-  the assigments that are really changed.  One should definitely
-  \emph{not} start with a full copy the basic @{verbatim
+  file @{"file" "$ISABELLE_HOME/etc/user-settings.sample"} in the
+  distribution.  Typically, a user settings file would contain only a
+  few lines, just the assigments that are really changed.  One should
+  definitely \emph{not} start with a full copy the basic @{"file"
   "$ISABELLE_HOME/etc/settings"}. This could cause very annoying
   maintainance problems later, when the Isabelle installation is
   updated or changed otherwise.
   
   \end{enumerate}
 
-  Note that settings files are actually full GNU bash scripts. So one
-  may use complex shell commands, such as @{verbatim "if"} or
+  Since settings files are regular GNU @{executable_def bash} scripts,
+  one may use complex shell commands, such as @{verbatim "if"} or
   @{verbatim "case"} statements to set variables depending on the
   system architecture or other environment variables.  Such advanced
   features should be added only with great care, though. In
@@ -135,17 +131,16 @@ text {*
   "isabelle-process"} and @{executable isatool} executables,
   respectively.
   
-  \item @{setting_def ISABELLE_OUTPUT} will have the identifiers of
+  \item @{setting_ref ISABELLE_OUTPUT} will have the identifiers of
   the Isabelle distribution (cf.\ @{setting ISABELLE_IDENTIFIER}) and
   the ML system (cf.\ @{setting ML_IDENTIFIER}) appended automatically
   to its value.
 
   \end{itemize}
 
-  \medskip The Isabelle settings scheme is conceptually simple, but
-  not completely trivial.  For debugging purposes, the resulting
-  environment may be inspected with the @{tool getenv} utility, see
-  \secref{sec:tool-getenv}.
+  \medskip Note that the settings environment may be inspected with
+  the Isabelle tool @{tool getenv}.  This might help to figure out the
+  effect of complex settings scripts.
 *}
 
 
@@ -163,7 +158,7 @@ text {*
   location of the top-level Isabelle distribution directory. This is
   automatically determined from the Isabelle executable that has been
   invoked.  Do not attempt to set @{setting ISABELLE_HOME} yourself
-  from the shell.
+  from the shell!
   
   \item[@{setting_def ISABELLE_HOME_USER}] is the user-specific
   counterpart of @{setting ISABELLE_HOME}. The default value is
@@ -171,14 +166,14 @@ text {*
   changed in the global setting file.  Typically, the @{setting
   ISABELLE_HOME_USER} directory mimics @{setting ISABELLE_HOME} to
   some extend. In particular, site-wide defaults may be overridden by
-  a private @{verbatim "etc/settings"}.
+  a private @{"file" "$ISABELLE_HOME_USER/etc/settings"}.
   
   \item[@{setting_def ISABELLE}@{text "\<^sup>*"}, @{setting
   ISATOOL}@{text "\<^sup>*"}] are automatically set to the full path
   names of the @{executable "isabelle-process"} and @{executable
   isatool} executables, respectively.  Thus other tools and scripts
-  need not assume that the Isabelle @{verbatim bin} directory is on
-  the current search path of the shell.
+  need not assume that the @{"file" "$ISABELLE_HOME/bin"} directory is
+  on the current search path of the shell.
   
   \item[@{setting_def ISABELLE_IDENTIFIER}@{text "\<^sup>*"}] refers
   to the name of this Isabelle distribution, e.g.\ ``@{verbatim
@@ -188,8 +183,8 @@ text {*
   @{setting_def ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def
   ML_IDENTIFIER}@{text "\<^sup>*"}] specify the underlying ML system
   to be used for Isabelle.  There is only a fixed set of admissable
-  @{setting ML_SYSTEM} names (see the @{verbatim "etc/settings"} file
-  of the distribution).
+  @{setting ML_SYSTEM} names (see the @{"file"
+  "$ISABELLE_HOME/etc/settings"} file of the distribution).
   
   The actual compiler binary will be run from the directory @{setting
   ML_HOME}, with @{setting ML_OPTIONS} as first arguments on the
@@ -218,15 +213,13 @@ text {*
   @{verbatim HOL}.
   
   \item[@{setting_def ISABELLE_LINE_EDITOR}] specifies the default
-  line editor for @{verbatim "isatool tty"} (see also
-  \secref{sec:tool-tty}).
+  line editor for the @{tool_ref tty} interface.
 
   \item[@{setting_def ISABELLE_USEDIR_OPTIONS}] is implicitly prefixed
-  to the command line of any @{verbatim "isatool usedir"} invocation
-  (see also \secref{sec:tool-usedir}). This typically contains
-  compilation options for object-logics --- @{tool usedir} is the
-  basic utility for managing logic sessions (cf.\ the @{verbatim
-  IsaMakefile}s in the distribution).
+  to the command line of any @{tool_ref usedir} invocation. This
+  typically contains compilation options for object-logics --- @{tool
+  usedir} is the basic utility for managing logic sessions (cf.\ the
+  @{verbatim IsaMakefile}s in the distribution).
 
   \item[@{setting_def ISABELLE_FILE_IDENT}] specifies a shell command
   for producing a source file identification, based on the actual
@@ -260,8 +253,8 @@ text {*
   spool command, which is expected to accept @{verbatim ps} files.
   
   \item[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
-  prefix from which any running @{executable isabelle} process derives
-  an individual directory for temporary files.  The default is
+  prefix from which any running @{executable "isabelle-process"}
+  derives an individual directory for temporary files.  The default is
   somewhere in @{verbatim "/tmp"}.
   
   \item[@{setting_def ISABELLE_INTERFACE}] is an identifier that
@@ -273,71 +266,17 @@ text {*
 *}
 
 
-section {* The Isabelle tools wrapper \label{sec:isatool} *}
-
-text {*
-  All Isabelle related utilities are called via a common wrapper ---
-  @{executable isatool}:
-
-\begin{ttbox}
-Usage: isatool TOOL [ARGS ...]
-
-  Start Isabelle utility program TOOL with ARGS. Pass "-?" to TOOL
-  for more specific help.
-
-  Available tools are:
-
-    browser - Isabelle graph browser
-    \dots
-\end{ttbox}
-
-  In principle, Isabelle tools are ordinary executable scripts that
-  are run within the Isabelle settings environment, see
-  \secref{sec:settings}.  The set of available tools is collected by
-  @{executable isatool} from the directories listed in the @{setting
-  ISABELLE_TOOLS} setting.  Do not try to call the scripts directly
-  from the shell.  Neither should you add the tool directories to your
-  shell's search path!
-*}
-
-
-subsubsection {* Examples *}
-
-text {*
-  Show the list of available documentation of the current Isabelle
-  installation like this:
-
-\begin{ttbox}
-  isatool doc
-\end{ttbox}
-
-  View a certain document as follows:
-\begin{ttbox}
-  isatool doc isar-ref
-\end{ttbox}
-
-  Create an Isabelle session derived from HOL (see also
-  \secref{sec:tool-mkdir} and \secref{sec:tool-make}):
-\begin{ttbox}
-  isatool mkdir HOL Test && isatool make
-\end{ttbox}
-  Note that @{verbatim "isatool mkdir"} is usually only invoked once;
-  existing sessions (including document output etc.) are then updated
-  by @{verbatim "isatool make"} alone.
-*}
-
-
 section {* The raw Isabelle process *}
 
 text {*
-  The @{executable_ref isabelle} (or @{executable_ref
+  The @{executable_def isabelle} (or @{executable_def
   "isabelle-process"}) executable runs bare-bones Isabelle logic
   sessions --- either interactively or in batch mode.  It provides an
   abstraction over the underlying ML system, and over the actual heap
   file locations.  Its usage is:
 
 \begin{ttbox}
-Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
+Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
     -C           tell ML system to copy output image
@@ -433,7 +372,9 @@ text {*
   @{verbatim "-X"} option enables XML-based PGIP communication.  The
   @{verbatim "-W"} option makes Isabelle enter a special process
   wrapper for interaction via an external program; the protocol is a
-  stripped-down version of Proof General the interaction mode.
+  stripped-down version of Proof General the interaction mode, see
+  also @{"file" "~~/src/Pure/Tools/isabelle_process.ML"} and @{"file"
+  "~~/src/Pure/Tools/isabelle_process.scala"}.
 
   \medskip The @{verbatim "-S"} option makes the Isabelle process more
   secure by disabling some critical operations, notably runtime
@@ -447,16 +388,16 @@ text {*
   Run an interactive session of the default object-logic (as specified
   by the @{setting ISABELLE_LOGIC} setting) like this:
 \begin{ttbox}
-isabelle
+isabelle-process
 \end{ttbox}
 
   Usually @{setting ISABELLE_LOGIC} refers to one of the standard
   logic images, which are read-only by default.  A writable session
   --- based on @{verbatim FOL}, but output to @{verbatim Foo} (in the
-  directory specified by the @{verbatim ISABELLE_OUTPUT} setting) ---
+  directory specified by the @{setting ISABELLE_OUTPUT} setting) ---
   may be invoked as follows:
 \begin{ttbox}
-isabelle FOL Foo
+isabelle-process FOL Foo
 \end{ttbox}
   Ending this session normally (e.g.\ by typing control-D) dumps the
   whole ML system state into @{verbatim Foo}. Be prepared for several
@@ -465,24 +406,81 @@ isabelle FOL Foo
   The @{verbatim Foo} session may be continued later (still in
   writable state) by:
 \begin{ttbox}
-isabelle Foo
+isabelle-process Foo
 \end{ttbox}
   A read-only @{verbatim Foo} session may be started by:
 \begin{ttbox}
-isabelle -r Foo
+isabelle-process -r Foo
 \end{ttbox}
 
   \medskip Note that manual session management like this does
   \emph{not} provide proper setup for theory presentation.  This would
-  require the @{tool usedir} utility, see \secref{sec:tool-usedir}.
+  require the @{tool usedir} utility.
 
-  \bigskip The next example demonstrates batch execution of
-  Isabelle. We print a certain theorem of @{verbatim FOL}:
+  \bigskip The next example demonstrates batch execution of Isabelle.
+  We retrieve the @{verbatim FOL} theory value from the theory loader
+  within ML:
 \begin{ttbox}
-isabelle -e "prth allE;" -q -r FOL
+isabelle-process -e 'theory "FOL";' -q -r FOL
 \end{ttbox}
   Note that the output text will be interspersed with additional junk
-  messages by the ML runtime environment.
+  messages by the ML runtime environment.  The @{verbatim "-W"} option
+  allows to communicate with the Isabelle process via an external
+  program in a more robust fashion.
+*}
+
+
+section {* The Isabelle tools wrapper \label{sec:isatool} *}
+
+text {*
+  All Isabelle related tools and interfaces are called via a common
+  wrapper --- @{executable isatool}:
+
+\begin{ttbox}
+Usage: isatool TOOL [ARGS ...]
+
+  Start Isabelle utility program TOOL with ARGS. Pass "-?" to TOOL
+  for more specific help.
+
+  Available tools are:
+
+    browser - Isabelle graph browser
+    \dots
+\end{ttbox}
+
+  In principle, Isabelle tools are ordinary executable scripts that
+  are run within the Isabelle settings environment, see
+  \secref{sec:settings}.  The set of available tools is collected by
+  @{executable isatool} from the directories listed in the @{setting
+  ISABELLE_TOOLS} setting.  Do not try to call the scripts directly
+  from the shell.  Neither should you add the tool directories to your
+  shell's search path!
+*}
+
+
+subsubsection {* Examples *}
+
+text {*
+  Show the list of available documentation of the current Isabelle
+  installation like this:
+
+\begin{ttbox}
+  isatool doc
+\end{ttbox}
+
+  View a certain document as follows:
+\begin{ttbox}
+  isatool doc isar-ref
+\end{ttbox}
+
+  Create an Isabelle session derived from HOL (see also
+  \secref{sec:tool-mkdir} and \secref{sec:tool-make}):
+\begin{ttbox}
+  isatool mkdir HOL Test && isatool make
+\end{ttbox}
+  Note that @{verbatim "isatool mkdir"} is usually only invoked once;
+  existing sessions (including document output etc.) are then updated
+  by @{verbatim "isatool make"} alone.
 *}
 
 
@@ -490,14 +488,12 @@ section {* The Isabelle interface wrapper \label{sec:interface} *}
 
 text {*
   Isabelle is a generic theorem prover, even w.r.t.\ its user
-  interface.  The @{executable_ref Isabelle} (or @{executable_ref
+  interface.  The @{executable_def Isabelle} (or @{executable_def
   "isabelle-interface"}) executable provides a uniform way for
   end-users to invoke a certain interface; which one to start is
   determined by the @{setting_ref ISABELLE_INTERFACE} setting
   variable, which should give a full path specification to the actual
-  executable.  Also note that the @{tool install} utility provides
-  some options to install desktop environment icons (see
-  \secref{sec:tool-install}).
+  executable.
 
   Presently, the most prominent Isabelle interface is Proof
   General~\cite{proofgeneral}\index{user interface!Proof General}.
@@ -521,8 +517,8 @@ PROOFGENERAL_OPTIONS=""
   
   \medskip Note that the world may be also seen the other way round:
   Emacs may be started first (with proper setup of Proof General
-  mode), and @{executable isabelle} run from within.  This requires
-  further Emacs Lisp configuration, see the Proof General
+  mode), and @{executable "isabelle-process"} run from within.  This
+  requires further Emacs Lisp configuration, see the Proof General
   documentation \cite{proofgeneral} for more information.
 *}
 

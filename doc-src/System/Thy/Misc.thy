@@ -131,11 +131,11 @@ ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
 section {* Installing standalone Isabelle executables \label{sec:tool-install} *}
 
 text {*
-  By default, the Isabelle binaries (@{executable isabelle},
+  By default, the Isabelle binaries (@{executable "isabelle-process"},
   @{executable isatool} etc.) are just run from their location within
   the distribution directory, probably indirectly by the shell through
-  its @{verbatim PATH}.  Other schemes of installation are supported
-  by the @{tool_def install} utility:
+  its @{setting PATH}.  Other schemes of installation are supported by
+  the @{tool_def install} utility:
 \begin{ttbox}
 Usage: install [OPTIONS]
 
@@ -152,14 +152,14 @@ Usage: install [OPTIONS]
   distribution directory as determined by @{setting ISABELLE_HOME}.
 
   The @{verbatim "-p"} option installs executable wrapper scripts for
-  @{executable isabelle}, @{executable isatool}, @{executable
-  Isabelle}, containing proper absolute references to the Isabelle
-  distribution directory.  A typical @{verbatim DIR} specification
-  would be some directory expected to be in the shell's @{verbatim
-  PATH}, such as @{verbatim "/usr/local/bin"}.  It is important to
-  note that a plain manual copy of the original Isabelle executables
-  does not work, since it disrupts the integrity of the Isabelle
-  distribution.
+  @{executable "isabelle-process"}, @{executable isatool},
+  @{executable Isabelle}, containing proper absolute references to the
+  Isabelle distribution directory.  A typical @{verbatim DIR}
+  specification would be some directory expected to be in the shell's
+  @{setting PATH}, such as @{verbatim "/usr/local/bin"}.  It is
+  important to note that a plain manual copy of the original Isabelle
+  executables does not work, since it disrupts the integrity of the
+  Isabelle distribution.
 *}
 
 
@@ -178,8 +178,8 @@ Usage: logo [OPTIONS] NAME
     -q           quiet mode
 \end{ttbox}
   You are encouraged to use this to create a derived logo for your
-  Isabelle project.  For example, @{verbatim "isatool logo Bali"}
-  creates @{verbatim isabelle_bali.eps}.
+  Isabelle project.  For example, @{verbatim isatool} @{tool
+  logo}~@{verbatim Bali} creates @{verbatim isabelle_bali.eps}.
 *}
 
 
@@ -215,7 +215,7 @@ subsubsection {* Examples *}
 text {*
   Refer to the @{verbatim IsaMakefile}s of the Isabelle distribution's
   object-logics as a model for your own developments.  For example,
-  see @{verbatim "src/FOL/IsaMakefile"}.
+  see @{"file" "~~/src/FOL/IsaMakefile"}.
 *}
 
 
@@ -273,8 +273,8 @@ Usage: tty [OPTIONS]
   The @{verbatim "-l"} option specifies the logic image.  The
   @{verbatim "-m"} option specifies additional print modes.  The The
   @{verbatim "-p"} option specifies an alternative line editor (such
-  as the @{executable rlwrap} wrapper for GNU readline); the fall-back
-  is to use raw standard input.
+  as the @{executable_def rlwrap} wrapper for GNU readline); the
+  fall-back is to use raw standard input.
 *}
 
 
@@ -344,7 +344,8 @@ text {*
   sub-chunks separated by @{text "\<^bold>Y"}.  Markup chunks start
   with an empty sub-chunk, and a second empty sub-chunk indicates
   close of an element.  Any other non-empty chunk consists of plain
-  text.
+  text.  For example, see @{"file" "~~/src/Pure/General/yxml.ML"} or
+  @{"file" "~~/src/Pure/General/yxml.scala"}.
 
   YXML documents may be detected quickly by checking that the first
   two characters are @{text "\<^bold>X\<^bold>Y"}.

@@ -46,23 +46,22 @@ Isabelle provides several ways to present the outcome of formal
   \begin{center}
   \begin{tabular}{lp{0.6\textwidth}}
 
-      \verb|isatool mkdir| & invoked once by the user to create
-      the initial source setup (common \verb|IsaMakefile| plus a
-      single session directory); \\
+      \verb|isatool| \indexref{}{tool}{mkdir}\hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}} & invoked once by the user
+      to create the initial source setup (common \verb|IsaMakefile| plus a single session directory); \\
 
-      \verb|isatool make| & invoked repeatedly by the user to
-      keep session output up-to-date (HTML, documents etc.); \\
+      \verb|isatool| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}} & invoked repeatedly by the
+      user to keep session output up-to-date (HTML, documents etc.); \\
 
-      \verb|isatool usedir| & part of the standard \verb|IsaMakefile| entry of a session; \\
+      \verb|isatool| \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} & part of the standard
+      \verb|IsaMakefile| entry of a session; \\
 
-      \verb|isabelle-process| & run through \verb|isatool usedir|; \\
+      \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} & run through \verb|isatool| \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}; \\
 
-      \verb|isatool document| & run by the Isabelle process if
-      document preparation is enabled; \\
+      \verb|isatool| \indexref{}{tool}{document}\hyperlink{tool.document}{\mbox{\isa{\isatt{document}}}} & run by the Isabelle
+      process if document preparation is enabled; \\
 
-      \verb|isatool latex| & universal {\LaTeX} tool wrapper
-      invoked multiple times by \verb|isatool document|; also
-      useful for manual experiments; \\
+      \verb|isatool| \indexref{}{tool}{latex}\hyperlink{tool.latex}{\mbox{\isa{\isatt{latex}}}} & universal {\LaTeX} tool
+      wrapper invoked multiple times by \verb|isatool| \indexref{}{tool}{document}\hyperlink{tool.document}{\mbox{\isa{\isatt{document}}}}; also useful for manual experiments; \\
 
   \end{tabular}
   \caption{The tool chain of Isabelle session presentation} \label{fig:session-tools}
@@ -99,23 +98,22 @@ Isabelle provides several ways to present the outcome of formal
 
   The easiest way to let Isabelle generate theory browsing information
   for existing sessions is to append ``\verb|-i true|'' to the
-  \indexref{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}USEDIR{\isacharunderscore}OPTIONS}}}} before invoking \verb|isatool make| (or \verb|./build| in the distribution).  For
+  \indexref{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}USEDIR{\isacharunderscore}OPTIONS}}}} before invoking \verb|isatool| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}} (or \hyperlink{file.$ISABELLE-HOME/build}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}build}}}}).  For
   example, add something like this to your Isabelle settings file
 
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true"
 \end{ttbox}
 
-  and then change into the \verb|src/FOL| directory of the
-  Isabelle distribution and run \verb|isatool make|, or even
-  \verb|isatool make all|.  The presentation output will appear
-  in \verb|ISABELLE_BROWSER_INFO/FOL|, which usually refers to
+  and then change into the \hyperlink{file.~~/src/FOL}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL}}}} directory and run
+  \verb|isatool| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}}, or even \verb|isatool| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}}~\verb|all|.  The presentation output will appear in
+  \verb|ISABELLE_BROWSER_INFO/FOL|, which usually refers to
   \verb|~/isabelle/browser_info/FOL|.  Note that option
   \verb|-v true| will make the internal runs of \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}
   more explicit about such details.
 
-  Many standard Isabelle sessions (such as \verb|HOL/ex|) also
-  provide actual printable documents.  These are prepared
+  Many standard Isabelle sessions (such as \hyperlink{file.~~/src/HOL/ex}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}HOL{\isacharslash}ex}}}})
+  also provide actual printable documents.  These are prepared
   automatically as well if enabled like this, using the \verb|-d| option
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true -d dvi"
@@ -148,7 +146,7 @@ isatool usedir -i true HOL Foo
 \end{ttbox}
 
   This assumes that directory \verb|Foo| contains some \verb|ROOT.ML| file to load all your theories, and HOL is your parent
-  logic image (\verb|isatool|~\indexref{}{tool}{mkdir}\hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}} assists in
+  logic image (\verb|isatool| \indexref{}{tool}{mkdir}\hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}} assists in
   setting up Isabelle session directories.  Theory browser information
   for HOL should have been generated already beforehand.
   Alternatively, one may specify an external link to an existing body
@@ -184,7 +182,7 @@ isatool mkdir HOL Foo && isatool make
   hidden, thus enabling the user to collapse irrelevant portions of
   information.  The browser is written in Java, it can be used both as
   a stand-alone application and as an applet.  Note that the option
-  \verb|-g| of \verb|isatool|~\indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} creates
+  \verb|-g| of \verb|isatool| \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} creates
   graph presentations in batch mode for inclusion in session
   documents.%
 \end{isamarkuptext}%
@@ -368,7 +366,7 @@ The \indexdef{}{tool}{mkdir}\hypertarget{tool.mkdir}{\hyperlink{tool.mkdir}{\mbo
   directory with a minimal \verb|root.tex| that is sufficient to
   print all theories of the session (in the order of appearance); see
   \secref{sec:tool-document} for further information on Isabelle
-  document preparation.  The usage of \verb|isatool mkdir| is:
+  document preparation.  The usage of \verb|isatool| \hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}} is:
 
 \begin{ttbox}
 Usage: mkdir [OPTIONS] [LOGIC] NAME
@@ -438,8 +436,8 @@ isatool mkdir Foo && isatool make
 
   \noindent The theory sources should be put into the \verb|Foo|
   directory, and its \verb|ROOT.ML| should be edited to load all
-  required theories.  Invoking \verb|isatool make| again would
-  run the whole session, generating browser information and the
+  required theories.  Invoking \verb|isatool| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}} again
+  would run the whole session, generating browser information and the
   document automatically.  The \verb|IsaMakefile| is typically
   tuned manually later, e.g.\ adding source dependencies, or changing
   the options passed to \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}.
@@ -449,9 +447,8 @@ isatool mkdir Foo && isatool make
   manual editing of the generated \verb|IsaMakefile|, which is
   meant to cover all of the sub-session directories at the same time
   (this is the deeper reasong why \verb|IsaMakefile| is not made
-  part of the initial session directory created by
-  \verb|isatool mkdir|).  See \verb|src/HOL/IsaMakefile|
-  of the Isabelle distribution for a full-blown example.%
+  part of the initial session directory created by \verb|isatool| \hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}}).  See \hyperlink{file.~~/src/HOL/IsaMakefile}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}HOL{\isacharslash}IsaMakefile}}}} for
+  a full-blown example.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -495,7 +492,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
   Note that the value of the \indexref{}{setting}{ISABELLE\_USEDIR\_OPTIONS}\hyperlink{setting.ISABELLE-USEDIR-OPTIONS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}USEDIR{\isacharunderscore}OPTIONS}}}}
   setting is implicitly prefixed to \emph{any} \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}
   call. Since the \verb|IsaMakefile|s of all object-logics
-  distributed with Isabelle just invoke \texttt{usedir} for the real
+  distributed with Isabelle just invoke \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} for the real
   work, one may control compilation options globally via above
   variable. In particular, generation of \rmindex{HTML} browsing
   information and document preparation is controlled here.
@@ -522,7 +519,7 @@ Basically, there are two different modes of operation: \emph{build
   directory and then quitting.  It is assumed that \verb|ROOT.ML|
   contains all ML commands required to build the logic.
 
-  In example mode, \verb|usedir| runs a read-only session of
+  In example mode, \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} runs a read-only session of
   \verb|LOGIC| and automatically runs \verb|ROOT.ML| from
   within directory \verb|NAME|.  It assumes that this file
   contains appropriate ML commands to run the desired examples.
@@ -568,13 +565,11 @@ Basically, there are two different modes of operation: \emph{build
   sources to be dumped at location \verb|PATH|; this path is
   relative to the session's main directory.  If the \verb|-C|
   option is true, this will include a copy of an existing \verb|document| directory as provided by the user.  For example,
-  \verb|isatool usedir -D generated HOL Foo| produces a
-  complete set of document sources at \verb|Foo/generated|.
-  Subsequent invocation of \verb|isatool document|\isasep\isanewline%
-\verb|  Foo/generated| (see also \secref{sec:tool-document}) will process
-  the final result independently of an Isabelle job.  This decoupled
-  mode of operation facilitates debugging of serious {\LaTeX} errors,
-  for example.
+  \verb|isatool| \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}~\verb|-D generated HOL|\isasep\isanewline%
+\verb|  Foo| produces a complete set of document sources at \verb|Foo/generated|.  Subsequent invocation of \verb|isatool| \hyperlink{tool.document}{\mbox{\isa{\isatt{document}}}}~\verb|Foo/generated| (see also
+  \secref{sec:tool-document}) will process the final result
+  independently of an Isabelle job.  This decoupled mode of operation
+  facilitates debugging of serious {\LaTeX} errors, for example.
 
   \medskip The \verb|-p| option determines the level of detail
   for internal proof objects, see also the \emph{Isabelle Reference
@@ -587,14 +582,13 @@ Basically, there are two different modes of operation: \emph{build
   \medskip The \verb|-M| option specifies the maximum number of
   parallel threads used for processing independent tasks when checking
   theory sources (multithreading only works on suitable ML platforms).
-  The special value of ``\verb|0|'' or ``\verb|max|'' refers
-  to the number of actual CPU cores of the underlying machine, which
-  is a good starting point for optimal performance tuning.  The
-  \verb|-T| option determines the level of detail in tracing
-  output concerning the internal locking and scheduling in
-  multithreaded operation.  This may be helpful in isolating
-  performance bottle-necks, e.g.\ due to excessive wait states when
-  locking critical code sections.
+  The special value of \verb|0| or \verb|max| refers to the
+  number of actual CPU cores of the underlying machine, which is a
+  good starting point for optimal performance tuning.  The \verb|-T| option determines the level of detail in tracing output
+  concerning the internal locking and scheduling in multithreaded
+  operation.  This may be helpful in isolating performance
+  bottle-necks, e.g.\ due to excessive wait states when locking
+  critical code sections.
 
   \medskip Any \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend
@@ -614,7 +608,7 @@ Basically, there are two different modes of operation: \emph{build
 \begin{isamarkuptext}%
 Refer to the \verb|IsaMakefile|s of the Isabelle distribution's
   object-logics as a model for your own developments.  For example,
-  see \verb|src/FOL/IsaMakefile|.  The Isabelle \indexref{}{tool}{mkdir}\hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}} tool creates \verb|IsaMakefile|s with proper invocation
+  see \hyperlink{file.~~/src/FOL/IsaMakefile}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL{\isacharslash}IsaMakefile}}}}.  The Isabelle \indexref{}{tool}{mkdir}\hyperlink{tool.mkdir}{\mbox{\isa{\isatt{mkdir}}}} tool creates \verb|IsaMakefile|s with proper invocation
   of \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} as well.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -663,7 +657,7 @@ Usage: document [OPTIONS] [DIR]
   fold text tagged as \isa{foo}.  The builtin default is equivalent
   to the tag specification ``\verb|/theory,/proof,/ML,+visible,-invisible|''; see also the {\LaTeX}
   macros \verb|\isakeeptag|, \verb|\isadroptag|, and
-  \verb|\isafoldtag|, in \verb|isabelle.sty|.
+  \verb|\isafoldtag|, in \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}isabelle{\isachardot}sty}}}}.
 
   \medskip Document preparation requires a properly setup ``\verb|document|'' directory within the logic session sources.  This
   directory is supposed to contain all the files needed to produce the
@@ -685,7 +679,7 @@ Usage: document [OPTIONS] [DIR]
 
   \medskip When running the session, Isabelle copies the original
   \verb|document| directory into its proper place within
-  \verb|ISABELLE_BROWSER_INFO| according to the session path.
+  \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BROWSER{\isacharunderscore}INFO}}}} according to the session path.
   Then, for any processed theory \isa{A} some {\LaTeX} source is
   generated and put there as \isa{A}\verb|.tex|.
   Furthermore, a list of all generated theory files is put into
@@ -694,31 +688,31 @@ Usage: document [OPTIONS] [DIR]
   containing all the theories.
 
   The {\LaTeX} versions of the theories require some macros defined in
-  \verb|isabelle.sty| as distributed with Isabelle.  Doing
-  \verb|\usepackage{isabelle}| in \verb|root.tex| should
-  be fine; the underlying Isabelle \hyperlink{tool.latex}{\mbox{\isa{\isatt{latex}}}} tool already includes
-  an appropriate path specification for {\TeX} inputs.
+  \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}isabelle{\isachardot}sty}}}}.  Doing \verb|\usepackage{isabelle}| in \verb|root.tex| should be fine;
+  the underlying Isabelle \hyperlink{tool.latex}{\mbox{\isa{\isatt{latex}}}} tool already includes an
+  appropriate path specification for {\TeX} inputs.
 
   If the text contains any references to Isabelle symbols (such as
-  \verb|\|\verb|<forall>|) then \verb|isabellesym.sty| should be included as well.  This package contains
-  a standard set of {\LaTeX} macro definitions \verb|\isasym|\isa{foo} corresponding to \verb|\|\verb|<|\isa{foo}\verb|>|, (see \appref{app:symbols} for a
+  \verb|\|\verb|<forall>|) then \verb|isabellesym.sty| should be included as well.  This package
+  contains a standard set of {\LaTeX} macro definitions \verb|\isasym|\isa{foo} corresponding to \verb|\|\verb|<|\isa{foo}\verb|>|, (see \appref{app:symbols} for a
   complete list of predefined Isabelle symbols).  Users may invent
   further symbols as well, just by providing {\LaTeX} macros in a
-  similar fashion as in \verb|isabellesym.sty| of the
-  distribution.
+  similar fashion as in \hyperlink{file.~~/lib/texinputs/isabellesym.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}isabellesym{\isachardot}sty}}}} of
+  the distribution.
 
   For proper setup of DVI and PDF documents (with hyperlinks and
-  bookmarks), we recommend to include \verb|pdfsetup.sty| as
-  well.
+  bookmarks), we recommend to include \hyperlink{file.~~/lib/texinputs/pdfsetup.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}pdfsetup{\isachardot}sty}}}} as well.
 
   \medskip As a final step of document preparation within Isabelle,
-  \verb|isatool document -c| is run on the resulting \verb|document| directory.  Thus the actual output document is built and
-  installed in its proper place (as linked by the session's \verb|index.html| if option \verb|-i| of \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} has
-  been enabled, cf.\ \secref{sec:info}).  The generated sources are
-  deleted after successful run of {\LaTeX} and friends.  Note that a
-  separate copy of the sources may be retained by passing an option
-  \verb|-D| to the \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} utility when running the
-  session.%
+  \verb|isatool| \hyperlink{tool.document}{\mbox{\isa{\isatt{document}}}}~\verb|-c| is run on the
+  resulting \verb|document| directory.  Thus the actual output
+  document is built and installed in its proper place (as linked by
+  the session's \verb|index.html| if option \verb|-i| of
+  \indexref{}{tool}{usedir}\hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} has been enabled, cf.\ \secref{sec:info}).  The
+  generated sources are deleted after successful run of {\LaTeX} and
+  friends.  Note that a separate copy of the sources may be retained
+  by passing an option \verb|-D| to the \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}} utility
+  when running the session.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -763,10 +757,10 @@ Usage: latex [OPTIONS] [FILE]
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Invoking \verb|isatool latex| by hand may be occasionally
-  useful when debugging failed attempts of the automatic document
-  preparation stage of batch-mode Isabelle.  The abortive process
-  leaves the sources at a certain place within \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BROWSER{\isacharunderscore}INFO}}}}, see the runtime error message for details.
+Invoking \verb|isatool| \hyperlink{tool.latex}{\mbox{\isa{\isatt{latex}}}} by hand may be
+  occasionally useful when debugging failed attempts of the automatic
+  document preparation stage of batch-mode Isabelle.  The abortive
+  process leaves the sources at a certain place within \hyperlink{setting.ISABELLE-BROWSER-INFO}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}BROWSER{\isacharunderscore}INFO}}}}, see the runtime error message for details.
   This enables users to inspect {\LaTeX} runs in further detail, e.g.\
   like this:
 \begin{ttbox}

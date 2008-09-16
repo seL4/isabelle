@@ -28,24 +28,25 @@ text {*
   \begin{center}
   \begin{tabular}{lp{0.6\textwidth}}
 
-      @{verbatim "isatool mkdir"} & invoked once by the user to create
-      the initial source setup (common @{verbatim IsaMakefile} plus a
-      single session directory); \\
+      @{verbatim isatool} @{tool_ref mkdir} & invoked once by the user
+      to create the initial source setup (common @{verbatim
+      IsaMakefile} plus a single session directory); \\
 
-      @{verbatim "isatool make"} & invoked repeatedly by the user to
-      keep session output up-to-date (HTML, documents etc.); \\
+      @{verbatim isatool} @{tool make} & invoked repeatedly by the
+      user to keep session output up-to-date (HTML, documents etc.); \\
 
-      @{verbatim "isatool usedir"} & part of the standard @{verbatim
-      IsaMakefile} entry of a session; \\
+      @{verbatim isatool} @{tool usedir} & part of the standard
+      @{verbatim IsaMakefile} entry of a session; \\
 
-      @{verbatim "isabelle-process"} & run through @{verbatim "isatool usedir"}; \\
+      @{executable "isabelle-process"} & run through @{verbatim
+      isatool} @{tool_ref usedir}; \\
 
-      @{verbatim "isatool document"} & run by the Isabelle process if
-      document preparation is enabled; \\
+      @{verbatim isatool} @{tool_ref document} & run by the Isabelle
+      process if document preparation is enabled; \\
 
-      @{verbatim "isatool latex"} & universal {\LaTeX} tool wrapper
-      invoked multiple times by @{verbatim "isatool document"}; also
-      useful for manual experiments; \\
+      @{verbatim isatool} @{tool_ref latex} & universal {\LaTeX} tool
+      wrapper invoked multiple times by @{verbatim isatool} @{tool_ref
+      document}; also useful for manual experiments; \\
 
   \end{tabular}
   \caption{The tool chain of Isabelle session presentation} \label{fig:session-tools}
@@ -81,23 +82,23 @@ text {*
   The easiest way to let Isabelle generate theory browsing information
   for existing sessions is to append ``@{verbatim "-i true"}'' to the
   @{setting_ref ISABELLE_USEDIR_OPTIONS} before invoking @{verbatim
-  "isatool make"} (or @{verbatim "./build"} in the distribution).  For
+  isatool} @{tool make} (or @{"file" "$ISABELLE_HOME/build"}).  For
   example, add something like this to your Isabelle settings file
 
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true"
 \end{ttbox}
 
-  and then change into the @{verbatim "src/FOL"} directory of the
-  Isabelle distribution and run @{verbatim "isatool make"}, or even
-  @{verbatim "isatool make all"}.  The presentation output will appear
-  in @{verbatim "ISABELLE_BROWSER_INFO/FOL"}, which usually refers to
+  and then change into the @{"file" "~~/src/FOL"} directory and run
+  @{verbatim isatool} @{tool make}, or even @{verbatim isatool} @{tool
+  make}~@{verbatim all}.  The presentation output will appear in
+  @{verbatim "ISABELLE_BROWSER_INFO/FOL"}, which usually refers to
   @{verbatim "~/isabelle/browser_info/FOL"}.  Note that option
   @{verbatim "-v true"} will make the internal runs of @{tool usedir}
   more explicit about such details.
 
-  Many standard Isabelle sessions (such as @{verbatim "HOL/ex"}) also
-  provide actual printable documents.  These are prepared
+  Many standard Isabelle sessions (such as @{"file" "~~/src/HOL/ex"})
+  also provide actual printable documents.  These are prepared
   automatically as well if enabled like this, using the @{verbatim
   "-d"} option
 \begin{ttbox}
@@ -134,7 +135,7 @@ isatool usedir -i true HOL Foo
 
   This assumes that directory @{verbatim Foo} contains some @{verbatim
   ROOT.ML} file to load all your theories, and HOL is your parent
-  logic image (@{verbatim isatool}~@{tool_ref mkdir} assists in
+  logic image (@{verbatim isatool} @{tool_ref mkdir} assists in
   setting up Isabelle session directories.  Theory browser information
   for HOL should have been generated already beforehand.
   Alternatively, one may specify an external link to an existing body
@@ -168,7 +169,7 @@ text {*
   hidden, thus enabling the user to collapse irrelevant portions of
   information.  The browser is written in Java, it can be used both as
   a stand-alone application and as an applet.  Note that the option
-  @{verbatim "-g"} of @{verbatim isatool}~@{tool_ref usedir} creates
+  @{verbatim "-g"} of @{verbatim isatool} @{tool_ref usedir} creates
   graph presentations in batch mode for inclusion in session
   documents.
 *}
@@ -341,7 +342,8 @@ text {*
   directory with a minimal @{verbatim root.tex} that is sufficient to
   print all theories of the session (in the order of appearance); see
   \secref{sec:tool-document} for further information on Isabelle
-  document preparation.  The usage of @{verbatim "isatool mkdir"} is:
+  document preparation.  The usage of @{verbatim isatool} @{tool
+  mkdir} is:
 
 \begin{ttbox}
 Usage: mkdir [OPTIONS] [LOGIC] NAME
@@ -409,8 +411,8 @@ isatool mkdir Foo && isatool make
 
   \noindent The theory sources should be put into the @{verbatim Foo}
   directory, and its @{verbatim ROOT.ML} should be edited to load all
-  required theories.  Invoking @{verbatim "isatool make"} again would
-  run the whole session, generating browser information and the
+  required theories.  Invoking @{verbatim isatool} @{tool make} again
+  would run the whole session, generating browser information and the
   document automatically.  The @{verbatim IsaMakefile} is typically
   tuned manually later, e.g.\ adding source dependencies, or changing
   the options passed to @{tool usedir}.
@@ -420,9 +422,9 @@ isatool mkdir Foo && isatool make
   manual editing of the generated @{verbatim IsaMakefile}, which is
   meant to cover all of the sub-session directories at the same time
   (this is the deeper reasong why @{verbatim IsaMakefile} is not made
-  part of the initial session directory created by
-  @{verbatim "isatool mkdir"}).  See @{verbatim "src/HOL/IsaMakefile"}
-  of the Isabelle distribution for a full-blown example.
+  part of the initial session directory created by @{verbatim
+  isatool} @{tool mkdir}).  See @{"file" "~~/src/HOL/IsaMakefile"} for
+  a full-blown example.
 *}
 
 
@@ -464,7 +466,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
   Note that the value of the @{setting_ref ISABELLE_USEDIR_OPTIONS}
   setting is implicitly prefixed to \emph{any} @{tool usedir}
   call. Since the @{verbatim IsaMakefile}s of all object-logics
-  distributed with Isabelle just invoke \texttt{usedir} for the real
+  distributed with Isabelle just invoke @{tool usedir} for the real
   work, one may control compilation options globally via above
   variable. In particular, generation of \rmindex{HTML} browsing
   information and document preparation is controlled here.
@@ -490,7 +492,7 @@ text {*
   directory and then quitting.  It is assumed that @{verbatim ROOT.ML}
   contains all ML commands required to build the logic.
 
-  In example mode, @{verbatim usedir} runs a read-only session of
+  In example mode, @{tool usedir} runs a read-only session of
   @{verbatim LOGIC} and automatically runs @{verbatim ROOT.ML} from
   within directory @{verbatim NAME}.  It assumes that this file
   contains appropriate ML commands to run the desired examples.
@@ -544,13 +546,13 @@ text {*
   relative to the session's main directory.  If the @{verbatim "-C"}
   option is true, this will include a copy of an existing @{verbatim
   document} directory as provided by the user.  For example,
-  @{verbatim "isatool usedir -D generated HOL Foo"} produces a
-  complete set of document sources at @{verbatim "Foo/generated"}.
-  Subsequent invocation of @{verbatim "isatool document
-  Foo/generated"} (see also \secref{sec:tool-document}) will process
-  the final result independently of an Isabelle job.  This decoupled
-  mode of operation facilitates debugging of serious {\LaTeX} errors,
-  for example.
+  @{verbatim isatool} @{tool usedir}~@{verbatim "-D generated HOL
+  Foo"} produces a complete set of document sources at @{verbatim
+  "Foo/generated"}.  Subsequent invocation of @{verbatim
+  isatool} @{tool document}~@{verbatim "Foo/generated"} (see also
+  \secref{sec:tool-document}) will process the final result
+  independently of an Isabelle job.  This decoupled mode of operation
+  facilitates debugging of serious {\LaTeX} errors, for example.
 
   \medskip The @{verbatim "-p"} option determines the level of detail
   for internal proof objects, see also the \emph{Isabelle Reference
@@ -563,14 +565,14 @@ text {*
   \medskip The @{verbatim "-M"} option specifies the maximum number of
   parallel threads used for processing independent tasks when checking
   theory sources (multithreading only works on suitable ML platforms).
-  The special value of ``@{verbatim 0}'' or ``@{verbatim max}'' refers
-  to the number of actual CPU cores of the underlying machine, which
-  is a good starting point for optimal performance tuning.  The
-  @{verbatim "-T"} option determines the level of detail in tracing
-  output concerning the internal locking and scheduling in
-  multithreaded operation.  This may be helpful in isolating
-  performance bottle-necks, e.g.\ due to excessive wait states when
-  locking critical code sections.
+  The special value of @{verbatim 0} or @{verbatim max} refers to the
+  number of actual CPU cores of the underlying machine, which is a
+  good starting point for optimal performance tuning.  The @{verbatim
+  "-T"} option determines the level of detail in tracing output
+  concerning the internal locking and scheduling in multithreaded
+  operation.  This may be helpful in isolating performance
+  bottle-necks, e.g.\ due to excessive wait states when locking
+  critical code sections.
 
   \medskip Any @{tool usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend
@@ -589,7 +591,7 @@ subsubsection {* Examples *}
 text {*
   Refer to the @{verbatim IsaMakefile}s of the Isabelle distribution's
   object-logics as a model for your own developments.  For example,
-  see @{verbatim "src/FOL/IsaMakefile"}.  The Isabelle @{tool_ref
+  see @{"file" "~~/src/FOL/IsaMakefile"}.  The Isabelle @{tool_ref
   mkdir} tool creates @{verbatim IsaMakefile}s with proper invocation
   of @{tool usedir} as well.
 *}
@@ -641,7 +643,8 @@ Usage: document [OPTIONS] [DIR]
   to the tag specification ``@{verbatim
   "/theory,/proof,/ML,+visible,-invisible"}''; see also the {\LaTeX}
   macros @{verbatim "\\isakeeptag"}, @{verbatim "\\isadroptag"}, and
-  @{verbatim "\\isafoldtag"}, in @{verbatim isabelle.sty}.
+  @{verbatim "\\isafoldtag"}, in @{"file"
+  "~~/lib/texinputs/isabelle.sty"}.
 
   \medskip Document preparation requires a properly setup ``@{verbatim
   document}'' directory within the logic session sources.  This
@@ -664,7 +667,7 @@ Usage: document [OPTIONS] [DIR]
 
   \medskip When running the session, Isabelle copies the original
   @{verbatim document} directory into its proper place within
-  @{verbatim ISABELLE_BROWSER_INFO} according to the session path.
+  @{setting ISABELLE_BROWSER_INFO} according to the session path.
   Then, for any processed theory @{text A} some {\LaTeX} source is
   generated and put there as @{text A}@{verbatim ".tex"}.
   Furthermore, a list of all generated theory files is put into
@@ -673,36 +676,36 @@ Usage: document [OPTIONS] [DIR]
   containing all the theories.
 
   The {\LaTeX} versions of the theories require some macros defined in
-  @{verbatim isabelle.sty} as distributed with Isabelle.  Doing
-  @{verbatim "\\usepackage{isabelle}"} in @{verbatim root.tex} should
-  be fine; the underlying Isabelle @{tool latex} tool already includes
-  an appropriate path specification for {\TeX} inputs.
+  @{"file" "~~/lib/texinputs/isabelle.sty"}.  Doing @{verbatim
+  "\\usepackage{isabelle}"} in @{verbatim root.tex} should be fine;
+  the underlying Isabelle @{tool latex} tool already includes an
+  appropriate path specification for {\TeX} inputs.
 
   If the text contains any references to Isabelle symbols (such as
   @{verbatim "\\"}@{verbatim "<forall>"}) then @{verbatim
-  isabellesym.sty} should be included as well.  This package contains
-  a standard set of {\LaTeX} macro definitions @{verbatim
+  "isabellesym.sty"} should be included as well.  This package
+  contains a standard set of {\LaTeX} macro definitions @{verbatim
   "\\isasym"}@{text foo} corresponding to @{verbatim "\\"}@{verbatim
   "<"}@{text foo}@{verbatim ">"}, (see \appref{app:symbols} for a
   complete list of predefined Isabelle symbols).  Users may invent
   further symbols as well, just by providing {\LaTeX} macros in a
-  similar fashion as in @{verbatim isabellesym.sty} of the
-  distribution.
+  similar fashion as in @{"file" "~~/lib/texinputs/isabellesym.sty"} of
+  the distribution.
 
   For proper setup of DVI and PDF documents (with hyperlinks and
-  bookmarks), we recommend to include @{verbatim pdfsetup.sty} as
-  well.
+  bookmarks), we recommend to include @{"file"
+  "~~/lib/texinputs/pdfsetup.sty"} as well.
 
   \medskip As a final step of document preparation within Isabelle,
-  @{verbatim "isatool document -c"} is run on the resulting @{verbatim
-  document} directory.  Thus the actual output document is built and
-  installed in its proper place (as linked by the session's @{verbatim
-  index.html} if option @{verbatim "-i"} of @{tool_ref usedir} has
-  been enabled, cf.\ \secref{sec:info}).  The generated sources are
-  deleted after successful run of {\LaTeX} and friends.  Note that a
-  separate copy of the sources may be retained by passing an option
-  @{verbatim "-D"} to the @{tool usedir} utility when running the
-  session.
+  @{verbatim isatool} @{tool document}~@{verbatim "-c"} is run on the
+  resulting @{verbatim document} directory.  Thus the actual output
+  document is built and installed in its proper place (as linked by
+  the session's @{verbatim index.html} if option @{verbatim "-i"} of
+  @{tool_ref usedir} has been enabled, cf.\ \secref{sec:info}).  The
+  generated sources are deleted after successful run of {\LaTeX} and
+  friends.  Note that a separate copy of the sources may be retained
+  by passing an option @{verbatim "-D"} to the @{tool usedir} utility
+  when running the session.
 *}
 
 
@@ -745,10 +748,10 @@ Usage: latex [OPTIONS] [FILE]
 subsubsection {* Examples *}
 
 text {*
-  Invoking @{verbatim "isatool latex"} by hand may be occasionally
-  useful when debugging failed attempts of the automatic document
-  preparation stage of batch-mode Isabelle.  The abortive process
-  leaves the sources at a certain place within @{setting
+  Invoking @{verbatim isatool} @{tool latex} by hand may be
+  occasionally useful when debugging failed attempts of the automatic
+  document preparation stage of batch-mode Isabelle.  The abortive
+  process leaves the sources at a certain place within @{setting
   ISABELLE_BROWSER_INFO}, see the runtime error message for details.
   This enables users to inspect {\LaTeX} runs in further detail, e.g.\
   like this:
