@@ -53,12 +53,8 @@ fun schedule n next_task = uninterruptible (fn restore_attributes => fn tasks =>
     (*pool of running threads*)
     val status = ref ([]: exn list);
     val running = ref ([]: Thread.thread list);
-    fun start f =
-      (inc active;
-       change running (cons (Thread.fork (f, Multithreading.no_interrupts))));
-    fun stop () =
-      (dec active;
-       change running (filter (fn t => not (Thread.equal (t, Thread.self ())))));
+    fun start f = (inc active; change running (cons (SimpleThread.fork false f)));
+    fun stop () = (dec active; change running (remove Thread.equal (Thread.self ())));
 
     (*worker thread*)
     fun worker () =

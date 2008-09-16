@@ -160,8 +160,7 @@ fun worker_loop name =
   | SOME work => (execute name work; worker_loop name));
 
 fun worker_start name = (*requires SYNCHRONIZED*)
-  change workers
-    (cons (Thread.fork (fn () => worker_loop name, Multithreading.no_interrupts), true));
+  change workers (cons (SimpleThread.fork false (fn () => worker_loop name), true));
 
 
 (* scheduler *)
@@ -203,8 +202,7 @@ fun scheduler_active () = (*requires SYNCHRONIZED*)
 
 fun scheduler_check () = SYNCHRONIZED "scheduler_check" (fn () =>
   if not (scheduler_active ()) then
-   (do_shutdown := false;
-    scheduler := SOME (Thread.fork (scheduler_loop, Multithreading.no_interrupts)))
+    (do_shutdown := false; scheduler := SOME (SimpleThread.fork false scheduler_loop))
   else if ! do_shutdown then error "Scheduler shutdown in progress"
   else ());
 
