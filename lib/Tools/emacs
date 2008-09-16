@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Makarius
+#
+# DESCRIPTION: Proof General / Emacs interface wrapper
+
+
+## diagnostics
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## main
+
+INTERFACE="$PROOFGENERAL_HOME/isar/interface"
+[ ! -x "$INTERFACE" ] && fail "Bad interface script: \"$INTERFACE\""
+
+exec "$INTERFACE" "$@"
