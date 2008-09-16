@@ -45,7 +45,7 @@ locale distr =
     and D
  assumes
      var_assumes [simp]:  "In \<in> var & iIn \<in> var & (\<forall>n. Out(n):var)"
- and all_distinct_vars:   "\<forall>n. all_distinct([In, iIn, iOut(n)])"
+ and all_distinct_vars:   "\<forall>n. all_distinct([In, iIn, Out(n)])"
  and type_assumes [simp]: "type_of(In)=list(A) &  type_of(iIn)=list(nat) &
                           (\<forall>n. type_of(Out(n))=list(A))"
  and default_val_assumes [simp]:
