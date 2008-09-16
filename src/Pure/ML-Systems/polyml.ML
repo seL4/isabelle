@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
     ID:         $Id$
 
-Compatibility wrapper for Poly/ML (after 5.1).
+Compatibility wrapper for Poly/ML 5.2 or later.
 *)
 
 open Thread;

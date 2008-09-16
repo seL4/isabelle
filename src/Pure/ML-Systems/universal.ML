@@ -3,7 +3,7 @@
     Author:     Makarius
 
 Universal values via tagged union.  Emulates structure Universal
-in Poly/ML 5.1.
+from Poly/ML 5.1.
 *)
 
 signature UNIVERSAL =
