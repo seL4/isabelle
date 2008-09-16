@@ -177,9 +177,9 @@ qed
 
 end
 
-lemma [code func]:
-  "enum = map (\<lambda>ys. the o map_of (zip (enum\<Colon>('a\<Colon>{enum, eq}) list) ys)) (n_lists (length (enum\<Colon>'a\<Colon>{enum, eq} list)) enum)"
-  unfolding enum_fun_def ..
+lemma enum_fun_code [code func]: "enum = (let enum_a = (enum \<Colon> 'a\<Colon>{enum, eq} list)
+  in map (\<lambda>ys. the o map_of (zip enum_a ys)) (n_lists (length enum_a) enum))"
+  by (simp add: enum_fun_def Let_def)
 
 instantiation unit :: enum
 begin
