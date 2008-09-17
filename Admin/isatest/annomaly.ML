@@ -44,7 +44,7 @@ local
 
 in
 
-  fun use_text tune str_of_pos (line, name) p v t =
+  fun use_text tune str_of_pos name_space (line, name) p v t =
     let val name = case name of "" => "unnamed" | name => name
         val arcs = rewrite ["use_text"] name
         (* should we have different files for different line numbers? *
@@ -55,12 +55,12 @@ in
 		      andalso name = "ML"
 		   then ["empty_Isabelle", "empty" ] else arcs
         val _    = AnnoMaLy.nameNextStream arcs
-    in  smlnj_use_text tune str_of_pos (line, name) p v t  end;
+    in  smlnj_use_text tune str_of_pos name_space (line, name) p v t  end;
 
-  fun use_file tune str_of_pos output verbose name =
+  fun use_file tune str_of_pos name_space output verbose name =
       let val arcs = rewrite ["use_file"] name
           val _    = AnnoMaLy.nameNextStream arcs
-      in  smlnj_use_file tune str_of_pos output verbose name  end;
+      in  smlnj_use_file tune str_of_pos name_space output verbose name  end;
 
   fun forget_structure name =
       let val arcs = [ "forget_structure", name ]
