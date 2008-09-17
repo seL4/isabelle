@@ -806,6 +806,7 @@ Isabelle/Pure's definitional schemes support certain forms of
 \begin{matharray}{rcl}
     \indexdef{}{command}{use}\hypertarget{command.use}{\hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}}} & : & \isarkeep{theory~|~local{\dsh}theory} \\
     \indexdef{}{command}{ML}\hypertarget{command.ML}{\hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}} & : & \isarkeep{theory~|~local{\dsh}theory} \\
+    \indexdef{}{command}{ML\_prf}\hypertarget{command.ML-prf}{\hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isacharunderscore}prf}}}}} & : & \isarkeep{proof} \\
     \indexdef{}{command}{ML\_val}\hypertarget{command.ML-val}{\hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}}} & : & \isartrans{\cdot}{\cdot} \\
     \indexdef{}{command}{ML\_command}\hypertarget{command.ML-command}{\hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}} & : & \isartrans{\cdot}{\cdot} \\
     \indexdef{}{command}{setup}\hypertarget{command.setup}{\hyperlink{command.setup}{\mbox{\isa{\isacommand{setup}}}}} & : & \isartrans{theory}{theory} \\
@@ -828,8 +829,20 @@ Isabelle/Pure's definitional schemes support certain forms of
   down to the ML toplevel and may be modified, using \verb|"Context.>>"| or derived ML commands.  The file name is checked with
   the \indexref{}{keyword}{uses}\hyperlink{keyword.uses}{\mbox{\isa{\isakeyword{uses}}}} dependency declaration given in the theory
   header (see also \secref{sec:begin-thy}).
+
+  Top-level ML bindings are stored within the (global or local) theory
+  context.
   
-  \item [\hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] is similar to \hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}}, but executes ML commands directly from the given \isa{{\isachardoublequote}text{\isachardoublequote}}.
+  \item [\hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] is similar to \hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}}, but executes ML commands directly from the given \isa{{\isachardoublequote}text{\isachardoublequote}}.  Top-level ML bindings are stored within the (global or
+  local) theory context.
+
+  \item [\hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isacharunderscore}prf}}}}] is analogous to \hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}} but
+  works within a proof context.
+
+  Top-level ML bindings are stored within the proof context in a
+  purely sequential fashion, disregarding the nested proof structure.
+  ML bindings introduced by \hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isacharunderscore}prf}}}} are discarded at the
+  end of the proof.
 
   \item [\hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} and \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}] are
   diagnostic versions of \hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}, which means that the context

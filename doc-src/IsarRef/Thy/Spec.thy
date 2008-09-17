@@ -802,6 +802,7 @@ text {*
   \begin{matharray}{rcl}
     @{command_def "use"} & : & \isarkeep{theory~|~local{\dsh}theory} \\
     @{command_def "ML"} & : & \isarkeep{theory~|~local{\dsh}theory} \\
+    @{command_def "ML_prf"} & : & \isarkeep{proof} \\
     @{command_def "ML_val"} & : & \isartrans{\cdot}{\cdot} \\
     @{command_def "ML_command"} & : & \isartrans{\cdot}{\cdot} \\
     @{command_def "setup"} & : & \isartrans{theory}{theory} \\
@@ -825,10 +826,22 @@ text {*
   "Context.>>"} or derived ML commands.  The file name is checked with
   the @{keyword_ref "uses"} dependency declaration given in the theory
   header (see also \secref{sec:begin-thy}).
+
+  Top-level ML bindings are stored within the (global or local) theory
+  context.
   
   \item [@{command "ML"}~@{text "text"}] is similar to @{command
   "use"}, but executes ML commands directly from the given @{text
-  "text"}.
+  "text"}.  Top-level ML bindings are stored within the (global or
+  local) theory context.
+
+  \item [@{command "ML_prf"}] is analogous to @{command "ML"} but
+  works within a proof context.
+
+  Top-level ML bindings are stored within the proof context in a
+  purely sequential fashion, disregarding the nested proof structure.
+  ML bindings introduced by @{command "ML_prf"} are discarded at the
+  end of the proof.
 
   \item [@{command "ML_val"} and @{command "ML_command"}] are
   diagnostic versions of @{command "ML"}, which means that the context
