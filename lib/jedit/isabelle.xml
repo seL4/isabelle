@@ -41,6 +41,7 @@
       <INVALID>Isar.remove</INVALID>
       <OPERATOR>ML</OPERATOR>
       <LABEL>ML_command</LABEL>
+      <OPERATOR>ML_prf</OPERATOR>
       <LABEL>ML_val</LABEL>
       <OPERATOR>abbreviation</OPERATOR>
       <KEYWORD4>actions</KEYWORD4>
