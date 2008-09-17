@@ -209,6 +209,20 @@ Complex_Main.thy should now use new entry point Hypercomplex.thy.
 
 *** ML ***
 
+* ML bindings produced via Isar commands are stored within the Isar
+context (theory or proof).  Consequently, commands like 'use' and 'ML'
+become thread-safe and work with undo as expected (concerning
+top-level bindings, not side-effects on global references).
+INCOMPATIBILITY, need to provide proper Isar context when invoking the
+compiler at runtime; really global bindings need to be given outside a
+theory. [Poly/ML 5.2 or later]
+
+* Command 'ML_prf' is analogous to 'ML' but works within a proof
+context. Top-level ML bindings are stored within the proof context in
+a purely sequential fashion, disregarding the nested proof structure.
+ML bindings introduced by 'ML_prf' are discarded at the end of the
+proof.  [Poly/ML 5.2 or later]
+
 * Generic Toplevel.add_hook interface allows to analyze the result of
 transactions.  E.g. see src/Pure/ProofGeneral/proof_general_pgip.ML
 for theorem dependency output of transactions resulting in a new
