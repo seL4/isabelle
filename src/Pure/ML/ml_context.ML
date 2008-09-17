@@ -20,6 +20,7 @@ sig
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
   val exec: (unit -> unit) -> Context.generic -> Context.generic
+  val inherit_env: Proof.context -> Proof.context -> Proof.context
   val name_space: ML_NameSpace.nameSpace
   val stored_thms: thm list ref
   val ml_store_thm: string * thm -> unit
@@ -77,6 +78,8 @@ structure ML_Env = GenericDataFun
     Symtab.merge (K true) (signature1, signature2),
     Symtab.merge (K true) (functor1, functor2));
 );
+
+val inherit_env = Context.proof_map o ML_Env.put o ML_Env.get o Context.Proof;
 
 val name_space: ML_NameSpace.nameSpace =
   let
