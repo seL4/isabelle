@@ -205,8 +205,8 @@ fun assemble_eqnss idx_of deps eqnss =
 
 (* code compilation *)
 
-fun compile_eqnss gr raw_deps [] = []
-  | compile_eqnss gr raw_deps eqnss = 
+fun compile_eqnss _ gr raw_deps [] = []
+  | compile_eqnss ctxt gr raw_deps eqnss =
       let
         val (deps, deps_vals) = split_list (map_filter
           (fn dep => Option.map (fn univ => (dep, univ)) (fst ((Graph.get_node gr dep)))) raw_deps);
@@ -219,7 +219,7 @@ fun compile_eqnss gr raw_deps [] = []
       in
         s
         |> tracing (fn s => "\n--- code to be evaluated:\n" ^ s)
-        |> ML_Context.evaluate
+        |> ML_Context.evaluate ctxt
             (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
             Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
             (!trace) univs_cookie
@@ -254,7 +254,7 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, [])) =
         map (fn (_, (_, (inst, dicts))) => IConst (inst, (dicts, []))) superinsts
         @ map (IConst o snd o fst) instops)]))];
 
-fun compile_stmts stmts_deps =
+fun compile_stmts ctxt stmts_deps =
   let
     val names = map (fst o fst) stmts_deps;
     val names_deps = map (fn ((name, _), deps) => (name, deps)) stmts_deps;
@@ -268,7 +268,7 @@ fun compile_stmts stmts_deps =
       else (Graph.new_node (name, (NONE, maxidx)) gr,
         (maxidx + 1, Inttab.update_new (maxidx, name) idx_tab));
     fun compile gr = eqnss
-      |> compile_eqnss gr refl_deps
+      |> compile_eqnss ctxt gr refl_deps
       |> rpair gr;
   in
     fold new_node refl_deps
@@ -277,12 +277,12 @@ fun compile_stmts stmts_deps =
       #-> fold (fn (name, univ) => (Graph.map_node name o apfst) (K (SOME univ))))
   end;
 
-fun ensure_stmts program =
+fun ensure_stmts ctxt program =
   let
     fun add_stmts names (gr, (maxidx, idx_tab)) = if exists ((can o Graph.get_node) gr) names
       then (gr, (maxidx, idx_tab))
       else (gr, (maxidx, idx_tab))
-        |> compile_stmts (map (fn name => ((name, Graph.get_node program name),
+        |> compile_stmts ctxt (map (fn name => ((name, Graph.get_node program name),
           Graph.imm_succs program name)) names);
   in fold_rev add_stmts (Graph.strong_conn program) end;
 
@@ -291,14 +291,14 @@ fun ensure_stmts program =
 
 (* term evaluation *)
 
-fun eval_term gr deps ((vs, ty), t) =
+fun eval_term ctxt gr deps ((vs, ty), t) =
   let 
     val frees = Code_Thingol.fold_unbound_varnames (insert (op =)) t []
     val frees' = map (fn v => Free (v, [])) frees;
     val dict_frees = maps (fn (v, sort) => map_index (curry DFree v o fst) sort) vs;
   in
     ("", (vs, [(map IVar frees, t)]))
-    |> singleton (compile_eqnss gr deps)
+    |> singleton (compile_eqnss ctxt gr deps)
     |> snd
     |> (fn t => apps t (rev (dict_frees @ frees')))
   end;
@@ -361,10 +361,11 @@ structure Nbe_Functions = CodeDataFun
 
 fun compile_eval thy program vs_ty_t deps =
   let
-    val (gr, (_, idx_tab)) = Nbe_Functions.change thy (ensure_stmts program);
+    val ctxt = ProofContext.init thy;
+    val (gr, (_, idx_tab)) = Nbe_Functions.change thy (ensure_stmts ctxt program);
   in
     vs_ty_t
-    |> eval_term gr deps
+    |> eval_term ctxt gr deps
     |> term_of_univ thy idx_tab
   end;
 
