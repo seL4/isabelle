@@ -5819,7 +5819,7 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
       @{code Neg} (@{code Floor} (@{code Neg} (num_of_term vs t')))
   | num_of_term vs (@{term "number_of :: int \<Rightarrow> real"} $ t') =
       @{code C} (HOLogic.dest_numeral t')
-  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term_global @{theory} t);
+  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
 
 fun fm_of_term vs @{term True} = @{code T}
   | fm_of_term vs @{term False} = @{code F}
@@ -5845,7 +5845,7 @@ fun fm_of_term vs @{term True} = @{code T}
       @{code E} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
   | fm_of_term vs (Const ("All", _) $ Abs (xn, xT, p)) =
       @{code A} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
-  | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term_global @{theory} t);
+  | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
 
 fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $ HOLogic.mk_number HOLogic.intT i
   | term_of_num vs (@{code Bound} n) = fst (the (find_first (fn (_, m) => n = m) vs))

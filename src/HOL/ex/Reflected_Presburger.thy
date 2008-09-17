@@ -1941,7 +1941,7 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
         | NONE => (case try HOLogic.dest_number t2
                 of SOME (_, i) => @{code Mul} (i, num_of_term vs t1)
                  | NONE => error "num_of_term: unsupported multiplication"))
-  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term_global @{theory} t);
+  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
 
 fun fm_of_term ps vs @{term True} = @{code T}
   | fm_of_term ps vs @{term False} = @{code F}
@@ -1975,7 +1975,7 @@ fun fm_of_term ps vs @{term True} = @{code T}
         val (xn', p') = variant_abs (xn, xT, p);
         val vs' = (Free (xn', xT), 0) :: map (fn (v, n) => (v, n + 1)) vs;
       in @{code A} (fm_of_term ps vs' p) end
-  | fm_of_term ps vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term_global @{theory} t);
+  | fm_of_term ps vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
 
 fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT i
   | term_of_num vs (@{code Bound} n) = fst (the (find_first (fn (_, m) => n = m) vs))
