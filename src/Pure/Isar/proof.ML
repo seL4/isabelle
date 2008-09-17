@@ -17,6 +17,7 @@ sig
   val context_of: state -> context
   val theory_of: state -> theory
   val map_context: (context -> context) -> state -> state
+  val map_contexts: (context -> context) -> state -> state
   val add_binds_i: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
   val the_facts: state -> thm list
@@ -166,6 +167,7 @@ fun init ctxt =
 
 fun current (State st) = Stack.top st |> (fn Node node => node);
 fun map_current f (State st) = State (Stack.map_top (map_node f) st);
+fun map_all f (State st) = State (Stack.map_all (map_node f) st);
 
 
 
@@ -198,6 +200,8 @@ fun map_context f =
 
 fun map_context_result f state =
   f (context_of state) ||> (fn ctxt => map_context (K ctxt) state);
+
+fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
 val add_binds_i = map_context o ProofContext.add_binds_i;
 val put_thms = map_context oo ProofContext.put_thms;
