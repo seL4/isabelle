@@ -199,7 +199,7 @@ lemma raw_inv2: "invariant impl_ioa inv2"
 
   txt {* 10 cases. First 4 are simple, since state doesn't change *}
 
-ML_command {* val tac2 = asm_full_simp_tac (ss addsimps [@{thm inv2_def}]) *}
+  ML_prf {* val tac2 = asm_full_simp_tac (ss addsimps [@{thm inv2_def}]) *}
 
   txt {* 10 - 7 *}
   apply (tactic "EVERY1 [tac2,tac2,tac2,tac2]")
@@ -255,7 +255,7 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   apply (simp (no_asm_simp) add: impl_ioas split del: split_if)
   apply (induct_tac "a")
 
-ML_command {* val tac3 = asm_full_simp_tac (ss addsimps [@{thm inv3_def}]) *}
+  ML_prf {* val tac3 = asm_full_simp_tac (ss addsimps [@{thm inv3_def}]) *}
 
   txt {* 10 - 8 *}
 
@@ -320,7 +320,7 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   apply (simp (no_asm_simp) add: impl_ioas split del: split_if)
   apply (induct_tac "a")
 
-ML_command {* val tac4 =  asm_full_simp_tac (ss addsimps [@{thm inv4_def}]) *}
+  ML_prf {* val tac4 =  asm_full_simp_tac (ss addsimps [@{thm inv4_def}]) *}
 
   txt {* 10 - 2 *}
 
