@@ -507,7 +507,7 @@ fun ml_type txt = "val _ = NONE : (" ^ txt ^ ") option;";
 fun ml_struct txt = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;"
 
 fun output_ml ml src ctxt (txt, pos) =
- (ML_Context.eval_in (SOME (Context.Proof ctxt)) false pos (ml txt);
+ (ML_Context.eval_in (SOME ctxt) false pos (ml txt);
   (if ! source then str_of_source src else SymbolPos.content (SymbolPos.explode (txt, pos)))
   |> (if ! quotes then quote else I)
   |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"

@@ -303,7 +303,8 @@ val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 (* diagnostic ML evaluation *)
 
 fun ml_diag verbose (txt, pos) = Toplevel.keep (fn state =>
-  (ML_Context.eval_in (try Toplevel.generic_theory_of state) verbose pos txt));
+  (ML_Context.eval_in
+    (Option.map Context.proof_of (try Toplevel.generic_theory_of state)) verbose pos txt));
 
 
 (* current working directory *)
