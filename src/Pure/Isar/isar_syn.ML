@@ -306,7 +306,8 @@ val _ =
   OuterSyntax.command "ML_prf" "eval ML text within proof" (K.tag_proof K.prf_decl)
     (P.ML_source >> (fn (txt, pos) =>
       Toplevel.proof (Proof.map_context (Context.proof_map
-        (ML_Context.exec (fn () => ML_Context.eval true pos txt))))));
+        (ML_Context.exec (fn () => ML_Context.eval true pos txt))) #>
+          (fn prf => Proof.map_contexts (ML_Context.inherit_env (Proof.context_of prf)) prf))));
 
 val _ =
   OuterSyntax.command "ML_val" "eval ML text (diagnostic)" (K.tag_ml K.diag)
