@@ -281,13 +281,15 @@ fun cancel x =
 
 (*global join and shutdown*)
 fun shutdown () =
- (scheduler_check ();
-  SYNCHRONIZED "shutdown" (fn () =>
-   (while not (scheduler_active ()) do wait "shutdown: scheduler inactive";
-    while not (TaskQueue.is_empty (! queue)) do wait "shutdown: join";
-    do_shutdown := true;
-    notify_all ();
-    while not (null (! workers)) do wait "shutdown: workers";
-    while scheduler_active () do wait "shutdown: scheduler still active")));
+  if Multithreading.available then
+   (scheduler_check ();
+    SYNCHRONIZED "shutdown" (fn () =>
+     (while not (scheduler_active ()) do wait "shutdown: scheduler inactive";
+      while not (TaskQueue.is_empty (! queue)) do wait "shutdown: join";
+      do_shutdown := true;
+      notify_all ();
+      while not (null (! workers)) do wait "shutdown: workers";
+      while scheduler_active () do wait "shutdown: scheduler still active")))
+  else ();
 
 end;
