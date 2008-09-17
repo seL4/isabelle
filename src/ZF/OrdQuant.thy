@@ -382,9 +382,9 @@ val rearrange_ball = Quantifier1.rearrange_ball prove_rall_tac;
 
 in
 
-val defREX_regroup = Simplifier.simproc @{theory}
+val defREX_regroup = Simplifier.simproc (the_context ())
   "defined REX" ["EX x[M]. P(x) & Q(x)"] rearrange_bex;
-val defRALL_regroup = Simplifier.simproc @{theory}
+val defRALL_regroup = Simplifier.simproc (the_context ())
   "defined RALL" ["ALL x[M]. P(x) --> Q(x)"] rearrange_ball;
 
 end;

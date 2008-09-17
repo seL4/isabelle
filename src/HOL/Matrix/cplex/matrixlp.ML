@@ -25,7 +25,7 @@ fun inst_real thm =
 
 local
 
-val cert =  cterm_of @{theory}
+val cert =  cterm_of (the_context ())
 
 in
 
@@ -72,7 +72,7 @@ local
       "ComputeHOL.compute_bool" "ComputeHOL.compute_pair"
       "SparseMatrix.sorted_sp_simps" "ComputeNumeral.number_norm"
       "ComputeNumeral.natnorm"};
-    val computer = PCompute.make Compute.SML @{theory} ths []
+    val computer = PCompute.make Compute.SML (the_context ()) ths []
 in
 
 fun matrix_compute c = hd (PCompute.rewrite computer [c])

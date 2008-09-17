@@ -209,7 +209,7 @@ local
       | _ => SOME meta_UU_reorient;
 in
   val UU_reorient_simproc = 
-    Simplifier.simproc @{theory} "UU_reorient_simproc" ["UU=x"] reorient_proc
+    Simplifier.simproc (the_context ()) "UU_reorient_simproc" ["UU=x"] reorient_proc
 end;
 
 Addsimprocs [UU_reorient_simproc];

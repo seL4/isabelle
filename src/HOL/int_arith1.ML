@@ -579,7 +579,7 @@ val int_arith_setup =
 end;
 
 val fast_int_arith_simproc =
-  Simplifier.simproc @{theory}
+  Simplifier.simproc (the_context ())
   "fast_int_arith" 
      ["(m::'a::{ordered_idom,number_ring}) < n",
       "(m::'a::{ordered_idom,number_ring}) <= n",

@@ -279,7 +279,7 @@ end)
 
 in
 
-val cancel_zdiv_zmod_proc = Simplifier.simproc @{theory}
+val cancel_zdiv_zmod_proc = Simplifier.simproc (the_context ())
   "cancel_zdiv_zmod" ["(m::int) + n"] (K CancelDivMod.proc)
 
 end;

@@ -371,7 +371,7 @@ end;
 
 structure CancelDivMod = CancelDivModFun(CancelDivModData);
 
-val cancel_div_mod_proc = Simplifier.simproc @{theory}
+val cancel_div_mod_proc = Simplifier.simproc (the_context ())
   "cancel_div_mod" ["(m::nat) + n"] (K CancelDivMod.proc);
 
 Addsimprocs[cancel_div_mod_proc];

@@ -169,7 +169,7 @@ val mksimps_pairs =
    ("HOL.If", [@{thm if_bool_eq_conj} RS @{thm iffD1}])];
 
 val HOL_basic_ss =
-  Simplifier.theory_context @{theory} empty_ss
+  Simplifier.theory_context (the_context ()) empty_ss
     setsubgoaler asm_simp_tac
     setSSolver safe_solver
     setSolver unsafe_solver
@@ -184,11 +184,11 @@ fun unfold_tac ths =
   in fn ss => ALLGOALS (full_simp_tac (Simplifier.inherit_context ss ss0)) end;
 
 val defALL_regroup =
-  Simplifier.simproc @{theory}
+  Simplifier.simproc (the_context ())
     "defined ALL" ["ALL x. P x"] Quantifier1.rearrange_all;
 
 val defEX_regroup =
-  Simplifier.simproc @{theory}
+  Simplifier.simproc (the_context ())
     "defined EX" ["EX x. P x"] Quantifier1.rearrange_ex;
 
 
