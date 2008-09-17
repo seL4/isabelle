@@ -13,6 +13,12 @@ val pointer_eq = PolyML.pointerEq;
 
 (* runtime compilation *)
 
+structure ML_NameSpace =
+struct
+  open PolyML.NameSpace;
+  val global = PolyML.globalNameSpace;
+end;
+
 local
 
 fun drop_newline s =
@@ -21,7 +27,8 @@ fun drop_newline s =
 
 in
 
-fun use_text (tune: string -> string) str_of_pos (start_line, name) (print, err) verbose txt =
+fun use_text (tune: string -> string) str_of_pos
+    name_space (start_line, name) (print, err) verbose txt =
   let
     val current_line = ref start_line;
     val in_buffer = ref (String.explode (tune txt));
@@ -40,7 +47,8 @@ fun use_text (tune: string -> string) str_of_pos (start_line, name) (print, err)
     val parameters =
      [PolyML.Compiler.CPOutStream put,
       PolyML.Compiler.CPLineNo (fn () => ! current_line),
-      PolyML.Compiler.CPErrorMessageProc (put o message)];
+      PolyML.Compiler.CPErrorMessageProc (put o message),
+      PolyML.Compiler.CPNameSpace name_space];
     val _ =
       (while not (List.null (! in_buffer)) do
         PolyML.compiler (get, parameters) ())
@@ -49,10 +57,10 @@ fun use_text (tune: string -> string) str_of_pos (start_line, name) (print, err)
         err (output ()); raise exn);
   in if verbose then print (output ()) else () end;
 
-fun use_file tune str_of_pos output verbose name =
+fun use_file tune str_of_pos name_space output verbose name =
   let
     val instream = TextIO.openIn name;
     val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text tune str_of_pos (1, name) output verbose txt end;
+  in use_text tune str_of_pos name_space (1, name) output verbose txt end;
 
 end;

@@ -40,6 +40,7 @@ use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
+use "ML-Systems/ml_name_space.ML";
 
 
 (*low-level pointer equality*)
@@ -158,7 +159,7 @@ end;
 (* ML command execution *)
 
 (*Can one redirect 'use' directly to an instream?*)
-fun use_text (tune: string -> string) _ _ _ _ txt =
+fun use_text (tune: string -> string) _ _ _ _ _ txt =
   let
     val tmp_name = FileSys.tmpName ();
     val tmp_file = TextIO.openOut tmp_name;
@@ -169,7 +170,7 @@ fun use_text (tune: string -> string) _ _ _ _ txt =
     FileSys.remove tmp_name
   end;
 
-fun use_file _ _ _ _ name = use name;
+fun use_file _ _ _ _ _ name = use name;
 
 
 

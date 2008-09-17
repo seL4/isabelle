@@ -186,7 +186,7 @@ fun load_rules sname name prog =
 
     in
 	compiled_rewriter := NONE;	
-	use_text (1, "") Output.ml_output false (!buffer);
+	use_text ML_Context.name_space (1, "") Output.ml_output false (!buffer);
 	case !compiled_rewriter of 
 	    NONE => raise (Compile "cannot communicate with compiled function")
 	  | SOME r => (compiled_rewriter := NONE; r)

@@ -11,6 +11,7 @@ use "ML-Systems/universal.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/system_shell.ML";
+use "ML-Systems/ml_name_space.ML";
 
 
 (*low-level pointer equality*)
@@ -112,7 +113,7 @@ fun install_pp (path, pp) = CompilerPPTable.install_pp path pp;
 
 (* ML command execution *)
 
-fun use_text (tune: string -> string) _ (line: int, name) (print, err) verbose txt =
+fun use_text (tune: string -> string) _ _ (line: int, name) (print, err) verbose txt =
   let
     val ref out_orig = Control.Print.out;
 
@@ -130,11 +131,11 @@ fun use_text (tune: string -> string) _ (line: int, name) (print, err) verbose t
     if verbose then print (output ()) else ()
   end;
 
-fun use_file tune str_of_pos output verbose name =
+fun use_file tune str_of_pos name_space output verbose name =
   let
     val instream = TextIO.openIn name;
     val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text tune str_of_pos (1, name) output verbose txt end;
+  in use_text tune str_of_pos name_space (1, name) output verbose txt end;
 
 fun forget_structure name =
   use_text (fn x => x) (fn _ => "") (1, "ML") (TextIO.print, fn s => raise Fail s) false

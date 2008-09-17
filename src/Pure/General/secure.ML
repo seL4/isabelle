@@ -10,8 +10,10 @@ sig
   val set_secure: unit -> unit
   val is_secure: unit -> bool
   val deny_secure: string -> unit
-  val use_text: int * string -> (string -> unit) * (string -> 'a) -> bool -> string -> unit
-  val use_file: (string -> unit) * (string -> 'a) -> bool -> string -> unit
+  val use_text: ML_NameSpace.nameSpace -> int * string ->
+    (string -> unit) * (string -> 'a) -> bool -> string -> unit
+  val use_file: ML_NameSpace.nameSpace ->
+    (string -> unit) * (string -> 'a) -> bool -> string -> unit
   val use: string -> unit
   val commit: unit -> unit
   val system_out: string -> string * int
@@ -38,19 +40,19 @@ fun deny_secure msg = if is_secure () then error msg else ();
 
 fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 
-fun raw_use_text x = use_text ML_Parse.fix_ints (Position.str_of oo Position.line_file) x;
-fun raw_use_file x = use_file ML_Parse.fix_ints (Position.str_of oo Position.line_file) x;
+fun raw_use_text ns = use_text ML_Parse.fix_ints (Position.str_of oo Position.line_file) ns;
+fun raw_use_file ns = use_file ML_Parse.fix_ints (Position.str_of oo Position.line_file) ns;
 
-fun use_text pos pr verbose txt =
-  (secure_mltext (); raw_use_text pos pr verbose txt);
+fun use_text ns pos pr verbose txt =
+  (secure_mltext (); raw_use_text ns pos pr verbose txt);
 
-fun use_file pr verbose name =
-  (secure_mltext (); raw_use_file pr verbose name);
+fun use_file ns pr verbose name =
+  (secure_mltext (); raw_use_file ns pr verbose name);
 
-fun use name = use_file Output.ml_output true name;
+fun use name = use_file ML_NameSpace.global Output.ml_output true name;
 
 (*commit is dynamically bound!*)
-fun commit () = raw_use_text (0, "") Output.ml_output false "commit();";
+fun commit () = raw_use_text ML_NameSpace.global (0, "") Output.ml_output false "commit();";
 
 
 (* shell commands *)

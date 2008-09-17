@@ -4,7 +4,7 @@
 Runtime compilation -- for old PolyML.compiler (version 4.x).
 *)
 
-fun use_text (tune: string -> string) _ (line: int, name) (print, err) verbose txt =
+fun use_text (tune: string -> string) _ _ (line: int, name) (print, err) verbose txt =
   let
     val in_buffer = ref (explode (tune txt));
     val out_buffer = ref ([]: string list);
@@ -26,9 +26,8 @@ fun use_text (tune: string -> string) _ (line: int, name) (print, err) verbose t
     if verbose then print (output ()) else ()
   end;
 
-fun use_file tune str_of_pos output verbose name =
+fun use_file tune str_of_pos name_space output verbose name =
   let
     val instream = TextIO.openIn name;
     val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text tune str_of_pos (1, name) output verbose txt end;
-
+  in use_text tune str_of_pos name_space (1, name) output verbose txt end;
