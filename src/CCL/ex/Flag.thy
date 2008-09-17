@@ -57,7 +57,7 @@ lemma redT: "red : Colour"
 
 ML {*
 bind_thm ("ccaseT", mk_ncanT_tac @{context}
-  (thms "flag_defs") (thms "case_rls") (thms "case_rls")
+  @{thms flag_defs} @{thms case_rls} @{thms case_rls}
   "[| c:Colour; c=red ==> r : C(red); c=white ==> w : C(white); c=blue ==> b : C(blue) |] ==> ccase(c,r,w,b) : C(c)");
 *}
 

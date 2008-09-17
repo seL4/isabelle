@@ -137,9 +137,11 @@ in
                          (ALLGOALS (ares_tac (prems RL [lemma]) ORELSE'
                                     etac bspec )),
                          (safe_tac (local_claset_of ctxt addSIs prems))])
-
-  val ncanT_tac = mk_ncanT_tac @{context} [] case_rls case_rls
 end
+*}
+
+ML {*
+  val ncanT_tac = mk_ncanT_tac @{context} [] @{thms case_rls} @{thms case_rls}
 *}
 
 ML {*
@@ -275,8 +277,10 @@ lemma zeroT: "zero : Nat"
 lemmas icanTs = zeroT succT nilT consT
 
 ML {*
-val incanT_tac = mk_ncanT_tac @{context} [] (thms "icase_rls") (thms "case_rls");
+val incanT_tac = mk_ncanT_tac @{context} [] @{thms icase_rls} @{thms case_rls};
+*}
 
+ML {*
 bind_thm ("ncaseT", incanT_tac
   "[| n:Nat; n=zero ==> b:C(zero); !!x.[| x:Nat;  n=succ(x) |] ==> c(x):C(succ(x)) |] ==> ncase(n,b,c) : C(n)");
 
