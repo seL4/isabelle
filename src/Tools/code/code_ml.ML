@@ -886,6 +886,7 @@ fun ml_code_of thy = Code_Target.serialize_custom thy
 
 fun eval eval'' term_of reff thy ct args =
   let
+    val ctxt = ProofContext.init thy;
     val _ = if null (term_frees (term_of ct)) then () else error ("Term "
       ^ quote (Syntax.string_of_term_global thy (term_of ct))
       ^ " to be evaluated contains free variables");
@@ -899,7 +900,7 @@ fun eval eval'' term_of reff thy ct args =
         val (value_code, [value_name']) = ml_code_of thy program' [Code_Name.value_name];
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
-      in ML_Context.evaluate Output.ml_output false reff sml_code end;
+      in ML_Context.evaluate ctxt Output.ml_output false reff sml_code end;
   in eval'' thy (fn t => (t, eval')) ct end;
 
 fun eval_conv reff = eval Code_Thingol.eval_conv Thm.term_of reff;
@@ -966,7 +967,8 @@ val _ = ML_Context.add_antiq "code" (fn _ => Args.term >> ml_code_antiq);
 
 fun isar_seri_sml module_name =
   Code_Target.parse_args (Scan.succeed ())
-  #> (fn () => serialize_ml target_SML (SOME (use_text (1, "generated code") Output.ml_output false))
+  #> (fn () => serialize_ml target_SML
+      (SOME (use_text ML_Context.name_space (1, "generated code") Output.ml_output false))
       pr_sml_module pr_sml_stmt module_name);
 
 fun isar_seri_ocaml module_name =
