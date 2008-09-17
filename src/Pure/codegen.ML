@@ -919,6 +919,7 @@ val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
 
 fun test_term thy quiet sz i t =
   let
+    val ctxt = ProofContext.init thy;
     val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
       error "Term to be tested contains type variables";
     val _ = null (term_vars t) orelse
@@ -949,7 +950,7 @@ fun test_term thy quiet sz i t =
                   [str "]"])]]),
           str ");"]) ^
       "\n\nend;\n";
-    val _ = ML_Context.eval_in (SOME (Context.Theory thy)) false Position.none s;
+    val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
     fun iter f k = if k > i then NONE
       else (case (f () handle Match =>
           (if quiet then ()
@@ -1018,26 +1019,28 @@ fun test_goal' int state =
 val eval_result = ref (fn () => Bound 0);
 
 fun eval_term thy t =
-  let val e =
-    let
-      val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
-        error "Term to be evaluated contains type variables";
-      val _ = (null (term_vars t) andalso null (term_frees t)) orelse
-        error "Term to be evaluated contains variables";
-      val (code, gr) = setmp mode ["term_of"]
-        (generate_code_i thy [] "Generated")
-        [("result", Abs ("x", TFree ("'a", []), t))];
-      val s = "structure EvalTerm =\nstruct\n\n" ^
-        cat_lines (map snd code) ^
-        "\nopen Generated;\n\n" ^ string_of
-          (Pretty.block [str "val () = Codegen.eval_result := (fn () =>",
-            Pretty.brk 1,
-            mk_app false (mk_term_of gr "Generated" false (fastype_of t))
-              [str "(result ())"],
-            str ");"]) ^
-        "\n\nend;\n";
-      val _ = ML_Context.eval_in (SOME (Context.Theory thy)) false Position.none s;
-    in !eval_result end;
+  let
+    val ctxt = ProofContext.init thy;
+    val e =
+      let
+        val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
+          error "Term to be evaluated contains type variables";
+        val _ = (null (term_vars t) andalso null (term_frees t)) orelse
+          error "Term to be evaluated contains variables";
+        val (code, gr) = setmp mode ["term_of"]
+          (generate_code_i thy [] "Generated")
+          [("result", Abs ("x", TFree ("'a", []), t))];
+        val s = "structure EvalTerm =\nstruct\n\n" ^
+          cat_lines (map snd code) ^
+          "\nopen Generated;\n\n" ^ string_of
+            (Pretty.block [str "val () = Codegen.eval_result := (fn () =>",
+              Pretty.brk 1,
+              mk_app false (mk_term_of gr "Generated" false (fastype_of t))
+                [str "(result ())"],
+              str ");"]) ^
+          "\n\nend;\n";
+        val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
+      in !eval_result end;
   in e () end;
 
 exception Evaluation of term;
@@ -1110,23 +1113,22 @@ fun parse_code lib =
   (   Scan.repeat1 (P.name --| P.$$$ "=" -- P.term)
    || Scan.repeat1 (P.term >> pair "")) >>
   (fn ((((mode', module), opt_fname), modules), xs) => Toplevel.theory (fn thy =>
-     let
-       val mode'' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode');
-       val (code, gr) = setmp mode mode'' (generate_code thy modules module) xs
-     in ((case opt_fname of
-         NONE =>
-           ML_Context.eval_in (SOME (Context.Theory thy)) false Position.none
-             (cat_lines (map snd code))
-       | SOME fname =>
-           if lib then
-             app (fn (name, s) => File.write
-                 (Path.append (Path.explode fname) (Path.basic (name ^ ".ML"))) s)
-               (("ROOT", implode (map (fn (name, _) =>
-                   "use \"" ^ name ^ ".ML\";\n") code)) :: code)
-           else File.write (Path.explode fname) (snd (hd code)));
-           if lib then thy
-           else map_modules (Symtab.update (module, gr)) thy)
-     end));
+    let
+      val mode'' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode');
+      val (code, gr) = setmp mode mode'' (generate_code thy modules module) xs;
+      val thy' = thy |> Context.theory_map (ML_Context.exec (fn () =>
+        (case opt_fname of
+          NONE => ML_Context.eval false Position.none (cat_lines (map snd code))
+        | SOME fname =>
+            if lib then app (fn (name, s) => File.write
+                (Path.append (Path.explode fname) (Path.basic (name ^ ".ML"))) s)
+              (("ROOT", implode (map (fn (name, _) =>
+                  "use \"" ^ name ^ ".ML\";\n") code)) :: code)
+            else File.write (Path.explode fname) (snd (hd code)))));
+    in
+      if lib then thy'
+      else map_modules (Symtab.update (module, gr)) thy'
+    end));
 
 val setup = add_codegen "default" default_codegen
   #> add_tycodegen "default" default_tycodegen
