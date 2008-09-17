@@ -72,6 +72,11 @@ time_use_thy "Reflected_Presburger";
 time_use_thy "Reflection";
 
 time_use_thy "SVC_Oracle";
+
+(*check if user has SVC installed*)
+fun svc_enabled () = getenv "SVC_HOME" <> "";
+fun if_svc_enabled f x = if svc_enabled () then f x else ();
+
 if_svc_enabled time_use_thy "svc_test";
 
 (* requires a proof-generating SAT solver (zChaff or MiniSAT) to be *)

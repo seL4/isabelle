@@ -116,11 +116,6 @@ fun svc_tac i st =
     val th = svc_oracle (Thm.theory_of_thm st) abs_goal
    in compose_tac (false, th, 0) i st end
    handle TERM _ => no_tac st;
-
-
-(*check if user has SVC installed*)
-fun svc_enabled () = getenv "SVC_HOME" <> "";
-fun if_svc_enabled f x = if svc_enabled () then f x else ();
 *}
 
 end

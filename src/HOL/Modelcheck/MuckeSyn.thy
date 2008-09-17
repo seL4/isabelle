@@ -236,11 +236,6 @@ fun mc_mucke_tac defs i state =
         full_simp_tac (Mucke_ss delsimps [not_iff,split_part]) i,
         move_mus i, call_mucke_tac i,atac i,
         REPEAT (rtac refl i)] state);
-
-(*check if user has mucke installed*)
-fun mucke_enabled () = getenv "MUCKE_HOME" <> "";
-fun if_mucke_enabled f x = if mucke_enabled () then f x else ();
-
 *}
 
 end
