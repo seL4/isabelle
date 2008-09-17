@@ -107,13 +107,12 @@ text {*
 section {* Thread-safe programming *}
 
 text {*
-  Recent versions of Poly/ML (5.1 or later) support multithreaded
-  execution based on native operating system threads of the
-  underlying platform.  Thus threads will actually be executed in
-  parallel on multi-core systems.  A speedup-factor of approximately
-  2--4 can be expected for large well-structured Isabelle sessions,
-  where theories are organized as a graph with sufficiently many
-  independent nodes.
+  Recent versions of Poly/ML (5.2 or later) support multithreaded
+  execution based on native operating system threads of the underlying
+  platform.  Thus threads will actually be executed in parallel on
+  multi-core systems.  A speedup-factor of approximately 2--4 can be
+  expected for large well-structured Isabelle sessions, where theories
+  are organized as a graph with sufficiently many independent nodes.
 
   Threads lack the memory protection of separate processes, but
   operate concurrently on shared heap memory.  This has the advantage
@@ -139,14 +138,16 @@ text {*
   independent of the visibility of such mutable values in the toplevel
   scope.}
 
-  \item global ML bindings in the toplevel environment (@{verbatim
-  "type"}, @{verbatim val}, @{verbatim "structure"} etc.) due to
-  run-time invocation of the compiler,
-
   \item direct I/O on shared channels, notably @{text "stdin"}, @{text
   "stdout"}, @{text "stderr"}.
 
   \end{itemize}
+
+  Note that ML bindings within the toplevel environment (@{verbatim
+  "type"}, @{verbatim val}, @{verbatim "structure"} etc.) due to
+  run-time invocation of the compiler are non-critical, because
+  Isabelle/Isar incorporates such bindings within the theory or proof
+  context.
 
   The majority of tools implemented within the Isabelle/Isar framework
   will not require any of these critical elements: nothing special
@@ -179,8 +180,8 @@ text {*
   significantly.
 
   Despite this potential bottle-neck, we refrain from fine-grained
-  locking mechanisms: the restriction to a single lock prevents
-  deadlocks without demanding further considerations in user programs.
+  locking mechanism within user-code: the restriction to a single lock
+  prevents deadlocks without demanding special precautions.
 
   \paragraph{Good conduct of impure programs.} The following
   guidelines enable non-functional programs to participate in
@@ -230,18 +231,6 @@ text {*
   any persistent global assignment of @{text "ref := value"} needs to
   be marked critical as well, to prevent intruding another threads
   local view, and a lost-update in the global scope, too.
-
-  \item Minimize global ML bindings.  Processing theories occasionally
-  affects the global ML environment as well.  While each ML
-  compilation unit is safe, the order of scheduling of independent
-  declarations might cause problems when composing several modules
-  later on, due to hiding of previous ML names.
-
-  This cannot be helped in general, because the ML toplevel lacks the
-  graph structure of the Isabelle theory space.  Nevertheless, some
-  sound conventions of keeping global ML names essentially disjoint
-  (e.g.\ with the help of ML structures) prevents the problem to occur
-  in most practical situations.
 
   \end{itemize}
 
