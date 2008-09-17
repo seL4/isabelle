@@ -756,7 +756,7 @@ text {* proper subset relation on finite sets *}
 definition finite_psubset  :: "('a set * 'a set) set"
 where "finite_psubset == {(A,B). A < B & finite B}"
 
-lemma wf_finite_psubset: "wf(finite_psubset)"
+lemma wf_finite_psubset[simp]: "wf(finite_psubset)"
 apply (unfold finite_psubset_def)
 apply (rule wf_measure [THEN wf_subset])
 apply (simp add: measure_def inv_image_def less_than_def less_eq)
@@ -766,7 +766,8 @@ done
 lemma trans_finite_psubset: "trans finite_psubset"
 by (simp add: finite_psubset_def less_le trans_def, blast)
 
-
+lemma in_finite_psubset[simp]: "(A, B) \<in> finite_psubset = (A < B & finite B)"
+unfolding finite_psubset_def by auto
 
 
 text {*Wellfoundedness of @{text same_fst}*}
