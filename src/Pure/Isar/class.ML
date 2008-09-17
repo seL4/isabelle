@@ -63,7 +63,7 @@ struct
 (** auxiliary **)
 
 fun prove_interpretation tac prfx_atts expr inst =
-  Locale.interpretation_i I prfx_atts expr inst
+  Locale.interpretation_i I prfx_atts expr inst #> snd
   #> Proof.global_terminal_proof
       (Method.Basic (fn ctxt => Method.SIMPLE_METHOD (tac ctxt), Position.none), NONE)
   #> ProofContext.theory_of;

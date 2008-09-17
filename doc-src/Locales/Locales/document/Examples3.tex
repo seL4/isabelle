@@ -91,8 +91,8 @@ The inner interpretation does not require an
 \begin{isamarkuptext}%
 Further interpretations are necessary to reuse theorems from
   the other locales.  In \isa{lattice} the operations \isa{{\isasymsqinter}} and
-  \isa{{\isasymsqunion}} are substituted by \isa{min} and
-  \isa{max}.  The entire proof for the
+  \isa{{\isasymsqunion}} are substituted by \isa{ord{\isacharunderscore}class{\isachardot}min} and
+  \isa{ord{\isacharunderscore}class{\isachardot}max}.  The entire proof for the
   interpretation is reproduced in order to give an example of a more
   elaborate interpretation proof.%
 \end{isamarkuptext}%
@@ -196,9 +196,9 @@ Theorems that are available in the theory at this point are shown in
   \isa{nat{\isachardot}less{\isacharunderscore}def} from locale \isa{partial{\isacharunderscore}order}: \\
   \quad \isa{{\isacharparenleft}{\isacharquery}x\ {\isacharless}\ {\isacharquery}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}x\ {\isasymle}\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}} \\
   \isa{nat{\isachardot}meet{\isacharunderscore}left} from locale \isa{lattice}: \\
-  \quad \isa{min\ {\isacharquery}x\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}x} \\
+  \quad \isa{ord{\isacharunderscore}class{\isachardot}min\ {\isacharquery}x\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}x} \\
   \isa{nat{\isachardot}join{\isacharunderscore}distr} from locale \isa{distrib{\isacharunderscore}lattice}: \\
-  \quad \isa{max\ {\isacharquery}x\ {\isacharparenleft}min\ {\isacharquery}y\ {\isacharquery}z{\isacharparenright}\ {\isacharequal}\ min\ {\isacharparenleft}max\ {\isacharquery}x\ {\isacharquery}y{\isacharparenright}\ {\isacharparenleft}max\ {\isacharquery}x\ {\isacharquery}z{\isacharparenright}} \\
+  \quad \isa{ord{\isacharunderscore}class{\isachardot}max\ {\isacharquery}x\ {\isacharparenleft}ord{\isacharunderscore}class{\isachardot}min\ {\isacharquery}y\ {\isacharquery}z{\isacharparenright}\ {\isacharequal}\ ord{\isacharunderscore}class{\isachardot}min\ {\isacharparenleft}ord{\isacharunderscore}class{\isachardot}max\ {\isacharquery}x\ {\isacharquery}y{\isacharparenright}\ {\isacharparenleft}ord{\isacharunderscore}class{\isachardot}max\ {\isacharquery}x\ {\isacharquery}z{\isacharparenright}} \\
   \isa{nat{\isachardot}less{\isacharunderscore}total} from locale \isa{total{\isacharunderscore}order}: \\
   \quad \isa{{\isacharquery}x\ {\isacharless}\ {\isacharquery}y\ {\isasymor}\ {\isacharquery}x\ {\isacharequal}\ {\isacharquery}y\ {\isasymor}\ {\isacharquery}y\ {\isacharless}\ {\isacharquery}x}
 \end{tabular}
