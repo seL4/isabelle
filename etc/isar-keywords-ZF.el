@@ -15,6 +15,7 @@
     "Isar\\.remove"
     "ML"
     "ML_command"
+    "ML_prf"
     "ML_val"
     "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
@@ -459,7 +460,8 @@
     "with"))
 
 (defconst isar-keywords-proof-decl
-  '("also"
+  '("ML_prf"
+    "also"
     "let"
     "moreover"
     "note"
