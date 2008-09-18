@@ -178,7 +178,6 @@ fun pretty_full_theory verbose thy =
       Pretty.block ([prt_const' const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
 
     val axioms = (Theory.axiom_space thy, Theory.axiom_table thy);
-    val oracles = (Theory.oracle_space thy, Theory.oracle_table thy);
     val defs = Theory.defs_of thy;
     val {restricts, reducts} = Defs.dest defs;
     val {naming, syn = _, tsig, consts} = Sign.rep_sg thy;
@@ -202,7 +201,6 @@ fun pretty_full_theory verbose thy =
     val cnstrs = NameSpace.extern_table constraints;
 
     val axms = NameSpace.extern_table axioms;
-    val oras = NameSpace.extern_table oracles;
 
     val (reds0, (reds1, reds2)) = filter_out (prune_const o fst o fst) reducts
       |> map (fn (lhs, rhs) =>
@@ -223,7 +221,7 @@ fun pretty_full_theory verbose thy =
       Pretty.big_list "abbreviations:" (map pretty_abbrev abbrevs),
       Pretty.big_list "constraints:" (map (Pretty.block o prt_const) cnstrs),
       Pretty.big_list "axioms:" (map pretty_axm axms),
-      Pretty.strs ("oracles:" :: (map #1 oras)),
+      Pretty.strs ("oracles:" :: Thm.extern_oracles thy),
       Pretty.big_list "definitions:"
         [pretty_finals reds0,
          Pretty.big_list "non-overloaded:" (map pretty_reduct reds1),

@@ -5791,7 +5791,7 @@ ML {* @{code test5} () *}
 (*export_code mircfrqe mirlfrqe
   in SML module_name Mir file "raw_mir.ML"*)
 
-oracle mirfr_oracle ("bool * term") = {*
+oracle mirfr_oracle = {* fn (proofs, ct) =>
 let
 
 fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
@@ -5891,13 +5891,15 @@ fun term_of_fm vs @{code T} = HOLogic.true_const
   | term_of_fm vs (@{code Iff} (t1, t2)) =
       @{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ term_of_fm vs t1 $ term_of_fm vs t2;
 
-in fn thy => fn (proofs, t) =>
+in
   let 
+    val thy = Thm.theory_of_cterm ct;
+    val t = Thm.term_of ct;
     val fs = term_frees t;
     val vs = fs ~~ (0 upto (length fs - 1));
     val qe = if proofs then @{code mirlfrqe} else @{code mircfrqe};
     val t' = (term_of_fm vs o qe o fm_of_term vs) t;
-  in (HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
+  in (cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
 end;
 *}
 

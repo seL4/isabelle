@@ -13,8 +13,7 @@ sig
   val print_translation: bool * (string * Position.T) -> theory -> theory
   val typed_print_translation: bool * (string * Position.T) -> theory -> theory
   val print_ast_translation: bool * (string * Position.T) -> theory -> theory
-  val oracle: bstring -> SymbolPos.text * Position.T -> SymbolPos.text * Position.T ->
-    theory -> theory
+  val oracle: bstring -> SymbolPos.text * Position.T -> theory -> theory
   val add_axioms: ((Name.binding * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((Name.binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: string * Position.T -> local_theory -> local_theory
@@ -152,22 +151,15 @@ end;
 
 (* oracles *)
 
-fun oracle name typ_pos (oracle_txt, pos) =
+fun oracle name (oracle_txt, pos) =
   let
-    val typ = SymbolPos.content (SymbolPos.explode typ_pos);
     val oracle = SymbolPos.content (SymbolPos.explode (oracle_txt, pos));
     val txt =
-      "local\
-      \  type T = " ^ typ ^ ";\
-      \  val oracle: theory -> T -> term = " ^ oracle ^ ";\n\
+      "local\n\
       \  val name = " ^ quote name ^ ";\n\
-      \  exception Arg of T;\n\
-      \  val _ = Context.>> (Context.map_theory\n\
-      \    (Theory.add_oracle (name, fn (thy, Arg x) => oracle thy x)));\n\
-      \  val thy = ML_Context.the_global_context ();\n\
-      \  val invoke_" ^ name ^ " = Thm.invoke_oracle_i thy (Sign.full_name thy name);\n\
+      \  val oracle = " ^ oracle ^ ";\n\
       \in\n\
-      \  fun " ^ name ^ " thy x = invoke_" ^ name ^ " (thy, Arg x);\n\
+      \  val " ^ name ^ " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (name, oracle))));\n\
       \end;\n";
   in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false pos txt)) end;
 

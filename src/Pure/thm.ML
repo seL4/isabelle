@@ -112,8 +112,8 @@ signature BASIC_THM =
   val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
-  val invoke_oracle: theory -> xstring -> theory * Object.T -> thm
-  val invoke_oracle_i: theory -> string -> theory * Object.T -> thm
+  val extern_oracles: theory -> xstring list
+  val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 
 signature THM =
@@ -1557,36 +1557,53 @@ fun biresolution match brules i state =
 
 (*** Oracles ***)
 
-fun invoke_oracle_i thy1 name =
-  let
-    val oracle =
-      (case Symtab.lookup (Theory.oracle_table thy1) name of
-        NONE => raise THM ("Unknown oracle: " ^ name, 0, [])
-      | SOME (f, _) => f);
-    val thy_ref1 = Theory.check_thy thy1;
-  in
-    fn (thy2, data) =>
-      let
-        val thy' = Theory.merge (Theory.deref thy_ref1, thy2);
-        val (prop, T, maxidx) = Sign.certify_term thy' (oracle (thy', data));
-        val shyps' = Sorts.insert_term prop [];
-        val der = Deriv.oracle name prop;
-      in
-        if T <> propT then
-          raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
-        else
-          Thm {thy_ref = Theory.check_thy thy', der = der, tags = [],
-            maxidx = maxidx, shyps = shyps', hyps = [], tpairs = [], prop = prop}
-      end
+(* oracle rule *)
+
+fun invoke_oracle thy_ref1 name oracle arg =
+  let val {thy_ref = thy_ref2, t = prop, T, maxidx, sorts} = rep_cterm (oracle arg) in
+    if T <> propT then
+      raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
+    else
+      Thm {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
+        der = Deriv.oracle name prop,
+        tags = [],
+        maxidx = maxidx,
+        shyps = sorts,
+        hyps = [],
+        tpairs = [],
+        prop = prop}
   end;
 
-fun invoke_oracle thy =
-  invoke_oracle_i thy o NameSpace.intern (Theory.oracle_space thy);
+end;
+end;
+end;
 
 
-end;
-end;
-end;
+(* authentic derivation names *)
+
+fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
+
+structure Oracles = TheoryDataFun
+(
+  type T = stamp NameSpace.table;
+  val empty = NameSpace.empty_table;
+  val copy = I;
+  val extend = I;
+  fun merge _ oracles = NameSpace.merge_tables (op =) oracles
+    handle Symtab.DUP dup => err_dup_ora dup;
+);
+
+val extern_oracles = map #1 o NameSpace.extern_table o Oracles.get;
+
+fun add_oracle (bname, oracle) thy =
+  let
+    val naming = Sign.naming_of thy;
+    val name = NameSpace.full naming bname;
+    val thy' = thy |> Oracles.map (fn (space, tab) =>
+      (NameSpace.declare naming name space,
+        Symtab.update_new (name, stamp ()) tab handle Symtab.DUP dup => err_dup_ora dup));
+  in ((name, invoke_oracle (Theory.check_thy thy') name oracle), thy') end;
+
 end;
 
 structure BasicThm: BASIC_THM = Thm;

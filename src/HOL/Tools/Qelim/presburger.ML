@@ -152,8 +152,8 @@ fun core_cooper_tac ctxt = CSUBGOAL (fn (p, i) =>
    let 
     val cpth = 
        if !quick_and_dirty 
-       then linzqe_oracle (ProofContext.theory_of ctxt) 
-             (Envir.beta_norm (Pattern.eta_long [] (term_of (Thm.dest_arg p))))
+       then linzqe_oracle (Thm.cterm_of (ProofContext.theory_of ctxt)
+             (Envir.beta_norm (Pattern.eta_long [] (term_of (Thm.dest_arg p)))))
        else arg_conv (Cooper.cooper_conv ctxt) p
     val p' = Thm.rhs_of cpth
     val th = implies_intr p' (equal_elim (symmetric cpth) (assume p'))

@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Lawrence C Paulson and Markus Wenzel
 
-Logical theory content: axioms, definitions, oracles.
+Logical theory content: axioms, definitions, and begin/end wrappers.
 *)
 
 signature THEORY =
@@ -22,8 +22,6 @@ sig
   val requires: theory -> string -> string -> unit
   val axiom_space: theory -> NameSpace.T
   val axiom_table: theory -> term Symtab.table
-  val oracle_space: theory -> NameSpace.T
-  val oracle_table: theory -> ((theory * Object.T -> term) * stamp) Symtab.table
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
   val defs_of: theory -> Defs.T
@@ -39,7 +37,6 @@ sig
   val add_finals: bool -> string list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
   val specify_const: Properties.T -> (Name.binding * typ) * mixfix -> theory -> term * theory
-  val add_oracle: bstring * (theory * Object.T -> term) -> theory -> theory
 end
 
 structure Theory: THEORY =
@@ -86,64 +83,47 @@ fun apply_wrappers (wrappers: wrapper list) =
 datatype thy = Thy of
  {axioms: term NameSpace.table,
   defs: Defs.T,
-  oracles: ((theory * Object.T -> term) * stamp) NameSpace.table,
   wrappers: wrapper list * wrapper list};
 
-fun make_thy (axioms, defs, oracles, wrappers) =
-  Thy {axioms = axioms, defs = defs, oracles = oracles, wrappers = wrappers};
+fun make_thy (axioms, defs, wrappers) = Thy {axioms = axioms, defs = defs, wrappers = wrappers};
 
 fun err_dup_axm dup = error ("Duplicate axiom: " ^ quote dup);
-fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
 
 structure ThyData = TheoryDataFun
 (
   type T = thy;
-  val empty = make_thy (NameSpace.empty_table, Defs.empty, NameSpace.empty_table, ([], []));
+  val empty = make_thy (NameSpace.empty_table, Defs.empty, ([], []));
   val copy = I;
 
-  fun extend (Thy {axioms, defs, oracles, wrappers}) =
-    make_thy (NameSpace.empty_table, defs, oracles, wrappers);
+  fun extend (Thy {axioms, defs, wrappers}) = make_thy (NameSpace.empty_table, defs, wrappers);
 
   fun merge pp (thy1, thy2) =
     let
-      val Thy {axioms = _, defs = defs1, oracles = oracles1, wrappers = (bgs1, ens1)} = thy1;
-      val Thy {axioms = _, defs = defs2, oracles = oracles2, wrappers = (bgs2, ens2)} = thy2;
+      val Thy {axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
+      val Thy {axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
 
       val axioms' = NameSpace.empty_table;
       val defs' = Defs.merge pp (defs1, defs2);
-      val oracles' = NameSpace.merge_tables (eq_snd (op =)) (oracles1, oracles2)
-        handle Symtab.DUP dup => err_dup_ora dup;
       val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
       val ens' = Library.merge (eq_snd op =) (ens1, ens2);
-    in make_thy (axioms', defs', oracles', (bgs', ens')) end;
+    in make_thy (axioms', defs', (bgs', ens')) end;
 );
 
 fun rep_theory thy = ThyData.get thy |> (fn Thy args => args);
 
-fun map_thy f = ThyData.map (fn (Thy {axioms, defs, oracles, wrappers}) =>
-  make_thy (f (axioms, defs, oracles, wrappers)));
+fun map_thy f = ThyData.map (fn (Thy {axioms, defs, wrappers}) =>
+  make_thy (f (axioms, defs, wrappers)));
 
 
-fun map_axioms f = map_thy
-  (fn (axioms, defs, oracles, wrappers) => (f axioms, defs, oracles, wrappers));
-
-fun map_defs f = map_thy
-  (fn (axioms, defs, oracles, wrappers) => (axioms, f defs, oracles, wrappers));
-
-fun map_oracles f = map_thy
-  (fn (axioms, defs, oracles, wrappers) => (axioms, defs, f oracles, wrappers));
-
-fun map_wrappers f = map_thy
-  (fn (axioms, defs, oracles, wrappers) => (axioms, defs, oracles, f wrappers));
+fun map_axioms f = map_thy (fn (axioms, defs, wrappers) => (f axioms, defs, wrappers));
+fun map_defs f = map_thy (fn (axioms, defs, wrappers) => (axioms, f defs, wrappers));
+fun map_wrappers f = map_thy (fn (axioms, defs, wrappers) => (axioms, defs, f wrappers));
 
 
 (* basic operations *)
 
 val axiom_space = #1 o #axioms o rep_theory;
 val axiom_table = #2 o #axioms o rep_theory;
-
-val oracle_space = #1 o #oracles o rep_theory;
-val oracle_table = #2 o #oracles o rep_theory;
 
 val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
 fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
@@ -323,13 +303,4 @@ val add_finals_i = gen_add_finals (K I);
 
 end;
 
-
-
-(** add oracle **)
-
-fun add_oracle (bname, oracle) thy = thy |> map_oracles (fn oracles =>
-  NameSpace.extend_table (Sign.naming_of thy) [(bname, (oracle, stamp ()))] oracles
-    handle Symtab.DUP dup => err_dup_ora dup);
-
 end;
-

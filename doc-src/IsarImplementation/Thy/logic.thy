@@ -595,12 +595,12 @@ text %mlref {*
   @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
   @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
   @{index_ML Thm.get_axiom_i: "theory -> string -> thm"} \\
-  @{index_ML Thm.invoke_oracle_i: "theory -> string -> theory * Object.T -> thm"} \\
+  @{index_ML Thm.add_oracle: "bstring * ('a -> cterm) -> theory
+  -> (string * ('a -> thm)) * theory"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML Theory.add_axioms_i: "(string * term) list -> theory -> theory"} \\
   @{index_ML Theory.add_deps: "string -> string * typ -> (string * typ) list -> theory -> theory"} \\
-  @{index_ML Theory.add_oracle: "string * (theory * Object.T -> term) -> theory -> theory"} \\
   @{index_ML Theory.add_defs_i: "bool -> bool -> (bstring * term) list -> theory -> theory"} \\
   \end{mldecls}
 
@@ -651,15 +651,12 @@ text %mlref {*
   \item @{ML Thm.get_axiom_i}~@{text "thy name"} retrieves a named
   axiom, cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
 
-  \item @{ML Thm.invoke_oracle_i}~@{text "thy name arg"} invokes a
-  named oracle function, cf.\ @{text "axiom"} in
-  \figref{fig:prim-rules}.
+  \item @{ML Thm.add_oracle}~@{text "(name, oracle)"} produces a named
+  oracle rule, essentially generating arbitrary axioms on the fly,
+  cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
 
   \item @{ML Theory.add_axioms_i}~@{text "[(name, A), \<dots>]"} declares
   arbitrary propositions as axioms.
-
-  \item @{ML Theory.add_oracle}~@{text "(name, f)"} declares an oracle
-  function for generating arbitrary axioms on the fly.
 
   \item @{ML Theory.add_deps}~@{text "name c\<^isub>\<tau>
   \<^vec>d\<^isub>\<sigma>"} declares dependencies of a named specification

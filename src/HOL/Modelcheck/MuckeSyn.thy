@@ -68,8 +68,7 @@ syntax (Mucke output)
   will be replaced by the expression between the two asterisks
   following "case" and the asterisk after esac will be deleted *)
 
-oracle mc_mucke_oracle ("term") =
-  mk_mc_mucke_oracle
+oracle mc_mucke_oracle = mk_mc_mucke_oracle
 
 ML {*
 (* search_mu t searches for Mu terms in term t. In the case of nested Mu's,
@@ -154,12 +153,9 @@ end;
 end;
 
 
-fun call_mucke_tac i state =
-let val thy = Thm.theory_of_thm state;
-    val OraAss = mc_mucke_oracle thy (Logic.nth_prem (i, Thm.prop_of state))
-in 
-(cut_facts_tac [OraAss] i) state
-end;
+val call_mucke_tac = CSUBGOAL (fn (cgoal, i) =>
+let val OraAss = mc_mucke_oracle cgoal
+in cut_facts_tac [OraAss] i end);
 
 
 (* transforming fun-defs into lambda-defs *)

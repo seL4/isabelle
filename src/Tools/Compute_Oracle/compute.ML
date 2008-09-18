@@ -35,8 +35,6 @@ signature COMPUTE = sig
     (* ! *) val evaluate_prem : computer -> int -> theorem -> theorem
     (* ! *) val modus_ponens : computer -> int -> thm -> theorem -> theorem
 
-    val setup_compute : theory -> theory
-
 end
 
 structure Compute :> COMPUTE = struct
@@ -362,8 +360,6 @@ fun runprog (ProgBarras p) = AM_Interpreter.run p
 (* An oracle for exporting theorems; must only be accessible from inside this structure! *)
 (* ------------------------------------------------------------------------------------- *)
 
-exception ExportThm of term list * sort list * term
-
 fun merge_hyps hyps1 hyps2 = 
 let
     fun add hyps tab = fold (fn h => fn tab => Termtab.update (h, ()) tab) hyps tab
@@ -375,7 +371,8 @@ fun add_shyps shyps tab = fold (fn h => fn tab => Sorttab.update (h, ()) tab) sh
 
 fun merge_shyps shyps1 shyps2 = Sorttab.keys (add_shyps shyps2 (add_shyps shyps1 Sorttab.empty))
 
-fun export_oracle (thy, ExportThm (hyps, shyps, prop)) =
+val (_, export_oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle ("compute", fn (thy, hyps, shyps, prop) =>
     let
         val shyptab = add_shyps shyps Sorttab.empty
         fun delete s shyptab = Sorttab.delete s shyptab handle Sorttab.UNDEF _ => shyptab
@@ -385,15 +382,12 @@ fun export_oracle (thy, ExportThm (hyps, shyps, prop)) =
         val shyps = if Sorttab.is_empty shyptab then [] else Sorttab.keys (fold delete_term (prop::hyps) shyptab)
         val _ = if not (null shyps) then raise Compute ("dangling sort hypotheses: "^(makestring shyps)) else ()
     in
-        fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps prop
-    end
-  | export_oracle _ = raise Match
-
-val setup_compute = (fn thy => Theory.add_oracle ("compute", export_oracle) thy)
+        Thm.cterm_of thy (fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps prop)
+    end)));
 
 fun export_thm thy hyps shyps prop =
     let
-        val th = invoke_oracle_i thy "Compute_Oracle.compute" (thy, ExportThm (hyps, shyps, prop))
+        val th = export_oracle (thy, hyps, shyps, prop)
         val hyps = map (fn h => assume (cterm_of thy h)) hyps
     in
         fold (fn h => fn p => implies_elim p h) hyps th 

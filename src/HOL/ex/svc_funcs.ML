@@ -237,10 +237,14 @@ struct
   end;
 
 
- (*The oracle proves the given formula t, if possible*)
- fun oracle thy t =
-  (if ! trace then tracing ("SVC oracle: problem is\n" ^ Syntax.string_of_term_global thy t)
-   else ();
-   if valid (expr_of false t) then t else fail t);
+ (*The oracle proves the given formula, if possible*)
+  fun oracle ct =
+    let
+      val thy = Thm.theory_of_cterm ct;
+      val t = Thm.term_of ct;
+      val _ =
+        if ! trace then tracing ("SVC oracle: problem is\n" ^ Syntax.string_of_term_global thy t)
+       else ();
+    in if valid (expr_of false t) then ct else fail t end;
 
 end;

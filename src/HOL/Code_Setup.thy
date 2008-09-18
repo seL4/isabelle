@@ -129,17 +129,22 @@ val eval_ref : (unit -> bool) option ref = ref NONE;
 end;
 *}
 
-oracle eval_oracle ("term") = {* fn thy => fn t => 
-  if Code_ML.eval_term ("Eval_Method.eval_ref", Eval_Method.eval_ref) thy
-    (HOLogic.dest_Trueprop t) [] 
-  then t
-  else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
+oracle eval_oracle = {* fn ct =>
+  let
+    val thy = Thm.theory_of_cterm ct;
+    val t = Thm.term_of ct;
+  in
+    if Code_ML.eval_term ("Eval_Method.eval_ref", Eval_Method.eval_ref) thy
+      (HOLogic.dest_Trueprop t) [] 
+    then ct
+    else @{cprop True} (*dummy*)
+  end
 *}
 
 method_setup eval = {*
 let
   fun eval_tac thy = 
-    SUBGOAL (fn (t, i) => rtac (eval_oracle thy t) i)
+    CSUBGOAL (fn (ct, i) => rtac (eval_oracle ct) i)
 in 
   Method.ctxt_args (fn ctxt => 
     Method.SIMPLE_METHOD' (eval_tac (ProofContext.theory_of ctxt)))

@@ -1136,9 +1136,8 @@ text {*
     @{command_def "oracle"} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
-  The oracle interface promotes a given ML function @{ML_text
-  "theory -> T -> term"} to @{ML_text "theory -> T -> thm"}, for some
-  type @{ML_text T} given by the user.  This acts like an infinitary
+  The oracle interface promotes a given ML function @{ML_text "'a -> cterm"}
+  to @{ML_text "'a -> thm"}.  This acts like an infinitary
   specification of axioms -- there is no internal check of the
   correctness of the results!  The inference kernel records oracle
   invocations within the internal derivation object of theorems, and
@@ -1146,18 +1145,16 @@ text {*
   that are not fully checked by Isabelle inferences.
 
   \begin{rail}
-    'oracle' name '(' type ')' '=' text
+    'oracle' name '=' text
     ;
   \end{rail}
 
   \begin{descr}
 
-  \item [@{command "oracle"}~@{text "name (type) = text"}] turns the
-  given ML expression @{text "text"} of type
-  @{ML_text "theory ->"}~@{text "type"}~@{ML_text "-> term"} into an
-  ML function of type
-  @{ML_text "theory ->"}~@{text "type"}~@{ML_text "-> thm"}, which is
-  bound to the global identifier @{ML_text name}.
+  \item [@{command "oracle"}~@{text "name = text"}] turns the given ML
+  expression @{text "text"} of type @{ML_text "'a -> cterm"} into an
+  ML function of type @{ML_text "'a -> thm"}, which is bound to the
+  global identifier @{ML_text name}.
 
   \end{descr}
 *}

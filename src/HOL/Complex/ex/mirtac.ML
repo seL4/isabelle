@@ -87,9 +87,9 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 fun mir_tac ctxt q i = 
     (ObjectLogic.atomize_prems_tac i)
-	THEN (simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps simp_thms) i)
-	THEN (REPEAT_DETERM (split_tac [@{thm "split_min"}, @{thm "split_max"},@{thm "abs_split"}] i))
-	THEN (fn st =>
+        THEN (simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps simp_thms) i)
+        THEN (REPEAT_DETERM (split_tac [@{thm "split_min"}, @{thm "split_max"},@{thm "abs_split"}] i))
+        THEN (fn st =>
   let
     val g = List.nth (prems_of st, i - 1)
     val thy = ProofContext.theory_of ctxt
@@ -97,13 +97,13 @@ fun mir_tac ctxt q i =
     val (t,np,nh) = prepare_for_mir thy q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset = HOL_basic_ss 
-			addsimps [refl,nat_mod_add_eq, 
-				  @{thm "mod_self"}, @{thm "zmod_self"},
-				  @{thm "zdiv_zero"},@{thm "zmod_zero"},@{thm "div_0"}, @{thm "mod_0"},
-				  @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, @{thm "mod_1"},
-				  @{thm "Suc_plus1"}]
-			addsimps @{thms add_ac}
-			addsimprocs [cancel_div_mod_proc]
+                        addsimps [refl,nat_mod_add_eq, 
+                                  @{thm "mod_self"}, @{thm "zmod_self"},
+                                  @{thm "zdiv_zero"},@{thm "zmod_zero"},@{thm "div_0"}, @{thm "mod_0"},
+                                  @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, @{thm "mod_1"},
+                                  @{thm "Suc_plus1"}]
+                        addsimps @{thms add_ac}
+                        addsimprocs [cancel_div_mod_proc]
     val simpset0 = HOL_basic_ss
       addsimps [mod_div_equality', Suc_plus1]
       addsimps comp_ths
@@ -131,11 +131,11 @@ fun mir_tac ctxt q i =
     (* The result of the quantifier elimination *)
     val (th, tac) = case (prop_of pre_thm) of
         Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
-    let val pth = 
+    let val pth =
           (* If quick_and_dirty then run without proof generation as oracle*)
-             if !quick_and_dirty 
-             then mirfr_oracle thy (false, Pattern.eta_long [] t1)
-	     else mirfr_oracle thy (true, Pattern.eta_long [] t1)
+             if !quick_and_dirty
+             then mirfr_oracle (false, cterm_of thy (Pattern.eta_long [] t1))
+             else mirfr_oracle (true, cterm_of thy (Pattern.eta_long [] t1))
     in 
           (trace_msg ("calling procedure with term:\n" ^
              Syntax.string_of_term ctxt t1);

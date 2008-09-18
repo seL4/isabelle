@@ -5,16 +5,13 @@ theory MuIOAOracle
 imports MuIOA
 begin
 
-oracle sim_oracle ("term * thm list") =
-  mk_sim_oracle
+oracle sim_oracle = mk_sim_oracle
 
 ML {*
 (* call_sim_tac invokes oracle "Sim" *)
-fun call_sim_tac thm_list i state = 
-let val thy = Thm.theory_of_thm state;
-        val (subgoal::_) = Library.drop(i-1,prems_of state);
-        val OraAss = sim_oracle thy (subgoal,thm_list);
-in cut_facts_tac [OraAss] i state end;
+fun call_sim_tac thm_list = CSUBGOAL (fn (csubgoal, i) =>
+let val OraAss = sim_oracle (csubgoal,thm_list);
+in cut_facts_tac [OraAss] i end);
 
 
 val ioa_implements_def = thm "ioa_implements_def";

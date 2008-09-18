@@ -27,7 +27,7 @@ fun res_atp_tac dfg res_atp_oracle mode timeLimit ctxt user_thms i st =
     Meson.skolemize_tac,
     METAHYPS (fn negs =>
       HEADGOAL (Tactic.rtac
-        (res_atp_oracle (ProofContext.theory_of ctxt)
+        (res_atp_oracle
           (ResAtp.write_subgoal_file dfg mode ctxt negs user_thms i, timeLimit))))] i st) handle Fail _ => Seq.empty;
 
 

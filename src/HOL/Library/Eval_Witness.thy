@@ -55,8 +55,10 @@ val eval_ref : (unit -> bool) option ref = ref NONE;
 end;
 *}
 
-oracle eval_witness_oracle ("term * string list") = {* fn thy => fn (goal, ws) => 
+oracle eval_witness_oracle = {* fn (cgoal, ws) =>
 let
+  val thy = Thm.theory_of_cterm cgoal;
+  val goal = Thm.term_of cgoal;
   fun check_type T = 
     if Sorts.of_sort (Sign.classes_of thy) (T, ["Eval_Witness.ml_equiv"])
     then T
@@ -69,8 +71,8 @@ let
   val t = dest_exs (length ws) (HOLogic.dest_Trueprop goal);
 in
   if Code_ML.eval_term ("Eval_Witness_Method.eval_ref", Eval_Witness_Method.eval_ref) thy t ws
-  then goal
-  else HOLogic.Trueprop $ HOLogic.true_const (*dummy*)
+  then Thm.cterm_of thy goal
+  else @{cprop True} (*dummy*)
 end
 *}
 
@@ -78,12 +80,11 @@ end
 method_setup eval_witness = {*
 let
 
-fun eval_tac ws thy = 
-  SUBGOAL (fn (t, i) => rtac (eval_witness_oracle thy (t, ws)) i)
+fun eval_tac ws = CSUBGOAL (fn (ct, i) => rtac (eval_witness_oracle (ct, ws)) i)
 
-in 
-  Method.simple_args (Scan.repeat Args.name) (fn ws => fn ctxt => 
-    Method.SIMPLE_METHOD' (eval_tac ws (ProofContext.theory_of ctxt)))
+in
+  Method.simple_args (Scan.repeat Args.name) (fn ws => fn _ =>
+    Method.SIMPLE_METHOD' (eval_tac ws))
 end
 *} "Evaluation with ML witnesses"
 

@@ -440,7 +440,7 @@ lemma [presburger]: "(a::int) div 0 = 0" and [presburger]: "a mod 0 = a"
 by simp_all
 
 use "Tools/Qelim/cooper.ML"
-oracle linzqe_oracle ("term") = Coopereif.cooper_oracle
+oracle linzqe_oracle = Coopereif.cooper_oracle
 
 use "Tools/Qelim/presburger.ML"
 

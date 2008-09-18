@@ -18,14 +18,14 @@ text {*
   and positive.
 *}
 
-oracle iff_oracle (int) = {*
+oracle iff_oracle = {*
   let
     fun mk_iff 1 = Var (("P", 0), @{typ o})
       | mk_iff n = FOLogic.iff $ Var (("P", 0), @{typ o}) $ mk_iff (n - 1);
   in
-    fn thy => fn n =>
+    fn (thy, n) =>
       if n > 0 andalso n mod 2 = 0
-      then FOLogic.mk_Trueprop (mk_iff n)
+      then Thm.cterm_of thy (FOLogic.mk_Trueprop (mk_iff n))
       else raise Fail ("iff_oracle: " ^ string_of_int n)
   end
 *}
@@ -33,19 +33,19 @@ oracle iff_oracle (int) = {*
 
 subsection {* Oracle as low-level rule *}
 
-ML {* iff_oracle @{theory} 2 *}
-ML {* iff_oracle @{theory} 10 *}
-ML {* #der (Thm.rep_thm (iff_oracle @{theory} 10)) *}
+ML {* iff_oracle (@{theory}, 2) *}
+ML {* iff_oracle (@{theory}, 10) *}
+ML {* #der (Thm.rep_thm (iff_oracle (@{theory}, 10))) *}
 
 text {* These oracle calls had better fail. *}
 
 ML {*
-  (iff_oracle @{theory} 5; error "?")
+  (iff_oracle (@{theory}, 5); error "?")
     handle Fail _ => warning "Oracle failed, as expected"
 *}
 
 ML {*
-  (iff_oracle @{theory} 1; error "?")
+  (iff_oracle (@{theory}, 1); error "?")
     handle Fail _ => warning "Oracle failed, as expected"
 *}
 
@@ -55,7 +55,7 @@ subsection {* Oracle as proof method *}
 method_setup iff = {*
   Method.simple_args OuterParse.nat (fn n => fn ctxt =>
     Method.SIMPLE_METHOD
-      (HEADGOAL (Tactic.rtac (iff_oracle (ProofContext.theory_of ctxt) n))
+      (HEADGOAL (Tactic.rtac (iff_oracle (ProofContext.theory_of ctxt, n)))
         handle Fail _ => no_tac))
 *} "iff oracle"
 

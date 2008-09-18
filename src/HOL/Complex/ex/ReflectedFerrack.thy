@@ -1997,7 +1997,7 @@ definition ferrack_test :: "unit \<Rightarrow> fm" where
 
 ML {* @{code ferrack_test} () *}
 
-oracle linr_oracle ("term") = {*
+oracle linr_oracle = {*
 let
 
 fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
@@ -2066,11 +2066,14 @@ fun term_of_fm vs @{code T} = HOLogic.true_const
       term_of_fm vs t1 $ term_of_fm vs t2
   | term_of_fm vs _ = error "If this is raised, Isabelle/HOL or generate_code is inconsistent.";
 
-in fn thy => fn t =>
+in fn ct =>
   let 
+    val thy = Thm.theory_of_cterm ct;
+    val t = Thm.term_of ct;
     val fs = term_frees t;
     val vs = fs ~~ (0 upto (length fs - 1));
-  in HOLogic.mk_Trueprop (HOLogic.mk_eq (t, term_of_fm vs (@{code linrqe} (fm_of_term vs t)))) end
+    val res = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, term_of_fm vs (@{code linrqe} (fm_of_term vs t))));
+  in Thm.cterm_of thy res end
 end;
 *}
 

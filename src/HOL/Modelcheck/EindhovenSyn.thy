@@ -30,7 +30,7 @@ ML {*
   val trace_eindhoven = ref false;
 *}
 
-oracle mc_eindhoven_oracle ("term") =
+oracle mc_eindhoven_oracle =
 {*
 let
   val eindhoven_term = PrintMode.setmp ["Eindhoven"] o Syntax.string_of_term_global;
@@ -43,15 +43,17 @@ let
         else eindhoven_home ^ "/pmu";
     in #1 (system_out ("echo \"" ^ s ^ "\" | " ^ pmu ^ " -w")) end;
 in
-  fn thy => fn goal =>
+  fn cgoal =>
     let
+      val thy = Thm.theory_of_cterm cgoal;
+      val goal = Thm.term_of cgoal;
       val s = eindhoven_term thy goal;
       val debug = tracing ("MC debugger: " ^ s);
       val result = call_mc s;
     in
       if ! trace_eindhoven then writeln (cat_lines [s, "----", result]) else ();
       (case result of
-        "TRUE\n"  => goal |
+        "TRUE\n"  => cgoal |
         "FALSE\n" => error "MC oracle yields FALSE" |
       _ => error ("MC syntax error: " ^ result))
     end
@@ -62,7 +64,7 @@ ML {*
 fun mc_eindhoven_tac i state = SUBGOAL (fn (goal, _) =>
   let
     val thy = Thm.theory_of_thm state;
-    val assertion = mc_eindhoven_oracle thy (Logic.strip_imp_concl goal);
+    val assertion = mc_eindhoven_oracle (Thm.cterm_of thy (Logic.strip_imp_concl goal));
   in cut_facts_tac [assertion] i THEN atac i end) i state;
 
 val pair_eta_expand = Thm.symmetric (mk_meta_eq (thm "split_eta"));

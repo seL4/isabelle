@@ -633,12 +633,14 @@ fun term_of_qf ps vs t =
  | NClosed n => term_of_qf ps vs (Nota (Closed n))
  | _ => cooper "If this is raised, Isabelle/HOL or generate_code is inconsistent!";
 
-fun cooper_oracle thy t = 
+fun cooper_oracle ct =
   let
+    val thy = Thm.theory_of_cterm ct;
+    val t = Thm.term_of ct;
     val (vs, ps) = pairself (map_index swap) (term_frees t, term_bools [] t);
   in
-    Logic.mk_equals (HOLogic.mk_Trueprop t,
-      HOLogic.mk_Trueprop (term_of_qf ps vs (pa (qf_of_term ps vs t))))
+    Thm.cterm_of thy (Logic.mk_equals (HOLogic.mk_Trueprop t,
+      HOLogic.mk_Trueprop (term_of_qf ps vs (pa (qf_of_term ps vs t)))))
   end;
 
 end;

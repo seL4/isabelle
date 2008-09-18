@@ -178,8 +178,12 @@ merge_var_and_type _ _ = raise malformed;
 
 in
 
-fun mk_sim_oracle sign (subgoal, thl) = (
+fun mk_sim_oracle (csubgoal, thl) =
   let
+    val sign = Thm.theory_of_cterm csubgoal;
+    val subgoal = Thm.term_of csubgoal;
+  in
+ (let
     val weak_case_congs = (map (#weak_case_cong o snd) o Symtab.dest o DatatypePackage.get_datatypes) sign;
     val concl = Logic.strip_imp_concl subgoal;
     val ic_str = delete_ul_string(Syntax.string_of_term_global sign (IntC sign concl));
@@ -287,11 +291,12 @@ by (call_mucke_tac 1);
 by (atac 1);
 result();
 OldGoals.pop_proof();
-Logic.strip_imp_concl subgoal
+Thm.cterm_of sign (Logic.strip_imp_concl subgoal)
 )
 end)
 handle malformed =>
-error("No suitable match to IOA types in " ^ (Syntax.string_of_term_global sign subgoal));
+error("No suitable match to IOA types in " ^ (Syntax.string_of_term_global sign subgoal))
+end;
 
 end
 

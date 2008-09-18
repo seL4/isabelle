@@ -101,9 +101,9 @@ use "Tools/res_atp.ML"
 
 use "Tools/res_atp_provers.ML"
 
-oracle vampire_oracle ("string * int") = {* ResAtpProvers.vampire_o *}
-oracle eprover_oracle ("string * int") = {* ResAtpProvers.eprover_o *}
-oracle spass_oracle ("string * int") = {* ResAtpProvers.spass_o *}
+oracle vampire_oracle = {* ResAtpProvers.vampire_o *}
+oracle eprover_oracle = {* ResAtpProvers.eprover_o *}
+oracle spass_oracle = {* ResAtpProvers.spass_o *}
 
 use "Tools/res_atp_methods.ML"
 setup ResAtpMethods.setup      --{*Oracle ATP methods: still useful?*}

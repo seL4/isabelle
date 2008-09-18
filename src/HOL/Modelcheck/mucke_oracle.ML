@@ -1012,8 +1012,12 @@ end;
 
 (**********************************************************)
 
-fun mk_mc_mucke_oracle sign subgoal = 
-  let 	val Freesubgoal = freeze_thaw subgoal;
+fun mk_mc_mucke_oracle csubgoal =
+  let
+  val sign = Thm.theory_of_cterm csubgoal;
+  val subgoal = Thm.term_of csubgoal;
+
+	val Freesubgoal = freeze_thaw subgoal;
 
 	val prems = Logic.strip_imp_prems Freesubgoal; 
 	val concl = Logic.strip_imp_concl Freesubgoal; 
@@ -1047,6 +1051,6 @@ fun mk_mc_mucke_oracle sign subgoal =
 	(writeln ("\nmodelchecker input:\n" ^ MCstr ^ "\n/**** end ****/"))
           else ();
 (case (extract_result concl_str result) of 
-	true  =>  (Logic.strip_imp_concl subgoal) | 
+	true  =>  cterm_of sign (Logic.strip_imp_concl subgoal) | 
 	false => (error ("Mucke couldn't solve subgoal: \n" ^result)))) 
   end;

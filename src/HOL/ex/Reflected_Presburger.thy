@@ -1920,7 +1920,7 @@ code_reserved SML oo
 export_code pa in SML module_name GeneratedCooper file "~~/src/HOL/Tools/Qelim/raw_generated_cooper.ML"
 *)
 
-oracle linzqe_oracle ("term") = {*
+oracle linzqe_oracle = {*
 let
 
 fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
@@ -2035,14 +2035,16 @@ fun term_bools acc t =
     | _ => if is_ty t orelse is_op t then acc else insert (op aconv) t acc
   end;
 
-in fn thy => fn t =>
-  let 
+in fn ct =>
+  let
+    val thy = Thm.theory_of_cterm ct;
+    val t = Thm.term_of ct;
     val fs = term_frees t;
     val bs = term_bools [] t;
     val vs = fs ~~ (0 upto (length fs - 1))
     val ps = bs ~~ (0 upto (length bs - 1))
     val t' = (term_of_fm ps vs o @{code pa} o fm_of_term ps vs) t;
-  in (HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
+  in (Thm.cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
 end;
 *}
 

@@ -403,15 +403,9 @@ fun eval thy t program vs_ty_t deps =
 
 (* evaluation oracle *)
 
-exception Norm of term * Code_Thingol.program
-  * (Code_Thingol.typscheme * Code_Thingol.iterm) * string list;
-
-fun norm_oracle (thy, Norm (t, program, vs_ty_t, deps)) =
-  Logic.mk_equals (t, eval thy t program vs_ty_t deps);
-
-fun norm_invoke thy t program vs_ty_t deps =
-  Thm.invoke_oracle_i thy "HOL.norm" (thy, Norm (t, program, vs_ty_t, deps));
-  (*FIXME get rid of hardwired theory name*)
+val (_, norm_oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle ("norm", fn (thy, t, program, vs_ty_t, deps) =>
+    Thm.cterm_of thy (Logic.mk_equals (t, eval thy t program vs_ty_t deps)))));
 
 fun add_triv_classes thy =
   let
@@ -425,7 +419,7 @@ fun add_triv_classes thy =
 fun norm_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    fun evaluator' t program vs_ty_t deps = norm_invoke thy t program vs_ty_t deps;
+    fun evaluator' t program vs_ty_t deps = norm_oracle (thy, t, program, vs_ty_t, deps);
     fun evaluator t = (add_triv_classes thy t, evaluator' t);
   in Code_Thingol.eval_conv thy evaluator ct end;
 
@@ -455,8 +449,8 @@ fun norm_print_term_cmd (modes, s) state =
   let val ctxt = Toplevel.context_of state
   in norm_print_term ctxt modes (Syntax.read_term ctxt s) end;
 
-val setup = Theory.add_oracle ("norm", norm_oracle)
-  #> Value.add_evaluator ("nbe", norm_term o ProofContext.theory_of);
+val setup =
+  Value.add_evaluator ("nbe", norm_term o ProofContext.theory_of);
 
 local structure P = OuterParse and K = OuterKeyword in
 

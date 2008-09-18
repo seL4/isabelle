@@ -40,19 +40,19 @@ fun call_spass (file:string, time:int) =
   in seek_line "SPASS beiseite: Proof found.\n" instr
   end;
 
-fun vampire_o _ (file,time) =
+fun vampire_o (file,time) =
   if call_vampire (file,time)
-  then (warning file; ResAtp.cond_rm_tmp file; HOLogic.mk_Trueprop HOLogic.false_const)
+  then (warning file; ResAtp.cond_rm_tmp file; @{cprop False})
   else (ResAtp.cond_rm_tmp file; raise Fail ("vampire oracle failed"));
 
-fun eprover_o _ (file,time) =
+fun eprover_o (file,time) =
   if call_eprover (file,time)
-  then (warning file; ResAtp.cond_rm_tmp file; HOLogic.mk_Trueprop HOLogic.false_const)
+  then (warning file; ResAtp.cond_rm_tmp file; @{cprop False})
   else (ResAtp.cond_rm_tmp file; raise Fail ("eprover oracle failed"));
 
-fun spass_o _ (file,time) =
+fun spass_o (file,time) =
   if call_spass (file,time)
-  then (warning file; ResAtp.cond_rm_tmp file; HOLogic.mk_Trueprop HOLogic.false_const)
+  then (warning file; ResAtp.cond_rm_tmp file; @{cprop False})
   else (ResAtp.cond_rm_tmp file; raise Fail ("SPASS oracle failed"));
 
 end;

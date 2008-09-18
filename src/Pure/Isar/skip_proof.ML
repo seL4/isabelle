@@ -20,20 +20,15 @@ struct
 
 (* oracle setup *)
 
-exception SkipProof of term;
-
-fun skip_proof (_, SkipProof prop) =
-  if ! quick_and_dirty then prop
-  else error "Proof may be skipped in quick_and_dirty mode only!";
-
-val _ = Context.>> (Context.map_theory
-  (Theory.add_oracle ("skip_proof", skip_proof)));
+val (_, skip_proof) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle ("skip_proof", fn (thy, prop) =>
+    if ! quick_and_dirty then Thm.cterm_of thy prop
+    else error "Proof may be skipped in quick_and_dirty mode only!")));
 
 
 (* basic cheating *)
 
-fun make_thm thy prop =
-  Thm.invoke_oracle_i thy "Pure.skip_proof" (thy, SkipProof prop);
+fun make_thm thy prop = skip_proof (thy, prop);
 
 fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
