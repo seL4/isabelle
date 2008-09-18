@@ -116,7 +116,7 @@ Whenever any of the Isabelle executables is run, their settings
   of these may have to be adapted (probably \hyperlink{setting.ML-SYSTEM}{\mbox{\isa{\isatt{ML{\isacharunderscore}SYSTEM}}}}
   etc.).
   
-  \item The file \hyperlink{file.$ISABELLE-HOME-USER/etc/settings}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER{\isacharslash}etc{\isacharslash}settings}}}} (if it
+  \item The file \verb|$ISABELLE_HOME_USER/etc/settings| (if it
   exists) is run in the same way as the site default settings. Note
   that the variable \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER}}}} has already been set
   before --- usually to \verb|~/isabelle|.
@@ -183,7 +183,7 @@ This is a reference of common Isabelle settings variables. Note that
   \verb|~/isabelle|, under rare circumstances this may be
   changed in the global setting file.  Typically, the \hyperlink{setting.ISABELLE-HOME-USER}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER}}}} directory mimics \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}} to
   some extend. In particular, site-wide defaults may be overridden by
-  a private \hyperlink{file.$ISABELLE-HOME-USER/etc/settings}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharunderscore}USER{\isacharslash}etc{\isacharslash}settings}}}}.
+  a private \verb|$ISABELLE_HOME_USER/etc/settings|.
   
   \item[\indexdef{}{setting}{ISABELLE}\hypertarget{setting.ISABELLE}{\hyperlink{setting.ISABELLE}{\mbox{\isa{\isatt{ISABELLE}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}, \hyperlink{setting.ISATOOL}{\mbox{\isa{\isatt{ISATOOL}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] are automatically set to the full path
   names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} and \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}} executables, respectively.  Thus other tools and scripts
