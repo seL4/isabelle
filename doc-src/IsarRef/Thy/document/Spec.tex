@@ -1135,8 +1135,8 @@ Definitions essentially express abbreviations within the logic.  The
     \indexdef{}{command}{oracle}\hypertarget{command.oracle}{\hyperlink{command.oracle}{\mbox{\isa{\isacommand{oracle}}}}} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
-  The oracle interface promotes a given ML function \verb|theory -> T -> term| to \verb|theory -> T -> thm|, for some
-  type \verb|T| given by the user.  This acts like an infinitary
+  The oracle interface promotes a given ML function \verb|'a -> cterm|
+  to \verb|'a -> thm|.  This acts like an infinitary
   specification of axioms -- there is no internal check of the
   correctness of the results!  The inference kernel records oracle
   invocations within the internal derivation object of theorems, and
@@ -1144,18 +1144,16 @@ Definitions essentially express abbreviations within the logic.  The
   that are not fully checked by Isabelle inferences.
 
   \begin{rail}
-    'oracle' name '(' type ')' '=' text
+    'oracle' name '=' text
     ;
   \end{rail}
 
   \begin{descr}
 
-  \item [\hyperlink{command.oracle}{\mbox{\isa{\isacommand{oracle}}}}~\isa{{\isachardoublequote}name\ {\isacharparenleft}type{\isacharparenright}\ {\isacharequal}\ text{\isachardoublequote}}] turns the
-  given ML expression \isa{{\isachardoublequote}text{\isachardoublequote}} of type
-  \verb|theory ->|~\isa{{\isachardoublequote}type{\isachardoublequote}}~\verb|-> term| into an
-  ML function of type
-  \verb|theory ->|~\isa{{\isachardoublequote}type{\isachardoublequote}}~\verb|-> thm|, which is
-  bound to the global identifier \verb|name|.
+  \item [\hyperlink{command.oracle}{\mbox{\isa{\isacommand{oracle}}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ text{\isachardoublequote}}] turns the given ML
+  expression \isa{{\isachardoublequote}text{\isachardoublequote}} of type \verb|'a -> cterm| into an
+  ML function of type \verb|'a -> thm|, which is bound to the
+  global identifier \verb|name|.
 
   \end{descr}%
 \end{isamarkuptext}%
