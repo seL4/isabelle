@@ -219,5 +219,6 @@ fun lexicographic_order thms ctxt =
 
 val setup = Method.add_methods [("lexicographic_order", Method.bang_sectioned_args clasimp_modifiers lexicographic_order,
                                  "termination prover for lexicographic orderings")]
+     #> Context.theory_map (FundefCommon.set_termination_prover (lexicographic_order []))
 
 end

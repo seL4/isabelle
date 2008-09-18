@@ -26,6 +26,22 @@ val graph_name = suffix "_graph"
 val rel_name = suffix "_rel"
 val dom_name = suffix "_dom"
 
+(* Termination rules *)
+
+structure TerminationRule = GenericDataFun
+(
+  type T = thm list
+  val empty = []
+  val extend = I
+  fun merge _ = Thm.merge_thms
+);
+
+val get_termination_rules = TerminationRule.get
+val store_termination_rule = TerminationRule.map o cons
+val apply_termination_rule = resolve_tac o get_termination_rules o Context.Proof
+
+
+(* Function definition result data *)
 
 datatype fundef_result =
   FundefResult of
@@ -119,27 +135,33 @@ fun import_last_fundef ctxt =
 
 val all_fundef_data = NetRules.rules o FundefData.get
 
+fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
+    FundefData.map (fold (fn f => NetRules.insert (f, data)) fs)
+    #> store_termination_rule termination
+
+
+(* Simp rules for termination proofs *)
+
 structure TerminationSimps = NamedThmsFun
 (
   val name = "termination_simp" 
   val description = "Simplification rule for termination proofs"
 );
 
-structure TerminationRule = GenericDataFun
+
+(* Default Termination Prover *)
+
+structure TerminationProver = GenericDataFun
 (
-  type T = thm list
-  val empty = []
+  type T = (Proof.context -> Method.method)
+  val empty = (fn _ => error "Termination prover not configured")
   val extend = I
-  fun merge _ = Thm.merge_thms
+  fun merge _ (a,b) = b (* FIXME *)
 );
 
-val get_termination_rules = TerminationRule.get
-val store_termination_rule = TerminationRule.map o cons
-val apply_termination_rule = resolve_tac o get_termination_rules o Context.Proof
+val set_termination_prover = TerminationProver.put
+val get_termination_prover = TerminationProver.get
 
-fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
-    FundefData.map (fold (fn f => NetRules.insert (f, data)) fs)
-    #> store_termination_rule termination
 
 (* Configuration management *)
 datatype fundef_opt 
@@ -170,15 +192,13 @@ val default_config =
   FundefConfig { sequential=false, default="%x. arbitrary", domintros=false, tailrec=false }
 
 
-(* Common operations on equations *)
-
-fun open_all_all (Const ("all", _) $ Abs (n, T, b)) = apfst (cons (n, T)) (open_all_all b)
-  | open_all_all t = ([], t)
+(* Analyzing function equations *)
 
 fun split_def ctxt geq =
     let
       fun input_error msg = cat_lines [msg, Syntax.string_of_term ctxt geq]
-      val (qs, imp) = open_all_all geq
+      val qs = Term.strip_qnt_vars "all" geq
+      val imp = Term.strip_qnt_body "all" geq
       val (gs, eq) = Logic.strip_horn imp
 
       val (f_args, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eq)

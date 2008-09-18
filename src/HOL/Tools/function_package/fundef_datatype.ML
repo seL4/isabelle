@@ -203,10 +203,10 @@ val by_pat_completeness_simp =
       (Method.Basic (pat_completeness, Position.none),
        SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
-val termination_by_lexicographic_order =
+fun termination_by method =
     FundefPackage.setup_termination_proof NONE
     #> Proof.global_terminal_proof
-      (Method.Basic (LexicographicOrder.lexicographic_order [], Position.none), NONE)
+      (Method.Basic (method, Position.none), NONE)
 
 fun mk_catchall fixes arities =
     let
@@ -312,7 +312,7 @@ fun fun_cmd config fixes statements flags lthy =
       |> by_pat_completeness_simp
       |> LocalTheory.restore
       |> LocalTheory.set_group group
-      |> termination_by_lexicographic_order
+      |> termination_by (FundefCommon.get_termination_prover (Context.Proof lthy))
   end;
 
 val _ =
