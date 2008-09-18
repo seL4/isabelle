@@ -541,7 +541,8 @@ fun begin_theory name parents uses int =
       |> Present.begin_theory update_time dir uses;
 
     val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
-    val theory'' = fold (Context.theory_map o exec_file false) uses_now theory';
+    val theory'' =
+      fold (fn x => Context.theory_map (exec_file false x) o Theory.checkpoint) uses_now theory';
   in theory'' end;
 
 fun end_theory theory =
