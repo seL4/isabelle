@@ -98,7 +98,7 @@ text {*
   of these may have to be adapted (probably @{setting ML_SYSTEM}
   etc.).
   
-  \item The file @{"file" "$ISABELLE_HOME_USER/etc/settings"} (if it
+  \item The file @{verbatim "$ISABELLE_HOME_USER/etc/settings"} (if it
   exists) is run in the same way as the site default settings. Note
   that the variable @{setting ISABELLE_HOME_USER} has already been set
   before --- usually to @{verbatim "~/isabelle"}.
@@ -166,7 +166,7 @@ text {*
   changed in the global setting file.  Typically, the @{setting
   ISABELLE_HOME_USER} directory mimics @{setting ISABELLE_HOME} to
   some extend. In particular, site-wide defaults may be overridden by
-  a private @{"file" "$ISABELLE_HOME_USER/etc/settings"}.
+  a private @{verbatim "$ISABELLE_HOME_USER/etc/settings"}.
   
   \item[@{setting_def ISABELLE}@{text "\<^sup>*"}, @{setting
   ISATOOL}@{text "\<^sup>*"}] are automatically set to the full path
