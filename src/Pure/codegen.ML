@@ -1039,18 +1039,17 @@ fun eval_term thy t =
                 [str "(result ())"],
               str ");"]) ^
           "\n\nend;\n";
-        val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
+        val _ = NAMED_CRITICAL "codegen" (fn () =>
+          ML_Context.eval_in (SOME ctxt) false Position.none s);
       in !eval_result end;
   in e () end;
 
-exception Evaluation of term;
-
-fun evaluation_oracle (thy, Evaluation t) =
-  Logic.mk_equals (t, eval_term thy t);
-
-fun evaluation_conv ct =
-  let val thy = Thm.theory_of_cterm ct
-  in Thm.invoke_oracle_i thy "HOL.evaluation" (thy, Evaluation (Thm.term_of ct)) end;
+val (_, evaluation_conv) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle ("evaluation", fn ct =>
+    let
+      val thy = Thm.theory_of_cterm ct;
+      val t = Thm.term_of ct;
+    in Thm.cterm_of thy (Logic.mk_equals (t, eval_term thy t)) end)));
 
 
 (**** Interface ****)
@@ -1132,7 +1131,6 @@ fun parse_code lib =
 
 val setup = add_codegen "default" default_codegen
   #> add_tycodegen "default" default_tycodegen
-  #> Theory.add_oracle ("evaluation", evaluation_oracle)
   #> Value.add_evaluator ("SML", eval_term o ProofContext.theory_of)
   #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
        (fn thm => Context.mapping (add_unfold thm #> Code.add_inline thm) I)));
