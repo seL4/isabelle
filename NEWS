@@ -22,13 +22,6 @@ interface instead.
 
 *** Pure ***
 
-* Simplified ML oracle interface Thm.add_oracle promotes 'a -> cterm
-to 'a -> thm, at the cost of internal tagging of results with an
-authentic oracle name.  The Isar command 'oracle' is now polymorphic,
-no argument type is specified.  INCOMPATIBILITY, need to simplify
-existing oracle code accordingly.  Note that extra performance may be
-gained by producing the cterm carefully, not via Thm.cterm_of.
-
 * Changed defaults for unify configuration options:
 
   unify_trace_bound = 50 (formerly 25)
@@ -215,6 +208,13 @@ Complex_Main.thy should now use new entry point Hypercomplex.thy.
 
 
 *** ML ***
+
+* Simplified ML oracle interface Thm.add_oracle promotes 'a -> cterm
+to 'a -> thm, while results are always tagged with an authentic oracle
+name.  The Isar command 'oracle' is now polymorphic, no argument type
+is specified.  INCOMPATIBILITY, need to simplify existing oracle code
+accordingly.  Note that extra performance may be gained by producing
+the cterm carefully, avoiding slow Thm.cterm_of.
 
 * ML bindings produced via Isar commands are stored within the Isar
 context (theory or proof).  Consequently, commands like 'use' and 'ML'
