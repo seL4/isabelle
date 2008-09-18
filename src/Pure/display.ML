@@ -61,7 +61,7 @@ fun pretty_flexpair pp (t, u) = Pretty.block
 fun pretty_thm_aux pp quote show_hyps' asms raw_th =
   let
     val th = Thm.strip_shyps raw_th;
-    val {hyps, tpairs, prop, der = (ora, _), ...} = Thm.rep_thm th;
+    val {hyps, tpairs, prop, der, ...} = Thm.rep_thm th;
     val xshyps = Thm.extra_shyps th;
     val tags = Thm.get_tags th;
 
@@ -69,7 +69,7 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
     val prt_term = q o Pretty.term pp;
 
     val hyps' = if ! show_hyps then hyps else subtract (op aconv) asms hyps;
-    val ora' = ora andalso (! show_hyps orelse not (! quick_and_dirty));
+    val ora' = Deriv.oracle_of der andalso (! show_hyps orelse not (! quick_and_dirty));
     val hlen = length xshyps + length hyps' + length tpairs;
     val hsymbs =
       if hlen = 0 andalso not ora' then []
