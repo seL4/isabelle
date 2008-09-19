@@ -32,8 +32,9 @@ sig
   type 'a T
   val task_of: 'a T -> task
   val group_of: 'a T -> group
-  val future: group option -> task list -> (unit -> 'a) -> 'a T
+  val future: group option -> task list -> bool -> (unit -> 'a) -> 'a T
   val fork: (unit -> 'a) -> 'a T
+  val fork_irrelevant: (unit -> 'a) -> 'a T
   val join_results: 'a T list -> 'a Exn.result list
   val join: 'a T -> 'a
   val focus: task list -> unit
@@ -209,7 +210,7 @@ fun scheduler_check () = SYNCHRONIZED "scheduler_check" (fn () =>
 
 (* future values: fork independent computation *)
 
-fun future opt_group deps (e: unit -> 'a) =
+fun future opt_group deps pri (e: unit -> 'a) =
   let
     val _ = scheduler_check ();
 
@@ -222,10 +223,11 @@ fun future opt_group deps (e: unit -> 'a) =
         in result := SOME res; is_some (Exn.get_result res) end);
 
     val task = SYNCHRONIZED "future" (fn () =>
-      change_result queue (TaskQueue.enqueue group deps run) before notify_all ());
+      change_result queue (TaskQueue.enqueue group deps pri run) before notify_all ());
   in Future {task = task, group = group, result = result} end;
 
-fun fork e = future (Option.map #2 (thread_data ())) [] e;
+fun fork e = future (Option.map #2 (thread_data ())) [] true e;
+fun fork_irrelevant e = future (Option.map #2 (thread_data ())) [] false e;
 
 
 (* join: retrieve results *)

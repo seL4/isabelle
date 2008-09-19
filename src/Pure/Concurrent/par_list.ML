@@ -32,8 +32,9 @@ fun proper_exn (Exn.Result _) = NONE
   | proper_exn (Exn.Exn exn) = SOME exn;
 
 fun raw_map f xs =
-  let val group = TaskQueue.new_group ()
-  in Future.join_results (List.map (fn x => Future.future (SOME group) [] (fn () => f x)) xs) end;
+  let val group = TaskQueue.new_group () in
+    Future.join_results (List.map (fn x => Future.future (SOME group) [] true (fn () => f x)) xs)
+  end;
 
 fun map f xs =
   let val results = raw_map f xs in

@@ -15,7 +15,7 @@ sig
   type queue
   val empty: queue
   val is_empty: queue -> bool
-  val enqueue: group -> task list -> (bool -> bool) -> queue -> task * queue
+  val enqueue: group -> task list -> bool -> (bool -> bool) -> queue -> task * queue
   val depend: task list -> task -> queue -> queue
   val focus: task list -> queue -> queue
   val dequeue: queue -> (task * group * (unit -> bool)) option * queue
@@ -44,7 +44,7 @@ fun str_of_group (Group (i, ref ok)) =
 (* jobs *)
 
 datatype job =
-  Job of bool -> bool |
+  Job of bool * (bool -> bool) |   (*priority, job: status -> status*)
   Running of Thread.thread;
 
 type jobs = (group * job) IntGraph.T;
@@ -75,13 +75,13 @@ fun is_empty (Queue {jobs, ...}) = IntGraph.is_empty jobs;
 
 (* enqueue *)
 
-fun enqueue (group as Group (gid, _)) deps job (Queue {groups, jobs, focus}) =
+fun enqueue (group as Group (gid, _)) deps pri job (Queue {groups, jobs, focus}) =
   let
     val id = serial ();
     val task = Task id;
     val groups' = Inttab.cons_list (gid, task) groups;
     val jobs' = jobs
-      |> IntGraph.new_node (id, (group, Job job)) |> fold (add_job task) deps;
+      |> IntGraph.new_node (id, (group, Job (pri, job))) |> fold (add_job task) deps;
   in (task, make_queue groups' jobs' focus) end;
 
 fun depend deps task (Queue {groups, jobs, focus}) =
@@ -99,10 +99,10 @@ fun dequeue_result NONE queue = (NONE, queue)
   | dequeue_result (SOME (result as (task, _, _))) (Queue {groups, jobs, focus}) =
       (SOME result, make_queue groups (map_job task (K (Running (Thread.self ()))) jobs) focus);
 
-fun dequeue_global (queue as Queue {jobs, ...}) =
+fun dequeue_global req_pri (queue as Queue {jobs, ...}) =
   let
-    fun ready (id, ((group as Group (_, ref ok), Job job), ([], _))) =
-          SOME (Task id, group, (fn () => job ok))
+    fun ready (id, ((group as Group (_, ref ok), Job (pri, job)), ([], _))) =
+          if pri = req_pri then SOME (Task id, group, (fn () => job ok)) else NONE
       | ready _ = NONE;
   in dequeue_result (IntGraph.get_first ready jobs) queue end;
 
@@ -110,7 +110,7 @@ fun dequeue_local focus (queue as Queue {jobs, ...}) =
   let
     fun ready id =
       (case IntGraph.get_node jobs id of
-        (group as Group (_, ref ok), Job job) =>
+        (group as Group (_, ref ok), Job (_, job)) =>
           if null (IntGraph.imm_preds jobs id) then SOME (Task id, group, (fn () => job ok))
           else NONE
       | _ => NONE);
@@ -120,7 +120,10 @@ fun dequeue_local focus (queue as Queue {jobs, ...}) =
 in
 
 fun dequeue (queue as Queue {focus, ...}) =
-  (case dequeue_local focus queue of (NONE, _) => dequeue_global queue | res => res);
+  (case dequeue_local focus queue of
+    (NONE, _) =>
+      (case dequeue_global true queue of (NONE, _) => dequeue_global false queue | res => res)
+  | res => res);
 
 fun dequeue_towards tasks (queue as Queue {jobs, ...}) =
   dequeue_local (map_filter (check_job jobs) tasks) queue;
