@@ -1116,7 +1116,7 @@ lemma bin_rsplit_aux_len_indep:
 proof (induct n nw w cs arbitrary: v bs rule: bin_rsplit_aux.induct)
   case (1 n m w cs v bs) show ?case
   proof (cases "m = 0")
-    case True then show ?thesis by simp
+    case True then show ?thesis using `length bs = length cs` by simp
   next
     case False
     from "1.hyps" `m \<noteq> 0` `n \<noteq> 0` have hyp: "\<And>v bs. length bs = Suc (length cs) \<Longrightarrow>
