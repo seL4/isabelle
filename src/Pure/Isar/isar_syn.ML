@@ -714,13 +714,9 @@ val _ =
 
 (* nested commands *)
 
-val props_text =
-  Scan.optional P.properties [] -- P.position P.string >> (fn (props, (str, pos)) =>
-    (Position.of_properties (Position.default_properties pos props), str));
-
 val _ =
   OuterSyntax.improper_command "Isabelle.command" "nested Isabelle command" K.control
-    (props_text :|-- (fn (pos, str) =>
+    (P.props_text :|-- (fn (pos, str) =>
       (case OuterSyntax.parse pos str of
         [tr] => Scan.succeed (K tr)
       | _ => Scan.fail_with (K "exactly one command expected"))
@@ -728,22 +724,6 @@ val _ =
 
 
 (* global history commands *)
-
-val _ =
-  OuterSyntax.improper_command "Isar.command" "define command (Isar editor model)" K.control
-    (props_text >> (fn (pos, str) =>
-      Toplevel.no_timing o Toplevel.imperative (fn () =>
-        ignore (Isar.create_command (OuterSyntax.prepare_command pos str)))));
-
-val _ =
-  OuterSyntax.improper_command "Isar.insert" "insert command (Isar editor model)" K.control
-    (P.string -- P.string >> (fn (prev, id) =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => Isar.insert_command prev id)));
-
-val _ =
-  OuterSyntax.improper_command "Isar.remove" "remove command (Isar editor model)" K.control
-    (P.string >> (fn id =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => Isar.remove_command id)));
 
 val _ =
   OuterSyntax.improper_command "init_toplevel" "init toplevel point-of-interest" K.control
