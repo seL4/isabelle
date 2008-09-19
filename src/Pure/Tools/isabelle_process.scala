@@ -142,7 +142,7 @@ class IsabelleProcess(args: String*) {
     output.put(text)
   }
 
-  private def output_sync(text: String) =
+  def output_sync(text: String) =
     output_raw(" \\<^sync>\n; " + text + " \\<^sync>;\n")
 
 
