@@ -291,7 +291,7 @@ fun ensure_stmts ctxt program =
 
 (* term evaluation *)
 
-fun eval_term ctxt gr deps ((vs, ty), t) =
+fun eval_term ctxt gr deps ((vs, ty) : typscheme, t) =
   let 
     val frees = Code_Thingol.fold_unbound_varnames (insert (op =)) t []
     val frees' = map (fn v => Free (v, [])) frees;
