@@ -60,7 +60,6 @@ sig
     'a * token list -> 'b list * ('a * token list)
   val list: (token list -> 'a * token list) -> token list -> 'a list * token list
   val list1: (token list -> 'a * token list) -> token list -> 'a list * token list
-  val properties: token list -> Properties.T * token list
   val name: token list -> bstring * token list
   val binding: token list -> Name.binding * token list
   val xname: token list -> xstring * token list
@@ -89,6 +88,8 @@ sig
   val for_simple_fixes: token list -> (Name.binding * string option) list * token list
   val ML_source: token list -> (SymbolPos.text * Position.T) * token list
   val doc_source: token list -> (SymbolPos.text * Position.T) * token list
+  val properties: token list -> Properties.T * token list
+  val props_text: token list -> (Position.T * string) * token list
   val term_group: token list -> string * token list
   val prop_group: token list -> string * token list
   val term: token list -> string * token list
@@ -223,8 +224,6 @@ fun and_list' scan = enum' "and" scan;
 fun list1 scan = enum1 "," scan;
 fun list scan = enum "," scan;
 
-val properties = $$$ "(" |-- !!! (list1 (string -- ($$$ "=" |-- string)) --| $$$ ")");
-
 
 (* names and text *)
 
@@ -310,6 +309,12 @@ val for_simple_fixes = Scan.optional ($$$ "for" |-- !!! simple_fixes) [];
 
 val ML_source = source_position (group "ML source" text);
 val doc_source = source_position (group "document source" text);
+
+val properties = $$$ "(" |-- !!! (list1 (string -- ($$$ "=" |-- string)) --| $$$ ")");
+
+val props_text =
+  Scan.optional properties [] -- position string >> (fn (props, (str, pos)) =>
+    (Position.of_properties (Position.default_properties pos props), str));
 
 
 (* terms *)
