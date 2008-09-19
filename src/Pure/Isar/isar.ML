@@ -233,7 +233,7 @@ end;
 
 (* interactive state transformations *)
 
-nonfix >> >>>;
+local nonfix >> >>> in
 
 fun >> raw_tr =
   let
@@ -256,6 +256,8 @@ fun >> raw_tr =
 
 fun >>> [] = ()
   | >>> (tr :: trs) = if >> tr then >>> trs else ();
+
+end;
 
 
 (* implicit navigation wrt. proper commands *)
@@ -350,7 +352,7 @@ fun try_run id =
       (case run true (#transition (the_command id)) state of
         NONE => ()
       | SOME status => report_update_status status id));
-      
+
 fun rerun_commands ids =
   (List.app (report_update_status Unprocessed) ids; List.app try_run ids);
 
@@ -374,5 +376,32 @@ fun remove_command id = NAMED_CRITICAL "Isar" (fn () =>
       fold (fn next => add_edge (prev, next)) nexts);
   in descendant_commands nexts end) |> rerun_commands;
 
+
+(* concrete syntax *)
+
+local
+
+structure P = OuterParse and K = OuterKeyword;
+val op >> = Scan.>>;
+
+in
+
+val _ =
+  OuterSyntax.improper_command "Isar.command" "define command (Isar editor model)" K.control
+    (P.props_text >> (fn (pos, str) =>
+      Toplevel.no_timing o Toplevel.imperative (fn () =>
+        ignore (create_command (OuterSyntax.prepare_command pos str)))));
+
+val _ =
+  OuterSyntax.improper_command "Isar.insert" "insert command (Isar editor model)" K.control
+    (P.string -- P.string >> (fn (prev, id) =>
+      Toplevel.no_timing o Toplevel.imperative (fn () => insert_command prev id)));
+
+val _ =
+  OuterSyntax.improper_command "Isar.remove" "remove command (Isar editor model)" K.control
+    (P.string >> (fn id =>
+      Toplevel.no_timing o Toplevel.imperative (fn () => remove_command id)));
+
 end;
 
+end;
