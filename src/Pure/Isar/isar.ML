@@ -233,9 +233,7 @@ end;
 
 (* interactive state transformations *)
 
-local nonfix >> >>> in
-
-fun >> raw_tr =
+fun op >> raw_tr =
   let
     val id = create_command raw_tr;
     val {category, transition = tr, ...} = the_command id;
@@ -254,10 +252,8 @@ fun >> raw_tr =
         true))
   end;
 
-fun >>> [] = ()
-  | >>> (tr :: trs) = if >> tr then >>> trs else ();
-
-end;
+fun op >>> [] = ()
+  | op >>> (tr :: trs) = if op >> tr then op >>> trs else ();
 
 
 (* implicit navigation wrt. proper commands *)
@@ -316,7 +312,7 @@ fun raw_loop secure src =
   in
     (case Source.get_single (Source.set_prompt (prompt_markup Source.default_prompt) src) of
       NONE => if secure then quit () else ()
-    | SOME (tr, src') => if >> tr orelse check_secure () then raw_loop secure src' else ())
+    | SOME (tr, src') => if op >> tr orelse check_secure () then raw_loop secure src' else ())
     handle exn => (Output.error_msg (Toplevel.exn_message exn) handle crash =>
       (CRITICAL (fn () => change crashes (cons crash));
         warning "Recovering after Isar toplevel crash -- see also Isar.crashes");
