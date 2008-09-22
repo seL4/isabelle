@@ -244,6 +244,8 @@ ML {*
 structure Quickcheck =
 struct
 
+open Quickcheck;
+
 val eval_ref : (unit -> int -> int * int -> term list option * (int * int)) option ref = ref NONE;
 
 fun mk_generator_expr thy prop tys =
@@ -267,48 +269,30 @@ fun mk_generator_expr thy prop tys =
     val t = fold_rev mk_bindclause bounds (return $ check);
   in Abs ("n", @{typ index}, t) end;
 
-fun compile_generator_expr thy prop tys =
+fun compile_generator_expr thy t =
   let
-    val f = Code_ML.eval_term ("Quickcheck.eval_ref", eval_ref) thy
-      (mk_generator_expr thy prop tys) [];
+    val tys = (map snd o fst o strip_abs) t;
+    val t' = mk_generator_expr thy t tys;
+    val f = Code_ML.eval_term ("Quickcheck.eval_ref", eval_ref) thy t' [];
   in f #> Random_Engine.run #> (Option.map o map) (Code.postprocess_term thy) end;
-
-fun VALUE prop tys thy =
-  let
-    val t = mk_generator_expr thy prop tys;
-    val eq = Logic.mk_equals (Free ("VALUE", fastype_of t), t)
-  in
-    thy
-    |> TheoryTarget.init NONE
-    |> Specification.definition (NONE, (Attrib.no_binding, eq))
-    |> snd
-    |> LocalTheory.exit
-    |> ProofContext.theory_of
-  end;
 
 end
 *}
 
+setup {*
+  Quickcheck.add_generator ("code", Quickcheck.compile_generator_expr o ProofContext.theory_of)
+*}
+
 subsection {* Examples *}
 
-(*export_code "random :: index \<Rightarrow> seed \<Rightarrow> ((_ \<Rightarrow> _) \<times> (unit \<Rightarrow> term)) \<times> seed"
-  in SML file -*)
-
-(*setup {* Quickcheck.VALUE
-  @{term "\<lambda>f k. int (f k) = k"} [@{typ "int \<Rightarrow> nat"}, @{typ int}] *}
-
-export_code VALUE in SML module_name QuickcheckExample file "~~/../../gen_code/quickcheck.ML"
-use "~~/../../gen_code/quickcheck.ML"
-ML {* Random_Engine.run (QuickcheckExample.range 1) *}*)
-
-(*definition "FOO = (True, Suc 0)"
-
-code_module (test) QuickcheckExample
-  file "~~/../../gen_code/quickcheck'.ML"
-  contains FOO*)
+(*lemma
+  fixes n m :: nat
+  shows "n + m \<le> n * m"
+;test_goal [code];
+oops*)
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(n::nat) (m::nat) (q::nat). n = m + q + 1"} [@{typ nat}, @{typ nat}, @{typ nat}] *}
+  @{term "\<lambda>(n::nat) (m::nat) (q::nat). n = m + q + 1"} *}
 
 ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
@@ -323,7 +307,7 @@ ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(n::int) (m::int) (q::int). n = m + q + 1"} [@{typ int}, @{typ int}, @{typ int}] *}
+  @{term "\<lambda>(n::int) (m::int) (q::int). n = m + q + 1"} *}
 
 ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
@@ -341,8 +325,7 @@ ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(xs\<Colon>int list) ys. rev (xs @ ys) = rev xs @ rev ys"}
-  [@{typ "int list"}, @{typ "int list"}] *}
+  @{term "\<lambda>(xs\<Colon>int list) ys. rev (xs @ ys) = rev xs @ rev ys"} *}
 
 ML {* f 15 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
@@ -373,7 +356,7 @@ ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(s \<Colon> string). s \<noteq> rev s"} [@{typ string}] *}
+  @{term "\<lambda>(s \<Colon> string). s \<noteq> rev s"} *}
 
 ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
@@ -388,7 +371,7 @@ ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 
 ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>f k. int (f k) = k"} [@{typ "int \<Rightarrow> nat"}, @{typ int}] *}
+  @{term "\<lambda>f k. int (f k) = k"} *}
 
 ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
 ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}

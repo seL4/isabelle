@@ -78,6 +78,7 @@ sig
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
   val test_fn: (int -> (string * term) list option) ref
   val test_term: theory -> bool -> int -> int -> term -> (string * term) list option
+  val test_term': Proof.context -> term -> int -> term list option
   val auto_quickcheck: bool ref
   val auto_quickcheck_time_limit: int ref
   val eval_result: (unit -> term) ref
@@ -917,6 +918,38 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
 
+fun test_term' ctxt t =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val (code, gr) = setmp mode ["term_of", "test"]
+      (generate_code_i thy [] "Generated") [("testf", t)];
+    val frees = Name.names Name.context "a" ((map snd o fst o strip_abs) t);
+    val frees' = frees ~~
+      map (fn i => "arg" ^ string_of_int i) (1 upto length frees);
+    val s = "structure TestTerm =\nstruct\n\n" ^
+      cat_lines (map snd code) ^
+      "\nopen Generated;\n\n" ^ string_of
+        (Pretty.block [str "val () = Codegen.test_fn :=",
+          Pretty.brk 1, str ("(fn i =>"), Pretty.brk 1,
+          mk_let (map (fn ((s, T), s') =>
+              (mk_tuple [str s', str (s' ^ "_t")],
+               Pretty.block [mk_gen gr "Generated" false [] "" T, Pretty.brk 1,
+                 str "(i + 1)"])) frees')
+            (Pretty.block [str "if ",
+              mk_app false (str "testf") (map (str o snd) frees'),
+              Pretty.brk 1, str "then NONE",
+              Pretty.brk 1, str "else ",
+              Pretty.block [str "SOME ", Pretty.block (str "[" ::
+                flat (separate [str ",", Pretty.brk 1]
+                  (map (fn ((s, T), s') => [Pretty.block
+                    [str ("(" ^ quote (Symbol.escape s) ^ ","), Pretty.brk 1,
+                     str (s' ^ "_t ())")]]) frees')) @
+                  [str "]"])]]),
+          str ");"]) ^
+      "\n\nend;\n";
+    val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
+  in ! test_fn #> (Option.map o map) snd end;
+
 fun test_term thy quiet sz i t =
   let
     val ctxt = ProofContext.init thy;
@@ -1132,6 +1165,7 @@ fun parse_code lib =
 val setup = add_codegen "default" default_codegen
   #> add_tycodegen "default" default_tycodegen
   #> Value.add_evaluator ("SML", eval_term o ProofContext.theory_of)
+  #> Quickcheck.add_generator ("SML", test_term')
   #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
        (fn thm => Context.mapping (add_unfold thm #> Code.add_inline thm) I)));
 
