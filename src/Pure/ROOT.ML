@@ -61,7 +61,6 @@ use "unify.ML";
 use "theory.ML";
 use "interpretation.ML";
 use "proofterm.ML";
-use "deriv.ML";
 use "thm.ML";
 use "more_thm.ML";
 use "facts.ML";
