@@ -189,12 +189,13 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((c
     val c' = Morphism.name phi c;
     val rhs' = Morphism.term phi rhs;
     val name = Name.name_of c;
-    val name' = Name.name_of c'
+    val name' = Name.name_of c';
     val legacy_arg = (name', Term.close_schematic_term (Logic.legacy_varify rhs'));
     val arg = (name', Term.close_schematic_term rhs');
     val similar_body = Type.similar_types (rhs, rhs');
     (* FIXME workaround based on educated guess *)
-    val class_global = name' = NameSpace.qualified (Class.class_prefix target) name;
+    val class_global = name = NameSpace.base name'
+      andalso Class.class_prefix target = hd (NameSpace.explode name');
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
