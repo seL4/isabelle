@@ -21,6 +21,7 @@ sig
    | PThm of string * proof * term * typ list option
    | PAxm of string * term * typ list option
    | Oracle of string * term * typ list option
+   | Promise of serial * term * typ list option
    | MinProof of ((string * term) * proof) list * (string * term) list * (string * term) list;
 
   val %> : proof * term -> proof
@@ -30,10 +31,8 @@ signature PROOFTERM =
 sig
   include BASIC_PROOFTERM
 
-  val infer_derivs : (proof -> proof -> proof) -> bool * proof -> bool * proof -> bool * proof
-  val infer_derivs' : (proof -> proof) -> (bool * proof -> bool * proof)
-
   (** primitive operations **)
+  val min_proof : proof
   val proof_combt : proof * term list -> proof
   val proof_combt' : proof * term option list -> proof
   val proof_combP : proof * proof list -> proof
@@ -66,7 +65,10 @@ sig
   val thms_of_proof' : proof -> (term * proof) list Symtab.table ->
     (term * proof) list Symtab.table
   val axms_of_proof : proof -> proof Symtab.table -> proof Symtab.table
-  val oracles_of_proof : (string * term) list -> proof -> (string * term) list
+  val mk_min_proof : proof ->
+   ((string * term) * proof) list * (string * term) list * (string * term) list ->
+   ((string * term) * proof) list * (string * term) list * (string * term) list
+  val oracles_of_proof : proof -> (string * term) list -> (string * term) list
 
   (** proof terms for specific inference rules **)
   val implies_intr_proof : term -> proof -> proof
@@ -99,8 +101,10 @@ sig
   val equal_elim : term -> term -> proof -> proof -> proof
   val axm_proof : string -> term -> proof
   val oracle_proof : string -> term -> proof
+  val promise_proof : serial -> term -> proof
   val thm_proof : theory -> string -> term list -> term -> proof -> proof
   val get_name : term list -> term -> proof -> string
+  val is_named : proof -> bool
 
   (** rewriting on proof terms **)
   val add_prf_rrule : proof * proof -> theory -> theory
@@ -128,6 +132,7 @@ datatype proof =
  | PThm of string * proof * term * typ list option
  | PAxm of string * term * typ list option
  | Oracle of string * term * typ list option
+ | Promise of serial * term * typ list option
  | MinProof of ((string * term) * proof) list * (string * term) list * (string * term) list;
 
 fun proof_of_min_axm (s, prop) = PAxm (s, prop, NONE);
@@ -135,7 +140,7 @@ fun proof_of_min_thm ((s, prop), prf) = PThm (s, prf, prop, NONE);
 
 val string_term_ord = prod_ord fast_string_ord Term.fast_term_ord;
 
-fun oracles_of_proof oras prf =
+fun oracles_of_proof prf oras =
   let
     fun oras_of (Abst (_, _, prf)) = oras_of prf
       | oras_of (AbsP (_, _, prf)) = oras_of prf
@@ -213,23 +218,7 @@ fun mk_min_proof (Abst (_, _, prf)) = mk_min_proof prf
 
 val proofs = ref 2;
 
-fun err_illegal_level i =
-  error ("Illegal level of detail for proof objects: " ^ string_of_int i);
-
-fun if_ora b = if b then oracles_of_proof else K;
 val min_proof = MinProof ([], [], []);
-
-fun infer_derivs f (ora1, prf1) (ora2, prf2) =
-  let val ora = ora1 orelse ora2 in
-    (ora,
-      case !proofs of
-        2 => f prf1 prf2
-      | 1 => MinProof (([], [], []) |> mk_min_proof prf1 |> mk_min_proof prf2)
-      | 0 => if ora then MinProof ([], [], if_ora ora2 (if_ora ora1 [] prf1) prf2) else min_proof
-      | i => err_illegal_level i)
-  end;
-
-fun infer_derivs' f = infer_derivs (K f) (false, min_proof);
 
 fun (prf %> t) = prf % SOME t;
 
@@ -317,6 +306,7 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
 fun change_type opTs (PThm (name, prf, prop, _)) = PThm (name, prf, prop, opTs)
   | change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
+  | change_type opTs (Promise (i, prop, _)) = Promise (i, prop, opTs)
   | change_type _ prf = prf;
 
 
@@ -911,6 +901,8 @@ fun oracle_proof name prop =
   if !proofs = 0 then Oracle (name, dummy, NONE)
   else gen_axm_proof Oracle name prop;
 
+fun promise_proof i prop = gen_axm_proof Promise i prop;
+
 fun shrink_proof thy =
   let
     fun shrink ls lev (prf as Abst (a, T, body)) =
@@ -946,7 +938,8 @@ fun shrink_proof thy =
       | shrink' ls lev ts prfs prf =
           let
             val prop = (case prf of PThm (_, _, prop, _) => prop | PAxm (_, prop, _) => prop
-              | Oracle (_, prop, _) => prop | _ => error "shrink: proof not in normal form");
+              | Oracle (_, prop, _) => prop | Promise (_, prop, _) => prop
+              | _ => error "shrink: proof not in normal form");
             val vs = vars_of prop;
             val (ts', ts'') = chop (length vs) ts;
             val insts = Library.take (length ts', map (fst o dest_Var) vs) ~~ ts';
@@ -1223,6 +1216,10 @@ fun get_name hyps prop prf =
     | (PAxm (name, prop', _), _) => if prop=prop' then name else ""
     | _ => "")
   end;
+
+fun is_named (PThm (name, _, _, _)) = name <> ""
+  | is_named (PAxm (name, _, _)) = name <> ""
+  | is_named _ = false;
 
 end;
 
