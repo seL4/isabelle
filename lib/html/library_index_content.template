@@ -3,9 +3,14 @@
 
     <li style="list-style: none">
       <ul>
-        <li><a href="HOL/index.html">HOL (Higher-Order Logic)</a></li>
+        <li><a href="HOL/index.html">HOL (Higher-Order Logic)</a>
+        is a version of classical higher-order logic resembling
+        that of the <a href="http://www.cl.cam.ac.uk/Research/HVG/HOL/">HOL System</a>.
+        </li>
 
-        <li><a href="HOLCF/index.html">HOLCF (Higher-Order Logic of Computable Functions)</a></li>
+        <li><a href="HOLCF/index.html">HOLCF (Higher-Order Logic of Computable Functions)</a>
+        adds Scott's Logic for Computable Functions (domain theory) to HOL.
+        </li>
       </ul>
     </li>
   </ul>
@@ -15,9 +20,14 @@
 
     <li style="list-style: none">
       <ul>
-        <li><a href="FOL/index.html">FOL (Many-sorted First-Order Logic)</a></li>
+        <li><a href="FOL/index.html">FOL (Many-sorted First-Order Logic)</a>
+        provides basic classical and intuitionistic first-order logic. It is
+        polymorphic.
+        </li>
 
-        <li><a href="ZF/index.html">ZF (Set Theory)</a></li>
+        <li><a href="ZF/index.html">ZF (Set Theory)</a>
+        offers a formulation of Zermelo-Fraenkel set theory on top of FOL.
+        </li>
 
         <li><a href="CCL/index.html">CCL (Classical Computational Logic)</a></li>
 
@@ -35,7 +45,8 @@
       <ul>
         <li><a href="Sequents/index.html">Sequents (first-order, modal and linear logics)</a></li>
 
-        <li><a href="CTT/index.html">CTT (Constructive Type Theory)</a></li>
+        <li><a href="CTT/index.html">CTT (Constructive Type Theory)</a>
+        is an extensional version of Martin-L&ouml;f's Type Theory.</li>
 
         <li><a href="Cube/index.html">Cube (The Lambda Cube)</a></li>
       </ul>
