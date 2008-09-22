@@ -85,8 +85,10 @@ fun inst_thm tvars' thm =
   let
     val thy = Thm.theory_of_thm thm;
     val tvars = (Term.add_tvars o Thm.prop_of) thm [];
-    fun mk_inst (tvar as (v, _)) = case Vartab.lookup tvars' v
-     of SOME sort => SOME (pairself (Thm.ctyp_of thy o TVar) (tvar, (v, sort)))
+    val inter_sort = Sorts.inter_sort (Sign.classes_of thy);
+    fun mk_inst (tvar as (v, sort)) = case Vartab.lookup tvars' v
+     of SOME sort' => SOME (pairself (Thm.ctyp_of thy o TVar)
+          (tvar, (v, inter_sort (sort, sort'))))
       | NONE => NONE;
     val insts = map_filter mk_inst tvars;
   in Thm.instantiate (insts, []) thm end;
@@ -154,7 +156,7 @@ val rewrite_head = Conv.fconv_rule o head_conv o MetaSimplifier.rewrite false;
 fun norm_args thms =
   let
     val num_args_of = length o snd o strip_comb o fst o Logic.dest_equals;
-    val k = fold (curry Int.max o num_args_of o Thm.plain_prop_of) thms 0;
+    val k = fold (curry Int.max o num_args_of o Thm.prop_of) thms 0;
   in
     thms
     |> map (expand_eta k)
