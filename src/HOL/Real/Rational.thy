@@ -6,7 +6,7 @@
 header {* Rational numbers *}
 
 theory Rational
-imports "../Nat_Int_Bij" GCD
+imports "../Nat_Int_Bij" "~~/src/HOL/Library/GCD"
 uses ("rat_arith.ML")
 begin
 

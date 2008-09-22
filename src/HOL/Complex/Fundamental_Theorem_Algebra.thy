@@ -6,7 +6,7 @@
 header{*Fundamental Theorem of Algebra*}
 
 theory Fundamental_Theorem_Algebra
-imports Univ_Poly Dense_Linear_Order Complex
+imports "~~/src/HOL/Library/Univ_Poly" "~~/src/HOL/Library/Dense_Linear_Order" Complex
 begin
 
 subsection {* Square root of complex numbers *}
