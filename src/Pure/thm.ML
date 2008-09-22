@@ -4,7 +4,8 @@
     Copyright   1994  University of Cambridge
 
 The very core of Isabelle's Meta Logic: certified types and terms,
-meta theorems, meta rules (including lifting and resolution).
+derivations, theorems, framework rules (including lifting and
+resolution), oracles.
 *)
 
 signature BASIC_THM =
@@ -35,13 +36,13 @@ signature BASIC_THM =
   val cterm_of: theory -> term -> cterm
   val ctyp_of_term: cterm -> ctyp
 
-  (*meta theorems*)
+  (*theorems*)
+  type deriv
   type thm
   type conv = cterm -> thm
   type attribute = Context.generic * thm -> Context.generic * thm
   val rep_thm: thm ->
    {thy_ref: theory_ref,
-    der: Deriv.T,
     tags: Properties.T,
     maxidx: int,
     shyps: sort list,
@@ -50,7 +51,6 @@ signature BASIC_THM =
     prop: term}
   val crep_thm: thm ->
    {thy_ref: theory_ref,
-    der: Deriv.T,
     tags: Properties.T,
     maxidx: int,
     shyps: sort list,
@@ -60,6 +60,7 @@ signature BASIC_THM =
   exception THM of string * int * thm list
   val theory_of_thm: thm -> theory
   val prop_of: thm -> term
+  val oracle_of: thm -> bool
   val proof_of: thm -> Proofterm.proof
   val tpairs_of: thm -> (term * term) list
   val concl_of: thm -> term
@@ -112,6 +113,7 @@ signature BASIC_THM =
   val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
+  val promise: thm Future.T -> cterm -> thm
   val extern_oracles: theory -> xstring list
   val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
@@ -333,17 +335,21 @@ end;
 
 
 
-(*** Meta theorems ***)
+(*** Derivations and Theorems ***)
 
-abstype thm = Thm of
- {thy_ref: theory_ref,         (*dynamic reference to theory*)
-  der: Deriv.T,                (*derivation*)
-  tags: Properties.T,          (*additional annotations/comments*)
-  maxidx: int,                 (*maximum index of any Var or TVar*)
-  shyps: sort list,            (*sort hypotheses as ordered list*)
-  hyps: term list,             (*hypotheses as ordered list*)
-  tpairs: (term * term) list,  (*flex-flex pairs*)
-  prop: term}                  (*conclusion*)
+abstype deriv = Deriv of
+ {oracle: bool,                                       (*oracle occurrence flag*)
+  proof: Pt.proof,                                    (*proof term*)
+  promises: (serial * (theory * thm Future.T)) list}  (*promised derivations*)
+and thm = Thm of
+ deriv *                                              (*derivation*)
+ {thy_ref: theory_ref,                                (*dynamic reference to theory*)
+  tags: Properties.T,                                 (*additional annotations/comments*)
+  maxidx: int,                                        (*maximum index of any Var or TVar*)
+  shyps: sort list,                                   (*sort hypotheses as ordered list*)
+  hyps: term list,                                    (*hypotheses as ordered list*)
+  tpairs: (term * term) list,                         (*flex-flex pairs*)
+  prop: term}                                         (*conclusion*)
 with
 
 type conv = cterm -> thm;
@@ -354,11 +360,11 @@ type attribute = Context.generic * thm -> Context.generic * thm;
 (*errors involving theorems*)
 exception THM of string * int * thm list;
 
-fun rep_thm (Thm args) = args;
+fun rep_thm (Thm (_, args)) = args;
 
-fun crep_thm (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
+fun crep_thm (Thm (_, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
   let fun cterm max t = Cterm {thy_ref = thy_ref, t = t, T = propT, maxidx = max, sorts = shyps} in
-   {thy_ref = thy_ref, der = der, tags = tags, maxidx = maxidx, shyps = shyps,
+   {thy_ref = thy_ref, tags = tags, maxidx = maxidx, shyps = shyps,
     hyps = map (cterm ~1) hyps,
     tpairs = map (pairself (cterm maxidx)) tpairs,
     prop = cterm maxidx prop}
@@ -373,29 +379,30 @@ val maxidx_tpairs = fold (fn (t, u) => Term.maxidx_term t #> Term.maxidx_term u)
 fun attach_tpairs tpairs prop =
   Logic.list_implies (map Logic.mk_equals tpairs, prop);
 
-fun full_prop_of (Thm {tpairs, prop, ...}) = attach_tpairs tpairs prop;
+fun full_prop_of (Thm (_, {tpairs, prop, ...})) = attach_tpairs tpairs prop;
 
 val union_hyps = OrdList.union Term.fast_term_ord;
 
 
 (* merge theories of cterms/thms -- trivial absorption only *)
 
-fun merge_thys1 (Cterm {thy_ref = r1, ...}) (th as Thm {thy_ref = r2, ...}) =
+fun merge_thys1 (Cterm {thy_ref = r1, ...}) (th as Thm (_, {thy_ref = r2, ...})) =
   Theory.merge_refs (r1, r2);
 
-fun merge_thys2 (th1 as Thm {thy_ref = r1, ...}) (th2 as Thm {thy_ref = r2, ...}) =
+fun merge_thys2 (th1 as Thm (_, {thy_ref = r1, ...})) (th2 as Thm (_, {thy_ref = r2, ...})) =
   Theory.merge_refs (r1, r2);
 
 
 (* basic components *)
 
-fun theory_of_thm (Thm {thy_ref, ...}) = Theory.deref thy_ref;
-fun maxidx_of (Thm {maxidx, ...}) = maxidx;
+val theory_of_thm = Theory.deref o #thy_ref o rep_thm;
+val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
-fun hyps_of (Thm {hyps, ...}) = hyps;
-fun prop_of (Thm {prop, ...}) = prop;
-fun proof_of (Thm {der, ...}) = Deriv.proof_of der;
-fun tpairs_of (Thm {tpairs, ...}) = tpairs;
+val hyps_of = #hyps o rep_thm;
+val prop_of = #prop o rep_thm;
+fun oracle_of (Thm (Deriv {oracle, ...}, _)) = oracle;   (* FIXME finish proof *)
+fun proof_of (Thm (Deriv {proof, ...}, _)) = proof;   (* FIXME finish proof *)
+val tpairs_of = #tpairs o rep_thm;
 
 val concl_of = Logic.strip_imp_concl o prop_of;
 val prems_of = Logic.strip_imp_prems o prop_of;
@@ -408,17 +415,17 @@ fun major_prem_of th =
   | [] => raise THM ("major_prem_of: rule with no premises", 0, [th]));
 
 (*the statement of any thm is a cterm*)
-fun cprop_of (Thm {thy_ref, maxidx, shyps, prop, ...}) =
+fun cprop_of (Thm (_, {thy_ref, maxidx, shyps, prop, ...})) =
   Cterm {thy_ref = thy_ref, maxidx = maxidx, T = propT, t = prop, sorts = shyps};
 
-fun cprem_of (th as Thm {thy_ref, maxidx, shyps, prop, ...}) i =
+fun cprem_of (th as Thm (_, {thy_ref, maxidx, shyps, prop, ...})) i =
   Cterm {thy_ref = thy_ref, maxidx = maxidx, T = propT, sorts = shyps,
     t = Logic.nth_prem (i, prop) handle TERM _ => raise THM ("cprem_of", i, [th])};
 
 (*explicit transfer to a super theory*)
 fun transfer thy' thm =
   let
-    val Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop} = thm;
+    val Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop}) = thm;
     val thy = Theory.deref thy_ref;
     val _ = Theory.subthy (thy, thy') orelse raise THM ("transfer: not a super theory", 0, [thm]);
     val is_eq = Theory.eq_thy (thy, thy');
@@ -426,60 +433,106 @@ fun transfer thy' thm =
   in
     if is_eq then thm
     else
-      Thm {thy_ref = Theory.check_thy thy',
-        der = der,
+      Thm (der,
+       {thy_ref = Theory.check_thy thy',
         tags = tags,
         maxidx = maxidx,
         shyps = shyps,
         hyps = hyps,
         tpairs = tpairs,
-        prop = prop}
+        prop = prop})
   end;
 
 (*explicit weakening: maps |- B to A |- B*)
 fun weaken raw_ct th =
   let
     val ct as Cterm {t = A, T, sorts, maxidx = maxidxA, ...} = adjust_maxidx_cterm ~1 raw_ct;
-    val Thm {der, tags, maxidx, shyps, hyps, tpairs, prop, ...} = th;
+    val Thm (der, {tags, maxidx, shyps, hyps, tpairs, prop, ...}) = th;
   in
     if T <> propT then
       raise THM ("weaken: assumptions must have type prop", 0, [])
     else if maxidxA <> ~1 then
       raise THM ("weaken: assumptions may not contain schematic variables", maxidxA, [])
     else
-      Thm {thy_ref = merge_thys1 ct th,
-        der = der,
+      Thm (der,
+       {thy_ref = merge_thys1 ct th,
         tags = tags,
         maxidx = maxidx,
         shyps = Sorts.union sorts shyps,
         hyps = OrdList.insert Term.fast_term_ord A hyps,
         tpairs = tpairs,
-        prop = prop}
+        prop = prop})
   end;
 
 
 
 (** sort contexts of theorems **)
 
-fun present_sorts (Thm {hyps, tpairs, prop, ...}) =
+fun present_sorts (Thm (_, {hyps, tpairs, prop, ...})) =
   fold (fn (t, u) => Sorts.insert_term t o Sorts.insert_term u) tpairs
     (Sorts.insert_terms hyps (Sorts.insert_term prop []));
 
 (*remove extra sorts that are non-empty by virtue of type signature information*)
-fun strip_shyps (thm as Thm {shyps = [], ...}) = thm
-  | strip_shyps (thm as Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
+fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
+  | strip_shyps (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
       let
         val thy = Theory.deref thy_ref;
         val present = present_sorts thm;
         val extra = Sorts.subtract present shyps;
         val shyps' = Sorts.subtract (map #2 (Sign.witness_sorts thy present extra)) shyps;
       in
-        Thm {thy_ref = Theory.check_thy thy, der = der, tags = tags, maxidx = maxidx,
-          shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop}
+        Thm (der, {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
+          shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
       end;
 
 (*dangling sort constraints of a thm*)
-fun extra_shyps (th as Thm {shyps, ...}) = Sorts.subtract (present_sorts th) shyps;
+fun extra_shyps (th as Thm (_, {shyps, ...})) = Sorts.subtract (present_sorts th) shyps;
+
+
+
+(** derivations **)
+
+local
+
+fun make_deriv oracle promises proof =
+  Deriv {oracle = oracle, promises = promises, proof = proof};
+
+val empty_deriv = make_deriv false [] Pt.min_proof;
+
+fun add_oracles false = K I
+  | add_oracles true = Pt.oracles_of_proof;
+
+in
+
+fun deriv_rule2 f
+    (Deriv {oracle = ora1, promises = ps1, proof = prf1})
+    (Deriv {oracle = ora2, promises = ps2, proof = prf2}) =
+  let
+    val ora = ora1 orelse ora2;
+    val ps = OrdList.union (int_ord o pairself #1) ps1 ps2;
+    val prf =
+      (case ! Pt.proofs of
+        2 => f prf1 prf2
+      | 1 => MinProof (([], [], []) |> Pt.mk_min_proof prf1 |> Pt.mk_min_proof prf2)
+      | 0 =>
+          if ora then MinProof ([], [], [] |> add_oracles ora1 prf1 |> add_oracles ora2 prf2)
+          else Pt.min_proof
+      | i => error ("Illegal level of detail for proof objects: " ^ string_of_int i));
+  in make_deriv ora ps prf end;
+
+fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
+fun deriv_rule0 prf = deriv_rule1 I (make_deriv false [] prf);
+
+fun deriv_oracle name prop =
+  make_deriv true [] (Pt.oracle_proof name prop);
+
+fun deriv_promise i thy future prop =
+  make_deriv false [(i, (thy, future))] (Pt.promise_proof i prop);
+
+fun deriv_uncond_rule f (Deriv {oracle, promises, proof}) =
+  make_deriv oracle promises (f proof);
+
+end;
 
 
 
@@ -492,12 +545,12 @@ fun get_axiom_i theory name =
       Symtab.lookup (Theory.axiom_table thy) name
       |> Option.map (fn prop =>
            let
-             val der = Deriv.rule0 (Pt.axm_proof name prop);
+             val der = deriv_rule0 (Pt.axm_proof name prop);
              val maxidx = maxidx_of_term prop;
              val shyps = Sorts.insert_term prop [];
            in
-             Thm {thy_ref = Theory.check_thy thy, der = der, tags = [],
-               maxidx = maxidx, shyps = shyps, hyps = [], tpairs = [], prop = prop}
+             Thm (der, {thy_ref = Theory.check_thy thy, tags = [],
+               maxidx = maxidx, shyps = shyps, hyps = [], tpairs = [], prop = prop})
            end);
   in
     (case get_first get_ax (theory :: Theory.ancestors_of theory) of
@@ -523,43 +576,42 @@ fun axioms_of thy =
 
 (* official name and additional tags *)
 
-fun get_name (Thm {hyps, prop, der, ...}) =
-  Pt.get_name hyps prop (Deriv.proof_of der);
+fun get_name th = Pt.get_name (hyps_of th) (prop_of th) (proof_of th);  (*finished proof!*)
 
-fun put_name name (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs = [], prop}) =
+fun is_named (Thm (Deriv {proof, ...}, _)) = Pt.is_named proof;
+
+fun put_name name (thm as Thm (der, args as {thy_ref, hyps, prop, tpairs, ...})) =
       let
+        val _ = null tpairs orelse
+          raise THM ("name_thm: unsolved flex-flex constraints", 0, [thm]);
         val thy = Theory.deref thy_ref;
-        val der' = Deriv.uncond_rule (Pt.thm_proof thy name hyps prop) der;
-      in
-        Thm {thy_ref = Theory.check_thy thy, der = der', tags = tags, maxidx = maxidx,
-          shyps = shyps, hyps = hyps, tpairs = [], prop = prop}
-      end
-  | put_name _ thm = raise THM ("name_thm: unsolved flex-flex constraints", 0, [thm]);
+        val der' = deriv_uncond_rule (Pt.thm_proof thy name hyps prop) der;
+        val _ = Theory.check_thy thy;
+      in Thm (der', args) end;
+
 
 val get_tags = #tags o rep_thm;
 
-fun map_tags f (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
-  Thm {thy_ref = thy_ref, der = der, tags = f tags, maxidx = maxidx,
-    shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop};
+fun map_tags f (Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
+  Thm (der, {thy_ref = thy_ref, tags = f tags, maxidx = maxidx,
+    shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop});
 
 
-fun norm_proof (Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
+fun norm_proof (Thm (der, args as {thy_ref, ...})) =
   let
     val thy = Theory.deref thy_ref;
-    val der' = Deriv.rule1 (Pt.rew_proof thy) der;
-  in
-    Thm {thy_ref = Theory.check_thy thy, der = der', tags = tags, maxidx = maxidx,
-      shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop}
-  end;
+    val der' = deriv_rule1 (Pt.rew_proof thy) der;
+    val _ = Theory.check_thy thy;
+  in Thm (der', args) end;
 
-fun adjust_maxidx_thm i (th as Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
+fun adjust_maxidx_thm i (th as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
   if maxidx = i then th
   else if maxidx < i then
-    Thm {maxidx = i, thy_ref = thy_ref, der = der, tags = tags, shyps = shyps,
-      hyps = hyps, tpairs = tpairs, prop = prop}
+    Thm (der, {maxidx = i, thy_ref = thy_ref, tags = tags, shyps = shyps,
+      hyps = hyps, tpairs = tpairs, prop = prop})
   else
-    Thm {maxidx = Int.max (maxidx_tpairs tpairs (maxidx_of_term prop), i), thy_ref = thy_ref,
-      der = der, tags = tags, shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop};
+    Thm (der, {maxidx = Int.max (maxidx_tpairs tpairs (maxidx_of_term prop), i), thy_ref = thy_ref,
+      tags = tags, shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop});
 
 
 
@@ -574,14 +626,14 @@ fun assume raw_ct =
       raise THM ("assume: prop", 0, [])
     else if maxidx <> ~1 then
       raise THM ("assume: variables", maxidx, [])
-    else Thm {thy_ref = thy_ref,
-      der = Deriv.rule0 (Pt.Hyp prop),
+    else Thm (deriv_rule0 (Pt.Hyp prop),
+     {thy_ref = thy_ref,
       tags = [],
       maxidx = ~1,
       shyps = sorts,
       hyps = [prop],
       tpairs = [],
-      prop = prop}
+      prop = prop})
   end;
 
 (*Implication introduction
@@ -593,18 +645,18 @@ fun assume raw_ct =
 *)
 fun implies_intr
     (ct as Cterm {t = A, T, maxidx = maxidxA, sorts, ...})
-    (th as Thm {der, maxidx, hyps, shyps, tpairs, prop, ...}) =
+    (th as Thm (der, {maxidx, hyps, shyps, tpairs, prop, ...})) =
   if T <> propT then
     raise THM ("implies_intr: assumptions must have type prop", 0, [th])
   else
-    Thm {thy_ref = merge_thys1 ct th,
-      der = Deriv.rule1 (Pt.implies_intr_proof A) der,
+    Thm (deriv_rule1 (Pt.implies_intr_proof A) der,
+     {thy_ref = merge_thys1 ct th,
       tags = [],
       maxidx = Int.max (maxidxA, maxidx),
       shyps = Sorts.union sorts shyps,
       hyps = OrdList.remove Term.fast_term_ord A hyps,
       tpairs = tpairs,
-      prop = Logic.mk_implies (A, prop)};
+      prop = Logic.mk_implies (A, prop)});
 
 
 (*Implication elimination
@@ -614,22 +666,22 @@ fun implies_intr
 *)
 fun implies_elim thAB thA =
   let
-    val Thm {maxidx = maxA, der = derA, hyps = hypsA, shyps = shypsA, tpairs = tpairsA,
-      prop = propA, ...} = thA
-    and Thm {der, maxidx, hyps, shyps, tpairs, prop, ...} = thAB;
+    val Thm (derA, {maxidx = maxA, hyps = hypsA, shyps = shypsA, tpairs = tpairsA,
+      prop = propA, ...}) = thA
+    and Thm (der, {maxidx, hyps, shyps, tpairs, prop, ...}) = thAB;
     fun err () = raise THM ("implies_elim: major premise", 0, [thAB, thA]);
   in
     case prop of
       Const ("==>", _) $ A $ B =>
         if A aconv propA then
-          Thm {thy_ref = merge_thys2 thAB thA,
-            der = Deriv.rule2 (curry Pt.%%) der derA,
+          Thm (deriv_rule2 (curry Pt.%%) der derA,
+           {thy_ref = merge_thys2 thAB thA,
             tags = [],
             maxidx = Int.max (maxA, maxidx),
             shyps = Sorts.union shypsA shyps,
             hyps = union_hyps hypsA hyps,
             tpairs = union_tpairs tpairsA tpairs,
-            prop = B}
+            prop = B})
         else err ()
     | _ => err ()
   end;
@@ -643,17 +695,17 @@ fun implies_elim thAB thA =
 *)
 fun forall_intr
     (ct as Cterm {t = x, T, sorts, ...})
-    (th as Thm {der, maxidx, shyps, hyps, tpairs, prop, ...}) =
+    (th as Thm (der, {maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
     fun result a =
-      Thm {thy_ref = merge_thys1 ct th,
-        der = Deriv.rule1 (Pt.forall_intr_proof x a) der,
+      Thm (deriv_rule1 (Pt.forall_intr_proof x a) der,
+       {thy_ref = merge_thys1 ct th,
         tags = [],
         maxidx = maxidx,
         shyps = Sorts.union sorts shyps,
         hyps = hyps,
         tpairs = tpairs,
-        prop = Term.all T $ Abs (a, T, abstract_over (x, prop))};
+        prop = Term.all T $ Abs (a, T, abstract_over (x, prop))});
     fun check_occs a x ts =
       if exists (fn t => Logic.occs (x, t)) ts then
         raise THM ("forall_intr: variable " ^ quote a ^ " free in assumptions", 0, [th])
@@ -672,20 +724,20 @@ fun forall_intr
 *)
 fun forall_elim
     (ct as Cterm {t, T, maxidx = maxt, sorts, ...})
-    (th as Thm {der, maxidx, shyps, hyps, tpairs, prop, ...}) =
+    (th as Thm (der, {maxidx, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
     Const ("all", Type ("fun", [Type ("fun", [qary, _]), _])) $ A =>
       if T <> qary then
         raise THM ("forall_elim: type mismatch", 0, [th])
       else
-        Thm {thy_ref = merge_thys1 ct th,
-          der = Deriv.rule1 (Pt.% o rpair (SOME t)) der,
+        Thm (deriv_rule1 (Pt.% o rpair (SOME t)) der,
+         {thy_ref = merge_thys1 ct th,
           tags = [],
           maxidx = Int.max (maxidx, maxt),
           shyps = Sorts.union sorts shyps,
           hyps = hyps,
           tpairs = tpairs,
-          prop = Term.betapply (A, t)}
+          prop = Term.betapply (A, t)})
   | _ => raise THM ("forall_elim: not quantified", 0, [th]));
 
 
@@ -695,31 +747,31 @@ fun forall_elim
   t == t
 *)
 fun reflexive (ct as Cterm {thy_ref, t, T, maxidx, sorts}) =
-  Thm {thy_ref = thy_ref,
-    der = Deriv.rule0 Pt.reflexive,
+  Thm (deriv_rule0 Pt.reflexive,
+   {thy_ref = thy_ref,
     tags = [],
     maxidx = maxidx,
     shyps = sorts,
     hyps = [],
     tpairs = [],
-    prop = Logic.mk_equals (t, t)};
+    prop = Logic.mk_equals (t, t)});
 
 (*Symmetry
   t == u
   ------
   u == t
 *)
-fun symmetric (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, ...}) =
+fun symmetric (th as Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
     (eq as Const ("==", Type (_, [T, _]))) $ t $ u =>
-      Thm {thy_ref = thy_ref,
-        der = Deriv.rule1 Pt.symmetric der,
+      Thm (deriv_rule1 Pt.symmetric der,
+       {thy_ref = thy_ref,
         tags = [],
         maxidx = maxidx,
         shyps = shyps,
         hyps = hyps,
         tpairs = tpairs,
-        prop = eq $ u $ t}
+        prop = eq $ u $ t})
     | _ => raise THM ("symmetric", 0, [th]));
 
 (*Transitivity
@@ -729,24 +781,24 @@ fun symmetric (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, ...})
 *)
 fun transitive th1 th2 =
   let
-    val Thm {der = der1, maxidx = max1, hyps = hyps1, shyps = shyps1, tpairs = tpairs1,
-      prop = prop1, ...} = th1
-    and Thm {der = der2, maxidx = max2, hyps = hyps2, shyps = shyps2, tpairs = tpairs2,
-      prop = prop2, ...} = th2;
+    val Thm (der1, {maxidx = max1, hyps = hyps1, shyps = shyps1, tpairs = tpairs1,
+      prop = prop1, ...}) = th1
+    and Thm (der2, {maxidx = max2, hyps = hyps2, shyps = shyps2, tpairs = tpairs2,
+      prop = prop2, ...}) = th2;
     fun err msg = raise THM ("transitive: " ^ msg, 0, [th1, th2]);
   in
     case (prop1, prop2) of
       ((eq as Const ("==", Type (_, [T, _]))) $ t1 $ u, Const ("==", _) $ u' $ t2) =>
         if not (u aconv u') then err "middle term"
         else
-          Thm {thy_ref = merge_thys2 th1 th2,
-            der = Deriv.rule2 (Pt.transitive u T) der1 der2,
+          Thm (deriv_rule2 (Pt.transitive u T) der1 der2,
+           {thy_ref = merge_thys2 th1 th2,
             tags = [],
             maxidx = Int.max (max1, max2),
             shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
-            prop = eq $ t1 $ t2}
+            prop = eq $ t1 $ t2})
      | _ =>  err "premises"
   end;
 
@@ -761,35 +813,35 @@ fun beta_conversion full (Cterm {thy_ref, t, T, maxidx, sorts}) =
       (case t of Abs (_, _, bodt) $ u => subst_bound (u, bodt)
       | _ => raise THM ("beta_conversion: not a redex", 0, []));
   in
-    Thm {thy_ref = thy_ref,
-      der = Deriv.rule0 Pt.reflexive,
+    Thm (deriv_rule0 Pt.reflexive,
+     {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx,
       shyps = sorts,
       hyps = [],
       tpairs = [],
-      prop = Logic.mk_equals (t, t')}
+      prop = Logic.mk_equals (t, t')})
   end;
 
 fun eta_conversion (Cterm {thy_ref, t, T, maxidx, sorts}) =
-  Thm {thy_ref = thy_ref,
-    der = Deriv.rule0 Pt.reflexive,
+  Thm (deriv_rule0 Pt.reflexive,
+   {thy_ref = thy_ref,
     tags = [],
     maxidx = maxidx,
     shyps = sorts,
     hyps = [],
     tpairs = [],
-    prop = Logic.mk_equals (t, Envir.eta_contract t)};
+    prop = Logic.mk_equals (t, Envir.eta_contract t)});
 
 fun eta_long_conversion (Cterm {thy_ref, t, T, maxidx, sorts}) =
-  Thm {thy_ref = thy_ref,
-    der = Deriv.rule0 Pt.reflexive,
+  Thm (deriv_rule0 Pt.reflexive,
+   {thy_ref = thy_ref,
     tags = [],
     maxidx = maxidx,
     shyps = sorts,
     hyps = [],
     tpairs = [],
-    prop = Logic.mk_equals (t, Pattern.eta_long [] t)};
+    prop = Logic.mk_equals (t, Pattern.eta_long [] t)});
 
 (*The abstraction rule.  The Free or Var x must not be free in the hypotheses.
   The bound variable will be named "a" (since x will be something like x320)
@@ -799,20 +851,20 @@ fun eta_long_conversion (Cterm {thy_ref, t, T, maxidx, sorts}) =
 *)
 fun abstract_rule a
     (Cterm {t = x, T, sorts, ...})
-    (th as Thm {thy_ref, der, maxidx, hyps, shyps, tpairs, prop, ...}) =
+    (th as Thm (der, {thy_ref, maxidx, hyps, shyps, tpairs, prop, ...})) =
   let
     val (t, u) = Logic.dest_equals prop
       handle TERM _ => raise THM ("abstract_rule: premise not an equality", 0, [th]);
     val result =
-      Thm {thy_ref = thy_ref,
-        der = Deriv.rule1 (Pt.abstract_rule x a) der,
+      Thm (deriv_rule1 (Pt.abstract_rule x a) der,
+       {thy_ref = thy_ref,
         tags = [],
         maxidx = maxidx,
         shyps = Sorts.union sorts shyps,
         hyps = hyps,
         tpairs = tpairs,
         prop = Logic.mk_equals
-          (Abs (a, T, abstract_over (x, t)), Abs (a, T, abstract_over (x, u)))};
+          (Abs (a, T, abstract_over (x, t)), Abs (a, T, abstract_over (x, u)))});
     fun check_occs a x ts =
       if exists (fn t => Logic.occs (x, t)) ts then
         raise THM ("abstract_rule: variable " ^ quote a ^ " free in assumptions", 0, [th])
@@ -831,10 +883,10 @@ fun abstract_rule a
 *)
 fun combination th1 th2 =
   let
-    val Thm {der = der1, maxidx = max1, shyps = shyps1, hyps = hyps1, tpairs = tpairs1,
-      prop = prop1, ...} = th1
-    and Thm {der = der2, maxidx = max2, shyps = shyps2, hyps = hyps2, tpairs = tpairs2,
-      prop = prop2, ...} = th2;
+    val Thm (der1, {maxidx = max1, shyps = shyps1, hyps = hyps1, tpairs = tpairs1,
+      prop = prop1, ...}) = th1
+    and Thm (der2, {maxidx = max2, shyps = shyps2, hyps = hyps2, tpairs = tpairs2,
+      prop = prop2, ...}) = th2;
     fun chktypes fT tT =
       (case fT of
         Type ("fun", [T1, T2]) =>
@@ -847,14 +899,14 @@ fun combination th1 th2 =
       (Const ("==", Type ("fun", [fT, _])) $ f $ g,
        Const ("==", Type ("fun", [tT, _])) $ t $ u) =>
         (chktypes fT tT;
-          Thm {thy_ref = merge_thys2 th1 th2,
-            der = Deriv.rule2 (Pt.combination f g t u fT) der1 der2,
+          Thm (deriv_rule2 (Pt.combination f g t u fT) der1 der2,
+           {thy_ref = merge_thys2 th1 th2,
             tags = [],
             maxidx = Int.max (max1, max2),
             shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
-            prop = Logic.mk_equals (f $ t, g $ u)})
+            prop = Logic.mk_equals (f $ t, g $ u)}))
      | _ => raise THM ("combination: premises", 0, [th1, th2])
   end;
 
@@ -865,23 +917,23 @@ fun combination th1 th2 =
 *)
 fun equal_intr th1 th2 =
   let
-    val Thm {der = der1, maxidx = max1, shyps = shyps1, hyps = hyps1, tpairs = tpairs1,
-      prop = prop1, ...} = th1
-    and Thm {der = der2, maxidx = max2, shyps = shyps2, hyps = hyps2, tpairs = tpairs2,
-      prop = prop2, ...} = th2;
+    val Thm (der1, {maxidx = max1, shyps = shyps1, hyps = hyps1, tpairs = tpairs1,
+      prop = prop1, ...}) = th1
+    and Thm (der2, {maxidx = max2, shyps = shyps2, hyps = hyps2, tpairs = tpairs2,
+      prop = prop2, ...}) = th2;
     fun err msg = raise THM ("equal_intr: " ^ msg, 0, [th1, th2]);
   in
     case (prop1, prop2) of
       (Const("==>", _) $ A $ B, Const("==>", _) $ B' $ A') =>
         if A aconv A' andalso B aconv B' then
-          Thm {thy_ref = merge_thys2 th1 th2,
-            der = Deriv.rule2 (Pt.equal_intr A B) der1 der2,
+          Thm (deriv_rule2 (Pt.equal_intr A B) der1 der2,
+           {thy_ref = merge_thys2 th1 th2,
             tags = [],
             maxidx = Int.max (max1, max2),
             shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
-            prop = Logic.mk_equals (A, B)}
+            prop = Logic.mk_equals (A, B)})
         else err "not equal"
     | _ =>  err "premises"
   end;
@@ -893,23 +945,23 @@ fun equal_intr th1 th2 =
 *)
 fun equal_elim th1 th2 =
   let
-    val Thm {der = der1, maxidx = max1, shyps = shyps1, hyps = hyps1,
-      tpairs = tpairs1, prop = prop1, ...} = th1
-    and Thm {der = der2, maxidx = max2, shyps = shyps2, hyps = hyps2,
-      tpairs = tpairs2, prop = prop2, ...} = th2;
+    val Thm (der1, {maxidx = max1, shyps = shyps1, hyps = hyps1,
+      tpairs = tpairs1, prop = prop1, ...}) = th1
+    and Thm (der2, {maxidx = max2, shyps = shyps2, hyps = hyps2,
+      tpairs = tpairs2, prop = prop2, ...}) = th2;
     fun err msg = raise THM ("equal_elim: " ^ msg, 0, [th1, th2]);
   in
     case prop1 of
       Const ("==", _) $ A $ B =>
         if prop2 aconv A then
-          Thm {thy_ref = merge_thys2 th1 th2,
-            der = Deriv.rule2 (Pt.equal_elim A B) der1 der2,
+          Thm (deriv_rule2 (Pt.equal_elim A B) der1 der2,
+           {thy_ref = merge_thys2 th1 th2,
             tags = [],
             maxidx = Int.max (max1, max2),
             shyps = Sorts.union shyps1 shyps2,
             hyps = union_hyps hyps1 hyps2,
             tpairs = union_tpairs tpairs1 tpairs2,
-            prop = B}
+            prop = B})
         else err "not equal"
      | _ =>  err"major premise"
   end;
@@ -922,7 +974,7 @@ fun equal_elim th1 th2 =
   Instantiates the theorem and deletes trivial tpairs.  Resulting
   sequence may contain multiple elements if the tpairs are not all
   flex-flex.*)
-fun flexflex_rule (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, ...}) =
+fun flexflex_rule (th as Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let val thy = Theory.deref thy_ref in
     Unify.smash_unifiers thy tpairs (Envir.empty maxidx)
     |> Seq.map (fn env =>
@@ -932,13 +984,13 @@ fun flexflex_rule (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, .
             val tpairs' = tpairs |> map (pairself (Envir.norm_term env))
               (*remove trivial tpairs, of the form t==t*)
               |> filter_out (op aconv);
-            val der = Deriv.rule1 (Pt.norm_proof' env) der;
+            val der' = deriv_rule1 (Pt.norm_proof' env) der;
             val prop' = Envir.norm_term env prop;
             val maxidx = maxidx_tpairs tpairs' (maxidx_of_term prop');
             val shyps = Envir.insert_sorts env shyps;
           in
-            Thm {thy_ref = Theory.check_thy thy, der = der, tags = [], maxidx = maxidx,
-              shyps = shyps, hyps = hyps, tpairs = tpairs', prop = prop'}
+            Thm (der', {thy_ref = Theory.check_thy thy, tags = [], maxidx = maxidx,
+              shyps = shyps, hyps = hyps, tpairs = tpairs', prop = prop'})
           end)
   end;
 
@@ -952,7 +1004,7 @@ fun flexflex_rule (th as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, .
 fun generalize ([], []) _ th = th
   | generalize (tfrees, frees) idx th =
       let
-        val Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, ...} = th;
+        val Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...}) = th;
         val _ = idx <= maxidx andalso raise THM ("generalize: bad index", idx, [th]);
 
         val bad_type = if null tfrees then K false else
@@ -971,15 +1023,14 @@ fun generalize ([], []) _ th = th
         val tpairs' = map (pairself gen) tpairs;
         val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
       in
-        Thm {
-          thy_ref = thy_ref,
-          der = Deriv.rule1 (Pt.generalize (tfrees, frees) idx) der,
+        Thm (deriv_rule1 (Pt.generalize (tfrees, frees) idx) der,
+         {thy_ref = thy_ref,
           tags = [],
           maxidx = maxidx',
           shyps = shyps,
           hyps = hyps,
           tpairs = tpairs',
-          prop = prop'}
+          prop = prop'})
       end;
 
 
@@ -1035,7 +1086,7 @@ in
 fun instantiate ([], []) th = th
   | instantiate (instT, inst) th =
       let
-        val Thm {thy_ref, der, hyps, shyps, tpairs, prop, ...} = th;
+        val Thm (der, {thy_ref, hyps, shyps, tpairs, prop, ...}) = th;
         val (inst', (instT', (thy_ref', shyps'))) =
           (thy_ref, shyps) |> fold_map add_inst inst ||> fold_map add_instT instT;
         val subst = TermSubst.instantiate_maxidx (instT', inst');
@@ -1043,15 +1094,14 @@ fun instantiate ([], []) th = th
         val (tpairs', maxidx') =
           fold_map (fn (t, u) => fn i => subst t i ||>> subst u) tpairs maxidx1;
       in
-        Thm {thy_ref = thy_ref',
-          der = Deriv.rule1 (fn d =>
-            Pt.instantiate (map (apsnd #1) instT', map (apsnd #1) inst') d) der,
+        Thm (deriv_rule1 (fn d => Pt.instantiate (map (apsnd #1) instT', map (apsnd #1) inst') d) der,
+         {thy_ref = thy_ref',
           tags = [],
           maxidx = maxidx',
           shyps = shyps',
           hyps = hyps,
           tpairs = tpairs',
-          prop = prop'}
+          prop = prop'})
       end
       handle TYPE (msg, _, _) => raise THM (msg, 0, [th]);
 
@@ -1077,14 +1127,14 @@ fun trivial (Cterm {thy_ref, t =A, T, maxidx, sorts}) =
   if T <> propT then
     raise THM ("trivial: the term must have type prop", 0, [])
   else
-    Thm {thy_ref = thy_ref,
-      der = Deriv.rule0 (Pt.AbsP ("H", NONE, Pt.PBound 0)),
+    Thm (deriv_rule0 (Pt.AbsP ("H", NONE, Pt.PBound 0)),
+     {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx,
       shyps = sorts,
       hyps = [],
       tpairs = [],
-      prop = Logic.mk_implies (A, A)};
+      prop = Logic.mk_implies (A, A)});
 
 (*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)" *)
 fun class_triv thy c =
@@ -1092,16 +1142,16 @@ fun class_triv thy c =
     val Cterm {t, maxidx, sorts, ...} =
       cterm_of thy (Logic.mk_inclass (TVar ((Name.aT, 0), [c]), Sign.certify_class thy c))
         handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
-    val der = Deriv.rule0 (Pt.PAxm ("Pure.class_triv:" ^ c, t, SOME []));
+    val der = deriv_rule0 (Pt.PAxm ("Pure.class_triv:" ^ c, t, SOME []));
   in
-    Thm {thy_ref = Theory.check_thy thy, der = der, tags = [], maxidx = maxidx,
-      shyps = sorts, hyps = [], tpairs = [], prop = t}
+    Thm (der, {thy_ref = Theory.check_thy thy, tags = [], maxidx = maxidx,
+      shyps = sorts, hyps = [], tpairs = [], prop = t})
   end;
 
 (*Internalize sort constraints of type variable*)
 fun unconstrainT
     (Ctyp {thy_ref = thy_ref1, T, ...})
-    (th as Thm {thy_ref = thy_ref2, der, maxidx, shyps, hyps, tpairs, prop, ...}) =
+    (th as Thm (_, {thy_ref = thy_ref2, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
     val ((x, i), S) = Term.dest_TVar T handle TYPE _ =>
       raise THM ("unconstrainT: not a type variable", 0, [th]);
@@ -1109,58 +1159,58 @@ fun unconstrainT
     val unconstrain = Term.map_types (Term.map_atyps (fn U => if U = T then T' else U));
     val constraints = map (curry Logic.mk_inclass T') S;
   in
-    Thm {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
-      der = Deriv.rule0 (Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
+    Thm (deriv_rule0 (Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
+     {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
       tags = [],
       maxidx = Int.max (maxidx, i),
       shyps = Sorts.remove_sort S shyps,
       hyps = hyps,
       tpairs = map (pairself unconstrain) tpairs,
-      prop = Logic.list_implies (constraints, unconstrain prop)}
+      prop = Logic.list_implies (constraints, unconstrain prop)})
   end;
 
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
-fun varifyT' fixed (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, ...}) =
+fun varifyT' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
     val tfrees = List.foldr add_term_tfrees fixed hyps;
     val prop1 = attach_tpairs tpairs prop;
     val (al, prop2) = Type.varify tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
-    (al, Thm {thy_ref = thy_ref,
-      der = Deriv.rule1 (Pt.varify_proof prop tfrees) der,
+    (al, Thm (deriv_rule1 (Pt.varify_proof prop tfrees) der,
+     {thy_ref = thy_ref,
       tags = [],
       maxidx = Int.max (0, maxidx),
+      shyps = shyps,
+      hyps = hyps,
+      tpairs = rev (map Logic.dest_equals ts),
+      prop = prop3}))
+  end;
+
+val varifyT = #2 o varifyT' [];
+
+(* Replace all TVars by new TFrees *)
+fun freezeT (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
+  let
+    val prop1 = attach_tpairs tpairs prop;
+    val prop2 = Type.freeze prop1;
+    val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
+  in
+    Thm (deriv_rule1 (Pt.freezeT prop1) der,
+     {thy_ref = thy_ref,
+      tags = [],
+      maxidx = maxidx_of_term prop2,
       shyps = shyps,
       hyps = hyps,
       tpairs = rev (map Logic.dest_equals ts),
       prop = prop3})
   end;
 
-val varifyT = #2 o varifyT' [];
-
-(* Replace all TVars by new TFrees *)
-fun freezeT (Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, ...}) =
-  let
-    val prop1 = attach_tpairs tpairs prop;
-    val prop2 = Type.freeze prop1;
-    val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
-  in
-    Thm {thy_ref = thy_ref,
-      der = Deriv.rule1 (Pt.freezeT prop1) der,
-      tags = [],
-      maxidx = maxidx_of_term prop2,
-      shyps = shyps,
-      hyps = hyps,
-      tpairs = rev (map Logic.dest_equals ts),
-      prop = prop3}
-  end;
-
 
 (*** Inference rules for tactics ***)
 
 (*Destruct proof state into constraints, other goals, goal(i), rest *)
-fun dest_state (state as Thm{prop,tpairs,...}, i) =
+fun dest_state (state as Thm (_, {prop,tpairs,...}), i) =
   (case  Logic.strip_prems(i, [], prop) of
       (B::rBs, C) => (tpairs, rev rBs, B, C)
     | _ => raise THM("dest_state", i, [state]))
@@ -1174,46 +1224,45 @@ fun lift_rule goal orule =
     val inc = gmax + 1;
     val lift_abs = Logic.lift_abs inc gprop;
     val lift_all = Logic.lift_all inc gprop;
-    val Thm {der, maxidx, shyps, hyps, tpairs, prop, ...} = orule;
+    val Thm (der, {maxidx, shyps, hyps, tpairs, prop, ...}) = orule;
     val (As, B) = Logic.strip_horn prop;
   in
     if T <> propT then raise THM ("lift_rule: the term must have type prop", 0, [])
     else
-      Thm {thy_ref = merge_thys1 goal orule,
-        der = Deriv.rule1 (Pt.lift_proof gprop inc prop) der,
+      Thm (deriv_rule1 (Pt.lift_proof gprop inc prop) der,
+       {thy_ref = merge_thys1 goal orule,
         tags = [],
         maxidx = maxidx + inc,
         shyps = Sorts.union shyps sorts,  (*sic!*)
         hyps = hyps,
         tpairs = map (pairself lift_abs) tpairs,
-        prop = Logic.list_implies (map lift_all As, lift_all B)}
+        prop = Logic.list_implies (map lift_all As, lift_all B)})
   end;
 
-fun incr_indexes i (thm as Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, ...}) =
+fun incr_indexes i (thm as Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   if i < 0 then raise THM ("negative increment", 0, [thm])
   else if i = 0 then thm
   else
-    Thm {thy_ref = thy_ref,
-      der = Deriv.rule1 (Pt.map_proof_terms (Logic.incr_indexes ([], i)) (Logic.incr_tvar i)) der,
+    Thm (deriv_rule1 (Pt.map_proof_terms (Logic.incr_indexes ([], i)) (Logic.incr_tvar i)) der,
+     {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx + i,
       shyps = shyps,
       hyps = hyps,
       tpairs = map (pairself (Logic.incr_indexes ([], i))) tpairs,
-      prop = Logic.incr_indexes ([], i) prop};
+      prop = Logic.incr_indexes ([], i) prop});
 
 (*Solve subgoal Bi of proof state B1...Bn/C by assumption. *)
 fun assumption i state =
   let
-    val Thm {thy_ref, der, maxidx, shyps, hyps, prop, ...} = state;
+    val Thm (der, {thy_ref, maxidx, shyps, hyps, prop, ...}) = state;
     val thy = Theory.deref thy_ref;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     fun newth n (env as Envir.Envir {maxidx, ...}, tpairs) =
-      Thm {
-        der = Deriv.rule1
+      Thm (deriv_rule1
           ((if Envir.is_empty env then I else (Pt.norm_proof' env)) o
             Pt.assumption_proof Bs Bi n) der,
-        tags = [],
+       {tags = [],
         maxidx = maxidx,
         shyps = Envir.insert_sorts env shyps,
         hyps = hyps,
@@ -1225,7 +1274,7 @@ fun assumption i state =
             Logic.list_implies (Bs, C)
           else (*normalize the new rule fully*)
             Envir.norm_term env (Logic.list_implies (Bs, C)),
-        thy_ref = Theory.check_thy thy};
+        thy_ref = Theory.check_thy thy});
     fun addprfs [] _ = Seq.empty
       | addprfs ((t, u) :: apairs) n = Seq.make (fn () => Seq.pull
           (Seq.mapp (newth n)
@@ -1237,27 +1286,27 @@ fun assumption i state =
   Checks if Bi's conclusion is alpha-convertible to one of its assumptions*)
 fun eq_assumption i state =
   let
-    val Thm {thy_ref, der, maxidx, shyps, hyps, prop, ...} = state;
+    val Thm (der, {thy_ref, maxidx, shyps, hyps, prop, ...}) = state;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
   in
     (case find_index Pattern.aeconv (Logic.assum_pairs (~1, Bi)) of
       ~1 => raise THM ("eq_assumption", 0, [state])
     | n =>
-        Thm {thy_ref = thy_ref,
-          der = Deriv.rule1 (Pt.assumption_proof Bs Bi (n + 1)) der,
+        Thm (deriv_rule1 (Pt.assumption_proof Bs Bi (n + 1)) der,
+         {thy_ref = thy_ref,
           tags = [],
           maxidx = maxidx,
           shyps = shyps,
           hyps = hyps,
           tpairs = tpairs,
-          prop = Logic.list_implies (Bs, C)})
+          prop = Logic.list_implies (Bs, C)}))
   end;
 
 
 (*For rotate_tac: fast rotation of assumptions of subgoal i*)
 fun rotate_rule k i state =
   let
-    val Thm {thy_ref, der, maxidx, shyps, hyps, prop, ...} = state;
+    val Thm (der, {thy_ref, maxidx, shyps, hyps, prop, ...}) = state;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     val params = Term.strip_all_vars Bi
     and rest   = Term.strip_all_body Bi;
@@ -1272,14 +1321,14 @@ fun rotate_rule k i state =
         in list_all (params, Logic.list_implies (qs @ ps, concl)) end
       else raise THM ("rotate_rule", k, [state]);
   in
-    Thm {thy_ref = thy_ref,
-      der = Deriv.rule1 (Pt.rotate_proof Bs Bi m) der,
+    Thm (deriv_rule1 (Pt.rotate_proof Bs Bi m) der,
+     {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx,
       shyps = shyps,
       hyps = hyps,
       tpairs = tpairs,
-      prop = Logic.list_implies (Bs @ [Bi'], C)}
+      prop = Logic.list_implies (Bs @ [Bi'], C)})
   end;
 
 
@@ -1288,7 +1337,7 @@ fun rotate_rule k i state =
   number of premises.  Useful with etac and underlies defer_tac*)
 fun permute_prems j k rl =
   let
-    val Thm {thy_ref, der, maxidx, shyps, hyps, tpairs, prop, ...} = rl;
+    val Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...}) = rl;
     val prems = Logic.strip_imp_prems prop
     and concl = Logic.strip_imp_concl prop;
     val moved_prems = List.drop (prems, j)
@@ -1303,14 +1352,14 @@ fun permute_prems j k rl =
         in Logic.list_implies (fixed_prems @ qs @ ps, concl) end
       else raise THM ("permute_prems: k", k, [rl]);
   in
-    Thm {thy_ref = thy_ref,
-      der = Deriv.rule1 (Pt.permute_prems_prf prems j m) der,
+    Thm (deriv_rule1 (Pt.permute_prems_prf prems j m) der,
+     {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx,
       shyps = shyps,
       hyps = hyps,
       tpairs = tpairs,
-      prop = prop'}
+      prop = prop'})
   end;
 
 
@@ -1322,7 +1371,7 @@ fun permute_prems j k rl =
   preceding parameters may be renamed to make all params distinct.*)
 fun rename_params_rule (cs, i) state =
   let
-    val Thm {thy_ref, der, tags, maxidx, shyps, hyps, ...} = state;
+    val Thm (der, {thy_ref, tags, maxidx, shyps, hyps, ...}) = state;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
     val iparams = map #1 (Logic.strip_params Bi);
     val short = length iparams - length cs;
@@ -1338,31 +1387,30 @@ fun rename_params_rule (cs, i) state =
       (case cs inter_string freenames of
         a :: _ => (warning ("Can't rename.  Bound/Free variable clash: " ^ a); state)
       | [] =>
-        Thm {thy_ref = thy_ref,
-          der = der,
+        Thm (der,
+         {thy_ref = thy_ref,
           tags = tags,
           maxidx = maxidx,
           shyps = shyps,
           hyps = hyps,
           tpairs = tpairs,
-          prop = Logic.list_implies (Bs @ [newBi], C)}))
+          prop = Logic.list_implies (Bs @ [newBi], C)})))
   end;
 
 
 (*** Preservation of bound variable names ***)
 
-fun rename_boundvars pat obj (thm as Thm {thy_ref, der, tags, maxidx, shyps, hyps, tpairs, prop}) =
+fun rename_boundvars pat obj (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
   (case Term.rename_abs pat obj prop of
     NONE => thm
-  | SOME prop' => Thm
+  | SOME prop' => Thm (der,
       {thy_ref = thy_ref,
-       der = der,
        tags = tags,
        maxidx = maxidx,
        hyps = hyps,
        shyps = shyps,
        tpairs = tpairs,
-       prop = prop'});
+       prop = prop'}));
 
 
 (* strip_apply f (A, B) strips off all assumptions/parameters from A
@@ -1445,9 +1493,9 @@ local exception COMPOSE
 in
 fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
                         (eres_flg, orule, nsubgoal) =
- let val Thm{der=sder, maxidx=smax, shyps=sshyps, hyps=shyps, ...} = state
-     and Thm{der=rder, maxidx=rmax, shyps=rshyps, hyps=rhyps,
-             tpairs=rtpairs, prop=rprop,...} = orule
+ let val Thm (sder, {maxidx=smax, shyps=sshyps, hyps=shyps, ...}) = state
+     and Thm (rder, {maxidx=rmax, shyps=rshyps, hyps=rhyps,
+             tpairs=rtpairs, prop=rprop,...}) = orule
          (*How many hyps to skip over during normalization*)
      and nlift = Logic.count_prems (strip_all_body Bi) + (if eres_flg then ~1 else 0)
      val thy = Theory.deref (merge_thys2 state orule);
@@ -1469,20 +1517,20 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
                   (ntps, (map normt (Bs @ As), normt C))
              end
            val th =
-             Thm{der = Deriv.rule2
+             Thm (deriv_rule2
                    ((if Envir.is_empty env then I
                      else if Envir.above env smax then
                        (fn f => fn der => f (Pt.norm_proof' env der))
                      else
                        curry op oo (Pt.norm_proof' env))
                     (Pt.bicompose_proof flatten Bs oldAs As A n (nlift+1))) rder' sder,
-                 tags = [],
+                {tags = [],
                  maxidx = maxidx,
                  shyps = Envir.insert_sorts env (Sorts.union rshyps sshyps),
                  hyps = union_hyps rhyps shyps,
                  tpairs = ntpairs,
                  prop = Logic.list_implies normp,
-                 thy_ref = Theory.check_thy thy}
+                 thy_ref = Theory.check_thy thy})
         in  Seq.cons th thq  end  handle COMPOSE => thq;
      val (rAs,B) = Logic.strip_prems(nsubgoal, [], rprop)
        handle TERM _ => raise THM("bicompose: rule", 0, [orule,state]);
@@ -1491,7 +1539,7 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
        let val (As1, rder') =
          if not lifted then (As0, rder)
          else (map (rename_bvars(dpairs,tpairs,B)) As0,
-           Deriv.rule1 (Pt.map_proof_terms
+           deriv_rule1 (Pt.map_proof_terms
              (rename_bvars (dpairs, tpairs, Bound 0)) I) rder);
        in (map (if flatten then (Logic.flatten_params n) else I) As1, As1, rder', n)
           handle TERM _ =>
@@ -1555,6 +1603,28 @@ fun biresolution match brules i state =
     in  Seq.flat (res brules)  end;
 
 
+
+(*** Promises ***)
+
+fun promise future ct =
+  let
+    val {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = rep_cterm ct;
+    val thy = Context.reject_draft (Theory.deref thy_ref);
+    val _ = T <> propT andalso raise CTERM ("promise: prop expected", [ct]);
+    val i = serial ();
+  in
+    Thm (deriv_promise i thy future prop,
+     {thy_ref = thy_ref,
+      tags = [],
+      maxidx = maxidx,
+      shyps = sorts,
+      hyps = [],
+      tpairs = [],
+      prop = prop})
+  end;
+
+
+
 (*** Oracles ***)
 
 (* oracle rule *)
@@ -1564,14 +1634,14 @@ fun invoke_oracle thy_ref1 name oracle arg =
     if T <> propT then
       raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
     else
-      Thm {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
-        der = Deriv.oracle name prop,
+      Thm (deriv_oracle name prop,
+       {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
         tags = [],
         maxidx = maxidx,
         shyps = sorts,
         hyps = [],
         tpairs = [],
-        prop = prop}
+        prop = prop})
   end;
 
 end;
