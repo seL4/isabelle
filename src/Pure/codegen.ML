@@ -77,10 +77,7 @@ sig
   val mk_term_of: codegr -> string -> bool -> typ -> Pretty.T
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
   val test_fn: (int -> (string * term) list option) ref
-  val test_term: theory -> bool -> int -> int -> term -> (string * term) list option
-  val test_term': Proof.context -> term -> int -> term list option
-  val auto_quickcheck: bool ref
-  val auto_quickcheck_time_limit: int ref
+  val test_term: Proof.context -> term -> int -> term list option
   val eval_result: (unit -> term) ref
   val eval_term: theory -> term -> term
   val evaluation_conv: cterm -> thm
@@ -918,7 +915,7 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
 
 val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
 
-fun test_term' ctxt t =
+fun test_term ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
     val (code, gr) = setmp mode ["term_of", "test"]
@@ -950,101 +947,6 @@ fun test_term' ctxt t =
     val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
   in ! test_fn #> (Option.map o map) snd end;
 
-fun test_term thy quiet sz i t =
-  let
-    val ctxt = ProofContext.init thy;
-    val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
-      error "Term to be tested contains type variables";
-    val _ = null (term_vars t) orelse
-      error "Term to be tested contains schematic variables";
-    val frees = map dest_Free (term_frees t);
-    val frees' = frees ~~
-      map (fn i => "arg" ^ string_of_int i) (1 upto length frees);
-    val (code, gr) = setmp mode ["term_of", "test"]
-      (generate_code_i thy [] "Generated") [("testf", list_abs_free (frees, t))];
-    val s = "structure TestTerm =\nstruct\n\n" ^
-      cat_lines (map snd code) ^
-      "\nopen Generated;\n\n" ^ string_of
-        (Pretty.block [str "val () = Codegen.test_fn :=",
-          Pretty.brk 1, str ("(fn i =>"), Pretty.brk 1,
-          mk_let (map (fn ((s, T), s') =>
-              (mk_tuple [str s', str (s' ^ "_t")],
-               Pretty.block [mk_gen gr "Generated" false [] "" T, Pretty.brk 1,
-                 str "i"])) frees')
-            (Pretty.block [str "if ",
-              mk_app false (str "testf") (map (str o snd) frees'),
-              Pretty.brk 1, str "then NONE",
-              Pretty.brk 1, str "else ",
-              Pretty.block [str "SOME ", Pretty.block (str "[" ::
-                flat (separate [str ",", Pretty.brk 1]
-                  (map (fn ((s, T), s') => [Pretty.block
-                    [str ("(" ^ quote (Symbol.escape s) ^ ","), Pretty.brk 1,
-                     str (s' ^ "_t ())")]]) frees')) @
-                  [str "]"])]]),
-          str ");"]) ^
-      "\n\nend;\n";
-    val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
-    fun iter f k = if k > i then NONE
-      else (case (f () handle Match =>
-          (if quiet then ()
-           else warning "Exception Match raised in generated code"; NONE)) of
-        NONE => iter f (k+1) | SOME x => SOME x);
-    fun test k = if k > sz then NONE
-      else (if quiet then () else priority ("Test data size: " ^ string_of_int k);
-        case iter (fn () => !test_fn k) 1 of
-          NONE => test (k+1) | SOME x => SOME x);
-  in test 0 end;
-
-fun test_goal quiet ({size, iterations, default_type}, tvinsts) i assms state =
-  let
-    val thy = Proof.theory_of state;
-    fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
-      | strip t = t;
-    val (_, (_, st)) = Proof.get_goal state;
-    val (gi, frees) = Logic.goal_params (prop_of st) i;
-    val gi' = ObjectLogic.atomize_term thy (map_types
-      (map_type_tfree (fn p as (s, S) =>
-        let val T = the_default (the_default (TFree p) default_type)
-          (AList.lookup (op =) tvinsts s)
-        in if Sign.of_sort thy (T, S) then T
-          else error ("Type " ^ Syntax.string_of_typ_global thy T ^
-            " to be substituted for variable " ^
-            Syntax.string_of_typ_global thy (TFree p) ^ "\ndoes not have sort " ^
-            Syntax.string_of_sort_global thy S)
-        end))
-      (Logic.list_implies (assms, subst_bounds (frees, strip gi))));
-  in test_term thy quiet size iterations gi' end;
-
-fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
-  | pretty_counterex ctxt (SOME cex) =
-      Pretty.chunks (Pretty.str "Counterexample found:\n" ::
-        map (fn (s, t) =>
-          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) cex);
-
-val auto_quickcheck = ref false;
-val auto_quickcheck_time_limit = ref 5000;
-
-fun test_goal' int state =
-  let
-    val ctxt = Proof.context_of state;
-    val assms = map term_of (Assumption.assms_of ctxt);
-    val params = get_test_params (Proof.theory_of state);
-    fun test () =
-      let
-        val res = TimeLimit.timeLimit (Time.fromMilliseconds (!auto_quickcheck_time_limit))
-          (try (test_goal true (params, []) 1 assms)) state;
-      in
-        case res of
-          NONE => state
-        | SOME NONE => state
-        | SOME cex => Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
-            Pretty.mark Markup.hilite (pretty_counterex ctxt cex)]) state
-      end handle TimeLimit.TimeOut => (warning "Auto quickcheck: timeout."; state);
-  in
-    if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
-    then test ()
-    else state
-  end;
 
 
 (**** Evaluator for terms ****)
@@ -1165,11 +1067,9 @@ fun parse_code lib =
 val setup = add_codegen "default" default_codegen
   #> add_tycodegen "default" default_tycodegen
   #> Value.add_evaluator ("SML", eval_term o ProofContext.theory_of)
-  #> Quickcheck.add_generator ("SML", test_term')
+  #> Quickcheck.add_generator ("SML", test_term)
   #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
        (fn thm => Context.mapping (add_unfold thm #> Code.add_inline thm) I)));
-
-val _ = Context.>> (Specification.add_theorem_hook test_goal');
 
 val _ =
   OuterSyntax.command "code_library"
@@ -1181,37 +1081,4 @@ val _ =
     "generates code for terms (single structure, incremental)" K.thy_decl
     (parse_code false);
 
-val params =
-  [("size", P.nat >> (K o set_size)),
-   ("iterations", P.nat >> (K o set_iterations)),
-   ("default_type", P.typ >> set_default_type)];
-
-val parse_test_params = P.short_ident :|-- (fn s =>
-  P.$$$ "=" |-- (AList.lookup (op =) params s |> the_default Scan.fail));
-
-fun parse_tyinst xs =
-  (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn thy =>
-    fn (x, ys) => (x, (v, Syntax.read_typ_global thy s) :: ys))) xs;
-
-val _ =
-  OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
-    (P.$$$ "[" |-- P.list1 parse_test_params --| P.$$$ "]" >>
-      (fn fs => Toplevel.theory (fn thy =>
-         map_test_params (Library.apply (map (fn f => f thy) fs)) thy)));
-
-val _ =
-  OuterSyntax.command "quickcheck" "try to find counterexample for subgoal" K.diag
-  (Scan.option (P.$$$ "[" |-- P.list1
-    (   parse_test_params >> (fn f => fn thy => apfst (f thy))
-     || parse_tyinst) --| P.$$$ "]") -- Scan.optional P.nat 1 >>
-    (fn (ps, g) => Toplevel.keep (fn st => Toplevel.proof_of st |>
-      test_goal false (Library.apply (the_default []
-          (Option.map (map (fn f => f (Toplevel.theory_of st))) ps))
-        (get_test_params (Toplevel.theory_of st), [])) g [] |>
-      pretty_counterex (Toplevel.context_of st) |> Pretty.writeln)));
-
 end;
-
-val auto_quickcheck = Codegen.auto_quickcheck;
-val auto_quickcheck_time_limit = Codegen.auto_quickcheck_time_limit;
-

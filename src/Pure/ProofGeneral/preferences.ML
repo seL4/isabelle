@@ -143,10 +143,10 @@ val tracing_preferences =
      bool_pref Toplevel.debug
                 "debugging"
                 "Whether to enable debugging.",
-     bool_pref Codegen.auto_quickcheck
+     bool_pref Quickcheck.auto
                 "auto-quickcheck"
                 "Whether to enable quickcheck automatically.",
-     nat_pref Codegen.auto_quickcheck_time_limit
+     nat_pref Quickcheck.auto_time_limit
                 "auto-quickcheck-time-limit"
                 "Time limit for automatic quickcheck (in milliseconds).",
      thm_deps_pref]

@@ -285,99 +285,124 @@ setup {*
 
 subsection {* Examples *}
 
-(*lemma
-  fixes n m :: nat
-  shows "n + m \<le> n * m"
-;test_goal [code];
-oops*)
+theorem "map g (map f xs) = map (g o f) xs"
+  quickcheck [generator = code]
+  by (induct xs) simp_all
 
-ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(n::nat) (m::nat) (q::nat). n = m + q + 1"} *}
+theorem "map g (map f xs) = map (f o g) xs"
+  quickcheck [generator = code]
+  oops
 
-ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 25 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+theorem "rev (xs @ ys) = rev ys @ rev xs"
+  quickcheck [generator = code]
+  by simp
 
-ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(n::int) (m::int) (q::int). n = m + q + 1"} *}
+theorem "rev (xs @ ys) = rev xs @ rev ys"
+  quickcheck [generator = code]
+  oops
 
-ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 25 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 3 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+theorem "rev (rev xs) = xs"
+  quickcheck [generator = code]
+  by simp
 
-ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(xs\<Colon>int list) ys. rev (xs @ ys) = rev xs @ rev ys"} *}
+theorem "rev xs = xs"
+  quickcheck [generator = code]
+  oops
 
-ML {* f 15 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 25 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 88 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+primrec app :: "('a \<Rightarrow> 'a) list \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "app [] x = x"
+  | "app (f # fs) x = app fs (f x)"
 
-ML {* f 1 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 2 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 3 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 5 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 6 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+lemma "app (fs @ gs) x = app gs (app fs x)"
+  quickcheck [generator = code]
+  by (induct fs arbitrary: x) simp_all
 
-ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>(s \<Colon> string). s \<noteq> rev s"} *}
+lemma "app (fs @ gs) x = app fs (app gs x)"
+  quickcheck [generator = code]
+  oops
 
-ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 4 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 10 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 8 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+primrec occurs :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
+  "occurs a [] = 0"
+  | "occurs a (x#xs) = (if (x=a) then Suc(occurs a xs) else occurs a xs)"
 
-ML {* val f = Quickcheck.compile_generator_expr @{theory}
-  @{term "\<lambda>f k. int (f k) = k"} *}
+primrec del1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "del1 a [] = []"
+  | "del1 a (x#xs) = (if (x=a) then xs else (x#del1 a xs))"
 
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
-ML {* f 20 |> (Option.map o map) (Syntax.string_of_term @{context}) *}
+lemma "Suc (occurs a (del1 a xs)) = occurs a xs"
+  -- {* Wrong. Precondition needed.*}
+  quickcheck [generator = code]
+  oops
+
+lemma "xs ~= [] \<longrightarrow> Suc (occurs a (del1 a xs)) = occurs a xs"
+  quickcheck [generator = code]
+    -- {* Also wrong.*}
+  oops
+
+lemma "0 < occurs a xs \<longrightarrow> Suc (occurs a (del1 a xs)) = occurs a xs"
+  quickcheck [generator = code]
+  by (induct xs) auto
+
+primrec replace :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "replace a b [] = []"
+  | "replace a b (x#xs) = (if (x=a) then (b#(replace a b xs)) 
+                            else (x#(replace a b xs)))"
+
+lemma "occurs a xs = occurs b (replace a b xs)"
+  quickcheck [generator = code]
+  -- {* Wrong. Precondition needed.*}
+  oops
+
+lemma "occurs b xs = 0 \<or> a=b \<longrightarrow> occurs a xs = occurs b (replace a b xs)"
+  quickcheck [generator = code]
+  by (induct xs) simp_all
+
+
+subsection {* Trees *}
+
+datatype 'a tree = Twig |  Leaf 'a | Branch "'a tree" "'a tree"
+
+primrec leaves :: "'a tree \<Rightarrow> 'a list" where
+  "leaves Twig = []"
+  | "leaves (Leaf a) = [a]"
+  | "leaves (Branch l r) = (leaves l) @ (leaves r)"
+
+primrec plant :: "'a list \<Rightarrow> 'a tree" where
+  "plant [] = Twig "
+  | "plant (x#xs) = Branch (Leaf x) (plant xs)"
+
+primrec mirror :: "'a tree \<Rightarrow> 'a tree" where
+  "mirror (Twig) = Twig "
+  | "mirror (Leaf a) = Leaf a "
+  | "mirror (Branch l r) = Branch (mirror r) (mirror l)"
+
+theorem "plant (rev (leaves xt)) = mirror xt"
+  quickcheck [generator = code]
+    --{* Wrong! *} 
+  oops
+
+theorem "plant (leaves xt @ leaves yt) = Branch xt yt"
+  quickcheck [generator = code]
+    --{* Wrong! *} 
+  oops
+
+datatype 'a ntree = Tip "'a" | Node "'a" "'a ntree" "'a ntree"
+
+primrec inOrder :: "'a ntree \<Rightarrow> 'a list" where
+  "inOrder (Tip a)= [a]"
+  | "inOrder (Node f x y) = (inOrder x)@[f]@(inOrder y)"
+
+primrec root :: "'a ntree \<Rightarrow> 'a" where
+  "root (Tip a) = a"
+  | "root (Node f x y) = f"
+
+theorem "hd (inOrder xt) = root xt"
+  quickcheck [generator = code]
+    --{* Wrong! *} 
+  oops
+
+lemma "int (f k) = k"
+  quickcheck [generator = code]
+  oops
 
 end

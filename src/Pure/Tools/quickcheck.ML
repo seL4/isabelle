@@ -7,16 +7,22 @@ Generic counterexample search engine.
 
 signature QUICKCHECK =
 sig
-  val test_term: string option -> Proof.context -> bool -> int -> int -> term -> (string * term) list option;
+  val test_term: Proof.context -> bool -> string option -> int -> int -> term -> (string * term) list option;
   val add_generator: string * (Proof.context -> term -> int -> term list option) -> theory -> theory
+  val auto: bool ref
+  val auto_time_limit: int ref
 end;
 
 structure Quickcheck : QUICKCHECK =
 struct
 
+(* quickcheck configuration -- default parameters, test generators *)
+
 datatype test_params = Test_Params of
   { size: int, iterations: int, default_type: typ option };
 
+fun dest_test_params (Test_Params { size, iterations, default_type}) =
+  ((size, iterations), default_type);
 fun mk_test_params ((size, iterations), default_type) =
   Test_Params { size = size, iterations = iterations, default_type = default_type };
 fun map_test_params f (Test_Params { size, iterations, default_type}) =
@@ -39,6 +45,9 @@ structure Data = TheoryDataFun(
 
 val add_generator = Data.map o apfst o AList.update (op =);
 
+
+(* generating tests *)
+
 fun mk_tester_select name ctxt =
   case AList.lookup (op =) ((fst o Data.get o ProofContext.theory_of) ctxt) name
    of NONE => error ("No such quickcheck generator: " ^ name)
@@ -57,6 +66,9 @@ fun mk_testers_strict ctxt t =
     else map_filter Exn.get_result testers
   end;
 
+
+(* testing propositions *)
+
 fun prep_test_term t =
   let
     val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
@@ -66,7 +78,7 @@ fun prep_test_term t =
     val frees = map dest_Free (term_frees t);
   in (map fst frees, list_abs_free (frees, t)) end
 
-fun test_term generator_name ctxt quiet size i t =
+fun test_term ctxt quiet generator_name size i t =
   let
     val (names, t') = prep_test_term t;
     val testers = case generator_name
@@ -96,7 +108,7 @@ fun monomorphic_term thy insts default_T =
           let
             val T' = AList.lookup (op =) insts v
               |> the_default (the_default T default_T)
-          in if Sign.of_sort thy (T, S) then T
+          in if Sign.of_sort thy (T, S) then T'
             else error ("Type " ^ Syntax.string_of_typ_global thy T ^
               " to be substituted for variable " ^
               Syntax.string_of_typ_global thy T ^ "\ndoes not have sort " ^
@@ -105,13 +117,7 @@ fun monomorphic_term thy insts default_T =
       | subst T = T;
   in (map_types o map_atyps) subst end;
 
-fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
-  | pretty_counterex ctxt (SOME cex) =
-      Pretty.chunks (Pretty.str "Counterexample found:\n" ::
-        map (fn (s, t) =>
-          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) cex);
-
-fun test_goal generator_name quiet size iterations default_T insts i assms state =
+fun test_goal quiet generator_name size iterations default_T insts i assms state =
   let
     val ctxt = Proof.context_of state;
     val thy = Proof.theory_of state;
@@ -122,7 +128,16 @@ fun test_goal generator_name quiet size iterations default_T insts i assms state
     val gi' = Logic.list_implies (assms, subst_bounds (frees, strip gi))
       |> monomorphic_term thy insts default_T
       |> ObjectLogic.atomize_term thy;
-  in test_term generator_name ctxt quiet size iterations gi' end;
+  in test_term ctxt quiet generator_name size iterations gi' end;
+
+fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
+  | pretty_counterex ctxt (SOME cex) =
+      Pretty.chunks (Pretty.str "Counterexample found:\n" ::
+        map (fn (s, t) =>
+          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) cex);
+
+
+(* automatic testing *)
 
 val auto = ref false;
 val auto_time_limit = ref 5000;
@@ -136,7 +151,7 @@ fun test_goal_auto int state =
     fun test () =
       let
         val res = TimeLimit.timeLimit (Time.fromMilliseconds (!auto_time_limit))
-          (try (test_goal NONE true size iterations default_type [] 1 assms)) state;
+          (try (test_goal true NONE size iterations default_type [] 1 assms)) state;
       in
         case res of
           NONE => state
@@ -150,119 +165,71 @@ fun test_goal_auto int state =
     else state
   end;
 
-(*val _ = Context.>> (Specification.add_theorem_hook test_goal_auto);*)
+val _ = Context.>> (Specification.add_theorem_hook test_goal_auto);
 
-fun test_goal_cmd generator_name i state =
-  test_goal generator_name false 10 100 NONE [] i [] (Toplevel.proof_of state)
-  |> pretty_counterex (Toplevel.context_of state)
-  |> Pretty.writeln;
+
+(* Isar interfaces *)
+
+val arg_nat = Args.name #-> (fn s => case (Library.read_int o Symbol.explode) s
+ of (k, []) => if k >= 0 then pair k
+      else Scan.fail ("Not a natural number: " ^ s)
+  | (_, _ :: _) => Scan.fail ("Not a natural number: " ^ s));
+
+val parse_test_param =
+  Scan.lift (Args.$$$ "size" -- Args.$$$ "=" |-- arg_nat) >> (apfst o apfst o K)
+  || Scan.lift (Args.$$$ "iterations" -- Args.$$$ "=" |-- arg_nat) >> (apfst o apsnd o K)
+  || Scan.lift (Args.$$$ "default_type" -- Args.$$$ "=") |-- Args.typ >> (apsnd o K o SOME);
+
+val parse_test_param_inst =
+  Scan.lift (Args.$$$ "generator" -- Args.$$$ "=" |-- Args.name)
+      >> (apsnd o apfst o K o SOME)
+  || parse_test_param >> apfst
+  || Args.tyname --| Scan.lift (Args.$$$ "=") -- Args.typ
+      >> (apsnd o apsnd o AList.update (op =));
+
+fun quickcheck_params_cmd pos args thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val src = Args.src (("quickcheck_params", args), pos);
+    val (fs, _) = Args.context_syntax "quickcheck_params"
+      (Scan.repeat parse_test_param) src ctxt;
+  in
+    thy
+    |> (Data.map o apsnd o map_test_params) (Library.apply fs)
+  end;
+
+fun quickcheck_cmd pos args i state =
+  let
+    val prf = Toplevel.proof_of state;
+    val thy = Toplevel.theory_of state;
+    val ctxt = Toplevel.context_of state;
+    val default_params = (dest_test_params o snd o Data.get) thy;
+    val src = Args.src (("quickcheck", args), pos);
+    val (fs, _) = Args.context_syntax "quickcheck"
+      (Scan.repeat parse_test_param_inst) src ctxt;
+    val (((size, iterations), default_type), (generator_name, insts)) =
+      Library.apply fs (default_params, (NONE, []));
+    val counterex = test_goal false generator_name size iterations
+      default_type insts i [] prf;
+  in (Pretty.writeln o pretty_counterex ctxt) counterex end;
 
 local structure P = OuterParse and K = OuterKeyword in
 
-fun read_nothing x thy = x;
-fun read_typ raw_ty thy = Syntax.read_typ_global thy raw_ty;
+val _ = OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
+  (P.$$$ "[" |-- P.position (OuterParse.enum "," Args.parse) --| P.$$$ "]"
+    >> (fn (args, pos) => Toplevel.theory
+         (quickcheck_params_cmd pos (flat args))));
 
-val parse_test_param = (P.short_ident --| P.$$$ "=" #->
-  (fn "size" => P.nat >> (apfst o apfst o K)
-    | "iterations" => P.nat >> (apfst o apsnd o K)
-    | "default_type" => P.typ >> (apsnd o K)));
-
-val parse_test_param_inst =
-  P.type_ident --| P.$$$ "=" -- P.typ >> (apsnd o AList.update (op =))
-  || parse_test_param >> apfst;
-
-(*fun quickcheck_test_params_cmd fs thy =
-  (Data.map o apsnd o map_test_params) (Library.apply fs);*)
-
-(*val _ =
-  OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
-    (P.$$$ "[" |-- P.list1 parse_test_param --| P.$$$ "]" >>
-      (Toplevel.theory o quickcheck_test_params_cmd));*)
-
-(*
-val params =
-  [("size", P.nat >> (K o set_size)),
-   ("iterations", P.nat >> (K o set_iterations)),
-   ("default_type", P.typ >> set_default_type)];
-
-val parse_test_params = P.short_ident :|-- (fn s =>
-  P.$$$ "=" |-- (AList.lookup (op =) params s |> the_default Scan.fail));
-
-fun parse_tyinst xs =
-  (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn thy =>
-    fn (x, ys) => (x, (v, Syntax.read_typ_global thy s) :: ys))) xs;
-
-
-*)
-
-val _ = OuterSyntax.improper_command "test_goal" "try to find counterexample for subgoal" K.diag
-  (Scan.option (P.$$$ "[" |-- P.xname --| P.$$$ "]") -- Scan.optional P.nat 1
-    >> (fn (some_name, i) => Toplevel.no_timing o Toplevel.keep (test_goal_cmd some_name i)));
+val _ = OuterSyntax.improper_command "quickcheck" "try to find counterexample for subgoal" K.diag
+  (P.position (Scan.optional (P.$$$ "[" |-- OuterParse.enum "," Args.parse --| P.$$$ "]") [])
+    -- Scan.optional P.nat 1
+    >> (fn ((args, pos), i) => Toplevel.no_timing o Toplevel.keep
+          (quickcheck_cmd pos (flat args) i)));
 
 end; (*local*)
 
-
-
-(*
-val _ =
-  OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
-    (P.$$$ "[" |-- P.list1 parse_test_params --| P.$$$ "]" >>
-      (fn fs => Toplevel.theory (fn thy =>
-         map_test_params (Library.apply (map (fn f => f thy) fs)) thy)));
-
-val _ =
-  OuterSyntax.command "quickcheck" "try to find counterexample for subgoal" K.diag
-  (Scan.option (P.$$$ "[" |-- P.list1
-    (   parse_test_params >> (fn f => fn thy => apfst (f thy))
-     || parse_tyinst) --| P.$$$ "]") -- Scan.optional P.nat 1 >>
-    (fn (ps, g) => Toplevel.keep (fn st => Toplevel.proof_of st |>
-      test_goal false (Library.apply (the_default []
-          (Option.map (map (fn f => f (Toplevel.theory_of st))) ps))
-        (get_test_params (Toplevel.theory_of st), [])) g [] |>
-      pretty_counterex (Toplevel.context_of st) |> Pretty.writeln)));
-
-val auto_quickcheck = ref false;
-val auto_quickcheck_time_limit = ref 5000;
-
-fun test_goal' int state =
-  let
-    val ctxt = Proof.context_of state;
-    val assms = map term_of (Assumption.assms_of ctxt);
-    val params = get_test_params (Proof.theory_of state);
-    fun test () =
-      let
-        val res = TimeLimit.timeLimit (Time.fromMilliseconds (!auto_quickcheck_time_limit))
-          (try (test_goal true (params, []) 1 assms)) state;
-      in
-        case res of
-          NONE => state
-        | SOME NONE => state
-        | SOME cex => Proof.goal_message (fn () => Pretty.chunks [Pretty.str "",
-            Pretty.mark Markup.hilite (pretty_counterex ctxt cex)]) state
-      end handle TimeLimit.TimeOut => (warning "Auto quickcheck: timeout."; state);
-  in
-    if int andalso !auto_quickcheck andalso not (!Toplevel.quiet)
-    then test ()
-    else state
-  end;
-*)
-
-(*
-fun value_cmd some_name modes raw_t state =
-  let
-    val ctxt = Toplevel.context_of state;
-    val t = Syntax.read_term ctxt raw_t;
-    val t' = case some_name
-     of NONE => value ctxt t
-      | SOME name => value_select name ctxt t;
-    val ty' = Term.type_of t';
-    val ctxt' = Variable.auto_fixes t ctxt;
-    val p = PrintMode.with_modes modes (fn () =>
-      Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
-  in Pretty.writeln p end;*)
-
 end;
 
-(*val auto_quickcheck = Quickcheck.auto;
-val auto_quickcheck_time_limit = Quickcheck.auto_time_limit;*)
+
+val auto_quickcheck = Quickcheck.auto;
+val auto_quickcheck_time_limit = Quickcheck.auto_time_limit;
