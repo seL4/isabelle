@@ -19,6 +19,7 @@ uses
   "~~/src/Provers/classical.ML"
   "~~/src/Provers/blast.ML"
   "~~/src/Provers/clasimp.ML"
+  "~~/src/Provers/coherent.ML"
   "~~/src/Provers/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
   ("simpdata.ML")
@@ -1561,6 +1562,23 @@ setup Induct.setup
 
 use "~~/src/Tools/induct_tacs.ML"
 setup InductTacs.setup
+
+
+subsubsection {* Coherent logic *}
+
+ML {*
+structure Coherent = CoherentFun
+(
+  val atomize_elimL = @{thm atomize_elimL}
+  val atomize_exL = @{thm atomize_exL}
+  val atomize_conjL = @{thm atomize_conjL}
+  val atomize_disjL = @{thm atomize_disjL}
+  val operator_names =
+    [@{const_name "op |"}, @{const_name "op &"}, @{const_name "Ex"}]
+);
+*}
+
+setup Coherent.setup
 
 
 subsection {* Other simple lemmas and lemma duplicates *}
