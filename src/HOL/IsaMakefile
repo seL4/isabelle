@@ -153,6 +153,7 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML \
   $(SRC)/Provers/classical.ML \
+  $(SRC)/Provers/coherent.ML \
   $(SRC)/Provers/eqsubst.ML \
   $(SRC)/Provers/hypsubst.ML \
   $(SRC)/Provers/order.ML \
@@ -763,7 +764,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   Library/Primes.thy							\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/Arith_Examples.thy ex/BT.thy	\
   ex/BinEx.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
-  ex/Dense_Linear_Order_Ex.thy ex/Eval_Examples.thy			\
+  ex/Coherent.thy ex/Dense_Linear_Order_Ex.thy ex/Eval_Examples.thy	\
   ex/Groebner_Examples.thy ex/Random.thy ex/Quickcheck.thy		\
   ex/Codegenerator.thy ex/Codegenerator_Pretty.thy			\
   ex/Commutative_RingEx.thy ex/Efficient_Nat_examples.thy		\
