@@ -3495,12 +3495,12 @@ method_setup perm_simp_debug =
   {* NominalPermeq.perm_simp_meth_debug *}
   {* simp rules and simprocs for analysing permutations including debugging facilities *}
 
-method_setup perm_full_simp =
-  {* NominalPermeq.perm_full_simp_meth *}
+method_setup perm_extend_simp =
+  {* NominalPermeq.perm_extend_simp_meth *}
   {* tactic for deciding equalities involving permutations *}
 
-method_setup perm_full_simp_debug =
-  {* NominalPermeq.perm_full_simp_meth_debug *}
+method_setup perm_extend_simp_debug =
+  {* NominalPermeq.perm_extend_simp_meth_debug *}
   {* tactic for deciding equalities involving permutations including debugging facilities *}
 
 method_setup supports_simp =

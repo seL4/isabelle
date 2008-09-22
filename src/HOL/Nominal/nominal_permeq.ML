@@ -31,15 +31,15 @@ sig
   val perm_simproc_app : simproc
 
   val perm_simp_tac : simpset -> int -> tactic
-  val perm_full_simp_tac : simpset -> int -> tactic
+  val perm_extend_simp_tac : simpset -> int -> tactic
   val supports_tac : simpset -> int -> tactic
   val finite_guess_tac : simpset -> int -> tactic
   val fresh_guess_tac : simpset -> int -> tactic
 
   val perm_simp_meth : Method.src -> Proof.context -> Proof.method
   val perm_simp_meth_debug : Method.src -> Proof.context -> Proof.method
-  val perm_full_simp_meth : Method.src -> Proof.context -> Proof.method
-  val perm_full_simp_meth_debug : Method.src -> Proof.context -> Proof.method
+  val perm_extend_simp_meth : Method.src -> Proof.context -> Proof.method
+  val perm_extend_simp_meth_debug : Method.src -> Proof.context -> Proof.method
   val supports_meth : Method.src -> Proof.context -> Proof.method
   val supports_meth_debug : Method.src -> Proof.context -> Proof.method
   val finite_guess_meth : Method.src -> Proof.context -> Proof.method
@@ -141,8 +141,10 @@ fun perm_simproc_fun' sg ss redex =
 val perm_simproc_fun = Simplifier.simproc (the_context ()) "perm_simproc_fun"
   ["Nominal.perm pi x"] perm_simproc_fun';
 
-(* function for simplyfying permutations *)
-fun perm_simp_gen dyn_thms eqvt_thms ss i = 
+(* function for simplyfying permutations          *)
+(* stac contains the simplifiation tactic that is *)
+(* applied (see (no_asm) options below            *)
+fun perm_simp_gen stac dyn_thms eqvt_thms ss i = 
     ("general simplification of permutations", fn st =>
     let
        val ss' = Simplifier.theory_context (theory_of_thm st) ss
@@ -151,28 +153,34 @@ fun perm_simp_gen dyn_thms eqvt_thms ss i =
          addcongs strong_congs
          addsimprocs [perm_simproc_fun, perm_simproc_app]
     in
-      asm_full_simp_tac ss' i st
+      stac ss' i st
     end);
 
 (* general simplification of permutations and permutation that arose from eqvt-problems *)
-fun perm_simp ss = 
+fun perm_simp stac ss = 
     let val simps = ["perm_swap","perm_fresh_fresh","perm_bij","perm_pi_simp","swap_simps"]
     in 
-	perm_simp_gen simps [] ss
+	perm_simp_gen stac simps [] ss
     end;
 
-fun eqvt_simp ss = 
+fun eqvt_simp stac ss = 
     let val simps = ["perm_swap","perm_fresh_fresh","perm_pi_simp"]
 	val eqvts_thms = NominalThmDecls.get_eqvt_thms (Simplifier.the_context ss);
     in 
-	perm_simp_gen simps eqvts_thms ss
+	perm_simp_gen stac simps eqvts_thms ss
     end;
 
 
 (* main simplification tactics for permutations *)
-fun perm_simp_tac tactical ss i = DETERM (tactical (perm_simp ss i));
-fun eqvt_simp_tac tactical ss i = DETERM (tactical (eqvt_simp ss i)); 
+fun perm_simp_tac_gen_i stac tactical ss i = DETERM (tactical (perm_simp stac ss i));
+fun eqvt_simp_tac_gen_i stac tactical ss i = DETERM (tactical (eqvt_simp stac ss i)); 
 
+val perm_simp_tac_i          = perm_simp_tac_gen_i simp_tac
+val perm_asm_simp_tac_i      = perm_simp_tac_gen_i asm_simp_tac
+val perm_full_simp_tac_i     = perm_simp_tac_gen_i full_simp_tac
+val perm_asm_lr_simp_tac_i   = perm_simp_tac_gen_i asm_lr_simp_tac
+val perm_asm_full_simp_tac_i = perm_simp_tac_gen_i asm_full_simp_tac
+val eqvt_asm_full_simp_tac_i = eqvt_simp_tac_gen_i asm_full_simp_tac
 
 (* applies the perm_compose rule such that                             *)
 (*   pi o (pi' o lhs) = rhs                                            *)
@@ -243,28 +251,28 @@ fun unfold_perm_fun_def_tac i =
 fun ext_fun_tac i = ("extensionality expansion of functions", rtac ext i);
 
 
-(* perm_full_simp_tac is perm_simp plus additional tactics        *)
+(* perm_extend_simp_tac_i is perm_simp plus additional tactics        *)
 (* to decide equation that come from support problems             *)
 (* since it contains looping rules the "recursion" - depth is set *)
 (* to 10 - this seems to be sufficient in most cases              *)
-fun perm_full_simp_tac tactical ss =
-  let fun perm_full_simp_tac_aux tactical ss n = 
+fun perm_extend_simp_tac_i tactical ss =
+  let fun perm_extend_simp_tac_aux tactical ss n = 
 	  if n=0 then K all_tac
 	  else DETERM o 
 	       (FIRST'[fn i => tactical ("splitting conjunctions on the rhs", rtac conjI i),
-                       fn i => tactical (perm_simp ss i),
+                       fn i => tactical (perm_simp asm_full_simp_tac ss i),
 		       fn i => tactical (perm_compose_tac ss i),
 		       fn i => tactical (apply_cong_tac i), 
                        fn i => tactical (unfold_perm_fun_def_tac i),
                        fn i => tactical (ext_fun_tac i)]
-		      THEN_ALL_NEW (TRY o (perm_full_simp_tac_aux tactical ss (n-1))))
-  in perm_full_simp_tac_aux tactical ss 10 end;
+		      THEN_ALL_NEW (TRY o (perm_extend_simp_tac_aux tactical ss (n-1))))
+  in perm_extend_simp_tac_aux tactical ss 10 end;
 
 
 (* tactic that tries to solve "supports"-goals; first it *)
 (* unfolds the support definition and strips off the     *)
 (* intros, then applies eqvt_simp_tac                    *)
-fun supports_tac tactical ss i =
+fun supports_tac_i tactical ss i =
   let 
      val simps        = [supports_def,symmetric fresh_def,fresh_prod]
   in
@@ -272,7 +280,7 @@ fun supports_tac tactical ss i =
              tactical ("stripping of foralls    ", REPEAT_DETERM (rtac allI i)),
              tactical ("geting rid of the imps  ", rtac impI i),
              tactical ("eliminating conjuncts   ", REPEAT_DETERM (etac  conjE i)),
-             tactical ("applying eqvt_simp      ", eqvt_simp_tac tactical ss i )]
+             tactical ("applying eqvt_simp      ", eqvt_simp_tac_gen_i asm_full_simp_tac tactical ss i )]
   end;
 
 
@@ -287,7 +295,7 @@ fun collect_vars i (Bound j) vs = if j < i then vs else insert (op =) (Bound (j 
   | collect_vars i (Abs (_, _, t)) vs = collect_vars (i+1) t vs
   | collect_vars i (t $ u) vs = collect_vars i u (collect_vars i t vs);
 
-fun finite_guess_tac tactical ss i st =
+fun finite_guess_tac_i tactical ss i st =
     let val goal = List.nth(cprems_of st, i-1)
     in
       case Envir.eta_contract (Logic.strip_assums_concl (term_of goal)) of
@@ -314,7 +322,7 @@ fun finite_guess_tac tactical ss i st =
             (tactical ("guessing of the right supports-set",
                       EVERY [compose_tac (false, supports_rule'', 2) i,
                              asm_full_simp_tac ss' (i+1),
-                             supports_tac tactical ss i])) st
+                             supports_tac_i tactical ss i])) st
           end
         | _ => Seq.empty
     end
@@ -324,7 +332,7 @@ fun finite_guess_tac tactical ss i st =
 (* tactic that guesses whether an atom is fresh for an expression  *)
 (* it first collects all free variables and tries to show that the *) 
 (* support of these free variables (op supports) the goal          *)
-fun fresh_guess_tac tactical ss i st =
+fun fresh_guess_tac_i tactical ss i st =
     let 
 	val goal = List.nth(cprems_of st, i-1)
         val fin_supp = dynamic_thms st ("fin_supp")
@@ -354,7 +362,7 @@ fun fresh_guess_tac tactical ss i st =
                       (EVERY [compose_tac (false, supports_fresh_rule'', 3) i,
                              asm_full_simp_tac ss1 (i+2),
                              asm_full_simp_tac ss2 (i+1), 
-                             supports_tac tactical ss i]))) st
+                             supports_tac_i tactical ss i]))) st
           end
           (* when a term-constructor contains more than one binder, it is useful    *) 
           (* in nominal_primrecs to try whether the goal can be solved by an hammer *)
@@ -362,6 +370,43 @@ fun fresh_guess_tac tactical ss i st =
                           (asm_full_simp_tac (HOL_ss addsimps [fresh_prod]@fresh_atm) i))) st
     end
     handle Subscript => Seq.empty;
+
+val eqvt_simp_tac        = eqvt_asm_full_simp_tac_i NO_DEBUG_tac;
+
+val perm_simp_tac        = perm_asm_full_simp_tac_i NO_DEBUG_tac;
+val perm_extend_simp_tac = perm_extend_simp_tac_i NO_DEBUG_tac;
+val supports_tac         = supports_tac_i NO_DEBUG_tac;
+val finite_guess_tac     = finite_guess_tac_i NO_DEBUG_tac;
+val fresh_guess_tac      = fresh_guess_tac_i NO_DEBUG_tac;
+
+val dperm_simp_tac        = perm_asm_full_simp_tac_i DEBUG_tac;
+val dperm_extend_simp_tac = perm_extend_simp_tac_i DEBUG_tac;
+val dsupports_tac         = supports_tac_i DEBUG_tac;
+val dfinite_guess_tac     = finite_guess_tac_i DEBUG_tac;
+val dfresh_guess_tac      = fresh_guess_tac_i DEBUG_tac;
+
+(* Code opied from the Simplifer for setting up the perm_simp method   *)
+(* behaves nearly identical to the simp-method, for example can handle *)
+(* options like (no_asm) etc.                                          *) 
+val no_asmN = "no_asm";
+val no_asm_useN = "no_asm_use";
+val no_asm_simpN = "no_asm_simp";
+val asm_lrN = "asm_lr";
+
+val perm_simp_options =
+ (Args.parens (Args.$$$ no_asmN) >> K (perm_simp_tac_i NO_DEBUG_tac) ||
+  Args.parens (Args.$$$ no_asm_simpN) >> K (perm_asm_simp_tac_i NO_DEBUG_tac) ||
+  Args.parens (Args.$$$ no_asm_useN) >> K (perm_full_simp_tac_i NO_DEBUG_tac) ||
+  Args.parens (Args.$$$ asm_lrN) >> K (perm_asm_lr_simp_tac_i NO_DEBUG_tac) ||
+  Scan.succeed (perm_asm_full_simp_tac_i NO_DEBUG_tac));
+
+fun perm_simp_method (prems, tac) ctxt = Method.METHOD (fn facts =>
+   HEADGOAL (Method.insert_tac (prems @ facts) THEN'
+       ((CHANGED_PROP) oo tac) (local_simpset_of ctxt)));
+
+val perm_simp_meth = Method.sectioned_args
+     (Args.bang_facts -- Scan.lift perm_simp_options)
+     (Simplifier.simp_modifiers') perm_simp_method
 
 (* setup so that the simpset is used which is active at the moment when the tactic is called *)
 fun local_simp_meth_setup tac =
@@ -376,23 +421,15 @@ fun basic_simp_meth_setup debug tac =
    (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
    (fn _ => Method.SIMPLE_METHOD' o (fn ss => if debug then (tac ss) else SOLVEI (tac ss)) o local_simpset_of);
 
+val perm_simp_meth_debug        = local_simp_meth_setup dperm_simp_tac;
+val perm_extend_simp_meth       = local_simp_meth_setup perm_extend_simp_tac;
+val perm_extend_simp_meth_debug = local_simp_meth_setup dperm_extend_simp_tac;
+val supports_meth               = local_simp_meth_setup supports_tac;
+val supports_meth_debug         = local_simp_meth_setup dsupports_tac;
 
-val perm_simp_meth            = local_simp_meth_setup (perm_simp_tac NO_DEBUG_tac);
-val perm_simp_meth_debug      = local_simp_meth_setup (perm_simp_tac DEBUG_tac);
-val perm_full_simp_meth       = local_simp_meth_setup (perm_full_simp_tac NO_DEBUG_tac);
-val perm_full_simp_meth_debug = local_simp_meth_setup (perm_full_simp_tac DEBUG_tac);
-val supports_meth             = local_simp_meth_setup (supports_tac NO_DEBUG_tac);
-val supports_meth_debug       = local_simp_meth_setup (supports_tac DEBUG_tac);
-
-val finite_guess_meth         = basic_simp_meth_setup false (finite_guess_tac NO_DEBUG_tac);
-val finite_guess_meth_debug   = basic_simp_meth_setup true (finite_guess_tac DEBUG_tac);
-val fresh_guess_meth          = basic_simp_meth_setup false (fresh_guess_tac NO_DEBUG_tac);
-val fresh_guess_meth_debug    = basic_simp_meth_setup true (fresh_guess_tac DEBUG_tac);
-
-val perm_simp_tac = perm_simp_tac NO_DEBUG_tac;
-val perm_full_simp_tac = perm_full_simp_tac NO_DEBUG_tac;
-val supports_tac = supports_tac NO_DEBUG_tac;
-val finite_guess_tac = finite_guess_tac NO_DEBUG_tac;
-val fresh_guess_tac = fresh_guess_tac NO_DEBUG_tac;
+val finite_guess_meth         = basic_simp_meth_setup false finite_guess_tac;
+val finite_guess_meth_debug   = basic_simp_meth_setup true  dfinite_guess_tac;
+val fresh_guess_meth          = basic_simp_meth_setup false fresh_guess_tac;
+val fresh_guess_meth_debug    = basic_simp_meth_setup true  dfresh_guess_tac;
 
 end
