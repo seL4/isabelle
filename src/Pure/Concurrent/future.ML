@@ -32,6 +32,7 @@ sig
   type 'a T
   val task_of: 'a T -> task
   val group_of: 'a T -> group
+  val is_finished: 'a T -> bool
   val future: group option -> task list -> bool -> (unit -> 'a) -> 'a T
   val fork: (unit -> 'a) -> 'a T
   val fork_irrelevant: (unit -> 'a) -> 'a T
@@ -68,6 +69,8 @@ datatype 'a T = Future of
 
 fun task_of (Future {task, ...}) = task;
 fun group_of (Future {group, ...}) = group;
+
+fun is_finished (Future {result, ...}) = is_some (! result);
 
 
 
