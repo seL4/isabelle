@@ -24,6 +24,7 @@ sig
   val is_stale: theory -> bool
   val PureN: string
   val is_draft: theory -> bool
+  val reject_draft: theory -> theory
   val exists_name: string -> theory -> bool
   val names_of: theory -> string list
   val pretty_thy: theory -> Pretty.T
@@ -201,6 +202,10 @@ val PureN = "Pure";
 val draftN = "#";
 fun draft_id (_, name) = (name = draftN);
 val is_draft = draft_id o #id o identity_of;
+
+fun reject_draft thy =
+  if is_draft thy then raise THEORY ("Illegal draft theory -- stable checkpoint required", [thy])
+  else thy;
 
 fun exists_name name (thy as Theory ({id, ids, iids, ...}, _, _, _)) =
   name = theory_name thy orelse
