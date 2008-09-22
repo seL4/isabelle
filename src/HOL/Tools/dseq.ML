@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/DSeq.ML
+(*  Title:      HOL/Tools/dseq.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 

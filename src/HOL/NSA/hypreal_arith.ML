@@ -1,4 +1,4 @@
-(*  Title:      HOL/Hyperreal/hypreal_arith.ML
+(*  Title:      HOL/NSA/hypreal_arith.ML
     ID:         $Id$
     Author:     Tobias Nipkow, TU Muenchen
     Copyright   1999 TU Muenchen

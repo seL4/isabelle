@@ -1,4 +1,4 @@
-(*  Title:      Tools/integer.ML
+(*  Title:      Pure/General/integer.ML
     ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 

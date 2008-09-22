@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/primrec_package.ML
+(*  Title:      HOL/Tools/old_primrec_package.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen and Norbert Voelker, FernUni Hagen
 

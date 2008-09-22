@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/ROOT.ML
+(*  Title:      HOL/SizeChange/ROOT.ML
     ID:         $Id$
 *)
 

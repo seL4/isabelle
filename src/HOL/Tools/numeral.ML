@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Int.ML
+(*  Title:      HOL/Tools/numeral.ML
     ID:         $Id$
     Author:     Makarius
 

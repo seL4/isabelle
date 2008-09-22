@@ -1,4 +1,4 @@
-(*  Title:      Pure/General/ROOT.ML
+(*  Title:      Pure/Concurrent/ROOT.ML
     ID:         $Id$
 
 Concurrency within the ML runtime.

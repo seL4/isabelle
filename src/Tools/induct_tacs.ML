@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/induct_tacs.ML
+(*  Title:      Tools/induct_tacs.ML
     ID:         $Id$
     Author:     Makarius
 

@@ -1,4 +1,4 @@
-(*  Title:      state_fun.ML
+(*  Title:      HOL/Statespace/state_fun.ML
     ID:         $Id$
     Author:     Norbert Schirmer, TU Muenchen
 *)

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/sct.ML
+(*  Title:      HOL/SizeChange/sct.ML
     ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 
