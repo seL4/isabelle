@@ -34,6 +34,7 @@ sig
   val new_node: key * 'a -> 'a T -> 'a T                              (*exception DUP*)
   val default_node: key * 'a -> 'a T -> 'a T
   val del_nodes: key list -> 'a T -> 'a T                             (*exception UNDEF*)
+  val del_node: key -> 'a T -> 'a T                                   (*exception UNDEF*)
   val is_edge: 'a T -> key * key -> bool
   val add_edge: key * key -> 'a T -> 'a T
   val del_edge: key * key -> 'a T -> 'a T
@@ -164,6 +165,17 @@ fun del_nodes xs (Graph tab) =
     |> fold Table.delete xs
     |> Table.map (fn (i, (preds, succs)) =>
       (i, (fold remove_key xs preds, fold remove_key xs succs))));
+
+fun del_node x (G as Graph tab) =
+  let
+    fun del_adjacent which y = Table.map_entry y (fn (i, ps) => (i, (which (remove_key x) ps)));
+    val (preds, succs) = #2 (get_entry G x);
+  in
+    Graph (tab
+      |> Table.delete x
+      |> fold (del_adjacent apsnd) preds
+      |> fold (del_adjacent apfst) succs)
+  end;
 
 
 (* edges *)
