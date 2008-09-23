@@ -182,7 +182,7 @@ fun prove_common immediate ctxt xs asms props tac =
     |> map Drule.zero_var_indexes
   end;
 
-val prove_multi = prove_common false;
+val prove_multi = prove_common true;
 
 fun prove_promise ctxt xs asms prop tac = hd (prove_common false ctxt xs asms [prop] tac);
 fun prove ctxt xs asms prop tac = hd (prove_common true ctxt xs asms [prop] tac);
