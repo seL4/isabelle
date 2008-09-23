@@ -17,7 +17,7 @@ struct
 
 (* FIXME: LocalTheory.note should return theorems with proper names! *)
 fun name_of_thm thm =
-  (case Symtab.dest (Proofterm.thms_of_proof' (proof_of thm) Symtab.empty) of
+  (case Symtab.dest (Proofterm.thms_of_proof' (Thm.proof_of thm) Symtab.empty) of
      [(name, _)] => name
    | _ => error ("name_of_thm: bad proof of theorem\n" ^ Display.string_of_thm thm));
 
