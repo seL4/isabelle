@@ -24,6 +24,7 @@ sig
   val map: ('a -> 'b) -> 'a table -> 'b table
   val map': (key -> 'a -> 'b) -> 'a table -> 'b table
   val fold: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
+  val fold_rev: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
   val fold_map: (key * 'b -> 'a -> 'c * 'a) -> 'b table -> 'a -> 'c table * 'a
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
@@ -104,6 +105,15 @@ fun fold_table f =
           fold right (f p2 (fold mid (f p1 (fold left x))));
   in fold end;
 
+fun fold_rev_table f =
+  let
+    fun fold Empty x = x
+      | fold (Branch2 (left, p, right)) x =
+          fold left (f p (fold right x))
+      | fold (Branch3 (left, p1, mid, p2, right)) x =
+          fold left (f p1 (fold mid (f p2 (fold right x))));
+  in fold end;
+
 fun fold_map_table f =
   let
     fun fold_map Empty s = (Empty, s)
@@ -123,8 +133,8 @@ fun fold_map_table f =
           |-> (fn ((((l, e1), m), e2), r) => pair (Branch3 (l, (k1, e1), m, (k2, e2), r)))
   in fold_map end;
 
-fun dest tab = rev (fold_table cons tab []);
-fun keys tab = rev (fold_table (cons o #1) tab []);
+fun dest tab = fold_rev_table cons tab [];
+fun keys tab = fold_rev_table (cons o #1) tab [];
 
 fun get_first f tab =
   let
@@ -391,6 +401,7 @@ fun merge_list eq = join (fn _ => Library.merge eq);
 fun map f = map_table (K f);
 val map' = map_table;
 val fold = fold_table;
+val fold_rev = fold_rev_table;
 val fold_map = fold_map_table;
 
 end;
