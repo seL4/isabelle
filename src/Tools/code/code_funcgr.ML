@@ -316,13 +316,13 @@ in
 
 val _ =
   OuterSyntax.improper_command "code_thms" "print system of defining equations for code" OuterKeyword.diag
-    (Scan.repeat P.term
+    (Scan.repeat P.term_group
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
 
 val _ =
   OuterSyntax.improper_command "code_deps" "visualize dependencies of defining equations for code" OuterKeyword.diag
-    (Scan.repeat P.term
+    (Scan.repeat P.term_group
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
 
