@@ -17,6 +17,7 @@ nonfix inter;
 nonfix upto;
 *}
 
+export_code "RType.*" -- "workaround for cache problem"
 export_code * in SML module_name CodegenTest
   in OCaml module_name CodegenTest file -
   in Haskell file -

@@ -9,63 +9,63 @@ theory RType
 imports Plain "~~/src/HOL/List" "~~/src/HOL/Library/Code_Message"
 begin
 
-datatype "rtype" = RType message_string "rtype list"
+datatype typerep = Typerep message_string "typerep list"
 
-class rtype =
-  fixes rtype :: "'a\<Colon>{} itself \<Rightarrow> rtype"
+class typerep =
+  fixes typerep :: "'a\<Colon>{} itself \<Rightarrow> typerep"
 begin
 
 definition
-  rtype_of :: "'a \<Rightarrow> rtype"
+  typerep_of :: "'a \<Rightarrow> typerep"
 where
-  [simp]: "rtype_of x = rtype TYPE('a)"
+  [simp]: "typerep_of x = typerep TYPE('a)"
 
 end
 
 setup {*
 let
-  fun rtype_tr (*"_RTYPE"*) [ty] =
-        Lexicon.const @{const_syntax rtype} $ (Lexicon.const "_constrain" $ Lexicon.const "TYPE" $
+  fun typerep_tr (*"_TYPEREP"*) [ty] =
+        Lexicon.const @{const_syntax typerep} $ (Lexicon.const "_constrain" $ Lexicon.const "TYPE" $
           (Lexicon.const "itself" $ ty))
-    | rtype_tr (*"_RTYPE"*) ts = raise TERM ("rtype_tr", ts);
-  fun rtype_tr' show_sorts (*"rtype"*)
+    | typerep_tr (*"_TYPEREP"*) ts = raise TERM ("typerep_tr", ts);
+  fun typerep_tr' show_sorts (*"typerep"*)
           (Type ("fun", [Type ("itself", [T]), _])) (Const (@{const_syntax TYPE}, _) :: ts) =
-        Term.list_comb (Lexicon.const "_RTYPE" $ Syntax.term_of_typ show_sorts T, ts)
-    | rtype_tr' _ T ts = raise Match;
+        Term.list_comb (Lexicon.const "_TYPEREP" $ Syntax.term_of_typ show_sorts T, ts)
+    | typerep_tr' _ T ts = raise Match;
 in
   Sign.add_syntax_i
-    [("_RTYPE", SimpleSyntax.read_typ "type => logic", Delimfix "(1RTYPE/(1'(_')))")]
-  #> Sign.add_trfuns ([], [("_RTYPE", rtype_tr)], [], [])
-  #> Sign.add_trfunsT [(@{const_syntax rtype}, rtype_tr')]
+    [("_TYPEREP", SimpleSyntax.read_typ "type => logic", Delimfix "(1TYPEREP/(1'(_')))")]
+  #> Sign.add_trfuns ([], [("_TYPEREP", typerep_tr)], [], [])
+  #> Sign.add_trfunsT [(@{const_syntax typerep}, typerep_tr')]
 end
 *}
 
 ML {*
-structure RType =
+structure Typerep =
 struct
 
 fun mk f (Type (tyco, tys)) =
-      @{term RType} $ Message_String.mk tyco
-        $ HOLogic.mk_list @{typ rtype} (map (mk f) tys)
+      @{term Typerep} $ Message_String.mk tyco
+        $ HOLogic.mk_list @{typ typerep} (map (mk f) tys)
   | mk f (TFree v) =
       f v;
 
-fun rtype ty =
-  Const (@{const_name rtype}, Term.itselfT ty --> @{typ rtype})
+fun typerep ty =
+  Const (@{const_name typerep}, Term.itselfT ty --> @{typ typerep})
     $ Logic.mk_type ty;
 
 fun add_def tyco thy =
   let
-    val sorts = replicate (Sign.arity_number thy tyco) @{sort rtype};
+    val sorts = replicate (Sign.arity_number thy tyco) @{sort typerep};
     val vs = Name.names Name.context "'a" sorts;
     val ty = Type (tyco, map TFree vs);
-    val lhs = Const (@{const_name rtype}, Term.itselfT ty --> @{typ rtype})
+    val lhs = Const (@{const_name typerep}, Term.itselfT ty --> @{typ typerep})
       $ Free ("T", Term.itselfT ty);
-    val rhs = mk (rtype o TFree) ty;
+    val rhs = mk (typerep o TFree) ty;
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
   in
     thy
-    |> TheoryTarget.instantiation ([tyco], vs, @{sort rtype})
+    |> TheoryTarget.instantiation ([tyco], vs, @{sort typerep})
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition (NONE, (Attrib.no_binding, eq)))
     |> snd
@@ -76,33 +76,33 @@ fun add_def tyco thy =
 
 fun perhaps_add_def tyco thy =
   let
-    val inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort rtype}
+    val inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep}
   in if inst then thy else add_def tyco thy end;
 
 end;
 *}
 
 setup {*
-  RType.add_def @{type_name prop}
-  #> RType.add_def @{type_name fun}
-  #> RType.add_def @{type_name itself}
-  #> RType.add_def @{type_name bool}
-  #> TypedefPackage.interpretation RType.perhaps_add_def
+  Typerep.add_def @{type_name prop}
+  #> Typerep.add_def @{type_name fun}
+  #> Typerep.add_def @{type_name itself}
+  #> Typerep.add_def @{type_name bool}
+  #> TypedefPackage.interpretation Typerep.perhaps_add_def
 *}
 
 lemma [code func]:
-  "RType tyco1 tys1 = RType tyco2 tys2 \<longleftrightarrow> tyco1 = tyco2
+  "Typerep tyco1 tys1 = Typerep tyco2 tys2 \<longleftrightarrow> tyco1 = tyco2
      \<and> list_all2 (op =) tys1 tys2"
   by (auto simp add: list_all2_eq [symmetric])
 
-code_type rtype
+code_type typerep
   (SML "Term.typ")
 
-code_const RType
+code_const Typerep
   (SML "Term.Type/ (_, _)")
 
 code_reserved SML Term
 
-hide (open) const rtype RType
+hide (open) const typerep Typerep
 
 end

@@ -13,7 +13,7 @@ subsection {* Representable types *}
 
 text {* The type class of representable types *}
 
-class heap = rtype + countable
+class heap = typerep + countable
 
 text {* Instances for common HOL types *}
 
@@ -37,40 +37,40 @@ instance message_string :: heap ..
 
 text {* Reflected types themselves are heap-representable *}
 
-instantiation rtype :: countable
+instantiation typerep :: countable
 begin
 
-fun to_nat_rtype :: "rtype \<Rightarrow> nat" where
-  "to_nat_rtype (RType.RType c ts) = to_nat (to_nat c, to_nat (map to_nat_rtype ts))"
+fun to_nat_typerep :: "typerep \<Rightarrow> nat" where
+  "to_nat_typerep (RType.Typerep c ts) = to_nat (to_nat c, to_nat (map to_nat_typerep ts))"
 
 instance
 proof (rule countable_classI)
-  fix t t' :: rtype and ts
-  have "(\<forall>t'. to_nat_rtype t = to_nat_rtype t' \<longrightarrow> t = t')
-    \<and> (\<forall>ts'. map to_nat_rtype ts = map to_nat_rtype ts' \<longrightarrow> ts = ts')"
-  proof (induct rule: rtype.induct)
-    case (RType c ts) show ?case
+  fix t t' :: typerep and ts
+  have "(\<forall>t'. to_nat_typerep t = to_nat_typerep t' \<longrightarrow> t = t')
+    \<and> (\<forall>ts'. map to_nat_typerep ts = map to_nat_typerep ts' \<longrightarrow> ts = ts')"
+  proof (induct rule: typerep.induct)
+    case (Typerep c ts) show ?case
     proof (rule allI, rule impI)
       fix t'
-      assume hyp: "to_nat_rtype (rtype.RType c ts) = to_nat_rtype t'"
-      then obtain c' ts' where t': "t' = (rtype.RType c' ts')"
+      assume hyp: "to_nat_typerep (RType.Typerep c ts) = to_nat_typerep t'"
+      then obtain c' ts' where t': "t' = (RType.Typerep c' ts')"
         by (cases t') auto
-      with RType hyp have "c = c'" and "ts = ts'" by simp_all
-      with t' show "rtype.RType c ts = t'" by simp
+      with Typerep hyp have "c = c'" and "ts = ts'" by simp_all
+      with t' show "RType.Typerep c ts = t'" by simp
     qed
   next
-    case Nil_rtype then show ?case by simp
+    case Nil_typerep then show ?case by simp
   next
-    case (Cons_rtype t ts) then show ?case by auto
+    case (Cons_typerep t ts) then show ?case by auto
   qed
-  then have "to_nat_rtype t = to_nat_rtype t' \<Longrightarrow> t = t'" by auto
-  moreover assume "to_nat_rtype t = to_nat_rtype t'"
+  then have "to_nat_typerep t = to_nat_typerep t' \<Longrightarrow> t = t'" by auto
+  moreover assume "to_nat_typerep t = to_nat_typerep t'"
   ultimately show "t = t'" by simp
 qed
 
 end
 
-instance rtype :: heap ..
+instance typerep :: heap ..
 
 
 subsection {* A polymorphic heap with dynamic arrays and references *}
@@ -110,8 +110,8 @@ setup {*
 types heap_rep = nat -- "representable values"
 
 record heap =
-  arrays :: "rtype \<Rightarrow> addr \<Rightarrow> heap_rep list"
-  refs :: "rtype \<Rightarrow> addr \<Rightarrow> heap_rep"
+  arrays :: "typerep \<Rightarrow> addr \<Rightarrow> heap_rep list"
+  refs :: "typerep \<Rightarrow> addr \<Rightarrow> heap_rep"
   lim  :: addr
 
 definition empty :: heap where
@@ -145,21 +145,21 @@ definition
 
 definition
   get_ref :: "'a\<Colon>heap ref \<Rightarrow> heap \<Rightarrow> 'a" where
-  "get_ref r h = from_nat (refs h (RTYPE('a)) (addr_of_ref r))"
+  "get_ref r h = from_nat (refs h (TYPEREP('a)) (addr_of_ref r))"
 
 definition
   get_array :: "'a\<Colon>heap array \<Rightarrow> heap \<Rightarrow> 'a list" where
-  "get_array a h = map from_nat (arrays h (RTYPE('a)) (addr_of_array a))"
+  "get_array a h = map from_nat (arrays h (TYPEREP('a)) (addr_of_array a))"
 
 definition
   set_ref :: "'a\<Colon>heap ref \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
   "set_ref r x = 
-  refs_update (\<lambda>h. h( RTYPE('a) := ((h (RTYPE('a))) (addr_of_ref r:=to_nat x))))"
+  refs_update (\<lambda>h. h(TYPEREP('a) := ((h (TYPEREP('a))) (addr_of_ref r:=to_nat x))))"
 
 definition
   set_array :: "'a\<Colon>heap array \<Rightarrow> 'a list \<Rightarrow> heap \<Rightarrow> heap" where
   "set_array a x = 
-  arrays_update (\<lambda>h. h( RTYPE('a) := ((h (RTYPE('a))) (addr_of_array a:=map to_nat x))))"
+  arrays_update (\<lambda>h. h(TYPEREP('a) := ((h(TYPEREP('a))) (addr_of_array a:=map to_nat x))))"
 
 subsubsection {* Interface operations *}
 
@@ -204,12 +204,12 @@ text {*
 definition
   noteq_refs :: "('a\<Colon>heap) ref \<Rightarrow> ('b\<Colon>heap) ref \<Rightarrow> bool" (infix "=!=" 70)
 where
-  "r =!= s \<longleftrightarrow> RTYPE('a) \<noteq> RTYPE('b) \<or> addr_of_ref r \<noteq> addr_of_ref s"
+  "r =!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_ref r \<noteq> addr_of_ref s"
 
 definition
   noteq_arrs :: "('a\<Colon>heap) array \<Rightarrow> ('b\<Colon>heap) array \<Rightarrow> bool" (infix "=!!=" 70)
 where
-  "r =!!= s \<longleftrightarrow> RTYPE('a) \<noteq> RTYPE('b) \<or> addr_of_array r \<noteq> addr_of_array s"
+  "r =!!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_array r \<noteq> addr_of_array s"
 
 lemma noteq_refs_sym: "r =!= s \<Longrightarrow> s =!= r"
   and noteq_arrs_sym: "a =!!= b \<Longrightarrow> b =!!= a"

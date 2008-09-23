@@ -33,7 +33,7 @@ setup {*
 let
   val subst_rterm_of = Eval.mk_term
     (fn (v, _) => error ("illegal free variable in term quotation: " ^ quote v))
-    (RType.mk (fn (v, sort) => RType.rtype (TFree (v, sort))));
+    (Typerep.mk (fn (v, sort) => Typerep.typerep (TFree (v, sort))));
   fun subst_rterm_of' (Const (@{const_name rterm_of}, _), [t]) = subst_rterm_of t
     | subst_rterm_of' (Const (@{const_name rterm_of}, _), _) =
         error ("illegal number of arguments for " ^ quote @{const_name rterm_of})

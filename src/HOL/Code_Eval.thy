@@ -16,7 +16,7 @@ subsubsection {* Terms and class @{text term_of} *}
 datatype "term" = dummy_term
 
 definition
-  Const :: "message_string \<Rightarrow> rtype \<Rightarrow> term"
+  Const :: "message_string \<Rightarrow> typerep \<Rightarrow> term"
 where
   "Const _ _ = dummy_term"
 
@@ -27,7 +27,7 @@ where
 
 code_datatype Const App
 
-class term_of = rtype +
+class term_of = typerep +
   fixes term_of :: "'a \<Rightarrow> term"
 
 lemma term_of_anything: "term_of x \<equiv> t"
@@ -82,7 +82,7 @@ let
       val ty = Type (tyco, map TFree vs);
     in
       thy
-      |> RType.perhaps_add_def tyco
+      |> Typerep.perhaps_add_def tyco
       |> not has_inst ? add_term_of_def ty vs tyco
     end;
 in
@@ -98,7 +98,7 @@ let
         map Free (Name.names Name.context "a" tys));
     in (map_aterms (fn Free (v, ty) => Var ((v, 0), ty) | t => t) t, Eval.mk_term
       (fn (v, ty) => Eval.mk_term_of ty (Var ((v, 0), ty)))
-      (RType.mk (fn (v, sort) => RType.rtype (TFree (v, sort)))) t)
+      (Typerep.mk (fn (v, sort) => Typerep.typerep (TFree (v, sort)))) t)
     end;
   fun prove_term_of_eq ty eq thy =
     let
@@ -137,13 +137,13 @@ subsubsection {* Code generator setup *}
 lemmas [code func del] = term.recs term.cases term.size
 lemma [code func, code func del]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
 
-lemma [code func, code func del]: "(term_of \<Colon> rtype \<Rightarrow> term) = term_of" ..
+lemma [code func, code func del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..
 lemma [code func, code func del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
 lemma [code func, code func del]: "(term_of \<Colon> message_string \<Rightarrow> term) = term_of" ..
 
-lemma term_of_char [unfolded rtype_fun_def rtype_char_def rtype_nibble_def, code func]: "Code_Eval.term_of c =
+lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code func]: "Code_Eval.term_of c =
     (let (n, m) = nibble_pair_of_char c
-  in Code_Eval.App (Code_Eval.App (Code_Eval.Const (STR ''Pair'') (RTYPE(nibble \<Rightarrow> nibble \<Rightarrow> char)))
+  in Code_Eval.App (Code_Eval.App (Code_Eval.Const (STR ''Pair'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
     (Code_Eval.term_of n)) (Code_Eval.term_of m))"
   by (subst term_of_anything) rule 
 

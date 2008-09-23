@@ -10,16 +10,16 @@ begin
 
 subsection {* The @{text random} class *}
 
-class random = rtype +
+class random = typerep +
   fixes random :: "index \<Rightarrow> seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> seed"
 
 text {* Type @{typ "'a itself"} *}
 
-instantiation itself :: ("{type, rtype}") random
+instantiation itself :: ("{type, typerep}") random
 begin
 
 definition
-  "random _ = return (TYPE('a), \<lambda>u. Code_Eval.Const (STR ''TYPE'') RTYPE('a))"
+  "random _ = return (TYPE('a), \<lambda>u. Code_Eval.Const (STR ''TYPE'') TYPEREP('a))"
 
 instance ..
 
@@ -72,7 +72,7 @@ let
       val t_indices = map (curry ( op * ) 2) (length tys - 1 downto 0);
       val c_indices = map (curry ( op + ) 1) t_indices;
       val c_t = list_comb (c, map Bound c_indices);
-      val t_t = Abs ("", @{typ unit}, Eval.mk_term Free RType.rtype
+      val t_t = Abs ("", @{typ unit}, Eval.mk_term Free Typerep.typerep
         (list_comb (c, map (fn k => Bound (k + 1)) t_indices))
         |> map_aterms (fn t as Bound _ => t $ @{term "()"} | t => t));
       val return = StateMonad.return (term_ty this_ty) @{typ seed}
@@ -173,9 +173,9 @@ definition
   "random n = (do
      (b, _) \<leftarrow> random n;
      (m, t) \<leftarrow> random n;
-     return (if b then (int m, \<lambda>u. Code_Eval.App (Code_Eval.Const (STR ''Int.int'') RTYPE(nat \<Rightarrow> int)) (t ()))
-       else (- int m, \<lambda>u. Code_Eval.App (Code_Eval.Const (STR ''HOL.uminus_class.uminus'') RTYPE(int \<Rightarrow> int))
-         (Code_Eval.App (Code_Eval.Const (STR ''Int.int'') RTYPE(nat \<Rightarrow> int)) (t ()))))
+     return (if b then (int m, \<lambda>u. Code_Eval.App (Code_Eval.Const (STR ''Int.int'') TYPEREP(nat \<Rightarrow> int)) (t ()))
+       else (- int m, \<lambda>u. Code_Eval.App (Code_Eval.Const (STR ''HOL.uminus_class.uminus'') TYPEREP(int \<Rightarrow> int))
+         (Code_Eval.App (Code_Eval.Const (STR ''Int.int'') TYPEREP(nat \<Rightarrow> int)) (t ()))))
    done)"
 
 instance ..
@@ -219,7 +219,7 @@ end
 *}
 
 axiomatization
-  random_fun_aux :: "rtype \<Rightarrow> rtype \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> term)
+  random_fun_aux :: "typerep \<Rightarrow> typerep \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> term)
     \<Rightarrow> (seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> seed) \<Rightarrow> (seed \<Rightarrow> seed \<times> seed)
     \<Rightarrow> seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> seed"
 
@@ -229,7 +229,7 @@ instantiation "fun" :: ("{eq, term_of}", "{type, random}") random
 begin
 
 definition random_fun :: "index \<Rightarrow> seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> seed" where
-  "random n = random_fun_aux RTYPE('a) RTYPE('b) (op =) Code_Eval.term_of (random n) split_seed"
+  "random n = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of (random n) split_seed"
 
 instance ..
 
