@@ -156,7 +156,7 @@ fun finish (task as Task id) (Queue {groups, jobs, focus}) =
   let
     val Group (gid, _) = get_group jobs task;
     val groups' = Inttab.remove_list (op =) (gid, task) groups;
-    val jobs' = IntGraph.del_nodes [id] jobs;
+    val jobs' = IntGraph.del_node id jobs;
     val focus' = remove (op =) task focus;
   in make_queue groups' jobs' focus' end;
 
