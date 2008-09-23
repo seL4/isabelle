@@ -91,8 +91,7 @@ lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]" by norm
 lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]" by normalization
 
 lemma "last [a, b, c] = c" by normalization rule
-lemma "last ([a, b, c] @ xs) = (if null xs then c else last xs)"
-  by normalization rule
+lemma "last ([a, b, c] @ xs) = last (c # xs)" by normalization rule
 
 lemma "(2::int) + 3 - 1 + (- k) * 2 = 4 + - k * 2" by normalization rule
 lemma "(-4::int) * 2 = -8" by normalization

@@ -18,7 +18,7 @@ sig
     | Abs of (int * (Univ list -> Univ)) * Univ list;
   val apps: Univ -> Univ list -> Univ        (*explicit applications*)
   val abss: int -> (Univ list -> Univ) -> Univ
-                                            (*abstractions as closures*)
+                                             (*abstractions as closures*)
 
   val univs_ref: (unit -> Univ list -> Univ list) option ref
   val trace: bool ref
@@ -90,6 +90,7 @@ fun ml_abs v e = "(fn " ^ v ^ " => " ^ e ^ ")";
 fun ml_cases t cs =
   "(case " ^ t ^ " of " ^ space_implode " | " (map (fn (p, t) => p ^ " => " ^ t) cs) ^ ")";
 fun ml_Let d e = "let\n" ^ d ^ " in " ^ e ^ " end";
+fun ml_as v t = "(" ^ v ^ " as " ^ t ^ ")";
 
 fun ml_list es = "[" ^ commas es ^ "]";
 
@@ -121,17 +122,21 @@ in
 
 val univs_cookie = (name_ref, univs_ref);
 
-fun nbe_fun "" = "nbe_value"
-  | nbe_fun c = "c_" ^ translate_string (fn "." => "_" | c => c) c;
+fun nbe_fun 0 "" = "nbe_value"
+  | nbe_fun i c = "c_" ^ translate_string (fn "." => "_" | c => c) c ^ "_" ^ string_of_int i;
 fun nbe_dict v n = "d_" ^ v ^ "_" ^ string_of_int n;
 fun nbe_bound v = "v_" ^ v;
+fun nbe_default v = "w_" ^ v;
 
 (*note: these three are the "turning spots" where proper argument order is established!*)
 fun nbe_apps t [] = t
   | nbe_apps t ts = name_apps `$$` [t, ml_list (rev ts)];
-fun nbe_apps_local c ts = nbe_fun c `$` ml_list (rev ts);
-fun nbe_apps_constr idx ts =
-  name_const `$` ("(" ^ string_of_int idx ^ ", " ^ ml_list (rev ts) ^ ")");
+fun nbe_apps_local i c ts = nbe_fun i c `$` ml_list (rev ts);
+fun nbe_apps_constr idx_of c ts =
+  let
+    val c' = if !trace then string_of_int (idx_of c) ^ " (*" ^ c ^ "*)"
+      else string_of_int (idx_of c);
+  in name_const `$` ("(" ^ c' ^ ", " ^ ml_list (rev ts) ^ ")") end;
 
 fun nbe_abss 0 f = f `$` ml_list []
   | nbe_abss n f = name_abss `$$` [string_of_int n, f];
@@ -147,7 +152,7 @@ fun assemble_eqnss idx_of deps eqnss =
     fun prep_eqns (c, (vs, eqns)) =
       let
         val dicts = maps (fn (v, sort) => map_index (nbe_dict v o fst) sort) vs;
-        val num_args = length dicts + (length o fst o hd) eqns;
+        val num_args = length dicts + ((length o fst o hd) eqns);
       in (c, (num_args, (dicts, eqns))) end;
     val eqnss' = map prep_eqns eqnss;
 
@@ -155,20 +160,20 @@ fun assemble_eqnss idx_of deps eqnss =
       let
         val ts' = (maps o map) assemble_idict dss @ ts;
       in case AList.lookup (op =) eqnss' c
-       of SOME (n, _) => if n <= length ts'
-            then let val (ts1, ts2) = chop n ts'
-            in nbe_apps (nbe_apps_local c ts1) ts2
-            end else nbe_apps (nbe_abss n (nbe_fun c)) ts'
+       of SOME (num_args, _) => if num_args <= length ts'
+            then let val (ts1, ts2) = chop num_args ts'
+            in nbe_apps (nbe_apps_local 0 c ts1) ts2
+            end else nbe_apps (nbe_abss num_args (nbe_fun 0 c)) ts'
         | NONE => if member (op =) deps c
-            then nbe_apps (nbe_fun c) ts'
-            else nbe_apps_constr (idx_of c) ts'
+            then nbe_apps (nbe_fun 0 c) ts'
+            else nbe_apps_constr idx_of c ts'
       end
     and assemble_idict (DictConst (inst, dss)) =
           assemble_constapp inst dss []
       | assemble_idict (DictVar (supers, (v, (n, _)))) =
           fold_rev (fn super => assemble_constapp super [] o single) supers (nbe_dict v n);
 
-    fun assemble_iterm constapp =
+    fun assemble_iterm match_cont constapp =
       let
         fun of_iterm t =
           let
@@ -180,28 +185,38 @@ fun assemble_eqnss idx_of deps eqnss =
               nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound v]) (of_iterm t))) ts
           | of_iapp (ICase (((t, _), cs), t0)) ts =
               nbe_apps (ml_cases (of_iterm t) (map (pairself of_iterm) cs
-                @ [("_", of_iterm t0)])) ts
+                @ [("_", case match_cont of SOME s => s | NONE => of_iterm t0)])) ts
       in of_iterm end;
+
+    fun assemble_eqn c dicts default_args (i, (args, rhs)) =
+      let
+        val is_eval = (c = "");
+        val default_rhs = nbe_apps_local (i+1) c (dicts @ default_args);
+        val match_cont = if is_eval then NONE else SOME default_rhs;
+        val assemble_arg = assemble_iterm NONE
+          (fn c => fn _ => fn ts => nbe_apps_constr idx_of c ts);
+        val assemble_rhs = assemble_iterm match_cont assemble_constapp;
+        val eqns = if is_eval then
+            [([ml_list (rev (dicts @ map assemble_arg args))], assemble_rhs rhs)]
+          else
+            [([ml_list (rev (dicts @ map2 ml_as default_args
+                (map assemble_arg args)))], assemble_rhs rhs),
+              ([ml_list (rev (dicts @ default_args))], default_rhs)]
+      in (nbe_fun i c, eqns) end;
 
     fun assemble_eqns (c, (num_args, (dicts, eqns))) =
       let
-        val assemble_arg = assemble_iterm
-          (fn c => fn _ => fn ts => nbe_apps_constr (idx_of c) ts);
-        val assemble_rhs = assemble_iterm assemble_constapp;
-        fun assemble_eqn (args, rhs) =
-          ([ml_list (rev (dicts @ map assemble_arg args))], assemble_rhs rhs);
-        val default_args = map nbe_bound (Name.invent_list [] "a" num_args);
-        val default_eqn = if c = "" then NONE
-          else SOME ([ml_list (rev default_args)],
-            nbe_apps_constr (idx_of c) default_args);
-      in
-        ((nbe_fun c, map assemble_eqn eqns @ the_list default_eqn),
-          nbe_abss num_args (nbe_fun c))
-      end;
+        val default_args = map nbe_default
+          (Name.invent_list [] "a" (num_args - length dicts));
+        val eqns' = map_index (assemble_eqn c dicts default_args) eqns
+          @ (if c = "" then [] else [(nbe_fun (length eqns) c,
+            [([ml_list (rev (dicts @ default_args))],
+              nbe_apps_constr idx_of c (dicts @ default_args))])]);
+      in (eqns', nbe_abss num_args (nbe_fun 0 c)) end;
 
     val (fun_vars, fun_vals) = map_split assemble_eqns eqnss';
-    val deps_vars = ml_list (map nbe_fun deps);
-  in ml_abs deps_vars (ml_Let (ml_fundefs fun_vars) (ml_list fun_vals)) end;
+    val deps_vars = ml_list (map (nbe_fun 0) deps);
+  in ml_abs deps_vars (ml_Let (ml_fundefs (flat fun_vars)) (ml_list fun_vals)) end;
 
 (* code compilation *)
 
@@ -463,3 +478,4 @@ val _ =
 end;
 
 end;
+ 
