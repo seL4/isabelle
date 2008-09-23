@@ -68,7 +68,7 @@ sig
   val mk_min_proof : proof ->
    ((string * term) * proof) list * (string * term) list * (string * term) list ->
    ((string * term) * proof) list * (string * term) list * (string * term) list
-  val oracles_of_proof : proof -> (string * term) list -> (string * term) list
+  val add_oracles : bool -> proof -> (string * term) list -> (string * term) list
 
   (** proof terms for specific inference rules **)
   val implies_intr_proof : term -> proof -> proof
@@ -104,7 +104,6 @@ sig
   val promise_proof : serial -> term -> proof
   val thm_proof : theory -> string -> term list -> term -> proof -> proof
   val get_name : term list -> term -> proof -> string
-  val is_named : proof -> bool
 
   (** rewriting on proof terms **)
   val add_prf_rrule : proof * proof -> theory -> theory
@@ -115,6 +114,7 @@ sig
   val rewrite_proof_notypes : (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
   val rew_proof : theory -> proof -> proof
+  val fulfill : proof Inttab.table -> proof -> proof
 end
 
 structure Proofterm : PROOFTERM =
@@ -147,10 +147,8 @@ fun oracles_of_proof prf oras =
       | oras_of (prf % _) = oras_of prf
       | oras_of (prf1 %% prf2) = oras_of prf1 #> oras_of prf2
       | oras_of (PThm (name, prf, prop, _)) = (fn tabs as (thms, oras) =>
-          case Symtab.lookup thms name of
-            NONE => oras_of prf (Symtab.update (name, [prop]) thms, oras)
-          | SOME ps => if member (op =) ps prop then tabs else
-              oras_of prf (Symtab.update (name, prop::ps) thms, oras))
+          if member (op =) (Symtab.lookup_list thms name) prop then tabs
+          else oras_of prf (Symtab.cons_list (name, prop) thms, oras))
       | oras_of (Oracle (s, prop, _)) =
           apsnd (OrdList.insert string_term_ord (s, prop))
       | oras_of (MinProof (thms, _, oras)) =
@@ -161,15 +159,16 @@ fun oracles_of_proof prf oras =
     snd (oras_of prf (Symtab.empty, oras))
   end;
 
+fun add_oracles false = K I
+  | add_oracles true = oracles_of_proof;
+
 fun thms_of_proof (Abst (_, _, prf)) = thms_of_proof prf
   | thms_of_proof (AbsP (_, _, prf)) = thms_of_proof prf
   | thms_of_proof (prf1 %% prf2) = thms_of_proof prf1 #> thms_of_proof prf2
   | thms_of_proof (prf % _) = thms_of_proof prf
   | thms_of_proof (prf' as PThm (s, prf, prop, _)) = (fn tab =>
-      case Symtab.lookup tab s of
-        NONE => thms_of_proof prf (Symtab.update (s, [(prop, prf')]) tab)
-      | SOME ps => if exists (fn (p, _) => p = prop) ps then tab else
-          thms_of_proof prf (Symtab.update (s, (prop, prf')::ps) tab))
+      if exists (fn (p, _) => p = prop) (Symtab.lookup_list tab s) then tab
+      else thms_of_proof prf (Symtab.cons_list (s, (prop, prf')) tab))
   | thms_of_proof (MinProof (prfs, _, _)) = fold (thms_of_proof o proof_of_min_thm) prfs
   | thms_of_proof _ = I;
 
@@ -179,11 +178,8 @@ fun thms_of_proof' (Abst (_, _, prf)) = thms_of_proof' prf
   | thms_of_proof' (prf1 %% prf2) = thms_of_proof' prf1 #> thms_of_proof' prf2
   | thms_of_proof' (prf % _) = thms_of_proof' prf
   | thms_of_proof' (PThm ("", prf, prop, _)) = thms_of_proof' prf
-  | thms_of_proof' (prf' as PThm (s, _, prop, _)) = (fn tab =>
-      case Symtab.lookup tab s of
-        NONE => Symtab.update (s, [(prop, prf')]) tab
-      | SOME ps => if exists (fn (p, _) => p = prop) ps then tab else
-          Symtab.update (s, (prop, prf')::ps) tab)
+  | thms_of_proof' (prf' as PThm (s, _, prop, _)) =
+      Symtab.insert_list (eq_fst op =) (s, (prop, prf'))
   | thms_of_proof' (MinProof (prfs, _, _)) = fold (thms_of_proof' o proof_of_min_thm) prfs
   | thms_of_proof' _ = I;
 
@@ -1088,6 +1084,7 @@ fun could_unify prf1 prf2 =
       | _ => false
   end;
 
+
 (**** rewriting on proof terms ****)
 
 val skel0 = PBound 0;
@@ -1165,6 +1162,9 @@ fun rewrite_proof thy = rewrite_prf (fn (tyenv, f) =>
 
 fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
+fun fulfill tab = rewrite_proof_notypes
+  ([], [("Pure/fulfill", K (fn Promise (i, _, _) => Inttab.lookup tab i | _ => NONE))]);
+
 
 (**** theory data ****)
 
@@ -1216,10 +1216,6 @@ fun get_name hyps prop prf =
     | (PAxm (name, prop', _), _) => if prop=prop' then name else ""
     | _ => "")
   end;
-
-fun is_named (PThm (name, _, _, _)) = name <> ""
-  | is_named (PAxm (name, _, _)) = name <> ""
-  | is_named _ = false;
 
 end;
 
