@@ -20,9 +20,12 @@ sig
   val conclude: thm -> thm
   val finish: thm -> thm
   val norm_result: thm -> thm
+  val promise_result: Proof.context -> (unit -> thm) -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
+  val prove_promise: Proof.context -> string list -> term list -> term ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_global: theory -> string list -> term list -> term ->
@@ -84,11 +87,46 @@ fun finish th =
 
 (** results **)
 
+(* normal form *)
+
 val norm_result =
   Drule.flexflex_unique
   #> MetaSimplifier.norm_hhf_protect
   #> Thm.strip_shyps
   #> Drule.zero_var_indexes;
+
+
+(* promise *)
+
+fun promise_result ctxt result prop =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val _ = Context.reject_draft thy;
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
+
+    val assms = Assumption.assms_of ctxt;
+    val As = map Thm.term_of assms;
+
+    val xs = map Free (fold Term.add_frees (prop :: As) []);
+    val fixes = map cert xs;
+
+    val tfrees = fold Term.add_tfrees (prop :: As) [];
+    val instT = map (fn (a, S) => (certT (TVar ((a, 0), S)), certT (TFree (a, S)))) tfrees;
+
+    val global_prop =
+      Term.map_types Logic.varifyT (fold_rev Logic.all xs (Logic.list_implies (As, prop)));
+    val global_result =
+      Thm.generalize (map #1 tfrees, []) 0 o
+      Drule.forall_intr_list fixes o
+      Drule.implies_intr_list assms o
+      Thm.adjust_maxidx_thm ~1 o result;
+    val local_result =
+      Thm.promise (Future.fork_irrelevant global_result) (cert global_prop)
+      |> Thm.instantiate (instT, [])
+      |> Drule.forall_elim_list fixes
+      |> fold (Thm.elim_implies o Thm.assume) assms;
+  in local_result end;
 
 
 
@@ -102,9 +140,9 @@ fun prove_internal casms cprop tac =
   | NONE => error "Tactic failed.");
 
 
-(* prove_multi *)
+(* prove_common etc. *)
 
-fun prove_multi ctxt xs asms props tac =
+fun prove_common immediate ctxt xs asms props tac =
   let
     val thy = ProofContext.theory_of ctxt;
     val string_of_term = Syntax.string_of_term ctxt;
@@ -124,26 +162,30 @@ fun prove_multi ctxt xs asms props tac =
       |> Assumption.add_assumes casms
       ||> Variable.set_body true;
 
-    val goal = init (Conjunction.mk_conjunction_balanced cprops);
-    val res =
-      (case SINGLE (tac {prems = prems, context = ctxt'}) goal of
+    val stmt = Conjunction.mk_conjunction_balanced cprops;
+
+    fun result () =
+      (case SINGLE (tac {prems = prems, context = ctxt'}) (init stmt) of
         NONE => err "Tactic failed."
-      | SOME res => res);
-    val results = Conjunction.elim_balanced (length props) (finish res)
-      handle THM (msg, _, _) => err msg;
-    val _ = Unify.matches_list thy (map Thm.term_of cprops) (map Thm.prop_of results)
-      orelse err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res));
+      | SOME st =>
+          let val res = finish st handle THM (msg, _, _) => err msg in
+            if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res] then res
+            else err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res))
+          end);
+    val res =
+      if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 then result ()
+      else promise_result ctxt result (Thm.term_of stmt);
   in
-    results
+    Conjunction.elim_balanced (length props) res
     |> map (Assumption.export false ctxt' ctxt)
     |> Variable.export ctxt' ctxt
     |> map Drule.zero_var_indexes
   end;
 
+val prove_multi = prove_common false;
 
-(* prove *)
-
-fun prove ctxt xs asms prop tac = hd (prove_multi ctxt xs asms [prop] tac);
+fun prove_promise ctxt xs asms prop tac = hd (prove_common false ctxt xs asms [prop] tac);
+fun prove ctxt xs asms prop tac = hd (prove_common true ctxt xs asms [prop] tac);
 
 fun prove_global thy xs asms prop tac =
   Drule.standard (prove (ProofContext.init thy) xs asms prop tac);
