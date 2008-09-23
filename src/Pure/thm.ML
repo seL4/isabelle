@@ -37,7 +37,6 @@ signature BASIC_THM =
   val ctyp_of_term: cterm -> ctyp
 
   (*theorems*)
-  type deriv
   type thm
   type conv = cterm -> thm
   type attribute = Context.generic * thm -> Context.generic * thm
@@ -60,8 +59,6 @@ signature BASIC_THM =
   exception THM of string * int * thm list
   val theory_of_thm: thm -> theory
   val prop_of: thm -> term
-  val oracle_of: thm -> bool
-  val proof_of: thm -> Proofterm.proof
   val tpairs_of: thm -> (term * term) list
   val concl_of: thm -> term
   val prems_of: thm -> term list
@@ -113,9 +110,6 @@ signature BASIC_THM =
   val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
-  val promise: thm Future.T -> cterm -> thm
-  val extern_oracles: theory -> xstring list
-  val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 
 signature THM =
@@ -131,6 +125,11 @@ sig
   val adjust_maxidx_cterm: int -> cterm -> cterm
   val capply: cterm -> cterm -> cterm
   val cabs: cterm -> cterm -> cterm
+  val dest_deriv: thm ->
+   {oracle: bool,
+    proof: Proofterm.proof,
+    promises: (serial * (thm Future.T * theory * sort list * term)) list}
+  val oracle_of: thm -> bool
   val major_prem_of: thm -> term
   val no_prems: thm -> bool
   val terms_of_tpairs: (term * term) list -> term list
@@ -151,6 +150,11 @@ sig
   val varifyT: thm -> thm
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
+  val promise: thm Future.T -> cterm -> thm
+  val fulfill: thm -> thm
+  val proof_of: thm -> Proofterm.proof
+  val extern_oracles: theory -> xstring list
+  val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 
 structure Thm: THM =
@@ -337,19 +341,21 @@ end;
 
 (*** Derivations and Theorems ***)
 
-abstype deriv = Deriv of
- {oracle: bool,                                       (*oracle occurrence flag*)
-  proof: Pt.proof,                                    (*proof term*)
-  promises: (serial * (theory * thm Future.T)) list}  (*promised derivations*)
-and thm = Thm of
- deriv *                                              (*derivation*)
- {thy_ref: theory_ref,                                (*dynamic reference to theory*)
-  tags: Properties.T,                                 (*additional annotations/comments*)
-  maxidx: int,                                        (*maximum index of any Var or TVar*)
-  shyps: sort list,                                   (*sort hypotheses as ordered list*)
-  hyps: term list,                                    (*hypotheses as ordered list*)
-  tpairs: (term * term) list,                         (*flex-flex pairs*)
-  prop: term}                                         (*conclusion*)
+abstype thm = Thm of
+ deriv *                               (*derivation*)
+ {thy_ref: theory_ref,                 (*dynamic reference to theory*)
+  tags: Properties.T,                  (*additional annotations/comments*)
+  maxidx: int,                         (*maximum index of any Var or TVar*)
+  shyps: sort list,                    (*sort hypotheses as ordered list*)
+  hyps: term list,                     (*hypotheses as ordered list*)
+  tpairs: (term * term) list,          (*flex-flex pairs*)
+  prop: term}                          (*conclusion*)
+and deriv = Deriv of
+ {oracle: bool,                        (*oracle occurrence flag*)
+  proof: Pt.proof,                     (*proof term*)
+  promises: (serial * promise) list}   (*promised derivations*)
+and promise = Promise of
+  thm Future.T * theory * sort list * term
 with
 
 type conv = cterm -> thm;
@@ -395,13 +401,16 @@ fun merge_thys2 (th1 as Thm (_, {thy_ref = r1, ...})) (th2 as Thm (_, {thy_ref =
 
 (* basic components *)
 
+fun dest_deriv (Thm (Deriv {oracle, proof, promises}, _)) =
+  {oracle = oracle, proof = proof, promises = map (fn (i, Promise args) => (i, args)) promises};
+
+fun oracle_of (Thm (Deriv {oracle, ...}, _)) = oracle;
+
 val theory_of_thm = Theory.deref o #thy_ref o rep_thm;
 val maxidx_of = #maxidx o rep_thm;
 fun maxidx_thm th i = Int.max (maxidx_of th, i);
 val hyps_of = #hyps o rep_thm;
 val prop_of = #prop o rep_thm;
-fun oracle_of (Thm (Deriv {oracle, ...}, _)) = oracle;   (* FIXME finish proof *)
-fun proof_of (Thm (Deriv {proof, ...}, _)) = proof;   (* FIXME finish proof *)
 val tpairs_of = #tpairs o rep_thm;
 
 val concl_of = Logic.strip_imp_concl o prop_of;
@@ -492,47 +501,39 @@ fun extra_shyps (th as Thm (_, {shyps, ...})) = Sorts.subtract (present_sorts th
 
 (** derivations **)
 
-local
+(* type deriv *)
 
 fun make_deriv oracle promises proof =
   Deriv {oracle = oracle, promises = promises, proof = proof};
 
 val empty_deriv = make_deriv false [] Pt.min_proof;
 
-fun add_oracles false = K I
-  | add_oracles true = Pt.oracles_of_proof;
 
-in
+(* type promise *)
+
+fun promise_ord ((i, Promise _), (j, Promise _)) = int_ord (j, i);
+
+
+(* inference rules *)
 
 fun deriv_rule2 f
     (Deriv {oracle = ora1, promises = ps1, proof = prf1})
     (Deriv {oracle = ora2, promises = ps2, proof = prf2}) =
   let
     val ora = ora1 orelse ora2;
-    val ps = OrdList.union (int_ord o pairself #1) ps1 ps2;
+    val ps = OrdList.union promise_ord ps1 ps2;
     val prf =
       (case ! Pt.proofs of
         2 => f prf1 prf2
       | 1 => MinProof (([], [], []) |> Pt.mk_min_proof prf1 |> Pt.mk_min_proof prf2)
       | 0 =>
-          if ora then MinProof ([], [], [] |> add_oracles ora1 prf1 |> add_oracles ora2 prf2)
+          if ora then MinProof ([], [], [] |> Pt.add_oracles ora1 prf1 |> Pt.add_oracles ora2 prf2)
           else Pt.min_proof
       | i => error ("Illegal level of detail for proof objects: " ^ string_of_int i));
   in make_deriv ora ps prf end;
 
 fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
 fun deriv_rule0 prf = deriv_rule1 I (make_deriv false [] prf);
-
-fun deriv_oracle name prop =
-  make_deriv true [] (Pt.oracle_proof name prop);
-
-fun deriv_promise i thy future prop =
-  make_deriv false [(i, (thy, future))] (Pt.promise_proof i prop);
-
-fun deriv_uncond_rule f (Deriv {oracle, promises, proof}) =
-  make_deriv oracle promises (f proof);
-
-end;
 
 
 
@@ -576,18 +577,16 @@ fun axioms_of thy =
 
 (* official name and additional tags *)
 
-fun get_name th = Pt.get_name (hyps_of th) (prop_of th) (proof_of th);  (*finished proof!*)
+fun get_name (Thm (Deriv {proof, ...}, {hyps, prop, ...})) = Pt.get_name hyps prop proof;
 
-fun is_named (Thm (Deriv {proof, ...}, _)) = Pt.is_named proof;
-
-fun put_name name (thm as Thm (der, args as {thy_ref, hyps, prop, tpairs, ...})) =
-      let
-        val _ = null tpairs orelse
-          raise THM ("name_thm: unsolved flex-flex constraints", 0, [thm]);
-        val thy = Theory.deref thy_ref;
-        val der' = deriv_uncond_rule (Pt.thm_proof thy name hyps prop) der;
-        val _ = Theory.check_thy thy;
-      in Thm (der', args) end;
+fun put_name name thm =
+  let
+    val Thm (Deriv {oracle, promises, proof}, args as {thy_ref, hyps, prop, tpairs, ...}) = thm;
+    val _ = null tpairs orelse raise THM ("name_thm: unsolved flex-flex constraints", 0, [thm]);
+    val thy = Theory.deref thy_ref;
+    val der' = make_deriv oracle promises (Pt.thm_proof thy name hyps prop proof);
+    val _ = Theory.check_thy thy;
+  in Thm (der', args) end;
 
 
 val get_tags = #tags o rep_thm;
@@ -1606,6 +1605,8 @@ fun biresolution match brules i state =
 
 (*** Promises ***)
 
+(* promise *)
+
 fun promise future ct =
   let
     val {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = rep_cterm ct;
@@ -1613,7 +1614,7 @@ fun promise future ct =
     val _ = T <> propT andalso raise CTERM ("promise: prop expected", [ct]);
     val i = serial ();
   in
-    Thm (deriv_promise i thy future prop,
+    Thm (make_deriv false [(i, Promise (future, thy, sorts, prop))] (Pt.promise_proof i prop),
      {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx,
@@ -1622,6 +1623,34 @@ fun promise future ct =
       tpairs = [],
       prop = prop})
   end;
+
+fun check_promise (i, Promise (future, thy1, shyps1, prop1)) =
+  let
+    val thm = transfer thy1 (Future.join future);
+    val _ = Theory.check_thy thy1;
+    fun err msg = raise THM ("check_promise: " ^ msg, 0, [thm]);
+
+    val Thm (Deriv {oracle, proof, promises}, {shyps, hyps, tpairs, prop, ...}) = thm;
+    val _ = null promises orelse err "illegal nested promises";
+    val _ = shyps = shyps1 orelse err "bad shyps";
+    val _ = null hyps orelse err "bad hyps";
+    val _ = null tpairs orelse err "bad tpairs";
+    val _ = prop aconv prop1 orelse err "bad prop";
+  in (oracle, (i, proof)) end;
+
+
+(* fulfill *)
+
+fun fulfill (thm as Thm (Deriv {oracle, proof, promises}, args)) =
+  let
+    val _ = Future.join_results (map (fn (_, Promise (future, _, _, _)) => future) promises);
+    val results = map check_promise promises;
+
+    val ora = oracle orelse exists #1 results;
+    val prf = Pt.fulfill (fold (Inttab.update o #2) results Inttab.empty) proof;
+  in Thm (make_deriv ora [] prf, args) end;
+
+val proof_of = fulfill #> (fn Thm (Deriv {proof, ...}, _) => proof);
 
 
 
@@ -1634,7 +1663,7 @@ fun invoke_oracle thy_ref1 name oracle arg =
     if T <> propT then
       raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
     else
-      Thm (deriv_oracle name prop,
+      Thm (make_deriv true [] (Pt.oracle_proof name prop),
        {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
         tags = [],
         maxidx = maxidx,
