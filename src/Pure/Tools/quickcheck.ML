@@ -170,61 +170,62 @@ val _ = Context.>> (Specification.add_theorem_hook test_goal_auto);
 
 (* Isar interfaces *)
 
-val arg_nat = Args.name #-> (fn s => case (Library.read_int o Symbol.explode) s
- of (k, []) => if k >= 0 then pair k
-      else Scan.fail ("Not a natural number: " ^ s)
-  | (_, _ :: _) => Scan.fail ("Not a natural number: " ^ s));
+fun read_nat s = case (Library.read_int o Symbol.explode) s
+ of (k, []) => if k >= 0 then k
+      else error ("Not a natural number: " ^ s)
+  | (_, _ :: _) => error ("Not a natural number: " ^ s);
 
-val parse_test_param =
-  Scan.lift (Args.$$$ "size" -- Args.$$$ "=" |-- arg_nat) >> (apfst o apfst o K)
-  || Scan.lift (Args.$$$ "iterations" -- Args.$$$ "=" |-- arg_nat) >> (apfst o apsnd o K)
-  || Scan.lift (Args.$$$ "default_type" -- Args.$$$ "=") |-- Args.typ >> (apsnd o K o SOME);
+fun parse_test_param ctxt ("size", arg) =
+      (apfst o apfst o K) (read_nat arg)
+  | parse_test_param ctxt ("iterations", arg) =
+      (apfst o apsnd o K) (read_nat arg)
+  | parse_test_param ctxt ("default_type", arg) =
+      (apsnd o K o SOME) (ProofContext.read_typ ctxt arg)
+  | parse_test_param ctxt (name, _) =
+      error ("Bad test parameter: " ^ name);
 
-val parse_test_param_inst =
-  Scan.lift (Args.$$$ "generator" -- Args.$$$ "=" |-- Args.name)
-      >> (apsnd o apfst o K o SOME)
-  || parse_test_param >> apfst
-  || Args.tyname --| Scan.lift (Args.$$$ "=") -- Args.typ
-      >> (apsnd o apsnd o AList.update (op =));
+fun parse_test_param_inst ctxt ("generator", arg) =
+      (apsnd o apfst o K o SOME) arg
+  | parse_test_param_inst ctxt (name, arg) =
+      case try (ProofContext.read_typ ctxt) name
+       of SOME (TFree (v, _)) => (apsnd o apsnd o AList.update (op =))
+              (v, ProofContext.read_typ ctxt arg)
+        | _ => (apfst o parse_test_param ctxt) (name, arg);
 
-fun quickcheck_params_cmd pos args thy =
+fun quickcheck_params_cmd args thy =
   let
     val ctxt = ProofContext.init thy;
-    val src = Args.src (("quickcheck_params", args), pos);
-    val (fs, _) = Args.context_syntax "quickcheck_params"
-      (Scan.repeat parse_test_param) src ctxt;
+    val f = fold (parse_test_param ctxt) args;
   in
     thy
-    |> (Data.map o apsnd o map_test_params) (Library.apply fs)
+    |> (Data.map o apsnd o map_test_params) f
   end;
 
-fun quickcheck_cmd pos args i state =
+fun quickcheck_cmd args i state =
   let
     val prf = Toplevel.proof_of state;
     val thy = Toplevel.theory_of state;
     val ctxt = Toplevel.context_of state;
     val default_params = (dest_test_params o snd o Data.get) thy;
-    val src = Args.src (("quickcheck", args), pos);
-    val (fs, _) = Args.context_syntax "quickcheck"
-      (Scan.repeat parse_test_param_inst) src ctxt;
+    val f = fold (parse_test_param_inst ctxt) args;
     val (((size, iterations), default_type), (generator_name, insts)) =
-      Library.apply fs (default_params, (NONE, []));
+      f (default_params, (NONE, []));
     val counterex = test_goal false generator_name size iterations
       default_type insts i [] prf;
   in (Pretty.writeln o pretty_counterex ctxt) counterex end;
 
 local structure P = OuterParse and K = OuterKeyword in
 
+val parse_arg = P.name --| P.$$$ "=" -- P.name;
+val parse_args = P.$$$ "[" |-- P.list1 parse_arg --| P.$$$ "]"
+  || Scan.succeed [];
+
 val _ = OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
-  (P.$$$ "[" |-- P.position (OuterParse.enum "," Args.parse) --| P.$$$ "]"
-    >> (fn (args, pos) => Toplevel.theory
-         (quickcheck_params_cmd pos (flat args))));
+  (parse_args >> (fn args => Toplevel.theory (quickcheck_params_cmd args)));
 
 val _ = OuterSyntax.improper_command "quickcheck" "try to find counterexample for subgoal" K.diag
-  (P.position (Scan.optional (P.$$$ "[" |-- OuterParse.enum "," Args.parse --| P.$$$ "]") [])
-    -- Scan.optional P.nat 1
-    >> (fn ((args, pos), i) => Toplevel.no_timing o Toplevel.keep
-          (quickcheck_cmd pos (flat args) i)));
+  (parse_args -- Scan.optional P.nat 1
+    >> (fn (args, i) => Toplevel.no_timing o Toplevel.keep (quickcheck_cmd args i)));
 
 end; (*local*)
 
