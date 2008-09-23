@@ -223,7 +223,7 @@ fun coherent_tac rules ctxt = SUBPROOF (fn {prems, concl, params, context, ...} 
          NONE => no_tac
        | SOME prf =>
            rtac (thm_of_cl_prf (ProofContext.theory_of context) concl [] prf) 1
-    end) ctxt 1) ctxt;
+    end) context 1) ctxt;
 
 fun coherent_meth rules ctxt =
   Method.METHOD (fn facts => coherent_tac (facts @ rules) ctxt 1);
