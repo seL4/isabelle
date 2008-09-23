@@ -235,35 +235,36 @@ fun fork_irrelevant e = future (Option.map #2 (thread_data ())) [] false e;
 
 (* join: retrieve results *)
 
-fun join_results xs =
-  let
-    val _ = scheduler_check ();
-    val _ = Multithreading.self_critical () andalso
-      error "Cannot join future values within critical section";
+fun join_results [] = []
+  | join_results xs =
+      let
+        val _ = scheduler_check ();
+        val _ = Multithreading.self_critical () andalso
+          error "Cannot join future values within critical section";
 
-    fun unfinished () =
-      xs |> map_filter (fn Future {task, result = ref NONE, ...} => SOME task | _ => NONE);
+        fun unfinished () =
+          xs |> map_filter (fn Future {task, result = ref NONE, ...} => SOME task | _ => NONE);
 
-    (*alien thread -- refrain from contending for resources*)
-    fun passive_join () = (*requires SYNCHRONIZED*)
-      (case unfinished () of [] => ()
-      | _ => (wait "passive_join"; passive_join ()));
+        (*alien thread -- refrain from contending for resources*)
+        fun passive_join () = (*requires SYNCHRONIZED*)
+          (case unfinished () of [] => ()
+          | _ => (wait "passive_join"; passive_join ()));
 
-    (*proper worker thread -- actively work towards results*)
-    fun active_join () = (*requires SYNCHRONIZED*)
-      (case unfinished () of [] => ()
-      | tasks =>
-          (case change_result queue (TaskQueue.dequeue_towards tasks) of
-            NONE => (worker_wait "active_join"; active_join ())
-          | SOME work => (execute "active_join" work; active_join ())));
+        (*proper worker thread -- actively work towards results*)
+        fun active_join () = (*requires SYNCHRONIZED*)
+          (case unfinished () of [] => ()
+          | tasks =>
+              (case change_result queue (TaskQueue.dequeue_towards tasks) of
+                NONE => (worker_wait "active_join"; active_join ())
+              | SOME work => (execute "active_join" work; active_join ())));
 
-    val _ =
-      (case thread_data () of
-        NONE => SYNCHRONIZED "passive_join" passive_join
-      | SOME (task, _) => SYNCHRONIZED "active_join" (fn () =>
-         (change queue (TaskQueue.depend (unfinished ()) task); active_join ())));
+        val _ =
+          (case thread_data () of
+            NONE => SYNCHRONIZED "passive_join" passive_join
+          | SOME (task, _) => SYNCHRONIZED "active_join" (fn () =>
+             (change queue (TaskQueue.depend (unfinished ()) task); active_join ())));
 
-  in xs |> map (fn Future {result = ref (SOME res), ...} => res) end;
+      in xs |> map (fn Future {result = ref (SOME res), ...} => res) end;
 
 fun join x = Exn.release (singleton join_results x);
 
