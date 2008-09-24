@@ -21,13 +21,17 @@ object IsabelleProcess {
   /* results */
 
   object Kind extends Enumeration {
-    //{{{ values
+    //{{{ values and codes
+    // internal system notification
+    val SYSTEM = Value("SYSTEM")
     // Posix channels/events
     val STDIN = Value("STDIN")
     val STDOUT = Value("STDOUT")
     val SIGNAL = Value("SIGNAL")
     val EXIT = Value("EXIT")
     // Isabelle messages
+    val INIT = Value("INIT")
+    val STATUS = Value("STATUS")
     val WRITELN = Value("WRITELN")
     val PRIORITY = Value("PRIORITY")
     val TRACING = Value("TRACING")
@@ -35,24 +39,36 @@ object IsabelleProcess {
     val ERROR = Value("ERROR")
     val DEBUG = Value("DEBUG")
     val PROMPT = Value("PROMPT")
-    val INIT = Value("INIT")
-    val STATUS = Value("STATUS")
-    // internal system notification
-    val SYSTEM = Value("SYSTEM")
+    // messages codes
+    val code = Map(
+      ('A' : Int) -> Kind.INIT,
+      ('B' : Int) -> Kind.STATUS,
+      ('C' : Int) -> Kind.WRITELN,
+      ('D' : Int) -> Kind.PRIORITY,
+      ('E' : Int) -> Kind.TRACING,
+      ('F' : Int) -> Kind.WARNING,
+      ('G' : Int) -> Kind.ERROR,
+      ('H' : Int) -> Kind.DEBUG,
+      ('I' : Int) -> Kind.PROMPT,
+      ('0' : Int) -> Kind.SYSTEM,
+      ('1' : Int) -> Kind.STDIN,
+      ('2' : Int) -> Kind.STDOUT,
+      ('3' : Int) -> Kind.SIGNAL,
+      ('4' : Int) -> Kind.EXIT)
     //}}}
     def is_raw(kind: Value) =
       kind == STDOUT
     def is_control(kind: Value) =
+      kind == SYSTEM ||
       kind == SIGNAL ||
-      kind == EXIT ||
-      kind == SYSTEM
+      kind == EXIT
     def is_system(kind: Value) =
+      kind == SYSTEM ||
       kind == STDIN ||
       kind == SIGNAL ||
       kind == EXIT ||
-      kind == PROMPT ||
       kind == STATUS ||
-      kind == SYSTEM
+      kind == PROMPT
   }
 
   class Result(val kind: Kind.Value, val props: Properties, val result: String) {
@@ -267,18 +283,9 @@ class IsabelleProcess(args: String*) {
               try_close()
             }
             else {
-              reader.read match {
-                case 'A' => kind = Kind.WRITELN
-                case 'B' => kind = Kind.PRIORITY
-                case 'C' => kind = Kind.TRACING
-                case 'D' => kind = Kind.WARNING
-                case 'E' => kind = Kind.ERROR
-                case 'F' => kind = Kind.DEBUG
-                case 'G' => kind = Kind.PROMPT
-                case 'H' => kind = Kind.INIT
-                case 'I' => kind = Kind.STATUS
-                case _ => kind = null
-              }
+              c = reader.read
+              if (Kind.code.isDefinedAt(c)) kind = Kind.code(c)
+              else kind = null
               props = null
             }
             //}}}
