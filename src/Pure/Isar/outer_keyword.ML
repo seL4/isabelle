@@ -148,7 +148,7 @@ fun report () =
   let val (keywords, commands) = CRITICAL (fn () =>
     (dest_keywords (), sort_wrt #1 (Symtab.dest (get_commands ()))))
   in map report_keyword keywords @ map report_command commands end
-  |> Pretty.chunks |> Pretty.string_of |> Output.status;
+  |> List.app (Output.status o Pretty.string_of);
 
 
 (* augment tables *)
