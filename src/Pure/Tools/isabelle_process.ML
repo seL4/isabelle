@@ -91,7 +91,7 @@ fun init_message out_stream =
     val pid = (Markup.pidN, string_of_pid (Posix.ProcEnv.getpid ()));
     val session = (Markup.sessionN, List.last (Session.id ()) handle List.Empty => "unknown");
     val text = message_text Markup.initN [XML.Text (Session.welcome ())];
-  in output out_stream (special "H" ^ message_props [pid, session] ^ text ^ special_end) end;
+  in output out_stream (special "A" ^ message_props [pid, session] ^ text ^ special_end) end;
 
 end;
 
@@ -123,14 +123,14 @@ fun setup_channels out =
     val _ = SimpleThread.fork false (auto_flush out_stream);
     val _ = SimpleThread.fork false (auto_flush TextIO.stdErr);
   in
-    Output.writeln_fn  := message out_stream "A" Markup.writelnN;
-    Output.priority_fn := message out_stream "B" Markup.priorityN;
-    Output.tracing_fn  := message out_stream "C" Markup.tracingN;
-    Output.warning_fn  := message out_stream "D" Markup.warningN;
-    Output.error_fn    := message out_stream "E" Markup.errorN;
-    Output.debug_fn    := message out_stream "F" Markup.debugN;
-    Output.prompt_fn   := message out_stream "G" Markup.promptN;
-    Output.status_fn   := message out_stream "I" Markup.statusN;
+    Output.status_fn   := message out_stream "B" Markup.statusN;
+    Output.writeln_fn  := message out_stream "C" Markup.writelnN;
+    Output.priority_fn := message out_stream "D" Markup.priorityN;
+    Output.tracing_fn  := message out_stream "E" Markup.tracingN;
+    Output.warning_fn  := message out_stream "F" Markup.warningN;
+    Output.error_fn    := message out_stream "G" Markup.errorN;
+    Output.debug_fn    := message out_stream "H" Markup.debugN;
+    Output.prompt_fn   := message out_stream "I" Markup.promptN;
     out_stream
   end;
 
