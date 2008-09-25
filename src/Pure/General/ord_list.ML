@@ -8,17 +8,20 @@ finite sets, all operations take linear time and economize heap usage.
 
 signature ORD_LIST =
 sig
-  val member: ('b * 'a -> order) -> 'a list -> 'b -> bool
-  val insert: ('a * 'a -> order) -> 'a -> 'a list -> 'a list
-  val remove: ('b * 'a -> order) -> 'b -> 'a list -> 'a list
-  val subset: ('b * 'a -> order) -> 'b list * 'a list -> bool
-  val union: ('a * 'a -> order) -> 'a list -> 'a list -> 'a list
-  val inter: ('b * 'a -> order) -> 'b list -> 'a list -> 'a list
-  val subtract: ('b * 'a -> order) -> 'b list -> 'a list -> 'a list
+  type 'a T = 'a list
+  val member: ('b * 'a -> order) -> 'a T -> 'b -> bool
+  val insert: ('a * 'a -> order) -> 'a -> 'a T -> 'a T
+  val remove: ('b * 'a -> order) -> 'b -> 'a T -> 'a T
+  val subset: ('b * 'a -> order) -> 'b T * 'a T -> bool
+  val union: ('a * 'a -> order) -> 'a T -> 'a T -> 'a T
+  val inter: ('b * 'a -> order) -> 'b T -> 'a T -> 'a T
+  val subtract: ('b * 'a -> order) -> 'b T -> 'a T -> 'a T
 end;
 
 structure OrdList: ORD_LIST =
 struct
+
+type 'a T = 'a list;
 
 
 (* single elements *)

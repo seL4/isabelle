@@ -15,14 +15,14 @@ minimal classes (wrt. current class inclusion).
 
 signature SORTS =
 sig
-  val union: sort list -> sort list -> sort list
-  val subtract: sort list -> sort list -> sort list
-  val remove_sort: sort -> sort list -> sort list
-  val insert_sort: sort -> sort list -> sort list
-  val insert_typ: typ -> sort list -> sort list
-  val insert_typs: typ list -> sort list -> sort list
-  val insert_term: term -> sort list -> sort list
-  val insert_terms: term list -> sort list -> sort list
+  val union: sort OrdList.T -> sort OrdList.T -> sort OrdList.T
+  val subtract: sort OrdList.T -> sort OrdList.T -> sort OrdList.T
+  val remove_sort: sort -> sort OrdList.T -> sort OrdList.T
+  val insert_sort: sort -> sort OrdList.T -> sort OrdList.T
+  val insert_typ: typ -> sort OrdList.T -> sort OrdList.T
+  val insert_typs: typ list -> sort OrdList.T -> sort OrdList.T
+  val insert_term: term -> sort OrdList.T -> sort OrdList.T
+  val insert_terms: term list -> sort OrdList.T -> sort OrdList.T
   type algebra
   val rep_algebra: algebra ->
    {classes: serial Graph.T,

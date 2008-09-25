@@ -16,7 +16,7 @@ signature BASIC_THM =
    {thy_ref: theory_ref,
     T: typ,
     maxidx: int,
-    sorts: sort list}
+    sorts: sort OrdList.T}
   val theory_of_ctyp: ctyp -> theory
   val typ_of: ctyp -> typ
   val ctyp_of: theory -> typ -> ctyp
@@ -29,8 +29,9 @@ signature BASIC_THM =
     t: term,
     T: typ,
     maxidx: int,
-    sorts: sort list}
-  val crep_cterm: cterm -> {thy_ref: theory_ref, t: term, T: ctyp, maxidx: int, sorts: sort list}
+    sorts: sort OrdList.T}
+  val crep_cterm: cterm ->
+    {thy_ref: theory_ref, t: term, T: ctyp, maxidx: int, sorts: sort OrdList.T}
   val theory_of_cterm: cterm -> theory
   val term_of: cterm -> term
   val cterm_of: theory -> term -> cterm
@@ -44,16 +45,16 @@ signature BASIC_THM =
    {thy_ref: theory_ref,
     tags: Properties.T,
     maxidx: int,
-    shyps: sort list,
-    hyps: term list,
+    shyps: sort OrdList.T,
+    hyps: term OrdList.T,
     tpairs: (term * term) list,
     prop: term}
   val crep_thm: thm ->
    {thy_ref: theory_ref,
     tags: Properties.T,
     maxidx: int,
-    shyps: sort list,
-    hyps: cterm list,
+    shyps: sort OrdList.T,
+    hyps: cterm OrdList.T,
     tpairs: (cterm * cterm) list,
     prop: cterm}
   exception THM of string * int * thm list
@@ -128,7 +129,7 @@ sig
   val dest_deriv: thm ->
    {oracle: bool,
     proof: Proofterm.proof,
-    promises: (serial * (thm Future.T * theory * sort list * term)) list}
+    promises: (serial * (thm Future.T * theory * sort OrdList.T * term)) OrdList.T}
   val oracle_of: thm -> bool
   val major_prem_of: thm -> term
   val no_prems: thm -> bool
@@ -171,7 +172,7 @@ abstype ctyp = Ctyp of
  {thy_ref: theory_ref,
   T: typ,
   maxidx: int,
-  sorts: sort list}
+  sorts: sort OrdList.T}
 with
 
 fun rep_ctyp (Ctyp args) = args;
@@ -199,7 +200,7 @@ abstype cterm = Cterm of
   t: term,
   T: typ,
   maxidx: int,
-  sorts: sort list}
+  sorts: sort OrdList.T}
 with
 
 exception CTERM of string * cterm list;
@@ -342,20 +343,20 @@ end;
 (*** Derivations and Theorems ***)
 
 abstype thm = Thm of
- deriv *                               (*derivation*)
- {thy_ref: theory_ref,                 (*dynamic reference to theory*)
-  tags: Properties.T,                  (*additional annotations/comments*)
-  maxidx: int,                         (*maximum index of any Var or TVar*)
-  shyps: sort list,                    (*sort hypotheses as ordered list*)
-  hyps: term list,                     (*hypotheses as ordered list*)
-  tpairs: (term * term) list,          (*flex-flex pairs*)
-  prop: term}                          (*conclusion*)
-and deriv = Deriv of
- {oracle: bool,                        (*oracle occurrence flag*)
-  proof: Pt.proof,                     (*proof term*)
-  promises: (serial * promise) list}   (*promised derivations*)
+ deriv *                                  (*derivation*)
+ {thy_ref: theory_ref,                    (*dynamic reference to theory*)
+  tags: Properties.T,                     (*additional annotations/comments*)
+  maxidx: int,                            (*maximum index of any Var or TVar*)
+  shyps: sort OrdList.T,                  (*sort hypotheses*)
+  hyps: term OrdList.T,                   (*hypotheses*)
+  tpairs: (term * term) list,             (*flex-flex pairs*)
+  prop: term}                             (*conclusion*)
+and deriv = Deriv of                
+ {oracle: bool,                           (*oracle occurrence flag*)
+  proof: Pt.proof,                        (*proof term*)
+  promises: (serial * promise) OrdList.T} (*promised derivations*)
 and promise = Promise of
-  thm Future.T * theory * sort list * term
+  thm Future.T * theory * sort OrdList.T * term
 with
 
 type conv = cterm -> thm;
@@ -388,6 +389,8 @@ fun attach_tpairs tpairs prop =
 fun full_prop_of (Thm (_, {tpairs, prop, ...})) = attach_tpairs tpairs prop;
 
 val union_hyps = OrdList.union Term.fast_term_ord;
+val insert_hyps = OrdList.insert Term.fast_term_ord;
+val remove_hyps = OrdList.remove Term.fast_term_ord;
 
 
 (* merge theories of cterms/thms -- trivial absorption only *)
@@ -468,7 +471,7 @@ fun weaken raw_ct th =
         tags = tags,
         maxidx = maxidx,
         shyps = Sorts.union sorts shyps,
-        hyps = OrdList.insert Term.fast_term_ord A hyps,
+        hyps = insert_hyps A hyps,
         tpairs = tpairs,
         prop = prop})
   end;
@@ -501,20 +504,15 @@ fun extra_shyps (th as Thm (_, {shyps, ...})) = Sorts.subtract (present_sorts th
 
 (** derivations **)
 
-(* type deriv *)
-
 fun make_deriv oracle promises proof =
   Deriv {oracle = oracle, promises = promises, proof = proof};
 
 val empty_deriv = make_deriv false [] Pt.min_proof;
 
 
-(* type promise *)
+(* inference rules *)
 
 fun promise_ord ((i, Promise _), (j, Promise _)) = int_ord (j, i);
-
-
-(* inference rules *)
 
 fun deriv_rule2 f
     (Deriv {oracle = ora1, promises = ps1, proof = prf1})
@@ -653,7 +651,7 @@ fun implies_intr
       tags = [],
       maxidx = Int.max (maxidxA, maxidx),
       shyps = Sorts.union sorts shyps,
-      hyps = OrdList.remove Term.fast_term_ord A hyps,
+      hyps = remove_hyps A hyps,
       tpairs = tpairs,
       prop = Logic.mk_implies (A, prop)});
 
