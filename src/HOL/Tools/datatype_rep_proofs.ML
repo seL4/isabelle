@@ -68,7 +68,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
            "In0_eq", "In1_eq", "In0_not_In1", "In1_not_In0",
            "Lim_inject", "Suml_inject", "Sumr_inject"];
 
-    val descr' = List.concat descr;
+    val descr' = flat descr;
 
     val big_name = space_implode "_" new_type_names;
     val thy1 = add_path flat_names big_name thy;
@@ -177,9 +177,9 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       in Logic.list_implies (prems, concl)
       end;
 
-    val intr_ts = List.concat (map (fn ((_, (_, _, constrs)), rep_set_name) =>
+    val intr_ts = maps (fn ((_, (_, _, constrs)), rep_set_name) =>
       map (make_intr rep_set_name (length constrs))
-        ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names'));
+        ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names');
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
         InductivePackage.add_inductive_global (serial_string ())
@@ -208,7 +208,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val big_rep_name = (space_implode "_" new_type_names) ^ "_Rep_";
     val rep_names = map (curry op ^ "Rep_") new_type_names;
     val rep_names' = map (fn i => big_rep_name ^ (string_of_int i))
-      (1 upto (length (List.concat (tl descr))));
+      (1 upto (length (flat (tl descr))));
     val all_rep_names = map (Sign.intern_const thy3) rep_names @
       map (Sign.full_name thy3) rep_names';
 
@@ -348,7 +348,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val defs = map (fn (rec_name, (T, iso_name)) => ((Sign.base_name iso_name) ^ "_def",
           Logic.mk_equals (Const (iso_name, T --> Univ_elT),
             list_comb (Const (rec_name, fTs @ [T] ---> Univ_elT), fs)))) (rec_names ~~ isos);
-        val (def_thms, thy') = (PureThy.add_defs false o map Thm.no_attributes) defs thy;
+        val (def_thms, thy') =
+          apsnd Theory.checkpoint ((PureThy.add_defs false o map Thm.no_attributes) defs thy);
 
         (* prove characteristic equations *)
 
@@ -358,14 +359,13 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
       in (thy', char_thms' @ char_thms) end;
 
-    val (thy5, iso_char_thms) = foldr make_iso_defs
-      (add_path flat_names big_name thy4, []) (tl descr);
+    val (thy5, iso_char_thms) = apfst Theory.checkpoint (foldr make_iso_defs
+      (add_path flat_names big_name thy4, []) (tl descr));
 
     (* prove isomorphism properties *)
 
-    fun mk_funs_inv thm =
+    fun mk_funs_inv thy thm =
       let
-        val thy = Thm.theory_of_thm thm;
         val prop = Thm.prop_of thm;
         val _ $ (_ $ ((S as Const (_, Type (_, [U, _]))) $ _ )) $
           (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.freeze prop;
@@ -484,7 +484,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
             rewrite_goals_tac (map symmetric range_eqs),
             REPEAT (EVERY
               [REPEAT (eresolve_tac ([rangeE, ex1_implies_ex RS exE] @
-                 List.concat (map (mk_funs_inv o #1) newT_iso_axms)) 1),
+                 maps (mk_funs_inv thy5 o #1) newT_iso_axms) 1),
                TRY (hyp_subst_tac 1),
                rtac (sym RS range_eqI) 1,
                resolve_tac iso_char_thms 1])])));
@@ -494,7 +494,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       map2 (fn r_inj => fn r => f_myinv_f OF [r_inj, r RS mp])
         iso_inj_thms_unfolded iso_thms;
 
-    val Abs_inverse_thms = List.concat (map mk_funs_inv Abs_inverse_thms');
+    val Abs_inverse_thms = maps (mk_funs_inv thy5) Abs_inverse_thms';
 
     (******************* freeness theorems for constructors *******************)
 
@@ -634,7 +634,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       thy6
       |> Sign.add_path big_name
       |> PureThy.add_thms [(("induct", dt_induct), [case_names_induct])]
-      ||> Sign.parent_path;
+      ||> Sign.parent_path
+      ||> Theory.checkpoint;
 
   in
     ((constr_inject', distinct_thms', dist_rewrites, simproc_dists, dt_induct'), thy7)
