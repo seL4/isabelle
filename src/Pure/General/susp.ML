@@ -11,6 +11,7 @@ sig
   val value: 'a -> 'a T
   val delay: (unit -> 'a) -> 'a T
   val force: 'a T -> 'a
+  val map_force: ('a -> 'a) -> 'a T -> 'a T
   val peek: 'a T -> 'a option
   val same: 'a T * 'a T -> bool
 end
@@ -38,10 +39,10 @@ fun force (ref (Value v)) = v
             val _ = susp := Value v;
           in v end));
 
-fun peek susp =
-  (case ! susp of
-    Value v => SOME v
-  | Delay _ => NONE);
+fun map_force f = value o f o force;
+
+fun peek (ref (Value v)) = SOME v
+  | peek (ref (Delay _)) = NONE;
 
 fun same (r1 : 'a T, r2) = (r1 = r2); (*equality on references*)
 
