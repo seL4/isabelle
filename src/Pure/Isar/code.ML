@@ -136,8 +136,9 @@ fun add_drop_redundant (thm, linear) thms =
     val args = args_of thm;
     fun matches_args args' = length args <= length args' andalso
       Pattern.matchess thy (args, curry Library.take (length args) args');
-    fun drop (thm', _) = if matches_args (args_of thm') then 
-      (warning ("Code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm'); true)
+    fun drop (thm', linear') = if (linear orelse not linear')
+      andalso matches_args (args_of thm') then 
+        (warning ("Code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm'); true)
       else false;
   in (thm, linear) :: filter_out drop thms end;
 
