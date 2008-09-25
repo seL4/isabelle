@@ -5,6 +5,8 @@
 Skipping proofs -- quick_and_dirty mode.
 *)
 
+val future_scheduler = ref false;
+
 signature SKIP_PROOF =
 sig
   val make_thm: theory -> term -> thm
@@ -34,10 +36,11 @@ fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
 
 fun prove ctxt xs asms prop tac =
-  Goal.prove ctxt xs asms prop (fn args => fn st =>
-    if ! quick_and_dirty
-    then setmp quick_and_dirty true (cheat_tac (ProofContext.theory_of ctxt)) st
-    else tac args st);
+  (if ! future_scheduler then Goal.prove_promise else Goal.prove) ctxt xs asms prop
+    (fn args => fn st =>
+      if ! quick_and_dirty
+      then setmp quick_and_dirty true (cheat_tac (ProofContext.theory_of ctxt)) st
+      else tac args st);
 
 fun prove_global thy xs asms prop tac =
   Drule.standard (prove (ProofContext.init thy) xs asms prop tac);
