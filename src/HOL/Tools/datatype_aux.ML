@@ -78,8 +78,8 @@ fun store_thmss_atts label tnames attss thmss =
   fold_map (fn ((tname, atts), thms) =>
     Sign.add_path tname
     #> PureThy.add_thmss [((label, thms), atts)]
-    #-> (fn thm::_ => Sign.parent_path #> pair thm)
-  ) (tnames ~~ attss ~~ thmss);
+    #-> (fn thm::_ => Sign.parent_path #> pair thm)) (tnames ~~ attss ~~ thmss)
+  ##> Theory.checkpoint;
 
 fun store_thmss label tnames = store_thmss_atts label tnames (replicate (length tnames) []);
 
@@ -87,8 +87,8 @@ fun store_thms_atts label tnames attss thmss =
   fold_map (fn ((tname, atts), thms) =>
     Sign.add_path tname
     #> PureThy.add_thms [((label, thms), atts)]
-    #-> (fn thm::_ => Sign.parent_path #> pair thm)
-  ) (tnames ~~ attss ~~ thmss);
+    #-> (fn thm::_ => Sign.parent_path #> pair thm)) (tnames ~~ attss ~~ thmss)
+  ##> Theory.checkpoint;
 
 fun store_thms label tnames = store_thms_atts label tnames (replicate (length tnames) []);
 

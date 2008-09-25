@@ -244,7 +244,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
-      ||> parent_path flat_names;
+      ||> parent_path flat_names
+      ||> Theory.checkpoint;
 
 
     (* prove characteristic equations for primrec combinators *)
@@ -265,6 +266,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     |> Sign.add_path (space_implode "_" new_type_names)
     |> PureThy.add_thmss [(("recs", rec_thms), [])]
     ||> Sign.parent_path
+    ||> Theory.checkpoint
     |-> (fn thms => pair (reccomb_names, Library.flat thms))
   end;
 
@@ -327,7 +329,8 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
         in (defs @ [def_thm], thy')
         end) (([], thy1), (hd descr) ~~ newTs ~~ case_names ~~
-          (Library.take (length newTs, reccomb_names)));
+          (Library.take (length newTs, reccomb_names)))
+      ||> Theory.checkpoint;
 
     val case_thms = map (map (fn t => SkipProof.prove_global thy2 [] [] t
       (fn _ => EVERY [rewrite_goals_tac (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1])))

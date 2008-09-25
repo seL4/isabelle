@@ -231,6 +231,7 @@ fun add_size_thms (new_type_names as name :: _) thy =
       thy
       |> Sign.root_path
       |> Sign.add_path prefix
+      |> Theory.checkpoint
       |> prove_size_thms info new_type_names
       |> Sign.restore_naming thy
   end;
