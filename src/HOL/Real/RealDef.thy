@@ -1088,6 +1088,10 @@ instance by default (simp add: eq_real_def)
 lemma real_eq_code [code]: "eq_class.eq (Ratreal x) (Ratreal y) \<longleftrightarrow> eq_class.eq x y"
   by (simp add: eq_real_def eq)
 
+lemma real_eq_refl [code nbe]:
+  "eq_class.eq (x::real) x \<longleftrightarrow> True"
+  by (rule HOL.eq_refl)
+
 end
 
 lemma real_less_eq_code [code]: "Ratreal x \<le> Ratreal y \<longleftrightarrow> x \<le> y"

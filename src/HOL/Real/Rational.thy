@@ -875,6 +875,10 @@ lemma rat_eq_code [code]:
      else a * d =  b * c)"
   by (auto simp add: eq eq_rat)
 
+lemma rat_eq_refl [code nbe]:
+  "eq_class.eq (r::rat) r \<longleftrightarrow> True"
+  by (rule HOL.eq_refl)
+
 end
 
 lemma le_rat':

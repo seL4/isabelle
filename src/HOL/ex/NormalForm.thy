@@ -8,15 +8,6 @@ theory NormalForm
 imports Main "~~/src/HOL/Real/Rational"
 begin
 
-lemma [code nbe]:
-  "x = x \<longleftrightarrow> True" by rule+
-
-lemma [code nbe]:
-  "eq_class.eq (x::bool) x \<longleftrightarrow> True" unfolding eq by rule+
-
-lemma [code nbe]:
-  "eq_class.eq (x::nat) x \<longleftrightarrow> True" unfolding eq by rule+
-
 lemma "True" by normalization
 lemma "p \<longrightarrow> True" by normalization
 declare disj_assoc [code nbe]
@@ -28,9 +19,6 @@ lemma "Suc n + Suc m = n + Suc (Suc m)" by normalization
 lemma "~((0::nat) < (0::nat))" by normalization
 
 datatype n = Z | S n
-
-lemma [code nbe]:
-  "eq_class.eq (x::n) x \<longleftrightarrow> True" unfolding eq by rule+
 
 consts
   add :: "n \<Rightarrow> n \<Rightarrow> n"
@@ -82,9 +70,6 @@ lemma "map f [x,y,z::'x] = [f x, f y, f z]" by normalization
 lemma "[a, b, c] @ xs = a # b # c # xs" by normalization
 lemma "[] @ xs = xs" by normalization
 lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization
-
-lemma [code nbe]:
-  "eq_class.eq (x :: 'a\<Colon>eq list) x \<longleftrightarrow> True" unfolding eq by rule+
 
 lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs" by normalization rule+
 lemma "rev [a, b, c] = [c, b, a]" by normalization

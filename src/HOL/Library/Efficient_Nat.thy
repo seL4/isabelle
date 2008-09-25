@@ -70,8 +70,12 @@ lemma divmod_aux_code [code]:
   unfolding divmod_aux_def divmod_div_mod zdiv_int [symmetric] zmod_int [symmetric] by simp
 
 lemma eq_nat_code [code]:
-  "n = m \<longleftrightarrow> (of_nat n \<Colon> int) = of_nat m"
-  by simp
+  "eq_class.eq n m \<longleftrightarrow> eq_class.eq (of_nat n \<Colon> int) (of_nat m)"
+  by (simp add: eq)
+
+lemma eq_nat_refl [code nbe]:
+  "eq_class.eq (n::nat) n \<longleftrightarrow> True"
+  by (rule HOL.eq_refl)
 
 lemma less_eq_nat_code [code]:
   "n \<le> m \<longleftrightarrow> (of_nat n \<Colon> int) \<le> of_nat m"

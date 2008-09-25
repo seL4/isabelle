@@ -1855,6 +1855,10 @@ lemma eq_int_code [code func]:
     simp_all only: Min_def succ_def pred_def number_of_is_id)
     (auto simp add: iszero_def)
 
+lemma eq_int_refl [code nbe]:
+  "eq_class.eq (k::int) k \<longleftrightarrow> True"
+  by (rule HOL.eq_refl)
+
 lemma less_eq_number_of_int_code [code func]:
   "(number_of k \<Colon> int) \<le> number_of l \<longleftrightarrow> k \<le> l"
   unfolding number_of_is_id ..

@@ -114,6 +114,10 @@ lemma [code func]:
   "eq_class.eq k l \<longleftrightarrow> eq_class.eq (nat_of_index k) (nat_of_index l)"
   by (cases k, cases l) (simp add: eq)
 
+lemma [code nbe]:
+  "eq_class.eq (k::index) k \<longleftrightarrow> True"
+  by (rule HOL.eq_refl)
+
 
 subsection {* Indices as datatype of ints *}
 
