@@ -91,9 +91,9 @@ setup {*
 *}
 
 lemma [code func]:
-  "Typerep tyco1 tys1 = Typerep tyco2 tys2 \<longleftrightarrow> tyco1 = tyco2
-     \<and> list_all2 (op =) tys1 tys2"
-  by (auto simp add: list_all2_eq [symmetric])
+  "eq_class.eq (Typerep tyco1 tys1) (Typerep tyco2 tys2) \<longleftrightarrow> eq_class.eq tyco1 tyco2
+     \<and> list_all2 eq_class.eq tys1 tys2"
+  by (auto simp add: equals_eq [symmetric] list_all2_eq [symmetric])
 
 code_type typerep
   (SML "Term.typ")

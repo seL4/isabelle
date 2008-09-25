@@ -77,7 +77,10 @@ subsection {* Generic code generator setup *}
 text {* using built-in Haskell equality *}
 
 code_class eq
-  (Haskell "Eq" where "op =" \<equiv> "(==)")
+  (Haskell "Eq" where "eq_class.eq" \<equiv> "(==)")
+
+code_const "eq_class.eq"
+  (Haskell infixl 4 "==")
 
 code_const "op ="
   (Haskell infixl 4 "==")

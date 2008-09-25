@@ -3625,7 +3625,7 @@ setup {*
 code_instance list :: eq
   (Haskell -)
 
-code_const "op = \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 setup {*

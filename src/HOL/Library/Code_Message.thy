@@ -50,7 +50,7 @@ code_reserved OCaml string
 code_instance message_string :: eq
   (Haskell -)
 
-code_const "op = \<Colon> message_string \<Rightarrow> message_string \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> message_string \<Rightarrow> message_string \<Rightarrow> bool"
   (SML "!((_ : string) = _)")
   (OCaml "!((_ : string) = _)")
   (Haskell infixl 4 "==")

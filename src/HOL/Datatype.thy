@@ -686,7 +686,7 @@ code_const None and Some
 code_instance option :: eq
   (Haskell -)
 
-code_const "op = \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_reserved SML

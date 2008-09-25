@@ -111,8 +111,8 @@ proof (rule ext)
 qed
 
 lemma [code func]:
-  "k = l \<longleftrightarrow> nat_of_index k = nat_of_index l"
-  by (cases k, cases l) simp
+  "eq_class.eq k l \<longleftrightarrow> eq_class.eq (nat_of_index k) (nat_of_index l)"
+  by (cases k, cases l) (simp add: eq)
 
 
 subsection {* Indices as datatype of ints *}
@@ -319,7 +319,7 @@ code_const div_mod_index
   (OCaml "(fun n -> fun m ->/ (n '/ m, n mod m))")
   (Haskell "divMod")
 
-code_const "op = \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
   (OCaml "!((_ : int) = _)")
   (Haskell infixl 4 "==")

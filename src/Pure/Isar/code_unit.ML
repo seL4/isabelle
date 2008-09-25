@@ -20,9 +20,8 @@ sig
 
   (*constant aliasses*)
   val add_const_alias: thm -> theory -> theory
-  val subst_alias: theory -> string -> string
-  val resubst_alias: theory -> string -> string
   val triv_classes: theory -> class list
+  val resubst_alias: theory -> string -> string
 
   (*constants*)
   val string_of_typ: theory -> typ -> string
@@ -39,7 +38,7 @@ sig
   (*defining equations*)
   val assert_rew: thm -> thm
   val mk_rew: thm -> thm
-  val mk_func: thm -> thm
+  val mk_func: bool -> thm -> thm
   val head_func: thm -> string * ((string * sort) list * typ)
   val expand_eta: int -> thm -> thm
   val rewrite_func: simpset -> thm -> thm
@@ -223,6 +222,7 @@ fun norm_varnames purify_tvar purify_var thms =
     |> map Drule.zero_var_indexes
   end;
 
+
 (* const aliasses *)
 
 structure ConstAlias = TheoryDataFun
@@ -252,16 +252,6 @@ fun add_const_alias thm =
       ((c_c', thm) :: alias, fold (insert (op =)) some_class classes))
   end;
 
-fun rew_alias thm =
-  let
-    val thy = Thm.theory_of_thm thm;
-  in rewrite_head ((map snd o fst o ConstAlias.get) thy) thm end;
-
-fun subst_alias thy c = ConstAlias.get thy
-  |> fst
-  |> get_first (fn ((c', c''), _) => if c = c' then SOME c'' else NONE)
-  |> the_default c;
-
 fun resubst_alias thy =
   let
     val alias = fst (ConstAlias.get thy);
@@ -275,19 +265,18 @@ fun resubst_alias thy =
 
 val triv_classes = snd o ConstAlias.get;
 
+
 (* reading constants as terms *)
 
 fun check_bare_const thy t = case try dest_Const t
  of SOME c_ty => c_ty
   | NONE => error ("Not a constant: " ^ Syntax.string_of_term_global thy t);
 
-fun check_const thy = subst_alias thy o AxClass.unoverload_const thy o apfst (subst_alias thy)
-  o check_bare_const thy;
+fun check_const thy = AxClass.unoverload_const thy o check_bare_const thy;
 
 fun read_bare_const thy = check_bare_const thy o Syntax.read_term_global thy;
 
-fun read_const thy = subst_alias thy o AxClass.unoverload_const thy o apfst (subst_alias thy)
-  o read_bare_const thy;
+fun read_const thy = AxClass.unoverload_const thy o read_bare_const thy;
 
 
 (* constructor sets *)
@@ -372,7 +361,7 @@ fun mk_rew thm =
 
 (* defining equations *)
 
-fun assert_func thm =
+fun assert_func linear thm =
   let
     val thy = Thm.theory_of_thm thm;
     val (head, args) = (strip_comb o fst o Logic.dest_equals
@@ -380,7 +369,7 @@ fun assert_func thm =
     val _ = case head of Const _ => () | _ =>
       bad_thm ("Equation not headed by constant\n" ^ Display.string_of_thm thm);
     val _ =
-      if has_duplicates (op =)
+      if linear andalso has_duplicates (op =)
         ((fold o fold_aterms) (fn Var (v, _) => cons v
           | _ => I
         ) args [])
@@ -403,7 +392,7 @@ fun assert_func thm =
     val _ = map (check 0) args;
   in thm end;
 
-val mk_func = rew_alias o assert_func o mk_rew;
+fun mk_func linear = assert_func linear o mk_rew;
 
 fun head_func thm =
   let
@@ -454,6 +443,6 @@ fun case_certificate thm =
 
 fun case_cert thm = case_certificate thm
   handle Bind => error "bad case certificate"
-      | TERM _ => error "bad case certificate";
+       | TERM _ => error "bad case certificate";
 
 end;

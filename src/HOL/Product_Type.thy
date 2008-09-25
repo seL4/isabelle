@@ -22,13 +22,15 @@ rep_datatype True False by (auto intro: bool_induct)
 declare case_split [cases type: bool]
   -- "prefer plain propositional version"
 
-lemma [code func]:
-  shows "False = P \<longleftrightarrow> \<not> P"
-    and "True = P \<longleftrightarrow> P" 
-    and "P = False \<longleftrightarrow> \<not> P" 
-    and "P = True \<longleftrightarrow> P" by simp_all
+lemma
+  shows [code func]: "eq_class.eq False P \<longleftrightarrow> \<not> P"
+    and [code func]: "eq_class.eq True P \<longleftrightarrow> P" 
+    and [code func]: "eq_class.eq P False \<longleftrightarrow> \<not> P" 
+    and [code func]: "eq_class.eq P True \<longleftrightarrow> P"
+    and [code nbe]: "eq_class.eq P P \<longleftrightarrow> True"
+  by (simp_all add: eq)
 
-code_const "op = \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_instance bool :: eq
@@ -88,7 +90,7 @@ text {* code generator setup *}
 instance unit :: eq ..
 
 lemma [code func]:
-  "(u\<Colon>unit) = v \<longleftrightarrow> True" unfolding unit_eq [of u] unit_eq [of v] by rule+
+  "eq_class.eq (u\<Colon>unit) v \<longleftrightarrow> True" unfolding eq unit_eq [of u] unit_eq [of v] by rule+
 
 code_type unit
   (SML "unit")
@@ -98,7 +100,7 @@ code_type unit
 code_instance unit :: eq
   (Haskell -)
 
-code_const "op = \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_const Unity
@@ -916,7 +918,7 @@ subsubsection {* Code generator setup *}
 instance * :: (eq, eq) eq ..
 
 lemma [code func]:
-  "(x1\<Colon>'a\<Colon>eq, y1\<Colon>'b\<Colon>eq) = (x2, y2) \<longleftrightarrow> x1 = x2 \<and> y1 = y2" by auto
+  "eq_class.eq (x1\<Colon>'a\<Colon>eq, y1\<Colon>'b\<Colon>eq) (x2, y2) \<longleftrightarrow> x1 = x2 \<and> y1 = y2" by (simp add: eq)
 
 lemma split_case_cert:
   assumes "CASE \<equiv> split f"
@@ -935,7 +937,7 @@ code_type *
 code_instance * :: eq
   (Haskell -)
 
-code_const "op = \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_const Pair

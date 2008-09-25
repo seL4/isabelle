@@ -28,7 +28,7 @@ code_reserved SML
 code_reserved OCaml
   char
 
-code_const "op = \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (SML "!((_ : char) = _)")
   (OCaml "!((_ : char) = _)")
   (Haskell infixl 4 "==")

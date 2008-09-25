@@ -72,7 +72,7 @@ code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
 
-code_const "op = \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")

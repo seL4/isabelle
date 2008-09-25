@@ -1710,15 +1710,23 @@ setup {*
 
 class eq = type +
   fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-  assumes eq: "eq x y \<longleftrightarrow> x = y "
+  assumes eq_equals: "eq x y \<longleftrightarrow> x = y "
 begin
 
+lemma eq: "eq = (op =)"
+  by (rule ext eq_equals)+
+
 lemma equals_eq [code inline, code func]: "op = \<equiv> eq"
-  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq)
+  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
 
 declare equals_eq [symmetric, code post]
 
+lemma eq_refl: "eq x x \<longleftrightarrow> True"
+  unfolding eq by rule+
+
 end
+
+declare simp_thms(6) [code nbe]
 
 hide (open) const eq
 hide const eq

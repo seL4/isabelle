@@ -135,7 +135,7 @@ end
 subsubsection {* Code generator setup *}
 
 lemmas [code func del] = term.recs term.cases term.size
-lemma [code func, code func del]: "(t1\<Colon>term) = t2 \<longleftrightarrow> t1 = t2" ..
+lemma [code func, code func del]: "eq_class.eq (t1\<Colon>term) t2 \<longleftrightarrow> eq_class.eq t1 t2" ..
 
 lemma [code func, code func del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..
 lemma [code func, code func del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..

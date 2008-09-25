@@ -400,7 +400,7 @@ code_const divmod_aux
   (OCaml "Big'_int.quomod'_big'_int")
   (Haskell "divMod")
 
-code_const "op = \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")

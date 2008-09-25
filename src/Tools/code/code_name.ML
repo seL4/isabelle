@@ -45,9 +45,8 @@ fun read_const_exprs thy =
         val thy' = case some_thyname
          of SOME thyname => ThyInfo.the_theory thyname thy
           | NONE => thy;
-        val raw_cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
+        val cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
           ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) thy') [];
-        val cs = map (Code_Unit.subst_alias thy') raw_cs;
         fun belongs_here c =
           not (exists (fn thy'' => Sign.declared_const thy'' c) (Theory.parents_of thy'))
       in case some_thyname
