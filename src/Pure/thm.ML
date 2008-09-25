@@ -151,8 +151,7 @@ sig
   val varifyT: thm -> thm
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
-  val promise: thm Future.T -> cterm -> thm
-  val fulfill: thm -> thm
+  val promise: (unit -> thm) -> cterm -> thm
   val proof_of: thm -> Proofterm.proof
   val extern_oracles: theory -> xstring list
   val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
@@ -349,7 +348,7 @@ datatype thm = Thm of
   hyps: term OrdList.T,                   (*hypotheses*)
   tpairs: (term * term) list,             (*flex-flex pairs*)
   prop: term}                             (*conclusion*)
-and deriv = Deriv of                
+and deriv = Deriv of
  {oracle: bool,                           (*oracle occurrence flag*)
   proof: Pt.proof,                        (*proof term*)
   promises: (serial * promise) OrdList.T} (*promised derivations*)
@@ -1617,20 +1616,22 @@ fun join_futures thy =
   let
     val futures = Futures.get thy;
     val results = Future.join_results (! futures);
-    val _ = CRITICAL (fn () => change futures (filter_out Future.is_finished));
+    val done = CRITICAL (fn () =>
+      (change futures (filter_out Future.is_finished); null (! futures)));
     val _ = ParList.release_results results;
-  in NONE end;
+  in if done then NONE else SOME thy end;
 
 val _ = Context.>> (Context.map_theory (Futures.init #> Theory.at_end join_futures));
 
 
 (* promise *)
 
-fun promise future ct =
+fun promise make_result ct =
   let
     val {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = rep_cterm ct;
     val thy = Context.reject_draft (Theory.deref thy_ref);
     val _ = T <> propT andalso raise CTERM ("promise: prop expected", [ct]);
+    val future = Future.fork_irrelevant make_result;
     val _ = add_future thy future;
     val i = serial ();
   in
