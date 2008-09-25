@@ -122,7 +122,7 @@ fun promise_result ctxt result prop =
       Drule.implies_intr_list assms o
       Thm.adjust_maxidx_thm ~1 o result;
     val local_result =
-      Thm.promise (Future.fork_irrelevant global_result) (cert global_prop)
+      Thm.promise global_result (cert global_prop)
       |> Thm.instantiate (instT, [])
       |> Drule.forall_elim_list fixes
       |> fold (Thm.elim_implies o Thm.assume) assms;
@@ -176,7 +176,7 @@ fun prove_common immediate ctxt xs asms props tac =
           end);
     val res =
       if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 then result ()
-      else promise_result ctxt result (Thm.term_of stmt);
+      else promise_result ctxt' result (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
     |> map (Assumption.export false ctxt' ctxt)
