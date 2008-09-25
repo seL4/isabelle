@@ -84,6 +84,7 @@ sig
   val unflat: 'a list list -> 'b list -> 'b list list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
   val burrow_options: ('a list -> 'b list) -> 'a option list -> 'b option list
+  val burrow_fst: ('a list -> 'b list) -> ('a * 'c) list -> ('b * 'c) list
   val fold_burrow: ('a list -> 'c -> 'b list * 'd) -> 'a list list -> 'c -> 'b list list * 'd
   val maps: ('a -> 'b list) -> 'a list -> 'b list
   val filter: ('a -> bool) -> 'a list -> 'a list
@@ -604,6 +605,8 @@ fun [] ~~ [] = []
 (*inverse of ~~; the old 'split':
   [(x1, y1), ..., (xn, yn)]  ===>  ([x1, ..., xn], [y1, ..., yn])*)
 val split_list = ListPair.unzip;
+
+fun burrow_fst f xs = split_list xs |>> f |> op ~~;
 
 
 (* prefixes, suffixes *)
