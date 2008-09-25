@@ -11,7 +11,7 @@ Notes:
     time.  The overhead of scheduling is significantly higher than
     just traversing the list of operands sequentially.
 
-  * The order of operator application is non-determined.  Watch out
+  * The order of operator application is non-deterministic.  Watch out
     for operators that have side-effects or raise exceptions!
 *)
 
