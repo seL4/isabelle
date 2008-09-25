@@ -8,17 +8,30 @@ theory NormalForm
 imports Main "~~/src/HOL/Real/Rational"
 begin
 
+lemma [code nbe]:
+  "x = x \<longleftrightarrow> True" by rule+
+
+lemma [code nbe]:
+  "eq_class.eq (x::bool) x \<longleftrightarrow> True" unfolding eq by rule+
+
+lemma [code nbe]:
+  "eq_class.eq (x::nat) x \<longleftrightarrow> True" unfolding eq by rule+
+
 lemma "True" by normalization
 lemma "p \<longrightarrow> True" by normalization
-declare disj_assoc [code func]
-lemma "((P | Q) | R) = (P | (Q | R))" by normalization rule
+declare disj_assoc [code nbe]
+lemma "((P | Q) | R) = (P | (Q | R))" by normalization
 declare disj_assoc [code func del]
-lemma "0 + (n::nat) = n" by normalization rule
-lemma "0 + Suc n = Suc n" by normalization rule
-lemma "Suc n + Suc m = n + Suc (Suc m)" by normalization rule
+lemma "0 + (n::nat) = n" by normalization
+lemma "0 + Suc n = Suc n" by normalization
+lemma "Suc n + Suc m = n + Suc (Suc m)" by normalization
 lemma "~((0::nat) < (0::nat))" by normalization
 
 datatype n = Z | S n
+
+lemma [code nbe]:
+  "eq_class.eq (x::n) x \<longleftrightarrow> True" unfolding eq by rule+
+
 consts
   add :: "n \<Rightarrow> n \<Rightarrow> n"
   add2 :: "n \<Rightarrow> n \<Rightarrow> n"
@@ -40,9 +53,9 @@ lemma [code]: "add2 n (S m) =  S (add2 n m)"
 lemma [code]: "add2 n Z = n"
   by(induct n) auto
 
-lemma "add2 (add2 n m) k = add2 n (add2 m k)" by normalization rule
-lemma "add2 (add2 (S n) (S m)) (S k) = S(S(S(add2 n (add2 m k))))" by normalization rule
-lemma "add2 (add2 (S n) (add2 (S m) Z)) (S k) = S(S(S(add2 n (add2 m k))))" by normalization rule
+lemma "add2 (add2 n m) k = add2 n (add2 m k)" by normalization
+lemma "add2 (add2 (S n) (S m)) (S k) = S(S(S(add2 n (add2 m k))))" by normalization
+lemma "add2 (add2 (S n) (add2 (S m) Z)) (S k) = S(S(S(add2 n (add2 m k))))" by normalization
 
 primrec
   "mul Z = (%n. Z)"
@@ -59,18 +72,22 @@ lemma "mul (S(S(S(S(S Z))))) (S(S(S Z))) = S(S(S(S(S(S(S(S(S(S(S(S(S(S(S Z))))))
 lemma "exp (S(S Z)) (S(S(S(S Z)))) = exp (S(S(S(S Z)))) (S(S Z))" by normalization
 
 lemma "(let ((x,y),(u,v)) = ((Z,Z),(Z,Z)) in add (add x y) (add u v)) = Z" by normalization
-lemma "split (%x y. x) (a, b) = a" by normalization rule
+lemma "split (%x y. x) (a, b) = a" by normalization
 lemma "(%((x,y),(u,v)). add (add x y) (add u v)) ((Z,Z),(Z,Z)) = Z" by normalization
 
 lemma "case Z of Z \<Rightarrow> True | S x \<Rightarrow> False" by normalization
 
 lemma "[] @ [] = []" by normalization
-lemma "map f [x,y,z::'x] = [f x, f y, f z]" by normalization rule+
-lemma "[a, b, c] @ xs = a # b # c # xs" by normalization rule+
-lemma "[] @ xs = xs" by normalization rule
-lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization rule+
+lemma "map f [x,y,z::'x] = [f x, f y, f z]" by normalization
+lemma "[a, b, c] @ xs = a # b # c # xs" by normalization
+lemma "[] @ xs = xs" by normalization
+lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization
+
+lemma [code nbe]:
+  "eq_class.eq (x :: 'a\<Colon>eq list) x \<longleftrightarrow> True" unfolding eq by rule+
+
 lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs" by normalization rule+
-lemma "rev [a, b, c] = [c, b, a]" by normalization rule+
+lemma "rev [a, b, c] = [c, b, a]" by normalization
 normal_form "rev (a#b#cs) = rev cs @ [b, a]"
 normal_form "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
 normal_form "map (%F. F ([a,b,c] @ ds)) (map map ([f,g,h]@fs))"
@@ -79,21 +96,24 @@ lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) 
   by normalization
 normal_form "case xs of [] \<Rightarrow> True | x#xs \<Rightarrow> False"
 normal_form "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) xs = P"
-lemma "let x = y in [x, x] = [y, y]" by normalization rule+
-lemma "Let y (%x. [x,x]) = [y, y]" by normalization rule+
+lemma "let x = y in [x, x] = [y, y]" by normalization
+lemma "Let y (%x. [x,x]) = [y, y]" by normalization
 normal_form "case n of Z \<Rightarrow> True | S x \<Rightarrow> False"
-lemma "(%(x,y). add x y) (S z,S z) = S (add z (S z))" by normalization rule+
+lemma "(%(x,y). add x y) (S z,S z) = S (add z (S z))" by normalization
 normal_form "filter (%x. x) ([True,False,x]@xs)"
 normal_form "filter Not ([True,False,x]@xs)"
 
-lemma "[x,y,z] @ [a,b,c] = [x, y, z, a, b, c]" by normalization rule+
-lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]" by normalization rule+
+lemma "[x,y,z] @ [a,b,c] = [x, y, z, a, b, c]" by normalization
+lemma "(%(xs, ys). xs @ ys) ([a, b, c], [d, e, f]) = [a, b, c, d, e, f]" by normalization
 lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) [None, Some ()] = [False, True]" by normalization
 
-lemma "last [a, b, c] = c" by normalization rule
-lemma "last ([a, b, c] @ xs) = last (c # xs)" by normalization rule
+lemma "last [a, b, c] = c" by normalization
+lemma "last ([a, b, c] @ xs) = last (c # xs)" by normalization
 
-lemma "(2::int) + 3 - 1 + (- k) * 2 = 4 + - k * 2" by normalization rule
+lemma [code nbe]:
+  "eq_class.eq (x :: int) x \<longleftrightarrow> True" unfolding eq by rule+
+
+lemma "(2::int) + 3 - 1 + (- k) * 2 = 4 + - k * 2" by normalization
 lemma "(-4::int) * 2 = -8" by normalization
 lemma "abs ((-4::int) + 2 * 1) = 2" by normalization
 lemma "(2::int) + 3 = 5" by normalization
@@ -111,10 +131,10 @@ lemma "max (Suc 0) 0 = Suc 0" by normalization
 lemma "(42::rat) / 1704 = 1 / 284 + 3 / 142" by normalization
 normal_form "Suc 0 \<in> set ms"
 
-lemma "f = f" by normalization rule+
-lemma "f x = f x" by normalization rule+
-lemma "(f o g) x = f (g x)" by normalization rule+
-lemma "(f o id) x = f x" by normalization rule+
+lemma "f = f" by normalization
+lemma "f x = f x" by normalization
+lemma "(f o g) x = f (g x)" by normalization
+lemma "(f o id) x = f x" by normalization
 normal_form "(\<lambda>x. x)"
 
 (* Church numerals: *)

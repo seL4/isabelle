@@ -62,7 +62,7 @@ sig
 
   datatype stmt =
       NoStmt
-    | Fun of typscheme * ((iterm list * iterm) * thm) list
+    | Fun of typscheme * ((iterm list * iterm) * (thm * bool)) list
     | Datatype of (vname * sort) list * (string * itype list) list
     | Datatypecons of string
     | Class of vname * ((class * string) list * (string * itype) list)
@@ -70,7 +70,7 @@ sig
     | Classparam of class
     | Classinst of (class * (string * (vname * sort) list))
           * ((class * (string * (string * dict list list))) list
-        * ((string * const) * thm) list);
+        * ((string * const) * (thm * bool)) list);
   type program = stmt Graph.T;
   val empty_funs: program -> string list;
   val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm;
@@ -258,7 +258,7 @@ fun locally_monomorphic (IConst _) = false
 type typscheme = (vname * sort) list * itype;
 datatype stmt =
     NoStmt
-  | Fun of typscheme * ((iterm list * iterm) * thm) list
+  | Fun of typscheme * ((iterm list * iterm) * (thm * bool)) list
   | Datatype of (vname * sort) list * (string * itype list) list
   | Datatypecons of string
   | Class of vname * ((class * string) list * (string * itype) list)
@@ -266,7 +266,7 @@ datatype stmt =
   | Classparam of class
   | Classinst of (class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
-      * ((string * const) * thm) list);
+      * ((string * const) * (thm * bool)) list);
 
 type program = stmt Graph.T;
 
@@ -423,14 +423,14 @@ and exprgen_dicts thy (algbr as (proj_sort, algebra)) funcgr thm (ty, sort) =
           fold_map (ensure_classrel thy algbr funcgr) classrels
           #>> (fn classrels => DictVar (classrels, (unprefix "'" v, (k, length sort))))
   in fold_map mk_dict typargs end
-and exprgen_eq thy algbr funcgr thm =
+and exprgen_eq thy algbr funcgr (thm, linear) =
   let
     val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals
       o Logic.unvarify o prop_of) thm;
   in
     fold_map (exprgen_term thy algbr funcgr (SOME thm)) args
     ##>> exprgen_term thy algbr funcgr (SOME thm) rhs
-    #>> rpair thm
+    #>> rpair (thm, linear)
   end
 and ensure_inst thy (algbr as (_, algebra)) funcgr (class, tyco) =
   let
@@ -457,7 +457,7 @@ and ensure_inst thy (algbr as (_, algebra)) funcgr (class, tyco) =
       in
         ensure_const thy algbr funcgr c
         ##>> exprgen_const thy algbr funcgr (SOME thm) c_ty
-        #>> (fn (c, IConst c_inst) => ((c, c_inst), thm))
+        #>> (fn (c, IConst c_inst) => ((c, c_inst), (thm, true)))
       end;
     val stmt_inst =
       ensure_class thy algbr funcgr class
@@ -485,7 +485,7 @@ and ensure_const thy algbr funcgr c =
         val ty = Logic.unvarifyT raw_ty;
         val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
           then raw_thms
-          else map (Code_Unit.expand_eta 1) raw_thms;
+          else (map o apfst) (Code_Unit.expand_eta 1) raw_thms;
       in
         trns
         |> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
@@ -642,7 +642,7 @@ fun ensure_value thy algbr funcgr t =
       fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
       ##>> exprgen_typ thy algbr funcgr ty
       ##>> exprgen_term thy algbr funcgr NONE t
-      #>> (fn ((vs, ty), t) => Fun ((vs, ty), [(([], t), Drule.dummy_thm)]));
+      #>> (fn ((vs, ty), t) => Fun ((vs, ty), [(([], t), (Drule.dummy_thm, true))]));
     fun term_value (dep, program1) =
       let
         val Fun ((vs, ty), [(([], t), _)]) =

@@ -9,7 +9,7 @@ with explicit dependencies.
 signature CODE_FUNCGR =
 sig
   type T
-  val funcs: T -> string -> thm list
+  val funcs: T -> string -> (thm * bool) list
   val typ: T -> string -> (string * sort) list * typ
   val all: T -> string list
   val pretty: theory -> T -> Pretty.T
@@ -24,7 +24,7 @@ struct
 
 (** the graph type **)
 
-type T = (((string * sort) list * typ) * thm list) Graph.T;
+type T = (((string * sort) list * typ) * (thm * bool) list) Graph.T;
 
 fun funcs funcgr =
   these o Option.map snd o try (Graph.get_node funcgr);
@@ -41,7 +41,7 @@ fun pretty thy funcgr =
   |> map (fn (s, thms) =>
        (Pretty.block o Pretty.fbreaks) (
          Pretty.str s
-         :: map Display.pretty_thm thms
+         :: map (Display.pretty_thm o fst) thms
        ))
   |> Pretty.chunks;
 
@@ -57,7 +57,7 @@ fun consts_of (const, []) = []
   | consts_of (const, thms as _ :: _) = 
       let
         fun the_const (c, _) = if c = const then I else insert (op =) c
-      in fold_consts the_const thms [] end;
+      in fold_consts the_const (map fst thms) [] end;
 
 fun insts_of thy algebra tys sorts =
   let
@@ -100,19 +100,19 @@ fun resort_thms thy algebra typ_of thms =
 fun resort_funcss thy algebra funcgr =
   let
     val typ_funcgr = try (fst o Graph.get_node funcgr);
-    val resort_dep = apsnd (resort_thms thy algebra typ_funcgr);
+    val resort_dep = (apsnd o burrow_fst) (resort_thms thy algebra typ_funcgr);
     fun resort_rec typ_of (c, []) = (true, (c, []))
-      | resort_rec typ_of (c, thms as thm :: _) = if is_some (AxClass.inst_of_param thy c)
+      | resort_rec typ_of (c, thms as (thm, _) :: _) = if is_some (AxClass.inst_of_param thy c)
           then (true, (c, thms))
           else let
             val (_, (vs, ty)) = Code_Unit.head_func thm;
-            val thms' as thm' :: _ = resort_thms thy algebra typ_of thms
+            val thms' as (thm', _) :: _ = burrow_fst (resort_thms thy algebra typ_of) thms
             val (_, (vs', ty')) = Code_Unit.head_func thm'; (*FIXME simplify check*)
           in (Sign.typ_equiv thy (ty, ty'), (c, thms')) end;
     fun resort_recs funcss =
       let
         fun typ_of c = case these (AList.lookup (op =) funcss c)
-         of thm :: _ => (SOME o snd o Code_Unit.head_func) thm
+         of (thm, _) :: _ => (SOME o snd o Code_Unit.head_func) thm
           | [] => NONE;
         val (unchangeds, funcss') = split_list (map (resort_rec typ_of) funcss);
         val unchanged = fold (fn x => fn y => x andalso y) unchangeds true;
@@ -158,8 +158,8 @@ fun ensure_const' thy algebra funcgr const auxgr =
     |> pair (SOME const)
   else let
     val thms = Code.these_funcs thy const
-      |> Code_Unit.norm_args
-      |> Code_Unit.norm_varnames Code_Name.purify_tvar Code_Name.purify_var;
+      |> burrow_fst Code_Unit.norm_args
+      |> burrow_fst (Code_Unit.norm_varnames Code_Name.purify_tvar Code_Name.purify_var);
     val rhs = consts_of (const, thms);
   in
     auxgr
@@ -182,14 +182,14 @@ fun merge_funcss thy algebra raw_funcss funcgr =
       |> resort_funcss thy algebra funcgr
       |> filter_out (can (Graph.get_node funcgr) o fst);
     fun typ_func c [] = Code.default_typ thy c
-      | typ_func c (thms as thm :: _) = (snd o Code_Unit.head_func) thm;
+      | typ_func c (thms as (thm, _) :: _) = (snd o Code_Unit.head_func) thm;
     fun add_funcs (const, thms) =
       Graph.new_node (const, (typ_func const thms, thms));
     fun add_deps (funcs as (const, thms)) funcgr =
       let
         val deps = consts_of funcs;
         val insts = instances_of_consts thy algebra funcgr
-          (fold_consts (insert (op =)) thms []);
+          (fold_consts (insert (op =)) (map fst thms) []);
       in
         funcgr
         |> ensure_consts thy algebra insts
@@ -278,16 +278,15 @@ fun eval_term thy f =
 
 (** diagnostic commands **)
 
-fun code_depgr thy [] = make thy []
-  | code_depgr thy consts =
-      let
-        val gr = make thy consts;
-        val select = Graph.all_succs gr consts;
-      in
-        gr
-        |> Graph.subgraph (member (op =) select) 
-        |> Graph.map_nodes ((apsnd o map) (AxClass.overload thy))
-      end;
+fun code_depgr thy consts =
+  let
+    val gr = make thy consts;
+    val select = Graph.all_succs gr consts;
+  in
+    gr
+    |> not (null consts) ? Graph.subgraph (member (op =) select) 
+    |> Graph.map_nodes ((apsnd o map o apfst) (AxClass.overload thy))
+  end;
 
 fun code_thms thy = Pretty.writeln o pretty thy o code_depgr thy;
 

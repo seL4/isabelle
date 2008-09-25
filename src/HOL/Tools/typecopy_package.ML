@@ -124,10 +124,10 @@ fun add_typecopy_spec tyco thy =
   let
     val SOME { constr, proj_def, inject, vs, ... } = get_info thy tyco;
     val vs' = (map o apsnd) (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq]) vs;
-    val ty = Logic.unvarifyT (Sign.the_const_type thy constr);
+    val ty = Type (tyco, map TFree vs');
+    val ty_constr = Logic.unvarifyT (Sign.the_const_type thy constr);
     fun add_def tyco lthy =
       let
-        val ty = Type (tyco, map TFree vs');
         fun mk_side const_name = Const (const_name, ty --> ty --> HOLogic.boolT)
           $ Free ("x", ty) $ Free ("y", ty);
         val def = HOLogic.mk_Trueprop (HOLogic.mk_eq
@@ -140,16 +140,23 @@ fun add_typecopy_spec tyco thy =
       in (thm', lthy') end;
     fun tac thms = Class.intro_classes_tac []
       THEN ALLGOALS (ProofContext.fact_tac thms);
-    fun add_eq_thm thy = 
+    fun add_eq_thms thy = 
       let
         val eq = inject
           |> Code_Unit.constrain_thm [HOLogic.class_eq]
           |> Simpdata.mk_eq
           |> MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}];
-      in Code.add_func eq thy end;
+        val eq_refl = @{thm HOL.eq_refl}
+          |> Thm.instantiate
+              ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], []);
+      in
+        thy
+        |> Code.add_func eq
+        |> Code.add_nonlinear_func eq_refl
+      end;
   in
     thy
-    |> Code.add_datatype [(constr, ty)]
+    |> Code.add_datatype [(constr, ty_constr)]
     |> Code.add_func proj_def
     |> TheoryTarget.instantiation ([tyco], vs', [HOLogic.class_eq])
     |> add_def tyco
@@ -157,7 +164,7 @@ fun add_typecopy_spec tyco thy =
     #> LocalTheory.exit
     #> ProofContext.theory_of
     #> Code.del_func thm
-    #> add_eq_thm)
+    #> add_eq_thms)
   end;
 
 val setup =

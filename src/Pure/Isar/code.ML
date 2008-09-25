@@ -9,12 +9,13 @@ executable content.  Cache assumes non-concurrent processing of a single theory.
 signature CODE =
 sig
   val add_func: thm -> theory -> theory
+  val add_nonlinear_func: thm -> theory -> theory
   val add_liberal_func: thm -> theory -> theory
   val add_default_func: thm -> theory -> theory
   val add_default_func_attr: Attrib.src
   val del_func: thm -> theory -> theory
   val del_funcs: string -> theory -> theory
-  val add_funcl: string * thm list Susp.T -> theory -> theory
+  val add_funcl: string * (thm * bool) list Susp.T -> theory -> theory
   val map_pre: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
   val map_post: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
   val add_inline: thm -> theory -> theory
@@ -34,7 +35,7 @@ sig
 
   val coregular_algebra: theory -> Sorts.algebra
   val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
-  val these_funcs: theory -> string -> thm list
+  val these_funcs: theory -> string -> (thm * bool) list
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> string -> string option
   val get_case_data: theory -> string -> (int * string list) option
@@ -115,41 +116,38 @@ val _ =
 
 (** logical and syntactical specification of executable code **)
 
-(* defining equations with default flag and lazy theorems *)
+(* defining equations with linear flag, default flag and lazy theorems *)
 
 fun pretty_lthms ctxt r = case Susp.peek r
- of SOME thms => map (ProofContext.pretty_thm ctxt) thms
+ of SOME thms => map (ProofContext.pretty_thm ctxt o fst) thms
   | NONE => [Pretty.str "[...]"];
 
 fun certificate thy f r =
   case Susp.peek r
-   of SOME thms => (Susp.value o f thy) thms
+   of SOME thms => (Susp.value o burrow_fst (f thy)) thms
     | NONE => let
         val thy_ref = Theory.check_thy thy;
-      in Susp.delay (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
+      in Susp.delay (fn () => (burrow_fst (f (Theory.deref thy_ref)) o Susp.force) r) end;
 
-fun add_drop_redundant verbose thm thms =
+fun add_drop_redundant (thm, linear) thms =
   let
-    fun warn thm' = (if verbose
-      then warning ("Code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm')
-      else (); true);
     val thy = Thm.theory_of_thm thm;
     val args_of = snd o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
     val args = args_of thm;
-    fun matches [] _ = true
-      | matches (Var _ :: xs) [] = matches xs []
-      | matches (_ :: _) [] = false
-      | matches (x :: xs) (y :: ys) = Pattern.matches thy (x, y) andalso matches xs ys;
-    fun drop thm' = matches args (args_of thm') andalso warn thm';
-  in thm :: filter_out drop thms end;
+    fun matches_args args' = length args <= length args' andalso
+      Pattern.matchess thy (args, curry Library.take (length args) args');
+    fun drop (thm', _) = if matches_args (args_of thm') then 
+      (warning ("Code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm'); true)
+      else false;
+  in (thm, linear) :: filter_out drop thms end;
 
-fun add_thm _ thm (false, thms) = (false, Susp.value (add_drop_redundant true thm (Susp.force thms)))
-  | add_thm true thm (true, thms) = (true, Susp.value (Susp.force thms @ [thm]))
+fun add_thm _ thm (false, thms) = (false, Susp.map_force (add_drop_redundant thm) thms)
+  | add_thm true thm (true, thms) = (true, Susp.map_force (fn thms => thms @ [thm]) thms)
   | add_thm false thm (true, thms) = (false, Susp.value [thm]);
 
 fun add_lthms lthms _ = (false, lthms);
 
-fun del_thm thm = apsnd (Susp.value o remove Thm.eq_thm_prop thm o Susp.force);
+fun del_thm thm = (apsnd o Susp.map_force) (remove (eq_fst Thm.eq_thm_prop) (thm, true));
 
 fun merge_defthms ((true, _), defthms2) = defthms2
   | merge_defthms (defthms1 as (false, _), (true, _)) = defthms1
@@ -173,7 +171,7 @@ fun merge_dtyps (tabs as (tab1, tab2)) =
 (* specification data *)
 
 datatype spec = Spec of {
-  funcs: (bool * thm list Susp.T) Symtab.table,
+  funcs: (bool * (thm * bool) list Susp.T) Symtab.table,
   dtyps: ((string * sort) list * (string * typ list) list) Symtab.table,
   cases: (int * string list) Symtab.table * unit Symtab.table
 };
@@ -479,7 +477,7 @@ fun specific_constraints thy (class, tyco) =
     val funcs = classparams
       |> map_filter (fn c => try (AxClass.param_of_inst thy) (c, tyco))
       |> map (Symtab.lookup ((the_funcs o the_exec) thy))
-      |> (map o Option.map) (Susp.force o snd)
+      |> (map o Option.map) (map fst o Susp.force o snd)
       |> maps these
       |> map (Thm.transfer thy);
     fun sorts_of [Type (_, tys)] = map (snd o dest_TVar) tys
@@ -600,9 +598,10 @@ fun assert_func_typ thm =
         | NONE => check_typ_fun (c, thm);
   in check_typ (const_of_func thy thm, thm) end;
 
-val mk_func = Code_Unit.error_thm (assert_func_typ o Code_Unit.mk_func);
-val mk_liberal_func = Code_Unit.warning_thm (assert_func_typ o Code_Unit.mk_func);
-val mk_default_func = Code_Unit.try_thm (assert_func_typ o Code_Unit.mk_func);
+fun mk_func linear = Code_Unit.error_thm (assert_func_typ o Code_Unit.mk_func linear);
+val mk_liberal_func = Code_Unit.warning_thm (assert_func_typ o Code_Unit.mk_func true);
+val mk_syntactic_func = Code_Unit.warning_thm (assert_func_typ o Code_Unit.mk_func false);
+val mk_default_func = Code_Unit.try_thm (assert_func_typ o Code_Unit.mk_func true);
 
 end; (*local*)
 
@@ -641,8 +640,8 @@ val get_case_data = Symtab.lookup o fst o the_cases o the_exec;
 
 val is_undefined = Symtab.defined o snd o the_cases o the_exec;
 
-fun gen_add_func strict default thm thy =
-  case (if strict then SOME o mk_func else mk_liberal_func) thm
+fun gen_add_func linear strict default thm thy =
+  case (if strict then SOME o mk_func linear else mk_liberal_func) thm
    of SOME func =>
         let
           val c = const_of_func thy func;
@@ -656,15 +655,16 @@ fun gen_add_func strict default thm thy =
             else ();
         in
           (map_exec_purge (SOME [c]) o map_funcs) (Symtab.map_default
-            (c, (true, Susp.value [])) (add_thm default func)) thy
+            (c, (true, Susp.value [])) (add_thm default (func, linear))) thy
         end
     | NONE => thy;
 
-val add_func = gen_add_func true false;
-val add_liberal_func = gen_add_func false false;
-val add_default_func = gen_add_func false true;
+val add_func = gen_add_func true true false;
+val add_liberal_func = gen_add_func true false false;
+val add_default_func = gen_add_func true false true;
+val add_nonlinear_func = gen_add_func false true false;
 
-fun del_func thm thy = case mk_liberal_func thm
+fun del_func thm thy = case mk_syntactic_func thm
  of SOME func => let
         val c = const_of_func thy func;
       in map_exec_purge (SOME [c]) (map_funcs
@@ -762,6 +762,7 @@ val _ = Context.>> (Context.map_theory
   in
     TypeInterpretation.init
     #> add_del_attribute ("func", (add_func, del_func))
+    #> add_simple_attribute ("nbe", add_nonlinear_func)
     #> add_del_attribute ("inline", (add_inline, del_inline))
     #> add_del_attribute ("post", (add_post, del_post))
   end));
@@ -801,7 +802,7 @@ fun preprocess thy thms =
     thms
     |> apply_functrans thy
     |> map (Code_Unit.rewrite_func pre)
-    (*FIXME - must check gere: rewrite rule, defining equation, proper constant *)
+    (*FIXME - must check here: rewrite rule, defining equation, proper constant *)
     |> map (AxClass.unoverload thy)
     |> common_typ_funcs
   end;
@@ -847,24 +848,24 @@ fun get_funcs thy const =
   Symtab.lookup ((the_funcs o the_exec) thy) const
   |> Option.map (Susp.force o snd)
   |> these
-  |> map (Thm.transfer thy);
+  |> (map o apfst) (Thm.transfer thy);
 
 in
 
 fun these_funcs thy const =
   let
     fun drop_refl thy = filter_out (is_equal o Term.fast_term_ord o Logic.dest_equals
-      o ObjectLogic.drop_judgment thy o Thm.plain_prop_of);
+      o ObjectLogic.drop_judgment thy o Thm.plain_prop_of o fst);
   in
     get_funcs thy const
-    |> preprocess thy
+    |> burrow_fst (preprocess thy)
     |> drop_refl thy
   end;
 
 fun default_typ thy c = case default_typ_proto thy c
  of SOME ty => Code_Unit.typscheme thy (c, ty)
   | NONE => (case get_funcs thy c
-     of thm :: _ => snd (Code_Unit.head_func (AxClass.unoverload thy thm))
+     of (thm, _) :: _ => snd (Code_Unit.head_func (AxClass.unoverload thy thm))
       | [] => Code_Unit.typscheme thy (c, Sign.the_const_type thy c));
 
 end; (*local*)

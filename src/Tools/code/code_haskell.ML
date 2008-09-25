@@ -153,10 +153,11 @@ fun pr_haskell_stmt syntax_class syntax_tyco syntax_const labelled_name
               )
             ]
           end
-      | pr_stmt (name, Code_Thingol.Fun ((vs, ty), eqs)) =
+      | pr_stmt (name, Code_Thingol.Fun ((vs, ty), raw_eqs)) =
           let
+            val eqs = filter (snd o snd) raw_eqs;
             val tyvars = intro_vars (map fst vs) init_syms;
-            fun pr_eq ((ts, t), thm) =
+            fun pr_eq ((ts, t), (thm, _)) =
               let
                 val consts = map_filter
                   (fn c => if (is_some o syntax_const) c
@@ -248,7 +249,7 @@ fun pr_haskell_stmt syntax_class syntax_tyco syntax_const labelled_name
       | pr_stmt (_, Code_Thingol.Classinst ((class, (tyco, vs)), (_, classparam_insts))) =
           let
             val tyvars = intro_vars (map fst vs) init_syms;
-            fun pr_instdef ((classparam, c_inst), thm) =
+            fun pr_instdef ((classparam, c_inst), (thm, _)) =
               semicolon [
                 (str o classparam_name class) classparam,
                 str "=",

@@ -27,12 +27,12 @@ val target_SML = "SML";
 val target_OCaml = "OCaml";
 
 datatype ml_stmt =
-    MLFuns of (string * (typscheme * ((iterm list * iterm) * thm) list)) list
+    MLFuns of (string * (typscheme * ((iterm list * iterm) * (thm * bool)) list)) list
   | MLDatas of (string * ((vname * sort) list * (string * itype list) list)) list
   | MLClass of string * (vname * ((class * string) list * (string * itype) list))
   | MLClassinst of string * ((class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
-      * ((string * const) * thm) list));
+      * ((string * const) * (thm * bool)) list));
 
 fun stmt_names_of (MLFuns fs) = map fst fs
   | stmt_names_of (MLDatas ds) = map fst ds
@@ -192,7 +192,7 @@ fun pr_sml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve 
                     val vs_dict = filter_out (null o snd) vs;
                     val shift = if null eqs' then I else
                       map (Pretty.block o single o Pretty.block o single);
-                    fun pr_eq definer ((ts, t), thm) =
+                    fun pr_eq definer ((ts, t), (thm, _)) =
                       let
                         val consts = map_filter
                           (fn c => if (is_some o syntax_const) c
@@ -299,7 +299,7 @@ fun pr_sml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve 
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
-            fun pr_classparam ((classparam, c_inst), thm) =
+            fun pr_classparam ((classparam, c_inst), (thm, _)) =
               concat [
                 (str o pr_label_classparam) classparam,
                 str "=",
@@ -453,7 +453,7 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
       in map (lookup_var vars') fished3 end;
     fun pr_stmt (MLFuns (funns as funn :: funns')) =
           let
-            fun pr_eq ((ts, t), thm) =
+            fun pr_eq ((ts, t), (thm, _)) =
               let
                 val consts = map_filter
                   (fn c => if (is_some o syntax_const) c
@@ -481,7 +481,7 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
                       @@ str exc_str
                     )
                   end
-              | pr_eqs _ _ [((ts, t), thm)] =
+              | pr_eqs _ _ [((ts, t), (thm, _))] =
                   let
                     val consts = map_filter
                       (fn c => if (is_some o syntax_const) c
@@ -611,7 +611,7 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
-            fun pr_classparam_inst ((classparam, c_inst), thm) =
+            fun pr_classparam_inst ((classparam, c_inst), (thm, _)) =
               concat [
                 (str o deresolve) classparam,
                 str "=",
@@ -727,7 +727,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
       fold_map
         (fn (name, Code_Thingol.Fun stmt) =>
               map_nsp_fun_yield (mk_name_stmt false name) #>>
-                rpair (name, stmt)
+                rpair (name, stmt |> apsnd (filter (snd o snd)))
           | (name, _) =>
               error ("Function block containing illegal statement: " ^ labelled_name name)
         ) stmts
@@ -895,7 +895,8 @@ fun eval eval'' term_of reff thy ct args =
         val _ = if Code_Thingol.contains_dictvar t then
           error "Term to be evaluated constains free dictionaries" else ();
         val program' = program
-          |> Graph.new_node (Code_Name.value_name, Code_Thingol.Fun (([], ty), [(([], t), Drule.dummy_thm)]))
+          |> Graph.new_node (Code_Name.value_name,
+              Code_Thingol.Fun (([], ty), [(([], t), (Drule.dummy_thm, true))]))
           |> fold (curry Graph.add_edge Code_Name.value_name) deps;
         val (value_code, [value_name']) = ml_code_of thy program' [Code_Name.value_name];
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
