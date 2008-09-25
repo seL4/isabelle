@@ -158,7 +158,7 @@ sig
   val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 
-structure Thm: THM =
+structure Thm:> THM =
 struct
 
 structure Pt = Proofterm;
@@ -168,12 +168,11 @@ structure Pt = Proofterm;
 
 (** certified types **)
 
-abstype ctyp = Ctyp of
+datatype ctyp = Ctyp of
  {thy_ref: theory_ref,
   T: typ,
   maxidx: int,
-  sorts: sort OrdList.T}
-with
+  sorts: sort OrdList.T};
 
 fun rep_ctyp (Ctyp args) = args;
 fun theory_of_ctyp (Ctyp {thy_ref, ...}) = Theory.deref thy_ref;
@@ -195,13 +194,12 @@ fun dest_ctyp (Ctyp {thy_ref, T = Type (s, Ts), maxidx, sorts}) =
 (** certified terms **)
 
 (*certified terms with checked typ, maxidx, and sorts*)
-abstype cterm = Cterm of
+datatype cterm = Cterm of
  {thy_ref: theory_ref,
   t: term,
   T: typ,
   maxidx: int,
-  sorts: sort OrdList.T}
-with
+  sorts: sort OrdList.T};
 
 exception CTERM of string * cterm list;
 
@@ -342,7 +340,7 @@ end;
 
 (*** Derivations and Theorems ***)
 
-abstype thm = Thm of
+datatype thm = Thm of
  deriv *                                  (*derivation*)
  {thy_ref: theory_ref,                    (*dynamic reference to theory*)
   tags: Properties.T,                     (*additional annotations/comments*)
@@ -356,8 +354,7 @@ and deriv = Deriv of
   proof: Pt.proof,                        (*proof term*)
   promises: (serial * promise) OrdList.T} (*promised derivations*)
 and promise = Promise of
-  thm Future.T * theory * sort OrdList.T * term
-with
+  thm Future.T * theory * sort OrdList.T * term;
 
 type conv = cterm -> thm;
 
@@ -1603,6 +1600,30 @@ fun biresolution match brules i state =
 
 (*** Promises ***)
 
+(* pending future derivations *)
+
+structure Futures = TheoryDataFun
+(
+  type T = thm Future.T list ref;
+  val empty : T = ref [];
+  fun copy (ref futures) : T = ref futures;
+  fun extend _ : T = ref [];
+  fun merge _ _ : T = ref [];
+);
+
+fun add_future thy future = CRITICAL (fn () => change (Futures.get thy) (cons future));
+
+fun join_futures thy =
+  let
+    val futures = Futures.get thy;
+    val results = Future.join_results (! futures);
+    val _ = CRITICAL (fn () => change futures (filter_out Future.is_finished));
+    val _ = ParList.release_results results;
+  in NONE end;
+
+val _ = Context.>> (Context.map_theory (Futures.init #> Theory.at_end join_futures));
+
+
 (* promise *)
 
 fun promise future ct =
@@ -1610,6 +1631,7 @@ fun promise future ct =
     val {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = rep_cterm ct;
     val thy = Context.reject_draft (Theory.deref thy_ref);
     val _ = T <> propT andalso raise CTERM ("promise: prop expected", [ct]);
+    val _ = add_future thy future;
     val i = serial ();
   in
     Thm (make_deriv false [(i, Promise (future, thy, sorts, prop))] (Pt.promise_proof i prop),
@@ -1641,7 +1663,8 @@ fun check_promise (i, Promise (future, thy1, shyps1, prop1)) =
 
 fun fulfill (thm as Thm (Deriv {oracle, proof, promises}, args)) =
   let
-    val _ = Future.join_results (map (fn (_, Promise (future, _, _, _)) => future) promises);
+    val _ = Future.join_results (map (fn (_, Promise (future, _, _, _)) => future) promises)
+      |> ParList.release_results;
     val results = map check_promise promises;
 
     val ora = oracle orelse exists #1 results;
@@ -1670,10 +1693,6 @@ fun invoke_oracle thy_ref1 name oracle arg =
         tpairs = [],
         prop = prop})
   end;
-
-end;
-end;
-end;
 
 
 (* authentic derivation names *)
