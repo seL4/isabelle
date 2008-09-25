@@ -29,7 +29,6 @@ sig
   val exec_file: bool -> Path.T -> Context.generic -> Context.generic
   val use: string -> unit
   val time_use: string -> unit
-  val future_scheduler: bool ref
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val time_use_thy: string -> unit
@@ -315,8 +314,6 @@ fun load_thy time upd_time initiators name =
 
 datatype task = Task of (unit -> unit) | Finished | Running;
 fun task_finished Finished = true | task_finished _ = false;
-
-val future_scheduler = ref false;
 
 fun future_schedule task_graph =
   let
