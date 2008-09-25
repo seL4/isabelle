@@ -773,13 +773,18 @@ val _ = Context.>> (Context.map_theory
 local
 
 fun apply_functrans thy [] = []
-  | apply_functrans thy (thms as thm :: _) =
+  | apply_functrans thy (thms as (thm, _) :: _) =
       let
         val const = const_of_func thy thm;
         val functrans = (map (fn (_, (_, f)) => f thy) o #functrans
           o the_thmproc o the_exec) thy;
-        val thms' = perhaps (perhaps_loop (perhaps_apply functrans)) thms;
-      in certify_const thy const thms' end;
+        val thms' = perhaps (perhaps_loop (perhaps_apply functrans)) (map fst thms);
+        val thms'' = certify_const thy const thms';
+        val linears = map snd thms;
+      in (*FIXME temporary workaround*) if length thms'' = length linears
+        then thms'' ~~ linears
+        else map (rpair true) thms''
+      end;
 
 fun rhs_conv conv thm =
   let
@@ -801,10 +806,10 @@ fun preprocess thy thms =
   in
     thms
     |> apply_functrans thy
-    |> map (Code_Unit.rewrite_func pre)
+    |> (map o apfst) (Code_Unit.rewrite_func pre)
     (*FIXME - must check here: rewrite rule, defining equation, proper constant *)
-    |> map (AxClass.unoverload thy)
-    |> common_typ_funcs
+    |> (map o apfst) (AxClass.unoverload thy)
+    |> burrow_fst common_typ_funcs
   end;
 
 
@@ -858,7 +863,7 @@ fun these_funcs thy const =
       o ObjectLogic.drop_judgment thy o Thm.plain_prop_of o fst);
   in
     get_funcs thy const
-    |> burrow_fst (preprocess thy)
+    |> preprocess thy
     |> drop_refl thy
   end;
 

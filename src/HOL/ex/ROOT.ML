@@ -18,7 +18,7 @@ no_document use_thys [
 ];
 
 no_document use_thy "Codegenerator";
-(*no_document use_thy "Codegenerator_Pretty";*)
+no_document use_thy "Codegenerator_Pretty";
 
 use_thys [
   "Numeral",
