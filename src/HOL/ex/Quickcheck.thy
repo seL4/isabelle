@@ -137,10 +137,13 @@ let
               val thm = @{thm random'_if}
                 |> Drule.instantiate' [SOME (Thm.ctyp_of thy this_ty)] [SOME (Thm.cterm_of thy random')]
                 |> (fn thm => thm OF simps)
-                |> singleton (ProofContext.export lthy (ProofContext.init thy))
+                |> singleton (ProofContext.export lthy (ProofContext.init thy));
+              val c = (fst o dest_Const o fst o strip_comb o fst
+                o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) thm;
             in
               lthy
-              |> LocalTheory.theory (PureThy.add_thm ((fst (dest_Free random') ^ "_code", thm), [Thm.kind_internal])
+              |> LocalTheory.theory (Code.del_funcs c
+                   #> PureThy.add_thm ((fst (dest_Free random') ^ "_code", thm), [Thm.kind_internal])
                    #-> Code.add_func)
             end;
         in
