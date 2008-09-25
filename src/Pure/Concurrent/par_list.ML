@@ -17,6 +17,7 @@ Notes:
 
 signature PAR_LIST =
 sig
+  val release_results: 'a Exn.result list -> 'a list
   val map: ('a -> 'b) -> 'a list -> 'b list
   val get_some: ('a -> 'b option) -> 'a list -> 'b option
   val find_some: ('a -> bool) -> 'a list -> 'a option
@@ -27,21 +28,29 @@ end;
 structure ParList: PAR_LIST =
 struct
 
+(* release results *)
+
 fun proper_exn (Exn.Result _) = NONE
   | proper_exn (Exn.Exn Interrupt) = NONE
   | proper_exn (Exn.Exn exn) = SOME exn;
+
+fun release_results results =
+  (case get_first proper_exn results of
+    SOME exn => raise exn
+  | NONE => List.map Exn.release results);
+
+
+(* map *)
 
 fun raw_map f xs =
   let val group = TaskQueue.new_group () in
     Future.join_results (List.map (fn x => Future.future (SOME group) [] true (fn () => f x)) xs)
   end;
 
-fun map f xs =
-  let val results = raw_map f xs in
-    (case get_first proper_exn results of
-      SOME exn => raise exn
-    | NONE => List.map Exn.release results)
-  end;
+fun map f xs = release_results (raw_map f xs);
+
+
+(* get_some etc. *)
 
 fun get_some f xs =
   let
