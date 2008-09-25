@@ -147,9 +147,11 @@ fun prove_common immediate ctxt xs asms props tac =
     val thy = ProofContext.theory_of ctxt;
     val string_of_term = Syntax.string_of_term ctxt;
 
+    val pos = Position.thread_data ();
     fun err msg = cat_error msg
       ("The error(s) above occurred for the goal statement:\n" ^
-        string_of_term (Logic.list_implies (asms, Logic.mk_conjunction_list props)));
+        string_of_term (Logic.list_implies (asms, Logic.mk_conjunction_list props)) ^
+        (case Position.str_of pos of "" => "" | s => "\n" ^ s));
 
     fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm (Term.no_dummy_patterns t))
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
