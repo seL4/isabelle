@@ -107,7 +107,7 @@ fun unfoldr dest x =
         let val (xs', x') = unfoldr dest x2 in (x1::xs', x') end;
 
 
-(** language core - types, pattern, expressions **)
+(** language core - types, patterns, expressions **)
 
 (* language representation *)
 
@@ -480,7 +480,7 @@ and ensure_const thy algbr funcgr c =
       #>> Classparam;
     fun stmt_fun trns =
       let
-        val raw_thms = Code_Funcgr.funcs funcgr c;
+        val raw_thms = Code_Funcgr.eqns funcgr c;
         val (vs, raw_ty) = Code_Funcgr.typ funcgr c;
         val ty = Logic.unvarifyT raw_ty;
         val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
