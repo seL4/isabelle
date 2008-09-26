@@ -800,7 +800,7 @@ lemma [code func, code func del]:
   "(uminus :: int \<Rightarrow> int) = uminus"
   "(op - :: int \<Rightarrow> int \<Rightarrow> int) = op -"
   "(op * :: int \<Rightarrow> int \<Rightarrow> int) = op *"
-  "(op = :: int \<Rightarrow> int \<Rightarrow> bool) = op ="
+  "(eq_class.eq :: int \<Rightarrow> int \<Rightarrow> bool) = eq_class.eq"
   "(op \<le> :: int \<Rightarrow> int \<Rightarrow> bool) = op \<le>"
   "(op < :: int \<Rightarrow> int \<Rightarrow> bool) = op <"
   by rule+
@@ -843,17 +843,17 @@ lemma times_int_code [code]:
   by (simp_all add: of_num_times [symmetric])
 
 lemma eq_int_code [code]:
-  "0 = (0::int) \<longleftrightarrow> True"
-  "0 = Pls l \<longleftrightarrow> False"
-  "0 = Mns l \<longleftrightarrow> False"
-  "Pls k = 0 \<longleftrightarrow> False"
-  "Pls k = Pls l \<longleftrightarrow> k = l"
-  "Pls k = Mns l \<longleftrightarrow> False"
-  "Mns k = 0 \<longleftrightarrow> False"
-  "Mns k = Pls l \<longleftrightarrow> False"
-  "Mns k = Mns l \<longleftrightarrow> k = l"
+  "eq_class.eq 0 (0::int) \<longleftrightarrow> True"
+  "eq_class.eq 0 (Pls l) \<longleftrightarrow> False"
+  "eq_class.eq 0 (Mns l) \<longleftrightarrow> False"
+  "eq_class.eq (Pls k) 0 \<longleftrightarrow> False"
+  "eq_class.eq (Pls k) (Pls l) \<longleftrightarrow> eq_class.eq k l"
+  "eq_class.eq (Pls k) (Mns l) \<longleftrightarrow> False"
+  "eq_class.eq (Mns k) 0 \<longleftrightarrow> False"
+  "eq_class.eq (Mns k) (Pls l) \<longleftrightarrow> False"
+  "eq_class.eq (Mns k) (Mns l) \<longleftrightarrow> eq_class.eq k l"
   using of_num_pos [of l, where ?'a = int] of_num_pos [of k, where ?'a = int]
-  by (simp_all add: of_num_eq_iff)
+  by (simp_all add: of_num_eq_iff eq)
 
 lemma less_eq_int_code [code]:
   "0 \<le> (0::int) \<longleftrightarrow> True"
