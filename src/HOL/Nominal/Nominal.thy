@@ -386,12 +386,17 @@ defs (overloaded)
 
 lemmas fresh_star_def = fresh_star_list fresh_star_set
 
-lemma fresh_star_prod:
+lemma fresh_star_prod_set:
   fixes xs::"'a set"
-  and   ys::"'a list"
   shows "xs\<sharp>*(a,b) = (xs\<sharp>*a \<and> xs\<sharp>*b)"
-  and   "ys\<sharp>*(a,b) = (ys\<sharp>*a \<and> ys\<sharp>*b)"
 by (auto simp add: fresh_star_def fresh_prod)
+
+lemma fresh_star_prod_list:
+  fixes xs::"'a list"
+  shows "xs\<sharp>*(a,b) = (xs\<sharp>*a \<and> xs\<sharp>*b)"
+by (auto simp add: fresh_star_def fresh_prod)
+
+lemmas fresh_star_prod = fresh_star_prod_list fresh_star_prod_set
 
 section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
@@ -972,6 +977,13 @@ lemma dj_perm_forget:
   assumes dj: "disjoint TYPE('x) TYPE('y)"
   shows "pi\<bullet>x=x" 
   using dj by (simp_all add: disjoint_def)
+
+lemma dj_perm_set_forget:
+  fixes pi::"'y prm"
+  and   x ::"'x set"
+  assumes dj: "disjoint TYPE('x) TYPE('y)"
+  shows "(pi\<bullet>x)=x" 
+  using dj by (simp_all add: perm_fun_def disjoint_def perm_bool)
 
 lemma dj_perm_perm_forget:
   fixes pi1::"'x prm"
@@ -1793,6 +1805,27 @@ next
   thus ?thesis using eq3 by simp
 qed
 
+lemma pt_freshs_freshs:
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and at: "at TYPE ('x)"
+  and pi: "set (pi::'x prm) \<subseteq> Xs \<times> Ys"
+  and Xs: "Xs \<sharp>* (x::'a)"
+  and Ys: "Ys \<sharp>* x"
+  shows "pi \<bullet> x = x"
+  using pi
+proof (induct pi)
+  case Nil
+  show ?case by (simp add: pt1 [OF pt])
+next
+  case (Cons p pi)
+  obtain a b where p: "p = (a, b)" by (cases p)
+  with Cons Xs Ys have "a \<sharp> x" "b \<sharp> x"
+    by (simp_all add: fresh_star_def)
+  with Cons p show ?case
+    by (simp add: pt_fresh_fresh [OF pt at]
+      pt2 [OF pt, of "[(a, b)]" pi, simplified])
+qed
+
 lemma pt_pi_fresh_fresh:
   fixes   x :: "'a"
   and     pi :: "'x prm"
@@ -2570,11 +2603,9 @@ lemma at_set_avoiding:
   assumes at: "at TYPE('a)"
   and     a: "finite Xs"
   and     b: "finite ((supp c)::'a set)"
-  shows "\<exists>(Ys::'a set) (pi::'a prm). Ys\<sharp>*c \<and> (pi\<bullet>Xs=Ys) \<and> set pi \<subseteq> Xs \<times> Ys"
-using a b
-apply(frule_tac As="Xs" in at_set_avoiding_aux[OF at])
-apply(auto)
-done
+  obtains pi::"'a prm" where "(pi \<bullet> Xs) \<sharp>* c" and "set pi \<subseteq> Xs \<times> (pi \<bullet> Xs)"
+  using a b
+  by (frule_tac As="Xs" in at_set_avoiding_aux[OF at]) auto
  
 section {* composition instances *}
 (* ============================= *)
