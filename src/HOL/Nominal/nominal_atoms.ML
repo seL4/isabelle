@@ -11,6 +11,7 @@ sig
   type atom_info
   val get_atom_infos : theory -> atom_info Symtab.table
   val get_atom_info : theory -> string -> atom_info option
+  val the_atom_info : theory -> string -> atom_info
   val atoms_of : theory -> string list
   val mk_permT : typ -> typ
 end
@@ -29,7 +30,10 @@ val inductive_forall_def = @{thm "induct_forall_def"};
 type atom_info =
   {pt_class : string,
    fs_class : string,
-   cp_classes : (string * string) list};
+   cp_classes : (string * string) list,
+   at_inst : thm,
+   pt_inst : thm,
+   dj_thms : thm list};
 
 structure NominalData = TheoryDataFun
 (
@@ -40,13 +44,20 @@ structure NominalData = TheoryDataFun
   fun merge _ x = Symtab.merge (K true) x;
 );
 
-fun make_atom_info ((pt_class, fs_class), cp_classes) =
+fun make_atom_info (((((pt_class, fs_class), cp_classes), at_inst), pt_inst), dj_thms) =
   {pt_class = pt_class,
    fs_class = fs_class,
-   cp_classes = cp_classes};
+   cp_classes = cp_classes,
+   at_inst = at_inst,
+   pt_inst = pt_inst,
+   dj_thms = dj_thms};
 
 val get_atom_infos = NominalData.get;
 val get_atom_info = Symtab.lookup o NominalData.get;
+
+fun the_atom_info thy name = (case get_atom_info thy name of
+      SOME info => info
+    | NONE => error ("Unknown atom type " ^ quote name));
 
 fun atoms_of thy = map fst (Symtab.dest (NominalData.get thy));
 
@@ -949,7 +960,9 @@ fun create_nom_typedecls ak_names thy =
       NominalData.map (fold Symtab.update (full_ak_names ~~ map make_atom_info
         (pt_ax_classes ~~
          fs_ax_classes ~~
-         map (fn cls => full_ak_names ~~ cls) cp_ax_classes))) thy33
+         map (fn cls => full_ak_names ~~ cls) cp_ax_classes ~~
+         prm_cons_thms ~~ prm_inst_thms ~~
+         map flat dj_thms))) thy33
     end;
 
 
