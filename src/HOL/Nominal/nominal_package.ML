@@ -18,6 +18,7 @@ sig
   val mk_not_sym: thm list -> thm list
   val perm_simproc: simproc
   val fresh_const: typ -> typ -> term
+  val fresh_star_const: typ -> typ -> term
 end
 
 structure NominalPackage : NOMINAL_PACKAGE =
@@ -189,6 +190,8 @@ fun mk_not_sym ths = maps (fn th => case prop_of th of
   | _ => [th]) ths;
 
 fun fresh_const T U = Const ("Nominal.fresh", T --> U --> HOLogic.boolT);
+fun fresh_star_const T U =
+  Const ("Nominal.fresh_star", HOLogic.mk_setT T --> U --> HOLogic.boolT);
 
 fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
   let
