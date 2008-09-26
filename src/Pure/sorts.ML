@@ -15,6 +15,7 @@ minimal classes (wrt. current class inclusion).
 
 signature SORTS =
 sig
+  val subset: sort OrdList.T * sort OrdList.T -> bool
   val union: sort OrdList.T -> sort OrdList.T -> sort OrdList.T
   val subtract: sort OrdList.T -> sort OrdList.T -> sort OrdList.T
   val remove_sort: sort -> sort OrdList.T -> sort OrdList.T
@@ -67,6 +68,7 @@ struct
 
 (** ordered lists of sorts **)
 
+val op subset = OrdList.subset Term.sort_ord;
 val op union = OrdList.union Term.sort_ord;
 val subtract = OrdList.subtract Term.sort_ord;
 
