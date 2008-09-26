@@ -54,7 +54,7 @@ fun gen_constdef prep_vars prep_prop prep_att
       thy
       |> Sign.add_consts_i [(c, T, mx)]
       |> PureThy.add_defs false [((name, def), atts)]
-      |-> (fn [thm] => Code.add_default_func thm);
+      |-> (fn [thm] => Code.add_default_eqn thm);
   in ((c, T), thy') end;
 
 fun gen_constdefs prep_vars prep_prop prep_att (raw_structs, specs) thy =

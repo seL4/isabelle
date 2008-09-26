@@ -109,7 +109,7 @@ let
         |> Thm.varifyT;
     in
       thy
-      |> Code.add_func thm
+      |> Code.add_eqn thm
     end;
   fun interpretator (tyco, (raw_vs, raw_cs)) thy =
     let
@@ -123,7 +123,7 @@ let
       val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
     in
       thy
-      |> Code.del_funcs const
+      |> Code.del_eqns const
       |> fold (prove_term_of_eq ty) eqs
     end;
 in

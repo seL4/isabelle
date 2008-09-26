@@ -364,7 +364,7 @@ fun add_datatype_cases dtco thy =
   in
     thy
     |> Code.add_case certs
-    |> fold_rev Code.add_default_func case_rewrites
+    |> fold_rev Code.add_default_eqn case_rewrites
   end;
 
 
@@ -464,7 +464,7 @@ fun add_datatypes_equality vs dtcos thy =
         fun get_thms () = (eq_refl, false)
           :: rev (map (rpair true) (get_eq' (Theory.deref thy_ref) dtco));
       in
-        Code.add_funcl (const, Susp.delay get_thms) thy
+        Code.add_eqnl (const, Susp.delay get_thms) thy
       end;
   in
     thy
@@ -473,7 +473,7 @@ fun add_datatypes_equality vs dtcos thy =
     |-> (fn thms => Class.prove_instantiation_instance (K (tac thms))
     #> LocalTheory.exit
     #> ProofContext.theory_of
-    #> fold Code.del_func thms
+    #> fold Code.del_eqn thms
     #> fold add_eq_thms dtcos)
   end;
 

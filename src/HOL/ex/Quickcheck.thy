@@ -130,7 +130,7 @@ let
             (Sign.mk_const thy (@{const_name random}, [this_ty]) $ @{term "i\<Colon>index"},
                random' $ @{term "i\<Colon>index"} $ @{term "i\<Colon>index"})
           val del_func = Attrib.internal (fn _ => Thm.declaration_attribute
-            (fn thm => Context.mapping (Code.del_func thm) I));
+            (fn thm => Context.mapping (Code.del_eqn thm) I));
           fun add_code simps lthy =
             let
               val thy = ProofContext.theory_of lthy;
@@ -142,9 +142,9 @@ let
                 o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) thm;
             in
               lthy
-              |> LocalTheory.theory (Code.del_funcs c
+              |> LocalTheory.theory (Code.del_eqns c
                    #> PureThy.add_thm ((fst (dest_Free random') ^ "_code", thm), [Thm.kind_internal])
-                   #-> Code.add_func)
+                   #-> Code.add_eqn)
             end;
         in
           thy

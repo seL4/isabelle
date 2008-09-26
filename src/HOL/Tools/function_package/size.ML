@@ -212,7 +212,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
     val ([size_thms], thy'') =  PureThy.add_thmss
       [(("size", size_eqns),
         [Simplifier.simp_add, Thm.declaration_attribute
-              (fn thm => Context.mapping (Code.add_default_func thm) I)])] thy'
+              (fn thm => Context.mapping (Code.add_default_eqn thm) I)])] thy'
 
   in
     SizeData.map (fold (Symtab.update_new o apsnd (rpair size_thms))

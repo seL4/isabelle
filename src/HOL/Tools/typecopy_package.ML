@@ -151,19 +151,19 @@ fun add_typecopy_spec tyco thy =
               ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], []);
       in
         thy
-        |> Code.add_func eq
-        |> Code.add_nonlinear_func eq_refl
+        |> Code.add_eqn eq
+        |> Code.add_nonlinear_eqn eq_refl
       end;
   in
     thy
     |> Code.add_datatype [(constr, ty_constr)]
-    |> Code.add_func proj_def
+    |> Code.add_eqn proj_def
     |> TheoryTarget.instantiation ([tyco], vs', [HOLogic.class_eq])
     |> add_def tyco
     |-> (fn thm => Class.prove_instantiation_instance (K (tac [thm]))
     #> LocalTheory.exit
     #> ProofContext.theory_of
-    #> Code.del_func thm
+    #> Code.del_eqn thm
     #> add_eq_thms)
   end;
 

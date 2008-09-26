@@ -1543,8 +1543,8 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
       ||>> PureThy.add_defs false (map Thm.no_attributes (ext_spec::dest_specs))
       ||>> PureThy.add_defs false (map Thm.no_attributes upd_specs)
       |-> (fn args as ((_, dest_defs), upd_defs) =>
-          fold Code.add_default_func dest_defs
-          #> fold Code.add_default_func upd_defs
+          fold Code.add_default_eqn dest_defs
+          #> fold Code.add_default_eqn upd_defs
           #> pair args);
     val ((([abs_inject, abs_inverse, abs_induct], ext_def :: dest_defs), upd_defs), defs_thy) =
       timeit_msg "record extension type/selector/update defs:" mk_defs;
@@ -1949,9 +1949,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       ||>> ((PureThy.add_defs false o map Thm.no_attributes)
              [make_spec, fields_spec, extend_spec, truncate_spec])
       |-> (fn defs as ((sel_defs, upd_defs), derived_defs) =>
-          fold Code.add_default_func sel_defs
-          #> fold Code.add_default_func upd_defs
-          #> fold Code.add_default_func derived_defs
+          fold Code.add_default_eqn sel_defs
+          #> fold Code.add_default_eqn upd_defs
+          #> fold Code.add_default_eqn derived_defs
           #> pair defs)
     val (((sel_defs, upd_defs), derived_defs), defs_thy) =
       timeit_msg "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"

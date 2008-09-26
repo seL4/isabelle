@@ -739,7 +739,7 @@ fun extract thms thy =
                       (ProofChecker.thm_of_proof thy'
                        (fst (Proofterm.freeze_thaw_prf prf))))))
              |> snd
-             |> fold Code.add_default_func def_thms
+             |> fold Code.add_default_eqn def_thms
            end
        | SOME _ => thy);
 

@@ -9,7 +9,7 @@ with explicit dependencies.
 signature CODE_FUNCGR =
 sig
   type T
-  val funcs: T -> string -> (thm * bool) list
+  val eqns: T -> string -> (thm * bool) list
   val typ: T -> string -> (string * sort) list * typ
   val all: T -> string list
   val pretty: theory -> T -> Pretty.T
@@ -26,7 +26,7 @@ struct
 
 type T = (((string * sort) list * typ) * (thm * bool) list) Graph.T;
 
-fun funcs funcgr =
+fun eqns funcgr =
   these o Option.map snd o try (Graph.get_node funcgr);
 
 fun typ funcgr =
@@ -97,7 +97,7 @@ fun resort_thms thy algebra typ_of thms =
     val tab = fold meets cs Vartab.empty;
   in map (Code_Unit.inst_thm tab) thms end;
 
-fun resort_funcss thy algebra funcgr =
+fun resort_eqnss thy algebra funcgr =
   let
     val typ_funcgr = try (fst o Graph.get_node funcgr);
     val resort_dep = (apsnd o burrow_fst) (resort_thms thy algebra typ_funcgr);
@@ -105,22 +105,22 @@ fun resort_funcss thy algebra funcgr =
       | resort_rec typ_of (c, thms as (thm, _) :: _) = if is_some (AxClass.inst_of_param thy c)
           then (true, (c, thms))
           else let
-            val (_, (vs, ty)) = Code_Unit.head_func thm;
+            val (_, (vs, ty)) = Code_Unit.head_eqn thm;
             val thms' as (thm', _) :: _ = burrow_fst (resort_thms thy algebra typ_of) thms
-            val (_, (vs', ty')) = Code_Unit.head_func thm'; (*FIXME simplify check*)
+            val (_, (vs', ty')) = Code_Unit.head_eqn thm'; (*FIXME simplify check*)
           in (Sign.typ_equiv thy (ty, ty'), (c, thms')) end;
-    fun resort_recs funcss =
+    fun resort_recs eqnss =
       let
-        fun typ_of c = case these (AList.lookup (op =) funcss c)
-         of (thm, _) :: _ => (SOME o snd o Code_Unit.head_func) thm
+        fun typ_of c = case these (AList.lookup (op =) eqnss c)
+         of (thm, _) :: _ => (SOME o snd o Code_Unit.head_eqn) thm
           | [] => NONE;
-        val (unchangeds, funcss') = split_list (map (resort_rec typ_of) funcss);
+        val (unchangeds, eqnss') = split_list (map (resort_rec typ_of) eqnss);
         val unchanged = fold (fn x => fn y => x andalso y) unchangeds true;
-      in (unchanged, funcss') end;
-    fun resort_rec_until funcss =
+      in (unchanged, eqnss') end;
+    fun resort_rec_until eqnss =
       let
-        val (unchanged, funcss') = resort_recs funcss;
-      in if unchanged then funcss' else resort_rec_until funcss' end;
+        val (unchanged, eqnss') = resort_recs eqnss;
+      in if unchanged then eqnss' else resort_rec_until eqnss' end;
   in map resort_dep #> resort_rec_until end;
 
 fun instances_of thy algebra insts =
@@ -157,7 +157,7 @@ fun ensure_const' thy algebra funcgr const auxgr =
     |> Graph.new_node (const, [])
     |> pair (SOME const)
   else let
-    val thms = Code.these_funcs thy const
+    val thms = Code.these_eqns thy const
       |> burrow_fst Code_Unit.norm_args
       |> burrow_fst (Code_Unit.norm_varnames Code_Name.purify_tvar Code_Name.purify_var);
     val rhs = consts_of (const, thms);
@@ -176,18 +176,18 @@ and ensure_const thy algebra funcgr const =
       else I;
   in timeap (ensure_const' thy algebra funcgr const) end;
 
-fun merge_funcss thy algebra raw_funcss funcgr =
+fun merge_eqnss thy algebra raw_eqnss funcgr =
   let
-    val funcss = raw_funcss
-      |> resort_funcss thy algebra funcgr
+    val eqnss = raw_eqnss
+      |> resort_eqnss thy algebra funcgr
       |> filter_out (can (Graph.get_node funcgr) o fst);
-    fun typ_func c [] = Code.default_typ thy c
-      | typ_func c (thms as (thm, _) :: _) = (snd o Code_Unit.head_func) thm;
-    fun add_funcs (const, thms) =
-      Graph.new_node (const, (typ_func const thms, thms));
-    fun add_deps (funcs as (const, thms)) funcgr =
+    fun typ_eqn c [] = Code.default_typ thy c
+      | typ_eqn c (thms as (thm, _) :: _) = (snd o Code_Unit.head_eqn) thm;
+    fun add_eqns (const, thms) =
+      Graph.new_node (const, (typ_eqn const thms, thms));
+    fun add_deps (eqns as (const, thms)) funcgr =
       let
-        val deps = consts_of funcs;
+        val deps = consts_of eqns;
         val insts = instances_of_consts thy algebra funcgr
           (fold_consts (insert (op =)) (map fst thms) []);
       in
@@ -198,8 +198,8 @@ fun merge_funcss thy algebra raw_funcss funcgr =
        end;
   in
     funcgr
-    |> fold add_funcs funcss
-    |> fold add_deps funcss
+    |> fold add_eqns eqnss
+    |> fold add_deps eqnss
   end
 and ensure_consts thy algebra cs funcgr =
   let
@@ -207,7 +207,7 @@ and ensure_consts thy algebra cs funcgr =
       |> fold (snd oo ensure_const thy algebra funcgr) cs;
   in
     funcgr
-    |> fold (merge_funcss thy algebra)
+    |> fold (merge_eqnss thy algebra)
          (map (AList.make (Graph.get_node auxgr))
          (rev (Graph.strong_conn auxgr)))
   end;

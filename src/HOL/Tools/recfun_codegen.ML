@@ -42,10 +42,10 @@ fun add_thm opt_module thm =
   handle TERM _ => tap (fn _ => warn thm);
 
 fun add opt_module = Thm.declaration_attribute (fn thm => Context.mapping
-  (add_thm opt_module thm #> Code.add_liberal_func thm) I);
+  (add_thm opt_module thm #> Code.add_liberal_eqn thm) I);
 
 val add_default = Thm.declaration_attribute (fn thm => Context.mapping
-  (add_thm NONE thm #> Code.add_default_func thm) I);
+  (add_thm NONE thm #> Code.add_default_eqn thm) I);
 
 fun del_thm thm = case try const_of (prop_of thm)
  of SOME (s, _) => RecCodegenData.map
@@ -53,7 +53,7 @@ fun del_thm thm = case try const_of (prop_of thm)
   | NONE => tap (fn _ => warn thm);
 
 val del = Thm.declaration_attribute
-  (fn thm => Context.mapping (del_thm thm #> Code.del_func thm) I)
+  (fn thm => Context.mapping (del_thm thm #> Code.del_eqn thm) I)
 
 fun del_redundant thy eqs [] = eqs
   | del_redundant thy eqs (eq :: eqs') =
