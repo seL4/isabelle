@@ -9,9 +9,9 @@ signature CODE_UNIT =
 sig
   (*generic non-sense*)
   val bad_thm: string -> 'a
-  val error_thm: (thm -> thm) -> thm -> thm
-  val warning_thm: (thm -> thm) -> thm -> thm option
-  val try_thm: (thm -> thm) -> thm -> thm option
+  val error_thm: ('a -> 'b) -> 'a -> 'b
+  val warning_thm: ('a -> 'b) -> 'a -> 'b option
+  val try_thm: ('a -> 'b) -> 'a -> 'b option
 
   (*typ instantiations*)
   val typscheme: theory -> string * typ -> (string * sort) list * typ
@@ -38,10 +38,11 @@ sig
   (*defining equations*)
   val assert_rew: thm -> thm
   val mk_rew: thm -> thm
-  val mk_func: bool -> thm -> thm
-  val head_func: thm -> string * ((string * sort) list * typ)
+  val add_linear: thm -> thm * bool
+  val mk_eqn: thm -> thm * bool
+  val head_eqn: thm -> string * ((string * sort) list * typ)
   val expand_eta: int -> thm -> thm
-  val rewrite_func: simpset -> thm -> thm
+  val rewrite_eqn: simpset -> thm -> thm
   val rewrite_head: thm list -> thm -> thm
   val norm_args: thm list -> thm list 
   val norm_varnames: (string -> string) -> (string -> string) -> thm list -> thm list
@@ -135,7 +136,7 @@ fun expand_eta k thm =
     |> Conv.fconv_rule Drule.beta_eta_conversion
   end;
 
-fun func_conv conv =
+fun eqn_conv conv =
   let
     fun lhs_conv ct = if can Thm.dest_comb ct
       then (Conv.combination_conv lhs_conv conv) ct
@@ -149,7 +150,7 @@ fun head_conv conv =
       else conv ct;
   in Conv.fun_conv (Conv.arg_conv lhs_conv) end;
 
-val rewrite_func = Conv.fconv_rule o func_conv o Simplifier.rewrite;
+val rewrite_eqn = Conv.fconv_rule o eqn_conv o Simplifier.rewrite;
 val rewrite_head = Conv.fconv_rule o head_conv o MetaSimplifier.rewrite false;
 
 fun norm_args thms =
@@ -361,21 +362,19 @@ fun mk_rew thm =
 
 (* defining equations *)
 
-fun assert_func linear thm =
+fun add_linear thm =
+  let
+    val (_, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
+    val linear = not (has_duplicates (op =)
+      ((fold o fold_aterms) (fn Var (v, _) => cons v | _ => I) args []))
+  in (thm, linear) end;
+
+fun assert_eqn thm =
   let
     val thy = Thm.theory_of_thm thm;
-    val (head, args) = (strip_comb o fst o Logic.dest_equals
-      o ObjectLogic.drop_judgment thy o Thm.plain_prop_of) thm;
+    val (head, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
     val _ = case head of Const _ => () | _ =>
       bad_thm ("Equation not headed by constant\n" ^ Display.string_of_thm thm);
-    val _ =
-      if linear andalso has_duplicates (op =)
-        ((fold o fold_aterms) (fn Var (v, _) => cons v
-          | _ => I
-        ) args [])
-      then bad_thm ("Duplicated variables on left hand side of equation\n"
-        ^ Display.string_of_thm thm)
-      else ()
     fun check _ (Abs _) = bad_thm
           ("Abstraction on left hand side of equation\n"
             ^ Display.string_of_thm thm)
@@ -390,11 +389,13 @@ fun assert_func linear thm =
                ^ Display.string_of_thm thm)
           else ();
     val _ = map (check 0) args;
-  in thm end;
+    val linear = not (has_duplicates (op =)
+      ((fold o fold_aterms) (fn Var (v, _) => cons v | _ => I ) args []))
+  in add_linear thm end;
 
-fun mk_func linear = assert_func linear o mk_rew;
+val mk_eqn = assert_eqn o mk_rew;
 
-fun head_func thm =
+fun head_eqn thm =
   let
     val thy = Thm.theory_of_thm thm;
     val Const (c, ty) = (fst o strip_comb o fst o Logic.dest_equals
