@@ -249,7 +249,7 @@ val global_immediate_proof = Toplevel.end_proof (K Proof.global_immediate_proof)
 val global_skip_proof = Toplevel.end_proof Proof.global_skip_proof;
 val global_done_proof = Toplevel.end_proof (K Proof.global_done_proof);
 
-val skip_global_qed = Toplevel.skip_proof_to_theory (equal 1);
+val skip_global_qed = Toplevel.skip_proof_to_theory (fn n => n = 1);
 
 
 (* common endings *)

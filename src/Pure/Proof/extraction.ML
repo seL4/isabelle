@@ -70,7 +70,7 @@ fun rlz_proc (Const ("realizes", Type (_, [Type ("Null", []), _])) $ r $ t) = SO
   | rlz_proc _ = NONE;
 
 val unpack_ixn = apfst implode o apsnd (fst o read_int o tl) o
-  take_prefix (not o equal ":") o explode;
+  take_prefix (fn s => s <> ":") o explode;
 
 type rules =
   {next: int, rs: ((term * term) list * (term * term)) list,
@@ -259,7 +259,7 @@ val add_typeof_eqns_i = gen_add_typeof_eqns (K I);
 val add_typeof_eqns = gen_add_typeof_eqns read_condeq;
 
 fun thaw (T as TFree (a, S)) =
-      if exists_string (equal ":") a then TVar (unpack_ixn a, S) else T
+      if exists_string (fn s => s = ":") a then TVar (unpack_ixn a, S) else T
   | thaw (Type (a, Ts)) = Type (a, map thaw Ts)
   | thaw T = T;
 
@@ -473,7 +473,7 @@ fun extract thms thy =
       in List.foldr add_args ([], []) (Library.take (n, vars) ~~ Library.take (n, ts)) end;
 
     fun find (vs: string list) = Option.map snd o find_first (curry (gen_eq_set (op =)) vs o fst);
-    fun find' s = map snd o List.filter (equal s o fst)
+    fun find' (s: string) = map_filter (fn (s', x) => if s = s' then SOME x else NONE);
 
     fun app_rlz_rews Ts vs t = strip_abs (length Ts) (freeze_thaw
       (condrew thy' rrews (procs @ [typroc vs, rlz_proc])) (list_abs

@@ -342,7 +342,7 @@ fun pretty_state nr state =
       | subgoals n = string_of_int n ^ " subgoals";
 
     fun description strs =
-      (case filter_out (equal "") strs of [] => ""
+      (case filter_out (fn s => s = "") strs of [] => ""
       | strs' => enclose " (" ")" (commas strs'));
 
     fun prt_goal (SOME (ctxt, (i,

@@ -341,7 +341,7 @@ fun add_unfold eqn =
     fun prep thy = map (fn th =>
       let val prop = prop_of th
       in
-        if forall (fn name => exists_Const (equal name o fst) prop) names
+        if forall (fn name => exists_Const (fn (c, _) => c = name) prop) names
         then rewrite_rule [eqn'] (Thm.transfer thy th)
         else th
       end)
@@ -400,7 +400,7 @@ fun get_assoc_type thy = AList.lookup (op =) ((#types o CodegenData.get) thy);
 fun is_ascii_letdig x = Symbol.is_ascii_letter x orelse
   Symbol.is_ascii_digit x orelse Symbol.is_ascii_quasi x;
 
-fun dest_sym s = (case split_last (snd (take_prefix (equal "\\") (explode s))) of
+fun dest_sym s = (case split_last (snd (take_prefix (fn c => c = "\\") (explode s))) of
     ("<" :: "^" :: xs, ">") => (true, implode xs)
   | ("<" :: xs, ">") => (false, implode xs)
   | _ => sys_error "dest_sym");
@@ -802,7 +802,7 @@ fun output_code gr module xs =
     fun string_of_cycle (a :: b :: cs) =
           let val SOME (x, y) = get_first (fn (x, (_, a', _)) =>
             if a = a' then Option.map (pair x)
-              (find_first (equal b o #2 o Graph.get_node gr)
+              (find_first ((fn (_, b', _) => b' = b) o Graph.get_node gr)
                 (Graph.imm_succs gr x))
             else NONE) code
           in x ^ " called by " ^ y ^ "\n" ^ string_of_cycle (b :: cs) end
@@ -813,7 +813,7 @@ fun output_code gr module xs =
         val modules = distinct (op =) (map (#2 o snd) code);
         val mod_gr = fold_rev Graph.add_edge_acyclic
           (maps (fn (s, (_, module, _)) => map (pair module)
-            (filter_out (equal module) (map (#2 o Graph.get_node gr)
+            (filter_out (fn s => s = module) (map (#2 o Graph.get_node gr)
               (Graph.imm_succs gr s)))) code)
           (fold_rev (Graph.new_node o rpair ()) modules Graph.empty);
         val modules' =
@@ -830,7 +830,7 @@ fun output_code gr module xs =
 fun gen_generate_code prep_term thy modules module xs =
   let
     val _ = (module <> "" orelse
-        member (op =) (!mode) "library" andalso forall (equal "" o fst) xs)
+        member (op =) (!mode) "library" andalso forall (fn (s, _) => s = "") xs)
       orelse error "missing module name";
     val graphs = get_modules thy;
     val defs = mk_deftab thy;
@@ -1012,8 +1012,8 @@ structure P = OuterParse and K = OuterKeyword;
 
 val _ = List.app OuterKeyword.keyword ["attach", "file", "contains"];
 
-fun strip_whitespace s = implode (fst (take_suffix (equal "\n" orf equal " ")
-  (snd (take_prefix (equal "\n" orf equal " ") (explode s))))) ^ "\n";
+fun strip_whitespace s = implode (fst (take_suffix (fn c => c = "\n" orelse c = " ")
+  (snd (take_prefix (fn c => c = "\n" orelse c = " ") (explode s))))) ^ "\n";
 
 val parse_attach = Scan.repeat (P.$$$ "attach" |--
   Scan.optional (P.$$$ "(" |-- P.xname --| P.$$$ ")") "" --

@@ -273,7 +273,7 @@ fun read_version str =
 
 fun read_versions strs =
   rev (distinct (eq_fst (op =)) (rev ((documentN, "") :: map read_version strs)))
-  |> filter_out (equal "-" o #2);
+  |> filter_out (fn (_, s) => s = "-");
 
 
 (* init session *)

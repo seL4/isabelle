@@ -102,7 +102,7 @@ end;
 
 structure T = OuterLex;
 
-val invisible_token = T.keyword_with (equal ";") orf T.is_kind T.Comment;
+val invisible_token = T.keyword_with (fn s => s = ";") orf T.is_kind T.Comment;
 
 fun output_basic tok =
   let val s = T.content_of tok in

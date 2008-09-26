@@ -217,7 +217,7 @@ val term_of_proof = term_of [];
 fun cterm_of_proof thy prf =
   let
     val (prf', tab) = disambiguate_names thy prf;
-    val thm_names = filter_out (equal "")
+    val thm_names = filter_out (fn s => s = "")
       (map fst (PureThy.all_thms_of thy) @ map fst (Symtab.dest tab));
     val axm_names = map fst (Theory.all_axioms_of thy);
     val thy' = thy
@@ -231,7 +231,7 @@ fun cterm_of_proof thy prf =
 
 fun read_term thy =
   let
-    val thm_names = filter_out (equal "") (map fst (PureThy.all_thms_of thy));
+    val thm_names = filter_out (fn s => s = "") (map fst (PureThy.all_thms_of thy));
     val axm_names = map fst (Theory.all_axioms_of thy);
     val ctxt = thy
       |> add_proof_syntax
@@ -252,7 +252,7 @@ fun read_proof thy =
 
 fun proof_syntax prf =
   let
-    val thm_names = filter_out (equal "")
+    val thm_names = filter_out (fn s => s = "")
       (map fst (Symtab.dest (thms_of_proof prf Symtab.empty)));
     val axm_names = map fst (Symtab.dest (axms_of_proof prf Symtab.empty));
   in

@@ -405,7 +405,7 @@ fun pretty_strs_qs name strs =
 fun pretty_gram (Syntax (tabs, _)) =
   let
     val {lexicon, prmodes, gram, prtabs, ...} = tabs;
-    val prmodes' = sort_strings (filter_out (equal "") prmodes);
+    val prmodes' = sort_strings (filter_out (fn s => s = "") prmodes);
   in
     [pretty_strs_qs "lexicon:" (Scan.dest_lexicon lexicon),
       Pretty.big_list "prods:" (Parser.pretty_gram gram),

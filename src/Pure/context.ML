@@ -210,8 +210,8 @@ fun reject_draft thy =
 fun exists_name name (thy as Theory ({id, ids, iids, ...}, _, _, _)) =
   name = theory_name thy orelse
   name = #2 id orelse
-  Inttab.exists (equal name o #2) ids orelse
-  Inttab.exists (equal name o #2) iids;
+  Inttab.exists (fn (_, a) => a = name) ids orelse
+  Inttab.exists (fn (_, a) => a = name) iids;
 
 fun names_of (Theory ({id, ids, ...}, _, _, _)) =
   rev (#2 id :: Inttab.fold (cons o #2) ids []);
@@ -255,7 +255,7 @@ val pprint_thy_ref = Pretty.pprint o pretty_thy o deref;
 
 fun check_ins id ids =
   if draft_id id orelse Inttab.defined ids (#1 id) then ids
-  else if Inttab.exists (equal (#2 id) o #2) ids then
+  else if Inttab.exists (fn (_, a) => a = #2 id) ids then
     error ("Different versions of theory component " ^ quote (#2 id))
   else Inttab.update id ids;
 
@@ -275,8 +275,7 @@ fun check_merge
 
 val eq_thy = eq_id o pairself (#id o identity_of);
 
-fun proper_subthy
-    (Theory ({id = (i, _), ...}, _, _, _), Theory ({ids, iids, ...}, _, _, _)) =
+fun proper_subthy (Theory ({id = (i, _), ...}, _, _, _), Theory ({ids, iids, ...}, _, _, _)) =
   Inttab.defined ids i orelse Inttab.defined iids i;
 
 fun subthy thys = eq_thy thys orelse proper_subthy thys;

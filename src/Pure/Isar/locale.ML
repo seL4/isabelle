@@ -592,7 +592,7 @@ fun err_in_locale ctxt msg ids =
       [Pretty.block (Pretty.breaks (map Pretty.str (extern thy name :: parms)))];
     val prt_ids = flat (separate [Pretty.str " +", Pretty.brk 1] (map prt_id ids));
     val err_msg =
-      if forall (equal "" o #1) ids then msg
+      if forall (fn (s, _) => s = "") ids then msg
       else msg ^ "\n" ^ Pretty.string_of (Pretty.block
         (Pretty.str "The error(s) above occurred in locale:" :: Pretty.brk 1 :: prt_ids));
   in error err_msg end;
@@ -1168,7 +1168,7 @@ fun bind_def ctxt (name, ps) eq (xs, env, ths) =
     val th = abstract_thm (ProofContext.theory_of ctxt) eq;
     fun err msg = err_in_locale ctxt (msg ^ ": " ^ quote y) [(name, map fst ps)];
   in
-    exists (equal y o #1) xs andalso
+    exists (fn (x, _) => x = y) xs andalso
       err "Attempt to define previously specified variable";
     exists (fn (Free (y', _), _) => y = y' | _ => false) env andalso
       err "Attempt to redefine variable";
@@ -1988,7 +1988,7 @@ fun gen_add_locale prep_ctxt prep_expr
     val export = Thm.close_derivation o Goal.norm_result o
       singleton (ProofContext.export view_ctxt thy_ctxt);
     val facts' = facts |> map (fn (a, ths) => ((a, []), [(map export ths, [])]));
-    val elems' = maps #2 (filter (equal "" o #1 o #1) elemss''');
+    val elems' = maps #2 (filter (fn ((s, _), _) => s = "") elemss''');
     val elems'' = map_filter (fn (Fixes _) => NONE | e => SOME e) elems';
     val axs' = map (Element.assume_witness thy') stmt';
     val loc_ctxt = thy'

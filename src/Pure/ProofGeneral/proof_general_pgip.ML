@@ -613,7 +613,7 @@ fun askrefs (Askrefs vs) =
                 val ctx = Toplevel.context_of (Isar.state ()) (* NB: raises UNDEF *)
                 val thy = Context.theory_of_proof ctx
                 val ths = [PureThy.get_thm thy thmname]
-                val deps = filter_out (equal "")
+                val deps = filter_out (fn s => s = "")
                                       (Symtab.keys (fold Proofterm.thms_of_proof
                                                          (map Thm.proof_of ths) Symtab.empty))
             in

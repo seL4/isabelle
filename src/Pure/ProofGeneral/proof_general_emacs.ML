@@ -41,7 +41,7 @@ fun xsym_output "\\" = "\\\\"
   | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
 
 fun xsymbols_output s =
-  if print_mode_active Symbol.xsymbolsN andalso exists_string (equal "\\") s then
+  if print_mode_active Symbol.xsymbolsN andalso exists_string (fn c => c = "\\") s then
     let val syms = Symbol.explode s
     in (implode (map xsym_output syms), Symbol.length syms) end
   else Output.default_output s;
