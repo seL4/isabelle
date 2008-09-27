@@ -180,7 +180,7 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/rat.ML
 
 $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
-	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
+	@$(ISATOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
 
 $(OUT)/HOL: ROOT.ML $(PLAIN_DEPENDENCIES) \
   Arith_Tools.thy \
