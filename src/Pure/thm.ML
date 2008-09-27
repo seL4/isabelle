@@ -1614,7 +1614,7 @@ fun join_futures thy =
     val results = Future.join_results (! futures);
     val done = CRITICAL (fn () =>
       (change futures (filter_out Future.is_finished); null (! futures)));
-    val _ = ParList.release_results results;
+    val _ = Future.release_results results;
   in if done then NONE else SOME thy end;
 
 val _ = Context.>> (Context.map_theory (Futures.init #> Theory.at_end join_futures));
@@ -1661,7 +1661,7 @@ fun promise make_result ct =
 
 fun fulfill (thm as Thm (Deriv {oracle, proof, promises}, args)) =
   let
-    val _ = ParList.release_results (Future.join_results (map #2 promises));
+    val _ = Future.release_results (Future.join_results (map #2 promises));
     val results = map (apsnd Future.join) promises;
     val proofs = fold (fn (i, Thm (Deriv {proof = prf, ...}, _)) => Inttab.update (i, prf))
       results Inttab.empty;
