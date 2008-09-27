@@ -19,7 +19,8 @@ sig
   val depend: task list -> task -> queue -> queue
   val focus: task list -> queue -> queue
   val dequeue: queue -> (task * group * (unit -> bool)) option * queue
-  val dequeue_towards: task list -> queue -> (task * group * (unit -> bool)) option * queue
+  val dequeue_towards: task list -> queue ->
+    (((task * group * (unit -> bool)) * task list) option * queue)
   val interrupt: queue -> task -> unit
   val interrupt_external: queue -> string -> unit
   val finish: task -> queue -> queue
@@ -126,7 +127,11 @@ fun dequeue (queue as Queue {focus, ...}) =
   | res => res);
 
 fun dequeue_towards tasks (queue as Queue {jobs, ...}) =
-  dequeue_local (map_filter (check_job jobs) tasks) queue;
+  let val tasks' = map_filter (check_job jobs) tasks in
+    (case dequeue_local tasks' queue of
+      (NONE, queue') => (NONE, queue')
+    | (SOME work, queue') => (SOME (work, tasks'), queue'))
+  end;
 
 end;
 
