@@ -1,7 +1,7 @@
 
 (* $Id$ *)
 
-setmp quick_and_dirty true
+setmp_noncritical quick_and_dirty true
   use_thy "Common_Patterns";
 
 use_thys ["Mutil", "QuoDataType", "QuoNestedDataType", "Term",
