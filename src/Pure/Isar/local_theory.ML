@@ -17,6 +17,7 @@ sig
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
+  val checkpoint: local_theory -> local_theory
   val full_naming: local_theory -> NameSpace.naming
   val full_name: local_theory -> bstring -> string
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
@@ -131,6 +132,8 @@ fun raw_theory_result f lthy =
 
 fun raw_theory f = #2 o raw_theory_result (f #> pair ());
 
+val checkpoint = raw_theory Theory.checkpoint;
+
 fun full_naming lthy =
   Sign.naming_of (ProofContext.theory_of lthy)
   |> NameSpace.sticky_prefix (#theory_prefix (get_lthy lthy))
@@ -165,12 +168,12 @@ fun operation1 f x = operation (fn ops => f ops x);
 fun operation2 f x y lthy = operation (fn ops => f ops x y) lthy;
 
 val pretty = operation #pretty;
-val abbrev = operation2 #abbrev;
-val define = operation2 #define;
-val notes = operation2 #notes;
-val type_syntax = operation1 #type_syntax;
-val term_syntax = operation1 #term_syntax;
-val declaration = operation1 #declaration;
+val abbrev = apsnd checkpoint ooo operation2 #abbrev;
+val define = apsnd checkpoint ooo operation2 #define;
+val notes = apsnd checkpoint ooo operation2 #notes;
+val type_syntax = checkpoint oo operation1 #type_syntax;
+val term_syntax = checkpoint oo operation1 #term_syntax;
+val declaration = checkpoint oo operation1 #declaration;
 
 fun note kind (a, ths) = notes kind [(a, [(ths, [])])] #>> the_single;
 
@@ -187,13 +190,14 @@ fun notation add mode raw_args lthy =
 
 fun init theory_prefix operations target = target |> Data.map
   (fn NONE => SOME (make_lthy ("", theory_prefix, operations, target))
-    | SOME _ => error "Local theory already initialized");
+    | SOME _ => error "Local theory already initialized")
+  |> checkpoint;
 
 fun restore lthy =
   let val {group = _, theory_prefix, operations, target} = get_lthy lthy
   in init theory_prefix operations target end;
 
-val reinit = operation #reinit;
-val exit = operation #exit;
+val reinit = checkpoint o operation #reinit;
+val exit = ProofContext.theory Theory.checkpoint o operation #exit;
 
 end;
