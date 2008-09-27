@@ -95,12 +95,12 @@ in
 
 fun SYNCHRONIZED name e = uninterruptible (fn restore_attributes => fn () =>
   let
-    val _ = Multithreading.tracing 4 (fn () => name ^ ": locking");
+    val _ = Multithreading.tracing 3 (fn () => name ^ ": locking");
     val _ = Mutex.lock lock;
-    val _ = Multithreading.tracing 4 (fn () => name ^ ": locked");
+    val _ = Multithreading.tracing 3 (fn () => name ^ ": locked");
     val result = Exn.capture (restore_attributes e) ();
     val _ = Mutex.unlock lock;
-    val _ = Multithreading.tracing 4 (fn () => name ^ ": unlocked");
+    val _ = Multithreading.tracing 3 (fn () => name ^ ": unlocked");
   in Exn.release result end) ();
 
 fun wait name = (*requires SYNCHRONIZED*)
@@ -120,9 +120,9 @@ end;
 fun execute name (task, group, run) =
   let
     val _ = set_thread_data (SOME (task, group));
-    val _ = Multithreading.tracing 4 (fn () => name ^ ": running");
+    val _ = Multithreading.tracing 3 (fn () => name ^ ": running");
     val ok = run ();
-    val _ = Multithreading.tracing 4 (fn () => name ^ ": finished");
+    val _ = Multithreading.tracing 3 (fn () => name ^ ": finished");
     val _ = set_thread_data NONE;
     val _ = SYNCHRONIZED "execute" (fn () =>
      (change queue (TaskQueue.finish task);
@@ -160,7 +160,7 @@ fun worker_next name = (*requires SYNCHRONIZED*)
 
 fun worker_loop name =
   (case SYNCHRONIZED name (fn () => worker_next name) of
-    NONE => Multithreading.tracing 4 (fn () => name ^ ": exit")
+    NONE => Multithreading.tracing 3 (fn () => name ^ ": exit")
   | SOME work => (execute name work; worker_loop name));
 
 fun worker_start name = (*requires SYNCHRONIZED*)
@@ -199,7 +199,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
 fun scheduler_loop () =
  (while SYNCHRONIZED "scheduler" scheduler_next do ();
-  Multithreading.tracing 4 (fn () => "scheduler: exit"));
+  Multithreading.tracing 3 (fn () => "scheduler: exit"));
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);
