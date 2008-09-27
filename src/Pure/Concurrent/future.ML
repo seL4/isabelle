@@ -29,6 +29,7 @@ signature FUTURE =
 sig
   type task = TaskQueue.task
   type group = TaskQueue.group
+  val thread_data: unit -> (string * task * group) option
   type 'a T
   val task_of: 'a T -> task
   val group_of: 'a T -> group
@@ -55,7 +56,7 @@ struct
 type task = TaskQueue.task;
 type group = TaskQueue.group;
 
-local val tag = Universal.tag () : (task * group) option Universal.tag in
+local val tag = Universal.tag () : (string * task * group) option Universal.tag in
   fun thread_data () = the_default NONE (Thread.getLocal tag);
   fun set_thread_data x = Thread.setLocal (tag, x);
 end;
@@ -134,7 +135,7 @@ fun change_active active = (*requires SYNCHRONIZED*)
 fun execute name (task, group, run) =
   let
     val _ = trace_active ();
-    val _ = set_thread_data (SOME (task, group));
+    val _ = set_thread_data (SOME (name, task, group));
     val _ = Multithreading.tracing 3 (fn () => name ^ ": running");
     val ok = run ();
     val _ = Multithreading.tracing 3 (fn () => name ^ ": finished");
@@ -213,7 +214,8 @@ fun scheduler_active () = (*requires SYNCHRONIZED*)
 
 fun scheduler_check () = SYNCHRONIZED "scheduler_check" (fn () =>
   if not (scheduler_active ()) then
-    (do_shutdown := false; scheduler := SOME (SimpleThread.fork false scheduler_loop))
+    (Multithreading.tracing 3 (fn () => "scheduler: fork");
+     do_shutdown := false; scheduler := SOME (SimpleThread.fork false scheduler_loop))
   else if ! do_shutdown then error "Scheduler shutdown in progress"
   else ());
 
@@ -236,8 +238,8 @@ fun future opt_group deps pri (e: unit -> 'a) =
       change_result queue (TaskQueue.enqueue group deps pri run) before notify_all ());
   in Future {task = task, group = group, result = result} end;
 
-fun fork e = future (Option.map #2 (thread_data ())) [] true e;
-fun fork_irrelevant e = future (Option.map #2 (thread_data ())) [] false e;
+fun fork e = future (Option.map #3 (thread_data ())) [] true e;
+fun fork_irrelevant e = future (Option.map #3 (thread_data ())) [] false e;
 
 
 (* join: retrieve results *)
@@ -249,26 +251,26 @@ fun join_results [] = []
         val _ = Multithreading.self_critical () andalso
           error "Cannot join future values within critical section";
 
-        fun join_loop [] = ()
-          | join_loop tasks =
-              (case SYNCHRONIZED "join_loop" (fn () =>
+        fun join_loop _ [] = ()
+          | join_loop name tasks =
+              (case SYNCHRONIZED name (fn () =>
                   change_result queue (TaskQueue.dequeue_towards tasks)) of
                 NONE => ()
-              | SOME (work, tasks') => (execute "join_loop" work; join_loop tasks'));
+              | SOME (work, tasks') => (execute name work; join_loop name tasks'));
         val _ =
           (case thread_data () of
             NONE =>
               (*alien thread -- refrain from contending for resources*)
               while exists (not o is_finished) xs
               do SYNCHRONIZED "join_thread" (fn () => wait "join_thread")
-          | SOME (task, _) =>
+          | SOME (name, task, _) =>
               (*proper task -- actively work towards results*)
               let
                 val unfinished = xs |> map_filter
                   (fn Future {task, result = ref NONE, ...} => SOME task | _ => NONE);
                 val _ = SYNCHRONIZED "join" (fn () =>
                   (change queue (TaskQueue.depend unfinished task); notify_all ()));
-                val _ = join_loop unfinished;
+                val _ = join_loop ("join_loop: " ^ name) unfinished;
                 val _ =
                   while exists (not o is_finished) xs
                   do SYNCHRONIZED "join_task" (fn () => worker_wait "join_task");
