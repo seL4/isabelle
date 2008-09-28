@@ -1611,7 +1611,7 @@ fun add_future thy future = CRITICAL (fn () => change (Futures.get thy) (cons fu
 fun join_futures thy =
   let
     val futures = Futures.get thy;
-    val results = Future.join_results (! futures);
+    val results = Future.join_results (rev (! futures));
     val done = CRITICAL (fn () =>
       (change futures (filter_out Future.is_finished); null (! futures)));
     val _ = Future.release_results results;
@@ -1662,7 +1662,7 @@ fun promise make_result ct =
 
 fun fulfill (thm as Thm (Deriv {oracle, proof, promises}, args)) =
   let
-    val _ = Future.release_results (Future.join_results (map #2 promises));
+    val _ = Future.release_results (Future.join_results (rev (map #2 promises)));
     val results = map (apsnd Future.join) promises;
     val proofs = fold (fn (i, Thm (Deriv {proof = prf, ...}, _)) => Inttab.update (i, prf))
       results Inttab.empty;
