@@ -58,7 +58,7 @@ type group = TaskQueue.group;
 
 local val tag = Universal.tag () : (string * task * group) option Universal.tag in
   fun thread_data () = the_default NONE (Thread.getLocal tag);
-  fun set_thread_data x = Thread.setLocal (tag, x);
+  fun setmp_thread_data data f x = Library.setmp_thread_data tag (thread_data ()) (SOME data) f x;
 end;
 
 
@@ -135,11 +135,9 @@ fun change_active active = (*requires SYNCHRONIZED*)
 fun execute name (task, group, run) =
   let
     val _ = trace_active ();
-    val _ = set_thread_data (SOME (name, task, group));
     val _ = Multithreading.tracing 3 (fn () => name ^ ": running");
-    val ok = run ();
+    val ok = setmp_thread_data (name, task, group) run ();
     val _ = Multithreading.tracing 3 (fn () => name ^ ": finished");
-    val _ = set_thread_data NONE;
     val _ = SYNCHRONIZED "execute" (fn () =>
      (change queue (TaskQueue.finish task);
       if ok then ()
