@@ -62,7 +62,7 @@ LOG = $(OUT)/log
 
 ## HOL
 
-HOL: HOL-Plain $(OUT)/HOL
+HOL: Pure $(OUT)/HOL
 
 HOL-Plain: Pure $(OUT)/HOL-Plain
 
