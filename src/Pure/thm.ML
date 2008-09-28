@@ -1622,18 +1622,19 @@ val _ = Context.>> (Context.map_theory (Futures.init #> Theory.at_end join_futur
 
 (* promise *)
 
-fun promise_result orig_thy orig_shyps orig_prop raw_thm =
+fun promise_result i orig_thy orig_shyps orig_prop raw_thm =
   let
     val _ = Theory.check_thy orig_thy;
     val thm = strip_shyps (transfer orig_thy raw_thm);
     val _ = Theory.check_thy orig_thy;
     fun err msg = raise THM ("promise_result: " ^ msg, 0, [thm]);
 
-    val Thm (_, {shyps, hyps, tpairs, prop, ...}) = thm;
+    val Thm (Deriv {promises, ...}, {shyps, hyps, tpairs, prop, ...}) = thm;
     val _ = prop aconv orig_prop orelse err "bad prop";
     val _ = null tpairs orelse err "bad tpairs";
     val _ = null hyps orelse err "bad hyps";
     val _ = Sorts.subset (shyps, orig_shyps) orelse err "bad shyps";
+    val _ = forall (fn (j, _) => j < i) promises orelse err "bad dependencies";
   in thm end;
 
 fun promise make_result ct =
@@ -1642,9 +1643,9 @@ fun promise make_result ct =
     val thy = Context.reject_draft (Theory.deref thy_ref);
     val _ = T <> propT andalso raise CTERM ("promise: prop expected", [ct]);
 
-    val future = Future.fork_irrelevant (promise_result thy sorts prop o make_result);
-    val _ = add_future thy future;
     val i = serial ();
+    val future = Future.fork_irrelevant (promise_result i thy sorts prop o make_result);
+    val _ = add_future thy future;
   in
     Thm (make_deriv false [(i, future)] (Pt.promise_proof i prop),
      {thy_ref = thy_ref,
