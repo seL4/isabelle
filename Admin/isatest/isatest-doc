@@ -67,14 +67,8 @@ cat $SETTINGS >> $ISABELLE_DEVEL/etc/settings
 
 echo "Start test at `date`" > $LOG
 echo >> $LOG
-echo "begin cvs update" >> $LOG
 
-# cvs update to newest version 
 cd $DOCDIR || fail "could not cd to $DOCDIR"
-cvs -q up -A -P -d >> $LOG 2>&1 || fail "could not CVS update."
-
-echo "end cvs update" >> $LOG
-echo >> $LOG
 
 # run test
 FAIL="";
