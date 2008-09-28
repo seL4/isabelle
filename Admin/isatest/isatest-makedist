@@ -11,7 +11,7 @@
 TMP=/tmp/isatest-makedist.$$
 MAIL=$HOME/bin/pmail
 
-MAKEDIST=$HOME/bin/makedist
+MAKEDIST=$HOME/bin/makedist_mercurial
 MAKEALL=$HOME/bin/isatest-makeall
 TAR=tar
 CVS2CL="$HOME/bin/cvs2cl --follow-only TRUNK"
