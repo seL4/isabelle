@@ -23,4 +23,4 @@ use_thys [
   "Standardization"
 ];
 
-setmp quick_and_dirty true use_thy "VC_Condition";
+setmp_noncritical quick_and_dirty true use_thy "VC_Condition";
