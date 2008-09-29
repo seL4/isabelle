@@ -3,16 +3,141 @@
     Author:     Florian Haftmann
 *)
 
-header {* Setup of code generators and derived tools *}
+header {* Setup of code generators and related tools *}
 
 theory Code_Setup
 imports HOL
-uses "~~/src/HOL/Tools/recfun_codegen.ML"
 begin
 
-subsection {* SML code generator setup *}
+subsection {* Generic code generator foundation *}
 
-setup RecfunCodegen.setup
+text {* Datatypes *}
+
+code_datatype True False
+
+code_datatype "TYPE('a\<Colon>{})"
+
+code_datatype Trueprop "prop"
+
+text {* Code equations *}
+
+lemma [code func]:
+  shows "False \<and> x \<longleftrightarrow> False"
+    and "True \<and> x \<longleftrightarrow> x"
+    and "x \<and> False \<longleftrightarrow> False"
+    and "x \<and> True \<longleftrightarrow> x" by simp_all
+
+lemma [code func]:
+  shows "False \<or> x \<longleftrightarrow> x"
+    and "True \<or> x \<longleftrightarrow> True"
+    and "x \<or> False \<longleftrightarrow> x"
+    and "x \<or> True \<longleftrightarrow> True" by simp_all
+
+lemma [code func]:
+  shows "\<not> True \<longleftrightarrow> False"
+    and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
+
+lemmas [code func] = Let_def if_True if_False
+
+lemmas [code func, code unfold, symmetric, code post] = imp_conv_disj
+
+text {* Equality *}
+
+context eq
+begin
+
+lemma equals_eq [code inline, code func]: "op = \<equiv> eq"
+  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
+
+declare equals_eq [symmetric, code post]
+
+end
+
+declare simp_thms(6) [code nbe]
+
+hide (open) const eq
+hide const eq
+
+setup {*
+  Code_Unit.add_const_alias @{thm equals_eq}
+*}
+
+text {* Cases *}
+
+lemma Let_case_cert:
+  assumes "CASE \<equiv> (\<lambda>x. Let x f)"
+  shows "CASE x \<equiv> f x"
+  using assms by simp_all
+
+lemma If_case_cert:
+  includes meta_conjunction_syntax
+  assumes "CASE \<equiv> (\<lambda>b. If b f g)"
+  shows "(CASE True \<equiv> f) && (CASE False \<equiv> g)"
+  using assms by simp_all
+
+setup {*
+  Code.add_case @{thm Let_case_cert}
+  #> Code.add_case @{thm If_case_cert}
+  #> Code.add_undefined @{const_name undefined}
+*}
+
+code_abort undefined
+
+
+subsection {* Generic code generator preprocessor *}
+
+setup {*
+  Code.map_pre (K HOL_basic_ss)
+  #> Code.map_post (K HOL_basic_ss)
+*}
+
+
+subsection {* Generic code generator target languages *}
+
+text {* type bool *}
+
+code_type bool
+  (SML "bool")
+  (OCaml "bool")
+  (Haskell "Bool")
+
+code_const True and False and Not and "op &" and "op |" and If
+  (SML "true" and "false" and "not"
+    and infixl 1 "andalso" and infixl 0 "orelse"
+    and "!(if (_)/ then (_)/ else (_))")
+  (OCaml "true" and "false" and "not"
+    and infixl 4 "&&" and infixl 2 "||"
+    and "!(if (_)/ then (_)/ else (_))")
+  (Haskell "True" and "False" and "not"
+    and infixl 3 "&&" and infixl 2 "||"
+    and "!(if (_)/ then (_)/ else (_))")
+
+code_reserved SML
+  bool true false not
+
+code_reserved OCaml
+  bool not
+
+text {* using built-in Haskell equality *}
+
+code_class eq
+  (Haskell "Eq" where "eq_class.eq" \<equiv> "(==)")
+
+code_const "eq_class.eq"
+  (Haskell infixl 4 "==")
+
+code_const "op ="
+  (Haskell infixl 4 "==")
+
+text {* undefined *}
+
+code_const undefined
+  (SML "raise/ Fail/ \"undefined\"")
+  (OCaml "failwith/ \"undefined\"")
+  (Haskell "error/ \"undefined\"")
+
+
+subsection {* SML code generator setup *}
 
 types_code
   "bool"  ("bool")
@@ -63,65 +188,8 @@ in
 end
 *}
 
-quickcheck_params [size = 5, iterations = 50]
 
-text {* Evaluation *}
-
-method_setup evaluation = {*
-  Method.no_args (Method.SIMPLE_METHOD' (CONVERSION Codegen.evaluation_conv THEN' rtac TrueI))
-*} "solve goal by evaluation"
-
-
-subsection {* Generic code generator setup *}
-
-text {* using built-in Haskell equality *}
-
-code_class eq
-  (Haskell "Eq" where "eq_class.eq" \<equiv> "(==)")
-
-code_const "eq_class.eq"
-  (Haskell infixl 4 "==")
-
-code_const "op ="
-  (Haskell infixl 4 "==")
-
-
-text {* type bool *}
-
-code_type bool
-  (SML "bool")
-  (OCaml "bool")
-  (Haskell "Bool")
-
-code_const True and False and Not and "op &" and "op |" and If
-  (SML "true" and "false" and "not"
-    and infixl 1 "andalso" and infixl 0 "orelse"
-    and "!(if (_)/ then (_)/ else (_))")
-  (OCaml "true" and "false" and "not"
-    and infixl 4 "&&" and infixl 2 "||"
-    and "!(if (_)/ then (_)/ else (_))")
-  (Haskell "True" and "False" and "not"
-    and infixl 3 "&&" and infixl 2 "||"
-    and "!(if (_)/ then (_)/ else (_))")
-
-code_reserved SML
-  bool true false not
-
-code_reserved OCaml
-  bool not
-
-
-text {* code generation for undefined as exception *}
-
-code_abort undefined
-
-code_const undefined
-  (SML "raise/ Fail/ \"undefined\"")
-  (OCaml "failwith/ \"undefined\"")
-  (Haskell "error/ \"undefined\"")
-
-
-subsection {* Evaluation oracle *}
+subsection {* Evaluation and normalization by evaluation *}
 
 ML {*
 structure Eval_Method =
@@ -155,7 +223,10 @@ end
 *} "solve goal by evaluation"
 
 
-subsection {* Normalization by evaluation *}
+method_setup evaluation = {*
+  Method.no_args (Method.SIMPLE_METHOD' (CONVERSION Codegen.evaluation_conv THEN' rtac TrueI))
+*} "solve goal by evaluation"
+
 
 method_setup normalization = {*
   Method.no_args (Method.SIMPLE_METHOD'
@@ -163,5 +234,10 @@ method_setup normalization = {*
     THEN' (fn k => TRY (rtac TrueI k))
   ))
 *} "solve goal by normalization"
+
+
+subsection {* Quickcheck *}
+
+quickcheck_params [size = 5, iterations = 50]
 
 end

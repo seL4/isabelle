@@ -35,6 +35,7 @@ uses
   "~~/src/Tools/code/code_ml.ML"
   "~~/src/Tools/code/code_haskell.ML"
   "~~/src/Tools/nbe.ML"
+  ("~~/src/HOL/Tools/recfun_codegen.ML")
 begin
 
 subsection {* Primitive logic *}
@@ -1678,87 +1679,36 @@ val trans = @{thm trans}
 *}
 
 
-subsection {* Code generator basic setup -- see further @{text Code_Setup.thy} *}
+subsection {* Code generator basics -- see further theory @{text "Code_Setup"} *}
+
+text {* Module setup *}
+
+use "~~/src/HOL/Tools/recfun_codegen.ML"
 
 setup {*
-  Code.map_pre (K HOL_basic_ss)
-  #> Code.map_post (K HOL_basic_ss)
+  Code_Name.setup
+  #> Code_ML.setup
+  #> Code_Haskell.setup
+  #> Nbe.setup
+  #> Codegen.setup
+  #> RecfunCodegen.setup
 *}
 
-code_datatype True False
 
-code_datatype "TYPE('a\<Colon>{})"
-
-code_datatype Trueprop "prop"
-
-lemma Let_case_cert:
-  assumes "CASE \<equiv> (\<lambda>x. Let x f)"
-  shows "CASE x \<equiv> f x"
-  using assms by simp_all
-
-lemma If_case_cert:
-  includes meta_conjunction_syntax
-  assumes "CASE \<equiv> (\<lambda>b. If b f g)"
-  shows "(CASE True \<equiv> f) && (CASE False \<equiv> g)"
-  using assms by simp_all
-
-setup {*
-  Code.add_case @{thm Let_case_cert}
-  #> Code.add_case @{thm If_case_cert}
-  #> Code.add_undefined @{const_name undefined}
-*}
+text {* Equality *}
 
 class eq = type +
   fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-  assumes eq_equals: "eq x y \<longleftrightarrow> x = y "
+  assumes eq_equals: "eq x y \<longleftrightarrow> x = y"
 begin
 
 lemma eq: "eq = (op =)"
   by (rule ext eq_equals)+
 
-lemma equals_eq [code inline, code func]: "op = \<equiv> eq"
-  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
-
-declare equals_eq [symmetric, code post]
-
 lemma eq_refl: "eq x x \<longleftrightarrow> True"
   unfolding eq by rule+
 
 end
-
-declare simp_thms(6) [code nbe]
-
-hide (open) const eq
-hide const eq
-
-setup {*
-  Code_Unit.add_const_alias @{thm equals_eq}
-  #> Code_Name.setup
-  #> Code_ML.setup
-  #> Code_Haskell.setup
-  #> Nbe.setup
-  #> Codegen.setup
-*}
-
-lemma [code func]:
-  shows "False \<and> x \<longleftrightarrow> False"
-    and "True \<and> x \<longleftrightarrow> x"
-    and "x \<and> False \<longleftrightarrow> False"
-    and "x \<and> True \<longleftrightarrow> x" by simp_all
-
-lemma [code func]:
-  shows "False \<or> x \<longleftrightarrow> x"
-    and "True \<or> x \<longleftrightarrow> True"
-    and "x \<or> False \<longleftrightarrow> x"
-    and "x \<or> True \<longleftrightarrow> True" by simp_all
-
-lemma [code func]:
-  shows "\<not> True \<longleftrightarrow> False"
-    and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
-
-lemmas [code func] = Let_def if_True if_False
-
-lemmas [code func, code unfold, symmetric, code post] = imp_conv_disj
 
 
 subsection {* Legacy tactics and ML bindings *}
