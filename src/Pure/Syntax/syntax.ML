@@ -83,7 +83,7 @@ sig
     (string * string) trrule list -> syntax -> syntax
   val update_trrules_i: ast trrule list -> syntax -> syntax
   val remove_trrules_i: ast trrule list -> syntax -> syntax
-  val parse_token: Markup.T -> string -> SymbolPos.T list * Position.T
+  val parse_token: Proof.context -> Markup.T -> string -> SymbolPos.T list * Position.T
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
@@ -482,7 +482,7 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val toks = Lexicon.tokenize lexicon xids syms;
-    val _ = List.app Lexicon.report_token toks;
+    val _ = List.app (Lexicon.report_token ctxt) toks;
 
     val root' = if root <> "prop" andalso is_logtype root then SynExt.logic else root;
     val pts = Parser.parse gram root' (filter Lexicon.is_proper toks);
@@ -695,10 +695,10 @@ val remove_trrules_i = remove_syntax mode_default o SynExt.syn_ext_rules o cert_
 
 (* (un)parsing *)
 
-fun parse_token markup str =
+fun parse_token ctxt markup str =
   let
     val (syms, pos) = read_token str;
-    val _ = Position.report markup pos;
+    val _ = ContextPosition.report ctxt markup pos;
   in (syms, pos) end;
 
 local
