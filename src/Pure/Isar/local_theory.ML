@@ -154,7 +154,10 @@ fun theory f = #2 o theory_result (f #> pair ());
 
 fun target_result f lthy =
   let
-    val (res, ctxt') = f (target_of lthy);
+    val (res, ctxt') = target_of lthy
+      |> ContextPosition.set_visible false
+      |> f
+      ||> ContextPosition.restore_visible lthy;
     val thy' = ProofContext.theory_of ctxt';
     val lthy' = lthy
       |> map_target (K ctxt')
