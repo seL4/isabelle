@@ -134,8 +134,9 @@ fun add_drop_redundant (thm, linear) thms =
     val thy = Thm.theory_of_thm thm;
     val args_of = snd o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
     val args = args_of thm;
+    val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
     fun matches_args args' = length args <= length args' andalso
-      Pattern.matchess thy (args, curry Library.take (length args) args');
+      Pattern.matchess thy (args, (map incr_idx o curry Library.take (length args)) args');
     fun drop (thm', linear') = if (linear orelse not linear')
       andalso matches_args (args_of thm') then 
         (warning ("Code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm'); true)
@@ -368,7 +369,7 @@ fun print_codesetup thy =
           (Pretty.block o Pretty.breaks) (
             Pretty.str s
             :: Pretty.str "="
-            :: separate (Pretty.str "|") (map (fn (c, []) => Pretty.str c
+            :: separate (Pretty.str "|") (map (fn (c, []) => Pretty.str (Code_Unit.string_of_const thy c)
                  | (c, tys) =>
                      (Pretty.block o Pretty.breaks)
                         (Pretty.str (Code_Unit.string_of_const thy c)
