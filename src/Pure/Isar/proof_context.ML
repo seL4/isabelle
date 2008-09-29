@@ -986,8 +986,12 @@ in
 fun note_thmss k = gen_note_thmss get_fact k;
 fun note_thmss_i k = gen_note_thmss (K I) k;
 
-fun put_thms do_props thms ctxt =
-  ctxt |> map_naming (K local_naming) |> update_thms do_props thms |> restore_naming ctxt;
+fun put_thms do_props thms ctxt = ctxt
+  |> map_naming (K local_naming)
+  |> ContextPosition.set_visible false
+  |> update_thms do_props thms
+  |> ContextPosition.restore_visible ctxt
+  |> restore_naming ctxt;
 
 end;
 
