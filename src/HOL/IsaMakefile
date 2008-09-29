@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Generate-HOL HOL-Generate-HOLLight
-images: HOL-Plain HOL HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4
+images: HOL-Plain HOL-Main HOL HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \
@@ -65,6 +65,8 @@ LOG = $(OUT)/log
 HOL: Pure $(OUT)/HOL
 
 HOL-Plain: Pure $(OUT)/HOL-Plain
+
+HOL-Main: Pure $(OUT)/HOL-Main
 
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
@@ -182,38 +184,18 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
 $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 	@$(ISATOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
 
-$(OUT)/HOL: ROOT.ML $(PLAIN_DEPENDENCIES) \
+MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Arith_Tools.thy \
   ATP_Linkup.thy \
   Code_Eval.thy \
-  Complex/Complex_Main.thy \
-  Complex/Complex.thy \
-  Complex/Fundamental_Theorem_Algebra.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
-  Hyperreal/Deriv.thy \
-  Hyperreal/Fact.thy \
-  Hyperreal/Integration.thy \
-  Hyperreal/Lim.thy \
-  Hyperreal/Ln.thy \
-  Hyperreal/Log.thy \
-  Hyperreal/MacLaurin.thy \
-  Hyperreal/NthRoot.thy \
-  Hyperreal/SEQ.thy \
-  Hyperreal/Series.thy \
-  Hyperreal/Taylor.thy \
-  Hyperreal/Transcendental.thy \
   int_arith1.ML \
   IntDiv.thy \
   int_factor_simprocs.ML \
   Int.thy \
-  Library/Dense_Linear_Order.thy \
-  Library/GCD.thy \
-  Library/Order_Relation.thy \
-  Library/Parity.thy \
   Library/RType.thy \
-  Library/Univ_Poly.thy \
   List.thy \
   Main.thy \
   Map.thy \
@@ -221,17 +203,6 @@ $(OUT)/HOL: ROOT.ML $(PLAIN_DEPENDENCIES) \
   Nat_Int_Bij.thy \
   nat_simprocs.ML \
   Presburger.thy \
-  Real/ContNotDenum.thy \
-  Real/Lubs.thy \
-  Real/PReal.thy \
-  Real/rat_arith.ML \
-  Real/Rational.thy \
-  Real/RComplete.thy \
-  Real/real_arith.ML \
-  Real/RealDef.thy \
-  Real/RealPow.thy \
-  Real/Real.thy \
-  Real/RealVector.thy \
   Recdef.thy \
   Relation_Power.thy \
   SetInterval.thy \
@@ -252,11 +223,7 @@ $(OUT)/HOL: ROOT.ML $(PLAIN_DEPENDENCIES) \
   Tools/polyhash.ML \
   Tools/Qelim/cooper_data.ML \
   Tools/Qelim/cooper.ML \
-  Tools/Qelim/ferrante_rackoff_data.ML \
-  Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/generated_cooper.ML \
-  Tools/Qelim/langford_data.ML \
-  Tools/Qelim/langford.ML \
   Tools/Qelim/presburger.ML \
   Tools/Qelim/qelim.ML \
   Tools/recdef_package.ML \
@@ -279,6 +246,46 @@ $(OUT)/HOL: ROOT.ML $(PLAIN_DEPENDENCIES) \
   Tools/TFL/usyntax.ML \
   Tools/TFL/utils.ML \
   Tools/watcher.ML
+
+$(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
+	@$(ISATOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
+
+$(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
+  Complex/Complex_Main.thy \
+  Complex/Complex.thy \
+  Complex/Fundamental_Theorem_Algebra.thy \
+  Hyperreal/Deriv.thy \
+  Hyperreal/Fact.thy \
+  Hyperreal/Integration.thy \
+  Hyperreal/Lim.thy \
+  Hyperreal/Ln.thy \
+  Hyperreal/Log.thy \
+  Hyperreal/MacLaurin.thy \
+  Hyperreal/NthRoot.thy \
+  Hyperreal/SEQ.thy \
+  Hyperreal/Series.thy \
+  Hyperreal/Taylor.thy \
+  Hyperreal/Transcendental.thy \
+  Library/Dense_Linear_Order.thy \
+  Library/GCD.thy \
+  Library/Order_Relation.thy \
+  Library/Parity.thy \
+  Library/Univ_Poly.thy \
+  Real/ContNotDenum.thy \
+  Real/Lubs.thy \
+  Real/PReal.thy \
+  Real/rat_arith.ML \
+  Real/Rational.thy \
+  Real/RComplete.thy \
+  Real/real_arith.ML \
+  Real/RealDef.thy \
+  Real/RealPow.thy \
+  Real/Real.thy \
+  Real/RealVector.thy \
+  Tools/Qelim/ferrante_rackoff_data.ML \
+  Tools/Qelim/ferrante_rackoff.ML \
+  Tools/Qelim/langford_data.ML \
+  Tools/Qelim/langford.ML
 	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/Pure HOL
 
 
