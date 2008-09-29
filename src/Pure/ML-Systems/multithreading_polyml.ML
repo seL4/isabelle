@@ -149,7 +149,7 @@ fun system_out script = uninterruptible (fn restore_attributes => fn () =>
               if s = Posix.Signal.int then Signal
               else Result (256 + LargeWord.toInt (Posix.Signal.toWord s))
           | Posix.Process.W_STOPPED s => Result (512 + LargeWord.toInt (Posix.Signal.toWord s)));
-      in set_result res end handle _ => set_result (Result 2), []);
+      in set_result res end handle _ (*sic*) => set_result (Result 2), []);
 
     (*main thread -- proxy for interrupts*)
     fun kill n =
