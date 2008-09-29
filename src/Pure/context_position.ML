@@ -1,0 +1,32 @@
+(*  Title:      Pure/context_position.ML
+    ID:         $Id$
+    Author:     Makarius
+
+Context position visibility.
+*)
+
+signature CONTEXT_POSITION =
+sig
+  val is_visible: Proof.context -> bool
+  val set_visible: bool -> Proof.context -> Proof.context
+  val restore_visible: Proof.context -> Proof.context -> Proof.context
+  val report: Proof.context -> Markup.T -> Position.T -> unit
+end;
+
+structure ContextPosition: CONTEXT_POSITION =
+struct
+
+structure Data = ProofDataFun
+(
+  type T = bool;
+  fun init _ = true;
+);
+
+val is_visible = Data.get;
+val set_visible = Data.put;
+val restore_visible = set_visible o is_visible;
+
+fun report ctxt markup pos =
+  if is_visible ctxt then Position.report markup pos else ();
+
+end;
