@@ -123,61 +123,59 @@ contains
   exec = exec
   test = test
 
-ML {*
-JVM.test;
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-JVM.exec (JVM.E, JVM.the it);
-*}
+ML {* JVM.test *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
+ML {* JVM.exec (JVM.E, JVM.the it) *}
 
 end
