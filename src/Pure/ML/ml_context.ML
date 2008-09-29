@@ -173,7 +173,7 @@ fun antiquotation src ctxt =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_parsers) name of
       NONE => error ("Unknown ML antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | SOME scan => (ContextPosition.report ctxt (Markup.ML_antiq name) pos;
+    | SOME scan => (Position.report (Markup.ML_antiq name) pos;
         Args.context_syntax "ML antiquotation" (scan pos) src ctxt))
   end;
 
