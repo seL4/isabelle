@@ -211,7 +211,7 @@ fun read_pgipstring s =  (* non-empty strings, XML escapes decoded *)
     (case XML.parse_string s of
          SOME s => s
        | NONE => raise PGIP ("Expected a non-empty string: " ^ quote s))
-    handle _ => raise PGIP ("Invalid XML string syntax: " ^ quote s)
+    handle _ => raise PGIP ("Invalid XML string syntax: " ^ quote s)  (* FIXME avoid handle _ *)
 
 val int_to_pgstring = signed_string_of_int
 

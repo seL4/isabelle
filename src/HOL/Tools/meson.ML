@@ -88,7 +88,7 @@ fun first_order_resolve thA thB =
       val (tyenv,tenv) = Pattern.first_order_match thy (tmB,tmA) (tyenv0,tenv0)
       val ct_pairs = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
   in  thA RS (cterm_instantiate ct_pairs thB)  end
-  handle _ => raise THM ("first_order_resolve", 0, [thA,thB]);
+  handle _ => raise THM ("first_order_resolve", 0, [thA,thB]);  (* FIXME avoid handle _ *)
 
 fun flexflex_first_order th =
   case (tpairs_of th) of

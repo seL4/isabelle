@@ -557,7 +557,7 @@ fun qf_of_term ps vs t =  case t
   | Const(@{const_name HOL.less},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
   | Const(@{const_name HOL.less_eq},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
   | Const(@{const_name Ring_and_Field.dvd},_)$t1$t2 => 
-      (Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")
+      (Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")  (* FIXME avoid handle _ *)
   | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))
   | @{term "op = :: bool => _ "}$t1$t2 => Iffa(qf_of_term ps vs t1,qf_of_term ps vs t2)
   | Const("op &",_)$t1$t2 => And(qf_of_term ps vs t1,qf_of_term ps vs t2)

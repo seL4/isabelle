@@ -157,7 +157,7 @@ end;
 			end
 		  fun bucket n = (copy (Array.sub(arr, n)); bucket (n+1))
 		  in
-		    (bucket 0) handle _ => ();
+		    (bucket 0) handle _ => ();  (* FIXME avoid handle _ *)
 		    table := newArr
 		  end
 		else ()
@@ -362,7 +362,7 @@ end;
 		Array.update (newArr, i, Array.sub(arr, i));
 		mapTbl (i+1))
 	  in
-	    (mapTbl 0) handle _ => ();
+	    (mapTbl 0) handle _ => ();  (* FIXME avoid handle _ *)
 	    HT{hashVal=hashVal, 
 	       sameKey=sameKey,
 	       table = ref newArr, 

@@ -1250,7 +1250,7 @@ fun split_name str =
         then SOME (newstr,valOf(Int.fromString idx))
         else NONE
     end
-    handle _ => NONE
+    handle _ => NONE  (* FIXME avoid handle _ *)
 
 fun rewrite_hol4_term t thy =
     let
@@ -1283,7 +1283,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
                            handle ERROR _ =>
                                   (case split_name thmname of
                                        SOME (listname,idx) => (SOME (List.nth(PureThy.get_thms thy listname,idx-1))
-                                                               handle _ => NONE)
+                                                               handle _ => NONE)  (* FIXME avoid handle _ *)
                                      | NONE => NONE))
             in
                 case th1 of
@@ -1339,7 +1339,7 @@ fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
         end
   in
       case b of
-          NONE => (warn () handle _ => (); (a,b))
+          NONE => (warn () handle _ => (); (a,b)) (* FIXME avoid handle _ *)
         | _ => (a, b)
   end
 

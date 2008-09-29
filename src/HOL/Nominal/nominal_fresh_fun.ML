@@ -86,7 +86,7 @@ fun generate_fresh_tac atom_name i thm =
      (term_frees goal @ bvs);
 (* build the tuple *)
    val s = (Library.foldr1 (fn (v, s) =>
-     HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s) vs) handle _ => HOLogic.unit ;
+     HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s) vs) handle _ => HOLogic.unit ;  (* FIXME avoid handle _ *)
    val fs_name_thm = get_dyn_thm thy ("fs_"^atom_basename^"1") atom_basename;
    val at_name_inst_thm = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
    val exists_fresh' = at_name_inst_thm RS at_exists_fresh';
