@@ -114,6 +114,8 @@ sig
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((Name.binding * attribute list) * (term * term list) list) list -> bool -> state -> state
+  val can_promise: state -> bool
+  val promise_proof: (state -> context) -> state -> context
 end;
 
 structure Proof: PROOF =
@@ -139,8 +141,8 @@ and node =
     goal: goal option}
 and goal =
   Goal of
-   {statement: (string * Position.T) * term list list,
-                                          (*goal kind and statement (starting with vars)*)
+   {statement: (string * Position.T) * term list list * cterm,
+      (*goal kind and statement (starting with vars), initial proposition*)
     messages: (unit -> Pretty.T) list,    (*persistent messages (hints etc.)*)
     using: thm list,                      (*goal facts*)
     goal: thm,                            (*subgoals ==> statement*)
@@ -311,9 +313,9 @@ fun get_goal state =
   in (ctxt, (using, goal)) end;
 
 fun schematic_goal state =
-  let val (_, (_, {statement = (_, propss), ...})) = find_goal state in
-    exists (exists (Term.exists_subterm Term.is_Var)) propss orelse
-    exists (exists (Term.exists_type (Term.exists_subtype Term.is_TVar))) propss
+  let val (_, (_, {statement = (_, _, prop), ...})) = find_goal state in
+    Term.exists_subterm Term.is_Var (Thm.term_of prop) orelse
+    Term.exists_type (Term.exists_subtype Term.is_TVar) (Thm.term_of prop)
   end;
 
 
@@ -346,7 +348,7 @@ fun pretty_state nr state =
       | strs' => enclose " (" ")" (commas strs'));
 
     fun prt_goal (SOME (ctxt, (i,
-            {statement = ((_, pos), _), messages, using, goal, before_qed, after_qed}))) =
+            {statement = ((_, pos), _, _), messages, using, goal, before_qed, after_qed}))) =
           pretty_facts "using " ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Pretty.str ("goal" ^
@@ -805,14 +807,14 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
 
     val propss' = map (Logic.mk_term o Var) vars :: propss;
     val goal_propss = filter_out null propss';
-    val goal = Goal.init (cert
-      (Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss)));
+    val goal = cert (Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss));
+    val statement = ((kind, pos), propss', goal);
     val after_qed' = after_qed |>> (fn after_local =>
       fn results => map_context after_ctxt #> after_local results);
   in
     goal_state
     |> map_context (init_context #> Variable.set_body true)
-    |> put_goal (SOME (make_goal (((kind, pos), propss'), [], [], goal, before_qed, after_qed')))
+    |> put_goal (SOME (make_goal (statement, [], [], Goal.init goal, before_qed, after_qed')))
     |> map_context (ProofContext.auto_bind_goal props)
     |> chaining ? (`the_facts #-> using_facts)
     |> put_facts NONE
@@ -829,7 +831,7 @@ fun generic_qed state =
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
 
-    val ((_, pos), stmt) = statement;
+    val ((_, pos), stmt, _) = statement;
     val props =
       flat (tl stmt)
       |> Variable.exportT_terms goal_ctxt outer_ctxt;
@@ -972,5 +974,42 @@ val show = gen_show Attrib.attribute ProofContext.bind_propp;
 val show_i = gen_show (K I) ProofContext.bind_propp_i;
 
 end;
+
+
+(* promise global proofs *)
+
+fun is_initial state =
+  (case try find_goal state of
+    NONE => false
+  | SOME (_, (_, {statement = (_, _, prop), goal, ...})) => Thm.eq_thm_prop (Goal.init prop, goal));
+
+fun can_promise state =
+  can (assert_bottom true) state andalso
+  can assert_backward state andalso
+  is_initial state andalso
+  not (schematic_goal state);
+
+fun promise_proof make_proof state =
+  let
+    val _ = can_promise state orelse error "Cannot promise proof";
+
+    val (goal_ctxt, (_, goal)) = find_goal state;
+    val {statement as (kind, propss, cprop), messages, using, goal, before_qed, after_qed} = goal;
+    val prop = Thm.term_of cprop;
+
+    val statement' = (kind, [[prop]], cprop);
+    fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+    val this_name = ProofContext.full_name (ProofContext.reset_naming goal_ctxt) AutoBind.thisN;
+
+    fun make_result () = state
+      |> map_goal I (K (statement', messages, using, goal, before_qed, (#1 after_qed, after_qed')))
+      |> make_proof
+      |> (fn result_ctxt => ProofContext.get_fact_single result_ctxt (Facts.named this_name));
+    val finished_goal = Goal.protect (Goal.promise_result goal_ctxt make_result prop);
+  in
+    state
+    |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed))
+    |> global_done_proof
+  end;
 
 end;
