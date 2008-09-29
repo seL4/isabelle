@@ -7,17 +7,15 @@ header {* Dense linear order without endpoints
   and a quantifier elimination procedure in Ferrante and Rackoff style *}
 
 theory Dense_Linear_Order
-imports Plain "~~/src/HOL/Presburger"
+imports Plain "~~/src/HOL/Groebner_Basis"
 uses
-  "~~/src/HOL/Tools/Qelim/qelim.ML"
   "~~/src/HOL/Tools/Qelim/langford_data.ML"
   "~~/src/HOL/Tools/Qelim/ferrante_rackoff_data.ML"
   ("~~/src/HOL/Tools/Qelim/langford.ML")
   ("~~/src/HOL/Tools/Qelim/ferrante_rackoff.ML")
 begin
 
-setup Langford_Data.setup
-setup Ferrante_Rackoff_Data.setup
+setup {* Langford_Data.setup #> Ferrante_Rackoff_Data.setup *}
 
 context linorder
 begin
