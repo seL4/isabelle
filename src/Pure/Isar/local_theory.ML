@@ -42,6 +42,9 @@ sig
   val restore: local_theory -> local_theory
   val reinit: local_theory -> local_theory
   val exit: local_theory -> Proof.context
+  val exit_global: local_theory -> theory
+  val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
+  val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
 end;
 
 structure LocalTheory: LOCAL_THEORY =
@@ -178,15 +181,14 @@ val declaration = checkpoint oo operation1 #declaration;
 fun note kind (a, ths) = notes kind [(a, [(ths, [])])] #>> the_single;
 
 fun target_morphism lthy =
-  ProofContext.export_morphism lthy (target_of lthy) $>
-  Morphism.thm_morphism Goal.norm_result;
+  ProofContext.norm_export_morphism lthy (target_of lthy);
 
 fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
   in term_syntax (ProofContext.target_notation add mode args) lthy end;
 
 
-(* init -- exit *)
+(* init *)
 
 fun init theory_prefix operations target = target |> Data.map
   (fn NONE => SOME (make_lthy ("", theory_prefix, operations, target))
@@ -198,6 +200,24 @@ fun restore lthy =
   in init theory_prefix operations target end;
 
 val reinit = checkpoint o operation #reinit;
+
+
+(* exit *)
+
 val exit = ProofContext.theory Theory.checkpoint o operation #exit;
+val exit_global = ProofContext.theory_of o exit;
+
+fun exit_result f (x, lthy) =
+  let
+    val ctxt = exit lthy;
+    val phi = ProofContext.norm_export_morphism lthy ctxt;
+  in (f phi x, ctxt) end;
+
+fun exit_result_global f (x, lthy) =
+  let
+    val thy = exit_global lthy;
+    val thy_ctxt = ProofContext.init thy;
+    val phi = ProofContext.norm_export_morphism lthy thy_ctxt;
+  in (f phi x, thy) end;
 
 end;
