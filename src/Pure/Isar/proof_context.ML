@@ -68,6 +68,7 @@ sig
   val goal_export: Proof.context -> Proof.context -> thm list -> thm list
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
+  val norm_export_morphism: Proof.context -> Proof.context -> morphism
   val add_binds: (indexname * string option) list -> Proof.context -> Proof.context
   val add_binds_i: (indexname * term option) list -> Proof.context -> Proof.context
   val auto_bind_goal: term list -> Proof.context -> Proof.context
@@ -766,6 +767,10 @@ val export = common_export false;
 fun export_morphism inner outer =
   Assumption.export_morphism inner outer $>
   Variable.export_morphism inner outer;
+
+fun norm_export_morphism inner outer =
+  export_morphism inner outer $>
+  Morphism.thm_morphism Goal.norm_result;
 
 
 
