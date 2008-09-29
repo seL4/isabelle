@@ -443,7 +443,7 @@ fun prep_const_proper ctxt (c, pos) =
     (case Variable.lookup_const ctxt c of
       SOME d => Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => error msg)
     | NONE => Consts.read_const (consts_of ctxt) c)
-  in ContextPosition.report ctxt (Markup.const d) pos; t end;
+  in Position.report (Markup.const d) pos; t end;
 
 in
 
@@ -453,12 +453,12 @@ fun read_tyname ctxt str =
     val (c, pos) = token_content str;
   in
     if Syntax.is_tid c then
-     (ContextPosition.report ctxt Markup.tfree pos;
+     (Position.report Markup.tfree pos;
       TFree (c, the_default (Sign.defaultS thy) (Variable.def_sort ctxt (c, ~1))))
     else
       let
         val d = Sign.intern_type thy c;
-        val _ = ContextPosition.report ctxt (Markup.tycon d) pos;
+        val _ = Position.report (Markup.tycon d) pos;
       in Type (d, replicate (Sign.arity_number thy d) dummyT) end
   end;
 
@@ -468,7 +468,7 @@ fun read_const ctxt str =
   let val (c, pos) = token_content str in
     (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
-        (ContextPosition.report ctxt (Markup.name x
+        (Position.report (Markup.name x
             (if can Name.dest_skolem x then Markup.skolem else Markup.free)) pos;
           Free (x, infer_type ctxt x))
     | _ => prep_const_proper ctxt (c, pos))
@@ -687,7 +687,7 @@ local
 
 fun parse_sort ctxt text =
   let
-    val (syms, pos) = Syntax.parse_token ctxt Markup.sort text;
+    val (syms, pos) = Syntax.parse_token Markup.sort text;
     val S = Syntax.standard_parse_sort ctxt (syn_of ctxt)
         (Sign.intern_sort (theory_of ctxt)) (syms, pos)
       handle ERROR msg => cat_error msg  ("Failed to parse sort" ^ Position.str_of pos)
@@ -698,7 +698,7 @@ fun parse_typ ctxt text =
     val thy = ProofContext.theory_of ctxt;
     val get_sort = get_sort thy (Variable.def_sort ctxt);
 
-    val (syms, pos) = Syntax.parse_token ctxt Markup.typ text;
+    val (syms, pos) = Syntax.parse_token Markup.typ text;
     val T = Sign.intern_tycons thy
         (Syntax.standard_parse_typ ctxt (syn_of ctxt) get_sort (Sign.intern_sort thy) (syms, pos))
       handle ERROR msg => cat_error msg  ("Failed to parse type" ^ Position.str_of pos);
@@ -711,7 +711,7 @@ fun parse_term T ctxt text =
 
     val (T', _) = TypeInfer.paramify_dummies T 0;
     val (markup, kind) = if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
-    val (syms, pos) = Syntax.parse_token ctxt markup text;
+    val (syms, pos) = Syntax.parse_token markup text;
 
     fun check t = (Syntax.check_term ctxt (TypeInfer.constrain T' t); NONE)
       handle ERROR msg => SOME msg;
@@ -932,7 +932,7 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
           if name = "" then [Thm.transfer thy Drule.dummy_thm]
           else
             (case Facts.lookup (Context.Proof ctxt) local_facts name of
-              SOME (_, ths) => (ContextPosition.report ctxt (Markup.local_fact name) pos;
+              SOME (_, ths) => (Position.report (Markup.local_fact name) pos;
                 map (Thm.transfer thy) (Facts.select thmref ths))
             | NONE => PureThy.get_fact (Context.Proof ctxt) thy xthmref);
       in pick name thms end;
@@ -971,7 +971,7 @@ fun gen_note_thmss get k = fold_map (fn ((binding, more_attrs), raw_facts) => fn
     val bname = Name.name_of binding;
     val pos = Name.pos_of binding;
     val name = full_name ctxt bname;
-    val _ = ContextPosition.report ctxt (Markup.local_fact_decl name) pos;
+    val _ = ContextPosition.report_visible ctxt (Markup.local_fact_decl name) pos;
 
     val facts = PureThy.name_thmss false pos name (map (apfst (get ctxt)) raw_facts);
     fun app (th, attrs) x =
@@ -1118,7 +1118,7 @@ fun gen_fixes prep raw_vars ctxt =
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
       |-> (map_syntax o LocalSyntax.add_syntax (theory_of ctxt) o map prep_mixfix);
     val _ = (vars ~~ xs') |> List.app (fn ((binding, _, _), x') =>
-      ContextPosition.report ctxt (Markup.fixed_decl x') (Name.pos_of binding));
+      ContextPosition.report_visible ctxt (Markup.fixed_decl x') (Name.pos_of binding));
   in (xs', ctxt'') end;
 
 in
