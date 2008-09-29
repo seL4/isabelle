@@ -471,8 +471,7 @@ fun add_datatypes_equality vs dtcos thy =
     |> TheoryTarget.instantiation (dtcos, vs', [HOLogic.class_eq])
     |> fold_map add_def dtcos
     |-> (fn thms => Class.prove_instantiation_instance (K (tac thms))
-    #> LocalTheory.exit
-    #> ProofContext.theory_of
+    #> LocalTheory.exit_global
     #> fold Code.del_eqn thms
     #> fold add_eq_thms dtcos)
   end;

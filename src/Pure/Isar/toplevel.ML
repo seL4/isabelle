@@ -109,7 +109,7 @@ exception UNDEF;
 type generic_theory = Context.generic;    (*theory or local_theory*)
 
 val loc_init = TheoryTarget.context;
-val loc_exit = ProofContext.theory_of o LocalTheory.exit;
+val loc_exit = LocalTheory.exit_global;
 
 fun loc_begin loc (Context.Theory thy) = loc_init (the_default "-" loc) thy
   | loc_begin NONE (Context.Proof lthy) = lthy

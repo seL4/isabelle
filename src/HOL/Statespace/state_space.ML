@@ -352,8 +352,7 @@ fun add_declaration name decl thy =
   thy
   |> TheoryTarget.init name
   |> (fn lthy => LocalTheory.declaration (decl lthy) lthy)
-  |> LocalTheory.exit
-  |> ProofContext.theory_of;
+  |> LocalTheory.exit_global;
 
 fun parent_components thy (Ts, pname, renaming) =
   let

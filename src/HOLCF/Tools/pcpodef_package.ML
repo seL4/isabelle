@@ -100,8 +100,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         val thy5 = lthy4
           |> Class.prove_instantiation_instance
               (K (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1))
-          |> LocalTheory.exit
-          |> ProofContext.theory_of;
+          |> LocalTheory.exit_global;
       in ((type_definition, less_definition, set_def), thy5) end;
 
     fun make_cpo admissible (type_def, less_def, set_def) theory =

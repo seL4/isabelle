@@ -161,8 +161,7 @@ fun add_typecopy_spec tyco thy =
     |> TheoryTarget.instantiation ([tyco], vs', [HOLogic.class_eq])
     |> add_def tyco
     |-> (fn thm => Class.prove_instantiation_instance (K (tac [thm]))
-    #> LocalTheory.exit
-    #> ProofContext.theory_of
+    #> LocalTheory.exit_global
     #> Code.del_eqn thm
     #> add_eq_thms)
   end;

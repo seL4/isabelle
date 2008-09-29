@@ -70,8 +70,7 @@ fun add_def tyco thy =
     |-> (fn eq => Specification.definition (NONE, (Attrib.no_binding, eq)))
     |> snd
     |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-    |> LocalTheory.exit
-    |> ProofContext.theory_of
+    |> LocalTheory.exit_global
   end;
 
 fun perhaps_add_def tyco thy =

@@ -70,8 +70,7 @@ let
       |-> (fn eq => Specification.definition (NONE, ((Name.binding (triv_name_of eq), []), eq)))
       |> snd
       |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-      |> LocalTheory.exit
-      |> ProofContext.theory_of
+      |> LocalTheory.exit_global
     end;
   fun interpretator (tyco, (raw_vs, _)) thy =
     let

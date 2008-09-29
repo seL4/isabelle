@@ -151,8 +151,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       ||>> fold_map define_overloaded
         (def_names' ~~ map Logic.mk_equals (overloaded_size_fns ~~ map (app fs') rec_combs1))
       ||> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-      ||> LocalTheory.exit
-      ||> ProofContext.theory_of;
+      ||> LocalTheory.exit_global;
 
     val ctxt = ProofContext.init thy';
 
