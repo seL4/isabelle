@@ -245,6 +245,11 @@ fun prepare_span parser span =
     handle ERROR msg => (Toplevel.malformed range_pos msg, true)
   end;
 
+fun prepare_unit parser (cmd, proof) =
+  (case prepare_span parser cmd of
+    (_, false) => NONE
+  | (tr, true) => SOME (tr, map (prepare_span parser) proof |> filter #2 |> map #1));
+
 fun prepare_command pos str =
   let val (lexs, parser) = get_syntax () in
     (case ThyEdit.parse_spans lexs pos str of
@@ -264,7 +269,8 @@ fun load_thy name pos text time =
     val toks = Source.exhausted (ThyEdit.token_source lexs pos (Source.of_list text));
     val spans = Source.exhaust (ThyEdit.span_source toks);
     val _ = List.app ThyEdit.report_span spans;
-    val trs = map (prepare_span parser) spans |> filter #2 |> map #1;
+    val units = Source.exhaust (ThyEdit.unit_source (Source.of_list spans))
+      |> map_filter (prepare_unit parser);
 
     val _ = Present.theory_source name
       (fn () => HTML.html_mode (implode o map ThyEdit.present_span) spans);
@@ -272,9 +278,9 @@ fun load_thy name pos text time =
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val _ = cond_timeit time "" (fn () =>
       let
-        val (states, commit_exit) = Toplevel.command_excursion trs;
+        val (results, commit_exit) = Toplevel.excursion units;
         val _ =
-          ThyOutput.present_thy (#1 lexs) OuterKeyword.command_tags is_markup (trs ~~ states) toks
+          ThyOutput.present_thy (#1 lexs) OuterKeyword.command_tags is_markup results toks
           |> Buffer.content
           |> Present.theory_output name
         val _ = commit_exit ();
