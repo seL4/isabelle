@@ -122,9 +122,10 @@ end;
 
 fun add_typecopy_spec tyco thy =
   let
-    val SOME { constr, proj_def, inject, vs, ... } = get_info thy tyco;
-    val vs' = (map o apsnd) (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq]) vs;
-    val ty = Type (tyco, map TFree vs');
+    val SOME { constr, proj_def, inject, vs = raw_vs, ... } = get_info thy tyco;
+    val vs = (map o apsnd)
+      (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq]) raw_vs;
+    val ty = Type (tyco, map TFree vs);
     val ty_constr = Logic.unvarifyT (Sign.the_const_type thy constr);
     fun add_def tyco lthy =
       let
@@ -143,12 +144,14 @@ fun add_typecopy_spec tyco thy =
     fun add_eq_thms thy = 
       let
         val eq = inject
-          |> Code_Unit.constrain_thm [HOLogic.class_eq]
+          |> Code_Unit.constrain_thm thy [HOLogic.class_eq]
           |> Simpdata.mk_eq
-          |> MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}];
+          |> MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}]
+          |> AxClass.unoverload thy;
         val eq_refl = @{thm HOL.eq_refl}
           |> Thm.instantiate
-              ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], []);
+              ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], [])
+          |> AxClass.unoverload thy;
       in
         thy
         |> Code.add_eqn eq
@@ -158,7 +161,7 @@ fun add_typecopy_spec tyco thy =
     thy
     |> Code.add_datatype [(constr, ty_constr)]
     |> Code.add_eqn proj_def
-    |> TheoryTarget.instantiation ([tyco], vs', [HOLogic.class_eq])
+    |> TheoryTarget.instantiation ([tyco], vs, [HOLogic.class_eq])
     |> add_def tyco
     |-> (fn thm => Class.prove_instantiation_instance (K (tac [thm]))
     #> LocalTheory.exit_global

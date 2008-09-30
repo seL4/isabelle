@@ -95,7 +95,7 @@ fun resort_thms thy algebra typ_of thms =
             meets_of thy algebra (Sign.const_typargs thy (c, ty)) (map snd vs)
         | NONE => I;
     val tab = fold meets cs Vartab.empty;
-  in map (Code_Unit.inst_thm tab) thms end;
+  in map (Code_Unit.inst_thm thy tab) thms end;
 
 fun resort_eqnss thy algebra funcgr =
   let
@@ -105,14 +105,14 @@ fun resort_eqnss thy algebra funcgr =
       | resort_rec typ_of (c, thms as (thm, _) :: _) = if is_some (AxClass.inst_of_param thy c)
           then (true, (c, thms))
           else let
-            val (_, (vs, ty)) = Code_Unit.head_eqn thm;
+            val (_, (vs, ty)) = Code_Unit.head_eqn thy thm;
             val thms' as (thm', _) :: _ = burrow_fst (resort_thms thy algebra typ_of) thms
-            val (_, (vs', ty')) = Code_Unit.head_eqn thm'; (*FIXME simplify check*)
+            val (_, (vs', ty')) = Code_Unit.head_eqn thy thm'; (*FIXME simplify check*)
           in (Sign.typ_equiv thy (ty, ty'), (c, thms')) end;
     fun resort_recs eqnss =
       let
         fun typ_of c = case these (AList.lookup (op =) eqnss c)
-         of (thm, _) :: _ => (SOME o snd o Code_Unit.head_eqn) thm
+         of (thm, _) :: _ => (SOME o snd o Code_Unit.head_eqn thy) thm
           | [] => NONE;
         val (unchangeds, eqnss') = split_list (map (resort_rec typ_of) eqnss);
         val unchanged = fold (fn x => fn y => x andalso y) unchangeds true;
@@ -158,8 +158,8 @@ fun ensure_const' thy algebra funcgr const auxgr =
     |> pair (SOME const)
   else let
     val thms = Code.these_eqns thy const
-      |> burrow_fst Code_Unit.norm_args
-      |> burrow_fst (Code_Unit.norm_varnames Code_Name.purify_tvar Code_Name.purify_var);
+      |> burrow_fst (Code_Unit.norm_args thy)
+      |> burrow_fst (Code_Unit.norm_varnames thy Code_Name.purify_tvar Code_Name.purify_var);
     val rhs = consts_of (const, thms);
   in
     auxgr
@@ -181,8 +181,8 @@ fun merge_eqnss thy algebra raw_eqnss funcgr =
     val eqnss = raw_eqnss
       |> resort_eqnss thy algebra funcgr
       |> filter_out (can (Graph.get_node funcgr) o fst);
-    fun typ_eqn c [] = Code.default_typ thy c
-      | typ_eqn c (thms as (thm, _) :: _) = (snd o Code_Unit.head_eqn) thm;
+    fun typ_eqn c [] = Code.default_typscheme thy c
+      | typ_eqn c (thms as (thm, _) :: _) = (snd o Code_Unit.head_eqn thy) thm;
     fun add_eqns (const, thms) =
       Graph.new_node (const, (typ_eqn const thms, thms));
     fun add_deps (eqns as (const, thms)) funcgr =
@@ -226,7 +226,7 @@ fun proto_eval thy cterm_of evaluator_fr evaluator proto_ct funcgr =
     fun consts_of t = fold_aterms (fn Const c_ty => cons c_ty | _ => I)
       t [];
     val algebra = Code.coregular_algebra thy;
-    val thm = Code.preprocess_conv ct;
+    val thm = Code.preprocess_conv thy ct;
     val ct' = Thm.rhs_of thm;
     val t' = Thm.term_of ct';
     val consts = map fst (consts_of t');
@@ -242,7 +242,7 @@ fun proto_eval_conv thy =
     fun evaluator evaluator' thm1 funcgr t =
       let
         val thm2 = evaluator' funcgr t;
-        val thm3 = Code.postprocess_conv (Thm.rhs_of thm2);
+        val thm3 = Code.postprocess_conv thy (Thm.rhs_of thm2);
       in
         Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
           error ("could not construct evaluation proof:\n"

@@ -385,7 +385,7 @@ fun term_of_univ thy idx_tab t =
           let
             val ts' = take_until is_dict ts;
             val c = (the o Code_Name.const_rev thy o the o Inttab.lookup idx_tab) idx;
-            val (_, T) = Code.default_typ thy c;
+            val (_, T) = Code.default_typscheme thy c;
             val T' = map_type_tvar (fn ((v, i), S) => TypeInfer.param (typidx + i) (v, [])) T;
             val typidx' = typidx + maxidx_of_typ T' + 1;
           in of_apps bounds (Term.Const (c, T'), ts') typidx' end

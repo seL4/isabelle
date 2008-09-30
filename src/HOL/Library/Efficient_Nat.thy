@@ -219,17 +219,20 @@ fun clause_suc_preproc thy ths =
     then remove_suc_clause thy ths else ths
   end;
 
-fun lift f thy thms1 =
+fun lift f thy eqns1 =
   let
-    val thms2 = Drule.zero_var_indexes_list thms1;
-    val thms3 = try (map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
+    val eqns2 = ((map o apfst) (AxClass.overload thy)
+      o burrow_fst Drule.zero_var_indexes_list) eqns1;
+    val thms3 = try (map fst
+      #> map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
       #> f thy
       #> map (fn thm => thm RS @{thm eq_reflection})
-      #> map (Conv.fconv_rule Drule.beta_eta_conversion)) thms2;
+      #> map (Conv.fconv_rule Drule.beta_eta_conversion)) eqns2;
     val thms4 = Option.map Drule.zero_var_indexes_list thms3;
   in case thms4
    of NONE => NONE
-    | SOME thms4 => if Thm.eq_thms (thms2, thms4) then NONE else SOME thms4
+    | SOME thms4 => if Thm.eq_thms (map fst eqns2, thms4)
+        then NONE else SOME (map (Code_Unit.mk_eqn thy) thms4)
   end
 
 in

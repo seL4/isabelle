@@ -22,7 +22,7 @@ sig
   val del_inline: thm -> theory -> theory
   val add_post: thm -> theory -> theory
   val del_post: thm -> theory -> theory
-  val add_functrans: string * (theory -> thm list -> thm list option) -> theory -> theory
+  val add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
   val del_functrans: string -> theory -> theory
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
@@ -40,11 +40,11 @@ sig
   val get_datatype_of_constr: theory -> string -> string option
   val get_case_data: theory -> string -> (int * string list) option
   val is_undefined: theory -> string -> bool
-  val default_typ: theory -> string -> (string * sort) list * typ
+  val default_typscheme: theory -> string -> (string * sort) list * typ
 
-  val preprocess_conv: cterm -> thm
+  val preprocess_conv: theory -> cterm -> thm
   val preprocess_term: theory -> term -> term
-  val postprocess_conv: cterm -> thm
+  val postprocess_conv: theory -> cterm -> thm
   val postprocess_term: theory -> term -> term
 
   val add_attribute: string * (Args.T list -> attribute * Args.T list) -> theory -> theory
@@ -124,14 +124,13 @@ fun pretty_lthms ctxt r = case Susp.peek r
 
 fun certificate thy f r =
   case Susp.peek r
-   of SOME thms => (Susp.value o burrow_fst (f thy)) thms
+   of SOME thms => (Susp.value o f thy) thms
     | NONE => let
         val thy_ref = Theory.check_thy thy;
-      in Susp.delay (fn () => (burrow_fst (f (Theory.deref thy_ref)) o Susp.force) r) end;
+      in Susp.delay (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
 
-fun add_drop_redundant (thm, linear) thms =
+fun add_drop_redundant thy (thm, linear) thms =
   let
-    val thy = Thm.theory_of_thm thm;
     val args_of = snd o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
     val args = args_of thm;
     val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
@@ -143,9 +142,9 @@ fun add_drop_redundant (thm, linear) thms =
       else false;
   in (thm, linear) :: filter_out drop thms end;
 
-fun add_thm _ thm (false, thms) = (false, Susp.map_force (add_drop_redundant thm) thms)
-  | add_thm true thm (true, thms) = (true, Susp.map_force (fn thms => thms @ [thm]) thms)
-  | add_thm false thm (true, thms) = (false, Susp.value [thm]);
+fun add_thm thy _ thm (false, thms) = (false, Susp.map_force (add_drop_redundant thy thm) thms)
+  | add_thm thy true thm (true, thms) = (true, Susp.map_force (fn thms => thms @ [thm]) thms)
+  | add_thm thy false thm (true, thms) = (false, Susp.value [thm]);
 
 fun add_lthms lthms _ = (false, lthms);
 
@@ -197,7 +196,7 @@ fun merge_spec (Spec { eqns = eqns1, dtyps = dtyps1, cases = (cases1, undefs1) }
 datatype thmproc = Thmproc of {
   pre: MetaSimplifier.simpset,
   post: MetaSimplifier.simpset,
-  functrans: (string * (serial * (theory -> thm list -> thm list option))) list
+  functrans: (string * (serial * (theory -> (thm * bool) list -> (thm * bool) list option))) list
 };
 
 fun mk_thmproc ((pre, post), functrans) =
@@ -419,25 +418,19 @@ fun print_codesetup thy =
   end;
 
 
-
 (** theorem transformation and certification **)
 
-fun const_of thy = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
-
-fun const_of_eqn thy = AxClass.unoverload_const thy o const_of thy;
-
-fun common_typ_eqns [] = []
-  | common_typ_eqns [thm] = [thm]
-  | common_typ_eqns (thms as thm :: _) = (*FIXME is too general*)
+fun common_typ_eqns thy [] = []
+  | common_typ_eqns thy [thm] = [thm]
+  | common_typ_eqns thy (thms as thm :: _) = (*FIXME is too general*)
       let
-        val thy = Thm.theory_of_thm thm;
         fun incr_thm thm max =
           let
             val thm' = incr_indexes max thm;
             val max' = Thm.maxidx_of thm' + 1;
           in (thm', max') end;
         val (thms', maxidx) = fold_map incr_thm thms 0;
-        val ty1 :: tys = map (snd o const_of thy) thms';
+        val ty1 :: tys = map (snd o Code_Unit.const_typ_eqn) thms';
         fun unify ty env = Sign.typ_unify thy (ty1, ty) env
           handle Type.TUNIFY =>
             error ("Type unificaton failed, while unifying defining equations\n"
@@ -449,90 +442,45 @@ fun common_typ_eqns [] = []
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
       in map (Thm.instantiate (instT, [])) thms' end;
 
-fun certify_const thy const thms =
+fun certify_const thy c eqns =
   let
-    fun cert thm = if const = const_of_eqn thy thm
-      then thm else error ("Wrong head of defining equation,\nexpected constant "
-        ^ Code_Unit.string_of_const thy const ^ "\n" ^ Display.string_of_thm thm)
-  in map cert thms end;
+    fun cert (eqn as (thm, _)) = if c = Code_Unit.const_eqn thm
+      then eqn else error ("Wrong head of defining equation,\nexpected constant "
+        ^ Code_Unit.string_of_const thy c ^ "\n" ^ Display.string_of_thm thm)
+  in map cert eqns end;
 
+fun check_linear (eqn as (thm, linear)) =
+  if linear then eqn else Code_Unit.bad_thm
+    ("Duplicate variables on left hand side of defining equation:\n"
+      ^ Display.string_of_thm thm);
+
+fun mk_eqn thy linear =
+  Code_Unit.error_thm ((if linear then check_linear else I) o Code_Unit.mk_eqn thy);
+fun mk_liberal_eqn thy = Code_Unit.warning_thm (check_linear o Code_Unit.mk_eqn thy);
+fun mk_syntactic_eqn thy = Code_Unit.warning_thm (Code_Unit.mk_eqn thy);
+fun mk_default_eqn thy = Code_Unit.try_thm (check_linear o Code_Unit.mk_eqn thy);
 
 
 (** operational sort algebra and class discipline **)
 
 local
 
-fun aggr_neutr f y [] = y
-  | aggr_neutr f y (x::xs) = aggr_neutr f (f y x) xs;
-
-fun aggregate f [] = NONE
-  | aggregate f (x::xs) = SOME (aggr_neutr f x xs);
-
-fun inter_sorts algebra =
-  aggregate (map2 (curry (Sorts.inter_sort algebra)));
-
-fun specific_constraints thy (class, tyco) =
+fun arity_constraints thy algebra (class, tyco) =
   let
-    val vs = Name.invents Name.context "" (Sign.arity_number thy tyco);
-    val classparams = (map fst o these o try (#params o AxClass.get_info thy)) class;
-    val eqns = classparams
+    val base_constraints = Sorts.mg_domain algebra tyco [class];
+    val classparam_constraints = Sorts.complete_sort algebra [class]
+      |> maps (map fst o these o try (#params o AxClass.get_info thy))
       |> map_filter (fn c => try (AxClass.param_of_inst thy) (c, tyco))
       |> map (Symtab.lookup ((the_eqns o the_exec) thy))
       |> (map o Option.map) (map fst o Susp.force o snd)
       |> maps these
-      |> map (Thm.transfer thy);
-    fun sorts_of [Type (_, tys)] = map (snd o dest_TVar) tys
-      | sorts_of tys = map (snd o dest_TVar) tys;
-    val sorts = map (sorts_of o Sign.const_typargs thy o const_of thy) eqns;
-  in sorts end;
-
-fun weakest_constraints thy algebra (class, tyco) =
-  let
-    val all_superclasses = Sorts.complete_sort algebra [class];
-  in case inter_sorts algebra (maps (fn class => specific_constraints thy (class, tyco)) all_superclasses)
-   of SOME sorts => sorts
-    | NONE => Sorts.mg_domain algebra tyco [class]
-  end;
-
-fun strongest_constraints thy algebra (class, tyco) =
-  let
-    val all_subclasses = class :: Graph.all_preds ((#classes o Sorts.rep_algebra) algebra) [class];
-    val inst_subclasses = filter (can (Sorts.mg_domain algebra tyco) o single) all_subclasses;
-  in case inter_sorts algebra (maps (fn class => specific_constraints thy (class, tyco)) inst_subclasses)
-   of SOME sorts => sorts
-    | NONE => replicate
-        (Sign.arity_number thy tyco) (Sorts.minimize_sort algebra (Sorts.all_classes algebra))
-  end;
-
-fun get_algebra thy (class, tyco) =
-  let
-    val base_algebra = Sign.classes_of thy;
-  in if can (Sorts.mg_domain base_algebra tyco) [class]
-    then base_algebra
-    else let
-      val superclasses = Sorts.super_classes base_algebra class;
-      val sorts = inter_sorts base_algebra
-          (map_filter (fn class => try (Sorts.mg_domain base_algebra tyco) [class]) superclasses)
-        |> the_default (replicate (Sign.arity_number thy tyco) [])
-    in
-      base_algebra
-      |> Sorts.add_arities (Syntax.pp_global thy) (tyco, [(class, sorts)])
-    end
-  end;
-
-fun gen_classparam_typ constr thy class (c, tyco) = 
-  let
-    val algebra = get_algebra thy (class, tyco);
-    val cs = these (try (#params o AxClass.get_info thy) class);
-    val SOME ty = AList.lookup (op =) cs c;
-    val sort_args = Name.names (Name.declare Name.aT Name.context) Name.aT
-      (constr thy algebra (class, tyco));
-    val ty_inst = Type (tyco, map TFree sort_args);
-  in Logic.varifyT (map_type_tfree (K ty_inst) ty) end;
+      |> map (map (snd o dest_TVar) o Sign.const_typargs thy o Code_Unit.const_typ_eqn);
+    val inter_sorts = map2 (curry (Sorts.inter_sort algebra));
+  in fold inter_sorts classparam_constraints base_constraints end;
 
 fun retrieve_algebra thy operational =
   Sorts.subalgebra (Syntax.pp_global thy) operational
-    (weakest_constraints thy (Sign.classes_of thy))
+    (arity_constraints thy (Sign.classes_of thy))
     (Sign.classes_of thy);
 
 in
@@ -544,76 +492,6 @@ fun operational_algebra thy =
       can (AxClass.get_info thy) class ? cons class;
     val operational_classes = fold add_iff_operational (Sign.all_classes thy) []
   in retrieve_algebra thy (member (op =) operational_classes) end;
-
-val classparam_weakest_typ = gen_classparam_typ weakest_constraints;
-val classparam_strongest_typ = gen_classparam_typ strongest_constraints;
-
-fun assert_eqn_linear (eqn as (thm, linear)) =
-  if linear then eqn else Code_Unit.bad_thm
-    ("Duplicate variables on left hand side of defining equation:\n"
-      ^ Display.string_of_thm thm);
-
-fun assert_eqn_typ (thm, linear) =
-  let
-    val thy = Thm.theory_of_thm thm;
-    fun check_typ_classparam tyco (c, thm) =
-          let
-            val SOME class = AxClass.class_of_param thy c;
-            val (_, ty) = const_of thy thm;
-            val ty_decl = classparam_weakest_typ thy class (c, tyco);
-            val ty_strongest = classparam_strongest_typ thy class (c, tyco);
-            fun constrain thm = 
-              let
-                val max = Thm.maxidx_of thm + 1;
-                val ty_decl' = Logic.incr_tvar max ty_decl;
-                val (_, ty') = const_of thy thm;
-                val (env, _) = Sign.typ_unify thy (ty_decl', ty') (Vartab.empty, max);
-                val instT = Vartab.fold (fn (x_i, (sort, ty)) =>
-                  cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
-              in Thm.instantiate (instT, []) thm end;
-          in if Sign.typ_instance thy (ty_strongest, ty)
-            then if Sign.typ_instance thy (ty, ty_decl)
-            then thm
-            else (warning ("Constraining type\n" ^ Code_Unit.string_of_typ thy ty
-              ^ "\nof defining equation\n"
-              ^ Display.string_of_thm thm
-              ^ "\nto permitted most general type\n"
-              ^ Code_Unit.string_of_typ thy ty_decl);
-              constrain thm)
-            else Code_Unit.bad_thm ("Type\n" ^ Code_Unit.string_of_typ thy ty
-              ^ "\nof defining equation\n"
-              ^ Display.string_of_thm thm
-              ^ "\nis incompatible with permitted least general type\n"
-              ^ Code_Unit.string_of_typ thy ty_strongest)
-          end;
-    fun check_typ_fun (c, thm) =
-      let
-        val (_, ty) = const_of thy thm;
-        val ty_decl = Sign.the_const_type thy c;
-      in if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
-        then thm
-        else Code_Unit.bad_thm ("Type\n" ^ Code_Unit.string_of_typ thy ty
-           ^ "\nof defining equation\n"
-           ^ Display.string_of_thm thm
-           ^ "\nis incompatible with declared function type\n"
-           ^ Code_Unit.string_of_typ thy ty_decl)
-      end;
-    fun check_typ (c, thm) =
-      case AxClass.inst_of_param thy c
-       of SOME (c, tyco) => check_typ_classparam tyco (c, thm)
-        | NONE => check_typ_fun (c, thm);
-    val c = const_of_eqn thy thm;
-    val thm' = check_typ (c, thm);
-  in (thm', linear) end;
-
-fun mk_eqn linear = Code_Unit.error_thm
-  (assert_eqn_typ o (if linear then assert_eqn_linear else I) o Code_Unit.mk_eqn);
-val mk_liberal_eqn = Code_Unit.warning_thm
-  (assert_eqn_typ o assert_eqn_linear o Code_Unit.mk_eqn);
-val mk_syntactic_eqn = Code_Unit.warning_thm
-  (assert_eqn_typ o Code_Unit.mk_eqn);
-val mk_default_eqn = Code_Unit.try_thm
-  (assert_eqn_typ o assert_eqn_linear o Code_Unit.mk_eqn);
 
 end; (*local*)
 
@@ -653,10 +531,10 @@ val get_case_data = Symtab.lookup o fst o the_cases o the_exec;
 val is_undefined = Symtab.defined o snd o the_cases o the_exec;
 
 fun gen_add_eqn linear strict default thm thy =
-  case (if strict then SOME o mk_eqn linear else mk_liberal_eqn) thm
+  case (if strict then SOME o mk_eqn thy linear else mk_liberal_eqn thy) thm
    of SOME (thm, _) =>
         let
-          val c = const_of_eqn thy thm;
+          val c = Code_Unit.const_eqn thm;
           val _ = if strict andalso (is_some o AxClass.class_of_param thy) c
             then error ("Rejected polymorphic equation for overloaded constant:\n"
               ^ Display.string_of_thm thm)
@@ -667,7 +545,7 @@ fun gen_add_eqn linear strict default thm thy =
             else ();
         in
           (map_exec_purge (SOME [c]) o map_eqns) (Symtab.map_default
-            (c, (true, Susp.value [])) (add_thm default (thm, linear))) thy
+            (c, (true, Susp.value [])) (add_thm thy default (thm, linear))) thy
         end
     | NONE => thy;
 
@@ -676,12 +554,9 @@ val add_liberal_eqn = gen_add_eqn true false false;
 val add_default_eqn = gen_add_eqn true false true;
 val add_nonlinear_eqn = gen_add_eqn false true false;
 
-fun del_eqn thm thy = case mk_syntactic_eqn thm
- of SOME (thm, _) => let
-        val c = const_of_eqn thy thm;
-      in map_exec_purge (SOME [c]) (map_eqns
-        (Symtab.map_entry c (del_thm thm))) thy
-      end
+fun del_eqn thm thy = case mk_syntactic_eqn thy thm
+ of SOME (thm, _) => let val c = Code_Unit.const_eqn thm
+      in map_exec_purge (SOME [c]) (map_eqns (Symtab.map_entry c (del_thm thm))) thy end
   | NONE => thy;
 
 fun del_eqns c = map_exec_purge (SOME [c])
@@ -689,9 +564,8 @@ fun del_eqns c = map_exec_purge (SOME [c])
 
 fun add_eqnl (c, lthms) thy =
   let
-    val lthms' = certificate thy (fn thy => certify_const thy c) lthms;
-      (*FIXME must check compatibility with sort algebra;
-        alas, naive checking results in non-termination!*)
+    val lthms' = certificate thy
+      (fn thy => map (Code_Unit.assert_linear) o certify_const thy c) lthms;
   in
     map_exec_purge (SOME [c])
       (map_eqns (Symtab.map_default (c, (true, Susp.value []))
@@ -739,21 +613,12 @@ fun add_undefined c thy =
 val map_pre = map_exec_purge NONE o map_thmproc o apfst o apfst;
 val map_post = map_exec_purge NONE o map_thmproc o apfst o apsnd;
 
-fun add_inline thm thy = (map_pre o MetaSimplifier.add_simp)
-  (Code_Unit.error_thm Code_Unit.mk_rew thm) thy;
-    (*fully applied in order to get right context for mk_rew!*)
+fun gen_add_del_pre_post f thm thy = f thm thy;
 
-fun del_inline thm thy = (map_pre o MetaSimplifier.del_simp)
-  (Code_Unit.error_thm Code_Unit.mk_rew thm) thy;
-    (*fully applied in order to get right context for mk_rew!*)
-
-fun add_post thm thy = (map_post o MetaSimplifier.add_simp)
-  (Code_Unit.error_thm Code_Unit.mk_rew thm) thy;
-    (*fully applied in order to get right context for mk_rew!*)
-
-fun del_post thm thy = (map_post o MetaSimplifier.del_simp)
-  (Code_Unit.error_thm Code_Unit.mk_rew thm) thy;
-    (*fully applied in order to get right context for mk_rew!*)
+val add_inline = gen_add_del_pre_post (map_pre o MetaSimplifier.add_simp);
+val del_inline = gen_add_del_pre_post (map_pre o MetaSimplifier.del_simp);
+val add_post = gen_add_del_pre_post (map_post o MetaSimplifier.add_simp);
+val del_post = gen_add_del_pre_post (map_post o MetaSimplifier.del_simp);
   
 fun add_functrans (name, f) =
   (map_exec_purge NONE o map_thmproc o apsnd)
@@ -784,20 +649,14 @@ val _ = Context.>> (Context.map_theory
 
 local
 
-fun apply_functrans thy [] = []
-  | apply_functrans thy (thms as (thm, _) :: _) =
-      let
-        val const = const_of_eqn thy thm;
-        val functrans = (map (fn (_, (_, f)) => f thy) o #functrans
-          o the_thmproc o the_exec) thy;
-        val thms' = perhaps (perhaps_loop (perhaps_apply functrans)) (map fst thms);
-        val thms'' = certify_const thy const thms';
-      in map Code_Unit.add_linear thms'' end;
+fun apply_functrans thy c _ [] = []
+  | apply_functrans thy c [] eqns = eqns
+  | apply_functrans thy c functrans eqns = eqns
+      |> perhaps (perhaps_loop (perhaps_apply functrans))
+      |> map (Code_Unit.assert_linear o apfst (Code_Unit.assert_eqn thy))
+      |> certify_const thy c;
 
-fun rhs_conv conv thm =
-  let
-    val thm' = (conv o Thm.rhs_of) thm;
-  in Thm.transitive thm thm' end
+fun rhs_conv conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
 
 fun term_of_conv thy f =
   Thm.cterm_of thy
@@ -806,24 +665,27 @@ fun term_of_conv thy f =
   #> Logic.dest_equals
   #> snd;
 
-in
-
-fun preprocess thy thms =
+fun preprocess thy functrans c eqns =
   let
     val pre = (Simplifier.theory_context thy o #pre o the_thmproc o the_exec) thy;
   in
-    thms
-    |> apply_functrans thy
+    eqns
+    |> apply_functrans thy c functrans
     |> (map o apfst) (Code_Unit.rewrite_eqn pre)
-    (*FIXME - must check here: rewrite rule, defining equation, proper constant *)
-    |> (map o apfst) (AxClass.unoverload thy)
-    |> burrow_fst common_typ_eqns
+    |> map (Code_Unit.assert_linear o apfst (Code_Unit.assert_eqn thy))
+    |> burrow_fst (common_typ_eqns thy)
   end;
 
+fun get_eqns thy c =
+  Symtab.lookup ((the_eqns o the_exec) thy) c
+  |> Option.map (Susp.force o snd)
+  |> these
+  |> (map o apfst) (Thm.transfer thy);
 
-fun preprocess_conv ct =
+in
+
+fun preprocess_conv thy ct =
   let
-    val thy = Thm.theory_of_cterm ct;
     val pre = (Simplifier.theory_context thy o #pre o the_thmproc o the_exec) thy;
   in
     ct
@@ -831,11 +693,10 @@ fun preprocess_conv ct =
     |> rhs_conv (AxClass.unoverload_conv thy)
   end;
 
-fun preprocess_term thy = term_of_conv thy preprocess_conv;
+fun preprocess_term thy = term_of_conv thy (preprocess_conv thy);
 
-fun postprocess_conv ct =
+fun postprocess_conv thy ct =
   let
-    val thy = Thm.theory_of_cterm ct;
     val post = (Simplifier.theory_context thy o #post o the_thmproc o the_exec) thy;
   in
     ct
@@ -843,43 +704,33 @@ fun postprocess_conv ct =
     |> rhs_conv (Simplifier.rewrite post)
   end;
 
-fun postprocess_term thy = term_of_conv thy postprocess_conv;
+fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
 
-end; (*local*)
-
-fun default_typ_proto thy c = case AxClass.inst_of_param thy c
- of SOME (c, tyco) => classparam_weakest_typ thy ((the o AxClass.class_of_param thy) c)
-      (c, tyco) |> SOME
-  | NONE => (case AxClass.class_of_param thy c
-     of SOME class => SOME (Term.map_type_tvar
-          (K (TVar ((Name.aT, 0), [class]))) (Sign.the_const_type thy c))
-      | NONE => get_constr_typ thy c);
-
-local
-
-fun get_eqns thy const =
-  Symtab.lookup ((the_eqns o the_exec) thy) const
-  |> Option.map (Susp.force o snd)
-  |> these
-  |> (map o apfst) (Thm.transfer thy);
-
-in
-
-fun these_eqns thy const =
+fun these_eqns thy c =
   let
+    val functrans = (map (fn (_, (_, f)) => f thy) o #functrans
+      o the_thmproc o the_exec) thy;
     val drop_refl = filter_out
       (is_equal o Term.fast_term_ord o Logic.dest_equals o Thm.plain_prop_of o fst);
   in
-    get_eqns thy const
-    |> preprocess thy
+    get_eqns thy c
+    |> preprocess thy functrans c
     |> drop_refl
   end;
 
-fun default_typ thy c = case default_typ_proto thy c
- of SOME ty => Code_Unit.typscheme thy (c, ty)
-  | NONE => (case get_eqns thy c
-     of (thm, _) :: _ => snd (Code_Unit.head_eqn (AxClass.unoverload thy thm))
-      | [] => Code_Unit.typscheme thy (c, Sign.the_const_type thy c));
+fun default_typscheme thy c = let
+    val typscheme = curry (Code_Unit.typscheme thy) c
+    val the_const_type = snd o dest_Const o TermSubst.zero_var_indexes
+      o curry Const "" o Sign.the_const_type thy;
+  in case AxClass.class_of_param thy c
+   of SOME class => the_const_type c
+        |> Term.map_type_tvar (K (TVar ((Name.aT, 0), [class])))
+        |> typscheme
+    | NONE => (case get_constr_typ thy c
+       of SOME ty => typscheme ty
+        | NONE => (case get_eqns thy c
+           of (thm, _) :: _ => snd (Code_Unit.head_eqn thy (Drule.zero_var_indexes thm))
+            | [] => typscheme (the_const_type c))) end;
 
 end; (*local*)
 

@@ -449,9 +449,10 @@ fun add_datatypes_equality vs dtcos thy =
     fun tac thms = Class.intro_classes_tac []
       THEN ALLGOALS (ProofContext.fact_tac thms);
     fun get_eq' thy dtco = get_eq thy dtco
-      |> map (Code_Unit.constrain_thm [HOLogic.class_eq])
+      |> map (Code_Unit.constrain_thm thy [HOLogic.class_eq])
       |> map Simpdata.mk_eq
-      |> map (MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}]);
+      |> map (MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}])
+      |> map (AxClass.unoverload thy);
     fun add_eq_thms dtco thy =
       let
         val ty = Type (dtco, map TFree vs');
@@ -460,7 +461,8 @@ fun add_datatypes_equality vs dtcos thy =
         val eq_refl = @{thm HOL.eq_refl}
           |> Thm.instantiate
               ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], [])
-          |> Simpdata.mk_eq;
+          |> Simpdata.mk_eq
+          |> AxClass.unoverload thy;
         fun get_thms () = (eq_refl, false)
           :: rev (map (rpair true) (get_eq' (Theory.deref thy_ref) dtco));
       in

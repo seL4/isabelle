@@ -485,7 +485,7 @@ and ensure_const thy algbr funcgr c =
         val ty = Logic.unvarifyT raw_ty;
         val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
           then raw_thms
-          else (map o apfst) (Code_Unit.expand_eta 1) raw_thms;
+          else (map o apfst) (Code_Unit.expand_eta thy 1) raw_thms;
       in
         trns
         |> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
