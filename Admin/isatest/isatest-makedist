@@ -61,7 +61,7 @@ rm -rf $HOME/isabelle-*
 
 echo "### building distribution"  >> $DISTLOG 2>&1
 mkdir -p $DISTPREFIX
-$MAKEDIST - >> $DISTLOG 2>&1
+$MAKEDIST >> $DISTLOG 2>&1
 
 if [ $? -ne 0 ]
 then
