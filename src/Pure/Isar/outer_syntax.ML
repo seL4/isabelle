@@ -202,11 +202,14 @@ fun parse pos str =
 
 fun process_file path thy =
   let
-    val result = ref thy;
     val trs = parse (Path.position path) (File.read path);
-    val init = Toplevel.init_theory "" (K thy) (fn thy' => result := thy');
-    val _ = Toplevel.excursion (init Toplevel.empty :: trs @ [Toplevel.exit Toplevel.empty]);
-  in ! result end;
+    val init = Toplevel.init_theory "" (K thy) (K ()) Toplevel.empty;
+    val result = fold Toplevel.command (init :: trs) Toplevel.toplevel;
+  in
+    (case (Toplevel.is_theory result, Toplevel.generic_theory_of result) of
+      (true, Context.Theory thy') => thy'
+    | _ => error "Bad result state: global theory expected")
+  end;
 
 
 (* interactive source of toplevel transformers *)
@@ -268,9 +271,14 @@ fun load_thy name pos text time =
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val _ = cond_timeit time "" (fn () =>
-      ThyOutput.process_thy (#1 lexs) OuterKeyword.command_tags is_markup trs toks
-      |> Buffer.content
-      |> Present.theory_output name);
+      let
+        val (states, commit_exit) = Toplevel.command_excursion trs;
+        val _ =
+          ThyOutput.present_thy (#1 lexs) OuterKeyword.command_tags is_markup (trs ~~ states) toks
+          |> Buffer.content
+          |> Present.theory_output name
+        val _ = commit_exit ();
+      in () end);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
   in () end;
 
