@@ -23,8 +23,8 @@ sig
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list ref
   val eval_antiquote: Scan.lexicon -> Toplevel.node option -> SymbolPos.text * Position.T -> string
-  val process_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
-    Toplevel.transition list -> (OuterLex.token, 'a) Source.source -> Buffer.T
+  val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
+    (Toplevel.transition * Toplevel.state) list -> (OuterLex.token, 'a) Source.source -> Buffer.T
   val output_list: (Proof.context -> 'a -> Pretty.T) -> Args.src ->
     Proof.context -> 'a list -> string
   val output: (Proof.context -> 'a -> Pretty.T) -> Args.src -> Proof.context -> 'a -> string
@@ -293,7 +293,7 @@ fun present_trailer ((_, tags), active_tag, _, buffer, present_cont) =
 end;
 
 
-(* process_thy *)
+(* present_thy *)
 
 datatype markup = Markup | MarkupEnv | Verbatim;
 
@@ -324,7 +324,7 @@ val locale =
 
 in
 
-fun process_thy lex default_tags is_markup trs src =
+fun present_thy lex default_tags is_markup command_results src =
   let
     (* tokens *)
 
@@ -390,10 +390,19 @@ fun process_thy lex default_tags is_markup trs src =
       |> Source.source' 0 T.stopper (Scan.error (Scan.bulk token)) NONE
       |> Source.source stopper (Scan.error (Scan.bulk span)) NONE
       |> Source.exhaust;
+
+
+    (* present commands *)
+
+    fun present_command tr span st st' =
+      Toplevel.setmp_thread_position tr (present_span lex default_tags span st st');
+
+    fun present _ [] = I
+      | present st (((tr, st'), span) :: rest) = present_command tr span st st' #> present st' rest;
   in
-    if length trs = length spans then
+    if length command_results = length spans then
       ((NONE, []), NONE, true, Buffer.empty, (I, I))
-      |> Toplevel.present_excursion (trs ~~ map (present_span lex default_tags) spans)
+      |> present Toplevel.toplevel (command_results ~~ spans)
       |> present_trailer
     else error "Messed-up outer syntax for presentation"
   end;
