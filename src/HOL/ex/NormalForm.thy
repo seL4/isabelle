@@ -71,7 +71,8 @@ lemma "[a, b, c] @ xs = a # b # c # xs" by normalization
 lemma "[] @ xs = xs" by normalization
 lemma "map (%f. f True) [id, g, Not] = [True, g True, False]" by normalization
 
-lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs" by normalization rule+
+lemma "map (%f. f True) ([id, g, Not] @ fs) = [True, g True, False] @ map (%f. f True) fs"
+  by normalization rule+
 lemma "rev [a, b, c] = [c, b, a]" by normalization
 normal_form "rev (a#b#cs) = rev cs @ [b, a]"
 normal_form "map (%F. F [a,b,c::'x]) (map map [f,g,h])"
@@ -94,9 +95,6 @@ lemma "map (%x. case x of None \<Rightarrow> False | Some y \<Rightarrow> True) 
 
 lemma "last [a, b, c] = c" by normalization
 lemma "last ([a, b, c] @ xs) = last (c # xs)" by normalization
-
-lemma [code nbe]:
-  "eq_class.eq (x :: int) x \<longleftrightarrow> True" unfolding eq by rule+
 
 lemma "(2::int) + 3 - 1 + (- k) * 2 = 4 + - k * 2" by normalization
 lemma "(-4::int) * 2 = -8" by normalization
