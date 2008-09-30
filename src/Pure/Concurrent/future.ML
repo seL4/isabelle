@@ -37,7 +37,7 @@ sig
   val is_finished: 'a T -> bool
   val future: group option -> task list -> bool -> (unit -> 'a) -> 'a T
   val fork: (unit -> 'a) -> 'a T
-  val fork_irrelevant: (unit -> 'a) -> 'a T
+  val fork_background: (unit -> 'a) -> 'a T
   val join_results: 'a T list -> 'a Exn.result list
   val join: 'a T -> 'a
   val release_results: 'a Exn.result list -> 'a list
@@ -243,8 +243,10 @@ fun future opt_group deps pri (e: unit -> 'a) =
       change_result queue (TaskQueue.enqueue group deps pri run) before notify_all ());
   in Future {task = task, group = group, result = result} end;
 
-fun fork e = future (Option.map #3 (thread_data ())) [] true e;
-fun fork_irrelevant e = future (Option.map #3 (thread_data ())) [] false e;
+fun fork_common pri = future (Option.map #3 (thread_data ())) [] pri;
+
+fun fork e = fork_common true e;
+fun fork_background e = fork_common false e;
 
 
 (* join: retrieve results *)
