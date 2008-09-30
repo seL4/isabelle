@@ -151,6 +151,7 @@ sig
   val varifyT: thm -> thm
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
+  val join_futures: theory -> unit
   val promise: (unit -> thm) -> cterm -> thm
   val proof_of: thm -> Proofterm.proof
   val extern_oracles: theory -> xstring list
@@ -1606,18 +1607,13 @@ structure Futures = TheoryDataFun
   fun merge _ _ : T = ref [];
 );
 
+val _ = Context.>> (Context.map_theory Futures.init);
+
 fun add_future thy future = CRITICAL (fn () => change (Futures.get thy) (cons future));
 
 fun join_futures thy =
-  let
-    val futures = Futures.get thy;
-    val results = Future.join_results (rev (! futures));
-    val done = CRITICAL (fn () =>
-      (change futures (filter_out Future.is_finished); null (! futures)));
-    val _ = Future.release_results results;
-  in if done then NONE else SOME thy end;
-
-val _ = Context.>> (Context.map_theory (Futures.init #> Theory.at_end join_futures));
+  (case CRITICAL (fn () => ! (Futures.get thy)) of [] => ()
+  | futures => (Future.release_results (Future.join_results (rev futures)); join_futures thy));
 
 
 (* promise *)
@@ -1644,7 +1640,7 @@ fun promise make_result ct =
     val _ = T <> propT andalso raise CTERM ("promise: prop expected", [ct]);
 
     val i = serial ();
-    val future = Future.fork_irrelevant (promise_result i thy sorts prop o make_result);
+    val future = Future.fork_background (promise_result i thy sorts prop o make_result);
     val _ = add_future thy future;
   in
     Thm (make_deriv false [(i, future)] (Pt.promise_proof i prop),
