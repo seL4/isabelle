@@ -23,11 +23,14 @@ sig
   val parse_spans: Scan.lexicon * Scan.lexicon -> Position.T -> string -> span list
   val present_span: span -> output
   val report_span: span -> unit
+  val unit_source: (span, 'a) Source.source ->
+    (span * span list, (span, 'a) Source.source) Source.source
 end;
 
 structure ThyEdit: THY_EDIT =
 struct
 
+structure K = OuterKeyword;
 structure T = OuterLex;
 structure P = OuterParse;
 
@@ -145,6 +148,44 @@ fun present_span span =
 
 fun report_span span =
   Position.report (kind_markup (span_kind span)) (Position.encode_range (span_range span));
+
+end;
+
+
+
+(** units: commands with proof **)
+
+(* scanning spans *)
+
+val eof = Span (Command "", []);
+
+fun is_eof (Span (Command "", _)) = true
+  | is_eof _ = false;
+
+val not_eof = not o is_eof;
+
+val stopper = Scan.stopper (K eof) is_eof;
+
+
+(* unit_source *)
+
+local
+
+fun command_with pred = Scan.one (fn (Span (Command name, _)) => pred name | _ => false);
+
+val proof = Scan.pass 1 (Scan.repeat (Scan.depend (fn d =>
+  if d = 0 then Scan.fail
+  else
+    command_with K.is_proof_goal >> pair (d + 1) ||
+    (if d <= 1 then Scan.fail else command_with K.is_qed >> pair (d - 1)) ||
+    command_with K.is_qed_global >> pair 0 ||
+    Scan.unless (command_with K.is_theory) (Scan.one not_eof) >> pair d)));
+
+val unit = command_with K.is_theory_goal -- proof || Scan.one not_eof >> rpair [];
+
+in
+
+fun unit_source src = Source.source stopper (Scan.bulk unit) NONE src;
 
 end;
 
