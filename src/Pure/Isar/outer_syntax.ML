@@ -245,10 +245,14 @@ fun prepare_span parser span =
     handle ERROR msg => (Toplevel.malformed range_pos msg, true)
   end;
 
-fun prepare_unit parser (cmd, proof) =
-  (case prepare_span parser cmd of
-    (_, false) => NONE
-  | (tr, true) => SOME (tr, map (prepare_span parser) proof |> filter #2 |> map #1));
+fun prepare_unit parser (cmd, proof, proper_proof) =
+  let
+    val (tr, proper_cmd) = prepare_span parser cmd;
+    val proof_trs = map (prepare_span parser) proof |> filter #2 |> map #1;
+  in
+    if proper_cmd andalso proper_proof then [(tr, proof_trs)]
+    else map (rpair []) (if proper_cmd then tr :: proof_trs else proof_trs)
+  end;
 
 fun prepare_command pos str =
   let val (lexs, parser) = get_syntax () in
@@ -270,7 +274,7 @@ fun load_thy name pos text time =
     val spans = Source.exhaust (ThyEdit.span_source toks);
     val _ = List.app ThyEdit.report_span spans;
     val units = Source.exhaust (ThyEdit.unit_source (Source.of_list spans))
-      |> map_filter (prepare_unit parser);
+      |> maps (prepare_unit parser);
 
     val _ = Present.theory_source name
       (fn () => HTML.html_mode (implode o map ThyEdit.present_span) spans);
