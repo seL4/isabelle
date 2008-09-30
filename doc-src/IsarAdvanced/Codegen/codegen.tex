@@ -10,47 +10,15 @@
 \usepackage{style}
 \usepackage{../../pdfsetup}
 
-\newcommand{\cmd}[1]{\isacommand{#1}}
+\makeatletter
 
-\newcommand{\isasymINFIX}{\cmd{infix}}
-\newcommand{\isasymLOCALE}{\cmd{locale}}
-\newcommand{\isasymINCLUDES}{\cmd{includes}}
-\newcommand{\isasymDATATYPE}{\cmd{datatype}}
-\newcommand{\isasymAXCLASS}{\cmd{axclass}}
-\newcommand{\isasymFIXES}{\cmd{fixes}}
-\newcommand{\isasymASSUMES}{\cmd{assumes}}
-\newcommand{\isasymDEFINES}{\cmd{defines}}
-\newcommand{\isasymNOTES}{\cmd{notes}}
-\newcommand{\isasymSHOWS}{\cmd{shows}}
-\newcommand{\isasymCLASS}{\cmd{class}}
-\newcommand{\isasymINSTANCE}{\cmd{instance}}
-\newcommand{\isasymLEMMA}{\cmd{lemma}}
-\newcommand{\isasymPROOF}{\cmd{proof}}
-\newcommand{\isasymQED}{\cmd{qed}}
-\newcommand{\isasymFIX}{\cmd{fix}}
-\newcommand{\isasymASSUME}{\cmd{assume}}
-\newcommand{\isasymSHOW}{\cmd{show}}
-\newcommand{\isasymNOTE}{\cmd{note}}
-\newcommand{\isasymEXPORTCODE}{\cmd{export\_code}}
-\newcommand{\isasymCODEDATATYPE}{\cmd{code\_datatype}}
-\newcommand{\isasymCODECONST}{\cmd{code\_const}}
-\newcommand{\isasymCODETYPE}{\cmd{code\_type}}
-\newcommand{\isasymCODECLASS}{\cmd{code\_class}}
-\newcommand{\isasymCODEINSTANCE}{\cmd{code\_instance}}
-\newcommand{\isasymCODERESERVED}{\cmd{code\_reserved}}
-\newcommand{\isasymCODEMODULENAME}{\cmd{code\_modulename}}
-\newcommand{\isasymCODEMODULEPROLOG}{\cmd{code\_moduleprolog}}
-\newcommand{\isasymCODEAXIOMS}{\cmd{code\_axioms}}
-\newcommand{\isasymCODEABSTYPE}{\cmd{code\_abstype}}
-\newcommand{\isasymPRINTCODESETUP}{\cmd{print\_codesetup}}
-\newcommand{\isasymPRINTCLASSES}{\cmd{print\_classes}}
-\newcommand{\isasymCODETHMS}{\cmd{code\_thms}}
-\newcommand{\isasymCODEDEPS}{\cmd{code\_deps}}
-\newcommand{\isasymFUN}{\cmd{fun}}
-\newcommand{\isasymFUNCTION}{\cmd{function}}
-\newcommand{\isasymPRIMREC}{\cmd{primrec}}
-\newcommand{\isasymCONSTDEFS}{\cmd{constdefs}}
-\newcommand{\isasymRECDEF}{\cmd{recdef}}
+\newcommand{\isaverbatim}{\renewcommand{\baselinestretch}{1}\setlength{\baselineskip}{8pt}\fontsize{8pt}{0pt}}
+\isakeeptag{quoteme}
+\newenvironment{quoteme}{\begin{quote}\isa@parindent\parindent\parindent0pt\isa@parskip\parskip\parskip0pt}{\end{quote}}
+\renewcommand{\isatagquoteme}{\begin{quoteme}}
+\renewcommand{\endisatagquoteme}{\end{quoteme}}
+
+\makeatother
 
 \isakeeptag{tt}
 \renewcommand{\isatagtt}{\isabellestyle{tt}\isastyle}
@@ -61,10 +29,6 @@
 \newcommand{\qn}[1]{\emph{#1}}
 \newcommand{\strong}[1]{{\bfseries #1}}
 \newcommand{\fixme}[1][!]{\strong{FIXME: #1}}
-
-\lstset{basicstyle=\scriptsize\ttfamily,keywordstyle=\itshape,commentstyle=\itshape\sffamily,frame=single}
-\newcommand{\lstsml}[1]{\lstset{language=ML}\lstinputlisting{#1}}
-\newcommand{\lsthaskell}[1]{\lstset{language=Haskell}\lstinputlisting{#1}}
 
 \hyphenation{Isabelle}
 \hyphenation{Isar}
@@ -90,12 +54,11 @@
 \pagenumbering{roman}
 \clearfirst
 
-\input{Thy/document/Codegen.tex}
-% \input{Thy/document/Introduction.tex}
-% \input{Thy/document/Program.tex}
-% \input{Thy/document/Adaption.tex}
-% \input{Thy/document/Further.tex}
-% \input{Thy/document/ML.tex}
+\input{Thy/document/Introduction.tex}
+\input{Thy/document/Program.tex}
+\input{Thy/document/Adaption.tex}
+\input{Thy/document/Further.tex}
+\input{Thy/document/ML.tex}
 
 \begingroup
 %\tocentry{\bibname}
