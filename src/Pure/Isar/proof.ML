@@ -997,7 +997,7 @@ fun promise_proof make_proof state =
     val {statement as (kind, propss, cprop), messages, using, goal, before_qed, after_qed} = goal;
     val prop = Thm.term_of cprop;
 
-    val statement' = (kind, [[prop]], cprop);
+    val statement' = (kind, [[], [prop]], cprop);
     fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
     val this_name = ProofContext.full_name (ProofContext.reset_naming goal_ctxt) AutoBind.thisN;
 
