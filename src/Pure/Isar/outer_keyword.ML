@@ -50,6 +50,10 @@ sig
   val is_theory: string -> bool
   val is_proof: string -> bool
   val is_diag: string -> bool
+  val is_theory_goal: string -> bool
+  val is_proof_goal: string -> bool
+  val is_qed: string -> bool
+  val is_qed_global: string -> bool
 end;
 
 structure OuterKeyword: OUTER_KEYWORD =
@@ -163,20 +167,25 @@ fun command name kind =
   Output.status (Pretty.string_of (report_command (name, kind))));
 
 
-(* overall category *)
+(* command categories *)
 
 fun command_category ks name =
   (case command_keyword name of
     NONE => false
-  | SOME k => member (op =) ks (kind_of k));
+  | SOME k => member (op = o pairself kind_of) ks k);
 
 val is_theory = command_category
-  (map kind_of [thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script, thy_goal]);
+  [thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script, thy_goal];
 
 val is_proof = command_category
-  (map kind_of [qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
-    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script]);
+  [qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
+    prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
 
-val is_diag = command_category [kind_of diag];
+val is_diag = command_category [diag];
+
+val is_theory_goal = command_category [thy_goal];
+val is_proof_goal = command_category [prf_goal, prf_asm_goal];
+val is_qed = command_category [qed, qed_block];
+val is_qed_global = command_category [qed_global];
 
 end;
