@@ -94,7 +94,7 @@ sig
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val commit_exit: Position.T -> transition
   val command: transition -> state -> state
-  val command_excursion: transition list -> state list * (unit -> unit)
+  val excursion: (transition * transition list) list -> (transition * state) list * (unit -> unit)
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -452,6 +452,9 @@ val no_timing = map_transition (fn (name, pos, int_only, print, _, trans) =>
 fun add_trans tr = map_transition (fn (name, pos, int_only, print, no_timing, trans) =>
   (name, pos, int_only, print, no_timing, trans @ [tr]));
 
+val reset_trans = map_transition (fn (name, pos, int_only, print, no_timing, _) =>
+  (name, pos, int_only, print, no_timing, []));
+
 val print = map_transition (fn (name, pos, int_only, _, no_timing, trans) =>
   (name, pos, int_only, true, no_timing, trans));
 
@@ -538,12 +541,13 @@ fun begin_proof init finish = transaction (fn int =>
   (fn Theory (gthy, _) =>
     let
       val prf = init int gthy;
+      val skip = ! skip_proofs;
       val schematic = Proof.schematic_goal prf;
     in
-      if ! skip_proofs andalso schematic then
+      if skip andalso schematic then
         warning "Cannot skip proof of schematic goal statement"
       else ();
-      if ! skip_proofs andalso not schematic then
+      if skip andalso not schematic then
         SkipProof (0, (finish gthy (Proof.global_skip_proof int prf), gthy))
       else Proof (ProofNode.init prf, (finish gthy, gthy))
     end
@@ -683,15 +687,47 @@ fun command tr st =
   | SOME (_, SOME exn_info) => raise EXCURSION_FAIL exn_info
   | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
 
+
+(* excursion of units, consisting of commands with proof *)
+
 fun command_result tr st =
   let val st' = command tr st
   in (st', st') end;
 
-fun command_excursion trs =
+fun unit_result do_promise (tr, proof_trs) st =
+  let val st' = command tr st in
+    if do_promise andalso not (null proof_trs) andalso
+      can proof_of st' andalso Proof.can_promise (proof_of st')
+    then
+      let
+        val (body_trs, end_tr) = split_last proof_trs;
+        val body_states = ref ([]: state list);
+        fun make_result prf =
+          let val (states, result_state) =
+            (case st' of State (SOME (Proof (_, (_, orig_gthy)), exit), prev)
+              => State (SOME (Proof (ProofNode.init prf, (Context.Proof, orig_gthy)), exit), prev))
+            |> fold_map command_result body_trs ||> command end_tr
+          in body_states := states; context_of result_state end;
+        val proof_promise =
+          end_tr |> reset_trans |> end_proof (K (Proof.promise_proof make_result));
+        val st'' = command proof_promise st';
+      in (fn () => (tr, st') :: (body_trs ~~ ! body_states) @ [(end_tr, st'')], st'') end
+    else
+      let val (states, st'') = fold_map command_result proof_trs st'
+      in (fn () => (tr, st') :: (proof_trs ~~ states), st'') end
+  end;
+
+fun excursion input =
   let
-    val end_pos = if null trs then error "No commands" else pos_of (List.last trs);
-    val (command_results, end_state) = fold_map command_result trs toplevel;
-    val _ = is_toplevel end_state orelse error "Unfinished development at end of input";
-  in (command_results, fn () => ignore (command (commit_exit end_pos) end_state)) end;
+    val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
+
+    val do_promise = ! future_scheduler andalso Multithreading.max_threads_value () > 1;
+    val (future_results, end_state) = fold_map (unit_result do_promise) input toplevel;
+    val _ =
+      (case end_state of
+        State (NONE, SOME (Theory (Context.Theory thy, _), _)) => Thm.join_futures thy
+      | _ => error "Unfinished development at end of input");
+    val results = maps (fn res => res ()) future_results;
+  in (results, fn () => ignore (command (commit_exit end_pos) end_state)) end;
 
 end;
