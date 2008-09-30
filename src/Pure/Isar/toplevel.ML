@@ -87,13 +87,14 @@ sig
   val unknown_theory: transition -> transition
   val unknown_proof: transition -> transition
   val unknown_context: transition -> transition
+  val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val status: transition -> Markup.T -> unit
   val error_msg: transition -> exn * string -> unit
   val add_hook: (transition -> state -> state -> unit) -> unit
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
-  val commit_exit: transition
-  val excursion: transition list -> unit
-  val present_excursion: (transition * (state -> state -> 'a -> 'a)) list -> 'a -> 'a
+  val commit_exit: Position.T -> transition
+  val command: transition -> state -> state
+  val command_excursion: transition list -> state list * (unit -> unit)
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -667,39 +668,30 @@ end;
 
 (* commit final exit *)
 
-val commit_exit =
+fun commit_exit pos =
   name "end" empty
+  |> position pos
   |> add_trans CommitExit
   |> imperative (fn () => warning "Expected to find finished theory");
 
 
-(* excursion: toplevel -- apply transformers/presentation -- toplevel *)
+(* nested commands *)
 
-local
-
-fun no_pr _ _ _ = ();
-
-fun excur (tr, pr) (st, res) =
+fun command tr st =
   (case transition (! interact) tr st of
-    SOME (st', NONE) =>
-      (st', setmp_thread_position tr (fn () => pr st st' res) () handle exn =>
-        raise EXCURSION_FAIL (exn, "Presentation failed\n" ^ at_command tr))
-  | SOME (st', SOME exn_info) => raise EXCURSION_FAIL exn_info
+    SOME (st', NONE) => st'
+  | SOME (_, SOME exn_info) => raise EXCURSION_FAIL exn_info
   | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
 
-fun excurs trs st_res =
-  let val (st', res') = fold excur trs st_res in
-    if is_toplevel st' then (excur (commit_exit, no_pr) (st', ()); res')
-    else error "Unfinished development at end of input"
-  end;
+fun command_result tr st =
+  let val st' = command tr st
+  in (st', st') end;
 
-in
-
-fun present_excursion trs res =
-  excurs trs (toplevel, res) handle exn => error (exn_message exn);
-
-fun excursion trs = present_excursion (map (rpair no_pr) trs) ();
-
-end;
+fun command_excursion trs =
+  let
+    val end_pos = if null trs then error "No commands" else pos_of (List.last trs);
+    val (command_results, end_state) = fold_map command_result trs toplevel;
+    val _ = is_toplevel end_state orelse error "Unfinished development at end of input";
+  in (command_results, fn () => ignore (command (commit_exit end_pos) end_state)) end;
 
 end;
