@@ -7,7 +7,7 @@ section {* Adaption to target languages \label{sec:adaption} *}
 subsection {* Common adaption cases *}
 
 text {*
-  The @{text HOL} @{text Main} theory already provides a code
+  The @{theory HOL} @{theory Main} theory already provides a code
   generator setup
   which should be suitable for most applications. Common extensions
   and modifications are available by certain theories of the @{text HOL}
@@ -193,7 +193,7 @@ definition %quoteme "eq_class.eq (x\<Colon>bar) y \<longleftrightarrow> x = y"
 
 instance %quoteme by default (simp add: eq_bar_def)
 
-end
+end %quoteme
 
 code_type %tt bar
   (Haskell "Integer")

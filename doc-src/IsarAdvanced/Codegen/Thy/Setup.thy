@@ -8,7 +8,7 @@ ML {* no_document use_thys ["Efficient_Nat", "Code_Char_chr"] *}
 ML_val {* Code_Target.code_width := 74 *}
 
 ML {*
-fun pr_class ctxt = Sign.extern_class (ProofContext.theory_of ctxt)
+fun pr_class ctxt = enclose "\\isa{" "}" o Sign.extern_class (ProofContext.theory_of ctxt)
   o Sign.read_class (ProofContext.theory_of ctxt);
 *}
 

@@ -124,14 +124,14 @@ text %quoteme {*@{code_stmts bexp (Haskell)}*}
 
 text {*
   \noindent An inspection reveals that the equations stemming from the
-  @{text primrec} statement within instantiation of class
+  @{command primrec} statement within instantiation of class
   @{class semigroup} with type @{typ nat} are mapped to a separate
-  function declaration @{text mult_nat} which in turn is used
-  to provide the right hand side for the @{text "instance Semigroup Nat"}
-  \fixme[courier fuer code text, isastyle fuer class].  This perfectly
+  function declaration @{verbatim mult_nat} which in turn is used
+  to provide the right hand side for the @{verbatim "instance Semigroup Nat"}.
+  This perfectly
   agrees with the restriction that @{text inst} statements may
   only contain one single equation for each class class parameter
-  The @{text instantiation} mechanism manages that for each
+  The @{command instantiation} mechanism manages that for each
   overloaded constant @{text "f [\<kappa> \<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>]"}
   a \emph{shadow constant} @{text "f\<^isub>\<kappa> [\<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>]"} is
   declared satisfying @{text "f [\<kappa> \<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>] \<equiv> f\<^isub>\<kappa> [\<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>]"}.
@@ -344,7 +344,7 @@ primrec %quoteme
       else collect_duplicates (z#xs) (z#ys) zs)"
 
 text {*
-  The membership test during preprocessing is rewritten,
+  \noindent The membership test during preprocessing is rewritten,
   resulting in @{const List.member}, which itself
   performs an explicit equality check.
 *}
@@ -368,32 +368,30 @@ text {*
   us define a lexicographic ordering on tuples:
 *}
 
-instantiation * :: (ord, ord) ord
+instantiation %quoteme * :: (ord, ord) ord
 begin
 
-definition
-  [code func del]: "p1 < p2 \<longleftrightarrow> (let (x1, y1) = p1; (x2, y2) = p2 in
-    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2))"
+definition %quoteme [code func del]:
+  "p1 < p2 \<longleftrightarrow> (let (x1, y1) = p1; (x2, y2) = p2 in x1 < x2 \<or> (x1 = x2 \<and> y1 < y2))"
 
-definition
-  [code func del]: "p1 \<le> p2 \<longleftrightarrow> (let (x1, y1) = p1; (x2, y2) = p2 in
-    x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2))"
+definition %quoteme [code func del]:
+  "p1 \<le> p2 \<longleftrightarrow> (let (x1, y1) = p1; (x2, y2) = p2 in x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2))"
 
-instance ..
+instance %quoteme ..
 
-end
+end %quoteme
 
-lemma ord_prod [code func(*<*), code func del(*>*)]:
+lemma %quoteme ord_prod [code func]:
   "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
   "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
   unfolding less_prod_def less_eq_prod_def by simp_all
 
 text {*
-  Then code generation will fail.  Why?  The definition
+  \noindent Then code generation will fail.  Why?  The definition
   of @{term "op \<le>"} depends on equality on both arguments,
   which are polymorphic and impose an additional @{class eq}
-  class constraint, thus violating the type discipline
-  for class operations.
+  class constraint, which the preprocessort does not propagate for technical
+  reasons.
 
   The solution is to add @{class eq} explicitly to the first sort arguments in the
   code theorems:
@@ -413,15 +411,6 @@ text {*
 text %quoteme {*@{code_stmts "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>ord \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool" (SML)}*}
 
 text {*
-  In general, code theorems for overloaded constants may have more
-  restrictive sort constraints than the underlying instance relation
-  between class and type constructor as long as the whole system of
-  constraints is coregular; code theorems violating coregularity
-  are rejected immediately.  Consequently, it might be necessary
-  to delete disturbing theorems in the code theorem table,
-  as we have done here with the original definitions @{fact less_prod_def}
-  and @{fact less_eq_prod_def}.
-
   In some cases, the automatically derived defining equations
   for equality on a particular type may not be appropriate.
   As example, watch the following datatype representing
@@ -442,7 +431,7 @@ text {*
   the theorem @{thm monotype_eq [no_vars]} already requires the
   instance @{text "monotype \<Colon> eq"}, which itself requires
   @{thm monotype_eq [no_vars]};  Haskell has no problem with mutually
-  recursive @{text instance} and @{text function} definitions,
+  recursive @{text inst} and @{text fun} definitions,
   but the SML serializer does not support this.
 
   In such cases, you have to provide you own equality equations

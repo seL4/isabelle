@@ -17,12 +17,12 @@ text {*
   \cite{haskell-revised-report}).
 
   Conceptually the code generator framework is part
-  of Isabelle's @{text Pure} meta logic framework; the logic
-  @{text HOL} which is an extension of @{text Pure}
+  of Isabelle's @{theory Pure} meta logic framework; the logic
+  @{theory HOL} which is an extension of @{theory Pure}
   already comes with a reasonable framework setup and thus provides
   a good working horse for raising code-generation-driven
   applications.  So, we assume some familiarity and experience
-  with the ingredients of the @{text HOL} distribution theories.
+  with the ingredients of the @{theory HOL} distribution theories.
   (see also \cite{isa-tutorial}).
 
   The code generator aims to be usable with no further ado
@@ -42,7 +42,7 @@ text {*
     So, for the moment, there are two distinct code generators
     in Isabelle.
     Also note that while the framework itself is
-    object-logic independent, only @{text HOL} provides a reasonable
+    object-logic independent, only @{theory HOL} provides a reasonable
     framework setup.    
   \end{warn}
 
@@ -55,7 +55,7 @@ text {*
   \emph{shallow embedding}, i.e.~logical entities like constants, types and
   classes are identified with corresponding concepts in the target language.
 
-  Inside @{text HOL}, the @{command datatype} and
+  Inside @{theory HOL}, the @{command datatype} and
   @{command definition}/@{command primrec}/@{command fun} declarations form
   the core of a functional programming language.  The default code generator setup
   allows to turn those into functional programs immediately.

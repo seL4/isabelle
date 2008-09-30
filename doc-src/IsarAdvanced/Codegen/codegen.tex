@@ -10,19 +10,23 @@
 \usepackage{style}
 \usepackage{../../pdfsetup}
 
+\newcommand{\isaverbatim}{\renewcommand{\baselinestretch}{1}\setlength{\baselineskip}{8pt}\fontsize{8pt}{0pt}}
+
 \makeatletter
 
-\newcommand{\isaverbatim}{\renewcommand{\baselinestretch}{1}\setlength{\baselineskip}{8pt}\fontsize{8pt}{0pt}}
 \isakeeptag{quoteme}
 \newenvironment{quoteme}{\begin{quote}\isa@parindent\parindent\parindent0pt\isa@parskip\parskip\parskip0pt}{\end{quote}}
 \renewcommand{\isatagquoteme}{\begin{quoteme}}
 \renewcommand{\endisatagquoteme}{\end{quoteme}}
 
+\isakeeptag{tt}
+\renewcommand{\isatagtt}{\begin{quoteme}\isabellestyle{tt}\isastyle}
+\renewcommand{\endisatagtt}{\end{quoteme}\isabellestyle{it}\isastyle}
+
 \makeatother
 
-\isakeeptag{tt}
-\renewcommand{\isatagtt}{\isabellestyle{tt}\isastyle}
-\renewcommand{\endisatagtt}{\isabellestyle{it}\isastyle}
+\newcommand{\isactrlbvec}{\emph\bgroup\begin{math}{}\overline\bgroup\mbox\bgroup\isastylescript}
+\newcommand{\isactrlevec}{\egroup\egroup\end{math}\egroup}
 
 \newcommand{\qt}[1]{``#1''}
 \newcommand{\qtt}[1]{"{}{#1}"{}}
