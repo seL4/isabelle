@@ -106,8 +106,6 @@ text {*
 text %quoteme {*@{code_stmts in_interval (SML)}*}
 
 text {*
-  \lstsml{Thy/examples/bool_mlbool.ML}
-
   \noindent This still is not perfect: the parentheses
   around the \qt{andalso} expression are superfluous.
   Though the serializer

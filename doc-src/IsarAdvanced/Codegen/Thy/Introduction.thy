@@ -97,7 +97,7 @@ text {*
   (with extension @{text ".hs"}) is written:
 *}
 
-export_code %quoteme empty dequeue enqueue in SML module_name Example file "examples/Example.ML"
+export_code %quoteme empty dequeue enqueue in Haskell module_name Example file "examples/"
 
 text {*
   \noindent This is how the corresponding code in @{text Haskell} looks like:
