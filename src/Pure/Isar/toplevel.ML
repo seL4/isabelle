@@ -455,8 +455,10 @@ fun add_trans tr = map_transition (fn (name, pos, int_only, print, no_timing, tr
 val reset_trans = map_transition (fn (name, pos, int_only, print, no_timing, _) =>
   (name, pos, int_only, print, no_timing, []));
 
-val print = map_transition (fn (name, pos, int_only, _, no_timing, trans) =>
-  (name, pos, int_only, true, no_timing, trans));
+fun set_print print = map_transition (fn (name, pos, int_only, _, no_timing, trans) =>
+  (name, pos, int_only, print, no_timing, trans));
+
+val print = set_print true;
 
 
 (* basic transitions *)
@@ -696,25 +698,26 @@ fun command_result tr st =
 
 fun unit_result immediate (tr, proof_trs) st =
   let val st' = command tr st in
-    if not immediate andalso not (null proof_trs) andalso
-      can proof_of st' andalso Proof.can_defer (proof_of st')
+    if immediate orelse null proof_trs orelse
+      not (can proof_of st') orelse Proof.is_relevant (proof_of st')
     then
+      let val (states, st'') = fold_map command_result proof_trs st'
+      in (fn () => (tr, st') :: (proof_trs ~~ states), st'') end
+    else
       let
         val (body_trs, end_tr) = split_last proof_trs;
         val body_states = ref ([]: state list);
+        val finish = Context.Theory o ProofContext.theory_of;
         fun make_result prf =
-          let val (states, result_state) =
+          let val (states, State (result_node, _)) =
             (case st' of State (SOME (Proof (_, (_, orig_gthy)), exit), prev)
-              => State (SOME (Proof (ProofNode.init prf, (Context.Proof, orig_gthy)), exit), prev))
-            |> fold_map command_result body_trs ||> command end_tr
-          in body_states := states; context_of result_state end;
-        val proof_future =
-          end_tr |> reset_trans |> end_proof (K (Proof.future_proof make_result));
-        val st'' = command proof_future st';
+              => State (SOME (Proof (ProofNode.init prf, (finish, orig_gthy)), exit), prev))
+            |> fold_map command_result body_trs
+            ||> command (end_tr |> set_print false)
+          in body_states := states; presentation_context (Option.map #1 result_node) NONE end;
+        val st'' = st'
+          |> command (end_tr |> reset_trans |> end_proof (K (Proof.future_proof make_result)));
       in (fn () => (tr, st') :: (body_trs ~~ ! body_states) @ [(end_tr, st'')], st'') end
-    else
-      let val (states, st'') = fold_map command_result proof_trs st'
-      in (fn () => (tr, st') :: (proof_trs ~~ states), st'') end
   end;
 
 fun excursion input =
