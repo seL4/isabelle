@@ -174,15 +174,15 @@ local
 fun command_with pred = Scan.one (fn (Span (Command name, _)) => pred name | _ => false);
 
 val proof = Scan.pass 1 (Scan.repeat (Scan.depend (fn d =>
-  if d = 0 then Scan.fail
+  if d <= 0 then Scan.fail
   else
+    command_with K.is_qed_global >> pair ~1 ||
     command_with K.is_proof_goal >> pair (d + 1) ||
-    (if d <= 1 then Scan.fail else command_with K.is_qed >> pair (d - 1)) ||
-    command_with K.is_qed_global >> pair 0 ||
+    (if d = 0 then Scan.fail else command_with K.is_qed >> pair (d - 1)) ||
     Scan.unless (command_with K.is_theory) (Scan.one not_eof) >> pair d)) -- Scan.state);
 
 val unit =
-  command_with K.is_theory_goal -- proof >> (fn (a, (bs, d)) => (a, bs, d <> 0)) ||
+  command_with K.is_theory_goal -- proof >> (fn (a, (bs, d)) => (a, bs, d >= 0)) ||
   Scan.one not_eof >> (fn a => (a, [], true));
 
 in
