@@ -996,13 +996,15 @@ fun future_proof make_proof state =
     val (goal_ctxt, (_, goal)) = find_goal state;
     val {statement as (kind, propss, cprop), messages, using, goal, before_qed, after_qed} = goal;
     val prop = Thm.term_of cprop;
+    val cprop_protected = #2 (Thm.dest_implies (Thm.cprop_of goal));
 
-    val statement' = (kind, [[], [prop]], cprop);
-    fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+    val statement' = (kind, [[], [Thm.term_of cprop_protected]], cprop_protected);
+    val goal' = Thm.adjust_maxidx_thm ~1 (Drule.protectI RS Goal.init cprop_protected);
+    fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [Goal.conclude th]);
     val this_name = ProofContext.full_name (ProofContext.reset_naming goal_ctxt) AutoBind.thisN;
 
     fun make_result () = state
-      |> map_goal I (K (statement', messages, using, goal, before_qed, (#1 after_qed, after_qed')))
+      |> map_goal I (K (statement', messages, using, goal', before_qed, (#1 after_qed, after_qed')))
       |> make_proof
       |> (fn result_ctxt => ProofContext.get_fact_single result_ctxt (Facts.named this_name));
     val finished_goal = Goal.protect (Goal.future_result goal_ctxt make_result prop);
