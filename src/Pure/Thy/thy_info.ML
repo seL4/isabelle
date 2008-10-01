@@ -320,9 +320,9 @@ fun future_schedule task_graph =
     val tasks = Graph.topological_order task_graph |> map_filter (fn name =>
       (case Graph.get_node task_graph name of Task body => SOME (name, body) | _ => NONE));
 
+    val group = TaskQueue.new_group ();
     fun future (name, body) tab =
       let
-        val group = TaskQueue.new_group ();
         val deps = map_filter (Symtab.lookup tab) (Graph.imm_preds task_graph name);
         val x = Future.future (SOME group) deps true body;
       in (x, Symtab.update (name, Future.task_of x) tab) end;
