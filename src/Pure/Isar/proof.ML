@@ -114,8 +114,8 @@ sig
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((Name.binding * attribute list) * (term * term list) list) list -> bool -> state -> state
-  val can_promise: state -> bool
-  val promise_proof: (state -> context) -> state -> context
+  val can_defer: state -> bool
+  val future_proof: (state -> context) -> state -> context
 end;
 
 structure Proof: PROOF =
@@ -976,22 +976,22 @@ val show_i = gen_show (K I) ProofContext.bind_propp_i;
 end;
 
 
-(* promise global proofs *)
+(* defer global proofs *)
 
 fun is_initial state =
   (case try find_goal state of
     NONE => false
   | SOME (_, (_, {statement = (_, _, prop), goal, ...})) => Thm.eq_thm_prop (Goal.init prop, goal));
 
-fun can_promise state =
+fun can_defer state =
   can (assert_bottom true) state andalso
   can assert_backward state andalso
   is_initial state andalso
   not (schematic_goal state);
 
-fun promise_proof make_proof state =
+fun future_proof make_proof state =
   let
-    val _ = can_promise state orelse error "Cannot promise proof";
+    val _ = can_defer state orelse error "Cannot defer proof";
 
     val (goal_ctxt, (_, goal)) = find_goal state;
     val {statement as (kind, propss, cprop), messages, using, goal, before_qed, after_qed} = goal;
@@ -1005,7 +1005,7 @@ fun promise_proof make_proof state =
       |> map_goal I (K (statement', messages, using, goal, before_qed, (#1 after_qed, after_qed')))
       |> make_proof
       |> (fn result_ctxt => ProofContext.get_fact_single result_ctxt (Facts.named this_name));
-    val finished_goal = Goal.protect (Goal.promise_result goal_ctxt make_result prop);
+    val finished_goal = Goal.protect (Goal.future_result goal_ctxt make_result prop);
   in
     state
     |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed))

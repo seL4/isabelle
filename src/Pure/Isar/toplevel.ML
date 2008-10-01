@@ -694,10 +694,10 @@ fun command_result tr st =
   let val st' = command tr st
   in (st', st') end;
 
-fun unit_result do_promise (tr, proof_trs) st =
+fun unit_result immediate (tr, proof_trs) st =
   let val st' = command tr st in
-    if do_promise andalso not (null proof_trs) andalso
-      can proof_of st' andalso Proof.can_promise (proof_of st')
+    if not immediate andalso not (null proof_trs) andalso
+      can proof_of st' andalso Proof.can_defer (proof_of st')
     then
       let
         val (body_trs, end_tr) = split_last proof_trs;
@@ -708,9 +708,9 @@ fun unit_result do_promise (tr, proof_trs) st =
               => State (SOME (Proof (ProofNode.init prf, (Context.Proof, orig_gthy)), exit), prev))
             |> fold_map command_result body_trs ||> command end_tr
           in body_states := states; context_of result_state end;
-        val proof_promise =
-          end_tr |> reset_trans |> end_proof (K (Proof.promise_proof make_result));
-        val st'' = command proof_promise st';
+        val proof_future =
+          end_tr |> reset_trans |> end_proof (K (Proof.future_proof make_result));
+        val st'' = command proof_future st';
       in (fn () => (tr, st') :: (body_trs ~~ ! body_states) @ [(end_tr, st'')], st'') end
     else
       let val (states, st'') = fold_map command_result proof_trs st'
@@ -721,8 +721,8 @@ fun excursion input =
   let
     val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
 
-    val do_promise = ! future_scheduler andalso Multithreading.max_threads_value () > 1;
-    val (future_results, end_state) = fold_map (unit_result do_promise) input toplevel;
+    val immediate = not (! future_scheduler) orelse Multithreading.max_threads_value () <= 1;
+    val (future_results, end_state) = fold_map (unit_result immediate) input toplevel;
     val _ =
       (case end_state of
         State (NONE, SOME (Theory (Context.Theory thy, _), _)) => Thm.join_futures thy

@@ -20,11 +20,11 @@ sig
   val conclude: thm -> thm
   val finish: thm -> thm
   val norm_result: thm -> thm
-  val promise_result: Proof.context -> (unit -> thm) -> term -> thm
+  val future_result: Proof.context -> (unit -> thm) -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
-  val prove_promise: Proof.context -> string list -> term list -> term ->
+  val prove_future: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
@@ -96,9 +96,9 @@ val norm_result =
   #> Drule.zero_var_indexes;
 
 
-(* promise *)
+(* future_result *)
 
-fun promise_result ctxt result prop =
+fun future_result ctxt result prop =
   let
     val thy = ProofContext.theory_of ctxt;
     val _ = Context.reject_draft thy;
@@ -122,7 +122,7 @@ fun promise_result ctxt result prop =
       Drule.implies_intr_list assms o
       Thm.adjust_maxidx_thm ~1 o result;
     val local_result =
-      Thm.promise global_result (cert global_prop)
+      Thm.future global_result (cert global_prop)
       |> Thm.instantiate (instT, [])
       |> Drule.forall_elim_list fixes
       |> fold (Thm.elim_implies o Thm.assume) assms;
@@ -176,7 +176,7 @@ fun prove_common immediate ctxt xs asms props tac =
           end);
     val res =
       if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 then result ()
-      else promise_result ctxt' result (Thm.term_of stmt);
+      else future_result ctxt' result (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
     |> map (Assumption.export false ctxt' ctxt)
@@ -186,7 +186,7 @@ fun prove_common immediate ctxt xs asms props tac =
 
 val prove_multi = prove_common true;
 
-fun prove_promise ctxt xs asms prop tac = hd (prove_common false ctxt xs asms [prop] tac);
+fun prove_future ctxt xs asms prop tac = hd (prove_common false ctxt xs asms [prop] tac);
 fun prove ctxt xs asms prop tac = hd (prove_common true ctxt xs asms [prop] tac);
 
 fun prove_global thy xs asms prop tac =

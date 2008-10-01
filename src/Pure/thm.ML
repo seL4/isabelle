@@ -152,7 +152,7 @@ sig
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
   val join_futures: theory -> unit
-  val promise: (unit -> thm) -> cterm -> thm
+  val future: (unit -> thm) -> cterm -> thm
   val proof_of: thm -> Proofterm.proof
   val extern_oracles: theory -> xstring list
   val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
@@ -1625,14 +1625,14 @@ fun join_futures thy =
   in while not (joined ()) do () end;
 
 
-(* promise *)
+(* future rule *)
 
-fun promise_result i orig_thy orig_shyps orig_prop raw_thm =
+fun future_result i orig_thy orig_shyps orig_prop raw_thm =
   let
     val _ = Theory.check_thy orig_thy;
     val thm = strip_shyps (transfer orig_thy raw_thm);
     val _ = Theory.check_thy orig_thy;
-    fun err msg = raise THM ("promise_result: " ^ msg, 0, [thm]);
+    fun err msg = raise THM ("future_result: " ^ msg, 0, [thm]);
 
     val Thm (Deriv {promises, ...}, {shyps, hyps, tpairs, prop, ...}) = thm;
     val _ = prop aconv orig_prop orelse err "bad prop";
@@ -1642,14 +1642,14 @@ fun promise_result i orig_thy orig_shyps orig_prop raw_thm =
     val _ = forall (fn (j, _) => j < i) promises orelse err "bad dependencies";
   in thm end;
 
-fun promise make_result ct =
+fun future make_result ct =
   let
     val {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = rep_cterm ct;
     val thy = Context.reject_draft (Theory.deref thy_ref);
-    val _ = T <> propT andalso raise CTERM ("promise: prop expected", [ct]);
+    val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
 
     val i = serial ();
-    val future = Future.fork_background (promise_result i thy sorts prop o make_result);
+    val future = Future.fork_background (future_result i thy sorts prop o make_result);
     val _ = add_future thy future;
   in
     Thm (make_deriv false [(i, future)] (Pt.promise_proof i prop),
@@ -1663,9 +1663,9 @@ fun promise make_result ct =
   end;
 
 
-(* fulfill *)
+(* join_deriv *)
 
-fun fulfill (thm as Thm (Deriv {oracle, proof, promises}, args)) =
+fun join_deriv (thm as Thm (Deriv {oracle, proof, promises}, args)) =
   let
     val _ = Exn.release_all (Future.join_results (rev (map #2 promises)));
     val results = map (apsnd Future.join) promises;
@@ -1674,7 +1674,7 @@ fun fulfill (thm as Thm (Deriv {oracle, proof, promises}, args)) =
     val ora = oracle orelse exists (oracle_of o #2) results;
   in Thm (make_deriv ora [] (Pt.fulfill proofs proof), args) end;
 
-val proof_of = fulfill #> (fn Thm (Deriv {proof, ...}, _) => proof);
+val proof_of = join_deriv #> (fn Thm (Deriv {proof, ...}, _) => proof);
 
 
 
