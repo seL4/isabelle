@@ -320,19 +320,17 @@ fun future_schedule task_graph =
     val tasks = Graph.topological_order task_graph |> map_filter (fn name =>
       (case Graph.get_node task_graph name of Task body => SOME (name, body) | _ => NONE));
 
-    val group = TaskQueue.new_group ();
     fun future (name, body) tab =
       let
+        val group = TaskQueue.new_group ();
         val deps = map_filter (Symtab.lookup tab) (Graph.imm_preds task_graph name);
         val x = Future.future (SOME group) deps true body;
       in (x, Symtab.update (name, Future.task_of x) tab) end;
-
-    val exns = #1 (fold_map future tasks Symtab.empty)
-      |> uninterruptible (fn _ => Future.join_results)
-      |> map_filter Exn.get_exn;
   in
-    if null exns then ()
-    else raise Exn.EXCEPTIONS (exns, "")
+    #1 (fold_map future tasks Symtab.empty)
+    |> uninterruptible (fn _ => Future.join_results)
+    |> Exn.release_all
+    |> ignore
   end;
 
 local
@@ -372,10 +370,7 @@ fun schedule_tasks tasks n =
      (warning (loader_msg "no multithreading within critical section" []);
       schedule_seq tasks)
     else if ! future_scheduler then future_schedule tasks
-    else
-      (case Schedule.schedule (Int.min (m, n)) next_task tasks of
-        [] => ()
-      | exns => raise Exn.EXCEPTIONS (exns, ""))
+    else ignore (Exn.release_all (map Exn.Exn (Schedule.schedule (Int.min (m, n)) next_task tasks)))
   end;
 
 end;
