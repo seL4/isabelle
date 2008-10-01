@@ -1612,8 +1612,17 @@ val _ = Context.>> (Context.map_theory Futures.init);
 fun add_future thy future = CRITICAL (fn () => change (Futures.get thy) (cons future));
 
 fun join_futures thy =
-  (case CRITICAL (fn () => ! (Futures.get thy)) of [] => ()
-  | futures => (Future.release_results (Future.join_results (rev futures)); join_futures thy));
+  let
+    val futures = Futures.get thy;
+    fun joined () =
+     (Future.join_results (rev (! futures));
+      CRITICAL (fn () =>
+        let
+          val (finished, unfinished) = List.partition Future.is_finished (! futures);
+          val _ = futures := unfinished;
+        in finished end)
+      |> Future.join_results |> Exn.release_all |> null);
+  in while not (joined ()) do () end;
 
 
 (* promise *)
@@ -1658,7 +1667,7 @@ fun promise make_result ct =
 
 fun fulfill (thm as Thm (Deriv {oracle, proof, promises}, args)) =
   let
-    val _ = Future.release_results (Future.join_results (rev (map #2 promises)));
+    val _ = Exn.release_all (Future.join_results (rev (map #2 promises)));
     val results = map (apsnd Future.join) promises;
     val proofs = fold (fn (i, Thm (Deriv {proof = prf, ...}, _)) => Inttab.update (i, prf))
       results Inttab.empty;
