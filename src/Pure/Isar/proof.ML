@@ -114,7 +114,7 @@ sig
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((Name.binding * attribute list) * (term * term list) list) list -> bool -> state -> state
-  val can_defer: state -> bool
+  val is_relevant: state -> bool
   val future_proof: (state -> context) -> state -> context
 end;
 
@@ -976,22 +976,22 @@ val show_i = gen_show (K I) ProofContext.bind_propp_i;
 end;
 
 
-(* defer global proofs *)
+(* fork global proofs *)
 
 fun is_initial state =
   (case try find_goal state of
     NONE => false
   | SOME (_, (_, {statement = (_, _, prop), goal, ...})) => Thm.eq_thm_prop (Goal.init prop, goal));
 
-fun can_defer state =
-  can (assert_bottom true) state andalso
-  can assert_backward state andalso
-  is_initial state andalso
-  not (schematic_goal state);
+fun is_relevant state =
+  can (assert_bottom false) state orelse
+  can assert_forward state orelse
+  not (is_initial state) orelse
+  schematic_goal state;
 
 fun future_proof make_proof state =
   let
-    val _ = can_defer state orelse error "Cannot defer proof";
+    val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
     val (goal_ctxt, (_, goal)) = find_goal state;
     val {statement as (kind, propss, cprop), messages, using, goal, before_qed, after_qed} = goal;
@@ -1004,6 +1004,7 @@ fun future_proof make_proof state =
     val this_name = ProofContext.full_name (ProofContext.reset_naming goal_ctxt) AutoBind.thisN;
 
     fun make_result () = state
+      |> map_contexts (Variable.auto_fixes prop)
       |> map_goal I (K (statement', messages, using, goal', before_qed, (#1 after_qed, after_qed')))
       |> make_proof
       |> (fn result_ctxt => ProofContext.get_fact_single result_ctxt (Facts.named this_name));
