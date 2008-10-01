@@ -95,7 +95,7 @@ fun perhaps f x = the_default x (f x);
 (* partiality *)
 
 fun try f x = SOME (f x)
-  handle Interrupt => raise Interrupt | _ => NONE;
+  handle Exn.Interrupt => raise Exn.Interrupt | _ => NONE;
 
 fun can f x = is_some (try f x);
 

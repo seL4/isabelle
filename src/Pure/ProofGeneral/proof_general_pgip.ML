@@ -999,7 +999,7 @@ and handler (e,srco) =
     case (e,srco) of
         (XML_PARSE,SOME src) =>
         panic "Invalid XML input, aborting" (* TODO: attempt recovery  *)
-      | (Interrupt,SOME src) =>
+      | (Exn.Interrupt,SOME src) =>
         (Output.error_msg "Interrupt during PGIP processing"; loop true src)
       | (Toplevel.UNDEF,SOME src) =>
         (Output.error_msg "No working context defined"; loop true src)

@@ -962,7 +962,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       (case test_proof goal_state of
         Exn.Result (SOME _) => goal_state
       | Exn.Result NONE => error (fail_msg (context_of goal_state))
-      | Exn.Exn Interrupt => raise Interrupt
+      | Exn.Exn Exn.Interrupt => raise Exn.Interrupt
       | Exn.Exn exn => raise Exn.EXCEPTIONS ([exn], fail_msg (context_of goal_state))))
   end;
 

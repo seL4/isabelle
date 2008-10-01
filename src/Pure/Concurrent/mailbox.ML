@@ -52,7 +52,7 @@ fun receive_timeout timeout (Mailbox {lock, cond, messages}) =
       fun check () = not (Queue.is_empty (! messages)) orelse
         ConditionVar.waitUntil (cond, lock, limit) andalso check ();
       val ok = restore_attributes check ()
-        handle Interrupt => (Mutex.unlock lock; raise Interrupt);
+        handle Exn.Interrupt => (Mutex.unlock lock; raise Exn.Interrupt);
       val res = if ok then SOME (change_result messages Queue.dequeue) else NONE;
 
       val _ = Mutex.unlock lock;

@@ -263,7 +263,7 @@ fun exn_message e =
       | exn_msg ctxt (EXCURSION_FAIL (exn, loc)) =
           exn_msg ctxt exn ^ Markup.markup Markup.location ("\n" ^ loc)
       | exn_msg _ TERMINATE = "Exit."
-      | exn_msg _ Interrupt = "Interrupt."
+      | exn_msg _ Exn.Interrupt = "Interrupt."
       | exn_msg _ TimeLimit.TimeOut = "Timeout."
       | exn_msg _ TOPLEVEL_ERROR = "Error."
       | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg

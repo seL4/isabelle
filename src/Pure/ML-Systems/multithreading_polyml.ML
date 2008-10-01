@@ -80,7 +80,7 @@ fun with_attributes new_atts f x =
         val result = Exn.capture (f orig_atts) x;
         val _ = restore ();
       in result end
-      handle Interrupt => (restore (); Exn.Exn Interrupt))
+      handle Exn.Interrupt => (restore (); Exn.Exn Exn.Interrupt))
   end;
 
 fun interruptible f = with_attributes regular_interrupts (fn _ => f);
@@ -105,7 +105,7 @@ fun timeLimit time f x = uninterruptible (fn restore_attributes => fn () =>
 
     (*RACE! timeout signal vs. external Interrupt*)
     val result = Exn.capture (restore_attributes f) x;
-    val was_timeout = (case result of Exn.Exn Interrupt => ! timeout | _ => false);
+    val was_timeout = (case result of Exn.Exn Exn.Interrupt => ! timeout | _ => false);
 
     val _ = Thread.interrupt watchdog handle Thread _ => ();
   in if was_timeout then raise TimeOut else Exn.release result end) ();
@@ -165,7 +165,7 @@ fun system_out script = uninterruptible (fn restore_attributes => fn () =>
     val _ = while ! result = Wait do
       restore_attributes (fn () =>
         (ConditionVar.waitUntil (result_cond, result_mutex, Time.now () + Time.fromMilliseconds 100); ())
-          handle Interrupt => kill 10) ();
+          handle Exn.Interrupt => kill 10) ();
 
     (*cleanup*)
     val output = read_file output_name handle IO.Io _ => "";
@@ -173,7 +173,7 @@ fun system_out script = uninterruptible (fn restore_attributes => fn () =>
     val _ = OS.FileSys.remove pid_name handle OS.SysErr _ => ();
     val _ = OS.FileSys.remove output_name handle OS.SysErr _ => ();
     val _ = Thread.interrupt system_thread handle Thread _ => ();
-    val rc = (case ! result of Signal => raise Interrupt | Result rc => rc);
+    val rc = (case ! result of Signal => raise Exn.Interrupt | Result rc => rc);
   in (output, rc) end) ();
 
 

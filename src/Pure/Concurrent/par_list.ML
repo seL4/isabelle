@@ -32,7 +32,7 @@ fun raw_map f xs =
     Future.join_results (List.map (fn x => Future.future (SOME group) [] true (fn () => f x)) xs)
   end;
 
-fun map f xs = Future.release_results (raw_map f xs);
+fun map f xs = Exn.release_first (raw_map f xs);
 
 fun get_some f xs =
   let
@@ -43,7 +43,7 @@ fun get_some f xs =
   in
     (case get_first found results of
       SOME y => SOME y
-    | NONE => (Future.release_results results; NONE))
+    | NONE => (Exn.release_first results; NONE))
   end;
 
 fun find_some P = get_some (fn x => if P x then SOME x else NONE);

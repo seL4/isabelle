@@ -36,6 +36,8 @@ load "Process";
 load "FileSys";
 load "IO";
 
+exception Interrupt;
+
 use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/multithreading.ML";
@@ -177,8 +179,6 @@ fun use_file _ _ _ _ _ name = use name;
 (** interrupts **)      (*Note: may get into race conditions*)
 
 (* FIXME proper implementation available? *)
-
-exception Interrupt;
 
 fun interruptible f x = f x;
 fun uninterruptible f x = f (fn (g: 'c -> 'd) => g) x;

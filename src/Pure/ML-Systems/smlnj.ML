@@ -4,6 +4,8 @@
 Compatibility file for Standard ML of New Jersey 110 or later.
 *)
 
+exception Interrupt;
+
 use "ML-Systems/proper_int.ML";
 use "ML-Systems/overloading_smlnj.ML";
 use "ML-Systems/exn.ML";
@@ -144,8 +146,6 @@ fun forget_structure name =
 
 
 (** interrupts **)
-
-exception Interrupt;
 
 local
 
