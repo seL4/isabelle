@@ -269,7 +269,7 @@ fun dest_arity tm =
 
 
 
-  (** protected propositions and embedded terms **)
+(** protected propositions and embedded terms **)
 
 val protectC = Const ("prop", propT --> propT);
 fun protect t = protectC $ t;
