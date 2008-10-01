@@ -40,7 +40,6 @@ sig
   val fork_background: (unit -> 'a) -> 'a T
   val join_results: 'a T list -> 'a Exn.result list
   val join: 'a T -> 'a
-  val release_results: 'a Exn.result list -> 'a list
   val focus: task list -> unit
   val interrupt_task: string -> unit
   val cancel: 'a T -> unit
@@ -236,7 +235,7 @@ fun future opt_group deps pri (e: unit -> 'a) =
     val result = ref (NONE: 'a Exn.result option);
     val run = Multithreading.with_attributes (Thread.getAttributes ())
       (fn _ => fn ok =>
-        let val res = if ok then Exn.capture e () else Exn.Exn Interrupt
+        let val res = if ok then Exn.capture e () else Exn.Exn Exn.Interrupt
         in result := SOME res; is_some (Exn.get_result res) end);
 
     val task = SYNCHRONIZED "future" (fn () =>
@@ -286,18 +285,6 @@ fun join_results [] = []
       in xs |> map (fn Future {result = ref (SOME res), ...} => res) end;
 
 fun join x = Exn.release (singleton join_results x);
-
-
-(* release results *)
-
-fun proper_exn (Exn.Result _) = NONE
-  | proper_exn (Exn.Exn Interrupt) = NONE
-  | proper_exn (Exn.Exn exn) = SOME exn;
-
-fun release_results results =
-  (case get_first proper_exn results of
-    SOME exn => raise exn
-  | NONE => List.map Exn.release results);
 
 
 (* misc operations *)
