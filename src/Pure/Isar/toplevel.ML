@@ -385,9 +385,9 @@ fun apply_tr int _ (Init (_, f, exit)) (State (NONE, _)) =
 
 fun apply_union _ _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int pos (tr :: trs) state =
-      apply_tr int pos tr state
-        handle UNDEF => apply_union int pos trs state
-          | FAILURE (alt_state, UNDEF) => apply_union int pos trs alt_state
+      apply_union int pos trs state
+        handle UNDEF => apply_tr int pos tr state
+          | FAILURE (alt_state, UNDEF) => apply_tr int pos tr alt_state
           | exn as FAILURE _ => raise exn
           | exn => raise FAILURE (state, exn);
 
@@ -437,8 +437,8 @@ fun type_error tr state =
 
 (* modify transitions *)
 
-fun name nm = map_transition (fn (_, pos, int_only, print, no_timing, trans) =>
-  (nm, pos, int_only, print, no_timing, trans));
+fun name name = map_transition (fn (_, pos, int_only, print, no_timing, trans) =>
+  (name, pos, int_only, print, no_timing, trans));
 
 fun position pos = map_transition (fn (name, _, int_only, print, no_timing, trans) =>
   (name, pos, int_only, print, no_timing, trans));
@@ -450,7 +450,7 @@ val no_timing = map_transition (fn (name, pos, int_only, print, _, trans) =>
   (name, pos, int_only, print, true, trans));
 
 fun add_trans tr = map_transition (fn (name, pos, int_only, print, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, trans @ [tr]));
+  (name, pos, int_only, print, no_timing, tr :: trans));
 
 val reset_trans = map_transition (fn (name, pos, int_only, print, no_timing, _) =>
   (name, pos, int_only, print, no_timing, []));
