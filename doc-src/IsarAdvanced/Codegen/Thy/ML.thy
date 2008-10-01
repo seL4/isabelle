@@ -108,12 +108,6 @@ text {*
   involves using those primitive interfaces
   but also storing code-dependent data and various
   other things.
-
-  \begin{warn}
-    Some interfaces discussed here have not reached
-    a final state yet.
-    Changes likely to occur in future.
-  \end{warn}
 *}
 
 subsubsection {* Data depending on the theory's executable content *}
@@ -152,7 +146,7 @@ text {*
 
   \end{description}
 
-  An instance of @{ML_functor CodeDataFun} provides the following
+  \noindent An instance of @{ML_functor CodeDataFun} provides the following
   interface:
 
   \medskip
@@ -175,6 +169,8 @@ text {*
 *}
 
 text {*
+  \bigskip
+
   \emph{Happy proving, happy hacking!}
 *}
 

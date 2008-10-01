@@ -1,0 +1,484 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Adaption}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Adaption\isanewline
+\isakeyword{imports}\ Setup\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupsection{Adaption to target languages \label{sec:adaption}%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Common adaption cases%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{Main}}} theory already provides a code
+  generator setup
+  which should be suitable for most applications. Common extensions
+  and modifications are available by certain theories of the \isa{HOL}
+  library; beside being useful in applications, they may serve
+  as a tutorial for customising the code generator setup (see below
+  \secref{sec:adaption_mechanisms}).
+
+  \begin{description}
+
+    \item[\hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isacharunderscore}Integer}}}] represents \isa{HOL} integers by big
+       integer literals in target languages.
+    \item[\hyperlink{theory.Code-Char}{\mbox{\isa{Code{\isacharunderscore}Char}}}] represents \isa{HOL} characters by 
+       character literals in target languages.
+    \item[\hyperlink{theory.Code-Char-chr}{\mbox{\isa{Code{\isacharunderscore}Char{\isacharunderscore}chr}}}] like \isa{Code{\isacharunderscore}Char},
+       but also offers treatment of character codes; includes
+       \hyperlink{theory.Code-Char-chr}{\mbox{\isa{Code{\isacharunderscore}Char{\isacharunderscore}chr}}}.
+    \item[\hyperlink{theory.Efficient-Nat}{\mbox{\isa{Efficient{\isacharunderscore}Nat}}}] \label{eff_nat} implements natural numbers by integers,
+       which in general will result in higher efficiency; pattern
+       matching with \isa{{\isadigit{0}}} / \isa{Suc}
+       is eliminated;  includes \hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isacharunderscore}Integer}}}.
+    \item[\hyperlink{theory.Code-Index}{\mbox{\isa{Code{\isacharunderscore}Index}}}] provides an additional datatype
+       \isa{index} which is mapped to target-language built-in integers.
+       Useful for code setups which involve e.g. indexing of
+       target-language arrays.
+    \item[\hyperlink{theory.Code-Message}{\mbox{\isa{Code{\isacharunderscore}Message}}}] provides an additional datatype
+       \isa{message{\isacharunderscore}string} which is isomorphic to strings;
+       \isa{message{\isacharunderscore}string}s are mapped to target-language strings.
+       Useful for code setups which involve e.g. printing (error) messages.
+
+  \end{description}
+
+  \begin{warn}
+    When importing any of these theories, they should form the last
+    items in an import list.  Since these theories adapt the
+    code generator setup in a non-conservative fashion,
+    strange effects may occur otherwise.
+  \end{warn}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Adaption mechanisms \label{sec:adaption_mechanisms}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{warn}
+    The mechanisms shown here are especially for the curious;  the user
+    rarely needs to do anything on his own beyond the defaults in \isa{HOL}.
+    Adaption is a delicated task which requires a lot of dilligence since
+    it happend \emph{completely} outside the logic.
+  \end{warn}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Consider the following function and its corresponding
+  SML code:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\isatagquoteme
+\isacommand{primrec}\isamarkupfalse%
+\ in{\isacharunderscore}interval\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymtimes}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}in{\isacharunderscore}interval\ {\isacharparenleft}k{\isacharcomma}\ l{\isacharparenright}\ n\ {\isasymlongleftrightarrow}\ k\ {\isasymle}\ n\ {\isasymand}\ n\ {\isasymle}\ l{\isachardoublequoteclose}%
+\endisatagquoteme
+{\isafoldquoteme}%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
+\isataginvisible
+%
+\endisataginvisible
+{\isafoldinvisible}%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\isatagquoteme
+%
+\begin{isamarkuptext}%
+\isaverbatim%
+\noindent%
+\verb|structure Example = |\newline%
+\verb|struct|\newline%
+\newline%
+\verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
+\newline%
+\verb|datatype boola = False |\verb,|,\verb| True;|\newline%
+\newline%
+\verb|fun anda x True = x|\newline%
+\verb|  |\verb,|,\verb| anda x False = False|\newline%
+\verb|  |\verb,|,\verb| anda True x = x|\newline%
+\verb|  |\verb,|,\verb| anda False x = False;|\newline%
+\newline%
+\verb|fun less_nat m (Suc n) = less_eq_nat m n|\newline%
+\verb|  |\verb,|,\verb| less_nat n Zero_nat = False|\newline%
+\verb|and less_eq_nat (Suc m) n = less_nat m n|\newline%
+\verb|  |\verb,|,\verb| less_eq_nat Zero_nat n = True;|\newline%
+\newline%
+\verb|fun in_interval (k, l) n = anda (less_eq_nat k n) (less_eq_nat n l);|\newline%
+\newline%
+\verb|end; (*struct Example*)|%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquoteme
+{\isafoldquoteme}%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\begin{isamarkuptext}%
+\noindent Though this is correct code, it is a little bit unsatisfactory:
+  boolean values and operators are materialised as distinguished
+  entities with have nothing to do with the SML-built-in notion
+  of \qt{bool}.  This results in less readable code;
+  additionally, eager evaluation may cause programs to
+  loop or break which would perfectly terminate when
+  the existing SML \verb|bool| would be used.  To map
+  the HOL \isa{bool} on SML \verb|bool|, we may use
+  \qn{custom serialisations}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\isatagtt
+\isacommand{code{\isacharunderscore}type}\isamarkupfalse%
+\ bool\isanewline
+\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}bool{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
+\ True\ \isakeyword{and}\ False\ \isakeyword{and}\ {\isachardoublequoteopen}op\ {\isasymand}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}true{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}false{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}{\isacharunderscore}\ andalso\ {\isacharunderscore}{\isachardoublequoteclose}{\isacharparenright}%
+\endisatagtt
+{\isafoldtt}%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\begin{isamarkuptext}%
+\noindent The \hyperlink{command.code-type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}} command takes a type constructor
+  as arguments together with a list of custom serialisations.
+  Each custom serialisation starts with a target language
+  identifier followed by an expression, which during
+  code serialisation is inserted whenever the type constructor
+  would occur.  For constants, \hyperlink{command.code-const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}} implements
+  the corresponding mechanism.  Each ``\verb|_|'' in
+  a serialisation expression is treated as a placeholder
+  for the type constructor's (the constant's) arguments.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\isatagquoteme
+%
+\begin{isamarkuptext}%
+\isaverbatim%
+\noindent%
+\verb|structure Example = |\newline%
+\verb|struct|\newline%
+\newline%
+\verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
+\newline%
+\verb|fun less_nat m (Suc n) = less_eq_nat m n|\newline%
+\verb|  |\verb,|,\verb| less_nat n Zero_nat = false|\newline%
+\verb|and less_eq_nat (Suc m) n = less_nat m n|\newline%
+\verb|  |\verb,|,\verb| less_eq_nat Zero_nat n = true;|\newline%
+\newline%
+\verb|fun in_interval (k, l) n = (less_eq_nat k n) andalso (less_eq_nat n l);|\newline%
+\newline%
+\verb|end; (*struct Example*)|%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquoteme
+{\isafoldquoteme}%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\begin{isamarkuptext}%
+\noindent This still is not perfect: the parentheses
+  around the \qt{andalso} expression are superfluous.
+  Though the serializer
+  by no means attempts to imitate the rich Isabelle syntax
+  framework, it provides some common idioms, notably
+  associative infixes with precedences which may be used here:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\isatagtt
+\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
+\ {\isachardoublequoteopen}op\ {\isasymand}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharparenleft}SML\ \isakeyword{infixl}\ {\isadigit{1}}\ {\isachardoublequoteopen}andalso{\isachardoublequoteclose}{\isacharparenright}%
+\endisatagtt
+{\isafoldtt}%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\isatagquoteme
+%
+\begin{isamarkuptext}%
+\isaverbatim%
+\noindent%
+\verb|structure Example = |\newline%
+\verb|struct|\newline%
+\newline%
+\verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
+\newline%
+\verb|fun less_nat m (Suc n) = less_eq_nat m n|\newline%
+\verb|  |\verb,|,\verb| less_nat n Zero_nat = false|\newline%
+\verb|and less_eq_nat (Suc m) n = less_nat m n|\newline%
+\verb|  |\verb,|,\verb| less_eq_nat Zero_nat n = true;|\newline%
+\newline%
+\verb|fun in_interval (k, l) n = less_eq_nat k n andalso less_eq_nat n l;|\newline%
+\newline%
+\verb|end; (*struct Example*)|%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquoteme
+{\isafoldquoteme}%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\begin{isamarkuptext}%
+\noindent Next, we try to map HOL pairs to SML pairs, using the
+  infix ``\verb|*|'' type constructor and parentheses:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
+\isataginvisible
+%
+\endisataginvisible
+{\isafoldinvisible}%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\isatagtt
+\isacommand{code{\isacharunderscore}type}\isamarkupfalse%
+\ {\isacharasterisk}\isanewline
+\ \ {\isacharparenleft}SML\ \isakeyword{infix}\ {\isadigit{2}}\ {\isachardoublequoteopen}{\isacharasterisk}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
+\ Pair\isanewline
+\ \ {\isacharparenleft}SML\ {\isachardoublequoteopen}{\isacharbang}{\isacharparenleft}{\isacharparenleft}{\isacharunderscore}{\isacharparenright}{\isacharcomma}{\isacharslash}\ {\isacharparenleft}{\isacharunderscore}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}%
+\endisatagtt
+{\isafoldtt}%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\begin{isamarkuptext}%
+\noindent The initial bang ``\verb|!|'' tells the serializer to never put
+  parentheses around the whole expression (they are already present),
+  while the parentheses around argument place holders
+  tell not to put parentheses around the arguments.
+  The slash ``\verb|/|'' (followed by arbitrary white space)
+  inserts a space which may be used as a break if necessary
+  during pretty printing.
+
+  These examples give a glimpse what mechanisms
+  custom serialisations provide; however their usage
+  requires careful thinking in order not to introduce
+  inconsistencies -- or, in other words:
+  custom serialisations are completely axiomatic.
+
+  A further noteworthy details is that any special
+  character in a custom serialisation may be quoted
+  using ``\verb|'|''; thus, in
+  ``\verb|fn '_ => _|'' the first
+  ``\verb|_|'' is a proper underscore while the
+  second ``\verb|_|'' is a placeholder.
+
+  The HOL theories provide further
+  examples for custom serialisations.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{\isa{Haskell} serialisation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+For convenience, the default
+  \isa{HOL} setup for \isa{Haskell} maps the \isa{eq} class to
+  its counterpart in \isa{Haskell}, giving custom serialisations
+  for the class \isa{eq} (by command \hyperlink{command.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}) and its operation
+  \isa{eq{\isacharunderscore}class{\isachardot}eq}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\isatagtt
+\isacommand{code{\isacharunderscore}class}\isamarkupfalse%
+\ eq\isanewline
+\ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Eq{\isachardoublequoteclose}\ \isakeyword{where}\ {\isachardoublequoteopen}HOL{\isachardot}eq{\isachardoublequoteclose}\ {\isasymequiv}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharequal}{\isacharequal}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\isanewline
+\isacommand{code{\isacharunderscore}const}\isamarkupfalse%
+\ {\isachardoublequoteopen}op\ {\isacharequal}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharparenleft}Haskell\ \isakeyword{infixl}\ {\isadigit{4}}\ {\isachardoublequoteopen}{\isacharequal}{\isacharequal}{\isachardoublequoteclose}{\isacharparenright}%
+\endisatagtt
+{\isafoldtt}%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\begin{isamarkuptext}%
+\noindent A problem now occurs whenever a type which
+  is an instance of \isa{eq} in \isa{HOL} is mapped
+  on a \isa{Haskell}-built-in type which is also an instance
+  of \isa{Haskell} \isa{Eq}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\isatagquoteme
+\isacommand{typedecl}\isamarkupfalse%
+\ bar\isanewline
+\isanewline
+\isacommand{instantiation}\isamarkupfalse%
+\ bar\ {\isacharcolon}{\isacharcolon}\ eq\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isachardoublequoteopen}eq{\isacharunderscore}class{\isachardot}eq\ {\isacharparenleft}x{\isasymColon}bar{\isacharparenright}\ y\ {\isasymlongleftrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{instance}\isamarkupfalse%
+\ \isacommand{by}\isamarkupfalse%
+\ default\ {\isacharparenleft}simp\ add{\isacharcolon}\ eq{\isacharunderscore}bar{\isacharunderscore}def{\isacharparenright}\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagquoteme
+{\isafoldquoteme}%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+\isanewline
+%
+\isadelimtt
+\isanewline
+%
+\endisadelimtt
+%
+\isatagtt
+\isacommand{code{\isacharunderscore}type}\isamarkupfalse%
+\ bar\isanewline
+\ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Integer{\isachardoublequoteclose}{\isacharparenright}%
+\endisatagtt
+{\isafoldtt}%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\begin{isamarkuptext}%
+\noindent The code generator would produce
+  an additional instance, which of course is rejectedby the \isa{Haskell}
+  compiler.
+  To suppress this additional instance, use
+  \isa{code{\isacharunderscore}instance}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\isatagtt
+\isacommand{code{\isacharunderscore}instance}\isamarkupfalse%
+\ bar\ {\isacharcolon}{\isacharcolon}\ eq\isanewline
+\ \ {\isacharparenleft}Haskell\ {\isacharminus}{\isacharparenright}%
+\endisatagtt
+{\isafoldtt}%
+%
+\isadelimtt
+%
+\endisadelimtt
+\isanewline
+%
+\isadelimtheory
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

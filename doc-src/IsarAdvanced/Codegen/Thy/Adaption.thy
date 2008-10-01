@@ -66,12 +66,12 @@ text {*
 
 primrec %quoteme in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "in_interval (k, l) n \<longleftrightarrow> k \<le> n \<and> n \<le> l"
-
+(*<*)
 code_type %invisible bool
   (SML)
 code_const %invisible True and False and "op \<and>" and Not
   (SML and and and)
-
+(*>*)
 text %quoteme {*@{code_stmts in_interval (SML)}*}
 
 text {*
@@ -92,7 +92,7 @@ code_const %tt True and False and "op \<and>"
   (SML "true" and "false" and "_ andalso _")
 
 text {*
-  The @{command code_type} command takes a type constructor
+  \noindent The @{command code_type} command takes a type constructor
   as arguments together with a list of custom serialisations.
   Each custom serialisation starts with a target language
   identifier followed by an expression, which during
@@ -120,22 +120,22 @@ code_const %tt "op \<and>"
 text %quoteme {*@{code_stmts in_interval (SML)}*}
 
 text {*
-  Next, we try to map HOL pairs to SML pairs, using the
+  \noindent Next, we try to map HOL pairs to SML pairs, using the
   infix ``@{verbatim "*"}'' type constructor and parentheses:
 *}
-
+(*<*)
 code_type %invisible *
   (SML)
 code_const %invisible Pair
   (SML)
-
+(*>*)
 code_type %tt *
   (SML infix 2 "*")
 code_const %tt Pair
   (SML "!((_),/ (_))")
 
 text {*
-  The initial bang ``@{verbatim "!"}'' tells the serializer to never put
+  \noindent The initial bang ``@{verbatim "!"}'' tells the serializer to never put
   parentheses around the whole expression (they are already present),
   while the parentheses around argument place holders
   tell not to put parentheses around the arguments.
@@ -178,7 +178,7 @@ code_const %tt "op ="
   (Haskell infixl 4 "==")
 
 text {*
-  A problem now occurs whenever a type which
+  \noindent A problem now occurs whenever a type which
   is an instance of @{class eq} in @{text HOL} is mapped
   on a @{text Haskell}-built-in type which is also an instance
   of @{text Haskell} @{text Eq}:
@@ -199,7 +199,7 @@ code_type %tt bar
   (Haskell "Integer")
 
 text {*
-  The code generator would produce
+  \noindent The code generator would produce
   an additional instance, which of course is rejectedby the @{text Haskell}
   compiler.
   To suppress this additional instance, use

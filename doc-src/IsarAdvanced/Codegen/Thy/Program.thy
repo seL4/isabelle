@@ -6,20 +6,30 @@ section {* Turning Theories into Programs \label{sec:program} *}
 
 subsection {* The @{text "Isabelle/HOL"} default setup *}
 
-subsection {* Selecting code equations *}
-
 text {*
   We have already seen how by default equations stemming from
   @{command definition}/@{command primrec}/@{command fun}
-  statements are used for code generation.  Deviating from this
-  \emph{default} behaviour is always possible -- e.g.~we
-  could provide an alternative @{text fun} for @{const dequeue} proving
-  the following equations explicitly:
+  statements are used for code generation.  This default behaviour
+  can be changed, e.g. by providing different defining equations.
+  All kinds of customization shown in this section is \emph{safe}
+  in the sense that the user does not have to worry about
+  correctness -- all programs generatable that way are partially
+  correct.
+*}
+
+subsection {* Selecting code equations *}
+
+text {*
+  Coming back to our introductory example, we
+  could provide an alternative defining equations for @{const dequeue}
+  explicitly:
 *}
 
 lemma %quoteme [code func]:
-  "dequeue (Queue xs []) = (if xs = [] then (None, Queue [] []) else dequeue (Queue [] (rev xs)))"
-  "dequeue (Queue xs (y # ys)) = (Some y, Queue xs ys)"
+  "dequeue (Queue xs []) =
+     (if xs = [] then (None, Queue [] []) else dequeue (Queue [] (rev xs)))"
+  "dequeue (Queue xs (y # ys)) =
+     (Some y, Queue xs ys)"
   by (cases xs, simp_all) (cases "rev xs", simp_all)
 
 text {*
@@ -60,7 +70,7 @@ text {*
 subsection {* @{text class} and @{text instantiation} *}
 
 text {*
-  Concerning type classes and code generation, let us again examine an example
+  Concerning type classes and code generation, let us examine an example
   from abstract algebra:
 *}
 
@@ -105,7 +115,7 @@ text {*
   on monoids:
 *}
 
-primrec %quoteme pow :: "nat \<Rightarrow> 'a\<Colon>monoid \<Rightarrow> 'a\<Colon>monoid" where
+primrec %quoteme (in monoid) pow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
     "pow 0 a = \<one>"
   | "pow (Suc n) a = a \<otimes> pow n a"
 
@@ -123,31 +133,16 @@ text {*
 text %quoteme {*@{code_stmts bexp (Haskell)}*}
 
 text {*
-  \noindent An inspection reveals that the equations stemming from the
-  @{command primrec} statement within instantiation of class
-  @{class semigroup} with type @{typ nat} are mapped to a separate
-  function declaration @{verbatim mult_nat} which in turn is used
-  to provide the right hand side for the @{verbatim "instance Semigroup Nat"}.
-  This perfectly
-  agrees with the restriction that @{text inst} statements may
-  only contain one single equation for each class class parameter
-  The @{command instantiation} mechanism manages that for each
-  overloaded constant @{text "f [\<kappa> \<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>]"}
-  a \emph{shadow constant} @{text "f\<^isub>\<kappa> [\<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>]"} is
-  declared satisfying @{text "f [\<kappa> \<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>] \<equiv> f\<^isub>\<kappa> [\<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>]"}.
-  this equation is indeed the one used for the statement;
-  using it as a rewrite rule, defining equations for 
-  @{text "f [\<kappa> \<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>]"} can be turned into
-  defining equations for @{text "f\<^isub>\<kappa> [\<^bvec>\<alpha>\<Colon>s\<^isub>k\<^evec>]"}.  This
-  happens transparently, providing the illusion that class parameters
-  can be instantiated with more than one equation.
-
-  This is a convenient place to show how explicit dictionary construction
+  \noindent This is a convenient place to show how explicit dictionary construction
   manifests in generated code (here, the same example in @{text SML}):
 *}
 
 text %quoteme {*@{code_stmts bexp (SML)}*}
 
+text {*
+  \noindent Note the parameters with trailing underscore (@{verbatim "A_"})
+    which are the dictionary parameters.
+*}
 
 subsection {* The preprocessor \label{sec:preproc} *}
 
@@ -199,7 +194,7 @@ text_raw {*
 *}
 
 text {*
-  \emph{Function transformers} provide a very general interface,
+  \noindent \emph{Function transformers} provide a very general interface,
   transforming a list of function theorems to another
   list of function theorems, provided that neither the heading
   constant nor its type change.  The @{term "0\<Colon>nat"} / @{const Suc}
@@ -215,8 +210,9 @@ text {*
 
   \begin{warn}
     The attribute \emph{code unfold}
-    associated with the existing code generator also applies to
-    the new one: \emph{code unfold} implies \emph{code inline}.
+    associated with the @{text "SML code generator"} also applies to
+    the @{text "generic code generator"}:
+    \emph{code unfold} implies \emph{code inline}.
   \end{warn}
 *}
 
@@ -246,7 +242,7 @@ definition %quoteme  Dig1 :: "nat \<Rightarrow> nat" where
   "Dig1 n = Suc (2 * n)"
 
 text {*
-  \noindent We will use these two ">digits"< to represent natural numbers
+  \noindent We will use these two \qt{digits} to represent natural numbers
   in binary digits, e.g.:
 *}
 
@@ -299,9 +295,7 @@ text {*
 text %quoteme {*@{code_stmts "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" (SML)}*}
 
 text {*
-  \medskip
-
-  From this example, it can be easily glimpsed that using own constructor sets
+  \noindent From this example, it can be easily glimpsed that using own constructor sets
   is a little delicate since it changes the set of valid patterns for values
   of that type.  Without going into much detail, here some practical hints:
 
@@ -334,9 +328,8 @@ text {*
   by the code generator:
 *}
 
-primrec %quoteme
-  collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "collect_duplicates xs ys [] = xs"
+primrec %quoteme collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "collect_duplicates xs ys [] = xs"
   | "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
       then if z \<in> set ys
         then collect_duplicates xs ys zs
@@ -356,7 +349,8 @@ text {*
   way using a type class.  How is this achieved?  HOL introduces
   an explicit class @{class eq} with a corresponding operation
   @{const eq_class.eq} such that @{thm eq [no_vars]}.
-  The preprocessing framework does the rest.
+  The preprocessing framework does the rest by propagating the
+  @{class eq} constraints through all dependent defining equations.
   For datatypes, instances of @{class eq} are implicitly derived
   when possible.  For other types, you may instantiate @{text eq}
   manually like any other type class.
@@ -365,50 +359,54 @@ text {*
   the way, a subtlety
   enters the stage when definitions of overloaded constants
   are dependent on operational equality.  For example, let
-  us define a lexicographic ordering on tuples:
+  us define a lexicographic ordering on tuples
+  (also see theory @{theory Product_ord}):
 *}
 
-instantiation %quoteme * :: (ord, ord) ord
+instantiation %quoteme "*" :: (order, order) order
 begin
 
 definition %quoteme [code func del]:
-  "p1 < p2 \<longleftrightarrow> (let (x1, y1) = p1; (x2, y2) = p2 in x1 < x2 \<or> (x1 = x2 \<and> y1 < y2))"
+  "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x \<le> snd y"
 
 definition %quoteme [code func del]:
-  "p1 \<le> p2 \<longleftrightarrow> (let (x1, y1) = p1; (x2, y2) = p2 in x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2))"
+  "x < y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x < snd y"
 
-instance %quoteme ..
+instance %quoteme proof
+qed (auto simp: less_eq_prod_def less_prod_def intro: order_less_trans)
 
 end %quoteme
 
-lemma %quoteme ord_prod [code func]:
-  "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  "(x1 \<Colon> 'a\<Colon>ord, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
-  unfolding less_prod_def less_eq_prod_def by simp_all
+lemma %quoteme order_prod [code func]:
+  "(x1 \<Colon> 'a\<Colon>order, y1 \<Colon> 'b\<Colon>order) < (x2, y2) \<longleftrightarrow>
+     x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
+  "(x1 \<Colon> 'a\<Colon>order, y1 \<Colon> 'b\<Colon>order) \<le> (x2, y2) \<longleftrightarrow>
+     x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"
+  by (simp_all add: less_prod_def less_eq_prod_def)
 
 text {*
   \noindent Then code generation will fail.  Why?  The definition
   of @{term "op \<le>"} depends on equality on both arguments,
   which are polymorphic and impose an additional @{class eq}
-  class constraint, which the preprocessort does not propagate for technical
-  reasons.
+  class constraint, which the preprocessor does not propagate
+  (for technical reasons).
 
   The solution is to add @{class eq} explicitly to the first sort arguments in the
   code theorems:
 *}
 
-lemma ord_prod_code [code func]:
-  "(x1 \<Colon> 'a\<Colon>{ord, eq}, y1 \<Colon> 'b\<Colon>ord) < (x2, y2) \<longleftrightarrow>
-    x1 < x2 \<or> (x1 = x2 \<and> y1 < y2)"
-  "(x1 \<Colon> 'a\<Colon>{ord, eq}, y1 \<Colon> 'b\<Colon>ord) \<le> (x2, y2) \<longleftrightarrow>
-    x1 < x2 \<or> (x1 = x2 \<and> y1 \<le> y2)"
-  unfolding ord_prod by rule+
+lemma %quoteme order_prod_code [code func]:
+  "(x1 \<Colon> 'a\<Colon>{order, eq}, y1 \<Colon> 'b\<Colon>order) < (x2, y2) \<longleftrightarrow>
+     x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
+  "(x1 \<Colon> 'a\<Colon>{order, eq}, y1 \<Colon> 'b\<Colon>order) \<le> (x2, y2) \<longleftrightarrow>
+     x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"
+  by (simp_all add: less_prod_def less_eq_prod_def)
 
 text {*
   \noindent Then code generation succeeds:
 *}
 
-text %quoteme {*@{code_stmts "op \<le> \<Colon> 'a\<Colon>{eq, ord} \<times> 'b\<Colon>ord \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool" (SML)}*}
+text %quoteme {*@{code_stmts "op \<le> \<Colon> _ \<times> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (SML)}*}
 
 text {*
   In some cases, the automatically derived defining equations
@@ -434,7 +432,7 @@ text {*
   recursive @{text inst} and @{text fun} definitions,
   but the SML serializer does not support this.
 
-  In such cases, you have to provide you own equality equations
+  In such cases, you have to provide your own equality equations
   involving auxiliary constants.  In our case,
   @{const [show_types] list_all2} can do the job:
 *}

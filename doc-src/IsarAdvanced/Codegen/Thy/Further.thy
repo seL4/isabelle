@@ -2,7 +2,7 @@ theory Further
 imports Setup
 begin
 
-section {* Further topics \label{sec:further} *}
+section {* Further issues \label{sec:further} *}
 
 subsection {* Further reading *}
 

@@ -1,0 +1,108 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Further}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Further\isanewline
+\isakeyword{imports}\ Setup\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupsection{Further issues \label{sec:further}%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Further reading%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Do dive deeper into the issue of code generation, you should visit
+  the Isabelle/Isar Reference Manual \cite{isabelle-isar-ref} which
+  constains exhaustive syntax diagrams.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Modules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} command it is possible to leave
+  out the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isacharunderscore}name}}}} part;  then code is distributed over
+  different modules, where the module name space roughly is induced
+  by the \isa{Isabelle} theory namespace.
+
+  Then sometimes the awkward situation occurs that dependencies between
+  definitions introduce cyclic dependencies between modules, which in the
+  \isa{Haskell} world leaves you to the mercy of the \isa{Haskell} implementation
+  you are using,  while for \isa{SML}/\isa{OCaml} code generation is not possible.
+
+  A solution is to declare module names explicitly.
+  Let use assume the three cyclically dependent
+  modules are named \emph{A}, \emph{B} and \emph{C}.
+  Then, by stating%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{code{\isacharunderscore}modulename}\isamarkupfalse%
+\ SML\isanewline
+\ \ A\ ABC\isanewline
+\ \ B\ ABC\isanewline
+\ \ C\ ABC%
+\begin{isamarkuptext}%
+we explicitly map all those modules on \emph{ABC},
+  resulting in an ad-hoc merge of this three modules
+  at serialisation time.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Evaluation oracle%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Code antiquotation%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Creating new targets%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+extending targets, adding targets%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Imperative data structures%
+}
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
