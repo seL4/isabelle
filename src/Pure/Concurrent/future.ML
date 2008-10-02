@@ -188,6 +188,11 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 
 (* scheduler *)
 
+fun heartbeat name =
+ (Multithreading.tracing 1 (fn () => name);
+  OS.Process.sleep (Time.fromMilliseconds 100);
+  if ! do_shutdown then () else heartbeat name);
+
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let
     (*worker threads*)
@@ -227,7 +232,8 @@ fun scheduler_active () = (*requires SYNCHRONIZED*)
 fun scheduler_check name = SYNCHRONIZED name (fn () =>
   if not (scheduler_active ()) then
     (Multithreading.tracing 2 (fn () => "scheduler: fork");
-     do_shutdown := false; scheduler := SOME (SimpleThread.fork false scheduler_loop))
+     do_shutdown := false; scheduler := SOME (SimpleThread.fork false scheduler_loop);
+     SimpleThread.fork false (fn () => heartbeat ("heartbeat " ^ string_of_int (inc next))); ())
   else if ! do_shutdown then error "Scheduler shutdown in progress"
   else ());
 
@@ -321,7 +327,8 @@ fun shutdown () =
       do_shutdown := true;
       notify_all ();
       while not (null (! workers)) do wait "shutdown: workers";
-      while scheduler_active () do wait "shutdown: scheduler still active")))
+      while scheduler_active () do wait "shutdown: scheduler still active";
+      OS.Process.sleep (Time.fromMilliseconds 300))))
   else ();
 
 end;
