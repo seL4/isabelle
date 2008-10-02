@@ -57,7 +57,8 @@ Coming back to our introductory example, we
 \isacommand{lemma}\isamarkupfalse%
 \ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}Queue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ {\isacharparenleft}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ {\isacharparenleft}None{\isacharcomma}\ Queue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ else\ dequeue\ {\isacharparenleft}Queue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ {\isacharparenleft}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ {\isacharparenleft}None{\isacharcomma}\ Queue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ else\ dequeue\ {\isacharparenleft}Queue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}Queue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ \ \ \ {\isacharparenleft}Some\ y{\isacharcomma}\ Queue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
@@ -86,35 +87,11 @@ Coming back to our introductory example, we
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|module Example where {|\newline%
-\newline%
-\newline%
-\verb|foldla :: forall a b. (a -> b -> a) -> a -> [b] -> a;|\newline%
-\verb|foldla f a [] = a;|\newline%
-\verb|foldla f a (x : xs) = foldla f (f a x) xs;|\newline%
-\newline%
-\verb|rev :: forall a. [a] -> [a];|\newline%
-\verb|rev xs = foldla (\ xsa x -> x : xsa) [] xs;|\newline%
-\newline%
-\verb|nulla :: forall a. [a] -> Bool;|\newline%
-\verb|nulla (x : xs) = False;|\newline%
-\verb|nulla [] = True;|\newline%
-\newline%
-\verb|data Queue a = Queue [a] [a];|\newline%
-\newline%
-\verb|empty :: forall a. Queue a;|\newline%
-\verb|empty = Queue [] [];|\newline%
-\newline%
 \verb|dequeue :: forall a. Queue a -> (Maybe a, Queue a);|\newline%
 \verb|dequeue (Queue xs (y : ys)) = (Just y, Queue xs ys);|\newline%
 \verb|dequeue (Queue xs []) =|\newline%
 \verb|  (if nulla xs then (Nothing, Queue [] [])|\newline%
-\verb|    else dequeue (Queue [] (rev xs)));|\newline%
-\newline%
-\verb|enqueue :: forall a. a -> Queue a -> Queue a;|\newline%
-\verb|enqueue x (Queue xs ys) = Queue (x : xs) ys;|\newline%
-\newline%
-\verb|}|%
+\verb|    else dequeue (Queue [] (rev xs)));|%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

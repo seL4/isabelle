@@ -27,7 +27,8 @@ text {*
 
 lemma %quoteme [code func]:
   "dequeue (Queue xs []) =
-     (if xs = [] then (None, Queue [] []) else dequeue (Queue [] (rev xs)))"
+     (if xs = [] then (None, Queue [] [])
+       else dequeue (Queue [] (rev xs)))"
   "dequeue (Queue xs (y # ys)) =
      (Some y, Queue xs ys)"
   by (cases xs, simp_all) (cases "rev xs", simp_all)
@@ -39,7 +40,7 @@ text {*
   the corresponding constant is determined syntactically.  The resulting code:
 *}
 
-text %quoteme {*@{code_stmts empty enqueue dequeue (Haskell)}*}
+text %quoteme {*@{code_stmts dequeue (consts) dequeue (Haskell)}*}
 
 text {*
   \noindent You may note that the equality test @{term "xs = []"} has been

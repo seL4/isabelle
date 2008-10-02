@@ -60,7 +60,7 @@ text {*
 *}
 
 text {*
-  Consider the following function and its corresponding
+  \noindent Consider the following function and its corresponding
   SML code:
 *}
 
