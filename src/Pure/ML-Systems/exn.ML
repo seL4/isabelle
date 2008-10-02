@@ -13,8 +13,7 @@ sig
   val capture: ('a -> 'b) -> 'a -> 'b result
   val release: 'a result -> 'a
   exception Interrupt
-  val proper_exn: 'a result -> exn option
-  exception EXCEPTIONS of exn list * string
+  exception EXCEPTIONS of exn list
   val release_all: 'a result list -> 'a list
   val release_first: 'a result list -> 'a list
 end;
@@ -40,28 +39,26 @@ fun release (Result y) = y
   | release (Exn e) = raise e;
 
 
-(* interrupt *)
+(* interrupt and nested exceptions *)
 
 exception Interrupt = Interrupt;
+exception EXCEPTIONS of exn list;
 
-fun proper_exn (Result _) = NONE
-  | proper_exn (Exn Interrupt) = NONE
-  | proper_exn (Exn exn) = SOME exn;
+fun plain_exns (Result _) = []
+  | plain_exns (Exn Interrupt) = []
+  | plain_exns (Exn (EXCEPTIONS exns)) = List.concat (map (plain_exns o Exn) exns)
+  | plain_exns (Exn exn) = [exn];
 
-
-(* release results -- collating interrupts *)
-
-exception EXCEPTIONS of exn list * string;
 
 fun release_all results =
   if List.all (fn Result _ => true | _ => false) results
   then map (fn Result x => x) results
   else
-    (case List.mapPartial proper_exn results of
+    (case List.concat (map plain_exns results) of
       [] => raise Interrupt
-    | exns => raise EXCEPTIONS (exns, ""));
+    | exns => raise EXCEPTIONS exns);
 
 fun release_first results = release_all results
-  handle EXCEPTIONS (exn :: _, _) => raise exn;
+  handle EXCEPTIONS (exn :: _) => raise exn;
 
 end;
