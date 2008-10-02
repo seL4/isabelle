@@ -42,9 +42,9 @@ function show_times ()
   done
   if let "$TIME1 >= 5 && $TIME2 >= 5"
   then
-    local FACTOR=$(( $TIME2 * 10 / $TIME1 ))
-    local FACTOR1=$(( $FACTOR / 10 ))
-    local FACTOR2=$(( $FACTOR % 10 ))
+    local FACTOR=$(( $TIME2 * 100 / $TIME1 ))
+    local FACTOR1=$(( $FACTOR / 100 ))
+    local FACTOR2=$(( $FACTOR % 100 ))
     TIMES_REPORT="$TIMES_REPORT, factor ${FACTOR1}.${FACTOR2}"
   fi
 }
