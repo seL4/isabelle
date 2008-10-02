@@ -69,20 +69,20 @@ val no_interrupts =
 val regular_interrupts =
   [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce];
 
+val safe_interrupts = map
+  (fn Thread.InterruptState Thread.InterruptAsynch =>
+      Thread.InterruptState Thread.InterruptAsynchOnce
+    | x => x);
+
 fun with_attributes new_atts f x =
   let
     val orig_atts = Thread.getAttributes ();
     fun restore () = Thread.setAttributes orig_atts;
-  in
-    Exn.release
-    (*RACE for fully asynchronous interrupts!*)
-    (let
-        val _ = Thread.setAttributes new_atts;
-        val result = Exn.capture (f orig_atts) x;
-        val _ = restore ();
-      in result end
-      handle Exn.Interrupt => (restore (); Exn.Exn Exn.Interrupt))
-  end;
+    val result =
+      (Thread.setAttributes (safe_interrupts new_atts);
+        Exn.Result (f orig_atts x) before restore ())
+      handle e => Exn.Exn e before restore ()
+  in Exn.release result end;
 
 fun interruptible f = with_attributes regular_interrupts (fn _ => f);
 
@@ -104,7 +104,6 @@ fun timeLimit time f x = uninterruptible (fn restore_attributes => fn () =>
     val watchdog = Thread.fork (fn () =>
       (OS.Process.sleep time; timeout := true; Thread.interrupt worker), []);
 
-    (*RACE! timeout signal vs. external Interrupt*)
     val result = Exn.capture (restore_attributes f) x;
     val was_timeout = (case result of Exn.Exn Exn.Interrupt => ! timeout | _ => false);
 
