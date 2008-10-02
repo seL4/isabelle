@@ -190,7 +190,7 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 
 fun heartbeat name =
  (Multithreading.tracing 1 (fn () => name);
-  OS.Process.sleep (Time.fromMilliseconds 100);
+  OS.Process.sleep (Time.fromSeconds 2);
   if ! do_shutdown then () else heartbeat name);
 
 fun scheduler_next () = (*requires SYNCHRONIZED*)
