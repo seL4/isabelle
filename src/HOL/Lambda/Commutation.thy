@@ -186,10 +186,10 @@ proof induct
 qed
 
 text {*
-  \medskip Alternative version.  Partly automated by Tobias
+  Alternative version.  Partly automated by Tobias
   Nipkow. Takes 2 minutes (2002).
 
-  This is the maximal amount of automation possible at the moment.
+  This is the maximal amount of automation possible using @{text blast}.
 *}
 
 theorem newman':
@@ -231,6 +231,36 @@ proof induct
             dest: IH [OF conversepI, OF xy] IH [OF conversepI, OF xy'])
     qed
   qed
+qed
+
+text {*
+  Using the coherent logic prover, the proof of the induction step
+  is completely automatic.
+*}
+
+lemma eq_imp_rtranclp: "x = y \<Longrightarrow> r\<^sup>*\<^sup>* x y"
+  by simp
+
+theorem newman'':
+  assumes wf: "wfP (R\<inverse>\<inverse>)"
+  and lc: "\<And>a b c. R a b \<Longrightarrow> R a c \<Longrightarrow>
+    \<exists>d. R\<^sup>*\<^sup>* b d \<and> R\<^sup>*\<^sup>* c d"
+  shows "\<And>b c. R\<^sup>*\<^sup>* a b \<Longrightarrow> R\<^sup>*\<^sup>* a c \<Longrightarrow>
+    \<exists>d. R\<^sup>*\<^sup>* b d \<and> R\<^sup>*\<^sup>* c d"
+  using wf
+proof induct
+  case (less x b c)
+  note IH = `\<And>y b c. \<lbrakk>R\<inverse>\<inverse> y x; R\<^sup>*\<^sup>* y b; R\<^sup>*\<^sup>* y c\<rbrakk>
+                     \<Longrightarrow> \<exists>d. R\<^sup>*\<^sup>* b d \<and> R\<^sup>*\<^sup>* c d`
+  show ?case
+    by (coherent
+      `R\<^sup>*\<^sup>* x c` `R\<^sup>*\<^sup>* x b`
+      refl [where 'a='a] sym
+      eq_imp_rtranclp
+      r_into_rtranclp [of R]
+      rtranclp_trans
+      lc IH [OF conversepI]
+      converse_rtranclpE)
 qed
 
 end
