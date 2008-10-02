@@ -87,6 +87,7 @@ fun is_finished (Future {result, ...}) = is_some (! result);
 (* global state *)
 
 val queue = ref TaskQueue.empty;
+val next = ref 0;
 val workers = ref ([]: (Thread.thread * bool) list);
 val scheduler = ref (NONE: Thread.thread option);
 val excessive = ref 0;
@@ -104,21 +105,25 @@ in
 fun SYNCHRONIZED name e = Exn.release (uninterruptible (fn restore_attributes => fn () =>
   let
     val _ =
-      if Mutex.trylock lock then Multithreading.tracing 4 (fn () => name ^ ": locked")
+      if Mutex.trylock lock then Multithreading.tracing 3 (fn () => name ^ ": locked")
       else
-       (Multithreading.tracing 3 (fn () => name ^ ": locking ...");
+       (Multithreading.tracing 2 (fn () => name ^ ": locking ...");
         Mutex.lock lock;
-        Multithreading.tracing 3 (fn () => name ^ ": ... locked"));
+        Multithreading.tracing 2 (fn () => name ^ ": ... locked"));
     val result = Exn.capture (restore_attributes e) ();
     val _ = Mutex.unlock lock;
-    val _ = Multithreading.tracing 4 (fn () => name ^ ": unlocked");
+    val _ = Multithreading.tracing 3 (fn () => name ^ ": unlocked");
   in result end) ());
 
 fun wait name = (*requires SYNCHRONIZED*)
+ (Multithreading.tracing 3 (fn () => name ^ ": wait ...");
   ConditionVar.wait (cond, lock);
+  Multithreading.tracing 3 (fn () => name ^ ": ... continue"));
 
 fun wait_timeout name timeout = (*requires SYNCHRONIZED*)
+ (Multithreading.tracing 3 (fn () => name ^ ": wait ...");
   ConditionVar.waitUntil (cond, lock, Time.+ (Time.now (), timeout));
+  Multithreading.tracing 3 (fn () => name ^ ": ... continue"));
 
 fun notify_all () = (*requires SYNCHRONIZED*)
   ConditionVar.broadcast cond;
@@ -144,9 +149,9 @@ fun change_active active = (*requires SYNCHRONIZED*)
 fun execute name (task, group, run) =
   let
     val _ = trace_active ();
-    val _ = Multithreading.tracing 4 (fn () => name ^ ": running");
+    val _ = Multithreading.tracing 3 (fn () => name ^ ": running");
     val ok = setmp_thread_data (name, task, group) run ();
-    val _ = Multithreading.tracing 4 (fn () => name ^ ": finished");
+    val _ = Multithreading.tracing 3 (fn () => name ^ ": finished");
     val _ = SYNCHRONIZED "execute" (fn () =>
      (change queue (TaskQueue.finish task);
       if ok then ()
@@ -174,7 +179,7 @@ fun worker_next name = (*requires SYNCHRONIZED*)
 
 fun worker_loop name =
   (case SYNCHRONIZED name (fn () => worker_next name) of
-    NONE => Multithreading.tracing 4 (fn () => name ^ ": exit")
+    NONE => Multithreading.tracing 3 (fn () => name ^ ": exit")
   | SOME work => (execute name work; worker_loop name));
 
 fun worker_start name = (*requires SYNCHRONIZED*)
@@ -198,7 +203,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val l = length (! workers);
     val _ = excessive := l - m;
     val _ =
-      if m > l then funpow (m - l) (fn () => worker_start ("worker " ^ serial_string ())) ()
+      if m > l then funpow (m - l) (fn () => worker_start ("worker " ^ string_of_int (inc next))) ()
       else ();
 
     (*canceled groups*)
@@ -214,14 +219,14 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
 fun scheduler_loop () =
  (while SYNCHRONIZED "scheduler" scheduler_next do ();
-  Multithreading.tracing 3 (fn () => "scheduler: exit"));
+  Multithreading.tracing 2 (fn () => "scheduler: exit"));
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);
 
 fun scheduler_check name = SYNCHRONIZED name (fn () =>
   if not (scheduler_active ()) then
-    (Multithreading.tracing 3 (fn () => "scheduler: fork");
+    (Multithreading.tracing 2 (fn () => "scheduler: fork");
      do_shutdown := false; scheduler := SOME (SimpleThread.fork false scheduler_loop))
   else if ! do_shutdown then error "Scheduler shutdown in progress"
   else ());
