@@ -12,18 +12,22 @@ function show_times ()
   local TIMES_START="$TIMES_RESULT"
   get_times
   local TIMES_STOP="$TIMES_RESULT"
+  local TIME1
+  local TIME2
   local KIND
   for KIND in 1 2
   do
     local START=$(echo "$TIMES_START" | cut -d " " -f $KIND)
     local STOP=$(echo "$TIMES_STOP" | cut -d " " -f $KIND)
 
-    local TIME=$[ $STOP - $START ]
-    local SECS=$[ $TIME % 60 ]
+    local TIME=$(( $STOP - $START ))
+    eval "TIME${KIND}=$TIME"
+
+    local SECS=$(( $TIME % 60 ))
     [ $SECS -lt 10 ] && SECS="0$SECS"
-    local MINUTES=$[ ($TIME / 60) % 60 ]
+    local MINUTES=$(( ($TIME / 60) % 60 ))
     [ $MINUTES -lt 10 ] && MINUTES="0$MINUTES"
-    local HOURS=$[ $TIME / 3600 ]
+    local HOURS=$(( $TIME / 3600 ))
 
     local KIND_NAME
     [ "$KIND" = 1 ] && KIND_NAME="elapsed time"
@@ -36,6 +40,13 @@ function show_times ()
       TIMES_REPORT="$TIMES_REPORT, $RESULT"
     fi
   done
+  if let "$TIME1 >= 5 && $TIME2 >= 5"
+  then
+    local FACTOR=$(( $TIME2 * 10 / $TIME1 ))
+    local FACTOR1=$(( $FACTOR / 10 ))
+    local FACTOR2=$(( $FACTOR % 10 ))
+    TIMES_REPORT="$TIMES_REPORT, factor ${FACTOR1}.${FACTOR2}"
+  fi
 }
 
 show_times  # sets TIMES_REPORT
