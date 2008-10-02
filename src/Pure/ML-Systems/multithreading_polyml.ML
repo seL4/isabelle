@@ -32,10 +32,11 @@ struct
 (* options *)
 
 val trace = ref 0;
+
 fun tracing level msg =
-  if level <= ! trace
-  then (TextIO.output (TextIO.stdErr, (">>> " ^ msg () ^ "\n")); TextIO.flushOut TextIO.stdErr)
-  else ();
+  if level > ! trace then ()
+  else (TextIO.output (TextIO.stdErr, (">>> " ^ msg () ^ "\n")); TextIO.flushOut TextIO.stdErr)
+    handle _ (*sic*) => ();
 
 val available = true;
 
