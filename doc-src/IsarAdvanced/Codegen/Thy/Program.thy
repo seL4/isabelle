@@ -420,17 +420,17 @@ text {*
 datatype %quoteme monotype = Mono nat "monotype list"
 (*<*)
 lemma monotype_eq:
-  "Mono tyco1 typargs1 = Mono tyco2 typargs2 \<equiv> 
-     tyco1 = tyco2 \<and> typargs1 = typargs2" by simp
+  "eq_class.eq (Mono tyco1 typargs1) (Mono tyco2 typargs2) \<equiv> 
+     eq_class.eq tyco1 tyco2 \<and> eq_class.eq typargs1 typargs2" by (simp add: eq)
 (*>*)
 
 text {*
-  Then code generation for SML would fail with a message
+  \noindent Then code generation for SML would fail with a message
   that the generated code contains illegal mutual dependencies:
   the theorem @{thm monotype_eq [no_vars]} already requires the
   instance @{text "monotype \<Colon> eq"}, which itself requires
   @{thm monotype_eq [no_vars]};  Haskell has no problem with mutually
-  recursive @{text inst} and @{text fun} definitions,
+  recursive @{text instance} and @{text function} definitions,
   but the SML serializer does not support this.
 
   In such cases, you have to provide your own equality equations
@@ -440,7 +440,7 @@ text {*
 
 lemma %quoteme monotype_eq_list_all2 [code func]:
   "eq_class.eq (Mono tyco1 typargs1) (Mono tyco2 typargs2) \<longleftrightarrow>
-     tyco1 = tyco2 \<and> list_all2 eq_class.eq typargs1 typargs2"
+     eq_class.eq tyco1 tyco2 \<and> list_all2 eq_class.eq typargs1 typargs2"
   by (simp add: eq list_all2_eq [symmetric])
 
 text {*
@@ -450,8 +450,73 @@ text {*
 text %quoteme {*@{code_stmts "eq_class.eq :: monotype \<Rightarrow> monotype \<Rightarrow> bool" (SML)}*}
 
 
-subsection {* Partiality *}
+subsection {* Explicit partiality *}
 
-text {* @{command "code_abort"}, examples: maps *}
+text {*
+  Partiality usually enters the game by partial patterns, as
+  in the following example, again for amortised queues:
+*}
+
+fun %quoteme strict_dequeue :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
+  "strict_dequeue (Queue xs (y # ys)) = (y, Queue xs ys)"
+  | "strict_dequeue (Queue xs []) =
+      (case rev xs of y # ys \<Rightarrow> (y, Queue [] ys))"
+
+text {*
+  \noindent In the corresponding code, there is no equation
+  for the pattern @{term "Queue [] []"}:
+*}
+
+text %quoteme {*@{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}*}
+
+text {*
+  \noindent In some cases it is desirable to have this
+  pseudo-\qt{partiality} more explicitly, e.g.~as follows:
+*}
+
+axiomatization %quoteme empty_queue :: 'a
+
+function %quoteme strict_dequeue' :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
+  "strict_dequeue' (Queue xs []) = (if xs = [] then empty_queue
+     else strict_dequeue' (Queue [] (rev xs)))"
+  | "strict_dequeue' (Queue xs (y # ys)) =
+       (y, Queue xs ys)"
+by pat_completeness auto
+
+termination %quoteme strict_dequeue'
+by (relation "measure (\<lambda>q::'a queue. case q of Queue xs ys \<Rightarrow> length xs)") simp_all
+
+text {*
+  \noindent For technical reasons the definition of
+  @{const strict_dequeue'} is more involved since it requires
+  a manual termination proof.  Apart from that observe that
+  on the right hand side of its first equation the constant
+  @{const empty_queue} occurs which is unspecified.
+
+  Normally, if constants without any defining equations occur in
+  a program, the code generator complains (since in most cases
+  this is not what the user expects).  But such constants can also
+  be thought of as function definitions with no equations which
+  always fail, since there is never a successful pattern match
+  on the left hand side.  In order to categorize a constant into
+  that category explicitly, use @{command "code_abort"}:
+*}
+
+code_abort %quoteme empty_queue
+
+text {*
+  \noindent Then the code generator will just insert an error or
+  exception at the appropriate position:
+*}
+
+text %quoteme {*@{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}*}
+
+text {*
+  \noindent This feature however is rarely needed in practice.
+  Note also that the @{text HOL} default setup already declares
+  @{const undefined} as @{command "code_abort"}, which is most
+  likely to be used in such situations.
+*}
 
 end
+ 
