@@ -151,7 +151,8 @@ fun execute name (task, group, run) =
     val _ = trace_active ();
     val _ = Multithreading.tracing 3 (fn () => name ^ ": running");
     val ok = setmp_thread_data (name, task, group) run ();
-    val _ = Multithreading.tracing 3 (fn () => name ^ ": finished");
+    val _ = Multithreading.tracing 3
+      (fn () => name ^ ": finished " ^ (if ok then "(ok)" else "(failed)"));
     val _ = SYNCHRONIZED "execute" (fn () =>
      (change queue (TaskQueue.finish task);
       if ok then ()
