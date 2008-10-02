@@ -29,8 +29,8 @@ val verbatim_lines = rev
 
 local
 
-fun pr_class ctxt = enclose "\\isa{" "}" o Sign.extern_class (ProofContext.theory_of ctxt)
-  o Sign.read_class (ProofContext.theory_of ctxt);
+fun pr_class ctxt = enclose "\\isa{" "}" o Pretty.output o Pretty.str
+  o Sign.extern_class (ProofContext.theory_of ctxt) o Sign.read_class (ProofContext.theory_of ctxt);
 
 in
 
