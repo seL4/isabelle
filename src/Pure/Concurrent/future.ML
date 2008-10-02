@@ -101,15 +101,18 @@ local
   val cond = ConditionVar.conditionVar ();
 in
 
-fun SYNCHRONIZED name e = uninterruptible (fn restore_attributes => fn () =>
+fun SYNCHRONIZED name e = Exn.release (uninterruptible (fn restore_attributes => fn () =>
   let
-    val _ = Multithreading.tracing 3 (fn () => name ^ ": locking");
-    val _ = Mutex.lock lock;
-    val _ = Multithreading.tracing 3 (fn () => name ^ ": locked");
+    val _ =
+      if Mutex.trylock lock then Multithreading.tracing 4 (fn () => name ^ ": locked")
+      else
+       (Multithreading.tracing 3 (fn () => name ^ ": locking ...");
+        Mutex.lock lock;
+        Multithreading.tracing 3 (fn () => name ^ ": ... locked"));
     val result = Exn.capture (restore_attributes e) ();
     val _ = Mutex.unlock lock;
-    val _ = Multithreading.tracing 3 (fn () => name ^ ": unlocked");
-  in Exn.release result end) ();
+    val _ = Multithreading.tracing 4 (fn () => name ^ ": unlocked");
+  in result end) ());
 
 fun wait name = (*requires SYNCHRONIZED*)
   ConditionVar.wait (cond, lock);
@@ -141,9 +144,9 @@ fun change_active active = (*requires SYNCHRONIZED*)
 fun execute name (task, group, run) =
   let
     val _ = trace_active ();
-    val _ = Multithreading.tracing 3 (fn () => name ^ ": running");
+    val _ = Multithreading.tracing 4 (fn () => name ^ ": running");
     val ok = setmp_thread_data (name, task, group) run ();
-    val _ = Multithreading.tracing 3 (fn () => name ^ ": finished");
+    val _ = Multithreading.tracing 4 (fn () => name ^ ": finished");
     val _ = SYNCHRONIZED "execute" (fn () =>
      (change queue (TaskQueue.finish task);
       if ok then ()
@@ -171,7 +174,7 @@ fun worker_next name = (*requires SYNCHRONIZED*)
 
 fun worker_loop name =
   (case SYNCHRONIZED name (fn () => worker_next name) of
-    NONE => Multithreading.tracing 3 (fn () => name ^ ": exit")
+    NONE => Multithreading.tracing 4 (fn () => name ^ ": exit")
   | SOME work => (execute name work; worker_loop name));
 
 fun worker_start name = (*requires SYNCHRONIZED*)
@@ -206,7 +209,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val _ = if continue then () else scheduler := NONE;
 
     val _ = notify_all ();
-    val _ = wait_timeout "scheduler" (Time.fromSeconds 1);
+    val _ = wait_timeout "scheduler" (Time.fromSeconds 3);
   in continue end;
 
 fun scheduler_loop () =
@@ -216,7 +219,7 @@ fun scheduler_loop () =
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);
 
-fun scheduler_check () = SYNCHRONIZED "scheduler_check" (fn () =>
+fun scheduler_check name = SYNCHRONIZED name (fn () =>
   if not (scheduler_active ()) then
     (Multithreading.tracing 3 (fn () => "scheduler: fork");
      do_shutdown := false; scheduler := SOME (SimpleThread.fork false scheduler_loop))
@@ -228,7 +231,7 @@ fun scheduler_check () = SYNCHRONIZED "scheduler_check" (fn () =>
 
 fun future opt_group deps pri (e: unit -> 'a) =
   let
-    val _ = scheduler_check ();
+    val _ = scheduler_check "future check";
 
     val group = (case opt_group of SOME group => group | NONE => TaskQueue.new_group ());
 
@@ -253,7 +256,7 @@ fun fork_background e = fork_common false e;
 fun join_results [] = []
   | join_results xs =
       let
-        val _ = scheduler_check ();
+        val _ = scheduler_check "join check";
         val _ = Multithreading.self_critical () andalso
           error "Cannot join future values within critical section";
 
@@ -290,7 +293,7 @@ fun join x = Exn.release (singleton join_results x);
 (* misc operations *)
 
 (*focus: collection of high-priority task*)
-fun focus tasks = SYNCHRONIZED "interrupt" (fn () =>
+fun focus tasks = SYNCHRONIZED "focus" (fn () =>
   change queue (TaskQueue.focus tasks));
 
 (*interrupt: permissive signal, may get ignored*)
@@ -299,14 +302,14 @@ fun interrupt_task id = SYNCHRONIZED "interrupt"
 
 (*cancel: present and future group members will be interrupted eventually*)
 fun cancel x =
- (scheduler_check ();
+ (scheduler_check "cancel check";
   SYNCHRONIZED "cancel" (fn () => (change canceled (cons (group_of x)); notify_all ())));
 
 
 (*global join and shutdown*)
 fun shutdown () =
   if Multithreading.available then
-   (scheduler_check ();
+   (scheduler_check "shutdown check";
     SYNCHRONIZED "shutdown" (fn () =>
      (while not (scheduler_active ()) do wait "shutdown: scheduler inactive";
       while not (TaskQueue.is_empty (! queue)) do wait "shutdown: join";
