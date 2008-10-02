@@ -9,7 +9,8 @@ following Mike Gordon) would suffice. Maybe the datatype com comes in useful
 later.
 *)
 
-theory Hoare  imports Main
+theory Hoare
+imports Main
 uses ("hoare_tac.ML")
 begin
 
@@ -229,15 +230,16 @@ done
 lemma Compl_Collect: "-(Collect b) = {x. ~(b x)}"
   by blast
 
+lemmas AbortRule = SkipRule  -- "dummy version"
 use "hoare_tac.ML"
 
 method_setup vcg = {*
-  Method.no_args (Method.SIMPLE_METHOD' (hoare_tac (K all_tac))) *}
+  Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD' (hoare_tac ctxt (K all_tac))) *}
   "verification condition generator"
 
 method_setup vcg_simp = {*
   Method.ctxt_args (fn ctxt =>
-    Method.SIMPLE_METHOD' (hoare_tac (asm_full_simp_tac (local_simpset_of ctxt)))) *}
+    Method.SIMPLE_METHOD' (hoare_tac ctxt (asm_full_simp_tac (local_simpset_of ctxt)))) *}
   "verification condition generator plus simplification"
 
 end
