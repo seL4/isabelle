@@ -37,7 +37,7 @@ fun tracing _ _ = ();
 
 val available = false;
 val max_threads = ref (1: int);
-fun max_threads_value () = Int.max (! max_threads, 1);
+fun max_threads_value () = 1: int;
 
 val no_interrupts =
   [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
