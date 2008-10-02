@@ -309,7 +309,7 @@ fun controlled_execution f =
 
 fun program f =
  (f
-  |> debugging
+  |> controlled_execution
   |> toplevel_error) ();
 
 end;
