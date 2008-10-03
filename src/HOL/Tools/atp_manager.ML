@@ -203,7 +203,7 @@ struct
          pgiptype = PgipTypes.Pgipstring,
          get = fn () => !atps,
          set = set_atps}
-        handle Error => warning "Preference already exists";
+        handle ERROR _ => warning "Preference already exists";
 
     val _ = ProofGeneralPgip.add_preference "Proof"
         {name = "ATP - Maximum number",
@@ -212,7 +212,7 @@ struct
          pgiptype = PgipTypes.Pgipstring,
          get = fn () => Int.toString (! maximum_atps),
          set = fn str => set_max_atp (the_default 1 (Int.fromString str))}
-        handle Error => warning "Preference already exists";
+        handle ERROR _ => warning "Preference already exists";
 
     val _ = ProofGeneralPgip.add_preference "Proof"
         {name = "ATP - Timeout",
@@ -221,7 +221,7 @@ struct
          pgiptype = PgipTypes.Pgipstring,
          get = fn () => Int.toString (! timeout),
          set = fn str => set_timeout (the_default 60 (Int.fromString str))}
-        handle Error => warning "Preference already exists";
+        handle ERROR _ => warning "Preference already exists";
 
 
   (* named provers *)
