@@ -88,7 +88,7 @@ fun message _ _ _ "" = ()
 
 fun init_message out_stream =
   let
-    val pid = (Markup.pidN, string_of_pid (Posix.ProcEnv.getpid ()));
+    val pid = (Markup.pidN, process_id ());
     val session = (Markup.sessionN, List.last (Session.id ()) handle List.Empty => "unknown");
     val text = message_text Markup.initN [XML.Text (Session.welcome ())];
   in output out_stream (special "A" ^ message_props [pid, session] ^ text ^ special_end) end;
