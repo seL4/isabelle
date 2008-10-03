@@ -227,7 +227,8 @@ XSYMBOL_INSTALLFONTS=""
 
 # External provers
 E_HOME=$(choosefrom "$ISABELLE_HOME/contrib/E/$ML_PLATFORM" "/usr/local/E" "")
-VAMPIRE_HOME=$(choosefrom "$ISABELLE_HOME/contrib/vampire/$ML_PLATFORM" "/usr/local/Vampire" "")
+VAMPIRE_HOME=$(choosefrom "$ISABELLE_HOME/contrib/vampire/$ML_PLATFORM" "/usr/local/Vampire" \
+  "$ISABELLE_HOME/contrib/SystemOnTPTP" "")
 SPASS_HOME=$(choosefrom "$ISABELLE_HOME/contrib/spass/$ML_PLATFORM/bin" "/usr/local/SPASS" "")
 
 # HOL4 proof objects (cf. Isabelle/src/HOL/Import)

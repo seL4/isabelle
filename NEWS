@@ -66,6 +66,10 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* Wrapper script for remote SystemOnTPTP service allows to use
+sledghammer without local ATP installation (Vampire etc.); see
+ISABELLE_HOME/contrib/SystemOnTPTP/.
+
 * Normalization by evaluation now allows non-leftlinear equations.
 Declare with attribute [code nbe].
 
