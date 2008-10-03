@@ -9,17 +9,6 @@ when the maximum number of threads exceeds; then the oldest thread is
 killed.
 *)
 
-signature PROVERS =
-sig
-  type T
-  val get : Context.theory -> T
-  val init : Context.theory -> Context.theory
-  val map :
-     (T -> T) ->
-     Context.theory -> Context.theory
-  val put : T -> Context.theory -> Context.theory
-end;
-
 signature ATP_MANAGER =
 sig
   val kill_all: unit -> unit
@@ -31,19 +20,19 @@ sig
   val start: unit -> unit
   val register: Time.time -> Time.time -> (Thread.thread * string) -> unit
   val unregister: bool -> unit
-
-  structure Provers : PROVERS
-  val sledgehammer: Toplevel.state -> unit
+  val add_prover: string -> (Proof.state -> Thread.thread * string) -> theory -> theory
+  val print_provers: theory -> unit
+  val sledgehammer: Proof.state -> unit
 end;
 
 structure AtpManager : ATP_MANAGER =
 struct
 
-  structure ThreadHeap = HeapFun (
-  struct
-    type elem = (Time.time * Thread.thread);
-    fun ord ((a,_),(b,_)) = Time.compare (a, b);
-  end);
+  structure ThreadHeap = HeapFun
+  (
+    type elem = Time.time * Thread.thread;
+    fun ord ((a, _), (b, _)) = Time.compare (a, b);
+  );
 
   (* create global state of threadmanager *)
   val timeout_heap = ref ThreadHeap.empty
@@ -57,7 +46,7 @@ struct
   val timeout = ref 60
   val groupkilling = ref true
   (* synchronizing *)
-  val lock = Mutex.mutex () (* to be aquired for changing state *)
+  val lock = Mutex.mutex () (* to be acquired for changing state *)
   val state_change = ConditionVar.conditionVar () (* signal when state changes *)
   (* watches over running threads and interrupts them if required *)
   val managing_thread = ref (NONE: Thread.thread option);
@@ -90,7 +79,7 @@ struct
           if ThreadHeap.is_empty heap then heap else
           let val (mintime, minthread) = ThreadHeap.min heap
           in
-            if mintime > Time.now() then heap
+            if Time.> (mintime, Time.now()) then heap
             else (unregister_locked minthread;
             cancelolder (ThreadHeap.delete_min heap))
           end
@@ -103,9 +92,9 @@ struct
         (* TODO: find out what realtime-values are appropriate *)
         val next_time =
           if length (! cancelling) > 0 then
-           Time.now() + Time.fromMilliseconds 300
+            Time.+ (Time.now(), Time.fromMilliseconds 300)
           else if ThreadHeap.is_empty (! timeout_heap) then
-            Time.now() + Time.fromSeconds 10
+            Time.+ (Time.now(), Time.fromSeconds 10)
           else
             #1 (ThreadHeap.min (! timeout_heap))
           in
@@ -130,7 +119,7 @@ struct
     val _ = let
       fun kill_oldest () =
         let val (_, oldest_thread) = ThreadHeap.min (!oldest_heap)
-        val _ = change oldest_heap (ThreadHeap.delete_min)
+        val _ = change oldest_heap ThreadHeap.delete_min
         in unregister_locked oldest_thread end
       in
         while ! maximum_atps > ~1 andalso length (! active) > ! maximum_atps
@@ -172,7 +161,7 @@ struct
     val _ = Mutex.lock lock
     val _ = change active (map (fn (th, tb, _, desc) => (th, tb, Time.now(), desc)))
     val _ = change cancelling (append (! active))
-    val _ = change active (fn _ => [])
+    val _ = active := []
     val _ = ConditionVar.signal state_change
     val _ = Mutex.unlock lock
     in () end;
@@ -182,13 +171,13 @@ struct
     val _ = Mutex.lock lock
     fun running_info (_, birth_time, dead_time, desc) =
       priority ("Running: "
-        ^ ((Int.toString o Time.toSeconds) (Time.now() - birth_time))
+        ^ ((Int.toString o Time.toSeconds) (Time.- (Time.now(), birth_time)))
         ^ " s  --  "
-        ^ ((Int.toString o Time.toSeconds) (dead_time - Time.now()))
+        ^ ((Int.toString o Time.toSeconds) (Time.- (dead_time, Time.now())))
         ^ " s to live:\n" ^ desc)
     fun cancelling_info (_, _, dead_time, desc) =
       priority ("Trying to interrupt thread since "
-        ^ (Int.toString o Time.toSeconds) (Time.now() - dead_time)
+        ^ (Int.toString o Time.toSeconds) (Time.- (Time.now(), dead_time))
         ^ " s:\n" ^ desc )
     val _ = if length (! active) = 0 then [priority "No ATPs running."]
       else (priority "--- RUNNING ATPs ---";
@@ -199,75 +188,103 @@ struct
     val _ = Mutex.unlock lock
     in () end;
 
-    (* integration into ProofGeneral *)
+
+    (* preferences *)
 
     fun set_max_atp number = CRITICAL (fn () => maximum_atps := number);
     fun set_atps str = CRITICAL (fn () => atps := str);
     fun set_timeout time = CRITICAL (fn () => timeout := time);
     fun set_groupkilling boolean = CRITICAL (fn () => groupkilling := boolean);
 
-    (* some settings will be accessible via Isabelle -> Settings *)
     val _ = ProofGeneralPgip.add_preference "Proof"
-        {name = "ATP - Provers (e,vampire,spass)",
+        {name = "ATP - Provers (see print_atps)",
          descr = "Which external automatic provers (seperated by commas)",
          default = !atps,
          pgiptype = PgipTypes.Pgipstring,
          get = fn () => !atps,
-         set = set_atps} handle Error => warning "Preference already exists";
+         set = set_atps}
+        handle Error => warning "Preference already exists";
+
     val _ = ProofGeneralPgip.add_preference "Proof"
         {name = "ATP - Maximum number",
-         descr = "How many provers may run parallel",
+         descr = "How many provers may run in parallel",
          default = Int.toString (! maximum_atps),
          pgiptype = PgipTypes.Pgipstring,
          get = fn () => Int.toString (! maximum_atps),
-         set = (fn str => let val int_opt = Int.fromString str
-            val nr = if isSome int_opt then valOf int_opt else 1
-         in set_max_atp nr end)} handle Error => warning "Preference already exists";
+         set = fn str => set_max_atp (the_default 1 (Int.fromString str))}
+        handle Error => warning "Preference already exists";
+
     val _ = ProofGeneralPgip.add_preference "Proof"
         {name = "ATP - Timeout",
          descr = "ATPs will be interrupted after this time (in seconds)",
          default = Int.toString (! timeout),
          pgiptype = PgipTypes.Pgipstring,
          get = fn () => Int.toString (! timeout),
-         set = (fn str => let val int_opt = Int.fromString str
-            val nr = if isSome int_opt then valOf int_opt else 60
-         in set_timeout nr end)} handle Error => warning "Preference already exists";
+         set = fn str => set_timeout (the_default 60 (Int.fromString str))}
+        handle Error => warning "Preference already exists";
 
-  (* Additional Provers can be added as follows:
-  SPASS with max_new 40 and theory_const false, timeout 60
-  setup{* AtpManager.Provers.map (Symtab.update ("spass2", AtpThread.spass 40 false 60)) *}
-  arbitrary prover supporting tptp-input/output
-  setup{* AtpManagerProvers.map (Symtab.update ("tptp", AtpThread.tptp_prover "path/to/prover -options" 60)) *}
-  *)
+
+  (* named provers *)
+
+  fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
+
   structure Provers = TheoryDataFun
   (
-    type T = (Toplevel.state -> (Thread.thread * string)) Symtab.table
+    type T = ((Proof.state -> Thread.thread * string) * stamp) Symtab.table
     val empty = Symtab.empty
     val copy = I
     val extend = I
-    fun merge _ = Symtab.merge (K true)
+    fun merge _ tabs : T = Symtab.merge (eq_snd op =) tabs
+      handle Symtab.DUP dup => err_dup_prover dup;
   );
 
-  (* sledghammer: *)
+  fun add_prover name prover_fn =
+    Provers.map (Symtab.update_new (name, (prover_fn, stamp ())))
+      handle Symtab.DUP dup => err_dup_prover dup;
+
+  fun print_provers thy = Pretty.writeln
+    (Pretty.strs ("external provers:" :: sort_strings (Symtab.keys (Provers.get thy))));
+
+  fun run_prover state name =
+    (case Symtab.lookup (Provers.get (Proof.theory_of state)) name of
+      NONE => (warning ("Unknown external prover: " ^ quote name); NONE)
+    | SOME (prover_fn, _) => SOME (prover_fn state));
+
+
+  (* sledghammer *)
+
   fun sledgehammer state =
     let
-    val proverids = String.tokens (fn c => c = #",") (! atps)
-    (* get context *)
-    val (ctxt, _) = Proof.get_goal (Toplevel.proof_of state)
-    val thy = ProofContext.theory_of ctxt
-    (* get prover-functions *)
-    val lookups = map (fn prover => Symtab.lookup (Provers.get thy) prover)
-      proverids
-    val filtered_calls = filter (fn call => isSome call) lookups
-    val calls = map (fn some => valOf some) filtered_calls
-    (* call provers *)
-    val threads_names = map (fn call => call state) calls
-    val birthtime = Time.now()
-    val deadtime = Time.now() + (Time.fromSeconds (! timeout))
-    val _ = map (register birthtime deadtime) threads_names
+      val proverids = String.tokens (fn c => c = #",") (! atps)
+      val threads_names = map_filter (run_prover state) proverids
+      val birthtime = Time.now()
+      val deadtime = Time.+ (Time.now(), Time.fromSeconds (! timeout))
+      val _ = List.app (register birthtime deadtime) threads_names
     in () end
 
+
+  (* concrete syntax *)
+
+  local structure K = OuterKeyword and P = OuterParse in
+
   val _ =
-    OuterSyntax.command "sledgehammer" "call all automatic theorem provers" OuterKeyword.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep sledgehammer));
+    OuterSyntax.improper_command "atp_kill" "kill all managed provers" K.diag
+      (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill_all));
+
+  val _ =
+    OuterSyntax.improper_command "atp_info" "print information about managed provers" K.diag
+      (Scan.succeed (Toplevel.no_timing o Toplevel.imperative info));
+
+  val _ =
+    OuterSyntax.improper_command "print_atps" "print external provers" K.diag
+      (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
+        Toplevel.keep (print_provers o Toplevel.theory_of)));
+
+  val _ =
+    OuterSyntax.command "sledgehammer" "call all automatic theorem provers" K.diag
+      (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_proof o
+        Toplevel.keep (sledgehammer o Toplevel.proof_of)));
+
+  end;
+
 end;
