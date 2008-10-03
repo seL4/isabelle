@@ -14,26 +14,26 @@ sig
     string ->
     (string * int -> bool) ->
     (string * string vector * Proof.context * Thm.thm * int -> string) ->
-    Toplevel.state -> Thread.thread * string
+    Proof.state -> Thread.thread * string
   (* settings for writing problemfiles *)
   val destdir: string ref
   val problem_name: string ref
   (* provers as functions returning threads *)
-  val tptp_prover_filter_opts_full: int -> bool -> bool -> string -> Toplevel.state -> (Thread.thread * string)
-  val tptp_prover_filter_opts: int -> bool -> string -> Toplevel.state -> (Thread.thread * string)
-  val full_prover_filter_opts: int -> bool -> string -> Toplevel.state -> (Thread.thread * string)
-  val tptp_prover: string -> Toplevel.state -> (Thread.thread * string)
-  val full_prover: string -> Toplevel.state -> (Thread.thread * string)  val spass_filter_opts: int -> bool -> Toplevel.state -> (Thread.thread * string)
-  val eprover_filter_opts: int -> bool -> Toplevel.state -> (Thread.thread * string)
-  val eprover_filter_opts_full: int -> bool -> Toplevel.state -> (Thread.thread * string)
-  val vampire_filter_opts: int -> bool -> Toplevel.state -> (Thread.thread * string)
-  val vampire_filter_opts_full: int -> bool -> Toplevel.state -> (Thread.thread * string)
-  val spass: Toplevel.state -> (Thread.thread * string)
-  val eprover: Toplevel.state -> (Thread.thread * string)
-  val eprover_full: Toplevel.state -> (Thread.thread * string)
-  val vampire: Toplevel.state -> (Thread.thread * string)
-  val vampire_full: Toplevel.state -> (Thread.thread * string)
-  val setup: theory -> theory
+  val tptp_prover_filter_opts_full: int -> bool -> bool -> string -> Proof.state -> (Thread.thread * string)
+  val tptp_prover_filter_opts: int -> bool -> string -> Proof.state -> (Thread.thread * string)
+  val full_prover_filter_opts: int -> bool -> string -> Proof.state -> (Thread.thread * string)
+  val tptp_prover: string -> Proof.state -> (Thread.thread * string)
+  val full_prover: string -> Proof.state -> (Thread.thread * string)
+  val spass_filter_opts: int -> bool -> Proof.state -> (Thread.thread * string)
+  val eprover_filter_opts: int -> bool -> Proof.state -> (Thread.thread * string)
+  val eprover_filter_opts_full: int -> bool -> Proof.state -> (Thread.thread * string)
+  val vampire_filter_opts: int -> bool -> Proof.state -> (Thread.thread * string)
+  val vampire_filter_opts_full: int -> bool -> Proof.state -> (Thread.thread * string)
+  val spass: Proof.state -> (Thread.thread * string)
+  val eprover: Proof.state -> (Thread.thread * string)
+  val eprover_full: Proof.state -> (Thread.thread * string)
+  val vampire: Proof.state -> (Thread.thread * string)
+  val vampire_full: Proof.state -> (Thread.thread * string)
 end;
 
 structure AtpThread : ATP_THREAD =
@@ -71,7 +71,7 @@ struct
       (*creating description from provername and subgoal*)
     val call::path = rev (String.tokens (fn c => c = #"/") command)
     val name::options = String.tokens (fn c => c = #" ") call
-    val (ctxt, (chain_ths, goal)) = Proof.get_goal (Toplevel.proof_of state)
+    val (ctxt, (chain_ths, goal)) = Proof.get_goal state
     val description = "External prover '" ^ name ^ "' for Subgoal " ^ Int.toString subgoalno
       ^ ":\n" ^ Display.string_of_cterm (List.nth(cprems_of goal, subgoalno-1))
       (* path to unique problemfile *)
@@ -179,21 +179,5 @@ struct
   val spass = spass_filter_opts 40 true;
 
   (*TODO: Thread running some selected or recommended provers of "System On TPTP" *)
-
-
-
-  fun add_prover name prover_fun = AtpManager.Provers.map (Symtab.update (name, prover_fun))
-
-    (* include 'original' provers and provers with structured output *)
-  val setup =
-    (* original setups *)
-    add_prover "spass" spass #>
-    add_prover "vampire" vampire #>
-    add_prover "e" eprover #>
-    (* provers with stuctured output *)
-    add_prover "vampire_full" vampire_full #>
-    add_prover "e_full" eprover_full #>
-    (* on some problems better results *)
-    add_prover "spass_no_tc" (spass_filter_opts 40 false);
 
 end;
