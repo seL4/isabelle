@@ -72,7 +72,7 @@ struct
     val call::path = rev (String.tokens (fn c => c = #"/") command)
     val name::options = String.tokens (fn c => c = #" ") call
     val (ctxt, (chain_ths, goal)) = Proof.get_goal state
-    val description = "External prover '" ^ name ^ "' for Subgoal " ^ Int.toString subgoalno
+    val description = "External prover " ^ quote name ^ " for Subgoal " ^ Int.toString subgoalno
       ^ ":\n" ^ Display.string_of_cterm (List.nth(cprems_of goal, subgoalno-1))
       (* path to unique problemfile *)
     fun prob_pathname nr =
@@ -131,7 +131,7 @@ struct
   it exists. *)
   fun prover_command path =
     if File.exists path then File.shell_path path
-    else error ("Could not find the file '" ^ (Path.implode o Path.expand) path ^ "'")
+    else error ("Could not find the file " ^ quote (Path.implode (Path.expand path)))
 
   (* a vampire for first subgoal *)
   fun vampire_filter_opts max_new theory_const state = tptp_prover_filter_opts
