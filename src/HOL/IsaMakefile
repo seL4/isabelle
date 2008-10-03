@@ -216,6 +216,8 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Groebner_Basis/misc.ML \
   Tools/Groebner_Basis/normalizer_data.ML \
   Tools/Groebner_Basis/normalizer.ML \
+  Tools/atp_manager.ML \
+  Tools/atp_thread.ML \
   Tools/meson.ML \
   Tools/metis_tools.ML \
   Tools/numeral.ML \
@@ -242,8 +244,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/TFL/thms.ML \
   Tools/TFL/thry.ML \
   Tools/TFL/usyntax.ML \
-  Tools/TFL/utils.ML \
-  Tools/watcher.ML
+  Tools/TFL/utils.ML
 
 $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISATOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main

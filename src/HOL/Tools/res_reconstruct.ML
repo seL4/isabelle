@@ -8,19 +8,8 @@
 (***************************************************************************)
 signature RES_RECONSTRUCT =
 sig
-  datatype atp = E | SPASS | Vampire
   val chained_hint: string
-  val checkEProofFound:
-	TextIO.instream * TextIO.outstream * Posix.Process.pid *
-	string * Proof.context * thm * int * string Vector.vector -> bool
-  val checkVampProofFound:
-	TextIO.instream * TextIO.outstream * Posix.Process.pid *
-	string * Proof.context * thm * int * string Vector.vector -> bool
-  val checkSpassProofFound:
-	TextIO.instream * TextIO.outstream * Posix.Process.pid *
-	string * Proof.context * thm * int * string Vector.vector -> bool
-  val signal_parent: TextIO.outstream * Posix.Process.pid * string * string -> unit
-  val txt_path: string -> Path.T
+
   val fix_sorts: sort Vartab.table -> term -> term
   val invert_const: string -> string
   val invert_type_const: string -> string
@@ -28,6 +17,12 @@ sig
   val make_tvar: string -> typ
   val strip_prefix: string -> string -> string option
   val setup: Context.theory -> Context.theory
+  (* extracting lemma list*)
+  val check_success_e_vamp_spass: string * int -> bool
+  val lemma_list_dfg: string * string vector * Proof.context * Thm.thm * int -> string
+  val lemma_list_tstp: string * string vector * Proof.context * Thm.thm * int -> string
+  (* structured proofs *)
+  val structured_proof: string * string vector * Proof.context * Thm.thm * int -> string
 end;
 
 structure ResReconstruct : RES_RECONSTRUCT =
@@ -46,12 +41,10 @@ val (modulus, modulus_setup) = Attrib.config_int "sledgehammer_modulus" 1;
 (*Indicates whether to include sort information in generated proofs*)
 val (recon_sorts, recon_sorts_setup) = Attrib.config_bool "sledgehammer_sorts" true;
 
-(*Indicates whether to generate full proofs or just lemma lists*)
-val (full_proofs, full_proofs_setup) = Attrib.config_bool "sledgehammer_full" false;
+(*Indicated whether to generate full proofs or just lemma lists - now via setup of atps*)
+(* val (full_proofs, full_proofs_setup) = Attrib.config_bool "sledgehammer_full" false; *)
 
-val setup = modulus_setup #> recon_sorts_setup #> full_proofs_setup;
-
-datatype atp = E | SPASS | Vampire;
+val setup = modulus_setup #> recon_sorts_setup;
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -465,219 +458,102 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     let val msg = "Translation of TSTP raised an exception: " ^ Toplevel.exn_message e
     in  trace msg; msg  end;
 
-(*Could use split_lines, but it can return blank lines...*)
-val lines = String.tokens (equal #"\n");
 
-val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c);
+    
+  (* ==== CHECK IF PROOF OF E OR VAMPIRE WAS SUCCESSFUL === *)
+  
+  val failure_strings_E = ["SZS status: Satisfiable","SZS status: ResourceOut","# Cannot determine problem status"];
+  val failure_strings_vampire = ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
+  val failure_strings_SPASS = ["SPASS beiseite: Completion found.","SPASS beiseite: Ran out of time.",
+  "SPASS beiseite: Maximal number of loops exceeded."];
+  fun check_success_e_vamp_spass (proof, rc) =
+    not (exists (fn s => String.isSubstring s proof)
+        (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS))
+    andalso (rc = 0);
 
-val txt_path = Path.ext "txt" o Path.explode o nospaces;
-
-fun signal_success probfile toParent ppid msg =
-  let val _ = trace ("\nReporting Success for " ^ probfile ^ "\n" ^ msg)
-  in
-    (*We write the proof to a file because sending very long lines may fail...*)
-    File.write (txt_path probfile) msg;
-    TextIO.output (toParent, "Success.\n");
-    TextIO.output (toParent, probfile ^ "\n");
-    TextIO.flushOut toParent;
-    Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-    (*Give the parent time to respond before possibly sending another signal*)
-    OS.Process.sleep (Time.fromMilliseconds 600)
-  end;
-
-
-(**** retrieve the axioms that were used in the proof ****)
-
-(*Thm.get_name_hint returns "??.unknown" if no name is available.*)
-fun goodhint x = (x <> "??.unknown");  
-
-(*Get names of axioms used. Axioms are indexed from 1, while the vector is indexed from 0*)
-fun get_axiom_names (thm_names: string vector) step_nums =
-    let fun is_axiom n = n <= Vector.length thm_names
-        fun getname i = Vector.sub(thm_names, i-1)
-    in
-	sort_distinct string_ord (filter goodhint (map getname (filter is_axiom step_nums)))
+  (*=== EXTRACTING PROOF-TEXT === *)
+  
+  val begin_proof_strings = ["# SZS output start CNFRefutation.",
+      "=========== Refutation ==========",
+  "Here is a proof"];
+  val end_proof_strings = ["# SZS output end CNFRefutation",
+      "======= End of refutation =======",
+  "Formulae used in the proof"];
+  fun get_proof_extract proof =
+    let
+    (*splits to_split by the first possible of a list of splitters*)                        
+    fun first_field_any [] to_split = NONE
+      | first_field_any (splitter::splitters) to_split =
+      let
+      val result = (first_field splitter to_split)
+      in
+        if isSome result then result else first_field_any splitters to_split
+      end
+    val (a:string, b:string) = valOf (first_field_any begin_proof_strings proof)
+    val (proofextract:string, c:string) = valOf (first_field_any end_proof_strings b)
+    in proofextract end;
+  
+  (* === EXTRACTING LEMMAS === *)    
+  (* lines have the form "cnf(108, axiom, ...",
+  the number (108) has to be extracted)*)
+  fun get_step_nums_tstp proofextract = 
+    let val toks = String.tokens (not o Char.isAlphaNum)
+    fun inputno ("cnf"::ntok::"axiom"::_) = Int.fromString ntok
+      | inputno _ = NONE
+    val lines = split_lines proofextract
+    in  List.mapPartial (inputno o toks) lines  end
+    
+    (*String contains multiple lines. We want those of the form
+    "253[0:Inp] et cetera..."
+    A list consisting of the first number in each line is returned. *)
+  fun get_step_nums_dfg proofextract =
+    let val toks = String.tokens (not o Char.isAlphaNum)
+    fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
+      | inputno _ = NONE
+    val lines = split_lines proofextract
+    in  List.mapPartial (inputno o toks) lines  end
+    
+  (*extracting lemmas from tstp-output between the lines from above*)                         
+  fun extract_lemmas get_step_nums (proof, thm_names, _, _, _) = 
+    let
+    (* get the names of axioms from their numbers*)
+    fun get_axiom_names thm_names step_nums =
+      let
+      fun is_axiom n = n <= Vector.length thm_names
+      fun getname i = Vector.sub(thm_names, i-1)
+      in 
+        sort_distinct string_ord (filter (fn x => x <> "??.unknown") (map getname (filter is_axiom step_nums)))
+      end
+    val proofextract = get_proof_extract proof
+    in 
+      get_axiom_names thm_names (get_step_nums proofextract)
     end;
-
- (*String contains multiple lines. We want those of the form
-     "253[0:Inp] et cetera..."
-  A list consisting of the first number in each line is returned. *)
-fun get_spass_linenums proofextract =
-  let val toks = String.tokens (not o Char.isAlphaNum)
-      fun inputno (ntok::"0"::"Inp"::_) = Int.fromString ntok
-        | inputno _ = NONE
-      val lines = String.tokens (fn c => c = #"\n") proofextract
-  in  List.mapPartial (inputno o toks) lines  end
-
-fun get_axiom_names_spass proofextract thm_names =
-   get_axiom_names thm_names (get_spass_linenums proofextract);
-
-fun not_comma c = c <>  #",";
-
-(*A valid TSTP axiom line has the form  cnf(NNN,axiom,...) where NNN is a positive integer.*)
-fun parse_tstp_line s =
-  let val ss = Substring.full (unprefix "cnf(" (nospaces s))
-      val (intf,rest) = Substring.splitl not_comma ss
-      val (rolef,rest) = Substring.splitl not_comma (Substring.triml 1 rest)
-      (*We only allow negated_conjecture because the line number will be removed in
-        get_axiom_names above, while suppressing the UNSOUND warning*)
-      val ints = if Substring.string rolef mem_string ["axiom","negated_conjecture"]
-                 then Substring.string intf
-                 else "error"
-  in  Int.fromString ints  end
-  handle Fail _ => NONE;
-
-fun get_axiom_names_tstp proofextract thm_names =
-   get_axiom_names thm_names (List.mapPartial parse_tstp_line (split_lines proofextract));
-
- (*String contains multiple lines. We want those of the form
-     "*********** [448, input] ***********"
-   or possibly those of the form
-     "cnf(108, axiom, ..."
-  A list consisting of the first number in each line is returned. *)
-fun get_vamp_linenums proofextract =
-  let val toks = String.tokens (not o Char.isAlphaNum)
-      fun inputno [ntok,"input"] = Int.fromString ntok
-        | inputno ("cnf"::ntok::"axiom"::_) = Int.fromString ntok
-        | inputno _ = NONE
-      val lines = String.tokens (fn c => c = #"\n") proofextract
-  in  List.mapPartial (inputno o toks) lines  end
-
-fun get_axiom_names_vamp proofextract thm_names =
-   get_axiom_names thm_names (get_vamp_linenums proofextract);
-
-fun get_axiom_names_for E       = get_axiom_names_tstp
-  | get_axiom_names_for SPASS   = get_axiom_names_spass
-  | get_axiom_names_for Vampire = get_axiom_names_vamp;
-
-fun metis_line [] = "apply metis"
-  | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
-
-(*Used to label theorems chained into the sledgehammer call*)
-val chained_hint = "CHAINED";
-
-val nochained = filter_out (fn y => y = chained_hint);
-
-(*The signal handler in watcher.ML must be able to read the output of this.*)
-fun lemma_list atp proofextract thm_names probfile toParent ppid =
- (trace "\nlemma_list: ready to signal success";
-  signal_success probfile toParent ppid 
-                 (metis_line (nochained (get_axiom_names_for atp proofextract thm_names))));
-
-fun tstp_extract proofextract thm_names probfile toParent ppid ctxt th sgno =
-  let val _ = trace "\nAttempting to extract structured proof from TSTP\n"
+    
+    (* metis-command *)
+    fun metis_line [] = "apply metis"
+      | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
+    
+    (*Used to label theorems chained into the sledgehammer call*)
+    val chained_hint = "CHAINED";
+    fun sendback_metis_nochained lemmas = 
+      let val nochained = filter_out (fn y => y = chained_hint)
+      in (Markup.markup Markup.sendback o metis_line) (nochained lemmas) end
+    fun lemma_list_tstp result = sendback_metis_nochained (extract_lemmas get_step_nums_tstp result);
+    fun lemma_list_dfg result = sendback_metis_nochained (extract_lemmas get_step_nums_dfg result);
+           
+    (* === Extracting structured Isar-proof === *)
+    fun structured_proof (result as (proof, thm_names, ctxt, goal, subgoalno)) = 
+      let
+      (*Could use split_lines, but it can return blank lines...*)
+      val lines = String.tokens (equal #"\n");
+      val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c)
+      val proofextract = get_proof_extract proof
       val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-      val _ = trace (Int.toString (length cnfs) ^ " cnfs found")
-      val names = get_axiom_names_tstp proofextract thm_names
-      val line1 = metis_line (nochained names)
-      val _ = trace ("\nExtracted one-line proof: " ^ line1)
-      val line2 = if chained_hint mem_string names then ""
-                  else decode_tstp_file cnfs ctxt th sgno thm_names
-      val _ = trace "\ntstp_extract: ready to signal success"
-  in
-    signal_success probfile toParent ppid (line1 ^ "\n" ^ line2)
-  end;
+      val one_line_proof = lemma_list_tstp result
+      val structured = if chained_hint mem_string (String.tokens (fn c => c = #" ") one_line_proof) then ""
+                  else decode_tstp_file cnfs ctxt goal subgoalno thm_names
+      in
+      one_line_proof ^ "\n\n" ^ (Markup.markup Markup.sendback) structured
+    end
 
-(**** Extracting proofs from an ATP's output ****)
-
-val start_TSTP = "SZS output start CNFRefutation"
-val end_TSTP   = "SZS output end CNFRefutation"
-val start_E = "# Proof object starts here."
-val end_E   = "# Proof object ends here."
-val start_V8 = "=========== Refutation =========="
-val end_V8 = "======= End of refutation ======="
-val start_SPASS = "Here is a proof"
-val end_SPASS = "Formulae used in the proof"
-
-fun any_substring ss ln = exists (fn s => String.isSubstring s ln) ss;
-
-(*********************************************************************************)
-(*  Inspect the output of an ATP process to see if it has found a proof,     *)
-(*  and if so, transfer output to the input pipe of the main Isabelle process    *)
-(*********************************************************************************)
-
-(*Returns "true" if it successfully returns a lemma list, otherwise "false", but this
-  return value is currently never used!*)
-fun startTransfer endS (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names) =
- let val atp = if endS = end_V8 then Vampire
-	       else if endS = end_SPASS then SPASS
-	       else E
-     fun transferInput proofextract =
-       case TextIO.inputLine fromChild of
-	   NONE =>  (*end of file?*)
-	     (trace ("\n extraction_failed.  End bracket: " ^ endS ^
-		     "\naccumulated text: " ^ proofextract);
-	      false)
-	 | SOME thisLine =>
-	     if any_substring [endS,end_TSTP] thisLine
-	     then
-	      (trace ("\nExtracted proof:\n" ^ proofextract);
-	       if Config.get ctxt full_proofs andalso String.isPrefix "cnf(" proofextract
-	       then tstp_extract proofextract thm_names probfile toParent ppid ctxt th sgno
-	       else lemma_list atp proofextract thm_names probfile toParent ppid;
-	       true)
-	     else transferInput (proofextract ^ thisLine)
- in
-     transferInput ""
- end
-
-
-(*The signal handler in watcher.ML must be able to read the output of this.*)
-fun signal_parent (toParent, ppid, msg, probfile) =
- (TextIO.output (toParent, msg);
-  TextIO.output (toParent, probfile ^ "\n");
-  TextIO.flushOut toParent;
-  trace ("\nSignalled parent: " ^ msg ^ probfile);
-  Posix.Process.kill(Posix.Process.K_PROC ppid, Posix.Signal.usr2);
-  (*Give the parent time to respond before possibly sending another signal*)
-  OS.Process.sleep (Time.fromMilliseconds 600));
-
-(*FIXME: once TSTP output is produced by all ATPs, these three functions can be combined.*)
-
-(*Called from watcher. Returns true if the Vampire process has returned a verdict.*)
-fun checkVampProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) =
-  (case TextIO.inputLine fromChild of
-    NONE => (trace "\nNo proof output seen"; false)
-  | SOME thisLine =>
-     if any_substring [start_V8,start_TSTP] thisLine
-     then startTransfer end_V8 arg
-     else if (String.isSubstring "Satisfiability detected" thisLine) orelse
-             (String.isSubstring "Refutation not found" thisLine) orelse
-             (String.isSubstring "CANNOT PROVE" thisLine)
-     then (signal_parent (toParent, ppid, "Failure\n", probfile);
-	   true)
-     else checkVampProofFound arg);
-
-(*Called from watcher. Returns true if the E process has returned a verdict.*)
-fun checkEProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) =
-  (case TextIO.inputLine fromChild of
-    NONE => (trace "\nNo proof output seen"; false)
-  | SOME thisLine =>
-     if any_substring [start_E,start_TSTP] thisLine 
-     then startTransfer end_E arg
-     else if String.isSubstring "SZS status: Satisfiable" thisLine
-     then (signal_parent (toParent, ppid, "Invalid\n", probfile);
-	   true)
-     else if String.isSubstring "SZS status: ResourceOut" thisLine orelse
-             String.isSubstring "# Cannot determine problem status" thisLine
-     then (signal_parent (toParent, ppid, "Failure\n", probfile);
-	   true)
-     else checkEProofFound arg);
-
-(*Called from watcher. Returns true if the SPASS process has returned a verdict.*)
-fun checkSpassProofFound (arg as (fromChild, toParent, ppid, probfile, ctxt, th, sgno, thm_names)) =
-  (case TextIO.inputLine fromChild of
-    NONE => (trace "\nNo proof output seen"; false)
-  | SOME thisLine =>
-     if any_substring [start_SPASS,start_TSTP] thisLine
-     then startTransfer end_SPASS arg
-     else if thisLine = "SPASS beiseite: Completion found.\n"
-     then (signal_parent (toParent, ppid, "Invalid\n", probfile);
-	   true)
-     else if thisLine = "SPASS beiseite: Ran out of time.\n" orelse
-             thisLine = "SPASS beiseite: Maximal number of loops exceeded.\n"
-     then (signal_parent (toParent, ppid, "Failure\n", probfile);
-	   true)
-    else checkSpassProofFound arg);
-
-end;
+ end;
