@@ -51,16 +51,14 @@ struct
     unregistering is done by thread.
   *)
   fun atp_thread call_prover action_success description =
-    let val thread = Thread.fork(fn () =>
+    let val thread = SimpleThread.fork true (fn () =>
       let
       val answer = call_prover ()
       val _ = if isSome answer then action_success (valOf answer)
         else delayed_priority ("Sledgehammer: " ^ description ^ "\n  failed.")
       in AtpManager.unregister (isSome answer)
       end
-      handle Interrupt => delayed_priority ("Sledgehammer: " ^ description ^ "\n  interrupted.")
-    ,[Thread.EnableBroadcastInterrupt true,
-     Thread.InterruptState Thread.InterruptAsynch])
+      handle Interrupt => delayed_priority ("Sledgehammer: " ^ description ^ "\n  interrupted."))
     in (thread, description) end
 
   (* Settings for path and filename to problemfiles *)
