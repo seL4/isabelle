@@ -127,7 +127,6 @@ done
 
 
 text {* PROPERTY A 10 *}
-ML{*ResAtp.set_prover "vampire"*}
 
 lemma ack_nest_bound: "ack i1 (ack i2 j) < ack (2 + (i1 + i2)) j"
 apply (simp add: numerals)
