@@ -227,9 +227,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Qelim/presburger.ML \
   Tools/Qelim/qelim.ML \
   Tools/recdef_package.ML \
-  Tools/res_atp_methods.ML \
   Tools/res_atp.ML \
-  Tools/res_atp_provers.ML \
   Tools/res_axioms.ML \
   Tools/res_clause.ML \
   Tools/res_hol_clause.ML \

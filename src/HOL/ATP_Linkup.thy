@@ -16,8 +16,6 @@ uses
   ("Tools/res_reconstruct.ML")
   ("Tools/watcher.ML")
   ("Tools/res_atp.ML")
-  ("Tools/res_atp_provers.ML")
-  ("Tools/res_atp_methods.ML")
   "~~/src/Tools/Metis/metis.ML"
   ("Tools/metis_tools.ML")
 begin
@@ -99,14 +97,6 @@ use "Tools/res_reconstruct.ML"
 use "Tools/watcher.ML"
 use "Tools/res_atp.ML"
 
-use "Tools/res_atp_provers.ML"
-
-oracle vampire_oracle = {* ResAtpProvers.vampire_o *}
-oracle eprover_oracle = {* ResAtpProvers.eprover_o *}
-oracle spass_oracle = {* ResAtpProvers.spass_o *}
-
-use "Tools/res_atp_methods.ML"
-setup ResAtpMethods.setup      --{*Oracle ATP methods: still useful?*}
 setup ResReconstruct.setup     --{*Config parameters*}
 
 
