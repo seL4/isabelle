@@ -60,7 +60,7 @@ struct
   val lock = Mutex.mutex () (* to be aquired for changing state *)
   val state_change = ConditionVar.conditionVar () (* signal when state changes *)
   (* watches over running threads and interrupts them if required *)
-  val managing_thread = ref (Thread.fork (fn () => (), []))
+  val managing_thread = ref (NONE: Thread.thread option);
 
   (* move a thread from active to cancelling
     managing_thread trys to interrupt all threads in cancelling
@@ -77,7 +77,7 @@ struct
   (* must *not* be called more than once!! => problem with locks *)
   fun start () =
     let
-    val new_thread = Thread.fork (fn () =>
+    val new_thread = SimpleThread.fork false (fn () =>
       let
       (* never give up lock except for waiting *)
       val _ = Mutex.lock lock
@@ -111,16 +111,17 @@ struct
           in
             wait_for_next_event next_time
           end
-        in wait_for_next_event Time.zeroTime end,
-        [Thread.InterruptState Thread.InterruptDefer])
-      in managing_thread := new_thread end
+        in wait_for_next_event Time.zeroTime end)
+      in managing_thread := SOME new_thread end
 
   (* calling thread registers itself to be managed here with a relative timeout *)
   fun register birthtime deadtime (thread, name) =
     let
     val _ = Mutex.lock lock
     (* create the atp-managing-thread if this is the first call to register *)
-    val _ = if Thread.isActive (! managing_thread) then () else start ()
+    val _ =
+      if (case ! managing_thread of SOME thread => Thread.isActive thread | NONE => false)
+      then () else start ()
     (* insertion *)
     val _ = change timeout_heap (ThreadHeap.insert (deadtime, thread))
     val _ = change oldest_heap (ThreadHeap.insert (birthtime, thread))
