@@ -213,15 +213,7 @@ struct
   end;
 end;
 
-structure Posix =
-struct
-  structure ProcEnv =
-  struct
-    fun getpid () = raise Fail "Posix.ProcEnv.getpoid undefined";
-  end;
-end;
-
-fun string_of_pid _ = raise Fail "string_of_pid undefined";
+fun process_id () = raise Fail "process_id undefined";
 
 fun getenv var =
   (case OS.Process.getEnv var of

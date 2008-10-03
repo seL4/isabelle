@@ -187,45 +187,6 @@ struct
 end;
 
 
-(** Signal handling: emulation of the Poly/ML Signal structure. Note that types
-    Posix.Signal.signal and Signals.signal differ **)
-
-structure IsaSignal =
-struct
-
-datatype sig_handle = SIG_DFL | SIG_IGN | SIG_HANDLE of Signals.signal -> unit;
-
-(*From the SML/NJ documentation: "HANDLER(f) installs a handler for a
-  signal. When signal is delivered to the process, the execution state
-  of the current thread will be bundled up as a continuation k, then
-  f(signal,n,k) will be called. The number n is the number of times
-  signal has been signalled since the last time f was invoked for it."*)
-
-fun toAction SIG_DFL = Signals.DEFAULT
-  | toAction SIG_IGN = Signals.IGNORE
-  | toAction (SIG_HANDLE iu) =
-      Signals.HANDLER (fn (signo,_,cont) => (iu signo; cont));
-
-(*The types are correct, but I'm not sure about the semantics!*)
-fun fromAction Signals.DEFAULT = SIG_DFL
-  | fromAction Signals.IGNORE = SIG_IGN
-  | fromAction (Signals.HANDLER f) =
-      SIG_HANDLE (fn signo => SMLofNJ.Cont.callcc (fn k => (f (signo,0,k); ())));
-
-(*Poly/ML version has type  int * sig_handle -> sig_handle*)
-fun signal (signo, sh) = fromAction (Signals.setHandler (signo, toAction sh));
-
-val usr1 = UnixSignals.sigUSR1
-val usr2 = UnixSignals.sigUSR2
-val alrm = UnixSignals.sigALRM
-val chld = UnixSignals.sigCHLD
-val cont = UnixSignals.sigCONT
-val int = UnixSignals.sigINT
-val quit = UnixSignals.sigQUIT
-val term = UnixSignals.sigTERM
-
-end;
-
 
 (** OS related **)
 
@@ -241,8 +202,8 @@ val system_out = (fn (output, rc) => (output, mk_int rc)) o system_out;
 
 
 (*Convert a process ID to a decimal string (chiefly for tracing)*)
-fun string_of_pid pid =
-  Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord pid));
+fun process_id pid =
+  Word.fmt StringCvt.DEC (Word.fromLargeWord (Posix.Process.pidToWord (Posix.ProcEnv.getpid ())));
 
 
 (* getenv *)
