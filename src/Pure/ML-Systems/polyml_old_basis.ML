@@ -21,17 +21,6 @@ struct
   val full = all;
 end;
 
-structure Posix =
-struct
-  open Posix;
-  structure IO =
-  struct
-    open IO;
-    val mkTextReader = mkReader;
-    val mkTextWriter = mkWriter;
-  end;
-end;
-
 structure TextIO =
 struct
   open TextIO;
