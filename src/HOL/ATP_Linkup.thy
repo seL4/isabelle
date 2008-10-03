@@ -2,6 +2,7 @@
     ID:         $Id$
     Author:     Lawrence C Paulson
     Author:     Jia Meng, NICTA
+    Author:     Fabian Immler, TUM
 *)
 
 header {* The Isabelle-ATP Linkup *}
@@ -95,7 +96,19 @@ use "Tools/res_hol_clause.ML"
 use "Tools/res_reconstruct.ML" setup ResReconstruct.setup
 use "Tools/res_atp.ML"
 use "Tools/atp_manager.ML"
-use "Tools/atp_thread.ML" setup AtpThread.setup
+use "Tools/atp_thread.ML"
+
+text {* basic provers *}
+setup {* AtpManager.add_prover "spass" AtpThread.spass *}
+setup {* AtpManager.add_prover "vampire" AtpThread.vampire *}
+setup {* AtpManager.add_prover "e" AtpThread.eprover *}
+
+text {* provers with stuctured output *}
+setup {* AtpManager.add_prover "vampire_full" AtpThread.vampire_full *}
+setup {* AtpManager.add_prover "e_full" AtpThread.eprover_full *}
+
+text {* on some problems better results *}
+setup {* AtpManager.add_prover "spass_no_tc" (AtpThread.spass_filter_opts 40 false) *}
 
 
 subsection {* The Metis prover *}
