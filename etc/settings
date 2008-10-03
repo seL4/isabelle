@@ -211,8 +211,9 @@ PROOFGENERAL_HOME=$(choosefrom \
   "/opt/ProofGeneral" \
   "")
 
-PROOFGENERAL_OPTIONS=""
-#PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true -p emacs22"
+PROOFGENERAL_EMACS=$(choosefrom /Applications/Emacs.app/Contents/MacOS/Emacs emacs22)
+PROOFGENERAL_OPTIONS="-p $PROOFGENERAL_EMACS"
+#PROOFGENERAL_OPTIONS="-m no_brackets -m no_type_brackets -x true -p $PROOFGENERAL_EMACS"
 
 # Automatic setup of remote fonts
 #XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
