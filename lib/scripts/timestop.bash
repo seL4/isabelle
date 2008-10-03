@@ -45,6 +45,7 @@ function show_times ()
     local FACTOR=$(( $TIME2 * 100 / $TIME1 ))
     local FACTOR1=$(( $FACTOR / 100 ))
     local FACTOR2=$(( $FACTOR % 100 ))
+    if let "$FACTOR2 < 10"; then FACTOR2="0$FACTOR2"; fi
     TIMES_REPORT="$TIMES_REPORT, factor ${FACTOR1}.${FACTOR2}"
   fi
 }
