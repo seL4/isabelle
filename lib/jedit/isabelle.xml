@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE MODE SYSTEM "xmode.dtd">
-<!-- Generated from Pure + HOL-Plain + HOL + HOLCF + IOA + HOL-Nominal + HOL-Statespace + FOL + ZF. -->
+<!-- Generated from Pure + HOL + HOLCF + IOA + HOL-Nominal + HOL-Statespace + FOL + ZF. -->
 <!-- *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT *** -->
 <!-- $Id$ -->
 <MODE>
@@ -54,6 +54,9 @@
       <KEYWORD2>assume</KEYWORD2>
       <KEYWORD4>assumes</KEYWORD4>
       <OPERATOR>atom_decl</OPERATOR>
+      <LABEL>atp_info</LABEL>
+      <LABEL>atp_kill</LABEL>
+      <OPERATOR>atp_setup</OPERATOR>
       <KEYWORD4>attach</KEYWORD4>
       <OPERATOR>automaton</OPERATOR>
       <KEYWORD4>avoids</KEYWORD4>
@@ -223,6 +226,7 @@
       <LABEL>print_abbrevs</LABEL>
       <LABEL>print_antiquotations</LABEL>
       <OPERATOR>print_ast_translation</OPERATOR>
+      <LABEL>print_atps</LABEL>
       <LABEL>print_attributes</LABEL>
       <LABEL>print_binds</LABEL>
       <LABEL>print_cases</LABEL>

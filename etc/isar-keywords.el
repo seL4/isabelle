@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from Pure + Pure-ProofGeneral + HOL-Plain + HOL + HOLCF + IOA + HOL-Nominal + HOL-Statespace.
+;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Nominal + HOL-Statespace.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 ;; $Id$
@@ -30,6 +30,9 @@
     "arities"
     "assume"
     "atom_decl"
+    "atp_info"
+    "atp_kill"
+    "atp_setup"
     "automaton"
     "ax_specification"
     "axclass"
@@ -152,6 +155,7 @@
     "print_abbrevs"
     "print_antiquotations"
     "print_ast_translation"
+    "print_atps"
     "print_attributes"
     "print_binds"
     "print_cases"
@@ -325,6 +329,8 @@
 (defconst isar-keywords-diag
   '("ML_command"
     "ML_val"
+    "atp_info"
+    "atp_kill"
     "cd"
     "class_deps"
     "code_deps"
@@ -345,6 +351,7 @@
     "prf"
     "print_abbrevs"
     "print_antiquotations"
+    "print_atps"
     "print_attributes"
     "print_binds"
     "print_cases"
@@ -406,6 +413,7 @@
     "abbreviation"
     "arities"
     "atom_decl"
+    "atp_setup"
     "automaton"
     "axclass"
     "axiomatization"
