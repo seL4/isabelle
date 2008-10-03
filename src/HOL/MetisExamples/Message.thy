@@ -78,7 +78,7 @@ inductive_set
   | Body:        "Crypt K X \<in> parts H ==> X \<in> parts H"
 
 
-ML{*ResAtp.problem_name := "Message__parts_mono"*}
+ML{*AtpThread.problem_name := "Message__parts_mono"*}
 lemma parts_mono: "G \<subseteq> H ==> parts(G) \<subseteq> parts(H)"
 apply auto
 apply (erule parts.induct) 
@@ -102,7 +102,7 @@ by auto
 
 subsubsection{*Inverse of keys *}
 
-ML{*ResAtp.problem_name := "Message__invKey_eq"*}
+ML{*AtpThread.problem_name := "Message__invKey_eq"*}
 lemma invKey_eq [simp]: "(invKey K = invKey K') = (K=K')"
 by (metis invKey)
 
@@ -203,7 +203,7 @@ apply (subst insert_is_Un [of _ H])
 apply (simp only: parts_Un)
 done
 
-ML{*ResAtp.problem_name := "Message__parts_insert_two"*}
+ML{*AtpThread.problem_name := "Message__parts_insert_two"*}
 lemma parts_insert2:
      "parts (insert X (insert Y H)) = parts {X} \<union> parts {Y} \<union> parts H"
 by (metis Un_commute Un_empty_left Un_empty_right Un_insert_left Un_insert_right parts_Un)
@@ -240,7 +240,7 @@ by (erule parts.induct, blast+)
 lemma parts_idem [simp]: "parts (parts H) = parts H"
 by blast
 
-ML{*ResAtp.problem_name := "Message__parts_subset_iff"*}
+ML{*AtpThread.problem_name := "Message__parts_subset_iff"*}
 lemma parts_subset_iff [simp]: "(parts G \<subseteq> parts H) = (G \<subseteq> parts H)"
 apply (rule iffI) 
 apply (metis Un_absorb1 Un_subset_iff parts_Un parts_increasing)
@@ -251,7 +251,7 @@ lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> part
 by (blast dest: parts_mono); 
 
 
-ML{*ResAtp.problem_name := "Message__parts_cut"*}
+ML{*AtpThread.problem_name := "Message__parts_cut"*}
 lemma parts_cut: "[|Y\<in> parts(insert X G);  X\<in> parts H|] ==> Y\<in> parts(G \<union> H)"
 by (metis Un_subset_iff insert_subset parts_increasing parts_trans) 
 
@@ -316,7 +316,7 @@ apply (erule parts.induct, auto)
 done
 
 
-ML{*ResAtp.problem_name := "Message__msg_Nonce_supply"*}
+ML{*AtpThread.problem_name := "Message__msg_Nonce_supply"*}
 lemma msg_Nonce_supply: "\<exists>N. \<forall>n. N\<le>n --> Nonce n \<notin> parts {msg}"
 apply (induct_tac "msg") 
 apply (simp_all add: parts_insert2)
@@ -368,7 +368,7 @@ lemmas analz_into_parts = analz_subset_parts [THEN subsetD, standard]
 lemmas not_parts_not_analz = analz_subset_parts [THEN contra_subsetD, standard]
 
 
-ML{*ResAtp.problem_name := "Message__parts_analz"*}
+ML{*AtpThread.problem_name := "Message__parts_analz"*}
 lemma parts_analz [simp]: "parts (analz H) = parts H"
 apply (rule equalityI)
 apply (metis analz_subset_parts parts_subset_iff)
@@ -520,7 +520,7 @@ lemma analz_trans: "[| X\<in> analz G;  G \<subseteq> analz H |] ==> X\<in> anal
 by (drule analz_mono, blast)
 
 
-ML{*ResAtp.problem_name := "Message__analz_cut"*}
+ML{*AtpThread.problem_name := "Message__analz_cut"*}
     declare analz_trans[intro]
 lemma analz_cut: "[| Y\<in> analz (insert X H);  X\<in> analz H |] ==> Y\<in> analz H"
 (*TOO SLOW
@@ -538,7 +538,7 @@ by (blast intro: analz_cut analz_insertI)
 
 text{*A congruence rule for "analz" *}
 
-ML{*ResAtp.problem_name := "Message__analz_subset_cong"*}
+ML{*AtpThread.problem_name := "Message__analz_subset_cong"*}
 lemma analz_subset_cong:
      "[| analz G \<subseteq> analz G'; analz H \<subseteq> analz H' |] 
       ==> analz (G \<union> H) \<subseteq> analz (G' \<union> H')"
@@ -616,7 +616,7 @@ lemma synth_Un: "synth(G) \<union> synth(H) \<subseteq> synth(G \<union> H)"
 by (intro Un_least synth_mono Un_upper1 Un_upper2)
 
 
-ML{*ResAtp.problem_name := "Message__synth_insert"*}
+ML{*AtpThread.problem_name := "Message__synth_insert"*}
  
 lemma synth_insert: "insert X (synth H) \<subseteq> synth(insert X H)"
 by (metis insert_iff insert_subset subset_insertI synth.Inj synth_mono)
@@ -638,7 +638,7 @@ done
 lemma synth_trans: "[| X\<in> synth G;  G \<subseteq> synth H |] ==> X\<in> synth H"
 by (drule synth_mono, blast)
 
-ML{*ResAtp.problem_name := "Message__synth_cut"*}
+ML{*AtpThread.problem_name := "Message__synth_cut"*}
 lemma synth_cut: "[| Y\<in> synth (insert X H);  X\<in> synth H |] ==> Y\<in> synth H"
 (*TOO SLOW
 by (metis insert_absorb insert_mono insert_subset synth_idem synth_increasing synth_mono)
@@ -670,7 +670,7 @@ by (unfold keysFor_def, blast)
 
 subsubsection{*Combinations of parts, analz and synth *}
 
-ML{*ResAtp.problem_name := "Message__parts_synth"*}
+ML{*AtpThread.problem_name := "Message__parts_synth"*}
 lemma parts_synth [simp]: "parts (synth H) = parts H \<union> synth H"
 apply (rule equalityI)
 apply (rule subsetI)
@@ -685,14 +685,14 @@ done
 
 
 
-ML{*ResAtp.problem_name := "Message__analz_analz_Un"*}
+ML{*AtpThread.problem_name := "Message__analz_analz_Un"*}
 lemma analz_analz_Un [simp]: "analz (analz G \<union> H) = analz (G \<union> H)"
 apply (rule equalityI);
 apply (metis analz_idem analz_subset_cong order_eq_refl)
 apply (metis analz_increasing analz_subset_cong order_eq_refl)
 done
 
-ML{*ResAtp.problem_name := "Message__analz_synth_Un"*}
+ML{*AtpThread.problem_name := "Message__analz_synth_Un"*}
     declare analz_mono [intro] analz.Fst [intro] analz.Snd [intro] Un_least [intro]
 lemma analz_synth_Un [simp]: "analz (synth G \<union> H) = analz (G \<union> H) \<union> synth G"
 apply (rule equalityI)
@@ -706,7 +706,7 @@ apply blast
 done
 
 
-ML{*ResAtp.problem_name := "Message__analz_synth"*}
+ML{*AtpThread.problem_name := "Message__analz_synth"*}
 lemma analz_synth [simp]: "analz (synth H) = analz H \<union> synth H"
 proof (neg_clausify)
 assume 0: "analz (synth H) \<noteq> analz H \<union> synth H"
@@ -729,7 +729,7 @@ qed
 
 subsubsection{*For reasoning about the Fake rule in traces *}
 
-ML{*ResAtp.problem_name := "Message__parts_insert_subset_Un"*}
+ML{*AtpThread.problem_name := "Message__parts_insert_subset_Un"*}
 lemma parts_insert_subset_Un: "X\<in> G ==> parts(insert X H) \<subseteq> parts G \<union> parts H"
 proof (neg_clausify)
 assume 0: "X \<in> G"
@@ -748,7 +748,7 @@ show "False"
   by (metis 6 0)
 qed
 
-ML{*ResAtp.problem_name := "Message__Fake_parts_insert"*}
+ML{*AtpThread.problem_name := "Message__Fake_parts_insert"*}
 lemma Fake_parts_insert:
      "X \<in> synth (analz H) ==>  
       parts (insert X H) \<subseteq> synth (analz H) \<union> parts H"
@@ -791,14 +791,14 @@ lemma Fake_parts_insert_in_Un:
       ==> Z \<in>  synth (analz H) \<union> parts H";
 by (blast dest: Fake_parts_insert  [THEN subsetD, dest])
 
-ML{*ResAtp.problem_name := "Message__Fake_analz_insert"*}
+ML{*AtpThread.problem_name := "Message__Fake_analz_insert"*}
     declare analz_mono [intro] synth_mono [intro] 
 lemma Fake_analz_insert:
      "X\<in> synth (analz G) ==>  
       analz (insert X H) \<subseteq> synth (analz G) \<union> analz (G \<union> H)"
 by (metis Un_commute Un_insert_left Un_insert_right Un_upper1 analz_analz_Un analz_mono analz_synth_Un equalityE insert_absorb order_le_less xt1(12))
 
-ML{*ResAtp.problem_name := "Message__Fake_analz_insert_simpler"*}
+ML{*AtpThread.problem_name := "Message__Fake_analz_insert_simpler"*}
 (*simpler problems?  BUT METIS CAN'T PROVE
 lemma Fake_analz_insert_simpler:
      "X\<in> synth (analz G) ==>  

@@ -18,7 +18,7 @@ constdefs
   bigo :: "('a => 'b::ordered_idom) => ('a => 'b) set"    ("(1O'(_'))")
   "O(f::('a => 'b)) ==   {h. EX c. ALL x. abs (h x) <= c * abs (f x)}"
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_pos_const"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_pos_const"*}
 lemma bigo_pos_const: "(EX (c::'a::ordered_idom). 
     ALL x. (abs (h x)) <= (c * (abs (f x))))
       = (EX c. 0 < c & (ALL x. (abs(h x)) <= (c * (abs (f x)))))"
@@ -215,7 +215,7 @@ lemma bigo_alt_def: "O(f) =
     {h. EX c. (0 < c & (ALL x. abs (h x) <= c * abs (f x)))}"
 by (auto simp add: bigo_def bigo_pos_const)
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_elt_subset"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_elt_subset"*}
 lemma bigo_elt_subset [intro]: "f : O(g) ==> O(f) <= O(g)"
   apply (auto simp add: bigo_alt_def)
   apply (rule_tac x = "ca * c" in exI)
@@ -233,7 +233,7 @@ lemma bigo_elt_subset [intro]: "f : O(g) ==> O(f) <= O(g)"
 done
 
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_refl"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_refl"*}
 lemma bigo_refl [intro]: "f : O(f)"
   apply(auto simp add: bigo_def)
 proof (neg_clausify)
@@ -247,7 +247,7 @@ show "False"
   by (metis 0 2)
 qed
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_zero"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_zero"*}
 lemma bigo_zero: "0 : O(g)"
   apply (auto simp add: bigo_def func_zero)
 proof (neg_clausify)
@@ -337,7 +337,7 @@ lemma bigo_plus_subset2 [intro]: "A <= O(f) ==> B <= O(f) ==> A \<oplus> B <= O(
   apply (auto del: subsetI simp del: bigo_plus_idemp)
 done
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_plus_eq"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_plus_eq"*}
 lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==> 
   O(f + g) = O(f) \<oplus> O(g)"
   apply (rule equalityI)
@@ -360,13 +360,13 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply (rule abs_triangle_ineq)
   apply (metis add_nonneg_nonneg)
   apply (rule add_mono)
-ML_command{*ResAtp.problem_name := "BigO__bigo_plus_eq_simpler"*} 
+ML_command{*AtpThread.problem_name := "BigO__bigo_plus_eq_simpler"*} 
 (*Found by SPASS; SLOW*)
 apply (metis le_maxI2 linorder_linear linorder_not_le min_max.less_eq_less_sup.sup_absorb1 mult_le_cancel_right order_trans)
 apply (metis le_maxI2 linorder_not_le mult_le_cancel_right order_trans)
 done
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_bounded_alt"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_bounded_alt"*}
 lemma bigo_bounded_alt: "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> 
     f : O(g)" 
   apply (auto simp add: bigo_def)
@@ -426,7 +426,7 @@ qed
 
 
 text{*So here is the easier (and more natural) problem using transitivity*}
-ML_command{*ResAtp.problem_name := "BigO__bigo_bounded_alt_trans"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_bounded_alt_trans"*}
 lemma "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> f : O(g)" 
   apply (auto simp add: bigo_def)
   (*Version 1: one-shot proof*) 
@@ -434,7 +434,7 @@ lemma "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> f : O(g)"
   done
 
 text{*So here is the easier (and more natural) problem using transitivity*}
-ML_command{*ResAtp.problem_name := "BigO__bigo_bounded_alt_trans"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_bounded_alt_trans"*}
 lemma "ALL x. 0 <= f x ==> ALL x. f x <= c * g x ==> f : O(g)" 
   apply (auto simp add: bigo_def)
 (*Version 2: single-step proof*)
@@ -473,7 +473,7 @@ lemma bigo_bounded: "ALL x. 0 <= f x ==> ALL x. f x <= g x ==>
   apply simp
 done
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_bounded2"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_bounded2"*}
 lemma bigo_bounded2: "ALL x. lb x <= f x ==> ALL x. f x <= lb x + g x ==>
     f : lb +o O(g)"
   apply (rule set_minus_imp_plus)
@@ -496,7 +496,7 @@ show "False"
   by (metis 4 2 0)
 qed
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_abs"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_abs"*}
 lemma bigo_abs: "(%x. abs(f x)) =o O(f)" 
   apply (unfold bigo_def)
   apply auto
@@ -511,7 +511,7 @@ show "False"
   by (metis 0 2)
 qed
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_abs2"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_abs2"*}
 lemma bigo_abs2: "f =o O(%x. abs(f x))"
   apply (unfold bigo_def)
   apply auto
@@ -583,7 +583,7 @@ proof -
     by (simp add: bigo_abs3 [symmetric])
 qed
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_mult"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_mult"*}
 lemma bigo_mult [intro]: "O(f)\<otimes>O(g) <= O(f * g)"
   apply (rule subsetI)
   apply (subst bigo_def)
@@ -595,7 +595,7 @@ lemma bigo_mult [intro]: "O(f)\<otimes>O(g) <= O(f * g)"
   apply(erule_tac x = x in allE)+
   apply(subgoal_tac "c * ca * abs(f x * g x) = 
       (c * abs(f x)) * (ca * abs(g x))")
-ML_command{*ResAtp.problem_name := "BigO__bigo_mult_simpler"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_mult_simpler"*}
 prefer 2 
 apply (metis mult_assoc mult_left_commute
   OrderedGroup.abs_of_pos OrderedGroup.mult_left_commute
@@ -660,14 +660,14 @@ show 18: "False"
 qed
 
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_mult2"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_mult2"*}
 lemma bigo_mult2 [intro]: "f *o O(g) <= O(f * g)"
   apply (auto simp add: bigo_def elt_set_times_def func_times abs_mult)
 (*sledgehammer*); 
   apply (rule_tac x = c in exI)
   apply clarify
   apply (drule_tac x = x in spec)
-ML_command{*ResAtp.problem_name := "BigO__bigo_mult2_simpler"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_mult2_simpler"*}
 (*sledgehammer [no luck]*); 
   apply (subgoal_tac "abs(f x) * abs(b x) <= abs(f x) * (c * abs(g x))")
   apply (simp add: mult_ac)
@@ -675,11 +675,11 @@ ML_command{*ResAtp.problem_name := "BigO__bigo_mult2_simpler"*}
   apply (rule abs_ge_zero)
 done
 
-ML_command{*ResAtp.problem_name:="BigO__bigo_mult3"*}
+ML_command{*AtpThread.problem_name:="BigO__bigo_mult3"*}
 lemma bigo_mult3: "f : O(h) ==> g : O(j) ==> f * g : O(h * j)"
 by (metis bigo_mult set_times_intro subset_iff)
 
-ML_command{*ResAtp.problem_name:="BigO__bigo_mult4"*}
+ML_command{*AtpThread.problem_name:="BigO__bigo_mult4"*}
 lemma bigo_mult4 [intro]:"f : k +o O(h) ==> g * f : (g * k) +o O(g * h)"
 by (metis bigo_mult2 set_plus_mono_b set_times_intro2 set_times_plus_distrib)
 
@@ -713,13 +713,13 @@ proof -
   qed
 qed
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_mult6"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_mult6"*}
 lemma bigo_mult6: "ALL x. f x ~= 0 ==>
     O(f * g) = (f::'a => ('b::ordered_field)) *o O(g)"
 by (metis bigo_mult2 bigo_mult5 order_antisym)
 
 (*proof requires relaxing relevance: 2007-01-25*)
-ML_command{*ResAtp.problem_name := "BigO__bigo_mult7"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_mult7"*}
   declare bigo_mult6 [simp]
 lemma bigo_mult7: "ALL x. f x ~= 0 ==>
     O(f * g) <= O(f::'a => ('b::ordered_field)) \<otimes> O(g)"
@@ -731,7 +731,7 @@ lemma bigo_mult7: "ALL x. f x ~= 0 ==>
 done
   declare bigo_mult6 [simp del]
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_mult8"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_mult8"*}
   declare bigo_mult7[intro!]
 lemma bigo_mult8: "ALL x. f x ~= 0 ==>
     O(f * g) = O(f::'a => ('b::ordered_field)) \<otimes> O(g)"
@@ -782,7 +782,7 @@ proof -
   qed
 qed
 
-ML_command{*ResAtp.problem_name:="BigO__bigo_plus_absorb"*}
+ML_command{*AtpThread.problem_name:="BigO__bigo_plus_absorb"*}
 lemma bigo_plus_absorb [simp]: "f : O(g) ==> f +o O(g) = O(g)"
 by (metis bigo_plus_absorb_lemma1 bigo_plus_absorb_lemma2 order_eq_iff);
 
@@ -809,7 +809,7 @@ done
 lemma bigo_const1: "(%x. c) : O(%x. 1)"
 by (auto simp add: bigo_def mult_ac)
 
-ML_command{*ResAtp.problem_name:="BigO__bigo_const2"*}
+ML_command{*AtpThread.problem_name:="BigO__bigo_const2"*}
 lemma (*bigo_const2 [intro]:*) "O(%x. c) <= O(%x. 1)"
 by (metis bigo_const1 bigo_elt_subset);
 
@@ -832,7 +832,7 @@ qed
   apply (rule bigo_const1)
 done
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_const3"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_const3"*}
 lemma bigo_const3: "(c::'a::ordered_field) ~= 0 ==> (%x. 1) : O(%x. c)"
 apply (simp add: bigo_def)
 proof (neg_clausify)
@@ -856,7 +856,7 @@ lemma bigo_const [simp]: "(c::'a::ordered_field) ~= 0 ==>
     O(%x. c) = O(%x. 1)"
 by (rule equalityI, rule bigo_const2, rule bigo_const4, assumption)
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_const_mult1"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_const_mult1"*}
 lemma bigo_const_mult1: "(%x. c * f x) : O(f)"
   apply (simp add: bigo_def abs_mult)
 proof (neg_clausify)
@@ -872,7 +872,7 @@ qed
 lemma bigo_const_mult2: "O(%x. c * f x) <= O(f)"
 by (rule bigo_elt_subset, rule bigo_const_mult1)
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_const_mult3"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_const_mult3"*}
 lemma bigo_const_mult3: "(c::'a::ordered_field) ~= 0 ==> f : O(%x. c * f x)"
   apply (simp add: bigo_def)
 (*sledgehammer [no luck]*); 
@@ -890,7 +890,7 @@ lemma bigo_const_mult [simp]: "(c::'a::ordered_field) ~= 0 ==>
     O(%x. c * f x) = O(f)"
 by (rule equalityI, rule bigo_const_mult2, erule bigo_const_mult4)
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_const_mult5"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_const_mult5"*}
 lemma bigo_const_mult5 [simp]: "(c::'a::ordered_field) ~= 0 ==> 
     (%x. c) *o O(f) = O(f)"
   apply (auto del: subsetI)
@@ -910,7 +910,7 @@ lemma bigo_const_mult5 [simp]: "(c::'a::ordered_field) ~= 0 ==>
 done
 
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_const_mult6"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_const_mult6"*}
 lemma bigo_const_mult6 [intro]: "(%x. c) *o O(f) <= O(f)"
   apply (auto intro!: subsetI
     simp add: bigo_def elt_set_times_def func_times
@@ -967,7 +967,7 @@ lemma bigo_setsum_main: "ALL x. ALL y : A x. 0 <= h x y ==>
 apply (blast intro: order_trans mult_right_mono abs_ge_self) 
 done
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_setsum1"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_setsum1"*}
 lemma bigo_setsum1: "ALL x y. 0 <= h x y ==> 
     EX c. ALL x y. abs(f x y) <= c * (h x y) ==>
       (%x. SUM y : A x. f x y) =o O(%x. SUM y : A x. h x y)"
@@ -984,7 +984,7 @@ lemma bigo_setsum2: "ALL y. 0 <= h y ==>
       (%x. SUM y : A x. f y) =o O(%x. SUM y : A x. h y)"
 by (rule bigo_setsum1, auto)  
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_setsum3"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_setsum3"*}
 lemma bigo_setsum3: "f =o O(h) ==>
     (%x. SUM y : A x. (l x y) * f(k x y)) =o
       O(%x. SUM y : A x. abs(l x y * h(k x y)))"
@@ -1015,7 +1015,7 @@ lemma bigo_setsum4: "f =o g +o O(h) ==>
   apply (erule set_plus_imp_minus)
 done
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_setsum5"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_setsum5"*}
 lemma bigo_setsum5: "f =o O(h) ==> ALL x y. 0 <= l x y ==> 
     ALL x. 0 <= h x ==>
       (%x. SUM y : A x. (l x y) * f(k x y)) =o
@@ -1072,7 +1072,7 @@ lemma bigo_useful_const_mult: "(c::'a::ordered_field) ~= 0 ==>
   apply (simp add: func_times) 
 done
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_fix"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_fix"*}
 lemma bigo_fix: "(%x. f ((x::nat) + 1)) =o O(%x. h(x + 1)) ==> f 0 = 0 ==>
     f =o O(h)"
   apply (simp add: bigo_alt_def)
@@ -1137,7 +1137,7 @@ lemma bigo_lesseq4: "f =o O(h) ==>
   apply (erule spec)+
 done
 
-ML_command{*ResAtp.problem_name:="BigO__bigo_lesso1"*}
+ML_command{*AtpThread.problem_name:="BigO__bigo_lesso1"*}
 lemma bigo_lesso1: "ALL x. f x <= g x ==> f <o g =o O(h)"
   apply (unfold lesso_def)
   apply (subgoal_tac "(%x. max (f x - g x) 0) = 0")
@@ -1149,7 +1149,7 @@ apply (metis bigo_zero)
 done
 
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_lesso2"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_lesso2"*}
 lemma bigo_lesso2: "f =o g +o O(h) ==>
     ALL x. 0 <= k x ==> ALL x. k x <= f x ==>
       k <o g =o O(h)"
@@ -1186,7 +1186,7 @@ show "False"
   by (metis min_max.less_eq_less_sup.sup_commute min_max.less_eq_less_inf.inf_commute min_max.less_eq_less_inf_sup.sup_inf_absorb min_max.less_eq_less_inf.le_iff_inf 0 max_diff_distrib_left 1 linorder_not_le 8)
 qed
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_lesso3"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_lesso3"*}
 lemma bigo_lesso3: "f =o g +o O(h) ==>
     ALL x. 0 <= k x ==> ALL x. g x <= k x ==>
       f <o k =o O(h)"
@@ -1203,7 +1203,7 @@ apply (erule thin_rl)
   apply (simp del: compare_rls diff_minus);
   apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
-ML_command{*ResAtp.problem_name := "BigO__bigo_lesso3_simpler"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_lesso3_simpler"*}
 apply (metis diff_less_0_iff_less linorder_not_le not_leE uminus_add_conv_diff xt1(12) xt1(6))
 apply (metis add_minus_cancel diff_le_eq le_diff_eq uminus_add_conv_diff)
 apply (metis abs_ge_zero linorder_linear min_max.less_eq_less_sup.sup_absorb1 min_max.less_eq_less_sup.sup_commute)
@@ -1223,7 +1223,7 @@ lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
     split: split_max abs_split)
 done
 
-ML_command{*ResAtp.problem_name := "BigO__bigo_lesso5"*}
+ML_command{*AtpThread.problem_name := "BigO__bigo_lesso5"*}
 lemma bigo_lesso5: "f <o g =o O(h) ==>
     EX C. ALL x. f x <= g x + C * abs(h x)"
   apply (simp only: lesso_def bigo_alt_def)
