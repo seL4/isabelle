@@ -40,6 +40,7 @@ exception Interrupt;
 
 use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";
+use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 use "ML-Systems/ml_name_space.ML";
@@ -86,7 +87,11 @@ end;
 structure OS =
 struct
   open OS
-  structure Process = Process
+  structure Process =
+  struct
+    open Process
+    fun sleep _ = raise Fail "OS.Process.sleep undefined"
+  end;
   structure FileSys = FileSys
 end;
 
@@ -155,6 +160,17 @@ struct
   fun inputLine is =
     let val s = TextIO.inputLine is
     in if s = "" then NONE else SOME s end;
+  fun getOutstream _ = ();
+  structure StreamIO =
+  struct
+    fun setBufferMode _ = ();
+  end
+end;
+
+structure IO =
+struct
+  open IO;
+  val BLOCK_BUF = ();
 end;
 
 
@@ -230,7 +246,7 @@ end;
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
-val string_of_pid = Int.toString;
+val process_id = Int.toString o Posix.ProcEnv.getpid;
 
 fun getenv var =
   (case Process.getEnv var of
