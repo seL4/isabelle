@@ -38,7 +38,6 @@ object IsabelleProcess {
     val WARNING = Value("WARNING")
     val ERROR = Value("ERROR")
     val DEBUG = Value("DEBUG")
-    val PROMPT = Value("PROMPT")
     // messages codes
     val code = Map(
       ('A' : Int) -> Kind.INIT,
@@ -49,7 +48,6 @@ object IsabelleProcess {
       ('F' : Int) -> Kind.WARNING,
       ('G' : Int) -> Kind.ERROR,
       ('H' : Int) -> Kind.DEBUG,
-      ('I' : Int) -> Kind.PROMPT,
       ('0' : Int) -> Kind.SYSTEM,
       ('1' : Int) -> Kind.STDIN,
       ('2' : Int) -> Kind.STDOUT,
@@ -67,8 +65,7 @@ object IsabelleProcess {
       kind == STDIN ||
       kind == SIGNAL ||
       kind == EXIT ||
-      kind == STATUS ||
-      kind == PROMPT
+      kind == STATUS
   }
 
   class Result(val kind: Kind.Value, val props: Properties, val result: String) {

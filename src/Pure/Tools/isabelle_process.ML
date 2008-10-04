@@ -130,7 +130,7 @@ fun setup_channels out =
     Output.warning_fn  := message out_stream "F" Markup.warningN;
     Output.error_fn    := message out_stream "G" Markup.errorN;
     Output.debug_fn    := message out_stream "H" Markup.debugN;
-    Output.prompt_fn   := message out_stream "I" Markup.promptN;
+    Output.prompt_fn   := ignore;
     out_stream
   end;
 
