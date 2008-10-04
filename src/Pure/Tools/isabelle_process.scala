@@ -356,8 +356,8 @@ class IsabelleProcess(args: String*) {
     /* exec process */
 
     try {
-      val cmdline = List(IsabelleSystem.getenv_strict("ISABELLE_HOME") +
-          "/bin/isabelle-process", "-W", message_fifo) ++ args
+      val cmdline =
+        List(IsabelleSystem.getenv_strict("ISABELLE_PROCESS"), "-W", message_fifo) ++ args
       proc = IsabelleSystem.exec2(cmdline: _*)
     }
     catch {
