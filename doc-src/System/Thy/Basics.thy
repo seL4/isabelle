@@ -437,8 +437,7 @@ text {*
 \begin{ttbox}
 Usage: isabelle TOOL [ARGS ...]
 
-  Start Isabelle utility program TOOL with ARGS. Pass "-?" to TOOL
-  for more specific help.
+  Start Isabelle tool NAME with ARGS; pass "-?" for tool specific help.
 
   Available tools are:
 
