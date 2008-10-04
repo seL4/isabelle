@@ -40,21 +40,19 @@ This manual describes Isabelle together with related tools and user
   variables to all Isabelle programs (including tools and user
   interfaces).
 
-  \item The \emph{raw Isabelle process} (\indexref{}{executable}{isabelle}\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} or
-  \indexref{}{executable}{isabelle-process}\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}) runs logic sessions either
-  interactively or in batch mode.  In particular, this view abstracts
-  over the invocation of the actual ML system to be used.  Regular
-  users rarely need to care about the low-level process.
+  \item The \emph{raw Isabelle process} (\indexref{}{executable}{isabelle-process}\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}) runs logic sessions either interactively or in
+  batch mode.  In particular, this view abstracts over the invocation
+  of the actual ML system to be used.  Regular users rarely need to
+  care about the low-level process.
 
-  \item The \emph{Isabelle tools wrapper} (\indexref{}{executable}{isatool}\hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}})
+  \item The \emph{Isabelle tools wrapper} (\indexref{}{executable}{isabelle}\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}})
   provides a generic startup environment Isabelle related utilities,
   user interfaces etc.  Such tools automatically benefit from the
   settings mechanism.
 
-  \item The \emph{Isabelle interface wrapper} (\indexref{}{executable}{Isabelle}\hyperlink{executable.Isabelle}{\mbox{\isa{\isatt{Isabelle}}}} or \indexref{}{executable}{isabelle-interface}\hyperlink{executable.isabelle-interface}{\mbox{\isa{\isatt{isabelle{\isacharminus}interface}}}}) provides some
-  abstraction over the actual user interface to be used.  The de-facto
-  standard interface for Isabelle is Proof~General
-  \cite{proofgeneral}.
+  \item The \emph{Isabelle interface wrapper} (\indexref{}{executable}{isabelle-interface}\hyperlink{executable.isabelle-interface}{\mbox{\isa{\isatt{isabelle{\isacharminus}interface}}}}) provides some abstraction over the actual
+  user interface to be used.  The de-facto standard interface for
+  Isabelle is Proof~General \cite{proofgeneral}.
 
   \end{enumerate}%
 \end{isamarkuptext}%
@@ -144,7 +142,7 @@ Whenever any of the Isabelle executables is run, their settings
   \begin{itemize}
 
   \item \indexdef{}{setting}{ISABELLE\_PROCESS}\hypertarget{setting.ISABELLE-PROCESS}{\hyperlink{setting.ISABELLE-PROCESS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PROCESS}}}}} and \indexdef{}{setting}{ISABELLE\_TOOL}\hypertarget{setting.ISABELLE-TOOL}{\hyperlink{setting.ISABELLE-TOOL}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOL}}}}} are set
-  automatically to the absolute path names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} and \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}} executables,
+  automatically to the absolute path names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} and \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} executables,
   respectively.
   
   \item \indexref{}{setting}{ISABELLE\_OUTPUT}\hyperlink{setting.ISABELLE-OUTPUT}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}OUTPUT}}}} will have the identifiers of
@@ -186,7 +184,7 @@ This is a reference of common Isabelle settings variables. Note that
   a private \verb|$ISABELLE_HOME_USER/etc/settings|.
   
   \item[\indexdef{}{setting}{ISABELLE\_PROCESS}\hypertarget{setting.ISABELLE-PROCESS}{\hyperlink{setting.ISABELLE-PROCESS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}PROCESS}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}, \hyperlink{setting.ISABELLE-TOOL}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOL}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}}] are automatically set to the full path
-  names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} and \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}} executables, respectively.  Thus other tools and scripts
+  names of the \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}} and \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} executables, respectively.  Thus other tools and scripts
   need not assume that the \hyperlink{file.$ISABELLE-HOME/bin}{\mbox{\isa{\isatt{{\isachardollar}ISABELLE{\isacharunderscore}HOME{\isacharslash}bin}}}} directory is
   on the current search path of the shell.
   
@@ -241,8 +239,8 @@ This is a reference of common Isabelle settings variables. Note that
   document preparation (see also \secref{sec:tool-latex}).
   
   \item[\indexdef{}{setting}{ISABELLE\_TOOLS}\hypertarget{setting.ISABELLE-TOOLS}{\hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOLS}}}}}] is a colon separated list of
-  directories that are scanned by \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}} for external
-  utility programs (see also \secref{sec:isatool}).
+  directories that are scanned by \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} for external
+  utility programs (see also \secref{sec:isabelle-tool}).
   
   \item[\indexdef{}{setting}{ISABELLE\_DOCS}\hypertarget{setting.ISABELLE-DOCS}{\hyperlink{setting.ISABELLE-DOCS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}DOCS}}}}}] is a colon separated list of
   directories with documentation files.
@@ -277,10 +275,10 @@ This is a reference of common Isabelle settings variables. Note that
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The \indexdef{}{executable}{isabelle}\hypertarget{executable.isabelle}{\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}} (or \indexdef{}{executable}{isabelle-process}\hypertarget{executable.isabelle-process}{\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}}) executable runs bare-bones Isabelle logic
-  sessions --- either interactively or in batch mode.  It provides an
-  abstraction over the underlying ML system, and over the actual heap
-  file locations.  Its usage is:
+The \indexdef{}{executable}{isabelle-process}\hypertarget{executable.isabelle-process}{\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}} executable runs bare-bones
+  Isabelle logic sessions --- either interactively or in batch mode.
+  It provides an abstraction over the underlying ML system, and over
+  the actual heap file locations.  Its usage is:
 
 \begin{ttbox}
 Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
@@ -438,16 +436,16 @@ isabelle-process -e 'theory "FOL";' -q -r FOL
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{The Isabelle tools wrapper \label{sec:isatool}%
+\isamarkupsection{The Isabelle tools wrapper \label{sec:isabelle-tool}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 All Isabelle related tools and interfaces are called via a common
-  wrapper --- \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}}:
+  wrapper --- \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}:
 
 \begin{ttbox}
-Usage: isatool TOOL [ARGS ...]
+Usage: isabelle TOOL [ARGS ...]
 
   Start Isabelle utility program TOOL with ARGS. Pass "-?" to TOOL
   for more specific help.
@@ -461,7 +459,7 @@ Usage: isatool TOOL [ARGS ...]
   In principle, Isabelle tools are ordinary executable scripts that
   are run within the Isabelle settings environment, see
   \secref{sec:settings}.  The set of available tools is collected by
-  \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}} from the directories listed in the \hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOLS}}}} setting.  Do not try to call the scripts directly
+  \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}} from the directories listed in the \hyperlink{setting.ISABELLE-TOOLS}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}TOOLS}}}} setting.  Do not try to call the scripts directly
   from the shell.  Neither should you add the tool directories to your
   shell's search path!%
 \end{isamarkuptext}%
@@ -476,22 +474,22 @@ Show the list of available documentation of the current Isabelle
   installation like this:
 
 \begin{ttbox}
-  isatool doc
+  isabelle doc
 \end{ttbox}
 
   View a certain document as follows:
 \begin{ttbox}
-  isatool doc isar-ref
+  isabelle doc isar-ref
 \end{ttbox}
 
   Create an Isabelle session derived from HOL (see also
   \secref{sec:tool-mkdir} and \secref{sec:tool-make}):
 \begin{ttbox}
-  isatool mkdir HOL Test && isatool make
+  isabelle mkdir HOL Test && isabelle make
 \end{ttbox}
-  Note that \verb|isatool mkdir| is usually only invoked once;
+  Note that \verb|isabelle mkdir| is usually only invoked once;
   existing sessions (including document output etc.) are then updated
-  by \verb|isatool make| alone.%
+  by \verb|isabelle make| alone.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

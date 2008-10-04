@@ -36,10 +36,10 @@ Isabelle/Isar provides a simple document preparation system based on
   easy by using the Isabelle \verb|mkdir| and \verb|make|
   tools.  First invoke
 \begin{ttbox}
-  isatool mkdir Foo
+  isabelle mkdir Foo
 \end{ttbox}
   to initialize a separate directory for session \verb|Foo| ---
-  it is safe to experiment, since \verb|isatool mkdir| never
+  it is safe to experiment, since \verb|isabelle mkdir| never
   overwrites existing files.  Ensure that \verb|Foo/ROOT.ML|
   holds ML commands to load all theories required for this session;
   furthermore \verb|Foo/document/root.tex| should include any
@@ -51,7 +51,7 @@ Isabelle/Isar provides a simple document preparation system based on
   one level up from the \verb|Foo| directory location.  Now
   invoke
 \begin{ttbox}
-  isatool make Foo
+  isabelle make Foo
 \end{ttbox}
   to run the \verb|Foo| session, with browser information and
   document preparation enabled.  Unless any errors are reported by

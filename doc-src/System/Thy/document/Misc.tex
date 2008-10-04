@@ -171,7 +171,7 @@ Usage: getenv [OPTIONS] [VARNAMES ...]
 Get the ML system name and the location where the compiler binaries
   are supposed to reside as follows:
 \begin{ttbox}
-isatool getenv ML_SYSTEM ML_HOME
+isabelle getenv ML_SYSTEM ML_HOME
 {\out ML_SYSTEM=polyml}
 {\out ML_HOME=/usr/share/polyml/x86-linux}
 \end{ttbox}
@@ -179,7 +179,7 @@ isatool getenv ML_SYSTEM ML_HOME
   The next one peeks at the output directory for Isabelle logic
   images:
 \begin{ttbox}
-isatool getenv -b ISABELLE_OUTPUT
+isabelle getenv -b ISABELLE_OUTPUT
 {\out /home/me/isabelle/heaps/polyml_x86-linux}
 \end{ttbox}
   Here we have used the \verb|-b| option to suppress the
@@ -200,11 +200,10 @@ ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-By default, the Isabelle binaries (\hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}},
-  \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}} etc.) are just run from their location within
-  the distribution directory, probably indirectly by the shell through
-  its \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}}.  Other schemes of installation are supported by
-  the \indexdef{}{tool}{install}\hypertarget{tool.install}{\hyperlink{tool.install}{\mbox{\isa{\isatt{install}}}}} utility:
+By default, the main Isabelle binaries (\hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}}
+  etc.)  are just run from their location within the distribution
+  directory, probably indirectly by the shell through its \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}}.  Other schemes of installation are supported by the
+  \indexdef{}{tool}{install}\hypertarget{tool.install}{\hyperlink{tool.install}{\mbox{\isa{\isatt{install}}}}} utility:
 \begin{ttbox}
 Usage: install [OPTIONS]
 
@@ -221,7 +220,7 @@ Usage: install [OPTIONS]
   distribution directory as determined by \hyperlink{setting.ISABELLE-HOME}{\mbox{\isa{\isatt{ISABELLE{\isacharunderscore}HOME}}}}.
 
   The \verb|-p| option installs executable wrapper scripts for
-  \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}, \hyperlink{executable.isatool}{\mbox{\isa{\isatt{isatool}}}},
+  \hyperlink{executable.isabelle-process}{\mbox{\isa{\isatt{isabelle{\isacharminus}process}}}}, \hyperlink{executable.isabelle}{\mbox{\isa{\isatt{isabelle}}}},
   \hyperlink{executable.Isabelle}{\mbox{\isa{\isatt{Isabelle}}}}, containing proper absolute references to the
   Isabelle distribution directory.  A typical \verb|DIR|
   specification would be some directory expected to be in the shell's
@@ -249,7 +248,7 @@ Usage: logo [OPTIONS] NAME
     -q           quiet mode
 \end{ttbox}
   You are encouraged to use this to create a derived logo for your
-  Isabelle project.  For example, \verb|isatool| \hyperlink{tool.logo}{\mbox{\isa{\isatt{logo}}}}~\verb|Bali| creates \verb|isabelle_bali.eps|.%
+  Isabelle project.  For example, \verb|isabelle| \hyperlink{tool.logo}{\mbox{\isa{\isatt{logo}}}}~\verb|Bali| creates \verb|isabelle_bali.eps|.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -302,7 +301,7 @@ The \indexdef{}{tool}{makeall}\hypertarget{tool.makeall}{\hyperlink{tool.makeall
 \begin{ttbox}
 Usage: makeall [ARGS ...]
 
-  Apply isatool make to all logics (passing ARGS).
+  Apply isabelle make to all logics (passing ARGS).
 \end{ttbox}
 
   The arguments \verb|ARGS| are just passed verbatim to each
