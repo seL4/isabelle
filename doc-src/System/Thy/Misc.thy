@@ -144,7 +144,7 @@ text {*
   Get the ML system name and the location where the compiler binaries
   are supposed to reside as follows:
 \begin{ttbox}
-isatool getenv ML_SYSTEM ML_HOME
+isabelle getenv ML_SYSTEM ML_HOME
 {\out ML_SYSTEM=polyml}
 {\out ML_HOME=/usr/share/polyml/x86-linux}
 \end{ttbox}
@@ -152,7 +152,7 @@ isatool getenv ML_SYSTEM ML_HOME
   The next one peeks at the output directory for Isabelle logic
   images:
 \begin{ttbox}
-isatool getenv -b ISABELLE_OUTPUT
+isabelle getenv -b ISABELLE_OUTPUT
 {\out /home/me/isabelle/heaps/polyml_x86-linux}
 \end{ttbox}
   Here we have used the @{verbatim "-b"} option to suppress the
@@ -171,11 +171,11 @@ ISABELLE_OUTPUT="\$ISABELLE_HOME_USER/heaps"
 section {* Installing standalone Isabelle executables \label{sec:tool-install} *}
 
 text {*
-  By default, the Isabelle binaries (@{executable "isabelle-process"},
-  @{executable isatool} etc.) are just run from their location within
-  the distribution directory, probably indirectly by the shell through
-  its @{setting PATH}.  Other schemes of installation are supported by
-  the @{tool_def install} utility:
+  By default, the main Isabelle binaries (@{executable "isabelle"}
+  etc.)  are just run from their location within the distribution
+  directory, probably indirectly by the shell through its @{setting
+  PATH}.  Other schemes of installation are supported by the
+  @{tool_def install} utility:
 \begin{ttbox}
 Usage: install [OPTIONS]
 
@@ -192,7 +192,7 @@ Usage: install [OPTIONS]
   distribution directory as determined by @{setting ISABELLE_HOME}.
 
   The @{verbatim "-p"} option installs executable wrapper scripts for
-  @{executable "isabelle-process"}, @{executable isatool},
+  @{executable "isabelle-process"}, @{executable isabelle},
   @{executable Isabelle}, containing proper absolute references to the
   Isabelle distribution directory.  A typical @{verbatim DIR}
   specification would be some directory expected to be in the shell's
@@ -218,7 +218,7 @@ Usage: logo [OPTIONS] NAME
     -q           quiet mode
 \end{ttbox}
   You are encouraged to use this to create a derived logo for your
-  Isabelle project.  For example, @{verbatim isatool} @{tool
+  Isabelle project.  For example, @{verbatim isabelle} @{tool
   logo}~@{verbatim Bali} creates @{verbatim isabelle_bali.eps}.
 *}
 
@@ -267,7 +267,7 @@ text {*
 \begin{ttbox}
 Usage: makeall [ARGS ...]
 
-  Apply isatool make to all logics (passing ARGS).
+  Apply isabelle make to all logics (passing ARGS).
 \end{ttbox}
 
   The arguments @{verbatim ARGS} are just passed verbatim to each

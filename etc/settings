@@ -82,7 +82,7 @@ classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
 
 ###
-### Interactive sessions (cf. isatool tty)
+### Interactive sessions (cf. isabelle tty)
 ###
 
 ISABELLE_LINE_EDITOR=""
@@ -91,7 +91,7 @@ ISABELLE_LINE_EDITOR=""
 
 
 ###
-### Batch sessions (cf. isatool usedir)
+### Batch sessions (cf. isabelle usedir)
 ###
 
 ISABELLE_USEDIR_OPTIONS="-p 1 -v true -V outline=/proof,/ML"
@@ -109,7 +109,7 @@ ISABELLE_FILE_IDENT=""
 
 
 ###
-### Document preparation (cf. isatool latex/document)
+### Document preparation (cf. isabelle latex/document)
 ###
 
 ISABELLE_LATEX="latex"

@@ -21,7 +21,7 @@ the command:
 
 After the build completes, install the files with the command
 
-   ./bin/isatool install -p /usr/local/bin
+   ./bin/isabelle install -p /usr/local/bin
 
 where /usr/local/bin needs to be replaced by an appropriate
 directory, if you are not root on the system. 

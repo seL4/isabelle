@@ -22,22 +22,21 @@ text {*
   variables to all Isabelle programs (including tools and user
   interfaces).
 
-  \item The \emph{raw Isabelle process} (@{executable_ref isabelle} or
-  @{executable_ref "isabelle-process"}) runs logic sessions either
-  interactively or in batch mode.  In particular, this view abstracts
-  over the invocation of the actual ML system to be used.  Regular
-  users rarely need to care about the low-level process.
+  \item The \emph{raw Isabelle process} (@{executable_ref
+  "isabelle-process"}) runs logic sessions either interactively or in
+  batch mode.  In particular, this view abstracts over the invocation
+  of the actual ML system to be used.  Regular users rarely need to
+  care about the low-level process.
 
-  \item The \emph{Isabelle tools wrapper} (@{executable_ref isatool})
+  \item The \emph{Isabelle tools wrapper} (@{executable_ref isabelle})
   provides a generic startup environment Isabelle related utilities,
   user interfaces etc.  Such tools automatically benefit from the
   settings mechanism.
 
   \item The \emph{Isabelle interface wrapper} (@{executable_ref
-  Isabelle} or @{executable_ref "isabelle-interface"}) provides some
-  abstraction over the actual user interface to be used.  The de-facto
-  standard interface for Isabelle is Proof~General
-  \cite{proofgeneral}.
+  "isabelle-interface"}) provides some abstraction over the actual
+  user interface to be used.  The de-facto standard interface for
+  Isabelle is Proof~General \cite{proofgeneral}.
 
   \end{enumerate}
 *}
@@ -128,7 +127,7 @@ text {*
 
   \item @{setting_def ISABELLE_PROCESS} and @{setting_def ISABELLE_TOOL} are set
   automatically to the absolute path names of the @{executable
-  "isabelle-process"} and @{executable isatool} executables,
+  "isabelle-process"} and @{executable isabelle} executables,
   respectively.
   
   \item @{setting_ref ISABELLE_OUTPUT} will have the identifiers of
@@ -171,7 +170,7 @@ text {*
   \item[@{setting_def ISABELLE_PROCESS}@{text "\<^sup>*"}, @{setting
   ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
   names of the @{executable "isabelle-process"} and @{executable
-  isatool} executables, respectively.  Thus other tools and scripts
+  isabelle} executables, respectively.  Thus other tools and scripts
   need not assume that the @{"file" "$ISABELLE_HOME/bin"} directory is
   on the current search path of the shell.
   
@@ -234,8 +233,8 @@ text {*
   document preparation (see also \secref{sec:tool-latex}).
   
   \item[@{setting_def ISABELLE_TOOLS}] is a colon separated list of
-  directories that are scanned by @{executable isatool} for external
-  utility programs (see also \secref{sec:isatool}).
+  directories that are scanned by @{executable isabelle} for external
+  utility programs (see also \secref{sec:isabelle-tool}).
   
   \item[@{setting_def ISABELLE_DOCS}] is a colon separated list of
   directories with documentation files.
@@ -269,11 +268,10 @@ text {*
 section {* The raw Isabelle process *}
 
 text {*
-  The @{executable_def isabelle} (or @{executable_def
-  "isabelle-process"}) executable runs bare-bones Isabelle logic
-  sessions --- either interactively or in batch mode.  It provides an
-  abstraction over the underlying ML system, and over the actual heap
-  file locations.  Its usage is:
+  The @{executable_def "isabelle-process"} executable runs bare-bones
+  Isabelle logic sessions --- either interactively or in batch mode.
+  It provides an abstraction over the underlying ML system, and over
+  the actual heap file locations.  Its usage is:
 
 \begin{ttbox}
 Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
@@ -430,14 +428,14 @@ isabelle-process -e 'theory "FOL";' -q -r FOL
 *}
 
 
-section {* The Isabelle tools wrapper \label{sec:isatool} *}
+section {* The Isabelle tools wrapper \label{sec:isabelle-tool} *}
 
 text {*
   All Isabelle related tools and interfaces are called via a common
-  wrapper --- @{executable isatool}:
+  wrapper --- @{executable isabelle}:
 
 \begin{ttbox}
-Usage: isatool TOOL [ARGS ...]
+Usage: isabelle TOOL [ARGS ...]
 
   Start Isabelle utility program TOOL with ARGS. Pass "-?" to TOOL
   for more specific help.
@@ -451,7 +449,7 @@ Usage: isatool TOOL [ARGS ...]
   In principle, Isabelle tools are ordinary executable scripts that
   are run within the Isabelle settings environment, see
   \secref{sec:settings}.  The set of available tools is collected by
-  @{executable isatool} from the directories listed in the @{setting
+  @{executable isabelle} from the directories listed in the @{setting
   ISABELLE_TOOLS} setting.  Do not try to call the scripts directly
   from the shell.  Neither should you add the tool directories to your
   shell's search path!
@@ -465,22 +463,22 @@ text {*
   installation like this:
 
 \begin{ttbox}
-  isatool doc
+  isabelle doc
 \end{ttbox}
 
   View a certain document as follows:
 \begin{ttbox}
-  isatool doc isar-ref
+  isabelle doc isar-ref
 \end{ttbox}
 
   Create an Isabelle session derived from HOL (see also
   \secref{sec:tool-mkdir} and \secref{sec:tool-make}):
 \begin{ttbox}
-  isatool mkdir HOL Test && isatool make
+  isabelle mkdir HOL Test && isabelle make
 \end{ttbox}
-  Note that @{verbatim "isatool mkdir"} is usually only invoked once;
+  Note that @{verbatim "isabelle mkdir"} is usually only invoked once;
   existing sessions (including document output etc.) are then updated
-  by @{verbatim "isatool make"} alone.
+  by @{verbatim "isabelle make"} alone.
 *}
 
 

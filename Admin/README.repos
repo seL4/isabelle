@@ -11,7 +11,7 @@ directories are found in $ISABELLE/Distribution.
 To work directly on a working copy of the repository, do the following:
 
 Change directory to "$ISABELLE/Distribution/bin" and execute:
-   ./isatool install -p ~/bin
+   ./isabelle install -p ~/bin
 
 This will install Isabelle executables in ~/bin.  Then issue in
 directory "$ISABELLE/Distribution"
@@ -33,7 +33,7 @@ application.  Invoking ``$ISABELLE/Admin/build browser'' will do the
 job.
 
 Now you can build images by going to corresponding folders and issuing:
-   isatool make
+   isabelle make
 
 (for instance, in "$ISABELLE/HOL" in order to make HOL).  This
 will create the directory "~/isabelle" (if not already present).

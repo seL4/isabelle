@@ -5,19 +5,19 @@
 #
 # DESCRIPTION: Update standard keyword files.
 
-ISABELLE_HOME="$(isatool getenv -b ISABELLE_HOME)"
-LOG="$(isatool getenv -b ISABELLE_OUTPUT)"/log
+ISABELLE_HOME="$(isabelle getenv -b ISABELLE_HOME)"
+LOG="$(isabelle getenv -b ISABELLE_OUTPUT)"/log
 
 
 ## Emacs ProofGeneral
 
 cd "$ISABELLE_HOME/etc"
 
-isatool keywords -t emacs \
+isabelle keywords -t emacs \
   "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" \
   "$LOG/IOA.gz" "$LOG/HOL-Nominal.gz" "$LOG/HOL-Statespace.gz"
 
-isatool keywords -t emacs -k ZF \
+isabelle keywords -t emacs -k ZF \
   "$LOG/Pure.gz" "$LOG/Pure-ProofGeneral.gz" "$LOG/FOL.gz" "$LOG/ZF.gz"
 
 
@@ -25,6 +25,6 @@ isatool keywords -t emacs -k ZF \
 
 cd "$ISABELLE_HOME/lib/jedit"
 
-isatool keywords -t jedit \
+isabelle keywords -t jedit \
   "$LOG/Pure.gz" "$LOG/HOL.gz" "$LOG/HOLCF.gz" "$LOG/IOA.gz" "$LOG/HOL-Nominal.gz" \
   "$LOG/HOL-Statespace.gz" "$LOG/FOL.gz" "$LOG/ZF.gz"

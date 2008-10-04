@@ -19,7 +19,7 @@ function usage()
   echo
   echo "Usage: $PRG [ARGS ...]"
   echo
-  echo "  Apply isatool make to all logics (passing ARGS)."
+  echo "  Apply isabelle make to all logics (passing ARGS)."
   echo
   exit 1
 }

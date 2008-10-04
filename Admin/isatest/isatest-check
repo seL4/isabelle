@@ -97,7 +97,7 @@ fi
 # generate development snapshot page only for successful tests
 # (failures in experimental sessions ok)
 if [ "$FAIL"=="0" -a "$(echo $ERRORDIR/isatest*[^e].log)" == "$(echo)" ]; then
-  (cd $HOME/devel-page; env DISTNAME=`$DISTPREFIX/Isabelle/bin/isatool getenv ISABELLE_IDENTIFIER` make)
+  (cd $HOME/devel-page; env DISTNAME=`$DISTPREFIX/Isabelle/bin/isabelle getenv ISABELLE_IDENTIFIER` make)
   echo "$(date) $HOSTNAME $PRG: generated development snapshot web page." >> $MASTERLOG
 fi
 

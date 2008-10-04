@@ -17,12 +17,12 @@ PATH="/home/scala/scala/bin:$PATH"
 ISABELLE_DIR="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 
 if [ -d "$ISABELLE_DIR/Distribution" ]; then
-  ISABELLE_TOOL="$ISABELLE_DIR/Distribution/bin/isatool"
+  ISABELLE_TOOL="$ISABELLE_DIR/Distribution/bin/isabelle"
   ISABELLE_LIB="$ISABELLE_DIR/Distribution/lib"
   ISABELLE_SRC="$ISABELLE_DIR"
   ISABELLE_DOC_SRC="$ISABELLE_DIR/Doc"
 else
-  ISABELLE_TOOL="$ISABELLE_DIR/bin/isatool"
+  ISABELLE_TOOL="$ISABELLE_DIR/bin/isabelle"
   ISABELLE_LIB="$ISABELLE_DIR/lib"
   ISABELLE_SRC="$ISABELLE_DIR/src"
   ISABELLE_DOC_SRC="$ISABELLE_DIR/doc-src"

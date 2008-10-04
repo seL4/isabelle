@@ -19,7 +19,7 @@ then
   REPORT_EMPTY=1
 fi
 
-ISABELLE_SRC="$(isatool getenv -b ISABELLE_HOME)/src/"
+ISABELLE_SRC="$(isabelle getenv -b ISABELLE_HOME)/src/"
 
 for LOC in $(find "$ISABELLE_SRC" -name "*.ML")
 do

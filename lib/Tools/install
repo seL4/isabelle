@@ -74,7 +74,7 @@ echo "referring to distribution at $DISTDIR"
 if [ -n "$BINDIR" ]; then
   mkdir -p "$BINDIR" || fail "Bad directory: $BINDIR"
 
-  for NAME in isatool isabelle-process isabelle-interface
+  for NAME in isabelle isabelle-process isabelle-interface
   do
     BIN="$BINDIR/$NAME"
     DIST="$DISTDIR/bin/$NAME"
@@ -83,14 +83,6 @@ if [ -n "$BINDIR" ]; then
     echo "#!/usr/bin/env bash" > "$BIN" || fail "Cannot write file: $BIN"
     echo >> "$BIN"
     echo "exec \"$DIST\" \"\$@\"" >> "$BIN"
-    chmod +x "$BIN"
-  done
-  for NAME in Isabelle isabelle
-  do
-    BIN="$BINDIR/$NAME"
-    echo "installing $BIN"
-    rm -f "$BIN"
-    cp "$ISABELLE_HOME/bin/$NAME" "$BIN" || fail "Cannot write file: $BIN"
     chmod +x "$BIN"
   done
 fi

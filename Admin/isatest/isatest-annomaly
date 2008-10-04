@@ -42,7 +42,7 @@ function fail()
 ## main
 
 ISABELLE_HOME="$DISTPREFIX/Isabelle"
-ISABELLE_TOOL="$ISABELLE_HOME/bin/isatool"
+ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
 
 [ -d $ISABELLE_HOME ] || fail "$ISABELLE_HOME is not a directory."
 

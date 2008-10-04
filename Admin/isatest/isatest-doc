@@ -25,7 +25,7 @@ LOG=$LOGPREFIX/isatest-doc-$DATE.log
 SHORT=at-poly
 SETTINGS=~/settings/$SHORT
 
-ISABELLE_TOOL=$ISABELLE_DEVEL/bin/isatool
+ISABELLE_TOOL=$ISABELLE_DEVEL/bin/isabelle
     
 
 MAIL=$HOME/bin/pmail

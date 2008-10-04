@@ -281,7 +281,7 @@ if [ -z "$QUIET" ]; then
 
 Notes:
 
-  * 'isatool make' processes the session (including document preparation)
+  * 'isabelle make' processes the session (including document preparation)
 
   * $DIR/IsaMakefile contains compilation options and file dependencies
 

@@ -82,7 +82,7 @@ text {*
   the Isar interaction loop, with some support for command line
   editing.  For example:
 \begin{ttbox}
-isatool tty\medskip
+isabelle tty\medskip
 {\out Welcome to Isabelle/HOL (Isabelle2008)}\medskip
 theory Foo imports Main begin;
 definition foo :: nat where "foo == 1";

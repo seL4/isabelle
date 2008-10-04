@@ -347,18 +347,18 @@ text {*
   (usually rooted at \verb,~/isabelle/browser_info,).
 
   \medskip The easiest way to manage Isabelle sessions is via
-  \texttt{isatool mkdir} (generates an initial session source setup)
-  and \texttt{isatool make} (run sessions controlled by
+  \texttt{isabelle mkdir} (generates an initial session source setup)
+  and \texttt{isabelle make} (run sessions controlled by
   \texttt{IsaMakefile}).  For example, a new session
   \texttt{MySession} derived from \texttt{HOL} may be produced as
   follows:
 
 \begin{verbatim}
-  isatool mkdir HOL MySession
-  isatool make
+  isabelle mkdir HOL MySession
+  isabelle make
 \end{verbatim}
 
-  The \texttt{isatool make} job also informs about the file-system
+  The \texttt{isabelle make} job also informs about the file-system
   location of the ultimate results.  The above dry run should be able
   to produce some \texttt{document.pdf} (with dummy title, empty table
   of contents etc.).  Any failure at this stage usually indicates
@@ -394,7 +394,7 @@ text {*
   several sessions may be managed by the same \texttt{IsaMakefile}.
   See the \emph{Isabelle System Manual} \cite{isabelle-sys} 
   for further details, especially on
-  \texttt{isatool usedir} and \texttt{isatool make}.
+  \texttt{isabelle usedir} and \texttt{isabelle make}.
 
   \end{itemize}
 
@@ -417,7 +417,7 @@ text {*
   \texttt{MySession/document} directory as well.  In particular,
   adding a file named \texttt{root.bib} causes an automatic run of
   \texttt{bibtex} to process a bibliographic database; see also
-  \texttt{isatool document} \cite{isabelle-sys}.
+  \texttt{isabelle document} \cite{isabelle-sys}.
 
   \medskip Any failure of the document preparation phase in an
   Isabelle batch session leaves the generated sources in their target
@@ -753,7 +753,7 @@ text {*
   tagged region, in order to keep, drop, or fold the corresponding
   parts of the document.  See the \emph{Isabelle System Manual}
   \cite{isabelle-sys} for further details, especially on
-  \texttt{isatool usedir} and \texttt{isatool document}.
+  \texttt{isabelle usedir} and \texttt{isabelle document}.
 
   Ignored material is specified by delimiting the original formal
   source with special source comments

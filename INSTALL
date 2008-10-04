@@ -36,13 +36,13 @@ This may be changed by editing [ISABELLE_HOME]/etc/settings manually.
 The installation may be finished as follows:
 
   cd [ISABELLE_HOME]
-  ./bin/isatool install -p /usr/local/bin
+  ./bin/isabelle install -p /usr/local/bin
 
 The install utility creates global references to the present Isabelle
 installation, enabling users to invoke the Isabelle executables
-without explicit path names.  Incidently, this is the only place where
-a static reference to [ISABELLE_HOME] is created; thus isatool install
-has to be run again whenever the Isabelle distribution is moved later.
+without explicit path names.  This is the only place where a static
+reference to [ISABELLE_HOME] is created; thus isabelle install has to
+be run again whenever the Isabelle distribution is moved later.
 
 
 Compiling logics
@@ -69,18 +69,18 @@ Special object-logic targets may be specified as follows:
 Running the Isabelle binaries
 -----------------------------
 
-Users may invoke the Isabelle binaries (isatool, isabelle, Isabelle)
-directly from their location within the distribution directory
-[ISABELLE_HOME] like this:
+Users may invoke the main Isabelle binaries (isabelle and
+isabelle-process) directly from their location within the distribution
+directory [ISABELLE_HOME] like this:
 
-  [ISABELLE_HOME]/bin/isabelle HOL
+  [ISABELLE_HOME]/bin/isabelle-process HOL
 
 This starts an interactive Isabelle session within the current text
 terminal.  [ISABELLE_HOME]/bin may be put into the shell's search
 PATH.  An alternative is to create global references to the Isabelle
 executables as follows:
 
-  [ISABELLE_HOME]/bin/isatool install -p ~/bin
+  [ISABELLE_HOME]/bin/isabelle install -p ~/bin
 
 Note that the site-wide Isabelle installation may already provide
 Isabelle executables in some global bin directory (such as

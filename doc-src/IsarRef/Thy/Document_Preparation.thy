@@ -18,10 +18,10 @@ text {*
   easy by using the Isabelle @{verbatim mkdir} and @{verbatim make}
   tools.  First invoke
 \begin{ttbox}
-  isatool mkdir Foo
+  isabelle mkdir Foo
 \end{ttbox}
   to initialize a separate directory for session @{verbatim Foo} ---
-  it is safe to experiment, since @{verbatim "isatool mkdir"} never
+  it is safe to experiment, since @{verbatim "isabelle mkdir"} never
   overwrites existing files.  Ensure that @{verbatim "Foo/ROOT.ML"}
   holds ML commands to load all theories required for this session;
   furthermore @{verbatim "Foo/document/root.tex"} should include any
@@ -33,7 +33,7 @@ text {*
   one level up from the @{verbatim Foo} directory location.  Now
   invoke
 \begin{ttbox}
-  isatool make Foo
+  isabelle make Foo
 \end{ttbox}
   to run the @{verbatim Foo} session, with browser information and
   document preparation enabled.  Unless any errors are reported by

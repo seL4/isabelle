@@ -747,7 +747,7 @@ fun viewdoc (Viewdoc vs) =
     let
         val arg = #arg vs
     in
-        isarcmd ("print_" ^ arg)   (* FIXME: isatool doc?.  Return URLs, maybe? *)
+        isarcmd ("print_" ^ arg)   (* FIXME: isabelle doc?.  Return URLs, maybe? *)
     end
 
 (*** Theory ***)

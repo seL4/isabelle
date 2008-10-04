@@ -3,7 +3,7 @@
 # $Id$
 # Author: Gerwin Klein, TU Muenchen
 #
-# DESCRIPTION: Run isatool makeall from specified distribution and settings.
+# DESCRIPTION: Run isabelle makeall from specified distribution and settings.
 
 ## global settings
 . ~/admin/isatest/isatest-settings
@@ -20,7 +20,7 @@ function usage()
   echo
   echo "Usage: $PRG [-l logic targets] settings1 [settings2 ...]"
   echo
-  echo "  Runs isatool makeall for specified settings."
+  echo "  Runs isabelle makeall for specified settings."
   echo "  Leaves messages in ${ERRORLOG} and ${LOGPREFIX} if it fails."
   echo
   echo "Examples:"
@@ -88,7 +88,7 @@ case $HOSTNAME in
         ;;
 esac
 
-ISABELLE_TOOL="$DISTPREFIX/Isabelle/bin/isatool"
+ISABELLE_TOOL="$DISTPREFIX/Isabelle/bin/isabelle"
 
 [ -x $ISABELLE_TOOL ] || fail "Cannot run $ISABELLE_TOOL"
 

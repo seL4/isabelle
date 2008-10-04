@@ -6,6 +6,31 @@ New in this Isabelle version
 
 *** General ***
 
+* Simplified main Isabelle executables, with less surprises on
+case-insensitive file-systems (such as Mac OS).
+
+  - The main Isabelle tool wrapper is now called "isabelle" instead of
+    "isatool."
+
+  - The former "isabelle" alias for "isabelle-process" has been
+    removed (should rarely occur to regular users).
+
+  - The "Isabelle" alias for "isabelle-interface" has been removed.
+
+Within scripts and make files, the Isabelle environment variables
+ISABELLE_TOOL and ISABELLE_PROCESS replace old ISATOOL and ISABELLE,
+respectively.  (The latter are still available as legacy feature.)
+
+Also note that user interfaces are now better wrapped as regular
+Isabelle tools instead of using the special isabelle-interface wrapper
+(which can be confusing if the interface is uninstalled or changed
+otherwise).  See "isabelle tty" and "isabelle emacs" for contemporary
+examples.
+
+INCOMPATIBILITY, need to adapt derivative scripts.  Users may need to
+purge installed copies of Isabelle executables and re-run "isabelle
+install -p ...", or use symlinks.
+
 * The Isabelle System Manual (system) has been updated, with formally
 checked references as hyperlinks.
 
