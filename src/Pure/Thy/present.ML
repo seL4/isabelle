@@ -96,7 +96,7 @@ fun display_graph gr =
     val _ = writeln "Displaying graph ...";
     val path = File.tmp_path (Path.explode "tmp.graph");
     val _ = write_graph gr path;
-    val _ = File.isatool ("browser -c " ^ File.shell_path path ^ " &");
+    val _ = File.isabelle_tool ("browser -c " ^ File.shell_path path ^ " &");
   in () end;
 
 
@@ -321,9 +321,9 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
     end);
 
 
-(* isatool wrappers *)
+(* isabelle tool wrappers *)
 
-fun isatool_document verbose format name tags path result_path =
+fun isabelle_document verbose format name tags path result_path =
   let
     val s = "\"$ISATOOL\" document -c -o '" ^ format ^ "' \
       \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.shell_path path ^
@@ -337,7 +337,7 @@ fun isatool_document verbose format name tags path result_path =
     doc_path
   end;
 
-fun isatool_browser graph =
+fun isabelle_browser graph =
   let
     val pdf_path = File.tmp_path graph_pdf_path;
     val eps_path = File.tmp_path graph_eps_path;
@@ -345,7 +345,7 @@ fun isatool_browser graph =
     val s = "browser -o " ^ File.shell_path pdf_path ^ " " ^ File.shell_path gr_path;
   in
     write_graph graph gr_path;
-    if File.isatool s <> 0 orelse not (File.exists eps_path) orelse not (File.exists pdf_path)
+    if File.isabelle_tool s <> 0 orelse not (File.exists eps_path) orelse not (File.exists pdf_path)
     then error "Failed to prepare dependency graph"
     else
       let val pdf = File.read pdf_path and eps = File.read eps_path
@@ -380,13 +380,13 @@ fun finish () = CRITICAL (fn () =>
     val sorted_graph = sorted_index graph;
     val opt_graphs =
       if doc_graph andalso (is_some doc_prefix1 orelse is_some doc_prefix2) then
-        SOME (isatool_browser sorted_graph)
+        SOME (isabelle_browser sorted_graph)
       else NONE;
 
     fun prepare_sources cp path =
      (File.mkdir path;
       if cp then File.copy_dir document_path path else ();
-      File.isatool ("latex -o sty " ^ File.shell_path (Path.append path (Path.basic "root.tex")));
+      File.isabelle_tool ("latex -o sty " ^ File.shell_path (Path.append path (Path.basic "root.tex")));
       (case opt_graphs of NONE => () | SOME (pdf, eps) =>
         (File.write (Path.append path graph_pdf_path) pdf;
           File.write (Path.append path graph_eps_path) eps));
@@ -418,7 +418,7 @@ fun finish () = CRITICAL (fn () =>
       documents |> List.app (fn (name, tags) =>
        let
          val _ = prepare_sources true path;
-         val doc_path = isatool_document true doc_format name tags path result_path;
+         val doc_path = isabelle_document true doc_format name tags path result_path;
        in
          if verbose then Output.std_error ("Document at " ^ show_path doc_path ^ "\n") else ()
        end));
@@ -514,8 +514,8 @@ fun drafts doc_format src_paths =
     val _ = File.mkdir doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
     val _ = File.copy (Path.explode "~~/lib/texinputs/draft.tex") root_path;
-    val _ = File.isatool ("latex -o sty " ^ File.shell_path root_path);
-    val _ = File.isatool ("latex -o syms " ^ File.shell_path root_path);
+    val _ = File.isabelle_tool ("latex -o sty " ^ File.shell_path root_path);
+    val _ = File.isabelle_tool ("latex -o syms " ^ File.shell_path root_path);
 
     fun known name =
       let val ss = split_lines (File.read (Path.append doc_path (Path.basic name)))
@@ -528,7 +528,7 @@ fun drafts doc_format src_paths =
       |> Latex.symbol_source (known_syms, known_ctrls) (Path.implode base)
       |> File.write (Path.append doc_path (tex_path name)));
     val _ = write_tex_index tex_index doc_path;
-  in isatool_document false doc_format documentN "" doc_path result_path end;
+  in isabelle_document false doc_format documentN "" doc_path result_path end;
 
 
 end;

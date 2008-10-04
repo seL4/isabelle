@@ -13,7 +13,7 @@ sig
   val pwd: unit -> Path.T
   val full_path: Path.T -> Path.T
   val tmp_path: Path.T -> Path.T
-  val isatool: string -> int
+  val isabelle_tool: string -> int
   val system_command: string -> unit
   eqtype ident
   val rep_ident: ident -> string
@@ -66,7 +66,7 @@ fun tmp_path path =
 
 (* system commands *)
 
-fun isatool cmd = system ("\"$ISATOOL\" " ^ cmd);
+fun isabelle_tool cmd = system ("\"$ISATOOL\" " ^ cmd);
 
 fun system_command cmd =
   if system cmd <> 0 then error ("System command failed: " ^ cmd)

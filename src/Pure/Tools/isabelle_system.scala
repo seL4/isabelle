@@ -91,7 +91,7 @@ object IsabelleSystem {
 
   /* Isabelle tools (non-interactive) */
 
-  def isatool(args: String*) = {
+  def isabelle_tool(args: String*) = {
     val proc =
       try { exec2((List(getenv_strict("ISATOOL")) ++ args): _*) }
       catch { case e: IOException => error(e.getMessage) }
@@ -105,13 +105,13 @@ object IsabelleSystem {
   /* named pipes */
 
   def mk_fifo() = {
-    val (result, rc) = isatool("mkfifo")
+    val (result, rc) = isabelle_tool("mkfifo")
     if (rc == 0) result.trim
     else error(result)
   }
 
   def rm_fifo(fifo: String) = {
-    val (result, rc) = isatool("rmfifo", fifo)
+    val (result, rc) = isabelle_tool("rmfifo", fifo)
     if (rc != 0) error(result)
   }
 
