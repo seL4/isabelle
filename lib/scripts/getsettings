@@ -19,8 +19,11 @@ then
 fi
 
 #key executables
-ISABELLE="$ISABELLE_HOME/bin/isabelle-process"
-ISATOOL="$ISABELLE_HOME/bin/isatool"
+ISABELLE_PROCESS="$ISABELLE_HOME/bin/isabelle-process"
+ISABELLE_TOOL="$ISABELLE_HOME/bin/isatool"
+#legacy settings
+ISABELLE="$ISABELLE_PROCESS"
+ISATOOL="$ISABELLE_TOOL"
 
 #Isabelle distribution identifier -- filled in automatically!
 ISABELLE_IDENTIFIER=""
