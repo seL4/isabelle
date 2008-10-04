@@ -126,7 +126,7 @@ text {*
 
   \begin{itemize}
 
-  \item @{setting_def ISABELLE} and @{setting_def ISATOOL} are set
+  \item @{setting_def ISABELLE} and @{setting_def ISABELLE_TOOL} are set
   automatically to the absolute path names of the @{executable
   "isabelle-process"} and @{executable isatool} executables,
   respectively.
@@ -169,7 +169,7 @@ text {*
   a private @{verbatim "$ISABELLE_HOME_USER/etc/settings"}.
   
   \item[@{setting_def ISABELLE}@{text "\<^sup>*"}, @{setting
-  ISATOOL}@{text "\<^sup>*"}] are automatically set to the full path
+  ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
   names of the @{executable "isabelle-process"} and @{executable
   isatool} executables, respectively.  Thus other tools and scripts
   need not assume that the @{"file" "$ISABELLE_HOME/bin"} directory is

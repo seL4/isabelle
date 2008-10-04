@@ -24,12 +24,12 @@ LOG = $(OUT)/log
 Sequents: Pure $(OUT)/Sequents
 
 Pure:
-	@cd $(SRC)/Pure; $(ISATOOL) make Pure
+	@cd $(SRC)/Pure; $(ISABELLE_TOOL) make Pure
 
 $(OUT)/Sequents: $(OUT)/Pure ILL.thy LK0.thy LK.thy \
   modal.ML ROOT.ML simpdata.ML S4.thy S43.thy Sequents.thy T.thy prover.ML \
   ILL_predlog.thy Washing.thy
-	@$(ISATOOL) usedir -b $(OUT)/Pure Sequents
+	@$(ISABELLE_TOOL) usedir -b $(OUT)/Pure Sequents
 
 
 ## Sequents-LK
@@ -38,7 +38,7 @@ Sequents-LK: Sequents $(LOG)/Sequents-LK.gz
 
 $(LOG)/Sequents-LK.gz: $(OUT)/Sequents LK/ROOT.ML LK/Hard_Quantifiers.thy \
   LK/Propositional.thy LK/Quantifiers.thy LK/Nat.thy
-	@$(ISATOOL) usedir $(OUT)/Sequents LK
+	@$(ISABELLE_TOOL) usedir $(OUT)/Sequents LK
 
 
 ## clean

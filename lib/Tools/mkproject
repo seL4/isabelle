@@ -22,6 +22,5 @@ else
   usage
 fi
 
-"$ISATOOL" mkdir -b -q "$NAME"
-(cd document; "$ISATOOL" latex -o sty)
-
+"$ISABELLE_TOOL" mkdir -b -q "$NAME"
+( cd document; "$ISABELLE_TOOL" latex -o sty; )

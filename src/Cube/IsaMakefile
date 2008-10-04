@@ -24,10 +24,10 @@ LOG = $(OUT)/log
 Pure-Cube: Pure $(LOG)/Pure-Cube.gz
 
 Pure:
-	@cd $(SRC)/Pure; $(ISATOOL) make Pure
+	@cd $(SRC)/Pure; $(ISABELLE_TOOL) make Pure
 
 $(LOG)/Pure-Cube.gz: $(OUT)/Pure Cube.thy Example.thy ROOT.ML
-	@cd ..; $(ISATOOL) usedir $(OUT)/Pure Cube
+	@cd ..; $(ISABELLE_TOOL) usedir $(OUT)/Pure Cube
 
 
 ## clean

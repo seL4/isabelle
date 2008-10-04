@@ -17,12 +17,12 @@ PATH="/home/scala/scala/bin:$PATH"
 ISABELLE_DIR="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 
 if [ -d "$ISABELLE_DIR/Distribution" ]; then
-  ISATOOL="$ISABELLE_DIR/Distribution/bin/isatool"
+  ISABELLE_TOOL="$ISABELLE_DIR/Distribution/bin/isatool"
   ISABELLE_LIB="$ISABELLE_DIR/Distribution/lib"
   ISABELLE_SRC="$ISABELLE_DIR"
   ISABELLE_DOC_SRC="$ISABELLE_DIR/Doc"
 else
-  ISATOOL="$ISABELLE_DIR/bin/isatool"
+  ISABELLE_TOOL="$ISABELLE_DIR/bin/isatool"
   ISABELLE_LIB="$ISABELLE_DIR/lib"
   ISABELLE_SRC="$ISABELLE_DIR/src"
   ISABELLE_DOC_SRC="$ISABELLE_DIR/doc-src"
@@ -112,7 +112,7 @@ function build_jars ()
   type -p scalac >/dev/null || fail "Scala compiler unavailable"
 
   pushd "$ISABELLE_SRC/Pure" >/dev/null
-  "$ISATOOL" make jar || fail "Failed to build Pure.jar!"
+  "$ISABELLE_TOOL" make jar || fail "Failed to build Pure.jar!"
   popd >/dev/null
 
   if [ -d "$HOME/lib/jedit/current" ]; then

@@ -88,9 +88,9 @@ case $HOSTNAME in
         ;;
 esac
 
-ISATOOL="$DISTPREFIX/Isabelle/bin/isatool"
+ISABELLE_TOOL="$DISTPREFIX/Isabelle/bin/isatool"
 
-[ -x $ISATOOL ] || fail "Cannot run $ISATOOL"
+[ -x $ISABELLE_TOOL ] || fail "Cannot run $ISABELLE_TOOL"
 
 if [ "$1" = "-l" ]; then
   shift
@@ -98,12 +98,12 @@ if [ "$1" = "-l" ]; then
   LOGIC="$1"
   TARGETS="$2"
   shift 2
-  ISABELLE_HOME="$($ISATOOL getenv -b ISABELLE_HOME)"
+  ISABELLE_HOME="$($ISABELLE_TOOL getenv -b ISABELLE_HOME)"
   DIR="$ISABELLE_HOME/src/$LOGIC"
-  TOOL="$ISATOOL make $MFLAGS $TARGETS"
+  TOOL="$ISABELLE_TOOL make $MFLAGS $TARGETS"
 else
   DIR="."
-  TOOL="$ISATOOL makeall $MFLAGS all"
+  TOOL="$ISABELLE_TOOL makeall $MFLAGS all"
 fi
 
 # main test loop

@@ -24,10 +24,10 @@ LOG = $(OUT)/log
 LCF: FOL $(OUT)/LCF
 
 FOL:
-	@cd $(SRC)/FOL; $(ISATOOL) make FOL
+	@cd $(SRC)/FOL; $(ISABELLE_TOOL) make FOL
 
 $(OUT)/LCF: $(OUT)/FOL LCF.thy ROOT.ML
-	@$(ISATOOL) usedir -b -r $(OUT)/FOL LCF
+	@$(ISABELLE_TOOL) usedir -b -r $(OUT)/FOL LCF
 
 
 ## LCF-ex
@@ -35,7 +35,7 @@ $(OUT)/LCF: $(OUT)/FOL LCF.thy ROOT.ML
 LCF-ex: LCF $(LOG)/LCF-ex.gz
 
 $(LOG)/LCF-ex.gz: $(OUT)/LCF ex/Ex1.thy ex/Ex2.thy ex/Ex3.thy ex/Ex4.thy ex/ROOT.ML
-	@$(ISATOOL) usedir $(OUT)/LCF ex
+	@$(ISABELLE_TOOL) usedir $(OUT)/LCF ex
 
 
 ## clean

@@ -16,19 +16,19 @@ SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 OPTIONS = -m brackets -i true -d "" -D document
-USEDIR = @$(ISATOOL) usedir $(OPTIONS) $(OUT)/ZF
+USEDIR = @$(ISABELLE_TOOL) usedir $(OPTIONS) $(OUT)/ZF
 
 
 ## ZF
 
 ZF:
-	@cd $(SRC)/ZF; $(ISATOOL) make ZF
+	@cd $(SRC)/ZF; $(ISABELLE_TOOL) make ZF
 
 styles:
 	@rm -f isabelle.sty
 	@rm -f isabellesym.sty
 	@rm -f pdfsetup.sty
-	@$(ISATOOL) latex -o sty >/dev/null
+	@$(ISABELLE_TOOL) latex -o sty >/dev/null
 	@rm -f pdfsetup.sty
 	@rm -f document/isabelle.sty
 	@rm -f document/isabellesym.sty

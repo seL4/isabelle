@@ -66,7 +66,7 @@ fun tmp_path path =
 
 (* system commands *)
 
-fun isabelle_tool cmd = system ("\"$ISATOOL\" " ^ cmd);
+fun isabelle_tool cmd = system ("\"$ISABELLE_TOOL\" " ^ cmd);
 
 fun system_command cmd =
   if system cmd <> 0 then error ("System command failed: " ^ cmd)

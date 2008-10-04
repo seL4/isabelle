@@ -18,19 +18,19 @@ SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 OPTIONS = -m brackets -i true -d "" -D document
-USEDIR = @$(ISATOOL) usedir $(OPTIONS) $(OUT)/HOL
+USEDIR = @$(ISABELLE_TOOL) usedir $(OPTIONS) $(OUT)/HOL
 
 
 ## HOL
 
 HOL:
-	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+	@cd $(SRC)/HOL; $(ISABELLE_TOOL) make HOL
 
 styles:
 	@rm -f isabelle.sty
 	@rm -f isabellesym.sty
 	@rm -f pdfsetup.sty
-	@$(ISATOOL) latex -o sty >/dev/null
+	@$(ISABELLE_TOOL) latex -o sty >/dev/null
 	@rm -f pdfsetup.sty
 	@rm -f */document/isabelle.sty
 	@rm -f */document/isabellesym.sty

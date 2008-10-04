@@ -14,7 +14,7 @@ SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
 
-USEDIR = $(ISATOOL) usedir -v true -i false -d false -C false -D document
+USEDIR = $(ISABELLE_TOOL) usedir -v true -i false -d false -C false -D document
 
 
 ## IsarRef sessions

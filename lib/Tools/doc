@@ -53,7 +53,7 @@ else
     [ -d "$DIR" ] || fail "Bad document directory: $DIR"
     for FMT in "$ISABELLE_DOC_FORMAT" dvi
     do
-      [ -f "$DIR/$DOC.$FMT" ] && { cd "$DIR"; exec "$ISATOOL" display "$DOC.$FMT"; }
+      [ -f "$DIR/$DOC.$FMT" ] && { cd "$DIR"; exec "$ISABELLE_TOOL" display "$DOC.$FMT"; }
     done
   done
   IFS="$ORIG_IFS"

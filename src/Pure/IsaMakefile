@@ -92,7 +92,7 @@ $(OUT)/Pure: Concurrent/future.ML Concurrent/mailbox.ML			\
 Pure-ProofGeneral: Pure $(LOG)/Pure-ProofGeneral.gz
 
 $(LOG)/Pure-ProofGeneral.gz: $(OUT)/Pure ProofGeneral/proof_general_keywords.ML
-	@$(ISATOOL) usedir -f proof_general_keywords.ML $(OUT)/Pure ProofGeneral
+	@$(ISABELLE_TOOL) usedir -f proof_general_keywords.ML $(OUT)/Pure ProofGeneral
 
 
 RAW: $(OUT)/RAW

@@ -26,7 +26,7 @@ LOG = $(OUT)/log
 ZF: FOL $(OUT)/ZF
 
 FOL:
-	@cd $(SRC)/FOL; $(ISATOOL) make FOL
+	@cd $(SRC)/FOL; $(ISABELLE_TOOL) make FOL
 
 $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy ArithSimp.thy Bin.thy Bool.thy	\
   Cardinal.thy CardinalArith.thy Cardinal_AC.thy Datatype_ZF.thy	\
@@ -40,7 +40,7 @@ $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy ArithSimp.thy Bin.thy Bool.thy	\
   Tools/primrec_package.ML Tools/typechk.ML Trancl.thy Univ.thy WF.thy	\
   ZF.thy Zorn.thy arith_data.ML equalities.thy func.thy ind_syntax.ML	\
   int_arith.ML pair.thy simpdata.ML upair.thy
-	@$(ISATOOL) usedir -b -g true -r $(OUT)/FOL ZF
+	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/FOL ZF
 
 
 ## ZF-AC
@@ -52,7 +52,7 @@ $(LOG)/ZF-AC.gz: $(OUT)/ZF AC/ROOT.ML AC/AC15_WO6.thy AC/AC16_WO4.thy	\
   AC/AC_Equiv.thy AC/Cardinal_aux.thy AC/DC.thy AC/HH.thy		\
   AC/Hartog.thy AC/WO1_AC.thy AC/WO1_WO7.thy AC/WO2_AC16.thy		\
   AC/WO6_WO1.thy AC/document/root.bib AC/document/root.tex
-	@$(ISATOOL) usedir -g true $(OUT)/ZF AC
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/ZF AC
 
 
 ## ZF-Coind
@@ -62,7 +62,7 @@ ZF-Coind: ZF $(LOG)/ZF-Coind.gz
 $(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/Dynamic.thy Coind/ECR.thy		\
   Coind/Language.thy Coind/Map.thy Coind/ROOT.ML Coind/Static.thy	\
   Coind/Types.thy Coind/Values.thy
-	@$(ISATOOL) usedir $(OUT)/ZF Coind
+	@$(ISABELLE_TOOL) usedir $(OUT)/ZF Coind
 
 
 ## ZF-Constructible
@@ -80,7 +80,7 @@ $(LOG)/ZF-Constructible.gz: $(OUT)/ZF Constructible/ROOT.ML		\
   Constructible/Satisfies_absolute.thy Constructible/WF_absolute.thy	\
   Constructible/Reflection.thy Constructible/WFrec.thy			\
   Constructible/document/root.bib Constructible/document/root.tex
-	@$(ISATOOL) usedir -g true $(OUT)/ZF Constructible
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/ZF Constructible
 
 
 ## ZF-IMP
@@ -90,7 +90,7 @@ ZF-IMP: ZF $(LOG)/ZF-IMP.gz
 $(LOG)/ZF-IMP.gz: $(OUT)/ZF IMP/Com.thy IMP/Denotation.thy	\
   IMP/Equiv.thy IMP/ROOT.ML IMP/document/root.bib		\
   IMP/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/ZF IMP
+	@$(ISABELLE_TOOL) usedir $(OUT)/ZF IMP
 
 
 ## ZF-Resid
@@ -100,7 +100,7 @@ ZF-Resid: ZF $(LOG)/ZF-Resid.gz
 $(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/ROOT.ML Resid/Confluence.thy	\
   Resid/Redex.thy Resid/Reduction.thy Resid/Residuals.thy		\
   Resid/Substitution.thy
-	@$(ISATOOL) usedir $(OUT)/ZF Resid
+	@$(ISABELLE_TOOL) usedir $(OUT)/ZF Resid
 
 
 ## ZF-UNITY
@@ -114,7 +114,7 @@ $(LOG)/ZF-UNITY.gz: $(OUT)/ZF UNITY/ROOT.ML UNITY/Comp.thy		\
   UNITY/ClientImpl.thy UNITY/Distributor.thy UNITY/Follows.thy		\
   UNITY/Increasing.thy UNITY/Merge.thy UNITY/Monotonicity.thy		\
   UNITY/MultisetSum.thy UNITY/WFair.thy
-	@$(ISATOOL) usedir $(OUT)/ZF UNITY
+	@$(ISABELLE_TOOL) usedir $(OUT)/ZF UNITY
 
 
 ## ZF-Induct
@@ -127,7 +127,7 @@ $(LOG)/ZF-Induct.gz: $(OUT)/ZF Induct/ROOT.ML Induct/Acc.thy		\
   Induct/Multiset.thy Induct/Mutil.thy Induct/Ntree.thy			\
   Induct/Primrec.thy Induct/PropLog.thy Induct/Rmap.thy			\
   Induct/Term.thy Induct/Tree_Forest.thy Induct/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/ZF Induct
+	@$(ISABELLE_TOOL) usedir $(OUT)/ZF Induct
 
 
 ## ZF-ex
@@ -137,7 +137,7 @@ ZF-ex: ZF $(LOG)/ZF-ex.gz
 $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/ROOT.ML ex/BinEx.thy ex/CoUnit.thy	\
   ex/Commutation.thy ex/Group.thy ex/Limit.thy ex/LList.thy		\
   ex/Primes.thy ex/NatSum.thy ex/Ramsey.thy ex/Ring.thy ex/misc.thy
-	@$(ISATOOL) usedir $(OUT)/ZF ex
+	@$(ISABELLE_TOOL) usedir $(OUT)/ZF ex
 
 
 ## clean

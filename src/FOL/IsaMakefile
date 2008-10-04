@@ -24,7 +24,7 @@ LOG = $(OUT)/log
 FOL: Pure $(OUT)/FOL
 
 Pure:
-	@cd $(SRC)/Pure; $(ISATOOL) make Pure
+	@cd $(SRC)/Pure; $(ISABELLE_TOOL) make Pure
 
 $(OUT)/Pure: Pure
 
@@ -38,7 +38,7 @@ $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML				\
   $(SRC)/Provers/quantifier1.ML $(SRC)/Provers/splitter.ML FOL.thy	\
   IFOL.thy ROOT.ML blastdata.ML cladata.ML document/root.tex		\
   fologic.ML hypsubstdata.ML intprover.ML simpdata.ML
-	@$(ISATOOL) usedir -p 2 -b $(OUT)/Pure FOL
+	@$(ISABELLE_TOOL) usedir -p 2 -b $(OUT)/Pure FOL
 
 
 ## FOL-ex
@@ -51,7 +51,7 @@ $(LOG)/FOL-ex.gz: $(OUT)/FOL ex/First_Order_Logic.thy ex/If.thy		\
   ex/document/root.tex ex/Foundation.thy ex/Intuitionistic.thy		\
   ex/Intro.thy ex/Propositional_Int.thy ex/Propositional_Cla.thy	\
   ex/Quantifiers_Int.thy ex/Quantifiers_Cla.thy
-	@$(ISATOOL) usedir $(OUT)/FOL ex
+	@$(ISABELLE_TOOL) usedir $(OUT)/FOL ex
 
 
 ## clean

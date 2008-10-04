@@ -24,13 +24,13 @@ LOG = $(OUT)/log
 CCL: FOL $(OUT)/CCL
 
 FOL:
-	@cd $(SRC)/FOL; $(ISATOOL) make FOL
+	@cd $(SRC)/FOL; $(ISABELLE_TOOL) make FOL
 
 $(OUT)/FOL: FOL
 
 $(OUT)/CCL: $(OUT)/FOL CCL.thy Fix.thy Gfp.thy Hered.thy Lfp.thy ROOT.ML \
   Set.thy Term.thy Trancl.thy Type.thy Wfd.thy
-	@$(ISATOOL) usedir -b -r $(OUT)/FOL CCL
+	@$(ISABELLE_TOOL) usedir -b -r $(OUT)/FOL CCL
 
 
 ## CCL-ex
@@ -39,7 +39,7 @@ CCL-ex: CCL $(LOG)/CCL-ex.gz
 
 $(LOG)/CCL-ex.gz: $(OUT)/CCL ex/Flag.thy ex/List.thy ex/Nat.thy ex/ROOT.ML \
   ex/Stream.thy
-	@$(ISATOOL) usedir $(OUT)/CCL ex
+	@$(ISABELLE_TOOL) usedir $(OUT)/CCL ex
 
 
 ## clean

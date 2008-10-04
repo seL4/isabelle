@@ -69,7 +69,7 @@ HOL-Plain: Pure $(OUT)/HOL-Plain
 HOL-Main: Pure $(OUT)/HOL-Main
 
 Pure:
-	@cd $(SRC)/Pure; $(ISATOOL) make Pure
+	@cd $(SRC)/Pure; $(ISABELLE_TOOL) make Pure
 
 $(OUT)/Pure: Pure
 
@@ -182,7 +182,7 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/rat.ML
 
 $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
-	@$(ISATOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
+	@$(ISABELLE_TOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Arith_Tools.thy \
@@ -247,7 +247,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/TFL/utils.ML
 
 $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
-	@$(ISATOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
+	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
 
 $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Complex/Complex_Main.thy \
@@ -285,7 +285,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/langford_data.ML \
   Tools/Qelim/langford.ML
-	@$(ISATOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/Pure HOL
+	@$(ISABELLE_TOOL) usedir $(HOL_USEDIR_OPTIONS) -b -g true $(OUT)/Pure HOL
 
 
 ## HOL-Library
@@ -320,7 +320,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Assert.thy Library/Relational.thy Library/Sublist.thy Library/Subarray.thy	\
   Library/Ref.thy Library/Imperative_HOL.thy Library/RBT.thy		\
   Library/Enum.thy Real/Float.thy $(SRC)/Tools/float.ML
-	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library
+	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
 
 ## HOL-HahnBanach
@@ -337,7 +337,7 @@ $(LOG)/HOL-HahnBanach.gz: $(OUT)/HOL			\
   Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy		\
   Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib	\
   Real/HahnBanach/document/root.tex
-	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL HahnBanach
+	@cd Real; $(ISABELLE_TOOL) usedir -g true $(OUT)/HOL HahnBanach
 
 
 ## HOL-Subst
@@ -346,7 +346,7 @@ HOL-Subst: HOL $(LOG)/HOL-Subst.gz
 
 $(LOG)/HOL-Subst.gz: $(OUT)/HOL Subst/AList.thy Subst/ROOT.ML		\
   Subst/Subst.thy Subst/UTerm.thy Subst/Unifier.thy Subst/Unify.thy
-	@$(ISATOOL) usedir $(OUT)/HOL Subst
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Subst
 
 
 ## HOL-Induct
@@ -359,7 +359,7 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Com.thy Induct/Comb.thy		\
   Induct/QuoDataType.thy Induct/ROOT.ML Induct/Sexp.thy			\
   Induct/Sigma_Algebra.thy Induct/SList.thy Induct/ABexp.thy		\
   Induct/Term.thy Induct/Tree.thy Induct/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOL Induct
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Induct
 
 
 ## HOL-IMP
@@ -370,7 +370,7 @@ $(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/Com.thy IMP/Compiler0.thy		\
   IMP/Compiler.thy IMP/Denotation.thy IMP/Expr.thy IMP/Hoare.thy	\
   IMP/Natural.thy IMP/Examples.thy IMP/Transition.thy IMP/VC.thy	\
   IMP/ROOT.ML IMP/document/root.tex IMP/document/root.bib
-	@$(ISATOOL) usedir -g true $(OUT)/HOL IMP
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL IMP
 
 
 ## HOL-IMPP
@@ -379,7 +379,7 @@ HOL-IMPP: HOL $(LOG)/HOL-IMPP.gz
 
 $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy		\
   IMPP/Natural.thy IMPP/Hoare.thy IMPP/Misc.thy IMPP/EvenOdd.thy
-	@$(ISATOOL) usedir $(OUT)/HOL IMPP
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL IMPP
 
 
 ## HOL-Import
@@ -397,7 +397,7 @@ IMPORTER_HOLLIGHT_FILES = Import/proof_kernel.ML Import/replay.ML \
 HOL-Import: HOL $(LOG)/HOL-Import.gz
 
 $(LOG)/HOL-Import.gz: $(OUT)/HOL $(IMPORTER_FILES)
-	@$(ISATOOL) usedir $(OUT)/HOL Import
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Import
 
 
 ## HOL-Generate-HOL
@@ -410,7 +410,7 @@ $(LOG)/HOL-Generate-HOL.gz: $(OUT)/HOL			\
   Import/Generate-HOL/GenHOL4Real.thy					\
   Import/Generate-HOL/GenHOL4Vec.thy					\
   Import/Generate-HOL/GenHOL4Word32.thy Import/Generate-HOL/ROOT.ML
-	@cd Import; $(ISATOOL) usedir $(OUT)/HOL Generate-HOL
+	@cd Import; $(ISABELLE_TOOL) usedir $(OUT)/HOL Generate-HOL
 
 
 ## HOL-Generate-HOLLight
@@ -420,7 +420,7 @@ HOL-Generate-HOLLight: HOL $(LOG)/HOL-Generate-HOLLight.gz
 $(LOG)/HOL-Generate-HOLLight.gz: $(OUT)/HOL		\
   $(IMPORTER_HOLLIGHT_FILES) Import/Generate-HOLLight/GenHOLLight.thy	\
   Import/Generate-HOLLight/ROOT.ML
-	@cd Import; $(ISATOOL) usedir $(OUT)/HOL Generate-HOLLight
+	@cd Import; $(ISABELLE_TOOL) usedir $(OUT)/HOL Generate-HOLLight
 
 
 ## HOL-Import-HOL
@@ -443,14 +443,14 @@ $(LOG)/HOL4.gz: $(OUT)/HOL $(IMPORTER_FILES)			\
   Import/HOL/HOL4Prob.thy Import/HOL/HOL4Real.thy			\
   Import/HOL/HOL4Vec.thy Import/HOL/HOL4Word32.thy Import/HOL/HOL4.thy	\
   Import/HOL/ROOT.ML
-	@cd Import/HOL; $(ISATOOL) usedir -b $(OUT)/HOL HOL4
+	@cd Import/HOL; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOL4
 
 HOLLight: HOL $(LOG)/HOLLight.gz
 
 $(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_HOLLIGHT_FILES)	\
   Import/HOLLight/hollight.imp Import/HOLLight/HOLLight.thy		\
   Import/HOLLight/ROOT.ML
-	@cd Import/HOLLight; $(ISATOOL) usedir -b $(OUT)/HOL HOLLight
+	@cd Import/HOLLight; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOLLight
 
 
 ## HOL-NumberTheory
@@ -468,7 +468,7 @@ $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL Library/Permutation.thy		\
   NumberTheory/Euler.thy NumberTheory/Gauss.thy				\
   NumberTheory/Quadratic_Reciprocity.thy Library/Infinite_Set.thy	\
   NumberTheory/ROOT.ML
-	@$(ISATOOL) usedir -g true $(OUT)/HOL NumberTheory
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL NumberTheory
 
 
 ## HOL-Hoare
@@ -481,7 +481,7 @@ $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.thy Hoare/Examples.thy	\
   Hoare/ExamplesAbort.thy Hoare/HeapSyntaxAbort.thy			\
   Hoare/HoareAbort.thy Hoare/SchorrWaite.thy Hoare/Separation.thy	\
   Hoare/SepLogHeap.thy Hoare/document/root.tex Hoare/document/root.bib
-	@$(ISATOOL) usedir $(OUT)/HOL Hoare
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Hoare
 
 
 ## HOL-HoareParallel
@@ -498,7 +498,7 @@ $(LOG)/HOL-HoareParallel.gz: $(OUT)/HOL HoareParallel/Gar_Coll.thy	\
   HoareParallel/RG_Syntax.thy HoareParallel/RG_Tran.thy			\
   HoareParallel/ROOT.ML HoareParallel/document/root.tex			\
   HoareParallel/document/root.bib
-	@$(ISATOOL) usedir -g true $(OUT)/HOL HoareParallel
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL HoareParallel
 
 
 ## HOL-MetisExamples
@@ -510,7 +510,7 @@ $(LOG)/HOL-MetisExamples.gz: $(OUT)/HOL MetisExamples/ROOT.ML	\
   MetisExamples/BT.thy MetisExamples/Message.thy		\
   MetisExamples/Tarski.thy MetisExamples/TransClosure.thy	\
   MetisExamples/set.thy
-	@$(ISATOOL) usedir $(OUT)/HOL MetisExamples
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL MetisExamples
 
 
 ## HOL-Algebra
@@ -533,7 +533,7 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML			\
   Algebra/document/root.tex Algebra/poly/LongDiv.thy			\
   Algebra/poly/PolyHomo.thy Algebra/poly/Polynomial.thy			\
   Algebra/poly/UnivPoly2.thy Algebra/ringsimp.ML
-	@cd Algebra; $(ISATOOL) usedir -b -g true -V outline=/proof,/ML $(OUT)/HOL HOL-Algebra
+	@cd Algebra; $(ISABELLE_TOOL) usedir -b -g true -V outline=/proof,/ML $(OUT)/HOL HOL-Algebra
 
 
 ## HOL-Auth
@@ -557,7 +557,7 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL 						\
   Auth/Guard/Guard_Yahalom.thy Auth/Smartcard/EventSC.thy		\
   Auth/Smartcard/ShoupRubinBella.thy Auth/Smartcard/ShoupRubin.thy	\
   Auth/Smartcard/Smartcard.thy Auth/document/root.tex
-	@$(ISATOOL) usedir -g true $(OUT)/HOL Auth
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Auth
 
 
 ## HOL-UNITY
@@ -582,7 +582,7 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML	\
   UNITY/Comp/Handshake.thy UNITY/Comp/PriorityAux.thy			\
   UNITY/Comp/Priority.thy UNITY/Comp/Progress.thy			\
   UNITY/Comp/TimerArray.thy UNITY/document/root.tex
-	@$(ISATOOL) usedir -g true $(OUT)/HOL UNITY
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL UNITY
 
 
 ## HOL-Unix
@@ -592,7 +592,7 @@ HOL-Unix: HOL $(LOG)/HOL-Unix.gz
 $(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy	\
   Library/List_Prefix.thy Unix/ROOT.ML Unix/Unix.thy		\
   Unix/document/root.bib Unix/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOL Unix
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Unix
 
 
 ## HOL-ZF
@@ -601,7 +601,7 @@ HOL-ZF: HOL $(LOG)/HOL-ZF.gz
 
 $(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/Helper.thy ZF/LProd.thy	\
   ZF/HOLZF.thy ZF/MainZF.thy ZF/Games.thy ZF/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOL ZF
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ZF
 
 
 ## HOL-Modelcheck
@@ -613,7 +613,7 @@ $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy		\
   Modelcheck/MuCalculus.thy Modelcheck/MuckeExample1.thy	\
   Modelcheck/MuckeExample2.thy Modelcheck/MuckeSyn.thy		\
   Modelcheck/ROOT.ML Modelcheck/mucke_oracle.ML
-	@$(ISATOOL) usedir $(OUT)/HOL Modelcheck
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Modelcheck
 
 
 ## HOL-SizeChange
@@ -626,7 +626,7 @@ $(LOG)/HOL-SizeChange.gz: $(OUT)/HOL SizeChange/Kleene_Algebras.thy	\
   SizeChange/Interpretation.thy SizeChange/Implementation.thy		\
   SizeChange/Size_Change_Termination.thy SizeChange/Examples.thy	\
   SizeChange/sct.ML SizeChange/ROOT.ML
-	@$(ISATOOL) usedir $(OUT)/HOL SizeChange
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL SizeChange
 
 
 ## HOL-Lambda
@@ -639,7 +639,7 @@ $(LOG)/HOL-Lambda.gz: $(OUT)/HOL Lambda/Commutation.thy Lambda/Eta.thy	\
   Lambda/ParRed.thy Lambda/Standardization.thy Lambda/StrongNorm.thy	\
   Lambda/Type.thy Lambda/WeakNorm.thy Lambda/ROOT.ML			\
   Lambda/document/root.bib Lambda/document/root.tex
-	@$(ISATOOL) usedir -g true -m no_brackets $(OUT)/HOL Lambda
+	@$(ISABELLE_TOOL) usedir -g true -m no_brackets $(OUT)/HOL Lambda
 
 
 ## HOL-Prolog
@@ -648,7 +648,7 @@ HOL-Prolog: HOL $(LOG)/HOL-Prolog.gz
 
 $(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/prolog.ML	\
   Prolog/HOHH.thy Prolog/Test.thy Prolog/Func.thy Prolog/Type.thy
-	@$(ISATOOL) usedir $(OUT)/HOL Prolog
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Prolog
 
 
 ## HOL-W0
@@ -656,7 +656,7 @@ $(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/prolog.ML	\
 HOL-W0: HOL $(LOG)/HOL-W0.gz
 
 $(LOG)/HOL-W0.gz: $(OUT)/HOL W0/ROOT.ML W0/W0.thy W0/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOL W0
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL W0
 
 
 ## HOL-MicroJava
@@ -692,7 +692,7 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL Library/Executable_Set.thy		\
   MicroJava/BV/LBVComplete.thy MicroJava/BV/LBVJVM.thy			\
   MicroJava/document/root.bib MicroJava/document/root.tex		\
   MicroJava/document/introduction.tex
-	@$(ISATOOL) usedir -g true $(OUT)/HOL MicroJava
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL MicroJava
 
 
 ## HOL-NanoJava
@@ -703,7 +703,7 @@ $(LOG)/HOL-NanoJava.gz: $(OUT)/HOL NanoJava/ROOT.ML NanoJava/Term.thy	\
   NanoJava/Decl.thy NanoJava/TypeRel.thy NanoJava/State.thy		\
   NanoJava/OpSem.thy NanoJava/AxSem.thy NanoJava/AxSem.thy		\
   NanoJava/document/root.bib NanoJava/document/root.tex
-	@$(ISATOOL) usedir -g true $(OUT)/HOL NanoJava
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL NanoJava
 
 
 ## HOL-Bali
@@ -718,7 +718,7 @@ $(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/AxCompl.thy Bali/AxExample.thy	\
   Bali/TypeRel.thy Bali/TypeSafe.thy Bali/Value.thy Bali/WellForm.thy	\
   Bali/DefiniteAssignment.thy Bali/DefiniteAssignmentCorrect.thy	\
   Bali/WellType.thy Bali/document/root.tex
-	@$(ISATOOL) usedir -g true $(OUT)/HOL Bali
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Bali
 
 
 ## HOL-Extraction
@@ -731,7 +731,7 @@ $(LOG)/HOL-Extraction.gz: $(OUT)/HOL Library/Efficient_Nat.thy	\
   Extraction/QuotRem.thy Extraction/ROOT.ML Extraction/Util.thy	\
   Extraction/Warshall.thy Extraction/document/root.tex		\
   Extraction/document/root.bib
-	@$(ISATOOL) usedir $(OUT)/HOL Extraction
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Extraction
 
 
 ## HOL-IOA
@@ -740,7 +740,7 @@ HOL-IOA: HOL $(LOG)/HOL-IOA.gz
 
 $(LOG)/HOL-IOA.gz: $(OUT)/HOL IOA/Asig.thy IOA/IOA.thy IOA/ROOT.ML	\
   IOA/Solve.thy
-	@$(ISATOOL) usedir $(OUT)/HOL IOA
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL IOA
 
 
 ## HOL-AxClasses
@@ -749,7 +749,7 @@ HOL-AxClasses: HOL $(LOG)/HOL-AxClasses.gz
 
 $(LOG)/HOL-AxClasses.gz: $(OUT)/HOL AxClasses/Group.thy			\
   AxClasses/Product.thy AxClasses/ROOT.ML AxClasses/Semigroups.thy
-	@$(ISATOOL) usedir $(OUT)/HOL AxClasses
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL AxClasses
 
 
 ## HOL-Lattice
@@ -759,7 +759,7 @@ HOL-Lattice: HOL $(LOG)/HOL-Lattice.gz
 $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy			\
   Lattice/CompleteLattice.thy Lattice/Lattice.thy Lattice/Orders.thy	\
   Lattice/ROOT.ML Lattice/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOL Lattice
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Lattice
 
 
 ## HOL-ex
@@ -796,7 +796,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   Complex/ex/Sqrt_Script.thy Complex/ex/MIR.thy Complex/ex/mirtac.ML	\
   Complex/ex/ReflectedFerrack.thy					\
   Complex/ex/linrtac.ML
-	@$(ISATOOL) usedir $(OUT)/HOL ex
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
 ## HOL-Isar_examples
@@ -814,7 +814,7 @@ $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy	\
   Isar_examples/ROOT.ML Isar_examples/document/proof.sty		\
   Isar_examples/document/root.bib Isar_examples/document/root.tex	\
   Isar_examples/document/style.tex Hoare/hoare_tac.ML
-	@$(ISATOOL) usedir $(OUT)/HOL Isar_examples
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Isar_examples
 
 
 ## HOL-SET-Protocol
@@ -826,7 +826,7 @@ $(LOG)/HOL-SET-Protocol.gz: $(OUT)/HOL SET-Protocol/ROOT.ML		\
   SET-Protocol/PublicSET.thy SET-Protocol/Cardholder_Registration.thy	\
   SET-Protocol/Merchant_Registration.thy SET-Protocol/Purchase.thy	\
   SET-Protocol/document/root.tex
-	@$(ISATOOL) usedir -g true $(OUT)/HOL SET-Protocol
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL SET-Protocol
 
 
 ## HOL-Matrix
@@ -847,7 +847,7 @@ $(OUT)/HOL-Matrix: $(OUT)/HOL				\
   Matrix/cplex/CplexMatrixConverter.ML Matrix/cplex/Cplex_tools.ML	\
   Matrix/cplex/FloatSparseMatrixBuilder.ML Matrix/cplex/fspmlp.ML	\
   Matrix/cplex/matrixlp.ML
-	@$(ISATOOL) usedir -g true $(OUT)/HOL Matrix
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Matrix
 
 
 ## TLA
@@ -856,7 +856,7 @@ TLA: HOL $(OUT)/TLA
 
 $(OUT)/TLA: $(OUT)/HOL TLA/Action.thy TLA/Init.thy TLA/Intensional.thy	\
   TLA/ROOT.ML TLA/Stfun.thy TLA/TLA.thy
-	@cd TLA; $(ISATOOL) usedir -b $(OUT)/HOL TLA
+	@cd TLA; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL TLA
 
 
 ## TLA-Inc
@@ -864,7 +864,7 @@ $(OUT)/TLA: $(OUT)/HOL TLA/Action.thy TLA/Init.thy TLA/Intensional.thy	\
 TLA-Inc: TLA $(LOG)/TLA-Inc.gz
 
 $(LOG)/TLA-Inc.gz: $(OUT)/TLA TLA/Inc/Inc.thy
-	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Inc
+	@cd TLA; $(ISABELLE_TOOL) usedir $(OUT)/TLA Inc
 
 
 ## TLA-Buffer
@@ -872,7 +872,7 @@ $(LOG)/TLA-Inc.gz: $(OUT)/TLA TLA/Inc/Inc.thy
 TLA-Buffer: TLA $(LOG)/TLA-Buffer.gz
 
 $(LOG)/TLA-Buffer.gz: $(OUT)/TLA TLA/Buffer/Buffer.thy TLA/Buffer/DBuffer.thy
-	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Buffer
+	@cd TLA; $(ISABELLE_TOOL) usedir $(OUT)/TLA Buffer
 
 
 ## TLA-Memory
@@ -884,7 +884,7 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MemClerk.thy		\
   TLA/Memory/MemoryImplementation.thy TLA/Memory/MemoryParameters.thy	\
   TLA/Memory/ProcedureInterface.thy TLA/Memory/RPC.thy			\
   TLA/Memory/RPCMemoryParams.thy TLA/Memory/RPCParameters.thy
-	@cd TLA; $(ISATOOL) usedir $(OUT)/TLA Memory
+	@cd TLA; $(ISABELLE_TOOL) usedir $(OUT)/TLA Memory
 
 
 ## HOL-Nominal
@@ -902,7 +902,7 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML \
   Nominal/nominal_primrec.ML \
   Nominal/nominal_thmdecls.ML \
   Library/Infinite_Set.thy
-	@cd Nominal; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Nominal
+	@cd Nominal; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Nominal
 
 
 ## HOL-Nominal-Examples
@@ -931,7 +931,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
   Nominal/Examples/VC_Condition.thy \
   Nominal/Examples/W.thy \
   Nominal/Examples/Weakening.thy
-	@cd Nominal; $(ISATOOL) usedir $(OUT)/HOL-Nominal Examples
+	@cd Nominal; $(ISABELLE_TOOL) usedir $(OUT)/HOL-Nominal Examples
 
 
 ## HOL-Word
@@ -946,7 +946,7 @@ $(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML Library/Infinite_Set.thy	\
   Word/WordArith.thy Word/WordBitwise.thy Word/WordShift.thy		\
   Word/WordGenLib.thy Word/WordMain.thy Word/document/root.tex		\
   Word/document/root.bib
-	@cd Word; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-Word
+	@cd Word; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Word
 
 
 ## HOL-Word-Examples
@@ -955,7 +955,7 @@ HOL-Word-Examples: HOL-Word $(LOG)/HOL-Word-Examples.gz
 
 $(LOG)/HOL-Word-Examples.gz: $(OUT)/HOL-Word Word/Examples/ROOT.ML	\
   Word/Examples/WordExamples.thy
-	@cd Word; $(ISATOOL) usedir $(OUT)/HOL-Word Examples
+	@cd Word; $(ISABELLE_TOOL) usedir $(OUT)/HOL-Word Examples
 
 
 ## HOL-Statespace
@@ -967,7 +967,7 @@ $(LOG)/HOL-Statespace.gz: $(OUT)/HOL Statespace/DistinctTreeProver.thy	\
   Statespace/StateSpaceSyntax.thy Statespace/StateSpaceEx.thy		\
   Statespace/distinct_tree_prover.ML Statespace/state_space.ML		\
   Statespace/state_fun.ML Statespace/document/root.tex
-	@$(ISATOOL) usedir -g true $(OUT)/HOL Statespace
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Statespace
 
 
 ## HOL-NSA
@@ -999,7 +999,7 @@ $(OUT)/HOL-NSA: $(OUT)/HOL \
   Library/Infinite_Set.thy \
   Library/Zorn.thy \
   NSA/ROOT.ML
-	@cd NSA; $(ISATOOL) usedir -b -g true $(OUT)/HOL HOL-NSA
+	@cd NSA; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-NSA
 
 
 ## HOL-NSA-Examples
@@ -1008,7 +1008,7 @@ HOL-NSA-Examples: HOL-NSA $(LOG)/HOL-NSA-Examples.gz
 
 $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
   NSA/Examples/NSPrimes.thy
-	@cd NSA; $(ISATOOL) usedir $(OUT)/HOL-NSA Examples
+	@cd NSA; $(ISABELLE_TOOL) usedir $(OUT)/HOL-NSA Examples
 
 
 ## clean

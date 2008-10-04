@@ -93,7 +93,7 @@ object IsabelleSystem {
 
   def isabelle_tool(args: String*) = {
     val proc =
-      try { exec2((List(getenv_strict("ISATOOL")) ++ args): _*) }
+      try { exec2((List(getenv_strict("ISABELLE_TOOL")) ++ args): _*) }
       catch { case e: IOException => error(e.getMessage) }
     proc.getOutputStream.close
     val output = Source.fromInputStream(proc.getInputStream, charset).mkString("")

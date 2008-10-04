@@ -325,7 +325,7 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
 
 fun isabelle_document verbose format name tags path result_path =
   let
-    val s = "\"$ISATOOL\" document -c -o '" ^ format ^ "' \
+    val s = "\"$ISABELLE_TOOL\" document -c -o '" ^ format ^ "' \
       \-n '" ^ name ^ "' -t '" ^ tags ^ "' " ^ File.shell_path path ^
       " 2>&1" ^ (if verbose then "" else " >/dev/null");
     val doc_path = Path.append result_path (Path.ext format (Path.basic name));

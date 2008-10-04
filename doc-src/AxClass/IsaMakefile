@@ -13,7 +13,7 @@ all: images test
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
-USEDIR = $(ISATOOL) usedir -d false -D document
+USEDIR = $(ISABELLE_TOOL) usedir -d false -D document
 
 
 ## Group
@@ -21,7 +21,7 @@ USEDIR = $(ISATOOL) usedir -d false -D document
 Group: HOL $(LOG)/HOL-Group.gz
 
 HOL:
-	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+	@cd $(SRC)/HOL; $(ISABELLE_TOOL) make HOL
 
 $(LOG)/HOL-Group.gz: $(OUT)/HOL Group/ROOT.ML Group/Group.thy \
   Group/Product.thy Group/Semigroups.thy
@@ -34,7 +34,7 @@ $(LOG)/HOL-Group.gz: $(OUT)/HOL Group/ROOT.ML Group/Group.thy \
 Nat: FOL $(LOG)/FOL-Nat.gz
 
 FOL:
-	@cd $(SRC)/FOL; $(ISATOOL) make FOL
+	@cd $(SRC)/FOL; $(ISABELLE_TOOL) make FOL
 
 $(LOG)/FOL-Nat.gz: $(OUT)/FOL Nat/ROOT.ML Nat/NatClass.thy
 	@$(USEDIR) $(OUT)/FOL Nat

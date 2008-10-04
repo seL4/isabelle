@@ -42,7 +42,7 @@ function fail()
 ## main
 
 ISABELLE_HOME="$DISTPREFIX/Isabelle"
-ISATOOL="$ISABELLE_HOME/bin/isatool"
+ISABELLE_TOOL="$ISABELLE_HOME/bin/isatool"
 
 [ -d $ISABELLE_HOME ] || fail "$ISABELLE_HOME is not a directory."
 
@@ -73,7 +73,7 @@ for L in $LOGICS
 do
   ( cd "$ISABELLE_HOME/src/$L"; \
     cat ~/settings/annomaly >> $ISABELLE_HOME/etc/settings; \
-    "$ISATOOL" make || fail "isatool make for $L failed." )
+    "$ISABELLE_TOOL" make || fail "isabelle make for $L failed." )
 done
 
 

@@ -13,7 +13,7 @@ all: images test
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
-USEDIR = $(ISATOOL) usedir -d false -D document
+USEDIR = $(ISABELLE_TOOL) usedir -d false -D document
 
 
 ## Locales
@@ -21,7 +21,7 @@ USEDIR = $(ISATOOL) usedir -d false -D document
 Locales: $(LOG)/HOL-Locales.gz
 
 HOL:
-	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+	@cd $(SRC)/HOL; $(ISABELLE_TOOL) make HOL
 
 $(LOG)/HOL-Locales.gz: $(OUT)/HOL Locales/ROOT.ML Locales/Examples.thy \
   Locales/Examples1.thy Locales/Examples2.thy Locales/Examples3.thy \

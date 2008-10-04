@@ -24,11 +24,11 @@ LOG = $(OUT)/log
 CTT: Pure $(OUT)/CTT
 
 Pure:
-	@cd $(SRC)/Pure; $(ISATOOL) make Pure
+	@cd $(SRC)/Pure; $(ISABELLE_TOOL) make Pure
 
 $(OUT)/CTT: $(OUT)/Pure $(SRC)/Provers/typedsimp.ML Arith.thy \
   Bool.thy CTT.thy Main.thy ROOT.ML rew.ML
-	@$(ISATOOL) usedir -b $(OUT)/Pure CTT
+	@$(ISABELLE_TOOL) usedir -b $(OUT)/Pure CTT
 
 
 ## CTT-ex
@@ -37,7 +37,7 @@ CTT-ex: CTT $(LOG)/CTT-ex.gz
 
 $(LOG)/CTT-ex.gz: $(OUT)/CTT ex/ROOT.ML ex/Elimination.thy \
   ex/Equality.thy ex/Synthesis.thy ex/Typechecking.thy
-	@$(ISATOOL) usedir $(OUT)/CTT ex
+	@$(ISABELLE_TOOL) usedir $(OUT)/CTT ex
 
 
 ## clean

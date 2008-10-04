@@ -137,7 +137,7 @@ else
     echo "OUT = \$(ISABELLE_OUTPUT)"
     echo "LOG = \$(OUT)/log"
     echo
-    echo "USEDIR = \$(ISATOOL) usedir ${VERBOSE}-i true -d $ISABELLE_DOC_FORMAT  ## -D generated"
+    echo "USEDIR = \$(ISABELLE_TOOL) usedir ${VERBOSE}-i true -d $ISABELLE_DOC_FORMAT  ## -D generated"
     echo
     echo
     echo "## $NAME"
@@ -146,7 +146,7 @@ else
       echo "$NAME: $LOGIC $TARGET"
       echo
       echo "$LOGIC:"
-      echo -e "\t@cd \$(SRC)/$LOGIC; \$(ISATOOL) make $LOGIC"
+      echo -e "\t@cd \$(SRC)/$LOGIC; \$(ISABELLE_TOOL) make $LOGIC"
       echo
       echo "$TARGET: \$(OUT)/$LOGIC $ROOT_ML $DOCUMENT_ROOT ## $SOURCES"
       echo -e "\t@$USEDIR \$(OUT)/$LOGIC $NAME"

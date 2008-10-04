@@ -25,7 +25,7 @@ LOG = $(OUT)/log
 HOLCF: HOL $(OUT)/HOLCF
 
 HOL:
-	@cd $(SRC)/HOL; $(ISATOOL) make HOL
+	@cd $(SRC)/HOL; $(ISABELLE_TOOL) make HOL
 
 $(OUT)/HOLCF: $(OUT)/HOL \
   ROOT.ML \
@@ -71,7 +71,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Tools/pcpodef_package.ML \
   holcf_logic.ML \
   document/root.tex
-	@$(ISATOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
+	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
 
 
 ## HOLCF-IMP
@@ -80,7 +80,7 @@ HOLCF-IMP: HOLCF $(LOG)/HOLCF-IMP.gz
 
 $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
   IMP/Denotational.thy IMP/ROOT.ML IMP/document/root.tex
-	@$(ISATOOL) usedir $(OUT)/HOLCF IMP
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF IMP
 
 
 ## HOLCF-ex
@@ -90,7 +90,7 @@ HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Stream.thy ex/Dagstuhl.thy \
   ex/Dnat.thy ex/Fix2.thy ex/Focus_ex.thy ex/Hoare.thy ex/Loop.thy \
   ex/ROOT.ML ex/Fixrec_ex.thy ../HOL/Library/Nat_Infinity.thy
-	@$(ISATOOL) usedir $(OUT)/HOLCF ex
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF ex
 
 
 ## HOLCF-FOCUS
@@ -101,7 +101,7 @@ $(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF FOCUS/Fstreams.thy \
   FOCUS/Fstream.thy FOCUS/FOCUS.thy \
   FOCUS/Stream_adm.thy ../HOL/Library/Continuity.thy \
   FOCUS/Buffer.thy FOCUS/Buffer_adm.thy
-	@$(ISATOOL) usedir $(OUT)/HOLCF FOCUS
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF FOCUS
 
 ## IOA
 
@@ -118,7 +118,7 @@ $(OUT)/IOA: $(OUT)/HOLCF IOA/ROOT.ML IOA/meta_theory/Traces.thy        \
   IOA/meta_theory/LiveIOA.thy IOA/meta_theory/Pred.thy		       \
   IOA/meta_theory/Abstraction.thy IOA/meta_theory/Simulations.thy      \
   IOA/meta_theory/SimCorrectness.thy IOA/meta_theory/ioa_package.ML
-	@cd IOA; $(ISATOOL) usedir -b $(OUT)/HOLCF IOA
+	@cd IOA; $(ISABELLE_TOOL) usedir -b $(OUT)/HOLCF IOA
 
 
 ## IOA-ABP
@@ -132,7 +132,7 @@ $(LOG)/IOA-ABP.gz: $(OUT)/IOA IOA/ABP/Abschannel.thy \
   IOA/ABP/Lemmas.thy IOA/ABP/Packet.thy \
   IOA/ABP/ROOT.ML IOA/ABP/Receiver.thy IOA/ABP/Sender.thy \
   IOA/ABP/Spec.thy
-	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA ABP
+	@cd IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA ABP
 
 ## IOA-NTP
 
@@ -143,7 +143,7 @@ $(LOG)/IOA-NTP.gz: $(OUT)/IOA \
   IOA/NTP/Impl.thy IOA/NTP/Lemmas.thy IOA/NTP/Multiset.thy \
   IOA/NTP/Packet.thy IOA/NTP/ROOT.ML IOA/NTP/Receiver.thy IOA/NTP/Sender.thy \
   IOA/NTP/Spec.thy
-	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA NTP
+	@cd IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA NTP
 
 
 ## IOA-Modelcheck
@@ -153,7 +153,7 @@ IOA-Modelcheck: IOA $(LOG)/IOA-Modelcheck.gz
 $(LOG)/IOA-Modelcheck.gz: $(OUT)/IOA IOA/Modelcheck/ROOT.ML \
   IOA/Modelcheck/Cockpit.thy IOA/Modelcheck/MuIOA.thy \
   IOA/Modelcheck/MuIOAOracle.thy IOA/Modelcheck/Ring3.thy
-	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Modelcheck
+	@cd IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA Modelcheck
 
 
 ## IOA-Storage
@@ -163,7 +163,7 @@ IOA-Storage: IOA $(LOG)/IOA-Storage.gz
 $(LOG)/IOA-Storage.gz: $(OUT)/IOA IOA/Storage/Action.thy \
   IOA/Storage/Correctness.thy IOA/Storage/Impl.thy \
   IOA/Storage/ROOT.ML IOA/Storage/Spec.thy
-	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA Storage
+	@cd IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA Storage
 
 
 ## IOA-ex
@@ -171,7 +171,7 @@ $(LOG)/IOA-Storage.gz: $(OUT)/IOA IOA/Storage/Action.thy \
 IOA-ex: IOA $(LOG)/IOA-ex.gz
 
 $(LOG)/IOA-ex.gz: $(OUT)/IOA IOA/ex/ROOT.ML IOA/ex/TrivEx.thy IOA/ex/TrivEx2.thy
-	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA ex
+	@cd IOA; $(ISABELLE_TOOL) usedir $(OUT)/IOA ex
 
 
 ## clean

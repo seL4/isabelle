@@ -175,7 +175,7 @@ echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
 
 for L in $MAKE_LOGICS
 do
-  ( cd "$ISABELLE_HOME/src/$L"; "$ISATOOL" make $TARGETS )
+  ( cd "$ISABELLE_HOME/src/$L"; "$ISABELLE_TOOL" make $TARGETS )
 done
 
 echo -n "Finished at "; date
