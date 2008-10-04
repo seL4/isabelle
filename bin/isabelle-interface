@@ -32,7 +32,7 @@ function fail()
 
 case "$ISABELLE_INTERFACE" in
   none)
-    INTERFACE="$ISABELLE"
+    INTERFACE="$ISABELLE_PROCESS"
     ;;
   */*)
     INTERFACE="$ISABELLE_INTERFACE"

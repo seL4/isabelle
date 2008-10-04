@@ -37,4 +37,4 @@ CMD="$1"
 CMD=$(echo $CMD | sed -e 's/\\/\\\\"/g; s/"/\\\"/g')
 FULL_CMD="Code_Target.shell_command \"$THY\" \"$CMD\";"
 
-"$ISABELLE" -q -e "$FULL_CMD" "$IMAGE" || exit 1
+"$ISABELLE_PROCESS" -q -e "$FULL_CMD" "$IMAGE" || exit 1

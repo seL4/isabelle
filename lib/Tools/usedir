@@ -227,7 +227,7 @@ if [ -n "$BUILD" ]; then
   OPT_C=""
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
-  "$ISABELLE" \
+  "$ISABELLE_PROCESS" \
     -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS $TRACETHREADS;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
@@ -236,7 +236,7 @@ else
   echo "Running $ITEM ..." >&2
   LOG="$LOGDIR/$ITEM"
 
-  "$ISABELLE" \
+  "$ISABELLE_PROCESS" \
     -e "Session.use_dir \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS $TRACETHREADS; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"

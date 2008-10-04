@@ -88,7 +88,7 @@ if [ -n "$RAW" ]; then
   echo "Building $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
-  "$ISABELLE" \
+  "$ISABELLE_PROCESS" \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "val ml_platform = \"$ML_PLATFORM\";" \
     -e "use\"$COMPAT\" handle _ => exit 1;" \
@@ -99,7 +99,7 @@ elif [ -n "$RAW_SESSION" ]; then
   echo "Running $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
-  "$ISABELLE" \
+  "$ISABELLE_PROCESS" \
     -e "use\"$RAW_SESSION\" handle _ => exit 1;" \
     -q RAW > "$LOG" 2>&1
   RC="$?"
@@ -108,7 +108,7 @@ else
   echo "Building $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
-  "$ISABELLE" \
+  "$ISABELLE_PROCESS" \
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "val ml_platform = \"$ML_PLATFORM\";" \
     -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => exit 1;" \

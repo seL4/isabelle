@@ -126,7 +126,7 @@ text {*
 
   \begin{itemize}
 
-  \item @{setting_def ISABELLE} and @{setting_def ISABELLE_TOOL} are set
+  \item @{setting_def ISABELLE_PROCESS} and @{setting_def ISABELLE_TOOL} are set
   automatically to the absolute path names of the @{executable
   "isabelle-process"} and @{executable isatool} executables,
   respectively.
@@ -168,7 +168,7 @@ text {*
   some extend. In particular, site-wide defaults may be overridden by
   a private @{verbatim "$ISABELLE_HOME_USER/etc/settings"}.
   
-  \item[@{setting_def ISABELLE}@{text "\<^sup>*"}, @{setting
+  \item[@{setting_def ISABELLE_PROCESS}@{text "\<^sup>*"}, @{setting
   ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
   names of the @{executable "isabelle-process"} and @{executable
   isatool} executables, respectively.  Thus other tools and scripts
