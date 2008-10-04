@@ -121,9 +121,9 @@ clean:
 
 ## Scala material
 
-SCALA_FILES = General/markup.scala General/position.scala	\
-  General/symbol.scala General/xml.scala General/yxml.scala	\
-  Isar/isar.scala Tools/isabelle_process.scala			\
+SCALA_FILES = General/markup.scala General/position.scala		\
+  General/symbol.scala General/xml.scala General/yxml.scala		\
+  Isar/isar.scala Thy/thy_header.scala Tools/isabelle_process.scala	\
   Tools/isabelle_syntax.scala Tools/isabelle_system.scala
 
 
