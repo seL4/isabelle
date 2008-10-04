@@ -338,6 +338,14 @@ class IsabelleProcess(args: String*) {
   /** main **/
 
   {
+    /* isabelle version */
+
+    {
+      val (msg, rc) = IsabelleSystem.isabelle_tool("version")
+      if (rc != 0) error("Version check failed -- bad Isabelle installation:\n" + msg)
+      put_result(Kind.SYSTEM, null, msg)
+    }
+
 
     /* message fifo */
 
