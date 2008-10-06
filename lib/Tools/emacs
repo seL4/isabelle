@@ -17,6 +17,8 @@ function fail()
 
 ## main
 
+[ -z "$PROOFGENERAL_HOME" ] && fail "Missing Proof General installation (PROOFGENERAL_HOME)"
+
 INTERFACE="$PROOFGENERAL_HOME/isar/interface"
 [ ! -x "$INTERFACE" ] && fail "Bad interface script: \"$INTERFACE\""
 
