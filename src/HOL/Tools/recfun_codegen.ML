@@ -18,57 +18,73 @@ struct
 
 open Codegen;
 
-structure RecCodegenData = TheoryDataFun
+structure ModuleData = TheoryDataFun
 (
-  type T = (thm * string option) list Symtab.table;
+  type T = string Symtab.table;
   val empty = Symtab.empty;
   val copy = I;
   val extend = I;
-  fun merge _ = Symtab.merge_list (Thm.eq_thm_prop o pairself fst);
+  fun merge _ = Symtab.merge (K true);
 );
 
-val dest_eqn = HOLogic.dest_eq o HOLogic.dest_Trueprop;
-val lhs_of = fst o dest_eqn o prop_of;
-val const_of = dest_Const o head_of o fst o dest_eqn;
-
-fun warn thm = warning ("RecfunCodegen: Not a proper equation:\n" ^
-  Display.string_of_thm thm);
-
-fun add_thm opt_module thm =
-  (if Pattern.pattern (lhs_of thm) then
-    RecCodegenData.map
-      (Symtab.cons_list ((fst o const_of o prop_of) thm, (thm, opt_module)))
-  else tap (fn _ => warn thm))
-  handle TERM _ => tap (fn _ => warn thm);
+fun add_thm add NONE thm thy = add thm thy
+  | add_thm add (SOME module_name) thm thy =
+      case Code_Unit.warning_thm (Code_Unit.mk_eqn thy) thm
+       of SOME (thm', _) => let val c = Code_Unit.const_eqn thm'
+            in thy
+              |> ModuleData.map (Symtab.update (c, module_name))
+              |> add thm'
+            end
+        | NONE => add thm thy;
 
 fun add opt_module = Thm.declaration_attribute (fn thm => Context.mapping
-  (add_thm opt_module thm #> Code.add_liberal_eqn thm) I);
+  (add_thm Code.add_eqn opt_module thm) I);
 
 val add_default = Thm.declaration_attribute (fn thm => Context.mapping
-  (add_thm NONE thm #> Code.add_default_eqn thm) I);
+  (add_thm Code.add_default_eqn NONE thm) I);
 
-fun del_thm thm = case try const_of (prop_of thm)
- of SOME (s, _) => RecCodegenData.map
-      (Symtab.map_entry s (remove (Thm.eq_thm o apsnd fst) thm))
-  | NONE => tap (fn _ => warn thm);
+val del = Thm.declaration_attribute (fn thm => Context.mapping
+  (Code.del_eqn thm) I);
 
-val del = Thm.declaration_attribute
-  (fn thm => Context.mapping (del_thm thm #> Code.del_eqn thm) I)
+fun meta_eq_to_obj_eq thy thm =
+  let
+    val T = (fastype_of o fst o Logic.dest_equals o Thm.prop_of) thm;
+  in if Sign.of_sort thy (T, @{sort type})
+    then SOME (Conv.fconv_rule Drule.beta_eta_conversion (@{thm meta_eq_to_obj_eq} OF [thm]))
+    else NONE
+  end;
 
-fun del_redundant thy eqs [] = eqs
-  | del_redundant thy eqs (eq :: eqs') =
-    let
-      val matches = curry
-        (Pattern.matches thy o pairself (lhs_of o fst))
-    in del_redundant thy (eq :: eqs) (filter_out (matches eq) eqs') end;
+fun expand_eta thy [] = []
+  | expand_eta thy (thms as thm :: _) =
+      let
+        val (_, ty) = Code_Unit.const_typ_eqn thm;
+      in if (null o Term.typ_tvars) ty orelse (null o fst o strip_type) ty
+        then thms
+        else map (Code_Unit.expand_eta thy 1) thms
+      end;
+
+fun retrieve_equations thy (c, T) = if c = @{const_name "op ="} then NONE else
+  let
+    val c' = AxClass.unoverload_const thy (c, T);
+    val opt_name = Symtab.lookup (ModuleData.get thy) c';
+    val thms = Code.these_raw_eqns thy c'
+      |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
+      |> expand_eta thy
+      |> map (AxClass.overload thy)
+      |> map_filter (meta_eq_to_obj_eq thy)
+      |> Code_Unit.norm_varnames thy Code_Name.purify_tvar Code_Name.purify_var
+      |> map (rpair opt_name)
+  in if null thms then NONE else SOME thms end;
+
+val dest_eqn = HOLogic.dest_eq o HOLogic.dest_Trueprop;
+val const_of = dest_Const o head_of o fst o dest_eqn;
 
 fun get_equations thy defs (s, T) =
-  (case Symtab.lookup (RecCodegenData.get thy) s of
+  (case retrieve_equations thy (s, T) of
      NONE => ([], "")
    | SOME thms => 
-       let val thms' = del_redundant thy []
-         (filter (fn (thm, _) => is_instance T
-           (snd (const_of (prop_of thm)))) thms)
+       let val thms' = filter (fn (thm, _) => is_instance T
+           (snd (const_of (prop_of thm)))) thms
        in if null thms' then ([], "")
          else (preprocess thy (map fst thms'),
            case snd (snd (split_last thms')) of
@@ -165,7 +181,6 @@ fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
           SOME (gr''', mk_app brack (str (mk_qual_id module fname)) ps)
         end)
   | _ => NONE);
-
 
 val setup =
   add_codegen "recfun" recfun_codegen

@@ -11,11 +11,22 @@ begin
 
 subsection {* Definitional rewrites *}
 
-lemma [code target: Set]:
-  "A = B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
-  by blast
+definition subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
+  "subset = op \<le>"
 
-declare subset_eq [code]
+declare subset_def [symmetric, code unfold]
+
+lemma "subset A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
+  unfolding subset_def subset_eq ..
+
+definition is_empty :: "'a set \<Rightarrow> bool" where
+  "is_empty A \<longleftrightarrow> A = {}"
+
+definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
+  [code del]: "eq_set = op ="
+
+lemma [code]: "eq_set A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
+  unfolding eq_set_def by auto
 
 lemma [code]:
   "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. x = a)"
@@ -247,6 +258,7 @@ subsubsection {* const serializations *}
 consts_code
   "{}" ("{*[]*}")
   insert ("{*insertl*}")
+  is_empty ("{*null*}")
   "op \<union>" ("{*unionl*}")
   "op \<inter>" ("{*intersect*}")
   "op - \<Colon> 'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" ("{* flip subtract *}")

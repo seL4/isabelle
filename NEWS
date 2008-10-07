@@ -91,6 +91,11 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* Unified theorem tables of both code code generators.  Thus [code]
+and [code func] behave identically.  INCOMPATIBILITY.
+
+* "undefined" replaces "arbitrary" in most occurences.
+
 * Wrapper script for remote SystemOnTPTP service allows to use
 sledgehammer without local ATP installation (Vampire etc.).  See also
 ISABELLE_HOME/contrib/SystemOnTPTP and the VAMPIRE_HOME setting

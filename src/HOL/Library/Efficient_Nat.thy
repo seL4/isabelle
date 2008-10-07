@@ -27,12 +27,12 @@ text {*
 
 code_datatype number_nat_inst.number_of_nat
 
-lemma zero_nat_code [code, code unfold]:
+lemma zero_nat_code [code, code inline]:
   "0 = (Numeral0 :: nat)"
   by simp
 lemmas [code post] = zero_nat_code [symmetric]
 
-lemma one_nat_code [code, code unfold]:
+lemma one_nat_code [code, code inline]:
   "1 = (Numeral1 :: nat)"
   by simp
 lemmas [code post] = one_nat_code [symmetric]
@@ -59,9 +59,9 @@ text {* Specialized @{term "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> 
 definition
   divmod_aux ::  "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
 where
-  [code func del]: "divmod_aux = divmod"
+  [code del]: "divmod_aux = divmod"
 
-lemma [code func]:
+lemma [code]:
   "divmod n m = (if m = 0 then (0, n) else divmod_aux n m)"
   unfolding divmod_aux_def divmod_div_mod by simp
 
@@ -92,7 +92,7 @@ text {*
   expression:
 *}
 
-lemma [code func, code unfold]:
+lemma [code, code unfold]:
   "nat_case = (\<lambda>f g n. if n = 0 then f else g (n - 1))"
   by (auto simp add: expand_fun_eq dest!: gr0_implies_Suc)
 
@@ -221,8 +221,7 @@ fun clause_suc_preproc thy ths =
 
 fun lift f thy eqns1 =
   let
-    val eqns2 = ((map o apfst) (AxClass.overload thy)
-      o burrow_fst Drule.zero_var_indexes_list) eqns1;
+    val eqns2 = burrow_fst Drule.zero_var_indexes_list eqns1;
     val thms3 = try (map fst
       #> map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
       #> f thy
@@ -232,7 +231,8 @@ fun lift f thy eqns1 =
   in case thms4
    of NONE => NONE
     | SOME thms4 => if Thm.eq_thms (map fst eqns2, thms4)
-        then NONE else SOME (map (Code_Unit.mk_eqn thy) thms4)
+        then NONE else SOME (map (apfst (AxClass.overload thy) o Code_Unit.mk_eqn thy) thms4)
+          (*FIXME*)
   end
 
 in
@@ -423,7 +423,8 @@ code_const "op < \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
   (Haskell infix 4 "<")
 
 consts_code
-  0                            ("0")
+  "0::nat"                     ("0")
+  "1::nat"                     ("1")
   Suc                          ("(_ +/ 1)")
   "op + \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat"   ("(_ +/ _)")
   "op * \<Colon>  nat \<Rightarrow> nat \<Rightarrow> nat"   ("(_ */ _)")
