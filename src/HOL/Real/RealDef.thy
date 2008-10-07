@@ -563,8 +563,8 @@ consts
   real :: "'a => real"
 
 defs (overloaded)
-  real_of_nat_def [code inline]: "real == real_of_nat"
-  real_of_int_def [code inline]: "real == real_of_int"
+  real_of_nat_def [code unfold]: "real == real_of_nat"
+  real_of_int_def [code unfold]: "real == real_of_int"
 
 lemma real_eq_of_nat: "real = of_nat"
   unfolding real_of_nat_def ..
@@ -1156,7 +1156,5 @@ attach {*
 fun real_of_int 0 = (0, 0)
   | real_of_int i = (i, 1);
 *}
-
-declare real_of_int_of_nat_eq [symmetric, code]
 
 end

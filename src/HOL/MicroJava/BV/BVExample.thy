@@ -37,7 +37,7 @@ text {* These auxiliary proofs are for efficiency: class lookup,
 subclass relation, method and field lookup are computed only once:
 *}
 lemma class_Object [simp]:
-  "class E Object = Some (arbitrary, [],[])"
+  "class E Object = Some (undefined, [],[])"
   by (simp add: class_def system_defs E_def)
 
 lemma class_NullPointer [simp]:
@@ -409,10 +409,9 @@ lemma "E,\<Phi> \<turnstile>JVM start_state E test_name makelist_name \<surd>"
 
 section "Example for code generation: inferring method types"
 
-constdefs
-  test_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
-             exception_table \<Rightarrow> instr list \<Rightarrow> JVMType.state list"
-  "test_kil G C pTs rT mxs mxl et instr ==
+definition test_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
+             exception_table \<Rightarrow> instr list \<Rightarrow> JVMType.state list" where
+  "test_kil G C pTs rT mxs mxl et instr =
    (let first  = Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err));
         start  = OK first#(replicate (size instr - 1) (OK None))
     in  kiljvm G mxs (1+size pTs+mxl) rT et instr start)"
@@ -433,23 +432,30 @@ lemma [code]:
   apply simp+
   done
 
-constdefs
-  some_elem :: "'a set \<Rightarrow> 'a"
-  "some_elem == (%S. SOME x. x : S)"
-
-lemma [code]:
-"iter f step ss w =
- while (%(ss,w). w \<noteq> {})
-       (%(ss,w). let p = some_elem w
-                 in propa f (step p (ss!p)) ss (w-{p}))
-       (ss,w)"
-  by (unfold iter_def some_elem_def, rule refl)
+definition some_elem :: "'a set \<Rightarrow> 'a" where
+  "some_elem = (%S. SOME x. x : S)"
 
 consts_code
   "some_elem" ("hd")
 
-code_const some_elem
-  (SML "hd")
+text {* This code setup is just a demonstration and \emph{not} sound! *}
+
+lemma False
+proof -
+  have "some_elem (set [False, True]) = False"
+    by evaluation
+  moreover have "some_elem (set [True, False]) = True"
+    by evaluation
+  ultimately show False
+    by (simp add: some_elem_def)
+qed
+
+lemma [code]:
+  "iter f step ss w = while (\<lambda>(ss, w). \<not> (is_empty w))
+    (\<lambda>(ss, w).
+        let p = some_elem w in propa f (step p (ss ! p)) ss (w - {p}))
+    (ss, w)"
+  unfolding iter_def is_empty_def some_elem_def ..
 
 lemma JVM_sup_unfold [code]:
  "JVMType.sup S m n = lift2 (Opt.sup
@@ -460,9 +466,7 @@ lemma JVM_sup_unfold [code]:
          Listn.sl_def upto_esl_def JType.esl_def Err.esl_def) 
   by simp
 
-lemmas [code] =
-  meta_eq_to_obj_eq [OF JType.sup_def [unfolded exec_lub_def]]
-  meta_eq_to_obj_eq [OF JVM_le_unfold]
+lemmas [code] = JType.sup_def [unfolded exec_lub_def] JVM_le_unfold
 
 lemmas [code ind] = rtranclp.rtrancl_refl converse_rtranclp_into_rtranclp
 
