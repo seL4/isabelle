@@ -5,5 +5,5 @@
 # $Id$
 #
 
-rsync --daemon --config=/home/isabelle/rsyncd.conf --port=8730
+/usr/bin/rsync --daemon --config=/home/proj/isabelle/rsyncd.conf
 
