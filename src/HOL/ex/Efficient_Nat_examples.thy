@@ -3,7 +3,7 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Simple examples for Efficient\_Nat theory.  *}
+header {* Simple examples for Efficient\_Nat theory. *}
 
 theory Efficient_Nat_examples
 imports Main "~~/src/HOL/Real/RealDef" Efficient_Nat
