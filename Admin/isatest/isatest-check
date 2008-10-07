@@ -48,8 +48,8 @@ function fail()
 
 # check if tests are still running, wait for them a couple of hours
 i=0
-while [ -n "$(ls $RUNNING)" -a $i -lt 10 ]; do 
-    sleep 3600
+while [ -n "$(ls $RUNNING)" -a $i -lt 40 ]; do 
+    sleep 900
     let "i = i+1"
 done
 
@@ -99,6 +99,8 @@ fi
 if [ "$FAIL"=="0" -a "$(echo $ERRORDIR/isatest*[^e].log)" == "$(echo)" ]; then
   (cd $HOME/devel-page; env DISTNAME=`$DISTPREFIX/Isabelle/bin/isabelle getenv -b ISABELLE_IDENTIFIER` make)
   echo "$(date) $HOSTNAME $PRG: generated development snapshot web page." >> $MASTERLOG
+else
+  echo "$(date) $HOSTNAME $PRG: test failures, no web snapshot generated." >> $MASTERLOG
 fi
 
 exit 0
