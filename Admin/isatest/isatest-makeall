@@ -116,7 +116,14 @@ for SETTINGS in $@; do
 
     DATE=$(date "+%Y-%m-%d")
     SHORT=${SETTINGS##*/}
-    TESTLOG=$LOGPREFIX/isatest-makeall-$SHORT-$DATE-$HOSTNAME.log
+
+	if [ "${SHORT%-e}" == "$SHORT" ]; then
+		# normal test
+    	TESTLOG=$LOGPREFIX/isatest-makeall-$SHORT-$DATE-$HOSTNAME.log
+ 	else
+	 	# experimental test
+		TESTLOG=$LOGPREFIX/isatest-makeall-$SHORT-$DATE-$HOSTNAME-e.log
+	fi
 
     # the test
 
