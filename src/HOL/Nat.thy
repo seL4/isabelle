@@ -147,6 +147,8 @@ lemma add_0_right [simp]: "m + 0 = (m::nat)"
 lemma add_Suc_right [simp]: "m + Suc n = Suc (m + n)"
   by (induct m) simp_all
 
+declare add_0 [code]
+
 lemma add_Suc_shift [code]: "Suc m + n = m + Suc n"
   by simp
 
@@ -155,7 +157,8 @@ where
   diff_0:     "m - 0 = (m\<Colon>nat)"
   | diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
 
-declare diff_Suc [simp del, code del]
+declare diff_Suc [simp del]
+declare diff_0 [code]
 
 lemma diff_0_eq_0 [simp, code]: "0 - n = (0::nat)"
   by (induct n) (simp_all add: diff_Suc)
@@ -347,12 +350,12 @@ primrec less_eq_nat where
   "(0\<Colon>nat) \<le> n \<longleftrightarrow> True"
   | "Suc m \<le> n \<longleftrightarrow> (case n of 0 \<Rightarrow> False | Suc n \<Rightarrow> m \<le> n)"
 
-declare less_eq_nat.simps [simp del, code del]
+declare less_eq_nat.simps [simp del]
 lemma [code]: "(0\<Colon>nat) \<le> n \<longleftrightarrow> True" by (simp add: less_eq_nat.simps)
 lemma le0 [iff]: "0 \<le> (n\<Colon>nat)" by (simp add: less_eq_nat.simps)
 
 definition less_nat where
-  less_eq_Suc_le [code func del]: "n < m \<longleftrightarrow> Suc n \<le> m"
+  less_eq_Suc_le: "n < m \<longleftrightarrow> Suc n \<le> m"
 
 lemma Suc_le_mono [iff]: "Suc n \<le> Suc m \<longleftrightarrow> n \<le> m"
   by (simp add: less_eq_nat.simps(2))
@@ -1161,20 +1164,23 @@ lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
 lemma of_nat_mult: "of_nat (m * n) = of_nat m * of_nat n"
   by (induct m) (simp_all add: add_ac left_distrib)
 
-definition
-  of_nat_aux :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
-where
-  [code func del]: "of_nat_aux n i = of_nat n + i"
+primrec of_nat_aux :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "of_nat_aux inc 0 i = i"
+  | "of_nat_aux inc (Suc n) i = of_nat_aux inc n (inc i)" -- {* tail recursive *}
 
-lemma of_nat_aux_code [code]:
-  "of_nat_aux 0 i = i"
-  "of_nat_aux (Suc n) i = of_nat_aux n (i + 1)" -- {* tail recursive *}
-  by (simp_all add: of_nat_aux_def add_ac)
-
-lemma of_nat_code [code]:
-  "of_nat n = of_nat_aux n 0"
-  by (simp add: of_nat_aux_def)
-
+lemma of_nat_code [code, code unfold, code inline del]:
+  "of_nat n = of_nat_aux (\<lambda>i. i + 1) n 0"
+proof (induct n)
+  case 0 then show ?case by simp
+next
+  case (Suc n)
+  have "\<And>i. of_nat_aux (\<lambda>i. i + 1) n (i + 1) = of_nat_aux (\<lambda>i. i + 1) n i + 1"
+    by (induct n) simp_all
+  from this [of 0] have "of_nat_aux (\<lambda>i. i + 1) n 1 = of_nat_aux (\<lambda>i. i + 1) n 0 + 1"
+    by simp
+  with Suc show ?case by (simp add: add_commute)
+qed
+    
 end
 
 text{*Class for unital semirings with characteristic zero.

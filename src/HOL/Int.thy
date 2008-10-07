@@ -1922,16 +1922,6 @@ lemma less_int_code [code func]:
       auto simp only: Bit0_def Bit1_def)
 
 definition
-  int_aux :: "nat \<Rightarrow> int \<Rightarrow> int" where
-  [code func del]: "int_aux = of_nat_aux"
-
-lemmas int_aux_code = of_nat_aux_code [where ?'a = int, simplified int_aux_def [symmetric], code]
-
-lemma [code, code unfold, code inline del]:
-  "of_nat = (\<lambda>n. int_aux n 0)"
-  by (simp add: int_aux_def of_nat_aux_def)
-
-definition
   nat_aux :: "int \<Rightarrow> nat \<Rightarrow> nat" where
   "nat_aux i n = nat i + n"
 
@@ -1943,7 +1933,7 @@ lemma [code]:
 lemma [code]: "nat i = nat_aux i 0"
   by (simp add: nat_aux_def)
 
-hide (open) const int_aux nat_aux
+hide (open) const nat_aux
 
 lemma zero_is_num_zero [code func, code inline, symmetric, code post]:
   "(0\<Colon>int) = Numeral0" 
