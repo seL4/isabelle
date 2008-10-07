@@ -22,11 +22,6 @@ instance ..
 
 end
 
-lemma [code, code func del]:
-  "(x1, y1) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"
-  "(x1, y1) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
-  unfolding prod_le_def prod_less_def by simp_all
-
 lemma [code func]:
   "(x1\<Colon>'a\<Colon>{ord, eq}, y1) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"
   "(x1\<Colon>'a\<Colon>{ord, eq}, y1) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
