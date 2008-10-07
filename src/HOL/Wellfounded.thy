@@ -33,7 +33,7 @@ constdefs
   "acyclic r == !x. (x,x) ~: r^+"
 
   cut        :: "('a => 'b) => ('a * 'a)set => 'a => 'a => 'b"
-  "cut f r x == (%y. if (y,x):r then f y else arbitrary)"
+  "cut f r x == (%y. if (y,x):r then f y else undefined)"
 
   adm_wf :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => bool"
   "adm_wf R F == ALL f g x.

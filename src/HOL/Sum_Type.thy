@@ -126,8 +126,8 @@ definition
   (if (\<exists>!y. x = Inl y) 
   then f (THE y. x = Inl y) 
   else g (THE y. x = Inr y))"
-definition "Projl x = sum_case id arbitrary x"
-definition "Projr x = sum_case arbitrary id x"
+definition "Projl x = sum_case id undefined x"
+definition "Projr x = sum_case undefined id x"
 
 lemma sum_cases[simp]: 
   "sum_case f g (Inl x) = f x"

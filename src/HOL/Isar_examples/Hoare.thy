@@ -232,7 +232,7 @@ translations
   "\<acute>x := a"                 => "Basic .(\<acute>(_update_name x (\<lambda>_. a)))."
   "IF b THEN c1 ELSE c2 FI" => "Cond .{b}. c1 c2"
   "WHILE b INV i DO c OD"   => "While .{b}. i c"
-  "WHILE b DO c OD"         == "WHILE b INV arbitrary DO c OD"
+  "WHILE b DO c OD"         == "WHILE b INV CONST undefined DO c OD"
 
 parse_translation {*
   let
@@ -383,7 +383,7 @@ lemma [intro?]:
   by (rule while)
 
 lemma [intro?]:
-    "|- (P Int b) c P ==> |- P (While b arbitrary c) (P Int -b)"
+    "|- (P Int b) c P ==> |- P (While b undefined c) (P Int -b)"
   by (rule while)
 
 

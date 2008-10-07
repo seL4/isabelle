@@ -125,7 +125,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       {left = fn t => In0 $ t,
         right = fn t => In1 $ t,
         init =
-          if ts = [] then Const ("arbitrary", Univ_elT)
+          if ts = [] then Const (@{const_name undefined}, Univ_elT)
           else foldr1 (HOLogic.mk_binop Scons_name) ts};
 
     (* function spaces *)

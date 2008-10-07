@@ -115,7 +115,7 @@ record heap =
   lim  :: addr
 
 definition empty :: heap where
-  "empty = \<lparr>arrays = (\<lambda>_. arbitrary), refs = (\<lambda>_. arbitrary), lim = 0\<rparr>" -- "why arbitrary?"
+  "empty = \<lparr>arrays = (\<lambda>_. undefined), refs = (\<lambda>_. undefined), lim = 0\<rparr>" -- "why undefined?"
 
 
 subsection {* Imperative references and arrays *}

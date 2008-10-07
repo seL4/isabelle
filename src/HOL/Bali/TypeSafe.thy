@@ -1738,7 +1738,7 @@ proof -
     from `(Some xc, s)\<Colon>\<preceq>(G,L)`
     show "(Some xc, s)\<Colon>\<preceq>(G,L) \<and> 
       (normal (Some xc, s) 
-      \<longrightarrow> G,L,store (Some xc,s)\<turnstile>t\<succ>arbitrary3 t\<Colon>\<preceq>T) \<and> 
+      \<longrightarrow> G,L,store (Some xc,s)\<turnstile>t\<succ>undefined3 t\<Colon>\<preceq>T) \<and> 
       (error_free (Some xc, s) = error_free (Some xc, s))"
       by simp
   next
@@ -3850,7 +3850,7 @@ theorem wellformed_eval_induct [consumes 4, case_names Abrupt Skip Expr Lab
    and  abrupt: "\<And> s t abr L accC T A. 
                   \<lbrakk>\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T; 
                    \<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>dom (locals (store (Some abr,s)))\<guillemotright>t\<guillemotright>A
-                  \<rbrakk> \<Longrightarrow> P L accC (Some abr, s) t (arbitrary3 t) (Some abr, s)"
+                  \<rbrakk> \<Longrightarrow> P L accC (Some abr, s) t (undefined3 t) (Some abr, s)"
    and    skip: "\<And> s L accC. P L accC (Norm s) \<langle>Skip\<rangle>\<^sub>s \<diamondsuit> (Norm s)"
    and    expr: "\<And> e s0 s1 v L accC eT E.
                  \<lbrakk>\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>e\<Colon>-eT;

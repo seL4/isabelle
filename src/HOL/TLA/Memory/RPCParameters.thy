@@ -44,7 +44,7 @@ defs
 		                  | (othercall v) => False"
   RPCRelayArg_def:   "RPCRelayArg ra ==
 		         case ra of (memcall m) => m
-		                  | (othercall v) => arbitrary"
+		                  | (othercall v) => undefined"
 
 lemmas [simp] = RFNoMemVal NotAResultNotRF OKNotRF BANotRF
   NotAResultNotRF [symmetric] OKNotRF [symmetric] BANotRF [symmetric]

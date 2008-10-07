@@ -298,7 +298,7 @@ val setup =
     #> Context.theory_map (FundefCommon.set_preproc sequential_preproc)
 
 
-val fun_config = FundefConfig { sequential=true, default="%x. arbitrary" (* FIXME dynamic scoping *), 
+val fun_config = FundefConfig { sequential=true, default="%x. undefined" (*FIXME dynamic scoping*), 
                                 domintros=false, tailrec=false }
 
 

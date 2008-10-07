@@ -49,7 +49,7 @@ where
 
 --{* propagation of abrupt completion *}
 
-| Abrupt:   "G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (arbitrary3 t,(Some xc,s))"
+| Abrupt:   "G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (undefined3 t,(Some xc,s))"
 
 
 --{* evaluation of variables *}
@@ -346,13 +346,13 @@ proof -
 qed
 
 lemma evaln_abrupt_lemma: "G\<turnstile>s \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (v,s') \<Longrightarrow> 
- fst s = Some xc \<longrightarrow> s' = s \<and> v = arbitrary3 e"
+ fst s = Some xc \<longrightarrow> s' = s \<and> v = undefined3 e"
 apply (erule evaln_cases , auto)
 done
 
 lemma evaln_abrupt: 
  "\<And>s'. G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (w,s') = (s' = (Some xc,s) \<and>  
-  w=arbitrary3 e \<and> G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (arbitrary3 e,(Some xc,s)))"
+  w=undefined3 e \<and> G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midarrow>n\<rightarrow> (undefined3 e,(Some xc,s)))"
 apply auto
 apply (frule evaln_abrupt_lemma, auto)+
 done
@@ -365,13 +365,13 @@ simproc_setup evaln_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<midar
     | _ => SOME (mk_meta_eq @{thm evaln_abrupt}))
 *}
 
-lemma evaln_LitI: "G\<turnstile>s \<midarrow>Lit v-\<succ>(if normal s then v else arbitrary)\<midarrow>n\<rightarrow> s"
+lemma evaln_LitI: "G\<turnstile>s \<midarrow>Lit v-\<succ>(if normal s then v else undefined)\<midarrow>n\<rightarrow> s"
 apply (case_tac "s", case_tac "a = None")
 by (auto intro!: evaln.Lit)
 
 lemma CondI: 
  "\<And>s1. \<lbrakk>G\<turnstile>s \<midarrow>e-\<succ>b\<midarrow>n\<rightarrow> s1; G\<turnstile>s1 \<midarrow>(if the_Bool b then e1 else e2)-\<succ>v\<midarrow>n\<rightarrow> s2\<rbrakk> \<Longrightarrow> 
-  G\<turnstile>s \<midarrow>e ? e1 : e2-\<succ>(if normal s1 then v else arbitrary)\<midarrow>n\<rightarrow> s2"
+  G\<turnstile>s \<midarrow>e ? e1 : e2-\<succ>(if normal s1 then v else undefined)\<midarrow>n\<rightarrow> s2"
 apply (case_tac "s", case_tac "a = None")
 by (auto intro!: evaln.Cond)
 
@@ -520,7 +520,7 @@ using eval
 proof (induct)
   case (Abrupt xc s t)
   obtain n where
-    "G\<turnstile>(Some xc, s) \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (arbitrary3 t, (Some xc, s))"
+    "G\<turnstile>(Some xc, s) \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (undefined3 t, (Some xc, s))"
     by (iprover intro: evaln.Abrupt)
   then show ?case ..
 next

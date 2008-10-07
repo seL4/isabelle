@@ -11,7 +11,7 @@ imports Hoare
 begin
 
 defs
-  newlocs_def: "newlocs       == %x. arbitrary"
+  newlocs_def: "newlocs       == %x. undefined"
   setlocs_def: "setlocs s l'  == case s of st g l => st g l'"
   getlocs_def: "getlocs s     == case s of st g l => l"
    update_def: "update s vn v == case vn of

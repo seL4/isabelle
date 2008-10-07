@@ -137,7 +137,7 @@ apply (simp (no_asm_simp))
 done
 declare map_of_Cons [simp del] -- "sic!"
 
-lemma class_tprg_Object [simp]: "class tprg Object = Some (arbitrary, [], [])"
+lemma class_tprg_Object [simp]: "class tprg Object = Some (undefined, [], [])"
 apply (unfold ObjectC_def class_def)
 apply (simp (no_asm))
 done

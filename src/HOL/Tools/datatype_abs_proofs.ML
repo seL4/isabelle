@@ -291,7 +291,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
       let
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val Ts' = map mk_dummyT (List.filter is_rec_type cargs)
-      in Const ("arbitrary", Ts @ Ts' ---> T')
+      in Const (@{const_name undefined}, Ts @ Ts' ---> T')
       end) constrs) descr';
 
     val case_names = map (fn s => Sign.full_name thy1 (s ^ "_case")) new_type_names;

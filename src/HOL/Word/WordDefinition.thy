@@ -66,9 +66,9 @@ constdefs
 
   -- "whether a cast (or other) function is to a longer or shorter length"
   source_size :: "('a :: len0 word => 'b) => nat"
-  "source_size c == let arb = arbitrary ; x = c arb in size arb"  
+  "source_size c == let arb = undefined ; x = c arb in size arb"  
   target_size :: "('a => 'b :: len0 word) => nat"
-  "target_size c == size (c arbitrary)"
+  "target_size c == size (c undefined)"
   is_up :: "('a :: len0 word => 'b :: len0 word) => bool"
   "is_up c == source_size c <= target_size c"
   is_down :: "('a :: len0 word => 'b :: len0 word) => bool"

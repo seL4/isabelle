@@ -26,7 +26,7 @@ definition
 
 definition
   jth           :: "nat => 'a fstream => 'a" where
-  "jth = (%n s. if Fin n < #s then THE a. i_th n s = Def a else arbitrary)"
+  "jth = (%n s. if Fin n < #s then THE a. i_th n s = Def a else undefined)"
 
 definition
   first         :: "'a fstream => 'a" where
@@ -34,8 +34,7 @@ definition
 
 definition
   last          :: "'a fstream => 'a" where
-  "last = (%s. case #s of Fin n => (if n~=0 then jth (THE k. Suc k = n) s else arbitrary)
-              | Infty => arbitrary)"
+  "last = (%s. case #s of Fin n => (if n~=0 then jth (THE k. Suc k = n) s else undefined))"
 
 
 abbreviation
@@ -92,19 +91,19 @@ by (drule sym, auto)
 lemma last_fsingleton[simp]: "last (<a>) = a"
 by (simp add: last_def)
 
-lemma first_UU[simp]: "first UU = arbitrary"
+lemma first_UU[simp]: "first UU = undefined"
 by (simp add: first_def jth_def)
 
-lemma last_UU[simp]:"last UU = arbitrary"
+lemma last_UU[simp]:"last UU = undefined"
 by (simp add: last_def jth_def inat_defs)
 
-lemma last_infinite[simp]:"#s = Infty ==> last s = arbitrary"
+lemma last_infinite[simp]:"#s = Infty ==> last s = undefined"
 by (simp add: last_def)
 
-lemma jth_slen_lemma1:"n <= k & Fin n = #s ==> jth k s = arbitrary"
+lemma jth_slen_lemma1:"n <= k & Fin n = #s ==> jth k s = undefined"
 by (simp add: jth_def inat_defs split:inat_splits, auto)
 
-lemma jth_UU[simp]:"jth n UU = arbitrary" 
+lemma jth_UU[simp]:"jth n UU = undefined" 
 by (simp add: jth_def)
 
 lemma ext_last:"[|s ~= UU; Fin (Suc n) = #s|] ==> (stream_take n$s) ooo <(last s)> = s" 

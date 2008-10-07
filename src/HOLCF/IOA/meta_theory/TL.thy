@@ -38,9 +38,7 @@ notation (xsymbols)
 defs
 
 unlift_def:
-  "unlift x == (case x of
-                 UU   => arbitrary
-               | Def y   => y)"
+  "unlift x == (case x of Def y   => y)"
 
 (* this means that for nil and UU the effect is unpredictable *)
 Init_def:

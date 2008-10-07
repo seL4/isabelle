@@ -189,7 +189,7 @@ fun apply_opt Sequential (FundefConfig {sequential, default, domintros,tailrec})
     FundefConfig {sequential=sequential, default=default, domintros=domintros,tailrec=true}
 
 val default_config =
-  FundefConfig { sequential=false, default="%x. arbitrary", domintros=false, tailrec=false }
+  FundefConfig { sequential=false, default="%x. undefined" (*FIXME dynamic scoping*), domintros=false, tailrec=false }
 
 
 (* Analyzing function equations *)

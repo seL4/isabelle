@@ -501,7 +501,7 @@ where
 
 | hazard:"G,A\<turnstile>{P \<and>. Not \<circ> type_ok G t} t\<succ> {Q}"
 
-| Abrupt:  "G,A\<turnstile>{P\<leftarrow>(arbitrary3 t) \<and>. Not \<circ> normal} t\<succ> {P}"
+| Abrupt:  "G,A\<turnstile>{P\<leftarrow>(undefined3 t) \<and>. Not \<circ> normal} t\<succ> {P}"
 
   --{* variables *}
 | LVar:  " G,A\<turnstile>{Normal (\<lambda>s.. P\<leftarrow>Var (lvar vn s))} LVar vn=\<succ> {P}"

@@ -681,7 +681,7 @@ struct
         Const ("True", _)               => t
       | (* redundant, since 'False' is also an IDT constructor *)
         Const ("False", _)              => t
-      | Const ("arbitrary", _)          => t
+      | Const (@{const_name undefined}, _)          => t
       | Const ("The", _)                => t
       | Const ("Hilbert_Choice.Eps", _) => t
       | Const ("All", _)                => t
@@ -856,7 +856,7 @@ struct
       | Const ("True", _)               => axs
       (* redundant, since 'False' is also an IDT constructor *)
       | Const ("False", _)              => axs
-      | Const ("arbitrary", T)          => collect_type_axioms (axs, T)
+      | Const (@{const_name undefined}, T)          => collect_type_axioms (axs, T)
       | Const ("The", T)                =>
         let
           val ax = specialize_type thy ("The", T)
@@ -3202,23 +3202,23 @@ struct
       end
     | Type ("prop", [])      =>
       (case index_from_interpretation intr of
-        ~1 => SOME (HOLogic.mk_Trueprop (Const ("arbitrary", HOLogic.boolT)))
+        ~1 => SOME (HOLogic.mk_Trueprop (Const (@{const_name undefined}, HOLogic.boolT)))
       | 0  => SOME (HOLogic.mk_Trueprop HOLogic.true_const)
       | 1  => SOME (HOLogic.mk_Trueprop HOLogic.false_const)
       | _  => raise REFUTE ("stlc_interpreter",
         "illegal interpretation for a propositional value"))
     | Type _  => if index_from_interpretation intr = (~1) then
-        SOME (Const ("arbitrary", T))
+        SOME (Const (@{const_name undefined}, T))
       else
         SOME (Const (string_of_typ T ^
           string_of_int (index_from_interpretation intr), T))
     | TFree _ => if index_from_interpretation intr = (~1) then
-        SOME (Const ("arbitrary", T))
+        SOME (Const (@{const_name undefined}, T))
       else
         SOME (Const (string_of_typ T ^
           string_of_int (index_from_interpretation intr), T))
     | TVar _  => if index_from_interpretation intr = (~1) then
-        SOME (Const ("arbitrary", T))
+        SOME (Const (@{const_name undefined}, T))
       else
         SOME (Const (string_of_typ T ^
           string_of_int (index_from_interpretation intr), T))
@@ -3291,7 +3291,7 @@ struct
               "interpretation is not a leaf"))
         in
           if element < 0 then
-            SOME (Const ("arbitrary", Type (s, Ts)))
+            SOME (Const (@{const_name undefined}, Type (s, Ts)))
           else let
             (* takes a datatype constructor, and if for some arguments this  *)
             (* constructor generates the datatype's element that is given by *)

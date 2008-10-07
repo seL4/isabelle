@@ -433,15 +433,15 @@ next
     by (simp add: ax_valids2_def triple_valid2_def2 type_ok_def) fast
 next
   case (Abrupt A P t)
-  show "G,A|\<Turnstile>\<Colon>{ {P\<leftarrow>arbitrary3 t \<and>. Not \<circ> normal} t\<succ> {P} }"
+  show "G,A|\<Turnstile>\<Colon>{ {P\<leftarrow>undefined3 t \<and>. Not \<circ> normal} t\<succ> {P} }"
   proof (rule validI)
     fix n s0 L accC T C v s1 Y Z 
     assume conf_s0: "s0\<Colon>\<preceq>(G, L)"
     assume eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v, s1)"
-    assume "(P\<leftarrow>arbitrary3 t \<and>. Not \<circ> normal) Y s0 Z"
-    then obtain P: "P (arbitrary3 t) s0 Z" and abrupt_s0: "\<not> normal s0"
+    assume "(P\<leftarrow>undefined3 t \<and>. Not \<circ> normal) Y s0 Z"
+    then obtain P: "P (undefined3 t) s0 Z" and abrupt_s0: "\<not> normal s0"
       by simp
-    from eval abrupt_s0 obtain "s1=s0" and "v=arbitrary3 t"
+    from eval abrupt_s0 obtain "s1=s0" and "v=undefined3 t"
       by auto
     with P conf_s0
     show "P v s1 Z \<and> s1\<Colon>\<preceq>(G, L)"
@@ -2175,13 +2175,13 @@ next
 	  note conf = `(Some abr, s)\<Colon>\<preceq>(G, L)`
 	  note P = `P Y' (Some abr, s) Z`
 	  note valid_A = `\<forall>t\<in>A. G\<Turnstile>n'\<Colon>t`
-	  show "(P'\<leftarrow>=False\<down>=\<diamondsuit>) (arbitrary3 t') (Some abr, s) Z"
+	  show "(P'\<leftarrow>=False\<down>=\<diamondsuit>) (undefined3 t') (Some abr, s) Z"
 	  proof -
 	    have eval_e: 
-	      "G\<turnstile>(Some abr,s) \<midarrow>\<langle>e\<rangle>\<^sub>e\<succ>\<midarrow>n'\<rightarrow> (arbitrary3 \<langle>e\<rangle>\<^sub>e,(Some abr,s))"
+	      "G\<turnstile>(Some abr,s) \<midarrow>\<langle>e\<rangle>\<^sub>e\<succ>\<midarrow>n'\<rightarrow> (undefined3 \<langle>e\<rangle>\<^sub>e,(Some abr,s))"
 	      by auto
 	    from valid_e P valid_A conf eval_e 
-	    have "P' (arbitrary3 \<langle>e\<rangle>\<^sub>e) (Some abr,s) Z"
+	    have "P' (undefined3 \<langle>e\<rangle>\<^sub>e) (Some abr,s) Z"
 	      by (cases rule: validE [where ?P="P"]) simp+
 	    with t' show ?thesis
 	      by auto

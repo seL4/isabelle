@@ -212,7 +212,7 @@ fun find_arg T x [] = sys_error "find_arg"
       else apsnd (cons p) (find_arg T x ps);
 
 fun make_args Ts xs =
-  map (fn (T, (NONE, ())) => Const ("arbitrary", T) | (_, (SOME t, ())) => t)
+  map (fn (T, (NONE, ())) => Const (@{const_name undefined}, T) | (_, (SOME t, ())) => t)
     (fold (fn (t, T) => snd o find_arg T t) xs (map (rpair (NONE, ())) Ts));
 
 fun make_args' Ts xs Us =

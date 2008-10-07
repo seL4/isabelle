@@ -1138,7 +1138,7 @@ apply (simp (no_asm_simp) add: gis_def gmb_def compMethod_def)
 apply (rule_tac ?instrs0.0 = "(compInitLvars (pns, lvars, blk, res) lvars)" in progression_transitive, rule HOL.refl)
 apply (rule_tac C=md in progression_lvar_init, assumption, assumption, assumption)
 apply (simp (no_asm_simp)) (* length pns = length pvs *)
-apply (simp (no_asm_simp)) (* length lvars = length (replicate (length lvars) arbitrary) *)
+apply (simp (no_asm_simp)) (* length lvars = length (replicate (length lvars) undefined) *)
 
 
        (* body statement *)

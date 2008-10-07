@@ -81,7 +81,7 @@ where
                   \<forall> x c. t \<noteq> \<langle>Skip Finally c\<rangle> \<and> xc \<noteq> Xcpt x;
                   \<forall> a c. t \<noteq> \<langle>FinA a c\<rangle>\<rbrakk> 
                 \<Longrightarrow> 
-                  G\<turnstile>(t,Some xc,s) \<mapsto>1 (\<langle>Lit arbitrary\<rangle>,Some xc,s)"
+                  G\<turnstile>(t,Some xc,s) \<mapsto>1 (\<langle>Lit undefined\<rangle>,Some xc,s)"
 
 | InsInitE: "\<lbrakk>G\<turnstile>(\<langle>c\<rangle>,Norm s) \<mapsto>1 (\<langle>c'\<rangle>, s')\<rbrakk>
              \<Longrightarrow> 

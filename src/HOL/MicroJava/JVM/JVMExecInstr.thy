@@ -66,7 +66,7 @@ primrec
        dynT = fst(the(hp(the_Addr oref)));
        (dc,mh,mxs,mxl,c)= the (method (G,dynT) (mn,ps));
        frs' = if xp'=None then 
-                [([],rev argsoref@replicate mxl arbitrary,dc,(mn,ps),0)]
+                [([],rev argsoref@replicate mxl undefined,dc,(mn,ps),0)]
               else []
    in 
       (xp', hp, frs'@(stk, vars, Cl, sig, pc)#frs))" 

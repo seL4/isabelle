@@ -45,7 +45,7 @@ translations
   "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "Cond .{b}. c1 c2"
   "IF b THEN c FI" \<rightleftharpoons> "IF b THEN c ELSE SKIP FI"
   "WHILE b INV i DO c OD" \<rightharpoonup> "While .{b}. i c"
-  "WHILE b DO c OD" \<rightleftharpoons> "WHILE b INV arbitrary DO c OD"
+  "WHILE b DO c OD" \<rightleftharpoons> "WHILE b INV CONST undefined DO c OD"
 
   "r SKIP" \<rightleftharpoons> "AnnBasic r id"
   "c_1;; c_2" \<rightleftharpoons> "AnnSeq c_1 c_2" 

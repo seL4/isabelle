@@ -373,7 +373,7 @@ defs
 
 
 ObjectC_def:"ObjectC  \<equiv> (Object,\<lparr>access=Public,cfields=[],methods=Object_mdecls,
-                                  init=Skip,super=arbitrary,superIfs=[]\<rparr>)"
+                                  init=Skip,super=undefined,superIfs=[]\<rparr>)"
 SXcptC_def:"SXcptC xn\<equiv> (SXcpt xn,\<lparr>access=Public,cfields=[],methods=SXcpt_mdecls,
                                    init=Skip,
                                    super=if xn = Throwable then Object 
@@ -761,11 +761,11 @@ consts
 recdef iface_rec "same_fst ws_prog (\<lambda>G. (subint1 G)^-1)" 
 "iface_rec (G,I) = 
   (\<lambda>f. case iface G I of 
-         None \<Rightarrow> arbitrary 
+         None \<Rightarrow> undefined 
        | Some i \<Rightarrow> if ws_prog G 
                       then f I i 
                                ((\<lambda>J. iface_rec (G,J) f)`set (isuperIfs i))
-                      else arbitrary)"
+                      else undefined)"
 (hints recdef_wf: wf_subint1 intro: subint1I)
 declare iface_rec.simps [simp del]
 
@@ -779,12 +779,12 @@ done
 recdef class_rec "same_fst ws_prog (\<lambda>G. (subcls1 G)^-1)"
 "class_rec(G,C) = 
   (\<lambda>t f. case class G C of 
-           None \<Rightarrow> arbitrary 
+           None \<Rightarrow> undefined 
          | Some c \<Rightarrow> if ws_prog G 
                         then f C c 
                                  (if C = Object then t 
                                                 else class_rec (G,super c) t f)
-                        else arbitrary)"
+                        else undefined)"
 (hints recdef_wf: wf_subcls1 intro: subcls1I)
 declare class_rec.simps [simp del]
 

@@ -104,10 +104,10 @@ by (auto intro: finite_acyclic_wf_converse finite_subcls1 subcls1_acyclic)
 consts class_rec ::"cname \<Rightarrow> (class \<Rightarrow> ('a \<times> 'b) list) \<Rightarrow> ('a \<rightharpoonup> 'b)"
 
 recdef (permissive) class_rec "subcls1\<inverse>"
-      "class_rec C = (\<lambda>f. case class C of None   \<Rightarrow> arbitrary 
+      "class_rec C = (\<lambda>f. case class C of None   \<Rightarrow> undefined 
                                         | Some m \<Rightarrow> if wf (subcls1\<inverse>) 
        then (if C=Object then empty else class_rec (super m) f) ++ map_of (f m)
-       else arbitrary)"
+       else undefined)"
 (hints intro: subcls1I)
 
 lemma class_rec: "\<lbrakk>class C = Some m;  ws_prog\<rbrakk> \<Longrightarrow>

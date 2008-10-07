@@ -45,7 +45,7 @@ where
 
   -- "evaluation of expressions"
 
-  XcptE:"G\<turnstile>(Some xc,s) -e\<succ>arbitrary-> (Some xc,s)"  -- "cf. 15.5"
+  XcptE:"G\<turnstile>(Some xc,s) -e\<succ>undefined-> (Some xc,s)"  -- "cf. 15.5"
 
   -- "cf. 15.8.1"
 | NewC: "[| h = heap s; (a,x) = new_Addr h;
@@ -98,7 +98,7 @@ where
   -- "evaluation of expression lists"
 
   -- "cf. 15.5"
-| XcptEs:"G\<turnstile>(Some xc,s) -e[\<succ>]arbitrary-> (Some xc,s)"
+| XcptEs:"G\<turnstile>(Some xc,s) -e[\<succ>]undefined-> (Some xc,s)"
 
   -- "cf. 15.11.???"
 | Nil:  "G\<turnstile>Norm s0 -[][\<succ>][]-> Norm s0"

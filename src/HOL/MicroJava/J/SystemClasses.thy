@@ -15,7 +15,7 @@ text {*
 
 constdefs
   ObjectC :: "'c cdecl"
-  "ObjectC \<equiv> (Object, (arbitrary,[],[]))"
+  "ObjectC \<equiv> (Object, (undefined,[],[]))"
 
   NullPointerC :: "'c cdecl"
   "NullPointerC \<equiv> (Xcpt NullPointer, (Object,[],[]))"

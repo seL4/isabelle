@@ -421,21 +421,21 @@ oops
 
 (*****************************************************************************)
 
-subsubsection {* arbitrary *}
+subsubsection {* undefined *}
 
-lemma "arbitrary"
+lemma "undefined"
   refute
 oops
 
-lemma "P arbitrary"
+lemma "P undefined"
   refute
 oops
 
-lemma "arbitrary x"
+lemma "undefined x"
   refute
 oops
 
-lemma "arbitrary arbitrary"
+lemma "undefined undefined"
   refute
 oops
 
@@ -494,7 +494,7 @@ subsubsection {* Subtypes (typedef), typedecl *}
 
 text {* A completely unspecified non-empty subset of @{typ "'a"}: *}
 
-typedef 'a myTdef = "insert (arbitrary::'a) (arbitrary::'a set)"
+typedef 'a myTdef = "insert (undefined::'a) (undefined::'a set)"
   by auto
 
 lemma "(x::'a myTdef) = y"
@@ -1326,7 +1326,7 @@ subsubsection {* Inductively defined sets *}
 
 inductive_set arbitrarySet :: "'a set"
 where
-  "arbitrary : arbitrarySet"
+  "undefined : arbitrarySet"
 
 lemma "x : arbitrarySet"
   refute
@@ -1360,7 +1360,7 @@ inductive_set
   a_even :: "'a set"
   and a_odd :: "'a set"
 where
-  "arbitrary : a_even"
+  "undefined : a_even"
 | "x : a_even \<Longrightarrow> f x : a_odd"
 | "x : a_odd \<Longrightarrow> f x : a_even"
 

@@ -118,7 +118,7 @@ proof -
 qed
 
 interpretation int: comm_monoid ["\<Z>"]
-  where "finprod \<Z> f A = (if finite A then setprod f A else arbitrary)"
+  where "finprod \<Z> f A = (if finite A then setprod f A else undefined)"
 proof -
   -- "Specification"
   show "comm_monoid \<Z>" by (unfold_locales) (auto simp: int_ring_def)
@@ -128,7 +128,7 @@ proof -
   { fix x y have "mult \<Z> x y = x * y" by (simp add: int_ring_def) }
   note mult = this
   have one: "one \<Z> = 1" by (simp add: int_ring_def)
-  show "finprod \<Z> f A = (if finite A then setprod f A else arbitrary)"
+  show "finprod \<Z> f A = (if finite A then setprod f A else undefined)"
   proof (cases "finite A")
     case True then show ?thesis proof induct
       case empty show ?case by (simp add: one)
@@ -143,7 +143,7 @@ qed
 interpretation int: abelian_monoid ["\<Z>"]
   where "zero \<Z> = 0"
     and "add \<Z> x y = x + y"
-    and "finsum \<Z> f A = (if finite A then setsum f A else arbitrary)"
+    and "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
 proof -
   -- "Specification"
   show "abelian_monoid \<Z>" by (unfold_locales) (auto simp: int_ring_def)
@@ -153,7 +153,7 @@ proof -
   { fix x y show "add \<Z> x y = x + y" by (simp add: int_ring_def) }
   note add = this
   show zero: "zero \<Z> = 0" by (simp add: int_ring_def)
-  show "finsum \<Z> f A = (if finite A then setsum f A else arbitrary)"
+  show "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
   proof (cases "finite A")
     case True then show ?thesis proof induct
       case empty show ?case by (simp add: zero)

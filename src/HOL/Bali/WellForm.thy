@@ -562,7 +562,7 @@ done
 lemma class_Object [simp]: 
 "wf_prog G \<Longrightarrow> 
   class G Object = Some \<lparr>access=Public,cfields=[],methods=Object_mdecls,
-                                  init=Skip,super=arbitrary,superIfs=[]\<rparr>"
+                                  init=Skip,super=undefined,superIfs=[]\<rparr>"
 apply (unfold wf_prog_def Let_def ObjectC_def)
 apply (fast dest!: map_of_SomeI)
 done

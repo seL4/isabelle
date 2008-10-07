@@ -48,10 +48,10 @@ end;
 
 lemma random'_if:
   fixes random' :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> seed"
-  assumes "random' 0 j = undefined"
+  assumes "random' 0 j = (\<lambda>s. undefined)"
     and "\<And>i. random' (Suc_index i) j = rhs2 i"
   shows "random' i j s = (if i = 0 then undefined else rhs2 (i - 1) s)"
-  by (cases i rule: index.exhaust) (insert assms, simp_all add: undefined_fun)
+  by (cases i rule: index.exhaust) (insert assms, simp_all)
 
 setup {*
 let
@@ -115,7 +115,8 @@ let
         |> (map o apsnd) (List.partition fst)
         |> map (mk_clauses thy this_ty)
       val eqss = map ((apsnd o map) (HOLogic.mk_Trueprop o HOLogic.mk_eq) o (fn rhs => ((this_ty, random'), [
-          (random' $ @{term "0\<Colon>index"} $ @{term "j\<Colon>index"}, Const (@{const_name undefined}, this_ty')),
+          (random' $ @{term "0\<Colon>index"} $ @{term "j\<Colon>index"}, Abs ("s", @{typ seed},
+            Const (@{const_name undefined}, HOLogic.mk_prodT (term_ty this_ty, @{typ seed})))),
           (random' $ @{term "Suc_index i"} $ @{term "j\<Colon>index"}, rhs)
         ]))) rhss;
     in eqss end;
@@ -198,7 +199,7 @@ fun random_fun (T1 : typ) (T2 : typ) (eq : 'a -> 'a -> bool) (term_of : 'a -> te
     (seed : Random_Engine.seed) =
   let
     val (seed', seed'') = random_split seed;
-    val state = ref (seed', [], Const (@{const_name arbitrary}, T1 --> T2));
+    val state = ref (seed', [], Const (@{const_name undefined}, T1 --> T2));
     val fun_upd = Const (@{const_name fun_upd},
       (T1 --> T2) --> T1 --> T2 --> T1 --> T2);
     fun random_fun' x =

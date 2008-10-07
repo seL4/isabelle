@@ -567,10 +567,10 @@ qed
 
 constdefs
   Suml :: "('a => 'c) => 'a + 'b => 'c"
-  "Suml == (%f. sum_case f arbitrary)"
+  "Suml == (%f. sum_case f undefined)"
 
   Sumr :: "('b => 'c) => 'a + 'b => 'c"
-  "Sumr == sum_case arbitrary"
+  "Sumr == sum_case undefined"
 
 lemma Suml_inject: "Suml f = Suml g ==> f = g"
   by (unfold Suml_def) (erule sum_case_inject)

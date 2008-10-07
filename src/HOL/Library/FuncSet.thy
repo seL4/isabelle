@@ -15,11 +15,11 @@ definition
 
 definition
   extensional :: "'a set => ('a => 'b) set" where
-  "extensional A = {f. \<forall>x. x~:A --> f x = arbitrary}"
+  "extensional A = {f. \<forall>x. x~:A --> f x = undefined}"
 
 definition
   "restrict" :: "['a => 'b, 'a set] => ('a => 'b)" where
-  "restrict f A = (%x. if x \<in> A then f x else arbitrary)"
+  "restrict f A = (%x. if x \<in> A then f x else undefined)"
 
 abbreviation
   funcset :: "['a set, 'b set] => ('a => 'b) set"
@@ -117,7 +117,7 @@ lemma restrictI: "(!!x. x \<in> A ==> f x \<in> B x) ==> (\<lambda>x\<in>A. f x)
   by (simp add: Pi_def restrict_def)
 
 lemma restrict_apply [simp]:
-    "(\<lambda>y\<in>A. f y) x = (if x \<in> A then f x else arbitrary)"
+    "(\<lambda>y\<in>A. f y) x = (if x \<in> A then f x else undefined)"
   by (simp add: restrict_def)
 
 lemma restrict_ext:
@@ -164,7 +164,7 @@ lemma bij_betw_restrict_eq [simp]:
 
 subsection{*Extensionality*}
 
-lemma extensional_arb: "[|f \<in> extensional A; x\<notin> A|] ==> f x = arbitrary"
+lemma extensional_arb: "[|f \<in> extensional A; x\<notin> A|] ==> f x = undefined"
   by (simp add: extensional_def)
 
 lemma restrict_extensional [simp]: "restrict f A \<in> extensional A"

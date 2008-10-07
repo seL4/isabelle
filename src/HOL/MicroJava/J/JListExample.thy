@@ -5,7 +5,9 @@
 
 header {* \isaheader{Example for generating executable code from Java semantics} *}
 
-theory JListExample imports Eval SystemClasses begin
+theory JListExample
+imports Eval SystemClasses
+begin
 
 ML {* Syntax.ambiguity_level := 100000 *}
 
@@ -72,9 +74,9 @@ fun new_addr p none loc hp =
   in nr 0 end;
 *}
 
-  "arbitrary" ("(raise Match)")
-  "arbitrary :: val" ("{* Unit *}")
-  "arbitrary :: cname" ("\"\"")
+  "undefined" ("(raise Match)")
+  "undefined :: val" ("{* Unit *}")
+  "undefined :: cname" ("\"\"")
 
   "Object" ("\"Object\"")
   "list_name" ("\"list\"")

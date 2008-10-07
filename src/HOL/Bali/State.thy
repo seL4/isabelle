@@ -328,7 +328,7 @@ syntax
   init_class_obj :: "prog \<Rightarrow> qtname \<Rightarrow> st \<Rightarrow> st"
 
 translations
- "init_class_obj G C" == "init_obj G arbitrary (Inr C)"
+ "init_class_obj G C" == "init_obj G CONST undefined (Inr C)"
 
 lemma gupd_def2 [simp]: "gupd(r\<mapsto>obj) (st g l) = st (g(r\<mapsto>obj)) l"
 apply (unfold gupd_def)

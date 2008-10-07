@@ -230,7 +230,7 @@ done
 lemma table_classes_Object [simp]: 
  "table_of Classes Object = Some \<lparr>access=Public,cfields=[]
                                  ,methods=Object_mdecls
-                                 ,init=Skip,super=arbitrary,superIfs=[]\<rparr>"
+                                 ,init=Skip,super=undefined,superIfs=[]\<rparr>"
 apply (unfold table_classes_defs)
 apply (simp (no_asm) add:Object_def)
 done
@@ -1246,13 +1246,13 @@ translations
   "obj_c"   == "\<lparr>tag=CInst (SXcpt NullPointer),values=CONST empty\<rparr>"
   "arr_N"   == "CONST empty(Inl (CONST arr, CONST Base)\<mapsto>Null)"
   "arr_a"   == "CONST empty(Inl (CONST arr, CONST Base)\<mapsto>Addr a)"
-  "globs1"  == "CONST empty(Inr (CONST Ext)   \<mapsto>\<lparr>tag=arbitrary, values=CONST empty\<rparr>)
-                     (Inr (CONST Base)  \<mapsto>\<lparr>tag=arbitrary, values=arr_N\<rparr>)
-                     (Inr Object\<mapsto>\<lparr>tag=arbitrary, values=CONST empty\<rparr>)"
-  "globs2"  == "CONST empty(Inr (CONST Ext)   \<mapsto>\<lparr>tag=arbitrary, values=CONST empty\<rparr>)
-                     (Inr Object\<mapsto>\<lparr>tag=arbitrary, values=CONST empty\<rparr>)
+  "globs1"  == "CONST empty(Inr (CONST Ext)   \<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
+                     (Inr (CONST Base)  \<mapsto>\<lparr>tag=CONST undefined, values=arr_N\<rparr>)
+                     (Inr Object\<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)"
+  "globs2"  == "CONST empty(Inr (CONST Ext)   \<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
+                     (Inr Object\<mapsto>\<lparr>tag=CONST undefined, values=CONST empty\<rparr>)
                      (Inl a\<mapsto>obj_a)
-                     (Inr (CONST Base)  \<mapsto>\<lparr>tag=arbitrary, values=arr_a\<rparr>)"
+                     (Inr (CONST Base)  \<mapsto>\<lparr>tag=CONST undefined, values=arr_a\<rparr>)"
   "globs3"  == "globs2(Inl b\<mapsto>obj_b)"
   "globs8"  == "globs3(Inl c\<mapsto>obj_c)"
   "locs3"   == "CONST empty(VName (CONST e)\<mapsto>Addr b)"

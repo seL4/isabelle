@@ -56,7 +56,7 @@ constdefs
     (cname \<Rightarrow> fdecl list \<Rightarrow> 'c mdecl list \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
   "class_rec G == wfrec {(C, D). (subcls1 G)^--1 C D}
     (\<lambda>r C t f. case class G C of
-         None \<Rightarrow> arbitrary
+         None \<Rightarrow> undefined
        | Some (D,fs,ms) \<Rightarrow> 
            f C fs ms (if C = Object then t else r D t f))"
 
@@ -68,10 +68,10 @@ lemma class_rec_lemma: "wfP ((subcls1 G)^--1) \<Longrightarrow> class G C = Some
 definition
   "wf_class G = wfP ((subcls1 G)^--1)"
 
-lemma class_rec_func [code func]:
+lemma class_rec_func (*[code func]*):
   "class_rec G C t f = (if wf_class G then
     (case class G C
-      of None \<Rightarrow> arbitrary
+      of None \<Rightarrow> undefined
        | Some (D, fs, ms) \<Rightarrow> f C fs ms (if C = Object then t else class_rec G D t f))
     else class_rec G C t f)"
 proof (cases "wf_class G")

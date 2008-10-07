@@ -926,7 +926,7 @@ proof -
   with oX_Addr oX_pos state' method ins stk' l_o l loc obj_ty mD no_xcp
   have state'_val:
     "state' =
-     Norm (hp, ([], Addr ref # rev opTs @ replicate mxl' arbitrary, 
+     Norm (hp, ([], Addr ref # rev opTs @ replicate mxl' undefined, 
                 D'', (mn, pTs), 0) # (opTs @ Addr ref # stk', loc, C, sig, pc) # frs)"
     (is "state' = Norm (hp, ?f # ?f' # frs)")
     by (simp add: raise_system_xcpt_def)
@@ -947,7 +947,7 @@ proof -
       (is "G \<turnstile> ?LT <=l LT0")
       by (simp add: wt_start_def sup_state_conv)
 
-    have r: "approx_loc G hp (replicate mxl' arbitrary) (replicate mxl' Err)"
+    have r: "approx_loc G hp (replicate mxl' undefined) (replicate mxl' Err)"
       by (simp add: approx_loc_def list_all2_def set_replicate_conv_if)
     
     from wfprog mD is_class_D
@@ -963,7 +963,7 @@ proof -
     hence "approx_stk G hp (rev opTs) pTs" by (subst approx_stk_rev)
 
     with r a l_o l
-    have "approx_loc G hp (Addr ref # rev opTs @ replicate mxl' arbitrary) ?LT"
+    have "approx_loc G hp (Addr ref # rev opTs @ replicate mxl' undefined) ?LT"
       (is "approx_loc G hp ?lt ?LT")
       by (auto simp add: approx_loc_append approx_stk_def)
 

@@ -58,7 +58,7 @@ design issues:
   \end{itemize}
 \item the rules are defined carefully in order to be applicable even in not
   type-correct situations (yielding undefined values),
-  e.g. @{text "the_Addr (Val (Bool b)) = arbitrary"}.
+  e.g. @{text "the_Addr (Val (Bool b)) = undefined"}.
   \begin{itemize}
   \item[++] fewer rules 
   \item[-]  less readable because of auxiliary functions like @{text the_Addr}
@@ -141,21 +141,21 @@ translations
   "\<lfloor>es\<rfloor>\<^sub>l" \<rightharpoonup> "In3 es"
 
 constdefs
-  arbitrary3 :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> vals"
- "arbitrary3 \<equiv> sum3_case (In1 \<circ> sum_case (\<lambda>x. arbitrary) (\<lambda>x. Unit))
-                     (\<lambda>x. In2 arbitrary) (\<lambda>x. In3 arbitrary)"
+  undefined3 :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> vals"
+ "undefined3 \<equiv> sum3_case (In1 \<circ> sum_case (\<lambda>x. undefined) (\<lambda>x. Unit))
+                     (\<lambda>x. In2 undefined) (\<lambda>x. In3 undefined)"
 
-lemma [simp]: "arbitrary3 (In1l x) = In1 arbitrary"
-by (simp add: arbitrary3_def)
+lemma [simp]: "undefined3 (In1l x) = In1 undefined"
+by (simp add: undefined3_def)
 
-lemma [simp]: "arbitrary3 (In1r x) = \<diamondsuit>"
-by (simp add: arbitrary3_def)
+lemma [simp]: "undefined3 (In1r x) = \<diamondsuit>"
+by (simp add: undefined3_def)
 
-lemma [simp]: "arbitrary3 (In2  x) = In2 arbitrary"
-by (simp add: arbitrary3_def)
+lemma [simp]: "undefined3 (In2  x) = In2 undefined"
+by (simp add: undefined3_def)
 
-lemma [simp]: "arbitrary3 (In3  x) = In3 arbitrary"
-by (simp add: arbitrary3_def)
+lemma [simp]: "undefined3 (In3  x) = In3 undefined"
+by (simp add: undefined3_def)
 
 
 section "exception throwing and catching"
@@ -479,7 +479,7 @@ inductive
 where --{* allocating objects on the heap, cf. 12.5 *}
 
   Abrupt: 
-  "G\<turnstile>(Some x,s) \<midarrow>halloc oi\<succ>arbitrary\<rightarrow> (Some x,s)"
+  "G\<turnstile>(Some x,s) \<midarrow>halloc oi\<succ>undefined\<rightarrow> (Some x,s)"
 
 | New:	  "\<lbrakk>new_Addr (heap s) = Some a; 
 	    (x,oi') = (if atleast_free (heap s) (Suc (Suc 0)) then (None,oi)
@@ -522,7 +522,7 @@ where
 
   --{* cf. 14.1, 15.5 *}
 | Abrupt: 
-   "G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<rightarrow> (arbitrary3 t, (Some xc, s))"
+   "G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<rightarrow> (undefined3 t, (Some xc, s))"
 
 
 --{* execution of statements *}
@@ -971,13 +971,13 @@ simproc_setup eval_no_abrupt ("G\<turnstile>(x,s) \<midarrow>e\<succ>\<rightarro
 
 
 lemma eval_abrupt_lemma: 
-  "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s') \<Longrightarrow> abrupt s=Some xc \<longrightarrow> s'= s \<and> v = arbitrary3 t"
+  "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s') \<Longrightarrow> abrupt s=Some xc \<longrightarrow> s'= s \<and> v = undefined3 t"
 by (erule eval_cases, auto)
 
 lemma eval_abrupt: 
  " G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<rightarrow> (w,s') =  
-     (s'=(Some xc,s) \<and> w=arbitrary3 t \<and> 
-     G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<rightarrow> (arbitrary3 t,(Some xc,s)))"
+     (s'=(Some xc,s) \<and> w=undefined3 t \<and> 
+     G\<turnstile>(Some xc,s) \<midarrow>t\<succ>\<rightarrow> (undefined3 t,(Some xc,s)))"
 apply auto
 apply (frule eval_abrupt_lemma, auto)+
 done
@@ -989,7 +989,7 @@ simproc_setup eval_abrupt ("G\<turnstile>(Some xc,s) \<midarrow>e\<succ>\<righta
     | _ => SOME (mk_meta_eq @{thm eval_abrupt}))
 *}
 
-lemma LitI: "G\<turnstile>s \<midarrow>Lit v-\<succ>(if normal s then v else arbitrary)\<rightarrow> s"
+lemma LitI: "G\<turnstile>s \<midarrow>Lit v-\<succ>(if normal s then v else undefined)\<rightarrow> s"
 apply (case_tac "s", case_tac "a = None")
 by (auto intro!: eval.Lit)
 
@@ -1007,7 +1007,7 @@ by (auto intro!: eval.Comp)
 
 lemma CondI: 
   "\<And>s1. \<lbrakk>G\<turnstile>s \<midarrow>e-\<succ>b\<rightarrow> s1; G\<turnstile>s1 \<midarrow>(if the_Bool b then e1 else e2)-\<succ>v\<rightarrow> s2\<rbrakk> \<Longrightarrow> 
-         G\<turnstile>s \<midarrow>e ? e1 : e2-\<succ>(if normal s1 then v else arbitrary)\<rightarrow> s2"
+         G\<turnstile>s \<midarrow>e ? e1 : e2-\<succ>(if normal s1 then v else undefined)\<rightarrow> s2"
 apply (case_tac "s", case_tac "a = None")
 by (auto intro!: eval.Cond)
 
@@ -1054,7 +1054,7 @@ apply   auto
 done
 
 lemma eval_StatRef: 
-"G\<turnstile>s \<midarrow>StatRef rt-\<succ>(if abrupt s=None then Null else arbitrary)\<rightarrow> s"
+"G\<turnstile>s \<midarrow>StatRef rt-\<succ>(if abrupt s=None then Null else undefined)\<rightarrow> s"
 apply (case_tac "s", simp)
 apply (case_tac "a = None")
 apply (auto del: eval.Abrupt intro!: eval.intros)
