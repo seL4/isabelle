@@ -54,7 +54,7 @@ where
   "fun_pow 0 f = id"
   | "fun_pow (Suc n) f = f o fun_pow n f"
 
-lemma funpow_fun_pow [code inline]: "f ^ n = fun_pow n f"
+lemma funpow_fun_pow [code unfold]: "f ^ n = fun_pow n f"
   unfolding funpow_def fun_pow_def ..
 
 lemma funpow_add: "f ^ (m+n) = f^m o f^n"
