@@ -49,6 +49,8 @@ begin
 lemma equals_eq [code inline, code func]: "op = \<equiv> eq"
   by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
 
+declare eq [code unfold, code inline del]
+
 declare equals_eq [symmetric, code post]
 
 end
@@ -132,7 +134,7 @@ code_const "op ="
 text {* undefined *}
 
 code_const undefined
-  (SML "raise/ Fail/ \"undefined\"")
+  (SML "!(raise/ Fail/ \"undefined\")")
   (OCaml "failwith/ \"undefined\"")
   (Haskell "error/ \"undefined\"")
 
