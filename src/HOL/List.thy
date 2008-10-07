@@ -3661,7 +3661,7 @@ primrec
   member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
 where 
   "x mem [] \<longleftrightarrow> False"
-  | "x mem (y#ys) \<longleftrightarrow> (if y = x then True else x mem ys)"
+  | "x mem (y#ys) \<longleftrightarrow> x = y \<or> x mem ys"
 
 primrec
   null:: "'a list \<Rightarrow> bool"
