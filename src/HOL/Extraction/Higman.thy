@@ -7,7 +7,7 @@
 header {* Higman's lemma *}
 
 theory Higman
-imports Main
+imports Main "~~/src/HOL/ex/Random"
 begin
 
 text {*
@@ -350,26 +350,65 @@ instance ..
 
 end
 
-(* an attempt to express examples in HOL -- function
-  mk_word :: "nat \<Rightarrow> randseed \<Rightarrow> letter list \<times> randseed"
-where
-  "mk_word k = (do
-     i \<leftarrow> random 10;
+function mk_word_aux :: "nat \<Rightarrow> seed \<Rightarrow> letter list \<times> seed" where
+  "mk_word_aux k = (do
+     i \<leftarrow> range 10;
      (if i > 7 \<and> k > 2 \<or> k > 1000 then return []
      else do
        let l = (if i mod 2 = 0 then A else B);
-       ls \<leftarrow> mk_word (Suc k);
+       ls \<leftarrow> mk_word_aux (Suc k);
        return (l # ls)
      done)
    done)"
 by pat_completeness auto
 termination by (relation "measure ((op -) 1001)") auto
 
-primrec
-  mk_word' :: "nat \<Rightarrow> randseed \<Rightarrow> letter list \<times> randseed"
-where
-  "mk_word' 0 = mk_word 0"
-  | "mk_word' (Suc n) = (do _ \<leftarrow> mk_word 0; mk_word' n done)"*)
+definition mk_word :: "seed \<Rightarrow> letter list \<times> seed" where
+  "mk_word = mk_word_aux 0"
+
+primrec mk_word_s :: "nat \<Rightarrow> seed \<Rightarrow> letter list \<times> seed" where
+  "mk_word_s 0 = mk_word"
+  | "mk_word_s (Suc n) = (do
+       _ \<leftarrow> mk_word;
+       mk_word_s n
+     done)"
+
+definition g1 :: "nat \<Rightarrow> letter list" where
+  "g1 s = fst (mk_word_s s (20000, 1))"
+
+definition g2 :: "nat \<Rightarrow> letter list" where
+  "g2 s = fst (mk_word_s s (50000, 1))"
+
+fun f1 :: "nat \<Rightarrow> letter list" where
+  "f1 0 = [A, A]"
+  | "f1 (Suc 0) = [B]"
+  | "f1 (Suc (Suc 0)) = [A, B]"
+  | "f1 _ = []"
+
+fun f2 :: "nat \<Rightarrow> letter list" where
+  "f2 0 = [A, A]"
+  | "f2 (Suc 0) = [B]"
+  | "f2 (Suc (Suc 0)) = [B, A]"
+  | "f2 _ = []"
+
+ML {*
+local
+  val higman_idx = @{code higman_idx};
+  val g1 = @{code g1};
+  val g2 = @{code g2};
+  val f1 = @{code f1};
+  val f2 = @{code f2};
+in
+  val (i1, j1) = higman_idx g1;
+  val (v1, w1) = (g1 i1, g1 j1);
+  val (i2, j2) = higman_idx g2;
+  val (v2, w2) = (g2 i2, g2 j2);
+  val (i3, j3) = higman_idx f1;
+  val (v3, w3) = (f1 i3, f1 j3);
+  val (i4, j4) = higman_idx f2;
+  val (v4, w4) = (f2 i4, f2 j4);
+end;
+*}
 
 code_module Higman
 contains
@@ -420,49 +459,6 @@ val (i4, j4) = higman f2;
 val (v4, w4) = (f2 i4, f2 j4);
 
 end;
-*}
-
-ML {*
-val a = 16807.0;
-val m = 2147483647.0;
-
-fun nextRand seed =
-  let val t = a*seed
-  in  t - m * real (Real.floor(t/m)) end;
-
-fun mk_word seed l =
-  let
-    val r = nextRand seed;
-    val i = Real.round (r / m * 10.0);
-  in if i > 7 andalso l > 2 then (r, []) else
-    apsnd (cons (if i mod 2 = 0 then @{code A} else @{code B})) (mk_word r (l+1))
-  end;
-
-fun f s @{code "0::nat"} = mk_word s 0
-  | f s (@{code Suc} n) = f (fst (mk_word s 0)) n;
-
-val g1 = snd o (f 20000.0);
-
-val g2 = snd o (f 50000.0);
-
-fun f1 @{code "0::nat"} = [@{code A}, @{code A}]
-  | f1 (@{code Suc} @{code "0::nat"}) = [@{code B}]
-  | f1 (@{code Suc} (@{code Suc} @{code "0::nat"})) = [@{code A}, @{code B}]
-  | f1 _ = [];
-
-fun f2 @{code "0::nat"} = [@{code A}, @{code A}]
-  | f2 (@{code Suc} @{code "0::nat"}) = [@{code B}]
-  | f2 (@{code Suc} (@{code Suc} @{code "0::nat"})) = [@{code B}, @{code A}]
-  | f2 _ = [];
-
-val (i1, j1) = @{code higman_idx} g1;
-val (v1, w1) = (g1 i1, g1 j1);
-val (i2, j2) = @{code higman_idx} g2;
-val (v2, w2) = (g2 i2, g2 j2);
-val (i3, j3) = @{code higman_idx} f1;
-val (v3, w3) = (f1 i3, f1 j3);
-val (i4, j4) = @{code higman_idx} f2;
-val (v4, w4) = (f2 i4, f2 j4);
 *}
 
 end
