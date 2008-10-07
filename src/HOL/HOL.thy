@@ -61,7 +61,6 @@ consts
   Not           :: "bool => bool"                   ("~ _" [40] 40)
   True          :: bool
   False         :: bool
-  arbitrary     :: 'a
 
   The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
@@ -164,10 +163,8 @@ notation (HOL)
 subsubsection {* Axioms and basic definitions *}
 
 axioms
-  eq_reflection:  "(x=y) ==> (x==y)"
-
   refl:           "t = (t::'a)"
-
+  subst:          "s = t \<Longrightarrow> P s \<Longrightarrow> P t"
   ext:            "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
     -- {*Extensionality is built into the meta-logic, and this rule expresses
          a related property.  It is an eta-expanded version of the traditional
@@ -201,13 +198,15 @@ finalconsts
   "op ="
   "op -->"
   The
-  arbitrary
 
 axiomatization
   undefined :: 'a
 
-axiomatization where
-  undefined_fun: "undefined x = undefined"
+consts
+  arbitrary :: 'a
+
+finalconsts
+  arbitrary
 
 
 subsubsection {* Generic classes and algebraic operations *}
@@ -303,17 +302,6 @@ in map tr' [@{const_syntax HOL.one}, @{const_syntax HOL.zero}] end;
 subsection {* Fundamental rules *}
 
 subsubsection {* Equality *}
-
-text {* Thanks to Stephan Merz *}
-lemma subst:
-  assumes eq: "s = t" and p: "P s"
-  shows "P t"
-proof -
-  from eq have meta: "s \<equiv> t"
-    by (rule eq_reflection)
-  from p show ?thesis
-    by (unfold meta)
-qed
 
 lemma sym: "s = t ==> t = s"
   by (erule subst) (rule refl)
@@ -820,6 +808,9 @@ use "hologic.ML"
 
 
 subsubsection {* Atomizing meta-level connectives *}
+
+axiomatization where
+  eq_reflection: "x = y \<Longrightarrow> x \<equiv> y" (*admissible axiom*)
 
 lemma atomize_all [atomize]: "(!!x. P x) == Trueprop (ALL x. P x)"
 proof
@@ -1681,20 +1672,6 @@ val trans = @{thm trans}
 
 subsection {* Code generator basics -- see further theory @{text "Code_Setup"} *}
 
-text {* Module setup *}
-
-use "~~/src/HOL/Tools/recfun_codegen.ML"
-
-setup {*
-  Code_Name.setup
-  #> Code_ML.setup
-  #> Code_Haskell.setup
-  #> Nbe.setup
-  #> Codegen.setup
-  #> RecfunCodegen.setup
-*}
-
-
 text {* Equality *}
 
 class eq = type +
@@ -1709,6 +1686,19 @@ lemma eq_refl: "eq x x \<longleftrightarrow> True"
   unfolding eq by rule+
 
 end
+
+text {* Module setup *}
+
+use "~~/src/HOL/Tools/recfun_codegen.ML"
+
+setup {*
+  Code_Name.setup
+  #> Code_ML.setup
+  #> Code_Haskell.setup
+  #> Nbe.setup
+  #> Codegen.setup
+  #> RecfunCodegen.setup
+*}
 
 
 subsection {* Legacy tactics and ML bindings *}
