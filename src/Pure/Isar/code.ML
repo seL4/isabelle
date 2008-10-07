@@ -36,6 +36,7 @@ sig
   val coregular_algebra: theory -> Sorts.algebra
   val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
   val these_eqns: theory -> string -> (thm * bool) list
+  val these_raw_eqns: theory -> string -> (thm * bool) list
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> string -> string option
   val get_case_data: theory -> string -> (int * string list) option
@@ -613,12 +614,10 @@ fun add_undefined c thy =
 val map_pre = map_exec_purge NONE o map_thmproc o apfst o apfst;
 val map_post = map_exec_purge NONE o map_thmproc o apfst o apsnd;
 
-fun gen_add_del_pre_post f thm thy = f thm thy;
-
-val add_inline = gen_add_del_pre_post (map_pre o MetaSimplifier.add_simp);
-val del_inline = gen_add_del_pre_post (map_pre o MetaSimplifier.del_simp);
-val add_post = gen_add_del_pre_post (map_post o MetaSimplifier.add_simp);
-val del_post = gen_add_del_pre_post (map_post o MetaSimplifier.del_simp);
+val add_inline = map_pre o MetaSimplifier.add_simp;
+val del_inline = map_pre o MetaSimplifier.del_simp;
+val add_post = map_post o MetaSimplifier.add_simp;
+val del_post = map_post o MetaSimplifier.del_simp;
   
 fun add_functrans (name, f) =
   (map_exec_purge NONE o map_thmproc o apsnd)
@@ -649,12 +648,20 @@ val _ = Context.>> (Context.map_theory
 
 local
 
+fun get_eqns thy c =
+  Symtab.lookup ((the_eqns o the_exec) thy) c
+  |> Option.map (Susp.force o snd)
+  |> these
+  |> (map o apfst) (Thm.transfer thy);
+
 fun apply_functrans thy c _ [] = []
   | apply_functrans thy c [] eqns = eqns
   | apply_functrans thy c functrans eqns = eqns
       |> perhaps (perhaps_loop (perhaps_apply functrans))
-      |> map (Code_Unit.assert_linear o apfst (Code_Unit.assert_eqn thy))
-      |> certify_const thy c;
+      |> (map o apfst) (AxClass.unoverload thy)
+      |> (map o Code_Unit.error_thm) (Code_Unit.assert_linear o apfst (Code_Unit.assert_eqn thy))
+      |> certify_const thy c
+      |> (map o apfst) (AxClass.overload thy);
 
 fun rhs_conv conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
 
@@ -670,17 +677,13 @@ fun preprocess thy functrans c eqns =
     val pre = (Simplifier.theory_context thy o #pre o the_thmproc o the_exec) thy;
   in
     eqns
+    |> (map o apfst) (AxClass.overload thy)
     |> apply_functrans thy c functrans
     |> (map o apfst) (Code_Unit.rewrite_eqn pre)
+    |> (map o apfst) (AxClass.unoverload thy)
     |> map (Code_Unit.assert_linear o apfst (Code_Unit.assert_eqn thy))
     |> burrow_fst (common_typ_eqns thy)
   end;
-
-fun get_eqns thy c =
-  Symtab.lookup ((the_eqns o the_exec) thy) c
-  |> Option.map (Susp.force o snd)
-  |> these
-  |> (map o apfst) (Thm.transfer thy);
 
 in
 
@@ -706,19 +709,21 @@ fun postprocess_conv thy ct =
 
 fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
 
+fun these_raw_eqns thy c =
+  get_eqns thy c
+  |> burrow_fst (common_typ_eqns thy);
+
 fun these_eqns thy c =
   let
     val functrans = (map (fn (_, (_, f)) => f thy) o #functrans
       o the_thmproc o the_exec) thy;
-    val drop_refl = filter_out
-      (is_equal o Term.fast_term_ord o Logic.dest_equals o Thm.plain_prop_of o fst);
   in
     get_eqns thy c
     |> preprocess thy functrans c
-    |> drop_refl
   end;
 
-fun default_typscheme thy c = let
+fun default_typscheme thy c =
+  let
     val typscheme = curry (Code_Unit.typscheme thy) c
     val the_const_type = snd o dest_Const o TermSubst.zero_var_indexes
       o curry Const "" o Sign.the_const_type thy;
