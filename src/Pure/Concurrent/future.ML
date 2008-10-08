@@ -149,10 +149,7 @@ fun change_active active = (*requires SYNCHRONIZED*)
 fun execute name (task, group, run) =
   let
     val _ = trace_active ();
-    val _ = Multithreading.tracing 3 (fn () => name ^ ": running");
     val ok = setmp_thread_data (name, task, group) run ();
-    val _ = Multithreading.tracing 3
-      (fn () => name ^ ": finished " ^ (if ok then "(ok)" else "(failed)"));
     val _ = SYNCHRONIZED "execute" (fn () =>
      (change queue (TaskQueue.finish task);
       if ok then ()
@@ -250,8 +247,14 @@ fun future opt_group deps pri (e: unit -> 'a) =
     val result = ref (NONE: 'a Exn.result option);
     val run = Multithreading.with_attributes (Thread.getAttributes ())
       (fn _ => fn ok =>
-        let val res = if ok then Exn.capture e () else Exn.Exn Exn.Interrupt
-        in result := SOME res; is_some (Exn.get_result res) end);
+        let
+          val res = if ok then Exn.capture e () else Exn.Exn Exn.Interrupt;
+          val res_ok =
+            (case res of
+              Exn.Result _ => true
+            | Exn.Exn Exn.Interrupt => true
+            | _ => false);
+        in result := SOME res; res_ok end);
 
     val task = SYNCHRONIZED "future" (fn () =>
       change_result queue (TaskQueue.enqueue group deps pri run) before notify_all ());
@@ -266,7 +269,7 @@ fun fork_background e = fork_common false e;
 (* join: retrieve results *)
 
 fun join_results [] = []
-  | join_results xs =
+  | join_results xs = uninterruptible (fn _ => fn () =>
       let
         val _ = scheduler_check "join check";
         val _ = Multithreading.self_critical () andalso
@@ -297,7 +300,7 @@ fun join_results [] = []
                   do SYNCHRONIZED "join_task" (fn () => worker_wait "join_task");
               in () end);
 
-      in xs |> map (fn Future {result = ref (SOME res), ...} => res) end;
+      in xs |> map (fn Future {result = ref (SOME res), ...} => res) end) ();
 
 fun join x = Exn.release (singleton join_results x);
 
