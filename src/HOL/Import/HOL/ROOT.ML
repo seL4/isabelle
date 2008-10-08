@@ -4,5 +4,5 @@
 *)
 
 use_thy "Primes";
-setmp quick_and_dirty true use_thy "HOL4Prob";
-setmp quick_and_dirty true use_thy "HOL4";
+setmp_noncritical quick_and_dirty true use_thy "HOL4Prob";
+setmp_noncritical quick_and_dirty true use_thy "HOL4";

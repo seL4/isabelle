@@ -43,7 +43,7 @@ use_thys [
 
 (*Allocator example*)
 (* FIXME some parts no longer work -- had been commented out for a long time *)
-setmp quick_and_dirty true
+setmp_noncritical quick_and_dirty true
   use_thy "Comp/Alloc";
 
 use_thys ["Comp/AllocImpl", "Comp/Client"];
