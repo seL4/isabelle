@@ -11,6 +11,7 @@ PLATFORMS="at-poly at-sml-dev at64-poly at-poly-5.1-para-e at64-poly-5.1-para at
 
 ISABELLE_SESSIONS="\
   HOL-Plain \
+  HOL-Main \
   HOL \
   HOL-Algebra \
   HOL-Auth \
