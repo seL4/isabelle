@@ -105,14 +105,13 @@ in
 fun SYNCHRONIZED name e = Exn.release (uninterruptible (fn restore_attributes => fn () =>
   let
     val _ =
-      if Mutex.trylock lock then Multithreading.tracing 3 (fn () => name ^ ": locked")
+      if Mutex.trylock lock then ()
       else
-       (Multithreading.tracing 2 (fn () => name ^ ": locking ...");
+       (Multithreading.tracing 3 (fn () => name ^ ": locking ...");
         Mutex.lock lock;
-        Multithreading.tracing 2 (fn () => name ^ ": ... locked"));
+        Multithreading.tracing 3 (fn () => name ^ ": ... locked"));
     val result = Exn.capture (restore_attributes e) ();
     val _ = Mutex.unlock lock;
-    val _ = Multithreading.tracing 3 (fn () => name ^ ": unlocked");
   in result end) ());
 
 fun wait name = (*requires SYNCHRONIZED*)
@@ -186,11 +185,6 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 
 (* scheduler *)
 
-fun heartbeat name =
- (Multithreading.tracing 1 (fn () => name);
-  OS.Process.sleep (Time.fromSeconds 2);
-  if ! do_shutdown then () else heartbeat name);
-
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let
     (*worker threads*)
@@ -222,16 +216,15 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
 fun scheduler_loop () =
  (while SYNCHRONIZED "scheduler" scheduler_next do ();
-  Multithreading.tracing 2 (fn () => "scheduler: exit"));
+  Multithreading.tracing 3 (fn () => "scheduler: exit"));
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);
 
 fun scheduler_check name = SYNCHRONIZED name (fn () =>
   if not (scheduler_active ()) then
-    (Multithreading.tracing 2 (fn () => "scheduler: fork");
-     do_shutdown := false; scheduler := SOME (SimpleThread.fork false scheduler_loop);
-     SimpleThread.fork false (fn () => heartbeat ("heartbeat " ^ string_of_int (inc next))); ())
+    (Multithreading.tracing 3 (fn () => "scheduler: fork");
+     do_shutdown := false; scheduler := SOME (SimpleThread.fork false scheduler_loop))
   else if ! do_shutdown then error "Scheduler shutdown in progress"
   else ());
 
