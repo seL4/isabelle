@@ -327,7 +327,9 @@ fun infer_types ctxt =
         val _ = app (fn (x,y) => Output.debug (fn () => Display.string_of_cterm x ^ " |-> " ^
                                                         Display.string_of_cterm y))
                   substs'
-    in  cterm_instantiate substs' i_th  end;
+    in  cterm_instantiate substs' i_th  
+        handle THM (msg, _, _) => error ("metis error (inst_inf): " ^ msg)
+    end;
 
   (* INFERENCE RULE: RESOLVE *)
 
@@ -430,20 +432,20 @@ fun infer_types ctxt =
                            (ListPair.zip (term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
     in  cterm_instantiate eq_terms subst'  end;
 
+  val factor = Seq.hd o distinct_subgoals_tac;
+
   fun step ctxt isFO thpairs (fol_th, Metis.Proof.Axiom _)                        =
-        axiom_inf ctxt thpairs fol_th
+        factor (axiom_inf ctxt thpairs fol_th)
     | step ctxt isFO thpairs (_, Metis.Proof.Assume f_atm)                        =
         assume_inf ctxt f_atm
-    | step ctxt isFO thpairs (_, Metis.Proof.Subst(f_subst, f_th1))                =
-        inst_inf ctxt thpairs f_subst f_th1
+    | step ctxt isFO thpairs (_, Metis.Proof.Subst(f_subst, f_th1))               =
+        factor (inst_inf ctxt thpairs f_subst f_th1)
     | step ctxt isFO thpairs (_, Metis.Proof.Resolve(f_atm, f_th1, f_th2))        =
-        resolve_inf ctxt thpairs f_atm f_th1 f_th2
+        factor (resolve_inf ctxt thpairs f_atm f_th1 f_th2)
     | step ctxt isFO thpairs (_, Metis.Proof.Refl f_tm)                           =
         refl_inf ctxt f_tm
     | step ctxt isFO thpairs (_, Metis.Proof.Equality(f_lit, f_p, f_r)) =
         equality_inf ctxt isFO thpairs f_lit f_p f_r;
-
-  val factor = Seq.hd o distinct_subgoals_tac;
 
   fun real_literal (b, (c, _)) = not (String.isPrefix ResClause.class_prefix c);
 
@@ -452,7 +454,7 @@ fun infer_types ctxt =
         let val _ = Output.debug (fn () => "=============================================")
             val _ = Output.debug (fn () => "METIS THM: " ^ Metis.Thm.toString fol_th)
             val _ = Output.debug (fn () => "INFERENCE: " ^ Metis.Proof.inferenceToString inf)
-            val th = Meson.flexflex_first_order (factor (step ctxt isFO thpairs (fol_th, inf)))
+            val th = Meson.flexflex_first_order (step ctxt isFO thpairs (fol_th, inf))
             val _ = Output.debug (fn () => "ISABELLE THM: " ^ Display.string_of_thm th)
             val _ = Output.debug (fn () => "=============================================")
             val n_metis_lits = length (filter real_literal (Metis.LiteralSet.toList (Metis.Thm.clause fol_th)))
