@@ -247,7 +247,7 @@ text %mlref {*
 *}
 
 
-section {* Results *}
+section {* Results \label{sec:results} *}
 
 text {*
   Local results are established by monotonic reasoning from facts
