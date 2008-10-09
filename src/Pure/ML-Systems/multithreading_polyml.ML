@@ -11,7 +11,6 @@ sig
   val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
   val system_out: string -> string * int
   structure TimeLimit: TIME_LIMIT
-  val profile: int -> ('a -> 'b) -> 'a -> 'b
 end;
 
 signature BASIC_MULTITHREADING =
@@ -45,6 +44,8 @@ val max_threads = ref 1;
 fun max_threads_value () =
   let val m = ! max_threads
   in if m <= 0 then Int.max (Thread.numProcessors (), 1) else m end;
+
+fun enabled () = max_threads_value () > 1;
 
 
 (* misc utils *)
@@ -222,16 +223,6 @@ fun NAMED_CRITICAL name e =
       in Exn.release result end) ();
 
 fun CRITICAL e = NAMED_CRITICAL "" e;
-
-end;
-
-
-(* profiling *)
-
-local val profile_orig = profile in
-
-fun profile 0 f x = f x
-  | profile n f x = NAMED_CRITICAL "profile" (fn () => profile_orig n f x);
 
 end;
 
