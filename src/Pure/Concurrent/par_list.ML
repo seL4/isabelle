@@ -28,9 +28,13 @@ structure ParList: PAR_LIST =
 struct
 
 fun raw_map f xs =
-  let val group = TaskQueue.new_group () in
-    Future.join_results (List.map (fn x => Future.future (SOME group) [] true (fn () => f x)) xs)
-  end;
+  if ! future_scheduler andalso Multithreading.enabled () then
+    let
+      val group = TaskQueue.new_group ();
+      val futures = map (fn x => Future.future (SOME group) [] true (fn () => f x)) xs;
+      val _ = List.app (ignore o Future.join_results o single) futures;
+    in Future.join_results futures end
+  else map (Exn.capture f) xs;
 
 fun map f xs = Exn.release_first (raw_map f xs);
 
