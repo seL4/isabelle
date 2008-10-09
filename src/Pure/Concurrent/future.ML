@@ -242,12 +242,13 @@ fun future opt_group deps pri (e: unit -> 'a) =
       (fn _ => fn ok =>
         let
           val res = if ok then Exn.capture e () else Exn.Exn Exn.Interrupt;
+          val _ = result := SOME res;
           val res_ok =
             (case res of
               Exn.Result _ => true
-            | Exn.Exn Exn.Interrupt => true
+            | Exn.Exn Exn.Interrupt => (TaskQueue.invalidate_group group; true)
             | _ => false);
-        in result := SOME res; res_ok end);
+        in res_ok end);
 
     val task = SYNCHRONIZED "future" (fn () =>
       change_result queue (TaskQueue.enqueue group deps pri run) before notify_all ());
