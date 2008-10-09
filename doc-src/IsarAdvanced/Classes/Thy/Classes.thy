@@ -3,10 +3,11 @@
 (*<*)
 theory Classes
 imports Main Code_Integer
+uses "../../../more_antiquote"
 begin
 
 ML {*
-CodeTarget.code_width := 74;
+Code_Target.code_width := 74;
 *}
 
 syntax
@@ -75,8 +76,8 @@ text {*
   but form a generic calculus, an instance of order-sorted
   algebra \cite{Nipkow-Prehofer:1993,nipkow-sorts93,Wenzel:1997:TPHOL}.
 
-  From a software engineering point of view, type classes
-  correspond to interfaces in object-oriented languages like Java;
+  From a software engeneering point of view, type classes
+  roughly correspond to interfaces in object-oriented languages like Java;
   so, it is naturally desirable that type classes do not only
   provide functions (class parameters) but also state specifications
   implementations must obey.  For example, the @{text "class eq"}
@@ -100,7 +101,7 @@ text {*
   \begin{enumerate}
     \item specifying abstract parameters together with
        corresponding specifications,
-    \item instantating those abstract parameters by a particular
+    \item instantiating those abstract parameters by a particular
        type
     \item in connection with a ``less ad-hoc'' approach to overloading,
     \item with a direct link to the Isabelle module system
@@ -445,8 +446,7 @@ text {*
   in locales:
 *}
 
-    primrec (in monoid)
-      pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
+    primrec (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
       "pow_nat 0 x = \<one>"
       | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
 
@@ -493,19 +493,21 @@ text {*
   be appropriate to map derived definitions accordingly:
 *}
 
-    fun
-      replicate :: "nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alpha> list"
-    where
+    fun replicate :: "nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alpha> list" where
       "replicate 0 _ = []"
       | "replicate (Suc n) xs = xs @ replicate n xs"
 
     interpretation list_monoid: monoid ["op @" "[]"] where
       "monoid.pow_nat (op @) [] = replicate"
-    proof
-      fix n :: nat
-      show "monoid.pow_nat (op @) [] n = replicate n"
-	by (induct n) auto
-    qed
+    proof -
+      interpret monoid ["op @" "[]"] ..
+      show "monoid.pow_nat (op @) [] = replicate"
+      proof
+        fix n
+        show "monoid.pow_nat (op @) [] n = replicate n"
+          by (induct n) auto
+      qed
+    qed intro_locales
 
 
 subsection {* Additional subclass relations *}
@@ -619,7 +621,7 @@ text {*
   takes this into account.  Concerning target languages
   lacking type classes (e.g.~SML), type classes
   are implemented by explicit dictionary construction.
-  For example, lets go back to the power function:
+  As example, let's go back to the power function:
 *}
 
     definition
@@ -630,29 +632,12 @@ text {*
   \noindent This maps to Haskell as:
 *}
 
-export_code example in Haskell module_name Classes file "code_examples/"
-  (* NOTE: you may use Haskell only once in this document, otherwise
-  you have to work in distinct subdirectories *)
+text %quoteme {*@{code_stmts example (Haskell)}*}
 
 text {*
-  \lsthaskell{Thy/code_examples/Classes.hs}
-
   \noindent The whole code in SML with explicit dictionary passing:
 *}
 
-export_code example (*<*)in SML module_name Classes(*>*)in SML module_name Classes file "code_examples/classes.ML"
-
-text {*
-  \lstsml{Thy/code_examples/classes.ML}
-*}
-
-
-(* subsection {* Different syntax for same specifications *}
-
-text {*
-
-subsection {* Syntactic classes *}
-
-*} *)
+text %quoteme {*@{code_stmts example (SML)}*}
 
 end

@@ -10,6 +10,17 @@
 \usepackage{style}
 \usepackage{../../pdfsetup}
 
+\newcommand{\isaverbatim}{\renewcommand{\baselinestretch}{1}\setlength{\baselineskip}{8pt}\fontsize{8pt}{0pt}}
+
+\makeatletter
+
+\isakeeptag{quoteme}
+\newenvironment{quoteme}{\begin{quote}\isa@parindent\parindent\parindent0pt\isa@parskip\parskip\parskip0pt}{\end{quote}}
+\renewcommand{\isatagquoteme}{\begin{quoteme}}
+\renewcommand{\endisatagquoteme}{\end{quoteme}}
+
+\makeatother
+
 \renewcommand{\isasymlongleftrightarrow}{\isamath{\leftrightarrow}}
 \renewcommand{\isasymdiv}{\isamath{{}^{-1}}}
 \renewcommand{\isasymotimes}{\isamath{\circ}}
