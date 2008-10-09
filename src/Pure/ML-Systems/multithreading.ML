@@ -19,6 +19,7 @@ sig
   val available: bool
   val max_threads: int ref
   val max_threads_value: unit -> int
+  val enabled: unit -> bool
   val no_interrupts: Thread.threadAttribute list
   val regular_interrupts: Thread.threadAttribute list
   val with_attributes: Thread.threadAttribute list ->
@@ -38,6 +39,7 @@ fun tracing _ _ = ();
 val available = false;
 val max_threads = ref (1: int);
 fun max_threads_value () = 1: int;
+fun enabled () = false;
 
 val no_interrupts =
   [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptDefer];
