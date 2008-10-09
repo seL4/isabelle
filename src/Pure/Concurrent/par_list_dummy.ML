@@ -10,7 +10,7 @@ struct
 
 val map = map;
 val get_some = get_first;
-val fins_some = find_first;
+val find_some = find_first;
 val exists = exists;
 val forall = forall;
 
