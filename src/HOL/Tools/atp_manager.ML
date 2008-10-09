@@ -84,10 +84,8 @@ struct
             cancelolder (ThreadHeap.delete_min heap))
           end
         val _ = change timeout_heap cancelolder
-        (* try to interrupt threads that are to cancel*)
-        fun interrupt t = Thread.interrupt t handle Thread _ => ()
         val _ = change cancelling (filter (fn (t,_,_,_) => Thread.isActive t))
-        val _ = map (fn (t, _, _, _) => interrupt t) (! cancelling)
+        val _ = map (fn (t, _, _, _) => SimpleThread.interrupt t) (! cancelling)
         (* if there are threads to cancel, send periodic interrupts *)
         (* TODO: find out what realtime-values are appropriate *)
         val next_time =

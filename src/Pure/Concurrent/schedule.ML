@@ -76,7 +76,7 @@ fun schedule n next_task = uninterruptible (fn restore_attributes => fn tasks =>
       while not (null (! running)) do
       (trace_active ();
        if not (null (! status))
-       then (List.app (fn t => Thread.interrupt t handle Thread _ => ()) (! running))
+       then (List.app SimpleThread.interrupt (! running))
        else ();
        wait_timeout ())));
 
