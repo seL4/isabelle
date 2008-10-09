@@ -11,6 +11,7 @@ sig
   val str_of_task: task -> string
   eqtype group
   val new_group: unit -> group
+  val invalidate_group: group -> unit
   val str_of_group: group -> string
   type queue
   val empty: queue
@@ -36,7 +37,9 @@ datatype task = Task of serial;
 fun str_of_task (Task i) = string_of_int i;
 
 datatype group = Group of serial * bool ref;
+
 fun new_group () = Group (serial (), ref true);
+fun invalidate_group (Group (_, ok)) = ok := false;
 
 fun str_of_group (Group (i, ref ok)) =
   if ok then string_of_int i else enclose "(" ")" (string_of_int i);
@@ -138,10 +141,8 @@ end;
 
 (* sporadic interrupts *)
 
-fun interrupt_thread thread = Thread.interrupt thread handle Thread _ => ();
-
 fun interrupt (Queue {jobs, ...}) task =
-  (case try (get_job jobs) task of SOME (Running thread) => interrupt_thread thread | _ => ());
+  (case try (get_job jobs) task of SOME (Running thread) => SimpleThread.interrupt thread | _ => ());
 
 fun interrupt_external queue str =
   (case Int.fromString str of SOME id => interrupt queue (Task id) | NONE => ());
@@ -149,12 +150,12 @@ fun interrupt_external queue str =
 
 (* misc operations *)
 
-fun cancel (Queue {groups, jobs, ...}) (Group (gid, ok)) =
+fun cancel (Queue {groups, jobs, ...}) (group as Group (gid, _)) =
   let
-    val _ = ok := false;  (*invalidate any future group members*)
+    val _ = invalidate_group group;
     val tasks = Inttab.lookup_list groups gid;
     val running = fold (get_job jobs #> (fn Running thread => cons thread | _ => I)) tasks [];
-    val _ = List.app interrupt_thread running;
+    val _ = List.app SimpleThread.interrupt running;
   in null running end;
 
 fun finish (task as Task id) (Queue {groups, jobs, focus}) =
