@@ -5,8 +5,6 @@
 Skipping proofs -- quick_and_dirty mode.
 *)
 
-val future_scheduler = ref false;
-
 signature SKIP_PROOF =
 sig
   val make_thm: theory -> term -> thm
