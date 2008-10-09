@@ -3631,21 +3631,21 @@ code_const "eq_class.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Right
 setup {*
 let
 
-fun list_codegen thy defs gr dep thyname b t =
+fun list_codegen thy defs dep thyname b t gr =
   let
     val ts = HOLogic.dest_list t;
-    val (gr', _) = Codegen.invoke_tycodegen thy defs dep thyname false
-      (gr, fastype_of t);
-    val (gr'', ps) = foldl_map
-      (Codegen.invoke_codegen thy defs dep thyname false) (gr', ts)
-  in SOME (gr'', Pretty.list "[" "]" ps) end handle TERM _ => NONE;
+    val (_, gr') = Codegen.invoke_tycodegen thy defs dep thyname false
+      (fastype_of t) gr;
+    val (ps, gr'') = fold_map
+      (Codegen.invoke_codegen thy defs dep thyname false) ts gr'
+  in SOME (Pretty.list "[" "]" ps, gr'') end handle TERM _ => NONE;
 
-fun char_codegen thy defs gr dep thyname b t =
+fun char_codegen thy defs dep thyname b t gr =
   let
     val i = HOLogic.dest_char t;
-    val (gr', _) = Codegen.invoke_tycodegen thy defs dep thyname false
-      (gr, fastype_of t)
-  in SOME (gr', Codegen.str (ML_Syntax.print_string (chr i)))
+    val (_, gr') = Codegen.invoke_tycodegen thy defs dep thyname false
+      (fastype_of t) gr;
+  in SOME (Codegen.str (ML_Syntax.print_string (chr i)), gr')
   end handle TERM _ => NONE;
 
 in

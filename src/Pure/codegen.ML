@@ -48,15 +48,15 @@ sig
     (typ mixfix list * (string * string) list) option
   val codegen_error: codegr -> string -> string -> 'a
   val invoke_codegen: theory -> deftab -> string -> string -> bool ->
-    codegr * term -> codegr * Pretty.T
+    term -> codegr -> Pretty.T * codegr
   val invoke_tycodegen: theory -> deftab -> string -> string -> bool ->
-    codegr * typ -> codegr * Pretty.T
+    typ -> codegr -> Pretty.T * codegr
   val mk_id: string -> string
   val mk_qual_id: string -> string * string -> string
-  val mk_const_id: string -> string -> codegr -> codegr * (string * string)
-  val get_const_id: string -> codegr -> string * string
-  val mk_type_id: string -> string -> codegr -> codegr * (string * string)
-  val get_type_id: string -> codegr -> string * string
+  val mk_const_id: string -> string -> codegr -> (string * string) * codegr
+  val get_const_id: codegr -> string -> string * string
+  val mk_type_id: string -> string -> codegr -> (string * string) * codegr
+  val get_type_id: codegr -> string -> string * string
   val thyname_of_type: theory -> string -> string
   val thyname_of_const: theory -> string -> string
   val rename_terms: term list -> term list
@@ -175,12 +175,12 @@ val emptygr : codegr = (Graph.empty,
 type 'a codegen =
   theory ->    (* theory in which generate_code was called *)
   deftab ->    (* definition table (for efficiency) *)
-  codegr ->    (* code dependency graph *)
   string ->    (* node name of caller (for recording dependencies) *)
   string ->    (* module name of caller (for modular code generation) *)
   bool ->      (* whether to parenthesize generated expression *)
   'a ->        (* item to generate code from *)
-  (codegr * Pretty.T) option;
+  codegr ->    (* code dependency graph *)
+  (Pretty.T * codegr) option;
 
 (* parameters for random testing *)
 
@@ -452,9 +452,9 @@ fun mk_const_id module cname (gr, (tab1, tab2)) =
     val ((module, s), tab1') = mk_long_id tab1 module cname
     val s' = mk_id s;
     val s'' = if ML_Syntax.is_reserved s' then s' ^ "_const" else s'
-  in ((gr, (tab1', tab2)), (module, s'')) end;
+  in (((module, s'')), (gr, (tab1', tab2))) end;
 
-fun get_const_id cname (gr, (tab1, tab2)) =
+fun get_const_id (gr, (tab1, tab2)) cname =
   case Symtab.lookup (fst tab1) cname of
     NONE => error ("get_const_id: no such constant: " ^ quote cname)
   | SOME (module, s) =>
@@ -468,9 +468,9 @@ fun mk_type_id module tyname (gr, (tab1, tab2)) =
     val ((module, s), tab2') = mk_long_id tab2 module tyname
     val s' = mk_id s;
     val s'' = if ML_Syntax.is_reserved s' then s' ^ "_type" else s'
-  in ((gr, (tab1, tab2')), (module, s'')) end;
+  in ((module, s''), (gr, (tab1, tab2'))) end;
 
-fun get_type_id tyname (gr, (tab1, tab2)) =
+fun get_type_id (gr, (tab1, tab2)) tyname =
   case Symtab.lookup (fst tab2) tyname of
     NONE => error ("get_type_id: no such type: " ^ quote tyname)
   | SOME (module, s) =>
@@ -479,7 +479,7 @@ fun get_type_id tyname (gr, (tab1, tab2)) =
         val s'' = if ML_Syntax.is_reserved s' then s' ^ "_type" else s'
       in (module, s'') end;
 
-fun get_type_id' f tyname tab = apsnd f (get_type_id tyname tab);
+fun get_type_id' f tab tyname = apsnd f (get_type_id tab tyname);
 
 fun get_node (gr, x) k = Graph.get_node gr k;
 fun add_edge e (gr, x) = (Graph.add_edge e gr, x);
@@ -569,14 +569,14 @@ fun get_defn thy defs s T = (case Symtab.lookup defs s of
 fun codegen_error (gr, _) dep s =
   error (s ^ "\nrequired by:\n" ^ commas (Graph.all_succs gr [dep]));
 
-fun invoke_codegen thy defs dep module brack (gr, t) = (case get_first
-   (fn (_, f) => f thy defs gr dep module brack t) (#codegens (CodegenData.get thy)) of
+fun invoke_codegen thy defs dep module brack t gr = (case get_first
+   (fn (_, f) => f thy defs dep module brack t gr) (#codegens (CodegenData.get thy)) of
       NONE => codegen_error gr dep ("Unable to generate code for term:\n" ^
         Syntax.string_of_term_global thy t)
     | SOME x => x);
 
-fun invoke_tycodegen thy defs dep module brack (gr, T) = (case get_first
-   (fn (_, f) => f thy defs gr dep module brack T) (#tycodegens (CodegenData.get thy)) of
+fun invoke_tycodegen thy defs dep module brack T gr = (case get_first
+   (fn (_, f) => f thy defs dep module brack T gr ) (#tycodegens (CodegenData.get thy)) of
       NONE => codegen_error gr dep ("Unable to generate code for type:\n" ^
         Syntax.string_of_typ_global thy T)
     | SOME x => x);
@@ -643,39 +643,39 @@ fun new_name t x = hd (new_names t [x]);
 
 fun if_library x y = if member (op =) (!mode) "library" then x else y;
 
-fun default_codegen thy defs gr dep module brack t =
+fun default_codegen thy defs dep module brack t gr =
   let
     val (u, ts) = strip_comb t;
-    fun codegens brack = foldl_map (invoke_codegen thy defs dep module brack)
+    fun codegens brack = fold_map (invoke_codegen thy defs dep module brack)
   in (case u of
       Var ((s, i), T) =>
         let
-          val (gr', ps) = codegens true (gr, ts);
-          val (gr'', _) = invoke_tycodegen thy defs dep module false (gr', T)
-        in SOME (gr'', mk_app brack (str (s ^
-           (if i=0 then "" else string_of_int i))) ps)
+          val (ps, gr') = codegens true ts gr;
+          val (_, gr'') = invoke_tycodegen thy defs dep module false T gr'
+        in SOME (mk_app brack (str (s ^
+           (if i=0 then "" else string_of_int i))) ps, gr'')
         end
 
     | Free (s, T) =>
         let
-          val (gr', ps) = codegens true (gr, ts);
-          val (gr'', _) = invoke_tycodegen thy defs dep module false (gr', T)
-        in SOME (gr'', mk_app brack (str s) ps) end
+          val (ps, gr') = codegens true ts gr;
+          val (_, gr'') = invoke_tycodegen thy defs dep module false T gr'
+        in SOME (mk_app brack (str s) ps, gr'') end
 
     | Const (s, T) =>
       (case get_assoc_code thy (s, T) of
          SOME (ms, aux) =>
            let val i = num_args_of ms
            in if length ts < i then
-               default_codegen thy defs gr dep module brack (eta_expand u ts i)
+               default_codegen thy defs dep module brack (eta_expand u ts i) gr 
              else
                let
                  val (ts1, ts2) = args_of ms ts;
-                 val (gr1, ps1) = codegens false (gr, ts1);
-                 val (gr2, ps2) = codegens true (gr1, ts2);
-                 val (gr3, ps3) = codegens false (gr2, quotes_of ms);
-                 val (gr4, _) = invoke_tycodegen thy defs dep module false
-                   (gr3, funpow (length ts) (hd o tl o snd o dest_Type) T);
+                 val (ps1, gr1) = codegens false ts1 gr;
+                 val (ps2, gr2) = codegens true ts2 gr1;
+                 val (ps3, gr3) = codegens false (quotes_of ms) gr2;
+                 val (_, gr4) = invoke_tycodegen thy defs dep module false
+                   (funpow (length ts) (hd o tl o snd o dest_Type) T) gr3;
                  val (module', suffix) = (case get_defn thy defs s T of
                      NONE => (if_library (thyname_of_const thy s) module, "")
                    | SOME ((U, (module', _)), NONE) =>
@@ -687,12 +687,11 @@ fun default_codegen thy defs gr dep module brack t =
                    (pretty_mixfix module module' ms ps1 ps3)) ps2
                in SOME (case try (get_node gr4) node_id of
                    NONE => (case get_aux_code aux of
-                       [] => (gr4, p module)
-                     | xs => (add_edge (node_id, dep) (new_node
-                         (node_id, (NONE, module', cat_lines xs ^ "\n")) gr4),
-                           p module'))
+                       [] => (p module, gr4)
+                     | xs => (p module', add_edge (node_id, dep) (new_node
+                         (node_id, (NONE, module', cat_lines xs ^ "\n")) gr4)))
                  | SOME (_, module'', _) =>
-                     (add_edge (node_id, dep) gr4, p module''))
+                     (p module'', add_edge (node_id, dep) gr4))
                end
            end
        | NONE => (case get_defn thy defs s T of
@@ -702,8 +701,8 @@ fun default_codegen thy defs gr dep module brack t =
                val module' = if_library thyname module;
                val suffix = (case k of NONE => "" | SOME i => " def" ^ string_of_int i);
                val node_id = s ^ suffix;
-               val (gr', (ps, def_id)) = codegens true (gr, ts) |>>>
-                 mk_const_id module' (s ^ suffix);
+               val ((ps, def_id), gr') = gr |> codegens true ts
+                 ||>> mk_const_id module' (s ^ suffix);
                val p = mk_app brack (str (mk_qual_id module def_id)) ps
              in SOME (case try (get_node gr') node_id of
                  NONE =>
@@ -714,21 +713,20 @@ fun default_codegen thy defs gr dep module brack t =
                        if not (null args) orelse null Ts then (args, rhs) else
                          let val v = Free (new_name rhs "x", hd Ts)
                          in ([v], betapply (rhs, v)) end;
-                     val (gr1, p') = invoke_codegen thy defs node_id module' false
-                       (add_edge (node_id, dep)
-                          (new_node (node_id, (NONE, "", "")) gr'), rhs');
-                     val (gr2, xs) = codegens false (gr1, args');
-                     val (gr3, _) = invoke_tycodegen thy defs dep module false (gr2, T);
-                     val (gr4, ty) = invoke_tycodegen thy defs node_id module' false (gr3, U);
-                   in (map_node node_id (K (NONE, module', string_of
+                     val (p', gr1) = invoke_codegen thy defs node_id module' false
+                       rhs' (add_edge (node_id, dep)
+                          (new_node (node_id, (NONE, "", "")) gr'));
+                     val (xs, gr2) = codegens false args' gr1;
+                     val (_, gr3) = invoke_tycodegen thy defs dep module false T gr2;
+                     val (ty, gr4) = invoke_tycodegen thy defs node_id module' false U gr3;
+                   in (p, map_node node_id (K (NONE, module', string_of
                        (Pretty.block (separate (Pretty.brk 1)
                          (if null args' then
                             [str ("val " ^ snd def_id ^ " :"), ty]
                           else str ("fun " ^ snd def_id) :: xs) @
-                        [str " =", Pretty.brk 1, p', str ";"])) ^ "\n\n")) gr4,
-                     p)
+                        [str " =", Pretty.brk 1, p', str ";"])) ^ "\n\n")) gr4)
                    end
-               | SOME _ => (add_edge (node_id, dep) gr', p))
+               | SOME _ => (p, add_edge (node_id, dep) gr'))
              end))
 
     | Abs _ =>
@@ -736,44 +734,43 @@ fun default_codegen thy defs gr dep module brack t =
         val (bs, Ts) = ListPair.unzip (strip_abs_vars u);
         val t = strip_abs_body u
         val bs' = new_names t bs;
-        val (gr1, ps) = codegens true (gr, ts);
-        val (gr2, p) = invoke_codegen thy defs dep module false
-          (gr1, subst_bounds (map Free (rev (bs' ~~ Ts)), t));
+        val (ps, gr1) = codegens true ts gr;
+        val (p, gr2) = invoke_codegen thy defs dep module false
+          (subst_bounds (map Free (rev (bs' ~~ Ts)), t)) gr1;
       in
-        SOME (gr2, mk_app brack (Pretty.block (str "(" :: pretty_fn bs' p @
-          [str ")"])) ps)
+        SOME (mk_app brack (Pretty.block (str "(" :: pretty_fn bs' p @
+          [str ")"])) ps, gr2)
       end
 
     | _ => NONE)
   end;
 
-fun default_tycodegen thy defs gr dep module brack (TVar ((s, i), _)) =
-      SOME (gr, str (s ^ (if i = 0 then "" else string_of_int i)))
-  | default_tycodegen thy defs gr dep module brack (TFree (s, _)) =
-      SOME (gr, str s)
-  | default_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
+fun default_tycodegen thy defs dep module brack (TVar ((s, i), _)) gr =
+      SOME (str (s ^ (if i = 0 then "" else string_of_int i)), gr)
+  | default_tycodegen thy defs dep module brack (TFree (s, _)) gr =
+      SOME (str s, gr)
+  | default_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
       (case AList.lookup (op =) ((#types o CodegenData.get) thy) s of
          NONE => NONE
        | SOME (ms, aux) =>
            let
-             val (gr', ps) = foldl_map
+             val (ps, gr') = fold_map
                (invoke_tycodegen thy defs dep module false)
-               (gr, fst (args_of ms Ts));
-             val (gr'', qs) = foldl_map
+               (fst (args_of ms Ts)) gr;
+             val (qs, gr'') = fold_map
                (invoke_tycodegen thy defs dep module false)
-               (gr', quotes_of ms);
+               (quotes_of ms) gr';
              val module' = if_library (thyname_of_type thy s) module;
              val node_id = s ^ " (type)";
              fun p module' = Pretty.block (pretty_mixfix module module' ms ps qs)
            in SOME (case try (get_node gr'') node_id of
                NONE => (case get_aux_code aux of
-                   [] => (gr'', p module')
-                 | xs => (fst (mk_type_id module' s
+                   [] => (p module', gr'')
+                 | xs => (p module', snd (mk_type_id module' s
                        (add_edge (node_id, dep) (new_node (node_id,
-                         (NONE, module', cat_lines xs ^ "\n")) gr''))),
-                     p module'))
+                         (NONE, module', cat_lines xs ^ "\n")) gr'')))))
              | SOME (_, module'', _) =>
-                 (add_edge (node_id, dep) gr'', p module''))
+                 (p module'', add_edge (node_id, dep) gr''))
            end);
 
 fun mk_tuple [p] = p
@@ -846,9 +843,9 @@ fun gen_generate_code prep_term thy modules module xs =
     fun expand (t as Abs _) = t
       | expand t = (case fastype_of t of
           Type ("fun", [T, U]) => Abs ("x", T, t $ Bound 0) | _ => t);
-    val (gr', ps) = foldl_map (fn (gr, (s, t)) => apsnd (pair s)
-      (invoke_codegen thy defs "<Top>" module false (gr, t)))
-        (gr, map (apsnd (expand o preprocess_term thy o prep_term thy)) xs);
+    val (ps, gr') = fold_map (fn (s, t) => fn gr => apfst (pair s)
+      (invoke_codegen thy defs "<Top>" module false t gr))
+        (map (apsnd (expand o preprocess_term thy o prep_term thy)) xs) gr;
     val code = map_filter
       (fn ("", _) => NONE
         | (s', p) => SOME (string_of (Pretty.block
@@ -891,7 +888,7 @@ fun mk_term_of gr module p (TVar ((s, i), _)) = str
   | mk_term_of gr module p (Type (s, Ts)) = (if p then parens else I)
       (Pretty.block (separate (Pretty.brk 1)
         (str (mk_qual_id module
-          (get_type_id' (fn s' => "term_of_" ^ s') s gr)) ::
+          (get_type_id' (fn s' => "term_of_" ^ s') gr s)) ::
         maps (fn T =>
           [mk_term_of gr module true T, mk_type true T]) Ts)));
 
@@ -903,7 +900,7 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
   | mk_gen gr module p xs a (TFree (s, _)) = str (strip_tname s ^ "G")
   | mk_gen gr module p xs a (Type (tyc as (s, Ts))) = (if p then parens else I)
       (Pretty.block (separate (Pretty.brk 1)
-        (str (mk_qual_id module (get_type_id' (fn s' => "gen_" ^ s') s gr) ^
+        (str (mk_qual_id module (get_type_id' (fn s' => "gen_" ^ s') gr s) ^
           (if member (op =) xs s then "'" else "")) ::
          (case tyc of
             ("fun", [T, U]) =>

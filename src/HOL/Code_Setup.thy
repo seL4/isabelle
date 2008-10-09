@@ -169,20 +169,20 @@ consts_code
 setup {*
 let
 
-fun eq_codegen thy defs gr dep thyname b t =
+fun eq_codegen thy defs dep thyname b t gr =
     (case strip_comb t of
        (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
      | (Const ("op =", _), [t, u]) =>
           let
-            val (gr', pt) = Codegen.invoke_codegen thy defs dep thyname false (gr, t);
-            val (gr'', pu) = Codegen.invoke_codegen thy defs dep thyname false (gr', u);
-            val (gr''', _) = Codegen.invoke_tycodegen thy defs dep thyname false (gr'', HOLogic.boolT)
+            val (pt, gr') = Codegen.invoke_codegen thy defs dep thyname false t gr;
+            val (pu, gr'') = Codegen.invoke_codegen thy defs dep thyname false u gr';
+            val (_, gr''') = Codegen.invoke_tycodegen thy defs dep thyname false HOLogic.boolT gr'';
           in
-            SOME (gr''', Codegen.parens
-              (Pretty.block [pt, Codegen.str " =", Pretty.brk 1, pu]))
+            SOME (Codegen.parens
+              (Pretty.block [pt, Codegen.str " =", Pretty.brk 1, pu]), gr''')
           end
      | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
-         thy defs dep thyname b (gr, Codegen.eta_expand t ts 2))
+         thy defs dep thyname b (Codegen.eta_expand t ts 2) gr)
      | _ => NONE);
 
 in

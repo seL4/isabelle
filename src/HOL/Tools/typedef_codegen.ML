@@ -13,17 +13,17 @@ end;
 structure TypedefCodegen: TYPEDEF_CODEGEN =
 struct
 
-fun typedef_codegen thy defs gr dep module brack t =
+fun typedef_codegen thy defs dep module brack t gr =
   let
     fun get_name (Type (tname, _)) = tname
       | get_name _ = "";
     fun mk_fun s T ts =
       let
-        val (gr', _) = Codegen.invoke_tycodegen thy defs dep module false (gr, T);
-        val (gr'', ps) =
-          foldl_map (Codegen.invoke_codegen thy defs dep module true) (gr', ts);
-        val id = Codegen.mk_qual_id module (Codegen.get_const_id s gr'')
-      in SOME (gr'', Codegen.mk_app brack (Codegen.str id) ps) end;
+        val (_, gr') = Codegen.invoke_tycodegen thy defs dep module false T gr;
+        val (ps, gr'') =
+          fold_map (Codegen.invoke_codegen thy defs dep module true) ts gr';
+        val id = Codegen.mk_qual_id module (Codegen.get_const_id gr'' s)
+      in SOME (Codegen.mk_app brack (Codegen.str id) ps, gr'') end;
     fun lookup f T =
       (case TypedefPackage.get_info thy (get_name T) of
         NONE => ""
@@ -45,7 +45,7 @@ fun mk_tyexpr [] s = Codegen.str s
   | mk_tyexpr [p] s = Pretty.block [p, Codegen.str (" " ^ s)]
   | mk_tyexpr ps s = Pretty.list "(" (") " ^ s) ps;
 
-fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
+fun typedef_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
       (case TypedefPackage.get_info thy s of
          NONE => NONE
        | SOME {abs_type as newT as Type (tname, Us), rep_type = oldT, Abs_name, Rep_name, ...} =>
@@ -54,20 +54,20 @@ fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
              val module' = Codegen.if_library
                (Codegen.thyname_of_type thy tname) module;
              val node_id = tname ^ " (type)";
-             val (gr', (((qs, (_, Abs_id)), (_, Rep_id)), ty_id)) = foldl_map
+             val ((((qs, (_, Abs_id)), (_, Rep_id)), ty_id), gr') = gr |> fold_map
                  (Codegen.invoke_tycodegen thy defs dep module (length Ts = 1))
-                   (gr, Ts) |>>>
-               Codegen.mk_const_id module' Abs_name |>>>
-               Codegen.mk_const_id module' Rep_name |>>>
+                   Ts ||>>
+               Codegen.mk_const_id module' Abs_name ||>>
+               Codegen.mk_const_id module' Rep_name ||>>
                Codegen.mk_type_id module' s;
              val tyexpr = mk_tyexpr qs (Codegen.mk_qual_id module ty_id)
-           in SOME (case try (Codegen.get_node gr') node_id of
+           in SOME (tyexpr, case try (Codegen.get_node gr') node_id of
                NONE =>
                let
-                 val (gr'', p :: ps) = foldl_map
+                 val (p :: ps, gr'') = fold_map
                    (Codegen.invoke_tycodegen thy defs node_id module' false)
-                   (Codegen.add_edge (node_id, dep)
-                      (Codegen.new_node (node_id, (NONE, "", "")) gr'), oldT :: Us);
+                   (oldT :: Us) (Codegen.add_edge (node_id, dep)
+                      (Codegen.new_node (node_id, (NONE, "", "")) gr'));
                  val s =
                    Codegen.string_of (Pretty.block [Codegen.str "datatype ",
                      mk_tyexpr ps (snd ty_id),
@@ -96,9 +96,9 @@ fun typedef_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
                           Codegen.str "i);"]]) ^ "\n\n"
                     else "")
                in Codegen.map_node node_id (K (NONE, module', s)) gr'' end
-             | SOME _ => Codegen.add_edge (node_id, dep) gr', tyexpr)
+             | SOME _ => Codegen.add_edge (node_id, dep) gr')
            end)
-  | typedef_tycodegen thy defs gr dep module brack _ = NONE;
+  | typedef_tycodegen thy defs dep module brack _ gr = NONE;
 
 val setup =
   Codegen.add_codegen "typedef" typedef_codegen

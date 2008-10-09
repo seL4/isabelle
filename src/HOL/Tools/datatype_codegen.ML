@@ -38,7 +38,7 @@ fun find_nonempty (descr: DatatypeAux.descr) is i =
         (max (map (arg_nonempty o DatatypeAux.strip_dtyp) dts))) constrs)
   in case xs of [] => NONE | x :: _ => SOME x end;
 
-fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) sorts =
+fun add_dt_defs thy defs dep module (descr: DatatypeAux.descr) sorts gr =
   let
     val descr' = List.filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
     val rtnames = map (#1 o snd) (List.filter (fn (_, (_, _, cs)) =>
@@ -48,21 +48,20 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) sorts =
     val node_id = tname ^ " (type)";
     val module' = if_library (thyname_of_type thy tname) module;
 
-    fun mk_dtdef gr prfx [] = (gr, [])
-      | mk_dtdef gr prfx ((_, (tname, dts, cs))::xs) =
+    fun mk_dtdef prfx [] gr = ([], gr)
+      | mk_dtdef prfx ((_, (tname, dts, cs))::xs) gr =
           let
             val tvs = map DatatypeAux.dest_DtTFree dts;
             val cs' = map (apsnd (map (DatatypeAux.typ_of_dtyp descr sorts))) cs;
-            val (gr', (_, type_id)) = mk_type_id module' tname gr;
-            val (gr'', ps) =
-              foldl_map (fn (gr, (cname, cargs)) =>
-                foldl_map (invoke_tycodegen thy defs node_id module' false)
-                  (gr, cargs) |>>>
-                mk_const_id module' cname) (gr', cs');
-            val (gr''', rest) = mk_dtdef gr'' "and " xs
+            val ((_, type_id), gr') = mk_type_id module' tname gr;
+            val (ps, gr'') = gr' |>
+              fold_map (fn (cname, cargs) =>
+                fold_map (invoke_tycodegen thy defs node_id module' false)
+                  cargs ##>>
+                mk_const_id module' cname) cs';
+            val (rest, gr''') = mk_dtdef "and " xs gr''
           in
-            (gr''',
-             Pretty.block (str prfx ::
+            (Pretty.block (str prfx ::
                (if null tvs then [] else
                   [mk_tuple (map str tvs), str " "]) @
                [str (type_id ^ " ="), Pretty.brk 1] @
@@ -72,7 +71,7 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) sorts =
                     (if null ps' then [] else
                      List.concat ([str " of", Pretty.brk 1] ::
                        separate [str " *", Pretty.brk 1]
-                         (map single ps'))))]) ps))) :: rest)
+                         (map single ps'))))]) ps))) :: rest, gr''')
           end;
 
     fun mk_constr_term cname Ts T ps =
@@ -92,9 +91,9 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) sorts =
                 str ("x" ^ string_of_int i)) (1 upto length Ts)
               in ("  | ", Pretty.blk (4,
                 [str prfx, mk_term_of gr module' false T, Pretty.brk 1,
-                 if null Ts then str (snd (get_const_id cname gr))
+                 if null Ts then str (snd (get_const_id gr cname))
                  else parens (Pretty.block
-                   [str (snd (get_const_id cname gr)),
+                   [str (snd (get_const_id gr cname)),
                     Pretty.brk 1, mk_tuple args]),
                  str " =", Pretty.brk 1] @
                  mk_constr_term cname Ts T
@@ -129,7 +128,7 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) sorts =
                   (DatatypeProp.indexify_names (replicate (length dts) "x"));
                 val ts = map str
                   (DatatypeProp.indexify_names (replicate (length dts) "t"));
-                val (_, id) = get_const_id cname gr
+                val (_, id) = get_const_id gr cname
               in
                 mk_let
                   (map2 (fn p => fn q => mk_tuple [p, q]) xs ts ~~ gs)
@@ -152,7 +151,7 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) sorts =
             val gs = maps (fn s =>
               let val s' = strip_tname s
               in [str (s' ^ "G"), str (s' ^ "T")] end) tvs;
-            val gen_name = "gen_" ^ snd (get_type_id tname gr)
+            val gen_name = "gen_" ^ snd (get_type_id gr tname)
 
           in
             Pretty.blk (4, separate (Pretty.brk 1) 
@@ -186,12 +185,12 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) sorts =
           end
 
   in
-    ((add_edge_acyclic (node_id, dep) gr
+    (module', (add_edge_acyclic (node_id, dep) gr
         handle Graph.CYCLES _ => gr) handle Graph.UNDEF _ =>
          let
            val gr1 = add_edge (node_id, dep)
              (new_node (node_id, (NONE, "", "")) gr);
-           val (gr2, dtdef) = mk_dtdef gr1 "datatype " descr';
+           val (dtdef, gr2) = mk_dtdef "datatype " descr' gr1 ;
          in
            map_node node_id (K (NONE, module',
              string_of (Pretty.blk (0, separate Pretty.fbrk dtdef @
@@ -204,17 +203,16 @@ fun add_dt_defs thy defs dep module gr (descr: DatatypeAux.descr) sorts =
                 string_of (Pretty.blk (0, separate Pretty.fbrk
                   (mk_gen_of_def gr2 "fun " descr') @ [str ";"])) ^ "\n\n"
               else ""))) gr2
-         end,
-     module')
+         end)
   end;
 
 
 (**** case expressions ****)
 
-fun pretty_case thy defs gr dep module brack constrs (c as Const (_, T)) ts =
+fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
   let val i = length constrs
   in if length ts <= i then
-       invoke_codegen thy defs dep module brack (gr, eta_expand c ts (i+1))
+       invoke_codegen thy defs dep module brack (eta_expand c ts (i+1)) gr
     else
       let
         val ts1 = Library.take (i, ts);
@@ -223,62 +221,62 @@ fun pretty_case thy defs gr dep module brack constrs (c as Const (_, T)) ts =
           (map (fst o fst o dest_Var) (foldr add_term_vars [] ts1)) ts1;
         val (Ts, dT) = split_last (Library.take (i+1, fst (strip_type T)));
 
-        fun pcase gr [] [] [] = ([], gr)
-          | pcase gr ((cname, cargs)::cs) (t::ts) (U::Us) =
+        fun pcase [] [] [] gr = ([], gr)
+          | pcase ((cname, cargs)::cs) (t::ts) (U::Us) gr =
               let
                 val j = length cargs;
                 val xs = Name.variant_list names (replicate j "x");
                 val Us' = Library.take (j, fst (strip_type U));
                 val frees = map Free (xs ~~ Us');
-                val (gr0, cp) = invoke_codegen thy defs dep module false
-                  (gr, list_comb (Const (cname, Us' ---> dT), frees));
+                val (cp, gr0) = invoke_codegen thy defs dep module false
+                  (list_comb (Const (cname, Us' ---> dT), frees)) gr;
                 val t' = Envir.beta_norm (list_comb (t, frees));
-                val (gr1, p) = invoke_codegen thy defs dep module false (gr0, t');
-                val (ps, gr2) = pcase gr1 cs ts Us;
+                val (p, gr1) = invoke_codegen thy defs dep module false t' gr0;
+                val (ps, gr2) = pcase cs ts Us gr1;
               in
                 ([Pretty.block [cp, str " =>", Pretty.brk 1, p]] :: ps, gr2)
               end;
 
-        val (ps1, gr1) = pcase gr constrs ts1 Ts;
+        val (ps1, gr1) = pcase constrs ts1 Ts gr ;
         val ps = List.concat (separate [Pretty.brk 1, str "| "] ps1);
-        val (gr2, p) = invoke_codegen thy defs dep module false (gr1, t);
-        val (gr3, ps2) = foldl_map (invoke_codegen thy defs dep module true) (gr2, ts2)
-      in (gr3, (if not (null ts2) andalso brack then parens else I)
+        val (p, gr2) = invoke_codegen thy defs dep module false t gr1;
+        val (ps2, gr3) = fold_map (invoke_codegen thy defs dep module true) ts2 gr2;
+      in ((if not (null ts2) andalso brack then parens else I)
         (Pretty.block (separate (Pretty.brk 1)
           (Pretty.block ([str "(case ", p, str " of",
-             Pretty.brk 1] @ ps @ [str ")"]) :: ps2))))
+             Pretty.brk 1] @ ps @ [str ")"]) :: ps2))), gr3)
       end
   end;
 
 
 (**** constructors ****)
 
-fun pretty_constr thy defs gr dep module brack args (c as Const (s, T)) ts =
+fun pretty_constr thy defs dep module brack args (c as Const (s, T)) ts gr =
   let val i = length args
   in if i > 1 andalso length ts < i then
-      invoke_codegen thy defs dep module brack (gr, eta_expand c ts i)
+      invoke_codegen thy defs dep module brack (eta_expand c ts i) gr
      else
        let
-         val id = mk_qual_id module (get_const_id s gr);
-         val (gr', ps) = foldl_map
-           (invoke_codegen thy defs dep module (i = 1)) (gr, ts);
+         val id = mk_qual_id module (get_const_id gr s);
+         val (ps, gr') = fold_map
+           (invoke_codegen thy defs dep module (i = 1)) ts gr;
        in (case args of
-          _ :: _ :: _ => (gr', (if brack then parens else I)
-            (Pretty.block [str id, Pretty.brk 1, mk_tuple ps]))
-        | _ => (gr', mk_app brack (str id) ps))
+          _ :: _ :: _ => (if brack then parens else I)
+            (Pretty.block [str id, Pretty.brk 1, mk_tuple ps])
+        | _ => (mk_app brack (str id) ps), gr')
        end
   end;
 
 
 (**** code generators for terms and types ****)
 
-fun datatype_codegen thy defs gr dep module brack t = (case strip_comb t of
+fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
    (c as Const (s, T), ts) =>
      (case DatatypePackage.datatype_of_case thy s of
         SOME {index, descr, ...} =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
-          SOME (pretty_case thy defs gr dep module brack
-            (#3 (the (AList.lookup op = descr index))) c ts)
+          SOME (pretty_case thy defs dep module brack
+            (#3 (the (AList.lookup op = descr index))) c ts gr )
       | NONE => case (DatatypePackage.datatype_of_constr thy s, strip_type T) of
         (SOME {index, descr, ...}, (_, U as Type _)) =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
@@ -286,26 +284,24 @@ fun datatype_codegen thy defs gr dep module brack t = (case strip_comb t of
             (#3 (the (AList.lookup op = descr index))) s
           in
             SOME (pretty_constr thy defs
-              (fst (invoke_tycodegen thy defs dep module false (gr, U)))
-              dep module brack args c ts)
+              dep module brack args c ts (snd (invoke_tycodegen thy defs dep module false U gr)))
           end
       | _ => NONE)
  | _ => NONE);
 
-fun datatype_tycodegen thy defs gr dep module brack (Type (s, Ts)) =
+fun datatype_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
       (case DatatypePackage.get_datatype thy s of
          NONE => NONE
        | SOME {descr, sorts, ...} =>
            if is_some (get_assoc_type thy s) then NONE else
            let
-             val (gr', ps) = foldl_map
-               (invoke_tycodegen thy defs dep module false) (gr, Ts);
-             val (gr'', module') = add_dt_defs thy defs dep module gr' descr sorts;
-             val (gr''', tyid) = mk_type_id module' s gr''
-           in SOME (gr''',
-             Pretty.block ((if null Ts then [] else
+             val (ps, gr') = fold_map
+               (invoke_tycodegen thy defs dep module false) Ts gr;
+             val (module', gr'') = add_dt_defs thy defs dep module descr sorts gr' ;
+             val (tyid, gr''') = mk_type_id module' s gr''
+           in SOME (Pretty.block ((if null Ts then [] else
                [mk_tuple ps, str " "]) @
-               [str (mk_qual_id module tyid)]))
+               [str (mk_qual_id module tyid)]), gr''')
            end)
   | datatype_tycodegen _ _ _ _ _ _ _ = NONE;
 

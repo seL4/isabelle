@@ -1969,11 +1969,11 @@ let
 fun strip_number_of (@{term "Int.number_of :: int => int"} $ t) = t
   | strip_number_of t = t;
 
-fun numeral_codegen thy defs gr dep module b t =
+fun numeral_codegen thy defs dep module b t gr =
   let val i = HOLogic.dest_numeral (strip_number_of t)
   in
-    SOME (fst (Codegen.invoke_tycodegen thy defs dep module false (gr, HOLogic.intT)),
-      Codegen.str (string_of_int i))
+    SOME (Codegen.str (string_of_int i),
+      snd (Codegen.invoke_tycodegen thy defs dep module false HOLogic.intT gr))
   end handle TERM _ => NONE;
 
 in
