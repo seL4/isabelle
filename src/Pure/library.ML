@@ -9,7 +9,6 @@ strings, lists as sets, orders, current directory, misc.
 See also General/basics.ML for the most fundamental concepts.
 *)
 
-infix 1 |>>>
 infix 2 ?
 infix 3 o oo ooo oooo
 infix 4 ~~ upto downto
@@ -24,7 +23,6 @@ sig
   val K: 'a -> 'b -> 'a
   val curry: ('a * 'b -> 'c) -> 'a -> 'b -> 'c
   val uncurry: ('a -> 'b -> 'c) -> 'a * 'b -> 'c
-  val |>>> : ('a * 'c) * ('a -> 'b * 'd) -> 'b * ('c * 'd)
   val ? : bool * ('a -> 'a) -> 'a -> 'a
   val oo: ('a -> 'b) * ('c -> 'd -> 'a) -> 'c -> 'd -> 'b
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
@@ -256,9 +254,6 @@ fun I x = x;
 fun K x = fn _ => x;
 fun curry f x y = f (x, y);
 fun uncurry f (x, y) = f x y;
-
-(*application and structured results -- old version*)
-fun (x, y) |>>> f = let val (x', z) = f x in (x', (y, z)) end;
 
 (*conditional application*)
 fun b ? f = fn x => if b then f x else x;
