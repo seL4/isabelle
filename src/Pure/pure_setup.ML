@@ -30,13 +30,6 @@ ThyInfo.register_theory Pure.thy;
 
 install_pp (make_pp ["TaskQueue", "task"] (Pretty.pprint o Pretty.str o TaskQueue.str_of_task));
 install_pp (make_pp ["TaskQueue", "group"] (Pretty.pprint o Pretty.str o TaskQueue.str_of_group));
-
-if String.isPrefix "polyml" ml_system then
-  ML_Context.eval false Position.none
-    "install_pp ((make_pp [\"Future\", \"T\"] (Pretty.pprint o Pretty.str o Future.str_of)):\
-    \  ('a, 'a Future.T) pp)"
-else ();
-
 install_pp (make_pp ["Position", "T"] (Pretty.pprint o Pretty.enum "," "{" "}" o
   map (fn (x, y) => Pretty.str (x ^ "=" ^ y)) o Position.properties_of));
 install_pp (make_pp ["Thm", "thm"] ProofDisplay.pprint_thm);
@@ -49,6 +42,9 @@ install_pp (make_pp ["Syntax", "ast"] Syntax.pprint_ast);
 install_pp (make_pp ["typ"] (ProofDisplay.pprint_typ Pure.thy));
 install_pp (make_pp ["Path", "T"] (Pretty.pprint o Pretty.str o quote o Path.implode));
 install_pp (make_pp ["File", "ident"] (Pretty.pprint o Pretty.str o quote o File.rep_ident));
+
+if String.isPrefix "polyml" ml_system then use "ML-Systems/install_pp_polyml.ML"
+else ();
 
 
 (* misc *)
