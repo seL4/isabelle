@@ -34,7 +34,7 @@ function usage()
 function fail()
 {
   echo "$1" >&2
-  echo "$(date) $HOSTNAME $PRG: FAILED, $1" >> $MASTERLOG
+  log "FAILED, $1"
   exit 2
 }
 
@@ -89,4 +89,4 @@ ps2pdf depGraph.ps depGraph.pdf
 # grep -rl "$ISABELLE_HOME" . | xargs sed -i "s@$ISABELLE_HOME@\$ISABELLE_HOME@g"
 
 
-echo "$(date) $HOSTNAME $PRG: annomaly docs generated successfully." >> $MASTERLOG
+log "annomaly docs generated successfully."

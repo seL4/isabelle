@@ -32,7 +32,7 @@ function usage()
 function fail()
 {
   echo "$1" >&2
-  echo "$(date) $HOSTNAME $PRG: FAILED, $1" >> $MASTERLOG
+  log "FAILED, $1"
   exit 2
 }
 
@@ -160,9 +160,9 @@ done
 ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
 
 if [ -z "$FAIL" ]; then
-    echo "$(date) $HOSTNAME $PRG: all tests successful, elapsed time $ELAPSED." >> $MASTERLOG
+    log "all tests successful, elapsed time $ELAPSED."
 else
-    echo "$(date) $HOSTNAME $PRG: targets ${FAIL}FAILED, elapsed time $ELAPSED." >> $MASTERLOG
+    log "targets ${FAIL}FAILED, elapsed time $ELAPSED."
     exit 1
 fi
 

@@ -67,7 +67,7 @@ if [ $? -ne 0 ]
 then
     echo ------------------- DIST BUILD FAILED --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
     ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
-    echo "$(date) $HOSTNAME $PRG: dist build FAILED, elapsed time $ELAPSED." >> $MASTERLOG
+    log "dist build FAILED, elapsed time $ELAPSED."
 
     echo "Could not build isabelle distribution. Log file available at" > $TMP
     echo "$HOSTNAME:$DISTLOG" >> $TMP
@@ -87,7 +87,7 @@ $TAR xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
 echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 
 ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
-echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> $MASTERLOG
+log "dist build successful, elapsed time $ELAPSED."
 
 ## clean up var/running
 rm -f $RUNNING/*

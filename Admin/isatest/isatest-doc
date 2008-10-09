@@ -59,7 +59,7 @@ function fail()
 [ "$#" != "0" ] && usage
 
 if [ -f "$RUNNING/$SHORT.running" -o -e $ERRORLOG ]; then
-  echo "$(date) $HOSTNAME $PRG: Skipped test. Isabelle devel version broken." >> $MASTERLOG
+  log "Skipped test. Isabelle devel version broken."
   exit 1
 fi
 cat $SETTINGS >> $ISABELLE_DEVEL/etc/settings
@@ -97,7 +97,7 @@ if [ "$FAIL" != "" ]; then
   echo >> $LOG
   echo "Failed sessions: ${FAIL}" >> $LOG
 
-  echo "$(date) $HOSTNAME $PRG: doc test FAILED for ${FAIL}, elapsed time $ELAPSED." >> $MASTERLOG
+  log "doc test FAILED for ${FAIL}, elapsed time $ELAPSED."
 
   cat > $TMP <<EOF
 Session(s) ${FAIL} in the documentation test failed (log attached).
@@ -116,6 +116,6 @@ EOF
 
   exit 1
 else
-  echo "$(date) $HOSTNAME $PRG: doc test successful, elapsed time $ELAPSED." >> $MASTERLOG
+  log "doc test successful, elapsed time $ELAPSED."
 fi
 

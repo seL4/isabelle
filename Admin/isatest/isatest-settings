@@ -15,6 +15,7 @@ MAILTO="kleing@cse.unsw.edu.au nipkow@in.tum.de berghofe@in.tum.de schirmer@in.t
 
 LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
+LOGSERVER=macbroy23.informatik.tu-muenchen.de
 
 ERRORDIR=$HOME/var
 ERRORLOG=$ERRORDIR/error.log
@@ -22,3 +23,14 @@ ERRORLOG=$ERRORDIR/error.log
 RUNNING=$HOME/var/running
 
 DISTPREFIX=$HOME/tmp/isadist
+
+# this function avoids NFS inconsistencies with multiple writers by
+# sshing to one central machine and writing locally. There is stil a
+# race condition, but at least it should not corrupt a whole set of entries
+# any more.
+function log()
+{
+  MSG="$1"
+  TIMESTAMP="$(date)"
+  echo "[$TIMESTAMP $HOSTNAME $PRG]: $MSG" | ssh $LOGSERVER "cat >> $MASTERLOG"
+}

@@ -98,9 +98,9 @@ fi
 # (failures in experimental sessions ok)
 if [ "$FAIL"=="0" -a "$(echo $ERRORDIR/isatest*[^e].log)" == "$(echo)" ]; then
   (cd $HOME/devel-page; env DISTNAME=`$DISTPREFIX/Isabelle/bin/isabelle getenv -b ISABELLE_IDENTIFIER` make)
-  echo "$(date) $HOSTNAME $PRG: generated development snapshot web page." >> $MASTERLOG
+  log "generated development snapshot web page."
 else
-  echo "$(date) $HOSTNAME $PRG: test failures, no web snapshot generated." >> $MASTERLOG
+  log "test failures, no web snapshot generated."
 fi
 
 exit 0
