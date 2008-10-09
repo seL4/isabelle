@@ -103,7 +103,7 @@ fun cycle g (xs, x : string) =
   if member (op =) xs x then xs
   else Library.foldl (cycle g) (x :: xs, flat (Graph.all_paths (fst g) (x, x)));
 
-fun add_rec_funs thy defs gr dep eqs module =
+fun add_rec_funs thy defs dep module eqs gr =
   let
     fun dest_eq t = (fst (const_of t) ^ mk_suffix thy defs (const_of t),
       dest_eqn (rename_term t));
@@ -111,18 +111,23 @@ fun add_rec_funs thy defs gr dep eqs module =
     val (dname, _) :: _ = eqs';
     val (s, T) = const_of (hd eqs);
 
-    fun mk_fundef module fname first gr [] = (gr, [])
-      | mk_fundef module fname first gr ((fname' : string, (lhs, rhs)) :: xs) =
+    fun mk_fundef module fname first [] gr = ([], gr)
+      | mk_fundef module fname first ((fname' : string, (lhs, rhs)) :: xs) gr =
       let
-        val prfx = if first then
-            (case strip_comb lhs of (_, []) => "val " | _ => "fun ")
-          else "and ";
-        val (gr1, pl) = invoke_codegen thy defs dname module false (gr, lhs);
-        val (gr2, pr) = invoke_codegen thy defs dname module false (gr1, rhs);
-        val (gr3, rest) = mk_fundef module fname' false gr2 xs
+        val (pl, gr1) = invoke_codegen thy defs dname module false lhs gr;
+        val (pr, gr2) = invoke_codegen thy defs dname module false rhs gr1;
+        val (rest, gr3) = mk_fundef module fname' false xs gr2 ;
+        val (ty, gr4) = invoke_tycodegen thy defs dname module false T gr3;
+        val num_args = (length o snd o strip_comb) lhs;
+        val prfx = if fname = fname' then "  |"
+          else if not first then "and"
+          else if num_args = 0 then "val"
+          else "fun";
+        val pl' = Pretty.breaks (str prfx
+          :: (if num_args = 0 then [pl, str ":", ty] else [pl]));
       in
-        (gr3, Pretty.blk (4, [str (if fname = fname' then "  | " else prfx),
-           pl, str " =", Pretty.brk 1, pr]) :: rest)
+        (Pretty.blk (4, pl'
+           @ [str " =", Pretty.brk 1, pr]) :: rest, gr4)
       end;
 
     fun put_code module fundef = map_node dname
@@ -135,50 +140,49 @@ fun add_rec_funs thy defs gr dep eqs module =
          let
            val gr1 = add_edge (dname, dep)
              (new_node (dname, (SOME (EQN (s, T, "")), module, "")) gr);
-           val (gr2, fundef) = mk_fundef module "" true gr1 eqs';
+           val (fundef, gr2) = mk_fundef module "" true eqs' gr1 ;
            val xs = cycle gr2 ([], dname);
            val cs = map (fn x => case get_node gr2 x of
                (SOME (EQN (s, T, _)), _, _) => (s, T)
              | _ => error ("RecfunCodegen: illegal cyclic dependencies:\n" ^
                 implode (separate ", " xs))) xs
          in (case xs of
-             [_] => (put_code module fundef gr2, module)
+             [_] => (module, put_code module fundef gr2)
            | _ =>
              if not (dep mem xs) then
                let
                  val thmss as (_, thyname) :: _ = map (get_equations thy defs) cs;
                  val module' = if_library thyname module;
                  val eqs'' = map (dest_eq o prop_of) (List.concat (map fst thmss));
-                 val (gr3, fundef') = mk_fundef module' "" true
+                 val (fundef', gr3) = mk_fundef module' "" true eqs''
                    (add_edge (dname, dep)
                      (foldr (uncurry new_node) (del_nodes xs gr2)
                        (map (fn k =>
-                         (k, (SOME (EQN ("", dummyT, dname)), module', ""))) xs))) eqs''
-               in (put_code module' fundef' gr3, module') end
-             else (gr2, module))
+                         (k, (SOME (EQN ("", dummyT, dname)), module', ""))) xs)))
+               in (module', put_code module' fundef' gr3) end
+             else (module, gr2))
          end
      | SOME (SOME (EQN (_, _, s)), module', _) =>
-         (if s = "" then
+         (module', if s = "" then
             if dname = dep then gr else add_edge (dname, dep) gr
-          else if s = dep then gr else add_edge (s, dep) gr,
-          module'))
+          else if s = dep then gr else add_edge (s, dep) gr))
   end;
 
-fun recfun_codegen thy defs gr dep module brack t = (case strip_comb t of
+fun recfun_codegen thy defs dep module brack t gr = (case strip_comb t of
     (Const (p as (s, T)), ts) => (case (get_equations thy defs p, get_assoc_code thy (s, T)) of
        (([], _), _) => NONE
      | (_, SOME _) => NONE
      | ((eqns, thyname), NONE) =>
         let
           val module' = if_library thyname module;
-          val (gr', ps) = foldl_map
-            (invoke_codegen thy defs dep module true) (gr, ts);
+          val (ps, gr') = fold_map
+            (invoke_codegen thy defs dep module true) ts gr;
           val suffix = mk_suffix thy defs p;
-          val (gr'', module'') =
-            add_rec_funs thy defs gr' dep (map prop_of eqns) module';
-          val (gr''', fname) = mk_const_id module'' (s ^ suffix) gr''
+          val (module'', gr'') =
+            add_rec_funs thy defs dep module' (map prop_of eqns) gr';
+          val (fname, gr''') = mk_const_id module'' (s ^ suffix) gr''
         in
-          SOME (gr''', mk_app brack (str (mk_qual_id module fname)) ps)
+          SOME (mk_app brack (str (mk_qual_id module fname)) ps, gr''')
         end)
   | _ => NONE);
 
