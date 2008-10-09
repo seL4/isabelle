@@ -35,6 +35,7 @@ fun type_has_empty_sort (TFree (_, [])) = true
   | type_has_empty_sort (Type (_, Ts)) = exists type_has_empty_sort Ts
   | type_has_empty_sort _ = false;
 
+
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
 val cfalse = cterm_of HOL.thy HOLogic.false_const;
@@ -53,6 +54,7 @@ fun transform_elim th =
 
 (*To enforce single-threading*)
 exception Clausify_failure of theory;
+
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
@@ -76,9 +78,6 @@ fun declare_skofuns s th =
             val args0 = term_frees xtp  (*get the formal parameter list*)
             val Ts = map type_of args0
             val extraTs = rhs_extra_types (Ts ---> T) xtp
-            val _ = if null extraTs then () else
-              warning ("Skolemization: extra type vars: " ^
-                commas_quote (map (Syntax.string_of_typ_global thy) extraTs))
             val argsx = map (fn T => Free (gensym "vsk", T)) extraTs
             val args = argsx @ args0
             val cT = extraTs ---> Ts ---> T
@@ -165,9 +164,9 @@ val [f_S,g_S] = map (cterm_of (the_context ())) (term_vars (prop_of @{thm abs_S}
 
 (*FIXME: requires more use of cterm constructors*)
 fun abstract ct =
-  let val _ = Output.debug (fn()=>"  abstraction: " ^ Display.string_of_cterm ct)
-      val Abs(x,_,body) = term_of ct
+  let
       val thy = theory_of_cterm ct
+      val Abs(x,_,body) = term_of ct
       val Type("fun",[xT,bodyT]) = typ_of (ctyp_of_term ct)
       val cxT = ctyp_of thy xT and cbodyT = ctyp_of thy bodyT
       fun makeK() = instantiate' [SOME cxT, SOME cbodyT] [SOME (cterm_of thy body)] @{thm abs_K}
@@ -209,7 +208,7 @@ fun abstract ct =
   end;
 
 (*Traverse a theorem, declaring abstraction function definitions. String s is the suggested
-  prefix for the constants. Resulting theory is returned in the first theorem. *)
+  prefix for the constants.*)
 fun combinators_aux ct =
   if lambda_free (term_of ct) then reflexive ct
   else
@@ -217,13 +216,10 @@ fun combinators_aux ct =
       Abs _ =>
         let val (cv,cta) = Thm.dest_abs NONE ct
             val (v,Tv) = (dest_Free o term_of) cv
-            val _ = Output.debug (fn()=>"  recursion: " ^ Display.string_of_cterm cta);
             val u_th = combinators_aux cta
-            val _ = Output.debug (fn()=>"  returned " ^ Display.string_of_thm u_th);
             val cu = Thm.rhs_of u_th
             val comb_eq = abstract (Thm.cabs cv cu)
-        in Output.debug (fn()=>"  abstraction result: " ^ Display.string_of_thm comb_eq);
-           (transitive (abstract_rule v cv u_th) comb_eq) end
+        in transitive (abstract_rule v cv u_th) comb_eq end
     | t1 $ t2 =>
         let val (ct1,ct2) = Thm.dest_comb ct
         in  combination (combinators_aux ct1) (combinators_aux ct2)  end;
@@ -231,10 +227,8 @@ fun combinators_aux ct =
 fun combinators th =
   if lambda_free (prop_of th) then th
   else
-    let val _ = Output.debug (fn()=>"Conversion to combinators: " ^ Display.string_of_thm th);
-        val th = Drule.eta_contraction_rule th
+    let val th = Drule.eta_contraction_rule th
         val eqth = combinators_aux (cprop_of th)
-        val _ = Output.debug (fn()=>"Conversion result: " ^ Display.string_of_thm eqth);
     in  equal_elim eqth th   end
     handle THM (msg,_,_) =>
       (warning ("Error in the combinator translation of " ^ Display.string_of_thm th);
@@ -359,29 +353,12 @@ fun skolem_thm (s, th) =
     in  cnfs |> map combinators |> Variable.export ctxt2 ctxt0 |> Meson.finish_cnf  end
     handle THM _ => [];
 
-(*Declare Skolem functions for a theorem, supplied in nnf and with its name.
-  It returns a modified theory, unless skolemization fails.*)
-fun skolem (name, th0) thy =
-  let
-    val th = Thm.transfer thy th0
-    val ctxt0 = Variable.thm_context th
-  in
-    try (to_nnf th) ctxt0 |> Option.map (fn (nnfth, ctxt1) =>
-      let
-        val s = flatten_name name
-        val (defs, thy') = declare_skofuns s nnfth thy
-        val (cnfs, ctxt2) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt1
-        val cnfs' = cnfs |> map combinators |> Variable.export ctxt2 ctxt0
-                         |> Meson.finish_cnf |> map Thm.close_derivation
-      in (cnfs', thy') end)
-  end;
-
 (*The cache prevents repeated clausification of a theorem, and also repeated declaration of
   Skolem functions.*)
 structure ThmCache = TheoryDataFun
 (
-  type T = thm list Thmtab.table * unit Symtab.table
-  val empty = (Thmtab.empty, Symtab.empty)
+  type T = thm list Thmtab.table * unit Symtab.table;
+  val empty = (Thmtab.empty, Symtab.empty);
   val copy = I;
   val extend = I;
   fun merge _ ((cache1, seen1), (cache2, seen2)) : T =
@@ -411,19 +388,12 @@ fun rules_of_claset cs =
   let val {safeIs,safeEs,hazIs,hazEs,...} = rep_cs cs
       val intros = safeIs @ hazIs
       val elims  = map Classical.classical_rule (safeEs @ hazEs)
-  in
-     Output.debug (fn () => "rules_of_claset intros: " ^ Int.toString(length intros) ^
-            " elims: " ^ Int.toString(length elims));
-     map pairname (intros @ elims)
-  end;
+  in map pairname (intros @ elims) end;
 
 fun rules_of_simpset ss =
   let val ({rules,...}, _) = rep_ss ss
       val simps = Net.entries rules
-  in
-    Output.debug (fn () => "rules_of_simpset: " ^ Int.toString(length simps));
-    map (fn r => (#name r, #thm r)) simps
-  end;
+  in map (fn r => (#name r, #thm r)) simps end;
 
 fun claset_rules_of ctxt = rules_of_claset (local_claset_of ctxt);
 fun simpset_rules_of ctxt = rules_of_simpset (local_simpset_of ctxt);
@@ -448,28 +418,51 @@ fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
 
 (**** Convert all facts of the theory into clauses (ResClause.clause, or ResHolClause.clause) ****)
 
-(*Populate the clause cache using the supplied theorem. Return the clausal form
-  and modified theory.*)
-fun skolem_cache_thm name (i, th) thy =
-  if bad_for_atp th then thy
-  else
-    (case lookup_cache thy th of
-      SOME _ => thy
-    | NONE =>
-        (case skolem (name ^ "_" ^ string_of_int (i + 1), th) thy of
-          NONE => thy
-        | SOME (cls, thy') => update_cache (th, cls) thy'));
+local
 
-fun skolem_cache_fact (name, ths) (changed, thy) =
-  if (Sign.base_name name) mem_string multi_base_blacklist orelse already_seen thy name
-  then (changed, thy)
-  else (true, thy |> mark_seen name |> fold_index (skolem_cache_thm name) ths);
+fun skolem_def (name, th) thy =
+  let val ctxt0 = Variable.thm_context th in
+    (case try (to_nnf th) ctxt0 of
+      NONE => (NONE, thy)
+    | SOME (nnfth, ctxt1) =>
+        let val (defs, thy') = declare_skofuns (flatten_name name) nnfth thy
+        in (SOME (th, ctxt0, ctxt1, nnfth, defs), thy') end)
+  end;
+
+fun skolem_cnfs (th, ctxt0, ctxt1, nnfth, defs) =
+  let
+    val (cnfs, ctxt2) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt1;
+    val cnfs' = cnfs
+      |> map combinators
+      |> Variable.export ctxt2 ctxt0
+      |> Meson.finish_cnf
+      |> map Thm.close_derivation;
+    in (th, cnfs') end;
+
+in
 
 fun saturate_skolem_cache thy =
-  (case Facts.fold_static skolem_cache_fact (PureThy.facts_of thy) (false, thy) of
-    (false, _) => NONE
-  | (true, thy') => SOME thy');
+  let
+    val new_facts = (PureThy.facts_of thy, []) |-> Facts.fold_static (fn (name, ths) =>
+      if already_seen thy name then I else cons (name, ths));
+    val new_thms = (new_facts, []) |-> fold (fn (name, ths) =>
+      if member (op =) multi_base_blacklist (Sign.base_name name) then I
+      else fold_index (fn (i, th) =>
+        if bad_for_atp th orelse is_some (lookup_cache thy th) then I
+        else cons (name ^ "_" ^ string_of_int (i + 1), Thm.transfer thy th)) ths);
+  in
+    if null new_facts then NONE
+    else
+      let
+        val (defs, thy') = thy
+          |> fold (mark_seen o #1) new_facts
+          |> fold_map skolem_def (sort_distinct (Thm.thm_ord o pairself snd) new_thms)
+          |>> map_filter I;
+        val cache_entries = ParList.map skolem_cnfs defs;
+      in SOME (fold update_cache cache_entries thy') end
+  end;
 
+end;
 
 val suppress_endtheory = ref false;
 
@@ -484,7 +477,7 @@ fun clause_cache_endtheory thy =
 
 (*** meson proof methods ***)
 
-(*Expand all new*definitions of abstraction or Skolem functions in a proof state.*)
+(*Expand all new definitions of abstraction or Skolem functions in a proof state.*)
 fun is_absko (Const ("==", _) $ Free (a,_) $ u) = String.isPrefix "sko_" a
   | is_absko _ = false;
 
@@ -504,17 +497,12 @@ fun expand_defs_tac st0 st =
                                       (map Thm.term_of hyps)
       val fixed = term_frees (concl_of st) @
                   foldl (gen_union (op aconv)) [] (map term_frees remaining_hyps)
-  in  Output.debug (fn _ => "expand_defs_tac: " ^ Display.string_of_thm st);
-      Output.debug (fn _ => "  st0: " ^ Display.string_of_thm st0);
-      Output.debug (fn _ => "  defs: " ^ commas (map Display.string_of_cterm defs));
-      Seq.of_list [LocalDefs.expand (filter (is_okdef fixed o Thm.term_of) defs) st]
-  end;
+  in Seq.of_list [LocalDefs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
 
 
 fun meson_general_tac ths i st0 =
   let
     val thy = Thm.theory_of_thm st0
-    val _ = Output.debug (fn () => "Meson called: " ^ cat_lines (map Display.string_of_thm ths))
   in  (Meson.meson_claset_tac (maps (cnf_axiom thy) ths) HOL_cs i THEN expand_defs_tac st0) st0 end;
 
 val meson_method_setup = Method.add_methods
@@ -577,4 +565,3 @@ val setup =
   Theory.at_end clause_cache_endtheory;
 
 end;
-
