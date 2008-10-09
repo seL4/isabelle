@@ -128,9 +128,9 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
 	 ) : cons;
     val eqs = map (fn (dtnvs,cons') => (dtnvs, map one_con cons')) eqs' : eq list;
     val thy        = thy' |> Domain_Axioms.add_axioms (comp_dnam,eqs);
-    val (theorems_thy, (rewss, take_rews)) = (foldl_map (fn (thy0,eq) =>
-      Domain_Theorems.theorems (eq,eqs) thy0) (thy,eqs))
-      |>>> Domain_Theorems.comp_theorems (comp_dnam, eqs);
+    val ((rewss, take_rews), theorems_thy) = thy |> fold_map (fn eq =>
+      Domain_Theorems.theorems (eq, eqs)) eqs
+      ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs);
   in
     theorems_thy
     |> Sign.add_path (Sign.base_name comp_dnam)

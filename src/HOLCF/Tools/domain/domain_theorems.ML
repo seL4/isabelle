@@ -597,7 +597,7 @@ in
     |> (snd o PureThy.add_thmss
         [(("match_rews", mat_rews), [Simplifier.simp_add])])
     |> Sign.parent_path
-    |> rpair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
+    |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
         pat_rews @ dist_les @ dist_eqs @ copy_rews)
 end; (* let *)
 
@@ -972,7 +972,7 @@ in thy |> Sign.add_path comp_dnam
 		("finite_ind", [finite_ind]),
 		("ind"       , [ind       ]),
 		("coind"     , [coind     ])])))
-       |> Sign.parent_path |> rpair take_rews
+       |> Sign.parent_path |> pair take_rews
 end; (* let *)
 end; (* local *)
 end; (* struct *)
