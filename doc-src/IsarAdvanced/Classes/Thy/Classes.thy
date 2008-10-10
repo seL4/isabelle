@@ -141,7 +141,7 @@ definition %quote
 instance %quote proof
   fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
   then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
-  unfolding mult_int_def .
+    unfolding mult_int_def .
 qed
 
 end %quote
@@ -207,7 +207,7 @@ definition %quote
 instance %quote proof
   fix p\<^isub>1 p\<^isub>2 p\<^isub>3 :: "\<alpha>\<Colon>semigroup \<times> \<beta>\<Colon>semigroup"
   show "p\<^isub>1 \<otimes> p\<^isub>2 \<otimes> p\<^isub>3 = p\<^isub>1 \<otimes> (p\<^isub>2 \<otimes> p\<^isub>3)"
-  unfolding mult_prod_def by (simp add: assoc)
+    unfolding mult_prod_def by (simp add: assoc)
 qed      
 
 end %quote
@@ -244,98 +244,99 @@ text {*
   for types with the same arity may be simultaneous:
 *}
 
-    instantiation nat and int :: monoidl
-    begin
+instantiation %quote nat and int :: monoidl
+begin
 
-    definition
-      neutral_nat_def: "\<one> = (0\<Colon>nat)"
+definition %quote
+  neutral_nat_def: "\<one> = (0\<Colon>nat)"
 
-    definition
-      neutral_int_def: "\<one> = (0\<Colon>int)"
+definition %quote
+  neutral_int_def: "\<one> = (0\<Colon>int)"
 
-    instance proof
-      fix n :: nat
-      show "\<one> \<otimes> n = n"
-	unfolding neutral_nat_def by simp
-    next
-      fix k :: int
-      show "\<one> \<otimes> k = k"
-	unfolding neutral_int_def mult_int_def by simp
-    qed
+instance %quote proof
+  fix n :: nat
+  show "\<one> \<otimes> n = n"
+    unfolding neutral_nat_def by simp
+next
+  fix k :: int
+  show "\<one> \<otimes> k = k"
+    unfolding neutral_int_def mult_int_def by simp
+qed
 
-    end
+end %quote
 
-    instantiation * :: (monoidl, monoidl) monoidl
-    begin
+instantiation %quote * :: (monoidl, monoidl) monoidl
+begin
 
-    definition
-      neutral_prod_def: "\<one> = (\<one>, \<one>)"
+definition %quote
+  neutral_prod_def: "\<one> = (\<one>, \<one>)"
 
-    instance proof
-      fix p :: "\<alpha>\<Colon>monoidl \<times> \<beta>\<Colon>monoidl"
-      show "\<one> \<otimes> p = p"
-	unfolding neutral_prod_def mult_prod_def by (simp add: neutl)
-    qed
+instance %quote proof
+  fix p :: "\<alpha>\<Colon>monoidl \<times> \<beta>\<Colon>monoidl"
+  show "\<one> \<otimes> p = p"
+    unfolding neutral_prod_def mult_prod_def by (simp add: neutl)
+qed
 
-   end
+end %quote
 
 text {*
   \noindent Fully-fledged monoids are modelled by another subclass
   which does not add new parameters but tightens the specification:
 *}
 
-    class monoid = monoidl +
-      assumes neutr: "x \<otimes> \<one> = x"
+class %quote monoid = monoidl +
+  assumes neutr: "x \<otimes> \<one> = x"
 
-    instantiation nat and int :: monoid 
-    begin
+instantiation %quote nat and int :: monoid 
+begin
 
-    instance proof
-      fix n :: nat
-      show "n \<otimes> \<one> = n"
-	unfolding neutral_nat_def by (induct n) simp_all
-    next
-      fix k :: int
-      show "k \<otimes> \<one> = k"
-	unfolding neutral_int_def mult_int_def by simp
-    qed
+instance %quote proof
+  fix n :: nat
+  show "n \<otimes> \<one> = n"
+    unfolding neutral_nat_def by (induct n) simp_all
+next
+  fix k :: int
+  show "k \<otimes> \<one> = k"
+    unfolding neutral_int_def mult_int_def by simp
+qed
 
-    end
+end %quote
 
-    instantiation * :: (monoid, monoid) monoid
-    begin
+instantiation %quote * :: (monoid, monoid) monoid
+begin
 
-    instance proof 
-      fix p :: "\<alpha>\<Colon>monoid \<times> \<beta>\<Colon>monoid"
-      show "p \<otimes> \<one> = p"
-	unfolding neutral_prod_def mult_prod_def by (simp add: neutr)
-    qed
+instance %quote proof 
+  fix p :: "\<alpha>\<Colon>monoid \<times> \<beta>\<Colon>monoid"
+  show "p \<otimes> \<one> = p"
+    unfolding neutral_prod_def mult_prod_def by (simp add: neutr)
+qed
 
-    end
+end %quote
 
 text {*
   \noindent To finish our small algebra example, we add a @{text group} class
   with a corresponding instance:
 *}
 
-    class group = monoidl +
-      fixes inverse :: "\<alpha> \<Rightarrow> \<alpha>"    ("(_\<div>)" [1000] 999)
-      assumes invl: "x\<div> \<otimes> x = \<one>"
+class %quote group = monoidl +
+  fixes inverse :: "\<alpha> \<Rightarrow> \<alpha>"    ("(_\<div>)" [1000] 999)
+  assumes invl: "x\<div> \<otimes> x = \<one>"
 
-    instantiation int :: group
-    begin
+instantiation %quote int :: group
+begin
 
-    definition
-      inverse_int_def: "i\<div> = - (i\<Colon>int)"
+definition %quote
+  inverse_int_def: "i\<div> = - (i\<Colon>int)"
 
-    instance proof
-      fix i :: int
-      have "-i + i = 0" by simp
-      then show "i\<div> \<otimes> i = \<one>"
-	unfolding mult_int_def neutral_int_def inverse_int_def .
-    qed
+instance %quote proof
+  fix i :: int
+  have "-i + i = 0" by simp
+  then show "i\<div> \<otimes> i = \<one>"
+    unfolding mult_int_def neutral_int_def inverse_int_def .
+qed
 
-    end
+end %quote
+
 
 section {* Type classes as locales *}
 
@@ -348,45 +349,41 @@ text {*
   is nothing else than a locale:
 *}
 
-class idem = type +
+class %quote idem = type +
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
 
 text {*
   \noindent essentially introduces the locale
-*}
+*} setup %invisible {* Sign.add_path "foo" *}
 
-setup %invisible {* Sign.add_path "foo" *}
-
-locale idem =
+locale %quote idem =
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
 
 text {* \noindent together with corresponding constant(s): *}
 
-consts f :: "\<alpha> \<Rightarrow> \<alpha>"
+consts %quote f :: "\<alpha> \<Rightarrow> \<alpha>"
 
 text {*
   \noindent The connection to the type system is done by means
   of a primitive axclass
 *}
 
-axclass idem < type
+axclass %quote idem < type
   idem: "f (f x) = f x"
 
 text {* \noindent together with a corresponding interpretation: *}
 
-interpretation idem_class:
+interpretation %quote idem_class:
   idem ["f \<Colon> (\<alpha>\<Colon>idem) \<Rightarrow> \<alpha>"]
 by unfold_locales (rule idem)
 
-setup %invisible {* Sign.parent_path *}
-
 text {*
-  This give you at hand the full power of the Isabelle module system;
+  \noindent This gives you at hand the full power of the Isabelle module system;
   conclusions in locale @{text idem} are implicitly propagated
   to class @{text idem}.
-*}
+*} setup %invisible {* Sign.parent_path *}
 
 subsection {* Abstract reasoning *}
 
@@ -397,16 +394,16 @@ text {*
   states that the function @{text "(x \<otimes>)"} is injective:
 *}
 
-    lemma (in group) left_cancel: "x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"
-    proof
-      assume "x \<otimes> y = x \<otimes> z"
-      then have "x\<div> \<otimes> (x \<otimes> y) = x\<div> \<otimes> (x \<otimes> z)" by simp
-      then have "(x\<div> \<otimes> x) \<otimes> y = (x\<div> \<otimes> x) \<otimes> z" using assoc by simp
-      then show "y = z" using neutl and invl by simp
-    next
-      assume "y = z"
-      then show "x \<otimes> y = x \<otimes> z" by simp
-    qed
+lemma %quote (in group) left_cancel: "x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"
+proof
+  assume "x \<otimes> y = x \<otimes> z"
+  then have "x\<div> \<otimes> (x \<otimes> y) = x\<div> \<otimes> (x \<otimes> z)" by simp
+  then have "(x\<div> \<otimes> x) \<otimes> y = (x\<div> \<otimes> x) \<otimes> z" using assoc by simp
+  then show "y = z" using neutl and invl by simp
+next
+  assume "y = z"
+  then show "x \<otimes> y = x \<otimes> z" by simp
+qed
 
 text {*
   \noindent Here the \qt{@{keyword "in"} @{class group}} target specification
@@ -426,9 +423,9 @@ text {*
   in locales:
 *}
 
-    primrec (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
-      "pow_nat 0 x = \<one>"
-      | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
+primrec %quote (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
+  "pow_nat 0 x = \<one>"
+  | "pow_nat (Suc n) x = x \<otimes> pow_nat n x"
 
 text {*
   \noindent If the locale @{text group} is also a class, this local
@@ -462,8 +459,8 @@ text {*
   of monoids for lists:
 *}
 
-    interpretation list_monoid: monoid [append "[]"]
-      by unfold_locales auto
+interpretation %quote list_monoid: monoid [append "[]"]
+  by unfold_locales auto
 
 text {*
   \noindent This enables us to apply facts on monoids
@@ -473,21 +470,21 @@ text {*
   be appropriate to map derived definitions accordingly:
 *}
 
-    fun replicate :: "nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alpha> list" where
-      "replicate 0 _ = []"
-      | "replicate (Suc n) xs = xs @ replicate n xs"
+primrec %quote replicate :: "nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alpha> list" where
+  "replicate 0 _ = []"
+  | "replicate (Suc n) xs = xs @ replicate n xs"
 
-    interpretation list_monoid: monoid [append "[]"] where
-      "monoid.pow_nat append [] = replicate"
-    proof -
-      interpret monoid [append "[]"] ..
-      show "monoid.pow_nat append [] = replicate"
-      proof
-        fix n
-        show "monoid.pow_nat append [] n = replicate n"
-          by (induct n) auto
-      qed
-    qed intro_locales
+interpretation %quote list_monoid: monoid [append "[]"] where
+  "monoid.pow_nat append [] = replicate"
+proof -
+  interpret monoid [append "[]"] ..
+  show "monoid.pow_nat append [] = replicate"
+  proof
+    fix n
+    show "monoid.pow_nat append [] n = replicate n"
+      by (induct n) auto
+  qed
+qed intro_locales
 
 
 subsection {* Additional subclass relations *}
@@ -499,13 +496,13 @@ text {*
   together with a proof of the logical difference:
 *}
 
-    subclass (in group) monoid
-    proof unfold_locales
-      fix x
-      from invl have "x\<div> \<otimes> x = \<one>" by simp
-      with assoc [symmetric] neutl invl have "x\<div> \<otimes> (x \<otimes> \<one>) = x\<div> \<otimes> x" by simp
-      with left_cancel show "x \<otimes> \<one> = x" by simp
-    qed
+subclass %quote (in group) monoid
+proof unfold_locales
+  fix x
+  from invl have "x\<div> \<otimes> x = \<one>" by simp
+  with assoc [symmetric] neutl invl have "x\<div> \<otimes> (x \<otimes> \<one>) = x\<div> \<otimes> x" by simp
+  with left_cancel show "x \<otimes> \<one> = x" by simp
+qed
 
 text {*
   \noindent The logical proof is carried out on the locale level
@@ -576,7 +573,7 @@ begin
 term %quote "x \<otimes> y" -- {* example 1 *}
 term %quote "(x\<Colon>nat) \<otimes> y" -- {* example 2 *}
 
-end
+end  %quote
 
 term %quote "x \<otimes> y" -- {* example 3 *}
 

@@ -194,7 +194,7 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isacharparenleft}i\ {\isasymotimes}\ j{\isacharparenright}\ {\isasymotimes}\ k\ {\isacharequal}\ i\ {\isasymotimes}\ {\isacharparenleft}j\ {\isasymotimes}\ k{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ mult{\isacharunderscore}int{\isacharunderscore}def\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \isacommand{qed}\isamarkupfalse%
@@ -306,7 +306,7 @@ Overloaded definitions giving on class instantiation
 \ p\isactrlisub {\isadigit{1}}\ p\isactrlisub {\isadigit{2}}\ p\isactrlisub {\isadigit{3}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}{\isasymColon}semigroup\ {\isasymtimes}\ {\isasymbeta}{\isasymColon}semigroup{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}p\isactrlisub {\isadigit{1}}\ {\isasymotimes}\ p\isactrlisub {\isadigit{2}}\ {\isasymotimes}\ p\isactrlisub {\isadigit{3}}\ {\isacharequal}\ p\isactrlisub {\isadigit{1}}\ {\isasymotimes}\ {\isacharparenleft}p\isactrlisub {\isadigit{2}}\ {\isasymotimes}\ p\isactrlisub {\isadigit{3}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ mult{\isacharunderscore}prod{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}simp\ add{\isacharcolon}\ assoc{\isacharparenright}\isanewline
 \isacommand{qed}\isamarkupfalse%
@@ -368,224 +368,198 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
   for types with the same arity may be simultaneous:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{instantiation}\isamarkupfalse%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{instantiation}\isamarkupfalse%
 \ nat\ \isakeyword{and}\ int\ {\isacharcolon}{\isacharcolon}\ monoidl\isanewline
-\ \ \ \ \isakeyword{begin}\isanewline
+\isakeyword{begin}\isanewline
 \isanewline
-\ \ \ \ \isacommand{definition}\isamarkupfalse%
+\isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ \ \ \isacommand{definition}\isamarkupfalse%
+\isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ neutral{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}int{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ neutral{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}int{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ \ \ \isacommand{instance}\isamarkupfalse%
-%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
+\isacommand{instance}\isamarkupfalse%
+\ \isacommand{proof}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ n\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
-\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ neutral{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isacommand{next}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ k\ {\isacharcolon}{\isacharcolon}\ int\isanewline
-\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ k\ {\isacharequal}\ k{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ neutral{\isacharunderscore}int{\isacharunderscore}def\ mult{\isacharunderscore}int{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
+\isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
-\ \ \ \ \isacommand{end}\isamarkupfalse%
+\isacommand{end}\isamarkupfalse%
 \isanewline
 \isanewline
-\ \ \ \ \isacommand{instantiation}\isamarkupfalse%
+\isacommand{instantiation}\isamarkupfalse%
 \ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}monoidl{\isacharcomma}\ monoidl{\isacharparenright}\ monoidl\isanewline
-\ \ \ \ \isakeyword{begin}\isanewline
+\isakeyword{begin}\isanewline
 \isanewline
-\ \ \ \ \isacommand{definition}\isamarkupfalse%
+\isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ neutral{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isacharequal}\ {\isacharparenleft}{\isasymone}{\isacharcomma}\ {\isasymone}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ neutral{\isacharunderscore}prod{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isacharequal}\ {\isacharparenleft}{\isasymone}{\isacharcomma}\ {\isasymone}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ \ \ \isacommand{instance}\isamarkupfalse%
-%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
+\isacommand{instance}\isamarkupfalse%
+\ \isacommand{proof}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ p\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}{\isasymColon}monoidl\ {\isasymtimes}\ {\isasymbeta}{\isasymColon}monoidl{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ p\ {\isacharequal}\ p{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ neutral{\isacharunderscore}prod{\isacharunderscore}def\ mult{\isacharunderscore}prod{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}simp\ add{\isacharcolon}\ neutl{\isacharparenright}\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
+\isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
-\ \ \ \isacommand{end}\isamarkupfalse%
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent Fully-fledged monoids are modelled by another subclass
   which does not add new parameters but tightens the specification:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{class}\isamarkupfalse%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{class}\isamarkupfalse%
 \ monoid\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
-\ \ \ \ \ \ \isakeyword{assumes}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{assumes}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ \ \ \isacommand{instantiation}\isamarkupfalse%
+\isacommand{instantiation}\isamarkupfalse%
 \ nat\ \isakeyword{and}\ int\ {\isacharcolon}{\isacharcolon}\ monoid\ \isanewline
-\ \ \ \ \isakeyword{begin}\isanewline
+\isakeyword{begin}\isanewline
 \isanewline
-\ \ \ \ \isacommand{instance}\isamarkupfalse%
-%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
+\isacommand{instance}\isamarkupfalse%
+\ \isacommand{proof}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ n\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
-\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}n\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ neutral{\isacharunderscore}nat{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}induct\ n{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
-\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isacommand{next}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ k\ {\isacharcolon}{\isacharcolon}\ int\isanewline
-\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}k\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ k{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ neutral{\isacharunderscore}int{\isacharunderscore}def\ mult{\isacharunderscore}int{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
+\isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
-\ \ \ \ \isacommand{end}\isamarkupfalse%
+\isacommand{end}\isamarkupfalse%
 \isanewline
 \isanewline
-\ \ \ \ \isacommand{instantiation}\isamarkupfalse%
+\isacommand{instantiation}\isamarkupfalse%
 \ {\isacharasterisk}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}monoid{\isacharcomma}\ monoid{\isacharparenright}\ monoid\isanewline
-\ \ \ \ \isakeyword{begin}\isanewline
+\isakeyword{begin}\isanewline
 \isanewline
-\ \ \ \ \isacommand{instance}\isamarkupfalse%
-%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
+\isacommand{instance}\isamarkupfalse%
+\ \isacommand{proof}\isamarkupfalse%
 \ \isanewline
-\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ p\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}{\isasymColon}monoid\ {\isasymtimes}\ {\isasymbeta}{\isasymColon}monoid{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}p\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ p{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ neutral{\isacharunderscore}prod{\isacharunderscore}def\ mult{\isacharunderscore}prod{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}simp\ add{\isacharcolon}\ neutr{\isacharparenright}\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
+\isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
-\ \ \ \ \isacommand{end}\isamarkupfalse%
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent To finish our small algebra example, we add a \isa{group} class
   with a corresponding instance:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{class}\isamarkupfalse%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{class}\isamarkupfalse%
 \ group\ {\isacharequal}\ monoidl\ {\isacharplus}\isanewline
-\ \ \ \ \ \ \isakeyword{fixes}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharparenleft}{\isacharunderscore}{\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \isakeyword{assumes}\ invl{\isacharcolon}\ {\isachardoublequoteopen}x{\isasymdiv}\ {\isasymotimes}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{fixes}\ inverse\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharparenleft}{\isacharunderscore}{\isasymdiv}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ invl{\isacharcolon}\ {\isachardoublequoteopen}x{\isasymdiv}\ {\isasymotimes}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ \ \ \isacommand{instantiation}\isamarkupfalse%
+\isacommand{instantiation}\isamarkupfalse%
 \ int\ {\isacharcolon}{\isacharcolon}\ group\isanewline
-\ \ \ \ \isakeyword{begin}\isanewline
+\isakeyword{begin}\isanewline
 \isanewline
-\ \ \ \ \isacommand{definition}\isamarkupfalse%
+\isacommand{definition}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ inverse{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}i{\isasymdiv}\ {\isacharequal}\ {\isacharminus}\ {\isacharparenleft}i{\isasymColon}int{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ inverse{\isacharunderscore}int{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}i{\isasymdiv}\ {\isacharequal}\ {\isacharminus}\ {\isacharparenleft}i{\isasymColon}int{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ \ \ \isacommand{instance}\isamarkupfalse%
-%
-\isadelimproof
-\ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{proof}\isamarkupfalse%
+\isacommand{instance}\isamarkupfalse%
+\ \isacommand{proof}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ i\ {\isacharcolon}{\isacharcolon}\ int\isanewline
-\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ \ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isacharminus}i\ {\isacharplus}\ i\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}i{\isasymdiv}\ {\isasymotimes}\ i\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
+\ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ mult{\isacharunderscore}int{\isacharunderscore}def\ neutral{\isacharunderscore}int{\isacharunderscore}def\ inverse{\isacharunderscore}int{\isacharunderscore}def\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
+\isacommand{qed}\isamarkupfalse%
 \isanewline
 \isanewline
-\ \ \ \ \isacommand{end}\isamarkupfalse%
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
 %
 \isamarkupsection{Type classes as locales%
 }
@@ -602,17 +576,30 @@ The example above gives an impression how Isar type classes work
   is nothing else than a locale:%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
 \isacommand{class}\isamarkupfalse%
 \ idem\ {\isacharequal}\ type\ {\isacharplus}\isanewline
 \ \ \isakeyword{fixes}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{assumes}\ idem{\isacharcolon}\ {\isachardoublequoteopen}f\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharequal}\ f\ x{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
 \begin{isamarkuptext}%
 \noindent essentially introduces the locale%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \isadeliminvisible
-%
+\ %
 \endisadeliminvisible
 %
 \isataginvisible
@@ -625,51 +612,95 @@ The example above gives an impression how Isar type classes work
 %
 \endisadeliminvisible
 \isanewline
+%
+\isadelimquote
 \isanewline
+%
+\endisadelimquote
+%
+\isatagquote
 \isacommand{locale}\isamarkupfalse%
 \ idem\ {\isacharequal}\isanewline
 \ \ \isakeyword{fixes}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{assumes}\ idem{\isacharcolon}\ {\isachardoublequoteopen}f\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharequal}\ f\ x{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
 \begin{isamarkuptext}%
 \noindent together with corresponding constant(s):%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
 \isacommand{consts}\isamarkupfalse%
 \ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
 \begin{isamarkuptext}%
 \noindent The connection to the type system is done by means
   of a primitive axclass%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
 \isacommand{axclass}\isamarkupfalse%
 \ idem\ {\isacharless}\ type\isanewline
 \ \ idem{\isacharcolon}\ {\isachardoublequoteopen}f\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharequal}\ f\ x{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
 \begin{isamarkuptext}%
 \noindent together with a corresponding interpretation:%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
 \isacommand{interpretation}\isamarkupfalse%
 \ idem{\isacharunderscore}class{\isacharcolon}\isanewline
 \ \ idem\ {\isacharbrackleft}{\isachardoublequoteopen}f\ {\isasymColon}\ {\isacharparenleft}{\isasymalpha}{\isasymColon}idem{\isacharparenright}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}{\isacharbrackright}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
 \isacommand{by}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\ {\isacharparenleft}rule\ idem{\isacharparenright}%
-\endisatagproof
-{\isafoldproof}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimproof
-\isanewline
+\isadelimquote
 %
-\endisadelimproof
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This gives you at hand the full power of the Isabelle module system;
+  conclusions in locale \isa{idem} are implicitly propagated
+  to class \isa{idem}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadeliminvisible
-\isanewline
-%
+\ %
 \endisadeliminvisible
 %
 \isataginvisible
@@ -682,13 +713,6 @@ The example above gives an impression how Isar type classes work
 %
 \endisadeliminvisible
 %
-\begin{isamarkuptext}%
-This give you at hand the full power of the Isabelle module system;
-  conclusions in locale \isa{idem} are implicitly propagated
-  to class \isa{idem}.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isamarkupsubsection{Abstract reasoning%
 }
 \isamarkuptrue%
@@ -700,48 +724,48 @@ Isabelle locales enable reasoning at a general level, while results
   states that the function \isa{{\isacharparenleft}x\ {\isasymotimes}{\isacharparenright}} is injective:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{lemma}\isamarkupfalse%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ group{\isacharparenright}\ left{\isacharunderscore}cancel{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z\ {\isasymlongleftrightarrow}\ y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-\ \ \ \ %
-\endisadelimproof
-%
-\isatagproof
 \isacommand{proof}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ \ \isacommand{assume}\isamarkupfalse%
 \ {\isachardoublequoteopen}x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}x{\isasymdiv}\ {\isasymotimes}\ {\isacharparenleft}x\ {\isasymotimes}\ y{\isacharparenright}\ {\isacharequal}\ x{\isasymdiv}\ {\isasymotimes}\ {\isacharparenleft}x\ {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isacharparenleft}x{\isasymdiv}\ {\isasymotimes}\ x{\isacharparenright}\ {\isasymotimes}\ y\ {\isacharequal}\ {\isacharparenleft}x{\isasymdiv}\ {\isasymotimes}\ x{\isacharparenright}\ {\isasymotimes}\ z{\isachardoublequoteclose}\ \isacommand{using}\isamarkupfalse%
 \ assoc\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}y\ {\isacharequal}\ z{\isachardoublequoteclose}\ \isacommand{using}\isamarkupfalse%
 \ neutl\ \isakeyword{and}\ invl\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isacommand{next}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ \ \isacommand{assume}\isamarkupfalse%
 \ {\isachardoublequoteopen}y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
 %
-\endisatagproof
-{\isafoldproof}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimproof
+\isadelimquote
 %
-\endisadelimproof
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent Here the \qt{\hyperlink{keyword.in}{\mbox{\isa{\isakeyword{in}}}} \isa{group}} target specification
@@ -760,10 +784,23 @@ Isabelle locales support a concept of local definitions
   in locales:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{primrec}\isamarkupfalse%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{primrec}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ monoid{\isacharparenright}\ pow{\isacharunderscore}nat\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ {\isacharbar}\ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x{\isachardoublequoteclose}%
+\ \ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
 \begin{isamarkuptext}%
 \noindent If the locale \isa{group} is also a class, this local
   definition is propagated onto a global definition of
@@ -799,22 +836,22 @@ We introduced Isar classes by analogy to type classes
   of monoids for lists:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{interpretation}\isamarkupfalse%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{interpretation}\isamarkupfalse%
 \ list{\isacharunderscore}monoid{\isacharcolon}\ monoid\ {\isacharbrackleft}append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}{\isacharbrackright}\isanewline
-%
-\isadelimproof
-\ \ \ \ \ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
+\ \ \isacommand{by}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\ auto%
-\endisatagproof
-{\isafoldproof}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimproof
+\isadelimquote
 %
-\endisadelimproof
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent This enables us to apply facts on monoids
@@ -824,45 +861,45 @@ We introduced Isar classes by analogy to type classes
   be appropriate to map derived definitions accordingly:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{fun}\isamarkupfalse%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{primrec}\isamarkupfalse%
 \ replicate\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isasymalpha}\ list\ {\isasymRightarrow}\ {\isasymalpha}\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}replicate\ {\isadigit{0}}\ {\isacharunderscore}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ {\isacharbar}\ {\isachardoublequoteopen}replicate\ {\isacharparenleft}Suc\ n{\isacharparenright}\ xs\ {\isacharequal}\ xs\ {\isacharat}\ replicate\ n\ xs{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}replicate\ {\isadigit{0}}\ {\isacharunderscore}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}replicate\ {\isacharparenleft}Suc\ n{\isacharparenright}\ xs\ {\isacharequal}\ xs\ {\isacharat}\ replicate\ n\ xs{\isachardoublequoteclose}\isanewline
 \isanewline
-\ \ \ \ \isacommand{interpretation}\isamarkupfalse%
+\isacommand{interpretation}\isamarkupfalse%
 \ list{\isacharunderscore}monoid{\isacharcolon}\ monoid\ {\isacharbrackleft}append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}{\isacharbrackright}\ \isakeyword{where}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}monoid{\isachardot}pow{\isacharunderscore}nat\ append\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ replicate{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-\ \ \ \ %
-\endisadelimproof
-%
-\isatagproof
+\ \ {\isachardoublequoteopen}monoid{\isachardot}pow{\isacharunderscore}nat\ append\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ replicate{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
-\ \ \ \ \ \ \isacommand{interpret}\isamarkupfalse%
+\ \ \isacommand{interpret}\isamarkupfalse%
 \ monoid\ {\isacharbrackleft}append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}{\isacharbrackright}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}monoid{\isachardot}pow{\isacharunderscore}nat\ append\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ replicate{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ \ \isacommand{proof}\isamarkupfalse%
 \isanewline
-\ \ \ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
 \ n\isanewline
-\ \ \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ \ \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}monoid{\isachardot}pow{\isacharunderscore}nat\ append\ {\isacharbrackleft}{\isacharbrackright}\ n\ {\isacharequal}\ replicate\ n{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
+\ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ {\isacharparenleft}induct\ n{\isacharparenright}\ auto\isanewline
-\ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
+\ \ \isacommand{qed}\isamarkupfalse%
 \isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
 \ intro{\isacharunderscore}locales%
-\endisatagproof
-{\isafoldproof}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimproof
+\isadelimquote
 %
-\endisadelimproof
+\endisadelimquote
 %
 \isamarkupsubsection{Additional subclass relations%
 }
@@ -875,38 +912,38 @@ Any \isa{group} is also a \isa{monoid};  this
   together with a proof of the logical difference:%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \ \ \isacommand{subclass}\isamarkupfalse%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{subclass}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ group{\isacharparenright}\ monoid\isanewline
-%
-\isadelimproof
-\ \ \ \ %
-\endisadelimproof
-%
-\isatagproof
 \isacommand{proof}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\isanewline
-\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ \ \isacommand{fix}\isamarkupfalse%
 \ x\isanewline
-\ \ \ \ \ \ \isacommand{from}\isamarkupfalse%
+\ \ \isacommand{from}\isamarkupfalse%
 \ invl\ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}x{\isasymdiv}\ {\isasymotimes}\ x\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ \ \isacommand{with}\isamarkupfalse%
 \ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}\ neutl\ invl\ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}x{\isasymdiv}\ {\isasymotimes}\ {\isacharparenleft}x\ {\isasymotimes}\ {\isasymone}{\isacharparenright}\ {\isacharequal}\ x{\isasymdiv}\ {\isasymotimes}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ \ \isacommand{with}\isamarkupfalse%
 \ left{\isacharunderscore}cancel\ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}x\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
-\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
 %
-\endisatagproof
-{\isafoldproof}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimproof
+\isadelimquote
 %
-\endisadelimproof
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent The logical proof is carried out on the locale level
@@ -1006,24 +1043,11 @@ As a commodity, class context syntax allows to refer
 \ {\isachardoublequoteopen}{\isacharparenleft}x{\isasymColon}nat{\isacharparenright}\ {\isasymotimes}\ y{\isachardoublequoteclose}\ %
 \isamarkupcmt{example 2%
 }
-%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
 \isanewline
 \isanewline
 \isacommand{end}\isamarkupfalse%
 \isanewline
-%
-\isadelimquote
 \isanewline
-%
-\endisadelimquote
-%
-\isatagquote
 \isacommand{term}\isamarkupfalse%
 \ {\isachardoublequoteopen}x\ {\isasymotimes}\ y{\isachardoublequoteclose}\ %
 \isamarkupcmt{example 3%
