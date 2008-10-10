@@ -91,8 +91,8 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* Unified theorem tables of both code code generators.  Thus [code]
-and [code func] behave identically.  INCOMPATIBILITY.
+* Unified theorem tables of both code code generators.  Thus [code func]
+has disappeared and only [code] remains.  INCOMPATIBILITY.
 
 * "undefined" replaces "arbitrary" in most occurences.
 
@@ -128,6 +128,7 @@ renames resulting from duplicate elimination:
 
     dvd_def_mod ~>          dvd_eq_mod_eq_0
     zero_dvd_iff ~>         dvd_0_left_iff
+    dvd_0 ~>                dvd_0_right
     DIVISION_BY_ZERO_DIV ~> div_by_0
     DIVISION_BY_ZERO_MOD ~> mod_by_0
     mult_div ~>             div_mult_self2_is_id

@@ -109,10 +109,8 @@ text {* Abstract divisibility *}
 class dvd = times
 begin
 
-definition
-  dvd  :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd" 50)
-where
-  [code func del]: "b dvd a \<longleftrightarrow> (\<exists>k. a = b * k)"
+definition dvd :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd" 50) where
+  [code del]: "b dvd a \<longleftrightarrow> (\<exists>k. a = b * k)"
 
 lemma dvdI [intro?]: "a = b * k \<Longrightarrow> b dvd a"
   unfolding dvd_def ..
@@ -129,34 +127,33 @@ begin
 subclass semiring_1 ..
 
 lemma dvd_refl: "a dvd a"
-proof -
-  have "a = a * 1" by simp
-  then show ?thesis unfolding dvd_def ..
+proof
+  show "a = a * 1" by simp
 qed
 
 lemma dvd_trans:
   assumes "a dvd b" and "b dvd c"
   shows "a dvd c"
 proof -
-  from assms obtain v where "b = a * v" unfolding dvd_def by auto
-  moreover from assms obtain w where "c = b * w" unfolding dvd_def by auto
+  from assms obtain v where "b = a * v" by (auto elim!: dvdE)
+  moreover from assms obtain w where "c = b * w" by (auto elim!: dvdE)
   ultimately have "c = a * (v * w)" by (simp add: mult_assoc)
-  then show ?thesis unfolding dvd_def ..
+  then show ?thesis ..
 qed
 
 lemma dvd_0_left_iff [noatp, simp]: "0 dvd a \<longleftrightarrow> a = 0"
-  unfolding dvd_def by simp
+  by (auto intro: dvd_refl elim!: dvdE)
 
-lemma dvd_0 [simp]: "a dvd 0"
-unfolding dvd_def proof
+lemma dvd_0_right [iff]: "a dvd 0"
+proof
   show "0 = a * 0" by simp
 qed
 
 lemma one_dvd [simp]: "1 dvd a"
-  unfolding dvd_def by simp
+  by (auto intro!: dvdI)
 
 lemma dvd_mult: "a dvd c \<Longrightarrow> a dvd (b * c)"
-  unfolding dvd_def by (blast intro: mult_left_commute)
+  by (auto intro!: mult_left_commute dvdI elim!: dvdE)
 
 lemma dvd_mult2: "a dvd b \<Longrightarrow> a dvd (b * c)"
   apply (subst mult_commute)
@@ -185,12 +182,6 @@ lemma dvd_mult_left: "a * b dvd c \<Longrightarrow> a dvd c"
 
 lemma dvd_mult_right: "a * b dvd c \<Longrightarrow> b dvd c"
   unfolding mult_ac [of a] by (rule dvd_mult_left)
-
-lemma dvd_0_right [iff]: "a dvd 0"
-proof -
-  have "0 = a * 0" by simp
-  then show ?thesis unfolding dvd_def ..
-qed
 
 lemma dvd_0_left: "0 dvd a \<Longrightarrow> a = 0"
   by simp
@@ -533,7 +524,7 @@ lemma divide_zero [simp]:
 
 lemma divide_self_if [simp]:
   "a / (a::'a::{field,division_by_zero}) = (if a=0 then 0 else 1)"
-  by (simp add: divide_self)
+  by simp
 
 class mult_mono = times + zero + ord +
   assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
