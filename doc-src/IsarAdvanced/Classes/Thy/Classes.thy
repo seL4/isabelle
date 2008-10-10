@@ -1,40 +1,6 @@
-(* $Id$ *)
-
-(*<*)
 theory Classes
-imports Main Code_Integer
-uses "../../../more_antiquote"
+imports Main Setup
 begin
-
-ML {*
-Code_Target.code_width := 74;
-*}
-
-syntax
-  "_alpha" :: "type"  ("\<alpha>")
-  "_alpha_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>()\<Colon>_" [0] 1000)
-  "_beta" :: "type"  ("\<beta>")
-  "_beta_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>()\<Colon>_" [0] 1000)
-
-parse_ast_translation {*
-  let
-    fun alpha_ast_tr [] = Syntax.Variable "'a"
-      | alpha_ast_tr asts = raise Syntax.AST ("alpha_ast_tr", asts);
-    fun alpha_ofsort_ast_tr [ast] =
-      Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'a", ast]
-      | alpha_ofsort_ast_tr asts = raise Syntax.AST ("alpha_ast_tr", asts);
-    fun beta_ast_tr [] = Syntax.Variable "'b"
-      | beta_ast_tr asts = raise Syntax.AST ("beta_ast_tr", asts);
-    fun beta_ofsort_ast_tr [ast] =
-      Syntax.Appl [Syntax.Constant "_ofsort", Syntax.Variable "'b", ast]
-      | beta_ofsort_ast_tr asts = raise Syntax.AST ("beta_ast_tr", asts);
-  in [
-    ("_alpha", alpha_ast_tr), ("_alpha_ofsort", alpha_ofsort_ast_tr),
-    ("_beta", beta_ast_tr), ("_beta_ofsort", beta_ofsort_ast_tr)
-  ] end
-*}
-(*>*)
-
 
 chapter {* Haskell-style classes with Isabelle/Isar *}
 
@@ -52,23 +18,27 @@ text {*
   of the @{text eq} function from its overloaded definitions by means
   of @{text class} and @{text instance} declarations:
 
-  \medskip\noindent\hspace*{2ex}@{text "class eq where"}\footnote{syntax here is a kind of isabellized Haskell} \\
-  \hspace*{4ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
+  \begin{quote}
 
-  \medskip\noindent\hspace*{2ex}@{text "instance nat \<Colon> eq where"} \\
-  \hspace*{4ex}@{text "eq 0 0 = True"} \\
-  \hspace*{4ex}@{text "eq 0 _ = False"} \\
-  \hspace*{4ex}@{text "eq _ 0 = False"} \\
-  \hspace*{4ex}@{text "eq (Suc n) (Suc m) = eq n m"}
+  \noindent@{text "class eq where"}\footnote{syntax here is a kind of isabellized Haskell} \\
+  \hspace*{2ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
-  \medskip\noindent\hspace*{2ex}@{text "instance (\<alpha>\<Colon>eq, \<beta>\<Colon>eq) pair \<Colon> eq where"} \\
-  \hspace*{4ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 \<and> eq y1 y2"}
+  \medskip\noindent@{text "instance nat \<Colon> eq where"} \\
+  \hspace*{2ex}@{text "eq 0 0 = True"} \\
+  \hspace*{2ex}@{text "eq 0 _ = False"} \\
+  \hspace*{2ex}@{text "eq _ 0 = False"} \\
+  \hspace*{2ex}@{text "eq (Suc n) (Suc m) = eq n m"}
 
-  \medskip\noindent\hspace*{2ex}@{text "class ord extends eq where"} \\
-  \hspace*{4ex}@{text "less_eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
-  \hspace*{4ex}@{text "less \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
+  \medskip\noindent\@{text "instance (\<alpha>\<Colon>eq, \<beta>\<Colon>eq) pair \<Colon> eq where"} \\
+  \hspace*{2ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 \<and> eq y1 y2"}
 
-  \medskip\noindent Type variables are annotated with (finitely many) classes;
+  \medskip\noindent@{text "class ord extends eq where"} \\
+  \hspace*{2ex}@{text "less_eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
+  \hspace*{2ex}@{text "less \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
+
+  \end{quote}
+
+  \noindent Type variables are annotated with (finitely many) classes;
   these annotations are assertions that a particular polymorphic type
   provides definitions for overloaded functions.
 
@@ -85,14 +55,18 @@ text {*
   @{text "class eq"} is an equivalence relation obeying reflexivity,
   symmetry and transitivity:
 
-  \medskip\noindent\hspace*{2ex}@{text "class eq where"} \\
-  \hspace*{4ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
-  \hspace*{2ex}@{text "satisfying"} \\
-  \hspace*{4ex}@{text "refl: eq x x"} \\
-  \hspace*{4ex}@{text "sym: eq x y \<longleftrightarrow> eq x y"} \\
-  \hspace*{4ex}@{text "trans: eq x y \<and> eq y z \<longrightarrow> eq x z"}
+  \begin{quote}
 
-  \medskip\noindent From a theoretic point of view, type classes are lightweight
+  \noindent@{text "class eq where"} \\
+  \hspace*{2ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} \\
+  @{text "satisfying"} \\
+  \hspace*{2ex}@{text "refl: eq x x"} \\
+  \hspace*{2ex}@{text "sym: eq x y \<longleftrightarrow> eq x y"} \\
+  \hspace*{2ex}@{text "trans: eq x y \<and> eq y z \<longrightarrow> eq x z"}
+
+  \end{quote}
+
+  \noindent From a theoretic point of view, type classes are lightweight
   modules; Haskell type classes may be emulated by
   SML functors \cite{classes_modules}. 
   Isabelle/Isar offers a discipline of type classes which brings
@@ -128,22 +102,23 @@ subsection {* Class definition *}
 
 text {*
   Depending on an arbitrary type @{text "\<alpha>"}, class @{text
-  "semigroup"} introduces a binary operator @{text "\<otimes>"} that is
+  "semigroup"} introduces a binary operator @{text "(\<otimes>)"} that is
   assumed to be associative:
 *}
 
-    class semigroup = type +
-      fixes mult :: "\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"    (infixl "\<otimes>" 70)
-      assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
+class %quote semigroup = type +
+  fixes mult :: "\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"    (infixl "\<otimes>" 70)
+  assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
 
 text {*
-  \noindent This @{text "\<CLASS>"} specification consists of two
-  parts: the \qn{operational} part names the class parameter (@{text
-  "\<FIXES>"}), the \qn{logical} part specifies properties on them
-  (@{text "\<ASSUMES>"}).  The local @{text "\<FIXES>"} and @{text
-  "\<ASSUMES>"} are lifted to the theory toplevel, yielding the global
+  \noindent This @{command class} specification consists of two
+  parts: the \qn{operational} part names the class parameter
+  (@{element "fixes"}), the \qn{logical} part specifies properties on them
+  (@{element "assumes"}).  The local @{element "fixes"} and
+  @{element "assumes"} are lifted to the theory toplevel,
+  yielding the global
   parameter @{term [source] "mult \<Colon> \<alpha>\<Colon>semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
-  global theorem @{text "semigroup.assoc:"}~@{prop [source] "\<And>x y
+  global theorem @{fact "semigroup.assoc:"}~@{prop [source] "\<And>x y
   z \<Colon> \<alpha>\<Colon>semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
 *}
 
@@ -151,65 +126,66 @@ text {*
 subsection {* Class instantiation \label{sec:class_inst} *}
 
 text {*
-  The concrete type @{text "int"} is made a @{text "semigroup"}
+  The concrete type @{typ int} is made a @{class semigroup}
   instance by providing a suitable definition for the class parameter
-  @{text "mult"} and a proof for the specification of @{text "assoc"}.
-  This is accomplished by the @{text "\<INSTANTIATION>"} target:
+  @{text "(\<otimes>)"} and a proof for the specification of @{fact assoc}.
+  This is accomplished by the @{command instantiation} target:
 *}
 
-    instantiation int :: semigroup
-    begin
+instantiation %quote int :: semigroup
+begin
 
-    definition
-      mult_int_def: "i \<otimes> j = i + (j\<Colon>int)"
+definition %quote
+  mult_int_def: "i \<otimes> j = i + (j\<Colon>int)"
 
-    instance proof
-      fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
-      then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
-	unfolding mult_int_def .
-    qed
+instance %quote proof
+  fix i j k :: int have "(i + j) + k = i + (j + k)" by simp
+  then show "(i \<otimes> j) \<otimes> k = i \<otimes> (j \<otimes> k)"
+  unfolding mult_int_def .
+qed
 
-    end
+end %quote
 
 text {*
-  \noindent @{text "\<INSTANTIATION>"} allows to define class parameters
+  \noindent @{command instantiation} allows to define class parameters
   at a particular instance using common specification tools (here,
-  @{text "\<DEFINITION>"}).  The concluding @{text "\<INSTANCE>"}
+  @{command definition}).  The concluding @{command instance}
   opens a proof that the given parameters actually conform
   to the class specification.  Note that the first proof step
-  is the @{text default} method,
-  which for such instance proofs maps to the @{text intro_classes} method.
+  is the @{method default} method,
+  which for such instance proofs maps to the @{method intro_classes} method.
   This boils down an instance judgement to the relevant primitive
   proof goals and should conveniently always be the first method applied
   in an instantiation proof.
 
-  From now on, the type-checker will consider @{text "int"}
-  as a @{text "semigroup"} automatically, i.e.\ any general results
+  From now on, the type-checker will consider @{typ int}
+  as a @{class semigroup} automatically, i.e.\ any general results
   are immediately available on concrete instances.
-  \medskip Another instance of @{text "semigroup"} are the natural numbers:
+
+  \medskip Another instance of @{class semigroup} are the natural numbers:
 *}
 
-    instantiation nat :: semigroup
-    begin
+instantiation %quote nat :: semigroup
+begin
 
-    primrec mult_nat where
-      "(0\<Colon>nat) \<otimes> n = n"
-      | "Suc m \<otimes> n = Suc (m \<otimes> n)"
+primrec %quote mult_nat where
+  "(0\<Colon>nat) \<otimes> n = n"
+  | "Suc m \<otimes> n = Suc (m \<otimes> n)"
 
-    instance proof
-      fix m n q :: nat 
-      show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)"
-        by (induct m) auto
-    qed
+instance %quote proof
+  fix m n q :: nat 
+  show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)"
+    by (induct m) auto
+qed
 
-    end
+end %quote
 
 text {*
   \noindent Note the occurence of the name @{text mult_nat}
   in the primrec declaration;  by default, the local name of
   a class operation @{text f} to instantiate on type constructor
   @{text \<kappa>} are mangled as @{text f_\<kappa>}.  In case of uncertainty,
-  these names may be inspected using the @{text "\<PRINTCONTEXT>"} command
+  these names may be inspected using the @{command "print_context"} command
   or the corresponding ProofGeneral button.
 *}
 
@@ -222,27 +198,27 @@ text {*
   using our simple algebra:
 *}
 
-    instantiation * :: (semigroup, semigroup) semigroup
-    begin
+instantiation %quote * :: (semigroup, semigroup) semigroup
+begin
 
-    definition
-      mult_prod_def: "p\<^isub>1 \<otimes> p\<^isub>2 = (fst p\<^isub>1 \<otimes> fst p\<^isub>2, snd p\<^isub>1 \<otimes> snd p\<^isub>2)"
+definition %quote
+  mult_prod_def: "p\<^isub>1 \<otimes> p\<^isub>2 = (fst p\<^isub>1 \<otimes> fst p\<^isub>2, snd p\<^isub>1 \<otimes> snd p\<^isub>2)"
 
-    instance proof
-      fix p\<^isub>1 p\<^isub>2 p\<^isub>3 :: "\<alpha>\<Colon>semigroup \<times> \<beta>\<Colon>semigroup"
-      show "p\<^isub>1 \<otimes> p\<^isub>2 \<otimes> p\<^isub>3 = p\<^isub>1 \<otimes> (p\<^isub>2 \<otimes> p\<^isub>3)"
-	unfolding mult_prod_def by (simp add: assoc)
-    qed      
+instance %quote proof
+  fix p\<^isub>1 p\<^isub>2 p\<^isub>3 :: "\<alpha>\<Colon>semigroup \<times> \<beta>\<Colon>semigroup"
+  show "p\<^isub>1 \<otimes> p\<^isub>2 \<otimes> p\<^isub>3 = p\<^isub>1 \<otimes> (p\<^isub>2 \<otimes> p\<^isub>3)"
+  unfolding mult_prod_def by (simp add: assoc)
+qed      
 
-    end
+end %quote
 
 text {*
   \noindent Associativity from product semigroups is
   established using
-  the definition of @{text \<otimes>} on products and the hypothetical
+  the definition of @{text "(\<otimes>)"} on products and the hypothetical
   associativity of the type components;  these hypotheses
-  are facts due to the @{text semigroup} constraints imposed
-  on the type components by the @{text instance} proposition.
+  are facts due to the @{class semigroup} constraints imposed
+  on the type components by the @{command instance} proposition.
   Indeed, this pattern often occurs with parametric types
   and type classes.
 *}
@@ -251,15 +227,15 @@ text {*
 subsection {* Subclassing *}
 
 text {*
-  We define a subclass @{text "monoidl"} (a semigroup with a left-hand neutral)
-  by extending @{text "semigroup"}
-  with one additional parameter @{text "neutral"} together
+  We define a subclass @{text monoidl} (a semigroup with a left-hand neutral)
+  by extending @{class semigroup}
+  with one additional parameter @{text neutral} together
   with its property:
 *}
 
-    class monoidl = semigroup +
-      fixes neutral :: "\<alpha>" ("\<one>")
-      assumes neutl: "\<one> \<otimes> x = x"
+class %quote monoidl = semigroup +
+  fixes neutral :: "\<alpha>" ("\<one>")
+  assumes neutl: "\<one> \<otimes> x = x"
 
 text {*
   \noindent Again, we prove some instances, by
@@ -338,7 +314,7 @@ text {*
     end
 
 text {*
-  \noindent To finish our small algebra example, we add a @{text "group"} class
+  \noindent To finish our small algebra example, we add a @{text group} class
   with a corresponding instance:
 *}
 
@@ -379,7 +355,9 @@ class idem = type +
 text {*
   \noindent essentially introduces the locale
 *}
-(*<*) setup {* Sign.add_path "foo" *} (*>*)
+
+setup %invisible {* Sign.add_path "foo" *}
+
 locale idem =
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
@@ -401,7 +379,9 @@ text {* \noindent together with a corresponding interpretation: *}
 interpretation idem_class:
   idem ["f \<Colon> (\<alpha>\<Colon>idem) \<Rightarrow> \<alpha>"]
 by unfold_locales (rule idem)
-(*<*) setup {* Sign.parent_path *} (*>*)
+
+setup %invisible {* Sign.parent_path *}
+
 text {*
   This give you at hand the full power of the Isabelle module system;
   conclusions in locale @{text idem} are implicitly propagated
@@ -429,9 +409,9 @@ text {*
     qed
 
 text {*
-  \noindent Here the \qt{@{text "\<IN> group"}} target specification
+  \noindent Here the \qt{@{keyword "in"} @{class group}} target specification
   indicates that the result is recorded within that context for later
-  use.  This local theorem is also lifted to the global one @{text
+  use.  This local theorem is also lifted to the global one @{fact
   "group.left_cancel:"} @{prop [source] "\<And>x y z \<Colon> \<alpha>\<Colon>group. x \<otimes> y = x \<otimes>
   z \<longleftrightarrow> y = z"}.  Since type @{text "int"} has been made an instance of
   @{text "group"} before, we may refer to that fact as well: @{prop
@@ -474,15 +454,15 @@ text {*
   classes essentially correspond to functors which have
   a canonical interpretation as type classes.
   Anyway, there is also the possibility of other interpretations.
-  For example, also @{text "list"}s form a monoid with
-  @{term "op @"} and @{term "[]"} as operations, but it
+  For example, also @{text list}s form a monoid with
+  @{text append} and @{term "[]"} as operations, but it
   seems inappropriate to apply to lists
   the same operations as for genuinely algebraic types.
   In such a case, we simply can do a particular interpretation
   of monoids for lists:
 *}
 
-    interpretation list_monoid: monoid ["op @" "[]"]
+    interpretation list_monoid: monoid [append "[]"]
       by unfold_locales auto
 
 text {*
@@ -497,14 +477,14 @@ text {*
       "replicate 0 _ = []"
       | "replicate (Suc n) xs = xs @ replicate n xs"
 
-    interpretation list_monoid: monoid ["op @" "[]"] where
-      "monoid.pow_nat (op @) [] = replicate"
+    interpretation list_monoid: monoid [append "[]"] where
+      "monoid.pow_nat append [] = replicate"
     proof -
-      interpret monoid ["op @" "[]"] ..
-      show "monoid.pow_nat (op @) [] = replicate"
+      interpret monoid [append "[]"] ..
+      show "monoid.pow_nat append [] = replicate"
       proof
         fix n
-        show "monoid.pow_nat (op @) [] n = replicate n"
+        show "monoid.pow_nat append [] n = replicate n"
           by (induct n) auto
       qed
     qed intro_locales
@@ -571,11 +551,10 @@ text {*
   in @{text group} which uses @{text pow_nat}:
 *}
 
-    definition (in group)
-      pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
-      "pow_int k x = (if k >= 0
-        then pow_nat (nat k) x
-        else (pow_nat (nat (- k)) x)\<div>)"
+definition %quote (in group) pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
+  "pow_int k x = (if k >= 0
+    then pow_nat (nat k) x
+    else (pow_nat (nat (- k)) x)\<div>)"
 
 text {*
   \noindent yields the global definition of
@@ -591,15 +570,15 @@ text {*
   uniformly;  type inference resolves ambiguities.  For example:
 *}
 
-context semigroup
+context %quote semigroup
 begin
 
-term "x \<otimes> y" -- {* example 1 *}
-term "(x\<Colon>nat) \<otimes> y" -- {* example 2 *}
+term %quote "x \<otimes> y" -- {* example 1 *}
+term %quote "(x\<Colon>nat) \<otimes> y" -- {* example 2 *}
 
 end
 
-term "x \<otimes> y" -- {* example 3 *}
+term %quote "x \<otimes> y" -- {* example 3 *}
 
 text {*
   \noindent Here in example 1, the term refers to the local class operation
@@ -614,8 +593,8 @@ section {* Type classes and code generation *}
 text {*
   Turning back to the first motivation for type classes,
   namely overloading, it is obvious that overloading
-  stemming from @{text "\<CLASS>"} statements and
-  @{text "\<INSTANTIATION>"}
+  stemming from @{command class} statements and
+  @{command instantiation}
   targets naturally maps to Haskell type classes.
   The code generator framework \cite{isabelle-codegen} 
   takes this into account.  Concerning target languages
@@ -624,20 +603,19 @@ text {*
   As example, let's go back to the power function:
 *}
 
-    definition
-      example :: int where
-      "example = pow_int 10 (-2)"
+definition %quote example :: int where
+  "example = pow_int 10 (-2)"
 
 text {*
   \noindent This maps to Haskell as:
 *}
 
-text %quoteme {*@{code_stmts example (Haskell)}*}
+text %quote {*@{code_stmts example (Haskell)}*}
 
 text {*
   \noindent The whole code in SML with explicit dictionary passing:
 *}
 
-text %quoteme {*@{code_stmts example (SML)}*}
+text %quote {*@{code_stmts example (SML)}*}
 
 end
