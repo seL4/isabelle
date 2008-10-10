@@ -65,15 +65,15 @@ text {*
   For example, here a simple \qt{implementation} of amortised queues:
 *}
 
-datatype %quoteme 'a queue = Queue "'a list" "'a list"
+datatype %quote 'a queue = Queue "'a list" "'a list"
 
-definition %quoteme empty :: "'a queue" where
+definition %quote empty :: "'a queue" where
   "empty = Queue [] []"
 
-primrec %quoteme enqueue :: "'a \<Rightarrow> 'a queue \<Rightarrow> 'a queue" where
+primrec %quote enqueue :: "'a \<Rightarrow> 'a queue \<Rightarrow> 'a queue" where
   "enqueue x (Queue xs ys) = Queue (x # xs) ys"
 
-fun %quoteme dequeue :: "'a queue \<Rightarrow> 'a option \<times> 'a queue" where
+fun %quote dequeue :: "'a queue \<Rightarrow> 'a option \<times> 'a queue" where
     "dequeue (Queue [] []) = (None, Queue [] [])"
   | "dequeue (Queue xs (y # ys)) = (Some y, Queue xs ys)"
   | "dequeue (Queue xs []) =
@@ -81,12 +81,12 @@ fun %quoteme dequeue :: "'a queue \<Rightarrow> 'a option \<times> 'a queue" whe
 
 text {* \noindent Then we can generate code e.g.~for @{text SML} as follows: *}
 
-export_code %quoteme empty dequeue enqueue in SML
+export_code %quote empty dequeue enqueue in SML
   module_name Example file "examples/example.ML"
 
 text {* \noindent resulting in the following code: *}
 
-text %quoteme {*@{code_stmts empty enqueue dequeue (SML)}*}
+text %quote {*@{code_stmts empty enqueue dequeue (SML)}*}
 
 text {*
   \noindent The @{command export_code} command takes a space-separated list of
@@ -100,14 +100,14 @@ text {*
   (with extension @{text ".hs"}) is written:
 *}
 
-export_code %quoteme empty dequeue enqueue in Haskell
+export_code %quote empty dequeue enqueue in Haskell
   module_name Example file "examples/"
 
 text {*
   \noindent This is how the corresponding code in @{text Haskell} looks like:
 *}
 
-text %quoteme {*@{code_stmts empty enqueue dequeue (Haskell)}*}
+text %quote {*@{code_stmts empty enqueue dequeue (Haskell)}*}
 
 text {*
   \noindent This demonstrates the basic usage of the @{command export_code} command;

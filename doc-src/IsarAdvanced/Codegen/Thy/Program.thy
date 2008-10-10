@@ -25,7 +25,7 @@ text {*
   explicitly:
 *}
 
-lemma %quoteme [code]:
+lemma %quote [code]:
   "dequeue (Queue xs []) =
      (if xs = [] then (None, Queue [] [])
        else dequeue (Queue [] (rev xs)))"
@@ -40,7 +40,7 @@ text {*
   the corresponding constant is determined syntactically.  The resulting code:
 *}
 
-text %quoteme {*@{code_stmts dequeue (consts) dequeue (Haskell)}*}
+text %quote {*@{code_stmts dequeue (consts) dequeue (Haskell)}*}
 
 text {*
   \noindent You may note that the equality test @{term "xs = []"} has been
@@ -56,7 +56,7 @@ text {*
   may be inspected using the @{command code_thms} command:
 *}
 
-code_thms %quoteme dequeue
+code_thms %quote dequeue
 
 text {*
   \noindent prints a table with \emph{all} defining equations
@@ -75,31 +75,31 @@ text {*
   from abstract algebra:
 *}
 
-class %quoteme semigroup = type +
+class %quote semigroup = type +
   fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<otimes>" 70)
   assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
 
-class %quoteme monoid = semigroup +
+class %quote monoid = semigroup +
   fixes neutral :: 'a ("\<one>")
   assumes neutl: "\<one> \<otimes> x = x"
     and neutr: "x \<otimes> \<one> = x"
 
-instantiation %quoteme nat :: monoid
+instantiation %quote nat :: monoid
 begin
 
-primrec %quoteme mult_nat where
+primrec %quote mult_nat where
     "0 \<otimes> n = (0\<Colon>nat)"
   | "Suc m \<otimes> n = n + m \<otimes> n"
 
-definition %quoteme neutral_nat where
+definition %quote neutral_nat where
   "\<one> = Suc 0"
 
-lemma %quoteme add_mult_distrib:
+lemma %quote add_mult_distrib:
   fixes n m q :: nat
   shows "(n + m) \<otimes> q = n \<otimes> q + m \<otimes> q"
   by (induct n) simp_all
 
-instance %quoteme proof
+instance %quote proof
   fix m n q :: nat
   show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)"
     by (induct m) (simp_all add: add_mult_distrib)
@@ -109,14 +109,14 @@ instance %quoteme proof
     by (induct m) (simp_all add: neutral_nat_def)
 qed
 
-end %quoteme
+end %quote
 
 text {*
   \noindent We define the natural operation of the natural numbers
   on monoids:
 *}
 
-primrec %quoteme (in monoid) pow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
+primrec %quote (in monoid) pow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
     "pow 0 a = \<one>"
   | "pow (Suc n) a = a \<otimes> pow n a"
 
@@ -124,21 +124,21 @@ text {*
   \noindent This we use to define the discrete exponentiation function:
 *}
 
-definition %quoteme bexp :: "nat \<Rightarrow> nat" where
+definition %quote bexp :: "nat \<Rightarrow> nat" where
   "bexp n = pow n (Suc (Suc 0))"
 
 text {*
   \noindent The corresponding code:
 *}
 
-text %quoteme {*@{code_stmts bexp (Haskell)}*}
+text %quote {*@{code_stmts bexp (Haskell)}*}
 
 text {*
   \noindent This is a convenient place to show how explicit dictionary construction
   manifests in generated code (here, the same example in @{text SML}):
 *}
 
-text %quoteme {*@{code_stmts bexp (SML)}*}
+text %quote {*@{code_stmts bexp (SML)}*}
 
 text {*
   \noindent Note the parameters with trailing underscore (@{verbatim "A_"})
@@ -173,21 +173,21 @@ text {*
      \item replacing non-executable constructs by executable ones:
 *}     
 
-lemma %quoteme [code inline]:
+lemma %quote [code inline]:
   "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
 
 text {*
      \item eliminating superfluous constants:
 *}
 
-lemma %quoteme [code inline]:
+lemma %quote [code inline]:
   "1 = Suc 0" by simp
 
 text {*
      \item replacing executable but inconvenient constructs:
 *}
 
-lemma %quoteme [code inline]:
+lemma %quote [code inline]:
   "xs = [] \<longleftrightarrow> List.null xs" by (induct xs) simp_all
 
 text_raw {*
@@ -236,10 +236,10 @@ text {*
     does something similar}.  First, the digit representation:
 *}
 
-definition %quoteme Dig0 :: "nat \<Rightarrow> nat" where
+definition %quote Dig0 :: "nat \<Rightarrow> nat" where
   "Dig0 n = 2 * n"
 
-definition %quoteme  Dig1 :: "nat \<Rightarrow> nat" where
+definition %quote  Dig1 :: "nat \<Rightarrow> nat" where
   "Dig1 n = Suc (2 * n)"
 
 text {*
@@ -247,7 +247,7 @@ text {*
   in binary digits, e.g.:
 *}
 
-lemma %quoteme 42: "42 = Dig0 (Dig1 (Dig0 (Dig1 (Dig0 1))))"
+lemma %quote 42: "42 = Dig0 (Dig1 (Dig0 (Dig1 (Dig0 1))))"
   by (simp add: Dig0_def Dig1_def)
 
 text {*
@@ -255,7 +255,7 @@ text {*
   the operations, e.g. @{term "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"}:
 *}
 
-lemma %quoteme plus_Dig [code]:
+lemma %quote plus_Dig [code]:
   "0 + n = n"
   "m + 0 = m"
   "1 + Dig0 n = Dig1 n"
@@ -274,7 +274,7 @@ text {*
   datatype constructors:
 *}
 
-code_datatype %quoteme "0\<Colon>nat" "1\<Colon>nat" Dig0 Dig1
+code_datatype %quote "0\<Colon>nat" "1\<Colon>nat" Dig0 Dig1
 
 text {*
   \noindent For the former constructor @{term Suc}, we provide a code
@@ -282,18 +282,18 @@ text {*
   which are an obstacle here:
 *}
 
-lemma %quoteme Suc_Dig [code]:
+lemma %quote Suc_Dig [code]:
   "Suc n = n + 1"
   by simp
 
-declare %quoteme One_nat_def [code inline del]
-declare %quoteme add_Suc_shift [code del] 
+declare %quote One_nat_def [code inline del]
+declare %quote add_Suc_shift [code del] 
 
 text {*
   \noindent This yields the following code:
 *}
 
-text %quoteme {*@{code_stmts "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" (SML)}*}
+text %quote {*@{code_stmts "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat" (SML)}*}
 
 text {*
   \noindent From this example, it can be easily glimpsed that using own constructor sets
@@ -329,7 +329,7 @@ text {*
   by the code generator:
 *}
 
-primrec %quoteme collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+primrec %quote collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "collect_duplicates xs ys [] = xs"
   | "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
       then if z \<in> set ys
@@ -343,7 +343,7 @@ text {*
   performs an explicit equality check.
 *}
 
-text %quoteme {*@{code_stmts collect_duplicates (SML)}*}
+text %quote {*@{code_stmts collect_duplicates (SML)}*}
 
 text {*
   \noindent Obviously, polymorphic equality is implemented the Haskell
@@ -364,21 +364,21 @@ text {*
   (also see theory @{theory Product_ord}):
 *}
 
-instantiation %quoteme "*" :: (order, order) order
+instantiation %quote "*" :: (order, order) order
 begin
 
-definition %quoteme [code del]:
+definition %quote [code del]:
   "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x \<le> snd y"
 
-definition %quoteme [code del]:
+definition %quote [code del]:
   "x < y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x < snd y"
 
-instance %quoteme proof
+instance %quote proof
 qed (auto simp: less_eq_prod_def less_prod_def intro: order_less_trans)
 
-end %quoteme
+end %quote
 
-lemma %quoteme order_prod [code]:
+lemma %quote order_prod [code]:
   "(x1 \<Colon> 'a\<Colon>order, y1 \<Colon> 'b\<Colon>order) < (x2, y2) \<longleftrightarrow>
      x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
   "(x1 \<Colon> 'a\<Colon>order, y1 \<Colon> 'b\<Colon>order) \<le> (x2, y2) \<longleftrightarrow>
@@ -396,7 +396,7 @@ text {*
   code theorems:
 *}
 
-lemma %quoteme order_prod_code [code]:
+lemma %quote order_prod_code [code]:
   "(x1 \<Colon> 'a\<Colon>{order, eq}, y1 \<Colon> 'b\<Colon>order) < (x2, y2) \<longleftrightarrow>
      x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
   "(x1 \<Colon> 'a\<Colon>{order, eq}, y1 \<Colon> 'b\<Colon>order) \<le> (x2, y2) \<longleftrightarrow>
@@ -407,7 +407,7 @@ text {*
   \noindent Then code generation succeeds:
 *}
 
-text %quoteme {*@{code_stmts "op \<le> \<Colon> _ \<times> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (SML)}*}
+text %quote {*@{code_stmts "op \<le> \<Colon> _ \<times> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (SML)}*}
 
 text {*
   In some cases, the automatically derived defining equations
@@ -417,7 +417,7 @@ text {*
   are referred to by natural numbers):
 *}
 
-datatype %quoteme monotype = Mono nat "monotype list"
+datatype %quote monotype = Mono nat "monotype list"
 (*<*)
 lemma monotype_eq:
   "eq_class.eq (Mono tyco1 typargs1) (Mono tyco2 typargs2) \<equiv> 
@@ -438,7 +438,7 @@ text {*
   @{const [show_types] list_all2} can do the job:
 *}
 
-lemma %quoteme monotype_eq_list_all2 [code]:
+lemma %quote monotype_eq_list_all2 [code]:
   "eq_class.eq (Mono tyco1 typargs1) (Mono tyco2 typargs2) \<longleftrightarrow>
      eq_class.eq tyco1 tyco2 \<and> list_all2 eq_class.eq typargs1 typargs2"
   by (simp add: eq list_all2_eq [symmetric])
@@ -447,7 +447,7 @@ text {*
   \noindent does not depend on instance @{text "monotype \<Colon> eq"}:
 *}
 
-text %quoteme {*@{code_stmts "eq_class.eq :: monotype \<Rightarrow> monotype \<Rightarrow> bool" (SML)}*}
+text %quote {*@{code_stmts "eq_class.eq :: monotype \<Rightarrow> monotype \<Rightarrow> bool" (SML)}*}
 
 
 subsection {* Explicit partiality *}
@@ -457,7 +457,7 @@ text {*
   in the following example, again for amortised queues:
 *}
 
-fun %quoteme strict_dequeue :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
+fun %quote strict_dequeue :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
   "strict_dequeue (Queue xs (y # ys)) = (y, Queue xs ys)"
   | "strict_dequeue (Queue xs []) =
       (case rev xs of y # ys \<Rightarrow> (y, Queue [] ys))"
@@ -467,23 +467,23 @@ text {*
   for the pattern @{term "Queue [] []"}:
 *}
 
-text %quoteme {*@{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}*}
+text %quote {*@{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}*}
 
 text {*
   \noindent In some cases it is desirable to have this
   pseudo-\qt{partiality} more explicitly, e.g.~as follows:
 *}
 
-axiomatization %quoteme empty_queue :: 'a
+axiomatization %quote empty_queue :: 'a
 
-function %quoteme strict_dequeue' :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
+function %quote strict_dequeue' :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
   "strict_dequeue' (Queue xs []) = (if xs = [] then empty_queue
      else strict_dequeue' (Queue [] (rev xs)))"
   | "strict_dequeue' (Queue xs (y # ys)) =
        (y, Queue xs ys)"
 by pat_completeness auto
 
-termination %quoteme strict_dequeue'
+termination %quote strict_dequeue'
 by (relation "measure (\<lambda>q::'a queue. case q of Queue xs ys \<Rightarrow> length xs)") simp_all
 
 text {*
@@ -502,14 +502,14 @@ text {*
   that category explicitly, use @{command "code_abort"}:
 *}
 
-code_abort %quoteme empty_queue
+code_abort %quote empty_queue
 
 text {*
   \noindent Then the code generator will just insert an error or
   exception at the appropriate position:
 *}
 
-text %quoteme {*@{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}*}
+text %quote {*@{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}*}
 
 text {*
   \noindent This feature however is rarely needed in practice.

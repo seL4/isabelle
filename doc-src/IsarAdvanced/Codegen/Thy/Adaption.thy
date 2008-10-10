@@ -116,7 +116,7 @@ text {*
   SML code:
 *}
 
-primrec %quoteme in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
+primrec %quote in_interval :: "nat \<times> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "in_interval (k, l) n \<longleftrightarrow> k \<le> n \<and> n \<le> l"
 (*<*)
 code_type %invisible bool
@@ -124,7 +124,7 @@ code_type %invisible bool
 code_const %invisible True and False and "op \<and>" and Not
   (SML and and and)
 (*>*)
-text %quoteme {*@{code_stmts in_interval (SML)}*}
+text %quote {*@{code_stmts in_interval (SML)}*}
 
 text {*
   \noindent Though this is correct code, it is a little bit unsatisfactory:
@@ -138,9 +138,9 @@ text {*
   \qn{custom serialisations}:
 *}
 
-code_type %tt bool
+code_type %quotett bool
   (SML "bool")
-code_const %tt True and False and "op \<and>"
+code_const %quotett True and False and "op \<and>"
   (SML "true" and "false" and "_ andalso _")
 
 text {*
@@ -155,7 +155,7 @@ text {*
   for the type constructor's (the constant's) arguments.
 *}
 
-text %quoteme {*@{code_stmts in_interval (SML)}*}
+text %quote {*@{code_stmts in_interval (SML)}*}
 
 text {*
   \noindent This still is not perfect: the parentheses
@@ -166,10 +166,10 @@ text {*
   associative infixes with precedences which may be used here:
 *}
 
-code_const %tt "op \<and>"
+code_const %quotett "op \<and>"
   (SML infixl 1 "andalso")
 
-text %quoteme {*@{code_stmts in_interval (SML)}*}
+text %quote {*@{code_stmts in_interval (SML)}*}
 
 text {*
   \noindent The attentive reader may ask how we assert that no generated
@@ -180,7 +180,7 @@ text {*
   accidental overwrites, using the @{command "code_reserved"} command:
 *}
 
-code_reserved %quoteme "SML " bool true false andalso
+code_reserved %quote "SML " bool true false andalso
 
 text {*
   \noindent Next, we try to map HOL pairs to SML pairs, using the
@@ -192,9 +192,9 @@ code_type %invisible *
 code_const %invisible Pair
   (SML)
 (*>*)
-code_type %tt *
+code_type %quotett *
   (SML infix 2 "*")
-code_const %tt Pair
+code_const %quotett Pair
   (SML "!((_),/ (_))")
 
 text {*
@@ -232,10 +232,10 @@ text {*
   @{const HOL.eq}
 *}
 
-code_class %tt eq
+code_class %quotett eq
   (Haskell "Eq" where "HOL.eq" \<equiv> "(==)")
 
-code_const %tt "op ="
+code_const %quotett "op ="
   (Haskell infixl 4 "==")
 
 text {*
@@ -245,18 +245,18 @@ text {*
   of @{text Haskell} @{text Eq}:
 *}
 
-typedecl %quoteme bar
+typedecl %quote bar
 
-instantiation %quoteme bar :: eq
+instantiation %quote bar :: eq
 begin
 
-definition %quoteme "eq_class.eq (x\<Colon>bar) y \<longleftrightarrow> x = y"
+definition %quote "eq_class.eq (x\<Colon>bar) y \<longleftrightarrow> x = y"
 
-instance %quoteme by default (simp add: eq_bar_def)
+instance %quote by default (simp add: eq_bar_def)
 
-end %quoteme
+end %quote
 
-code_type %tt bar
+code_type %quotett bar
   (Haskell "Integer")
 
 text {*
@@ -267,7 +267,7 @@ text {*
   @{text "code_instance"}:
 *}
 
-code_instance %tt bar :: eq
+code_instance %quotett bar :: eq
   (Haskell -)
 
 
@@ -279,10 +279,10 @@ text {*
   command:
 *}
 
-code_include %tt Haskell "Errno"
+code_include %quotett Haskell "Errno"
 {*errno i = error ("Error number: " ++ show i)*}
 
-code_reserved %tt Haskell Errno
+code_reserved %quotett Haskell Errno
 
 text {*
   \noindent Such named @{text include}s are then prepended to every generated code.

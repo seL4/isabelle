@@ -88,11 +88,11 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
-\isatagquoteme
+\isatagquote
 \isacommand{datatype}\isamarkupfalse%
 \ {\isacharprime}a\ queue\ {\isacharequal}\ Queue\ {\isachardoublequoteopen}{\isacharprime}a\ list{\isachardoublequoteclose}\ {\isachardoublequoteopen}{\isacharprime}a\ list{\isachardoublequoteclose}\isanewline
 \isanewline
@@ -110,43 +110,43 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \ \ {\isacharbar}\ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}Queue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Some\ y{\isacharcomma}\ Queue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ {\isacharbar}\ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}Queue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ \ \ \ \ {\isacharparenleft}case\ rev\ xs\ of\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ {\isacharparenleft}Some\ y{\isacharcomma}\ Queue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
-\endisatagquoteme
-{\isafoldquoteme}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent Then we can generate code e.g.~for \isa{SML} as follows:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
-\isatagquoteme
+\isatagquote
 \isacommand{export{\isacharunderscore}code}\isamarkupfalse%
 \ empty\ dequeue\ enqueue\ \isakeyword{in}\ SML\isanewline
 \ \ \isakeyword{module{\isacharunderscore}name}\ Example\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}example{\isachardot}ML{\isachardoublequoteclose}%
-\endisatagquoteme
-{\isafoldquoteme}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent resulting in the following code:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
-\isatagquoteme
+\isatagquote
 %
 \begin{isamarkuptext}%
 \isaverbatim%
@@ -181,12 +181,12 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquoteme
-{\isafoldquoteme}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent The \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} command takes a space-separated list of
@@ -201,31 +201,31 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
-\isatagquoteme
+\isatagquote
 \isacommand{export{\isacharunderscore}code}\isamarkupfalse%
 \ empty\ dequeue\ enqueue\ \isakeyword{in}\ Haskell\isanewline
 \ \ \isakeyword{module{\isacharunderscore}name}\ Example\ \isakeyword{file}\ {\isachardoublequoteopen}examples{\isacharslash}{\isachardoublequoteclose}%
-\endisatagquoteme
-{\isafoldquoteme}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent This is how the corresponding code in \isa{Haskell} looks like:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
-\isatagquoteme
+\isatagquote
 %
 \begin{isamarkuptext}%
 \isaverbatim%
@@ -264,12 +264,12 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagquoteme
-{\isafoldquoteme}%
+\endisatagquote
+{\isafoldquote}%
 %
-\isadelimquoteme
+\isadelimquote
 %
-\endisadelimquoteme
+\endisadelimquote
 %
 \begin{isamarkuptext}%
 \noindent This demonstrates the basic usage of the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} command;
