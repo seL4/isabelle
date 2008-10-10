@@ -29,7 +29,7 @@ definition
   "single a = Abs_multiset (\<lambda>b. if b = a then 1 else 0)"
 
 declare
-  Mempty_def[code func del] single_def[code func del]
+  Mempty_def[code del] single_def[code del]
 
 definition
   count :: "'a multiset => 'a => nat" where
@@ -59,7 +59,7 @@ instantiation multiset :: (type) "{plus, minus, zero, size}"
 begin
 
 definition
-  union_def[code func del]:
+  union_def[code del]:
   "M + N = Abs_multiset (\<lambda>a. Rep_multiset M a + Rep_multiset N a)"
 
 definition
@@ -69,7 +69,7 @@ definition
   Zero_multiset_def [simp]: "0 = {#}"
 
 definition
-  size_def[code func del]: "size M = setsum (count M) (set_of M)"
+  size_def[code del]: "size M = setsum (count M) (set_of M)"
 
 instance ..
 
@@ -207,10 +207,10 @@ by (auto simp add: set_of_def)
 
 subsubsection {* Size *}
 
-lemma size_empty [simp,code func]: "size {#} = 0"
+lemma size_empty [simp,code]: "size {#} = 0"
 by (simp add: size_def)
 
-lemma size_single [simp,code func]: "size {#b#} = 1"
+lemma size_single [simp,code]: "size {#b#} = 1"
 by (simp add: size_def)
 
 lemma finite_set_of [iff]: "finite (set_of M)"
@@ -223,7 +223,7 @@ apply (induct rule: finite_induct)
 apply (simp add: Int_insert_left set_of_def)
 done
 
-lemma size_union[simp,code func]: "size (M + N::'a multiset) = size M + size N"
+lemma size_union[simp,code]: "size (M + N::'a multiset) = size M + size N"
 apply (unfold size_def)
 apply (subgoal_tac "count (M + N) = (\<lambda>a. count M a + count N a)")
  prefer 2
@@ -376,16 +376,16 @@ done
 
 subsubsection {* Comprehension (filter) *}
 
-lemma MCollect_empty[simp, code func]: "MCollect {#} P = {#}"
+lemma MCollect_empty[simp, code]: "MCollect {#} P = {#}"
 by (simp add: MCollect_def Mempty_def Abs_multiset_inject
     in_multiset expand_fun_eq)
 
-lemma MCollect_single[simp, code func]:
+lemma MCollect_single[simp, code]:
   "MCollect {#x#} P = (if P x then {#x#} else {#})"
 by (simp add: MCollect_def Mempty_def single_def Abs_multiset_inject
     in_multiset expand_fun_eq)
 
-lemma MCollect_union[simp, code func]:
+lemma MCollect_union[simp, code]:
   "MCollect (M+N) f = MCollect M f + MCollect N f"
 by (simp add: MCollect_def union_def Abs_multiset_inject
     in_multiset expand_fun_eq)
@@ -500,7 +500,7 @@ subsubsection {* Well-foundedness *}
 
 definition
   mult1 :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
-  [code func del]:"mult1 r =
+  [code del]:"mult1 r =
     {(N, M). \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and>
       (\<forall>b. b :# K --> (b, a) \<in> r)}"
 
@@ -716,10 +716,10 @@ instantiation multiset :: (order) order
 begin
 
 definition
-  less_multiset_def [code func del]: "M' < M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
+  less_multiset_def [code del]: "M' < M \<longleftrightarrow> (M', M) \<in> mult {(x', x). x' < x}"
 
 definition
-  le_multiset_def [code func del]: "M' <= M \<longleftrightarrow> M' = M \<or> M' < (M::'a multiset)"
+  le_multiset_def [code del]: "M' <= M \<longleftrightarrow> M' = M \<or> M' < (M::'a multiset)"
 
 lemma trans_base_order: "trans {(x', x). x' < (x::'a::order)}"
 unfolding trans_def by (blast intro: order_less_trans)
@@ -983,11 +983,11 @@ subsection {* Pointwise ordering induced by count *}
 
 definition
   mset_le :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<le>#" 50) where
-  [code func del]: "(A \<le># B) = (\<forall>a. count A a \<le> count B a)"
+  [code del]: "(A \<le># B) = (\<forall>a. count A a \<le> count B a)"
 
 definition
   mset_less :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "<#" 50) where
-  [code func del]: "(A <# B) = (A \<le># B \<and> A \<noteq> B)"
+  [code del]: "(A <# B) = (A \<le># B \<and> A \<noteq> B)"
 
 notation mset_le  (infix "\<subseteq>#" 50)
 notation mset_less  (infix "\<subset>#" 50)
@@ -1448,22 +1448,22 @@ text {*
 
 subsection {* Image *}
 
-definition [code func del]: "image_mset f == fold_mset (op + o single o f) {#}"
+definition [code del]: "image_mset f == fold_mset (op + o single o f) {#}"
 
 interpretation image_left_comm: left_commutative ["op + o single o f"]
 by (unfold_locales) (simp add:union_ac)
 
-lemma image_mset_empty [simp, code func]: "image_mset f {#} = {#}"
+lemma image_mset_empty [simp, code]: "image_mset f {#} = {#}"
 by (simp add: image_mset_def)
 
-lemma image_mset_single [simp, code func]: "image_mset f {#x#} = {#f x#}"
+lemma image_mset_single [simp, code]: "image_mset f {#x#} = {#f x#}"
 by (simp add: image_mset_def)
 
 lemma image_mset_insert:
   "image_mset f (M + {#a#}) = image_mset f M + {#f a#}"
 by (simp add: image_mset_def add_ac)
 
-lemma image_mset_union[simp, code func]:
+lemma image_mset_union[simp, code]:
   "image_mset f (M+N) = image_mset f M + image_mset f N"
 apply (induct N)
  apply simp

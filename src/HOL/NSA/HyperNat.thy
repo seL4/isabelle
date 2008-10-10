@@ -19,7 +19,7 @@ abbreviation
 
 definition
   hSuc :: "hypnat => hypnat" where
-  hSuc_def [transfer_unfold, code func del]: "hSuc = *f* Suc"
+  hSuc_def [transfer_unfold, code del]: "hSuc = *f* Suc"
 
 subsection{*Properties Transferred from Naturals*}
 
@@ -367,7 +367,7 @@ subsection {* Embedding of the Hypernaturals into other types *}
 
 definition
   of_hypnat :: "hypnat \<Rightarrow> 'a::semiring_1_cancel star" where
-  of_hypnat_def [transfer_unfold, code func del]: "of_hypnat = *f* of_nat"
+  of_hypnat_def [transfer_unfold, code del]: "of_hypnat = *f* of_nat"
 
 lemma of_hypnat_0 [simp]: "of_hypnat 0 = 0"
 by transfer (rule of_nat_0)

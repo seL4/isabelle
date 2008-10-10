@@ -13,7 +13,7 @@ begin
 
 definition
   sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal" where
-  [code func del]: "sumhr = 
+  [code del]: "sumhr = 
       (%(M,N,f). starfun2 (%m n. setsum f {m..<n}) M N)"
 
 definition
@@ -22,7 +22,7 @@ definition
 
 definition
   NSsummable :: "(nat=>real) => bool" where
-  [code func del]: "NSsummable f = (\<exists>s. f NSsums s)"
+  [code del]: "NSsummable f = (\<exists>s. f NSsums s)"
 
 definition
   NSsuminf   :: "(nat=>real) => real" where

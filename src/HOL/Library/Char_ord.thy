@@ -64,11 +64,11 @@ instantiation char :: linorder
 begin
 
 definition
-  char_less_eq_def [code func del]: "c1 \<le> c2 \<longleftrightarrow> (case c1 of Char n1 m1 \<Rightarrow> case c2 of Char n2 m2 \<Rightarrow>
+  char_less_eq_def [code del]: "c1 \<le> c2 \<longleftrightarrow> (case c1 of Char n1 m1 \<Rightarrow> case c2 of Char n2 m2 \<Rightarrow>
     n1 < n2 \<or> n1 = n2 \<and> m1 \<le> m2)"
 
 definition
-  char_less_def [code func del]: "c1 < c2 \<longleftrightarrow> (case c1 of Char n1 m1 \<Rightarrow> case c2 of Char n2 m2 \<Rightarrow>
+  char_less_def [code del]: "c1 < c2 \<longleftrightarrow> (case c1 of Char n1 m1 \<Rightarrow> case c2 of Char n2 m2 \<Rightarrow>
     n1 < n2 \<or> n1 = n2 \<and> m1 < m2)"
 
 instance
@@ -90,7 +90,7 @@ instance   by default (auto simp add:
 
 end
 
-lemma [simp, code func]:
+lemma [simp, code]:
   shows char_less_eq_simp: "Char n1 m1 \<le> Char n2 m2 \<longleftrightarrow> n1 < n2 \<or> n1 = n2 \<and> m1 \<le> m2"
   and char_less_simp:      "Char n1 m1 < Char n2 m2 \<longleftrightarrow> n1 < n2 \<or> n1 = n2 \<and> m1 < m2"
   unfolding char_less_eq_def char_less_def by simp_all

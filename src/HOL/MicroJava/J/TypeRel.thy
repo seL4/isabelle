@@ -68,7 +68,7 @@ lemma class_rec_lemma: "wfP ((subcls1 G)^--1) \<Longrightarrow> class G C = Some
 definition
   "wf_class G = wfP ((subcls1 G)^--1)"
 
-lemma class_rec_func (*[code func]*):
+lemma class_rec_func (*[code]*):
   "class_rec G C t f = (if wf_class G then
     (case class G C
       of None \<Rightarrow> undefined

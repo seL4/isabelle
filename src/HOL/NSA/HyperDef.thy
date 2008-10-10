@@ -47,7 +47,7 @@ instantiation star :: (scaleR) scaleR
 begin
 
 definition
-  star_scaleR_def [transfer_unfold, code func del]: "scaleR r \<equiv> *f* (scaleR r)"
+  star_scaleR_def [transfer_unfold, code del]: "scaleR r \<equiv> *f* (scaleR r)"
 
 instance ..
 
@@ -113,7 +113,7 @@ subsection {* Injection from @{typ hypreal} *}
 
 definition
   of_hypreal :: "hypreal \<Rightarrow> 'a::real_algebra_1 star" where
-  [transfer_unfold, code func del]: "of_hypreal = *f* of_real"
+  [transfer_unfold, code del]: "of_hypreal = *f* of_real"
 
 lemma Standard_of_hypreal [simp]:
   "r \<in> Standard \<Longrightarrow> of_hypreal r \<in> Standard"
@@ -428,7 +428,7 @@ done
 subsection{*Powers with Hypernatural Exponents*}
 
 definition pow :: "['a::power star, nat star] \<Rightarrow> 'a star" (infixr "pow" 80) where
-  hyperpow_def [transfer_unfold, code func del]: "R pow N = ( *f2* op ^) R N"
+  hyperpow_def [transfer_unfold, code del]: "R pow N = ( *f2* op ^) R N"
   (* hypernatural powers of hyperreals *)
 
 lemma Standard_hyperpow [simp]:

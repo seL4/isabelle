@@ -266,14 +266,14 @@ subsubsection {* Logical intermediate layer *}
 definition
   Fail :: "message_string \<Rightarrow> exception"
 where
-  [code func del]: "Fail s = Exn"
+  [code del]: "Fail s = Exn"
 
 definition
   raise_exc :: "exception \<Rightarrow> 'a Heap"
 where
-  [code func del]: "raise_exc e = raise []"
+  [code del]: "raise_exc e = raise []"
 
-lemma raise_raise_exc [code func, code inline]:
+lemma raise_raise_exc [code, code inline]:
   "raise s = raise_exc (Fail (STR s))"
   unfolding Fail_def raise_exc_def raise_def ..
 

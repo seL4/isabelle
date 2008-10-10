@@ -40,7 +40,7 @@ constdefs
      (ALL z. (z, x) : R --> f z = g z) --> F f x = F g x"
 
   wfrec :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b"
-  [code func del]: "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
+  [code del]: "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
 
 abbreviation acyclicP :: "('a => 'a => bool) => bool" where
   "acyclicP r == acyclic {(x, y). r x y}"
@@ -840,10 +840,10 @@ use "Tools/function_package/size.ML"
 
 setup Size.setup
 
-lemma size_bool [code func]:
+lemma size_bool [code]:
   "size (b\<Colon>bool) = 0" by (cases b) auto
 
-lemma nat_size [simp, code func]: "size (n\<Colon>nat) = n"
+lemma nat_size [simp, code]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
 
 declare "prod.size" [noatp]

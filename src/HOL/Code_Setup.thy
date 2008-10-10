@@ -21,32 +21,32 @@ code_datatype Trueprop "prop"
 
 text {* Code equations *}
 
-lemma [code func]:
+lemma [code]:
   shows "False \<and> x \<longleftrightarrow> False"
     and "True \<and> x \<longleftrightarrow> x"
     and "x \<and> False \<longleftrightarrow> False"
     and "x \<and> True \<longleftrightarrow> x" by simp_all
 
-lemma [code func]:
+lemma [code]:
   shows "False \<or> x \<longleftrightarrow> x"
     and "True \<or> x \<longleftrightarrow> True"
     and "x \<or> False \<longleftrightarrow> x"
     and "x \<or> True \<longleftrightarrow> True" by simp_all
 
-lemma [code func]:
+lemma [code]:
   shows "\<not> True \<longleftrightarrow> False"
     and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
 
-lemmas [code func] = Let_def if_True if_False
+lemmas [code] = Let_def if_True if_False
 
-lemmas [code func, code unfold, symmetric, code post] = imp_conv_disj
+lemmas [code, code unfold, symmetric, code post] = imp_conv_disj
 
 text {* Equality *}
 
 context eq
 begin
 
-lemma equals_eq [code inline, code func]: "op = \<equiv> eq"
+lemma equals_eq [code inline, code]: "op = \<equiv> eq"
   by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
 
 declare eq [code unfold, code inline del]

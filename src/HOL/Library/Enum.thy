@@ -13,7 +13,7 @@ subsection {* Class @{text enum} *}
 
 class enum = itself +
   fixes enum :: "'a list"
-  assumes UNIV_enum [code func]: "UNIV = set enum"
+  assumes UNIV_enum [code]: "UNIV = set enum"
     and enum_distinct: "distinct enum"
 begin
 
@@ -49,7 +49,7 @@ instance by default
 
 end
 
-lemma order_fun [code func]:
+lemma order_fun [code]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
   shows "f \<le> g \<longleftrightarrow> list_all (\<lambda>x. f x \<le> g x) enum"
     and "f < g \<longleftrightarrow> f \<le> g \<and> \<not> list_all (\<lambda>x. f x = g x) enum"
@@ -58,10 +58,10 @@ lemma order_fun [code func]:
 
 subsection {* Quantifiers *}
 
-lemma all_code [code func]: "(\<forall>x. P x) \<longleftrightarrow> list_all P enum"
+lemma all_code [code]: "(\<forall>x. P x) \<longleftrightarrow> list_all P enum"
   by (simp add: list_all_iff enum_all)
 
-lemma exists_code [code func]: "(\<exists>x. P x) \<longleftrightarrow> \<not> list_all (Not o P) enum"
+lemma exists_code [code]: "(\<exists>x. P x) \<longleftrightarrow> \<not> list_all (Not o P) enum"
   by (simp add: list_all_iff enum_all)
 
 
@@ -157,7 +157,7 @@ instantiation "fun" :: (enum, enum) enum
 begin
 
 definition
-  [code func del]: "enum = map (\<lambda>ys. the o map_of (zip (enum\<Colon>'a list) ys)) (n_lists (length (enum\<Colon>'a\<Colon>enum list)) enum)"
+  [code del]: "enum = map (\<lambda>ys. the o map_of (zip (enum\<Colon>'a list) ys)) (n_lists (length (enum\<Colon>'a\<Colon>enum list)) enum)"
 
 instance proof
   show "UNIV = set (enum \<Colon> ('a \<Rightarrow> 'b) list)"
@@ -177,7 +177,7 @@ qed
 
 end
 
-lemma enum_fun_code [code func]: "enum = (let enum_a = (enum \<Colon> 'a\<Colon>{enum, eq} list)
+lemma enum_fun_code [code]: "enum = (let enum_a = (enum \<Colon> 'a\<Colon>{enum, eq} list)
   in map (\<lambda>ys. the o map_of (zip enum_a ys)) (n_lists (length enum_a) enum))"
   by (simp add: enum_fun_def Let_def)
 
@@ -286,9 +286,9 @@ instantiation char :: enum
 begin
 
 definition
-  [code func del]: "enum = map (split Char) (product enum enum)"
+  [code del]: "enum = map (split Char) (product enum enum)"
 
-lemma enum_char [code func]:
+lemma enum_char [code]:
   "enum = [Char Nibble0 Nibble0, Char Nibble0 Nibble1, Char Nibble0 Nibble2,
   Char Nibble0 Nibble3, Char Nibble0 Nibble4, Char Nibble0 Nibble5,
   Char Nibble0 Nibble6, Char Nibble0 Nibble7, Char Nibble0 Nibble8,

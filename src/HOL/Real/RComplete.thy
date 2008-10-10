@@ -488,7 +488,7 @@ subsection{*Floor and Ceiling Functions from the Reals to the Integers*}
 
 definition
   floor :: "real => int" where
-  [code func del]: "floor r = (LEAST n::int. r < real (n+1))"
+  [code del]: "floor r = (LEAST n::int. r < real (n+1))"
 
 definition
   ceiling :: "real => int" where

@@ -17,12 +17,12 @@ definition
 
 definition
   InternalSets :: "'a star set set" where
-  [code func del]: "InternalSets = {X. \<exists>As. X = *sn* As}"
+  [code del]: "InternalSets = {X. \<exists>As. X = *sn* As}"
 
 definition
   (* nonstandard extension of function *)
   is_starext  :: "['a star => 'a star, 'a => 'a] => bool" where
-  [code func del]: "is_starext F f = (\<forall>x y. \<exists>X \<in> Rep_star(x). \<exists>Y \<in> Rep_star(y).
+  [code del]: "is_starext F f = (\<forall>x y. \<exists>X \<in> Rep_star(x). \<exists>Y \<in> Rep_star(y).
                         ((y = (F x)) = ({n. Y n = f(X n)} : FreeUltrafilterNat)))"
 
 definition
@@ -32,7 +32,7 @@ definition
 
 definition
   InternalFuns :: "('a star => 'b star) set" where
-  [code func del]:"InternalFuns = {X. \<exists>F. X = *fn* F}"
+  [code del]:"InternalFuns = {X. \<exists>F. X = *fn* F}"
 
 
 (*--------------------------------------------------------

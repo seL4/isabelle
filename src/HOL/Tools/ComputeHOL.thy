@@ -1,5 +1,5 @@
 theory ComputeHOL
-imports Main "~~/src/Tools/Compute_Oracle/Compute_Oracle"
+imports Complex_Main "~~/src/Tools/Compute_Oracle/Compute_Oracle"
 begin
 
 lemma Trueprop_eq_eq: "Trueprop X == (X == True)" by (simp add: atomize_eq)

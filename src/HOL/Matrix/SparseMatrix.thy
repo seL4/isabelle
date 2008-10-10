@@ -25,7 +25,7 @@ lemma sparse_row_vector_empty [simp]: "sparse_row_vector [] = 0"
 lemma sparse_row_matrix_empty [simp]: "sparse_row_matrix [] = 0"
   by (simp add: sparse_row_matrix_def)
 
-lemmas [code func] = sparse_row_vector_empty [symmetric]
+lemmas [code] = sparse_row_vector_empty [symmetric]
 
 lemma foldl_distrstart[rule_format]: "! a x y. (f (g x y) a = g x (f y a)) \<Longrightarrow> ! x y. (foldl f (g x y) l = g x (foldl f y l))"
   by (induct l, auto)
@@ -417,8 +417,8 @@ lemma sparse_row_add_spmat: "sparse_row_matrix (add_spmat (A, B)) = (sparse_row_
   apply (auto simp add: sparse_row_matrix_cons sparse_row_vector_add move_matrix_add)
   done
 
-lemmas [code func] = sparse_row_add_spmat [symmetric]
-lemmas [code func] = sparse_row_vector_add [symmetric]
+lemmas [code] = sparse_row_add_spmat [symmetric]
+lemmas [code] = sparse_row_vector_add [symmetric]
 
 lemma sorted_add_spvec_helper1[rule_format]: "add_spvec ((a,b)#arr, brr) = (ab, bb) # list \<longrightarrow> (ab = a | (brr \<noteq> [] & ab = fst (hd brr)))"
   proof - 

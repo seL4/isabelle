@@ -324,8 +324,8 @@ subsection {* Rules and definitions *}
 text {* Isomorphisms between predicates and sets. *}
 
 defs
-  mem_def [code func]: "x : S == S x"
-  Collect_def [code func]: "Collect P == P"
+  mem_def [code]: "x : S == S x"
+  Collect_def [code]: "Collect P == P"
 
 defs
   Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
@@ -2061,7 +2061,7 @@ subsection {* Inverse image of a function *}
 
 constdefs
   vimage :: "('a => 'b) => 'b set => 'a set"    (infixr "-`" 90)
-  [code func del]: "f -` B == {x. f x : B}"
+  [code del]: "f -` B == {x. f x : B}"
 
 
 subsubsection {* Basic rules *}
@@ -2156,7 +2156,7 @@ subsection {* Getting the Contents of a Singleton Set *}
 definition
   contents :: "'a set \<Rightarrow> 'a"
 where
-  [code func del]: "contents X = (THE x. X = {x})"
+  [code del]: "contents X = (THE x. X = {x})"
 
 lemma contents_eq [simp]: "contents {x} = x"
   by (simp add: contents_def)
@@ -2189,22 +2189,22 @@ lemma Least_mono:
 
 subsection {* Rudimentary code generation *}
 
-lemma empty_code [code func]: "{} x \<longleftrightarrow> False"
+lemma empty_code [code]: "{} x \<longleftrightarrow> False"
   unfolding empty_def Collect_def ..
 
-lemma UNIV_code [code func]: "UNIV x \<longleftrightarrow> True"
+lemma UNIV_code [code]: "UNIV x \<longleftrightarrow> True"
   unfolding UNIV_def Collect_def ..
 
-lemma insert_code [code func]: "insert y A x \<longleftrightarrow> y = x \<or> A x"
+lemma insert_code [code]: "insert y A x \<longleftrightarrow> y = x \<or> A x"
   unfolding insert_def Collect_def mem_def Un_def by auto
 
-lemma inter_code [code func]: "(A \<inter> B) x \<longleftrightarrow> A x \<and> B x"
+lemma inter_code [code]: "(A \<inter> B) x \<longleftrightarrow> A x \<and> B x"
   unfolding Int_def Collect_def mem_def ..
 
-lemma union_code [code func]: "(A \<union> B) x \<longleftrightarrow> A x \<or> B x"
+lemma union_code [code]: "(A \<union> B) x \<longleftrightarrow> A x \<or> B x"
   unfolding Un_def Collect_def mem_def ..
 
-lemma vimage_code [code func]: "(f -` A) x = A (f x)"
+lemma vimage_code [code]: "(f -` A) x = A (f x)"
   unfolding vimage_def Collect_def mem_def ..
 
 

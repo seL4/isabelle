@@ -47,7 +47,7 @@ lemma ileq_induct [induct set, case_names empty drop take]:
   using assms by (induct rule: less_eq_list.induct) blast+
 
 definition
-  [code func del]: "(xs \<Colon> 'a list) < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
+  [code del]: "(xs \<Colon> 'a list) < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
 
 lemma ileq_length: "xs \<le> ys \<Longrightarrow> length xs \<le> length ys"
   by (induct rule: ileq_induct) auto

@@ -24,7 +24,7 @@ subsection {* The equivalence relation underlying the integers *}
 definition
   intrel :: "((nat \<times> nat) \<times> (nat \<times> nat)) set"
 where
-  [code func del]: "intrel = {((x, y), (u, v)) | x y u v. x + v = u +y }"
+  [code del]: "intrel = {((x, y), (u, v)) | x y u v. x + v = u +y }"
 
 typedef (Integ)
   int = "UNIV//intrel"
@@ -34,34 +34,34 @@ instantiation int :: "{zero, one, plus, minus, uminus, times, ord, abs, sgn}"
 begin
 
 definition
-  Zero_int_def [code func del]: "0 = Abs_Integ (intrel `` {(0, 0)})"
+  Zero_int_def [code del]: "0 = Abs_Integ (intrel `` {(0, 0)})"
 
 definition
-  One_int_def [code func del]: "1 = Abs_Integ (intrel `` {(1, 0)})"
+  One_int_def [code del]: "1 = Abs_Integ (intrel `` {(1, 0)})"
 
 definition
-  add_int_def [code func del]: "z + w = Abs_Integ
+  add_int_def [code del]: "z + w = Abs_Integ
     (\<Union>(x, y) \<in> Rep_Integ z. \<Union>(u, v) \<in> Rep_Integ w.
       intrel `` {(x + u, y + v)})"
 
 definition
-  minus_int_def [code func del]:
+  minus_int_def [code del]:
     "- z = Abs_Integ (\<Union>(x, y) \<in> Rep_Integ z. intrel `` {(y, x)})"
 
 definition
-  diff_int_def [code func del]:  "z - w = z + (-w \<Colon> int)"
+  diff_int_def [code del]:  "z - w = z + (-w \<Colon> int)"
 
 definition
-  mult_int_def [code func del]: "z * w = Abs_Integ
+  mult_int_def [code del]: "z * w = Abs_Integ
     (\<Union>(x, y) \<in> Rep_Integ z. \<Union>(u,v ) \<in> Rep_Integ w.
       intrel `` {(x*u + y*v, x*v + y*u)})"
 
 definition
-  le_int_def [code func del]:
+  le_int_def [code del]:
    "z \<le> w \<longleftrightarrow> (\<exists>x y u v. x+v \<le> u+y \<and> (x, y) \<in> Rep_Integ z \<and> (u, v) \<in> Rep_Integ w)"
 
 definition
-  less_int_def [code func del]: "(z\<Colon>int) < w \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
+  less_int_def [code del]: "(z\<Colon>int) < w \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
 
 definition
   zabs_def: "\<bar>i\<Colon>int\<bar> = (if i < 0 then - i else i)"
@@ -298,7 +298,7 @@ begin
 definition
   of_int :: "int \<Rightarrow> 'a"
 where
-  [code func del]: "of_int z = contents (\<Union>(i, j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
+  [code del]: "of_int z = contents (\<Union>(i, j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
 
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
 proof -
@@ -390,7 +390,7 @@ subsection {* Magnitude of an Integer, as a Natural Number: @{text nat} *}
 definition
   nat :: "int \<Rightarrow> nat"
 where
-  [code func del]: "nat z = contents (\<Union>(x, y) \<in> Rep_Integ z. {x-y})"
+  [code del]: "nat z = contents (\<Union>(x, y) \<in> Rep_Integ z. {x-y})"
 
 lemma nat: "nat (Abs_Integ (intrel``{(x,y)})) = x-y"
 proof -
@@ -585,19 +585,19 @@ text {*
 
 definition
   Pls :: int where
-  [code func del]: "Pls = 0"
+  [code del]: "Pls = 0"
 
 definition
   Min :: int where
-  [code func del]: "Min = - 1"
+  [code del]: "Min = - 1"
 
 definition
   Bit0 :: "int \<Rightarrow> int" where
-  [code func del]: "Bit0 k = k + k"
+  [code del]: "Bit0 k = k + k"
 
 definition
   Bit1 :: "int \<Rightarrow> int" where
-  [code func del]: "Bit1 k = 1 + k + k"
+  [code del]: "Bit1 k = 1 + k + k"
 
 class number = type + -- {* for numeric types: nat, int, real, \dots *}
   fixes number_of :: "int \<Rightarrow> 'a"
@@ -622,11 +622,11 @@ lemma Let_number_of [simp]: "Let (number_of v) f = f (number_of v)"
 
 definition
   succ :: "int \<Rightarrow> int" where
-  [code func del]: "succ k = k + 1"
+  [code del]: "succ k = k + 1"
 
 definition
   pred :: "int \<Rightarrow> int" where
-  [code func del]: "pred k = k - 1"
+  [code del]: "pred k = k - 1"
 
 lemmas
   max_number_of [simp] = max_def
@@ -785,7 +785,7 @@ instantiation int :: number_ring
 begin
 
 definition
-  int_number_of_def [code func del]: "number_of w = (of_int w \<Colon> int)"
+  int_number_of_def [code del]: "number_of w = (of_int w \<Colon> int)"
 
 instance
   by intro_classes (simp only: int_number_of_def)
@@ -1167,7 +1167,7 @@ begin
 definition
   Ints  :: "'a set"
 where
-  [code func del]: "Ints = range of_int"
+  [code del]: "Ints = range of_int"
 
 end
 
@@ -1799,36 +1799,36 @@ subsection {* Configuration of the code generator *}
 
 code_datatype Pls Min Bit0 Bit1 "number_of \<Colon> int \<Rightarrow> int"
 
-lemmas pred_succ_numeral_code [code func] =
+lemmas pred_succ_numeral_code [code] =
   pred_bin_simps succ_bin_simps
 
-lemmas plus_numeral_code [code func] =
+lemmas plus_numeral_code [code] =
   add_bin_simps
   arith_extra_simps(1) [where 'a = int]
 
-lemmas minus_numeral_code [code func] =
+lemmas minus_numeral_code [code] =
   minus_bin_simps
   arith_extra_simps(2) [where 'a = int]
   arith_extra_simps(5) [where 'a = int]
 
-lemmas times_numeral_code [code func] =
+lemmas times_numeral_code [code] =
   mult_bin_simps
   arith_extra_simps(4) [where 'a = int]
 
 instantiation int :: eq
 begin
 
-definition [code func del]: "eq_class.eq k l \<longleftrightarrow> k - l = (0\<Colon>int)"
+definition [code del]: "eq_class.eq k l \<longleftrightarrow> k - l = (0\<Colon>int)"
 
 instance by default (simp add: eq_int_def)
 
 end
 
-lemma eq_number_of_int_code [code func]:
+lemma eq_number_of_int_code [code]:
   "eq_class.eq (number_of k \<Colon> int) (number_of l) \<longleftrightarrow> eq_class.eq k l"
   unfolding eq_int_def number_of_is_id ..
 
-lemma eq_int_code [code func]:
+lemma eq_int_code [code]:
   "eq_class.eq Int.Pls Int.Pls \<longleftrightarrow> True"
   "eq_class.eq Int.Pls Int.Min \<longleftrightarrow> False"
   "eq_class.eq Int.Pls (Int.Bit0 k2) \<longleftrightarrow> eq_class.eq Int.Pls k2"
@@ -1859,11 +1859,11 @@ lemma eq_int_refl [code nbe]:
   "eq_class.eq (k::int) k \<longleftrightarrow> True"
   by (rule HOL.eq_refl)
 
-lemma less_eq_number_of_int_code [code func]:
+lemma less_eq_number_of_int_code [code]:
   "(number_of k \<Colon> int) \<le> number_of l \<longleftrightarrow> k \<le> l"
   unfolding number_of_is_id ..
 
-lemma less_eq_int_code [code func]:
+lemma less_eq_int_code [code]:
   "Int.Pls \<le> Int.Pls \<longleftrightarrow> True"
   "Int.Pls \<le> Int.Min \<longleftrightarrow> False"
   "Int.Pls \<le> Int.Bit0 k \<longleftrightarrow> Int.Pls \<le> k"
@@ -1890,11 +1890,11 @@ lemma less_eq_int_code [code func]:
     (auto simp add: neg_def linorder_not_less group_simps
       zle_add1_eq_le [symmetric] del: iffI , auto simp only: Bit0_def Bit1_def)
 
-lemma less_number_of_int_code [code func]:
+lemma less_number_of_int_code [code]:
   "(number_of k \<Colon> int) < number_of l \<longleftrightarrow> k < l"
   unfolding number_of_is_id ..
 
-lemma less_int_code [code func]:
+lemma less_int_code [code]:
   "Int.Pls < Int.Pls \<longleftrightarrow> False"
   "Int.Pls < Int.Min \<longleftrightarrow> False"
   "Int.Pls < Int.Bit0 k \<longleftrightarrow> Int.Pls < k"
@@ -1935,11 +1935,11 @@ lemma [code]: "nat i = nat_aux i 0"
 
 hide (open) const nat_aux
 
-lemma zero_is_num_zero [code func, code inline, symmetric, code post]:
+lemma zero_is_num_zero [code, code inline, symmetric, code post]:
   "(0\<Colon>int) = Numeral0" 
   by simp
 
-lemma one_is_num_one [code func, code inline, symmetric, code post]:
+lemma one_is_num_one [code, code inline, symmetric, code post]:
   "(1\<Colon>int) = Numeral1" 
   by simp
 

@@ -403,7 +403,7 @@ primrec newInt :: "nat \<Rightarrow> (nat \<Rightarrow> real) \<Rightarrow> (rea
        (f (Suc n)) \<notin> e)
       )"
 
-declare newInt.simps [code func del]
+declare newInt.simps [code del]
 
 subsubsection {* Properties *}
 

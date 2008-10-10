@@ -13,16 +13,16 @@ instantiation "*" :: (ord, ord) ord
 begin
 
 definition
-  prod_le_def [code func del]: "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x \<le> snd y"
+  prod_le_def [code del]: "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x \<le> snd y"
 
 definition
-  prod_less_def [code func del]: "x < y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x < snd y"
+  prod_less_def [code del]: "x < y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x < snd y"
 
 instance ..
 
 end
 
-lemma [code func]:
+lemma [code]:
   "(x1\<Colon>'a\<Colon>{ord, eq}, y1) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"
   "(x1\<Colon>'a\<Colon>{ord, eq}, y1) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
   unfolding prod_le_def prod_less_def by simp_all

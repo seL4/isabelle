@@ -481,7 +481,7 @@ recdef numgcdh "measure size"
   "numgcdh (C i) = (\<lambda>g. zgcd i g)"
   "numgcdh (CN n c t) = (\<lambda>g. zgcd c (numgcdh t g))"
   "numgcdh t = (\<lambda>g. 1)"
-defs numgcd_def [code func]: "numgcd t \<equiv> numgcdh t (maxcoeff t)"
+defs numgcd_def [code]: "numgcd t \<equiv> numgcdh t (maxcoeff t)"
 
 recdef reducecoeffh "measure size"
   "reducecoeffh (C i) = (\<lambda> g. C (i div g))"

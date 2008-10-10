@@ -12,28 +12,28 @@ begin
 definition
   "int_of_char = int o nat_of_char"
 
-lemma [code func]:
+lemma [code]:
   "nat_of_char = nat o int_of_char"
   unfolding int_of_char_def by (simp add: expand_fun_eq)
 
 definition
   "char_of_int = char_of_nat o nat"
 
-lemma [code func]:
+lemma [code]:
   "char_of_nat = char_of_int o int"
   unfolding char_of_int_def by (simp add: expand_fun_eq)
 
-lemmas [code func del] = char.recs char.cases char.size
+lemmas [code del] = char.recs char.cases char.size
 
-lemma [code func, code inline]:
+lemma [code, code inline]:
   "char_rec f c = split f (nibble_pair_of_nat (nat_of_char c))"
   by (cases c) (auto simp add: nibble_pair_of_nat_char)
 
-lemma [code func, code inline]:
+lemma [code, code inline]:
   "char_case f c = split f (nibble_pair_of_nat (nat_of_char c))"
   by (cases c) (auto simp add: nibble_pair_of_nat_char)
 
-lemma [code func]:
+lemma [code]:
   "size (c\<Colon>char) = 0"
   by (cases c) auto
 

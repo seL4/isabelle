@@ -92,7 +92,7 @@ code_reserved OCaml Big_int
 
 text {* Evaluation *}
 
-lemma [code func, code func del]:
+lemma [code, code del]:
   "(Code_Eval.term_of \<Colon> int \<Rightarrow> term) = Code_Eval.term_of" ..
 
 code_const "Code_Eval.term_of \<Colon> int \<Rightarrow> term"

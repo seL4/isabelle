@@ -9,7 +9,7 @@ theory Lattices
 imports Fun
 begin
 
-subsection{* Lattices *}
+subsection {* Lattices *}
 
 notation
   less_eq  (infix "\<sqsubseteq>" 50) and
@@ -40,7 +40,7 @@ end
 class lattice = lower_semilattice + upper_semilattice
 
 
-subsubsection{* Intro and elim rules*}
+subsubsection {* Intro and elim rules*}
 
 context lower_semilattice
 begin
@@ -512,10 +512,10 @@ instantiation "fun" :: (type, lattice) lattice
 begin
 
 definition
-  inf_fun_eq [code func del]: "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
+  inf_fun_eq [code del]: "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
 
 definition
-  sup_fun_eq [code func del]: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
+  sup_fun_eq [code del]: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
 
 instance
 apply intro_classes
@@ -536,10 +536,10 @@ instantiation "fun" :: (type, complete_lattice) complete_lattice
 begin
 
 definition
-  Inf_fun_def [code func del]: "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
+  Inf_fun_def [code del]: "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
 
 definition
-  Sup_fun_def [code func del]: "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
+  Sup_fun_def [code del]: "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
 
 instance
   by intro_classes

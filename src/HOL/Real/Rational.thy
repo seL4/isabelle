@@ -71,7 +71,7 @@ subsubsection {* Representation and basic operations *}
 
 definition
   Fract :: "int \<Rightarrow> int \<Rightarrow> rat" where
-  [code func del]: "Fract a b = Abs_Rat (ratrel `` {if b = 0 then (0, 1) else (a, b)})"
+  [code del]: "Fract a b = Abs_Rat (ratrel `` {if b = 0 then (0, 1) else (a, b)})"
 
 code_datatype Fract
 
@@ -101,7 +101,7 @@ definition
   One_rat_def [code, code unfold]: "1 = Fract 1 1"
 
 definition
-  add_rat_def [code func del]:
+  add_rat_def [code del]:
   "q + r = Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
     ratrel `` {(fst x * snd y + fst y * snd x, snd x * snd y)})"
 
@@ -116,7 +116,7 @@ proof -
 qed
 
 definition
-  minus_rat_def [code func del]:
+  minus_rat_def [code del]:
   "- q = Abs_Rat (\<Union>x \<in> Rep_Rat q. ratrel `` {(- fst x, snd x)})"
 
 lemma minus_rat [simp, code]: "- Fract a b = Fract (- a) b"
@@ -130,7 +130,7 @@ lemma minus_rat_cancel [simp]: "Fract (- a) (- b) = Fract a b"
   by (cases "b = 0") (simp_all add: eq_rat)
 
 definition
-  diff_rat_def [code func del]: "q - r = q + - (r::rat)"
+  diff_rat_def [code del]: "q - r = q + - (r::rat)"
 
 lemma diff_rat [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
@@ -138,7 +138,7 @@ lemma diff_rat [simp]:
   using assms by (simp add: diff_rat_def)
 
 definition
-  mult_rat_def [code func del]:
+  mult_rat_def [code del]:
   "q * r = Abs_Rat (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
     ratrel``{(fst x * fst y, snd x * snd y)})"
 
@@ -219,7 +219,7 @@ instantiation rat :: number_ring
 begin
 
 definition
-  rat_number_of_def [code func del]: "number_of w = Fract w 1"
+  rat_number_of_def [code del]: "number_of w = Fract w 1"
 
 instance by intro_classes (simp add: rat_number_of_def of_int_rat)
 
@@ -265,7 +265,7 @@ instantiation rat :: "{field, division_by_zero}"
 begin
 
 definition
-  inverse_rat_def [code func del]:
+  inverse_rat_def [code del]:
   "inverse q = Abs_Rat (\<Union>x \<in> Rep_Rat q.
      ratrel `` {if fst x = 0 then (0, 1) else (snd x, fst x)})"
 
@@ -277,7 +277,7 @@ proof -
 qed
 
 definition
-  divide_rat_def [code func del]: "q / r = q * inverse (r::rat)"
+  divide_rat_def [code del]: "q / r = q * inverse (r::rat)"
 
 lemma divide_rat [simp]: "Fract a b / Fract c d = Fract (a * d) (b * c)"
   by (simp add: divide_rat_def)
@@ -320,7 +320,7 @@ instantiation rat :: linorder
 begin
 
 definition
-  le_rat_def [code func del]:
+  le_rat_def [code del]:
    "q \<le> r \<longleftrightarrow> contents (\<Union>x \<in> Rep_Rat q. \<Union>y \<in> Rep_Rat r.
       {(fst x * snd y) * (snd x * snd y) \<le> (fst y * snd x) * (snd x * snd y)})"
 
@@ -370,7 +370,7 @@ proof -
 qed
 
 definition
-  less_rat_def [code func del]: "z < (w::rat) \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
+  less_rat_def [code del]: "z < (w::rat) \<longleftrightarrow> z \<le> w \<and> z \<noteq> w"
 
 lemma less_rat [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
@@ -450,13 +450,13 @@ instantiation rat :: "{distrib_lattice, abs_if, sgn_if}"
 begin
 
 definition
-  abs_rat_def [code func del]: "\<bar>q\<bar> = (if q < 0 then -q else (q::rat))"
+  abs_rat_def [code del]: "\<bar>q\<bar> = (if q < 0 then -q else (q::rat))"
 
 lemma abs_rat [simp, code]: "\<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \<bar>b\<bar>"
   by (auto simp add: abs_rat_def zabs_def Zero_rat_def less_rat not_less le_less minus_rat eq_rat zero_compare_simps)
 
 definition
-  sgn_rat_def [code func del]: "sgn (q::rat) = (if q = 0 then 0 else if 0 < q then 1 else - 1)"
+  sgn_rat_def [code del]: "sgn (q::rat) = (if q = 0 then 0 else if 0 < q then 1 else - 1)"
 
 lemma sgn_rat [simp, code]: "sgn (Fract a b) = of_int (sgn a * sgn b)"
   unfolding Fract_of_int_eq
@@ -553,7 +553,7 @@ context field_char_0
 begin
 
 definition of_rat :: "rat \<Rightarrow> 'a" where
-  [code func del]: "of_rat q = contents (\<Union>(a,b) \<in> Rep_Rat q. {of_int a / of_int b})"
+  [code del]: "of_rat q = contents (\<Union>(a,b) \<in> Rep_Rat q. {of_int a / of_int b})"
 
 end
 
@@ -680,7 +680,7 @@ begin
 
 definition
   Rats  :: "'a set" where
-  [code func del]: "Rats = range of_rat"
+  [code del]: "Rats = range of_rat"
 
 notation (xsymbols)
   Rats  ("\<rat>")
@@ -850,9 +850,9 @@ next
 qed
 
 definition Fract_norm :: "int \<Rightarrow> int \<Rightarrow> rat" where
-  [simp, code func del]: "Fract_norm a b = Fract a b"
+  [simp, code del]: "Fract_norm a b = Fract a b"
 
-lemma [code func]: "Fract_norm a b = (if a = 0 \<or> b = 0 then 0 else let c = zgcd a b in
+lemma [code]: "Fract_norm a b = (if a = 0 \<or> b = 0 then 0 else let c = zgcd a b in
   if b > 0 then Fract (a div c) (b div c) else Fract (- (a div c)) (- (b div c)))"
   by (simp add: eq_rat Zero_rat_def Let_def Fract_norm)
 
@@ -863,7 +863,7 @@ lemma [code]:
 instantiation rat :: eq
 begin
 
-definition [code func del]: "eq_class.eq (a\<Colon>rat) b \<longleftrightarrow> a - b = 0"
+definition [code del]: "eq_class.eq (a\<Colon>rat) b \<longleftrightarrow> a - b = 0"
 
 instance by default (simp add: eq_rat_def)
 

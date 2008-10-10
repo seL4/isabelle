@@ -67,7 +67,7 @@ definition
   graph_zero_def: "0 = Graph {}" 
 
 definition
-  graph_plus_def [code func del]: "G + H = Graph (dest_graph G \<union> dest_graph H)"
+  graph_plus_def [code del]: "G + H = Graph (dest_graph G \<union> dest_graph H)"
 
 instance proof
   fix x y z :: "('a,'b) graph"
@@ -83,22 +83,22 @@ instantiation graph :: (type, type) "{distrib_lattice, complete_lattice}"
 begin
 
 definition
-  graph_leq_def [code func del]: "G \<le> H \<longleftrightarrow> dest_graph G \<subseteq> dest_graph H"
+  graph_leq_def [code del]: "G \<le> H \<longleftrightarrow> dest_graph G \<subseteq> dest_graph H"
 
 definition
-  graph_less_def [code func del]: "G < H \<longleftrightarrow> dest_graph G \<subset> dest_graph H"
+  graph_less_def [code del]: "G < H \<longleftrightarrow> dest_graph G \<subset> dest_graph H"
 
 definition
-  [code func del]: "inf G H = Graph (dest_graph G \<inter> dest_graph H)"
+  [code del]: "inf G H = Graph (dest_graph G \<inter> dest_graph H)"
 
 definition
-  [code func del]: "sup (G \<Colon> ('a, 'b) graph) H = G + H"
+  [code del]: "sup (G \<Colon> ('a, 'b) graph) H = G + H"
 
 definition
-  Inf_graph_def [code func del]: "Inf = (\<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs)))"
+  Inf_graph_def [code del]: "Inf = (\<lambda>Gs. Graph (\<Inter>(dest_graph ` Gs)))"
 
 definition
-  Sup_graph_def [code func del]: "Sup = (\<lambda>Gs. Graph (\<Union>(dest_graph ` Gs)))"
+  Sup_graph_def [code del]: "Sup = (\<lambda>Gs. Graph (\<Union>(dest_graph ` Gs)))"
 
 instance proof
   fix x y z :: "('a,'b) graph"
@@ -165,7 +165,7 @@ instantiation graph :: (type, times) mult_zero
 begin
 
 definition
-  graph_mult_def [code func del]: "G * H = grcomp G H" 
+  graph_mult_def [code del]: "G * H = grcomp G H" 
 
 instance proof
   fix a :: "('a, 'b) graph"

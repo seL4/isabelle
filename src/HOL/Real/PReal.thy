@@ -19,7 +19,7 @@ by (rule_tac x="b-a" in exI, simp)
 
 definition
   cut :: "rat set => bool" where
-  [code func del]: "cut A = ({} \<subset> A &
+  [code del]: "cut A = ({} \<subset> A &
             A < {r. 0 < r} &
             (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u))))"
 
@@ -56,7 +56,7 @@ definition
 
 definition
   diff_set :: "[rat set,rat set] => rat set" where
-  [code func del]: "diff_set A B = {w. \<exists>x. 0 < w & 0 < x & x \<notin> B & x + w \<in> A}"
+  [code del]: "diff_set A B = {w. \<exists>x. 0 < w & 0 < x & x \<notin> B & x + w \<in> A}"
 
 definition
   mult_set :: "[rat set,rat set] => rat set" where
@@ -64,17 +64,17 @@ definition
 
 definition
   inverse_set :: "rat set => rat set" where
-  [code func del]: "inverse_set A = {x. \<exists>y. 0 < x & x < y & inverse y \<notin> A}"
+  [code del]: "inverse_set A = {x. \<exists>y. 0 < x & x < y & inverse y \<notin> A}"
 
 instantiation preal :: "{ord, plus, minus, times, inverse, one}"
 begin
 
 definition
-  preal_less_def [code func del]:
+  preal_less_def [code del]:
     "R < S == Rep_preal R < Rep_preal S"
 
 definition
-  preal_le_def [code func del]:
+  preal_le_def [code del]:
     "R \<le> S == Rep_preal R \<subseteq> Rep_preal S"
 
 definition

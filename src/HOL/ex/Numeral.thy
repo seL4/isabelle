@@ -74,19 +74,19 @@ instantiation num :: "{semiring, monoid_mult}"
 begin
 
 definition one_num :: num where
-  [code func del]: "1 = num_of_nat 1"
+  [code del]: "1 = num_of_nat 1"
 
 definition plus_num :: "num \<Rightarrow> num \<Rightarrow> num" where
-  [code func del]: "m + n = num_of_nat (nat_of_num m + nat_of_num n)"
+  [code del]: "m + n = num_of_nat (nat_of_num m + nat_of_num n)"
 
 definition times_num :: "num \<Rightarrow> num \<Rightarrow> num" where
-  [code func del]: "m * n = num_of_nat (nat_of_num m * nat_of_num n)"
+  [code del]: "m * n = num_of_nat (nat_of_num m * nat_of_num n)"
 
 definition Dig0 :: "num \<Rightarrow> num" where
-  [code func del]: "Dig0 n = n + n"
+  [code del]: "Dig0 n = n + n"
 
 definition Dig1 :: "num \<Rightarrow> num" where
-  [code func del]: "Dig1 n = n + n + 1"
+  [code del]: "Dig1 n = n + n + 1"
 
 instance proof
 qed (simp_all add: one_num_def plus_num_def times_num_def
@@ -503,10 +503,10 @@ instantiation num :: linorder
 begin
 
 definition less_eq_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
-  [code func del]: "m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n"
+  [code del]: "m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n"
 
 definition less_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
-  [code func del]: "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
+  [code del]: "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
 
 instance proof
 qed (auto simp add: less_eq_num_def less_num_def
@@ -768,10 +768,10 @@ code_datatype "0::int" Pls Mns
 lemmas [code inline] = Pls_def [symmetric] Mns_def [symmetric]
 
 definition sub :: "num \<Rightarrow> num \<Rightarrow> int" where
-  [simp, code func del]: "sub m n = (of_num m - of_num n)"
+  [simp, code del]: "sub m n = (of_num m - of_num n)"
 
 definition dup :: "int \<Rightarrow> int" where
-  [code func del]: "dup k = 2 * k"
+  [code del]: "dup k = 2 * k"
 
 lemma Dig_sub [code]:
   "sub 1 1 = 0"
@@ -794,7 +794,7 @@ lemma dup_code [code]:
   "dup (Mns n) = Mns (Dig0 n)"
   by (simp_all add: dup_def of_num.simps)
   
-lemma [code func, code func del]:
+lemma [code, code del]:
   "(1 :: int) = 1"
   "(op + :: int \<Rightarrow> int \<Rightarrow> int) = op +"
   "(uminus :: int \<Rightarrow> int) = uminus"

@@ -12,12 +12,12 @@ subsection {* Datatype of messages *}
 
 datatype message_string = STR string
 
-lemmas [code func del] = message_string.recs message_string.cases
+lemmas [code del] = message_string.recs message_string.cases
 
-lemma [code func]: "size (s\<Colon>message_string) = 0"
+lemma [code]: "size (s\<Colon>message_string) = 0"
   by (cases s) simp_all
 
-lemma [code func]: "message_string_size (s\<Colon>message_string) = 0"
+lemma [code]: "message_string_size (s\<Colon>message_string) = 0"
   by (cases s) simp_all
 
 subsection {* ML interface *}

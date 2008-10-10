@@ -993,7 +993,7 @@ text {*
     syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
     ;
 
-    'code' ('func' | 'inline') ( 'del' )?
+    'code' ( 'inline' ) ? ( 'del' ) ?
     ;
   \end{rail}
 
@@ -1080,13 +1080,13 @@ text {*
   are not required to have a definition by means of defining equations;
   if needed these are implemented by program abort instead.
 
-  \item [@{attribute (HOL) code}~@{text func}] explicitly selects (or
-  with option ``@{text "del:"}'' deselects) a defining equation for
+  \item [@{attribute (HOL) code}] explicitly selects (or
+  with option ``@{text "del"}'' deselects) a defining equation for
   code generation.  Usually packages introducing defining equations
   provide a reasonable default setup for selection.
 
   \item [@{attribute (HOL) code}@{text inline}] declares (or with
-  option ``@{text "del:"}'' removes) inlining theorems which are
+  option ``@{text "del"}'' removes) inlining theorems which are
   applied as rewrite rules to any defining equation during
   preprocessing.
 

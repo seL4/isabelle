@@ -25,7 +25,7 @@ text {*
   explicitly:
 *}
 
-lemma %quoteme [code func]:
+lemma %quoteme [code]:
   "dequeue (Queue xs []) =
      (if xs = [] then (None, Queue [] [])
        else dequeue (Queue [] (rev xs)))"
@@ -34,7 +34,7 @@ lemma %quoteme [code func]:
   by (cases xs, simp_all) (cases "rev xs", simp_all)
 
 text {*
-  \noindent The annotation @{text "[code func]"} is an @{text Isar}
+  \noindent The annotation @{text "[code]"} is an @{text Isar}
   @{text attribute} which states that the given theorems should be
   considered as defining equations for a @{text fun} statement --
   the corresponding constant is determined syntactically.  The resulting code:
@@ -255,7 +255,7 @@ text {*
   the operations, e.g. @{term "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"}:
 *}
 
-lemma %quoteme plus_Dig [code func]:
+lemma %quoteme plus_Dig [code]:
   "0 + n = n"
   "m + 0 = m"
   "1 + Dig0 n = Dig1 n"
@@ -282,12 +282,12 @@ text {*
   which are an obstacle here:
 *}
 
-lemma %quoteme Suc_Dig [code func]:
+lemma %quoteme Suc_Dig [code]:
   "Suc n = n + 1"
   by simp
 
 declare %quoteme One_nat_def [code inline del]
-declare %quoteme add_Suc_shift [code func del] 
+declare %quoteme add_Suc_shift [code del] 
 
 text {*
   \noindent This yields the following code:
@@ -316,10 +316,10 @@ text {*
 *}
 
 code_datatype %invisible "0::nat" Suc
-declare %invisible plus_Dig [code func del]
+declare %invisible plus_Dig [code del]
 declare %invisible One_nat_def [code inline]
-declare %invisible add_Suc_shift [code func] 
-lemma %invisible [code func]: "0 + n = (n \<Colon> nat)" by simp
+declare %invisible add_Suc_shift [code] 
+lemma %invisible [code]: "0 + n = (n \<Colon> nat)" by simp
 
 
 subsection {* Equality and wellsortedness *}
@@ -367,10 +367,10 @@ text {*
 instantiation %quoteme "*" :: (order, order) order
 begin
 
-definition %quoteme [code func del]:
+definition %quoteme [code del]:
   "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x \<le> snd y"
 
-definition %quoteme [code func del]:
+definition %quoteme [code del]:
   "x < y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x < snd y"
 
 instance %quoteme proof
@@ -378,7 +378,7 @@ qed (auto simp: less_eq_prod_def less_prod_def intro: order_less_trans)
 
 end %quoteme
 
-lemma %quoteme order_prod [code func]:
+lemma %quoteme order_prod [code]:
   "(x1 \<Colon> 'a\<Colon>order, y1 \<Colon> 'b\<Colon>order) < (x2, y2) \<longleftrightarrow>
      x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
   "(x1 \<Colon> 'a\<Colon>order, y1 \<Colon> 'b\<Colon>order) \<le> (x2, y2) \<longleftrightarrow>
@@ -396,7 +396,7 @@ text {*
   code theorems:
 *}
 
-lemma %quoteme order_prod_code [code func]:
+lemma %quoteme order_prod_code [code]:
   "(x1 \<Colon> 'a\<Colon>{order, eq}, y1 \<Colon> 'b\<Colon>order) < (x2, y2) \<longleftrightarrow>
      x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
   "(x1 \<Colon> 'a\<Colon>{order, eq}, y1 \<Colon> 'b\<Colon>order) \<le> (x2, y2) \<longleftrightarrow>
@@ -438,7 +438,7 @@ text {*
   @{const [show_types] list_all2} can do the job:
 *}
 
-lemma %quoteme monotype_eq_list_all2 [code func]:
+lemma %quoteme monotype_eq_list_all2 [code]:
   "eq_class.eq (Mono tyco1 typargs1) (Mono tyco2 typargs2) \<longleftrightarrow>
      eq_class.eq tyco1 tyco2 \<and> list_all2 eq_class.eq typargs1 typargs2"
   by (simp add: eq list_all2_eq [symmetric])

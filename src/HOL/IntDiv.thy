@@ -14,13 +14,13 @@ begin
 constdefs
   quorem :: "(int*int) * (int*int) => bool"
     --{*definition of quotient and remainder*}
-    [code func]: "quorem == %((a,b), (q,r)).
+    [code]: "quorem == %((a,b), (q,r)).
                       a = b*q + r &
                       (if 0 < b then 0\<le>r & r<b else b<r & r \<le> 0)"
 
   adjust :: "[int, int*int] => int*int"
     --{*for the division algorithm*}
-    [code func]: "adjust b == %(q,r). if 0 \<le> r-b then (2*q + 1, r-b)
+    [code]: "adjust b == %(q,r). if 0 \<le> r-b then (2*q + 1, r-b)
                          else (2*q, r)"
 
 text{*algorithm for the case @{text "a\<ge>0, b>0"}*}
@@ -46,7 +46,7 @@ termination by (relation "measure (%(a,b). nat(- a - b))") auto
 text{*algorithm for the general case @{term "b\<noteq>0"}*}
 constdefs
   negateSnd :: "int*int => int*int"
-    [code func]: "negateSnd == %(q,r). (q,-r)"
+    [code]: "negateSnd == %(q,r). (q,-r)"
 
 definition
   divAlg :: "int \<times> int \<Rightarrow> int \<times> int"
@@ -1477,7 +1477,7 @@ text {* code generator setup *}
 context ring_1
 begin
 
-lemma of_int_num [code func]:
+lemma of_int_num [code]:
   "of_int k = (if k = 0 then 0 else if k < 0 then
      - of_int (- k) else let
        (l, m) = divAlg (k, 2);

@@ -9,7 +9,7 @@ theory Codegenerator_Pretty
 imports ExecutableContent Code_Char Efficient_Nat
 begin
 
-declare isnorm.simps [code func del]
+declare isnorm.simps [code del]
 
 ML {* (*FIXME get rid of this*)
 nonfix union;

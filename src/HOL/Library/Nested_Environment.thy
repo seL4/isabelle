@@ -525,11 +525,11 @@ qed
 
 text {* Environments and code generation *}
 
-lemma [code func, code func del]:
+lemma [code, code del]:
   fixes e1 e2 :: "('b\<Colon>eq, 'a\<Colon>eq, 'c\<Colon>eq) env"
   shows "eq_class.eq e1 e2 \<longleftrightarrow> eq_class.eq e1 e2" ..
 
-lemma eq_env_code [code func]:
+lemma eq_env_code [code]:
   fixes x y :: "'a\<Colon>eq"
     and f g :: "'c\<Colon>{eq, finite} \<Rightarrow> ('b\<Colon>eq, 'a, 'c) env option"
   shows "eq_class.eq (Env x f) (Env y g) \<longleftrightarrow>
@@ -567,7 +567,7 @@ proof (unfold eq)
           of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" by simp
 qed simp_all
 
-lemma [code func, code func del]:
+lemma [code, code del]:
   "(Code_Eval.term_of :: ('a::{term_of, type}, 'b::{term_of, type}, 'c::{term_of, type}) env \<Rightarrow> term) = Code_Eval.term_of" ..
 
 end

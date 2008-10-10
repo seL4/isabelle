@@ -127,7 +127,7 @@ proof -
   note that ultimately show thesis by blast
 qed
 
-lemma dvd_eq_mod_eq_0 [code func]: "a dvd b \<longleftrightarrow> b mod a = 0"
+lemma dvd_eq_mod_eq_0 [code]: "a dvd b \<longleftrightarrow> b mod a = 0"
 proof
   assume "b mod a = 0"
   with mod_div_equality [of b a] have "b div a * a = b" by simp
@@ -230,7 +230,7 @@ instantiation nat :: semiring_div
 begin
 
 definition divmod :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
-  [code func del]: "divmod m n = (THE (q, r). divmod_rel m n q r)"
+  [code del]: "divmod m n = (THE (q, r). divmod_rel m n q r)"
 
 definition div_nat where
   "m div n = fst (divmod m n)"

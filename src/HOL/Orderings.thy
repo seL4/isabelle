@@ -968,10 +968,10 @@ instantiation bool :: order
 begin
 
 definition
-  le_bool_def [code func del]: "P \<le> Q \<longleftrightarrow> P \<longrightarrow> Q"
+  le_bool_def [code del]: "P \<le> Q \<longleftrightarrow> P \<longrightarrow> Q"
 
 definition
-  less_bool_def [code func del]: "(P\<Colon>bool) < Q \<longleftrightarrow> P \<le> Q \<and> P \<noteq> Q"
+  less_bool_def [code del]: "(P\<Colon>bool) < Q \<longleftrightarrow> P \<le> Q \<and> P \<noteq> Q"
 
 instance
   by intro_classes (auto simp add: le_bool_def less_bool_def)
@@ -990,7 +990,7 @@ by (simp add: le_bool_def)
 lemma le_boolD: "P \<le> Q \<Longrightarrow> P \<longrightarrow> Q"
 by (simp add: le_bool_def)
 
-lemma [code func]:
+lemma [code]:
   "False \<le> b \<longleftrightarrow> True"
   "True \<le> b \<longleftrightarrow> b"
   "False < b \<longleftrightarrow> b"
@@ -1004,10 +1004,10 @@ instantiation "fun" :: (type, ord) ord
 begin
 
 definition
-  le_fun_def [code func del]: "f \<le> g \<longleftrightarrow> (\<forall>x. f x \<le> g x)"
+  le_fun_def [code del]: "f \<le> g \<longleftrightarrow> (\<forall>x. f x \<le> g x)"
 
 definition
-  less_fun_def [code func del]: "(f\<Colon>'a \<Rightarrow> 'b) < g \<longleftrightarrow> f \<le> g \<and> f \<noteq> g"
+  less_fun_def [code del]: "(f\<Colon>'a \<Rightarrow> 'b) < g \<longleftrightarrow> f \<le> g \<and> f \<noteq> g"
 
 instance ..
 

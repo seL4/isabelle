@@ -37,7 +37,7 @@ definition
   [code inline]: "1 = Fin 1"
 
 definition
-  [code inline, code func del]: "number_of k = Fin (number_of k)"
+  [code inline, code del]: "number_of k = Fin (number_of k)"
 
 instance ..
 

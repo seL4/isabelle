@@ -72,7 +72,7 @@ definition (in ring_1)
 
 definition (in semiring_0)
   divides :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixl "divides" 70) where
-  [code func del]: "p1 divides p2 = (\<exists>q. poly p2 = poly(p1 *** q))"
+  [code del]: "p1 divides p2 = (\<exists>q. poly p2 = poly(p1 *** q))"
 
     --{*order of a polynomial*}
 definition (in ring_1) order :: "'a => 'a list => nat" where

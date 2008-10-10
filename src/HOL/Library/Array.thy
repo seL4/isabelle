@@ -107,14 +107,14 @@ hide (open) const new map -- {* avoid clashed with some popular names *}
 
 subsection {* Properties *}
 
-lemma array_make [code func]:
+lemma array_make [code]:
   "Array.new n x = make n (\<lambda>_. x)"
   by (induct n) (simp_all add: make_def new_def Heap_Monad.heap_def
     monad_simp array_of_list_replicate [symmetric]
     map_replicate_trivial replicate_append_same
     of_list_def)
 
-lemma array_of_list_make [code func]:
+lemma array_of_list_make [code]:
   "of_list xs = make (List.length xs) (\<lambda>n. xs ! n)"
   unfolding make_def map_nth ..
 
@@ -126,28 +126,28 @@ subsubsection {* Logical intermediate layer *}
 definition new' where
   [code del]: "new' = Array.new o nat_of_index"
 hide (open) const new'
-lemma [code func]:
+lemma [code]:
   "Array.new = Array.new' o index_of_nat"
   by (simp add: new'_def o_def)
 
 definition of_list' where
   [code del]: "of_list' i xs = Array.of_list (take (nat_of_index i) xs)"
 hide (open) const of_list'
-lemma [code func]:
+lemma [code]:
   "Array.of_list xs = Array.of_list' (index_of_nat (List.length xs)) xs"
   by (simp add: of_list'_def)
 
 definition make' where
   [code del]: "make' i f = Array.make (nat_of_index i) (f o index_of_nat)"
 hide (open) const make'
-lemma [code func]:
+lemma [code]:
   "Array.make n f = Array.make' (index_of_nat n) (f o nat_of_index)"
   by (simp add: make'_def o_def)
 
 definition length' where
   [code del]: "length' = Array.length \<guillemotright>== liftM index_of_nat"
 hide (open) const length'
-lemma [code func]:
+lemma [code]:
   "Array.length = Array.length' \<guillemotright>== liftM nat_of_index"
   by (simp add: length'_def monad_simp',
     simp add: liftM_def comp_def monad_simp,
@@ -156,14 +156,14 @@ lemma [code func]:
 definition nth' where
   [code del]: "nth' a = Array.nth a o nat_of_index"
 hide (open) const nth'
-lemma [code func]:
+lemma [code]:
   "Array.nth a n = Array.nth' a (index_of_nat n)"
   by (simp add: nth'_def)
 
 definition upd' where
   [code del]: "upd' a i x = Array.upd (nat_of_index i) x a \<guillemotright> return ()"
 hide (open) const upd'
-lemma [code func]:
+lemma [code]:
   "Array.upd i x a = Array.upd' a (index_of_nat i) x \<guillemotright> return a"
   by (simp add: upd'_def monad_simp upd_return)
 

@@ -291,7 +291,7 @@ qed
 subsection {* Internal predicates *}
 
 definition unstar :: "bool star \<Rightarrow> bool" where
-  [code func del]: "unstar b \<longleftrightarrow> b = star_of True"
+  [code del]: "unstar b \<longleftrightarrow> b = star_of True"
 
 lemma unstar_star_n: "unstar (star_n P) = ({n. P n} \<in> \<U>)"
 by (simp add: unstar_def star_of_def star_n_eq_iff)
@@ -432,7 +432,7 @@ instantiation star :: (zero) zero
 begin
 
 definition
-  star_zero_def [code func del]:    "0 \<equiv> star_of 0"
+  star_zero_def [code del]:    "0 \<equiv> star_of 0"
 
 instance ..
 
@@ -442,7 +442,7 @@ instantiation star :: (one) one
 begin
 
 definition
-  star_one_def [code func del]:     "1 \<equiv> star_of 1"
+  star_one_def [code del]:     "1 \<equiv> star_of 1"
 
 instance ..
 
@@ -452,7 +452,7 @@ instantiation star :: (plus) plus
 begin
 
 definition
-  star_add_def [code func del]:     "(op +) \<equiv> *f2* (op +)"
+  star_add_def [code del]:     "(op +) \<equiv> *f2* (op +)"
 
 instance ..
 
@@ -462,7 +462,7 @@ instantiation star :: (times) times
 begin
 
 definition
-  star_mult_def [code func del]:    "(op *) \<equiv> *f2* (op *)"
+  star_mult_def [code del]:    "(op *) \<equiv> *f2* (op *)"
 
 instance ..
 
@@ -472,7 +472,7 @@ instantiation star :: (uminus) uminus
 begin
 
 definition
-  star_minus_def [code func del]:   "uminus \<equiv> *f* uminus"
+  star_minus_def [code del]:   "uminus \<equiv> *f* uminus"
 
 instance ..
 
@@ -482,7 +482,7 @@ instantiation star :: (minus) minus
 begin
 
 definition
-  star_diff_def [code func del]:    "(op -) \<equiv> *f2* (op -)"
+  star_diff_def [code del]:    "(op -) \<equiv> *f2* (op -)"
 
 instance ..
 

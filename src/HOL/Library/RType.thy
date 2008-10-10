@@ -89,7 +89,7 @@ setup {*
   #> TypedefPackage.interpretation Typerep.perhaps_add_def
 *}
 
-lemma [code func]:
+lemma [code]:
   "eq_class.eq (Typerep tyco1 tys1) (Typerep tyco2 tys2) \<longleftrightarrow> eq_class.eq tyco1 tyco2
      \<and> list_all2 eq_class.eq tys1 tys2"
   by (auto simp add: equals_eq [symmetric] list_all2_eq [symmetric])

@@ -96,12 +96,10 @@ structure CodeAttr = TheoryDataFun (
 
 fun add_attribute (attr as (name, _)) =
   let
-    fun add_parser ("", parser) attrs = attrs @ [("", parser)]
+    fun add_parser ("", parser) attrs = attrs |> rev |> AList.update (op =) ("", parser) |> rev
       | add_parser (name, parser) attrs = (name, Args.$$$ name |-- parser) :: attrs;
-    fun error "" = error ("Code attribute already declared")
-      | error name = error ("Code attribute " ^ name ^ " already declared")
-  in CodeAttr.map (fn attrs => if AList.defined (op =) attrs name
-    then error name else add_parser attr attrs)
+  in CodeAttr.map (fn attrs => if not (name = "") andalso AList.defined (op =) attrs name
+    then error ("Code attribute " ^ name ^ " already declared") else add_parser attr attrs)
   end;
 
 val _ =
@@ -637,7 +635,7 @@ val _ = Context.>> (Context.map_theory
         || Scan.succeed (mk_attribute add))
   in
     TypeInterpretation.init
-    #> add_del_attribute ("func", (add_eqn, del_eqn))
+    #> add_del_attribute ("", (add_eqn, del_eqn))
     #> add_simple_attribute ("nbe", add_nonlinear_eqn)
     #> add_del_attribute ("inline", (add_inline, del_inline))
     #> add_del_attribute ("post", (add_post, del_post))

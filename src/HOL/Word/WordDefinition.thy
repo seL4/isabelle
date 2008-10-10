@@ -30,7 +30,7 @@ definition
         only difference in these is the type class *}
   word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word"
 where
-  [code func del]: "word_of_int w = Abs_word (bintrunc (len_of TYPE ('a)) w)" 
+  [code del]: "word_of_int w = Abs_word (bintrunc (len_of TYPE ('a)) w)" 
 
 code_datatype word_of_int
 
@@ -96,9 +96,9 @@ translations
 
 subsection  "Arithmetic operations"
 
-declare uint_def [code func del]
+declare uint_def [code del]
 
-lemma [code func]: "uint (word_of_int w \<Colon> 'a\<Colon>len0 word) = bintrunc (len_of TYPE('a)) w"
+lemma [code]: "uint (word_of_int w \<Colon> 'a\<Colon>len0 word) = bintrunc (len_of TYPE('a)) w"
   by (auto simp add: uint_def word_of_int_def intro!: Abs_word_inverse)
     (insert range_bintrunc, auto)
 

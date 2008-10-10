@@ -308,7 +308,7 @@ subsection {* The Set of Real Numbers *}
 
 definition
   Reals :: "'a::real_algebra_1 set" where
-  [code func del]: "Reals \<equiv> range of_real"
+  [code del]: "Reals \<equiv> range of_real"
 
 notation (xsymbols)
   Reals  ("\<real>")

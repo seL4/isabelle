@@ -122,16 +122,16 @@ lemma SCT'_exec:
 code_modulename SML
   Implementation Graphs
 
-lemma [code func]:
+lemma [code]:
   "(G\<Colon>('a\<Colon>eq, 'b\<Colon>eq) graph) \<le> H \<longleftrightarrow> dest_graph G \<subseteq> dest_graph H"
   "(G\<Colon>('a\<Colon>eq, 'b\<Colon>eq) graph) < H \<longleftrightarrow> dest_graph G \<subset> dest_graph H"
   unfolding graph_leq_def graph_less_def by rule+
 
-lemma [code func]:
+lemma [code]:
   "(G\<Colon>('a\<Colon>eq, 'b\<Colon>eq) graph) + H = Graph (dest_graph G \<union> dest_graph H)"
   unfolding graph_plus_def ..
 
-lemma [code func]:
+lemma [code]:
   "(G\<Colon>('a\<Colon>eq, 'b\<Colon>{eq, times}) graph) * H = grcomp G H"
   unfolding graph_mult_def ..
 

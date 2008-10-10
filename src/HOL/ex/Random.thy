@@ -124,7 +124,7 @@ qed
 definition
   select_default :: "index \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> seed \<Rightarrow> 'a \<times> seed"
 where
-  [code func del]: "select_default k x y = (do
+  [code del]: "select_default k x y = (do
      l \<leftarrow> range k;
      return (if l + 1 < k then x else y)
    done)"

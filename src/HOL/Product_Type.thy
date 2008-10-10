@@ -23,10 +23,10 @@ declare case_split [cases type: bool]
   -- "prefer plain propositional version"
 
 lemma
-  shows [code func]: "eq_class.eq False P \<longleftrightarrow> \<not> P"
-    and [code func]: "eq_class.eq True P \<longleftrightarrow> P" 
-    and [code func]: "eq_class.eq P False \<longleftrightarrow> \<not> P" 
-    and [code func]: "eq_class.eq P True \<longleftrightarrow> P"
+  shows [code]: "eq_class.eq False P \<longleftrightarrow> \<not> P"
+    and [code]: "eq_class.eq True P \<longleftrightarrow> P" 
+    and [code]: "eq_class.eq P False \<longleftrightarrow> \<not> P" 
+    and [code]: "eq_class.eq P True \<longleftrightarrow> P"
     and [code nbe]: "eq_class.eq P P \<longleftrightarrow> True"
   by (simp_all add: eq)
 
@@ -89,7 +89,7 @@ text {* code generator setup *}
 
 instance unit :: eq ..
 
-lemma [code func]:
+lemma [code]:
   "eq_class.eq (u\<Colon>unit) v \<longleftrightarrow> True" unfolding eq unit_eq [of u] unit_eq [of v] by rule+
 
 code_type unit
@@ -359,10 +359,10 @@ lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longri
 
 subsubsection {* @{text split} and @{text curry} *}
 
-lemma split_conv [simp, code func]: "split f (a, b) = f a b"
+lemma split_conv [simp, code]: "split f (a, b) = f a b"
   by (simp add: split_def)
 
-lemma curry_conv [simp, code func]: "curry f a b = f (a, b)"
+lemma curry_conv [simp, code]: "curry f a b = f (a, b)"
   by (simp add: curry_def)
 
 lemmas split = split_conv  -- {* for backwards compatibility *}
@@ -728,9 +728,9 @@ text {*
 *}
 
 definition prod_fun :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd" where
-  [code func del]: "prod_fun f g = (\<lambda>(x, y). (f x, g y))"
+  [code del]: "prod_fun f g = (\<lambda>(x, y). (f x, g y))"
 
-lemma prod_fun [simp, code func]: "prod_fun f g (a, b) = (f a, g b)"
+lemma prod_fun [simp, code]: "prod_fun f g (a, b) = (f a, g b)"
   by (simp add: prod_fun_def)
 
 lemma prod_fun_compose: "prod_fun (f1 o f2) (g1 o g2) = (prod_fun f1 g1 o prod_fun f2 g2)"
@@ -758,12 +758,12 @@ lemma prod_fun_imageE [elim!]:
 definition
   apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b"
 where
-  [code func del]: "apfst f = prod_fun f id"
+  [code del]: "apfst f = prod_fun f id"
 
 definition
   apsnd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c"
 where
-  [code func del]: "apsnd f = prod_fun id f"
+  [code del]: "apsnd f = prod_fun id f"
 
 lemma apfst_conv [simp, code]:
   "apfst f (x, y) = (f x, y)" 
@@ -917,7 +917,7 @@ subsubsection {* Code generator setup *}
 
 instance * :: (eq, eq) eq ..
 
-lemma [code func]:
+lemma [code]:
   "eq_class.eq (x1\<Colon>'a\<Colon>eq, y1\<Colon>'b\<Colon>eq) (x2, y2) \<longleftrightarrow> x1 = x2 \<and> y1 = y2" by (simp add: eq)
 
 lemma split_case_cert:

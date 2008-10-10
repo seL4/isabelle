@@ -16,7 +16,7 @@ definition
 
 definition
   prime :: "nat \<Rightarrow> bool" where
-  [code func del]: "prime p \<longleftrightarrow> (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
+  [code del]: "prime p \<longleftrightarrow> (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
 
 
 lemma two_is_prime: "prime 2"

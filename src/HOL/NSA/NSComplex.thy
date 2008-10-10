@@ -26,11 +26,11 @@ abbreviation
 
 definition
   hRe :: "hcomplex => hypreal" where
-  [code func del]: "hRe = *f* Re"
+  [code del]: "hRe = *f* Re"
 
 definition
   hIm :: "hcomplex => hypreal" where
-  [code func del]: "hIm = *f* Im"
+  [code del]: "hIm = *f* Im"
 
 
   (*------ imaginary unit ----------*)
@@ -43,22 +43,22 @@ definition
 
 definition
   hcnj :: "hcomplex => hcomplex" where
-  [code func del]: "hcnj = *f* cnj"
+  [code del]: "hcnj = *f* cnj"
 
   (*------------ Argand -------------*)
 
 definition
   hsgn :: "hcomplex => hcomplex" where
-  [code func del]: "hsgn = *f* sgn"
+  [code del]: "hsgn = *f* sgn"
 
 definition
   harg :: "hcomplex => hypreal" where
-  [code func del]: "harg = *f* arg"
+  [code del]: "harg = *f* arg"
 
 definition
   (* abbreviation for (cos a + i sin a) *)
   hcis :: "hypreal => hcomplex" where
-  [code func del]:"hcis = *f* cis"
+  [code del]:"hcis = *f* cis"
 
   (*----- injection from hyperreals -----*)
 
@@ -69,16 +69,16 @@ abbreviation
 definition
   (* abbreviation for r*(cos a + i sin a) *)
   hrcis :: "[hypreal, hypreal] => hcomplex" where
-  [code func del]: "hrcis = *f2* rcis"
+  [code del]: "hrcis = *f2* rcis"
 
   (*------------ e ^ (x + iy) ------------*)
 definition
   hexpi :: "hcomplex => hcomplex" where
-  [code func del]: "hexpi = *f* expi"
+  [code del]: "hexpi = *f* expi"
 
 definition
   HComplex :: "[hypreal,hypreal] => hcomplex" where
-  [code func del]: "HComplex = *f2* Complex"
+  [code del]: "HComplex = *f2* Complex"
 
 lemmas hcomplex_defs [transfer_unfold] =
   hRe_def hIm_def iii_def hcnj_def hsgn_def harg_def hcis_def

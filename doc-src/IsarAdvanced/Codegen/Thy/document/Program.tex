@@ -55,7 +55,7 @@ Coming back to our introductory example, we
 %
 \isatagquoteme
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}Queue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ \ \ \ {\isacharparenleft}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ {\isacharparenleft}None{\isacharcomma}\ Queue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ else\ dequeue\ {\isacharparenleft}Queue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
@@ -71,7 +71,7 @@ Coming back to our introductory example, we
 \endisadelimquoteme
 %
 \begin{isamarkuptext}%
-\noindent The annotation \isa{{\isacharbrackleft}code\ func{\isacharbrackright}} is an \isa{Isar}
+\noindent The annotation \isa{{\isacharbrackleft}code{\isacharbrackright}} is an \isa{Isar}
   \isa{attribute} which states that the given theorems should be
   considered as defining equations for a \isa{fun} statement --
   the corresponding constant is determined syntactically.  The resulting code:%
@@ -287,8 +287,8 @@ Concerning type classes and code generation, let us examine an example
 \verb|};|\newline%
 \newline%
 \verb|pow :: forall a. (Monoid a) => Nat -> a -> a;|\newline%
-\verb|pow (Suc n) a = mult a (pow n a);|\newline%
 \verb|pow Zero_nat a = neutral;|\newline%
+\verb|pow (Suc n) a = mult a (pow n a);|\newline%
 \newline%
 \verb|plus_nat :: Nat -> Nat -> Nat;|\newline%
 \verb|plus_nat (Suc m) n = plus_nat m (Suc n);|\newline%
@@ -298,8 +298,8 @@ Concerning type classes and code generation, let us examine an example
 \verb|neutral_nat = Suc Zero_nat;|\newline%
 \newline%
 \verb|mult_nat :: Nat -> Nat -> Nat;|\newline%
-\verb|mult_nat (Suc m) n = plus_nat n (mult_nat m n);|\newline%
 \verb|mult_nat Zero_nat n = Zero_nat;|\newline%
+\verb|mult_nat (Suc m) n = plus_nat n (mult_nat m n);|\newline%
 \newline%
 \verb|instance Semigroup Nat where {|\newline%
 \verb|  mult = mult_nat;|\newline%
@@ -350,16 +350,16 @@ Concerning type classes and code generation, let us examine an example
 \verb|fun semigroup_monoid (A_:'a monoid) = #Program__semigroup_monoid A_;|\newline%
 \verb|fun neutral (A_:'a monoid) = #neutral A_;|\newline%
 \newline%
-\verb|fun pow A_ (Suc n) a = mult (semigroup_monoid A_) a (pow A_ n a)|\newline%
-\verb|  |\verb,|,\verb| pow A_ Zero_nat a = neutral A_;|\newline%
+\verb|fun pow A_ Zero_nat a = neutral A_|\newline%
+\verb|  |\verb,|,\verb| pow A_ (Suc n) a = mult (semigroup_monoid A_) a (pow A_ n a);|\newline%
 \newline%
 \verb|fun plus_nat (Suc m) n = plus_nat m (Suc n)|\newline%
 \verb|  |\verb,|,\verb| plus_nat Zero_nat n = n;|\newline%
 \newline%
 \verb|val neutral_nat : nat = Suc Zero_nat;|\newline%
 \newline%
-\verb|fun mult_nat (Suc m) n = plus_nat n (mult_nat m n)|\newline%
-\verb|  |\verb,|,\verb| mult_nat Zero_nat n = Zero_nat;|\newline%
+\verb|fun mult_nat Zero_nat n = Zero_nat|\newline%
+\verb|  |\verb,|,\verb| mult_nat (Suc m) n = plus_nat n (mult_nat m n);|\newline%
 \newline%
 \verb|val semigroup_nat = {mult = mult_nat} : nat semigroup;|\newline%
 \newline%
@@ -575,7 +575,7 @@ Conceptually, any datatype is spanned by a set of
 %
 \isatagquoteme
 \isacommand{lemma}\isamarkupfalse%
-\ plus{\isacharunderscore}Dig\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ plus{\isacharunderscore}Dig\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isacharplus}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
 \ \ {\isachardoublequoteopen}m\ {\isacharplus}\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequoteclose}\isanewline
 \ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharplus}\ Dig{\isadigit{0}}\ n\ {\isacharequal}\ Dig{\isadigit{1}}\ n{\isachardoublequoteclose}\isanewline
@@ -629,7 +629,7 @@ Conceptually, any datatype is spanned by a set of
 %
 \isatagquoteme
 \isacommand{lemma}\isamarkupfalse%
-\ Suc{\isacharunderscore}Dig\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ Suc{\isacharunderscore}Dig\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}Suc\ n\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
 \ simp\isanewline
@@ -637,7 +637,7 @@ Conceptually, any datatype is spanned by a set of
 \isacommand{declare}\isamarkupfalse%
 \ One{\isacharunderscore}nat{\isacharunderscore}def\ {\isacharbrackleft}code\ inline\ del{\isacharbrackright}\isanewline
 \isacommand{declare}\isamarkupfalse%
-\ add{\isacharunderscore}Suc{\isacharunderscore}shift\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}%
+\ add{\isacharunderscore}Suc{\isacharunderscore}shift\ {\isacharbrackleft}code\ del{\isacharbrackright}%
 \endisatagquoteme
 {\isafoldquoteme}%
 %
@@ -715,13 +715,13 @@ Conceptually, any datatype is spanned by a set of
 \isacommand{code{\isacharunderscore}datatype}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isachardoublequoteclose}\ Suc\isanewline
 \isacommand{declare}\isamarkupfalse%
-\ plus{\isacharunderscore}Dig\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}\isanewline
+\ plus{\isacharunderscore}Dig\ {\isacharbrackleft}code\ del{\isacharbrackright}\isanewline
 \isacommand{declare}\isamarkupfalse%
 \ One{\isacharunderscore}nat{\isacharunderscore}def\ {\isacharbrackleft}code\ inline{\isacharbrackright}\isanewline
 \isacommand{declare}\isamarkupfalse%
-\ add{\isacharunderscore}Suc{\isacharunderscore}shift\ {\isacharbrackleft}code\ func{\isacharbrackright}\ \isanewline
+\ add{\isacharunderscore}Suc{\isacharunderscore}shift\ {\isacharbrackleft}code{\isacharbrackright}\ \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isacharplus}\ n\ {\isacharequal}\ {\isacharparenleft}n\ {\isasymColon}\ nat{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\ {\isacharplus}\ n\ {\isacharequal}\ {\isacharparenleft}n\ {\isasymColon}\ nat{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
 \ simp%
 \endisataginvisible
 {\isafoldinvisible}%
@@ -784,15 +784,15 @@ Surely you have already noticed how equality is treated
 \newline%
 \verb|fun eqop A_ a b = eq A_ a b;|\newline%
 \newline%
-\verb|fun member A_ x (y :: ys) = eqop A_ x y orelse member A_ x ys|\newline%
-\verb|  |\verb,|,\verb| member A_ x [] = false;|\newline%
+\verb|fun member A_ x [] = false|\newline%
+\verb|  |\verb,|,\verb| member A_ x (y :: ys) = eqop A_ x y orelse member A_ x ys;|\newline%
 \newline%
-\verb|fun collect_duplicates A_ xs ys (z :: zs) =|\newline%
-\verb|  (if member A_ z xs|\newline%
-\verb|    then (if member A_ z ys then collect_duplicates A_ xs ys zs|\newline%
-\verb|           else collect_duplicates A_ xs (z :: ys) zs)|\newline%
-\verb|    else collect_duplicates A_ (z :: xs) (z :: ys) zs)|\newline%
-\verb|  |\verb,|,\verb| collect_duplicates A_ xs ys [] = xs;|\newline%
+\verb|fun collect_duplicates A_ xs ys [] = xs|\newline%
+\verb|  |\verb,|,\verb| collect_duplicates A_ xs ys (z :: zs) =|\newline%
+\verb|    (if member A_ z xs|\newline%
+\verb|      then (if member A_ z ys then collect_duplicates A_ xs ys zs|\newline%
+\verb|             else collect_duplicates A_ xs (z :: ys) zs)|\newline%
+\verb|      else collect_duplicates A_ (z :: xs) (z :: ys) zs);|\newline%
 \newline%
 \verb|end; (*struct Example*)|%
 \end{isamarkuptext}%
@@ -835,11 +835,11 @@ Surely you have already noticed how equality is treated
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}{\isacharcolon}\isanewline
+\ {\isacharbrackleft}code\ del{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}x\ {\isasymle}\ y\ {\isasymlongleftrightarrow}\ fst\ x\ {\isacharless}\ fst\ y\ {\isasymor}\ fst\ x\ {\isacharequal}\ fst\ y\ {\isasymand}\ snd\ x\ {\isasymle}\ snd\ y{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
-\ {\isacharbrackleft}code\ func\ del{\isacharbrackright}{\isacharcolon}\isanewline
+\ {\isacharbrackleft}code\ del{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}x\ {\isacharless}\ y\ {\isasymlongleftrightarrow}\ fst\ x\ {\isacharless}\ fst\ y\ {\isasymor}\ fst\ x\ {\isacharequal}\ fst\ y\ {\isasymand}\ snd\ x\ {\isacharless}\ snd\ y{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{instance}\isamarkupfalse%
@@ -852,7 +852,7 @@ Surely you have already noticed how equality is treated
 \isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ order{\isacharunderscore}prod\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ order{\isacharunderscore}prod\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}order{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}order{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
 \ \ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isachardoublequoteclose}\isanewline
 \ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}order{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}order{\isacharparenright}\ {\isasymle}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
@@ -884,7 +884,7 @@ Surely you have already noticed how equality is treated
 %
 \isatagquoteme
 \isacommand{lemma}\isamarkupfalse%
-\ order{\isacharunderscore}prod{\isacharunderscore}code\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ order{\isacharunderscore}prod{\isacharunderscore}code\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}order{\isacharcomma}\ eq{\isacharbraceright}{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}order{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
 \ \ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isachardoublequoteclose}\isanewline
 \ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}order{\isacharcomma}\ eq{\isacharbraceright}{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}order{\isacharparenright}\ {\isasymle}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
@@ -1007,7 +1007,7 @@ In some cases, the automatically derived defining equations
 %
 \isatagquoteme
 \isacommand{lemma}\isamarkupfalse%
-\ monotype{\isacharunderscore}eq{\isacharunderscore}list{\isacharunderscore}all{\isadigit{2}}\ {\isacharbrackleft}code\ func{\isacharbrackright}{\isacharcolon}\isanewline
+\ monotype{\isacharunderscore}eq{\isacharunderscore}list{\isacharunderscore}all{\isadigit{2}}\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}eq{\isacharunderscore}class{\isachardot}eq\ {\isacharparenleft}Mono\ tyco{\isadigit{1}}\ typargs{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}Mono\ tyco{\isadigit{2}}\ typargs{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
 \ \ \ \ \ eq{\isacharunderscore}class{\isachardot}eq\ tyco{\isadigit{1}}\ tyco{\isadigit{2}}\ {\isasymand}\ list{\isacharunderscore}all{\isadigit{2}}\ eq{\isacharunderscore}class{\isachardot}eq\ typargs{\isadigit{1}}\ typargs{\isadigit{2}}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
@@ -1038,8 +1038,8 @@ In some cases, the automatically derived defining equations
 \newline%
 \verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
 \newline%
-\verb|fun null (x :: xs) = false|\newline%
-\verb|  |\verb,|,\verb| null [] = true;|\newline%
+\verb|fun null [] = true|\newline%
+\verb|  |\verb,|,\verb| null (x :: xs) = false;|\newline%
 \newline%
 \verb|fun eq_nat (Suc a) Zero_nat = false|\newline%
 \verb|  |\verb,|,\verb| eq_nat Zero_nat (Suc a) = false|\newline%

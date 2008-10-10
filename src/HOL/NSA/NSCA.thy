@@ -16,7 +16,7 @@ abbreviation
 
 definition --{* standard part map*}
   stc :: "hcomplex => hcomplex" where 
-  [code func del]: "stc x = (SOME r. x \<in> HFinite & r:SComplex & r @= x)"
+  [code del]: "stc x = (SOME r. x \<in> HFinite & r:SComplex & r @= x)"
 
 
 subsection{*Closure Laws for SComplex, the Standard Complex Numbers*}

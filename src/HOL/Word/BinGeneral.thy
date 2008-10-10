@@ -129,7 +129,7 @@ lemma bin_exhaust:
 subsection {* Destructors for binary integers *}
 
 definition bin_rl :: "int \<Rightarrow> int \<times> bit" where 
-  [code func del]: "bin_rl w = (THE (r, l). w = r BIT l)"
+  [code del]: "bin_rl w = (THE (r, l). w = r BIT l)"
 
 lemma bin_rl_char: "(bin_rl w = (r, l)) = (r BIT l = w)"
   apply (unfold bin_rl_def)
@@ -139,10 +139,10 @@ lemma bin_rl_char: "(bin_rl w = (r, l)) = (r BIT l = w)"
   done
 
 definition
-  bin_rest_def [code func del]: "bin_rest w = fst (bin_rl w)"
+  bin_rest_def [code del]: "bin_rest w = fst (bin_rl w)"
 
 definition
-  bin_last_def [code func del] : "bin_last w = snd (bin_rl w)"
+  bin_last_def [code del] : "bin_last w = snd (bin_rl w)"
 
 primrec bin_nth where
   Z: "bin_nth w 0 = (bin_last w = bit.B1)"
@@ -159,7 +159,7 @@ lemma bin_rl_simps [simp]:
   "bin_rl (r BIT b) = (r, b)"
   unfolding bin_rl_char by simp_all
 
-declare bin_rl_simps(1-4) [code func]
+declare bin_rl_simps(1-4) [code]
 
 lemmas bin_rl_simp [simp] = iffD1 [OF bin_rl_char bin_rl]
 
@@ -212,7 +212,7 @@ lemma bin_rest_simps [simp]:
   "bin_rest (w BIT b) = w"
   unfolding bin_rest_def by auto
 
-declare bin_rest_simps(1-4) [code func]
+declare bin_rest_simps(1-4) [code]
 
 lemma bin_last_simps [simp]: 
   "bin_last Int.Pls = bit.B0"
@@ -222,7 +222,7 @@ lemma bin_last_simps [simp]:
   "bin_last (w BIT b) = b"
   unfolding bin_last_def by auto
 
-declare bin_last_simps(1-4) [code func]
+declare bin_last_simps(1-4) [code]
 
 lemma bin_r_l_extras [simp]:
   "bin_last 0 = bit.B0"
@@ -403,7 +403,7 @@ lemmas bin_rec_simps = refl [THEN bin_rec_Bit] bin_rec_Pls bin_rec_Min
 subsection {* Truncating binary integers *}
 
 definition
-  bin_sign_def [code func del] : "bin_sign = bin_rec Int.Pls Int.Min (%w b s. s)"
+  bin_sign_def [code del] : "bin_sign = bin_rec Int.Pls Int.Min (%w b s. s)"
 
 lemma bin_sign_simps [simp]:
   "bin_sign Int.Pls = Int.Pls"
@@ -413,7 +413,7 @@ lemma bin_sign_simps [simp]:
   "bin_sign (w BIT b) = bin_sign w"
   unfolding bin_sign_def by (auto simp: bin_rec_simps)
 
-declare bin_sign_simps(1-4) [code func]
+declare bin_sign_simps(1-4) [code]
 
 lemma bin_sign_rest [simp]: 
   "bin_sign (bin_rest w) = (bin_sign w)"

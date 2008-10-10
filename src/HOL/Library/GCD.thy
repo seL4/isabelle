@@ -18,7 +18,7 @@ subsection {* Specification of GCD on nats *}
 
 definition
   is_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where -- {* @{term gcd} as a relation *}
-  [code func del]: "is_gcd m n p \<longleftrightarrow> p dvd m \<and> p dvd n \<and>
+  [code del]: "is_gcd m n p \<longleftrightarrow> p dvd m \<and> p dvd n \<and>
     (\<forall>d. d dvd m \<longrightarrow> d dvd n \<longrightarrow> d dvd p)"
 
 text {* Uniqueness *}
@@ -776,7 +776,7 @@ proof-
   thus ?thesis by (simp add: zlcm_def)
 qed
 
-lemma zgcd_code [code func]:
+lemma zgcd_code [code]:
   "zgcd k l = \<bar>if l = 0 then k else zgcd l (\<bar>k\<bar> mod \<bar>l\<bar>)\<bar>"
   by (simp add: zgcd_def gcd.simps [of "nat \<bar>k\<bar>"] nat_mod_distrib)
 

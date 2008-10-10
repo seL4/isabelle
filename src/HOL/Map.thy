@@ -91,7 +91,7 @@ lemma map_of_Cons_code [code]:
   by simp_all
 
 defs
-  map_upds_def [code func]: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
+  map_upds_def [code]: "m(xs [|->] ys) == m ++ map_of (rev(zip xs ys))"
 
 
 subsection {* @{term [source] empty} *}

@@ -55,7 +55,7 @@ local
 instantiation nat :: zero
 begin
 
-definition Zero_nat_def [code func del]:
+definition Zero_nat_def [code del]:
   "0 = Abs_Nat Zero_Rep"
 
 instance ..
@@ -1281,7 +1281,7 @@ begin
 
 definition
   Nats  :: "'a set" where
-  [code func del]: "Nats = range of_nat"
+  [code del]: "Nats = range of_nat"
 
 notation (xsymbols)
   Nats  ("\<nat>")

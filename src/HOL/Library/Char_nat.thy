@@ -54,7 +54,7 @@ lemma nibble_of_nat_norm:
   "nibble_of_nat (n mod 16) = nibble_of_nat n"
   unfolding nibble_of_nat_def Let_def by auto
 
-lemmas [code func] = nibble_of_nat_norm [symmetric]
+lemmas [code] = nibble_of_nat_norm [symmetric]
 
 lemma nibble_of_nat_simps [simp]:
   "nibble_of_nat  0 = Nibble0"
@@ -75,7 +75,7 @@ lemma nibble_of_nat_simps [simp]:
   "nibble_of_nat 15 = NibbleF"
   unfolding nibble_of_nat_def Let_def by auto
 
-lemmas nibble_of_nat_code [code func] = nibble_of_nat_simps
+lemmas nibble_of_nat_code [code] = nibble_of_nat_simps
   [simplified nat_number Let_def not_neg_number_of_Pls neg_number_of_Bit0 neg_number_of_Bit1 if_False add_0 add_Suc]
 
 lemma nibble_of_nat_of_nibble: "nibble_of_nat (nat_of_nibble n) = n"
@@ -115,7 +115,7 @@ definition
   nibble_pair_of_nat :: "nat \<Rightarrow> nibble \<times> nibble" where
   "nibble_pair_of_nat n = (nibble_of_nat (n div 16), nibble_of_nat (n mod 16))"
 
-lemma nibble_of_pair [code func]:
+lemma nibble_of_pair [code]:
   "nibble_pair_of_nat n = (nibble_of_nat (n div 16), nibble_of_nat n)"
   unfolding nibble_of_nat_norm [of n, symmetric] nibble_pair_of_nat_def ..
 

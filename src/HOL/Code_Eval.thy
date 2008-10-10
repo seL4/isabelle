@@ -133,14 +133,14 @@ end
 
 subsubsection {* Code generator setup *}
 
-lemmas [code func del] = term.recs term.cases term.size
-lemma [code func, code func del]: "eq_class.eq (t1\<Colon>term) t2 \<longleftrightarrow> eq_class.eq t1 t2" ..
+lemmas [code del] = term.recs term.cases term.size
+lemma [code, code del]: "eq_class.eq (t1\<Colon>term) t2 \<longleftrightarrow> eq_class.eq t1 t2" ..
 
-lemma [code func, code func del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..
-lemma [code func, code func del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
-lemma [code func, code func del]: "(term_of \<Colon> message_string \<Rightarrow> term) = term_of" ..
+lemma [code, code del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..
+lemma [code, code del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
+lemma [code, code del]: "(term_of \<Colon> message_string \<Rightarrow> term) = term_of" ..
 
-lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code func]: "Code_Eval.term_of c =
+lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]: "Code_Eval.term_of c =
     (let (n, m) = nibble_pair_of_char c
   in Code_Eval.App (Code_Eval.App (Code_Eval.Const (STR ''Pair'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
     (Code_Eval.term_of n)) (Code_Eval.term_of m))"

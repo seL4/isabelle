@@ -232,7 +232,6 @@ fun lift f thy eqns1 =
    of NONE => NONE
     | SOME thms4 => if Thm.eq_thms (map fst eqns2, thms4)
         then NONE else SOME (map (apfst (AxClass.overload thy) o Code_Unit.mk_eqn thy) thms4)
-          (*FIXME*)
   end
 
 in
@@ -344,13 +343,13 @@ text {*
 definition
   int :: "nat \<Rightarrow> int"
 where
-  [code func del]: "int = of_nat"
+  [code del]: "int = of_nat"
 
-lemma int_code' [code func]:
+lemma int_code' [code]:
   "int (number_of l) = (if neg (number_of l \<Colon> int) then 0 else number_of l)"
   unfolding int_nat_number_of [folded int_def] ..
 
-lemma nat_code' [code func]:
+lemma nat_code' [code]:
   "nat (number_of l) = (if neg (number_of l \<Colon> int) then 0 else number_of l)"
   by auto
 
@@ -434,7 +433,7 @@ consts_code
 
 text {* Evaluation *}
 
-lemma [code func, code func del]:
+lemma [code, code del]:
   "(Code_Eval.term_of \<Colon> nat \<Rightarrow> term) = Code_Eval.term_of" ..
 
 code_const "Code_Eval.term_of \<Colon> nat \<Rightarrow> term"

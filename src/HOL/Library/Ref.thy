@@ -51,7 +51,7 @@ lemma lookup_chain:
   by (cases f)
     (auto simp add: Let_def bindM_def lookup_def expand_fun_eq)
 
-lemma update_change [code func]:
+lemma update_change [code]:
   "r := e = Ref.change (\<lambda>_. e) r \<guillemotright> return ()"
   by (auto simp add: monad_simp change_def lookup_chain)
 

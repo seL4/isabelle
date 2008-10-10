@@ -15,10 +15,10 @@ instantiation list :: (type) order
 begin
 
 definition
-  prefix_def [code func del]: "xs \<le> ys = (\<exists>zs. ys = xs @ zs)"
+  prefix_def [code del]: "xs \<le> ys = (\<exists>zs. ys = xs @ zs)"
 
 definition
-  strict_prefix_def [code func del]: "xs < ys = (xs \<le> ys \<and> xs \<noteq> (ys::'a list))"
+  strict_prefix_def [code del]: "xs < ys = (xs \<le> ys \<and> xs \<noteq> (ys::'a list))"
 
 instance
   by intro_classes (auto simp add: prefix_def strict_prefix_def)
@@ -374,18 +374,18 @@ qed
 
 subsection {* Executable code *}
 
-lemma less_eq_code [code func]:
+lemma less_eq_code [code]:
     "([]\<Colon>'a\<Colon>{eq, ord} list) \<le> xs \<longleftrightarrow> True"
     "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> [] \<longleftrightarrow> False"
     "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> y # ys \<longleftrightarrow> x = y \<and> xs \<le> ys"
   by simp_all
 
-lemma less_code [code func]:
+lemma less_code [code]:
     "xs < ([]\<Colon>'a\<Colon>{eq, ord} list) \<longleftrightarrow> False"
     "[] < (x\<Colon>'a\<Colon>{eq, ord})# xs \<longleftrightarrow> True"
     "(x\<Colon>'a\<Colon>{eq, ord}) # xs < y # ys \<longleftrightarrow> x = y \<and> xs < ys"
   unfolding strict_prefix_def by auto
 
-lemmas [code func] = postfix_to_prefix
+lemmas [code] = postfix_to_prefix
 
 end

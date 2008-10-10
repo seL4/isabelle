@@ -64,7 +64,7 @@ lemma index_of_nat_inject [simp]:
 instantiation index :: zero
 begin
 
-definition [simp, code func del]:
+definition [simp, code del]:
   "0 = index_of_nat 0"
 
 instance ..
@@ -87,12 +87,12 @@ proof -
   then show "P k" by simp
 qed simp_all
 
-lemmas [code func del] = index.recs index.cases
+lemmas [code del] = index.recs index.cases
 
 declare index_case [case_names nat, cases type: index]
 declare index.induct [case_names nat, induct type: index]
 
-lemma [code func]:
+lemma [code]:
   "index_size = nat_of_index"
 proof (rule ext)
   fix k
@@ -102,7 +102,7 @@ proof (rule ext)
   finally show "index_size k = nat_of_index k" .
 qed
 
-lemma [code func]:
+lemma [code]:
   "size = nat_of_index"
 proof (rule ext)
   fix k
@@ -110,7 +110,7 @@ proof (rule ext)
   by (induct k) (simp_all del: zero_index_def Suc_index_def, simp_all)
 qed
 
-lemma [code func]:
+lemma [code]:
   "eq_class.eq k l \<longleftrightarrow> eq_class.eq (nat_of_index k) (nat_of_index l)"
   by (cases k, cases l) (simp add: eq)
 
@@ -143,63 +143,63 @@ subsection {* Basic arithmetic *}
 instantiation index :: "{minus, ordered_semidom, Divides.div, linorder}"
 begin
 
-lemma zero_index_code [code inline, code func]:
+lemma zero_index_code [code inline, code]:
   "(0\<Colon>index) = Numeral0"
   by (simp add: number_of_index_def Pls_def)
 lemma [code post]: "Numeral0 = (0\<Colon>index)"
   using zero_index_code ..
 
-definition [simp, code func del]:
+definition [simp, code del]:
   "(1\<Colon>index) = index_of_nat 1"
 
-lemma one_index_code [code inline, code func]:
+lemma one_index_code [code inline, code]:
   "(1\<Colon>index) = Numeral1"
   by (simp add: number_of_index_def Pls_def Bit1_def)
 lemma [code post]: "Numeral1 = (1\<Colon>index)"
   using one_index_code ..
 
-definition [simp, code func del]:
+definition [simp, code del]:
   "n + m = index_of_nat (nat_of_index n + nat_of_index m)"
 
-lemma plus_index_code [code func]:
+lemma plus_index_code [code]:
   "index_of_nat n + index_of_nat m = index_of_nat (n + m)"
   by simp
 
-definition [simp, code func del]:
+definition [simp, code del]:
   "n - m = index_of_nat (nat_of_index n - nat_of_index m)"
 
-definition [simp, code func del]:
+definition [simp, code del]:
   "n * m = index_of_nat (nat_of_index n * nat_of_index m)"
 
-lemma times_index_code [code func]:
+lemma times_index_code [code]:
   "index_of_nat n * index_of_nat m = index_of_nat (n * m)"
   by simp
 
-definition [simp, code func del]:
+definition [simp, code del]:
   "n div m = index_of_nat (nat_of_index n div nat_of_index m)"
 
-definition [simp, code func del]:
+definition [simp, code del]:
   "n mod m = index_of_nat (nat_of_index n mod nat_of_index m)"
 
-lemma div_index_code [code func]:
+lemma div_index_code [code]:
   "index_of_nat n div index_of_nat m = index_of_nat (n div m)"
   by simp
 
-lemma mod_index_code [code func]:
+lemma mod_index_code [code]:
   "index_of_nat n mod index_of_nat m = index_of_nat (n mod m)"
   by simp
 
-definition [simp, code func del]:
+definition [simp, code del]:
   "n \<le> m \<longleftrightarrow> nat_of_index n \<le> nat_of_index m"
 
-definition [simp, code func del]:
+definition [simp, code del]:
   "n < m \<longleftrightarrow> nat_of_index n < nat_of_index m"
 
-lemma less_eq_index_code [code func]:
+lemma less_eq_index_code [code]:
   "index_of_nat n \<le> index_of_nat m \<longleftrightarrow> n \<le> m"
   by simp
 
-lemma less_index_code [code func]:
+lemma less_index_code [code]:
   "index_of_nat n < index_of_nat m \<longleftrightarrow> n < m"
   by simp
 
@@ -260,25 +260,25 @@ subsection {* Specialized @{term "op - \<Colon> index \<Rightarrow> index \<Righ
 definition
   minus_index_aux :: "index \<Rightarrow> index \<Rightarrow> index"
 where
-  [code func del]: "minus_index_aux = op -"
+  [code del]: "minus_index_aux = op -"
 
-lemma [code func]: "op - = minus_index_aux"
+lemma [code]: "op - = minus_index_aux"
   using minus_index_aux_def ..
 
 definition
   div_mod_index ::  "index \<Rightarrow> index \<Rightarrow> index \<times> index"
 where
-  [code func del]: "div_mod_index n m = (n div m, n mod m)"
+  [code del]: "div_mod_index n m = (n div m, n mod m)"
 
-lemma [code func]:
+lemma [code]:
   "div_mod_index n m = (if m = 0 then (0, n) else (n div m, n mod m))"
   unfolding div_mod_index_def by auto
 
-lemma [code func]:
+lemma [code]:
   "n div m = fst (div_mod_index n m)"
   unfolding div_mod_index_def by simp
 
-lemma [code func]:
+lemma [code]:
   "n mod m = snd (div_mod_index n m)"
   unfolding div_mod_index_def by simp
 
@@ -340,7 +340,7 @@ code_const "op < \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
 
 text {* Evaluation *}
 
-lemma [code func, code func del]:
+lemma [code, code del]:
   "(Code_Eval.term_of \<Colon> index \<Rightarrow> term) = Code_Eval.term_of" ..
 
 code_const "Code_Eval.term_of \<Colon> index \<Rightarrow> term"

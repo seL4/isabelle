@@ -204,7 +204,7 @@ definition
 
 definition
   list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool" where
-  [code func del]: "list_all2 P xs ys =
+  [code del]: "list_all2 P xs ys =
     (length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y))"
 
 definition
@@ -2872,7 +2872,7 @@ begin
 
 definition
  sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
- [code func del]: "sorted_list_of_set A == THE xs. set xs = A & sorted xs & distinct xs"
+ [code del]: "sorted_list_of_set A == THE xs. set xs = A & sorted xs & distinct xs"
 
 lemma sorted_list_of_set[simp]: "finite A \<Longrightarrow>
   set(sorted_list_of_set A) = A &
@@ -3057,7 +3057,7 @@ text{*@{text"set_Cons A Xs"}: the set of lists with head drawn from
 constdefs
   set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set"
   "set_Cons A XS == {z. \<exists>x xs. z = x#xs & x \<in> A & xs \<in> XS}"
-declare set_Cons_def [code func del]
+declare set_Cons_def [code del]
 
 lemma set_Cons_sing_Nil [simp]: "set_Cons A {[]} = (%x. [x])`A"
 by (auto simp add: set_Cons_def)
@@ -3095,7 +3095,7 @@ constdefs
     "lenlex r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
         --{*Compares lists by their length and then lexicographically*}
 
-declare lex_def [code func del]
+declare lex_def [code del]
 
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
@@ -3171,7 +3171,7 @@ constdefs
   lexord :: "('a * 'a)set \<Rightarrow> ('a list * 'a list) set" 
   "lexord  r == {(x,y). \<exists> a v. y = x @ a # v \<or> 
             (\<exists> u a b v w. (a,b) \<in> r \<and> x = u @ (a # v) \<and> y = u @ (b # w))}"
-declare lexord_def [code func del]
+declare lexord_def [code del]
 
 lemma lexord_Nil_left[simp]:  "([],y) \<in> lexord r = (\<exists> a x. y = a # x)"
 by (unfold lexord_def, induct_tac y, auto) 
@@ -3379,7 +3379,7 @@ lemma char_size [code, simp]:
 primrec nibble_pair_of_char :: "char \<Rightarrow> nibble \<times> nibble" where
   "nibble_pair_of_char (Char n m) = (n, m)"
 
-declare nibble_pair_of_char.simps [code func del]
+declare nibble_pair_of_char.simps [code del]
 
 setup {*
 let
@@ -3393,11 +3393,11 @@ in
 end
 *}
 
-lemma char_case_nibble_pair [code func, code inline]:
+lemma char_case_nibble_pair [code, code inline]:
   "char_case f = split f o nibble_pair_of_char"
   by (simp add: expand_fun_eq split: char.split)
 
-lemma char_rec_nibble_pair [code func, code inline]:
+lemma char_rec_nibble_pair [code, code inline]:
   "char_rec f = split f o nibble_pair_of_char"
   unfolding char_case_nibble_pair [symmetric]
   by (simp add: expand_fun_eq split: char.split)

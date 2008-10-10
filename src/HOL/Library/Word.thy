@@ -2042,7 +2042,7 @@ lemma bv_slice_length [simp]: "[| j \<le> i; i < length w |] ==> length (bv_slic
 
 definition
   length_nat :: "nat => nat" where
-  [code func del]: "length_nat x = (LEAST n. x < 2 ^ n)"
+  [code del]: "length_nat x = (LEAST n. x < 2 ^ n)"
 
 lemma length_nat: "length (nat_to_bv n) = length_nat n"
   apply (simp add: length_nat_def)
@@ -2267,7 +2267,7 @@ primrec
   fast_bv_to_nat_Cons: "fast_bv_to_nat_helper (b#bs) k =
     fast_bv_to_nat_helper bs ((bit_case Int.Bit0 Int.Bit1 b) k)"
 
-declare fast_bv_to_nat_helper.simps [code func del]
+declare fast_bv_to_nat_helper.simps [code del]
 
 lemma fast_bv_to_nat_Cons0: "fast_bv_to_nat_helper (\<zero>#bs) bin =
     fast_bv_to_nat_helper bs (Int.Bit0 bin)"

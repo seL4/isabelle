@@ -21,19 +21,19 @@ instantiation int :: bit
 begin
 
 definition
-  int_not_def [code func del]: "bitNOT = bin_rec Int.Min Int.Pls 
+  int_not_def [code del]: "bitNOT = bin_rec Int.Min Int.Pls 
     (\<lambda>w b s. s BIT (NOT b))"
 
 definition
-  int_and_def [code func del]: "bitAND = bin_rec (\<lambda>x. Int.Pls) (\<lambda>y. y) 
+  int_and_def [code del]: "bitAND = bin_rec (\<lambda>x. Int.Pls) (\<lambda>y. y) 
     (\<lambda>w b s y. s (bin_rest y) BIT (b AND bin_last y))"
 
 definition
-  int_or_def [code func del]: "bitOR = bin_rec (\<lambda>x. x) (\<lambda>y. Int.Min) 
+  int_or_def [code del]: "bitOR = bin_rec (\<lambda>x. x) (\<lambda>y. Int.Min) 
     (\<lambda>w b s y. s (bin_rest y) BIT (b OR bin_last y))"
 
 definition
-  int_xor_def [code func del]: "bitXOR = bin_rec (\<lambda>x. x) bitNOT 
+  int_xor_def [code del]: "bitXOR = bin_rec (\<lambda>x. x) bitNOT 
     (\<lambda>w b s y. s (bin_rest y) BIT (b XOR bin_last y))"
 
 instance ..
@@ -48,13 +48,13 @@ lemma int_not_simps [simp]:
   "NOT (w BIT b) = (NOT w) BIT (NOT b)"
   unfolding int_not_def by (simp_all add: bin_rec_simps)
 
-declare int_not_simps(1-4) [code func]
+declare int_not_simps(1-4) [code]
 
-lemma int_xor_Pls [simp, code func]: 
+lemma int_xor_Pls [simp, code]: 
   "Int.Pls XOR x = x"
   unfolding int_xor_def by (simp add: bin_rec_PM)
 
-lemma int_xor_Min [simp, code func]: 
+lemma int_xor_Min [simp, code]: 
   "Int.Min XOR x = NOT x"
   unfolding int_xor_def by (simp add: bin_rec_PM)
 
@@ -69,7 +69,7 @@ lemma int_xor_Bits [simp]:
   apply (simp add: int_not_simps [symmetric])
   done
 
-lemma int_xor_Bits2 [simp, code func]: 
+lemma int_xor_Bits2 [simp, code]: 
   "(Int.Bit0 x) XOR (Int.Bit0 y) = Int.Bit0 (x XOR y)"
   "(Int.Bit0 x) XOR (Int.Bit1 y) = Int.Bit1 (x XOR y)"
   "(Int.Bit1 x) XOR (Int.Bit0 y) = Int.Bit1 (x XOR y)"
@@ -85,16 +85,16 @@ lemma int_xor_x_simps':
    apply clarsimp+
   done
 
-lemma int_xor_extra_simps [simp, code func]:
+lemma int_xor_extra_simps [simp, code]:
   "w XOR Int.Pls = w"
   "w XOR Int.Min = NOT w"
   using int_xor_x_simps' by simp_all
 
-lemma int_or_Pls [simp, code func]: 
+lemma int_or_Pls [simp, code]: 
   "Int.Pls OR x = x"
   by (unfold int_or_def) (simp add: bin_rec_PM)
   
-lemma int_or_Min [simp, code func]:
+lemma int_or_Min [simp, code]:
   "Int.Min OR x = Int.Min"
   by (unfold int_or_def) (simp add: bin_rec_PM)
 
@@ -102,7 +102,7 @@ lemma int_or_Bits [simp]:
   "(x BIT b) OR (y BIT c) = (x OR y) BIT (b OR c)"
   unfolding int_or_def by (simp add: bin_rec_simps)
 
-lemma int_or_Bits2 [simp, code func]: 
+lemma int_or_Bits2 [simp, code]: 
   "(Int.Bit0 x) OR (Int.Bit0 y) = Int.Bit0 (x OR y)"
   "(Int.Bit0 x) OR (Int.Bit1 y) = Int.Bit1 (x OR y)"
   "(Int.Bit1 x) OR (Int.Bit0 y) = Int.Bit1 (x OR y)"
@@ -118,16 +118,16 @@ lemma int_or_x_simps':
    apply clarsimp+
   done
 
-lemma int_or_extra_simps [simp, code func]:
+lemma int_or_extra_simps [simp, code]:
   "w OR Int.Pls = w"
   "w OR Int.Min = Int.Min"
   using int_or_x_simps' by simp_all
 
-lemma int_and_Pls [simp, code func]:
+lemma int_and_Pls [simp, code]:
   "Int.Pls AND x = Int.Pls"
   unfolding int_and_def by (simp add: bin_rec_PM)
 
-lemma int_and_Min [simp, code func]:
+lemma int_and_Min [simp, code]:
   "Int.Min AND x = x"
   unfolding int_and_def by (simp add: bin_rec_PM)
 
@@ -135,7 +135,7 @@ lemma int_and_Bits [simp]:
   "(x BIT b) AND (y BIT c) = (x AND y) BIT (b AND c)" 
   unfolding int_and_def by (simp add: bin_rec_simps)
 
-lemma int_and_Bits2 [simp, code func]: 
+lemma int_and_Bits2 [simp, code]: 
   "(Int.Bit0 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
   "(Int.Bit0 x) AND (Int.Bit1 y) = Int.Bit0 (x AND y)"
   "(Int.Bit1 x) AND (Int.Bit0 y) = Int.Bit0 (x AND y)"
@@ -151,7 +151,7 @@ lemma int_and_x_simps':
    apply clarsimp+
   done
 
-lemma int_and_extra_simps [simp, code func]:
+lemma int_and_extra_simps [simp, code]:
   "w AND Int.Pls = Int.Pls"
   "w AND Int.Min = w"
   using int_and_x_simps' by simp_all
