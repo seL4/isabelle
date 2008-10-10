@@ -15,11 +15,91 @@
 {\isafoldtheory}%
 %
 \isadelimtheory
+\isanewline
 %
 \endisadelimtheory
 %
+\isadeliminvisible
+\isanewline
+%
+\endisadeliminvisible
+%
+\isataginvisible
+\isacommand{setup}\isamarkupfalse%
+\ {\isacharverbatimopen}\ Code{\isacharunderscore}Target{\isachardot}extend{\isacharunderscore}target\ {\isacharparenleft}{\isachardoublequote}SML\ {\isachardoublequote}{\isacharcomma}\ {\isacharparenleft}{\isachardoublequote}SML{\isachardoublequote}{\isacharcomma}\ I{\isacharparenright}{\isacharparenright}\ {\isacharverbatimclose}%
+\endisataginvisible
+{\isafoldinvisible}%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
 \isamarkupsection{Adaption to target languages \label{sec:adaption}%
 }
+\isamarkuptrue%
+%
+\isamarkupsubsection{Adapting code generation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The aspects of code generation introduced so far have two aspects
+  in common:
+
+  \begin{itemize}
+    \item They act uniformly, without reference to a specific
+       target language.
+    \item They are \emph{safe} in the sense that as long as you trust
+       the code generator meta theory and implementation, you cannot
+       produce programs that yield results which are not derivable
+       in the logic.
+  \end{itemize}
+
+  \noindent In this section we will introduce means to \emph{adapt} the serialiser
+  to a specific target language, i.e.~to print program fragments
+  in a way which accomodates \qt{already existing} ingredients of
+  a target language environment, for three reasons:
+
+  \begin{itemize}
+    \item improving readability and aethetics of generated code
+    \item gaining efficiency
+    \item interface with language parts which have no direct counterpart
+      in \isa{HOL} (say, imperative data structures)
+  \end{itemize}
+
+  \noindent Generally, you should avoid using those features yourself
+  \emph{at any cost}:
+
+  \begin{itemize}
+    \item The safe configuration methods act uniformly on every target language,
+      whereas for adaption you have to treat each target language separate.
+    \item Application is extremely tedious since there is no abstraction
+      which would allow for a static check, makeing it easy to produce garbage.
+    \item More or less subtle erros can be introduced unconsciously.
+  \end{itemize}
+
+  \noindent However, even if you ought refrain from setting up adaption
+  yourself, already the \isa{HOL} comes with some reasonable default
+  adaptions (say, using target language list syntax).  There also some
+  common adaption cases which you can setup by importing particular
+  library theories.  In order to understand these, we provide some clues here;
+  these however are not supposed to replace a careful study of the sources.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{The adaption principle%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{tikzpicture}
+    \draw (0, 0) circle (1cm);
+    \draw (0.5, 0) circle (0.5cm);
+    \draw (0, 0.5) circle (0.5cm);
+    \draw (-0.5, 0) circle (0.5cm);
+    \draw (0, -0.5) circle (0.5cm);
+  \end{tikzpicture}%
+\end{isamarkuptext}%
 \isamarkuptrue%
 %
 \isamarkupsubsection{Common adaption cases%
@@ -43,11 +123,12 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
        character literals in target languages.
     \item[\hyperlink{theory.Code-Char-chr}{\mbox{\isa{Code{\isacharunderscore}Char{\isacharunderscore}chr}}}] like \isa{Code{\isacharunderscore}Char},
        but also offers treatment of character codes; includes
-       \hyperlink{theory.Code-Char-chr}{\mbox{\isa{Code{\isacharunderscore}Char{\isacharunderscore}chr}}}.
+       \hyperlink{theory.Code-Char}{\mbox{\isa{Code{\isacharunderscore}Char}}}.
     \item[\hyperlink{theory.Efficient-Nat}{\mbox{\isa{Efficient{\isacharunderscore}Nat}}}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficiency; pattern
        matching with \isa{{\isadigit{0}}} / \isa{Suc}
-       is eliminated;  includes \hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isacharunderscore}Integer}}}.
+       is eliminated;  includes \hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isacharunderscore}Integer}}}
+       and \hyperlink{theory.Code-Index}{\mbox{\isa{Code{\isacharunderscore}Index}}}.
     \item[\hyperlink{theory.Code-Index}{\mbox{\isa{Code{\isacharunderscore}Index}}}] provides an additional datatype
        \isa{index} which is mapped to target-language built-in integers.
        Useful for code setups which involve e.g. indexing of
@@ -73,17 +154,7 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{warn}
-    The mechanisms shown here are especially for the curious;  the user
-    rarely needs to do anything on his own beyond the defaults in \isa{HOL}.
-    Adaption is a delicated task which requires a lot of dilligence since
-    it happend \emph{completely} outside the logic.
-  \end{warn}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\noindent Consider the following function and its corresponding
+Consider the following function and its corresponding
   SML code:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -289,6 +360,30 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
 \endisadelimquoteme
 %
 \begin{isamarkuptext}%
+\noindent The attentive reader may ask how we assert that no generated
+  code will accidentally overwrite.  For this reason the serialiser has
+  an internal table of identifiers which have to be avoided to be used
+  for new declarations.  Initially, this table typically contains the
+  keywords of the target language.  It can be extended manually, thus avoiding
+  accidental overwrites, using the \hyperlink{command.code-reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}} command:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\isatagquoteme
+\isacommand{code{\isacharunderscore}reserved}\isamarkupfalse%
+\ {\isachardoublequoteopen}SML\ {\isachardoublequoteclose}\ bool\ true\ false\ andalso%
+\endisatagquoteme
+{\isafoldquoteme}%
+%
+\isadelimquoteme
+%
+\endisadelimquoteme
+%
+\begin{isamarkuptext}%
 \noindent Next, we try to map HOL pairs to SML pairs, using the
   infix ``\verb|*|'' type constructor and parentheses:%
 \end{isamarkuptext}%
@@ -326,7 +421,8 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
 \endisadelimtt
 %
 \begin{isamarkuptext}%
-\noindent The initial bang ``\verb|!|'' tells the serializer to never put
+\noindent The initial bang ``\verb|!|'' tells the serializer
+  never to put
   parentheses around the whole expression (they are already present),
   while the parentheses around argument place holders
   tell not to put parentheses around the arguments.
@@ -345,10 +441,7 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
   using ``\verb|'|''; thus, in
   ``\verb|fn '_ => _|'' the first
   ``\verb|_|'' is a proper underscore while the
-  second ``\verb|_|'' is a placeholder.
-
-  The HOL theories provide further
-  examples for custom serialisations.%
+  second ``\verb|_|'' is a placeholder.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -460,10 +553,44 @@ For convenience, the default
 \isadelimtt
 %
 \endisadelimtt
+%
+\isamarkupsubsection{Enhancing the target language context%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In rare cases it is neccessary to \emph{enrich} the context of a
+  target language;  this is accomplished using the \hyperlink{command.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}
+  command:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\isatagtt
+\isacommand{code{\isacharunderscore}include}\isamarkupfalse%
+\ Haskell\ {\isachardoublequoteopen}Errno{\isachardoublequoteclose}\isanewline
+{\isacharverbatimopen}errno\ i\ {\isacharequal}\ error\ {\isacharparenleft}{\isachardoublequote}Error\ number{\isacharcolon}\ {\isachardoublequote}\ {\isacharplus}{\isacharplus}\ show\ i{\isacharparenright}{\isacharverbatimclose}\isanewline
 \isanewline
+\isacommand{code{\isacharunderscore}reserved}\isamarkupfalse%
+\ Haskell\ Errno%
+\endisatagtt
+{\isafoldtt}%
+%
+\isadelimtt
+%
+\endisadelimtt
+%
+\begin{isamarkuptext}%
+\noindent Such named \isa{include}s are then prepended to every generated code.
+  Inspect such code in order to find out how \hyperlink{command.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}} behaves
+  with respect to a particular target language.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
-\isanewline
 %
 \endisadelimtheory
 %

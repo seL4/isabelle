@@ -2,7 +2,67 @@ theory Adaption
 imports Setup
 begin
 
+setup %invisible {* Code_Target.extend_target ("SML ", ("SML", I)) *}
+
 section {* Adaption to target languages \label{sec:adaption} *}
+
+subsection {* Adapting code generation *}
+
+text {*
+  The aspects of code generation introduced so far have two aspects
+  in common:
+
+  \begin{itemize}
+    \item They act uniformly, without reference to a specific
+       target language.
+    \item They are \emph{safe} in the sense that as long as you trust
+       the code generator meta theory and implementation, you cannot
+       produce programs that yield results which are not derivable
+       in the logic.
+  \end{itemize}
+
+  \noindent In this section we will introduce means to \emph{adapt} the serialiser
+  to a specific target language, i.e.~to print program fragments
+  in a way which accomodates \qt{already existing} ingredients of
+  a target language environment, for three reasons:
+
+  \begin{itemize}
+    \item improving readability and aethetics of generated code
+    \item gaining efficiency
+    \item interface with language parts which have no direct counterpart
+      in @{text "HOL"} (say, imperative data structures)
+  \end{itemize}
+
+  \noindent Generally, you should avoid using those features yourself
+  \emph{at any cost}:
+
+  \begin{itemize}
+    \item The safe configuration methods act uniformly on every target language,
+      whereas for adaption you have to treat each target language separate.
+    \item Application is extremely tedious since there is no abstraction
+      which would allow for a static check, makeing it easy to produce garbage.
+    \item More or less subtle erros can be introduced unconsciously.
+  \end{itemize}
+
+  \noindent However, even if you ought refrain from setting up adaption
+  yourself, already the @{text "HOL"} comes with some reasonable default
+  adaptions (say, using target language list syntax).  There also some
+  common adaption cases which you can setup by importing particular
+  library theories.  In order to understand these, we provide some clues here;
+  these however are not supposed to replace a careful study of the sources.
+*}
+
+subsection {* The adaption principle *}
+
+text {*
+  \begin{tikzpicture}
+    \draw (0, 0) circle (1cm);
+    \draw (0.5, 0) circle (0.5cm);
+    \draw (0, 0.5) circle (0.5cm);
+    \draw (-0.5, 0) circle (0.5cm);
+    \draw (0, -0.5) circle (0.5cm);
+  \end{tikzpicture}
+*}
 
 subsection {* Common adaption cases *}
 
@@ -23,11 +83,12 @@ text {*
        character literals in target languages.
     \item[@{theory "Code_Char_chr"}] like @{text "Code_Char"},
        but also offers treatment of character codes; includes
-       @{theory "Code_Char_chr"}.
+       @{theory "Code_Char"}.
     \item[@{theory "Efficient_Nat"}] \label{eff_nat} implements natural numbers by integers,
        which in general will result in higher efficiency; pattern
        matching with @{term "0\<Colon>nat"} / @{const "Suc"}
-       is eliminated;  includes @{theory "Code_Integer"}.
+       is eliminated;  includes @{theory "Code_Integer"}
+       and @{theory "Code_Index"}.
     \item[@{theory "Code_Index"}] provides an additional datatype
        @{typ index} which is mapped to target-language built-in integers.
        Useful for code setups which involve e.g. indexing of
@@ -51,16 +112,7 @@ text {*
 subsection {* Adaption mechanisms \label{sec:adaption_mechanisms} *}
 
 text {*
-  \begin{warn}
-    The mechanisms shown here are especially for the curious;  the user
-    rarely needs to do anything on his own beyond the defaults in @{text HOL}.
-    Adaption is a delicated task which requires a lot of dilligence since
-    it happend \emph{completely} outside the logic.
-  \end{warn}
-*}
-
-text {*
-  \noindent Consider the following function and its corresponding
+  Consider the following function and its corresponding
   SML code:
 *}
 
@@ -120,6 +172,17 @@ code_const %tt "op \<and>"
 text %quoteme {*@{code_stmts in_interval (SML)}*}
 
 text {*
+  \noindent The attentive reader may ask how we assert that no generated
+  code will accidentally overwrite.  For this reason the serialiser has
+  an internal table of identifiers which have to be avoided to be used
+  for new declarations.  Initially, this table typically contains the
+  keywords of the target language.  It can be extended manually, thus avoiding
+  accidental overwrites, using the @{command "code_reserved"} command:
+*}
+
+code_reserved %quoteme "SML " bool true false andalso
+
+text {*
   \noindent Next, we try to map HOL pairs to SML pairs, using the
   infix ``@{verbatim "*"}'' type constructor and parentheses:
 *}
@@ -135,7 +198,8 @@ code_const %tt Pair
   (SML "!((_),/ (_))")
 
 text {*
-  \noindent The initial bang ``@{verbatim "!"}'' tells the serializer to never put
+  \noindent The initial bang ``@{verbatim "!"}'' tells the serializer
+  never to put
   parentheses around the whole expression (they are already present),
   while the parentheses around argument place holders
   tell not to put parentheses around the arguments.
@@ -155,9 +219,6 @@ text {*
   ``@{verbatim "fn '_ => _"}'' the first
   ``@{verbatim "_"}'' is a proper underscore while the
   second ``@{verbatim "_"}'' is a placeholder.
-
-  The HOL theories provide further
-  examples for custom serialisations.
 *}
 
 
@@ -208,5 +269,25 @@ text {*
 
 code_instance %tt bar :: eq
   (Haskell -)
+
+
+subsection {* Enhancing the target language context *}
+
+text {*
+  In rare cases it is neccessary to \emph{enrich} the context of a
+  target language;  this is accomplished using the @{command "code_include"}
+  command:
+*}
+
+code_include %tt Haskell "Errno"
+{*errno i = error ("Error number: " ++ show i)*}
+
+code_reserved %tt Haskell Errno
+
+text {*
+  \noindent Such named @{text include}s are then prepended to every generated code.
+  Inspect such code in order to find out how @{command "code_include"} behaves
+  with respect to a particular target language.
+*}
 
 end
