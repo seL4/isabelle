@@ -22,7 +22,7 @@ ERRORLOG=$ERRORDIR/error.log
 
 RUNNING=$HOME/var/running
 
-DISTPREFIX=$HOME/tmp/isadist
+DISTPREFIX=$HOME/isadist
 
 # this function avoids NFS inconsistencies with multiple writers by
 # sshing to one central machine and writing locally. There is stil a
