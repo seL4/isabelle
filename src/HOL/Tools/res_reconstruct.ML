@@ -344,7 +344,7 @@ fun have_or_show "show " lname = "show \""
 (*ctms is a list of conjecture clauses as yielded by Isabelle. Those returned by the
   ATP may have their literals reordered.*)
 fun isar_lines ctxt ctms =
-  let val string_of = Syntax.string_of_term ctxt
+  let val string_of = PrintMode.setmp [] (fn term => Syntax.string_of_term ctxt term)
       val _ = trace ("\n\nisar_lines: start\n")
       fun doline have (lname, t, []) =  (*No deps: it's a conjecture clause, with no proof.*)
            (case permuted_clause t ctms of
