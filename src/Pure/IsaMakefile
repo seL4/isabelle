@@ -26,29 +26,30 @@ Pure: $(OUT)/Pure
 $(OUT)/Pure: Concurrent/future.ML Concurrent/mailbox.ML			\
   Concurrent/par_list.ML Concurrent/par_list_dummy.ML			\
   Concurrent/schedule.ML Concurrent/simple_thread.ML			\
-  Concurrent/task_queue.ML General/ROOT.ML General/alist.ML		\
-  General/balanced_tree.ML General/basics.ML General/buffer.ML		\
-  General/file.ML General/graph.ML General/heap.ML General/integer.ML	\
-  General/markup.ML General/name_space.ML General/ord_list.ML		\
-  General/output.ML General/path.ML General/position.ML			\
-  General/pretty.ML General/print_mode.ML General/properties.ML		\
-  General/queue.ML General/scan.ML General/secure.ML General/seq.ML	\
-  General/source.ML General/stack.ML General/susp.ML General/symbol.ML	\
-  General/symbol_pos.ML General/table.ML General/url.ML General/xml.ML	\
-  General/yxml.ML Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML		\
-  Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML Isar/class.ML	\
-  Isar/code.ML Isar/code_unit.ML Isar/constdefs.ML			\
-  Isar/context_rules.ML Isar/element.ML Isar/find_theorems.ML		\
-  Isar/instance.ML Isar/isar.ML Isar/isar_cmd.ML Isar/isar_syn.ML	\
-  Isar/local_defs.ML Isar/local_syntax.ML Isar/local_theory.ML		\
-  Isar/locale.ML Isar/method.ML Isar/net_rules.ML Isar/object_logic.ML	\
-  Isar/obtain.ML Isar/outer_keyword.ML Isar/outer_lex.ML		\
-  Isar/outer_parse.ML Isar/outer_syntax.ML Isar/overloading.ML		\
-  Isar/proof.ML Isar/proof_context.ML Isar/proof_display.ML		\
-  Isar/proof_node.ML Isar/rule_cases.ML Isar/rule_insts.ML		\
-  Isar/session.ML Isar/skip_proof.ML Isar/spec_parse.ML			\
-  Isar/specification.ML Isar/subclass.ML Isar/theory_target.ML		\
-  Isar/toplevel.ML ML-Systems/alice.ML ML-Systems/exn.ML		\
+  Concurrent/synchronized.ML Concurrent/task_queue.ML General/ROOT.ML	\
+  General/alist.ML General/balanced_tree.ML General/basics.ML		\
+  General/buffer.ML General/file.ML General/graph.ML General/heap.ML	\
+  General/integer.ML General/markup.ML General/name_space.ML		\
+  General/ord_list.ML General/output.ML General/path.ML			\
+  General/position.ML General/pretty.ML General/print_mode.ML		\
+  General/properties.ML General/queue.ML General/scan.ML		\
+  General/secure.ML General/seq.ML General/source.ML General/stack.ML	\
+  General/susp.ML General/symbol.ML General/symbol_pos.ML		\
+  General/table.ML General/url.ML General/xml.ML General/yxml.ML	\
+  Isar/ROOT.ML Isar/antiquote.ML Isar/args.ML Isar/attrib.ML		\
+  Isar/auto_bind.ML Isar/calculation.ML Isar/class.ML Isar/code.ML	\
+  Isar/code_unit.ML Isar/constdefs.ML Isar/context_rules.ML		\
+  Isar/element.ML Isar/find_theorems.ML Isar/instance.ML Isar/isar.ML	\
+  Isar/isar_cmd.ML Isar/isar_syn.ML Isar/local_defs.ML			\
+  Isar/local_syntax.ML Isar/local_theory.ML Isar/locale.ML		\
+  Isar/method.ML Isar/net_rules.ML Isar/object_logic.ML Isar/obtain.ML	\
+  Isar/outer_keyword.ML Isar/outer_lex.ML Isar/outer_parse.ML		\
+  Isar/outer_syntax.ML Isar/overloading.ML Isar/proof.ML		\
+  Isar/proof_context.ML Isar/proof_display.ML Isar/proof_node.ML	\
+  Isar/rule_cases.ML Isar/rule_insts.ML Isar/session.ML			\
+  Isar/skip_proof.ML Isar/spec_parse.ML Isar/specification.ML		\
+  Isar/subclass.ML Isar/theory_target.ML Isar/toplevel.ML		\
+  ML-Systems/alice.ML ML-Systems/exn.ML					\
   ML-Systems/install_pp_polyml.ML ML-Systems/ml_name_space.ML		\
   ML-Systems/multithreading.ML ML-Systems/mosml.ML			\
   ML-Systems/multithreading_polyml.ML ML-Systems/overloading_smlnj.ML	\

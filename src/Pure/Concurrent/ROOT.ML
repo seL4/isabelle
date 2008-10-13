@@ -7,6 +7,7 @@ Concurrency within the ML runtime.
 val future_scheduler = ref false;
 
 use "simple_thread.ML";
+use "synchronized.ML";
 use "mailbox.ML";
 use "schedule.ML";
 use "task_queue.ML";
