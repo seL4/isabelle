@@ -97,17 +97,7 @@ local
   val cond = ConditionVar.conditionVar ();
 in
 
-fun SYNCHRONIZED name e = Exn.release (uninterruptible (fn restore_attributes => fn () =>
-  let
-    val _ =
-      if Mutex.trylock lock then ()
-      else
-       (Multithreading.tracing 3 (fn () => name ^ ": locking ...");
-        Mutex.lock lock;
-        Multithreading.tracing 3 (fn () => name ^ ": ... locked"));
-    val result = Exn.capture (restore_attributes e) ();
-    val _ = Mutex.unlock lock;
-  in result end) ());
+fun SYNCHRONIZED name = SimpleThread.synchronized name lock;
 
 fun wait name = (*requires SYNCHRONIZED*)
  (Multithreading.tracing 3 (fn () => name ^ ": wait ...");
