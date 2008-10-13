@@ -7,177 +7,144 @@ Automatic provers as managed threads.
 
 signature ATP_THREAD =
 sig
-  (* basic templates *)
-  val atp_thread: (unit -> 'a option) -> ('a -> unit) -> string -> Thread.thread * string
-  val external_prover:int ->
-    ((int -> Path.T) -> Proof.context * Thm.thm list * Thm.thm -> string list * ResHolClause.axiom_name Vector.vector list) ->
-    string ->
-    (string * int -> bool) ->
-    (string * string vector * Proof.context * Thm.thm * int -> string) ->
-    Proof.state -> Thread.thread * string
-  (* settings for writing problemfiles *)
+  (* hooks for writing problemfiles *)
   val destdir: string ref
   val problem_name: string ref
+  (* basic template *)
+  val external_prover:
+    ((int -> Path.T) -> Proof.context * Thm.thm list * Thm.thm -> string list * ResHolClause.axiom_name Vector.vector list) ->
+    Path.T * string ->
+    (string * int -> bool) ->
+    (string * string vector * Proof.context * Thm.thm * int -> string) ->
+    int -> Proof.state -> Thread.thread
   (* provers as functions returning threads *)
-  val tptp_prover_filter_opts_full: int -> bool -> bool -> string -> Proof.state -> (Thread.thread * string)
-  val tptp_prover_filter_opts: int -> bool -> string -> Proof.state -> (Thread.thread * string)
-  val full_prover_filter_opts: int -> bool -> string -> Proof.state -> (Thread.thread * string)
-  val tptp_prover: string -> Proof.state -> (Thread.thread * string)
-  val full_prover: string -> Proof.state -> (Thread.thread * string)
-  val spass_filter_opts: int -> bool -> Proof.state -> (Thread.thread * string)
-  val eprover_filter_opts: int -> bool -> Proof.state -> (Thread.thread * string)
-  val eprover_filter_opts_full: int -> bool -> Proof.state -> (Thread.thread * string)
-  val vampire_filter_opts: int -> bool -> Proof.state -> (Thread.thread * string)
-  val vampire_filter_opts_full: int -> bool -> Proof.state -> (Thread.thread * string)
-  val spass: Proof.state -> (Thread.thread * string)
-  val eprover: Proof.state -> (Thread.thread * string)
-  val eprover_full: Proof.state -> (Thread.thread * string)
-  val vampire: Proof.state -> (Thread.thread * string)
-  val vampire_full: Proof.state -> (Thread.thread * string)
+  val tptp_prover_filter_opts_full: int -> bool -> bool -> Path.T * string -> int -> Proof.state -> Thread.thread
+  val tptp_prover_filter_opts: int -> bool -> Path.T * string -> int -> Proof.state -> Thread.thread
+  val remote_prover_filter_opts: int -> bool -> string -> string -> int -> Proof.state -> Thread.thread
+  val full_prover_filter_opts: int -> bool -> Path.T * string -> int -> Proof.state -> Thread.thread
+  val tptp_prover: Path.T * string -> int -> Proof.state -> Thread.thread
+  val remote_prover: string -> string -> int -> Proof.state -> Thread.thread
+  val full_prover: Path.T * string  -> int -> Proof.state -> Thread.thread
+  val spass_filter_opts: int -> bool  -> int -> Proof.state -> Thread.thread
+  val eprover_filter_opts: int -> bool  -> int -> Proof.state -> Thread.thread
+  val eprover_filter_opts_full: int -> bool -> int -> Proof.state -> Thread.thread
+  val vampire_filter_opts: int -> bool -> int -> Proof.state -> Thread.thread
+  val vampire_filter_opts_full: int -> bool -> int -> Proof.state -> Thread.thread
+  val spass: int -> Proof.state -> Thread.thread
+  val eprover: int -> Proof.state -> Thread.thread
+  val eprover_full: int -> Proof.state -> Thread.thread
+  val vampire: int -> Proof.state -> Thread.thread
+  val vampire_full: int -> Proof.state -> Thread.thread
 end;
 
 structure AtpThread : ATP_THREAD =
 struct
-
-  structure Recon = ResReconstruct
-
-  (* if a thread calls priority while PG works on a ML{**}-block, PG will not leave the block *)
-  fun delayed_priority s = (OS.Process.sleep (Time.fromMilliseconds 100); priority s);
-
-  (* -------- AUTOMATIC THEOREM PROVERS AS THREADS ----------*)
-
-  (* create an automatic-prover thread, registering has to be done by sledgehammer
-    or manual via AtpManager.register;
-    unregistering is done by thread.
-  *)
-  fun atp_thread call_prover action_success description =
-    let val thread = SimpleThread.fork true (fn () =>
-      let
-      val answer = call_prover ()
-      val _ = if isSome answer then action_success (valOf answer)
-        else delayed_priority ("Sledgehammer: " ^ description ^ "\n  failed.")
-      in AtpManager.unregister (isSome answer)
-      end
-      handle Interrupt => delayed_priority ("Sledgehammer: " ^ description ^ "\n  interrupted."))
-    in (thread, description) end
-
-  (* Settings for path and filename to problemfiles *)
+  
+  (* preferences for path and filename to problemfiles *)
   val destdir = ref "";   (*Empty means write files to /tmp*)
   val problem_name = ref "prob";
-
+      
   (*Setting up a Thread for an external prover*)
-  fun external_prover subgoalno write_problem_files command check_success produce_answer state =
+  fun external_prover write_problem_files (cmd, args) check_success produce_answer subgoalno state =
     let
-      (*creating description from provername and subgoal*)
-    val call::path = rev (String.tokens (fn c => c = #"/") command)
-    val name::options = String.tokens (fn c => c = #" ") call
+    val destdir' = ! destdir
+    val problem_name' = ! problem_name
     val (ctxt, (chain_ths, goal)) = Proof.get_goal state
-    val description = "External prover " ^ quote name ^ " for Subgoal " ^ Int.toString subgoalno
-      ^ ":\n" ^ Display.string_of_cterm (List.nth(cprems_of goal, subgoalno-1))
-      (* path to unique problemfile *)
+    (* path to unique problem file *)
     fun prob_pathname nr =
-      let val probfile = Path.basic (!problem_name ^ serial_string () ^ "_" ^ Int.toString nr)
-      in if !destdir = "" then File.tmp_path probfile
-        else if File.exists (Path.explode (!destdir))
-        then (Path.append  (Path.explode (!destdir)) probfile)
-        else error ("No such directory: " ^ !destdir)
+      let val probfile = Path.basic (problem_name' ^ serial_string () ^ "_" ^ Int.toString nr)
+      in if destdir' = "" then File.tmp_path probfile
+        else if File.exists (Path.explode (destdir'))
+        then (Path.append  (Path.explode (destdir')) probfile)
+        else error ("No such directory: " ^ destdir')
       end
-      (* write out problem file and call prover *)
+    (* write out problem file and call prover *)
     fun call_prover () =
       let
-      val chain_ths = map (Thm.put_name_hint Recon.chained_hint) chain_ths
+      val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths
       val (filenames, thm_names_list) =
         write_problem_files prob_pathname (ctxt, chain_ths, goal)
-      val thm_names = List.nth(thm_names_list, subgoalno - 1);(*(i-1)th element for i-th subgoal*)
-      val (proof, rc) = system_out (command ^ " " ^ List.nth(filenames, subgoalno - 1))
-      val _ = map (fn file => OS.FileSys.remove file) filenames
+      val thm_names = List.nth (thm_names_list, subgoalno - 1); (*(i-1)th element for i-th subgoal*)
+
+      val cmdline =
+        if File.exists cmd then File.shell_path cmd ^ " " ^ args
+        else error ("Bad executable: " ^ Path.implode cmd);
+      val (proof, rc) = system_out (cmdline ^ " " ^ List.nth (filenames, subgoalno - 1))
+      val _ =
+        if rc <> 0
+        then warning ("Sledgehammer with command " ^ quote cmdline ^ " exited with " ^ Int.toString rc)
+        else ()
+      (* remove *temporary* files *)
+      val _ = if destdir' = "" then app (fn file => OS.FileSys.remove file) filenames else ()
       in
         if check_success (proof, rc) then SOME (proof, thm_names, ctxt, goal, subgoalno)
         else NONE
       end
-      (* output answer of res_reconstruct with description of subgoal *)
-    fun action_success result =
-      let
-      val answer = produce_answer result
-      val _ = priority ("Sledgehammer: " ^ description ^ "\n    Try this command: " ^ answer)
-      in () end
     in
-      atp_thread call_prover action_success description
+      AtpManager.atp_thread call_prover produce_answer
     end;
 
+    
   (*=========== TEMPLATES FOR AUTOMATIC PROVERS =================*)
 
-  fun tptp_prover_filter_opts_full max_new theory_const full command state =
-    external_prover 1
+  fun tptp_prover_filter_opts_full max_new theory_const full command sg =
+    external_prover
     (ResAtp.write_problem_files ResHolClause.tptp_write_file max_new theory_const)
     command
-    Recon.check_success_e_vamp_spass
-    (if full then Recon.structured_proof else Recon.lemma_list_tstp)
-    state;
-
+    ResReconstruct.check_success_e_vamp_spass
+    (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp)
+    sg
+    
   (* arbitrary atp with tptp input/output and problemfile as last argument*)
   fun tptp_prover_filter_opts max_new theory_const =
     tptp_prover_filter_opts_full max_new theory_const false;
-  (* default settings*)
+  (* default settings*)  
   val tptp_prover = tptp_prover_filter_opts 60 true;
 
-  (* for structured proofs: prover must support tstp! *)
+  (* for structured proofs: prover must support TSTP *)
   fun full_prover_filter_opts max_new theory_const =
     tptp_prover_filter_opts_full max_new theory_const true;
   (* default settings*)
   val full_prover = full_prover_filter_opts 60 true;
 
-    (* Return the path to a "helper" like SPASS, E or Vampire, first checking that
-  it exists. *)
-  fun prover_command path =
-    if File.exists path then File.shell_path path
-    else error ("Could not find the file " ^ quote (Path.implode (Path.expand path)))
-
-  (* a vampire for first subgoal *)
-  fun vampire_filter_opts max_new theory_const state = tptp_prover_filter_opts
+  fun vampire_filter_opts max_new theory_const = tptp_prover_filter_opts
     max_new theory_const
-    (prover_command (Path.explode "$VAMPIRE_HOME/vampire")
-    ^ " --output_syntax tptp --mode casc -t 3600") (* vampire does not work without timelimit*)
-    state;
+    (Path.explode "$VAMPIRE_HOME/vampire", "--output_syntax tptp --mode casc -t 3600") (* vampire does not work without timelimit*)
   (* default settings*)
   val vampire = vampire_filter_opts 60 false;
+    
   (* a vampire for full proof output *)
-  fun vampire_filter_opts_full max_new theory_const state = full_prover_filter_opts
+  fun vampire_filter_opts_full max_new theory_const = full_prover_filter_opts
     max_new theory_const
-    (prover_command (Path.explode "$VAMPIRE_HOME/vampire")
-    ^ " --output_syntax tptp --mode casc -t 3600") (* vampire does not work without timelimit*)
-    state;
+    (Path.explode "$VAMPIRE_HOME/vampire", "--output_syntax tptp --mode casc -t 3600") (* vampire does not work without timelimit*)
   (* default settings*)
   val vampire_full = vampire_filter_opts 60 false;
 
-  (* an E for first subgoal *)
-  fun eprover_filter_opts max_new theory_const state = tptp_prover_filter_opts
+  fun eprover_filter_opts max_new theory_const = tptp_prover_filter_opts
     max_new theory_const
-    (prover_command (Path.explode "$E_HOME/eproof")
-    ^ " --tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent")
-    state;
+    (Path.explode "$E_HOME/eproof", "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent")
   (* default settings *)
   val eprover = eprover_filter_opts 100 false;
+    
   (* an E for full proof output*)
-  fun eprover_filter_opts_full max_new theory_const state = full_prover_filter_opts
+  fun eprover_filter_opts_full max_new theory_const = full_prover_filter_opts
     max_new theory_const
-    (prover_command (Path.explode "$E_HOME/eproof")
-    ^ " --tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent")
-    state;
+    (Path.explode "$E_HOME/eproof", "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent")
   (* default settings *)
   val eprover_full = eprover_filter_opts_full 100 false;
 
-  (* SPASS for first subgoal *)
-  fun spass_filter_opts max_new theory_const state = external_prover 1
+  fun spass_filter_opts max_new theory_const = external_prover
     (ResAtp.write_problem_files ResHolClause.dfg_write_file max_new theory_const)
-    (prover_command (Path.explode "$SPASS_HOME/SPASS")
-    ^ " -Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof")
-    Recon.check_success_e_vamp_spass
-    Recon.lemma_list_dfg
-    state;
+    (Path.explode "$SPASS_HOME/SPASS", "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof")
+    ResReconstruct.check_success_e_vamp_spass
+    ResReconstruct.lemma_list_dfg
   (* default settings*)
   val spass = spass_filter_opts 40 true;
-
-  (*TODO: Thread running some selected or recommended provers of "System On TPTP" *)
+    
+  (* remote prover invocation via SystemOnTPTP *)
+  fun remote_prover_filter_opts max_new theory_const name command =
+    tptp_prover_filter_opts max_new theory_const
+    (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", name ^ " " ^ command)
+  val remote_prover = remote_prover_filter_opts 60 false
 
 end;
