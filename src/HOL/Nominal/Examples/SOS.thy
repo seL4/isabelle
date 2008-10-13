@@ -12,7 +12,7 @@
 (* Christian Urban.                                       *)
 
 theory SOS
-  imports "../Nominal"
+  imports "Nominal"
 begin
 
 atom_decl name
@@ -43,8 +43,6 @@ where
 
 lemma lookup_eqvt[eqvt]:
   fixes pi::"name prm"
-  and   \<theta>::"(name\<times>trm) list"
-  and   X::"name"
   shows "pi\<bullet>(lookup \<theta> X) = lookup (pi\<bullet>\<theta>) (pi\<bullet>X)"
 by (induct \<theta>) (auto simp add: eqvts)
 
@@ -63,6 +61,7 @@ by (induct rule: lookup.induct)
    (auto simp add: fresh_list_cons fresh_prod fresh_atm)
 
 (* parallel substitution *)
+
 consts
   psubst :: "(name\<times>trm) list \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [95,95] 105)
  
@@ -111,20 +110,9 @@ by (simp_all add: fresh_list_cons fresh_list_nil)
 
 lemma fresh_subst:
   fixes z::"name"
-  and   t\<^isub>1::"trm"
-  and   t2::"trm"
-  assumes a: "z\<sharp>t\<^isub>1" "z\<sharp>t\<^isub>2"
-  shows "z\<sharp>t\<^isub>1[y::=t\<^isub>2]"
-using a
-by (nominal_induct t\<^isub>1 avoiding: z y t\<^isub>2 rule: trm.strong_induct)
-   (auto simp add: abs_fresh fresh_atm)
-
-lemma fresh_subst':
-  assumes "x\<sharp>e'"
-  shows "x\<sharp>e[x::=e']"
-  using assms 
-by (nominal_induct e avoiding: x e' rule: trm.strong_induct)
-   (auto simp add: fresh_atm abs_fresh fresh_nat) 
+  shows "\<lbrakk>z\<sharp>s; (z=y \<or> z\<sharp>t)\<rbrakk> \<Longrightarrow> z\<sharp>t[y::=s]"
+by (nominal_induct t avoiding: z y s rule: trm.strong_induct)
+   (auto simp add: abs_fresh fresh_prod fresh_atm)
 
 lemma forget: 
   assumes a: "x\<sharp>e" 
@@ -151,37 +139,26 @@ where
 equivariance valid 
 
 inductive_cases
-  valid_cons_inv_auto[elim]: "valid ((x,T)#\<Gamma>)"
+  valid_elim[elim]: "valid ((x,T)#\<Gamma>)"
 
-lemma type_unicity_in_context:
-  assumes asm1: "(x,t\<^isub>2) \<in> set ((x,t\<^isub>1)#\<Gamma>)" 
-  and     asm2: "valid ((x,t\<^isub>1)#\<Gamma>)"
-  shows "t\<^isub>1=t\<^isub>2"
-proof -
-  from asm2 have "x\<sharp>\<Gamma>" by (cases, auto)
-  then have "(x,t\<^isub>2) \<notin> set \<Gamma>"
-    by (induct \<Gamma>) (auto simp add: fresh_list_cons fresh_prod fresh_atm)
-  then have "(x,t\<^isub>2) = (x,t\<^isub>1)" using asm1 by auto
-  then show "t\<^isub>1 = t\<^isub>2" by auto
-qed
+lemma valid_insert:
+  assumes a: "valid (\<Delta>@[(x,T)]@\<Gamma>)"
+  shows "valid (\<Delta> @ \<Gamma>)" 
+using a
+by (induct \<Delta>)
+   (auto simp add:  fresh_list_append fresh_list_cons elim!: valid_elim)
 
-lemma case_distinction_on_context:
-  fixes \<Gamma>::"(name\<times>ty) list"
-  assumes asm1: "valid ((m,t)#\<Gamma>)" 
-  and     asm2: "(n,U) \<in> set ((m,T)#\<Gamma>)"
-  shows "(n,U) = (m,T) \<or> ((n,U) \<in> set \<Gamma> \<and> n \<noteq> m)"
-proof -
-  from asm2 have "(n,U) \<in> set [(m,T)] \<or> (n,U) \<in> set \<Gamma>" by auto
-  moreover
-  { assume eq: "m=n"
-    assume "(n,U) \<in> set \<Gamma>" 
-    then have "\<not> n\<sharp>\<Gamma>" 
-      by (induct \<Gamma>) (auto simp add: fresh_list_cons fresh_prod fresh_atm)
-    moreover have "m\<sharp>\<Gamma>" using asm1 by auto
-    ultimately have False using eq by auto
-  }
-  ultimately show ?thesis by auto
-qed
+lemma fresh_set: 
+  shows "y\<sharp>xs = (\<forall>x\<in>set xs. y\<sharp>x)"
+by (induct xs) (simp_all add: fresh_list_nil fresh_list_cons)
+
+lemma context_unique:
+  assumes a1: "valid \<Gamma>"
+  and     a2: "(x,T) \<in> set \<Gamma>"
+  and     a3: "(x,U) \<in> set \<Gamma>"
+  shows "T = U" 
+using a1 a2 a3
+by (induct) (auto simp add: fresh_set fresh_prod fresh_atm)
 
 text {* Typing Relation *}
 
@@ -200,8 +177,14 @@ nominal_inductive typing
 lemma typing_implies_valid:
   assumes a: "\<Gamma> \<turnstile> t : T"
   shows "valid \<Gamma>"
-  using a
-  by (induct) (auto)
+using a by (induct) (auto)
+
+
+lemma t_App_elim:
+  assumes a: "\<Gamma> \<turnstile> App t1 t2 : T"
+  obtains T' where "\<Gamma> \<turnstile> t1 : T' \<rightarrow> T" and "\<Gamma> \<turnstile> t2 : T'"
+using a
+by (cases) (auto simp add: trm.inject)
 
 lemma t_Lam_elim: 
   assumes a: "\<Gamma> \<turnstile> Lam [x].t : T" "x\<sharp>\<Gamma>"
@@ -233,82 +216,35 @@ proof(nominal_induct \<Gamma>\<^isub>1 e T avoiding: \<Gamma>\<^isub>2 rule: typ
   with vc show "\<Gamma>\<^isub>2 \<turnstile> Lam [x].t : T\<^isub>1\<rightarrow>T\<^isub>2" by auto
 qed (auto)
 
-lemma context_exchange:
-  assumes a: "(x\<^isub>1,T\<^isub>1)#(x\<^isub>2,T\<^isub>2)#\<Gamma> \<turnstile> e : T"
-  shows "(x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma> \<turnstile> e : T"
-proof -
-  from  a have "valid ((x\<^isub>1,T\<^isub>1)#(x\<^isub>2,T\<^isub>2)#\<Gamma>)" by (simp add: typing_implies_valid)
-  then have "x\<^isub>1\<noteq>x\<^isub>2" "x\<^isub>1\<sharp>\<Gamma>" "x\<^isub>2\<sharp>\<Gamma>" "valid \<Gamma>"
-    by (auto simp: fresh_list_cons fresh_atm[symmetric])
-  then have "valid ((x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma>)"
-    by (auto simp: fresh_list_cons fresh_atm fresh_ty)
-  moreover 
-  have "(x\<^isub>1,T\<^isub>1)#(x\<^isub>2,T\<^isub>2)#\<Gamma> \<subseteq> (x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma>" by auto
-  ultimately show "(x\<^isub>2,T\<^isub>2)#(x\<^isub>1,T\<^isub>1)#\<Gamma> \<turnstile> e : T" using a by (auto intro: weakening)
-qed
+lemma type_substitutivity_aux:
+  assumes a: "(\<Delta>@[(x,T')]@\<Gamma>) \<turnstile> e : T"
+  and     b: "\<Gamma> \<turnstile> e' : T'"
+  shows "(\<Delta>@\<Gamma>) \<turnstile> e[x::=e'] : T" 
+using a b 
+proof (nominal_induct \<Gamma>\<equiv>"\<Delta>@[(x,T')]@\<Gamma>" e T avoiding: e' \<Delta> rule: typing.strong_induct)
+  case (t_Var \<Gamma>' y T e' \<Delta>)
+  then have a1: "valid (\<Delta>@[(x,T')]@\<Gamma>)" 
+       and  a2: "(y,T) \<in> set (\<Delta>@[(x,T')]@\<Gamma>)" 
+       and  a3: "\<Gamma> \<turnstile> e' : T'" by simp_all
+  from a1 have a4: "valid (\<Delta>@\<Gamma>)" by (rule valid_insert)
+  { assume eq: "x=y"
+    from a1 a2 have "T=T'" using eq by (auto intro: context_unique)
+    with a3 have "\<Delta>@\<Gamma> \<turnstile> Var y[x::=e'] : T" using eq a4 by (auto intro: weakening)
+  }
+  moreover
+  { assume ineq: "x\<noteq>y"
+    from a2 have "(y,T) \<in> set (\<Delta>@\<Gamma>)" using ineq by simp
+    then have "\<Delta>@\<Gamma> \<turnstile> Var y[x::=e'] : T" using ineq a4 by auto
+  }
+  ultimately show "\<Delta>@\<Gamma> \<turnstile> Var y[x::=e'] : T" by blast
+qed (force simp add: fresh_list_append fresh_list_cons)+
 
-lemma typing_var_unicity: 
-  assumes a: "(x,T\<^isub>1)#\<Gamma> \<turnstile> Var x : T\<^isub>2"
-  shows "T\<^isub>1=T\<^isub>2"
-proof - 
-  have "(x,T\<^isub>2) \<in> set ((x,T\<^isub>1)#\<Gamma>)" using a
-    by (cases) (auto simp add: trm.inject)
-  moreover 
-  have "valid ((x,T\<^isub>1)#\<Gamma>)" using a by (simp add: typing_implies_valid)
-  ultimately show "T\<^isub>1=T\<^isub>2" by (simp only: type_unicity_in_context)
-qed
-
-lemma typing_substitution: 
-  fixes \<Gamma>::"(name \<times> ty) list"
-  assumes "(x,T')#\<Gamma> \<turnstile> e : T" 
-  and     "\<Gamma> \<turnstile> e': T'" 
+corollary type_substitutivity:
+  assumes a: "(x,T')#\<Gamma> \<turnstile> e : T"
+  and     b: "\<Gamma> \<turnstile> e' : T'"
   shows "\<Gamma> \<turnstile> e[x::=e'] : T"
-  using assms
-proof (nominal_induct e avoiding: \<Gamma> e' x arbitrary: T rule: trm.strong_induct)
-  case (Var y \<Gamma> e' x T)
-  have h1: "(x,T')#\<Gamma> \<turnstile> Var y : T" by fact
-  have h2: "\<Gamma> \<turnstile> e' : T'" by fact
-  show "\<Gamma> \<turnstile> (Var y)[x::=e'] : T"
-  proof (cases "x=y")
-    case True
-    assume as: "x=y"
-    then have "T=T'" using h1 typing_var_unicity by auto
-    then show "\<Gamma> \<turnstile> (Var y)[x::=e'] : T" using as h2 by simp
-  next
-    case False
-    assume as: "x\<noteq>y" 
-    have "(y,T) \<in> set ((x,T')#\<Gamma>)" using h1 by (cases) (auto simp add: trm.inject)
-    then have "(y,T) \<in> set \<Gamma>" using as by auto
-    moreover 
-    have "valid \<Gamma>" using h2 by (simp only: typing_implies_valid)
-    ultimately show "\<Gamma> \<turnstile> (Var y)[x::=e'] : T" using as by (simp add: t_Var)
-  qed
-next
-  case (Lam y t \<Gamma> e' x T)
-  have vc: "y\<sharp>\<Gamma>" "y\<sharp>x" "y\<sharp>e'" by fact
-  have pr1: "\<Gamma> \<turnstile> e' : T'" by fact
-  have pr2: "(x,T')#\<Gamma> \<turnstile> Lam [y].t : T" by fact
-  then obtain T\<^isub>1 T\<^isub>2 where pr2': "(y,T\<^isub>1)#(x,T')#\<Gamma> \<turnstile> t : T\<^isub>2" and eq: "T = T\<^isub>1\<rightarrow>T\<^isub>2" 
-    using vc by (auto elim: t_Lam_elim simp add: fresh_list_cons fresh_ty)
-  then have pr2'':"(x,T')#(y,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2" by (simp add: context_exchange)
-  have ih: "\<lbrakk>(x,T')#(y,T\<^isub>1)#\<Gamma> \<turnstile> t : T\<^isub>2; (y,T\<^isub>1)#\<Gamma> \<turnstile> e' : T'\<rbrakk> \<Longrightarrow> (y,T\<^isub>1)#\<Gamma> \<turnstile> t[x::=e'] : T\<^isub>2" by fact
-  have "valid \<Gamma>" using pr1 by (simp add: typing_implies_valid)
-  then have "valid ((y,T\<^isub>1)#\<Gamma>)" using vc by auto
-  then have "(y,T\<^isub>1)#\<Gamma> \<turnstile> e' : T'" using pr1 by (simp add: weakening)
-  then have "(y,T\<^isub>1)#\<Gamma> \<turnstile> t[x::=e'] : T\<^isub>2" using ih pr2'' by simp
-  then have "\<Gamma> \<turnstile> Lam [y].(t[x::=e']) : T\<^isub>1\<rightarrow>T\<^isub>2" using vc by auto
-  then show "\<Gamma> \<turnstile> (Lam [y].t)[x::=e'] : T" using vc eq by simp
-next
-  case (App e1 e2 \<Gamma> e' x T)
-  have "(x,T')#\<Gamma> \<turnstile> App e1 e2 : T" by fact
-  then obtain Tn where a1: "(x,T')#\<Gamma> \<turnstile> e1 : Tn \<rightarrow> T"
-                   and a2: "(x,T')#\<Gamma> \<turnstile> e2 : Tn"
-    by (cases) (auto simp add: trm.inject)
-  have a3: "\<Gamma> \<turnstile> e' : T'" by fact
-  have ih1: "\<lbrakk>(x,T')#\<Gamma> \<turnstile> e1 : Tn\<rightarrow>T; \<Gamma> \<turnstile> e' : T'\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> e1[x::=e'] : Tn\<rightarrow>T" by fact
-  have ih2: "\<lbrakk>(x,T')#\<Gamma> \<turnstile> e2 : Tn; \<Gamma> \<turnstile> e' : T'\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> e2[x::=e'] : Tn" by fact
-  then show "\<Gamma> \<turnstile> (App e1 e2)[x::=e'] : T" using a1 a2 a3 ih1 ih2 by auto 
-qed
+using a b type_substitutivity_aux[where \<Delta>="[]"]
+by (auto)
 
 text {* Values *}
 inductive
@@ -368,9 +304,16 @@ proof (nominal_induct avoiding: \<Gamma> arbitrary: T rule: big.strong_induct)
     by (auto elim: t_Lam_elim simp add: ty.inject)
   moreover
   have "\<Gamma> \<turnstile> e\<^isub>2': T'" using ih2 a2 by simp
-  ultimately have "\<Gamma> \<turnstile> e[x::=e\<^isub>2'] : T" by (simp add: typing_substitution)
+  ultimately have "\<Gamma> \<turnstile> e[x::=e\<^isub>2'] : T" by (simp add: type_substitutivity)
   thus "\<Gamma> \<turnstile> e' : T" using ih3 by simp
-qed (blast)+
+qed (blast)
+
+lemma subject_reduction2:
+  assumes a: "e \<Down> e'" and b: "\<Gamma> \<turnstile> e : T"
+  shows "\<Gamma> \<turnstile> e' : T"
+  using a b
+by (nominal_induct avoiding: \<Gamma> T rule: big.strong_induct)
+   (force elim: t_App_elim t_Lam_elim simp add: ty.inject type_substitutivity)+
 
 lemma unicity_of_evaluation:
   assumes a: "e \<Down> e\<^isub>1" 
@@ -390,8 +333,7 @@ next
   have vc: "x\<sharp>e\<^isub>1" "x\<sharp>e\<^isub>2" "x\<sharp>t\<^isub>2" by fact
   then have "x\<sharp>App e\<^isub>1 e\<^isub>2" by auto
   from app vc obtain f\<^isub>1 f\<^isub>2 where x1: "e\<^isub>1 \<Down> Lam [x]. f\<^isub>1" and x2: "e\<^isub>2 \<Down> f\<^isub>2" and x3: "f\<^isub>1[x::=f\<^isub>2] \<Down> t\<^isub>2"
-    by (cases rule: big.strong_cases[where x="x" and xa="x"])
-       (auto simp add: trm.inject)
+    by (auto elim!: b_App_elim)
   then have "Lam [x]. f\<^isub>1 = Lam [x]. e\<^isub>1'" using ih1 by simp
   then 
   have "f\<^isub>1 = e\<^isub>1'" by (auto simp add: trm.inject alpha) 
@@ -402,9 +344,9 @@ next
 qed
 
 lemma reduces_evaluates_to_values:
-  assumes h:"t \<Down> t'"
+  assumes h: "t \<Down> t'"
   shows "val t'"
-  using h by (induct) (auto)
+using h by (induct) (auto)
 
 (* Valuation *)
 consts
@@ -415,7 +357,6 @@ nominal_primrec
   "V (T\<^isub>1 \<rightarrow> T\<^isub>2) = {Lam [x].e | x e. \<forall> v \<in> (V T\<^isub>1). \<exists> v'. e[x::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2}"
   by (rule TrueI)+ 
 
-(* can go with strong inversion rules *)
 lemma V_eqvt:
   fixes pi::"name prm"
   assumes a: "x\<in>V T"
@@ -439,13 +380,13 @@ done
 
 lemma V_arrow_elim_weak:
   assumes h:"u \<in> V (T\<^isub>1 \<rightarrow> T\<^isub>2)"
-  obtains a t where "u = Lam[a].t" and "\<forall> v \<in> (V T\<^isub>1). \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
+  obtains a t where "u = Lam [a].t" and "\<forall> v \<in> (V T\<^isub>1). \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
 using h by (auto)
 
 lemma V_arrow_elim_strong:
   fixes c::"'a::fs_name"
   assumes h: "u \<in> V (T\<^isub>1 \<rightarrow> T\<^isub>2)"
-  obtains a t where "a\<sharp>c" "u = Lam[a].t" "\<forall>v \<in> (V T\<^isub>1). \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
+  obtains a t where "a\<sharp>c" "u = Lam [a].t" "\<forall>v \<in> (V T\<^isub>1). \<exists> v'. t[a::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
 using h
 apply -
 apply(erule V_arrow_elim_weak)
@@ -500,6 +441,24 @@ abbreviation
 where
   "\<theta> Vcloses \<Gamma> \<equiv> \<forall>x T. (x,T) \<in> set \<Gamma> \<longrightarrow> (\<exists>v. \<theta> maps x to v \<and> v \<in> V T)"
 
+lemma case_distinction_on_context:
+  fixes \<Gamma>::"(name\<times>ty) list"
+  assumes asm1: "valid ((m,t)#\<Gamma>)" 
+  and     asm2: "(n,U) \<in> set ((m,T)#\<Gamma>)"
+  shows "(n,U) = (m,T) \<or> ((n,U) \<in> set \<Gamma> \<and> n \<noteq> m)"
+proof -
+  from asm2 have "(n,U) \<in> set [(m,T)] \<or> (n,U) \<in> set \<Gamma>" by auto
+  moreover
+  { assume eq: "m=n"
+    assume "(n,U) \<in> set \<Gamma>" 
+    then have "\<not> n\<sharp>\<Gamma>" 
+      by (induct \<Gamma>) (auto simp add: fresh_list_cons fresh_prod fresh_atm)
+    moreover have "m\<sharp>\<Gamma>" using asm1 by auto
+    ultimately have False using eq by auto
+  }
+  ultimately show ?thesis by auto
+qed
+
 lemma monotonicity:
   fixes m::"name"
   fixes \<theta>::"(name \<times> trm) list" 
@@ -533,23 +492,22 @@ lemma termination_aux:
 using h2 h1
 proof(nominal_induct e avoiding: \<Gamma> \<theta> arbitrary: T rule: trm.strong_induct)
   case (App e\<^isub>1 e\<^isub>2 \<Gamma> \<theta> T)
-  have ih\<^isub>1:"\<And>\<theta> \<Gamma> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> e\<^isub>1 : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><e\<^isub>1> \<Down> v \<and> v \<in> V T" by fact
-  have ih\<^isub>2:"\<And>\<theta> \<Gamma> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> e\<^isub>2 : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><e\<^isub>2> \<Down> v \<and> v \<in> V T" by fact
-  have as\<^isub>1:"\<theta> Vcloses \<Gamma>" by fact 
+  have ih\<^isub>1: "\<And>\<theta> \<Gamma> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> e\<^isub>1 : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><e\<^isub>1> \<Down> v \<and> v \<in> V T" by fact
+  have ih\<^isub>2: "\<And>\<theta> \<Gamma> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> e\<^isub>2 : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><e\<^isub>2> \<Down> v \<and> v \<in> V T" by fact
+  have as\<^isub>1: "\<theta> Vcloses \<Gamma>" by fact 
   have as\<^isub>2: "\<Gamma> \<turnstile> App e\<^isub>1 e\<^isub>2 : T" by fact
-  then obtain T' where "\<Gamma> \<turnstile> e\<^isub>1 : T' \<rightarrow> T" and "\<Gamma> \<turnstile> e\<^isub>2 : T'" 
-    by (cases) (auto simp add: trm.inject)
+  then obtain T' where "\<Gamma> \<turnstile> e\<^isub>1 : T' \<rightarrow> T" and "\<Gamma> \<turnstile> e\<^isub>2 : T'" by (auto elim: t_App_elim)
   then obtain v\<^isub>1 v\<^isub>2 where "(i)": "\<theta><e\<^isub>1> \<Down> v\<^isub>1" "v\<^isub>1 \<in> V (T' \<rightarrow> T)"
-                      and "(ii)":"\<theta><e\<^isub>2> \<Down> v\<^isub>2" "v\<^isub>2 \<in> V T'" using ih\<^isub>1 ih\<^isub>2 as\<^isub>1 by blast
+                      and "(ii)": "\<theta><e\<^isub>2> \<Down> v\<^isub>2" "v\<^isub>2 \<in> V T'" using ih\<^isub>1 ih\<^isub>2 as\<^isub>1 by blast
   from "(i)" obtain x e' 
-            where "v\<^isub>1 = Lam[x].e'" 
+            where "v\<^isub>1 = Lam [x].e'" 
             and "(iii)": "(\<forall>v \<in> (V T').\<exists> v'. e'[x::=v] \<Down> v' \<and> v' \<in> V T)"
             and "(iv)":  "\<theta><e\<^isub>1> \<Down> Lam [x].e'" 
             and fr: "x\<sharp>(\<theta>,e\<^isub>1,e\<^isub>2)" by (blast elim: V_arrow_elim_strong)
   from fr have fr\<^isub>1: "x\<sharp>\<theta><e\<^isub>1>" and fr\<^isub>2: "x\<sharp>\<theta><e\<^isub>2>" by (simp_all add: fresh_psubst)
   from "(ii)" "(iii)" obtain v\<^isub>3 where "(v)": "e'[x::=v\<^isub>2] \<Down> v\<^isub>3" "v\<^isub>3 \<in> V T" by auto
   from fr\<^isub>2 "(ii)" have "x\<sharp>v\<^isub>2" by (simp add: big_preserves_fresh)
-  then have "x\<sharp>e'[x::=v\<^isub>2]" by (simp add: fresh_subst')
+  then have "x\<sharp>e'[x::=v\<^isub>2]" by (simp add: fresh_subst)
   then have fr\<^isub>3: "x\<sharp>v\<^isub>3" using "(v)" by (simp add: big_preserves_fresh)
   from fr\<^isub>1 fr\<^isub>2 fr\<^isub>3 have "x\<sharp>(\<theta><e\<^isub>1>,\<theta><e\<^isub>2>,v\<^isub>3)" by simp
   with "(iv)" "(ii)" "(v)" have "App (\<theta><e\<^isub>1>) (\<theta><e\<^isub>2>) \<Down> v\<^isub>3" by auto
@@ -562,8 +520,7 @@ next
   have fs: "x\<sharp>\<Gamma>" "x\<sharp>\<theta>" by fact
   from as\<^isub>2 fs obtain T\<^isub>1 T\<^isub>2 
     where "(i)": "(x,T\<^isub>1)#\<Gamma> \<turnstile> e:T\<^isub>2" and "(ii)": "T = T\<^isub>1 \<rightarrow> T\<^isub>2" using fs
-    by (cases rule: typing.strong_cases[where x="x"])
-       (auto simp add: trm.inject alpha abs_fresh fresh_ty)
+    by (auto elim: t_Lam_elim)
   from "(i)" have "(iii)": "valid ((x,T\<^isub>1)#\<Gamma>)" by (simp add: typing_implies_valid)
   have "\<forall>v \<in> (V T\<^isub>1). \<exists>v'. (\<theta><e>)[x::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2"
   proof
@@ -575,7 +532,7 @@ next
     then show "\<exists>v'. \<theta><e>[x::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2" by auto
   qed
   then have "Lam[x].\<theta><e> \<in> V (T\<^isub>1 \<rightarrow> T\<^isub>2)" by auto
-  then have "\<theta><Lam [x].e> \<Down> Lam[x].\<theta><e> \<and> Lam[x].\<theta><e> \<in> V (T\<^isub>1\<rightarrow>T\<^isub>2)" using fs by auto
+  then have "\<theta><Lam [x].e> \<Down> Lam [x].\<theta><e> \<and> Lam [x].\<theta><e> \<in> V (T\<^isub>1\<rightarrow>T\<^isub>2)" using fs by auto
   thus "\<exists>v. \<theta><Lam [x].e> \<Down> v \<and> v \<in> V T" using "(ii)" by auto
 next
   case (Var x \<Gamma> \<theta> T)
