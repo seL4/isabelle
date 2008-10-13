@@ -95,6 +95,7 @@ use "Tools/res_axioms.ML" setup ResAxioms.setup
 use "Tools/res_hol_clause.ML"
 use "Tools/res_reconstruct.ML" setup ResReconstruct.setup
 use "Tools/res_atp.ML"
+
 use "Tools/atp_manager.ML"
 use "Tools/atp_thread.ML"
 
@@ -109,6 +110,12 @@ setup {* AtpManager.add_prover "e_full" AtpThread.eprover_full *}
 
 text {* on some problems better results *}
 setup {* AtpManager.add_prover "spass_no_tc" (AtpThread.spass_filter_opts 40 false) *}
+
+text {* remote provers via SystemOnTPTP *}
+setup {* AtpManager.add_prover "remote_vamp9"
+  (AtpThread.remote_prover "Vampire---9.0" "jumpirefix --output_syntax tptp --mode casc -t 3600") *}
+setup {* AtpManager.add_prover "remote_vamp10"
+  (AtpThread.remote_prover "Vampire---10.0" "drakosha.pl 60") *}
 
 
 subsection {* The Metis prover *}

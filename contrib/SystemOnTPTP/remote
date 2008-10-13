@@ -1,0 +1,95 @@
+#!/usr/bin/env perl
+#
+# Wrapper for custom remote provers on SystemOnTPTP
+# Author: Fabian Immler, TU Muenchen
+#
+# Similar to the vampire wrapper, but compatible provers can be passed in the
+# command line, with %s for the problemfile e.g. 
+#
+# ./remote Vampire---9.0 jumpirefix --output_syntax tptp --mode casc -t 3600 %s
+# ./remote Vampire---10.0 drakosha.pl 60 %s
+# ./remote SPASS---3.01 SPASS -Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof %s
+# ./remote Metis---2.1 metis --show proof --show saturation %s
+# ./remote SNARK---20080805r005 run-snark %s
+
+use warnings;
+use strict;
+
+use Getopt::Std;
+use HTTP::Request::Common;
+use LWP::UserAgent;
+
+# address of proof-server
+my $SystemOnTPTPFormReplyURL = "http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTPTPFormReply";
+
+if(scalar(@ARGV) < 2) {
+    print "prover and command missing";
+    exit -1;
+}
+my $prover = shift(@ARGV);
+my $command = shift(@ARGV);
+
+# pass arguments
+my $options = "";
+while(scalar(@ARGV)>1){
+	$options.=" ".shift(@ARGV);
+}
+# last argument is problemfile to be uploaded
+my $problem = [shift(@ARGV)];
+
+# fill in form
+my %URLParameters = (
+    "NoHTML" => 1,
+    "QuietFlag" => "-q01",
+    "X2TPTP" => "-S",
+    "SubmitButton" => "RunSelectedSystems",
+    "ProblemSource" => "UPLOAD",
+    "UPLOADProblem" => $problem,
+    "System___$prover" => "$prover",
+    "Format___$prover" => "tptp",
+    "Command___$prover" => "$command $options %s"
+);
+
+# Query Server
+my $Agent = LWP::UserAgent->new;
+my $Request = POST($SystemOnTPTPFormReplyURL,
+	Content_Type => 'form-data',Content => \%URLParameters);
+my $Response = $Agent->request($Request);
+  
+#catch errors, let isabelle/watcher know
+if($Response->is_success && $Response->content !~ /NO SOLUTION OUTPUT BY SYSTEM/
+&& $Response->content =~ m/%\s*Result\s*:\s*Unsatisfiable.*?\n%\s*Output\s*:\s*.*?Refutation.*?\n/){
+    # convert to isabelle-friendly format
+    my @lines = split( /%\s*Result\s*:\s*Unsatisfiable.*?\n%\s*Output\s*:\s*.*?Refutation.*?\n/, $Response->content);
+    @lines = split( /\n/, $lines[1]);    my $extract = "";
+    my $inproof = 0 > 1;
+    my $ende = 0 > 1;
+    foreach my $line (@lines){
+        if(! $ende){
+            #ignore comments
+            if(! $inproof){
+                if ($line !~ /^%/ && !($line eq "")) {
+                    $extract .= "$line";
+                    $inproof = 1;
+                }
+            } else {
+                if ($line !~ /^%/) {
+                    $extract .= "$line";
+                } else {
+                    $ende = 1;
+                }
+            }
+        }
+    }
+    # insert newlines after '.'
+    $extract =~ s/\s//g;
+    $extract =~ s/\)\.cnf/\)\.\ncnf/g;
+    print "# SZS output start CNFRefutation.\n";
+    print "$extract\n";
+    print "# SZS output end CNFRefutation.\n";
+} else {
+	print "HTTP-Request: " . $Response->message;
+	print "\nCANNOT PROVE: \n";
+  print $Response->content;
+}
+
