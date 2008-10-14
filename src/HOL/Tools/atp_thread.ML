@@ -12,10 +12,10 @@ sig
   val problem_name: string ref
   (* basic template *)
   val external_prover:
-    ((int -> Path.T) -> Proof.context * Thm.thm list * Thm.thm -> string list * ResHolClause.axiom_name Vector.vector list) ->
+    ((int -> Path.T) -> Proof.context * thm list * thm -> string list * ResHolClause.axiom_name Vector.vector list) ->
     Path.T * string ->
     (string * int -> bool) ->
-    (string * string vector * Proof.context * Thm.thm * int -> string) ->
+    (string * string vector * Proof.context * thm * int -> string) ->
     int -> Proof.state -> Thread.thread
   (* provers as functions returning threads *)
   val tptp_prover_filter_opts_full: int -> bool -> bool -> Path.T * string -> int -> Proof.state -> Thread.thread
@@ -55,7 +55,7 @@ struct
       let val probfile = Path.basic (problem_name' ^ serial_string () ^ "_" ^ Int.toString nr)
       in if destdir' = "" then File.tmp_path probfile
         else if File.exists (Path.explode (destdir'))
-        then (Path.append  (Path.explode (destdir')) probfile)
+        then Path.append  (Path.explode (destdir')) probfile
         else error ("No such directory: " ^ destdir')
       end
     (* write out problem file and call prover *)
