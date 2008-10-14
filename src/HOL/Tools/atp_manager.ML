@@ -50,18 +50,15 @@ fun set_timeout time = CRITICAL (fn () => timeout := time);
 val _ =
   ProofGeneralPgip.add_preference "Proof"
     (Preferences.string_pref atps
-      "ATP: provers" "Default automatic provers (separated by whitespace)")
-    handle ERROR _ => warning "Preference already exists";
+      "ATP: provers" "Default automatic provers (separated by whitespace)");
 
 val _ = ProofGeneralPgip.add_preference "Proof"
     (Preferences.int_pref max_atps
-      "ATP: maximum number" "How many provers may run in parallel")
-    handle ERROR _ => warning "Preference already exists";
+      "ATP: maximum number" "How many provers may run in parallel");
 
 val _ = ProofGeneralPgip.add_preference "Proof"
     (Preferences.int_pref timeout
-      "ATP: timeout" "ATPs will be interrupted after this time (in seconds)")
-    handle ERROR _ => warning "Preference already exists";
+      "ATP: timeout" "ATPs will be interrupted after this time (in seconds)");
 
 end;
 
@@ -201,19 +198,20 @@ fun info () =
   let
     val State {timeout_heap, oldest_heap, active, cancelling} = Synchronized.value state
     fun running_info (_, (birth_time, dead_time, desc)) = "Running: "
-        ^ ((string_of_int o Time.toSeconds) (Time.- (Time.now (), birth_time)))
+        ^ (string_of_int o Time.toSeconds) (Time.- (Time.now (), birth_time))
         ^ " s  --  "
-        ^ ((string_of_int o Time.toSeconds) (Time.- (dead_time, Time.now ())))
+        ^ (string_of_int o Time.toSeconds) (Time.- (dead_time, Time.now ()))
         ^ " s to live:\n" ^ desc
     fun cancelling_info (_, (_, dead_time, desc)) = "Trying to interrupt thread since "
         ^ (string_of_int o Time.toSeconds) (Time.- (Time.now (), dead_time))
         ^ " s:\n" ^ desc
-    val running = if null active then "No ATPs running."
-      else space_implode "\n\n" ("--- RUNNING ATPs ---" ::
-      (map (fn entry => running_info entry) active))
-    val interrupting = if null cancelling then ""
-      else space_implode "\n\n" ("--- TRYING TO INTERRUPT FOLLOWING ATPs ---" ::
-      (map (fn entry => cancelling_info entry) cancelling))
+    val running =
+      if null active then "No ATPs running."
+      else space_implode "\n\n" ("Running ATPs:" :: map running_info active)
+    val interrupting =
+      if null cancelling then ""
+      else space_implode "\n\n"
+        ("Trying to interrupt the following ATPs:" :: map cancelling_info cancelling)
   in writeln (running ^ "\n" ^ interrupting) end;
 
 
@@ -231,7 +229,7 @@ structure Provers = TheoryDataFun
   val copy = I
   val extend = I
   fun merge _ tabs : T = Symtab.merge (eq_snd op =) tabs
-    handle Symtab.DUP dup => err_dup_prover dup;
+    handle Symtab.DUP dup => err_dup_prover dup
 );
 
 fun add_prover name prover_fn thy =
