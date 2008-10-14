@@ -89,7 +89,7 @@ apply (simp add: COMBC_def)
 done
 
 
-subsection {* Setup of Vampire, E prover and SPASS *}
+subsection {* Setup of external ATPs *}
 
 use "Tools/res_axioms.ML" setup ResAxioms.setup
 use "Tools/res_hol_clause.ML"
