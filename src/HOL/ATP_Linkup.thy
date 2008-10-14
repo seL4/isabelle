@@ -109,7 +109,7 @@ setup {* AtpManager.add_prover "vampire_full" AtpWrapper.vampire_full *}
 setup {* AtpManager.add_prover "e_full" AtpWrapper.eprover_full *}
 
 text {* on some problems better results *}
-setup {* AtpManager.add_prover "spass_no_tc" (AtpWrapper.spass_filter_opts 40 false) *}
+setup {* AtpManager.add_prover "spass_no_tc" (AtpWrapper.spass_opts 40 false) *}
 
 text {* remote provers via SystemOnTPTP *}
 setup {* AtpManager.add_prover "remote_vamp9"
