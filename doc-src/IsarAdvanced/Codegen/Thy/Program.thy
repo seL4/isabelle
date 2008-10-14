@@ -11,7 +11,7 @@ text {*
   @{command definition}/@{command primrec}/@{command fun}
   statements are used for code generation.  This default behaviour
   can be changed, e.g. by providing different defining equations.
-  All kinds of customization shown in this section is \emph{safe}
+  All kinds of customisation shown in this section is \emph{safe}
   in the sense that the user does not have to worry about
   correctness -- all programs generatable that way are partially
   correct.
@@ -222,7 +222,7 @@ subsection {* Datatypes \label{sec:datatypes} *}
 text {*
   Conceptually, any datatype is spanned by a set of
   \emph{constructors} of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^isub>1 \<dots> \<alpha>\<^isub>n"}
-  where @{text "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is excactly the set of \emph{all}
+  where @{text "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is exactly the set of \emph{all}
   type variables in @{text "\<tau>"}.  The HOL datatype package
   by default registers any new datatype in the table
   of datatypes, which may be inspected using
@@ -431,7 +431,7 @@ text {*
   instance @{text "monotype \<Colon> eq"}, which itself requires
   @{thm monotype_eq [no_vars]};  Haskell has no problem with mutually
   recursive @{text instance} and @{text function} definitions,
-  but the SML serializer does not support this.
+  but the SML serialiser does not support this.
 
   In such cases, you have to provide your own equality equations
   involving auxiliary constants.  In our case,
@@ -498,7 +498,7 @@ text {*
   this is not what the user expects).  But such constants can also
   be thought of as function definitions with no equations which
   always fail, since there is never a successful pattern match
-  on the left hand side.  In order to categorize a constant into
+  on the left hand side.  In order to categorise a constant into
   that category explicitly, use @{command "code_abort"}:
 *}
 

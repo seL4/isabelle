@@ -23,11 +23,11 @@ text {*
 
   \noindent In this section we will introduce means to \emph{adapt} the serialiser
   to a specific target language, i.e.~to print program fragments
-  in a way which accomodates \qt{already existing} ingredients of
+  in a way which accommodates \qt{already existing} ingredients of
   a target language environment, for three reasons:
 
   \begin{itemize}
-    \item improving readability and aethetics of generated code
+    \item improving readability and aesthetics of generated code
     \item gaining efficiency
     \item interface with language parts which have no direct counterpart
       in @{text "HOL"} (say, imperative data structures)
@@ -40,8 +40,8 @@ text {*
     \item The safe configuration methods act uniformly on every target language,
       whereas for adaption you have to treat each target language separate.
     \item Application is extremely tedious since there is no abstraction
-      which would allow for a static check, makeing it easy to produce garbage.
-    \item More or less subtle erros can be introduced unconsciously.
+      which would allow for a static check, making it easy to produce garbage.
+    \item More or less subtle errors can be introduced unconsciously.
   \end{itemize}
 
   \noindent However, even if you ought refrain from setting up adaption
@@ -69,7 +69,7 @@ subsection {* Common adaption cases *}
 text {*
   The @{theory HOL} @{theory Main} theory already provides a code
   generator setup
-  which should be suitable for most applications. Common extensions
+  which should be suitable for most applications.  Common extensions
   and modifications are available by certain theories of the @{text HOL}
   library; beside being useful in applications, they may serve
   as a tutorial for customising the code generator setup (see below
@@ -160,7 +160,7 @@ text %quote {*@{code_stmts in_interval (SML)}*}
 text {*
   \noindent This still is not perfect: the parentheses
   around the \qt{andalso} expression are superfluous.
-  Though the serializer
+  Though the serialiser
   by no means attempts to imitate the rich Isabelle syntax
   framework, it provides some common idioms, notably
   associative infixes with precedences which may be used here:
@@ -198,7 +198,7 @@ code_const %quotett Pair
   (SML "!((_),/ (_))")
 
 text {*
-  \noindent The initial bang ``@{verbatim "!"}'' tells the serializer
+  \noindent The initial bang ``@{verbatim "!"}'' tells the serialiser
   never to put
   parentheses around the whole expression (they are already present),
   while the parentheses around argument place holders
@@ -261,7 +261,7 @@ code_type %quotett bar
 
 text {*
   \noindent The code generator would produce
-  an additional instance, which of course is rejectedby the @{text Haskell}
+  an additional instance, which of course is rejected by the @{text Haskell}
   compiler.
   To suppress this additional instance, use
   @{text "code_instance"}:
@@ -274,7 +274,7 @@ code_instance %quotett bar :: eq
 subsection {* Enhancing the target language context *}
 
 text {*
-  In rare cases it is neccessary to \emph{enrich} the context of a
+  In rare cases it is necessary to \emph{enrich} the context of a
   target language;  this is accomplished using the @{command "code_include"}
   command:
 *}

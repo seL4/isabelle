@@ -9,7 +9,7 @@ subsection {* Further reading *}
 text {*
   Do dive deeper into the issue of code generation, you should visit
   the Isabelle/Isar Reference Manual \cite{isabelle-isar-ref} which
-  constains exhaustive syntax diagrams.
+  contains exhaustive syntax diagrams.
 *}
 
 subsection {* Modules *}
@@ -31,7 +31,7 @@ text {*
   Then, by stating
 *}
 
-code_modulename SML
+code_modulename %quote SML
   A ABC
   B ABC
   C ABC
@@ -44,12 +44,70 @@ text {*
 
 subsection {* Evaluation oracle *}
 
+text {*
+  Code generation may also be used to \emph{evaluate} expressions
+  (using @{text SML} as target language of course).
+  For instance, the @{command value} allows to reduce an expression to a
+  normal form with respect to the underlying code equations:
+*}
+
+value %quote "42 / (12 :: rat)"
+
+text {*
+  \noindent will display @{term "7 / (2 :: rat)"}.
+
+  The @{method eval} method tries to reduce a goal by code generation to @{term True}
+  and solves it in that case, but fails otherwise:
+*}
+
+lemma %quote "42 / (12 :: rat) = 7 / 2"
+  by %quote eval
+
+text {*
+  \noindent The soundness of the @{method eval} method depends crucially 
+  on the correctness of the code generator;  this is one of the reasons
+  why you should not use adaption (see \secref{sec:adaption}) frivolously.
+*}
+
 subsection {* Code antiquotation *}
 
-subsection {* Creating new targets *}
+text {*
+  In scenarios involving techniques like reflection it is quite common
+  that code generated from a theory forms the basis for implementing
+  a proof procedure in @{text SML}.  To facilitate interfacing of generated code
+  with system code, the code generator provides a @{text code} antiquotation:
+*}
 
-text {* extending targets, adding targets *}
+datatype %quote form = T | F | And form form | Or form form
+
+ML %quote {*
+  fun eval_form @{code T} = true
+    | eval_form @{code F} = false
+    | eval_form (@{code And} (p, q)) =
+        eval_form p andalso eval_form q
+    | eval_form (@{code Or} (p, q)) =
+        eval_form p orelse eval_form q;
+*}
+
+text {*
+  \noindent @{text code} takes as argument the name of a constant;  after the
+  whole @{text SML} is read, the necessary code is generated transparently
+  and the corresponding constant names are inserted.  This technique also
+  allows to use pattern matching on constructors stemming from compiled
+  @{text datatypes}.
+
+  For a less simplistic example, theory @{theory ReflectedFerrack} is
+  a good reference.
+*}
 
 subsection {* Imperative data structures *}
+
+text {*
+  If you consider imperative data structures as inevitable for a specific
+  application, you should consider
+  \emph{Imperative Functional Programming with Isabelle/HOL}
+  (\cite{bulwahn-et-al:2008:imperative});
+  the framework described there is available in theory @{theory Imperative_HOL}.
+*}
 
 end

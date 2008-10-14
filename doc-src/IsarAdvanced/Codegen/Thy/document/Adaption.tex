@@ -57,11 +57,11 @@ The aspects of code generation introduced so far have two aspects
 
   \noindent In this section we will introduce means to \emph{adapt} the serialiser
   to a specific target language, i.e.~to print program fragments
-  in a way which accomodates \qt{already existing} ingredients of
+  in a way which accommodates \qt{already existing} ingredients of
   a target language environment, for three reasons:
 
   \begin{itemize}
-    \item improving readability and aethetics of generated code
+    \item improving readability and aesthetics of generated code
     \item gaining efficiency
     \item interface with language parts which have no direct counterpart
       in \isa{HOL} (say, imperative data structures)
@@ -74,8 +74,8 @@ The aspects of code generation introduced so far have two aspects
     \item The safe configuration methods act uniformly on every target language,
       whereas for adaption you have to treat each target language separate.
     \item Application is extremely tedious since there is no abstraction
-      which would allow for a static check, makeing it easy to produce garbage.
-    \item More or less subtle erros can be introduced unconsciously.
+      which would allow for a static check, making it easy to produce garbage.
+    \item More or less subtle errors can be introduced unconsciously.
   \end{itemize}
 
   \noindent However, even if you ought refrain from setting up adaption
@@ -109,7 +109,7 @@ The aspects of code generation introduced so far have two aspects
 \begin{isamarkuptext}%
 The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{Main}}} theory already provides a code
   generator setup
-  which should be suitable for most applications. Common extensions
+  which should be suitable for most applications.  Common extensions
   and modifications are available by certain theories of the \isa{HOL}
   library; beside being useful in applications, they may serve
   as a tutorial for customising the code generator setup (see below
@@ -305,7 +305,7 @@ Consider the following function and its corresponding
 \begin{isamarkuptext}%
 \noindent This still is not perfect: the parentheses
   around the \qt{andalso} expression are superfluous.
-  Though the serializer
+  Though the serialiser
   by no means attempts to imitate the rich Isabelle syntax
   framework, it provides some common idioms, notably
   associative infixes with precedences which may be used here:%
@@ -421,7 +421,7 @@ Consider the following function and its corresponding
 \endisadelimquotett
 %
 \begin{isamarkuptext}%
-\noindent The initial bang ``\verb|!|'' tells the serializer
+\noindent The initial bang ``\verb|!|'' tells the serialiser
   never to put
   parentheses around the whole expression (they are already present),
   while the parentheses around argument place holders
@@ -532,7 +532,7 @@ For convenience, the default
 %
 \begin{isamarkuptext}%
 \noindent The code generator would produce
-  an additional instance, which of course is rejectedby the \isa{Haskell}
+  an additional instance, which of course is rejected by the \isa{Haskell}
   compiler.
   To suppress this additional instance, use
   \isa{code{\isacharunderscore}instance}:%
@@ -559,7 +559,7 @@ For convenience, the default
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-In rare cases it is neccessary to \emph{enrich} the context of a
+In rare cases it is necessary to \emph{enrich} the context of a
   target language;  this is accomplished using the \hyperlink{command.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}
   command:%
 \end{isamarkuptext}%
