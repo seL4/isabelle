@@ -21,7 +21,7 @@ sig
   val error_with_pos : PgipTypes.displayarea -> PgipTypes.fatality -> Position.T -> string -> unit
 
   val get_currently_open_file : unit -> Path.T option  (* interface focus *)
-  val add_preference: string -> Preferences.isa_preference -> unit
+  val add_preference: string -> Preferences.preference -> unit
 end
 
 structure ProofGeneralPgip : PROOF_GENERAL_PGIP =
@@ -366,17 +366,17 @@ end
 
 (* Preferences: tweak for PGIP interfaces *)
 
-val preferences = ref Preferences.preferences;
+val preferences = ref Preferences.pure_preferences;
 
 fun add_preference cat pref =
-    preferences := Preferences.add cat pref (!preferences);
+  CRITICAL (fn () => change preferences (Preferences.add cat pref));
 
-fun setup_preferences_tweak() =
-    preferences :=
-     (!preferences |> Preferences.set_default ("show-question-marks","false")
-                   |> Preferences.remove "show-question-marks"    (* we use markup, not ?s *)
-                   |> Preferences.remove "theorem-dependencies"   (* set internally *)
-                   |> Preferences.remove "full-proofs")           (* set internally *)
+fun setup_preferences_tweak () =
+  CRITICAL (fn () => change preferences
+   (Preferences.set_default ("show-question-marks", "false") #>
+    Preferences.remove "show-question-marks" #>   (* we use markup, not ?s *)
+    Preferences.remove "theorem-dependencies" #>  (* set internally *)
+    Preferences.remove "full-proofs"));           (* set internally *)
 
 
 
