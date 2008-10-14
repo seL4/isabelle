@@ -17,7 +17,7 @@ uses
   ("Tools/res_reconstruct.ML")
   ("Tools/res_atp.ML")
   ("Tools/atp_manager.ML")
-  ("Tools/atp_thread.ML")
+  ("Tools/atp_wrapper.ML")
   "~~/src/Tools/Metis/metis.ML"
   ("Tools/metis_tools.ML")
 begin
@@ -97,25 +97,25 @@ use "Tools/res_reconstruct.ML" setup ResReconstruct.setup
 use "Tools/res_atp.ML"
 
 use "Tools/atp_manager.ML"
-use "Tools/atp_thread.ML"
+use "Tools/atp_wrapper.ML"
 
 text {* basic provers *}
-setup {* AtpManager.add_prover "spass" AtpThread.spass *}
-setup {* AtpManager.add_prover "vampire" AtpThread.vampire *}
-setup {* AtpManager.add_prover "e" AtpThread.eprover *}
+setup {* AtpManager.add_prover "spass" AtpWrapper.spass *}
+setup {* AtpManager.add_prover "vampire" AtpWrapper.vampire *}
+setup {* AtpManager.add_prover "e" AtpWrapper.eprover *}
 
 text {* provers with stuctured output *}
-setup {* AtpManager.add_prover "vampire_full" AtpThread.vampire_full *}
-setup {* AtpManager.add_prover "e_full" AtpThread.eprover_full *}
+setup {* AtpManager.add_prover "vampire_full" AtpWrapper.vampire_full *}
+setup {* AtpManager.add_prover "e_full" AtpWrapper.eprover_full *}
 
 text {* on some problems better results *}
-setup {* AtpManager.add_prover "spass_no_tc" (AtpThread.spass_filter_opts 40 false) *}
+setup {* AtpManager.add_prover "spass_no_tc" (AtpWrapper.spass_filter_opts 40 false) *}
 
 text {* remote provers via SystemOnTPTP *}
 setup {* AtpManager.add_prover "remote_vamp9"
-  (AtpThread.remote_prover "Vampire---9.0" "jumpirefix --output_syntax tptp --mode casc -t 3600") *}
+  (AtpWrapper.remote_prover "Vampire---9.0" "jumpirefix --output_syntax tptp --mode casc -t 3600") *}
 setup {* AtpManager.add_prover "remote_vamp10"
-  (AtpThread.remote_prover "Vampire---10.0" "drakosha.pl 60") *}
+  (AtpWrapper.remote_prover "Vampire---10.0" "drakosha.pl 60") *}
 
 
 subsection {* The Metis prover *}

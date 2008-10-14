@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/atp_thread.ML
+(*  Title:      HOL/Tools/atp_wrapper.ML
     ID:         $Id$
     Author:     Fabian Immler, TU Muenchen
 
-Automatic provers as managed threads.
+Wrapper functions for external ATPs.
 *)
 
-signature ATP_THREAD =
+signature ATP_WRAPPER =
 sig
   (* hooks for writing problemfiles *)
   val destdir: string ref
@@ -37,7 +37,7 @@ sig
   val vampire_full: int -> Proof.state -> Thread.thread
 end;
 
-structure AtpThread : ATP_THREAD =
+structure AtpWrapper: ATP_WRAPPER =
 struct
   
   (* preferences for path and filename to problemfiles *)

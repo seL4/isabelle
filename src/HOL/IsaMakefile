@@ -217,7 +217,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Groebner_Basis/normalizer_data.ML \
   Tools/Groebner_Basis/normalizer.ML \
   Tools/atp_manager.ML \
-  Tools/atp_thread.ML \
+  Tools/atp_wrapper.ML \
   Tools/meson.ML \
   Tools/metis_tools.ML \
   Tools/numeral.ML \
