@@ -87,7 +87,9 @@ proof
   with `~ 100 < n` show "(f91 (n + 11), n) : ?R" by simp 
 qed
 
-
+text{* Now trivial (even though it does not belong here): *}
+lemma "f91 n = (if 100 < n then n - 10 else 91)"
+by (induct n rule:f91.induct) auto
 
 
 subsection {* More general patterns *}
