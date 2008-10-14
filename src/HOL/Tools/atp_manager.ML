@@ -11,19 +11,63 @@ or when the maximum number of threads exceeds; then the oldest thread is killed.
 
 signature ATP_MANAGER =
 sig
-  val kill_all: unit -> unit
-  val info: unit -> unit
+  val get_atps: unit -> string
   val set_atps: string -> unit
-  val set_max_atp: int -> unit
+  val get_max_atps: unit -> int
+  val set_max_atps: int -> unit
+  val get_timeout: unit -> int
   val set_timeout: int -> unit
+  val kill: unit -> unit
+  val info: unit -> unit
   val atp_thread: (unit -> 'a option) -> ('a -> string) -> Thread.thread
   val add_prover: string -> (int -> Proof.state -> Thread.thread) -> theory -> theory
   val print_provers: theory -> unit
   val sledgehammer: string list -> Proof.state -> unit
 end;
 
-structure AtpManager : ATP_MANAGER =
+structure AtpManager: ATP_MANAGER =
 struct
+
+(** preferences **)
+
+local
+
+val atps = ref "e";
+val max_atps = ref 5;   (* ~1 means infinite number of atps *)
+val timeout = ref 60;
+
+in
+
+fun get_atps () = CRITICAL (fn () => ! atps);
+fun set_atps str = CRITICAL (fn () => atps := str);
+
+fun get_max_atps () = CRITICAL (fn () => ! max_atps);
+fun set_max_atps number = CRITICAL (fn () => max_atps := number);
+
+fun get_timeout () = CRITICAL (fn () => ! timeout);
+fun set_timeout time = CRITICAL (fn () => timeout := time);
+
+val _ =
+  ProofGeneralPgip.add_preference "Proof"
+    (Preferences.string_pref atps
+      "ATP: provers" "Default automatic provers (separated by whitespace)")
+    handle ERROR _ => warning "Preference already exists";
+
+val _ = ProofGeneralPgip.add_preference "Proof"
+    (Preferences.int_pref max_atps
+      "ATP: maximum number" "How many provers may run in parallel")
+    handle ERROR _ => warning "Preference already exists";
+
+val _ = ProofGeneralPgip.add_preference "Proof"
+    (Preferences.int_pref timeout
+      "ATP: timeout" "ATPs will be interrupted after this time (in seconds)")
+    handle ERROR _ => warning "Preference already exists";
+
+end;
+
+
+
+(** thread management **)
 
 (* data structures over threads *)
 
@@ -53,7 +97,7 @@ fun make_state timeout_heap oldest_heap active cancelling =
 val state = Synchronized.var "atp_manager" (make_state ThreadHeap.empty ThreadHeap.empty [] []);
 
 
-(* the thread manager thread *)
+(* the managing thread *)
 
 (*watches over running threads and interrupts them if required*)
 val managing_thread = ref (NONE: Thread.thread option);
@@ -83,15 +127,15 @@ fun unregister success message thread = Synchronized.change_result state
 
       (* message for user *)
       val message' = case info of NONE => ""
-        | SOME (_, _, desc) => "Sledgehammer: " ^ desc ^ "\n  " ^ message ^
+        | SOME (_, _, desc) => "Sledgehammer: " ^ desc ^ "\n" ^ message ^
           (if null group_threads then ""
-           else "\nInterrupted " ^ Int.toString (length group_threads - 1) ^ " other group members")
+           else "\nInterrupted " ^ string_of_int (length group_threads - 1) ^ " other group members")
     in (message', make_state timeout_heap oldest_heap active'' cancelling'') end);
 
 
 (* start a watching thread which runs forever -- only one may exist *)
 
-fun check_thread_manager () =
+fun check_thread_manager () = CRITICAL (fn () =>
   if (case ! managing_thread of SOME thread => Thread.isActive thread | NONE => false)
   then () else managing_thread := SOME (SimpleThread.fork false (fn () =>
     let
@@ -125,7 +169,7 @@ fun check_thread_manager () =
         |> List.app (priority o unregister false "Interrupted (reached timeout)");
         (* give threads time to respond to interrupt *)
         OS.Process.sleep min_wait_time)
-    end));
+    end)));
 
 
 (* thread is registered here by sledgehammer *)
@@ -140,85 +184,41 @@ fun register birthtime deadtime (thread, desc) =
     in make_state timeout_heap' oldest_heap' active' cancelling end));
 
 
-(* move all threads to cancelling *)
 
-fun kill_all () = Synchronized.change state
+(** user commands **)
+
+(* kill: move all threads to cancelling *)
+
+fun kill () = Synchronized.change state
   (fn State {timeout_heap, oldest_heap, active, cancelling} =>
     let val formerly_active = map (fn (th, (tb, _, desc)) => (th, (tb, Time.now (), desc))) active
     in make_state timeout_heap oldest_heap [] (formerly_active @ cancelling) end);
 
 
-(* information on running threads *)
+(* info: information on running threads *)
 
 fun info () =
   let
     val State {timeout_heap, oldest_heap, active, cancelling} = Synchronized.value state
     fun running_info (_, (birth_time, dead_time, desc)) = "Running: "
-        ^ ((Int.toString o Time.toSeconds) (Time.- (Time.now (), birth_time)))
+        ^ ((string_of_int o Time.toSeconds) (Time.- (Time.now (), birth_time)))
         ^ " s  --  "
-        ^ ((Int.toString o Time.toSeconds) (Time.- (dead_time, Time.now ())))
+        ^ ((string_of_int o Time.toSeconds) (Time.- (dead_time, Time.now ())))
         ^ " s to live:\n" ^ desc
     fun cancelling_info (_, (_, dead_time, desc)) = "Trying to interrupt thread since "
-        ^ (Int.toString o Time.toSeconds) (Time.- (Time.now (), dead_time))
+        ^ (string_of_int o Time.toSeconds) (Time.- (Time.now (), dead_time))
         ^ " s:\n" ^ desc
     val running = if null active then "No ATPs running."
-      else String.concatWith "\n\n" ("--- RUNNING ATPs ---" ::
+      else space_implode "\n\n" ("--- RUNNING ATPs ---" ::
       (map (fn entry => running_info entry) active))
     val interrupting = if null cancelling then ""
-      else String.concatWith "\n\n" ("--- TRYING TO INTERRUPT FOLLOWING ATPs ---" ::
+      else space_implode "\n\n" ("--- TRYING TO INTERRUPT FOLLOWING ATPs ---" ::
       (map (fn entry => cancelling_info entry) cancelling))
   in writeln (running ^ "\n" ^ interrupting) end;
 
 
-(* thread wrapping an atp-call *)
 
-fun atp_thread call_prover produce_answer =
-  SimpleThread.fork true (fn () =>
-    let
-      val result = call_prover ()
-      val message = case result of NONE => "Failed."
-          | SOME result => "Try this command: " ^ produce_answer result
-    in priority (unregister (is_some result) message (Thread.self ()))
-    end handle Interrupt => ());
-
-
-(* preferences *)
-
-val atps = ref "e spass";
-val maximum_atps = ref 5;   (* ~1 means infinite number of atps*)
-val timeout = ref 60;
-
-fun set_atps str = CRITICAL (fn () => atps := str);
-fun set_max_atp number = CRITICAL (fn () => maximum_atps := number);
-fun set_timeout time = CRITICAL (fn () => timeout := time);
-
-val _ = ProofGeneralPgip.add_preference "Proof"
-    {name = "ATP - Provers (see print_atps)",
-     descr = "Default automatic provers (seperated by whitespace)",
-     default = !atps,
-     pgiptype = PgipTypes.Pgipstring,
-     get = fn () => !atps,
-     set = set_atps}
-    handle ERROR _ => warning "Preference already exists";
-
-val _ = ProofGeneralPgip.add_preference "Proof"
-    {name = "ATP - Maximum number",
-     descr = "How many provers may run in parallel",
-     default = Int.toString (! maximum_atps),
-     pgiptype = PgipTypes.Pgipstring,
-     get = fn () => Int.toString (! maximum_atps),
-     set = fn str => set_max_atp (the_default 1 (Int.fromString str))}
-    handle ERROR _ => warning "Preference already exists";
-
-val _ = ProofGeneralPgip.add_preference "Proof"
-    {name = "ATP - Timeout",
-     descr = "ATPs will be interrupted after this time (in seconds)",
-     default = Int.toString (! timeout),
-     pgiptype = PgipTypes.Pgipstring,
-     get = fn () => Int.toString (! timeout),
-     set = fn str => set_timeout (the_default 60 (Int.fromString str))}
-    handle ERROR _ => warning "Preference already exists";
-
+(** The Sledgehammer **)
 
 (* named provers *)
 
@@ -234,16 +234,30 @@ structure Provers = TheoryDataFun
     handle Symtab.DUP dup => err_dup_prover dup;
 );
 
-fun add_prover name prover_fn =
-  Provers.map (Symtab.update_new (name, (prover_fn, stamp ())))
+fun add_prover name prover_fn thy =
+  Provers.map (Symtab.update_new (name, (prover_fn, stamp ()))) thy
     handle Symtab.DUP dup => err_dup_prover dup;
 
 fun print_provers thy = Pretty.writeln
   (Pretty.strs ("external provers:" :: sort_strings (Symtab.keys (Provers.get thy))));
 
 fun prover_desc state subgoal name =
-   let val (ctxt, (chain_ths, goal)) = Proof.get_goal state
-   in "External prover " ^ quote name ^ " for Subgoal " ^ Int.toString subgoal^ ":\n" ^ Syntax.string_of_term ctxt (List.nth(prems_of goal, subgoal-1)) end
+  let val (ctxt, (_, goal)) = Proof.get_goal state in
+    "external prover " ^ quote name ^ " for subgoal " ^ string_of_int subgoal ^ ":\n" ^
+      Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal subgoal))
+  end;
+
+
+(* thread wrapping an atp-call *)
+
+fun atp_thread call_prover produce_answer =
+  SimpleThread.fork true (fn () =>
+    let
+      val result = call_prover ()
+      val message = case result of NONE => "Failed."
+          | SOME result => "Try this command: " ^ produce_answer result
+    in priority (unregister (is_some result) message (Thread.self ()))
+    end handle Interrupt => ());
 
 fun run_prover state subgoal name =
   (case Symtab.lookup (Provers.get (Proof.theory_of state)) name of
@@ -256,7 +270,7 @@ fun run_prover state subgoal name =
 local
 
 fun excessive_atps active =
-  let val max = ! maximum_atps
+  let val max = get_max_atps ()
   in length active > max andalso max > ~1 end;
 
 fun kill_oldest () =
@@ -267,7 +281,7 @@ fun kill_oldest () =
         else
           let val ((_, oldest_thread), oldest_heap') = ThreadHeap.min_elem oldest_heap
           in (oldest_thread, make_state timeout_heap oldest_heap' active cancelling) end)
-      |> (priority o unregister false "Interrupted (Maximum number of ATPs exceeded).")
+      |> (priority o unregister false "Interrupted (maximum number of ATPs exceeded)")
     handle Unchanged => ()
   end;
 
@@ -285,23 +299,24 @@ end;
 fun sledgehammer names proof_state =
   let
     val proverids =
-      if null names then String.tokens (Symbol.is_ascii_blank o String.str) (! atps)
+      if null names then String.tokens (Symbol.is_ascii_blank o String.str) (get_atps ())
       else names
     val threads_names = map_filter (run_prover proof_state 1) proverids
     val birthtime = Time.now ()
-    val deadtime = Time.+ (Time.now (), Time.fromSeconds (! timeout))
+    val deadtime = Time.+ (Time.now (), Time.fromSeconds (get_timeout ()))
     val _ = List.app (register birthtime deadtime) threads_names
     val _ = kill_excessive ()
-  in () end
+  in () end;
 
 
-(* concrete syntax *)
+
+(** Isar command syntax **)
 
 local structure K = OuterKeyword and P = OuterParse in
 
 val _ =
   OuterSyntax.improper_command "atp_kill" "kill all managed provers" K.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill_all));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill));
 
 val _ =
   OuterSyntax.improper_command "atp_info" "print information about managed provers" K.diag
