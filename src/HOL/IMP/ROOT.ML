@@ -6,4 +6,4 @@
 Caveat: HOLCF/IMP depends on HOL/IMP
 *)
 
-use_thys ["Expr", "Transition", "VC", "Examples", "Compiler0", "Compiler"];
+use_thys ["Expr", "Transition", "VC", "Examples", "Compiler0", "Compiler", "Live"];
