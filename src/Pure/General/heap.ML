@@ -15,8 +15,10 @@ sig
   val is_empty: T -> bool
   val merge: T * T -> T
   val insert: elem -> T -> T
-  val min: T -> elem        (*exception Empty*)
-  val delete_min: T -> T    (*exception Empty*)
+  val min: T -> elem            (*exception Empty*)
+  val delete_min: T -> T        (*exception Empty*)
+  val min_elem: T -> elem * T   (*exception Empty*)
+  val upto: elem -> T -> elem list * T
 end;
 
 functor HeapFun(type elem val ord: elem * elem -> order): HEAP =
@@ -69,5 +71,18 @@ fun min Empty = raise List.Empty
 
 fun delete_min Empty = raise List.Empty
   | delete_min (Heap (_, _, a, b)) = merge (a, b);
+
+fun min_elem h = (min h, delete_min h);
+
+
+(* initial interval *)
+
+nonfix upto;
+
+fun upto _ (h as Empty) = ([], h)
+  | upto limit (h as Heap (_, x, a, b)) =
+      (case ord (x, limit) of
+        GREATER => ([], h)
+      | _ => upto limit (delete_min h) |>> cons x);
 
 end;
