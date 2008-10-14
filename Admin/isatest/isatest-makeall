@@ -108,6 +108,8 @@ fi
 
 # main test loop
 
+log "starting [$@]"
+
 for SETTINGS in $@; do
 
     [ -r $SETTINGS ] || fail "Cannot read $SETTINGS."
