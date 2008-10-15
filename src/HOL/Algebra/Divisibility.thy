@@ -39,16 +39,21 @@ by unfold_locales simp+
 locale comm_monoid_cancel = monoid_cancel + comm_monoid
 
 lemma comm_monoid_cancelI:
-  includes comm_monoid
+  fixes G (structure)
+  assumes "comm_monoid G"
   assumes cancel: 
           "\<And>a b c. \<lbrakk>a \<otimes> c = b \<otimes> c; a \<in> carrier G; b \<in> carrier G; c \<in> carrier G\<rbrakk> \<Longrightarrow> a = b"
   shows "comm_monoid_cancel G"
-apply unfold_locales
- apply (subgoal_tac "a \<otimes> c = b \<otimes> c")
-  apply (iprover intro: cancel)
- apply (simp add: m_comm)
-apply (iprover intro: cancel)
-done
+proof -
+  interpret comm_monoid [G] by fact
+  show "comm_monoid_cancel G"
+    apply unfold_locales
+    apply (subgoal_tac "a \<otimes> c = b \<otimes> c")
+    apply (iprover intro: cancel)
+    apply (simp add: m_comm)
+    apply (iprover intro: cancel)
+    done
+qed
 
 lemma (in comm_monoid_cancel) is_comm_monoid_cancel:
   "comm_monoid_cancel G"
@@ -1321,7 +1326,7 @@ done
 subsubsection {* Factorization in irreducible elements *}
 
 lemma wfactorsI:
-  includes (struct G)
+  fixes G (structure)
   assumes "\<forall>f\<in>set fs. irreducible G f"
     and "foldr (op \<otimes>) fs \<one> \<sim> a"
   shows "wfactors G fs a"
@@ -1330,7 +1335,7 @@ unfolding wfactors_def
 by simp
 
 lemma wfactorsE:
-  includes (struct G)
+  fixes G (structure)
   assumes wf: "wfactors G fs a"
     and e: "\<lbrakk>\<forall>f\<in>set fs. irreducible G f; foldr (op \<otimes>) fs \<one> \<sim> a\<rbrakk> \<Longrightarrow> P"
   shows "P"
@@ -1339,7 +1344,7 @@ unfolding wfactors_def
 by (fast dest: e)
 
 lemma (in monoid) factorsI:
-  includes (struct G)
+  fixes G (structure)
   assumes "\<forall>f\<in>set fs. irreducible G f"
     and "foldr (op \<otimes>) fs \<one> = a"
   shows "factors G fs a"
@@ -1348,7 +1353,7 @@ unfolding factors_def
 by simp
 
 lemma factorsE:
-  includes (struct G)
+  fixes G (structure)
   assumes f: "factors G fs a"
     and e: "\<lbrakk>\<forall>f\<in>set fs. irreducible G f; foldr (op \<otimes>) fs \<one> = a\<rbrakk> \<Longrightarrow> P"
   shows "P"
