@@ -16,8 +16,6 @@ ISABELLE_SESSIONS="\
   HOL-Algebra \
   HOL-Auth \
   HOL-Bali \
-  HOL-Complex \
-  HOL-Complex-ex \
   HOL-Extraction \
   HOL-Hoare \
   HOL-HoareParallel \
