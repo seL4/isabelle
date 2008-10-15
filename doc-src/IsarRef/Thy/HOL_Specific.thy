@@ -775,6 +775,90 @@ text {*
 *}
 
 
+section {* Invoking automated reasoning tools -- The Sledgehammer *}
+
+text {*
+  Isabelle/HOL includes a generic \emph{ATP manager} that allows
+  external automated reasoning tools to crunch a pending goal.
+  Supported provers include E\footnote{\url{http://www.eprover.org}},
+  SPASS\footnote{\url{http://www.spass-prover.org/}}, and Vampire.
+  There is also a wrapper to invoke provers remotely via the
+  SystemOnTPTP\footnote{\url{http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTPTP}}
+  web service.
+
+  The problem passed to external provers consists of the goal together
+  with a smart selection of lemmas from the current theory context.
+  The result of a successful proof search is some source text that
+  usually reconstructs the proof within Isabelle, without requiring
+  external provers again.  The Metis
+  prover\footnote{\url{http://www.gilith.com/software/metis/}} that is
+  integrated into Isabelle/HOL is being used here.
+
+  In this mode of operation, heavy means of automated reasoning are
+  used as a strong relevance filter, while the main proof checking
+  works via explicit inferences going through the Isabelle kernel.
+  Moreover, rechecking Isabelle proof texts with already specified
+  auxiliary facts is much faster than performing fully automated
+  search over and over again.
+
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "sledgehammer"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
+    @{command_def (HOL) "print_atps"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def (HOL) "atp_info"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{command_def (HOL) "atp_kill"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{method_def (HOL) metis} & : & \isarmeth \\
+  \end{matharray}
+
+  \begin{rail}
+  'sledgehammer' (nameref *)
+  ;
+
+  'metis' thmrefs
+  ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [@{command (HOL) sledgehammer}~@{text "prover\<^sub>1 \<dots>
+  prover\<^sub>n"}] invokes the specified automated theorem provers on
+  the first subgoal.  Provers are run in parallel, the first
+  successful result is displayed, and the other attempts are
+  terminated.
+
+  Provers are defined in the theory context, see also @{command (HOL)
+  print_atps}.  If no provers are given as arguments to @{command
+  (HOL) sledgehammer}, the system refers to the default defined as
+  ``ATP provers'' preference by the user interface.
+
+  There are additional preferences for timeout (default: 60 seconds),
+  and the maximum number of independent prover processes (default: 5);
+  excessive provers are automatically terminated.
+
+  \item [@{command (HOL) print_atps}] prints the list of automated
+  theorem provers available to the @{command (HOL) sledgehammer}
+  command.
+
+  \item [@{command (HOL) atp_info}] prints information about presently
+  running provers, including elapsed runtime, and the remaining time
+  until timeout.
+
+  \item [@{command (HOL) atp_kill}] terminates all presently running
+  provers.
+
+  \item [@{method (HOL) metis}~@{text "facts"}] invokes the Metis
+  prover with the given facts.  Metis is an automated proof tool of
+  medium strength, but is fully integrated into Isabelle/HOL, with
+  explicit inferences going through the kernel.  Thus its results are
+  guaranteed to be ``correct by construction''.
+
+  Note that all facts used with Metis need to be specified as explicit
+  arguments.  There are no rule declarations as for other Isabelle
+  provers, like @{method blast} or @{method fast}.
+
+  \end{descr}
+*}
+
+
 section {* Unstructured cases analysis and induction \label{sec:hol-induct-tac} *}
 
 text {*

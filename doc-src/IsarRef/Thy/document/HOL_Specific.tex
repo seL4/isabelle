@@ -782,6 +782,89 @@ Each theory contains a default set of theorems that are used in
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Invoking automated reasoning tools -- The Sledgehammer%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/HOL includes a generic \emph{ATP manager} that allows
+  external automated reasoning tools to crunch a pending goal.
+  Supported provers include E\footnote{\url{http://www.eprover.org}},
+  SPASS\footnote{\url{http://www.spass-prover.org/}}, and Vampire.
+  There is also a wrapper to invoke provers remotely via the
+  SystemOnTPTP\footnote{\url{http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTPTP}}
+  web service.
+
+  The problem passed to external provers consists of the goal together
+  with a smart selection of lemmas from the current theory context.
+  The result of a successful proof search is some source text that
+  usually reconstructs the proof within Isabelle, without requiring
+  external provers again.  The Metis
+  prover\footnote{\url{http://www.gilith.com/software/metis/}} that is
+  integrated into Isabelle/HOL is being used here.
+
+  In this mode of operation, heavy means of automated reasoning are
+  used as a strong relevance filter, while the main proof checking
+  works via explicit inferences going through the Isabelle kernel.
+  Moreover, rechecking Isabelle proof texts with already specified
+  auxiliary facts is much faster than performing fully automated
+  search over and over again.
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{sledgehammer}\hypertarget{command.HOL.sledgehammer}{\hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{proof} \\
+    \indexdef{HOL}{command}{print\_atps}\hypertarget{command.HOL.print-atps}{\hyperlink{command.HOL.print-atps}{\mbox{\isa{\isacommand{print{\isacharunderscore}atps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{theory~|~proof} \\
+    \indexdef{HOL}{command}{atp\_info}\hypertarget{command.HOL.atp-info}{\hyperlink{command.HOL.atp-info}{\mbox{\isa{\isacommand{atp{\isacharunderscore}info}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{HOL}{command}{atp\_kill}\hypertarget{command.HOL.atp-kill}{\hyperlink{command.HOL.atp-kill}{\mbox{\isa{\isacommand{atp{\isacharunderscore}kill}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{HOL}{method}{metis}\hypertarget{method.HOL.metis}{\hyperlink{method.HOL.metis}{\mbox{\isa{metis}}}} & : & \isarmeth \\
+  \end{matharray}
+
+  \begin{rail}
+  'sledgehammer' (nameref *)
+  ;
+
+  'metis' thmrefs
+  ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [\hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}}~\isa{{\isachardoublequote}prover\isactrlsub {\isadigit{1}}\ {\isasymdots}\ prover\isactrlsub n{\isachardoublequote}}] invokes the specified automated theorem provers on
+  the first subgoal.  Provers are run in parallel, the first
+  successful result is displayed, and the other attempts are
+  terminated.
+
+  Provers are defined in the theory context, see also \hyperlink{command.HOL.print-atps}{\mbox{\isa{\isacommand{print{\isacharunderscore}atps}}}}.  If no provers are given as arguments to \hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}}, the system refers to the default defined as
+  ``ATP provers'' preference by the user interface.
+
+  There are additional preferences for timeout (default: 60 seconds),
+  and the maximum number of independent prover processes (default: 5);
+  excessive provers are automatically terminated.
+
+  \item [\hyperlink{command.HOL.print-atps}{\mbox{\isa{\isacommand{print{\isacharunderscore}atps}}}}] prints the list of automated
+  theorem provers available to the \hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}}
+  command.
+
+  \item [\hyperlink{command.HOL.atp-info}{\mbox{\isa{\isacommand{atp{\isacharunderscore}info}}}}] prints information about presently
+  running provers, including elapsed runtime, and the remaining time
+  until timeout.
+
+  \item [\hyperlink{command.HOL.atp-kill}{\mbox{\isa{\isacommand{atp{\isacharunderscore}kill}}}}] terminates all presently running
+  provers.
+
+  \item [\hyperlink{method.HOL.metis}{\mbox{\isa{metis}}}~\isa{{\isachardoublequote}facts{\isachardoublequote}}] invokes the Metis
+  prover with the given facts.  Metis is an automated proof tool of
+  medium strength, but is fully integrated into Isabelle/HOL, with
+  explicit inferences going through the kernel.  Thus its results are
+  guaranteed to be ``correct by construction''.
+
+  Note that all facts used with Metis need to be specified as explicit
+  arguments.  There are no rule declarations as for other Isabelle
+  provers, like \hyperlink{method.blast}{\mbox{\isa{blast}}} or \hyperlink{method.fast}{\mbox{\isa{fast}}}.
+
+  \end{descr}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Unstructured cases analysis and induction \label{sec:hol-induct-tac}%
 }
 \isamarkuptrue%
