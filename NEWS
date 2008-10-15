@@ -100,7 +100,8 @@ syntax just like the Isar command 'by'.
 Posix processes.  Avoids potentially expensive forking of the ML
 process.  New thread-based implementation also works on non-Unix
 platforms (Cygwin).  Provers are no longer hardwired, but defined
-within the theory via plain ML wrapper functions.
+within the theory via plain ML wrapper functions.  Basic Sledgehammer
+commands are covered in the isar-ref manual
 
 * Wrapper scripts for remote SystemOnTPTP service allows to use
 sledgehammer without local ATP installation (Vampire etc.).  See also
