@@ -1344,7 +1344,6 @@ unfolding wfactors_def
 by (fast dest: e)
 
 lemma (in monoid) factorsI:
-  fixes G (structure)
   assumes "\<forall>f\<in>set fs. irreducible G f"
     and "foldr (op \<otimes>) fs \<one> = a"
   shows "factors G fs a"
