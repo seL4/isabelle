@@ -91,15 +91,23 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* Unified theorem tables for both code code generators.  Thus [code func]
-has disappeared and only [code] remains.  INCOMPATIBILITY.
+* Unified theorem tables for both code code generators.  Thus
+[code func] has disappeared and only [code] remains.  INCOMPATIBILITY.
 
-* "undefined" replaces "arbitrary" in most occurences.
+* Constant "undefined" replaces "arbitrary" in most occurences.
 
-* Wrapper script for remote SystemOnTPTP service allows to use
+* Generic ATP manager for Sledgehammer, based on ML threads instead of
+Posix processes.  Avoids forking of the ML process, can be costly for
+long-lived operations due to garbage collection.  New thread
+based-implementation also works smoothly on non-Unix platforms
+(Cygwin).  Provers are no longer hardwired, but defined within the
+theory via plain ML wrapper functions.
+
+* Wrapper scripts for remote SystemOnTPTP service allows to use
 sledgehammer without local ATP installation (Vampire etc.).  See also
 ISABELLE_HOME/contrib/SystemOnTPTP and the VAMPIRE_HOME setting
-variable.
+variable.  Other provers may be included via suitable ML wrappers, see
+also src/HOL/ATP_Linkup.thy.
 
 * Normalization by evaluation now allows non-leftlinear equations.
 Declare with attribute [code nbe].

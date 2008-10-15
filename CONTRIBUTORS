@@ -7,6 +7,11 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* October 2008: Fabian Immler, TUM
+  ATP manager for Sledgehammer, based on ML threads instead of Posix
+  processes.  Additional ATP wrappers, including remote SystemOnTPTP
+  services.
+
 * August 2008: Fabian Immler, TUM
   Vampire wrapper script for remote SystemOnTPTP service.
 
