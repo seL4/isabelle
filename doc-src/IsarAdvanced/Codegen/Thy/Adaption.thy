@@ -2,7 +2,7 @@ theory Adaption
 imports Setup
 begin
 
-setup %invisible {* Code_Target.extend_target ("SML ", ("SML", I)) *}
+setup %invisible {* Code_Target.extend_target ("\<SML>", ("SML", I)) *}
 
 section {* Adaption to target languages \label{sec:adaption} *}
 
@@ -55,13 +55,64 @@ text {*
 subsection {* The adaption principle *}
 
 text {*
-  \begin{tikzpicture}
-    \draw (0, 0) circle (1cm);
-    \draw (0.5, 0) circle (0.5cm);
-    \draw (0, 0.5) circle (0.5cm);
-    \draw (-0.5, 0) circle (0.5cm);
-    \draw (0, -0.5) circle (0.5cm);
-  \end{tikzpicture}
+  The following figure illustrates what \qt{adaption} is conceptually
+  supposed to be:
+
+  \begin{figure}[here]
+    \begin{tikzpicture}[scale = 0.5]
+      \tikzstyle water=[color = blue, thick]
+      \tikzstyle ice=[color = black, very thick, cap = round, join = round, fill = white]
+      \tikzstyle process=[color = green, semithick, ->]
+      \tikzstyle adaption=[color = red, semithick, ->]
+      \tikzstyle target=[color = black]
+      \foreach \x in {0, ..., 24}
+        \draw[style=water] (\x, 0.25) sin + (0.25, 0.25) cos + (0.25, -0.25) sin
+          + (0.25, -0.25) cos + (0.25, 0.25);
+      \draw[style=ice] (1, 0) --
+        (3, 6) node[above, fill=white] {logic} -- (5, 0) -- cycle;
+      \draw[style=ice] (9, 0) --
+        (11, 6) node[above, fill=white] {intermediate language} -- (13, 0) -- cycle;
+      \draw[style=ice] (15, -6) --
+        (19, 6) node[above, fill=white] {target language} -- (23, -6) -- cycle;
+      \draw[style=process]
+        (3.5, 3) .. controls (7, 5) .. node[fill=white] {translation} (10.5, 3);
+      \draw[style=process]
+        (11.5, 3) .. controls (15, 5) .. node[fill=white] (serialisation) {serialisation} (18.5, 3);
+      \node (adaption) at (11, -2) [style=adaption] {adaption};
+      \node at (19, 3) [rotate=90] {generated};
+      \node at (19.5, -5) {language};
+      \node at (19.5, -3) {library};
+      \node (includes) at (19.5, -1) {includes};
+      \node (reserved) at (16.5, -3) [rotate=71.57] {reserved};
+      \draw[style=process]
+        (includes) -- (serialisation);
+      \draw[style=process]
+        (reserved) -- (serialisation);
+      \draw[style=adaption]
+        (adaption) -- (serialisation);
+      \draw[style=adaption]
+        (adaption) -- (includes);
+      \draw[style=adaption]
+        (adaption) -- (reserved);
+    \end{tikzpicture}
+    \caption{The adaption principle}
+    \label{fig:adaption}
+  \end{figure}
+
+  \noindent In the tame view, code generation acts as broker between
+  @{text logic}, @{text "intermediate language"} and
+  @{text "target language"} by means of @{text translation} and
+  @{text serialisation};  for the latter, the serialiser has to observe
+  the structure of the @{text language} itself plus some @{text reserved}
+  keywords which have to be avoided for generated code.
+  However, if you consider @{text adaption} mechanisms, the code generated
+  by the serializer is just the tip of the iceberg:
+
+  \begin{itemize}
+    \item parametrise @{text serialisation}
+    \item @{text library} @{text reserved}
+    \item @{text "includes"} @{text reserved}
+  \end{itemize}
 *}
 
 subsection {* Common adaption cases *}
@@ -180,7 +231,7 @@ text {*
   accidental overwrites, using the @{command "code_reserved"} command:
 *}
 
-code_reserved %quote "SML " bool true false andalso
+code_reserved %quote "\<SML>" bool true false andalso
 
 text {*
   \noindent Next, we try to map HOL pairs to SML pairs, using the
