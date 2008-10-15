@@ -97,11 +97,10 @@ syntax just like the Isar command 'by'.
 * Constant "undefined" replaces "arbitrary" in most occurences.
 
 * Generic ATP manager for Sledgehammer, based on ML threads instead of
-Posix processes.  Avoids forking of the ML process, can be costly for
-long-lived operations due to garbage collection.  New thread
-based-implementation also works smoothly on non-Unix platforms
-(Cygwin).  Provers are no longer hardwired, but defined within the
-theory via plain ML wrapper functions.
+Posix processes.  Avoids potentially expensive forking of the ML
+process.  New thread-based implementation also works on non-Unix
+platforms (Cygwin).  Provers are no longer hardwired, but defined
+within the theory via plain ML wrapper functions.
 
 * Wrapper scripts for remote SystemOnTPTP service allows to use
 sledgehammer without local ATP installation (Vampire etc.).  See also
