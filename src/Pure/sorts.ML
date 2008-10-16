@@ -15,6 +15,7 @@ minimal classes (wrt. current class inclusion).
 
 signature SORTS =
 sig
+  val make: sort list -> sort OrdList.T
   val subset: sort OrdList.T * sort OrdList.T -> bool
   val union: sort OrdList.T -> sort OrdList.T -> sort OrdList.T
   val subtract: sort OrdList.T -> sort OrdList.T -> sort OrdList.T
@@ -38,6 +39,7 @@ sig
   val inter_sort: algebra -> sort * sort -> sort
   val minimize_sort: algebra -> sort -> sort
   val complete_sort: algebra -> sort -> sort
+  val minimal_sorts: algebra -> sort list -> sort OrdList.T
   val certify_class: algebra -> class -> class    (*exception TYPE*)
   val certify_sort: algebra -> sort -> sort       (*exception TYPE*)
   val add_class: Pretty.pp -> class * class list -> algebra -> algebra
@@ -68,6 +70,7 @@ struct
 
 (** ordered lists of sorts **)
 
+val make = OrdList.make Term.sort_ord;
 val op subset = OrdList.subset Term.sort_ord;
 val op union = OrdList.union Term.sort_ord;
 val subtract = OrdList.subtract Term.sort_ord;
@@ -173,6 +176,12 @@ fun minimize_sort _ [] = []
 
 fun complete_sort algebra =
   Graph.all_succs (classes_of algebra) o minimize_sort algebra;
+
+fun minimal_sorts algebra raw_sorts =
+  let
+    fun le S1 S2 = sort_le algebra (S1, S2);
+    val sorts = make (map (minimize_sort algebra) raw_sorts);
+  in sorts |> filter_out (fn S => exists (fn S' => le S' S andalso not (le S S')) sorts) end;
 
 
 (* certify *)
