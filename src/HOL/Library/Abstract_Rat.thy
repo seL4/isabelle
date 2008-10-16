@@ -404,95 +404,125 @@ proof-
   finally show ?thesis by (simp add: Nle_def)
 qed
 
-lemma Nadd_commute: "x +\<^sub>N y = y +\<^sub>N x"
+lemma Nadd_commute:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  shows "x +\<^sub>N y = y +\<^sub>N x"
 proof-
   have n: "isnormNum (x +\<^sub>N y)" "isnormNum (y +\<^sub>N x)" by simp_all
-  have "(INum (x +\<^sub>N y)::'a :: {ring_char_0,division_by_zero,field}) = INum (y +\<^sub>N x)" by simp
+  have "(INum (x +\<^sub>N y)::'a) = INum (y +\<^sub>N x)" by simp
   with isnormNum_unique[OF n] show ?thesis by simp
 qed
 
-lemma[simp]: "(0, b) +\<^sub>N y = normNum y" "(a, 0) +\<^sub>N y = normNum y" 
-  "x +\<^sub>N (0, b) = normNum x" "x +\<^sub>N (a, 0) = normNum x"
-  apply (simp add: Nadd_def split_def, simp add: Nadd_def split_def)
-  apply (subst Nadd_commute,simp add: Nadd_def split_def)
-  apply (subst Nadd_commute,simp add: Nadd_def split_def)
+lemma [simp]:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  shows "(0, b) +\<^sub>N y = normNum y"
+    and "(a, 0) +\<^sub>N y = normNum y" 
+    and "x +\<^sub>N (0, b) = normNum x"
+    and "x +\<^sub>N (a, 0) = normNum x"
+  apply (simp add: Nadd_def split_def)
+  apply (simp add: Nadd_def split_def)
+  apply (subst Nadd_commute, simp add: Nadd_def split_def)
+  apply (subst Nadd_commute, simp add: Nadd_def split_def)
   done
 
-lemma normNum_nilpotent_aux[simp]: assumes nx: "isnormNum x" 
+lemma normNum_nilpotent_aux[simp]:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes nx: "isnormNum x" 
   shows "normNum x = x"
 proof-
   let ?a = "normNum x"
   have n: "isnormNum ?a" by simp
-  have th:"INum ?a = (INum x ::'a :: {ring_char_0, division_by_zero,field})" by simp
+  have th:"INum ?a = (INum x ::'a)" by simp
   with isnormNum_unique[OF n nx]  
   show ?thesis by simp
 qed
 
-lemma normNum_nilpotent[simp]: "normNum (normNum x) = normNum x"
+lemma normNum_nilpotent[simp]:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  shows "normNum (normNum x) = normNum x"
   by simp
+
 lemma normNum0[simp]: "normNum (0,b) = 0\<^sub>N" "normNum (a,0) = 0\<^sub>N"
   by (simp_all add: normNum_def)
-lemma normNum_Nadd: "normNum (x +\<^sub>N y) = x +\<^sub>N y" by simp
-lemma Nadd_normNum1[simp]: "normNum x +\<^sub>N y = x +\<^sub>N y"
+
+lemma normNum_Nadd:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  shows "normNum (x +\<^sub>N y) = x +\<^sub>N y" by simp
+
+lemma Nadd_normNum1[simp]:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  shows "normNum x +\<^sub>N y = x +\<^sub>N y"
 proof-
   have n: "isnormNum (normNum x +\<^sub>N y)" "isnormNum (x +\<^sub>N y)" by simp_all
-  have "INum (normNum x +\<^sub>N y) = INum x + (INum y :: 'a :: {ring_char_0, division_by_zero,field})" by simp
-  also have "\<dots> = INum (x +\<^sub>N y)" by simp
-  finally show ?thesis using isnormNum_unique[OF n] by simp
-qed
-lemma Nadd_normNum2[simp]: "x +\<^sub>N normNum y = x +\<^sub>N y"
-proof-
-  have n: "isnormNum (x +\<^sub>N normNum y)" "isnormNum (x +\<^sub>N y)" by simp_all
-  have "INum (x +\<^sub>N normNum y) = INum x + (INum y :: 'a :: {ring_char_0, division_by_zero,field})" by simp
+  have "INum (normNum x +\<^sub>N y) = INum x + (INum y :: 'a)" by simp
   also have "\<dots> = INum (x +\<^sub>N y)" by simp
   finally show ?thesis using isnormNum_unique[OF n] by simp
 qed
 
-lemma Nadd_assoc: "x +\<^sub>N y +\<^sub>N z = x +\<^sub>N (y +\<^sub>N z)"
+lemma Nadd_normNum2[simp]:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  shows "x +\<^sub>N normNum y = x +\<^sub>N y"
+proof-
+  have n: "isnormNum (x +\<^sub>N normNum y)" "isnormNum (x +\<^sub>N y)" by simp_all
+  have "INum (x +\<^sub>N normNum y) = INum x + (INum y :: 'a)" by simp
+  also have "\<dots> = INum (x +\<^sub>N y)" by simp
+  finally show ?thesis using isnormNum_unique[OF n] by simp
+qed
+
+lemma Nadd_assoc:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  shows "x +\<^sub>N y +\<^sub>N z = x +\<^sub>N (y +\<^sub>N z)"
 proof-
   have n: "isnormNum (x +\<^sub>N y +\<^sub>N z)" "isnormNum (x +\<^sub>N (y +\<^sub>N z))" by simp_all
-  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a :: {ring_char_0, division_by_zero,field})" by simp
+  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a)" by simp
   with isnormNum_unique[OF n] show ?thesis by simp
 qed
 
 lemma Nmul_commute: "isnormNum x \<Longrightarrow> isnormNum y \<Longrightarrow> x *\<^sub>N y = y *\<^sub>N x"
   by (simp add: Nmul_def split_def Let_def zgcd_commute mult_commute)
 
-lemma Nmul_assoc: assumes nx: "isnormNum x" and ny:"isnormNum y" and nz:"isnormNum z"
+lemma Nmul_assoc:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes nx: "isnormNum x" and ny:"isnormNum y" and nz:"isnormNum z"
   shows "x *\<^sub>N y *\<^sub>N z = x *\<^sub>N (y *\<^sub>N z)"
 proof-
   from nx ny nz have n: "isnormNum (x *\<^sub>N y *\<^sub>N z)" "isnormNum (x *\<^sub>N (y *\<^sub>N z))" 
     by simp_all
-  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a :: {ring_char_0, division_by_zero,field})" by simp
+  have "INum (x +\<^sub>N y +\<^sub>N z) = (INum (x +\<^sub>N (y +\<^sub>N z)) :: 'a)" by simp
   with isnormNum_unique[OF n] show ?thesis by simp
 qed
 
-lemma Nsub0: assumes x: "isnormNum x" and y:"isnormNum y" shows "(x -\<^sub>N y = 0\<^sub>N) = (x = y)"
+lemma Nsub0:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes x: "isnormNum x" and y:"isnormNum y" shows "(x -\<^sub>N y = 0\<^sub>N) = (x = y)"
 proof-
-  {fix h :: "'a :: {ring_char_0,division_by_zero,ordered_field}"
-    from isnormNum_unique[where ?'a = 'a, OF Nsub_normN[OF y], where y="0\<^sub>N"] 
+  { fix h :: 'a
+    from isnormNum_unique[where 'a = 'a, OF Nsub_normN[OF y], where y="0\<^sub>N"] 
     have "(x -\<^sub>N y = 0\<^sub>N) = (INum (x -\<^sub>N y) = (INum 0\<^sub>N :: 'a)) " by simp
-    also have "\<dots> = (INum x = (INum y:: 'a))" by simp
+    also have "\<dots> = (INum x = (INum y :: 'a))" by simp
     also have "\<dots> = (x = y)" using x y by simp
-    finally show ?thesis .}
+    finally show ?thesis . }
 qed
 
 lemma Nmul0[simp]: "c *\<^sub>N 0\<^sub>N = 0\<^sub>N" " 0\<^sub>N *\<^sub>N c = 0\<^sub>N"
   by (simp_all add: Nmul_def Let_def split_def)
 
-lemma Nmul_eq0[simp]: assumes nx:"isnormNum x" and ny: "isnormNum y"
+lemma Nmul_eq0[simp]:
+  assumes "SORT_CONSTRAINT('a::{ring_char_0,division_by_zero,field})"
+  assumes nx:"isnormNum x" and ny: "isnormNum y"
   shows "(x*\<^sub>N y = 0\<^sub>N) = (x = 0\<^sub>N \<or> y = 0\<^sub>N)"
 proof-
-  {fix h :: "'a :: {ring_char_0,division_by_zero,ordered_field}"
-  have " \<exists> a b a' b'. x = (a,b) \<and> y= (a',b')" by auto
-  then obtain a b a' b' where xy[simp]: "x = (a,b)" "y = (a',b')" by blast
-  have n0: "isnormNum 0\<^sub>N" by simp
-  show ?thesis using nx ny 
-    apply (simp only: isnormNum_unique[where ?'a = 'a, OF  Nmul_normN[OF nx ny] n0, symmetric] Nmul[where ?'a = 'a])
-    apply (simp add: INum_def split_def isnormNum_def fst_conv snd_conv)
-    apply (cases "a=0",simp_all)
-    apply (cases "a'=0",simp_all)
-    done }
+  { fix h :: 'a
+    have " \<exists> a b a' b'. x = (a,b) \<and> y= (a',b')" by auto
+    then obtain a b a' b' where xy[simp]: "x = (a,b)" "y = (a',b')" by blast
+    have n0: "isnormNum 0\<^sub>N" by simp
+    show ?thesis using nx ny 
+      apply (simp only: isnormNum_unique[where ?'a = 'a, OF  Nmul_normN[OF nx ny] n0, symmetric] Nmul[where ?'a = 'a])
+      apply (simp add: INum_def split_def isnormNum_def fst_conv snd_conv)
+      apply (cases "a=0",simp_all)
+      apply (cases "a'=0",simp_all)
+      done
+  }
 qed
 lemma Nneg_Nneg[simp]: "~\<^sub>N (~\<^sub>N c) = c"
   by (simp add: Nneg_def split_def)
@@ -501,6 +531,7 @@ lemma Nmul1[simp]:
   "isnormNum c \<Longrightarrow> 1\<^sub>N *\<^sub>N c = c" 
   "isnormNum c \<Longrightarrow> c *\<^sub>N 1\<^sub>N  = c" 
   apply (simp_all add: Nmul_def Let_def split_def isnormNum_def)
-  by (cases "fst c = 0", simp_all,cases c, simp_all)+
+  apply (cases "fst c = 0", simp_all, cases c, simp_all)+
+  done
 
 end
