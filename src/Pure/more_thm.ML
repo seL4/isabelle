@@ -27,6 +27,7 @@ sig
   val eq_thm_thy: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
   val equiv_thm: thm * thm -> bool
+  val check_shyps: sort list -> thm -> thm
   val is_dummy: thm -> bool
   val plain_prop_of: thm -> term
   val fold_terms: (term -> 'a -> 'a) -> thm -> 'a -> 'a
@@ -158,6 +159,20 @@ val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
 
 fun equiv_thm ths =
   Pattern.equiv (Theory.merge (pairself Thm.theory_of_thm ths)) (pairself Thm.full_prop_of ths);
+
+
+(* sort hypotheses *)
+
+fun check_shyps sorts raw_th =
+  let
+    val th = Thm.strip_shyps raw_th;
+    val prt_sort = Syntax.pretty_sort_global (Thm.theory_of_thm th);
+    val pending = Sorts.subtract sorts (Thm.extra_shyps th);
+  in
+    if null pending then th
+    else error (Pretty.string_of (Pretty.block (Pretty.str "Pending sort hypotheses:" ::
+      Pretty.brk 1 :: Pretty.commas (map prt_sort pending))))
+  end;
 
 
 (* misc operations *)
