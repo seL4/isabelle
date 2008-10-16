@@ -14,6 +14,7 @@ sig
   val fixes_of: Proof.context -> (string * string) list
   val binds_of: Proof.context -> (typ * term) Vartab.table
   val maxidx_of: Proof.context -> int
+  val sorts_of: Proof.context -> sort list
   val constraints_of: Proof.context -> typ Vartab.table * sort Vartab.table
   val is_declared: Proof.context -> string -> bool
   val is_fixed: Proof.context -> string -> bool
@@ -77,60 +78,66 @@ datatype data = Data of
   binds: (typ * term) Vartab.table,     (*term bindings*)
   type_occs: string list Symtab.table,  (*type variables -- possibly within term variables*)
   maxidx: int,                          (*maximum var index*)
+  sorts: sort OrdList.T,                (*declared sort occurrences*)
   constraints:
     typ Vartab.table *                  (*type constraints*)
     sort Vartab.table};                 (*default sorts*)
 
-fun make_data (is_body, names, consts, fixes, binds, type_occs, maxidx, constraints) =
+fun make_data (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =
   Data {is_body = is_body, names = names, consts = consts, fixes = fixes, binds = binds,
-    type_occs = type_occs, maxidx = maxidx, constraints = constraints};
+    type_occs = type_occs, maxidx = maxidx, sorts = sorts, constraints = constraints};
 
 structure Data = ProofDataFun
 (
   type T = data;
   fun init thy =
     make_data (false, Name.context, Symtab.empty, [], Vartab.empty, Symtab.empty,
-      ~1, (Vartab.empty, Vartab.empty));
+      ~1, [], (Vartab.empty, Vartab.empty));
 );
 
 fun map_data f =
-  Data.map (fn Data {is_body, names, consts, fixes, binds, type_occs, maxidx, constraints} =>
-    make_data (f (is_body, names, consts, fixes, binds, type_occs, maxidx, constraints)));
+  Data.map (fn Data {is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints} =>
+    make_data (f (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints)));
 
 fun map_names f =
-  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, constraints) =>
-    (is_body, f names, consts, fixes, binds, type_occs, maxidx, constraints));
+  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
+    (is_body, f names, consts, fixes, binds, type_occs, maxidx, sorts, constraints));
 
 fun map_consts f =
-  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, constraints) =>
-    (is_body, names, f consts, fixes, binds, type_occs, maxidx, constraints));
+  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
+    (is_body, names, f consts, fixes, binds, type_occs, maxidx, sorts, constraints));
 
 fun map_fixes f =
-  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, constraints) =>
-    (is_body, names, consts, f fixes, binds, type_occs, maxidx, constraints));
+  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
+    (is_body, names, consts, f fixes, binds, type_occs, maxidx, sorts, constraints));
 
 fun map_binds f =
-  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, constraints) =>
-    (is_body, names, consts, fixes, f binds, type_occs, maxidx, constraints));
+  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
+    (is_body, names, consts, fixes, f binds, type_occs, maxidx, sorts, constraints));
 
 fun map_type_occs f =
-  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, constraints) =>
-    (is_body, names, consts, fixes, binds, f type_occs, maxidx, constraints));
+  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
+    (is_body, names, consts, fixes, binds, f type_occs, maxidx, sorts, constraints));
 
 fun map_maxidx f =
-  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, constraints) =>
-    (is_body, names, consts, fixes, binds, type_occs, f maxidx, constraints));
+  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
+    (is_body, names, consts, fixes, binds, type_occs, f maxidx, sorts, constraints));
+
+fun map_sorts f =
+  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
+    (is_body, names, consts, fixes, binds, type_occs, maxidx, f sorts, constraints));
 
 fun map_constraints f =
-  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, constraints) =>
-    (is_body, names, consts, fixes, binds, type_occs, maxidx, f constraints));
+  map_data (fn (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
+    (is_body, names, consts, fixes, binds, type_occs, maxidx, sorts, f constraints));
 
 fun rep_data ctxt = Data.get ctxt |> (fn Data args => args);
 
 val is_body = #is_body o rep_data;
 
-fun set_body b = map_data (fn (_, names, consts, fixes, binds, type_occs, maxidx, constraints) =>
-  (b, names, consts, fixes, binds, type_occs, maxidx, constraints));
+fun set_body b =
+  map_data (fn (_, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints) =>
+    (b, names, consts, fixes, binds, type_occs, maxidx, sorts, constraints));
 
 fun restore_body ctxt = set_body (is_body ctxt);
 
@@ -139,6 +146,7 @@ val fixes_of = #fixes o rep_data;
 val binds_of = #binds o rep_data;
 val type_occs_of = #type_occs o rep_data;
 val maxidx_of = #maxidx o rep_data;
+val sorts_of = #sorts o rep_data;
 val constraints_of = #constraints o rep_data;
 
 val is_declared = Name.is_declared o names_of;
@@ -216,7 +224,8 @@ fun declare_constraints t = map_constraints (fn (types, sorts) =>
 
 fun declare_internal t =
   declare_names t #>
-  declare_type_occs t;
+  declare_type_occs t #>
+  map_sorts (Sorts.insert_term t);
 
 fun declare_term t =
   declare_internal t #>
