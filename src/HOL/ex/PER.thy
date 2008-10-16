@@ -223,7 +223,7 @@ proof (rule eqv_class_eqD')
 qed
 
 lemma eqv_class_eq' [simp]: "a \<in> domain ==> (\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
-  using eqv_class_eqI eqv_class_eqD' by blast
+  using eqv_class_eqI eqv_class_eqD' by (blast del: eqv_refl)
 
 lemma eqv_class_eq [simp]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> (b::'a::equiv))"
   using eqv_class_eqI eqv_class_eqD by blast
