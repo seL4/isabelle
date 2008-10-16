@@ -78,12 +78,14 @@ text {*
 *}
 
 lemma deflation_less_comp1:
-  includes deflation f
-  includes deflation g
+  assumes "deflation f"
+  assumes "deflation g"
   shows "f \<sqsubseteq> g \<Longrightarrow> f\<cdot>(g\<cdot>x) = f\<cdot>x"
 proof (rule antisym_less)
+  interpret g: deflation [g] by fact
   from g.less show "f\<cdot>(g\<cdot>x) \<sqsubseteq> f\<cdot>x" by (rule monofun_cfun_arg)
 next
+  interpret f: deflation [f] by fact
   assume "f \<sqsubseteq> g" hence "f\<cdot>x \<sqsubseteq> g\<cdot>x" by (rule monofun_cfun_fun)
   hence "f\<cdot>(f\<cdot>x) \<sqsubseteq> f\<cdot>(g\<cdot>x)" by (rule monofun_cfun_arg)
   also have "f\<cdot>(f\<cdot>x) = f\<cdot>x" by (rule f.idem)
@@ -215,9 +217,10 @@ lemma deflation_e_p: "deflation (e oo p)"
 by (simp add: deflation.intro e_p_less)
 
 lemma deflation_e_d_p:
-  includes deflation d
+  assumes "deflation d"
   shows "deflation (e oo d oo p)"
 proof
+  interpret deflation [d] by fact
   fix x :: 'b
   show "(e oo d oo p)\<cdot>((e oo d oo p)\<cdot>x) = (e oo d oo p)\<cdot>x"
     by (simp add: idem)
@@ -226,9 +229,10 @@ proof
 qed
 
 lemma finite_deflation_e_d_p:
-  includes finite_deflation d
+  assumes "finite_deflation d"
   shows "finite_deflation (e oo d oo p)"
 proof
+  interpret finite_deflation [d] by fact
   fix x :: 'b
   show "(e oo d oo p)\<cdot>((e oo d oo p)\<cdot>x) = (e oo d oo p)\<cdot>x"
     by (simp add: idem)
@@ -243,39 +247,47 @@ proof
 qed
 
 lemma deflation_p_d_e:
-  includes deflation d
+  assumes "deflation d"
   assumes d: "\<And>x. d\<cdot>x \<sqsubseteq> e\<cdot>(p\<cdot>x)"
   shows "deflation (p oo d oo e)"
- apply (default, simp_all)
-  apply (rule antisym_less)
-   apply (rule monofun_cfun_arg)
-   apply (rule trans_less [OF d])
-   apply (simp add: e_p_less)
-  apply (rule monofun_cfun_arg)
-  apply (rule rev_trans_less)
-  apply (rule monofun_cfun_arg)
-  apply (rule d)
-  apply (simp add: d.idem)
- apply (rule sq_ord_less_eq_trans)
-  apply (rule monofun_cfun_arg)
-  apply (rule d.less)
- apply (rule e_inverse)
-done
+proof -
+  interpret d: deflation [d] by fact
+  show ?thesis
+   apply (default, simp_all)
+    apply (rule antisym_less)
+     apply (rule monofun_cfun_arg)
+     apply (rule trans_less [OF d])
+     apply (simp add: e_p_less)
+    apply (rule monofun_cfun_arg)
+    apply (rule rev_trans_less)
+    apply (rule monofun_cfun_arg)
+    apply (rule d)
+    apply (simp add: d.idem)
+   apply (rule sq_ord_less_eq_trans)
+    apply (rule monofun_cfun_arg)
+    apply (rule d.less)
+   apply (rule e_inverse)
+  done
+qed
 
 lemma finite_deflation_p_d_e:
-  includes finite_deflation d
+  assumes "finite_deflation d"
   assumes d: "\<And>x. d\<cdot>x \<sqsubseteq> e\<cdot>(p\<cdot>x)"
   shows "finite_deflation (p oo d oo e)"
- apply (rule finite_deflation.intro)
-  apply (rule deflation_p_d_e)
-   apply (rule `deflation d`)
-  apply (rule d)
- apply (rule finite_deflation_axioms.intro)
- apply (rule finite_range_imp_finite_fixes)
- apply (simp add: range_composition [where f="\<lambda>x. p\<cdot>x"])
- apply (simp add: range_composition [where f="\<lambda>x. d\<cdot>x"])
- apply (simp add: d.finite_image)
-done
+proof -
+  interpret d: finite_deflation [d] by fact
+  show ?thesis
+   apply (rule finite_deflation.intro)
+    apply (rule deflation_p_d_e)
+     apply (rule `finite_deflation d` [THEN finite_deflation.axioms(1)])
+    apply (rule d)
+   apply (rule finite_deflation_axioms.intro)
+   apply (rule finite_range_imp_finite_fixes)
+   apply (simp add: range_composition [where f="\<lambda>x. p\<cdot>x"])
+   apply (simp add: range_composition [where f="\<lambda>x. d\<cdot>x"])
+   apply (simp add: d.finite_image)
+  done
+qed
 
 end
 

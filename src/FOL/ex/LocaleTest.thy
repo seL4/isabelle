@@ -682,13 +682,6 @@ lemma (in Rsemi_rev) r_assoc:
   "(x ++ y) ++ z = x ++ (y ++ z)"
   by (simp add: r_def assoc)
 
-lemma (in Rpair_semi)
-  includes Rsemi_rev prodP (infixl "***" 65) rprodP (infixl "+++" 65)
-  constrains prod :: "['a, 'a] => 'a"
-    and rprodP :: "[('a, 'a) pair, ('a, 'a) pair] => ('a, 'a) pair"
-  shows "(x +++ y) +++ z = x +++ (y +++ z)"
-  apply (rule r_assoc) done
-
 
 subsection {* Import of Locales with Predicates as Interpretation *}
 

@@ -201,10 +201,12 @@ only work, when the context is already built. Hopefully this will be
 implemented correctly in future Isabelle versions. *}
 
 lemma 
- includes foo
- shows True
+  assumes "foo f a b c p1 i1 p2 i2 p3 i3 p4 i4"
+  shows True
+proof
+  interpret foo [f a b c p1 i1 p2 i2 p3 i3 p4 i4] by fact
   term "s<a := i>\<cdot>a = i"
-  by simp
+qed
 
 (*
 lemma 

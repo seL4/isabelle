@@ -157,10 +157,11 @@ qed
 end
 
 lemma pre_deflation_d_f:
-  includes finite_deflation d
+  assumes "finite_deflation d"
   assumes f: "\<And>x. f\<cdot>x \<sqsubseteq> x"
   shows "pre_deflation (d oo f)"
 proof
+  interpret d: finite_deflation [d] by fact
   fix x
   show "\<And>x. (d oo f)\<cdot>x \<sqsubseteq> x"
     by (simp, rule trans_less [OF d.less f])
@@ -169,10 +170,11 @@ proof
 qed
 
 lemma eventual_iterate_oo_fixed_iff:
-  includes finite_deflation d
+  assumes "finite_deflation d"
   assumes f: "\<And>x. f\<cdot>x \<sqsubseteq> x"
   shows "eventual (\<lambda>n. iterate n\<cdot>(d oo f))\<cdot>x = x \<longleftrightarrow> d\<cdot>x = x \<and> f\<cdot>x = x"
 proof -
+  interpret d: finite_deflation [d] by fact
   let ?e = "d oo f"
   interpret e: pre_deflation ["d oo f"]
     using `finite_deflation d` f
@@ -480,10 +482,11 @@ a bifinite domain into a universal domain, then e oo p
 is an algebraic deflation. *}
 
 lemma
-  includes ep_pair e p
+  assumes "ep_pair e p"
   constrains e :: "'a::profinite \<rightarrow> 'b::profinite"
   shows "\<exists>d. cast\<cdot>d = e oo p"
 proof
+  interpret ep_pair [e p] by fact
   let ?a = "\<lambda>i. e oo approx i oo p"
   have a: "\<And>i. finite_deflation (?a i)"
     apply (rule finite_deflation_e_d_p)
@@ -507,13 +510,14 @@ from a cpo into a bifinite domain, and e oo p is
 an algebraic deflation, then the cpo is bifinite. *}
 
 lemma
-  includes ep_pair e p
+  assumes "ep_pair e p"
   constrains e :: "'a::cpo \<rightarrow> 'b::profinite"
   assumes d: "\<And>x. cast\<cdot>d\<cdot>x = e\<cdot>(p\<cdot>x)"
   obtains a :: "nat \<Rightarrow> 'a \<rightarrow> 'a" where
     "\<And>i. finite_deflation (a i)"
     "(\<Squnion>i. a i) = ID"
 proof
+  interpret ep_pair [e p] by fact
   let ?a = "\<lambda>i. p oo cast\<cdot>(approx i\<cdot>d) oo e"
   show "\<And>i. finite_deflation (?a i)"
     apply (rule finite_deflation_p_d_e)
