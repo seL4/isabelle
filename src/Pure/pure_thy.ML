@@ -309,7 +309,8 @@ val _ = Context.>> (Context.map_theory
     ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),
     ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
     ("==>",         typ "prop => prop => prop",        Delimfix "op ==>"),
-    (Term.dummy_patternN, typ "aprop",                 Delimfix "'_")]
+    (Term.dummy_patternN, typ "aprop",                 Delimfix "'_"),
+    ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))")]
   #> Sign.add_syntax_i applC_syntax
   #> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
    [("fun",      typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
@@ -349,13 +350,18 @@ val _ = Context.>> (Context.map_theory
   #> Sign.local_path
   #> Sign.add_consts_i
    [("term", typ "'a => prop", NoSyn),
+    ("sort_constraint", typ "'a itself => prop", NoSyn),
     ("conjunction", typ "prop => prop => prop", NoSyn)]
   #> (add_defs false o map Thm.no_attributes)
    [("prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
     ("term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
+    ("sort_constraint_def",
+      prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST TYPE :: 'a itself) ==\
+      \ (CONST Pure.term :: 'a itself => prop) (CONST TYPE :: 'a itself)"),
     ("conjunction_def", prop "(A && B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
-  #> Sign.hide_const false "Pure.conjunction"
   #> Sign.hide_const false "Pure.term"
+  #> Sign.hide_const false "Pure.sort_constraint"
+  #> Sign.hide_const false "Pure.conjunction"
   #> add_thmss [(("nothing", []), [])] #> snd
   #> Theory.add_axioms_i Proofterm.equality_axms));
 
