@@ -52,7 +52,7 @@ hypotheses.  Sorts required in the course of reasoning need to be
 covered by the constraints in the initial statement, completed by the
 type instance information of the background theory.  Non-trivial sort
 hypotheses, which rarely occur in practice, may be specified via
-vacuous propositions of the form SORT_CONSTRAIN('a::c).  For example:
+vacuous propositions of the form SORT_CONSTRAINT('a::c).  For example:
 
   lemma assumes "SORT_CONSTRAINT('a::empty)" shows False ...
 
