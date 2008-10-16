@@ -57,8 +57,8 @@ vacuous propositions of the form SORT_CONSTRAIN('a::c).  For example:
   lemma assumes "SORT_CONSTRAINT('a::empty)" shows False ...
 
 The result contains an implicit sort hypotheses as before --
-SORT_CONSTRAINT premises are is eliminated as part of the canonical
-rule normalization.
+SORT_CONSTRAINT premises are eliminated as part of the canonical rule
+normalization.
 
 * Changed defaults for unify configuration options:
 
