@@ -252,22 +252,35 @@ lemma deflation_p_d_e:
   shows "deflation (p oo d oo e)"
 proof -
   interpret d: deflation [d] by fact
+  {
+    fix x
+    have "d\<cdot>(e\<cdot>x) \<sqsubseteq> e\<cdot>x"
+      by (rule d.less)
+    hence "p\<cdot>(d\<cdot>(e\<cdot>x)) \<sqsubseteq> p\<cdot>(e\<cdot>x)"
+      by (rule monofun_cfun_arg)
+    hence "(p oo d oo e)\<cdot>x \<sqsubseteq> x"
+      by simp
+  }
+  note p_d_e_less = this
   show ?thesis
-   apply (default, simp_all)
-    apply (rule antisym_less)
-     apply (rule monofun_cfun_arg)
-     apply (rule trans_less [OF d])
-     apply (simp add: e_p_less)
-    apply (rule monofun_cfun_arg)
-    apply (rule rev_trans_less)
-    apply (rule monofun_cfun_arg)
-    apply (rule d)
-    apply (simp add: d.idem)
-   apply (rule sq_ord_less_eq_trans)
-    apply (rule monofun_cfun_arg)
-    apply (rule d.less)
-   apply (rule e_inverse)
-  done
+  proof
+    fix x
+    show "(p oo d oo e)\<cdot>x \<sqsubseteq> x"
+      by (rule p_d_e_less)
+  next
+    fix x
+    show "(p oo d oo e)\<cdot>((p oo d oo e)\<cdot>x) = (p oo d oo e)\<cdot>x"
+    proof (rule antisym_less)
+      show "(p oo d oo e)\<cdot>((p oo d oo e)\<cdot>x) \<sqsubseteq> (p oo d oo e)\<cdot>x"
+        by (rule p_d_e_less)
+      have "p\<cdot>(d\<cdot>(d\<cdot>(d\<cdot>(e\<cdot>x)))) \<sqsubseteq> p\<cdot>(d\<cdot>(e\<cdot>(p\<cdot>(d\<cdot>(e\<cdot>x)))))"
+        by (intro monofun_cfun_arg d)
+      hence "p\<cdot>(d\<cdot>(e\<cdot>x)) \<sqsubseteq> p\<cdot>(d\<cdot>(e\<cdot>(p\<cdot>(d\<cdot>(e\<cdot>x)))))"
+        by (simp only: d.idem)
+      thus "(p oo d oo e)\<cdot>x \<sqsubseteq> (p oo d oo e)\<cdot>((p oo d oo e)\<cdot>x)"
+        by simp
+    qed
+  qed
 qed
 
 lemma finite_deflation_p_d_e:
@@ -277,47 +290,64 @@ lemma finite_deflation_p_d_e:
 proof -
   interpret d: finite_deflation [d] by fact
   show ?thesis
-   apply (rule finite_deflation.intro)
-    apply (rule deflation_p_d_e)
-     apply (rule `finite_deflation d` [THEN finite_deflation.axioms(1)])
-    apply (rule d)
-   apply (rule finite_deflation_axioms.intro)
-   apply (rule finite_range_imp_finite_fixes)
-   apply (simp add: range_composition [where f="\<lambda>x. p\<cdot>x"])
-   apply (simp add: range_composition [where f="\<lambda>x. d\<cdot>x"])
-   apply (simp add: d.finite_image)
-  done
+  proof (intro_locales)
+    have "deflation d" ..
+    thus "deflation (p oo d oo e)"
+      using d by (rule deflation_p_d_e)
+  next
+    show "finite_deflation_axioms (p oo d oo e)"
+    proof
+      have "finite ((\<lambda>x. d\<cdot>x) ` range (\<lambda>x. e\<cdot>x))"
+        by (rule d.finite_image)
+      hence "finite ((\<lambda>x. p\<cdot>x) ` (\<lambda>x. d\<cdot>x) ` range (\<lambda>x. e\<cdot>x))"
+        by (rule finite_imageI)
+      hence "finite (range (\<lambda>x. (p oo d oo e)\<cdot>x))"
+        by (simp add: image_image)
+      thus "finite {x. (p oo d oo e)\<cdot>x = x}"
+        by (rule finite_range_imp_finite_fixes)
+    qed
+  qed
 qed
 
 end
 
 subsection {* Uniqueness of ep-pairs *}
 
+lemma ep_pair_unique_e_lemma:
+  assumes "ep_pair e1 p" and "ep_pair e2 p"
+  shows "e1 \<sqsubseteq> e2"
+proof (rule less_cfun_ext)
+  interpret e1: ep_pair [e1 p] by fact
+  interpret e2: ep_pair [e2 p] by fact
+  fix x
+  have "e1\<cdot>(p\<cdot>(e2\<cdot>x)) \<sqsubseteq> e2\<cdot>x"
+    by (rule e1.e_p_less)
+  thus "e1\<cdot>x \<sqsubseteq> e2\<cdot>x"
+    by (simp only: e2.e_inverse)
+qed
+
 lemma ep_pair_unique_e:
   "\<lbrakk>ep_pair e1 p; ep_pair e2 p\<rbrakk> \<Longrightarrow> e1 = e2"
- apply (rule ext_cfun)
- apply (rule antisym_less)
-  apply (subgoal_tac "e1\<cdot>(p\<cdot>(e2\<cdot>x)) \<sqsubseteq> e2\<cdot>x")
-   apply (simp add: ep_pair.e_inverse)
-  apply (erule ep_pair.e_p_less)
- apply (subgoal_tac "e2\<cdot>(p\<cdot>(e1\<cdot>x)) \<sqsubseteq> e1\<cdot>x")
-  apply (simp add: ep_pair.e_inverse)
- apply (erule ep_pair.e_p_less)
-done
+by (fast intro: antisym_less elim: ep_pair_unique_e_lemma)
+
+lemma ep_pair_unique_p_lemma:
+  assumes "ep_pair e p1" and "ep_pair e p2"
+  shows "p1 \<sqsubseteq> p2"
+proof (rule less_cfun_ext)
+  interpret p1: ep_pair [e p1] by fact
+  interpret p2: ep_pair [e p2] by fact
+  fix x
+  have "e\<cdot>(p1\<cdot>x) \<sqsubseteq> x"
+    by (rule p1.e_p_less)
+  hence "p2\<cdot>(e\<cdot>(p1\<cdot>x)) \<sqsubseteq> p2\<cdot>x"
+    by (rule monofun_cfun_arg)
+  thus "p1\<cdot>x \<sqsubseteq> p2\<cdot>x"
+    by (simp only: p2.e_inverse)
+qed
 
 lemma ep_pair_unique_p:
   "\<lbrakk>ep_pair e p1; ep_pair e p2\<rbrakk> \<Longrightarrow> p1 = p2"
- apply (rule ext_cfun)
- apply (rule antisym_less)
-  apply (subgoal_tac "p2\<cdot>(e\<cdot>(p1\<cdot>x)) \<sqsubseteq> p2\<cdot>x")
-   apply (simp add: ep_pair.e_inverse)
-  apply (rule monofun_cfun_arg)
-  apply (erule ep_pair.e_p_less)
- apply (subgoal_tac "p1\<cdot>(e\<cdot>(p2\<cdot>x)) \<sqsubseteq> p1\<cdot>x")
-  apply (simp add: ep_pair.e_inverse)
- apply (rule monofun_cfun_arg)
- apply (erule ep_pair.e_p_less)
-done
+by (fast intro: antisym_less elim: ep_pair_unique_p_lemma)
 
 subsection {* Composing ep-pairs *}
 
@@ -325,15 +355,23 @@ lemma ep_pair_ID_ID: "ep_pair ID ID"
 by default simp_all
 
 lemma ep_pair_comp:
-  "\<lbrakk>ep_pair e1 p1; ep_pair e2 p2\<rbrakk>
-    \<Longrightarrow> ep_pair (e2 oo e1) (p1 oo p2)"
- apply (rule ep_pair.intro)
-  apply (simp add: ep_pair.e_inverse)
- apply (simp, rule trans_less)
-  apply (rule monofun_cfun_arg)
-  apply (erule ep_pair.e_p_less)
- apply (erule ep_pair.e_p_less)
-done
+  assumes "ep_pair e1 p1" and "ep_pair e2 p2"
+  shows "ep_pair (e2 oo e1) (p1 oo p2)"
+proof
+  interpret ep1: ep_pair [e1 p1] by fact
+  interpret ep2: ep_pair [e2 p2] by fact
+  fix x y
+  show "(p1 oo p2)\<cdot>((e2 oo e1)\<cdot>x) = x"
+    by simp
+  have "e1\<cdot>(p1\<cdot>(p2\<cdot>y)) \<sqsubseteq> p2\<cdot>y"
+    by (rule ep1.e_p_less)
+  hence "e2\<cdot>(e1\<cdot>(p1\<cdot>(p2\<cdot>y))) \<sqsubseteq> e2\<cdot>(p2\<cdot>y)"
+    by (rule monofun_cfun_arg)
+  also have "e2\<cdot>(p2\<cdot>y) \<sqsubseteq> y"
+    by (rule ep2.e_p_less)
+  finally show "(e2 oo e1)\<cdot>((p1 oo p2)\<cdot>y) \<sqsubseteq> y"
+    by simp
+qed
 
 locale pcpo_ep_pair = ep_pair +
   constrains e :: "'a::pcpo \<rightarrow> 'b::pcpo"
