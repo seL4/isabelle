@@ -1344,7 +1344,7 @@ fun gen_norm_hhf ss th =
   |> Thm.adjust_maxidx_thm ~1
   |> Drule.gen_all;
 
-val hhf_ss = empty_ss addsimps [Drule.norm_hhf_eq];
+val hhf_ss = empty_ss addsimps Drule.norm_hhf_eqs;
 
 in
 
