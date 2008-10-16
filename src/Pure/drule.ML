@@ -92,6 +92,7 @@ sig
   val eta_long_conversion: cterm -> thm
   val eta_contraction_rule: thm -> thm
   val norm_hhf_eq: thm
+  val norm_hhf_eqs: thm list
   val is_norm_hhf: term -> bool
   val norm_hhf: theory -> term -> term
   val norm_hhf_cterm: cterm -> cterm
@@ -106,6 +107,8 @@ sig
   val cterm_rule: (thm -> thm) -> cterm -> cterm
   val term_rule: theory -> (thm -> thm) -> term -> term
   val dummy_thm: thm
+  val sort_constraintI: thm
+  val sort_constraint_eq: thm
   val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
@@ -667,15 +670,91 @@ val equal_elim_rule1 =
 val equal_elim_rule2 =
   store_standard_thm_open "equal_elim_rule2" (symmetric_thm RS equal_elim_rule1);
 
-(* "[| PROP ?phi; PROP ?phi; PROP ?psi |] ==> PROP ?psi" *)
+(* PROP ?phi ==> PROP ?phi ==> PROP ?psi ==> PROP ?psi *)
 val remdups_rl =
   let val P = read_prop "phi" and Q = read_prop "psi";
   in store_standard_thm_open "remdups_rl" (implies_intr_list [P, P, Q] (Thm.assume Q)) end;
 
 
-(*(PROP ?phi ==> (!!x. PROP ?psi(x))) == (!!x. PROP ?phi ==> PROP ?psi(x))
-  Rewrite rule for HHF normalization.*)
 
+(** embedded terms and types **)
+
+local
+  val A = certify (Free ("A", propT));
+  val get_axiom = Thm.unvarify o Thm.get_axiom (Context.the_theory (Context.the_thread_data ()));
+  val prop_def = get_axiom "prop_def";
+  val term_def = get_axiom "term_def";
+  val sort_constraint_def = get_axiom "sort_constraint_def";
+  val C = Thm.lhs_of sort_constraint_def;
+  val T = Thm.dest_arg C;
+  val CA = mk_implies (C, A);
+in
+
+(* protect *)
+
+val protect = Thm.capply (certify Logic.protectC);
+
+val protectI = store_thm "protectI" (Thm.kind_rule Thm.internalK (standard
+    (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
+
+val protectD = store_thm "protectD" (Thm.kind_rule Thm.internalK (standard
+    (Thm.equal_elim prop_def (Thm.assume (protect A)))));
+
+val protect_cong = store_standard_thm_open "protect_cong" (Thm.reflexive (protect A));
+
+fun implies_intr_protected asms th =
+  let val asms' = map protect asms in
+    implies_elim_list
+      (implies_intr_list asms th)
+      (map (fn asm' => Thm.assume asm' RS protectD) asms')
+    |> implies_intr_list asms'
+  end;
+
+
+(* term *)
+
+val termI = store_thm "termI" (Thm.kind_rule Thm.internalK (standard
+    (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)))));
+
+fun mk_term ct =
+  let
+    val thy = Thm.theory_of_cterm ct;
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
+    val T = Thm.typ_of (Thm.ctyp_of_term ct);
+    val a = certT (TVar (("'a", 0), []));
+    val x = cert (Var (("x", 0), T));
+  in Thm.instantiate ([(a, certT T)], [(x, ct)]) termI end;
+
+fun dest_term th =
+  let val cprop = strip_imp_concl (Thm.cprop_of th) in
+    if can Logic.dest_term (Thm.term_of cprop) then
+      Thm.dest_arg cprop
+    else raise THM ("dest_term", 0, [th])
+  end;
+
+fun cterm_rule f = dest_term o f o mk_term;
+fun term_rule thy f t = Thm.term_of (cterm_rule f (Thm.cterm_of thy t));
+
+val dummy_thm = mk_term (certify (Term.dummy_pattern propT));
+
+
+(* sort_constraint *)
+
+val sort_constraintI = store_thm "sort_constraintI" (Thm.kind_rule Thm.internalK (standard
+  (Thm.equal_elim (Thm.symmetric sort_constraint_def) (mk_term T))));
+
+val sort_constraint_eq = store_thm "sort_constraint_eq" (Thm.kind_rule Thm.internalK (standard
+  (Thm.equal_intr
+    (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA) (Thm.unvarify sort_constraintI)))
+    (implies_intr_list [A, C] (Thm.assume A)))));
+
+end;
+
+
+(* HHF normalization *)
+
+(* (PROP ?phi ==> (!!x. PROP ?psi(x))) == (!!x. PROP ?phi ==> PROP ?psi(x)) *)
 val norm_hhf_eq =
   let
     val aT = TFree ("'a", []);
@@ -704,10 +783,12 @@ val norm_hhf_eq =
   end;
 
 val norm_hhf_prop = Logic.dest_equals (Thm.prop_of norm_hhf_eq);
+val norm_hhf_eqs = [norm_hhf_eq, sort_constraint_eq];
 
 fun is_norm_hhf tm =
   let
-    fun is_norm (Const ("==>", _) $ _ $ (Const ("all", _) $ _)) = false
+    fun is_norm (Const ("Pure.sort_constraint", _)) = false
+      | is_norm (Const ("==>", _) $ _ $ (Const ("all", _) $ _)) = false
       | is_norm (t $ u) = is_norm t andalso is_norm u
       | is_norm (Abs (_, _, t)) = is_norm t
       | is_norm _ = true;
@@ -780,56 +861,6 @@ fun cterm_instantiate [] th = th
            raise THM("cterm_instantiate: incompatible theories",0,[th])
        | TYPE (msg, _, _) => raise THM(msg, 0, [th])
 end;
-
-
-(** protected propositions and embedded terms **)
-
-local
-  val A = certify (Free ("A", propT));
-  val get_axiom = Thm.unvarify o Thm.get_axiom (Context.the_theory (Context.the_thread_data ()));
-  val prop_def = get_axiom "prop_def";
-  val term_def = get_axiom "term_def";
-in
-  val protect = Thm.capply (certify Logic.protectC);
-  val protectI = store_thm "protectI" (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim (Thm.symmetric prop_def) (Thm.assume A))));
-  val protectD = store_thm "protectD" (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim prop_def (Thm.assume (protect A)))));
-  val protect_cong = store_standard_thm_open "protect_cong" (Thm.reflexive (protect A));
-
-  val termI = store_thm "termI" (Thm.kind_rule Thm.internalK (standard
-      (Thm.equal_elim (Thm.symmetric term_def) (Thm.forall_intr A (Thm.trivial A)))));
-end;
-
-fun implies_intr_protected asms th =
-  let val asms' = map protect asms in
-    implies_elim_list
-      (implies_intr_list asms th)
-      (map (fn asm' => Thm.assume asm' RS protectD) asms')
-    |> implies_intr_list asms'
-  end;
-
-fun mk_term ct =
-  let
-    val thy = Thm.theory_of_cterm ct;
-    val cert = Thm.cterm_of thy;
-    val certT = Thm.ctyp_of thy;
-    val T = Thm.typ_of (Thm.ctyp_of_term ct);
-    val a = certT (TVar (("'a", 0), []));
-    val x = cert (Var (("x", 0), T));
-  in Thm.instantiate ([(a, certT T)], [(x, ct)]) termI end;
-
-fun dest_term th =
-  let val cprop = strip_imp_concl (Thm.cprop_of th) in
-    if can Logic.dest_term (Thm.term_of cprop) then
-      Thm.dest_arg cprop
-    else raise THM ("dest_term", 0, [th])
-  end;
-
-fun cterm_rule f = dest_term o f o mk_term;
-fun term_rule thy f t = Thm.term_of (cterm_rule f (Thm.cterm_of thy t));
-
-val dummy_thm = mk_term (certify (Term.dummy_pattern propT));
 
 
 
