@@ -47,6 +47,19 @@ interface instead.
 
 *** Pure ***
 
+* Goal-directed proof now enforces strict proof irrelevance wrt. sort
+hypotheses.  Sorts required in the course of reasoning need to be
+covered by the constraints in the initial statement, completed by the
+type instance information of the background theory.  Non-trivial sort
+hypotheses, which rarely occur in practice, may be specified via
+vacuous propositions of the form SORT_CONSTRAIN('a::c).  For example:
+
+  lemma assumes "SORT_CONSTRAINT('a::empty)" shows False ...
+
+The result contains an implicit sort hypotheses as before --
+SORT_CONSTRAINT premises are is eliminated as part of the canonical
+rule normalization.
+
 * Changed defaults for unify configuration options:
 
   unify_trace_bound = 50 (formerly 25)
