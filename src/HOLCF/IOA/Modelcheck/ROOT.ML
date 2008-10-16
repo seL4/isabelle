@@ -5,7 +5,7 @@
 Modelchecker setup for I/O automata.
 *)
 
-with_path "../../../HOL/Modelcheck" time_use_thy "MuIOAOracle";
+time_use_thy "MuIOAOracle";
 
 (*check if user has mucke installed*)
 fun mucke_enabled () = getenv "MUCKE_HOME" <> "";

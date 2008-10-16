@@ -2,7 +2,7 @@
 (* $Id$ *)
 
 theory MuIOA
-imports IOA MuckeSyn
+imports IOA "../../../HOL/Modelcheck/MuckeSyn"
 begin
 
 consts
