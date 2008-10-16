@@ -356,7 +356,7 @@ fun merge_thys pp (thy1, thy2) =
   in thy' end;
 
 fun maximal_thys thys =
-  thys |> filter (fn thy => not (exists (fn thy' => proper_subthy (thy, thy')) thys));
+  thys |> filter_out (fn thy => exists (fn thy' => proper_subthy (thy, thy')) thys);
 
 fun begin_thy pp name imports =
   if name = draftN then error ("Illegal theory name: " ^ quote draftN)
