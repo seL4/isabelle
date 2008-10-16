@@ -9,6 +9,7 @@ finite sets, all operations take linear time and economize heap usage.
 signature ORD_LIST =
 sig
   type 'a T = 'a list
+  val make: ('a * 'a -> order) -> 'a list -> 'a T
   val member: ('b * 'a -> order) -> 'a T -> 'b -> bool
   val insert: ('a * 'a -> order) -> 'a -> 'a T -> 'a T
   val remove: ('b * 'a -> order) -> 'b -> 'a T -> 'a T
@@ -22,6 +23,7 @@ structure OrdList: ORD_LIST =
 struct
 
 type 'a T = 'a list;
+fun make ord = sort_distinct ord;
 
 
 (* single elements *)
