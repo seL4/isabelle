@@ -467,10 +467,9 @@ fun refine_goals print_rule inner raw_rules state =
 
 (* conclude_goal *)
 
-fun conclude_goal state goal propss =
+fun conclude_goal ctxt goal propss =
   let
-    val thy = theory_of state;
-    val ctxt = context_of state;
+    val thy = ProofContext.theory_of ctxt;
     val string_of_term = Syntax.string_of_term ctxt;
     val string_of_thm = ProofContext.string_of_thm ctxt;
 
@@ -495,6 +494,7 @@ fun conclude_goal state goal propss =
       handle THM _ => lost_structure ();
     val _ = Unify.matches_list thy (flat goal_propss) (map Thm.prop_of (flat results)) orelse
       error ("Proved a different theorem:\n" ^ string_of_thm th);
+    val _ = Thm.check_shyps (Variable.sorts_of ctxt) th;
 
     fun recover_result ([] :: pss) thss = [] :: recover_result pss thss
       | recover_result (_ :: pss) (ths :: thss) = ths :: recover_result pss thss
@@ -807,7 +807,8 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
 
     val propss' = map (Logic.mk_term o Var) vars :: propss;
     val goal_propss = filter_out null propss';
-    val goal = cert (Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss));
+    val goal = cert (Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss))
+      |> Thm.weaken_sorts (Variable.sorts_of (context_of goal_state));
     val statement = ((kind, pos), propss', goal);
     val after_qed' = after_qed |>> (fn after_local =>
       fn results => map_context after_ctxt #> after_local results);
@@ -836,7 +837,7 @@ fun generic_qed state =
       flat (tl stmt)
       |> Variable.exportT_terms goal_ctxt outer_ctxt;
     val results =
-      tl (conclude_goal state goal stmt)
+      tl (conclude_goal goal_ctxt goal stmt)
       |> burrow (ProofContext.export goal_ctxt outer_ctxt);
 
     val (after_local, after_global) = after_qed;
