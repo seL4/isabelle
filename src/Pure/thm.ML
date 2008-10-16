@@ -68,6 +68,7 @@ signature BASIC_THM =
   val cprem_of: thm -> int -> cterm
   val transfer: theory -> thm -> thm
   val weaken: cterm -> thm -> thm
+  val weaken_sorts: sort list -> cterm -> cterm
   val extra_shyps: thm -> sort list
   val strip_shyps: thm -> thm
   val get_axiom_i: theory -> string -> thm
@@ -349,7 +350,7 @@ datatype thm = Thm of
   hyps: term OrdList.T,                         (*hypotheses*)
   tpairs: (term * term) list,                   (*flex-flex pairs*)
   prop: term}                                   (*conclusion*)
-and deriv = Deriv of                     
+and deriv = Deriv of
  {oracle: bool,                                 (*oracle occurrence flag*)
   proof: Pt.proof,                              (*proof term*)
   promises: (serial * thm Future.T) OrdList.T}; (*promised derivations*)
@@ -469,6 +470,14 @@ fun weaken raw_ct th =
         prop = prop})
   end;
 
+fun weaken_sorts raw_sorts ct =
+  let
+    val Cterm {thy_ref, t, T, maxidx, sorts} = ct;
+    val thy = Theory.deref thy_ref;
+    val more_sorts = Sorts.make (map (Sign.certify_sort thy) raw_sorts);
+    val sorts' = Sorts.union sorts more_sorts;
+  in Cterm {thy_ref = Theory.check_thy thy, t = t, T = T, maxidx = maxidx, sorts = sorts'} end;
+
 
 
 (** sort contexts of theorems **)
@@ -484,7 +493,10 @@ fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
         val thy = Theory.deref thy_ref;
         val present = present_sorts thm;
         val extra = Sorts.subtract present shyps;
-        val shyps' = Sorts.subtract (map #2 (Sign.witness_sorts thy present extra)) shyps;
+        val extra' =
+          Sorts.subtract (map #2 (Sign.witness_sorts thy present extra)) extra
+          |> Sorts.minimal_sorts (Sign.classes_of thy);
+        val shyps' = Sorts.union present extra';
       in
         Thm (der, {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
@@ -1644,7 +1656,7 @@ fun future_result i orig_thy orig_shyps orig_prop raw_thm =
 
 fun future make_result ct =
   let
-    val {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = rep_cterm ct;
+    val Cterm {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = ct;
     val thy = Context.reject_draft (Theory.deref thy_ref);
     val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
 
@@ -1683,7 +1695,7 @@ val proof_of = join_deriv #> (fn Thm (Deriv {proof, ...}, _) => proof);
 (* oracle rule *)
 
 fun invoke_oracle thy_ref1 name oracle arg =
-  let val {thy_ref = thy_ref2, t = prop, T, maxidx, sorts} = rep_cterm (oracle arg) in
+  let val Cterm {thy_ref = thy_ref2, t = prop, T, maxidx, sorts} = oracle arg in
     if T <> propT then
       raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
     else
