@@ -163,15 +163,17 @@ fun prove_common immediate ctxt xs asms props tac =
       |> fold Variable.declare_term (asms @ props)
       |> Assumption.add_assumes casms
       ||> Variable.set_body true;
+    val sorts = Variable.sorts_of ctxt';
 
-    val stmt = Conjunction.mk_conjunction_balanced cprops;
+    val stmt = Thm.weaken_sorts sorts (Conjunction.mk_conjunction_balanced cprops);
 
     fun result () =
       (case SINGLE (tac {prems = prems, context = ctxt'}) (init stmt) of
         NONE => err "Tactic failed."
       | SOME st =>
           let val res = finish st handle THM (msg, _, _) => err msg in
-            if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res] then res
+            if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res]
+            then Thm.check_shyps sorts res
             else err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res))
           end);
     val res =
@@ -250,7 +252,7 @@ val norm_hhf_tac =
   rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
   THEN' SUBGOAL (fn (t, i) =>
     if Drule.is_norm_hhf t then all_tac
-    else MetaSimplifier.rewrite_goal_tac [Drule.norm_hhf_eq] i);
+    else MetaSimplifier.rewrite_goal_tac Drule.norm_hhf_eqs i);
 
 fun compose_hhf_tac th i st =
   PRIMSEQ (Thm.bicompose false (false, Drule.lift_all (Thm.cprem_of st i) th, 0) i) st;
