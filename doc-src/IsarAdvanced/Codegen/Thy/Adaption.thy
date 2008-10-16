@@ -83,7 +83,7 @@ text {*
       \node at (19.5, -5) {language};
       \node at (19.5, -3) {library};
       \node (includes) at (19.5, -1) {includes};
-      \node (reserved) at (16.5, -3) [rotate=71.57] {reserved};
+      \node (reserved) at (16.5, -3) [rotate=71] {reserved}; % proper 71.57
       \draw[style=process]
         (includes) -- (serialisation);
       \draw[style=process]
