@@ -31,7 +31,6 @@ use_thys [
   "Fundefs",
   "Induction_Scheme",
   "InductiveInvariant_examples",
-  "Locales",
   "LocaleTest2",
   "Records",
   "MonoidGroup",
