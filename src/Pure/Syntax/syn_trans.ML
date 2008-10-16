@@ -125,15 +125,22 @@ fun mk_binder_tr (syn, name) =
   in (syn, binder_tr) end;
 
 
+(* type propositions *)
+
+fun mk_type ty = Lexicon.const "_constrain" $ Lexicon.const "TYPE" $ (Lexicon.const "itself" $ ty);
+
+fun ofclass_tr (*"_ofclass"*) [ty, cls] = cls $ mk_type ty
+  | ofclass_tr (*"_ofclass"*) ts = raise TERM ("ofclass_tr", ts);
+
+fun sort_constraint_tr (*"_sort_constraint"*) [ty] =
+      Lexicon.const "Pure.sort_constraint" $ mk_type ty
+  | sort_constraint_tr (*"_sort_constraint"*) ts = raise TERM ("sort_constraint_tr", ts);
+
+
 (* meta propositions *)
 
 fun aprop_tr (*"_aprop"*) [t] = Lexicon.const "_constrain" $ t $ Lexicon.const "prop"
   | aprop_tr (*"_aprop"*) ts = raise TERM ("aprop_tr", ts);
-
-fun ofclass_tr (*"_ofclass"*) [ty, cls] =
-      cls $ (Lexicon.const "_constrain" $ Lexicon.const "TYPE" $
-        (Lexicon.const "itself" $ ty))
-  | ofclass_tr (*"_ofclass"*) ts = raise TERM ("ofclass_tr", ts);
 
 
 (* meta implication *)
@@ -155,8 +162,7 @@ fun conjunction_tr [t, u] = Lexicon.const "Pure.conjunction" $ t $ u
 
 (* type/term reflection *)
 
-fun type_tr (*"_TYPE"*) [ty] =
-      Lexicon.const "_constrain" $ Lexicon.const "TYPE" $ (Lexicon.const "itself" $ ty)
+fun type_tr (*"_TYPE"*) [ty] = mk_type ty
   | type_tr (*"_TYPE"*) ts = raise TERM ("type_tr", ts);
 
 fun term_tr [t] = Lexicon.const "Pure.term" $ t
@@ -327,9 +333,18 @@ fun mk_binder_tr' (name, syn) =
 
 fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant c, x, ty], xs] =
       if c = "_constrain" then
-        Ast.Appl [ Ast.Constant a,  Ast.Appl [Ast.Constant "_idtyp", x, ty], xs]
+        Ast.Appl [Ast.Constant a, Ast.Appl [Ast.Constant "_idtyp", x, ty], xs]
       else raise Match
   | idtyp_ast_tr' _ _ = raise Match;
+
+
+(* type propositions *)
+
+fun type_prop_tr' _ (*"_type_prop"*) T [Const ("Pure.sort_constraint", _)] =
+      Lexicon.const "_sort_constraint" $ TypeExt.term_of_typ true T
+  | type_prop_tr' show_sorts (*"_type_prop"*) T [t] =
+      Lexicon.const "_ofclass" $ TypeExt.term_of_typ show_sorts T $ t
+  | type_prop_tr' _ (*"_type_prop"*) T ts = raise TYPE ("type_prop_tr'", [T], ts);
 
 
 (* meta propositions *)
@@ -355,16 +370,12 @@ fun prop_tr' tm =
           if is_prop Ts t then aprop t else t
       | tr' Ts (Abs (x, T, t)) = Abs (x, T, tr' (T :: Ts) t)
       | tr' Ts (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [T])))) =
-          if is_prop Ts t andalso not (is_term t) then Const ("_mk_ofclass", T) $ tr' Ts t1
+          if is_prop Ts t andalso not (is_term t) then Const ("_type_prop", T) $ tr' Ts t1
           else tr' Ts t1 $ tr' Ts t2
       | tr' Ts (t as t1 $ t2) =
           (if is_Const (Term.head_of t) orelse not (is_prop Ts t)
             then I else aprop) (tr' Ts t1 $ tr' Ts t2);
   in tr' [] tm end;
-
-fun mk_ofclass_tr' show_sorts (*"_mk_ofclass"*) T [t] =
-      Lexicon.const "_ofclass" $ TypeExt.term_of_typ show_sorts T $ t
-  | mk_ofclass_tr' _ (*"_mk_ofclass"*) T ts = raise TYPE ("mk_ofclass_tr'", [T], ts);
 
 
 (* meta implication *)
@@ -462,16 +473,16 @@ val pure_trfuns =
    ("_bigimpl", bigimpl_ast_tr), ("_indexdefault", indexdefault_ast_tr),
    ("_indexnum", indexnum_ast_tr), ("_indexvar", indexvar_ast_tr), ("_struct", struct_ast_tr)],
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
-   ("\\<^fixed>meta_conjunction", conjunction_tr), ("_TYPE", type_tr),
-   ("\\<^fixed>meta_term", term_tr), ("_DDDOT", dddot_tr), ("_index", index_tr)],
+   ("_sort_constraint", sort_constraint_tr), ("\\<^fixed>meta_conjunction", conjunction_tr),
+   ("_TYPE", type_tr), ("\\<^fixed>meta_term", term_tr), ("_DDDOT", dddot_tr),
+   ("_index", index_tr)],
   ([]: (string * (term list -> term)) list),
   [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
    ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr'),
    ("_index", index_ast_tr')]);
 
 val pure_trfunsT =
-  [("_mk_ofclass", mk_ofclass_tr'), ("TYPE", type_tr'),
-   ("_type_constraint_", type_constraint_tr')];
+  [("_type_prop", type_prop_tr'), ("TYPE", type_tr'), ("_type_constraint_", type_constraint_tr')];
 
 fun struct_trfuns structs =
   ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);
