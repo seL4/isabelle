@@ -25,7 +25,7 @@ fun inst_real thm =
 
 local
 
-val cert =  cterm_of (the_context ())
+val cert =  cterm_of @{theory}
 
 in
 
@@ -72,7 +72,7 @@ local
       "ComputeHOL.compute_bool" "ComputeHOL.compute_pair"
       "SparseMatrix.sorted_sp_simps" "ComputeNumeral.number_norm"
       "ComputeNumeral.natnorm"};
-    val computer = PCompute.make Compute.SML (the_context ()) ths []
+    val computer = PCompute.make Compute.SML @{theory} ths []
 in
 
 fun matrix_compute c = hd (PCompute.rewrite computer [c])
@@ -90,7 +90,7 @@ fun matrix_simplify th =
 
 fun prove_bound lptfile prec =
     let
-        val th = lp_dual_estimate_llprt lptfile prec
+        val th = lp_dual_estimate_prt lptfile prec
     in
         matrix_simplify th
     end

@@ -5,7 +5,8 @@
 
 theory Cplex 
 imports SparseMatrix LP "~~/src/HOL/Real/Float" "~~/src/HOL/Tools/ComputeNumeral"
-uses "Cplex_tools.ML" "CplexMatrixConverter.ML" "FloatSparseMatrixBuilder.ML" "fspmlp.ML" ("matrixlp.ML")
+uses "Cplex_tools.ML" "CplexMatrixConverter.ML" "FloatSparseMatrixBuilder.ML"
+  "fspmlp.ML" ("matrixlp.ML")
 begin
 
 lemma spm_mult_le_dual_prts: 
@@ -32,7 +33,7 @@ lemma spm_mult_le_dual_prts:
   add_spmat (mult_spmat (pprt_spmat s2) (pprt_spmat r2), add_spmat (mult_spmat (pprt_spmat s1) (nprt_spmat r2), 
   add_spmat (mult_spmat (nprt_spmat s2) (pprt_spmat r1), mult_spmat (nprt_spmat s1) (nprt_spmat r1)))))))"
   apply (simp add: Let_def)
-  apply (insert prems)
+  apply (insert assms)
   apply (simp add: sparse_row_matrix_op_simps ring_simps)  
   apply (rule mult_le_dual_prts[where A=A, simplified Let_def ring_simps])
   apply (auto)
@@ -59,7 +60,7 @@ lemma spm_mult_le_dual_prts_no_let:
   shows
   "c * x \<le> sparse_row_matrix (add_spmat (mult_spmat y b,
   mult_est_spmat r1 r2 (diff_spmat c1 (mult_spmat y A2)) (diff_spmat c2 (mult_spmat y A1))))"
-  by (simp add: prems mult_est_spmat_def spm_mult_le_dual_prts[where A=A, simplified Let_def])
+  by (simp add: assms mult_est_spmat_def spm_mult_le_dual_prts[where A=A, simplified Let_def])
 
 use "matrixlp.ML"
 

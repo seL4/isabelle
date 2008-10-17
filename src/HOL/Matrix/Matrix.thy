@@ -1293,7 +1293,7 @@ definition
   le_matrix_def: "A \<le> B \<longleftrightarrow> (\<forall>j i. Rep_matrix A j i \<le> Rep_matrix B j i)"
 
 definition
-  less_def: "A < (B\<Colon>'a matrix) \<longleftrightarrow> A \<le> B \<and> A \<noteq> B"
+  less_def: "A < (B\<Colon>'a matrix) \<longleftrightarrow> A \<le> B \<and> \<not> B \<le> A"
 
 instance ..
 
@@ -1310,7 +1310,8 @@ apply (simp add: Rep_matrix_inject[THEN sym])
 apply (rule ext)+
 apply (drule_tac x=xa in spec, drule_tac x=xa in spec)
 apply (drule_tac x=xb in spec, drule_tac x=xb in spec)
-by simp
+apply simp
+done
 
 lemma le_apply_matrix:
   assumes

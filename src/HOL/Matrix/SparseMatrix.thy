@@ -4,7 +4,7 @@
 *)
 
 theory SparseMatrix
-imports "./Matrix"
+imports Matrix
 begin
 
 types 
