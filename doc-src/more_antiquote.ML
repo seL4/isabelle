@@ -29,13 +29,22 @@ val verbatim_lines = rev
 
 local
 
-fun pr_class ctxt = enclose "\\isa{" "}" o Pretty.output o Pretty.str
-  o Sign.extern_class (ProofContext.theory_of ctxt) o Sign.read_class (ProofContext.theory_of ctxt);
+val pr_text = enclose "\\isa{" "}" o Pretty.output o Pretty.str;
+
+fun pr_class ctxt = Sign.read_class (ProofContext.theory_of ctxt)
+  #> Sign.extern_class (ProofContext.theory_of ctxt)
+  #> pr_text;
+
+fun pr_type ctxt = Sign.intern_type (ProofContext.theory_of ctxt)
+  #> tap (Sign.arity_number (ProofContext.theory_of ctxt))
+  #> Sign.extern_type (ProofContext.theory_of ctxt)
+  #> pr_text;
 
 in
 
 val _ = O.add_commands
-  [("class", ThyOutput.args (Scan.lift Args.name) (K pr_class))]
+  [("class", ThyOutput.args (Scan.lift Args.name) (K pr_class)),
+    ("type", ThyOutput.args (Scan.lift Args.name) (K pr_type))]
 
 end;
 
