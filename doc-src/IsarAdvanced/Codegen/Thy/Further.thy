@@ -18,7 +18,7 @@ text {*
   When invoking the @{command export_code} command it is possible to leave
   out the @{keyword "module_name"} part;  then code is distributed over
   different modules, where the module name space roughly is induced
-  by the @{text Isabelle} theory namespace.
+  by the @{text Isabelle} theory name space.
 
   Then sometimes the awkward situation occurs that dependencies between
   definitions introduce cyclic dependencies between modules, which in the

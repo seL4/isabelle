@@ -109,13 +109,30 @@ text {*
   by the serializer is just the tip of the iceberg:
 
   \begin{itemize}
-    \item parametrise @{text serialisation}
-    \item @{text library} @{text reserved}
-    \item @{text "includes"} @{text reserved}
+    \item @{text serialisation} can be \emph{parametrised} such that
+      logical entities are mapped to target-specific ones
+      (e.g. target-specific list syntax,
+        see also \secref{sec:adaption_mechanisms})
+    \item Such parametrisations can involve references to a
+      target-specific standard @{text library} (e.g. using
+      the @{text Haskell} @{verbatim Maybe} type instead
+      of the @{text HOL} @{type "option"} type);
+      if such are used, the corresponding identifiers
+      (in our example, @{verbatim Maybe}, @{verbatim Nothing}
+      and @{verbatim Just}) also have to be considered @{text reserved}.
+    \item Even more, the user can enrich the library of the
+      target-language by providing code snippets
+      (\qt{@{text "includes"}}) which are prepended to
+      any generated code (see \secref{sec:include});  this typically
+      also involves further @{text reserved} identifiers.
   \end{itemize}
+
+  \noindent As figure \ref{fig:adaption} illustrates, all these adaption mechanisms
+  have to act consistently;  it is at the discretion of the user
+  to take care for this.
 *}
 
-subsection {* Common adaption cases *}
+subsection {* Common adaption patterns *}
 
 text {*
   The @{theory HOL} @{theory Main} theory already provides a code
@@ -160,7 +177,7 @@ text {*
 *}
 
 
-subsection {* Adaption mechanisms \label{sec:adaption_mechanisms} *}
+subsection {* Parametrising serialisation \label{sec:adaption_mechanisms} *}
 
 text {*
   Consider the following function and its corresponding
@@ -322,7 +339,7 @@ code_instance %quotett bar :: eq
   (Haskell -)
 
 
-subsection {* Enhancing the target language context *}
+subsection {* Enhancing the target language context \label{sec:include} *}
 
 text {*
   In rare cases it is necessary to \emph{enrich} the context of a

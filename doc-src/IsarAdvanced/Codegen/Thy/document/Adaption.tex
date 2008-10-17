@@ -146,14 +146,31 @@ The following figure illustrates what \qt{adaption} is conceptually
   by the serializer is just the tip of the iceberg:
 
   \begin{itemize}
-    \item parametrise \isa{serialisation}
-    \item \isa{library} \isa{reserved}
-    \item \isa{includes} \isa{reserved}
-  \end{itemize}%
+    \item \isa{serialisation} can be \emph{parametrised} such that
+      logical entities are mapped to target-specific ones
+      (e.g. target-specific list syntax,
+        see also \secref{sec:adaption_mechanisms})
+    \item Such parametrisations can involve references to a
+      target-specific standard \isa{library} (e.g. using
+      the \isa{Haskell} \verb|Maybe| type instead
+      of the \isa{HOL} \isa{option} type);
+      if such are used, the corresponding identifiers
+      (in our example, \verb|Maybe|, \verb|Nothing|
+      and \verb|Just|) also have to be considered \isa{reserved}.
+    \item Even more, the user can enrich the library of the
+      target-language by providing code snippets
+      (\qt{\isa{includes}}) which are prepended to
+      any generated code (see \secref{sec:include});  this typically
+      also involves further \isa{reserved} identifiers.
+  \end{itemize}
+
+  \noindent As figure \ref{fig:adaption} illustrates, all these adaption mechanisms
+  have to act consistently;  it is at the discretion of the user
+  to take care for this.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Common adaption cases%
+\isamarkupsubsection{Common adaption patterns%
 }
 \isamarkuptrue%
 %
@@ -200,7 +217,7 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Adaption mechanisms \label{sec:adaption_mechanisms}%
+\isamarkupsubsection{Parametrising serialisation \label{sec:adaption_mechanisms}%
 }
 \isamarkuptrue%
 %
@@ -605,7 +622,7 @@ For convenience, the default
 %
 \endisadelimquotett
 %
-\isamarkupsubsection{Enhancing the target language context%
+\isamarkupsubsection{Enhancing the target language context \label{sec:include}%
 }
 \isamarkuptrue%
 %

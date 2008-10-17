@@ -128,7 +128,7 @@ text {*
   \begin{tabular}{l}
   @{text "type T"} \\
   @{text "val empty: T"} \\
-  @{text "val purge: theory \<rightarrow> CodeUnit.const list option \<rightarrow> T \<rightarrow> T"}
+  @{text "val purge: theory \<rightarrow> string list option \<rightarrow> T \<rightarrow> T"}
   \end{tabular}
 
   \begin{description}
