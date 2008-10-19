@@ -179,7 +179,7 @@ class VFS extends io.VFS("isa", VFSManager.getVFSForProtocol("file").getCapabili
   override def _getFile(session : Object, path : String, comp : Component) =
     VFS.mapFile(this, baseVFS._getFile(session, cutPath(path), comp))
 
-  override def _listFiles(session : Object, path : String, comp :  Component) =
+  override def _listFiles(session : Object, path : String, comp :  Component): Array[VFSFile] =
     (baseVFS._listFiles(session, cutPath(path), comp)
             .map(file => VFS.mapFile(this, file)))
 
