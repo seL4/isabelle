@@ -272,7 +272,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       in map (fn (cname, dts) =>
         let
           val Ts = map (typ_of_dtyp descr sorts') dts;
-          val names = DatatypeProp.make_tnames Ts;
+          val names = Name.variant_list ["pi"] (DatatypeProp.make_tnames Ts);
           val args = map Free (names ~~ Ts);
           val c = Const (cname, Ts ---> T);
           fun perm_arg (dt, x) =
