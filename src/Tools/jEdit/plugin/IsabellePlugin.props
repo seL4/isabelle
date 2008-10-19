@@ -1,0 +1,24 @@
+# jEdit Properties
+
+plugin.isabelle.jedit.Plugin.activate=startup
+plugin.isabelle.jedit.Plugin.name=IsabellePlugin
+plugin.isabelle.jedit.Plugin.version=0.1
+plugin.isabelle.jedit.Plugin.description=Isabelle/Isar integration into jEdit
+plugin.isabelle.jedit.Plugin.option-pane=isabelle
+
+plugin.isabelle.jedit.Plugin.menu.label=Isabelle
+plugin.isabelle.jedit.Plugin.menu=Isabelle.show-output Isabelle.show-state Isabelle.activate
+
+Isabelle.show-output.label=Show Output
+Isabelle.show-state.label=Show State
+Isabelle.activate.label=Activate current buffer
+
+Isabelle_output.title=Isabelle Output
+Isabelle_state.title=Isabelle State
+
+options.isabelle.label=Isabelle
+options.isabelle.code=new isabelle.jedit.OptionPane();
+options.isabelle.font-path.title=Font Path
+options.isabelle.font-size.title=Font Size
+options.isabelle.font-size=14
+

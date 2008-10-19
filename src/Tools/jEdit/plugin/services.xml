@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!DOCTYPE SERVICES SYSTEM "services.dtd">
+<SERVICES>
+	<SERVICE NAME="isa" CLASS="org.gjt.sp.jedit.io.VFS">
+		new isabelle.jedit.VFS();
+	</SERVICE>
+</SERVICES>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE DOCKABLES SYSTEM "dockables.dtd">
+
+<DOCKABLES>
+	<DOCKABLE NAME="Isabelle_output">
+		new isabelle.jedit.OutputDockable(view, position);
+	</DOCKABLE>
+	<DOCKABLE NAME="Isabelle_state">
+		new isabelle.jedit.StateViewDockable(view, position);
+	</DOCKABLE>
+</DOCKABLES>

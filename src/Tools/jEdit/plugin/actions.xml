@@ -1,0 +1,20 @@
+<ACTIONS>
+	<ACTION NAME="Isabelle.show-output">
+		<CODE>
+			wm.addDockableWindow("Isabelle_output");
+		</CODE>
+	</ACTION>
+	<ACTION NAME="Isabelle.show-state">
+		<CODE>
+			wm.addDockableWindow("Isabelle_state");
+		</CODE>
+	</ACTION>
+	<ACTION NAME="Isabelle.activate">
+		<CODE>
+			isabelle.jedit.Plugin$.MODULE$.plugin().activate(view);
+		</CODE>
+		<IS_SELECTED>
+			return view.getBuffer().getMode().getName() == "isabelle";
+		</IS_SELECTED>
+	</ACTION>
+</ACTIONS>
