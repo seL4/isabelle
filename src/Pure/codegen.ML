@@ -182,33 +182,6 @@ type 'a codegen =
   codegr ->    (* code dependency graph *)
   (Pretty.T * codegr) option;
 
-(* parameters for random testing *)
-
-type test_params =
-  {size: int, iterations: int, default_type: typ option};
-
-fun merge_test_params
-  {size = size1, iterations = iterations1, default_type = default_type1}
-  {size = size2, iterations = iterations2, default_type = default_type2} =
-  {size = Int.max (size1, size2),
-   iterations = Int.max (iterations1, iterations2),
-   default_type = case default_type1 of
-       NONE => default_type2
-     | _ => default_type1};
-
-val default_test_params : test_params =
-  {size = 10, iterations = 100, default_type = NONE};
-
-fun set_size size ({iterations, default_type, ...} : test_params) =
-  {size = size, iterations = iterations, default_type = default_type};
-
-fun set_iterations iterations ({size, default_type, ...} : test_params) =
-  {size = size, iterations = iterations, default_type = default_type};
-
-fun set_default_type s thy ({size, iterations, ...} : test_params) =
-  {size = size, iterations = iterations,
-   default_type = SOME (Syntax.read_typ_global thy s)};
-
 
 (* theory data *)
 
@@ -220,29 +193,27 @@ structure CodegenData = TheoryDataFun
      consts : ((string * typ) * (term mixfix list * (string * string) list)) list,
      types : (string * (typ mixfix list * (string * string) list)) list,
      preprocs: (stamp * (theory -> thm list -> thm list)) list,
-     modules: codegr Symtab.table,
-     test_params: test_params};
+     modules: codegr Symtab.table};
 
   val empty =
     {codegens = [], tycodegens = [], consts = [], types = [],
-     preprocs = [], modules = Symtab.empty, test_params = default_test_params};
+     preprocs = [], modules = Symtab.empty};
   val copy = I;
   val extend = I;
 
   fun merge _
     ({codegens = codegens1, tycodegens = tycodegens1,
       consts = consts1, types = types1,
-      preprocs = preprocs1, modules = modules1, test_params = test_params1} : T,
+      preprocs = preprocs1, modules = modules1} : T,
      {codegens = codegens2, tycodegens = tycodegens2,
       consts = consts2, types = types2,
-      preprocs = preprocs2, modules = modules2, test_params = test_params2}) =
+      preprocs = preprocs2, modules = modules2}) =
     {codegens = AList.merge (op =) (K true) (codegens1, codegens2),
      tycodegens = AList.merge (op =) (K true) (tycodegens1, tycodegens2),
      consts = AList.merge (op =) (K true) (consts1, consts2),
      types = AList.merge (op =) (K true) (types1, types2),
      preprocs = AList.merge (op =) (K true) (preprocs1, preprocs2),
-     modules = Symtab.merge (K true) (modules1, modules2),
-     test_params = merge_test_params test_params1 test_params2};
+     modules = Symtab.merge (K true) (modules1, modules2)};
 );
 
 fun print_codegens thy =
@@ -254,53 +225,38 @@ fun print_codegens thy =
 
 
 
-(**** access parameters for random testing ****)
-
-fun get_test_params thy = #test_params (CodegenData.get thy);
-
-fun map_test_params f thy =
-  let val {codegens, tycodegens, consts, types, preprocs, modules, test_params} =
-    CodegenData.get thy;
-  in CodegenData.put {codegens = codegens, tycodegens = tycodegens,
-    consts = consts, types = types, preprocs = preprocs,
-    modules = modules, test_params = f test_params} thy
-  end;
-
-
 (**** access modules ****)
 
 fun get_modules thy = #modules (CodegenData.get thy);
 
 fun map_modules f thy =
-  let val {codegens, tycodegens, consts, types, preprocs, modules, test_params} =
+  let val {codegens, tycodegens, consts, types, preprocs, modules} =
     CodegenData.get thy;
   in CodegenData.put {codegens = codegens, tycodegens = tycodegens,
     consts = consts, types = types, preprocs = preprocs,
-    modules = f modules, test_params = test_params} thy
+    modules = f modules} thy
   end;
 
 
 (**** add new code generators to theory ****)
 
 fun add_codegen name f thy =
-  let val {codegens, tycodegens, consts, types, preprocs, modules, test_params} =
+  let val {codegens, tycodegens, consts, types, preprocs, modules} =
     CodegenData.get thy
   in (case AList.lookup (op =) codegens name of
       NONE => CodegenData.put {codegens = (name, f) :: codegens,
         tycodegens = tycodegens, consts = consts, types = types,
-        preprocs = preprocs, modules = modules,
-        test_params = test_params} thy
+        preprocs = preprocs, modules = modules} thy
     | SOME _ => error ("Code generator " ^ name ^ " already declared"))
   end;
 
 fun add_tycodegen name f thy =
-  let val {codegens, tycodegens, consts, types, preprocs, modules, test_params} =
+  let val {codegens, tycodegens, consts, types, preprocs, modules} =
     CodegenData.get thy
   in (case AList.lookup (op =) tycodegens name of
       NONE => CodegenData.put {tycodegens = (name, f) :: tycodegens,
         codegens = codegens, consts = consts, types = types,
-        preprocs = preprocs, modules = modules,
-        test_params = test_params} thy
+        preprocs = preprocs, modules = modules} thy
     | SOME _ => error ("Code generator " ^ name ^ " already declared"))
   end;
 
@@ -308,12 +264,12 @@ fun add_tycodegen name f thy =
 (**** preprocessors ****)
 
 fun add_preprocessor p thy =
-  let val {codegens, tycodegens, consts, types, preprocs, modules, test_params} =
+  let val {codegens, tycodegens, consts, types, preprocs, modules} =
     CodegenData.get thy
   in CodegenData.put {tycodegens = tycodegens,
     codegens = codegens, consts = consts, types = types,
     preprocs = (stamp (), p) :: preprocs,
-    modules = modules, test_params = test_params} thy
+    modules = modules} thy
   end;
 
 fun preprocess thy =
@@ -332,27 +288,33 @@ fun preprocess_term thy t =
     | _ => err ()
   end;
 
+structure UnfoldData = TheoryDataFun
+(
+  type T = simpset;
+  val empty = empty_ss;
+  val copy = I;
+  val extend = I;
+  fun merge _ = merge_ss;
+);
+
 fun add_unfold eqn =
   let
-    val thy = Thm.theory_of_thm eqn;
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init (Thm.theory_of_thm eqn);
     val eqn' = LocalDefs.meta_rewrite_rule ctxt eqn;
-    val names = term_consts (fst (Logic.dest_equals (prop_of eqn')));
-    fun prep thy = map (fn th =>
-      let val prop = prop_of th
-      in
-        if forall (fn name => exists_Const (fn (c, _) => c = name) prop) names
-        then rewrite_rule [eqn'] (Thm.transfer thy th)
-        else th
-      end)
-  in add_preprocessor prep end;
+  in
+    UnfoldData.map (fn ss => ss addsimps [eqn'])
+  end;
+
+fun unfold_preprocessor thy =
+  let val ss = Simplifier.theory_context thy (UnfoldData.get thy)
+  in map (Thm.transfer thy #> Simplifier.full_simplify ss) end;
 
 
 (**** associate constants with target language code ****)
 
 fun gen_assoc_const prep_const (raw_const, syn) thy =
   let
-    val {codegens, tycodegens, consts, types, preprocs, modules, test_params} =
+    val {codegens, tycodegens, consts, types, preprocs, modules} =
       CodegenData.get thy;
     val (cname, T) = prep_const thy raw_const;
   in
@@ -363,7 +325,7 @@ fun gen_assoc_const prep_const (raw_const, syn) thy =
         tycodegens = tycodegens,
         consts = ((cname, T), syn) :: consts,
         types = types, preprocs = preprocs,
-        modules = modules, test_params = test_params} thy
+        modules = modules} thy
     | SOME _ => error ("Constant " ^ cname ^ " already associated with code")
   end;
 
@@ -375,7 +337,7 @@ val assoc_const = gen_assoc_const Code_Unit.read_bare_const;
 
 fun assoc_type (s, syn) thy =
   let
-    val {codegens, tycodegens, consts, types, preprocs, modules, test_params} =
+    val {codegens, tycodegens, consts, types, preprocs, modules} =
       CodegenData.get thy;
     val tc = Sign.intern_type thy s;
   in
@@ -387,7 +349,7 @@ fun assoc_type (s, syn) thy =
           NONE => CodegenData.put {codegens = codegens,
             tycodegens = tycodegens, consts = consts,
             types = (tc, syn) :: types,
-            preprocs = preprocs, modules = modules, test_params = test_params} thy
+            preprocs = preprocs, modules = modules} thy
         | SOME _ => error ("Type " ^ tc ^ " already associated with code"))
     | _ => error ("Not a type constructor: " ^ s)
   end;
@@ -523,7 +485,7 @@ val rename_term = hd o rename_terms o single;
 (**** retrieve definition of constant ****)
 
 fun is_instance T1 T2 =
-  Type.raw_instance (T1, Logic.legacy_varifyT T2);
+  Type.raw_instance (T1, if null (typ_tfrees T2) then T2 else Logic.varifyT T2);
 
 fun get_assoc_code thy (s, T) = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance T T') (#consts (CodegenData.get thy)));
@@ -1032,7 +994,7 @@ val _ =
         P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => fold (assoc_const o
        (fn ((const, mfx), aux) =>
-         (const, (parse_mixfix (OldGoals.read_term thy) mfx, aux)))) xs thy)));
+         (const, (parse_mixfix (Syntax.read_term_global thy) mfx, aux)))) xs thy)));
 
 fun parse_code lib =
   Scan.optional (P.$$$ "(" |-- P.enum "," P.xname --| P.$$$ ")") (!mode) --
@@ -1066,7 +1028,8 @@ val setup = add_codegen "default" default_codegen
   #> Value.add_evaluator ("SML", eval_term o ProofContext.theory_of)
   #> Quickcheck.add_generator ("SML", test_term)
   #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
-       (fn thm => Context.mapping (add_unfold thm #> Code.add_inline thm) I)));
+       (fn thm => Context.mapping (add_unfold thm #> Code.add_inline thm) I)))
+  #> add_preprocessor unfold_preprocessor;
 
 val _ =
   OuterSyntax.command "code_library"
