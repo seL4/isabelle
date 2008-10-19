@@ -278,12 +278,14 @@ fun datatype_codegen thy defs dep module brack t gr = (case strip_comb t of
           SOME (pretty_case thy defs dep module brack
             (#3 (the (AList.lookup op = descr index))) c ts gr )
       | NONE => case (DatatypePackage.datatype_of_constr thy s, strip_type T) of
-        (SOME {index, descr, ...}, (_, U as Type _)) =>
+        (SOME {index, descr, ...}, (_, U as Type (tyname, _))) =>
           if is_some (get_assoc_code thy (s, T)) then NONE else
-          let val SOME args = AList.lookup op =
-            (#3 (the (AList.lookup op = descr index))) s
+          let
+            val SOME (tyname', _, constrs) = AList.lookup op = descr index;
+            val SOME args = AList.lookup op = constrs s
           in
-            SOME (pretty_constr thy defs
+            if tyname <> tyname' then NONE
+            else SOME (pretty_constr thy defs
               dep module brack args c ts (snd (invoke_tycodegen thy defs dep module false U gr)))
           end
       | _ => NONE)
