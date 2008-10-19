@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Markus Wenzel, TU Muenchen
+#
+# DESCRIPTION: run a program in a modified environment
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [CMDLINE ...]"
+  echo
+  echo
+  echo "  Run CMDLINE within the Isabelle environment (via the system's env command)."
+  echo
+  exit 1
+}
+
+
+## main
+
+[ "$1" = "-?" ] && usage
+
+exec /usr/bin/env "$@"
