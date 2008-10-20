@@ -1,0 +1,22 @@
+
+Requirements to build from sources
+==================================
+
+* Netbeans 6.5beta
+  http://download.netbeans.org/netbeans/6.5/beta/
+
+* Scala for Netbeans
+  http://wiki.netbeans.org/Scala
+  http://plugins.netbeans.org/PluginPortal/faces/PluginDetailPage.jsp?pluginid=11854
+
+* jEdit 1.4.3pre14 or similar
+  http://www.jedit.org/
+  Netbeans Library "jEdit" = .../jedit.jar
+
+* Flying Saucer XHTML renderer
+  https://xhtmlrenderer.dev.java.net/
+  Netbeans Library "Flying-Saucer" = .../core-renderer.jar
+
+* Isabelle/Pure Scala components
+  Netbeans Library "Isabelle-Pure" = ~~/lib/classes/Pure.jar
+
