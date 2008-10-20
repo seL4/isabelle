@@ -12,7 +12,7 @@ Requirements to build from sources
   http://wiki.netbeans.org/Scala
   http://plugins.netbeans.org/PluginPortal/faces/PluginDetailPage.jsp?pluginid=11854
 
-* jEdit 1.4.3pre14 or similar
+* jEdit 4.3pre14 or similar
   http://www.jedit.org/
   Netbeans Library "jEdit" = .../jedit.jar
 
