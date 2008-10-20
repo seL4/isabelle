@@ -2580,6 +2580,21 @@ lemma map_replicate_trivial:
   by (induct i) (simp_all add: replicate_append_same)
 
 
+lemma replicate_empty[simp]: "(replicate n x = []) \<longleftrightarrow> n=0"
+by (induct n) auto
+
+lemma empty_replicate[simp]: "([] = replicate n x) \<longleftrightarrow> n=0"
+by (induct n) auto
+
+lemma replicate_eq_replicate[simp]:
+  "(replicate m x = replicate n y) \<longleftrightarrow> (m=n & (m\<noteq>0 \<longrightarrow> x=y))"
+apply(induct m arbitrary: n)
+ apply simp
+apply(induct_tac n)
+apply auto
+done
+
+
 subsubsection{*@{text rotate1} and @{text rotate}*}
 
 lemma rotate_simps[simp]: "rotate1 [] = [] \<and> rotate1 (x#xs) = xs @ [x]"
@@ -2776,6 +2791,26 @@ lemma length_splice[simp]: "length(splice xs ys) = length xs + length ys"
 apply(induct xs arbitrary: ys) apply simp
 apply(case_tac ys)
  apply auto
+done
+
+
+subsubsection {* Infiniteness *}
+
+lemma finite_maxlen:
+  "finite (M::'a list set) ==> EX n. ALL s:M. size s < n"
+proof (induct rule: finite.induct)
+  case emptyI show ?case by simp
+next
+  case (insertI M xs)
+  then obtain n where "\<forall>s\<in>M. length s < n" by blast
+  hence "ALL s:insert xs M. size s < max n (size xs) + 1" by auto
+  thus ?case ..
+qed
+
+lemma infinite_UNIV_listI: "~ finite(UNIV::'a list set)"
+apply(rule notI)
+apply(drule finite_maxlen)
+apply (metis UNIV_I length_replicate less_not_refl)
 done
 
 
