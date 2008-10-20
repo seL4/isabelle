@@ -458,7 +458,6 @@ lemma aligned_bl_add_size':
    apply (simp add: bl_word_and to_bl_0)
    apply (rule align_lem_and [THEN trans])
        apply (simp_all add: word_size)[5]
-   apply (rule_tac f = "%n. replicate n False" in arg_cong)
    apply simp
   apply (subst word_plus_and_or [symmetric])
   apply (simp add : bl_word_or)
@@ -710,8 +709,6 @@ lemma revcast_up':
   apply (rule bl_shiftl [THEN trans])
   apply (subst ucast_up_app)
   apply (auto simp add: wsst_TYs)
-  apply (drule sym)
-  apply (simp add: min_def)
   done
 
 lemmas revcast_up = refl [THEN revcast_up']

@@ -830,10 +830,7 @@ lemma to_bl_ucast:
 lemma ucast_up_app': 
   "uc = ucast ==> source_size uc + n = target_size uc ==> 
     to_bl (uc w) = replicate n False @ (to_bl w)"
-  apply (auto simp add : source_size target_size to_bl_ucast)
-  apply (rule_tac f = "%n. replicate n False" in arg_cong)
-  apply simp
-  done
+  by (auto simp add : source_size target_size to_bl_ucast)
 
 lemma ucast_down_drop': 
   "uc = ucast ==> source_size uc = target_size uc + n ==> 
