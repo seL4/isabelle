@@ -2,6 +2,9 @@
 Requirements to build from sources
 ==================================
 
+* Proper Java JRE/JDK from Sun
+  http://java.sun.com/javase/downloads/index.jsp
+
 * Netbeans 6.5beta
   http://download.netbeans.org/netbeans/6.5/beta/
 
@@ -20,3 +23,9 @@ Requirements to build from sources
 * Isabelle/Pure Scala components
   Netbeans Library "Isabelle-Pure" = ~~/lib/classes/Pure.jar
 
+
+Running the application
+=======================
+
+* Proper Isabelle environment, e.g. via
+  isabelle env netbeans ...
