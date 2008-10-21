@@ -40,6 +40,7 @@ sig
   val fork: (unit -> 'a) -> 'a T
   val fork_background: (unit -> 'a) -> 'a T
   val join_results: 'a T list -> 'a Exn.result list
+  val join_result: 'a T -> 'a Exn.result
   val join: 'a T -> 'a
   val focus: task list -> unit
   val interrupt_task: string -> unit
@@ -258,6 +259,7 @@ fun join_results [] = []
       let
         val _ = scheduler_check "join check";
         val _ = Multithreading.self_critical () andalso
+          exists (not o is_finished) xs andalso
           error "Cannot join future values within critical section";
 
         fun join_loop _ [] = ()
@@ -287,7 +289,8 @@ fun join_results [] = []
 
       in xs |> map (fn Future {result = ref (SOME res), ...} => res) end) ();
 
-fun join x = Exn.release (singleton join_results x);
+fun join_result x = singleton join_results x;
+fun join x = Exn.release (join_result x);
 
 
 (* misc operations *)
