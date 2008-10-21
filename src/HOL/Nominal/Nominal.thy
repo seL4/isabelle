@@ -11,6 +11,7 @@ uses
   ("nominal_fresh_fun.ML")
   ("nominal_primrec.ML")
   ("nominal_inductive.ML")
+  ("nominal_inductive2.ML")
 begin 
 
 section {* Permutations *}
@@ -3585,6 +3586,7 @@ use "nominal_primrec.ML"
 (****************************************************)
 (* inductive definition involving nominal datatypes *)
 use "nominal_inductive.ML"
+use "nominal_inductive2.ML"
 
 (*****************************************)
 (* setup for induction principles method *)
