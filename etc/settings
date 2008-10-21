@@ -238,7 +238,7 @@ JEDIT_HOME=$(choosefrom \
   "")
 
 JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx512m"
-JEDIT_OPTIONS="-reuseview -noserver -nobackground '-settings=$ISABELLE_HOME_USER/jedit'"
+JEDIT_OPTIONS="-reuseview -noserver -nobackground"
 
 
 ###
