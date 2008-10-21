@@ -57,12 +57,21 @@ class Prover() {
         else {
           val tree = parse_failsafe(converter.decode(r.result))
           tree match {
-            case Elem("message", _, List(Elem("command_decl", List(("name", name), 
-                                                                   ("kind", _)), _))) =>
-              commandKeywords.addEntry(name)
+            case Elem("message", List(("class","status")), decls) =>
+              decls map (decl => decl match{
+                  case Elem("command_decl", List(("name", name), ("kind", _)), _) =>
+                    commandKeywords.addEntry(name)
+                  case Elem("keyword_decl", List(("name", keyw)), _) => 
+                    () //TODO: with these keywords simplify the token-regex in ProofDocument
+                  case _ => 
+                    //TODO
+                    if (st != null)
+                    handleResult(st, r, tree)
+                }) 
             case _ =>
+              //TODO
               if (st != null)
-                handleResult(st, r, tree)
+              handleResult(st, r, tree)
           }
         }
         
