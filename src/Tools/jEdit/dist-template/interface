@@ -18,7 +18,7 @@ usage()
   echo "    -m MODE      add print mode for output"
   echo
   echo "Starts jEdit with Isabelle plugin setup and opens theory FILES"
-  echo "(default Scratch.thy)."
+  echo "(default ~/Scratch.thy)."
   echo
   exit 1
 }
@@ -67,10 +67,10 @@ shift $(($OPTIND - 1))
 
 # args
 
+FILES=""
 if [ "$#" -eq 0 ]; then
-  FILES="isabelle:Scratch.thy"
+  FILES="isabelle:$HOME/Scratch.thy"
 else
-  FILES=""
   while [ "$#" -gt 0 ]; do
     FILES="$FILES 'isabelle:$1'"
     shift
@@ -90,5 +90,5 @@ esac
 
 export JEDIT_LOGIC JEDIT_PRINT_MODE
 
-exec "$ISABELLE_TOOL" java "$JEDIT_JAVA_OPTIONS" \
-  -jar "$JEDIT_HOME/jedit.jar" "$JEDIT_OPTIONS" "$FILES"
+exec "$ISABELLE_TOOL" java $JEDIT_JAVA_OPTIONS \
+  -jar "$JEDIT_HOME/jedit.jar" "-settings=$ISABELLE_HOME_USER/jedit" $JEDIT_OPTIONS $FILES
