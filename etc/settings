@@ -149,7 +149,7 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 
 ###
-### default logic
+### Default logic
 ###
 
 ISABELLE_LOGIC=HOL
@@ -202,6 +202,11 @@ ISABELLE_INTERFACE=$(choosefrom \
   "/usr/share/emacs/ProofGeneral/isar/interface" \
   "$ISABELLE_INTERFACE")
 
+
+###
+### Proof General / Emacs
+###
+
 # Proof General home, look in a variety of places
 PROOFGENERAL_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/ProofGeneral" \
@@ -218,6 +223,23 @@ PROOFGENERAL_OPTIONS="-p $PROOFGENERAL_EMACS"
 # Automatic setup of remote fonts
 #XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 XSYMBOL_INSTALLFONTS=""
+
+
+###
+### jEdit
+###
+
+JEDIT_HOME=$(choosefrom \
+  "$ISABELLE_HOME/contrib/jedit" \
+  "$ISABELLE_HOME/../jedit" \
+  "/usr/local/jedit" \
+  "/usr/share/jedit" \
+  "/opt/jedit" \
+  "")
+
+JEDIT_JAVA_OPTIONS="-server -Xms128 -Xmx512"
+JEDIT_OPTIONS="-reuseview -noserver -nobackground -settings '$ISABELLE_HOME_USER/jedit'"
+
 
 ###
 ### External reasoning tools
