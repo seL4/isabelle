@@ -237,7 +237,8 @@ JEDIT_HOME=$(choosefrom \
   "/opt/jedit" \
   "")
 
-JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx512m"
+JEDIT_JAVA_OPTIONS=""
+#JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx512m"
 JEDIT_OPTIONS="-reuseview -noserver -nobackground"
 
 
