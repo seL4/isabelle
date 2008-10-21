@@ -69,7 +69,7 @@ object VFS {
       base.getName()
 
     override def getPath() =
-      "isa:" + base.getPath()
+      Plugin.VFS_PREFIX + base.getPath()
 
     override def getSymlinkPath() =
       base.getSymlinkPath()
@@ -131,11 +131,11 @@ object VFS {
  * 
  * @author Johannes Hölzl <hoelzl@in.tum.de>
  */
-class VFS extends io.VFS("isa", VFSManager.getVFSForProtocol("file").getCapabilities()) {
+class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCapabilities()) {
   private var baseVFS = VFSManager.getVFSForProtocol("file") 
 
   private def cutPath(path : String) = 
-    if (path.startsWith("isa:")) path.substring(4) else path
+    if (path.startsWith(Plugin.VFS_PREFIX)) path.substring(Plugin.VFS_PREFIX.length) else path
   
   override def createVFSSession(path : String, comp : Component) = 
     baseVFS.createVFSSession(cutPath(path), comp)
@@ -147,10 +147,10 @@ class VFS extends io.VFS("isa", VFSManager.getVFSForProtocol("file").getCapabili
     baseVFS.getExtendedAttributes()
   
   override def getParentOfPath(path : String) = 
-    "isa:" + baseVFS.getParentOfPath(cutPath(path))
+    Plugin.VFS_PREFIX + baseVFS.getParentOfPath(cutPath(path))
   
   override def constructPath(parent : String, path : String) = 
-    "isa:" + baseVFS.constructPath(cutPath(parent), path)
+    Plugin.VFS_PREFIX + baseVFS.constructPath(cutPath(parent), path)
   
   override def getFileName(path : String) = 
     baseVFS.getFileName(path)
@@ -159,10 +159,10 @@ class VFS extends io.VFS("isa", VFSManager.getVFSForProtocol("file").getCapabili
     baseVFS.getFileSeparator()
   
   override def getTwoStageSaveName(path : String) = 
-    "isa:" + baseVFS.getTwoStageSaveName(cutPath(path))
+    Plugin.VFS_PREFIX + baseVFS.getTwoStageSaveName(cutPath(path))
   
   override def _canonPath(session : Object, path : String, comp : Component) =
-    "isa:" + baseVFS._canonPath(session, cutPath(path), comp)
+    Plugin.VFS_PREFIX + baseVFS._canonPath(session, cutPath(path), comp)
   
   override def _createInputStream(session : Object, path : String,
                                   ignoreErrors : Boolean, comp : Component) =

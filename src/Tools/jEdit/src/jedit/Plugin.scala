@@ -16,6 +16,7 @@ import org.gjt.sp.jedit.msg.{ EditPaneUpdate, PropertiesChanged }
 object Plugin {
   val NAME = "Isabelle"
   val OPTION_PREFIX = "options.isabelle."
+  val VFS_PREFIX = "isabelle:"
   
   def property(name : String) = jEdit.getProperty(OPTION_PREFIX + name)
   def property(name : String, value : String) = 
@@ -49,7 +50,7 @@ class Plugin extends EBPlugin {
     prover.start(if (logic == null) logic else "HOL")
     val dir = view.getBuffer().getDirectory()
     prover.setDocument(theoryView, 
-                       if (dir.startsWith("isa:")) dir.substring(4) else dir)
+                       if (dir.startsWith(VFS_PREFIX)) dir.substring(VFS_PREFIX.length) else dir)
     TheoryView.activateTextArea(view.getTextArea())
   }
   
