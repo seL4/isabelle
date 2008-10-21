@@ -13,7 +13,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG IMAGE THY CMD"
+  echo "Usage: isabelle $PRG IMAGE THY CMD"
   echo
   echo "  Issues code generation using image IMAGE,"
   echo "  theory THY,"

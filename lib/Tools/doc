@@ -11,7 +11,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG [DOC]"
+  echo "Usage: isabelle $PRG [DOC]"
   echo
   echo "  View Isabelle documentation DOC, or show list of available documents."
   echo

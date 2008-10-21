@@ -11,7 +11,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG NAME"
+  echo "Usage: isabelle $PRG NAME"
   echo
   echo "  Remove an unused named pipe, after producing dummy output"
   echo "  to unblock the reader (blocks if no reader present)."

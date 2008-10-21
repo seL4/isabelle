@@ -11,7 +11,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG [ARGS ...]"
+  echo "Usage: isabelle $PRG [ARGS ...]"
   echo
   echo "  Compile the logic in current directory using IsaMakefile."
   echo "  ARGS are directly passed to the system make program."

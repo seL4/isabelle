@@ -11,7 +11,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG [OPTIONS] FILE"
+  echo "Usage: isabelle $PRG [OPTIONS] FILE"
   echo
   echo "  Options are:"
   echo "    -c           cleanup -- remove FILE after use"

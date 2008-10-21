@@ -11,7 +11,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG"
+  echo "Usage: isabelle $PRG"
   echo
   echo "  Convert XML (stdin) to YXML (stdout)."
   echo

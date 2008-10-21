@@ -14,7 +14,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG FILES"
+  echo "Usage: isabelle $PRG FILES"
   echo
   echo "  Convert files in DIMACS CNF format [1] into Isabelle/HOL theories."
   echo

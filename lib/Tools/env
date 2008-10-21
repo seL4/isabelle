@@ -13,7 +13,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG [CMDLINE ...]"
+  echo "Usage: isabelle $PRG [CMDLINE ...]"
   echo
   echo
   echo "  Run CMDLINE within the Isabelle environment (via the system's env command)."

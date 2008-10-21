@@ -13,7 +13,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG [FILES|DIRS...]"
+  echo "Usage: isabelle $PRG [FILES|DIRS...]"
   echo
   echo "  Recursively find .thy/.ML files, removing unreadable symbol names."
   echo "  Note: this is an ad-hoc script; there is no systematic way to replace"

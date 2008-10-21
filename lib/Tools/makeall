@@ -17,7 +17,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG [ARGS ...]"
+  echo "Usage: isabelle $PRG [ARGS ...]"
   echo
   echo "  Apply isabelle make to all logics (passing ARGS)."
   echo

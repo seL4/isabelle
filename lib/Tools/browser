@@ -11,7 +11,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: $PRG [OPTIONS] [GRAPHFILE]"
+  echo "Usage: isabelle $PRG [OPTIONS] [GRAPHFILE]"
   echo
   echo "  Options are:"
   echo "    -c           cleanup -- remove GRAPHFILE after use"
