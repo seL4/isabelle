@@ -1627,7 +1627,7 @@ fun join_futures thy =
   let
     val futures = Futures.get thy;
     fun joined () =
-     (Future.join_results (rev (! futures));
+     (List.app (ignore o Future.join_result) (rev (! futures));
       CRITICAL (fn () =>
         let
           val (finished, unfinished) = List.partition Future.is_finished (! futures);
