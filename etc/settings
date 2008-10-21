@@ -237,8 +237,8 @@ JEDIT_HOME=$(choosefrom \
   "/opt/jedit" \
   "")
 
-JEDIT_JAVA_OPTIONS="-server -Xms128 -Xmx512"
-JEDIT_OPTIONS="-reuseview -noserver -nobackground -settings '$ISABELLE_HOME_USER/jedit'"
+JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx512m"
+JEDIT_OPTIONS="-reuseview -noserver -nobackground '-settings=$ISABELLE_HOME_USER/jedit'"
 
 
 ###
