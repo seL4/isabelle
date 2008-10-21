@@ -30,16 +30,6 @@ fun clean_name "\\<dots>" = "dots"
   | clean_name "}" = "braceright"
   | clean_name s = s |> translate_string (fn "_" => "-" | c => c);
 
-val str_of_source = space_implode " " o map OuterLex.unparse o #2 o #1 o Args.dest_src;
-
-fun tweak_line s =
-  if ! O.display then s else Symbol.strip_blanks s;
-
-val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.split_lines;
-
-fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
-fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
-
 
 (* verbatim text *)
 
@@ -78,7 +68,7 @@ fun index_ml kind ml src ctxt (txt1, txt2) =
     val _ = ML_Context.eval_in (SOME ctxt) false Position.none (ml (txt1, txt2));
   in
     "\\indexml" ^ kind ^ enclose "{" "}" (clean_string txt1) ^
-    ((if ! O.source then str_of_source src else txt')
+    ((if ! O.source then ThyOutput.str_of_source src else txt')
     |> (if ! O.quotes then quote else I)
     |> (if ! O.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
         else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
@@ -112,18 +102,18 @@ end;
 local
 
 fun output_named_thms src ctxt xs =
-  map (apfst (pretty_thm ctxt)) xs        (*always pretty in order to exhibit errors!*)
+  map (apfst (ThyOutput.pretty_thm ctxt)) xs        (*always pretty in order to exhibit errors!*)
   |> (if ! O.quotes then map (apfst Pretty.quote) else I)
   |> (if ! O.display then
     map (fn (p, name) =>
       Output.output (Pretty.string_of (Pretty.indent (! O.indent) p)) ^
-      "\\rulename{" ^ Output.output (Pretty.str_of (pretty_text name)) ^ "}")
+      "\\rulename{" ^ Output.output (Pretty.str_of (ThyOutput.pretty_text name)) ^ "}")
     #> space_implode "\\par\\smallskip%\n"
     #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
   else
     map (fn (p, name) =>
       Output.output (Pretty.str_of p) ^
-      "\\rulename{" ^ Output.output (Pretty.str_of (pretty_text name)) ^ "}")
+      "\\rulename{" ^ Output.output (Pretty.str_of (ThyOutput.pretty_text name)) ^ "}")
     #> space_implode "\\par\\smallskip%\n"
     #> enclose "\\isa{" "}");
 

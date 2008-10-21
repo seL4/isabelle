@@ -25,6 +25,10 @@ sig
   val eval_antiquote: Scan.lexicon -> Toplevel.node option -> SymbolPos.text * Position.T -> string
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> (OuterLex.token, 'a) Source.source -> Buffer.T
+  val str_of_source: Args.src -> string
+  val pretty_text: string -> Pretty.T
+  val pretty_term: Proof.context -> term -> Pretty.T
+  val pretty_thm: Proof.context -> thm -> Pretty.T
   val output_list: (Proof.context -> 'a -> Pretty.T) -> Args.src ->
     Proof.context -> 'a list -> string
   val output: (Proof.context -> 'a -> Pretty.T) -> Args.src -> Proof.context -> 'a -> string
