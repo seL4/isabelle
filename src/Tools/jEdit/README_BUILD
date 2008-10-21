@@ -24,8 +24,11 @@ Requirements to build from sources
   Netbeans Library "Isabelle-Pure" = ~~/lib/classes/Pure.jar
 
 
-Running the application
-=======================
+Running the application within Netbeans
+=======================================
 
 * Proper Isabelle environment, e.g. via
   isabelle env netbeans ...
+
+* Project properties: add "Run" argument like
+    -settings=/home/makarius/isabelle/jedit
