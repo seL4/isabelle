@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+#
+# Isabelle/jEdit interface wrapper
+
+set -x
+
+## diagnostics
+
+usage()
+{
+  echo
+  echo "Usage: isabelle jedit [OPTIONS] [FILES ...]"
+  echo
+  echo "  Options are:"
+  echo "    -J OPTION    add JVM runtime option"
+  echo "                 (default JEDIT_JAVE_OPTIONS=$JEDIT_JAVE_OPTIONS)"
+  echo "    -j OPTION    add jEdit runtime option"
+  echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
+  echo "    -l NAME      logic image name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
+  echo "    -m MODE      add print mode for output"
+  echo
+  echo "Starts jEdit with Isabelle plugin setup and opens theory FILES"
+  echo "(default Scratch.thy)."
+  echo
+  exit 1
+}
+
+fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+JEDIT_LOGIC="$ISABELLE_LOGIC"
+JEDIT_PRINT_MODE=""
+
+while getopts "J:j:l:m:" OPT
+do
+  case "$OPT" in
+    J)
+      JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS $OPTARG"
+      ;;
+    j)
+      JEDIT_OPTIONS="$JEDIT_OPTIONS $OPTARG"
+      ;;
+    l)
+      JEDIT_LOGIC="$OPTARG"
+      ;;
+    m)
+      if [ -z "$PRINT_MODE" ]; then
+        PRINT_MODE="$OPTARG"
+      else
+        PRINT_MODE="$PRINT_MODE,$OPTARG"
+      fi
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+if [ "$#" -eq 0 ]; then
+  FILES="isabelle:Scratch.thy"
+else
+  FILES=""
+  while [ "$#" -gt 0 ]; do
+    FILES="$FILES 'isabelle:$1'"
+    shift
+  done
+fi
+
+
+## main
+
+case "$JEDIT_LOGIC" in
+  /*)
+    ;;
+  */*)
+    JEDIT_LOGIC="$(pwd -P)/$JEDIT_LOGIC"
+    ;;
+esac
+
+export JEDIT_LOGIC JEDIT_PRINT_MODE
+
+exec "$ISABELLE_TOOL" java "$JEDIT_JAVA_OPTIONS" \
+  -jar "$JEDIT_HOME/jedit.jar" "$JEDIT_OPTIONS" "$FILES"
