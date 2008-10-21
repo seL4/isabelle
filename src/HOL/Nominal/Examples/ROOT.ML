@@ -20,7 +20,8 @@ use_thys [
   "LocalWeakening",
   "Support",
   "Contexts",
-  "Standardization"
+  "Standardization",
+  "W"
 ];
 
 setmp_noncritical quick_and_dirty true use_thy "VC_Condition";
