@@ -56,7 +56,6 @@
       <OPERATOR>atom_decl</OPERATOR>
       <LABEL>atp_info</LABEL>
       <LABEL>atp_kill</LABEL>
-      <OPERATOR>atp_setup</OPERATOR>
       <KEYWORD4>attach</KEYWORD4>
       <OPERATOR>automaton</OPERATOR>
       <KEYWORD4>avoids</KEYWORD4>
@@ -195,6 +194,7 @@
       <OPERATOR>no_translations</OPERATOR>
       <OPERATOR>nominal_datatype</OPERATOR>
       <OPERATOR>nominal_inductive</OPERATOR>
+      <OPERATOR>nominal_inductive2</OPERATOR>
       <OPERATOR>nominal_primrec</OPERATOR>
       <OPERATOR>nonterminals</OPERATOR>
       <LABEL>normal_form</LABEL>
