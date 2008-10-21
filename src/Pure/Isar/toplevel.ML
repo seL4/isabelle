@@ -723,7 +723,7 @@ fun excursion input =
   let
     val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
 
-    val immediate = not (! future_scheduler andalso Multithreading.enabled ());
+    val immediate = not (Future.enabled ());
     val (future_results, end_state) = fold_map (unit_result immediate) input toplevel;
     val _ =
       (case end_state of

@@ -27,6 +27,7 @@ Notes:
 
 signature FUTURE =
 sig
+  val enabled: unit -> bool
   type task = TaskQueue.task
   type group = TaskQueue.group
   val thread_data: unit -> (string * task * group) option
@@ -50,6 +51,11 @@ structure Future: FUTURE =
 struct
 
 (** future values **)
+
+fun enabled () =
+  ! future_scheduler andalso Multithreading.enabled () andalso
+    not (Multithreading.self_critical ());
+
 
 (* identifiers *)
 
