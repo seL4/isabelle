@@ -91,4 +91,5 @@ esac
 export JEDIT_LOGIC JEDIT_PRINT_MODE
 
 exec "$ISABELLE_TOOL" java $JEDIT_JAVA_OPTIONS \
-  -jar "$JEDIT_HOME/jedit.jar" "-settings=$ISABELLE_HOME_USER/jedit" $JEDIT_OPTIONS $FILES
+  -jar "$(jvmpath "$JEDIT_HOME/jedit.jar")" \
+  "-settings=$(jvmpath "$ISABELLE_HOME_USER/jedit")" $JEDIT_OPTIONS $FILES
