@@ -194,7 +194,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val (typedefs, thy3) = thy2 |>
       parent_path flat_names |>
       fold_map (fn ((((name, mx), tvs), c), name') =>
-          TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx)
+          TypedefPackage.add_typedef false (SOME name') (name, tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)

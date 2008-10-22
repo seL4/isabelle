@@ -608,7 +608,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (typedefs, thy6) =
       thy4
       |> fold_map (fn ((((name, mx), tvs), (cname, U)), name') => fn thy =>
-          TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx)
+          TypedefPackage.add_typedef false (SOME name') (name, tvs, mx)
             (Const ("Collect", (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN

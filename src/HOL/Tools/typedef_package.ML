@@ -15,12 +15,10 @@ sig
     Abs_cases: thm, Rep_induct: thm, Abs_induct: thm};
   val get_info: theory -> string -> info option
   val add_typedef: bool -> string option -> bstring * string list * mixfix ->
-    string -> (bstring * bstring) option -> tactic -> theory -> (string * info) * theory
-  val add_typedef_i: bool -> string option -> bstring * string list * mixfix ->
     term -> (bstring * bstring) option -> tactic -> theory -> (string * info) * theory
-  val typedef: (bool * string) * (bstring * string list * mixfix) * string
+  val typedef: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> theory -> Proof.state
-  val typedef_i: (bool * string) * (bstring * string list * mixfix) * term
+  val typedef_cmd: (bool * string) * (bstring * string list * mixfix) * string
     * (string * string) option -> theory -> Proof.state
   val interpretation: (string -> theory -> theory) -> theory -> theory
   val setup: theory -> theory
@@ -33,15 +31,15 @@ struct
 
 val type_definitionN = "Typedef.type_definition";
 
-val Rep = thm "type_definition.Rep";
-val Rep_inverse = thm "type_definition.Rep_inverse";
-val Abs_inverse = thm "type_definition.Abs_inverse";
-val Rep_inject = thm "type_definition.Rep_inject";
-val Abs_inject = thm "type_definition.Abs_inject";
-val Rep_cases = thm "type_definition.Rep_cases";
-val Abs_cases = thm "type_definition.Abs_cases";
-val Rep_induct = thm "type_definition.Rep_induct";
-val Abs_induct = thm "type_definition.Abs_induct";
+val Rep = @{thm "type_definition.Rep"};
+val Rep_inverse = @{thm "type_definition.Rep_inverse"};
+val Abs_inverse = @{thm "type_definition.Abs_inverse"};
+val Rep_inject = @{thm "type_definition.Rep_inject"};
+val Abs_inject = @{thm "type_definition.Abs_inject"};
+val Rep_cases = @{thm "type_definition.Rep_cases"};
+val Abs_cases = @{thm "type_definition.Abs_cases"};
+val Rep_induct = @{thm "type_definition.Rep_induct"};
+val Abs_induct = @{thm "type_definition.Abs_induct"};
 
 
 
@@ -214,26 +212,17 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
   handle ERROR msg => err_in_typedef msg name;
 
 
-(* add_typedef interfaces *)
+(* add_typedef interface *)
 
-local
-
-fun gen_typedef prep_term def opt_name typ set opt_morphs tac thy =
+fun add_typedef def opt_name typ set opt_morphs tac thy =
   let
     val name = the_default (#1 typ) opt_name;
     val (set, goal, _, typedef_result) =
-      prepare_typedef prep_term def name typ set opt_morphs thy;
+      prepare_typedef Syntax.check_term def name typ set opt_morphs thy;
     val non_empty = Goal.prove_global thy [] [] goal (K tac)
       handle ERROR msg => cat_error msg
         ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set));
   in typedef_result non_empty thy end;
-
-in
-
-val add_typedef = gen_typedef Syntax.read_term;
-val add_typedef_i = gen_typedef Syntax.check_term;
-
-end;
 
 
 (* Isar typedef interface *)
@@ -249,8 +238,8 @@ fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
 
 in
 
-val typedef = gen_typedef Syntax.read_term;
-val typedef_i = gen_typedef Syntax.check_term;
+val typedef = gen_typedef Syntax.check_term;
+val typedef_cmd = gen_typedef Syntax.read_term;
 
 end;
 
@@ -270,7 +259,7 @@ val typedef_decl =
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
 
 fun mk_typedef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
-  typedef ((def, the_default (Syntax.type_name t mx) opt_name), (t, vs, mx), A, morphs);
+  typedef_cmd ((def, the_default (Syntax.type_name t mx) opt_name), (t, vs, mx), A, morphs);
 
 val _ =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal
