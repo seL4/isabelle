@@ -1273,7 +1273,7 @@ proof-
       with eq0 have "a^ (n - 1) = (n*s)^p"
 	by (simp add: power_mult[symmetric])
       hence "1 = (n*s)^(Suc (p - 1)) mod n" using bqn p01 by simp
-      also have "\<dots> = 0" by (simp add: mult_assoc mod_mult_self_is_0)
+      also have "\<dots> = 0" by (simp add: mult_assoc)
       finally have False by simp }
       then have th11: "a ^ ((n - 1) div p) mod n \<noteq> 0" by auto 
     have th1: "[a ^ ((n - 1) div p) mod n = a ^ ((n - 1) div p)] (mod n)"  

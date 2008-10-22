@@ -33,6 +33,7 @@ imports
   OptionalSugar
   Option_ord
   Permutation
+  Pocklington
   Primes
   Quicksort
   Quotient
