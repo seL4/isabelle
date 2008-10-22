@@ -53,7 +53,9 @@ sig
   val class_error: Pretty.pp -> class_error -> string
   exception CLASS_ERROR of class_error
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
-  val meet_sort: algebra -> typ * sort -> sort Vartab.table -> sort Vartab.table
+  val meet_sort: algebra -> typ * sort
+    -> sort Vartab.table -> sort Vartab.table   (*exception CLASS_ERROR*)
+  val meet_sort_typ: algebra -> typ * sort -> typ -> typ   (*exception CLASS_ERROR*)
   val of_sort: algebra -> typ * sort -> bool
   val weaken: algebra -> ('a * class -> class -> 'a) -> 'a * class -> class -> 'a
   val of_sort_derivation: Pretty.pp -> algebra ->
@@ -364,6 +366,13 @@ fun meet_sort algebra =
           else Vartab.map_default (v, S) (inters S')
       | meet (Type (a, Ts)) S = fold2 meet Ts (mg_domain algebra a S);
   in uncurry meet end;
+
+fun meet_sort_typ algebra (T, S) =
+  let
+    val tab = meet_sort algebra (T, S) Vartab.empty;
+  in Term.map_type_tvar (fn (v, _) =>
+    TVar (v, (the o Vartab.lookup tab) v))
+  end;
 
 
 (* of_sort *)
