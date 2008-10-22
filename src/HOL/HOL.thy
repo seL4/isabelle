@@ -1692,8 +1692,7 @@ text {* Module setup *}
 use "~~/src/HOL/Tools/recfun_codegen.ML"
 
 setup {*
-  Code_Name.setup
-  #> Code_ML.setup
+  Code_ML.setup
   #> Code_Haskell.setup
   #> Nbe.setup
   #> Codegen.setup

@@ -40,53 +40,59 @@ end;
 
 signature CODE_THINGOL =
 sig
-  include BASIC_CODE_THINGOL;
-  val unfoldl: ('a -> ('a * 'b) option) -> 'a -> 'a * 'b list;
-  val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a;
-  val unfold_fun: itype -> itype list * itype;
-  val unfold_app: iterm -> iterm * iterm list;
-  val split_abs: iterm -> (((vname * iterm option) * itype) * iterm) option;
-  val unfold_abs: iterm -> ((vname * iterm option) * itype) list * iterm;
-  val split_let: iterm -> (((iterm * itype) * iterm) * iterm) option;
-  val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm;
+  include BASIC_CODE_THINGOL
+  val unfoldl: ('a -> ('a * 'b) option) -> 'a -> 'a * 'b list
+  val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a
+  val unfold_fun: itype -> itype list * itype
+  val unfold_app: iterm -> iterm * iterm list
+  val split_abs: iterm -> (((vname * iterm option) * itype) * iterm) option
+  val unfold_abs: iterm -> ((vname * iterm option) * itype) list * iterm
+  val split_let: iterm -> (((iterm * itype) * iterm) * iterm) option
+  val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm
   val unfold_const_app: iterm ->
-    ((string * (dict list list * itype list)) * iterm list) option;
+    ((string * (dict list list * itype list)) * iterm list) option
   val collapse_let: ((vname * itype) * iterm) * iterm
-    -> (iterm * itype) * (iterm * iterm) list;
-  val eta_expand: int -> (string * (dict list list * itype list)) * iterm list -> iterm;
-  val contains_dictvar: iterm -> bool;
-  val locally_monomorphic: iterm -> bool;
-  val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
-  val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
-  val fold_unbound_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a;
+    -> (iterm * itype) * (iterm * iterm) list
+  val eta_expand: int -> (string * (dict list list * itype list)) * iterm list -> iterm
+  val contains_dictvar: iterm -> bool
+  val locally_monomorphic: iterm -> bool
+  val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
+  val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
+  val fold_unbound_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
+
+  type naming
+  val lookup_class: naming -> class -> string option
+  val lookup_classrel: naming -> class * class -> string option
+  val lookup_tyco: naming -> string -> string option
+  val lookup_instance: naming -> class * string -> string option
+  val lookup_const: naming -> string -> string option
 
   datatype stmt =
       NoStmt
-    | Fun of typscheme * ((iterm list * iterm) * (thm * bool)) list
-    | Datatype of (vname * sort) list * (string * itype list) list
-    | Datatypecons of string
-    | Class of vname * ((class * string) list * (string * itype) list)
+    | Fun of string * (typscheme * ((iterm list * iterm) * (thm * bool)) list)
+    | Datatype of string * ((vname * sort) list * (string * itype list) list)
+    | Datatypecons of string * string
+    | Class of class * (vname * ((class * string) list * (string * itype) list))
     | Classrel of class * class
-    | Classparam of class
+    | Classparam of string * class
     | Classinst of (class * (string * (vname * sort) list))
           * ((class * (string * (string * dict list list))) list
-        * ((string * const) * (thm * bool)) list);
-  type program = stmt Graph.T;
-  val empty_funs: program -> string list;
-  val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm;
-  val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt;
-  val transitivly_non_empty_funs: program -> string list -> string list;
-  val is_cons: program -> string -> bool;
-  val contr_classparam_typs: program -> string -> itype option list;
+        * ((string * const) * (thm * bool)) list)
+  type program = stmt Graph.T
+  val empty_funs: program -> string list
+  val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
+  val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
+  val is_cons: program -> string -> bool
+  val contr_classparam_typs: program -> string -> itype option list
 
-  val consts_program: theory -> string list -> string list * program;
-  val cached_program: theory -> program;
+  val consts_program: theory -> string list -> string list * (naming * program)
+  val cached_program: theory -> naming * program
   val eval_conv: theory
-    -> (term -> term * (program -> typscheme * iterm -> string list -> thm))
-    -> cterm -> thm;
+    -> (term -> term * (naming -> program -> typscheme * iterm -> string list -> thm))
+    -> cterm -> thm
   val eval_term: theory
-    -> (term -> term * (program -> typscheme * iterm -> string list -> 'a))
-    -> term -> 'a;
+    -> (term -> term * (naming -> program -> typscheme * iterm -> string list -> 'a))
+    -> term -> 'a
 end;
 
 structure Code_Thingol: CODE_THINGOL =
@@ -108,8 +114,6 @@ fun unfoldr dest x =
 
 
 (** language core - types, patterns, expressions **)
-
-(* language representation *)
 
 type vname = string;
 
@@ -252,18 +256,148 @@ fun locally_monomorphic (IConst _) = false
   | locally_monomorphic (ICase ((_, ds), _)) = exists (locally_monomorphic o snd) ds;
 
 
+(** naming policies **)
+
+(* identifier categories *)
+
+val suffix_class = "class";
+val suffix_classrel = "classrel"
+val suffix_tyco = "tyco";
+val suffix_instance = "inst";
+val suffix_const = "const";
+
+fun add_suffix nsp NONE = NONE
+  | add_suffix nsp (SOME name) = SOME (NameSpace.append name nsp);
+
+
+(* policies *)
+
+local
+  fun thyname_of thy f x = the (AList.lookup (op =) (f x) Markup.theory_nameN);
+  fun thyname_of_class thy =
+    thyname_of thy (ProofContext.query_class (ProofContext.init thy));
+  fun thyname_of_tyco thy =
+    thyname_of thy (Type.the_tags (Sign.tsig_of thy));
+  fun thyname_of_instance thy inst = case AxClass.arity_property thy inst Markup.theory_nameN
+   of [] => error ("no such instance: " ^ quote (snd inst ^ " :: " ^ fst inst))
+    | thyname :: _ => thyname;
+  fun thyname_of_const thy c = case Code.get_datatype_of_constr thy c
+     of SOME dtco => thyname_of_tyco thy dtco
+      | NONE => (case AxClass.class_of_param thy c
+         of SOME class => thyname_of_class thy class
+          | NONE => (case AxClass.inst_of_param thy c
+             of SOME (c, tyco) => thyname_of_instance thy
+                  ((the o AxClass.class_of_param thy) c, tyco)
+              | NONE => thyname_of thy (Consts.the_tags (Sign.consts_of thy)) c));
+  fun namify thy get_basename get_thyname name =
+    let
+      val prefix = get_thyname thy name;
+      val base = (Code_Name.purify_base true o get_basename) name;
+    in NameSpace.append prefix base end;
+in
+
+fun namify_class thy = namify thy NameSpace.base thyname_of_class;
+fun namify_classrel thy = namify thy (fn (class1, class2) => 
+  NameSpace.base class2 ^ "_" ^ NameSpace.base class1) (fn thy => thyname_of_class thy o fst);
+  (*order fits nicely with composed projections*)
+fun namify_tyco thy = namify thy NameSpace.base thyname_of_tyco;
+fun namify_instance thy = namify thy (fn (class, tyco) => 
+  NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
+fun namify_const thy = namify thy NameSpace.base thyname_of_const;
+
+end; (* local *)
+
+
+(* naming data with lookup and declare *)
+
+structure StringPairTab = Code_Name.StringPairTab;
+
+datatype naming = Naming of {
+  class: class Symtab.table * Name.context,
+  classrel: string StringPairTab.table * Name.context,
+  tyco: string Symtab.table * Name.context,
+  instance: string StringPairTab.table * Name.context,
+  const: string Symtab.table * Name.context
+}
+
+fun dest_Naming (Naming naming) = naming;
+
+val empty_naming = Naming {
+  class = (Symtab.empty, Name.context),
+  classrel = (StringPairTab.empty, Name.context),
+  tyco = (Symtab.empty, Name.context),
+  instance = (StringPairTab.empty, Name.context),
+  const = (Symtab.empty, Name.context)
+};
+
+local
+  fun mk_naming (class, classrel, tyco, instance, const) =
+    Naming { class = class, classrel = classrel,
+      tyco = tyco, instance = instance, const = const };
+  fun map_naming f (Naming { class, classrel, tyco, instance, const }) =
+    mk_naming (f (class, classrel, tyco, instance, const));
+in
+  fun map_class f = map_naming
+    (fn (class, classrel, tyco, inst, const) =>
+      (f class, classrel, tyco, inst, const));
+  fun map_classrel f = map_naming
+    (fn (class, classrel, tyco, inst, const) =>
+      (class, f classrel, tyco, inst, const));
+  fun map_tyco f = map_naming
+    (fn (class, classrel, tyco, inst, const) =>
+      (class, classrel, f tyco, inst, const));
+  fun map_instance f = map_naming
+    (fn (class, classrel, tyco, inst, const) =>
+      (class, classrel, tyco, f inst, const));
+  fun map_const f = map_naming
+    (fn (class, classrel, tyco, inst, const) =>
+      (class, classrel, tyco, inst, f const));
+end; (*local*)
+
+fun add_variant update (thing, name) (tab, used) =
+  let
+    val (name', used') = yield_singleton Name.variants name used;
+    val tab' = update (thing, name') tab;
+  in (tab', used') end;
+
+fun declare thy mapp lookup update namify thing =
+  mapp (add_variant update (thing, namify thy thing))
+  #> `(fn naming => the (lookup naming thing));
+
+val lookup_class = add_suffix suffix_class
+  oo Symtab.lookup o fst o #class o dest_Naming;
+val lookup_classrel = add_suffix suffix_classrel
+  oo StringPairTab.lookup o fst o #classrel o dest_Naming;
+val lookup_tyco = add_suffix suffix_tyco
+  oo Symtab.lookup o fst o #tyco o dest_Naming;
+val lookup_instance = add_suffix suffix_instance
+  oo StringPairTab.lookup o fst o #instance o dest_Naming;
+val lookup_const = add_suffix suffix_const
+  oo Symtab.lookup o fst o #const o dest_Naming;
+
+fun declare_class thy = declare thy map_class
+  lookup_class Symtab.update_new namify_class;
+fun declare_classrel thy = declare thy map_classrel
+  lookup_classrel StringPairTab.update_new namify_classrel;
+fun declare_tyco thy = declare thy map_tyco
+  lookup_tyco Symtab.update_new namify_tyco;
+fun declare_instance thy = declare thy map_instance
+  lookup_instance StringPairTab.update_new namify_instance;
+fun declare_const thy = declare thy map_const
+  lookup_const Symtab.update_new namify_const;
+
 
 (** statements, abstract programs **)
 
 type typscheme = (vname * sort) list * itype;
 datatype stmt =
     NoStmt
-  | Fun of typscheme * ((iterm list * iterm) * (thm * bool)) list
-  | Datatype of (vname * sort) list * (string * itype list) list
-  | Datatypecons of string
-  | Class of vname * ((class * string) list * (string * itype) list)
+  | Fun of string * (typscheme * ((iterm list * iterm) * (thm * bool)) list)
+  | Datatype of string * ((vname * sort) list * (string * itype list) list)
+  | Datatypecons of string * string
+  | Class of class * (vname * ((class * string) list * (string * itype) list))
   | Classrel of class * class
-  | Classparam of class
+  | Classparam of string * class
   | Classinst of (class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
       * ((string * const) * (thm * bool)) list);
@@ -271,7 +405,7 @@ datatype stmt =
 type program = stmt Graph.T;
 
 fun empty_funs program =
-  Graph.fold (fn (name, (Fun (_, []), _)) => cons name
+  Graph.fold (fn (name, (Fun (c, (_, [])), _)) => cons c
                | _ => I) program [];
 
 fun map_terms_bottom_up f (t as IConst _) = f t
@@ -285,8 +419,8 @@ fun map_terms_bottom_up f (t as IConst _) = f t
         (map_terms_bottom_up f) ps), map_terms_bottom_up f t0));
 
 fun map_terms_stmt f NoStmt = NoStmt
-  | map_terms_stmt f (Fun (tysm, eqs)) = Fun (tysm, (map o apfst)
-      (fn (ts, t) => (map f ts, f t)) eqs)
+  | map_terms_stmt f (Fun (c, (tysm, eqs))) = Fun (c, (tysm, (map o apfst)
+      (fn (ts, t) => (map f ts, f t)) eqs))
   | map_terms_stmt f (stmt as Datatype _) = stmt
   | map_terms_stmt f (stmt as Datatypecons _) = stmt
   | map_terms_stmt f (stmt as Class _) = stmt
@@ -296,19 +430,13 @@ fun map_terms_stmt f NoStmt = NoStmt
       Classinst (arity, (superarities, (map o apfst o apsnd) (fn const =>
         case f (IConst const) of IConst const' => const') classparms));
 
-fun transitivly_non_empty_funs program names_ignored =
-  let
-    val names_empty = empty_funs program;
-    val names_delete = Graph.all_preds program (subtract (op =) names_ignored names_empty)
-  in subtract (op =) names_delete (Graph.keys program) end;
-
 fun is_cons program name = case Graph.get_node program name
  of Datatypecons _ => true
   | _ => false;
 
 fun contr_classparam_typs program name = case Graph.get_node program name
- of Classparam class => let
-        val Class (_, (_, params)) = Graph.get_node program class;
+ of Classparam (_, class) => let
+        val Class (_, (_, (_, params))) = Graph.get_node program class;
         val SOME ty = AList.lookup (op =) params name;
         val (tys, res_ty) = unfold_fun ty;
         fun no_tyvar (_ `%% tys) = forall no_tyvar tys
@@ -322,22 +450,29 @@ fun contr_classparam_typs program name = case Graph.get_node program name
 
 (** translation kernel **)
 
-fun ensure_stmt stmtgen name (dep, program) =
+fun ensure_stmt lookup declare generate thing (dep, (naming, program)) =
   let
-    val add_dep = case dep of NONE => I | SOME dep => Graph.add_edge (dep, name);
-    fun add_stmt false =
-          Graph.default_node (name, NoStmt)
-          #> add_dep
-          #> curry stmtgen (SOME name)
-          ##> snd
-          #-> (fn stmt => Graph.map_node name (K stmt))
-      | add_stmt true =
-          add_dep;
-  in
-    program
-    |> add_stmt (can (Graph.get_node program) name)
-    |> pair dep
-    |> pair name
+    fun add_dep name = case dep
+     of NONE => I | SOME dep => Graph.add_edge (dep, name);
+  in case lookup naming thing
+   of SOME name => program
+        |> add_dep name
+        |> pair naming
+        |> pair dep
+        |> pair name
+    | NONE => let
+          val (name, naming') = declare thing naming;
+        in
+          program
+          |> Graph.default_node (name, NoStmt)
+          |> add_dep name
+          |> pair naming'
+          |> curry generate (SOME name)
+          ||> snd
+          |-> (fn stmt => (apsnd o Graph.map_node name) (K stmt))
+          |> pair dep
+          |> pair name
+        end
   end;
 
 fun not_wellsorted thy thm ty sort e =
@@ -353,22 +488,20 @@ fun ensure_class thy (algbr as (_, algebra)) funcgr class =
   let
     val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
     val cs = #params (AxClass.get_info thy class);
-    val class' = Code_Name.class thy class;
     val stmt_class =
       fold_map (fn superclass => ensure_class thy algbr funcgr superclass
         ##>> ensure_classrel thy algbr funcgr (class, superclass)) superclasses
       ##>> fold_map (fn (c, ty) => ensure_const thy algbr funcgr c
         ##>> exprgen_typ thy algbr funcgr ty) cs
-      #>> (fn info => Class (unprefix "'" Name.aT, info))
-  in ensure_stmt stmt_class class' end
+      #>> (fn info => Class (class, (unprefix "'" Name.aT, info)))
+  in ensure_stmt lookup_class (declare_class thy) stmt_class class end
 and ensure_classrel thy algbr funcgr (subclass, superclass) =
   let
-    val classrel' = Code_Name.classrel thy (subclass, superclass);
     val stmt_classrel =
       ensure_class thy algbr funcgr subclass
       ##>> ensure_class thy algbr funcgr superclass
       #>> Classrel;
-  in ensure_stmt stmt_classrel classrel' end
+  in ensure_stmt lookup_classrel (declare_classrel thy) stmt_classrel (subclass, superclass) end
 and ensure_tyco thy algbr funcgr "fun" =
       pair "fun"
   | ensure_tyco thy algbr funcgr tyco =
@@ -381,10 +514,9 @@ and ensure_tyco thy algbr funcgr "fun" =
             ##>> fold_map (fn (c, tys) =>
               ensure_const thy algbr funcgr c
               ##>> fold_map (exprgen_typ thy algbr funcgr) tys) cos
-            #>> Datatype
+            #>> (fn info => Datatype (tyco, info))
           end;
-        val tyco' = Code_Name.tyco thy tyco;
-      in ensure_stmt stmt_datatype tyco' end
+      in ensure_stmt lookup_tyco (declare_tyco thy) stmt_datatype tyco end
 and exprgen_tyvar_sort thy (algbr as (proj_sort, _)) funcgr (v, sort) =
   fold_map (ensure_class thy algbr funcgr) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
@@ -467,38 +599,33 @@ and ensure_inst thy (algbr as (_, algebra)) funcgr (class, tyco) =
       ##>> fold_map exprgen_classparam_inst classparams
       #>> (fn ((((class, tyco), arity), superarities), classparams) =>
              Classinst ((class, (tyco, arity)), (superarities, classparams)));
-    val inst = Code_Name.instance thy (class, tyco);
-  in ensure_stmt stmt_inst inst end
+  in ensure_stmt lookup_instance (declare_instance thy) stmt_inst (class, tyco) end
 and ensure_const thy algbr funcgr c =
   let
-    val c' = Code_Name.const thy c;
     fun stmt_datatypecons tyco =
       ensure_tyco thy algbr funcgr tyco
-      #>> Datatypecons;
+      #>> (fn tyco => Datatypecons (c, tyco));
     fun stmt_classparam class =
       ensure_class thy algbr funcgr class
-      #>> Classparam;
-    fun stmt_fun trns =
+      #>> (fn class => Classparam (c, class));
+    fun stmt_fun ((vs, raw_ty), raw_thms) =
       let
-        val raw_thms = Code_Funcgr.eqns funcgr c;
-        val (vs, raw_ty) = Code_Funcgr.typ funcgr c;
         val ty = Logic.unvarifyT raw_ty;
         val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
           then raw_thms
           else (map o apfst) (Code_Unit.expand_eta thy 1) raw_thms;
       in
-        trns
-        |> fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
-        ||>> exprgen_typ thy algbr funcgr ty
-        ||>> fold_map (exprgen_eq thy algbr funcgr) thms
-        |>> (fn ((vs, ty), eqs) => Fun ((vs, ty), eqs))
+        fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
+        ##>> exprgen_typ thy algbr funcgr ty
+        ##>> fold_map (exprgen_eq thy algbr funcgr) thms
+        #>> (fn info => Fun (c, info))
       end;
-    val stmtgen = case Code.get_datatype_of_constr thy c
+    val stmt_const = case Code.get_datatype_of_constr thy c
      of SOME tyco => stmt_datatypecons tyco
       | NONE => (case AxClass.class_of_param thy c
          of SOME class => stmt_classparam class
-          | NONE => stmt_fun)
-  in ensure_stmt stmtgen c' end
+          | NONE => stmt_fun (Code_Funcgr.typ funcgr c, Code_Funcgr.eqns funcgr c))
+  in ensure_stmt lookup_const (declare_const thy) stmt_const c end
 and exprgen_term thy algbr funcgr thm (Const (c, ty)) =
       exprgen_app thy algbr funcgr thm ((c, ty), [])
   | exprgen_term thy algbr funcgr thm (Free (v, _)) =
@@ -591,9 +718,9 @@ and exprgen_app thy algbr funcgr thm ((c, ty), ts) = case Code.get_case_data thy
 
 structure Program = CodeDataFun
 (
-  type T = program;
-  val empty = Graph.empty;
-  fun purge thy cs program =
+  type T = naming * program;
+  val empty = (empty_naming, Graph.empty);
+  fun purge thy cs (naming, program) = empty (*FIXME: problem: un-declaration of names
     let
       val cs_exisiting =
         map_filter (Code_Name.const_rev thy) (Graph.keys program);
@@ -601,28 +728,25 @@ structure Program = CodeDataFun
           o map (Code_Name.const thy)
           o filter (member (op =) cs_exisiting)
         ) cs;
-    in Graph.del_nodes dels program end;
+    in Graph.del_nodes dels program end;*)
 );
 
 val cached_program = Program.get;
 
-fun transact f program =
-  (NONE, program)
-  |> f
-  |-> (fn x => fn (_, program) => (x, program));
-
-fun generate thy funcgr f x =
-  Program.change_yield thy (transact (f thy (Code.operational_algebra thy) funcgr x));
+fun generate thy funcgr f name =
+  Program.change_yield thy (fn naming_program => (NONE, naming_program)
+    |> f thy (Code.operational_algebra thy) funcgr name
+    |-> (fn name => fn (_, naming_program) => (name, naming_program)));
 
 
 (* program generation *)
 
 fun consts_program thy cs =
   let
-    fun project_consts cs program =
+    fun project_consts cs (naming, program) =
       let
         val cs_all = Graph.all_succs program cs;
-      in (cs, Graph.subgraph (member (op =) cs_all) program) end;
+      in (cs, (naming, Graph.subgraph (member (op =) cs_all) program)) end;
     fun generate_consts thy algebra funcgr =
       fold_map (ensure_const thy algebra funcgr);
   in
@@ -642,18 +766,19 @@ fun ensure_value thy algbr funcgr t =
       fold_map (exprgen_tyvar_sort thy algbr funcgr) vs
       ##>> exprgen_typ thy algbr funcgr ty
       ##>> exprgen_term thy algbr funcgr NONE t
-      #>> (fn ((vs, ty), t) => Fun ((vs, ty), [(([], t), (Drule.dummy_thm, true))]));
-    fun term_value (dep, program1) =
+      #>> (fn ((vs, ty), t) => Fun
+        (Term.dummy_patternN, ((vs, ty), [(([], t), (Drule.dummy_thm, true))])));
+    fun term_value (dep, (naming, program1)) =
       let
-        val Fun ((vs, ty), [(([], t), _)]) =
-          Graph.get_node program1 Code_Name.value_name;
-        val deps = Graph.imm_succs program1 Code_Name.value_name;
-        val program2 = Graph.del_nodes [Code_Name.value_name] program1;
+        val Fun (_, ((vs, ty), [(([], t), _)])) =
+          Graph.get_node program1 Term.dummy_patternN;
+        val deps = Graph.imm_succs program1 Term.dummy_patternN;
+        val program2 = Graph.del_nodes [Term.dummy_patternN] program1;
         val deps_all = Graph.all_succs program2 deps;
         val program3 = Graph.subgraph (member (op =) deps_all) program2;
-      in ((program3, (((vs, ty), t), deps)), (dep, program2)) end;
+      in (((naming, program3), (((vs, ty), t), deps)), (dep, (naming, program2))) end;
   in
-    ensure_stmt stmt_value Code_Name.value_name
+    ensure_stmt ((K o K) NONE) pair stmt_value Term.dummy_patternN
     #> snd
     #> term_value
   end;
@@ -662,8 +787,8 @@ fun eval eval_kind thy evaluator =
   let
     fun evaluator'' evaluator''' funcgr t =
       let
-        val ((program, (vs_ty_t, deps)), _) = generate thy funcgr ensure_value t;
-      in evaluator''' program vs_ty_t deps end;
+        val (((naming, program), (vs_ty_t, deps)), _) = generate thy funcgr ensure_value t;
+      in evaluator''' naming program vs_ty_t deps end;
     fun evaluator' t =
       let
         val (t', evaluator''') = evaluator t;

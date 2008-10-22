@@ -42,15 +42,15 @@ fun stmt_names_of (MLFuns fs) = map fst fs
 
 (** SML serailizer **)
 
-fun pr_sml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve is_cons =
+fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names deresolve is_cons =
   let
     val pr_label_classrel = translate_string (fn "." => "__" | c => c)
       o NameSpace.qualifier;
     val pr_label_classparam = NameSpace.base o NameSpace.qualifier;
     fun pr_dicts fxy ds =
       let
-        fun pr_dictvar (v, (_, 1)) = first_upper v ^ "_"
-          | pr_dictvar (v, (i, _)) = first_upper v ^ string_of_int (i+1) ^ "_";
+        fun pr_dictvar (v, (_, 1)) = Code_Name.first_upper v ^ "_"
+          | pr_dictvar (v, (i, _)) = Code_Name.first_upper v ^ string_of_int (i+1) ^ "_";
         fun pr_proj [] p =
               p
           | pr_proj [p'] p =
@@ -86,7 +86,7 @@ fun pr_sml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve 
     fun pr_term thm pat vars fxy (IConst c) =
           pr_app thm pat vars fxy (c, [])
       | pr_term thm pat vars fxy (IVar v) =
-          str (lookup_var vars v)
+          str (Code_Name.lookup_var vars v)
       | pr_term thm pat vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
            of SOME c_ts => pr_app thm pat vars fxy c_ts
@@ -116,7 +116,7 @@ fun pr_sml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve 
       else [pr_term thm pat vars BR (Code_Thingol.eta_expand k app)] end else
         (str o deresolve) c
           :: (map (pr_dicts BR) o filter_out null) iss @ map (pr_term thm pat vars BR) ts
-    and pr_app thm pat vars = gen_pr_app pr_app' pr_term syntax_const is_cons thm pat vars
+    and pr_app thm pat vars = gen_pr_app pr_app' pr_term syntax_const is_cons naming thm pat vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
@@ -199,8 +199,8 @@ fun pr_sml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve 
                             then NONE else (SOME o NameSpace.base o deresolve) c)
                             ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                         val vars = reserved_names
-                          |> intro_vars consts
-                          |> intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
+                          |> Code_Name.intro_vars consts
+                          |> Code_Name.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
                                (insert (op =)) ts []);
                       in
                         concat (
@@ -250,7 +250,7 @@ fun pr_sml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve 
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";"])]) end
      | pr_stmt (MLClass (class, (v, (superclasses, classparams)))) =
           let
-            val w = first_upper v ^ "_";
+            val w = Code_Name.first_upper v ^ "_";
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
                 pr_label_classrel classrel, ":", "'" ^ v, deresolve class
@@ -342,12 +342,12 @@ val literals_sml = Literals {
 
 (** OCaml serializer **)
 
-fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolve is_cons =
+fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names deresolve is_cons =
   let
     fun pr_dicts fxy ds =
       let
-        fun pr_dictvar (v, (_, 1)) = "_" ^ first_upper v
-          | pr_dictvar (v, (i, _)) = "_" ^ first_upper v ^ string_of_int (i+1);
+        fun pr_dictvar (v, (_, 1)) = "_" ^ Code_Name.first_upper v
+          | pr_dictvar (v, (i, _)) = "_" ^ Code_Name.first_upper v ^ string_of_int (i+1);
         fun pr_proj ps p =
           fold_rev (fn p2 => fn p1 => Pretty.block [p1, str ".", str p2]) ps p
         fun pr_dict fxy (DictConst (inst, dss)) =
@@ -379,7 +379,7 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
     fun pr_term thm pat vars fxy (IConst c) =
           pr_app thm pat vars fxy (c, [])
       | pr_term thm pat vars fxy (IVar v) =
-          str (lookup_var vars v)
+          str (Code_Name.lookup_var vars v)
       | pr_term thm pat vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
            of SOME c_ts => pr_app thm pat vars fxy c_ts
@@ -407,7 +407,7 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
         else [pr_term thm pat vars BR (Code_Thingol.eta_expand (length tys) app)]
       else (str o deresolve) c
         :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term thm pat vars BR) ts)
-    and pr_app thm pat vars = gen_pr_app pr_app' pr_term syntax_const is_cons thm pat vars
+    and pr_app thm pat vars = gen_pr_app pr_app' pr_term syntax_const is_cons naming thm pat vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
@@ -449,8 +449,8 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
         val x = Name.variant (map_filter I fished1) "x";
         val fished2 = map_index (fillup_param x) fished1;
         val (fished3, _) = Name.variants fished2 Name.context;
-        val vars' = intro_vars fished3 vars;
-      in map (lookup_var vars') fished3 end;
+        val vars' = Code_Name.intro_vars fished3 vars;
+      in map (Code_Name.lookup_var vars') fished3 end;
     fun pr_stmt (MLFuns (funns as funn :: funns')) =
           let
             fun pr_eq ((ts, t), (thm, _)) =
@@ -460,8 +460,8 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
                     then NONE else (SOME o NameSpace.base o deresolve) c)
                     ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = reserved_names
-                  |> intro_vars consts
-                  |> intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
+                  |> Code_Name.intro_vars consts
+                  |> Code_Name.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
                       (insert (op =)) ts []);
               in concat [
                 (Pretty.block o Pretty.commas) (map (pr_term thm true vars NOBR) ts),
@@ -488,8 +488,8 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
                         then NONE else (SOME o NameSpace.base o deresolve) c)
                         ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = reserved_names
-                      |> intro_vars consts
-                      |> intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
+                      |> Code_Name.intro_vars consts
+                      |> Code_Name.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
                           (insert (op =)) ts []);
                   in
                     concat (
@@ -516,7 +516,7 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
                         ((fold o Code_Thingol.fold_constnames)
                           (insert (op =)) (map (snd o fst) eqs) []);
                     val vars = reserved_names
-                      |> intro_vars consts;
+                      |> Code_Name.intro_vars consts;
                     val dummy_parms = (map str o fish_params vars o map (fst o fst)) eqs;
                   in
                     Pretty.block (
@@ -574,7 +574,7 @@ fun pr_ocaml_stmt syntax_tyco syntax_const labelled_name reserved_names deresolv
           in Pretty.chunks (ps @ [Pretty.block ([p, str ";;"])]) end
      | pr_stmt (MLClass (class, (v, (superclasses, classparams)))) =
           let
-            val w = "_" ^ first_upper v;
+            val w = "_" ^ Code_Name.first_upper v;
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
                 deresolve classrel, ":", "'" ^ v, deresolve class
@@ -716,16 +716,16 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
       let
         val (x, nsp_typ') = f nsp_typ
       in (x, (nsp_fun, nsp_typ')) end;
-    val mk_name_module = mk_name_module reserved_names NONE module_alias program;
+    val mk_name_module = Code_Name.mk_name_module reserved_names NONE module_alias program;
     fun mk_name_stmt upper name nsp =
       let
-        val (_, base) = dest_name name;
-        val base' = if upper then first_upper base else base;
+        val (_, base) = Code_Name.dest_name name;
+        val base' = if upper then Code_Name.first_upper base else base;
         val ([base''], nsp') = Name.variants [base'] nsp;
       in (base'', nsp') end;
     fun add_funs stmts =
       fold_map
-        (fn (name, Code_Thingol.Fun stmt) =>
+        (fn (name, Code_Thingol.Fun (_, stmt)) =>
               map_nsp_fun_yield (mk_name_stmt false name) #>>
                 rpair (name, stmt |> apsnd (filter (snd o snd)))
           | (name, _) =>
@@ -734,7 +734,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
       #>> (split_list #> apsnd MLFuns);
     fun add_datatypes stmts =
       fold_map
-        (fn (name, Code_Thingol.Datatype stmt) =>
+        (fn (name, Code_Thingol.Datatype (_, stmt)) =>
               map_nsp_typ_yield (mk_name_stmt false name) #>> rpair (SOME (name, stmt))
           | (name, Code_Thingol.Datatypecons _) =>
               map_nsp_fun_yield (mk_name_stmt true name) #>> rpair NONE
@@ -747,8 +747,8 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
              | stmts => MLDatas stmts)));
     fun add_class stmts =
       fold_map
-        (fn (name, Code_Thingol.Class info) =>
-              map_nsp_typ_yield (mk_name_stmt false name) #>> rpair (SOME (name, info))
+        (fn (name, Code_Thingol.Class (_, stmt)) =>
+              map_nsp_typ_yield (mk_name_stmt false name) #>> rpair (SOME (name, stmt))
           | (name, Code_Thingol.Classrel _) =>
               map_nsp_fun_yield (mk_name_stmt false name) #>> rpair NONE
           | (name, Code_Thingol.Classparam _) =>
@@ -786,7 +786,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
           []
           |> fold (fold (insert (op =)) o Graph.imm_succs program) names
           |> subtract (op =) names;
-        val (module_names, _) = (split_list o map dest_name) names;
+        val (module_names, _) = (split_list o map Code_Name.dest_name) names;
         val module_name = (the_single o distinct (op =) o map mk_name_module) module_names
           handle Empty =>
             error ("Different namespace prefixes for mutual dependencies:\n"
@@ -796,7 +796,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
         val module_name_path = NameSpace.explode module_name;
         fun add_dep name name' =
           let
-            val module_name' = (mk_name_module o fst o dest_name) name';
+            val module_name' = (mk_name_module o fst o Code_Name.dest_name) name';
           in if module_name = module_name' then
             map_node module_name_path (Graph.add_edge (name, name'))
           else let
@@ -824,7 +824,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
           (rev (Graph.strong_conn program)));
     fun deresolver prefix name = 
       let
-        val module_name = (fst o dest_name) name;
+        val module_name = (fst o Code_Name.dest_name) name;
         val module_name' = (NameSpace.explode o mk_name_module) module_name;
         val (_, (_, remainder)) = chop_prefix (op =) (prefix, module_name');
         val stmt_name =
@@ -840,19 +840,19 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
   in (deresolver, nodes) end;
 
 fun serialize_ml target compile pr_module pr_stmt raw_module_name labelled_name reserved_names includes raw_module_alias
-  _ syntax_tyco syntax_const program cs destination =
+  _ syntax_tyco syntax_const naming program cs destination =
   let
     val is_cons = Code_Thingol.is_cons program;
     val stmt_names = Code_Target.stmt_names_of_destination destination;
     val module_name = if null stmt_names then raw_module_name else SOME "Code";
     val (deresolver, nodes) = ml_node_of_program labelled_name module_name
       reserved_names raw_module_alias program;
-    val reserved_names = make_vars reserved_names;
+    val reserved_names = Code_Name.make_vars reserved_names;
     fun pr_node prefix (Dummy _) =
           NONE
       | pr_node prefix (Stmt (_, stmt)) = if null stmt_names orelse
           (not o null o filter (member (op =) stmt_names) o stmt_names_of) stmt then SOME
-            (pr_stmt syntax_tyco syntax_const labelled_name reserved_names
+            (pr_stmt naming labelled_name syntax_tyco syntax_const reserved_names
               (deresolver prefix) is_cons stmt)
           else NONE
       | pr_node prefix (Module (module_name, (_, nodes))) =
@@ -861,8 +861,8 @@ fun serialize_ml target compile pr_module pr_stmt raw_module_name labelled_name 
               o rev o flat o Graph.strong_conn) nodes)
           |> (if null stmt_names then pr_module module_name else Pretty.chunks)
           |> SOME;
-    val cs' = map_filter (try (deresolver (if is_some module_name then the_list module_name else [])))
-      cs;
+    val cs' = (map o try)
+      (deresolver (if is_some module_name then the_list module_name else [])) cs;
     val p = Pretty.chunks (separate (str "") (map snd includes @ (map_filter
       (pr_node [] o Graph.get_node nodes) o rev o flat o Graph.strong_conn) nodes));
   in
@@ -877,8 +877,8 @@ end; (*local*)
 
 (** ML (system language) code for evaluation and instrumentalization **)
 
-fun ml_code_of thy = Code_Target.serialize_custom thy
-  (target_SML, (fn _ => fn [] => serialize_ml target_SML (SOME (K ())) (K Pretty.chunks) pr_sml_stmt (SOME ""),
+fun ml_code_of thy = Code_Target.serialize_custom thy (target_SML,
+    (fn _ => fn [] => serialize_ml target_SML (SOME (K ())) (K Pretty.chunks) pr_sml_stmt (SOME ""),
   literals_sml));
 
 
@@ -890,15 +890,16 @@ fun eval eval'' term_of reff thy ct args =
     val _ = if null (term_frees (term_of ct)) then () else error ("Term "
       ^ quote (Syntax.string_of_term_global thy (term_of ct))
       ^ " to be evaluated contains free variables");
-    fun eval' program ((vs, ty), t) deps =
+    fun eval' naming program ((vs, ty), t) deps =
       let
         val _ = if Code_Thingol.contains_dictvar t then
           error "Term to be evaluated constains free dictionaries" else ();
+        val value_name = "Value.VALUE.value"
         val program' = program
-          |> Graph.new_node (Code_Name.value_name,
-              Code_Thingol.Fun (([], ty), [(([], t), (Drule.dummy_thm, true))]))
-          |> fold (curry Graph.add_edge Code_Name.value_name) deps;
-        val (value_code, [value_name']) = ml_code_of thy program' [Code_Name.value_name];
+          |> Graph.new_node (value_name,
+              Code_Thingol.Fun (Term.dummy_patternN, (([], ty), [(([], t), (Drule.dummy_thm, true))])))
+          |> fold (curry Graph.add_edge value_name) deps;
+        val (value_code, [SOME value_name']) = ml_code_of thy naming program' [value_name];
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate ctxt Output.ml_output false reff sml_code end;
@@ -922,12 +923,13 @@ val is_first_occ = fst o snd o CodeAntiqData.get;
 
 fun delayed_code thy consts () =
   let
-    val (consts', program) = Code_Thingol.consts_program thy consts;
-    val (ml_code, consts'') = ml_code_of thy program consts';
-    val _ = if length consts <> length consts'' then
-      error ("One of the constants " ^ commas (map (quote o Code_Unit.string_of_const thy) consts)
-        ^ "\nhas a user-defined serialization") else ();
-  in (ml_code, consts ~~ consts'') end;
+    val (consts', (naming, program)) = Code_Thingol.consts_program thy consts;
+    val (ml_code, consts'') = ml_code_of thy naming program consts';
+    val const_tab = map2 (fn const => fn NONE =>
+      error ("Constant " ^ (quote o Code_Unit.string_of_const thy) const
+        ^ "\nhas a user-defined serialization")
+      | SOME const' => (const, const')) consts consts''
+  in (ml_code, const_tab) end;
 
 fun register_const const ctxt =
   let

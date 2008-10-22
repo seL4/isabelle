@@ -7,15 +7,7 @@ Generic operations for pretty printing of target language code.
 
 signature CODE_PRINTER =
 sig
-  val first_upper: string -> string
-  val first_lower: string -> string
-  val dest_name: string -> string * string
-  val mk_name_module: Name.context -> string option -> (string -> string option)
-    -> 'a Graph.T -> string -> string
-  type var_ctxt;
-  val make_vars: string list -> var_ctxt;
-  val intro_vars: string list -> var_ctxt -> var_ctxt;
-  val lookup_var: var_ctxt -> string -> string;
+  val nerror: thm -> string -> 'a
 
   val @@ : 'a * 'a -> 'a list
   val @| : 'a list * 'a -> 'a list
@@ -45,19 +37,21 @@ sig
   type tyco_syntax
   type const_syntax
   val parse_infix: ('a -> 'b) -> lrx * int -> string
-  -> int * ((fixity -> 'b -> Pretty.T) -> fixity -> 'a list -> Pretty.T)
+    -> int * ((fixity -> 'b -> Pretty.T)
+    -> fixity -> 'a list -> Pretty.T)
   val parse_syntax: ('a -> 'b) -> OuterParse.token list
-    -> (int * ((fixity -> 'b -> Pretty.T) -> fixity -> 'a list -> Pretty.T)) option
-         * OuterParse.token list
-  val simple_const_syntax: (int * ((fixity -> iterm -> Pretty.T) -> fixity
-    -> (iterm * itype) list -> Pretty.T)) option -> const_syntax option
-  val gen_pr_app: (thm -> bool -> var_ctxt -> const * iterm list -> Pretty.T list)
-    -> (thm -> bool -> var_ctxt -> fixity -> iterm -> Pretty.T)
-    -> (string -> const_syntax option) -> (string -> bool)
-    -> thm -> bool -> var_ctxt -> fixity -> const * iterm list -> Pretty.T
+    -> (int * ((fixity -> 'b -> Pretty.T)
+    -> fixity -> 'a list -> Pretty.T)) option * OuterParse.token list
+  val simple_const_syntax: (int * ((fixity -> iterm -> Pretty.T)
+    -> fixity -> (iterm * itype) list -> Pretty.T)) option -> const_syntax option
+  val gen_pr_app: (thm -> bool -> Code_Name.var_ctxt -> const * iterm list -> Pretty.T list)
+    -> (thm -> bool -> Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
+    -> (string -> const_syntax option) -> (string -> bool) -> Code_Thingol.naming
+    -> thm -> bool -> Code_Name.var_ctxt -> fixity -> const * iterm list -> Pretty.T
   val gen_pr_bind: ((string option * Pretty.T option) * itype -> Pretty.T)
-    -> (thm -> bool -> var_ctxt -> fixity -> iterm -> Pretty.T)
-    -> thm -> fixity -> (string option * iterm option) * itype -> var_ctxt -> Pretty.T * var_ctxt
+    -> (thm -> bool -> Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
+    -> thm -> fixity
+    -> (string option * iterm option) * itype -> Code_Name.var_ctxt -> Pretty.T * Code_Name.var_ctxt
 
   type literals
   val Literals: { literal_char: string -> string, literal_string: string -> string,
@@ -68,8 +62,6 @@ sig
   val literal_numeral: literals -> bool -> int -> string
   val literal_list: literals -> Pretty.T list -> Pretty.T
   val infix_cons: literals -> int * string
-
-  val nerror: thm -> string -> 'a
 end;
 
 structure Code_Printer : CODE_PRINTER =
@@ -78,52 +70,6 @@ struct
 open Code_Thingol;
 
 fun nerror thm s = error (s ^ ",\nin equation " ^ Display.string_of_thm thm);
-
-(** names and naming **)
-
-(* auxiliary *)
-
-val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
-val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
-
-val dest_name =
-  apfst NameSpace.implode o split_last o fst o split_last o NameSpace.explode;
-
-fun mk_name_module reserved_names module_prefix module_alias program =
-  let
-    fun mk_alias name = case module_alias name
-     of SOME name' => name'
-      | NONE => name
-          |> NameSpace.explode
-          |> map (fn name => (the_single o fst) (Name.variants [name] reserved_names))
-          |> NameSpace.implode;
-    fun mk_prefix name = case module_prefix
-     of SOME module_prefix => NameSpace.append module_prefix name
-      | NONE => name;
-    val tab =
-      Symtab.empty
-      |> Graph.fold ((fn name => Symtab.default (name, (mk_alias #> mk_prefix) name))
-           o fst o dest_name o fst)
-             program
-  in the o Symtab.lookup tab end;
-
-(* variable name contexts *)
-
-type var_ctxt = string Symtab.table * Name.context;
-
-fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
-  Name.make_context names);
-
-fun intro_vars names (namemap, namectxt) =
-  let
-    val (names', namectxt') = Name.variants names namectxt;
-    val namemap' = fold2 (curry Symtab.update) names names' namemap;
-  in (namemap', namectxt') end;
-
-fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
- of SOME name' => name'
-  | NONE => error ("Invalid name in context: " ^ quote name);
-
 
 (** assembling text pieces **)
 
@@ -182,19 +128,13 @@ fun brackify_infix infx fxy_ctxt =
 type class_syntax = string * (string -> string option);
 type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
   -> fixity -> itype list -> Pretty.T);
-type const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
-  -> thm -> bool -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
+type const_syntax = int * ((Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
+  -> Code_Thingol.naming -> thm -> bool -> Code_Name.var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
 fun simple_const_syntax x = (Option.map o apsnd)
-  (fn pretty => fn pr => fn thm => fn pat => fn vars => pretty (pr vars)) x;
+  (fn pretty => fn pr => fn naming => fn thm => fn pat => fn vars => pretty (pr vars)) x;
 
-(*int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
-  -> )
-
-('a * ('b -> thm -> bool -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T)) option
-***           -> ('a * (('d -> 'b) -> 'e -> 'f -> 'd -> 'c)) option*)
-
-fun gen_pr_app pr_app pr_term syntax_const is_cons thm pat
+fun gen_pr_app pr_app pr_term syntax_const is_cons naming thm pat
     vars fxy (app as ((c, (_, tys)), ts)) =
   case syntax_const c
    of NONE => if pat andalso not (is_cons c) then
@@ -202,7 +142,7 @@ fun gen_pr_app pr_app pr_term syntax_const is_cons thm pat
         else brackify fxy (pr_app thm pat vars app)
     | SOME (k, pr) =>
         let
-          fun pr' fxy ts = pr (pr_term thm pat) thm pat vars fxy (ts ~~ curry Library.take k tys);
+          fun pr' fxy ts = pr (pr_term thm pat) naming thm pat vars fxy (ts ~~ curry Library.take k tys);
         in if k = length ts
           then pr' fxy ts
         else if k < length ts
@@ -216,9 +156,9 @@ fun gen_pr_bind pr_bind pr_term thm (fxy : fixity) ((v, pat), ty : itype) vars =
     val vs = case pat
      of SOME pat => Code_Thingol.fold_varnames (insert (op =)) pat []
       | NONE => [];
-    val vars' = intro_vars (the_list v) vars;
-    val vars'' = intro_vars vs vars';
-    val v' = Option.map (lookup_var vars') v;
+    val vars' = Code_Name.intro_vars (the_list v) vars;
+    val vars'' = Code_Name.intro_vars vs vars';
+    val v' = Option.map (Code_Name.lookup_var vars') v;
     val pat' = Option.map (pr_term thm true vars'' fxy) pat;
   in (pr_bind ((v', pat'), ty), vars'') end;
 

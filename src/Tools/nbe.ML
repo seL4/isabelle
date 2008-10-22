@@ -288,15 +288,15 @@ fun compile_eqnss _ gr raw_deps [] = []
 
 (* preparing function equations *)
 
-fun eqns_of_stmt (_, Code_Thingol.Fun (_, [])) =
+fun eqns_of_stmt (_, Code_Thingol.Fun (_, (_, []))) =
       []
-  | eqns_of_stmt (const, Code_Thingol.Fun ((vs, _), eqns)) =
+  | eqns_of_stmt (const, Code_Thingol.Fun (_, ((vs, _), eqns))) =
       [(const, (vs, map fst eqns))]
   | eqns_of_stmt (_, Code_Thingol.Datatypecons _) =
       []
   | eqns_of_stmt (_, Code_Thingol.Datatype _) =
       []
-  | eqns_of_stmt (class, Code_Thingol.Class (v, (superclasses, classops))) =
+  | eqns_of_stmt (class, Code_Thingol.Class (_, (v, (superclasses, classops)))) =
       let
         val names = map snd superclasses @ map fst classops;
         val params = Name.invent_list [] "d" (length names);
@@ -364,27 +364,28 @@ fun eval_term ctxt gr deps ((vs, ty) : typscheme, t) =
 
 (* reification *)
 
-fun term_of_univ thy idx_tab t =
+fun term_of_univ thy program idx_tab t =
   let
     fun take_until f [] = []
       | take_until f (x::xs) = if f x then [] else x :: take_until f xs;
-    fun is_dict (Const (idx, _)) =
-          let
-            val c = the (Inttab.lookup idx_tab idx);
-          in
-            (is_some o Code_Name.class_rev thy) c
-            orelse (is_some o Code_Name.classrel_rev thy) c
-            orelse (is_some o Code_Name.instance_rev thy) c
-          end
+    fun is_dict (Const (idx, _)) = (case (Graph.get_node program o the o Inttab.lookup idx_tab) idx
+         of Code_Thingol.Class _ => true
+          | Code_Thingol.Classrel _ => true
+          | Code_Thingol.Classinst _ => true
+          | _ => false)
       | is_dict (DFree _) = true
       | is_dict _ = false;
+    fun const_of_idx idx = (case (Graph.get_node program o the o Inttab.lookup idx_tab) idx
+         of Code_Thingol.Fun (c, _) => c
+          | Code_Thingol.Datatypecons (c, _) => c
+          | Code_Thingol.Classparam (c, _) => c);
     fun of_apps bounds (t, ts) =
       fold_map (of_univ bounds) ts
       #>> (fn ts' => list_comb (t, rev ts'))
     and of_univ bounds (Const (idx, ts)) typidx =
           let
             val ts' = take_until is_dict ts;
-            val c = (the o Code_Name.const_rev thy o the o Inttab.lookup idx_tab) idx;
+            val c = const_of_idx idx;
             val (_, T) = Code.default_typscheme thy c;
             val T' = map_type_tvar (fn ((v, i), S) => TypeInfer.param (typidx + i) (v, [])) T;
             val typidx' = typidx + maxidx_of_typ T' + 1;
@@ -405,7 +406,7 @@ structure Nbe_Functions = CodeDataFun
 (
   type T = (Univ option * int) Graph.T * (int * string Inttab.table);
   val empty = (Graph.empty, (0, Inttab.empty));
-  fun purge thy cs (gr, (maxidx, idx_tab)) =
+  fun purge thy cs (gr, (maxidx, idx_tab)) = empty (*FIXME
     let
       val cs_exisiting =
         map_filter (Code_Name.const_rev thy) (Graph.keys gr);
@@ -413,7 +414,7 @@ structure Nbe_Functions = CodeDataFun
           o map (Code_Name.const thy)
           o filter (member (op =) cs_exisiting)
         ) cs;
-    in (Graph.del_nodes dels gr, (maxidx, idx_tab)) end;
+    in (Graph.del_nodes dels gr, (maxidx, idx_tab)) end*);
 );
 
 (* compilation, evaluation and reification *)
@@ -425,7 +426,7 @@ fun compile_eval thy program vs_ty_t deps =
   in
     vs_ty_t
     |> eval_term ctxt gr deps
-    |> term_of_univ thy idx_tab
+    |> term_of_univ thy program idx_tab
   end;
 
 (* evaluation with type reconstruction *)
@@ -478,13 +479,13 @@ fun add_triv_classes thy =
 fun norm_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    fun evaluator' t program vs_ty_t deps = norm_oracle (thy, t, program, vs_ty_t, deps);
+    fun evaluator' t naming program vs_ty_t deps = norm_oracle (thy, t, program, vs_ty_t, deps);
     fun evaluator t = (add_triv_classes thy t, evaluator' t);
   in Code_Thingol.eval_conv thy evaluator ct end;
 
 fun norm_term thy t =
   let
-    fun evaluator' t program vs_ty_t deps = eval thy t program vs_ty_t deps;
+    fun evaluator' t naming program vs_ty_t deps = eval thy t program vs_ty_t deps;
     fun evaluator t = (add_triv_classes thy t, evaluator' t);
   in (Code.postprocess_term thy o Code_Thingol.eval_term thy evaluator) t end;
 

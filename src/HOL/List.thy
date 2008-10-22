@@ -3520,20 +3520,8 @@ ML {*
 local
 
 open Basic_Code_Thingol;
-val nil' = Code_Name.const @{theory} @{const_name Nil};
-val cons' = Code_Name.const @{theory} @{const_name Cons};
-val char' = Code_Name.const @{theory} @{const_name Char}
-val nibbles' = map (Code_Name.const @{theory})
-   [@{const_name Nibble0}, @{const_name Nibble1},
-    @{const_name Nibble2}, @{const_name Nibble3},
-    @{const_name Nibble4}, @{const_name Nibble5},
-    @{const_name Nibble6}, @{const_name Nibble7},
-    @{const_name Nibble8}, @{const_name Nibble9},
-    @{const_name NibbleA}, @{const_name NibbleB},
-    @{const_name NibbleC}, @{const_name NibbleD},
-    @{const_name NibbleE}, @{const_name NibbleF}];
 
-fun implode_list t =
+fun implode_list (nil', cons') t =
   let
     fun dest_cons (IConst (c, _) `$ t1 `$ t2) =
           if c = cons'
@@ -3546,25 +3534,39 @@ fun implode_list t =
     | _ => NONE
   end;
 
-fun decode_char (IConst (c1, _), IConst (c2, _)) =
+fun decode_char nibbles' (IConst (c1, _), IConst (c2, _)) =
       let
         fun idx c = find_index (curry (op =) c) nibbles';
         fun decode ~1 _ = NONE
           | decode _ ~1 = NONE
           | decode n m = SOME (chr (n * 16 + m));
       in decode (idx c1) (idx c2) end
-  | decode_char _ = NONE;
+  | decode_char _ _ = NONE;
 
-fun implode_string mk_char mk_string ts =
+fun implode_string (char', nibbles') mk_char mk_string ts =
   let
     fun implode_char (IConst (c, _) `$ t1 `$ t2) =
-          if c = char' then decode_char (t1, t2) else NONE
+          if c = char' then decode_char nibbles' (t1, t2) else NONE
       | implode_char _ = NONE;
     val ts' = map implode_char ts;
   in if forall is_some ts'
     then (SOME o Code_Printer.str o mk_string o implode o map_filter I) ts'
     else NONE
   end;
+
+fun list_names naming = pairself (the o Code_Thingol.lookup_const naming)
+  (@{const_name Nil}, @{const_name Cons});
+fun char_name naming = (the o Code_Thingol.lookup_const naming)
+  @{const_name Char}
+fun nibble_names naming = map (the o Code_Thingol.lookup_const naming)
+  [@{const_name Nibble0}, @{const_name Nibble1},
+   @{const_name Nibble2}, @{const_name Nibble3},
+   @{const_name Nibble4}, @{const_name Nibble5},
+   @{const_name Nibble6}, @{const_name Nibble7},
+   @{const_name Nibble8}, @{const_name Nibble9},
+   @{const_name NibbleA}, @{const_name NibbleB},
+   @{const_name NibbleC}, @{const_name NibbleD},
+   @{const_name NibbleE}, @{const_name NibbleF}];
 
 fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
   Code_Printer.brackify_infix (target_fxy, Code_Printer.R) fxy [
@@ -3576,8 +3578,8 @@ fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
 fun pretty_list literals =
   let
     val mk_list = Code_Printer.literal_list literals;
-    fun pretty pr thm pat vars fxy [(t1, _), (t2, _)] =
-      case Option.map (cons t1) (implode_list t2)
+    fun pretty pr naming thm pat vars fxy [(t1, _), (t2, _)] =
+      case Option.map (cons t1) (implode_list (list_names naming) t2)
        of SOME ts => mk_list (map (pr vars Code_Printer.NOBR) ts)
         | NONE => default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
   in (2, pretty) end;
@@ -3587,9 +3589,9 @@ fun pretty_list_string literals =
     val mk_list = Code_Printer.literal_list literals;
     val mk_char = Code_Printer.literal_char literals;
     val mk_string = Code_Printer.literal_string literals;
-    fun pretty pr thm pat vars fxy [(t1, _), (t2, _)] =
-      case Option.map (cons t1) (implode_list t2)
-       of SOME ts => (case implode_string mk_char mk_string ts
+    fun pretty pr naming thm pat vars fxy [(t1, _), (t2, _)] =
+      case Option.map (cons t1) (implode_list (list_names naming) t2)
+       of SOME ts => (case implode_string (char_name naming, nibble_names naming) mk_char mk_string ts
            of SOME p => p
             | NONE => mk_list (map (pr vars Code_Printer.NOBR) ts))
         | NONE => default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
@@ -3598,8 +3600,8 @@ fun pretty_list_string literals =
 fun pretty_char literals =
   let
     val mk_char = Code_Printer.literal_char literals;
-    fun pretty _ thm _ _ _ [(t1, _), (t2, _)] =
-      case decode_char (t1, t2)
+    fun pretty _ naming thm _ _ _ [(t1, _), (t2, _)] =
+      case decode_char (nibble_names naming) (t1, t2)
        of SOME c => (Code_Printer.str o mk_char) c
         | NONE => Code_Printer.nerror thm "Illegal character expression";
   in (2, pretty) end;
@@ -3608,9 +3610,9 @@ fun pretty_message literals =
   let
     val mk_char = Code_Printer.literal_char literals;
     val mk_string = Code_Printer.literal_string literals;
-    fun pretty _ thm _ _ _ [(t, _)] =
-      case implode_list t
-       of SOME ts => (case implode_string mk_char mk_string ts
+    fun pretty _ naming thm _ _ _ [(t, _)] =
+      case implode_list (list_names naming) t
+       of SOME ts => (case implode_string (char_name naming, nibble_names naming) mk_char mk_string ts
            of SOME p => p
             | NONE => Code_Printer.nerror thm "Illegal message expression")
         | NONE => Code_Printer.nerror thm "Illegal message expression";
