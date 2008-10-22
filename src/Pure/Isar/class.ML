@@ -40,6 +40,10 @@ sig
     -> local_theory -> Proof.state
   val prove_instantiation_instance: (Proof.context -> tactic)
     -> local_theory -> local_theory
+  val prove_instantiation_exit: (Proof.context -> tactic)
+    -> local_theory -> theory
+  val prove_instantiation_exit_result: (morphism -> 'a -> 'b)
+    -> (Proof.context -> 'b -> tactic) -> 'a -> local_theory -> 'b * theory
   val conclude_instantiation: local_theory -> local_theory
   val instantiation_param: local_theory -> string -> string option
   val confirm_declaration: string -> local_theory -> local_theory
@@ -818,6 +822,20 @@ val instantiation_instance = gen_instantiation_instance (fn after_qed => fn ts =
 fun prove_instantiation_instance tac = gen_instantiation_instance (fn after_qed =>
   fn ts => fn lthy => after_qed (map (fn t => Goal.prove lthy [] [] t
     (fn {context, ...} => tac context)) ts) lthy) I;
+
+fun prove_instantiation_exit tac = prove_instantiation_instance tac
+  #> LocalTheory.exit_global;
+
+fun prove_instantiation_exit_result f tac x lthy =
+  let
+    val phi = ProofContext.export_morphism lthy
+      (ProofContext.init (ProofContext.theory_of lthy));
+    val y = f phi x;
+  in
+    lthy
+    |> prove_instantiation_exit (fn ctxt => tac ctxt y)
+    |> pair y
+  end;
 
 fun conclude_instantiation lthy =
   let
