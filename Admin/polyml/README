@@ -1,20 +1,19 @@
 
-This distribution of Poly/ML 5.2 has been compiled from the original
+This distribution of Poly/ML 5.2.1 has been compiled from the original
 sources as follows:
 
-  tar xvzf polyml.5.2.tar.gz
-  cd polyml.5.2
-  chmod +x install-sh
-  ./configure --prefix=/tmp/polyml --without-x
+  tar xvzf polyml.5.2.1.tar.gz
+  cd polyml.5.2.1
+  ./configure --prefix=/tmp/polyml
   make
   make install
 
 Now /tmp/polyml/bin/* and /tmp/polyml/lib/* are moved to the
-platform-specific target directory (e.g. polyml-5.2/x86-linux).  Note
+platform-specific target directory (e.g. polyml-5.2.1/x86-linux).  Note
 that Isabelle/lib/scripts/polyml-platform identifies your platform.
 
 
 	Makarius
-	03-Jun-2008
+	22-Oct-2008
 
 $Id$
