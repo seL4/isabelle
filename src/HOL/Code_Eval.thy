@@ -15,14 +15,10 @@ subsubsection {* Terms and class @{text term_of} *}
 
 datatype "term" = dummy_term
 
-definition
-  Const :: "message_string \<Rightarrow> typerep \<Rightarrow> term"
-where
+definition Const :: "message_string \<Rightarrow> typerep \<Rightarrow> term" where
   "Const _ _ = dummy_term"
 
-definition
-  App :: "term \<Rightarrow> term \<Rightarrow> term"
-where
+definition App :: "term \<Rightarrow> term \<Rightarrow> term" where
   "App _ _ = dummy_term"
 
 code_datatype Const App

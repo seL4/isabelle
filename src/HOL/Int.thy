@@ -21,9 +21,7 @@ begin
 
 subsection {* The equivalence relation underlying the integers *}
 
-definition
-  intrel :: "((nat \<times> nat) \<times> (nat \<times> nat)) set"
-where
+definition intrel :: "((nat \<times> nat) \<times> (nat \<times> nat)) set" where
   [code del]: "intrel = {((x, y), (u, v)) | x y u v. x + v = u +y }"
 
 typedef (Integ)
