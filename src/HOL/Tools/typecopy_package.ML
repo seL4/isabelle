@@ -20,6 +20,7 @@ sig
   val get_typecopies: theory -> string list
   val get_info: theory -> string -> info option
   val interpretation: (string -> theory -> theory) -> theory -> theory
+  val add_typecopy_default_code: string -> theory -> theory
   val print_typecopies: theory -> unit
   val setup: theory -> theory
 end;
@@ -71,14 +72,9 @@ val get_info = Symtab.lookup o TypecopyData.get;
 structure TypecopyInterpretation = InterpretationFun(type T = string val eq = op =);
 val interpretation = TypecopyInterpretation.interpretation;
 
-
-(* add a type copy *)
-
-local
-
-fun gen_add_typecopy prep_typ (raw_tyco, raw_vs) raw_ty constr_proj thy =
+fun add_typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
   let
-    val ty = prep_typ thy raw_ty;
+    val ty = Sign.certify_typ thy raw_ty;
     val vs = AList.make (the_default HOLogic.typeS o AList.lookup (op =) (typ_tfrees ty)) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
     fun add_info tyco ( { abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
@@ -106,71 +102,64 @@ fun gen_add_typecopy prep_typ (raw_tyco, raw_vs) raw_ty constr_proj thy =
         end
   in
     thy
-    |> TypedefPackage.add_typedef_i false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
+    |> TypedefPackage.add_typedef false (SOME raw_tyco) (raw_tyco, map fst vs, NoSyn)
       (HOLogic.mk_UNIV ty) (Option.map swap constr_proj) tac
     |-> (fn (tyco, info) => add_info tyco info)
   end;
 
-in
-
-val add_typecopy = gen_add_typecopy Sign.certify_typ;
-
-end;
-
 
 (* code generator setup *)
 
-fun add_typecopy_spec tyco thy =
+fun add_typecopy_default_code tyco thy =
   let
-    val SOME { constr, proj_def, inject, vs = raw_vs, ... } = get_info thy tyco;
-    val vs = (map o apsnd)
-      (curry (Sorts.inter_sort (Sign.classes_of thy)) [HOLogic.class_eq]) raw_vs;
+    val SOME { constr = constr_name, proj = (proj, _), proj_def = proj_eq, vs = raw_vs,
+      typ = raw_ty_rep, ... } =  get_info thy tyco;
+    val inst_meet = Sorts.meet_sort_typ (Sign.classes_of thy)
+      (Logic.varifyT raw_ty_rep, [HOLogic.class_eq]);
+    val ty_inst = Logic.varifyT
+      #> inst_meet
+      #> Logic.unvarifyT;
+    val vs = (map dest_TFree o snd o dest_Type o ty_inst)
+      (Type (tyco, map TFree raw_vs));
+    val ty_rep = ty_inst raw_ty_rep;
+    val SOME { Rep_inject = proj_inject, ... } = TypedefPackage.get_info thy tyco;
+    val ty_constr = Logic.unvarifyT (Sign.the_const_type thy constr_name);
+    val constr = (constr_name, ty_constr)
     val ty = Type (tyco, map TFree vs);
-    val ty_constr = Logic.unvarifyT (Sign.the_const_type thy constr);
-    fun add_def tyco lthy =
-      let
-        fun mk_side const_name = Const (const_name, ty --> ty --> HOLogic.boolT)
-          $ Free ("x", ty) $ Free ("y", ty);
-        val def = HOLogic.mk_Trueprop (HOLogic.mk_eq
-          (mk_side @{const_name eq_class.eq}, mk_side @{const_name "op ="}));
-        val def' = Syntax.check_term lthy def;
-        val ((_, (_, thm)), lthy') = Specification.definition
-          (NONE, (Attrib.no_binding, def')) lthy;
-        val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy);
-        val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
-      in (thm', lthy') end;
-    fun tac thms = Class.intro_classes_tac []
-      THEN ALLGOALS (ProofContext.fact_tac thms);
-    fun add_eq_thms thy = 
-      let
-        val eq = inject
-          |> Code_Unit.constrain_thm thy [HOLogic.class_eq]
-          |> Simpdata.mk_eq
-          |> MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}]
-          |> AxClass.unoverload thy;
-        val eq_refl = @{thm HOL.eq_refl}
-          |> Thm.instantiate
-              ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], [])
-          |> AxClass.unoverload thy;
-      in
-        thy
-        |> Code.add_eqn eq
-        |> Code.add_nonlinear_eqn eq_refl
-      end;
+    fun mk_eq ty t_x t_y = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
+      $ t_x $ t_y;
+    fun mk_proj t = Const (proj, ty --> ty_rep) $ t;
+    val (t_x, t_y) = (Free ("x", ty), Free ("y", ty));
+    val def_eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
+      (mk_eq ty t_x t_y, mk_eq ty_rep (mk_proj t_x) (mk_proj t_y));
+    fun mk_eq_refl thy = @{thm HOL.eq_refl}
+      |> Thm.instantiate
+         ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], [])
+      |> AxClass.unoverload thy;
   in
     thy
-    |> Code.add_datatype [(constr, ty_constr)]
-    |> Code.add_eqn proj_def
+    |> Code.add_datatype [constr]
+    |> Code.add_eqn proj_eq
     |> TheoryTarget.instantiation ([tyco], vs, [HOLogic.class_eq])
-    |> add_def tyco
-    |-> (fn thm => Class.prove_instantiation_instance (K (tac [thm]))
-    #> LocalTheory.exit_global
-    #> Code.del_eqn thm
-    #> add_eq_thms)
+    |> `(fn lthy => Syntax.check_term lthy def_eq)
+    |-> (fn def_eq => Specification.definition
+         (NONE, (Attrib.no_binding, def_eq)))
+    |-> (fn (_, (_, def_thm)) =>
+       Class.prove_instantiation_exit_result Morphism.thm
+         (fn _ => fn def_thm => Class.intro_classes_tac []
+            THEN (Simplifier.rewrite_goals_tac
+              (map Simpdata.mk_eq [def_thm, @{thm eq}, proj_inject]))
+                THEN ALLGOALS (rtac @{thm refl})) def_thm)
+    |-> (fn def_thm => Code.add_eqn def_thm)
+    |> `(fn thy => mk_eq_refl thy)
+    |-> (fn refl_thm => Code.add_nonlinear_eqn refl_thm)
   end;
+
+fun perhaps_add_typecopy_default_code tyco thy =
+  add_typecopy_default_code tyco thy handle Sorts.CLASS_ERROR _ => thy;
 
 val setup =
   TypecopyInterpretation.init
-  #> interpretation add_typecopy_spec
+  #> interpretation perhaps_add_typecopy_default_code
 
 end;
