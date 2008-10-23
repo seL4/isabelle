@@ -1943,7 +1943,7 @@ fun new_definition thyname constname rhs thy =
         val (linfo,tm24) = disamb_term (mk_teq constname rhs' thy'')
         val rew = rewrite_hol4_term eq thy''
         val crhs = cterm_of thy'' (#2 (Logic.dest_equals (prop_of rew)))
-        val thy22 = if (def_name constname) = thmname andalso not redeclared andalso csyn = NoSyn
+        val thy22 = if Thm.def_name constname = thmname andalso not redeclared andalso csyn = NoSyn
                     then
                         let
                             val p1 = quotename constname
@@ -2038,7 +2038,7 @@ fun new_specification thyname thmname names hth thy =
             val th  = equal_elim rew res'
             fun handle_const (name,thy) =
                 let
-                    val defname = def_name name
+                    val defname = Thm.def_name name
                     val (newname,thy') = get_defname thyname name thy
                 in
                     (if defname = newname

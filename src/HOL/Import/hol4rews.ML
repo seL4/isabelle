@@ -617,7 +617,7 @@ fun get_defname thyname name thy =
 	  | NONE =>
 	    let
 		val used = HOL4UNames.get thy
-		val defname = def_name name
+		val defname = Thm.def_name name
 		val pdefname = name ^ "_primdef"
 	    in
 		if not (defname mem used)
