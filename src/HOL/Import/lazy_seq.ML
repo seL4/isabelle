@@ -80,15 +80,13 @@ end
 structure LazySeq :> LAZY_SEQ =
 struct
 
-open Susp
-
 datatype 'a seq = Seq of ('a * 'a seq) option Susp.T
 
 exception Empty
 
-fun getItem (Seq s) = force s
+fun getItem (Seq s) = Susp.force s
 val pull = getItem
-fun make f = Seq (delay f)
+fun make f = Seq (Susp.delay f)
 
 fun null s = is_none (getItem s)
 
@@ -139,7 +137,7 @@ end
 local
     fun F NONE _ = raise Subscript
       | F (SOME(x,s)) n = SOME(x,F' s (n-1))
-    and F' s 0 = Seq (value NONE)
+    and F' s 0 = Seq (Susp.value NONE)
       | F' s n = make (fn () => F (getItem s) n)
 in
 fun take (s,n) =
@@ -168,14 +166,14 @@ end
 
 local
     fun F s NONE = s
-      | F s (SOME(x,s')) = F (SOME(x, Seq (value s))) (getItem s')
+      | F s (SOME(x,s')) = F (SOME(x, Seq (Susp.value s))) (getItem s')
 in
 fun rev s = make (fn () => F NONE (getItem s))
 end
 
 local
     fun F s NONE = getItem s
-      | F s (SOME(x,s')) = F (Seq (value (SOME(x,s)))) (getItem s')
+      | F s (SOME(x,s')) = F (Seq (Susp.value (SOME(x,s)))) (getItem s')
 in
 fun revAppend (s1,s2) = make (fn () => F s2 (getItem s1))
 end
@@ -296,13 +294,13 @@ fun collate c (s1,s2) =
 	F' s1 s2
     end
 
-fun empty  _ = Seq (value NONE)
-fun single x = Seq(value (SOME(x,Seq (value NONE))))
-fun cons a = Seq(value (SOME a))
+fun empty  _ = Seq (Susp.value NONE)
+fun single x = Seq(Susp.value (SOME(x,Seq (Susp.value NONE))))
+fun cons a = Seq(Susp.value (SOME a))
 
 fun cycle seqfn =
     let
-	val knot = ref (Seq (value NONE))
+	val knot = ref (Seq (Susp.value NONE))
     in
 	knot := seqfn (fn () => !knot);
 	!knot
@@ -376,7 +374,7 @@ end
 (* Adapted from seq.ML *)
 
 val succeed = single
-fun fail _ = Seq (value NONE)
+fun fail _ = Seq (Susp.value NONE)
 
 (* fun op THEN (f, g) x = flat (map g (f x)) *)
 
@@ -416,7 +414,7 @@ fun FIRST fs = foldr (op ORELSE) fail fs
 fun TRY f x =
     make (fn () =>
 	     case getItem (f x) of
-		 NONE => SOME(x,Seq (value NONE))
+		 NONE => SOME(x,Seq (Susp.value NONE))
 	       | some => some)
 
 fun REPEAT f =
@@ -448,13 +446,13 @@ fun DETERM f x =
     make (fn () =>
 	     case getItem (f x) of
 		 NONE => NONE
-	       | SOME (x', _) => SOME(x',Seq (value NONE)))
+	       | SOME (x', _) => SOME(x',Seq (Susp.value NONE)))
 
 (*partial function as procedure*)
 fun try f x =
     make (fn () =>
 	     case Basics.try f x of
-		 SOME y => SOME(y,Seq (value NONE))
+		 SOME y => SOME(y,Seq (Susp.value NONE))
 	       | NONE => NONE)
 
 (*functional to print a sequence, up to "count" elements;
@@ -499,7 +497,7 @@ fun mapp f s1 s2 =
 
 (*turn a list of sequences into a sequence of lists*)
 local
-    fun F [] = SOME([],Seq (value NONE))
+    fun F [] = SOME([],Seq (Susp.value NONE))
       | F (xq :: xqs) =
         case getItem xq of
             NONE => NONE
