@@ -87,7 +87,7 @@ fun declare_skofuns s th =
               Sign.declare_const [Markup.property_internal] ((Name.binding cname, cT), NoSyn) thy
             val cdef = cname ^ "_def"
             val thy'' = Theory.add_defs_i true false [(cdef, Logic.mk_equals (c, rhs))] thy'
-            val ax = Thm.get_axiom_i thy'' (Sign.full_name thy'' cdef)
+            val ax = Thm.axiom thy'' (Sign.full_name thy'' cdef)
           in dec_sko (subst_bound (list_comb (c, args), p)) (ax :: axs, thy'') end
       | dec_sko (Const ("All", _) $ (xtp as Abs (a, T, p))) thx =
           (*Universal quant: insert a free variable into body and continue*)

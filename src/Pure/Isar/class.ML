@@ -497,7 +497,7 @@ fun declare class pos ((c, mx), dict) thy =
     val ty' = Term.fastype_of dict_def;
     val ty'' = Type.strip_sorts ty';
     val def_eq = Logic.mk_equals (Const (c', ty'), dict_def);
-    fun get_axiom thy = ((Thm.varifyT o Thm.get_axiom_i thy) c', thy);
+    fun get_axiom thy = ((Thm.varifyT o Thm.axiom thy) c', thy);
   in
     thy'
     |> Sign.declare_const pos ((Name.binding c, ty''), mx) |> snd

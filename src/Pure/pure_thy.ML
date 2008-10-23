@@ -205,7 +205,7 @@ end;
 (* store axioms as theorems *)
 
 local
-  fun get_ax thy (name, _) = Thm.get_axiom_i thy (Sign.full_name thy name);
+  fun get_ax thy (name, _) = Thm.axiom thy (Sign.full_name thy name);
   fun get_axs thy named_axs = map (Thm.forall_elim_vars 0 o get_ax thy) named_axs;
   fun add_axm add = fold_map (fn ((name, ax), atts) => fn thy =>
     let

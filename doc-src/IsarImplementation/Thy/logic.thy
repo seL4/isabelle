@@ -594,7 +594,7 @@ text %mlref {*
   @{index_ML Thm.implies_elim: "thm -> thm -> thm"} \\
   @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
   @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
-  @{index_ML Thm.get_axiom_i: "theory -> string -> thm"} \\
+  @{index_ML Thm.axiom: "theory -> string -> thm"} \\
   @{index_ML Thm.add_oracle: "bstring * ('a -> cterm) -> theory
   -> (string * ('a -> thm)) * theory"} \\
   \end{mldecls}
@@ -648,7 +648,7 @@ text %mlref {*
   term variables.  Note that the types in @{text "\<^vec>x\<^isub>\<tau>"}
   refer to the instantiated versions.
 
-  \item @{ML Thm.get_axiom_i}~@{text "thy name"} retrieves a named
+  \item @{ML Thm.axiom}~@{text "thy name"} retrieves a named
   axiom, cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
 
   \item @{ML Thm.add_oracle}~@{text "(name, oracle)"} produces a named

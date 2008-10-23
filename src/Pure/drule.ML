@@ -681,10 +681,10 @@ val remdups_rl =
 
 local
   val A = certify (Free ("A", propT));
-  val get_axiom = Thm.unvarify o Thm.get_axiom (Context.the_theory (Context.the_thread_data ()));
-  val prop_def = get_axiom "prop_def";
-  val term_def = get_axiom "term_def";
-  val sort_constraint_def = get_axiom "sort_constraint_def";
+  val axiom = Thm.unvarify o Thm.axiom (Context.the_theory (Context.the_thread_data ()));
+  val prop_def = axiom "Pure.prop_def";
+  val term_def = axiom "Pure.term_def";
+  val sort_constraint_def = axiom "Pure.sort_constraint_def";
   val C = Thm.lhs_of sort_constraint_def;
   val T = Thm.dest_arg C;
   val CA = mk_implies (C, A);

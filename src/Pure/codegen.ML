@@ -508,7 +508,7 @@ fun mk_deftab thy =
       end handle TERM _ => NONE;
     fun add_def thyname (name, t) = (case dest t of
         NONE => I
-      | SOME _ => (case dest (prep_def (Thm.get_axiom_i thy name)) of
+      | SOME _ => (case dest (prep_def (Thm.axiom thy name)) of
           NONE => I
         | SOME (s, (T, (args, rhs))) => Symtab.map_default (s, [])
             (cons (T, (thyname, split_last (rename_terms (args @ [rhs])))))))
