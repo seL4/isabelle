@@ -71,12 +71,6 @@ signature BASIC_THM =
   val weaken_sorts: sort list -> cterm -> cterm
   val extra_shyps: thm -> sort list
   val strip_shyps: thm -> thm
-  val get_axiom_i: theory -> string -> thm
-  val get_axiom: theory -> xstring -> thm
-  val def_name: string -> string
-  val def_name_optional: string -> string -> string
-  val get_def: theory -> xstring -> thm
-  val axioms_of: theory -> (string * thm) list
 
   (*meta rules*)
   val assume: cterm -> thm
@@ -139,6 +133,11 @@ sig
   val maxidx_thm: thm -> int -> int
   val hyps_of: thm -> term list
   val full_prop_of: thm -> term
+  val axiom: theory -> string -> thm
+  val def_name: string -> string
+  val def_name_optional: string -> string -> string
+  val get_def: theory -> xstring -> thm
+  val axioms_of: theory -> (string * thm) list
   val get_name: thm -> string
   val put_name: string -> thm -> thm
   val get_tags: thm -> Properties.T
@@ -542,8 +541,7 @@ fun deriv_rule0 prf = deriv_rule1 I (make_deriv false [] prf);
 
 (** Axioms **)
 
-(*look up the named axiom in the theory or its ancestors*)
-fun get_axiom_i theory name =
+fun axiom theory name =
   let
     fun get_ax thy =
       Symtab.lookup (Theory.axiom_table thy) name
@@ -562,20 +560,17 @@ fun get_axiom_i theory name =
     | NONE => raise THEORY ("No axiom " ^ quote name, [theory]))
   end;
 
-fun get_axiom thy =
-  get_axiom_i thy o NameSpace.intern (Theory.axiom_space thy);
-
 fun def_name c = c ^ "_def";
 
 fun def_name_optional c "" = def_name c
   | def_name_optional _ name = name;
 
-fun get_def thy = get_axiom thy o def_name;
+fun get_def thy = axiom thy o NameSpace.intern (Theory.axiom_space thy) o def_name;
 
 
 (*return additional axioms of this theory node*)
 fun axioms_of thy =
-  map (fn s => (s, get_axiom_i thy s)) (Symtab.keys (Theory.axiom_table thy));
+  map (fn s => (s, axiom thy s)) (Symtab.keys (Theory.axiom_table thy));
 
 
 (* official name and additional tags *)
