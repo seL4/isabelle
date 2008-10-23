@@ -9,6 +9,11 @@
 			wm.addDockableWindow("Isabelle_state");
 		</CODE>
 	</ACTION>
+    <ACTION NAME="Isabelle.show-scroller">
+		<CODE>
+			wm.addDockableWindow("Isabelle_scroller");
+		</CODE>
+	</ACTION>
 	<ACTION NAME="Isabelle.activate">
 		<CODE>
 			isabelle.jedit.Plugin$.MODULE$.plugin().activate(view);

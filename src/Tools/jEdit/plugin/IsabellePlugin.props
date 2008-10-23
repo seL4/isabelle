@@ -7,14 +7,16 @@ plugin.isabelle.jedit.Plugin.description=Isabelle/Isar integration into jEdit
 plugin.isabelle.jedit.Plugin.option-pane=isabelle
 
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=Isabelle.show-output Isabelle.show-state Isabelle.activate
+plugin.isabelle.jedit.Plugin.menu=Isabelle.show-output Isabelle.show-state Isabelle.activate Isabelle.show-scroller
 
 Isabelle.show-output.label=Show Output
 Isabelle.show-state.label=Show State
+Isabelle.show-scroller.label=Show Scroller
 Isabelle.activate.label=Activate current buffer
 
 Isabelle_output.title=Isabelle Output
 Isabelle_state.title=Isabelle State
+Isabelle_scroller.title=Isabelle Scroller
 
 options.isabelle.label=Isabelle
 options.isabelle.code=new isabelle.jedit.OptionPane();
