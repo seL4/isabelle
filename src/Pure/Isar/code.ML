@@ -118,12 +118,12 @@ val _ =
 (* defining equations with linear flag, default flag and lazy theorems *)
 
 fun pretty_lthms ctxt r = case Susp.peek r
- of SOME thms => map (ProofContext.pretty_thm ctxt o fst) thms
+ of SOME thms => map (ProofContext.pretty_thm ctxt o fst) (Exn.release thms)
   | NONE => [Pretty.str "[...]"];
 
 fun certificate thy f r =
   case Susp.peek r
-   of SOME thms => (Susp.value o f thy) thms
+   of SOME thms => (Susp.value o f thy) (Exn.release thms)
     | NONE => let
         val thy_ref = Theory.check_thy thy;
       in Susp.delay (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;

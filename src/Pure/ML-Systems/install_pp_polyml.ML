@@ -13,4 +13,6 @@ install_pp (fn (str, _, _, _) => fn depth => fn (print: 'a * int -> unit) => fn 
 install_pp (fn (str, _, _, _) => fn depth => fn (print: 'a * int -> unit) => fn (x: 'a Susp.T) =>
   (case Susp.peek x of
     NONE => str "<delayed>"
-  | SOME y => print (y, depth)));
+  | SOME (Exn.Exn _) => str "<failed>"
+  | SOME (Exn.Result y) => print (y, depth)));
+
