@@ -6,7 +6,9 @@ Compatibility wrapper for Poly/ML 5.2 or later.
 
 open Thread;
 use "ML-Systems/polyml_common.ML";
-use "ML-Systems/multithreading_polyml.ML";
+
+if ml_system = "polyml-5.2" then ()
+else use "ML-Systems/multithreading_polyml.ML";
 
 val pointer_eq = PolyML.pointerEq;
 

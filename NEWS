@@ -336,8 +336,8 @@ resort for legacy applications.
 
 *** System ***
 
-* Multithreading for Poly/ML 5.1 is no longer supported, only for
-Poly/ML 5.2 or later.
+* Multithreading for Poly/ML 5.1/5.2 is no longer supported, only for
+Poly/ML 5.2.1 or later.
 
 * The Isabelle "emacs" tool provides a specific interface to invoke
 Proof General / Emacs, with more explicit failure if that is not
