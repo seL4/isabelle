@@ -1,49 +1,60 @@
 (*  Title:      Pure/General/susp.ML
     ID:         $Id$
-    Author:     Sebastian Skalberg and Florian Haftmann, TU Muenchen
+    Author:     Sebastian Skalberg, Florian Haftmann and Makarius, TU Muenchen
 
-Delayed evaluation.  Supposed to be value-oriented.
+Delayed evaluation with memoing.  Concurrency may lead to multiple
+attempts of evaluation -- the first result persists.
 *)
 
 signature SUSP =
 sig
   type 'a T
-  val value: 'a -> 'a T
+  val same: 'a T * 'a T -> bool
   val delay: (unit -> 'a) -> 'a T
+  val value: 'a -> 'a T
+  val peek: 'a T -> 'a Exn.result option
   val force: 'a T -> 'a
   val map_force: ('a -> 'a) -> 'a T -> 'a T
-  val peek: 'a T -> 'a option
-  val same: 'a T * 'a T -> bool
 end
 
 structure Susp :> SUSP =
 struct
 
+(* datatype *)
+
 datatype 'a susp =
-    Value of 'a
-  | Delay of unit -> 'a;
+  Delay of unit -> 'a |
+  Result of 'a Exn.result;
 
 type 'a T = 'a susp ref;
 
-fun value v = ref (Value v);
+fun same (r1: 'a T, r2) = r1 = r2;
 
-fun delay f = ref (Delay f);
+fun delay e = ref (Delay e);
+fun value x = ref (Result (Exn.Result x));
 
-fun force (ref (Value v)) = v
-  | force susp = NAMED_CRITICAL "susp" (fn () =>
-      (case ! susp of
-        Value v => v   (*race wrt. parallel force*)
-      | Delay f =>
-          let
-            val v = f ();
-            val _ = susp := Value v;
-          in v end));
+fun peek r =
+  (case ! r of
+    Delay _ => NONE
+  | Result res => SOME res);
+
+
+(* force result *)
+
+fun force r =
+  let
+    (*potentially concurrent evaluation*)
+    val res =
+      (case ! r of
+        Delay e => Exn.capture e ()
+      | Result res => res);
+    (*assign result -- first one persists*)
+    val res' = NAMED_CRITICAL "susp" (fn () =>
+      (case ! r of
+        Delay _ => (r := Result res; res)
+      | Result res' => res'));
+  in Exn.release res' end;
 
 fun map_force f = value o f o force;
-
-fun peek (ref (Value v)) = SOME v
-  | peek (ref (Delay _)) = NONE;
-
-fun same (r1 : 'a T, r2) = (r1 = r2); (*equality on references*)
 
 end;
