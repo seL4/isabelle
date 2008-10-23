@@ -303,7 +303,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*** Prove the recursor theorems ***)
 
-  val recursor_eqns = case try (get_def thy1) recursor_base_name of
+  val recursor_eqns = case try (Thm.get_def thy1) recursor_base_name of
      NONE => (writeln "  [ No recursion operator ]";
               [])
    | SOME recursor_def =>
