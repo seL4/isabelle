@@ -10,9 +10,9 @@ install_pp (fn (str, _, _, _) => fn depth => fn (print: 'a * int -> unit) => fn 
   | SOME (Exn.Exn _) => str "<failed>"
   | SOME (Exn.Result y) => print (y, depth)));
 
-install_pp (fn (str, _, _, _) => fn depth => fn (print: 'a * int -> unit) => fn (x: 'a Susp.T) =>
-  (case Susp.peek x of
-    NONE => str "<delayed>"
+install_pp (fn (str, _, _, _) => fn depth => fn (print: 'a * int -> unit) => fn (x: 'a Lazy.T) =>
+  (case Lazy.peek x of
+    NONE => str "<lazy>"
   | SOME (Exn.Exn _) => str "<failed>"
   | SOME (Exn.Result y) => print (y, depth)));
 

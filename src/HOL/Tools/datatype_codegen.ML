@@ -464,7 +464,7 @@ fun add_datatypes_equality vs dtcos thy =
         fun get_thms () = (eq_refl, false)
           :: rev (map (rpair true) (get_eq' (Theory.deref thy_ref) dtco));
       in
-        Code.add_eqnl (const, Susp.delay get_thms) thy
+        Code.add_eqnl (const, Lazy.lazy get_thms) thy
       end;
   in
     thy

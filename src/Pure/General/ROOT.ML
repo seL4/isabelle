@@ -28,7 +28,7 @@ use "ord_list.ML";
 use "balanced_tree.ML";
 use "graph.ML";
 use "name_space.ML";
-use "susp.ML";
+use "lazy.ML";
 use "path.ML";
 use "url.ML";
 use "buffer.ML";

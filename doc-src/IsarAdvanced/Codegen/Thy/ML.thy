@@ -24,7 +24,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Code.add_eqn: "thm -> theory -> theory"} \\
   @{index_ML Code.del_eqn: "thm -> theory -> theory"} \\
-  @{index_ML Code.add_eqnl: "string * (thm * bool) list Susp.T -> theory -> theory"} \\
+  @{index_ML Code.add_eqnl: "string * (thm * bool) list Lazy.T -> theory -> theory"} \\
   @{index_ML Code.map_pre: "(MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory"} \\
   @{index_ML Code.map_post: "(MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory"} \\
   @{index_ML Code.add_functrans: "string * (theory -> (thm * bool) list -> (thm * bool) list option)

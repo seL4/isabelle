@@ -915,8 +915,8 @@ local
 
 structure CodeAntiqData = ProofDataFun
 (
-  type T = string list * (bool * (string * (string * (string * string) list) Susp.T));
-  fun init _ = ([], (true, ("", Susp.value ("", []))));
+  type T = string list * (bool * (string * (string * (string * string) list) Lazy.T));
+  fun init _ = ([], (true, ("", Lazy.value ("", []))));
 );
 
 val is_first_occ = fst o snd o CodeAntiqData.get;
@@ -938,13 +938,13 @@ fun register_const const ctxt =
     val (struct_name', ctxt') = if struct_name = ""
       then ML_Antiquote.variant "Code" ctxt
       else (struct_name, ctxt);
-    val acc_code = Susp.delay (delayed_code (ProofContext.theory_of ctxt) consts');
+    val acc_code = Lazy.lazy (delayed_code (ProofContext.theory_of ctxt) consts');
   in CodeAntiqData.put (consts', (false, (struct_name', acc_code))) ctxt' end;
 
 fun print_code struct_name is_first const ctxt =
   let
     val (consts, (_, (struct_code_name, acc_code))) = CodeAntiqData.get ctxt;
-    val (raw_ml_code, consts_map) = Susp.force acc_code;
+    val (raw_ml_code, consts_map) = Lazy.force acc_code;
     val const'' = NameSpace.append (NameSpace.append struct_name struct_code_name)
       ((the o AList.lookup (op =) consts_map) const);
     val ml_code = if is_first then "\nstructure " ^ struct_code_name

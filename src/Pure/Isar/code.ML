@@ -15,7 +15,7 @@ sig
   val add_default_eqn_attr: Attrib.src
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
-  val add_eqnl: string * (thm * bool) list Susp.T -> theory -> theory
+  val add_eqnl: string * (thm * bool) list Lazy.T -> theory -> theory
   val map_pre: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
   val map_post: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
   val add_inline: thm -> theory -> theory
@@ -117,16 +117,16 @@ val _ =
 
 (* defining equations with linear flag, default flag and lazy theorems *)
 
-fun pretty_lthms ctxt r = case Susp.peek r
+fun pretty_lthms ctxt r = case Lazy.peek r
  of SOME thms => map (ProofContext.pretty_thm ctxt o fst) (Exn.release thms)
   | NONE => [Pretty.str "[...]"];
 
 fun certificate thy f r =
-  case Susp.peek r
-   of SOME thms => (Susp.value o f thy) (Exn.release thms)
+  case Lazy.peek r
+   of SOME thms => (Lazy.value o f thy) (Exn.release thms)
     | NONE => let
         val thy_ref = Theory.check_thy thy;
-      in Susp.delay (fn () => (f (Theory.deref thy_ref) o Susp.force) r) end;
+      in Lazy.lazy (fn () => (f (Theory.deref thy_ref) o Lazy.force) r) end;
 
 fun add_drop_redundant thy (thm, linear) thms =
   let
@@ -141,13 +141,13 @@ fun add_drop_redundant thy (thm, linear) thms =
       else false;
   in (thm, linear) :: filter_out drop thms end;
 
-fun add_thm thy _ thm (false, thms) = (false, Susp.map_force (add_drop_redundant thy thm) thms)
-  | add_thm thy true thm (true, thms) = (true, Susp.map_force (fn thms => thms @ [thm]) thms)
-  | add_thm thy false thm (true, thms) = (false, Susp.value [thm]);
+fun add_thm thy _ thm (false, thms) = (false, Lazy.map_force (add_drop_redundant thy thm) thms)
+  | add_thm thy true thm (true, thms) = (true, Lazy.map_force (fn thms => thms @ [thm]) thms)
+  | add_thm thy false thm (true, thms) = (false, Lazy.value [thm]);
 
 fun add_lthms lthms _ = (false, lthms);
 
-fun del_thm thm = (apsnd o Susp.map_force) (remove (eq_fst Thm.eq_thm_prop) (thm, true));
+fun del_thm thm = (apsnd o Lazy.map_force) (remove (eq_fst Thm.eq_thm_prop) (thm, true));
 
 fun merge_defthms ((true, _), defthms2) = defthms2
   | merge_defthms (defthms1 as (false, _), (true, _)) = defthms1
@@ -171,7 +171,7 @@ fun merge_dtyps (tabs as (tab1, tab2)) =
 (* specification data *)
 
 datatype spec = Spec of {
-  eqns: (bool * (thm * bool) list Susp.T) Symtab.table,
+  eqns: (bool * (thm * bool) list Lazy.T) Symtab.table,
   dtyps: ((string * sort) list * (string * typ list) list) Symtab.table,
   cases: (int * string list) Symtab.table * unit Symtab.table
 };
@@ -471,7 +471,7 @@ fun arity_constraints thy algebra (class, tyco) =
       |> maps (map fst o these o try (#params o AxClass.get_info thy))
       |> map_filter (fn c => try (AxClass.param_of_inst thy) (c, tyco))
       |> map (Symtab.lookup ((the_eqns o the_exec) thy))
-      |> (map o Option.map) (map fst o Susp.force o snd)
+      |> (map o Option.map) (map fst o Lazy.force o snd)
       |> maps these
       |> map (map (snd o dest_TVar) o Sign.const_typargs thy o Code_Unit.const_typ_eqn);
     val inter_sorts = map2 (curry (Sorts.inter_sort algebra));
@@ -544,7 +544,7 @@ fun gen_add_eqn linear strict default thm thy =
             else ();
         in
           (map_exec_purge (SOME [c]) o map_eqns) (Symtab.map_default
-            (c, (true, Susp.value [])) (add_thm thy default (thm, linear))) thy
+            (c, (true, Lazy.value [])) (add_thm thy default (thm, linear))) thy
         end
     | NONE => thy;
 
@@ -559,7 +559,7 @@ fun del_eqn thm thy = case mk_syntactic_eqn thy thm
   | NONE => thy;
 
 fun del_eqns c = map_exec_purge (SOME [c])
-  (map_eqns (Symtab.map_entry c (K (false, Susp.value []))));
+  (map_eqns (Symtab.map_entry c (K (false, Lazy.value []))));
 
 fun add_eqnl (c, lthms) thy =
   let
@@ -567,7 +567,7 @@ fun add_eqnl (c, lthms) thy =
       (fn thy => map (Code_Unit.assert_linear) o certify_const thy c) lthms;
   in
     map_exec_purge (SOME [c])
-      (map_eqns (Symtab.map_default (c, (true, Susp.value []))
+      (map_eqns (Symtab.map_default (c, (true, Lazy.value []))
         (add_lthms lthms'))) thy
   end;
 
@@ -648,7 +648,7 @@ local
 
 fun get_eqns thy c =
   Symtab.lookup ((the_eqns o the_exec) thy) c
-  |> Option.map (Susp.force o snd)
+  |> Option.map (Lazy.force o snd)
   |> these
   |> (map o apfst) (Thm.transfer thy);
 
