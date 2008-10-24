@@ -33,7 +33,6 @@ sig
   type iterm = Code_Thingol.iterm
   type const = Code_Thingol.const
   type dict = Code_Thingol.dict
-  type class_syntax
   type tyco_syntax
   type const_syntax
   val parse_infix: ('a -> 'b) -> lrx * int -> string
@@ -125,7 +124,6 @@ fun brackify_infix infx fxy_ctxt =
 
 (* generic syntax *)
 
-type class_syntax = string * (string -> string option);
 type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
   -> fixity -> itype list -> Pretty.T);
 type const_syntax = int * ((Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)

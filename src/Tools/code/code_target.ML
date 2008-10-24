@@ -36,12 +36,12 @@ sig
   val export: serialization -> unit
   val file: Path.T -> serialization -> unit
   val string: string list -> serialization -> string
-  val code_of: theory -> string -> string -> string list -> string list -> string
+  val code_of: theory -> string -> string
+    -> string list -> (Code_Thingol.naming -> string list) -> string
   val code_width: int ref
 
   val allow_abort: string -> theory -> theory
-  val add_syntax_class: string -> class
-    -> (string * (string * string) list) option -> theory -> theory
+  val add_syntax_class: string -> class -> string option -> theory -> theory
   val add_syntax_inst: string -> string * class -> bool -> theory -> theory
   val add_syntax_tyco: string -> string -> tyco_syntax option -> theory -> theory
   val add_syntax_const: string -> string -> const_syntax option -> theory -> theory
@@ -85,7 +85,7 @@ fun mk_serialization target (SOME comp) _ _ code Compile = (comp code; NONE)
 structure StringPairTab = Code_Name.StringPairTab;
 
 datatype name_syntax_table = NameSyntaxTable of {
-  class: class_syntax Symtab.table,
+  class: string Symtab.table,
   instance: unit StringPairTab.table,
   tyco: tyco_syntax Symtab.table,
   const: const_syntax Symtab.table
@@ -111,7 +111,7 @@ type serializer =
   -> string list                        (*reserved symbols*)
   -> (string * Pretty.T) list           (*includes*)
   -> (string -> string option)          (*module aliasses*)
-  -> (string -> class_syntax option)
+  -> (string -> string option)          (*class syntax*)
   -> (string -> tyco_syntax option)
   -> (string -> const_syntax option)
   -> Code_Thingol.naming
@@ -245,17 +245,11 @@ fun read_tyco thy = cert_tyco thy o Sign.intern_type thy;
 fun gen_add_syntax_class prep_class prep_const target raw_class raw_syn thy =
   let
     val class = prep_class thy raw_class;
-    fun mk_classparam c = case AxClass.class_of_param thy c
-     of SOME class' => if class = class' then c
-          else error ("Not a class operation for class " ^ quote class ^ ": " ^ quote c)
-      | NONE => error ("Not a class operation: " ^ quote c);
-    fun mk_syntax_params raw_params = AList.lookup (op =)
-      ((map o apfst) (mk_classparam o prep_const thy) raw_params);
   in case raw_syn
-   of SOME (syntax, raw_params) =>
+   of SOME syntax =>
       thy
       |> (map_name_syntax target o apfst o apfst)
-           (Symtab.update (class, (syntax, mk_syntax_params raw_params)))
+           (Symtab.update (class, syntax))
     | NONE =>
       thy
       |> (map_name_syntax target o apfst o apfst)
@@ -286,7 +280,7 @@ fun gen_add_syntax_tyco prep_tyco target raw_tyco raw_syn thy =
       thy
       |> (map_name_syntax target o apsnd o apfst)
            (Symtab.update (tyco, check_args syntax))
-   | NONE =>
+    | NONE =>
       thy
       |> (map_name_syntax target o apsnd o apfst)
            (Symtab.delete_safe tyco)
@@ -303,7 +297,7 @@ fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
       thy
       |> (map_name_syntax target o apsnd o apsnd)
            (Symtab.update (c, check_args syntax))
-   | NONE =>
+    | NONE =>
       thy
       |> (map_name_syntax target o apsnd o apsnd)
            (Symtab.delete_safe c)
@@ -408,20 +402,10 @@ fun invoke_serializer thy abortable serializer reserved includes
            of SOME name => (SOME name, Symtab.update_new (name, the (Symtab.lookup src_tab thing_identifier)) tab)
             | NONE => (NONE, tab)) (Symtab.keys src_tab)
       |>> map_filter I;
-    fun lookup_classparam_rev c' = case try (Graph.get_node program2) c'
-     of SOME (Code_Thingol.Classparam (c, _)) => SOME c
-      | NONE => NONE;
-    fun lookup_tyco_fun naming "fun" = SOME "fun"
-      | lookup_tyco_fun naming tyco = Code_Thingol.lookup_tyco naming tyco;
     val (names_class, class') = distill_names Code_Thingol.lookup_class class;
-    val class'' = class'
-      |> (Symtab.map o apsnd) (fn class_params => fn c' =>
-          case lookup_classparam_rev c'
-           of SOME c => class_params c
-            | NONE => NONE)
     val names_inst = map_filter (Code_Thingol.lookup_instance naming)
       (StringPairTab.keys instance);
-    val (names_tyco, tyco') = distill_names lookup_tyco_fun tyco;
+    val (names_tyco, tyco') = distill_names Code_Thingol.lookup_tyco tyco;
     val (names_const, const') = distill_names Code_Thingol.lookup_const const;
     val names_hidden = names_class @ names_inst @ names_tyco @ names_const;
     val names2 = subtract (op =) names_hidden names1;
@@ -434,7 +418,7 @@ fun invoke_serializer thy abortable serializer reserved includes
       ^ commas (map (Sign.extern_const thy) empty_funs));
   in
     serializer module args (labelled_name thy program2) reserved includes
-      (Symtab.lookup module_alias) (Symtab.lookup class'')
+      (Symtab.lookup module_alias) (Symtab.lookup class')
       (Symtab.lookup tyco') (Symtab.lookup const')
       naming program4 names2
   end;
@@ -487,7 +471,7 @@ fun code_of thy target module_name cs names_stmt =
   let
     val (names_cs, (naming, program)) = Code_Thingol.consts_program thy cs;
   in
-    string names_stmt (serialize thy target (SOME module_name) []
+    string (names_stmt naming) (serialize thy target (SOME module_name) []
       naming program names_cs)
   end;
 
@@ -545,9 +529,7 @@ val _ = List.app OuterKeyword.keyword [inK, module_nameK, fileK];
 
 val _ =
   OuterSyntax.command "code_class" "define code syntax for class" K.thy_decl (
-    parse_multi_syntax P.xname
-      (Scan.option (P.string -- Scan.optional (P.$$$ "where" |-- Scan.repeat1
-        (P.term_group --| (P.$$$ "\<equiv>" || P.$$$ "==") -- P.string)) []))
+    parse_multi_syntax P.xname (Scan.option P.string)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_class, syn) => add_syntax_class_cmd target raw_class syn) syns)
   );
