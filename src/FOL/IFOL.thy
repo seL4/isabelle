@@ -101,6 +101,7 @@ axioms
   (* Equality *)
 
   refl:         "a=a"
+  subst:        "a=b \<Longrightarrow> P(a) \<Longrightarrow> P(b)"
 
   (* Propositional logic *)
 
@@ -125,25 +126,16 @@ axioms
   exI:          "P(x) ==> (EX x. P(x))"
   exE:          "[| EX x. P(x);  !!x. P(x) ==> R |] ==> R"
 
-  (* Reflection *)
+
+axioms
+
+  (* Reflection, admissible *)
 
   eq_reflection:  "(x=y)   ==> (x==y)"
   iff_reflection: "(P<->Q) ==> (P==Q)"
 
 
 lemmas strip = impI allI
-
-
-text{*Thanks to Stephan Merz*}
-theorem subst:
-  assumes eq: "a = b" and p: "P(a)"
-  shows "P(b)"
-proof -
-  from eq have meta: "a \<equiv> b"
-    by (rule eq_reflection)
-  from p show ?thesis
-    by (unfold meta)
-qed
 
 
 defs
