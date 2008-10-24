@@ -38,12 +38,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
     val deresolve_base = NameSpace.base o deresolve;
     fun class_name class = case syntax_class class
      of NONE => deresolve class
-      | SOME (class, _) => class;
-    fun classparam_name class classparam = case syntax_class class
-     of NONE => deresolve_base classparam
-      | SOME (_, classparam_syntax) => case classparam_syntax classparam
-         of NONE => (snd o Code_Name.dest_name) classparam
-          | SOME classparam => classparam;
+      | SOME class => class;
     fun pr_typcontext tyvars vs = case maps (fn (v, sort) => map (pair v) sort) vs
      of [] => []
       | classbinds => Pretty.enum "," "(" ")" (
@@ -231,7 +226,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
             val tyvars = Code_Name.intro_vars [v] init_syms;
             fun pr_classparam (classparam, ty) =
               semicolon [
-                (str o classparam_name name) classparam,
+                (str o deresolve_base) classparam,
                 str "::",
                 pr_typ tyvars NOBR ty
               ]
@@ -248,13 +243,34 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
           end
       | pr_stmt (_, Code_Thingol.Classinst ((class, (tyco, vs)), (_, classparam_insts))) =
           let
+            val split_abs_pure = (fn (v, _) `|-> t => SOME (v, t) | _ => NONE);
+            val unfold_abs_pure = Code_Thingol.unfoldr split_abs_pure;
             val tyvars = Code_Name.intro_vars (map fst vs) init_syms;
-            fun pr_instdef ((classparam, c_inst), (thm, _)) =
-              semicolon [
-                (str o classparam_name class) classparam,
-                str "=",
-                pr_app tyvars thm false init_syms NOBR (c_inst, [])
-              ];
+            fun pr_instdef ((classparam, c_inst), (thm, _)) = case syntax_const classparam
+             of NONE => semicolon [
+                    (str o deresolve_base) classparam,
+                    str "=",
+                    pr_app tyvars thm false init_syms NOBR (c_inst, [])
+                  ]
+              | SOME (k, pr) =>
+                  let
+                    val (c_inst_name, (_, tys)) = c_inst;
+                    val const = if (is_some o syntax_const) c_inst_name
+                      then NONE else (SOME o NameSpace.base o deresolve) c_inst_name;
+                    val proto_rhs = Code_Thingol.eta_expand k (c_inst, []);
+                    val (vs, rhs) = unfold_abs_pure proto_rhs;
+                    val vars = init_syms
+                      |> Code_Name.intro_vars (the_list const)
+                      |> Code_Name.intro_vars vs;
+                    val lhs = IConst (classparam, ([], tys)) `$$ map IVar vs;
+                      (*dictionaries are not relevant at this late stage*)
+                  in
+                    semicolon [
+                      pr_term tyvars thm false vars NOBR lhs,
+                      str "=",
+                      pr_term tyvars thm false vars NOBR rhs
+                    ]
+                  end;
           in
             Pretty.block_enclose (
               Pretty.block [

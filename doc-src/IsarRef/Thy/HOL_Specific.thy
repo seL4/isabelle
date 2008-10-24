@@ -1050,9 +1050,7 @@ text {*
     ;
 
     'code\_class' (class + 'and') \\
-      ( ( '(' target \\
-        ( ( string ('where' \\
-          ( const ( '==' | equiv ) string ) + ) ? ) ? + 'and' ) ')' ) + )
+      ( ( '(' target \\ ( string ? + 'and' ) ')' ) + )
     ;
 
     'code\_instance' (( typeconstructor '::' class ) + 'and') \\
@@ -1135,10 +1133,9 @@ text {*
   serialization deletes an existing serialization.
 
   \item [@{command (HOL) "code_class"}] associates a list of classes
-  with target-specific class names; in addition, constants associated
-  with this class may be given target-specific names used for instance
-  declarations; omitting a serialization deletes an existing
-  serialization.  This applies only to \emph{Haskell}.
+  with target-specific class names; omitting a
+  serialization deletes an existing serialization.
+  This applies only to \emph{Haskell}.
 
   \item [@{command (HOL) "code_instance"}] declares a list of type
   constructor / class instance relations as ``already present'' for a

@@ -1053,9 +1053,7 @@ Isabelle/Pure provides two generic frameworks to support code
     ;
 
     'code\_class' (class + 'and') \\
-      ( ( '(' target \\
-        ( ( string ('where' \\
-          ( const ( '==' | equiv ) string ) + ) ? ) ? + 'and' ) ')' ) + )
+      ( ( '(' target \\ ( string ? + 'and' ) ')' ) + )
     ;
 
     'code\_instance' (( typeconstructor '::' class ) + 'and') \\
@@ -1135,10 +1133,9 @@ Isabelle/Pure provides two generic frameworks to support code
   serialization deletes an existing serialization.
 
   \item [\hyperlink{command.HOL.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}] associates a list of classes
-  with target-specific class names; in addition, constants associated
-  with this class may be given target-specific names used for instance
-  declarations; omitting a serialization deletes an existing
-  serialization.  This applies only to \emph{Haskell}.
+  with target-specific class names; omitting a
+  serialization deletes an existing serialization.
+  This applies only to \emph{Haskell}.
 
   \item [\hyperlink{command.HOL.code-instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}}] declares a list of type
   constructor / class instance relations as ``already present'' for a

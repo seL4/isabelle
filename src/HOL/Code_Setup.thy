@@ -123,7 +123,7 @@ code_reserved OCaml
 text {* using built-in Haskell equality *}
 
 code_class eq
-  (Haskell "Eq" where "eq_class.eq" \<equiv> "(==)")
+  (Haskell "Eq")
 
 code_const "eq_class.eq"
   (Haskell infixl 4 "==")
