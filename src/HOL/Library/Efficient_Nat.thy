@@ -445,16 +445,19 @@ text {* Module names *}
 code_modulename SML
   Nat Integer
   Divides Integer
+  Ring_and_Field Integer
   Efficient_Nat Integer
 
 code_modulename OCaml
   Nat Integer
   Divides Integer
+  Ring_and_Field Integer
   Efficient_Nat Integer
 
 code_modulename Haskell
   Nat Integer
   Divides Integer
+  Ring_and_Field Integer
   Efficient_Nat Integer
 
 hide const int
