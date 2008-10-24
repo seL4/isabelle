@@ -695,13 +695,4 @@ code_reserved SML
 code_reserved OCaml
   option None Some
 
-code_modulename SML
-  Datatype Nat
-
-code_modulename OCaml
-  Datatype Nat
-
-code_modulename Haskell
-  Datatype Nat
-
 end
