@@ -53,7 +53,7 @@ lemma order_fun [code]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
   shows "f \<le> g \<longleftrightarrow> list_all (\<lambda>x. f x \<le> g x) enum"
     and "f < g \<longleftrightarrow> f \<le> g \<and> \<not> list_all (\<lambda>x. f x = g x) enum"
-  by (simp_all add: list_all_iff enum_all expand_fun_eq le_fun_def less_fun_def order_less_le)
+  by (simp_all add: list_all_iff enum_all expand_fun_eq le_fun_def order_less_le)
 
 
 subsection {* Quantifiers *}
