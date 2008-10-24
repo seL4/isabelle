@@ -54,7 +54,7 @@ This Pure module implements the core notions of
 \begin{mldecls}
   \indexml{Code.add\_eqn}\verb|Code.add_eqn: thm -> theory -> theory| \\
   \indexml{Code.del\_eqn}\verb|Code.del_eqn: thm -> theory -> theory| \\
-  \indexml{Code.add\_eqnl}\verb|Code.add_eqnl: string * (thm * bool) list Susp.T -> theory -> theory| \\
+  \indexml{Code.add\_eqnl}\verb|Code.add_eqnl: string * (thm * bool) list Lazy.T -> theory -> theory| \\
   \indexml{Code.map\_pre}\verb|Code.map_pre: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory| \\
   \indexml{Code.map\_post}\verb|Code.map_post: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory| \\
   \indexml{Code.add\_functrans}\verb|Code.add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option)|\isasep\isanewline%
