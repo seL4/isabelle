@@ -1,4 +1,4 @@
- (*  Title:      HOL/Orderings.thy
+(*  Title:      HOL/Orderings.thy
     ID:         $Id$
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
 *)
@@ -962,112 +962,6 @@ qed
   leave out the "(xtrans)" above.
 *)
 
-subsection {* Order on bool *}
-
-instantiation bool :: order
-begin
-
-definition
-  le_bool_def [code del]: "P \<le> Q \<longleftrightarrow> P \<longrightarrow> Q"
-
-definition
-  less_bool_def [code del]: "(P\<Colon>bool) < Q \<longleftrightarrow> P \<le> Q \<and> P \<noteq> Q"
-
-instance
-  by intro_classes (auto simp add: le_bool_def less_bool_def)
-
-end
-
-lemma le_boolI: "(P \<Longrightarrow> Q) \<Longrightarrow> P \<le> Q"
-by (simp add: le_bool_def)
-
-lemma le_boolI': "P \<longrightarrow> Q \<Longrightarrow> P \<le> Q"
-by (simp add: le_bool_def)
-
-lemma le_boolE: "P \<le> Q \<Longrightarrow> P \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
-by (simp add: le_bool_def)
-
-lemma le_boolD: "P \<le> Q \<Longrightarrow> P \<longrightarrow> Q"
-by (simp add: le_bool_def)
-
-lemma [code]:
-  "False \<le> b \<longleftrightarrow> True"
-  "True \<le> b \<longleftrightarrow> b"
-  "False < b \<longleftrightarrow> b"
-  "True < b \<longleftrightarrow> False"
-  unfolding le_bool_def less_bool_def by simp_all
-
-
-subsection {* Order on functions *}
-
-instantiation "fun" :: (type, ord) ord
-begin
-
-definition
-  le_fun_def [code del]: "f \<le> g \<longleftrightarrow> (\<forall>x. f x \<le> g x)"
-
-definition
-  less_fun_def [code del]: "(f\<Colon>'a \<Rightarrow> 'b) < g \<longleftrightarrow> f \<le> g \<and> f \<noteq> g"
-
-instance ..
-
-end
-
-instance "fun" :: (type, order) order
-  by default
-    (auto simp add: le_fun_def less_fun_def
-       intro: order_trans order_antisym intro!: ext)
-
-lemma le_funI: "(\<And>x. f x \<le> g x) \<Longrightarrow> f \<le> g"
-  unfolding le_fun_def by simp
-
-lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) \<Longrightarrow> P"
-  unfolding le_fun_def by simp
-
-lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
-  unfolding le_fun_def by simp
-
-text {*
-  Handy introduction and elimination rules for @{text "\<le>"}
-  on unary and binary predicates
-*}
-
-lemma predicate1I:
-  assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
-  shows "P \<le> Q"
-  apply (rule le_funI)
-  apply (rule le_boolI)
-  apply (rule PQ)
-  apply assumption
-  done
-
-lemma predicate1D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
-  apply (erule le_funE)
-  apply (erule le_boolE)
-  apply assumption+
-  done
-
-lemma predicate2I [Pure.intro!, intro!]:
-  assumes PQ: "\<And>x y. P x y \<Longrightarrow> Q x y"
-  shows "P \<le> Q"
-  apply (rule le_funI)+
-  apply (rule le_boolI)
-  apply (rule PQ)
-  apply assumption
-  done
-
-lemma predicate2D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
-  apply (erule le_funE)+
-  apply (erule le_boolE)
-  apply assumption+
-  done
-
-lemma rev_predicate1D: "P x ==> P <= Q ==> Q x"
-  by (rule predicate1D)
-
-lemma rev_predicate2D: "P x y ==> P <= Q ==> Q x y"
-  by (rule predicate2D)
-
 
 subsection {* Monotonicity, least value operator and min/max *}
 
@@ -1121,6 +1015,17 @@ lemma max_leastR: "(\<And>x\<Colon>'a\<Colon>order. least \<le> x) \<Longrightar
 apply (simp add: max_def)
 apply (blast intro: order_antisym)
 done
+
+
+subsection {* Top and bottom elements *}
+
+class top = preorder +
+  fixes top :: 'a
+  assumes top_greatest [simp]: "x \<le> top"
+
+class bot = preorder +
+  fixes bot :: 'a
+  assumes bot_least [simp]: "bot \<le> x"
 
 
 subsection {* Dense orders *}
@@ -1188,5 +1093,142 @@ apply (erule Least_le)
 done
 
 end  
+
+
+subsection {* Order on bool *}
+
+instantiation bool :: "{order, top, bot}"
+begin
+
+definition
+  le_bool_def [code del]: "P \<le> Q \<longleftrightarrow> P \<longrightarrow> Q"
+
+definition
+  less_bool_def [code del]: "(P\<Colon>bool) < Q \<longleftrightarrow> \<not> P \<and> Q"
+
+definition
+  top_bool_eq: "top = True"
+
+definition
+  bot_bool_eq: "bot = False"
+
+instance proof
+qed (auto simp add: le_bool_def less_bool_def top_bool_eq bot_bool_eq)
+
+end
+
+lemma le_boolI: "(P \<Longrightarrow> Q) \<Longrightarrow> P \<le> Q"
+by (simp add: le_bool_def)
+
+lemma le_boolI': "P \<longrightarrow> Q \<Longrightarrow> P \<le> Q"
+by (simp add: le_bool_def)
+
+lemma le_boolE: "P \<le> Q \<Longrightarrow> P \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"
+by (simp add: le_bool_def)
+
+lemma le_boolD: "P \<le> Q \<Longrightarrow> P \<longrightarrow> Q"
+by (simp add: le_bool_def)
+
+lemma [code]:
+  "False \<le> b \<longleftrightarrow> True"
+  "True \<le> b \<longleftrightarrow> b"
+  "False < b \<longleftrightarrow> b"
+  "True < b \<longleftrightarrow> False"
+  unfolding le_bool_def less_bool_def by simp_all
+
+
+subsection {* Order on functions *}
+
+instantiation "fun" :: (type, ord) ord
+begin
+
+definition
+  le_fun_def [code del]: "f \<le> g \<longleftrightarrow> (\<forall>x. f x \<le> g x)"
+
+definition
+  less_fun_def [code del]: "(f\<Colon>'a \<Rightarrow> 'b) < g \<longleftrightarrow> f \<le> g \<and> \<not> (g \<le> f)"
+
+instance ..
+
+end
+
+instance "fun" :: (type, preorder) preorder proof
+qed (auto simp add: le_fun_def less_fun_def
+  intro: order_trans order_antisym intro!: ext)
+
+instance "fun" :: (type, order) order proof
+qed (auto simp add: le_fun_def intro: order_antisym ext)
+
+instantiation "fun" :: (type, top) top
+begin
+
+definition
+  top_fun_eq: "top = (\<lambda>x. top)"
+
+instance proof
+qed (simp add: top_fun_eq le_fun_def)
+
+end
+
+instantiation "fun" :: (type, bot) bot
+begin
+
+definition
+  bot_fun_eq: "bot = (\<lambda>x. bot)"
+
+instance proof
+qed (simp add: bot_fun_eq le_fun_def)
+
+end
+
+lemma le_funI: "(\<And>x. f x \<le> g x) \<Longrightarrow> f \<le> g"
+  unfolding le_fun_def by simp
+
+lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) \<Longrightarrow> P"
+  unfolding le_fun_def by simp
+
+lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
+  unfolding le_fun_def by simp
+
+text {*
+  Handy introduction and elimination rules for @{text "\<le>"}
+  on unary and binary predicates
+*}
+
+lemma predicate1I:
+  assumes PQ: "\<And>x. P x \<Longrightarrow> Q x"
+  shows "P \<le> Q"
+  apply (rule le_funI)
+  apply (rule le_boolI)
+  apply (rule PQ)
+  apply assumption
+  done
+
+lemma predicate1D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x \<Longrightarrow> Q x"
+  apply (erule le_funE)
+  apply (erule le_boolE)
+  apply assumption+
+  done
+
+lemma predicate2I [Pure.intro!, intro!]:
+  assumes PQ: "\<And>x y. P x y \<Longrightarrow> Q x y"
+  shows "P \<le> Q"
+  apply (rule le_funI)+
+  apply (rule le_boolI)
+  apply (rule PQ)
+  apply assumption
+  done
+
+lemma predicate2D [Pure.dest, dest]: "P \<le> Q \<Longrightarrow> P x y \<Longrightarrow> Q x y"
+  apply (erule le_funE)+
+  apply (erule le_boolE)
+  apply assumption+
+  done
+
+lemma rev_predicate1D: "P x ==> P <= Q ==> Q x"
+  by (rule predicate1D)
+
+lemma rev_predicate2D: "P x y ==> P <= Q ==> Q x y"
+  by (rule predicate2D)
 
 end

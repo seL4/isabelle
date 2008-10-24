@@ -104,10 +104,19 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* New classes "top" and "bot" with corresponding operations "top" and "bot"
+in theory Orderings;  instantiation of class "complete_lattice" requires
+instantiation of classes "top" and "bot".  INCOMPATIBILITY.
+
+* Changed definition lemma "less_fun_def" in order to provide an instance
+for preorders on functions;  use lemma "less_le" instead.  INCOMPATIBILITY.
+
 * Unified theorem tables for both code code generators.  Thus
 [code func] has disappeared and only [code] remains.  INCOMPATIBILITY.
 
-* Constant "undefined" replaces "arbitrary" in most occurences.
+* Constants "undefined" and "default" replace "arbitrary".  Usually
+"undefined" is the right choice to replace "arbitrary", though logically
+there is no difference.  INCOMPATIBILITY.
 
 * Generic ATP manager for Sledgehammer, based on ML threads instead of
 Posix processes.  Avoids potentially expensive forking of the ML

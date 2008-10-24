@@ -89,6 +89,12 @@ definition
   graph_less_def [code del]: "G < H \<longleftrightarrow> dest_graph G \<subset> dest_graph H"
 
 definition
+  [code del]: "bot = Graph {}"
+
+definition
+  [code del]: "top = Graph UNIV"
+
+definition
   [code del]: "inf G H = Graph (dest_graph G \<inter> dest_graph H)"
 
 definition
@@ -131,6 +137,10 @@ instance proof
 
   { assume "y \<le> x" "z \<le> x" thus "sup y z \<le> x"
       unfolding sup_graph_def graph_leq_def graph_plus_def by auto }
+
+  show "bot \<le> x" unfolding graph_leq_def bot_graph_def by simp
+
+  show "x \<le> top" unfolding graph_leq_def top_graph_def by simp
   
   show "sup x (inf y z) = inf (sup x y) (sup x z)"
     unfolding inf_graph_def sup_graph_def graph_leq_def graph_plus_def by auto

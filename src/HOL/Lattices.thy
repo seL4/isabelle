@@ -332,7 +332,7 @@ lemmas [rule del] = min_max.le_infI min_max.le_supI
 
 subsection {* Complete lattices *}
 
-class complete_lattice = lattice +
+class complete_lattice = lattice + top + bot +
   fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
     and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
   assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
@@ -383,19 +383,13 @@ lemma Sup_binary:
   "\<Squnion>{a, b} = a \<squnion> b"
   by (simp add: Sup_insert_simp)
 
-definition
-  top :: 'a where
+lemma top_def:
   "top = \<Sqinter>{}"
+  by (auto intro: antisym Inf_greatest)
 
-definition
-  bot :: 'a where
+lemma bot_def:
   "bot = \<Squnion>{}"
-
-lemma top_greatest [simp]: "x \<le> top"
-  by (unfold top_def, rule Inf_greatest, simp)
-
-lemma bot_least [simp]: "bot \<le> x"
-  by (unfold bot_def, rule Sup_least, simp)
+  by (auto intro: antisym Sup_least)
 
 definition
   SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
@@ -499,12 +493,6 @@ lemma not_Sup_empty_bool [simp]:
   "\<not> Sup {}"
   unfolding Sup_bool_def by auto
 
-lemma top_bool_eq: "top = True"
-  by (iprover intro!: order_antisym le_boolI top_greatest)
-
-lemma bot_bool_eq: "bot = False"
-  by (iprover intro!: order_antisym le_boolI bot_least)
-
 
 subsection {* Fun as lattice *}
 
@@ -555,12 +543,6 @@ lemma Inf_empty_fun:
 lemma Sup_empty_fun:
   "\<Squnion>{} = (\<lambda>_. \<Squnion>{})"
   by rule (auto simp add: Sup_fun_def)
-
-lemma top_fun_eq: "top = (\<lambda>x. top)"
-  by (iprover intro!: order_antisym le_funI top_greatest)
-
-lemma bot_fun_eq: "bot = (\<lambda>x. bot)"
-  by (iprover intro!: order_antisym le_funI bot_least)
 
 
 subsection {* Set as lattice *}
