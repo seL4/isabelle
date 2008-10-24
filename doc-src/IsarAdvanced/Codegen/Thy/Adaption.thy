@@ -2,7 +2,7 @@ theory Adaption
 imports Setup
 begin
 
-setup %invisible {* Code_Target.extend_target ("\<SML>", ("SML", I)) *}
+setup %invisible {* Code_Target.extend_target ("\<SML>", ("SML", K I)) *}
 
 section {* Adaption to target languages \label{sec:adaption} *}
 
