@@ -202,11 +202,8 @@ finalconsts
 axiomatization
   undefined :: 'a
 
-consts
-  arbitrary :: 'a
-
-finalconsts
-  arbitrary
+abbreviation (input)
+  "arbitrary \<equiv> undefined"
 
 
 subsubsection {* Generic classes and algebraic operations *}
