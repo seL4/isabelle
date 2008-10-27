@@ -186,7 +186,7 @@ fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
 
 fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((c, mx), rhs) phi =
   let
-    val c' = Morphism.name phi c;
+    val c' = Morphism.name phi c |> Name.map_name NameSpace.base;  (* FIXME !!! *)
     val rhs' = Morphism.term phi rhs;
     val name = Name.name_of c;
     val name' = Name.name_of c';
