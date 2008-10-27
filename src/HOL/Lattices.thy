@@ -332,7 +332,7 @@ lemmas [rule del] = min_max.le_infI min_max.le_supI
 
 subsection {* Complete lattices *}
 
-class complete_lattice = lattice + top + bot +
+class complete_lattice = lattice + bot + top +
   fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
     and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
   assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
@@ -383,22 +383,26 @@ lemma Sup_binary:
   "\<Squnion>{a, b} = a \<squnion> b"
   by (simp add: Sup_insert_simp)
 
-lemma top_def:
-  "top = \<Sqinter>{}"
-  by (auto intro: antisym Inf_greatest)
-
 lemma bot_def:
   "bot = \<Squnion>{}"
   by (auto intro: antisym Sup_least)
 
-definition
-  SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-where
+lemma top_def:
+  "top = \<Sqinter>{}"
+  by (auto intro: antisym Inf_greatest)
+
+lemma sup_bot [simp]:
+  "x \<squnion> bot = x"
+  using bot_least [of x] by (simp add: le_iff_sup sup_commute)
+
+lemma inf_top [simp]:
+  "x \<sqinter> top = x"
+  using top_greatest [of x] by (simp add: le_iff_inf inf_commute)
+
+definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "SUPR A f == \<Squnion> (f ` A)"
 
-definition
-  INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-where
+definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "INFI A f == \<Sqinter> (f ` A)"
 
 end
