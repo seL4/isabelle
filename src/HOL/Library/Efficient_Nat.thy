@@ -6,7 +6,7 @@
 header {* Implementation of natural numbers by target-language integers *}
 
 theory Efficient_Nat
-imports Plain Code_Index Code_Integer
+imports Code_Index Code_Integer
 begin
 
 text {*
@@ -56,9 +56,7 @@ lemma times_nat_code [code]:
 text {* Specialized @{term "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"} 
   and @{term "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"} operations. *}
 
-definition
-  divmod_aux ::  "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat"
-where
+definition divmod_aux ::  "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
   [code del]: "divmod_aux = divmod"
 
 lemma [code]:
