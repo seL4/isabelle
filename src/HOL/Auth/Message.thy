@@ -106,9 +106,7 @@ by auto
 subsubsection{*Inverse of keys *}
 
 lemma invKey_eq [simp]: "(invKey K = invKey K') = (K=K')"
-apply safe
-apply (drule_tac f = invKey in arg_cong, simp)
-done
+by (metis invKey)
 
 
 subsection{*keysFor operator*}
