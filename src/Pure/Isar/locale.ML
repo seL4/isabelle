@@ -61,6 +61,9 @@ sig
   (* Not part of the official interface.  DO NOT USE *)
   val facts_of: theory -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list list
 
+  (* Not part of the official interface.  DO NOT USE *)
+  val declarations_of: theory -> string -> declaration list * declaration list;
+
   (* Processing of locale statements *)
   val read_context_statement: xstring option -> Element.context element list ->
     (string * string list) list list -> Proof.context ->
@@ -1749,6 +1752,9 @@ in
 val add_type_syntax = add_decls (apfst o cons);
 val add_term_syntax = add_decls (apsnd o cons);
 val add_declaration = add_decls (K I);
+
+fun declarations_of thy loc =
+  the_locale thy loc |> #decls |> apfst (map fst) |> apsnd (map fst);
 
 end;
 
