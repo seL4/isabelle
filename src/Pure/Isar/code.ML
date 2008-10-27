@@ -10,7 +10,6 @@ signature CODE =
 sig
   val add_eqn: thm -> theory -> theory
   val add_nonlinear_eqn: thm -> theory -> theory
-  val add_liberal_eqn: thm -> theory -> theory
   val add_default_eqn: thm -> theory -> theory
   val add_default_eqn_attr: Attrib.src
   val del_eqn: thm -> theory -> theory
@@ -19,9 +18,6 @@ sig
   val map_pre: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
   val map_post: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
   val add_inline: thm -> theory -> theory
-  val del_inline: thm -> theory -> theory
-  val add_post: thm -> theory -> theory
-  val del_post: thm -> theory -> theory
   val add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
   val del_functrans: string -> theory -> theory
   val add_datatype: (string * typ) list -> theory -> theory
@@ -115,7 +111,10 @@ val _ =
 
 (** logical and syntactical specification of executable code **)
 
-(* defining equations with linear flag, default flag and lazy theorems *)
+(* defining equations *)
+
+type eqns = bool * (thm * bool) list Lazy.T;
+  (*default flag, theorems with linear flag (perhaps lazy)*)
 
 fun pretty_lthms ctxt r = case Lazy.peek r
  of SOME thms => map (ProofContext.pretty_thm ctxt o fst) (Exn.release thms)
@@ -149,45 +148,38 @@ fun add_lthms lthms _ = (false, lthms);
 
 fun del_thm thm = (apsnd o Lazy.map_force) (remove (eq_fst Thm.eq_thm_prop) (thm, true));
 
-fun merge_defthms ((true, _), defthms2) = defthms2
-  | merge_defthms (defthms1 as (false, _), (true, _)) = defthms1
-  | merge_defthms ((false, _), defthms2 as (false, _)) = defthms2;
-
-
-(* syntactic datatypes *)
-
-val eq_string = op = : string * string -> bool;
-
-fun eq_dtyp ((vs1, cs1), (vs2, cs2)) = 
-  gen_eq_set (eq_pair eq_string (gen_eq_set eq_string)) (vs1, vs2)
-    andalso gen_eq_set (eq_fst eq_string) (cs1, cs2);
-
-fun merge_dtyps (tabs as (tab1, tab2)) =
-  let
-    fun join _ (cos as (_, cos2)) = if eq_dtyp cos then raise Symtab.SAME else cos2;
-  in Symtab.join join tabs end;
-
 
 (* specification data *)
 
 datatype spec = Spec of {
-  eqns: (bool * (thm * bool) list Lazy.T) Symtab.table,
-  dtyps: ((string * sort) list * (string * typ list) list) Symtab.table,
+  concluded_history: bool,
+  eqns: ((bool * eqns) * (serial * eqns) list) Symtab.table
+    (*with explicit history*),
+  dtyps: ((serial * ((string * sort) list * (string * typ list) list)) list) Symtab.table
+    (*with explicit history*),
   cases: (int * string list) Symtab.table * unit Symtab.table
 };
 
-fun mk_spec (eqns, (dtyps, cases)) =
-  Spec { eqns = eqns, dtyps = dtyps, cases = cases };
-fun map_spec f (Spec { eqns = eqns, dtyps = dtyps, cases = cases }) =
-  mk_spec (f (eqns, (dtyps, cases)));
-fun merge_spec (Spec { eqns = eqns1, dtyps = dtyps1, cases = (cases1, undefs1) },
-  Spec { eqns = eqns2, dtyps = dtyps2, cases = (cases2, undefs2) }) =
+fun mk_spec ((concluded_history, eqns), (dtyps, cases)) =
+  Spec { concluded_history = concluded_history, eqns = eqns, dtyps = dtyps, cases = cases };
+fun map_spec f (Spec { concluded_history = concluded_history, eqns = eqns,
+  dtyps = dtyps, cases = cases }) =
+  mk_spec (f ((concluded_history, eqns), (dtyps, cases)));
+fun merge_spec (Spec { concluded_history = _, eqns = eqns1, dtyps = dtyps1, cases = (cases1, undefs1) },
+  Spec { concluded_history = _, eqns = eqns2, dtyps = dtyps2, cases = (cases2, undefs2) }) =
   let
-    val eqns = Symtab.join (K merge_defthms) (eqns1, eqns2);
-    val dtyps = merge_dtyps (dtyps1, dtyps2);
+    fun merge_eqns ((_, history1), (_, history2)) =
+      let
+        val raw_history = AList.merge (op =) (K true) (history1, history2)
+        val filtered_history = filter_out (fst o snd) raw_history
+        val history = if null filtered_history
+          then raw_history else filtered_history;
+      in ((false, (snd o hd) history), history) end;
+    val eqns = Symtab.join (K merge_eqns) (eqns1, eqns2);
+    val dtyps = Symtab.join (K (AList.merge (op =) (K true))) (dtyps1, dtyps2);
     val cases = (Symtab.merge (K true) (cases1, cases2),
       Symtab.merge (K true) (undefs1, undefs2));
-  in mk_spec (eqns, (dtyps, cases)) end;
+  in mk_spec ((false, eqns), (dtyps, cases)) end;
 
 
 (* pre- and postprocessor *)
@@ -229,7 +221,7 @@ fun merge_exec (Exec { thmproc = thmproc1, spec = spec1 },
     val spec = merge_spec (spec1, spec2);
   in mk_exec (thmproc, spec) end;
 val empty_exec = mk_exec (mk_thmproc ((MetaSimplifier.empty_ss, MetaSimplifier.empty_ss), []),
-  mk_spec (Symtab.empty, (Symtab.empty, (Symtab.empty, Symtab.empty))));
+  mk_spec ((false, Symtab.empty), (Symtab.empty, (Symtab.empty, Symtab.empty))));
 
 fun the_thmproc (Exec { thmproc = Thmproc x, ...}) = x;
 fun the_spec (Exec { spec = Spec x, ...}) = x;
@@ -237,7 +229,8 @@ val the_eqns = #eqns o the_spec;
 val the_dtyps = #dtyps o the_spec;
 val the_cases = #cases o the_spec;
 val map_thmproc = map_exec o apfst o map_thmproc;
-val map_eqns = map_exec o apsnd o map_spec o apfst;
+val map_concluded_history = map_exec o apsnd o map_spec o apfst o apfst;
+val map_eqns = map_exec o apsnd o map_spec o apfst o apsnd;
 val map_dtyps = map_exec o apsnd o map_spec o apsnd o apfst;
 val map_cases = map_exec o apsnd o map_spec o apsnd o apsnd;
 
@@ -297,8 +290,6 @@ structure CodeData = TheoryDataFun
     (merge_exec (exec1, exec2), ref empty_data);
 );
 
-val _ = Context.>> (Context.map_theory CodeData.init);
-
 fun thy_data f thy = f ((snd o CodeData.get) thy);
 
 fun get_ensure_init kind data_ref =
@@ -324,6 +315,34 @@ fun map_exec_purge touched f thy =
     | NONE => empty_data))) thy;
 
 val purge_data = (CodeData.map o apsnd) (K (ref empty_data));
+
+
+(* tackling equation history *)
+
+fun get_eqns thy c =
+  Symtab.lookup ((the_eqns o the_exec) thy) c
+  |> Option.map (Lazy.force o snd o snd o fst)
+  |> these;
+
+fun continue_history thy = if (#concluded_history o the_spec o the_exec) thy
+  then thy
+    |> (CodeData.map o apfst o map_concluded_history) (K false)
+    |> SOME
+  else NONE;
+
+fun conclude_history thy = if (#concluded_history o the_spec o the_exec) thy
+  then NONE
+  else thy
+    |> (CodeData.map o apfst)
+        ((map_eqns o Symtab.map) (fn ((changed, current), history) =>
+          ((false, current),
+            if changed then (serial (), current) :: history else history))
+        #> map_concluded_history (K true))
+    |> SOME;
+
+val _ = Context.>> (Context.map_theory (CodeData.init
+  #> Theory.at_begin continue_history
+  #> Theory.at_end conclude_history));
 
 
 (* access to data dependent on abstract executable content *)
@@ -380,10 +399,11 @@ fun print_codesetup thy =
     val eqns = the_eqns exec
       |> Symtab.dest
       |> (map o apfst) (Code_Unit.string_of_const thy)
+      |> (map o apsnd) (snd o fst)
       |> sort (string_ord o pairself fst);
     val dtyps = the_dtyps exec
       |> Symtab.dest
-      |> map (fn (dtco, (vs, cos)) =>
+      |> map (fn (dtco, (_, (vs, cos)) :: _) =>
           (Syntax.string_of_typ_global thy (Type (dtco, map TFree vs)), cos))
       |> sort (string_ord o pairself fst)
   in
@@ -455,7 +475,6 @@ fun check_linear (eqn as (thm, linear)) =
 
 fun mk_eqn thy linear =
   Code_Unit.error_thm ((if linear then check_linear else I) o Code_Unit.mk_eqn thy);
-fun mk_liberal_eqn thy = Code_Unit.warning_thm (check_linear o Code_Unit.mk_eqn thy);
 fun mk_syntactic_eqn thy = Code_Unit.warning_thm (Code_Unit.mk_eqn thy);
 fun mk_default_eqn thy = Code_Unit.try_thm (check_linear o Code_Unit.mk_eqn thy);
 
@@ -470,9 +489,7 @@ fun arity_constraints thy algebra (class, tyco) =
     val classparam_constraints = Sorts.complete_sort algebra [class]
       |> maps (map fst o these o try (#params o AxClass.get_info thy))
       |> map_filter (fn c => try (AxClass.param_of_inst thy) (c, tyco))
-      |> map (Symtab.lookup ((the_eqns o the_exec) thy))
-      |> (map o Option.map) (map fst o Lazy.force o snd)
-      |> maps these
+      |> maps (map fst o get_eqns thy)
       |> map (map (snd o dest_TVar) o Sign.const_typargs thy o Code_Unit.const_typ_eqn);
     val inter_sorts = map2 (curry (Sorts.inter_sort algebra));
   in fold inter_sorts classparam_constraints base_constraints end;
@@ -502,17 +519,16 @@ fun delete_force msg key xs =
   else error ("No such " ^ msg ^ ": " ^ quote key);
 
 fun get_datatype thy tyco =
-  case Symtab.lookup ((the_dtyps o the_exec) thy) tyco
-   of SOME spec => spec
-    | NONE => Sign.arity_number thy tyco
+  case these (Symtab.lookup ((the_dtyps o the_exec) thy) tyco)
+   of (_, spec) :: _ => spec
+    | [] => Sign.arity_number thy tyco
         |> Name.invents Name.context Name.aT
         |> map (rpair [])
         |> rpair [];
 
 fun get_datatype_of_constr thy c =
   case (snd o strip_type o Sign.the_const_type thy) c
-   of Type (tyco, _) => if member (op =)
-       ((the_default [] o Option.map (map fst o snd) o Symtab.lookup ((the_dtyps o the_exec) thy)) tyco) c
+   of Type (tyco, _) => if member (op =) ((map fst o snd o get_datatype thy) tyco) c
        then SOME tyco else NONE
     | _ => NONE;
 
@@ -525,54 +541,48 @@ fun get_constr_typ thy c =
         in SOME (Logic.varifyT ty) end
     | NONE => NONE;
 
-val get_case_data = Symtab.lookup o fst o the_cases o the_exec;
+fun change_eqns delete c f = (map_exec_purge (SOME [c]) o map_eqns
+  o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, Lazy.value [])), [])))
+    o apfst) (fn (_, eqns) => (true, f eqns));
 
-val is_undefined = Symtab.defined o snd o the_cases o the_exec;
-
-fun gen_add_eqn linear strict default thm thy =
-  case (if strict then SOME o mk_eqn thy linear else mk_liberal_eqn thy) thm
+fun gen_add_eqn linear default thm thy =
+  case (if default then mk_default_eqn thy else SOME o mk_eqn thy linear) thm
    of SOME (thm, _) =>
         let
           val c = Code_Unit.const_eqn thm;
-          val _ = if strict andalso (is_some o AxClass.class_of_param thy) c
+          val _ = if not default andalso (is_some o AxClass.class_of_param thy) c
             then error ("Rejected polymorphic equation for overloaded constant:\n"
               ^ Display.string_of_thm thm)
             else ();
-          val _ = if strict andalso (is_some o get_datatype_of_constr thy) c
+          val _ = if not default andalso (is_some o get_datatype_of_constr thy) c
             then error ("Rejected equation for datatype constructor:\n"
               ^ Display.string_of_thm thm)
             else ();
-        in
-          (map_exec_purge (SOME [c]) o map_eqns) (Symtab.map_default
-            (c, (true, Lazy.value [])) (add_thm thy default (thm, linear))) thy
-        end
+        in change_eqns false c (add_thm thy default (thm, linear)) thy end
     | NONE => thy;
 
-val add_eqn = gen_add_eqn true true false;
-val add_liberal_eqn = gen_add_eqn true false false;
-val add_default_eqn = gen_add_eqn true false true;
-val add_nonlinear_eqn = gen_add_eqn false true false;
-
-fun del_eqn thm thy = case mk_syntactic_eqn thy thm
- of SOME (thm, _) => let val c = Code_Unit.const_eqn thm
-      in map_exec_purge (SOME [c]) (map_eqns (Symtab.map_entry c (del_thm thm))) thy end
-  | NONE => thy;
-
-fun del_eqns c = map_exec_purge (SOME [c])
-  (map_eqns (Symtab.map_entry c (K (false, Lazy.value []))));
+val add_eqn = gen_add_eqn true false;
+val add_default_eqn = gen_add_eqn true true;
+val add_nonlinear_eqn = gen_add_eqn false false;
 
 fun add_eqnl (c, lthms) thy =
   let
     val lthms' = certificate thy
       (fn thy => map (Code_Unit.assert_linear) o certify_const thy c) lthms;
-  in
-    map_exec_purge (SOME [c])
-      (map_eqns (Symtab.map_default (c, (true, Lazy.value []))
-        (add_lthms lthms'))) thy
-  end;
+  in change_eqns false c (add_lthms lthms') thy end;
 
 val add_default_eqn_attr = Attrib.internal (fn _ => Thm.declaration_attribute
   (fn thm => Context.mapping (add_default_eqn thm) I));
+
+fun del_eqn thm thy = case mk_syntactic_eqn thy thm
+ of SOME (thm, _) => change_eqns true (Code_Unit.const_eqn thm) (del_thm thm) thy
+  | NONE => thy;
+
+fun del_eqns c = change_eqns true c (K (false, Lazy.value []));
+
+val get_case_data = Symtab.lookup o fst o the_cases o the_exec;
+
+val is_undefined = Symtab.defined o snd o the_cases o the_exec;
 
 structure TypeInterpretation = InterpretationFun(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
 
@@ -581,12 +591,13 @@ fun add_datatype raw_cs thy =
     val cs = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) raw_cs;
     val (tyco, vs_cos) = Code_Unit.constrset_of_consts thy cs;
     val cs' = map fst (snd vs_cos);
-    val purge_cs = case Symtab.lookup ((the_dtyps o the_exec) thy) tyco
-     of SOME (vs, cos) => if null cos then NONE else SOME (cs' @ map fst cos)
-      | NONE => NONE;
+    val purge_cs = case get_datatype thy tyco
+     of (_, []) => NONE
+      | (_, cos) => SOME (cs' @ map fst cos);
   in
     thy
-    |> map_exec_purge purge_cs (map_dtyps (Symtab.update (tyco, vs_cos))
+    |> map_exec_purge purge_cs
+        ((map_dtyps o Symtab.map_default (tyco, [])) (cons (serial (), vs_cos))
         #> map_eqns (fold (Symtab.delete_safe o fst) cs))
     |> TypeInterpretation.data (tyco, serial ())
   end;
@@ -646,12 +657,6 @@ val _ = Context.>> (Context.map_theory
 
 local
 
-fun get_eqns thy c =
-  Symtab.lookup ((the_eqns o the_exec) thy) c
-  |> Option.map (Lazy.force o snd)
-  |> these
-  |> (map o apfst) (Thm.transfer thy);
-
 fun apply_functrans thy c _ [] = []
   | apply_functrans thy c [] eqns = eqns
   | apply_functrans thy c functrans eqns = eqns
@@ -709,6 +714,7 @@ fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
 
 fun these_raw_eqns thy c =
   get_eqns thy c
+  |> (map o apfst) (Thm.transfer thy)
   |> burrow_fst (common_typ_eqns thy);
 
 fun these_eqns thy c =
@@ -717,6 +723,7 @@ fun these_eqns thy c =
       o the_thmproc o the_exec) thy;
   in
     get_eqns thy c
+    |> (map o apfst) (Thm.transfer thy)
     |> preprocess thy functrans c
   end;
 
