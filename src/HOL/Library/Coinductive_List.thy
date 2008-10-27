@@ -150,6 +150,8 @@ qed
 definition "LNil = Abs_llist NIL"
 definition "LCons x xs = Abs_llist (CONS (Datatype.Leaf x) (Rep_llist xs))"
 
+code_datatype LNil LCons
+
 lemma LCons_not_LNil [iff]: "LCons x xs \<noteq> LNil"
   apply (simp add: LNil_def LCons_def)
   apply (subst Abs_llist_inject)
@@ -196,7 +198,7 @@ qed
 
 
 definition
-  "llist_case c d l =
+  [code del]: "llist_case c d l =
     List_case c (\<lambda>x y. d (inv Datatype.Leaf x) (Abs_llist y)) (Rep_llist l)"
 
 syntax  (* FIXME? *)
@@ -205,17 +207,26 @@ syntax  (* FIXME? *)
 translations
   "case p of LNil \<Rightarrow> a | LCons x l \<Rightarrow> b" \<rightleftharpoons> "CONST llist_case a (\<lambda>x l. b) p"
 
-lemma llist_case_LNil [simp]: "llist_case c d LNil = c"
+lemma llist_case_LNil [simp, code]: "llist_case c d LNil = c"
   by (simp add: llist_case_def LNil_def
     NIL_type Abs_llist_inverse)
 
-lemma llist_case_LCons [simp]: "llist_case c d (LCons M N) = d M N"
+lemma llist_case_LCons [simp, code]: "llist_case c d (LCons M N) = d M N"
   by (simp add: llist_case_def LCons_def
     CONS_type Abs_llist_inverse Rep_llist Rep_llist_inverse inj_Leaf)
 
+lemma llist_case_cert:
+  includes meta_conjunction_syntax
+  assumes "CASE \<equiv> llist_case c d"
+  shows "(CASE LNil \<equiv> c) && (CASE (LCons M N) \<equiv> d M N)"
+  using assms by simp_all
+
+setup {*
+  Code.add_case @{thm llist_case_cert}
+*}
 
 definition
-  "llist_corec a f =
+  [code del]: "llist_corec a f =
     Abs_llist (LList_corec a
       (\<lambda>z.
         case f z of None \<Rightarrow> None
@@ -251,7 +262,7 @@ proof (unfold llist_def)
   qed
 qed
 
-lemma llist_corec:
+lemma llist_corec [code]:
   "llist_corec a f =
     (case f a of None \<Rightarrow> LNil | Some (z, w) \<Rightarrow> LCons z (llist_corec w f))"
 proof (cases "f a")
