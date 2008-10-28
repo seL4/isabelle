@@ -206,6 +206,9 @@ explicitly.
 * The metis method now fails in the usual manner, rather than raising
 an exception, if it determines that it cannot prove the theorem.
 
+* The metis method no longer fails because the theorem is too trivial
+(contains the empty clause).
+
 * Methods "case_tac" and "induct_tac" now refer to the very same rules
 as the structured Isar versions "cases" and "induct", cf. the
 corresponding "cases" and "induct" attributes.  Mutual induction rules

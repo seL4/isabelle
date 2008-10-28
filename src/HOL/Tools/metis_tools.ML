@@ -574,9 +574,6 @@ fun infer_types ctxt =
     let val thy = ProofContext.theory_of ctxt
         val th_cls_pairs = map (fn th => (Thm.get_name_hint th, ResAxioms.cnf_axiom thy th)) ths0
         val ths = List.concat (map #2 th_cls_pairs)
-        val _ = if exists(is_false o prop_of) cls 
-                then raise METIS "problem contains the empty clause"
-                else ();
         val _ = Output.debug (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
         val _ = app (fn th => Output.debug (fn () => Display.string_of_thm th)) cls
         val _ = Output.debug (fn () => "THEOREM CLAUSES")
@@ -593,6 +590,9 @@ fun infer_types ctxt =
                 else Output.debug (fn () => "goal is higher-order")
         val _ = Output.debug (fn () => "START METIS PROVE PROCESS")
     in
+        case List.filter (is_false o prop_of) cls of
+            false_th::_ => [false_th RS @{thm FalseE}]
+          | [] =>
         case refute thms of
             Metis.Resolution.Contradiction mth =>
               let val _ = Output.debug (fn () => "METIS RECONSTRUCTION START: " ^
