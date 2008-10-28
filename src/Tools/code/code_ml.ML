@@ -800,7 +800,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
           in if module_name = module_name' then
             map_node module_name_path (Graph.add_edge (name, name'))
           else let
-            val (common, (diff1::_, diff2::_)) = chop_prefix (op =)
+            val (common, (diff1 :: _, diff2 :: _)) = chop_prefix (op =)
               (module_name_path, NameSpace.explode module_name');
           in
             map_node common
