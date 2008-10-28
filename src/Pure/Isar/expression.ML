@@ -85,7 +85,7 @@ fun intern thy (Expr instances) = Expr (map (apfst (Locale.intern thy)) instance
    Sanity check of instantiations.
    Positional instantiations are extended to match full length of parameter list. *)
 
-fun parameters thy (expr, fixed) =
+fun parameters thy (expr, fixed : (Name.binding * string option * mixfix) list) =
   let
     fun reject_dups message xs =
       let val dups = duplicates (op =) xs
