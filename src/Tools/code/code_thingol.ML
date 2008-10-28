@@ -57,6 +57,7 @@ sig
   val fold_unbound_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
 
   type naming
+  val empty_naming: naming
   val lookup_class: naming -> class -> string option
   val lookup_classrel: naming -> class * class -> string option
   val lookup_tyco: naming -> string -> string option
@@ -259,14 +260,11 @@ local
   fun thyname_of_instance thy inst = case AxClass.arity_property thy inst Markup.theory_nameN
    of [] => error ("no such instance: " ^ quote (snd inst ^ " :: " ^ fst inst))
     | thyname :: _ => thyname;
-  fun thyname_of_const thy c = case Code.get_datatype_of_constr thy c
-     of SOME dtco => thyname_of_tyco thy dtco
-      | NONE => (case AxClass.class_of_param thy c
-         of SOME class => thyname_of_class thy class
-          | NONE => (case AxClass.inst_of_param thy c
-             of SOME (c, tyco) => thyname_of_instance thy
-                  ((the o AxClass.class_of_param thy) c, tyco)
-              | NONE => thyname_of thy (Consts.the_tags (Sign.consts_of thy)) c));
+  fun thyname_of_const thy c = case AxClass.class_of_param thy c
+   of SOME class => thyname_of_class thy class
+    | NONE => (case Code.get_datatype_of_constr thy c
+       of SOME dtco => thyname_of_tyco thy dtco
+        | NONE => thyname_of thy (Consts.the_tags (Sign.consts_of thy)) c);
   fun namify thy get_basename get_thyname name =
     let
       val prefix = get_thyname thy name;
@@ -453,27 +451,26 @@ fun contr_classparam_typs program name = case Graph.get_node program name
 
 fun ensure_stmt lookup declare generate thing (dep, (naming, program)) =
   let
-    fun add_dep name = case dep
-     of NONE => I | SOME dep => Graph.add_edge (dep, name);
-  in case lookup naming thing
-   of SOME name => program
+    fun add_dep name = case dep of NONE => I
+      | SOME dep => Graph.add_edge (dep, name);
+    val (name, naming') = case lookup naming thing
+     of SOME name => (name, naming)
+      | NONE => declare thing naming;
+  in case try (Graph.get_node program) name
+   of SOME stmt => program
         |> add_dep name
-        |> pair naming
+        |> pair naming'
         |> pair dep
         |> pair name
-    | NONE => let
-          val (name, naming') = declare thing naming;
-        in
-          program
-          |> Graph.default_node (name, NoStmt)
-          |> add_dep name
-          |> pair naming'
-          |> curry generate (SOME name)
-          ||> snd
-          |-> (fn stmt => (apsnd o Graph.map_node name) (K stmt))
-          |> pair dep
-          |> pair name
-        end
+    | NONE => program
+        |> Graph.default_node (name, NoStmt)
+        |> add_dep name
+        |> pair naming'
+        |> curry generate (SOME name)
+        ||> snd
+        |-> (fn stmt => (apsnd o Graph.map_node name) (K stmt))
+        |> pair dep
+        |> pair name
   end;
 
 fun not_wellsorted thy thm ty sort e =
@@ -719,15 +716,14 @@ structure Program = CodeDataFun
 (
   type T = naming * program;
   val empty = (empty_naming, Graph.empty);
-  fun purge thy cs (naming, program) = empty (*FIXME: problem: un-declaration of names
+  fun purge thy cs (naming, program) =
     let
-      val cs_exisiting =
-        map_filter (Code_Name.const_rev thy) (Graph.keys program);
-      val dels = (Graph.all_preds program
-          o map (Code_Name.const thy)
-          o filter (member (op =) cs_exisiting)
-        ) cs;
-    in Graph.del_nodes dels program end;*)
+      val names_delete = cs
+        |> map_filter (lookup_const naming)
+        |> filter (can (Graph.get_node program))
+        |> Graph.all_preds program;
+      val program' = Graph.del_nodes names_delete program;
+    in (naming, program') end;
 );
 
 val cached_program = Program.get;

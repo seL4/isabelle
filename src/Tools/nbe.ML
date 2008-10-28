@@ -336,14 +336,17 @@ fun compile_stmts ctxt stmts_deps =
       #-> fold (fn (name, univ) => (Graph.map_node name o apfst) (K (SOME univ))))
   end;
 
-fun ensure_stmts ctxt program =
+fun ensure_stmts ctxt naming program =
   let
     fun add_stmts names (gr, (maxidx, idx_tab)) = if exists ((can o Graph.get_node) gr) names
       then (gr, (maxidx, idx_tab))
       else (gr, (maxidx, idx_tab))
         |> compile_stmts ctxt (map (fn name => ((name, Graph.get_node program name),
           Graph.imm_succs program name)) names);
-  in fold_rev add_stmts (Graph.strong_conn program) end;
+  in
+    fold_rev add_stmts (Graph.strong_conn program)
+    #> pair naming
+  end;
 
 
 (** evaluation **)
@@ -404,25 +407,25 @@ fun term_of_univ thy program idx_tab t =
 
 structure Nbe_Functions = CodeDataFun
 (
-  type T = (Univ option * int) Graph.T * (int * string Inttab.table);
-  val empty = (Graph.empty, (0, Inttab.empty));
-  fun purge thy cs (gr, (maxidx, idx_tab)) = empty (*FIXME
+  type T = Code_Thingol.naming * ((Univ option * int) Graph.T * (int * string Inttab.table));
+  val empty = (Code_Thingol.empty_naming, (Graph.empty, (0, Inttab.empty)));
+  fun purge thy cs (naming, (gr, (maxidx, idx_tab))) =
     let
-      val cs_exisiting =
-        map_filter (Code_Name.const_rev thy) (Graph.keys gr);
-      val dels = (Graph.all_preds gr
-          o map (Code_Name.const thy)
-          o filter (member (op =) cs_exisiting)
-        ) cs;
-    in (Graph.del_nodes dels gr, (maxidx, idx_tab)) end*);
+      val names_delete = cs
+        |> map_filter (Code_Thingol.lookup_const naming)
+        |> filter (can (Graph.get_node gr))
+        |> Graph.all_preds gr;
+      val gr' = Graph.del_nodes names_delete gr;
+    in (naming, (gr', (maxidx, idx_tab))) end;
 );
 
 (* compilation, evaluation and reification *)
 
-fun compile_eval thy program vs_ty_t deps =
+fun compile_eval thy naming program vs_ty_t deps =
   let
     val ctxt = ProofContext.init thy;
-    val (gr, (_, idx_tab)) = Nbe_Functions.change thy (ensure_stmts ctxt program);
+    val (_, (gr, (_, idx_tab))) =
+      Nbe_Functions.change thy (ensure_stmts ctxt naming program o snd);
   in
     vs_ty_t
     |> eval_term ctxt gr deps
@@ -431,7 +434,7 @@ fun compile_eval thy program vs_ty_t deps =
 
 (* evaluation with type reconstruction *)
 
-fun eval thy t program vs_ty_t deps =
+fun eval thy t naming program vs_ty_t deps =
   let
     fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
       | t => t);
@@ -450,7 +453,7 @@ fun eval thy t program vs_ty_t deps =
         ^ setmp show_types true (Syntax.string_of_term_global thy) t);
     val string_of_term = setmp show_types true (Syntax.string_of_term_global thy);
   in
-    compile_eval thy program vs_ty_t deps
+    compile_eval thy naming program vs_ty_t deps
     |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
     |> subst_triv_consts
     |> type_frees
@@ -464,8 +467,8 @@ fun eval thy t program vs_ty_t deps =
 (* evaluation oracle *)
 
 val (_, norm_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle ("norm", fn (thy, t, program, vs_ty_t, deps) =>
-    Thm.cterm_of thy (Logic.mk_equals (t, eval thy t program vs_ty_t deps)))));
+  (Thm.add_oracle ("norm", fn (thy, t, naming, program, vs_ty_t, deps) =>
+    Thm.cterm_of thy (Logic.mk_equals (t, eval thy t naming program vs_ty_t deps)))));
 
 fun add_triv_classes thy =
   let
@@ -479,13 +482,14 @@ fun add_triv_classes thy =
 fun norm_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    fun evaluator' t naming program vs_ty_t deps = norm_oracle (thy, t, program, vs_ty_t, deps);
+    fun evaluator' t naming program vs_ty_t deps =
+      norm_oracle (thy, t, naming, program, vs_ty_t, deps);
     fun evaluator t = (add_triv_classes thy t, evaluator' t);
   in Code_Thingol.eval_conv thy evaluator ct end;
 
 fun norm_term thy t =
   let
-    fun evaluator' t naming program vs_ty_t deps = eval thy t program vs_ty_t deps;
+    fun evaluator' t naming program vs_ty_t deps = eval thy t naming program vs_ty_t deps;
     fun evaluator t = (add_triv_classes thy t, evaluator' t);
   in (Code.postprocess_term thy o Code_Thingol.eval_term thy evaluator) t end;
 
