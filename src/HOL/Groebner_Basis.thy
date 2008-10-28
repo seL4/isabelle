@@ -64,7 +64,7 @@ qed
 subsubsection {* Declaring the abstract theory *}
 
 lemma semiring_ops:
-  includes meta_term_syntax
+  fixes meta_term :: "'a => prop"  ("TERM _")
   shows "TERM (add x y)" and "TERM (mul x y)" and "TERM (pwr x n)"
     and "TERM r0" and "TERM r1"
   by rule+
@@ -227,7 +227,7 @@ locale gb_ring = gb_semiring +
 begin
 
 lemma ring_ops:
-  includes meta_term_syntax
+  fixes meta_term :: "'a => prop"  ("TERM _")
   shows "TERM (sub x y)" and "TERM (neg x)" .
 
 lemmas ring_rules = neg_mul sub_add

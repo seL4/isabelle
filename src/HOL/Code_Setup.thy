@@ -72,7 +72,7 @@ lemma Let_case_cert:
   using assms by simp_all
 
 lemma If_case_cert:
-  includes meta_conjunction_syntax
+  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
   assumes "CASE \<equiv> (\<lambda>b. If b f g)"
   shows "(CASE True \<equiv> f) && (CASE False \<equiv> g)"
   using assms by simp_all

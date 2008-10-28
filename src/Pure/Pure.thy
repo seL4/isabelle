@@ -38,7 +38,7 @@ locale meta_conjunction_syntax =
   fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
 
 lemma all_conjunction:
-  includes meta_conjunction_syntax
+  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
   shows "(!!x. PROP A x && PROP B x) == ((!!x. PROP A x) && (!!x. PROP B x))"
 proof
   assume conj: "!!x. PROP A x && PROP B x"
@@ -59,7 +59,7 @@ next
 qed
 
 lemma imp_conjunction:
-  includes meta_conjunction_syntax
+  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
   shows "(PROP A ==> PROP B && PROP C) == (PROP A ==> PROP B) && (PROP A ==> PROP C)"
 proof
   assume conj: "PROP A ==> PROP B && PROP C"
@@ -80,7 +80,7 @@ next
 qed
 
 lemma conjunction_imp:
-  includes meta_conjunction_syntax
+  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
   shows "(PROP A && PROP B ==> PROP C) == (PROP A ==> PROP B ==> PROP C)"
 proof
   assume r: "PROP A && PROP B ==> PROP C"

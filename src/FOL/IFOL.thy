@@ -699,7 +699,7 @@ next
 qed
 
 lemma atomize_conj [atomize]:
-  includes meta_conjunction_syntax
+  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
   shows "(A && B) == Trueprop (A & B)"
 proof
   assume conj: "A && B"

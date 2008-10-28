@@ -846,7 +846,7 @@ next
 qed
 
 lemma atomize_conj [atomize]:
-  includes meta_conjunction_syntax
+  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
   shows "(A && B) == Trueprop (A & B)"
 proof
   assume conj: "A && B"
@@ -1504,7 +1504,7 @@ lemma induct_equal_eq: "(x == y) == Trueprop (induct_equal x y)"
   by (unfold atomize_eq induct_equal_def)
 
 lemma induct_conj_eq:
-  includes meta_conjunction_syntax
+  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
   shows "(A && B) == Trueprop (induct_conj A B)"
   by (unfold atomize_conj induct_conj_def)
 
