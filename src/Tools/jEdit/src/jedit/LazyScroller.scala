@@ -9,11 +9,10 @@ package isabelle.jedit
 import java.io.{ ByteArrayInputStream, FileInputStream, InputStream }
 
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.jcl.ArrayList
 
 import java.awt.{ BorderLayout, GridLayout, Adjustable, Rectangle, Scrollbar }
 import java.awt.image.BufferedImage
-import java.awt.event.{ AdjustmentListener, AdjustmentEvent }
+import java.awt.event.{ AdjustmentListener, AdjustmentEvent, ComponentListener, ComponentEvent }
 import javax.swing.{ JScrollBar, JPanel, JScrollPane, ScrollPaneConstants }
 
 import isabelle.IsabelleSystem.getenv
@@ -48,98 +47,123 @@ messages, message {
 }
 
 
-abstract class LazyScroller[T] extends JPanel with AdjustmentListener{
+class LazyScroller(view : View, position : String) extends JPanel with AdjustmentListener with ComponentListener {
   //holding the unrendered messages
-  val message_buffer = new ArrayBuffer[T]()
+  val message_buffer = new ArrayBuffer[Document]()
+  //rendered messages
+  var message_cache = Map[Int, XHTMLPanel]()
   // defining the current view
-  val scrollunit = 10 //TODO: not used
-  var message_offset = 0 //TODO: not used; how many pixels of the topmost message are hidden
-  var message_no = 0  //index of the topmost message
-  var message_view = new JPanel
-  message_view.setLayout(new GridLayout(1,1))
+  val scrollunit = 10 
+  var message_offset = 0 //how many pixels of the lowest message are hidden
+  var message_no = -1  //index of the lowest message
+  // absolute positioning for messages
+  val message_view = new JPanel
+  message_view.setLayout(null)
   // setting up view
   setLayout(new BorderLayout())
   val vscroll = new JScrollBar(Adjustable.VERTICAL, 0, 1, 0, 1)
   vscroll.addAdjustmentListener(this)
   add (vscroll, BorderLayout.EAST)
   add (message_view, BorderLayout.CENTER)
+  addComponentListener(this)
 
 
-  // subclasses should implement this
-  def render (message : T) : JPanel
+  //Render a message to a Panel
+  def render (message: Document): XHTMLPanel = {
+    val panel = new XHTMLPanel(new UserAgent())
 
-  //TODO: - add more than one message
-  //      - render only when necessary
-  def update_view = {
-    message_view.removeAll()
-    val rendered_message = render (message_buffer(message_no))
-    val resizable = new JScrollPane(rendered_message, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
-    message_view.add (resizable)
-  }
-  
-  def update_scrollbar = {
-    vscroll.setValue (message_no)
-    vscroll.setMaximum (Math.max(1, message_buffer.length))
-  }
+    val fontResolver =
+      panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
+    if (Plugin.plugin.viewFont != null)
+      fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
 
-  def add_message (message : T) = {
-    message_buffer += message
-  }
-
-  override def adjustmentValueChanged (e : AdjustmentEvent) = {
-    //TODO: find out if all Swing-Implementations handle scrolling as *only* TRACK
-    e.getAdjustmentType match {
-      //Scroll shown messages up
-      case AdjustmentEvent.UNIT_INCREMENT =>
-
-      //Scroll shown messages down
-      case AdjustmentEvent.UNIT_DECREMENT =>
-
-      // Jump to next message
-      case AdjustmentEvent.BLOCK_INCREMENT =>
-
-      //Jump to previous message
-      case AdjustmentEvent.BLOCK_DECREMENT =>
-
-      //Jump to message
-      case AdjustmentEvent.TRACK =>
-        message_no = e.getValue
-        update_view
-      case _ =>
-    }
-  }
-  }
-
-
-class XMLScroller(view : View, position : String) extends LazyScroller[Document] {
-  
-    Plugin.plugin.stateUpdate.add(state => {
-        var i = 0
-        if(state != null) while (i < 1000) {
-          add_message(state.document)
-          i += 1
-        }
-        //TODO: only a hack:
-        update_scrollbar
-    })
-
-    def render (message: Document): JPanel = {
-      val panel = new XHTMLPanel(new UserAgent())
-
-      val fontResolver =
-        panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
+    Plugin.plugin.viewFontChanged.add(font => {
       if (Plugin.plugin.viewFont != null)
         fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
 
-      Plugin.plugin.viewFontChanged.add(font => {
-        if (Plugin.plugin.viewFont != null)
-          fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
+      panel.relayout()
+    })
 
-        panel.relayout()
-      })
-
-      panel.setDocument(message, LazyScroller.baseURL)
-      panel
+    panel.setDocument(message, LazyScroller.baseURL)
+    panel
+  }
+  
+  //calculates preferred size of panel and add it to the cache and view
+  def add_to_cache (message_no: Int, panel: XHTMLPanel) = {
+    message_cache = message_cache.update (message_no, panel)
+    //necessary for calculating preferred size of panel
+    message_view.add (panel)
+    panel.setBounds (0, 0, message_view.getWidth, 1) // document has to fit into width
+    panel.doLayout (panel.getGraphics) //lay out, preferred size is set then
+    System.err.println("Added " + message_no + " with preferred Size " + panel.getPreferredSize + " to cache")
+  }
+  
+  //render and load a message into cache, place its bottom at y-coordinate;
+  def set_message (message_no: Int, y: Int) = {
+    //get or add panel from/to cache
+    if(!message_cache.isDefinedAt(message_no)){
+      add_to_cache (message_no, render (message_buffer(message_no)))
     }
- }
+    val panel = message_cache.get(message_no).get
+    val width = panel.getPreferredSize.getWidth.toInt
+    val height = panel.getPreferredSize.getHeight.toInt
+    panel.setBounds(0, y - height, width, height)
+    message_view.add(panel)
+    panel
+  }
+  
+  def update_view = {
+    message_view.removeAll()
+    var n = message_no
+    var y:Int = message_view.getHeight + message_offset
+    while (y >= 0 && n >= 0){
+      val panel = set_message (n, y)
+      y = y - panel.getHeight
+      n = n - 1
+    }
+    //clean cache (except for some elements on top and bottom, if existent)
+    //TODO: find appropriate values
+    //larger cache makes e.g. resizing slower
+    if(message_cache.size > 20){
+      val min = n - 5
+      val max = message_no + 5
+      message_cache = message_cache filter (t => t match{case (no, _) => no >= min && no <= max})
+    }
+    repaint()
+  }
+
+  def add_message (message: Document) = {
+    message_buffer += message
+    vscroll.setMaximum (Math.max(1, message_buffer.length))
+  }
+
+  override def adjustmentValueChanged (e : AdjustmentEvent) = {
+    //event-handling has to be so general (without UNIT_INCR,...)
+    // because all events could be sent as TRACK e.g. on my mac
+    message_no = e.getValue
+    update_view
+  }
+  
+  override def componentHidden(e: ComponentEvent){}
+  override def componentMoved(e: ComponentEvent){}
+  override def componentResized(e: ComponentEvent){
+    // update_cache: insert panels into new cache -> preferred size is calculated
+    val panels = message_cache.elements
+    message_cache = message_cache.empty
+    panels foreach (pair => pair match{case (no, pa) => add_to_cache (no, pa)})
+    vscroll.setMaximum (Math.max(1, message_buffer.length))    
+    update_view
+  }
+  override def componentShown(e: ComponentEvent){}
+  
+  //register somewhere
+  Plugin.plugin.stateUpdate.add(state => {
+    var i = 0
+    if(state != null) while (i < 500) {
+      add_message(state.document)
+      i += 1
+    }
+  })
+}
+
 

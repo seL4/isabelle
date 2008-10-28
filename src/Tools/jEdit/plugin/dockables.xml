@@ -10,6 +10,6 @@
 		new isabelle.jedit.StateViewDockable(view, position);
 	</DOCKABLE>
 	<DOCKABLE NAME="Isabelle_scroller">
-		new isabelle.jedit.XMLScroller(view, position);
+		new isabelle.jedit.LazyScroller(view, position);
 	</DOCKABLE>
 </DOCKABLES>
