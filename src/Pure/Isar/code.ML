@@ -11,7 +11,8 @@ sig
   val add_eqn: thm -> theory -> theory
   val add_nonlinear_eqn: thm -> theory -> theory
   val add_default_eqn: thm -> theory -> theory
-  val add_default_eqn_attr: Attrib.src
+  val add_default_eqn_attribute: attribute
+  val add_default_eqn_attrib: Attrib.src
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
   val add_eqnl: string * (thm * bool) list Lazy.T -> theory -> theory
@@ -571,8 +572,9 @@ fun add_eqnl (c, lthms) thy =
       (fn thy => map (Code_Unit.assert_linear) o certify_const thy c) lthms;
   in change_eqns false c (add_lthms lthms') thy end;
 
-val add_default_eqn_attr = Attrib.internal (fn _ => Thm.declaration_attribute
-  (fn thm => Context.mapping (add_default_eqn thm) I));
+val add_default_eqn_attribute = Thm.declaration_attribute
+  (fn thm => Context.mapping (add_default_eqn thm) I);
+val add_default_eqn_attrib = Attrib.internal (K add_default_eqn_attribute);
 
 fun del_eqn thm thy = case mk_syntactic_eqn thy thm
  of SOME (thm, _) => change_eqns true (Code_Unit.const_eqn thm) (del_thm thm) thy
@@ -590,13 +592,9 @@ fun add_datatype raw_cs thy =
   let
     val cs = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) raw_cs;
     val (tyco, vs_cos) = Code_Unit.constrset_of_consts thy cs;
-    val cs' = map fst (snd vs_cos);
-    val purge_cs = case get_datatype thy tyco
-     of (_, []) => NONE
-      | (_, cos) => SOME (cs' @ map fst cos);
   in
     thy
-    |> map_exec_purge purge_cs
+    |> map_exec_purge NONE
         ((map_dtyps o Symtab.map_default (tyco, [])) (cons (serial (), vs_cos))
         #> map_eqns (fold (Symtab.delete_safe o fst) cs))
     |> TypeInterpretation.data (tyco, serial ())

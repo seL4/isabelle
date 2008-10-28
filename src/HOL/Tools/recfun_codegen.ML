@@ -7,9 +7,6 @@ Code generator for recursive functions.
 
 signature RECFUN_CODEGEN =
 sig
-  val add: string option -> attribute
-  val add_default: attribute
-  val del: attribute
   val setup: theory -> theory
 end;
 
@@ -27,24 +24,15 @@ structure ModuleData = TheoryDataFun
   fun merge _ = Symtab.merge (K true);
 );
 
-fun add_thm add NONE thm thy = add thm thy
-  | add_thm add (SOME module_name) thm thy =
+fun add_thm NONE thm thy = Code.add_eqn thm thy
+  | add_thm (SOME module_name) thm thy =
       case Code_Unit.warning_thm (Code_Unit.mk_eqn thy) thm
        of SOME (thm', _) => let val c = Code_Unit.const_eqn thm'
             in thy
               |> ModuleData.map (Symtab.update (c, module_name))
-              |> add thm'
+              |> Code.add_eqn thm'
             end
-        | NONE => add thm thy;
-
-fun add opt_module = Thm.declaration_attribute (fn thm => Context.mapping
-  (add_thm Code.add_eqn opt_module thm) I);
-
-val add_default = Thm.declaration_attribute (fn thm => Context.mapping
-  (add_thm Code.add_default_eqn NONE thm) I);
-
-val del = Thm.declaration_attribute (fn thm => Context.mapping
-  (Code.del_eqn thm) I);
+        | NONE => Code.add_eqn thm thy;
 
 fun meta_eq_to_obj_eq thy thm =
   let
@@ -186,9 +174,15 @@ fun recfun_codegen thy defs dep module brack t gr = (case strip_comb t of
         end)
   | _ => NONE);
 
-val setup =
+val setup = let
+  fun add opt_module = Thm.declaration_attribute (fn thm => Context.mapping
+    (add_thm opt_module thm) I);
+  val del = Thm.declaration_attribute (fn thm => Context.mapping
+    (Code.del_eqn thm) I);
+in
   add_codegen "recfun" recfun_codegen
   #> Code.add_attribute ("", Args.del |-- Scan.succeed del
-     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add);
+     || Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> add)
+end;
 
 end;

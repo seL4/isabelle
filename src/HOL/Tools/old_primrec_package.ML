@@ -284,7 +284,7 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
     val simps'' = maps snd simps';
   in
     thy''
-    |> note (("simps", [Simplifier.simp_add, RecfunCodegen.add_default]), simps'')
+    |> note (("simps", [Simplifier.simp_add, Code.add_default_eqn_attribute]), simps'')
     |> snd
     |> note (("induct", []), [prepare_induct (#2 (hd dts)) rec_eqns])
     |> snd

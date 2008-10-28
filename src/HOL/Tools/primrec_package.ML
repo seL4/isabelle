@@ -252,7 +252,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
       (space_implode "_" (map (Sign.base_name o #1) defs));
     val spec' = (map o apfst o apfst) qualify spec;
     val simp_atts = map (Attrib.internal o K)
-      [Simplifier.simp_add, RecfunCodegen.add_default];
+      [Simplifier.simp_add, Code.add_default_eqn_attribute];
   in
     lthy
     |> set_group ? LocalTheory.set_group (serial_string ())

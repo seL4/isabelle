@@ -184,7 +184,7 @@ fun gen_def do_print prep (raw_var, (raw_a, raw_prop)) lthy =
     val ((lhs, (_, th)), lthy2) = lthy |> LocalTheory.define Thm.definitionK
         (var, ((Name.map_name (suffix "_raw") name, []), rhs));
     val ((def_name, [th']), lthy3) = lthy2 |> LocalTheory.note Thm.definitionK
-        ((name, Code.add_default_eqn_attr :: atts), [prove lthy2 th]);
+        ((name, Code.add_default_eqn_attrib :: atts), [prove lthy2 th]);
 
     val lhs' = Morphism.term (LocalTheory.target_morphism lthy3) lhs;
     val _ =

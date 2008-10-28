@@ -125,7 +125,7 @@ fun total_termination_afterqed data [[totality]] lthy =
       val tinduct = map remove_domain_condition pinducts
 
       val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
-      val allatts = if has_guards then [] else [Attrib.internal (K RecfunCodegen.add_default)]
+      val allatts = if has_guards then [] else [Code.add_default_eqn_attrib]
 
       val qualify = NameSpace.qualified defname;
     in
