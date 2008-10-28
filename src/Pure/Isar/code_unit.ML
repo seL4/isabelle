@@ -280,6 +280,8 @@ fun read_const thy = AxClass.unoverload_const thy o read_bare_const thy;
 
 fun constrset_of_consts thy cs =
   let
+    val _ = map (fn (c, _) => if (is_some o AxClass.class_of_param thy) c
+      then error ("Is a class parameter: " ^ string_of_const thy c) else ()) cs;
     fun no_constr (c, ty) = error ("Not a datatype constructor: " ^ string_of_const thy c
       ^ " :: " ^ string_of_typ thy ty);
     fun last_typ c_ty ty =
