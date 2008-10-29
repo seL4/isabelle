@@ -43,12 +43,12 @@ sig
     -> fixity -> 'a list -> Pretty.T)) option * OuterParse.token list
   val simple_const_syntax: (int * ((fixity -> iterm -> Pretty.T)
     -> fixity -> (iterm * itype) list -> Pretty.T)) option -> const_syntax option
-  val gen_pr_app: (thm -> bool -> Code_Name.var_ctxt -> const * iterm list -> Pretty.T list)
-    -> (thm -> bool -> Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
-    -> (string -> const_syntax option) -> (string -> bool) -> Code_Thingol.naming
-    -> thm -> bool -> Code_Name.var_ctxt -> fixity -> const * iterm list -> Pretty.T
+  val gen_pr_app: (thm -> Code_Name.var_ctxt -> const * iterm list -> Pretty.T list)
+    -> (thm -> Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
+    -> (string -> const_syntax option) -> Code_Thingol.naming
+    -> thm -> Code_Name.var_ctxt -> fixity -> const * iterm list -> Pretty.T
   val gen_pr_bind: ((string option * Pretty.T option) * itype -> Pretty.T)
-    -> (thm -> bool -> Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
+    -> (thm -> Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm -> fixity
     -> (string option * iterm option) * itype -> Code_Name.var_ctxt -> Pretty.T * Code_Name.var_ctxt
 
@@ -127,26 +127,23 @@ fun brackify_infix infx fxy_ctxt =
 type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
   -> fixity -> itype list -> Pretty.T);
 type const_syntax = int * ((Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
-  -> Code_Thingol.naming -> thm -> bool -> Code_Name.var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
+  -> Code_Thingol.naming -> thm -> Code_Name.var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
 fun simple_const_syntax x = (Option.map o apsnd)
-  (fn pretty => fn pr => fn naming => fn thm => fn pat => fn vars => pretty (pr vars)) x;
+  (fn pretty => fn pr => fn naming => fn thm => fn vars => pretty (pr vars)) x;
 
-fun gen_pr_app pr_app pr_term syntax_const is_cons naming thm pat
-    vars fxy (app as ((c, (_, tys)), ts)) =
+fun gen_pr_app pr_app pr_term syntax_const naming thm vars fxy (app as ((c, (_, tys)), ts)) =
   case syntax_const c
-   of NONE => if pat andalso not (is_cons c) then
-        nerror thm "Non-constructor in pattern"
-        else brackify fxy (pr_app thm pat vars app)
+   of NONE => brackify fxy (pr_app thm vars app)
     | SOME (k, pr) =>
         let
-          fun pr' fxy ts = pr (pr_term thm pat) naming thm pat vars fxy (ts ~~ curry Library.take k tys);
+          fun pr' fxy ts = pr (pr_term thm) naming thm vars fxy (ts ~~ curry Library.take k tys);
         in if k = length ts
           then pr' fxy ts
         else if k < length ts
           then case chop k ts of (ts1, ts2) =>
-            brackify fxy (pr' APP ts1 :: map (pr_term thm pat vars BR) ts2)
-          else pr_term thm pat vars fxy (Code_Thingol.eta_expand k app)
+            brackify fxy (pr' APP ts1 :: map (pr_term thm vars BR) ts2)
+          else pr_term thm vars fxy (Code_Thingol.eta_expand k app)
         end;
 
 fun gen_pr_bind pr_bind pr_term thm (fxy : fixity) ((v, pat), ty : itype) vars =
@@ -157,7 +154,7 @@ fun gen_pr_bind pr_bind pr_term thm (fxy : fixity) ((v, pat), ty : itype) vars =
     val vars' = Code_Name.intro_vars (the_list v) vars;
     val vars'' = Code_Name.intro_vars vs vars';
     val v' = Option.map (Code_Name.lookup_var vars') v;
-    val pat' = Option.map (pr_term thm true vars'' fxy) pat;
+    val pat' = Option.map (pr_term thm vars'' fxy) pat;
   in (pr_bind ((v', pat'), ty), vars'') end;
 
 

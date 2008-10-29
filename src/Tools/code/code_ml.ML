@@ -83,40 +83,40 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
          of NONE => pr_tycoexpr fxy (tyco, tys)
           | SOME (i, pr) => pr pr_typ fxy tys)
       | pr_typ fxy (ITyVar v) = str ("'" ^ v);
-    fun pr_term thm pat vars fxy (IConst c) =
-          pr_app thm pat vars fxy (c, [])
-      | pr_term thm pat vars fxy (IVar v) =
+    fun pr_term thm vars fxy (IConst c) =
+          pr_app thm vars fxy (c, [])
+      | pr_term thm vars fxy (IVar v) =
           str (Code_Name.lookup_var vars v)
-      | pr_term thm pat vars fxy (t as t1 `$ t2) =
+      | pr_term thm vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
-           of SOME c_ts => pr_app thm pat vars fxy c_ts
+           of SOME c_ts => pr_app thm vars fxy c_ts
             | NONE =>
-                brackify fxy [pr_term thm pat vars NOBR t1, pr_term thm pat vars BR t2])
-      | pr_term thm pat vars fxy (t as _ `|-> _) =
+                brackify fxy [pr_term thm vars NOBR t1, pr_term thm vars BR t2])
+      | pr_term thm vars fxy (t as _ `|-> _) =
           let
             val (binds, t') = Code_Thingol.unfold_abs t;
             fun pr ((v, pat), ty) =
               pr_bind thm NOBR ((SOME v, pat), ty)
               #>> (fn p => concat [str "fn", p, str "=>"]);
             val (ps, vars') = fold_map pr binds vars;
-          in brackets (ps @ [pr_term thm pat vars' NOBR t']) end
-      | pr_term thm pat vars fxy (ICase (cases as (_, t0))) =
+          in brackets (ps @ [pr_term thm vars' NOBR t']) end
+      | pr_term thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
                 then pr_case thm vars fxy cases
-                else pr_app thm pat vars fxy c_ts
+                else pr_app thm vars fxy c_ts
             | NONE => pr_case thm vars fxy cases)
-    and pr_app' thm pat vars (app as ((c, (iss, tys)), ts)) =
+    and pr_app' thm vars (app as ((c, (iss, tys)), ts)) =
       if is_cons c then let
         val k = length tys
       in if k < 2 then 
-        (str o deresolve) c :: map (pr_term thm pat vars BR) ts
+        (str o deresolve) c :: map (pr_term thm vars BR) ts
       else if k = length ts then
-        [(str o deresolve) c, Pretty.enum "," "(" ")" (map (pr_term thm pat vars NOBR) ts)]
-      else [pr_term thm pat vars BR (Code_Thingol.eta_expand k app)] end else
+        [(str o deresolve) c, Pretty.enum "," "(" ")" (map (pr_term thm vars NOBR) ts)]
+      else [pr_term thm vars BR (Code_Thingol.eta_expand k app)] end else
         (str o deresolve) c
-          :: (map (pr_dicts BR) o filter_out null) iss @ map (pr_term thm pat vars BR) ts
-    and pr_app thm pat vars = gen_pr_app pr_app' pr_term syntax_const is_cons naming thm pat vars
+          :: (map (pr_dicts BR) o filter_out null) iss @ map (pr_term thm vars BR) ts
+    and pr_app thm vars = gen_pr_app pr_app' pr_term syntax_const naming thm vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
@@ -128,12 +128,12 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
             fun pr ((pat, ty), t) vars =
               vars
               |> pr_bind thm NOBR ((NONE, SOME pat), ty)
-              |>> (fn p => semicolon [str "val", p, str "=", pr_term thm false vars NOBR t])
+              |>> (fn p => semicolon [str "val", p, str "=", pr_term thm vars NOBR t])
             val (ps, vars') = fold_map pr binds vars;
           in
             Pretty.chunks [
               [str ("let"), Pretty.fbrk, Pretty.chunks ps] |> Pretty.block,
-              [str ("in"), Pretty.fbrk, pr_term thm false vars' NOBR t'] |> Pretty.block,
+              [str ("in"), Pretty.fbrk, pr_term thm vars' NOBR t'] |> Pretty.block,
               str ("end")
             ]
           end
@@ -143,12 +143,12 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
               let
                 val (p, vars') = pr_bind thm NOBR ((NONE, SOME pat), ty) vars;
               in
-                concat [str delim, p, str "=>", pr_term thm false vars' NOBR t]
+                concat [str delim, p, str "=>", pr_term thm vars' NOBR t]
               end;
           in
             (Pretty.enclose "(" ")" o single o brackify fxy) (
               str "case"
-              :: pr_term thm false vars NOBR td
+              :: pr_term thm vars NOBR td
               :: pr "of" b
               :: map (pr "|") bs
             )
@@ -209,8 +209,8 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
                              then [str ":", pr_typ NOBR ty]
                              else
                                pr_tyvar_dicts vs_dict
-                               @ map (pr_term thm true vars BR) ts)
-                       @ [str "=", pr_term thm false vars NOBR t]
+                               @ map (pr_term thm vars BR) ts)
+                       @ [str "=", pr_term thm vars NOBR t]
                         )
                       end
                   in
@@ -303,7 +303,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
               concat [
                 (str o pr_label_classparam) classparam,
                 str "=",
-                pr_app thm false reserved_names NOBR (c_inst, [])
+                pr_app thm reserved_names NOBR (c_inst, [])
               ];
           in
             semicolon ([
@@ -376,38 +376,38 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
          of NONE => pr_tycoexpr fxy (tyco, tys)
           | SOME (i, pr) => pr pr_typ fxy tys)
       | pr_typ fxy (ITyVar v) = str ("'" ^ v);
-    fun pr_term thm pat vars fxy (IConst c) =
-          pr_app thm pat vars fxy (c, [])
-      | pr_term thm pat vars fxy (IVar v) =
+    fun pr_term thm vars fxy (IConst c) =
+          pr_app thm vars fxy (c, [])
+      | pr_term thm vars fxy (IVar v) =
           str (Code_Name.lookup_var vars v)
-      | pr_term thm pat vars fxy (t as t1 `$ t2) =
+      | pr_term thm vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
-           of SOME c_ts => pr_app thm pat vars fxy c_ts
+           of SOME c_ts => pr_app thm vars fxy c_ts
             | NONE =>
-                brackify fxy [pr_term thm pat vars NOBR t1, pr_term thm pat vars BR t2])
-      | pr_term thm pat vars fxy (t as _ `|-> _) =
+                brackify fxy [pr_term thm vars NOBR t1, pr_term thm vars BR t2])
+      | pr_term thm vars fxy (t as _ `|-> _) =
           let
             val (binds, t') = Code_Thingol.unfold_abs t;
             fun pr ((v, pat), ty) = pr_bind thm BR ((SOME v, pat), ty);
             val (ps, vars') = fold_map pr binds vars;
-          in brackets (str "fun" :: ps @ str "->" @@ pr_term thm pat vars' NOBR t') end
-      | pr_term thm pat vars fxy (ICase (cases as (_, t0))) = (case Code_Thingol.unfold_const_app t0
+          in brackets (str "fun" :: ps @ str "->" @@ pr_term thm vars' NOBR t') end
+      | pr_term thm vars fxy (ICase (cases as (_, t0))) = (case Code_Thingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
                 then pr_case thm vars fxy cases
-                else pr_app thm pat vars fxy c_ts
+                else pr_app thm vars fxy c_ts
             | NONE => pr_case thm vars fxy cases)
-    and pr_app' thm pat vars (app as ((c, (iss, tys)), ts)) =
+    and pr_app' thm vars (app as ((c, (iss, tys)), ts)) =
       if is_cons c then
         if length tys = length ts
         then case ts
          of [] => [(str o deresolve) c]
-          | [t] => [(str o deresolve) c, pr_term thm pat vars BR t]
+          | [t] => [(str o deresolve) c, pr_term thm vars BR t]
           | _ => [(str o deresolve) c, Pretty.enum "," "(" ")"
-                    (map (pr_term thm pat vars NOBR) ts)]
-        else [pr_term thm pat vars BR (Code_Thingol.eta_expand (length tys) app)]
+                    (map (pr_term thm vars NOBR) ts)]
+        else [pr_term thm vars BR (Code_Thingol.eta_expand (length tys) app)]
       else (str o deresolve) c
-        :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term thm pat vars BR) ts)
-    and pr_app thm pat vars = gen_pr_app pr_app' pr_term syntax_const is_cons naming thm pat vars
+        :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term thm vars BR) ts)
+    and pr_app thm vars = gen_pr_app pr_app' pr_term syntax_const naming thm vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
@@ -420,19 +420,19 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
               vars
               |> pr_bind thm NOBR ((NONE, SOME pat), ty)
               |>> (fn p => concat
-                  [str "let", p, str "=", pr_term thm false vars NOBR t, str "in"])
+                  [str "let", p, str "=", pr_term thm vars NOBR t, str "in"])
             val (ps, vars') = fold_map pr binds vars;
-          in Pretty.chunks (ps @| pr_term thm false vars' NOBR t') end
+          in Pretty.chunks (ps @| pr_term thm vars' NOBR t') end
       | pr_case thm vars fxy (((td, ty), b::bs), _) =
           let
             fun pr delim (pat, t) =
               let
                 val (p, vars') = pr_bind thm NOBR ((NONE, SOME pat), ty) vars;
-              in concat [str delim, p, str "->", pr_term thm false vars' NOBR t] end;
+              in concat [str delim, p, str "->", pr_term thm vars' NOBR t] end;
           in
             (Pretty.enclose "(" ")" o single o brackify fxy) (
               str "match"
-              :: pr_term thm false vars NOBR td
+              :: pr_term thm vars NOBR td
               :: pr "with" b
               :: map (pr "|") bs
             )
@@ -464,9 +464,9 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                   |> Code_Name.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
                       (insert (op =)) ts []);
               in concat [
-                (Pretty.block o Pretty.commas) (map (pr_term thm true vars NOBR) ts),
+                (Pretty.block o Pretty.commas) (map (pr_term thm vars NOBR) ts),
                 str "->",
-                pr_term thm false vars NOBR t
+                pr_term thm vars NOBR t
               ] end;
             fun pr_eqs name ty [] =
                   let
@@ -493,9 +493,9 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                           (insert (op =)) ts []);
                   in
                     concat (
-                      map (pr_term thm true vars BR) ts
+                      map (pr_term thm vars BR) ts
                       @ str "="
-                      @@ pr_term thm false vars NOBR t
+                      @@ pr_term thm vars NOBR t
                     )
                   end
               | pr_eqs _ _ (eqs as (eq as (([_], _), _)) :: eqs') =
@@ -615,7 +615,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
               concat [
                 (str o deresolve) classparam,
                 str "=",
-                pr_app thm false reserved_names NOBR (c_inst, [])
+                pr_app thm reserved_names NOBR (c_inst, [])
               ];
           in
             concat (

@@ -59,45 +59,45 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
       Pretty.block (pr_typcontext tyvars vs @| pr_tycoexpr tyvars NOBR tycoexpr);
     fun pr_typscheme tyvars (vs, ty) =
       Pretty.block (pr_typforall tyvars vs @ pr_typcontext tyvars vs @| pr_typ tyvars NOBR ty);
-    fun pr_term tyvars thm pat vars fxy (IConst c) =
-          pr_app tyvars thm pat vars fxy (c, [])
-      | pr_term tyvars thm pat vars fxy (t as (t1 `$ t2)) =
+    fun pr_term tyvars thm vars fxy (IConst c) =
+          pr_app tyvars thm vars fxy (c, [])
+      | pr_term tyvars thm vars fxy (t as (t1 `$ t2)) =
           (case Code_Thingol.unfold_const_app t
-           of SOME app => pr_app tyvars thm pat vars fxy app
+           of SOME app => pr_app tyvars thm vars fxy app
             | _ =>
                 brackify fxy [
-                  pr_term tyvars thm pat vars NOBR t1,
-                  pr_term tyvars thm pat vars BR t2
+                  pr_term tyvars thm vars NOBR t1,
+                  pr_term tyvars thm vars BR t2
                 ])
-      | pr_term tyvars thm pat vars fxy (IVar v) =
+      | pr_term tyvars thm vars fxy (IVar v) =
           (str o Code_Name.lookup_var vars) v
-      | pr_term tyvars thm pat vars fxy (t as _ `|-> _) =
+      | pr_term tyvars thm vars fxy (t as _ `|-> _) =
           let
             val (binds, t') = Code_Thingol.unfold_abs t;
             fun pr ((v, pat), ty) = pr_bind tyvars thm BR ((SOME v, pat), ty);
             val (ps, vars') = fold_map pr binds vars;
-          in brackets (str "\\" :: ps @ str "->" @@ pr_term tyvars thm pat vars' NOBR t') end
-      | pr_term tyvars thm pat vars fxy (ICase (cases as (_, t0))) =
+          in brackets (str "\\" :: ps @ str "->" @@ pr_term tyvars thm vars' NOBR t') end
+      | pr_term tyvars thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
                 then pr_case tyvars thm vars fxy cases
-                else pr_app tyvars thm pat vars fxy c_ts
+                else pr_app tyvars thm vars fxy c_ts
             | NONE => pr_case tyvars thm vars fxy cases)
-    and pr_app' tyvars thm pat vars ((c, (_, tys)), ts) = case contr_classparam_typs c
-     of [] => (str o deresolve) c :: map (pr_term tyvars thm pat vars BR) ts
+    and pr_app' tyvars thm vars ((c, (_, tys)), ts) = case contr_classparam_typs c
+     of [] => (str o deresolve) c :: map (pr_term tyvars thm vars BR) ts
       | fingerprint => let
           val ts_fingerprint = ts ~~ curry Library.take (length ts) fingerprint;
           val needs_annotation = forall (fn (_, NONE) => true | (t, SOME _) =>
             (not o Code_Thingol.locally_monomorphic) t) ts_fingerprint;
-          fun pr_term_anno (t, NONE) _ = pr_term tyvars thm pat vars BR t
+          fun pr_term_anno (t, NONE) _ = pr_term tyvars thm vars BR t
             | pr_term_anno (t, SOME _) ty =
-                brackets [pr_term tyvars thm pat vars NOBR t, str "::", pr_typ tyvars NOBR ty];
+                brackets [pr_term tyvars thm vars NOBR t, str "::", pr_typ tyvars NOBR ty];
         in
           if needs_annotation then
             (str o deresolve) c :: map2 pr_term_anno ts_fingerprint (curry Library.take (length ts) tys)
-          else (str o deresolve) c :: map (pr_term tyvars thm pat vars BR) ts
+          else (str o deresolve) c :: map (pr_term tyvars thm vars BR) ts
         end
-    and pr_app tyvars = gen_pr_app (pr_app' tyvars) (pr_term tyvars) syntax_const is_cons naming
+    and pr_app tyvars = gen_pr_app (pr_app' tyvars) (pr_term tyvars) syntax_const naming
     and pr_bind tyvars = pr_haskell_bind (pr_term tyvars)
     and pr_case tyvars thm vars fxy (cases as ((_, [_]), _)) =
           let
@@ -105,12 +105,12 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
             fun pr ((pat, ty), t) vars =
               vars
               |> pr_bind tyvars thm BR ((NONE, SOME pat), ty)
-              |>> (fn p => semicolon [p, str "=", pr_term tyvars thm false vars NOBR t])
+              |>> (fn p => semicolon [p, str "=", pr_term tyvars thm vars NOBR t])
             val (ps, vars') = fold_map pr binds vars;
           in
             Pretty.block_enclose (
               str "let {",
-              concat [str "}", str "in", pr_term tyvars thm false vars' NOBR t]
+              concat [str "}", str "in", pr_term tyvars thm vars' NOBR t]
             ) ps
           end
       | pr_case tyvars thm vars fxy (((td, ty), bs as _ :: _), _) =
@@ -118,10 +118,10 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
             fun pr (pat, t) =
               let
                 val (p, vars') = pr_bind tyvars thm NOBR ((NONE, SOME pat), ty) vars;
-              in semicolon [p, str "->", pr_term tyvars thm false vars' NOBR t] end;
+              in semicolon [p, str "->", pr_term tyvars thm vars' NOBR t] end;
           in
             Pretty.block_enclose (
-              concat [str "(case", pr_term tyvars thm false vars NOBR td, str "of", str "{"],
+              concat [str "(case", pr_term tyvars thm vars NOBR td, str "of", str "{"],
               str "})"
             ) (map pr bs)
           end
@@ -165,9 +165,9 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
               in
                 semicolon (
                   (str o deresolve_base) name
-                  :: map (pr_term tyvars thm true vars BR) ts
+                  :: map (pr_term tyvars thm vars BR) ts
                   @ str "="
-                  @@ pr_term tyvars thm false vars NOBR t
+                  @@ pr_term tyvars thm vars NOBR t
                 )
               end;
           in
@@ -250,7 +250,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
              of NONE => semicolon [
                     (str o deresolve_base) classparam,
                     str "=",
-                    pr_app tyvars thm false init_syms NOBR (c_inst, [])
+                    pr_app tyvars thm init_syms NOBR (c_inst, [])
                   ]
               | SOME (k, pr) =>
                   let
@@ -266,9 +266,9 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
                       (*dictionaries are not relevant at this late stage*)
                   in
                     semicolon [
-                      pr_term tyvars thm false vars NOBR lhs,
+                      pr_term tyvars thm vars NOBR lhs,
                       str "=",
-                      pr_term tyvars thm false vars NOBR rhs
+                      pr_term tyvars thm vars NOBR rhs
                     ]
                   end;
           in
@@ -463,10 +463,10 @@ fun pretty_haskell_monad c_bind =
       | pr_monad pr_bind pr (SOME (bind, false), t) vars = vars
           |> pr_bind NOBR bind
           |>> (fn p => semicolon [str "let", p, str "=", pr vars NOBR t]);
-    fun pretty pr naming thm pat vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
+    fun pretty pr naming thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
      of SOME (bind, t') => let
           val (binds, t'') = implode_monad ((the o Code_Thingol.lookup_const naming) c_bind) t'
-          val (ps, vars') = fold_map (pr_monad (pr_haskell_bind (K (K pr)) thm) pr) (bind :: binds) vars;
+          val (ps, vars') = fold_map (pr_monad (pr_haskell_bind (K pr) thm) pr) (bind :: binds) vars;
         in (brackify fxy o single o Pretty.enclose "do {" "}" o Pretty.breaks) (ps @| pr vars' NOBR t'') end
       | NONE => brackify_infix (1, L) fxy
           [pr vars (INFX (1, L)) t1, str ">>=", pr vars (INFX (1, X)) t2]

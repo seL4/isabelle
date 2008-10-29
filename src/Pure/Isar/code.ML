@@ -462,13 +462,6 @@ fun common_typ_eqns thy [] = []
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
       in map (Thm.instantiate (instT, [])) thms' end;
 
-fun certify_const thy c eqns =
-  let
-    fun cert (eqn as (thm, _)) = if c = Code_Unit.const_eqn thm
-      then eqn else error ("Wrong head of defining equation,\nexpected constant "
-        ^ Code_Unit.string_of_const thy c ^ "\n" ^ Display.string_of_thm thm)
-  in map cert eqns end;
-
 fun check_linear (eqn as (thm, linear)) =
   if linear then eqn else Code_Unit.bad_thm
     ("Duplicate variables on left hand side of defining equation:\n"
@@ -542,6 +535,16 @@ fun get_constr_typ thy c =
         in SOME (Logic.varifyT ty) end
     | NONE => NONE;
 
+fun recheck_eqn thy = Code_Unit.error_thm
+  (Code_Unit.assert_linear (is_some o get_datatype_of_constr thy) o apfst (Code_Unit.assert_eqn thy));
+
+fun recheck_eqns_const thy c eqns =
+  let
+    fun cert (eqn as (thm, _)) = if c = Code_Unit.const_eqn thm
+      then eqn else error ("Wrong head of defining equation,\nexpected constant "
+        ^ Code_Unit.string_of_const thy c ^ "\n" ^ Display.string_of_thm thm)
+  in map (cert o recheck_eqn thy) eqns end;
+
 fun change_eqns delete c f = (map_exec_purge (SOME [c]) o map_eqns
   o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, Lazy.value [])), [])))
     o apfst) (fn (_, eqns) => (true, f eqns));
@@ -568,8 +571,7 @@ val add_nonlinear_eqn = gen_add_eqn false false;
 
 fun add_eqnl (c, lthms) thy =
   let
-    val lthms' = certificate thy
-      (fn thy => map (Code_Unit.assert_linear) o certify_const thy c) lthms;
+    val lthms' = certificate thy (fn thy => recheck_eqns_const thy c) lthms;
   in change_eqns false c (add_lthms lthms') thy end;
 
 val add_default_eqn_attribute = Thm.declaration_attribute
@@ -660,8 +662,7 @@ fun apply_functrans thy c _ [] = []
   | apply_functrans thy c functrans eqns = eqns
       |> perhaps (perhaps_loop (perhaps_apply functrans))
       |> (map o apfst) (AxClass.unoverload thy)
-      |> (map o Code_Unit.error_thm) (Code_Unit.assert_linear o apfst (Code_Unit.assert_eqn thy))
-      |> certify_const thy c
+      |> recheck_eqns_const thy c
       |> (map o apfst) (AxClass.overload thy);
 
 fun rhs_conv conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
@@ -682,7 +683,7 @@ fun preprocess thy functrans c eqns =
     |> apply_functrans thy c functrans
     |> (map o apfst) (Code_Unit.rewrite_eqn pre)
     |> (map o apfst) (AxClass.unoverload thy)
-    |> map (Code_Unit.assert_linear o apfst (Code_Unit.assert_eqn thy))
+    |> map (recheck_eqn thy)
     |> burrow_fst (common_typ_eqns thy)
   end;
 

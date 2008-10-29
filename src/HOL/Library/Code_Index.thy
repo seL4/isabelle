@@ -27,6 +27,9 @@ lemma nat_of_index_index_of_nat [simp]:
   by (rule index_of_nat_inverse) 
     (unfold index_def, rule UNIV_I)
 
+lemma [measure_function]:
+  "is_measure nat_of_index" by (rule is_measure_trivial)
+
 lemma index:
   "(\<And>n\<Colon>index. PROP P n) \<equiv> (\<And>n\<Colon>nat. PROP P (index_of_nat n))"
 proof
@@ -143,27 +146,11 @@ subsection {* Basic arithmetic *}
 instantiation index :: "{minus, ordered_semidom, Divides.div, linorder}"
 begin
 
-lemma zero_index_code [code inline, code]:
-  "(0\<Colon>index) = Numeral0"
-  by (simp add: number_of_index_def Pls_def)
-lemma [code post]: "Numeral0 = (0\<Colon>index)"
-  using zero_index_code ..
-
 definition [simp, code del]:
   "(1\<Colon>index) = index_of_nat 1"
 
-lemma one_index_code [code inline, code]:
-  "(1\<Colon>index) = Numeral1"
-  by (simp add: number_of_index_def Pls_def Bit1_def)
-lemma [code post]: "Numeral1 = (1\<Colon>index)"
-  using one_index_code ..
-
 definition [simp, code del]:
   "n + m = index_of_nat (nat_of_index n + nat_of_index m)"
-
-lemma plus_index_code [code]:
-  "index_of_nat n + index_of_nat m = index_of_nat (n + m)"
-  by simp
 
 definition [simp, code del]:
   "n - m = index_of_nat (nat_of_index n - nat_of_index m)"
@@ -171,23 +158,11 @@ definition [simp, code del]:
 definition [simp, code del]:
   "n * m = index_of_nat (nat_of_index n * nat_of_index m)"
 
-lemma times_index_code [code]:
-  "index_of_nat n * index_of_nat m = index_of_nat (n * m)"
-  by simp
-
 definition [simp, code del]:
   "n div m = index_of_nat (nat_of_index n div nat_of_index m)"
 
 definition [simp, code del]:
   "n mod m = index_of_nat (nat_of_index n mod nat_of_index m)"
-
-lemma div_index_code [code]:
-  "index_of_nat n div index_of_nat m = index_of_nat (n div m)"
-  by simp
-
-lemma mod_index_code [code]:
-  "index_of_nat n mod index_of_nat m = index_of_nat (n mod m)"
-  by simp
 
 definition [simp, code del]:
   "n \<le> m \<longleftrightarrow> nat_of_index n \<le> nat_of_index m"
@@ -195,17 +170,48 @@ definition [simp, code del]:
 definition [simp, code del]:
   "n < m \<longleftrightarrow> nat_of_index n < nat_of_index m"
 
-lemma less_eq_index_code [code]:
-  "index_of_nat n \<le> index_of_nat m \<longleftrightarrow> n \<le> m"
-  by simp
-
-lemma less_index_code [code]:
-  "index_of_nat n < index_of_nat m \<longleftrightarrow> n < m"
-  by simp
-
 instance by default (auto simp add: left_distrib index)
 
 end
+
+lemma zero_index_code [code inline, code]:
+  "(0\<Colon>index) = Numeral0"
+  by (simp add: number_of_index_def Pls_def)
+lemma [code post]: "Numeral0 = (0\<Colon>index)"
+  using zero_index_code ..
+
+lemma one_index_code [code inline, code]:
+  "(1\<Colon>index) = Numeral1"
+  by (simp add: number_of_index_def Pls_def Bit1_def)
+lemma [code post]: "Numeral1 = (1\<Colon>index)"
+  using one_index_code ..
+
+lemma plus_index_code [code nbe]:
+  "index_of_nat n + index_of_nat m = index_of_nat (n + m)"
+  by simp
+
+definition subtract_index :: "index \<Rightarrow> index \<Rightarrow> index" where
+  [simp, code del]: "subtract_index = op -"
+
+lemma subtract_index_code [code nbe]:
+  "subtract_index (index_of_nat n) (index_of_nat m) = index_of_nat (n - m)"
+  by simp
+
+lemma minus_index_code [code]:
+  "n - m = subtract_index n m"
+  by simp
+
+lemma times_index_code [code nbe]:
+  "index_of_nat n * index_of_nat m = index_of_nat (n * m)"
+  by simp
+
+lemma less_eq_index_code [code nbe]:
+  "index_of_nat n \<le> index_of_nat m \<longleftrightarrow> n \<le> m"
+  by simp
+
+lemma less_index_code [code nbe]:
+  "index_of_nat n < index_of_nat m \<longleftrightarrow> n < m"
+  by simp
 
 lemma Suc_index_minus_one: "Suc_index n - 1 = n" by simp
 
@@ -222,9 +228,7 @@ qed
 lemma index_not_eq_zero: "i \<noteq> index_of_nat 0 \<longleftrightarrow> i \<ge> 1"
   by (cases i) auto
 
-definition
-  nat_of_index_aux :: "index \<Rightarrow> nat \<Rightarrow> nat"
-where
+definition nat_of_index_aux :: "index \<Rightarrow> nat \<Rightarrow> nat" where
   "nat_of_index_aux i n = nat_of_index i + n"
 
 lemma nat_of_index_aux_code [code]:
@@ -235,39 +239,7 @@ lemma nat_of_index_code [code]:
   "nat_of_index i = nat_of_index_aux i 0"
   by (simp add: nat_of_index_aux_def)
 
-
-text {* Measure function (for termination proofs) *}
-
-lemma [measure_function]:
-  "is_measure nat_of_index" by (rule is_measure_trivial)
-
-subsection {* ML interface *}
-
-ML {*
-structure Index =
-struct
-
-fun mk k = HOLogic.mk_number @{typ index} k;
-
-end;
-*}
-
-
-subsection {* Specialized @{term "op - \<Colon> index \<Rightarrow> index \<Rightarrow> index"},
-  @{term "op div \<Colon> index \<Rightarrow> index \<Rightarrow> index"} and @{term "op mod \<Colon> index \<Rightarrow> index \<Rightarrow> index"}
-  operations *}
-
-definition
-  minus_index_aux :: "index \<Rightarrow> index \<Rightarrow> index"
-where
-  [code del]: "minus_index_aux = op -"
-
-lemma [code]: "op - = minus_index_aux"
-  using minus_index_aux_def ..
-
-definition
-  div_mod_index ::  "index \<Rightarrow> index \<Rightarrow> index \<times> index"
-where
+definition div_mod_index ::  "index \<Rightarrow> index \<Rightarrow> index \<times> index" where
   [code del]: "div_mod_index n m = (n div m, n mod m)"
 
 lemma [code]:
@@ -281,6 +253,18 @@ lemma [code]:
 lemma [code]:
   "n mod m = snd (div_mod_index n m)"
   unfolding div_mod_index_def by simp
+
+
+subsection {* ML interface *}
+
+ML {*
+structure Index =
+struct
+
+fun mk k = HOLogic.mk_number @{typ index} k;
+
+end;
+*}
 
 
 subsection {* Code generator setup *}
@@ -308,7 +292,7 @@ code_const "op + \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (OCaml "Pervasives.( + )")
   (Haskell infixl 6 "+")
 
-code_const "minus_index_aux \<Colon> index \<Rightarrow> index \<Rightarrow> index"
+code_const "subtract_index \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (SML "Int.max/ (_/ -/ _,/ 0 : int)")
   (OCaml "Pervasives.max/ (_/ -/ _)/ (0 : int) ")
   (Haskell "max/ (_/ -/ _)/ (0 :: Int)")

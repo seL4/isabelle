@@ -79,7 +79,7 @@ fun add_code number_of negative unbounded target thy =
               in case n of SOME n => SOME (2 * n + b) | NONE => NONE end
           | dest_num _ = Code_Printer.nerror thm "Illegal numeral expression: illegal term";
       in dest_num end;
-    fun pretty _ naming thm _ _ _ [(t, _)] =
+    fun pretty _ naming thm _ _ [(t, _)] =
       (Code_Printer.str o pr_numeral unbounded o the_default 0 o dest_numeral naming thm) t;
   in
     thy

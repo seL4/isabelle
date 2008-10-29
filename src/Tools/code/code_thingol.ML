@@ -667,6 +667,11 @@ and translate_case thy algbr funcgr thm n cases (app as ((c, ty), ts)) =
       | is_undefined _ = false;
     fun mk_case (co, n) t =
       let
+        val _ = if (is_some o Code.get_datatype_of_constr thy) co then ()
+          else error ("Non-constructor " ^ quote co
+            ^ " encountered in case pattern"
+            ^ (case thm of NONE => ""
+              | SOME thm => ", in equation\n" ^ Display.string_of_thm thm))
         val (vs, body) = Term.strip_abs_eta n t;
         val selector = list_comb (Const (co, map snd vs ---> dty), map Free vs);
       in if is_undefined body then NONE else SOME (selector, body) end;

@@ -3578,7 +3578,7 @@ fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
 fun pretty_list literals =
   let
     val mk_list = Code_Printer.literal_list literals;
-    fun pretty pr naming thm pat vars fxy [(t1, _), (t2, _)] =
+    fun pretty pr naming thm vars fxy [(t1, _), (t2, _)] =
       case Option.map (cons t1) (implode_list (list_names naming) t2)
        of SOME ts => mk_list (map (pr vars Code_Printer.NOBR) ts)
         | NONE => default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
@@ -3589,7 +3589,7 @@ fun pretty_list_string literals =
     val mk_list = Code_Printer.literal_list literals;
     val mk_char = Code_Printer.literal_char literals;
     val mk_string = Code_Printer.literal_string literals;
-    fun pretty pr naming thm pat vars fxy [(t1, _), (t2, _)] =
+    fun pretty pr naming thm vars fxy [(t1, _), (t2, _)] =
       case Option.map (cons t1) (implode_list (list_names naming) t2)
        of SOME ts => (case implode_string (char_name naming, nibble_names naming) mk_char mk_string ts
            of SOME p => p
@@ -3600,7 +3600,7 @@ fun pretty_list_string literals =
 fun pretty_char literals =
   let
     val mk_char = Code_Printer.literal_char literals;
-    fun pretty _ naming thm _ _ _ [(t1, _), (t2, _)] =
+    fun pretty _ naming thm _ _ [(t1, _), (t2, _)] =
       case decode_char (nibble_names naming) (t1, t2)
        of SOME c => (Code_Printer.str o mk_char) c
         | NONE => Code_Printer.nerror thm "Illegal character expression";
@@ -3610,7 +3610,7 @@ fun pretty_message literals =
   let
     val mk_char = Code_Printer.literal_char literals;
     val mk_string = Code_Printer.literal_string literals;
-    fun pretty _ naming thm _ _ _ [(t, _)] =
+    fun pretty _ naming thm _ _ [(t, _)] =
       case implode_list (list_names naming) t
        of SOME ts => (case implode_string (char_name naming, nibble_names naming) mk_char mk_string ts
            of SOME p => p

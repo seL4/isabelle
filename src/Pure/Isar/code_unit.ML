@@ -38,7 +38,7 @@ sig
   (*defining equations*)
   val assert_eqn: theory -> thm -> thm
   val mk_eqn: theory -> thm -> thm * bool
-  val assert_linear: thm * bool -> thm * bool
+  val assert_linear: (string -> bool) -> thm * bool -> thm * bool
   val const_eqn: thm -> string
   val const_typ_eqn: thm -> string * typ
   val head_eqn: theory -> thm -> string * ((string * sort) list * typ)
@@ -377,8 +377,17 @@ fun add_linear thm =
       ((fold o fold_aterms) (fn Var (v, _) => cons v | _ => I) args []))
   in (thm, linear) end;
 
-fun assert_linear (thm, false) = (thm, false)
-  | assert_linear (thm, true) = if snd (add_linear thm) then (thm, true)
+fun assert_pat is_cons thm =
+  let
+    val args = (snd o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
+    val _ = (map o map_aterms) (fn t as Const (c, _) => if is_cons c then t
+          else bad_thm ("Not a constructor on left hand side of equation: "
+            ^ quote c ^ ",\n in equation\n" ^ Display.string_of_thm thm)
+      | t => t) args;
+  in thm end;
+
+fun assert_linear is_cons (thm, false) = (thm, false)
+  | assert_linear is_cons (thm, true) = if snd (add_linear (assert_pat is_cons thm)) then (thm, true)
       else bad_thm
         ("Duplicate variables on left hand side of defining equation:\n"
           ^ Display.string_of_thm thm);
