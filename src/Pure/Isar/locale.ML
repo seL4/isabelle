@@ -41,8 +41,6 @@ sig
     Rename of expr * (string * mixfix option) option list |
     Merge of expr list
   val empty: expr
-  datatype 'a element = Elem of 'a | Expr of expr
-  val map_elem: ('a -> 'b) -> 'a element -> 'b element
 
   val intern: theory -> xstring -> string
   val intern_expr: theory -> expr -> expr
@@ -65,13 +63,13 @@ sig
   val declarations_of: theory -> string -> declaration list * declaration list;
 
   (* Processing of locale statements *)
-  val read_context_statement: xstring option -> Element.context element list ->
+  val read_context_statement: xstring option -> Element.context list ->
     (string * string list) list list -> Proof.context ->
     string option * Proof.context * Proof.context * (term * term list) list list
-  val read_context_statement_i: string option -> Element.context element list ->
+  val read_context_statement_i: string option -> Element.context list ->
     (string * string list) list list -> Proof.context ->
     string option * Proof.context * Proof.context * (term * term list) list list
-  val cert_context_statement: string option -> Element.context_i element list ->
+  val cert_context_statement: string option -> Element.context_i list ->
     (term * term list) list list -> Proof.context ->
     string option * Proof.context * Proof.context * (term * term list) list list
   val read_expr: expr -> Element.context list -> Proof.context ->
@@ -1541,7 +1539,7 @@ fun prep_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
           let val {params = ps, ...} = the_locale thy name
           in (map fst ps, Locale name) end);
     val ((((locale_ctxt, _), (elems_ctxt, _, _)), _), concl') =
-      prep_ctxt false fixed_params imports elems concl ctxt;
+      prep_ctxt false fixed_params imports (map Elem elems) concl ctxt;
   in (locale, locale_ctxt, elems_ctxt, concl') end;
 
 fun prep_expr prep imports body ctxt =

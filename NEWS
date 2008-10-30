@@ -77,6 +77,19 @@ normalization.
 * Global versions of theorems stemming from classes do not carry
 a parameter prefix any longer.  INCOMPATIBILITY.
 
+* Dropped locale element "includes".  This is a major INCOMPATIBILITY.
+In existing theorem specifications replace the includes element by the
+respective context elements of the included locale, omitting those that
+are already present in the theorem specification.  Multiple assume
+elements of a locale should be replaced by a single one involving the
+locale predicate.  In the proof body, declarations (most notably
+theorems) may be regained by interpreting the respective locales in the
+proof context as required (command "interpret").
+If using "includes" in replacement of a target solely because the
+parameter types in the theorem are not as general as in the target,
+consider declaring a new locale with additional type constraints on the
+parameters (context element "constrains").
+
 * Dropped "locale (open)".  INCOMPATBILITY.
 
 * Interpretation commands no longer attempt to simplify goal.

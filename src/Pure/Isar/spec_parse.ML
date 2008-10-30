@@ -27,11 +27,11 @@ sig
   val class_expr: token list -> string list * token list
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
-  val locale_element: token list -> Element.context Locale.element * token list
+  val locale_element: token list -> Element.context * token list
   val context_element: token list -> Element.context * token list
   val statement: token list -> (Attrib.binding * (string * string list) list) list * token list
   val general_statement: token list ->
-    (Element.context Locale.element list * Element.statement) * OuterLex.token list
+    (Element.context list * Element.statement) * OuterLex.token list
   val statement_keyword: token list -> string * token list
   val specification: token list ->
     (Name.binding *
@@ -120,8 +120,7 @@ val locale_expr =
 
 val locale_keyword = loc_keyword;
 
-val locale_element = P.group "locale element"
-  (loc_element >> Locale.Elem || P.$$$ "includes" |-- P.!!! locale_expr >> Locale.Expr);
+val locale_element = P.group "locale element" loc_element;
 
 val context_element = P.group "context element" loc_element;
 

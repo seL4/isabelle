@@ -47,11 +47,11 @@ sig
     local_theory -> (string * thm list) list * local_theory
   val theorem: string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    Element.context_i Locale.element list -> Element.statement_i ->
+    Element.context_i list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
   val theorem_cmd: string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    Element.context Locale.element list -> Element.statement ->
+    Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
   val add_theorem_hook: (bool -> Proof.state -> Proof.state) -> Context.generic -> Context.generic
 end;
@@ -273,8 +273,8 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
           let val name = Name.name_of binding
           in if name = "" then string_of_int (i + 1) else name end);
         val constraints = obtains |> map (fn (_, (vars, _)) =>
-          Locale.Elem (Element.Constrains
-            (vars |> map_filter (fn (x, SOME T) => SOME (Name.name_of x, T) | _ => NONE))));
+          Element.Constrains
+            (vars |> map_filter (fn (x, SOME T) => SOME (Name.name_of x, T) | _ => NONE)));
 
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (_, loc_ctxt, elems_ctxt, propp) = prep_stmt (elems @ constraints) raw_propp ctxt;
@@ -325,7 +325,7 @@ fun gen_theorem prep_att prep_stmt
     val thy = ProofContext.theory_of lthy0;
 
     val (loc, ctxt, lthy) =
-      (case (TheoryTarget.peek lthy0, exists (fn Locale.Expr _ => true | _ => false) raw_elems) of
+      (case (TheoryTarget.peek lthy0, false (* exists (fn Locale.Expr _ => true | _ => false) raw_elems *)) of
         ({target, is_locale = true, ...}, true) =>
           (*temporary workaround for non-modularity of in/includes*)  (* FIXME *)
           (SOME target, ProofContext.init thy, LocalTheory.restore lthy0)
@@ -334,7 +334,7 @@ fun gen_theorem prep_att prep_stmt
     val attrib = prep_att thy;
     val atts = map attrib raw_atts;
 
-    val elems = raw_elems |> map (Locale.map_elem (Element.map_ctxt_attrib attrib));
+    val elems = raw_elems |> map (Element.map_ctxt_attrib attrib);
     val ((prems, stmt, facts), goal_ctxt) =
       prep_statement attrib (prep_stmt loc) elems raw_concl ctxt;
 
