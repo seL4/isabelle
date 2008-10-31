@@ -1,7 +1,9 @@
 /*
  * LazyScroller.scala
  *
- *
+ * TODO: clearer seperation of tasks: layout message_view, layout panel (with preferredsize), repaint, relayout, ...
+ * + relayout on ValueIsAdjusting while scrolling
+ * + scrolling *one* panel 
  */
 
 package isabelle.jedit
@@ -88,13 +90,17 @@ class LazyScroller(view : View, position : String) extends JPanel with Adjustmen
     panel
   }
   
-  //calculates preferred size of panel and add it to the cache and view
-  def add_to_cache (message_no: Int, panel: XHTMLPanel) = {
-    message_cache = message_cache.update (message_no, panel)
-    //necessary for calculating preferred size of panel
+  //calculates preferred size of panel
+  def calculate_preferred_size(panel: XHTMLPanel){
     message_view.add (panel)
     panel.setBounds (0, 0, message_view.getWidth, 1) // document has to fit into width
     panel.doLayout (panel.getGraphics) //lay out, preferred size is set then
+  }
+  
+  //add panel to the cache
+  def add_to_cache (message_no: Int, panel: XHTMLPanel) = {
+    message_cache = message_cache.update (message_no, panel)
+    calculate_preferred_size(panel)
     System.err.println("Added " + message_no + " with preferred Size " + panel.getPreferredSize + " to cache")
   }
   
@@ -121,14 +127,6 @@ class LazyScroller(view : View, position : String) extends JPanel with Adjustmen
       y = y - panel.getHeight
       n = n - 1
     }
-    //clean cache (except for some elements on top and bottom, if existent)
-    //TODO: find appropriate values
-    //larger cache makes e.g. resizing slower
-    if(message_cache.size > 20){
-      val min = n - 5
-      val max = message_no + 5
-      message_cache = message_cache filter (t => t match{case (no, _) => no >= min && no <= max})
-    }
     repaint()
   }
 
@@ -143,20 +141,25 @@ class LazyScroller(view : View, position : String) extends JPanel with Adjustmen
     message_no = e.getValue
     update_view
   }
-  
+
+  // handle Component-Events
+  override def componentShown(e: ComponentEvent){}
   override def componentHidden(e: ComponentEvent){}
   override def componentMoved(e: ComponentEvent){}
   override def componentResized(e: ComponentEvent){
-    // update_cache: insert panels into new cache -> preferred size is calculated
-    val panels = message_cache.elements
-    message_cache = message_cache.empty
-    panels foreach (pair => pair match{case (no, pa) => add_to_cache (no, pa)})
-    vscroll.setMaximum (Math.max(1, message_buffer.length))    
+    // remove all hidden messages from cache
+    // TODO: move to unlayouted cache
+    message_cache = message_cache filter ( pair => pair match {case (no, _) =>
+      no <= message_no && no >= message_no - message_view.getComponents.length})
+    //calculate preferred size for each panel
+    message_cache foreach (pair => pair match { case (_, pa) =>
+      calculate_preferred_size (pa)
+    })
     update_view
   }
-  override def componentShown(e: ComponentEvent){}
   
   //register somewhere
+  // TODO: only testing atm
   Plugin.plugin.stateUpdate.add(state => {
     var i = 0
     if(state != null) while (i < 500) {

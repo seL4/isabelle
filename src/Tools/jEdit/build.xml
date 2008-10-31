@@ -72,4 +72,7 @@
       <copy file="plugin/actions.xml" todir="${build.classes.dir}" />
       <copy file="plugin/IsabellePlugin.props" todir="${build.classes.dir}" />
     </target>
+    <target name="-post-jar">
+      <copy file="${dist.jar}" todir="/Users/fabian/tum/hiwi/jedit/jedit-sources/jEdit/build/jars/" />
+    </target>
 </project>
