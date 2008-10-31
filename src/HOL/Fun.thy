@@ -539,7 +539,7 @@ fun gen_fun_type aF aT bG bT i =
            let val p as (y, _) = bG i
            in (tab := (x, p) :: !tab; y) end
        | SOME (y, _) => y,
-     fn () => Basics.fold mk_upd (!tab) (Const ("arbitrary", aT --> bT)))
+     fn () => Basics.fold mk_upd (!tab) (Const ("HOL.undefined", aT --> bT)))
   end;
 *}
 
