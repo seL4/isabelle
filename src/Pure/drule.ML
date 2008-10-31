@@ -584,7 +584,7 @@ end;
 
 (*The rule V/V, obtains assumption solving for eresolve_tac*)
 val asm_rl = store_standard_thm_open "asm_rl" (Thm.trivial (read_prop "?psi"));
-val _ = store_thm "_" asm_rl;
+val _ = store_thm_open "_" asm_rl;
 
 (*Meta-level cut rule: [| V==>W; V |] ==> W *)
 val cut_rl =
