@@ -23,15 +23,15 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
 
   ["(equal_elim % x1 % x2 %% \
  \    (combination % TYPE('T1) % TYPE('T2) % Trueprop % x3 % A % B %%  \
- \      (axm.reflexive % TYPE('T3) % x4) %% prf1) %% prf2) ==  \
+ \      (axm.reflexive % TYPE('T3) % x4) %% prf1)) ==  \
  \  (iffD1 % A % B %%  \
- \    (meta_eq_to_obj_eq % TYPE(bool) % A % B %% prf1) %% prf2)",
+ \    (meta_eq_to_obj_eq % TYPE(bool) % A % B %% prf1))",
 
    "(equal_elim % x1 % x2 %% (axm.symmetric % TYPE('T1) % x3 % x4 %%  \
  \    (combination % TYPE('T2) % TYPE('T3) % Trueprop % x5 % A % B %%  \
- \      (axm.reflexive % TYPE('T4) % x6) %% prf1)) %% prf2) ==  \
+ \      (axm.reflexive % TYPE('T4) % x6) %% prf1))) ==  \
  \  (iffD2 % A % B %%  \
- \    (meta_eq_to_obj_eq % TYPE(bool) % A % B %% prf1) %% prf2)",
+ \    (meta_eq_to_obj_eq % TYPE(bool) % A % B %% prf1))",
 
    "(meta_eq_to_obj_eq % TYPE('U) % x1 % x2 %%  \
  \    (combination % TYPE('U) % TYPE('T) % f % g % x % y %% prf1 %% prf2)) ==  \
