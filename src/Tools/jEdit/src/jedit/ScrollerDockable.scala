@@ -55,7 +55,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   //rendered messages
   var message_cache = Map[Int, XHTMLPanel]()
   // defining the current view
-  val scrollunit = 10 
+  val scrollunit = 5
   var message_offset = 0 //how many pixels of the lowest message are hidden
   var message_no = -1  //index of the lowest message
   // absolute positioning for messages
@@ -96,18 +96,13 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     panel.setBounds (0, 0, message_view.getWidth, 1) // document has to fit into width
     panel.doLayout (panel.getGraphics) //lay out, preferred size is set then
   }
-  
-  //add panel to the cache
-  def add_to_cache (message_no: Int, panel: XHTMLPanel) = {
-    message_cache = message_cache.update (message_no, panel)
-  }
-  
+   
   //render and load a message into cache, place its bottom at y-coordinate;
   def set_message (message_no: Int, y: Int) = {
     //get or add panel from/to cache
     if(!message_cache.isDefinedAt(message_no)){
       if(message_buffer.isDefinedAt(message_no)){
-        add_to_cache (message_no, render (message_buffer(message_no)))
+        message_cache = message_cache.update (message_no, render (message_buffer(message_no)))
       }
     }
     val panel = message_cache.get(message_no).get
@@ -120,6 +115,37 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     panel.setBounds(0, y - height, width, height)
     message_view.add(panel)
     panel
+  }
+  
+  def move_view (y : Int) = {
+    if(message_view.getComponentCount >= 1){
+      message_offset += y
+      //new panel needed?
+      if(message_offset >= message_view.getComponent(0).getHeight)
+      {
+        //remove bottommost panel
+        message_offset -= message_view.getComponent(0).getHeight
+        message_no -= 1
+        update_view
+      } else if (message_offset < 0) {
+        //insert panel at the bottom
+        message_no += 1
+        val panel = set_message (message_no, 0)
+        message_offset += panel.getHeight
+        update_view
+      } else if (message_view.getComponent(message_view.getComponentCount - 1).getY + y > 0){
+        //insert panel at the top
+        update_view
+      } else {
+        //move all panels
+        message_view.getComponents map (c => {
+            val newrect = c.getBounds
+            newrect.y = newrect.y + y
+            c.setBounds(newrect)
+          })
+        repaint()
+      }
+    }
   }
   
   def update_view = {
@@ -137,13 +163,25 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   def add_message (message: Document) = {
     message_buffer += message
     vscroll.setMaximum (Math.max(1, message_buffer.length))
+    if(message_no == -1){
+      message_no = 0
+      update_view
+    }
   }
-
+  
+  var oldvalue = -1;
   override def adjustmentValueChanged (e : AdjustmentEvent) = {
     //event-handling has to be so general (without UNIT_INCR,...)
     // because all events could be sent as TRACK e.g. on my mac
-    message_no = e.getValue
-    update_view
+    val diff = oldvalue - e.getValue
+    oldvalue = e.getValue
+    if(diff == 1 || diff == -1){
+      move_view(diff * scrollunit)
+    } else if(diff != 0){
+      message_no = e.getValue
+      message_offset = 0
+      update_view
+    }
   }
 
   // handle Component-Events
