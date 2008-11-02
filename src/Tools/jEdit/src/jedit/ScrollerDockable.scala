@@ -100,17 +100,21 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   //add panel to the cache
   def add_to_cache (message_no: Int, panel: XHTMLPanel) = {
     message_cache = message_cache.update (message_no, panel)
-    calculate_preferred_size(panel)
-    System.err.println("Added " + message_no + " with preferred Size " + panel.getPreferredSize + " to cache")
   }
   
   //render and load a message into cache, place its bottom at y-coordinate;
   def set_message (message_no: Int, y: Int) = {
     //get or add panel from/to cache
     if(!message_cache.isDefinedAt(message_no)){
-      add_to_cache (message_no, render (message_buffer(message_no)))
+      if(message_buffer.isDefinedAt(message_no)){
+        add_to_cache (message_no, render (message_buffer(message_no)))
+      }
     }
     val panel = message_cache.get(message_no).get
+    // recalculate preferred sie after resizing
+    if(panel.getPreferredSize.getWidth.toInt != message_view.getWidth)
+      calculate_preferred_size (panel)
+    //place message on view
     val width = panel.getPreferredSize.getWidth.toInt
     val height = panel.getPreferredSize.getHeight.toInt
     panel.setBounds(0, y - height, width, height)
@@ -147,14 +151,6 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   override def componentHidden(e: ComponentEvent){}
   override def componentMoved(e: ComponentEvent){}
   override def componentResized(e: ComponentEvent){
-    // remove all hidden messages from cache
-    // TODO: move to unlayouted cache
-    message_cache = message_cache filter ( pair => pair match {case (no, _) =>
-      no <= message_no && no >= message_no - message_view.getComponents.length})
-    //calculate preferred size for each panel
-    message_cache foreach (pair => pair match { case (_, pa) =>
-      calculate_preferred_size (pa)
-    })
     update_view
   }
   
