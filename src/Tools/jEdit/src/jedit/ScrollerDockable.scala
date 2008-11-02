@@ -1,5 +1,5 @@
 /*
- * LazyScroller.scala
+ * ScrollerDockable.scala
  *
  * TODO: clearer seperation of tasks: layout message_view, layout panel (with preferredsize), repaint, relayout, ...
  * + relayout on ValueIsAdjusting while scrolling
@@ -30,7 +30,7 @@ import org.xhtmlrenderer.resource.CSSResource
 
 import org.gjt.sp.jedit.View
 
-object LazyScroller {
+object ScrollerDockable {
   val baseURL = "file://localhost" + getenv("ISABELLE_HOME") + "/lib/html/"
   val userStylesheet = 
     "file://localhost" + getenv("ISABELLE_HOME_USER") + "/etc/user.css";
@@ -49,7 +49,7 @@ messages, message {
 }
 
 
-class LazyScroller(view : View, position : String) extends JPanel with AdjustmentListener with ComponentListener {
+class ScrollerDockable(view : View, position : String) extends JPanel with AdjustmentListener with ComponentListener {
   //holding the unrendered messages
   val message_buffer = new ArrayBuffer[Document]()
   //rendered messages
@@ -86,7 +86,7 @@ class LazyScroller(view : View, position : String) extends JPanel with Adjustmen
       panel.relayout()
     })
 
-    panel.setDocument(message, LazyScroller.baseURL)
+    panel.setDocument(message, ScrollerDockable.baseURL)
     panel
   }
   
