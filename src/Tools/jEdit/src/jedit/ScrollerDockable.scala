@@ -71,7 +71,8 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     panel
   }
   
-  //calculates preferred size of panel
+  // panel has to be displayable in container message_view for doLayout to have
+  // an effect, especially returning correct preferredSize
   def calculate_preferred_size(panel: XHTMLPanel){
     message_view.add (panel)
     panel.setBounds (0, 0, message_view.getWidth, 1) // document has to fit into width
@@ -80,15 +81,13 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
    
   //render and load a message into cache, place its bottom at y-coordinate;
   def set_message (message_no: Int, y: Int) = {
-    //add panel to cache if necessary
-    if(!message_cache.isDefinedAt(message_no)){
-      if(message_buffer.isDefinedAt(message_no)){
-        message_cache = message_cache.update (message_no, render (message_buffer(message_no)))
-      }
+    //add panel to cache if necessary and possible
+    if(!message_cache.isDefinedAt(message_no) && message_buffer.isDefinedAt(message_no)){
+      message_cache = message_cache.update (message_no, render (message_buffer(message_no)))
     }
     val result = message_cache.get(message_no) match {
       case Some(panel) => {
-        // recalculate preferred sie after resizing
+        // recalculate preferred size after resizing the message_view
         if(panel.getPreferredSize.getWidth.toInt != message_view.getWidth)
           calculate_preferred_size (panel)
         //place message on view
@@ -102,28 +101,37 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     }
     result
   }
-  
+
+  //move view a given amount of pixels
+  // attention: y should be small, because messages are rendered incremental
+  // (no knowledge on height of messages)
   def move_view (y : Int) = {
+    var update = false
     if(message_view.getComponentCount >= 1){
       message_offset += y
-      //new panel needed?
-      if(message_offset >= message_view.getComponent(0).getHeight)
+      //remove bottommost panels
+      while (message_offset >= message_view.getComponent(0).getHeight)
       {
-        //remove bottommost panel
         message_offset -= message_view.getComponent(0).getHeight
         message_no -= 1
         update_view
-      } else if (message_offset < 0) {
-        //insert panel at the bottom
+        update = true
+      }
+      //insert panels at the bottom
+      while (message_offset < 0) {
         message_no += 1
         val panel = set_message (message_no, 0)
         message_offset += panel.getHeight
         update_view
-      } else if (message_view.getComponent(message_view.getComponentCount - 1).getY + y > 0){
-        //insert panel at the top
+        update = true
+     }
+      //insert panel at the top
+      if (message_view.getComponent(message_view.getComponentCount - 1).getY + y > 0){
         update_view
-      } else {
-        //move all panels
+        update = true
+      }
+      //simply move panels
+      if(!update){
         message_view.getComponents map (c => {
             val newrect = c.getBounds
             newrect.y = newrect.y + y
@@ -155,19 +163,12 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     }
   }
   
-  var oldvalue = -1;
   override def adjustmentValueChanged (e : AdjustmentEvent) = {
     //event-handling has to be so general (without UNIT_INCR,...)
     // because all events could be sent as TRACK e.g. on my mac
-    val diff = oldvalue - e.getValue
-    oldvalue = e.getValue
-    if(diff == 1 || diff == -1){
-      move_view(diff * scrollunit)
-    } else if(diff != 0){
-      message_no = e.getValue
-      message_offset = 0
-      update_view
-    }
+    message_no = e.getValue
+    message_offset = 0
+    update_view
   }
 
   // handle Component-Events
