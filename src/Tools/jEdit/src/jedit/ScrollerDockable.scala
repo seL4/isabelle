@@ -15,7 +15,7 @@ import scala.collection.mutable.ArrayBuffer
 import java.awt.{ BorderLayout, GridLayout, Adjustable, Rectangle, Scrollbar }
 import java.awt.image.BufferedImage
 import java.awt.event.{ AdjustmentListener, AdjustmentEvent, ComponentListener, ComponentEvent }
-import javax.swing.{ JScrollBar, JPanel, JScrollPane, ScrollPaneConstants }
+import javax.swing.{ JPanel, JRadioButton, JScrollBar, JScrollPane, JTextArea, ScrollPaneConstants }
 
 import isabelle.IsabelleSystem.getenv
 
@@ -36,7 +36,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   //rendered messages
   var message_cache = Map[Int, XHTMLPanel]()
   // defining the current view
-  val scrollunit = 5
+  val scrollunit = 1
   var message_offset = 0 //how many pixels of the lowest message are hidden
   var message_no = -1  //index of the lowest message
   // absolute positioning for messages
@@ -49,7 +49,13 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   add (vscroll, BorderLayout.EAST)
   add (message_view, BorderLayout.CENTER)
   addComponentListener(this)
-
+  //automated scrolling, new message ind
+  val infopanel = new JPanel
+  val auto_scroll = new JRadioButton("Auto Scroll", false)
+  val new_message_ind = new JTextArea("0")
+  infopanel.add(new_message_ind)
+  infopanel.add(auto_scroll)
+  add (infopanel, BorderLayout.SOUTH)
 
   //Render a message to a Panel
   def render (message: Document): XHTMLPanel = {
@@ -138,6 +144,8 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
             c.setBounds(newrect)
           })
         repaint()
+      } else {
+        vscroll.setValue(message_no)
       }
     }
   }
@@ -166,9 +174,11 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   override def adjustmentValueChanged (e : AdjustmentEvent) = {
     //event-handling has to be so general (without UNIT_INCR,...)
     // because all events could be sent as TRACK e.g. on my mac
-    message_no = e.getValue
-    message_offset = 0
-    update_view
+    if (e.getSource == vscroll){
+        message_no = e.getValue
+        message_offset = 0
+        update_view
+    }
   }
 
   // handle Component-Events
