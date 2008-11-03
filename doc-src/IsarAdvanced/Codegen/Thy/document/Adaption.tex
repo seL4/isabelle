@@ -264,26 +264,26 @@ Consider the following function and its corresponding
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
-\newline%
-\verb|datatype boola = False |\verb,|,\verb| True;|\newline%
-\newline%
-\verb|fun anda x True = x|\newline%
-\verb|  |\verb,|,\verb| anda x False = False|\newline%
-\verb|  |\verb,|,\verb| anda True x = x|\newline%
-\verb|  |\verb,|,\verb| anda False x = False;|\newline%
-\newline%
-\verb|fun less_nat m (Suc n) = less_eq_nat m n|\newline%
-\verb|  |\verb,|,\verb| less_nat n Zero_nat = False|\newline%
-\verb|and less_eq_nat (Suc m) n = less_nat m n|\newline%
-\verb|  |\verb,|,\verb| less_eq_nat Zero_nat n = True;|\newline%
-\newline%
-\verb|fun in_interval (k, l) n = anda (less_eq_nat k n) (less_eq_nat n l);|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype boola = False | True;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun anda x True = x\\
+\hspace*{0pt} ~| anda x False = False\\
+\hspace*{0pt} ~| anda True x = x\\
+\hspace*{0pt} ~| anda False x = False;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun less{\char95}nat m (Suc n) = less{\char95}eq{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}nat n Zero{\char95}nat = False\\
+\hspace*{0pt}and less{\char95}eq{\char95}nat (Suc m) n = less{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}eq{\char95}nat Zero{\char95}nat n = True;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun in{\char95}interval (k, l) n = anda (less{\char95}eq{\char95}nat k n) (less{\char95}eq{\char95}nat n l);\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -347,19 +347,19 @@ Consider the following function and its corresponding
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
-\newline%
-\verb|fun less_nat m (Suc n) = less_eq_nat m n|\newline%
-\verb|  |\verb,|,\verb| less_nat n Zero_nat = false|\newline%
-\verb|and less_eq_nat (Suc m) n = less_nat m n|\newline%
-\verb|  |\verb,|,\verb| less_eq_nat Zero_nat n = true;|\newline%
-\newline%
-\verb|fun in_interval (k, l) n = (less_eq_nat k n) andalso (less_eq_nat n l);|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun less{\char95}nat m (Suc n) = less{\char95}eq{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}nat n Zero{\char95}nat = false\\
+\hspace*{0pt}and less{\char95}eq{\char95}nat (Suc m) n = less{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}eq{\char95}nat Zero{\char95}nat n = true;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun in{\char95}interval (k, l) n = (less{\char95}eq{\char95}nat k n) andalso (less{\char95}eq{\char95}nat n l);\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -404,19 +404,19 @@ Consider the following function and its corresponding
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
-\newline%
-\verb|fun less_nat m (Suc n) = less_eq_nat m n|\newline%
-\verb|  |\verb,|,\verb| less_nat n Zero_nat = false|\newline%
-\verb|and less_eq_nat (Suc m) n = less_nat m n|\newline%
-\verb|  |\verb,|,\verb| less_eq_nat Zero_nat n = true;|\newline%
-\newline%
-\verb|fun in_interval (k, l) n = less_eq_nat k n andalso less_eq_nat n l;|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun less{\char95}nat m (Suc n) = less{\char95}eq{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}nat n Zero{\char95}nat = false\\
+\hspace*{0pt}and less{\char95}eq{\char95}nat (Suc m) n = less{\char95}nat m n\\
+\hspace*{0pt} ~| less{\char95}eq{\char95}nat Zero{\char95}nat n = true;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun in{\char95}interval (k, l) n = less{\char95}eq{\char95}nat k n andalso less{\char95}eq{\char95}nat n l;\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -533,7 +533,7 @@ For convenience, the default
 \isatagquotett
 \isacommand{code{\isacharunderscore}class}\isamarkupfalse%
 \ eq\isanewline
-\ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Eq{\isachardoublequoteclose}\ \isakeyword{where}\ {\isachardoublequoteopen}HOL{\isachardot}eq{\isachardoublequoteclose}\ {\isasymequiv}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharequal}{\isacharequal}{\isacharparenright}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Eq{\isachardoublequoteclose}{\isacharparenright}\isanewline
 \isanewline
 \isacommand{code{\isacharunderscore}const}\isamarkupfalse%
 \ {\isachardoublequoteopen}op\ {\isacharequal}{\isachardoublequoteclose}\isanewline

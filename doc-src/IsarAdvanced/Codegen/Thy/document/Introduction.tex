@@ -151,33 +151,33 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|fun foldl f a [] = a|\newline%
-\verb|  |\verb,|,\verb| foldl f a (x :: xs) = foldl f (f a x) xs;|\newline%
-\newline%
-\verb|fun rev xs = foldl (fn xsa => fn x => x :: xsa) [] xs;|\newline%
-\newline%
-\verb|fun list_case f1 f2 (a :: lista) = f2 a lista|\newline%
-\verb|  |\verb,|,\verb| list_case f1 f2 [] = f1;|\newline%
-\newline%
-\verb|datatype 'a queue = Queue of 'a list * 'a list;|\newline%
-\newline%
-\verb|val empty : 'a queue = Queue ([], []);|\newline%
-\newline%
-\verb|fun dequeue (Queue ([], [])) = (NONE, Queue ([], []))|\newline%
-\verb|  |\verb,|,\verb| dequeue (Queue (xs, y :: ys)) = (SOME y, Queue (xs, ys))|\newline%
-\verb|  |\verb,|,\verb| dequeue (Queue (v :: va, [])) =|\newline%
-\verb|    let|\newline%
-\verb|      val y :: ys = rev (v :: va);|\newline%
-\verb|    in|\newline%
-\verb|      (SOME y, Queue ([], ys))|\newline%
-\verb|    end;|\newline%
-\newline%
-\verb|fun enqueue x (Queue (xs, ys)) = Queue (x :: xs, ys);|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun foldl f a [] = a\\
+\hspace*{0pt} ~| foldl f a (x ::~xs) = foldl f (f a x) xs;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun rev xs = foldl (fn xsa => fn x => x ::~xsa) [] xs;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun list{\char95}case f1 f2 (a ::~lista) = f2 a lista\\
+\hspace*{0pt} ~| list{\char95}case f1 f2 [] = f1;\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype 'a queue = Queue of 'a list * 'a list;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val empty :~'a queue = Queue ([], []);\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun dequeue (Queue ([], [])) = (NONE, Queue ([], []))\\
+\hspace*{0pt} ~| dequeue (Queue (xs, y ::~ys)) = (SOME y, Queue (xs, ys))\\
+\hspace*{0pt} ~| dequeue (Queue (v ::~va, [])) =\\
+\hspace*{0pt} ~~~let\\
+\hspace*{0pt} ~~~~~val y ::~ys = rev (v ::~va);\\
+\hspace*{0pt} ~~~in\\
+\hspace*{0pt} ~~~~~(SOME y, Queue ([], ys))\\
+\hspace*{0pt} ~~~end;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun enqueue x (Queue (xs, ys)) = Queue (x ::~xs, ys);\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -230,37 +230,37 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|module Example where {|\newline%
-\newline%
-\newline%
-\verb|foldla :: forall a b. (a -> b -> a) -> a -> [b] -> a;|\newline%
-\verb|foldla f a [] = a;|\newline%
-\verb|foldla f a (x : xs) = foldla f (f a x) xs;|\newline%
-\newline%
-\verb|rev :: forall a. [a] -> [a];|\newline%
-\verb|rev xs = foldla (\ xsa x -> x : xsa) [] xs;|\newline%
-\newline%
-\verb|list_case :: forall t a. t -> (a -> [a] -> t) -> [a] -> t;|\newline%
-\verb|list_case f1 f2 (a : list) = f2 a list;|\newline%
-\verb|list_case f1 f2 [] = f1;|\newline%
-\newline%
-\verb|data Queue a = Queue [a] [a];|\newline%
-\newline%
-\verb|empty :: forall a. Queue a;|\newline%
-\verb|empty = Queue [] [];|\newline%
-\newline%
-\verb|dequeue :: forall a. Queue a -> (Maybe a, Queue a);|\newline%
-\verb|dequeue (Queue [] []) = (Nothing, Queue [] []);|\newline%
-\verb|dequeue (Queue xs (y : ys)) = (Just y, Queue xs ys);|\newline%
-\verb|dequeue (Queue (v : va) []) =|\newline%
-\verb|  let {|\newline%
-\verb|    (y : ys) = rev (v : va);|\newline%
-\verb|  } in (Just y, Queue [] ys);|\newline%
-\newline%
-\verb|enqueue :: forall a. a -> Queue a -> Queue a;|\newline%
-\verb|enqueue x (Queue xs ys) = Queue (x : xs) ys;|\newline%
-\newline%
-\verb|}|%
+\hspace*{0pt}module Example where {\char123}\\
+\hspace*{0pt}\\
+\hspace*{0pt}\\
+\hspace*{0pt}foldla ::~forall a b. (a -> b -> a) -> a -> [b] -> a;\\
+\hspace*{0pt}foldla f a [] = a;\\
+\hspace*{0pt}foldla f a (x :~xs) = foldla f (f a x) xs;\\
+\hspace*{0pt}\\
+\hspace*{0pt}rev ::~forall a. [a] -> [a];\\
+\hspace*{0pt}rev xs = foldla ({\char92}~xsa x -> x :~xsa) [] xs;\\
+\hspace*{0pt}\\
+\hspace*{0pt}list{\char95}case ::~forall t a. t -> (a -> [a] -> t) -> [a] -> t;\\
+\hspace*{0pt}list{\char95}case f1 f2 (a :~list) = f2 a list;\\
+\hspace*{0pt}list{\char95}case f1 f2 [] = f1;\\
+\hspace*{0pt}\\
+\hspace*{0pt}data Queue a = Queue [a] [a];\\
+\hspace*{0pt}\\
+\hspace*{0pt}empty ::~forall a. Queue a;\\
+\hspace*{0pt}empty = Queue [] [];\\
+\hspace*{0pt}\\
+\hspace*{0pt}dequeue ::~forall a. Queue a -> (Maybe a, Queue a);\\
+\hspace*{0pt}dequeue (Queue [] []) = (Nothing, Queue [] []);\\
+\hspace*{0pt}dequeue (Queue xs (y :~ys)) = (Just y, Queue xs ys);\\
+\hspace*{0pt}dequeue (Queue (v :~va) []) =\\
+\hspace*{0pt} ~let {\char123}\\
+\hspace*{0pt} ~~~(y :~ys) = rev (v :~va);\\
+\hspace*{0pt} ~{\char125}~in (Just y, Queue [] ys);\\
+\hspace*{0pt}\\
+\hspace*{0pt}enqueue ::~forall a. a -> Queue a -> Queue a;\\
+\hspace*{0pt}enqueue x (Queue xs ys) = Queue (x :~xs) ys;\\
+\hspace*{0pt}\\
+\hspace*{0pt}{\char125}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

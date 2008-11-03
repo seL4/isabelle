@@ -87,11 +87,11 @@ Coming back to our introductory example, we
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|dequeue :: forall a. Queue a -> (Maybe a, Queue a);|\newline%
-\verb|dequeue (Queue xs (y : ys)) = (Just y, Queue xs ys);|\newline%
-\verb|dequeue (Queue xs []) =|\newline%
-\verb|  (if nulla xs then (Nothing, Queue [] [])|\newline%
-\verb|    else dequeue (Queue [] (rev xs)));|%
+\hspace*{0pt}dequeue ::~forall a. Queue a -> (Maybe a, Queue a);\\
+\hspace*{0pt}dequeue (Queue xs (y :~ys)) = (Just y, Queue xs ys);\\
+\hspace*{0pt}dequeue (Queue xs []) =\\
+\hspace*{0pt} ~(if nulla xs then (Nothing, Queue [] [])\\
+\hspace*{0pt} ~~~else dequeue (Queue [] (rev xs)));%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -273,46 +273,46 @@ Concerning type classes and code generation, let us examine an example
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|module Example where {|\newline%
-\newline%
-\newline%
-\verb|data Nat = Suc Nat |\verb,|,\verb| Zero_nat;|\newline%
-\newline%
-\verb|class Semigroup a where {|\newline%
-\verb|  mult :: a -> a -> a;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|class (Semigroup a) => Monoid a where {|\newline%
-\verb|  neutral :: a;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|pow :: forall a. (Monoid a) => Nat -> a -> a;|\newline%
-\verb|pow Zero_nat a = neutral;|\newline%
-\verb|pow (Suc n) a = mult a (pow n a);|\newline%
-\newline%
-\verb|plus_nat :: Nat -> Nat -> Nat;|\newline%
-\verb|plus_nat (Suc m) n = plus_nat m (Suc n);|\newline%
-\verb|plus_nat Zero_nat n = n;|\newline%
-\newline%
-\verb|neutral_nat :: Nat;|\newline%
-\verb|neutral_nat = Suc Zero_nat;|\newline%
-\newline%
-\verb|mult_nat :: Nat -> Nat -> Nat;|\newline%
-\verb|mult_nat Zero_nat n = Zero_nat;|\newline%
-\verb|mult_nat (Suc m) n = plus_nat n (mult_nat m n);|\newline%
-\newline%
-\verb|instance Semigroup Nat where {|\newline%
-\verb|  mult = mult_nat;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|instance Monoid Nat where {|\newline%
-\verb|  neutral = neutral_nat;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|bexp :: Nat -> Nat;|\newline%
-\verb|bexp n = pow n (Suc (Suc Zero_nat));|\newline%
-\newline%
-\verb|}|%
+\hspace*{0pt}module Example where {\char123}\\
+\hspace*{0pt}\\
+\hspace*{0pt}\\
+\hspace*{0pt}data Nat = Suc Nat | Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}class Semigroup a where {\char123}\\
+\hspace*{0pt} ~mult ::~a -> a -> a;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}class (Semigroup a) => Monoid a where {\char123}\\
+\hspace*{0pt} ~neutral ::~a;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}pow ::~forall a. (Monoid a) => Nat -> a -> a;\\
+\hspace*{0pt}pow Zero{\char95}nat a = neutral;\\
+\hspace*{0pt}pow (Suc n) a = mult a (pow n a);\\
+\hspace*{0pt}\\
+\hspace*{0pt}plus{\char95}nat ::~Nat -> Nat -> Nat;\\
+\hspace*{0pt}plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n);\\
+\hspace*{0pt}plus{\char95}nat Zero{\char95}nat n = n;\\
+\hspace*{0pt}\\
+\hspace*{0pt}neutral{\char95}nat ::~Nat;\\
+\hspace*{0pt}neutral{\char95}nat = Suc Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}mult{\char95}nat ::~Nat -> Nat -> Nat;\\
+\hspace*{0pt}mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat;\\
+\hspace*{0pt}mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Semigroup Nat where {\char123}\\
+\hspace*{0pt} ~mult = mult{\char95}nat;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Monoid Nat where {\char123}\\
+\hspace*{0pt} ~neutral = neutral{\char95}nat;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}bexp ::~Nat -> Nat;\\
+\hspace*{0pt}bexp n = pow n (Suc (Suc Zero{\char95}nat));\\
+\hspace*{0pt}\\
+\hspace*{0pt}{\char125}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -338,38 +338,38 @@ Concerning type classes and code generation, let us examine an example
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
-\newline%
-\verb|type 'a semigroup = {mult : 'a -> 'a -> 'a};|\newline%
-\verb|fun mult (A_:'a semigroup) = #mult A_;|\newline%
-\newline%
-\verb|type 'a monoid = {Program__semigroup_monoid : 'a semigroup, neutral : 'a};|\newline%
-\verb|fun semigroup_monoid (A_:'a monoid) = #Program__semigroup_monoid A_;|\newline%
-\verb|fun neutral (A_:'a monoid) = #neutral A_;|\newline%
-\newline%
-\verb|fun pow A_ Zero_nat a = neutral A_|\newline%
-\verb|  |\verb,|,\verb| pow A_ (Suc n) a = mult (semigroup_monoid A_) a (pow A_ n a);|\newline%
-\newline%
-\verb|fun plus_nat (Suc m) n = plus_nat m (Suc n)|\newline%
-\verb|  |\verb,|,\verb| plus_nat Zero_nat n = n;|\newline%
-\newline%
-\verb|val neutral_nat : nat = Suc Zero_nat;|\newline%
-\newline%
-\verb|fun mult_nat Zero_nat n = Zero_nat|\newline%
-\verb|  |\verb,|,\verb| mult_nat (Suc m) n = plus_nat n (mult_nat m n);|\newline%
-\newline%
-\verb|val semigroup_nat = {mult = mult_nat} : nat semigroup;|\newline%
-\newline%
-\verb|val monoid_nat =|\newline%
-\verb|  {Program__semigroup_monoid = semigroup_nat, neutral = neutral_nat} :|\newline%
-\verb|  nat monoid;|\newline%
-\newline%
-\verb|fun bexp n = pow monoid_nat n (Suc (Suc Zero_nat));|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
+\hspace*{0pt}fun mult (A{\char95}:'a semigroup) = {\char35}mult A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a monoid = {\char123}Program{\char95}{\char95}semigroup{\char95}monoid :~'a semigroup, neutral :~'a{\char125};\\
+\hspace*{0pt}fun semigroup{\char95}monoid (A{\char95}:'a monoid) = {\char35}Program{\char95}{\char95}semigroup{\char95}monoid A{\char95};\\
+\hspace*{0pt}fun neutral (A{\char95}:'a monoid) = {\char35}neutral A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun pow A{\char95}~Zero{\char95}nat a = neutral A{\char95}\\
+\hspace*{0pt} ~| pow A{\char95}~(Suc n) a = mult (semigroup{\char95}monoid A{\char95}) a (pow A{\char95}~n a);\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n)\\
+\hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val neutral{\char95}nat :~nat = Suc Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat\\
+\hspace*{0pt} ~| mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
+\hspace*{0pt}\\
+\hspace*{0pt}val semigroup{\char95}nat = {\char123}mult = mult{\char95}nat{\char125}~:~nat semigroup;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val monoid{\char95}nat =\\
+\hspace*{0pt} ~{\char123}Program{\char95}{\char95}semigroup{\char95}monoid = semigroup{\char95}nat, neutral = neutral{\char95}nat{\char125}~:\\
+\hspace*{0pt} ~nat monoid;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun bexp n = pow monoid{\char95}nat n (Suc (Suc Zero{\char95}nat));\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -659,23 +659,23 @@ Conceptually, any datatype is spanned by a set of
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|datatype nat = Dig1 of nat |\verb,|,\verb| Dig0 of nat |\verb,|,\verb| One_nat |\verb,|,\verb| Zero_nat;|\newline%
-\newline%
-\verb|fun plus_nat (Dig1 m) (Dig1 n) = Dig0 (plus_nat (plus_nat m n) One_nat)|\newline%
-\verb|  |\verb,|,\verb| plus_nat (Dig1 m) (Dig0 n) = Dig1 (plus_nat m n)|\newline%
-\verb|  |\verb,|,\verb| plus_nat (Dig0 m) (Dig1 n) = Dig1 (plus_nat m n)|\newline%
-\verb|  |\verb,|,\verb| plus_nat (Dig0 m) (Dig0 n) = Dig0 (plus_nat m n)|\newline%
-\verb|  |\verb,|,\verb| plus_nat (Dig1 m) One_nat = Dig0 (plus_nat m One_nat)|\newline%
-\verb|  |\verb,|,\verb| plus_nat One_nat (Dig1 n) = Dig0 (plus_nat n One_nat)|\newline%
-\verb|  |\verb,|,\verb| plus_nat (Dig0 m) One_nat = Dig1 m|\newline%
-\verb|  |\verb,|,\verb| plus_nat One_nat (Dig0 n) = Dig1 n|\newline%
-\verb|  |\verb,|,\verb| plus_nat m Zero_nat = m|\newline%
-\verb|  |\verb,|,\verb| plus_nat Zero_nat n = n;|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype nat = Dig1 of nat | Dig0 of nat | One{\char95}nat | Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun plus{\char95}nat (Dig1 m) (Dig1 n) = Dig0 (plus{\char95}nat (plus{\char95}nat m n) One{\char95}nat)\\
+\hspace*{0pt} ~| plus{\char95}nat (Dig1 m) (Dig0 n) = Dig1 (plus{\char95}nat m n)\\
+\hspace*{0pt} ~| plus{\char95}nat (Dig0 m) (Dig1 n) = Dig1 (plus{\char95}nat m n)\\
+\hspace*{0pt} ~| plus{\char95}nat (Dig0 m) (Dig0 n) = Dig0 (plus{\char95}nat m n)\\
+\hspace*{0pt} ~| plus{\char95}nat (Dig1 m) One{\char95}nat = Dig0 (plus{\char95}nat m One{\char95}nat)\\
+\hspace*{0pt} ~| plus{\char95}nat One{\char95}nat (Dig1 n) = Dig0 (plus{\char95}nat n One{\char95}nat)\\
+\hspace*{0pt} ~| plus{\char95}nat (Dig0 m) One{\char95}nat = Dig1 m\\
+\hspace*{0pt} ~| plus{\char95}nat One{\char95}nat (Dig0 n) = Dig1 n\\
+\hspace*{0pt} ~| plus{\char95}nat m Zero{\char95}nat = m\\
+\hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -776,25 +776,25 @@ Surely you have already noticed how equality is treated
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|type 'a eq = {eq : 'a -> 'a -> bool};|\newline%
-\verb|fun eq (A_:'a eq) = #eq A_;|\newline%
-\newline%
-\verb|fun eqop A_ a b = eq A_ a b;|\newline%
-\newline%
-\verb|fun member A_ x [] = false|\newline%
-\verb|  |\verb,|,\verb| member A_ x (y :: ys) = eqop A_ x y orelse member A_ x ys;|\newline%
-\newline%
-\verb|fun collect_duplicates A_ xs ys [] = xs|\newline%
-\verb|  |\verb,|,\verb| collect_duplicates A_ xs ys (z :: zs) =|\newline%
-\verb|    (if member A_ z xs|\newline%
-\verb|      then (if member A_ z ys then collect_duplicates A_ xs ys zs|\newline%
-\verb|             else collect_duplicates A_ xs (z :: ys) zs)|\newline%
-\verb|      else collect_duplicates A_ (z :: xs) (z :: ys) zs);|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a eq = {\char123}eq :~'a -> 'a -> bool{\char125};\\
+\hspace*{0pt}fun eq (A{\char95}:'a eq) = {\char35}eq A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun eqop A{\char95}~a b = eq A{\char95}~a b;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun member A{\char95}~x [] = false\\
+\hspace*{0pt} ~| member A{\char95}~x (y ::~ys) = eqop A{\char95}~x y orelse member A{\char95}~x ys;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun collect{\char95}duplicates A{\char95}~xs ys [] = xs\\
+\hspace*{0pt} ~| collect{\char95}duplicates A{\char95}~xs ys (z ::~zs) =\\
+\hspace*{0pt} ~~~(if member A{\char95}~z xs\\
+\hspace*{0pt} ~~~~~then (if member A{\char95}~z ys then collect{\char95}duplicates A{\char95}~xs ys zs\\
+\hspace*{0pt} ~~~~~~~~~~~~else collect{\char95}duplicates A{\char95}~xs (z ::~ys) zs)\\
+\hspace*{0pt} ~~~~~else collect{\char95}duplicates A{\char95}~(z ::~xs) (z ::~ys) zs);\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -912,34 +912,34 @@ Surely you have already noticed how equality is treated
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|type 'a eq = {eq : 'a -> 'a -> bool};|\newline%
-\verb|fun eq (A_:'a eq) = #eq A_;|\newline%
-\newline%
-\verb|type 'a ord = {less_eq : 'a -> 'a -> bool, less : 'a -> 'a -> bool};|\newline%
-\verb|fun less_eq (A_:'a ord) = #less_eq A_;|\newline%
-\verb|fun less (A_:'a ord) = #less A_;|\newline%
-\newline%
-\verb|fun eqop A_ a b = eq A_ a b;|\newline%
-\newline%
-\verb|type 'a preorder = {Orderings__ord_preorder : 'a ord};|\newline%
-\verb|fun ord_preorder (A_:'a preorder) = #Orderings__ord_preorder A_;|\newline%
-\newline%
-\verb|type 'a order = {Orderings__preorder_order : 'a preorder};|\newline%
-\verb|fun preorder_order (A_:'a order) = #Orderings__preorder_order A_;|\newline%
-\newline%
-\verb|fun less_eqa (A1_, A2_) B_ (x1, y1) (x2, y2) =|\newline%
-\verb|  less ((ord_preorder o preorder_order) A2_) x1 x2 orelse|\newline%
-\verb|    eqop A1_ x1 x2 andalso|\newline%
-\verb|      less_eq ((ord_preorder o preorder_order) B_) y1 y2|\newline%
-\verb|  |\verb,|,\verb| less_eqa (A1_, A2_) B_ (x1, y1) (x2, y2) =|\newline%
-\verb|    less ((ord_preorder o preorder_order) A2_) x1 x2 orelse|\newline%
-\verb|      eqop A1_ x1 x2 andalso|\newline%
-\verb|        less_eq ((ord_preorder o preorder_order) B_) y1 y2;|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a eq = {\char123}eq :~'a -> 'a -> bool{\char125};\\
+\hspace*{0pt}fun eq (A{\char95}:'a eq) = {\char35}eq A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a ord = {\char123}less{\char95}eq :~'a -> 'a -> bool, less :~'a -> 'a -> bool{\char125};\\
+\hspace*{0pt}fun less{\char95}eq (A{\char95}:'a ord) = {\char35}less{\char95}eq A{\char95};\\
+\hspace*{0pt}fun less (A{\char95}:'a ord) = {\char35}less A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun eqop A{\char95}~a b = eq A{\char95}~a b;\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a preorder = {\char123}Orderings{\char95}{\char95}ord{\char95}preorder :~'a ord{\char125};\\
+\hspace*{0pt}fun ord{\char95}preorder (A{\char95}:'a preorder) = {\char35}Orderings{\char95}{\char95}ord{\char95}preorder A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a order = {\char123}Orderings{\char95}{\char95}preorder{\char95}order :~'a preorder{\char125};\\
+\hspace*{0pt}fun preorder{\char95}order (A{\char95}:'a order) = {\char35}Orderings{\char95}{\char95}preorder{\char95}order A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun less{\char95}eqa (A1{\char95}, A2{\char95}) B{\char95}~(x1, y1) (x2, y2) =\\
+\hspace*{0pt} ~less ((ord{\char95}preorder o preorder{\char95}order) A2{\char95}) x1 x2 orelse\\
+\hspace*{0pt} ~~~eqop A1{\char95}~x1 x2 andalso\\
+\hspace*{0pt} ~~~~~less{\char95}eq ((ord{\char95}preorder o preorder{\char95}order) B{\char95}) y1 y2\\
+\hspace*{0pt} ~| less{\char95}eqa (A1{\char95}, A2{\char95}) B{\char95}~(x1, y1) (x2, y2) =\\
+\hspace*{0pt} ~~~less ((ord{\char95}preorder o preorder{\char95}order) A2{\char95}) x1 x2 orelse\\
+\hspace*{0pt} ~~~~~eqop A1{\char95}~x1 x2 andalso\\
+\hspace*{0pt} ~~~~~~~less{\char95}eq ((ord{\char95}preorder o preorder{\char95}order) B{\char95}) y1 y2;\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1033,29 +1033,29 @@ In some cases, the automatically derived defining equations
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
-\newline%
-\verb|fun null [] = true|\newline%
-\verb|  |\verb,|,\verb| null (x :: xs) = false;|\newline%
-\newline%
-\verb|fun eq_nat (Suc a) Zero_nat = false|\newline%
-\verb|  |\verb,|,\verb| eq_nat Zero_nat (Suc a) = false|\newline%
-\verb|  |\verb,|,\verb| eq_nat (Suc nat) (Suc nat') = eq_nat nat nat'|\newline%
-\verb|  |\verb,|,\verb| eq_nat Zero_nat Zero_nat = true;|\newline%
-\newline%
-\verb|datatype monotype = Mono of nat * monotype list;|\newline%
-\newline%
-\verb|fun list_all2 p (x :: xs) (y :: ys) = p x y andalso list_all2 p xs ys|\newline%
-\verb|  |\verb,|,\verb| list_all2 p xs [] = null xs|\newline%
-\verb|  |\verb,|,\verb| list_all2 p [] ys = null ys;|\newline%
-\newline%
-\verb|fun eq_monotype (Mono (tyco1, typargs1)) (Mono (tyco2, typargs2)) =|\newline%
-\verb|  eq_nat tyco1 tyco2 andalso list_all2 eq_monotype typargs1 typargs2;|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun null [] = true\\
+\hspace*{0pt} ~| null (x ::~xs) = false;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun eq{\char95}nat (Suc a) Zero{\char95}nat = false\\
+\hspace*{0pt} ~| eq{\char95}nat Zero{\char95}nat (Suc a) = false\\
+\hspace*{0pt} ~| eq{\char95}nat (Suc nat) (Suc nat') = eq{\char95}nat nat nat'\\
+\hspace*{0pt} ~| eq{\char95}nat Zero{\char95}nat Zero{\char95}nat = true;\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype monotype = Mono of nat * monotype list;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun list{\char95}all2 p (x ::~xs) (y ::~ys) = p x y andalso list{\char95}all2 p xs ys\\
+\hspace*{0pt} ~| list{\char95}all2 p xs [] = null xs\\
+\hspace*{0pt} ~| list{\char95}all2 p [] ys = null ys;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun eq{\char95}monotype (Mono (tyco1, typargs1)) (Mono (tyco2, typargs2)) =\\
+\hspace*{0pt} ~eq{\char95}nat tyco1 tyco2 andalso list{\char95}all2 eq{\char95}monotype typargs1 typargs2;\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1108,12 +1108,12 @@ Partiality usually enters the game by partial patterns, as
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|strict_dequeue :: forall a. Queue a -> (a, Queue a);|\newline%
-\verb|strict_dequeue (Queue xs (y : ys)) = (y, Queue xs ys);|\newline%
-\verb|strict_dequeue (Queue xs []) =|\newline%
-\verb|  let {|\newline%
-\verb|    (y : ys) = rev xs;|\newline%
-\verb|  } in (y, Queue [] ys);|%
+\hspace*{0pt}strict{\char95}dequeue ::~forall a. Queue a -> (a, Queue a);\\
+\hspace*{0pt}strict{\char95}dequeue (Queue xs (y :~ys)) = (y, Queue xs ys);\\
+\hspace*{0pt}strict{\char95}dequeue (Queue xs []) =\\
+\hspace*{0pt} ~let {\char123}\\
+\hspace*{0pt} ~~~(y :~ys) = rev xs;\\
+\hspace*{0pt} ~{\char125}~in (y, Queue [] ys);%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1204,13 +1204,13 @@ Partiality usually enters the game by partial patterns, as
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|empty_queue :: forall a. a;|\newline%
-\verb|empty_queue = error "empty_queue";|\newline%
-\newline%
-\verb|strict_dequeue' :: forall a. Queue a -> (a, Queue a);|\newline%
-\verb|strict_dequeue' (Queue xs []) =|\newline%
-\verb|  (if nulla xs then empty_queue else strict_dequeue' (Queue [] (rev xs)));|\newline%
-\verb|strict_dequeue' (Queue xs (y : ys)) = (y, Queue xs ys);|%
+\hspace*{0pt}empty{\char95}queue ::~forall a. a;\\
+\hspace*{0pt}empty{\char95}queue = error {\char34}empty{\char95}queue{\char34};\\
+\hspace*{0pt}\\
+\hspace*{0pt}strict{\char95}dequeue' ::~forall a. Queue a -> (a, Queue a);\\
+\hspace*{0pt}strict{\char95}dequeue' (Queue xs []) =\\
+\hspace*{0pt} ~(if nulla xs then empty{\char95}queue else strict{\char95}dequeue' (Queue [] (rev xs)));\\
+\hspace*{0pt}strict{\char95}dequeue' (Queue xs (y :~ys)) = (y, Queue xs ys);%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

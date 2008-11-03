@@ -23,7 +23,7 @@ THY = $(LOG)/HOL-Thy.gz
 
 Thy: $(THY)
 
-$(THY): Thy/ROOT.ML Thy/Classes.thy
+$(THY): Thy/ROOT.ML Thy/Setup.thy Thy/Classes.thy
 	@$(USEDIR) HOL Thy
 
 

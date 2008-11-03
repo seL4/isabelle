@@ -7,7 +7,7 @@ More antiquotations.
 
 signature MORE_ANTIQUOTE =
 sig
-  val verbatim_lines: string list -> string
+  val verbatim: string -> string
 end;
 
 structure More_Antiquote : MORE_ANTIQUOTE =
@@ -17,12 +17,34 @@ structure O = ThyOutput;
 
 (* printing verbatim lines *)
 
-val verbatim_line = space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|";
-val verbatim_lines = rev
-  #> dropwhile (fn s => s = "")
-  #> rev
-  #> map verbatim_line #> space_implode "\\newline%\n"
-  #> prefix "\\isaverbatim%\n\\noindent%\n"
+fun verbatim s =
+  let
+    val parse = Scan.repeat
+      (Scan.this_string "\n" |-- Scan.succeed "\\\\\n\\hspace*{0pt}"
+        || (Scan.this_string " " 
+          || Scan.this_string ":"
+          || Scan.this_string "\"" |-- Scan.succeed "{\\char34}"
+          || Scan.this_string "#" |-- Scan.succeed "{\\char35}"
+          || Scan.this_string "$" |-- Scan.succeed "{\\char36}"
+          || Scan.this_string "%" |-- Scan.succeed "{\\char37}"
+          || Scan.this_string "&" |-- Scan.succeed "{\\char38}"
+          || Scan.this_string "\\" |-- Scan.succeed "{\\char92}"
+          || Scan.this_string "^" |-- Scan.succeed "{\\char94}"
+          || Scan.this_string "_" |-- Scan.succeed "{\\char95}"
+          || Scan.this_string "{" |-- Scan.succeed "{\\char123}"
+          || Scan.this_string "}" |-- Scan.succeed "{\\char125}"
+          || Scan.this_string "~" |-- Scan.succeed "{\\char126}")
+          -- Scan.repeat (Scan.this_string " ")
+          >> (fn (x, xs) => x ^ replicate_string (length xs) "~")
+        || Scan.one Symbol.not_eof);
+    fun is_newline s = (s = "\n");
+    val cs = explode s |> take_prefix is_newline |> snd
+      |> take_suffix is_newline |> fst;
+    val (texts, []) =  Scan.finite Symbol.stopper parse cs
+  in if null texts
+    then ""
+    else implode ("\\isaverbatim%\n\\noindent%\n\\hspace*{0pt}" :: texts)
+  end
 
 
 (* class antiquotation *)
@@ -69,8 +91,7 @@ local
     Code_Target.code_of (ProofContext.theory_of ctxt)
       target "Example" (mk_cs (ProofContext.theory_of ctxt))
         (fn naming => maps (fn f => f (ProofContext.theory_of ctxt) naming) mk_stmtss)
-    |> split_lines
-    |> verbatim_lines;
+    |> verbatim;
 
 in
 

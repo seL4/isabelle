@@ -1116,69 +1116,69 @@ Turning back to the first motivation for type classes,
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|module Example where {|\newline%
-\newline%
-\newline%
-\verb|data Nat = Suc Nat |\verb,|,\verb| Zero_nat;|\newline%
-\newline%
-\verb|nat_aux :: Integer -> Nat -> Nat;|\newline%
-\verb|nat_aux i n = (if i <= 0 then n else nat_aux (i - 1) (Suc n));|\newline%
-\newline%
-\verb|nat :: Integer -> Nat;|\newline%
-\verb|nat i = nat_aux i Zero_nat;|\newline%
-\newline%
-\verb|class Semigroup a where {|\newline%
-\verb|  mult :: a -> a -> a;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|class (Semigroup a) => Monoidl a where {|\newline%
-\verb|  neutral :: a;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|class (Monoidl a) => Monoid a where {|\newline%
-\verb|};|\newline%
-\newline%
-\verb|class (Monoid a) => Group a where {|\newline%
-\verb|  inverse :: a -> a;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|inverse_int :: Integer -> Integer;|\newline%
-\verb|inverse_int i = negate i;|\newline%
-\newline%
-\verb|neutral_int :: Integer;|\newline%
-\verb|neutral_int = 0;|\newline%
-\newline%
-\verb|mult_int :: Integer -> Integer -> Integer;|\newline%
-\verb|mult_int i j = i + j;|\newline%
-\newline%
-\verb|instance Semigroup Integer where {|\newline%
-\verb|  mult = mult_int;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|instance Monoidl Integer where {|\newline%
-\verb|  neutral = neutral_int;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|instance Monoid Integer where {|\newline%
-\verb|};|\newline%
-\newline%
-\verb|instance Group Integer where {|\newline%
-\verb|  inverse = inverse_int;|\newline%
-\verb|};|\newline%
-\newline%
-\verb|pow_nat :: forall a. (Monoid a) => Nat -> a -> a;|\newline%
-\verb|pow_nat Zero_nat x = neutral;|\newline%
-\verb|pow_nat (Suc n) x = mult x (pow_nat n x);|\newline%
-\newline%
-\verb|pow_int :: forall a. (Group a) => Integer -> a -> a;|\newline%
-\verb|pow_int k x =|\newline%
-\verb|  (if 0 <= k then pow_nat (nat k) x|\newline%
-\verb|    else inverse (pow_nat (nat (negate k)) x));|\newline%
-\newline%
-\verb|example :: Integer;|\newline%
-\verb|example = pow_int 10 (-2);|\newline%
-\newline%
-\verb|}|%
+\hspace*{0pt}module Example where {\char123}\\
+\hspace*{0pt}\\
+\hspace*{0pt}\\
+\hspace*{0pt}data Nat = Suc Nat | Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}nat{\char95}aux ::~Integer -> Nat -> Nat;\\
+\hspace*{0pt}nat{\char95}aux i n = (if i <= 0 then n else nat{\char95}aux (i - 1) (Suc n));\\
+\hspace*{0pt}\\
+\hspace*{0pt}nat ::~Integer -> Nat;\\
+\hspace*{0pt}nat i = nat{\char95}aux i Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}class Semigroup a where {\char123}\\
+\hspace*{0pt} ~mult ::~a -> a -> a;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}class (Semigroup a) => Monoidl a where {\char123}\\
+\hspace*{0pt} ~neutral ::~a;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}class (Monoidl a) => Monoid a where {\char123}\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}class (Monoid a) => Group a where {\char123}\\
+\hspace*{0pt} ~inverse ::~a -> a;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}inverse{\char95}int ::~Integer -> Integer;\\
+\hspace*{0pt}inverse{\char95}int i = negate i;\\
+\hspace*{0pt}\\
+\hspace*{0pt}neutral{\char95}int ::~Integer;\\
+\hspace*{0pt}neutral{\char95}int = 0;\\
+\hspace*{0pt}\\
+\hspace*{0pt}mult{\char95}int ::~Integer -> Integer -> Integer;\\
+\hspace*{0pt}mult{\char95}int i j = i + j;\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Semigroup Integer where {\char123}\\
+\hspace*{0pt} ~mult = mult{\char95}int;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Monoidl Integer where {\char123}\\
+\hspace*{0pt} ~neutral = neutral{\char95}int;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Monoid Integer where {\char123}\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Group Integer where {\char123}\\
+\hspace*{0pt} ~inverse = inverse{\char95}int;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}pow{\char95}nat ::~forall a. (Monoid a) => Nat -> a -> a;\\
+\hspace*{0pt}pow{\char95}nat Zero{\char95}nat x = neutral;\\
+\hspace*{0pt}pow{\char95}nat (Suc n) x = mult x (pow{\char95}nat n x);\\
+\hspace*{0pt}\\
+\hspace*{0pt}pow{\char95}int ::~forall a. (Group a) => Integer -> a -> a;\\
+\hspace*{0pt}pow{\char95}int k x =\\
+\hspace*{0pt} ~(if 0 <= k then pow{\char95}nat (nat k) x\\
+\hspace*{0pt} ~~~else inverse (pow{\char95}nat (nat (negate k)) x));\\
+\hspace*{0pt}\\
+\hspace*{0pt}example ::~Integer;\\
+\hspace*{0pt}example = pow{\char95}int 10 (-2);\\
+\hspace*{0pt}\\
+\hspace*{0pt}{\char125}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1203,64 +1203,64 @@ Turning back to the first motivation for type classes,
 \begin{isamarkuptext}%
 \isaverbatim%
 \noindent%
-\verb|structure Example = |\newline%
-\verb|struct|\newline%
-\newline%
-\verb|datatype nat = Suc of nat |\verb,|,\verb| Zero_nat;|\newline%
-\newline%
-\verb|fun nat_aux i n =|\newline%
-\verb|  (if IntInf.<= (i, (0 : IntInf.int)) then n|\newline%
-\verb|    else nat_aux (IntInf.- (i, (1 : IntInf.int))) (Suc n));|\newline%
-\newline%
-\verb|fun nat i = nat_aux i Zero_nat;|\newline%
-\newline%
-\verb|type 'a semigroup = {mult : 'a -> 'a -> 'a};|\newline%
-\verb|fun mult (A_:'a semigroup) = #mult A_;|\newline%
-\newline%
-\verb|type 'a monoidl =|\newline%
-\verb|  {Classes__semigroup_monoidl : 'a semigroup, neutral : 'a};|\newline%
-\verb|fun semigroup_monoidl (A_:'a monoidl) = #Classes__semigroup_monoidl A_;|\newline%
-\verb|fun neutral (A_:'a monoidl) = #neutral A_;|\newline%
-\newline%
-\verb|type 'a monoid = {Classes__monoidl_monoid : 'a monoidl};|\newline%
-\verb|fun monoidl_monoid (A_:'a monoid) = #Classes__monoidl_monoid A_;|\newline%
-\newline%
-\verb|type 'a group = {Classes__monoid_group : 'a monoid, inverse : 'a -> 'a};|\newline%
-\verb|fun monoid_group (A_:'a group) = #Classes__monoid_group A_;|\newline%
-\verb|fun inverse (A_:'a group) = #inverse A_;|\newline%
-\newline%
-\verb|fun inverse_int i = IntInf.~ i;|\newline%
-\newline%
-\verb|val neutral_int : IntInf.int = (0 : IntInf.int);|\newline%
-\newline%
-\verb|fun mult_int i j = IntInf.+ (i, j);|\newline%
-\newline%
-\verb|val semigroup_int = {mult = mult_int} : IntInf.int semigroup;|\newline%
-\newline%
-\verb|val monoidl_int =|\newline%
-\verb|  {Classes__semigroup_monoidl = semigroup_int, neutral = neutral_int} :|\newline%
-\verb|  IntInf.int monoidl;|\newline%
-\newline%
-\verb|val monoid_int = {Classes__monoidl_monoid = monoidl_int} :|\newline%
-\verb|  IntInf.int monoid;|\newline%
-\newline%
-\verb|val group_int =|\newline%
-\verb|  {Classes__monoid_group = monoid_int, inverse = inverse_int} :|\newline%
-\verb|  IntInf.int group;|\newline%
-\newline%
-\verb|fun pow_nat A_ Zero_nat x = neutral (monoidl_monoid A_)|\newline%
-\verb|  |\verb,|,\verb| pow_nat A_ (Suc n) x =|\newline%
-\verb|    mult ((semigroup_monoidl o monoidl_monoid) A_) x (pow_nat A_ n x);|\newline%
-\newline%
-\verb|fun pow_int A_ k x =|\newline%
-\verb|  (if IntInf.<= ((0 : IntInf.int), k)|\newline%
-\verb|    then pow_nat (monoid_group A_) (nat k) x|\newline%
-\verb|    else inverse A_ (pow_nat (monoid_group A_) (nat (IntInf.~ k)) x));|\newline%
-\newline%
-\verb|val example : IntInf.int =|\newline%
-\verb|  pow_int group_int (10 : IntInf.int) (~2 : IntInf.int);|\newline%
-\newline%
-\verb|end; (*struct Example*)|%
+\hspace*{0pt}structure Example = \\
+\hspace*{0pt}struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun nat{\char95}aux i n =\\
+\hspace*{0pt} ~(if IntInf.<= (i, (0 :~IntInf.int)) then n\\
+\hspace*{0pt} ~~~else nat{\char95}aux (IntInf.- (i, (1 :~IntInf.int))) (Suc n));\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun nat i = nat{\char95}aux i Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
+\hspace*{0pt}fun mult (A{\char95}:'a semigroup) = {\char35}mult A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a monoidl =\\
+\hspace*{0pt} ~{\char123}Classes{\char95}{\char95}semigroup{\char95}monoidl :~'a semigroup, neutral :~'a{\char125};\\
+\hspace*{0pt}fun semigroup{\char95}monoidl (A{\char95}:'a monoidl) = {\char35}Classes{\char95}{\char95}semigroup{\char95}monoidl A{\char95};\\
+\hspace*{0pt}fun neutral (A{\char95}:'a monoidl) = {\char35}neutral A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a monoid = {\char123}Classes{\char95}{\char95}monoidl{\char95}monoid :~'a monoidl{\char125};\\
+\hspace*{0pt}fun monoidl{\char95}monoid (A{\char95}:'a monoid) = {\char35}Classes{\char95}{\char95}monoidl{\char95}monoid A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a group = {\char123}Classes{\char95}{\char95}monoid{\char95}group :~'a monoid, inverse :~'a -> 'a{\char125};\\
+\hspace*{0pt}fun monoid{\char95}group (A{\char95}:'a group) = {\char35}Classes{\char95}{\char95}monoid{\char95}group A{\char95};\\
+\hspace*{0pt}fun inverse (A{\char95}:'a group) = {\char35}inverse A{\char95};\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun inverse{\char95}int i = IntInf.{\char126}~i;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val neutral{\char95}int :~IntInf.int = (0 :~IntInf.int);\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun mult{\char95}int i j = IntInf.+ (i, j);\\
+\hspace*{0pt}\\
+\hspace*{0pt}val semigroup{\char95}int = {\char123}mult = mult{\char95}int{\char125}~:~IntInf.int semigroup;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val monoidl{\char95}int =\\
+\hspace*{0pt} ~{\char123}Classes{\char95}{\char95}semigroup{\char95}monoidl = semigroup{\char95}int, neutral = neutral{\char95}int{\char125}~:\\
+\hspace*{0pt} ~IntInf.int monoidl;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val monoid{\char95}int = {\char123}Classes{\char95}{\char95}monoidl{\char95}monoid = monoidl{\char95}int{\char125}~:\\
+\hspace*{0pt} ~IntInf.int monoid;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val group{\char95}int =\\
+\hspace*{0pt} ~{\char123}Classes{\char95}{\char95}monoid{\char95}group = monoid{\char95}int, inverse = inverse{\char95}int{\char125}~:\\
+\hspace*{0pt} ~IntInf.int group;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun pow{\char95}nat A{\char95}~Zero{\char95}nat x = neutral (monoidl{\char95}monoid A{\char95})\\
+\hspace*{0pt} ~| pow{\char95}nat A{\char95}~(Suc n) x =\\
+\hspace*{0pt} ~~~mult ((semigroup{\char95}monoidl o monoidl{\char95}monoid) A{\char95}) x (pow{\char95}nat A{\char95}~n x);\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun pow{\char95}int A{\char95}~k x =\\
+\hspace*{0pt} ~(if IntInf.<= ((0 :~IntInf.int), k)\\
+\hspace*{0pt} ~~~then pow{\char95}nat (monoid{\char95}group A{\char95}) (nat k) x\\
+\hspace*{0pt} ~~~else inverse A{\char95}~(pow{\char95}nat (monoid{\char95}group A{\char95}) (nat (IntInf.{\char126}~k)) x));\\
+\hspace*{0pt}\\
+\hspace*{0pt}val example :~IntInf.int =\\
+\hspace*{0pt} ~pow{\char95}int group{\char95}int (10 :~IntInf.int) ({\char126}2 :~IntInf.int);\\
+\hspace*{0pt}\\
+\hspace*{0pt}end; (*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

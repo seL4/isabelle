@@ -301,7 +301,7 @@ text {*
 *}
 
 code_class %quotett eq
-  (Haskell "Eq" where "HOL.eq" \<equiv> "(==)")
+  (Haskell "Eq")
 
 code_const %quotett "op ="
   (Haskell infixl 4 "==")
