@@ -30,25 +30,6 @@ import org.xhtmlrenderer.resource.CSSResource
 
 import org.gjt.sp.jedit.View
 
-object ScrollerDockable {
-  val baseURL = "file://localhost" + getenv("ISABELLE_HOME") + "/lib/html/"
-  val userStylesheet = 
-    "file://localhost" + getenv("ISABELLE_HOME_USER") + "/etc/user.css";
-  val stylesheet = """
-
-@import "isabelle.css";
-
-@import '""" + userStylesheet + """';
-
-messages, message {
-  display: block;
-  white-space: pre-wrap;
-  font-family: Isabelle;
-}
-"""
-}
-
-
 class ScrollerDockable(view : View, position : String) extends JPanel with AdjustmentListener with ComponentListener {
   //holding the unrendered messages
   val message_buffer = new ArrayBuffer[Document]()
@@ -86,7 +67,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
       panel.relayout()
     })
 
-    panel.setDocument(message, ScrollerDockable.baseURL)
+    panel.setDocument(message, UserAgent.baseURL)
     panel
   }
   
@@ -99,22 +80,27 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
    
   //render and load a message into cache, place its bottom at y-coordinate;
   def set_message (message_no: Int, y: Int) = {
-    //get or add panel from/to cache
+    //add panel to cache if necessary
     if(!message_cache.isDefinedAt(message_no)){
       if(message_buffer.isDefinedAt(message_no)){
         message_cache = message_cache.update (message_no, render (message_buffer(message_no)))
       }
     }
-    val panel = message_cache.get(message_no).get
-    // recalculate preferred sie after resizing
-    if(panel.getPreferredSize.getWidth.toInt != message_view.getWidth)
-      calculate_preferred_size (panel)
-    //place message on view
-    val width = panel.getPreferredSize.getWidth.toInt
-    val height = panel.getPreferredSize.getHeight.toInt
-    panel.setBounds(0, y - height, width, height)
-    message_view.add(panel)
-    panel
+    val result = message_cache.get(message_no) match {
+      case Some(panel) => {
+        // recalculate preferred sie after resizing
+        if(panel.getPreferredSize.getWidth.toInt != message_view.getWidth)
+          calculate_preferred_size (panel)
+        //place message on view
+        val width = panel.getPreferredSize.getWidth.toInt
+        val height = panel.getPreferredSize.getHeight.toInt
+        panel.setBounds(0, y - height, width, height)
+        message_view.add(panel)
+        panel
+      }
+      case None => null
+    }
+    result
   }
   
   def move_view (y : Int) = {
