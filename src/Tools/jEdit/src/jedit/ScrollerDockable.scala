@@ -162,11 +162,16 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     repaint()
   }
 
+  def jump_to_bottom = {
+    //fire scroll-event => updating is done by scroller
+    vscroll.setValue(message_buffer.size - 1)
+  }
+
   def add_message (message: Document) = {
     message_buffer += message
     vscroll.setMaximum (Math.max(1, message_buffer.length))
-    if(message_no == -1){
-      message_no = 0
+    if(message_no == -1 || auto_scroll.isSelected){
+      jump_to_bottom
       update_view
     }
   }
@@ -193,7 +198,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   // TODO: only testing atm
   Plugin.plugin.stateUpdate.add(state => {
     var i = 0
-    if(state != null) while (i < 500) {
+    if(state != null) while (i < 5) {
       add_message(state.document)
       i += 1
     }
