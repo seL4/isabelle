@@ -14,8 +14,8 @@ import scala.collection.mutable.ArrayBuffer
 
 import java.awt.{ BorderLayout, GridLayout, Adjustable, Rectangle, Scrollbar }
 import java.awt.image.BufferedImage
-import java.awt.event.{ AdjustmentListener, AdjustmentEvent, ComponentListener, ComponentEvent }
-import javax.swing.{ JPanel, JRadioButton, JScrollBar, JScrollPane, JTextArea, ScrollPaneConstants }
+import java.awt.event.{ ActionListener, ActionEvent, AdjustmentListener, AdjustmentEvent, ComponentListener, ComponentEvent }
+import javax.swing.{ JPanel, JRadioButton, JScrollBar, JScrollPane, JTextArea, ScrollPaneConstants, Timer }
 
 import isabelle.IsabelleSystem.getenv
 
@@ -162,9 +162,21 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     repaint()
   }
 
+  val scroll_delay_timer : Timer = new Timer(200, new ActionListener {
+      override def actionPerformed(e:ActionEvent){
+        //fire scroll-event => updating is done by scroller
+        if(message_no != message_buffer.size) vscroll.setValue(message_buffer.size - 1)
+        scroll_delay_timer.stop
+      }
+    })
+
   def jump_to_bottom = {
-    //fire scroll-event => updating is done by scroller
-    vscroll.setValue(message_buffer.size - 1)
+    if (scroll_delay_timer.isRunning())
+      scroll_delay_timer.restart()
+    else{
+      vscroll.setValue(message_buffer.size - 1)
+      scroll_delay_timer.start()
+    }
   }
 
   def add_message (message: Document) = {
