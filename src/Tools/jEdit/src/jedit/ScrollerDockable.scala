@@ -83,6 +83,9 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     message_view.add (panel)
     panel.setBounds (0, 0, message_view.getWidth, 1) // document has to fit into width
     panel.doLayout (panel.getGraphics) //lay out, preferred size is set then
+    // if there are thousands of empty panels, all have to be rendered -
+    // but this takes time (even for empty panels); therefore minimum size
+    panel.setPreferredSize(new java.awt.Dimension(message_view.getWidth,Math.max(50, panel.getPreferredSize.getHeight.toInt)))
   }
    
   //render and load a message into cache, place its bottom at y-coordinate;
@@ -156,35 +159,29 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     var y:Int = message_view.getHeight + message_offset
     while (y >= 0 && n >= 0){
       val panel = set_message (n, y)
+      panel.setBorder(javax.swing.border.LineBorder.createBlackLineBorder)
       y = y - panel.getHeight
       n = n - 1
     }
     repaint()
   }
 
-  val scroll_delay_timer : Timer = new Timer(200, new ActionListener {
+  val scroll_delay_timer : Timer = new Timer(300, new ActionListener {
       override def actionPerformed(e:ActionEvent){
-        //fire scroll-event => updating is done by scroller
+        //fire scroll-event => updating is done by scroll-event-handling
         if(message_no != message_buffer.size) vscroll.setValue(message_buffer.size - 1)
         scroll_delay_timer.stop
       }
     })
 
-  def jump_to_bottom = {
-    if (scroll_delay_timer.isRunning())
-      scroll_delay_timer.restart()
-    else{
-      vscroll.setValue(message_buffer.size - 1)
-      scroll_delay_timer.start()
-    }
-  }
-
   def add_message (message: Document) = {
     message_buffer += message
     vscroll.setMaximum (Math.max(1, message_buffer.length))
     if(message_no == -1 || auto_scroll.isSelected){
-      jump_to_bottom
-      update_view
+      if (! scroll_delay_timer.isRunning()){
+        vscroll.setValue(message_buffer.size - 1)
+        scroll_delay_timer.start()
+      }
     }
   }
   
@@ -210,7 +207,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   // TODO: only testing atm
   Plugin.plugin.stateUpdate.add(state => {
     var i = 0
-    if(state != null) while (i < 5) {
+    if(state != null) while (i < 500) {
       add_message(state.document)
       i += 1
     }
