@@ -904,14 +904,18 @@ text {*
 *}
 
 lemma Times_Un_distrib1: "(A Un B) <*> C = (A <*> C) Un (B <*> C)"
-  by blast
+by blast
 
 lemma Times_Int_distrib1: "(A Int B) <*> C = (A <*> C) Int (B <*> C)"
-  by blast
+by blast
 
 lemma Times_Diff_distrib1: "(A - B) <*> C = (A <*> C) - (B <*> C)"
-  by blast
+by blast
 
+lemma insert_times_insert[simp]:
+  "insert a A \<times> insert b B =
+   insert (a,b) (A \<times> insert b B \<union> insert a A \<times> B)"
+by blast
 
 subsubsection {* Code generator setup *}
 
