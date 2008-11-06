@@ -8,25 +8,16 @@
 
 package isabelle.jedit
 
-import java.io.{ ByteArrayInputStream, FileInputStream, InputStream }
-
 import scala.collection.mutable.ArrayBuffer
 
-import java.awt.{ BorderLayout, GridLayout, Adjustable, Rectangle, Scrollbar }
-import java.awt.image.BufferedImage
+import java.awt.{ BorderLayout, Adjustable }
 import java.awt.event.{ ActionListener, ActionEvent, AdjustmentListener, AdjustmentEvent, ComponentListener, ComponentEvent }
-import javax.swing.{ JPanel, JRadioButton, JScrollBar, JScrollPane, JTextArea, ScrollPaneConstants, Timer }
-
-import isabelle.IsabelleSystem.getenv
-
-import org.xml.sax.InputSource;
+import javax.swing.{ JPanel, JRadioButton, JScrollBar, JTextArea, Timer }
 
 import org.w3c.dom.Document
 
 import org.xhtmlrenderer.simple.XHTMLPanel
 import org.xhtmlrenderer.context.AWTFontResolver
-import org.xhtmlrenderer.swing.NaiveUserAgent
-import org.xhtmlrenderer.resource.CSSResource
 
 import org.gjt.sp.jedit.View
 

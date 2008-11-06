@@ -64,7 +64,7 @@ class Prover() {
                   case Elem("keyword_decl", List(("name", keyw)), _) => 
                     () //TODO: with these keywords simplify the token-regex in ProofDocument
                   case _ => 
-                    //TODO
+                    //TODO: can there be other decls?
                     if (st != null)
                     handleResult(st, r, tree)
                 }) 
