@@ -17,10 +17,6 @@ struct
 
 local
 
-fun the_option [x] = SOME x
-  | the_option [] = NONE
-  | the_option _ = raise Empty;
-
 fun gen_subclass prep_class do_proof raw_sup lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -41,7 +37,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val sublocale_prop =
       Locale.global_asms_of thy sup
       |> maps snd
-      |> the_option
+      |> try the_single
       |> Option.map (ObjectLogic.ensure_propT thy);
     fun after_qed some_thm =
       LocalTheory.theory (Class.prove_subclass (sub, sup) some_thm)
@@ -53,7 +49,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
 fun user_proof after_qed NONE =
       Proof.theorem_i NONE (K (after_qed NONE)) [[]]
   | user_proof after_qed (SOME prop) =
-      Proof.theorem_i NONE (after_qed o the_option o the_single) [[(prop, [])]];
+      Proof.theorem_i NONE (after_qed o try the_single o the_single) [[(prop, [])]];
 
 fun tactic_proof tac after_qed NONE lthy =
       after_qed NONE lthy
