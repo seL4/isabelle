@@ -84,7 +84,6 @@ fun target_decl add (Target {target, is_class, ...}) d lthy =
     else
       lthy
       |> LocalTheory.target (add target d')
-      (*|> is_class ? LocalTheory.raw_theory (Class.declaration target d')*)
   end;
 
 val type_syntax = target_decl Locale.add_type_syntax;
@@ -172,7 +171,6 @@ fun notes (Target {target, is_locale, is_class, ...}) kind facts lthy =
         #> Sign.restore_naming thy)
     |> not is_locale ? LocalTheory.target (note_local kind global_facts #> snd)
     |> is_locale ? LocalTheory.target (Locale.add_thmss target kind target_facts)
-    (*|> is_class ? LocalTheory.raw_theory (Class.note target kind target_facts #> snd)*)
     |> note_local kind local_facts
   end;
 
