@@ -27,7 +27,6 @@ sig
   val class_expr: token list -> string list * token list
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
-  val locale_element: token list -> Element.context * token list
   val context_element: token list -> Element.context * token list
   val statement: token list -> (Attrib.binding * (string * string list) list) list * token list
   val general_statement: token list ->
@@ -88,9 +87,6 @@ val locale_insts =
 
 local
 
-val loc_keyword = P.$$$ "fixes" || P.$$$ "constrains" || P.$$$ "assumes" ||
-   P.$$$ "defines" || P.$$$ "notes" || P.$$$ "includes";
-
 val loc_element =
   P.$$$ "fixes" |-- P.!!! locale_fixes >> Element.Fixes ||
   P.$$$ "constrains" |-- P.!!! (P.and_list1 (P.name -- (P.$$$ "::" |-- P.typ)))
@@ -109,18 +105,17 @@ val rename = P.name -- Scan.option P.mixfix;
 
 in
 
-val class_expr = plus1_unless loc_keyword P.xname;
+val locale_keyword = P.$$$ "fixes" || P.$$$ "constrains" || P.$$$ "assumes" ||
+   P.$$$ "defines" || P.$$$ "notes";
+
+val class_expr = plus1_unless locale_keyword P.xname;
 
 val locale_expr =
   let
     fun expr2 x = (P.xname >> Locale.Locale || P.$$$ "(" |-- P.!!! (expr0 --| P.$$$ ")")) x
     and expr1 x = (expr2 -- Scan.repeat1 (P.maybe rename) >> Locale.Rename || expr2) x
-    and expr0 x = (plus1_unless loc_keyword expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
+    and expr0 x = (plus1_unless locale_keyword expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
   in expr0 end;
-
-val locale_keyword = loc_keyword;
-
-val locale_element = P.group "locale element" loc_element;
 
 val context_element = P.group "context element" loc_element;
 
@@ -137,7 +132,7 @@ val obtain_case =
 
 val general_statement =
   statement >> (fn x => ([], Element.Shows x)) ||
-  Scan.repeat locale_element --
+  Scan.repeat context_element --
    (P.$$$ "obtains" |-- P.!!! (P.enum1 "|" obtain_case) >> Element.Obtains ||
     P.$$$ "shows" |-- P.!!! statement >> Element.Shows);
 
