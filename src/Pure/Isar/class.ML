@@ -18,10 +18,6 @@ sig
     -> (string * mixfix) * term -> theory -> theory
   val abbrev: class -> Syntax.mode -> Properties.T
     -> (string * mixfix) * term -> theory -> theory
-  val note: class -> string
-    -> (Attrib.binding * (thm list * Attrib.src list) list) list
-    -> theory -> (bstring * thm list) list * theory
-  val declaration: class -> declaration -> theory -> theory
   val refresh_syntax: class -> Proof.context -> Proof.context
 
   val intro_classes_tac: thm list -> tactic
@@ -67,10 +63,10 @@ struct
 (** auxiliary **)
 
 fun prove_interpretation tac prfx_atts expr inst =
-  Locale.interpretation_i I prfx_atts expr inst #> snd
-  #> Proof.global_terminal_proof
+  Locale.interpretation_i I prfx_atts expr inst
+  ##> Proof.global_terminal_proof
       (Method.Basic (fn ctxt => Method.SIMPLE_METHOD (tac ctxt), Position.none), NONE)
-  #> ProofContext.theory_of;
+  ##> ProofContext.theory_of;
 
 fun prove_interpretation_in tac after_qed (name, expr) =
   Locale.interpretation_in_locale
@@ -78,6 +74,28 @@ fun prove_interpretation_in tac after_qed (name, expr) =
   #> Proof.global_terminal_proof
       (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
   #> ProofContext.theory_of;
+
+val class_prefix = Logic.const_of_class o Sign.base_name;
+
+fun activate_class_morphism thy class inst morphism =
+  Locale.get_interpret_morph thy (class_prefix class) "" morphism class inst;
+
+fun prove_class_interpretation class inst consts hyp_facts def_facts thy =
+  let
+    val constraints = map (fn (class, c) => map_atyps (K (TFree (Name.aT,
+      [class]))) (Sign.the_const_type thy c)) consts;
+    val no_constraints = map (map_atyps (K (TFree (Name.aT, [])))) constraints;
+    fun add_constraint c T = Sign.add_const_constraint (c, SOME T);
+    fun tac ctxt = ALLGOALS (ProofContext.fact_tac (hyp_facts @ def_facts)
+      ORELSE' (fn n => SELECT_GOAL (Locale.intro_locales_tac false ctxt []) n));
+    val prfx = class_prefix class;
+  in
+    thy
+    |> fold2 add_constraint (map snd consts) no_constraints
+    |> prove_interpretation tac (false, prfx) (Locale.Locale class)
+          (map SOME inst, map (pair (Attrib.no_binding) o Thm.prop_of) def_facts)
+    ||> fold2 add_constraint (map snd consts) constraints
+  end;
 
 
 (** primitive axclass and instance commands **)
@@ -127,18 +145,23 @@ end; (*local*)
 (** class data **)
 
 datatype class_data = ClassData of {
+
+  (* static part *)
   consts: (string * string) list
     (*locale parameter ~> constant name*),
   base_sort: sort,
-  inst: term option list
+  inst: term list
     (*canonical interpretation*),
-  morphism: theory -> thm list -> morphism,
-    (*partial morphism of canonical interpretation*)
+  morphism: Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))
+    (*morphism cookie of canonical interpretation*),
   assm_intro: thm option,
   of_class: thm,
   axiom: thm option,
+  
+  (* dynamic part *)
   defs: thm list,
   operations: (string * (class * (typ * term))) list
+
 };
 
 fun rep_class_data (ClassData d) = d;
@@ -147,8 +170,8 @@ fun mk_class_data ((consts, base_sort, inst, morphism, assm_intro, of_class, axi
   ClassData { consts = consts, base_sort = base_sort, inst = inst,
     morphism = morphism, assm_intro = assm_intro, of_class = of_class, axiom = axiom,
     defs = defs, operations = operations };
-fun map_class_data f (ClassData { consts, base_sort, inst, morphism,
-    assm_intro, of_class, axiom, defs, operations }) =
+fun map_class_data f (ClassData { consts, base_sort, inst, morphism, assm_intro,
+    of_class, axiom, defs, operations }) =
   mk_class_data (f ((consts, base_sort, inst, morphism, assm_intro, of_class, axiom),
     (defs, operations)));
 fun merge_class_data _ (ClassData { consts = consts,
@@ -182,6 +205,8 @@ val is_class = is_some oo lookup_class_data;
 
 val ancestry = Graph.all_succs o ClassData.get;
 
+fun the_inst thy = #inst o the_class_data thy;
+
 fun these_params thy =
   let
     fun params class =
@@ -194,16 +219,19 @@ fun these_params thy =
       end;
   in maps params o ancestry thy end;
 
-fun these_defs thy = maps (these o Option.map #defs o lookup_class_data thy) o ancestry thy;
-
-fun morphism thy class = #morphism (the_class_data thy class) thy (these_defs thy [class]);
-
 fun these_assm_intros thy =
   Graph.fold (fn (_, (data, _)) => fold (insert Thm.eq_thm)
     ((the_list o #assm_intro o rep_class_data) data)) (ClassData.get thy) [];
 
+fun these_defs thy = maps (these o Option.map #defs o lookup_class_data thy) o ancestry thy;
+
 fun these_operations thy =
   maps (#operations o the_class_data thy) o ancestry thy;
+
+fun morphism thy class =
+  let
+    val { inst, morphism, ... } = the_class_data thy class;
+  in activate_class_morphism thy class inst morphism end;
 
 fun print_classes thy =
   let
@@ -250,7 +278,7 @@ fun add_class_data ((class, superclasses),
       (c, (class, (ty, Free v_ty)))) params;
     val add_class = Graph.new_node (class,
         mk_class_data (((map o pairself) fst params, base_sort,
-          map (SOME o Const) inst, phi, assm_intro, of_class, axiom), ([], operations)))
+          inst, phi, assm_intro, of_class, axiom), ([], operations)))
       #> fold (curry Graph.add_edge class) superclasses;
   in ClassData.map add_class thy end;
 
@@ -273,65 +301,38 @@ fun register_operation class (c, (t, some_def)) thy =
 
 (** rule calculation, tactics and methods **)
 
-val class_prefix = Logic.const_of_class o Sign.base_name;
+fun calculate_axiom thy sups base_sort assm_axiom param_map class =
+  case Locale.intros thy class
+   of (_, []) => assm_axiom
+    | (_, [intro]) =>
+      let
+        fun instantiate thy sort = Thm.instantiate ([pairself (Thm.ctyp_of thy o TVar o pair (Name.aT, 0))
+          (base_sort, sort)], map (fn (v, (c, ty)) => pairself (Thm.cterm_of thy)
+            (Var ((v, 0), map_atyps (fn _ => TVar ((Name.aT, 0), sort)) ty),
+              Const (c, map_atyps (fn _ => TVar ((Name.aT, 0), sort)) ty))) param_map);
+        val axiom_premises = map_filter (#axiom o the_class_data thy) sups
+          @ the_list assm_axiom;
+      in intro
+        |> instantiate thy [class]
+        |> (fn thm => thm OF axiom_premises)
+        |> Drule.standard'
+        |> Thm.close_derivation
+        |> SOME
+      end;
 
-fun calculate sups base_sort assm_axiom param_map class thy =
+fun calculate_rules thy phi sups base_sort param_map axiom class =
   let
-    (*static parts of morphism*)
-    val subst_typ = map_type_tfree (fn (v, sort) =>
-          if v = Name.aT then TVar ((v, 0), [class]) else TVar ((v, 0), sort));
-    fun subst_aterm (t as Free (v, ty)) = (case AList.lookup (op =) param_map v
-         of SOME (c, _) => Const (c, ty)
-          | NONE => t)
-      | subst_aterm t = t;
     fun instantiate thy sort = Thm.instantiate ([pairself (Thm.ctyp_of thy o TVar o pair (Name.aT, 0))
       (base_sort, sort)], map (fn (v, (c, ty)) => pairself (Thm.cterm_of thy)
         (Var ((v, 0), map_atyps (fn _ => TVar ((Name.aT, 0), sort)) ty),
           Const (c, map_atyps (fn _ => TVar ((Name.aT, 0), sort)) ty))) param_map);
-    (*fun inst thy sort thm = (tracing (makestring thm); instantiate thy sort thm);
-    val instantiate = inst;*)
-    val (proto_assm_intro, locale_intro) = Locale.intros thy class
-      |> pairself (try the_single);
-    val axiom_premises = map_filter (#axiom o the_class_data thy) sups
-      @ the_list assm_axiom;
-    val axiom = locale_intro
-      |> Option.map (Thm.close_derivation o Drule.standard' o (fn thm => thm OF axiom_premises) o instantiate thy [class])
-      |> (fn x as SOME _ => x | NONE => assm_axiom);
-    val lift_axiom = case axiom
-     of SOME axiom => (fn thm => ((*tracing "-(morphism)-";
-          tracing (makestring thm);
-          tracing (makestring axiom);*)
-          Thm.implies_elim thm axiom))
-      | NONE => I;
-
-    (*dynamic parts of morphism*)
-    fun avoid_a thy thm =
-      let
-        val tvars = Term.add_tvars (Thm.prop_of thm) [];
-        val thm' = case AList.lookup (op =) tvars (Name.aT, 0)
-         of SOME sort => Thm.instantiate ([pairself (Thm.ctyp_of thy o TVar o rpair sort o rpair 0)
-              (Name.aT, Name.variant (map (fst o fst) tvars) Name.aT)], []) thm
-          | NONE => thm;
-      in thm' end;
-    fun rew_term thy defs = Pattern.rewrite_term thy
-      (map (Logic.dest_equals o Thm.prop_of) defs) [];
-    fun subst_term thy defs = map_aterms subst_aterm #> rew_term thy defs
-      #> map_types subst_typ;
-    fun subst_thm thy defs = Drule.zero_var_indexes #> avoid_a thy
-      #> Drule.standard' #> instantiate thy [class] #> lift_axiom
-      #> MetaSimplifier.rewrite_rule defs;
-    fun morphism thy defs =
-      Morphism.typ_morphism subst_typ
-      $> Morphism.term_morphism (subst_term thy defs)
-      $> Morphism.thm_morphism (subst_thm thy defs);
-
-    (*class rules*)
     val defs = these_defs thy sups;
-    val assm_intro = proto_assm_intro
-      |> Option.map (instantiate thy base_sort)
-      |> Option.map (MetaSimplifier.rewrite_rule defs)
-      |> Option.map Thm.close_derivation;
-    val class_intro = (#intro o AxClass.get_info thy) class;
+    val assm_intro = Locale.intros thy class
+      |> fst
+      |> map (instantiate thy base_sort)
+      |> map (MetaSimplifier.rewrite_rule defs)
+      |> map Thm.close_derivation
+      |> try the_single;
     val fixate = Thm.instantiate
       (map (pairself (Thm.ctyp_of thy)) [(TVar ((Name.aT, 0), []), TFree (Name.aT, base_sort)),
         (TVar ((Name.aT, 0), base_sort), TFree (Name.aT, base_sort))], [])
@@ -348,39 +349,11 @@ fun calculate sups base_sort assm_axiom param_map class thy =
         |> (map_types o map_atyps o K) (TFree (Name.aT, base_sort))
         |> (Thm.assume o Thm.cterm_of thy)
         |> replicate num_trivs;
-    val of_class = (fixate class_intro OF of_class_sups OF locale_dests OF pred_trivs)
+    val axclass_intro = (#intro o AxClass.get_info thy) class;
+    val of_class = (fixate axclass_intro OF of_class_sups OF locale_dests OF pred_trivs)
       |> Drule.standard'
       |> Thm.close_derivation;
-    val this_intro = assm_intro |> the_default class_intro;
-  in
-    thy
-    |> Sign.sticky_prefix (class_prefix class ^ "_" ^ AxClass.axiomsN)
-    |> PureThy.store_thm (AxClass.introN, this_intro)
-    |> snd
-    |> Sign.restore_naming thy
-    |> pair (morphism, axiom, assm_intro, of_class)
-  end;
-
-fun class_interpretation class facts defs thy = thy;
-
-fun class_interpretation class facts defs thy =
-  let
-    val consts = map (apsnd fst o snd) (these_params thy [class]);
-    val constraints = map (fn (class, c) => map_atyps (K (TFree (Name.aT,
-      [class]))) (Sign.the_const_type thy c)) consts;
-    val no_constraints = map (map_atyps (K (TFree (Name.aT, [])))) constraints;
-    fun add_constraint c T = Sign.add_const_constraint (c, SOME T);
-    val inst = (#inst o the_class_data thy) class;
-    fun tac ctxt = ALLGOALS (ProofContext.fact_tac facts
-      ORELSE' (fn n => SELECT_GOAL (Locale.intro_locales_tac false ctxt []) n));
-    val prfx = class_prefix class;
-  in
-    thy
-    |> fold2 add_constraint (map snd consts) no_constraints
-    |> prove_interpretation tac (false, prfx) (Locale.Locale class)
-          (inst, map (fn def => (Attrib.no_binding, def)) defs)
-    |> fold2 add_constraint (map snd consts) constraints
-  end;
+  in (assm_intro, of_class) end;
 
 fun prove_subclass (sub, sup) some_thm thy =
   let
@@ -398,6 +371,13 @@ fun prove_subclass (sub, sup) some_thm thy =
          I (sub, Locale.Locale sup)
     |> ClassData.map (Graph.add_edge (sub, sup))
   end;
+
+fun note_assm_intro class assm_intro thy =
+  thy
+  |> Sign.sticky_prefix (class_prefix class ^ "_" ^ AxClass.axiomsN)
+  |> PureThy.store_thm (AxClass.introN, assm_intro)
+  |> snd
+  |> Sign.restore_naming thy;
 
 fun intro_classes_tac facts st =
   let
@@ -490,6 +470,8 @@ fun declare class pos ((c, mx), dict) thy =
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
     val phi = morphism thy' class;
+    val inst = the_inst thy' class;
+    val params = map (apsnd fst o snd) (these_params thy' [class]);
 
     val c' = Sign.full_name thy' c;
     val dict' = Morphism.term phi dict;
@@ -504,7 +486,10 @@ fun declare class pos ((c, mx), dict) thy =
     |> Thm.add_def false false (c, def_eq)
     |>> Thm.symmetric
     ||>> get_axiom
-    |-> (fn (def, def') => class_interpretation class [def] [Thm.prop_of def]
+    |-> (fn (def, def') => prove_class_interpretation class inst params [] [def]
+      #> snd
+        (*assumption: interpretation cookie does not change
+          by adding equations to interpretation*)
       #> register_operation class (c', (dict', SOME (Thm.symmetric def')))
       #> PureThy.store_thm (c ^ "_raw", def')
       #> snd)
@@ -531,22 +516,6 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
     |> not (#1 prmode = PrintMode.input) ? register_operation class (c', (rhs', NONE))
     |> Sign.restore_naming thy
   end;
-
-fun note class kind facts thy =
-  let
-    val phi = morphism thy class;
-    val facts' = facts
-      |> PureThy.map_facts (Morphism.thm phi) 
-      |> Attrib.map_facts (Attrib.attribute_i thy);
-  in
-    thy
-    |> Sign.add_path (class_prefix class)
-    |> PureThy.note_thmss kind facts'
-    ||> Sign.restore_naming thy
-  end;
-
-fun declaration class decl thy =
-  Context.theory_map (decl (morphism thy class)) thy;
 
 
 (* class definition *)
@@ -593,12 +562,13 @@ fun gen_class_spec prep_class process_expr thy raw_supclasses raw_elems =
 val read_class_spec = gen_class_spec Sign.intern_class Locale.read_expr;
 val check_class_spec = gen_class_spec (K I) Locale.cert_expr;
 
-fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax thy =
+fun add_consts bname class base_sort sups supparams global_syntax thy =
   let
     val supconsts = map fst supparams
       |> AList.make (snd o the o AList.lookup (op =) (these_params thy sups))
       |> (map o apsnd o apsnd o map_atyps o K o TFree) (Name.aT, [class]);
     val all_params = map fst (Locale.parameters_of thy class);
+    val raw_params = (snd o chop (length supparams)) all_params;
     fun add_const (v, raw_ty) thy =
       let
         val c = Sign.full_name thy v;
@@ -612,12 +582,16 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
         |> snd
         |> pair ((v, ty), (c, ty'))
       end;
-    fun add_consts raw_params thy =
-      thy
-      |> Sign.add_path (Logic.const_of_class bname)
-      |> fold_map add_const raw_params
-      ||> Sign.restore_naming thy
-      |-> (fn params => pair (supconsts @ (map o apfst) fst params, params));
+  in
+    thy
+    |> Sign.add_path (Logic.const_of_class bname)
+    |> fold_map add_const raw_params
+    ||> Sign.restore_naming thy
+    |-> (fn params => pair (supconsts @ (map o apfst) fst params, params))
+  end;
+
+fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax thy =
+  let
     fun globalize param_map = map_aterms
       (fn Free (v, ty) => Const ((fst o the o AList.lookup (op =) param_map) v, ty)
         | t => t);
@@ -629,14 +603,14 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
       | [thm] => SOME thm;
   in
     thy
-    |> add_consts ((snd o chop (length supparams)) all_params)
+    |> add_consts bname class base_sort sups supparams global_syntax
     |-> (fn (param_map, params) => AxClass.define_class (bname, supsort)
           (map (fst o snd) params)
           [((Name.binding (bname ^ "_" ^ AxClass.axiomsN), []), map (globalize param_map) raw_pred)]
     #> snd
     #> `get_axiom
     #-> (fn assm_axiom => fold (Sign.add_const_constraint o apsnd SOME o snd) params
-    #> pair (param_map, params, assm_axiom)))
+    #> pair (map (Const o snd) param_map, param_map, params, assm_axiom)))
   end;
 
 fun gen_class prep_spec bname raw_supclasses raw_elems thy =
@@ -644,21 +618,26 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     val class = Sign.full_name thy bname;
     val (((sups, supparams), (supsort, base_sort, mergeexpr)), (elems, global_syntax)) =
       prep_spec thy raw_supclasses raw_elems;
+    val supconsts = map (apsnd fst o snd) (these_params thy sups);
   in
     thy
     |> Locale.add_locale_i "" bname mergeexpr elems
     |> snd
     |> ProofContext.theory_of
     |> adjungate_axclass bname class base_sort sups supsort supparams global_syntax
-    |-> (fn (param_map, params, assm_axiom) =>
-        calculate sups base_sort assm_axiom param_map class
-    #-> (fn (morphism, axiom, assm_intro, of_class) =>
-        add_class_data ((class, sups), (params, base_sort,
-          map snd param_map, morphism, axiom, assm_intro, of_class))
-    (*#> `(fn thy => Locale.facts_of thy class)
-    #-> (fn facts => fold_map (note class Thm.assumptionK) facts
-    #> snd*)
-    #> class_interpretation class (the_list axiom) []))
+    |-> (fn (inst, param_map, params, assm_axiom) =>
+        `(fn thy => calculate_axiom thy sups base_sort assm_axiom param_map class)
+    #-> (fn axiom =>
+        prove_class_interpretation class inst
+          (supconsts @ map (pair class o fst o snd) params) (the_list axiom) []
+    #-> (fn morphism =>
+        `(fn thy => activate_class_morphism thy class inst morphism)
+    #-> (fn phi =>
+        `(fn thy => calculate_rules thy phi sups base_sort param_map axiom class)
+    #-> (fn (assm_intro, of_class) =>
+        add_class_data ((class, sups), (params, base_sort, inst,
+          morphism, axiom, assm_intro, of_class))
+    #> fold (note_assm_intro class) (the_list assm_intro))))))
     |> init class
     |> pair class
   end;
