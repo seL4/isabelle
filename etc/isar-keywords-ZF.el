@@ -226,7 +226,6 @@
     "if"
     "imports"
     "in"
-    "includes"
     "induction"
     "infix"
     "infixl"

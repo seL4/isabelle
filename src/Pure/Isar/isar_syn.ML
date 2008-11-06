@@ -22,7 +22,7 @@ val _ = List.app OuterKeyword.keyword
   "\\<rightharpoonup>", "\\<rightleftharpoons>", "\\<subseteq>", "]",
   "advanced", "and", "assumes", "attach", "begin", "binder",
   "constrains", "defines", "fixes", "for", "identifier", "if",
-  "imports", "in", "includes", "infix", "infixl", "infixr", "is",
+  "imports", "in", "infix", "infixl", "infixr", "is",
   "notes", "obtains", "open", "output", "overloaded", "shows",
   "structure", "unchecked", "uses", "where", "|"];
 
