@@ -222,6 +222,8 @@ by blast
 
 text{* The main theorem: *}
 
+declare [[max_clauses = 200]]
+
 theorem Ls_can_tile: "i \<le> a \<Longrightarrow> a < 2^n + i \<Longrightarrow> j \<le> b \<Longrightarrow> b < 2^n + j
   \<Longrightarrow> square2 n i j - {(a,b)} : tiling Ls"
 proof(induct n arbitrary: a b i j)
@@ -302,12 +304,7 @@ next
     using a b by(simp add:L3_def) arith moreover
   have "?D \<Longrightarrow> L2 (2^n + i - 1) (2^n + j - 1) \<subseteq> square2 (n+1) i j - {(a, b)}"
     using a b by(simp add:L2_def) arith
-  ultimately show ?case
-    apply simp
-    apply(erule disjE)
-    apply (metis LinLs tiling_Diff1E)
-    apply (metis LinLs tiling_Diff1E)
-    done
+  ultimately show ?case by simp (metis LinLs tiling_Diff1E)
 qed
 
 corollary Ls_can_tile00:
