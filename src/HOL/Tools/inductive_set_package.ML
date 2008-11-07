@@ -22,6 +22,7 @@ sig
     (Name.binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
     local_theory -> InductivePackage.inductive_result * local_theory
+  val codegen_preproc: theory -> thm list -> thm list
   val setup: theory -> theory
 end;
 
