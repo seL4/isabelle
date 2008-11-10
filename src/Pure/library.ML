@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Markus Wenzel, TU Muenchen
 
-Basic library: functions, options, pairs, booleans, lists, integers,
+Basic library: functions, pairs, booleans, lists, integers,
 strings, lists as sets, orders, current directory, misc.
 
 See also General/basics.ML for the most fundamental concepts.
