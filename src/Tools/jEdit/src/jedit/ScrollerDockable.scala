@@ -43,15 +43,20 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   //automated scrolling, new message ind
   val infopanel = new JPanel
   val auto_scroll = new JRadioButton("Auto Scroll", false)
-  val new_message_ind = new JTextArea("0")
-  infopanel.add(new_message_ind)
+  //indicates new messages with a new color, and shows number of messages in cache
+  val message_ind = new JTextArea("0")
+  infopanel.add(message_ind)
   infopanel.add(auto_scroll)
   add (infopanel, BorderLayout.SOUTH)
+
+  // DoubleBuffering for smoother updates
+  this.setDoubleBuffered(true)
+  message_view.setDoubleBuffered(true)
 
   //Render a message to a Panel
   def render (message: Document): XHTMLPanel = {
     val panel = new XHTMLPanel(new UserAgent())
-
+    panel.setFontScalingFactor(.5f)
     val fontResolver =
       panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
     if (Plugin.plugin.viewFont != null)
@@ -157,22 +162,29 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     repaint()
   }
 
-  val scroll_delay_timer : Timer = new Timer(300, new ActionListener {
+  //indicate new messages in a maximum frequency of 1/300 ms
+  val message_ind_timer : Timer = new Timer(300, new ActionListener {
+      // this method is called to indicate a new message
       override def actionPerformed(e:ActionEvent){
-        //fire scroll-event => updating is done by scroll-event-handling
-        if(message_no != message_buffer.size) vscroll.setValue(message_buffer.size - 1)
-        scroll_delay_timer.stop
+        //fire scroll-event if necessary and wanted
+        if(message_no != message_buffer.size
+          && auto_scroll.isSelected) {
+          vscroll.setValue(message_buffer.size - 1)
+        }
+        message_ind.setBackground(java.awt.Color.white)
       }
     })
 
+
   def add_message (message: Document) = {
     message_buffer += message
-    vscroll.setMaximum (Math.max(1, message_buffer.length))
-    if(message_no == -1 || auto_scroll.isSelected){
-      if (! scroll_delay_timer.isRunning()){
-        vscroll.setValue(message_buffer.size - 1)
-        scroll_delay_timer.start()
-      }
+    vscroll.setMaximum (Math.max(1, message_buffer.size))
+    message_ind.setBackground(java.awt.Color.red)
+    message_ind.setText(message_buffer.size.toString)
+    if (! message_ind_timer.isRunning()){
+      if(auto_scroll.isSelected) vscroll.setValue(message_buffer.size - 1)
+      message_ind_timer.setRepeats(false)
+      message_ind_timer.start()
     }
   }
   
@@ -194,14 +206,20 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     update_view
   }
   
-  //register somewhere
-  // TODO: only testing atm
+  // TODO: register somewhere
+  // here only 'emulation of message stream'
   Plugin.plugin.stateUpdate.add(state => {
     var i = 0
-    if(state != null) while (i < 500) {
-      add_message(state.document)
-      i += 1
-    }
+    if(state != null) new Thread{
+      override def run() {
+        while (i < 500) {
+          add_message(state.document)
+          i += 1
+          try {Thread.sleep(3)}
+          catch{case _ =>}
+        }
+      }
+    }.start
   })
 }
 
