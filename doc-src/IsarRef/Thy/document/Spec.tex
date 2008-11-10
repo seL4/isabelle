@@ -397,11 +397,7 @@ Locales are named local contexts, consisting of a list of
   include arbitrary declarations in any attribute specifications
   included here, e.g.\ a local \hyperlink{attribute.simp}{\mbox{\isa{simp}}} rule.
 
-  \item [\hyperlink{element.includes}{\mbox{\isa{\isakeyword{includes}}}}~\isa{c}] copies the specified context
-  in a statically scoped manner.  Only available in the long goal
-  format of \secref{sec:goals}.
-
-  In contrast, the initial \isa{import} specification of a locale
+  The initial \isa{import} specification of a locale
   expression maintains a dynamic relation to the locales being
   referenced (benefiting from any later fact declarations in the
   obvious manner).
@@ -446,10 +442,9 @@ Locales are named local contexts, consisting of a list of
   theory.  While \hyperlink{method.intro-locales}{\mbox{\isa{intro{\isacharunderscore}locales}}} only applies the \isa{loc{\isachardot}intro} introduction rules and therefore does not decend to
   assumptions, \hyperlink{method.unfold-locales}{\mbox{\isa{unfold{\isacharunderscore}locales}}} is more aggressive and applies
   \isa{loc{\isacharunderscore}axioms{\isachardot}intro} as well.  Both methods are aware of locale
-  specifications entailed by the context, both from target and
-  \hyperlink{element.includes}{\mbox{\isa{\isakeyword{includes}}}} statements, and from interpretations (see
-  below).  New goals that are entailed by the current context are
-  discharged automatically.
+  specifications entailed by the context, both from target statements,
+  and from interpretations (see below).  New goals that are entailed
+  by the current context are discharged automatically.
 
   \end{descr}%
 \end{isamarkuptext}%

@@ -381,11 +381,7 @@ text {*
   include arbitrary declarations in any attribute specifications
   included here, e.g.\ a local @{attribute simp} rule.
 
-  \item [@{element "includes"}~@{text c}] copies the specified context
-  in a statically scoped manner.  Only available in the long goal
-  format of \secref{sec:goals}.
-
-  In contrast, the initial @{text import} specification of a locale
+  The initial @{text import} specification of a locale
   expression maintains a dynamic relation to the locales being
   referenced (benefiting from any later fact declarations in the
   obvious manner).
@@ -433,10 +429,9 @@ text {*
   loc.intro} introduction rules and therefore does not decend to
   assumptions, @{method unfold_locales} is more aggressive and applies
   @{text loc_axioms.intro} as well.  Both methods are aware of locale
-  specifications entailed by the context, both from target and
-  @{element "includes"} statements, and from interpretations (see
-  below).  New goals that are entailed by the current context are
-  discharged automatically.
+  specifications entailed by the context, both from target statements,
+  and from interpretations (see below).  New goals that are entailed
+  by the current context are discharged automatically.
 
   \end{descr}
 *}
