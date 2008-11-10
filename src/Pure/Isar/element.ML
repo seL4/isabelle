@@ -158,8 +158,10 @@ fun pretty_items _ _ [] = []
         map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword sep, Pretty.brk 1, y]) ys;
 
 fun pretty_name_atts ctxt (binding, atts) sep =
-  let val name = Name.name_of binding in
-    if name = "" andalso null atts then []
+  let
+    val name = NameSpace.implode
+      (map fst (Name.prefix_of binding) @ [Name.name_of binding]);
+  in if name = "" andalso null atts then []
     else [Pretty.block
       (Pretty.breaks (Pretty.str name :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))]
   end;
