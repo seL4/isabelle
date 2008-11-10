@@ -1,8 +1,8 @@
 package isabelle.jedit
 
 
-import java.awt.GridLayout
-import javax.swing.{ JPanel, JScrollPane }
+import java.awt.BorderLayout
+import javax.swing.{ JButton, JPanel, JScrollPane }
 
 import isabelle.IsabelleSystem.getenv
 
@@ -13,11 +13,29 @@ import org.xhtmlrenderer.context.AWTFontResolver
 
 import org.gjt.sp.jedit.View
 
+//Copy-Paste-support
+import org.w3c.dom.ranges.Range
+import org.w3c.dom.DocumentFragment
+import org.xhtmlrenderer.swing.SelectionHighlighter
+
 class StateViewDockable(view : View, position : String) extends JPanel {
   {
     val panel = new XHTMLPanel(new UserAgent())
-    setLayout(new GridLayout(1, 1))
-    add(new JScrollPane(panel))
+    setLayout(new BorderLayout)
+
+    //Copy-paste-support
+    val sel_highlighter = new SelectionHighlighter
+
+    val copyaction = new SelectionHighlighter.CopyAction {
+      override def actionPerformed(e: java.awt.event.ActionEvent) {
+        System.err.println (sel_highlighter.getSelectionRange)
+      }
+    }
+    copyaction.install(sel_highlighter)
+    sel_highlighter.install(panel)
+    add(new JButton(copyaction), BorderLayout.SOUTH)
+
+    add(new JScrollPane(panel), BorderLayout.CENTER)
     
     val fontResolver =
       panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]

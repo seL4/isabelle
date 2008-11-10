@@ -56,7 +56,6 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   //Render a message to a Panel
   def render (message: Document): XHTMLPanel = {
     val panel = new XHTMLPanel(new UserAgent())
-    panel.setFontScalingFactor(.5f)
     val fontResolver =
       panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
     if (Plugin.plugin.viewFont != null)
@@ -78,7 +77,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   def calculate_preferred_size(panel: XHTMLPanel){
     message_view.add (panel)
     panel.setBounds (0, 0, message_view.getWidth, 1) // document has to fit into width
-    panel.doLayout (panel.getGraphics) //lay out, preferred size is set then
+    panel.doDocumentLayout (panel.getGraphics) //lay out, preferred size is set then
     // if there are thousands of empty panels, all have to be rendered -
     // but this takes time (even for empty panels); therefore minimum size
     panel.setPreferredSize(new java.awt.Dimension(message_view.getWidth,Math.max(50, panel.getPreferredSize.getHeight.toInt)))
