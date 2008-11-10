@@ -85,7 +85,7 @@ Coming back to our introductory example, we
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isaverbatim%
+\isatypewriter%
 \noindent%
 \hspace*{0pt}dequeue ::~forall a. Queue a -> (Maybe a, Queue a);\\
 \hspace*{0pt}dequeue (Queue xs (y :~ys)) = (Just y, Queue xs ys);\\
@@ -271,7 +271,7 @@ Concerning type classes and code generation, let us examine an example
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isaverbatim%
+\isatypewriter%
 \noindent%
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
@@ -336,7 +336,7 @@ Concerning type classes and code generation, let us examine an example
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isaverbatim%
+\isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
@@ -657,7 +657,7 @@ Conceptually, any datatype is spanned by a set of
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isaverbatim%
+\isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
@@ -774,7 +774,7 @@ Surely you have already noticed how equality is treated
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isaverbatim%
+\isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
@@ -910,7 +910,7 @@ Surely you have already noticed how equality is treated
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isaverbatim%
+\isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
@@ -1031,7 +1031,7 @@ In some cases, the automatically derived defining equations
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isaverbatim%
+\isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
@@ -1106,7 +1106,7 @@ Partiality usually enters the game by partial patterns, as
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isaverbatim%
+\isatypewriter%
 \noindent%
 \hspace*{0pt}strict{\char95}dequeue ::~forall a. Queue a -> (a, Queue a);\\
 \hspace*{0pt}strict{\char95}dequeue (Queue xs (y :~ys)) = (y, Queue xs ys);\\
@@ -1202,7 +1202,7 @@ Partiality usually enters the game by partial patterns, as
 \isatagquote
 %
 \begin{isamarkuptext}%
-\isaverbatim%
+\isatypewriter%
 \noindent%
 \hspace*{0pt}empty{\char95}queue ::~forall a. a;\\
 \hspace*{0pt}empty{\char95}queue = error {\char34}empty{\char95}queue{\char34};\\

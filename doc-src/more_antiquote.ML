@@ -7,7 +7,7 @@ More antiquotations.
 
 signature MORE_ANTIQUOTE =
 sig
-  val verbatim: string -> string
+  val typewriter: string -> string
 end;
 
 structure More_Antiquote : MORE_ANTIQUOTE =
@@ -15,9 +15,9 @@ struct
 
 structure O = ThyOutput;
 
-(* printing verbatim lines *)
+(* printing typewriter lines *)
 
-fun verbatim s =
+fun typewriter s =
   let
     val parse = Scan.repeat
       (Scan.this_string "\n" |-- Scan.succeed "\\\\\n\\hspace*{0pt}"
@@ -43,7 +43,7 @@ fun verbatim s =
     val (texts, []) =  Scan.finite Symbol.stopper parse cs
   in if null texts
     then ""
-    else implode ("\\isaverbatim%\n\\noindent%\n\\hspace*{0pt}" :: texts)
+    else implode ("\\isatypewriter%\n\\noindent%\n\\hspace*{0pt}" :: texts)
   end
 
 
@@ -91,7 +91,7 @@ local
     Code_Target.code_of (ProofContext.theory_of ctxt)
       target "Example" (mk_cs (ProofContext.theory_of ctxt))
         (fn naming => maps (fn f => f (ProofContext.theory_of ctxt) naming) mk_stmtss)
-    |> verbatim;
+    |> typewriter;
 
 in
 
