@@ -294,9 +294,10 @@ fun prove_strong_ind s avoids thy =
       addsimprocs [mk_perm_bool_simproc ["Fun.id"],
         NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
     val fresh_star_bij = PureThy.get_thms thy "fresh_star_bij";
-    val pt_insts = map (NominalAtoms.the_atom_info thy #> #pt_inst) atoms;
-    val at_insts = map (NominalAtoms.the_atom_info thy #> #at_inst) atoms;
-    val dj_thms = maps (NominalAtoms.the_atom_info thy #> #dj_thms) atoms;
+    val pt_insts = map (NominalAtoms.pt_inst_of thy) atoms;
+    val at_insts = map (NominalAtoms.at_inst_of thy) atoms;
+    val dj_thms = maps (fn a =>
+      map (NominalAtoms.dj_thm_of thy a) (atoms \ a)) atoms;
     val finite_ineq = map2 (fn th => fn th' => th' RS (th RS
       @{thm pt_set_finite_ineq})) pt_insts at_insts;
     val perm_set_forget =
