@@ -32,8 +32,10 @@ sig
   val binding_pos: string * Position.T -> binding
   val binding: string -> binding
   val no_binding: binding
+  val prefix_of: binding -> (string * bool) list
   val name_of: binding -> string
   val pos_of: binding -> Position.T
+  val add_prefix: bool -> string -> binding -> binding
   val map_name: (string -> string) -> binding -> binding
   val qualified: string -> binding -> binding
 end;
@@ -151,16 +153,22 @@ fun variant used = singleton (variant_list used);
 
 (** generic name bindings **)
 
-datatype binding = Binding of string * Position.T;
+datatype binding = Binding of ((string * bool) list * string) * Position.T;
 
-val binding_pos = Binding;
+fun prefix_of (Binding ((prefix, _), _)) = prefix;
+fun name_of (Binding ((_, name), _)) = name;
+fun pos_of (Binding (_, pos)) = pos;
+
+fun binding_pos (name, pos) = Binding (([], name), pos);
 fun binding name = binding_pos (name, Position.none);
 val no_binding = binding "";
 
-fun name_of (Binding (name, _)) = name;
-fun pos_of (Binding (_, pos)) = pos;
+fun map_binding f (Binding bnd) = Binding (f bnd);
 
-fun map_name f (Binding (name, pos)) = Binding (f name, pos);
+fun add_prefix sticky prfx = (map_binding o apfst o apfst)
+  (cons (prfx, sticky));
+
+val map_name = map_binding o apfst o apsnd;
 val qualified = map_name o NameSpace.qualified;
 
 end;
