@@ -8,9 +8,9 @@ Serializer for SML and OCaml.
 signature CODE_ML =
 sig
   val eval_conv: string * (unit -> thm) option ref
-    -> theory -> cterm -> string list -> thm;
+    -> theory -> cterm -> string list -> thm
   val eval_term: string * (unit -> 'a) option ref
-    -> theory -> term -> string list -> 'a;
+    -> theory -> term -> string list -> 'a
   val setup: theory -> theory
 end;
 
@@ -893,7 +893,7 @@ fun eval eval'' term_of reff thy ct args =
     fun eval' naming program ((vs, ty), t) deps =
       let
         val _ = if Code_Thingol.contains_dictvar t then
-          error "Term to be evaluated constains free dictionaries" else ();
+          error "Term to be evaluated contains free dictionaries" else ();
         val value_name = "Value.VALUE.value"
         val program' = program
           |> Graph.new_node (value_name,
@@ -903,7 +903,7 @@ fun eval eval'' term_of reff thy ct args =
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate ctxt Output.ml_output false reff sml_code end;
-  in eval'' thy (fn t => (t, eval')) ct end;
+  in eval'' thy (rpair eval') ct end;
 
 fun eval_conv reff = eval Code_Thingol.eval_conv Thm.term_of reff;
 fun eval_term reff = eval Code_Thingol.eval_term I reff;

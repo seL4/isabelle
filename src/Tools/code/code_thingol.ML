@@ -449,6 +449,8 @@ fun contr_classparam_typs program name = case Graph.get_node program name
 
 (** translation kernel **)
 
+(* generic mechanisms *)
+
 fun ensure_stmt lookup declare generate thing (dep, (naming, program)) =
   let
     fun add_dep name = case dep of NONE => I
@@ -481,6 +483,9 @@ fun not_wellsorted thy thm ty sort e =
     val err_typ = "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort "
       ^ Syntax.string_of_sort_global thy sort;
   in error ("Wellsortedness error" ^ err_thm ^ ":\n" ^ err_typ ^ "\n" ^ err_class) end;
+
+
+(* translation *)
 
 fun ensure_class thy (algbr as (_, algebra)) funcgr class =
   let
@@ -713,8 +718,6 @@ and translate_app thy algbr funcgr thm ((c, ty), ts) = case Code.get_case_data t
   | NONE => translate_app_default thy algbr funcgr thm ((c, ty), ts);
 
 
-(** generated programs **)
-
 (* store *)
 
 structure Program = CodeDataFun
@@ -733,7 +736,7 @@ structure Program = CodeDataFun
 
 val cached_program = Program.get;
 
-fun generate thy funcgr f name =
+fun invoke_generation thy funcgr f name =
   Program.change_yield thy (fn naming_program => (NONE, naming_program)
     |> f thy (Code.operational_algebra thy) funcgr name
     |-> (fn name => fn (_, naming_program) => (name, naming_program)));
@@ -750,7 +753,7 @@ fun consts_program thy cs =
     fun generate_consts thy algebra funcgr =
       fold_map (ensure_const thy algebra funcgr);
   in
-    generate thy (Code_Funcgr.make thy cs) generate_consts cs
+    invoke_generation thy (Code_Funcgr.make thy cs) generate_consts cs
     |-> project_consts
   end;
 
@@ -783,20 +786,17 @@ fun ensure_value thy algbr funcgr t =
     #> term_value
   end;
 
-fun eval eval_kind thy evaluator =
+fun eval thy evaluator t =
   let
-    fun evaluator'' evaluator''' funcgr t =
+    val (t', evaluator'') = evaluator t;
+    fun evaluator' funcgr =
       let
-        val (((naming, program), (vs_ty_t, deps)), _) = generate thy funcgr ensure_value t;
-      in evaluator''' naming program vs_ty_t deps end;
-    fun evaluator' t =
-      let
-        val (t', evaluator''') = evaluator t;
-      in (t', evaluator'' evaluator''') end;
-  in eval_kind thy evaluator' end
+        val (((naming, program), (vs_ty_t, deps)), _) = invoke_generation thy funcgr ensure_value t';
+      in evaluator'' naming program vs_ty_t deps end;
+  in (t', evaluator') end
 
-fun eval_conv thy = eval Code_Funcgr.eval_conv thy;
-fun eval_term thy = eval Code_Funcgr.eval_term thy;
+fun eval_conv thy = Code_Funcgr.eval_conv thy o eval thy;
+fun eval_term thy = Code_Funcgr.eval_term thy o eval thy;
 
 end; (*struct*)
 

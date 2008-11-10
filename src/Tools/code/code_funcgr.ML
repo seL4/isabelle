@@ -14,8 +14,8 @@ sig
   val all: T -> string list
   val pretty: theory -> T -> Pretty.T
   val make: theory -> string list -> T
-  val eval_conv: theory -> (term -> term * (T -> term -> thm)) -> cterm -> thm
-  val eval_term: theory -> (term -> term * (T -> term -> 'a)) -> term -> 'a
+  val eval_conv: theory -> (term -> term * (T -> thm)) -> cterm -> thm
+  val eval_term: theory -> (term -> term * (T -> 'a)) -> term -> 'a
   val timing: bool ref
 end
 
@@ -218,42 +218,42 @@ in
 
 val ensure_consts = ensure_consts;
 
-fun proto_eval thy cterm_of evaluator_fr evaluator proto_ct funcgr =
+fun proto_eval thy cterm_of evaluator_lift evaluator proto_ct funcgr =
   let
     val ct = cterm_of proto_ct;
     val _ = Sign.no_vars (Syntax.pp_global thy) (Thm.term_of ct);
     val _ = Term.fold_types (Type.no_tvars #> K I) (Thm.term_of ct) ();
-    fun consts_of t = fold_aterms (fn Const c_ty => cons c_ty | _ => I)
-      t [];
+    fun consts_of t =
+      fold_aterms (fn Const c_ty => cons c_ty | _ => I) t [];
     val algebra = Code.coregular_algebra thy;
     val thm = Code.preprocess_conv thy ct;
     val ct' = Thm.rhs_of thm;
     val t' = Thm.term_of ct';
     val consts = map fst (consts_of t');
     val funcgr' = ensure_consts thy algebra consts funcgr;
-    val (t'', evaluator') = apsnd evaluator_fr (evaluator t');
+    val (t'', evaluator_funcgr) = evaluator t';
     val consts' = consts_of t'';
     val dicts = instances_of_consts thy algebra funcgr' consts';
     val funcgr'' = ensure_consts thy algebra dicts funcgr';
-  in (evaluator' thm funcgr'' t'', funcgr'') end;
+  in (evaluator_lift evaluator_funcgr thm funcgr'', funcgr'') end;
 
 fun proto_eval_conv thy =
   let
-    fun evaluator evaluator' thm1 funcgr t =
+    fun evaluator_lift evaluator thm1 funcgr =
       let
-        val thm2 = evaluator' funcgr t;
+        val thm2 = evaluator funcgr;
         val thm3 = Code.postprocess_conv thy (Thm.rhs_of thm2);
       in
         Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
           error ("could not construct evaluation proof:\n"
           ^ (cat_lines o map Display.string_of_thm) [thm1, thm2, thm3])
       end;
-  in proto_eval thy I evaluator end;
+  in proto_eval thy I evaluator_lift end;
 
 fun proto_eval_term thy =
   let
-    fun evaluator evaluator' _ funcgr t = evaluator' funcgr t;
-  in proto_eval thy (Thm.cterm_of thy) evaluator end;
+    fun evaluator_lift evaluator _ funcgr = evaluator funcgr;
+  in proto_eval thy (Thm.cterm_of thy) evaluator_lift end;
 
 end; (*local*)
 

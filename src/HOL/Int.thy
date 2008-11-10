@@ -782,11 +782,11 @@ text {* self-embedding of the integers *}
 instantiation int :: number_ring
 begin
 
-definition
-  int_number_of_def [code del]: "number_of w = (of_int w \<Colon> int)"
+definition int_number_of_def [code del]:
+  "number_of w = (of_int w \<Colon> int)"
 
-instance
-  by intro_classes (simp only: int_number_of_def)
+instance proof
+qed (simp only: int_number_of_def)
 
 end
 
