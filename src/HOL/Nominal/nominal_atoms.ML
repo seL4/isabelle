@@ -12,6 +12,13 @@ sig
   val get_atom_infos : theory -> atom_info Symtab.table
   val get_atom_info : theory -> string -> atom_info option
   val the_atom_info : theory -> string -> atom_info
+  val fs_class_of : theory -> string -> string
+  val pt_class_of : theory -> string -> string
+  val cp_class_of : theory -> string -> string -> string
+  val at_inst_of : theory -> string -> thm
+  val pt_inst_of : theory -> string -> thm
+  val cp_inst_of : theory -> string -> string -> thm
+  val dj_thm_of : theory -> string -> string -> thm
   val atoms_of : theory -> string list
   val mk_permT : typ -> typ
 end
@@ -30,10 +37,11 @@ val inductive_forall_def = @{thm "induct_forall_def"};
 type atom_info =
   {pt_class : string,
    fs_class : string,
-   cp_classes : (string * string) list,
+   cp_classes : string Symtab.table,
    at_inst : thm,
    pt_inst : thm,
-   dj_thms : thm list};
+   cp_inst : thm Symtab.table,
+   dj_thms : thm Symtab.table};
 
 structure NominalData = TheoryDataFun
 (
@@ -44,20 +52,35 @@ structure NominalData = TheoryDataFun
   fun merge _ x = Symtab.merge (K true) x;
 );
 
-fun make_atom_info (((((pt_class, fs_class), cp_classes), at_inst), pt_inst), dj_thms) =
+fun make_atom_info ((((((pt_class, fs_class), cp_classes), at_inst), pt_inst), cp_inst), dj_thms) =
   {pt_class = pt_class,
    fs_class = fs_class,
    cp_classes = cp_classes,
    at_inst = at_inst,
    pt_inst = pt_inst,
+   cp_inst = cp_inst,
    dj_thms = dj_thms};
 
 val get_atom_infos = NominalData.get;
 val get_atom_info = Symtab.lookup o NominalData.get;
 
-fun the_atom_info thy name = (case get_atom_info thy name of
-      SOME info => info
-    | NONE => error ("Unknown atom type " ^ quote name));
+fun gen_lookup lookup name = case lookup name of
+    SOME info => info
+  | NONE => error ("Unknown atom type " ^ quote name);
+
+fun the_atom_info thy = gen_lookup (get_atom_info thy);
+
+fun gen_lookup' f thy = the_atom_info thy #> f;
+fun gen_lookup'' f thy =
+  gen_lookup' (f #> Symtab.lookup #> gen_lookup) thy;
+
+val fs_class_of = gen_lookup' #fs_class;
+val pt_class_of = gen_lookup' #pt_class;
+val at_inst_of = gen_lookup' #at_inst;
+val pt_inst_of = gen_lookup' #pt_inst;
+val cp_class_of = gen_lookup'' #cp_classes;
+val cp_inst_of = gen_lookup'' #cp_inst;
+val dj_thm_of = gen_lookup'' #dj_thms;
 
 fun atoms_of thy = map fst (Symtab.dest (NominalData.get thy));
 
@@ -405,7 +428,8 @@ fun create_nom_typedecls ak_names thy =
                                         rtac allI 1, rtac allI 1, rtac allI 1,
                                         rtac cp1 1];
            in
-             PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
+             yield_singleton PureThy.add_thms ((name,
+               Goal.prove_global thy' [] [] statement proof), []) thy'
            end) 
            ak_names_types thy) ak_names_types thy12b;
        
@@ -960,9 +984,12 @@ fun create_nom_typedecls ak_names thy =
       NominalData.map (fold Symtab.update (full_ak_names ~~ map make_atom_info
         (pt_ax_classes ~~
          fs_ax_classes ~~
-         map (fn cls => full_ak_names ~~ cls) cp_ax_classes ~~
+         map (fn cls => Symtab.make (full_ak_names ~~ cls)) cp_ax_classes ~~
          prm_cons_thms ~~ prm_inst_thms ~~
-         map flat dj_thms))) thy33
+         map (fn ths => Symtab.make (full_ak_names ~~ ths)) cp_thms ~~
+         map (fn thss => Symtab.make
+           (List.mapPartial (fn (s, [th]) => SOME (s, th) | _ => NONE)
+              (full_ak_names ~~ thss))) dj_thms))) thy33
     end;
 
 
