@@ -24,11 +24,19 @@ class StateViewDockable(view : View, position : String) extends JPanel {
     setLayout(new BorderLayout)
 
     //Copy-paste-support
+    val clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard;
     val sel_highlighter = new SelectionHighlighter
 
     val copyaction = new SelectionHighlighter.CopyAction {
       override def actionPerformed(e: java.awt.event.ActionEvent) {
-        System.err.println (sel_highlighter.getSelectionRange)
+        val inter = new isabelle.Symbol.Interpretation
+        val selected_string = sel_highlighter.getSelectionRange.toString
+        val encoded = inter.encode (selected_string)
+        System.err.println ("-- copy --")
+        System.err.println (selected_string)
+        System.err.println (encoded)
+        val transferable = new java.awt.datatransfer.StringSelection(encoded)
+        clipboard.setContents(transferable, null)
       }
     }
     copyaction.install(sel_highlighter)
