@@ -769,6 +769,114 @@ by (simp add: finite_psubset_def less_le trans_def, blast)
 lemma in_finite_psubset[simp]: "(A, B) \<in> finite_psubset = (A < B & finite B)"
 unfolding finite_psubset_def by auto
 
+text {* max- and min-extension of order to finite sets *}
+
+inductive_set max_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set" 
+for R :: "('a \<times> 'a) set"
+where
+  max_extI[intro]: "finite X \<Longrightarrow> finite Y \<Longrightarrow> Y \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> X \<Longrightarrow> \<exists>y\<in>Y. (x, y) \<in> R) \<Longrightarrow> (X, Y) \<in> max_ext R"
+
+lemma max_ext_wf:
+  assumes wf: "wf r"
+  shows "wf (max_ext r)"
+proof (rule acc_wfI, intro allI)
+  fix M show "M \<in> acc (max_ext r)" (is "_ \<in> ?W")
+  proof cases
+    assume "finite M"
+    thus ?thesis
+    proof (induct M)
+      show "{} \<in> ?W"
+        by (rule accI) (auto elim: max_ext.cases)
+    next
+      fix M a assume "M \<in> ?W" "finite M"
+      with wf show "insert a M \<in> ?W"
+      proof (induct arbitrary: M)
+        fix M a
+        assume "M \<in> ?W"  and  [intro]: "finite M"
+        assume hyp: "\<And>b M. (b, a) \<in> r \<Longrightarrow> M \<in> ?W \<Longrightarrow> finite M \<Longrightarrow> insert b M \<in> ?W"
+        {
+          fix N M :: "'a set"
+          assume "finite N" "finite M"
+          then
+          have "\<lbrakk>M \<in> ?W ; (\<And>y. y \<in> N \<Longrightarrow> (y, a) \<in> r)\<rbrakk> \<Longrightarrow>  N \<union> M \<in> ?W"
+            by (induct N arbitrary: M) (auto simp: hyp)
+        }
+        note add_less = this
+        
+        show "insert a M \<in> ?W"
+        proof (rule accI)
+          fix N assume Nless: "(N, insert a M) \<in> max_ext r"
+          hence asm1: "\<And>x. x \<in> N \<Longrightarrow> (x, a) \<in> r \<or> (\<exists>y \<in> M. (x, y) \<in> r)"
+            by (auto elim!: max_ext.cases)
+
+          let ?N1 = "{ n \<in> N. (n, a) \<in> r }"
+          let ?N2 = "{ n \<in> N. (n, a) \<notin> r }"
+          have N: "?N1 \<union> ?N2 = N" by (rule set_ext) auto
+          from Nless have "finite N" by (auto elim: max_ext.cases)
+          then have finites: "finite ?N1" "finite ?N2" by auto
+          
+          have "?N2 \<in> ?W"
+          proof cases
+            assume [simp]: "M = {}"
+            have Mw: "{} \<in> ?W" by (rule accI) (auto elim: max_ext.cases)
+
+            from asm1 have "?N2 = {}" by auto
+            with Mw show "?N2 \<in> ?W" by (simp only:)
+          next
+            assume "M \<noteq> {}"
+            have N2: "(?N2, M) \<in> max_ext r" 
+              by (rule max_extI[OF _ _ `M \<noteq> {}`]) (insert asm1, auto intro: finites)
+            
+            with `M \<in> ?W` show "?N2 \<in> ?W" by (rule acc_downward)
+          qed
+          with finites have "?N1 \<union> ?N2 \<in> ?W" 
+            by (rule add_less) simp
+          then show "N \<in> ?W" by (simp only: N)
+        qed
+      qed
+    qed
+  next
+    assume [simp]: "\<not> finite M"
+    show ?thesis
+      by (rule accI) (auto elim: max_ext.cases)
+  qed
+qed
+
+
+definition
+  min_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set" 
+where
+  [code del]: "min_ext r = {(X, Y) | X Y. X \<noteq> {} \<and> (\<forall>y \<in> Y. (\<exists>x \<in> X. (x, y) \<in> r))}"
+
+lemma min_ext_wf:
+  assumes "wf r"
+  shows "wf (min_ext r)"
+proof (rule wfI_min)
+  fix Q :: "'a set set"
+  fix x
+  assume nonempty: "x \<in> Q"
+  show "\<exists>m \<in> Q. (\<forall> n. (n, m) \<in> min_ext r \<longrightarrow> n \<notin> Q)"
+  proof cases
+    assume "Q = {{}}" thus ?thesis by (simp add: min_ext_def)
+  next
+    assume "Q \<noteq> {{}}"
+    with nonempty
+    obtain e x where "x \<in> Q" "e \<in> x" by force
+    then have eU: "e \<in> \<Union>Q" by auto
+    with `wf r` 
+    obtain z where z: "z \<in> \<Union>Q" "\<And>y. (y, z) \<in> r \<Longrightarrow> y \<notin> \<Union>Q" 
+      by (erule wfE_min)
+    from z obtain m where "m \<in> Q" "z \<in> m" by auto
+    from `m \<in> Q`
+    show ?thesis
+    proof (rule, intro bexI allI impI)
+      fix n
+      assume smaller: "(n, m) \<in> min_ext r"
+      with `z \<in> m` obtain y where y: "y \<in> n" "(y, z) \<in> r" by (auto simp: min_ext_def)
+      then show "n \<notin> Q" using z(2) by auto
+    qed      
+  qed
+qed
 
 text {*Wellfoundedness of @{text same_fst}*}
 
@@ -777,8 +885,7 @@ definition
 where
     "same_fst P R == {((x',y'),(x,y)) . x'=x & P x & (y',y) : R x}"
    --{*For @{text rec_def} declarations where the first n parameters
-       stay unchanged in the recursive call. 
-       See @{text "Library/While_Combinator.thy"} for an application.*}
+       stay unchanged in the recursive call. *}
 
 lemma same_fstI [intro!]:
      "[| P x; (y',y) : R x |] ==> ((x,y'),(x,y)) : same_fst P R"
