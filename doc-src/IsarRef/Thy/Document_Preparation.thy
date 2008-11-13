@@ -72,10 +72,16 @@ text {*
     @{command_def "txt_raw"} & : & \isartrans{proof}{proof} \\
   \end{matharray}
 
-  Apart from formal comments (see \secref{sec:comments}), markup
-  commands provide a structured way to insert text into the document
-  generated from a theory (see \cite{isabelle-sys} for more
-  information on Isabelle's document preparation tools).
+  Markup commands provide a structured way to insert text into the
+  document generated from a theory.  Each markup command takes a
+  single @{syntax text} argument, which is passed as argument to a
+  corresponding {\LaTeX} macro.  The default macros provided by
+  @{"file" "~~/lib/texinputs/isabelle.sty"} can be redefined according
+  to the needs of the underlying document and {\LaTeX} styles.
+
+  Note that formal comments (\secref{sec:comments}) are similar to
+  markup commands, but have a different status within Isabelle/Isar
+  syntax.
 
   \begin{rail}
     ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') target? text
@@ -86,46 +92,44 @@ text {*
 
   \begin{descr}
 
-  \item [@{command "header"}~@{text "text"}] provides plain text
-  markup just preceding the formal beginning of a theory.  In actual
-  document preparation the corresponding {\LaTeX} macro @{verbatim
-  "\\isamarkupheader"} may be redefined to produce chapter or section
-  headings.
+  \item [@{command header}] provides plain text markup just preceding
+  the formal beginning of a theory.  The corresponding {\LaTeX} macro
+  is @{verbatim "\\isamarkupheader"}, which acts like @{command
+  section} by default.
   
-  \item [@{command "chapter"}, @{command "section"}, @{command
-  "subsection"}, and @{command "subsubsection"}] mark chapter and
-  section headings.  The corresponding {\LaTeX} macros are @{verbatim
-  "\\isamarkupchapter"}, @{verbatim "\\isamarkupsection"} etc.
+  \item [@{command chapter}, @{command section}, @{command
+  subsection}, and @{command subsubsection}] mark chapter and section
+  headings within the main theory body or local theory targets.  The
+  corresponding {\LaTeX} macros are @{verbatim "\\isamarkupchapter"},
+  @{verbatim "\\isamarkupsection"} etc.
 
-  \item [@{command "text"} and @{command "txt"}] specify paragraphs of
-  plain text.
+  \item [@{command sect}, @{command subsect}, and @{command
+  subsubsect}] mark section headings within proofs.  The corresponding
+  {\LaTeX} macros are @{verbatim "\\isamarkupsect"} etc.
 
-  \item [@{command "text_raw"} and @{command "txt_raw"}] insert
-  {\LaTeX} source into the output, without additional markup.  Thus
-  the full range of document manipulations becomes available.
+  \item [@{command text} and @{command txt}] specify paragraphs of
+  plain text.  This corresponds to a {\LaTeX} environment @{verbatim
+  "\\begin{isamarkuptext}"} @{text "\<dots>"} @{verbatim
+  "\\end{isamarkuptext}"} etc.
+
+  \item [@{command text_raw} and @{command txt_raw}] insert {\LaTeX}
+  source into the output, without additional markup.  Thus the full
+  range of document manipulations becomes available, at the risk of
+  messing up document output.
 
   \end{descr}
 
-  The @{text "text"} argument of these markup commands (except for
-  @{command "text_raw"}) may contain references to formal entities
-  (``antiquotations'', see also \secref{sec:antiq}).  These are
-  interpreted in the present theory context, or the named @{text
-  "target"}.
-
-  Any of these markup elements corresponds to a {\LaTeX} command with
-  the name prefixed by @{verbatim "\\isamarkup"}.  For the sectioning
-  commands this is a plain macro with a single argument, e.g.\
-  @{verbatim "\\isamarkupchapter{"}@{text "\<dots>"}@{verbatim "}"} for
-  @{command "chapter"}.  The @{command "text"} markup results in a
-  {\LaTeX} environment @{verbatim "\\begin{isamarkuptext}"} @{text
-  "\<dots>"} @{verbatim "\\end{isamarkuptext}"}, while @{command "text_raw"}
-  causes the text to be inserted directly into the {\LaTeX} source.
+  Except for @{command "text_raw"} and @{command "txt_raw"}, the text
+  passed to any of the above markup commands may refer to formal
+  entities via \emph{antiquotations}, see also \secref{sec:antiq}.
+  These are interpreted in the present theory or proof context, or the
+  named @{text "target"}.
 
   \medskip The proof markup commands closely resemble those for theory
   specifications, but have a different formal status and produce
-  different {\LaTeX} macros.  Also note that the @{command_ref
-  "header"} declaration (see \secref{sec:begin-thy}) admits to insert
-  section markup just preceding the actual theory definition.
+  different {\LaTeX} macros (although the default definitions coincide
+  for analogous commands such as @{command section} and @{command
+  sect}).
 *}
 
 
