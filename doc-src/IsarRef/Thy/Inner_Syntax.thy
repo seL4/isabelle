@@ -96,39 +96,6 @@ text {*
 *}
 
 
-subsection {* Printing limits *}
-
-text {*
-  \begin{mldecls}
-    @{index_ML Pretty.setdepth: "int -> unit"} \\
-    @{index_ML Pretty.setmargin: "int -> unit"} \\
-    @{index_ML print_depth: "int -> unit"} \\
-  \end{mldecls}
-
-  These ML functions set limits for pretty printed text output.
-
-  \begin{description}
-
-  \item @{ML Pretty.setdepth}~@{text d} tells the pretty printer to
-  limit the printing depth to @{text d}.  This affects the display of
-  types, terms, theorems etc.  The default value is 0, which permits
-  printing to an arbitrary depth.  Useful values for @{text d} are 10
-  and 20.
-
-  \item @{ML Pretty.setmargin}~@{text m} tells the pretty printer to
-  assume a right margin (page width) of @{text m}.  The initial margin
-  is 76.  User interfaces may adapt this default automatically, when
-  resizing windows etc.
-
-  \item @{ML print_depth}~@{text n} limits the printing depth of the
-  ML toplevel pretty printer; the precise effect depends on the ML
-  compiler and run-time system.  Typically @{text n} should be less
-  than 10.  Bigger values such as 100--1000 are useful for debugging.
-
-  \end{description}
-*}
-
-
 subsection {* Details of printed content *}
 
 text {*
@@ -140,15 +107,25 @@ text {*
     @{index_ML short_names: "bool ref"} & default @{ML false} \\
     @{index_ML unique_names: "bool ref"} & default @{ML true} \\
     @{index_ML show_brackets: "bool ref"} & default @{ML false} \\
-    @{index_ML eta_contract: "bool ref"} \\
+    @{index_ML eta_contract: "bool ref"} & default @{ML true} \\
     @{index_ML goals_limit: "int ref"} & default @{ML 10} \\
     @{index_ML Proof.show_main_goal: "bool ref"} & default @{ML false} \\
     @{index_ML show_hyps: "bool ref"} & default @{ML false} \\
     @{index_ML show_tags: "bool ref"} & default @{ML false} \\
+    @{index_ML show_question_marks: "bool ref"} & default @{ML true} \\
   \end{mldecls}
 
   These global ML variables control the detail of information that is
   displayed for types, terms, theorems, goals etc.
+
+  In interactive sessions, the user interface usually manages these
+  global parameters of the Isabelle process, even with some concept of
+  persistence.  Nonetheless it is occasionally useful to manipulate ML
+  variables directly, e.g.\ using @{command "ML_val"} or @{command
+  "ML_command"}.
+
+  Batch-mode logic sessions may be configured by putting appropriate
+  ML text directly into the @{verbatim ROOT.ML} file.
 
   \begin{description}
 
@@ -163,21 +140,22 @@ text {*
   rule does not apply as expected.
 
   \item @{ML show_consts} controls printing of types of constants when
-  printing proof states.  Note that the output can be enormous as
-  polymorphic constants often occur at several different type
-  instances.
+  displaying a goal state.
+
+  Note that the output can be enormous, because polymorphic constants
+  often occur at several different type instances.
 
   \item @{ML long_names}, @{ML short_names}, and @{ML unique_names}
-  modify the way of printing qualified names in external form.  See
-  also the description of document antiquotation options in
-  \secref{sec:antiq}.
+  control the way of printing fully qualified internal names in
+  external form.  See also \secref{sec:antiq} for the document
+  antiquotation options of the same names.
 
-  \item @{ML show_brackets} controls insertion of bracketing in pretty
-  printed output.  If set to @{ML true}, all sub-expressions of the
-  pretty printing tree will be parenthesized, even if this produces
-  malformed term syntax!  This crude way of showing the full structure
-  of pretty printed entities might help to diagnose problems with
-  operator priorities, for example.
+  \item @{ML show_brackets} controls bracketing in pretty printed
+  output.  If set to @{ML true}, all sub-expressions of the pretty
+  printing tree will be parenthesized, even if this produces malformed
+  term syntax!  This crude way of showing the internal structure of
+  pretty printed entities may occasionally help to diagnose problems
+  with operator priorities, for example.
 
   \item @{ML eta_contract} controls @{text "\<eta>"}-contracted printing of
   terms.
@@ -195,28 +173,73 @@ text {*
   appears simply as @{text F}.
 
   Note that the distinction between a term and its @{text \<eta>}-expanded
-  form occasionally matters.
-
+  form occasionally matters.  While higher-order resolution and
+  rewriting operate modulo @{text "\<alpha>\<beta>\<eta>"}-conversion, some other tools
+  might look at terms more discretely.
 
   \item @{ML goals_limit} controls the maximum number of subgoals to
-  be shown in proof state output.
+  be shown in goal output.
 
   \item @{ML Proof.show_main_goal} controls whether the main result to
   be proven should be displayed.  This information might be relevant
-  for schematic goals, to see the current claim being synthesized.
+  for schematic goals, to inspect the current claim that has been
+  synthesized so far.
 
   \item @{ML show_hyps} controls printing of implicit hypotheses of
   local facts.  Normally, only those hypotheses are displayed that are
   \emph{not} covered by the assumptions of the current context: this
   situation indicates a fault in some tool being used.
 
-  By setting @{ML show_hyps} to @{ML true}, output of all hypotheses
-  can be enforced.  Which is occasionally usefule for diagnostic
-  purposes.
+  By setting @{ML show_hyps} to @{ML true}, output of \emph{all}
+  hypotheses can be enforced, which is occasionally useful for
+  diagnostic purposes.
 
   \item @{ML show_tags} controls printing of extra annotations within
-  theorems, such as the case names being attached by the attribute
-  @{attribute case_names}.
+  theorems, such as internal position information, or the case names
+  being attached by the attribute @{attribute case_names}.
+
+  Note that the @{attribute tagged} and @{attribute untagged}
+  attributes provide low-level access to the collection of tags
+  associated with a theorem.
+
+  \item @{ML show_question_marks} controls printing of question marks
+  for schematic variables, such as @{text ?x}.  Only the leading
+  question mark is affected, the remaining text is unchanged
+  (including proper markup for schematic variables that might be
+  relevant for user interfaces).
+
+  \end{description}
+*}
+
+
+subsection {* Printing limits *}
+
+text {*
+  \begin{mldecls}
+    @{index_ML Pretty.setdepth: "int -> unit"} \\
+    @{index_ML Pretty.setmargin: "int -> unit"} \\
+    @{index_ML print_depth: "int -> unit"} \\
+  \end{mldecls}
+
+  These ML functions set limits for pretty printed text.
+
+  \begin{description}
+
+  \item @{ML Pretty.setdepth}~@{text d} tells the pretty printer to
+  limit the printing depth to @{text d}.  This affects the display of
+  types, terms, theorems etc.  The default value is 0, which permits
+  printing to an arbitrary depth.  Other useful values for @{text d}
+  are 10 and 20.
+
+  \item @{ML Pretty.setmargin}~@{text m} tells the pretty printer to
+  assume a right margin (page width) of @{text m}.  The initial margin
+  is 76, but user interfaces might adapt the margin automatically when
+  resizing windows.
+
+  \item @{ML print_depth}~@{text n} limits the printing depth of the
+  ML toplevel pretty printer; the precise effect depends on the ML
+  compiler and run-time system.  Typically @{text n} should be less
+  than 10.  Bigger values such as 100--1000 are useful for debugging.
 
   \end{description}
 *}
