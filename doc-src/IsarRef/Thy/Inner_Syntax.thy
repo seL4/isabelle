@@ -751,7 +751,7 @@ text {*
 *}
 
 
-section {* Syntax translation functions *}
+section {* Syntax translation functions \label{sec:tr-funs} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -805,6 +805,66 @@ val typed_print_translation:
 val print_ast_translation:
   (string * (Proof.context -> ast list -> ast)) list
 \end{ttbox}
+*}
+
+
+section {* Inspecting the syntax *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "print_syntax"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item @{command "print_syntax"} prints the inner syntax of the
+  current context.  The output can be quite large; the most important
+  sections are explained below.
+
+  \begin{description}
+
+  \item @{text "lexicon"} lists the delimiters of the inner token
+  language; see \secref{sec:inner-lex}.
+
+  \item @{text "prods"} lists the productions of the underlying
+  priority grammar; see \secref{sec:priority-grammar}.
+
+  The nonterminal @{text "A\<^sup>(\<^sup>p\<^sup>)"} is rendered in plain text as @{text
+  "A[p]"}; delimiters are quoted.  Many productions have an extra
+  @{text "\<dots> => name"}.  These names later become the heads of parse
+  trees; they also guide the pretty printer.
+
+  Productions without such parse tree names are called \emph{copy
+  productions}.  Their right-hand side must have exactly one
+  nonterminal symbol (or named token).  The parser does not create a
+  new parse tree node for copy productions, but simply returns the
+  parse tree of the right-hand symbol.
+
+  If the right-hand side of a copy production consists of a single
+  nonterminal without any delimiters, then it is called a \emph{chain
+  production}.  Chain productions act as abbreviations: conceptually,
+  they are removed from the grammar by adding new productions.
+  Priority information attached to chain productions is ignored; only
+  the dummy value @{text "-1"} is displayed.
+
+  \item @{text "print_modes"} lists the alternative print modes
+  provided by this grammar; see \secref{sec:print-modes}.
+
+  \item @{text "parse_rules"} and @{text "print_rules"} relate to
+  syntax translations (macros); see \secref{sec:syn-trans}.
+
+  \item @{text "parse_ast_translation"} and @{text
+  "print_ast_translation"} list sets of constants that invoke
+  translation functions for abstract syntax trees, which are only
+  required in very special situations; see \secref{sec:tr-funs}.
+
+  \item @{text "parse_translation"} and @{text "print_translation"}
+  list the sets of constants that invoke regular translation
+  functions; see \secref{sec:tr-funs}.
+
+  \end{description}
+  
+  \end{description}
 *}
 
 end

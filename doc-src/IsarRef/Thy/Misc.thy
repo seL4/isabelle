@@ -4,7 +4,7 @@ theory Misc
 imports Main
 begin
 
-chapter {* Other commands \label{ch:pure-syntax} *}
+chapter {* Other commands *}
 
 section {* Inspecting the context *}
 
@@ -12,7 +12,6 @@ text {*
   \begin{matharray}{rcl}
     @{command_def "print_commands"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
     @{command_def "print_theory"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "print_syntax"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_methods"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_attributes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_theorems"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -48,11 +47,6 @@ text {*
   the theory context; the ``@{text "!"}'' option indicates extra
   verbosity.
 
-  \item @{command "print_syntax"} prints the inner syntax of types and
-  terms, depending on the current context.  The output can be very
-  verbose, including grammar tables and syntax translation rules.  See
-  \chref{ch:inner-syntax} for further information on inner syntax.
-  
   \item @{command "print_methods"} prints all proof methods
   available in the current theory context.
   
