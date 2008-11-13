@@ -68,7 +68,7 @@ fun index_ml kind ml src ctxt (txt1, txt2) =
     val _ = ML_Context.eval_in (SOME ctxt) false Position.none (ml (txt1, txt2));
   in
     "\\indexml" ^ kind ^ enclose "{" "}" (clean_string txt1) ^
-    ((if ! O.source then ThyOutput.str_of_source src else txt')
+    (txt'
     |> (if ! O.quotes then quote else I)
     |> (if ! O.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
         else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
