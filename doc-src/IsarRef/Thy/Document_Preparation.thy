@@ -101,11 +101,13 @@ text {*
   subsection}, and @{command subsubsection}] mark chapter and section
   headings within the main theory body or local theory targets.  The
   corresponding {\LaTeX} macros are @{verbatim "\\isamarkupchapter"},
-  @{verbatim "\\isamarkupsection"} etc.
+  @{verbatim "\\isamarkupsection"}, @{verbatim
+  "\\isamarkupsubsection"} etc.
 
   \item [@{command sect}, @{command subsect}, and @{command
   subsubsect}] mark section headings within proofs.  The corresponding
-  {\LaTeX} macros are @{verbatim "\\isamarkupsect"} etc.
+  {\LaTeX} macros are @{verbatim "\\isamarkupsect"}, @{verbatim
+  "\\isamarkupsubsect"} etc.
 
   \item [@{command text} and @{command txt}] specify paragraphs of
   plain text.  This corresponds to a {\LaTeX} environment @{verbatim
@@ -121,19 +123,18 @@ text {*
 
   Except for @{command "text_raw"} and @{command "txt_raw"}, the text
   passed to any of the above markup commands may refer to formal
-  entities via \emph{antiquotations}, see also \secref{sec:antiq}.
-  These are interpreted in the present theory or proof context, or the
-  named @{text "target"}.
+  entities via \emph{document antiquotations}, see also
+  \secref{sec:antiq}.  These are interpreted in the present theory or
+  proof context, or the named @{text "target"}.
 
   \medskip The proof markup commands closely resemble those for theory
   specifications, but have a different formal status and produce
-  different {\LaTeX} macros (although the default definitions coincide
-  for analogous commands such as @{command section} and @{command
-  sect}).
+  different {\LaTeX} macros.  The default definitions coincide for
+  analogous commands such as @{command section} and @{command sect}.
 *}
 
 
-section {* Antiquotations \label{sec:antiq} *}
+section {* Document Antiquotations \label{sec:antiq} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -158,18 +159,24 @@ text {*
     @{antiquotation_def ML_struct} & : & \isarantiq \\
   \end{matharray}
 
-  The text body of formal comments (see also \secref{sec:comments})
-  may contain antiquotations of logical entities, such as theorems,
-  terms and types, which are to be presented in the final output
-  produced by the Isabelle document preparation system.
+  The overall content of an Isabelle/Isar theory may alternate between
+  formal and informal text.  The main body consists of formal
+  specification and proof commands, interspersed with markup commands
+  (\secref{sec:markup}) or document comments (\secref{sec:comments}).
+  The argument of markup commands quotes informal text to be printed
+  in the resulting document, but may again refer to formal entities
+  via \emph{document antiquotations}.
 
-  Thus embedding of ``@{text [source=false] "@{term [show_types] \"f x = a + x\"}"}''
-  within a text block would cause
-  \isa{{\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharplus}\ x} to appear in the final {\LaTeX} document.  Also note that theorem
-  antiquotations may involve attributes as well.  For example,
-  @{text "@{thm sym [no_vars]}"} would print the theorem's
-  statement where all schematic variables have been replaced by fixed
-  ones, which are easier to read.
+  For example, embedding of ``@{text [source=false] "@{term [show_types] \"f x = a + x\"}"}''
+  within a text block makes
+  \isa{{\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharplus}\ x} appear in the final {\LaTeX} document.
+
+  Antiquotations usually spare the author tedious typing of logical
+  entities in full detail.  Even more importantly, some degree of
+  consistency-checking between the main body of formal text and its
+  informal explanation is achieved, since terms and types appearing in
+  antiquotations are checked within the current theory or proof
+  context.
 
   \begin{rail}
     atsign lbrace antiquotation rbrace
@@ -203,7 +210,7 @@ text {*
   \end{rail}
 
   Note that the syntax of antiquotations may \emph{not} include source
-  comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} or verbatim
+  comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
   text @{verbatim "{"}@{verbatim "*"}~@{text "\<dots>"}~@{verbatim
   "*"}@{verbatim "}"}.
 
@@ -213,17 +220,15 @@ text {*
   guaranteed to refer to a valid ancestor theory in the current
   context.
 
-  \item [@{text "@{thm a\<^sub>1 \<dots> a\<^sub>n}"}] prints theorems
-  @{text "a\<^sub>1 \<dots> a\<^sub>n"}.  Note that attribute specifications
-  may be included as well (see also \secref{sec:syn-att}); the
-  @{attribute_ref no_vars} rule (see \secref{sec:misc-meth-att}) would
-  be particularly useful to suppress printing of schematic variables.
+  \item [@{text "@{thm a\<^sub>1 \<dots> a\<^sub>n}"}] prints theorems @{text "a\<^sub>1 \<dots> a\<^sub>n"}.
+  Full fact expressions are allowed here, including attributes
+  (\secref{sec:syn-att}).
 
   \item [@{text "@{prop \<phi>}"}] prints a well-typed proposition @{text
   "\<phi>"}.
 
-  \item [@{text "@{lemma \<phi> by m}"}] asserts a well-typed proposition @{text
-  "\<phi>"} to be provable by method @{text m} and prints @{text "\<phi>"}.
+  \item [@{text "@{lemma \<phi> by m}"}] proves a well-typed proposition
+  @{text "\<phi>"} by method @{text m} and prints the original @{text "\<phi>"}.
 
   \item [@{text "@{term t}"}] prints a well-typed term @{text "t"}.
 
@@ -247,45 +252,50 @@ text {*
 
   \item [@{text "@{text s}"}] prints uninterpreted source text @{text
   s}.  This is particularly useful to print portions of text according
-  to the Isabelle {\LaTeX} output style, without demanding
-  well-formedness (e.g.\ small pieces of terms that should not be
-  parsed or type-checked yet).
+  to the Isabelle document style, without demanding well-formedness,
+  e.g.\ small pieces of terms that should not be parsed or
+  type-checked yet.
 
   \item [@{text "@{goals}"}] prints the current \emph{dynamic} goal
   state.  This is mainly for support of tactic-emulation scripts
-  within Isar --- presentation of goal states does not conform to
-  actual human-readable proof documents.
+  within Isar.  Presentation of goal states does not conform to the
+  idea of human-readable proof documents!
 
-  Please do not include goal states into document output unless you
-  really know what you are doing!
+  When explaining proofs in detail it is usually better to spell out
+  the reasoning via proper Isar proof commands, instead of peeking at
+  the internal machine configuration.
   
   \item [@{text "@{subgoals}"}] is similar to @{text "@{goals}"}, but
   does not print the main goal.
   
-  \item [@{text "@{prf a\<^sub>1 \<dots> a\<^sub>n}"}] prints the (compact)
-  proof terms corresponding to the theorems @{text "a\<^sub>1 \<dots>
-  a\<^sub>n"}. Note that this requires proof terms to be switched on
-  for the current object logic (see the ``Proof terms'' section of the
-  Isabelle reference manual for information on how to do this).
+  \item [@{text "@{prf a\<^sub>1 \<dots> a\<^sub>n}"}] prints the (compact) proof terms
+  corresponding to the theorems @{text "a\<^sub>1 \<dots> a\<^sub>n"}. Note that this
+  requires proof terms to be switched on for the current logic
+  session.
   
   \item [@{text "@{full_prf a\<^sub>1 \<dots> a\<^sub>n}"}] is like @{text
-  "@{prf a\<^sub>1 \<dots> a\<^sub>n}"}, but displays the full proof terms,
-  i.e.\ also displays information omitted in the compact proof term,
-  which is denoted by ``@{text _}'' placeholders there.
+  "@{prf a\<^sub>1 \<dots> a\<^sub>n}"}, but prints the full proof terms, i.e.\ also
+  displays information omitted in the compact proof term, which is
+  denoted by ``@{text _}'' placeholders there.
   
   \item [@{text "@{ML s}"}, @{text "@{ML_type s}"}, and @{text
   "@{ML_struct s}"}] check text @{text s} as ML value, type, and
-  structure, respectively.  The source is displayed verbatim.
+  structure, respectively.  The source is printed verbatim.
 
   \end{descr}
+*}
 
-  \medskip The following standard styles for use with @{text
-  thm_style} and @{text term_style} are available:
+
+subsubsection {* Styled antiquotations *}
+
+text {* Some antiquotations like @{text thm_style} and @{text
+  term_style} admit an extra \emph{style} specification to modify the
+  printed result.  The following standard styles are available:
 
   \begin{descr}
   
   \item [@{text lhs}] extracts the first argument of any application
-  form with at least two arguments -- typically meta-level or
+  form with at least two arguments --- typically meta-level or
   object-level equality, or any other binary relation.
   
   \item [@{text rhs}] is like @{text lhs}, but extracts the second
@@ -299,10 +309,14 @@ text {*
   Horn-clause normal form @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C"}
 
   \end{descr}
+*}
 
-  \medskip
-  The following options are available to tune the output.  Note that most of
-  these coincide with ML flags of the same names (see also \cite{isabelle-ref}).
+
+subsubsection {* General options *}
+
+text {* The following options are available to tune the printed output
+  of antiquotations.  Note that many of these coincide with global ML
+  flags of the same names.
 
   \begin{descr}
 
@@ -333,6 +347,9 @@ text {*
   output as multi-line ``display material'', rather than a small piece
   of text without line breaks (which is the default).
 
+  In this mode the embedded entities are printed in the same style as
+  the main theory text.
+
   \item[@{text "break = bool"}] controls line breaks in non-display
   material.
 
@@ -347,29 +364,35 @@ text {*
   \item[@{text "margin = nat"} and @{text "indent = nat"}] change the
   margin or indentation for pretty printing of display material.
 
-  \item[@{text "source = bool"}] prints the source text of the
-  antiquotation arguments, rather than the actual value.  Note that
-  this does not affect well-formedness checks of @{antiquotation
-  "thm"}, @{antiquotation "term"}, etc. (only the @{antiquotation
-  "text"} antiquotation admits arbitrary output).
-
   \item[@{text "goals_limit = nat"}] determines the maximum number of
-  goals to be printed.
+  goals to be printed (for goal-based antiquotation).
 
   \item[@{text "locale = name"}] specifies an alternative locale
   context used for evaluating and printing the subsequent argument.
+
+  \item[@{text "source = bool"}] prints the original source text of
+  the antiquotation arguments, rather than its internal
+  representation.  Note that formal checking of @{antiquotation
+  "thm"}, @{antiquotation "term"}, etc. is still enabled; use the
+  @{antiquotation "text"} antiquotation for unchecked output.
+
+  Regular @{text "term"} and @{text "typ"} antiquotations with @{text
+  "source = false"} involve a full round-trip from the original source
+  to an internalized logical entity back to a source form, according
+  to the syntax of the current context.  Thus the printed output is
+  not under direct control of the author, it may even fluctuate a bit
+  as the underlying theory is changed later on.
+
+  In contrast, @{text "source = true"} admits direct printing of the
+  given source text, with the desirable well-formedness check in the
+  background, but without modification of the printed text.
 
   \end{descr}
 
   For boolean flags, ``@{text "name = true"}'' may be abbreviated as
   ``@{text name}''.  All of the above flags are disabled by default,
-  unless changed from ML.
-
-  \medskip Note that antiquotations do not only spare the author from
-  tedious typing of logical entities, but also achieve some degree of
-  consistency-checking of informal explanations with formal
-  developments: well-formedness of terms and types with respect to the
-  current theory or proof context is ensured here.
+  unless changed from ML, say in the @{verbatim "ROOT.ML"} of the
+  logic session.
 *}
 
 
