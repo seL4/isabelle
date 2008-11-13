@@ -629,7 +629,7 @@ text {*
   --- the @{method intro_classes} method takes care of the details of
   class membership proofs.
 
-  \item @{command "instantiation"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n) s
+  \item @{command "instantiation"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n)s
   \<BEGIN>"} opens a theory target (cf.\ \secref{sec:target}) which
   allows to specify class operations @{text "f\<^sub>1, \<dots>, f\<^sub>n"} corresponding
   to sort @{text s} at the particular type instance @{text "(\<alpha>\<^sub>1 :: s\<^sub>1,
@@ -733,12 +733,12 @@ text {*
   c_class.axioms}.
   
   \item @{command "instance"}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} and @{command
-  "instance"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n) s"} setup a goal stating a
-  class relation or type arity.  The proof would usually proceed by
-  @{method intro_classes}, and then establish the characteristic
-  theorems of the type classes involved.  After finishing the proof,
-  the theory will be augmented by a type signature declaration
-  corresponding to the resulting theorem.
+  "instance"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n)s"} setup a goal stating a class
+  relation or type arity.  The proof would usually proceed by @{method
+  intro_classes}, and then establish the characteristic theorems of
+  the type classes involved.  After finishing the proof, the theory
+  will be augmented by a type signature declaration corresponding to
+  the resulting theorem.
 
   \end{description}
 *}
@@ -942,15 +942,52 @@ text {*
   type constructor @{text t}.  If the object-logic defines a base sort
   @{text s}, then the constructor is declared to operate on that, via
   the axiomatic specification @{command arities}~@{text "t :: (s, \<dots>,
-  s) s"}.
+  s)s"}.
 
-  \item @{command "arities"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n) s"} augments
+  \item @{command "arities"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n)s"} augments
   Isabelle's order-sorted signature of types by new type constructor
   arities.  This is done axiomatically!  The @{command_ref "instance"}
-  command (see \secref{sec:axclass}) provides a way to introduce proven
-  type arities.
+  command (see \secref{sec:axclass}) provides a way to introduce
+  proven type arities.
 
   \end{description}
+*}
+
+
+subsection {* Co-regularity of type classes and arities *}
+
+text {* The class relation together with the collection of
+  type-constructor arities must obey the principle of
+  \emph{co-regularity} as defined below.
+
+  \medskip For the subsequent formulation of co-regularity we assume
+  that the class relation is closed by transitivity and reflexivity.
+  Moreover the collection of arities @{text "t :: (\<^vec>s)c"} is
+  completed such that @{text "t :: (\<^vec>s)c"} and @{text "c \<subseteq> c'"}
+  implies @{text "t :: (\<^vec>s)c'"} for all such declarations.
+
+  Treating sorts as finite sets of classes (meaning the intersection),
+  the class relation @{text "c\<^sub>1 \<subseteq> c\<^sub>2"} is extended to sorts as
+  follows:
+  \[
+    @{text "s\<^sub>1 \<subseteq> s\<^sub>2 \<equiv> \<forall>c\<^sub>2 \<in> s\<^sub>2. \<exists>c\<^sub>1 \<in> s\<^sub>1. c\<^sub>1 \<subseteq> c\<^sub>2"}
+  \]
+
+  This relation on sorts is further extended to tuples of sorts (of
+  the same length) in the component-wise way.
+
+  \smallskip Co-regularity of the class relation together with the
+  arities relation means:
+  \[
+    @{text "t :: (\<^vec>s\<^sub>1)c\<^sub>1 \<Longrightarrow> t :: (\<^vec>s\<^sub>2)c\<^sub>2 \<Longrightarrow> c\<^sub>1 \<subseteq> c\<^sub>2 \<Longrightarrow> \<^vec>s\<^sub>1 \<subseteq> \<^vec>s\<^sub>2"}
+  \]
+  \noindent for all such arities.  In other words, whenever the result
+  classes of some type-constructor arities are related, then the
+  argument sorts need to be related in the same way.
+
+  \medskip Co-regularity is a very fundamental property of the
+  order-sorted algebra of types.  For example, it entails principle
+  types and most general unifiers, e.g.\ see \cite{nipkow-prehofer}.
 *}
 
 
