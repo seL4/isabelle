@@ -34,9 +34,9 @@ object VFS {
       else
         buffer.append(array, 0, length)
     }
-    
+
     val str = converter.decode(buffer.toString())
-    new ByteArrayInputStream(str.getBytes())
+    new ByteArrayInputStream(str.getBytes("UTF-8"))
   }
   
   class OutputConverter(out : OutputStream) extends ByteArrayOutputStream {
