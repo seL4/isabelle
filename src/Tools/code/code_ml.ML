@@ -7,8 +7,6 @@ Serializer for SML and OCaml.
 
 signature CODE_ML =
 sig
-  val eval_conv: string * (unit -> thm) option ref
-    -> theory -> cterm -> string list -> thm
   val eval_term: string * (unit -> 'a) option ref
     -> theory -> term -> string list -> 'a
   val setup: theory -> theory
@@ -905,7 +903,6 @@ fun eval eval'' term_of reff thy ct args =
       in ML_Context.evaluate ctxt Output.ml_output false reff sml_code end;
   in eval'' thy (rpair eval') ct end;
 
-fun eval_conv reff = eval Code_Thingol.eval_conv Thm.term_of reff;
 fun eval_term reff = eval Code_Thingol.eval_term I reff;
 
 
