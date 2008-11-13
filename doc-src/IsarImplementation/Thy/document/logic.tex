@@ -304,8 +304,8 @@ The language of types is an uninterpreted order-sorted first-order
   implicit in the de-Bruijn representation.  Names for bound variables
   in abstractions are maintained separately as (meaningless) comments,
   mostly for parsing and printing.  Full \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion is
-  commonplace in various standard operations (\secref{sec:rules}) that
-  are based on higher-order unification and matching.%
+  commonplace in various standard operations (\secref{sec:obj-rules})
+  that are based on higher-order unification and matching.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -592,7 +592,7 @@ The theory \isa{Pure} contains constant declarations for the
   \indexml{Thm.implies\_elim}\verb|Thm.implies_elim: thm -> thm -> thm| \\
   \indexml{Thm.generalize}\verb|Thm.generalize: string list * string list -> int -> thm -> thm| \\
   \indexml{Thm.instantiate}\verb|Thm.instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm| \\
-  \indexml{Thm.get\_axiom\_i}\verb|Thm.get_axiom_i: theory -> string -> thm| \\
+  \indexml{Thm.axiom}\verb|Thm.axiom: theory -> string -> thm| \\
   \indexml{Thm.add\_oracle}\verb|Thm.add_oracle: bstring * ('a -> cterm) -> theory|\isasep\isanewline%
 \verb|  -> (string * ('a -> thm)) * theory| \\
   \end{mldecls}
@@ -643,7 +643,7 @@ The theory \isa{Pure} contains constant declarations for the
   term variables.  Note that the types in \isa{\isactrlvec x\isactrlisub {\isasymtau}}
   refer to the instantiated versions.
 
-  \item \verb|Thm.get_axiom_i|~\isa{thy\ name} retrieves a named
+  \item \verb|Thm.axiom|~\isa{thy\ name} retrieves a named
   axiom, cf.\ \isa{axiom} in \figref{fig:prim-rules}.
 
   \item \verb|Thm.add_oracle|~\isa{{\isacharparenleft}name{\isacharcomma}\ oracle{\isacharparenright}} produces a named
@@ -769,7 +769,7 @@ Theory \isa{Pure} provides a few auxiliary definitions, see
 %
 \endisadelimmlref
 %
-\isamarkupsection{Rules \label{sec:rules}%
+\isamarkupsection{Object-level rules \label{sec:obj-rules}%
 }
 \isamarkuptrue%
 %
