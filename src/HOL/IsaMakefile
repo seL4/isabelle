@@ -318,7 +318,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Numeral_Type.thy			\
   Library/Boolean_Algebra.thy Library/Countable.thy Library/RType.thy	\
   Library/Heap.thy Library/Heap_Monad.thy Library/Array.thy		\
-  Library/Assert.thy Library/Relational.thy Library/Sublist.thy Library/Subarray.thy	\
+  Library/Relational.thy Library/Sublist.thy Library/Subarray.thy	\
   Library/Ref.thy Library/Imperative_HOL.thy Library/RBT.thy		\
   Library/Enum.thy Real/Float.thy $(SRC)/Tools/float.ML
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library

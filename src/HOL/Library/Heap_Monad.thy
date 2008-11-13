@@ -256,6 +256,17 @@ where
   "foldM f [] s = return s"
   | "foldM f (x#xs) s = f x s \<guillemotright>= foldM f xs"
 
+definition
+  assert :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a Heap"
+where
+  "assert P x = (if P x then return x else raise (''assert''))"
+
+lemma assert_cong [fundef_cong]:
+  assumes "P = P'"
+  assumes "\<And>x. P' x \<Longrightarrow> f x = f' x"
+  shows "(assert P x >>= f) = (assert P' x >>= f')"
+  using assms by (auto simp add: assert_def return_bind raise_bind)
+
 hide (open) const heap execute
 
 
