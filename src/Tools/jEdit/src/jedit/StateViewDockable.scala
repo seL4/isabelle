@@ -29,9 +29,8 @@ class StateViewDockable(view : View, position : String) extends JPanel {
 
     val copyaction = new SelectionHighlighter.CopyAction {
       override def actionPerformed(e: java.awt.event.ActionEvent) {
-        val inter = new isabelle.Symbol.Interpretation
         val selected_string = sel_highlighter.getSelectionRange.toString
-        val encoded = inter.encode (selected_string)
+        val encoded = VFS.converter.encode (selected_string)
         System.err.println ("-- copy --")
         System.err.println (selected_string)
         System.err.println (encoded)

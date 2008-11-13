@@ -203,7 +203,29 @@ class TheoryView(prover : Prover, buffer : JEditBuffer)
 
   override def preContentInserted(buffer : JEditBuffer, startLine : Int,
 			offset : Int, numLines : Int, length : Int) {
-    if (col == null) 
+    //simple xsymbol detection: entering whitespace after '>' checks for xsymbol
+    if(offset - 1 > 0 && buffer.getText(offset - 1, 2).equals("> ")){
+      val MAX_XSYMB_LENGTH = 20
+      var beginning = offset - 2
+      var length = 2
+      System.err.println("found end of xsymbol")
+      while(length < MAX_XSYMB_LENGTH && beginning > 0 && !buffer.getText(beginning, 1).equals("\\")){
+        beginning -= 1
+        length += 1
+      }
+      if(beginning >= 0 && buffer.getText(beginning, 2).equals("\\<")){
+        val candidate = buffer.getText(beginning, length)
+        val decoded = VFS.converter.decode(candidate)
+        System.err.println("found potential xsymbol: " + candidate
+                           + " decoded: " + decoded)
+        buffer.remove(beginning, length)
+        buffer.insert(beginning, decoded)
+        
+      } else {
+        System.err.println ("could not find beginning")
+      }
+    }
+    if (col == null)
       col = new Changed(offset, length, 0)
     else if (col.start <= offset && offset <= col.start + col.added) 
       col = new Changed(col.start, col.added + length, col.removed)
