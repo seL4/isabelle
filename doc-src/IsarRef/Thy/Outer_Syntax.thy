@@ -262,51 +262,6 @@ text {*
 *}
 
 
-subsection {* Term patterns and declarations \label{sec:term-decls} *}
-
-text {*
-  Wherever explicit propositions (or term fragments) occur in a proof
-  text, casual binding of schematic term variables may be given
-  specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots>
-  p\<^sub>n)"}''.  This works both for \railqtok{term} and \railqtok{prop}.
-
-  \indexouternonterm{termpat}\indexouternonterm{proppat}
-  \begin{rail}
-    termpat: '(' ('is' term +) ')'
-    ;
-    proppat: '(' ('is' prop +) ')'
-    ;
-  \end{rail}
-
-  \medskip Declarations of local variables @{text "x :: \<tau>"} and
-  logical propositions @{text "a : \<phi>"} represent different views on
-  the same principle of introducing a local scope.  In practice, one
-  may usually omit the typing of \railnonterm{vars} (due to
-  type-inference), and the naming of propositions (due to implicit
-  references of current facts).  In any case, Isar proof elements
-  usually admit to introduce multiple such items simultaneously.
-
-  \indexouternonterm{vars}\indexouternonterm{props}
-  \begin{rail}
-    vars: (name+) ('::' type)?
-    ;
-    props: thmdecl? (prop proppat? +)
-    ;
-  \end{rail}
-
-  The treatment of multiple declarations corresponds to the
-  complementary focus of \railnonterm{vars} versus
-  \railnonterm{props}.  In ``@{text "x\<^sub>1 \<dots> x\<^sub>n :: \<tau>"}''
-  the typing refers to all variables, while in @{text "a: \<phi>\<^sub>1 \<dots>
-  \<phi>\<^sub>n"} the naming refers to all propositions collectively.
-  Isar language elements that refer to \railnonterm{vars} or
-  \railnonterm{props} typically admit separate typings or namings via
-  another level of iteration, with explicit @{keyword_ref "and"}
-  separators; e.g.\ see @{command "fix"} and @{command "assume"} in
-  \secref{sec:proof-context}.
-*}
-
-
 subsection {* Mixfix annotations *}
 
 text {*
@@ -359,7 +314,7 @@ text {*
   pattern.  Printing a nested application @{text "c t\<^sub>1 \<dots> t\<^sub>m"} for
   @{text "m > n"} works by attaching concrete notation only to the
   innermost part, essentially by printing @{text "(c t\<^sub>1 \<dots> t\<^sub>n) \<dots> t\<^sub>m"}
-  instead.  If a term has fewer arguments than specified in the mixfix
+  instead.  If a term has fewer argument than specified in the mixfix
   template, the concrete syntax is ignored.
 
   \medskip A mixfix template may also contain additional directives
@@ -411,7 +366,7 @@ text {*
   For example, the template @{text "(_ +/ _)"} specifies an infix
   operator.  There are two argument positions; the delimiter @{text
   "+"} is preceded by a space and followed by a space or line break;
-  the entire phrase is a pretty printing block.
+  the entire phrase is a pretty printing block.  
 
   The general idea of pretty printing with blocks and breaks is also
   described in \cite{paulson-ml2}.
@@ -541,6 +496,51 @@ text {*
     selection: '(' ((nat | nat '-' nat?) + ',') ')'
     ;
   \end{rail}
+*}
+
+
+subsection {* Term patterns and declarations \label{sec:term-decls} *}
+
+text {*
+  Wherever explicit propositions (or term fragments) occur in a proof
+  text, casual binding of schematic term variables may be given
+  specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots>
+  p\<^sub>n)"}''.  This works both for \railqtok{term} and \railqtok{prop}.
+
+  \indexouternonterm{termpat}\indexouternonterm{proppat}
+  \begin{rail}
+    termpat: '(' ('is' term +) ')'
+    ;
+    proppat: '(' ('is' prop +) ')'
+    ;
+  \end{rail}
+
+  \medskip Declarations of local variables @{text "x :: \<tau>"} and
+  logical propositions @{text "a : \<phi>"} represent different views on
+  the same principle of introducing a local scope.  In practice, one
+  may usually omit the typing of \railnonterm{vars} (due to
+  type-inference), and the naming of propositions (due to implicit
+  references of current facts).  In any case, Isar proof elements
+  usually admit to introduce multiple such items simultaneously.
+
+  \indexouternonterm{vars}\indexouternonterm{props}
+  \begin{rail}
+    vars: (name+) ('::' type)?
+    ;
+    props: thmdecl? (prop proppat? +)
+    ;
+  \end{rail}
+
+  The treatment of multiple declarations corresponds to the
+  complementary focus of \railnonterm{vars} versus
+  \railnonterm{props}.  In ``@{text "x\<^sub>1 \<dots> x\<^sub>n :: \<tau>"}''
+  the typing refers to all variables, while in @{text "a: \<phi>\<^sub>1 \<dots>
+  \<phi>\<^sub>n"} the naming refers to all propositions collectively.
+  Isar language elements that refer to \railnonterm{vars} or
+  \railnonterm{props} typically admit separate typings or namings via
+  another level of iteration, with explicit @{keyword_ref "and"}
+  separators; e.g.\ see @{command "fix"} and @{command "assume"} in
+  \secref{sec:proof-context}.
 *}
 
 end
