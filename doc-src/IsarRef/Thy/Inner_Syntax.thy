@@ -246,11 +246,11 @@ text {*
 section {* Mixfix annotations *}
 
 text {* Mixfix annotations specify concrete \emph{inner syntax} of
-  Isabelle types and terms.  Some commands such as @{command "types"}
-  (see \secref{sec:types-pure}) admit infixes only, while @{command
-  "consts"} (see \secref{sec:consts}) and @{command "syntax"} (see
-  \secref{sec:syn-trans}) support the full range of general mixfixes
-  and binders.
+  Isabelle types and terms.  Some commands such as @{command
+  "typedecl"} admit infixes only, while @{command "definition"} etc.\
+  support the full range of general mixfixes and binders.  Fixed
+  parameters in toplevel theorem statements, locale specifications
+  also admit mixfix annotations.
 
   \indexouternonterm{infix}\indexouternonterm{mixfix}\indexouternonterm{structmixfix}
   \begin{rail}
