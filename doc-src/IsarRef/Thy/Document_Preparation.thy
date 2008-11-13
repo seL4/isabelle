@@ -6,13 +6,12 @@ begin
 
 chapter {* Document preparation \label{ch:document-prep} *}
 
-text {*
-  Isabelle/Isar provides a simple document preparation system based on
-  existing {PDF-\LaTeX} technology, with full support of hyper-links
-  (both local references and URLs) and bookmarks.  Thus the results
-  are equally well suited for WWW browsing and as printed copies.
+text {* Isabelle/Isar provides a simple document preparation system
+  based on regular {PDF-\LaTeX} technology, with full support for
+  hyper-links and bookmarks.  Thus the results are well suited for WWW
+  browsing and as printed copies.
 
-  \medskip Isabelle generates {\LaTeX} output as part of the run of a
+  \medskip Isabelle generates {\LaTeX} output while running a
   \emph{logic session} (see also \cite{isabelle-sys}).  Getting
   started with a working configuration for common situations is quite
   easy by using the Isabelle @{verbatim mkdir} and @{verbatim make}
@@ -20,9 +19,9 @@ text {*
 \begin{ttbox}
   isabelle mkdir Foo
 \end{ttbox}
-  to initialize a separate directory for session @{verbatim Foo} ---
-  it is safe to experiment, since @{verbatim "isabelle mkdir"} never
-  overwrites existing files.  Ensure that @{verbatim "Foo/ROOT.ML"}
+  to initialize a separate directory for session @{verbatim Foo} (it
+  is safe to experiment, since @{verbatim "isabelle mkdir"} never
+  overwrites existing files).  Ensure that @{verbatim "Foo/ROOT.ML"}
   holds ML commands to load all theories required for this session;
   furthermore @{verbatim "Foo/document/root.tex"} should include any
   special {\LaTeX} macro packages required for your document (the
@@ -38,19 +37,20 @@ text {*
   to run the @{verbatim Foo} session, with browser information and
   document preparation enabled.  Unless any errors are reported by
   Isabelle or {\LaTeX}, the output will appear inside the directory
-  @{verbatim ISABELLE_BROWSER_INFO}, as reported by the batch job in
-  verbose mode.
+  defined by the @{verbatim ISABELLE_BROWSER_INFO} setting (as
+  reported by the batch job in verbose mode).
 
   \medskip You may also consider to tune the @{verbatim usedir}
-  options in @{verbatim IsaMakefile}, for example to change the output
-  format from @{verbatim pdf} to @{verbatim dvi}, or activate the
+  options in @{verbatim IsaMakefile}, for example to switch the output
+  format between @{verbatim pdf} and @{verbatim dvi}, or activate the
   @{verbatim "-D"} option to retain a second copy of the generated
-  {\LaTeX} sources.
+  {\LaTeX} sources (for manual inspection or separate runs of
+  @{executable latex}).
 
   \medskip See \emph{The Isabelle System Manual} \cite{isabelle-sys}
   for further details on Isabelle logic sessions and theory
   presentation.  The Isabelle/HOL tutorial \cite{isabelle-hol-book}
-  also covers theory presentation issues.
+  also covers theory presentation to some extent.
 *}
 
 
