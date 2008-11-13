@@ -182,7 +182,10 @@ text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type tactic: "thm -> thm Seq.seq"} \\
-  @{index_ML PRIMITIVE: "(thm -> thm) -> tactic"} \\
+  @{index_ML no_tac: tactic} \\
+  @{index_ML all_tac: tactic} \\
+  @{index_ML print_tac: "string -> tactic"} \\[1ex]
+  @{index_ML PRIMITIVE: "(thm -> thm) -> tactic"} \\[1ex]
   @{index_ML SUBGOAL: "(term * int -> tactic) -> int -> tactic"} \\
   @{index_ML CSUBGOAL: "(cterm * int -> tactic) -> int -> tactic"} \\
   \end{mldecls}
@@ -198,21 +201,128 @@ text %mlref {*
   subgoal addressing, with well-formedness conditions as described
   above.
 
+  \item @{ML no_tac} is a tactic that always fails, returning the
+  empty sequence.
+
+  \item @{ML all_tac} is a tactic that always succeeds, returning a
+  singleton sequence with unchanged goal state.
+
+  \item @{ML print_tac}~@{text "message"} is like @{ML all_tac}, but
+  prints a message together with the goal state on the tracing
+  channel.
+
   \item @{ML PRIMITIVE}~@{text rule} turns a primitive inference rule
   into a tactic with unique result.  Exception @{ML THM} is considered
   a regular tactic failure and produces an empty result; other
   exceptions are passed through.
 
   \item @{ML SUBGOAL}~@{text "(fn (subgoal, i) => tactic)"} is the
-  most basic form to produce tactic with subgoal addressing.  The
+  most basic form to produce a tactic with subgoal addressing.  The
   given abstraction over the subgoal term and subgoal number allows to
   peek at the relevant information of the full goal state.  The
   subgoal range is checked as required above.
 
   \item @{ML CSUBGOAL} is similar to @{ML SUBGOAL}, but passes the
-  subgoal as a @{ML_type cterm} instead of raw @{ML_type term}.  This
+  subgoal as @{ML_type cterm} instead of raw @{ML_type term}.  This
   avoids expensive re-certification in situations where the subgoal is
   used directly for primitive inferences.
+
+  \end{description}
+*}
+
+
+subsection {* Resolution and assumption tactics *}
+
+text {* \emph{Resolution} is the most basic mechanism for refining a
+  subgoal using a theorem as object-level rule.
+  \emph{Elim-resolution} is particularly suited for elimination rules:
+  it resolves with a rule, proves its first premise by assumption, and
+  finally deletes that assumption from any new subgoals.
+  \emph{Destruct-resolution} is like elim-resolution, but the given
+  destruction rules are first turned into canonical elimination
+  format.  \emph{Forward-resolution} is like destruct-resolution, but
+  without deleting the selected assumption.  The @{text r}, @{text e},
+  @{text d}, @{text f} naming convention is maintained for several
+  different kinds of resolution rules and tactics.
+
+  Assumption tactics close a subgoal by unifying some of its premises
+  against its conclusion.
+
+  \medskip All the tactics in this section operate on a subgoal
+  designated by a positive integer.  Other subgoals might be affected
+  indirectly, due to instantiation of schematic variables.
+
+  There are various sources of non-determinism, the tactic result
+  sequence enumerates all possibilities of the following choices (if
+  applicable):
+
+  \begin{enumerate}
+
+  \item selecting one of the rules given as argument to the tactic;
+
+  \item selecting a subgoal premise to eliminate, unifying it against
+  the first premise of the rule;
+
+  \item unifying the conclusion of the subgoal to the conclusion of
+  the rule.
+
+  \end{enumerate}
+
+  Recall that higher-order unification may produce multiple results
+  that are enumerated here.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML resolve_tac: "thm list -> int -> tactic"} \\
+  @{index_ML eresolve_tac: "thm list -> int -> tactic"} \\
+  @{index_ML dresolve_tac: "thm list -> int -> tactic"} \\
+  @{index_ML forward_tac: "thm list -> int -> tactic"} \\[1ex]
+  @{index_ML assume_tac: "int -> tactic"} \\
+  @{index_ML eq_assume_tac: "int -> tactic"} \\[1ex]
+  @{index_ML match_tac: "thm list -> int -> tactic"} \\
+  @{index_ML ematch_tac: "thm list -> int -> tactic"} \\
+  @{index_ML dmatch_tac: "thm list -> int -> tactic"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML resolve_tac}~@{text "thms i"} refines the goal state
+  using the given theorems, which should normally be introduction
+  rules.  The tactic resolves a rule's conclusion with subgoal @{text
+  i}, replacing it by the corresponding versions of the rule's
+  premises.
+
+  \item @{ML eresolve_tac}~@{text "thms i"} performs elim-resolution
+  with the given theorems, which should normally be elimination rules.
+
+  \item @{ML dresolve_tac}~@{text "thms i"} performs
+  destruct-resolution with the given theorems, which should normally
+  be destruction rules.  This replaces an assumption by the result of
+  applying one of the rules.
+
+  \item @{ML forward_tac} is like @{ML dresolve_tac} except that the
+  selected assumption is not deleted.  It applies a rule to an
+  assumption, adding the result as a new assumption.
+
+  \item @{ML assume_tac}~@{text i} attempts to solve subgoal @{text i}
+  by assumption (modulo higher-order unification).
+
+  \item @{ML eq_assume_tac} is similar to @{ML assume_tac}, but checks
+  only for immediate @{text "\<alpha>"}-convertibility instead of using
+  unification.  It succeeds (with a unique next state) if one of the
+  assumptions is equal to the subgoal's conclusion.  Since it does not
+  instantiate variables, it cannot make other subgoals unprovable.
+
+  \item @{ML match_tac}, @{ML ematch_tac}, and @{ML dmatch_tac} are
+  similar to @{ML resolve_tac}, @{ML eresolve_tac}, and @{ML
+  dresolve_tac}, respectively, but do not instantiate schematic
+  variables in the goal state.
+
+  Flexible subgoals are not updated at will, but are left alone.
+  Strictly speaking, matching means to treat the unknowns in the goal
+  state as constants; these tactics merely discard unifiers that would
+  update the goal state.
 
   \end{description}
 *}
