@@ -3686,7 +3686,11 @@ proof(induct t rule: rsplit0.induct)
       ultimately show ?ths by auto
     qed
 next
-  case (3 a b) thus ?case by auto
+  case (3 a b) then show ?case
+  apply auto
+  apply (erule_tac x = "(aa, aaa, ba)" in ballE) apply simp_all
+  apply (erule_tac x = "(ab, ac, baa)" in ballE) apply simp_all
+  done
 qed (auto simp add: Let_def split_def ring_simps conj_rl)
 
 lemma real_in_int_intervals: 

@@ -131,8 +131,8 @@ next
     from dependent_choice [OF transr propr0 proprstep]
     obtain g where pg: "!!n::nat.  ?propr (g n)"
       and rg: "!!n m. n<m ==> (g n, g m) \<in> ?ramr" by blast
-    let ?gy = "(\<lambda>n. let (y,Y,t) = g n in y)"
-    let ?gt = "(\<lambda>n. let (y,Y,t) = g n in t)"
+    let ?gy = "fst o g"
+    let ?gt = "snd o snd o g"
     have rangeg: "\<exists>k. range ?gt \<subseteq> {..<k}"
     proof (intro exI subsetI)
       fix x

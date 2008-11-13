@@ -117,6 +117,13 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* If methods "eval" and "evaluation" encounter a structured proof state
+with !!/==>, only the conclusion is evaluated to True (if possible),
+avoiding strange error messages.
+
+* Simplifier: simproc for let expressions now unfolds if bound variable
+occurs at most one time in let expression body.  INCOMPATIBILITY.
+
 * New classes "top" and "bot" with corresponding operations "top" and "bot"
 in theory Orderings;  instantiation of class "complete_lattice" requires
 instantiation of classes "top" and "bot".  INCOMPATIBILITY.
