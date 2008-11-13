@@ -41,11 +41,11 @@ text {*
     uses: 'uses' ((name | parname) +);
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "theory"}~@{text "A \<IMPORTS> B\<^sub>1 \<dots>
-  B\<^sub>n \<BEGIN>"}] starts a new theory @{text A} based on the
-  merge of existing theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}.
+  \item @{command "theory"}~@{text "A \<IMPORTS> B\<^sub>1 \<dots> B\<^sub>n \<BEGIN>"}
+  starts a new theory @{text A} based on the merge of existing
+  theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}.
   
   Due to the possibility to import more than one ancestor, the
   resulting theory structure of an Isabelle session forms a directed
@@ -62,11 +62,11 @@ text {*
   other file formats require specific load commands defined by the
   corresponding tools or packages.
   
-  \item [@{command (global) "end"}] concludes the current theory
+  \item @{command (global) "end"} concludes the current theory
   definition.  Note that local theory targets involve a local
   @{command (local) "end"}, which is clear from the nesting.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -95,20 +95,20 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "context"}~@{text "c \<BEGIN>"}] recommences an
+  \item @{command "context"}~@{text "c \<BEGIN>"} recommences an
   existing locale or class context @{text c}.  Note that locale and
   class definitions allow to include the @{keyword "begin"} keyword as
   well, in order to continue the local theory immediately after the
   initial specification.
   
-  \item [@{command (local) "end"}] concludes the current local theory
+  \item @{command (local) "end"} concludes the current local theory
   and continues the enclosing global theory.  Note that a global
   @{command (global) "end"} has a different meaning: it concludes the
   theory itself (\secref{sec:begin-thy}).
   
-  \item [@{text "(\<IN> c)"}] given after any local theory command
+  \item @{text "(\<IN> c)"} given after any local theory command
   specifies an immediate target, e.g.\ ``@{command
   "definition"}~@{text "(\<IN> c) \<dots>"}'' or ``@{command
   "theorem"}~@{text "(\<IN> c) \<dots>"}''.  This works both in a local or
@@ -117,7 +117,7 @@ text {*
   always produce a global result independently of the current target
   context.
 
-  \end{descr}
+  \end{description}
 
   The exact meaning of results produced within a local theory context
   depends on the underlying target infrastructure (locale, type class
@@ -176,20 +176,20 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "axiomatization"}~@{text "c\<^sub>1 \<dots> c\<^sub>m
-  \<WHERE> \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}] introduces several constants
-  simultaneously and states axiomatic properties for these.  The
-  constants are marked as being specified once and for all, which
-  prevents additional specifications being issued later on.
+  \item @{command "axiomatization"}~@{text "c\<^sub>1 \<dots> c\<^sub>m \<WHERE> \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
+  introduces several constants simultaneously and states axiomatic
+  properties for these.  The constants are marked as being specified
+  once and for all, which prevents additional specifications being
+  issued later on.
   
   Note that axiomatic specifications are only appropriate when
   declaring a new logical system; axiomatic specifications are
   restricted to global theory contexts.  Normal applications should
   only use definitional mechanisms!
 
-  \item [@{command "definition"}~@{text "c \<WHERE> eq"}] produces an
+  \item @{command "definition"}~@{text "c \<WHERE> eq"} produces an
   internal definition @{text "c \<equiv> t"} according to the specification
   given as @{text eq}, which is then turned into a proven fact.  The
   given proposition may deviate from internal meta-level equality
@@ -203,9 +203,9 @@ text {*
   @{text "f \<equiv> \<lambda>x y. t"} and @{text "y \<noteq> 0 \<Longrightarrow> g x y = u"} instead of an
   unrestricted @{text "g \<equiv> \<lambda>x y. u"}.
   
-  \item [@{command "abbreviation"}~@{text "c \<WHERE> eq"}] introduces
-  a syntactic constant which is associated with a certain term
-  according to the meta-level equality @{text eq}.
+  \item @{command "abbreviation"}~@{text "c \<WHERE> eq"} introduces a
+  syntactic constant which is associated with a certain term according
+  to the meta-level equality @{text eq}.
   
   Abbreviations participate in the usual type-inference process, but
   are expanded before the logic ever sees them.  Pretty printing of
@@ -220,20 +220,20 @@ text {*
   declared for abbreviations, cf.\ @{command "syntax"} in
   \secref{sec:syn-trans}.
   
-  \item [@{command "print_abbrevs"}] prints all constant abbreviations
+  \item @{command "print_abbrevs"} prints all constant abbreviations
   of the current context.
   
-  \item [@{command "notation"}~@{text "c (mx)"}] associates mixfix
+  \item @{command "notation"}~@{text "c (mx)"} associates mixfix
   syntax with an existing constant or fixed variable.  This is a
   robust interface to the underlying @{command "syntax"} primitive
   (\secref{sec:syn-trans}).  Type declaration and internal syntactic
   representation of the given entity is retrieved from the context.
   
-  \item [@{command "no_notation"}] is similar to @{command
-  "notation"}, but removes the specified syntax annotation from the
-  present context.
+  \item @{command "no_notation"} is similar to @{command "notation"},
+  but removes the specified syntax annotation from the present
+  context.
 
-  \end{descr}
+  \end{description}
 
   All of these specifications support local theory targets (cf.\
   \secref{sec:target}).
@@ -264,21 +264,21 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "declaration"}~@{text d}] adds the declaration
+  \item @{command "declaration"}~@{text d} adds the declaration
   function @{text d} of ML type @{ML_type declaration}, to the current
   local theory under construction.  In later application contexts, the
   function is transformed according to the morphisms being involved in
   the interpretation hierarchy.
 
-  \item [@{command "declare"}~@{text thms}] declares theorems to the
+  \item @{command "declare"}~@{text thms} declares theorems to the
   current local theory context.  No theorem binding is involved here,
   unlike @{command "theorems"} or @{command "lemmas"} (cf.\
   \secref{sec:axms-thms}), so @{command "declare"} only has the effect
   of applying attributes as included in the theorem specification.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -332,9 +332,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "locale"}~@{text "loc = import + body"}] defines a
+  \item @{command "locale"}~@{text "loc = import + body"} defines a
   new locale @{text loc} as a context consisting of a certain view of
   existing locales (@{text import}) plus some additional elements
   (@{text body}).  Both @{text import} and @{text body} are optional;
@@ -361,39 +361,43 @@ text {*
   The @{text body} consists of basic context elements, further context
   expressions may be included as well.
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{element "fixes"}~@{text "x :: \<tau> (mx)"}] declares a local
+  \item @{element "fixes"}~@{text "x :: \<tau> (mx)"} declares a local
   parameter of type @{text \<tau>} and mixfix annotation @{text mx} (both
   are optional).  The special syntax declaration ``@{text
   "(\<STRUCTURE>)"}'' means that @{text x} may be referenced
   implicitly in this context.
 
-  \item [@{element "constrains"}~@{text "x :: \<tau>"}] introduces a type
+  \item @{element "constrains"}~@{text "x :: \<tau>"} introduces a type
   constraint @{text \<tau>} on the local parameter @{text x}.
 
-  \item [@{element "assumes"}~@{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}]
+  \item @{element "assumes"}~@{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
   introduces local premises, similar to @{command "assume"} within a
   proof (cf.\ \secref{sec:proof-context}).
 
-  \item [@{element "defines"}~@{text "a: x \<equiv> t"}] defines a previously
+  \item @{element "defines"}~@{text "a: x \<equiv> t"} defines a previously
   declared parameter.  This is similar to @{command "def"} within a
   proof (cf.\ \secref{sec:proof-context}), but @{element "defines"}
   takes an equational proposition instead of variable-term pair.  The
   left-hand side of the equation may have additional arguments, e.g.\
   ``@{element "defines"}~@{text "f x\<^sub>1 \<dots> x\<^sub>n \<equiv> t"}''.
 
-  \item [@{element "notes"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}]
+  \item @{element "notes"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}
   reconsiders facts within a local context.  Most notably, this may
   include arbitrary declarations in any attribute specifications
   included here, e.g.\ a local @{attribute simp} rule.
 
-  The initial @{text import} specification of a locale
+  \item @{element "includes"}~@{text c} copies the specified context
+  in a statically scoped manner.  Only available in the long goal
+  format of \secref{sec:goals}.
+
+  In contrast, the initial @{text import} specification of a locale
   expression maintains a dynamic relation to the locales being
   referenced (benefiting from any later fact declarations in the
   obvious manner).
 
-  \end{descr}
+  \end{description}
   
   Note that ``@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}'' patterns given
   in the syntax of @{element "assumes"} and @{element "defines"} above
@@ -419,7 +423,7 @@ text {*
   \secref{sec:object-logic}).  Separate introduction rules @{text
   loc_axioms.intro} and @{text loc.intro} are provided as well.
   
-  \item [@{command "print_locale"}~@{text "import + body"}] prints the
+  \item @{command "print_locale"}~@{text "import + body"} prints the
   specified locale expression in a flattened form.  The notable
   special case @{command "print_locale"}~@{text loc} just prints the
   contents of the named locale, but keep in mind that type-inference
@@ -427,20 +431,21 @@ text {*
   order.  The command omits @{element "notes"} elements by default.
   Use @{command "print_locale"}@{text "!"} to get them included.
 
-  \item [@{command "print_locales"}] prints the names of all locales
+  \item @{command "print_locales"} prints the names of all locales
   of the current theory.
 
-  \item [@{method intro_locales} and @{method unfold_locales}]
+  \item @{method intro_locales} and @{method unfold_locales}
   repeatedly expand all introduction rules of locale predicates of the
   theory.  While @{method intro_locales} only applies the @{text
   loc.intro} introduction rules and therefore does not decend to
   assumptions, @{method unfold_locales} is more aggressive and applies
   @{text loc_axioms.intro} as well.  Both methods are aware of locale
-  specifications entailed by the context, both from target statements,
-  and from interpretations (see below).  New goals that are entailed
-  by the current context are discharged automatically.
+  specifications entailed by the context, both from target and
+  @{element "includes"} statements, and from interpretations (see
+  below).  New goals that are entailed by the current context are
+  discharged automatically.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -476,9 +481,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "interpretation"}~@{text "expr insts \<WHERE> eqns"}]
+  \item @{command "interpretation"}~@{text "expr insts \<WHERE> eqns"}
 
   The first form of @{command "interpretation"} interprets @{text
   expr} in the theory.  The instantiation is given as a list of terms
@@ -518,7 +523,7 @@ text {*
   interpretations dynamically participate in any facts added to
   locales.
 
-  \item [@{command "interpretation"}~@{text "name \<subseteq> expr"}]
+  \item @{command "interpretation"}~@{text "name \<subseteq> expr"}
 
   This form of the command interprets @{text expr} in the locale
   @{text name}.  It requires a proof that the specification of @{text
@@ -549,18 +554,18 @@ text {*
   prefix and attributes, although only for fragments of @{text expr}
   that are not interpreted in the theory already.
 
-  \item [@{command "interpret"}~@{text "expr insts \<WHERE> eqns"}]
+  \item @{command "interpret"}~@{text "expr insts \<WHERE> eqns"}
   interprets @{text expr} in the proof context and is otherwise
   similar to interpretation in theories.
 
-  \item [@{command "print_interps"}~@{text loc}] prints the
+  \item @{command "print_interps"}~@{text loc} prints the
   interpretations of a particular locale @{text loc} that are active
   in the current context, either theory or proof context.  The
   exclamation point argument triggers printing of \emph{witness}
   theorems justifying interpretations.  These are normally omitted
   from the output.
   
-  \end{descr}
+  \end{description}
 
   \begin{warn}
     Since attributes are applied to interpreted theorems,
@@ -621,9 +626,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "class"}~@{text "c = superclasses + body"}] defines
+  \item @{command "class"}~@{text "c = superclasses + body"} defines
   a new class @{text c}, inheriting from @{text superclasses}.  This
   introduces a locale @{text c} with import of all locales @{text
   superclasses}.
@@ -641,43 +646,42 @@ text {*
   --- the @{method intro_classes} method takes care of the details of
   class membership proofs.
 
-  \item [@{command "instantiation"}~@{text "t :: (s\<^sub>1, \<dots>,
-  s\<^sub>n) s \<BEGIN>"}] opens a theory target (cf.\
-  \secref{sec:target}) which allows to specify class operations @{text
-  "f\<^sub>1, \<dots>, f\<^sub>n"} corresponding to sort @{text s} at the
-  particular type instance @{text "(\<alpha>\<^sub>1 :: s\<^sub>1, \<dots>,
-  \<alpha>\<^sub>n :: s\<^sub>n) t"}.  A plain @{command "instance"} command
-  in the target body poses a goal stating these type arities.  The
-  target is concluded by an @{command_ref (local) "end"} command.
+  \item @{command "instantiation"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n) s
+  \<BEGIN>"} opens a theory target (cf.\ \secref{sec:target}) which
+  allows to specify class operations @{text "f\<^sub>1, \<dots>, f\<^sub>n"} corresponding
+  to sort @{text s} at the particular type instance @{text "(\<alpha>\<^sub>1 :: s\<^sub>1,
+  \<dots>, \<alpha>\<^sub>n :: s\<^sub>n) t"}.  A plain @{command "instance"} command in the
+  target body poses a goal stating these type arities.  The target is
+  concluded by an @{command_ref (local) "end"} command.
 
   Note that a list of simultaneous type constructors may be given;
   this corresponds nicely to mutual recursive type definitions, e.g.\
   in Isabelle/HOL.
 
-  \item [@{command "instance"}] in an instantiation target body sets
+  \item @{command "instance"} in an instantiation target body sets
   up a goal stating the type arities claimed at the opening @{command
   "instantiation"}.  The proof would usually proceed by @{method
   intro_classes}, and then establish the characteristic theorems of
   the type classes involved.  After finishing the proof, the
   background theory will be augmented by the proven type arities.
 
-  \item [@{command "subclass"}~@{text c}] in a class context for class
+  \item @{command "subclass"}~@{text c} in a class context for class
   @{text d} sets up a goal stating that class @{text c} is logically
   contained in class @{text d}.  After finishing the proof, class
   @{text d} is proven to be subclass @{text c} and the locale @{text
   c} is interpreted into @{text d} simultaneously.
 
-  \item [@{command "print_classes"}] prints all classes in the current
+  \item @{command "print_classes"} prints all classes in the current
   theory.
 
-  \item [@{method intro_classes}] repeatedly expands all class
+  \item @{method intro_classes} repeatedly expands all class
   introduction rules of this theory.  Note that this method usually
   needs not be named explicitly, as it is already included in the
   default proof step (e.g.\ of @{command "proof"}).  In particular,
   instantiation of trivial (syntactic) classes may be performed by a
   single ``@{command ".."}'' proof step.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -728,15 +732,15 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "axclass"}~@{text "c \<subseteq> c\<^sub>1, \<dots>, c\<^sub>n
-  axms"}] defines an axiomatic type class as the intersection of
-  existing classes, with additional axioms holding.  Class axioms may
-  not contain more than one type variable.  The class axioms (with
-  implicit sort constraints added) are bound to the given names.
-  Furthermore a class introduction rule is generated (being bound as
-  @{text c_class.intro}); this rule is employed by method @{method
+  \item @{command "axclass"}~@{text "c \<subseteq> c\<^sub>1, \<dots>, c\<^sub>n axms"} defines an
+  axiomatic type class as the intersection of existing classes, with
+  additional axioms holding.  Class axioms may not contain more than
+  one type variable.  The class axioms (with implicit sort constraints
+  added) are bound to the given names.  Furthermore a class
+  introduction rule is generated (being bound as @{text
+  c_class.intro}); this rule is employed by method @{method
   intro_classes} to support instantiation proofs of this class.
   
   The ``class axioms'' are stored as theorems according to the given
@@ -744,15 +748,15 @@ text {*
   the same facts are also stored collectively as @{text
   c_class.axioms}.
   
-  \item [@{command "instance"}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} and
-  @{command "instance"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n) s"}]
-  setup a goal stating a class relation or type arity.  The proof
-  would usually proceed by @{method intro_classes}, and then establish
-  the characteristic theorems of the type classes involved.  After
-  finishing the proof, the theory will be augmented by a type
-  signature declaration corresponding to the resulting theorem.
+  \item @{command "instance"}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} and @{command
+  "instance"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n) s"} setup a goal stating a
+  class relation or type arity.  The proof would usually proceed by
+  @{method intro_classes}, and then establish the characteristic
+  theorems of the type classes involved.  After finishing the proof,
+  the theory will be augmented by a type signature declaration
+  corresponding to the resulting theorem.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -776,25 +780,24 @@ text {*
     ( string ( '==' | equiv ) term ( '(' 'unchecked' ')' )? + ) 'begin'
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "overloading"}~@{text "x\<^sub>1 \<equiv> c\<^sub>1 ::
-  \<tau>\<^sub>1 \<AND> \<dots> x\<^sub>n \<equiv> c\<^sub>n :: \<tau>\<^sub>n \<BEGIN>"}]
+  \item @{command "overloading"}~@{text "x\<^sub>1 \<equiv> c\<^sub>1 :: \<tau>\<^sub>1 \<AND> \<dots> x\<^sub>n \<equiv> c\<^sub>n :: \<tau>\<^sub>n \<BEGIN>"}
   opens a theory target (cf.\ \secref{sec:target}) which allows to
   specify constants with overloaded definitions.  These are identified
-  by an explicitly given mapping from variable names @{text
-  "x\<^sub>i"} to constants @{text "c\<^sub>i"} at particular type
-  instances.  The definitions themselves are established using common
-  specification tools, using the names @{text "x\<^sub>i"} as
-  reference to the corresponding constants.  The target is concluded
-  by @{command (local) "end"}.
+  by an explicitly given mapping from variable names @{text "x\<^sub>i"} to
+  constants @{text "c\<^sub>i"} at particular type instances.  The
+  definitions themselves are established using common specification
+  tools, using the names @{text "x\<^sub>i"} as reference to the
+  corresponding constants.  The target is concluded by @{command
+  (local) "end"}.
 
   A @{text "(unchecked)"} option disables global dependency checks for
   the corresponding definition, which is occasionally useful for
   exotic overloading.  It is at the discretion of the user to avoid
   malformed theory specifications!
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -808,9 +811,12 @@ text {*
     @{command_def "ML_val"} & : & \isartrans{\cdot}{\cdot} \\
     @{command_def "ML_command"} & : & \isartrans{\cdot}{\cdot} \\
     @{command_def "setup"} & : & \isartrans{theory}{theory} \\
+  \end{matharray}
+
+  \begin{mldecls}
     @{index_ML bind_thms: "string * thm list -> unit"} \\
     @{index_ML bind_thm: "string * thm -> unit"} \\
-  \end{matharray}
+  \end{mldecls}
 
   \begin{rail}
     'use' name
@@ -819,9 +825,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "use"}~@{text "file"}] reads and executes ML
+  \item @{command "use"}~@{text "file"} reads and executes ML
   commands from @{text "file"}.  The current theory context is passed
   down to the ML toplevel and may be modified, using @{ML [source=false]
   "Context.>>"} or derived ML commands.  The file name is checked with
@@ -831,25 +837,25 @@ text {*
   Top-level ML bindings are stored within the (global or local) theory
   context.
   
-  \item [@{command "ML"}~@{text "text"}] is similar to @{command
-  "use"}, but executes ML commands directly from the given @{text
-  "text"}.  Top-level ML bindings are stored within the (global or
-  local) theory context.
+  \item @{command "ML"}~@{text "text"} is similar to @{command "use"},
+  but executes ML commands directly from the given @{text "text"}.
+  Top-level ML bindings are stored within the (global or local) theory
+  context.
 
-  \item [@{command "ML_prf"}] is analogous to @{command "ML"} but
-  works within a proof context.
+  \item @{command "ML_prf"} is analogous to @{command "ML"} but works
+  within a proof context.
 
   Top-level ML bindings are stored within the proof context in a
   purely sequential fashion, disregarding the nested proof structure.
   ML bindings introduced by @{command "ML_prf"} are discarded at the
   end of the proof.
 
-  \item [@{command "ML_val"} and @{command "ML_command"}] are
-  diagnostic versions of @{command "ML"}, which means that the context
-  may not be updated.  @{command "ML_val"} echos the bindings produced
-  at the ML toplevel, but @{command "ML_command"} is silent.
+  \item @{command "ML_val"} and @{command "ML_command"} are diagnostic
+  versions of @{command "ML"}, which means that the context may not be
+  updated.  @{command "ML_val"} echos the bindings produced at the ML
+  toplevel, but @{command "ML_command"} is silent.
   
-  \item [@{command "setup"}~@{text "text"}] changes the current theory
+  \item @{command "setup"}~@{text "text"} changes the current theory
   context by applying @{text "text"}, which refers to an ML expression
   of type @{ML_type [source=false] "theory -> theory"}.  This enables
   to initialize any object-logic specific tools and packages written
@@ -863,7 +869,7 @@ text {*
   \item @{ML bind_thm} is similar to @{ML bind_thms} but refers to a
   singleton theorem.
   
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -888,27 +894,27 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "classes"}~@{text "c \<subseteq> c\<^sub>1, \<dots>, c\<^sub>n"}]
-  declares class @{text c} to be a subclass of existing classes @{text
-  "c\<^sub>1, \<dots>, c\<^sub>n"}.  Cyclic class structures are not permitted.
+  \item @{command "classes"}~@{text "c \<subseteq> c\<^sub>1, \<dots>, c\<^sub>n"} declares class
+  @{text c} to be a subclass of existing classes @{text "c\<^sub>1, \<dots>, c\<^sub>n"}.
+  Cyclic class structures are not permitted.
 
-  \item [@{command "classrel"}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"}] states
-  subclass relations between existing classes @{text "c\<^sub>1"} and
-  @{text "c\<^sub>2"}.  This is done axiomatically!  The @{command_ref
-  "instance"} command (see \secref{sec:axclass}) provides a way to
-  introduce proven class relations.
+  \item @{command "classrel"}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} states subclass
+  relations between existing classes @{text "c\<^sub>1"} and @{text "c\<^sub>2"}.
+  This is done axiomatically!  The @{command_ref "instance"} command
+  (see \secref{sec:axclass}) provides a way to introduce proven class
+  relations.
 
-  \item [@{command "defaultsort"}~@{text s}] makes sort @{text s} the
+  \item @{command "defaultsort"}~@{text s} makes sort @{text s} the
   new default sort for any type variables given without sort
   constraints.  Usually, the default sort would be only changed when
   defining a new object-logic.
 
-  \item [@{command "class_deps"}] visualizes the subclass relation,
+  \item @{command "class_deps"} visualizes the subclass relation,
   using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -933,31 +939,31 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "types"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>"}]
-  introduces \emph{type synonym} @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"}
-  for existing type @{text "\<tau>"}.  Unlike actual type definitions, as
-  are available in Isabelle/HOL for example, type synonyms are just
-  purely syntactic abbreviations without any logical significance.
-  Internally, type synonyms are fully expanded.
+  \item @{command "types"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = \<tau>"} introduces
+  \emph{type synonym} @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} for existing type @{text
+  "\<tau>"}.  Unlike actual type definitions, as are available in
+  Isabelle/HOL for example, type synonyms are just purely syntactic
+  abbreviations without any logical significance.  Internally, type
+  synonyms are fully expanded.
   
-  \item [@{command "typedecl"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"}]
-  declares a new type constructor @{text t}, intended as an actual
-  logical type (of the object-logic, if available).
+  \item @{command "typedecl"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} declares a new
+  type constructor @{text t}, intended as an actual logical type (of
+  the object-logic, if available).
 
-  \item [@{command "nonterminals"}~@{text c}] declares type
-  constructors @{text c} (without arguments) to act as purely
-  syntactic types, i.e.\ nonterminal symbols of Isabelle's inner
-  syntax of terms or types.
+  \item @{command "nonterminals"}~@{text c} declares type constructors
+  @{text c} (without arguments) to act as purely syntactic types,
+  i.e.\ nonterminal symbols of Isabelle's inner syntax of terms or
+  types.
 
-  \item [@{command "arities"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n)
-  s"}] augments Isabelle's order-sorted signature of types by new type
-  constructor arities.  This is done axiomatically!  The @{command_ref
-  "instance"} command (see \S\ref{sec:axclass}) provides a way to
-  introduce proven type arities.
+  \item @{command "arities"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n) s"} augments
+  Isabelle's order-sorted signature of types by new type constructor
+  arities.  This is done axiomatically!  The @{command_ref "instance"}
+  command (see \S\ref{sec:axclass}) provides a way to introduce proven
+  type arities.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -1029,14 +1035,14 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "consts"}~@{text "c :: \<sigma>"}] declares constant
-  @{text c} to have any instance of type scheme @{text \<sigma>}.  The
-  optional mixfix annotations may attach concrete syntax to the
-  constants declared.
+  \item @{command "consts"}~@{text "c :: \<sigma>"} declares constant @{text
+  c} to have any instance of type scheme @{text \<sigma>}.  The optional
+  mixfix annotations may attach concrete syntax to the constants
+  declared.
   
-  \item [@{command "defs"}~@{text "name: eqn"}] introduces @{text eqn}
+  \item @{command "defs"}~@{text "name: eqn"} introduces @{text eqn}
   as a definitional axiom for some existing constant.
   
   The @{text "(unchecked)"} option disables global dependency checks
@@ -1049,12 +1055,12 @@ text {*
   message would be issued for any definitional equation with a more
   special type than that of the corresponding constant declaration.
   
-  \item [@{command "constdefs"}] provides a streamlined combination of
+  \item @{command "constdefs"} provides a streamlined combination of
   constants declarations and definitions: type-inference takes care of
   the most general typing of the given specification (the optional
-  type constraint may refer to type-inference dummies ``@{text
-  _}'' as usual).  The resulting type declaration needs to agree with
-  that of the specification; overloading is \emph{not} supported here!
+  type constraint may refer to type-inference dummies ``@{text _}'' as
+  usual).  The resulting type declaration needs to agree with that of
+  the specification; overloading is \emph{not} supported here!
   
   The constant name may be omitted altogether, if neither type nor
   syntax declarations are given.  The canonical name of the
@@ -1068,7 +1074,7 @@ text {*
   "\<index>"} (printed as ``@{text "\<index>"}'').  The latter concept is
   particularly useful with locales (see also \S\ref{sec:locale}).
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -1088,9 +1094,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "axioms"}~@{text "a: \<phi>"}] introduces arbitrary
+  \item @{command "axioms"}~@{text "a: \<phi>"} introduces arbitrary
   statements as axioms of the meta-logic.  In fact, axioms are
   ``axiomatic theorems'', and may be referred later just as any other
   theorem.
@@ -1099,16 +1105,15 @@ text {*
   systems.  Everyday work is typically done the hard way, with proper
   definitions and proven theorems.
   
-  \item [@{command "lemmas"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}]
-  retrieves and stores existing facts in the theory context, or the
-  specified target context (see also \secref{sec:target}).  Typical
-  applications would also involve attributes, to declare Simplifier
-  rules, for example.
+  \item @{command "lemmas"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"} retrieves and stores
+  existing facts in the theory context, or the specified target
+  context (see also \secref{sec:target}).  Typical applications would
+  also involve attributes, to declare Simplifier rules, for example.
   
-  \item [@{command "theorems"}] is essentially the same as @{command
+  \item @{command "theorems"} is essentially the same as @{command
   "lemmas"}, but marks the result as a different kind of facts.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -1138,16 +1143,16 @@ text {* Oracles allow Isabelle to take advantage of external reasoners
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "oracle"}~@{text "name = text"}] turns the given ML
+  \item @{command "oracle"}~@{text "name = text"} turns the given ML
   expression @{text "text"} of type @{ML_text "'a -> cterm"} into an
   ML function of type @{ML_text "'a -> thm"}, which is bound to the
   global identifier @{ML_text name}.  This acts like an infinitary
   specification of axioms!  Invoking the oracle only works within the
   scope of the resulting theory.
 
-  \end{descr}
+  \end{description}
 
   See @{"file" "~~/src/FOL/ex/IffOracle.thy"} for a worked example of
   defining a new primitive rule as oracle, and turning it into a proof
@@ -1175,19 +1180,19 @@ text {*
   name spaces by hand, yet the following commands provide some way to
   do so.
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "global"} and @{command "local"}] change the
-  current name declaration mode.  Initially, theories start in
-  @{command "local"} mode, causing all names to be automatically
-  qualified by the theory name.  Changing this to @{command "global"}
-  causes all names to be declared without the theory prefix, until
-  @{command "local"} is declared again.
+  \item @{command "global"} and @{command "local"} change the current
+  name declaration mode.  Initially, theories start in @{command
+  "local"} mode, causing all names to be automatically qualified by
+  the theory name.  Changing this to @{command "global"} causes all
+  names to be declared without the theory prefix, until @{command
+  "local"} is declared again.
   
   Note that global names are prone to get hidden accidently later,
   when qualified names of the same base name are introduced.
   
-  \item [@{command "hide"}~@{text "space names"}] fully removes
+  \item @{command "hide"}~@{text "space names"} fully removes
   declarations from a given name space (which may be @{text "class"},
   @{text "type"}, @{text "const"}, or @{text "fact"}); with the @{text
   "(open)"} option, only the base name is hidden.  Global
@@ -1198,7 +1203,7 @@ text {*
   longer accessible to the user are printed with the special qualifier
   ``@{text "??"}'' prefixed to the full internal name.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -1224,9 +1229,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "syntax"}~@{text "(mode) decls"}] is similar to
+  \item @{command "syntax"}~@{text "(mode) decls"} is similar to
   @{command "consts"}~@{text decls}, except that the actual logical
   signature extension is omitted.  Thus the context free grammar of
   Isabelle's inner syntax may be augmented in arbitrary ways,
@@ -1235,22 +1240,21 @@ text {*
   "output"} indicator is given, all productions are added both to the
   input and output grammar.
   
-  \item [@{command "no_syntax"}~@{text "(mode) decls"}] removes
-  grammar declarations (and translations) resulting from @{text
-  decls}, which are interpreted in the same manner as for @{command
-  "syntax"} above.
+  \item @{command "no_syntax"}~@{text "(mode) decls"} removes grammar
+  declarations (and translations) resulting from @{text decls}, which
+  are interpreted in the same manner as for @{command "syntax"} above.
   
-  \item [@{command "translations"}~@{text rules}] specifies syntactic
+  \item @{command "translations"}~@{text rules} specifies syntactic
   translation rules (i.e.\ macros): parse~/ print rules (@{text "\<rightleftharpoons>"}),
   parse rules (@{text "\<rightharpoonup>"}), or print rules (@{text "\<leftharpoondown>"}).
   Translation patterns may be prefixed by the syntactic category to be
   used for parsing; the default is @{text logic}.
   
-  \item [@{command "no_translations"}~@{text rules}] removes syntactic
+  \item @{command "no_translations"}~@{text rules} removes syntactic
   translation rules, which are interpreted in the same manner as for
   @{command "translations"} above.
 
-  \end{descr}
+  \end{description}
 *}
 
 

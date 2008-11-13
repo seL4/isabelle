@@ -43,42 +43,42 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "pr"}~@{text "goals, prems"}] prints the current
+  \item @{command "pr"}~@{text "goals, prems"} prints the current
   proof state (if present), including the proof context, current facts
   and goals.  The optional limit arguments affect the number of goals
   and premises to be displayed, which is initially 10 for both.
   Omitting limit values leaves the current setting unchanged.
 
-  \item [@{command "thm"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] retrieves
+  \item @{command "thm"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} retrieves
   theorems from the current theory or proof context.  Note that any
   attributes included in the theorem specifications are applied to a
   temporary context derived from the current theory or proof; the
   result is discarded, i.e.\ attributes involved in @{text "a\<^sub>1,
   \<dots>, a\<^sub>n"} do not have any permanent effect.
 
-  \item [@{command "term"}~@{text t} and @{command "prop"}~@{text \<phi>}]
+  \item @{command "term"}~@{text t} and @{command "prop"}~@{text \<phi>}
   read, type-check and print terms or propositions according to the
   current theory or proof context; the inferred type of @{text t} is
   output as well.  Note that these commands are also useful in
   inspecting the current environment of term abbreviations.
 
-  \item [@{command "typ"}~@{text \<tau>}] reads and prints types of the
+  \item @{command "typ"}~@{text \<tau>} reads and prints types of the
   meta-logic according to the current theory or proof context.
 
-  \item [@{command "prf"}] displays the (compact) proof term of the
+  \item @{command "prf"} displays the (compact) proof term of the
   current proof state (if present), or of the given theorems. Note
   that this requires proof terms to be switched on for the current
   object logic (see the ``Proof terms'' section of the Isabelle
   reference manual for information on how to do this).
 
-  \item [@{command "full_prf"}] is like @{command "prf"}, but displays
+  \item @{command "full_prf"} is like @{command "prf"}, but displays
   the full proof term, i.e.\ also displays information omitted in the
   compact proof term, which is denoted by ``@{text _}'' placeholders
   there.
 
-  \end{descr}
+  \end{description}
 
   All of the diagnostic commands above admit a list of @{text modes}
   to be specified, which is appended to the current print mode (see
@@ -128,31 +128,31 @@ text {*
   Note that there are some further ones available, such as for the set
   of rules declared for simplifications.
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "print_commands"}] prints Isabelle's outer theory
+  \item @{command "print_commands"} prints Isabelle's outer theory
   syntax, including keywords and command.
   
-  \item [@{command "print_theory"}] prints the main logical content of
+  \item @{command "print_theory"} prints the main logical content of
   the theory context; the ``@{text "!"}'' option indicates extra
   verbosity.
 
-  \item [@{command "print_syntax"}] prints the inner syntax of types
+  \item @{command "print_syntax"} prints the inner syntax of types
   and terms, depending on the current context.  The output can be very
   verbose, including grammar tables and syntax translation rules.  See
   \cite[\S7, \S8]{isabelle-ref} for further information on Isabelle's
   inner syntax.
   
-  \item [@{command "print_methods"}] prints all proof methods
+  \item @{command "print_methods"} prints all proof methods
   available in the current theory context.
   
-  \item [@{command "print_attributes"}] prints all attributes
+  \item @{command "print_attributes"} prints all attributes
   available in the current theory context.
   
-  \item [@{command "print_theorems"}] prints theorems resulting from
+  \item @{command "print_theorems"} prints theorems resulting from
   the last command.
   
-  \item [@{command "find_theorems"}~@{text criteria}] retrieves facts
+  \item @{command "find_theorems"}~@{text criteria} retrieves facts
   from the theory or proof context matching all of given search
   criteria.  The criterion @{text "name: p"} selects all theorems
   whose fully qualified name matches pattern @{text p}, which may
@@ -172,17 +172,17 @@ text {*
   default, duplicates are removed from the search result. Use
   @{text with_dups} to display duplicates.
   
-  \item [@{command "thm_deps"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}]
+  \item @{command "thm_deps"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}
   visualizes dependencies of facts, using Isabelle's graph browser
   tool (see also \cite{isabelle-sys}).
   
-  \item [@{command "print_facts"}] prints all local facts of the
+  \item @{command "print_facts"} prints all local facts of the
   current context, both named and unnamed ones.
   
-  \item [@{command "print_binds"}] prints all term abbreviations
+  \item @{command "print_binds"} prints all term abbreviations
   present in the context.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -229,18 +229,18 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "cd"}~@{text path}] changes the current directory
+  \item @{command "cd"}~@{text path} changes the current directory
   of the Isabelle process.
 
-  \item [@{command "pwd"}] prints the current working directory.
+  \item @{command "pwd"} prints the current working directory.
 
-  \item [@{command "use_thy"}~@{text A}] preload theory @{text A}.
+  \item @{command "use_thy"}~@{text A} preload theory @{text A}.
   These system commands are scarcely used when working interactively,
   since loading of theories is done automatically as required.
 
-  \end{descr}
+  \end{description}
 *}
 
 end

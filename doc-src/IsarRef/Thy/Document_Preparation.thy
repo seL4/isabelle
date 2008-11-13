@@ -90,36 +90,36 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command header}] provides plain text markup just preceding
+  \item @{command header} provides plain text markup just preceding
   the formal beginning of a theory.  The corresponding {\LaTeX} macro
   is @{verbatim "\\isamarkupheader"}, which acts like @{command
   section} by default.
   
-  \item [@{command chapter}, @{command section}, @{command
-  subsection}, and @{command subsubsection}] mark chapter and section
-  headings within the main theory body or local theory targets.  The
+  \item @{command chapter}, @{command section}, @{command subsection},
+  and @{command subsubsection} mark chapter and section headings
+  within the main theory body or local theory targets.  The
   corresponding {\LaTeX} macros are @{verbatim "\\isamarkupchapter"},
   @{verbatim "\\isamarkupsection"}, @{verbatim
   "\\isamarkupsubsection"} etc.
 
-  \item [@{command sect}, @{command subsect}, and @{command
-  subsubsect}] mark section headings within proofs.  The corresponding
-  {\LaTeX} macros are @{verbatim "\\isamarkupsect"}, @{verbatim
+  \item @{command sect}, @{command subsect}, and @{command subsubsect}
+  mark section headings within proofs.  The corresponding {\LaTeX}
+  macros are @{verbatim "\\isamarkupsect"}, @{verbatim
   "\\isamarkupsubsect"} etc.
 
-  \item [@{command text} and @{command txt}] specify paragraphs of
-  plain text.  This corresponds to a {\LaTeX} environment @{verbatim
+  \item @{command text} and @{command txt} specify paragraphs of plain
+  text.  This corresponds to a {\LaTeX} environment @{verbatim
   "\\begin{isamarkuptext}"} @{text "\<dots>"} @{verbatim
   "\\end{isamarkuptext}"} etc.
 
-  \item [@{command text_raw} and @{command txt_raw}] insert {\LaTeX}
+  \item @{command text_raw} and @{command txt_raw} insert {\LaTeX}
   source into the output, without additional markup.  Thus the full
   range of document manipulations becomes available, at the risk of
   messing up document output.
 
-  \end{descr}
+  \end{description}
 
   Except for @{command "text_raw"} and @{command "txt_raw"}, the text
   passed to any of the above markup commands may refer to formal
@@ -214,49 +214,48 @@ text {*
   text @{verbatim "{"}@{verbatim "*"}~@{text "\<dots>"}~@{verbatim
   "*"}@{verbatim "}"}.
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{text "@{theory A}"}] prints the name @{text "A"}, which is
+  \item @{text "@{theory A}"} prints the name @{text "A"}, which is
   guaranteed to refer to a valid ancestor theory in the current
   context.
 
-  \item [@{text "@{thm a\<^sub>1 \<dots> a\<^sub>n}"}] prints theorems @{text "a\<^sub>1 \<dots> a\<^sub>n"}.
+  \item @{text "@{thm a\<^sub>1 \<dots> a\<^sub>n}"} prints theorems @{text "a\<^sub>1 \<dots> a\<^sub>n"}.
   Full fact expressions are allowed here, including attributes
   (\secref{sec:syn-att}).
 
-  \item [@{text "@{prop \<phi>}"}] prints a well-typed proposition @{text
+  \item @{text "@{prop \<phi>}"} prints a well-typed proposition @{text
   "\<phi>"}.
 
-  \item [@{text "@{lemma \<phi> by m}"}] proves a well-typed proposition
+  \item @{text "@{lemma \<phi> by m}"} proves a well-typed proposition
   @{text "\<phi>"} by method @{text m} and prints the original @{text "\<phi>"}.
 
-  \item [@{text "@{term t}"}] prints a well-typed term @{text "t"}.
+  \item @{text "@{term t}"} prints a well-typed term @{text "t"}.
 
-  \item [@{text "@{const c}"}] prints a logical or syntactic constant
+  \item @{text "@{const c}"} prints a logical or syntactic constant
   @{text "c"}.
   
-  \item [@{text "@{abbrev c x\<^sub>1 \<dots> x\<^sub>n}"}] prints a constant
-  abbreviation @{text "c x\<^sub>1 \<dots> x\<^sub>n \<equiv> rhs"} as defined in
-  the current context.
+  \item @{text "@{abbrev c x\<^sub>1 \<dots> x\<^sub>n}"} prints a constant abbreviation
+  @{text "c x\<^sub>1 \<dots> x\<^sub>n \<equiv> rhs"} as defined in the current context.
 
-  \item [@{text "@{typeof t}"}] prints the type of a well-typed term
+  \item @{text "@{typeof t}"} prints the type of a well-typed term
   @{text "t"}.
 
-  \item [@{text "@{typ \<tau>}"}] prints a well-formed type @{text "\<tau>"}.
+  \item @{text "@{typ \<tau>}"} prints a well-formed type @{text "\<tau>"}.
   
-  \item [@{text "@{thm_style s a}"}] prints theorem @{text a},
+  \item @{text "@{thm_style s a}"} prints theorem @{text a},
   previously applying a style @{text s} to it (see below).
   
-  \item [@{text "@{term_style s t}"}] prints a well-typed term @{text
-  t} after applying a style @{text s} to it (see below).
+  \item @{text "@{term_style s t}"} prints a well-typed term @{text t}
+  after applying a style @{text s} to it (see below).
 
-  \item [@{text "@{text s}"}] prints uninterpreted source text @{text
+  \item @{text "@{text s}"} prints uninterpreted source text @{text
   s}.  This is particularly useful to print portions of text according
   to the Isabelle document style, without demanding well-formedness,
   e.g.\ small pieces of terms that should not be parsed or
   type-checked yet.
 
-  \item [@{text "@{goals}"}] prints the current \emph{dynamic} goal
+  \item @{text "@{goals}"} prints the current \emph{dynamic} goal
   state.  This is mainly for support of tactic-emulation scripts
   within Isar.  Presentation of goal states does not conform to the
   idea of human-readable proof documents!
@@ -265,24 +264,24 @@ text {*
   the reasoning via proper Isar proof commands, instead of peeking at
   the internal machine configuration.
   
-  \item [@{text "@{subgoals}"}] is similar to @{text "@{goals}"}, but
+  \item @{text "@{subgoals}"} is similar to @{text "@{goals}"}, but
   does not print the main goal.
   
-  \item [@{text "@{prf a\<^sub>1 \<dots> a\<^sub>n}"}] prints the (compact) proof terms
+  \item @{text "@{prf a\<^sub>1 \<dots> a\<^sub>n}"} prints the (compact) proof terms
   corresponding to the theorems @{text "a\<^sub>1 \<dots> a\<^sub>n"}. Note that this
   requires proof terms to be switched on for the current logic
   session.
   
-  \item [@{text "@{full_prf a\<^sub>1 \<dots> a\<^sub>n}"}] is like @{text
-  "@{prf a\<^sub>1 \<dots> a\<^sub>n}"}, but prints the full proof terms, i.e.\ also
-  displays information omitted in the compact proof term, which is
-  denoted by ``@{text _}'' placeholders there.
+  \item @{text "@{full_prf a\<^sub>1 \<dots> a\<^sub>n}"} is like @{text "@{prf a\<^sub>1 \<dots>
+  a\<^sub>n}"}, but prints the full proof terms, i.e.\ also displays
+  information omitted in the compact proof term, which is denoted by
+  ``@{text _}'' placeholders there.
   
-  \item [@{text "@{ML s}"}, @{text "@{ML_type s}"}, and @{text
-  "@{ML_struct s}"}] check text @{text s} as ML value, type, and
+  \item @{text "@{ML s}"}, @{text "@{ML_type s}"}, and @{text
+  "@{ML_struct s}"} check text @{text s} as ML value, type, and
   structure, respectively.  The source is printed verbatim.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -292,23 +291,23 @@ text {* Some antiquotations like @{text thm_style} and @{text
   term_style} admit an extra \emph{style} specification to modify the
   printed result.  The following standard styles are available:
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{text lhs}] extracts the first argument of any application
+  \item @{text lhs} extracts the first argument of any application
   form with at least two arguments --- typically meta-level or
   object-level equality, or any other binary relation.
   
-  \item [@{text rhs}] is like @{text lhs}, but extracts the second
+  \item @{text rhs} is like @{text lhs}, but extracts the second
   argument.
   
-  \item [@{text "concl"}] extracts the conclusion @{text C} from a rule
+  \item @{text "concl"} extracts the conclusion @{text C} from a rule
   in Horn-clause normal form @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C"}.
   
-  \item [@{text "prem1"}, \dots, @{text "prem9"}] extract premise
-  number @{text "1, \<dots>, 9"}, respectively, from from a rule in
-  Horn-clause normal form @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C"}
+  \item @{text "prem1"}, \dots, @{text "prem9"} extract premise number
+  @{text "1, \<dots>, 9"}, respectively, from from a rule in Horn-clause
+  normal form @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> C"}
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -318,63 +317,63 @@ text {* The following options are available to tune the printed output
   of antiquotations.  Note that many of these coincide with global ML
   flags of the same names.
 
-  \begin{descr}
+  \begin{description}
 
-  \item[@{text "show_types = bool"} and @{text "show_sorts = bool"}]
+  \item @{text "show_types = bool"} and @{text "show_sorts = bool"}
   control printing of explicit type and sort constraints.
 
-  \item[@{text "show_structs = bool"}] controls printing of implicit
+  \item @{text "show_structs = bool"} controls printing of implicit
   structures.
 
-  \item[@{text "long_names = bool"}] forces names of types and
+  \item @{text "long_names = bool"} forces names of types and
   constants etc.\ to be printed in their fully qualified internal
   form.
 
-  \item[@{text "short_names = bool"}] forces names of types and
+  \item @{text "short_names = bool"} forces names of types and
   constants etc.\ to be printed unqualified.  Note that internalizing
   the output again in the current context may well yield a different
   result.
 
-  \item[@{text "unique_names = bool"}] determines whether the printed
+  \item @{text "unique_names = bool"} determines whether the printed
   version of qualified names should be made sufficiently long to avoid
   overlap with names declared further back.  Set to @{text false} for
   more concise output.
 
-  \item[@{text "eta_contract = bool"}] prints terms in @{text
+  \item @{text "eta_contract = bool"} prints terms in @{text
   \<eta>}-contracted form.
 
-  \item[@{text "display = bool"}] indicates if the text is to be
-  output as multi-line ``display material'', rather than a small piece
-  of text without line breaks (which is the default).
+  \item @{text "display = bool"} indicates if the text is to be output
+  as multi-line ``display material'', rather than a small piece of
+  text without line breaks (which is the default).
 
   In this mode the embedded entities are printed in the same style as
   the main theory text.
 
-  \item[@{text "break = bool"}] controls line breaks in non-display
+  \item @{text "break = bool"} controls line breaks in non-display
   material.
 
-  \item[@{text "quotes = bool"}] indicates if the output should be
+  \item @{text "quotes = bool"} indicates if the output should be
   enclosed in double quotes.
 
-  \item[@{text "mode = name"}] adds @{text name} to the print mode to
+  \item @{text "mode = name"} adds @{text name} to the print mode to
   be used for presentation (see also \cite{isabelle-ref}).  Note that
   the standard setup for {\LaTeX} output is already present by
   default, including the modes @{text latex} and @{text xsymbols}.
 
-  \item[@{text "margin = nat"} and @{text "indent = nat"}] change the
+  \item @{text "margin = nat"} and @{text "indent = nat"} change the
   margin or indentation for pretty printing of display material.
 
-  \item[@{text "goals_limit = nat"}] determines the maximum number of
+  \item @{text "goals_limit = nat"} determines the maximum number of
   goals to be printed (for goal-based antiquotation).
 
-  \item[@{text "locale = name"}] specifies an alternative locale
+  \item @{text "locale = name"} specifies an alternative locale
   context used for evaluating and printing the subsequent argument.
 
-  \item[@{text "source = bool"}] prints the original source text of
-  the antiquotation arguments, rather than its internal
-  representation.  Note that formal checking of @{antiquotation
-  "thm"}, @{antiquotation "term"}, etc. is still enabled; use the
-  @{antiquotation "text"} antiquotation for unchecked output.
+  \item @{text "source = bool"} prints the original source text of the
+  antiquotation arguments, rather than its internal representation.
+  Note that formal checking of @{antiquotation "thm"}, @{antiquotation
+  "term"}, etc. is still enabled; use the @{antiquotation "text"}
+  antiquotation for unchecked output.
 
   Regular @{text "term"} and @{text "typ"} antiquotations with @{text
   "source = false"} involve a full round-trip from the original source
@@ -387,7 +386,7 @@ text {* The following options are available to tune the printed output
   given source text, with the desirable well-formedness check in the
   background, but without modification of the printed text.
 
-  \end{descr}
+  \end{description}
 
   For boolean flags, ``@{text "name = true"}'' may be abbreviated as
   ``@{text name}''.  All of the above flags are disabled by default,
@@ -462,15 +461,15 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "display_drafts"}~@{text paths} and @{command
-  "print_drafts"}~@{text paths}] perform simple output of a given list
+  \item @{command "display_drafts"}~@{text paths} and @{command
+  "print_drafts"}~@{text paths} perform simple output of a given list
   of raw source files.  Only those symbols that do not require
   additional {\LaTeX} packages are displayed properly, everything else
   is left verbatim.
 
-  \end{descr}
+  \end{description}
 *}
 
 end

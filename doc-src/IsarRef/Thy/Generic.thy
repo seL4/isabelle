@@ -32,18 +32,17 @@ text {*
     name ('=' ('true' | 'false' | int | name))?
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "print_configs"}] prints the available
-  configuration options, with names, types, and current values.
+  \item @{command "print_configs"} prints the available configuration
+  options, with names, types, and current values.
   
-  \item [@{text "name = value"}] as an attribute expression modifies
-  the named option, with the syntax of the value depending on the
-  option's type.  For @{ML_type bool} the default value is @{text
-  true}.  Any attempt to change a global option in a local context is
-  ignored.
+  \item @{text "name = value"} as an attribute expression modifies the
+  named option, with the syntax of the value depending on the option's
+  type.  For @{ML_type bool} the default value is @{text true}.  Any
+  attempt to change a global option in a local context is ignored.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -70,25 +69,24 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{method unfold}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{method
-  fold}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] expand (or fold back) the
-  given definitions throughout all goals; any chained facts provided
-  are inserted into the goal and subject to rewriting as well.
+  \item @{method unfold}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{method fold}~@{text
+  "a\<^sub>1 \<dots> a\<^sub>n"} expand (or fold back) the given definitions throughout
+  all goals; any chained facts provided are inserted into the goal and
+  subject to rewriting as well.
 
-  \item [@{method insert}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] inserts
-  theorems as facts into all goals of the proof state.  Note that
-  current facts indicated for forward chaining are ignored.
+  \item @{method insert}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} inserts theorems as facts
+  into all goals of the proof state.  Note that current facts
+  indicated for forward chaining are ignored.
 
-  \item [@{method erule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}, @{method
-  drule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}, and @{method frule}~@{text
-  "a\<^sub>1 \<dots> a\<^sub>n"}] are similar to the basic @{method rule}
-  method (see \secref{sec:pure-meth-att}), but apply rules by
-  elim-resolution, destruct-resolution, and forward-resolution,
-  respectively \cite{isabelle-ref}.  The optional natural number
-  argument (default 0) specifies additional assumption steps to be
-  performed here.
+  \item @{method erule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}, @{method drule}~@{text "a\<^sub>1
+  \<dots> a\<^sub>n"}, and @{method frule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} are similar to the
+  basic @{method rule} method (see \secref{sec:pure-meth-att}), but
+  apply rules by elim-resolution, destruct-resolution, and
+  forward-resolution, respectively \cite{isabelle-ref}.  The optional
+  natural number argument (default 0) specifies additional assumption
+  steps to be performed here.
 
   Note that these methods are improper ones, mainly serving for
   experimentation and tactic script emulation.  Different modes of
@@ -98,15 +96,15 @@ text {*
   the plain @{method rule} method, with forward chaining of current
   facts.
 
-  \item [@{method succeed}] yields a single (unchanged) result; it is
+  \item @{method succeed} yields a single (unchanged) result; it is
   the identity of the ``@{text ","}'' method combinator (cf.\
   \secref{sec:proof-meth}).
 
-  \item [@{method fail}] yields an empty result sequence; it is the
+  \item @{method fail} yields an empty result sequence; it is the
   identity of the ``@{text "|"}'' method combinator (cf.\
   \secref{sec:proof-meth}).
 
-  \end{descr}
+  \end{description}
 
   \begin{matharray}{rcl}
     @{attribute_def tagged} & : & \isaratt \\
@@ -133,45 +131,45 @@ text {*
     'rotated' ( int )?
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{attribute tagged}~@{text "name arg"} and @{attribute
-  untagged}~@{text name}] add and remove \emph{tags} of some theorem.
+  \item @{attribute tagged}~@{text "name arg"} and @{attribute
+  untagged}~@{text name} add and remove \emph{tags} of some theorem.
   Tags may be any list of string pairs that serve as formal comment.
   The first string is considered the tag name, the second its
   argument.  Note that @{attribute untagged} removes any tags of the
   same name.
 
-  \item [@{attribute THEN}~@{text a} and @{attribute COMP}~@{text a}]
+  \item @{attribute THEN}~@{text a} and @{attribute COMP}~@{text a}
   compose rules by resolution.  @{attribute THEN} resolves with the
   first premise of @{text a} (an alternative position may be also
   specified); the @{attribute COMP} version skips the automatic
   lifting process that is normally intended (cf.\ @{ML "op RS"} and
   @{ML "op COMP"} in \cite[\S5]{isabelle-ref}).
   
-  \item [@{attribute unfolded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and
-  @{attribute folded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] expand and fold
-  back again the given definitions throughout a rule.
+  \item @{attribute unfolded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{attribute
+  folded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} expand and fold back again the given
+  definitions throughout a rule.
 
-  \item [@{attribute rotated}~@{text n}] rotate the premises of a
+  \item @{attribute rotated}~@{text n} rotate the premises of a
   theorem by @{text n} (default 1).
 
-  \item [@{attribute (Pure) elim_format}] turns a destruction rule
-  into elimination rule format, by resolving with the rule @{prop
-  "PROP A \<Longrightarrow> (PROP A \<Longrightarrow> PROP B) \<Longrightarrow> PROP B"}.
+  \item @{attribute (Pure) elim_format} turns a destruction rule into
+  elimination rule format, by resolving with the rule @{prop "PROP A \<Longrightarrow>
+  (PROP A \<Longrightarrow> PROP B) \<Longrightarrow> PROP B"}.
   
   Note that the Classical Reasoner (\secref{sec:classical}) provides
   its own version of this operation.
 
-  \item [@{attribute standard}] puts a theorem into the standard form
-  of object-rules at the outermost theory level.  Note that this
+  \item @{attribute standard} puts a theorem into the standard form of
+  object-rules at the outermost theory level.  Note that this
   operation violates the local proof context (including active
   locales).
 
-  \item [@{attribute no_vars}] replaces schematic variables by free
+  \item @{attribute no_vars} replaces schematic variables by free
   ones; this is mainly for tuning output of pretty printed theorems.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -198,48 +196,48 @@ text {*
   provide the canonical way for automated normalization (see
   \secref{sec:simplifier}).
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{method subst}~@{text eq}] performs a single substitution
-  step using rule @{text eq}, which may be either a meta or object
+  \item @{method subst}~@{text eq} performs a single substitution step
+  using rule @{text eq}, which may be either a meta or object
   equality.
 
-  \item [@{method subst}~@{text "(asm) eq"}] substitutes in an
+  \item @{method subst}~@{text "(asm) eq"} substitutes in an
   assumption.
 
-  \item [@{method subst}~@{text "(i \<dots> j) eq"}] performs several
+  \item @{method subst}~@{text "(i \<dots> j) eq"} performs several
   substitutions in the conclusion. The numbers @{text i} to @{text j}
   indicate the positions to substitute at.  Positions are ordered from
   the top of the term tree moving down from left to right. For
   example, in @{text "(a + b) + (c + d)"} there are three positions
-  where commutativity of @{text "+"} is applicable: 1 refers to
-  @{text "a + b"}, 2 to the whole term, and 3 to @{text "c + d"}.
+  where commutativity of @{text "+"} is applicable: 1 refers to @{text
+  "a + b"}, 2 to the whole term, and 3 to @{text "c + d"}.
 
   If the positions in the list @{text "(i \<dots> j)"} are non-overlapping
   (e.g.\ @{text "(2 3)"} in @{text "(a + b) + (c + d)"}) you may
   assume all substitutions are performed simultaneously.  Otherwise
   the behaviour of @{text subst} is not specified.
 
-  \item [@{method subst}~@{text "(asm) (i \<dots> j) eq"}] performs the
+  \item @{method subst}~@{text "(asm) (i \<dots> j) eq"} performs the
   substitutions in the assumptions. The positions refer to the
   assumptions in order from left to right.  For example, given in a
   goal of the form @{text "P (a + b) \<Longrightarrow> P (c + d) \<Longrightarrow> \<dots>"}, position 1 of
   commutativity of @{text "+"} is the subterm @{text "a + b"} and
   position 2 is the subterm @{text "c + d"}.
 
-  \item [@{method hypsubst}] performs substitution using some
+  \item @{method hypsubst} performs substitution using some
   assumption; this only works for equations of the form @{text "x =
   t"} where @{text x} is a free or bound variable.
 
-  \item [@{method split}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] performs
-  single-step case splitting using the given rules.  By default,
-  splitting is performed in the conclusion of a goal; the @{text
-  "(asm)"} option indicates to operate on assumptions instead.
+  \item @{method split}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} performs single-step case
+  splitting using the given rules.  By default, splitting is performed
+  in the conclusion of a goal; the @{text "(asm)"} option indicates to
+  operate on assumptions instead.
   
   Note that the @{method simp} method already involves repeated
   application of split rules as declared in the current context.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -304,9 +302,9 @@ text {*
     ;
   \end{rail}
 
-\begin{descr}
+\begin{description}
 
-  \item [@{method rule_tac} etc.] do resolution of rules with explicit
+  \item @{method rule_tac} etc. do resolution of rules with explicit
   instantiation.  This works the same way as the ML tactics @{ML
   res_inst_tac} etc. (see \cite[\S3]{isabelle-ref})
 
@@ -314,46 +312,45 @@ text {*
   @{method rule_tac} is the same as @{ML resolve_tac} in ML (see
   \cite[\S3]{isabelle-ref}).
 
-  \item [@{method cut_tac}] inserts facts into the proof state as
+  \item @{method cut_tac} inserts facts into the proof state as
   assumption of a subgoal, see also @{ML Tactic.cut_facts_tac} in
   \cite[\S3]{isabelle-ref}.  Note that the scope of schematic
   variables is spread over the main goal statement.  Instantiations
-  may be given as well, see also ML tactic @{ML cut_inst_tac}
-  in \cite[\S3]{isabelle-ref}.
-
-  \item [@{method thin_tac}~@{text \<phi>}] deletes the specified
-  assumption from a subgoal; note that @{text \<phi>} may contain schematic
-  variables.  See also @{ML thin_tac} in
+  may be given as well, see also ML tactic @{ML cut_inst_tac} in
   \cite[\S3]{isabelle-ref}.
 
-  \item [@{method subgoal_tac}~@{text \<phi>}] adds @{text \<phi>} as an
+  \item @{method thin_tac}~@{text \<phi>} deletes the specified assumption
+  from a subgoal; note that @{text \<phi>} may contain schematic variables.
+  See also @{ML thin_tac} in \cite[\S3]{isabelle-ref}.
+
+  \item @{method subgoal_tac}~@{text \<phi>} adds @{text \<phi>} as an
   assumption to a subgoal.  See also @{ML subgoal_tac} and @{ML
   subgoals_tac} in \cite[\S3]{isabelle-ref}.
 
-  \item [@{method rename_tac}~@{text "x\<^sub>1 \<dots> x\<^sub>n"}] renames
-  parameters of a goal according to the list @{text "x\<^sub>1, \<dots>,
-  x\<^sub>n"}, which refers to the \emph{suffix} of variables.
+  \item @{method rename_tac}~@{text "x\<^sub>1 \<dots> x\<^sub>n"} renames parameters of a
+  goal according to the list @{text "x\<^sub>1, \<dots>, x\<^sub>n"}, which refers to the
+  \emph{suffix} of variables.
 
-  \item [@{method rotate_tac}~@{text n}] rotates the assumptions of a
+  \item @{method rotate_tac}~@{text n} rotates the assumptions of a
   goal by @{text n} positions: from right to left if @{text n} is
   positive, and from left to right if @{text n} is negative; the
   default value is 1.  See also @{ML rotate_tac} in
   \cite[\S3]{isabelle-ref}.
 
-  \item [@{method tactic}~@{text "text"}] produces a proof method from
+  \item @{method tactic}~@{text "text"} produces a proof method from
   any ML text of type @{ML_type tactic}.  Apart from the usual ML
   environment and the current proof context, the ML code may refer to
   the locally bound values @{ML_text facts}, which indicates any
   current facts used for forward-chaining.
 
-  \item [@{method raw_tactic}] is similar to @{method tactic}, but
+  \item @{method raw_tactic} is similar to @{method tactic}, but
   presents the goal state in its raw internal form, where simultaneous
   subgoals appear as conjunction of the logical framework instead of
   the usual split into several subgoals.  While feature this is useful
   for debugging of complex method definitions, it should not never
   appear in production theories.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -379,9 +376,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{method simp}] invokes the Simplifier, after declaring
+  \item @{method simp} invokes the Simplifier, after declaring
   additional rules according to the arguments given.  Note that the
   \railtterm{only} modifier first removes all other rewrite rules,
   congruences, and looper tactics (including splits), and then behaves
@@ -397,10 +394,10 @@ text {*
   include the Splitter (all major object logics such HOL, HOLCF, FOL,
   ZF do this already).
 
-  \item [@{method simp_all}] is similar to @{method simp}, but acts on
+  \item @{method simp_all} is similar to @{method simp}, but acts on
   all goals (backwards from the last to the first one).
 
-  \end{descr}
+  \end{description}
 
   By default the Simplifier methods take local assumptions fully into
   account, using equational assumptions in the subsequent
@@ -453,19 +450,19 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "print_simpset"}] prints the collection of rules
+  \item @{command "print_simpset"} prints the collection of rules
   declared to the Simplifier, which is also known as ``simpset''
   internally \cite{isabelle-ref}.
 
-  \item [@{attribute simp}] declares simplification rules.
+  \item @{attribute simp} declares simplification rules.
 
-  \item [@{attribute cong}] declares congruence rules.
+  \item @{attribute cong} declares congruence rules.
 
-  \item [@{attribute split}] declares case split rules.
+  \item @{attribute split} declares case split rules.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -485,9 +482,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "simproc_setup"}] defines a named simplification
+  \item @{command "simproc_setup"} defines a named simplification
   procedure that is invoked by the Simplifier whenever any of the
   given term patterns match the current redex.  The implementation,
   which is provided as ML source text, needs to be of type @{ML_type
@@ -506,12 +503,12 @@ text {*
   Morphisms and identifiers are only relevant for simprocs that are
   defined within a local target context, e.g.\ in a locale.
 
-  \item [@{text "simproc add: name"} and @{text "simproc del: name"}]
+  \item @{text "simproc add: name"} and @{text "simproc del: name"}
   add or delete named simprocs to the current Simplifier context.  The
   default is to add a simproc.  Note that @{command "simproc_setup"}
   already adds the new simproc to the subsequent context.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -530,15 +527,14 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{attribute simplified}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}]
-  causes a theorem to be simplified, either by exactly the specified
-  rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"}, or the implicit Simplifier
-  context if no arguments are given.  The result is fully simplified
-  by default, including assumptions and conclusion; the options @{text
-  no_asm} etc.\ tune the Simplifier in the same way as the for the
-  @{text simp} method.
+  \item @{attribute simplified}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} causes a theorem to
+  be simplified, either by exactly the specified rules @{text "a\<^sub>1, \<dots>,
+  a\<^sub>n"}, or the implicit Simplifier context if no arguments are given.
+  The result is fully simplified by default, including assumptions and
+  conclusion; the options @{text no_asm} etc.\ tune the Simplifier in
+  the same way as the for the @{text simp} method.
 
   Note that forward simplification restricts the simplifier to its
   most basic operation of term rewriting; solver and looper tactics
@@ -546,7 +542,7 @@ text {*
   simplified} attribute should be only rarely required under normal
   circumstances.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -567,9 +563,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{method rule}] as offered by the Classical Reasoner is a
+  \item @{method rule} as offered by the Classical Reasoner is a
   refinement over the primitive one (see \secref{sec:pure-meth-att}).
   Both versions essentially work the same, but the classical version
   observes the classical rule context in addition to that of
@@ -580,18 +576,18 @@ text {*
   ones), but only few declarations to the rule context of
   Isabelle/Pure (\secref{sec:pure-meth-att}).
 
-  \item [@{method contradiction}] solves some goal by contradiction,
+  \item @{method contradiction} solves some goal by contradiction,
   deriving any result from both @{text "\<not> A"} and @{text A}.  Chained
   facts, which are guaranteed to participate, may appear in either
   order.
 
-  \item [@{method intro} and @{method elim}] repeatedly refine some
-  goal by intro- or elim-resolution, after having inserted any chained
+  \item @{method intro} and @{method elim} repeatedly refine some goal
+  by intro- or elim-resolution, after having inserted any chained
   facts.  Exactly the rules given as arguments are taken into account;
   this allows fine-tuned decomposition of a proof problem, in contrast
   to common automated tools.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -618,19 +614,19 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{method blast}] refers to the classical tableau prover (see
+  \item @{method blast} refers to the classical tableau prover (see
   @{ML blast_tac} in \cite[\S11]{isabelle-ref}).  The optional
   argument specifies a user-supplied search bound (default 20).
 
-  \item [@{method fast}, @{method slow}, @{method best}, @{method
-  safe}, and @{method clarify}] refer to the generic classical
+  \item @{method fast}, @{method slow}, @{method best}, @{method
+  safe}, and @{method clarify} refer to the generic classical
   reasoner.  See @{ML fast_tac}, @{ML slow_tac}, @{ML best_tac}, @{ML
   safe_tac}, and @{ML clarify_tac} in \cite[\S11]{isabelle-ref} for
   more information.
 
-  \end{descr}
+  \end{description}
 
   Any of the above methods support additional modifiers of the context
   of classical rules.  Their semantics is analogous to the attributes
@@ -666,11 +662,11 @@ text {*
       (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' thmrefs
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{method auto}, @{method force}, @{method clarsimp}, @{method
-  fastsimp}, @{method slowsimp}, and @{method bestsimp}] provide
-  access to Isabelle's combined simplification and classical reasoning
+  \item @{method auto}, @{method force}, @{method clarsimp}, @{method
+  fastsimp}, @{method slowsimp}, and @{method bestsimp} provide access
+  to Isabelle's combined simplification and classical reasoning
   tactics.  These correspond to @{ML auto_tac}, @{ML force_tac}, @{ML
   clarsimp_tac}, and Classical Reasoner tactics with the Simplifier
   added as wrapper, see \cite[\S11]{isabelle-ref} for more
@@ -683,7 +679,7 @@ text {*
   doing the search.  The ``@{text "!"}'' argument causes the full
   context of assumptions to be included as well.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -708,13 +704,13 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "print_claset"}] prints the collection of rules
+  \item @{command "print_claset"} prints the collection of rules
   declared to the Classical Reasoner, which is also known as
   ``claset'' internally \cite{isabelle-ref}.
   
-  \item [@{attribute intro}, @{attribute elim}, and @{attribute dest}]
+  \item @{attribute intro}, @{attribute elim}, and @{attribute dest}
   declare introduction, elimination, and destruction rules,
   respectively.  By default, rules are considered as \emph{unsafe}
   (i.e.\ not applied blindly without backtracking), while ``@{text
@@ -725,10 +721,10 @@ text {*
   specifies an explicit weight argument, which is ignored by automated
   tools, but determines the search order of single rule steps.
 
-  \item [@{attribute rule}~@{text del}] deletes introduction,
+  \item @{attribute rule}~@{text del} deletes introduction,
   elimination, or destruction rules from the context.
 
-  \item [@{attribute iff}] declares logical equivalences to the
+  \item @{attribute iff} declares logical equivalences to the
   Simplifier and the Classical reasoner at the same time.
   Non-conditional rules result in a ``safe'' introduction and
   elimination pair; conditional ones are considered ``unsafe''.  Rules
@@ -739,7 +735,7 @@ text {*
   the Isabelle/Pure context only, and omits the Simplifier
   declaration.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -750,13 +746,13 @@ text {*
     @{attribute_def swapped} & : & \isaratt \\
   \end{matharray}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{attribute swapped}] turns an introduction rule into an
+  \item @{attribute swapped} turns an introduction rule into an
   elimination, by resolving with the classical swap principle @{text
   "(\<not> B \<Longrightarrow> A) \<Longrightarrow> (\<not> A \<Longrightarrow> B)"}.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -800,18 +796,18 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "judgment"}~@{text "c :: \<sigma> (mx)"}] declares
-  constant @{text c} as the truth judgment of the current
-  object-logic.  Its type @{text \<sigma>} should specify a coercion of the
-  category of object-level propositions to @{text prop} of the Pure
-  meta-logic; the mixfix annotation @{text "(mx)"} would typically
-  just link the object language (internally of syntactic category
-  @{text logic}) with that of @{text prop}.  Only one @{command
-  "judgment"} declaration may be given in any theory development.
+  \item @{command "judgment"}~@{text "c :: \<sigma> (mx)"} declares constant
+  @{text c} as the truth judgment of the current object-logic.  Its
+  type @{text \<sigma>} should specify a coercion of the category of
+  object-level propositions to @{text prop} of the Pure meta-logic;
+  the mixfix annotation @{text "(mx)"} would typically just link the
+  object language (internally of syntactic category @{text logic})
+  with that of @{text prop}.  Only one @{command "judgment"}
+  declaration may be given in any theory development.
   
-  \item [@{method atomize} (as a method)] rewrites any non-atomic
+  \item @{method atomize} (as a method) rewrites any non-atomic
   premises of a sub-goal, using the meta-level equations declared via
   @{attribute atomize} (as an attribute) beforehand.  As a result,
   heavily nested goals become amenable to fundamental operations such
@@ -826,18 +822,18 @@ text {*
   Meta-level conjunction should be covered as well (this is
   particularly important for locales, see \secref{sec:locale}).
 
-  \item [@{attribute rule_format}] rewrites a theorem by the
-  equalities declared as @{attribute rulify} rules in the current
-  object-logic.  By default, the result is fully normalized, including
-  assumptions and conclusions at any depth.  The @{text "(no_asm)"}
-  option restricts the transformation to the conclusion of a rule.
+  \item @{attribute rule_format} rewrites a theorem by the equalities
+  declared as @{attribute rulify} rules in the current object-logic.
+  By default, the result is fully normalized, including assumptions
+  and conclusions at any depth.  The @{text "(no_asm)"} option
+  restricts the transformation to the conclusion of a rule.
 
   In common object-logics (HOL, FOL, ZF), the effect of @{attribute
   rule_format} is to replace (bounded) universal quantification
   (@{text "\<forall>"}) and implication (@{text "\<longrightarrow>"}) by the corresponding
   rule statements over @{text "\<And>"} and @{text "\<Longrightarrow>"}.
 
-  \end{descr}
+  \end{description}
 *}
 
 end

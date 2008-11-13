@@ -13,24 +13,24 @@ text {*
   facts, and open goals.  Isar/VM transitions are \emph{typed}
   according to the following three different modes of operation:
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{text "proof(prove)"}] means that a new goal has just been
+  \item @{text "proof(prove)"} means that a new goal has just been
   stated that is now to be \emph{proven}; the next command may refine
   it by some proof method, and enter a sub-proof to establish the
   actual result.
 
-  \item [@{text "proof(state)"}] is like a nested theory mode: the
+  \item @{text "proof(state)"} is like a nested theory mode: the
   context may be augmented by \emph{stating} additional assumptions,
   intermediate results etc.
 
-  \item [@{text "proof(chain)"}] is intermediate between @{text
+  \item @{text "proof(chain)"} is intermediate between @{text
   "proof(state)"} and @{text "proof(prove)"}: existing facts (i.e.\
   the contents of the special ``@{fact_ref this}'' register) have been
   just picked up in order to be used when refining the goal claimed
   next.
 
-  \end{descr}
+  \end{description}
 
   The proof mode indicator may be read as a verb telling the writer
   what kind of operation may be performed next.  The corresponding
@@ -67,12 +67,12 @@ text {*
   parentheses as well.  These typically achieve a stronger forward
   style of reasoning.
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "next"}] switches to a fresh block within a
+  \item @{command "next"} switches to a fresh block within a
   sub-proof, resetting the local context to the initial one.
 
-  \item [@{command "{"} and @{command "}"}] explicitly open and close
+  \item @{command "{"} and @{command "}"} explicitly open and close
   blocks.  Any current facts pass through ``@{command "{"}''
   unchanged, while ``@{command "}"}'' causes any result to be
   \emph{exported} into the enclosing context.  Thus fixed variables
@@ -82,7 +82,7 @@ text {*
   forward reasoning --- in contrast to plain backward reasoning with
   the result exported at @{command "show"} time.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -170,13 +170,13 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "fix"}~@{text x}] introduces a local variable
-  @{text x} that is \emph{arbitrary, but fixed.}
+  \item @{command "fix"}~@{text x} introduces a local variable @{text
+  x} that is \emph{arbitrary, but fixed.}
   
-  \item [@{command "assume"}~@{text "a: \<phi>"} and @{command
-  "presume"}~@{text "a: \<phi>"}] introduce a local fact @{text "\<phi> \<turnstile> \<phi>"} by
+  \item @{command "assume"}~@{text "a: \<phi>"} and @{command
+  "presume"}~@{text "a: \<phi>"} introduce a local fact @{text "\<phi> \<turnstile> \<phi>"} by
   assumption.  Subsequent results applied to an enclosing goal (e.g.\
   by @{command_ref "show"}) are handled as follows: @{command
   "assume"} expects to be able to unify with existing premises in the
@@ -186,7 +186,7 @@ text {*
   @{keyword_ref "and"}; the resulting list of current facts consists
   of all of these concatenated.
   
-  \item [@{command "def"}~@{text "x \<equiv> t"}] introduces a local
+  \item @{command "def"}~@{text "x \<equiv> t"} introduces a local
   (non-polymorphic) definition.  In results exported from the context,
   @{text x} is replaced by @{text t}.  Basically, ``@{command
   "def"}~@{text "x \<equiv> t"}'' abbreviates ``@{command "fix"}~@{text
@@ -196,7 +196,7 @@ text {*
   The default name for the definitional equation is @{text x_def}.
   Several simultaneous definitions may be given at the same time.
 
-  \end{descr}
+  \end{description}
 
   The special name @{fact_ref prems} refers to all assumptions of the
   current context as a list of theorems.  This feature should be used
@@ -246,20 +246,18 @@ text {*
   The syntax of @{keyword "is"} patterns follows \railnonterm{termpat}
   or \railnonterm{proppat} (see \secref{sec:term-decls}).
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "let"}~@{text "p\<^sub>1 = t\<^sub>1 \<AND> \<dots>
-  p\<^sub>n = t\<^sub>n"}] binds any text variables in patterns @{text
-  "p\<^sub>1, \<dots>, p\<^sub>n"} by simultaneous higher-order matching
-  against terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"}.
+  \item @{command "let"}~@{text "p\<^sub>1 = t\<^sub>1 \<AND> \<dots> p\<^sub>n = t\<^sub>n"} binds any
+  text variables in patterns @{text "p\<^sub>1, \<dots>, p\<^sub>n"} by simultaneous
+  higher-order matching against terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"}.
 
-  \item [@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}] resembles @{command
-  "let"}, but matches @{text "p\<^sub>1, \<dots>, p\<^sub>n"} against the
-  preceding statement.  Also note that @{keyword "is"} is not a
-  separate command, but part of others (such as @{command "assume"},
-  @{command "have"} etc.).
+  \item @{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"} resembles @{command "let"}, but
+  matches @{text "p\<^sub>1, \<dots>, p\<^sub>n"} against the preceding statement.  Also
+  note that @{keyword "is"} is not a separate command, but part of
+  others (such as @{command "assume"}, @{command "have"} etc.).
 
-  \end{descr}
+  \end{description}
 
   Some \emph{implicit} term abbreviations\index{term abbreviations}
   for goals and facts are available as well.  For any open goal,
@@ -304,14 +302,14 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "note"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}]
-  recalls existing facts @{text "b\<^sub>1, \<dots>, b\<^sub>n"}, binding
-  the result as @{text a}.  Note that attributes may be involved as
-  well, both on the left and right hand sides.
+  \item @{command "note"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"} recalls existing facts
+  @{text "b\<^sub>1, \<dots>, b\<^sub>n"}, binding the result as @{text a}.  Note that
+  attributes may be involved as well, both on the left and right hand
+  sides.
 
-  \item [@{command "then"}] indicates forward chaining by the current
+  \item @{command "then"} indicates forward chaining by the current
   facts in order to establish the goal to be claimed next.  The
   initial proof method invoked to refine that will be offered the
   facts to do ``anything appropriate'' (see also
@@ -321,26 +319,23 @@ text {*
   facts into the goal state before operation.  This provides a simple
   scheme to control relevance of facts in automated proof search.
   
-  \item [@{command "from"}~@{text b}] abbreviates ``@{command
+  \item @{command "from"}~@{text b} abbreviates ``@{command
   "note"}~@{text b}~@{command "then"}''; thus @{command "then"} is
   equivalent to ``@{command "from"}~@{text this}''.
   
-  \item [@{command "with"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"}]
-  abbreviates ``@{command "from"}~@{text "b\<^sub>1 \<dots> b\<^sub>n \<AND>
-  this"}''; thus the forward chaining is from earlier facts together
-  with the current ones.
+  \item @{command "with"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} abbreviates ``@{command
+  "from"}~@{text "b\<^sub>1 \<dots> b\<^sub>n \<AND> this"}''; thus the forward chaining
+  is from earlier facts together with the current ones.
   
-  \item [@{command "using"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"}] augments
-  the facts being currently indicated for use by a subsequent
-  refinement step (such as @{command_ref "apply"} or @{command_ref
-  "proof"}).
+  \item @{command "using"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} augments the facts being
+  currently indicated for use by a subsequent refinement step (such as
+  @{command_ref "apply"} or @{command_ref "proof"}).
   
-  \item [@{command "unfolding"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"}] is
-  structurally similar to @{command "using"}, but unfolds definitional
-  equations @{text "b\<^sub>1, \<dots> b\<^sub>n"} throughout the goal state
-  and facts.
+  \item @{command "unfolding"}~@{text "b\<^sub>1 \<dots> b\<^sub>n"} is structurally
+  similar to @{command "using"}, but unfolds definitional equations
+  @{text "b\<^sub>1, \<dots> b\<^sub>n"} throughout the goal state and facts.
 
-  \end{descr}
+  \end{description}
 
   Forward chaining with an empty list of theorems is the same as not
   chaining at all.  Thus ``@{command "from"}~@{text nothing}'' has no
@@ -426,9 +421,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "lemma"}~@{text "a: \<phi>"}] enters proof mode with
+  \item @{command "lemma"}~@{text "a: \<phi>"} enters proof mode with
   @{text \<phi>} as main goal, eventually resulting in some fact @{text "\<turnstile>
   \<phi>"} to be put back into the target context.  An additional
   \railnonterm{context} specification may build up an initial proof
@@ -436,20 +431,20 @@ text {*
   and syntax as well, see the definition of @{syntax contextelem} in
   \secref{sec:locale}.
   
-  \item [@{command "theorem"}~@{text "a: \<phi>"} and @{command
-  "corollary"}~@{text "a: \<phi>"}] are essentially the same as @{command
+  \item @{command "theorem"}~@{text "a: \<phi>"} and @{command
+  "corollary"}~@{text "a: \<phi>"} are essentially the same as @{command
   "lemma"}~@{text "a: \<phi>"}, but the facts are internally marked as
   being of a different kind.  This discrimination acts like a formal
   comment.
   
-  \item [@{command "have"}~@{text "a: \<phi>"}] claims a local goal,
+  \item @{command "have"}~@{text "a: \<phi>"} claims a local goal,
   eventually resulting in a fact within the current logical context.
   This operation is completely independent of any pending sub-goals of
   an enclosing goal statements, so @{command "have"} may be freely
   used for experimental exploration of potential results within a
   proof body.
   
-  \item [@{command "show"}~@{text "a: \<phi>"}] is like @{command
+  \item @{command "show"}~@{text "a: \<phi>"} is like @{command
   "have"}~@{text "a: \<phi>"} plus a second stage to refine some pending
   sub-goal for each one of the finished result, after having been
   exported into the corresponding context (at the head of the
@@ -466,20 +461,20 @@ text {*
   Problem! Local statement will fail to solve any pending goal
   \end{ttbox}
   
-  \item [@{command "hence"}] abbreviates ``@{command "then"}~@{command
+  \item @{command "hence"} abbreviates ``@{command "then"}~@{command
   "have"}'', i.e.\ claims a local goal to be proven by forward
   chaining the current facts.  Note that @{command "hence"} is also
   equivalent to ``@{command "from"}~@{text this}~@{command "have"}''.
   
-  \item [@{command "thus"}] abbreviates ``@{command "then"}~@{command
+  \item @{command "thus"} abbreviates ``@{command "then"}~@{command
   "show"}''.  Note that @{command "thus"} is also equivalent to
   ``@{command "from"}~@{text this}~@{command "show"}''.
   
-  \item [@{command "print_statement"}~@{text a}] prints facts from the
+  \item @{command "print_statement"}~@{text a} prints facts from the
   current theory or proof context in long statement form, according to
   the syntax for @{command "lemma"} given above.
 
-  \end{descr}
+  \end{description}
 
   Any goal statement causes some term abbreviations (such as
   @{variable_ref "?thesis"}) to be bound automatically, see also
@@ -621,45 +616,43 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "proof"}~@{text "m\<^sub>1"}] refines the goal by
-  proof method @{text "m\<^sub>1"}; facts for forward chaining are
-  passed if so indicated by @{text "proof(chain)"} mode.
+  \item @{command "proof"}~@{text "m\<^sub>1"} refines the goal by proof
+  method @{text "m\<^sub>1"}; facts for forward chaining are passed if so
+  indicated by @{text "proof(chain)"} mode.
   
-  \item [@{command "qed"}~@{text "m\<^sub>2"}] refines any remaining
-  goals by proof method @{text "m\<^sub>2"} and concludes the
-  sub-proof by assumption.  If the goal had been @{text "show"} (or
-  @{text "thus"}), some pending sub-goal is solved as well by the rule
-  resulting from the result \emph{exported} into the enclosing goal
-  context.  Thus @{text "qed"} may fail for two reasons: either @{text
-  "m\<^sub>2"} fails, or the resulting rule does not fit to any
-  pending goal\footnote{This includes any additional ``strong''
-  assumptions as introduced by @{command "assume"}.} of the enclosing
-  context.  Debugging such a situation might involve temporarily
-  changing @{command "show"} into @{command "have"}, or weakening the
-  local context by replacing occurrences of @{command "assume"} by
-  @{command "presume"}.
+  \item @{command "qed"}~@{text "m\<^sub>2"} refines any remaining goals by
+  proof method @{text "m\<^sub>2"} and concludes the sub-proof by assumption.
+  If the goal had been @{text "show"} (or @{text "thus"}), some
+  pending sub-goal is solved as well by the rule resulting from the
+  result \emph{exported} into the enclosing goal context.  Thus @{text
+  "qed"} may fail for two reasons: either @{text "m\<^sub>2"} fails, or the
+  resulting rule does not fit to any pending goal\footnote{This
+  includes any additional ``strong'' assumptions as introduced by
+  @{command "assume"}.} of the enclosing context.  Debugging such a
+  situation might involve temporarily changing @{command "show"} into
+  @{command "have"}, or weakening the local context by replacing
+  occurrences of @{command "assume"} by @{command "presume"}.
   
-  \item [@{command "by"}~@{text "m\<^sub>1 m\<^sub>2"}] is a
-  \emph{terminal proof}\index{proof!terminal}; it abbreviates
-  @{command "proof"}~@{text "m\<^sub>1"}~@{text "qed"}~@{text
-  "m\<^sub>2"}, but with backtracking across both methods.  Debugging
-  an unsuccessful @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"}
-  command can be done by expanding its definition; in many cases
-  @{command "proof"}~@{text "m\<^sub>1"} (or even @{text
-  "apply"}~@{text "m\<^sub>1"}) is already sufficient to see the
+  \item @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} is a \emph{terminal
+  proof}\index{proof!terminal}; it abbreviates @{command
+  "proof"}~@{text "m\<^sub>1"}~@{text "qed"}~@{text "m\<^sub>2"}, but with
+  backtracking across both methods.  Debugging an unsuccessful
+  @{command "by"}~@{text "m\<^sub>1 m\<^sub>2"} command can be done by expanding its
+  definition; in many cases @{command "proof"}~@{text "m\<^sub>1"} (or even
+  @{text "apply"}~@{text "m\<^sub>1"}) is already sufficient to see the
   problem.
 
-  \item [``@{command ".."}''] is a \emph{default
+  \item ``@{command ".."}'' is a \emph{default
   proof}\index{proof!default}; it abbreviates @{command "by"}~@{text
   "rule"}.
 
-  \item [``@{command "."}''] is a \emph{trivial
+  \item ``@{command "."}'' is a \emph{trivial
   proof}\index{proof!trivial}; it abbreviates @{command "by"}~@{text
   "this"}.
   
-  \item [@{command "sorry"}] is a \emph{fake proof}\index{proof!fake}
+  \item @{command "sorry"} is a \emph{fake proof}\index{proof!fake}
   pretending to solve the pending claim without further ado.  This
   only works in interactive development, or if the @{ML
   quick_and_dirty} flag is enabled (in ML).  Facts emerging from fake
@@ -670,7 +663,7 @@ text {*
   The most important application of @{command "sorry"} is to support
   experimentation and top-down proof development.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -719,27 +712,27 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [``@{method "-"}'' (minus)] does nothing but insert the
-  forward chaining facts as premises into the goal.  Note that command
+  \item ``@{method "-"}'' (minus) does nothing but insert the forward
+  chaining facts as premises into the goal.  Note that command
   @{command_ref "proof"} without any method actually performs a single
   reduction step using the @{method_ref rule} method; thus a plain
   \emph{do-nothing} proof step would be ``@{command "proof"}~@{text
   "-"}'' rather than @{command "proof"} alone.
   
-  \item [@{method "fact"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] composes
-  some fact from @{text "a\<^sub>1, \<dots>, a\<^sub>n"} (or implicitly from
-  the current proof context) modulo unification of schematic type and
-  term variables.  The rule structure is not taken into account, i.e.\
-  meta-level implication is considered atomic.  This is the same
-  principle underlying literal facts (cf.\ \secref{sec:syn-att}):
-  ``@{command "have"}~@{text "\<phi>"}~@{command "by"}~@{text fact}'' is
-  equivalent to ``@{command "note"}~@{verbatim "`"}@{text \<phi>}@{verbatim
-  "`"}'' provided that @{text "\<turnstile> \<phi>"} is an instance of some known
-  @{text "\<turnstile> \<phi>"} in the proof context.
+  \item @{method "fact"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} composes some fact from
+  @{text "a\<^sub>1, \<dots>, a\<^sub>n"} (or implicitly from the current proof context)
+  modulo unification of schematic type and term variables.  The rule
+  structure is not taken into account, i.e.\ meta-level implication is
+  considered atomic.  This is the same principle underlying literal
+  facts (cf.\ \secref{sec:syn-att}): ``@{command "have"}~@{text
+  "\<phi>"}~@{command "by"}~@{text fact}'' is equivalent to ``@{command
+  "note"}~@{verbatim "`"}@{text \<phi>}@{verbatim "`"}'' provided that
+  @{text "\<turnstile> \<phi>"} is an instance of some known @{text "\<turnstile> \<phi>"} in the
+  proof context.
   
-  \item [@{method assumption}] solves some goal by a single assumption
+  \item @{method assumption} solves some goal by a single assumption
   step.  All given facts are guaranteed to participate in the
   refinement; this means there may be only 0 or 1 in the first place.
   Recall that @{command "qed"} (\secref{sec:proof-steps}) already
@@ -747,15 +740,14 @@ text {*
   proofs usually need not quote the @{method assumption} method at
   all.
   
-  \item [@{method this}] applies all of the current facts directly as
+  \item @{method this} applies all of the current facts directly as
   rules.  Recall that ``@{command "."}'' (dot) abbreviates ``@{command
   "by"}~@{text this}''.
   
-  \item [@{method rule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] applies some
-  rule given as argument in backward manner; facts are used to reduce
-  the rule before applying it to the goal.  Thus @{method rule}
-  without facts is plain introduction, while with facts it becomes
-  elimination.
+  \item @{method rule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some rule given as
+  argument in backward manner; facts are used to reduce the rule
+  before applying it to the goal.  Thus @{method rule} without facts
+  is plain introduction, while with facts it becomes elimination.
   
   When no arguments are given, the @{method rule} method tries to pick
   appropriate rules automatically, as declared in the current context
@@ -764,10 +756,10 @@ text {*
   default behavior of @{command "proof"} and ``@{command ".."}'' 
   (double-dot) steps (see \secref{sec:proof-steps}).
   
-  \item [@{method iprover}] performs intuitionistic proof search,
+  \item @{method iprover} performs intuitionistic proof search,
   depending on specifically declared rules from the context, or given
   as explicit arguments.  Chained facts are inserted into the goal
-  before commencing proof search; ``@{method iprover}@{text "!"}'' 
+  before commencing proof search; ``@{method iprover}@{text "!"}''
   means to include the current @{fact prems} as well.
   
   Rules need to be classified as @{attribute (Pure) intro},
@@ -779,8 +771,8 @@ text {*
   explicit weight annotation may be given as well; otherwise the
   number of rule premises will be taken into account here.
   
-  \item [@{attribute (Pure) intro}, @{attribute (Pure) elim}, and
-  @{attribute (Pure) dest}] declare introduction, elimination, and
+  \item @{attribute (Pure) intro}, @{attribute (Pure) elim}, and
+  @{attribute (Pure) dest} declare introduction, elimination, and
   destruct rules, to be used with the @{method rule} and @{method
   iprover} methods.  Note that the latter will ignore rules declared
   with ``@{text "?"}'', while ``@{text "!"}''  are used most
@@ -791,33 +783,31 @@ text {*
   present versions of Isabelle/Pure, i.e.\ @{attribute (Pure)
   "Pure.intro"}.
   
-  \item [@{attribute rule}~@{text del}] undeclares introduction,
+  \item @{attribute rule}~@{text del} undeclares introduction,
   elimination, or destruct rules.
   
-  \item [@{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] applies some
-  theorem to all of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"}
-  (in parallel).  This corresponds to the @{ML  [source=false] "op MRS"} operation in
-  ML, but note the reversed order.  Positions may be effectively
-  skipped by including ``@{text _}'' (underscore) as argument.
+  \item @{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some theorem to all
+  of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"} (in parallel).  This
+  corresponds to the @{ML [source=false] "op MRS"} operation in ML,
+  but note the reversed order.  Positions may be effectively skipped
+  by including ``@{text _}'' (underscore) as argument.
   
-  \item [@{attribute of}~@{text "t\<^sub>1 \<dots> t\<^sub>n"}] performs
-  positional instantiation of term variables.  The terms @{text
-  "t\<^sub>1, \<dots>, t\<^sub>n"} are substituted for any schematic
-  variables occurring in a theorem from left to right; ``@{text _}''
-  (underscore) indicates to skip a position.  Arguments following a
-  ``@{text "concl:"}'' specification refer to positions of the
-  conclusion of a rule.
+  \item @{attribute of}~@{text "t\<^sub>1 \<dots> t\<^sub>n"} performs positional
+  instantiation of term variables.  The terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"} are
+  substituted for any schematic variables occurring in a theorem from
+  left to right; ``@{text _}'' (underscore) indicates to skip a
+  position.  Arguments following a ``@{text "concl:"}'' specification
+  refer to positions of the conclusion of a rule.
   
-  \item [@{attribute "where"}~@{text "x\<^sub>1 = t\<^sub>1 \<AND> \<dots>
-  x\<^sub>n = t\<^sub>n"}] performs named instantiation of schematic
-  type and term variables occurring in a theorem.  Schematic variables
-  have to be specified on the left-hand side (e.g.\ @{text "?x1.3"}).
-  The question mark may be omitted if the variable name is a plain
-  identifier without index.  As type instantiations are inferred from
-  term instantiations, explicit type instantiations are seldom
-  necessary.
+  \item @{attribute "where"}~@{text "x\<^sub>1 = t\<^sub>1 \<AND> \<dots> x\<^sub>n = t\<^sub>n"}
+  performs named instantiation of schematic type and term variables
+  occurring in a theorem.  Schematic variables have to be specified on
+  the left-hand side (e.g.\ @{text "?x1.3"}).  The question mark may
+  be omitted if the variable name is a plain identifier without index.
+  As type instantiations are inferred from term instantiations,
+  explicit type instantiations are seldom necessary.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -851,20 +841,20 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "apply"}~@{text m}] applies proof method @{text m}
-  in initial position, but unlike @{command "proof"} it retains
-  ``@{text "proof(prove)"}'' mode.  Thus consecutive method
-  applications may be given just as in tactic scripts.
+  \item @{command "apply"}~@{text m} applies proof method @{text m} in
+  initial position, but unlike @{command "proof"} it retains ``@{text
+  "proof(prove)"}'' mode.  Thus consecutive method applications may be
+  given just as in tactic scripts.
   
   Facts are passed to @{text m} as indicated by the goal's
   forward-chain mode, and are \emph{consumed} afterwards.  Thus any
   further @{command "apply"} command would always work in a purely
   backward manner.
   
-  \item [@{command "apply_end"}~@{text "m"}] applies proof method
-  @{text m} as if in terminal position.  Basically, this simulates a
+  \item @{command "apply_end"}~@{text "m"} applies proof method @{text
+  m} as if in terminal position.  Basically, this simulates a
   multi-step tactic script for @{command "qed"}, but may be given
   anywhere within the proof body.
   
@@ -873,22 +863,22 @@ text {*
   "qed"}).  Thus the proof method may not refer to any assumptions
   introduced in the current body, for example.
   
-  \item [@{command "done"}] completes a proof script, provided that
-  the current goal state is solved completely.  Note that actual
+  \item @{command "done"} completes a proof script, provided that the
+  current goal state is solved completely.  Note that actual
   structured proof commands (e.g.\ ``@{command "."}'' or @{command
   "sorry"}) may be used to conclude proof scripts as well.
 
-  \item [@{command "defer"}~@{text n} and @{command "prefer"}~@{text
-  n}] shuffle the list of pending goals: @{command "defer"} puts off
+  \item @{command "defer"}~@{text n} and @{command "prefer"}~@{text n}
+  shuffle the list of pending goals: @{command "defer"} puts off
   sub-goal @{text n} to the end of the list (@{text "n = 1"} by
   default), while @{command "prefer"} brings sub-goal @{text n} to the
   front.
   
-  \item [@{command "back"}] does back-tracking over the result
-  sequence of the latest proof command.  Basically, any proof command
-  may return multiple results.
+  \item @{command "back"} does back-tracking over the result sequence
+  of the latest proof command.  Basically, any proof command may
+  return multiple results.
   
-  \end{descr}
+  \end{description}
 
   Any proper Isar proof method may be used with tactic script commands
   such as @{command "apply"}.  A few additional emulations of actual
@@ -909,9 +899,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "method_setup"}~@{text "name = text description"}]
+  \item @{command "method_setup"}~@{text "name = text description"}
   defines a proof method in the current theory.  The given @{text
   "text"} has to be an ML expression of type @{ML_type [source=false]
   "Args.src -> Proof.context -> Proof.method"}.  Parsing concrete
@@ -937,7 +927,7 @@ text {*
   Drule.multi_resolves}), while automatic ones just insert the facts
   using @{ML Method.insert_tac} before applying the main tactic.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -1082,44 +1072,44 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "also"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"}]
-  maintains the auxiliary @{fact calculation} register as follows.
-  The first occurrence of @{command "also"} in some calculational
-  thread initializes @{fact calculation} by @{fact this}. Any
-  subsequent @{command "also"} on the same level of block-structure
-  updates @{fact calculation} by some transitivity rule applied to
-  @{fact calculation} and @{fact this} (in that order).  Transitivity
-  rules are picked from the current context, unless alternative rules
-  are given as explicit arguments.
+  \item @{command "also"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"} maintains the auxiliary
+  @{fact calculation} register as follows.  The first occurrence of
+  @{command "also"} in some calculational thread initializes @{fact
+  calculation} by @{fact this}. Any subsequent @{command "also"} on
+  the same level of block-structure updates @{fact calculation} by
+  some transitivity rule applied to @{fact calculation} and @{fact
+  this} (in that order).  Transitivity rules are picked from the
+  current context, unless alternative rules are given as explicit
+  arguments.
 
-  \item [@{command "finally"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"}]
-  maintaining @{fact calculation} in the same way as @{command
-  "also"}, and concludes the current calculational thread.  The final
-  result is exhibited as fact for forward chaining towards the next
-  goal. Basically, @{command "finally"} just abbreviates @{command
-  "also"}~@{command "from"}~@{fact calculation}.  Typical idioms for
-  concluding calculational proofs are ``@{command "finally"}~@{command
+  \item @{command "finally"}~@{text "(a\<^sub>1 \<dots> a\<^sub>n)"} maintaining @{fact
+  calculation} in the same way as @{command "also"}, and concludes the
+  current calculational thread.  The final result is exhibited as fact
+  for forward chaining towards the next goal. Basically, @{command
+  "finally"} just abbreviates @{command "also"}~@{command
+  "from"}~@{fact calculation}.  Typical idioms for concluding
+  calculational proofs are ``@{command "finally"}~@{command
   "show"}~@{text ?thesis}~@{command "."}'' and ``@{command
   "finally"}~@{command "have"}~@{text \<phi>}~@{command "."}''.
 
-  \item [@{command "moreover"} and @{command "ultimately"}] are
+  \item @{command "moreover"} and @{command "ultimately"} are
   analogous to @{command "also"} and @{command "finally"}, but collect
   results only, without applying rules.
 
-  \item [@{command "print_trans_rules"}] prints the list of
-  transitivity rules (for calculational commands @{command "also"} and
-  @{command "finally"}) and symmetry rules (for the @{attribute
-  symmetric} operation and single step elimination patters) of the
-  current context.
+  \item @{command "print_trans_rules"} prints the list of transitivity
+  rules (for calculational commands @{command "also"} and @{command
+  "finally"}) and symmetry rules (for the @{attribute symmetric}
+  operation and single step elimination patters) of the current
+  context.
 
-  \item [@{attribute trans}] declares theorems as transitivity rules.
+  \item @{attribute trans} declares theorems as transitivity rules.
 
-  \item [@{attribute sym}] declares symmetry rules, as well as
+  \item @{attribute sym} declares symmetry rules, as well as
   @{attribute "Pure.elim"}@{text "?"} rules.
 
-  \item [@{attribute symmetric}] resolves a theorem with some rule
+  \item @{attribute symmetric} resolves a theorem with some rule
   declared as @{attribute sym} in the current context.  For example,
   ``@{command "assume"}~@{text "[symmetric]: x = y"}'' produces a
   swapped fact derived from that assumption.
@@ -1129,7 +1119,7 @@ text {*
   "assume"}~@{text "x = y"}~@{command "then"}~@{command "have"}~@{text
   "y = x"}~@{command ".."}''.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -1209,60 +1199,55 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command "case"}~@{text "(c x\<^sub>1 \<dots> x\<^sub>m)"}]
-  invokes a named local context @{text "c: x\<^sub>1, \<dots>, x\<^sub>m,
-  \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>m"}, as provided by an appropriate
-  proof method (such as @{method_ref cases} and @{method_ref induct}).
-  The command ``@{command "case"}~@{text "(c x\<^sub>1 \<dots>
-  x\<^sub>m)"}'' abbreviates ``@{command "fix"}~@{text "x\<^sub>1 \<dots>
-  x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots>
-  \<phi>\<^sub>n"}''.
+  \item @{command "case"}~@{text "(c x\<^sub>1 \<dots> x\<^sub>m)"} invokes a named local
+  context @{text "c: x\<^sub>1, \<dots>, x\<^sub>m, \<phi>\<^sub>1, \<dots>, \<phi>\<^sub>m"}, as provided by an
+  appropriate proof method (such as @{method_ref cases} and
+  @{method_ref induct}).  The command ``@{command "case"}~@{text "(c
+  x\<^sub>1 \<dots> x\<^sub>m)"}'' abbreviates ``@{command "fix"}~@{text "x\<^sub>1 \<dots>
+  x\<^sub>m"}~@{command "assume"}~@{text "c: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}''.
 
-  \item [@{command "print_cases"}] prints all local contexts of the
+  \item @{command "print_cases"} prints all local contexts of the
   current state, using Isar proof language notation.
   
-  \item [@{attribute case_names}~@{text "c\<^sub>1 \<dots> c\<^sub>k"}]
-  declares names for the local contexts of premises of a theorem;
-  @{text "c\<^sub>1, \<dots>, c\<^sub>k"} refers to the \emph{suffix} of the
-  list of premises.
+  \item @{attribute case_names}~@{text "c\<^sub>1 \<dots> c\<^sub>k"} declares names for
+  the local contexts of premises of a theorem; @{text "c\<^sub>1, \<dots>, c\<^sub>k"}
+  refers to the \emph{suffix} of the list of premises.
   
-  \item [@{attribute case_conclusion}~@{text "c d\<^sub>1 \<dots>
-  d\<^sub>k"}] declares names for the conclusions of a named premise
-  @{text c}; here @{text "d\<^sub>1, \<dots>, d\<^sub>k"} refers to the
-  prefix of arguments of a logical formula built by nesting a binary
-  connective (e.g.\ @{text "\<or>"}).
+  \item @{attribute case_conclusion}~@{text "c d\<^sub>1 \<dots> d\<^sub>k"} declares
+  names for the conclusions of a named premise @{text c}; here @{text
+  "d\<^sub>1, \<dots>, d\<^sub>k"} refers to the prefix of arguments of a logical formula
+  built by nesting a binary connective (e.g.\ @{text "\<or>"}).
   
   Note that proof methods such as @{method induct} and @{method
   coinduct} already provide a default name for the conclusion as a
   whole.  The need to name subformulas only arises with cases that
   split into several sub-cases, as in common co-induction rules.
 
-  \item [@{attribute params}~@{text "p\<^sub>1 \<dots> p\<^sub>m \<AND> \<dots>
-  q\<^sub>1 \<dots> q\<^sub>n"}] renames the innermost parameters of
-  premises @{text "1, \<dots>, n"} of some theorem.  An empty list of names
-  may be given to skip positions, leaving the present parameters
-  unchanged.
+  \item @{attribute params}~@{text "p\<^sub>1 \<dots> p\<^sub>m \<AND> \<dots> q\<^sub>1 \<dots> q\<^sub>n"} renames
+  the innermost parameters of premises @{text "1, \<dots>, n"} of some
+  theorem.  An empty list of names may be given to skip positions,
+  leaving the present parameters unchanged.
   
   Note that the default usage of case rules does \emph{not} directly
   expose parameters to the proof context.
   
-  \item [@{attribute consumes}~@{text n}] declares the number of
-  ``major premises'' of a rule, i.e.\ the number of facts to be
-  consumed when it is applied by an appropriate proof method.  The
-  default value of @{attribute consumes} is @{text "n = 1"}, which is
-  appropriate for the usual kind of cases and induction rules for
-  inductive sets (cf.\ \secref{sec:hol-inductive}).  Rules without any
-  @{attribute consumes} declaration given are treated as if
-  @{attribute consumes}~@{text 0} had been specified.
+  \item @{attribute consumes}~@{text n} declares the number of ``major
+  premises'' of a rule, i.e.\ the number of facts to be consumed when
+  it is applied by an appropriate proof method.  The default value of
+  @{attribute consumes} is @{text "n = 1"}, which is appropriate for
+  the usual kind of cases and induction rules for inductive sets (cf.\
+  \secref{sec:hol-inductive}).  Rules without any @{attribute
+  consumes} declaration given are treated as if @{attribute
+  consumes}~@{text 0} had been specified.
   
   Note that explicit @{attribute consumes} declarations are only
   rarely needed; this is already taken care of automatically by the
   higher-level @{attribute cases}, @{attribute induct}, and
   @{attribute coinduct} declarations.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -1310,9 +1295,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{method cases}~@{text "insts R"}] applies method @{method
+  \item @{method cases}~@{text "insts R"} applies method @{method
   rule} with an appropriate case distinction theorem, instantiated to
   the subjects @{text insts}.  Symbolic case names are bound according
   to the rule's local contexts.
@@ -1336,7 +1321,7 @@ text {*
   term needs to be specified; this refers to the first variable of the
   last premise (it is usually the same for all cases).
 
-  \item [@{method induct}~@{text "insts R"}] is analogous to the
+  \item @{method induct}~@{text "insts R"} is analogous to the
   @{method cases} method, but refers to induction rules, which are
   determined as follows:
 
@@ -1378,7 +1363,7 @@ text {*
   pending variables in the rule.  Such schematic induction rules
   rarely occur in practice, though.
 
-  \item [@{method coinduct}~@{text "inst R"}] is analogous to the
+  \item @{method coinduct}~@{text "inst R"} is analogous to the
   @{method induct} method, but refers to coinduction rules, which are
   determined as follows:
 
@@ -1404,7 +1389,7 @@ text {*
   specification may be required in order to specify the bisimulation
   to be used in the coinduction step.
 
-  \end{descr}
+  \end{description}
 
   Above methods produce named local contexts, as determined by the
   instantiated rule as given in the text.  Beyond that, the @{method
@@ -1473,13 +1458,13 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command "print_induct_rules"}] prints cases and induct
-  rules for predicates (or sets) and types of the current context.
+  \item @{command "print_induct_rules"} prints cases and induct rules
+  for predicates (or sets) and types of the current context.
   
-  \item [@{attribute cases}, @{attribute induct}, and @{attribute
-  coinduct}] (as attributes) declare rules for reasoning about
+  \item @{attribute cases}, @{attribute induct}, and @{attribute
+  coinduct} (as attributes) declare rules for reasoning about
   (co)inductive predicates (or sets) and types, using the
   corresponding methods of the same name.  Certain definitional
   packages of object-logics usually declare emerging cases and
@@ -1498,7 +1483,7 @@ text {*
   consumes}~@{text 0} is specified for ``type'' rules and @{attribute
   consumes}~@{text 1} for ``predicate'' / ``set'' rules.
 
-  \end{descr}
+  \end{description}
 *}
 
 end

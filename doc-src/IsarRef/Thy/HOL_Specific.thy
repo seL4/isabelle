@@ -28,19 +28,19 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command (HOL) "typedecl"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n)
-  t"}] is similar to the original @{command "typedecl"} of
-  Isabelle/Pure (see \secref{sec:types-pure}), but also declares type
-  arity @{text "t :: (type, \<dots>, type) type"}, making @{text t} an
-  actual HOL type constructor.   %FIXME check, update
+  \item @{command (HOL) "typedecl"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} is similar
+  to the original @{command "typedecl"} of Isabelle/Pure (see
+  \secref{sec:types-pure}), but also declares type arity @{text "t ::
+  (type, \<dots>, type) type"}, making @{text t} an actual HOL type
+  constructor.  %FIXME check, update
   
-  \item [@{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n)
-  t = A"}] sets up a goal stating non-emptiness of the set @{text A}.
-  After finishing the proof, the theory will be augmented by a
-  Gordon/HOL-style type definition, which establishes a bijection
-  between the representing set @{text A} and the new type @{text t}.
+  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"} sets up
+  a goal stating non-emptiness of the set @{text A}.  After finishing
+  the proof, the theory will be augmented by a Gordon/HOL-style type
+  definition, which establishes a bijection between the representing
+  set @{text A} and the new type @{text t}.
   
   Technically, @{command (HOL) "typedef"} defines both a type @{text
   t} and a set (term constant) of the same name (an alternative base
@@ -64,7 +64,7 @@ text {*
   declaration suppresses a separate constant definition for the
   representing set.
 
-  \end{descr}
+  \end{description}
 
   Note that raw type declarations are rarely used in practice; the
   main application is with experimental (or even axiomatic!) theory
@@ -87,21 +87,20 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{attribute (HOL) split_format}~@{text "p\<^sub>1 \<dots> p\<^sub>m
-  \<AND> \<dots> \<AND> q\<^sub>1 \<dots> q\<^sub>n"}] puts expressions of
-  low-level tuple types into canonical form as specified by the
-  arguments given; the @{text i}-th collection of arguments refers to
-  occurrences in premise @{text i} of the rule.  The ``@{text
-  "(complete)"}'' option causes \emph{all} arguments in function
-  applications to be represented canonically according to their tuple
-  type structure.
+  \item @{attribute (HOL) split_format}~@{text "p\<^sub>1 \<dots> p\<^sub>m \<AND> \<dots>
+  \<AND> q\<^sub>1 \<dots> q\<^sub>n"} puts expressions of low-level tuple types into
+  canonical form as specified by the arguments given; the @{text i}-th
+  collection of arguments refers to occurrences in premise @{text i}
+  of the rule.  The ``@{text "(complete)"}'' option causes \emph{all}
+  arguments in function applications to be represented canonically
+  according to their tuple type structure.
 
   Note that these operations tend to invent funny names for new local
   parameters to be introduced.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -194,11 +193,10 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command (HOL) "record"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t
-  = \<tau> + c\<^sub>1 :: \<sigma>\<^sub>1 \<dots> c\<^sub>n :: \<sigma>\<^sub>n"}] defines
-  extensible record type @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"},
+  \item @{command (HOL) "record"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t = \<tau> + c\<^sub>1 :: \<sigma>\<^sub>1
+  \<dots> c\<^sub>n :: \<sigma>\<^sub>n"} defines extensible record type @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>m) t"},
   derived from the optional parent record @{text "\<tau>"} by adding new
   field components @{text "c\<^sub>i :: \<sigma>\<^sub>i"} etc.
 
@@ -224,7 +222,7 @@ text {*
   @{text "\<lparr>c\<^sub>1 :: \<sigma>\<^sub>1, \<dots>, c\<^sub>n :: \<sigma>\<^sub>n, \<dots> ::
   \<zeta>\<rparr>"}.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -376,16 +374,16 @@ text {*
     cons: name (type *) mixfix?
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command (HOL) "datatype"}] defines inductive datatypes in
+  \item @{command (HOL) "datatype"} defines inductive datatypes in
   HOL.
 
-  \item [@{command (HOL) "rep_datatype"}] represents existing types as
+  \item @{command (HOL) "rep_datatype"} represents existing types as
   inductive ones, generating the standard infrastructure of derived
   concepts (primitive recursion etc.).
 
-  \end{descr}
+  \end{description}
 
   The induction and exhaustion theorems generated provide case names
   according to the constructors involved, while parameters are named
@@ -425,12 +423,12 @@ text {*
     'termination' ( term )?
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command (HOL) "primrec"}] defines primitive recursive
+  \item @{command (HOL) "primrec"} defines primitive recursive
   functions over datatypes, see also \cite{isabelle-HOL}.
 
-  \item [@{command (HOL) "function"}] defines functions by general
+  \item @{command (HOL) "function"} defines functions by general
   wellfounded recursion. A detailed description with examples can be
   found in \cite{isabelle-function}. The function is specified by a
   set of (possibly conditional) recursive equations with arbitrary
@@ -443,18 +441,18 @@ text {*
   predicate @{text "f_dom"}. The @{command (HOL) "termination"}
   command can then be used to establish that the function is total.
 
-  \item [@{command (HOL) "fun"}] is a shorthand notation for
-  ``@{command (HOL) "function"}~@{text "(sequential)"}, followed by
-  automated proof attempts regarding pattern matching and termination.
-  See \cite{isabelle-function} for further details.
+  \item @{command (HOL) "fun"} is a shorthand notation for ``@{command
+  (HOL) "function"}~@{text "(sequential)"}, followed by automated
+  proof attempts regarding pattern matching and termination.  See
+  \cite{isabelle-function} for further details.
 
-  \item [@{command (HOL) "termination"}~@{text f}] commences a
+  \item @{command (HOL) "termination"}~@{text f} commences a
   termination proof for the previously defined function @{text f}.  If
   this is omitted, the command refers to the most recent function
   definition.  After the proof is closed, the recursive equations and
   the induction principle is established.
 
-  \end{descr}
+  \end{description}
 
   %FIXME check
 
@@ -479,31 +477,31 @@ text {*
   The @{command (HOL) "function"} command accepts the following
   options.
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{text sequential}] enables a preprocessor which
-  disambiguates overlapping patterns by making them mutually disjoint.
-  Earlier equations take precedence over later ones.  This allows to
-  give the specification in a format very similar to functional
-  programming.  Note that the resulting simplification and induction
-  rules correspond to the transformed specification, not the one given
+  \item @{text sequential} enables a preprocessor which disambiguates
+  overlapping patterns by making them mutually disjoint.  Earlier
+  equations take precedence over later ones.  This allows to give the
+  specification in a format very similar to functional programming.
+  Note that the resulting simplification and induction rules
+  correspond to the transformed specification, not the one given
   originally. This usually means that each equation given by the user
   may result in several theroems.  Also note that this automatic
   transformation only works for ML-style datatype patterns.
 
-  \item [@{text domintros}] enables the automated generation of
+  \item @{text domintros} enables the automated generation of
   introduction rules for the domain predicate. While mostly not
   needed, they can be helpful in some proofs about partial functions.
 
-  \item [@{text tailrec}] generates the unconstrained recursive
+  \item @{text tailrec} generates the unconstrained recursive
   equations even without a termination proof, provided that the
   function is tail-recursive. This currently only works
 
-  \item [@{text "default d"}] allows to specify a default value for a
+  \item @{text "default d"} allows to specify a default value for a
   (partial) function, which will ensure that @{text "f x = d x"}
   whenever @{text "x \<notin> f_dom"}.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -523,21 +521,21 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{method (HOL) pat_completeness}] is a specialized method to
+  \item @{method (HOL) pat_completeness} is a specialized method to
   solve goals regarding the completeness of pattern matching, as
   required by the @{command (HOL) "function"} package (cf.\
   \cite{isabelle-function}).
 
-  \item [@{method (HOL) relation}~@{text R}] introduces a termination
+  \item @{method (HOL) relation}~@{text R} introduces a termination
   proof using the relation @{text R}.  The resulting proof state will
   contain goals expressing that @{text R} is wellfounded, and that the
   arguments of recursive calls decrease with respect to @{text R}.
   Usually, this method is used as the initial proof step of manual
   termination proofs.
 
-  \item [@{method (HOL) "lexicographic_order"}] attempts a fully
+  \item @{method (HOL) "lexicographic_order"} attempts a fully
   automated termination proof by searching for a lexicographic
   combination of size measures on the arguments of the function. The
   method accepts the same arguments as the @{method auto} method,
@@ -548,7 +546,7 @@ text {*
   In case of failure, extensive information is printed, which can help
   to analyse the situation (cf.\ \cite{isabelle-function}).
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -577,9 +575,9 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command (HOL) "recdef"}] defines general well-founded
+  \item @{command (HOL) "recdef"} defines general well-founded
   recursive functions (using the TFL package), see also
   \cite{isabelle-HOL}.  The ``@{text "(permissive)"}'' option tells
   TFL to recover from failed proof attempts, returning unfinished
@@ -590,7 +588,7 @@ text {*
   context of the Simplifier (cf.\ \secref{sec:simplifier}) and
   Classical reasoner (cf.\ \secref{sec:classical}).
   
-  \item [@{command (HOL) "recdef_tc"}~@{text "c (i)"}] recommences the
+  \item @{command (HOL) "recdef_tc"}~@{text "c (i)"} recommences the
   proof for leftover termination condition number @{text i} (default
   1) as generated by a @{command (HOL) "recdef"} definition of
   constant @{text c}.
@@ -598,7 +596,7 @@ text {*
   Note that in most cases, @{command (HOL) "recdef"} is able to finish
   its internal proofs without manual intervention.
 
-  \end{descr}
+  \end{description}
 
   \medskip Hints for @{command (HOL) "recdef"} may be also declared
   globally, using the following attributes.
@@ -659,10 +657,10 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command (HOL) "inductive"} and @{command (HOL)
-  "coinductive"}] define (co)inductive predicates from the
+  \item @{command (HOL) "inductive"} and @{command (HOL)
+  "coinductive"} define (co)inductive predicates from the
   introduction rules given in the @{keyword "where"} part.  The
   optional @{keyword "for"} part contains a list of parameters of the
   (co)inductive predicates that remain fixed throughout the
@@ -672,15 +670,15 @@ text {*
   \emph{must} be a theorem of the form @{text "A \<le> B \<Longrightarrow> M A \<le> M B"},
   for each premise @{text "M R\<^sub>i t"} in an introduction rule!
 
-  \item [@{command (HOL) "inductive_set"} and @{command (HOL)
-  "coinductive_set"}] are wrappers for to the previous commands,
+  \item @{command (HOL) "inductive_set"} and @{command (HOL)
+  "coinductive_set"} are wrappers for to the previous commands,
   allowing the definition of (co)inductive sets.
 
-  \item [@{attribute (HOL) mono}] declares monotonicity rules.  These
+  \item @{attribute (HOL) mono} declares monotonicity rules.  These
   rule are involved in the automated monotonicity proof of @{command
   (HOL) "inductive"}.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -692,14 +690,14 @@ text {*
 
   \begin{description}
 
-  \item [@{text R.intros}] is the list of introduction rules as proven
+  \item @{text R.intros} is the list of introduction rules as proven
   theorems, for the recursive predicates (or sets).  The rules are
   also available individually, using the names given them in the
   theory file;
 
-  \item [@{text R.cases}] is the case analysis (or elimination) rule;
+  \item @{text R.cases} is the case analysis (or elimination) rule;
 
-  \item [@{text R.induct} or @{text R.coinduct}] is the (co)induction
+  \item @{text R.induct} or @{text R.coinduct} is the (co)induction
   rule.
 
   \end{description}
@@ -817,13 +815,12 @@ text {*
   ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command (HOL) sledgehammer}~@{text "prover\<^sub>1 \<dots>
-  prover\<^sub>n"}] invokes the specified automated theorem provers on
-  the first subgoal.  Provers are run in parallel, the first
-  successful result is displayed, and the other attempts are
-  terminated.
+  \item @{command (HOL) sledgehammer}~@{text "prover\<^sub>1 \<dots> prover\<^sub>n"}
+  invokes the specified automated theorem provers on the first
+  subgoal.  Provers are run in parallel, the first successful result
+  is displayed, and the other attempts are terminated.
 
   Provers are defined in the theory context, see also @{command (HOL)
   print_atps}.  If no provers are given as arguments to @{command
@@ -834,28 +831,28 @@ text {*
   and the maximum number of independent prover processes (default: 5);
   excessive provers are automatically terminated.
 
-  \item [@{command (HOL) print_atps}] prints the list of automated
+  \item @{command (HOL) print_atps} prints the list of automated
   theorem provers available to the @{command (HOL) sledgehammer}
   command.
 
-  \item [@{command (HOL) atp_info}] prints information about presently
+  \item @{command (HOL) atp_info} prints information about presently
   running provers, including elapsed runtime, and the remaining time
   until timeout.
 
-  \item [@{command (HOL) atp_kill}] terminates all presently running
+  \item @{command (HOL) atp_kill} terminates all presently running
   provers.
 
-  \item [@{method (HOL) metis}~@{text "facts"}] invokes the Metis
-  prover with the given facts.  Metis is an automated proof tool of
-  medium strength, but is fully integrated into Isabelle/HOL, with
-  explicit inferences going through the kernel.  Thus its results are
+  \item @{method (HOL) metis}~@{text "facts"} invokes the Metis prover
+  with the given facts.  Metis is an automated proof tool of medium
+  strength, but is fully integrated into Isabelle/HOL, with explicit
+  inferences going through the kernel.  Thus its results are
   guaranteed to be ``correct by construction''.
 
   Note that all facts used with Metis need to be specified as explicit
   arguments.  There are no rule declarations as for other Isabelle
   provers, like @{method blast} or @{method fast}.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -887,13 +884,13 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{method (HOL) case_tac} and @{method (HOL) induct_tac}]
-  admit to reason about inductive types.  Rules are selected according
-  to the declarations by the @{attribute cases} and @{attribute
-  induct} attributes, cf.\ \secref{sec:cases-induct}.  The @{command
-  (HOL) datatype} package already takes care of this.
+  \item @{method (HOL) case_tac} and @{method (HOL) induct_tac} admit
+  to reason about inductive types.  Rules are selected according to
+  the declarations by the @{attribute cases} and @{attribute induct}
+  attributes, cf.\ \secref{sec:cases-induct}.  The @{command (HOL)
+  datatype} package already takes care of this.
 
   These unstructured tactics feature both goal addressing and dynamic
   instantiation.  Note that named rule cases are \emph{not} provided
@@ -903,8 +900,8 @@ text {*
   statements, only the compact object-logic conclusion of the subgoal
   being addressed.
   
-  \item [@{method (HOL) ind_cases} and @{command (HOL)
-  "inductive_cases"}] provide an interface to the internal @{ML_text
+  \item @{method (HOL) ind_cases} and @{command (HOL)
+  "inductive_cases"} provide an interface to the internal @{ML_text
   mk_cases} operation.  Rules are simplified in an unrestricted
   forward manner.
 
@@ -915,7 +912,7 @@ text {*
   ind_cases} method allows to specify a list of variables that should
   be generalized before applying the resulting rule.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -977,12 +974,12 @@ text {*
   ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command (HOL) "value"}~@{text t}] evaluates and prints a
-  term using the code generator.
+  \item @{command (HOL) "value"}~@{text t} evaluates and prints a term
+  using the code generator.
 
-  \end{descr}
+  \end{description}
 
   \medskip The other framework generates code from functional programs
   (including overloading using type classes) to SML \cite{SML}, OCaml
@@ -1079,14 +1076,14 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command (HOL) "export_code"}] is the canonical interface
-  for generating and serializing code: for a given list of constants,
-  code is generated for the specified target languages.  Abstract code
-  is cached incrementally.  If no constant is given, the currently
-  cached code is serialized.  If no serialization instruction is
-  given, only abstract code is cached.
+  \item @{command (HOL) "export_code"} is the canonical interface for
+  generating and serializing code: for a given list of constants, code
+  is generated for the specified target languages.  Abstract code is
+  cached incrementally.  If no constant is given, the currently cached
+  code is serialized.  If no serialization instruction is given, only
+  abstract code is cached.
 
   Constants may be specified by giving them literally, referring to
   all executable contants within a certain theory by giving @{text
@@ -1111,71 +1108,70 @@ text {*
   "deriving (Read, Show)"}'' clause to each appropriate datatype
   declaration.
 
-  \item [@{command (HOL) "code_thms"}] prints a list of theorems
+  \item @{command (HOL) "code_thms"} prints a list of theorems
   representing the corresponding program containing all given
   constants; if no constants are given, the currently cached code
   theorems are printed.
 
-  \item [@{command (HOL) "code_deps"}] visualizes dependencies of
+  \item @{command (HOL) "code_deps"} visualizes dependencies of
   theorems representing the corresponding program containing all given
   constants; if no constants are given, the currently cached code
   theorems are visualized.
 
-  \item [@{command (HOL) "code_datatype"}] specifies a constructor set
+  \item @{command (HOL) "code_datatype"} specifies a constructor set
   for a logical type.
 
-  \item [@{command (HOL) "code_const"}] associates a list of constants
+  \item @{command (HOL) "code_const"} associates a list of constants
   with target-specific serializations; omitting a serialization
   deletes an existing serialization.
 
-  \item [@{command (HOL) "code_type"}] associates a list of type
+  \item @{command (HOL) "code_type"} associates a list of type
   constructors with target-specific serializations; omitting a
   serialization deletes an existing serialization.
 
-  \item [@{command (HOL) "code_class"}] associates a list of classes
-  with target-specific class names; omitting a
-  serialization deletes an existing serialization.
-  This applies only to \emph{Haskell}.
+  \item @{command (HOL) "code_class"} associates a list of classes
+  with target-specific class names; omitting a serialization deletes
+  an existing serialization.  This applies only to \emph{Haskell}.
 
-  \item [@{command (HOL) "code_instance"}] declares a list of type
+  \item @{command (HOL) "code_instance"} declares a list of type
   constructor / class instance relations as ``already present'' for a
   given target.  Omitting a ``@{text "-"}'' deletes an existing
   ``already present'' declaration.  This applies only to
   \emph{Haskell}.
 
-  \item [@{command (HOL) "code_monad"}] provides an auxiliary
-  mechanism to generate monadic code for Haskell.
+  \item @{command (HOL) "code_monad"} provides an auxiliary mechanism
+  to generate monadic code for Haskell.
 
-  \item [@{command (HOL) "code_reserved"}] declares a list of names as
+  \item @{command (HOL) "code_reserved"} declares a list of names as
   reserved for a given target, preventing it to be shadowed by any
   generated code.
 
-  \item [@{command (HOL) "code_include"}] adds arbitrary named content
+  \item @{command (HOL) "code_include"} adds arbitrary named content
   (``include'') to generated code.  A ``@{text "-"}'' as last argument
   will remove an already added ``include''.
 
-  \item [@{command (HOL) "code_modulename"}] declares aliasings from
-  one module name onto another.
+  \item @{command (HOL) "code_modulename"} declares aliasings from one
+  module name onto another.
 
-  \item [@{command (HOL) "code_abort"}] declares constants which
-  are not required to have a definition by means of defining equations;
-  if needed these are implemented by program abort instead.
+  \item @{command (HOL) "code_abort"} declares constants which are not
+  required to have a definition by means of defining equations; if
+  needed these are implemented by program abort instead.
 
-  \item [@{attribute (HOL) code}] explicitly selects (or
-  with option ``@{text "del"}'' deselects) a defining equation for
-  code generation.  Usually packages introducing defining equations
-  provide a reasonable default setup for selection.
+  \item @{attribute (HOL) code} explicitly selects (or with option
+  ``@{text "del"}'' deselects) a defining equation for code
+  generation.  Usually packages introducing defining equations provide
+  a reasonable default setup for selection.
 
-  \item [@{attribute (HOL) code}@{text inline}] declares (or with
+  \item @{attribute (HOL) code}~@{text inline} declares (or with
   option ``@{text "del"}'' removes) inlining theorems which are
   applied as rewrite rules to any defining equation during
   preprocessing.
 
-  \item [@{command (HOL) "print_codesetup"}] gives an overview on
+  \item @{command (HOL) "print_codesetup"} gives an overview on
   selected defining equations, code generator datatypes and
   preprocessor setup.
 
-  \end{descr}
+  \end{description}
 *}
 
 
@@ -1193,27 +1189,27 @@ text {*
   decl: ((name ':')? term '(' 'overloaded' ')'?)
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [@{command (HOL) "specification"}~@{text "decls \<phi>"}] sets up a
+  \item @{command (HOL) "specification"}~@{text "decls \<phi>"} sets up a
   goal stating the existence of terms with the properties specified to
   hold for the constants given in @{text decls}.  After finishing the
   proof, the theory will be augmented with definitions for the given
   constants, as well as with theorems stating the properties for these
   constants.
 
-  \item [@{command (HOL) "ax_specification"}~@{text "decls \<phi>"}] sets
-  up a goal stating the existence of terms with the properties
-  specified to hold for the constants given in @{text decls}.  After
-  finishing the proof, the theory will be augmented with axioms
-  expressing the properties given in the first place.
+  \item @{command (HOL) "ax_specification"}~@{text "decls \<phi>"} sets up
+  a goal stating the existence of terms with the properties specified
+  to hold for the constants given in @{text decls}.  After finishing
+  the proof, the theory will be augmented with axioms expressing the
+  properties given in the first place.
 
-  \item [@{text decl}] declares a constant to be defined by the
+  \item @{text decl} declares a constant to be defined by the
   specification given.  The definition for the constant @{text c} is
   bound to the name @{text c_def} unless a theorem name is given in
   the declaration.  Overloaded constants should be declared as such.
 
-  \end{descr}
+  \end{description}
 
   Whether to use @{command (HOL) "specification"} or @{command (HOL)
   "ax_specification"} is to some extent a matter of style.  @{command

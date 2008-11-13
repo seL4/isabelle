@@ -26,18 +26,18 @@ text {*
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
   
-  \item [@{command (ZF) "print_tcset"}] prints the collection of
+  \item @{command (ZF) "print_tcset"} prints the collection of
   typechecking rules of the current context.
   
-  \item [@{method (ZF) typecheck}] attempts to solve any pending
+  \item @{method (ZF) typecheck} attempts to solve any pending
   type-checking problems in subgoals.
   
-  \item [@{attribute (ZF) TC}] adds or deletes type-checking rules
-  from the context.
+  \item @{attribute (ZF) TC} adds or deletes type-checking rules from
+  the context.
 
-  \end{descr}
+  \end{description}
 *}
 
 
