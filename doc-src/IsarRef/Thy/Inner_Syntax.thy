@@ -304,49 +304,57 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
 
   \begin{itemize}
 
-  \item @{text "\<^bold>d"} is a delimiter, namely a non-empty
-  sequence of characters other than the special characters @{text "'"}
-  (single quote), @{text "_"} (underscore), @{text "\<index>"} (index
-  symbol), @{text "/"} (slash), @{text "("} and @{text ")"}
-  (parentheses).
+  \item @{text "d"} is a delimiter, namely a non-empty sequence of
+  characters other than the following special characters:
 
-  A single quote escapes the special meaning of these meta-characters,
-  producing a literal version of the following character, unless that
-  is a blank.  A single quote followed by a blank separates
-  delimiters, without affecting printing, but input tokens may have
-  additional white space here.
+  \smallskip
+  \begin{tabular}{ll}
+    @{verbatim "'"} & single quote \\
+    @{verbatim "_"} & underscore \\
+    @{text "\<index>"} & index symbol \\
+    @{verbatim "("} & open parenthesis \\
+    @{verbatim ")"} & close parenthesis \\
+    @{verbatim "/"} & slash \\
+  \end{tabular}
+  \medskip
 
-  \item @{text "_"} is an argument position, which stands for a
+  \item @{verbatim "'"} escapes the special meaning of these
+  meta-characters, producing a literal version of the following
+  character, unless that is a blank.
+
+  A single quote followed by a blank separates delimiters, without
+  affecting printing, but input tokens may have additional white space
+  here.
+
+  \item @{verbatim "_"} is an argument position, which stands for a
   certain syntactic category in the underlying grammar.
 
-  \item @{text "\<index>"} is an indexed argument position; this is
-  the place where implicit structure arguments can be attached.
+  \item @{text "\<index>"} is an indexed argument position; this is the place
+  where implicit structure arguments can be attached.
 
-  \item @{text "\<^bold>s"} is a non-empty sequence of spaces for
-  printing.  This and the following specifications do not affect
-  parsing at all.
+  \item @{text "s"} is a non-empty sequence of spaces for printing.
+  This and the following specifications do not affect parsing at all.
 
-  \item @{text "(\<^bold>n"} opens a pretty printing block.  The
+  \item @{verbatim "("}@{text n} opens a pretty printing block.  The
   optional number specifies how much indentation to add when a line
   break occurs within the block.  If the parenthesis is not followed
   by digits, the indentation defaults to 0.  A block specified via
-  @{text "(00"} is unbreakable.
+  @{verbatim "(00"} is unbreakable.
 
-  \item @{text ")"} closes a pretty printing block.
+  \item @{verbatim ")"} closes a pretty printing block.
 
-  \item @{text "//"} forces a line break.
+  \item @{verbatim "//"} forces a line break.
 
-  \item @{text "/\<^bold>s"} allows a line break.  Here @{text
-  "\<^bold>s"} stands for the string of spaces (zero or more) right
-  after the slash.  These spaces are printed if the break is
-  \emph{not} taken.
+  \item @{verbatim "/"}@{text s} allows a line break.  Here @{text s}
+  stands for the string of spaces (zero or more) right after the
+  slash.  These spaces are printed if the break is \emph{not} taken.
 
   \end{itemize}
 
-  For example, the template @{text "(_ +/ _)"} specifies an infix
-  operator.  There are two argument positions; the delimiter @{text
-  "+"} is preceded by a space and followed by a space or line break;
-  the entire phrase is a pretty printing block.
+  For example, the template @{verbatim "(_ +/ _)"} specifies an infix
+  operator.  There are two argument positions; the delimiter
+  @{verbatim "+"} is preceded by a space and followed by a space or
+  line break; the entire phrase is a pretty printing block.
 
   The general idea of pretty printing with blocks and breaks is also
   described in \cite{paulson-ml2}.
