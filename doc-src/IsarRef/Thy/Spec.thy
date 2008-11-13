@@ -808,15 +808,12 @@ text {*
     @{command_def "ML_val"} & : & \isartrans{\cdot}{\cdot} \\
     @{command_def "ML_command"} & : & \isartrans{\cdot}{\cdot} \\
     @{command_def "setup"} & : & \isartrans{theory}{theory} \\
-    @{command_def "method_setup"} & : & \isartrans{theory}{theory} \\
   \end{matharray}
 
   \begin{rail}
     'use' name
     ;
-    ('ML' | 'ML\_val' | 'ML\_command' | 'setup') text
-    ;
-    'method\_setup' name '=' text text
+    ('ML' | 'ML\_prf' | 'ML\_val' | 'ML\_command' | 'setup') text
     ;
   \end{rail}
 
@@ -824,7 +821,7 @@ text {*
 
   \item [@{command "use"}~@{text "file"}] reads and executes ML
   commands from @{text "file"}.  The current theory context is passed
-  down to the ML toplevel and may be modified, using @{ML
+  down to the ML toplevel and may be modified, using @{ML [source=false]
   "Context.>>"} or derived ML commands.  The file name is checked with
   the @{keyword_ref "uses"} dependency declaration given in the theory
   header (see also \secref{sec:begin-thy}).
@@ -852,36 +849,10 @@ text {*
   
   \item [@{command "setup"}~@{text "text"}] changes the current theory
   context by applying @{text "text"}, which refers to an ML expression
-  of type @{ML_type "theory -> theory"}.  This enables to initialize
-  any object-logic specific tools and packages written in ML, for
-  example.
+  of type @{ML_type [source=false] "theory -> theory"}.  This enables
+  to initialize any object-logic specific tools and packages written
+  in ML, for example.
   
-  \item [@{command "method_setup"}~@{text "name = text description"}]
-  defines a proof method in the current theory.  The given @{text
-  "text"} has to be an ML expression of type @{ML_type "Args.src ->
-  Proof.context -> Proof.method"}.  Parsing concrete method syntax
-  from @{ML_type Args.src} input can be quite tedious in general.  The
-  following simple examples are for methods without any explicit
-  arguments, or a list of theorems, respectively.
-
-%FIXME proper antiquotations
-{\footnotesize
-\begin{verbatim}
- Method.no_args (Method.METHOD (fn facts => foobar_tac))
- Method.thms_args (fn thms => Method.METHOD (fn facts => foobar_tac))
- Method.ctxt_args (fn ctxt => Method.METHOD (fn facts => foobar_tac))
- Method.thms_ctxt_args (fn thms => fn ctxt =>
-    Method.METHOD (fn facts => foobar_tac))
-\end{verbatim}
-}
-
-  Note that mere tactic emulations may ignore the @{text facts}
-  parameter above.  Proper proof methods would do something
-  appropriate with the list of current facts, though.  Single-rule
-  methods usually do strict forward-chaining (e.g.\ by using @{ML
-  Drule.multi_resolves}), while automatic ones just insert the facts
-  using @{ML Method.insert_tac} before applying the main tactic.
-
   \end{descr}
 *}
 

@@ -796,7 +796,7 @@ text {*
   
   \item [@{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}] applies some
   theorem to all of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"}
-  (in parallel).  This corresponds to the @{ML "op MRS"} operation in
+  (in parallel).  This corresponds to the @{ML  [source=false] "op MRS"} operation in
   ML, but note the reversed order.  Positions may be effectively
   skipped by including ``@{text _}'' (underscore) as argument.
   
@@ -894,6 +894,50 @@ text {*
   such as @{command "apply"}.  A few additional emulations of actual
   tactics are provided as well; these would be never used in actual
   structured proofs, of course.
+*}
+
+
+subsection {* Defining proof methods *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "method_setup"} & : & \isartrans{theory}{theory} \\
+  \end{matharray}
+
+  \begin{rail}
+    'method\_setup' name '=' text text
+    ;
+  \end{rail}
+
+  \begin{descr}
+
+  \item [@{command "method_setup"}~@{text "name = text description"}]
+  defines a proof method in the current theory.  The given @{text
+  "text"} has to be an ML expression of type @{ML_type [source=false]
+  "Args.src -> Proof.context -> Proof.method"}.  Parsing concrete
+  method syntax from @{ML_type Args.src} input can be quite tedious in
+  general.  The following simple examples are for methods without any
+  explicit arguments, or a list of theorems, respectively.
+
+%FIXME proper antiquotations
+{\footnotesize
+\begin{verbatim}
+ Method.no_args (Method.METHOD (fn facts => foobar_tac))
+ Method.thms_args (fn thms => Method.METHOD (fn facts => foobar_tac))
+ Method.ctxt_args (fn ctxt => Method.METHOD (fn facts => foobar_tac))
+ Method.thms_ctxt_args (fn thms => fn ctxt =>
+    Method.METHOD (fn facts => foobar_tac))
+\end{verbatim}
+}
+
+  Note that mere tactic emulations may ignore the @{text facts}
+  parameter above.  Proper proof methods would do something
+  appropriate with the list of current facts, though.  Single-rule
+  methods usually do strict forward-chaining (e.g.\ by using @{ML
+  Drule.multi_resolves}), while automatic ones just insert the facts
+  using @{ML Method.insert_tac} before applying the main tactic.
+
+  \end{descr}
 *}
 
 
