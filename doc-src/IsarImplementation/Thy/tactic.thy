@@ -35,16 +35,15 @@ text {*
   "\<phi>[?x]"}.  These variables may get instantiated during the course of
   reasoning.}.  For @{text "n = 0"} a goal is called ``solved''.
 
-  The structure of each subgoal @{text "A\<^sub>i"} is that of a
-  general Hereditary Harrop Formula @{text "\<And>x\<^sub>1 \<dots>
-  \<And>x\<^sub>k. H\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> H\<^sub>m \<Longrightarrow> B"} in normal form where.
-  Here @{text "x\<^sub>1, \<dots>, x\<^sub>k"} are goal parameters, i.e.\
-  arbitrary-but-fixed entities of certain types, and @{text
-  "H\<^sub>1, \<dots>, H\<^sub>m"} are goal hypotheses, i.e.\ facts that may
-  be assumed locally.  Together, this forms the goal context of the
-  conclusion @{text B} to be established.  The goal hypotheses may be
-  again arbitrary Hereditary Harrop Formulas, although the level of
-  nesting rarely exceeds 1--2 in practice.
+  The structure of each subgoal @{text "A\<^sub>i"} is that of a general
+  Hereditary Harrop Formula @{text "\<And>x\<^sub>1 \<dots> \<And>x\<^sub>k. H\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> H\<^sub>m \<Longrightarrow> B"} in
+  normal form.  Here @{text "x\<^sub>1, \<dots>, x\<^sub>k"} are goal parameters, i.e.\
+  arbitrary-but-fixed entities of certain types, and @{text "H\<^sub>1, \<dots>,
+  H\<^sub>m"} are goal hypotheses, i.e.\ facts that may be assumed locally.
+  Together, this forms the goal context of the conclusion @{text B} to
+  be established.  The goal hypotheses may be again arbitrary
+  Hereditary Harrop Formulas, although the level of nesting rarely
+  exceeds 1--2 in practice.
 
   The main conclusion @{text C} is internally marked as a protected
   proposition\glossary{Protected proposition}{An arbitrarily
@@ -102,24 +101,75 @@ text %mlref {*
 
 section {* Tactics *}
 
-text {*
+text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*\<^sup>*"} that
+  maps a given goal state (represented as a theorem, cf.\
+  \secref{sec:tactical-goals}) to a lazy sequence of potential
+  successor states.  The underlying sequence implementation is lazy
+  both in head and tail, and is purely functional in \emph{not}
+  supporting memoing.\footnote{The lack of memoing and the strict
+  nature of SML requires some care when working with low-level
+  sequence operations, to avoid duplicate or premature evaluation of
+  results.}
 
-FIXME
+  An \emph{empty result sequence} means that the tactic has failed: in
+  a compound tactic expressions other tactics might be tried instead,
+  or the whole refinement step might fail outright, producing a
+  toplevel error message.  When implementing tactics from scratch, one
+  should take care to observe the basic protocol of mapping regular
+  error conditions to an empty result; only serious faults should
+  emerge as exceptions.
 
-\glossary{Tactic}{Any function that maps a \seeglossary{tactical goal}
-to a lazy sequence of possible sucessors.  This scheme subsumes
-failure (empty result sequence), as well as lazy enumeration of proof
-search results.  Error conditions are usually mapped to an empty
-result, which gives further tactics a chance to try in turn.
-Commonly, tactics either take an argument to address a particular
-subgoal, or operate on a certain range of subgoals in a uniform
-fashion.  In any case, the main conclusion is normally left untouched,
-apart from instantiating \seeglossary{schematic variables}.}
+  By enumerating \emph{multiple results}, a tactic can easily express
+  the potential outcome of an internal search process.  There are also
+  combinators for building proof tools that involve search
+  systematically, see also \secref{sec:tacticals}.
 
+  \medskip As explained in \secref{sec:tactical-goals}, a goal state
+  essentially consists of a list of subgoals that imply the main goal
+  (conclusion).  Tactics may operate on all subgoals or on a
+  particularly specified subgoal, but must not change the main
+  conclusion (apart from instantiating schematic goal variables).
 
+  Tactics with explicit \emph{subgoal addressing} are of the form
+  @{text "int \<rightarrow> tactic"} and may be applied to a particular subgoal
+  (counting from 1).  If the subgoal number is out of range, the
+  tactic should fail with an empty result sequence, but must not raise
+  an exception!
+
+  Operating on a particular subgoal means to replace it by an interval
+  of zero or more subgoals in the same place; other subgoals must not
+  be affected, apart from instantiating schematic variables ranging
+  over the whole goal state.
+
+  A common pattern of composing tactics with subgoal addressing is to
+  try the first one, and then the second one only if the subgoal has
+  not been solved yet.  Special care is required here to avoid bumping
+  into unrelated subgoals that happen come after the original subgoal.
+  Assuming that there is only a single initial subgoal is a very
+  common error when implementing tactics!
+  
+  \medskip The main well-formedness conditions for proper tactics are
+  summarized as follows.
+
+  \begin{itemize}
+
+  \item General tactic failure is indicated by an empty result, only
+  serious faults may produce an exception.
+
+  \item The main conclusion must not be changed, apart from
+  instantiating schematic variables.
+
+  \item A tactic operates either uniformly on all subgoals, or
+  specifically on a selected subgoal (without bumping into unrelated
+  subgoals).
+
+  \item Range errors in subgoal addressing produce an empty result.
+
+  \end{itemize}
 *}
 
-section {* Tacticals *}
+
+section {* Tacticals \label{sec:tacticals} *}
 
 text {*
 
