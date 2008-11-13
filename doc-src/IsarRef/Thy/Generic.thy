@@ -120,7 +120,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'tagged' nameref
+    'tagged' name name
     ;
     'untagged' name
     ;
@@ -133,12 +133,11 @@ text {*
 
   \begin{description}
 
-  \item @{attribute tagged}~@{text "name arg"} and @{attribute
+  \item @{attribute tagged}~@{text "name value"} and @{attribute
   untagged}~@{text name} add and remove \emph{tags} of some theorem.
   Tags may be any list of string pairs that serve as formal comment.
-  The first string is considered the tag name, the second its
-  argument.  Note that @{attribute untagged} removes any tags of the
-  same name.
+  The first string is considered the tag name, the second its value.
+  Note that @{attribute untagged} removes any tags of the same name.
 
   \item @{attribute THEN}~@{text a} and @{attribute COMP}~@{text a}
   compose rules by resolution.  @{attribute THEN} resolves with the
