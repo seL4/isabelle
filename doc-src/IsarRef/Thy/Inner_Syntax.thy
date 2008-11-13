@@ -462,6 +462,94 @@ text {* A context-free grammar consists of a set of \emph{terminal
 *}
 
 
+subsection {* The Pure grammar *}
+
+text {*
+  \begin{figure}[htb]\small
+  \begin{center}
+  \begin{tabular}{rclc}
+
+    @{text any} & = & @{text "prop  |  logic"} \\\\
+    % FIXME
+
+  \end{tabular}
+  \end{center}
+  \caption{The Pure grammar}\label{fig:pure-grammar}
+  \end{figure}
+
+  The priority grammar of the @{text "Pure"} theory is defined in
+  \figref{fig:pure-grammar}.  The following nonterminals are
+  introduced:
+
+  \begin{description}
+
+  \item @{text "any"} denotes any term.
+
+  \item @{text "prop"} denotes meta-level propositions, which are
+  terms of type @{typ prop}.  The syntax of such formulae of the
+  meta-logic is carefully distinguished from usual conventions for
+  object-logics.  In particular, plain @{text "\<lambda>"}-term
+  notation is \emph{not} recognized as @{text "prop"}.
+
+  \item @{text aprop} denotes atomic propositions, which are embedded
+  into regular @{typ prop} by means of an explicit @{text "PROP"}
+  token.
+
+  Terms of type @{typ prop} with non-constant head, e.g.\ a plain
+  variable, are printed in this form.  Constants that yield type @{typ
+  prop} are expected to provide their own concrete syntax; otherwise
+  the printed version will appear like @{typ logic} and cannot be
+  parsed again as @{typ prop}.
+
+  \item @{text logic} denotes arbitrary terms of a logical type,
+  excluding type @{typ prop}.  This is the main syntactic category of
+  object-logic entities, covering plain @{text \<lambda>}-term notation
+  (variables, abstraction, application), plus anything defined by the
+  user.
+
+  When specifying notation for logical entities, all logical types
+  (excluding @{typ prop}) are \emph{collapsed} to this single category
+  of @{typ logic}.
+
+  \item @{text idt} denotes identifiers, possibly constrained by
+  types.
+
+  \item @{text idts} denotes a sequence of @{text idt}.  This is the
+  most basic category for variables in iterated binders, such as
+  @{text "\<lambda>"} or @{text "\<And>"}.
+
+  \item @{text pttrn} and @{text pttrns} denote patterns for
+  abstraction, cases bindings etc.  In Pure, these categories start as
+  a merely copy of @{text idt} and @{text idts}, respectively.
+  Object-logics may add additional productions for binding forms.
+
+  \item @{text type} denotes types of the meta-logic.
+
+  \item @{text sort} denotes meta-level sorts.
+
+  \end{description}
+
+  \begin{warn}
+  In @{text idts}, note that @{text "x :: nat y"} is parsed as @{text
+  "x :: (nat y)"}, treating @{text y} like a type constructor applied
+  to @{text nat}.  To avoid this interpretation, write @{text "(x ::
+  nat) y"} with explicit parentheses.
+
+  Similarly, @{text "x :: nat y :: nat"} is parsed as @{text "x ::
+  (nat y :: nat)"}.  The correct form is @{text "(x :: nat) (y ::
+  nat)"}, or @{text "(x :: nat) y :: nat"} if @{text y} is last in the
+  sequence of identifiers.
+  \end{warn}
+
+  \begin{warn}
+  Type constraints for terms bind very weakly.  For example, @{text "x
+  < y :: nat"} is normally parsed as @{text "(x < y) :: nat"}, unless
+  @{text "<"} has a very low priority, in which case the input is
+  likely to be ambiguous.  The correct form is @{text "x < (y :: nat)"}.
+  \end{warn}
+*}
+
+
 section {* Syntax and translations \label{sec:syn-trans} *}
 
 text {*
