@@ -396,10 +396,11 @@ text {* The following options are available to tune the printed output
 *}
 
 
-section {* Tagged commands \label{sec:tags} *}
+section {* Markup via command tags \label{sec:tags} *}
 
-text {*
-  Each Isabelle/Isar command may be decorated by presentation tags:
+text {* Each Isabelle/Isar command may be decorated by additional
+  presentation tags, to indicate some modification in the way it is
+  printed in the document.
 
   \indexouternonterm{tags}
   \begin{rail}
@@ -408,34 +409,43 @@ text {*
     tag: '\%' (ident | string)
   \end{rail}
 
-  The tags @{text "theory"}, @{text "proof"}, @{text "ML"} are already
-  pre-declared for certain classes of commands:
+  Some tags are pre-declared for certain classes of commands, serving
+  as default markup if no tags are given in the text:
 
- \medskip
-
+  \medskip
   \begin{tabular}{ll}
     @{text "theory"} & theory begin/end \\
     @{text "proof"} & all proof commands \\
     @{text "ML"} & all commands involving ML code \\
   \end{tabular}
 
-  \medskip The Isabelle document preparation system (see also
-  \cite{isabelle-sys}) allows tagged command regions to be presented
+  \medskip The Isabelle document preparation system
+  \cite{isabelle-sys} allows tagged command regions to be presented
   specifically, e.g.\ to fold proof texts, or drop parts of the text
   completely.
 
-  For example ``@{command "by"}~@{text "%invisible auto"}'' would
-  cause that piece of proof to be treated as @{text invisible} instead
-  of @{text "proof"} (the default), which may be either show or hidden
+  For example ``@{command "by"}~@{text "%invisible auto"}'' causes
+  that piece of proof to be treated as @{text invisible} instead of
+  @{text "proof"} (the default), which may be shown or hidden
   depending on the document setup.  In contrast, ``@{command
-  "by"}~@{text "%visible auto"}'' would force this text to be shown
+  "by"}~@{text "%visible auto"}'' forces this text to be shown
   invariably.
 
   Explicit tag specifications within a proof apply to all subsequent
   commands of the same level of nesting.  For example, ``@{command
-  "proof"}~@{text "%visible \<dots>"}~@{command "qed"}'' would force the
-  whole sub-proof to be typeset as @{text visible} (unless some of its
-  parts are tagged differently).
+  "proof"}~@{text "%visible \<dots>"}~@{command "qed"}'' forces the whole
+  sub-proof to be typeset as @{text visible} (unless some of its parts
+  are tagged differently).
+
+  \medskip Command tags merely produce certain markup environments for
+  type-setting.  The meaning of these is determined by {\LaTeX}
+  macros, as defined in @{"file" "~~/lib/texinputs/isabelle.sty"} or
+  by the document author.  The Isabelle document preparation tools
+  also provide some high-level options to specify the meaning of
+  arbitrary tags to ``keep'', ``drop'', or ``fold'' the corresponding
+  parts of the text.  Logic sessions may also specify ``document
+  versions'', where given tags are interpreted in some particular way.
+  Again see \cite{isabelle-sys} for further details.
 *}
 
 
