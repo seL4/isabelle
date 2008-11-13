@@ -1,0 +1,910 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Inner{\isacharunderscore}Syntax}%
+%
+\isadelimtheory
+\isanewline
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Inner{\isacharunderscore}Syntax\isanewline
+\isakeyword{imports}\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Inner syntax --- the term language \label{ch:inner-syntax}%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Printing logical entities%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Diagnostic commands%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{typ}\hypertarget{command.typ}{\hyperlink{command.typ}{\mbox{\isa{\isacommand{typ}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{term}\hypertarget{command.term}{\hyperlink{command.term}{\mbox{\isa{\isacommand{term}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{prop}\hypertarget{command.prop}{\hyperlink{command.prop}{\mbox{\isa{\isacommand{prop}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{thm}\hypertarget{command.thm}{\hyperlink{command.thm}{\mbox{\isa{\isacommand{thm}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{prf}\hypertarget{command.prf}{\hyperlink{command.prf}{\mbox{\isa{\isacommand{prf}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{full\_prf}\hypertarget{command.full-prf}{\hyperlink{command.full-prf}{\mbox{\isa{\isacommand{full{\isacharunderscore}prf}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{pr}\hypertarget{command.pr}{\hyperlink{command.pr}{\mbox{\isa{\isacommand{pr}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}any\ {\isasymrightarrow}{\isachardoublequote}} \\
+  \end{matharray}
+
+  These diagnostic commands assist interactive development by printing
+  internal logical entities in a human-readable fashion.
+
+  \begin{rail}
+    'typ' modes? type
+    ;
+    'term' modes? term
+    ;
+    'prop' modes? prop
+    ;
+    'thm' modes? thmrefs
+    ;
+    ( 'prf' | 'full\_prf' ) modes? thmrefs?
+    ;
+    'pr' modes? nat? (',' nat)?
+    ;
+
+    modes: '(' (name + ) ')'
+    ;
+  \end{rail}
+
+  \begin{description}
+
+  \item \hyperlink{command.typ}{\mbox{\isa{\isacommand{typ}}}}~\isa{{\isasymtau}} reads and prints types of the
+  meta-logic according to the current theory or proof context.
+
+  \item \hyperlink{command.term}{\mbox{\isa{\isacommand{term}}}}~\isa{t} and \hyperlink{command.prop}{\mbox{\isa{\isacommand{prop}}}}~\isa{{\isasymphi}}
+  read, type-check and print terms or propositions according to the
+  current theory or proof context; the inferred type of \isa{t} is
+  output as well.  Note that these commands are also useful in
+  inspecting the current environment of term abbreviations.
+
+  \item \hyperlink{command.thm}{\mbox{\isa{\isacommand{thm}}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} retrieves
+  theorems from the current theory or proof context.  Note that any
+  attributes included in the theorem specifications are applied to a
+  temporary context derived from the current theory or proof; the
+  result is discarded, i.e.\ attributes involved in \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n{\isachardoublequote}} do not have any permanent effect.
+
+  \item \hyperlink{command.prf}{\mbox{\isa{\isacommand{prf}}}} displays the (compact) proof term of the
+  current proof state (if present), or of the given theorems. Note
+  that this requires proof terms to be switched on for the current
+  object logic (see the ``Proof terms'' section of the Isabelle
+  reference manual for information on how to do this).
+
+  \item \hyperlink{command.full-prf}{\mbox{\isa{\isacommand{full{\isacharunderscore}prf}}}} is like \hyperlink{command.prf}{\mbox{\isa{\isacommand{prf}}}}, but displays
+  the full proof term, i.e.\ also displays information omitted in the
+  compact proof term, which is denoted by ``\isa{{\isacharunderscore}}'' placeholders
+  there.
+
+  \item \hyperlink{command.pr}{\mbox{\isa{\isacommand{pr}}}}~\isa{{\isachardoublequote}goals{\isacharcomma}\ prems{\isachardoublequote}} prints the current
+  proof state (if present), including the proof context, current facts
+  and goals.  The optional limit arguments affect the number of goals
+  and premises to be displayed, which is initially 10 for both.
+  Omitting limit values leaves the current setting unchanged.
+
+  \end{description}
+
+  All of the diagnostic commands above admit a list of \isa{modes}
+  to be specified, which is appended to the current print mode (see
+  also \cite{isabelle-ref}).  Thus the output behavior may be modified
+  according particular print mode features.  For example, \hyperlink{command.pr}{\mbox{\isa{\isacommand{pr}}}}~\isa{{\isachardoublequote}{\isacharparenleft}latex\ xsymbols{\isacharparenright}{\isachardoublequote}} would print the current proof state
+  with mathematical symbols and special characters represented in
+  {\LaTeX} source, according to the Isabelle style
+  \cite{isabelle-sys}.
+
+  Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more
+  systematic way to include formal items into the printed text
+  document.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Details of printed content%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{mldecls} 
+    \indexml{show\_types}\verb|show_types: bool ref| & default \verb|false| \\
+    \indexml{show\_sorts}\verb|show_sorts: bool ref| & default \verb|false| \\
+    \indexml{show\_consts}\verb|show_consts: bool ref| & default \verb|false| \\
+    \indexml{long\_names}\verb|long_names: bool ref| & default \verb|false| \\
+    \indexml{short\_names}\verb|short_names: bool ref| & default \verb|false| \\
+    \indexml{unique\_names}\verb|unique_names: bool ref| & default \verb|true| \\
+    \indexml{show\_brackets}\verb|show_brackets: bool ref| & default \verb|false| \\
+    \indexml{eta\_contract}\verb|eta_contract: bool ref| & default \verb|true| \\
+    \indexml{goals\_limit}\verb|goals_limit: int ref| & default \verb|10| \\
+    \indexml{Proof.show\_main\_goal}\verb|Proof.show_main_goal: bool ref| & default \verb|false| \\
+    \indexml{show\_hyps}\verb|show_hyps: bool ref| & default \verb|false| \\
+    \indexml{show\_tags}\verb|show_tags: bool ref| & default \verb|false| \\
+    \indexml{show\_question\_marks}\verb|show_question_marks: bool ref| & default \verb|true| \\
+  \end{mldecls}
+
+  These global ML variables control the detail of information that is
+  displayed for types, terms, theorems, goals etc.
+
+  In interactive sessions, the user interface usually manages these
+  global parameters of the Isabelle process, even with some concept of
+  persistence.  Nonetheless it is occasionally useful to manipulate ML
+  variables directly, e.g.\ using \hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}} or \hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}.
+
+  Batch-mode logic sessions may be configured by putting appropriate
+  ML text directly into the \verb|ROOT.ML| file.
+
+  \begin{description}
+
+  \item \verb|show_types| and \verb|show_sorts| control printing of type
+  constraints for term variables, and sort constraints for type
+  variables.  By default, neither of these are shown in output.  If
+  \verb|show_sorts| is set to \verb|true|, types are always shown as
+  well.
+
+  Note that displaying types and sorts may explain why a polymorphic
+  inference rule fails to resolve with some goal, or why a rewrite
+  rule does not apply as expected.
+
+  \item \verb|show_consts| controls printing of types of constants when
+  displaying a goal state.
+
+  Note that the output can be enormous, because polymorphic constants
+  often occur at several different type instances.
+
+  \item \verb|long_names|, \verb|short_names|, and \verb|unique_names|
+  control the way of printing fully qualified internal names in
+  external form.  See also \secref{sec:antiq} for the document
+  antiquotation options of the same names.
+
+  \item \verb|show_brackets| controls bracketing in pretty printed
+  output.  If set to \verb|true|, all sub-expressions of the pretty
+  printing tree will be parenthesized, even if this produces malformed
+  term syntax!  This crude way of showing the internal structure of
+  pretty printed entities may occasionally help to diagnose problems
+  with operator priorities, for example.
+
+  \item \verb|eta_contract| controls \isa{{\isachardoublequote}{\isasymeta}{\isachardoublequote}}-contracted printing of
+  terms.
+
+  The \isa{{\isasymeta}}-contraction law asserts \isa{{\isachardoublequote}{\isacharparenleft}{\isasymlambda}x{\isachardot}\ f\ x{\isacharparenright}\ {\isasymequiv}\ f{\isachardoublequote}},
+  provided \isa{x} is not free in \isa{f}.  It asserts
+  \emph{extensionality} of functions: \isa{{\isachardoublequote}f\ {\isasymequiv}\ g{\isachardoublequote}} if \isa{{\isachardoublequote}f\ x\ {\isasymequiv}\ g\ x{\isachardoublequote}} for all \isa{x}.  Higher-order unification frequently puts
+  terms into a fully \isa{{\isasymeta}}-expanded form.  For example, if \isa{F} has type \isa{{\isachardoublequote}{\isacharparenleft}{\isasymtau}\ {\isasymRightarrow}\ {\isasymtau}{\isacharparenright}\ {\isasymRightarrow}\ {\isasymtau}{\isachardoublequote}} then its expanded form is \isa{{\isachardoublequote}{\isasymlambda}h{\isachardot}\ F\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ h\ x{\isacharparenright}{\isachardoublequote}}.
+
+  Setting \verb|eta_contract| makes Isabelle perform \isa{{\isasymeta}}-contractions before printing, so that \isa{{\isachardoublequote}{\isasymlambda}h{\isachardot}\ F\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ h\ x{\isacharparenright}{\isachardoublequote}}
+  appears simply as \isa{F}.
+
+  Note that the distinction between a term and its \isa{{\isasymeta}}-expanded
+  form occasionally matters.  While higher-order resolution and
+  rewriting operate modulo \isa{{\isachardoublequote}{\isasymalpha}{\isasymbeta}{\isasymeta}{\isachardoublequote}}-conversion, some other tools
+  might look at terms more discretely.
+
+  \item \verb|goals_limit| controls the maximum number of subgoals to
+  be shown in goal output.
+
+  \item \verb|Proof.show_main_goal| controls whether the main result to
+  be proven should be displayed.  This information might be relevant
+  for schematic goals, to inspect the current claim that has been
+  synthesized so far.
+
+  \item \verb|show_hyps| controls printing of implicit hypotheses of
+  local facts.  Normally, only those hypotheses are displayed that are
+  \emph{not} covered by the assumptions of the current context: this
+  situation indicates a fault in some tool being used.
+
+  By setting \verb|show_hyps| to \verb|true|, output of \emph{all}
+  hypotheses can be enforced, which is occasionally useful for
+  diagnostic purposes.
+
+  \item \verb|show_tags| controls printing of extra annotations within
+  theorems, such as internal position information, or the case names
+  being attached by the attribute \hyperlink{attribute.case-names}{\mbox{\isa{case{\isacharunderscore}names}}}.
+
+  Note that the \hyperlink{attribute.tagged}{\mbox{\isa{tagged}}} and \hyperlink{attribute.untagged}{\mbox{\isa{untagged}}}
+  attributes provide low-level access to the collection of tags
+  associated with a theorem.
+
+  \item \verb|show_question_marks| controls printing of question marks
+  for schematic variables, such as \isa{{\isacharquery}x}.  Only the leading
+  question mark is affected, the remaining text is unchanged
+  (including proper markup for schematic variables that might be
+  relevant for user interfaces).
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Printing limits%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+    \indexml{Pretty.setdepth}\verb|Pretty.setdepth: int -> unit| \\
+    \indexml{Pretty.setmargin}\verb|Pretty.setmargin: int -> unit| \\
+    \indexml{print\_depth}\verb|print_depth: int -> unit| \\
+  \end{mldecls}
+
+  These ML functions set limits for pretty printed text.
+
+  \begin{description}
+
+  \item \verb|Pretty.setdepth|~\isa{d} tells the pretty printer to
+  limit the printing depth to \isa{d}.  This affects the display of
+  types, terms, theorems etc.  The default value is 0, which permits
+  printing to an arbitrary depth.  Other useful values for \isa{d}
+  are 10 and 20.
+
+  \item \verb|Pretty.setmargin|~\isa{m} tells the pretty printer to
+  assume a right margin (page width) of \isa{m}.  The initial margin
+  is 76, but user interfaces might adapt the margin automatically when
+  resizing windows.
+
+  \item \verb|print_depth|~\isa{n} limits the printing depth of the
+  ML toplevel pretty printer; the precise effect depends on the ML
+  compiler and run-time system.  Typically \isa{n} should be less
+  than 10.  Bigger values such as 100--1000 are useful for debugging.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Mixfix annotations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Mixfix annotations specify concrete \emph{inner syntax} of
+  Isabelle types and terms.  Some commands such as \hyperlink{command.typedecl}{\mbox{\isa{\isacommand{typedecl}}}} admit infixes only, while \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}} etc.\
+  support the full range of general mixfixes and binders.  Fixed
+  parameters in toplevel theorem statements, locale specifications
+  also admit mixfix annotations.
+
+  \indexouternonterm{infix}\indexouternonterm{mixfix}\indexouternonterm{structmixfix}
+  \begin{rail}
+    infix: '(' ('infix' | 'infixl' | 'infixr') string nat ')'
+    ;
+    mixfix: infix | '(' string prios? nat? ')' | '(' 'binder' string prios? nat ')'
+    ;
+    structmixfix: mixfix | '(' 'structure' ')'
+    ;
+
+    prios: '[' (nat + ',') ']'
+    ;
+  \end{rail}
+
+  Here the \railtok{string} specifications refer to the actual mixfix
+  template, which may include literal text, spacing, blocks, and
+  arguments (denoted by ``\isa{{\isacharunderscore}}''); the special symbol
+  ``\verb|\<index>|'' (printed as ``\isa{{\isachardoublequote}{\isasymindex}{\isachardoublequote}}'') represents an index
+  argument that specifies an implicit structure reference (see also
+  \secref{sec:locale}).  Infix and binder declarations provide common
+  abbreviations for particular mixfix declarations.  So in practice,
+  mixfix templates mostly degenerate to literal text for concrete
+  syntax, such as ``\verb|++|'' for an infix symbol.
+
+  \medskip In full generality, mixfix declarations work as follows.
+  Suppose a constant \isa{{\isachardoublequote}c\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}\isactrlsub {\isadigit{1}}\ {\isasymRightarrow}\ {\isasymdots}\ {\isasymtau}\isactrlsub n\ {\isasymRightarrow}\ {\isasymtau}{\isachardoublequote}} is
+  annotated by \isa{{\isachardoublequote}{\isacharparenleft}mixfix\ {\isacharbrackleft}p\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ p\isactrlsub n{\isacharbrackright}\ p{\isacharparenright}{\isachardoublequote}}, where \isa{{\isachardoublequote}mixfix{\isachardoublequote}} is a string \isa{{\isachardoublequote}d\isactrlsub {\isadigit{0}}\ {\isacharunderscore}\ d\isactrlsub {\isadigit{1}}\ {\isacharunderscore}\ {\isasymdots}\ {\isacharunderscore}\ d\isactrlsub n{\isachardoublequote}} consisting of
+  delimiters that surround argument positions as indicated by
+  underscores.
+
+  Altogether this determines a production for a context-free priority
+  grammar, where for each argument \isa{{\isachardoublequote}i{\isachardoublequote}} the syntactic category
+  is determined by \isa{{\isachardoublequote}{\isasymtau}\isactrlsub i{\isachardoublequote}} (with priority \isa{{\isachardoublequote}p\isactrlsub i{\isachardoublequote}}), and
+  the result category is determined from \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}} (with
+  priority \isa{{\isachardoublequote}p{\isachardoublequote}}).  Priority specifications are optional, with
+  default 0 for arguments and 1000 for the result.
+
+  Since \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}} may be again a function type, the constant
+  type scheme may have more argument positions than the mixfix
+  pattern.  Printing a nested application \isa{{\isachardoublequote}c\ t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub m{\isachardoublequote}} for
+  \isa{{\isachardoublequote}m\ {\isachargreater}\ n{\isachardoublequote}} works by attaching concrete notation only to the
+  innermost part, essentially by printing \isa{{\isachardoublequote}{\isacharparenleft}c\ t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n{\isacharparenright}\ {\isasymdots}\ t\isactrlsub m{\isachardoublequote}}
+  instead.  If a term has fewer arguments than specified in the mixfix
+  template, the concrete syntax is ignored.
+
+  \medskip A mixfix template may also contain additional directives
+  for pretty printing, notably spaces, blocks, and breaks.  The
+  general template format is a sequence over any of the following
+  entities.
+
+  \begin{description}
+
+  \item \isa{{\isachardoublequote}d{\isachardoublequote}} is a delimiter, namely a non-empty sequence of
+  characters other than the following special characters:
+
+  \smallskip
+  \begin{tabular}{ll}
+    \verb|'| & single quote \\
+    \verb|_| & underscore \\
+    \isa{{\isachardoublequote}{\isasymindex}{\isachardoublequote}} & index symbol \\
+    \verb|(| & open parenthesis \\
+    \verb|)| & close parenthesis \\
+    \verb|/| & slash \\
+  \end{tabular}
+  \medskip
+
+  \item \verb|'| escapes the special meaning of these
+  meta-characters, producing a literal version of the following
+  character, unless that is a blank.
+
+  A single quote followed by a blank separates delimiters, without
+  affecting printing, but input tokens may have additional white space
+  here.
+
+  \item \verb|_| is an argument position, which stands for a
+  certain syntactic category in the underlying grammar.
+
+  \item \isa{{\isachardoublequote}{\isasymindex}{\isachardoublequote}} is an indexed argument position; this is the place
+  where implicit structure arguments can be attached.
+
+  \item \isa{{\isachardoublequote}s{\isachardoublequote}} is a non-empty sequence of spaces for printing.
+  This and the following specifications do not affect parsing at all.
+
+  \item \verb|(|\isa{n} opens a pretty printing block.  The
+  optional number specifies how much indentation to add when a line
+  break occurs within the block.  If the parenthesis is not followed
+  by digits, the indentation defaults to 0.  A block specified via
+  \verb|(00| is unbreakable.
+
+  \item \verb|)| closes a pretty printing block.
+
+  \item \verb|//| forces a line break.
+
+  \item \verb|/|\isa{s} allows a line break.  Here \isa{s}
+  stands for the string of spaces (zero or more) right after the
+  slash.  These spaces are printed if the break is \emph{not} taken.
+
+  \end{description}
+
+  For example, the template \verb|(_ +/ _)| specifies an infix
+  operator.  There are two argument positions; the delimiter
+  \verb|+| is preceded by a space and followed by a space or
+  line break; the entire phrase is a pretty printing block.
+
+  The general idea of pretty printing with blocks and breaks is also
+  described in \cite{paulson-ml2}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Explicit term notation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcll}
+    \indexdef{}{command}{notation}\hypertarget{command.notation}{\hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{no\_notation}\hypertarget{command.no-notation}{\hyperlink{command.no-notation}{\mbox{\isa{\isacommand{no{\isacharunderscore}notation}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+  \end{matharray}
+
+  \begin{rail}
+    ('notation' | 'no\_notation') target? mode? (nameref structmixfix + 'and')
+    ;
+  \end{rail}
+
+  \begin{description}
+
+  \item \hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}}~\isa{{\isachardoublequote}c\ {\isacharparenleft}mx{\isacharparenright}{\isachardoublequote}} associates mixfix
+  syntax with an existing constant or fixed variable.  This is a
+  robust interface to the underlying \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} primitive
+  (\secref{sec:syn-trans}).  Type declaration and internal syntactic
+  representation of the given entity is retrieved from the context.
+  
+  \item \hyperlink{command.no-notation}{\mbox{\isa{\isacommand{no{\isacharunderscore}notation}}}} is similar to \hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}},
+  but removes the specified syntax annotation from the present
+  context.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{The Pure syntax \label{sec:pure-syntax}%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Priority grammars \label{sec:priority-grammar}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A context-free grammar consists of a set of \emph{terminal
+  symbols}, a set of \emph{nonterminal symbols} and a set of
+  \emph{productions}.  Productions have the form \isa{{\isachardoublequote}A\ {\isacharequal}\ {\isasymgamma}{\isachardoublequote}},
+  where \isa{A} is a nonterminal and \isa{{\isasymgamma}} is a string of
+  terminals and nonterminals.  One designated nonterminal is called
+  the \emph{root symbol}.  The language defined by the grammar
+  consists of all strings of terminals that can be derived from the
+  root symbol by applying productions as rewrite rules.
+
+  The standard Isabelle parser for inner syntax uses a \emph{priority
+  grammar}.  Each nonterminal is decorated by an integer priority:
+  \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup p\isactrlsup {\isacharparenright}{\isachardoublequote}}.  In a derivation, \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup p\isactrlsup {\isacharparenright}{\isachardoublequote}} may be rewritten
+  using a production \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup q\isactrlsup {\isacharparenright}\ {\isacharequal}\ {\isasymgamma}{\isachardoublequote}} only if \isa{{\isachardoublequote}p\ {\isasymle}\ q{\isachardoublequote}}.  Any
+  priority grammar can be translated into a normal context-free
+  grammar by introducing new nonterminals and productions.
+
+  \medskip Formally, a set of context free productions \isa{G}
+  induces a derivation relation \isa{{\isachardoublequote}{\isasymlongrightarrow}\isactrlsub G{\isachardoublequote}} as follows.  Let \isa{{\isasymalpha}} and \isa{{\isasymbeta}} denote strings of terminal or nonterminal symbols.
+  Then \isa{{\isachardoublequote}{\isasymalpha}\ A\isactrlsup {\isacharparenleft}\isactrlsup p\isactrlsup {\isacharparenright}\ {\isasymbeta}\ {\isasymlongrightarrow}\isactrlsub G\ {\isasymalpha}\ {\isasymgamma}\ {\isasymbeta}{\isachardoublequote}} holds if and only if \isa{G}
+  contains some production \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup q\isactrlsup {\isacharparenright}\ {\isacharequal}\ {\isasymgamma}{\isachardoublequote}} for \isa{{\isachardoublequote}p\ {\isasymle}\ q{\isachardoublequote}}.
+
+  \medskip The following grammar for arithmetic expressions
+  demonstrates how binding power and associativity of operators can be
+  enforced by priorities.
+
+  \begin{center}
+  \begin{tabular}{rclr}
+  \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \verb|(| \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|)| \\
+  \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \verb|0| \\
+  \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|+| \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{2}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|*| \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{2}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \verb|-| \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \\
+  \end{tabular}
+  \end{center}
+  The choice of priorities determines that \verb|-| binds
+  tighter than \verb|*|, which binds tighter than \verb|+|.  Furthermore \verb|+| associates to the left and
+  \verb|*| to the right.
+
+  \medskip For clarity, grammars obey these conventions:
+  \begin{itemize}
+
+  \item All priorities must lie between 0 and 1000.
+
+  \item Priority 0 on the right-hand side and priority 1000 on the
+  left-hand side may be omitted.
+
+  \item The production \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup p\isactrlsup {\isacharparenright}\ {\isacharequal}\ {\isasymalpha}{\isachardoublequote}} is written as \isa{{\isachardoublequote}A\ {\isacharequal}\ {\isasymalpha}\ {\isacharparenleft}p{\isacharparenright}{\isachardoublequote}}, i.e.\ the priority of the left-hand side actually appears in
+  a column on the far right.
+
+  \item Alternatives are separated by \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}}.
+
+  \item Repetition is indicated by dots \isa{{\isachardoublequote}{\isacharparenleft}{\isasymdots}{\isacharparenright}{\isachardoublequote}} in an informal
+  but obvious way.
+
+  \end{itemize}
+
+  Using these conventions, the example grammar specification above
+  takes the form:
+  \begin{center}
+  \begin{tabular}{rclc}
+    \isa{A} & \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}} & \verb|(| \isa{A} \verb|)| \\
+              & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|0| & \qquad\qquad \\
+              & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{A} \verb|+| \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
+              & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|*| \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{2}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{2}}{\isacharparenright}{\isachardoublequote}} \\
+              & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|-| \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{3}}{\isacharparenright}{\isachardoublequote}} \\
+  \end{tabular}
+  \end{center}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{The Pure grammar%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The priority grammar of the \isa{{\isachardoublequote}Pure{\isachardoublequote}} theory is defined as follows:
+
+  %FIXME syntax for "index" (?)
+  %FIXME "op" versions of ==> etc. (?)
+
+  \begin{center}
+  \begin{supertabular}{rclr}
+
+  \indexdef{inner}{syntax}{any}\hypertarget{syntax.inner.any}{\hyperlink{syntax.inner.any}{\mbox{\isa{any}}}} & = & \isa{{\isachardoublequote}prop\ \ {\isacharbar}\ \ logic{\isachardoublequote}} \\\\
+
+  \indexdef{inner}{syntax}{prop}\hypertarget{syntax.inner.prop}{\hyperlink{syntax.inner.prop}{\mbox{\isa{prop}}}} & = & \verb|(| \isa{prop} \verb|)| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}prop\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{4}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|::| \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{3}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|=?=| \isa{{\isachardoublequote}any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{2}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{2}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|==| \isa{{\isachardoublequote}any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{2}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{2}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} \isa{{\isachardoublequote}any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{2}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{2}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}prop\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{2}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|==>| \isa{{\isachardoublequote}prop\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}prop\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{2}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \isa{{\isachardoublequote}{\isasymLongrightarrow}{\isachardoublequote}} \isa{{\isachardoublequote}prop\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|[|\verb,|,\verb|| \isa{prop} \verb|;| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|;| \isa{prop} \verb||\verb,|,\verb|]| \verb|==>| \isa{{\isachardoublequote}prop\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymlbrakk}{\isachardoublequote}} \isa{prop} \verb|;| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|;| \isa{prop} \isa{{\isachardoublequote}{\isasymrbrakk}{\isachardoublequote}} \isa{{\isachardoublequote}{\isasymLongrightarrow}{\isachardoublequote}} \isa{{\isachardoublequote}prop\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|!!| \isa{idts} \verb|.| \isa{prop} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymAnd}{\isachardoublequote}} \isa{idts} \verb|.| \isa{prop} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|OFCLASS| \verb|(| \isa{type} \verb|,| \isa{logic} \verb|)| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|SORT_CONSTRAINT| \verb|(| \isa{type} \verb|)| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|PROP| \isa{aprop} \\\\
+
+  \indexdef{inner}{syntax}{aprop}\hypertarget{syntax.inner.aprop}{\hyperlink{syntax.inner.aprop}{\mbox{\isa{aprop}}}} & = & \isa{{\isachardoublequote}id\ \ {\isacharbar}\ \ longid\ \ {\isacharbar}\ \ var\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|_|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|...| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}logic\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}\ \ any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}\ {\isasymdots}\ any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}{\isachardoublequote}} \\\\
+
+  \indexdef{inner}{syntax}{logic}\hypertarget{syntax.inner.logic}{\hyperlink{syntax.inner.logic}{\mbox{\isa{logic}}}} & = & \verb|(| \isa{logic} \verb|)| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}logic\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{4}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|::| \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{3}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}id\ \ {\isacharbar}\ \ longid\ \ {\isacharbar}\ \ var\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|_|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|...| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}logic\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}\ \ any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}\ {\isasymdots}\ any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|%| \isa{pttrns} \verb|.| \isa{{\isachardoublequote}any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{3}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isasymlambda}} \isa{pttrns} \verb|.| \isa{{\isachardoublequote}any\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{3}}\isactrlsup {\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{3}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|CONST| \isa{{\isachardoublequote}id\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|CONST| \isa{{\isachardoublequote}longid{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|TYPE| \verb|(| \isa{type} \verb|)| \\\\
+
+  \indexdef{inner}{syntax}{idt}\hypertarget{syntax.inner.idt}{\hyperlink{syntax.inner.idt}{\mbox{\isa{idt}}}} & = & \verb|(| \isa{idt} \verb|)|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ id\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|_| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{id} \verb|::| \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|_| \verb|::| \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\\\
+
+  \indexdef{inner}{syntax}{idts}\hypertarget{syntax.inner.idts}{\hyperlink{syntax.inner.idts}{\mbox{\isa{idts}}}} & = & \isa{{\isachardoublequote}idt\ \ {\isacharbar}\ \ idt\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}\ idts{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\\\
+
+  \indexdef{inner}{syntax}{pttrn}\hypertarget{syntax.inner.pttrn}{\hyperlink{syntax.inner.pttrn}{\mbox{\isa{pttrn}}}} & = & \isa{idt} \\\\
+
+  \indexdef{inner}{syntax}{pttrns}\hypertarget{syntax.inner.pttrns}{\hyperlink{syntax.inner.pttrns}{\mbox{\isa{pttrns}}}} & = & \isa{{\isachardoublequote}pttrn\ \ {\isacharbar}\ \ pttrn\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}\ pttrns{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\\\
+
+  \indexdef{inner}{syntax}{type}\hypertarget{syntax.inner.type}{\hyperlink{syntax.inner.type}{\mbox{\isa{type}}}} & = & \verb|(| \isa{type} \verb|)| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}tid\ \ {\isacharbar}\ \ tvar\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|_| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}tid{\isachardoublequote}} \verb|::| \isa{{\isachardoublequote}sort\ \ {\isacharbar}\ \ tvar\ \ {\isachardoublequote}}\verb|::| \isa{{\isachardoublequote}sort\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|_| \verb|::| \isa{{\isachardoublequote}sort{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}id\ \ {\isacharbar}\ \ type\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}\ id\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|(| \isa{type} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{type} \verb|)| \isa{id} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}longid\ \ {\isacharbar}\ \ type\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}\ longid\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|(| \isa{type} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{type} \verb|)| \isa{longid} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}type\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|=>| \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}type\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \isa{{\isachardoublequote}{\isasymRightarrow}{\isachardoublequote}} \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|[| \isa{type} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{type} \verb|]| \verb|=>| \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|[| \isa{type} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{type} \verb|]| \isa{{\isachardoublequote}{\isasymRightarrow}{\isachardoublequote}} \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\\\
+
+  \indexdef{inner}{syntax}{sort}\hypertarget{syntax.inner.sort}{\hyperlink{syntax.inner.sort}{\mbox{\isa{sort}}}} & = & \isa{{\isachardoublequote}id\ \ {\isacharbar}\ \ longid\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|{}|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|{| \isa{{\isachardoublequote}{\isacharparenleft}id\ {\isacharbar}\ longid{\isacharparenright}{\isachardoublequote}} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{{\isachardoublequote}{\isacharparenleft}id\ {\isacharbar}\ longid{\isacharparenright}{\isachardoublequote}} \verb|}| \\
+  \end{supertabular}
+  \end{center}
+
+  \medskip Here literal terminals are printed \verb|verbatim|;
+  see also \secref{sec:inner-lex} for further token categories of the
+  inner syntax.  The meaning of the nonterminals defined by the above
+  grammar is as follows:
+
+  \begin{description}
+
+  \item \indexref{inner}{syntax}{any}\hyperlink{syntax.inner.any}{\mbox{\isa{any}}} denotes any term.
+
+  \item \indexref{inner}{syntax}{prop}\hyperlink{syntax.inner.prop}{\mbox{\isa{prop}}} denotes meta-level propositions,
+  which are terms of type \isa{prop}.  The syntax of such formulae of
+  the meta-logic is carefully distinguished from usual conventions for
+  object-logics.  In particular, plain \isa{{\isachardoublequote}{\isasymlambda}{\isachardoublequote}}-term notation is
+  \emph{not} recognized as \hyperlink{syntax.inner.prop}{\mbox{\isa{prop}}}.
+
+  \item \indexref{inner}{syntax}{aprop}\hyperlink{syntax.inner.aprop}{\mbox{\isa{aprop}}} denotes atomic propositions, which
+  are embedded into regular \hyperlink{syntax.inner.prop}{\mbox{\isa{prop}}} by means of an
+  explicit \verb|PROP| token.
+
+  Terms of type \isa{prop} with non-constant head, e.g.\ a plain
+  variable, are printed in this form.  Constants that yield type \isa{prop} are expected to provide their own concrete syntax; otherwise
+  the printed version will appear like \hyperlink{syntax.inner.logic}{\mbox{\isa{logic}}} and
+  cannot be parsed again as \hyperlink{syntax.inner.prop}{\mbox{\isa{prop}}}.
+
+  \item \indexref{inner}{syntax}{logic}\hyperlink{syntax.inner.logic}{\mbox{\isa{logic}}} denotes arbitrary terms of a
+  logical type, excluding type \isa{prop}.  This is the main
+  syntactic category of object-logic entities, covering plain \isa{{\isasymlambda}}-term notation (variables, abstraction, application), plus
+  anything defined by the user.
+
+  When specifying notation for logical entities, all logical types
+  (excluding \isa{prop}) are \emph{collapsed} to this single category
+  of \hyperlink{syntax.inner.logic}{\mbox{\isa{logic}}}.
+
+  \item \indexref{inner}{syntax}{idt}\hyperlink{syntax.inner.idt}{\mbox{\isa{idt}}} denotes identifiers, possibly
+  constrained by types.
+
+  \item \indexref{inner}{syntax}{idts}\hyperlink{syntax.inner.idts}{\mbox{\isa{idts}}} denotes a sequence of \indexref{inner}{syntax}{idt}\hyperlink{syntax.inner.idt}{\mbox{\isa{idt}}}.  This is the most basic category for variables in
+  iterated binders, such as \isa{{\isachardoublequote}{\isasymlambda}{\isachardoublequote}} or \isa{{\isachardoublequote}{\isasymAnd}{\isachardoublequote}}.
+
+  \item \indexref{inner}{syntax}{pttrn}\hyperlink{syntax.inner.pttrn}{\mbox{\isa{pttrn}}} and \indexref{inner}{syntax}{pttrns}\hyperlink{syntax.inner.pttrns}{\mbox{\isa{pttrns}}}
+  denote patterns for abstraction, cases bindings etc.  In Pure, these
+  categories start as a merely copy of \hyperlink{syntax.inner.idt}{\mbox{\isa{idt}}} and
+  \hyperlink{syntax.inner.idts}{\mbox{\isa{idts}}}, respectively.  Object-logics may add
+  additional productions for binding forms.
+
+  \item \indexref{inner}{syntax}{type}\hyperlink{syntax.inner.type}{\mbox{\isa{type}}} denotes types of the meta-logic.
+
+  \item \indexref{inner}{syntax}{sort}\hyperlink{syntax.inner.sort}{\mbox{\isa{sort}}} denotes meta-level sorts.
+
+  \end{description}
+
+  Here are some further explanations of certain syntax features.
+
+  \begin{itemize}
+
+  \item In \hyperlink{syntax.inner.idts}{\mbox{\isa{idts}}}, note that \isa{{\isachardoublequote}x\ {\isacharcolon}{\isacharcolon}\ nat\ y{\isachardoublequote}} is
+  parsed as \isa{{\isachardoublequote}x\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}nat\ y{\isacharparenright}{\isachardoublequote}}, treating \isa{y} like a type
+  constructor applied to \isa{nat}.  To avoid this interpretation,
+  write \isa{{\isachardoublequote}{\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ nat{\isacharparenright}\ y{\isachardoublequote}} with explicit parentheses.
+
+  \item Similarly, \isa{{\isachardoublequote}x\ {\isacharcolon}{\isacharcolon}\ nat\ y\ {\isacharcolon}{\isacharcolon}\ nat{\isachardoublequote}} is parsed as \isa{{\isachardoublequote}x\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}nat\ y\ {\isacharcolon}{\isacharcolon}\ nat{\isacharparenright}{\isachardoublequote}}.  The correct form is \isa{{\isachardoublequote}{\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ nat{\isacharparenright}\ {\isacharparenleft}y\ {\isacharcolon}{\isacharcolon}\ nat{\isacharparenright}{\isachardoublequote}}, or \isa{{\isachardoublequote}{\isacharparenleft}x\ {\isacharcolon}{\isacharcolon}\ nat{\isacharparenright}\ y\ {\isacharcolon}{\isacharcolon}\ nat{\isachardoublequote}} if \isa{y} is last in the
+  sequence of identifiers.
+
+  \item Type constraints for terms bind very weakly.  For example,
+  \isa{{\isachardoublequote}x\ {\isacharless}\ y\ {\isacharcolon}{\isacharcolon}\ nat{\isachardoublequote}} is normally parsed as \isa{{\isachardoublequote}{\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}\ {\isacharcolon}{\isacharcolon}\ nat{\isachardoublequote}}, unless \isa{{\isachardoublequote}{\isacharless}{\isachardoublequote}} has a very low priority, in which case the
+  input is likely to be ambiguous.  The correct form is \isa{{\isachardoublequote}x\ {\isacharless}\ {\isacharparenleft}y\ {\isacharcolon}{\isacharcolon}\ nat{\isacharparenright}{\isachardoublequote}}.
+
+  \item Constraints may be either written with two literal colons
+  ``\verb|::|'' or the double-colon symbol \verb|\<Colon>|,
+  which actually looks exactly the same in some {\LaTeX} styles.
+
+  \item Dummy variables (written as underscore) may occur in different
+  roles.
+
+  \begin{description}
+
+  \item A type ``\isa{{\isachardoublequote}{\isacharunderscore}{\isachardoublequote}}'' or ``\isa{{\isachardoublequote}{\isacharunderscore}\ {\isacharcolon}{\isacharcolon}\ sort{\isachardoublequote}}'' acts like an
+  anonymous inference parameter, which is filled-in according to the
+  most general type produced by the type-checking phase.
+
+  \item A bound ``\isa{{\isachardoublequote}{\isacharunderscore}{\isachardoublequote}}'' refers to a vacuous abstraction, where
+  the body does not refer to the binding introduced here.  As in the
+  term \isa{{\isachardoublequote}{\isasymlambda}x\ {\isacharunderscore}{\isachardot}\ x{\isachardoublequote}}, which is \isa{{\isachardoublequote}{\isasymalpha}{\isachardoublequote}}-equivalent to \isa{{\isachardoublequote}{\isasymlambda}x\ y{\isachardot}\ x{\isachardoublequote}}.
+
+  \item A free ``\isa{{\isachardoublequote}{\isacharunderscore}{\isachardoublequote}}'' refers to an implicit outer binding.
+  Higher definitional packages usually allow forms like \isa{{\isachardoublequote}f\ x\ {\isacharunderscore}\ {\isacharequal}\ x{\isachardoublequote}}.
+
+  \item A schematic ``\isa{{\isachardoublequote}{\isacharunderscore}{\isachardoublequote}}'' (within a term pattern, see
+  \secref{sec:term-decls}) refers to an anonymous variable that is
+  implicitly abstracted over its context of locally bound variables.
+  For example, this allows pattern matching of \isa{{\isachardoublequote}{\isacharbraceleft}x{\isachardot}\ f\ x\ {\isacharequal}\ g\ x{\isacharbraceright}{\isachardoublequote}} against \isa{{\isachardoublequote}{\isacharbraceleft}x{\isachardot}\ {\isacharunderscore}\ {\isacharequal}\ {\isacharunderscore}{\isacharbraceright}{\isachardoublequote}}, or even \isa{{\isachardoublequote}{\isacharbraceleft}{\isacharunderscore}{\isachardot}\ {\isacharunderscore}\ {\isacharequal}\ {\isacharunderscore}{\isacharbraceright}{\isachardoublequote}} by
+  using both bound and schematic dummies.
+
+  \end{description}
+
+  \item The three literal dots ``\verb|...|'' may be also
+  written as ellipsis symbol \verb|\<dots>|.  In both cases this
+  refers to a special schematic variable, which is bound in the
+  context.  This special term abbreviation works nicely with
+  calculational reasoning (\secref{sec:calculation}).
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Lexical matters \label{sec:inner-lex}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The inner lexical syntax vaguely resembles the outer one
+  (\secref{sec:outer-lex}), but some details are different.  There are
+  two main categories of inner syntax tokens:
+
+  \begin{enumerate}
+
+  \item \emph{delimiters} --- the literal tokens occurring in
+  productions of the given priority grammar (cf.\
+  \secref{sec:priority-grammar});
+
+  \item \emph{named tokens} --- various categories of identifiers etc.
+
+  \end{enumerate}
+
+  Delimiters override named tokens and may thus render certain
+  identifiers inaccessible.  Sometimes the logical context admits
+  alternative ways to refer to the same entity, potentially via
+  qualified names.
+
+  \medskip The categories for named tokens are defined once and for
+  all as follows, reusing some categories of the outer token syntax
+  (\secref{sec:outer-lex}).
+
+  \begin{center}
+  \begin{supertabular}{rcl}
+    \indexdef{inner}{syntax}{id}\hypertarget{syntax.inner.id}{\hyperlink{syntax.inner.id}{\mbox{\isa{id}}}} & = & \indexref{}{syntax}{ident}\hyperlink{syntax.ident}{\mbox{\isa{ident}}} \\
+    \indexdef{inner}{syntax}{longid}\hypertarget{syntax.inner.longid}{\hyperlink{syntax.inner.longid}{\mbox{\isa{longid}}}} & = & \indexref{}{syntax}{longident}\hyperlink{syntax.longident}{\mbox{\isa{longident}}} \\
+    \indexdef{inner}{syntax}{var}\hypertarget{syntax.inner.var}{\hyperlink{syntax.inner.var}{\mbox{\isa{var}}}} & = & \indexref{}{syntax}{var}\hyperlink{syntax.var}{\mbox{\isa{var}}} \\
+    \indexdef{inner}{syntax}{tid}\hypertarget{syntax.inner.tid}{\hyperlink{syntax.inner.tid}{\mbox{\isa{tid}}}} & = & \indexref{}{syntax}{typefree}\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}} \\
+    \indexdef{inner}{syntax}{tvar}\hypertarget{syntax.inner.tvar}{\hyperlink{syntax.inner.tvar}{\mbox{\isa{tvar}}}} & = & \indexref{}{syntax}{typevar}\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}} \\
+    \indexdef{inner}{syntax}{num}\hypertarget{syntax.inner.num}{\hyperlink{syntax.inner.num}{\mbox{\isa{num}}}} & = & \indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
+    \indexdef{inner}{syntax}{xnum}\hypertarget{syntax.inner.xnum}{\hyperlink{syntax.inner.xnum}{\mbox{\isa{xnum}}}} & = & \verb|#|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}}\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|#-|\indexref{}{syntax}{nat}\hyperlink{syntax.nat}{\mbox{\isa{nat}}} \\
+
+    \indexdef{inner}{syntax}{xstr}\hypertarget{syntax.inner.xstr}{\hyperlink{syntax.inner.xstr}{\mbox{\isa{xstr}}}} & = & \verb|''| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|''| \\
+  \end{supertabular}
+  \end{center}
+
+  The token categories \indexref{inner}{syntax}{num}\hyperlink{syntax.inner.num}{\mbox{\isa{num}}}, \indexref{inner}{syntax}{xnum}\hyperlink{syntax.inner.xnum}{\mbox{\isa{xnum}}}, and \indexref{inner}{syntax}{xstr}\hyperlink{syntax.inner.xstr}{\mbox{\isa{xstr}}} are not used in Pure.
+  Object-logics may implement numerals and string constants by adding
+  appropriate syntax declarations, together with some translation
+  functions (e.g.\ see Isabelle/HOL).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Syntax and translations \label{sec:syn-trans}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{nonterminals}\hypertarget{command.nonterminals}{\hyperlink{command.nonterminals}{\mbox{\isa{\isacommand{nonterminals}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{syntax}\hypertarget{command.syntax}{\hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{no\_syntax}\hypertarget{command.no-syntax}{\hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{translations}\hypertarget{command.translations}{\hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{no\_translations}\hypertarget{command.no-translations}{\hyperlink{command.no-translations}{\mbox{\isa{\isacommand{no{\isacharunderscore}translations}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+  \end{matharray}
+
+  \begin{rail}
+    'nonterminals' (name +)
+    ;
+    ('syntax' | 'no\_syntax') mode? (constdecl +)
+    ;
+    ('translations' | 'no\_translations') (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
+    ;
+
+    mode: ('(' ( name | 'output' | name 'output' ) ')')
+    ;
+    transpat: ('(' nameref ')')? string
+    ;
+  \end{rail}
+
+  \begin{description}
+  
+  \item \hyperlink{command.nonterminals}{\mbox{\isa{\isacommand{nonterminals}}}}~\isa{c} declares a type
+  constructor \isa{c} (without arguments) to act as purely syntactic
+  type: a nonterminal symbol of the inner syntax.
+
+  \item \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}}~\isa{{\isachardoublequote}{\isacharparenleft}mode{\isacharparenright}\ decls{\isachardoublequote}} is similar to
+  \hyperlink{command.consts}{\mbox{\isa{\isacommand{consts}}}}~\isa{decls}, except that the actual logical
+  signature extension is omitted.  Thus the context free grammar of
+  Isabelle's inner syntax may be augmented in arbitrary ways,
+  independently of the logic.  The \isa{mode} argument refers to the
+  print mode that the grammar rules belong; unless the \indexref{}{keyword}{output}\hyperlink{keyword.output}{\mbox{\isa{\isakeyword{output}}}} indicator is given, all productions are added both to the
+  input and output grammar.
+  
+  \item \hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isacharunderscore}syntax}}}}~\isa{{\isachardoublequote}{\isacharparenleft}mode{\isacharparenright}\ decls{\isachardoublequote}} removes grammar
+  declarations (and translations) resulting from \isa{decls}, which
+  are interpreted in the same manner as for \hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}} above.
+  
+  \item \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}~\isa{rules} specifies syntactic
+  translation rules (i.e.\ macros): parse~/ print rules (\isa{{\isachardoublequote}{\isasymrightleftharpoons}{\isachardoublequote}}),
+  parse rules (\isa{{\isachardoublequote}{\isasymrightharpoonup}{\isachardoublequote}}), or print rules (\isa{{\isachardoublequote}{\isasymleftharpoondown}{\isachardoublequote}}).
+  Translation patterns may be prefixed by the syntactic category to be
+  used for parsing; the default is \isa{logic}.
+  
+  \item \hyperlink{command.no-translations}{\mbox{\isa{\isacommand{no{\isacharunderscore}translations}}}}~\isa{rules} removes syntactic
+  translation rules, which are interpreted in the same manner as for
+  \hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}} above.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Syntax translation functions \label{sec:tr-funs}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{parse\_ast\_translation}\hypertarget{command.parse-ast-translation}{\hyperlink{command.parse-ast-translation}{\mbox{\isa{\isacommand{parse{\isacharunderscore}ast{\isacharunderscore}translation}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{parse\_translation}\hypertarget{command.parse-translation}{\hyperlink{command.parse-translation}{\mbox{\isa{\isacommand{parse{\isacharunderscore}translation}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{print\_translation}\hypertarget{command.print-translation}{\hyperlink{command.print-translation}{\mbox{\isa{\isacommand{print{\isacharunderscore}translation}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{typed\_print\_translation}\hypertarget{command.typed-print-translation}{\hyperlink{command.typed-print-translation}{\mbox{\isa{\isacommand{typed{\isacharunderscore}print{\isacharunderscore}translation}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{print\_ast\_translation}\hypertarget{command.print-ast-translation}{\hyperlink{command.print-ast-translation}{\mbox{\isa{\isacommand{print{\isacharunderscore}ast{\isacharunderscore}translation}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+  \end{matharray}
+
+  \begin{rail}
+  ( 'parse\_ast\_translation' | 'parse\_translation' | 'print\_translation' |
+    'typed\_print\_translation' | 'print\_ast\_translation' ) ('(advanced)')? text
+  ;
+  \end{rail}
+
+  Syntax translation functions written in ML admit almost arbitrary
+  manipulations of Isabelle's inner syntax.  Any of the above commands
+  have a single \railqtok{text} argument that refers to an ML
+  expression of appropriate type, which are as follows by default:
+
+%FIXME proper antiquotations
+\begin{ttbox}
+val parse_ast_translation   : (string * (ast list -> ast)) list
+val parse_translation       : (string * (term list -> term)) list
+val print_translation       : (string * (term list -> term)) list
+val typed_print_translation :
+  (string * (bool -> typ -> term list -> term)) list
+val print_ast_translation   : (string * (ast list -> ast)) list
+\end{ttbox}
+
+  If the \isa{{\isachardoublequote}{\isacharparenleft}advanced{\isacharparenright}{\isachardoublequote}} option is given, the corresponding
+  translation functions may depend on the current theory or proof
+  context.  This allows to implement advanced syntax mechanisms, as
+  translations functions may refer to specific theory declarations or
+  auxiliary proof data.
+
+  See also \cite[\S8]{isabelle-ref} for more information on the
+  general concept of syntax transformations in Isabelle.
+
+%FIXME proper antiquotations
+\begin{ttbox}
+val parse_ast_translation:
+  (string * (Proof.context -> ast list -> ast)) list
+val parse_translation:
+  (string * (Proof.context -> term list -> term)) list
+val print_translation:
+  (string * (Proof.context -> term list -> term)) list
+val typed_print_translation:
+  (string * (Proof.context -> bool -> typ -> term list -> term)) list
+val print_ast_translation:
+  (string * (Proof.context -> ast list -> ast)) list
+\end{ttbox}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Inspecting the syntax%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{command}{print\_syntax}\hypertarget{command.print-syntax}{\hyperlink{command.print-syntax}{\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+  \end{matharray}
+
+  \begin{description}
+
+  \item \hyperlink{command.print-syntax}{\mbox{\isa{\isacommand{print{\isacharunderscore}syntax}}}} prints the inner syntax of the
+  current context.  The output can be quite large; the most important
+  sections are explained below.
+
+  \begin{description}
+
+  \item \isa{{\isachardoublequote}lexicon{\isachardoublequote}} lists the delimiters of the inner token
+  language; see \secref{sec:inner-lex}.
+
+  \item \isa{{\isachardoublequote}prods{\isachardoublequote}} lists the productions of the underlying
+  priority grammar; see \secref{sec:priority-grammar}.
+
+  The nonterminal \isa{{\isachardoublequote}A\isactrlsup {\isacharparenleft}\isactrlsup p\isactrlsup {\isacharparenright}{\isachardoublequote}} is rendered in plain text as \isa{{\isachardoublequote}A{\isacharbrackleft}p{\isacharbrackright}{\isachardoublequote}}; delimiters are quoted.  Many productions have an extra
+  \isa{{\isachardoublequote}{\isasymdots}\ {\isacharequal}{\isachargreater}\ name{\isachardoublequote}}.  These names later become the heads of parse
+  trees; they also guide the pretty printer.
+
+  Productions without such parse tree names are called \emph{copy
+  productions}.  Their right-hand side must have exactly one
+  nonterminal symbol (or named token).  The parser does not create a
+  new parse tree node for copy productions, but simply returns the
+  parse tree of the right-hand symbol.
+
+  If the right-hand side of a copy production consists of a single
+  nonterminal without any delimiters, then it is called a \emph{chain
+  production}.  Chain productions act as abbreviations: conceptually,
+  they are removed from the grammar by adding new productions.
+  Priority information attached to chain productions is ignored; only
+  the dummy value \isa{{\isachardoublequote}{\isacharminus}{\isadigit{1}}{\isachardoublequote}} is displayed.
+
+  \item \isa{{\isachardoublequote}print{\isacharunderscore}modes{\isachardoublequote}} lists the alternative print modes
+  provided by this grammar; see \secref{sec:print-modes}.
+
+  \item \isa{{\isachardoublequote}parse{\isacharunderscore}rules{\isachardoublequote}} and \isa{{\isachardoublequote}print{\isacharunderscore}rules{\isachardoublequote}} relate to
+  syntax translations (macros); see \secref{sec:syn-trans}.
+
+  \item \isa{{\isachardoublequote}parse{\isacharunderscore}ast{\isacharunderscore}translation{\isachardoublequote}} and \isa{{\isachardoublequote}print{\isacharunderscore}ast{\isacharunderscore}translation{\isachardoublequote}} list sets of constants that invoke
+  translation functions for abstract syntax trees, which are only
+  required in very special situations; see \secref{sec:tr-funs}.
+
+  \item \isa{{\isachardoublequote}parse{\isacharunderscore}translation{\isachardoublequote}} and \isa{{\isachardoublequote}print{\isacharunderscore}translation{\isachardoublequote}}
+  list the sets of constants that invoke regular translation
+  functions; see \secref{sec:tr-funs}.
+
+  \end{description}
+  
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

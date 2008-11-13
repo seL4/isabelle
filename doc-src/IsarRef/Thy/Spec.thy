@@ -148,8 +148,6 @@ text {*
     @{attribute_def "defn"} & : & @{text attribute} \\
     @{command_def "abbreviation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "print_abbrevs"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
-    @{command_def "notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "no_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   These specification mechanisms provide a slightly more abstract view
@@ -164,8 +162,6 @@ text {*
     'definition' target? (decl 'where')? thmdecl? prop
     ;
     'abbreviation' target? mode? (decl 'where')? prop
-    ;
-    ('notation' | 'no\_notation') target? mode? (nameref structmixfix + 'and')
     ;
 
     fixes: ((name ('::' type)? mixfix? | vars) + 'and')
@@ -223,20 +219,7 @@ text {*
   \item @{command "print_abbrevs"} prints all constant abbreviations
   of the current context.
   
-  \item @{command "notation"}~@{text "c (mx)"} associates mixfix
-  syntax with an existing constant or fixed variable.  This is a
-  robust interface to the underlying @{command "syntax"} primitive
-  (\secref{sec:syn-trans}).  Type declaration and internal syntactic
-  representation of the given entity is retrieved from the context.
-  
-  \item @{command "no_notation"} is similar to @{command "notation"},
-  but removes the specified syntax annotation from the present
-  context.
-
   \end{description}
-
-  All of these specifications support local theory targets (cf.\
-  \secref{sec:target}).
 *}
 
 
@@ -924,7 +907,6 @@ text {*
   \begin{matharray}{rcll}
     @{command_def "types"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "typedecl"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "nonterminals"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "arities"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
 
@@ -932,8 +914,6 @@ text {*
     'types' (typespec '=' type infix? +)
     ;
     'typedecl' typespec infix?
-    ;
-    'nonterminals' (name +)
     ;
     'arities' (nameref '::' arity +)
     ;
@@ -951,11 +931,6 @@ text {*
   \item @{command "typedecl"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} declares a new
   type constructor @{text t}, intended as an actual logical type (of
   the object-logic, if available).
-
-  \item @{command "nonterminals"}~@{text c} declares type constructors
-  @{text c} (without arguments) to act as purely syntactic types,
-  i.e.\ nonterminal symbols of Isabelle's inner syntax of terms or
-  types.
 
   \item @{command "arities"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n) s"} augments
   Isabelle's order-sorted signature of types by new type constructor
@@ -1204,114 +1179,6 @@ text {*
   ``@{text "??"}'' prefixed to the full internal name.
 
   \end{description}
-*}
-
-
-section {* Syntax and translations \label{sec:syn-trans} *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "syntax"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "no_syntax"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "translations"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "no_translations"} & : & @{text "theory \<rightarrow> theory"} \\
-  \end{matharray}
-
-  \begin{rail}
-    ('syntax' | 'no\_syntax') mode? (constdecl +)
-    ;
-    ('translations' | 'no\_translations') (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
-    ;
-
-    mode: ('(' ( name | 'output' | name 'output' ) ')')
-    ;
-    transpat: ('(' nameref ')')? string
-    ;
-  \end{rail}
-
-  \begin{description}
-  
-  \item @{command "syntax"}~@{text "(mode) decls"} is similar to
-  @{command "consts"}~@{text decls}, except that the actual logical
-  signature extension is omitted.  Thus the context free grammar of
-  Isabelle's inner syntax may be augmented in arbitrary ways,
-  independently of the logic.  The @{text mode} argument refers to the
-  print mode that the grammar rules belong; unless the @{keyword_ref
-  "output"} indicator is given, all productions are added both to the
-  input and output grammar.
-  
-  \item @{command "no_syntax"}~@{text "(mode) decls"} removes grammar
-  declarations (and translations) resulting from @{text decls}, which
-  are interpreted in the same manner as for @{command "syntax"} above.
-  
-  \item @{command "translations"}~@{text rules} specifies syntactic
-  translation rules (i.e.\ macros): parse~/ print rules (@{text "\<rightleftharpoons>"}),
-  parse rules (@{text "\<rightharpoonup>"}), or print rules (@{text "\<leftharpoondown>"}).
-  Translation patterns may be prefixed by the syntactic category to be
-  used for parsing; the default is @{text logic}.
-  
-  \item @{command "no_translations"}~@{text rules} removes syntactic
-  translation rules, which are interpreted in the same manner as for
-  @{command "translations"} above.
-
-  \end{description}
-*}
-
-
-section {* Syntax translation functions *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "parse_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "parse_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "typed_print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "print_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-  \end{matharray}
-
-  \begin{rail}
-  ( 'parse\_ast\_translation' | 'parse\_translation' | 'print\_translation' |
-    'typed\_print\_translation' | 'print\_ast\_translation' ) ('(advanced)')? text
-  ;
-  \end{rail}
-
-  Syntax translation functions written in ML admit almost arbitrary
-  manipulations of Isabelle's inner syntax.  Any of the above commands
-  have a single \railqtok{text} argument that refers to an ML
-  expression of appropriate type, which are as follows by default:
-
-%FIXME proper antiquotations
-\begin{ttbox}
-val parse_ast_translation   : (string * (ast list -> ast)) list
-val parse_translation       : (string * (term list -> term)) list
-val print_translation       : (string * (term list -> term)) list
-val typed_print_translation :
-  (string * (bool -> typ -> term list -> term)) list
-val print_ast_translation   : (string * (ast list -> ast)) list
-\end{ttbox}
-
-  If the @{text "(advanced)"} option is given, the corresponding
-  translation functions may depend on the current theory or proof
-  context.  This allows to implement advanced syntax mechanisms, as
-  translations functions may refer to specific theory declarations or
-  auxiliary proof data.
-
-  See also \cite[\S8]{isabelle-ref} for more information on the
-  general concept of syntax transformations in Isabelle.
-
-%FIXME proper antiquotations
-\begin{ttbox}
-val parse_ast_translation:
-  (string * (Proof.context -> ast list -> ast)) list
-val parse_translation:
-  (string * (Proof.context -> term list -> term)) list
-val print_translation:
-  (string * (Proof.context -> term list -> term)) list
-val typed_print_translation:
-  (string * (Proof.context -> bool -> typ -> term list -> term)) list
-val print_ast_translation:
-  (string * (Proof.context -> ast list -> ast)) list
-\end{ttbox}
 *}
 
 end
