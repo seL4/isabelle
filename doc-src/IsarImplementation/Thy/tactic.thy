@@ -144,9 +144,13 @@ text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*
   A common pattern of composing tactics with subgoal addressing is to
   try the first one, and then the second one only if the subgoal has
   not been solved yet.  Special care is required here to avoid bumping
-  into unrelated subgoals that happen come after the original subgoal.
-  Assuming that there is only a single initial subgoal is a very
-  common error when implementing tactics!
+  into unrelated subgoals that happen to come after the original
+  subgoal.  Assuming that there is only a single initial subgoal is a
+  very common error when implementing tactics!
+
+  Tactics with internal subgoal addressing should expose the subgoal
+  index as @{text "int"} argument in full generality; a hardwired
+  subgoal 1 inappropriate.
   
   \medskip The main well-formedness conditions for proper tactics are
   summarized as follows.
@@ -166,6 +170,51 @@ text {* A @{text "tactic"} is a function @{text "goal \<rightarrow> goal\<^sup>*
   \item Range errors in subgoal addressing produce an empty result.
 
   \end{itemize}
+
+  Some of these conditions are checked by higher-level goal
+  infrastructure (\secref{sec:results}); others are not checked
+  explicitly, and violating them merely results in ill-behaved tactics
+  experienced by the user (e.g.\ tactics that insist in being
+  applicable only to singleton goals, or disallow composition with
+  basic tacticals).
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML_type tactic: "thm -> thm Seq.seq"} \\
+  @{index_ML PRIMITIVE: "(thm -> thm) -> tactic"} \\
+  @{index_ML SUBGOAL: "(term * int -> tactic) -> int -> tactic"} \\
+  @{index_ML CSUBGOAL: "(cterm * int -> tactic) -> int -> tactic"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML_type tactic} represents tactics.  The well-formedness
+  conditions described above need to be observed.  See also @{"file"
+  "~~/src/Pure/General/seq.ML"} for the underlying implementation of
+  lazy sequences.
+
+  \item @{ML_type "int -> tactic"} represents tactics with explicit
+  subgoal addressing, with well-formedness conditions as described
+  above.
+
+  \item @{ML PRIMITIVE}~@{text rule} turns a primitive inference rule
+  into a tactic with unique result.  Exception @{ML THM} is considered
+  a regular tactic failure and produces an empty result; other
+  exceptions are passed through.
+
+  \item @{ML SUBGOAL}~@{text "(fn (subgoal, i) => tactic)"} is the
+  most basic form to produce tactic with subgoal addressing.  The
+  given abstraction over the subgoal term and subgoal number allows to
+  peek at the relevant information of the full goal state.  The
+  subgoal range is checked as required above.
+
+  \item @{ML CSUBGOAL} is similar to @{ML SUBGOAL}, but passes the
+  subgoal as a @{ML_type cterm} instead of raw @{ML_type term}.  This
+  avoids expensive re-certification in situations where the subgoal is
+  used directly for primitive inferences.
+
+  \end{description}
 *}
 
 
