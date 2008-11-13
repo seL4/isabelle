@@ -16,9 +16,9 @@ text {*
   Simplifier setup.
 
   \begin{matharray}{rcl}
-    @{command_def (ZF) "print_tcset"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{method_def (ZF) typecheck} & : & \isarmeth \\
-    @{attribute_def (ZF) TC} & : & \isaratt \\
+    @{command_def (ZF) "print_tcset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{method_def (ZF) typecheck} & : & @{text method} \\
+    @{attribute_def (ZF) TC} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -51,10 +51,10 @@ text {*
   Coinductive definitions are available in both cases, too.
 
   \begin{matharray}{rcl}
-    @{command_def (ZF) "inductive"} & : & \isartrans{theory}{theory} \\
-    @{command_def (ZF) "coinductive"} & : & \isartrans{theory}{theory} \\
-    @{command_def (ZF) "datatype"} & : & \isartrans{theory}{theory} \\
-    @{command_def (ZF) "codatatype"} & : & \isartrans{theory}{theory} \\
+    @{command_def (ZF) "inductive"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (ZF) "coinductive"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (ZF) "datatype"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (ZF) "codatatype"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -104,7 +104,7 @@ subsection {* Primitive recursive functions *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (ZF) "primrec"} & : & \isartrans{theory}{theory} \\
+    @{command_def (ZF) "primrec"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -121,10 +121,10 @@ text {*
   ported to Isar.  These should not be used in proper proof texts.
 
   \begin{matharray}{rcl}
-    @{method_def (ZF) case_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def (ZF) induct_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def (ZF) ind_cases}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{command_def (ZF) "inductive_cases"} & : & \isartrans{theory}{theory} \\
+    @{method_def (ZF) case_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def (ZF) induct_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def (ZF) ind_cases}@{text "\<^sup>*"} & : & @{text method} \\
+    @{command_def (ZF) "inductive_cases"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}

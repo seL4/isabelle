@@ -10,7 +10,7 @@ section {* Mixfix syntax for continuous operations *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOLCF) "consts"} & : & \isartrans{theory}{theory} \\
+    @{command_def (HOLCF) "consts"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   HOLCF provides a separate type for continuous functions @{text "\<alpha> \<rightarrow>
@@ -33,7 +33,7 @@ section {* Recursive domains *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOLCF) "domain"} & : & \isartrans{theory}{theory} \\
+    @{command_def (HOLCF) "domain"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}

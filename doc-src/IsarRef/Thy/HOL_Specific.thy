@@ -10,8 +10,8 @@ section {* Primitive types \label{sec:hol-typedef} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "typedecl"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "typedef"} & : & \isartrans{theory}{proof(prove)} \\
+    @{command_def (HOL) "typedecl"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "typedef"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   \begin{rail}
@@ -79,7 +79,7 @@ section {* Adhoc tuples *}
 
 text {*
   \begin{matharray}{rcl}
-    @{attribute (HOL) split_format}@{text "\<^sup>*"} & : & \isaratt \\
+    @{attribute (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -185,7 +185,7 @@ subsection {* Record specifications *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "record"} & : & \isartrans{theory}{theory} \\
+    @{command_def (HOL) "record"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -359,8 +359,8 @@ section {* Datatypes \label{sec:hol-datatype} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "datatype"} & : & \isartrans{theory}{theory} \\
-  @{command_def (HOL) "rep_datatype"} & : & \isartrans{theory}{proof} \\
+    @{command_def (HOL) "datatype"} & : & @{text "theory \<rightarrow> theory"} \\
+  @{command_def (HOL) "rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   \begin{rail}
@@ -403,10 +403,10 @@ section {* Recursive functions \label{sec:recursion} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "primrec"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def (HOL) "fun"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def (HOL) "function"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    @{command_def (HOL) "termination"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
+    @{command_def (HOL) "primrec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "fun"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "function"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "termination"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   \begin{rail}
@@ -509,9 +509,9 @@ subsection {* Proof methods related to recursive definitions *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def (HOL) pat_completeness} & : & \isarmeth \\
-    @{method_def (HOL) relation} & : & \isarmeth \\
-    @{method_def (HOL) lexicographic_order} & : & \isarmeth \\
+    @{method_def (HOL) pat_completeness} & : & @{text method} \\
+    @{method_def (HOL) relation} & : & @{text method} \\
+    @{method_def (HOL) lexicographic_order} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
@@ -558,8 +558,8 @@ text {*
   (HOL) "function"} or @{command (HOL) "fun"} should be used instead.
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "recdef"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "recdef_tc"}@{text "\<^sup>*"} & : & \isartrans{theory}{proof(prove)} \\
+    @{command_def (HOL) "recdef"} & : & @{text "theory \<rightarrow> theory)"} \\
+    @{command_def (HOL) "recdef_tc"}@{text "\<^sup>*"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   \begin{rail}
@@ -602,9 +602,9 @@ text {*
   globally, using the following attributes.
 
   \begin{matharray}{rcl}
-    @{attribute_def (HOL) recdef_simp} & : & \isaratt \\
-    @{attribute_def (HOL) recdef_cong} & : & \isaratt \\
-    @{attribute_def (HOL) recdef_wf} & : & \isaratt \\
+    @{attribute_def (HOL) recdef_simp} & : & @{text attribute} \\
+    @{attribute_def (HOL) recdef_cong} & : & @{text attribute} \\
+    @{attribute_def (HOL) recdef_wf} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -640,11 +640,11 @@ text {*
   to use inference rules for type-checking.
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "inductive"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def (HOL) "inductive_set"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def (HOL) "coinductive"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def (HOL) "coinductive_set"} & : & \isarkeep{local{\dsh}theory} \\
-    @{attribute_def (HOL) mono} & : & \isaratt \\
+    @{command_def (HOL) "inductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "inductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "coinductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "coinductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{attribute_def (HOL) mono} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -757,8 +757,8 @@ section {* Arithmetic proof support *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def (HOL) arith} & : & \isarmeth \\
-    @{attribute_def (HOL) arith_split} & : & \isaratt \\
+    @{method_def (HOL) arith} & : & @{text method} \\
+    @{attribute_def (HOL) arith_split} & : & @{text attribute} \\
   \end{matharray}
 
   The @{method (HOL) arith} method decides linear arithmetic problems
@@ -800,11 +800,11 @@ text {*
   search over and over again.
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "sledgehammer"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
-    @{command_def (HOL) "print_atps"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def (HOL) "atp_info"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
-    @{command_def (HOL) "atp_kill"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
-    @{method_def (HOL) metis} & : & \isarmeth \\
+    @{command_def (HOL) "sledgehammer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
+    @{command_def (HOL) "print_atps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "atp_info"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def (HOL) "atp_kill"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{method_def (HOL) metis} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
@@ -864,10 +864,10 @@ text {*
   \secref{sec:cases-induct} for proper Isar versions of similar ideas.
 
   \begin{matharray}{rcl}
-    @{method_def (HOL) case_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def (HOL) induct_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def (HOL) ind_cases}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{command_def (HOL) "inductive_cases"}@{text "\<^sup>*"} & : & \isartrans{theory}{theory} \\
+    @{method_def (HOL) case_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def (HOL) induct_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def (HOL) ind_cases}@{text "\<^sup>*"} & : & @{text method} \\
+    @{command_def (HOL) "inductive_cases"}@{text "\<^sup>*"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -929,12 +929,12 @@ text {*
   (this actually covers the new-style theory format as well).
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "value"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def (HOL) "code_module"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_library"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "consts_code"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "types_code"} & : & \isartrans{theory}{theory} \\  
-    @{attribute_def (HOL) code} & : & \isaratt \\
+    @{command_def (HOL) "value"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "code_module"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_library"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "consts_code"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "types_code"} & : & @{text "theory \<rightarrow> theory"} \\  
+    @{attribute_def (HOL) code} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -991,21 +991,21 @@ text {*
   introduction on how to use it.
 
   \begin{matharray}{rcl}
-    @{command_def (HOL) "export_code"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def (HOL) "code_thms"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def (HOL) "code_deps"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def (HOL) "code_datatype"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_const"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_type"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_class"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_instance"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_monad"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_reserved"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_include"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_modulename"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "code_abort"} & : & \isartrans{theory}{theory} \\
-    @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{attribute_def (HOL) code} & : & \isaratt \\
+    @{command_def (HOL) "export_code"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "code_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "code_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "code_datatype"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_const"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_type"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_class"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_instance"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_monad"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_reserved"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_include"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_modulename"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_abort"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def (HOL) code} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -1179,8 +1179,8 @@ section {* Definition by specification \label{sec:hol-specification} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "specification"} & : & \isartrans{theory}{proof(prove)} \\
-    @{command_def (HOL) "ax_specification"} & : & \isartrans{theory}{proof(prove)} \\
+    @{command_def (HOL) "specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "ax_specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   \begin{rail}

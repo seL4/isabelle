@@ -48,9 +48,9 @@ subsection {* Blocks *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "next"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "{"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "}"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "next"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "{"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "}"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
   \end{matharray}
 
   While Isar is inherently block-structured, opening and closing
@@ -90,7 +90,7 @@ subsection {* Omitting proofs *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "oops"} & : & \isartrans{proof}{theory} \\
+    @{command_def "oops"} & : & @{text "proof \<rightarrow> local_theory | theory"} \\
   \end{matharray}
 
   The @{command "oops"} command discontinues the current proof
@@ -123,10 +123,10 @@ subsection {* Context elements \label{sec:proof-context} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "fix"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "assume"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "presume"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "def"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "fix"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "assume"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "presume"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "def"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
   \end{matharray}
 
   The logical proof context consists of fixed variables and
@@ -208,7 +208,7 @@ subsection {* Term abbreviations \label{sec:term-abbrev} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "let"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "let"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
     @{keyword_def "is"} & : & syntax \\
   \end{matharray}
 
@@ -276,12 +276,12 @@ subsection {* Facts and forward chaining *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "note"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "then"} & : & \isartrans{proof(state)}{proof(chain)} \\
-    @{command_def "from"} & : & \isartrans{proof(state)}{proof(chain)} \\
-    @{command_def "with"} & : & \isartrans{proof(state)}{proof(chain)} \\
-    @{command_def "using"} & : & \isartrans{proof(prove)}{proof(prove)} \\
-    @{command_def "unfolding"} & : & \isartrans{proof(prove)}{proof(prove)} \\
+    @{command_def "note"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "then"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
+    @{command_def "from"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
+    @{command_def "with"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
+    @{command_def "using"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
+    @{command_def "unfolding"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   New facts are established either by assumption or proof of local
@@ -361,14 +361,14 @@ subsection {* Goals \label{sec:goals} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "lemma"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    @{command_def "theorem"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    @{command_def "corollary"} & : & \isartrans{local{\dsh}theory}{proof(prove)} \\
-    @{command_def "have"} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
-    @{command_def "show"} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
-    @{command_def "hence"} & : & \isartrans{proof(state)}{proof(prove)} \\
-    @{command_def "thus"} & : & \isartrans{proof(state)}{proof(prove)} \\
-    @{command_def "print_statement"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "lemma"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "theorem"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "corollary"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def "have"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
+    @{command_def "show"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
+    @{command_def "hence"} & : & @{text "proof(state) \<rightarrow> proof(prove)"} \\
+    @{command_def "thus"} & : & @{text "proof(state) \<rightarrow> proof(prove)"} \\
+    @{command_def "print_statement"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   From a theory context, proof mode is entered by an initial goal
@@ -560,12 +560,12 @@ subsection {* Initial and terminal proof steps \label{sec:proof-steps} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "proof"} & : & \isartrans{proof(prove)}{proof(state)} \\
-    @{command_def "qed"} & : & \isartrans{proof(state)}{proof(state) ~|~ theory} \\
-    @{command_def "by"} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
-    @{command_def ".."} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
-    @{command_def "."} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
-    @{command_def "sorry"} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
+    @{command_def "proof"} & : & @{text "proof(prove) \<rightarrow> proof(state)"} \\
+    @{command_def "qed"} & : & @{text "proof(state) \<rightarrow> proof(state) | local_theory | theory"} \\
+    @{command_def "by"} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
+    @{command_def ".."} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
+    @{command_def "."} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
+    @{command_def "sorry"} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
   \end{matharray}
 
   Arbitrary goal refinement via tactics is considered harmful.
@@ -676,19 +676,19 @@ text {*
   \chref{ch:gen-tools} and \chref{ch:hol}).
 
   \begin{matharray}{rcl}
-    @{method_def "-"} & : & \isarmeth \\
-    @{method_def "fact"} & : & \isarmeth \\
-    @{method_def "assumption"} & : & \isarmeth \\
-    @{method_def "this"} & : & \isarmeth \\
-    @{method_def "rule"} & : & \isarmeth \\
-    @{method_def "iprover"} & : & \isarmeth \\[0.5ex]
-    @{attribute_def (Pure) "intro"} & : & \isaratt \\
-    @{attribute_def (Pure) "elim"} & : & \isaratt \\
-    @{attribute_def (Pure) "dest"} & : & \isaratt \\
-    @{attribute_def "rule"} & : & \isaratt \\[0.5ex]
-    @{attribute_def "OF"} & : & \isaratt \\
-    @{attribute_def "of"} & : & \isaratt \\
-    @{attribute_def "where"} & : & \isaratt \\
+    @{method_def "-"} & : & @{text method} \\
+    @{method_def "fact"} & : & @{text method} \\
+    @{method_def "assumption"} & : & @{text method} \\
+    @{method_def "this"} & : & @{text method} \\
+    @{method_def "rule"} & : & @{text method} \\
+    @{method_def "iprover"} & : & @{text method} \\[0.5ex]
+    @{attribute_def (Pure) "intro"} & : & @{text attribute} \\
+    @{attribute_def (Pure) "elim"} & : & @{text attribute} \\
+    @{attribute_def (Pure) "dest"} & : & @{text attribute} \\
+    @{attribute_def "rule"} & : & @{text attribute} \\[0.5ex]
+    @{attribute_def "OF"} & : & @{text attribute} \\
+    @{attribute_def "of"} & : & @{text attribute} \\
+    @{attribute_def "where"} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -824,12 +824,12 @@ text {*
   be used in scripts, too.
 
   \begin{matharray}{rcl}
-    @{command_def "apply"}@{text "\<^sup>*"} & : & \isartrans{proof(prove)}{proof(prove)} \\
-    @{command_def "apply_end"}@{text "\<^sup>*"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "done"}@{text "\<^sup>*"} & : & \isartrans{proof(prove)}{proof(state)} \\
-    @{command_def "defer"}@{text "\<^sup>*"} & : & \isartrans{proof}{proof} \\
-    @{command_def "prefer"}@{text "\<^sup>*"} & : & \isartrans{proof}{proof} \\
-    @{command_def "back"}@{text "\<^sup>*"} & : & \isartrans{proof}{proof} \\
+    @{command_def "apply"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(prove)"} \\
+    @{command_def "apply_end"}@{text "\<^sup>*"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "done"}@{text "\<^sup>*"} & : & @{text "proof(prove) \<rightarrow> proof(state) | local_theory | theory"} \\
+    @{command_def "defer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "prefer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "back"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
   \end{matharray}
 
   \begin{rail}
@@ -891,7 +891,7 @@ subsection {* Defining proof methods *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "method_setup"} & : & \isartrans{theory}{theory} \\
+    @{command_def "method_setup"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -935,8 +935,8 @@ section {* Generalized elimination \label{sec:obtain} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "obtain"} & : & \isartrans{proof(state)}{proof(prove)} \\
-    @{command_def "guess"}@{text "\<^sup>*"} & : & \isartrans{proof(state)}{proof(prove)} \\
+    @{command_def "obtain"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
+    @{command_def "guess"}@{text "\<^sup>*"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   Generalized elimination means that additional elements with certain
@@ -1015,14 +1015,14 @@ section {* Calculational reasoning \label{sec:calculation} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "also"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "finally"} & : & \isartrans{proof(state)}{proof(chain)} \\
-    @{command_def "moreover"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "ultimately"} & : & \isartrans{proof(state)}{proof(chain)} \\
-    @{command_def "print_trans_rules"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{attribute trans} & : & \isaratt \\
-    @{attribute sym} & : & \isaratt \\
-    @{attribute symmetric} & : & \isaratt \\
+    @{command_def "also"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "finally"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
+    @{command_def "moreover"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "ultimately"} & : & @{text "proof(state) \<rightarrow> proof(chain)"} \\
+    @{command_def "print_trans_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute trans} & : & @{text attribute} \\
+    @{attribute sym} & : & @{text attribute} \\
+    @{attribute symmetric} & : & @{text attribute} \\
   \end{matharray}
 
   Calculational proof is forward reasoning with implicit application
@@ -1129,12 +1129,12 @@ subsection {* Rule contexts *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "case"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "print_cases"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
-    @{attribute_def case_names} & : & \isaratt \\
-    @{attribute_def case_conclusion} & : & \isaratt \\
-    @{attribute_def params} & : & \isaratt \\
-    @{attribute_def consumes} & : & \isaratt \\
+    @{command_def "case"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
+    @{command_def "print_cases"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def case_names} & : & @{text attribute} \\
+    @{attribute_def case_conclusion} & : & @{text attribute} \\
+    @{attribute_def params} & : & @{text attribute} \\
+    @{attribute_def consumes} & : & @{text attribute} \\
   \end{matharray}
 
   The puristic way to build up Isar proof contexts is by explicit
@@ -1255,9 +1255,9 @@ subsection {* Proof methods *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def cases} & : & \isarmeth \\
-    @{method_def induct} & : & \isarmeth \\
-    @{method_def coinduct} & : & \isarmeth \\
+    @{method_def cases} & : & @{text method} \\
+    @{method_def induct} & : & @{text method} \\
+    @{method_def coinduct} & : & @{text method} \\
   \end{matharray}
 
   The @{method cases}, @{method induct}, and @{method coinduct}
@@ -1440,10 +1440,10 @@ subsection {* Declaring rules *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "print_induct_rules"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{attribute_def cases} & : & \isaratt \\
-    @{attribute_def induct} & : & \isaratt \\
-    @{attribute_def coinduct} & : & \isaratt \\
+    @{command_def "print_induct_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def cases} & : & @{text attribute} \\
+    @{attribute_def induct} & : & @{text attribute} \\
+    @{attribute_def coinduct} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}

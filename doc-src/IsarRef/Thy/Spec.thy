@@ -10,8 +10,8 @@ section {* Defining theories \label{sec:begin-thy} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "theory"} & : & \isartrans{toplevel}{theory} \\
-    @{command_def (global) "end"} & : & \isartrans{theory}{toplevel} \\
+    @{command_def "theory"} & : & @{text "toplevel \<rightarrow> theory"} \\
+    @{command_def (global) "end"} & : & @{text "theory \<rightarrow> toplevel"} \\
   \end{matharray}
 
   Isabelle/Isar theories are defined via theory files, which may
@@ -82,8 +82,8 @@ text {*
   global theory context.
 
   \begin{matharray}{rcll}
-    @{command_def "context"} & : & \isartrans{theory}{local{\dsh}theory} \\
-    @{command_def (local) "end"} & : & \isartrans{local{\dsh}theory}{theory} \\
+    @{command_def "context"} & : & @{text "theory \<rightarrow> local_theory"} \\
+    @{command_def (local) "end"} & : & @{text "local_theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \indexouternonterm{target}
@@ -143,13 +143,13 @@ section {* Basic specification elements *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "axiomatization"} & : & \isarkeep{theory} & (axiomatic!)\\
-    @{command_def "definition"} & : & \isarkeep{local{\dsh}theory} \\
-    @{attribute_def "defn"} & : & \isaratt \\
-    @{command_def "abbreviation"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "print_abbrevs"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "notation"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "no_notation"} & : & \isarkeep{local{\dsh}theory} \\
+    @{command_def "axiomatization"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!)\\
+    @{command_def "definition"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{attribute_def "defn"} & : & @{text attribute} \\
+    @{command_def "abbreviation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "print_abbrevs"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
+    @{command_def "notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "no_notation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   These specification mechanisms provide a slightly more abstract view
@@ -253,8 +253,8 @@ text {*
   means of an attribute.
 
   \begin{matharray}{rcl}
-    @{command_def "declaration"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "declare"} & : & \isarkeep{local{\dsh}theory} \\
+    @{command_def "declaration"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "declare"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -295,11 +295,11 @@ subsection {* Locale specifications *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "locale"} & : & \isartrans{theory}{local{\dsh}theory} \\
-    @{command_def "print_locale"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_locales"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{method_def intro_locales} & : & \isarmeth \\
-    @{method_def unfold_locales} & : & \isarmeth \\
+    @{command_def "locale"} & : & @{text "theory \<rightarrow> local_theory"} \\
+    @{command_def "print_locale"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_locales"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{method_def intro_locales} & : & @{text method} \\
+    @{method_def unfold_locales} & : & @{text method} \\
   \end{matharray}
 
   \indexouternonterm{contextexpr}\indexouternonterm{contextelem}
@@ -461,9 +461,9 @@ text {*
   "interpret"}).
 
   \begin{matharray}{rcl}
-    @{command_def "interpretation"} & : & \isartrans{theory}{proof(prove)} \\
-    @{command_def "interpret"} & : & \isartrans{proof(state) ~|~ proof(chain)}{proof(prove)} \\
-    @{command_def "print_interps"}@{text "\<^sup>*"} & : &  \isarkeep{theory~|~proof} \\
+    @{command_def "interpretation"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command_def "interpret"} & : & @{text "proof(state) | proof(chain \<rightarrow> proof(prove)"} \\
+    @{command_def "print_interps"}@{text "\<^sup>*"} & : &  @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   \indexouternonterm{interp}
@@ -601,12 +601,12 @@ text {*
   tutorial.
 
   \begin{matharray}{rcl}
-    @{command_def "class"} & : & \isartrans{theory}{local{\dsh}theory} \\
-    @{command_def "instantiation"} & : & \isartrans{theory}{local{\dsh}theory} \\
-    @{command_def "instance"} & : & \isartrans{local{\dsh}theory}{local{\dsh}theory} \\
-    @{command_def "subclass"} & : & \isartrans{local{\dsh}theory}{local{\dsh}theory} \\
-    @{command_def "print_classes"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{method_def intro_classes} & : & \isarmeth \\
+    @{command_def "class"} & : & @{text "theory \<rightarrow> local_theory"} \\
+    @{command_def "instantiation"} & : & @{text "theory \<rightarrow> local_theory"} \\
+    @{command_def "instance"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "subclass"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "print_classes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{method_def intro_classes} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
@@ -716,8 +716,8 @@ subsection {* Old-style axiomatic type classes \label{sec:axclass} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "axclass"} & : & \isartrans{theory}{theory} \\
-    @{command_def "instance"} & : & \isartrans{theory}{proof(prove)} \\
+    @{command_def "axclass"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "instance"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   Axiomatic type classes are Isabelle/Pure's primitive
@@ -772,7 +772,7 @@ text {*
   end-users.
 
   \begin{matharray}{rcl}
-    @{command_def "overloading"} & : & \isartrans{theory}{local{\dsh}theory} \\
+    @{command_def "overloading"} & : & @{text "theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -805,12 +805,12 @@ section {* Incorporating ML code \label{sec:ML} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "use"} & : & \isarkeep{theory~|~local{\dsh}theory} \\
-    @{command_def "ML"} & : & \isarkeep{theory~|~local{\dsh}theory} \\
-    @{command_def "ML_prf"} & : & \isarkeep{proof} \\
-    @{command_def "ML_val"} & : & \isartrans{\cdot}{\cdot} \\
-    @{command_def "ML_command"} & : & \isartrans{\cdot}{\cdot} \\
-    @{command_def "setup"} & : & \isartrans{theory}{theory} \\
+    @{command_def "use"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "ML"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "ML_prf"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "ML_val"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "ML_command"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "setup"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{mldecls}
@@ -879,10 +879,10 @@ subsection {* Type classes and sorts \label{sec:classes} *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "classes"} & : & \isartrans{theory}{theory} \\
-    @{command_def "classrel"} & : & \isartrans{theory}{theory} & (axiomatic!) \\
-    @{command_def "defaultsort"} & : & \isartrans{theory}{theory} \\
-    @{command_def "class_deps"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "classes"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "classrel"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
+    @{command_def "defaultsort"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "class_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   \begin{rail}
@@ -922,10 +922,10 @@ subsection {* Types and type abbreviations \label{sec:types-pure} *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "types"} & : & \isartrans{theory}{theory} \\
-    @{command_def "typedecl"} & : & \isartrans{theory}{theory} \\
-    @{command_def "nonterminals"} & : & \isartrans{theory}{theory} \\
-    @{command_def "arities"} & : & \isartrans{theory}{theory} & (axiomatic!) \\
+    @{command_def "types"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "typedecl"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "nonterminals"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "arities"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
 
   \begin{rail}
@@ -1011,9 +1011,9 @@ text {*
   instance of this, general @{text "d :: \<alpha> \<times> \<beta>"} will be disallowed.
 
   \begin{matharray}{rcl}
-    @{command_def "consts"} & : & \isartrans{theory}{theory} \\
-    @{command_def "defs"} & : & \isartrans{theory}{theory} \\
-    @{command_def "constdefs"} & : & \isartrans{theory}{theory} \\
+    @{command_def "consts"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "defs"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "constdefs"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -1082,9 +1082,9 @@ section {* Axioms and theorems \label{sec:axms-thms} *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "axioms"} & : & \isartrans{theory}{theory} & (axiomatic!) \\
-    @{command_def "lemmas"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "theorems"} & : & \isarkeep{local{\dsh}theory} \\
+    @{command_def "axioms"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
+    @{command_def "lemmas"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -1135,7 +1135,7 @@ text {* Oracles allow Isabelle to take advantage of external reasoners
   presumed theorems depend on unproven suppositions.
 
   \begin{matharray}{rcl}
-    @{command_def "oracle"} & : & \isartrans{theory}{theory} \\
+    @{command_def "oracle"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -1164,9 +1164,9 @@ section {* Name spaces *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "global"} & : & \isartrans{theory}{theory} \\
-    @{command_def "local"} & : & \isartrans{theory}{theory} \\
-    @{command_def "hide"} & : & \isartrans{theory}{theory} \\
+    @{command_def "global"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "local"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "hide"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -1211,10 +1211,10 @@ section {* Syntax and translations \label{sec:syn-trans} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "syntax"} & : & \isartrans{theory}{theory} \\
-    @{command_def "no_syntax"} & : & \isartrans{theory}{theory} \\
-    @{command_def "translations"} & : & \isartrans{theory}{theory} \\
-    @{command_def "no_translations"} & : & \isartrans{theory}{theory} \\
+    @{command_def "syntax"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "no_syntax"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "translations"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "no_translations"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}
@@ -1262,11 +1262,11 @@ section {* Syntax translation functions *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "parse_ast_translation"} & : & \isartrans{theory}{theory} \\
-    @{command_def "parse_translation"} & : & \isartrans{theory}{theory} \\
-    @{command_def "print_translation"} & : & \isartrans{theory}{theory} \\
-    @{command_def "typed_print_translation"} & : & \isartrans{theory}{theory} \\
-    @{command_def "print_ast_translation"} & : & \isartrans{theory}{theory} \\
+    @{command_def "parse_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "parse_translation"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "typed_print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "print_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{rail}

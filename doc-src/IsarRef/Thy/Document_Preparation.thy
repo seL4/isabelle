@@ -58,18 +58,18 @@ section {* Markup commands \label{sec:markup} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "header"} & : & \isarkeep{toplevel} \\[0.5ex]
-    @{command_def "chapter"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "section"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "subsection"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "subsubsection"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "text"} & : & \isarkeep{local{\dsh}theory} \\
-    @{command_def "text_raw"} & : & \isarkeep{local{\dsh}theory} \\[0.5ex]
-    @{command_def "sect"} & : & \isartrans{proof}{proof} \\
-    @{command_def "subsect"} & : & \isartrans{proof}{proof} \\
-    @{command_def "subsubsect"} & : & \isartrans{proof}{proof} \\
-    @{command_def "txt"} & : & \isartrans{proof}{proof} \\
-    @{command_def "txt_raw"} & : & \isartrans{proof}{proof} \\
+    @{command_def "header"} & : & @{text "toplevel \<rightarrow> toplevel"} \\[0.5ex]
+    @{command_def "chapter"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "section"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "subsection"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "subsubsection"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "text"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "text_raw"} & : & @{text "local_theory \<rightarrow> local_theory"} \\[0.5ex]
+    @{command_def "sect"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "subsect"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "subsubsect"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "txt"} & : & @{text "proof \<rightarrow> proof"} \\
+    @{command_def "txt_raw"} & : & @{text "proof \<rightarrow> proof"} \\
   \end{matharray}
 
   Markup commands provide a structured way to insert text into the
@@ -138,25 +138,25 @@ section {* Document Antiquotations \label{sec:antiq} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{antiquotation_def "theory"} & : & \isarantiq \\
-    @{antiquotation_def "thm"} & : & \isarantiq \\
-    @{antiquotation_def "lemma"} & : & \isarantiq \\
-    @{antiquotation_def "prop"} & : & \isarantiq \\
-    @{antiquotation_def "term"} & : & \isarantiq \\
-    @{antiquotation_def const} & : & \isarantiq \\
-    @{antiquotation_def abbrev} & : & \isarantiq \\
-    @{antiquotation_def typeof} & : & \isarantiq \\
-    @{antiquotation_def typ} & : & \isarantiq \\
-    @{antiquotation_def thm_style} & : & \isarantiq \\
-    @{antiquotation_def term_style} & : & \isarantiq \\
-    @{antiquotation_def "text"} & : & \isarantiq \\
-    @{antiquotation_def goals} & : & \isarantiq \\
-    @{antiquotation_def subgoals} & : & \isarantiq \\
-    @{antiquotation_def prf} & : & \isarantiq \\
-    @{antiquotation_def full_prf} & : & \isarantiq \\
-    @{antiquotation_def ML} & : & \isarantiq \\
-    @{antiquotation_def ML_type} & : & \isarantiq \\
-    @{antiquotation_def ML_struct} & : & \isarantiq \\
+    @{antiquotation_def "theory"} & : & @{text antiquotation} \\
+    @{antiquotation_def "thm"} & : & @{text antiquotation} \\
+    @{antiquotation_def "lemma"} & : & @{text antiquotation} \\
+    @{antiquotation_def "prop"} & : & @{text antiquotation} \\
+    @{antiquotation_def "term"} & : & @{text antiquotation} \\
+    @{antiquotation_def const} & : & @{text antiquotation} \\
+    @{antiquotation_def abbrev} & : & @{text antiquotation} \\
+    @{antiquotation_def typeof} & : & @{text antiquotation} \\
+    @{antiquotation_def typ} & : & @{text antiquotation} \\
+    @{antiquotation_def thm_style} & : & @{text antiquotation} \\
+    @{antiquotation_def term_style} & : & @{text antiquotation} \\
+    @{antiquotation_def "text"} & : & @{text antiquotation} \\
+    @{antiquotation_def goals} & : & @{text antiquotation} \\
+    @{antiquotation_def subgoals} & : & @{text antiquotation} \\
+    @{antiquotation_def prf} & : & @{text antiquotation} \\
+    @{antiquotation_def full_prf} & : & @{text antiquotation} \\
+    @{antiquotation_def ML} & : & @{text antiquotation} \\
+    @{antiquotation_def ML_type} & : & @{text antiquotation} \\
+    @{antiquotation_def ML_struct} & : & @{text antiquotation} \\
   \end{matharray}
 
   The overall content of an Isabelle/Isar theory may alternate between
@@ -452,8 +452,8 @@ section {* Draft presentation *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "display_drafts"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
-    @{command_def "print_drafts"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{command_def "display_drafts"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "print_drafts"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
   \begin{rail}

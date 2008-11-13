@@ -10,13 +10,13 @@ section {* Diagnostics *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "pr"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
-    @{command_def "thm"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "term"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "prop"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "typ"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "prf"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "full_prf"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "pr"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "thm"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "term"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "prop"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "typ"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "prf"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "full_prf"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   These diagnostic commands assist interactive development.  Note that
@@ -99,16 +99,16 @@ section {* Inspecting the context *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "print_commands"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
-    @{command_def "print_theory"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_syntax"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_methods"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_attributes"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_theorems"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "find_theorems"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "thm_deps"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{command_def "print_facts"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
-    @{command_def "print_binds"}@{text "\<^sup>*"} & : & \isarkeep{proof} \\
+    @{command_def "print_commands"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "print_theory"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_syntax"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_methods"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_attributes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_theorems"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "find_theorems"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "thm_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_facts"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "print_binds"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   \begin{rail}
@@ -190,9 +190,9 @@ section {* History commands \label{sec:history} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "undo"}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
-    @{command_def "linear_undo"}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
-    @{command_def "kill"}^{{ * }{ * }} & : & \isarkeep{\cdot} \\
+    @{command_def "undo"}^{{ * }{ * }} & : & @{text "any \<rightarrow> any"} \\
+    @{command_def "linear_undo"}^{{ * }{ * }} & : & @{text "any \<rightarrow> any"} \\
+    @{command_def "kill"}^{{ * }{ * }} & : & @{text "any \<rightarrow> any"} \\
   \end{matharray}
 
   The Isabelle/Isar top-level maintains a two-stage history, for
@@ -219,9 +219,9 @@ section {* System commands *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "cd"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
-    @{command_def "pwd"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
-    @{command_def "use_thy"}@{text "\<^sup>*"} & : & \isarkeep{\cdot} \\
+    @{command_def "cd"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "pwd"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "use_thy"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
   \begin{rail}

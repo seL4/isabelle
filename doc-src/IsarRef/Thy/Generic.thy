@@ -25,7 +25,7 @@ text {*
   ``global'', which may not be changed within a local context.
 
   \begin{matharray}{rcll}
-    @{command_def "print_configs"} & : & \isarkeep{theory~|~proof} \\
+    @{command_def "print_configs"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   \begin{rail}
@@ -52,14 +52,14 @@ subsection {* Miscellaneous methods and attributes \label{sec:misc-meth-att} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def unfold} & : & \isarmeth \\
-    @{method_def fold} & : & \isarmeth \\
-    @{method_def insert} & : & \isarmeth \\[0.5ex]
-    @{method_def erule}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def drule}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def frule}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def succeed} & : & \isarmeth \\
-    @{method_def fail} & : & \isarmeth \\
+    @{method_def unfold} & : & @{text method} \\
+    @{method_def fold} & : & @{text method} \\
+    @{method_def insert} & : & @{text method} \\[0.5ex]
+    @{method_def erule}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def drule}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def frule}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def succeed} & : & @{text method} \\
+    @{method_def fail} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
@@ -107,16 +107,16 @@ text {*
   \end{description}
 
   \begin{matharray}{rcl}
-    @{attribute_def tagged} & : & \isaratt \\
-    @{attribute_def untagged} & : & \isaratt \\[0.5ex]
-    @{attribute_def THEN} & : & \isaratt \\
-    @{attribute_def COMP} & : & \isaratt \\[0.5ex]
-    @{attribute_def unfolded} & : & \isaratt \\
-    @{attribute_def folded} & : & \isaratt \\[0.5ex]
-    @{attribute_def rotated} & : & \isaratt \\
-    @{attribute_def (Pure) elim_format} & : & \isaratt \\
-    @{attribute_def standard}@{text "\<^sup>*"} & : & \isaratt \\
-    @{attribute_def no_vars}@{text "\<^sup>*"} & : & \isaratt \\
+    @{attribute_def tagged} & : & @{text attribute} \\
+    @{attribute_def untagged} & : & @{text attribute} \\[0.5ex]
+    @{attribute_def THEN} & : & @{text attribute} \\
+    @{attribute_def COMP} & : & @{text attribute} \\[0.5ex]
+    @{attribute_def unfolded} & : & @{text attribute} \\
+    @{attribute_def folded} & : & @{text attribute} \\[0.5ex]
+    @{attribute_def rotated} & : & @{text attribute} \\
+    @{attribute_def (Pure) elim_format} & : & @{text attribute} \\
+    @{attribute_def standard}@{text "\<^sup>*"} & : & @{text attribute} \\
+    @{attribute_def no_vars}@{text "\<^sup>*"} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -144,8 +144,9 @@ text {*
   compose rules by resolution.  @{attribute THEN} resolves with the
   first premise of @{text a} (an alternative position may be also
   specified); the @{attribute COMP} version skips the automatic
-  lifting process that is normally intended (cf.\ @{ML "op RS"} and
-  @{ML "op COMP"} in \cite[\S5]{isabelle-ref}).
+  lifting process that is normally intended (cf.\ @{ML [source=false]
+  "op RS"} and @{ML [source=false] "op COMP"} in
+  \cite[\S5]{isabelle-ref}).
   
   \item @{attribute unfolded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{attribute
   folded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} expand and fold back again the given
@@ -177,9 +178,9 @@ subsection {* Low-level equational reasoning *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def subst} & : & \isarmeth \\
-    @{method_def hypsubst} & : & \isarmeth \\
-    @{method_def split} & : & \isarmeth \\
+    @{method_def subst} & : & @{text method} \\
+    @{method_def hypsubst} & : & @{text method} \\
+    @{method_def split} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
@@ -272,17 +273,17 @@ text {*
   \secref{sec:pure-meth-att}).
 
   \begin{matharray}{rcl}
-    @{method_def rule_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def erule_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def drule_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def frule_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def cut_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def thin_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def subgoal_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def rename_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def rotate_tac}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def tactic}@{text "\<^sup>*"} & : & \isarmeth \\
-    @{method_def raw_tactic}@{text "\<^sup>*"} & : & \isarmeth \\
+    @{method_def rule_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def erule_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def drule_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def frule_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def cut_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def thin_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def subgoal_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def rename_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def rotate_tac}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def tactic}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def raw_tactic}@{text "\<^sup>*"} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
@@ -360,8 +361,8 @@ subsection {* Simplification methods *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def simp} & : & \isarmeth \\
-    @{method_def simp_all} & : & \isarmeth \\
+    @{method_def simp} & : & @{text method} \\
+    @{method_def simp_all} & : & @{text method} \\
   \end{matharray}
 
   \indexouternonterm{simpmod}
@@ -439,10 +440,10 @@ subsection {* Declaring rules *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "print_simpset"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{attribute_def simp} & : & \isaratt \\
-    @{attribute_def cong} & : & \isaratt \\
-    @{attribute_def split} & : & \isaratt \\
+    @{command_def "print_simpset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def simp} & : & @{text attribute} \\
+    @{attribute_def cong} & : & @{text attribute} \\
+    @{attribute_def split} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -470,8 +471,8 @@ subsection {* Simplification procedures *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "simproc_setup"} & : & \isarkeep{local{\dsh}theory} \\
-    simproc & : & \isaratt \\
+    @{command_def "simproc_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    simproc & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -516,7 +517,7 @@ subsection {* Forward simplification *}
 
 text {*
   \begin{matharray}{rcl}
-    @{attribute_def simplified} & : & \isaratt \\
+    @{attribute_def simplified} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -552,10 +553,10 @@ subsection {* Basic methods *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def rule} & : & \isarmeth \\
-    @{method_def contradiction} & : & \isarmeth \\
-    @{method_def intro} & : & \isarmeth \\
-    @{method_def elim} & : & \isarmeth \\
+    @{method_def rule} & : & @{text method} \\
+    @{method_def contradiction} & : & @{text method} \\
+    @{method_def intro} & : & @{text method} \\
+    @{method_def elim} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
@@ -595,12 +596,12 @@ subsection {* Automated methods *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def blast} & : & \isarmeth \\
-    @{method_def fast} & : & \isarmeth \\
-    @{method_def slow} & : & \isarmeth \\
-    @{method_def best} & : & \isarmeth \\
-    @{method_def safe} & : & \isarmeth \\
-    @{method_def clarify} & : & \isarmeth \\
+    @{method_def blast} & : & @{text method} \\
+    @{method_def fast} & : & @{text method} \\
+    @{method_def slow} & : & @{text method} \\
+    @{method_def best} & : & @{text method} \\
+    @{method_def safe} & : & @{text method} \\
+    @{method_def clarify} & : & @{text method} \\
   \end{matharray}
 
   \indexouternonterm{clamod}
@@ -641,12 +642,12 @@ subsection {* Combined automated methods \label{sec:clasimp} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def auto} & : & \isarmeth \\
-    @{method_def force} & : & \isarmeth \\
-    @{method_def clarsimp} & : & \isarmeth \\
-    @{method_def fastsimp} & : & \isarmeth \\
-    @{method_def slowsimp} & : & \isarmeth \\
-    @{method_def bestsimp} & : & \isarmeth \\
+    @{method_def auto} & : & @{text method} \\
+    @{method_def force} & : & @{text method} \\
+    @{method_def clarsimp} & : & @{text method} \\
+    @{method_def fastsimp} & : & @{text method} \\
+    @{method_def slowsimp} & : & @{text method} \\
+    @{method_def bestsimp} & : & @{text method} \\
   \end{matharray}
 
   \indexouternonterm{clasimpmod}
@@ -687,12 +688,12 @@ subsection {* Declaring rules *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "print_claset"}@{text "\<^sup>*"} & : & \isarkeep{theory~|~proof} \\
-    @{attribute_def intro} & : & \isaratt \\
-    @{attribute_def elim} & : & \isaratt \\
-    @{attribute_def dest} & : & \isaratt \\
-    @{attribute_def rule} & : & \isaratt \\
-    @{attribute_def iff} & : & \isaratt \\
+    @{command_def "print_claset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def intro} & : & @{text attribute} \\
+    @{attribute_def elim} & : & @{text attribute} \\
+    @{attribute_def dest} & : & @{text attribute} \\
+    @{attribute_def rule} & : & @{text attribute} \\
+    @{attribute_def iff} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{rail}
@@ -743,7 +744,7 @@ subsection {* Classical operations *}
 
 text {*
   \begin{matharray}{rcl}
-    @{attribute_def swapped} & : & \isaratt \\
+    @{attribute_def swapped} & : & @{text attribute} \\
   \end{matharray}
 
   \begin{description}
@@ -760,11 +761,11 @@ section {* Object-logic setup \label{sec:object-logic} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "judgment"} & : & \isartrans{theory}{theory} \\
-    @{method_def atomize} & : & \isarmeth \\
-    @{attribute_def atomize} & : & \isaratt \\
-    @{attribute_def rule_format} & : & \isaratt \\
-    @{attribute_def rulify} & : & \isaratt \\
+    @{command_def "judgment"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{method_def atomize} & : & @{text method} \\
+    @{attribute_def atomize} & : & @{text attribute} \\
+    @{attribute_def rule_format} & : & @{text attribute} \\
+    @{attribute_def rulify} & : & @{text attribute} \\
   \end{matharray}
 
   The very starting point for any Isabelle object-logic is a ``truth
