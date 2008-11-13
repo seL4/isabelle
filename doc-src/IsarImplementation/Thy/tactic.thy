@@ -231,7 +231,7 @@ text %mlref {*
 *}
 
 
-subsection {* Resolution and assumption tactics *}
+subsection {* Resolution and assumption tactics \label{sec:resolve-assume-tac} *}
 
 text {* \emph{Resolution} is the most basic mechanism for refining a
   subgoal using a theorem as object-level rule.
@@ -241,9 +241,9 @@ text {* \emph{Resolution} is the most basic mechanism for refining a
   \emph{Destruct-resolution} is like elim-resolution, but the given
   destruction rules are first turned into canonical elimination
   format.  \emph{Forward-resolution} is like destruct-resolution, but
-  without deleting the selected assumption.  The @{text r}, @{text e},
-  @{text d}, @{text f} naming convention is maintained for several
-  different kinds of resolution rules and tactics.
+  without deleting the selected assumption.  The @{text "r/e/d/f"}
+  naming convention is maintained for several different kinds of
+  resolution rules and tactics.
 
   Assumption tactics close a subgoal by unifying some of its premises
   against its conclusion.
@@ -323,6 +323,81 @@ text %mlref {*
   Strictly speaking, matching means to treat the unknowns in the goal
   state as constants; these tactics merely discard unifiers that would
   update the goal state.
+
+  \end{description}
+*}
+
+
+subsection {* Explicit instantiation within a subgoal context *}
+
+text {* The main resolution tactics (\secref{sec:resolve-assume-tac})
+  use higher-order unification, which works well in many practical
+  situations despite its daunting theoretical properties.
+  Nonetheless, there are important problem classes where unguided
+  higher-order unification is not so useful.  This typically involves
+  rules like universal elimination, existential introduction, or
+  equational substitution.  Here the unification problem involves
+  fully flexible @{text "?P ?x"} schemes, which are hard to manage
+  without further hints.
+
+  By providing a (small) rigid term for @{text "?x"} explicitly, the
+  remaining unification problem is to assign a (large) term to @{text
+  "?P"}, according to the shape of the given subgoal.  This is
+  sufficiently well-behaved in most practical situations.
+
+  \medskip Isabelle provides separate versions of the standard @{text
+  "r/e/d/f"} resolution tactics that allow to provide explicit
+  instantiations of unknowns of the given rule, wrt.\ terms that refer
+  to the implicit context of the selected subgoal.
+
+  An instantiation consists of a list of pairs of the form @{text
+  "(?x, t)"}, where @{text ?x} is a schematic variable occurring in
+  the given rule, and @{text t} is a term from the current proof
+  context, augmented by the local goal parameters of the selected
+  subgoal; cf.\ the @{text "focus"} operation described in
+  \secref{sec:variables}.
+
+  Entering the syntactic context of a subgoal is a brittle operation,
+  because its exact form is somewhat accidental, and the choice of
+  bound variable names depends on the presence of other local and
+  global names.  Explicit renaming of subgoal parameters prior to
+  explicit instantiation might help to achieve a bit more robustness.
+
+  Type instantiations may be given as well, via pairs like @{text
+  "(?'a, \<tau>)"}.  Type instantiations are distinguished from term
+  instantiations by the syntactic form of the schematic variable.
+  Types are instantiated before terms are.  Since term instantiation
+  already performs type-inference as expected, explicit type
+  instantiations are seldom necessary.
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML res_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
+  @{index_ML eres_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
+  @{index_ML dres_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\
+  @{index_ML forw_inst_tac: "Proof.context -> (indexname * string) list -> thm -> int -> tactic"} \\[1ex]
+  @{index_ML rename_tac: "string list -> int -> tactic"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML res_inst_tac}~@{text "ctxt insts thm i"} instantiates the
+  rule @{text thm} with the instantiations @{text insts}, as described
+  above, and then performs resolution on subgoal @{text i}.
+  
+  \item @{ML eres_inst_tac} is like @{ML res_inst_tac}, but performs
+  elim-resolution.
+
+  \item @{ML dres_inst_tac} is like @{ML res_inst_tac}, but performs
+  destruct-resolution.
+
+  \item @{ML forw_inst_tac} is like @{ML dres_inst_tac} except that
+  the selected assumption is not deleted.
+
+  \item @{ML rename_tac}~@{text "names i"} renames the innermost
+  parameters of subgoal @{text i} according to the provided @{text
+  names} (which need to be distinct indentifiers).
 
   \end{description}
 *}
