@@ -38,6 +38,7 @@ sig
   val add_prefix: bool -> string -> binding -> binding
   val map_name: (string -> string) -> binding -> binding
   val qualified: string -> binding -> binding
+  val output: binding -> string
 end;
 
 structure Name: NAME =
@@ -170,5 +171,9 @@ fun add_prefix sticky prfx = (map_binding o apfst o apfst)
 
 val map_name = map_binding o apfst o apsnd;
 val qualified = map_name o NameSpace.qualified;
+
+fun output (Binding ((prefix, name), _)) =
+  if null prefix orelse name = "" then name
+  else NameSpace.implode (map fst prefix) ^ " / " ^ name;
 
 end;

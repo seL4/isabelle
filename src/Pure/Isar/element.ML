@@ -159,8 +159,7 @@ fun pretty_items _ _ [] = []
 
 fun pretty_name_atts ctxt (binding, atts) sep =
   let
-    val name = NameSpace.implode
-      (map fst (Name.prefix_of binding) @ [Name.name_of binding]);
+    val name = Name.output binding;
   in if name = "" andalso null atts then []
     else [Pretty.block
       (Pretty.breaks (Pretty.str name :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))]
