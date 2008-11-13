@@ -22,6 +22,12 @@ code_datatype Trueprop "prop"
 text {* Code equations *}
 
 lemma [code]:
+  shows "(True \<Longrightarrow> PROP P) \<equiv> PROP P" 
+    and "(False \<Longrightarrow> Q) \<equiv> Trueprop True" 
+    and "(PROP P \<Longrightarrow> True) \<equiv> Trueprop True" 
+    and "(Q \<Longrightarrow> False) \<equiv> Trueprop (\<not> Q)" by (auto intro!: equal_intr_rule)
+
+lemma [code]:
   shows "False \<and> x \<longleftrightarrow> False"
     and "True \<and> x \<longleftrightarrow> x"
     and "x \<and> False \<longleftrightarrow> False"
@@ -206,35 +212,30 @@ oracle eval_oracle = {* fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
-  in
-    if Code_ML.eval_term ("Eval_Method.eval_ref", Eval_Method.eval_ref) thy
-      (HOLogic.dest_Trueprop t) [] 
-    then ct
-    else @{cprop True} (*dummy*)
+    val dummy = @{cprop True};
+  in case try HOLogic.dest_Trueprop t
+   of SOME t' => if Code_ML.eval_term
+         ("Eval_Method.eval_ref", Eval_Method.eval_ref) thy t' [] 
+       then Thm.capply (Thm.capply @{cterm "op \<equiv> \<Colon> prop \<Rightarrow> prop \<Rightarrow> prop"} ct) dummy
+       else dummy
+    | NONE => dummy
   end
 *}
 
-method_setup eval = {*
-let
-  fun eval_tac thy = 
-    CSUBGOAL (fn (ct, i) => rtac (eval_oracle ct) i)
-in 
-  Method.ctxt_args (fn ctxt => 
-    Method.SIMPLE_METHOD' (eval_tac (ProofContext.theory_of ctxt)))
-end
-*} "solve goal by evaluation"
+ML {*
+fun gen_eval_method conv = Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD'
+  (CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt)
+    THEN' rtac TrueI))
+*}
 
+method_setup eval = {* gen_eval_method eval_oracle *}
+  "solve goal by evaluation"
 
-method_setup evaluation = {*
-  Method.no_args (Method.SIMPLE_METHOD' (CONVERSION Codegen.evaluation_conv THEN' rtac TrueI))
-*} "solve goal by evaluation"
+method_setup evaluation = {* gen_eval_method Codegen.evaluation_conv *}
+  "solve goal by evaluation"
 
-
-method_setup normalization = {*
-  Method.no_args (Method.SIMPLE_METHOD'
-    (CONVERSION (ObjectLogic.judgment_conv Nbe.norm_conv)
-    THEN' (fn k => TRY (rtac TrueI k))
-  ))
+method_setup normalization = {* (Method.no_args o Method.SIMPLE_METHOD')
+  (CONVERSION Nbe.norm_conv THEN' (fn k => TRY (rtac TrueI k)))
 *} "solve goal by normalization"
 
 
