@@ -4,7 +4,7 @@ theory Inner_Syntax
 imports Main
 begin
 
-chapter {* Inner syntax --- the term language *}
+chapter {* Inner syntax --- the term language \label{ch:inner-syntax} *}
 
 section {* Printing logical entities *}
 
@@ -302,7 +302,7 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   general template format is a sequence over any of the following
   entities.
 
-  \begin{itemize}
+  \begin{description}
 
   \item @{text "d"} is a delimiter, namely a non-empty sequence of
   characters other than the following special characters:
@@ -349,7 +349,7 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   stands for the string of spaces (zero or more) right after the
   slash.  These spaces are printed if the break is \emph{not} taken.
 
-  \end{itemize}
+  \end{description}
 
   For example, the template @{verbatim "(_ +/ _)"} specifies an infix
   operator.  There are two argument positions; the delimiter
@@ -389,7 +389,8 @@ text {*
   \end{description}
 *}
 
-section {* The Pure syntax *}
+
+section {* The Pure syntax \label{sec:pure-syntax} *}
 
 subsection {* Priority grammars \label{sec:priority-grammar} *}
 
@@ -477,9 +478,9 @@ text {*
   \begin{center}
   \begin{supertabular}{rclr}
 
-  @{text any} & = & @{text "prop  |  logic"} \\\\
+  @{syntax_def (inner) any} & = & @{text "prop  |  logic"} \\\\
 
-  @{text prop} & = & @{verbatim "("} @{text prop} @{verbatim ")"} \\
+  @{syntax_def (inner) prop} & = & @{verbatim "("} @{text prop} @{verbatim ")"} \\
     & @{text "|"} & @{text "prop\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
     & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=?="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
     & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
@@ -494,10 +495,10 @@ text {*
     & @{text "|"} & @{verbatim SORT_CONSTRAINT} @{verbatim "("} @{text type} @{verbatim ")"} \\
     & @{text "|"} & @{verbatim PROP} @{text aprop} \\\\
 
-  @{text aprop} & = & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
+  @{syntax_def (inner) aprop} & = & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\\\
 
-  @{text logic} & = & @{verbatim "("} @{text logic} @{verbatim ")"} \\
+  @{syntax_def (inner) logic} & = & @{verbatim "("} @{text logic} @{verbatim ")"} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
     & @{text "|"} & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\
@@ -506,17 +507,17 @@ text {*
     & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
     & @{text "|"} & @{verbatim TYPE} @{verbatim "("} @{text type} @{verbatim ")"} \\\\
 
-  @{text idt} & = & @{verbatim "("} @{text idt} @{verbatim ")"}@{text "  |  id  |  "}@{verbatim "_"} \\
+  @{syntax_def (inner) idt} & = & @{verbatim "("} @{text idt} @{verbatim ")"}@{text "  |  id  |  "}@{verbatim "_"} \\
     & @{text "|"} & @{text id} @{verbatim "::"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{verbatim "_"} @{verbatim "::"} @{text type} & @{text "(0)"} \\\\
 
-  @{text idts} & = & @{text "idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts"} & @{text "(0)"} \\\\
+  @{syntax_def (inner) idts} & = & @{text "idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts"} & @{text "(0)"} \\\\
 
-  @{text pttrn} & = & @{text idt} \\\\
+  @{syntax_def (inner) pttrn} & = & @{text idt} \\\\
 
-  @{text pttrns} & = & @{text "pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns"} & @{text "(0)"} \\\\
+  @{syntax_def (inner) pttrns} & = & @{text "pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns"} & @{text "(0)"} \\\\
 
-  @{text type} & = & @{verbatim "("} @{text type} @{verbatim ")"} \\
+  @{syntax_def (inner) type} & = & @{verbatim "("} @{text type} @{verbatim ")"} \\
     & @{text "|"} & @{text "tid  |  tvar  |  "}@{verbatim "_"} \\
     & @{text "|"} & @{text "tid"} @{verbatim "::"} @{text "sort  |  tvar  "}@{verbatim "::"} @{text "sort  |  "}@{verbatim "_"} @{verbatim "::"} @{text "sort"} \\
     & @{text "|"} & @{text "id  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) id  |  "}@{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text id} \\
@@ -526,7 +527,7 @@ text {*
     & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\\\
 
-  @{text sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"}@{text "  |  "}@{verbatim "{"} @{text "(id | longid)"} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text "(id | longid)"} @{verbatim "}"} \\
+  @{syntax_def (inner) sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"}@{text "  |  "}@{verbatim "{"} @{text "(id | longid)"} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text "(id | longid)"} @{verbatim "}"} \\
   \end{supertabular}
   \end{center}
 
@@ -537,49 +538,50 @@ text {*
 
   \begin{description}
 
-  \item @{text any} denotes any term.
+  \item @{syntax_ref (inner) any} denotes any term.
 
-  \item @{text prop} denotes meta-level propositions, which are terms
-  of type @{typ prop}.  The syntax of such formulae of the meta-logic
-  is carefully distinguished from usual conventions for object-logics.
-  In particular, plain @{text "\<lambda>"}-term notation is \emph{not}
-  recognized as @{text "prop"}.
+  \item @{syntax_ref (inner) prop} denotes meta-level propositions,
+  which are terms of type @{typ prop}.  The syntax of such formulae of
+  the meta-logic is carefully distinguished from usual conventions for
+  object-logics.  In particular, plain @{text "\<lambda>"}-term notation is
+  \emph{not} recognized as @{syntax (inner) prop}.
 
-  \item @{text aprop} denotes atomic propositions, which are embedded
-  into regular @{typ prop} by means of an explicit @{verbatim PROP}
-  token.
+  \item @{syntax_ref (inner) aprop} denotes atomic propositions, which
+  are embedded into regular @{syntax (inner) prop} by means of an
+  explicit @{verbatim PROP} token.
 
   Terms of type @{typ prop} with non-constant head, e.g.\ a plain
   variable, are printed in this form.  Constants that yield type @{typ
   prop} are expected to provide their own concrete syntax; otherwise
-  the printed version will appear like @{typ logic} and cannot be
-  parsed again as @{typ prop}.
+  the printed version will appear like @{syntax (inner) logic} and
+  cannot be parsed again as @{syntax (inner) prop}.
 
-  \item @{text logic} denotes arbitrary terms of a logical type,
-  excluding type @{typ prop}.  This is the main syntactic category of
-  object-logic entities, covering plain @{text \<lambda>}-term notation
-  (variables, abstraction, application), plus anything defined by the
-  user.
+  \item @{syntax_ref (inner) logic} denotes arbitrary terms of a
+  logical type, excluding type @{typ prop}.  This is the main
+  syntactic category of object-logic entities, covering plain @{text
+  \<lambda>}-term notation (variables, abstraction, application), plus
+  anything defined by the user.
 
   When specifying notation for logical entities, all logical types
   (excluding @{typ prop}) are \emph{collapsed} to this single category
-  of @{typ logic}.
+  of @{syntax (inner) logic}.
 
-  \item @{text idt} denotes identifiers, possibly constrained by
-  types.
+  \item @{syntax_ref (inner) idt} denotes identifiers, possibly
+  constrained by types.
 
-  \item @{text idts} denotes a sequence of @{text idt}.  This is the
-  most basic category for variables in iterated binders, such as
-  @{text "\<lambda>"} or @{text "\<And>"}.
+  \item @{syntax_ref (inner) idts} denotes a sequence of @{syntax_ref
+  (inner) idt}.  This is the most basic category for variables in
+  iterated binders, such as @{text "\<lambda>"} or @{text "\<And>"}.
 
-  \item @{text pttrn} and @{text pttrns} denote patterns for
-  abstraction, cases bindings etc.  In Pure, these categories start as
-  a merely copy of @{text idt} and @{text idts}, respectively.
-  Object-logics may add additional productions for binding forms.
+  \item @{syntax_ref (inner) pttrn} and @{syntax_ref (inner) pttrns}
+  denote patterns for abstraction, cases bindings etc.  In Pure, these
+  categories start as a merely copy of @{syntax (inner) idt} and
+  @{syntax (inner) idts}, respectively.  Object-logics may add
+  additional productions for binding forms.
 
-  \item @{text type} denotes types of the meta-logic.
+  \item @{syntax_ref (inner) type} denotes types of the meta-logic.
 
-  \item @{text sort} denotes meta-level sorts.
+  \item @{syntax_ref (inner) sort} denotes meta-level sorts.
 
   \end{description}
 
@@ -587,10 +589,10 @@ text {*
 
   \begin{itemize}
 
-  \item In @{text idts}, note that @{text "x :: nat y"} is parsed as
-  @{text "x :: (nat y)"}, treating @{text y} like a type constructor
-  applied to @{text nat}.  To avoid this interpretation, write @{text
-  "(x :: nat) y"} with explicit parentheses.
+  \item In @{syntax (inner) idts}, note that @{text "x :: nat y"} is
+  parsed as @{text "x :: (nat y)"}, treating @{text y} like a type
+  constructor applied to @{text nat}.  To avoid this interpretation,
+  write @{text "(x :: nat) y"} with explicit parentheses.
 
   \item Similarly, @{text "x :: nat y :: nat"} is parsed as @{text "x ::
   (nat y :: nat)"}.  The correct form is @{text "(x :: nat) (y ::

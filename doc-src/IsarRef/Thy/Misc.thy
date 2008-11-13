@@ -48,11 +48,10 @@ text {*
   the theory context; the ``@{text "!"}'' option indicates extra
   verbosity.
 
-  \item @{command "print_syntax"} prints the inner syntax of types
-  and terms, depending on the current context.  The output can be very
+  \item @{command "print_syntax"} prints the inner syntax of types and
+  terms, depending on the current context.  The output can be very
   verbose, including grammar tables and syntax translation rules.  See
-  \cite[\S7, \S8]{isabelle-ref} for further information on Isabelle's
-  inner syntax.
+  \chref{ch:inner-syntax} for further information on inner syntax.
   
   \item @{command "print_methods"} prints all proof methods
   available in the current theory context.

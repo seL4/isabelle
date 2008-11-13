@@ -135,31 +135,45 @@ text {* The outer lexical syntax consists of three main categories of
   \end{supertabular}
   \end{center}
 
-  The syntax of @{syntax string} admits any characters, including
+  A @{syntax_ref var} or @{syntax_ref typevar} describes an unknown,
+  which is internally a pair of base name and index (ML type @{ML_type
+  indexname}).  These components are either separated by a dot as in
+  @{text "?x.1"} or @{text "?x7.3"} or run together as in @{text
+  "?x1"}.  The latter form is possible if the base name does not end
+  with digits.  If the index is 0, it may be dropped altogether:
+  @{text "?x"} and @{text "?x0"} and @{text "?x.0"} all refer to the
+  same unknown, with basename @{text "x"} and index 0.
+
+  The syntax of @{syntax_ref string} admits any characters, including
   newlines; ``@{verbatim "\""}'' (double-quote) and ``@{verbatim
   "\\"}'' (backslash) need to be escaped by a backslash; arbitrary
   character codes may be specified as ``@{verbatim "\\"}@{text ddd}'',
   with three decimal digits.  Alternative strings according to
-  @{syntax altstring} are analogous, using single back-quotes instead.
-  The body of @{syntax verbatim} may consist of any text not
-  containing ``@{verbatim "*"}@{verbatim "}"}''; this allows
-  convenient inclusion of quotes without further escapes.  The greek
-  letters do \emph{not} include @{verbatim "\<lambda>"}, which is already used
-  differently in the meta-logic.
+  @{syntax_ref altstring} are analogous, using single back-quotes
+  instead.
 
-  Common mathematical symbols such as @{text \<forall>} are represented in
-  Isabelle as @{verbatim \<forall>}.  There are infinitely many Isabelle
-  symbols like this, although proper presentation is left to front-end
-  tools such as {\LaTeX} or Proof~General with the X-Symbol package.
-  A list of standard Isabelle symbols that work well with these tools
-  is given in \cite[appendix~A]{isabelle-sys}.
-  
+  The body of @{syntax_ref verbatim} may consist of any text not
+  containing ``@{verbatim "*"}@{verbatim "}"}''; this allows
+  convenient inclusion of quotes without further escapes.  There is no
+  way to escape ``@{verbatim "*"}@{verbatim "}"}''.  If the quoted
+  text is {\LaTeX} source, one may usually add some blank or comment
+  to avoid the critical character sequence.
+
   Source comments take the form @{verbatim "(*"}~@{text
   "\<dots>"}~@{verbatim "*)"} and may be nested, although the user-interface
   might prevent this.  Note that this form indicates source comments
   only, which are stripped after lexical analysis of the input.  The
   Isar syntax also provides proper \emph{document comments} that are
   considered as part of the text (see \secref{sec:comments}).
+
+  Common mathematical symbols such as @{text \<forall>} are represented in
+  Isabelle as @{verbatim \<forall>}.  There are infinitely many Isabelle
+  symbols like this, although proper presentation is left to front-end
+  tools such as {\LaTeX} or Proof~General with the X-Symbol package.
+  A list of standard Isabelle symbols that work well with these tools
+  is given in \cite[appendix~A]{isabelle-sys}.  Note that @{verbatim
+  "\<lambda>"} does not belong to the @{text letter} category, since it is
+  already used differently in the Pure term language.
 *}
 
 
