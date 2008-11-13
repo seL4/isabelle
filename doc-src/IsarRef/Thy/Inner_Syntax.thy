@@ -96,6 +96,132 @@ text {*
 *}
 
 
+subsection {* Printing limits *}
+
+text {*
+  \begin{mldecls}
+    @{index_ML Pretty.setdepth: "int -> unit"} \\
+    @{index_ML Pretty.setmargin: "int -> unit"} \\
+    @{index_ML print_depth: "int -> unit"} \\
+  \end{mldecls}
+
+  These ML functions set limits for pretty printed text output.
+
+  \begin{description}
+
+  \item @{ML Pretty.setdepth}~@{text d} tells the pretty printer to
+  limit the printing depth to @{text d}.  This affects the display of
+  types, terms, theorems etc.  The default value is 0, which permits
+  printing to an arbitrary depth.  Useful values for @{text d} are 10
+  and 20.
+
+  \item @{ML Pretty.setmargin}~@{text m} tells the pretty printer to
+  assume a right margin (page width) of @{text m}.  The initial margin
+  is 76.  User interfaces may adapt this default automatically, when
+  resizing windows etc.
+
+  \item @{ML print_depth}~@{text n} limits the printing depth of the
+  ML toplevel pretty printer; the precise effect depends on the ML
+  compiler and run-time system.  Typically @{text n} should be less
+  than 10.  Bigger values such as 100--1000 are useful for debugging.
+
+  \end{description}
+*}
+
+
+subsection {* Details of printed content *}
+
+text {*
+  \begin{mldecls} 
+    @{index_ML show_types: "bool ref"} & default @{ML false} \\
+    @{index_ML show_sorts: "bool ref"} & default @{ML false} \\
+    @{index_ML show_consts: "bool ref"} & default @{ML false} \\
+    @{index_ML long_names: "bool ref"} & default @{ML false} \\
+    @{index_ML short_names: "bool ref"} & default @{ML false} \\
+    @{index_ML unique_names: "bool ref"} & default @{ML true} \\
+    @{index_ML show_brackets: "bool ref"} & default @{ML false} \\
+    @{index_ML eta_contract: "bool ref"} \\
+    @{index_ML goals_limit: "int ref"} & default @{ML 10} \\
+    @{index_ML Proof.show_main_goal: "bool ref"} & default @{ML false} \\
+    @{index_ML show_hyps: "bool ref"} & default @{ML false} \\
+    @{index_ML show_tags: "bool ref"} & default @{ML false} \\
+  \end{mldecls}
+
+  These global ML variables control the detail of information that is
+  displayed for types, terms, theorems, goals etc.
+
+  \begin{description}
+
+  \item @{ML show_types} and @{ML show_sorts} control printing of type
+  constraints for term variables, and sort constraints for type
+  variables.  By default, neither of these are shown in output.  If
+  @{ML show_sorts} is set to @{ML true}, types are always shown as
+  well.
+
+  Note that displaying types and sorts may explain why a polymorphic
+  inference rule fails to resolve with some goal, or why a rewrite
+  rule does not apply as expected.
+
+  \item @{ML show_consts} controls printing of types of constants when
+  printing proof states.  Note that the output can be enormous as
+  polymorphic constants often occur at several different type
+  instances.
+
+  \item @{ML long_names}, @{ML short_names}, and @{ML unique_names}
+  modify the way of printing qualified names in external form.  See
+  also the description of document antiquotation options in
+  \secref{sec:antiq}.
+
+  \item @{ML show_brackets} controls insertion of bracketing in pretty
+  printed output.  If set to @{ML true}, all sub-expressions of the
+  pretty printing tree will be parenthesized, even if this produces
+  malformed term syntax!  This crude way of showing the full structure
+  of pretty printed entities might help to diagnose problems with
+  operator priorities, for example.
+
+  \item @{ML eta_contract} controls @{text "\<eta>"}-contracted printing of
+  terms.
+
+  The @{text \<eta>}-contraction law asserts @{prop "(\<lambda>x. f x) \<equiv> f"},
+  provided @{text x} is not free in @{text f}.  It asserts
+  \emph{extensionality} of functions: @{prop "f \<equiv> g"} if @{prop "f x \<equiv>
+  g x"} for all @{text x}.  Higher-order unification frequently puts
+  terms into a fully @{text \<eta>}-expanded form.  For example, if @{text
+  F} has type @{text "(\<tau> \<Rightarrow> \<tau>) \<Rightarrow> \<tau>"} then its expanded form is @{term
+  "\<lambda>h. F (\<lambda>x. h x)"}.
+
+  Setting @{ML eta_contract} makes Isabelle perform @{text
+  \<eta>}-contractions before printing, so that @{term "\<lambda>h. F (\<lambda>x. h x)"}
+  appears simply as @{text F}.
+
+  Note that the distinction between a term and its @{text \<eta>}-expanded
+  form occasionally matters.
+
+
+  \item @{ML goals_limit} controls the maximum number of subgoals to
+  be shown in proof state output.
+
+  \item @{ML Proof.show_main_goal} controls whether the main result to
+  be proven should be displayed.  This information might be relevant
+  for schematic goals, to see the current claim being synthesized.
+
+  \item @{ML show_hyps} controls printing of implicit hypotheses of
+  local facts.  Normally, only those hypotheses are displayed that are
+  \emph{not} covered by the assumptions of the current context: this
+  situation indicates a fault in some tool being used.
+
+  By setting @{ML show_hyps} to @{ML true}, output of all hypotheses
+  can be enforced.  Which is occasionally usefule for diagnostic
+  purposes.
+
+  \item @{ML show_tags} controls printing of extra annotations within
+  theorems, such as the case names being attached by the attribute
+  @{attribute case_names}.
+
+  \end{description}
+*}
+
+
 section {* Mixfix annotations *}
 
 text {* Mixfix annotations specify concrete \emph{inner syntax} of
