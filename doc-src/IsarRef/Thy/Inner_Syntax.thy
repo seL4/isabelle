@@ -391,7 +391,7 @@ text {*
 
 section {* The Pure syntax *}
 
-subsection {* Priority grammars *}
+subsection {* Priority grammars \label{sec:priority-grammar} *}
 
 text {* A context-free grammar consists of a set of \emph{terminal
   symbols}, a set of \emph{nonterminal symbols} and a set of
@@ -643,9 +643,52 @@ text {*
   \end{itemize}
 *}
 
+
 section {* Lexical matters \label{sec:inner-lex} *}
 
-text FIXME
+text {* The inner lexical syntax vaguely resembles the outer one
+  (\secref{sec:outer-lex}), but some details are different.  There are
+  two main categories of inner syntax tokens:
+
+  \begin{enumerate}
+
+  \item \emph{delimiters} --- the literal tokens occurring in
+  productions of the given priority grammar (cf.\
+  \secref{sec:priority-grammar});
+
+  \item \emph{named tokens} --- various categories of identifiers etc.
+
+  \end{enumerate}
+
+  Delimiters override named tokens and may thus render certain
+  identifiers inaccessible.  Sometimes the logical context admits
+  alternative ways to refer to the same entity, potentially via
+  qualified names.
+
+  \medskip The categories for named tokens are defined once and for
+  all as follows, reusing some categories of the outer token syntax
+  (\secref{sec:outer-lex}).
+
+  \begin{center}
+  \begin{supertabular}{rcl}
+    @{syntax_def (inner) id} & = & @{syntax_ref ident} \\
+    @{syntax_def (inner) longid} & = & @{syntax_ref longident} \\
+    @{syntax_def (inner) var} & = & @{syntax_ref var} \\
+    @{syntax_def (inner) tid} & = & @{syntax_ref typefree} \\
+    @{syntax_def (inner) tvar} & = & @{syntax_ref typevar} \\
+    @{syntax_def (inner) num} & = & @{syntax_ref nat}@{text "  |  "}@{verbatim "-"}@{syntax_ref nat} \\
+    @{syntax_def (inner) xnum} & = & @{verbatim "#"}@{syntax_ref nat}@{text "  |  "}@{verbatim "#-"}@{syntax_ref nat} \\
+
+    @{syntax_def (inner) xstr} & = & @{verbatim "''"} @{text "\<dots>"} @{verbatim "''"} \\
+  \end{supertabular}
+  \end{center}
+
+  The token categories @{syntax_ref (inner) num}, @{syntax_ref (inner)
+  xnum}, and @{syntax_ref (inner) xstr} are not used in Pure.
+  Object-logics may implement numerals and string constants by adding
+  appropriate syntax declarations, together with some translation
+  functions (e.g.\ see Isabelle/HOL).
+*}
 
 
 section {* Syntax and translations \label{sec:syn-trans} *}
