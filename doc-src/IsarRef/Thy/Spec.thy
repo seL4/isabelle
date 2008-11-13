@@ -1133,18 +1133,24 @@ text {*
 
 section {* Oracles *}
 
-text {*
+text {* Oracles allow Isabelle to take advantage of external reasoners
+  such as arithmetic decision procedures, model checkers, fast
+  tautology checkers or computer algebra systems.  Invoked as an
+  oracle, an external reasoner can create arbitrary Isabelle theorems.
+
+  It is the responsibility of the user to ensure that the external
+  reasoner is as trustworthy as the application requires.  Another
+  typical source of errors is the linkup between Isabelle and the
+  external tool, not just its concrete implementation, but also the
+  required translation between two different logical environments.
+
+  Isabelle merely guarantees well-formedness of the propositions being
+  asserted, and records within the internal derivation object how
+  presumed theorems depend on unproven suppositions.
+
   \begin{matharray}{rcl}
     @{command_def "oracle"} & : & \isartrans{theory}{theory} \\
   \end{matharray}
-
-  The oracle interface promotes a given ML function @{ML_text "'a -> cterm"}
-  to @{ML_text "'a -> thm"}.  This acts like an infinitary
-  specification of axioms -- there is no internal check of the
-  correctness of the results!  The inference kernel records oracle
-  invocations within the internal derivation object of theorems, and
-  the pretty printer attaches ``@{text "[!]"}'' to indicate results
-  that are not fully checked by Isabelle inferences.
 
   \begin{rail}
     'oracle' name '=' text
@@ -1156,9 +1162,15 @@ text {*
   \item [@{command "oracle"}~@{text "name = text"}] turns the given ML
   expression @{text "text"} of type @{ML_text "'a -> cterm"} into an
   ML function of type @{ML_text "'a -> thm"}, which is bound to the
-  global identifier @{ML_text name}.
+  global identifier @{ML_text name}.  This acts like an infinitary
+  specification of axioms!  Invoking the oracle only works within the
+  scope of the resulting theory.
 
   \end{descr}
+
+  See @{"file" "~~/src/FOL/ex/IffOracle.thy"} for a worked example of
+  defining a new primitive rule as oracle, and turning it into a proof
+  method.
 *}
 
 
@@ -1201,7 +1213,7 @@ text {*
   (unqualified) names may never be hidden.
   
   Note that hiding name space accesses has no impact on logical
-  declarations -- they remain valid internally.  Entities that are no
+  declarations --- they remain valid internally.  Entities that are no
   longer accessible to the user are printed with the special qualifier
   ``@{text "??"}'' prefixed to the full internal name.
 
