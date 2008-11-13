@@ -473,55 +473,65 @@ text {* A context-free grammar consists of a set of \emph{terminal
 subsection {* The Pure grammar *}
 
 text {*
-  \begin{figure}[htb]\small
+  The priority grammar of the @{text "Pure"} theory is defined as follows:
+
   \begin{center}
-  \begin{tabular}{rclc}
+  \begin{supertabular}{rclr}
 
   @{text any} & = & @{text "prop  |  logic"} \\\\
 
   @{text prop} & = & @{verbatim "("} @{text prop} @{verbatim ")"} \\
     & @{text "|"} & @{text "prop\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
-    & @{text "|"} & @{verbatim PROP} @{text aprop} \\
-    & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
     & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=?="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
+    & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
+    & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{text "\<equiv>"} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
     & @{text "|"} & @{text "prop\<^sup>(\<^sup>2\<^sup>)"} @{verbatim "==>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
+    & @{text "|"} & @{text "prop\<^sup>(\<^sup>2\<^sup>)"} @{text "\<Longrightarrow>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
     & @{text "|"} & @{verbatim "[|"} @{text prop} @{verbatim ";"} @{text "\<dots>"} @{verbatim ";"} @{text prop} @{verbatim "|]"} @{verbatim "==>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
+    & @{text "|"} & @{text "\<lbrakk>"} @{text prop} @{verbatim ";"} @{text "\<dots>"} @{verbatim ";"} @{text prop} @{text "\<rbrakk>"} @{text "\<Longrightarrow>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
     & @{text "|"} & @{verbatim "!!"} @{text idts} @{verbatim "."} @{text prop} & @{text "(0)"} \\
-    & @{text "|"} & @{verbatim OFCLASS} @{verbatim "("} @{text type} @{verbatim ","} @{text logic} @{verbatim ")"} \\\\
+    & @{text "|"} & @{text "\<And>"} @{text idts} @{verbatim "."} @{text prop} & @{text "(0)"} \\
+    & @{text "|"} & @{verbatim OFCLASS} @{verbatim "("} @{text type} @{verbatim ","} @{text logic} @{verbatim ")"} \\
+    & @{text "|"} & @{verbatim SORT_CONSTRAINT} @{verbatim "("} @{text type} @{verbatim ")"} \\
+    & @{text "|"} & @{verbatim PROP} @{text aprop} \\\\
 
-  @{text aprop} & = & @{text "id  |  longid  |  var  |  logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  "}@{verbatim "("} @{text any} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text any} @{verbatim ")"} \\\\
+  @{text aprop} & = & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
+    & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\\\
 
   @{text logic} & = & @{verbatim "("} @{text logic} @{verbatim ")"} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
-    & @{text "|"} & @{text "id  |  longid  |  var  |  logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} @{verbatim "("} @{text any} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text any} @{verbatim ")"} \\
+    & @{text "|"} & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
+    & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\
     & @{text "|"} & @{verbatim "%"} @{text pttrns} @{verbatim "."} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
+    & @{text "|"} & @{text \<lambda>} @{text pttrns} @{verbatim "."} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
+    & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
     & @{text "|"} & @{verbatim TYPE} @{verbatim "("} @{text type} @{verbatim ")"} \\\\
 
-  @{text idts} & = & @{text "idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts"} \\\\
+  @{text idts} & = & @{text "idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts"} & @{text "(0)"} \\\\
 
-  @{text idt} & = & @{text "id  |  "}@{verbatim "("} @{text idt} @{verbatim ")"} \\
-    & @{text "|"} & @{text id} @{verbatim "::"} @{text type} & @{text "(0)"} \\\\
+  @{text idt} & = & @{verbatim "("} @{text idt} @{verbatim ")"}@{text "  |  id  |  "}@{verbatim "_"} \\
+    & @{text "|"} & @{text id} @{verbatim "::"} @{text type} & @{text "(0)"} \\
+    & @{text "|"} & @{verbatim "_"} @{verbatim "::"} @{text type} & @{text "(0)"} \\\\
 
-  @{text pttrns} & = & @{text "pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns"} \\\\
+  @{text pttrns} & = & @{text "pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns"} & @{text "(0)"} \\\\
 
   @{text pttrn} & = & @{text idt} \\\\
 
   @{text type} & = & @{verbatim "("} @{text type} @{verbatim ")"} \\
-    & @{text "|"} & @{text "tid  |  tvar  |  tid"} @{verbatim "::"} @{text "sort  |  tvar  "}@{verbatim "::"} @{text sort} \\
+    & @{text "|"} & @{text "tid  |  tvar  |  "}@{verbatim "_"} \\
+    & @{text "|"} & @{text "tid"} @{verbatim "::"} @{text "sort  |  tvar  "}@{verbatim "::"} @{text "sort  |  "}@{verbatim "_"} @{verbatim "::"} @{text "sort"} \\
     & @{text "|"} & @{text "id  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) id  |  "}@{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text id} \\
     & @{text "|"} & @{text "longid  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) longid  |  "}@{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text longid} \\
     & @{text "|"} & @{text "type\<^sup>(\<^sup>1\<^sup>)"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
-    & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\\\
+    & @{text "|"} & @{text "type\<^sup>(\<^sup>1\<^sup>)"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\
+    & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
+    & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\\\
 
-  @{text sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"}@{text "  |  "}@{verbatim "{"} @{text "id | longid"}@{verbatim ","}@{text "\<dots>"}@{verbatim ","}@{text "id | longid"} @{verbatim "}"} \\
-  \end{tabular}
+  @{text sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"}@{text "  |  "}@{verbatim "{"} @{text "id | longid"} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text "id | longid"} @{verbatim "}"} \\
+  \end{supertabular}
   \end{center}
-  \caption{The Pure grammar}\label{fig:pure-grammar}
-  \end{figure}
 
-  The priority grammar of the @{text "Pure"} theory is defined in
-  \figref{fig:pure-grammar}.  The following nonterminals are
-  introduced:
+  \medskip The following nonterminals are introduced here:
 
   \begin{description}
 
@@ -571,24 +581,61 @@ text {*
 
   \end{description}
 
-  \begin{warn}
-  In @{text idts}, note that @{text "x :: nat y"} is parsed as @{text
-  "x :: (nat y)"}, treating @{text y} like a type constructor applied
-  to @{text nat}.  To avoid this interpretation, write @{text "(x ::
-  nat) y"} with explicit parentheses.
+  Some further explanations of certain syntax features are required.
 
-  Similarly, @{text "x :: nat y :: nat"} is parsed as @{text "x ::
+  \begin{itemize}
+
+  \item In @{text idts}, note that @{text "x :: nat y"} is parsed as
+  @{text "x :: (nat y)"}, treating @{text y} like a type constructor
+  applied to @{text nat}.  To avoid this interpretation, write @{text
+  "(x :: nat) y"} with explicit parentheses.
+
+  \item Similarly, @{text "x :: nat y :: nat"} is parsed as @{text "x ::
   (nat y :: nat)"}.  The correct form is @{text "(x :: nat) (y ::
   nat)"}, or @{text "(x :: nat) y :: nat"} if @{text y} is last in the
   sequence of identifiers.
-  \end{warn}
 
-  \begin{warn}
-  Type constraints for terms bind very weakly.  For example, @{text "x
-  < y :: nat"} is normally parsed as @{text "(x < y) :: nat"}, unless
-  @{text "<"} has a very low priority, in which case the input is
-  likely to be ambiguous.  The correct form is @{text "x < (y :: nat)"}.
-  \end{warn}
+  \item Type constraints for terms bind very weakly.  For example,
+  @{text "x < y :: nat"} is normally parsed as @{text "(x < y) ::
+  nat"}, unless @{text "<"} has a very low priority, in which case the
+  input is likely to be ambiguous.  The correct form is @{text "x < (y
+  :: nat)"}.
+
+  \item Constraints may be either written with two literal colons
+  ``@{verbatim "::"}'' or the double-colon symbol @{verbatim "\<Colon>"},
+  which actually look exactly the same in some {\LaTeX} styles.
+
+  \item Placeholders @{verbatim "_"} may occur in different roles:
+
+  \begin{description}
+
+  \item A type @{text "_"} or @{text "_::sort"} acts like an anonymous
+  type-inference parameter, which is filled-in according to the most
+  general type produced by the type-checking phase.
+
+  \item A bound @{text "_"} refers to a vacuous abstraction, where the
+  body does not refer to the binding introduced here.  As in @{term
+  "\<lambda>x _. x"} (which is @{text "\<alpha>"}-equivalent to @{text "\<lambda>x y. x"}).
+
+  \item A free @{text "_"} refers to an implicit outer binding.
+  Higher definitional packages usually allow forms like @{text "f x _
+  = a"}.
+
+  \item A free @{text "_"} within a term pattern
+  (\secref{sec:term-decls}) refers to an anonymous schematic variable
+  that is implicitly abstracted over its context of locally bound
+  variables.  This allows pattern matching of @{text "{x. x = a}
+  (\<IS> {x. x = _})"}, for example.
+
+  \item The three literal dots ``@{verbatim "..."}'' may be also
+  written as ellipsis symbol @{verbatim "\<dots>"}.  In both cases it refers
+  to a special schematic variable, which is bound in the context.
+  This special term abbreviation works nicely calculational resoning
+  (\secref{sec:calculation}).
+
+  \end{description}
+
+  \end{itemize}
 *}
 
 
