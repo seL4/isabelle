@@ -211,7 +211,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       in (dts @ [(tvs, tname, mx, constrs')], sorts') end
 
     val (dts', sorts) = Library.foldl prep_dt_spec (([], []), dts);
-    val tyvars = map #1 dts';
+    val tyvars = map (map (fn s =>
+      (s, the (AList.lookup (op =) sorts s))) o #1) dts';
 
     fun inter_sort thy S S' = Type.inter_sort (Sign.tsig_of thy) (S, S');
     fun augment_sort_typ thy S =
@@ -450,8 +451,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                 at_inst RS (pt_inst RS pt_perm_compose) RS sym,
                 at_inst RS (pt_inst RS pt_perm_compose_rev) RS sym]
             end))
+        val sort = Sign.certify_sort thy (cp_class :: pt_class);
         val thms = split_conj_thm (Goal.prove_global thy [] []
-          (augment_sort thy (cp_class :: pt_class)
+          (augment_sort thy sort
             (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
               (map (fn ((s, T), x) =>
                   let
@@ -468,10 +470,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (fn _ => EVERY [indtac induction perm_indnames 1,
              ALLGOALS (asm_full_simp_tac simps)]))
       in
-        foldl (fn ((s, tvs), thy) => AxClass.prove_arity
-            (s, replicate (length tvs) (cp_class :: pt_class), [cp_class])
+        fold (fn (s, tvs) => fn thy => AxClass.prove_arity
+            (s, map (inter_sort thy sort o snd) tvs, [cp_class])
             (Class.intro_classes_tac [] THEN ALLGOALS (resolve_tac thms)) thy)
-          thy (full_new_type_names' ~~ tyvars)
+          (full_new_type_names' ~~ tyvars) thy
       end;
 
     val (perm_thmss,thy3) = thy2 |>
@@ -479,14 +481,14 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       fold (fn atom => fn thy =>
         let val pt_name = pt_class_of thy atom
         in
-          fold (fn (i, (tyname, args, _)) => AxClass.prove_arity
-              (tyname, replicate (length args) [pt_name], [pt_name])
+          fold (fn (s, tvs) => fn thy => AxClass.prove_arity
+              (s, map (inter_sort thy [pt_name] o snd) tvs, [pt_name])
               (EVERY
                 [Class.intro_classes_tac [],
                  resolve_tac perm_empty_thms 1,
                  resolve_tac perm_append_thms 1,
-                 resolve_tac perm_eq_thms 1, assume_tac 1]))
-            (List.take (descr, length new_type_names)) thy
+                 resolve_tac perm_eq_thms 1, assume_tac 1]) thy)
+            (full_new_type_names' ~~ tyvars) thy
         end) atoms |>
       PureThy.add_thmss
         [((space_implode "_" new_type_names ^ "_unfolded_perm_eq",
@@ -614,17 +616,17 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (typedefs, thy6) =
       thy4
       |> fold_map (fn ((((name, mx), tvs), (cname, U)), name') => fn thy =>
-          TypedefPackage.add_typedef false (SOME name') (name, tvs, mx)
+          TypedefPackage.add_typedef false (SOME name') (name, map fst tvs, mx)
             (Const ("Collect", (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
               (resolve_tac rep_intrs 1)) thy |> (fn ((_, r), thy) =>
         let
-          val permT = mk_permT (TFree (Name.variant tvs "'a", HOLogic.typeS));
+          val permT = mk_permT
+            (TFree (Name.variant (map fst tvs) "'a", HOLogic.typeS));
           val pi = Free ("pi", permT);
-          val tvs' = map (fn s => TFree (s, the (AList.lookup op = sorts s))) tvs;
-          val T = Type (Sign.intern_type thy name, tvs');
+          val T = Type (Sign.intern_type thy name, map TFree tvs);
         in apfst (pair r o hd)
           (PureThy.add_defs_unchecked true [(("prm_" ^ name ^ "_def", Logic.mk_equals
             (Const ("Nominal.perm", permT --> T --> T) $ pi $ Free ("x", T),
@@ -652,10 +654,11 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         perm_def), name), tvs), perm_closed) => fn thy =>
           let
             val pt_class = pt_class_of thy atom;
-            val cp_sort = map (cp_class_of thy atom) (dt_atoms \ atom)
+            val sort = Sign.certify_sort thy
+              (pt_class :: map (cp_class_of thy atom) (dt_atoms \ atom))
           in AxClass.prove_arity
             (Sign.intern_type thy name,
-              replicate (length tvs) (pt_class :: cp_sort), [pt_class])
+              map (inter_sort thy sort o snd) tvs, [pt_class])
             (EVERY [Class.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
               asm_full_simp_tac (simpset_of thy addsimps [Rep_inverse]) 1,
@@ -675,16 +678,16 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     fun cp_instance (atom1, perm_closed_thms1) (atom2, perm_closed_thms2) thy =
       let
         val cp_class = cp_class_of thy atom1 atom2;
-        val sort =
-          pt_class_of thy atom1 :: map (cp_class_of thy atom1) (dt_atoms \ atom1) @
-          (if atom1 = atom2 then [cp_class_of thy atom1 atom1] else
-           pt_class_of thy atom2 :: map (cp_class_of thy atom2) (dt_atoms \ atom2));
+        val sort = Sign.certify_sort thy
+          (pt_class_of thy atom1 :: map (cp_class_of thy atom1) (dt_atoms \ atom1) @
+           (if atom1 = atom2 then [cp_class_of thy atom1 atom1] else
+            pt_class_of thy atom2 :: map (cp_class_of thy atom2) (dt_atoms \ atom2)));
         val cp1' = cp_inst_of thy atom1 atom2 RS cp1
       in fold (fn ((((((Abs_inverse, Rep),
         perm_def), name), tvs), perm_closed1), perm_closed2) => fn thy =>
           AxClass.prove_arity
             (Sign.intern_type thy name,
-              replicate (length tvs) sort, [cp_class])
+              map (inter_sort thy sort o snd) tvs, [cp_class])
             (EVERY [Class.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
               asm_full_simp_tac (simpset_of thy addsimps
@@ -1122,11 +1125,12 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       DatatypeAux.store_thmss "supp" new_type_names supp_thms ||>>
       DatatypeAux.store_thmss_atts "fresh" new_type_names simp_atts fresh_thms ||>
       fold (fn (atom, ths) => fn thy =>
-        let val class = fs_class_of thy atom
-        in fold (fn T => AxClass.prove_arity
-            (fst (dest_Type T),
-              replicate (length sorts) (class :: pt_cp_sort), [class])
-            (Class.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
+        let
+          val class = fs_class_of thy atom;
+          val sort = Sign.certify_sort thy (class :: pt_cp_sort)
+        in fold (fn Type (s, Ts) => AxClass.prove_arity
+          (s, map (inter_sort thy sort o snd o dest_TFree) Ts, [class])
+          (Class.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
         end) (atoms ~~ finite_supp_thms);
 
     (**** strong induction theorem ****)
