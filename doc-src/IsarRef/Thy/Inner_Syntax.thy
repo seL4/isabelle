@@ -412,12 +412,8 @@ text {* A context-free grammar consists of a set of \emph{terminal
   \medskip Formally, a set of context free productions @{text G}
   induces a derivation relation @{text "\<longrightarrow>\<^sub>G"} as follows.  Let @{text
   \<alpha>} and @{text \<beta>} denote strings of terminal or nonterminal symbols.
-  Then
-  \[
-    @{text "\<alpha> A\<^sup>(\<^sup>p\<^sup>) \<beta> \<longrightarrow>\<^sub>G \<alpha> \<gamma> \<beta>"}
-  \]
-  if and only if @{text G} contains some production @{text "A\<^sup>(\<^sup>q\<^sup>) = \<gamma>"}
-  for @{text "p \<le> q"}.
+  Then @{text "\<alpha> A\<^sup>(\<^sup>p\<^sup>) \<beta> \<longrightarrow>\<^sub>G \<alpha> \<gamma> \<beta>"} holds if and only if @{text G}
+  contains some production @{text "A\<^sup>(\<^sup>q\<^sup>) = \<gamma>"} for @{text "p \<le> q"}.
 
   \medskip The following grammar for arithmetic expressions
   demonstrates how binding power and associativity of operators can be
@@ -425,8 +421,8 @@ text {* A context-free grammar consists of a set of \emph{terminal
 
   \begin{center}
   \begin{tabular}{rclr}
-  @{text "A\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "="} & @{verbatim 0} \\
   @{text "A\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "="} & @{verbatim "("} @{text "A\<^sup>(\<^sup>0\<^sup>)"} @{verbatim ")"} \\
+  @{text "A\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "="} & @{verbatim 0} \\
   @{text "A\<^sup>(\<^sup>0\<^sup>)"} & @{text "="} & @{text "A\<^sup>(\<^sup>0\<^sup>)"} @{verbatim "+"} @{text "A\<^sup>(\<^sup>1\<^sup>)"} \\
   @{text "A\<^sup>(\<^sup>2\<^sup>)"} & @{text "="} & @{text "A\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "*"} @{text "A\<^sup>(\<^sup>2\<^sup>)"} \\
   @{text "A\<^sup>(\<^sup>3\<^sup>)"} & @{text "="} & @{verbatim "-"} @{text "A\<^sup>(\<^sup>3\<^sup>)"} \\
@@ -460,8 +456,8 @@ text {* A context-free grammar consists of a set of \emph{terminal
   takes the form:
   \begin{center}
   \begin{tabular}{rclc}
-    @{text A} & @{text "="} & @{verbatim 0} & \qquad\qquad \\
-              & @{text "|"} & @{verbatim "("} @{text A} @{verbatim ")"} \\
+    @{text A} & @{text "="} & @{verbatim "("} @{text A} @{verbatim ")"} \\
+              & @{text "|"} & @{verbatim 0} & \qquad\qquad \\
               & @{text "|"} & @{text A} @{verbatim "+"} @{text "A\<^sup>(\<^sup>1\<^sup>)"} & @{text "(0)"} \\
               & @{text "|"} & @{text "A\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "*"} @{text "A\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
               & @{text "|"} & @{verbatim "-"} @{text "A\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
@@ -474,6 +470,9 @@ subsection {* The Pure grammar *}
 
 text {*
   The priority grammar of the @{text "Pure"} theory is defined as follows:
+
+  %FIXME syntax for "index" (?)
+  %FIXME "op" versions of ==> etc. (?)
 
   \begin{center}
   \begin{supertabular}{rclr}
@@ -507,15 +506,15 @@ text {*
     & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
     & @{text "|"} & @{verbatim TYPE} @{verbatim "("} @{text type} @{verbatim ")"} \\\\
 
-  @{text idts} & = & @{text "idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts"} & @{text "(0)"} \\\\
-
   @{text idt} & = & @{verbatim "("} @{text idt} @{verbatim ")"}@{text "  |  id  |  "}@{verbatim "_"} \\
     & @{text "|"} & @{text id} @{verbatim "::"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{verbatim "_"} @{verbatim "::"} @{text type} & @{text "(0)"} \\\\
 
-  @{text pttrns} & = & @{text "pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns"} & @{text "(0)"} \\\\
+  @{text idts} & = & @{text "idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts"} & @{text "(0)"} \\\\
 
   @{text pttrn} & = & @{text idt} \\\\
+
+  @{text pttrns} & = & @{text "pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns"} & @{text "(0)"} \\\\
 
   @{text type} & = & @{verbatim "("} @{text type} @{verbatim ")"} \\
     & @{text "|"} & @{text "tid  |  tvar  |  "}@{verbatim "_"} \\
@@ -527,24 +526,27 @@ text {*
     & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\\\
 
-  @{text sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"}@{text "  |  "}@{verbatim "{"} @{text "id | longid"} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text "id | longid"} @{verbatim "}"} \\
+  @{text sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"}@{text "  |  "}@{verbatim "{"} @{text "(id | longid)"} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text "(id | longid)"} @{verbatim "}"} \\
   \end{supertabular}
   \end{center}
 
-  \medskip The following nonterminals are introduced here:
+  \medskip Here literal terminals are printed @{verbatim "verbatim"};
+  see also \secref{sec:inner-lex} for further token categories of the
+  inner syntax.  The meaning of the nonterminals defined by the above
+  grammar is as follows:
 
   \begin{description}
 
-  \item @{text "any"} denotes any term.
+  \item @{text any} denotes any term.
 
-  \item @{text "prop"} denotes meta-level propositions, which are
-  terms of type @{typ prop}.  The syntax of such formulae of the
-  meta-logic is carefully distinguished from usual conventions for
-  object-logics.  In particular, plain @{text "\<lambda>"}-term
-  notation is \emph{not} recognized as @{text "prop"}.
+  \item @{text prop} denotes meta-level propositions, which are terms
+  of type @{typ prop}.  The syntax of such formulae of the meta-logic
+  is carefully distinguished from usual conventions for object-logics.
+  In particular, plain @{text "\<lambda>"}-term notation is \emph{not}
+  recognized as @{text "prop"}.
 
   \item @{text aprop} denotes atomic propositions, which are embedded
-  into regular @{typ prop} by means of an explicit @{text "PROP"}
+  into regular @{typ prop} by means of an explicit @{verbatim PROP}
   token.
 
   Terms of type @{typ prop} with non-constant head, e.g.\ a plain
@@ -581,7 +583,7 @@ text {*
 
   \end{description}
 
-  Some further explanations of certain syntax features are required.
+  Here are some further explanations of certain syntax features.
 
   \begin{itemize}
 
@@ -603,40 +605,47 @@ text {*
 
   \item Constraints may be either written with two literal colons
   ``@{verbatim "::"}'' or the double-colon symbol @{verbatim "\<Colon>"},
-  which actually look exactly the same in some {\LaTeX} styles.
+  which actually looks exactly the same in some {\LaTeX} styles.
 
-  \item Placeholders @{verbatim "_"} may occur in different roles:
+  \item Dummy variables (written as underscore) may occur in different
+  roles.
 
   \begin{description}
 
-  \item A type @{text "_"} or @{text "_::sort"} acts like an anonymous
-  type-inference parameter, which is filled-in according to the most
-  general type produced by the type-checking phase.
+  \item A type ``@{text "_"}'' or ``@{text "_ :: sort"}'' acts like an
+  anonymous inference parameter, which is filled-in according to the
+  most general type produced by the type-checking phase.
 
-  \item A bound @{text "_"} refers to a vacuous abstraction, where the
-  body does not refer to the binding introduced here.  As in @{term
-  "\<lambda>x _. x"} (which is @{text "\<alpha>"}-equivalent to @{text "\<lambda>x y. x"}).
+  \item A bound ``@{text "_"}'' refers to a vacuous abstraction, where
+  the body does not refer to the binding introduced here.  As in the
+  term @{term "\<lambda>x _. x"}, which is @{text "\<alpha>"}-equivalent to @{text
+  "\<lambda>x y. x"}.
 
-  \item A free @{text "_"} refers to an implicit outer binding.
+  \item A free ``@{text "_"}'' refers to an implicit outer binding.
   Higher definitional packages usually allow forms like @{text "f x _
-  = a"}.
+  = x"}.
 
-  \item A free @{text "_"} within a term pattern
-  (\secref{sec:term-decls}) refers to an anonymous schematic variable
-  that is implicitly abstracted over its context of locally bound
-  variables.  This allows pattern matching of @{text "{x. x = a}
-  (\<IS> {x. x = _})"}, for example.
-
-  \item The three literal dots ``@{verbatim "..."}'' may be also
-  written as ellipsis symbol @{verbatim "\<dots>"}.  In both cases it refers
-  to a special schematic variable, which is bound in the context.
-  This special term abbreviation works nicely calculational resoning
-  (\secref{sec:calculation}).
+  \item A schematic ``@{text "_"}'' (within a term pattern, see
+  \secref{sec:term-decls}) refers to an anonymous variable that is
+  implicitly abstracted over its context of locally bound variables.
+  For example, this allows pattern matching of @{text "{x. f x = g
+  x}"} against @{text "{x. _ = _}"}, or even @{text "{_. _ = _}"} by
+  using both bound and schematic dummies.
 
   \end{description}
 
+  \item The three literal dots ``@{verbatim "..."}'' may be also
+  written as ellipsis symbol @{verbatim "\<dots>"}.  In both cases this
+  refers to a special schematic variable, which is bound in the
+  context.  This special term abbreviation works nicely with
+  calculational reasoning (\secref{sec:calculation}).
+
   \end{itemize}
 *}
+
+section {* Lexical matters \label{sec:inner-lex} *}
+
+text FIXME
 
 
 section {* Syntax and translations \label{sec:syn-trans} *}

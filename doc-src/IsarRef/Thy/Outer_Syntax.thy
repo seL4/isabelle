@@ -66,12 +66,11 @@ text {*
 *}
 
 
-section {* Lexical matters \label{sec:lex-syntax} *}
+section {* Lexical matters \label{sec:outer-lex} *}
 
-text {*
-  The Isabelle/Isar outer syntax provides token classes as presented
-  below; most of these coincide with the inner lexical syntax as
-  presented in \cite{isabelle-ref}.
+text {* The Isabelle/Isar outer syntax provides token classes as
+  presented below; most of these coincide with the inner lexical
+  syntax as defined in \secref{sec:inner-lex}.
 
   \begin{matharray}{rcl}
     @{syntax_def ident} & = & letter\,quasiletter^* \\
