@@ -12,32 +12,30 @@ subsection {* Diagnostic commands *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "pr"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
-    @{command_def "thm"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "typ"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "term"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "prop"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def "typ"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "thm"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "prf"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "full_prf"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "pr"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
   These diagnostic commands assist interactive development by printing
   internal logical entities in a human-readable fashion.
 
   \begin{rail}
-    'pr' modes? nat? (',' nat)?
-    ;
-    'thm' modes? thmrefs
+    'typ' modes? type
     ;
     'term' modes? term
     ;
     'prop' modes? prop
     ;
-    'typ' modes? type
+    'thm' modes? thmrefs
     ;
-    'prf' modes? thmrefs?
+    ( 'prf' | 'full\_prf' ) modes? thmrefs?
     ;
-    'full\_prf' modes? thmrefs?
+    'pr' modes? nat? (',' nat)?
     ;
 
     modes: '(' (name + ) ')'
@@ -46,18 +44,8 @@ text {*
 
   \begin{description}
 
-  \item @{command "pr"}~@{text "goals, prems"} prints the current
-  proof state (if present), including the proof context, current facts
-  and goals.  The optional limit arguments affect the number of goals
-  and premises to be displayed, which is initially 10 for both.
-  Omitting limit values leaves the current setting unchanged.
-
-  \item @{command "thm"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} retrieves
-  theorems from the current theory or proof context.  Note that any
-  attributes included in the theorem specifications are applied to a
-  temporary context derived from the current theory or proof; the
-  result is discarded, i.e.\ attributes involved in @{text "a\<^sub>1,
-  \<dots>, a\<^sub>n"} do not have any permanent effect.
+  \item @{command "typ"}~@{text \<tau>} reads and prints types of the
+  meta-logic according to the current theory or proof context.
 
   \item @{command "term"}~@{text t} and @{command "prop"}~@{text \<phi>}
   read, type-check and print terms or propositions according to the
@@ -65,8 +53,12 @@ text {*
   output as well.  Note that these commands are also useful in
   inspecting the current environment of term abbreviations.
 
-  \item @{command "typ"}~@{text \<tau>} reads and prints types of the
-  meta-logic according to the current theory or proof context.
+  \item @{command "thm"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} retrieves
+  theorems from the current theory or proof context.  Note that any
+  attributes included in the theorem specifications are applied to a
+  temporary context derived from the current theory or proof; the
+  result is discarded, i.e.\ attributes involved in @{text "a\<^sub>1,
+  \<dots>, a\<^sub>n"} do not have any permanent effect.
 
   \item @{command "prf"} displays the (compact) proof term of the
   current proof state (if present), or of the given theorems. Note
@@ -78,6 +70,12 @@ text {*
   the full proof term, i.e.\ also displays information omitted in the
   compact proof term, which is denoted by ``@{text _}'' placeholders
   there.
+
+  \item @{command "pr"}~@{text "goals, prems"} prints the current
+  proof state (if present), including the proof context, current facts
+  and goals.  The optional limit arguments affect the number of goals
+  and premises to be displayed, which is initially 10 for both.
+  Omitting limit values leaves the current setting unchanged.
 
   \end{description}
 
@@ -355,7 +353,7 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
 *}
 
 
-section {* Additional term notation *}
+section {* Explicit term notation *}
 
 text {*
   \begin{matharray}{rcll}
