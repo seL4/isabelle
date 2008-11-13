@@ -381,6 +381,87 @@ text {*
   \end{description}
 *}
 
+section {* The Pure syntax *}
+
+subsection {* Priority grammars *}
+
+text {* A context-free grammar consists of a set of \emph{terminal
+  symbols}, a set of \emph{nonterminal symbols} and a set of
+  \emph{productions}.  Productions have the form @{text "A = \<gamma>"},
+  where @{text A} is a nonterminal and @{text \<gamma>} is a string of
+  terminals and nonterminals.  One designated nonterminal is called
+  the \emph{root symbol}.  The language defined by the grammar
+  consists of all strings of terminals that can be derived from the
+  root symbol by applying productions as rewrite rules.
+
+  The standard Isabelle parser for inner syntax uses a \emph{priority
+  grammar}.  Each nonterminal is decorated by an integer priority:
+  @{text "A\<^sup>(\<^sup>p\<^sup>)"}.  In a derivation, @{text "A\<^sup>(\<^sup>p\<^sup>)"} may be rewritten
+  using a production @{text "A\<^sup>(\<^sup>q\<^sup>) = \<gamma>"} only if @{text "p \<le> q"}.  Any
+  priority grammar can be translated into a normal context-free
+  grammar by introducing new nonterminals and productions.
+
+  \medskip Formally, a set of context free productions @{text G}
+  induces a derivation relation @{text "\<longrightarrow>\<^sub>G"} as follows.  Let @{text
+  \<alpha>} and @{text \<beta>} denote strings of terminal or nonterminal symbols.
+  Then
+  \[
+    @{text "\<alpha> A\<^sup>(\<^sup>p\<^sup>) \<beta> \<longrightarrow>\<^sub>G \<alpha> \<gamma> \<beta>"}
+  \]
+  if and only if @{text G} contains some production @{text "A\<^sup>(\<^sup>q\<^sup>) = \<gamma>"}
+  for @{text "p \<le> q"}.
+
+  \medskip The following grammar for arithmetic expressions
+  demonstrates how binding power and associativity of operators can be
+  enforced by priorities.
+
+  \begin{center}
+  \begin{tabular}{rclr}
+  @{text "A\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "="} & @{verbatim 0} \\
+  @{text "A\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "="} & @{verbatim "("} @{text "A\<^sup>(\<^sup>0\<^sup>)"} @{verbatim ")"} \\
+  @{text "A\<^sup>(\<^sup>0\<^sup>)"} & @{text "="} & @{text "A\<^sup>(\<^sup>0\<^sup>)"} @{verbatim "+"} @{text "A\<^sup>(\<^sup>1\<^sup>)"} \\
+  @{text "A\<^sup>(\<^sup>2\<^sup>)"} & @{text "="} & @{text "A\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "*"} @{text "A\<^sup>(\<^sup>2\<^sup>)"} \\
+  @{text "A\<^sup>(\<^sup>3\<^sup>)"} & @{text "="} & @{verbatim "-"} @{text "A\<^sup>(\<^sup>3\<^sup>)"} \\
+  \end{tabular}
+  \end{center}
+  The choice of priorities determines that @{verbatim "-"} binds
+  tighter than @{verbatim "*"}, which binds tighter than @{verbatim
+  "+"}.  Furthermore @{verbatim "+"} associates to the left and
+  @{verbatim "*"} to the right.
+
+  \medskip For clarity, grammars obey these conventions:
+  \begin{itemize}
+
+  \item All priorities must lie between 0 and 1000.
+
+  \item Priority 0 on the right-hand side and priority 1000 on the
+  left-hand side may be omitted.
+
+  \item The production @{text "A\<^sup>(\<^sup>p\<^sup>) = \<alpha>"} is written as @{text "A = \<alpha>
+  (p)"}, i.e.\ the priority of the left-hand side actually appears in
+  a column on the far right.
+
+  \item Alternatives are separated by @{text "|"}.
+
+  \item Repetition is indicated by dots @{text "(\<dots>)"} in an informal
+  but obvious way.
+
+  \end{itemize}
+
+  Using these conventions, the example grammar specification above
+  takes the form:
+  \begin{center}
+  \begin{tabular}{rclc}
+    @{text A} & @{text "="} & @{verbatim 0} & \qquad\qquad \\
+              & @{text "|"} & @{verbatim "("} @{text A} @{verbatim ")"} \\
+              & @{text "|"} & @{text A} @{verbatim "+"} @{text "A\<^sup>(\<^sup>1\<^sup>)"} & @{text "(0)"} \\
+              & @{text "|"} & @{text "A\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "*"} @{text "A\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
+              & @{text "|"} & @{verbatim "-"} @{text "A\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
+  \end{tabular}
+  \end{center}
+*}
+
+
 section {* Syntax and translations \label{sec:syn-trans} *}
 
 text {*
