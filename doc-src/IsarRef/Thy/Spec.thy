@@ -14,20 +14,25 @@ text {*
     @{command_def (global) "end"} & : & \isartrans{theory}{toplevel} \\
   \end{matharray}
 
-  Isabelle/Isar theories are defined via theory file, which contain
-  both specifications and proofs; occasionally definitional mechanisms
-  also require some explicit proof.  The theory body may be
-  sub-structered by means of \emph{local theory} target mechanisms,
-  notably @{command "locale"} and @{command "class"}.
+  Isabelle/Isar theories are defined via theory files, which may
+  contain both specifications and proofs; occasionally definitional
+  mechanisms also require some explicit proof.  The theory body may be
+  sub-structured by means of \emph{local theory targets}, such as
+  @{command "locale"} and @{command "class"}.
 
-  The first ``real'' command of any theory has to be @{command
-  "theory"}, which starts a new theory based on the merge of existing
-  ones.  Just preceding the @{command "theory"} keyword, there may be
-  an optional @{command "header"} declaration, which is relevant to
-  document preparation only; it acts very much like a special
-  pre-theory markup command (cf.\ \secref{sec:markup}).  The @{command
-  (global) "end"} command concludes a theory development; it has to be
-  the very last command of any theory file loaded in batch-mode.
+  The first proper command of a theory is @{command "theory"}, which
+  indicates imports of previous theories and optional dependencies on
+  other source files (usually in ML).  Just preceding the initial
+  @{command "theory"} command there may be an optional @{command
+  "header"} declaration, which is only relevant to document
+  preparation: see also the other section markup commands in
+  \secref{sec:markup}.
+
+  A theory is concluded by a final @{command (global) "end"} command,
+  one that does not belong to a local theory target.  No further
+  commands may follow such a global @{command (global) "end"},
+  although some user-interfaces might pretend that trailing input is
+  admissible.
 
   \begin{rail}
     'theory' name 'imports' (name +) uses? 'begin'
@@ -42,22 +47,24 @@ text {*
   B\<^sub>n \<BEGIN>"}] starts a new theory @{text A} based on the
   merge of existing theories @{text "B\<^sub>1 \<dots> B\<^sub>n"}.
   
-  Due to inclusion of several ancestors, the overall theory structure
-  emerging in an Isabelle session forms a directed acyclic graph
-  (DAG).  Isabelle's theory loader ensures that the sources
-  contributing to the development graph are always up-to-date.
-  Changed files are automatically reloaded when processing theory
-  headers.
+  Due to the possibility to import more than one ancestor, the
+  resulting theory structure of an Isabelle session forms a directed
+  acyclic graph (DAG).  Isabelle's theory loader ensures that the
+  sources contributing to the development graph are always up-to-date:
+  changed files are automatically reloaded whenever a theory header
+  specification is processed.
   
   The optional @{keyword_def "uses"} specification declares additional
   dependencies on extra files (usually ML sources).  Files will be
-  loaded immediately (as ML), unless the name is put in parentheses,
-  which merely documents the dependency to be resolved later in the
-  text (typically via explicit @{command_ref "use"} in the body text,
-  see \secref{sec:ML}).
+  loaded immediately (as ML), unless the name is parenthesized.  The
+  latter case records a dependency that needs to be resolved later in
+  the text, usually via explicit @{command_ref "use"} for ML files;
+  other file formats require specific load commands defined by the
+  corresponding tools or packages.
   
   \item [@{command (global) "end"}] concludes the current theory
-  definition.
+  definition.  Note that local theory targets involve a local
+  @{command (local) "end"}, which is clear from the nesting.
 
   \end{descr}
 *}
