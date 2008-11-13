@@ -309,8 +309,8 @@ text {*
   implicit in the de-Bruijn representation.  Names for bound variables
   in abstractions are maintained separately as (meaningless) comments,
   mostly for parsing and printing.  Full @{text "\<alpha>\<beta>\<eta>"}-conversion is
-  commonplace in various standard operations (\secref{sec:rules}) that
-  are based on higher-order unification and matching.
+  commonplace in various standard operations (\secref{sec:obj-rules})
+  that are based on higher-order unification and matching.
 *}
 
 text %mlref {*
@@ -762,7 +762,7 @@ text %mlref {*
 *}
 
 
-section {* Rules \label{sec:rules} *}
+section {* Object-level rules \label{sec:obj-rules} *}
 
 text %FIXME {*
 
