@@ -262,6 +262,51 @@ text {*
 *}
 
 
+subsection {* Term patterns and declarations \label{sec:term-decls} *}
+
+text {*
+  Wherever explicit propositions (or term fragments) occur in a proof
+  text, casual binding of schematic term variables may be given
+  specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots>
+  p\<^sub>n)"}''.  This works both for \railqtok{term} and \railqtok{prop}.
+
+  \indexouternonterm{termpat}\indexouternonterm{proppat}
+  \begin{rail}
+    termpat: '(' ('is' term +) ')'
+    ;
+    proppat: '(' ('is' prop +) ')'
+    ;
+  \end{rail}
+
+  \medskip Declarations of local variables @{text "x :: \<tau>"} and
+  logical propositions @{text "a : \<phi>"} represent different views on
+  the same principle of introducing a local scope.  In practice, one
+  may usually omit the typing of \railnonterm{vars} (due to
+  type-inference), and the naming of propositions (due to implicit
+  references of current facts).  In any case, Isar proof elements
+  usually admit to introduce multiple such items simultaneously.
+
+  \indexouternonterm{vars}\indexouternonterm{props}
+  \begin{rail}
+    vars: (name+) ('::' type)?
+    ;
+    props: thmdecl? (prop proppat? +)
+    ;
+  \end{rail}
+
+  The treatment of multiple declarations corresponds to the
+  complementary focus of \railnonterm{vars} versus
+  \railnonterm{props}.  In ``@{text "x\<^sub>1 \<dots> x\<^sub>n :: \<tau>"}''
+  the typing refers to all variables, while in @{text "a: \<phi>\<^sub>1 \<dots>
+  \<phi>\<^sub>n"} the naming refers to all propositions collectively.
+  Isar language elements that refer to \railnonterm{vars} or
+  \railnonterm{props} typically admit separate typings or namings via
+  another level of iteration, with explicit @{keyword_ref "and"}
+  separators; e.g.\ see @{command "fix"} and @{command "assume"} in
+  \secref{sec:proof-context}.
+*}
+
+
 subsection {* Mixfix annotations *}
 
 text {*
@@ -274,7 +319,7 @@ text {*
 
   \indexouternonterm{infix}\indexouternonterm{mixfix}\indexouternonterm{structmixfix}
   \begin{rail}
-    infix: '(' ('infix' | 'infixl' | 'infixr') string? nat ')'
+    infix: '(' ('infix' | 'infixl' | 'infixr') string nat ')'
     ;
     mixfix: infix | '(' string prios? nat? ')' | '(' 'binder' string prios? nat ')'
     ;
@@ -286,16 +331,90 @@ text {*
   \end{rail}
 
   Here the \railtok{string} specifications refer to the actual mixfix
-  template (see also \cite{isabelle-ref}), which may include literal
-  text, spacing, blocks, and arguments (denoted by ``@{text _}''); the
-  special symbol ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'')
-  represents an index argument that specifies an implicit structure
-  reference (see also \secref{sec:locale}).  Infix and binder
-  declarations provide common abbreviations for particular mixfix
-  declarations.  So in practice, mixfix templates mostly degenerate to
-  literal text for concrete syntax, such as ``@{verbatim "++"}'' for
-  an infix symbol, or ``@{verbatim "++"}@{text "\<index>"}'' for an infix of
-  an implicit structure.
+  template, which may include literal text, spacing, blocks, and
+  arguments (denoted by ``@{text _}''); the special symbol
+  ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'') represents an index
+  argument that specifies an implicit structure reference (see also
+  \secref{sec:locale}).  Infix and binder declarations provide common
+  abbreviations for particular mixfix declarations.  So in practice,
+  mixfix templates mostly degenerate to literal text for concrete
+  syntax, such as ``@{verbatim "++"}'' for an infix symbol.
+
+  \medskip In full generality, mixfix declarations work as follows.
+  Suppose a constant @{text "c :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<tau>\<^sub>n \<Rightarrow> \<tau>"} is
+  annotated by @{text "(mixfix [p\<^sub>1, \<dots>, p\<^sub>n] p)"}, where @{text
+  "mixfix"} is a string @{text "d\<^sub>0 _ d\<^sub>1 _ \<dots> _ d\<^sub>n"} consisting of
+  delimiters that surround argument positions as indicated by
+  underscores.
+
+  Altogether this determines a production for a context-free priority
+  grammar, where for each argument @{text "i"} the syntactic category
+  is determined by @{text "\<tau>\<^sub>i"} (with priority @{text "p\<^sub>i"}), and
+  the result category is determined from @{text "\<tau>"} (with
+  priority @{text "p"}).  Priority specifications are optional, with
+  default 0 for arguments and 1000 for the result.
+
+  Since @{text "\<tau>"} may be again a function type, the constant
+  type scheme may have more argument positions than the mixfix
+  pattern.  Printing a nested application @{text "c t\<^sub>1 \<dots> t\<^sub>m"} for
+  @{text "m > n"} works by attaching concrete notation only to the
+  innermost part, essentially by printing @{text "(c t\<^sub>1 \<dots> t\<^sub>n) \<dots> t\<^sub>m"}
+  instead.  If a term has fewer arguments than specified in the mixfix
+  template, the concrete syntax is ignored.
+
+  \medskip A mixfix template may also contain additional directives
+  for pretty printing, notably spaces, blocks, and breaks.  The
+  general template format is a sequence over any of the following
+  entities.
+
+  \begin{itemize}
+
+  \item @{text "\<^bold>d"} is a delimiter, namely a non-empty
+  sequence of characters other than the special characters @{text "'"}
+  (single quote), @{text "_"} (underscore), @{text "\<index>"} (index
+  symbol), @{text "/"} (slash), @{text "("} and @{text ")"}
+  (parentheses).
+
+  A single quote escapes the special meaning of these meta-characters,
+  producing a literal version of the following character, unless that
+  is a blank.  A single quote followed by a blank separates
+  delimiters, without affecting printing, but input tokens may have
+  additional white space here.
+
+  \item @{text "_"} is an argument position, which stands for a
+  certain syntactic category in the underlying grammar.
+
+  \item @{text "\<index>"} is an indexed argument position; this is
+  the place where implicit structure arguments can be attached.
+
+  \item @{text "\<^bold>s"} is a non-empty sequence of spaces for
+  printing.  This and the following specifications do not affect
+  parsing at all.
+
+  \item @{text "(\<^bold>n"} opens a pretty printing block.  The
+  optional number specifies how much indentation to add when a line
+  break occurs within the block.  If the parenthesis is not followed
+  by digits, the indentation defaults to 0.  A block specified via
+  @{text "(00"} is unbreakable.
+
+  \item @{text ")"} closes a pretty printing block.
+
+  \item @{text "//"} forces a line break.
+
+  \item @{text "/\<^bold>s"} allows a line break.  Here @{text
+  "\<^bold>s"} stands for the string of spaces (zero or more) right
+  after the slash.  These spaces are printed if the break is
+  \emph{not} taken.
+
+  \end{itemize}
+
+  For example, the template @{text "(_ +/ _)"} specifies an infix
+  operator.  There are two argument positions; the delimiter @{text
+  "+"} is preceded by a space and followed by a space or line break;
+  the entire phrase is a pretty printing block.
+
+  The general idea of pretty printing with blocks and breaks is also
+  described in \cite{paulson-ml2}.
 *}
 
 
@@ -422,51 +541,6 @@ text {*
     selection: '(' ((nat | nat '-' nat?) + ',') ')'
     ;
   \end{rail}
-*}
-
-
-subsection {* Term patterns and declarations \label{sec:term-decls} *}
-
-text {*
-  Wherever explicit propositions (or term fragments) occur in a proof
-  text, casual binding of schematic term variables may be given
-  specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots>
-  p\<^sub>n)"}''.  This works both for \railqtok{term} and \railqtok{prop}.
-
-  \indexouternonterm{termpat}\indexouternonterm{proppat}
-  \begin{rail}
-    termpat: '(' ('is' term +) ')'
-    ;
-    proppat: '(' ('is' prop +) ')'
-    ;
-  \end{rail}
-
-  \medskip Declarations of local variables @{text "x :: \<tau>"} and
-  logical propositions @{text "a : \<phi>"} represent different views on
-  the same principle of introducing a local scope.  In practice, one
-  may usually omit the typing of \railnonterm{vars} (due to
-  type-inference), and the naming of propositions (due to implicit
-  references of current facts).  In any case, Isar proof elements
-  usually admit to introduce multiple such items simultaneously.
-
-  \indexouternonterm{vars}\indexouternonterm{props}
-  \begin{rail}
-    vars: (name+) ('::' type)?
-    ;
-    props: thmdecl? (prop proppat? +)
-    ;
-  \end{rail}
-
-  The treatment of multiple declarations corresponds to the
-  complementary focus of \railnonterm{vars} versus
-  \railnonterm{props}.  In ``@{text "x\<^sub>1 \<dots> x\<^sub>n :: \<tau>"}''
-  the typing refers to all variables, while in @{text "a: \<phi>\<^sub>1 \<dots>
-  \<phi>\<^sub>n"} the naming refers to all propositions collectively.
-  Isar language elements that refer to \railnonterm{vars} or
-  \railnonterm{props} typically admit separate typings or namings via
-  another level of iteration, with explicit @{keyword_ref "and"}
-  separators; e.g.\ see @{command "fix"} and @{command "assume"} in
-  \secref{sec:proof-context}.
 *}
 
 end

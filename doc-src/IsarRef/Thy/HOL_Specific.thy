@@ -859,7 +859,7 @@ text {*
 *}
 
 
-section {* Unstructured cases analysis and induction \label{sec:hol-induct-tac} *}
+section {* Unstructured case analysis and induction \label{sec:hol-induct-tac} *}
 
 text {*
   The following tools of Isabelle/HOL support cases analysis and
