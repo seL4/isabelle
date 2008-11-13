@@ -477,9 +477,43 @@ text {*
   \begin{center}
   \begin{tabular}{rclc}
 
-    @{text any} & = & @{text "prop  |  logic"} \\\\
-    % FIXME
+  @{text any} & = & @{text "prop  |  logic"} \\\\
 
+  @{text prop} & = & @{verbatim "("} @{text prop} @{verbatim ")"} \\
+    & @{text "|"} & @{text "prop\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
+    & @{text "|"} & @{verbatim PROP} @{text aprop} \\
+    & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
+    & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=?="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
+    & @{text "|"} & @{text "prop\<^sup>(\<^sup>2\<^sup>)"} @{verbatim "==>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
+    & @{text "|"} & @{verbatim "[|"} @{text prop} @{verbatim ";"} @{text "\<dots>"} @{verbatim ";"} @{text prop} @{verbatim "|]"} @{verbatim "==>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
+    & @{text "|"} & @{verbatim "!!"} @{text idts} @{verbatim "."} @{text prop} & @{text "(0)"} \\
+    & @{text "|"} & @{verbatim OFCLASS} @{verbatim "("} @{text type} @{verbatim ","} @{text logic} @{verbatim ")"} \\\\
+
+  @{text aprop} & = & @{text "id  |  longid  |  var  |  logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  "}@{verbatim "("} @{text any} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text any} @{verbatim ")"} \\\\
+
+  @{text logic} & = & @{verbatim "("} @{text logic} @{verbatim ")"} \\
+    & @{text "|"} & @{text "logic\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
+    & @{text "|"} & @{text "id  |  longid  |  var  |  logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} @{verbatim "("} @{text any} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text any} @{verbatim ")"} \\
+    & @{text "|"} & @{verbatim "%"} @{text pttrns} @{verbatim "."} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
+    & @{text "|"} & @{verbatim TYPE} @{verbatim "("} @{text type} @{verbatim ")"} \\\\
+
+  @{text idts} & = & @{text "idt  |  idt\<^sup>(\<^sup>1\<^sup>) idts"} \\\\
+
+  @{text idt} & = & @{text "id  |  "}@{verbatim "("} @{text idt} @{verbatim ")"} \\
+    & @{text "|"} & @{text id} @{verbatim "::"} @{text type} & @{text "(0)"} \\\\
+
+  @{text pttrns} & = & @{text "pttrn  |  pttrn\<^sup>(\<^sup>1\<^sup>) pttrns"} \\\\
+
+  @{text pttrn} & = & @{text idt} \\\\
+
+  @{text type} & = & @{verbatim "("} @{text type} @{verbatim ")"} \\
+    & @{text "|"} & @{text "tid  |  tvar  |  tid"} @{verbatim "::"} @{text "sort  |  tvar  "}@{verbatim "::"} @{text sort} \\
+    & @{text "|"} & @{text "id  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) id  |  "}@{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text id} \\
+    & @{text "|"} & @{text "longid  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) longid  |  "}@{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text longid} \\
+    & @{text "|"} & @{text "type\<^sup>(\<^sup>1\<^sup>)"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
+    & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\\\
+
+  @{text sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"}@{text "  |  "}@{verbatim "{"} @{text "id | longid"}@{verbatim ","}@{text "\<dots>"}@{verbatim ","}@{text "id | longid"} @{verbatim "}"} \\
   \end{tabular}
   \end{center}
   \caption{The Pure grammar}\label{fig:pure-grammar}
