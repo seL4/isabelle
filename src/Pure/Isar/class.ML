@@ -78,7 +78,7 @@ fun prove_interpretation_in tac after_qed (name, expr) =
 val class_prefix = Logic.const_of_class o Sign.base_name;
 
 fun activate_class_morphism thy class inst morphism =
-  Locale.get_interpret_morph thy (class_prefix class) "" morphism class inst;
+  Locale.get_interpret_morph thy class (false, class_prefix class) "" morphism class inst;
 
 fun prove_class_interpretation class inst consts hyp_facts def_facts thy =
   let
