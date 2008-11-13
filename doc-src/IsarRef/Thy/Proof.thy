@@ -42,6 +42,81 @@ text {*
 *}
 
 
+section {* Proof structure *}
+
+subsection {* Blocks *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "next"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "{"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "}"} & : & \isartrans{proof(state)}{proof(state)} \\
+  \end{matharray}
+
+  While Isar is inherently block-structured, opening and closing
+  blocks is mostly handled rather casually, with little explicit
+  user-intervention.  Any local goal statement automatically opens
+  \emph{two} internal blocks, which are closed again when concluding
+  the sub-proof (by @{command "qed"} etc.).  Sections of different
+  context within a sub-proof may be switched via @{command "next"},
+  which is just a single block-close followed by block-open again.
+  The effect of @{command "next"} is to reset the local proof context;
+  there is no goal focus involved here!
+
+  For slightly more advanced applications, there are explicit block
+  parentheses as well.  These typically achieve a stronger forward
+  style of reasoning.
+
+  \begin{descr}
+
+  \item [@{command "next"}] switches to a fresh block within a
+  sub-proof, resetting the local context to the initial one.
+
+  \item [@{command "{"} and @{command "}"}] explicitly open and close
+  blocks.  Any current facts pass through ``@{command "{"}''
+  unchanged, while ``@{command "}"}'' causes any result to be
+  \emph{exported} into the enclosing context.  Thus fixed variables
+  are generalized, assumptions discharged, and local definitions
+  unfolded (cf.\ \secref{sec:proof-context}).  There is no difference
+  of @{command "assume"} and @{command "presume"} in this mode of
+  forward reasoning --- in contrast to plain backward reasoning with
+  the result exported at @{command "show"} time.
+
+  \end{descr}
+*}
+
+
+subsection {* Omitting proofs *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "oops"} & : & \isartrans{proof}{theory} \\
+  \end{matharray}
+
+  The @{command "oops"} command discontinues the current proof
+  attempt, while considering the partial proof text as properly
+  processed.  This is conceptually quite different from ``faking''
+  actual proofs via @{command_ref "sorry"} (see
+  \secref{sec:proof-steps}): @{command "oops"} does not observe the
+  proof structure at all, but goes back right to the theory level.
+  Furthermore, @{command "oops"} does not produce any result theorem
+  --- there is no intended claim to be able to complete the proof
+  anyhow.
+
+  A typical application of @{command "oops"} is to explain Isar proofs
+  \emph{within} the system itself, in conjunction with the document
+  preparation tools of Isabelle described in \cite{isabelle-sys}.
+  Thus partial or even wrong proof attempts can be discussed in a
+  logically sound manner.  Note that the Isabelle {\LaTeX} macros can
+  be easily adapted to print something like ``@{text "\<dots>"}'' instead of
+  the keyword ``@{command "oops"}''.
+
+  \medskip The @{command "oops"} command is undo-able, unlike
+  @{command_ref "kill"} (see \secref{sec:history}).  The effect is to
+  get back to the theory just before the opening of the proof.
+*}
+
+
 section {* Statements *}
 
 subsection {* Context elements \label{sec:proof-context} *}
@@ -819,79 +894,6 @@ text {*
   such as @{command "apply"}.  A few additional emulations of actual
   tactics are provided as well; these would be never used in actual
   structured proofs, of course.
-*}
-
-
-section {* Block structure *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "next"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "{"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "}"} & : & \isartrans{proof(state)}{proof(state)} \\
-  \end{matharray}
-
-  While Isar is inherently block-structured, opening and closing
-  blocks is mostly handled rather casually, with little explicit
-  user-intervention.  Any local goal statement automatically opens
-  \emph{two} internal blocks, which are closed again when concluding
-  the sub-proof (by @{command "qed"} etc.).  Sections of different
-  context within a sub-proof may be switched via @{command "next"},
-  which is just a single block-close followed by block-open again.
-  The effect of @{command "next"} is to reset the local proof context;
-  there is no goal focus involved here!
-
-  For slightly more advanced applications, there are explicit block
-  parentheses as well.  These typically achieve a stronger forward
-  style of reasoning.
-
-  \begin{descr}
-
-  \item [@{command "next"}] switches to a fresh block within a
-  sub-proof, resetting the local context to the initial one.
-
-  \item [@{command "{"} and @{command "}"}] explicitly open and close
-  blocks.  Any current facts pass through ``@{command "{"}''
-  unchanged, while ``@{command "}"}'' causes any result to be
-  \emph{exported} into the enclosing context.  Thus fixed variables
-  are generalized, assumptions discharged, and local definitions
-  unfolded (cf.\ \secref{sec:proof-context}).  There is no difference
-  of @{command "assume"} and @{command "presume"} in this mode of
-  forward reasoning --- in contrast to plain backward reasoning with
-  the result exported at @{command "show"} time.
-
-  \end{descr}
-*}
-
-
-section {* Omitting proofs *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "oops"} & : & \isartrans{proof}{theory} \\
-  \end{matharray}
-
-  The @{command "oops"} command discontinues the current proof
-  attempt, while considering the partial proof text as properly
-  processed.  This is conceptually quite different from ``faking''
-  actual proofs via @{command_ref "sorry"} (see
-  \secref{sec:proof-steps}): @{command "oops"} does not observe the
-  proof structure at all, but goes back right to the theory level.
-  Furthermore, @{command "oops"} does not produce any result theorem
-  --- there is no intended claim to be able to complete the proof
-  anyhow.
-
-  A typical application of @{command "oops"} is to explain Isar proofs
-  \emph{within} the system itself, in conjunction with the document
-  preparation tools of Isabelle described in \cite{isabelle-sys}.
-  Thus partial or even wrong proof attempts can be discussed in a
-  logically sound manner.  Note that the Isabelle {\LaTeX} macros can
-  be easily adapted to print something like ``@{text "\<dots>"}'' instead of
-  the keyword ``@{command "oops"}''.
-
-  \medskip The @{command "oops"} command is undo-able, unlike
-  @{command_ref "kill"} (see \secref{sec:history}).  The effect is to
-  get back to the theory just before the opening of the proof.
 *}
 
 
