@@ -25,12 +25,12 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Isabelle/Isar provides a simple document preparation system based on
-  existing {PDF-\LaTeX} technology, with full support of hyper-links
-  (both local references and URLs) and bookmarks.  Thus the results
-  are equally well suited for WWW browsing and as printed copies.
+Isabelle/Isar provides a simple document preparation system
+  based on regular {PDF-\LaTeX} technology, with full support for
+  hyper-links and bookmarks.  Thus the results are well suited for WWW
+  browsing and as printed copies.
 
-  \medskip Isabelle generates {\LaTeX} output as part of the run of a
+  \medskip Isabelle generates {\LaTeX} output while running a
   \emph{logic session} (see also \cite{isabelle-sys}).  Getting
   started with a working configuration for common situations is quite
   easy by using the Isabelle \verb|mkdir| and \verb|make|
@@ -38,9 +38,9 @@ Isabelle/Isar provides a simple document preparation system based on
 \begin{ttbox}
   isabelle mkdir Foo
 \end{ttbox}
-  to initialize a separate directory for session \verb|Foo| ---
-  it is safe to experiment, since \verb|isabelle mkdir| never
-  overwrites existing files.  Ensure that \verb|Foo/ROOT.ML|
+  to initialize a separate directory for session \verb|Foo| (it
+  is safe to experiment, since \verb|isabelle mkdir| never
+  overwrites existing files).  Ensure that \verb|Foo/ROOT.ML|
   holds ML commands to load all theories required for this session;
   furthermore \verb|Foo/document/root.tex| should include any
   special {\LaTeX} macro packages required for your document (the
@@ -56,19 +56,20 @@ Isabelle/Isar provides a simple document preparation system based on
   to run the \verb|Foo| session, with browser information and
   document preparation enabled.  Unless any errors are reported by
   Isabelle or {\LaTeX}, the output will appear inside the directory
-  \verb|ISABELLE_BROWSER_INFO|, as reported by the batch job in
-  verbose mode.
+  defined by the \verb|ISABELLE_BROWSER_INFO| setting (as
+  reported by the batch job in verbose mode).
 
   \medskip You may also consider to tune the \verb|usedir|
-  options in \verb|IsaMakefile|, for example to change the output
-  format from \verb|pdf| to \verb|dvi|, or activate the
+  options in \verb|IsaMakefile|, for example to switch the output
+  format between \verb|pdf| and \verb|dvi|, or activate the
   \verb|-D| option to retain a second copy of the generated
-  {\LaTeX} sources.
+  {\LaTeX} sources (for manual inspection or separate runs of
+  \hyperlink{executable.latex}{\mbox{\isa{\isatt{latex}}}}).
 
   \medskip See \emph{The Isabelle System Manual} \cite{isabelle-sys}
   for further details on Isabelle logic sessions and theory
   presentation.  The Isabelle/HOL tutorial \cite{isabelle-hol-book}
-  also covers theory presentation issues.%
+  also covers theory presentation to some extent.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -78,24 +79,30 @@ Isabelle/Isar provides a simple document preparation system based on
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{header}\hypertarget{command.header}{\hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}}} & : & \isarkeep{toplevel} \\[0.5ex]
-    \indexdef{}{command}{chapter}\hypertarget{command.chapter}{\hyperlink{command.chapter}{\mbox{\isa{\isacommand{chapter}}}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{section}\hypertarget{command.section}{\hyperlink{command.section}{\mbox{\isa{\isacommand{section}}}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{subsection}\hypertarget{command.subsection}{\hyperlink{command.subsection}{\mbox{\isa{\isacommand{subsection}}}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{subsubsection}\hypertarget{command.subsubsection}{\hyperlink{command.subsubsection}{\mbox{\isa{\isacommand{subsubsection}}}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{text}\hypertarget{command.text}{\hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}}} & : & \isarkeep{local{\dsh}theory} \\
-    \indexdef{}{command}{text\_raw}\hypertarget{command.text-raw}{\hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}} & : & \isarkeep{local{\dsh}theory} \\[0.5ex]
-    \indexdef{}{command}{sect}\hypertarget{command.sect}{\hyperlink{command.sect}{\mbox{\isa{\isacommand{sect}}}}} & : & \isartrans{proof}{proof} \\
-    \indexdef{}{command}{subsect}\hypertarget{command.subsect}{\hyperlink{command.subsect}{\mbox{\isa{\isacommand{subsect}}}}} & : & \isartrans{proof}{proof} \\
-    \indexdef{}{command}{subsubsect}\hypertarget{command.subsubsect}{\hyperlink{command.subsubsect}{\mbox{\isa{\isacommand{subsubsect}}}}} & : & \isartrans{proof}{proof} \\
-    \indexdef{}{command}{txt}\hypertarget{command.txt}{\hyperlink{command.txt}{\mbox{\isa{\isacommand{txt}}}}} & : & \isartrans{proof}{proof} \\
-    \indexdef{}{command}{txt\_raw}\hypertarget{command.txt-raw}{\hyperlink{command.txt-raw}{\mbox{\isa{\isacommand{txt{\isacharunderscore}raw}}}}} & : & \isartrans{proof}{proof} \\
+    \indexdef{}{command}{header}\hypertarget{command.header}{\hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}}} & : & \isa{{\isachardoublequote}toplevel\ {\isasymrightarrow}\ toplevel{\isachardoublequote}} \\[0.5ex]
+    \indexdef{}{command}{chapter}\hypertarget{command.chapter}{\hyperlink{command.chapter}{\mbox{\isa{\isacommand{chapter}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{section}\hypertarget{command.section}{\hyperlink{command.section}{\mbox{\isa{\isacommand{section}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{subsection}\hypertarget{command.subsection}{\hyperlink{command.subsection}{\mbox{\isa{\isacommand{subsection}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{subsubsection}\hypertarget{command.subsubsection}{\hyperlink{command.subsubsection}{\mbox{\isa{\isacommand{subsubsection}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{text}\hypertarget{command.text}{\hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{text\_raw}\hypertarget{command.text-raw}{\hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\[0.5ex]
+    \indexdef{}{command}{sect}\hypertarget{command.sect}{\hyperlink{command.sect}{\mbox{\isa{\isacommand{sect}}}}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}\ proof{\isachardoublequote}} \\
+    \indexdef{}{command}{subsect}\hypertarget{command.subsect}{\hyperlink{command.subsect}{\mbox{\isa{\isacommand{subsect}}}}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}\ proof{\isachardoublequote}} \\
+    \indexdef{}{command}{subsubsect}\hypertarget{command.subsubsect}{\hyperlink{command.subsubsect}{\mbox{\isa{\isacommand{subsubsect}}}}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}\ proof{\isachardoublequote}} \\
+    \indexdef{}{command}{txt}\hypertarget{command.txt}{\hyperlink{command.txt}{\mbox{\isa{\isacommand{txt}}}}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}\ proof{\isachardoublequote}} \\
+    \indexdef{}{command}{txt\_raw}\hypertarget{command.txt-raw}{\hyperlink{command.txt-raw}{\mbox{\isa{\isacommand{txt{\isacharunderscore}raw}}}}} & : & \isa{{\isachardoublequote}proof\ {\isasymrightarrow}\ proof{\isachardoublequote}} \\
   \end{matharray}
 
-  Apart from formal comments (see \secref{sec:comments}), markup
-  commands provide a structured way to insert text into the document
-  generated from a theory (see \cite{isabelle-sys} for more
-  information on Isabelle's document preparation tools).
+  Markup commands provide a structured way to insert text into the
+  document generated from a theory.  Each markup command takes a
+  single \hyperlink{syntax.text}{\mbox{\isa{text}}} argument, which is passed as argument to a
+  corresponding {\LaTeX} macro.  The default macros provided by
+  \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}isabelle{\isachardot}sty}}}} can be redefined according
+  to the needs of the underlying document and {\LaTeX} styles.
+
+  Note that formal comments (\secref{sec:comments}) are similar to
+  markup commands, but have a different status within Isabelle/Isar
+  syntax.
 
   \begin{rail}
     ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') target? text
@@ -104,84 +111,90 @@ Isabelle/Isar provides a simple document preparation system based on
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [\hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}}~\isa{{\isachardoublequote}text{\isachardoublequote}}] provides plain text
-  markup just preceding the formal beginning of a theory.  In actual
-  document preparation the corresponding {\LaTeX} macro \verb|\isamarkupheader| may be redefined to produce chapter or section
-  headings.
+  \item \hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}} provides plain text markup just preceding
+  the formal beginning of a theory.  The corresponding {\LaTeX} macro
+  is \verb|\isamarkupheader|, which acts like \hyperlink{command.section}{\mbox{\isa{\isacommand{section}}}} by default.
   
-  \item [\hyperlink{command.chapter}{\mbox{\isa{\isacommand{chapter}}}}, \hyperlink{command.section}{\mbox{\isa{\isacommand{section}}}}, \hyperlink{command.subsection}{\mbox{\isa{\isacommand{subsection}}}}, and \hyperlink{command.subsubsection}{\mbox{\isa{\isacommand{subsubsection}}}}] mark chapter and
-  section headings.  The corresponding {\LaTeX} macros are \verb|\isamarkupchapter|, \verb|\isamarkupsection| etc.
+  \item \hyperlink{command.chapter}{\mbox{\isa{\isacommand{chapter}}}}, \hyperlink{command.section}{\mbox{\isa{\isacommand{section}}}}, \hyperlink{command.subsection}{\mbox{\isa{\isacommand{subsection}}}},
+  and \hyperlink{command.subsubsection}{\mbox{\isa{\isacommand{subsubsection}}}} mark chapter and section headings
+  within the main theory body or local theory targets.  The
+  corresponding {\LaTeX} macros are \verb|\isamarkupchapter|,
+  \verb|\isamarkupsection|, \verb|\isamarkupsubsection| etc.
 
-  \item [\hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}} and \hyperlink{command.txt}{\mbox{\isa{\isacommand{txt}}}}] specify paragraphs of
-  plain text.
+  \item \hyperlink{command.sect}{\mbox{\isa{\isacommand{sect}}}}, \hyperlink{command.subsect}{\mbox{\isa{\isacommand{subsect}}}}, and \hyperlink{command.subsubsect}{\mbox{\isa{\isacommand{subsubsect}}}}
+  mark section headings within proofs.  The corresponding {\LaTeX}
+  macros are \verb|\isamarkupsect|, \verb|\isamarkupsubsect| etc.
 
-  \item [\hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}} and \hyperlink{command.txt-raw}{\mbox{\isa{\isacommand{txt{\isacharunderscore}raw}}}}] insert
-  {\LaTeX} source into the output, without additional markup.  Thus
-  the full range of document manipulations becomes available.
+  \item \hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}} and \hyperlink{command.txt}{\mbox{\isa{\isacommand{txt}}}} specify paragraphs of plain
+  text.  This corresponds to a {\LaTeX} environment \verb|\begin{isamarkuptext}| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|\end{isamarkuptext}| etc.
 
-  \end{descr}
+  \item \hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}} and \hyperlink{command.txt-raw}{\mbox{\isa{\isacommand{txt{\isacharunderscore}raw}}}} insert {\LaTeX}
+  source into the output, without additional markup.  Thus the full
+  range of document manipulations becomes available, at the risk of
+  messing up document output.
 
-  The \isa{{\isachardoublequote}text{\isachardoublequote}} argument of these markup commands (except for
-  \hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}) may contain references to formal entities
-  (``antiquotations'', see also \secref{sec:antiq}).  These are
-  interpreted in the present theory context, or the named \isa{{\isachardoublequote}target{\isachardoublequote}}.
+  \end{description}
 
-  Any of these markup elements corresponds to a {\LaTeX} command with
-  the name prefixed by \verb|\isamarkup|.  For the sectioning
-  commands this is a plain macro with a single argument, e.g.\
-  \verb|\isamarkupchapter{|\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}\verb|}| for
-  \hyperlink{command.chapter}{\mbox{\isa{\isacommand{chapter}}}}.  The \hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}} markup results in a
-  {\LaTeX} environment \verb|\begin{isamarkuptext}| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|\end{isamarkuptext}|, while \hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}}
-  causes the text to be inserted directly into the {\LaTeX} source.
+  Except for \hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isacharunderscore}raw}}}} and \hyperlink{command.txt-raw}{\mbox{\isa{\isacommand{txt{\isacharunderscore}raw}}}}, the text
+  passed to any of the above markup commands may refer to formal
+  entities via \emph{document antiquotations}, see also
+  \secref{sec:antiq}.  These are interpreted in the present theory or
+  proof context, or the named \isa{{\isachardoublequote}target{\isachardoublequote}}.
 
   \medskip The proof markup commands closely resemble those for theory
   specifications, but have a different formal status and produce
-  different {\LaTeX} macros.  Also note that the \indexref{}{command}{header}\hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}} declaration (see \secref{sec:begin-thy}) admits to insert
-  section markup just preceding the actual theory definition.%
+  different {\LaTeX} macros.  The default definitions coincide for
+  analogous commands such as \hyperlink{command.section}{\mbox{\isa{\isacommand{section}}}} and \hyperlink{command.sect}{\mbox{\isa{\isacommand{sect}}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Antiquotations \label{sec:antiq}%
+\isamarkupsection{Document Antiquotations \label{sec:antiq}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{antiquotation}{theory}\hypertarget{antiquotation.theory}{\hyperlink{antiquotation.theory}{\mbox{\isa{theory}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{thm}\hypertarget{antiquotation.thm}{\hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{lemma}\hypertarget{antiquotation.lemma}{\hyperlink{antiquotation.lemma}{\mbox{\isa{lemma}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{prop}\hypertarget{antiquotation.prop}{\hyperlink{antiquotation.prop}{\mbox{\isa{prop}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{term}\hypertarget{antiquotation.term}{\hyperlink{antiquotation.term}{\mbox{\isa{term}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{const}\hypertarget{antiquotation.const}{\hyperlink{antiquotation.const}{\mbox{\isa{const}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{abbrev}\hypertarget{antiquotation.abbrev}{\hyperlink{antiquotation.abbrev}{\mbox{\isa{abbrev}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{typeof}\hypertarget{antiquotation.typeof}{\hyperlink{antiquotation.typeof}{\mbox{\isa{typeof}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{typ}\hypertarget{antiquotation.typ}{\hyperlink{antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{thm\_style}\hypertarget{antiquotation.thm-style}{\hyperlink{antiquotation.thm-style}{\mbox{\isa{thm{\isacharunderscore}style}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{term\_style}\hypertarget{antiquotation.term-style}{\hyperlink{antiquotation.term-style}{\mbox{\isa{term{\isacharunderscore}style}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{text}\hypertarget{antiquotation.text}{\hyperlink{antiquotation.text}{\mbox{\isa{text}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{goals}\hypertarget{antiquotation.goals}{\hyperlink{antiquotation.goals}{\mbox{\isa{goals}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{subgoals}\hypertarget{antiquotation.subgoals}{\hyperlink{antiquotation.subgoals}{\mbox{\isa{subgoals}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{prf}\hypertarget{antiquotation.prf}{\hyperlink{antiquotation.prf}{\mbox{\isa{prf}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{full\_prf}\hypertarget{antiquotation.full-prf}{\hyperlink{antiquotation.full-prf}{\mbox{\isa{full{\isacharunderscore}prf}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{ML}\hypertarget{antiquotation.ML}{\hyperlink{antiquotation.ML}{\mbox{\isa{ML}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{ML\_type}\hypertarget{antiquotation.ML-type}{\hyperlink{antiquotation.ML-type}{\mbox{\isa{ML{\isacharunderscore}type}}}} & : & \isarantiq \\
-    \indexdef{}{antiquotation}{ML\_struct}\hypertarget{antiquotation.ML-struct}{\hyperlink{antiquotation.ML-struct}{\mbox{\isa{ML{\isacharunderscore}struct}}}} & : & \isarantiq \\
+    \indexdef{}{antiquotation}{theory}\hypertarget{antiquotation.theory}{\hyperlink{antiquotation.theory}{\mbox{\isa{theory}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{thm}\hypertarget{antiquotation.thm}{\hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{lemma}\hypertarget{antiquotation.lemma}{\hyperlink{antiquotation.lemma}{\mbox{\isa{lemma}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{prop}\hypertarget{antiquotation.prop}{\hyperlink{antiquotation.prop}{\mbox{\isa{prop}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{term}\hypertarget{antiquotation.term}{\hyperlink{antiquotation.term}{\mbox{\isa{term}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{const}\hypertarget{antiquotation.const}{\hyperlink{antiquotation.const}{\mbox{\isa{const}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{abbrev}\hypertarget{antiquotation.abbrev}{\hyperlink{antiquotation.abbrev}{\mbox{\isa{abbrev}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{typeof}\hypertarget{antiquotation.typeof}{\hyperlink{antiquotation.typeof}{\mbox{\isa{typeof}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{typ}\hypertarget{antiquotation.typ}{\hyperlink{antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{thm\_style}\hypertarget{antiquotation.thm-style}{\hyperlink{antiquotation.thm-style}{\mbox{\isa{thm{\isacharunderscore}style}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{term\_style}\hypertarget{antiquotation.term-style}{\hyperlink{antiquotation.term-style}{\mbox{\isa{term{\isacharunderscore}style}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{text}\hypertarget{antiquotation.text}{\hyperlink{antiquotation.text}{\mbox{\isa{text}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{goals}\hypertarget{antiquotation.goals}{\hyperlink{antiquotation.goals}{\mbox{\isa{goals}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{subgoals}\hypertarget{antiquotation.subgoals}{\hyperlink{antiquotation.subgoals}{\mbox{\isa{subgoals}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{prf}\hypertarget{antiquotation.prf}{\hyperlink{antiquotation.prf}{\mbox{\isa{prf}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{full\_prf}\hypertarget{antiquotation.full-prf}{\hyperlink{antiquotation.full-prf}{\mbox{\isa{full{\isacharunderscore}prf}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{ML}\hypertarget{antiquotation.ML}{\hyperlink{antiquotation.ML}{\mbox{\isa{ML}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{ML\_type}\hypertarget{antiquotation.ML-type}{\hyperlink{antiquotation.ML-type}{\mbox{\isa{ML{\isacharunderscore}type}}}} & : & \isa{antiquotation} \\
+    \indexdef{}{antiquotation}{ML\_struct}\hypertarget{antiquotation.ML-struct}{\hyperlink{antiquotation.ML-struct}{\mbox{\isa{ML{\isacharunderscore}struct}}}} & : & \isa{antiquotation} \\
   \end{matharray}
 
-  The text body of formal comments (see also \secref{sec:comments})
-  may contain antiquotations of logical entities, such as theorems,
-  terms and types, which are to be presented in the final output
-  produced by the Isabelle document preparation system.
+  The overall content of an Isabelle/Isar theory may alternate between
+  formal and informal text.  The main body consists of formal
+  specification and proof commands, interspersed with markup commands
+  (\secref{sec:markup}) or document comments (\secref{sec:comments}).
+  The argument of markup commands quotes informal text to be printed
+  in the resulting document, but may again refer to formal entities
+  via \emph{document antiquotations}.
 
-  Thus embedding of ``\isa{{\isacharat}{\isacharbraceleft}term\ {\isacharbrackleft}show{\isacharunderscore}types{\isacharbrackright}\ {\isachardoublequote}f\ x\ {\isacharequal}\ a\ {\isacharplus}\ x{\isachardoublequote}{\isacharbraceright}}''
-  within a text block would cause
-  \isa{{\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharplus}\ x} to appear in the final {\LaTeX} document.  Also note that theorem
-  antiquotations may involve attributes as well.  For example,
-  \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm\ sym\ {\isacharbrackleft}no{\isacharunderscore}vars{\isacharbrackright}{\isacharbraceright}{\isachardoublequote}} would print the theorem's
-  statement where all schematic variables have been replaced by fixed
-  ones, which are easier to read.
+  For example, embedding of ``\isa{{\isacharat}{\isacharbraceleft}term\ {\isacharbrackleft}show{\isacharunderscore}types{\isacharbrackright}\ {\isachardoublequote}f\ x\ {\isacharequal}\ a\ {\isacharplus}\ x{\isachardoublequote}{\isacharbraceright}}''
+  within a text block makes
+  \isa{{\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}a{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isacharplus}\ x} appear in the final {\LaTeX} document.
+
+  Antiquotations usually spare the author tedious typing of logical
+  entities in full detail.  Even more importantly, some degree of
+  consistency-checking between the main body of formal text and its
+  informal explanation is achieved, since terms and types appearing in
+  antiquotations are checked within the current theory or proof
+  context.
 
   \begin{rail}
     atsign lbrace antiquotation rbrace
@@ -215,170 +228,196 @@ Isabelle/Isar provides a simple document preparation system based on
   \end{rail}
 
   Note that the syntax of antiquotations may \emph{not} include source
-  comments \verb|(*|~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\verb|*)| or verbatim
+  comments \verb|(*|~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\verb|*)| nor verbatim
   text \verb|{|\verb|*|~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\verb|*|\verb|}|.
 
-  \begin{descr}
+  \begin{description}
   
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}theory\ A{\isacharbraceright}{\isachardoublequote}}] prints the name \isa{{\isachardoublequote}A{\isachardoublequote}}, which is
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}theory\ A{\isacharbraceright}{\isachardoublequote}} prints the name \isa{{\isachardoublequote}A{\isachardoublequote}}, which is
   guaranteed to refer to a valid ancestor theory in the current
   context.
 
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}] prints theorems
-  \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}.  Note that attribute specifications
-  may be included as well (see also \secref{sec:syn-att}); the
-  \indexref{}{attribute}{no\_vars}\hyperlink{attribute.no-vars}{\mbox{\isa{no{\isacharunderscore}vars}}} rule (see \secref{sec:misc-meth-att}) would
-  be particularly useful to suppress printing of schematic variables.
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}} prints theorems \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}.
+  Full fact expressions are allowed here, including attributes
+  (\secref{sec:syn-att}).
 
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prop\ {\isasymphi}{\isacharbraceright}{\isachardoublequote}}] prints a well-typed proposition \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}.
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prop\ {\isasymphi}{\isacharbraceright}{\isachardoublequote}} prints a well-typed proposition \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}.
 
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}lemma\ {\isasymphi}\ by\ m{\isacharbraceright}{\isachardoublequote}}] asserts a well-typed proposition \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}} to be provable by method \isa{m} and prints \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}.
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}lemma\ {\isasymphi}\ by\ m{\isacharbraceright}{\isachardoublequote}} proves a well-typed proposition
+  \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}} by method \isa{m} and prints the original \isa{{\isachardoublequote}{\isasymphi}{\isachardoublequote}}.
 
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}{\isachardoublequote}}] prints a well-typed term \isa{{\isachardoublequote}t{\isachardoublequote}}.
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term\ t{\isacharbraceright}{\isachardoublequote}} prints a well-typed term \isa{{\isachardoublequote}t{\isachardoublequote}}.
 
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}const\ c{\isacharbraceright}{\isachardoublequote}}] prints a logical or syntactic constant
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}const\ c{\isacharbraceright}{\isachardoublequote}} prints a logical or syntactic constant
   \isa{{\isachardoublequote}c{\isachardoublequote}}.
   
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}abbrev\ c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isacharbraceright}{\isachardoublequote}}] prints a constant
-  abbreviation \isa{{\isachardoublequote}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ rhs{\isachardoublequote}} as defined in
-  the current context.
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}abbrev\ c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isacharbraceright}{\isachardoublequote}} prints a constant abbreviation
+  \isa{{\isachardoublequote}c\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n\ {\isasymequiv}\ rhs{\isachardoublequote}} as defined in the current context.
 
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typeof\ t{\isacharbraceright}{\isachardoublequote}}] prints the type of a well-typed term
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typeof\ t{\isacharbraceright}{\isachardoublequote}} prints the type of a well-typed term
   \isa{{\isachardoublequote}t{\isachardoublequote}}.
 
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}{\isachardoublequote}}] prints a well-formed type \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}}.
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}typ\ {\isasymtau}{\isacharbraceright}{\isachardoublequote}} prints a well-formed type \isa{{\isachardoublequote}{\isasymtau}{\isachardoublequote}}.
   
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm{\isacharunderscore}style\ s\ a{\isacharbraceright}{\isachardoublequote}}] prints theorem \isa{a},
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}thm{\isacharunderscore}style\ s\ a{\isacharbraceright}{\isachardoublequote}} prints theorem \isa{a},
   previously applying a style \isa{s} to it (see below).
   
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term{\isacharunderscore}style\ s\ t{\isacharbraceright}{\isachardoublequote}}] prints a well-typed term \isa{t} after applying a style \isa{s} to it (see below).
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}term{\isacharunderscore}style\ s\ t{\isacharbraceright}{\isachardoublequote}} prints a well-typed term \isa{t}
+  after applying a style \isa{s} to it (see below).
 
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}text\ s{\isacharbraceright}{\isachardoublequote}}] prints uninterpreted source text \isa{s}.  This is particularly useful to print portions of text according
-  to the Isabelle {\LaTeX} output style, without demanding
-  well-formedness (e.g.\ small pieces of terms that should not be
-  parsed or type-checked yet).
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}text\ s{\isacharbraceright}{\isachardoublequote}} prints uninterpreted source text \isa{s}.  This is particularly useful to print portions of text according
+  to the Isabelle document style, without demanding well-formedness,
+  e.g.\ small pieces of terms that should not be parsed or
+  type-checked yet.
 
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}{\isachardoublequote}}] prints the current \emph{dynamic} goal
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}{\isachardoublequote}} prints the current \emph{dynamic} goal
   state.  This is mainly for support of tactic-emulation scripts
-  within Isar --- presentation of goal states does not conform to
-  actual human-readable proof documents.
+  within Isar.  Presentation of goal states does not conform to the
+  idea of human-readable proof documents!
 
-  Please do not include goal states into document output unless you
-  really know what you are doing!
+  When explaining proofs in detail it is usually better to spell out
+  the reasoning via proper Isar proof commands, instead of peeking at
+  the internal machine configuration.
   
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}subgoals{\isacharbraceright}{\isachardoublequote}}] is similar to \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}{\isachardoublequote}}, but
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}subgoals{\isacharbraceright}{\isachardoublequote}} is similar to \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}goals{\isacharbraceright}{\isachardoublequote}}, but
   does not print the main goal.
   
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}] prints the (compact)
-  proof terms corresponding to the theorems \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}. Note that this requires proof terms to be switched on
-  for the current object logic (see the ``Proof terms'' section of the
-  Isabelle reference manual for information on how to do this).
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}} prints the (compact) proof terms
+  corresponding to the theorems \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}. Note that this
+  requires proof terms to be switched on for the current logic
+  session.
   
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}full{\isacharunderscore}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}] is like \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}, but displays the full proof terms,
-  i.e.\ also displays information omitted in the compact proof term,
-  which is denoted by ``\isa{{\isacharunderscore}}'' placeholders there.
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}full{\isacharunderscore}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}} is like \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}prf\ a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isacharbraceright}{\isachardoublequote}}, but prints the full proof terms, i.e.\ also displays
+  information omitted in the compact proof term, which is denoted by
+  ``\isa{{\isacharunderscore}}'' placeholders there.
   
-  \item [\isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}ML\ s{\isacharbraceright}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}type\ s{\isacharbraceright}{\isachardoublequote}}, and \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}struct\ s{\isacharbraceright}{\isachardoublequote}}] check text \isa{s} as ML value, type, and
-  structure, respectively.  The source is displayed verbatim.
+  \item \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}ML\ s{\isacharbraceright}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}type\ s{\isacharbraceright}{\isachardoublequote}}, and \isa{{\isachardoublequote}{\isacharat}{\isacharbraceleft}ML{\isacharunderscore}struct\ s{\isacharbraceright}{\isachardoublequote}} check text \isa{s} as ML value, type, and
+  structure, respectively.  The source is printed verbatim.
 
-  \end{descr}
-
-  \medskip The following standard styles for use with \isa{thm{\isacharunderscore}style} and \isa{term{\isacharunderscore}style} are available:
-
-  \begin{descr}
-  
-  \item [\isa{lhs}] extracts the first argument of any application
-  form with at least two arguments -- typically meta-level or
-  object-level equality, or any other binary relation.
-  
-  \item [\isa{rhs}] is like \isa{lhs}, but extracts the second
-  argument.
-  
-  \item [\isa{{\isachardoublequote}concl{\isachardoublequote}}] extracts the conclusion \isa{C} from a rule
-  in Horn-clause normal form \isa{{\isachardoublequote}A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C{\isachardoublequote}}.
-  
-  \item [\isa{{\isachardoublequote}prem{\isadigit{1}}{\isachardoublequote}}, \dots, \isa{{\isachardoublequote}prem{\isadigit{9}}{\isachardoublequote}}] extract premise
-  number \isa{{\isachardoublequote}{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isadigit{9}}{\isachardoublequote}}, respectively, from from a rule in
-  Horn-clause normal form \isa{{\isachardoublequote}A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C{\isachardoublequote}}
-
-  \end{descr}
-
-  \medskip
-  The following options are available to tune the output.  Note that most of
-  these coincide with ML flags of the same names (see also \cite{isabelle-ref}).
-
-  \begin{descr}
-
-  \item[\isa{{\isachardoublequote}show{\isacharunderscore}types\ {\isacharequal}\ bool{\isachardoublequote}} and \isa{{\isachardoublequote}show{\isacharunderscore}sorts\ {\isacharequal}\ bool{\isachardoublequote}}]
-  control printing of explicit type and sort constraints.
-
-  \item[\isa{{\isachardoublequote}show{\isacharunderscore}structs\ {\isacharequal}\ bool{\isachardoublequote}}] controls printing of implicit
-  structures.
-
-  \item[\isa{{\isachardoublequote}long{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}}] forces names of types and
-  constants etc.\ to be printed in their fully qualified internal
-  form.
-
-  \item[\isa{{\isachardoublequote}short{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}}] forces names of types and
-  constants etc.\ to be printed unqualified.  Note that internalizing
-  the output again in the current context may well yield a different
-  result.
-
-  \item[\isa{{\isachardoublequote}unique{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}}] determines whether the printed
-  version of qualified names should be made sufficiently long to avoid
-  overlap with names declared further back.  Set to \isa{false} for
-  more concise output.
-
-  \item[\isa{{\isachardoublequote}eta{\isacharunderscore}contract\ {\isacharequal}\ bool{\isachardoublequote}}] prints terms in \isa{{\isasymeta}}-contracted form.
-
-  \item[\isa{{\isachardoublequote}display\ {\isacharequal}\ bool{\isachardoublequote}}] indicates if the text is to be
-  output as multi-line ``display material'', rather than a small piece
-  of text without line breaks (which is the default).
-
-  \item[\isa{{\isachardoublequote}break\ {\isacharequal}\ bool{\isachardoublequote}}] controls line breaks in non-display
-  material.
-
-  \item[\isa{{\isachardoublequote}quotes\ {\isacharequal}\ bool{\isachardoublequote}}] indicates if the output should be
-  enclosed in double quotes.
-
-  \item[\isa{{\isachardoublequote}mode\ {\isacharequal}\ name{\isachardoublequote}}] adds \isa{name} to the print mode to
-  be used for presentation (see also \cite{isabelle-ref}).  Note that
-  the standard setup for {\LaTeX} output is already present by
-  default, including the modes \isa{latex} and \isa{xsymbols}.
-
-  \item[\isa{{\isachardoublequote}margin\ {\isacharequal}\ nat{\isachardoublequote}} and \isa{{\isachardoublequote}indent\ {\isacharequal}\ nat{\isachardoublequote}}] change the
-  margin or indentation for pretty printing of display material.
-
-  \item[\isa{{\isachardoublequote}source\ {\isacharequal}\ bool{\isachardoublequote}}] prints the source text of the
-  antiquotation arguments, rather than the actual value.  Note that
-  this does not affect well-formedness checks of \hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}, \hyperlink{antiquotation.term}{\mbox{\isa{term}}}, etc. (only the \hyperlink{antiquotation.text}{\mbox{\isa{text}}} antiquotation admits arbitrary output).
-
-  \item[\isa{{\isachardoublequote}goals{\isacharunderscore}limit\ {\isacharequal}\ nat{\isachardoublequote}}] determines the maximum number of
-  goals to be printed.
-
-  \item[\isa{{\isachardoublequote}locale\ {\isacharequal}\ name{\isachardoublequote}}] specifies an alternative locale
-  context used for evaluating and printing the subsequent argument.
-
-  \end{descr}
-
-  For boolean flags, ``\isa{{\isachardoublequote}name\ {\isacharequal}\ true{\isachardoublequote}}'' may be abbreviated as
-  ``\isa{name}''.  All of the above flags are disabled by default,
-  unless changed from ML.
-
-  \medskip Note that antiquotations do not only spare the author from
-  tedious typing of logical entities, but also achieve some degree of
-  consistency-checking of informal explanations with formal
-  developments: well-formedness of terms and types with respect to the
-  current theory or proof context is ensured here.%
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Tagged commands \label{sec:tags}%
+\isamarkupsubsubsection{Styled antiquotations%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Each Isabelle/Isar command may be decorated by presentation tags:
+Some antiquotations like \isa{thm{\isacharunderscore}style} and \isa{term{\isacharunderscore}style} admit an extra \emph{style} specification to modify the
+  printed result.  The following standard styles are available:
+
+  \begin{description}
+  
+  \item \isa{lhs} extracts the first argument of any application
+  form with at least two arguments --- typically meta-level or
+  object-level equality, or any other binary relation.
+  
+  \item \isa{rhs} is like \isa{lhs}, but extracts the second
+  argument.
+  
+  \item \isa{{\isachardoublequote}concl{\isachardoublequote}} extracts the conclusion \isa{C} from a rule
+  in Horn-clause normal form \isa{{\isachardoublequote}A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C{\isachardoublequote}}.
+  
+  \item \isa{{\isachardoublequote}prem{\isadigit{1}}{\isachardoublequote}}, \dots, \isa{{\isachardoublequote}prem{\isadigit{9}}{\isachardoublequote}} extract premise number
+  \isa{{\isachardoublequote}{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isadigit{9}}{\isachardoublequote}}, respectively, from from a rule in Horn-clause
+  normal form \isa{{\isachardoublequote}A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C{\isachardoublequote}}
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{General options%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The following options are available to tune the printed output
+  of antiquotations.  Note that many of these coincide with global ML
+  flags of the same names.
+
+  \begin{description}
+
+  \item \isa{{\isachardoublequote}show{\isacharunderscore}types\ {\isacharequal}\ bool{\isachardoublequote}} and \isa{{\isachardoublequote}show{\isacharunderscore}sorts\ {\isacharequal}\ bool{\isachardoublequote}}
+  control printing of explicit type and sort constraints.
+
+  \item \isa{{\isachardoublequote}show{\isacharunderscore}structs\ {\isacharequal}\ bool{\isachardoublequote}} controls printing of implicit
+  structures.
+
+  \item \isa{{\isachardoublequote}long{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}} forces names of types and
+  constants etc.\ to be printed in their fully qualified internal
+  form.
+
+  \item \isa{{\isachardoublequote}short{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}} forces names of types and
+  constants etc.\ to be printed unqualified.  Note that internalizing
+  the output again in the current context may well yield a different
+  result.
+
+  \item \isa{{\isachardoublequote}unique{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}} determines whether the printed
+  version of qualified names should be made sufficiently long to avoid
+  overlap with names declared further back.  Set to \isa{false} for
+  more concise output.
+
+  \item \isa{{\isachardoublequote}eta{\isacharunderscore}contract\ {\isacharequal}\ bool{\isachardoublequote}} prints terms in \isa{{\isasymeta}}-contracted form.
+
+  \item \isa{{\isachardoublequote}display\ {\isacharequal}\ bool{\isachardoublequote}} indicates if the text is to be output
+  as multi-line ``display material'', rather than a small piece of
+  text without line breaks (which is the default).
+
+  In this mode the embedded entities are printed in the same style as
+  the main theory text.
+
+  \item \isa{{\isachardoublequote}break\ {\isacharequal}\ bool{\isachardoublequote}} controls line breaks in non-display
+  material.
+
+  \item \isa{{\isachardoublequote}quotes\ {\isacharequal}\ bool{\isachardoublequote}} indicates if the output should be
+  enclosed in double quotes.
+
+  \item \isa{{\isachardoublequote}mode\ {\isacharequal}\ name{\isachardoublequote}} adds \isa{name} to the print mode to
+  be used for presentation (see also \cite{isabelle-ref}).  Note that
+  the standard setup for {\LaTeX} output is already present by
+  default, including the modes \isa{latex} and \isa{xsymbols}.
+
+  \item \isa{{\isachardoublequote}margin\ {\isacharequal}\ nat{\isachardoublequote}} and \isa{{\isachardoublequote}indent\ {\isacharequal}\ nat{\isachardoublequote}} change the
+  margin or indentation for pretty printing of display material.
+
+  \item \isa{{\isachardoublequote}goals{\isacharunderscore}limit\ {\isacharequal}\ nat{\isachardoublequote}} determines the maximum number of
+  goals to be printed (for goal-based antiquotation).
+
+  \item \isa{{\isachardoublequote}locale\ {\isacharequal}\ name{\isachardoublequote}} specifies an alternative locale
+  context used for evaluating and printing the subsequent argument.
+
+  \item \isa{{\isachardoublequote}source\ {\isacharequal}\ bool{\isachardoublequote}} prints the original source text of the
+  antiquotation arguments, rather than its internal representation.
+  Note that formal checking of \hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}, \hyperlink{antiquotation.term}{\mbox{\isa{term}}}, etc. is still enabled; use the \hyperlink{antiquotation.text}{\mbox{\isa{text}}}
+  antiquotation for unchecked output.
+
+  Regular \isa{{\isachardoublequote}term{\isachardoublequote}} and \isa{{\isachardoublequote}typ{\isachardoublequote}} antiquotations with \isa{{\isachardoublequote}source\ {\isacharequal}\ false{\isachardoublequote}} involve a full round-trip from the original source
+  to an internalized logical entity back to a source form, according
+  to the syntax of the current context.  Thus the printed output is
+  not under direct control of the author, it may even fluctuate a bit
+  as the underlying theory is changed later on.
+
+  In contrast, \isa{{\isachardoublequote}source\ {\isacharequal}\ true{\isachardoublequote}} admits direct printing of the
+  given source text, with the desirable well-formedness check in the
+  background, but without modification of the printed text.
+
+  \end{description}
+
+  For boolean flags, ``\isa{{\isachardoublequote}name\ {\isacharequal}\ true{\isachardoublequote}}'' may be abbreviated as
+  ``\isa{name}''.  All of the above flags are disabled by default,
+  unless changed from ML, say in the \verb|ROOT.ML| of the
+  logic session.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Markup via command tags \label{sec:tags}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Each Isabelle/Isar command may be decorated by additional
+  presentation tags, to indicate some modification in the way it is
+  printed in the document.
 
   \indexouternonterm{tags}
   \begin{rail}
@@ -387,32 +426,41 @@ Each Isabelle/Isar command may be decorated by presentation tags:
     tag: '\%' (ident | string)
   \end{rail}
 
-  The tags \isa{{\isachardoublequote}theory{\isachardoublequote}}, \isa{{\isachardoublequote}proof{\isachardoublequote}}, \isa{{\isachardoublequote}ML{\isachardoublequote}} are already
-  pre-declared for certain classes of commands:
+  Some tags are pre-declared for certain classes of commands, serving
+  as default markup if no tags are given in the text:
 
- \medskip
-
+  \medskip
   \begin{tabular}{ll}
     \isa{{\isachardoublequote}theory{\isachardoublequote}} & theory begin/end \\
     \isa{{\isachardoublequote}proof{\isachardoublequote}} & all proof commands \\
     \isa{{\isachardoublequote}ML{\isachardoublequote}} & all commands involving ML code \\
   \end{tabular}
 
-  \medskip The Isabelle document preparation system (see also
-  \cite{isabelle-sys}) allows tagged command regions to be presented
+  \medskip The Isabelle document preparation system
+  \cite{isabelle-sys} allows tagged command regions to be presented
   specifically, e.g.\ to fold proof texts, or drop parts of the text
   completely.
 
-  For example ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharpercent}invisible\ auto{\isachardoublequote}}'' would
-  cause that piece of proof to be treated as \isa{invisible} instead
-  of \isa{{\isachardoublequote}proof{\isachardoublequote}} (the default), which may be either show or hidden
-  depending on the document setup.  In contrast, ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ auto{\isachardoublequote}}'' would force this text to be shown
+  For example ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharpercent}invisible\ auto{\isachardoublequote}}'' causes
+  that piece of proof to be treated as \isa{invisible} instead of
+  \isa{{\isachardoublequote}proof{\isachardoublequote}} (the default), which may be shown or hidden
+  depending on the document setup.  In contrast, ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ auto{\isachardoublequote}}'' forces this text to be shown
   invariably.
 
   Explicit tag specifications within a proof apply to all subsequent
-  commands of the same level of nesting.  For example, ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ {\isasymdots}{\isachardoublequote}}~\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}'' would force the
-  whole sub-proof to be typeset as \isa{visible} (unless some of its
-  parts are tagged differently).%
+  commands of the same level of nesting.  For example, ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}{\isacharpercent}visible\ {\isasymdots}{\isachardoublequote}}~\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}'' forces the whole
+  sub-proof to be typeset as \isa{visible} (unless some of its parts
+  are tagged differently).
+
+  \medskip Command tags merely produce certain markup environments for
+  type-setting.  The meaning of these is determined by {\LaTeX}
+  macros, as defined in \hyperlink{file.~~/lib/texinputs/isabelle.sty}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}lib{\isacharslash}texinputs{\isacharslash}isabelle{\isachardot}sty}}}} or
+  by the document author.  The Isabelle document preparation tools
+  also provide some high-level options to specify the meaning of
+  arbitrary tags to ``keep'', ``drop'', or ``fold'' the corresponding
+  parts of the text.  Logic sessions may also specify ``document
+  versions'', where given tags are interpreted in some particular way.
+  Again see \cite{isabelle-sys} for further details.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -422,8 +470,8 @@ Each Isabelle/Isar command may be decorated by presentation tags:
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{display\_drafts}\hypertarget{command.display-drafts}{\hyperlink{command.display-drafts}{\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
-    \indexdef{}{command}{print\_drafts}\hypertarget{command.print-drafts}{\hyperlink{command.print-drafts}{\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isarkeep{\cdot} \\
+    \indexdef{}{command}{display\_drafts}\hypertarget{command.display-drafts}{\hyperlink{command.display-drafts}{\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}any\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{print\_drafts}\hypertarget{command.print-drafts}{\hyperlink{command.print-drafts}{\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}any\ {\isasymrightarrow}{\isachardoublequote}} \\
   \end{matharray}
 
   \begin{rail}
@@ -431,14 +479,14 @@ Each Isabelle/Isar command may be decorated by presentation tags:
     ;
   \end{rail}
 
-  \begin{descr}
+  \begin{description}
 
-  \item [\hyperlink{command.display-drafts}{\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}}~\isa{paths} and \hyperlink{command.print-drafts}{\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}}~\isa{paths}] perform simple output of a given list
+  \item \hyperlink{command.display-drafts}{\mbox{\isa{\isacommand{display{\isacharunderscore}drafts}}}}~\isa{paths} and \hyperlink{command.print-drafts}{\mbox{\isa{\isacommand{print{\isacharunderscore}drafts}}}}~\isa{paths} perform simple output of a given list
   of raw source files.  Only those symbols that do not require
   additional {\LaTeX} packages are displayed properly, everything else
   is left verbatim.
 
-  \end{descr}%
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
