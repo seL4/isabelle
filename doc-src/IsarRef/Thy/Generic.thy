@@ -100,11 +100,11 @@ text {*
 
   \item [@{method succeed}] yields a single (unchanged) result; it is
   the identity of the ``@{text ","}'' method combinator (cf.\
-  \secref{sec:syn-meth}).
+  \secref{sec:proof-meth}).
 
   \item [@{method fail}] yields an empty result sequence; it is the
   identity of the ``@{text "|"}'' method combinator (cf.\
-  \secref{sec:syn-meth}).
+  \secref{sec:proof-meth}).
 
   \end{descr}
 

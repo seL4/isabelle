@@ -42,7 +42,9 @@ text {*
 *}
 
 
-section {* Context elements \label{sec:proof-context} *}
+section {* Statements *}
+
+subsection {* Context elements \label{sec:proof-context} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -127,7 +129,77 @@ text {*
 *}
 
 
-section {* Facts and forward chaining *}
+subsection {* Term abbreviations \label{sec:term-abbrev} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "let"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{keyword_def "is"} & : & syntax \\
+  \end{matharray}
+
+  Abbreviations may be either bound by explicit @{command
+  "let"}~@{text "p \<equiv> t"} statements, or by annotating assumptions or
+  goal statements with a list of patterns ``@{text "(\<IS> p\<^sub>1 \<dots>
+  p\<^sub>n)"}''.  In both cases, higher-order matching is invoked to
+  bind extra-logical term variables, which may be either named
+  schematic variables of the form @{text ?x}, or nameless dummies
+  ``@{variable _}'' (underscore). Note that in the @{command "let"}
+  form the patterns occur on the left-hand side, while the @{keyword
+  "is"} patterns are in postfix position.
+
+  Polymorphism of term bindings is handled in Hindley-Milner style,
+  similar to ML.  Type variables referring to local assumptions or
+  open goal statements are \emph{fixed}, while those of finished
+  results or bound by @{command "let"} may occur in \emph{arbitrary}
+  instances later.  Even though actual polymorphism should be rarely
+  used in practice, this mechanism is essential to achieve proper
+  incremental type-inference, as the user proceeds to build up the
+  Isar proof text from left to right.
+
+  \medskip Term abbreviations are quite different from local
+  definitions as introduced via @{command "def"} (see
+  \secref{sec:proof-context}).  The latter are visible within the
+  logic as actual equations, while abbreviations disappear during the
+  input process just after type checking.  Also note that @{command
+  "def"} does not support polymorphism.
+
+  \begin{rail}
+    'let' ((term + 'and') '=' term + 'and')
+    ;  
+  \end{rail}
+
+  The syntax of @{keyword "is"} patterns follows \railnonterm{termpat}
+  or \railnonterm{proppat} (see \secref{sec:term-decls}).
+
+  \begin{descr}
+
+  \item [@{command "let"}~@{text "p\<^sub>1 = t\<^sub>1 \<AND> \<dots>
+  p\<^sub>n = t\<^sub>n"}] binds any text variables in patterns @{text
+  "p\<^sub>1, \<dots>, p\<^sub>n"} by simultaneous higher-order matching
+  against terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"}.
+
+  \item [@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}] resembles @{command
+  "let"}, but matches @{text "p\<^sub>1, \<dots>, p\<^sub>n"} against the
+  preceding statement.  Also note that @{keyword "is"} is not a
+  separate command, but part of others (such as @{command "assume"},
+  @{command "have"} etc.).
+
+  \end{descr}
+
+  Some \emph{implicit} term abbreviations\index{term abbreviations}
+  for goals and facts are available as well.  For any open goal,
+  @{variable_ref thesis} refers to its object-level statement,
+  abstracted over any meta-level parameters (if present).  Likewise,
+  @{variable_ref this} is bound for fact statements resulting from
+  assumptions or finished goals.  In case @{variable this} refers to
+  an object-logic statement that is an application @{text "f t"}, then
+  @{text t} is bound to the special text variable ``@{variable "\<dots>"}''
+  (three dots).  The canonical application of this convenience are
+  calculational proofs (see \secref{sec:calculation}).
+*}
+
+
+subsection {* Facts and forward chaining *}
 
 text {*
   \begin{matharray}{rcl}
@@ -215,7 +287,7 @@ text {*
 *}
 
 
-section {* Goal statements \label{sec:goals} *}
+subsection {* Goals \label{sec:goals} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -366,7 +438,55 @@ text {*
 *}
 
 
-section {* Initial and terminal proof steps \label{sec:proof-steps} *}
+section {* Refinement steps *}
+
+subsection {* Proof method expressions \label{sec:proof-meth} *}
+
+text {*
+  Proof methods are either basic ones, or expressions composed of
+  methods via ``@{verbatim ","}'' (sequential composition),
+  ``@{verbatim "|"}'' (alternative choices), ``@{verbatim "?"}'' 
+  (try), ``@{verbatim "+"}'' (repeat at least once), ``@{verbatim
+  "["}@{text n}@{verbatim "]"}'' (restriction to first @{text n}
+  sub-goals, with default @{text "n = 1"}).  In practice, proof
+  methods are usually just a comma separated list of
+  \railqtok{nameref}~\railnonterm{args} specifications.  Note that
+  parentheses may be dropped for single method specifications (with no
+  arguments).
+
+  \indexouternonterm{method}
+  \begin{rail}
+    method: (nameref | '(' methods ')') (() | '?' | '+' | '[' nat? ']')
+    ;
+    methods: (nameref args | method) + (',' | '|')
+    ;
+  \end{rail}
+
+  Proper Isar proof methods do \emph{not} admit arbitrary goal
+  addressing, but refer either to the first sub-goal or all sub-goals
+  uniformly.  The goal restriction operator ``@{text "[n]"}''
+  evaluates a method expression within a sandbox consisting of the
+  first @{text n} sub-goals (which need to exist).  For example, the
+  method ``@{text "simp_all[3]"}'' simplifies the first three
+  sub-goals, while ``@{text "(rule foo, simp_all)[]"}'' simplifies all
+  new goals that emerge from applying rule @{text "foo"} to the
+  originally first one.
+
+  Improper methods, notably tactic emulations, offer a separate
+  low-level goal addressing scheme as explicit argument to the
+  individual tactic being involved.  Here ``@{text "[!]"}'' refers to
+  all goals, and ``@{text "[n-]"}'' to all goals starting from @{text
+  "n"}.
+
+  \indexouternonterm{goalspec}
+  \begin{rail}
+    goalspec: '[' (nat '-' nat | nat '-' | nat | '!' ) ']'
+    ;
+  \end{rail}
+*}
+
+
+subsection {* Initial and terminal proof steps \label{sec:proof-steps} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -479,7 +599,7 @@ text {*
 *}
 
 
-section {* Fundamental methods and attributes \label{sec:pure-meth-att} *}
+subsection {* Fundamental methods and attributes \label{sec:pure-meth-att} *}
 
 text {*
   The following proof methods and attributes refer to basic logical
@@ -626,119 +746,7 @@ text {*
 *}
 
 
-section {* Term abbreviations \label{sec:term-abbrev} *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "let"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{keyword_def "is"} & : & syntax \\
-  \end{matharray}
-
-  Abbreviations may be either bound by explicit @{command
-  "let"}~@{text "p \<equiv> t"} statements, or by annotating assumptions or
-  goal statements with a list of patterns ``@{text "(\<IS> p\<^sub>1 \<dots>
-  p\<^sub>n)"}''.  In both cases, higher-order matching is invoked to
-  bind extra-logical term variables, which may be either named
-  schematic variables of the form @{text ?x}, or nameless dummies
-  ``@{variable _}'' (underscore). Note that in the @{command "let"}
-  form the patterns occur on the left-hand side, while the @{keyword
-  "is"} patterns are in postfix position.
-
-  Polymorphism of term bindings is handled in Hindley-Milner style,
-  similar to ML.  Type variables referring to local assumptions or
-  open goal statements are \emph{fixed}, while those of finished
-  results or bound by @{command "let"} may occur in \emph{arbitrary}
-  instances later.  Even though actual polymorphism should be rarely
-  used in practice, this mechanism is essential to achieve proper
-  incremental type-inference, as the user proceeds to build up the
-  Isar proof text from left to right.
-
-  \medskip Term abbreviations are quite different from local
-  definitions as introduced via @{command "def"} (see
-  \secref{sec:proof-context}).  The latter are visible within the
-  logic as actual equations, while abbreviations disappear during the
-  input process just after type checking.  Also note that @{command
-  "def"} does not support polymorphism.
-
-  \begin{rail}
-    'let' ((term + 'and') '=' term + 'and')
-    ;  
-  \end{rail}
-
-  The syntax of @{keyword "is"} patterns follows \railnonterm{termpat}
-  or \railnonterm{proppat} (see \secref{sec:term-decls}).
-
-  \begin{descr}
-
-  \item [@{command "let"}~@{text "p\<^sub>1 = t\<^sub>1 \<AND> \<dots>
-  p\<^sub>n = t\<^sub>n"}] binds any text variables in patterns @{text
-  "p\<^sub>1, \<dots>, p\<^sub>n"} by simultaneous higher-order matching
-  against terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"}.
-
-  \item [@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}] resembles @{command
-  "let"}, but matches @{text "p\<^sub>1, \<dots>, p\<^sub>n"} against the
-  preceding statement.  Also note that @{keyword "is"} is not a
-  separate command, but part of others (such as @{command "assume"},
-  @{command "have"} etc.).
-
-  \end{descr}
-
-  Some \emph{implicit} term abbreviations\index{term abbreviations}
-  for goals and facts are available as well.  For any open goal,
-  @{variable_ref thesis} refers to its object-level statement,
-  abstracted over any meta-level parameters (if present).  Likewise,
-  @{variable_ref this} is bound for fact statements resulting from
-  assumptions or finished goals.  In case @{variable this} refers to
-  an object-logic statement that is an application @{text "f t"}, then
-  @{text t} is bound to the special text variable ``@{variable "\<dots>"}''
-  (three dots).  The canonical application of this convenience are
-  calculational proofs (see \secref{sec:calculation}).
-*}
-
-
-section {* Block structure *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "next"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "{"} & : & \isartrans{proof(state)}{proof(state)} \\
-    @{command_def "}"} & : & \isartrans{proof(state)}{proof(state)} \\
-  \end{matharray}
-
-  While Isar is inherently block-structured, opening and closing
-  blocks is mostly handled rather casually, with little explicit
-  user-intervention.  Any local goal statement automatically opens
-  \emph{two} internal blocks, which are closed again when concluding
-  the sub-proof (by @{command "qed"} etc.).  Sections of different
-  context within a sub-proof may be switched via @{command "next"},
-  which is just a single block-close followed by block-open again.
-  The effect of @{command "next"} is to reset the local proof context;
-  there is no goal focus involved here!
-
-  For slightly more advanced applications, there are explicit block
-  parentheses as well.  These typically achieve a stronger forward
-  style of reasoning.
-
-  \begin{descr}
-
-  \item [@{command "next"}] switches to a fresh block within a
-  sub-proof, resetting the local context to the initial one.
-
-  \item [@{command "{"} and @{command "}"}] explicitly open and close
-  blocks.  Any current facts pass through ``@{command "{"}''
-  unchanged, while ``@{command "}"}'' causes any result to be
-  \emph{exported} into the enclosing context.  Thus fixed variables
-  are generalized, assumptions discharged, and local definitions
-  unfolded (cf.\ \secref{sec:proof-context}).  There is no difference
-  of @{command "assume"} and @{command "presume"} in this mode of
-  forward reasoning --- in contrast to plain backward reasoning with
-  the result exported at @{command "show"} time.
-
-  \end{descr}
-*}
-
-
-section {* Emulating tactic scripts \label{sec:tactic-commands} *}
+subsection {* Emulating tactic scripts \label{sec:tactic-commands} *}
 
 text {*
   The Isar provides separate commands to accommodate tactic-style
@@ -811,6 +819,48 @@ text {*
   such as @{command "apply"}.  A few additional emulations of actual
   tactics are provided as well; these would be never used in actual
   structured proofs, of course.
+*}
+
+
+section {* Block structure *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "next"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "{"} & : & \isartrans{proof(state)}{proof(state)} \\
+    @{command_def "}"} & : & \isartrans{proof(state)}{proof(state)} \\
+  \end{matharray}
+
+  While Isar is inherently block-structured, opening and closing
+  blocks is mostly handled rather casually, with little explicit
+  user-intervention.  Any local goal statement automatically opens
+  \emph{two} internal blocks, which are closed again when concluding
+  the sub-proof (by @{command "qed"} etc.).  Sections of different
+  context within a sub-proof may be switched via @{command "next"},
+  which is just a single block-close followed by block-open again.
+  The effect of @{command "next"} is to reset the local proof context;
+  there is no goal focus involved here!
+
+  For slightly more advanced applications, there are explicit block
+  parentheses as well.  These typically achieve a stronger forward
+  style of reasoning.
+
+  \begin{descr}
+
+  \item [@{command "next"}] switches to a fresh block within a
+  sub-proof, resetting the local context to the initial one.
+
+  \item [@{command "{"} and @{command "}"}] explicitly open and close
+  blocks.  Any current facts pass through ``@{command "{"}''
+  unchanged, while ``@{command "}"}'' causes any result to be
+  \emph{exported} into the enclosing context.  Thus fixed variables
+  are generalized, assumptions discharged, and local definitions
+  unfolded (cf.\ \secref{sec:proof-context}).  There is no difference
+  of @{command "assume"} and @{command "presume"} in this mode of
+  forward reasoning --- in contrast to plain backward reasoning with
+  the result exported at @{command "show"} time.
+
+  \end{descr}
 *}
 
 
@@ -1035,6 +1085,7 @@ text {*
 
   \end{descr}
 *}
+
 
 section {* Proof by cases and induction \label{sec:cases-induct} *}
 

@@ -262,6 +262,51 @@ text {*
 *}
 
 
+subsection {* Term patterns and declarations \label{sec:term-decls} *}
+
+text {*
+  Wherever explicit propositions (or term fragments) occur in a proof
+  text, casual binding of schematic term variables may be given
+  specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots>
+  p\<^sub>n)"}''.  This works both for \railqtok{term} and \railqtok{prop}.
+
+  \indexouternonterm{termpat}\indexouternonterm{proppat}
+  \begin{rail}
+    termpat: '(' ('is' term +) ')'
+    ;
+    proppat: '(' ('is' prop +) ')'
+    ;
+  \end{rail}
+
+  \medskip Declarations of local variables @{text "x :: \<tau>"} and
+  logical propositions @{text "a : \<phi>"} represent different views on
+  the same principle of introducing a local scope.  In practice, one
+  may usually omit the typing of \railnonterm{vars} (due to
+  type-inference), and the naming of propositions (due to implicit
+  references of current facts).  In any case, Isar proof elements
+  usually admit to introduce multiple such items simultaneously.
+
+  \indexouternonterm{vars}\indexouternonterm{props}
+  \begin{rail}
+    vars: (name+) ('::' type)?
+    ;
+    props: thmdecl? (prop proppat? +)
+    ;
+  \end{rail}
+
+  The treatment of multiple declarations corresponds to the
+  complementary focus of \railnonterm{vars} versus
+  \railnonterm{props}.  In ``@{text "x\<^sub>1 \<dots> x\<^sub>n :: \<tau>"}''
+  the typing refers to all variables, while in @{text "a: \<phi>\<^sub>1 \<dots>
+  \<phi>\<^sub>n"} the naming refers to all propositions collectively.
+  Isar language elements that refer to \railnonterm{vars} or
+  \railnonterm{props} typically admit separate typings or namings via
+  another level of iteration, with explicit @{keyword_ref "and"}
+  separators; e.g.\ see @{command "fix"} and @{command "assume"} in
+  \secref{sec:proof-context}.
+*}
+
+
 subsection {* Mixfix annotations *}
 
 text {*
@@ -314,7 +359,7 @@ text {*
   pattern.  Printing a nested application @{text "c t\<^sub>1 \<dots> t\<^sub>m"} for
   @{text "m > n"} works by attaching concrete notation only to the
   innermost part, essentially by printing @{text "(c t\<^sub>1 \<dots> t\<^sub>n) \<dots> t\<^sub>m"}
-  instead.  If a term has fewer argument than specified in the mixfix
+  instead.  If a term has fewer arguments than specified in the mixfix
   template, the concrete syntax is ignored.
 
   \medskip A mixfix template may also contain additional directives
@@ -366,69 +411,22 @@ text {*
   For example, the template @{text "(_ +/ _)"} specifies an infix
   operator.  There are two argument positions; the delimiter @{text
   "+"} is preceded by a space and followed by a space or line break;
-  the entire phrase is a pretty printing block.  
+  the entire phrase is a pretty printing block.
 
   The general idea of pretty printing with blocks and breaks is also
   described in \cite{paulson-ml2}.
 *}
 
 
-subsection {* Proof methods \label{sec:syn-meth} *}
-
-text {*
-  Proof methods are either basic ones, or expressions composed of
-  methods via ``@{verbatim ","}'' (sequential composition),
-  ``@{verbatim "|"}'' (alternative choices), ``@{verbatim "?"}'' 
-  (try), ``@{verbatim "+"}'' (repeat at least once), ``@{verbatim
-  "["}@{text n}@{verbatim "]"}'' (restriction to first @{text n}
-  sub-goals, with default @{text "n = 1"}).  In practice, proof
-  methods are usually just a comma separated list of
-  \railqtok{nameref}~\railnonterm{args} specifications.  Note that
-  parentheses may be dropped for single method specifications (with no
-  arguments).
-
-  \indexouternonterm{method}
-  \begin{rail}
-    method: (nameref | '(' methods ')') (() | '?' | '+' | '[' nat? ']')
-    ;
-    methods: (nameref args | method) + (',' | '|')
-    ;
-  \end{rail}
-
-  Proper Isar proof methods do \emph{not} admit arbitrary goal
-  addressing, but refer either to the first sub-goal or all sub-goals
-  uniformly.  The goal restriction operator ``@{text "[n]"}''
-  evaluates a method expression within a sandbox consisting of the
-  first @{text n} sub-goals (which need to exist).  For example, the
-  method ``@{text "simp_all[3]"}'' simplifies the first three
-  sub-goals, while ``@{text "(rule foo, simp_all)[]"}'' simplifies all
-  new goals that emerge from applying rule @{text "foo"} to the
-  originally first one.
-
-  Improper methods, notably tactic emulations, offer a separate
-  low-level goal addressing scheme as explicit argument to the
-  individual tactic being involved.  Here ``@{text "[!]"}'' refers to
-  all goals, and ``@{text "[n-]"}'' to all goals starting from @{text
-  "n"}.
-
-  \indexouternonterm{goalspec}
-  \begin{rail}
-    goalspec: '[' (nat '-' nat | nat '-' | nat | '!' ) ']'
-    ;
-  \end{rail}
-*}
-
-
 subsection {* Attributes and theorems \label{sec:syn-att} *}
 
-text {*
-  Attributes (and proof methods, see \secref{sec:syn-meth}) have their
-  own ``semi-inner'' syntax, in the sense that input conforming to
-  \railnonterm{args} below is parsed by the attribute a second time.
-  The attribute argument specifications may be any sequence of atomic
-  entities (identifiers, strings etc.), or properly bracketed argument
-  lists.  Below \railqtok{atom} refers to any atomic entity, including
-  any \railtok{keyword} conforming to \railtok{symident}.
+text {* Attributes have their own ``semi-inner'' syntax, in the sense
+  that input conforming to \railnonterm{args} below is parsed by the
+  attribute a second time.  The attribute argument specifications may
+  be any sequence of atomic entities (identifiers, strings etc.), or
+  properly bracketed argument lists.  Below \railqtok{atom} refers to
+  any atomic entity, including any \railtok{keyword} conforming to
+  \railtok{symident}.
 
   \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
   \begin{rail}
@@ -459,7 +457,7 @@ text {*
 
   \item literal fact propositions using @{syntax_ref altstring} syntax
   @{verbatim "`"}@{text "\<phi>"}@{verbatim "`"} (see also method
-  @{method_ref fact} in \secref{sec:pure-meth-att}).
+  @{method_ref fact}).
 
   \end{enumerate}
 
@@ -496,51 +494,6 @@ text {*
     selection: '(' ((nat | nat '-' nat?) + ',') ')'
     ;
   \end{rail}
-*}
-
-
-subsection {* Term patterns and declarations \label{sec:term-decls} *}
-
-text {*
-  Wherever explicit propositions (or term fragments) occur in a proof
-  text, casual binding of schematic term variables may be given
-  specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots>
-  p\<^sub>n)"}''.  This works both for \railqtok{term} and \railqtok{prop}.
-
-  \indexouternonterm{termpat}\indexouternonterm{proppat}
-  \begin{rail}
-    termpat: '(' ('is' term +) ')'
-    ;
-    proppat: '(' ('is' prop +) ')'
-    ;
-  \end{rail}
-
-  \medskip Declarations of local variables @{text "x :: \<tau>"} and
-  logical propositions @{text "a : \<phi>"} represent different views on
-  the same principle of introducing a local scope.  In practice, one
-  may usually omit the typing of \railnonterm{vars} (due to
-  type-inference), and the naming of propositions (due to implicit
-  references of current facts).  In any case, Isar proof elements
-  usually admit to introduce multiple such items simultaneously.
-
-  \indexouternonterm{vars}\indexouternonterm{props}
-  \begin{rail}
-    vars: (name+) ('::' type)?
-    ;
-    props: thmdecl? (prop proppat? +)
-    ;
-  \end{rail}
-
-  The treatment of multiple declarations corresponds to the
-  complementary focus of \railnonterm{vars} versus
-  \railnonterm{props}.  In ``@{text "x\<^sub>1 \<dots> x\<^sub>n :: \<tau>"}''
-  the typing refers to all variables, while in @{text "a: \<phi>\<^sub>1 \<dots>
-  \<phi>\<^sub>n"} the naming refers to all propositions collectively.
-  Isar language elements that refer to \railnonterm{vars} or
-  \railnonterm{props} typically admit separate typings or namings via
-  another level of iteration, with explicit @{keyword_ref "and"}
-  separators; e.g.\ see @{command "fix"} and @{command "assume"} in
-  \secref{sec:proof-context}.
 *}
 
 end
