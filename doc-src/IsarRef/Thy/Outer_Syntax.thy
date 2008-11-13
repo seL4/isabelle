@@ -127,8 +127,9 @@ text {*
   "\<dots>"}~@{verbatim "*)"} and may be nested, although user-interface
   tools might prevent this.  Note that this form indicates source
   comments only, which are stripped after lexical analysis of the
-  input.  The Isar document syntax also provides formal comments that
-  are considered as part of the text (see \secref{sec:comments}).
+  input.  The Isar syntax also provides proper \emph{document
+  comments} that are considered as part of the text (see
+  \secref{sec:comments}).
 *}
 
 
