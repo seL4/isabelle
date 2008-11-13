@@ -68,40 +68,65 @@ text {*
 
 section {* Lexical matters \label{sec:outer-lex} *}
 
-text {* The Isabelle/Isar outer syntax provides token classes as
-  presented below; most of these coincide with the inner lexical
-  syntax as defined in \secref{sec:inner-lex}.
+text {* The outer lexical syntax consists of three main categories of
+  tokens:
 
-  \begin{matharray}{rcl}
-    @{syntax_def ident} & = & letter\,quasiletter^* \\
-    @{syntax_def longident} & = & ident (\verb,.,ident)^+ \\
-    @{syntax_def symident} & = & sym^+ ~|~ \verb,\,\verb,<,ident\verb,>, \\
-    @{syntax_def nat} & = & digit^+ \\
-    @{syntax_def var} & = & ident ~|~ \verb,?,ident ~|~ \verb,?,ident\verb,.,nat \\
-    @{syntax_def typefree} & = & \verb,',ident \\
-    @{syntax_def typevar} & = & typefree ~|~ \verb,?,typefree ~|~ \verb,?,typefree\verb,.,nat \\
-    @{syntax_def string} & = & \verb,", ~\dots~ \verb,", \\
-    @{syntax_def altstring} & = & \backquote ~\dots~ \backquote \\
-    @{syntax_def verbatim} & = & \verb,{*, ~\dots~ \verb,*,\verb,}, \\[1ex]
+  \begin{enumerate}
 
-    letter & = & latin ~|~ \verb,\,\verb,<,latin\verb,>, ~|~ \verb,\,\verb,<,latin\,latin\verb,>, ~|~ greek ~|~ \\
-           &   & \verb,\<^isub>, ~|~ \verb,\<^isup>, \\
-    quasiletter & = & letter ~|~ digit ~|~ \verb,_, ~|~ \verb,', \\
-    latin & = & \verb,a, ~|~ \dots ~|~ \verb,z, ~|~ \verb,A, ~|~ \dots ~|~ \verb,Z, \\
-    digit & = & \verb,0, ~|~ \dots ~|~ \verb,9, \\
-    sym & = & \verb,!, ~|~ \verb,#, ~|~ \verb,$, ~|~ \verb,%, ~|~ \verb,&, ~|~
-     \verb,*, ~|~ \verb,+, ~|~ \verb,-, ~|~ \verb,/, ~|~ \\
-    & & \verb,<, ~|~ \verb,=, ~|~ \verb,>, ~|~ \verb,?, ~|~ \texttt{\at} ~|~
-    \verb,^, ~|~ \verb,_, ~|~ \verb,|, ~|~ \verb,~, \\
-    greek & = & \verb,\<alpha>, ~|~ \verb,\<beta>, ~|~ \verb,\<gamma>, ~|~ \verb,\<delta>, ~| \\
-          &   & \verb,\<epsilon>, ~|~ \verb,\<zeta>, ~|~ \verb,\<eta>, ~|~ \verb,\<theta>, ~| \\
-          &   & \verb,\<iota>, ~|~ \verb,\<kappa>, ~|~ \verb,\<mu>, ~|~ \verb,\<nu>, ~| \\
-          &   & \verb,\<xi>, ~|~ \verb,\<pi>, ~|~ \verb,\<rho>, ~|~ \verb,\<sigma>, ~|~ \verb,\<tau>, ~| \\
-          &   & \verb,\<upsilon>, ~|~ \verb,\<phi>, ~|~ \verb,\<chi>, ~|~ \verb,\<psi>, ~| \\
-          &   & \verb,\<omega>, ~|~ \verb,\<Gamma>, ~|~ \verb,\<Delta>, ~|~ \verb,\<Theta>, ~| \\
-          &   & \verb,\<Lambda>, ~|~ \verb,\<Xi>, ~|~ \verb,\<Pi>, ~|~ \verb,\<Sigma>, ~| \\
-          &   & \verb,\<Upsilon>, ~|~ \verb,\<Phi>, ~|~ \verb,\<Psi>, ~|~ \verb,\<Omega>, \\
-  \end{matharray}
+  \item \emph{major keywords} --- the command names that are available
+  in the present logic session;
+
+  \item \emph{minor keywords} --- additional literal tokens required
+  by the syntax of commands;
+
+  \item \emph{named tokens} --- various categories of identifiers,
+  string tokens etc.
+
+  \end{enumerate}
+
+  Minor keywords and major keywords are guaranteed to be disjoint.
+  This helps user-interfaces to determine the overall structure of a
+  theory text, without knowing the full details of command syntax.
+
+  Keywords override named tokens.  For example, the presence of a
+  command called @{verbatim term} inhibits the identifier @{verbatim
+  term}, but the string @{verbatim "\"term\""} can be used instead.
+  By convention, the outer syntax always allows quoted strings in
+  addition to identifiers, wherever a named entity is expected.
+
+  \medskip The categories for named tokens are defined once and for
+  all as follows.
+
+  \smallskip
+  \begin{supertabular}{rcl}
+    @{syntax_def ident} & = & @{text "letter quasiletter\<^sup>*"} \\
+    @{syntax_def longident} & = & @{text "ident("}@{verbatim "."}@{text "ident)\<^sup>+"} \\
+    @{syntax_def symident} & = & @{text "sym\<^sup>+  |  "}@{verbatim "\\"}@{verbatim "<"}@{text ident}@{verbatim ">"} \\
+    @{syntax_def nat} & = & @{text "digit\<^sup>+"} \\
+    @{syntax_def var} & = & @{verbatim "?"}@{text "ident  |  "}@{verbatim "?"}@{text ident}@{verbatim "."}@{text nat} \\
+    @{syntax_def typefree} & = & @{verbatim "'"}@{text ident} \\
+    @{syntax_def typevar} & = & @{verbatim "?"}@{text "typefree  |  "}@{verbatim "?"}@{text typefree}@{verbatim "."}@{text nat} \\
+    @{syntax_def string} & = & @{verbatim "\""} @{text "\<dots>"} @{verbatim "\""} \\
+    @{syntax_def altstring} & = & @{verbatim "`"} @{text "\<dots>"} @{verbatim "`"} \\
+    @{syntax_def verbatim} & = & @{verbatim "{*"} @{text "\<dots>"} @{verbatim "*"}@{verbatim "}"} \\[1ex]
+
+    @{text letter} & = & @{text "latin  |  "}@{verbatim "\\"}@{verbatim "<"}@{text latin}@{verbatim ">"}@{text "  |  "}@{verbatim "\\"}@{verbatim "<"}@{text "latin latin"}@{verbatim ">"}@{text "  |  greek  |"} \\
+          &   & @{verbatim "\<^isub>"}@{text "  |  "}@{verbatim "\<^isup>"} \\
+    @{text quasiletter} & = & @{text "letter  |  digit  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "'"} \\
+    @{text latin} & = & @{verbatim a}@{text "  | \<dots> |  "}@{verbatim z}@{text "  |  "}@{verbatim A}@{text "  |  \<dots> |  "}@{verbatim Z} \\
+    @{text digit} & = & @{verbatim "0"}@{text "  |  \<dots> |  "}@{verbatim "9"} \\
+    @{text sym} & = & @{verbatim "!"}@{text "  |  "}@{verbatim "#"}@{text "  |  "}@{verbatim "$"}@{text "  |  "}@{verbatim "%"}@{text "  |  "}@{verbatim "&"}@{text "  |  "}@{verbatim "*"}@{text "  |  "}@{verbatim "+"}@{text "  |  "}@{verbatim "-"}@{text "  |  "}@{verbatim "/"}@{text "  |"} \\
+    & & @{verbatim "<"}@{text "  |  "}@{verbatim "="}@{text "  |  "}@{verbatim ">"}@{text "  |  "}@{verbatim "?"}@{text "  |  "}@{verbatim "@"}@{text "  |  "}@{verbatim "^"}@{text "  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "|"}@{text "  |  "}@{verbatim "~"} \\
+    @{text greek} & = & @{verbatim "\<alpha>"}@{text "  |  "}@{verbatim "\<beta>"}@{text "  |  "}@{verbatim "\<gamma>"}@{text "  |  "}@{verbatim "\<delta>"}@{text "  |"} \\
+          &   & @{verbatim "\<epsilon>"}@{text "  |  "}@{verbatim "\<zeta>"}@{text "  |  "}@{verbatim "\<eta>"}@{text "  |  "}@{verbatim "\<theta>"}@{text "  |"} \\
+          &   & @{verbatim "\<iota>"}@{text "  |  "}@{verbatim "\<kappa>"}@{text "  |  "}@{verbatim "\<mu>"}@{text "  |  "}@{verbatim "\<nu>"}@{text "  |"} \\
+          &   & @{verbatim "\<xi>"}@{text "  |  "}@{verbatim "\<pi>"}@{text "  |  "}@{verbatim "\<rho>"}@{text "  |  "}@{verbatim "\<sigma>"}@{text "  |  "}@{verbatim "\<tau>"}@{text "  |"} \\
+          &   & @{verbatim "\<upsilon>"}@{text "  |  "}@{verbatim "\<phi>"}@{text "  |  "}@{verbatim "\<chi>"}@{text "  |  "}@{verbatim "\<psi>"}@{text "  |"} \\
+          &   & @{verbatim "\<omega>"}@{text "  |  "}@{verbatim "\<Gamma>"}@{text "  |  "}@{verbatim "\<Delta>"}@{text "  |  "}@{verbatim "\<Theta>"}@{text "  |"} \\
+          &   & @{verbatim "\<Lambda>"}@{text "  |  "}@{verbatim "\<Xi>"}@{text "  |  "}@{verbatim "\<Pi>"}@{text "  |  "}@{verbatim "\<Sigma>"}@{text "  |"} \\
+          &   & @{verbatim "\<Upsilon>"}@{text "  |  "}@{verbatim "\<Phi>"}@{text "  |  "}@{verbatim "\<Psi>"}@{text "  |  "}@{verbatim "\<Omega>"} \\
+  \end{supertabular}
+  \medskip
 
   The syntax of @{syntax string} admits any characters, including
   newlines; ``@{verbatim "\""}'' (double-quote) and ``@{verbatim
@@ -123,12 +148,11 @@ text {* The Isabelle/Isar outer syntax provides token classes as
   is given in \cite[appendix~A]{isabelle-sys}.
   
   Source comments take the form @{verbatim "(*"}~@{text
-  "\<dots>"}~@{verbatim "*)"} and may be nested, although user-interface
-  tools might prevent this.  Note that this form indicates source
-  comments only, which are stripped after lexical analysis of the
-  input.  The Isar syntax also provides proper \emph{document
-  comments} that are considered as part of the text (see
-  \secref{sec:comments}).
+  "\<dots>"}~@{verbatim "*)"} and may be nested, although the user-interface
+  might prevent this.  Note that this form indicates source comments
+  only, which are stripped after lexical analysis of the input.  The
+  Isar syntax also provides proper \emph{document comments} that are
+  considered as part of the text (see \secref{sec:comments}).
 *}
 
 
