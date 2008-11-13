@@ -69,7 +69,7 @@ text {*
 section {* Lexical matters \label{sec:outer-lex} *}
 
 text {* The outer lexical syntax consists of three main categories of
-  tokens:
+  syntax tokens:
 
   \begin{enumerate}
 
@@ -79,14 +79,16 @@ text {* The outer lexical syntax consists of three main categories of
   \item \emph{minor keywords} --- additional literal tokens required
   by the syntax of commands;
 
-  \item \emph{named tokens} --- various categories of identifiers,
-  string tokens etc.
+  \item \emph{named tokens} --- various categories of identifiers etc.
 
   \end{enumerate}
 
-  Minor keywords and major keywords are guaranteed to be disjoint.
+  Major keywords and minor keywords are guaranteed to be disjoint.
   This helps user-interfaces to determine the overall structure of a
   theory text, without knowing the full details of command syntax.
+  Internally, there is some additional information about the kind of
+  major keywords, which approximates the command type (theory command,
+  proof command etc.).
 
   Keywords override named tokens.  For example, the presence of a
   command called @{verbatim term} inhibits the identifier @{verbatim
@@ -94,10 +96,15 @@ text {* The outer lexical syntax consists of three main categories of
   By convention, the outer syntax always allows quoted strings in
   addition to identifiers, wherever a named entity is expected.
 
+  When tokenizing a given input sequence, the lexer repeatedly takes
+  the longest prefix of the input that forms a valid token.  Spaces,
+  tabs, newlines and formfeeds between tokens serve as explicit
+  separators.
+
   \medskip The categories for named tokens are defined once and for
   all as follows.
 
-  \smallskip
+  \begin{center}
   \begin{supertabular}{rcl}
     @{syntax_def ident} & = & @{text "letter quasiletter\<^sup>*"} \\
     @{syntax_def longident} & = & @{text "ident("}@{verbatim "."}@{text "ident)\<^sup>+"} \\
@@ -126,7 +133,7 @@ text {* The outer lexical syntax consists of three main categories of
           &   & @{verbatim "\<Lambda>"}@{text "  |  "}@{verbatim "\<Xi>"}@{text "  |  "}@{verbatim "\<Pi>"}@{text "  |  "}@{verbatim "\<Sigma>"}@{text "  |"} \\
           &   & @{verbatim "\<Upsilon>"}@{text "  |  "}@{verbatim "\<Phi>"}@{text "  |  "}@{verbatim "\<Psi>"}@{text "  |  "}@{verbatim "\<Omega>"} \\
   \end{supertabular}
-  \medskip
+  \end{center}
 
   The syntax of @{syntax string} admits any characters, including
   newlines; ``@{verbatim "\""}'' (double-quote) and ``@{verbatim
