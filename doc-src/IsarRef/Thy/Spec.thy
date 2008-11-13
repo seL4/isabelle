@@ -808,6 +808,8 @@ text {*
     @{command_def "ML_val"} & : & \isartrans{\cdot}{\cdot} \\
     @{command_def "ML_command"} & : & \isartrans{\cdot}{\cdot} \\
     @{command_def "setup"} & : & \isartrans{theory}{theory} \\
+    @{index_ML bind_thms: "string * thm list -> unit"} \\
+    @{index_ML bind_thm: "string * thm -> unit"} \\
   \end{matharray}
 
   \begin{rail}
@@ -852,6 +854,14 @@ text {*
   of type @{ML_type [source=false] "theory -> theory"}.  This enables
   to initialize any object-logic specific tools and packages written
   in ML, for example.
+
+  \item @{ML bind_thms}~@{text "(name, thms)"} stores a list of
+  theorems produced in ML both in the theory context and the ML
+  toplevel, associating it with the provided name.  Theorems are put
+  into a global ``standard'' format before being stored.
+
+  \item @{ML bind_thm} is similar to @{ML bind_thms} but refers to a
+  singleton theorem.
   
   \end{descr}
 *}
