@@ -1,5 +1,5 @@
 theory Relational 
-imports Array Ref Assert
+imports Array Ref
 begin
 
 section{* Definition of the Relational framework *}
