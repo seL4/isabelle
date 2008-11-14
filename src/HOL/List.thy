@@ -3740,6 +3740,13 @@ where
   | "map_filter f P (x#xs) =
      (if P x then f x # map_filter f P xs else map_filter f P xs)"
 
+primrec
+  length_unique :: "'a list \<Rightarrow> nat"
+where
+  "length_unique [] = 0"
+  | "length_unique (x#xs) =
+      (if x \<in> set xs then length_unique xs else Suc (length_unique xs))"
+
 text {*
   Only use @{text mem} for generating executable code.  Otherwise use
   @{prop "x : set xs"} instead --- it is much easier to reason about.
@@ -3826,6 +3833,12 @@ by (induct xs) (simp_all split: option.split)
 lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
 by (induct xs) auto
+
+lemma lenght_remdups_length_unique [code inline]:
+  "length (remdups xs) = length_unique xs"
+  by (induct xs) simp_all
+
+hide (open) const length_unique
 
 
 text {* Code for bounded quantification and summation over nats. *}
