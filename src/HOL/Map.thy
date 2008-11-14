@@ -509,6 +509,15 @@ lemma finite_map_freshness:
    \<exists>x. f x = None"
 by(bestsimp dest:ex_new_if_finite)
 
+lemma dom_minus:
+  "f x = None \<Longrightarrow> dom f - insert x A = dom f - A"
+  unfolding dom_def by simp
+
+lemma insert_dom:
+  "f x = Some y \<Longrightarrow> insert x (dom f) = dom f"
+  unfolding dom_def by auto
+
+
 subsection {* @{term [source] ran} *}
 
 lemma ranI: "m a = Some b ==> b : ran m"
