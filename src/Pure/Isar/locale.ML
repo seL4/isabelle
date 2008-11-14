@@ -91,6 +91,9 @@ sig
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Storing results *)
+  val local_note_prefix: string ->
+    (Name.binding * attribute list) * (thm list * attribute list) list ->
+    Proof.context -> (string * thm list) * Proof.context
   val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     Proof.context -> Proof.context
   val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
