@@ -638,7 +638,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
     (* add definiton of recursive predicates to theory *)
 
     val rec_name =
-      if Name.name_of alt_name = "" then
+      if Name.is_nothing alt_name then
         Name.binding (space_implode "_" (map (Name.name_of o fst) cnames_syn))
       else alt_name;
 

@@ -499,7 +499,7 @@ fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind
 
     (* convert theorems to set notation *)
     val rec_name =
-      if Name.name_of alt_name = "" then
+      if Name.is_nothing alt_name then
         Name.binding (space_implode "_" (map (Name.name_of o fst) cnames_syn))
       else alt_name;
     val cnames = map (Sign.full_name (ProofContext.theory_of ctxt3) o Name.name_of o #1) cnames_syn;  (* FIXME *)

@@ -345,7 +345,7 @@ fun gen_theorem prep_att prep_stmt
         lthy
         |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
-          if Name.name_of name = "" andalso null atts then
+          if Name.is_nothing name andalso null atts then
             (ProofDisplay.print_results true lthy' ((kind, ""), res); lthy')
           else
             let
