@@ -54,6 +54,7 @@ use "obtain.ML";
 use "local_theory.ML";
 use "overloading.ML";
 use "locale.ML";
+use "new_locale.ML";
 use "expression.ML";
 use "class.ML";
 use "theory_target.ML";
