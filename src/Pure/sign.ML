@@ -15,6 +15,8 @@ sig
     consts: Consts.T}
   val naming_of: theory -> NameSpace.naming
   val base_name: string -> bstring
+  val name_decl: (string * 'a -> theory -> 'b * theory)
+    -> Name.binding * 'a -> theory -> (string * 'b) * theory
   val full_name: theory -> bstring -> string
   val full_name_path: theory -> string -> bstring -> string
   val declare_name: theory -> string -> NameSpace.T -> NameSpace.T
@@ -187,6 +189,20 @@ fun map_consts f = map_sign (fn (naming, syn, tsig, consts) => (naming, syn, tsi
 
 val naming_of = #naming o rep_sg;
 val base_name = NameSpace.base;
+
+fun name_decl decl (binding, x) thy =
+  let
+    val naming = naming_of thy;
+    val (naming', name) = Name.namify naming binding;
+  in
+    thy
+    |> map_naming (K naming')
+    |> decl (Name.name_of binding, x)
+    |>> pair name
+    ||> map_naming (K naming)
+  end;
+
+val namify = Name.namify o naming_of;
 val full_name = NameSpace.full o naming_of;
 fun full_name_path thy elems = NameSpace.full (NameSpace.add_path elems (naming_of thy));
 val declare_name = NameSpace.declare o naming_of;

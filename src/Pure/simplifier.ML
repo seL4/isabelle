@@ -194,13 +194,11 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
   in
     lthy |> LocalTheory.declaration (fn phi =>
       let
-        val binding = Morphism.name phi (Name.binding name);
-        val name' = NameSpace.implode
-          (map fst (Name.prefix_of binding) @ [Name.name_of binding]);
+        val (naming', name) = Name.namify naming (Morphism.name phi (Name.binding name));
         val simproc' = morph_simproc phi simproc;
       in
         Simprocs.map (fn simprocs =>
-            NameSpace.extend_table naming [(name', simproc')] simprocs
+            NameSpace.extend_table naming' [(name, simproc')] simprocs
               handle Symtab.DUP dup => err_dup_simproc dup)
         #> map_ss (fn ss => ss addsimprocs [simproc'])
       end)

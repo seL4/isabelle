@@ -139,33 +139,25 @@ fun merge_alists eq xs = merge_lists (eq_fst eq) xs;
 
 (* auxiliary: noting with structured name bindings *)
 
-fun global_note_prefix kind ((bnd, atts), facts_atts_s) thy =
-  (*FIXME belongs to theory_target.ML*)
-  let
-    val prfx = Name.prefix_of bnd;
-    val name = Name.name_of bnd;
-  in
-    thy
-    |> Sign.qualified_names
-    |> fold (fn (prfx_seg, sticky) =>
-        (if sticky then Sign.sticky_prefix else Sign.add_path) prfx_seg) prfx
-    |> yield_singleton (PureThy.note_thmss kind) ((Name.binding name, atts), facts_atts_s)
-    ||> Sign.restore_naming thy
-  end;
-
-fun local_note_prefix kind ((bnd, atts), facts_atts_s) ctxt =
+fun global_note_prefix kind ((binding, atts), facts_atts_s) thy =
   (*FIXME belongs to theory_target.ML ?*)
-  let
-    val prfx = Name.prefix_of bnd;
-    val name = Name.name_of bnd;
-  in
-    ctxt
-    |> ProofContext.qualified_names
-    |> fold (fn (prfx_seg, sticky) =>
-        (if sticky then ProofContext.sticky_prefix else ProofContext.add_path) prfx_seg) prfx
-    |> yield_singleton (ProofContext.note_thmss_i kind) ((Name.binding name, atts), facts_atts_s)
-    ||> ProofContext.restore_naming ctxt
-  end;
+  thy
+  |> Sign.qualified_names
+  |> Sign.name_decl (fn (bname, (atts, facts_atts_s)) =>
+    yield_singleton (PureThy.note_thmss kind) ((Name.binding bname, atts), facts_atts_s))
+      (binding, (atts, facts_atts_s))
+  |>> snd
+  ||> Sign.restore_naming thy;
+
+fun local_note_prefix kind ((binding, atts), facts_atts_s) ctxt =
+  (*FIXME belongs to theory_target.ML ?*)
+  ctxt
+  |> ProofContext.qualified_names
+  |> ProofContext.name_decl (fn (bname, (atts, facts_atts_s)) =>
+    yield_singleton (ProofContext.note_thmss_i kind) ((Name.binding bname, atts), facts_atts_s))
+      (binding, (atts, facts_atts_s))
+  |>> snd
+  ||> ProofContext.restore_naming ctxt;
 
 
 (** locale elements and expressions **)
@@ -1657,9 +1649,9 @@ fun collect_witnesses ctxt (imprt as ((impT, _), (imp, _))) parms ids ext_ts = l
 
 (* compute and apply morphism *)
 
-fun add_prefixes loc (sticky, interp_prfx) param_prfx bnd =
-  bnd
-  |> (if sticky andalso Name.name_of bnd <> "" andalso param_prfx <> ""
+fun add_prefixes loc (sticky, interp_prfx) param_prfx binding =
+  binding
+  |> (if sticky andalso not (Name.is_nothing binding) andalso param_prfx <> ""
         then Name.add_prefix false param_prfx else I)
   |> Name.add_prefix sticky interp_prfx
   |> Name.add_prefix false (NameSpace.base loc ^ "_locale");
@@ -1684,7 +1676,7 @@ fun inst_morph thy loc (sticky, interp_prfx) param_prfx insts prems eqns export 
 fun activate_note thy loc (sticky, interp_prfx) param_prfx attrib insts prems eqns exp =
   (Element.facts_map o Element.morph_ctxt)
       (inst_morph thy loc (sticky, interp_prfx) param_prfx insts prems eqns exp)
-  #> Attrib.map_facts attrib (*o Args.morph_values (Morphism.name_morphism (add_prefixes loc (sticky, interp_prfx) param_prfx))*);
+  #> Attrib.map_facts attrib;
 
 
 (* public interface to interpretation morphism *)

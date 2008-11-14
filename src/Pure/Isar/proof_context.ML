@@ -23,6 +23,8 @@ sig
   val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
   val naming_of: Proof.context -> NameSpace.naming
+  val name_decl: (string * 'a -> Proof.context -> 'b * Proof.context)
+    -> Name.binding * 'a -> Proof.context -> (string * 'b) * Proof.context
   val full_name: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
@@ -245,6 +247,19 @@ fun set_stmt stmt =
   map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
 
 val naming_of = #naming o rep_context;
+
+fun name_decl decl (binding, x) ctxt =
+  let
+    val naming = naming_of ctxt;
+    val (naming', name) = Name.namify naming binding;
+  in
+    ctxt
+    |> map_naming (K naming')
+    |> decl (Name.name_of binding, x)
+    |>> pair name
+    ||> map_naming (K naming)
+  end;
+
 val full_name = NameSpace.full o naming_of;
 
 val syntax_of = #syntax o rep_context;
