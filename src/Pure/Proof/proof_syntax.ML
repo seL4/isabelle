@@ -9,10 +9,7 @@ signature PROOF_SYNTAX =
 sig
   val proofT: typ
   val add_proof_syntax: theory -> theory
-  val disambiguate_names: theory -> Proofterm.proof ->
-    Proofterm.proof * Proofterm.proof Symtab.table
-  val proof_of_term: theory -> Proofterm.proof Symtab.table ->
-    bool -> term -> Proofterm.proof
+  val proof_of_term: theory -> bool -> term -> Proofterm.proof
   val term_of_proof: Proofterm.proof -> term
   val cterm_of_proof: theory -> Proofterm.proof -> cterm * (cterm -> Proofterm.proof)
   val read_term: theory -> typ -> string -> term
@@ -88,41 +85,9 @@ fun add_proof_syntax thy =
           [(Syntax.mk_appl (Constant "_abs") [Variable "x", Variable "A"])])]);
 
 
-(**** create unambiguous theorem names ****)
-
-fun disambiguate_names thy prf =
-  let
-    val thms = thms_of_proof prf Symtab.empty;
-    val thms' = map (apsnd Thm.full_prop_of) (PureThy.all_thms_of thy);
-
-    val tab = Symtab.fold (fn (key, ps) => fn tab =>
-      let val prop = the_default (Bound 0) (AList.lookup (op =) thms' key)
-      in fst (fold_rev (fn (prop', prf) => fn x as (tab, i) =>
-        if prop <> prop' then
-          (Symtab.update (key ^ "_" ^ string_of_int i, prf) tab, i+1)
-        else x) ps (tab, 1))
-      end) thms Symtab.empty;
-
-    fun rename (Abst (s, T, prf)) = Abst (s, T, rename prf)
-      | rename (AbsP (s, t, prf)) = AbsP (s, t, rename prf)
-      | rename (prf1 %% prf2) = rename prf1 %% rename prf2
-      | rename (prf % t) = rename prf % t
-      | rename (prf' as PThm (s, prf, prop, Ts)) =
-          let
-            val prop' = the_default (Bound 0) (AList.lookup (op =) thms' s);
-            val ps = remove (op =) prop' (map fst (the (Symtab.lookup thms s)))
-          in if prop = prop' then prf' else
-            PThm (s ^ "_" ^ string_of_int (length ps - find_index (fn p => p = prop) ps),
-              prf, prop, Ts)
-          end
-      | rename prf = prf
-
-  in (rename prf, tab) end;
-
-
 (**** translation between proof terms and pure terms ****)
 
-fun proof_of_term thy tab ty =
+fun proof_of_term thy ty =
   let
     val thms = PureThy.all_thms_of thy;
     val axms = Theory.all_axioms_of thy;
@@ -144,10 +109,8 @@ fun proof_of_term thy tab ty =
              | "thm" :: xs =>
                  let val name = NameSpace.implode xs;
                  in (case AList.lookup (op =) thms name of
-                     SOME thm => fst (strip_combt (Thm.proof_of thm))
-                   | NONE => (case Symtab.lookup tab name of
-                         SOME prf => prf
-                       | NONE => error ("Unknown theorem " ^ quote name)))
+                     SOME thm => fst (strip_combt (Proofterm.proof_of (Thm.proof_of thm)))
+                   | NONE => error ("Unknown theorem " ^ quote name))
                  end
              | _ => error ("Illegal proof constant name: " ^ quote s))
       | prf_of Ts (Const ("Hyp", _) $ prop) = Hyp prop
@@ -184,9 +147,9 @@ val MinProoft = Const ("MinProof", proofT);
 val mk_tyapp = fold (fn T => fn prf => Const ("Appt",
   [proofT, Term.itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
 
-fun term_of _ (PThm (name, _, _, NONE)) =
+fun term_of _ (PThm (_, ((name, _, NONE), _))) =
       Const (NameSpace.append "thm" name, proofT)
-  | term_of _ (PThm (name, _, _, SOME Ts)) =
+  | term_of _ (PThm (_, ((name, _, SOME Ts), _))) =
       mk_tyapp Ts (Const (NameSpace.append "thm" name, proofT))
   | term_of _ (PAxm (name, _, NONE)) = Const (NameSpace.append "axm" name, proofT)
   | term_of _ (PAxm (name, _, SOME Ts)) =
@@ -210,23 +173,20 @@ fun term_of _ (PThm (name, _, _, NONE)) =
       end
   | term_of Ts (Hyp t) = Hypt $ t
   | term_of Ts (Oracle (_, t, _)) = Oraclet $ t
-  | term_of Ts (MinProof _) = MinProoft;
+  | term_of Ts MinProof = MinProoft;
 
 val term_of_proof = term_of [];
 
 fun cterm_of_proof thy prf =
   let
-    val (prf', tab) = disambiguate_names thy prf;
-    val thm_names = filter_out (fn s => s = "")
-      (map fst (PureThy.all_thms_of thy) @ map fst (Symtab.dest tab));
+    val thm_names = map fst (PureThy.all_thms_of thy);
     val axm_names = map fst (Theory.all_axioms_of thy);
     val thy' = thy
       |> add_proof_syntax
       |> add_proof_atom_consts
-        (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names)
+        (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names);
   in
-    (cterm_of thy' (term_of_proof prf'),
-     proof_of_term thy tab true o Thm.term_of)
+    (cterm_of thy' (term_of_proof prf), proof_of_term thy true o Thm.term_of)
   end;
 
 fun read_term thy =
@@ -248,13 +208,15 @@ fun read_term thy =
 
 fun read_proof thy =
   let val rd = read_term thy proofT
-  in fn ty => fn s => proof_of_term thy Symtab.empty ty (Logic.varify (rd s)) end;
+  in fn ty => fn s => proof_of_term thy ty (Logic.varify (rd s)) end;
 
 fun proof_syntax prf =
   let
-    val thm_names = filter_out (fn s => s = "")
-      (map fst (Symtab.dest (thms_of_proof prf Symtab.empty)));
-    val axm_names = map fst (Symtab.dest (axms_of_proof prf Symtab.empty));
+    val thm_names = Symtab.keys (fold_proof_atoms true
+      (fn PThm (_, ((name, _, _), _)) => if name <> "" then Symtab.update (name, ()) else I
+        | _ => I) [prf] Symtab.empty);
+    val axm_names = Symtab.keys (fold_proof_atoms true
+      (fn PAxm (name, _, _) => Symtab.update (name, ()) | _ => I) [prf] Symtab.empty);
   in
     add_proof_syntax #>
     add_proof_atom_consts
@@ -265,9 +227,9 @@ fun proof_of full thm =
   let
     val thy = Thm.theory_of_thm thm;
     val prop = Thm.full_prop_of thm;
-    val prf = Thm.proof_of thm;
+    val prf = Proofterm.proof_of (Thm.proof_of thm);
     val prf' = (case strip_combt (fst (strip_combP prf)) of
-        (PThm (_, prf', prop', _), _) => if prop = prop' then prf' else prf
+        (PThm (_, ((_, prop', _), body)), _) => if prop = prop' then force_proof body else prf
       | _ => prf)
   in if full then Reconstruct.reconstruct_proof thy prop prf' else prf' end;
 
