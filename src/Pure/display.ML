@@ -69,7 +69,10 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
     val prt_term = q o Pretty.term pp;
 
     val hyps' = if ! show_hyps then hyps else subtract (op aconv) asms hyps;
-    val ora' = Thm.oracle_of th andalso (! show_hyps orelse not (! quick_and_dirty));
+(* FIXME
+    val ora' = Thm.oracle_of th andalso (! show_hyps orelse not (! quick_and_dirty)); *)
+    val ora' = false;
+
     val hlen = length xshyps + length hyps' + length tpairs;
     val hsymbs =
       if hlen = 0 andalso not ora' then []
