@@ -220,7 +220,7 @@ fun make_constraints_cprf thy env cprf =
                  add_cnstrt Ts (v $ t) (prf % SOME t) cnstrts env3 vTs'
                    (u, Const ("all", (T --> propT) --> propT) $ v)
                end)
-      | mk_cnstrts env _ _ vTs (prf as PThm (_, _, prop, opTs)) =
+      | mk_cnstrts env _ _ vTs (prf as PThm (_, ((_, prop, opTs), _))) =
           mk_cnstrts_atom env vTs prop opTs prf
       | mk_cnstrts env _ _ vTs (prf as PAxm (_, prop, opTs)) =
           mk_cnstrts_atom env vTs prop opTs prf
@@ -323,7 +323,7 @@ fun prop_of0 Hs (PBound i) = List.nth (Hs, i)
       Const ("==>", _) $ P $ Q => Q
     | _ => error "prop_of: ==> expected")
   | prop_of0 Hs (Hyp t) = t
-  | prop_of0 Hs (PThm (_, _, prop, SOME Ts)) = prop_of_atom prop Ts
+  | prop_of0 Hs (PThm (_, ((_, prop, SOME Ts), _))) = prop_of_atom prop Ts
   | prop_of0 Hs (PAxm (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 Hs (Oracle (_, prop, SOME Ts)) = prop_of_atom prop Ts
   | prop_of0 _ _ = error "prop_of: partial proof object";
@@ -350,7 +350,7 @@ fun expand_proof thy thms prf =
       | expand maxidx prfs (prf % t) =
           let val (maxidx', prfs', prf') = expand maxidx prfs prf
           in (maxidx', prfs', prf' % t) end
-      | expand maxidx prfs (prf as PThm (a, cprf, prop, SOME Ts)) =
+      | expand maxidx prfs (prf as PThm (_, ((a, prop, SOME Ts), body))) =
           if not (exists
             (fn (b, NONE) => a = b
               | (b, SOME prop') => a = b andalso prop = prop') thms)
@@ -365,7 +365,7 @@ fun expand_proof thy thms prf =
                     val _ = message ("Reconstructing proof of " ^ a);
                     val _ = message (Syntax.string_of_term_global thy prop);
                     val prf' = forall_intr_vfs_prf prop
-                      (reconstruct_proof thy prop cprf);
+                      (reconstruct_proof thy prop (force_proof body));
                     val (maxidx', prfs', prf) = expand
                       (maxidx_proof prf' ~1) prfs prf'
                   in (maxidx' + maxidx + 1, inc (maxidx + 1) prf,
