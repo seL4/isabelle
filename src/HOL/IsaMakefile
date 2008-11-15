@@ -1016,7 +1016,7 @@ $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
 ## clean
 
 clean:
-	@rm -f  $(OUT)/HOL-Plain $(OUT)/HOL $(OUT)/HOL-Nominal $(OUT)/TLA \
+	@rm -f  $(OUT)/HOL-Plain $(OUT)/HOL-Main $(OUT)/HOL $(OUT)/HOL-Nominal $(OUT)/TLA \
 		$(LOG)/HOL.gz $(LOG)/TLA.gz \
 		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
 		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
