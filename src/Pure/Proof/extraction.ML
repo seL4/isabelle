@@ -544,8 +544,9 @@ fun extract thms thy =
               (defs3, corr_prf1 % u %% corr_prf2)
           end
 
-      | corr d defs vs ts Ts hs (prf0 as PThm (name, prf, prop, SOME Ts')) _ _ =
+      | corr d defs vs ts Ts hs (prf0 as PThm (_, ((name, prop, SOME Ts'), body))) _ _ =
           let
+            val prf = force_proof body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye;
             val T = etype_of thy' vs' [] prop;
@@ -567,8 +568,9 @@ fun extract thms thy =
                     val corr_prop = Reconstruct.prop_of corr_prf;
                     val corr_prf' = List.foldr forall_intr_prf
                       (proof_combt
-                         (PThm (corr_name name vs', corr_prf, corr_prop,
-                             SOME (map TVar (term_tvars corr_prop))), vfs_of corr_prop))
+                         (PThm (serial (),
+                          ((corr_name name vs', corr_prop, SOME (map TVar (term_tvars corr_prop))),
+                            Lazy.value (make_proof_body corr_prf))), vfs_of corr_prop))
                       (map (get_var_type corr_prop) (vfs_of prop))
                   in
                     ((name, (vs', ((nullt, nullt), (corr_prf, corr_prf')))) :: defs'',
@@ -632,8 +634,9 @@ fun extract thms thy =
               in (defs'', f $ t) end
           end
 
-      | extr d defs vs ts Ts hs (prf0 as PThm (s, prf, prop, SOME Ts')) =
+      | extr d defs vs ts Ts hs (prf0 as PThm (_, ((s, prop, SOME Ts'), body))) =
           let
+            val prf = force_proof body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
           in
@@ -676,8 +679,9 @@ fun extract thms thy =
                     val corr_prop = Reconstruct.prop_of corr_prf';
                     val corr_prf'' = List.foldr forall_intr_prf
                       (proof_combt
-                        (PThm (corr_name s vs', corr_prf', corr_prop,
-                          SOME (map TVar (term_tvars corr_prop))),  vfs_of corr_prop))
+                        (PThm (serial (),
+                         ((corr_name s vs', corr_prop, SOME (map TVar (term_tvars corr_prop))),
+                           Lazy.value (make_proof_body corr_prf'))), vfs_of corr_prop))
                       (map (get_var_type corr_prop) (vfs_of prop));
                   in
                     ((s, (vs', ((t', u), (corr_prf', corr_prf'')))) :: defs'',
@@ -709,7 +713,7 @@ fun extract thms thy =
       let
         val thy = Thm.theory_of_thm thm;
         val prop = Thm.prop_of thm;
-        val prf = Thm.proof_of thm;
+        val prf = proof_of (Thm.proof_of thm);
         val name = Thm.get_name thm;
         val _ = name <> "" orelse error "extraction: unnamed theorem";
         val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
